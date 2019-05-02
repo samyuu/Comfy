@@ -47,6 +47,9 @@ TestResult.xml
 [Rr]eleasePS/
 dlldata.c
 
+# AudioTest files
+AudioTest/rom
+
 # Benchmark Results
 BenchmarkDotNet.Artifacts/
 
