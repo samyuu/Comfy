@@ -23,29 +23,42 @@ void AudioEngine::Dispose()
 {
 	if (GetRtAudio() != nullptr)
 		delete GetRtAudio();
+
+	if (streamOutputParameter != nullptr)
+		delete streamOutputParameter;
 }
 
 void AudioEngine::SetAudioApi(AudioApi audioApi)
 {
 	if (GetActiveAudioApi() == audioApi)
 		return;
-	
+
 	this->audioApi = audioApi;
-	
+	bool wasStreamRunning = GetIsStreamOpen() && GetIsStreamRunning();
+
 	if (GetIsStreamRunning())
 		StopStream();
 
 	if (GetIsStreamOpen())
-		CloseAccess();
+		CloseStream();
 
 	if (GetRtAudio() != nullptr)
 		delete GetRtAudio();
-	
+
 	rtAudio = new RtAudio(GetRtAudioApi(audioApi));
+
+	if (wasStreamRunning)
+	{
+		OpenStream();
+		StartStream();
+	}
 }
 
-void AudioEngine::OpenAccess()
+void AudioEngine::OpenStream()
 {
+	if (GetIsStreamOpen())
+		return;
+
 	auto outputParameters = GetStreamOutputParameters();
 	auto inputParameters = GetStreamInputParameters();
 	auto format = GetStreamFormat();
@@ -55,7 +68,7 @@ void AudioEngine::OpenAccess()
 
 	try
 	{
-		GetRtAudio()->openStream(&outputParameters, inputParameters, format, sampleRate, &bufferSize, &InternalStaticAudioCallback, extraData);
+		GetRtAudio()->openStream(outputParameters, inputParameters, format, sampleRate, &bufferSize, &InternalStaticAudioCallback, extraData);
 		isStreamOpen = true;
 	}
 	catch (const RtAudioError& exception)
@@ -65,7 +78,7 @@ void AudioEngine::OpenAccess()
 	}
 }
 
-void AudioEngine::CloseAccess()
+void AudioEngine::CloseStream()
 {
 	if (!isStreamOpen)
 		return;
@@ -78,7 +91,7 @@ void AudioEngine::StartStream()
 {
 	if (!isStreamOpen || isStreamRunning)
 		return;
-	
+
 	isStreamRunning = true;
 	GetRtAudio()->startStream();
 }
@@ -94,8 +107,10 @@ void AudioEngine::StopStream()
 
 AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, uint32_t bufferFrameCount)
 {
+	this->bufferSize = bufferFrameCount;
+
 	//memcpy(outputBuffer, currentSampleBuffer, sizeof(currentSampleBuffer));
-	printf("AudioEngine::InternalAudioCallback(): yoo\n");
+	//printf("AudioEngine::InternalAudioCallback(): bufferFrameCount: %d\n", bufferFrameCount);
 
 	bufferFrameCount;	// 64
 	GetChannelCount();	// 2
@@ -106,8 +121,15 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 	// need to clear out the buffer from the previous call
 	memset(outputBuffer, 0, bufferFrameCount * GetChannelCount() * sizeof(int16_t));
 
-	for (size_t i = 0; i < bufferFrameCount; i+=2)
-		outputBuffer[i] = SHRT_MAX * GetMasterVolume();
+	//for (size_t i = 0; i < bufferFrameCount * GetChannelCount(); i += 1)
+	//	outputBuffer[i] = INT16_MAX * GetMasterVolume();
+
+	for (size_t i = 0; i < bufferFrameCount * GetChannelCount(); i += 1)
+	{
+		double sine = sin(GetStreamTime() * 2000000.0f);
+		short value = sine * INT16_MAX * GetMasterVolume();
+		outputBuffer[i] = value;
+	}
 
 	return AUDIO_CALLBACK_CONTINUE;
 }
@@ -122,14 +144,38 @@ RtAudio::DeviceInfo AudioEngine::GetDeviceInfo(uint32_t device)
 	return GetRtAudio()->getDeviceInfo(device);
 }
 
-RtAudio::StreamParameters AudioEngine::GetStreamOutputParameters()
+void AudioEngine::SetBufferSize(uint32_t bufferSize)
 {
-	RtAudio::StreamParameters streamParameters;
-	streamParameters.deviceId = GetRtAudio()->getDefaultOutputDevice();
-	streamParameters.nChannels = GetChannelCount();;
-	streamParameters.firstChannel = 0;
+	assert(bufferSize < MAX_BUFFER_SIZE);
 
-	return streamParameters;
+	if (this->bufferSize == bufferSize)
+		return;
+
+	this->bufferSize = bufferSize;
+
+	bool wasStreamOpen = GetIsStreamOpen();
+	bool wasStreamRunning = GetIsStreamRunning();
+
+	if (wasStreamOpen)
+	{
+		CloseStream();
+		OpenStream();
+	}
+
+	if (wasStreamRunning && GetIsStreamOpen())
+		StartStream();
+}
+
+RtAudio::StreamParameters* AudioEngine::GetStreamOutputParameters()
+{
+	if (streamOutputParameter == nullptr)
+		streamOutputParameter = new RtAudio::StreamParameters();
+
+	streamOutputParameter->deviceId = GetRtAudio()->getDefaultOutputDevice();
+	streamOutputParameter->nChannels = GetChannelCount();;
+	streamOutputParameter->firstChannel = 0;
+
+	return streamOutputParameter;
 }
 
 RtAudio::StreamParameters* AudioEngine::GetStreamInputParameters()

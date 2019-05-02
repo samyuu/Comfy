@@ -3,9 +3,9 @@
 #include <stdint.h>
 #include <algorithm>
 #include <vector>
-//#include <sndfile.h>
 
 typedef uint8_t byte;
+class AudioSource;
 
 enum AudioApi
 {
@@ -24,6 +24,9 @@ enum AudioCallbackResult
 constexpr float MIN_VOLUME = 0.0f;
 constexpr float MAX_VOLUME = 1.0f;
 
+constexpr uint32_t DEFAULT_BUFFER_SIZE = 64;
+constexpr uint32_t MAX_BUFFER_SIZE = 0x2000;
+
 class AudioEngine
 {
 public:
@@ -31,8 +34,8 @@ public:
 	void Dispose();
 
 	void SetAudioApi(AudioApi audioApi);
-	void OpenAccess();
-	void CloseAccess();
+	void OpenStream();
+	void CloseStream();
 
 	void StartStream();
 	void StopStream();
@@ -40,11 +43,16 @@ public:
 	size_t GetDeviceCount();
 	RtAudio::DeviceInfo GetDeviceInfo(uint32_t device);
 
+	void SetBufferSize(uint32_t bufferSize);
+
 	inline RtAudio* GetRtAudio() { return rtAudio; };
 	inline uint32_t GetChannelCount() { return 2; };
 	inline uint32_t GetSampleRate() { return 44100; };
-	inline uint32_t GetBufferSize() { return 64; };
+	inline uint32_t GetBufferSize() { return bufferSize; };
 	inline RtAudioFormat GetStreamFormat() { return RTAUDIO_SINT16; };
+
+	inline double GetStreamTime() { return GetRtAudio() && GetIsStreamOpen() ? GetRtAudio()->getStreamTime() : 0.0; };
+	inline void SetStreamTime(double value) { if (GetRtAudio()) { GetRtAudio()->setStreamTime(value); } };
 
 	inline AudioApi GetDefaultAudioApi() { return AUDIO_API_WASAPI; };
 	inline AudioApi GetActiveAudioApi() { return audioApi; };
@@ -55,6 +63,7 @@ public:
 	inline float GetMasterVolume() { return masterVolume; };
 	inline float SetMasterVolume(float value) { masterVolume = std::clamp(value, MIN_VOLUME, MAX_VOLUME); };
 	inline float* GetMasterVolumePtr() { return &masterVolume; };
+	inline bool GetIsExclusiveMode() { return GetActiveAudioApi() == AUDIO_API_ASIO; };
 
 	static inline void CreateInstance() { engineInstance = new AudioEngine(); };
 	static inline void InitializeInstance() { GetInstance()->Initialize(); };
@@ -66,15 +75,18 @@ private:
 	AudioEngine();
 	~AudioEngine();
 
-	//std::vector<ISampleProvider>
-	//std::vector<IAudioSource>
+	std::vector<AudioSource*> audioSources;
 	//int16_t currentSampleBuffer[64 * 2];
+
+	uint32_t bufferSize = DEFAULT_BUFFER_SIZE;
 
 	bool isStreamOpen = false, isStreamRunning = false;
 	float masterVolume = MAX_VOLUME;
 	
 	AudioApi audioApi = AUDIO_API_INVALID;
 	RtAudio* rtAudio = nullptr;
+
+	RtAudio::StreamParameters* streamOutputParameter = nullptr;
 
 	inline int16_t MixSamples(int16_t a, int16_t b)
 	{
@@ -102,7 +114,7 @@ private:
 	};
 
 	AudioCallbackResult InternalAudioCallback(int16_t* outputBuffer, uint32_t bufferFrameCount);
-	RtAudio::StreamParameters GetStreamOutputParameters();
+	RtAudio::StreamParameters* GetStreamOutputParameters();
 	RtAudio::StreamParameters* GetStreamInputParameters();
 
 	static AudioEngine* engineInstance;

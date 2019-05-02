@@ -23,6 +23,7 @@ private:
 
 	std::vector<ExtendedDeviceInfo> deviceInfoList;
 	AudioApi selectedAudioApi = AUDIO_API_INVALID;
+	int newBufferSize = -1;
 
 	const char* audioApiNames[AUDIO_API_COUNT] =
 	{ 

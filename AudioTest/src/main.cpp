@@ -185,25 +185,31 @@ int AudioCallback(void* outputBuffer, void* inputBuffer, unsigned int bufferFram
 
 int main(int argc, char *argv[])
 {
-	bool asio = !true;
+	bool asio = true;
 	RtAudio rtAudio = RtAudio(asio ? RtAudio::WINDOWS_ASIO : RtAudio::WINDOWS_WASAPI);
 
 	assert(rtAudio.getDeviceCount() >= 1);
 
-	Channels = atoi(argv[1]);
-	SampleRate = atoi(argv[2]);
+	//Channels = atoi(argv[1]);
+	//SampleRate = atoi(argv[2]);
+
+	Channels = 2;
+	SampleRate = 44100;
 
 	char* filePath = argv[3];
 	//uchuuSamurai = ReadRawAudioFile(filePath);
 	//coldOne = ReadRawAudioFile("rom/nop_cracking_open_a_cold_one.raw");
 	//coldOne = ReadRawAudioFile("rom/01_button1.raw");
 
+	filePath = (char*)"rom/input.flac";
+
 	if (true)
 	{
 		SF_INFO sf_info = {};
 		//SNDFILE *snd_file = sf_open("rom/selector_vox_lp.ogg", SFM_READ, &sf_info);
-		SNDFILE *snd_file = sf_open("rom/button/01_button1.wav", SFM_READ, &sf_info);
+		//SNDFILE *snd_file = sf_open("rom/button/01_button1.wav", SFM_READ, &sf_info);
 		//SNDFILE *snd_file = sf_open("rom/button/24_tambourine_2nd.wav", SFM_READ, &sf_info);
+		SNDFILE *snd_file = sf_open("rom/button.wav", SFM_READ, &sf_info);
 		assert(snd_file);
 
 		size_t totalFrames = sf_info.frames * sf_info.channels;
@@ -222,7 +228,9 @@ int main(int argc, char *argv[])
 		//SNDFILE *snd_file = sf_open("rom/selector_vox_lp.ogg", SFM_READ, &sf_info);
 		//SNDFILE *snd_file = sf_open("rom/07 アザレア.flac", SFM_READ, &sf_info);
 		//SNDFILE *snd_file = sf_open("rom/samurai.wav", SFM_READ, &sf_info);
-		SNDFILE *snd_file = sf_open("D:/Nop/音楽/VALLEYSTONE/懐色坂/06 Butterfly Effect feat. Kanata.N.flac", SFM_READ, &sf_info);
+		//SNDFILE *snd_file = sf_open("D:/Nop/音楽/VALLEYSTONE/懐色坂/06 Butterfly Effect feat. Kanata.N.flac", SFM_READ, &sf_info);
+		SNDFILE *snd_file = sf_open("rom/input.flac", SFM_READ, &sf_info);
+
 		assert(snd_file);
 
 		size_t totalFrames = sf_info.frames * sf_info.channels;
@@ -245,7 +253,7 @@ int main(int argc, char *argv[])
 	streamParameters.nChannels = Channels;
 	streamParameters.firstChannel = 0;
 
-	uint32_t bufferSize = 64;
+	uint32_t bufferSize = 0; // 512 * 2;
 
 	constexpr auto isTapped = [](byte key) { return KeyStates[key] && !LastKeyStates[key]; };
 

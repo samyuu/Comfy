@@ -92,6 +92,7 @@ private:
 	// -----------------
 	bool hasBeenInitialized = false;
 	bool hasBeenDisposed = false;
+	bool mainLoopLowPowerSleep = false;
 
 	GLFWwindow *window = nullptr;
 	ImVec4 baseClearColor = { .12f, .12f, .12f, 1.0f };
@@ -140,7 +141,7 @@ private:
 
 	// Input / UI variables
 	// --------------------
-	int mouseBeingUsed, keyboardBeingUsed;
+	int mouseBeingUsed = true, keyboardBeingUsed = true;
 	int mouseX, mouseY;
 	int mouseDeltaX, mouseDeltaY;
 	int lastMouseX, lastMouseY;

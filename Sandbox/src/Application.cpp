@@ -102,6 +102,9 @@ void Application::Run()
 		currentTime = glfwGetTime();
 
 		elapsedTime = (float)(currentTime - lastTime);
+
+		if (mainLoopLowPowerSleep)
+			Sleep(1);
 	}
 
 	BaseDispose();
@@ -588,6 +591,7 @@ void Application::DrawGui()
 	{
 		static bool showComfyDebug = true;
 		static bool showDemoWindow = true;
+		static bool showSwapInterval = true;
 
 		// Main Menu Bar
 		// -------------
@@ -597,6 +601,17 @@ void Application::DrawGui()
 			{
 				if (ImGui::MenuItem("Toggle Fullscreen", nullptr))
 					ToggleFullscreen();
+
+				if (ImGui::BeginMenu("Swap Interval", &showSwapInterval))
+				{
+					if (ImGui::MenuItem("glfwSwapInterval(0)", nullptr))
+						glfwSwapInterval(0);
+
+					if (ImGui::MenuItem("glfwSwapInterval(1)", nullptr))
+						glfwSwapInterval(1);
+
+					ImGui::EndMenu();
+				}
 
 				if (ImGui::MenuItem("Test Print", nullptr))
 					printf("DrawGui(): Test\n");
@@ -716,7 +731,7 @@ void Application::DrawGui()
 		// Data Test Windows
 		// -----------------
 		DrawGuiBaseWindowWindows(dataTestComponents);
-		
+
 		// Comfy Debug Windows
 		// -------------------
 		if (showComfyDebug)
@@ -825,6 +840,10 @@ void Application::DrawGui()
 					if (ImGui::IsWindowHovered() | ImGui::IsMouseDown(0))
 						mouseBeingUsed = false;
 					keyboardBeingUsed = false;
+				}
+				else
+				{
+					keyboardBeingUsed = true;
 				}
 
 				//ImU32 backgroundColor = ImGui::GetColorU32(ImGui::GetStyle().Colors[ImGuiCol_DockingEmptyBg]);

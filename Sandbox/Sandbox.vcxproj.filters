@@ -99,6 +99,12 @@
     <ClCompile Include="src\DataTest\AudioTestWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Audio\AudioSource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Audio\MemoryAudioStream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ImGui\imconfig.h">
@@ -188,7 +194,10 @@
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Audio\IAudioSource.h">
+    <ClInclude Include="src\Audio\AudioSource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Audio\MemoryAudioStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

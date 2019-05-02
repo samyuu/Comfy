@@ -13,7 +13,8 @@ void AudioTestWindow::DrawGui()
 {
 	AudioEngine* engine = AudioEngine::GetInstance();
 
-	//ImGui::ShowDemoWindow(nullptr);
+	if (false)
+		ImGui::ShowDemoWindow(nullptr);
 
 	ImGui::Text("AUDIO TEST:");
 	ImGui::Separator();
@@ -47,34 +48,43 @@ void AudioTestWindow::DrawGui()
 
 	ImGui::Text("Stream Control");
 	{
-		if (ImGui::Button("engine->OpenAccess()"))
-			engine->OpenAccess();
-		ImGui::SameLine();
-		if (ImGui::Button("engine->CloseAccess()"))
-			engine->CloseAccess();
+		const ImVec2 buttonSize(ImGui::GetWindowWidth() / 4.f, 0);
 
-		bool isStreamOpen = engine->GetIsStreamOpen();
+		ImGui::PushItemWidth(buttonSize.x);
+		{
+			if (ImGui::Button("engine->OpenStream()", buttonSize))
+				engine->OpenStream();
+			ImGui::SameLine();
+			if (ImGui::Button("engine->CloseStream()", buttonSize))
+				engine->CloseStream();
 
-		ImGui::SameLine();
-		ImGui::Text("engine->GetIsStreamOpen():        ");
-		ImGui::SameLine();
-		ImGui::TextColored(isStreamOpen ? onColor : offColor, isStreamOpen ? "open" : "closed");
+			bool isStreamOpen = engine->GetIsStreamOpen();
+
+			ImGui::SameLine();
+			ImGui::Text("engine->GetIsStreamOpen():");
+			ImGui::SameLine();
+			ImGui::TextColored(isStreamOpen ? onColor : offColor, isStreamOpen ? "open" : "closed");
+		}
+
+		{
+			if (ImGui::Button("engine->StartStream()", buttonSize))
+				engine->StartStream();
+			ImGui::SameLine();
+			if (ImGui::Button("engine->StopStream()", buttonSize))
+				engine->StopStream();
+
+			bool isStreamRunning = engine->GetIsStreamRunning();
+
+			ImGui::SameLine();
+			ImGui::Text("engine->GetIsStreamRunning():");
+			ImGui::SameLine();
+			ImGui::TextColored(isStreamRunning ? onColor : offColor, isStreamRunning ? "running" : "stopped");
+		}
+		ImGui::PopItemWidth();
+
+		ImGui::Text("engine->GetStreamTime(): %f", engine->GetStreamTime());
+		ImGui::Text("engine->GetBufferSize(): %d", engine->GetBufferSize());
 	}
-	{
-		if (ImGui::Button("engine->StartStream()"))
-			engine->StartStream();
-		ImGui::SameLine();
-		if (ImGui::Button("engine->StopStream()"))
-			engine->StopStream();
-
-		bool isStreamRunning = engine->GetIsStreamRunning();
-
-		ImGui::SameLine();
-		ImGui::Text("engine->GetIsStreamRunning(): ");
-		ImGui::SameLine();
-		ImGui::TextColored(isStreamRunning ? onColor : offColor, isStreamRunning ? "running" : "stopped");
-	}
-
 	ImGui::Separator();
 
 	ImGui::Text("Audio API");
@@ -87,9 +97,29 @@ void AudioTestWindow::DrawGui()
 		ImGui::Combo("Audio API##combo", (int*)&selectedAudioApi, audioApiNames, IM_ARRAYSIZE(audioApiNames));
 		ImGui::Separator();
 
-		if (ImGui::Button("engine->SetAudioApi()"))
+		if (ImGui::Button("engine->SetAudioApi()", ImVec2(ImGui::CalcItemWidth(), 0)))
 			engine->SetAudioApi(selectedAudioApi);
+	}
+	ImGui::Separator();
 
+	ImGui::Text("Audio Buffer");
+	{
+		ImGui::TextDisabled("(engine->GetBufferSize(): %d)", engine->GetBufferSize());
+
+		if (newBufferSize < 0)
+			newBufferSize = engine->GetBufferSize();
+
+		const uint32_t slowStep = 4, fastStep = 64;
+		ImGui::InputScalar("Buffer Size", ImGuiDataType_U32, &newBufferSize, &slowStep, &fastStep, "%u");
+
+		if (ImGui::Button("engine->SetBufferSize()", ImVec2(ImGui::CalcItemWidth(), 0)))
+			engine->SetBufferSize(newBufferSize);
+	}
+	ImGui::Separator();
+
+	ImGui::Text("Audio Data");
+	{
+		ImGui::TextDisabled("(Dummy)");
 		//ImGui::BeginCombo();
 		//ImGui::PlotLines("PlitPLines", );
 	}
