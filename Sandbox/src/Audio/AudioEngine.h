@@ -87,6 +87,7 @@ private:
 	//int16_t currentSampleBuffer[64 * 2];
 	std::vector<AudioInstance*> audioInstances;
 
+	int16_t* tempOutputBuffer;
 	uint32_t bufferSize = DEFAULT_BUFFER_SIZE;
 
 	bool isStreamOpen = false, isStreamRunning = false;

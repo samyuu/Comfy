@@ -21,12 +21,16 @@ void AudioEngine::Initialize()
 	SetAudioApi(GetDefaultAudioApi());
 
 	audioInstances.reserve(64);
+	tempOutputBuffer = new int16_t[MAX_BUFFER_SIZE * GetChannelCount()];
 }
 
 void AudioEngine::Dispose()
 {
 	if (GetRtAudio() != nullptr)
 		delete GetRtAudio();
+
+	if (tempOutputBuffer != nullptr)
+		delete[] tempOutputBuffer;
 
 	if (streamOutputParameter != nullptr)
 		delete streamOutputParameter;
@@ -125,10 +129,7 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 	// 2 channels * 64 frames * sizeof(int16_t) -> 256 bytes inside the outputBuffer
 	// 64 samples for each ear
 
-	int16_t* tempOutputBuffer = (int16_t*)_malloca(byteBufferSize);
-
 	int audioInstancesSize = audioInstances.size();
-
 	for (size_t i = 0; i < audioInstancesSize; i++)
 	{
 		AudioInstance* audioInstance = audioInstances[i];
