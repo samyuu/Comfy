@@ -6,10 +6,19 @@ AudioInstance::AudioInstance(ISampleProvider* sampleProvider) : sampleProvider(s
 	assert(sampleProvider);
 }
 
-AudioInstance::AudioInstance(ISampleProvider* sampleProvider, bool playing, AudioFinishedAction finishedAction) : AudioInstance(sampleProvider)
+AudioInstance::AudioInstance(ISampleProvider* sampleProvider, bool playing) : AudioInstance(sampleProvider)
 {
 	SetIsPlaying(playing);
+}
+
+AudioInstance::AudioInstance(ISampleProvider* sampleProvider, bool playing, AudioFinishedAction finishedAction) : AudioInstance(sampleProvider, playing)
+{
 	SetOnFinishedAction(finishedAction);
+}
+
+AudioInstance::AudioInstance(ISampleProvider* sampleProvider, bool playing, AudioFinishedAction finishedAction, float volume) : AudioInstance(sampleProvider, playing, finishedAction)
+{
+	SetVolume(volume);
 }
 
 AudioInstance::~AudioInstance()
@@ -32,12 +41,81 @@ TimeSpan AudioInstance::GetDuration()
 	return SamplesToTimeSpan(GetSampleCount());
 }
 
-inline TimeSpan AudioInstance::SamplesToTimeSpan(double samples)
+float AudioInstance::GetVolume()
+{
+	return volume;
+};
+void AudioInstance::SetVolume(float value)
+{
+	volume = std::clamp(value, MIN_VOLUME, MAX_VOLUME);
+};
+
+bool AudioInstance::GetIsPlaying()
+{
+	return isPlaying;
+};
+void AudioInstance::SetIsPlaying(bool value)
+{
+	isPlaying = value;
+};
+
+bool AudioInstance::GetAppendDelete()
+{
+	return appendDelete;
+};
+void AudioInstance::SetAppendDelete(bool value)
+{
+	appendDelete = value;
+};
+
+bool AudioInstance::GetHasBeenRemoved()
+{
+	return hasBeenRemoved;
+};
+bool AudioInstance::GetHasReachedEnd()
+{
+	return GetSamplePosition() >= GetSampleCount();
+};
+
+AudioFinishedAction AudioInstance::GetOnFinishedAction()
+{
+	return onFinishedAction;
+};
+void AudioInstance::SetOnFinishedAction(AudioFinishedAction value)
+{
+	onFinishedAction = value;
+};
+
+size_t AudioInstance::GetSamplePosition()
+{
+	return samplePosition;
+};
+void AudioInstance::SetSamplePosition(size_t value)
+{
+	samplePosition = std::clamp(value, (size_t)0, GetSampleCount());
+};
+
+size_t AudioInstance::GetSampleCount()
+{
+	return GetSampleProvider()->GetSampleCount();
+};
+
+uint32_t AudioInstance::GetSampleRate()
+{
+	return GetSampleProvider()->GetSampleRate();
+};
+
+uint32_t AudioInstance::GetChannelCount()
+{
+	return GetSampleProvider()->GetChannelCount();
+};
+
+TimeSpan AudioInstance::SamplesToTimeSpan(double samples)
 {
 	return SamplesToTimeSpan(samples, GetSampleRate(), GetChannelCount());
 };
 
-inline size_t AudioInstance::TimeSpanToSamples(TimeSpan time)
+size_t AudioInstance::TimeSpanToSamples(TimeSpan time)
 {
 	return TimeSpanToSamples(time, GetSampleRate(), GetChannelCount());
 };

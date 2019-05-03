@@ -5,7 +5,10 @@
 #include <vector>
 
 typedef uint8_t byte;
+typedef RtAudio::StreamParameters StreamParameters;
+
 class AudioInstance;
+class ISampleProvider;
 
 enum AudioApi
 {
@@ -30,6 +33,7 @@ constexpr uint32_t MAX_BUFFER_SIZE = 0x2000;
 class AudioEngine
 {
 public:
+	// ----------------------
 	void Initialize();
 	void Dispose();
 
@@ -39,12 +43,15 @@ public:
 
 	void StartStream();
 	void StopStream();
+	// ----------------------
 
+	// ----------------------
 	size_t GetDeviceCount();
 	RtAudio::DeviceInfo GetDeviceInfo(uint32_t device);
 
 	void SetBufferSize(uint32_t bufferSize);
 	void AddAudioInstance(AudioInstance* audioInstance);
+	void PlaySound(ISampleProvider* sampleProvider, float volume = MAX_VOLUME);
 
 	inline RtAudio* GetRtAudio() { return rtAudio; };
 	inline uint32_t GetChannelCount() { return 2; };
@@ -71,6 +78,7 @@ public:
 	static inline void DisposeInstance() { GetInstance()->Dispose(); };
 	static inline void DeleteInstance() { delete GetInstance(); engineInstance = nullptr; };
 	static inline AudioEngine* GetInstance() { return engineInstance; };
+	// ----------------------
 
 private:
 	AudioEngine();
@@ -90,7 +98,7 @@ private:
 	AudioApi audioApi = AUDIO_API_INVALID;
 	RtAudio* rtAudio = nullptr;
 
-	RtAudio::StreamParameters* streamOutputParameter = nullptr;
+	StreamParameters* streamOutputParameter = nullptr;
 
 	inline int16_t MixSamples(int16_t a, int16_t b)
 	{
@@ -118,8 +126,9 @@ private:
 	};
 
 	AudioCallbackResult InternalAudioCallback(int16_t* outputBuffer, uint32_t bufferFrameCount, double streamTime);
-	RtAudio::StreamParameters* GetStreamOutputParameters();
-	RtAudio::StreamParameters* GetStreamInputParameters();
+
+	StreamParameters* GetStreamOutputParameters();
+	StreamParameters* GetStreamInputParameters();
 
 	static AudioEngine* engineInstance;
 

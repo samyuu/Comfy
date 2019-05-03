@@ -45,13 +45,13 @@ void AudioTestWindow::DrawGui()
 
 		ImGui::Columns(1);
 		ImGui::PopStyleVar();
-		ImGui::Separator();
 	}
+	ImGui::Separator();
 
 	const ImVec4 onColor = ImVec4(0.14f, 0.78f, 0.21f, 1.00f);
 	const ImVec4 offColor = ImVec4(0.95f, 0.12f, 0.12f, 1.00f);
 
-	ImGui::Text("Stream Control");
+	if (ImGui::CollapsingHeader("Stream Control"))
 	{
 		const ImVec2 buttonSize(ImGui::GetWindowWidth() / 4.f, 0);
 
@@ -93,7 +93,7 @@ void AudioTestWindow::DrawGui()
 	}
 	ImGui::Separator();
 
-	ImGui::Text("Audio API");
+	if (ImGui::CollapsingHeader("Audio API"))
 	{
 		ImGui::TextDisabled("(engine->GetActiveAudioApi(): %s)", audioApiNames[engine->GetActiveAudioApi()]);
 
@@ -108,7 +108,7 @@ void AudioTestWindow::DrawGui()
 	}
 	ImGui::Separator();
 
-	ImGui::Text("Audio Buffer");
+	if (ImGui::CollapsingHeader("Audio Buffer"))
 	{
 		ImGui::TextDisabled("(engine->GetBufferSize(): %d)", engine->GetBufferSize());
 
@@ -126,7 +126,7 @@ void AudioTestWindow::DrawGui()
 	}
 	ImGui::Separator();
 
-	ImGui::Text("Audio Data");
+	if (ImGui::CollapsingHeader("Audio Data"))
 	{
 		ImGui::TextDisabled("(Dummy)");
 		//ImGui::BeginCombo();
@@ -134,93 +134,98 @@ void AudioTestWindow::DrawGui()
 	}
 	ImGui::Separator();
 
-	static MemoryAudioStream sngtst;
-	static AudioInstance* songAudioInstance = nullptr;
-
-	static MemoryAudioStream buttonSound;
-	if (!buttonSound.GetIsInitialized())
-		buttonSound.LoadFromFile("rom/sound/button/01_button1.wav");
-
-	ImGui::Text("Audio File Test");
+	if (ImGui::CollapsingHeader("Audio File Test"))
 	{
-		if (ImGui::Button("sngtst.LoadFromFile()") && !sngtst.GetIsInitialized())
+		static MemoryAudioStream sngtst;
+		static AudioInstance* songAudioInstance = nullptr;
+
+		if (!sngtst.GetIsInitialized())
 			sngtst.LoadFromFile("rom/sound/sngtst.wav");
 
-		ImGui::SameLine();
-		if (ImGui::Button("engine->AddAudioInstance()") && sngtst.GetIsInitialized())
+		if (ImGui::Button("engine->AddAudioInstance()"))
 		{
-			delete songAudioInstance;
-			songAudioInstance = new AudioInstance(&sngtst);
-			songAudioInstance->SetIsPlaying(true);
+			if (songAudioInstance != nullptr)
+				songAudioInstance->SetAppendDelete(true);
+
+			songAudioInstance = new AudioInstance(&sngtst, true);
 			engine->AddAudioInstance(songAudioInstance);
 		}
 
+		if (songAudioInstance != nullptr)
+		{
+			if (songAudioInstance->GetHasBeenRemoved())
+				return;
+
+			AudioInstance* audioInstance = songAudioInstance;
+
+			ImGui::Separator();
+			ImGui::Text("GetChannelCount(): %u", sngtst.GetChannelCount());
+			ImGui::Text("GetSampleCount(): %u", sngtst.GetSampleCount());
+			ImGui::Text("GetSampleRate(): %u", sngtst.GetSampleRate());
+
+			int samplePosition = audioInstance->GetSamplePosition();
+			if (ImGui::SliderInt("sample position", &samplePosition, 0, audioInstance->GetSampleCount()))
+				audioInstance->SetSamplePosition(samplePosition);
+
+			float position = audioInstance->GetPosition().Seconds();
+			if (ImGui::SliderFloat("position", &position, 0, audioInstance->GetDuration().Seconds(), "%f"))
+				audioInstance->SetPosition(TimeSpan::FromSeconds(position));
+
+			ImGui::Separator();
+			ImGui::Text("audioInstance->GetDuration().Minutes(): %f", audioInstance->GetDuration().Minutes());
+			ImGui::Text("audioInstance->GetDuration().Seconds(): %f", audioInstance->GetDuration().Seconds());
+			ImGui::Text("audioInstance->GetDuration().Milliseconds(): %f", audioInstance->GetDuration().Milliseconds());
+			ImGui::Separator();
+			ImGui::Text("audioInstance->GetPosition().Minutes(): %f", audioInstance->GetPosition().Minutes());
+			ImGui::Text("audioInstance->GetPosition().Seconds(): %f", audioInstance->GetPosition().Seconds());
+			ImGui::Text("audioInstance->GetPosition().Milliseconds(): %f", audioInstance->GetPosition().Milliseconds());
+			ImGui::Separator();
+
+			float volume = audioInstance->GetVolume();
+			if (ImGui::SliderFloat("volume", &volume, MIN_VOLUME, MAX_VOLUME))
+				audioInstance->SetVolume(volume);
+
+			auto boolColorText = [&onColor, &offColor](const char* label, bool value)
+			{
+				ImGui::Text(label); ImGui::SameLine();
+				ImGui::TextColored(value ? onColor : offColor, value ? "true" : "false");
+			};
+
+			boolColorText("GetIsPlaying(): ", audioInstance->GetIsPlaying());
+			boolColorText("GetHasReachedEnd(): ", audioInstance->GetHasReachedEnd());
+			boolColorText("GetHasBeenRemoved(): ", audioInstance->GetHasBeenRemoved());
+
+			bool isPlaying = audioInstance->GetIsPlaying();
+			if (ImGui::Checkbox("audioInstance->IsPlaying", &isPlaying))
+				audioInstance->SetIsPlaying(isPlaying);
+		}
+	}
+	ImGui::Separator();
+
+	if (ImGui::CollapsingHeader("Button Sound Test"))
+	{
+		static MemoryAudioStream buttonSound;
+
+		if (!buttonSound.GetIsInitialized())
+			buttonSound.LoadFromFile("rom/sound/button/01_button1.wav");
+
 		static bool wasKeyDown[GLFW_KEY_LAST];
 		static bool isKeyDown[GLFW_KEY_LAST];
-		
+
 		memcpy(wasKeyDown, isKeyDown, sizeof(wasKeyDown));
 		for (size_t i = 0; i < sizeof(wasKeyDown); i++)
 			isKeyDown[i] = glfwGetKey(GetParent()->GetWindow(), i);
 
 		auto tapped = [](int key) { return isKeyDown[key] && !wasKeyDown[key]; };
 
-		ImGui::Separator();
-		bool addButtonSound = ImGui::Button("AddAudioInstance(buttonSoundInstance)");
+		bool addButtonSound = ImGui::Button("PlaySound(buttonSound)");
 
-		short keys[]{ 'W', 'A', 'S', 'D', 'I', 'J', 'K', 'L' };
+		short keys[] = { 'W', 'A', 'S', 'D', 'I', 'J', 'K', 'L' };
 		for (size_t i = 0; i < IM_ARRAYSIZE(keys); i++)
 			addButtonSound |= tapped(keys[i]);
 
 		if (addButtonSound)
-			engine->AddAudioInstance(new AudioInstance(&buttonSound, true, AUDIO_FINISHED_DELETE));
-		
-		ImGui::Separator();
-	}
-
-	if (songAudioInstance != nullptr)
-	{
-		if (songAudioInstance->GetHasBeenRemoved())
-			return;
-
-		AudioInstance* audioInstance = songAudioInstance;
-
-		ImGui::Text("GetChannelCount(): %u", sngtst.GetChannelCount());
-		ImGui::Text("GetSampleCount(): %u", sngtst.GetSampleCount());
-		ImGui::Text("GetSampleRate(): %u", sngtst.GetSampleRate());
-	
-		int samplePosition = audioInstance->GetSamplePosition();
-		if (ImGui::SliderInt("sample position", &samplePosition, 0, audioInstance->GetSampleCount()))
-			audioInstance->SetSamplePosition(samplePosition);
-
-		float position = audioInstance->GetPosition().Seconds();
-		if (ImGui::SliderFloat("position", &position, 0, audioInstance->GetDuration().Seconds(), "%f"))
-			audioInstance->SetPosition(TimeSpan::FromSeconds(position));
-
-		ImGui::Text("audioInstance->GetDuration().Minutes(): %f", audioInstance->GetDuration().Minutes());
-		ImGui::Text("audioInstance->GetDuration().Seconds(): %f", audioInstance->GetDuration().Seconds());
-		ImGui::Text("audioInstance->GetDuration().Milliseconds(): %f", audioInstance->GetDuration().Milliseconds());
-
-		ImGui::Text("audioInstance->GetPosition().Minutes(): %f", audioInstance->GetPosition().Minutes());
-		ImGui::Text("audioInstance->GetPosition().Seconds(): %f", audioInstance->GetPosition().Seconds());
-		ImGui::Text("audioInstance->GetPosition().Milliseconds(): %f", audioInstance->GetPosition().Milliseconds());
-
-		float volume = audioInstance->GetVolume();
-		if (ImGui::SliderFloat("volume", &volume, MIN_VOLUME, MAX_VOLUME))
-			audioInstance->SetVolume(volume);
-
-		auto boolColorText = [&onColor, &offColor](const char* label, bool value) 
-		{
-			ImGui::Text(label); ImGui::SameLine();
-			ImGui::TextColored(value ? onColor : offColor, value ? "true" : "false");
-		};
-
-		boolColorText("GetIsPlaying(): ", audioInstance->GetIsPlaying());
-		boolColorText("GetHasReachedEnd(): ", audioInstance->GetHasReachedEnd());
-		boolColorText("GetHasBeenRemoved(): ", audioInstance->GetHasBeenRemoved());
-
-		bool isPlaying = audioInstance->GetIsPlaying();
-		if (ImGui::Checkbox("audioInstance->IsPlaying", &isPlaying))
-			audioInstance->SetIsPlaying(isPlaying);
+			engine->PlaySound(&buttonSound);
 	}
 }
 

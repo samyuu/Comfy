@@ -133,14 +133,14 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 	{
 		AudioInstance* audioInstance = audioInstances[i];
 
-		if (audioInstance->GetHasReachedEnd() && audioInstance->GetOnFinishedAction() != AUDIO_FINISHED_NONE)
+		if (audioInstance->GetAppendDelete() || (audioInstance->GetHasReachedEnd() && audioInstance->GetOnFinishedAction() != AUDIO_FINISHED_NONE))
 		{
 			audioInstance->SetHasBeenRemoved(true);
 			
 			audioInstances.erase(audioInstances.begin() + i);
 			audioInstancesSize--;
 			
-			if (audioInstance->GetOnFinishedAction() == AUDIO_FINISHED_DELETE)
+			if (audioInstance->GetAppendDelete() || audioInstance->GetOnFinishedAction() == AUDIO_FINISHED_DELETE)
 				delete audioInstance;
 			
 			continue;
@@ -150,24 +150,10 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 			continue;
 
 		size_t samplesRead = audioInstance->GetSampleProvider()->ReadSamples(tempOutputBuffer, audioInstance->GetSamplePosition(), samplesInBuffer);
+		audioInstance->IncrementSamplePosition(samplesRead);
 
 		for (size_t i = 0; i < samplesRead; i++)
 			outputBuffer[i] = MixSamples(outputBuffer[i], tempOutputBuffer[i] * audioInstance->GetVolume());
-
-		audioInstance->IncrementSamplePosition(samplesRead);
-	}
-
-	// test sinewave generator
-	if (false)
-	{
-		for (size_t i = 0; i < bufferFrameCount * GetChannelCount(); i += 1)
-		{
-			static int elapsedSamples = 0;
-			++elapsedSamples;
-			constexpr double frequency = 0.004;
-
-			outputBuffer[i] = sin(elapsedSamples * frequency) * INT16_MAX * GetMasterVolume();
-		}
 	}
 
 	for (size_t i = 0; i < samplesInBuffer; i++)
@@ -226,10 +212,15 @@ void AudioEngine::AddAudioInstance(AudioInstance* audioInstance)
 	}
 }
 
-RtAudio::StreamParameters* AudioEngine::GetStreamOutputParameters()
+void AudioEngine::PlaySound(ISampleProvider* sampleProvider, float volume)
+{
+	AddAudioInstance(new AudioInstance(sampleProvider, true, AUDIO_FINISHED_DELETE, volume));
+}
+
+StreamParameters* AudioEngine::GetStreamOutputParameters()
 {
 	if (streamOutputParameter == nullptr)
-		streamOutputParameter = new RtAudio::StreamParameters();
+		streamOutputParameter = new StreamParameters();
 
 	streamOutputParameter->deviceId = GetRtAudio()->getDefaultOutputDevice();
 	streamOutputParameter->nChannels = GetChannelCount();;
@@ -238,7 +229,7 @@ RtAudio::StreamParameters* AudioEngine::GetStreamOutputParameters()
 	return streamOutputParameter;
 }
 
-RtAudio::StreamParameters* AudioEngine::GetStreamInputParameters()
+StreamParameters* AudioEngine::GetStreamInputParameters()
 {
 	return nullptr;
 }
