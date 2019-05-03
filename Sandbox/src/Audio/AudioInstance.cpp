@@ -59,6 +59,15 @@ void AudioInstance::SetIsPlaying(bool value)
 	isPlaying = value;
 };
 
+bool AudioInstance::GetIsLooping()
+{
+	return isLooping;
+};
+void AudioInstance::SetIsLooping(bool value)
+{
+	isLooping = value;
+};
+
 bool AudioInstance::GetAppendDelete()
 {
 	return appendDelete;

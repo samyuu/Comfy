@@ -142,7 +142,7 @@ void AudioTestWindow::DrawGui()
 		static AudioInstance* songAudioInstance = nullptr;
 
 		if (!sngtst.GetIsInitialized())
-			sngtst.LoadFromFile("rom/sound/sngtst.wav");
+			sngtst.LoadFromFile("rom/sound/sngtst.flac");
 
 		if (ImGui::Button("engine->AddAudioInstance()"))
 		{
@@ -200,6 +200,10 @@ void AudioTestWindow::DrawGui()
 			bool isPlaying = audioInstance->GetIsPlaying();
 			if (ImGui::Checkbox("audioInstance->IsPlaying", &isPlaying))
 				audioInstance->SetIsPlaying(isPlaying);
+
+			bool isLooping = audioInstance->GetIsLooping();
+			if (ImGui::Checkbox("audioInstance->GetIsLooping", &isLooping))
+				audioInstance->SetIsLooping(isLooping);
 		}
 	}
 	ImGui::Separator();
@@ -207,11 +211,14 @@ void AudioTestWindow::DrawGui()
 	if (ImGui::CollapsingHeader("Button Sound Test"))
 	{
 		static MemoryAudioStream buttonSound;
+		static float buttonVolume = MAX_VOLUME;
 
 		if (!buttonSound.GetIsInitialized())
 			buttonSound.LoadFromFile("rom/sound/button/01_button1.wav");
 
 		bool addButtonSound = ImGui::Button("PlaySound(buttonSound)");
+
+		ImGui::SliderFloat("Button Volume", &buttonVolume, MIN_VOLUME, MAX_VOLUME);
 
 		short keys[] = { 'W', 'A', 'S', 'D', 'I', 'J', 'K', 'L' };
 		for (size_t i = 0; i < IM_ARRAYSIZE(keys); i++)
@@ -222,7 +229,7 @@ void AudioTestWindow::DrawGui()
 			addButtonSound |= DualShock4::IsTapped(buttons[i]);
 
 		if (addButtonSound)
-			engine->PlaySound(&buttonSound);
+			engine->PlaySound(&buttonSound, buttonVolume);
 	}
 	ImGui::Separator();
 }

@@ -42,6 +42,10 @@ public:
 	bool GetIsPlaying();
 	void SetIsPlaying(bool value);
 
+	// IsLooping
+	bool GetIsLooping();
+	void SetIsLooping(bool value);
+
 	// AppendDelete
 	bool GetAppendDelete();
 	void SetAppendDelete(bool value);
@@ -68,6 +72,7 @@ private:
 	float volume = MAX_VOLUME;
 
 	bool isPlaying = false;
+	bool isLooping = false;
 	bool hasBeenRemoved = false;
 	bool appendDelete = false;
 

@@ -148,7 +148,11 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 		}
 
 		if (!audioInstance->GetIsPlaying() || audioInstance->GetHasReachedEnd())
+		{
+			if (audioInstance->GetIsLooping())
+				audioInstance->SetSamplePosition(0);
 			continue;
+		}
 
 		size_t samplesRead = audioInstance->GetSampleProvider()->ReadSamples(tempOutputBuffer, audioInstance->GetSamplePosition(), samplesInBuffer);
 		audioInstance->IncrementSamplePosition(samplesRead);
