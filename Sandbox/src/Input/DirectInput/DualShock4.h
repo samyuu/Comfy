@@ -28,14 +28,14 @@ public:
 	inline Joystick GetRightStick() { return currentState.RightStick; };
 	inline Joystick GetDpad() { return currentState.Dpad.Stick; };
 
-	static inline bool IsDown(Ds4Button button) { return InstanceInitialized() ? GetInstance()->_IsDown(button) : false; }
-	static inline bool IsUp(Ds4Button button) { return InstanceInitialized() ? GetInstance()->_IsUp(button) : true; }
-	static inline bool IsTapped(Ds4Button button) { return InstanceInitialized() ? GetInstance()->_IsTapped(button) : false; }
-	static inline bool IsReleased(Ds4Button button) { return InstanceInitialized() ? GetInstance()->_IsReleased(button) : false; }
-	static inline bool WasDown(Ds4Button button) { return InstanceInitialized() ? GetInstance()->_WasDown(button) : false; }
-	static inline bool WasUp(Ds4Button button) { return InstanceInitialized() ? GetInstance()->_WasUp(button) : true; }
+	static inline bool IsDown(Ds4Button button) { return GetInstanceInitialized() ? GetInstance()->_IsDown(button) : false; }
+	static inline bool IsUp(Ds4Button button) { return GetInstanceInitialized() ? GetInstance()->_IsUp(button) : true; }
+	static inline bool IsTapped(Ds4Button button) { return GetInstanceInitialized() ? GetInstance()->_IsTapped(button) : false; }
+	static inline bool IsReleased(Ds4Button button) { return GetInstanceInitialized() ? GetInstance()->_IsReleased(button) : false; }
+	static inline bool WasDown(Ds4Button button) { return GetInstanceInitialized() ? GetInstance()->_WasDown(button) : false; }
+	static inline bool WasUp(Ds4Button button) { return GetInstanceInitialized() ? GetInstance()->_WasUp(button) : true; }
 
-	static inline bool InstanceInitialized() { return instance != nullptr; };
+	static inline bool GetInstanceInitialized() { return instance != nullptr; };
 	static inline void DeleteInstance() { delete instance; instance = nullptr; };
 	static inline DualShock4* GetInstance() { return instance; };
 

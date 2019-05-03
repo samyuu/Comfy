@@ -4,6 +4,7 @@
 
 class GLFWwindow;
 
+constexpr size_t KEY_COUNT = GLFW_KEY_LAST;
 typedef int KeyCode;
 
 class Keyboard : public IInputDevice
@@ -20,14 +21,14 @@ public:
 	bool _WasDown(KeyCode key);
 	bool _WasUp(KeyCode key);
 
-	static inline bool IsDown(KeyCode key) { return InstanceInitialized() ? GetInstance()->_IsDown(key) : false; }
-	static inline bool IsUp(KeyCode key) { return InstanceInitialized() ? GetInstance()->_IsUp(key) : true; }
-	static inline bool IsTapped(KeyCode key) { return InstanceInitialized() ? GetInstance()->_IsTapped(key) : false; }
-	static inline bool IsReleased(KeyCode key) { return InstanceInitialized() ? GetInstance()->_IsReleased(key) : false; }
-	static inline bool WasDown(KeyCode key) { return InstanceInitialized() ? GetInstance()->_WasDown(key) : false; }
-	static inline bool WasUp(KeyCode key) { return InstanceInitialized() ? GetInstance()->_WasUp(key) : true; }
+	static inline bool IsDown(KeyCode key) { return GetInstanceInitialized() ? GetInstance()->_IsDown(key) : false; }
+	static inline bool IsUp(KeyCode key) { return GetInstanceInitialized() ? GetInstance()->_IsUp(key) : true; }
+	static inline bool IsTapped(KeyCode key) { return GetInstanceInitialized() ? GetInstance()->_IsTapped(key) : false; }
+	static inline bool IsReleased(KeyCode key) { return GetInstanceInitialized() ? GetInstance()->_IsReleased(key) : false; }
+	static inline bool WasDown(KeyCode key) { return GetInstanceInitialized() ? GetInstance()->_WasDown(key) : false; }
+	static inline bool WasUp(KeyCode key) { return GetInstanceInitialized() ? GetInstance()->_WasUp(key) : true; }
 
-	static inline bool InstanceInitialized() { return instance != nullptr; };
+	static inline bool GetInstanceInitialized() { return instance != nullptr; };
 	static inline void DeleteInstance() { delete instance; instance = nullptr; };
 	static inline Keyboard* GetInstance() { return instance; };
 
@@ -38,6 +39,6 @@ private:
 	static Keyboard* instance;
 	GLFWwindow* window;
 
-	bool lastState[GLFW_KEY_LAST];
-	bool currentState[GLFW_KEY_LAST];
+	bool lastState[KEY_COUNT];
+	bool currentState[KEY_COUNT];
 };

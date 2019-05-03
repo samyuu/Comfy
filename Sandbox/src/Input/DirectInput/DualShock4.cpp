@@ -14,7 +14,7 @@ DualShock4::~DualShock4()
 
 bool DualShock4::TryInitializeInstance()
 {
-	if (InstanceInitialized())
+	if (GetInstanceInitialized())
 		return true;
 
 	if (!DirectInputInitialized())

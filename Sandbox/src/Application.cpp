@@ -2,6 +2,7 @@
 #include "pch.h"
 #include "Editor/TestComponent.h"
 #include "Editor/TestTimeline.h"
+#include "DataTest/InputTestWindow.h"
 #include "DataTest/AudioTestWindow.h"
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
@@ -89,16 +90,20 @@ GLFWmonitor* Application::GetActiveMonitor()
 
 void Application::CheckConnectedDevices()
 {
-	if (!Keyboard::InstanceInitialized())
+	if (!Keyboard::GetInstanceInitialized())
 	{
 		if (Keyboard::TryInitializeInstance(GetWindow()))
-			printf("Application::CheckConnectedDevices(): Keyboard connected and initialized\n");
+		{
+			//printf("Application::CheckConnectedDevices(): Keyboard connected and initialized\n");
+		}
 	}
 
-	if (!DualShock4::InstanceInitialized())
+	if (!DualShock4::GetInstanceInitialized())
 	{
 		if (DualShock4::TryInitializeInstance())
-			printf("Application::CheckConnectedDevices(): DualShock4 connected and initialized\n");
+		{
+			//printf("Application::CheckConnectedDevices(): DualShock4 connected and initialized\n");
+		}
 	}
 }
 
@@ -424,8 +429,8 @@ void Application::InitializeApp()
 		editorComponents.push_back(std::make_shared<TestTimeline>(this));
 
 		dataTestComponents.reserve(2);
+		dataTestComponents.push_back(std::make_shared<InputTestWindow>(this));
 		dataTestComponents.push_back(std::make_shared<AudioTestWindow>(this));
-		// dataTestComponents.push_back(std::make_shared<InputTestWindow>(this));
 	}
 }
 
@@ -446,10 +451,10 @@ void Application::UpdatePollInput()
 	mouseScrolledDown = lastMouseWheel > mouseWheel;
 	lastMouseWheel = mouseWheel;
 
-	if (Keyboard::InstanceInitialized())
+	if (Keyboard::GetInstanceInitialized())
 		Keyboard::GetInstance()->PollInput();
 
-	if (DualShock4::InstanceInitialized())
+	if (DualShock4::GetInstanceInitialized())
 	{
 		if (!DualShock4::GetInstance()->PollInput())
 		{

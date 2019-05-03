@@ -4,7 +4,7 @@ Keyboard* Keyboard::instance;
 
 bool Keyboard::TryInitializeInstance(GLFWwindow* window)
 {
-	if (InstanceInitialized())
+	if (GetInstanceInitialized())
 		return true;
 
 	instance = new Keyboard(window);
@@ -21,7 +21,7 @@ Keyboard::~Keyboard()
 
 bool Keyboard::PollInput()
 {
-	for (size_t i = 0; i < sizeof(currentState); i++)
+	for (size_t i = 0; i < KEY_COUNT; i++)
 	{
 		lastState[i] = currentState[i];
 		currentState[i] = glfwGetKey(window, i);

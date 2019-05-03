@@ -202,7 +202,7 @@ void AudioTestWindow::DrawGui()
 				audioInstance->SetIsPlaying(isPlaying);
 
 			bool isLooping = audioInstance->GetIsLooping();
-			if (ImGui::Checkbox("audioInstance->GetIsLooping", &isLooping))
+			if (ImGui::Checkbox("audioInstance->IsLooping", &isLooping))
 				audioInstance->SetIsLooping(isLooping);
 		}
 	}
@@ -224,7 +224,7 @@ void AudioTestWindow::DrawGui()
 		for (size_t i = 0; i < IM_ARRAYSIZE(keys); i++)
 			addButtonSound |= Keyboard::IsTapped(keys[i]);
 
-		Ds4Button buttons[] = { DS4_DPAD_UP, DS4_DPAD_DOWN, DS4_DPAD_LEFT, DS4_DPAD_RIGHT, DS4_TRIANGLE, DS4_CIRCLE, DS4_CROSS, DS4_SQUARE };
+		Ds4Button buttons[] = { DS4_DPAD_UP, DS4_DPAD_DOWN, DS4_DPAD_LEFT, DS4_DPAD_RIGHT, DS4_TRIANGLE, DS4_CIRCLE, DS4_CROSS, DS4_SQUARE, DS4_L_TRIGGER, DS4_R_TRIGGER };
 		for (size_t i = 0; i < IM_ARRAYSIZE(buttons); i++)
 			addButtonSound |= DualShock4::IsTapped(buttons[i]);
 
