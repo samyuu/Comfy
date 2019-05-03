@@ -1,6 +1,8 @@
 #include "AudioEngine.h"
+#include "AudioInstance.h"
 #include <assert.h>
 #include <functional>
+#include <malloc.h>
 
 AudioEngine* AudioEngine::engineInstance = nullptr;
 
@@ -17,6 +19,8 @@ void AudioEngine::Initialize()
 	engineInstance = this;
 
 	SetAudioApi(GetDefaultAudioApi());
+
+	audioInstances.reserve(64);
 }
 
 void AudioEngine::Dispose()
@@ -105,31 +109,69 @@ void AudioEngine::StopStream()
 	GetRtAudio()->stopStream();
 }
 
-AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, uint32_t bufferFrameCount)
+AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, uint32_t bufferFrameCount, double streamTime)
 {
 	this->bufferSize = bufferFrameCount;
 
-	//memcpy(outputBuffer, currentSampleBuffer, sizeof(currentSampleBuffer));
-	//printf("AudioEngine::InternalAudioCallback(): bufferFrameCount: %d\n", bufferFrameCount);
+	lastCallbackStreamTime = callbackStreamTime;
+	callbackStreamTime = streamTime;
+	callbackLatency = callbackStreamTime - lastCallbackStreamTime;
 
-	bufferFrameCount;	// 64
-	GetChannelCount();	// 2
+	// need to clear out the buffer from the previous call
+	size_t samplesInBuffer = bufferFrameCount * GetChannelCount();
+	size_t byteBufferSize = samplesInBuffer * sizeof(int16_t);
+	memset(outputBuffer, 0, byteBufferSize);
 
 	// 2 channels * 64 frames * sizeof(int16_t) -> 256 bytes inside the outputBuffer
 	// 64 samples for each ear
 
-	// need to clear out the buffer from the previous call
-	memset(outputBuffer, 0, bufferFrameCount * GetChannelCount() * sizeof(int16_t));
+	int16_t* tempOutputBuffer = (int16_t*)_malloca(byteBufferSize);
 
-	//for (size_t i = 0; i < bufferFrameCount * GetChannelCount(); i += 1)
-	//	outputBuffer[i] = INT16_MAX * GetMasterVolume();
+	int audioInstancesSize = audioInstances.size();
 
-	for (size_t i = 0; i < bufferFrameCount * GetChannelCount(); i += 1)
+	for (size_t i = 0; i < audioInstancesSize; i++)
 	{
-		double sine = sin(GetStreamTime() * 2000000.0f);
-		short value = sine * INT16_MAX * GetMasterVolume();
-		outputBuffer[i] = value;
+		AudioInstance* audioInstance = audioInstances[i];
+
+		if (audioInstance->GetHasReachedEnd() && audioInstance->GetOnFinishedAction() != AUDIO_FINISHED_NONE)
+		{
+			audioInstance->SetHasBeenRemoved(true);
+			
+			audioInstances.erase(audioInstances.begin() + i);
+			audioInstancesSize--;
+			
+			if (audioInstance->GetOnFinishedAction() == AUDIO_FINISHED_DELETE)
+				delete audioInstance;
+			
+			continue;
+		}
+
+		if (!audioInstance->GetIsPlaying() || audioInstance->GetHasReachedEnd())
+			continue;
+
+		size_t samplesRead = audioInstance->GetSampleProvider()->ReadSamples(tempOutputBuffer, audioInstance->GetSamplePosition(), samplesInBuffer);
+
+		for (size_t i = 0; i < samplesRead; i++)
+			outputBuffer[i] = MixSamples(outputBuffer[i], tempOutputBuffer[i] * audioInstance->GetVolume());
+
+		audioInstance->IncrementSamplePosition(samplesRead);
 	}
+
+	// test sinewave generator
+	if (false)
+	{
+		for (size_t i = 0; i < bufferFrameCount * GetChannelCount(); i += 1)
+		{
+			static int elapsedSamples = 0;
+			++elapsedSamples;
+			constexpr double frequency = 0.004;
+
+			outputBuffer[i] = sin(elapsedSamples * frequency) * INT16_MAX * GetMasterVolume();
+		}
+	}
+
+	for (size_t i = 0; i < samplesInBuffer; i++)
+		outputBuffer[i] *= GetMasterVolume();
 
 	return AUDIO_CALLBACK_CONTINUE;
 }
@@ -146,7 +188,7 @@ RtAudio::DeviceInfo AudioEngine::GetDeviceInfo(uint32_t device)
 
 void AudioEngine::SetBufferSize(uint32_t bufferSize)
 {
-	assert(bufferSize < MAX_BUFFER_SIZE);
+	assert(bufferSize <= MAX_BUFFER_SIZE);
 
 	if (this->bufferSize == bufferSize)
 		return;
@@ -166,6 +208,24 @@ void AudioEngine::SetBufferSize(uint32_t bufferSize)
 		StartStream();
 }
 
+void AudioEngine::AddAudioInstance(AudioInstance* audioInstance)
+{
+	bool unique = true;
+	for (const AudioInstance* instance : audioInstances)
+	{
+		if (instance == audioInstance)
+		{
+			unique = false;
+			break;
+		}
+	}
+	
+	if (unique)
+	{
+		audioInstances.push_back(audioInstance);
+	}
+}
+
 RtAudio::StreamParameters* AudioEngine::GetStreamOutputParameters()
 {
 	if (streamOutputParameter == nullptr)
@@ -183,7 +243,7 @@ RtAudio::StreamParameters* AudioEngine::GetStreamInputParameters()
 	return nullptr;
 }
 
-int AudioEngine::InternalStaticAudioCallback(void* outputBuffer, void*, uint32_t bufferFrames, double, RtAudioStreamStatus, void*)
+int AudioEngine::InternalStaticAudioCallback(void* outputBuffer, void*, uint32_t bufferFrames, double streamTime, RtAudioStreamStatus, void*)
 {
-	return GetInstance()->InternalAudioCallback(static_cast<int16_t*>(outputBuffer), bufferFrames);
+	return GetInstance()->InternalAudioCallback(static_cast<int16_t*>(outputBuffer), bufferFrames, streamTime);
 }

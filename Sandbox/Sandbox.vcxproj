@@ -96,7 +96,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Audio\MemoryAudioStream.cpp" />
-    <ClCompile Include="src\Audio\AudioSource.cpp" />
+    <ClCompile Include="src\Audio\AudioInstance.cpp" />
     <ClCompile Include="src\DataTest\AudioTestWindow.cpp" />
     <ClCompile Include="src\Audio\AudioEngine.cpp" />
     <ClCompile Include="src\BaseWindow.cpp" />
@@ -133,7 +133,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Audio\MemoryAudioStream.h" />
-    <ClInclude Include="src\Audio\AudioSource.h" />
+    <ClInclude Include="src\Audio\AudioInstance.h" />
+    <ClInclude Include="src\Audio\Resampler.h" />
     <ClInclude Include="src\DataTest\AudioTestWindow.h" />
     <ClInclude Include="src\Audio\AudioEngine.h" />
     <ClInclude Include="src\Audio\ISampleProvider.h" />
@@ -163,6 +164,7 @@
     <ClInclude Include="src\Rendering\VertexBuffer.h" />
     <ClInclude Include="src\Editor\TestComponent.h" />
     <ClInclude Include="src\Editor\TestTimeline.h" />
+    <ClInclude Include="src\TimeSpan.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="rom\shader\line_frag.glsl" />

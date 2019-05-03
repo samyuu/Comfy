@@ -5,7 +5,7 @@
 #include <vector>
 
 typedef uint8_t byte;
-class AudioSource;
+class AudioInstance;
 
 enum AudioApi
 {
@@ -44,6 +44,7 @@ public:
 	RtAudio::DeviceInfo GetDeviceInfo(uint32_t device);
 
 	void SetBufferSize(uint32_t bufferSize);
+	void AddAudioInstance(AudioInstance* audioInstance);
 
 	inline RtAudio* GetRtAudio() { return rtAudio; };
 	inline uint32_t GetChannelCount() { return 2; };
@@ -53,6 +54,7 @@ public:
 
 	inline double GetStreamTime() { return GetRtAudio() && GetIsStreamOpen() ? GetRtAudio()->getStreamTime() : 0.0; };
 	inline void SetStreamTime(double value) { if (GetRtAudio()) { GetRtAudio()->setStreamTime(value); } };
+	inline double GetCallbackLatency() { return callbackLatency; };
 
 	inline AudioApi GetDefaultAudioApi() { return AUDIO_API_WASAPI; };
 	inline AudioApi GetActiveAudioApi() { return audioApi; };
@@ -61,8 +63,7 @@ public:
 	inline bool GetIsStreamRunning() { return isStreamRunning; };
 
 	inline float GetMasterVolume() { return masterVolume; };
-	inline float SetMasterVolume(float value) { masterVolume = std::clamp(value, MIN_VOLUME, MAX_VOLUME); };
-	inline float* GetMasterVolumePtr() { return &masterVolume; };
+	inline void SetMasterVolume(float value) { masterVolume = std::clamp(value, MIN_VOLUME, MAX_VOLUME); };
 	inline bool GetIsExclusiveMode() { return GetActiveAudioApi() == AUDIO_API_ASIO; };
 
 	static inline void CreateInstance() { engineInstance = new AudioEngine(); };
@@ -75,14 +76,17 @@ private:
 	AudioEngine();
 	~AudioEngine();
 
-	std::vector<AudioSource*> audioSources;
 	//int16_t currentSampleBuffer[64 * 2];
+	std::vector<AudioInstance*> audioInstances;
 
 	uint32_t bufferSize = DEFAULT_BUFFER_SIZE;
 
 	bool isStreamOpen = false, isStreamRunning = false;
 	float masterVolume = MAX_VOLUME;
 	
+	double callbackLatency;
+	double callbackStreamTime, lastCallbackStreamTime;
+
 	AudioApi audioApi = AUDIO_API_INVALID;
 	RtAudio* rtAudio = nullptr;
 
@@ -113,7 +117,7 @@ private:
 		RtAudio::WINDOWS_WASAPI,
 	};
 
-	AudioCallbackResult InternalAudioCallback(int16_t* outputBuffer, uint32_t bufferFrameCount);
+	AudioCallbackResult InternalAudioCallback(int16_t* outputBuffer, uint32_t bufferFrameCount, double streamTime);
 	RtAudio::StreamParameters* GetStreamOutputParameters();
 	RtAudio::StreamParameters* GetStreamInputParameters();
 
