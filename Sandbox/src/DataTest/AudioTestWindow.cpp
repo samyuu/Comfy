@@ -3,6 +3,8 @@
 #include "../Application.h"
 #include "../Audio/MemoryAudioStream.h"
 #include "../Audio/AudioInstance.h"
+#include "../Input/DirectInput/DualShock4.h"
+#include "../Input/Keyboard.h"
 
 AudioTestWindow::AudioTestWindow(Application* parent) : BaseWindow(parent)
 {
@@ -209,20 +211,15 @@ void AudioTestWindow::DrawGui()
 		if (!buttonSound.GetIsInitialized())
 			buttonSound.LoadFromFile("rom/sound/button/01_button1.wav");
 
-		static bool wasKeyDown[GLFW_KEY_LAST];
-		static bool isKeyDown[GLFW_KEY_LAST];
-
-		memcpy(wasKeyDown, isKeyDown, sizeof(wasKeyDown));
-		for (size_t i = 0; i < sizeof(wasKeyDown); i++)
-			isKeyDown[i] = glfwGetKey(GetParent()->GetWindow(), i);
-
-		auto tapped = [](int key) { return isKeyDown[key] && !wasKeyDown[key]; };
-
 		bool addButtonSound = ImGui::Button("PlaySound(buttonSound)");
 
 		short keys[] = { 'W', 'A', 'S', 'D', 'I', 'J', 'K', 'L' };
 		for (size_t i = 0; i < IM_ARRAYSIZE(keys); i++)
-			addButtonSound |= tapped(keys[i]);
+			addButtonSound |= Keyboard::IsTapped(keys[i]);
+
+		Ds4Button buttons[] = { DS4_DPAD_UP, DS4_DPAD_DOWN, DS4_DPAD_LEFT, DS4_DPAD_RIGHT, DS4_TRIANGLE, DS4_CIRCLE, DS4_CROSS, DS4_SQUARE };
+		for (size_t i = 0; i < IM_ARRAYSIZE(buttons); i++)
+			addButtonSound |= DualShock4::IsTapped(buttons[i]);
 
 		if (addButtonSound)
 			engine->PlaySound(&buttonSound);

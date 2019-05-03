@@ -39,6 +39,7 @@ public:
 	void ToggleFullscreen();
 
 	GLFWmonitor* GetActiveMonitor();
+	void CheckConnectedDevices();
 
 private:
 	// Base Methods

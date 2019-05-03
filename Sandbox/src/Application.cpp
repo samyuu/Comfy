@@ -3,6 +3,8 @@
 #include "Editor/TestComponent.h"
 #include "Editor/TestTimeline.h"
 #include "DataTest/AudioTestWindow.h"
+#include "Input/DirectInput/DualShock4.h"
+#include "Input/Keyboard.h"
 
 Application* Application::globalCallbackApplication;
 
@@ -85,6 +87,21 @@ GLFWmonitor* Application::GetActiveMonitor()
 	return monitor;
 }
 
+void Application::CheckConnectedDevices()
+{
+	if (!Keyboard::InstanceInitialized())
+	{
+		if (Keyboard::TryInitializeInstance(GetWindow()))
+			printf("Application::CheckConnectedDevices(): Keyboard connected and initialized\n");
+	}
+
+	if (!DualShock4::InstanceInitialized())
+	{
+		if (DualShock4::TryInitializeInstance())
+			printf("Application::CheckConnectedDevices(): DualShock4 connected and initialized\n");
+	}
+}
+
 void Application::Run()
 {
 	BaseInitialize();
@@ -136,6 +153,11 @@ int Application::BaseInitialize()
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
 	BaseRegister();
+
+	HRESULT directInputResult = InitializeDirectInput(GetModuleHandle(nullptr));
+	assert(!FAILED(directInputResult));
+	CheckConnectedDevices();
+
 	AudioEngine::CreateInstance();
 	AudioEngine::InitializeInstance();
 
@@ -218,6 +240,9 @@ void Application::BaseDispose()
 
 	AudioEngine::DisposeInstance();
 	AudioEngine::DeleteInstance();
+	
+	Keyboard::DeleteInstance();
+	DualShock4::DeleteInstance();
 
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
@@ -420,17 +445,32 @@ void Application::UpdatePollInput()
 	mouseScrolledUp = lastMouseWheel < mouseWheel;
 	mouseScrolledDown = lastMouseWheel > mouseWheel;
 	lastMouseWheel = mouseWheel;
+
+	if (Keyboard::InstanceInitialized())
+		Keyboard::GetInstance()->PollInput();
+
+	if (DualShock4::InstanceInitialized())
+	{
+		if (!DualShock4::GetInstance()->PollInput())
+		{
+			DualShock4::DeleteInstance();
+			printf("Application::UpdatePollInput(): DualShock4 connection lost\n");
+		}
+	}
 }
 
 void Application::UpdateInput()
 {
+	if (Keyboard::IsTapped(GLFW_KEY_F11))
+		ToggleFullscreen();
+
 	glm::vec3 front;
 	front.x = cos(glm::radians(cameraYaw)) * cos(glm::radians(cameraPitch));
 	front.y = sin(glm::radians(cameraPitch));
 	front.z = sin(glm::radians(cameraYaw)) * cos(glm::radians(cameraPitch));
 
-	const bool fastCamera = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
-	const bool slowCamera = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
+	const bool fastCamera = Keyboard::IsDown(GLFW_KEY_LEFT_SHIFT);
+	const bool slowCamera = Keyboard::IsDown(GLFW_KEY_LEFT_ALT);
 
 	const float cameraSpeed = (slowCamera ? 0.25f : (fastCamera ? 5.5f : 2.25f)) * elapsedTime;
 
@@ -455,18 +495,18 @@ void Application::UpdateInput()
 
 	if (!keyboardBeingUsed)
 	{
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		if (Keyboard::IsDown(GLFW_KEY_W) == GLFW_PRESS)
 			camera.Position += front * cameraSpeed;
-		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		if (Keyboard::IsDown(GLFW_KEY_S) == GLFW_PRESS)
 			camera.Position -= front * cameraSpeed;
-		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		if (Keyboard::IsDown(GLFW_KEY_A) == GLFW_PRESS)
 			camera.Position -= glm::normalize(glm::cross(front, camera.UpDirection)) * cameraSpeed;
-		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		if (Keyboard::IsDown(GLFW_KEY_D) == GLFW_PRESS)
 			camera.Position += glm::normalize(glm::cross(front, camera.UpDirection)) * cameraSpeed;
 
-		if (glfwGetKey(window, GLFW_KEY_SPACE))
+		if (Keyboard::IsDown(GLFW_KEY_SPACE))
 			camera.Position += camera.UpDirection * cameraSpeed;
-		if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL))
+		if (Keyboard::IsDown(GLFW_KEY_LEFT_CONTROL))
 			camera.Position -= camera.UpDirection * cameraSpeed;
 	}
 
