@@ -18,9 +18,9 @@ enum AudioApi
 	AUDIO_API_COUNT,
 };
 
-enum AudioCallbackResult 
-{ 
-	AUDIO_CALLBACK_CONTINUE = 0, 
+enum AudioCallbackResult
+{
+	AUDIO_CALLBACK_CONTINUE = 0,
 	AUDIO_CALLBACK_STOP = 1,
 };
 
@@ -91,7 +91,7 @@ private:
 
 	bool isStreamOpen = false, isStreamRunning = false;
 	float masterVolume = MAX_VOLUME;
-	
+
 	double callbackLatency;
 	double callbackStreamTime, lastCallbackStreamTime;
 
@@ -100,23 +100,22 @@ private:
 
 	StreamParameters* streamOutputParameter = nullptr;
 
-	inline int16_t MixSamples(int16_t a, int16_t b)
+	inline int16_t MixSamples(int16_t sample1, int16_t sample2)
 	{
-		// If both samples are negative, mixed signal must have an amplitude between the lesser of A and B, and the minimum permissible negative amplitude
-		// If both samples are positive, mixed signal must have an amplitude between the greater of A and B, and the maximum permissible positive amplitude
-		// If samples are on opposite sides of the 0-crossing, mixed signal should reflect that samples cancel each other out somewhat
+		const int32_t result(static_cast<int32_t>(sample1) + static_cast<int32_t>(sample2));
+		typedef std::numeric_limits<short int> Range;
 
-		return
-			a < 0 && b < 0 ?
-			((int)a + (int)b) - (((int)a * (int)b) / INT16_MIN) :
-			(a > 0 && b > 0 ?
-			((int)a + (int)b) - (((int)a * (int)b) / INT16_MAX) : 
-				a + b);
+		if (Range::max() < result)
+			return Range::max();
+		else if (Range::min() > result)
+			return Range::min();
+		else
+			return result;
 	}
 
-	inline RtAudio::Api GetRtAudioApi(AudioApi audioApi) 
-	{ 
-		return (audioApi < AUDIO_API_COUNT) ? audioApis[audioApi] : RtAudio::UNSPECIFIED; 
+	inline RtAudio::Api GetRtAudioApi(AudioApi audioApi)
+	{
+		return (audioApi < AUDIO_API_COUNT) ? audioApis[audioApi] : RtAudio::UNSPECIFIED;
 	};
 
 	RtAudio::Api audioApis[AUDIO_API_COUNT] =

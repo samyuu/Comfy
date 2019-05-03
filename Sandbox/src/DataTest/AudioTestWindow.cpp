@@ -227,6 +227,7 @@ void AudioTestWindow::DrawGui()
 		if (addButtonSound)
 			engine->PlaySound(&buttonSound);
 	}
+	ImGui::Separator();
 }
 
 const char* AudioTestWindow::GetGuiName()
