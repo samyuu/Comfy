@@ -18,6 +18,19 @@ void AudioTestWindow::DrawGui()
 {
 	AudioEngine* engine = AudioEngine::GetInstance();
 
+	auto checkStartStream = [&engine]() 
+	{
+		static bool checkStartStream = true;
+		if (checkStartStream)
+		{
+			if (!engine->GetIsStreamOpen())
+				engine->OpenStream();
+			if (!engine->GetIsStreamRunning())
+				engine->StartStream();
+			checkStartStream = false;
+		}
+	};
+
 	if (false)
 		ImGui::ShowDemoWindow(nullptr);
 
@@ -138,11 +151,15 @@ void AudioTestWindow::DrawGui()
 
 	if (ImGui::CollapsingHeader("Audio File Test"))
 	{
+		checkStartStream();
+
 		static MemoryAudioStream sngtst;
 		static AudioInstance* songAudioInstance = nullptr;
 
+		const char* testSongPath = "rom/sound/sngtst.flac"; // "rom/sound/pv_427.ogg";
+
 		if (!sngtst.GetIsInitialized())
-			sngtst.LoadFromFile("rom/sound/sngtst.flac");
+			sngtst.LoadFromFile(testSongPath);
 
 		if (ImGui::Button("engine->AddAudioInstance()"))
 		{
@@ -161,16 +178,16 @@ void AudioTestWindow::DrawGui()
 			AudioInstance* audioInstance = songAudioInstance;
 
 			ImGui::Separator();
-			ImGui::Text("GetChannelCount(): %u", sngtst.GetChannelCount());
-			ImGui::Text("GetSampleCount(): %u", sngtst.GetSampleCount());
-			ImGui::Text("GetSampleRate(): %u", sngtst.GetSampleRate());
+			ImGui::Text("audioInstance->GetChannelCount(): %u", sngtst.GetChannelCount());
+			ImGui::Text("audioInstance->GetSampleCount(): %u", sngtst.GetSampleCount());
+			ImGui::Text("audioInstance->GetSampleRate(): %u", sngtst.GetSampleRate());
 
 			int samplePosition = audioInstance->GetSamplePosition();
-			if (ImGui::SliderInt("sample position", &samplePosition, 0, audioInstance->GetSampleCount()))
+			if (ImGui::SliderInt("audioInstance->SamplePosition", &samplePosition, 0, audioInstance->GetSampleCount()))
 				audioInstance->SetSamplePosition(samplePosition);
 
 			float position = audioInstance->GetPosition().Seconds();
-			if (ImGui::SliderFloat("position", &position, 0, audioInstance->GetDuration().Seconds(), "%f"))
+			if (ImGui::SliderFloat("audioInstance->Position", &position, 0, audioInstance->GetDuration().Seconds(), "%f"))
 				audioInstance->SetPosition(TimeSpan::FromSeconds(position));
 
 			ImGui::Separator();
@@ -193,9 +210,9 @@ void AudioTestWindow::DrawGui()
 				ImGui::TextColored(value ? onColor : offColor, value ? "true" : "false");
 			};
 
-			boolColorText("GetIsPlaying(): ", audioInstance->GetIsPlaying());
-			boolColorText("GetHasReachedEnd(): ", audioInstance->GetHasReachedEnd());
-			boolColorText("GetHasBeenRemoved(): ", audioInstance->GetHasBeenRemoved());
+			boolColorText("audioInstance->GetIsPlaying(): ", audioInstance->GetIsPlaying());
+			boolColorText("audioInstance->GetHasReachedEnd(): ", audioInstance->GetHasReachedEnd());
+			boolColorText("audioInstance->GetHasBeenRemoved(): ", audioInstance->GetHasBeenRemoved());
 
 			bool isPlaying = audioInstance->GetIsPlaying();
 			if (ImGui::Checkbox("audioInstance->IsPlaying", &isPlaying))
@@ -210,6 +227,8 @@ void AudioTestWindow::DrawGui()
 
 	if (ImGui::CollapsingHeader("Button Sound Test"))
 	{
+		checkStartStream();
+
 		static MemoryAudioStream buttonSound;
 		static float buttonVolume = MAX_VOLUME;
 

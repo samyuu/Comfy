@@ -95,6 +95,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Audio\ChannelMixer.cpp" />
+    <ClCompile Include="src\Audio\Resampler.cpp" />
     <ClCompile Include="src\DataTest\InputTestWindow.cpp" />
     <ClCompile Include="src\Audio\MemoryAudioStream.cpp" />
     <ClCompile Include="src\Audio\AudioInstance.cpp" />
@@ -138,6 +140,7 @@
     <ClCompile Include="src\Editor\TestTimeline.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Audio\ChannelMixer.h" />
     <ClInclude Include="src\DataTest\InputTestWindow.h" />
     <ClInclude Include="src\Audio\MemoryAudioStream.h" />
     <ClInclude Include="src\Audio\AudioInstance.h" />

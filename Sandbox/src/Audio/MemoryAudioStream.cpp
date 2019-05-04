@@ -1,4 +1,6 @@
 #include "MemoryAudioStream.h"
+#include "ChannelMixer.h"
+#include "AudioEngine.h"
 #include <sndfile.h>
 #include <assert.h>
 #include <memory>
@@ -29,6 +31,13 @@ void MemoryAudioStream::LoadFromFile(const char* filePath)
 		size_t samplesRead = readCount * channelCount;
 
 		assert(samplesRead == sampleCount);
+
+		uint32_t channelTargetCount = AudioEngine::GetInstance()->GetChannelCount();
+		if (channelCount != channelTargetCount)
+		{
+			ChannelMixer mixer(channelTargetCount);
+			mixer.MixChannels(&sampleData, &sampleCount, &channelCount);
+		}
 	}
 	sf_close(sndFile);
 
@@ -39,7 +48,7 @@ void MemoryAudioStream::Dispose()
 {
 	if (sampleData != nullptr)
 	{
-		delete sampleData;
+		delete[] sampleData;
 		sampleData = nullptr;
 	}
 }

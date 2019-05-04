@@ -22,11 +22,14 @@ void InputTestWindow::DrawGui()
 		ImGui::TextColored(condition ? onColor : offColor, condition ? trueText : falseText);
 	};
 
+	ImGui::Text("INPUT TEST:");
+	ImGui::Separator();
+
 	if (ImGui::Button("Refresh Devices", ImVec2(ImGui::GetWindowWidth(), 0)))
 		RefreshDevices();
+	ImGui::Separator();
 
-	ImGui::Text("Input Test");
-	if (ImGui::CollapsingHeader("Keyboard"))
+	if (ImGui::CollapsingHeader("Keyboard", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		Keyboard* keyboard = Keyboard::GetInstance();
 
@@ -48,7 +51,7 @@ void InputTestWindow::DrawGui()
 	}
 	ImGui::Separator();
 
-	if (ImGui::CollapsingHeader("DualShock4"))
+	if (ImGui::CollapsingHeader("DualShock4", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		DualShock4* ds4 = DualShock4::GetInstance();
 

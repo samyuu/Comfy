@@ -44,10 +44,5 @@ private:
 		"DS4_R_STICK_LEFT",
 	};
 
-	const char* testNames1[1] =
-	{
-		"TEST1",
-	};
-
 	void RefreshDevices();
 };
