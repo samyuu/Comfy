@@ -935,7 +935,7 @@ void Application::DrawGui()
 			if (ImGui::Begin("Temp Test"))
 			{
 				static float scale = .15f;
-				ImGui::AddTexture(ImGui::GetWindowDrawList(), feelsBadManTexture, ImGui::GetMousePos(), scale);
+				ImGui::AddTexture(ImGui::GetWindowDrawList(), &feelsBadManTexture, ImGui::GetMousePos(), scale);
 				ImGui::SliderFloat("scale", &scale, 0.01f, 1.0f);
 			}
 			ImGui::End();

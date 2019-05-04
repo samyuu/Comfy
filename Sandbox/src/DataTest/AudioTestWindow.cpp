@@ -146,6 +146,14 @@ void AudioTestWindow::DrawGui()
 		ImGui::TextDisabled("(Dummy)");
 		//ImGui::BeginCombo();
 		//ImGui::PlotLines("PlitPLines", );
+
+		// static float arr[] = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
+		// ImGui::PlotLines("Frame Times", arr, IM_ARRAYSIZE(arr));
+		
+		//float floatBuffer[MAX_BUFFER_SIZE];
+		//for (size_t i = 0; i < engine->GetBufferSize(); i++)
+		//	floatBuffer[i] = (float)(engine->SAMPLE_BUFFER_PTR[i]);
+		//ImGui::PlotLines("engine->SAMPLE_BUFFER_PTR", floatBuffer, engine->GetBufferSize());
 	}
 	ImGui::Separator();
 
