@@ -103,6 +103,7 @@
     <ClCompile Include="src\DataTest\AudioTestWindow.cpp" />
     <ClCompile Include="src\Audio\AudioEngine.cpp" />
     <ClCompile Include="src\BaseWindow.cpp" />
+    <ClCompile Include="src\Editor\Chart\BpmChange.cpp" />
     <ClCompile Include="src\ImGui\imgui_extensions.cpp" />
     <ClCompile Include="src\Input\DirectInput\DirectInput.cpp" />
     <ClCompile Include="src\Input\DirectInput\DirectInputDevice.cpp" />
@@ -149,6 +150,8 @@
     <ClInclude Include="src\Audio\AudioEngine.h" />
     <ClInclude Include="src\Audio\ISampleProvider.h" />
     <ClInclude Include="src\BaseWindow.h" />
+    <ClInclude Include="src\Editor\Chart\BpmChange.h" />
+    <ClInclude Include="src\Editor\Chart\TimelineTick.h" />
     <ClInclude Include="src\ImGui\imgui_extensions.h" />
     <ClInclude Include="src\Input\DirectInput\DirectInput.h" />
     <ClInclude Include="src\Input\DirectInput\DirectInputDevice.h" />

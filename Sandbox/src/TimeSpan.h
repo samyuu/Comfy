@@ -4,6 +4,12 @@
 // --------------------------------------------------------------
 struct TimeSpan
 {
+	// Constructos:
+	// ------------
+	inline TimeSpan() : time(0) {}
+	inline TimeSpan(double seconds) : time(seconds) {}
+	// ------------
+
 	inline double Minutes()
 	{
 		return Seconds() / 60.0;
@@ -38,8 +44,4 @@ private:
 	// Time in Seconds
 	// ---------------
 	double time; 
-
-	// Private Constructor
-	// -------------------
-	inline TimeSpan(double seconds) : time(seconds) { }
 };
