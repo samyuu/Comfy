@@ -77,20 +77,18 @@ class TimelineTimes
 {
 public:
 
-	std::vector<TimeSpan> Times;
+	std::vector<TimeSpan> TickTimes;
 
 	TimeSpan GetTimeAt(TimelineTick tick)
 	{
-		return Times.at(tick.TotalTicks());
+		return TickTimes.at(tick.TotalTicks());
 	}
-
-
 
 	static TimelineTimes CalculateTimelineTimes(BpmChanges& bpmChanges, size_t barCount)
 	{
 		const size_t timeCount = barCount * TimelineTick::TICKS_PER_BAR;
 
-		std::vector<TimeSpan> times(timeCount);
+		std::vector<TimeSpan> tickTimes(timeCount);
 		{
 			// the time of the last bpm change end
 			double bpmEndTime = 0.0;
@@ -107,16 +105,16 @@ public:
 				bool lastBpmChange = (b == (bpmChangeCount - 1));
 
 				const size_t timesStart = bpmChange.Tick.TotalTicks();
-				const size_t timesCount = (onlyBpmChange || lastBpmChange) ? (times.size()) : (bpmChanges.GetAt(b + 1).Tick.TotalTicks());
+				const size_t timesCount = (onlyBpmChange || lastBpmChange) ? (tickTimes.size()) : (bpmChanges.GetAt(b + 1).Tick.TotalTicks());
 
 				for (size_t i = 0, t = timesStart; t < timesCount; t++)
-					times[t] = (beatTickDuration * i++) + bpmEndTime;
+					tickTimes[t] = (beatTickDuration * i++) + bpmEndTime;
 
-				bpmEndTime = times[timesCount - 1].Seconds() + beatTickDuration;
+				bpmEndTime = tickTimes[timesCount - 1].Seconds() + beatTickDuration;
 			}
 		}
 
-		TimelineTimes timelineTimes(times);
+		TimelineTimes timelineTimes(tickTimes);
 
 		//for (size_t i = 0; i <= 12 * TimelineTick::TICKS_PER_BAR; i++)
 		//	printf("[%d] %fms\n", i, timelineTimes.GetTimeAt(TimelineTick::FromTicks(i)).Milliseconds());
@@ -130,7 +128,7 @@ public:
 	}
 
 private:
-	TimelineTimes(std::vector<TimeSpan>& times) : Times(times) {};
+	TimelineTimes(std::vector<TimeSpan>& times) : TickTimes(times) {};
 };
 
 // TODO: need some conversion between TimeStamp, TimelineTick and float TimelinePosition (which gets mulitplied by zoom)
