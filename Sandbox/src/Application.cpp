@@ -1,7 +1,7 @@
 #include "Application.h"
 #include "pch.h"
 #include "Editor/TestComponent.h"
-#include "Editor/TestTimeline.h"
+#include "Editor/Chart/TargetTimeline.h"
 #include "DataTest/InputTestWindow.h"
 #include "DataTest/AudioTestWindow.h"
 #include "Input/DirectInput/DualShock4.h"
@@ -426,7 +426,7 @@ void Application::InitializeApp()
 	{
 		editorComponents.reserve(2);
 		editorComponents.push_back(std::make_shared<TestComponent>(this));
-		editorComponents.push_back(std::make_shared<TestTimeline>(this));
+		editorComponents.push_back(std::make_shared<Editor::TargetTimeline>(this));
 
 		dataTestComponents.reserve(2);
 		dataTestComponents.push_back(std::make_shared<InputTestWindow>(this));

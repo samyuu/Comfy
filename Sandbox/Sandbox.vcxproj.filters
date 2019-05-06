@@ -84,9 +84,6 @@
     <ClCompile Include="src\Rendering\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Editor\TestTimeline.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\ImGui\imgui_extensions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -129,7 +126,16 @@
     <ClCompile Include="src\Audio\ChannelMixer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Editor\Chart\BpmChange.cpp">
+    <ClCompile Include="src\Editor\Chart\TempoMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Chart\TargetTimeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Chart\TempoChange.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Chart\TimelineMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -203,9 +209,6 @@
     <ClInclude Include="src\Rendering\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Editor\TestTimeline.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\ImGui\imgui_extensions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -263,7 +266,16 @@
     <ClInclude Include="src\Editor\Chart\TimelineTick.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Editor\Chart\BpmChange.h">
+    <ClInclude Include="src\Editor\Chart\TempoMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Chart\TargetTimeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Chart\TempoChange.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Chart\TimelineMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

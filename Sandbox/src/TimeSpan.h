@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 // Time struct storing the underlying Time as a double in Seconds
 // --------------------------------------------------------------
@@ -10,19 +11,19 @@ struct TimeSpan
 	inline TimeSpan(double seconds) : time(seconds) {}
 	// ------------
 
-	inline double Minutes()
+	inline double TotalMinutes()
 	{
-		return Seconds() / 60.0;
+		return TotalSeconds() / 60.0;
 	}
 
-	inline double Seconds()
+	inline double TotalSeconds()
 	{
 		return time;
 	}
 
-	inline double Milliseconds()
+	inline double TotalMilliseconds()
 	{
-		return Seconds() * 1000.0;
+		return TotalSeconds() * 1000.0;
 	}
 
 	static inline TimeSpan FromMinutes(double value)
@@ -38,6 +39,18 @@ struct TimeSpan
 	static inline TimeSpan FromMilliseconds(double value)
 	{
 		return TimeSpan(value / 1000.0);
+	}
+
+	std::string FormatTime()
+	{
+		double minutes = floor(fmod(time, 3600.0) / 60.0);
+		double seconds = fmod(time, 60.0);
+		double milliseconds = (seconds - floor(seconds)) * 1000.0;
+
+		char buffer[12]; // 00:00.000
+		sprintf_s(buffer, sizeof(buffer), "%02d:%02d.%03d", (int)minutes, (int)seconds, (int)milliseconds);
+	
+		return std::string(buffer);
 	}
 
 private:

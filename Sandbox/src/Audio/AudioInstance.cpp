@@ -136,5 +136,5 @@ inline TimeSpan AudioInstance::SamplesToTimeSpan(double samples, double sampleRa
 
 inline size_t AudioInstance::TimeSpanToSamples(TimeSpan time, double sampleRate, double channelCount)
 {
-	return (time.Seconds() * sampleRate * channelCount);
+	return (time.TotalSeconds() * sampleRate * channelCount);
 };

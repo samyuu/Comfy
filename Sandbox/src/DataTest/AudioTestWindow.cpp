@@ -194,18 +194,14 @@ void AudioTestWindow::DrawGui()
 			if (ImGui::SliderInt("audioInstance->SamplePosition", &samplePosition, 0, audioInstance->GetSampleCount()))
 				audioInstance->SetSamplePosition(samplePosition);
 
-			float position = audioInstance->GetPosition().Seconds();
-			if (ImGui::SliderFloat("audioInstance->Position", &position, 0, audioInstance->GetDuration().Seconds(), "%f"))
+			float position = audioInstance->GetPosition().TotalSeconds();
+			if (ImGui::SliderFloat("audioInstance->Position", &position, 0, audioInstance->GetDuration().TotalSeconds(), "%f"))
 				audioInstance->SetPosition(TimeSpan::FromSeconds(position));
 
 			ImGui::Separator();
-			ImGui::Text("audioInstance->GetDuration().Minutes(): %f", audioInstance->GetDuration().Minutes());
-			ImGui::Text("audioInstance->GetDuration().Seconds(): %f", audioInstance->GetDuration().Seconds());
-			ImGui::Text("audioInstance->GetDuration().Milliseconds(): %f", audioInstance->GetDuration().Milliseconds());
+			ImGui::Text("audioInstance->GetDuration(): %s", audioInstance->GetDuration().FormatTime().c_str());
 			ImGui::Separator();
-			ImGui::Text("audioInstance->GetPosition().Minutes(): %f", audioInstance->GetPosition().Minutes());
-			ImGui::Text("audioInstance->GetPosition().Seconds(): %f", audioInstance->GetPosition().Seconds());
-			ImGui::Text("audioInstance->GetPosition().Milliseconds(): %f", audioInstance->GetPosition().Milliseconds());
+			ImGui::Text("audioInstance->GetPosition(): %s", audioInstance->GetPosition().FormatTime().c_str());
 			ImGui::Separator();
 
 			float volume = audioInstance->GetVolume();
