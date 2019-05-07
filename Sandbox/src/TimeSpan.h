@@ -43,15 +43,28 @@ struct TimeSpan
 
 	std::string FormatTime()
 	{
-		double minutes = floor(fmod(time, 3600.0) / 60.0);
-		double seconds = fmod(time, 60.0);
+		double absoluteTime = abs(time);
+
+		double minutes = floor(fmod(absoluteTime, 3600.0) / 60.0);
+		double seconds = fmod(absoluteTime, 60.0);
 		double milliseconds = (seconds - floor(seconds)) * 1000.0;
 
 		char buffer[12]; // 00:00.000
-		sprintf_s(buffer, sizeof(buffer), "%02d:%02d.%03d", (int)minutes, (int)seconds, (int)milliseconds);
+		const char* sign = time < 0 ? "-" : "";
+		sprintf_s(buffer, sizeof(buffer), "%s%02d:%02d.%03d", sign, (int)minutes, (int)seconds, (int)milliseconds);
 	
 		return std::string(buffer);
 	}
+
+	// Operators:
+	// ----------
+	inline bool operator== (TimeSpan other) { return TotalSeconds() == other.TotalSeconds(); }
+	inline bool operator!= (TimeSpan other) { return TotalSeconds() != other.TotalSeconds(); }
+	inline TimeSpan operator+ (TimeSpan other) { return FromSeconds(other.TotalSeconds() + TotalSeconds()); }
+	inline TimeSpan operator- (TimeSpan other) { return FromSeconds(other.TotalSeconds() - TotalSeconds()); }
+	inline TimeSpan operator* (double other) { return FromSeconds(TotalSeconds() * other); }
+	inline TimeSpan operator* (int other) { return FromSeconds(TotalSeconds() * other); }
+	// ----------
 
 private:
 	// Time in Seconds

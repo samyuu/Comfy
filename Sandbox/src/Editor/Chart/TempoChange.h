@@ -3,6 +3,9 @@
 
 namespace Editor
 {
+	constexpr float MAX_BPM = 960.0f;
+	constexpr float MIN_BPM = 2.0f;
+
 	struct Tempo
 	{
 		float BeatsPerMinute;

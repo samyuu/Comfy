@@ -10,13 +10,13 @@ namespace Editor
 		TimelineMap();
 		TimelineMap(std::vector<TimeSpan>& times);
 
-		TimelineTick TimelineLength();
 		TimeSpan GetTimeAt(TimelineTick tick);
 		TimelineTick GetTickAt(TimeSpan time);
 
-		static TimelineMap CalculateMapTimes(TempoMap& tempoMap, size_t barCount);
+		static TimelineMap CalculateMapTimes(TempoMap& tempoMap);
 
 	private:
+		// pre calculated tick times up to the last tempo change
 		std::vector<TimeSpan> tickTimes;
 	};
 }

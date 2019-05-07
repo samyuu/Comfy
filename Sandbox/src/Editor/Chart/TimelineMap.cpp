@@ -10,21 +10,36 @@ namespace Editor
 	{
 	}
 
-	TimelineTick TimelineMap::TimelineLength()
-	{
-		return TimelineTick(tickTimes.size());
-	}
-
 	TimeSpan TimelineMap::GetTimeAt(TimelineTick tick)
 	{
 		int tickTimeCount = tickTimes.size();
 
-		if (tickTimeCount <= tick.TotalTicks())
+		if (tick.TotalTicks() < 0) // negative tick
 		{
-			// out of bounds
-			tickTimes.at(tickTimeCount - 1);
+			// take the first calculated time
+			TimeSpan firstTime = tickTimes.at(0);
+			TimeSpan secondTime = tickTimes.at(1);
+
+			// calculate the duration of a TimelineTick at the first tempo
+			TimeSpan tickDuration = firstTime - secondTime;
+
+			// then scale by the negative tick
+			return tickDuration * tick.TotalTicks();
 		}
-		else
+		else if (tick.TotalTicks() >= tickTimeCount) // tick is outside the tempo map
+		{
+			// take the last calculated time
+			TimeSpan lastTime = tickTimes.at(tickTimeCount - 1);
+			TimeSpan secondToLast = tickTimes.at(tickTimeCount - 2);
+
+			// calculate the duration of a TimelineTick at the last used tempo
+			TimeSpan tickDuration = secondToLast - lastTime;
+
+			// then scale by the remaining ticks
+			int remainingTicks = tick.TotalTicks() - tickTimeCount + 1;
+			return lastTime + (tickDuration * remainingTicks);
+		}
+		else // use the pre calculated lookup table
 		{
 			return tickTimes.at(tick.TotalTicks());
 		}
@@ -32,17 +47,21 @@ namespace Editor
 
 	TimelineTick TimelineMap::GetTickAt(TimeSpan time)
 	{
+		// perform a binary search
 		assert(false);
 		return 0;
 	}
 
-	TimelineMap TimelineMap::CalculateMapTimes(TempoMap& tempoMap, size_t barCount)
+	TimelineMap TimelineMap::CalculateMapTimes(TempoMap& tempoMap)
 	{
-		const size_t timeCount = barCount * TimelineTick::TICKS_PER_BAR;
+		assert(tempoMap.TempoChangeCount() > 0);
+
+		TempoChange& lastTempoChange = tempoMap.GetTempoChangeAt(tempoMap.TempoChangeCount() - 1);
+		const size_t timeCount = lastTempoChange.Tick.TotalTicks();
 
 		std::vector<TimeSpan> tickTimes(timeCount);
 		{
-			// the time of when the last tempo change ended. lets use use higher precision multiplication
+			// the time of when the last tempo change ended, so we can use higher precision multiplication
 			double tempoChangeEndTime = 0.0;
 
 			const size_t tempoChanges = tempoMap.TempoChangeCount();
@@ -51,7 +70,7 @@ namespace Editor
 				TempoChange& tempoChange = tempoMap.GetTempoChangeAt(b);
 
 				const double beatDuration = (60.0 / tempoChange.Tempo.BeatsPerMinute);
-				const double beatTickDuration = (beatDuration / TimelineTick::TICKS_PER_BEAT);
+				const double tickDuration = (beatDuration / TimelineTick::TICKS_PER_BEAT);
 
 				bool onlyTempo = (tempoChanges == 1);
 				bool lastTempo = (b == (tempoChanges - 1));
@@ -60,26 +79,12 @@ namespace Editor
 				const size_t timesCount = (onlyTempo || lastTempo) ? (tickTimes.size()) : (tempoMap.GetTempoChangeAt(b + 1).Tick.TotalTicks());
 
 				for (size_t i = 0, t = timesStart; t < timesCount; t++)
-					tickTimes[t] = (beatTickDuration * i++) + tempoChangeEndTime;
+					tickTimes[t] = (tickDuration * i++) + tempoChangeEndTime;
 
-				tempoChangeEndTime = tickTimes[timesCount - 1].TotalSeconds() + beatTickDuration;
+				tempoChangeEndTime = tickTimes[timesCount - 1].TotalSeconds() + tickDuration;
 			}
 		}
 
-		TimelineMap timelineTimes(tickTimes);
-
-		//for (size_t i = 0; i <= 12 * TimelineTick::TICKS_PER_BAR; i++)
-		//	printf("[%d] %fms\n", i, timelineTimes.GetTimeAt(TimelineTick::FromTicks(i)).Milliseconds());
-
-		//for (size_t i = 0; i <= 12; i++)
-		//	printf("[%d] %fms\n", i, timelineTimes.GetTimeAt(TimelineTick::FromBars(i)).Milliseconds());
-
-		//for (size_t i = 0; i <= 12 * 4; i++)
-		//	printf("[%d] %fms\n", i, timelineTimes.GetTimeAt(TimelineTick::FromTicks(i * TimelineTick::TICKS_PER_BEAT)).Milliseconds());
-
-		for (size_t i = 0; i <= 100 * 4; i++)
-			printf("[%d] %s\n", i, timelineTimes.GetTimeAt(TimelineTick::FromTicks(i * TimelineTick::TICKS_PER_BEAT)).FormatTime().c_str());
-
-		return timelineTimes;
+		return TimelineMap(tickTimes);
 	}
 }

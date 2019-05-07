@@ -19,11 +19,12 @@ namespace Editor
 
 		bool initialized = false;
 
-		const float ZOOM_BASE = 25.0f;
+		const float ZOOM_BASE = 150.0f;
 
 		const float ZOOM_MIN = 1.0f;
 		const float ZOOM_MAX = 10.0f;
 		float zoomLevel = 1.0f;
+		int gridDivision = 4;
 
 		// TODO: need some conversion between TimeStamp, TimelineTick and float TimelinePosition (which gets mulitplied by zoom)
 		float GetTimelinePosition(TimelineTick tick);
@@ -50,6 +51,7 @@ namespace Editor
 
 		TimelineRow timelineRows[TARGET_MAX];
 
+		float targetHeights[TARGET_MAX];
 		Texture iconTextures[TARGET_MAX];
 		const char* iconPaths[TARGET_MAX] =
 		{
@@ -62,17 +64,17 @@ namespace Editor
 		};
 
 		ImGuiWindow* parentWindow;
+		float scrollDelta = 0.0f;
+
 		float infoColumnWidth = 46.0f;
 		float tempoMapHeaderHeight = 30.0f;
+		const float scrollSpeed = 2.0f;
 
-		const float scrollBarHeight = 16.0f;
-
-		const float SCROLL_AMOUNT = 200.0;
 		const float ICON_SIZE = 0.35f;
-
 		const float ROW_HEIGHT = 42.0f;
 		
-		ImU32 GRID_COLOR, GRID_COLOR_ALT, INFO_COLUMN_COLOR, SELECTION_COLOR, TIMELINE_ROW_BG_COLOR;
+		ImU32 BAR_COLOR, GRID_COLOR, GRID_COLOR_ALT, INFO_COLUMN_COLOR, SELECTION_COLOR;
+		ImU32 TIMELINE_BG_COLOR, TIMELINE_ROW_SEPARATOR_COLOR;
 		
 		void Initialize();
 		void TimelineHeaderWidgets();

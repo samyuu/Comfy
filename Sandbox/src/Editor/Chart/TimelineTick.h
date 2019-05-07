@@ -16,6 +16,7 @@ namespace Editor
 		static inline TimelineTick OneBar() { return FromBars(1); };
 
 		static inline TimelineTick FromBars(int32_t bars) { return FromTicks(TICKS_PER_BAR * bars); };
+		static inline TimelineTick FromBeats(int32_t bars) { return FromTicks(TICKS_PER_BEAT * bars); };
 		static inline TimelineTick FromTicks(int32_t ticks) { return TimelineTick(ticks); };
 
 	public:
@@ -38,6 +39,12 @@ namespace Editor
 		inline int32_t TotalBars()
 		{
 			return TotalTicks() / TICKS_PER_BAR;
+		}
+
+		// Fraction bar count
+		inline int32_t Bars()
+		{
+			return TotalBars() % TICKS_PER_BAR;
 		}
 
 		// Fraction tick count
