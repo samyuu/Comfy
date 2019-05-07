@@ -18,9 +18,14 @@ namespace Editor
 		return u8"Target Timeline";
 	}
 
+	float TargetTimeline::GetTimelinePosition(TimeSpan time)
+	{
+		return time.TotalSeconds() * zoomLevel * ZOOM_BASE;
+	}
+
 	float TargetTimeline::GetTimelinePosition(TimelineTick tick)
 	{
-		return timelineMap.GetTimeAt(tick).TotalSeconds() * zoomLevel * ZOOM_BASE;
+		return GetTimelinePosition(timelineMap.GetTimeAt(tick));
 
 		//return tick.TotalTicks() * zoomLevel;
 	}
@@ -37,6 +42,7 @@ namespace Editor
 		{
 			tempoMap.Add(TempoChange(TimelineTick::FromBars(0), 180.0f));
 			tempoMap.Add(TempoChange(TimelineTick::FromBars(2), 200.0f));
+			//tempoMap.Add(TempoChange(TimelineTick::FromBeats(2 * 4 + 1), 200.0f));
 			tempoMap.Add(TempoChange(TimelineTick::FromBars(6), 120.0f));
 			tempoMap.Add(TempoChange(TimelineTick::FromBars(9), 160.0f));
 
@@ -58,6 +64,7 @@ namespace Editor
 		GRID_COLOR = ImGui::GetColorU32(ImGuiCol_Separator, .75f);
 		GRID_COLOR_ALT = ImGui::GetColorU32(ImGuiCol_Separator, .5f);
 		INFO_COLUMN_COLOR = ImGui::GetColorU32(ImGuiCol_ScrollbarBg);
+		TEMPO_MAP_BAR_COLOR = ImGui::GetColorU32(ImGuiCol_MenuBarBg);
 		SELECTION_COLOR = ImGui::GetColorU32(ImGuiCol_TextSelectedBg);
 		TIMELINE_BG_COLOR = ImGui::GetColorU32(ImGuiCol_DockingEmptyBg);
 		TIMELINE_ROW_SEPARATOR_COLOR = ImGui::GetColorU32(ImGuiCol_Separator);
@@ -109,7 +116,7 @@ namespace Editor
 		if (ImGui::IsItemActive()) { scrollDelta -= ImGui::GetIO().DeltaTime * 1000.0f; }
 
 		ImGui::SameLine();
-		ImGui::Button(">|"); 
+		ImGui::Button(">|");
 		if (ImGui::IsItemActive()) { scrollDelta += ImGui::GetIO().DeltaTime * 1000.0f; }
 
 		ImGui::SameLine();
@@ -118,7 +125,7 @@ namespace Editor
 			static const char* gridDivisionStrings[] = { "1/1", "1/2", "1/4", "1/8", "1/12", "1/16", "1/24", "1/32", "1/48", "1/64" };
 			static int gridDivisions[] = { 1, 2, 4, 8, 12, 16, 24, 32, 48, 64 };
 			static int gridDivisionIndex = -1;
-			
+
 			if (gridDivisionIndex < 0)
 			{
 				for (size_t i = 0; i < IM_ARRAYSIZE(gridDivisions); i++)
@@ -162,7 +169,7 @@ namespace Editor
 		ImGui::GetWindowDrawList()->AddRectFilled(viewTopLeft, viewBotRight, INFO_COLUMN_COLOR);
 		parentWindow->DrawList->AddRectFilled(viewBotLeft, viewBotLeft + ImVec2(infoColumnWidth, ImGui::GetStyle().ScrollbarSize), INFO_COLUMN_COLOR);
 
-		for (int i = 0; i < IM_ARRAYSIZE(timelineRows); i++)
+		for (int i = 0; i < TARGET_MAX; i++)
 		{
 			float y = i * ROW_HEIGHT;
 			auto start = ImVec2(0, y) + viewTopLeft;
@@ -180,43 +187,46 @@ namespace Editor
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		ImDrawList* windowDrawList = ImGui::GetWindowDrawList();
 
-		ImVec2 viewTopLeft = ImGui::GetWindowPos() + ImGui::GetCursorPos();
+		ImVec2 viewTopLeft = ImGui::GetWindowPos() + ImGui::GetCursorPos(), viewBotRight;
+		ImVec2 tempoMapBarTopLeft, tempoMapTopLeft = viewTopLeft;
+
 		const float windowWidth = ImGui::GetWindowWidth() + infoColumnWidth;
 		const float windowHeight = ImGui::GetWindowHeight() - window->ScrollbarSizes.y - 2;
 
 		// TempoMap Header
 		// ---------------
 		{
-			ImVec2 start = viewTopLeft + ImVec2(0, parentWindow->WindowPadding.y * .5f);
-			ImVec2 size = ImVec2(parentWindow->Size.x - (parentWindow->WindowPadding.x * 2.0f) - infoColumnWidth, tempoMapHeaderHeight);
-			ImVec2 end = start + size;
+			tempoMapTopLeft = viewTopLeft + ImVec2(0, parentWindow->WindowPadding.y * .5f + tempoMapBarHeight);
 
-			windowDrawList->AddRectFilled(start, end, INFO_COLUMN_COLOR);
+			ImVec2 size = ImVec2(parentWindow->Size.x - (parentWindow->WindowPadding.x * 2.0f) - infoColumnWidth, tempoMapHeaderHeight);
+			ImVec2 tempoMapBotRight = tempoMapTopLeft + size;
+
+			// TempoMap bar
+			tempoMapBarTopLeft = tempoMapTopLeft - ImVec2(0, tempoMapBarHeight);
+			windowDrawList->AddRectFilled(tempoMapBarTopLeft, tempoMapTopLeft + ImVec2(size.x, 0), TEMPO_MAP_BAR_COLOR);
+
+			windowDrawList->AddRectFilled(tempoMapTopLeft, tempoMapBotRight, INFO_COLUMN_COLOR);
 			viewTopLeft.y += tempoMapHeaderHeight;
+			viewBotRight = viewTopLeft + ImVec2(0, windowHeight);
 		}
 
 		// Scroll Test
 		// -----------
 		{
-			ImGui::SetScrollX(ImGui::GetScrollX() + scrollDelta);
-			scrollDelta = 0;
+			if (scrollDelta != 0.0f)
+			{
+				ImGui::SetScrollX(ImGui::GetScrollX() + scrollDelta);
+				scrollDelta = 0.0f;
+			}
 
 			ImGui::ItemSize(ImVec2(GetTimelinePosition(TimelineTick::FromBars(30)), 0));
-			//ImGui::BeginGroup();
-			//window->ScrollbarY = 1000;
-			//ImGui::ItemSize(ImVec2(10000, 0));
-			//window->SizeContents.y = 10000;
-			//ImGui::EndGroup();
 		}
-
 
 		// First draw the timeline row lines
 		// ---------------------------------
-		for (int i = 0; i <= IM_ARRAYSIZE(timelineRows); i++)
+		for (int t = 0; t <= TARGET_MAX; t++)
 		{
-			TimelineRow* timelineRow;
-
-			float y = i * ROW_HEIGHT;
+			float y = t * ROW_HEIGHT;
 			auto start = ImVec2(0, y) + viewTopLeft;
 			auto end = ImVec2(windowWidth, y) + viewTopLeft;
 
@@ -226,11 +236,10 @@ namespace Editor
 
 			// Draw timeline row background
 			// ----------------------------
-			if (i < IM_ARRAYSIZE(timelineRows))
+			if (t < TARGET_MAX)
 			{
 				start.y += 1;
-				end.y -= 1;
-				end.y += ROW_HEIGHT;
+				end.y += ROW_HEIGHT - 1;
 				windowDrawList->AddRectFilled(start, end, TIMELINE_BG_COLOR);
 			}
 		}
@@ -246,12 +255,10 @@ namespace Editor
 				bool isBar = tick % TimelineTick::TICKS_PER_BAR == 0;
 				auto color = isBar ? BAR_COLOR : (divisions++ % 2 == 0 ? GRID_COLOR : GRID_COLOR_ALT);
 
-				float x = GetTimelinePosition(tick) - ImGui::GetScrollX();
+				float x = GetTimelinePosition(TimelineTick(tick)) - ImGui::GetScrollX();
 
 				auto start = ImVec2(x, 0) + viewTopLeft;
-				if (isBar)
-					start.y -= tempoMapHeaderHeight;
-
+				start.y = isBar ? tempoMapTopLeft.y : start.y - (tempoMapHeaderHeight - tempoMapBarHeight) * .5f;
 				auto end = start + ImVec2(0, windowHeight);
 
 				windowDrawList->AddLine(start, end, color);
@@ -266,7 +273,8 @@ namespace Editor
 
 		// Tempo Changes
 		{
-			char buffer[16];
+			char tempoBuffer[16];
+			char buttonId[28];
 
 			for (size_t i = 0; i < tempoMap.TempoChangeCount(); i++)
 			{
@@ -274,14 +282,29 @@ namespace Editor
 
 				float x = GetTimelinePosition(tempoChange.Tick) - ImGui::GetScrollX();
 
-				auto start = ImVec2(x, -tempoMapHeaderHeight) + viewTopLeft;
-				auto end = ImVec2(x, windowHeight) + viewTopLeft;
+				auto start = ImVec2(x, -tempoMapBarHeight) + tempoMapTopLeft;
+				auto end = ImVec2(start.x, tempoMapTopLeft.y + tempoMapHeaderHeight - tempoMapBarHeight);
+				end = start + ImVec2(0, tempoMapBarHeight);
 
-				auto color = IM_COL32(212, 212, 12, 200);
-				windowDrawList->AddLine(start, end, color);
+				auto tempoBgColor = IM_COL32(147, 125, 125, 255);
+				auto tempoFgColor = IM_COL32(139, 56, 51, 255);
 
-				sprintf_s(buffer, sizeof(buffer), "\n%2.f BPM", tempoChange.Tempo.BeatsPerMinute);
-				windowDrawList->AddText(start, color, buffer);
+				sprintf_s(tempoBuffer, sizeof(tempoBuffer), "%2.f BPM", tempoChange.Tempo.BeatsPerMinute);
+				sprintf_s(buttonId, sizeof(buttonId), "##%s_%04d", tempoBuffer, i);
+
+				auto position = ImVec2(tempoMapBarTopLeft.x + x + 1, tempoMapBarTopLeft.y);
+				auto size = ImVec2(ImGui::CalcTextSize(tempoBuffer).x, tempoMapBarHeight);
+
+				ImGui::SetCursorScreenPos(position);
+				ImGui::InvisibleButton(buttonId, size);
+
+				// prevent overlapping tempo changes
+				//windowDrawList->AddRectFilled(position, position + size, TEMPO_MAP_BAR_COLOR);
+				if (ImGui::IsItemHovered())
+					windowDrawList->AddRect(position, position + size, TIMELINE_BG_COLOR);
+
+				windowDrawList->AddLine(start, end, tempoFgColor);
+				windowDrawList->AddText(ImGui::GetFont(), tempoMapBarHeight, position, tempoFgColor, tempoBuffer);
 			}
 		}
 
@@ -294,7 +317,7 @@ namespace Editor
 			if (target > TARGET_SLIDE_R) target = TARGET_SANKAKU;
 			if (target < TARGET_SANKAKU) target = TARGET_SLIDE_R;
 
-			float position = GetTimelinePosition(0) - ImGui::GetScrollX();
+			float position = GetTimelinePosition(TimelineTick(0)) - ImGui::GetScrollX();
 			auto center = ImVec2(position + viewTopLeft.x, targetHeights[target]);
 			ImGui::AddTexture(windowDrawList, &iconTextures[target], center, ICON_SIZE);
 		}
@@ -320,7 +343,9 @@ namespace Editor
 		// Grab Control
 		// ------------
 		{
-			if (ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive() && ImGui::IsMouseDragging(2, 0.0f))
+			constexpr int timelineGrabButton = 2;
+
+			if (ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive() && ImGui::IsMouseDragging(timelineGrabButton, 0.0f))
 				ImGui::SetScrollX(ImGui::GetScrollX() - ImGui::GetIO().MouseDelta.x);
 		}
 
@@ -333,7 +358,11 @@ namespace Editor
 			{
 				if (io.KeyAlt) // Zoom Timeline
 				{
-					zoomLevel = zoomLevel + (io.MouseWheel > 0.0f ? .5f : -.5f);
+					float amount = .5f;
+					zoomLevel = zoomLevel + amount * io.MouseWheel;
+
+					if (zoomLevel <= 0)
+						zoomLevel = amount;
 				}
 				else if (!io.KeyCtrl) // Scroll Timeline
 				{
