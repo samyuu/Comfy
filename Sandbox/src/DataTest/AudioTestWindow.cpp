@@ -239,7 +239,8 @@ void AudioTestWindow::DrawGui()
 		if (!buttonSound.GetIsInitialized())
 			buttonSound.LoadFromFile("rom/sound/button/01_button1.wav");
 
-		bool addButtonSound = ImGui::Button("PlaySound(buttonSound)");
+		ImGui::Button("PlaySound(buttonSound)");
+		bool addButtonSound = ImGui::IsItemHovered() && ImGui::IsMouseClicked(0);
 
 		ImGui::SliderFloat("Button Volume", &buttonVolume, MIN_VOLUME, MAX_VOLUME);
 
