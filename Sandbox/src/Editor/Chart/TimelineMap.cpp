@@ -47,9 +47,20 @@ namespace Editor
 
 	TimelineTick TimelineMap::GetTickAt(TimeSpan time)
 	{
-		// perform a binary search
+		TimeSpan lastTime = tickTimes[tickTimes.size() - 1];
+
+		if (time >= lastTime)
+		{
+
+		}
+		else
+		{
+			// perform a binary search
+
+		}
+
 		assert(false);
-		return 0;
+		return 0.0;
 	}
 
 	TimelineMap TimelineMap::CalculateMapTimes(TempoMap& tempoMap)

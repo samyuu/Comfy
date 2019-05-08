@@ -29,11 +29,6 @@ namespace Editor
 
 	protected:
 
-		inline void DRAW_DEBUG_REGION(ImRect& rect) 
-		{
-			ImGui::AddRectFilled(ImGui::GetForegroundDrawList(), rect, IM_COL32_BLACK * .5f);
-		}
-
 		// Timeline Regions:
 		ImRect timelineRegion;
 		ImRect infoColumnHeaderRegion;
@@ -47,15 +42,11 @@ namespace Editor
 		bool initialized = false;
 
 		const float ZOOM_BASE = 150.0f;
-
 		const float ZOOM_MIN = 1.0f;
 		const float ZOOM_MAX = 10.0f;
+
 		float zoomLevel = 1.0f;
 		int gridDivision = 4;
-
-		// TODO: need some conversion between TimeStamp, TimelineTick and float TimelinePosition (which gets mulitplied by zoom)
-		float GetTimelinePosition(TimeSpan time);
-		float GetTimelinePosition(TimelineTick tick);
 
 		TempoMap tempoMap;
 		TimelineMap timelineMap;
@@ -73,11 +64,7 @@ namespace Editor
 		};
 
 		Cursor cursor;
-		//ImVec2 timelineBaseTopLeft, viewBotRight;
-		//ImVec2 tempoMapBarTopLeft, tempoMapTopLeft;
-		//float windowWidth, windowHeight;
 
-		ImGuiWindow* parentWindow;
 		ImGuiWindow* baseWindow;
 		ImDrawList* baseDrawList;
 		float scrollDelta = 0.0f;
@@ -94,20 +81,41 @@ namespace Editor
 		ImU32 INFO_COLUMN_COLOR, TEMPO_MAP_BG_COLOR;
 		ImU32 TIMELINE_BG_COLOR, TIMELINE_ROW_SEPARATOR_COLOR;
 		
+		// ----------------
 		void Initialize();
 		void UpdateRegions();
-		
+		// ----------------
+
+		// Timeline Widgets:
+		// -----------------
 		void TimelineHeaderWidgets();
+		// Timeline Column:
+		// ----------------
 		void TimelineInfoColumnHeader();
 		void TimelineInfoColumn();
-
 		// Timeline Base:
 		// --------------
 		void TimelineBase();
-		
+		void TimlineDivisors();
+		void TimelineTempoMap();
 		void TimelineTargets();
 		void TimelineCursor();
 		void ScrollControl();
-		// -----
+		// --------------
+
+		// Conversion Methods:
+		// -------------------
+		float GetTimelinePosition(TimeSpan time);
+		float GetTimelinePosition(TimelineTick tick);
+		TimelineTick GetTimelineTick(float position);
+		TimeSpan GetTimelineTime(TimelineTick tick);
+		TimeSpan GetTimelineTime(float position);
+		float ScreenToTimelinePosition(float screenPosition);
+		// -------------------
+
+		// DEBUG STUFF
+		// -----------
+		inline void DRAW_DEBUG_REGION(ImRect& rect) { ImGui::AddRectFilled(ImGui::GetForegroundDrawList(), rect, IM_COL32_BLACK * .5f); }
+		// -----------
 	};
 }

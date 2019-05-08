@@ -25,9 +25,27 @@ namespace Editor
 
 	float TargetTimeline::GetTimelinePosition(TimelineTick tick)
 	{
-		return GetTimelinePosition(timelineMap.GetTimeAt(tick));
+		return GetTimelinePosition(GetTimelineTime(tick));
+	}
 
-		//return tick.TotalTicks() * zoomLevel;
+	TimelineTick TargetTimeline::GetTimelineTick(float position)
+	{
+		return timelineMap.GetTickAt(GetTimelineTime(position));
+	}
+
+	TimeSpan TargetTimeline::GetTimelineTime(TimelineTick tick)
+	{
+		return timelineMap.GetTimeAt(tick);
+	}
+
+	TimeSpan TargetTimeline::GetTimelineTime(float position)
+	{
+		return position / zoomLevel / ZOOM_BASE;
+	}
+
+	float TargetTimeline::ScreenToTimelinePosition(float screenPosition)
+	{
+		return screenPosition - timelineTargetRegion.Min.x + ImGui::GetScrollX();
 	}
 
 	void TargetTimeline::Initialize()
@@ -100,8 +118,6 @@ namespace Editor
 		TIMELINE_BG_COLOR = ImGui::GetColorU32(ImGuiCol_DockingEmptyBg);
 		TIMELINE_ROW_SEPARATOR_COLOR = ImGui::GetColorU32(ImGuiCol_Separator);
 		BAR_COLOR = ImGui::GetColorU32(ImGuiCol_PlotLines);
-
-		parentWindow = ImGui::GetCurrentWindow();
 
 		ImGui::BeginGroup();
 		TimelineHeaderWidgets();
@@ -181,7 +197,13 @@ namespace Editor
 	void TargetTimeline::TimelineInfoColumn()
 	{
 		auto drawList = ImGui::GetWindowDrawList();
+		
+		// top part
 		drawList->AddRectFilled(infoColumnRegion.GetTL(), infoColumnRegion.GetBR(), INFO_COLUMN_COLOR);
+		
+		// bottom part
+		ImDrawList* parentDrawList = ImGui::GetCurrentWindow()->ParentWindow->DrawList;
+		parentDrawList->AddRectFilled(infoColumnRegion.GetBL(), infoColumnRegion.GetBL() + ImVec2(infoColumnRegion.GetWidth(), -ImGui::GetStyle().ScrollbarSize), INFO_COLUMN_COLOR);
 
 		for (int i = 0; i < TARGET_MAX; i++)
 		{
@@ -223,92 +245,13 @@ namespace Editor
 		{
 			baseDrawList->AddRectFilled(timelineTargetRegion.GetTL(), timelineTargetRegion.GetBR(), TIMELINE_BG_COLOR);
 		}
-		// Timeline Target Region Rows
-		// ---------------------------
+
+		TimlineDivisors();
+		TimelineTempoMap();
+
+		if (timelineHeaderRegion.Contains(ImGui::GetMousePos()))
 		{
-			for (int t = 0; t <= TARGET_MAX; t++)
-			{
-				float y = t * ROW_HEIGHT;
-				ImVec2 start = timelineTargetRegion.GetTL() + ImVec2(0, y);
-				ImVec2 end = start + ImVec2(timelineTargetRegion.GetWidth(), 0);
-
-				baseDrawList->AddLine(start, end, TIMELINE_ROW_SEPARATOR_COLOR);
-			}
-		}
-
-		// Test out bar divisors
-		// ---------------------
-		{
-			baseDrawList->AddRectFilled(tempoMapRegion.GetTL(), tempoMapRegion.GetBR(), TEMPO_MAP_BG_COLOR);
-
-			char buffer[16];
-
-			int totalTicks = TimelineTick::FromBars(30).TotalTicks();
-			int tickStep = TimelineTick::TICKS_PER_BAR / gridDivision;
-
-			for (int tick = 0, divisions = 0; tick < totalTicks; tick += tickStep)
-			{
-				bool isBar = tick % TimelineTick::TICKS_PER_BAR == 0;
-				auto color = isBar ? BAR_COLOR : (divisions++ % 2 == 0 ? GRID_COLOR : GRID_COLOR_ALT);
-
-				float x = GetTimelinePosition(TimelineTick(tick)) - ImGui::GetScrollX();
-
-				ImVec2 start = timelineTargetRegion.GetTL() + ImVec2(x, 0);
-				ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(x, 0);
-
-				start.y -= timelineHeaderHeight * (isBar ? .85f : .35f);
-
-				baseDrawList->AddLine(start, end, color);
-
-				if (isBar)
-				{
-					sprintf_s(buffer, sizeof(buffer), "%d", TimelineTick::FromTicks(tick).TotalBars());
-					
-					start += ImVec2(3, -1);
-					baseDrawList->AddText(start, color, buffer);
-				}
-			}
-		}
-
-		// Tempo Map Region / Tempo Changes
-		// --------------------------------
-		{
-			char tempoBuffer[16];
-			char buttonId[28];
-		
-			for (size_t i = 0; i < tempoMap.TempoChangeCount(); i++)
-			{
-				TempoChange& tempoChange = tempoMap.GetTempoChangeAt(i);
-		
-				float x = GetTimelinePosition(tempoChange.Tick) - ImGui::GetScrollX();
-		
-				//auto tempoBgColor = IM_COL32(147, 125, 125, 255);
-				auto tempoFgColor = IM_COL32(139, 56, 51, 255);
-		
-				sprintf_s(tempoBuffer, sizeof(tempoBuffer), "%2.f BPM", tempoChange.Tempo.BeatsPerMinute);
-				sprintf_s(buttonId, sizeof(buttonId), "##%s_%04d", tempoBuffer, i);
-		
-				auto buttonPosition = tempoMapRegion.GetTL() + ImVec2(x + 1, 0);
-				auto buttonSize = ImVec2(ImGui::CalcTextSize(tempoBuffer).x, tempoMapHeight);
-		
-				ImGui::SetCursorScreenPos(buttonPosition);
-				ImGui::InvisibleButton(buttonId, buttonSize);
-		
-				// prevent overlapping tempo changes
-				//windowDrawList->AddRectFilled(buttonPosition, buttonPosition + buttonSize, TEMPO_MAP_BAR_COLOR);
-				if (ImGui::IsItemHovered())
-				{
-					baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, TIMELINE_BG_COLOR);
-					if (ImGui::IsMouseClicked(0))
-					{
-						ImGui::SetScrollX(x + ImGui::GetScrollX());
-						//ImGui::SetScrollX(screenX - timelineTargetRegion.GetTL().x - (windowWidth * .5f));
-					}
-				}
-		
-				baseDrawList->AddLine(buttonPosition + ImVec2(-1, -1), buttonPosition + ImVec2(-1, buttonSize.y - 1), tempoFgColor);
-				baseDrawList->AddText(ImGui::GetFont(), tempoMapHeight, buttonPosition, tempoFgColor, tempoBuffer);
-			}
+			ImGui::SetTooltip("TIME: %s", GetTimelineTime(ScreenToTimelinePosition(ImGui::GetMousePos().x)).FormatTime().c_str());
 		}
 
 		// Test out selection box
@@ -334,17 +277,113 @@ namespace Editor
 		ScrollControl();
 	}
 
+	void TargetTimeline::TimlineDivisors()
+	{
+		// Timeline Target Region rows
+		// ---------------------------
+		{
+			for (int t = 0; t <= TARGET_MAX; t++)
+			{
+				float y = t * ROW_HEIGHT;
+				ImVec2 start = timelineTargetRegion.GetTL() + ImVec2(0, y);
+				ImVec2 end = start + ImVec2(timelineTargetRegion.GetWidth(), 0);
+
+				baseDrawList->AddLine(start, end, TIMELINE_ROW_SEPARATOR_COLOR);
+			}
+		}
+
+		// Timeline Bar / Beat lines
+		// -------------------------
+		{
+			baseDrawList->AddRectFilled(tempoMapRegion.GetTL(), tempoMapRegion.GetBR(), TEMPO_MAP_BG_COLOR);
+
+			char buffer[16];
+
+			int totalTicks = TimelineTick::FromBars(30).TotalTicks();
+			int tickStep = TimelineTick::TICKS_PER_BAR / gridDivision;
+
+			for (int tick = 0, divisions = 0; tick < totalTicks; tick += tickStep)
+			{
+				bool isBar = tick % TimelineTick::TICKS_PER_BAR == 0;
+				auto color = isBar ? BAR_COLOR : (divisions++ % 2 == 0 ? GRID_COLOR : GRID_COLOR_ALT);
+
+				float x = GetTimelinePosition(TimelineTick(tick)) - ImGui::GetScrollX();
+
+				ImVec2 start = timelineTargetRegion.GetTL() + ImVec2(x, 0);
+				ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(x, 0);
+
+				start.y -= timelineHeaderHeight * (isBar ? .85f : .35f);
+
+				baseDrawList->AddLine(start, end, color);
+
+				if (isBar)
+				{
+					sprintf_s(buffer, sizeof(buffer), "%d", TimelineTick::FromTicks(tick).TotalBars());
+
+					start += ImVec2(3, -1);
+					baseDrawList->AddText(start, color, buffer);
+				}
+			}
+		}
+	}
+
+	void TargetTimeline::TimelineTempoMap()
+	{
+		// Tempo Map Region / Tempo Changes
+		// --------------------------------
+		{
+			char tempoStr[16];
+			char buttonIdStr[28];
+
+			for (size_t i = 0; i < tempoMap.TempoChangeCount(); i++)
+			{
+				TempoChange& tempoChange = tempoMap.GetTempoChangeAt(i);
+
+				float x = GetTimelinePosition(tempoChange.Tick) - ImGui::GetScrollX();
+
+				//auto tempoBgColor = IM_COL32(147, 125, 125, 255);
+				auto tempoFgColor = IM_COL32(139, 56, 51, 255);
+
+				sprintf_s(tempoStr, sizeof(tempoStr), "%2.f BPM", tempoChange.Tempo.BeatsPerMinute);
+				sprintf_s(buttonIdStr, sizeof(buttonIdStr), "##%s_%04d", tempoStr, i);
+
+				auto buttonPosition = tempoMapRegion.GetTL() + ImVec2(x + 1, 0);
+				auto buttonSize = ImVec2(ImGui::CalcTextSize(tempoStr).x, tempoMapHeight);
+
+				ImGui::SetCursorScreenPos(buttonPosition);
+				ImGui::InvisibleButton(buttonIdStr, buttonSize);
+
+				// prevent overlapping tempo changes
+				//windowDrawList->AddRectFilled(buttonPosition, buttonPosition + buttonSize, TEMPO_MAP_BAR_COLOR);
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("TIME: %s", GetTimelineTime(tempoChange.Tick).FormatTime().c_str());
+
+					baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, TIMELINE_BG_COLOR);
+					if (ImGui::IsMouseClicked(0))
+					{
+						ImGui::SetScrollX(x + ImGui::GetScrollX());
+						//ImGui::SetScrollX(screenX - timelineTargetRegion.GetTL().x - (windowWidth * .5f));
+					}
+				}
+
+				baseDrawList->AddLine(buttonPosition + ImVec2(-1, -1), buttonPosition + ImVec2(-1, buttonSize.y - 1), tempoFgColor);
+				baseDrawList->AddText(ImGui::GetFont(), tempoMapHeight, buttonPosition, tempoFgColor, tempoStr);
+			}
+		}
+	}
+
 	void TargetTimeline::TimelineTargets()
 	{
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		ImDrawList* windowDrawList = window->DrawList;
 
-		// Test out timline buttons
+		// Test out timline targets
 		// ------------------------
 		{
 			static int target;
-			if (ImGui::IsKeyPressed(GLFW_KEY_UP)) target++;
-			if (ImGui::IsKeyPressed(GLFW_KEY_DOWN)) target--;
+			if (ImGui::IsKeyPressed(GLFW_KEY_UP)) target--;
+			if (ImGui::IsKeyPressed(GLFW_KEY_DOWN)) target++;
 			if (target > TARGET_SLIDE_R) target = TARGET_SANKAKU;
 			if (target < TARGET_SANKAKU) target = TARGET_SLIDE_R;
 
@@ -352,7 +391,6 @@ namespace Editor
 			ImVec2 center = ImVec2(position + timelineTargetRegion.GetTL().x, targetHeights[target]);
 			ImGui::AddTexture(windowDrawList, &iconTextures[target], center, ICON_SIZE);
 		}
-
 	}
 
 	void TargetTimeline::TimelineCursor()
@@ -412,18 +450,10 @@ namespace Editor
 				}
 				else if (!io.KeyCtrl) // Scroll Timeline
 				{
-					ImVec2 max_step = (window->ContentsRegionRect.GetSize() + window->WindowPadding * 2.0f) * 0.67f;
+					ImVec2 maxStep = (window->ContentsRegionRect.GetSize() + window->WindowPadding * 2.0f) * 0.67f;
 
-					if (io.KeyShift)
-					{
-						float scroll_step = ImFloor(ImMin(5 * window->CalcFontSize(), max_step.y));
-						ImGui::SetWindowScrollY(window, window->Scroll.y - io.MouseWheel * scroll_step);
-					}
-					else
-					{
-						float scroll_step = ImFloor(ImMin(2 * window->CalcFontSize(), max_step.x)) * scrollSpeed;
-						ImGui::SetWindowScrollX(window, window->Scroll.x + io.MouseWheel * scroll_step);
-					}
+					float scrollStep = ImFloor(ImMin(2 * window->CalcFontSize(), maxStep.x)) * scrollSpeed;
+					ImGui::SetWindowScrollX(window, window->Scroll.x + io.MouseWheel * scrollStep);
 				}
 			}
 		}

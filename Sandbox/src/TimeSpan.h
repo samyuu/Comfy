@@ -60,6 +60,10 @@ struct TimeSpan
 	// ----------
 	inline bool operator== (TimeSpan other) { return TotalSeconds() == other.TotalSeconds(); }
 	inline bool operator!= (TimeSpan other) { return TotalSeconds() != other.TotalSeconds(); }
+	inline bool operator<= (TimeSpan other) { return TotalSeconds() <= other.TotalSeconds(); }
+	inline bool operator>= (TimeSpan other) { return TotalSeconds() >= other.TotalSeconds(); }
+	inline bool operator< (TimeSpan other) { return TotalSeconds() < other.TotalSeconds(); }
+	inline bool operator> (TimeSpan other) { return TotalSeconds() > other.TotalSeconds(); }
 	inline TimeSpan operator+ (TimeSpan other) { return FromSeconds(other.TotalSeconds() + TotalSeconds()); }
 	inline TimeSpan operator- (TimeSpan other) { return FromSeconds(other.TotalSeconds() - TotalSeconds()); }
 	inline TimeSpan operator* (double other) { return FromSeconds(TotalSeconds() * other); }
