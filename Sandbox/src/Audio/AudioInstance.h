@@ -27,6 +27,10 @@ public:
 	// -----------
 	~AudioInstance();
 
+	// Sample Provider
+	ISampleProvider* GetSampleProvider();
+	void SetSampleProvider(ISampleProvider* provider);
+
 	// Position
 	TimeSpan GetPosition();
 	void SetPosition(TimeSpan value);
@@ -82,10 +86,6 @@ private:
 	// -----------------
 
 protected:
-	// Used internally
-	// -------------------
-	inline ISampleProvider* GetSampleProvider() { return sampleProvider; };
-
 	// Used by AudioEngine
 	// -------------------
 	inline void SetHasBeenRemoved(bool value) { hasBeenRemoved = value; };

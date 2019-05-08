@@ -1,4 +1,5 @@
 #include "TargetTimeline.h"
+#include "../../Audio/MemoryAudioStream.h"
 #include "../../TimeSpan.h"
 #include "../../Application.h"
 #include "TempoMap.h"
@@ -50,6 +51,16 @@ namespace Editor
 
 	void TargetTimeline::Initialize()
 	{
+		audioEngine = AudioEngine::GetInstance();
+		audioEngine->OpenStream();
+		audioEngine->StartStream();
+
+		songStream = std::make_shared<MemoryAudioStream>();
+		((MemoryAudioStream*)songStream.get())->LoadFromFile(testSongPath);
+		
+		songInstance = std::make_shared<AudioInstance>(songStream.get());
+		audioEngine->AddAudioInstance(songInstance.get());
+
 		for (size_t i = 0; i < TARGET_MAX; i++)
 		{
 			iconTextures[i] = Texture();
@@ -197,10 +208,10 @@ namespace Editor
 	void TargetTimeline::TimelineInfoColumn()
 	{
 		auto drawList = ImGui::GetWindowDrawList();
-		
+
 		// top part
 		drawList->AddRectFilled(infoColumnRegion.GetTL(), infoColumnRegion.GetBR(), INFO_COLUMN_COLOR);
-		
+
 		// bottom part
 		ImDrawList* parentDrawList = ImGui::GetCurrentWindow()->ParentWindow->DrawList;
 		parentDrawList->AddRectFilled(infoColumnRegion.GetBL(), infoColumnRegion.GetBL() + ImVec2(infoColumnRegion.GetWidth(), -ImGui::GetStyle().ScrollbarSize), INFO_COLUMN_COLOR);
@@ -232,7 +243,8 @@ namespace Editor
 				scrollDelta = 0.0f;
 			}
 
-			ImGui::ItemSize(ImVec2(GetTimelinePosition(TimelineTick::FromBars(30)), 0));
+			ImGui::ItemSize(ImVec2(GetTimelinePosition(songInstance->GetDuration()), 0));
+			//ImGui::ItemSize(ImVec2(GetTimelinePosition(TimelineTick::FromBars(30)), 0));
 		}
 
 		// Timeline Header Region BG
@@ -274,6 +286,7 @@ namespace Editor
 
 		TimelineTargets();
 		TimelineCursor();
+		CursorControl();
 		ScrollControl();
 	}
 
@@ -395,8 +408,7 @@ namespace Editor
 
 	void TargetTimeline::TimelineCursor()
 	{
-		cursor.Tick = TimelineTick::FromBeats(3);
-		float x = GetTimelinePosition(TimelineTick(cursor.Tick)) - ImGui::GetScrollX();
+		float x = GetTimelinePosition(cursor.Time) - ImGui::GetScrollX();
 
 		ImVec2 start = timelineTargetRegion.GetTL() + ImVec2(x, 0);
 		ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(x, 0);
@@ -404,9 +416,9 @@ namespace Editor
 		// ImVec2 start = ImVec2(x + timelineBaseTopLeft.x, tempoMapTopLeft.y);
 		// ImVec2 end = start + ImVec2(0, windowHeight);
 
-		ImGui::GetCurrentWindow()->DrawList->AddLine(start + ImVec2(0, cursor.HEAD_HEIGHT - 1), end, cursor.GetColor());
+		ImGui::GetCurrentWindow()->DrawList->AddLine(start + ImVec2(0, cursor.HEAD_HEIGHT - 1), end, CURSOR_COLOR);
 
-		ImColor outterColor = cursor.GetColor();
+		ImColor outterColor = CURSOR_COLOR;
 		auto innerColor = ImColor(outterColor.Value.x, outterColor.Value.y, outterColor.Value.z, .5f);
 
 		float centerX = start.x + .5f;
@@ -418,6 +430,36 @@ namespace Editor
 		};
 		ImGui::GetCurrentWindow()->DrawList->AddTriangleFilled(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], innerColor);
 		ImGui::GetCurrentWindow()->DrawList->AddTriangle(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], outterColor);
+	}
+
+	void TargetTimeline::CursorControl()
+	{
+		if (ImGui::IsWindowFocused())
+		{
+			if (ImGui::IsMouseHoveringWindow())
+			{
+				if (ImGui::IsMouseReleased(0) && timelineTargetRegion.Contains(ImGui::GetMousePos()))
+				{
+					cursor.Time = GetTimelineTime(ScreenToTimelinePosition(ImGui::GetMousePos().x));
+					songInstance->SetPosition(cursor.Time);
+				}
+			}
+
+			if (ImGui::IsKeyPressed(GLFW_KEY_SPACE))
+			{
+				isPlaying = !isPlaying;
+				songInstance->SetIsPlaying(isPlaying);
+			}
+		}
+
+		if (isPlaying)
+		{
+			cursor.Time += ImGui::GetIO().DeltaTime;
+
+			if (songInstance->GetIsPlaying())
+				cursor.Time = songInstance->GetPosition();
+		}
+
 	}
 
 	void TargetTimeline::ScrollControl()
@@ -452,7 +494,8 @@ namespace Editor
 				{
 					ImVec2 maxStep = (window->ContentsRegionRect.GetSize() + window->WindowPadding * 2.0f) * 0.67f;
 
-					float scrollStep = ImFloor(ImMin(2 * window->CalcFontSize(), maxStep.x)) * scrollSpeed;
+					float speed = io.KeyShift ? scrollSpeedFast : scrollSpeed;
+					float scrollStep = ImFloor(ImMin(2 * window->CalcFontSize(), maxStep.x)) * speed;
 					ImGui::SetWindowScrollX(window, window->Scroll.x + io.MouseWheel * scrollStep);
 				}
 			}

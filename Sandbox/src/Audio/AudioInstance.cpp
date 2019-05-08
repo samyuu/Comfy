@@ -26,6 +26,16 @@ AudioInstance::~AudioInstance()
 
 }
 
+ISampleProvider* AudioInstance::GetSampleProvider() 
+{ 
+	return sampleProvider; 
+};
+void AudioInstance::SetSampleProvider(ISampleProvider* provider) 
+{ 
+	assert(provider != nullptr);
+	sampleProvider = provider; 
+};
+
 TimeSpan AudioInstance::GetPosition()
 {
 	return SamplesToTimeSpan(GetSamplePosition());
