@@ -3,6 +3,7 @@
 #include "../../Rendering/Texture.h"
 #include "TimelineMap.h"
 #include "TimelineTick.h"
+#include "Cursor.h"
 
 namespace Editor
 {
@@ -27,6 +28,21 @@ namespace Editor
 		virtual void DrawGui() override;
 
 	protected:
+
+		inline void DRAW_DEBUG_REGION(ImRect& rect) 
+		{
+			ImGui::AddRectFilled(ImGui::GetForegroundDrawList(), rect, IM_COL32_BLACK * .5f);
+		}
+
+		// Timeline Regions:
+		ImRect timelineRegion;
+		ImRect infoColumnHeaderRegion;
+		ImRect infoColumnRegion;
+		ImRect timelineBaseRegion;
+		ImRect tempoMapRegion;
+		ImRect timelineHeaderRegion;
+		ImRect timelineTargetRegion;
+		// -----------------
 
 		bool initialized = false;
 
@@ -56,25 +72,42 @@ namespace Editor
 			"rom/spr/icon/btn_slide_r.png",
 		};
 
+		Cursor cursor;
+		//ImVec2 timelineBaseTopLeft, viewBotRight;
+		//ImVec2 tempoMapBarTopLeft, tempoMapTopLeft;
+		//float windowWidth, windowHeight;
+
 		ImGuiWindow* parentWindow;
+		ImGuiWindow* baseWindow;
+		ImDrawList* baseDrawList;
 		float scrollDelta = 0.0f;
 
 		float infoColumnWidth = 46.0f;
-		float tempoMapHeaderHeight = 40.0f;
-		float tempoMapBarHeight = 13.0f;
+		float timelineHeaderHeight = 40.0f - 13.0f;
+		float tempoMapHeight = 13.0f;
 		const float scrollSpeed = 2.0f;
 
 		const float ICON_SIZE = 0.35f;
 		const float ROW_HEIGHT = 42.0f;
 		
 		ImU32 BAR_COLOR, GRID_COLOR, GRID_COLOR_ALT, SELECTION_COLOR;
-		ImU32 INFO_COLUMN_COLOR, TEMPO_MAP_BAR_COLOR;
+		ImU32 INFO_COLUMN_COLOR, TEMPO_MAP_BG_COLOR;
 		ImU32 TIMELINE_BG_COLOR, TIMELINE_ROW_SEPARATOR_COLOR;
 		
 		void Initialize();
+		void UpdateRegions();
+		
 		void TimelineHeaderWidgets();
-		void TempoMapHeader();
+		void TimelineInfoColumnHeader();
 		void TimelineInfoColumn();
-		void TimelineChild();
+
+		// Timeline Base:
+		// --------------
+		void TimelineBase();
+		
+		void TimelineTargets();
+		void TimelineCursor();
+		void ScrollControl();
+		// -----
 	};
 }

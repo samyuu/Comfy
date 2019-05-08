@@ -50,6 +50,37 @@ namespace Editor
 		}
 	}
 
+	void TargetTimeline::UpdateRegions()
+	{
+		ImVec2 timelinePosition = ImGui::GetCursorScreenPos();
+		ImVec2 timelineSize = ImGui::GetWindowSize() - ImGui::GetCursorPos() - ImGui::GetStyle().WindowPadding;
+		timelineRegion = ImRect(timelinePosition, timelinePosition + timelineSize);
+
+		ImVec2 headerPosition = timelineRegion.GetTL();
+		ImVec2 headerSize = { infoColumnWidth, timelineHeaderHeight + tempoMapHeight };
+		infoColumnHeaderRegion = ImRect(headerPosition, headerPosition + headerSize);
+
+		ImVec2 infoPosition = infoColumnHeaderRegion.GetBL();
+		ImVec2 infoSize = { infoColumnWidth, timelineRegion.GetHeight() - infoColumnHeaderRegion.GetHeight() };
+		infoColumnRegion = ImRect(infoPosition, infoPosition + infoSize);
+
+		ImVec2 timelineBasePosition = infoColumnHeaderRegion.GetTR();
+		ImVec2 timelineBaseSize = ImVec2(timelineRegion.GetWidth() - infoColumnRegion.GetWidth(), timelineRegion.GetHeight());
+		timelineBaseRegion = ImRect(timelineBasePosition, timelineBasePosition + timelineBaseSize);
+
+		ImVec2 tempoMapPosition = timelineBaseRegion.GetTL();
+		ImVec2 tempoMapSize = ImVec2(timelineBaseRegion.GetWidth(), tempoMapHeight);
+		tempoMapRegion = ImRect(tempoMapPosition, tempoMapPosition + tempoMapSize);
+
+		ImVec2 timelineHeaderPosition = tempoMapRegion.GetBL();
+		ImVec2 timelineHeaderSize = ImVec2(timelineBaseRegion.GetWidth(), timelineHeaderHeight);
+		timelineHeaderRegion = ImRect(timelineHeaderPosition, timelineHeaderPosition + timelineHeaderSize);
+
+		ImVec2 timelineTargetPosition = timelineHeaderRegion.GetBL();
+		ImVec2 timelineTargetSize = ImVec2(timelineBaseRegion.GetWidth(), timelineBaseRegion.GetHeight() - timelineHeaderSize.y - tempoMapSize.y - ImGui::GetStyle().ScrollbarSize);
+		timelineTargetRegion = ImRect(timelineTargetPosition, timelineTargetPosition + timelineTargetSize);
+	}
+
 	void TargetTimeline::DrawGui()
 	{
 		if (!initialized)
@@ -64,7 +95,7 @@ namespace Editor
 		GRID_COLOR = ImGui::GetColorU32(ImGuiCol_Separator, .75f);
 		GRID_COLOR_ALT = ImGui::GetColorU32(ImGuiCol_Separator, .5f);
 		INFO_COLUMN_COLOR = ImGui::GetColorU32(ImGuiCol_ScrollbarBg);
-		TEMPO_MAP_BAR_COLOR = ImGui::GetColorU32(ImGuiCol_MenuBarBg);
+		TEMPO_MAP_BG_COLOR = ImGui::GetColorU32(ImGuiCol_MenuBarBg);
 		SELECTION_COLOR = ImGui::GetColorU32(ImGuiCol_TextSelectedBg);
 		TIMELINE_BG_COLOR = ImGui::GetColorU32(ImGuiCol_DockingEmptyBg);
 		TIMELINE_ROW_SEPARATOR_COLOR = ImGui::GetColorU32(ImGuiCol_Separator);
@@ -76,22 +107,16 @@ namespace Editor
 		TimelineHeaderWidgets();
 		ImGui::EndGroup();
 
-		ImGui::BeginGroup();
-		TempoMapHeader();
-		ImGui::EndGroup();
+		UpdateRegions();
 
-		auto preColumnCursorPos = ImGui::GetCursorPos();
-		{
-			ImGui::BeginChild("##timeline_info_column", ImVec2(0, -ImGui::GetStyle().ScrollbarSize));
-			TimelineInfoColumn();
-			ImGui::EndChild();
-		}
-		ImGui::SetCursorPos(preColumnCursorPos);
+		ImGui::BeginChild("##timeline_info_column", ImVec2(0, -ImGui::GetStyle().ScrollbarSize));
+		TimelineInfoColumnHeader();
+		TimelineInfoColumn();
+		ImGui::EndChild();
 
-		ImGui::SetCursorPosX(infoColumnWidth + parentWindow->WindowPadding.x);
-		ImGui::SetCursorPosY(ImGui::GetCursorPosY() - tempoMapHeaderHeight);
-		ImGui::BeginChild("##timeline_child", ImVec2(), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-		TimelineChild();
+		ImGui::SetCursorScreenPos(infoColumnHeaderRegion.GetTR());
+		ImGui::BeginChild("##timeline_base", ImVec2(), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+		TimelineBase();
 		ImGui::EndChild();
 	}
 
@@ -146,72 +171,38 @@ namespace Editor
 		ImGui::PopItemWidth();
 	}
 
-	void TargetTimeline::TempoMapHeader()
+	void TargetTimeline::TimelineInfoColumnHeader()
 	{
-		auto drawList = ImGui::GetCurrentWindow()->DrawList;
+		auto drawList = ImGui::GetWindowDrawList();
 
-		ImVec2 start = ImGui::GetCursorScreenPos();
-		start.y += ImGui::GetStyle().ItemSpacing.y - parentWindow->WindowPadding.y / 2;
-
-		ImVec2 size = ImVec2(infoColumnWidth, tempoMapHeaderHeight);
-		ImVec2 end = start + size;
-
-		drawList->AddRectFilled(start, end, INFO_COLUMN_COLOR, 8.0f, ImDrawCornerFlags_TopLeft);
-		ImGui::ItemSize(ImRect(start, end - ImVec2(0, parentWindow->WindowPadding.y)));
+		drawList->AddRectFilled(infoColumnHeaderRegion.GetTL(), infoColumnHeaderRegion.GetBR(), INFO_COLUMN_COLOR, 8.0f, ImDrawCornerFlags_TopLeft);
 	}
 
 	void TargetTimeline::TimelineInfoColumn()
 	{
-		ImVec2 viewTopLeft = ImGui::GetCursorScreenPos();
-		ImVec2 viewBotLeft = viewTopLeft + ImVec2(0.0f, ImGui::GetWindowHeight());
-		ImVec2 viewBotRight = viewBotLeft + ImVec2(infoColumnWidth, 0.0f);
-
-		ImGui::GetWindowDrawList()->AddRectFilled(viewTopLeft, viewBotRight, INFO_COLUMN_COLOR);
-		parentWindow->DrawList->AddRectFilled(viewBotLeft, viewBotLeft + ImVec2(infoColumnWidth, ImGui::GetStyle().ScrollbarSize), INFO_COLUMN_COLOR);
+		auto drawList = ImGui::GetWindowDrawList();
+		drawList->AddRectFilled(infoColumnRegion.GetTL(), infoColumnRegion.GetBR(), INFO_COLUMN_COLOR);
 
 		for (int i = 0; i < TARGET_MAX; i++)
 		{
 			float y = i * ROW_HEIGHT;
-			auto start = ImVec2(0, y) + viewTopLeft;
-			auto end = ImVec2(infoColumnWidth, y + ROW_HEIGHT) + viewTopLeft;
+			auto start = ImVec2(0, y) + infoColumnRegion.GetTL();
+			auto end = ImVec2(infoColumnWidth, y + ROW_HEIGHT) + infoColumnRegion.GetTL();
 
 			auto center = ImVec2((start.x + end.x) / 2.0f, (start.y + end.y) / 2.0f);
-			ImGui::AddTexture(ImGui::GetWindowDrawList(), &iconTextures[i], center, ICON_SIZE);
+			ImGui::AddTexture(drawList, &iconTextures[i], center, ICON_SIZE);
 
 			targetHeights[i] = center.y;
 		}
 	}
 
-	void TargetTimeline::TimelineChild()
+	void TargetTimeline::TimelineBase()
 	{
-		ImGuiWindow* window = ImGui::GetCurrentWindow();
-		ImDrawList* windowDrawList = ImGui::GetWindowDrawList();
+		baseWindow = ImGui::GetCurrentWindow();
+		baseDrawList = baseWindow->DrawList;
 
-		ImVec2 viewTopLeft = ImGui::GetWindowPos() + ImGui::GetCursorPos(), viewBotRight;
-		ImVec2 tempoMapBarTopLeft, tempoMapTopLeft = viewTopLeft;
-
-		const float windowWidth = ImGui::GetWindowWidth() + infoColumnWidth;
-		const float windowHeight = ImGui::GetWindowHeight() - window->ScrollbarSizes.y - 2;
-
-		// TempoMap Header
-		// ---------------
-		{
-			tempoMapTopLeft = viewTopLeft + ImVec2(0, parentWindow->WindowPadding.y * .5f + tempoMapBarHeight);
-
-			ImVec2 size = ImVec2(parentWindow->Size.x - (parentWindow->WindowPadding.x * 2.0f) - infoColumnWidth, tempoMapHeaderHeight);
-			ImVec2 tempoMapBotRight = tempoMapTopLeft + size;
-
-			// TempoMap bar
-			tempoMapBarTopLeft = tempoMapTopLeft - ImVec2(0, tempoMapBarHeight);
-			windowDrawList->AddRectFilled(tempoMapBarTopLeft, tempoMapTopLeft + ImVec2(size.x, 0), TEMPO_MAP_BAR_COLOR);
-
-			windowDrawList->AddRectFilled(tempoMapTopLeft, tempoMapBotRight, INFO_COLUMN_COLOR);
-			viewTopLeft.y += tempoMapHeaderHeight;
-			viewBotRight = viewTopLeft + ImVec2(0, windowHeight);
-		}
-
-		// Scroll Test
-		// -----------
+		// Scroll Size Test
+		// ----------------
 		{
 			if (scrollDelta != 0.0f)
 			{
@@ -222,104 +213,102 @@ namespace Editor
 			ImGui::ItemSize(ImVec2(GetTimelinePosition(TimelineTick::FromBars(30)), 0));
 		}
 
-		// First draw the timeline row lines
-		// ---------------------------------
-		for (int t = 0; t <= TARGET_MAX; t++)
+		// Timeline Header Region BG
+		// -------------------------
 		{
-			float y = t * ROW_HEIGHT;
-			auto start = ImVec2(0, y) + viewTopLeft;
-			auto end = ImVec2(windowWidth, y) + viewTopLeft;
-
-			// Draw timeline row separator
-			// ---------------------------
-			windowDrawList->AddLine(start, end, TIMELINE_ROW_SEPARATOR_COLOR);
-
-			// Draw timeline row background
-			// ----------------------------
-			if (t < TARGET_MAX)
+			baseDrawList->AddRectFilled(timelineHeaderRegion.GetTL(), timelineHeaderRegion.GetBR(), INFO_COLUMN_COLOR);
+		}
+		// Timeline Target Region BG
+		// -------------------------
+		{
+			baseDrawList->AddRectFilled(timelineTargetRegion.GetTL(), timelineTargetRegion.GetBR(), TIMELINE_BG_COLOR);
+		}
+		// Timeline Target Region Rows
+		// ---------------------------
+		{
+			for (int t = 0; t <= TARGET_MAX; t++)
 			{
-				start.y += 1;
-				end.y += ROW_HEIGHT - 1;
-				windowDrawList->AddRectFilled(start, end, TIMELINE_BG_COLOR);
+				float y = t * ROW_HEIGHT;
+				ImVec2 start = timelineTargetRegion.GetTL() + ImVec2(0, y);
+				ImVec2 end = start + ImVec2(timelineTargetRegion.GetWidth(), 0);
+
+				baseDrawList->AddLine(start, end, TIMELINE_ROW_SEPARATOR_COLOR);
 			}
 		}
 
 		// Test out bar divisors
 		// ---------------------
 		{
+			baseDrawList->AddRectFilled(tempoMapRegion.GetTL(), tempoMapRegion.GetBR(), TEMPO_MAP_BG_COLOR);
+
 			char buffer[16];
 
-			int divisions = 0;
-			for (int tick = 0; tick < TimelineTick::FromBars(30).TotalTicks(); tick += TimelineTick::TICKS_PER_BAR / gridDivision)
+			int totalTicks = TimelineTick::FromBars(30).TotalTicks();
+			int tickStep = TimelineTick::TICKS_PER_BAR / gridDivision;
+
+			for (int tick = 0, divisions = 0; tick < totalTicks; tick += tickStep)
 			{
 				bool isBar = tick % TimelineTick::TICKS_PER_BAR == 0;
 				auto color = isBar ? BAR_COLOR : (divisions++ % 2 == 0 ? GRID_COLOR : GRID_COLOR_ALT);
 
 				float x = GetTimelinePosition(TimelineTick(tick)) - ImGui::GetScrollX();
 
-				auto start = ImVec2(x, 0) + viewTopLeft;
-				start.y = isBar ? tempoMapTopLeft.y : start.y - (tempoMapHeaderHeight - tempoMapBarHeight) * .5f;
-				auto end = start + ImVec2(0, windowHeight);
+				ImVec2 start = timelineTargetRegion.GetTL() + ImVec2(x, 0);
+				ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(x, 0);
 
-				windowDrawList->AddLine(start, end, color);
+				start.y -= timelineHeaderHeight * (isBar ? .85f : .35f);
+
+				baseDrawList->AddLine(start, end, color);
 
 				if (isBar)
 				{
 					sprintf_s(buffer, sizeof(buffer), "%d", TimelineTick::FromTicks(tick).TotalBars());
-					windowDrawList->AddText(start, color, buffer);
+					
+					start += ImVec2(3, -1);
+					baseDrawList->AddText(start, color, buffer);
 				}
 			}
 		}
 
-		// Tempo Changes
+		// Tempo Map Region / Tempo Changes
+		// --------------------------------
 		{
 			char tempoBuffer[16];
 			char buttonId[28];
-
+		
 			for (size_t i = 0; i < tempoMap.TempoChangeCount(); i++)
 			{
 				TempoChange& tempoChange = tempoMap.GetTempoChangeAt(i);
-
+		
 				float x = GetTimelinePosition(tempoChange.Tick) - ImGui::GetScrollX();
-
-				auto start = ImVec2(x, -tempoMapBarHeight) + tempoMapTopLeft;
-				auto end = ImVec2(start.x, tempoMapTopLeft.y + tempoMapHeaderHeight - tempoMapBarHeight);
-				end = start + ImVec2(0, tempoMapBarHeight);
-
-				auto tempoBgColor = IM_COL32(147, 125, 125, 255);
+		
+				//auto tempoBgColor = IM_COL32(147, 125, 125, 255);
 				auto tempoFgColor = IM_COL32(139, 56, 51, 255);
-
+		
 				sprintf_s(tempoBuffer, sizeof(tempoBuffer), "%2.f BPM", tempoChange.Tempo.BeatsPerMinute);
 				sprintf_s(buttonId, sizeof(buttonId), "##%s_%04d", tempoBuffer, i);
-
-				auto position = ImVec2(tempoMapBarTopLeft.x + x + 1, tempoMapBarTopLeft.y);
-				auto size = ImVec2(ImGui::CalcTextSize(tempoBuffer).x, tempoMapBarHeight);
-
-				ImGui::SetCursorScreenPos(position);
-				ImGui::InvisibleButton(buttonId, size);
-
+		
+				auto buttonPosition = tempoMapRegion.GetTL() + ImVec2(x + 1, 0);
+				auto buttonSize = ImVec2(ImGui::CalcTextSize(tempoBuffer).x, tempoMapHeight);
+		
+				ImGui::SetCursorScreenPos(buttonPosition);
+				ImGui::InvisibleButton(buttonId, buttonSize);
+		
 				// prevent overlapping tempo changes
-				//windowDrawList->AddRectFilled(position, position + size, TEMPO_MAP_BAR_COLOR);
+				//windowDrawList->AddRectFilled(buttonPosition, buttonPosition + buttonSize, TEMPO_MAP_BAR_COLOR);
 				if (ImGui::IsItemHovered())
-					windowDrawList->AddRect(position, position + size, TIMELINE_BG_COLOR);
-
-				windowDrawList->AddLine(start, end, tempoFgColor);
-				windowDrawList->AddText(ImGui::GetFont(), tempoMapBarHeight, position, tempoFgColor, tempoBuffer);
+				{
+					baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, TIMELINE_BG_COLOR);
+					if (ImGui::IsMouseClicked(0))
+					{
+						ImGui::SetScrollX(x + ImGui::GetScrollX());
+						//ImGui::SetScrollX(screenX - timelineTargetRegion.GetTL().x - (windowWidth * .5f));
+					}
+				}
+		
+				baseDrawList->AddLine(buttonPosition + ImVec2(-1, -1), buttonPosition + ImVec2(-1, buttonSize.y - 1), tempoFgColor);
+				baseDrawList->AddText(ImGui::GetFont(), tempoMapHeight, buttonPosition, tempoFgColor, tempoBuffer);
 			}
-		}
-
-		// Test out timline buttons
-		// ------------------------
-		{
-			static int target;
-			if (ImGui::IsKeyPressed(GLFW_KEY_UP)) target++;
-			if (ImGui::IsKeyPressed(GLFW_KEY_DOWN)) target--;
-			if (target > TARGET_SLIDE_R) target = TARGET_SANKAKU;
-			if (target < TARGET_SANKAKU) target = TARGET_SLIDE_R;
-
-			float position = GetTimelinePosition(TimelineTick(0)) - ImGui::GetScrollX();
-			auto center = ImVec2(position + viewTopLeft.x, targetHeights[target]);
-			ImGui::AddTexture(windowDrawList, &iconTextures[target], center, ICON_SIZE);
 		}
 
 		// Test out selection box
@@ -336,9 +325,68 @@ namespace Editor
 			if (!ImGui::IsAnyItemHovered() && ImGui::IsMouseDragging(selectionBoxButton) && dragRect.Min.x != 0)
 			{
 				dragRect.Max = ImGui::GetMousePos();
-				windowDrawList->AddRectFilled(dragRect.GetTL(), dragRect.GetBR(), SELECTION_COLOR);
+				baseDrawList->AddRectFilled(dragRect.GetTL(), dragRect.GetBR(), SELECTION_COLOR);
 			}
 		}
+
+		TimelineTargets();
+		TimelineCursor();
+		ScrollControl();
+	}
+
+	void TargetTimeline::TimelineTargets()
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		ImDrawList* windowDrawList = window->DrawList;
+
+		// Test out timline buttons
+		// ------------------------
+		{
+			static int target;
+			if (ImGui::IsKeyPressed(GLFW_KEY_UP)) target++;
+			if (ImGui::IsKeyPressed(GLFW_KEY_DOWN)) target--;
+			if (target > TARGET_SLIDE_R) target = TARGET_SANKAKU;
+			if (target < TARGET_SANKAKU) target = TARGET_SLIDE_R;
+
+			float position = GetTimelinePosition(TimelineTick(0)) - ImGui::GetScrollX();
+			ImVec2 center = ImVec2(position + timelineTargetRegion.GetTL().x, targetHeights[target]);
+			ImGui::AddTexture(windowDrawList, &iconTextures[target], center, ICON_SIZE);
+		}
+
+	}
+
+	void TargetTimeline::TimelineCursor()
+	{
+		cursor.Tick = TimelineTick::FromBeats(3);
+		float x = GetTimelinePosition(TimelineTick(cursor.Tick)) - ImGui::GetScrollX();
+
+		ImVec2 start = timelineTargetRegion.GetTL() + ImVec2(x, 0);
+		ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(x, 0);
+
+		// ImVec2 start = ImVec2(x + timelineBaseTopLeft.x, tempoMapTopLeft.y);
+		// ImVec2 end = start + ImVec2(0, windowHeight);
+
+		ImGui::GetCurrentWindow()->DrawList->AddLine(start + ImVec2(0, cursor.HEAD_HEIGHT - 1), end, cursor.GetColor());
+
+		ImColor outterColor = cursor.GetColor();
+		auto innerColor = ImColor(outterColor.Value.x, outterColor.Value.y, outterColor.Value.z, .5f);
+
+		float centerX = start.x + .5f;
+		ImVec2 cursorTriangle[3] =
+		{
+			ImVec2(centerX - cursor.HEAD_WIDTH * .5f, start.y),
+			ImVec2(centerX + cursor.HEAD_WIDTH * .5f, start.y),
+			ImVec2(centerX, start.y + cursor.HEAD_HEIGHT),
+		};
+		ImGui::GetCurrentWindow()->DrawList->AddTriangleFilled(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], innerColor);
+		ImGui::GetCurrentWindow()->DrawList->AddTriangle(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], outterColor);
+	}
+
+	void TargetTimeline::ScrollControl()
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+		auto io = ImGui::GetIO();
 
 		// Grab Control
 		// ------------
@@ -346,14 +394,12 @@ namespace Editor
 			constexpr int timelineGrabButton = 2;
 
 			if (ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive() && ImGui::IsMouseDragging(timelineGrabButton, 0.0f))
-				ImGui::SetScrollX(ImGui::GetScrollX() - ImGui::GetIO().MouseDelta.x);
+				ImGui::SetScrollX(ImGui::GetScrollX() - io.MouseDelta.x);
 		}
 
 		// Scroll Control
 		// --------------
 		{
-			auto io = ImGui::GetIO();
-
 			if (ImGui::IsWindowHovered() && io.MouseWheel != 0.0f)
 			{
 				if (io.KeyAlt) // Zoom Timeline

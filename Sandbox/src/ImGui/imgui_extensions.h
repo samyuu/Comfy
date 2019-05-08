@@ -13,10 +13,15 @@ namespace ImGui
 		AddTexture(drawList, texture, center, ImVec2(scale, scale));
 	};
 
-	inline void AddDot(ImDrawList* drawList, ImVec2 position, ImU32 color)
+	inline void AddDot(ImDrawList* drawList, const ImVec2& position, ImU32 color)
 	{
 		ImVec2 bottomRight = position;
 		++bottomRight.x; ++bottomRight.y;
 		drawList->AddRectFilled(position, bottomRight, color);
+	}
+
+	inline void AddRectFilled(ImDrawList* drawList, const ImRect& rect, ImU32 color)
+	{
+		drawList->AddRectFilled(rect.GetTL(), rect.GetBR(), color);
 	}
 }

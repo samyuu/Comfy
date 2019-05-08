@@ -152,6 +152,7 @@
     <ClInclude Include="src\Audio\AudioEngine.h" />
     <ClInclude Include="src\Audio\ISampleProvider.h" />
     <ClInclude Include="src\BaseWindow.h" />
+    <ClInclude Include="src\Editor\Chart\Cursor.h" />
     <ClInclude Include="src\Editor\Chart\TempoChange.h" />
     <ClInclude Include="src\Editor\Chart\TimelineTick.h" />
     <ClInclude Include="src\ImGui\imgui_extensions.h" />

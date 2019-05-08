@@ -278,6 +278,9 @@
     <ClInclude Include="src\Editor\Chart\TimelineMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Editor\Chart\Cursor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="rom\shader\test_vert.glsl" />
