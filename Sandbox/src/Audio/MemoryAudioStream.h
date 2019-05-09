@@ -1,5 +1,6 @@
 #pragma once
 #include "ISampleProvider.h"
+#include <string>
 
 class MemoryAudioStream : public ISampleProvider
 {
@@ -7,7 +8,7 @@ public:
 	MemoryAudioStream();
 	~MemoryAudioStream();
 
-	void LoadFromFile(const char* filePath);
+	void LoadFromFile(const std::string& filePath);
 	void Dispose();
 
 	virtual size_t ReadSamples(int16_t* bufferToFill, size_t sampleOffset, size_t samplesToRead) override;
@@ -26,4 +27,10 @@ private:
 
 	size_t sampleCount = 0;
 	int16_t* sampleData = nullptr;
+
+	uint32_t GetFileMagic(const wchar_t* filePath);
+	void LoadWave(const std::wstring& filePath);
+	void LoadFlac(const std::wstring& filePath);
+	void LoadOgg(const std::wstring& filePath);
+	void LoadMp3(const std::wstring& filePath);
 };
