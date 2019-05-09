@@ -23,7 +23,7 @@ namespace Editor
 			// then scale by the negative tick
 			return firstTickDuration * tick.TotalTicks();
 		}
-		else if (tick.TotalTicks() >= tickTimeCount) // tick is outside the tempo map
+		else if (tick.TotalTicks() >= tickTimeCount) // tick is outside the defined tempo map
 		{
 			// take the last calculated time
 			TimeSpan lastTime = GetLastCalculatedTime();;
@@ -60,7 +60,7 @@ namespace Editor
 			// then the time by the negative tick, this is assuming all tempo changes happen on positive ticks
 			return (time / firstTickDuration);
 		}
-		else if (time >= lastTime)
+		else if (time >= lastTime) // tick is outside the defined tempo map
 		{
 			TimeSpan timePastLast = time - lastTime;
 

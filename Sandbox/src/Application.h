@@ -41,6 +41,10 @@ public:
 	GLFWmonitor* GetActiveMonitor();
 	void CheckConnectedDevices();
 
+	bool GetDispatchFileDrop();
+	void SetFileDropDispatched(bool value = true);
+	const std::vector<std::string>* GetDroppedFiles();
+
 private:
 	// Base Methods
 	// --------------
@@ -151,6 +155,8 @@ private:
 
 	// Window Management
 	// -----------------
+	std::vector<std::string> droppedFiles;
+	bool filesDroppedThisFrame, filesDropped, filesLastDropped, fileDropDispatched;
 	bool windowFocused = true, lastWindowFocused, focusLostFrame = false, focusGainedFrame = false;
 	bool renderWindowHidden, renderWindowHover, renderWindowTitleHover, renderWindowResized;
 	ImVec2 renderWindowPos, renderWindowSize;

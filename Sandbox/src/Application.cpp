@@ -107,6 +107,21 @@ void Application::CheckConnectedDevices()
 	}
 }
 
+bool Application::GetDispatchFileDrop()
+{
+	return filesDroppedThisFrame && !fileDropDispatched;
+}
+
+void Application::SetFileDropDispatched(bool value)
+{
+	fileDropDispatched = value;
+}
+
+const std::vector<std::string>* Application::GetDroppedFiles()
+{
+	return &droppedFiles;
+}
+
 void Application::Run()
 {
 	BaseInitialize();
@@ -210,6 +225,10 @@ void Application::BaseRegister()
 
 void Application::BaseUpdate()
 {
+	filesDroppedThisFrame = filesDropped && !filesLastDropped;
+	filesLastDropped = filesDropped;
+	filesDropped = false;
+
 	if (elapsedFrames > 2)
 	{
 		focusLostFrame = lastWindowFocused && !windowFocused;
@@ -997,9 +1016,14 @@ void Application::WindowResizeCallback(int width, int height)
 
 void Application::WindowDropCallback(size_t count, const char* paths[])
 {
+	fileDropDispatched = false;
+	filesDropped = true;
+
+	droppedFiles.clear();
+	droppedFiles.reserve(count);
+
 	for (size_t i = 0; i < count; i++)
-		printf("Application::WindowDropCallback(): [%d] -> %s\n", i, paths[i]);
-	putchar('\n');
+		droppedFiles.emplace_back(paths[i]);
 }
 
 void Application::WindowFocusCallback(bool focused)

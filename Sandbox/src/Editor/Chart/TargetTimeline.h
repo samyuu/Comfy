@@ -80,7 +80,7 @@ namespace Editor
 		struct
 		{
 			TimeSpan songStartOffset = 0.0;
-			TimeSpan songDuration = TimeSpan::FromMinutes(3);
+			TimeSpan songDuration = TimeSpan::FromMinutes(1.0);
 			TimeSpan playbackTime = 0.0;
 			bool isPlaying = false;
 		};
@@ -139,6 +139,11 @@ namespace Editor
 		void PausePlayback();
 		void StopPlayback();
 		// -----------------
+
+		// Song Stuff:
+		void LoadSong(const std::string& path);
+		void UpdateFileDrop();
+		// -----------
 
 		// Conversion Methods:
 		// -------------------

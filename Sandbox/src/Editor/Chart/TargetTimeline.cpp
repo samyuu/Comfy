@@ -2,6 +2,7 @@
 #include "../../TimeSpan.h"
 #include "../../Application.h"
 #include "TempoMap.h"
+#include <boost/algorithm/string/predicate.hpp>
 
 namespace Editor
 {
@@ -150,6 +151,8 @@ namespace Editor
 		if (false)
 			ImGui::ShowDemoWindow(nullptr);
 
+		UpdateFileDrop();
+
 		GRID_COLOR = ImGui::GetColorU32(ImGuiCol_Separator, .75f);
 		GRID_COLOR_ALT = ImGui::GetColorU32(ImGuiCol_Separator, .5f);
 		INFO_COLUMN_COLOR = ImGui::GetColorU32(ImGuiCol_ScrollbarBg);
@@ -234,17 +237,7 @@ namespace Editor
 		ImGui::SameLine();
 		if (ImGui::Button("Load Song"))
 		{
-			if (songStream != nullptr)
-			{
-				if (isPlaying)
-					PausePlayback();
-
-				songStream->Dispose();
-			}
-
-			songStream = std::make_shared<MemoryAudioStream>();
-			songStream->LoadFromFile(testSongPath);
-			songInstance->SetSampleProvider(songStream.get());
+			LoadSong(testSongPath);
 		}
 	}
 
@@ -293,7 +286,6 @@ namespace Editor
 				scrollDelta = 0.0f;
 			}
 
-			songDuration = songInstance->GetDuration();
 			ImGui::ItemSize(ImVec2(GetTimelinePosition(songDuration), 0));
 			//ImGui::ItemSize(ImVec2(GetTimelinePosition(TimelineTick::FromBars(30)), 0));
 		}
@@ -501,7 +493,7 @@ namespace Editor
 				{
 					cursor.Tick = RoundToGrid(GetTimelineTick(ScreenToTimelinePosition(ImGui::GetMousePos().x)));
 					cursor.TickOnPlaybackStart = cursor.Tick;
-				
+
 					playbackTime = GetTimelineTime(cursor.Tick);
 					songInstance->SetPosition(playbackTime);
 				}
@@ -602,7 +594,7 @@ namespace Editor
 		songInstance->SetIsPlaying(false);
 		isPlaying = false;
 	}
-	
+
 	void TargetTimeline::StopPlayback()
 	{
 		printf("TargetTimeline::StopPlayback(): \n");
@@ -611,5 +603,46 @@ namespace Editor
 		playbackTime = GetTimelineTime(cursor.Tick);
 
 		PausePlayback();
+	}
+
+	void TargetTimeline::LoadSong(const std::string& path)
+	{
+		std::shared_ptr<MemoryAudioStream> newSongStream = std::make_shared<MemoryAudioStream>();
+		newSongStream->LoadFromFile(path);
+
+		songInstance->SetSampleProvider(newSongStream.get());
+		songDuration = songInstance->GetDuration();
+
+		if (songStream != nullptr)
+			songStream->Dispose();
+
+		songStream = newSongStream;
+	}
+
+	void TargetTimeline::UpdateFileDrop()
+	{
+		Application* parent = GetParent();
+
+		if (!parent->GetDispatchFileDrop())
+			return;
+
+		const char* extensions[] = { ".wav", ".flac", ".ogg", ".mp3" };
+
+		auto droppedFiles = parent->GetDroppedFiles();
+		for (size_t i = 0; i < droppedFiles->size(); i++)
+		{
+			const std::string& file = droppedFiles->at(i);
+
+			for (size_t e = 0; e < IM_ARRAYSIZE(extensions); e++)
+			{
+				if (boost::iends_with(file, extensions[e]))
+				{
+					LoadSong(file);
+
+					parent->SetFileDropDispatched();
+					return;
+				}
+			}
+		}
 	}
 }
