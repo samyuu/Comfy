@@ -74,12 +74,6 @@ namespace Editor
 		}
 		else // perform a binary search
 		{
-			if (time < tickTimes[0])
-				return 0;
-			
-			if (time > tickTimes[tickTimeCount - 1])
-				return tickTimeCount - 1;
-
 			int left = 0, right = tickTimeCount - 1;
 
 			while (left <= right)
