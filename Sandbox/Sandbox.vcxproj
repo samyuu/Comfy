@@ -95,6 +95,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Audio\DummySampleProvider.cpp" />
     <ClCompile Include="src\Audio\ChannelMixer.cpp" />
     <ClCompile Include="src\Audio\Resampler.cpp" />
     <ClCompile Include="src\DataTest\InputTestWindow.cpp" />
@@ -143,6 +144,7 @@
     <ClCompile Include="src\Editor\Chart\TimelineMap.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Audio\DummySampleProvider.h" />
     <ClInclude Include="src\Audio\ChannelMixer.h" />
     <ClInclude Include="src\DataTest\InputTestWindow.h" />
     <ClInclude Include="src\Audio\MemoryAudioStream.h" />

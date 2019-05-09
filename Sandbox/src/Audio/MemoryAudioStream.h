@@ -27,4 +27,3 @@ private:
 	size_t sampleCount = 0;
 	int16_t* sampleData = nullptr;
 };
-
