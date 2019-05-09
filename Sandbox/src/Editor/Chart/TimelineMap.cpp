@@ -1,4 +1,5 @@
 #include "TimelineMap.h"
+#include "../../Input/Keyboard.h"
 
 namespace Editor
 {
@@ -6,7 +7,7 @@ namespace Editor
 	{
 	}
 
-	TimelineMap::TimelineMap(std::vector<TimeSpan>& times) : tickTimes(times)
+	TimelineMap::TimelineMap(std::vector<TimeSpan>& times, Tempo firstTempo, Tempo lastTempo) : tickTimes(times), firstTempo(firstTempo), lastTempo(lastTempo)
 	{
 	}
 
@@ -16,28 +17,23 @@ namespace Editor
 
 		if (tick.TotalTicks() < 0) // negative tick
 		{
-			// take the first calculated time
-			TimeSpan firstTime = tickTimes.at(0);
-			TimeSpan secondTime = tickTimes.at(1);
-
 			// calculate the duration of a TimelineTick at the first tempo
-			TimeSpan tickDuration = firstTime - secondTime;
+			TimeSpan firstTickDuration = ((60.0 / firstTempo.BeatsPerMinute) / TimelineTick::TICKS_PER_BEAT);
 
 			// then scale by the negative tick
-			return tickDuration * tick.TotalTicks();
+			return firstTickDuration * tick.TotalTicks();
 		}
 		else if (tick.TotalTicks() >= tickTimeCount) // tick is outside the tempo map
 		{
 			// take the last calculated time
-			TimeSpan lastTime = tickTimes.at(tickTimeCount - 1);
-			TimeSpan secondToLast = tickTimes.at(tickTimeCount - 2);
+			TimeSpan lastTime = GetLastCalculatedTime();;
 
 			// calculate the duration of a TimelineTick at the last used tempo
-			TimeSpan tickDuration = secondToLast - lastTime;
+			TimeSpan lastTickDuration = ((60.0 / lastTempo.BeatsPerMinute) / TimelineTick::TICKS_PER_BEAT);
 
 			// then scale by the remaining ticks
-			int remainingTicks = tick.TotalTicks() - tickTimeCount + 1;
-			return lastTime + (tickDuration * remainingTicks);
+			int remainingTicks = tick.TotalTicks() - tickTimeCount;
+			return lastTime + (lastTickDuration * remainingTicks);
 		}
 		else // use the pre calculated lookup table
 		{
@@ -45,32 +41,71 @@ namespace Editor
 		}
 	}
 
-	TimelineTick TimelineMap::GetTickAt(TimeSpan time)
+	TimeSpan TimelineMap::GetLastCalculatedTime()
 	{
-		TimeSpan lastTime = tickTimes[tickTimes.size() - 1];
-
-		if (time >= lastTime)
-		{
-
-		}
-		else
-		{
-			// perform a binary search
-
-		}
-
-		assert(false);
-		return 0.0;
+		size_t tickTimeCount = tickTimes.size();
+		return tickTimeCount == 0 ? TimeSpan(0.0) : tickTimes[tickTimeCount - 1];
 	}
 
-	TimelineMap TimelineMap::CalculateMapTimes(TempoMap& tempoMap)
+	TimelineTick TimelineMap::GetTickAt(TimeSpan time)
+	{
+		int tickTimeCount = tickTimes.size();
+		TimeSpan lastTime = GetLastCalculatedTime();
+
+		if (time < 0.0) // negative time
+		{
+			// calculate the duration of a TimelineTick at the first tempo
+			TimeSpan firstTickDuration = ((60.0 / firstTempo.BeatsPerMinute) / TimelineTick::TICKS_PER_BEAT);
+
+			// then the time by the negative tick, this is assuming all tempo changes happen on positive ticks
+			return (time / firstTickDuration);
+		}
+		else if (time >= lastTime)
+		{
+			TimeSpan timePastLast = time - lastTime;
+
+			// each tick past the end has a duration of this value
+			TimeSpan lastTickDuration = ((60.0 / lastTempo.BeatsPerMinute) / TimelineTick::TICKS_PER_BEAT);
+
+			// so we just have to divide the remaining ticks by the duration
+			double ticks = timePastLast / lastTickDuration;
+			// and add it to the last tick
+			return (tickTimeCount + ticks);
+		}
+		else // perform a binary search
+		{
+			if (time < tickTimes[0])
+				return 0;
+			
+			if (time > tickTimes[tickTimeCount - 1])
+				return tickTimeCount - 1;
+
+			int left = 0, right = tickTimeCount - 1;
+
+			while (left <= right)
+			{
+				int mid = (left + right) / 2;
+
+				if (time < tickTimes[mid])
+					right = mid - 1;
+				else if (time > tickTimes[mid])
+					left = mid + 1;
+				else
+					return mid;
+			}
+
+			return (tickTimes[left] - time) < (time - tickTimes[right]) ? left : right;
+		}
+	}
+
+	void TimelineMap::CalculateMapTimes(TempoMap& tempoMap)
 	{
 		assert(tempoMap.TempoChangeCount() > 0);
 
 		TempoChange& lastTempoChange = tempoMap.GetTempoChangeAt(tempoMap.TempoChangeCount() - 1);
 		const size_t timeCount = lastTempoChange.Tick.TotalTicks();
 
-		std::vector<TimeSpan> tickTimes(timeCount);
+		tickTimes.resize(timeCount);
 		{
 			// the time of when the last tempo change ended, so we can use higher precision multiplication
 			double tempoChangeEndTime = 0.0;
@@ -92,10 +127,12 @@ namespace Editor
 				for (size_t i = 0, t = timesStart; t < timesCount; t++)
 					tickTimes[t] = (tickDuration * i++) + tempoChangeEndTime;
 
-				tempoChangeEndTime = tickTimes[timesCount - 1].TotalSeconds() + tickDuration;
+				if (tempoChanges > 1)
+					tempoChangeEndTime = tickTimes[timesCount - 1].TotalSeconds() + tickDuration;
 			}
 		}
 
-		return TimelineMap(tickTimes);
+		firstTempo = tempoMap.GetTempoChangeAt(0).Tempo;
+		lastTempo = lastTempoChange.Tempo;
 	}
 }

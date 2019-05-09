@@ -15,6 +15,7 @@ namespace Editor
 
 		inline void Add(TempoChange tempoChange)
 		{
+			assert(tempoChange.Tick.TotalTicks() >= 0);
 			// TODO: insert / sort
 			tempoChanges.push_back(tempoChange);
 		}
