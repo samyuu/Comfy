@@ -1,6 +1,8 @@
 #pragma once
 #include "../../Audio/AudioEngine.h"
 #include "../../Audio/AudioInstance.h"
+#include "../../Audio/DummySampleProvider.h"
+#include "../../Audio/MemoryAudioStream.h"
 #include "../../BaseWindow.h"
 #include "../../Rendering/Texture.h"
 #include "TimelineMap.h"
@@ -32,10 +34,14 @@ namespace Editor
 
 	protected:
 
-		const char* testSongPath = "rom/sound/sngtst.flac";
-		AudioEngine* audioEngine;
-		std::shared_ptr<ISampleProvider> songStream;
-		std::shared_ptr<AudioInstance> songInstance;
+		struct
+		{
+			const char* testSongPath = "rom/sound/sngtst.flac";
+			AudioEngine* audioEngine;
+			DummySampleProvider dummySampleProvider;
+			std::shared_ptr<MemoryAudioStream> songStream;
+			std::shared_ptr<AudioInstance> songInstance;
+		};
 
 		// Timeline Regions:
 		ImRect timelineRegion;
@@ -70,9 +76,22 @@ namespace Editor
 			"rom/spr/icon/btn_slide_l.png",
 			"rom/spr/icon/btn_slide_r.png",
 		};
-		
-		bool isPlaying = false;
-		Cursor cursor;
+
+		struct
+		{
+			TimeSpan songStartOffset = 0.0;
+			TimeSpan songDuration = TimeSpan::FromMinutes(3);
+			TimeSpan playbackTime = 0.0;
+			bool isPlaying = false;
+		};
+
+		struct
+		{
+			Cursor cursor;
+			
+			// fraction of the timeline width at which the timeline starts scrolling relative to the cursor
+			const float autoScrollOffsetFraction = 4.0f;
+		};
 
 		ImGuiWindow* baseWindow;
 		ImDrawList* baseDrawList;
@@ -85,7 +104,7 @@ namespace Editor
 
 		const float ICON_SIZE = 0.35f;
 		const float ROW_HEIGHT = 42.0f;
-		
+
 		ImU32 BAR_COLOR, GRID_COLOR, GRID_COLOR_ALT, SELECTION_COLOR;
 		ImU32 INFO_COLUMN_COLOR, TEMPO_MAP_BG_COLOR;
 		ImU32 TIMELINE_BG_COLOR, TIMELINE_ROW_SEPARATOR_COLOR;
@@ -114,10 +133,19 @@ namespace Editor
 		void ScrollControl();
 		// --------------
 
+		// Playback Control:
+		// -----------------
+		void ResumePlayback();
+		void PausePlayback();
+		void StopPlayback();
+		// -----------------
+
 		// Conversion Methods:
 		// -------------------
+		TimelineTick RoundToGrid(TimelineTick tick);
 		float GetTimelinePosition(TimeSpan time);
 		float GetTimelinePosition(TimelineTick tick);
+		TimelineTick GetTimelineTick(TimeSpan time);
 		TimelineTick GetTimelineTick(float position);
 		TimeSpan GetTimelineTime(TimelineTick tick);
 		TimeSpan GetTimelineTime(float position);

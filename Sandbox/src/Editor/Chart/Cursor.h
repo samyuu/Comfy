@@ -10,6 +10,7 @@ namespace Editor
 		const float HEAD_WIDTH = 17.0f;
 		const float HEAD_HEIGHT = 8.0f;
 
-		TimeSpan Time;
+		TimelineTick Tick;
+		TimelineTick TickOnPlaybackStart;
 	};
 }
