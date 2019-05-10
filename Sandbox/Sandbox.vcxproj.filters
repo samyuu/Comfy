@@ -293,9 +293,6 @@
     <ClInclude Include="src\Editor\Chart\TimelineMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Editor\Chart\Cursor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Audio\DummySampleProvider.h">
       <Filter>Header Files</Filter>
     </ClInclude>

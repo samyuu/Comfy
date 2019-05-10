@@ -8,7 +8,6 @@
 #include "../../Rendering/Texture.h"
 #include "TimelineMap.h"
 #include "TimelineTick.h"
-#include "Cursor.h"
 #include <memory>
 
 namespace Editor
@@ -86,14 +85,15 @@ namespace Editor
 		{
 			TimeSpan songStartOffset = 0.0;
 			TimeSpan songDuration = TimeSpan::FromMinutes(1.0);
-			TimeSpan playbackTime = 0.0;
+			TimeSpan playbackTime = 0.0, playbackTimeOnPlaybackStart;
 			bool isPlaying = false;
 		};
 
 		struct
 		{
-			Cursor cursor;
-			
+			const float CURSOR_HEAD_WIDTH = 17.0f;
+			const float CURSOR_HEAD_HEIGHT = 8.0f;
+
 			// fraction of the timeline width at which the timeline starts scrolling relative to the cursor
 			const float autoScrollOffsetFraction = 4.0f;
 		};

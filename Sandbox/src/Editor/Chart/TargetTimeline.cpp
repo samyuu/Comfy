@@ -403,6 +403,8 @@ namespace Editor
 		// TEST WAVEFORM
 		// -------------
 		{
+			//ImGui::SetTooltip("timleine mouse: %f", ImGui::GetMousePos().x + ImGui::GetScrollX() - timelineTargetRegion.GetTL().x);
+
 			if (songStream != nullptr)
 			{
 				if (zoomLevelChanged)
@@ -422,8 +424,8 @@ namespace Editor
 				int64_t rightMostVisiblePixel = timelineBaseRegion.GetWidth();
 				int64_t pixelCount = songWaveform.GetPixelCount();
 				float timelineTargetX = timelineTargetRegion.GetTL().x;
-				float timelineTargetHeight = timelineTargetRegion.GetHeight() * 8;
-				float y = timelineTargetRegion.GetCenter().y;
+				float timelineTargetHeight = (TARGET_MAX * ROW_HEIGHT) * 8;
+				float y = timelineTargetRegion.GetTL().y + ((TARGET_MAX * ROW_HEIGHT) / 2);
 
 				int linesDrawn = 0;
 				for (int64_t screenPixel = leftMostVisiblePixel; screenPixel < songWaveform.GetPixelCount() && screenPixel < rightMostVisiblePixel; screenPixel++)
@@ -544,13 +546,12 @@ namespace Editor
 
 	void TargetTimeline::TimelineCursor()
 	{
-		TimeSpan cursorTime = isPlaying ? playbackTime : GetTimelineTime(cursor.Tick);
-		float x = GetTimelinePosition(cursorTime) - ImGui::GetScrollX();
+		float x = GetTimelinePosition(playbackTime) - ImGui::GetScrollX();
 
 		ImVec2 start = timelineHeaderRegion.GetTL() + ImVec2(x, 0);
 		ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(x, 0);
 
-		ImGui::GetCurrentWindow()->DrawList->AddLine(start + ImVec2(0, cursor.HEAD_HEIGHT - 1), end, CURSOR_COLOR);
+		ImGui::GetCurrentWindow()->DrawList->AddLine(start + ImVec2(0, CURSOR_HEAD_HEIGHT - 1), end, CURSOR_COLOR);
 
 		ImColor outterColor = CURSOR_COLOR;
 		auto innerColor = ImColor(outterColor.Value.x, outterColor.Value.y, outterColor.Value.z, .5f);
@@ -558,9 +559,9 @@ namespace Editor
 		float centerX = start.x + .5f;
 		ImVec2 cursorTriangle[3] =
 		{
-			ImVec2(centerX - cursor.HEAD_WIDTH * .5f, start.y),
-			ImVec2(centerX + cursor.HEAD_WIDTH * .5f, start.y),
-			ImVec2(centerX, start.y + cursor.HEAD_HEIGHT),
+			ImVec2(centerX - CURSOR_HEAD_WIDTH * .5f, start.y),
+			ImVec2(centerX + CURSOR_HEAD_WIDTH * .5f, start.y),
+			ImVec2(centerX, start.y + CURSOR_HEAD_HEIGHT),
 		};
 		ImGui::GetCurrentWindow()->DrawList->AddTriangleFilled(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], innerColor);
 		ImGui::GetCurrentWindow()->DrawList->AddTriangle(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], outterColor);
@@ -574,10 +575,9 @@ namespace Editor
 			{
 				if (ImGui::IsMouseReleased(0) && timelineTargetRegion.Contains(ImGui::GetMousePos()))
 				{
-					cursor.Tick = RoundToGrid(GetTimelineTick(ScreenToTimelinePosition(ImGui::GetMousePos().x)));
-					cursor.TickOnPlaybackStart = cursor.Tick;
+					playbackTime = GetTimelineTime(RoundToGrid(GetTimelineTick(ScreenToTimelinePosition(ImGui::GetMousePos().x))));
+					//playbackTimeOnPlaybackStart = playbackTime;
 
-					playbackTime = GetTimelineTime(cursor.Tick);
 					songInstance->SetPosition(playbackTime);
 				}
 			}
@@ -603,11 +603,9 @@ namespace Editor
 			if (songInstance->GetIsPlaying())
 				playbackTime = songInstance->GetPosition();
 
-			cursor.Tick = GetTimelineTick(playbackTime);
-
 			// Scroll Cursor
 			{
-				float cursorPos = GetTimelinePosition(cursor.Tick);
+				float cursorPos = GetTimelinePosition(playbackTime);
 				float endPos = ScreenToTimelinePosition(timelineTargetRegion.GetBR().x);
 
 				float autoScrollOffset = timelineTargetRegion.GetWidth() / autoScrollOffsetFraction;
@@ -663,7 +661,7 @@ namespace Editor
 	{
 		printf("TargetTimeline::ResumePlayback(): \n");
 
-		cursor.TickOnPlaybackStart = cursor.Tick;
+		playbackTimeOnPlaybackStart = playbackTime;
 
 		isPlaying = true;
 		songInstance->SetIsPlaying(true);
@@ -682,8 +680,7 @@ namespace Editor
 	{
 		printf("TargetTimeline::StopPlayback(): \n");
 
-		cursor.Tick = cursor.TickOnPlaybackStart;
-		playbackTime = GetTimelineTime(cursor.Tick);
+		playbackTime = playbackTimeOnPlaybackStart;
 
 		PausePlayback();
 	}
