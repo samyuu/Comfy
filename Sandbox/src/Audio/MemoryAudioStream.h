@@ -18,6 +18,7 @@ public:
 	virtual uint32_t GetSampleRate() override;
 
 	inline bool GetIsInitialized() { return initialized; };
+	inline int16_t* GetSampleData() { return sampleData; };
 
 private:
 	bool initialized = false;

@@ -145,6 +145,7 @@
     <ClCompile Include="src\Editor\Chart\TargetTimeline.cpp" />
     <ClCompile Include="src\Editor\Chart\TempoMap.cpp" />
     <ClCompile Include="src\Editor\Chart\TimelineMap.cpp" />
+    <ClCompile Include="src\Audio\Waveform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Audio\Decoder\dr_flac.h" />
@@ -198,6 +199,7 @@
     <ClInclude Include="src\TimeSpan.h" />
     <ClInclude Include="src\Editor\Chart\TempoMap.h" />
     <ClInclude Include="src\Editor\Chart\TimelineMap.h" />
+    <ClInclude Include="src\Audio\Waveform.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="rom\shader\line_frag.glsl" />

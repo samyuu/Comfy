@@ -3,6 +3,7 @@
 #include "../../Audio/AudioInstance.h"
 #include "../../Audio/DummySampleProvider.h"
 #include "../../Audio/MemoryAudioStream.h"
+#include "../../Audio/Waveform.h"
 #include "../../BaseWindow.h"
 #include "../../Rendering/Texture.h"
 #include "TimelineMap.h"
@@ -41,6 +42,9 @@ namespace Editor
 			DummySampleProvider dummySampleProvider;
 			std::shared_ptr<MemoryAudioStream> songStream;
 			std::shared_ptr<AudioInstance> songInstance;
+			
+			bool updateWaveform;
+			Waveform songWaveform;
 		};
 
 		// Timeline Regions:
@@ -59,7 +63,8 @@ namespace Editor
 		const float ZOOM_MIN = 1.0f;
 		const float ZOOM_MAX = 10.0f;
 
-		float zoomLevel = 1.0f;
+		bool zoomLevelChanged = false;
+		float zoomLevel = 1.0f, lastZoomLevel;
 		int gridDivision = 4;
 
 		TempoMap tempoMap;
@@ -113,6 +118,7 @@ namespace Editor
 		// ----------------
 		void Initialize();
 		void UpdateRegions();
+		void UpdateTimelineMap();
 		// ----------------
 
 		// Timeline Widgets:

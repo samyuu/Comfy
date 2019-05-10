@@ -1,8 +1,8 @@
 #include "TargetTimeline.h"
+#include <boost/algorithm/string/predicate.hpp>
 #include "../../TimeSpan.h"
 #include "../../Application.h"
 #include "TempoMap.h"
-#include <boost/algorithm/string/predicate.hpp>
 
 namespace Editor
 {
@@ -87,7 +87,7 @@ namespace Editor
 			tempoMap.Add(TempoChange(TimelineTick::FromBars(0), 180.0f));
 			tempoMap.Add(TempoChange(TimelineTick::FromBars(4), 120.0f));
 
-			timelineMap.CalculateMapTimes(tempoMap);
+			UpdateTimelineMap();
 		}
 
 		// TEMP DEBUG TEST
@@ -140,6 +140,11 @@ namespace Editor
 		timelineTargetRegion = ImRect(timelineTargetPosition, timelineTargetPosition + timelineTargetSize);
 	}
 
+	void TargetTimeline::UpdateTimelineMap()
+	{
+		timelineMap.CalculateMapTimes(tempoMap);
+	}
+
 	void TargetTimeline::DrawGui()
 	{
 		if (!initialized)
@@ -147,6 +152,9 @@ namespace Editor
 			Initialize();
 			initialized = true;
 		}
+
+		zoomLevelChanged = lastZoomLevel != zoomLevel;
+		lastZoomLevel = zoomLevel;
 
 		if (false)
 			ImGui::ShowDemoWindow(nullptr);
@@ -391,6 +399,52 @@ namespace Editor
 				}
 			}
 		}
+
+		// TEST WAVEFORM
+		// -------------
+		{
+			if (songStream != nullptr)
+			{
+				if (zoomLevelChanged)
+					updateWaveform = true;
+
+				if (updateWaveform)
+				{
+					TimeSpan timePerPixel = GetTimelineTime(1.0f);
+					songWaveform.Calculate(songStream.get(), timePerPixel);
+					updateWaveform = false;
+				}
+
+				ImDrawList* drawList = baseDrawList;
+
+				float scrollX = ImGui::GetScrollX();
+				int64_t leftMostVisiblePixel = 0;
+				int64_t rightMostVisiblePixel = timelineBaseRegion.GetWidth();
+				int64_t pixelCount = songWaveform.GetPixelCount();
+				float timelineTargetX = timelineTargetRegion.GetTL().x;
+				float timelineTargetHeight = timelineTargetRegion.GetHeight() * 8;
+				float y = timelineTargetRegion.GetCenter().y;
+
+				int linesDrawn = 0;
+				for (int64_t screenPixel = leftMostVisiblePixel; screenPixel < songWaveform.GetPixelCount() && screenPixel < rightMostVisiblePixel; screenPixel++)
+				{
+					float timelinePixel = std::clamp((int64_t)(screenPixel + scrollX), (int64_t)0, (int64_t)pixelCount - 1);
+					float amplitude = songWaveform.GetPcmForPixel(timelinePixel) * timelineTargetHeight;
+
+					float x = screenPixel + timelineTargetX;
+					float halfAmplitude = amplitude * .5f;
+					ImVec2 start = ImVec2(x, y - halfAmplitude);
+					ImVec2 end = ImVec2(x, y + halfAmplitude);
+
+					drawList->AddLine(start, end, GRID_COLOR_ALT);
+
+					linesDrawn++;
+				}
+
+				//printf("%d line(s) drawn \n", i);
+			}
+		}
+		// -------------
 	}
 
 	void TargetTimeline::TimelineTempoMap()
@@ -400,6 +454,7 @@ namespace Editor
 		{
 			char tempoStr[16];
 			char buttonIdStr[28];
+			static int tempoPopupIndex = -1;
 
 			for (size_t i = 0; i < tempoMap.TempoChangeCount(); i++)
 			{
@@ -426,16 +481,44 @@ namespace Editor
 					ImGui::SetTooltip("TIME: %s", GetTimelineTime(tempoChange.Tick).FormatTime().c_str());
 
 					baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, TIMELINE_BG_COLOR);
-					if (ImGui::IsMouseClicked(0))
+					if (ImGui::IsMouseDoubleClicked(0))
 					{
 						ImGui::SetScrollX(x + ImGui::GetScrollX());
 						//ImGui::SetScrollX(screenX - timelineTargetRegion.GetTL().x - (windowWidth * .5f));
+					}
+
+					if (ImGui::IsMouseClicked(1))
+					{
+						ImGui::OpenPopup("##change_tempo_popup");
+						tempoPopupIndex = i;
 					}
 				}
 
 				baseDrawList->AddLine(buttonPosition + ImVec2(-1, -1), buttonPosition + ImVec2(-1, buttonSize.y - 1), tempoFgColor);
 				baseDrawList->AddText(ImGui::GetFont(), tempoMapHeight, buttonPosition, tempoFgColor, tempoStr);
 			}
+
+			// Test Popup
+			// ----------
+			if (ImGui::BeginPopup("##change_tempo_popup"))
+			{
+				ImGui::Text("Change Tempo:");
+
+				if (tempoPopupIndex >= 0)
+				{
+					TempoChange& tempoChange = tempoMap.GetTempoChangeAt(tempoPopupIndex);
+					float bpm = tempoChange.Tempo.BeatsPerMinute;
+
+					if (ImGui::DragFloat("##bpm_drag_float", &bpm, 1.0f, MIN_BPM, MAX_BPM, "%.2f BPM"))
+					{
+						tempoChange.Tempo = bpm;
+						UpdateTimelineMap();
+					}
+				}
+
+				ImGui::EndPopup();
+			}
+			// ----------
 		}
 	}
 
@@ -461,7 +544,7 @@ namespace Editor
 
 	void TargetTimeline::TimelineCursor()
 	{
-		TimeSpan cursorTime = GetTimelineTime(cursor.Tick);
+		TimeSpan cursorTime = isPlaying ? playbackTime : GetTimelineTime(cursor.Tick);
 		float x = GetTimelinePosition(cursorTime) - ImGui::GetScrollX();
 
 		ImVec2 start = timelineHeaderRegion.GetTL() + ImVec2(x, 0);
@@ -617,6 +700,7 @@ namespace Editor
 			songStream->Dispose();
 
 		songStream = newSongStream;
+		updateWaveform = true;
 	}
 
 	void TargetTimeline::UpdateFileDrop()

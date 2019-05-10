@@ -91,11 +91,13 @@ protected:
 	inline void SetHasBeenRemoved(bool value) { hasBeenRemoved = value; };
 	inline void IncrementSamplePosition(size_t value) { SetSamplePosition(GetSamplePosition() + value); };
 
+public:
 	// Conversion Helper Methods
 	// -------------------------
 	TimeSpan SamplesToTimeSpan(double samples);
 	size_t TimeSpanToSamples(TimeSpan time);
 
+protected:
 	// Conversion Helper Functions
 	// ---------------------------
 	static TimeSpan SamplesToTimeSpan(double samples, double sampleRate, double channelCount);
