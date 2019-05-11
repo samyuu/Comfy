@@ -19,10 +19,16 @@ namespace Editor
 		return u8"Target Timeline";
 	}
 
-	TimelineTick TargetTimeline::RoundToGrid(TimelineTick tick)
+	TimelineTick TargetTimeline::FloorToGrid(TimelineTick tick)
 	{
 		int gridInterval = TimelineTick::TICKS_PER_BAR / gridDivision;
 		return (int)(floor(tick.TotalTicks() / (float)gridInterval) * gridInterval);
+	}
+
+	TimelineTick TargetTimeline::RoundToGrid(TimelineTick tick)
+	{
+		int gridInterval = TimelineTick::TICKS_PER_BAR / gridDivision;
+		return (int)(round(tick.TotalTicks() / (float)gridInterval) * gridInterval);
 	}
 
 	float TargetTimeline::GetTimelinePosition(TimeSpan time)
@@ -537,16 +543,12 @@ namespace Editor
 
 		// Test out timline targets
 		// ------------------------
+		for (const auto& target : targets)
 		{
-			static int target;
-			if (ImGui::IsKeyPressed(GLFW_KEY_UP)) target--;
-			if (ImGui::IsKeyPressed(GLFW_KEY_DOWN)) target++;
-			if (target > TARGET_SLIDE_R) target = TARGET_SANKAKU;
-			if (target < TARGET_SANKAKU) target = TARGET_SLIDE_R;
+			float position = GetTimelinePosition(TimelineTick(target.Tick)) - ImGui::GetScrollX();
+			ImVec2 center = ImVec2(position + timelineTargetRegion.GetTL().x, targetHeights[target.Type]);
 
-			float position = GetTimelinePosition(TimelineTick(0)) - ImGui::GetScrollX();
-			ImVec2 center = ImVec2(position + timelineTargetRegion.GetTL().x, targetHeights[target]);
-			ImGui::AddTexture(windowDrawList, &iconTextures[target], center, ICON_SIZE);
+			ImGui::AddTexture(windowDrawList, &iconTextures[target.Type], center, ICON_SIZE);
 		}
 	}
 
@@ -591,7 +593,7 @@ namespace Editor
 			{
 				if (ImGui::IsMouseReleased(0) && timelineTargetRegion.Contains(ImGui::GetMousePos()))
 				{
-					playbackTime = GetTimelineTime(RoundToGrid(GetTimelineTick(ScreenToTimelinePosition(ImGui::GetMousePos().x))));
+					playbackTime = GetTimelineTime(FloorToGrid(GetTimelineTick(ScreenToTimelinePosition(ImGui::GetMousePos().x))));
 					//playbackTimeOnPlaybackStart = playbackTime;
 
 					songInstance->SetPosition(playbackTime);
@@ -601,12 +603,37 @@ namespace Editor
 			// ButtonSound Test:
 			// -----------------
 			{
-				static short keys[] = { 'W', 'A', 'S', 'D', 'I', 'J', 'K', 'L' };
-				bool playButtonSound = false;
-				for (size_t i = 0; i < IM_ARRAYSIZE(keys); i++)
-					playButtonSound |= ImGui::IsKeyPressed(keys[i], false);
-				if (playButtonSound)
+				TimelineTick cursorTick = RoundToGrid(GetTimelineTick(playbackTime));
+
+				auto placeTarget = [&](TargetType type)
+				{
 					audioController.PlayButtonSound();
+
+					TargetIterator existingTarget = targets.Find(cursorTick, type);
+					if (existingTarget != targets.end())
+					{
+						if (!isPlaying)
+							targets.Remove(existingTarget);
+					}
+					else
+					{
+						targets.Add(cursorTick, type);
+					}
+				};
+
+				static struct { TargetType Type; int Key; } mapping[4]
+				{
+					{ TARGET_SANKAKU, 'W'},
+					{ TARGET_SHIKAKU, 'A'},
+					{ TARGET_BATSU, 'S'},
+					{ TARGET_MARU, 'D'},
+				};
+
+				for (size_t i = 0; i < IM_ARRAYSIZE(mapping); i++)
+				{
+					if (ImGui::IsKeyPressed(mapping[i].Key, false))
+						placeTarget(mapping[i].Type);
+				}
 			}
 
 			if (ImGui::IsKeyPressed(GLFW_KEY_SPACE))

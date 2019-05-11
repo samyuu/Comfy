@@ -8,22 +8,11 @@
 #include "../../Rendering/Texture.h"
 #include "../AudioController.h"
 #include "TimelineMap.h"
-#include "TimelineTick.h"
+#include "TargetList.h"
 #include <memory>
 
 namespace Editor
 {
-	enum TargetType
-	{
-		TARGET_SANKAKU,
-		TARGET_SHIKAKU,
-		TARGET_BATSU,
-		TARGET_MARU,
-		TARGET_SLIDE_L,
-		TARGET_SLIDE_R,
-		TARGET_MAX
-	};
-
 	class TargetTimeline : public BaseWindow
 	{
 	public:
@@ -70,6 +59,7 @@ namespace Editor
 
 		TempoMap tempoMap;
 		TimelineMap timelineMap;
+		TargetList targets;
 
 		float targetHeights[TARGET_MAX];
 		Texture iconTextures[TARGET_MAX];
@@ -157,6 +147,7 @@ namespace Editor
 
 		// Conversion Methods:
 		// -------------------
+		TimelineTick FloorToGrid(TimelineTick tick);
 		TimelineTick RoundToGrid(TimelineTick tick);
 		float GetTimelinePosition(TimeSpan time);
 		float GetTimelinePosition(TimelineTick tick);

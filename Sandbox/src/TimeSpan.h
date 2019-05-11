@@ -58,12 +58,12 @@ struct TimeSpan
 
 	// Operators:
 	// ----------
-	inline bool operator== (TimeSpan other) { return TotalSeconds() == other.TotalSeconds(); }
-	inline bool operator!= (TimeSpan other) { return TotalSeconds() != other.TotalSeconds(); }
-	inline bool operator<= (TimeSpan other) { return TotalSeconds() <= other.TotalSeconds(); }
-	inline bool operator>= (TimeSpan other) { return TotalSeconds() >= other.TotalSeconds(); }
-	inline bool operator< (TimeSpan other) { return TotalSeconds() < other.TotalSeconds(); }
-	inline bool operator> (TimeSpan other) { return TotalSeconds() > other.TotalSeconds(); }
+	inline bool operator== (const TimeSpan& other) const { return time == other.time; }
+	inline bool operator!= (const TimeSpan& other) const { return time != other.time; }
+	inline bool operator<= (const TimeSpan& other) const { return time <= other.time; }
+	inline bool operator>= (const TimeSpan& other) const { return time >= other.time; }
+	inline bool operator< (const TimeSpan& other) const { return time < other.time; }
+	inline bool operator> (const TimeSpan& other) const { return time > other.time; }
 	inline TimeSpan operator+ (TimeSpan other) { return FromSeconds(TotalSeconds() + other.TotalSeconds()); }
 	inline TimeSpan operator- (TimeSpan other) { return FromSeconds(TotalSeconds() - other.TotalSeconds()); }
 	inline TimeSpan& operator+= (const TimeSpan& other) { this->time += other.time; return *this; }

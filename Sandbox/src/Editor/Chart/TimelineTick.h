@@ -57,12 +57,12 @@ namespace Editor
 
 		// Operators:
 		// ----------
-		inline bool operator== (TimelineTick other) { return TotalTicks() == other.TotalTicks(); }
-		inline bool operator!= (TimelineTick other) { return TotalTicks() != other.TotalTicks(); }
-		inline bool operator<= (TimelineTick other) { return TotalTicks() <= other.TotalTicks(); }
-		inline bool operator>= (TimelineTick other) { return TotalTicks() >= other.TotalTicks(); }
-		inline bool operator< (TimelineTick other) { return TotalTicks() < other.TotalTicks(); }
-		inline bool operator> (TimelineTick other) { return TotalTicks() > other.TotalTicks(); }
+		inline bool operator== (const TimelineTick other) const { return tickCount == other.tickCount; }
+		inline bool operator!= (const TimelineTick other) const { return tickCount != other.tickCount; }
+		inline bool operator<= (const TimelineTick other) const { return tickCount <= other.tickCount; }
+		inline bool operator>= (const TimelineTick other) const { return tickCount >= other.tickCount; }
+		inline bool operator< (const TimelineTick other) const { return tickCount < other.tickCount; }
+		inline bool operator> (const TimelineTick other) const { return tickCount > other.tickCount; }
 		// ----------
 
 	private:
