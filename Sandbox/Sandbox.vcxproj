@@ -107,6 +107,7 @@
     <ClCompile Include="src\DataTest\AudioTestWindow.cpp" />
     <ClCompile Include="src\Audio\AudioEngine.cpp" />
     <ClCompile Include="src\BaseWindow.cpp" />
+    <ClCompile Include="src\Editor\AudioController.cpp" />
     <ClCompile Include="src\Editor\Chart\TempoChange.cpp" />
     <ClCompile Include="src\ImGui\imgui_extensions.cpp" />
     <ClCompile Include="src\Input\DirectInput\DirectInput.cpp" />
@@ -146,6 +147,7 @@
     <ClCompile Include="src\Editor\Chart\TempoMap.cpp" />
     <ClCompile Include="src\Editor\Chart\TimelineMap.cpp" />
     <ClCompile Include="src\Audio\Waveform.cpp" />
+    <ClCompile Include="src\TimeSpan.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Audio\Decoder\dr_flac.h" />
@@ -161,6 +163,7 @@
     <ClInclude Include="src\Audio\AudioEngine.h" />
     <ClInclude Include="src\Audio\ISampleProvider.h" />
     <ClInclude Include="src\BaseWindow.h" />
+    <ClInclude Include="src\Editor\AudioController.h" />
     <ClInclude Include="src\Editor\Chart\TempoChange.h" />
     <ClInclude Include="src\Editor\Chart\TimelineTick.h" />
     <ClInclude Include="src\ImGui\imgui_extensions.h" />
