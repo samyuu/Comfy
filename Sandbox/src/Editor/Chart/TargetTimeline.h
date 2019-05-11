@@ -6,6 +6,7 @@
 #include "../../Audio/Waveform.h"
 #include "../../BaseWindow.h"
 #include "../../Rendering/Texture.h"
+#include "../AudioController.h"
 #include "TimelineMap.h"
 #include "TimelineTick.h"
 #include <memory>
@@ -38,6 +39,7 @@ namespace Editor
 		{
 			const char* testSongPath = "rom/sound/sngtst.flac";
 			AudioEngine* audioEngine;
+			AudioController audioController;
 			DummySampleProvider dummySampleProvider;
 			std::shared_ptr<MemoryAudioStream> songStream;
 			std::shared_ptr<AudioInstance> songInstance;

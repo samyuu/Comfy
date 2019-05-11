@@ -75,6 +75,9 @@ struct TimeSpan
 	inline double operator/ (int other) { return TotalSeconds() / other; }
 	// ----------
 
+	static TimeSpan GetTimeNow();
+	// ---------------
+
 private:
 	// Time in Seconds
 	// ---------------

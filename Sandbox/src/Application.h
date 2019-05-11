@@ -10,6 +10,7 @@
 #include "Rendering/Texture.h"
 #include "Rendering/Camera.h"
 #include "Audio/AudioEngine.h"
+#include "TimeSpan.h"
 
 constexpr float DEFAULT_WINDOW_WIDTH = 1280.0f;
 constexpr float DEFAULT_WINDOW_HEIGHT = 720.0f;
@@ -28,7 +29,7 @@ public:
 
 	inline GLFWwindow* GetWindow() { return window; };
 
-	inline float GetElapsed() { return elapsedTime; };
+	inline TimeSpan GetElapsed() { return elapsedTime; };
 	inline float GetWidth() { return windowWidth; };
 	inline float GetHeight() { return windowHeight; };
 
@@ -170,8 +171,8 @@ private:
 
 	// Engine Timing
 	// -------------
-	float elapsedTime = 0.0f;
-	double currentTime, lastTime;
+	TimeSpan elapsedTime = 0.0f;
+	TimeSpan currentTime, lastTime;
 	unsigned __int64 elapsedFrames = 0;
 
 	// Scene Camera

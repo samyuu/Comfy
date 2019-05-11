@@ -3,7 +3,7 @@
 
 AudioInstance::AudioInstance(ISampleProvider* sampleProvider) : sampleProvider(sampleProvider)
 {
-	assert(sampleProvider);
+	//assert(sampleProvider);
 }
 
 AudioInstance::AudioInstance(ISampleProvider* sampleProvider, const char* name) : AudioInstance(sampleProvider)
@@ -63,6 +63,11 @@ TimeSpan AudioInstance::GetPosition()
 void AudioInstance::SetPosition(TimeSpan value)
 {
 	SetSamplePosition(TimeSpanToSamples(value));
+}
+
+void AudioInstance::Restart()
+{
+	SetSamplePosition(0);
 }
 
 TimeSpan AudioInstance::GetDuration()

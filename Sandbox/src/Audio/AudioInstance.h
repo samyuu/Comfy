@@ -38,7 +38,8 @@ public:
 	// Position
 	TimeSpan GetPosition();
 	void SetPosition(TimeSpan value);
-	
+	void Restart();
+
 	// Duration
 	TimeSpan GetDuration();
 

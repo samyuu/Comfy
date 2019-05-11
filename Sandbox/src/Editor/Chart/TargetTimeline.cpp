@@ -68,6 +68,7 @@ namespace Editor
 
 		songInstance = std::make_shared<AudioInstance>(&dummySampleProvider, "TargetTimeline::SongInstance");
 		audioEngine->AddAudioInstance(songInstance);
+		audioController.Initialize();
 
 		for (size_t i = 0; i < TARGET_MAX; i++)
 		{
@@ -284,7 +285,7 @@ namespace Editor
 			targetHeights[i] = center.y;
 		}
 	}
-	
+
 	void TargetTimeline::TimelineBase()
 	{
 		baseWindow = ImGui::GetCurrentWindow();
@@ -597,6 +598,17 @@ namespace Editor
 				}
 			}
 
+			// ButtonSound Test:
+			// -----------------
+			{
+				static short keys[] = { 'W', 'A', 'S', 'D', 'I', 'J', 'K', 'L' };
+				bool playButtonSound = false;
+				for (size_t i = 0; i < IM_ARRAYSIZE(keys); i++)
+					playButtonSound |= ImGui::IsKeyPressed(keys[i], false);
+				if (playButtonSound)
+					audioController.PlayButtonSound();
+			}
+
 			if (ImGui::IsKeyPressed(GLFW_KEY_SPACE))
 			{
 				if (isPlaying)
@@ -699,10 +711,9 @@ namespace Editor
 		PausePlayback();
 	}
 
-	void TargetTimeline::LoadSong(const std::string& path)
+	void TargetTimeline::LoadSong(const std::string& filePath)
 	{
-		auto newSongStream = std::make_shared<MemoryAudioStream>();
-		newSongStream->LoadFromFile(path);
+		auto newSongStream = std::make_shared<MemoryAudioStream>(filePath);
 
 		songInstance->SetSampleProvider(newSongStream.get());
 		songDuration = songInstance->GetDuration();

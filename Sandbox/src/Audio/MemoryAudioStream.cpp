@@ -11,6 +11,11 @@ MemoryAudioStream::MemoryAudioStream()
 {
 }
 
+MemoryAudioStream::MemoryAudioStream(const std::string& filePath)
+{
+	LoadFromFile(filePath);
+}
+
 MemoryAudioStream::~MemoryAudioStream()
 {
 }

@@ -149,7 +149,7 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 		if (!audioInstance->GetIsPlaying() || audioInstance->GetHasReachedEnd())
 		{
 			if (audioInstance->GetIsLooping())
-				audioInstance->SetSamplePosition(0);
+				audioInstance->Restart();
 			continue;
 		}
 

@@ -136,9 +136,8 @@ void Application::Run()
 		glfwPollEvents();
 
 		lastTime = currentTime;
-		currentTime = glfwGetTime();
-
-		elapsedTime = (float)(currentTime - lastTime);
+		currentTime = TimeSpan::GetTimeNow();
+		elapsedTime = (currentTime - lastTime);
 
 		if (mainLoopLowPowerSleep)
 			Sleep(1);
@@ -496,7 +495,7 @@ void Application::UpdateInput()
 	const bool fastCamera = Keyboard::IsDown(GLFW_KEY_LEFT_SHIFT);
 	const bool slowCamera = Keyboard::IsDown(GLFW_KEY_LEFT_ALT);
 
-	const float cameraSpeed = (slowCamera ? 0.25f : (fastCamera ? 5.5f : 2.25f)) * elapsedTime;
+	const float cameraSpeed = (slowCamera ? 0.25f : (fastCamera ? 5.5f : 2.25f)) * elapsedTime.TotalSeconds();
 
 	if (!mouseBeingUsed)
 	{
@@ -542,7 +541,7 @@ void Application::UpdateInput()
 			return;
 
 		constexpr auto lerp = [](float a, float b, float f) { return a + f * (b - a); };
-		value = lerp(value, targetValue, cameraSmoothness * elapsedTime);
+		value = lerp(value, targetValue, cameraSmoothness * elapsedTime.TotalSeconds());
 	};
 
 	lerpValue(cameraYaw, targetCameraYaw);

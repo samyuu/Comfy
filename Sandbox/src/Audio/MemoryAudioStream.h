@@ -6,6 +6,7 @@ class MemoryAudioStream : public ISampleProvider
 {
 public:
 	MemoryAudioStream();
+	MemoryAudioStream(const std::string& filePath);
 	~MemoryAudioStream();
 
 	void LoadFromFile(const std::string& filePath);

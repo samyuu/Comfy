@@ -164,7 +164,7 @@ void AudioTestWindow::DrawGui()
 		{
 			for (auto &instance : engine->audioInstances)
 			{
-				if (instance == nullptr)
+				if (instance == nullptr || instance->GetSampleProvider() == nullptr)
 				{
 					ImGui::TextDisabled("nullptr");
 					continue;
@@ -263,13 +263,16 @@ void AudioTestWindow::DrawGui()
 
 		ImGui::SliderFloat("Button Volume", &testButtonVolume, MIN_VOLUME, MAX_VOLUME);
 
-		short keys[] = { 'W', 'A', 'S', 'D', 'I', 'J', 'K', 'L' };
-		for (size_t i = 0; i < IM_ARRAYSIZE(keys); i++)
-			addButtonSound |= Keyboard::IsTapped(keys[i]);
+		if (ImGui::IsWindowFocused())
+		{
+			short keys[] = { 'W', 'A', 'S', 'D', 'I', 'J', 'K', 'L' };
+			for (size_t i = 0; i < IM_ARRAYSIZE(keys); i++)
+				addButtonSound |= Keyboard::IsTapped(keys[i]);
 
-		Ds4Button buttons[] = { DS4_DPAD_UP, DS4_DPAD_DOWN, DS4_DPAD_LEFT, DS4_DPAD_RIGHT, DS4_TRIANGLE, DS4_CIRCLE, DS4_CROSS, DS4_SQUARE, DS4_L_TRIGGER, DS4_R_TRIGGER };
-		for (size_t i = 0; i < IM_ARRAYSIZE(buttons); i++)
-			addButtonSound |= DualShock4::IsTapped(buttons[i]);
+			Ds4Button buttons[] = { DS4_DPAD_UP, DS4_DPAD_DOWN, DS4_DPAD_LEFT, DS4_DPAD_RIGHT, DS4_TRIANGLE, DS4_CIRCLE, DS4_CROSS, DS4_SQUARE, DS4_L_TRIGGER, DS4_R_TRIGGER };
+			for (size_t i = 0; i < IM_ARRAYSIZE(buttons); i++)
+				addButtonSound |= DualShock4::IsTapped(buttons[i]);
+		}
 
 		if (addButtonSound)
 			engine->PlaySound(&testButtonSound, testButtonVolume, "AudioTestWindow::TestButtonSound");

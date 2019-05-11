@@ -15,7 +15,7 @@ public:
 	virtual ImGuiWindowFlags GetWindowFlags() override;
 
 private:
-	const float audioInstancesChildHeight = 128;
+	const float audioInstancesChildHeight = 0; // 128;
 	const char* testSongPath = "rom/sound/sngtst.flac";
 
 	MemoryAudioStream songTestStream;
