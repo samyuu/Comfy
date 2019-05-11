@@ -1,5 +1,6 @@
 #include "AudioTestWindow.h"
 #include <sstream>
+#include <memory>
 #include "../Application.h"
 #include "../Audio/MemoryAudioStream.h"
 #include "../Audio/AudioInstance.h"
@@ -157,12 +158,29 @@ void AudioTestWindow::DrawGui()
 	}
 	ImGui::Separator();
 
+	if (ImGui::CollapsingHeader("Audio Instances"))
+	{
+		for (auto &instance : engine->audioInstances)
+		{
+			//ImGui::TextDisabled("(Dummy)");
+			auto playingString = instance->GetIsPlaying() ? "playing" : "paused";
+
+			ImGui::TextDisabled("(%s / %s) %s", 
+				instance->GetPosition().FormatTime().c_str(), 
+				instance->GetDuration().FormatTime().c_str(), 
+				playingString);
+
+			//ImGui::SameLine();
+		}
+	}
+	ImGui::Separator();
+
 	if (ImGui::CollapsingHeader("Audio File Test"))
 	{
 		checkStartStream();
 
 		static MemoryAudioStream sngtst;
-		static AudioInstance* songAudioInstance = nullptr;
+		static std::shared_ptr<AudioInstance> songAudioInstance = nullptr;
 
 		const char* testSongPath = "rom/sound/sngtst.flac"; // "rom/sound/pv_427.ogg";
 
@@ -172,9 +190,9 @@ void AudioTestWindow::DrawGui()
 		if (ImGui::Button("engine->AddAudioInstance()"))
 		{
 			if (songAudioInstance != nullptr)
-				songAudioInstance->SetAppendDelete(true);
+				songAudioInstance->SetAppendRemove(true);
 
-			songAudioInstance = new AudioInstance(&sngtst, true);
+			songAudioInstance = std::make_shared<AudioInstance>(&sngtst, true);
 			engine->AddAudioInstance(songAudioInstance);
 		}
 
@@ -183,7 +201,7 @@ void AudioTestWindow::DrawGui()
 			if (songAudioInstance->GetHasBeenRemoved())
 				return;
 
-			AudioInstance* audioInstance = songAudioInstance;
+			AudioInstance* audioInstance = songAudioInstance.get();
 
 			ImGui::Separator();
 			ImGui::Text("audioInstance->GetChannelCount(): %u", sngtst.GetChannelCount());

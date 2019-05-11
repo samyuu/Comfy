@@ -34,6 +34,10 @@ void AudioInstance::SetSampleProvider(ISampleProvider* provider)
 { 
 	assert(provider != nullptr);
 	sampleProvider = provider; 
+}
+bool AudioInstance::IsSampleProviderValid()
+{
+	return sampleProvider != nullptr;
 };
 
 TimeSpan AudioInstance::GetPosition()
@@ -78,13 +82,13 @@ void AudioInstance::SetIsLooping(bool value)
 	isLooping = value;
 };
 
-bool AudioInstance::GetAppendDelete()
+bool AudioInstance::GetAppendRemove()
 {
-	return appendDelete;
+	return appendRemove;
 };
-void AudioInstance::SetAppendDelete(bool value)
+void AudioInstance::SetAppendRemove(bool value)
 {
-	appendDelete = value;
+	appendRemove = value;
 };
 
 bool AudioInstance::GetHasBeenRemoved()

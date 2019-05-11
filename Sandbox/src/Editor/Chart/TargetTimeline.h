@@ -83,6 +83,7 @@ namespace Editor
 
 		struct
 		{
+			// these should be owned by a parent class
 			TimeSpan songStartOffset = 0.0;
 			TimeSpan songDuration = TimeSpan::FromMinutes(1.0);
 			TimeSpan playbackTime = 0.0, playbackTimeOnPlaybackStart;
@@ -119,6 +120,7 @@ namespace Editor
 		void Initialize();
 		void UpdateRegions();
 		void UpdateTimelineMap();
+		void UpdateTimelineSize();
 		// ----------------
 
 		// Timeline Widgets:
@@ -165,7 +167,7 @@ namespace Editor
 
 		// DEBUG STUFF
 		// -----------
-		inline void DRAW_DEBUG_REGION(ImRect& rect) { ImGui::AddRectFilled(ImGui::GetForegroundDrawList(), rect, IM_COL32_BLACK * .5f); }
+		inline void DRAW_DEBUG_REGION(ImRect& rect) { ImGui::AddRectFilled(ImGui::GetForegroundDrawList(), rect, IM_COL32_BLACK * .5f); };
 		// -----------
 	};
 }

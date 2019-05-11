@@ -7,8 +7,7 @@ enum AudioFinishedAction : byte
 {
 	AUDIO_FINISHED_NONE,
 	AUDIO_FINISHED_REMOVE,
-	AUDIO_FINISHED_DELETE,
-	AUDIO_FINISHED_COUNT,
+	AUDIO_FINISHED_MAX,
 };
 
 class AudioInstance
@@ -30,6 +29,7 @@ public:
 	// Sample Provider
 	ISampleProvider* GetSampleProvider();
 	void SetSampleProvider(ISampleProvider* provider);
+	bool IsSampleProviderValid();
 
 	// Position
 	TimeSpan GetPosition();
@@ -50,9 +50,9 @@ public:
 	bool GetIsLooping();
 	void SetIsLooping(bool value);
 
-	// AppendDelete
-	bool GetAppendDelete();
-	void SetAppendDelete(bool value);
+	// AppendRemove
+	bool GetAppendRemove();
+	void SetAppendRemove(bool value);
 
 	// HasBeenRemoved
 	bool GetHasBeenRemoved();
@@ -78,7 +78,7 @@ private:
 	bool isPlaying = false;
 	bool isLooping = false;
 	bool hasBeenRemoved = false;
-	bool appendDelete = false;
+	bool appendRemove = false;
 
 	size_t samplePosition = 0;
 	AudioFinishedAction onFinishedAction = AUDIO_FINISHED_NONE;

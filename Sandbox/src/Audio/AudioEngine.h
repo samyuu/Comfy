@@ -3,12 +3,14 @@
 #include <stdint.h>
 #include <algorithm>
 #include <vector>
+#include <memory>
 
 typedef uint8_t byte;
 typedef RtAudio::StreamParameters StreamParameters;
 
 class AudioInstance;
 class ISampleProvider;
+class AudioTestWindow;
 
 enum AudioApi
 {
@@ -32,6 +34,8 @@ constexpr uint32_t MAX_BUFFER_SIZE = 0x2000;
 
 class AudioEngine
 {
+	friend AudioTestWindow;
+
 public:
 	// ----------------------
 	void Initialize();
@@ -50,7 +54,7 @@ public:
 	RtAudio::DeviceInfo GetDeviceInfo(uint32_t device);
 
 	void SetBufferSize(uint32_t bufferSize);
-	void AddAudioInstance(AudioInstance* audioInstance);
+	void AddAudioInstance(std::shared_ptr<AudioInstance> audioInstance);
 	void PlaySound(ISampleProvider* sampleProvider, float volume = MAX_VOLUME);
 
 	inline RtAudio* GetRtAudio() { return rtAudio; };
@@ -85,7 +89,7 @@ private:
 	~AudioEngine();
 
 	//int16_t currentSampleBuffer[64 * 2];
-	std::vector<AudioInstance*> audioInstances;
+	std::vector<std::shared_ptr<AudioInstance>> audioInstances;
 
 	int16_t* tempOutputBuffer;
 	uint32_t bufferSize = DEFAULT_BUFFER_SIZE;
@@ -99,7 +103,7 @@ private:
 	AudioApi audioApi = AUDIO_API_INVALID;
 	RtAudio* rtAudio = nullptr;
 
-	StreamParameters* streamOutputParameter = nullptr;
+	std::unique_ptr<StreamParameters> streamOutputParameter;
 
 	inline int16_t MixSamples(int16_t sample1, int16_t sample2)
 	{

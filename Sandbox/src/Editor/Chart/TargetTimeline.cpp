@@ -67,7 +67,7 @@ namespace Editor
 		audioEngine->StartStream();
 
 		songInstance = std::make_shared<AudioInstance>(&dummySampleProvider);
-		audioEngine->AddAudioInstance(songInstance.get());
+		audioEngine->AddAudioInstance(songInstance);
 
 		for (size_t i = 0; i < TARGET_MAX; i++)
 		{
@@ -143,6 +143,11 @@ namespace Editor
 	void TargetTimeline::UpdateTimelineMap()
 	{
 		timelineMap.CalculateMapTimes(tempoMap);
+	}
+
+	void TargetTimeline::UpdateTimelineSize()
+	{
+		ImGui::ItemSize(ImVec2(GetTimelinePosition(songDuration), 0));
 	}
 
 	void TargetTimeline::DrawGui()
@@ -279,7 +284,7 @@ namespace Editor
 			targetHeights[i] = center.y;
 		}
 	}
-
+	
 	void TargetTimeline::TimelineBase()
 	{
 		baseWindow = ImGui::GetCurrentWindow();
@@ -294,7 +299,7 @@ namespace Editor
 				scrollDelta = 0.0f;
 			}
 
-			ImGui::ItemSize(ImVec2(GetTimelinePosition(songDuration), 0));
+			UpdateTimelineSize();
 			//ImGui::ItemSize(ImVec2(GetTimelinePosition(TimelineTick::FromBars(30)), 0));
 		}
 
@@ -424,7 +429,7 @@ namespace Editor
 				int64_t rightMostVisiblePixel = timelineBaseRegion.GetWidth();
 				int64_t pixelCount = songWaveform.GetPixelCount();
 				float timelineTargetX = timelineTargetRegion.GetTL().x;
-				float timelineTargetHeight = (TARGET_MAX * ROW_HEIGHT) * 8;
+				float timelineTargetHeight = (TARGET_MAX * ROW_HEIGHT) * 10.0f;
 				float y = timelineTargetRegion.GetTL().y + ((TARGET_MAX * ROW_HEIGHT) / 2);
 
 				int linesDrawn = 0;
@@ -546,15 +551,25 @@ namespace Editor
 
 	void TargetTimeline::TimelineCursor()
 	{
+		ImColor outterColor = CURSOR_COLOR;
+		ImColor innerColor = ImColor(outterColor.Value.x, outterColor.Value.y, outterColor.Value.z, .5f);
+
+		if (isPlaying)
+		{
+			float prePlaybackX = GetTimelinePosition(playbackTimeOnPlaybackStart) - ImGui::GetScrollX();
+
+			ImVec2 start = timelineHeaderRegion.GetTL() + ImVec2(prePlaybackX, 0);
+			ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(prePlaybackX, 0);
+
+			baseDrawList->AddLine(start, end, innerColor);
+		}
+
 		float x = GetTimelinePosition(playbackTime) - ImGui::GetScrollX();
 
 		ImVec2 start = timelineHeaderRegion.GetTL() + ImVec2(x, 0);
 		ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(x, 0);
 
-		ImGui::GetCurrentWindow()->DrawList->AddLine(start + ImVec2(0, CURSOR_HEAD_HEIGHT - 1), end, CURSOR_COLOR);
-
-		ImColor outterColor = CURSOR_COLOR;
-		auto innerColor = ImColor(outterColor.Value.x, outterColor.Value.y, outterColor.Value.z, .5f);
+		baseDrawList->AddLine(start + ImVec2(0, CURSOR_HEAD_HEIGHT - 1), end, outterColor);
 
 		float centerX = start.x + .5f;
 		ImVec2 cursorTriangle[3] =
@@ -563,8 +578,8 @@ namespace Editor
 			ImVec2(centerX + CURSOR_HEAD_WIDTH * .5f, start.y),
 			ImVec2(centerX, start.y + CURSOR_HEAD_HEIGHT),
 		};
-		ImGui::GetCurrentWindow()->DrawList->AddTriangleFilled(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], innerColor);
-		ImGui::GetCurrentWindow()->DrawList->AddTriangle(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], outterColor);
+		baseDrawList->AddTriangleFilled(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], innerColor);
+		baseDrawList->AddTriangle(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], outterColor);
 	}
 
 	void TargetTimeline::CursorControl()
@@ -600,7 +615,7 @@ namespace Editor
 		if (isPlaying)
 		{
 			playbackTime += ImGui::GetIO().DeltaTime;
-			if (songInstance->GetIsPlaying())
+			if (songInstance->GetIsPlaying() && songStream != nullptr)
 				playbackTime = songInstance->GetPosition();
 
 			// Scroll Cursor
@@ -639,11 +654,16 @@ namespace Editor
 			{
 				if (io.KeyAlt) // Zoom Timeline
 				{
+					float prePosition = GetTimelinePosition(playbackTime);
+
 					float amount = .5f;
 					zoomLevel = zoomLevel + amount * io.MouseWheel;
 
 					if (zoomLevel <= 0)
 						zoomLevel = amount;
+
+					float postPosition = GetTimelinePosition(playbackTime);
+					ImGui::SetScrollX(ImGui::GetScrollX() + postPosition - prePosition);
 				}
 				else if (!io.KeyCtrl) // Scroll Timeline
 				{
@@ -659,8 +679,6 @@ namespace Editor
 
 	void TargetTimeline::ResumePlayback()
 	{
-		printf("TargetTimeline::ResumePlayback(): \n");
-
 		playbackTimeOnPlaybackStart = playbackTime;
 
 		isPlaying = true;
@@ -670,16 +688,12 @@ namespace Editor
 
 	void TargetTimeline::PausePlayback()
 	{
-		printf("TargetTimeline::PausePlayback(): \n");
-
 		songInstance->SetIsPlaying(false);
 		isPlaying = false;
 	}
 
 	void TargetTimeline::StopPlayback()
 	{
-		printf("TargetTimeline::StopPlayback(): \n");
-
 		playbackTime = playbackTimeOnPlaybackStart;
 
 		PausePlayback();
@@ -687,7 +701,7 @@ namespace Editor
 
 	void TargetTimeline::LoadSong(const std::string& path)
 	{
-		std::shared_ptr<MemoryAudioStream> newSongStream = std::make_shared<MemoryAudioStream>();
+		auto newSongStream = std::make_shared<MemoryAudioStream>();
 		newSongStream->LoadFromFile(path);
 
 		songInstance->SetSampleProvider(newSongStream.get());
@@ -696,6 +710,7 @@ namespace Editor
 		if (songStream != nullptr)
 			songStream->Dispose();
 
+		// adds some copy overhead but we don't want to delete the old pointer while the new one is still loading
 		songStream = newSongStream;
 		updateWaveform = true;
 	}

@@ -31,9 +31,6 @@ void AudioEngine::Dispose()
 
 	if (tempOutputBuffer != nullptr)
 		delete[] tempOutputBuffer;
-
-	if (streamOutputParameter != nullptr)
-		delete streamOutputParameter;
 }
 
 void AudioEngine::SetAudioApi(AudioApi audioApi)
@@ -132,20 +129,21 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 	int audioInstancesSize = audioInstances.size();
 	for (size_t i = 0; i < audioInstancesSize; i++)
 	{
-		AudioInstance* audioInstance = audioInstances[i];
+		AudioInstance* audioInstance = audioInstances[i].get();
 
-		if (audioInstance->GetAppendDelete() || (audioInstance->GetHasReachedEnd() && audioInstance->GetOnFinishedAction() != AUDIO_FINISHED_NONE))
+		if (audioInstance->GetAppendRemove() || (audioInstance->IsSampleProviderValid() && audioInstance->GetHasReachedEnd() && audioInstance->GetOnFinishedAction() == AUDIO_FINISHED_REMOVE))
 		{
 			audioInstance->SetHasBeenRemoved(true);
 			
 			audioInstances.erase(audioInstances.begin() + i);
 			audioInstancesSize--;
 			
-			if (audioInstance->GetAppendDelete() || audioInstance->GetOnFinishedAction() == AUDIO_FINISHED_DELETE)
-				delete audioInstance;
-			
 			continue;
 		}
+
+		// don't bother with these
+		if (!audioInstance->IsSampleProviderValid())
+			continue;
 
 		if (!audioInstance->GetIsPlaying() || audioInstance->GetHasReachedEnd())
 		{
@@ -199,10 +197,10 @@ void AudioEngine::SetBufferSize(uint32_t bufferSize)
 		StartStream();
 }
 
-void AudioEngine::AddAudioInstance(AudioInstance* audioInstance)
+void AudioEngine::AddAudioInstance(std::shared_ptr<AudioInstance> audioInstance)
 {
 	bool unique = true;
-	for (const AudioInstance* instance : audioInstances)
+	for (auto &instance : audioInstances)
 	{
 		if (instance == audioInstance)
 		{
@@ -219,19 +217,19 @@ void AudioEngine::AddAudioInstance(AudioInstance* audioInstance)
 
 void AudioEngine::PlaySound(ISampleProvider* sampleProvider, float volume)
 {
-	AddAudioInstance(new AudioInstance(sampleProvider, true, AUDIO_FINISHED_DELETE, volume));
+	AddAudioInstance(std::make_shared<AudioInstance>(sampleProvider, true, AUDIO_FINISHED_REMOVE, volume));
 }
 
 StreamParameters* AudioEngine::GetStreamOutputParameters()
 {
 	if (streamOutputParameter == nullptr)
-		streamOutputParameter = new StreamParameters();
+		streamOutputParameter = std::make_unique<StreamParameters>();
 
 	streamOutputParameter->deviceId = GetRtAudio()->getDefaultOutputDevice();
 	streamOutputParameter->nChannels = GetChannelCount();;
 	streamOutputParameter->firstChannel = 0;
 
-	return streamOutputParameter;
+	return streamOutputParameter.get();
 }
 
 StreamParameters* AudioEngine::GetStreamInputParameters()
