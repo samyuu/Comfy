@@ -2,7 +2,6 @@
 #include <sstream>
 #include <memory>
 #include "../Application.h"
-#include "../Audio/MemoryAudioStream.h"
 #include "../Audio/AudioInstance.h"
 #include "../Input/DirectInput/DualShock4.h"
 #include "../Input/Keyboard.h"
@@ -19,7 +18,7 @@ void AudioTestWindow::DrawGui()
 {
 	AudioEngine* engine = AudioEngine::GetInstance();
 
-	auto checkStartStream = [&engine]() 
+	auto checkStartStream = [&engine]()
 	{
 		static bool checkStartStream = true;
 		if (checkStartStream)
@@ -150,7 +149,7 @@ void AudioTestWindow::DrawGui()
 
 		// static float arr[] = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
 		// ImGui::PlotLines("Frame Times", arr, IM_ARRAYSIZE(arr));
-		
+
 		//float floatBuffer[MAX_BUFFER_SIZE];
 		//for (size_t i = 0; i < engine->GetBufferSize(); i++)
 		//	floatBuffer[i] = (float)(engine->SAMPLE_BUFFER_PTR[i]);
@@ -160,18 +159,28 @@ void AudioTestWindow::DrawGui()
 
 	if (ImGui::CollapsingHeader("Audio Instances"))
 	{
-		for (auto &instance : engine->audioInstances)
+		ImGui::BeginChild("##audio_instances_child", ImVec2(0, audioInstancesChildHeight), true);
+		if (!engine->callbackRunning)
 		{
-			//ImGui::TextDisabled("(Dummy)");
-			auto playingString = instance->GetIsPlaying() ? "playing" : "paused";
+			for (auto &instance : engine->audioInstances)
+			{
+				if (instance == nullptr)
+				{
+					ImGui::TextDisabled("nullptr");
+					continue;
+				}
 
-			ImGui::TextDisabled("(%s / %s) %s", 
-				instance->GetPosition().FormatTime().c_str(), 
-				instance->GetDuration().FormatTime().c_str(), 
-				playingString);
+				auto playingString = instance->GetIsPlaying() ? "PLAY" : "PAUSE";
 
-			//ImGui::SameLine();
+				ImGui::TextDisabled("%s | (%s / %s) | (%d%%) | %s",
+					instance->GetName(),
+					instance->GetPosition().FormatTime().c_str(),
+					instance->GetDuration().FormatTime().c_str(),
+					(int)(instance->GetVolume() * 100.0f),
+					playingString);
+			}
 		}
+		ImGui::EndChild();
 	}
 	ImGui::Separator();
 
@@ -179,20 +188,15 @@ void AudioTestWindow::DrawGui()
 	{
 		checkStartStream();
 
-		static MemoryAudioStream sngtst;
-		static std::shared_ptr<AudioInstance> songAudioInstance = nullptr;
-
-		const char* testSongPath = "rom/sound/sngtst.flac"; // "rom/sound/pv_427.ogg";
-
-		if (!sngtst.GetIsInitialized())
-			sngtst.LoadFromFile(testSongPath);
+		if (!songTestStream.GetIsInitialized())
+			songTestStream.LoadFromFile(testSongPath);
 
 		if (ImGui::Button("engine->AddAudioInstance()"))
 		{
 			if (songAudioInstance != nullptr)
 				songAudioInstance->SetAppendRemove(true);
 
-			songAudioInstance = std::make_shared<AudioInstance>(&sngtst, true);
+			songAudioInstance = std::make_shared<AudioInstance>(&songTestStream, true, "AudioTestWindow::TestSongInstance");
 			engine->AddAudioInstance(songAudioInstance);
 		}
 
@@ -204,9 +208,9 @@ void AudioTestWindow::DrawGui()
 			AudioInstance* audioInstance = songAudioInstance.get();
 
 			ImGui::Separator();
-			ImGui::Text("audioInstance->GetChannelCount(): %u", sngtst.GetChannelCount());
-			ImGui::Text("audioInstance->GetSampleCount(): %u", sngtst.GetSampleCount());
-			ImGui::Text("audioInstance->GetSampleRate(): %u", sngtst.GetSampleRate());
+			ImGui::Text("audioInstance->GetChannelCount(): %u", songTestStream.GetChannelCount());
+			ImGui::Text("audioInstance->GetSampleCount(): %u", songTestStream.GetSampleCount());
+			ImGui::Text("audioInstance->GetSampleRate(): %u", songTestStream.GetSampleRate());
 
 			int samplePosition = audioInstance->GetSamplePosition();
 			if (ImGui::SliderInt("audioInstance->SamplePosition", &samplePosition, 0, audioInstance->GetSampleCount()))
@@ -251,16 +255,13 @@ void AudioTestWindow::DrawGui()
 	{
 		checkStartStream();
 
-		static MemoryAudioStream buttonSound;
-		static float buttonVolume = MAX_VOLUME;
+		if (!testButtonSound.GetIsInitialized())
+			testButtonSound.LoadFromFile("rom/sound/button/01_button1.wav");
 
-		if (!buttonSound.GetIsInitialized())
-			buttonSound.LoadFromFile("rom/sound/button/01_button1.wav");
-
-		ImGui::Button("PlaySound(buttonSound)");
+		ImGui::Button("PlaySound(TestButtonSound)");
 		bool addButtonSound = ImGui::IsItemHovered() && ImGui::IsMouseClicked(0);
 
-		ImGui::SliderFloat("Button Volume", &buttonVolume, MIN_VOLUME, MAX_VOLUME);
+		ImGui::SliderFloat("Button Volume", &testButtonVolume, MIN_VOLUME, MAX_VOLUME);
 
 		short keys[] = { 'W', 'A', 'S', 'D', 'I', 'J', 'K', 'L' };
 		for (size_t i = 0; i < IM_ARRAYSIZE(keys); i++)
@@ -271,7 +272,7 @@ void AudioTestWindow::DrawGui()
 			addButtonSound |= DualShock4::IsTapped(buttons[i]);
 
 		if (addButtonSound)
-			engine->PlaySound(&buttonSound, buttonVolume);
+			engine->PlaySound(&testButtonSound, testButtonVolume, "AudioTestWindow::TestButtonSound");
 	}
 	ImGui::Separator();
 }

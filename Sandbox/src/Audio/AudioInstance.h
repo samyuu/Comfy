@@ -2,6 +2,7 @@
 #include "ISampleProvider.h"
 #include "AudioEngine.h"
 #include "../TimeSpan.h"
+#include <string>
 
 enum AudioFinishedAction : byte
 {
@@ -18,9 +19,12 @@ public:
 	// Constructors
 	// ------------
 	AudioInstance(ISampleProvider* sampleProvider);
+	AudioInstance(ISampleProvider* sampleProvider, const char* name);
 	AudioInstance(ISampleProvider* sampleProvider, bool playing);
+	AudioInstance(ISampleProvider* sampleProvider, bool playing, const char* name);
 	AudioInstance(ISampleProvider* sampleProvider, bool playing, AudioFinishedAction finishedAction);
 	AudioInstance(ISampleProvider* sampleProvider, bool playing, AudioFinishedAction finishedAction, float volume);
+	AudioInstance(ISampleProvider* sampleProvider, bool playing, AudioFinishedAction finishedAction, float volume, const char* name);
 
 	// Destructors
 	// -----------
@@ -37,6 +41,10 @@ public:
 	
 	// Duration
 	TimeSpan GetDuration();
+
+	// Name
+	const char* GetName();
+	void SetName(const char* value);
 
 	// Volume
 	float GetVolume();
@@ -73,6 +81,8 @@ public:
 private:
 	// Members Variables
 	// -----------------
+	const char* name = "NO-NAME";
+
 	float volume = MAX_VOLUME;
 
 	bool isPlaying = false;

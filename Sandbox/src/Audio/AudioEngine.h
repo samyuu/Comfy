@@ -55,7 +55,7 @@ public:
 
 	void SetBufferSize(uint32_t bufferSize);
 	void AddAudioInstance(std::shared_ptr<AudioInstance> audioInstance);
-	void PlaySound(ISampleProvider* sampleProvider, float volume = MAX_VOLUME);
+	void PlaySound(ISampleProvider* sampleProvider, float volume = MAX_VOLUME, const char* name = nullptr);
 
 	inline RtAudio* GetRtAudio() { return rtAudio; };
 	inline uint32_t GetChannelCount() { return 2; };
@@ -97,13 +97,14 @@ private:
 	bool isStreamOpen = false, isStreamRunning = false;
 	float masterVolume = MAX_VOLUME;
 
+	bool callbackRunning = false;
 	double callbackLatency;
 	double callbackStreamTime, lastCallbackStreamTime;
 
 	AudioApi audioApi = AUDIO_API_INVALID;
 	RtAudio* rtAudio = nullptr;
 
-	std::unique_ptr<StreamParameters> streamOutputParameter;
+	StreamParameters streamOutputParameter;
 
 	inline int16_t MixSamples(int16_t sample1, int16_t sample2)
 	{

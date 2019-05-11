@@ -66,7 +66,7 @@ namespace Editor
 		audioEngine->OpenStream();
 		audioEngine->StartStream();
 
-		songInstance = std::make_shared<AudioInstance>(&dummySampleProvider);
+		songInstance = std::make_shared<AudioInstance>(&dummySampleProvider, "TargetTimeline::SongInstance");
 		audioEngine->AddAudioInstance(songInstance);
 
 		for (size_t i = 0; i < TARGET_MAX; i++)

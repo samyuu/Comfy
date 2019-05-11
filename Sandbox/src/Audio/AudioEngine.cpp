@@ -117,6 +117,7 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 	lastCallbackStreamTime = callbackStreamTime;
 	callbackStreamTime = streamTime;
 	callbackLatency = callbackStreamTime - lastCallbackStreamTime;
+	callbackRunning = true;
 
 	// need to clear out the buffer from the previous call
 	size_t samplesInBuffer = bufferFrameCount * GetChannelCount();
@@ -162,6 +163,7 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 	for (size_t i = 0; i < samplesInBuffer; i++)
 		outputBuffer[i] *= GetMasterVolume();
 
+	callbackRunning = false;
 	return AUDIO_CALLBACK_CONTINUE;
 }
 
@@ -215,21 +217,18 @@ void AudioEngine::AddAudioInstance(std::shared_ptr<AudioInstance> audioInstance)
 	}
 }
 
-void AudioEngine::PlaySound(ISampleProvider* sampleProvider, float volume)
+void AudioEngine::PlaySound(ISampleProvider* sampleProvider, float volume, const char* name)
 {
-	AddAudioInstance(std::make_shared<AudioInstance>(sampleProvider, true, AUDIO_FINISHED_REMOVE, volume));
+	AddAudioInstance(std::make_shared<AudioInstance>(sampleProvider, true, AUDIO_FINISHED_REMOVE, volume, name));
 }
 
 StreamParameters* AudioEngine::GetStreamOutputParameters()
 {
-	if (streamOutputParameter == nullptr)
-		streamOutputParameter = std::make_unique<StreamParameters>();
+	streamOutputParameter.deviceId = GetRtAudio()->getDefaultOutputDevice();
+	streamOutputParameter.nChannels = GetChannelCount();;
+	streamOutputParameter.firstChannel = 0;
 
-	streamOutputParameter->deviceId = GetRtAudio()->getDefaultOutputDevice();
-	streamOutputParameter->nChannels = GetChannelCount();;
-	streamOutputParameter->firstChannel = 0;
-
-	return streamOutputParameter.get();
+	return &streamOutputParameter;
 }
 
 StreamParameters* AudioEngine::GetStreamInputParameters()
