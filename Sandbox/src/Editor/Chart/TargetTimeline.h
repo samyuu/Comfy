@@ -17,15 +17,21 @@ namespace Editor
 	class TargetTimeline : public IEditorComponent
 	{
 	public:
+		// Constructors / Destructors:
+		// ---------------------------
 		TargetTimeline(Application* parent, PvEditor* editor);
 		~TargetTimeline();
+		// ---------------------------
 
+		// PvEditor Methods:
+		// -----------------
 		virtual void Initialize() override;
 		virtual const char* GetGuiName() override;
 		virtual void DrawGui() override;
+		// -----------------
 
 	protected:
-
+		// ----------------------
 		struct
 		{
 			const char* testSongPath = "rom/sound/sngtst.flac";
@@ -35,6 +41,7 @@ namespace Editor
 			bool updateWaveform;
 			Waveform songWaveform;
 		};
+		// ----------------------
 
 		// Timeline Regions:
 		ImRect timelineRegion;
@@ -46,18 +53,25 @@ namespace Editor
 		ImRect timelineTargetRegion;
 		// -----------------
 
+		// Timeline Zoom:
+		// --------------
 		const float ZOOM_BASE = 150.0f;
 		const float ZOOM_MIN = 1.0f;
 		const float ZOOM_MAX = 10.0f;
 
 		bool zoomLevelChanged = false;
 		float zoomLevel = 1.0f, lastZoomLevel;
-		int gridDivision = 8;
+		// --------------
 
+		// Timeline:
+		// ---------
 		TempoMap tempoMap;
 		TimelineMap timelineMap;
 		TargetList targets;
+		int gridDivision = 8;
+		// ---------
 
+		// ----------------------
 		float targetYPositions[TARGET_MAX];
 		Texture iconTextures[TARGET_MAX];
 		const char* iconPaths[TARGET_MAX] =
@@ -69,7 +83,9 @@ namespace Editor
 			"rom/spr/icon/btn_slide_l.png",
 			"rom/spr/icon/btn_slide_r.png",
 		};
+		// ----------------------
 
+		// ----------------------
 		struct
 		{
 			const float CURSOR_HEAD_WIDTH = 17.0f;
@@ -78,23 +94,36 @@ namespace Editor
 			// fraction of the timeline width at which the timeline starts scrolling relative to the cursor
 			const float autoScrollOffsetFraction = 4.0f;
 		};
+		// ----------------------
 
+		// ----------------------
 		ImGuiWindow* baseWindow;
 		ImDrawList* baseDrawList;
-		float scrollDelta = 0.0f;
+		// ----------------------
 
+		// ----------------------
+		float scrollDelta = 0.0f;
+		const float scrollSpeed = 2.0f, scrollSpeedFast = 4.5f;
+		// ----------------------
+
+		// ----------------------
 		float infoColumnWidth = 46.0f;
 		float timelineHeaderHeight = 40.0f - 13.0f;
 		float tempoMapHeight = 13.0f;
-		const float scrollSpeed = 2.0f, scrollSpeedFast = 4.5f;
+		// ----------------------
 
+		// ----------------------
 		const float ICON_SIZE = 0.35f;
 		const float ROW_HEIGHT = 42.0f;
+		// ----------------------
 
+		// Timeline Colors:
+		// ----------------
 		ImU32 BAR_COLOR, GRID_COLOR, GRID_COLOR_ALT, SELECTION_COLOR;
 		ImU32 INFO_COLUMN_COLOR, TEMPO_MAP_BG_COLOR;
 		ImU32 TIMELINE_BG_COLOR, TIMELINE_ROW_SEPARATOR_COLOR;
 		ImU32 CURSOR_COLOR = ImColor(0.71f, 0.54f, 0.15f);
+		// ----------------
 
 		// ----------------
 		void UpdateRegions();
@@ -139,9 +168,9 @@ namespace Editor
 		TimelineTick GetCursorTick();
 		// -------------------
 
-		// DEBUG STUFF
-		// -----------
+		// DEBUG STUFF:
+		// ------------
 		inline void DRAW_DEBUG_REGION(ImRect& rect) { ImGui::AddRectFilled(ImGui::GetForegroundDrawList(), rect, IM_COL32_BLACK * .5f); };
-		// -----------
+		// ------------
 	};
 }
