@@ -1,7 +1,6 @@
 #pragma once
 #include "TempoChange.h"
 #include <vector>
-#include <assert.h>
 
 namespace Editor
 {
@@ -13,22 +12,10 @@ namespace Editor
 		TempoMap();
 		~TempoMap();
 
-		inline void Add(TempoChange tempoChange)
-		{
-			assert(tempoChange.Tick.TotalTicks() >= 0);
-			// TODO: insert / sort
-			tempoChanges.push_back(tempoChange);
-		}
-
-		inline TempoChange& GetTempoChangeAt(size_t index)
-		{
-			return tempoChanges.at(index);
-		}
-
-		inline size_t TempoChangeCount()
-		{
-			return tempoChanges.size();
-		}
+		void SetTempoChange(TimelineTick tick, Tempo tempo);
+		void RemoveTempoChange(TimelineTick tick);
+		TempoChange& GetTempoChangeAt(size_t index);
+		size_t TempoChangeCount();
 
 	private:
 		std::vector<TempoChange> tempoChanges;
