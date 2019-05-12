@@ -110,6 +110,8 @@
     <ClCompile Include="src\Editor\AudioController.cpp" />
     <ClCompile Include="src\Editor\Chart\TargetList.cpp" />
     <ClCompile Include="src\Editor\Chart\TempoChange.cpp" />
+    <ClCompile Include="src\Editor\Editor.cpp" />
+    <ClCompile Include="src\Editor\EditorComponent.cpp" />
     <ClCompile Include="src\ImGui\imgui_extensions.cpp" />
     <ClCompile Include="src\Input\DirectInput\DirectInput.cpp" />
     <ClCompile Include="src\Input\DirectInput\DirectInputDevice.cpp" />
@@ -165,9 +167,11 @@
     <ClInclude Include="src\Audio\ISampleProvider.h" />
     <ClInclude Include="src\BaseWindow.h" />
     <ClInclude Include="src\Editor\AudioController.h" />
+    <ClInclude Include="src\Editor\Editor.h" />
     <ClInclude Include="src\Editor\Chart\TargetList.h" />
     <ClInclude Include="src\Editor\Chart\TempoChange.h" />
     <ClInclude Include="src\Editor\Chart\TimelineTick.h" />
+    <ClInclude Include="src\Editor\IEditorComponent.h" />
     <ClInclude Include="src\ImGui\imgui_extensions.h" />
     <ClInclude Include="src\Input\DirectInput\DirectInput.h" />
     <ClInclude Include="src\Input\DirectInput\DirectInputDevice.h" />

@@ -1,5 +1,6 @@
 #include "TimelineMap.h"
 #include "../../Input/Keyboard.h"
+#include <assert.h>
 
 namespace Editor
 {

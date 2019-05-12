@@ -1,7 +1,5 @@
 #include "Application.h"
 #include "pch.h"
-#include "Editor/TestComponent.h"
-#include "Editor/Chart/TargetTimeline.h"
 #include "DataTest/InputTestWindow.h"
 #include "DataTest/AudioTestWindow.h"
 #include "Input/DirectInput/DualShock4.h"
@@ -439,13 +437,14 @@ void Application::InitializeApp()
 	//glCullFace(GL_FRONT);
 	//glFrontFace(GL_CCW);
 
-	// Editor Components
-	// -----------------
+	// Base PV Editor
+	// --------------
 	{
-		editorComponents.reserve(2);
-		editorComponents.push_back(std::make_shared<TestComponent>(this));
-		editorComponents.push_back(std::make_shared<Editor::TargetTimeline>(this));
-
+		pvEditor = std::make_unique<Editor::PvEditor>(this);
+	}
+	// Data Test Components
+	// --------------------
+	{
 		dataTestComponents.reserve(2);
 		dataTestComponents.push_back(std::make_shared<InputTestWindow>(this));
 		dataTestComponents.push_back(std::make_shared<AudioTestWindow>(this));
@@ -695,9 +694,10 @@ void Application::DrawGui()
 				ImGui::EndMenu();
 			}
 
-			// Editor Component Menus
-			// ----------------------
-			DrawGuiBaseWindowMenus("Editor", editorComponents);
+			// Editor Menus Items
+			// ------------------
+			pvEditor->DrawGuiMenuItems();
+
 			// Data Test Menus
 			// ---------------
 			DrawGuiBaseWindowMenus("Data Test", dataTestComponents);
@@ -787,9 +787,9 @@ void Application::DrawGui()
 		if (showDemoWindow)
 			ImGui::ShowDemoWindow(&showDemoWindow);
 
-		// Editor Component Windows
-		// ------------------------
-		DrawGuiBaseWindowWindows(editorComponents);
+		// Editor Windows
+		// --------------
+		pvEditor->DrawGuiWindows();
 
 		// Data Test Windows
 		// -----------------

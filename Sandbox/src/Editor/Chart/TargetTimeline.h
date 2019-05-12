@@ -1,4 +1,5 @@
 #pragma once
+#include "../IEditorComponent.h"
 #include "../../Audio/AudioEngine.h"
 #include "../../Audio/AudioInstance.h"
 #include "../../Audio/DummySampleProvider.h"
@@ -13,12 +14,13 @@
 
 namespace Editor
 {
-	class TargetTimeline : public BaseWindow
+	class TargetTimeline : public IEditorComponent
 	{
 	public:
-		TargetTimeline(Application*);
+		TargetTimeline(Application* parent, PvEditor* editor);
 		~TargetTimeline();
 
+		virtual void Initialize() override;
 		virtual const char* GetGuiName() override;
 		virtual void DrawGui() override;
 
@@ -29,9 +31,6 @@ namespace Editor
 			const char* testSongPath = "rom/sound/sngtst.flac";
 			AudioEngine* audioEngine;
 			AudioController audioController;
-			DummySampleProvider dummySampleProvider;
-			std::shared_ptr<MemoryAudioStream> songStream;
-			std::shared_ptr<AudioInstance> songInstance;
 			
 			bool updateWaveform;
 			Waveform songWaveform;
@@ -47,21 +46,19 @@ namespace Editor
 		ImRect timelineTargetRegion;
 		// -----------------
 
-		bool initialized = false;
-
 		const float ZOOM_BASE = 150.0f;
 		const float ZOOM_MIN = 1.0f;
 		const float ZOOM_MAX = 10.0f;
 
 		bool zoomLevelChanged = false;
 		float zoomLevel = 1.0f, lastZoomLevel;
-		int gridDivision = 4;
+		int gridDivision = 8;
 
 		TempoMap tempoMap;
 		TimelineMap timelineMap;
 		TargetList targets;
 
-		float targetHeights[TARGET_MAX];
+		float targetYPositions[TARGET_MAX];
 		Texture iconTextures[TARGET_MAX];
 		const char* iconPaths[TARGET_MAX] =
 		{
@@ -71,15 +68,6 @@ namespace Editor
 			"rom/spr/icon/btn_maru.png",
 			"rom/spr/icon/btn_slide_l.png",
 			"rom/spr/icon/btn_slide_r.png",
-		};
-
-		struct
-		{
-			// these should be owned by a parent class
-			TimeSpan songStartOffset = 0.0;
-			TimeSpan songDuration = TimeSpan::FromMinutes(1.0);
-			TimeSpan playbackTime = 0.0, playbackTimeOnPlaybackStart;
-			bool isPlaying = false;
 		};
 
 		struct
@@ -109,7 +97,6 @@ namespace Editor
 		ImU32 CURSOR_COLOR = ImColor(0.71f, 0.54f, 0.15f);
 
 		// ----------------
-		void Initialize();
 		void UpdateRegions();
 		void UpdateTimelineMap();
 		void UpdateTimelineSize();
@@ -133,13 +120,6 @@ namespace Editor
 		void ScrollControl();
 		// --------------
 
-		// Playback Control:
-		// -----------------
-		void ResumePlayback();
-		void PausePlayback();
-		void StopPlayback();
-		// -----------------
-
 		// Song Stuff:
 		void LoadSong(const std::string& path);
 		void UpdateFileDrop();
@@ -156,6 +136,7 @@ namespace Editor
 		TimeSpan GetTimelineTime(TimelineTick tick);
 		TimeSpan GetTimelineTime(float position);
 		float ScreenToTimelinePosition(float screenPosition);
+		TimelineTick GetCursorTick();
 		// -------------------
 
 		// DEBUG STUFF

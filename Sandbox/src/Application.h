@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseWindow.h"
+#include "Editor/Editor.h"
 #include "Rendering/VertexArray.h";
 #include "Rendering/VertexBuffer.h";
 #include "Rendering/RenderTarget.h";
@@ -183,9 +184,9 @@ private:
 	float cameraSensitivity = 0.25f;
 	Camera camera;
 
-	// Editor Components
-	// -----------------
-	std::vector<std::shared_ptr<BaseWindow>> editorComponents;
+	// Main Editor
+	// -----------
+	std::unique_ptr<Editor::PvEditor> pvEditor;
 	// -----------------
 
 	// Data Test Components
