@@ -721,9 +721,6 @@ void Application::DrawGui()
 				ImGui::EndPopup();
 			}
 
-			//if (focusLostFrame && !ImGui::IsPopupOpen("Focus Lost Popup"))
-			//	ImGui::OpenPopup("Focus Lost Popup");
-
 			//if (ImGui::BeginPopupModal("Focus Lost Popup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 			//{
 			//	if (focusGainedFrame)

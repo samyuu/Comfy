@@ -40,6 +40,10 @@ public:
 	void SetFullscreen(bool value);
 	void ToggleFullscreen();
 
+	inline bool HasFocusBeenGained() { return focusGainedFrame; };
+	inline bool HasFocusBeenLost() { return focusLostFrame; };
+	// ----------------
+
 	GLFWmonitor* GetActiveMonitor();
 	void CheckConnectedDevices();
 
@@ -70,14 +74,14 @@ private:
 	void InitializeApp();
 
 	// Update Methods
-	// --------
+	// --------------
 
 	void UpdatePollInput();
 	void UpdateInput();
 	void UpdateTasks();
 
 	// Draw Methods
-	// -------
+	// ------------
 
 	void DrawScene();
 	void DrawGui();
