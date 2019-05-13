@@ -56,6 +56,7 @@ public:
 	void SetBufferSize(uint32_t bufferSize);
 	void AddAudioInstance(std::shared_ptr<AudioInstance> audioInstance);
 	void PlaySound(ISampleProvider* sampleProvider, float volume = MAX_VOLUME, const char* name = nullptr);
+	void ShowControlPanel();
 
 	inline RtAudio* GetRtAudio() { return rtAudio; };
 	inline uint32_t GetChannelCount() { return 2; };
@@ -132,6 +133,7 @@ private:
 
 	AudioCallbackResult InternalAudioCallback(int16_t* outputBuffer, uint32_t bufferFrameCount, double streamTime);
 
+	uint32_t GetDeviceId();
 	StreamParameters* GetStreamOutputParameters();
 	StreamParameters* GetStreamInputParameters();
 

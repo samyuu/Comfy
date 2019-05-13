@@ -3,6 +3,11 @@
 #include <assert.h>
 #include <functional>
 #include <malloc.h>
+#include <RtAudio.h>
+
+// defined in rtaudio/asio.cpp
+typedef long ASIOError;
+ASIOError ASIOControlPanel();
 
 AudioEngine* AudioEngine::engineInstance = nullptr;
 
@@ -202,7 +207,7 @@ void AudioEngine::SetBufferSize(uint32_t bufferSize)
 void AudioEngine::AddAudioInstance(std::shared_ptr<AudioInstance> audioInstance)
 {
 	bool unique = true;
-	for (auto &instance : audioInstances)
+	for (const auto &instance : audioInstances)
 	{
 		if (instance == audioInstance)
 		{
@@ -222,9 +227,21 @@ void AudioEngine::PlaySound(ISampleProvider* sampleProvider, float volume, const
 	AddAudioInstance(std::make_shared<AudioInstance>(sampleProvider, true, AUDIO_FINISHED_REMOVE, volume, name));
 }
 
+void AudioEngine::ShowControlPanel()
+{
+	if (GetActiveAudioApi() == AUDIO_API_ASIO)
+		ASIOControlPanel();
+}
+
+uint32_t AudioEngine::GetDeviceId()
+{
+	// TODO: store user preference
+	return GetRtAudio()->getDefaultOutputDevice();
+}
+
 StreamParameters* AudioEngine::GetStreamOutputParameters()
 {
-	streamOutputParameter.deviceId = GetRtAudio()->getDefaultOutputDevice();
+	streamOutputParameter.deviceId = GetDeviceId();
 	streamOutputParameter.nChannels = GetChannelCount();;
 	streamOutputParameter.firstChannel = 0;
 

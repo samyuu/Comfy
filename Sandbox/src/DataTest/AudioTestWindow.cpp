@@ -120,6 +120,9 @@ void AudioTestWindow::DrawGui()
 
 		if (ImGui::Button("engine->SetAudioApi()", ImVec2(ImGui::CalcItemWidth(), 0)))
 			engine->SetAudioApi(selectedAudioApi);
+
+		if (ImGui::Button("engine->ShowControlPanel()", ImVec2(ImGui::CalcItemWidth(), 0)))
+			engine->ShowControlPanel();
 	}
 	ImGui::Separator();
 

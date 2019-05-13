@@ -17,14 +17,18 @@ void Waveform::Calculate(MemoryAudioStream* audioStream, TimeSpan timePerPixel)
 	size_t channelCount = audioStream->GetChannelCount();
 
 	// calculate how many samples per pixel at the current zoom
-	size_t samplesPerPixel = timePerPixel.TotalSeconds() * sampleRate * channelCount;
+	int64_t samplesPerPixel = timePerPixel.TotalSeconds() * sampleRate * channelCount;
+	int64_t samplesPerChannelPixel = (samplesPerPixel / channelCount);
 
-	// average all samples in that pixel range
-	size_t totalPixels = sampleCount / samplesPerPixel;
-	pixelPCMs.resize(totalPixels);
+	int64_t totalPixels = sampleCount / samplesPerPixel;
+	
+	//pixelPCMs.resize(totalPixels);
+	pixelPCMs.clear();
+	pixelPCMs.reserve(totalPixels);
 
-	for (size_t pixel = 0; pixel < totalPixels; pixel++)
+	for (int64_t pixel = 0; pixel < totalPixels; pixel++)
 	{
+		// calculate the average of all samples in the per pixel range
 		int64_t totalPcm = 0;
 
 		for (size_t i = 0; i < samplesPerPixel; i += channelCount)
@@ -33,10 +37,10 @@ void Waveform::Calculate(MemoryAudioStream* audioStream, TimeSpan timePerPixel)
 			totalPcm += abs(shortPcm);
 		}
 
-		int64_t averagePcm = totalPcm / samplesPerPixel / channelCount;
-		float floatPcm = averagePcm / (double)SHRT_MAX / 2.0;
+		int64_t averagePcm = totalPcm / samplesPerChannelPixel;
 
-		pixelPCMs[pixel] = floatPcm;
+		float floatPcm = averagePcm / (float)SHRT_MAX;
+		pixelPCMs.push_back(floatPcm);
 	}
 }
 

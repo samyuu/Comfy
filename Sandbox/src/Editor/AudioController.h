@@ -26,7 +26,7 @@ namespace Editor
 		const char* buttonSoundPath = u8"rom/sound/button/01_button1.wav";
 
 		TimeSpan buttonSoundTime, lastButtonSoundTime, timeSinceLastButtonSound;
-		float buttonSoundVolume = MAX_VOLUME;
+		float buttonSoundVolume = MAX_VOLUME * 0.95f;
 		int buttonSoundIndex = -1;
 		std::vector<MemoryAudioStream> buttonSoundSources;
 		std::array<std::shared_ptr<AudioInstance>, 16> buttonSoundInstancePool;
