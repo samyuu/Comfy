@@ -13,8 +13,10 @@ namespace Editor
 		IEditorComponent(Application* parent, PvEditor* editor);
 		virtual void Initialize() = 0;
 
-		virtual void OnResumePlayback() {};
-		virtual void OnPausePlayback() {};
+		virtual void OnPlaybackResumed() {};
+		virtual void OnPlaybackPaused() {};
+
+		virtual void OnLoad() {};
 
 	protected:
 		PvEditor* pvEditor;

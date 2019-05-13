@@ -1,4 +1,3 @@
-#include <boost/algorithm/string/predicate.hpp>
 #include "TargetTimeline.h"
 #include "../Editor.h"
 #include "../../TimeSpan.h"
@@ -64,12 +63,22 @@ namespace Editor
 
 	float TargetTimeline::ScreenToTimelinePosition(float screenPosition)
 	{
-		return screenPosition - timelineTargetRegion.Min.x + ImGui::GetScrollX();
+		return screenPosition - timelineTargetRegion.Min.x + GetScrollX();
 	}
 
 	TimelineTick TargetTimeline::GetCursorTick()
 	{
-		return GetTimelineTick(pvEditor->playbackTime);
+		return GetTimelineTick(GetCursorTime());
+	}
+
+	TimeSpan TargetTimeline::GetCursorTime()
+	{
+		return pvEditor->playbackTime;
+	}
+
+	float TargetTimeline::GetCursorTimelinePosition()
+	{
+		return GetTimelinePosition(GetCursorTime());
 	}
 
 	void TargetTimeline::Initialize()
@@ -169,7 +178,7 @@ namespace Editor
 		{
 			// for (auto target : targets)
 			// 	ImGui::Text("%d : %d", target.Tick.TotalTicks(), target.Type);
-		
+
 			TimelineTick cursorTick = RoundToGrid(GetCursorTick());
 			static Tempo newTempo = 180.0f;
 			ImGui::DragFloat("Tempo##test", &newTempo.BeatsPerMinute, 1.0f, MIN_BPM, MAX_BPM, "%.2f BPM");
@@ -179,7 +188,7 @@ namespace Editor
 				tempoMap.SetTempoChange(cursorTick, newTempo);
 				UpdateTimelineMap();
 			}
-			
+
 			if (ImGui::Button("Remove Tempo Change"))
 			{
 				tempoMap.RemoveTempoChange(cursorTick);
@@ -194,8 +203,6 @@ namespace Editor
 
 		if (false)
 			ImGui::ShowDemoWindow(nullptr);
-
-		UpdateFileDrop();
 
 		GRID_COLOR = ImGui::GetColorU32(ImGuiCol_Separator, .75f);
 		GRID_COLOR_ALT = ImGui::GetColorU32(ImGuiCol_Separator, .5f);
@@ -223,10 +230,26 @@ namespace Editor
 		ImGui::EndChild();
 	}
 
+	void TargetTimeline::OnPlaybackResumed()
+	{
+		buttonSoundTimesList.clear();
+		for (const auto &target : targets)
+		{
+			TimeSpan buttonTime = GetTimelineTime(target.Tick);
+			if (buttonTime >= pvEditor->playbackTime)
+				buttonSoundTimesList.push_back(buttonTime);
+		}
+	}
+
+	void TargetTimeline::OnLoad()
+	{
+		updateWaveform = true;
+	}
+
 	void TargetTimeline::TimelineHeaderWidgets()
 	{
 		static char timeInputBuffer[32] = "00:00.000";
-		strcpy_s<sizeof(timeInputBuffer)>(timeInputBuffer, pvEditor->playbackTime.FormatTime().c_str());
+		strcpy_s<sizeof(timeInputBuffer)>(timeInputBuffer, GetCursorTime().FormatTime().c_str());
 
 		ImGui::PushItemWidth(140);
 		ImGui::InputTextWithHint("##time_input", "00:00.000", timeInputBuffer, sizeof(timeInputBuffer));
@@ -281,7 +304,7 @@ namespace Editor
 		ImGui::SameLine();
 		if (ImGui::Button("Load Song"))
 		{
-			LoadSong(testSongPath);
+			pvEditor->Load(testSongPath);
 		}
 	}
 
@@ -326,7 +349,7 @@ namespace Editor
 		{
 			if (scrollDelta != 0.0f)
 			{
-				ImGui::SetScrollX(ImGui::GetScrollX() + scrollDelta);
+				ImGui::SetScrollX(GetScrollX() + scrollDelta);
 				scrollDelta = 0.0f;
 			}
 
@@ -373,8 +396,8 @@ namespace Editor
 
 		TimelineTargets();
 		TimelineCursor();
-		CursorControl();
-		ScrollControl();
+		Update();
+		UpdateInput();
 	}
 
 	void TargetTimeline::TimlineDivisors()
@@ -403,7 +426,7 @@ namespace Editor
 			int tickStep = TimelineTick::TICKS_PER_BAR / gridDivision;
 
 			const float visibleMin = 0, visibleMax = ImGui::GetWindowWidth();
-			const float scrollX = ImGui::GetScrollX();
+			const float scrollX = GetScrollX();
 
 			for (int tick = 0, divisions = 0; tick < totalTicks; tick += tickStep)
 			{
@@ -439,7 +462,7 @@ namespace Editor
 		// TEST WAVEFORM
 		// -------------
 		{
-			//ImGui::SetTooltip("timleine mouse: %f", ImGui::GetMousePos().x + ImGui::GetScrollX() - timelineTargetRegion.GetTL().x);
+			//ImGui::SetTooltip("timleine mouse: %f", ImGui::GetMousePos().x + GetScrollX() - timelineTargetRegion.GetTL().x);
 
 			if (pvEditor->songStream != nullptr)
 			{
@@ -455,12 +478,12 @@ namespace Editor
 
 				ImDrawList* drawList = baseDrawList;
 
-				float scrollX = ImGui::GetScrollX();
+				float scrollX = GetScrollX();
 				int64_t leftMostVisiblePixel = 0;
 				int64_t rightMostVisiblePixel = timelineBaseRegion.GetWidth();
 				int64_t pixelCount = songWaveform.GetPixelCount();
 				float timelineTargetX = timelineTargetRegion.GetTL().x;
-				float timelineTargetHeight = (TARGET_MAX * ROW_HEIGHT) * 10.0f;
+				float timelineTargetHeight = (TARGET_MAX * ROW_HEIGHT);
 				float y = timelineTargetRegion.GetTL().y + ((TARGET_MAX * ROW_HEIGHT) / 2);
 
 				int linesDrawn = 0;
@@ -498,7 +521,7 @@ namespace Editor
 			{
 				TempoChange& tempoChange = tempoMap.GetTempoChangeAt(i);
 
-				float x = GetTimelinePosition(tempoChange.Tick) - ImGui::GetScrollX();
+				float x = GetTimelinePosition(tempoChange.Tick) - GetScrollX();
 
 				//auto tempoBgColor = IM_COL32(147, 125, 125, 255);
 				auto tempoFgColor = IM_COL32(139, 56, 51, 255);
@@ -521,7 +544,7 @@ namespace Editor
 					baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, TIMELINE_BG_COLOR);
 					if (ImGui::IsMouseDoubleClicked(0))
 					{
-						ImGui::SetScrollX(x + ImGui::GetScrollX());
+						ImGui::SetScrollX(x + GetScrollX());
 						//ImGui::SetScrollX(screenX - timelineTargetRegion.GetTL().x - (windowWidth * .5f));
 					}
 
@@ -569,7 +592,7 @@ namespace Editor
 		// ------------------------
 		for (const auto& target : targets)
 		{
-			float position = GetTimelinePosition(TimelineTick(target.Tick)) - ImGui::GetScrollX();
+			float position = GetTimelinePosition(TimelineTick(target.Tick)) - GetScrollX();
 			ImVec2 center = ImVec2(position + timelineTargetRegion.GetTL().x, targetYPositions[target.Type]);
 
 			ImGui::AddTexture(windowDrawList, &iconTextures[target.Type], center, ICON_SIZE);
@@ -583,7 +606,7 @@ namespace Editor
 
 		if (pvEditor->isPlaying)
 		{
-			float prePlaybackX = GetTimelinePosition(pvEditor->playbackTimeOnPlaybackStart) - ImGui::GetScrollX();
+			float prePlaybackX = GetTimelinePosition(pvEditor->playbackTimeOnPlaybackStart) - GetScrollX();
 
 			ImVec2 start = timelineHeaderRegion.GetTL() + ImVec2(prePlaybackX, 0);
 			ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(prePlaybackX, 0);
@@ -591,7 +614,7 @@ namespace Editor
 			baseDrawList->AddLine(start, end, innerColor);
 		}
 
-		float x = GetTimelinePosition(pvEditor->playbackTime) - ImGui::GetScrollX();
+		float x = GetCursorTimelinePosition() - GetScrollX();
 
 		ImVec2 start = timelineHeaderRegion.GetTL() + ImVec2(x, 0);
 		ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(x, 0);
@@ -609,96 +632,129 @@ namespace Editor
 		baseDrawList->AddTriangle(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], outterColor);
 	}
 
-	void TargetTimeline::CursorControl()
+	void TargetTimeline::Update()
 	{
-		if (ImGui::IsWindowFocused())
-		{
-			if (ImGui::IsMouseHoveringWindow())
-			{
-				if (ImGui::IsMouseReleased(0) && timelineTargetRegion.Contains(ImGui::GetMousePos()))
-				{
-					pvEditor->playbackTime = GetTimelineTime(FloorToGrid(GetTimelineTick(ScreenToTimelinePosition(ImGui::GetMousePos().x))));
-					//playbackTimeOnPlaybackStart = playbackTime;
-
-					pvEditor->songInstance->SetPosition(pvEditor->playbackTime);
-				}
-			}
-
-			// ButtonSound Test:
-			// -----------------
-			{
-				TimelineTick cursorTick = RoundToGrid(GetCursorTick());
-
-				auto placeTarget = [&](TargetType type)
-				{
-					audioController.PlayButtonSound();
-
-					TargetIterator existingTarget = targets.Find(cursorTick, type);
-					if (existingTarget != targets.end())
-					{
-						if (!pvEditor->isPlaying)
-							targets.Remove(existingTarget);
-					}
-					else
-					{
-						targets.Add(cursorTick, type);
-					}
-				};
-
-				static struct { TargetType Type; int Key; } mapping[4]
-				{
-					{ TARGET_SANKAKU, 'W'},
-					{ TARGET_SHIKAKU, 'A'},
-					{ TARGET_BATSU, 'S'},
-					{ TARGET_MARU, 'D'},
-				};
-
-				for (size_t i = 0; i < IM_ARRAYSIZE(mapping); i++)
-				{
-					if (ImGui::IsKeyPressed(mapping[i].Key, false))
-						placeTarget(mapping[i].Type);
-				}
-			}
-
-			if (ImGui::IsKeyPressed(GLFW_KEY_SPACE))
-			{
-				if (pvEditor->isPlaying)
-					pvEditor->PausePlayback();
-				else
-					pvEditor->ResumePlayback();
-			}
-
-			if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE) && pvEditor->isPlaying)
-			{
-				if (pvEditor->isPlaying)
-					pvEditor->StopPlayback();
-			}
-		}
-
 		if (pvEditor->isPlaying)
 		{
-			pvEditor->playbackTime += ImGui::GetIO().DeltaTime;
-			if (pvEditor->songInstance->GetIsPlaying() && pvEditor->songStream != nullptr)
-				pvEditor->playbackTime = pvEditor->songInstance->GetPosition();
-
 			// Scroll Cursor
 			{
-				float cursorPos = GetTimelinePosition(pvEditor->playbackTime);
+				float cursorPos = GetCursorTimelinePosition();
 				float endPos = ScreenToTimelinePosition(timelineTargetRegion.GetBR().x);
 
 				float autoScrollOffset = timelineTargetRegion.GetWidth() / autoScrollOffsetFraction;
 				if (cursorPos > endPos - autoScrollOffset)
-					ImGui::SetScrollX(ImGui::GetScrollX() + cursorPos - endPos + autoScrollOffset);
+					ImGui::SetScrollX(GetScrollX() + cursorPos - endPos + autoScrollOffset);
 			}
-			//printf("cursor pos: %f\n", GetTimelinePosition(cursor.Tick));
-		}
 
+			for (int i = 0; i < buttonSoundTimesList.size(); ++i)
+			{
+				if (pvEditor->playbackTime >= buttonSoundTimesList[i])
+				{
+					audioController.PlayButtonSound();
+					buttonSoundTimesList.erase(buttonSoundTimesList.begin() + i);
+					--i;
+				}
+			}
+		}
 	}
 
-	void TargetTimeline::ScrollControl()
+	void TargetTimeline::UpdateInput()
 	{
-		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		if (!ImGui::IsWindowFocused())
+			return;
 
+		if (ImGui::IsKeyPressed(GLFW_KEY_SPACE))
+		{
+			if (pvEditor->isPlaying)
+				pvEditor->PausePlayback();
+			else
+				pvEditor->ResumePlayback();
+		}
+
+		if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE) && pvEditor->isPlaying)
+		{
+			if (pvEditor->isPlaying)
+				pvEditor->StopPlayback();
+		}
+
+		UpdateCursorControl();
+		UpdateScrollControl();
+
+		// Target Placement Test:
+		// ----------------------
+		{
+			TimelineTick cursorTick = RoundToGrid(GetCursorTick());
+
+			auto placeTarget = [&](TargetType type)
+			{
+				audioController.PlayButtonSound();
+
+				TargetIterator existingTarget = targets.Find(cursorTick, type);
+				if (existingTarget != targets.end())
+				{
+					if (!pvEditor->isPlaying)
+						targets.Remove(existingTarget);
+				}
+				else
+				{
+					targets.Add(cursorTick, type);
+				}
+			};
+
+			static struct { TargetType Type; int Key; } mapping[4]
+			{
+				{ TARGET_SANKAKU, 'W'},
+				{ TARGET_SHIKAKU, 'A'},
+				{ TARGET_BATSU, 'S'},
+				{ TARGET_MARU, 'D'},
+			};
+
+			for (size_t i = 0; i < IM_ARRAYSIZE(mapping); i++)
+			{
+				if (ImGui::IsKeyPressed(mapping[i].Key, false))
+					placeTarget(mapping[i].Type);
+			}
+		}
+	}
+
+	void TargetTimeline::UpdateCursorControl()
+	{
+		if (ImGui::IsMouseHoveringWindow())
+		{
+			if (ImGui::IsMouseClicked(0) /*ImGui::IsMouseReleased(0)*/ && timelineTargetRegion.Contains(ImGui::GetMousePos()))
+			{
+				bool wasPlaying = pvEditor->isPlaying;
+				if (wasPlaying)
+					pvEditor->PausePlayback();
+
+				TimelineTick cursorTick = FloorToGrid(GetTimelineTick(ScreenToTimelinePosition(ImGui::GetMousePos().x)));
+				TimeSpan previousTime = pvEditor->playbackTime;
+				TimeSpan newTime = GetTimelineTime(cursorTick);
+
+				if (previousTime == newTime)
+					return;
+
+				pvEditor->playbackTime = newTime;
+				pvEditor->songInstance->SetPosition(pvEditor->playbackTime);
+
+				if (wasPlaying)
+				{
+					pvEditor->ResumePlayback();
+				}
+				else // play a button sound if a target exists at the cursor tick
+				{
+					for (const auto& target : targets)
+					{
+						if (target.Tick == cursorTick)
+							audioController.PlayButtonSound();
+					}
+				}
+			}
+		}
+	}
+
+	void TargetTimeline::UpdateScrollControl()
+	{
 		auto io = ImGui::GetIO();
 
 		// Grab Control
@@ -707,8 +763,16 @@ namespace Editor
 			constexpr int timelineGrabButton = 2;
 
 			if (ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive() && ImGui::IsMouseDragging(timelineGrabButton, 0.0f))
-				ImGui::SetScrollX(ImGui::GetScrollX() - io.MouseDelta.x);
+				ImGui::SetScrollX(GetScrollX() - io.MouseDelta.x);
 		}
+
+		// Focus Control
+		// -------------
+		{
+			if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE))
+				CenterCursor();
+		}
+		// -------------
 
 		// Scroll Control
 		// --------------
@@ -717,7 +781,7 @@ namespace Editor
 			{
 				if (io.KeyAlt) // Zoom Timeline
 				{
-					float prePosition = GetTimelinePosition(pvEditor->playbackTime);
+					float prePosition = GetCursorTimelinePosition();
 
 					float amount = .5f;
 					zoomLevel = zoomLevel + amount * io.MouseWheel;
@@ -725,61 +789,39 @@ namespace Editor
 					if (zoomLevel <= 0)
 						zoomLevel = amount;
 
-					float postPosition = GetTimelinePosition(pvEditor->playbackTime);
-					ImGui::SetScrollX(ImGui::GetScrollX() + postPosition - prePosition);
+					float postPosition = GetCursorTimelinePosition();
+					ImGui::SetScrollX(GetScrollX() + postPosition - prePosition);
 				}
 				else if (!io.KeyCtrl) // Scroll Timeline
 				{
-					ImVec2 maxStep = (window->ContentsRegionRect.GetSize() + window->WindowPadding * 2.0f) * 0.67f;
+					if (pvEditor->isPlaying) // seek through song
+					{
+						const TimeSpan increment = TimeSpan((io.KeyShift ? 1.0 : 0.5) * io.MouseWheel);
 
-					float speed = io.KeyShift ? scrollSpeedFast : scrollSpeed;
-					float scrollStep = ImFloor(ImMin(2 * window->CalcFontSize(), maxStep.x)) * speed;
-					ImGui::SetWindowScrollX(window, window->Scroll.x + io.MouseWheel * scrollStep);
+						pvEditor->PausePlayback();
+						pvEditor->playbackTime += increment;
+						if (pvEditor->playbackTime < 0.0)
+							pvEditor->playbackTime = 0.0;
+						pvEditor->ResumePlayback();
+
+						CenterCursor();
+					}
+					else
+					{
+						ImVec2 maxStep = (baseWindow->ContentsRegionRect.GetSize() + baseWindow->WindowPadding * 2.0f) * 0.67f;
+
+						float speed = io.KeyShift ? scrollSpeedFast : scrollSpeed;
+						float scrollStep = ImFloor(ImMin(2 * baseWindow->CalcFontSize(), maxStep.x)) * speed;
+						ImGui::SetWindowScrollX(baseWindow, baseWindow->Scroll.x + io.MouseWheel * scrollStep);
+					}
 				}
 			}
 		}
 	}
 
-	void TargetTimeline::LoadSong(const std::string& filePath)
+	void TargetTimeline::CenterCursor()
 	{
-		auto newSongStream = std::make_shared<MemoryAudioStream>(filePath);
-
-		pvEditor->songInstance->SetSampleProvider(newSongStream.get());
-		pvEditor->songInstance->SetPosition(pvEditor->playbackTime);
-		pvEditor->songDuration = pvEditor->songInstance->GetDuration();
-
-		if (pvEditor->songStream != nullptr)
-			pvEditor->songStream->Dispose();
-
-		// adds some copy overhead but we don't want to delete the old pointer while the new one is still loading
-		pvEditor->songStream = newSongStream;
-		updateWaveform = true;
-	}
-
-	void TargetTimeline::UpdateFileDrop()
-	{
-		auto parent = GetParent();
-
-		if (!parent->GetDispatchFileDrop())
-			return;
-
-		const char* extensions[] = { ".wav", ".flac", ".ogg", ".mp3" };
-
-		auto droppedFiles = parent->GetDroppedFiles();
-		for (size_t i = 0; i < droppedFiles->size(); i++)
-		{
-			const std::string& file = droppedFiles->at(i);
-
-			for (size_t e = 0; e < IM_ARRAYSIZE(extensions); e++)
-			{
-				if (boost::iends_with(file, extensions[e]))
-				{
-					LoadSong(file);
-
-					parent->SetFileDropDispatched();
-					return;
-				}
-			}
-		}
+		float center = GetCursorTimelinePosition() - (timelineTargetRegion.GetWidth() / 2.0f);
+		ImGui::SetScrollX(center);
 	}
 }

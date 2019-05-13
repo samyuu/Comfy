@@ -3,6 +3,7 @@
 #include "../Audio/DummySampleProvider.h"
 #include "../Audio/MemoryAudioStream.h"
 #include "../Audio/AudioInstance.h"
+#include <filesystem>
 #include <vector>
 #include <memory>
 #include <string>
@@ -11,6 +12,8 @@ class Application;
 
 namespace Editor
 {
+	namespace FileSystem = std::filesystem;
+
 	class PvEditor
 	{
 		friend class TargetTimeline;
@@ -28,6 +31,12 @@ namespace Editor
 		void DrawGuiWindows();
 		// --------------------
 
+		// PV Control:
+		// -----------
+		bool Load(const std::string& filePath);
+		bool LoadSong(const std::string& filePath);
+		// -----------
+
 	private:
 		
 		// Base Members:
@@ -44,7 +53,7 @@ namespace Editor
 		{
 			std::string SongName;
 			std::string SongNameReading;
-			std::string SongFileName;
+			FileSystem::path SongFileName;
 		};
 		// --------------
 
@@ -52,6 +61,8 @@ namespace Editor
 		// -------------------
 		struct
 		{
+			const char* audioFileExtensions[4] = { ".wav", ".flac", ".ogg", ".mp3" };
+
 			DummySampleProvider dummySampleProvider;
 
 			std::shared_ptr<MemoryAudioStream> songStream;
@@ -76,6 +87,10 @@ namespace Editor
 		// Base Methods:
 		// -------------
 		void Initialize();
+		void Update();
+		void DrawGui();
+		void UpdateFileDrop();
+		void UpdatePlayback();
 		// -------------
 
 		// Playback Control:

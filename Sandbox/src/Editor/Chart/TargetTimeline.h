@@ -28,6 +28,8 @@ namespace Editor
 		virtual void Initialize() override;
 		virtual const char* GetGuiName() override;
 		virtual void DrawGui() override;
+		virtual void OnLoad() override;
+		virtual void OnPlaybackResumed() override;
 		// -----------------
 
 	protected:
@@ -36,6 +38,8 @@ namespace Editor
 		{
 			const char* testSongPath = "rom/sound/sngtst.flac";
 			AudioEngine* audioEngine;
+
+			std::vector<TimeSpan> buttonSoundTimesList;
 			AudioController audioController;
 			
 			bool updateWaveform;
@@ -60,7 +64,7 @@ namespace Editor
 		const float ZOOM_MAX = 10.0f;
 
 		bool zoomLevelChanged = false;
-		float zoomLevel = 1.0f, lastZoomLevel;
+		float zoomLevel = 2.0f, lastZoomLevel;
 		// --------------
 
 		// Timeline:
@@ -68,7 +72,7 @@ namespace Editor
 		TempoMap tempoMap;
 		TimelineMap timelineMap;
 		TargetList targets;
-		int gridDivision = 8;
+		int gridDivision = 16;
 		// ---------
 
 		// ----------------------
@@ -145,27 +149,38 @@ namespace Editor
 		void TimelineTempoMap();
 		void TimelineTargets();
 		void TimelineCursor();
-		void CursorControl();
-		void ScrollControl();
+		void Update();
+		void UpdateInput();
+		void UpdateCursorControl();
+		void UpdateScrollControl();
 		// --------------
 
-		// Song Stuff:
-		void LoadSong(const std::string& path);
-		void UpdateFileDrop();
-		// -----------
+		// Timeline Control:
+		// -----------------
+		void CenterCursor();
+		// -----------------
 
 		// Conversion Methods:
 		// -------------------
 		TimelineTick FloorToGrid(TimelineTick tick);
 		TimelineTick RoundToGrid(TimelineTick tick);
+
 		float GetTimelinePosition(TimeSpan time);
 		float GetTimelinePosition(TimelineTick tick);
+
 		TimelineTick GetTimelineTick(TimeSpan time);
 		TimelineTick GetTimelineTick(float position);
+
 		TimeSpan GetTimelineTime(TimelineTick tick);
 		TimeSpan GetTimelineTime(float position);
-		float ScreenToTimelinePosition(float screenPosition);
+
 		TimelineTick GetCursorTick();
+		TimeSpan GetCursorTime();
+		
+		float ScreenToTimelinePosition(float screenPosition);
+		float GetCursorTimelinePosition();
+
+		inline float GetScrollX() { return ImGui::GetScrollX(); };
 		// -------------------
 
 		// DEBUG STUFF:
