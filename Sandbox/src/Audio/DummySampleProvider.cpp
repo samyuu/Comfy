@@ -1,11 +1,13 @@
 #include "DummySampleProvider.h"
+#include <cstring>
 
-size_t DummySampleProvider::ReadSamples(int16_t* bufferToFill, size_t sampleOffset, size_t samplesToRead)
+int64_t DummySampleProvider::ReadSamples(int16_t* bufferToFill, int64_t sampleOffset, int64_t samplesToRead)
 {
-	return 0;
+	memset(bufferToFill, 0, samplesToRead * sizeof(int16_t));
+	return samplesToRead;
 }
 
-size_t DummySampleProvider::GetSampleCount()
+int64_t DummySampleProvider::GetSampleCount()
 {
 	return 0;
 };

@@ -22,6 +22,8 @@ namespace Editor
 
 		// check button times on separate thread
 	
+		MemoryAudioStream* GetButtonSoundSource(int index);
+
 	private:
 		const char* buttonSoundPath = u8"rom/sound/button/01_button1.wav";
 

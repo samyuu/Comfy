@@ -59,6 +59,10 @@ public:
 	bool GetIsLooping();
 	void SetIsLooping(bool value);
 
+	// PlayPastEnd
+	bool GetPlayPastEnd();
+	void SetPlayPastEnd(bool value);
+
 	// AppendRemove
 	bool GetAppendRemove();
 	void SetAppendRemove(bool value);
@@ -72,10 +76,10 @@ public:
 	void SetOnFinishedAction(AudioFinishedAction value);
 
 	// SamplePosition
-	size_t GetSamplePosition();
-	void SetSamplePosition(size_t value);
+	int64_t GetSamplePosition();
+	void SetSamplePosition(int64_t value);
 
-	inline size_t GetSampleCount();
+	inline int64_t GetSampleCount();
 	inline uint32_t GetSampleRate();
 	inline uint32_t GetChannelCount();
 
@@ -88,10 +92,11 @@ private:
 
 	bool isPlaying = false;
 	bool isLooping = false;
+	bool playPastEnd = false;
 	bool hasBeenRemoved = false;
 	bool appendRemove = false;
 
-	size_t samplePosition = 0;
+	int64_t samplePosition = 0;
 	AudioFinishedAction onFinishedAction = AUDIO_FINISHED_NONE;
 	ISampleProvider* sampleProvider = nullptr;
 	// -----------------
@@ -100,17 +105,17 @@ protected:
 	// Used by AudioEngine
 	// -------------------
 	inline void SetHasBeenRemoved(bool value) { hasBeenRemoved = value; };
-	inline void IncrementSamplePosition(size_t value) { SetSamplePosition(GetSamplePosition() + value); };
+	inline void IncrementSamplePosition(int64_t value) { SetSamplePosition(GetSamplePosition() + value); };
 
 public:
 	// Conversion Helper Methods
 	// -------------------------
 	TimeSpan SamplesToTimeSpan(double samples);
-	size_t TimeSpanToSamples(TimeSpan time);
+	int64_t TimeSpanToSamples(TimeSpan time);
 
 protected:
 	// Conversion Helper Functions
 	// ---------------------------
 	static TimeSpan SamplesToTimeSpan(double samples, double sampleRate, double channelCount);
-	static size_t TimeSpanToSamples(TimeSpan time, double sampleRate, double channelCount);
+	static int64_t TimeSpanToSamples(TimeSpan time, double sampleRate, double channelCount);
 };

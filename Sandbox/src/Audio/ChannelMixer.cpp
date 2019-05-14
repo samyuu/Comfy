@@ -6,14 +6,14 @@ ChannelMixer::ChannelMixer(uint32_t channelTargetCount) : channelTargetCount(cha
 
 }
 
-void ChannelMixer::MixChannels(int16_t** sampleDataPtr, size_t* sampleCountPtr, uint32_t* channelCountPtr)
+void ChannelMixer::MixChannels(int16_t** sampleDataPtr, uint64_t* sampleCountPtr, uint32_t* channelCountPtr)
 {
 	assert(*sampleDataPtr);
 	assert(*channelCountPtr != channelTargetCount);
 
 	uint32_t channelCount = *channelCountPtr;
-	uint32_t sampleCount = *sampleCountPtr;
-	uint32_t newSampleCount = (sampleCount / channelCount) * channelTargetCount;
+	uint64_t sampleCount = *sampleCountPtr;
+	uint64_t newSampleCount = (sampleCount / channelCount) * channelTargetCount;
 
 	int16_t* mixedSampleData = new int16_t[newSampleCount];
 	{

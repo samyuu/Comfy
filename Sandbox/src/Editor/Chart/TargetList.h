@@ -1,18 +1,38 @@
 #pragma once
 #include "TimelineTick.h"
 #include <set>
+#include <glm/vec2.hpp>
 
 namespace Editor
 {
-	enum TargetType
+	enum TargetType : int16_t
 	{
-		TARGET_SANKAKU,
-		TARGET_SHIKAKU,
-		TARGET_BATSU,
-		TARGET_MARU,
-		TARGET_SLIDE_L,
-		TARGET_SLIDE_R,
-		TARGET_MAX,
+		TargetType_Sankaku,
+		TargetType_Shikaku,
+		TargetType_Batsu,
+		TargetType_Maru,
+		TargetType_SlideL,
+		TargetType_SlideR,
+		TargetType_Max,
+	};
+
+	enum TargetFlags : int16_t
+	{
+		// Subject to change
+		TargetFlags_Hold = 0,
+		TargetFlags_Sync = 1 << 0,
+		TargetFlags_Chain = 1 << 1,
+		TargetFlags_ChainStart = 1 << 2,
+		TargetFlags_ChainHit = 1 << 3,
+	};
+
+	struct TargetProperties
+	{
+		glm::vec2 Position;
+		float Angle;
+		short Frequency;
+		short Amplitude;
+		float Distance;
 	};
 
 	struct TimelineTarget
@@ -21,7 +41,8 @@ namespace Editor
 		// --------
 		TimelineTick Tick;
 		TargetType Type;
-		// bool IsHold, IsSync;
+		// TargetFlags Flags;
+		// TargetProperties Properties;
 		// --------
 
 		// Constructors:

@@ -64,6 +64,11 @@ namespace Editor
 			PlayButtonSound(longestRunningInstance);
 	}
 
+	MemoryAudioStream* AudioController::GetButtonSoundSource(int index)
+	{
+		return &buttonSoundSources[buttonSoundIndex];
+	}
+
 	void AudioController::PlayButtonSound(AudioInstance* audioInstance)
 	{
 		float volume = buttonSoundVolume;
@@ -78,7 +83,7 @@ namespace Editor
 		// -----------------
 
 		audioInstance->SetVolume(volume);
-		audioInstance->SetSampleProvider(&buttonSoundSources[buttonSoundIndex]);
+		audioInstance->SetSampleProvider(GetButtonSoundSource(buttonSoundIndex));
 		audioInstance->Restart();
 		audioInstance->SetIsPlaying(true);
 	}

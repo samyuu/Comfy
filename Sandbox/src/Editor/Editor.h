@@ -37,6 +37,17 @@ namespace Editor
 		bool LoadSong(const std::string& filePath);
 		// -----------
 
+		// Playback Control:
+		// -----------------
+		bool GetIsPlayback();
+		void ResumePlayback();
+		void PausePlayback();
+		void StopPlayback();
+		
+		TimeSpan GetPlaybackTime();
+		void SetPlaybackTime(TimeSpan value);
+		// -----------------
+
 	private:
 		
 		// Base Members:
@@ -79,7 +90,6 @@ namespace Editor
 			TimeSpan songStartOffset = 0.0;
 			TimeSpan songDuration = TimeSpan::FromMinutes(1.0);
 			
-			TimeSpan playbackTime = 0.0;
 			TimeSpan playbackTimeOnPlaybackStart;
 		};
 		// -----------------
@@ -92,12 +102,5 @@ namespace Editor
 		void UpdateFileDrop();
 		void UpdatePlayback();
 		// -------------
-
-		// Playback Control:
-		// -----------------
-		void ResumePlayback();
-		void PausePlayback();
-		void StopPlayback();
-		// -----------------
 	};
 }

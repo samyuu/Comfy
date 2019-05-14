@@ -125,8 +125,8 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 	callbackRunning = true;
 
 	// need to clear out the buffer from the previous call
-	size_t samplesInBuffer = bufferFrameCount * GetChannelCount();
-	size_t byteBufferSize = samplesInBuffer * sizeof(int16_t);
+	int64_t samplesInBuffer = bufferFrameCount * GetChannelCount();
+	int64_t byteBufferSize = samplesInBuffer * sizeof(int16_t);
 	memset(outputBuffer, 0, byteBufferSize);
 
 	// 2 channels * 64 frames * sizeof(int16_t) -> 256 bytes inside the outputBuffer
@@ -148,24 +148,29 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 		}
 
 		// don't bother with these
-		if (!audioInstance->IsSampleProviderValid())
+		if (!audioInstance->IsSampleProviderValid() || !audioInstance->GetIsPlaying())
 			continue;
 
-		if (!audioInstance->GetIsPlaying() || audioInstance->GetHasReachedEnd())
+		if (audioInstance->GetHasReachedEnd())
 		{
 			if (audioInstance->GetIsLooping())
 				audioInstance->Restart();
-			continue;
+
+			if (!audioInstance->GetPlayPastEnd())
+				continue;
 		}
 
-		size_t samplesRead = audioInstance->GetSampleProvider()->ReadSamples(tempOutputBuffer, audioInstance->GetSamplePosition(), samplesInBuffer);
+		int64_t samplesRead = audioInstance->GetSampleProvider()->ReadSamples(tempOutputBuffer, audioInstance->GetSamplePosition(), samplesInBuffer);
 		audioInstance->IncrementSamplePosition(samplesRead);
 
-		for (size_t i = 0; i < samplesRead; i++)
+		if (!audioInstance->GetPlayPastEnd() && audioInstance->GetHasReachedEnd())
+			audioInstance->SetSamplePosition(audioInstance->GetSampleCount());
+
+		for (int64_t i = 0; i < samplesRead; i++)
 			outputBuffer[i] = MixSamples(outputBuffer[i], tempOutputBuffer[i] * audioInstance->GetVolume());
 	}
 
-	for (size_t i = 0; i < samplesInBuffer; i++)
+	for (int64_t i = 0; i < samplesInBuffer; i++)
 		outputBuffer[i] *= GetMasterVolume();
 
 	callbackRunning = false;

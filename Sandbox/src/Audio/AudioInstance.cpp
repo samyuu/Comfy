@@ -112,6 +112,15 @@ void AudioInstance::SetIsLooping(bool value)
 	isLooping = value;
 }
 
+bool AudioInstance::GetPlayPastEnd()
+{
+	return playPastEnd;
+}
+void AudioInstance::SetPlayPastEnd(bool value)
+{
+	playPastEnd = value;
+}
+
 bool AudioInstance::GetAppendRemove()
 {
 	return appendRemove;
@@ -139,16 +148,16 @@ void AudioInstance::SetOnFinishedAction(AudioFinishedAction value)
 	onFinishedAction = value;
 }
 
-size_t AudioInstance::GetSamplePosition()
+int64_t AudioInstance::GetSamplePosition()
 {
 	return samplePosition;
 }
-void AudioInstance::SetSamplePosition(size_t value)
+void AudioInstance::SetSamplePosition(int64_t value)
 {
-	samplePosition = std::clamp(value, (size_t)0, GetSampleCount());
+	samplePosition = value; 
 }
 
-size_t AudioInstance::GetSampleCount()
+int64_t AudioInstance::GetSampleCount()
 {
 	return GetSampleProvider()->GetSampleCount();
 }
@@ -168,7 +177,7 @@ TimeSpan AudioInstance::SamplesToTimeSpan(double samples)
 	return SamplesToTimeSpan(samples, GetSampleRate(), GetChannelCount());
 }
 
-size_t AudioInstance::TimeSpanToSamples(TimeSpan time)
+int64_t AudioInstance::TimeSpanToSamples(TimeSpan time)
 {
 	return TimeSpanToSamples(time, GetSampleRate(), GetChannelCount());
 }
@@ -178,7 +187,7 @@ inline TimeSpan AudioInstance::SamplesToTimeSpan(double samples, double sampleRa
 	return TimeSpan::FromSeconds((samples / channelCount) / sampleRate);
 }
 
-inline size_t AudioInstance::TimeSpanToSamples(TimeSpan time, double sampleRate, double channelCount)
+inline int64_t AudioInstance::TimeSpanToSamples(TimeSpan time, double sampleRate, double channelCount)
 {
 	return (time.TotalSeconds() * sampleRate * channelCount);
 }

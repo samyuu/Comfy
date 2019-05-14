@@ -28,7 +28,7 @@ void MemoryAudioStream::LoadFromFile(const std::string& filePath)
 	int wideBytes = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, filePath.c_str(), -1, widePath, sizeof(widePath));
 
 	uint32_t fileMagic = GetFileMagic(widePath);
-	uint32_t swappedMagic = ((fileMagic >> 24) & 0xff) | ((fileMagic << 8) & 0xff0000) | ((fileMagic >> 8) & 0xff00) |  ((fileMagic << 24) & 0xff000000); 
+	uint32_t swappedMagic = ((fileMagic >> 24) & 0xff) | ((fileMagic << 8) & 0xff0000) | ((fileMagic >> 8) & 0xff00) | ((fileMagic << 24) & 0xff000000);
 
 	switch (swappedMagic)
 	{
@@ -45,13 +45,13 @@ void MemoryAudioStream::LoadFromFile(const std::string& filePath)
 		LoadOgg(widePath);
 		break;
 
-	case 'ID3' + (0x3 >> 24):
-		LoadMp3(widePath);
-		break;
+		case 'ID3' + (0x3 >> 24) :
+			LoadMp3(widePath);
+			break;
 
-	default:
-		assert(false);
-		return;
+		default:
+			assert(false);
+			return;
 	}
 
 	uint32_t channelTargetCount = AudioEngine::GetInstance()->GetChannelCount();
@@ -75,16 +75,36 @@ void MemoryAudioStream::Dispose()
 	initialized = false;
 }
 
-size_t MemoryAudioStream::ReadSamples(int16_t* bufferToFill, size_t sampleOffset, size_t samplesToRead)
+int64_t MemoryAudioStream::ReadSamples(int16_t* bufferToFill, int64_t sampleOffset, int64_t samplesToRead)
 {
-	int16_t* sampleSource = &sampleData[sampleOffset];
-	size_t samplesRead = (sampleOffset + samplesToRead > GetSampleCount()) ? GetSampleCount() - sampleOffset : samplesToRead;
+	memset(bufferToFill, 0, samplesToRead * sizeof(int16_t));
 
+	if (sampleOffset + samplesToRead <= 0 || sampleOffset > GetSampleCount())
+	{
+		// fill the buffer with silence
+		return samplesToRead;
+	}
+		
+	if (sampleOffset < 0 && sampleOffset + samplesToRead > 0)
+	{
+		int64_t nonSilentSamples = (samplesToRead + sampleOffset);
+		int16_t* nonSilentBuffer = (bufferToFill - sampleOffset);
+
+		// fill a portion of the buffer
+		memcpy(nonSilentBuffer, sampleData, nonSilentSamples * sizeof(int16_t));
+
+		return samplesToRead;
+	}
+
+	// fill the whole buffer
+	int16_t* sampleSource = &sampleData[sampleOffset];
+	int64_t samplesRead = (sampleOffset + samplesToRead > GetSampleCount()) ? GetSampleCount() - sampleOffset : samplesToRead;
 	memcpy(bufferToFill, sampleSource, samplesRead * sizeof(int16_t));
-	return samplesRead;
+
+	return samplesToRead;
 }
 
-size_t MemoryAudioStream::GetSampleCount()
+int64_t MemoryAudioStream::GetSampleCount()
 {
 	return sampleCount;
 }
@@ -103,10 +123,10 @@ uint32_t MemoryAudioStream::GetFileMagic(const wchar_t* filePath)
 {
 	FILE* file;
 	_wfopen_s(&file, filePath, L"r");
-	
+
 	uint32_t magic = NULL;
 	fread(&magic, sizeof(magic), 1, file);
-	
+
 	fclose(file);
 	return magic;
 }

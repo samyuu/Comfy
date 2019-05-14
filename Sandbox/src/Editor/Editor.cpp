@@ -41,6 +41,14 @@ namespace Editor
 
 	void PvEditor::Initialize()
 	{
+		auto audioEngine = AudioEngine::GetInstance();
+		audioEngine->OpenStream();
+		audioEngine->StartStream();
+
+		songInstance = std::make_shared<AudioInstance>(&dummySampleProvider, "PvEditor::SongInstance");
+		songInstance->SetPlayPastEnd(true);
+		audioEngine->AddAudioInstance(songInstance);
+
 		for (const auto &component : editorComponents)
 			component->Initialize();
 	}
@@ -98,10 +106,10 @@ namespace Editor
 
 	void PvEditor::UpdatePlayback()
 	{
-		playbackTime += ImGui::GetIO().DeltaTime;
+		//playbackTime += ImGui::GetIO().DeltaTime;
 
-		if (songInstance->GetIsPlaying() && songStream != nullptr)
-			playbackTime = songInstance->GetPosition();
+		//if (songInstance->GetIsPlaying())
+		//	playbackTime = songInstance->GetPosition() - songStartOffset;
 	}
 
 	bool PvEditor::Load(const std::string& filePath)
@@ -128,10 +136,10 @@ namespace Editor
 
 	bool PvEditor::LoadSong(const std::string& filePath)
 	{
+		TimeSpan playbackTime = GetPlaybackTime();
 		auto newSongStream = std::make_shared<MemoryAudioStream>(filePath);
 
 		songInstance->SetSampleProvider(newSongStream.get());
-		songInstance->SetPosition(playbackTime);
 		songDuration = songInstance->GetDuration();
 
 		if (songStream != nullptr)
@@ -140,16 +148,31 @@ namespace Editor
 		// adds some copy overhead but we don't want to delete the old pointer while the new one is still loading
 		songStream = newSongStream;
 
+		SetPlaybackTime(playbackTime);
 		return true;
+	}
+
+	TimeSpan PvEditor::GetPlaybackTime()
+	{
+		return songInstance->GetPosition() - songStartOffset;
+	}
+
+	void PvEditor::SetPlaybackTime(TimeSpan value)
+	{
+		songInstance->SetPosition(value + songStartOffset);
+	}
+
+	bool PvEditor::GetIsPlayback()
+	{
+		return isPlaying;
 	}
 
 	void PvEditor::ResumePlayback()
 	{
-		playbackTimeOnPlaybackStart = playbackTime;
+		playbackTimeOnPlaybackStart = GetPlaybackTime();
 
 		isPlaying = true;
 		songInstance->SetIsPlaying(true);
-		songInstance->SetPosition(playbackTime);
 
 		for (const auto &component : editorComponents)
 			component->OnPlaybackResumed();
@@ -166,7 +189,7 @@ namespace Editor
 
 	void PvEditor::StopPlayback()
 	{
-		playbackTime = playbackTimeOnPlaybackStart;
+		SetPlaybackTime(playbackTimeOnPlaybackStart);
 		PausePlayback();
 	}
 }

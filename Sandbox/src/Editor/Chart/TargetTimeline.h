@@ -30,6 +30,7 @@ namespace Editor
 		virtual void DrawGui() override;
 		virtual void OnLoad() override;
 		virtual void OnPlaybackResumed() override;
+		virtual void OnPlaybackPaused() override;
 		// -----------------
 
 	protected:
@@ -37,7 +38,6 @@ namespace Editor
 		struct
 		{
 			const char* testSongPath = "rom/sound/sngtst.flac";
-			AudioEngine* audioEngine;
 
 			std::vector<TimeSpan> buttonSoundTimesList;
 			AudioController audioController;
@@ -76,9 +76,9 @@ namespace Editor
 		// ---------
 
 		// ----------------------
-		float targetYPositions[TARGET_MAX];
-		Texture iconTextures[TARGET_MAX];
-		const char* iconPaths[TARGET_MAX] =
+		float targetYPositions[TargetType_Max];
+		Texture iconTextures[TargetType_Max];
+		const char* iconPaths[TargetType_Max] =
 		{
 			"rom/spr/icon/btn_sankaku.png",
 			"rom/spr/icon/btn_shikaku.png",
@@ -129,6 +129,11 @@ namespace Editor
 		ImU32 CURSOR_COLOR = ImColor(0.71f, 0.54f, 0.15f);
 		// ----------------
 
+		// Child Windows:
+		// --------------
+		void DrawSyncWindow();
+		// --------------
+
 		// ----------------
 		void UpdateRegions();
 		void UpdateTimelineMap();
@@ -137,27 +142,29 @@ namespace Editor
 
 		// Timeline Widgets:
 		// -----------------
-		void TimelineHeaderWidgets();
+		void DrawTimelineHeaderWidgets();
 		// Timeline Column:
 		// ----------------
-		void TimelineInfoColumnHeader();
-		void TimelineInfoColumn();
+		void DrawTimelineInfoColumnHeader();
+		void DrawTimelineInfoColumn();
 		// Timeline Base:
 		// --------------
-		void TimelineBase();
-		void TimlineDivisors();
-		void TimelineTempoMap();
-		void TimelineTargets();
-		void TimelineCursor();
+		void DrawTimelineBase();
+		void DrawTimlineDivisors();
+		void DrawTimelineTempoMap();
+		void DrawTimelineTargets();
+		void DrawTimelineCursor();
 		void Update();
-		void UpdateInput();
-		void UpdateCursorControl();
-		void UpdateScrollControl();
+		void UpdateAllInput();
+		void UpdateInputCursorClick();
+		void UpdateInputTimelineScroll();
 		// --------------
 
 		// Timeline Control:
 		// -----------------
 		void CenterCursor();
+		inline float GetScrollX() { return ImGui::GetScrollX(); };
+		inline void SetScrollX(float value) { ImGui::SetScrollX(value); };
 		// -----------------
 
 		// Conversion Methods:
@@ -179,8 +186,6 @@ namespace Editor
 		
 		float ScreenToTimelinePosition(float screenPosition);
 		float GetCursorTimelinePosition();
-
-		inline float GetScrollX() { return ImGui::GetScrollX(); };
 		// -------------------
 
 		// DEBUG STUFF:
