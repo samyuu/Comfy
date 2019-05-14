@@ -103,9 +103,8 @@ namespace Editor
 
 			//tempoMap.SetTempoChange(TimelineTick::FromBars(0), 180.0f);
 			//tempoMap.SetTempoChange(TimelineTick::FromBars(4), 120.0f);
-
 		}
-			
+
 		UpdateTimelineMap();
 	}
 
@@ -505,7 +504,11 @@ namespace Editor
 				int linesDrawn = 0;
 				for (int64_t screenPixel = leftMostVisiblePixel; screenPixel < songWaveform.GetPixelCount() && screenPixel < rightMostVisiblePixel; screenPixel++)
 				{
-					float timelinePixel = std::clamp((int64_t)(screenPixel + scrollX), (int64_t)0, (int64_t)pixelCount - 1);
+					size_t timelinePixel = std::min((size_t)(screenPixel + scrollX), (size_t)(pixelCount - 1));
+					
+					if (timelinePixel < 0)
+						continue;
+					
 					float amplitude = songWaveform.GetPcmForPixel(timelinePixel) * timelineTargetHeight;
 
 					float x = screenPixel + timelineTargetX;
