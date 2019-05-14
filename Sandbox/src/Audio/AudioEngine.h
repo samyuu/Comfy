@@ -1,4 +1,5 @@
 #pragma once
+#include "ICallbackReceiver.h"
 #include <RtAudio.h>
 #include <stdint.h>
 #include <algorithm>
@@ -57,6 +58,7 @@ public:
 	void AddAudioInstance(std::shared_ptr<AudioInstance> audioInstance);
 	void PlaySound(ISampleProvider* sampleProvider, float volume = MAX_VOLUME, const char* name = nullptr);
 	void ShowControlPanel();
+	void AddCallbackReceiver(ICallbackReceiver* callbackReceiver);
 
 	inline RtAudio* GetRtAudio() { return rtAudio; };
 	inline uint32_t GetChannelCount() { return 2; };
@@ -91,6 +93,7 @@ private:
 
 	//int16_t currentSampleBuffer[64 * 2];
 	std::vector<std::shared_ptr<AudioInstance>> audioInstances;
+	std::vector<ICallbackReceiver*> callbackReceivers;
 
 	int16_t* tempOutputBuffer;
 	uint32_t bufferSize = DEFAULT_BUFFER_SIZE;

@@ -124,6 +124,9 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 	callbackLatency = callbackStreamTime - lastCallbackStreamTime;
 	callbackRunning = true;
 
+	for (auto& callbackReceiver : callbackReceivers)
+		callbackReceiver->OnCallback();
+
 	// need to clear out the buffer from the previous call
 	int64_t samplesInBuffer = bufferFrameCount * GetChannelCount();
 	int64_t byteBufferSize = samplesInBuffer * sizeof(int16_t);
@@ -236,6 +239,11 @@ void AudioEngine::ShowControlPanel()
 {
 	if (GetActiveAudioApi() == AUDIO_API_ASIO)
 		ASIOControlPanel();
+}
+
+void AudioEngine::AddCallbackReceiver(ICallbackReceiver* callbackReceiver)
+{
+	callbackReceivers.push_back(callbackReceiver);
 }
 
 uint32_t AudioEngine::GetDeviceId()
