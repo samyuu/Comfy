@@ -7,6 +7,8 @@
 
 namespace Editor
 {
+	// This class stores a pool of button sound instances.
+	// It controls their volume levels and exposes a public play.
 	class AudioController
 	{
 	public:
@@ -14,14 +16,8 @@ namespace Editor
 		~AudioController();
 
 		void Initialize();
-
-		// need a way to play button sounds (adjust volume based on last sound)
-		// pushing back new AudioInstances on a separate thread is unsafe 
-		// so instead this class should have a pool of button sound instances and control their playback / positions
 		void PlayButtonSound();
 
-		// check button times on separate thread
-	
 		MemoryAudioStream* GetButtonSoundSource(int index);
 
 	private:
@@ -29,6 +25,7 @@ namespace Editor
 
 		TimeSpan buttonSoundTime, lastButtonSoundTime, timeSinceLastButtonSound;
 		float buttonSoundVolume = MAX_VOLUME * 0.95f;
+		
 		int buttonSoundIndex = -1;
 		std::vector<MemoryAudioStream> buttonSoundSources;
 		std::array<std::shared_ptr<AudioInstance>, 16> buttonSoundInstancePool;

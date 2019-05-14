@@ -14,7 +14,7 @@
 
 namespace Editor
 {
-	class TargetTimeline : public IEditorComponent
+	class TargetTimeline : public IEditorComponent, public ICallbackReceiver
 	{
 	public:
 		// Constructors / Destructors:
@@ -31,6 +31,7 @@ namespace Editor
 		virtual void OnLoad() override;
 		virtual void OnPlaybackResumed() override;
 		virtual void OnPlaybackPaused() override;
+		virtual void OnAudioCallback() override;
 		// -----------------
 
 	protected:

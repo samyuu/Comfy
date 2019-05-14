@@ -125,7 +125,7 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 	callbackRunning = true;
 
 	for (auto& callbackReceiver : callbackReceivers)
-		callbackReceiver->OnCallback();
+		callbackReceiver->OnAudioCallback();
 
 	// need to clear out the buffer from the previous call
 	int64_t samplesInBuffer = bufferFrameCount * GetChannelCount();

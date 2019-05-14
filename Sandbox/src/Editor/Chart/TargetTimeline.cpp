@@ -83,6 +83,7 @@ namespace Editor
 
 	void TargetTimeline::Initialize()
 	{
+		AudioEngine::GetInstance()->AddCallbackReceiver(this);
 		audioController.Initialize();
 
 		for (size_t i = 0; i < TargetType_Max; i++)
@@ -103,26 +104,9 @@ namespace Editor
 			//tempoMap.SetTempoChange(TimelineTick::FromBars(0), 180.0f);
 			//tempoMap.SetTempoChange(TimelineTick::FromBars(4), 120.0f);
 
-			UpdateTimelineMap();
 		}
-
-		// TEMP DEBUG TEST
-		// ---------------
-		// - // TimeSpan preTime = glfwGetTime();
-		// - // int iterations = 20000;
-		// - // for (int i = 0; i < iterations; i++)
-		// - // {
-		// - // 	TimelineTick inputTick = i;
-		// - // 	TimeSpan inputTickTime = GetTimelineTime(inputTick);
-		// - // 	TimelineTick outputTick = GetTimelineTick(inputTickTime);
-		// - // 
-		// - // 	//bool match = inputTick == outputTick;
-		// - // 	//if (!match)
-		// - // 	//	printf("[%d] match: %s\n", i, match ? "true" : "false");
-		// - // }
-		// - // TimeSpan elapsed = TimeSpan(glfwGetTime()) - preTime;
-		// - // printf("elapsed: %f ms for %d iterations\n", elapsed.TotalMilliseconds(), iterations);
-		// ---------------
+			
+		UpdateTimelineMap();
 	}
 
 	void TargetTimeline::UpdateRegions()
@@ -252,6 +236,25 @@ namespace Editor
 
 	void TargetTimeline::OnPlaybackPaused()
 	{
+	}
+
+	void TargetTimeline::OnAudioCallback()
+	{
+		if (!pvEditor->GetIsPlayback())
+			return;
+	
+		for (int i = 0; i < buttonSoundTimesList.size(); ++i)
+		{
+			if (pvEditor->GetPlaybackTime() >= buttonSoundTimesList[i])
+			{
+				audioController.PlayButtonSound();
+				buttonSoundTimesList.erase(buttonSoundTimesList.begin() + (i--));
+			}
+			else 
+			{ 
+				break;
+			}
+		}
 	}
 
 	void TargetTimeline::OnLoad()
@@ -657,16 +660,6 @@ namespace Editor
 				float autoScrollOffset = timelineTargetRegion.GetWidth() / autoScrollOffsetFraction;
 				if (cursorPos > endPos - autoScrollOffset)
 					SetScrollX(GetScrollX() + cursorPos - endPos + autoScrollOffset);
-			}
-
-			for (int i = 0; i < buttonSoundTimesList.size(); ++i)
-			{
-				if (pvEditor->GetPlaybackTime() >= buttonSoundTimesList[i])
-				{
-					audioController.PlayButtonSound();
-					buttonSoundTimesList.erase(buttonSoundTimesList.begin() + i);
-					--i;
-				}
 			}
 		}
 	}

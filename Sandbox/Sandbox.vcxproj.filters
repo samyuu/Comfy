@@ -153,9 +153,6 @@
     <ClCompile Include="src\Audio\Waveform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Editor\AudioController.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\TimeSpan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -166,6 +163,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Editor\EditorComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\AudioController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -323,9 +323,6 @@
     <ClInclude Include="src\Audio\Waveform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Editor\AudioController.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\Chart\TargetList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -336,6 +333,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Audio\ICallbackReceiver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\AudioController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

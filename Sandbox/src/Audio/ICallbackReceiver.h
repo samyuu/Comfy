@@ -3,5 +3,5 @@
 class ICallbackReceiver
 {
 public:
-	virtual void OnCallback() = 0;
+	virtual void OnAudioCallback() = 0;
 };
