@@ -42,7 +42,7 @@ namespace Editor
 
 			std::vector<TimeSpan> buttonSoundTimesList;
 			AudioController audioController;
-			
+
 			bool updateWaveform;
 			Waveform songWaveform;
 		};
@@ -101,7 +101,18 @@ namespace Editor
 			const float autoScrollOffsetFraction = 4.0f;
 			TimeSpan cursorTime;
 		};
-		// ----------------------
+
+		// Timeline Button Animation:
+		// --------------------------
+		const TimeSpan buttonAnimationStartTime = TimeSpan::FromMilliseconds(15.0);
+		const TimeSpan buttonAnimationDuration = TimeSpan::FromMilliseconds(60.0);
+		const float buttonAnimationScale = 1.5f;
+		struct
+		{
+			TimelineTick Tick;
+			TimeSpan ElapsedTime;
+		} buttonAnimations[TargetType_Max];
+		// --------------------------
 
 		// ----------------------
 		ImGuiWindow* baseWindow;
@@ -161,9 +172,16 @@ namespace Editor
 		void Update();
 		void UpdateCursorAutoScroll();
 		void UpdateAllInput();
+		void UpdateInputPlaybackToggle();
 		void UpdateInputCursorClick();
 		void UpdateInputTimelineScroll();
+		void UpdateInputTargetPlacement();
 		// --------------
+
+		// Timeline Actions:
+		// -----------------
+		void PlaceOrRemoveTarget(TimelineTick tick, TargetType type);
+		// -----------------
 
 		// Timeline Control:
 		// -----------------
@@ -176,6 +194,7 @@ namespace Editor
 
 		// Conversion Methods:
 		// -------------------
+		TimelineTick GetGridTick();
 		TimelineTick FloorToGrid(TimelineTick tick);
 		TimelineTick RoundToGrid(TimelineTick tick);
 
@@ -190,7 +209,7 @@ namespace Editor
 
 		TimelineTick GetCursorTick();
 		TimeSpan GetCursorTime();
-		
+
 		float ScreenToTimelinePosition(float screenPosition);
 		float GetCursorTimelinePosition();
 		// -------------------

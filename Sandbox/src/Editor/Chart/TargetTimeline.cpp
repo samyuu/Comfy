@@ -19,16 +19,21 @@ namespace Editor
 		return u8"Target Timeline";
 	}
 
+	TimelineTick TargetTimeline::GetGridTick()
+	{
+		return TimelineTick::TICKS_PER_BAR / gridDivision;
+	}
+
 	TimelineTick TargetTimeline::FloorToGrid(TimelineTick tick)
 	{
-		int gridInterval = TimelineTick::TICKS_PER_BAR / gridDivision;
-		return (int)(floor(tick.TotalTicks() / (float)gridInterval) * gridInterval);
+		int gridTicks = GetGridTick().TotalTicks();
+		return (int)(floor(tick.TotalTicks() / (float)gridTicks) * gridTicks);
 	}
 
 	TimelineTick TargetTimeline::RoundToGrid(TimelineTick tick)
 	{
-		int gridInterval = TimelineTick::TICKS_PER_BAR / gridDivision;
-		return (int)(round(tick.TotalTicks() / (float)gridInterval) * gridInterval);
+		int gridTicks = GetGridTick().TotalTicks();
+		return (int)(round(tick.TotalTicks() / (float)gridTicks) * gridTicks);
 	}
 
 	float TargetTimeline::GetTimelinePosition(TimeSpan time)
@@ -74,7 +79,6 @@ namespace Editor
 	TimeSpan TargetTimeline::GetCursorTime()
 	{
 		return cursorTime;
-		//return pvEditor->GetPlaybackTime();
 	}
 
 	float TargetTimeline::GetCursorTimelinePosition()
@@ -242,7 +246,7 @@ namespace Editor
 	{
 		if (!pvEditor->GetIsPlayback())
 			return;
-	
+
 		for (int i = 0; i < buttonSoundTimesList.size(); ++i)
 		{
 			if (pvEditor->GetPlaybackTime() >= buttonSoundTimesList[i])
@@ -250,8 +254,8 @@ namespace Editor
 				audioController.PlayButtonSound();
 				buttonSoundTimesList.erase(buttonSoundTimesList.begin() + (i--));
 			}
-			else 
-			{ 
+			else
+			{
 				break;
 			}
 		}
@@ -541,11 +545,16 @@ namespace Editor
 			char buttonIdStr[28];
 			static int tempoPopupIndex = -1;
 
+			const float visibleMin = 0, visibleMax = ImGui::GetWindowWidth();
+
 			for (size_t i = 0; i < tempoMap.TempoChangeCount(); i++)
 			{
 				TempoChange& tempoChange = tempoMap.GetTempoChangeAt(i);
 
-				float x = GetTimelinePosition(tempoChange.Tick) - GetScrollX();
+				float screenX = GetTimelinePosition(tempoChange.Tick) - GetScrollX();
+
+				if (screenX < visibleMin || screenX > visibleMax)
+					continue;
 
 				//auto tempoBgColor = IM_COL32(147, 125, 125, 255);
 				auto tempoFgColor = IM_COL32(139, 56, 51, 255);
@@ -553,7 +562,7 @@ namespace Editor
 				sprintf_s(tempoStr, sizeof(tempoStr), "%.2f BPM", tempoChange.Tempo.BeatsPerMinute);
 				sprintf_s(buttonIdStr, sizeof(buttonIdStr), "##%s_%04d", tempoStr, i);
 
-				auto buttonPosition = tempoMapRegion.GetTL() + ImVec2(x + 1, 0);
+				auto buttonPosition = tempoMapRegion.GetTL() + ImVec2(screenX + 1, 0);
 				auto buttonSize = ImVec2(ImGui::CalcTextSize(tempoStr).x, tempoMapHeight);
 
 				ImGui::SetCursorScreenPos(buttonPosition);
@@ -568,7 +577,7 @@ namespace Editor
 					baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, TIMELINE_BG_COLOR);
 					if (ImGui::IsMouseDoubleClicked(0))
 					{
-						SetScrollX(x + GetScrollX());
+						SetScrollX(screenX + GetScrollX());
 						//SetScrollX(screenX - timelineTargetRegion.GetTL().x - (windowWidth * .5f));
 					}
 
@@ -612,14 +621,35 @@ namespace Editor
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		ImDrawList* windowDrawList = window->DrawList;
 
+		const float visibleMin = 0, visibleMax = ImGui::GetWindowWidth();
+
 		// Test out timline targets
 		// ------------------------
 		for (const auto& target : targets)
 		{
-			float position = GetTimelinePosition(TimelineTick(target.Tick)) - GetScrollX();
-			ImVec2 center = ImVec2(position + timelineTargetRegion.GetTL().x, targetYPositions[target.Type]);
+			float screenX = GetTimelinePosition(TimelineTick(target.Tick)) - GetScrollX();
 
-			ImGui::AddTexture(windowDrawList, &iconTextures[target.Type], center, ICON_SIZE);
+			// skip everything to the left of the screen
+			if (screenX < visibleMin)
+				continue;
+			// break once we reach the right side
+			if (screenX > visibleMax)
+				break;
+
+			ImVec2 center = ImVec2(screenX + timelineTargetRegion.GetTL().x, targetYPositions[target.Type]);
+
+			float size = ICON_SIZE;
+
+			if (target.Tick == buttonAnimations[target.Type].Tick)
+			{
+				if (buttonAnimations[target.Type].ElapsedTime >= buttonAnimationStartTime && buttonAnimations[target.Type].ElapsedTime <= buttonAnimationDuration)
+				{
+					float t = buttonAnimations[target.Type].ElapsedTime.TotalSeconds() / buttonAnimationDuration.TotalSeconds();
+					size *= ImLerp(buttonAnimationScale, 1.0f, t);
+				}
+			}
+
+			ImGui::AddTexture(windowDrawList, &iconTextures[target.Type], center, size);
 		}
 	}
 
@@ -673,24 +703,23 @@ namespace Editor
 			UpdateCursorAutoScroll();
 		}
 	}
-	
+
 	void TargetTimeline::UpdateCursorAutoScroll()
 	{
 		// Scroll Cursor
-		{
-			float cursorPos = (GetCursorTimelinePosition());
-			float endPos = (ScreenToTimelinePosition(timelineTargetRegion.GetBR().x));
 
-			float autoScrollOffset = (timelineTargetRegion.GetWidth() / autoScrollOffsetFraction);
-			if (cursorPos >= endPos - autoScrollOffset)
-			{
-				float increment = cursorPos - endPos + autoScrollOffset;
-				SetScrollX(GetScrollX() + increment);
-				
-				// allow the cursor to go offscreen
-				if (GetMaxScrollX() - GetScrollX() > autoScrollOffset)
-					autoScrollCursor = true;
-			}
+		float cursorPos = (GetCursorTimelinePosition());
+		float endPos = (ScreenToTimelinePosition(timelineTargetRegion.GetBR().x));
+
+		float autoScrollOffset = (timelineTargetRegion.GetWidth() / autoScrollOffsetFraction);
+		if (cursorPos >= endPos - autoScrollOffset)
+		{
+			float increment = cursorPos - endPos + autoScrollOffset;
+			SetScrollX(GetScrollX() + increment);
+
+			// allow the cursor to go offscreen
+			if (GetMaxScrollX() - GetScrollX() > autoScrollOffset)
+				autoScrollCursor = true;
 		}
 	}
 
@@ -699,6 +728,14 @@ namespace Editor
 		if (!ImGui::IsWindowFocused())
 			return;
 
+		UpdateInputPlaybackToggle();
+		UpdateInputCursorClick();
+		UpdateInputTimelineScroll();
+		UpdateInputTargetPlacement();
+	}
+
+	void TargetTimeline::UpdateInputPlaybackToggle()
+	{
 		if (ImGui::IsKeyPressed(GLFW_KEY_SPACE))
 		{
 			if (pvEditor->GetIsPlayback())
@@ -713,45 +750,6 @@ namespace Editor
 			{
 				pvEditor->StopPlayback();
 				CenterCursor();
-			}
-		}
-
-		UpdateInputCursorClick();
-		UpdateInputTimelineScroll();
-
-		// Target Placement Test:
-		// ----------------------
-		{
-			TimelineTick cursorTick = RoundToGrid(GetCursorTick());
-
-			auto placeTarget = [&](TargetType type)
-			{
-				audioController.PlayButtonSound();
-
-				TargetIterator existingTarget = targets.Find(cursorTick, type);
-				if (existingTarget != targets.end())
-				{
-					if (!pvEditor->GetIsPlayback())
-						targets.Remove(existingTarget);
-				}
-				else
-				{
-					targets.Add(cursorTick, type);
-				}
-			};
-
-			static struct { TargetType Type; int Key; } mapping[4]
-			{
-				{ TargetType_Sankaku, 'W'},
-				{ TargetType_Shikaku, 'A'},
-				{ TargetType_Batsu, 'S'},
-				{ TargetType_Maru, 'D'},
-			};
-
-			for (size_t i = 0; i < IM_ARRAYSIZE(mapping); i++)
-			{
-				if (ImGui::IsKeyPressed(mapping[i].Key, false))
-					placeTarget(mapping[i].Type);
 			}
 		}
 	}
@@ -785,7 +783,12 @@ namespace Editor
 				for (const auto& target : targets)
 				{
 					if (target.Tick == cursorTick)
+					{
 						audioController.PlayButtonSound();
+
+						buttonAnimations[target.Type].Tick = target.Tick;
+						buttonAnimations[target.Type].ElapsedTime = 0;
+					}
 				}
 			}
 		}
@@ -852,10 +855,50 @@ namespace Editor
 
 						float speed = io.KeyShift ? scrollSpeedFast : scrollSpeed;
 						float scrollStep = ImFloor(ImMin(2 * baseWindow->CalcFontSize(), maxStep.x)) * speed;
-						ImGui::SetWindowScrollX(baseWindow, baseWindow->Scroll.x + io.MouseWheel * scrollStep);
+						SetScrollX(baseWindow->Scroll.x + io.MouseWheel * scrollStep);
 					}
 				}
 			}
+		}
+	}
+
+	void TargetTimeline::UpdateInputTargetPlacement()
+	{
+		for (int type = 0; type < TargetType_Max; type++)
+			buttonAnimations[type].ElapsedTime += ImGui::GetIO().DeltaTime;
+
+		static struct { TargetType Type; int Key; } mapping[4]
+		{
+			{ TargetType_Sankaku, 'W'},
+			{ TargetType_Shikaku, 'A'},
+			{ TargetType_Batsu, 'S'},
+			{ TargetType_Maru, 'D'},
+		};
+
+		TimelineTick cursorTick = RoundToGrid(GetCursorTick());
+		for (size_t i = 0; i < IM_ARRAYSIZE(mapping); i++)
+		{
+			if (ImGui::IsKeyPressed(mapping[i].Key, false))
+				PlaceOrRemoveTarget(cursorTick, mapping[i].Type);
+		}
+	}
+
+	void TargetTimeline::PlaceOrRemoveTarget(TimelineTick tick, TargetType type)
+	{
+		audioController.PlayButtonSound();
+
+		TargetIterator existingTarget = targets.Find(tick, type);
+		if (existingTarget != targets.end())
+		{
+			if (!pvEditor->GetIsPlayback())
+				targets.Remove(existingTarget);
+		}
+		else
+		{
+			targets.Add(tick, type);
+
+			buttonAnimations[type].Tick = tick;
+			buttonAnimations[type].ElapsedTime = 0;
 		}
 	}
 
@@ -864,7 +907,7 @@ namespace Editor
 		float center = GetCursorTimelinePosition() - (timelineTargetRegion.GetWidth() / 2.0f);
 		SetScrollX(center);
 	}
-	
+
 	bool TargetTimeline::IsCursorOnScreen()
 	{
 		float cursorPosition = GetCursorTimelinePosition() - GetScrollX();

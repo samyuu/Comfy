@@ -11,17 +11,17 @@ struct TimeSpan
 	inline TimeSpan(double seconds) : time(seconds) {}
 	// ------------
 
-	inline double TotalMinutes()
+	inline double TotalMinutes() const
 	{
 		return TotalSeconds() / 60.0;
 	}
 
-	inline double TotalSeconds()
+	inline double TotalSeconds() const
 	{
 		return time;
 	}
 
-	inline double TotalMilliseconds()
+	inline double TotalMilliseconds() const
 	{
 		return TotalSeconds() * 1000.0;
 	}
@@ -41,7 +41,7 @@ struct TimeSpan
 		return TimeSpan(value / 1000.0);
 	}
 
-	std::string FormatTime()
+	std::string FormatTime() const
 	{
 		double absoluteTime = abs(time);
 
