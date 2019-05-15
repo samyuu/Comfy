@@ -627,7 +627,8 @@ namespace Editor
 		// ------------------------
 		for (const auto& target : targets)
 		{
-			float screenX = GetTimelinePosition(TimelineTick(target.Tick)) - GetScrollX();
+			TimeSpan buttonTime = GetTimelineTime(target.Tick);
+			float screenX = GetTimelinePosition(buttonTime) - GetScrollX();
 
 			// skip everything to the left of the screen
 			if (screenX < visibleMin)
@@ -640,12 +641,26 @@ namespace Editor
 
 			float size = ICON_SIZE;
 
-			if (target.Tick == buttonAnimations[target.Type].Tick)
+			if (pvEditor->GetIsPlayback())
 			{
-				if (buttonAnimations[target.Type].ElapsedTime >= buttonAnimationStartTime && buttonAnimations[target.Type].ElapsedTime <= buttonAnimationDuration)
+				TimeSpan cursorTime = GetCursorTime();
+				TimeSpan timeUntilButton = buttonTime - cursorTime;
+
+				if (timeUntilButton <= 0.0 && timeUntilButton >= -buttonAnimationDuration)
 				{
-					float t = buttonAnimations[target.Type].ElapsedTime.TotalSeconds() / buttonAnimationDuration.TotalSeconds();
+					float t = timeUntilButton.TotalSeconds() / -buttonAnimationDuration.TotalSeconds();
 					size *= ImLerp(buttonAnimationScale, 1.0f, t);
+				}
+			}
+			else
+			{
+				if (target.Tick == buttonAnimations[target.Type].Tick)
+				{
+					if (buttonAnimations[target.Type].ElapsedTime >= buttonAnimationStartTime && buttonAnimations[target.Type].ElapsedTime <= buttonAnimationDuration)
+					{
+						float t = buttonAnimations[target.Type].ElapsedTime.TotalSeconds() / buttonAnimationDuration.TotalSeconds();
+						size *= ImLerp(buttonAnimationScale, 1.0f, t);
+					}
 				}
 			}
 

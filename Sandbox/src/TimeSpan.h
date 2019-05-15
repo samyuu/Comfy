@@ -73,6 +73,7 @@ struct TimeSpan
 	inline double operator/ (TimeSpan other) { return TotalSeconds() / other.TotalSeconds(); }
 	inline double operator/ (double other) { return TotalSeconds() / other; }
 	inline double operator/ (int other) { return TotalSeconds() / other; }
+	inline TimeSpan operator- () const { return -time; }
 	// ----------
 
 	static TimeSpan GetTimeNow();
