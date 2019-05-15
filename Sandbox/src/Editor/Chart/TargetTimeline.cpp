@@ -73,7 +73,8 @@ namespace Editor
 
 	TimeSpan TargetTimeline::GetCursorTime()
 	{
-		return pvEditor->GetPlaybackTime();
+		return cursorTime;
+		//return pvEditor->GetPlaybackTime();
 	}
 
 	float TargetTimeline::GetCursorTimelinePosition()
@@ -384,6 +385,7 @@ namespace Editor
 		}
 
 		DrawTimlineDivisors();
+		DrawWaveform();
 		DrawTimelineTempoMap();
 
 		if (timelineHeaderRegion.Contains(ImGui::GetMousePos()))
@@ -409,10 +411,10 @@ namespace Editor
 			}
 		}
 
-		DrawTimelineTargets();
-		DrawTimelineCursor();
 		Update();
 		UpdateAllInput();
+		DrawTimelineTargets();
+		DrawTimelineCursor();
 	}
 
 	void TargetTimeline::DrawTimlineDivisors()
@@ -473,7 +475,10 @@ namespace Editor
 				}
 			}
 		}
+	}
 
+	void TargetTimeline::DrawWaveform()
+	{
 		// TEST WAVEFORM
 		// -------------
 		{
@@ -505,10 +510,10 @@ namespace Editor
 				for (int64_t screenPixel = leftMostVisiblePixel; screenPixel < songWaveform.GetPixelCount() && screenPixel < rightMostVisiblePixel; screenPixel++)
 				{
 					size_t timelinePixel = std::min((size_t)(screenPixel + scrollX), (size_t)(pixelCount - 1));
-					
+
 					if (timelinePixel < 0)
 						continue;
-					
+
 					float amplitude = songWaveform.GetPcmForPixel(timelinePixel) * timelineTargetHeight;
 
 					float x = screenPixel + timelineTargetX;
@@ -633,10 +638,16 @@ namespace Editor
 			baseDrawList->AddLine(start, end, innerColor);
 		}
 
-		float x = GetCursorTimelinePosition() - GetScrollX();
+		float scrollX = GetScrollX();
+		float cursorX = GetCursorTimelinePosition();
+		float cursorScreenX = cursorX - scrollX;
 
-		ImVec2 start = timelineHeaderRegion.GetTL() + ImVec2(x, 0);
-		ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(x, 0);
+		// ensure smooth cursor scrolling
+		if (autoScrollCursor)
+			cursorScreenX = timelineTargetRegion.GetWidth() - (timelineTargetRegion.GetWidth() / autoScrollOffsetFraction);
+
+		ImVec2 start = timelineHeaderRegion.GetTL() + ImVec2(cursorScreenX, 0);
+		ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(cursorScreenX, 0);
 
 		baseDrawList->AddLine(start + ImVec2(0, CURSOR_HEAD_HEIGHT - 1), end, outterColor);
 
@@ -653,16 +664,32 @@ namespace Editor
 
 	void TargetTimeline::Update()
 	{
+		// make sure the cursor time is the same through the entire draw tick
+		cursorTime = pvEditor->GetPlaybackTime();
+		autoScrollCursor = false;
+
 		if (pvEditor->GetIsPlayback())
 		{
-			// Scroll Cursor
-			{
-				float cursorPos = GetCursorTimelinePosition();
-				float endPos = ScreenToTimelinePosition(timelineTargetRegion.GetBR().x);
+			UpdateCursorAutoScroll();
+		}
+	}
+	
+	void TargetTimeline::UpdateCursorAutoScroll()
+	{
+		// Scroll Cursor
+		{
+			float cursorPos = (GetCursorTimelinePosition());
+			float endPos = (ScreenToTimelinePosition(timelineTargetRegion.GetBR().x));
 
-				float autoScrollOffset = timelineTargetRegion.GetWidth() / autoScrollOffsetFraction;
-				if (cursorPos > endPos - autoScrollOffset)
-					SetScrollX(GetScrollX() + cursorPos - endPos + autoScrollOffset);
+			float autoScrollOffset = (timelineTargetRegion.GetWidth() / autoScrollOffsetFraction);
+			if (cursorPos >= endPos - autoScrollOffset)
+			{
+				float increment = cursorPos - endPos + autoScrollOffset;
+				SetScrollX(GetScrollX() + increment);
+				
+				// allow the cursor to go offscreen
+				if (GetMaxScrollX() - GetScrollX() > autoScrollOffset)
+					autoScrollCursor = true;
 			}
 		}
 	}
@@ -683,7 +710,10 @@ namespace Editor
 		if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE) && pvEditor->GetIsPlayback())
 		{
 			if (pvEditor->GetIsPlayback())
+			{
 				pvEditor->StopPlayback();
+				CenterCursor();
+			}
 		}
 
 		UpdateInputCursorClick();
@@ -738,7 +768,7 @@ namespace Editor
 				pvEditor->PausePlayback();
 
 			TimelineTick cursorTick = FloorToGrid(GetTimelineTick(ScreenToTimelinePosition(ImGui::GetMousePos().x)));
-			TimeSpan previousTime = pvEditor->GetPlaybackTime();
+			TimeSpan previousTime = GetCursorTime();
 			TimeSpan newTime = GetTimelineTime(cursorTick);
 
 			if (previousTime == newTime)
@@ -833,5 +863,11 @@ namespace Editor
 	{
 		float center = GetCursorTimelinePosition() - (timelineTargetRegion.GetWidth() / 2.0f);
 		SetScrollX(center);
+	}
+	
+	bool TargetTimeline::IsCursorOnScreen()
+	{
+		float cursorPosition = GetCursorTimelinePosition() - GetScrollX();
+		return cursorPosition >= 0.0f && cursorPosition <= timelineTargetRegion.GetWidth();
 	}
 }

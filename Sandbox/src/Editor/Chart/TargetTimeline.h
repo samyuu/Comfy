@@ -93,11 +93,13 @@ namespace Editor
 		// ----------------------
 		struct
 		{
+			bool autoScrollCursor = false;
 			const float CURSOR_HEAD_WIDTH = 17.0f;
 			const float CURSOR_HEAD_HEIGHT = 8.0f;
 
 			// fraction of the timeline width at which the timeline starts scrolling relative to the cursor
 			const float autoScrollOffsetFraction = 4.0f;
+			TimeSpan cursorTime;
 		};
 		// ----------------------
 
@@ -152,10 +154,12 @@ namespace Editor
 		// --------------
 		void DrawTimelineBase();
 		void DrawTimlineDivisors();
+		void DrawWaveform();
 		void DrawTimelineTempoMap();
 		void DrawTimelineTargets();
 		void DrawTimelineCursor();
 		void Update();
+		void UpdateCursorAutoScroll();
 		void UpdateAllInput();
 		void UpdateInputCursorClick();
 		void UpdateInputTimelineScroll();
@@ -164,6 +168,8 @@ namespace Editor
 		// Timeline Control:
 		// -----------------
 		void CenterCursor();
+		bool IsCursorOnScreen();
+		inline float GetMaxScrollX() { return ImGui::GetScrollMaxX(); };
 		inline float GetScrollX() { return ImGui::GetScrollX(); };
 		inline void SetScrollX(float value) { ImGui::SetScrollX(value); };
 		// -----------------
