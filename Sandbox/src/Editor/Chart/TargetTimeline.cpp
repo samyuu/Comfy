@@ -87,6 +87,49 @@ namespace Editor
 		return GetTimelinePosition(GetCursorTime());
 	}
 
+	int TargetTimeline::GetGridDivisionIndex()
+	{
+		for (size_t i = 0; i < IM_ARRAYSIZE(gridDivisions); i++)
+		{
+			if (gridDivisions[i] == gridDivision)
+				return i;
+		}
+
+		return -1;
+	}
+
+	VisibilityType TargetTimeline::GetTimelineVisibility(float screenX)
+	{
+		const float visibleMin = -timelineVisibleThreshold;
+		const float visibleMax = baseWindow->Size.x + timelineVisibleThreshold;
+
+		if (screenX < visibleMin)
+			return VisibilityType_Left;
+
+		if (screenX > visibleMax)
+			return VisibilityType_Right;
+
+		return VisibilityType_Visible;
+	}
+
+	float TargetTimeline::GetButtonTransparency(float screenX)
+	{
+		constexpr float fadeSpan = 35.0f;
+
+		if (screenX < 0.0f || screenX > baseWindow->Size.x)
+			return 0.0f;
+
+		const float lowerThreshold = fadeSpan;
+		if (screenX < lowerThreshold)
+			return ImLerp(0.0f, 1.0f, screenX / lowerThreshold);
+
+		const float upperThreshold = baseWindow->Size.x - fadeSpan;
+		if (screenX > upperThreshold)
+			return ImLerp(0.0f, 1.0f, 1.0f - ((screenX - upperThreshold) / (baseWindow->Size.x - upperThreshold)));
+
+		return 1.0f;
+	}
+
 	int TargetTimeline::GetButtonIconIndex(const TimelineTarget& target)
 	{
 		int type = target.Type;
@@ -100,17 +143,19 @@ namespace Editor
 		return type + 8;
 	}
 
-	void TargetTimeline::DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, ImVec2 position, float scale)
+	void TargetTimeline::DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, ImVec2 position, float scale, float transparency)
 	{
-		float width = buttonIconWidth * scale;
-		float height = buttonIconWidth * scale;
+		const float width = buttonIconWidth * scale;
+		const float height = buttonIconWidth * scale;
 
 		position.x -= width * .5f;
 		position.y -= height * .5f;
-		ImVec2 bottomRight(position.x + width, position.y + height);
 
+		ImVec2 bottomRight(position.x + width, position.y + height);
 		ImRect textureCoordinates = buttonIconsTextureCoordinates[GetButtonIconIndex(target)];
-		drawList->AddImage(buttonIconsTexture.GetVoidTexture(), position, bottomRight, textureCoordinates.GetBL(), textureCoordinates.GetTR());
+
+		const ImU32 color = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF * transparency);
+		drawList->AddImage(buttonIconsTexture.GetVoidTexture(), position, bottomRight, textureCoordinates.GetBL(), textureCoordinates.GetTR(), color);
 
 		if (HasFlag(target.Flags, TargetFlags_Hold))
 		{
@@ -347,18 +392,8 @@ namespace Editor
 		ImGui::SameLine();
 		ImGui::PushItemWidth(80);
 		{
-			static const char* gridDivisionStrings[] = { "1/1", "1/2", "1/4", "1/8", "1/12", "1/16", "1/24", "1/32", "1/48", "1/64" };
-			static int gridDivisions[] = { 1, 2, 4, 8, 12, 16, 24, 32, 48, 64 };
-			static int gridDivisionIndex = -1;
-
-			if (gridDivisionIndex < 0)
-			{
-				for (size_t i = 0; i < IM_ARRAYSIZE(gridDivisions); i++)
-				{
-					if (gridDivisions[i] == gridDivision)
-						gridDivisionIndex = i;
-				}
-			}
+			if (gridDivisions[gridDivisionIndex] != gridDivision)
+				gridDivisionIndex = GetGridDivisionIndex();
 
 			if (ImGui::Combo("Grid Precision", &gridDivisionIndex, gridDivisionStrings, IM_ARRAYSIZE(gridDivisionStrings)))
 				gridDivision = gridDivisions[gridDivisionIndex];
@@ -496,18 +531,16 @@ namespace Editor
 			int totalTicks = GetTimelineTick(pvEditor->songDuration).TotalTicks();
 			int tickStep = TimelineTick::TICKS_PER_BAR / gridDivision;
 
-			const float visibleMin = 0, visibleMax = ImGui::GetWindowWidth();
 			const float scrollX = GetScrollX();
 
 			for (int tick = 0, divisions = 0; tick < totalTicks; tick += tickStep)
 			{
 				float screenX = GetTimelinePosition(TimelineTick(tick)) - scrollX;
 
-				// skip everything to the left of the screen
-				if (screenX < visibleMin)
+				VisibilityType visiblity = GetTimelineVisibility(screenX);
+				if (visiblity == VisibilityType_Left)
 					continue;
-				// break once we reach the right side
-				if (screenX > visibleMax)
+				if (visiblity == VisibilityType_Right)
 					break;
 
 				ImVec2 start = timelineTargetRegion.GetTL() + ImVec2(screenX, 0);
@@ -595,16 +628,17 @@ namespace Editor
 			char buttonIdStr[28];
 			static int tempoPopupIndex = -1;
 
-			const float visibleMin = 0, visibleMax = ImGui::GetWindowWidth();
-
 			for (size_t i = 0; i < tempoMap.TempoChangeCount(); i++)
 			{
 				TempoChange& tempoChange = tempoMap.GetTempoChangeAt(i);
 
 				float screenX = GetTimelinePosition(tempoChange.Tick) - GetScrollX();
 
-				if (screenX < visibleMin || screenX > visibleMax)
+				VisibilityType visiblity = GetTimelineVisibility(screenX);
+				if (visiblity == VisibilityType_Left)
 					continue;
+				if (visiblity == VisibilityType_Right)
+					break;
 
 				//auto tempoBgColor = IM_COL32(147, 125, 125, 255);
 				auto tempoFgColor = IM_COL32(139, 56, 51, 255);
@@ -671,8 +705,6 @@ namespace Editor
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		ImDrawList* windowDrawList = window->DrawList;
 
-		const float visibleMin = 0, visibleMax = ImGui::GetWindowWidth();
-
 		// Test out timline targets
 		// ------------------------
 		for (const auto& target : targets)
@@ -680,11 +712,10 @@ namespace Editor
 			TimeSpan buttonTime = GetTimelineTime(target.Tick);
 			float screenX = GetTimelinePosition(buttonTime) - GetScrollX();
 
-			// skip everything to the left of the screen
-			if (screenX < visibleMin)
+			VisibilityType visiblity = GetTimelineVisibility(screenX);
+			if (visiblity == VisibilityType_Left)
 				continue;
-			// break once we reach the right side
-			if (screenX > visibleMax)
+			if (visiblity == VisibilityType_Right)
 				break;
 
 			ImVec2 center = ImVec2(screenX + timelineTargetRegion.GetTL().x, targetYPositions[target.Type]);
@@ -714,7 +745,8 @@ namespace Editor
 				}
 			}
 
-			DrawButtonIcon(windowDrawList, target, center, scale);
+			float transparency = GetButtonTransparency(screenX);
+			DrawButtonIcon(windowDrawList, target, center, scale, transparency);
 		}
 	}
 
@@ -929,6 +961,10 @@ namespace Editor
 
 	void TargetTimeline::UpdateInputTargetPlacement()
 	{
+		// Mouse X buttons, increase / decrease grid division
+		if (ImGui::IsMouseClicked(3)) SelectNextGridDivision(-1);
+		if (ImGui::IsMouseClicked(4)) SelectNextGridDivision(+1);
+
 		for (int type = 0; type < TargetType_Max; type++)
 			buttonAnimations[type].ElapsedTime += ImGui::GetIO().DeltaTime;
 
@@ -967,6 +1003,12 @@ namespace Editor
 			buttonAnimations[type].Tick = tick;
 			buttonAnimations[type].ElapsedTime = 0;
 		}
+	}
+
+	void TargetTimeline::SelectNextGridDivision(int direction)
+	{
+		int nextIndex = ImClamp(gridDivisionIndex + direction, 0, IM_ARRAYSIZE(gridDivisions) - 1);
+		gridDivision = gridDivisions[nextIndex];
 	}
 
 	void TargetTimeline::CenterCursor()

@@ -14,6 +14,8 @@
 
 namespace Editor
 {
+	enum VisibilityType { VisibilityType_Visible, VisibilityType_Left, VisibilityType_Right };
+
 	class TargetTimeline : public IEditorComponent, public ICallbackReceiver
 	{
 	public:
@@ -73,12 +75,17 @@ namespace Editor
 		TempoMap tempoMap;
 		TimelineMap timelineMap;
 		TargetList targets;
+
+		const char* gridDivisionStrings[10] = { "1/1", "1/2", "1/4", "1/8", "1/12", "1/16", "1/24", "1/32", "1/48", "1/64" };
+		const int gridDivisions[10] = { 1, 2, 4, 8, 12, 16, 24, 32, 48, 64 };
+		int gridDivisionIndex = 0;
+
 		int gridDivision = 16;
 		// ---------
 
 		// ----------------------
 		float targetYPositions[TargetType_Max];
-		
+
 		// sankaku | shikaku | batsu | maru | slide_l | slide_r | slide_chain_l | slide_chain_r
 		static constexpr int buttonIconsTypeCount = 8;
 		static constexpr int buttonIconWidth = 52;
@@ -111,6 +118,8 @@ namespace Editor
 			TimelineTick Tick;
 			TimeSpan ElapsedTime;
 		} buttonAnimations[TargetType_Max];
+
+		const float timelineVisibleThreshold = 46.0f;
 		// --------------------------
 
 		// ----------------------
@@ -184,12 +193,14 @@ namespace Editor
 		// Timeline Actions:
 		// -----------------
 		void PlaceOrRemoveTarget(TimelineTick tick, TargetType type);
+		void SelectNextGridDivision(int direction);
 		// -----------------
 
 		// Timeline Control:
 		// -----------------
 		void CenterCursor();
 		bool IsCursorOnScreen();
+
 		inline float GetMaxScrollX() { return ImGui::GetScrollMaxX(); };
 		inline float GetScrollX() { return ImGui::GetScrollX(); };
 		inline void SetScrollX(float value) { ImGui::SetScrollX(value); };
@@ -215,11 +226,15 @@ namespace Editor
 
 		float ScreenToTimelinePosition(float screenPosition);
 		float GetCursorTimelinePosition();
+
+		int GetGridDivisionIndex();
+		VisibilityType GetTimelineVisibility(float screenX);
 		// -------------------
 
 		// -------------------
+		float GetButtonTransparency(float screenX);
 		int GetButtonIconIndex(const TimelineTarget& target);
-		void DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, ImVec2 position, float scale);
+		void DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, ImVec2 position, float scale, float transparency = 1.0f);
 		// -------------------
 
 		// DEBUG STUFF:
