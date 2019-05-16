@@ -178,7 +178,7 @@ private:
 	// -------------
 	TimeSpan elapsedTime = 0.0f;
 	TimeSpan currentTime, lastTime;
-	unsigned __int64 elapsedFrames = 0;
+	uint64_t elapsedFrames = 0;
 
 	// Scene Camera
 	// ------------

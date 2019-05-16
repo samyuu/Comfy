@@ -120,11 +120,11 @@ namespace Editor
 		timelineRegion = ImRect(timelinePosition, timelinePosition + timelineSize);
 
 		ImVec2 headerPosition = timelineRegion.GetTL();
-		ImVec2 headerSize = { infoColumnWidth, timelineHeaderHeight + tempoMapHeight };
+		ImVec2 headerSize = ImVec2(infoColumnWidth, timelineHeaderHeight + tempoMapHeight);
 		infoColumnHeaderRegion = ImRect(headerPosition, headerPosition + headerSize);
 
 		ImVec2 infoPosition = infoColumnHeaderRegion.GetBL();
-		ImVec2 infoSize = { infoColumnWidth, timelineRegion.GetHeight() - infoColumnHeaderRegion.GetHeight() };
+		ImVec2 infoSize = ImVec2(infoColumnWidth, timelineRegion.GetHeight() - infoColumnHeaderRegion.GetHeight());
 		infoColumnRegion = ImRect(infoPosition, infoPosition + infoSize);
 
 		ImVec2 timelineBasePosition = infoColumnHeaderRegion.GetTR();
