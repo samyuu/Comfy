@@ -338,6 +338,9 @@
     <ClInclude Include="src\Editor\AudioController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\BitFlagsHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="rom\shader\test_vert.glsl" />

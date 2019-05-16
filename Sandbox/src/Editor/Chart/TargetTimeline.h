@@ -78,16 +78,15 @@ namespace Editor
 
 		// ----------------------
 		float targetYPositions[TargetType_Max];
-		Texture iconTextures[TargetType_Max];
-		const char* iconPaths[TargetType_Max] =
-		{
-			"rom/spr/icon/btn_sankaku.png",
-			"rom/spr/icon/btn_shikaku.png",
-			"rom/spr/icon/btn_batsu.png",
-			"rom/spr/icon/btn_maru.png",
-			"rom/spr/icon/btn_slide_l.png",
-			"rom/spr/icon/btn_slide_r.png",
-		};
+		
+		// sankaku | shikaku | batsu | maru | slide_l | slide_r | slide_chain_l | slide_chain_r
+		static constexpr int buttonIconsTypeCount = 8;
+		static constexpr int buttonIconWidth = 52;
+
+		ImRect buttonIconsTextureCoordinates[buttonIconsTypeCount * 2];
+
+		const char* buttonIconsTexturePath = u8"rom/spr/btn_icns.png";
+		Texture buttonIconsTexture;
 		// ----------------------
 
 		// ----------------------
@@ -131,7 +130,7 @@ namespace Editor
 		// ----------------------
 
 		// ----------------------
-		const float ICON_SIZE = 0.35f;
+		const float ICON_SCALE = 1.0f;
 		const float ROW_HEIGHT = 42.0f;
 		// ----------------------
 
@@ -147,6 +146,10 @@ namespace Editor
 		// --------------
 		void DrawSyncWindow();
 		// --------------
+
+		// ----------------
+		void InitializeButtonIcons();
+		// ----------------
 
 		// ----------------
 		void UpdateRegions();
@@ -212,6 +215,11 @@ namespace Editor
 
 		float ScreenToTimelinePosition(float screenPosition);
 		float GetCursorTimelinePosition();
+		// -------------------
+
+		// -------------------
+		int GetButtonIconIndex(const TimelineTarget& target);
+		void DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, ImVec2 position, float scale);
 		// -------------------
 
 		// DEBUG STUFF:

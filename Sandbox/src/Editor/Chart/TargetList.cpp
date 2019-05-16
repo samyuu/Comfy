@@ -2,11 +2,11 @@
 
 namespace Editor
 {
-	TimelineTarget::TimelineTarget()
+	TimelineTarget::TimelineTarget() : Tick(0), Type(static_cast<TargetType>(0)), Flags(TargetFlags_None)
 	{
 	}
 	
-	TimelineTarget::TimelineTarget(TimelineTick tick, TargetType type) : Tick(tick), Type(type)
+	TimelineTarget::TimelineTarget(TimelineTick tick, TargetType type) : Tick(tick), Type(type), Flags(TargetFlags_None)
 	{
 	}
 

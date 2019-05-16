@@ -159,6 +159,7 @@
     <ClInclude Include="src\Audio\DummySampleProvider.h" />
     <ClInclude Include="src\Audio\ChannelMixer.h" />
     <ClInclude Include="src\Audio\ICallbackReceiver.h" />
+    <ClInclude Include="src\BitFlagsHelper.h" />
     <ClInclude Include="src\DataTest\InputTestWindow.h" />
     <ClInclude Include="src\Audio\MemoryAudioStream.h" />
     <ClInclude Include="src\Audio\AudioInstance.h" />

@@ -2,6 +2,7 @@
 #include "../Editor.h"
 #include "../../TimeSpan.h"
 #include "../../Application.h"
+#include "../../BitFlagsHelper.h"
 #include "TempoMap.h"
 
 namespace Editor
@@ -86,16 +87,43 @@ namespace Editor
 		return GetTimelinePosition(GetCursorTime());
 	}
 
+	int TargetTimeline::GetButtonIconIndex(const TimelineTarget& target)
+	{
+		int type = target.Type;
+
+		if (HasFlag(target.Flags, TargetFlags_Chain) && (type == TargetType_SlideL || type == TargetType_SlideR))
+			type += 2;
+
+		if (HasFlag(target.Flags, TargetFlags_Sync))
+			return type;
+
+		return type + 8;
+	}
+
+	void TargetTimeline::DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, ImVec2 position, float scale)
+	{
+		float width = buttonIconWidth * scale;
+		float height = buttonIconWidth * scale;
+
+		position.x -= width * .5f;
+		position.y -= height * .5f;
+		ImVec2 bottomRight(position.x + width, position.y + height);
+
+		ImRect textureCoordinates = buttonIconsTextureCoordinates[GetButtonIconIndex(target)];
+		drawList->AddImage(buttonIconsTexture.GetVoidTexture(), position, bottomRight, textureCoordinates.GetBL(), textureCoordinates.GetTR());
+
+		if (HasFlag(target.Flags, TargetFlags_Hold))
+		{
+			// TODO: draw tgt_txt
+		}
+	}
+
 	void TargetTimeline::Initialize()
 	{
 		AudioEngine::GetInstance()->AddCallbackReceiver(this);
 		audioController.Initialize();
 
-		for (size_t i = 0; i < TargetType_Max; i++)
-		{
-			iconTextures[i] = Texture();
-			iconTextures[i].LoadFromFile(iconPaths[i]);
-		}
+		InitializeButtonIcons();
 
 		// TIME TEST:
 		{
@@ -227,6 +255,27 @@ namespace Editor
 		ImGui::Separator();
 	}
 
+	void TargetTimeline::InitializeButtonIcons()
+	{
+		// sankaku		| shikaku		| batsu		 | maru		 | slide_l		| slide_r	   | slide_chain_l		| slide_chain_r
+		// sankaku_sync | shikaku_sync  | batsu_sync | maru_sync | slide_l_sync | slide_r_sync | slide_chain_l_sync | slide_chain_r_sync
+		buttonIconsTexture.LoadFromFile(buttonIconsTexturePath);
+
+		const float texelWidth = 1.0f / buttonIconsTexture.GetWidth();
+		const float texelHeight = 1.0f / buttonIconsTexture.GetHeight();
+
+		const float width = buttonIconWidth * texelWidth;
+		const float height = buttonIconWidth * texelHeight;
+
+		for (size_t i = 0; i < IM_ARRAYSIZE(buttonIconsTextureCoordinates); i++)
+		{
+			float x = (buttonIconWidth * (i % buttonIconsTypeCount)) * texelWidth;
+			float y = (buttonIconWidth * (i / buttonIconsTypeCount)) * texelHeight;
+
+			buttonIconsTextureCoordinates[i] = ImRect(x, y, x + width, y + height);
+		}
+	}
+
 	void TargetTimeline::OnPlaybackResumed()
 	{
 		buttonSoundTimesList.clear();
@@ -353,9 +402,10 @@ namespace Editor
 			auto end = ImVec2(infoColumnWidth, y + ROW_HEIGHT) + infoColumnRegion.GetTL();
 
 			auto center = ImVec2((start.x + end.x) / 2.0f, (start.y + end.y) / 2.0f);
-			ImGui::AddTexture(drawList, &iconTextures[i], center, ICON_SIZE);
-
 			targetYPositions[i] = center.y;
+
+			TimelineTarget target(0, static_cast<TargetType>(i));
+			DrawButtonIcon(drawList, target, center, ICON_SCALE);
 		}
 	}
 
@@ -639,7 +689,7 @@ namespace Editor
 
 			ImVec2 center = ImVec2(screenX + timelineTargetRegion.GetTL().x, targetYPositions[target.Type]);
 
-			float size = ICON_SIZE;
+			float scale = ICON_SCALE;
 
 			if (pvEditor->GetIsPlayback())
 			{
@@ -649,7 +699,7 @@ namespace Editor
 				if (timeUntilButton <= 0.0 && timeUntilButton >= -buttonAnimationDuration)
 				{
 					float t = timeUntilButton.TotalSeconds() / -buttonAnimationDuration.TotalSeconds();
-					size *= ImLerp(buttonAnimationScale, 1.0f, t);
+					scale *= ImLerp(buttonAnimationScale, 1.0f, t);
 				}
 			}
 			else
@@ -659,12 +709,12 @@ namespace Editor
 					if (buttonAnimations[target.Type].ElapsedTime >= buttonAnimationStartTime && buttonAnimations[target.Type].ElapsedTime <= buttonAnimationDuration)
 					{
 						float t = buttonAnimations[target.Type].ElapsedTime.TotalSeconds() / buttonAnimationDuration.TotalSeconds();
-						size *= ImLerp(buttonAnimationScale, 1.0f, t);
+						scale *= ImLerp(buttonAnimationScale, 1.0f, t);
 					}
 				}
 			}
 
-			ImGui::AddTexture(windowDrawList, &iconTextures[target.Type], center, size);
+			DrawButtonIcon(windowDrawList, target, center, scale);
 		}
 	}
 
@@ -882,12 +932,14 @@ namespace Editor
 		for (int type = 0; type < TargetType_Max; type++)
 			buttonAnimations[type].ElapsedTime += ImGui::GetIO().DeltaTime;
 
-		static struct { TargetType Type; int Key; } mapping[4]
+		static struct { TargetType Type; int Key; } mapping[6]
 		{
 			{ TargetType_Sankaku, 'W'},
 			{ TargetType_Shikaku, 'A'},
 			{ TargetType_Batsu, 'S'},
 			{ TargetType_Maru, 'D'},
+			{ TargetType_SlideL, 'Q'},
+			{ TargetType_SlideR, 'E'},
 		};
 
 		TimelineTick cursorTick = RoundToGrid(GetCursorTick());

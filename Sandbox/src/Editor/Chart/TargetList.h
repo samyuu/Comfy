@@ -19,11 +19,12 @@ namespace Editor
 	enum TargetFlags : int16_t
 	{
 		// Subject to change
-		TargetFlags_Hold = 0,
-		TargetFlags_Sync = 1 << 0,
-		TargetFlags_Chain = 1 << 1,
-		TargetFlags_ChainStart = 1 << 2,
-		TargetFlags_ChainHit = 1 << 3,
+		TargetFlags_None = 0,
+		TargetFlags_Hold = 1 << 0,
+		TargetFlags_Sync = 1 << 1,
+		TargetFlags_Chain = 1 << 2,
+		TargetFlags_ChainStart = 1 << 3,
+		TargetFlags_ChainHit = 1 << 4,
 	};
 
 	struct TargetProperties
@@ -41,7 +42,7 @@ namespace Editor
 		// --------
 		TimelineTick Tick;
 		TargetType Type;
-		// TargetFlags Flags;
+		TargetFlags Flags;
 		// TargetProperties Properties;
 		// --------
 
