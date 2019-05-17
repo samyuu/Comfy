@@ -2,7 +2,7 @@
 #include "MemoryAudioStream.h"
 #include <vector>
 
-class TimeSpan;
+struct TimeSpan;
 
 class Waveform
 {

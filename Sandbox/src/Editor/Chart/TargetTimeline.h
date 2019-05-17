@@ -14,6 +14,7 @@
 
 namespace Editor
 {
+	enum EditorColor;
 	enum VisibilityType { VisibilityType_Visible, VisibilityType_Left, VisibilityType_Right };
 
 	class TargetTimeline : public IEditorComponent, public ICallbackReceiver
@@ -33,6 +34,7 @@ namespace Editor
 		virtual void OnLoad() override;
 		virtual void OnPlaybackResumed() override;
 		virtual void OnPlaybackPaused() override;
+		virtual void OnPlaybackStopped() override;
 		virtual void OnAudioCallback() override;
 		// -----------------
 
@@ -72,6 +74,7 @@ namespace Editor
 
 		// Timeline:
 		// ---------
+		bool updateInput;
 		TempoMap tempoMap;
 		TimelineMap timelineMap;
 		TargetList targets;
@@ -94,6 +97,18 @@ namespace Editor
 
 		const char* buttonIconsTexturePath = u8"rom/spr/btn_icns.png";
 		Texture buttonIconsTexture;
+
+		bool checkHitsoundsInCallback = true;
+		struct { bool Down, WasDown; } buttonPlacementKeyStates[6];
+		struct { TargetType Type; int Key; } buttonPlacementMapping[6]
+		{
+			{ TargetType_Sankaku, 'W'},
+			{ TargetType_Shikaku, 'A'},
+			{ TargetType_Batsu, 'S'},
+			{ TargetType_Maru, 'D'},
+			{ TargetType_SlideL, 'Q'},
+			{ TargetType_SlideR, 'E'},
+		};
 		// ----------------------
 
 		// ----------------------
@@ -143,14 +158,6 @@ namespace Editor
 		const float ROW_HEIGHT = 42.0f;
 		// ----------------------
 
-		// Timeline Colors:
-		// ----------------
-		ImU32 BAR_COLOR, GRID_COLOR, GRID_COLOR_ALT, SELECTION_COLOR;
-		ImU32 INFO_COLUMN_COLOR, TEMPO_MAP_BG_COLOR;
-		ImU32 TIMELINE_BG_COLOR, TIMELINE_ROW_SEPARATOR_COLOR;
-		ImU32 CURSOR_COLOR = ImColor(0.71f, 0.54f, 0.15f);
-		// ----------------
-
 		// Child Windows:
 		// --------------
 		void DrawSyncWindow();
@@ -164,6 +171,8 @@ namespace Editor
 		void UpdateRegions();
 		void UpdateTimelineMap();
 		void UpdateTimelineSize();
+		void UpdateOnCallbackSounds();
+		void UpdateOnCallbackPlacementSounds();
 		// ----------------
 
 		// Timeline Widgets:
@@ -229,6 +238,8 @@ namespace Editor
 
 		int GetGridDivisionIndex();
 		VisibilityType GetTimelineVisibility(float screenX);
+		
+		ImU32 GetColor(EditorColor color);
 		// -------------------
 
 		// -------------------

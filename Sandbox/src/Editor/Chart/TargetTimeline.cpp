@@ -112,6 +112,11 @@ namespace Editor
 		return VisibilityType_Visible;
 	}
 
+	inline ImU32 TargetTimeline::GetColor(EditorColor color)
+	{
+		return pvEditor->editorColors[color];
+	}
+
 	float TargetTimeline::GetButtonTransparency(float screenX)
 	{
 		constexpr float fadeSpan = 35.0f;
@@ -227,22 +232,41 @@ namespace Editor
 		ImGui::ItemSize(ImVec2(GetTimelinePosition(pvEditor->songDuration), 0));
 	}
 
+	void TargetTimeline::UpdateOnCallbackSounds()
+	{
+		if (!pvEditor->GetIsPlayback())
+			return;
+
+		for (int i = 0; i < buttonSoundTimesList.size(); ++i)
+		{
+			if (pvEditor->GetPlaybackTime() >= buttonSoundTimesList[i])
+			{
+				audioController.PlayButtonSound();
+				buttonSoundTimesList.erase(buttonSoundTimesList.begin() + (i--));
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
+	void TargetTimeline::UpdateOnCallbackPlacementSounds()
+	{
+		for (size_t i = 0; i < IM_ARRAYSIZE(buttonPlacementMapping); i++)
+		{
+			buttonPlacementKeyStates[i].WasDown = buttonPlacementKeyStates[i].Down;
+			buttonPlacementKeyStates[i].Down = glfwGetKey(GetParent()->GetWindow(), buttonPlacementMapping[i].Key);
+
+			if (buttonPlacementKeyStates[i].Down && !buttonPlacementKeyStates[i].WasDown)
+				audioController.PlayButtonSound();
+		}
+	}
+
 	void TargetTimeline::DrawGui()
 	{
 		zoomLevelChanged = lastZoomLevel != zoomLevel;
 		lastZoomLevel = zoomLevel;
-
-		if (false)
-			ImGui::ShowDemoWindow(nullptr);
-
-		GRID_COLOR = ImGui::GetColorU32(ImGuiCol_Separator, .75f);
-		GRID_COLOR_ALT = ImGui::GetColorU32(ImGuiCol_Separator, .5f);
-		INFO_COLUMN_COLOR = ImGui::GetColorU32(ImGuiCol_ScrollbarBg);
-		TEMPO_MAP_BG_COLOR = ImGui::GetColorU32(ImGuiCol_MenuBarBg);
-		SELECTION_COLOR = ImGui::GetColorU32(ImGuiCol_TextSelectedBg);
-		TIMELINE_BG_COLOR = ImGui::GetColorU32(ImGuiCol_DockingEmptyBg);
-		TIMELINE_ROW_SEPARATOR_COLOR = ImGui::GetColorU32(ImGuiCol_Separator);
-		BAR_COLOR = ImGui::GetColorU32(ImGuiCol_PlotLines);
 
 		ImGui::BeginGroup();
 		DrawTimelineHeaderWidgets();
@@ -336,23 +360,17 @@ namespace Editor
 	{
 	}
 
-	void TargetTimeline::OnAudioCallback()
+	void TargetTimeline::OnPlaybackStopped()
 	{
-		if (!pvEditor->GetIsPlayback())
-			return;
+		CenterCursor();
+	}
 
-		for (int i = 0; i < buttonSoundTimesList.size(); ++i)
-		{
-			if (pvEditor->GetPlaybackTime() >= buttonSoundTimesList[i])
-			{
-				audioController.PlayButtonSound();
-				buttonSoundTimesList.erase(buttonSoundTimesList.begin() + (i--));
-			}
-			else
-			{
-				break;
-			}
-		}
+	void TargetTimeline::OnAudioCallback()
+	{		
+		UpdateOnCallbackSounds();
+
+		if (checkHitsoundsInCallback && updateInput)
+			UpdateOnCallbackPlacementSounds();
 	}
 
 	void TargetTimeline::OnLoad()
@@ -416,7 +434,7 @@ namespace Editor
 	{
 		auto drawList = ImGui::GetWindowDrawList();
 
-		drawList->AddRectFilled(infoColumnHeaderRegion.GetTL(), infoColumnHeaderRegion.GetBR(), INFO_COLUMN_COLOR, 8.0f, ImDrawCornerFlags_TopLeft);
+		drawList->AddRectFilled(infoColumnHeaderRegion.GetTL(), infoColumnHeaderRegion.GetBR(), GetColor(EditorColor_InfoColumn), 8.0f, ImDrawCornerFlags_TopLeft);
 	}
 
 	void TargetTimeline::DrawTimelineInfoColumn()
@@ -424,11 +442,11 @@ namespace Editor
 		auto drawList = ImGui::GetWindowDrawList();
 
 		// top part
-		drawList->AddRectFilled(infoColumnRegion.GetTL(), infoColumnRegion.GetBR(), INFO_COLUMN_COLOR);
+		drawList->AddRectFilled(infoColumnRegion.GetTL(), infoColumnRegion.GetBR(), GetColor(EditorColor_InfoColumn));
 
 		// bottom part
 		ImDrawList* parentDrawList = ImGui::GetCurrentWindow()->ParentWindow->DrawList;
-		parentDrawList->AddRectFilled(infoColumnRegion.GetBL(), infoColumnRegion.GetBL() + ImVec2(infoColumnRegion.GetWidth(), -ImGui::GetStyle().ScrollbarSize), INFO_COLUMN_COLOR);
+		parentDrawList->AddRectFilled(infoColumnRegion.GetBL(), infoColumnRegion.GetBL() + ImVec2(infoColumnRegion.GetWidth(), -ImGui::GetStyle().ScrollbarSize), GetColor(EditorColor_InfoColumn));
 
 		for (int i = 0; i < TargetType_Max; i++)
 		{
@@ -465,12 +483,12 @@ namespace Editor
 		// Timeline Header Region BG
 		// -------------------------
 		{
-			baseDrawList->AddRectFilled(timelineHeaderRegion.GetTL(), timelineHeaderRegion.GetBR(), INFO_COLUMN_COLOR);
+			baseDrawList->AddRectFilled(timelineHeaderRegion.GetTL(), timelineHeaderRegion.GetBR(), GetColor(EditorColor_InfoColumn));
 		}
 		// Timeline Target Region BG
 		// -------------------------
 		{
-			baseDrawList->AddRectFilled(timelineTargetRegion.GetTL(), timelineTargetRegion.GetBR(), TIMELINE_BG_COLOR);
+			baseDrawList->AddRectFilled(timelineTargetRegion.GetTL(), timelineTargetRegion.GetBR(), GetColor(EditorColor_TimelineBg));
 		}
 
 		DrawTimlineDivisors();
@@ -496,7 +514,7 @@ namespace Editor
 			if (!ImGui::IsAnyItemHovered() && ImGui::IsMouseDragging(selectionBoxButton) && dragRect.Min.x != 0)
 			{
 				dragRect.Max = ImGui::GetMousePos();
-				baseDrawList->AddRectFilled(dragRect.GetTL(), dragRect.GetBR(), SELECTION_COLOR);
+				baseDrawList->AddRectFilled(dragRect.GetTL(), dragRect.GetBR(), GetColor(EditorColor_Selection));
 			}
 		}
 
@@ -517,14 +535,14 @@ namespace Editor
 				ImVec2 start = timelineTargetRegion.GetTL() + ImVec2(0, y);
 				ImVec2 end = start + ImVec2(timelineTargetRegion.GetWidth(), 0);
 
-				baseDrawList->AddLine(start, end, TIMELINE_ROW_SEPARATOR_COLOR);
+				baseDrawList->AddLine(start, end, GetColor(EditorColor_TimelineRowSeparator));
 			}
 		}
 
 		// Timeline Bar / Beat lines
 		// -------------------------
 		{
-			baseDrawList->AddRectFilled(tempoMapRegion.GetTL(), tempoMapRegion.GetBR(), TEMPO_MAP_BG_COLOR);
+			baseDrawList->AddRectFilled(tempoMapRegion.GetTL(), tempoMapRegion.GetBR(), GetColor(EditorColor_TempoMapBg));
 
 			char barStrBuffer[16];
 
@@ -547,7 +565,7 @@ namespace Editor
 				ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(screenX, 0);
 
 				bool isBar = tick % TimelineTick::TICKS_PER_BAR == 0;
-				auto color = isBar ? BAR_COLOR : (divisions++ % 2 == 0 ? GRID_COLOR : GRID_COLOR_ALT);
+				auto color = GetColor( isBar ? EditorColor_Bar : (divisions++ % 2 == 0 ? EditorColor_Grid : EditorColor_GridAlt) );
 
 				start.y -= timelineHeaderHeight * (isBar ? .85f : .35f);
 
@@ -608,7 +626,7 @@ namespace Editor
 					ImVec2 start = ImVec2(x, y - halfAmplitude);
 					ImVec2 end = ImVec2(x, y + halfAmplitude);
 
-					drawList->AddLine(start, end, GRID_COLOR_ALT);
+					drawList->AddLine(start, end, GetColor(EditorColor_GridAlt));
 
 					linesDrawn++;
 				}
@@ -658,7 +676,7 @@ namespace Editor
 				{
 					ImGui::SetTooltip("TIME: %s", GetTimelineTime(tempoChange.Tick).FormatTime().c_str());
 
-					baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, TIMELINE_BG_COLOR);
+					baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, GetColor(EditorColor_TimelineBg));
 					if (ImGui::IsMouseDoubleClicked(0))
 					{
 						SetScrollX(screenX + GetScrollX());
@@ -752,7 +770,7 @@ namespace Editor
 
 	void TargetTimeline::DrawTimelineCursor()
 	{
-		ImColor outterColor = CURSOR_COLOR;
+		ImColor outterColor = GetColor(EditorColor_Cursor);
 		ImColor innerColor = ImColor(outterColor.Value.x, outterColor.Value.y, outterColor.Value.z, .5f);
 
 		if (pvEditor->GetIsPlayback())
@@ -804,7 +822,6 @@ namespace Editor
 	void TargetTimeline::UpdateCursorAutoScroll()
 	{
 		// Scroll Cursor
-
 		float cursorPos = (GetCursorTimelinePosition());
 		float endPos = (ScreenToTimelinePosition(timelineTargetRegion.GetBR().x));
 
@@ -822,7 +839,7 @@ namespace Editor
 
 	void TargetTimeline::UpdateAllInput()
 	{
-		if (!ImGui::IsWindowFocused())
+		if (!(updateInput = ImGui::IsWindowFocused()))
 			return;
 
 		UpdateInputPlaybackToggle();
@@ -844,10 +861,7 @@ namespace Editor
 		if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE) && pvEditor->GetIsPlayback())
 		{
 			if (pvEditor->GetIsPlayback())
-			{
 				pvEditor->StopPlayback();
-				CenterCursor();
-			}
 		}
 	}
 
@@ -968,28 +982,21 @@ namespace Editor
 		for (int type = 0; type < TargetType_Max; type++)
 			buttonAnimations[type].ElapsedTime += ImGui::GetIO().DeltaTime;
 
-		static struct { TargetType Type; int Key; } mapping[6]
-		{
-			{ TargetType_Sankaku, 'W'},
-			{ TargetType_Shikaku, 'A'},
-			{ TargetType_Batsu, 'S'},
-			{ TargetType_Maru, 'D'},
-			{ TargetType_SlideL, 'Q'},
-			{ TargetType_SlideR, 'E'},
-		};
-
 		TimelineTick cursorTick = RoundToGrid(GetCursorTick());
-		for (size_t i = 0; i < IM_ARRAYSIZE(mapping); i++)
+		for (size_t i = 0; i < IM_ARRAYSIZE(buttonPlacementMapping); i++)
 		{
-			if (ImGui::IsKeyPressed(mapping[i].Key, false))
-				PlaceOrRemoveTarget(cursorTick, mapping[i].Type);
+			if (ImGui::IsKeyPressed(buttonPlacementMapping[i].Key, false))
+			{
+				if (!checkHitsoundsInCallback)
+					audioController.PlayButtonSound();
+
+				PlaceOrRemoveTarget(cursorTick, buttonPlacementMapping[i].Type);
+			}
 		}
 	}
 
 	void TargetTimeline::PlaceOrRemoveTarget(TimelineTick tick, TargetType type)
 	{
-		audioController.PlayButtonSound();
-		
 		int64_t existingTarget = targets.FindIndex(tick, type);
 
 		if (existingTarget > -1)

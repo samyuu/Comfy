@@ -12,6 +12,20 @@ class Application;
 
 namespace Editor
 {
+	enum EditorColor
+	{
+		EditorColor_Bar,
+		EditorColor_Grid,
+		EditorColor_GridAlt,
+		EditorColor_Selection,
+		EditorColor_InfoColumn,
+		EditorColor_TempoMapBg,
+		EditorColor_TimelineBg,
+		EditorColor_TimelineRowSeparator,
+		EditorColor_Cursor,
+		EditorColor_Max,
+	};
+
 	namespace FileSystem = std::filesystem;
 
 	class PvEditor
@@ -57,6 +71,11 @@ namespace Editor
 		std::vector<std::unique_ptr<IEditorComponent>> editorComponents;
 		bool initialized = false;
 		// -------------
+
+		// Editor Colors:
+		// --------------
+		ImU32 editorColors[EditorColor_Max];
+		// --------------
 
 		// PV Properties:
 		// --------------

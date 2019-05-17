@@ -65,16 +65,20 @@ namespace Editor
 			UpdatePlayback();
 		}
 
-
-		// Audio API Test
+		// Update Colors:
 		// --------------
-		if (false)
 		{
-			if (parent->HasFocusBeenLost())
-				AudioEngine::GetInstance()->SetAudioApi(AUDIO_API_WASAPI);
-			else if (parent->HasFocusBeenGained())
-				AudioEngine::GetInstance()->SetAudioApi(AUDIO_API_ASIO);
+			editorColors[EditorColor_Grid] = ImGui::GetColorU32(ImGuiCol_Separator, .75f);
+			editorColors[EditorColor_GridAlt] = ImGui::GetColorU32(ImGuiCol_Separator, .5f);
+			editorColors[EditorColor_InfoColumn] = ImGui::GetColorU32(ImGuiCol_ScrollbarBg);
+			editorColors[EditorColor_TempoMapBg] = ImGui::GetColorU32(ImGuiCol_MenuBarBg);
+			editorColors[EditorColor_Selection] = ImGui::GetColorU32(ImGuiCol_TextSelectedBg);
+			editorColors[EditorColor_TimelineBg] = ImGui::GetColorU32(ImGuiCol_DockingEmptyBg);
+			editorColors[EditorColor_TimelineRowSeparator] = ImGui::GetColorU32(ImGuiCol_Separator);
+			editorColors[EditorColor_Bar] = ImGui::GetColorU32(ImGuiCol_PlotLines);
+			editorColors[EditorColor_Cursor] = ImColor(0.71f, 0.54f, 0.15f);
 		}
+		// --------------
 	}
 
 	void PvEditor::DrawGui()
@@ -191,5 +195,8 @@ namespace Editor
 	{
 		SetPlaybackTime(playbackTimeOnPlaybackStart);
 		PausePlayback();
+
+		for (const auto &component : editorComponents)
+			component->OnPlaybackStopped();
 	}
 }

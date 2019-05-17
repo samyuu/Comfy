@@ -15,6 +15,7 @@ namespace Editor
 
 		virtual void OnPlaybackResumed() {};
 		virtual void OnPlaybackPaused() {};
+		virtual void OnPlaybackStopped() {};
 
 		virtual void OnLoad() {};
 
