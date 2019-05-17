@@ -1,9 +1,9 @@
 #pragma once
 #include "BaseWindow.h"
 #include "Editor/Editor.h"
-#include "Rendering/VertexArray.h";
-#include "Rendering/VertexBuffer.h";
-#include "Rendering/RenderTarget.h";
+#include "Rendering/VertexArray.h"
+#include "Rendering/VertexBuffer.h"
+#include "Rendering/RenderTarget.h"
 #include "Rendering/ComfyVertex.h"
 #include "Rendering/Shader/ComfyShader.h"
 #include "Rendering/Shader/LineShader.h"

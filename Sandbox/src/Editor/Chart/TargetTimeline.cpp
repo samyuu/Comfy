@@ -283,7 +283,7 @@ namespace Editor
 
 		const float width = ImGui::CalcItemWidth();
 
-		if (ImGui::Button("Add Tempo Change", ImVec2(width, 0)))
+		if (ImGui::Button("Set Tempo Change", ImVec2(width, 0)))
 		{
 			TimelineTick cursorTick = RoundToGrid(GetCursorTick());
 
@@ -406,7 +406,7 @@ namespace Editor
 		ImGui::PopItemWidth();
 
 		ImGui::SameLine();
-		if (ImGui::Button("Load Song"))
+		if (ImGui::Button("Load Test Song"))
 		{
 			pvEditor->Load(testSongPath);
 		}
@@ -989,9 +989,10 @@ namespace Editor
 	void TargetTimeline::PlaceOrRemoveTarget(TimelineTick tick, TargetType type)
 	{
 		audioController.PlayButtonSound();
+		
+		int64_t existingTarget = targets.FindIndex(tick, type);
 
-		TargetIterator existingTarget = targets.Find(tick, type);
-		if (existingTarget != targets.end())
+		if (existingTarget > -1)
 		{
 			if (!pvEditor->GetIsPlayback())
 				targets.Remove(existingTarget);

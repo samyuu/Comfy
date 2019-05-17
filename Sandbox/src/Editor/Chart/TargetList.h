@@ -1,11 +1,12 @@
 #pragma once
 #include "TimelineTick.h"
-#include <set>
 #include <glm/vec2.hpp>
+#include <vector>
 
 namespace Editor
 {
-	enum TargetType : int16_t
+	typedef int16_t TargetType;
+	enum TargetType_Enum : TargetType
 	{
 		TargetType_Sankaku,
 		TargetType_Shikaku,
@@ -16,7 +17,8 @@ namespace Editor
 		TargetType_Max,
 	};
 
-	enum TargetFlags : int16_t
+	typedef int16_t TargetFlags;
+	enum TargetFlags_Enum : TargetFlags
 	{
 		// Subject to change
 		TargetFlags_None = 0,
@@ -50,6 +52,7 @@ namespace Editor
 		// -------------
 		TimelineTarget();
 		TimelineTarget(TimelineTick, TargetType);
+		TimelineTarget(const TimelineTarget&);
 		// -------------
 
 		// Operators:
@@ -60,19 +63,24 @@ namespace Editor
 		// ----------
 	};
 
-	using TargetMultiset = std::multiset<TimelineTarget>;
-	using TargetIterator = TargetMultiset::iterator;
-	using ConstTargetIterator = TargetMultiset::const_iterator;
+	using TargetCollection = std::vector<TimelineTarget>;
+	using TargetIterator = TargetCollection::iterator;
+	using ConstTargetIterator = TargetCollection::const_iterator;
 
 	class TargetList
 	{
 	public:
+		// Constructors:
+		// -------------
+		TargetList();
+
 		// Access Methods:
 		// ---------------
 		void Add(TimelineTick, TargetType);
-		void Remove(TargetIterator);
+		void Remove(int64_t index);
 		void Remove(TimelineTick, TargetType);
-		TargetIterator Find(TimelineTick, TargetType);
+		int64_t FindIndex(TimelineTick, TargetType);
+		int64_t Count();
 		// ---------------
 
 		// Iterators:
@@ -86,6 +94,9 @@ namespace Editor
 		// ----------
 
 	private:
-		TargetMultiset collection;
+		TargetCollection collection;
+
+		void SetTargetSyncFlagsAround(int64_t index);
+		void SetTargetSyncFlags(int64_t start = -1, int64_t end = -1);
 	};
 }

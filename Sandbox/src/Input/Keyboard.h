@@ -2,7 +2,7 @@
 #include "IInputDevice.h"
 #include "glfw/glfw3.h"
 
-class GLFWwindow;
+struct GLFWwindow;
 
 constexpr size_t KEY_COUNT = GLFW_KEY_LAST;
 typedef int KeyCode;

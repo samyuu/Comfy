@@ -877,7 +877,7 @@ void Application::DrawGui()
 			if (ImGui::Begin("Render Window"))
 			{
 				ImGuiWindow* currentWindow = ImGui::GetCurrentWindow();
-				const int titleBarHeight = currentWindow->TitleBarHeight();
+				const int titleBarHeight = static_cast<int>(currentWindow->TitleBarHeight());
 				renderWindowHidden = currentWindow->Hidden;
 
 				renderWindowResized = (renderWindowSize.x != lastRenderWindowSize.x) || (renderWindowSize.y != lastRenderWindowSize.y);
@@ -892,8 +892,8 @@ void Application::DrawGui()
 
 				renderWindowHover = !renderWindowTitleHover && ImGui::IsWindowHovered();
 
-				renderWindowPos.y += titleBarHeight;
-				renderWindowSize.y -= titleBarHeight;
+				renderWindowPos.y += static_cast<float>(titleBarHeight);
+				renderWindowSize.y -= static_cast<float>(titleBarHeight);
 
 				if (ImGui::IsWindowFocused() && !renderWindowTitleHover)
 				{
@@ -918,21 +918,21 @@ void Application::DrawGui()
 					if (outputAspect <= targetAspectRatio)
 					{
 						// output is taller than it is wider, bars on top/bottom
-						int presentHeight = (int)((renderWindowSize.x / targetAspectRatio) + 0.5f);
-						int barHeight = (renderWindowSize.y - presentHeight) / 2;
+						int presentHeight = static_cast<int>((renderWindowSize.x / targetAspectRatio) + 0.5f);
+						int barHeight = static_cast<int>((renderWindowSize.y - presentHeight) / 2);
 
-						renderWindowPos.y += barHeight;
-						renderWindowSize.y = presentHeight;
+						renderWindowPos.y += static_cast<float>(barHeight);
+						renderWindowSize.y = static_cast<float>(presentHeight);
 						//RenderRectangle = new Rectangle(0, barHeight, renderWindowSize.x, presentHeight);
 					}
 					else
 					{
 						// output is wider than it is tall, bars left/right
-						int presentWidth = (int)((renderWindowSize.y * targetAspectRatio) + 0.5f);
-						int barWidth = (renderWindowSize.x - presentWidth) / 2;
+						int presentWidth = static_cast<int>((renderWindowSize.y * targetAspectRatio) + 0.5f);
+						int barWidth = static_cast<int>((renderWindowSize.x - presentWidth) / 2);
 
-						renderWindowPos.x += barWidth;
-						renderWindowSize.x = presentWidth;
+						renderWindowPos.x += static_cast<int>(barWidth);
+						renderWindowSize.x = static_cast<int>(presentWidth);
 						//RenderRectangle = new Rectangle(barWidth, 0, presentWidth, renderWindowSize.y);
 					}
 				}
