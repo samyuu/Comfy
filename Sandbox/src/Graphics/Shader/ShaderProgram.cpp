@@ -53,10 +53,10 @@ void ShaderProgram::Initialize()
 	char sourceBuffer[4096];
 
 	GetShaderSource(GetVertexShaderPath(), sourceBuffer, sizeof(sourceBuffer));
-	CompileShader(SHADER_TYPE_VERTEX, &vertexShader, sourceBuffer);
+	CompileShader(ShaderType::Vertex, &vertexShader, sourceBuffer);
 
 	GetShaderSource(GetFragmentShaderPath(), sourceBuffer, sizeof(sourceBuffer));
-	CompileShader(SHADER_TYPE_FRAGMENT, &fragmentShader, sourceBuffer);
+	CompileShader(ShaderType::Fragment, &fragmentShader, sourceBuffer);
 
 	programID = glCreateProgram();
 	AttachLinkShaders(vertexShader, fragmentShader);
@@ -93,11 +93,11 @@ int ShaderProgram::CompileShader(ShaderType shaderType, ShaderID_t* shaderID, co
 
 	switch (shaderType)
 	{
-	case SHADER_TYPE_VERTEX:
+	case ShaderType::Vertex:
 		glShaderType = GL_VERTEX_SHADER;
 		break;
 	
-	case SHADER_TYPE_FRAGMENT:
+	case ShaderType::Fragment:
 		glShaderType = GL_FRAGMENT_SHADER;
 		break;
 	}

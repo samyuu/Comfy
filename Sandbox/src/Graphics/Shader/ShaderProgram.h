@@ -5,10 +5,9 @@ typedef GLint UniformLocation_t;
 typedef GLuint ShaderID_t;
 typedef GLuint ProgramID_t;
 
-enum ShaderType 
+enum class ShaderType
 {
-	SHADER_TYPE_VERTEX, 
-	SHADER_TYPE_FRAGMENT,
+	Vertex, Fragment
 };
 
 class ShaderProgram
