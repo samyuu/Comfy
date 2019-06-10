@@ -476,7 +476,7 @@ void Application::UpdatePollInput()
 		if (!DualShock4::GetInstance()->PollInput())
 		{
 			DualShock4::DeleteInstance();
-			printf("Application::UpdatePollInput(): DualShock4 connection lost\n");
+			Logger::LogLine("Application::UpdatePollInput(): DualShock4 connection lost");
 		}
 	}
 }
@@ -676,7 +676,7 @@ void Application::DrawGui()
 				}
 
 				if (ImGui::MenuItem("Test Print", nullptr))
-					printf("DrawGui(): Test\n");
+					Logger::LogLine("DrawGui(): Test");
 
 				ImGui::MenuItem("Show Comfy Debug", nullptr, &showComfyDebug);
 				ImGui::MenuItem("Show Demo Window", nullptr, &showDemoWindow);

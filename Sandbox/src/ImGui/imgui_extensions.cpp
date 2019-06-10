@@ -1,5 +1,5 @@
 #include "imgui_extensions.h"
-#include "../Rendering/Texture.h"
+#include "../Graphics/Texture.h"
 
 namespace ImGui
 {

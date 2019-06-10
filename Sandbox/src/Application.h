@@ -1,17 +1,18 @@
 #pragma once
 #include "BaseWindow.h"
 #include "Editor/Editor.h"
-#include "Rendering/VertexArray.h"
-#include "Rendering/VertexBuffer.h"
-#include "Rendering/RenderTarget.h"
-#include "Rendering/ComfyVertex.h"
-#include "Rendering/Shader/ComfyShader.h"
-#include "Rendering/Shader/LineShader.h"
-#include "Rendering/Shader/ScreenShader.h"
-#include "Rendering/Texture.h"
-#include "Rendering/Camera.h"
+#include "Graphics/VertexArray.h"
+#include "Graphics/VertexBuffer.h"
+#include "Graphics/RenderTarget.h"
+#include "Graphics/ComfyVertex.h"
+#include "Graphics/Shader/ComfyShader.h"
+#include "Graphics/Shader/LineShader.h"
+#include "Graphics/Shader/ScreenShader.h"
+#include "Graphics/Texture.h"
+#include "Graphics/Camera.h"
 #include "Audio/AudioEngine.h"
 #include "TimeSpan.h"
+#include "Logger.h"
 
 constexpr float DEFAULT_WINDOW_WIDTH = 1280.0f;
 constexpr float DEFAULT_WINDOW_HEIGHT = 720.0f;

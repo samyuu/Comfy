@@ -6,7 +6,7 @@
 #include "../../Audio/MemoryAudioStream.h"
 #include "../../Audio/Waveform.h"
 #include "../../BaseWindow.h"
-#include "../../Rendering/Texture.h"
+#include "../../Graphics/Texture.h"
 #include "../AudioController.h"
 #include "TimelineMap.h"
 #include "TargetList.h"
@@ -15,7 +15,12 @@
 namespace Editor
 {
 	enum EditorColor;
-	enum VisibilityType { VisibilityType_Visible, VisibilityType_Left, VisibilityType_Right };
+	enum VisibilityType 
+	{ 
+		VisibilityType_Visible, 
+		VisibilityType_Left,
+		VisibilityType_Right 
+	};
 
 	class TargetTimeline : public IEditorComponent, public ICallbackReceiver
 	{
@@ -52,7 +57,16 @@ namespace Editor
 		};
 		// ----------------------
 
+		// ImGui Data:
+		// -----------
+		struct
+		{
+			ImGuiIO* io;
+		};
+		// -----------
+
 		// Timeline Regions:
+		// -----------------
 		ImRect timelineRegion;
 		ImRect infoColumnHeaderRegion;
 		ImRect infoColumnRegion;
@@ -121,6 +135,11 @@ namespace Editor
 			// fraction of the timeline width at which the timeline starts scrolling relative to the cursor
 			const float autoScrollOffsetFraction = 4.0f;
 			TimeSpan cursorTime;
+
+			// --------------
+			bool timeSelectionActive = false;
+			TimelineTick timeSelectionStart, timeSelectionEnd;
+			// --------------
 		};
 
 		// Timeline Button Animation:
@@ -190,6 +209,7 @@ namespace Editor
 		void DrawTimelineTempoMap();
 		void DrawTimelineTargets();
 		void DrawTimelineCursor();
+		void DrawTimeSelection();
 		void Update();
 		void UpdateCursorAutoScroll();
 		void UpdateAllInput();
@@ -231,6 +251,7 @@ namespace Editor
 		TimeSpan GetTimelineTime(float position);
 
 		TimelineTick GetCursorTick();
+		TimelineTick GetCursorMouseXTick();
 		TimeSpan GetCursorTime();
 
 		float ScreenToTimelinePosition(float screenPosition);

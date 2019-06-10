@@ -95,6 +95,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lib\stb\src\stb_image_write.cpp" />
+    <ClCompile Include="src\FileSystem\BinaryReader.cpp" />
+    <ClCompile Include="src\FileSystem\File\SprSet.cpp" />
+    <ClCompile Include="src\FileSystem\File\TxpSet.cpp" />
+    <ClCompile Include="src\FileSystem\MemoryStream.cpp" />
+    <ClCompile Include="src\FileSystem\FileStream.cpp" />
+    <ClCompile Include="src\Graphics\Utilities\decompress.cpp" />
+    <ClCompile Include="src\Graphics\Utilities\s3tc.cpp" />
+    <ClCompile Include="src\Logger.cpp" />
     <ClCompile Include="src\Audio\Decoder\dr_flac.cpp" />
     <ClCompile Include="src\Audio\Decoder\dr_mp3.cpp" />
     <ClCompile Include="src\Audio\Decoder\dr_wav.cpp" />
@@ -118,14 +127,16 @@
     <ClCompile Include="src\Input\DirectInput\Ds4State.cpp" />
     <ClCompile Include="src\Input\DirectInput\DualShock4.cpp" />
     <ClCompile Include="src\Input\Keyboard.cpp" />
-    <ClCompile Include="src\Rendering\Renderbuffer.cpp" />
-    <ClCompile Include="src\Rendering\RenderTarget.cpp" />
-    <ClCompile Include="src\Rendering\Framebuffer.cpp" />
-    <ClCompile Include="src\Rendering\Shader\LineShader.cpp" />
+    <ClCompile Include="src\FileSystem\File\AetSet.cpp" />
+    <ClCompile Include="src\main_test.cpp" />
+    <ClCompile Include="src\Graphics\Renderbuffer.cpp" />
+    <ClCompile Include="src\Graphics\RenderTarget.cpp" />
+    <ClCompile Include="src\Graphics\Framebuffer.cpp" />
+    <ClCompile Include="src\Graphics\Shader\LineShader.cpp" />
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="lib\stb\src\stb_image.cpp" />
-    <ClCompile Include="src\Rendering\Camera.cpp" />
-    <ClCompile Include="src\Rendering\Shader\ComfyShader.cpp" />
+    <ClCompile Include="src\Graphics\Camera.cpp" />
+    <ClCompile Include="src\Graphics\Shader\ComfyShader.cpp" />
     <ClCompile Include="lib\glad\src\glad.c" />
     <ClCompile Include="src\ImGui\imgui.cpp" />
     <ClCompile Include="src\ImGui\imgui_demo.cpp" />
@@ -139,20 +150,31 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Shader\ScreenShader.cpp" />
-    <ClCompile Include="src\Rendering\Shader\ShaderProgram.cpp" />
+    <ClCompile Include="src\Graphics\Shader\ScreenShader.cpp" />
+    <ClCompile Include="src\Graphics\Shader\ShaderProgram.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Rendering\Texture.cpp" />
-    <ClCompile Include="src\Rendering\VertexArray.cpp" />
-    <ClCompile Include="src\Rendering\VertexBuffer.cpp" />
+    <ClCompile Include="src\Graphics\Texture.cpp" />
+    <ClCompile Include="src\Graphics\VertexArray.cpp" />
+    <ClCompile Include="src\Graphics\VertexBuffer.cpp" />
     <ClCompile Include="src\Editor\TestComponent.cpp" />
     <ClCompile Include="src\Editor\Chart\TargetTimeline.cpp" />
     <ClCompile Include="src\Editor\Chart\TempoMap.cpp" />
     <ClCompile Include="src\Editor\Chart\TimelineMap.cpp" />
     <ClCompile Include="src\Audio\Waveform.cpp" />
     <ClCompile Include="src\TimeSpan.cpp" />
+    <ClCompile Include="src\FileSystem\Stream.cpp" />
+    <ClCompile Include="src\Graphics\Utilities\TextureUtilities.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\FileSystem\BinaryReader.h" />
+    <ClInclude Include="src\FileSystem\FileInterface.h" />
+    <ClInclude Include="src\FileSystem\File\SprSet.h" />
+    <ClInclude Include="src\FileSystem\File\TxpSet.h" />
+    <ClInclude Include="src\FileSystem\MemoryStream.h" />
+    <ClInclude Include="src\FileSystem\FileStream.h" />
+    <ClInclude Include="src\Graphics\Utilities\decompress.h" />
+    <ClInclude Include="src\Graphics\Utilities\s3tc.h" />
+    <ClInclude Include="src\Logger.h" />
     <ClInclude Include="src\Audio\Decoder\dr_flac.h" />
     <ClInclude Include="src\Audio\Decoder\dr_mp3.h" />
     <ClInclude Include="src\Audio\Decoder\dr_wav.h" />
@@ -182,14 +204,15 @@
     <ClInclude Include="src\Input\DirectInput\DualShock4.h" />
     <ClInclude Include="src\Input\IInputDevice.h" />
     <ClInclude Include="src\Input\Keyboard.h" />
-    <ClInclude Include="src\Rendering\Renderbuffer.h" />
-    <ClInclude Include="src\Rendering\RenderTarget.h" />
-    <ClInclude Include="src\Rendering\Framebuffer.h" />
-    <ClInclude Include="src\Rendering\Shader\LineShader.h" />
+    <ClInclude Include="src\FileSystem\File\AetSet.h" />
+    <ClInclude Include="src\Graphics\Renderbuffer.h" />
+    <ClInclude Include="src\Graphics\RenderTarget.h" />
+    <ClInclude Include="src\Graphics\Framebuffer.h" />
+    <ClInclude Include="src\Graphics\Shader\LineShader.h" />
     <ClInclude Include="src\Application.h" />
-    <ClInclude Include="src\Rendering\Camera.h" />
-    <ClInclude Include="src\Rendering\Shader\ComfyShader.h" />
-    <ClInclude Include="src\Rendering\ComfyVertex.h" />
+    <ClInclude Include="src\Graphics\Camera.h" />
+    <ClInclude Include="src\Graphics\Shader\ComfyShader.h" />
+    <ClInclude Include="src\Graphics\ComfyVertex.h" />
     <ClInclude Include="src\ImGui\imconfig.h" />
     <ClInclude Include="src\ImGui\imgui.h" />
     <ClInclude Include="src\ImGui\imgui_impl_glfw.h" />
@@ -199,17 +222,19 @@
     <ClInclude Include="src\ImGui\imstb_textedit.h" />
     <ClInclude Include="src\ImGui\imstb_truetype.h" />
     <ClInclude Include="src\pch.h" />
-    <ClInclude Include="src\Rendering\Shader\ScreenShader.h" />
-    <ClInclude Include="src\Rendering\Shader\ShaderProgram.h" />
-    <ClInclude Include="src\Rendering\Texture.h" />
-    <ClInclude Include="src\Rendering\VertexArray.h" />
-    <ClInclude Include="src\Rendering\VertexBuffer.h" />
+    <ClInclude Include="src\Graphics\Shader\ScreenShader.h" />
+    <ClInclude Include="src\Graphics\Shader\ShaderProgram.h" />
+    <ClInclude Include="src\Graphics\Texture.h" />
+    <ClInclude Include="src\Graphics\VertexArray.h" />
+    <ClInclude Include="src\Graphics\VertexBuffer.h" />
     <ClInclude Include="src\Editor\TestComponent.h" />
     <ClInclude Include="src\Editor\Chart\TargetTimeline.h" />
     <ClInclude Include="src\TimeSpan.h" />
     <ClInclude Include="src\Editor\Chart\TempoMap.h" />
     <ClInclude Include="src\Editor\Chart\TimelineMap.h" />
     <ClInclude Include="src\Audio\Waveform.h" />
+    <ClInclude Include="src\FileSystem\Stream.h" />
+    <ClInclude Include="src\Graphics\Utilities\TextureUtilities.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="rom\shader\line_frag.glsl" />

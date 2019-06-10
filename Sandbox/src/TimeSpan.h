@@ -84,3 +84,17 @@ private:
 	// ---------------
 	double time; 
 };
+
+#define CONCAT_(x,y) x##y
+#define CONCAT(x,y) CONCAT_(x,y)
+#define uniquename(prefix) CONCAT(prefix, __COUNTER__)
+#define DEBUG_STOPWATCH(description) DebugStopwatch uniquename(__DEBUG_STOPWATCH)(description)
+
+struct DebugStopwatch
+{
+	DebugStopwatch(const char* description);
+	~DebugStopwatch();
+
+	const char* Description;
+	TimeSpan TimeOnStart;
+};

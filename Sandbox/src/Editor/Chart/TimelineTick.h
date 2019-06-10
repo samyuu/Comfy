@@ -9,13 +9,10 @@ namespace Editor
 	{
 		// Static Constants:
 		// -----------------
-		static const int32_t TICKS_PER_BAR = 192 * 4;
-		static const int32_t TICKS_PER_BEAT = TICKS_PER_BAR / 4;
+		static const int32_t TICKS_PER_BEAT = 192;
 
 		static inline TimelineTick ZeroTick() { return TimelineTick(0); };
-		static inline TimelineTick OneBar() { return FromBars(1); };
 
-		static inline TimelineTick FromBars(int32_t bars) { return FromTicks(TICKS_PER_BAR * bars); };
 		static inline TimelineTick FromBeats(int32_t bars) { return FromTicks(TICKS_PER_BEAT * bars); };
 		static inline TimelineTick FromTicks(int32_t ticks) { return TimelineTick(ticks); };
 
@@ -30,27 +27,15 @@ namespace Editor
 		// -------------------
 
 		// Total tick count
-		inline int32_t TotalTicks()
+		inline int32_t TotalTicks() const
 		{
 			return tickCount;
 		}
 
-		// Total bar count
-		inline int32_t TotalBars()
+		// Total beat count
+		inline int32_t TotalBeats() const
 		{
-			return TotalTicks() / TICKS_PER_BAR;
-		}
-
-		// Fraction bar count
-		inline int32_t Bars()
-		{
-			return TotalBars() % TICKS_PER_BAR;
-		}
-
-		// Fraction tick count
-		inline int32_t Ticks()
-		{
-			return TotalTicks() % TICKS_PER_BAR;
+			return TotalTicks() / TICKS_PER_BEAT;
 		}
 
 		// -------------------

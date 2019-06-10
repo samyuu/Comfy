@@ -47,6 +47,9 @@ TestResult.xml
 [Rr]eleasePS/
 dlldata.c
 
+# Sandbox development files
+dev_ram/
+
 # AudioTest files
 AudioTest/rom
 
