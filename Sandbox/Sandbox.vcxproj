@@ -130,9 +130,7 @@
     <ClCompile Include="src\Input\Keyboard.cpp" />
     <ClCompile Include="src\FileSystem\File\AetSet.cpp" />
     <ClCompile Include="src\main_test.cpp" />
-    <ClCompile Include="src\Graphics\Renderbuffer.cpp" />
     <ClCompile Include="src\Graphics\RenderTarget.cpp" />
-    <ClCompile Include="src\Graphics\Framebuffer.cpp" />
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="lib\stb\src\stb_image.cpp" />
     <ClCompile Include="src\Graphics\Camera.cpp" />
@@ -204,9 +202,7 @@
     <ClInclude Include="src\Input\IInputDevice.h" />
     <ClInclude Include="src\Input\Keyboard.h" />
     <ClInclude Include="src\FileSystem\File\AetSet.h" />
-    <ClInclude Include="src\Graphics\Renderbuffer.h" />
     <ClInclude Include="src\Graphics\RenderTarget.h" />
-    <ClInclude Include="src\Graphics\Framebuffer.h" />
     <ClInclude Include="src\Application.h" />
     <ClInclude Include="src\Graphics\Camera.h" />
     <ClInclude Include="src\Graphics\ComfyVertex.h" />
