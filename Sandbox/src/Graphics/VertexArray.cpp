@@ -1,4 +1,5 @@
 #include "VertexArray.h"
+#include "Buffer.h"
 
 VertexArray::VertexArray()
 {
@@ -22,6 +23,19 @@ void VertexArray::Bind()
 void VertexArray::UnBind()
 {
 	glBindVertexArray(NULL);
+}
+
+void VertexArray::SetLayout(const BufferLayout& layout)
+{
+	const auto& elements = layout.GetElemenets();
+
+	for (size_t i = 0; i < elements.size(); i++)
+	{
+		const auto& element = elements[i];
+		
+		glEnableVertexAttribArray(i);
+		glVertexAttribPointer(i, element.GetElementCount(), element.GetDataType(), element.GetIsNormalized(), layout.GetStride(), element.GetOffset());
+	}
 }
 
 void VertexArray::Dispose()

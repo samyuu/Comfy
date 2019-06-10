@@ -313,59 +313,62 @@ void Application::InitializeApp()
 	// Cube Vertex Data
 	// ----------------
 	{
+		comfyShader.Initialize();
+
 		cubeVertexBuffer.Initialize();
 		cubeVertexBuffer.Bind();
 		cubeVertexBuffer.BufferData(cubeVertices, sizeof(cubeVertices), GL_STATIC_DRAW);
 
+		BufferLayout layout =
+		{
+			{ ShaderDataType::Vec3, "in_position" },
+			{ ShaderDataType::Vec2, "in_texture_coords" },
+			{ ShaderDataType::Vec4, "in_color" },
+		};
+
 		cubeVao.Initialize();
 		cubeVao.Bind();
-
-		int attribPointerIndex = 0;
-		glVertexAttribPointer(attribPointerIndex++, vec3::length(), GL_FLOAT, GL_FALSE, sizeof(ComfyVertex), (void*)offsetof(ComfyVertex, Position));
-		glVertexAttribPointer(attribPointerIndex++, vec2::length(), GL_FLOAT, GL_FALSE, sizeof(ComfyVertex), (void*)offsetof(ComfyVertex, TextureCoordinates));
-		glVertexAttribPointer(attribPointerIndex++, vec4::length(), GL_FLOAT, GL_FALSE, sizeof(ComfyVertex), (void*)offsetof(ComfyVertex, Color));
-		for (size_t i = 0; i < attribPointerIndex; i++)
-			glEnableVertexAttribArray(i);
-
-		comfyShader.Initialize();
+		cubeVao.SetLayout(layout);
 	}
 
 	// Line Vertex Data
 	// ----------------
 	{
+		lineShader.Initialize();
+
 		lineVertexBuffer.Initialize();
 		lineVertexBuffer.Bind();
 		lineVertexBuffer.BufferData(axisVertices, sizeof(axisVertices), GL_STATIC_DRAW);
 
+		BufferLayout layout =
+		{
+			{ ShaderDataType::Vec3, "in_position" },
+			{ ShaderDataType::Vec4, "in_color" },
+		};
+
 		lineVao.Initialize();
 		lineVao.Bind();
-
-		int attribPointerIndex = 0;
-		glVertexAttribPointer(attribPointerIndex++, vec3::length(), GL_FLOAT, GL_FALSE, sizeof(LineVertex), (void*)offsetof(LineVertex, Position));
-		glVertexAttribPointer(attribPointerIndex++, vec4::length(), GL_FLOAT, GL_FALSE, sizeof(LineVertex), (void*)offsetof(LineVertex, Color));
-		for (size_t i = 0; i < attribPointerIndex; i++)
-			glEnableVertexAttribArray(i);
-
-		lineShader.Initialize();
+		lineVao.SetLayout(layout);
 	}
 
 	// Screen Vertex Data
 	// ------------------
 	{
+		screenShader.Initialize();
+
 		screenVertexBuffer.Initialize();
 		screenVertexBuffer.Bind();
 		screenVertexBuffer.BufferData(screenVertices, sizeof(screenVertices), GL_STATIC_DRAW);
 
+		BufferLayout layout =
+		{
+			{ ShaderDataType::Vec2, "in_position" },
+			{ ShaderDataType::Vec2, "in_texture_coords" },
+		};
+
 		screenVao.Initialize();
 		screenVao.Bind();
-
-		int attribPointerIndex = 0;
-		glVertexAttribPointer(attribPointerIndex++, vec2::length(), GL_FLOAT, GL_FALSE, sizeof(ScreenVertex), (void*)offsetof(ScreenVertex, Position));
-		glVertexAttribPointer(attribPointerIndex++, vec2::length(), GL_FLOAT, GL_FALSE, sizeof(ScreenVertex), (void*)offsetof(ScreenVertex, TextureCoordinates));
-		for (size_t i = 0; i < attribPointerIndex; i++)
-			glEnableVertexAttribArray(i);
-
-		screenShader.Initialize();
+		screenVao.SetLayout(layout);
 	}
 
 	// Render Targets
