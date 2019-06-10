@@ -29,4 +29,6 @@ namespace ImGui
 	{
 		drawList->AddRectFilled(rect.GetTL(), rect.GetBR(), color);
 	}
+
+	void StyleComfy(ImGuiStyle* dst = nullptr);
 }
