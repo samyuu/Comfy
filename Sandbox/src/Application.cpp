@@ -317,7 +317,7 @@ void Application::InitializeApp()
 
 		cubeVertexBuffer.Initialize();
 		cubeVertexBuffer.Bind();
-		cubeVertexBuffer.BufferData(cubeVertices, sizeof(cubeVertices), GL_STATIC_DRAW);
+		cubeVertexBuffer.BufferData(cubeVertices, sizeof(cubeVertices), BufferUsage::StaticDraw);
 
 		BufferLayout layout =
 		{
@@ -338,7 +338,7 @@ void Application::InitializeApp()
 
 		lineVertexBuffer.Initialize();
 		lineVertexBuffer.Bind();
-		lineVertexBuffer.BufferData(axisVertices, sizeof(axisVertices), GL_STATIC_DRAW);
+		lineVertexBuffer.BufferData(axisVertices, sizeof(axisVertices), BufferUsage::StaticDraw);
 
 		BufferLayout layout =
 		{
@@ -358,7 +358,7 @@ void Application::InitializeApp()
 
 		screenVertexBuffer.Initialize();
 		screenVertexBuffer.Bind();
-		screenVertexBuffer.BufferData(screenVertices, sizeof(screenVertices), GL_STATIC_DRAW);
+		screenVertexBuffer.BufferData(screenVertices, sizeof(screenVertices), BufferUsage::StaticDraw);
 
 		BufferLayout layout =
 		{

@@ -6,8 +6,19 @@
 // ------------------------------------------------------------------------------------------------
 
 typedef GLuint VertexBufferID_t;
-typedef GLenum BufferTarget_t;
-typedef GLenum BufferUsage_t;
+
+enum class BufferUsage
+{
+	StreamDraw,
+	StreamRead,
+	StreamCopy,
+	StaticDraw,
+	StaticRead,
+	StaticCopy,
+	DynamicDraw,
+	DynamicRead,
+	DynamicCopy,
+};
 
 class VertexBuffer
 {
@@ -17,15 +28,17 @@ public:
 	VertexBuffer(const VertexBuffer&) = delete;
 
 	void Initialize();
-	void BufferData(void* data, size_t dataSize, BufferUsage_t usage);
+	void BufferData(void* data, size_t dataSize, BufferUsage usage);
 
 	void Bind();
 	void UnBind();
 
 protected:
 	VertexBufferID_t vertexBufferID = NULL;
-
-	inline BufferTarget_t GetBufferTarget() { return GL_ARRAY_BUFFER; };
+	BufferUsage bufferUsage;
+	
+	GLenum GetGLUsage() const;
+	GLenum GetGLBufferTarget() const;
 	void Dispose();
 };
 

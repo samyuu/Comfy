@@ -18,19 +18,52 @@ void VertexBuffer::Initialize()
 	glGenBuffers(1, &vertexBufferID);
 }
 
-void VertexBuffer::BufferData(void* data, size_t dataSize, BufferUsage_t usage)
+void VertexBuffer::BufferData(void* data, size_t dataSize, BufferUsage usage)
 {
-	glBufferData(GetBufferTarget(), dataSize, data, usage);
+	bufferUsage = usage;
+	glBufferData(GetGLBufferTarget(), dataSize, data, GetGLUsage());
 }
 
 void VertexBuffer::Bind()
 {
-	glBindBuffer(GetBufferTarget(), vertexBufferID);
+	glBindBuffer(GetGLBufferTarget(), vertexBufferID);
 }
 
 void VertexBuffer::UnBind()
 {
-	glBindBuffer(GetBufferTarget(), NULL);
+	glBindBuffer(GetGLBufferTarget(), NULL);
+}
+
+GLenum VertexBuffer::GetGLUsage() const
+{
+	switch (bufferUsage)
+	{
+	case BufferUsage::StreamDraw:
+		return GL_STREAM_DRAW;
+	case BufferUsage::StreamRead:
+		return GL_STREAM_READ;
+	case BufferUsage::StreamCopy:
+		return GL_STREAM_COPY;
+	case BufferUsage::StaticDraw:
+		return GL_STATIC_DRAW;
+	case BufferUsage::StaticRead:
+		return GL_STATIC_READ;
+	case BufferUsage::StaticCopy:
+		return GL_STATIC_COPY;
+	case BufferUsage::DynamicDraw:
+		return GL_DYNAMIC_DRAW;
+	case BufferUsage::DynamicRead:
+		return GL_DYNAMIC_READ;
+	case BufferUsage::DynamicCopy:
+		return GL_DYNAMIC_COPY;
+	default:
+		assert(false);
+	}
+}
+
+GLenum VertexBuffer::GetGLBufferTarget() const
+{
+	return GL_ARRAY_BUFFER;
 }
 
 void VertexBuffer::Dispose()
