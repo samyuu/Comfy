@@ -24,3 +24,9 @@ protected:
 	inline BufferTarget_t GetBufferTarget() { return GL_ARRAY_BUFFER; };
 	void Dispose();
 };
+
+// TODO: 
+// class IndexBuffer
+// {
+// 
+// };

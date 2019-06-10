@@ -101,6 +101,7 @@
     <ClCompile Include="src\FileSystem\File\TxpSet.cpp" />
     <ClCompile Include="src\FileSystem\MemoryStream.cpp" />
     <ClCompile Include="src\FileSystem\FileStream.cpp" />
+    <ClCompile Include="src\Graphics\Shader\Shader.cpp" />
     <ClCompile Include="src\Graphics\Utilities\decompress.cpp" />
     <ClCompile Include="src\Graphics\Utilities\s3tc.cpp" />
     <ClCompile Include="src\Logger.cpp" />
@@ -132,11 +133,9 @@
     <ClCompile Include="src\Graphics\Renderbuffer.cpp" />
     <ClCompile Include="src\Graphics\RenderTarget.cpp" />
     <ClCompile Include="src\Graphics\Framebuffer.cpp" />
-    <ClCompile Include="src\Graphics\Shader\LineShader.cpp" />
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="lib\stb\src\stb_image.cpp" />
     <ClCompile Include="src\Graphics\Camera.cpp" />
-    <ClCompile Include="src\Graphics\Shader\ComfyShader.cpp" />
     <ClCompile Include="lib\glad\src\glad.c" />
     <ClCompile Include="src\ImGui\imgui.cpp" />
     <ClCompile Include="src\ImGui\imgui_demo.cpp" />
@@ -150,12 +149,11 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Shader\ScreenShader.cpp" />
     <ClCompile Include="src\Graphics\Shader\ShaderProgram.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Graphics\Texture.cpp" />
     <ClCompile Include="src\Graphics\VertexArray.cpp" />
-    <ClCompile Include="src\Graphics\VertexBuffer.cpp" />
+    <ClCompile Include="src\Graphics\Buffer.cpp" />
     <ClCompile Include="src\Editor\TestComponent.cpp" />
     <ClCompile Include="src\Editor\Chart\TargetTimeline.cpp" />
     <ClCompile Include="src\Editor\Chart\TempoMap.cpp" />
@@ -172,6 +170,7 @@
     <ClInclude Include="src\FileSystem\File\TxpSet.h" />
     <ClInclude Include="src\FileSystem\MemoryStream.h" />
     <ClInclude Include="src\FileSystem\FileStream.h" />
+    <ClInclude Include="src\Graphics\Shader\Shader.h" />
     <ClInclude Include="src\Graphics\Utilities\decompress.h" />
     <ClInclude Include="src\Graphics\Utilities\s3tc.h" />
     <ClInclude Include="src\Logger.h" />
@@ -208,10 +207,8 @@
     <ClInclude Include="src\Graphics\Renderbuffer.h" />
     <ClInclude Include="src\Graphics\RenderTarget.h" />
     <ClInclude Include="src\Graphics\Framebuffer.h" />
-    <ClInclude Include="src\Graphics\Shader\LineShader.h" />
     <ClInclude Include="src\Application.h" />
     <ClInclude Include="src\Graphics\Camera.h" />
-    <ClInclude Include="src\Graphics\Shader\ComfyShader.h" />
     <ClInclude Include="src\Graphics\ComfyVertex.h" />
     <ClInclude Include="src\ImGui\imconfig.h" />
     <ClInclude Include="src\ImGui\imgui.h" />
@@ -222,11 +219,10 @@
     <ClInclude Include="src\ImGui\imstb_textedit.h" />
     <ClInclude Include="src\ImGui\imstb_truetype.h" />
     <ClInclude Include="src\pch.h" />
-    <ClInclude Include="src\Graphics\Shader\ScreenShader.h" />
     <ClInclude Include="src\Graphics\Shader\ShaderProgram.h" />
     <ClInclude Include="src\Graphics\Texture.h" />
     <ClInclude Include="src\Graphics\VertexArray.h" />
-    <ClInclude Include="src\Graphics\VertexBuffer.h" />
+    <ClInclude Include="src\Graphics\Buffer.h" />
     <ClInclude Include="src\Editor\TestComponent.h" />
     <ClInclude Include="src\Editor\Chart\TargetTimeline.h" />
     <ClInclude Include="src\TimeSpan.h" />
