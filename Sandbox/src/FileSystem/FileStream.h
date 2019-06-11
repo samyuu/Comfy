@@ -1,11 +1,12 @@
 #pragma once
 #include "Stream.h"
+#include <string>
 
 class FileStream : public Stream
 {
 public:
 	FileStream();
-	FileStream(const wchar_t* filePath);
+	FileStream(const std::wstring& filePath);
 	~FileStream();
 
 	virtual void Seek(int64_t position) override;
@@ -19,10 +20,10 @@ public:
 	virtual int64_t Read(void* buffer, size_t size) override;
 	virtual int64_t Write(void* buffer, size_t size) override;
 
-	void OpenRead(const wchar_t* filePath);
-	void OpenWrite(const wchar_t* filePath);
-	void OpenReadWrite(const wchar_t* filePath);
-	void CreateReadWrite(const wchar_t* filePath);
+	void OpenRead(const std::wstring& filePath);
+	void OpenWrite(const std::wstring& filePath);
+	void OpenReadWrite(const std::wstring& filePath);
+	void CreateReadWrite(const std::wstring& filePath);
 	virtual void Close() override;
 
 protected:

@@ -1,5 +1,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include "Editor.h"
+#include "Aet/AetEditor.h"
 #include "Chart/TargetTimeline.h"
 #include "../Application.h"
 
@@ -7,8 +8,9 @@ namespace Editor
 {
 	PvEditor::PvEditor(Application* parent) : parent(parent)
 	{
-		editorComponents.reserve(1);
+		editorComponents.reserve(2);
 		editorComponents.push_back(std::move(std::make_unique<TargetTimeline>(parent, this)));
+		editorComponents.push_back(std::move(std::make_unique<AetEditor>(parent, this)));
 	}
 
 	PvEditor::~PvEditor()

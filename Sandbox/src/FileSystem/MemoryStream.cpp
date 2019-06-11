@@ -8,7 +8,12 @@ MemoryStream::MemoryStream()
 {
 }
 
-MemoryStream::MemoryStream(const wchar_t* filePath)
+MemoryStream::MemoryStream(const std::string& filePath)
+{
+	FromFile(filePath);
+}
+
+MemoryStream::MemoryStream(const std::wstring& filePath)
 {
 	FromFile(filePath);
 }
@@ -75,7 +80,12 @@ int64_t MemoryStream::Write(void* buffer, size_t size)
 	return 0;
 }
 
-void MemoryStream::FromFile(const wchar_t* filePath)
+void MemoryStream::FromFile(const std::string& filePath)
+{
+	FromFile(std::wstring(filePath.begin(), filePath.end()));
+}
+
+void MemoryStream::FromFile(const std::wstring& filePath)
 {
 	FileStream fileStream(filePath);
 	FromStream(&fileStream);

@@ -123,6 +123,7 @@ namespace File
 	class AetSet : public IBinaryReadable
 	{
 	public:
+		std::string Name;
 		std::list<AetLyo> AetLyos;
 
 		virtual void Read(BinaryReader& reader) override;

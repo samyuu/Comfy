@@ -6,7 +6,7 @@ FileStream::FileStream()
 {
 }
 
-FileStream::FileStream(const wchar_t * filePath)
+FileStream::FileStream(const std::wstring& filePath)
 {
 	OpenReadWrite(filePath);
 }
@@ -74,39 +74,39 @@ int64_t FileStream::Write(void* buffer, size_t size)
 	return bytesWritten;
 }
 
-void FileStream::OpenRead(const wchar_t* filePath)
+void FileStream::OpenRead(const std::wstring& filePath)
 {
 	assert(!IsOpen());
 	canRead = true;
 
-	fileHandle = CreateFileW(filePath, GENERIC_READ, GetShareMode(), NULL, OPEN_EXISTING, GetFileAttribute(), NULL);
+	fileHandle = CreateFileW(filePath.c_str(), GENERIC_READ, GetShareMode(), NULL, OPEN_EXISTING, GetFileAttribute(), NULL);
 	UpdateFileSize();
 }
 
-void FileStream::OpenWrite(const wchar_t* filePath)
+void FileStream::OpenWrite(const std::wstring& filePath)
 {
 	assert(!IsOpen());
 	canWrite = true;
 
-	fileHandle = CreateFileW(filePath, GENERIC_WRITE, GetShareMode(), NULL, OPEN_EXISTING, GetFileAttribute(), NULL);
+	fileHandle = CreateFileW(filePath.c_str(), GENERIC_WRITE, GetShareMode(), NULL, OPEN_EXISTING, GetFileAttribute(), NULL);
 	UpdateFileSize();
 }
 
-void FileStream::OpenReadWrite(const wchar_t * filePath)
+void FileStream::OpenReadWrite(const std::wstring& filePath)
 {
 	assert(!IsOpen());
 	canRead = canWrite = true;
 
-	fileHandle = CreateFileW(filePath, GENERIC_READ | GENERIC_WRITE, GetShareMode(), NULL, OPEN_EXISTING, GetFileAttribute(), NULL);
+	fileHandle = CreateFileW(filePath.c_str(), GENERIC_READ | GENERIC_WRITE, GetShareMode(), NULL, OPEN_EXISTING, GetFileAttribute(), NULL);
 	UpdateFileSize();
 }
 
-void FileStream::CreateReadWrite(const wchar_t * filePath)
+void FileStream::CreateReadWrite(const std::wstring& filePath)
 {
 	assert(!IsOpen());
 	canRead = canWrite = true;
 
-	fileHandle = CreateFileW(filePath, GENERIC_READ | GENERIC_WRITE, GetShareMode(), NULL, CREATE_ALWAYS, GetFileAttribute(), NULL);
+	fileHandle = CreateFileW(filePath.c_str(), GENERIC_READ | GENERIC_WRITE, GetShareMode(), NULL, CREATE_ALWAYS, GetFileAttribute(), NULL);
 	UpdateFileSize();
 }
 

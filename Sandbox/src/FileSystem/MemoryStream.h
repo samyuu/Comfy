@@ -1,11 +1,13 @@
 #pragma once
 #include "Stream.h"
+#include <string>
 
 class MemoryStream : public Stream
 {
 public:
 	MemoryStream();
-	MemoryStream(const wchar_t* filePath);
+	MemoryStream(const std::string& filePath);
+	MemoryStream(const std::wstring& filePath);
 	MemoryStream(Stream* stream);
 	~MemoryStream();
 
@@ -20,7 +22,8 @@ public:
 	virtual int64_t Read(void* buffer, size_t size) override;
 	virtual int64_t Write(void* buffer, size_t size) override;
 
-	void FromFile(const wchar_t* filePath);
+	void FromFile(const std::string& filePath);
+	void FromFile(const std::wstring& filePath);
 	void FromStream(Stream* stream);
 	virtual void Close() override;
 
