@@ -1,4 +1,5 @@
 #pragma once
+#include "AetTimeline.h"
 #include "../IEditorComponent.h"
 #include "../../BaseWindow.h"
 #include "../../FileSystem/File/AetSet.h"
@@ -20,6 +21,7 @@ namespace Editor
 		virtual ImGuiWindowFlags GetWindowFlags() override;
 
 	private:
+		AetTimeline aetTimeline;
 		std::unique_ptr<AetSet> aetSet;
 
 		enum class SelectionType
@@ -58,6 +60,7 @@ namespace Editor
 		void DrawSpriteData(SpriteEntry* spriteEntry);
 		void DrawLayerData(AetLayer* aetLayer);
 		void DrawAnimationData(AnimationData* animationData);
+		void DrawKeyFrameProperties(KeyFrameProperties* properties);
 		void DrawKeyFrames(const char* name, std::vector<KeyFrame>* keyFrames);
 		void DrawAetLayer(AetLayer* aetLayer);
 		void DrawAetLyo(AetLyo* aetLyo);

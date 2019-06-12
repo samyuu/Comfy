@@ -31,57 +31,57 @@ public:
 	~AudioInstance();
 
 	// Sample Provider
-	ISampleProvider* GetSampleProvider();
+	ISampleProvider* GetSampleProvider() const;
 	void SetSampleProvider(ISampleProvider* provider);
 	bool IsSampleProviderValid();
 
 	// Position
-	TimeSpan GetPosition();
+	TimeSpan GetPosition() const;
 	void SetPosition(TimeSpan value);
 	void Restart();
 
 	// Duration
-	TimeSpan GetDuration();
+	TimeSpan GetDuration() const;
 
 	// Name
-	const char* GetName();
+	const char* GetName() const;
 	void SetName(const char* value);
 
 	// Volume
-	float GetVolume();
+	float GetVolume() const;
 	void SetVolume(float value);
 
 	// IsPlaying
-	bool GetIsPlaying();
+	bool GetIsPlaying() const;
 	void SetIsPlaying(bool value);
 
 	// IsLooping
-	bool GetIsLooping();
+	bool GetIsLooping() const;
 	void SetIsLooping(bool value);
 
 	// PlayPastEnd
-	bool GetPlayPastEnd();
+	bool GetPlayPastEnd() const;
 	void SetPlayPastEnd(bool value);
 
 	// AppendRemove
-	bool GetAppendRemove();
+	bool GetAppendRemove() const;
 	void SetAppendRemove(bool value);
 
 	// HasBeenRemoved
-	bool GetHasBeenRemoved();
-	bool GetHasReachedEnd();
+	bool GetHasBeenRemoved() const;
+	bool GetHasReachedEnd() const;
 
 	// OnFinishedAction
-	AudioFinishedAction GetOnFinishedAction();
+	AudioFinishedAction GetOnFinishedAction() const;
 	void SetOnFinishedAction(AudioFinishedAction value);
 
 	// SamplePosition
-	int64_t GetSamplePosition();
+	int64_t GetSamplePosition() const;
 	void SetSamplePosition(int64_t value);
 
-	inline int64_t GetSampleCount();
-	inline uint32_t GetSampleRate();
-	inline uint32_t GetChannelCount();
+	inline int64_t GetSampleCount() const;
+	inline uint32_t GetSampleRate() const;
+	inline uint32_t GetChannelCount() const;
 
 private:
 	// Members Variables
@@ -110,8 +110,8 @@ protected:
 public:
 	// Conversion Helper Methods
 	// -------------------------
-	TimeSpan SamplesToTimeSpan(double samples);
-	int64_t TimeSpanToSamples(TimeSpan time);
+	TimeSpan SamplesToTimeSpan(double samples) const;
+	int64_t TimeSpanToSamples(TimeSpan time) const;
 
 protected:
 	// Conversion Helper Functions

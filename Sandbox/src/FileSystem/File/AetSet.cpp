@@ -4,6 +4,38 @@
 
 namespace File
 {
+	static void ReadKeyFrameProperties(KeyFrameProperties* properties, BinaryReader& reader)
+	{
+		for (auto keyFrames = &properties->OriginX; keyFrames <= &properties->Opacity; keyFrames++)
+		{
+			uint32_t keyFramesCount = reader.ReadUInt32();
+			void* keyFramesPointer = reader.ReadPtr();
+
+			if (keyFramesCount > 0 && keyFramesPointer != nullptr)
+			{
+				reader.ReadAt(keyFramesPointer, [keyFramesCount, keyFrames](BinaryReader& reader)
+				{
+					if (keyFramesCount == 1)
+					{
+						keyFrames->push_back({ 0.0f, reader.ReadFloat(), 0.0f });
+					}
+					else
+					{
+						for (uint32_t i = 0; i < keyFramesCount; i++)
+							keyFrames->push_back({ reader.ReadFloat(), 0.0f, 0.0f });
+
+						for (uint32_t i = 0; i < keyFramesCount; i++)
+						{
+							keyFrames->at(i).Value = reader.ReadFloat();
+							keyFrames->at(i).Interpolation = reader.ReadFloat();
+						}
+					}
+				});
+			}
+		}
+
+	}
+
 	void AetSet::Read(BinaryReader& reader)
 	{
 		AetSet* aetSet = this;
@@ -83,34 +115,18 @@ namespace File
 												animationData->UnknownFlag0 = reader.Read<unk8_t>();
 												animationData->UseTextureMask = reader.ReadBoolean();
 												animationData->UnknownFlag2 = reader.Read<unk8_t>();
-												for (auto keyFrames = &animationData->OriginX; keyFrames <= &animationData->Opacity; keyFrames++)
+												animationData->Properties = std::make_unique<KeyFrameProperties>();
+												ReadKeyFrameProperties(animationData->Properties.get(), reader);
+
+												void* propertiesExtraDataPointer = reader.ReadPtr();
+												if (propertiesExtraDataPointer != nullptr)
 												{
-													uint32_t keyFramesCount = reader.ReadUInt32();
-													void* keyFramesPointer = reader.ReadPtr();
-
-													if (keyFramesCount > 0 && keyFramesPointer != nullptr)
+													reader.ReadAt(propertiesExtraDataPointer, [&animationData](BinaryReader& reader)
 													{
-														reader.ReadAt(keyFramesPointer, [keyFramesCount, keyFrames](BinaryReader& reader)
-														{
-															if (keyFramesCount == 1)
-															{
-																keyFrames->push_back({ 0.0f, reader.ReadFloat(), 0.0f });
-															}
-															else
-															{
-																for (uint32_t i = 0; i < keyFramesCount; i++)
-																	keyFrames->push_back({ reader.ReadFloat(), 0.0f, 0.0f });
-
-																for (uint32_t i = 0; i < keyFramesCount; i++)
-																{
-																	keyFrames->at(i).Value = reader.ReadFloat();
-																	keyFrames->at(i).Interpolation = reader.ReadFloat();
-																}
-															}
-														});
-													}
+														animationData->PropertiesExtraData = std::make_unique<KeyFrameProperties>();
+														ReadKeyFrameProperties(animationData->PropertiesExtraData.get(), reader);
+													});
 												}
-												animationData->UnknownZero = reader.ReadUInt32();
 											});
 										}
 

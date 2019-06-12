@@ -1,5 +1,6 @@
 #pragma once
 #include "../IEditorComponent.h"
+#include "../TimelineBase.h"
 #include "../../Audio/AudioEngine.h"
 #include "../../Audio/AudioInstance.h"
 #include "../../Audio/DummySampleProvider.h"
@@ -15,14 +16,8 @@
 namespace Editor
 {
 	enum EditorColor;
-	enum VisibilityType 
-	{ 
-		VisibilityType_Visible, 
-		VisibilityType_Left,
-		VisibilityType_Right 
-	};
 
-	class TargetTimeline : public IEditorComponent, public ICallbackReceiver
+	class TargetTimeline : public IEditorComponent, public ICallbackReceiver, TimelineBase
 	{
 	public:
 		// Constructors / Destructors:
@@ -57,38 +52,8 @@ namespace Editor
 		};
 		// ----------------------
 
-		// ImGui Data:
-		// -----------
-		struct
-		{
-			ImGuiIO* io;
-		};
-		// -----------
-
-		// Timeline Regions:
-		// -----------------
-		ImRect timelineRegion;
-		ImRect infoColumnHeaderRegion;
-		ImRect infoColumnRegion;
-		ImRect timelineBaseRegion;
-		ImRect tempoMapRegion;
-		ImRect timelineHeaderRegion;
-		ImRect timelineTargetRegion;
-		// -----------------
-
-		// Timeline Zoom:
-		// --------------
-		const float ZOOM_BASE = 150.0f;
-		const float ZOOM_MIN = 1.0f;
-		const float ZOOM_MAX = 10.0f;
-
-		bool zoomLevelChanged = false;
-		float zoomLevel = 2.0f, lastZoomLevel;
-		// --------------
-
 		// Timeline:
 		// ---------
-		bool updateInput;
 		TempoMap tempoMap;
 		TimelineMap timelineMap;
 		TargetList targets;
@@ -128,14 +93,6 @@ namespace Editor
 		// ----------------------
 		struct
 		{
-			bool autoScrollCursor = false;
-			const float CURSOR_HEAD_WIDTH = 17.0f;
-			const float CURSOR_HEAD_HEIGHT = 8.0f;
-
-			// fraction of the timeline width at which the timeline starts scrolling relative to the cursor
-			const float autoScrollOffsetFraction = 4.0f;
-			TimeSpan cursorTime;
-
 			// --------------
 			bool timeSelectionActive = false;
 			TimelineTick timeSelectionStart, timeSelectionEnd;
@@ -152,25 +109,7 @@ namespace Editor
 			TimelineTick Tick;
 			TimeSpan ElapsedTime;
 		} buttonAnimations[TargetType_Max];
-
-		const float timelineVisibleThreshold = 46.0f;
 		// --------------------------
-
-		// ----------------------
-		ImGuiWindow* baseWindow;
-		ImDrawList* baseDrawList;
-		// ----------------------
-
-		// ----------------------
-		float scrollDelta = 0.0f;
-		const float scrollSpeed = 2.0f, scrollSpeedFast = 4.5f;
-		// ----------------------
-
-		// ----------------------
-		float infoColumnWidth = 46.0f;
-		float timelineHeaderHeight = 40.0f - 13.0f;
-		float tempoMapHeight = 13.0f;
-		// ----------------------
 
 		// ----------------------
 		const float ICON_SCALE = 1.0f;
@@ -187,9 +126,7 @@ namespace Editor
 		// ----------------
 
 		// ----------------
-		void UpdateRegions();
 		void UpdateTimelineMap();
-		void UpdateTimelineSize();
 		void UpdateOnCallbackSounds();
 		void UpdateOnCallbackPlacementSounds();
 		// ----------------
@@ -204,18 +141,16 @@ namespace Editor
 		// Timeline Base:
 		// --------------
 		void DrawTimelineBase();
-		void DrawTimlineDivisors();
+		void DrawTimlineDivisors() override;
 		void DrawWaveform();
 		void DrawTimelineTempoMap();
 		void DrawTimelineTargets();
-		void DrawTimelineCursor();
+		void DrawTimelineCursor() override;
 		void DrawTimeSelection();
 		void Update();
-		void UpdateCursorAutoScroll();
 		void UpdateAllInput();
 		void UpdateInputPlaybackToggle();
 		void UpdateInputCursorClick();
-		void UpdateInputTimelineScroll();
 		void UpdateInputTargetPlacement();
 		// --------------
 
@@ -227,51 +162,39 @@ namespace Editor
 
 		// Timeline Control:
 		// -----------------
-		void CenterCursor();
-		bool IsCursorOnScreen();
+		virtual bool GetIsPlayback() const override;
 
-		inline float GetMaxScrollX() { return ImGui::GetScrollMaxX(); };
-		inline float GetScrollX() { return ImGui::GetScrollX(); };
-		inline void SetScrollX(float value) { ImGui::SetScrollX(value); };
+		virtual float GetTimelineSize() const override;
+		void OnTimelineBaseScroll() override;
 		// -----------------
 
 		// Conversion Methods:
 		// -------------------
-		TimelineTick GetGridTick();
-		TimelineTick FloorToGrid(TimelineTick tick);
-		TimelineTick RoundToGrid(TimelineTick tick);
+		TimelineTick GetGridTick() const;
+		TimelineTick FloorToGrid(TimelineTick tick) const;
+		TimelineTick RoundToGrid(TimelineTick tick) const;
 
-		float GetTimelinePosition(TimeSpan time);
-		float GetTimelinePosition(TimelineTick tick);
+		float GetTimelinePosition(TimeSpan time) const override;
+		float GetTimelinePosition(TimelineTick tick) const;
 
-		TimelineTick GetTimelineTick(TimeSpan time);
-		TimelineTick GetTimelineTick(float position);
+		TimelineTick GetTimelineTick(TimeSpan time) const;
+		TimelineTick GetTimelineTick(float position) const;
 
-		TimeSpan GetTimelineTime(TimelineTick tick);
-		TimeSpan GetTimelineTime(float position);
+		TimeSpan GetTimelineTime(TimelineTick tick) const;
+		TimeSpan GetTimelineTime(float position) const override;
 
-		TimelineTick GetCursorTick();
-		TimelineTick GetCursorMouseXTick();
-		TimeSpan GetCursorTime();
+		TimelineTick GetCursorTick() const;
+		TimelineTick GetCursorMouseXTick() const;
 
-		float ScreenToTimelinePosition(float screenPosition);
-		float GetCursorTimelinePosition();
+		int GetGridDivisionIndex() const;
 
-		int GetGridDivisionIndex();
-		VisibilityType GetTimelineVisibility(float screenX);
-		
-		ImU32 GetColor(EditorColor color);
+		ImU32 GetColor(EditorColor color) const;
 		// -------------------
 
 		// -------------------
-		float GetButtonTransparency(float screenX);
-		int GetButtonIconIndex(const TimelineTarget& target);
+		float GetButtonTransparency(float screenX) const;
+		int GetButtonIconIndex(const TimelineTarget& target) const;
 		void DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, ImVec2 position, float scale, float transparency = 1.0f);
 		// -------------------
-
-		// DEBUG STUFF:
-		// ------------
-		inline void DRAW_DEBUG_REGION(ImRect& rect) { ImGui::AddRectFilled(ImGui::GetForegroundDrawList(), rect, IM_COL32_BLACK * .5f); };
-		// ------------
 	};
 }

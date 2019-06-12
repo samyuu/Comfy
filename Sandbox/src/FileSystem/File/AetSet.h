@@ -2,6 +2,7 @@
 #include <vector>
 #include <list>
 #include <stdint.h>
+#include <memory>
 #include "../FileInterface.h"
 
 namespace File
@@ -58,12 +59,8 @@ namespace File
 		float Interpolation;
 	};
 
-	struct AnimationData
+	struct KeyFrameProperties
 	{
-		AetBlendMode BlendMode;
-		unk8_t UnknownFlag0;
-		bool UseTextureMask;
-		unk8_t UnknownFlag2;
 		std::vector<KeyFrame> OriginX;
 		std::vector<KeyFrame> OriginY;
 		std::vector<KeyFrame> PositionX;
@@ -72,7 +69,16 @@ namespace File
 		std::vector<KeyFrame> ScaleX;
 		std::vector<KeyFrame> ScaleY;
 		std::vector<KeyFrame> Opacity;
-		unk32_t UnknownZero;
+	};
+
+	struct AnimationData
+	{
+		AetBlendMode BlendMode;
+		unk8_t UnknownFlag0;
+		bool UseTextureMask;
+		unk8_t UnknownFlag2;
+		std::unique_ptr<KeyFrameProperties> Properties;
+		std::unique_ptr<KeyFrameProperties> PropertiesExtraData;
 	};
 
 	struct AetObj

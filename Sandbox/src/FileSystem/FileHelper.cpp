@@ -1,39 +1,39 @@
 #include "FileHelper.h"
-#include <experimental/filesystem>
+#include <filesystem>
 #include <shlwapi.h>
 
-namespace filesystem = std::experimental::filesystem;
+using FileSystemPath = std::filesystem::path;
 
 bool FileExists(const std::string& filePath)
 {
-	return GetFileExtension(filePath) == "" ? false : PathFileExistsA(filePath.c_str());
+	return PathFileExistsA(filePath.c_str()) && GetFileExtension(filePath) != "";
 }
 
 bool FileExists(const std::wstring& filePath)
 {
-	return GetFileExtension(filePath) == L"" ? false : PathFileExistsW(filePath.c_str());
+	return PathFileExistsW(filePath.c_str()) && GetFileExtension(filePath) != L"";
 }
 
 std::string GetFileName(const std::string& filePath, bool extension)
 {
-	filesystem::path path(filePath);
+	FileSystemPath path(filePath);
 	return extension ? path.filename().string() : (path.has_stem() ? path.stem().string() : "");
 }
 
 std::wstring GetFileName(const std::wstring& filePath, bool extension)
 {
-	filesystem::path path(filePath);
+	FileSystemPath path(filePath);
 	return extension ? path.filename().wstring() : (path.has_stem() ? path.stem().wstring() : L"");
 }
 
 std::string GetFileExtension(const std::string& filePath)
 {
-	filesystem::path path(filePath);
+	FileSystemPath path(filePath);
 	return path.extension().string();
 }
 
 std::wstring GetFileExtension(const std::wstring & filePath)
 {
-	filesystem::path path(filePath);
+	FileSystemPath path(filePath);
 	return path.extension().wstring();
 }

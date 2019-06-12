@@ -10,9 +10,9 @@ namespace Editor
 		TimelineMap();
 		TimelineMap(std::vector<TimeSpan>& times, Tempo firstTempo, Tempo lastTempo);
 
-		TimeSpan GetTimeAt(TimelineTick tick);
-		TimeSpan GetLastCalculatedTime();
-		TimelineTick GetTickAt(TimeSpan time);
+		TimeSpan GetTimeAt(TimelineTick tick) const;
+		TimeSpan GetLastCalculatedTime() const;
+		TimelineTick GetTickAt(TimeSpan time) const;
 
 		void CalculateMapTimes(TempoMap& tempoMap);
 

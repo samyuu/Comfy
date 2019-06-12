@@ -31,4 +31,9 @@ namespace ImGui
 	}
 
 	void StyleComfy(ImGuiStyle* dst = nullptr);
+
+	inline void DRAW_DEBUG_REGION(ImRect& rect) 
+	{ 
+		ImGui::AddRectFilled(ImGui::GetForegroundDrawList(), rect, IM_COL32_BLACK * .5f); 
+	};
 }

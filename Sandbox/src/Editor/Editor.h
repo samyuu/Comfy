@@ -53,12 +53,12 @@ namespace Editor
 
 		// Playback Control:
 		// -----------------
-		bool GetIsPlayback();
+		bool GetIsPlayback() const;
 		void ResumePlayback();
 		void PausePlayback();
 		void StopPlayback();
 		
-		TimeSpan GetPlaybackTime();
+		TimeSpan GetPlaybackTime() const;
 		void SetPlaybackTime(TimeSpan value);
 		// -----------------
 

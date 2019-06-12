@@ -116,38 +116,49 @@ namespace Editor
 
 	void AetEditor::DrawAnimationData(AnimationData* animationData)
 	{
-		static const char* keyFramesNames[] = { "Origin X", "Origin Y", "Position X", "Position Y", "Rotation", "Scale X", "Scale Y", "Opcatiy" };
-
 		if (ImGui::TreeNode("Animation Data"))
 		{
 			ImGui::Checkbox("Use Texture Mask", &animationData->UseTextureMask);
 
-			size_t keyFrameIndex = 0;
-			for (auto keyFrames = &animationData->OriginX; keyFrames <= &animationData->Opacity; keyFrames++)
-				DrawKeyFrames(keyFramesNames[keyFrameIndex++], keyFrames);
+			if (ImGui::TreeNode("Properties"))
+			{
+				if (animationData->Properties != nullptr)
+					DrawKeyFrameProperties(animationData->Properties.get());
+				else ImGui::Text("nullptr");
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNode("Properties Extra Data"))
+			{
+				if (animationData->PropertiesExtraData != nullptr)
+					DrawKeyFrameProperties(animationData->PropertiesExtraData.get());
+				else ImGui::Text("nullptr");
+				ImGui::TreePop();
+			}
 
 			ImGui::TreePop();
 		}
+	}
+
+	void AetEditor::DrawKeyFrameProperties(KeyFrameProperties* properties)
+	{
+		static const char* propertyNames[] = { "Origin X", "Origin Y", "Position X", "Position Y", "Rotation", "Scale X", "Scale Y", "Opcatiy" };
+
+		size_t keyFrameIndex = 0;
+		for (auto keyFrames = &properties->OriginX; keyFrames <= &properties->Opacity; keyFrames++)
+			DrawKeyFrames(propertyNames[keyFrameIndex++], keyFrames);
 	}
 
 	void AetEditor::DrawKeyFrames(const char* name, std::vector<KeyFrame>* keyFrames)
 	{
 		if (ImGui::TreeNode(name))
 		{
-			ImGui::PushItemWidth(ImGui::GetWindowWidth() * .25f);
 			for (KeyFrame& keyFrame : *keyFrames)
 			{
 				ImGui::PushID((void*)&keyFrame.Frame);
-				ImGui::InputFloat("Frame", &keyFrame.Frame);
-				ImGui::PopID();
-
-				ImGui::SameLine();
-
-				ImGui::PushID((void*)&keyFrame.Value);
-				ImGui::InputFloat("Value", &keyFrame.Value);
+				ImGui::InputFloat3("F-V-I", &keyFrame.Frame);
 				ImGui::PopID();
 			}
-			ImGui::PopItemWidth();
 
 			ImGui::TreePop();
 		}

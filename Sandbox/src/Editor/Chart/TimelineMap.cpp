@@ -12,7 +12,7 @@ namespace Editor
 	{
 	}
 
-	TimeSpan TimelineMap::GetTimeAt(TimelineTick tick)
+	TimeSpan TimelineMap::GetTimeAt(TimelineTick tick) const
 	{
 		int tickTimeCount = tickTimes.size();
 
@@ -42,13 +42,13 @@ namespace Editor
 		}
 	}
 
-	TimeSpan TimelineMap::GetLastCalculatedTime()
+	TimeSpan TimelineMap::GetLastCalculatedTime() const
 	{
 		size_t tickTimeCount = tickTimes.size();
 		return tickTimeCount == 0 ? TimeSpan(0.0) : tickTimes[tickTimeCount - 1];
 	}
 
-	TimelineTick TimelineMap::GetTickAt(TimeSpan time)
+	TimelineTick TimelineMap::GetTickAt(TimeSpan time) const
 	{
 		int tickTimeCount = tickTimes.size();
 		TimeSpan lastTime = GetLastCalculatedTime();

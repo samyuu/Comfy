@@ -97,6 +97,9 @@
   <ItemGroup>
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
     <ClCompile Include="lib\stb\src\stb_image_write.cpp" />
+    <ClCompile Include="src\Editor\Aet\AetTimeline.cpp" />
+    <ClCompile Include="src\Editor\FrameTimeline.cpp" />
+    <ClCompile Include="src\Editor\TimelineBase.cpp" />
     <ClCompile Include="src\FileSystem\BinaryReader.cpp" />
     <ClCompile Include="src\FileSystem\FileHelper.cpp" />
     <ClCompile Include="src\FileSystem\File\SprSet.cpp" />
@@ -165,6 +168,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Editor\Aet\AetEditor.h" />
+    <ClInclude Include="src\Editor\Aet\AetTimeline.h" />
+    <ClInclude Include="src\Editor\FrameTimeline.h" />
+    <ClInclude Include="src\Editor\TimelineBase.h" />
     <ClInclude Include="src\FileSystem\BinaryReader.h" />
     <ClInclude Include="src\FileSystem\FileHelper.h" />
     <ClInclude Include="src\FileSystem\FileInterface.h" />

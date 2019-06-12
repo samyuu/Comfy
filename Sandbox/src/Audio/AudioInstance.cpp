@@ -41,7 +41,7 @@ AudioInstance::~AudioInstance()
 
 }
 
-ISampleProvider* AudioInstance::GetSampleProvider() 
+ISampleProvider* AudioInstance::GetSampleProvider() const
 { 
 	return sampleProvider; 
 }
@@ -55,7 +55,7 @@ bool AudioInstance::IsSampleProviderValid()
 	return sampleProvider != nullptr;
 }
 
-TimeSpan AudioInstance::GetPosition()
+TimeSpan AudioInstance::GetPosition() const
 {
 	return SamplesToTimeSpan(GetSamplePosition());
 }
@@ -70,12 +70,12 @@ void AudioInstance::Restart()
 	SetSamplePosition(0);
 }
 
-TimeSpan AudioInstance::GetDuration()
+TimeSpan AudioInstance::GetDuration() const
 {
 	return SamplesToTimeSpan(GetSampleCount());
 }
 
-const char* AudioInstance::GetName()
+const char* AudioInstance::GetName() const
 {
 	return name;
 }
@@ -85,7 +85,7 @@ void AudioInstance::SetName(const char* value)
 		this->name = value;
 }
 
-float AudioInstance::GetVolume()
+float AudioInstance::GetVolume() const
 {
 	return volume;
 }
@@ -94,7 +94,7 @@ void AudioInstance::SetVolume(float value)
 	volume = std::clamp(value, MIN_VOLUME, MAX_VOLUME);
 }
 
-bool AudioInstance::GetIsPlaying()
+bool AudioInstance::GetIsPlaying() const
 {
 	return isPlaying;
 }
@@ -103,7 +103,7 @@ void AudioInstance::SetIsPlaying(bool value)
 	isPlaying = value;
 }
 
-bool AudioInstance::GetIsLooping()
+bool AudioInstance::GetIsLooping() const
 {
 	return isLooping;
 }
@@ -112,7 +112,7 @@ void AudioInstance::SetIsLooping(bool value)
 	isLooping = value;
 }
 
-bool AudioInstance::GetPlayPastEnd()
+bool AudioInstance::GetPlayPastEnd() const
 {
 	return playPastEnd;
 }
@@ -121,7 +121,7 @@ void AudioInstance::SetPlayPastEnd(bool value)
 	playPastEnd = value;
 }
 
-bool AudioInstance::GetAppendRemove()
+bool AudioInstance::GetAppendRemove() const
 {
 	return appendRemove;
 }
@@ -130,16 +130,16 @@ void AudioInstance::SetAppendRemove(bool value)
 	appendRemove = value;
 }
 
-bool AudioInstance::GetHasBeenRemoved()
+bool AudioInstance::GetHasBeenRemoved() const
 {
 	return hasBeenRemoved;
 }
-bool AudioInstance::GetHasReachedEnd()
+bool AudioInstance::GetHasReachedEnd() const
 {
 	return GetSamplePosition() >= GetSampleCount();
 }
 
-AudioFinishedAction AudioInstance::GetOnFinishedAction()
+AudioFinishedAction AudioInstance::GetOnFinishedAction() const
 {
 	return onFinishedAction;
 }
@@ -148,7 +148,7 @@ void AudioInstance::SetOnFinishedAction(AudioFinishedAction value)
 	onFinishedAction = value;
 }
 
-int64_t AudioInstance::GetSamplePosition()
+int64_t AudioInstance::GetSamplePosition() const
 {
 	return samplePosition;
 }
@@ -157,27 +157,27 @@ void AudioInstance::SetSamplePosition(int64_t value)
 	samplePosition = value; 
 }
 
-int64_t AudioInstance::GetSampleCount()
+int64_t AudioInstance::GetSampleCount() const
 {
 	return GetSampleProvider()->GetSampleCount();
 }
 
-uint32_t AudioInstance::GetSampleRate()
+uint32_t AudioInstance::GetSampleRate() const
 {
 	return GetSampleProvider()->GetSampleRate();
 }
 
-uint32_t AudioInstance::GetChannelCount()
+uint32_t AudioInstance::GetChannelCount() const
 {
 	return GetSampleProvider()->GetChannelCount();
 }
 
-TimeSpan AudioInstance::SamplesToTimeSpan(double samples)
+TimeSpan AudioInstance::SamplesToTimeSpan(double samples) const
 {
 	return SamplesToTimeSpan(samples, GetSampleRate(), GetChannelCount());
 }
 
-int64_t AudioInstance::TimeSpanToSamples(TimeSpan time)
+int64_t AudioInstance::TimeSpanToSamples(TimeSpan time) const
 {
 	return TimeSpanToSamples(time, GetSampleRate(), GetChannelCount());
 }

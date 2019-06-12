@@ -158,7 +158,7 @@ namespace Editor
 		return true;
 	}
 
-	TimeSpan PvEditor::GetPlaybackTime()
+	TimeSpan PvEditor::GetPlaybackTime() const
 	{
 		return songInstance->GetPosition() - songStartOffset;
 	}
@@ -168,7 +168,7 @@ namespace Editor
 		songInstance->SetPosition(value + songStartOffset);
 	}
 
-	bool PvEditor::GetIsPlayback()
+	bool PvEditor::GetIsPlayback() const
 	{
 		return isPlaying;
 	}
