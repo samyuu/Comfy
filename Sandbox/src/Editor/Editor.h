@@ -3,7 +3,6 @@
 #include "../Audio/DummySampleProvider.h"
 #include "../Audio/MemoryAudioStream.h"
 #include "../Audio/AudioInstance.h"
-#include <filesystem>
 #include <vector>
 #include <memory>
 #include <string>
@@ -12,22 +11,6 @@ class Application;
 
 namespace Editor
 {
-	enum EditorColor
-	{
-		EditorColor_Bar,
-		EditorColor_Grid,
-		EditorColor_GridAlt,
-		EditorColor_Selection,
-		EditorColor_InfoColumn,
-		EditorColor_TempoMapBg,
-		EditorColor_TimelineBg,
-		EditorColor_TimelineRowSeparator,
-		EditorColor_Cursor,
-		EditorColor_Max,
-	};
-
-	namespace FileSystem = std::filesystem;
-
 	class PvEditor
 	{
 		friend class TargetTimeline;
@@ -72,18 +55,13 @@ namespace Editor
 		bool initialized = false;
 		// -------------
 
-		// Editor Colors:
-		// --------------
-		ImU32 editorColors[EditorColor_Max];
-		// --------------
-
 		// PV Properties:
 		// --------------
 		struct
 		{
 			std::string SongName;
 			std::string SongNameReading;
-			FileSystem::path SongFileName;
+			std::wstring SongFileName;
 		};
 		// --------------
 
@@ -91,7 +69,7 @@ namespace Editor
 		// -------------------
 		struct
 		{
-			const char* audioFileExtensions[4] = { ".wav", ".flac", ".ogg", ".mp3" };
+			std::array<const char*, 4> audioFileExtensions = { ".wav", ".flac", ".ogg", ".mp3" };
 
 			DummySampleProvider dummySampleProvider;
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "../BaseWindow.h"
+#include "Theme.h"
 
 class Application;
 

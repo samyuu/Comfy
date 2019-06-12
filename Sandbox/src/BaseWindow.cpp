@@ -8,7 +8,7 @@ BaseWindow::~BaseWindow()
 {
 }
 
-ImGuiWindowFlags BaseWindow::GetWindowFlags()
+ImGuiWindowFlags BaseWindow::GetWindowFlags() const
 {
 	return ImGuiWindowFlags_None;
 }

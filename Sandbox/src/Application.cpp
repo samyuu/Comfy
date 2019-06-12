@@ -767,7 +767,7 @@ void Application::DrawGui()
 					char nameBuffer[32];
 					for (size_t i = 0; i < _countof(cubePositions); i++)
 					{
-						sprintf_s(nameBuffer, sizeof(nameBuffer), "CUBE[%d]", i);
+						sprintf_s(nameBuffer, sizeof(nameBuffer), "CUBE[%zd]", i);
 						ImGui::DragFloat3(nameBuffer, glm::value_ptr(cubePositions[i]), 0.1f);
 					}
 				}
@@ -781,7 +781,7 @@ void Application::DrawGui()
 
 					for (size_t i = 0; i < 100; i++)
 					{
-						sprintf_s(buffer, sizeof(buffer), "eff_pv%03d_F%04d", i, i + 1800);
+						sprintf_s(buffer, sizeof(buffer), "eff_pv%03d_F%04zd", i, i + 1800);
 						sprintf_s(hiddenBuffer, sizeof(hiddenBuffer), "##%s", buffer);
 
 						bool treeNode = ImGui::TreeNode(hiddenBuffer);

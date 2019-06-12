@@ -17,11 +17,11 @@ namespace Editor
 
 		virtual void Initialize() override;
 		virtual void DrawGui() override;
-		virtual const char* GetGuiName() override;
-		virtual ImGuiWindowFlags GetWindowFlags() override;
+		virtual const char* GetGuiName() const override;
+		virtual ImGuiWindowFlags GetWindowFlags() const override;
 
 	private:
-		AetTimeline aetTimeline;
+		//AetTimeline aetTimeline;
 		std::unique_ptr<AetSet> aetSet;
 
 		enum class SelectionType
@@ -48,9 +48,11 @@ namespace Editor
 		{
 			int newObjTypeIndex = AetObjType_Pic;
 			char newObjNameBuffer[255];
+
+			char aetSetPathBuffer[MAX_PATH] = "dev_ram/aetset/";
 		};
 
-		const char* aetObjTypeNames[4] = { "nop", "pic", "aif", "eff" };
+		std::array<const char*, 4> aetObjTypeNames = { "nop", "pic", "aif", "eff" };
 
 		const char* aetLayerContextMenuID = "AetLayerContextMenu";
 		const char* addAetObjPopupID = "Add new AetObj";
@@ -68,6 +70,6 @@ namespace Editor
 		void DrawTreeView();
 		void DrawInspector();
 
-		void OpenAetSet(const char* filePath);
+		bool OpenAetSet(const char* filePath);
 	};
 }

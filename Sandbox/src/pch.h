@@ -1,5 +1,11 @@
 #pragma once
 
+#ifdef _DEBUG  
+#define DEBUG_RELEASE(debug, release) debug
+#else
+#define DEBUG_RELEASE(debug, release) release
+#endif
+
 #include <stdio.h>
 #include <stddef.h>
 #include <vector>

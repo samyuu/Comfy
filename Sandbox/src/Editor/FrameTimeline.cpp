@@ -1,19 +1,22 @@
 #include "FrameTimeline.h"
 
-float FrameTimeline::GetTimelinePosition(TimeSpan time) const
+namespace Editor
 {
-	return TimelineBase::GetTimelinePosition(time);
-}
+	float FrameTimeline::GetTimelinePosition(TimeSpan time) const
+	{
+		return TimelineBase::GetTimelinePosition(time);
+	}
 
-TimeSpan FrameTimeline::GetTimelineTime(float position) const
-{
-	return TimelineBase::GetTimelineTime(position);
-}
+	TimeSpan FrameTimeline::GetTimelineTime(float position) const
+	{
+		return TimelineBase::GetTimelineTime(position);
+	}
 
-void FrameTimeline::DrawTimlineDivisors()
-{
-}
+	void FrameTimeline::OnDrawTimlineDivisors()
+	{
+	}
 
-void FrameTimeline::DrawTimelineCursor()
-{
+	void FrameTimeline::DrawTimelineCursor()
+	{
+	}
 }

@@ -9,12 +9,12 @@ TestComponent::~TestComponent()
 {
 }
 
-const char* TestComponent::GetGuiName()
+const char* TestComponent::GetGuiName() const
 {
 	return u8"Test Component";
 }
 
-ImGuiWindowFlags TestComponent::GetWindowFlags()
+ImGuiWindowFlags TestComponent::GetWindowFlags() const
 {
 	return ImGuiWindowFlags_NoBackground;
 }

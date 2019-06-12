@@ -15,7 +15,7 @@ namespace Editor
 	{
 	}
 
-	const char* TargetTimeline::GetGuiName()
+	const char* TargetTimeline::GetGuiName() const
 	{
 		return u8"Target Timeline";
 	}
@@ -79,18 +79,13 @@ namespace Editor
 
 	int TargetTimeline::GetGridDivisionIndex() const
 	{
-		for (size_t i = 0; i < IM_ARRAYSIZE(gridDivisions); i++)
+		for (size_t i = 0; i < gridDivisions.size(); i++)
 		{
 			if (gridDivisions[i] == gridDivision)
 				return i;
 		}
 
 		return -1;
-	}
-
-	inline ImU32 TargetTimeline::GetColor(EditorColor color) const
-	{
-		return pvEditor->editorColors[color];
 	}
 
 	float TargetTimeline::GetButtonTransparency(float screenX) const
@@ -146,26 +141,12 @@ namespace Editor
 
 	void TargetTimeline::Initialize()
 	{
-		InitializeTimelineBase();
+		InitializeTimelineBaseState();
 
 		AudioEngine::GetInstance()->AddCallbackReceiver(this);
 		audioController.Initialize();
 
 		InitializeButtonIcons();
-
-		// TIME TEST:
-		{
-			// - tempoMap.Add(TempoChange(TimelineTick::FromBars(0), 180.0f));
-			// - tempoMap.Add(TempoChange(TimelineTick::FromBars(2), 200.0f));
-			// - //tempoMap.Add(TempoChange(TimelineTick::FromBeats(2 * 4 + 1), 200.0f));
-			// - tempoMap.Add(TempoChange(TimelineTick::FromBars(6), 120.0f));
-			// - //tempoMap.Add(TempoChange(TimelineTick::FromBars(9), 160.0f));
-			// - tempoMap.Add(TempoChange(TimelineTick::FromBars(9), 180.0f));
-
-			//tempoMap.SetTempoChange(TimelineTick::FromBars(0), 180.0f);
-			//tempoMap.SetTempoChange(TimelineTick::FromBars(4), 120.0f);
-		}
-
 		UpdateTimelineMap();
 	}
 
@@ -207,21 +188,7 @@ namespace Editor
 
 	void TargetTimeline::DrawGui()
 	{
-		ImGui::BeginGroup();
-		DrawTimelineHeaderWidgets();
-		ImGui::EndGroup();
-
-		UpdateTimelineRegions();
-
-		ImGui::BeginChild("##timeline_info_column", ImVec2(0, -ImGui::GetStyle().ScrollbarSize));
-		DrawTimelineInfoColumnHeader();
-		DrawTimelineInfoColumn();
-		ImGui::EndChild();
-
-		ImGui::SetCursorScreenPos(infoColumnHeaderRegion.GetTR());
-		ImGui::BeginChild("##timeline_base", ImVec2(), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-		DrawTimelineBase();
-		ImGui::EndChild();
+		DrawTimelineGui();
 
 		if (ImGui::Begin("Sync Window"))
 			DrawSyncWindow();
@@ -275,7 +242,7 @@ namespace Editor
 		const float width = buttonIconWidth * texelWidth;
 		const float height = buttonIconWidth * texelHeight;
 
-		for (size_t i = 0; i < IM_ARRAYSIZE(buttonIconsTextureCoordinates); i++)
+		for (size_t i = 0; i < buttonIconsTextureCoordinates.size(); i++)
 		{
 			float x = (buttonIconWidth * (i % buttonIconsTypeCount)) * texelWidth;
 			float y = (buttonIconWidth * (i / buttonIconsTypeCount)) * texelHeight;
@@ -317,7 +284,7 @@ namespace Editor
 		updateWaveform = true;
 	}
 
-	void TargetTimeline::DrawTimelineHeaderWidgets()
+	void TargetTimeline::OnDrawTimelineHeaderWidgets()
 	{
 		static char timeInputBuffer[32] = "00:00.000";
 		strcpy_s<sizeof(timeInputBuffer)>(timeInputBuffer, GetCursorTime().FormatTime().c_str());
@@ -352,7 +319,7 @@ namespace Editor
 			if (gridDivisions[gridDivisionIndex] != gridDivision)
 				gridDivisionIndex = GetGridDivisionIndex();
 
-			if (ImGui::Combo("Grid Precision", &gridDivisionIndex, gridDivisionStrings, IM_ARRAYSIZE(gridDivisionStrings)))
+			if (ImGui::Combo("Grid Precision", &gridDivisionIndex, gridDivisionStrings.data(), gridDivisionStrings.size()))
 				gridDivision = gridDivisions[gridDivisionIndex];
 		}
 		ImGui::PopItemWidth();
@@ -369,14 +336,14 @@ namespace Editor
 		}
 	}
 
-	void TargetTimeline::DrawTimelineInfoColumnHeader()
+	void TargetTimeline::OnDrawTimelineInfoColumnHeader()
 	{
 		auto drawList = ImGui::GetWindowDrawList();
 
 		drawList->AddRectFilled(infoColumnHeaderRegion.GetTL(), infoColumnHeaderRegion.GetBR(), GetColor(EditorColor_InfoColumn), 8.0f, ImDrawCornerFlags_TopLeft);
 	}
 
-	void TargetTimeline::DrawTimelineInfoColumn()
+	void TargetTimeline::OnDrawTimelineInfoColumn()
 	{
 		auto drawList = ImGui::GetWindowDrawList();
 
@@ -401,69 +368,7 @@ namespace Editor
 		}
 	}
 
-	void TargetTimeline::DrawTimelineBase()
-	{
-		UpdateTimelineBase();
-
-		// Scroll Size Test
-		// ----------------
-		{
-			if (scrollDelta != 0.0f)
-			{
-				SetScrollX(GetScrollX() + scrollDelta);
-				scrollDelta = 0.0f;
-			}
-
-			UpdateTimelineSize();
-			//ImGui::ItemSize(ImVec2(GetTimelinePosition(TimelineTick::FromBars(30)), 0));
-		}
-
-		// Timeline Header Region BG
-		// -------------------------
-		{
-			baseDrawList->AddRectFilled(timelineHeaderRegion.GetTL(), timelineHeaderRegion.GetBR(), GetColor(EditorColor_InfoColumn));
-		}
-		// Timeline Target Region BG
-		// -------------------------
-		{
-			baseDrawList->AddRectFilled(timelineTargetRegion.GetTL(), timelineTargetRegion.GetBR(), GetColor(EditorColor_TimelineBg));
-		}
-
-		DrawTimlineDivisors();
-		DrawWaveform();
-		DrawTimelineTempoMap();
-
-		if (timelineHeaderRegion.Contains(ImGui::GetMousePos()))
-		{
-			ImGui::SetTooltip("TIME: %s", GetTimelineTime(ScreenToTimelinePosition(ImGui::GetMousePos().x)).FormatTime().c_str());
-		}
-
-		// Test out selection box
-		// ----------------------
-		{
-			constexpr int selectionBoxButton = 1;
-			static ImRect dragRect;
-
-			if (ImGui::IsMouseClicked(selectionBoxButton) && ImGui::IsMouseHoveringWindow() && !ImGui::IsAnyItemHovered())
-				dragRect.Min = ImGui::GetMousePos();
-			if (ImGui::IsMouseReleased(selectionBoxButton))
-				dragRect.Min = dragRect.Max = ImVec2();
-
-			if (!ImGui::IsAnyItemHovered() && ImGui::IsMouseDragging(selectionBoxButton) && dragRect.Min.x != 0)
-			{
-				dragRect.Max = ImGui::GetMousePos();
-				baseDrawList->AddRectFilled(dragRect.GetTL(), dragRect.GetBR(), GetColor(EditorColor_Selection));
-			}
-		}
-
-		Update();
-		UpdateAllInput();
-		DrawTimelineTargets();
-		DrawTimelineCursor();
-		DrawTimeSelection();
-	}
-
-	void TargetTimeline::DrawTimlineDivisors()
+	void TargetTimeline::OnDrawTimlineDivisors()
 	{
 		// Timeline Target Region rows
 		// ---------------------------
@@ -471,8 +376,8 @@ namespace Editor
 			for (int t = 0; t <= TargetType_Max; t++)
 			{
 				float y = t * ROW_HEIGHT;
-				ImVec2 start = timelineTargetRegion.GetTL() + ImVec2(0, y);
-				ImVec2 end = start + ImVec2(timelineTargetRegion.GetWidth(), 0);
+				ImVec2 start = timelineContentRegion.GetTL() + ImVec2(0, y);
+				ImVec2 end = start + ImVec2(timelineContentRegion.GetWidth(), 0);
 
 				baseDrawList->AddLine(start, end, GetColor(EditorColor_TimelineRowSeparator));
 			}
@@ -506,8 +411,8 @@ namespace Editor
 					break;
 
 				const float startYOffset = timelineHeaderHeight * (isBar ? .85f : .35f);
-				ImVec2 start = timelineTargetRegion.GetTL() + ImVec2(screenX, -startYOffset);
-				ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(screenX, 0);
+				ImVec2 start = timelineContentRegion.GetTL() + ImVec2(screenX, -startYOffset);
+				ImVec2 end = timelineContentRegion.GetBL() + ImVec2(screenX, 0);
 
 				const ImU32 color = GetColor(isBar ? EditorColor_Bar : (divisions++ % 2 == 0 ? EditorColor_Grid : EditorColor_GridAlt));
 				baseDrawList->AddLine(start, end, color);
@@ -523,12 +428,18 @@ namespace Editor
 		}
 	}
 
+	void TargetTimeline::OnDrawTimlineBackground()
+	{
+		DrawWaveform();
+		DrawTimelineTempoMap();
+	}
+
 	void TargetTimeline::DrawWaveform()
 	{
 		// TEST WAVEFORM
 		// -------------
 		{
-			//ImGui::SetTooltip("timleine mouse: %f", ImGui::GetMousePos().x + GetScrollX() - timelineTargetRegion.GetTL().x);
+			//ImGui::SetTooltip("timleine mouse: %f", ImGui::GetMousePos().x + GetScrollX() - timelineContentRegion.GetTL().x);
 
 			if (pvEditor->songStream != nullptr)
 			{
@@ -546,11 +457,11 @@ namespace Editor
 
 				float scrollX = GetScrollX() + GetTimelinePosition(pvEditor->songStartOffset);
 				int64_t leftMostVisiblePixel = 0;
-				int64_t rightMostVisiblePixel = timelineBaseRegion.GetWidth();
+				int64_t rightMostVisiblePixel = static_cast<int64_t>(timelineBaseRegion.GetWidth());
 				int64_t pixelCount = songWaveform.GetPixelCount();
-				float timelineTargetX = timelineTargetRegion.GetTL().x;
+				float timelineTargetX = timelineContentRegion.GetTL().x;
 				float timelineTargetHeight = (TargetType_Max * ROW_HEIGHT);
-				float y = timelineTargetRegion.GetTL().y + ((TargetType_Max * ROW_HEIGHT) / 2);
+				float y = timelineContentRegion.GetTL().y + ((TargetType_Max * ROW_HEIGHT) / 2);
 
 				int linesDrawn = 0;
 				for (int64_t screenPixel = leftMostVisiblePixel; screenPixel < songWaveform.GetPixelCount() && screenPixel < rightMostVisiblePixel; screenPixel++)
@@ -584,7 +495,6 @@ namespace Editor
 		// --------------------------------
 		{
 			char tempoStr[16];
-			char buttonIdStr[28];
 			static int tempoPopupIndex = -1;
 
 			for (size_t i = 0; i < tempoMap.TempoChangeCount(); i++)
@@ -603,13 +513,15 @@ namespace Editor
 				auto tempoFgColor = IM_COL32(139, 56, 51, 255);
 
 				sprintf_s(tempoStr, sizeof(tempoStr), "%.2f BPM", tempoChange.Tempo.BeatsPerMinute);
-				sprintf_s(buttonIdStr, sizeof(buttonIdStr), "##%s_%04d", tempoStr, i);
 
 				auto buttonPosition = tempoMapRegion.GetTL() + ImVec2(screenX + 1, 0);
 				auto buttonSize = ImVec2(ImGui::CalcTextSize(tempoStr).x, tempoMapHeight);
 
 				ImGui::SetCursorScreenPos(buttonPosition);
-				ImGui::InvisibleButton(buttonIdStr, buttonSize);
+				
+				ImGui::PushID(&tempoChange);
+				ImGui::InvisibleButton("##invisible_tempo_button", buttonSize);
+				ImGui::PopID();
 
 				// prevent overlapping tempo changes
 				//windowDrawList->AddRectFilled(buttonPosition, buttonPosition + buttonSize, TEMPO_MAP_BAR_COLOR);
@@ -621,13 +533,13 @@ namespace Editor
 					if (ImGui::IsMouseDoubleClicked(0))
 					{
 						SetScrollX(screenX + GetScrollX());
-						//SetScrollX(screenX - timelineTargetRegion.GetTL().x - (windowWidth * .5f));
+						//SetScrollX(screenX - timelineContentRegion.GetTL().x - (windowWidth * .5f));
 					}
 
 					if (ImGui::IsMouseClicked(1))
 					{
 						ImGui::OpenPopup("##change_tempo_popup");
-						tempoPopupIndex = i;
+						tempoPopupIndex = static_cast<int>(i);
 					}
 				}
 
@@ -675,7 +587,7 @@ namespace Editor
 			if (visiblity == TimelineVisibility::Right)
 				break;
 
-			ImVec2 center = ImVec2(screenX + timelineTargetRegion.GetTL().x, targetYPositions[target.Type]);
+			ImVec2 center = ImVec2(screenX + timelineContentRegion.GetTL().x, targetYPositions[target.Type]);
 
 			float scale = ICON_SCALE;
 
@@ -686,7 +598,7 @@ namespace Editor
 
 				if (timeUntilButton <= 0.0 && timeUntilButton >= -buttonAnimationDuration)
 				{
-					float t = timeUntilButton.TotalSeconds() / -buttonAnimationDuration.TotalSeconds();
+					float t = static_cast<float>(timeUntilButton.TotalSeconds() / -buttonAnimationDuration.TotalSeconds());
 					scale *= ImLerp(buttonAnimationScale, 1.0f, t);
 				}
 			}
@@ -696,7 +608,7 @@ namespace Editor
 				{
 					if (buttonAnimations[target.Type].ElapsedTime >= buttonAnimationStartTime && buttonAnimations[target.Type].ElapsedTime <= buttonAnimationDuration)
 					{
-						float t = buttonAnimations[target.Type].ElapsedTime.TotalSeconds() / buttonAnimationDuration.TotalSeconds();
+						float t = static_cast<float>(buttonAnimations[target.Type].ElapsedTime.TotalSeconds() / buttonAnimationDuration.TotalSeconds());
 						scale *= ImLerp(buttonAnimationScale, 1.0f, t);
 					}
 				}
@@ -709,120 +621,69 @@ namespace Editor
 
 	void TargetTimeline::DrawTimelineCursor()
 	{
-		ImColor outterColor = GetColor(EditorColor_Cursor);
-		ImColor innerColor = ImColor(outterColor.Value.x, outterColor.Value.y, outterColor.Value.z, .5f);
-
 		if (GetIsPlayback())
 		{
 			float prePlaybackX = GetTimelinePosition(pvEditor->playbackTimeOnPlaybackStart) - GetScrollX();
 
 			ImVec2 start = timelineHeaderRegion.GetTL() + ImVec2(prePlaybackX, 0);
-			ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(prePlaybackX, 0);
+			ImVec2 end = timelineContentRegion.GetBL() + ImVec2(prePlaybackX, 0);
 
-			baseDrawList->AddLine(start, end, innerColor);
+			baseDrawList->AddLine(start, end, GetColor(EditorColor_CursorInner));
 		}
 
-		const float scrollX = GetScrollX();
-		const float cursorX = GetCursorTimelinePosition();
-		float cursorScreenX = cursorX - scrollX;
-
-		// ensure smooth cursor scrolling
-		if (autoScrollCursor)
-			cursorScreenX = timelineTargetRegion.GetWidth() - (timelineTargetRegion.GetWidth() / autoScrollOffsetFraction);
-
-		ImVec2 start = timelineHeaderRegion.GetTL() + ImVec2(cursorScreenX, 0);
-		ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(cursorScreenX, 0);
-
-		baseDrawList->AddLine(start + ImVec2(0, CURSOR_HEAD_HEIGHT - 1), end, outterColor);
-
-		float centerX = start.x + .5f;
-		ImVec2 cursorTriangle[3] =
-		{
-			ImVec2(centerX - CURSOR_HEAD_WIDTH * .5f, start.y),
-			ImVec2(centerX + CURSOR_HEAD_WIDTH * .5f, start.y),
-			ImVec2(centerX, start.y + CURSOR_HEAD_HEIGHT),
-		};
-		baseDrawList->AddTriangleFilled(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], innerColor);
-		baseDrawList->AddTriangle(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], outterColor);
+		TimelineBase::DrawTimelineCursor();
 	}
 
 	void TargetTimeline::DrawTimeSelection()
 	{
+		// Test out selection box
+		// ----------------------
+		{
+			constexpr int selectionBoxButton = 1;
+			static ImRect dragRect;
+
+			if (ImGui::IsMouseClicked(selectionBoxButton) && ImGui::IsMouseHoveringWindow() && !ImGui::IsAnyItemHovered())
+				dragRect.Min = ImGui::GetMousePos();
+			if (ImGui::IsMouseReleased(selectionBoxButton))
+				dragRect.Min = dragRect.Max = ImVec2();
+
+			if (!ImGui::IsAnyItemHovered() && ImGui::IsMouseDragging(selectionBoxButton) && dragRect.Min.x != 0)
+			{
+				dragRect.Max = ImGui::GetMousePos();
+				baseDrawList->AddRectFilled(dragRect.GetTL(), dragRect.GetBR(), GetColor(EditorColor_Selection));
+			}
+		}
+
 		if (!timeSelectionActive)
 			return;
 
 		const float scrollX = GetScrollX();
 
-		//{
-		//	float cursorScreenX = GetTimelinePosition(timeSelectionStart) - scrollX;
-		//	ImVec2 start = timelineHeaderRegion.GetTL() + ImVec2(cursorScreenX, 0);
-		//	ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(cursorScreenX, 0);
-		//	baseDrawList->AddLine(start, end, GetColor(EditorColor_Selection));
-		//}
+		float startScreenX = GetTimelinePosition(timeSelectionStart) - scrollX;
+		float endScreenX = GetTimelinePosition(timeSelectionEnd) - scrollX;
 
-		//{
-		//	float cursorScreenX = GetTimelinePosition(timeSelectionEnd) - scrollX;
-		//	ImVec2 start = timelineHeaderRegion.GetTL() + ImVec2(cursorScreenX, 0);
-		//	ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(cursorScreenX, 0);
-		//	baseDrawList->AddLine(start, end, GetColor(EditorColor_Selection));
-		//}
+		ImVec2 start = timelineContentRegion.GetTL() + ImVec2(startScreenX, 0);
+		ImVec2 end = timelineContentRegion.GetBL() + ImVec2(endScreenX, 0);
 
-		{
-			float startScreenX = GetTimelinePosition(timeSelectionStart) - scrollX;
-			float endScreenX = GetTimelinePosition(timeSelectionEnd) - scrollX;
-
-			ImVec2 start = timelineTargetRegion.GetTL() + ImVec2(startScreenX, 0);
-			ImVec2 end = timelineTargetRegion.GetBL() + ImVec2(endScreenX, 0);
-
-			baseDrawList->AddRectFilled(start, end, GetColor(EditorColor_Selection));
-
-			//ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-		}
+		baseDrawList->AddRectFilled(start, end, GetColor(EditorColor_Selection));
+		//ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 	}
 
-	void TargetTimeline::Update()
+	void TargetTimeline::OnUpdateInput()
 	{
-		// make sure the cursor time is the same through the entire draw tick
-		cursorTime = pvEditor->GetPlaybackTime();
-		autoScrollCursor = false;
-
-		if (GetIsPlayback())
-		{
-			UpdateCursorAutoScroll();
-		}
-	}
-
-	void TargetTimeline::UpdateAllInput()
-	{
-		if (!(updateInput = ImGui::IsWindowFocused()))
-			return;
-
-		UpdateInputPlaybackToggle();
 		UpdateInputCursorClick();
-		UpdateInputTimelineScroll();
 		UpdateInputTargetPlacement();
 	}
 
-	void TargetTimeline::UpdateInputPlaybackToggle()
+	void TargetTimeline::OnDrawTimelineContents()
 	{
-		if (ImGui::IsKeyPressed(GLFW_KEY_SPACE))
-		{
-			if (GetIsPlayback())
-				pvEditor->PausePlayback();
-			else
-				pvEditor->ResumePlayback();
-		}
-
-		if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE) && GetIsPlayback())
-		{
-			if (GetIsPlayback())
-				pvEditor->StopPlayback();
-		}
+		DrawTimelineTargets();
+		DrawTimeSelection();
 	}
 
 	void TargetTimeline::UpdateInputCursorClick()
 	{
-		if (!ImGui::IsMouseHoveringWindow() || !timelineTargetRegion.Contains(ImGui::GetMousePos()))
+		if (!ImGui::IsMouseHoveringWindow() || !timelineContentRegion.Contains(ImGui::GetMousePos()))
 			return;
 
 		// Cursor Mouse Click:
@@ -881,7 +742,7 @@ namespace Editor
 			{
 				if (abs(timeSelectionStart.TotalTicks() - timeSelectionEnd.TotalTicks()) > (GetGridTick().TotalTicks() * 2))
 					timeSelectionActive = true;
-				
+
 				timeSelectionEnd = GetCursorMouseXTick();
 			}
 		}
@@ -930,13 +791,38 @@ namespace Editor
 
 	void TargetTimeline::SelectNextGridDivision(int direction)
 	{
-		int nextIndex = ImClamp(gridDivisionIndex + direction, 0, IM_ARRAYSIZE(gridDivisions) - 1);
+		int nextIndex = ImClamp(gridDivisionIndex + direction, 0, (int)gridDivisions.size() - 1);
 		gridDivision = gridDivisions[nextIndex];
+	}
+
+	TimeSpan TargetTimeline::GetCursorTime() const
+	{
+		return pvEditor->GetPlaybackTime();
+	}
+
+	void TargetTimeline::UpdateCursorTime()
+	{
+		cursorTime = GetCursorTime();
 	}
 
 	bool TargetTimeline::GetIsPlayback() const
 	{
 		return pvEditor->GetIsPlayback();
+	}
+
+	void TargetTimeline::PausePlayback()
+	{
+		pvEditor->PausePlayback();
+	}
+
+	void TargetTimeline::ResumePlayback()
+	{
+		pvEditor->ResumePlayback();
+	}
+
+	void TargetTimeline::StopPlayback()
+	{
+		pvEditor->StopPlayback();
 	}
 
 	float TargetTimeline::GetTimelineSize() const

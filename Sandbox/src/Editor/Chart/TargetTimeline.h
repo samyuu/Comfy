@@ -29,7 +29,7 @@ namespace Editor
 		// PvEditor Methods:
 		// -----------------
 		virtual void Initialize() override;
-		virtual const char* GetGuiName() override;
+		virtual const char* GetGuiName() const override;
 		virtual void DrawGui() override;
 		virtual void OnLoad() override;
 		virtual void OnPlaybackResumed() override;
@@ -54,25 +54,28 @@ namespace Editor
 
 		// Timeline:
 		// ---------
-		TempoMap tempoMap;
-		TimelineMap timelineMap;
-		TargetList targets;
+		struct
+		{
+			TempoMap tempoMap;
+			TimelineMap timelineMap;
+			TargetList targets;
 
-		const char* gridDivisionStrings[10] = { "1/1", "1/2", "1/4", "1/8", "1/12", "1/16", "1/24", "1/32", "1/48", "1/64" };
-		const int gridDivisions[10] = { 1, 2, 4, 8, 12, 16, 24, 32, 48, 64 };
-		int gridDivisionIndex = 0;
+			const std::array<const char*, 10> gridDivisionStrings = { "1/1", "1/2", "1/4", "1/8", "1/12", "1/16", "1/24", "1/32", "1/48", "1/64" };
+			const std::array<int, 10> gridDivisions = { 1, 2, 4, 8, 12, 16, 24, 32, 48, 64 };
+			int gridDivisionIndex = 0;
 
-		int gridDivision = 16;
+			int gridDivision = 16;
+		};
 		// ---------
 
 		// ----------------------
-		float targetYPositions[TargetType_Max];
+		std::array<float, TargetType_Max> targetYPositions;
 
 		// sankaku | shikaku | batsu | maru | slide_l | slide_r | slide_chain_l | slide_chain_r
 		static constexpr int buttonIconsTypeCount = 8;
 		static constexpr int buttonIconWidth = 52;
 
-		ImRect buttonIconsTextureCoordinates[buttonIconsTypeCount * 2];
+		std::array<ImRect, buttonIconsTypeCount * 2> buttonIconsTextureCoordinates;
 
 		const char* buttonIconsTexturePath = u8"rom/spr/btn_icns.png";
 		Texture buttonIconsTexture;
@@ -133,23 +136,22 @@ namespace Editor
 
 		// Timeline Widgets:
 		// -----------------
-		void DrawTimelineHeaderWidgets();
+		void OnDrawTimelineHeaderWidgets() override;
 		// Timeline Column:
 		// ----------------
-		void DrawTimelineInfoColumnHeader();
-		void DrawTimelineInfoColumn();
+		void OnDrawTimelineInfoColumnHeader() override;
+		void OnDrawTimelineInfoColumn() override;
 		// Timeline Base:
 		// --------------
-		void DrawTimelineBase();
-		void DrawTimlineDivisors() override;
+		void OnDrawTimlineDivisors() override;
+		void OnDrawTimlineBackground() override;
 		void DrawWaveform();
 		void DrawTimelineTempoMap();
 		void DrawTimelineTargets();
 		void DrawTimelineCursor() override;
 		void DrawTimeSelection();
-		void Update();
-		void UpdateAllInput();
-		void UpdateInputPlaybackToggle();
+		void OnUpdateInput() override;
+		void OnDrawTimelineContents() override;
 		void UpdateInputCursorClick();
 		void UpdateInputTargetPlacement();
 		// --------------
@@ -162,7 +164,12 @@ namespace Editor
 
 		// Timeline Control:
 		// -----------------
+		virtual TimeSpan GetCursorTime() const override;
+		virtual void UpdateCursorTime() override;
 		virtual bool GetIsPlayback() const override;
+		virtual void PausePlayback() override;
+		virtual void ResumePlayback() override;
+		virtual void StopPlayback() override;
 
 		virtual float GetTimelineSize() const override;
 		void OnTimelineBaseScroll() override;
@@ -187,8 +194,6 @@ namespace Editor
 		TimelineTick GetCursorMouseXTick() const;
 
 		int GetGridDivisionIndex() const;
-
-		ImU32 GetColor(EditorColor color) const;
 		// -------------------
 
 		// -------------------

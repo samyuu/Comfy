@@ -7,6 +7,6 @@ public:
 	TestComponent(Application*);
 	~TestComponent();
 
-	virtual const char* GetGuiName() override;
-	virtual ImGuiWindowFlags GetWindowFlags() override;
+	virtual const char* GetGuiName() const override;
+	virtual ImGuiWindowFlags GetWindowFlags() const override;
 };

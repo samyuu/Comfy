@@ -70,12 +70,12 @@ void InputTestWindow::DrawGui()
 	ImGui::Separator();
 }
 
-const char* InputTestWindow::GetGuiName()
+const char* InputTestWindow::GetGuiName() const
 {
 	return u8"Input Test";
 }
 
-ImGuiWindowFlags InputTestWindow::GetWindowFlags()
+ImGuiWindowFlags InputTestWindow::GetWindowFlags() const
 {
 	return ImGuiWindowFlags_None;
 }

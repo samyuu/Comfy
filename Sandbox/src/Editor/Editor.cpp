@@ -6,6 +6,40 @@
 
 namespace Editor
 {
+	std::array<ImU32, EditorColor_Max> EditorColors;
+
+	ImU32 GetColor(EditorColor color)
+	{
+		return DEBUG_RELEASE(EditorColors.at(color), EditorColors[color]);
+	}
+
+	ImU32 GetColor(EditorColor color, float alpha)
+	{
+		ImVec4 colorVector = ImGui::ColorConvertU32ToFloat4(GetColor(color));
+		colorVector.w *= alpha;
+
+		return ImGui::ColorConvertFloat4ToU32(colorVector);
+	}
+
+	inline void SetColor(EditorColor color, ImU32 value)
+	{
+		EditorColors[color] = value;
+	}
+
+	void UpdateEditorColors()
+	{
+		SetColor(EditorColor_Grid, ImGui::GetColorU32(ImGuiCol_Separator, .75f));
+		SetColor(EditorColor_GridAlt, ImGui::GetColorU32(ImGuiCol_Separator, .5f));
+		SetColor(EditorColor_InfoColumn, ImGui::GetColorU32(ImGuiCol_ScrollbarBg));
+		SetColor(EditorColor_TempoMapBg, ImGui::GetColorU32(ImGuiCol_MenuBarBg));
+		SetColor(EditorColor_Selection, ImGui::GetColorU32(ImGuiCol_TextSelectedBg));
+		SetColor(EditorColor_TimelineBg, ImGui::GetColorU32(ImGuiCol_DockingEmptyBg));
+		SetColor(EditorColor_TimelineRowSeparator, ImGui::GetColorU32(ImGuiCol_Separator));
+		SetColor(EditorColor_Bar, ImGui::GetColorU32(ImGuiCol_PlotLines));
+		SetColor(EditorColor_Cursor, ImColor(0.71f, 0.54f, 0.15f));
+		SetColor(EditorColor_CursorInner, GetColor(EditorColor_Cursor, 0.5f));
+	}
+
 	PvEditor::PvEditor(Application* parent) : parent(parent)
 	{
 		editorComponents.reserve(2);
@@ -67,20 +101,7 @@ namespace Editor
 			UpdatePlayback();
 		}
 
-		// Update Colors:
-		// --------------
-		{
-			editorColors[EditorColor_Grid] = ImGui::GetColorU32(ImGuiCol_Separator, .75f);
-			editorColors[EditorColor_GridAlt] = ImGui::GetColorU32(ImGuiCol_Separator, .5f);
-			editorColors[EditorColor_InfoColumn] = ImGui::GetColorU32(ImGuiCol_ScrollbarBg);
-			editorColors[EditorColor_TempoMapBg] = ImGui::GetColorU32(ImGuiCol_MenuBarBg);
-			editorColors[EditorColor_Selection] = ImGui::GetColorU32(ImGuiCol_TextSelectedBg);
-			editorColors[EditorColor_TimelineBg] = ImGui::GetColorU32(ImGuiCol_DockingEmptyBg);
-			editorColors[EditorColor_TimelineRowSeparator] = ImGui::GetColorU32(ImGuiCol_Separator);
-			editorColors[EditorColor_Bar] = ImGui::GetColorU32(ImGuiCol_PlotLines);
-			editorColors[EditorColor_Cursor] = ImColor(0.71f, 0.54f, 0.15f);
-		}
-		// --------------
+		UpdateEditorColors();
 	}
 
 	void PvEditor::DrawGui()
@@ -122,7 +143,7 @@ namespace Editor
 	{
 		bool loaded = false;
 
-		for (size_t e = 0; e < IM_ARRAYSIZE(audioFileExtensions); e++)
+		for (size_t e = 0; e < audioFileExtensions.size(); e++)
 		{
 			if (boost::iends_with(filePath, audioFileExtensions[e]))
 			{

@@ -20,14 +20,12 @@ namespace Editor
 
 	void AetEditor::DrawGui()
 	{
-		if (false)
-			ImGui::ShowDemoWindow();
-
 		ImGui::BeginGroup();
 		{
-			static char aetSetPathBuffer[_MAX_PATH] = "dev_ram/aetset/";
-			ImGui::InputText("AetSet Path", aetSetPathBuffer, sizeof(aetSetPathBuffer));
-			if (ImGui::Button("Open AetSet...", { ImGui::CalcItemWidth(), 0 }))
+			bool openAetSet = ImGui::InputText("AetSet Path", aetSetPathBuffer, sizeof(aetSetPathBuffer), ImGuiInputTextFlags_EnterReturnsTrue);
+			openAetSet |= ImGui::Button("Open AetSet...", ImVec2(ImGui::CalcItemWidth(), 0));
+
+			if (openAetSet)
 				OpenAetSet(aetSetPathBuffer);
 		}
 		ImGui::EndGroup();
@@ -45,12 +43,12 @@ namespace Editor
 		ImGui::End();
 	}
 
-	const char* AetEditor::GetGuiName()
+	const char* AetEditor::GetGuiName() const
 	{
 		return u8"Aet Editor";
 	}
 
-	ImGuiWindowFlags AetEditor::GetWindowFlags()
+	ImGuiWindowFlags AetEditor::GetWindowFlags() const
 	{
 		return ImGuiWindowFlags_NoBackground;
 	}
@@ -68,7 +66,7 @@ namespace Editor
 				aetObj->Name = std::string(aetObjNameBuffer);
 
 			int objTypeIndex = aetObj->Type;
-			if (ImGui::Combo("Obj Type", &objTypeIndex, aetObjTypeNames, IM_ARRAYSIZE(aetObjTypeNames)))
+			if (ImGui::Combo("Obj Type", &objTypeIndex, aetObjTypeNames.data(), aetObjTypeNames.size()))
 				aetObj->Type = (AetObjType)objTypeIndex;
 
 			ImGui::InputFloat("Start Frame", &aetObj->StartFrame);
@@ -207,13 +205,11 @@ namespace Editor
 				bool aetLyoNodeOpen = ImGui::TreeNodeEx((void*)&aetLyo, lyoNodeFlags, "%s", aetLyo.Name.c_str());
 
 				if (ImGui::IsItemClicked())
-				{
-					selected.AetLyo = &aetLyo;
-					selected.Type = SelectionType::AetLyo;
-				}
+					selected = { SelectionType::AetLyo, &aetLyo };
 
 				if (aetLyoNodeOpen)
 				{
+					size_t layerIndex = 0;
 					for (auto& aetLayer : aetLyo.AetLayers)
 					{
 						ImGui::PushID((void*)&aetLayer);
@@ -223,13 +219,10 @@ namespace Editor
 							layerNodeFlags |= ImGuiTreeNodeFlags_Selected;
 
 						AetLayer* rootLayer = &aetLyo.AetLayers.back();
-						bool aetLayerNodeOpen = ImGui::TreeNodeEx((void*)&aetLayer, layerNodeFlags, (&aetLayer == rootLayer) ? "Root" : "Layer");
+						bool aetLayerNodeOpen = ImGui::TreeNodeEx((void*)&aetLayer, layerNodeFlags, (&aetLayer == rootLayer) ? "Root" : "Layer %zd", layerIndex++);
 
 						if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1))
-						{
-							selected.AetLayer = &aetLayer;
-							selected.Type = SelectionType::AetLayer;
-						}
+							selected = { SelectionType::AetLayer, &aetLayer };
 
 						ImGui::OpenPopupOnItemClick(aetLayerContextMenuID, 1);
 
@@ -237,6 +230,9 @@ namespace Editor
 						if (ImGui::BeginPopupContextItem(aetLayerContextMenuID))
 						{
 							openAddAetObjPopup = ImGui::MenuItem("Add new AetObj...");
+							if (ImGui::MenuItem("Move Up")) {}
+							if (ImGui::MenuItem("Move Down")) {}
+							if (ImGui::MenuItem("Delete...")) {}
 							ImGui::EndPopup();
 						}
 
@@ -244,7 +240,7 @@ namespace Editor
 							ImGui::OpenPopup(addAetObjPopupID);
 						if (ImGui::BeginPopupModal(addAetObjPopupID, NULL, ImGuiWindowFlags_AlwaysAutoResize))
 						{
-							if (ImGui::Combo("Obj Type", &newObjTypeIndex, aetObjTypeNames, IM_ARRAYSIZE(aetObjTypeNames)))
+							if (ImGui::Combo("Obj Type", &newObjTypeIndex, aetObjTypeNames.data(), aetObjTypeNames.size()))
 							{
 								// TODO: automatically append .pic / .aif
 							}
@@ -279,10 +275,7 @@ namespace Editor
 								ImGui::TreeNodeEx((void*)&aetObj, objNodeFlags, "%s", aetObj.Name.c_str());
 
 								if (ImGui::IsItemClicked())
-								{
-									selected.AetObj = &aetObj;
-									selected.Type = SelectionType::AetObj;
-								}
+									selected = { SelectionType::AetObj, &aetObj };
 							}
 
 							ImGui::TreePop();
@@ -300,8 +293,7 @@ namespace Editor
 		}
 		else
 		{
-			selected.Type = SelectionType::None;
-			selected.ItemPtr = nullptr;
+			selected = { SelectionType::None, nullptr };
 		}
 	}
 
@@ -332,10 +324,10 @@ namespace Editor
 		}
 	}
 
-	void AetEditor::OpenAetSet(const char* filePath)
+	bool AetEditor::OpenAetSet(const char* filePath)
 	{
 		if (!FileExists(filePath))
-			return;
+			return false;
 
 		MemoryStream stream(filePath);
 		BinaryReader reader(&stream);
@@ -346,5 +338,7 @@ namespace Editor
 			aetSet->Read(reader);
 		}
 		reader.Close();
+
+		return true;
 	}
 }

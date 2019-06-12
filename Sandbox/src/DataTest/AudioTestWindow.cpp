@@ -283,12 +283,12 @@ void AudioTestWindow::DrawGui()
 	ImGui::Separator();
 }
 
-const char* AudioTestWindow::GetGuiName()
+const char* AudioTestWindow::GetGuiName() const
 {
 	return u8"Audio Test";
 }
 
-ImGuiWindowFlags AudioTestWindow::GetWindowFlags()
+ImGuiWindowFlags AudioTestWindow::GetWindowFlags() const
 {
 	return ImGuiWindowFlags_None;
 }

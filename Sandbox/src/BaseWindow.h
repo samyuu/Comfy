@@ -9,12 +9,12 @@ public:
 	BaseWindow(Application* parent);
 	~BaseWindow();
 
-	virtual const char* GetGuiName() = 0;
+	virtual const char* GetGuiName() const = 0;
 	virtual void DrawGui() {};
-	virtual ImGuiWindowFlags GetWindowFlags();
+	virtual ImGuiWindowFlags GetWindowFlags() const;
 
 	inline bool* GetIsGuiOpenPtr() { return &isGuiOpen; };
-	inline Application* GetParent() { return parentApplication; };
+	inline Application* GetParent() const { return parentApplication; };
 
 private:
 	bool isGuiOpen = true;
