@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <algorithm>
 #include <vector>
+#include <array>
 #include <memory>
 
 typedef uint8_t byte;
@@ -125,13 +126,13 @@ private:
 
 	inline RtAudio::Api GetRtAudioApi(AudioApi audioApi)
 	{
-		return (audioApi < AUDIO_API_COUNT) ? audioApis[audioApi] : RtAudio::UNSPECIFIED;
+		return (audioApi > AUDIO_API_INVALID && audioApi < AUDIO_API_COUNT) ? audioApis.at(audioApi) : RtAudio::UNSPECIFIED;
 	};
 
-	RtAudio::Api audioApis[AUDIO_API_COUNT] =
+	std::array<RtAudio::Api, AUDIO_API_COUNT> audioApis =
 	{
-		RtAudio::WINDOWS_ASIO,
-		RtAudio::WINDOWS_WASAPI,
+		RtAudio::WINDOWS_ASIO,		// AUDIO_API_ASIO
+		RtAudio::WINDOWS_WASAPI,	// AUDIO_API_WASAPI
 	};
 
 	AudioCallbackResult InternalAudioCallback(int16_t* outputBuffer, uint32_t bufferFrameCount, double streamTime);

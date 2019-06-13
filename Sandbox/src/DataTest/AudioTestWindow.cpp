@@ -115,7 +115,7 @@ void AudioTestWindow::DrawGui()
 		if (selectedAudioApi == AUDIO_API_INVALID)
 			selectedAudioApi = engine->GetActiveAudioApi();
 
-		ImGui::Combo("Audio API##combo", (int*)&selectedAudioApi, audioApiNames, IM_ARRAYSIZE(audioApiNames));
+		ImGui::Combo("Audio API##combo", (int*)&selectedAudioApi, audioApiNames.data(), audioApiNames.size());
 		ImGui::Separator();
 
 		if (ImGui::Button("engine->SetAudioApi()", ImVec2(ImGui::CalcItemWidth(), 0)))
@@ -323,19 +323,19 @@ void AudioTestWindow::RefreshDeviceInfoList()
 
 			size_t totalContainedFlags = 0;
 
-			for (size_t i = 0; i < IM_ARRAYSIZE(audioFormatAndNames); i++)
+			for (size_t i = 0; i < IM_ARRAYSIZE(audioFormatDescriptions); i++)
 			{
-				if ((nativeFormats & audioFormatAndNames[i].format) != 0)
+				if ((nativeFormats & audioFormatDescriptions[i].Format) != 0)
 					totalContainedFlags++;
 			}
 
 			size_t flagStringsAdded = 0;
-			for (size_t i = 0; i < IM_ARRAYSIZE(audioFormatAndNames); i++)
+			for (size_t i = 0; i < IM_ARRAYSIZE(audioFormatDescriptions); i++)
 			{
-				if ((nativeFormats & audioFormatAndNames[i].format) != 0)
+				if ((nativeFormats & audioFormatDescriptions[i].Format) != 0)
 				{
 					flagStringsAdded++;
-					stringStream << audioFormatAndNames[i].name;
+					stringStream << audioFormatDescriptions[i].Name;
 
 					if (flagStringsAdded != totalContainedFlags)
 						stringStream << ", ";
@@ -368,7 +368,7 @@ void AudioTestWindow::ShowDeviceInfoProperties(ExtendedDeviceInfo& deviceInfo, i
 		return;
 	}
 
-	for (int i = 0; i < IM_ARRAYSIZE(deviceInfoFieldNames); i++)
+	for (int i = 0; i < deviceInfoFieldNames.size(); i++)
 	{
 		ImGui::PushID(i);
 		{

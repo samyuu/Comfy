@@ -3,6 +3,7 @@
 #include "../Audio/AudioEngine.h"
 #include "../Audio/MemoryAudioStream.h"
 #include <vector>
+#include <array>
 
 class AudioTestWindow : public BaseWindow
 {
@@ -35,13 +36,13 @@ private:
 	AudioApi selectedAudioApi = AUDIO_API_INVALID;
 	int newBufferSize = -1;
 
-	const char* audioApiNames[AUDIO_API_COUNT] =
+	std::array<const char*, AUDIO_API_COUNT> audioApiNames =
 	{ 
-		"AUDIO_API_ASIO", 
-		"AUDIO_API_WASAPI", 
+		"AUDIO_API_ASIO",
+		"AUDIO_API_WASAPI",
 	};
 
-	const char* deviceInfoFieldNames[8] =
+	std::array<const char*, 8> deviceInfoFieldNames =
 	{
 		"Name",
 		"Output Channels",
@@ -53,7 +54,7 @@ private:
 		"Native Formats",
 	};
 
-	struct { RtAudioFormat format; const char* name; } audioFormatAndNames[6] =
+	struct { RtAudioFormat Format; const char* Name; } audioFormatDescriptions[6] =
 	{
 		{ RTAUDIO_SINT8,	"SINT8"   },
 		{ RTAUDIO_SINT16,	"SINT16"  },
