@@ -17,6 +17,7 @@ namespace Editor
 		EditorColor_TimelineRowSeparator,
 		EditorColor_Cursor,
 		EditorColor_CursorInner,
+		EditorColor_KeyFrame,
 		EditorColor_Max,
 	};
 

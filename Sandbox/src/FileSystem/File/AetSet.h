@@ -69,6 +69,8 @@ namespace File
 		std::vector<KeyFrame> ScaleX;
 		std::vector<KeyFrame> ScaleY;
 		std::vector<KeyFrame> Opacity;
+
+		static std::array<const char*, 8> PropertyNames;
 	};
 
 	struct AnimationData

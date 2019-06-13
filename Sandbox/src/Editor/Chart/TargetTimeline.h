@@ -129,6 +129,7 @@ namespace Editor
 		// ----------------
 
 		// ----------------
+		void OnUpdate() override;
 		void UpdateTimelineMap();
 		void UpdateOnCallbackSounds();
 		void UpdateOnCallbackPlacementSounds();
@@ -143,6 +144,7 @@ namespace Editor
 		void OnDrawTimelineInfoColumn() override;
 		// Timeline Base:
 		// --------------
+		void OnDrawTimlineRows() override;
 		void OnDrawTimlineDivisors() override;
 		void OnDrawTimlineBackground() override;
 		void DrawWaveform();
@@ -165,7 +167,6 @@ namespace Editor
 		// Timeline Control:
 		// -----------------
 		virtual TimeSpan GetCursorTime() const override;
-		virtual void UpdateCursorTime() override;
 		virtual bool GetIsPlayback() const override;
 		virtual void PausePlayback() override;
 		virtual void ResumePlayback() override;

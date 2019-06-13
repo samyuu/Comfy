@@ -38,6 +38,7 @@ namespace Editor
 		SetColor(EditorColor_Bar, ImGui::GetColorU32(ImGuiCol_PlotLines));
 		SetColor(EditorColor_Cursor, ImColor(0.71f, 0.54f, 0.15f));
 		SetColor(EditorColor_CursorInner, GetColor(EditorColor_Cursor, 0.5f));
+		SetColor(EditorColor_KeyFrame, GetColor(EditorColor_Cursor, 0.85f));
 	}
 
 	PvEditor::PvEditor(Application* parent) : parent(parent)

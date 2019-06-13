@@ -71,7 +71,7 @@ namespace Editor
 		baseDrawList->AddTriangle(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], outterColor);
 	}
 
-	void TimelineBase::InitializeTimelineBaseState()
+	void TimelineBase::InitializeTimelineGuiState()
 	{
 		io = &ImGui::GetIO();
 	}
@@ -221,7 +221,7 @@ namespace Editor
 	void TimelineBase::UpdateTimelineBase()
 	{
 		// make sure the cursor time is the same through the entire draw tick
-		UpdateCursorTime();
+		cursorTime = GetCursorTime();
 		autoScrollCursor = false;
 
 		if (GetIsPlayback())
@@ -273,6 +273,7 @@ namespace Editor
 		}
 
 		UpdateTimelineSize();
+		OnUpdate();
 
 		// Timeline Header Region BG
 		// -------------------------
@@ -282,6 +283,8 @@ namespace Editor
 		// -------------------------
 		baseDrawList->AddRectFilled(timelineContentRegion.GetTL(), timelineContentRegion.GetBR(), GetColor(EditorColor_TimelineBg));
 
+		OnDrawTimlineTempoMap();
+		OnDrawTimlineRows();
 		OnDrawTimlineDivisors();
 		OnDrawTimlineBackground();
 
@@ -295,5 +298,29 @@ namespace Editor
 
 		OnDrawTimelineContents();
 		DrawTimelineCursor();
+	}
+
+	void TimelineBase::OnDrawTimelineInfoColumnHeader()
+	{
+		auto drawList = ImGui::GetWindowDrawList();
+
+		drawList->AddRectFilled(infoColumnHeaderRegion.GetTL(), infoColumnHeaderRegion.GetBR(), GetColor(EditorColor_InfoColumn), 8.0f, ImDrawCornerFlags_TopLeft);
+	}
+
+	void TimelineBase::OnDrawTimelineInfoColumn()
+	{
+		auto drawList = ImGui::GetWindowDrawList();
+
+		// top part
+		drawList->AddRectFilled(infoColumnRegion.GetTL(), infoColumnRegion.GetBR(), GetColor(EditorColor_InfoColumn));
+
+		// bottom part
+		ImDrawList* parentDrawList = ImGui::GetCurrentWindow()->ParentWindow->DrawList;
+		parentDrawList->AddRectFilled(infoColumnRegion.GetBL(), infoColumnRegion.GetBL() + ImVec2(infoColumnRegion.GetWidth(), -ImGui::GetStyle().ScrollbarSize), GetColor(EditorColor_InfoColumn));
+	}
+
+	void TimelineBase::OnDrawTimlineTempoMap()
+	{
+		baseDrawList->AddRectFilled(tempoMapRegion.GetTL(), tempoMapRegion.GetBR(), GetColor(EditorColor_TempoMapBg));
 	}
 }

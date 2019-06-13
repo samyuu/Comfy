@@ -4,6 +4,18 @@
 
 namespace File
 {
+	std::array<const char*, 8> KeyFrameProperties::PropertyNames = 
+	{ 
+		"Origin X", 
+		"Origin Y", 
+		"Position X", 
+		"Position Y", 
+		"Rotation", 
+		"Scale X", 
+		"Scale Y", 
+		"Opcatiy",
+	};
+
 	static void ReadKeyFrameProperties(KeyFrameProperties* properties, BinaryReader& reader)
 	{
 		for (auto keyFrames = &properties->OriginX; keyFrames <= &properties->Opacity; keyFrames++)

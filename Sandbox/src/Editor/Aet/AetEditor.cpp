@@ -16,6 +16,9 @@ namespace Editor
 	void AetEditor::Initialize()
 	{
 		OpenAetSet(testAetPath);
+
+		aetTimeline = std::make_unique<AetTimeline>();
+		aetTimeline->InitializeTimelineGuiState();
 	}
 
 	void AetEditor::DrawGui()
@@ -39,6 +42,13 @@ namespace Editor
 			ImGui::BeginChild("AetInspectorChild");
 			DrawInspector();
 			ImGui::EndChild();
+		}
+		ImGui::End();
+
+		if (ImGui::Begin("Aet Timeline##Aet", nullptr))
+		{
+			aetTimeline->SetAetObj(selected.Type == SelectionType::AetObj ? selected.AetObj : nullptr);
+			aetTimeline->DrawTimelineGui();
 		}
 		ImGui::End();
 	}
@@ -140,11 +150,9 @@ namespace Editor
 
 	void AetEditor::DrawKeyFrameProperties(KeyFrameProperties* properties)
 	{
-		static const char* propertyNames[] = { "Origin X", "Origin Y", "Position X", "Position Y", "Rotation", "Scale X", "Scale Y", "Opcatiy" };
-
 		size_t keyFrameIndex = 0;
 		for (auto keyFrames = &properties->OriginX; keyFrames <= &properties->Opacity; keyFrames++)
-			DrawKeyFrames(propertyNames[keyFrameIndex++], keyFrames);
+			DrawKeyFrames(KeyFrameProperties::PropertyNames[keyFrameIndex++], keyFrames);
 	}
 
 	void AetEditor::DrawKeyFrames(const char* name, std::vector<KeyFrame>* keyFrames)

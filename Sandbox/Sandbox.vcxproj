@@ -173,6 +173,7 @@
     <ClInclude Include="src\Editor\FrameTimeline.h" />
     <ClInclude Include="src\Editor\Theme.h" />
     <ClInclude Include="src\Editor\TimelineBase.h" />
+    <ClInclude Include="src\Editor\TimelineFrame.h" />
     <ClInclude Include="src\FileSystem\BinaryReader.h" />
     <ClInclude Include="src\FileSystem\FileHelper.h" />
     <ClInclude Include="src\FileSystem\FileInterface.h" />

@@ -21,8 +21,10 @@ namespace Editor
 		float GetCursorTimelinePosition() const;
 
 		virtual TimeSpan GetCursorTime() const;
-
 		TimelineVisibility GetTimelineVisibility(float screenX) const;
+
+		void DrawTimelineGui();
+		void InitializeTimelineGuiState();
 
 	protected:
 		// Timeline Zoom:
@@ -96,25 +98,26 @@ namespace Editor
 		// ----------------------
 
 		// ----------------------
-		void DrawTimelineGui();
 		void DrawTimelineBase();
 		// ----------------------
 		virtual void OnDrawTimelineHeaderWidgets() = 0;
-		virtual void OnDrawTimelineInfoColumnHeader() = 0;
-		virtual void OnDrawTimelineInfoColumn() = 0;
+		virtual void OnDrawTimelineInfoColumnHeader();
+		virtual void OnDrawTimelineInfoColumn();
 		// ----------------------
+		virtual void OnDrawTimlineTempoMap();
+		virtual void OnDrawTimlineRows() = 0;
 		virtual void OnDrawTimlineDivisors() = 0;
 		virtual void OnDrawTimlineBackground() = 0;
 		virtual void DrawTimelineCursor();
 		// ----------------------
 
 		// ----------------------
-		void InitializeTimelineBaseState();
 		void UpdateTimelineBaseState();
 		// ----------------------
 
 		// ----------------------
 		virtual void UpdateTimelineBase();
+		virtual void OnUpdate() = 0;
 		virtual void OnUpdateInput() = 0;
 		virtual void OnDrawTimelineContents() = 0;
 		void UpdateTimelineSize();
@@ -129,8 +132,6 @@ namespace Editor
 
 		// Timeline Control:
 		// -----------------
-		virtual void UpdateCursorTime()= 0;
-
 		virtual bool GetIsPlayback() const = 0;
 		virtual void PausePlayback() = 0;
 		virtual void ResumePlayback() = 0;

@@ -20,7 +20,7 @@ namespace Editor
 		// Constructors / Destructors:
 		// ---------------------------
 		TimelineTick() : tickCount(0) {};
-		TimelineTick(int32_t totalTicks) : tickCount(totalTicks) {}
+		TimelineTick(int32_t totalTicks) : tickCount(totalTicks) {};
 		// ---------------------------
 
 		// Conversion Methods:

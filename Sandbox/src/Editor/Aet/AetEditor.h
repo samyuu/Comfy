@@ -21,7 +21,7 @@ namespace Editor
 		virtual ImGuiWindowFlags GetWindowFlags() const override;
 
 	private:
-		//AetTimeline aetTimeline;
+		std::unique_ptr<AetTimeline> aetTimeline;
 		std::unique_ptr<AetSet> aetSet;
 
 		enum class SelectionType
