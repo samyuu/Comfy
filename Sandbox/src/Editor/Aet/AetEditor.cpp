@@ -63,7 +63,7 @@ namespace Editor
 		return ImGuiWindowFlags_NoBackground;
 	}
 
-	void AetEditor::DrawAetObj(AetObj * aetObj)
+	void AetEditor::DrawAetObj(AetObj* aetObj)
 	{
 		ImGui::Text("AetObj: %s", aetObj->Name.c_str());
 
@@ -116,7 +116,7 @@ namespace Editor
 		{
 			if (aetLayer != nullptr)
 			{
-				ImGui::Text("AetLayer: 0x%p", aetLayer);
+				ImGui::Text("Layer: %d", aetLayer->Index);
 			}
 			ImGui::TreePop();
 		}
@@ -217,7 +217,7 @@ namespace Editor
 
 				if (aetLyoNodeOpen)
 				{
-					size_t layerIndex = 0;
+					int32_t layerIndex = 0;
 					for (auto& aetLayer : aetLyo.AetLayers)
 					{
 						ImGui::PushID((void*)&aetLayer);
@@ -227,7 +227,8 @@ namespace Editor
 							layerNodeFlags |= ImGuiTreeNodeFlags_Selected;
 
 						AetLayer* rootLayer = &aetLyo.AetLayers.back();
-						bool aetLayerNodeOpen = ImGui::TreeNodeEx((void*)&aetLayer, layerNodeFlags, (&aetLayer == rootLayer) ? "Root" : "Layer %zd", layerIndex++);
+						bool aetLayerNodeOpen = ImGui::TreeNodeEx((void*)&aetLayer, layerNodeFlags, (&aetLayer == rootLayer) ? "Root" : "Layer %zd", aetLayer.Index);
+						aetLayer.Index = layerIndex++;
 
 						if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1))
 							selected = { SelectionType::AetLayer, &aetLayer };

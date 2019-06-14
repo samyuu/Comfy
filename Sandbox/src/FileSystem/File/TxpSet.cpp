@@ -2,7 +2,7 @@
 #include "../FileInterface.h"
 #include "../BinaryReader.h"
 
-namespace File
+namespace FileSystem
 {
 	void TxpSet::Read(BinaryReader& reader)
 	{

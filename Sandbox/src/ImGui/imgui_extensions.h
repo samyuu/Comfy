@@ -34,6 +34,6 @@ namespace ImGui
 
 	inline void DRAW_DEBUG_REGION(ImRect& rect) 
 	{ 
-		ImGui::AddRectFilled(ImGui::GetForegroundDrawList(), rect, IM_COL32_BLACK * .5f); 
+		ImGui::AddRectFilled(ImGui::GetForegroundDrawList(), rect, static_cast<ImU32>(IM_COL32_BLACK * .5f)); 
 	};
 }

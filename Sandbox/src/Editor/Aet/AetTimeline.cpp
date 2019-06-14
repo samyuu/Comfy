@@ -7,6 +7,7 @@ namespace Editor
 	{
 		infoColumnWidth = 58.0f;
 		rowHeight = 22.0f;
+		zoomLevel = 5.0f;
 	}
 
 	AetTimeline::~AetTimeline()
@@ -99,7 +100,7 @@ namespace Editor
 			float y = i * rowHeight + 2;
 			auto start = ImVec2(2, y) + infoColumnRegion.GetTL();
 
-			drawList->AddText(start, ImGui::GetColorU32(ImGuiCol_Text), File::KeyFrameProperties::PropertyNames[i]);
+			drawList->AddText(start, ImGui::GetColorU32(ImGuiCol_Text), KeyFrameProperties::PropertyNames[i]);
 		}
 	}
 

@@ -2,7 +2,7 @@
 #include "../BinaryReader.h"
 #include <assert.h>
 
-namespace File
+namespace FileSystem
 {
 	std::array<const char*, 8> KeyFrameProperties::PropertyNames = 
 	{ 

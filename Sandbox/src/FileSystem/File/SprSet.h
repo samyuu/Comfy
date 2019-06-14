@@ -2,7 +2,7 @@
 #include "TxpSet.h"
 #include <string>
 
-namespace File
+namespace FileSystem
 {
 	struct Sprite
 	{

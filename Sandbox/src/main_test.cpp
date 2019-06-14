@@ -14,7 +14,7 @@
 #include "Graphics/Utilities/decompress.h"
 
 using namespace std::filesystem;
-using namespace File;
+using namespace FileSystem;
 
 void SaveRgbaToFile(const char* filePath, int width, int height, const void* data)
 {
@@ -26,7 +26,7 @@ void SaveRgbaToFile(const char* filePath, int width, int height, const void* dat
 		4 * width);
 }
 
-void SaveAsPng(File::Texture* texture)
+void SaveAsPng(FileSystem::Texture* texture)
 {
 	char filePath[MAX_PATH];
 	sprintf_s<MAX_PATH>(filePath, "%s/%s.png", "dev_ram/2d", texture->Name.c_str());
@@ -95,7 +95,7 @@ void SaveAsPng(File::Texture* texture)
 	}
 }
 
-void SaveAsDDS(File::Texture* texture)
+void SaveAsDDS(FileSystem::Texture* texture)
 {
 	MipMap* mipMap = texture->MipMaps.front().get();
 

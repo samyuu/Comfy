@@ -5,7 +5,7 @@
 #include <memory>
 #include "../FileInterface.h"
 
-namespace File
+namespace FileSystem
 {
 	struct AetLayer;
 	typedef uint8_t unk8_t;
@@ -110,6 +110,7 @@ namespace File
 
 	struct AetLayer
 	{
+		int32_t Index;
 		void* FilePtr;
 		std::list<AetObj> Objects;
 	};

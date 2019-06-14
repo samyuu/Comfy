@@ -4,7 +4,7 @@
 
 namespace Editor
 {
-	using namespace File;
+	using namespace FileSystem;
 	class AetEditor;
 
 	class AetTimeline : public FrameTimeline

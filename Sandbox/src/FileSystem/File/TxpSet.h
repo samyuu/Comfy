@@ -4,7 +4,7 @@
 #include <memory>
 #include "../FileInterface.h"
 
-namespace File
+namespace FileSystem
 {
 	enum TextureFormat : uint32_t
 	{

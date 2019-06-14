@@ -1,7 +1,7 @@
 #include "SprSet.h"
 #include "../BinaryReader.h"
 
-namespace File
+namespace FileSystem
 {
 	void SprSet::Read(BinaryReader& reader)
 	{

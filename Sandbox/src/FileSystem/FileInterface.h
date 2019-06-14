@@ -1,20 +1,24 @@
 #pragma once
-class BinaryReader;
-class BinaryWriter;
 
-class IBinaryReadable
+namespace FileSystem
 {
-public:
-	virtual void Read(BinaryReader& reader) = 0;
-};
+	class BinaryReader;
+	class BinaryWriter;
 
-class IBinaryWritable
-{
-public:
-	virtual void Read(BinaryWriter& writer) = 0;
-};
+	class IBinaryReadable
+	{
+	public:
+		virtual void Read(BinaryReader& reader) = 0;
+	};
 
-class IBinaryFile : public IBinaryReadable, public IBinaryWritable
-{
+	class IBinaryWritable
+	{
+	public:
+		virtual void Read(BinaryWriter& writer) = 0;
+	};
 
-};
+	class IBinaryFile : public IBinaryReadable, public IBinaryWritable
+	{
+
+	};
+}
