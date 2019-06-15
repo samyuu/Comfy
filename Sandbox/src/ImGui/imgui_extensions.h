@@ -32,8 +32,11 @@ namespace ImGui
 
 	void StyleComfy(ImGuiStyle* dst = nullptr);
 
-	inline void DRAW_DEBUG_REGION(ImRect& rect) 
-	{ 
-		ImGui::AddRectFilled(ImGui::GetForegroundDrawList(), rect, static_cast<ImU32>(IM_COL32_BLACK * .5f)); 
+	inline void DRAW_DEBUG_REGION(ImRect& rect)
+	{
+		ImGui::AddRectFilled(ImGui::GetForegroundDrawList(), rect, static_cast<ImU32>(IM_COL32_BLACK * .5f));
 	};
+
+	bool WideTreeNodeEx(const char* label, ImGuiTreeNodeFlags flags);
+	bool WideTreeNodeEx(const void* ptr_id, ImGuiTreeNodeFlags flags, const char* fmt, ...);
 }

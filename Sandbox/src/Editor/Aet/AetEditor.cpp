@@ -23,6 +23,7 @@ namespace Editor
 
 	void AetEditor::DrawGui()
 	{
+		ImGui::GetCurrentWindow()->Hidden = true;
 		constexpr ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground;
 
 		if (ImGui::Begin("AetSet Loader##AetEditor", nullptr, windowFlags))
@@ -87,7 +88,7 @@ namespace Editor
 	{
 		ImGui::Text("AetObj: %s", aetObj->Name.c_str());
 
-		if (ImGui::TreeNodeEx("Object Data", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::WideTreeNodeEx("Object Data", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			static char aetObjNameBuffer[255];
 			strcpy_s(aetObjNameBuffer, aetObj->Name.c_str());
@@ -197,7 +198,7 @@ namespace Editor
 	{
 		ImGui::Text("AetLayer:");
 
-		if (ImGui::TreeNodeEx("Names:", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::WideTreeNodeEx("Names:", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			for (auto& name : aetLayer->Names)
 				ImGui::BulletText(name.c_str());
@@ -205,7 +206,7 @@ namespace Editor
 			ImGui::TreePop();
 		}
 
-		if (ImGui::TreeNodeEx("Objects:", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::WideTreeNodeEx("Objects:", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			for (auto& aetObj : aetLayer->Objects)
 				ImGui::BulletText(aetObj.Name.c_str());
@@ -218,7 +219,7 @@ namespace Editor
 	{
 		ImGui::Text("AetLyo: %s", aetLyo->Name.c_str());
 
-		if (ImGui::TreeNodeEx("Lyo Data", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::WideTreeNodeEx("Lyo Data", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			static char aetLyoNameBuffer[255];
 			strcpy_s(aetLyoNameBuffer, aetLyo->Name.c_str());
@@ -255,7 +256,7 @@ namespace Editor
 		lastHovered = hovered;
 		hovered = { SelectionType::None, nullptr };
 
-		if (ImGui::TreeNodeEx((void*)aetSet.get(), ImGuiTreeNodeFlags_DefaultOpen, "AetSet: %s", aetSet->Name.c_str()))
+		if (ImGui::WideTreeNodeEx((void*)aetSet.get(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick, "AetSet: %s", aetSet->Name.c_str()))
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, ImGui::GetFontSize() * 1.5f);
 
@@ -265,7 +266,7 @@ namespace Editor
 				if (&aetLyo == selected.AetLyo || &aetLyo == lastHovered.AetLyo)
 					lyoNodeFlags |= ImGuiTreeNodeFlags_Selected;
 
-				bool aetLyoNodeOpen = ImGui::TreeNodeEx((void*)&aetLyo, lyoNodeFlags, "%s", aetLyo.Name.c_str());
+				bool aetLyoNodeOpen = ImGui::WideTreeNodeEx((void*)&aetLyo, lyoNodeFlags, "%s", aetLyo.Name.c_str());
 
 				if (ImGui::IsItemClicked())
 					selected = { SelectionType::AetLyo, &aetLyo };
@@ -277,7 +278,7 @@ namespace Editor
 					{
 						ImGui::PushID((void*)&aetLayer);
 
-						ImGuiTreeNodeFlags layerNodeFlags = ImGuiTreeNodeFlags_None;
+						ImGuiTreeNodeFlags layerNodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 						if (&aetLayer == selected.AetLayer)
 							layerNodeFlags |= ImGuiTreeNodeFlags_Selected;
 
@@ -285,7 +286,7 @@ namespace Editor
 							ImGui::PushStyleColor(ImGuiCol_Text, GetColor(EditorColor_TextHighlight));
 
 						AetLayer* rootLayer = &aetLyo.AetLayers.back();
-						bool aetLayerNodeOpen = ImGui::TreeNodeEx("##AetLayerTreeNode", layerNodeFlags, (&aetLayer == rootLayer) ? "Root" : "Layer %d (%s)", aetLayer.Index, aetLayer.CommaSeparatedNames.c_str());
+						bool aetLayerNodeOpen = ImGui::WideTreeNodeEx("##AetLayerTreeNode", layerNodeFlags, (&aetLayer == rootLayer) ? "Root" : "Layer %d (%s)", aetLayer.Index, aetLayer.CommaSeparatedNames.c_str());
 
 						if (&aetLayer == lastHovered.AetLayer)
 							ImGui::PopStyleColor();
@@ -343,7 +344,7 @@ namespace Editor
 								if (&aetObj == selected.AetObj || &aetObj == hovered.AetObj)
 									objNodeFlags |= ImGuiTreeNodeFlags_Selected;
 
-								ImGui::TreeNodeEx((void*)&aetObj, objNodeFlags, "%s", aetObj.Name.c_str());
+								ImGui::WideTreeNodeEx((void*)&aetObj, objNodeFlags, "%s", aetObj.Name.c_str());
 
 								if (ImGui::IsItemClicked())
 									selected = { SelectionType::AetObj, &aetObj };

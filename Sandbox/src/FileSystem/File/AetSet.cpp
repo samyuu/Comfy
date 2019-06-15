@@ -85,7 +85,8 @@ namespace FileSystem
 		{
 			for (auto& aetLayer : aetLyo.AetLayers)
 			{
-				aetLayer.CommaSeparatedNames = "";
+				aetLayer.CommaSeparatedNames.clear();
+
 				for (size_t i = 0; i < aetLayer.Names.size(); i++)
 				{
 					aetLayer.CommaSeparatedNames.append(aetLayer.Names[i]);
