@@ -249,6 +249,28 @@ namespace Editor
 			OpenAetSet(aetSetPathBuffer);
 
 		ImGui::PopItemWidth();
+
+		static std::vector<std::string> aetFilePaths;
+
+		if (ImGui::Button("Refresh AetSet Paths...", ImVec2(ImGui::GetWindowWidth(), 0)))
+		{
+			aetFilePaths.clear();
+			if (DirectoryExists(aetSetPathBuffer))
+				aetFilePaths = GetFiles(aetSetPathBuffer);
+		}
+
+		if (ImGui::WideTreeNode("AetSet Directory"))
+		{
+			for (const auto& path : aetFilePaths)
+			{
+				ImGui::WideTreeNodeEx(path.c_str(), ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen);
+
+				if (ImGui::IsItemClicked())
+					OpenAetSet(path);
+			}
+
+			ImGui::TreePop();
+		}
 	}
 
 	void AetEditor::DrawTreeView()
@@ -427,7 +449,7 @@ namespace Editor
 		ImGui::Separator();
 	}
 
-	bool AetEditor::OpenAetSet(const char* filePath)
+	bool AetEditor::OpenAetSet(const std::string& filePath)
 	{
 		if (!FileExists(filePath))
 			return false;
