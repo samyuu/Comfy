@@ -239,7 +239,7 @@ namespace Editor
 	{
 		ImVec2 maxStep = (baseWindow->ContentsRegionRect.GetSize() + baseWindow->WindowPadding * 2.0f) * 0.67f;
 
-		float speed = io->KeyShift ? scrollSpeedFast : scrollSpeed;
+ 		float speed = io->KeyShift ? scrollSpeedFast : scrollSpeed;
 		float scrollStep = ImFloor(ImMin(2 * baseWindow->CalcFontSize(), maxStep.x)) * speed;
 		SetScrollX(baseWindow->Scroll.x + io->MouseWheel * scrollStep);
 	}

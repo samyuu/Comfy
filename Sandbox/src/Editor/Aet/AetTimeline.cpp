@@ -31,7 +31,7 @@ namespace Editor
 
 	float AetTimeline::GetTimelineSize() const
 	{
-		return GetTimelinePosition(endFrame);
+		return GetTimelinePosition(loopEndFrame);
 	}
 
 	void AetTimeline::OnDrawTimelineHeaderWidgets()
@@ -39,7 +39,7 @@ namespace Editor
 		static char timeInputBuffer[32];
 
 		TimeSpan cursorTime = GetCursorTime();
-		sprintf_s(timeInputBuffer, "%s (%.f/%.f)", cursorTime.FormatTime().c_str(), GetTimelineFrame(cursorTime).Frames(), endFrame.Frames());
+		sprintf_s(timeInputBuffer, "%s (%.f/%.f)", cursorTime.FormatTime().c_str(), GetTimelineFrame(cursorTime).Frames(), loopEndFrame.Frames());
 
 		ImGui::PushItemWidth(140);
 		ImGui::InputTextWithHint("##time_input", "00:00.000", timeInputBuffer, sizeof(timeInputBuffer));
@@ -131,16 +131,19 @@ namespace Editor
 	{
 		if (aetObj != nullptr)
 		{
-			endFrame = aetObj->LoopEnd;
+			loopStartFrame = aetObj->LoopStart;
+			loopEndFrame = aetObj->LoopEnd;
 		}
 
 		if (isPlayback)
 		{
 			cursorTime += io->DeltaTime;
 
-			TimeSpan endTime = GetTimelineTime(endFrame);
+			TimeSpan startTime = GetTimelineTime(loopStartFrame);
+			TimeSpan endTime = GetTimelineTime(loopEndFrame);
+
 			if (cursorTime > endTime)
-				cursorTime = loopPlayback ? 0.0 : endTime;
+				cursorTime = loopPlayback ? startTime : endTime;
 		}
 	}
 

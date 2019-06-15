@@ -28,6 +28,8 @@ namespace Editor
 		inline bool operator>= (const TimelineFrame other) const { return frames >= other.frames; }
 		inline bool operator< (const TimelineFrame other) const { return frames < other.frames; }
 		inline bool operator> (const TimelineFrame other) const { return frames > other.frames; }
+		inline TimelineFrame operator+ (const TimelineFrame other) const { return TimelineFrame(frames + other.frames); }
+		inline TimelineFrame operator- (const TimelineFrame other) const { return TimelineFrame(frames - other.frames); }
 		// ----------
 
 	private:

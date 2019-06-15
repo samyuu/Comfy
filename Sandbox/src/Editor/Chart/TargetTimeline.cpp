@@ -719,7 +719,7 @@ namespace Editor
 
 		// Cursor Mouse Drag:
 		// ------------------
-		if (!GetIsPlayback())
+		if (!GetIsPlayback() && false)
 		{
 			if (ImGui::IsMouseClicked(0))
 			{

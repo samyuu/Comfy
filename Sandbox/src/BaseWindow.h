@@ -16,6 +16,17 @@ public:
 	inline bool* GetIsGuiOpenPtr() { return &isGuiOpen; };
 	inline Application* GetParent() const { return parentApplication; };
 
+	static inline ImGuiWindowFlags GetNoWindowFlags()
+	{
+		return ImGuiWindowFlags_NoTitleBar |
+			ImGuiWindowFlags_NoResize |
+			ImGuiWindowFlags_NoScrollbar |
+			ImGuiWindowFlags_NoInputs |
+			ImGuiWindowFlags_NoSavedSettings |
+			ImGuiWindowFlags_NoFocusOnAppearing |
+			ImGuiWindowFlags_NoBringToFrontOnFocus;
+	}
+
 private:
 	bool isGuiOpen = true;
 	Application* parentApplication = nullptr;

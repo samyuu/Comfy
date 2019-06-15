@@ -4,15 +4,15 @@
 
 namespace FileSystem
 {
-	std::array<const char*, 8> KeyFrameProperties::PropertyNames = 
-	{ 
-		"Origin X", 
-		"Origin Y", 
-		"Position X", 
-		"Position Y", 
-		"Rotation", 
-		"Scale X", 
-		"Scale Y", 
+	std::array<const char*, 8> KeyFrameProperties::PropertyNames =
+	{
+		"Origin X",
+		"Origin Y",
+		"Position X",
+		"Position Y",
+		"Rotation",
+		"Scale X",
+		"Scale Y",
 		"Opcatiy",
 	};
 
@@ -46,6 +46,54 @@ namespace FileSystem
 			}
 		}
 
+	}
+
+	void AetSet::UpdateLayerNames()
+	{
+		for (auto& aetLyo : AetLyos)
+		{
+			for (auto& aetLayer : aetLyo.AetLayers)
+				aetLayer.Names.clear();
+		}
+
+		for (auto& aetLyo : AetLyos)
+		{
+			for (auto& aetLayer : aetLyo.AetLayers)
+			{
+				for (auto& aetObj : aetLayer.Objects)
+				{
+					if (aetObj.Type == AetObjType_Eff && aetObj.ReferencedLayer != nullptr)
+					{
+						bool nameExists = false;
+						for (auto& layerNames : aetObj.ReferencedLayer->Names)
+						{
+							if (layerNames == aetObj.Name)
+							{
+								nameExists = true;
+								break;
+							}
+						}
+
+						if (!nameExists)
+							aetObj.ReferencedLayer->Names.emplace_back(aetObj.Name);
+					}
+				}
+			}
+		}
+
+		for (auto& aetLyo : AetLyos)
+		{
+			for (auto& aetLayer : aetLyo.AetLayers)
+			{
+				aetLayer.CommaSeperatedNames = "";
+				for (size_t i = 0; i < aetLayer.Names.size(); i++)
+				{
+					aetLayer.CommaSeperatedNames.append(aetLayer.Names[i]);
+					if (i < aetLayer.Names.size() - 1)
+						aetLayer.CommaSeperatedNames.append(", ");
+				}
+			}
+		}
 	}
 
 	void AetSet::Read(BinaryReader& reader)
@@ -179,6 +227,7 @@ namespace FileSystem
 		});
 
 		LinkPostRead(aetSet);
+		UpdateLayerNames();
 	}
 
 	void AetSet::LinkPostRead(AetSet* aetSet)

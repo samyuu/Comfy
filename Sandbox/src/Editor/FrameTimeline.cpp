@@ -28,6 +28,7 @@ namespace Editor
 
 	float FrameTimeline::GetTimelinePosition(TimeSpan time) const
 	{
+		time -= GetTimelineTime(loopStartFrame);
 		return TimelineBase::GetTimelinePosition(time);
 	}
 
@@ -38,7 +39,7 @@ namespace Editor
 
 	TimelineFrame FrameTimeline::GetTimelineFrame(TimeSpan time) const
 	{
-		return time.TotalSeconds() / (1.0f / frameRate);
+		return TimelineFrame((time.TotalSeconds() / (1.0f / frameRate)));
 	}
 
 	TimelineFrame FrameTimeline::GetTimelineFrame(float position) const
@@ -53,6 +54,7 @@ namespace Editor
 
 	TimeSpan FrameTimeline::GetTimelineTime(float position) const
 	{
+		position += TimelineBase::GetTimelinePosition(GetTimelineTime(loopStartFrame));
 		return TimelineBase::GetTimelineTime(position);
 	}
 
@@ -71,17 +73,17 @@ namespace Editor
 		const int framesPerBar = 30;
 
 		char barStrBuffer[16];
-
-		const int totalFrames = static_cast<int>(endFrame.Frames());
+		
+		const int startFrame = static_cast<int>(loopStartFrame.Frames());
+		const int endFrame = static_cast<int>(loopEndFrame.Frames());
 		const int frameStep = gridDivision;
 
-		const float scrollX = GetScrollX();
-
-		for (int frame = 0, divisions = 0; frame <= totalFrames; frame += frameStep)
+		int divisions = 0;
+		for (int frame = startFrame; frame <= endFrame; frame += frameStep)
 		{
-			bool isBar = frame % framesPerBar == 0;
+			bool isBar = (frame == startFrame) || (frame == endFrame) || (frame % framesPerBar == 0);
 
-			float screenX = GetTimelinePosition(TimelineFrame(frame)) - scrollX;
+			float screenX = GetTimelinePosition(TimelineFrame(frame)) - GetScrollX();
 			TimelineVisibility visiblity = GetTimelineVisibility(screenX);
 
 			if (visiblity == TimelineVisibility::Left)

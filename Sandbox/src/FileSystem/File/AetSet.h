@@ -110,6 +110,8 @@ namespace FileSystem
 
 	struct AetLayer
 	{
+		std::vector<std::string> Names;
+		std::string CommaSeperatedNames;
 		int32_t Index;
 		void* FilePtr;
 		std::list<AetObj> Objects;
@@ -134,6 +136,8 @@ namespace FileSystem
 	public:
 		std::string Name;
 		std::list<AetLyo> AetLyos;
+
+		void UpdateLayerNames();
 
 		virtual void Read(BinaryReader& reader) override;
 

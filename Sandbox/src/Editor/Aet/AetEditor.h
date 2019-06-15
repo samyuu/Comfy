@@ -32,7 +32,7 @@ namespace Editor
 			AetLyo
 		};
 
-		struct
+		struct AetItemTypePtr
 		{
 			SelectionType Type;
 			union
@@ -42,8 +42,11 @@ namespace Editor
 				AetLyo* AetLyo;
 				AetLayer* AetLayer;
 			};
-		} selected;
-		
+		};
+
+		AetItemTypePtr selected;
+		AetItemTypePtr lastHovered, hovered;
+
 		struct
 		{
 			int newObjTypeIndex = AetObjType_Pic;
@@ -69,6 +72,7 @@ namespace Editor
 
 		void DrawTreeView();
 		void DrawInspector();
+		void DrawRenderWindow();
 
 		bool OpenAetSet(const char* filePath);
 	};
