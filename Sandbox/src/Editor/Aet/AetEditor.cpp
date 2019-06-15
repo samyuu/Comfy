@@ -122,7 +122,7 @@ namespace Editor
 
 	void AetEditor::DrawSpriteData(SpriteEntry* spriteEntry)
 	{
-		if (ImGui::TreeNode("Sprite Data"))
+		if (ImGui::WideTreeNode("Sprite Data"))
 		{
 			if (spriteEntry != nullptr)
 			{
@@ -136,7 +136,7 @@ namespace Editor
 
 	void AetEditor::DrawLayerData(AetLayer* aetLayer)
 	{
-		if (ImGui::TreeNode("Layer Data"))
+		if (ImGui::WideTreeNode("Layer Data"))
 		{
 			if (aetLayer != nullptr)
 			{
@@ -148,11 +148,11 @@ namespace Editor
 
 	void AetEditor::DrawAnimationData(AnimationData* animationData)
 	{
-		if (ImGui::TreeNode("Animation Data"))
+		if (ImGui::WideTreeNode("Animation Data"))
 		{
 			ImGui::Checkbox("Use Texture Mask", &animationData->UseTextureMask);
 
-			if (ImGui::TreeNode("Properties"))
+			if (ImGui::WideTreeNode("Properties"))
 			{
 				if (animationData->Properties != nullptr)
 					DrawKeyFrameProperties(animationData->Properties.get());
@@ -160,7 +160,7 @@ namespace Editor
 				ImGui::TreePop();
 			}
 
-			if (ImGui::TreeNode("Properties Extra Data"))
+			if (ImGui::WideTreeNode("Properties Extra Data"))
 			{
 				if (animationData->PropertiesExtraData != nullptr)
 					DrawKeyFrameProperties(animationData->PropertiesExtraData.get());
@@ -181,7 +181,7 @@ namespace Editor
 
 	void AetEditor::DrawKeyFrames(const char* name, std::vector<KeyFrame>* keyFrames)
 	{
-		if (ImGui::TreeNode(name))
+		if (ImGui::WideTreeNode(name))
 		{
 			for (KeyFrame& keyFrame : *keyFrames)
 			{
@@ -256,13 +256,17 @@ namespace Editor
 		lastHovered = hovered;
 		hovered = { SelectionType::None, nullptr };
 
-		if (ImGui::WideTreeNodeEx((void*)aetSet.get(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick, "AetSet: %s", aetSet->Name.c_str()))
+		constexpr ImGuiTreeNodeFlags selectableTreeNodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+		constexpr ImGuiTreeNodeFlags leafTreeNodeFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+		constexpr ImGuiTreeNodeFlags headerTreeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | selectableTreeNodeFlags;
+
+		if (ImGui::WideTreeNodeEx((void*)aetSet.get(), headerTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str()))
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, ImGui::GetFontSize() * 1.5f);
 
 			for (auto& aetLyo : aetSet->AetLyos)
 			{
-				ImGuiTreeNodeFlags lyoNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+				ImGuiTreeNodeFlags lyoNodeFlags = headerTreeNodeFlags;
 				if (&aetLyo == selected.AetLyo || &aetLyo == lastHovered.AetLyo)
 					lyoNodeFlags |= ImGuiTreeNodeFlags_Selected;
 
@@ -278,7 +282,7 @@ namespace Editor
 					{
 						ImGui::PushID((void*)&aetLayer);
 
-						ImGuiTreeNodeFlags layerNodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+						ImGuiTreeNodeFlags layerNodeFlags = selectableTreeNodeFlags;
 						if (&aetLayer == selected.AetLayer)
 							layerNodeFlags |= ImGuiTreeNodeFlags_Selected;
 
@@ -340,7 +344,7 @@ namespace Editor
 						{
 							for (auto& aetObj : aetLayer.Objects)
 							{
-								ImGuiTreeNodeFlags objNodeFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+								ImGuiTreeNodeFlags objNodeFlags = leafTreeNodeFlags;
 								if (&aetObj == selected.AetObj || &aetObj == hovered.AetObj)
 									objNodeFlags |= ImGuiTreeNodeFlags_Selected;
 

@@ -37,6 +37,7 @@ namespace ImGui
 		ImGui::AddRectFilled(ImGui::GetForegroundDrawList(), rect, static_cast<ImU32>(IM_COL32_BLACK * .5f));
 	};
 
+	bool WideTreeNode(const char* label);
 	bool WideTreeNodeEx(const char* label, ImGuiTreeNodeFlags flags);
 	bool WideTreeNodeEx(const void* ptr_id, ImGuiTreeNodeFlags flags, const char* fmt, ...);
 }

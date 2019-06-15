@@ -245,6 +245,15 @@ namespace ImGui
 		return WideTreeNodeBehavior(window->GetID(ptr_id), flags, g.TempBuffer, label_end);
 	}
 
+	// Same as imgui_widgets.cpp: TreeNode(...) but calls WideTreeNodeBehavior(...) instead of TreeNodeBehavior(...)
+	bool WideTreeNode(const char * label)
+	{
+		ImGuiWindow* window = GetCurrentWindow();
+		if (window->SkipItems)
+			return false;
+		return WideTreeNodeBehavior(window->GetID(label), 0, label, NULL);
+	}
+
 	// Same as imgui_widgets.cpp: TreeNodeEx(...) but calls WideTreeNodeBehavior(...) instead of TreeNodeBehavior(...)
 	bool WideTreeNodeEx(const char* label, ImGuiTreeNodeFlags flags)
 	{
