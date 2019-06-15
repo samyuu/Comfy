@@ -85,12 +85,12 @@ namespace FileSystem
 		{
 			for (auto& aetLayer : aetLyo.AetLayers)
 			{
-				aetLayer.CommaSeperatedNames = "";
+				aetLayer.CommaSeparatedNames = "";
 				for (size_t i = 0; i < aetLayer.Names.size(); i++)
 				{
-					aetLayer.CommaSeperatedNames.append(aetLayer.Names[i]);
+					aetLayer.CommaSeparatedNames.append(aetLayer.Names[i]);
 					if (i < aetLayer.Names.size() - 1)
-						aetLayer.CommaSeperatedNames.append(", ");
+						aetLayer.CommaSeparatedNames.append(", ");
 				}
 			}
 		}

@@ -70,9 +70,11 @@ namespace Editor
 		void DrawAetLayer(AetLayer* aetLayer);
 		void DrawAetLyo(AetLyo* aetLyo);
 
+		void DrawSetLoader();
 		void DrawTreeView();
-		void DrawInspector();
 		void DrawRenderWindow();
+		void DrawInspector();
+		void DrawProperties();
 
 		bool OpenAetSet(const char* filePath);
 	};

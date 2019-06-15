@@ -111,7 +111,7 @@ namespace FileSystem
 	struct AetLayer
 	{
 		std::vector<std::string> Names;
-		std::string CommaSeperatedNames;
+		std::string CommaSeparatedNames;
 		int32_t Index;
 		void* FilePtr;
 		std::list<AetObj> Objects;

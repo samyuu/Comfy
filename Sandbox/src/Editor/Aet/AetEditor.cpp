@@ -28,20 +28,7 @@ namespace Editor
 		if (ImGui::Begin("AetSet Loader##AetEditor", nullptr, windowFlags))
 		{
 			ImGui::BeginChild("AetSetLoaderChild##AetEditor");
-			{
-				ImGui::PushItemWidth(ImGui::GetWindowWidth());
-				ImGui::Text("AetSet Path:");
-				
-				bool openAetSet = false;
-				{
-					openAetSet |= ImGui::InputText("##AetSetPathInputText", aetSetPathBuffer, sizeof(aetSetPathBuffer), ImGuiInputTextFlags_EnterReturnsTrue);
-					openAetSet |= ImGui::Button("Open AetSet...", ImVec2(ImGui::GetWindowWidth(), 0));
-				}
-				if (openAetSet)
-					OpenAetSet(aetSetPathBuffer);
-
-				ImGui::PopItemWidth();
-			}
+			DrawSetLoader();
 			ImGui::EndChild();
 		}
 		ImGui::End();
@@ -73,22 +60,7 @@ namespace Editor
 		if (ImGui::Begin("Aet Properties##AetEditor", nullptr, windowFlags))
 		{
 			ImGui::BeginChild("AetPropertiesChild##AetEditor");
-			{
-				struct AnimationProperties
-				{
-					float Origin[2];
-					float Position[2];
-					float Rotation;
-					float Scale[2];
-					float Opcaity;
-				} properties = {};
-
-				ImGui::InputFloat2("Origin", properties.Origin);
-				ImGui::InputFloat2("Position", properties.Position);
-				ImGui::InputFloat("Rotation", &properties.Rotation);
-				ImGui::InputFloat("Scale", properties.Scale);
-				ImGui::InputFloat("Opacity", &properties.Opcaity);
-			}
+			DrawProperties();
 			ImGui::EndChild();
 		}
 		ImGui::End();
@@ -167,7 +139,7 @@ namespace Editor
 		{
 			if (aetLayer != nullptr)
 			{
-				ImGui::Text("Layer %d (%s)", aetLayer->Index, aetLayer->CommaSeperatedNames.c_str());
+				ImGui::Text("Layer %d (%s)", aetLayer->Index, aetLayer->CommaSeparatedNames.c_str());
 			}
 			ImGui::TreePop();
 		}
@@ -262,6 +234,22 @@ namespace Editor
 		}
 	}
 
+	void AetEditor::DrawSetLoader()
+	{
+		ImGui::PushItemWidth(ImGui::GetWindowWidth());
+		ImGui::Text("AetSet Path:");
+
+		bool openAetSet = false;
+		{
+			openAetSet |= ImGui::InputText("##AetSetPathInputText", aetSetPathBuffer, sizeof(aetSetPathBuffer), ImGuiInputTextFlags_EnterReturnsTrue);
+			openAetSet |= ImGui::Button("Open AetSet...", ImVec2(ImGui::GetWindowWidth(), 0));
+		}
+		if (openAetSet)
+			OpenAetSet(aetSetPathBuffer);
+
+		ImGui::PopItemWidth();
+	}
+
 	void AetEditor::DrawTreeView()
 	{
 		lastHovered = hovered;
@@ -297,7 +285,7 @@ namespace Editor
 							ImGui::PushStyleColor(ImGuiCol_Text, GetColor(EditorColor_TextHighlight));
 
 						AetLayer* rootLayer = &aetLyo.AetLayers.back();
-						bool aetLayerNodeOpen = ImGui::TreeNodeEx("##AetLayerTreeNode", layerNodeFlags, (&aetLayer == rootLayer) ? "Root" : "Layer %d (%s)", aetLayer.Index, aetLayer.CommaSeperatedNames.c_str());
+						bool aetLayerNodeOpen = ImGui::TreeNodeEx("##AetLayerTreeNode", layerNodeFlags, (&aetLayer == rootLayer) ? "Root" : "Layer %d (%s)", aetLayer.Index, aetLayer.CommaSeparatedNames.c_str());
 
 						if (&aetLayer == lastHovered.AetLayer)
 							ImGui::PopStyleColor();
@@ -408,6 +396,24 @@ namespace Editor
 		default:
 			break;
 		}
+	}
+
+	void AetEditor::DrawProperties()
+	{
+		struct AnimationProperties
+		{
+			float Origin[2];
+			float Position[2];
+			float Rotation;
+			float Scale[2];
+			float Opcaity;
+		} properties = {};
+
+		ImGui::InputFloat2("Origin", properties.Origin);
+		ImGui::InputFloat2("Position", properties.Position);
+		ImGui::InputFloat("Rotation", &properties.Rotation);
+		ImGui::InputFloat("Scale", properties.Scale);
+		ImGui::InputFloat("Opacity", &properties.Opcaity);
 	}
 
 	void AetEditor::DrawRenderWindow()
