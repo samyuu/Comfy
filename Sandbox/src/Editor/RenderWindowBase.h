@@ -22,6 +22,9 @@ namespace Editor
 		inline float GetTargetAspectRatio() { return targetAspectRatio; };
 		inline void SetTargetAspectRatio(float value) { targetAspectRatio = value; };
 
+		static inline void PushWindowPadding() { ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2)); };
+		static inline void PopWindowPadding() { ImGui::PopStyleVar(); };
+
 	protected:
 		ImRect renderRegion, lastRenderRegion;
 		RenderTarget renderTarget;

@@ -29,6 +29,9 @@ void Texture::Initialize()
 
 void Texture::GenerateEmpty(int width, int height)
 {
+	imageWidth = width;
+	imageHeight = height;
+
 	glTexImage2D(GetTextureTarget(), 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -60,10 +63,6 @@ int Texture::LoadFromFile(const char* path)
 	glTexParameteri(GetTextureTarget(), GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GetTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glTexParameteri(GetTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glTexParameteri(GetTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	//glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	return 0;
 }

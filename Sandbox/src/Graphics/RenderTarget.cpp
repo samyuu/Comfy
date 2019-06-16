@@ -56,7 +56,6 @@ Framebuffer::~Framebuffer()
 void Framebuffer::Initialize()
 {
 	glGenFramebuffers(1, &framebufferID);
-
 }
 
 void Framebuffer::Bind()
@@ -135,6 +134,8 @@ void RenderTarget::Resize(int width, int height)
 	colorTexture.Bind();
 	colorTexture.GenerateEmpty(width, height);
 	colorTexture.UnBind();
+
+	framebuffer.Bind();
 	framebuffer.AttachTexture(colorTexture, GL_COLOR_ATTACHMENT0);
 
 	depthRenderbuffer.Bind();

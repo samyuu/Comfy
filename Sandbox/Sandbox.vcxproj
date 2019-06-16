@@ -97,6 +97,7 @@
   <ItemGroup>
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
     <ClCompile Include="lib\stb\src\stb_image_write.cpp" />
+    <ClCompile Include="src\Editor\Aet\AetRenderWindow.cpp" />
     <ClCompile Include="src\Editor\Aet\AetTimeline.cpp" />
     <ClCompile Include="src\Editor\FrameTimeline.cpp" />
     <ClCompile Include="src\Editor\PV\SceneRenderWindow.cpp" />

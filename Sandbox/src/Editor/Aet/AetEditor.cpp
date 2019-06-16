@@ -17,8 +17,11 @@ namespace Editor
 	{
 		OpenAetSet(testAetPath);
 
-		aetTimeline = std::make_unique<AetTimeline>();
-		aetTimeline->InitializeTimelineGuiState();
+		timeline = std::make_unique<AetTimeline>();
+		timeline->InitializeTimelineGuiState();
+
+		renderWindow = std::make_unique<AetRenderWindow>();
+		renderWindow->Initialize();
 	}
 
 	void AetEditor::DrawGui()
@@ -42,13 +45,14 @@ namespace Editor
 		}
 		ImGui::End();
 
+		RenderWindowBase::PushWindowPadding();
 		if (ImGui::Begin("Aet Render Window##AetEditor", nullptr, windowFlags))
 		{
-			ImGui::BeginChild("AetRenderWindowChild##AetEditor");
-			DrawRenderWindow();
-			ImGui::EndChild();
+			renderWindow->SetAetObj(selected.Type == SelectionType::AetObj ? selected.AetObj : nullptr);
+			renderWindow->DrawGui();
 		}
 		ImGui::End();
+		RenderWindowBase::PopWindowPadding();
 
 		if (ImGui::Begin("Aet Inspector##AetEditor", nullptr, windowFlags))
 		{
@@ -68,8 +72,8 @@ namespace Editor
 
 		if (ImGui::Begin("Aet Timeline##AetEditor", nullptr))
 		{
-			aetTimeline->SetAetObj(selected.Type == SelectionType::AetObj ? selected.AetObj : nullptr);
-			aetTimeline->DrawTimelineGui();
+			timeline->SetAetObj(selected.Type == SelectionType::AetObj ? selected.AetObj : nullptr);
+			timeline->DrawTimelineGui();
 		}
 		ImGui::End();
 	}
@@ -441,12 +445,6 @@ namespace Editor
 		ImGui::InputFloat("Rotation", &properties.Rotation);
 		ImGui::InputFloat("Scale", properties.Scale);
 		ImGui::InputFloat("Opacity", &properties.Opcaity);
-	}
-
-	void AetEditor::DrawRenderWindow()
-	{
-		ImGui::Text("AetObj: Test");
-		ImGui::Separator();
 	}
 
 	bool AetEditor::OpenAetSet(const std::string& filePath)

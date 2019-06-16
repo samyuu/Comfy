@@ -1,5 +1,6 @@
 #pragma once
 #include "AetTimeline.h"
+#include "AetRenderWindow.h"
 #include "../IEditorComponent.h"
 #include "../../BaseWindow.h"
 #include "../../FileSystem/File/AetSet.h"
@@ -21,7 +22,8 @@ namespace Editor
 		virtual ImGuiWindowFlags GetWindowFlags() const override;
 
 	private:
-		std::unique_ptr<AetTimeline> aetTimeline;
+		std::unique_ptr<AetTimeline> timeline;
+		std::unique_ptr<AetRenderWindow> renderWindow;
 		std::unique_ptr<AetSet> aetSet;
 
 		enum class SelectionType
@@ -72,7 +74,6 @@ namespace Editor
 
 		void DrawSetLoader();
 		void DrawTreeView();
-		void DrawRenderWindow();
 		void DrawInspector();
 		void DrawProperties();
 

@@ -243,10 +243,10 @@ void Application::BaseUpdate()
 
 void Application::BaseDraw()
 {
-	glClear(GL_COLOR_BUFFER_BIT);
-
 	const ImVec4 baseClearColor = ImColor(Editor::GetColor(Editor::EditorColor_BaseClear));
+
 	glClearColor(baseClearColor.x, baseClearColor.y, baseClearColor.z, baseClearColor.w);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	glViewport(0, 0, windowWidth, windowHeight);
 	DrawGui();
@@ -260,7 +260,7 @@ void Application::BaseDispose()
 
 	AudioEngine::DisposeInstance();
 	AudioEngine::DeleteInstance();
-	
+
 	Keyboard::DeleteInstance();
 	DualShock4::DeleteInstance();
 
@@ -280,7 +280,7 @@ void Application::InitializeGui()
 	ImGuiIO& io = ImGui::GetIO();
 	io.IniFilename = "ram/imgui.ini";
 	io.LogFilename = "ram/imgui_log.txt";
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; //  | ImGuiConfigFlags_NavEnableKeyboard;
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // | ImGuiConfigFlags_NavEnableKeyboard;
 	io.KeyRepeatDelay = 0.500f;
 	io.KeyRepeatRate = 0.075f;
 	io.ConfigWindowsMoveFromTitleBarOnly = true;

@@ -111,12 +111,12 @@ namespace Editor
 
 	void SceneRenderWindow::OnWindowBegin()
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2));
+		RenderWindowBase::PushWindowPadding();
 	}
 
 	void SceneRenderWindow::OnWindowEnd()
 	{
-		ImGui::PopStyleVar();
+		RenderWindowBase::PopWindowPadding();
 	}
 
 	void SceneRenderWindow::DrawComfyDebugGui()
@@ -265,15 +265,12 @@ namespace Editor
 	{
 		const ImVec4 baseClearColor = ImColor(GetColor(EditorColor_BaseClear));
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(baseClearColor.x, baseClearColor.y, baseClearColor.z, baseClearColor.w);
-
 		postProcessingRenderTarget.Bind();
 		{
 			glEnable(GL_DEPTH_TEST);
 
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glClearColor(baseClearColor.x, baseClearColor.y, baseClearColor.z, baseClearColor.w);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			glViewport(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight());
 			{
@@ -335,8 +332,7 @@ namespace Editor
 
 		renderTarget.Bind();
 		{
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glClearColor(baseClearColor.x, baseClearColor.y, baseClearColor.z, baseClearColor.w);
+			glDisable(GL_DEPTH_TEST);
 
 			screenVao.Bind();
 			screenShader.Use();
