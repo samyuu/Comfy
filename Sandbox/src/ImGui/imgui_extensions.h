@@ -6,7 +6,9 @@ class Texture;
 
 namespace ImGui
 {
-	void AddTexture(ImDrawList* drawList, Texture* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0 = ImVec2(0, 1), const ImVec2& uv1 = ImVec2(1, 0));
+	const ImVec2 UV0 = ImVec2(0, 1), UV1 = ImVec2(1, 0);
+
+	void AddTexture(ImDrawList* drawList, Texture* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0 = UV0, const ImVec2& uv1 = UV1);
 
 	inline void AddTexture(ImDrawList* drawList, Texture* texture, ImVec2 center, float scale, const ImVec2& uv0, const ImVec2& uv1)
 	{

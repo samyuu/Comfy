@@ -2,6 +2,7 @@
 #include "Editor.h"
 #include "Aet/AetEditor.h"
 #include "Chart/TargetTimeline.h"
+#include "PV/SceneRenderWindow.h"
 #include "../Application.h"
 
 namespace Editor
@@ -28,6 +29,7 @@ namespace Editor
 
 	void UpdateEditorColors()
 	{
+		SetColor(EditorColor_BaseClear, ImGui::GetColorU32(ImVec4(.12f, .12f, .12f, 1.0f)));
 		SetColor(EditorColor_Grid, ImGui::GetColorU32(ImGuiCol_Separator, .75f));
 		SetColor(EditorColor_GridAlt, ImGui::GetColorU32(ImGuiCol_Separator, .5f));
 		SetColor(EditorColor_InfoColumn, ImGui::GetColorU32(ImGuiCol_ScrollbarBg));
@@ -44,9 +46,10 @@ namespace Editor
 
 	PvEditor::PvEditor(Application* parent) : parent(parent)
 	{
-		editorComponents.reserve(2);
+		editorComponents.reserve(3);
 		editorComponents.push_back(std::move(std::make_unique<TargetTimeline>(parent, this)));
 		editorComponents.push_back(std::move(std::make_unique<AetEditor>(parent, this)));
+		editorComponents.push_back(std::move(std::make_unique<SceneRenderWindow>(parent, this)));
 	}
 
 	PvEditor::~PvEditor()
@@ -98,11 +101,6 @@ namespace Editor
 			UpdateFileDrop();
 		}
 
-		if (isPlaying)
-		{
-			UpdatePlayback();
-		}
-
 		UpdateEditorColors();
 	}
 
@@ -112,9 +110,12 @@ namespace Editor
 		{
 			if (*component->GetIsGuiOpenPtr())
 			{
-				if (ImGui::Begin(component->GetGuiName(), component->GetIsGuiOpenPtr(), component->GetWindowFlags()))
-					component->DrawGui();
-
+				component->OnWindowBegin();
+				{
+					if (ImGui::Begin(component->GetGuiName(), component->GetIsGuiOpenPtr(), component->GetWindowFlags()))
+						component->DrawGui();
+				}
+				component->OnWindowEnd();
 				ImGui::End();
 			}
 		}
@@ -131,14 +132,6 @@ namespace Editor
 			if (Load(droppedFiles->at(i)))
 				parent->SetFileDropDispatched();
 		}
-	}
-
-	void PvEditor::UpdatePlayback()
-	{
-		//playbackTime += ImGui::GetIO().DeltaTime;
-
-		//if (songInstance->GetIsPlaying())
-		//	playbackTime = songInstance->GetPosition() - songStartOffset;
 	}
 
 	bool PvEditor::Load(const std::string& filePath)

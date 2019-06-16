@@ -97,7 +97,6 @@ namespace Editor
 		void Update();
 		void DrawGui();
 		void UpdateFileDrop();
-		void UpdatePlayback();
 		// -------------
 	};
 }

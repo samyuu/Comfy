@@ -7,6 +7,7 @@ namespace Editor
 {
 	enum EditorColor
 	{
+		EditorColor_BaseClear,
 		EditorColor_Bar,
 		EditorColor_Grid,
 		EditorColor_GridAlt,

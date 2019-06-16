@@ -99,6 +99,8 @@
     <ClCompile Include="lib\stb\src\stb_image_write.cpp" />
     <ClCompile Include="src\Editor\Aet\AetTimeline.cpp" />
     <ClCompile Include="src\Editor\FrameTimeline.cpp" />
+    <ClCompile Include="src\Editor\PV\SceneRenderWindow.cpp" />
+    <ClCompile Include="src\Editor\RenderWindowBase.cpp" />
     <ClCompile Include="src\Editor\TimelineBase.cpp" />
     <ClCompile Include="src\FileSystem\BinaryReader.cpp" />
     <ClCompile Include="src\FileSystem\FileHelper.cpp" />
@@ -171,6 +173,8 @@
     <ClInclude Include="src\Editor\Aet\AetRenderWindow.h" />
     <ClInclude Include="src\Editor\Aet\AetTimeline.h" />
     <ClInclude Include="src\Editor\FrameTimeline.h" />
+    <ClInclude Include="src\Editor\PV\SceneRenderWindow.h" />
+    <ClInclude Include="src\Editor\RenderWindowBase.h" />
     <ClInclude Include="src\Editor\Theme.h" />
     <ClInclude Include="src\Editor\TimelineBase.h" />
     <ClInclude Include="src\Editor\TimelineFrame.h" />
@@ -240,6 +244,7 @@
     <ClInclude Include="src\Audio\Waveform.h" />
     <ClInclude Include="src\FileSystem\Stream.h" />
     <ClInclude Include="src\Graphics\Utilities\TextureUtilities.h" />
+    <ClInclude Include="src\Types.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="rom\shader\line_frag.glsl" />

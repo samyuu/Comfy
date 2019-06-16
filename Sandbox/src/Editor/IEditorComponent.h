@@ -18,6 +18,9 @@ namespace Editor
 		virtual void OnPlaybackPaused() {};
 		virtual void OnPlaybackStopped() {};
 
+		virtual void OnWindowBegin() {};
+		virtual void OnWindowEnd() {};
+
 		virtual void OnLoad() {};
 
 	protected:

@@ -1,16 +1,12 @@
 #pragma once
+#include "Types.h"
 #include "BaseWindow.h"
 #include "Editor/Editor.h"
-#include "Graphics/VertexArray.h"
-#include "Graphics/Buffer.h"
-#include "Graphics/RenderTarget.h"
-#include "Graphics/ComfyVertex.h"
-#include "Graphics/Shader/Shader.h"
-#include "Graphics/Texture.h"
-#include "Graphics/Camera.h"
 #include "Audio/AudioEngine.h"
 #include "TimeSpan.h"
 #include "Logger.h"
+#include <glad/glad.h>
+#include <glfw/glfw3.h>
 
 constexpr float DEFAULT_WINDOW_WIDTH = 1280.0f;
 constexpr float DEFAULT_WINDOW_HEIGHT = 720.0f;
@@ -24,6 +20,7 @@ public:
 
 	// Initialize and enter the main loop.
 	void Run();
+
 	// Break out of the main loop
 	void Exit();
 
@@ -56,25 +53,26 @@ private:
 
 	// Initialize the application.
 	int BaseInitialize();
+
 	// Register window callbacks.
 	void BaseRegister();
+
 	// Call update methods.
 	void BaseUpdate();
+
 	// Call draw methods.
 	void BaseDraw();
+
 	// Dispose the application.
 	void BaseDispose();
 
 	// Initialization
 	// --------------
-
 	void InitializeGui();
-	void InitializeRom();
 	void InitializeApp();
 
 	// Update Methods
 	// --------------
-
 	void UpdatePollInput();
 	void UpdateInput();
 	void UpdateTasks();
@@ -82,7 +80,6 @@ private:
 	// Draw Methods
 	// ------------
 
-	void DrawScene();
 	void DrawGui();
 
 	void DrawGuiBaseWindowMenus(const char* header, std::vector<std::shared_ptr<BaseWindow>>& components);
@@ -90,7 +87,6 @@ private:
 
 	// Callbacks
 	// ---------
-
 	void MouseMoveCallback(int x, int y);
 	void MouseScrollCallback(float offset);
 	void WindowMoveCallback(int xPosition, int yPosition);
@@ -105,53 +101,9 @@ private:
 	bool mainLoopLowPowerSleep = false;
 
 	GLFWwindow *window = nullptr;
-	ImVec4 baseClearColor = { .12f, .12f, .12f, 1.0f };
-
-	// Vertex Storage
-	// --------------
-	struct
-	{
-		VertexArray cubeVao;
-		VertexArray lineVao;
-		VertexArray screenVao;
-
-		VertexBuffer cubeVertexBuffer;
-		VertexBuffer lineVertexBuffer;
-		VertexBuffer screenVertexBuffer;
-	};
-
-	// Textures
-	// --------
-	struct
-	{
-		Texture feelsBadManTexture;
-		Texture goodNiceTexture;
-
-		Texture groundTexture;
-		Texture skyTexture;
-		Texture tileTexture;
-	};
-
-	// Shaders
-	// -------
-	struct
-	{
-		ComfyShader comfyShader;
-		LineShader lineShader;
-		ScreenShader screenShader;
-	};
-
-	// Render Targets
-	// --------------
-	struct
-	{
-		RenderTarget sceneRenderTarget;
-		RenderTarget postProcessingRenderTarget;
-	};
 
 	// Input / UI variables
 	// --------------------
-	int mouseBeingUsed = true, keyboardBeingUsed = true;
 	int mouseX, mouseY;
 	int mouseDeltaX, mouseDeltaY;
 	int lastMouseX, lastMouseY;
@@ -163,9 +115,6 @@ private:
 	std::vector<std::string> droppedFiles;
 	bool filesDroppedThisFrame, filesDropped, filesLastDropped, fileDropDispatched;
 	bool windowFocused = true, lastWindowFocused, focusLostFrame = false, focusGainedFrame = false;
-	bool renderWindowHidden, renderWindowHover, renderWindowTitleHover, renderWindowResized;
-	ImVec2 renderWindowPos, renderWindowSize;
-	ImVec2 lastRenderWindowPos, lastRenderWindowSize;
 
 	int windowXPosition, windowYPosition;
 	float windowWidth = DEFAULT_WINDOW_WIDTH;
@@ -179,14 +128,6 @@ private:
 	TimeSpan currentTime, lastTime;
 	uint64_t elapsedFrames = 0;
 
-	// Scene Camera
-	// ------------
-	float cameraSmoothness = 65.0f;
-	float cameraPitch, cameraYaw = -90.0f, cameraRoll;
-	float targetCameraPitch, targetCameraYaw = -90.0f;
-	float cameraSensitivity = 0.25f;
-	Camera camera;
-
 	// Main Editor
 	// -----------
 	std::unique_ptr<Editor::PvEditor> pvEditor;
@@ -196,98 +137,6 @@ private:
 	// -----------------
 	std::vector<std::shared_ptr<BaseWindow>> dataTestComponents;
 	// -----------------
-
-	// Dynamic Scene Data
-	// ------------------
-	vec3 cubePositions[10] =
-	{
-		vec3(+0.0f, +0.0f, -10.0f),
-		vec3(+2.0f, +5.0f, -15.0f),
-		vec3(-1.5f, -2.2f, -02.5f),
-		vec3(-3.8f, -2.0f, -12.3f),
-		vec3(+2.4f, -0.4f, -03.5f),
-		vec3(-1.7f, +3.0f, -07.5f),
-		vec3(+1.3f, -2.0f, -02.5f),
-		vec3(+1.5f, +2.0f, -02.5f),
-		vec3(+1.5f, +0.2f, -01.5f),
-		vec3(-1.3f, +1.0f, -01.5f),
-	};
-	// ------------------
-
-	// Static Vertex Data
-	// ------------------
-	const vec4 cubeColor = vec4(0.9f, 0.8f, 0.01f, 1.00f);
-	ComfyVertex cubeVertices[36]
-	{
-		{ vec3(-0.5f, -0.5f, -0.5f), vec2(0.0f, 0.0f), cubeColor },
-		{ vec3(+0.5f, -0.5f, -0.5f), vec2(1.0f, 0.0f), cubeColor },
-		{ vec3(+0.5f, +0.5f, -0.5f), vec2(1.0f, 1.0f), cubeColor },
-		{ vec3(+0.5f, +0.5f, -0.5f), vec2(1.0f, 1.0f), cubeColor },
-		{ vec3(-0.5f, +0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-		{ vec3(-0.5f, -0.5f, -0.5f), vec2(0.0f, 0.0f), cubeColor },
-
-		{ vec3(-0.5f, -0.5f, +0.5f), vec2(0.0f, 0.0f), cubeColor },
-		{ vec3(+0.5f, -0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-		{ vec3(+0.5f, +0.5f, +0.5f), vec2(1.0f, 1.0f), cubeColor },
-		{ vec3(+0.5f, +0.5f, +0.5f), vec2(1.0f, 1.0f), cubeColor },
-		{ vec3(-0.5f, +0.5f, +0.5f), vec2(0.0f, 1.0f), cubeColor },
-		{ vec3(-0.5f, -0.5f, +0.5f), vec2(0.0f, 0.0f), cubeColor },
-
-		{ vec3(-0.5f, +0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-		{ vec3(-0.5f, +0.5f, -0.5f), vec2(1.0f, 1.0f), cubeColor },
-		{ vec3(-0.5f, -0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-		{ vec3(-0.5f, -0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-		{ vec3(-0.5f, -0.5f, +0.5f), vec2(0.0f, 0.0f), cubeColor },
-		{ vec3(-0.5f, +0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-													   
-		{ vec3(+0.5f, +0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-		{ vec3(+0.5f, +0.5f, -0.5f), vec2(1.0f, 1.0f), cubeColor },
-		{ vec3(+0.5f, -0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-		{ vec3(+0.5f, -0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-		{ vec3(+0.5f, -0.5f, +0.5f), vec2(0.0f, 0.0f), cubeColor },
-		{ vec3(+0.5f, +0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-													   
-		{ vec3(-0.5f, -0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-		{ vec3(+0.5f, -0.5f, -0.5f), vec2(1.0f, 1.0f), cubeColor },
-		{ vec3(+0.5f, -0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-		{ vec3(+0.5f, -0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-		{ vec3(-0.5f, -0.5f, +0.5f), vec2(0.0f, 0.0f), cubeColor },
-		{ vec3(-0.5f, -0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-													   
-		{ vec3(-0.5f, +0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-		{ vec3(+0.5f, +0.5f, -0.5f), vec2(1.0f, 1.0f), cubeColor },
-		{ vec3(+0.5f, +0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-		{ vec3(+0.5f, +0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-		{ vec3(-0.5f, +0.5f, +0.5f), vec2(0.0f, 0.0f), cubeColor },
-		{ vec3(-0.5f, +0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-	};
-
-	LineVertex axisVertices[6] =
-	{
-		// X-Axis
-		{ vec3(0.0f, 0.0f, 0.0f), vec4(1.0f, 0.1f, 0.3f, 1.0f) },
-		{ vec3(1.0f, 0.0f, 0.0f), vec4(1.0f, 0.1f, 0.3f, 1.0f) },
-
-		// Y-Axis										 
-		{ vec3(0.0f, 0.0f, 0.0f), vec4(0.2f, 1.0f, 0.1f, 1.0f) },
-		{ vec3(0.0f, 1.0f, 0.0f), vec4(0.2f, 1.0f, 0.1f, 1.0f) },
-
-		// Z-Axis										 
-		{ vec3(0.0f, 0.0f, 0.0f), vec4(0.1f, 0.7f, 1.0f, 1.0f) },
-		{ vec3(0.0f, 0.0f, 1.0f), vec4(0.1f, 0.7f, 1.0f, 1.0f) },
-	};
-
-	ScreenVertex screenVertices[6]
-	{
-		{ vec2(-1.0f, +1.0f),  vec2(0.0f, 1.0f) }, // top left
-		{ vec2(+1.0f, +1.0f),  vec2(1.0f, 1.0f) }, // top right
-		{ vec2(+1.0f, -1.0f),  vec2(1.0f, 0.0f) }, // bottom rights
-
-		{ vec2(-1.0f, +1.0f),  vec2(0.0f, 1.0f) }, // top left
-		{ vec2(+1.0f, -1.0f),  vec2(1.0f, 0.0f) }, // bottom right
-		{ vec2(-1.0f, -1.0f),  vec2(0.0f, 0.0f) }, // bottom left
-	};
-	// ------------------
 
 	static Application* globalCallbackApplication;
 };

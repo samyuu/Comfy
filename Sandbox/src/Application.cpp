@@ -1,5 +1,6 @@
-#include "Application.h"
 #include "pch.h"
+#include "Application.h"
+#include "Editor/Theme.h"
 #include "DataTest/InputTestWindow.h"
 #include "DataTest/AudioTestWindow.h"
 #include "Input/DirectInput/DualShock4.h"
@@ -152,10 +153,11 @@ void Application::Exit()
 int Application::BaseInitialize()
 {
 	if (hasBeenInitialized)
-		return 0;
+		return -1;
 	hasBeenInitialized = true;
 
-	assert(glfwInit());
+	int glfwInitResult = glfwInit();
+	assert(glfwInitResult == GLFW_TRUE);
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
@@ -178,7 +180,6 @@ int Application::BaseInitialize()
 	AudioEngine::CreateInstance();
 	AudioEngine::InitializeInstance();
 
-	InitializeRom();
 	InitializeGui();
 	InitializeApp();
 
@@ -237,17 +238,15 @@ void Application::BaseUpdate()
 	UpdateInput();
 	UpdateTasks();
 
-	camera.AspectRatio = (renderWindowSize.x == 0 || renderWindowSize.y == 0) ? (GetWidth() / GetHeight()) : (renderWindowSize.x / renderWindowSize.y);
-	camera.Update();
-
 	elapsedFrames++;
 }
 
 void Application::BaseDraw()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	const ImVec4 baseClearColor = ImColor(Editor::GetColor(Editor::EditorColor_BaseClear));
 	glClearColor(baseClearColor.x, baseClearColor.y, baseClearColor.z, baseClearColor.w);
-	DrawScene();
 
 	glViewport(0, 0, windowWidth, windowHeight);
 	DrawGui();
@@ -273,16 +272,6 @@ void Application::BaseDispose()
 	glfwTerminate();
 }
 
-void Application::InitializeRom()
-{
-	feelsBadManTexture.LoadFromFile("rom/spr/FeelsBadMan.png");
-	goodNiceTexture.LoadFromFile("rom/spr/GoodNiceOne.png");
-
-	groundTexture.LoadFromFile("rom/spr/stgtst007_ground.png");
-	skyTexture.LoadFromFile("rom/spr/stgtst007_sky.png");
-	tileTexture.LoadFromFile("rom/spr/stgtst007_tile.png");
-}
-
 void Application::InitializeGui()
 {
 	IMGUI_CHECKVERSION();
@@ -291,8 +280,7 @@ void Application::InitializeGui()
 	ImGuiIO& io = ImGui::GetIO();
 	io.IniFilename = "ram/imgui.ini";
 	io.LogFilename = "ram/imgui_log.txt";
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; //  | ImGuiConfigFlags_NavEnableKeyboard;
 	io.KeyRepeatDelay = 0.500f;
 	io.KeyRepeatRate = 0.075f;
 	io.ConfigWindowsMoveFromTitleBarOnly = true;
@@ -310,82 +298,6 @@ void Application::InitializeGui()
 
 void Application::InitializeApp()
 {
-	// Cube Vertex Data
-	// ----------------
-	{
-		comfyShader.Initialize();
-
-		cubeVertexBuffer.Initialize();
-		cubeVertexBuffer.Bind();
-		cubeVertexBuffer.BufferData(cubeVertices, sizeof(cubeVertices), BufferUsage::StaticDraw);
-
-		BufferLayout layout =
-		{
-			{ ShaderDataType::Vec3, "in_position" },
-			{ ShaderDataType::Vec2, "in_texture_coords" },
-			{ ShaderDataType::Vec4, "in_color" },
-		};
-
-		cubeVao.Initialize();
-		cubeVao.Bind();
-		cubeVao.SetLayout(layout);
-	}
-
-	// Line Vertex Data
-	// ----------------
-	{
-		lineShader.Initialize();
-
-		lineVertexBuffer.Initialize();
-		lineVertexBuffer.Bind();
-		lineVertexBuffer.BufferData(axisVertices, sizeof(axisVertices), BufferUsage::StaticDraw);
-
-		BufferLayout layout =
-		{
-			{ ShaderDataType::Vec3, "in_position" },
-			{ ShaderDataType::Vec4, "in_color" },
-		};
-
-		lineVao.Initialize();
-		lineVao.Bind();
-		lineVao.SetLayout(layout);
-	}
-
-	// Screen Vertex Data
-	// ------------------
-	{
-		screenShader.Initialize();
-
-		screenVertexBuffer.Initialize();
-		screenVertexBuffer.Bind();
-		screenVertexBuffer.BufferData(screenVertices, sizeof(screenVertices), BufferUsage::StaticDraw);
-
-		BufferLayout layout =
-		{
-			{ ShaderDataType::Vec2, "in_position" },
-			{ ShaderDataType::Vec2, "in_texture_coords" },
-		};
-
-		screenVao.Initialize();
-		screenVao.Bind();
-		screenVao.SetLayout(layout);
-	}
-
-	// Render Targets
-	// --------------
-	{
-		sceneRenderTarget.Initialize(GetWidth(), GetHeight());
-		postProcessingRenderTarget.Initialize(GetWidth(), GetHeight());
-	}
-
-	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE);
-	//glFrontFace(GL_CCW);
-	//glCullFace(GL_BACK);
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_FRONT);
-	//glFrontFace(GL_CCW);
-
 	// Base PV Editor
 	// --------------
 	{
@@ -434,173 +346,18 @@ void Application::UpdateInput()
 {
 	if (Keyboard::IsTapped(GLFW_KEY_F11))
 		ToggleFullscreen();
-
-	glm::vec3 front;
-	front.x = cos(glm::radians(cameraYaw)) * cos(glm::radians(cameraPitch));
-	front.y = sin(glm::radians(cameraPitch));
-	front.z = sin(glm::radians(cameraYaw)) * cos(glm::radians(cameraPitch));
-
-	const bool fastCamera = Keyboard::IsDown(GLFW_KEY_LEFT_SHIFT);
-	const bool slowCamera = Keyboard::IsDown(GLFW_KEY_LEFT_ALT);
-
-	const float cameraSpeed = (slowCamera ? 0.25f : (fastCamera ? 5.5f : 2.25f)) * elapsedTime.TotalSeconds();
-
-	if (!mouseBeingUsed)
-	{
-		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT))
-		{
-			targetCameraYaw += mouseDeltaX * cameraSensitivity;
-			targetCameraPitch += mouseDeltaY * cameraSensitivity;
-		}
-
-		const float scrollStep = slowCamera ? 0.5f : (fastCamera ? 12.5f : 1.5f);
-
-		if (mouseScrolledUp)
-			camera.Position += front * scrollStep;
-		if (mouseScrolledDown)
-			camera.Position -= front * scrollStep;
-	}
-
-	if (targetCameraPitch > +89.0f) targetCameraPitch = +89.0f;
-	if (targetCameraPitch < -89.0f) targetCameraPitch = -89.0f;
-
-	if (!keyboardBeingUsed)
-	{
-		if (Keyboard::IsDown(GLFW_KEY_W) == GLFW_PRESS)
-			camera.Position += front * cameraSpeed;
-		if (Keyboard::IsDown(GLFW_KEY_S) == GLFW_PRESS)
-			camera.Position -= front * cameraSpeed;
-		if (Keyboard::IsDown(GLFW_KEY_A) == GLFW_PRESS)
-			camera.Position -= glm::normalize(glm::cross(front, camera.UpDirection)) * cameraSpeed;
-		if (Keyboard::IsDown(GLFW_KEY_D) == GLFW_PRESS)
-			camera.Position += glm::normalize(glm::cross(front, camera.UpDirection)) * cameraSpeed;
-
-		if (Keyboard::IsDown(GLFW_KEY_SPACE))
-			camera.Position += camera.UpDirection * cameraSpeed;
-		if (Keyboard::IsDown(GLFW_KEY_LEFT_CONTROL))
-			camera.Position -= camera.UpDirection * cameraSpeed;
-	}
-
-	camera.Target = camera.Position + glm::normalize(front);
-
-	auto lerpValue = [&](float& value, float targetValue)
-	{
-		if (value == targetValue)
-			return;
-
-		constexpr auto lerp = [](float a, float b, float f) { return a + f * (b - a); };
-		value = lerp(value, targetValue, cameraSmoothness * elapsedTime.TotalSeconds());
-	};
-
-	lerpValue(cameraYaw, targetCameraYaw);
-	lerpValue(cameraPitch, targetCameraPitch);
 }
 
 void Application::UpdateTasks()
 {
 }
 
-void Application::DrawScene()
-{
-	if (renderWindowHidden)
-		return;
-
-	if (renderWindowResized && elapsedFrames > 2)
-	{
-		sceneRenderTarget.Bind();
-		sceneRenderTarget.Resize(renderWindowSize.x, renderWindowSize.y);
-		postProcessingRenderTarget.Bind();
-		postProcessingRenderTarget.Resize(renderWindowSize.x, renderWindowSize.y);
-	}
-
-	postProcessingRenderTarget.Bind();
-	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(baseClearColor.x, baseClearColor.y, baseClearColor.z, baseClearColor.w);
-
-		glViewport(0, 0, sceneRenderTarget.GetWidth(), sceneRenderTarget.GetHeight());
-		{
-			mat4 cubeModelMatrices[_countof(cubePositions)];
-			for (size_t i = 0; i < _countof(cubePositions); i++)
-				cubeModelMatrices[i] = glm::translate(mat4(1.0f), cubePositions[i]);
-
-			feelsBadManTexture.Bind(0);
-			goodNiceTexture.Bind(1);
-			comfyShader.Use();
-			comfyShader.SetUniform(comfyShader.Texture0Location, 0);
-			comfyShader.SetUniform(comfyShader.Texture1Location, 1);
-			comfyShader.SetUniform(comfyShader.ViewLocation, camera.GetViewMatrix());
-			comfyShader.SetUniform(comfyShader.ProjectionLocation, camera.GetProjectionMatrix());
-
-			cubeVao.Bind();
-			for (size_t i = 0; i < _countof(cubePositions); i++)
-			{
-				comfyShader.SetUniform(comfyShader.ModelLocation, cubeModelMatrices[i]);
-				glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
-			}
-
-			feelsBadManTexture.Bind(0);
-			tileTexture.Bind(1);
-			tileTexture.Bind(0);
-			mat4 tileModelMatrix = glm::scale(glm::translate(mat4(1.0f), vec3(0, -4.0f, 0)), vec3(39.0f, 1.0f, 39.0f));
-			comfyShader.SetUniform(comfyShader.ModelLocation, tileModelMatrix);
-			glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
-
-			feelsBadManTexture.Bind(0);
-			skyTexture.Bind(1);
-			skyTexture.Bind(0);
-			mat4 skyModelMatrix = glm::scale(mat4(1.0f), vec3(1000.0f, 1000.0f, 1000.0f));
-			comfyShader.SetUniform(comfyShader.ModelLocation, skyModelMatrix);
-			glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
-
-			feelsBadManTexture.Bind(0);
-			groundTexture.Bind(1);
-			groundTexture.Bind(0);
-			mat4 groundModelMatrix = glm::scale(glm::translate(mat4(1.0f), vec3(0, -5.0f, 0)), vec3(999.9f, 1.0f, 999.9));
-			comfyShader.SetUniform(comfyShader.ModelLocation, groundModelMatrix);
-			glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
-
-			{
-				lineShader.Use();
-				lineShader.SetUniform(lineShader.ViewLocation, camera.GetViewMatrix());
-				lineShader.SetUniform(lineShader.ProjectionLocation, camera.GetProjectionMatrix());
-
-				lineVao.Bind();
-				for (size_t i = 0; i < _countof(cubePositions); i++)
-				{
-					lineShader.SetUniform(lineShader.ModelLocation, cubeModelMatrices[i]);
-					glDrawArrays(GL_LINES, 0, _countof(axisVertices));
-				}
-			}
-		}
-	}
-	postProcessingRenderTarget.UnBind();
-
-	sceneRenderTarget.Bind();
-	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(baseClearColor.x, baseClearColor.y, baseClearColor.z, baseClearColor.w);
-
-		screenVao.Bind();
-		screenShader.Use();
-		postProcessingRenderTarget.GetTexture().Bind();
-		glDrawArrays(GL_TRIANGLES, 0, _countof(screenVertices));
-	}
-	sceneRenderTarget.UnBind();
-}
-
 void Application::DrawGui()
 {
-	static const ImVec2 uv0 = { 0, 1 }, uv1 = { 1, 0 };
-
-	mouseBeingUsed = ImGui::GetIO().WantCaptureMouse;
-	keyboardBeingUsed = ImGui::GetIO().WantCaptureKeyboard;
-
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 	{
-		static bool showComfyDebug = true;
 		static bool showDemoWindow = true;
 		static bool showSwapInterval = true;
 
@@ -627,15 +384,8 @@ void Application::DrawGui()
 				if (ImGui::MenuItem("Test Print", nullptr))
 					Logger::LogLine("DrawGui(): Test");
 
-				ImGui::MenuItem("Show Comfy Debug", nullptr, &showComfyDebug);
 				ImGui::MenuItem("Show Demo Window", nullptr, &showDemoWindow);
 				ImGui::Separator();
-
-				if (ImGui::MenuItem("Targets", nullptr)) { ; }
-				if (ImGui::MenuItem("Lyrics", nullptr)) { ; }
-				if (ImGui::MenuItem("Cameras", nullptr)) { ; }
-				if (ImGui::MenuItem("Stage Changes", nullptr)) { ; }
-				if (ImGui::MenuItem("Effects", nullptr)) { ; }
 
 				if (ImGui::MenuItem("Exit...", nullptr))
 					Exit();
@@ -670,18 +420,6 @@ void Application::DrawGui()
 				ImGui::EndPopup();
 			}
 
-			//if (ImGui::BeginPopupModal("Focus Lost Popup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-			//{
-			//	if (focusGainedFrame)
-			//		ImGui::CloseCurrentPopup();
-
-			//	ImGui::Text("Window focus has been lost.\nwould you like to retain the exclusive audio mode?\n\n");
-			//	if (ImGui::Button("OK", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
-			//	ImGui::SameLine();
-			//	if (ImGui::Button("Cancel", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
-			//	ImGui::EndPopup();
-			//}
-
 			if (focusLostFrame)
 				ImGui::OpenPopup("PeepoSleep zzzZZZ");
 
@@ -704,7 +442,6 @@ void Application::DrawGui()
 
 		// Window Dockspace
 		// ----------------
-		if (true)
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
@@ -740,176 +477,9 @@ void Application::DrawGui()
 		// Data Test Windows
 		// -----------------
 		DrawGuiBaseWindowWindows(dataTestComponents);
-
-		// Comfy Debug Windows
-		// -------------------
-		if (showComfyDebug)
-		{
-			if (ImGui::Begin("Comfy Debug", &showComfyDebug))
-			{
-				if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					ImGui::Text("Camera");
-					ImGui::DragFloat("Field Of View", &camera.FieldOfView, 1.0f, 1.0f, 180.0f);
-					ImGui::DragFloat("Near Plane", &camera.NearPlane, 0.001f, 0.001f, 1.0f);
-					ImGui::DragFloat("Far Plane", &camera.FarPlane);
-					ImGui::DragFloat3("Position", glm::value_ptr(camera.Position), 0.01f);
-					ImGui::DragFloat3("Target", glm::value_ptr(camera.Target), 0.01f);
-					ImGui::DragFloat("Smoothness", &cameraSmoothness, 1.0f, 1.0f, 250.0f);
-
-					ImGui::Text("Camera Rotation");
-					ImGui::DragFloat("Pitch", &targetCameraPitch, 1.0f);
-					ImGui::DragFloat("Yaw", &targetCameraYaw, 1.0f);
-				}
-
-				if (ImGui::CollapsingHeader("Cubes"))
-				{
-					char nameBuffer[32];
-					for (size_t i = 0; i < _countof(cubePositions); i++)
-					{
-						sprintf_s(nameBuffer, sizeof(nameBuffer), "CUBE[%zd]", i);
-						ImGui::DragFloat3(nameBuffer, glm::value_ptr(cubePositions[i]), 0.1f);
-					}
-				}
-
-				if (ImGui::CollapsingHeader("Test Tree"))
-				{
-					static bool treeNodeCheckboxBool[100];
-					static bool treeNodeParticleboxBool[100];
-					char buffer[32];
-					char hiddenBuffer[sizeof(buffer)];
-
-					for (size_t i = 0; i < 100; i++)
-					{
-						sprintf_s(buffer, sizeof(buffer), "eff_pv%03d_F%04zd", i, i + 1800);
-						sprintf_s(hiddenBuffer, sizeof(hiddenBuffer), "##%s", buffer);
-
-						bool treeNode = ImGui::TreeNode(hiddenBuffer);
-						ImGui::SameLine();
-						ImGui::Checkbox(buffer, &treeNodeCheckboxBool[i]);
-
-						if (treeNode)
-						{
-							if (ImGui::TreeNode("Emitter"))
-							{
-								ImGui::Checkbox("Particle", &treeNodeParticleboxBool[i]);
-								ImGui::TreePop();
-							}
-							ImGui::TreePop();
-						}
-					}
-				}
-
-			}
-
-			if (ImGui::CollapsingHeader("Image Test"))
-			{
-				struct { const char* Name; Texture* Texture; } namedTextures[] =
-				{
-					{ "feels bad", &feelsBadManTexture},
-					{ "good nice", &goodNiceTexture},
-					{ "ground", &groundTexture},
-					{ "sky", &skyTexture},
-					{ "tile", &tileTexture},
-				};
-
-				for (size_t i = 0; i < _countof(namedTextures); i++)
-				{
-					ImGui::Text(namedTextures[i].Name);
-					ImGui::Image(namedTextures[i].Texture->GetVoidTexture(), { 200, 200 }, uv0, uv1);
-				}
-			}
-
-			ImGui::End();
-
-			renderWindowHidden = true;
-			if (ImGui::Begin("Render Window"))
-			{
-				ImGuiWindow* currentWindow = ImGui::GetCurrentWindow();
-				const int titleBarHeight = static_cast<int>(currentWindow->TitleBarHeight());
-				renderWindowHidden = currentWindow->Hidden;
-
-				renderWindowResized = (renderWindowSize.x != lastRenderWindowSize.x) || (renderWindowSize.y != lastRenderWindowSize.y);
-				lastRenderWindowPos = renderWindowPos;
-				lastRenderWindowSize = renderWindowSize;
-				renderWindowPos = ImGui::GetWindowPos();
-				renderWindowSize = ImGui::GetWindowSize();
-
-				renderWindowTitleHover =
-					(mouseX > renderWindowPos.x) && (mouseX < renderWindowPos.x + renderWindowSize.x) &&
-					(mouseY > renderWindowPos.y) && (mouseY < renderWindowPos.y + titleBarHeight);
-
-				renderWindowHover = !renderWindowTitleHover && ImGui::IsWindowHovered();
-
-				renderWindowPos.y += static_cast<float>(titleBarHeight);
-				renderWindowSize.y -= static_cast<float>(titleBarHeight);
-
-				if (ImGui::IsWindowFocused() && !renderWindowTitleHover)
-				{
-					if (ImGui::IsWindowHovered() | ImGui::IsMouseDown(0))
-						mouseBeingUsed = false;
-					keyboardBeingUsed = false;
-				}
-				else
-				{
-					keyboardBeingUsed = true;
-				}
-
-				//ImU32 backgroundColor = ImGui::GetColorU32(ImGui::GetStyle().Colors[ImGuiCol_DockingEmptyBg]);
-				//ImGui::GetWindowDrawList()->AddRectFilled(renderWindowPos, { renderWindowPos.x + renderWindowSize.x, renderWindowPos.y + renderWindowSize.y }, backgroundColor);
-
-				if (false) // adjust aspect ratio, only for 2d render buffer
-				{
-					const float targetAspectRatio = 16.0f / 9.0f;
-					const float outputAspect = renderWindowSize.x / renderWindowSize.y;
-
-					// TODO: resize framebuffer but darken non 16/9 aet region
-					if (outputAspect <= targetAspectRatio)
-					{
-						// output is taller than it is wider, bars on top/bottom
-						int presentHeight = static_cast<int>((renderWindowSize.x / targetAspectRatio) + 0.5f);
-						int barHeight = static_cast<int>((renderWindowSize.y - presentHeight) / 2);
-
-						renderWindowPos.y += static_cast<float>(barHeight);
-						renderWindowSize.y = static_cast<float>(presentHeight);
-						//RenderRectangle = new Rectangle(0, barHeight, renderWindowSize.x, presentHeight);
-					}
-					else
-					{
-						// output is wider than it is tall, bars left/right
-						int presentWidth = static_cast<int>((renderWindowSize.y * targetAspectRatio) + 0.5f);
-						int barWidth = static_cast<int>((renderWindowSize.x - presentWidth) / 2);
-
-						renderWindowPos.x += static_cast<int>(barWidth);
-						renderWindowSize.x = static_cast<int>(presentWidth);
-						//RenderRectangle = new Rectangle(barWidth, 0, presentWidth, renderWindowSize.y);
-					}
-				}
-
-				ImGui::GetWindowDrawList()->AddImage(sceneRenderTarget.GetTexture().GetVoidTexture(), renderWindowPos, { renderWindowPos.x + renderWindowSize.x, renderWindowPos.y + renderWindowSize.y }, uv0, uv1);
-			}
-			ImGui::End();
-		}
-
-
-		// Temp Tests
-		// ----------
-		if (false)
-		{
-			if (ImGui::Begin("Temp Test"))
-			{
-				static float scale = .15f;
-				ImGui::AddTexture(ImGui::GetWindowDrawList(), &feelsBadManTexture, ImGui::GetMousePos(), scale);
-				ImGui::SliderFloat("scale", &scale, 0.01f, 1.0f);
-			}
-			ImGui::End();
-		}
 	}
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-	if (!windowFocused || !ImGui::IsAnyWindowFocused())
-		mouseBeingUsed = keyboardBeingUsed = true;
 }
 
 void Application::DrawGuiBaseWindowMenus(const char* header, std::vector<std::shared_ptr<BaseWindow>>& components)
