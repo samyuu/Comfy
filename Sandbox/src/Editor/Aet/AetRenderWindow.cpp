@@ -57,13 +57,15 @@ namespace Editor
 			vertexBuffer.Bind();
 			vertexBuffer.BufferData(vertices, sizeof(vertices), BufferUsage::StaticDraw);
 
+			BufferLayout layout = 
+			{
+				{ ShaderDataType::Vec3, "in_position" },
+				{ ShaderDataType::Vec4, "in_color" }
+			};
+
 			vertexArray.Initialize();
 			vertexArray.Bind();
-			vertexArray.SetLayout(
-				{ 
-					{ ShaderDataType::Vec3, "in_position" }, 
-					{ ShaderDataType::Vec4, "in_color" } 
-				});
+			vertexArray.SetLayout(layout);
 		}
 
 		renderTarget.Bind();

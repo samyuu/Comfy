@@ -280,7 +280,7 @@ void Application::InitializeGui()
 	ImGuiIO& io = ImGui::GetIO();
 	io.IniFilename = "ram/imgui.ini";
 	io.LogFilename = "ram/imgui_log.txt";
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // | ImGuiConfigFlags_NavEnableKeyboard;
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
 	io.KeyRepeatDelay = 0.500f;
 	io.KeyRepeatRate = 0.075f;
 	io.ConfigWindowsMoveFromTitleBarOnly = true;
@@ -354,6 +354,8 @@ void Application::UpdateTasks()
 
 void Application::DrawGui()
 {
+	ImGuiIO& io = ImGui::GetIO();
+
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
@@ -420,7 +422,7 @@ void Application::DrawGui()
 				ImGui::EndPopup();
 			}
 
-			if (focusLostFrame)
+			if (focusLostFrame && false)
 				ImGui::OpenPopup("PeepoSleep zzzZZZ");
 
 			if (ImGui::BeginPopupModal("PeepoSleep zzzZZZ", NULL, ImGuiWindowFlags_AlwaysAutoResize))
@@ -432,7 +434,7 @@ void Application::DrawGui()
 			}
 
 			char infoBuffer[32];
-			sprintf_s(infoBuffer, sizeof(infoBuffer), "%.3f ms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			sprintf_s(infoBuffer, sizeof(infoBuffer), "%.3f ms (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ImGui::CalcTextSize(infoBuffer).x - ImGui::GetStyle().WindowPadding.x);
 			ImGui::Text(infoBuffer);
@@ -479,6 +481,15 @@ void Application::DrawGui()
 		DrawGuiBaseWindowWindows(dataTestComponents);
 	}
 	ImGui::Render();
+
+	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	{
+		GLFWwindow* context = glfwGetCurrentContext();
+		ImGui::UpdatePlatformWindows();
+		ImGui::RenderPlatformWindowsDefault();
+		glfwMakeContextCurrent(context);
+	}
+
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 

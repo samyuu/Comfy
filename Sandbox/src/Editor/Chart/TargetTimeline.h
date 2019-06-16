@@ -80,7 +80,7 @@ namespace Editor
 		const char* buttonIconsTexturePath = u8"rom/spr/btn_icns.png";
 		Texture buttonIconsTexture;
 
-		bool checkHitsoundsInCallback = true;
+		bool checkHitsoundsInCallback = false;
 		struct { bool Down, WasDown; } buttonPlacementKeyStates[6];
 		struct { TargetType Type; int Key; } buttonPlacementMapping[6]
 		{
