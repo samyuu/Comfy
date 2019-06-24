@@ -26,17 +26,20 @@ namespace Editor
 		static inline void PopWindowPadding() { ImGui::PopStyleVar(); };
 
 	protected:
-		ImRect renderRegion, lastRenderRegion;
 		RenderTarget renderTarget;
 
+		virtual void OnDrawGui() {};
 		virtual void OnUpdateInput() = 0;
 		virtual void OnUpdate() = 0;
 		virtual void OnRender() = 0;
 		virtual void OnResize(int width, int height);
 
 		inline bool GetWasResized() { return wasResized; };
+		const ImRect& GetRenderRegion() const;
 
 	private:
+		ImRect renderRegion, lastRenderRegion;
+
 		bool wasResized = false;
 
 		bool keepAspectRatio = false;

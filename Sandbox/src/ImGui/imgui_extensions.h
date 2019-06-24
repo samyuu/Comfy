@@ -2,20 +2,20 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
-class Texture;
+class Texture2D;
 
 namespace ImGui
 {
 	const ImVec2 UV0 = ImVec2(0, 1), UV1 = ImVec2(1, 0);
 
-	void AddTexture(ImDrawList* drawList, Texture* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0 = UV0, const ImVec2& uv1 = UV1);
+	void AddTexture(ImDrawList* drawList, Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0 = UV0, const ImVec2& uv1 = UV1);
 
-	inline void AddTexture(ImDrawList* drawList, Texture* texture, ImVec2 center, float scale, const ImVec2& uv0, const ImVec2& uv1)
+	inline void AddTexture(ImDrawList* drawList, Texture2D* texture, ImVec2 center, float scale, const ImVec2& uv0, const ImVec2& uv1)
 	{
 		AddTexture(drawList, texture, center, ImVec2(scale, scale), uv0, uv1);
 	};
 
-	inline void AddTexture(ImDrawList* drawList, Texture* texture, ImVec2 center, float scale)
+	inline void AddTexture(ImDrawList* drawList, Texture2D* texture, ImVec2 center, float scale)
 	{
 		AddTexture(drawList, texture, center, ImVec2(scale, scale));
 	};
@@ -40,6 +40,7 @@ namespace ImGui
 	};
 
 	bool WideTreeNode(const char* label);
+	bool WideTreeNode(const char* str_id, const char* fmt, ...);
 	bool WideTreeNodeEx(const char* label, ImGuiTreeNodeFlags flags);
 	bool WideTreeNodeEx(const void* ptr_id, ImGuiTreeNodeFlags flags, const char* fmt, ...);
 }

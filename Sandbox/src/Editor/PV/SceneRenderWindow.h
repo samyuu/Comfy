@@ -52,12 +52,12 @@ namespace Editor
 		// --------
 		struct
 		{
-			Texture feelsBadManTexture;
-			Texture goodNiceTexture;
+			Texture2D feelsBadManTexture;
+			Texture2D goodNiceTexture;
 
-			Texture groundTexture;
-			Texture skyTexture;
-			Texture tileTexture;
+			Texture2D groundTexture;
+			Texture2D skyTexture;
+			Texture2D tileTexture;
 		};
 
 		// Shaders

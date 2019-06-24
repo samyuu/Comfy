@@ -51,9 +51,6 @@
     <ClCompile Include="src\Editor\TestComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ImGui\imgui_extensions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Audio\AudioEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -150,18 +147,6 @@
     <ClCompile Include="src\FileSystem\BinaryReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\FileSystem\File\AetSet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\main_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\FileSystem\File\TxpSet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\FileSystem\File\SprSet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\Shader\ShaderProgram.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -178,9 +163,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="lib\stb\src\stb_image_write.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Utilities\TextureUtilities.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Utilities\s3tc.cpp">
@@ -219,6 +201,27 @@
     <ClCompile Include="src\Editor\Aet\AetRenderWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\FileSystem\Format\AetSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileSystem\Format\SprSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileSystem\Format\TxpSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileSystem\FileInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ImGui\imgui_extensions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ImGui\Widgets\FileViewer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Misc\StringHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ImGui\imconfig.h">
@@ -252,9 +255,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\TestComponent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ImGui\imgui_extensions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Audio\ISampleProvider.h">
@@ -371,16 +371,7 @@
     <ClInclude Include="src\FileSystem\BinaryReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\FileSystem\File\AetSet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\FileSystem\FileInterface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\FileSystem\File\TxpSet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\FileSystem\File\SprSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Shader\ShaderProgram.h">
@@ -399,9 +390,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\VertexArray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Utilities\TextureUtilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Utilities\s3tc.h">
@@ -449,13 +437,33 @@
     <ClInclude Include="src\Types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\FileSystem\Format\AetSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FileSystem\Format\SprSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FileSystem\Format\TxpSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ImGui\imgui_extensions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ImGui\Widgets\FileViewer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Misc\StringHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="rom\shader\test_vert.glsl" />
-    <None Include="rom\shader\test_frag.glsl" />
     <None Include="rom\shader\line_frag.glsl" />
     <None Include="rom\shader\line_vert.glsl" />
     <None Include="rom\shader\screen_frag.glsl" />
     <None Include="rom\shader\screen_vert.glsl" />
+    <None Include="rom\shader\sprite_frag.glsl" />
+    <None Include="rom\shader\sprite_vert.glsl" />
+    <None Include="rom\shader\comfy_vert.glsl" />
+    <None Include="rom\shader\comfy_frag.glsl" />
   </ItemGroup>
 </Project>

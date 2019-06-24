@@ -73,7 +73,7 @@ FramebufferStatus_t Framebuffer::CheckStatus()
 	return glCheckFramebufferStatus(GetBufferTarget());
 }
 
-void Framebuffer::AttachTexture(Texture& texture, Attachment_t attachment)
+void Framebuffer::AttachTexture(Texture2D& texture, Attachment_t attachment)
 {
 	glFramebufferTexture2D(GetBufferTarget(), attachment, texture.GetTextureTarget(), texture.GetTextureID(), 0);
 }

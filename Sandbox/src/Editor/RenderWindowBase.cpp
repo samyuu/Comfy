@@ -11,6 +11,9 @@ namespace Editor
 
 	void RenderWindowBase::DrawGui()
 	{
+		RenderWindowBase::PopWindowPadding();
+		OnDrawGui();
+
 		ImGui::PushID((void*)this);
 		ImGui::BeginChild("RenderWindowBaseChild");
 
@@ -68,6 +71,13 @@ namespace Editor
 
 		ImGui::EndChild();
 		ImGui::PopID();
+
+		RenderWindowBase::PushWindowPadding();
+	}
+
+	const ImRect& RenderWindowBase::GetRenderRegion() const
+	{
+		return renderRegion;
 	}
 
 	void RenderWindowBase::OnResize(int width, int height)

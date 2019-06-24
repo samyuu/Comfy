@@ -47,7 +47,7 @@ namespace FileSystem
 
 	bool MemoryStream::IsOpen() const
 	{
-		return data != nullptr;
+		return true;
 	}
 
 	bool MemoryStream::CanRead() const
@@ -78,8 +78,13 @@ namespace FileSystem
 	{
 		assert(CanWrite());
 
-		// TODO: how should this work?
-		return 0;
+		data.resize(data.size() + size);
+
+		uint8_t* bufferStart = (uint8_t*)buffer;
+		uint8_t* bufferEnd = &bufferStart[size];
+		std::copy(bufferStart, bufferEnd, std::back_inserter(data));
+
+		return size;
 	}
 
 	void MemoryStream::FromFile(const std::string& filePath)
@@ -96,24 +101,19 @@ namespace FileSystem
 
 	void MemoryStream::FromStream(Stream* stream)
 	{
-		assert(!IsOpen());
+		assert(IsOpen());
 		assert(stream->CanRead());
 
 		canRead = true;
 		dataSize = stream->RemainingBytes();
-		data = new uint8_t[dataSize];
+		data.resize(dataSize);
 
 		int64_t prePos = stream->GetPosition();
-		stream->Read(data, dataSize);
+		stream->Read(data.data(), dataSize);
 		stream->Seek(prePos);
 	}
 
 	void MemoryStream::Close()
 	{
-		if (IsOpen())
-		{
-			delete[] data;
-			data = nullptr;
-		}
 	}
 }

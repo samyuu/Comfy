@@ -53,7 +53,7 @@ public:
 	void UnBind();
 
 	FramebufferStatus_t CheckStatus();
-	void AttachTexture(Texture& texture, Attachment_t attachment);
+	void AttachTexture(Texture2D& texture, Attachment_t attachment);
 	void AttachRenderbuffer(Renderbuffer& renderbuffer, Attachment_t attachment);
 
 protected:
@@ -80,7 +80,7 @@ public:
 
 	void Resize(int width, int height);
 
-	inline Texture& GetTexture() { return colorTexture; };
+	inline Texture2D& GetTexture() { return colorTexture; };
 	inline void* GetVoidTexture() { return GetTexture().GetVoidTexture(); };
 	inline int GetWidth() { return width; };
 	inline int GetHeight() { return height; };
@@ -89,7 +89,7 @@ protected:
 	int width, height;
 
 	Framebuffer framebuffer;
-	Texture colorTexture;
+	Texture2D colorTexture;
 	Renderbuffer depthRenderbuffer;
 
 	void Dispose();

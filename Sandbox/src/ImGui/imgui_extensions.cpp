@@ -4,7 +4,7 @@
 
 namespace ImGui
 {
-	void AddTexture(ImDrawList* drawList, Texture* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0, const ImVec2& uv1)
+	void AddTexture(ImDrawList* drawList, Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0, const ImVec2& uv1)
 	{
 		float width = texture->GetWidth() * scale.x;
 		float height = texture->GetHeight() * scale.y;
@@ -246,12 +246,22 @@ namespace ImGui
 	}
 
 	// Same as imgui_widgets.cpp: TreeNode(...) but calls WideTreeNodeBehavior(...) instead of TreeNodeBehavior(...)
-	bool WideTreeNode(const char * label)
+	bool WideTreeNode(const char* label)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
 		if (window->SkipItems)
 			return false;
 		return WideTreeNodeBehavior(window->GetID(label), 0, label, NULL);
+	}
+
+	// Same as imgui_widgets.cpp: TreeNode(...) but calls WideTreeNodeExV(...) instead of TreeNodeExV(...)
+	bool WideTreeNode(const char* str_id, const char* fmt, ...)
+	{
+		va_list args;
+		va_start(args, fmt);
+		bool is_open = WideTreeNodeExV(str_id, 0, fmt, args);
+		va_end(args);
+		return is_open;
 	}
 
 	// Same as imgui_widgets.cpp: TreeNodeEx(...) but calls WideTreeNodeBehavior(...) instead of TreeNodeBehavior(...)

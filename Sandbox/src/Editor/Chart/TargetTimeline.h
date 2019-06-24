@@ -78,7 +78,7 @@ namespace Editor
 		std::array<ImRect, buttonIconsTypeCount * 2> buttonIconsTextureCoordinates;
 
 		const char* buttonIconsTexturePath = u8"rom/spr/btn_icns.png";
-		Texture buttonIconsTexture;
+		Texture2D buttonIconsTexture;
 
 		bool checkHitsoundsInCallback = false;
 		struct { bool Down, WasDown; } buttonPlacementKeyStates[6];

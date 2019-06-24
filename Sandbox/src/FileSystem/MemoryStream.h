@@ -1,5 +1,6 @@
 #pragma once
 #include "Stream.h"
+#include <vector>
 #include <string>
 
 namespace FileSystem
@@ -35,6 +36,6 @@ namespace FileSystem
 		int64_t position = 0L;
 		int64_t dataSize = 0L;
 
-		uint8_t* data = nullptr;
+		std::vector<uint8_t> data;
 	};
 }

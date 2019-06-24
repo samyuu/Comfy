@@ -1,9 +1,9 @@
-#include <boost/algorithm/string/predicate.hpp>
 #include "Editor.h"
 #include "Aet/AetEditor.h"
 #include "Chart/TargetTimeline.h"
 #include "PV/SceneRenderWindow.h"
-#include "../Application.h"
+#include "Application.h"
+#include "Misc/StringHelper.h"
 
 namespace Editor
 {
@@ -140,7 +140,7 @@ namespace Editor
 
 		for (size_t e = 0; e < audioFileExtensions.size(); e++)
 		{
-			if (boost::iends_with(filePath, audioFileExtensions[e]))
+			if (EndsWithCaseInsensitive(filePath, audioFileExtensions[e]))
 			{
 				if (LoadSong(filePath))
 				{

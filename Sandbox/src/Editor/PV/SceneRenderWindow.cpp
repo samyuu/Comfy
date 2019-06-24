@@ -176,7 +176,7 @@ namespace Editor
 
 		if (ImGui::CollapsingHeader("Image Test"))
 		{
-			struct { const char* Name; Texture* Texture; } namedTextures[] =
+			struct { const char* Name; Texture2D* Texture; } namedTextures[] =
 			{
 				{ "feels bad", &feelsBadManTexture},
 				{ "good nice", &goodNiceTexture},
@@ -225,12 +225,15 @@ namespace Editor
 				targetCameraPitch -= io.MouseDelta.y * cameraSensitivity;
 			}
 
-			const float scrollStep = slowCamera ? 0.5f : (fastCamera ? 12.5f : 1.5f);
+			if (ImGui::IsWindowHovered())
+			{
+				const float scrollStep = slowCamera ? 0.5f : (fastCamera ? 12.5f : 1.5f);
 
-			if (io.MouseWheel > 0)
-				camera.Position += front * scrollStep;
-			if (io.MouseWheel < 0)
-				camera.Position -= front * scrollStep;
+				if (io.MouseWheel > 0)
+					camera.Position += front * scrollStep;
+				if (io.MouseWheel < 0)
+					camera.Position -= front * scrollStep;
+			}
 		}
 
 		if (targetCameraPitch > +89.0f) targetCameraPitch = +89.0f;
@@ -346,7 +349,7 @@ namespace Editor
 	{
 		RenderWindowBase::OnResize(width, height);
 
-		ImVec2 renderRegionSize = renderRegion.GetSize();
+		ImVec2 renderRegionSize = GetRenderRegion().GetSize();
 		camera.AspectRatio = renderRegionSize.x / renderRegionSize.y;
 
 		postProcessingRenderTarget.Resize(width, height);

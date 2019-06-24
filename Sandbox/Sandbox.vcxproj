@@ -56,7 +56,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glad\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\libsndfile\include;$(ProjectDir)lib\rtaudio\include;Y:\Dev\boost\boost_1_70_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glad\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\libsndfile\include;$(ProjectDir)lib\rtaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -78,7 +78,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glad\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\libsndfile\include;$(ProjectDir)lib\rtaudio\include;Y:\Dev\boost\boost_1_70_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glad\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\libsndfile\include;$(ProjectDir)lib\rtaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -92,6 +92,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;dxguid.lib;dinput8.lib;shlwapi.lib;rtaudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)lib\glfw\lib-vc2017;$(ProjectDir)lib\libsndfile\lib;$(ProjectDir)lib\rtaudio\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -105,13 +106,15 @@
     <ClCompile Include="src\Editor\TimelineBase.cpp" />
     <ClCompile Include="src\FileSystem\BinaryReader.cpp" />
     <ClCompile Include="src\FileSystem\FileHelper.cpp" />
-    <ClCompile Include="src\FileSystem\File\SprSet.cpp" />
-    <ClCompile Include="src\FileSystem\File\TxpSet.cpp" />
+    <ClCompile Include="src\FileSystem\FileInterface.cpp" />
+    <ClCompile Include="src\FileSystem\Format\SprSet.cpp" />
+    <ClCompile Include="src\FileSystem\Format\TxpSet.cpp" />
     <ClCompile Include="src\FileSystem\MemoryStream.cpp" />
     <ClCompile Include="src\FileSystem\FileStream.cpp" />
     <ClCompile Include="src\Graphics\Shader\Shader.cpp" />
     <ClCompile Include="src\Graphics\Utilities\decompress.cpp" />
     <ClCompile Include="src\Graphics\Utilities\s3tc.cpp" />
+    <ClCompile Include="src\ImGui\Widgets\FileViewer.cpp" />
     <ClCompile Include="src\Logger.cpp" />
     <ClCompile Include="src\Audio\Decoder\dr_flac.cpp" />
     <ClCompile Include="src\Audio\Decoder\dr_mp3.cpp" />
@@ -136,8 +139,7 @@
     <ClCompile Include="src\Input\DirectInput\Ds4State.cpp" />
     <ClCompile Include="src\Input\DirectInput\DualShock4.cpp" />
     <ClCompile Include="src\Input\Keyboard.cpp" />
-    <ClCompile Include="src\FileSystem\File\AetSet.cpp" />
-    <ClCompile Include="src\main_test.cpp" />
+    <ClCompile Include="src\FileSystem\Format\AetSet.cpp" />
     <ClCompile Include="src\Graphics\RenderTarget.cpp" />
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="lib\stb\src\stb_image.cpp" />
@@ -149,6 +151,7 @@
     <ClCompile Include="src\ImGui\imgui_impl_glfw.cpp" />
     <ClCompile Include="src\ImGui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="src\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="src\Misc\StringHelper.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -167,7 +170,6 @@
     <ClCompile Include="src\Audio\Waveform.cpp" />
     <ClCompile Include="src\TimeSpan.cpp" />
     <ClCompile Include="src\FileSystem\Stream.cpp" />
-    <ClCompile Include="src\Graphics\Utilities\TextureUtilities.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Editor\Aet\AetEditor.h" />
@@ -182,13 +184,14 @@
     <ClInclude Include="src\FileSystem\BinaryReader.h" />
     <ClInclude Include="src\FileSystem\FileHelper.h" />
     <ClInclude Include="src\FileSystem\FileInterface.h" />
-    <ClInclude Include="src\FileSystem\File\SprSet.h" />
-    <ClInclude Include="src\FileSystem\File\TxpSet.h" />
+    <ClInclude Include="src\FileSystem\Format\SprSet.h" />
+    <ClInclude Include="src\FileSystem\Format\TxpSet.h" />
     <ClInclude Include="src\FileSystem\MemoryStream.h" />
     <ClInclude Include="src\FileSystem\FileStream.h" />
     <ClInclude Include="src\Graphics\Shader\Shader.h" />
     <ClInclude Include="src\Graphics\Utilities\decompress.h" />
     <ClInclude Include="src\Graphics\Utilities\s3tc.h" />
+    <ClInclude Include="src\ImGui\Widgets\FileViewer.h" />
     <ClInclude Include="src\Logger.h" />
     <ClInclude Include="src\Audio\Decoder\dr_flac.h" />
     <ClInclude Include="src\Audio\Decoder\dr_mp3.h" />
@@ -219,7 +222,7 @@
     <ClInclude Include="src\Input\DirectInput\DualShock4.h" />
     <ClInclude Include="src\Input\IInputDevice.h" />
     <ClInclude Include="src\Input\Keyboard.h" />
-    <ClInclude Include="src\FileSystem\File\AetSet.h" />
+    <ClInclude Include="src\FileSystem\Format\AetSet.h" />
     <ClInclude Include="src\Graphics\RenderTarget.h" />
     <ClInclude Include="src\Application.h" />
     <ClInclude Include="src\Graphics\Camera.h" />
@@ -232,6 +235,7 @@
     <ClInclude Include="src\ImGui\imstb_rectpack.h" />
     <ClInclude Include="src\ImGui\imstb_textedit.h" />
     <ClInclude Include="src\ImGui\imstb_truetype.h" />
+    <ClInclude Include="src\Misc\StringHelper.h" />
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\Graphics\Shader\ShaderProgram.h" />
     <ClInclude Include="src\Graphics\Texture.h" />
@@ -244,16 +248,17 @@
     <ClInclude Include="src\Editor\Chart\TimelineMap.h" />
     <ClInclude Include="src\Audio\Waveform.h" />
     <ClInclude Include="src\FileSystem\Stream.h" />
-    <ClInclude Include="src\Graphics\Utilities\TextureUtilities.h" />
     <ClInclude Include="src\Types.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="rom\shader\comfy_frag.glsl" />
+    <None Include="rom\shader\comfy_vert.glsl" />
     <None Include="rom\shader\line_frag.glsl" />
     <None Include="rom\shader\line_vert.glsl" />
     <None Include="rom\shader\screen_frag.glsl" />
     <None Include="rom\shader\screen_vert.glsl" />
-    <None Include="rom\shader\test_frag.glsl" />
-    <None Include="rom\shader\test_vert.glsl" />
+    <None Include="rom\shader\sprite_frag.glsl" />
+    <None Include="rom\shader\sprite_vert.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

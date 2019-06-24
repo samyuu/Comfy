@@ -40,9 +40,6 @@ void AudioEngine::Dispose()
 
 void AudioEngine::SetAudioApi(AudioApi audioApi)
 {
-	if (GetActiveAudioApi() == audioApi)
-		return;
-
 	this->audioApi = audioApi;
 	bool wasStreamRunning = GetIsStreamOpen() && GetIsStreamRunning();
 
