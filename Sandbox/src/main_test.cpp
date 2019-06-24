@@ -1,20 +1,27 @@
 #include "pch.h"
 #include "Application.h"
-#include <Windows.h>
+#include "TimeSpan.h"
 #include "FileSystem/FileStream.h"
 #include "FileSystem/MemoryStream.h"
 #include "FileSystem/BinaryReader.h"
-#include "FileSystem/File/AetSet.h"
-#include "FileSystem/File/SprSet.h"
-#include "TimeSpan.h"
+#include "FileSystem/Format/AetSet.h"
+#include "FileSystem/Format/SprSet.h"
+// #include "Graphics/Utilities/TextureUtilities.h"
+// #include "Graphics/Utilities/s3tc.h"
+// #include "Graphics/Utilities/decompress.h"
+#include <stb/stb_image_write.h>
 #include <string>
 #include <filesystem>
-#include <stb/stb_image_write.h>
-//#include "Graphics/Utilities/s3tc.h"
-#include "Graphics/Utilities/decompress.h"
 
 using namespace std::filesystem;
 using namespace FileSystem;
+
+// DUMMY FUNCTIONS
+// ---------------
+void BlockDecompressImageBC1(int width, int height, uint8_t*, uint8_t*) {};
+void BlockDecompressImageBC3(int width, int height, uint8_t*, uint8_t*) {};
+void BlockDecompressImageBC5(int width, int height, uint8_t*, uint8_t*) {};
+// ---------------
 
 void SaveRgbaToFile(const char* filePath, int width, int height, const void* data)
 {
@@ -36,12 +43,22 @@ void SaveAsPng(FileSystem::Texture* texture)
 	int width = mipMap->Width;
 	int height = mipMap->Height;
 
+	{
+		uint32_t *pixelData = new uint32_t[width * height];
+		{
+			//TextureUtilities::DecodeTexture(texture, pixelData);
+			SaveRgbaToFile(filePath, width, height, pixelData);
+		}
+		delete[] pixelData;
+		return;
+	}
+
 	switch (mipMap->Format)
 	{
 	case TextureFormat_DXT1:
 	{
 		uint32_t *pixelData = new uint32_t[width * height];
-		BlockDecompressImageBC1(width, height, (uint8_t*)mipMap->Data->data(), (unsigned char*)pixelData);
+		BlockDecompressImageBC1(width, height, (uint8_t*)mipMap->Data.data(), (unsigned char*)pixelData);
 
 		//for (size_t i = 0; i < width * height; i++)
 		//{
@@ -57,7 +74,7 @@ void SaveAsPng(FileSystem::Texture* texture)
 	case TextureFormat_DXT5:
 	{
 		uint32_t *pixelData = new uint32_t[width * height];
-		BlockDecompressImageBC3(width, height, (uint8_t*)mipMap->Data->data(), (unsigned char*)pixelData);
+		BlockDecompressImageBC3(width, height, (uint8_t*)mipMap->Data.data(), (unsigned char*)pixelData);
 
 		//for (size_t i = 0; i < width * height; i++)
 		//{
@@ -76,7 +93,7 @@ void SaveAsPng(FileSystem::Texture* texture)
 		// the red channel should store the grayscale
 		// the green channel should store the alpha
 		uint32_t *pixelData = new uint32_t[width * height];
-		BlockDecompressImageBC5(width, height, (uint8_t*)mipMap->Data->data(), (unsigned char*)pixelData);
+		BlockDecompressImageBC5(width, height, (uint8_t*)mipMap->Data.data(), (unsigned char*)pixelData);
 		SaveRgbaToFile(filePath, width, height, pixelData);
 		delete[] pixelData;
 		break;
@@ -84,8 +101,8 @@ void SaveAsPng(FileSystem::Texture* texture)
 	break;
 
 	case TextureFormat_RGBA:
-		mipMap->Data->resize(width * height * 4);
-		SaveRgbaToFile(filePath, width, height, mipMap->Data->data());
+		mipMap->Data.resize(width * height * 4);
+		SaveRgbaToFile(filePath, width, height, mipMap->Data.data());
 		break;
 
 	default:
@@ -120,7 +137,7 @@ void SaveAsDDS(FileSystem::Texture* texture)
 			uint32_t flags = 4103; file.Write(&flags, sizeof(flags));
 			file.Write(&mipMap->Height, sizeof(mipMap->Height));
 			file.Write(&mipMap->Width, sizeof(mipMap->Width));
-			uint32_t pitchOrLinearSize = mipMap->Data->size(); file.Write(&pitchOrLinearSize, sizeof(pitchOrLinearSize));
+			uint32_t pitchOrLinearSize = mipMap->Data.size(); file.Write(&pitchOrLinearSize, sizeof(pitchOrLinearSize));
 			uint32_t depth = 0; file.Write(&depth, sizeof(depth));
 			uint32_t mipMapCount = 0; file.Write(&mipMapCount, sizeof(mipMapCount));
 			uint32_t reserved0[11] = {}; file.Write(&reserved0, sizeof(reserved0));
@@ -156,7 +173,7 @@ void SaveAsDDS(FileSystem::Texture* texture)
 			uint32_t caps2[3] = {}; file.Write(&caps2, sizeof(caps2));
 			uint32_t reserved1 = 0; file.Write(&reserved1, sizeof(reserved1));
 
-			file.Write(mipMap->Data->data(), mipMap->Data->size());
+			file.Write(mipMap->Data.data(), mipMap->Data.size());
 		}
 		file.Close();
 
@@ -175,7 +192,7 @@ void MainTest()
 	glfwInit();
 
 	// SPR/TXP TEST:
-	if (true)
+	if (false)
 	{
 		{
 			const wchar_t* txpSetPath = L"Y:/Debug/FileTest/objset/stgtst007/stgtst007_tex.bin";
@@ -201,12 +218,12 @@ void MainTest()
 			{
 				DEBUG_STOPWATCH("Export PNG File Test");
 				for (auto &texture : sprSet->TxpSet.Textures)
-					SaveAsPng(&texture);
+					SaveAsPng(texture.get());
 			}
 			{
 				DEBUG_STOPWATCH("Export DDS File Test");
 				for (auto &texture : sprSet->TxpSet.Textures)
-					SaveAsDDS(&texture);
+					SaveAsDDS(texture.get());
 			}
 
 			int __breakpoint = 0;
@@ -214,7 +231,7 @@ void MainTest()
 	}
 
 	// AET TEST:
-	if (true)
+	if (false)
 	{
 		std::vector<std::wstring> aetPaths;
 		std::vector<std::shared_ptr<MemoryStream>> streams;

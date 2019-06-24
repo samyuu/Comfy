@@ -112,8 +112,6 @@
     <ClCompile Include="src\FileSystem\MemoryStream.cpp" />
     <ClCompile Include="src\FileSystem\FileStream.cpp" />
     <ClCompile Include="src\Graphics\Shader\Shader.cpp" />
-    <ClCompile Include="src\Graphics\Utilities\decompress.cpp" />
-    <ClCompile Include="src\Graphics\Utilities\s3tc.cpp" />
     <ClCompile Include="src\ImGui\Widgets\FileViewer.cpp" />
     <ClCompile Include="src\Logger.cpp" />
     <ClCompile Include="src\Audio\Decoder\dr_flac.cpp" />
@@ -189,8 +187,6 @@
     <ClInclude Include="src\FileSystem\MemoryStream.h" />
     <ClInclude Include="src\FileSystem\FileStream.h" />
     <ClInclude Include="src\Graphics\Shader\Shader.h" />
-    <ClInclude Include="src\Graphics\Utilities\decompress.h" />
-    <ClInclude Include="src\Graphics\Utilities\s3tc.h" />
     <ClInclude Include="src\ImGui\Widgets\FileViewer.h" />
     <ClInclude Include="src\Logger.h" />
     <ClInclude Include="src\Audio\Decoder\dr_flac.h" />
