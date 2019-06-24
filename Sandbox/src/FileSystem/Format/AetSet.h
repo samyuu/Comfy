@@ -1,17 +1,13 @@
 #pragma once
+#include "Types.h"
+#include "FileSystem/FileInterface.h"
+#include <memory>
 #include <vector>
 #include <list>
-#include <stdint.h>
-#include <memory>
-#include "../FileInterface.h"
 
 namespace FileSystem
 {
 	struct AetLayer;
-	typedef uint8_t unk8_t;
-	typedef uint16_t unk16_t;
-	typedef uint32_t unk32_t;
-	typedef float frame_t;
 
 	enum AetObjType : uint8_t
 	{
@@ -36,10 +32,10 @@ namespace FileSystem
 		uint32_t ID;
 	};
 
-	struct SpriteEntry
+	struct AetRegion
 	{
 		void* FilePtr;
-		unk32_t Unknown;
+		unk32_t Color;
 		int16_t Width;
 		int16_t Height;
 		frame_t Frames;
@@ -80,7 +76,7 @@ namespace FileSystem
 		bool UseTextureMask;
 		unk8_t UnknownFlag2;
 		std::unique_ptr<KeyFrameProperties> Properties;
-		std::unique_ptr<KeyFrameProperties> PropertiesExtraData;
+		std::unique_ptr<KeyFrameProperties> PerspectiveProperties;
 	};
 
 	struct AetObj
@@ -101,7 +97,7 @@ namespace FileSystem
 			AnimationData AnimationData;
 			void* UnknownFilePtr;
 
-			SpriteEntry* ReferencedSprite;
+			AetRegion* ReferencedRegion;
 			AetLayer* ReferencedLayer;
 
 			AetObj* ReferencedObjParent;
@@ -120,7 +116,7 @@ namespace FileSystem
 	struct AetLyo
 	{
 		std::string Name;
-		unk32_t Unknown;
+		unk32_t BackgroundColor;
 		frame_t FrameDuration;
 		frame_t FrameRate;
 		unk32_t MaybeColor;
@@ -128,7 +124,7 @@ namespace FileSystem
 		int32_t Height;
 		unk32_t DontChangeMe;
 		std::list<AetLayer> AetLayers;
-		std::list<SpriteEntry> SpriteEntries;
+		std::list<AetRegion> AetRegions;
 	};
 
 	class AetSet : public IBinaryReadable

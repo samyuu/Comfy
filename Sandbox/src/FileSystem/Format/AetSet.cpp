@@ -1,5 +1,5 @@
 #include "AetSet.h"
-#include "../BinaryReader.h"
+#include "FileSystem/BinaryReader.h"
 #include <assert.h>
 
 namespace FileSystem
@@ -113,7 +113,7 @@ namespace FileSystem
 				reader.ReadAt(lyoPointer, [&aetLyo](BinaryReader& reader)
 				{
 					aetLyo->Name = reader.ReadStrPtr();
-					aetLyo->Unknown = reader.ReadUInt32();
+					aetLyo->BackgroundColor = reader.ReadUInt32();
 					aetLyo->FrameDuration = reader.ReadFloat();
 					aetLyo->FrameRate = reader.ReadFloat();
 					aetLyo->MaybeColor = reader.ReadUInt32();
@@ -174,7 +174,7 @@ namespace FileSystem
 											{
 												animationData->BlendMode = reader.Read<AetBlendMode>();
 												animationData->UnknownFlag0 = reader.Read<unk8_t>();
-												animationData->UseTextureMask = reader.ReadBoolean();
+												animationData->UseTextureMask = reader.ReadBool();
 												animationData->UnknownFlag2 = reader.Read<unk8_t>();
 												animationData->Properties = std::make_unique<KeyFrameProperties>();
 												ReadKeyFrameProperties(animationData->Properties.get(), reader);
@@ -184,8 +184,8 @@ namespace FileSystem
 												{
 													reader.ReadAt(propertiesExtraDataPointer, [&animationData](BinaryReader& reader)
 													{
-														animationData->PropertiesExtraData = std::make_unique<KeyFrameProperties>();
-														ReadKeyFrameProperties(animationData->PropertiesExtraData.get(), reader);
+														animationData->PerspectiveProperties = std::make_unique<KeyFrameProperties>();
+														ReadKeyFrameProperties(animationData->PerspectiveProperties.get(), reader);
 													});
 												}
 											});
@@ -203,23 +203,23 @@ namespace FileSystem
 					{
 						for (size_t i = 0; i < spriteEntriesCount; i++)
 						{
-							aetLyo->SpriteEntries.emplace_back();
-							SpriteEntry* spriteEntry = &aetLyo->SpriteEntries.back();
+							aetLyo->AetRegions.emplace_back();
+							AetRegion* region = &aetLyo->AetRegions.back();
 
-							spriteEntry->FilePtr = reader.GetPositionPtr();
-							spriteEntry->Unknown = reader.ReadUInt32();
-							spriteEntry->Width = reader.ReadUInt16();
-							spriteEntry->Height = reader.ReadUInt16();
-							spriteEntry->Frames = reader.ReadFloat();
+							region->FilePtr = reader.GetPositionPtr();
+							region->Color = reader.ReadUInt32();
+							region->Width = reader.ReadUInt16();
+							region->Height = reader.ReadUInt16();
+							region->Frames = reader.ReadFloat();
 
 							uint32_t spritesCount = reader.ReadUInt32();
 							void* spritesPointer = reader.ReadPtr();
 
-							spriteEntry->Sprites.reserve(spritesCount);
-							reader.ReadAt(spritesPointer, [spritesCount, &spriteEntry](BinaryReader& reader)
+							region->Sprites.reserve(spritesCount);
+							reader.ReadAt(spritesPointer, [spritesCount, &region](BinaryReader& reader)
 							{
 								for (uint32_t i = 0; i < spritesCount; i++)
-									spriteEntry->Sprites.push_back({ reader.ReadStrPtr(), reader.ReadUInt32() });
+									region->Sprites.push_back({ reader.ReadStrPtr(), reader.ReadUInt32() });
 							});
 						}
 					});
@@ -239,15 +239,15 @@ namespace FileSystem
 			{
 				for (auto &aetObj : aetLayer.Objects)
 				{
-					aetObj.ReferencedSprite = nullptr;
+					aetObj.ReferencedRegion = nullptr;
 					aetObj.ReferencedLayer = nullptr;
 					if (aetObj.DataFilePtr != nullptr)
 					{
 						if (aetObj.Type == AetObjType_Pic)
 						{
-							for (auto &spriteEntry : aetLyo.SpriteEntries)
-								if (spriteEntry.FilePtr == aetObj.DataFilePtr)
-									aetObj.ReferencedSprite = &spriteEntry;
+							for (auto &region : aetLyo.AetRegions)
+								if (region.FilePtr == aetObj.DataFilePtr)
+									aetObj.ReferencedRegion = &region;
 						}
 						else if (aetObj.Type == AetObjType_Eff)
 						{

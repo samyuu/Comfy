@@ -1,7 +1,7 @@
 #include "AetEditor.h"
-#include "../../FileSystem/MemoryStream.h"
-#include "../../FileSystem/BinaryReader.h"
-#include "../../FileSystem/FileHelper.h"
+#include "FileSystem/MemoryStream.h"
+#include "FileSystem/BinaryReader.h"
+#include "FileSystem/FileHelper.h"
 
 namespace Editor
 {
@@ -48,6 +48,7 @@ namespace Editor
 		RenderWindowBase::PushWindowPadding();
 		if (ImGui::Begin("Aet Render Window##AetEditor", nullptr, windowFlags))
 		{
+			renderWindow->SetAetLyo(activeAetLyo);
 			renderWindow->SetAetObj(selected.Type == SelectionType::AetObj ? selected.AetObj : nullptr);
 			renderWindow->DrawGui();
 		}
@@ -88,6 +89,30 @@ namespace Editor
 		return BaseWindow::GetNoWindowFlags();
 	}
 
+	void AetEditor::SetSelectedItem(AetLyo* aetLyo, AetObj* value)
+	{
+		activeAetLyo = aetLyo;
+		selected = { SelectionType::AetObj, value };
+	}
+
+	void AetEditor::SetSelectedItem(AetLyo* aetLyo, AetLyo* value)
+	{
+		activeAetLyo = aetLyo;
+		selected = { SelectionType::AetLyo, value };
+	}
+
+	void AetEditor::SetSelectedItem(AetLyo* aetLyo, AetLayer* value)
+	{
+		activeAetLyo = aetLyo;
+		selected = { SelectionType::AetLayer, value };
+	}
+
+	void AetEditor::ResetSelectedItem()
+	{
+		activeAetLyo = nullptr;
+		selected = { SelectionType::None, nullptr };
+	}
+
 	void AetEditor::DrawAetObj(AetObj* aetObj)
 	{
 		ImGui::Text("AetObj: %s", aetObj->Name.c_str());
@@ -115,7 +140,7 @@ namespace Editor
 		}
 
 		if ((aetObj->Type == AetObjType_Pic))
-			DrawSpriteData(aetObj->ReferencedSprite);
+			DrawRegionData(aetObj->ReferencedRegion);
 
 		if ((aetObj->Type == AetObjType_Eff))
 			DrawLayerData(aetObj->ReferencedLayer);
@@ -124,15 +149,27 @@ namespace Editor
 			DrawAnimationData(&aetObj->AnimationData);
 	}
 
-	void AetEditor::DrawSpriteData(SpriteEntry* spriteEntry)
+	void AetEditor::DrawRegionData(AetRegion* aetRegion)
 	{
-		if (ImGui::WideTreeNode("Sprite Data"))
+		if (ImGui::WideTreeNode("Region Data"))
 		{
-			if (spriteEntry != nullptr)
+			if (aetRegion != nullptr)
 			{
-				ImGui::InputScalarN("Dimensions", ImGuiDataType_S16, &spriteEntry->Width, 2);
-				for (auto& sprite : spriteEntry->Sprites)
-					ImGui::Text("%s", sprite.Name.c_str());
+				ImVec4 color = ImGui::ColorConvertU32ToFloat4(aetRegion->Color);
+				if (ImGui::ColorEdit4("##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
+					aetRegion->Color = ImGui::ColorConvertFloat4ToU32(color);
+
+				ImGui::InputScalarN("Dimensions", ImGuiDataType_S16, &aetRegion->Width, 2);
+
+				if (ImGui::WideTreeNodeEx("Sprites", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					for (auto& sprite : aetRegion->Sprites)
+					{
+						if (ImGui::WideTreeNodeEx(sprite.Name.c_str(), ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_Leaf))
+							ImGui::TreePop();
+					}
+					ImGui::TreePop();
+				}
 			}
 			ImGui::TreePop();
 		}
@@ -164,10 +201,10 @@ namespace Editor
 				ImGui::TreePop();
 			}
 
-			if (ImGui::WideTreeNode("Properties Extra Data"))
+			if (ImGui::WideTreeNode("Perspective Properties"))
 			{
-				if (animationData->PropertiesExtraData != nullptr)
-					DrawKeyFrameProperties(animationData->PropertiesExtraData.get());
+				if (animationData->PerspectiveProperties != nullptr)
+					DrawKeyFrameProperties(animationData->PerspectiveProperties.get());
 				else ImGui::Text("nullptr");
 				ImGui::TreePop();
 			}
@@ -241,40 +278,8 @@ namespace Editor
 
 	void AetEditor::DrawSetLoader()
 	{
-		ImGui::PushItemWidth(ImGui::GetWindowWidth());
-		ImGui::Text("AetSet Path:");
-
-		bool openAetSet = false;
-		{
-			openAetSet |= ImGui::InputText("##AetSetPathInputText", aetSetPathBuffer, sizeof(aetSetPathBuffer), ImGuiInputTextFlags_EnterReturnsTrue);
-			openAetSet |= ImGui::Button("Open AetSet...", ImVec2(ImGui::GetWindowWidth(), 0));
-		}
-		if (openAetSet)
-			OpenAetSet(aetSetPathBuffer);
-
-		ImGui::PopItemWidth();
-
-		static std::vector<std::string> aetFilePaths;
-
-		if (ImGui::Button("Refresh AetSet Paths...", ImVec2(ImGui::GetWindowWidth(), 0)))
-		{
-			aetFilePaths.clear();
-			if (DirectoryExists(aetSetPathBuffer))
-				aetFilePaths = GetFiles(aetSetPathBuffer);
-		}
-
-		if (ImGui::WideTreeNode("AetSet Directory"))
-		{
-			for (const auto& path : aetFilePaths)
-			{
-				ImGui::WideTreeNodeEx(path.c_str(), ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen);
-
-				if (ImGui::IsItemClicked())
-					OpenAetSet(path);
-			}
-
-			ImGui::TreePop();
-		}
+		if (fileViewer.DrawGui())
+			OpenAetSet(fileViewer.GetFileToOpen().c_str());
 	}
 
 	void AetEditor::DrawTreeView()
@@ -299,7 +304,7 @@ namespace Editor
 				bool aetLyoNodeOpen = ImGui::WideTreeNodeEx((void*)&aetLyo, lyoNodeFlags, "%s", aetLyo.Name.c_str());
 
 				if (ImGui::IsItemClicked())
-					selected = { SelectionType::AetLyo, &aetLyo };
+					SetSelectedItem(&aetLyo, &aetLyo);
 
 				if (aetLyoNodeOpen)
 				{
@@ -324,12 +329,12 @@ namespace Editor
 						aetLayer.Index = layerIndex++;
 
 						if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1))
-							selected = { SelectionType::AetLayer, &aetLayer };
+							SetSelectedItem(&aetLyo, &aetLayer);
 
 						ImGui::OpenPopupOnItemClick(aetLayerContextMenuID, 1);
 
 						bool openAddAetObjPopup = false;
-						if (ImGui::BeginPopupContextItem(aetLayerContextMenuID))
+						if (ImGui::BeginPopupContextWindow(aetLayerContextMenuID))
 						{
 							openAddAetObjPopup = ImGui::MenuItem("Add new AetObj...");
 							if (ImGui::MenuItem("Move Up")) {}
@@ -377,7 +382,7 @@ namespace Editor
 								ImGui::WideTreeNodeEx((void*)&aetObj, objNodeFlags, "%s", aetObj.Name.c_str());
 
 								if (ImGui::IsItemClicked())
-									selected = { SelectionType::AetObj, &aetObj };
+									SetSelectedItem(&aetLyo, &aetObj);
 
 								if (aetObj.Type == AetObjType_Eff && (ImGui::IsItemHovered() || &aetObj == selected.AetObj))
 									hovered = { SelectionType::AetLayer, aetObj.ReferencedLayer };
@@ -398,6 +403,7 @@ namespace Editor
 		}
 		else
 		{
+			activeAetLyo = false;
 			selected = { SelectionType::None, nullptr };
 		}
 	}
@@ -452,15 +458,10 @@ namespace Editor
 		if (!FileExists(filePath))
 			return false;
 
-		MemoryStream stream(filePath);
-		BinaryReader reader(&stream);
-		{
-			aetSet.release();
-			aetSet = std::make_unique<AetSet>();
-			aetSet->Name = GetFileName(filePath, false);
-			aetSet->Read(reader);
-		}
-		reader.Close();
+		aetSet.release();
+		aetSet = std::make_unique<AetSet>();
+		aetSet->Name = GetFileName(filePath, false);
+		aetSet->Load(filePath);
 
 		return true;
 	}

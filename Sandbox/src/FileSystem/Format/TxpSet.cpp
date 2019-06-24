@@ -1,6 +1,6 @@
 #include "TxpSet.h"
-#include "../FileInterface.h"
-#include "../BinaryReader.h"
+#include "FileSystem/FileInterface.h"
+#include "FileSystem/BinaryReader.h"
 
 namespace FileSystem
 {
@@ -17,8 +17,8 @@ namespace FileSystem
 		Textures.reserve(count);
 		for (uint32_t i = 0; i < count; i++)
 		{
-			Textures.emplace_back();
-			Texture* texture = &Textures.back();
+			Textures.push_back(std::make_unique<Texture>());
+			Texture* texture = Textures.back().get();
 
 			void* textureAddress = (void*)((int64_t)reader.ReadPtr() + baseAddress);
 			reader.ReadAt(textureAddress, [&texture](BinaryReader& reader)
@@ -46,10 +46,9 @@ namespace FileSystem
 						mipMap->Index = reader.ReadUInt32();
 						
 						uint32_t dataSize = reader.ReadUInt32();
-						mipMap->Data = std::make_shared<std::vector<uint8_t>>(dataSize);
-						mipMap->Data->resize(dataSize);
+						mipMap->Data.resize(dataSize);
 
-						reader.Read(mipMap->Data.get()->data(), dataSize);
+						reader.Read(mipMap->Data.data(), dataSize);
 					}
 				});
 

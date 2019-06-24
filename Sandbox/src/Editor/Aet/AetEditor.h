@@ -3,7 +3,7 @@
 #include "AetRenderWindow.h"
 #include "../IEditorComponent.h"
 #include "../../BaseWindow.h"
-#include "../../FileSystem/File/AetSet.h"
+#include "../../FileSystem/Format/AetSet.h"
 #include <memory>
 
 namespace Editor
@@ -22,6 +22,8 @@ namespace Editor
 		virtual ImGuiWindowFlags GetWindowFlags() const override;
 
 	private:
+		ImGui::FileViewer fileViewer{ "dev_ram/aetset/" };
+
 		std::unique_ptr<AetTimeline> timeline;
 		std::unique_ptr<AetRenderWindow> renderWindow;
 		std::unique_ptr<AetSet> aetSet;
@@ -33,6 +35,8 @@ namespace Editor
 			AetLayer,
 			AetLyo
 		};
+
+		AetLyo* activeAetLyo;
 
 		struct AetItemTypePtr
 		{
@@ -63,8 +67,13 @@ namespace Editor
 		const char* addAetObjPopupID = "Add new AetObj";
 		const char* testAetPath = "dev_ram/aetset/aet_tst000.bin";
 
+		void SetSelectedItem(AetLyo* aetLyo, AetObj* value);
+		void SetSelectedItem(AetLyo* aetLyo, AetLyo* value);
+		void SetSelectedItem(AetLyo* aetLyo, AetLayer* value);
+		void ResetSelectedItem();
+
 		void DrawAetObj(AetObj* aetObj);
-		void DrawSpriteData(SpriteEntry* spriteEntry);
+		void DrawRegionData(AetRegion* spriteEntry);
 		void DrawLayerData(AetLayer* aetLayer);
 		void DrawAnimationData(AnimationData* animationData);
 		void DrawKeyFrameProperties(KeyFrameProperties* properties);

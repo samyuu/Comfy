@@ -520,7 +520,7 @@ namespace Editor
 
 				// prevent overlapping tempo changes
 				//windowDrawList->AddRectFilled(buttonPosition, buttonPosition + buttonSize, TEMPO_MAP_BAR_COLOR);
-				if (ImGui::IsItemHovered())
+				if (ImGui::IsItemHovered() && ImGui::IsWindowHovered())
 				{
 					ImGui::SetTooltip("TIME: %s", GetTimelineTime(tempoChange.Tick).FormatTime().c_str());
 

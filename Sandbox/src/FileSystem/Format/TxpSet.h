@@ -1,8 +1,8 @@
 #pragma once
+#include "FileSystem/FileInterface.h"
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
-#include "../FileInterface.h"
 
 namespace FileSystem
 {
@@ -32,7 +32,7 @@ namespace FileSystem
 		int32_t Height;
 		TextureFormat Format;
 		int32_t Index;
-		std::shared_ptr<std::vector<uint8_t>> Data;
+		std::vector<uint8_t> Data;
 	};
 
 	struct Texture
@@ -46,7 +46,7 @@ namespace FileSystem
 	{
 	public:
 		TxpSig Signature;
-		std::vector<Texture> Textures;
+		std::vector<std::shared_ptr<Texture>> Textures;
 
 		virtual void Read(BinaryReader& reader) override;
 

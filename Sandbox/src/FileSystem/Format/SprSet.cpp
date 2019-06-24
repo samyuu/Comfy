@@ -1,5 +1,5 @@
 #include "SprSet.h"
-#include "../BinaryReader.h"
+#include "FileSystem/BinaryReader.h"
 
 namespace FileSystem
 {
@@ -43,8 +43,8 @@ namespace FileSystem
 
 		reader.ReadAt(reader.ReadPtr(), [&sprSet](BinaryReader& reader)
 		{
-			for (Texture &texture : sprSet->TxpSet.Textures)
-				texture.Name = reader.ReadStrPtr();
+			for (auto &texture : sprSet->TxpSet.Textures)
+				texture->Name = reader.ReadStrPtr();
 		});
 
 		reader.ReadAt(reader.ReadPtr(), [&sprSet](BinaryReader& reader)
