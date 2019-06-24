@@ -5,6 +5,7 @@
 #include "DataTest/AudioTestWindow.h"
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
+#include <FontIcons.h>
 
 Application* Application::globalCallbackApplication;
 
@@ -286,9 +287,26 @@ void Application::InitializeGui()
 	io.ConfigWindowsMoveFromTitleBarOnly = true;
 	io.ConfigDockingTabBarOnSingleWindows = true;
 
-	const bool loadJapaneseRange = false;
 	ImFontAtlas* fonts = io.Fonts;
-	fonts->AddFontFromFileTTF("rom/font/NotoSansCJKjp-Regular.otf", 16.0f, nullptr, loadJapaneseRange ? fonts->GetGlyphRangesJapanese() : fonts->GetGlyphRangesDefault());
+	constexpr float fontSize = 16.0f;
+
+	// Load Text Font
+	// --------------
+	{
+		const bool loadJapaneseRange = false;
+		fonts->AddFontFromFileTTF("rom/font/NotoSansCJKjp-Regular.otf", fontSize, nullptr, loadJapaneseRange ? fonts->GetGlyphRangesJapanese() : fonts->GetGlyphRangesDefault());
+	}
+	// Load Icon Font
+	// --------------
+	{
+		static const ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+
+		ImFontConfig config;
+		config.MergeMode = true;
+		config.GlyphMinAdvanceX = 13.0f;
+
+		fonts->AddFontFromFileTTF("rom/font/" FONT_ICON_FILE_NAME_FAR, fontSize - 2.0f, &config, icon_ranges);
+	}
 
 	ImGui::StyleComfy();
 

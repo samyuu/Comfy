@@ -6,9 +6,10 @@ class Texture2D;
 
 namespace ImGui
 {
-	const ImVec2 UV0 = ImVec2(0, 1), UV1 = ImVec2(1, 0);
+	const ImVec2 UV0 = ImVec2(0, 0), UV1 = ImVec2(1, 1);
+	const ImVec2 UV0_GL = ImVec2(0, 1), UV1_GL = ImVec2(1, 0);
 
-	void AddTexture(ImDrawList* drawList, Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0 = UV0, const ImVec2& uv1 = UV1);
+	void AddTexture(ImDrawList* drawList, Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0 = UV0_GL, const ImVec2& uv1 = UV1_GL);
 
 	inline void AddTexture(ImDrawList* drawList, Texture2D* texture, ImVec2 center, float scale, const ImVec2& uv0, const ImVec2& uv1)
 	{
@@ -43,4 +44,6 @@ namespace ImGui
 	bool WideTreeNode(const char* str_id, const char* fmt, ...);
 	bool WideTreeNodeEx(const char* label, ImGuiTreeNodeFlags flags);
 	bool WideTreeNodeEx(const void* ptr_id, ImGuiTreeNodeFlags flags, const char* fmt, ...);
+	bool WideTreeNodeNoArrow(const char* label);
+	bool WideTreeNodeNoArrow(const char* label, ImGuiTreeNodeFlags flags);
 }

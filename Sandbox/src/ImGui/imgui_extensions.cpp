@@ -75,8 +75,8 @@ namespace ImGui
 		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.50f);
 	}
 
-	// Same as imgui_widgets.cpp: TreeNodeBehavior(...) but with the interact_bb set to the frame_bb
-	bool WideTreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end)
+	// Same as imgui_widgets.cpp: TreeNodeBehavior(...) but with the interact_bb set to the frame_bb and a no_arrow paramter
+	bool WideTreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end, bool no_arrow = false)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
 		if (window->SkipItems)
@@ -102,7 +102,7 @@ namespace ImGui
 			frame_bb.Max.x += (float)(int)(window->WindowPadding.x*0.5f) - 1;
 		}
 
-		const float text_offset_x = (g.FontSize + (display_frame ? padding.x * 3 : padding.x * 2));   // Collapser arrow width + Spacing
+		const float text_offset_x = no_arrow ? padding.x * 2 : (g.FontSize + (display_frame ? padding.x * 3 : padding.x * 2));   // Collapser arrow width + Spacing
 		const float text_width = g.FontSize + (label_size.x > 0.0f ? label_size.x + padding.x * 2 : 0.0f);   // Include collapser
 		ItemSize(ImVec2(text_width, frame_height), text_base_offset_y);
 
@@ -194,7 +194,8 @@ namespace ImGui
 			// Framed type
 			RenderFrame(frame_bb.Min, frame_bb.Max, col, true, style.FrameRounding);
 			RenderNavHighlight(frame_bb, id, nav_highlight_flags);
-			RenderArrow(frame_bb.Min + ImVec2(padding.x, text_base_offset_y), is_open ? ImGuiDir_Down : ImGuiDir_Right, 1.0f);
+			if (!no_arrow)
+				RenderArrow(frame_bb.Min + ImVec2(padding.x, text_base_offset_y), is_open ? ImGuiDir_Down : ImGuiDir_Right, 1.0f);
 			if (g.LogEnabled)
 			{
 				// NB: '##' is normally used to hide text (as a library-wide feature), so we need to specify the text range to make sure the ## aren't stripped out here.
@@ -218,10 +219,13 @@ namespace ImGui
 				RenderNavHighlight(frame_bb, id, nav_highlight_flags);
 			}
 
-			if (flags & ImGuiTreeNodeFlags_Bullet)
-				RenderBullet(frame_bb.Min + ImVec2(text_offset_x * 0.5f, g.FontSize*0.50f + text_base_offset_y));
-			else if (!is_leaf)
-				RenderArrow(frame_bb.Min + ImVec2(padding.x, g.FontSize*0.15f + text_base_offset_y), is_open ? ImGuiDir_Down : ImGuiDir_Right, 0.70f);
+			if (!no_arrow)
+			{
+				if (flags & ImGuiTreeNodeFlags_Bullet)
+					RenderBullet(frame_bb.Min + ImVec2(text_offset_x * 0.5f, g.FontSize*0.50f + text_base_offset_y));
+				else if (!is_leaf)
+					RenderArrow(frame_bb.Min + ImVec2(padding.x, g.FontSize*0.15f + text_base_offset_y), is_open ? ImGuiDir_Down : ImGuiDir_Right, 0.70f);
+			}
 			if (g.LogEnabled)
 				LogRenderedText(&text_pos, ">");
 			RenderText(text_pos, label, label_end, false);
@@ -251,6 +255,7 @@ namespace ImGui
 		ImGuiWindow* window = GetCurrentWindow();
 		if (window->SkipItems)
 			return false;
+
 		return WideTreeNodeBehavior(window->GetID(label), 0, label, NULL);
 	}
 
@@ -282,5 +287,25 @@ namespace ImGui
 		bool is_open = WideTreeNodeExV(ptr_id, flags, fmt, args);
 		va_end(args);
 		return is_open;
+	}
+
+	// Same as WideTreeNode(...) but without the tree arrow / bullet
+	bool WideTreeNodeNoArrow(const char* label)
+	{
+		ImGuiWindow* window = GetCurrentWindow();
+		if (window->SkipItems)
+			return false;
+
+		return WideTreeNodeBehavior(window->GetID(label), 0, label, NULL, true);
+	}
+
+	// Same as WideTreeNodeEx(...) but without the tree arrow / bullet
+	bool WideTreeNodeNoArrow(const char* label, ImGuiTreeNodeFlags flags)
+	{
+		ImGuiWindow* window = GetCurrentWindow();
+		if (window->SkipItems)
+			return false;
+
+		return WideTreeNodeBehavior(window->GetID(label), flags, label, NULL, true);
 	}
 }

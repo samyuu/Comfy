@@ -22,7 +22,6 @@ namespace ImGui
 		bool parentFocused = IsRootWindowOrAnyChildFocused() && IsRootWindowOrAnyChildHovered();
 
 		ImVec2 windowSize(ImGui::GetWindowWidth(), 0);
-		std::string* clickedFilePath = nullptr;
 
 		PushID(this);
 		PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f, 0.5f));
@@ -45,9 +44,9 @@ namespace ImGui
 			PopStyleVar(1);
 		}
 		EndChild();
-
 		ImGui::Separator();
 
+		bool filedClicked = false;
 		BeginChild("FileListChild##FileViewer");
 		{
 			OpenPopupOnItemClick("ContextMenu##FileViewer", 1);
@@ -59,21 +58,31 @@ namespace ImGui
 				EndPopup();
 			}
 
-			bool anyItemClicked = false;
+			FilePathInfo* clickedInfo = nullptr;
+			char pathBuffer[_MAX_PATH];
+
 			for (auto& info : directoryInfo)
 			{
-				ImGuiTreeNodeFlags flags = info.IsDirectory ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_Bullet;
-				if (WideTreeNodeEx(anyItemClicked ? "" : info.ChildName.c_str(), flags))
+				ImGuiTreeNodeFlags flags = info.IsDirectory ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None;
+
+				sprintf_s(pathBuffer, info.IsDirectory ? folderFormatString : fileFormatString, info.ChildName.c_str());
+				if (WideTreeNodeNoArrow(pathBuffer, flags))
 					TreePop();
 
-				if (!anyItemClicked && IsItemClicked())
-				{
-					if (info.IsDirectory)
-						SetDirectory(FileSystem::Combine(directory, info.ChildName));
-					else
-						clickedFilePath = &info.FullPath;
+				if (IsItemClicked())
+					clickedInfo = &info;
+			}
 
-					anyItemClicked = true;
+			if (clickedInfo != nullptr)
+			{
+				if (clickedInfo->IsDirectory)
+				{
+					SetDirectory(FileSystem::Combine(directory, clickedInfo->ChildName));
+				}
+				else
+				{
+					fileToOpen = std::string(clickedInfo->FullPath);
+					filedClicked = true;
 				}
 			}
 		}
@@ -82,10 +91,7 @@ namespace ImGui
 		PopStyleVar(1);
 		PopID();
 
-		if (clickedFilePath != nullptr)
-			fileToOpen = *clickedFilePath;
-
-		return clickedFilePath != nullptr;
+		return filedClicked;
 	}
 
 	void FileViewer::SetDirectory(const std::string& directory)

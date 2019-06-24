@@ -3,6 +3,7 @@
 #include "ImGui/imgui_internal.h"
 #include <string>
 #include <vector>
+#include <FontIcons.h>
 
 namespace ImGui
 {
@@ -17,6 +18,9 @@ namespace ImGui
 		std::string GetFileToOpen() const;
 
 	private:
+		const char* fileFormatString = ICON_FA_FILE "  %s";
+		const char* folderFormatString = ICON_FA_FOLDER "  %s";
+
 		struct FilePathInfo 
 		{ 
 			std::string FullPath;
