@@ -3,12 +3,11 @@
 #include <array>
 #include <functional>
 
-#define DefineReadType(typeName, methodName) inline typeName Read##methodName() { return Read<typeName>(); };
-
 namespace FileSystem
 {
 	enum PtrMode : uint8_t
 	{
+		PtrMode_Invalid,
 		PtrMode_32Bit,
 		PtrMode_64Bit,
 	};
@@ -26,50 +25,63 @@ namespace FileSystem
 		bool IsOpen();
 		bool GetLeaveOpen();
 
-		int64_t GetPosition() const;
-		void* GetPositionPtr() const;
-		void SetPosition(int64_t position);
-		void SetPosition(void* position);
+		inline int64_t GetPosition() const { return stream->GetPosition(); }
+		inline void* GetPositionPtr() const { return (void*)stream->GetPosition(); }
 
-		int64_t GetLength() const;
-		bool EndOfFile() const;
+		inline void SetPosition(int64_t position) { return stream->Seek(position); }
+		inline void SetPosition(void* position) { return stream->Seek((int64_t)position); }
+
+		inline int64_t GetLength() const { return stream->GetLength(); }
+		inline bool EndOfFile() const { return stream->EndOfFile(); }
 
 		PtrMode GetPointerMode() const;
 		void SetPointerMode(PtrMode mode);
 
-		int64_t Read(void* buffer, size_t size);
+		inline int64_t Read(void* buffer, size_t size);
 
-		template <typename T> T Read();
-		template <typename T, size_t size> std::array<T, size> Read();
+		template <typename T> 
+		T Read();
+
+		template <typename T, size_t size> 
+		std::array<T, size> Read();
 
 		void ReadAt(void* position, const std::function<void(BinaryReader&)>& func);
-		template <typename T> T ReadAt(void* position, const std::function<T(BinaryReader&)>& func);
 
-		void* ReadPtr();
+		template <typename T> 
+		T ReadAt(void* position, const std::function<T(BinaryReader&)>& func);
+
+		inline void* ReadPtr() { return readPtrFunction(this); };
+
 		std::string ReadStr();
 		std::string ReadStrPtr();
 
-		DefineReadType(bool, Boolean);
-		DefineReadType(char, Char);
-		DefineReadType(int8_t, SByte);
-		DefineReadType(int8_t, Byte);
-		DefineReadType(int16_t, Int16);
-		DefineReadType(uint16_t, UInt16);
-		DefineReadType(int32_t, Int32);
-		DefineReadType(uint32_t, UInt32);
-		DefineReadType(int64_t, Int64);
-		DefineReadType(uint64_t, UInt64);
-		DefineReadType(float, Float);
-		DefineReadType(float, Single);
-		DefineReadType(double, Double);
+		inline bool ReadBool() { return Read<bool>(); };
+		inline char ReadChar() { return Read<char>(); };
+		inline uint8_t ReadByte() { return Read<uint8_t>(); };
+		inline int16_t ReadInt16() { return Read<int16_t>(); };
+		inline uint16_t ReadUInt16() { return Read<uint16_t>(); };
+		inline int32_t ReadInt32() { return Read<int32_t>(); };
+		inline uint32_t ReadUInt32() { return Read<uint32_t>(); };
+		inline int64_t ReadInt64() { return Read<int64_t>(); };
+		inline uint64_t ReadUInt64() { return Read<uint64_t>(); };
+		inline float ReadFloat() { return Read<float>(); };
+		inline double ReadDouble() { return Read<double>(); };
 
 	protected:
-		PtrMode pointerMode = PtrMode_32Bit;
+		typedef void* (*ReadPtr_t)(BinaryReader*);
+		ReadPtr_t readPtrFunction = ReadInvalidPtr;
+
+		PtrMode pointerMode = PtrMode_Invalid;
 		bool leaveOpen = false;
 		Stream* stream = nullptr;
+
+	private:
+		static inline void* ReadInvalidPtr(BinaryReader* reader) { return nullptr; }
+		static inline void* Read32BitPtr(BinaryReader* reader) { return reinterpret_cast<void*>(reader->ReadInt32()); };
+		static inline void* Read64BitPtr(BinaryReader* reader) { return reinterpret_cast<void*>(reader->ReadInt64()); };
 	};
 
-	template<typename T>
+	template<typename T> 
 	T BinaryReader::Read()
 	{
 		T value;
@@ -86,7 +98,7 @@ namespace FileSystem
 	}
 
 	template <typename T>
-	inline T BinaryReader::ReadAt(void* position, const std::function<T(BinaryReader&)>& func)
+	T BinaryReader::ReadAt(void* position, const std::function<T(BinaryReader&)>& func)
 	{
 		int64_t prePos = GetPosition();
 		SetPosition(position);

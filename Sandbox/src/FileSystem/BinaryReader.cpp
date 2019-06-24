@@ -5,9 +5,10 @@ namespace FileSystem
 {
 	BinaryReader::BinaryReader()
 	{
+		SetPointerMode(PtrMode::PtrMode_32Bit);
 	}
 
-	BinaryReader::BinaryReader(Stream* stream)
+	BinaryReader::BinaryReader(Stream* stream) : BinaryReader()
 	{
 		OpenStream(stream);
 	}
@@ -41,36 +42,6 @@ namespace FileSystem
 		return leaveOpen;
 	}
 
-	int64_t BinaryReader::GetPosition() const
-	{
-		return stream->GetPosition();
-	}
-
-	void* BinaryReader::GetPositionPtr() const
-	{
-		return (void*)stream->GetPosition();
-	}
-
-	void BinaryReader::SetPosition(int64_t position)
-	{
-		return stream->Seek(position);
-	}
-
-	void BinaryReader::SetPosition(void* position)
-	{
-		return stream->Seek((int64_t)position);
-	}
-
-	int64_t BinaryReader::GetLength() const
-	{
-		return stream->GetLength();
-	}
-
-	bool BinaryReader::EndOfFile() const
-	{
-		return stream->EndOfFile();
-	}
-
 	PtrMode BinaryReader::GetPointerMode() const
 	{
 		return pointerMode;
@@ -79,6 +50,23 @@ namespace FileSystem
 	void BinaryReader::SetPointerMode(PtrMode mode)
 	{
 		pointerMode = mode;
+
+		switch (pointerMode)
+		{
+		case PtrMode_32Bit:
+			readPtrFunction = Read32BitPtr; 
+			return;
+
+		case PtrMode_64Bit:
+			readPtrFunction = Read64BitPtr;
+			return;
+
+		default:
+			break;
+		}
+
+		readPtrFunction = ReadInvalidPtr;
+		assert(false);
 	}
 
 	int64_t BinaryReader::Read(void* buffer, size_t size)
@@ -92,21 +80,6 @@ namespace FileSystem
 		SetPosition(position);
 		func(*this);
 		SetPosition(prePos);
-	}
-
-	void* BinaryReader::ReadPtr()
-	{
-		switch (pointerMode)
-		{
-		case PtrMode_32Bit:
-			return (void*)ReadInt32();
-
-		case PtrMode_64Bit:
-			return (void*)ReadInt64();
-
-		default:
-			return nullptr;
-		}
 	}
 
 	std::string BinaryReader::ReadStr()
