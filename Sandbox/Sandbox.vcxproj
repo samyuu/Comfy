@@ -56,7 +56,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glad\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\libsndfile\include;$(ProjectDir)lib\rtaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glad\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\libsndfile\include;$(ProjectDir)lib\rtaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -78,7 +78,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glad\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\libsndfile\include;$(ProjectDir)lib\rtaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glad\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\libsndfile\include;$(ProjectDir)lib\rtaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpplatest</LanguageStandard>

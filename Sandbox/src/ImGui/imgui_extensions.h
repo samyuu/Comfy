@@ -35,15 +35,17 @@ namespace ImGui
 
 	void StyleComfy(ImGuiStyle* dst = nullptr);
 
+	bool WideTreeNode(const char* label);
+	bool WideTreeNode(const char* str_id, const char* fmt, ...);
+
+	bool WideTreeNodeEx(const char* label, ImGuiTreeNodeFlags flags);
+	bool WideTreeNodeEx(const void* ptr_id, ImGuiTreeNodeFlags flags, const char* fmt, ...);
+
+	bool WideTreeNodeNoArrow(const char* label);
+	bool WideTreeNodeNoArrow(const char* label, ImGuiTreeNodeFlags flags);
+
 	inline void DRAW_DEBUG_REGION(ImRect& rect)
 	{
 		ImGui::AddRectFilled(ImGui::GetForegroundDrawList(), rect, static_cast<ImU32>(IM_COL32_BLACK * .5f));
 	};
-
-	bool WideTreeNode(const char* label);
-	bool WideTreeNode(const char* str_id, const char* fmt, ...);
-	bool WideTreeNodeEx(const char* label, ImGuiTreeNodeFlags flags);
-	bool WideTreeNodeEx(const void* ptr_id, ImGuiTreeNodeFlags flags, const char* fmt, ...);
-	bool WideTreeNodeNoArrow(const char* label);
-	bool WideTreeNodeNoArrow(const char* label, ImGuiTreeNodeFlags flags);
 }
