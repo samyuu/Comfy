@@ -1,6 +1,37 @@
 #include "Shader.h"
 
 // ------------------------------------------------------------------------------------------------
+// --- SpriteShader:
+// ------------------------------------------------------------------------------------------------
+
+SpriteShader::SpriteShader()
+{
+}
+
+SpriteShader::~SpriteShader()
+{
+}
+
+void SpriteShader::GetAllUniformLocations()
+{
+	ProjectionLocation = GetUniformLocation("u_projection");
+
+	TextureFormatLocation = GetUniformLocation("u_textureFormat");
+	TextureLocation = GetUniformLocation("textureSampler");
+	TextureMaskLocation = GetUniformLocation("textureMaskSampler");
+}
+
+const char* SpriteShader::GetVertexShaderPath()
+{
+	return "rom/shader/sprite_vert.glsl";
+}
+
+const char* SpriteShader::GetFragmentShaderPath()
+{
+	return "rom/shader/sprite_frag.glsl";
+}
+
+// ------------------------------------------------------------------------------------------------
 // --- ComfyShader:
 // ------------------------------------------------------------------------------------------------
 
@@ -24,12 +55,12 @@ void ComfyShader::GetAllUniformLocations()
 
 const char* ComfyShader::GetVertexShaderPath()
 {
-	return "rom/shader/test_vert.glsl";
+	return "rom/shader/comfy_vert.glsl";
 }
 
 const char* ComfyShader::GetFragmentShaderPath()
 {
-	return "rom/shader/test_frag.glsl";
+	return "rom/shader/comfy_frag.glsl";
 }
 
 // ------------------------------------------------------------------------------------------------

@@ -62,6 +62,7 @@ void ShaderProgram::Initialize()
 	AttachLinkShaders(vertexShader, fragmentShader);
 
 	GetAllUniformLocations();
+	initialized = true;
 }
 
 UniformLocation_t ShaderProgram::GetUniformLocation(const std::string &name)

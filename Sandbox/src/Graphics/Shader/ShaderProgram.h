@@ -25,6 +25,7 @@ public:
 	void SetUniformByName(const char*, glm::mat4&);
 
 	void Initialize();
+	inline bool GetIsInitialized() const { return initialized; };
 
 protected:
 	ProgramID_t programID = NULL;
@@ -36,6 +37,8 @@ protected:
 	virtual const char* GetFragmentShaderPath() = 0;
 
 private:
+	bool initialized = false;
+
 	int GetShaderSource(const std::string&, char*, size_t);
 	int CompileShader(ShaderType, ShaderID_t*, const std::string&);
 	int AttachLinkShaders(ShaderID_t, ShaderID_t);

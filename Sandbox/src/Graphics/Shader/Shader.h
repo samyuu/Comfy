@@ -2,6 +2,28 @@
 #include "ShaderProgram.h"
 
 // ------------------------------------------------------------------------------------------------
+// --- SpriteShader:
+// ------------------------------------------------------------------------------------------------
+
+class SpriteShader : public ShaderProgram
+{
+public:
+	SpriteShader();
+	~SpriteShader();
+
+	UniformLocation_t ProjectionLocation;
+
+	UniformLocation_t TextureFormatLocation;
+	UniformLocation_t TextureLocation;
+	UniformLocation_t TextureMaskLocation;
+
+protected:
+	virtual void GetAllUniformLocations() override;
+	virtual const char* GetVertexShaderPath() override;
+	virtual const char* GetFragmentShaderPath() override;
+};
+
+// ------------------------------------------------------------------------------------------------
 // --- ComfyShader:
 // ------------------------------------------------------------------------------------------------
 
