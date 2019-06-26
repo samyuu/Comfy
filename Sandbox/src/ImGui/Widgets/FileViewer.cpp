@@ -19,7 +19,7 @@ namespace ImGui
 		FileTypeDefinition(FileType::Config, { ".ini", ".xml" }),
 		FileTypeDefinition(FileType::Binary, { ".bin" }),
 		FileTypeDefinition(FileType::Image, { ".png", ".jpg", ".jpeg", ".gif", ".dds", ".bmp", ".psd" }),
-		FileTypeDefinition(FileType::Code, { ".c", ".cpp", ".cs", ".h" }),
+		FileTypeDefinition(FileType::Code, { ".c", ".cpp", ".cs", ".h", ".glsl" }),
 		FileTypeDefinition(FileType::Archive, { ".farc", ".7z", ".zip" }),
 		FileTypeDefinition(FileType::Video, { ".mp4", ".wmv" }),
 		FileTypeDefinition(FileType::Audio, { ".wav", ".flac", ".ogg", ".mp3" }),
