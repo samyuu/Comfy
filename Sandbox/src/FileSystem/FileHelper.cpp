@@ -158,6 +158,16 @@ namespace FileSystem
 		return files;
 	}
 
+	static HANDLE CreateFileHandleInternal(const std::string& filePath, bool read)
+	{
+		return CreateFileA(filePath.c_str(), read ? GENERIC_READ : GENERIC_WRITE, NULL, NULL, read ? OPEN_EXISTING : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	}
+
+	static HANDLE CreateFileHandleInternal(const std::wstring& filePath, bool read)
+	{
+		return CreateFileW(filePath.c_str(), read ? GENERIC_READ : GENERIC_WRITE, NULL, NULL, read ? OPEN_EXISTING : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	}
+
 	static bool ReadAllBytesInternal(HANDLE fileHandle, std::vector<uint8_t>* buffer)
 	{
 		LARGE_INTEGER fileSizeLarge = {};
@@ -173,9 +183,20 @@ namespace FileSystem
 		return !FAILED(error) && (bytesRead == fileSize);
 	}
 
+	static bool WriteAllBytesInternal(HANDLE fileHandle, const std::vector<uint8_t>& buffer)
+	{
+		DWORD bytesToWrite = buffer.size();
+		DWORD bytesWritten = {};
+
+		WriteFile(fileHandle, buffer.data(), bytesToWrite, &bytesWritten, nullptr);
+		int error = GetLastError();
+
+		return !FAILED(error) && (bytesWritten == bytesToWrite);
+	}
+
 	bool ReadAllBytes(const std::string& filePath, std::vector<uint8_t>* buffer)
 	{
-		HANDLE fileHandle = CreateFileA(filePath.c_str(), GENERIC_READ, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		HANDLE fileHandle = CreateFileHandleInternal(filePath.c_str(), true);
 		int error = GetLastError();
 
 		bool result = ReadAllBytesInternal(fileHandle, buffer);
@@ -186,10 +207,32 @@ namespace FileSystem
 
 	bool ReadAllBytes(const std::wstring& filePath, std::vector<uint8_t>* buffer)
 	{
-		HANDLE fileHandle = CreateFileW(filePath.c_str(), GENERIC_READ, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		HANDLE fileHandle = CreateFileHandleInternal(filePath.c_str(), true);
 		bool error = GetLastError();
 
 		bool result = ReadAllBytesInternal(fileHandle, buffer);
+		CloseHandle(fileHandle);
+
+		return result;
+	}
+
+	bool WriteAllBytes(const std::string& filePath, const std::vector<uint8_t>& buffer)
+	{
+		HANDLE fileHandle = CreateFileHandleInternal(filePath.c_str(), false);
+		bool error = GetLastError();
+
+		bool result = WriteAllBytesInternal(fileHandle, buffer);
+		CloseHandle(fileHandle);
+
+		return result;
+	}
+
+	bool WriteAllBytes(const std::wstring& filePath, const std::vector<uint8_t>& buffer)
+	{
+		HANDLE fileHandle = CreateFileHandleInternal(filePath.c_str(), false);
+		bool error = GetLastError();
+
+		bool result = WriteAllBytesInternal(fileHandle, buffer);
 		CloseHandle(fileHandle);
 
 		return result;
