@@ -1,12 +1,13 @@
 #include "FileHelper.h"
 #include <filesystem>
 #include <shlwapi.h>
+#include <assert.h>
 
 namespace FileSystem
 {
 	using FileSystemPath = std::filesystem::path;
 	using DirectoryIterator = std::filesystem::directory_iterator;
-	
+
 	bool IsFile(const std::string& filePath)
 	{
 		return GetFileExtension(filePath) != "";
@@ -95,7 +96,7 @@ namespace FileSystem
 	{
 		if (pathA.size() > 0 && pathA.back() == '/')
 			return pathA.substr(0, pathA.length() - 1) + "/" + pathB;
-		
+
 		return pathA + "/" + pathB;
 	}
 
@@ -155,5 +156,42 @@ namespace FileSystem
 		for (const auto& file : DirectoryIterator(directory))
 			files.push_back(file.path().wstring());
 		return files;
+	}
+
+	static bool ReadAllBytesInternal(HANDLE fileHandle, std::vector<uint8_t>* buffer)
+	{
+		LARGE_INTEGER fileSizeLarge = {};
+		GetFileSizeEx(fileHandle, &fileSizeLarge);
+
+		DWORD fileSize = fileSizeLarge.QuadPart;
+		buffer->resize(fileSize);
+
+		DWORD bytesRead = {};
+		ReadFile(fileHandle, buffer->data(), fileSize, &bytesRead, nullptr);
+		int error = GetLastError();
+
+		return !FAILED(error) && (bytesRead == fileSize);
+	}
+
+	bool ReadAllBytes(const std::string& filePath, std::vector<uint8_t>* buffer)
+	{
+		HANDLE fileHandle = CreateFileA(filePath.c_str(), GENERIC_READ, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		int error = GetLastError();
+
+		bool result = ReadAllBytesInternal(fileHandle, buffer);
+		CloseHandle(fileHandle);
+
+		return result;
+	}
+
+	bool ReadAllBytes(const std::wstring& filePath, std::vector<uint8_t>* buffer)
+	{
+		HANDLE fileHandle = CreateFileW(filePath.c_str(), GENERIC_READ, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		bool error = GetLastError();
+
+		bool result = ReadAllBytesInternal(fileHandle, buffer);
+		CloseHandle(fileHandle);
+
+		return result;
 	}
 }

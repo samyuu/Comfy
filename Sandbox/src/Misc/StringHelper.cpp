@@ -1,11 +1,11 @@
 #include "StringHelper.h"
 
-bool CaseInsenitiveComparison(char a, char b)
+static bool CaseInsenitiveComparison(char a, char b)
 {
 	return tolower(a) == tolower(b);
 }
 
-bool CaseInsenitiveWideComparison(wchar_t a, wchar_t b)
+static bool CaseInsenitiveWideComparison(wchar_t a, wchar_t b)
 { 
 	return tolower(a) == tolower(b); 
 };

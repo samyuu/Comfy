@@ -13,6 +13,7 @@ namespace FileSystem
 		TxpType_MipMap = 2,
 		TxpType_TxpSet = 3,
 		TxpType_Texture = 4,
+		TxpType_TextureAlt = 5,
 	};
 
 	enum TextureFormat : uint32_t
@@ -42,6 +43,11 @@ namespace FileSystem
 		TextureFormat Format;
 		int32_t Index;
 		std::vector<uint8_t> Data;
+		struct
+		{
+			uint8_t* DataPointer;
+			uint32_t DataPointerSize;
+		};
 	};
 
 	struct Texture
@@ -53,13 +59,14 @@ namespace FileSystem
 		std::shared_ptr<Texture2D> Texture2D;
 	};
 
-	class TxpSet : public IBinaryReadable
+	class TxpSet : public IBinaryReadable, IBufferParsable
 	{
 	public:
 		TxpSig Signature;
 		std::vector<std::shared_ptr<Texture>> Textures;
 
 		virtual void Read(BinaryReader& reader) override;
+		virtual void Parse(uint8_t* buffer) override;
 
 	private:
 	};

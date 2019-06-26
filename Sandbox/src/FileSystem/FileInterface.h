@@ -37,6 +37,12 @@ namespace FileSystem
 
 	class IBinaryFile : public IBinaryReadable, public IBinaryWritable
 	{
+	public:
+	};
 
+	class IBufferParsable
+	{
+	public:
+		virtual void Parse(uint8_t* buffer) = 0;
 	};
 }

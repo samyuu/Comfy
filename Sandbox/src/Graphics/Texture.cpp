@@ -92,13 +92,16 @@ bool Texture2D::Upload(const FileSystem::Texture* texture)
 		FileSystem::MipMap* mipMap = texture->MipMaps[i].get();
 		GLenum glFormat = GetGLTextureFormat(mipMap->Format);
 
+		uint8_t* data = mipMap->DataPointer != nullptr ? mipMap->DataPointer : mipMap->Data.data();
+		uint32_t dataSize = mipMap->DataPointer != nullptr ? mipMap->DataPointerSize : mipMap->Data.size();
+
 		if (GetIsCompressed(mipMap->Format))
 		{
-			glTexImage2D(GL_TEXTURE_2D, i, glFormat, mipMap->Width, mipMap->Height, 0, glFormat, GL_UNSIGNED_BYTE, mipMap->Data.data());
+			glTexImage2D(GL_TEXTURE_2D, i, glFormat, mipMap->Width, mipMap->Height, 0, glFormat, GL_UNSIGNED_BYTE, data);
 		}
 		else
 		{
-			glCompressedTexImage2D(GL_TEXTURE_2D, i, glFormat, mipMap->Width, mipMap->Height, 0, mipMap->Data.size(), mipMap->Data.data());
+			glCompressedTexImage2D(GL_TEXTURE_2D, i, glFormat, mipMap->Width, mipMap->Height, 0, dataSize, data);
 		}
 
 		// else textureLod(...) won't work for RTC2 textures

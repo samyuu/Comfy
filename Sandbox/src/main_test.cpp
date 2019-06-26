@@ -1,11 +1,13 @@
 #include "pch.h"
 #include "Application.h"
 #include "TimeSpan.h"
+#include "FileSystem/FileHelper.h"
 #include "FileSystem/FileStream.h"
 #include "FileSystem/MemoryStream.h"
 #include "FileSystem/BinaryReader.h"
 #include "FileSystem/Format/AetSet.h"
 #include "FileSystem/Format/SprSet.h"
+#include "FileSystem/Format/TxpSet.h"
 // #include "Graphics/Utilities/TextureUtilities.h"
 // #include "Graphics/Utilities/s3tc.h"
 // #include "Graphics/Utilities/decompress.h"
@@ -191,6 +193,96 @@ void MainTest()
 {
 	glfwInit();
 
+	// TXP STGPV623 TEST:
+	if (false)
+	{
+		auto filePath = "Y:/Debug/FileTest/objset/stgpv623/stgpv623_tex.bin";
+
+		TxpSet slowTxpSet, fastTxpSet;
+		std::vector<uint8_t> fastBuffer;
+
+		if (true)
+		{
+			// 160.54 MS with copying
+			// 149.28 MS without copying
+			// 146.79 MS raw non vector array
+			// 88.46 MS without copying & without allocations
+			// 95.83 MS without copying & new uint8_t[dataSize];
+
+			// 147.02 MS
+			DEBUG_STOPWATCH("--- Slow Parse stgpv623_tex ---");
+			slowTxpSet.Load(filePath);
+		}
+
+		if (true)
+		{
+			// 76.84 MS
+			DEBUG_STOPWATCH("--- Quick Parse stgpv623_tex ---");
+
+			{
+				// 76.29 MS
+				DEBUG_STOPWATCH("ReadAllBytes stgpv623_tex");
+				ReadAllBytes(filePath, &fastBuffer);
+			}
+
+			{
+				// 0.38 MS
+				DEBUG_STOPWATCH("TxpSet::Parse stgpv623_tex");
+				fastTxpSet.Parse(fastBuffer.data());
+			}
+		}
+
+		if (true)
+		{
+			for (size_t i = 0; i < slowTxpSet.Textures.size(); i++)
+			{
+				for (size_t m = 0; m < slowTxpSet.Textures[i]->MipMaps.size(); m++)
+				{
+					MipMap* slowMipMap = slowTxpSet.Textures[i]->MipMaps[m].get();
+					MipMap* fastMipMap = fastTxpSet.Textures[i]->MipMaps[m].get();
+
+					bool same = memcmp(slowMipMap->Data.data(), fastMipMap->DataPointer, fastMipMap->DataPointerSize) == 0;
+					printf("texture[%d] mipmap[%d] = %s\n", i, m, same ? "same" : "NOT THE SAME");
+				}
+			}
+		}
+	}
+
+	// SPR TEST:
+	if (true)
+	{
+		auto filePath = "Y:/Dev/Comfy/Sandbox/dev_ram/sprset/spr_ps4_custom.bin";
+
+		SprSet slowSprSet, fastSprSet;
+		std::vector<uint8_t> fastBuffer;
+
+		if (true)
+		{
+			// 356.71 MS
+			// 115.25 MS
+			DEBUG_STOPWATCH("--- Slow Parse spr_ps4_custom ---");
+			slowSprSet.Load(filePath);
+		}
+
+		if (true)
+		{
+			// 63.44 MS
+			DEBUG_STOPWATCH("--- Quick Parse spr_ps4_custom ---");
+
+			{
+				// 63.15 MS
+				DEBUG_STOPWATCH("ReadAllBytes spr_ps4_custom");
+				ReadAllBytes(filePath, &fastBuffer);
+			}
+
+			{
+				// 0.07 MS
+				DEBUG_STOPWATCH("SprSet::Parse spr_ps4_custom");
+				fastSprSet.Parse(fastBuffer.data());
+			}
+		}
+	}
+
 	// SPR/TXP TEST:
 	if (false)
 	{
@@ -217,12 +309,12 @@ void MainTest()
 			}
 			{
 				DEBUG_STOPWATCH("Export PNG File Test");
-				for (auto &texture : sprSet->TxpSet.Textures)
+				for (auto &texture : sprSet->TxpSet->Textures)
 					SaveAsPng(texture.get());
 			}
 			{
 				DEBUG_STOPWATCH("Export DDS File Test");
-				for (auto &texture : sprSet->TxpSet.Textures)
+				for (auto &texture : sprSet->TxpSet->Textures)
 					SaveAsDDS(texture.get());
 			}
 

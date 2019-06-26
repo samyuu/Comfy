@@ -67,7 +67,7 @@ namespace Editor
 			renderTarget.GetTexture().GetVoidTexture(),
 			renderRegion.GetTL(),
 			renderRegion.GetBR(),
-			ImGui::UV0, ImGui::UV1);
+			ImGui::UV0_GL, ImGui::UV1_GL);
 
 		ImGui::EndChild();
 		ImGui::PopID();

@@ -24,14 +24,15 @@ namespace FileSystem
 		} ExtraData;
 	};
 
-	class SprSet : public IBinaryReadable
+	class SprSet : public IBinaryReadable, IBufferParsable
 	{
 	public:
 		uint32_t Signature;
-		TxpSet TxpSet;
+		std::unique_ptr<TxpSet> TxpSet;
 		std::vector<Sprite> Sprites;
 
 		virtual void Read(BinaryReader& reader) override;
+		virtual void Parse(uint8_t* buffer) override;
 
 	private:
 	};

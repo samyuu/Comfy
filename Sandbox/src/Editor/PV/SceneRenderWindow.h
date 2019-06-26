@@ -1,15 +1,18 @@
 #pragma once
-#include "../IEditorComponent.h"
-#include "../RenderWindowBase.h"
-#include "../../Graphics/VertexArray.h"
-#include "../../Graphics/Buffer.h"
-#include "../../Graphics/ComfyVertex.h"
-#include "../../Graphics/Shader/Shader.h"
-#include "../../Graphics/Texture.h"
-#include "../../Graphics/Camera.h"
+#include "Editor/IEditorComponent.h"
+#include "Editor/RenderWindowBase.h"
+#include "Graphics/VertexArray.h"
+#include "Graphics/Buffer.h"
+#include "Graphics/ComfyVertex.h"
+#include "Graphics/Shader/Shader.h"
+#include "Graphics/Texture.h"
+#include "Graphics/Camera.h"
+#include "FileSystem/Format/SprSet.h"
 
 namespace Editor
 {
+	using namespace FileSystem;
+
 	class SceneRenderWindow : public IEditorComponent, public RenderWindowBase
 	{
 	public:
@@ -52,12 +55,19 @@ namespace Editor
 		// --------
 		struct
 		{
-			Texture2D feelsBadManTexture;
-			Texture2D goodNiceTexture;
-
-			Texture2D groundTexture;
-			Texture2D skyTexture;
-			Texture2D tileTexture;
+			SprSet sprSet;
+			union
+			{
+				Texture* allTextures[5];
+				struct
+				{
+					Texture* feelsBadManTexture;
+					Texture* goodNiceTexture;
+					Texture* groundTexture;
+					Texture* skyTexture;
+					Texture* tileTexture;
+				};
+			};
 		};
 
 		// Shaders

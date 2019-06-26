@@ -1,4 +1,7 @@
 #include "SceneRenderWindow.h"
+#include "TimeSpan.h"
+#include "FileSystem/FileHelper.h"
+#include <glfw/glfw3.h>
 
 namespace Editor
 {
@@ -19,21 +22,30 @@ namespace Editor
 	{
 		RenderWindowBase::Initialize();
 
-		feelsBadManTexture.LoadFromFile("rom/spr/FeelsBadMan.png");
-		goodNiceTexture.LoadFromFile("rom/spr/GoodNiceOne.png");
+		// Load Textures
+		// -------------
+		{
+			std::vector<uint8_t> sprFileBuffer;
+			FileSystem::ReadAllBytes("rom/spr/spr_comfy_scene.bin", &sprFileBuffer);
 
-		groundTexture.LoadFromFile("rom/spr/stgtst007_ground.png");
-		skyTexture.LoadFromFile("rom/spr/stgtst007_sky.png");
-		tileTexture.LoadFromFile("rom/spr/stgtst007_tile.png");
+			sprSet.Parse(sprFileBuffer.data());
+
+			for (size_t i = 0; i < sprSet.TxpSet->Textures.size(); i++)
+			{
+				allTextures[i] = sprSet.TxpSet->Textures[i].get();
+				allTextures[i]->Texture2D = std::make_shared<Texture2D>();
+				allTextures[i]->Texture2D->Upload(allTextures[i]);
+			}
+		}
 
 		// Cube Vertex Data
 		// ----------------
 		{
 			comfyShader.Initialize();
 
-			cubeVertexBuffer.Initialize();
+			cubeVertexBuffer.InitializeID();
 			cubeVertexBuffer.Bind();
-			cubeVertexBuffer.BufferData(cubeVertices, sizeof(cubeVertices), BufferUsage::StaticDraw);
+			cubeVertexBuffer.Upload(cubeVertices, sizeof(cubeVertices), BufferUsage::StaticDraw);
 
 			BufferLayout layout =
 			{
@@ -42,7 +54,7 @@ namespace Editor
 				{ ShaderDataType::Vec4, "in_color" },
 			};
 
-			cubeVao.Initialize();
+			cubeVao.InitializeID();
 			cubeVao.Bind();
 			cubeVao.SetLayout(layout);
 		}
@@ -52,9 +64,9 @@ namespace Editor
 		{
 			lineShader.Initialize();
 
-			lineVertexBuffer.Initialize();
+			lineVertexBuffer.InitializeID();
 			lineVertexBuffer.Bind();
-			lineVertexBuffer.BufferData(axisVertices, sizeof(axisVertices), BufferUsage::StaticDraw);
+			lineVertexBuffer.Upload(axisVertices, sizeof(axisVertices), BufferUsage::StaticDraw);
 
 			BufferLayout layout =
 			{
@@ -62,7 +74,7 @@ namespace Editor
 				{ ShaderDataType::Vec4, "in_color" },
 			};
 
-			lineVao.Initialize();
+			lineVao.InitializeID();
 			lineVao.Bind();
 			lineVao.SetLayout(layout);
 		}
@@ -72,9 +84,9 @@ namespace Editor
 		{
 			screenShader.Initialize();
 
-			screenVertexBuffer.Initialize();
+			screenVertexBuffer.InitializeID();
 			screenVertexBuffer.Bind();
-			screenVertexBuffer.BufferData(screenVertices, sizeof(screenVertices), BufferUsage::StaticDraw);
+			screenVertexBuffer.Upload(screenVertices, sizeof(screenVertices), BufferUsage::StaticDraw);
 
 			BufferLayout layout =
 			{
@@ -82,7 +94,7 @@ namespace Editor
 				{ ShaderDataType::Vec2, "in_texture_coords" },
 			};
 
-			screenVao.Initialize();
+			screenVao.InitializeID();
 			screenVao.Bind();
 			screenVao.SetLayout(layout);
 		}
@@ -176,19 +188,10 @@ namespace Editor
 
 		if (ImGui::CollapsingHeader("Image Test"))
 		{
-			struct { const char* Name; Texture2D* Texture; } namedTextures[] =
+			for (auto txp : sprSet.TxpSet->Textures)
 			{
-				{ "feels bad", &feelsBadManTexture},
-				{ "good nice", &goodNiceTexture},
-				{ "ground", &groundTexture},
-				{ "sky", &skyTexture},
-				{ "tile", &tileTexture},
-			};
-
-			for (size_t i = 0; i < _countof(namedTextures); i++)
-			{
-				ImGui::Text(namedTextures[i].Name);
-				ImGui::Image(namedTextures[i].Texture->GetVoidTexture(), { 200, 200 }, ImGui::UV0, ImGui::UV1);
+				ImGui::Text(txp->Name.c_str());
+				ImGui::Image(txp->Texture2D->GetVoidTexture(), { 200, 200 }, ImGui::UV0_GL, ImGui::UV1_GL);
 			}
 		}
 	}
@@ -271,6 +274,9 @@ namespace Editor
 		postProcessingRenderTarget.Bind();
 		{
 			glEnable(GL_DEPTH_TEST);
+			//glDisable(GL_BLEND);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			glClearColor(baseClearColor.x, baseClearColor.y, baseClearColor.z, baseClearColor.w);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -281,9 +287,9 @@ namespace Editor
 				for (size_t i = 0; i < _countof(cubePositions); i++)
 					cubeModelMatrices[i] = glm::translate(mat4(1.0f), cubePositions[i]);
 
-				feelsBadManTexture.Bind(0);
-				goodNiceTexture.Bind(1);
-				comfyShader.Use();
+				feelsBadManTexture->Texture2D->Bind(0);
+				goodNiceTexture->Texture2D->Bind(1);
+				comfyShader.Bind();
 				comfyShader.SetUniform(comfyShader.Texture0Location, 0);
 				comfyShader.SetUniform(comfyShader.Texture1Location, 1);
 				comfyShader.SetUniform(comfyShader.ViewLocation, camera.GetViewMatrix());
@@ -296,29 +302,29 @@ namespace Editor
 					glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
 				}
 
-				feelsBadManTexture.Bind(0);
-				tileTexture.Bind(1);
-				tileTexture.Bind(0);
+				feelsBadManTexture->Texture2D->Bind(0);
+				tileTexture->Texture2D->Bind(1);
+				tileTexture->Texture2D->Bind(0);
 				mat4 tileModelMatrix = glm::scale(glm::translate(mat4(1.0f), vec3(0, -4.0f, 0)), vec3(39.0f, 1.0f, 39.0f));
 				comfyShader.SetUniform(comfyShader.ModelLocation, tileModelMatrix);
 				glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
 
-				feelsBadManTexture.Bind(0);
-				skyTexture.Bind(1);
-				skyTexture.Bind(0);
+				feelsBadManTexture->Texture2D->Bind(0);
+				skyTexture->Texture2D->Bind(1);
+				skyTexture->Texture2D->Bind(0);
 				mat4 skyModelMatrix = glm::scale(mat4(1.0f), vec3(1000.0f, 1000.0f, 1000.0f));
 				comfyShader.SetUniform(comfyShader.ModelLocation, skyModelMatrix);
 				glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
 
-				feelsBadManTexture.Bind(0);
-				groundTexture.Bind(1);
-				groundTexture.Bind(0);
+				feelsBadManTexture->Texture2D->Bind(0);
+				groundTexture->Texture2D->Bind(1);
+				groundTexture->Texture2D->Bind(0);
 				mat4 groundModelMatrix = glm::scale(glm::translate(mat4(1.0f), vec3(0, -5.0f, 0)), vec3(999.9f, 1.0f, 999.9));
 				comfyShader.SetUniform(comfyShader.ModelLocation, groundModelMatrix);
 				glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
 
 				{
-					lineShader.Use();
+					lineShader.Bind();
 					lineShader.SetUniform(lineShader.ViewLocation, camera.GetViewMatrix());
 					lineShader.SetUniform(lineShader.ProjectionLocation, camera.GetProjectionMatrix());
 
@@ -338,7 +344,7 @@ namespace Editor
 			glDisable(GL_DEPTH_TEST);
 
 			screenVao.Bind();
-			screenShader.Use();
+			screenShader.Bind();
 			postProcessingRenderTarget.GetTexture().Bind();
 			glDrawArrays(GL_TRIANGLES, 0, _countof(screenVertices));
 		}

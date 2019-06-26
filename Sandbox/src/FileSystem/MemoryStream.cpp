@@ -89,7 +89,8 @@ namespace FileSystem
 
 	void MemoryStream::FromFile(const std::string& filePath)
 	{
-		FromFile(std::wstring(filePath.begin(), filePath.end()));
+		auto widePath = std::wstring(filePath.begin(), filePath.end());
+		FromFile(widePath);
 	}
 
 	void MemoryStream::FromFile(const std::wstring& filePath)
@@ -101,7 +102,6 @@ namespace FileSystem
 
 	void MemoryStream::FromStream(Stream* stream)
 	{
-		assert(IsOpen());
 		assert(stream->CanRead());
 
 		canRead = true;
