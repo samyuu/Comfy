@@ -170,6 +170,7 @@
     <ClCompile Include="src\FileSystem\Stream.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="res\resource.h" />
     <ClInclude Include="src\Editor\Aet\AetEditor.h" />
     <ClInclude Include="src\Editor\Aet\AetRenderWindow.h" />
     <ClInclude Include="src\Editor\Aet\AetTimeline.h" />
@@ -255,6 +256,9 @@
     <None Include="rom\shader\screen_vert.glsl" />
     <None Include="rom\shader\sprite_frag.glsl" />
     <None Include="rom\shader\sprite_vert.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="res\Sandbox.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
