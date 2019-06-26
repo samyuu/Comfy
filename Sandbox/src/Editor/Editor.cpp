@@ -140,7 +140,7 @@ namespace Editor
 
 		for (size_t e = 0; e < audioFileExtensions.size(); e++)
 		{
-			if (EndsWithCaseInsensitive(filePath, audioFileExtensions[e]))
+			if (EndsWithInsensitive(filePath, audioFileExtensions[e]))
 			{
 				if (LoadSong(filePath))
 				{

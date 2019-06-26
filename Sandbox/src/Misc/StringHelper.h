@@ -1,8 +1,17 @@
 #pragma once
 #include <string>
 
-bool EndsWith(const std::string& string, const std::string& ending);
-bool EndsWith(const std::wstring& string, const std::wstring& ending);
+bool StartsWith(const std::string& string, const std::string& prefix);
+bool StartsWith(const std::wstring& string, const std::wstring& prefix);
 
-bool EndsWithCaseInsensitive(const std::string& string, const std::string& ending);
-bool EndsWithCaseInsensitive(const std::wstring& string, const std::wstring& ending);
+bool StartsWithInsensitive(const std::string& string, const std::string& prefix);
+bool StartsWithInsensitive(const std::wstring& string, const std::wstring& prefix);
+
+bool EndsWith(const std::string& string, char suffix);
+bool EndsWith(const std::wstring& string, wchar_t suffix);
+
+bool EndsWith(const std::string& string, const std::string& suffix);
+bool EndsWith(const std::wstring& string, const std::wstring& suffix);
+
+bool EndsWithInsensitive(const std::string& string, const std::string& suffix);
+bool EndsWithInsensitive(const std::wstring& string, const std::wstring& suffix);

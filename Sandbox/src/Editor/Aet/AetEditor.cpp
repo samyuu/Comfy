@@ -2,6 +2,7 @@
 #include "FileSystem/MemoryStream.h"
 #include "FileSystem/BinaryReader.h"
 #include "FileSystem/FileHelper.h"
+#include "Misc/StringHelper.h"
 
 namespace Editor
 {
@@ -279,7 +280,11 @@ namespace Editor
 	void AetEditor::DrawSetLoader()
 	{
 		if (fileViewer.DrawGui())
-			OpenAetSet(fileViewer.GetFileToOpen().c_str());
+		{
+			std::string aetPath = fileViewer.GetFileToOpen();
+			if (StartsWithInsensitive(GetFileName(aetPath), "aet_") && EndsWithInsensitive(aetPath, ".bin"))
+				OpenAetSet(aetPath.c_str());
+		}
 	}
 
 	void AetEditor::DrawTreeView()
