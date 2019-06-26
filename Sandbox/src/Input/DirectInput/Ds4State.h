@@ -1,8 +1,8 @@
 #pragma once
-#include <glm/vec2.hpp>
-#include <glm/glm.hpp>
 #include "DirectInput.h"
 #include "Ds4Button.h"
+#include <glm/vec2.hpp>
+#include <glm/glm.hpp>
 
 inline glm::vec2 GetDirection(float degrees)
 {
