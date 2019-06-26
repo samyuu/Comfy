@@ -1,5 +1,5 @@
 #pragma once
-#include "../pch.h"
+#include "Types.h"
 
 constexpr vec3 UP_DIRECTION = vec3(0.0f, 1.0f, 0.0f);
 

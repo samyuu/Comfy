@@ -1,5 +1,6 @@
-#include "../pch.h"
 #include "RenderTarget.h"
+#include <glad/glad.h>
+#include <assert.h>
 
 // ------------------------------------------------------------------------------------------------
 // --- Renderbuffer:
@@ -14,7 +15,7 @@ Renderbuffer::~Renderbuffer()
 	Dispose();
 }
 
-void Renderbuffer::Initialize()
+void Renderbuffer::InitializeID()
 {
 	glGenRenderbuffers(1, &renderbufferID);
 }
@@ -107,8 +108,8 @@ void RenderTarget::Initialize(int width, int height)
 	framebuffer.Initialize();
 	framebuffer.Bind();
 
-	colorTexture.Initialize();
-	depthRenderbuffer.Initialize();
+	colorTexture.InitializeID();
+	depthRenderbuffer.InitializeID();
 	Resize(width, height);
 
 	framebuffer.AttachRenderbuffer(depthRenderbuffer, GL_DEPTH_STENCIL_ATTACHMENT);
@@ -132,7 +133,7 @@ void RenderTarget::Resize(int width, int height)
 	this->height = height;
 
 	colorTexture.Bind();
-	colorTexture.GenerateEmpty(width, height);
+	colorTexture.UploadEmpty(width, height);
 	colorTexture.UnBind();
 
 	framebuffer.Bind();

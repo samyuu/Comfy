@@ -1,20 +1,21 @@
 #pragma once
-#include "../pch.h"
+#include "Types.h"
+#include "GraphicsInterface.h"
+
 class BufferLayout;
 
-typedef GLuint VertexArrayID_t;
+typedef uint32_t VertexArrayID_t;
 
-class VertexArray
+class VertexArray : public IGraphicsObject
 {
 public:
 	VertexArray();
 	~VertexArray();
 	VertexArray(const VertexArray&) = delete;
 
-	void Initialize();
-
-	void Bind();
-	void UnBind();
+	void InitializeID() override;
+	void Bind() override;
+	void UnBind() override;
 
 	void SetLayout(const BufferLayout& layout);
 

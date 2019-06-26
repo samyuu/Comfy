@@ -10,7 +10,7 @@ VertexArray::~VertexArray()
 	Dispose();
 }
 
-void VertexArray::Initialize()
+void VertexArray::InitializeID()
 {
 	glGenVertexArrays(1, &vertexArrayID);
 }

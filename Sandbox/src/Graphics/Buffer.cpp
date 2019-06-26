@@ -1,4 +1,5 @@
 #include "Buffer.h"
+#include <assert.h>
 
 // ------------------------------------------------------------------------------------------------
 // --- VertexBuffer:
@@ -13,12 +14,12 @@ VertexBuffer::~VertexBuffer()
 	Dispose();
 }
 
-void VertexBuffer::Initialize()
+void VertexBuffer::InitializeID()
 {
 	glGenBuffers(1, &vertexBufferID);
 }
 
-void VertexBuffer::BufferData(void* data, size_t dataSize, BufferUsage usage)
+void VertexBuffer::Upload(void* data, size_t dataSize, BufferUsage usage)
 {
 	bufferUsage = usage;
 	glBufferData(GetGLBufferTarget(), dataSize, data, GetGLUsage());

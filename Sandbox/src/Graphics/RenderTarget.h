@@ -1,6 +1,7 @@
 #pragma once
-#include "../pch.h"
 #include "Texture.h"
+#include "GraphicsInterface.h"
+#include <glad/glad.h>
 
 // ------------------------------------------------------------------------------------------------
 // --- Renderbuffer:
@@ -10,16 +11,16 @@ typedef GLuint RenderbufferID_t;
 typedef GLenum RenderTarget_t;
 typedef GLenum InternalFormat_t;
 
-class Renderbuffer
+class Renderbuffer : public IGraphicsObject
 {
 public:
 	Renderbuffer();
 	~Renderbuffer();
 	Renderbuffer(const Renderbuffer&) = delete;
 
-	void Initialize();
-	void Bind();
-	void UnBind();
+	void InitializeID() override;
+	void Bind() override;
+	void UnBind() override;
 	void RenderbufferStorage(int width, int height, InternalFormat_t internalFormat);
 
 	inline RenderbufferID_t GetRenderbufferID() { return renderbufferID; };

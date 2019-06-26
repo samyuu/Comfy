@@ -187,6 +187,7 @@
     <ClInclude Include="src\FileSystem\Format\TxpSet.h" />
     <ClInclude Include="src\FileSystem\MemoryStream.h" />
     <ClInclude Include="src\FileSystem\FileStream.h" />
+    <ClInclude Include="src\Graphics\GraphicsInterface.h" />
     <ClInclude Include="src\Graphics\Shader\Shader.h" />
     <ClInclude Include="src\ImGui\Widgets\FileViewer.h" />
     <ClInclude Include="src\Logger.h" />

@@ -1,5 +1,8 @@
 #pragma once
-#include "../../pch.h"
+#include "Types.h"
+#include "Graphics/GraphicsInterface.h"
+#include <string>
+#include <glad/glad.h>
 
 typedef GLint UniformLocation_t;
 typedef GLuint ShaderID_t;
@@ -10,13 +13,14 @@ enum class ShaderType
 	Vertex, Fragment
 };
 
-class ShaderProgram
+class ShaderProgram : public IBindable
 {
 public:
 	ShaderProgram();
 	~ShaderProgram();
 
-	void Use();
+	void Bind() override;
+	void UnBind() override;
 	void SetUniform(UniformLocation_t, int);
 	void SetUniform(UniformLocation_t, float);
 	void SetUniform(UniformLocation_t, glm::mat4&);

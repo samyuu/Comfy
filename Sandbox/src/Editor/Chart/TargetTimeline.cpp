@@ -238,7 +238,7 @@ namespace Editor
 	{
 		// sankaku		| shikaku		| batsu		 | maru		 | slide_l		| slide_r	   | slide_chain_l		| slide_chain_r
 		// sankaku_sync | shikaku_sync  | batsu_sync | maru_sync | slide_l_sync | slide_r_sync | slide_chain_l_sync | slide_chain_r_sync
-		buttonIconsTexture.LoadFromFile(buttonIconsTexturePath);
+		buttonIconsTexture.UploadFromFile(buttonIconsTexturePath);
 
 		const float texelWidth = 1.0f / buttonIconsTexture.GetWidth();
 		const float texelHeight = 1.0f / buttonIconsTexture.GetHeight();

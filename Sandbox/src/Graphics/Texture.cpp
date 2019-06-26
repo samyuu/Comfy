@@ -1,5 +1,7 @@
 #include "Texture.h"
-#include "../Logger.h"
+#include "Logger.h"
+#include <stb/stb_image.h>
+#include <assert.h>
 
 #define GL_COMPRESSED_RGB_S3TC_DXT1_EXT   0x83F0
 #define GL_COMPRESSED_RGBA_S3TC_DXT1_EXT  0x83F1
@@ -17,10 +19,20 @@ Texture2D::~Texture2D()
 	Dispose();
 }
 
+void Texture2D::Bind()
+{
+	Bind(0);
+}
+
 void Texture2D::Bind(int textureSlot)
 {
 	glActiveTexture(GetTextureSlotEnum(textureSlot));
 	glBindTexture(GetTextureTarget(), textureID);
+}
+
+void Texture2D::UnBind()
+{
+	UnBind(0);
 }
 
 void Texture2D::UnBind(int textureSlot)
@@ -29,12 +41,12 @@ void Texture2D::UnBind(int textureSlot)
 	glBindTexture(GetTextureTarget(), NULL);
 }
 
-void Texture2D::Initialize()
+void Texture2D::InitializeID()
 {
 	glGenTextures(1, &textureID);
 }
 
-void Texture2D::GenerateEmpty(int width, int height)
+void Texture2D::UploadEmpty(int width, int height)
 {
 	imageWidth = width;
 	imageHeight = height;
@@ -44,7 +56,7 @@ void Texture2D::GenerateEmpty(int width, int height)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
-bool Texture2D::Load(const FileSystem::Texture* texture)
+bool Texture2D::Upload(const FileSystem::Texture* texture)
 {
 	size_t mipMapCount = texture->MipMaps.size();
 	assert(mipMapCount >= 1);
@@ -55,26 +67,25 @@ bool Texture2D::Load(const FileSystem::Texture* texture)
 	imageHeight = baseMipMap->Height;
 	textureFormat = baseMipMap->Format;
 
-	Initialize();
+	InitializeID();
 	Bind();
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (mipMapCount > 1) ? GL_NEAREST_MIPMAP_LINEAR : GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (mipMapCount > 1) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapCount + 1);
+	if (mipMapCount > 2)
+	{
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapCount - 1);
 
-	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_LOD, 0);
-	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD, txp->MipMaps.size());
-	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, 100000.0f);
-
-	//glTexStorage2D(GL_TEXTURE_2D, txp->MipMaps.size(), format, mipMap->Width, mipMap->Height);
-
-	// TODO:
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_LOD, 0);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD, mipMapCount - 1);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -1.0f);
+	}
 
 	for (int i = 0; i < mipMapCount; i++)
 	{
@@ -89,17 +100,20 @@ bool Texture2D::Load(const FileSystem::Texture* texture)
 		{
 			glCompressedTexImage2D(GL_TEXTURE_2D, i, glFormat, mipMap->Width, mipMap->Height, 0, mipMap->Data.size(), mipMap->Data.data());
 		}
+
+		// else textureLod(...) won't work for RTC2 textures
+		if (i == 0 && mipMapCount <= 2)
+			glGenerateMipmap(GL_TEXTURE_2D);
 	}
 
-
-	int error = glGetError();
+	GLenum error = glGetError();
 	if (error != GL_NO_ERROR)
-		printf("error: %d\n", error);
+		Logger::LogErrorLine("Texture2D::Upload: glGetError(): %d", error);
 
 	return true;
 }
 
-bool Texture2D::LoadFromFile(const char* path)
+bool Texture2D::UploadFromFile(const char* path)
 {
 	stbi_set_flip_vertically_on_load(true);
 
@@ -107,7 +121,7 @@ bool Texture2D::LoadFromFile(const char* path)
 	uint8_t *pixelData = stbi_load(path, &width, &height, &imageChannels, 0);
 
 	if (pixelData == nullptr)
-		Logger::LogErrorLine("Texture2D::LoadFromFile(): failed to load texture %s", path);
+		Logger::LogErrorLine("Texture2D::Upload(): failed to load texture %s", path);
 
 	assert(pixelData != nullptr);
 
@@ -115,7 +129,7 @@ bool Texture2D::LoadFromFile(const char* path)
 	imageHeight = (float)height;
 	textureFormat = FileSystem::TextureFormat_RGBA;
 
-	Initialize();
+	InitializeID();
 	Bind();
 	glTexImage2D(GetTextureTarget(), 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
 	glGenerateMipmap(GetTextureTarget());

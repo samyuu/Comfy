@@ -1,27 +1,29 @@
 #pragma once
-#include "../pch.h"
-#include "../FileSystem/Format/TxpSet.h"
+#include "GraphicsInterface.h"
+#include "FileSystem/Format/TxpSet.h"
+#include <glad/glad.h>
 
 typedef GLuint TextureID_t;
 typedef GLenum TextureTarget_t;
 
 typedef FileSystem::TextureFormat TextureFormat;
 
-class Texture2D
+class Texture2D : public IGraphicsObject
 {
 public:
 	Texture2D();
 	~Texture2D();
 	Texture2D(const Texture2D&) = delete;
 
-	void Bind(int textureSlot = 0);
-	void UnBind(int textureSlot = 0);
+	void Bind() override;
+	void Bind(int textureSlot);
+	void UnBind() override;
+	void UnBind(int textureSlot);
 
-	void Initialize();
-	void GenerateEmpty(int width, int height);
-
-	bool Load(const FileSystem::Texture* texture);
-	bool LoadFromFile(const char* path);
+	void InitializeID() override;
+	void UploadEmpty(int width, int height);
+	bool Upload(const FileSystem::Texture* texture);
+	bool UploadFromFile(const char* path);
 
 	inline float GetWidth() { return imageWidth; };
 	inline float GetHeight() { return imageHeight; };
@@ -33,7 +35,6 @@ public:
 
 	inline TextureTarget_t GetTextureTarget() { return textureTarget; };
 	inline TextureFormat GetTextureFormat() { return textureFormat; };
-
 
 	static constexpr GLenum GetTextureSlotEnum(int textureSlot)
 	{

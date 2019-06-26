@@ -446,6 +446,9 @@
     <ClInclude Include="res\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\GraphicsInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="rom\shader\line_frag.glsl" />

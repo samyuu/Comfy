@@ -1,5 +1,8 @@
 #pragma once
-#include "../pch.h"
+#include "Types.h"
+#include "GraphicsInterface.h"
+#include <glad/glad.h>
+#include <vector>
 
 // ------------------------------------------------------------------------------------------------
 // --- VertexBuffer:
@@ -20,18 +23,18 @@ enum class BufferUsage
 	DynamicCopy,
 };
 
-class VertexBuffer
+class VertexBuffer : public IGraphicsObject
 {
 public:
 	VertexBuffer();
 	~VertexBuffer();
 	VertexBuffer(const VertexBuffer&) = delete;
 
-	void Initialize();
-	void BufferData(void* data, size_t dataSize, BufferUsage usage);
+	void InitializeID() override;
+	void Upload(void* data, size_t dataSize, BufferUsage usage);
 
-	void Bind();
-	void UnBind();
+	void Bind() override;
+	void UnBind() override;
 
 protected:
 	VertexBufferID_t vertexBufferID = NULL;

@@ -1,6 +1,6 @@
 #include "ShaderProgram.h"
+#include "Logger.h"
 #include <fstream>
-#include "../../Logger.h"
 
 ShaderProgram::ShaderProgram()
 {
@@ -12,9 +12,14 @@ ShaderProgram::~ShaderProgram()
 		glDeleteProgram(programID);
 }
 
-void ShaderProgram::Use()
+void ShaderProgram::Bind()
 {
 	glUseProgram(programID);
+}
+
+void ShaderProgram::UnBind()
+{
+	glUseProgram(0);
 }
 
 void ShaderProgram::SetUniform(UniformLocation_t location, int value)
