@@ -1,6 +1,6 @@
 #pragma once
 #include "TimelineTick.h"
-#include <glm/vec2.hpp>
+#include "Types.h"
 #include <vector>
 
 namespace Editor

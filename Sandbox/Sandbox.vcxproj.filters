@@ -347,9 +347,6 @@
     <ClInclude Include="src\Editor\AudioController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\BitFlagsHelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -447,6 +444,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\GraphicsInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Misc\BitFlagsHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
