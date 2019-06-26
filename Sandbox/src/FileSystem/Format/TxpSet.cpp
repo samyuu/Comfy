@@ -1,6 +1,7 @@
 #include "TxpSet.h"
 #include "FileSystem/FileInterface.h"
 #include "FileSystem/BinaryReader.h"
+#include <assert.h>
 
 namespace FileSystem
 {
@@ -10,7 +11,8 @@ namespace FileSystem
 		int64_t baseAddress = reader.GetPosition();
 
 		txpSet->Signature = reader.Read<TxpSig>();
-	
+		assert(txpSet->Signature.Type == TxpType_TxpSet);
+
 		uint32_t count = reader.ReadUInt32();
 		uint32_t packedCount = reader.ReadUInt32();
 
@@ -26,6 +28,7 @@ namespace FileSystem
 				int64_t textureBaseAddress = reader.GetPosition();
 
 				texture->Signature = reader.Read<TxpSig>();
+				assert(texture->Signature.Type == TxpType_Texture);
 
 				uint32_t mipMapCount = reader.ReadUInt32();
 				uint32_t packedInfo = reader.ReadUInt32();
@@ -40,6 +43,8 @@ namespace FileSystem
 						MipMap* mipMap = texture->MipMaps.back().get();
 
 						mipMap->Signature = reader.Read<TxpSig>();
+						assert(mipMap->Signature.Type == TxpType_MipMap);
+
 						mipMap->Width = reader.ReadInt32();
 						mipMap->Height = reader.ReadInt32();
 						mipMap->Format = reader.Read<TextureFormat>();

@@ -4,8 +4,17 @@
 #include <string>
 #include <vector>
 
+class Texture2D;
+
 namespace FileSystem
 {
+	enum TxpType : uint8_t
+	{
+		TxpType_MipMap = 2,
+		TxpType_TxpSet = 3,
+		TxpType_Texture = 4,
+	};
+
 	enum TextureFormat : uint32_t
 	{
 		TextureFormat_RGB = 1,
@@ -22,7 +31,7 @@ namespace FileSystem
 	struct TxpSig
 	{
 		char Signature[3];
-		uint8_t Type;
+		TxpType Type;
 	};
 
 	struct MipMap
@@ -40,6 +49,8 @@ namespace FileSystem
 		TxpSig Signature;
 		std::vector<std::shared_ptr<MipMap>> MipMaps;
 		std::string Name;
+
+		std::shared_ptr<Texture2D> Texture2D;
 	};
 
 	class TxpSet : public IBinaryReadable
