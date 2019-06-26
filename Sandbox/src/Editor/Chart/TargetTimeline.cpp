@@ -1,9 +1,10 @@
 #include "TargetTimeline.h"
-#include "../Editor.h"
-#include "../../TimeSpan.h"
-#include "../../Application.h"
-#include "../../BitFlagsHelper.h"
 #include "TempoMap.h"
+#include "Editor/Editor.h"
+#include "TimeSpan.h"
+#include "Application.h"
+#include "Misc/BitFlagsHelper.h"
+#include "FileSystem/FileHelper.h"
 
 namespace Editor
 {
@@ -131,7 +132,7 @@ namespace Editor
 		ImRect textureCoordinates = buttonIconsTextureCoordinates[GetButtonIconIndex(target)];
 
 		const ImU32 color = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF * transparency);
-		drawList->AddImage(buttonIconsTexture.GetVoidTexture(), position, bottomRight, textureCoordinates.GetBL(), textureCoordinates.GetTR(), color);
+		drawList->AddImage(buttonIconsTexture->GetVoidTexture(), position, bottomRight, textureCoordinates.GetBL(), textureCoordinates.GetTR(), color);
 
 		if (HasFlag(target.Flags, TargetFlags_Hold))
 		{
@@ -238,10 +239,19 @@ namespace Editor
 	{
 		// sankaku		| shikaku		| batsu		 | maru		 | slide_l		| slide_r	   | slide_chain_l		| slide_chain_r
 		// sankaku_sync | shikaku_sync  | batsu_sync | maru_sync | slide_l_sync | slide_r_sync | slide_chain_l_sync | slide_chain_r_sync
-		buttonIconsTexture.UploadFromFile(buttonIconsTexturePath);
+		{
+			std::vector<uint8_t> sprFileBuffer;
+			FileSystem::ReadAllBytes("rom/spr/spr_comfy_editor.bin", &sprFileBuffer);
+			
+			sprSet.Parse(sprFileBuffer.data());
+			for (auto texture : sprSet.TxpSet->Textures)
+				texture->UploadTexture2D();
 
-		const float texelWidth = 1.0f / buttonIconsTexture.GetWidth();
-		const float texelHeight = 1.0f / buttonIconsTexture.GetHeight();
+			buttonIconsTexture = sprSet.TxpSet->Textures.front()->Texture2D.get();
+		}
+
+		const float texelWidth = 1.0f / buttonIconsTexture->GetWidth();
+		const float texelHeight = 1.0f / buttonIconsTexture->GetHeight();
 
 		const float width = buttonIconWidth * texelWidth;
 		const float height = buttonIconWidth * texelHeight;

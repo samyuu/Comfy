@@ -1,16 +1,17 @@
 #pragma once
-#include "../IEditorComponent.h"
-#include "../TimelineBase.h"
-#include "../../Audio/AudioEngine.h"
-#include "../../Audio/AudioInstance.h"
-#include "../../Audio/DummySampleProvider.h"
-#include "../../Audio/MemoryAudioStream.h"
-#include "../../Audio/Waveform.h"
-#include "../../BaseWindow.h"
-#include "../../Graphics/Texture.h"
-#include "../AudioController.h"
+#include "Editor/IEditorComponent.h"
+#include "Editor/TimelineBase.h"
+#include "Editor/AudioController.h"
+#include "Audio/AudioEngine.h"
+#include "Audio/AudioInstance.h"
+#include "Audio/DummySampleProvider.h"
+#include "Audio/MemoryAudioStream.h"
+#include "Audio/Waveform.h"
+#include "BaseWindow.h"
+#include "Graphics/Texture.h"
 #include "TimelineMap.h"
 #include "TargetList.h"
+#include "FileSystem/Format/SprSet.h"
 #include <memory>
 
 namespace Editor
@@ -76,9 +77,8 @@ namespace Editor
 		static constexpr int buttonIconWidth = 52;
 
 		std::array<ImRect, buttonIconsTypeCount * 2> buttonIconsTextureCoordinates;
-
-		const char* buttonIconsTexturePath = u8"rom/spr/btn_icns.png";
-		Texture2D buttonIconsTexture;
+		FileSystem::SprSet sprSet;
+		Texture2D* buttonIconsTexture;
 
 		bool checkHitsoundsInCallback = false;
 		struct { bool Down, WasDown; } buttonPlacementKeyStates[6];
