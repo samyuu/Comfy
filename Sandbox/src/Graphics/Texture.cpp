@@ -52,8 +52,8 @@ void Texture2D::UploadEmpty(int width, int height)
 	imageHeight = height;
 
 	glTexImage2D(GetTextureTarget(), 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GetTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 bool Texture2D::Upload(const FileSystem::Texture* texture)
@@ -70,21 +70,20 @@ bool Texture2D::Upload(const FileSystem::Texture* texture)
 	InitializeID();
 	Bind();
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GetTextureTarget(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GetTextureTarget(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (mipMapCount > 1) ? GL_NEAREST_MIPMAP_LINEAR : GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (mipMapCount > 1) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GetTextureTarget(), GL_TEXTURE_MIN_FILTER, (mipMapCount > 1) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+	glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	if (mipMapCount > 2)
 	{
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapCount - 1);
+		glTexParameterf(GetTextureTarget(), GL_TEXTURE_BASE_LEVEL, 0);
+		glTexParameterf(GetTextureTarget(), GL_TEXTURE_MAX_LEVEL, mipMapCount - 1);
 
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_LOD, 0);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD, mipMapCount - 1);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -1.0f);
+		glTexParameterf(GetTextureTarget(), GL_TEXTURE_MIN_LOD, 0);
+		glTexParameterf(GetTextureTarget(), GL_TEXTURE_MAX_LOD, mipMapCount - 1);
+		glTexParameterf(GetTextureTarget(), GL_TEXTURE_LOD_BIAS, -1.0f);
 	}
 
 	for (int i = 0; i < mipMapCount; i++)
@@ -97,16 +96,16 @@ bool Texture2D::Upload(const FileSystem::Texture* texture)
 
 		if (GetIsCompressed(mipMap->Format))
 		{
-			glTexImage2D(GL_TEXTURE_2D, i, glFormat, mipMap->Width, mipMap->Height, 0, glFormat, GL_UNSIGNED_BYTE, data);
+			glCompressedTexImage2D(GetTextureTarget(), i, glFormat, mipMap->Width, mipMap->Height, 0, dataSize, data);
 		}
 		else
 		{
-			glCompressedTexImage2D(GL_TEXTURE_2D, i, glFormat, mipMap->Width, mipMap->Height, 0, dataSize, data);
+			glTexImage2D(GetTextureTarget(), i, glFormat, mipMap->Width, mipMap->Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		}
 
 		// else textureLod(...) won't work for RTC2 textures
 		if (i == 0 && mipMapCount <= 2)
-			glGenerateMipmap(GL_TEXTURE_2D);
+			glGenerateMipmap(GetTextureTarget());
 	}
 
 	GLenum error = glGetError();
@@ -130,11 +129,12 @@ bool Texture2D::UploadFromFile(const char* path)
 
 	imageWidth = (float)width;
 	imageHeight = (float)height;
-	textureFormat = FileSystem::TextureFormat_RGBA;
+	textureFormat = TextureFormat::RGBA8;
 
 	InitializeID();
 	Bind();
-	glTexImage2D(GetTextureTarget(), 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
+	
+	glTexImage2D(GetTextureTarget(), 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
 	glGenerateMipmap(GetTextureTarget());
 
 	stbi_image_free(pixelData);
@@ -151,33 +151,62 @@ bool Texture2D::GetIsCompressed(TextureFormat format)
 {
 	switch (format)
 	{
-	case FileSystem::TextureFormat_RGB:
-	case FileSystem::TextureFormat_RGBA:
-	case FileSystem::TextureFormat_RGBA4:
-		return true;
-	case FileSystem::TextureFormat_DXT1:
-	case FileSystem::TextureFormat_DXT3:
-	case FileSystem::TextureFormat_DXT5:
-	case FileSystem::TextureFormat_ATI1:
-	case FileSystem::TextureFormat_ATI2:
-	default:
+	case TextureFormat::A8:
+	case TextureFormat::RGB8:
+	case TextureFormat::RGBA8:
+	case TextureFormat::RGB5:
+	case TextureFormat::RGB5_A1:
+	case TextureFormat::RGBA4:
+	case TextureFormat::L8:
+	case TextureFormat::L8A8:
 		return false;
+
+	case TextureFormat::DXT1:
+	case TextureFormat::DXT1a:
+	case TextureFormat::DXT3:
+	case TextureFormat::DXT5:
+	case TextureFormat::RGTC1:
+	case TextureFormat::RGTC2:
+		return true;
+	default:
+		assert(false);
 	}
+
+	return false;
 }
 
 GLenum Texture2D::GetGLTextureFormat(TextureFormat format)
 {
 	switch (format)
 	{
-	case FileSystem::TextureFormat_RGB: return GL_RGB;
-	case FileSystem::TextureFormat_RGBA: return GL_RGBA;
-	case FileSystem::TextureFormat_RGBA4: return GL_RGBA4;
-	case FileSystem::TextureFormat_DXT1: return GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-	case FileSystem::TextureFormat_DXT3: return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-	case FileSystem::TextureFormat_DXT5: return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-	case FileSystem::TextureFormat_ATI1: return GL_COMPRESSED_RED_RGTC1;
-	case FileSystem::TextureFormat_ATI2: return GL_COMPRESSED_RG_RGTC2;
-
+	case TextureFormat::A8:
+		return GL_ALPHA8;
+	case TextureFormat::RGB8:
+		return GL_RGB8;
+	case TextureFormat::RGBA8:
+		return GL_RGBA8;
+	case TextureFormat::RGB5:
+		return GL_RGB5;
+	case TextureFormat::RGB5_A1:
+		return GL_RGB5_A1;
+	case TextureFormat::RGBA4:
+		return GL_RGBA4;
+	case TextureFormat::DXT1:
+		return GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+	case TextureFormat::DXT1a:
+		return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+	case TextureFormat::DXT3:
+		return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+	case TextureFormat::DXT5:
+		return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+	case TextureFormat::RGTC1:
+		return GL_COMPRESSED_RED_RGTC1;
+	case TextureFormat::RGTC2:
+		return GL_COMPRESSED_RG_RGTC2;
+	case TextureFormat::L8:
+		return GL_LUMINANCE8;
+	case TextureFormat::L8A8:
+		return GL_LUMINANCE8_ALPHA8;
 	default:
 		assert(false);
 	}

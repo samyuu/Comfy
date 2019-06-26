@@ -33,8 +33,7 @@ namespace Editor
 			for (size_t i = 0; i < sprSet.TxpSet->Textures.size(); i++)
 			{
 				allTextures[i] = sprSet.TxpSet->Textures[i].get();
-				allTextures[i]->Texture2D = std::make_shared<Texture2D>();
-				allTextures[i]->Texture2D->Upload(allTextures[i]);
+				allTextures[i]->UploadTexture2D();
 			}
 		}
 

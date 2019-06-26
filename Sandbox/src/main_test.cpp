@@ -57,7 +57,7 @@ void SaveAsPng(FileSystem::Texture* texture)
 
 	switch (mipMap->Format)
 	{
-	case TextureFormat_DXT1:
+	case TextureFormat::DXT1:
 	{
 		uint32_t *pixelData = new uint32_t[width * height];
 		BlockDecompressImageBC1(width, height, (uint8_t*)mipMap->Data.data(), (unsigned char*)pixelData);
@@ -73,7 +73,7 @@ void SaveAsPng(FileSystem::Texture* texture)
 		break;
 	}
 
-	case TextureFormat_DXT5:
+	case TextureFormat::DXT5:
 	{
 		uint32_t *pixelData = new uint32_t[width * height];
 		BlockDecompressImageBC3(width, height, (uint8_t*)mipMap->Data.data(), (unsigned char*)pixelData);
@@ -89,7 +89,7 @@ void SaveAsPng(FileSystem::Texture* texture)
 		break;
 	}
 
-	case TextureFormat_ATI2:
+	case TextureFormat::RGTC2:
 	{
 		// first texture:
 		// the red channel should store the grayscale
@@ -102,14 +102,14 @@ void SaveAsPng(FileSystem::Texture* texture)
 	}
 	break;
 
-	case TextureFormat_RGBA:
+	case TextureFormat::RGBA8:
 		mipMap->Data.resize(width * height * 4);
 		SaveRgbaToFile(filePath, width, height, mipMap->Data.data());
 		break;
 
 	default:
 		const char* formatNames[] = { "", "RGB", "RGBA", "", "", "RGBA4", "DXT1", "DXT3", "DXT4", "DXT5", "ATI1", "ATI2" };
-		Logger::LogLine("[%s]: Unsupported format: %s", texture->Name.c_str(), formatNames[mipMap->Format]);
+		Logger::LogLine("[%s]: Unsupported format: %s", texture->Name.c_str(), formatNames[(int)mipMap->Format]);
 		break;
 	}
 }
@@ -120,9 +120,9 @@ void SaveAsDDS(FileSystem::Texture* texture)
 
 	switch (mipMap->Format)
 	{
-	case TextureFormat_DXT1:
-	case TextureFormat_DXT5:
-	case TextureFormat_ATI2:
+	case TextureFormat::DXT1:
+	case TextureFormat::DXT5:
+	case TextureFormat::RGTC2:
 	{
 		char filePath[MAX_PATH];
 		sprintf_s<MAX_PATH>(filePath, "%s/%s.dds", "dev_ram/2d", texture->Name.c_str());
@@ -150,12 +150,11 @@ void SaveAsDDS(FileSystem::Texture* texture)
 					const char* name = "NONE";
 					switch (format)
 					{
-					case TextureFormat_RGBA: name = "RGBA"; break;
-					case TextureFormat_DXT1: name = "DXT1"; break;
-					case TextureFormat_DXT3: name = "DXT3"; break;
-					case TextureFormat_DXT4: name = "DXT4"; break;
-					case TextureFormat_DXT5: name = "DXT5"; break;
-					case TextureFormat_ATI2: name = "ATI2"; break;
+					case TextureFormat::RGBA8: name = "RGBA"; break;
+					case TextureFormat::DXT1: name = "DXT1"; break;
+					case TextureFormat::DXT3: name = "DXT3"; break;
+					case TextureFormat::DXT5: name = "DXT5"; break;
+					case TextureFormat::RGTC2: name = "ATI2"; break;
 					}
 					strcpy_s(fourCC, strlen(name) + 1, name);
 				}
@@ -192,6 +191,30 @@ void SaveAsDDS(FileSystem::Texture* texture)
 void MainTest()
 {
 	glfwInit();
+
+	// COLOR SWIZZLE TEST:
+	if (true)
+	{
+		constexpr int HEADER_SIZE = 0x80;
+
+		std::vector<uint8_t> fileBuffer;
+		ReadAllBytes("rom/spr/btn_icns.dds", &fileBuffer);
+		{
+			uint32_t* pixelBuffer = (uint32_t*)(fileBuffer.data() + HEADER_SIZE);
+			uint32_t pixelCount = (fileBuffer.size() - HEADER_SIZE) / sizeof(uint32_t);
+		
+			for (uint32_t i = 0; i < pixelCount; i++)
+			{
+				uint32_t pixel = pixelBuffer[i];
+				auto color = ImColor(pixel), copy = color;
+				color.Value.x = copy.Value.z;
+				color.Value.y = copy.Value.y;
+				color.Value.z = copy.Value.x;
+				pixelBuffer[i] = ImU32(color);
+			}
+		}
+		WriteAllBytes("rom/spr/btn_icns_processed.dds", fileBuffer);
+	}
 
 	// TXP STGPV623 TEST:
 	if (false)
@@ -249,7 +272,7 @@ void MainTest()
 	}
 
 	// SPR TEST:
-	if (true)
+	if (false)
 	{
 		auto filePath = "Y:/Dev/Comfy/Sandbox/dev_ram/sprset/spr_ps4_custom.bin";
 

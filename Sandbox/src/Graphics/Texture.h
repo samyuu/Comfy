@@ -6,8 +6,6 @@
 typedef GLuint TextureID_t;
 typedef GLenum TextureTarget_t;
 
-typedef FileSystem::TextureFormat TextureFormat;
-
 class Texture2D : public IGraphicsObject
 {
 public:

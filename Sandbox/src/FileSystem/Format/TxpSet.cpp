@@ -1,6 +1,7 @@
 #include "TxpSet.h"
 #include "FileSystem/FileInterface.h"
 #include "FileSystem/BinaryReader.h"
+#include "Graphics/Texture.h"
 #include <assert.h>
 
 namespace FileSystem
@@ -110,5 +111,13 @@ namespace FileSystem
 			uint32_t offset = offsets[i];
 			ParseTexture(buffer + offset, texture);
 		}
+	}
+
+	void Texture::UploadTexture2D()
+	{
+		assert(Texture2D == nullptr);
+
+		Texture2D = std::make_shared<::Texture2D>();
+		Texture2D->Upload(this);
 	}
 }
