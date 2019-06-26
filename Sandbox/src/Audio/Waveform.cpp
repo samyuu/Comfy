@@ -1,5 +1,5 @@
 #include "Waveform.h"
-#include "../TimeSpan.h"
+#include "TimeSpan.h"
 
 Waveform::Waveform()
 {

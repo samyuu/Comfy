@@ -1,7 +1,7 @@
 #pragma once
 #include "ISampleProvider.h"
 #include "AudioEngine.h"
-#include "../TimeSpan.h"
+#include "TimeSpan.h"
 #include <string>
 
 enum AudioFinishedAction : byte
