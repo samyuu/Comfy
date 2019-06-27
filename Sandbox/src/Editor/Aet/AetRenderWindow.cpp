@@ -20,6 +20,7 @@ namespace Editor
 	static VertexBuffer vertexBuffer;
 	static VertexArray vertexArray;
 	static std::unique_ptr<SprSet> spriteSet;
+	static int txpIndex = 0;
 
 	void InitTex(const char* sprFilePath)
 	{
@@ -105,7 +106,7 @@ namespace Editor
 
 	void AetRenderWindow::OnDrawGui()
 	{
-		ImGui::Begin("SprSet Loader", nullptr, ImGuiWindowFlags_NoBackground);
+		ImGui::Begin("SprSet Loader", nullptr, ImGuiWindowFlags_None);
 		{
 			ImGui::BeginChild("SprSetLoaderChild##AetRenderWindow");
 			if (fileViewer.DrawGui())
@@ -134,6 +135,9 @@ namespace Editor
 						ImGui::Image(tex->Texture2D->GetVoidTexture(), ImVec2(tex->Texture2D->GetWidth() * textureScale, tex->Texture2D->GetHeight() * textureScale), ImGui::UV0_GL, ImGui::UV1_GL);
 						ImGui::TreePop();
 					}
+					if (ImGui::IsItemHovered())
+						txpIndex = i;
+
 					ImGui::EndChild();
 					ImGui::PopID();
 				}
@@ -170,13 +174,16 @@ namespace Editor
 
 			if (spriteSet && spriteSet->TxpSet->Textures.size() > 0)
 			{
-				auto* texture = spriteSet->TxpSet->Textures[0].get();
-				auto format = spriteSet->TxpSet->Textures[0]->MipMaps[0]->Format;
+				if (txpIndex >= 0 && txpIndex < spriteSet->TxpSet->Textures.size())
+				{
+					auto* texture = spriteSet->TxpSet->Textures.at(txpIndex).get();
 
-				shader.SetUniform(shader.TextureFormatLocation, static_cast<int>(format));
+					auto format = texture->MipMaps.front()->Format;
+					shader.SetUniform(shader.TextureFormatLocation, static_cast<int>(format));
 
-				texture->Texture2D->Bind(0);
-				glDrawArrays(GL_TRIANGLES, 0, 6);
+					texture->Texture2D->Bind(0);
+					glDrawArrays(GL_TRIANGLES, 0, 6);
+				}
 			}
 		}
 		renderTarget.UnBind();

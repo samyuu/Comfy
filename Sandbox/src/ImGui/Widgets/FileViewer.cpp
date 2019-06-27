@@ -4,7 +4,7 @@
 #include "Misc/StringHelper.h"
 #include <filesystem>
 
-#define FILE_ICON_FORMAT_STRING(iconName) (iconName "  %s")
+#define FILE_ICON_FORMAT_STRING(iconName) ("  " iconName "  %s")
 #define CASE_FILE_ICON(caseValue, icon) case caseValue: return FILE_ICON_FORMAT_STRING(icon)
 
 using FileSystemPath = std::filesystem::path;
@@ -79,15 +79,11 @@ namespace ImGui
 
 			for (auto& info : directoryInfo)
 			{
-				ImGuiTreeNodeFlags flags = info.IsDirectory ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None;
-
 				sprintf_s(pathBuffer, GetFileInfoFormatString(info), info.ChildName.c_str());
-				if (WideTreeNodeNoArrow(pathBuffer, flags))
-					TreePop();
+				if (Selectable(pathBuffer, info.IsDirectory, ImGuiSelectableFlags_PressedOnRelease))
+					clickedInfo = &info;
 
 				info.IsHovered = IsItemHovered();
-				if (IsItemClicked())
-					clickedInfo = &info;
 			}
 
 			if (clickedInfo != nullptr)

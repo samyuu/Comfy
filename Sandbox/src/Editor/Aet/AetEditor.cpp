@@ -30,7 +30,7 @@ namespace Editor
 		ImGui::GetCurrentWindow()->Hidden = true;
 		constexpr ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground;
 
-		if (ImGui::Begin("AetSet Loader##AetEditor", nullptr, windowFlags))
+		if (ImGui::Begin("AetSet Loader##AetEditor", nullptr, ImGuiWindowFlags_None))
 		{
 			ImGui::BeginChild("AetSetLoaderChild##AetEditor");
 			DrawSetLoader();
