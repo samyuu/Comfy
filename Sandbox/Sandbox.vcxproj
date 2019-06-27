@@ -56,7 +56,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glad\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\libsndfile\include;$(ProjectDir)lib\rtaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glad\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\libsndfile\include;$(ProjectDir)lib\rtaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -78,7 +78,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glad\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\libsndfile\include;$(ProjectDir)lib\rtaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glad\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\libsndfile\include;$(ProjectDir)lib\rtaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -96,6 +96,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
+    <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp" />
+    <ClCompile Include="lib\dr_libs\src\dr_wav.cpp" />
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
     <ClCompile Include="lib\stb\src\stb_image_write.cpp" />
     <ClCompile Include="src\Editor\Aet\AetRenderWindow.cpp" />
@@ -115,9 +118,6 @@
     <ClCompile Include="src\ImGui\Widgets\FileViewer.cpp" />
     <ClCompile Include="src\License\LicenseWindow.cpp" />
     <ClCompile Include="src\Logger.cpp" />
-    <ClCompile Include="src\Audio\Decoder\dr_flac.cpp" />
-    <ClCompile Include="src\Audio\Decoder\dr_mp3.cpp" />
-    <ClCompile Include="src\Audio\Decoder\dr_wav.cpp" />
     <ClCompile Include="src\Audio\DummySampleProvider.cpp" />
     <ClCompile Include="src\Audio\ChannelMixer.cpp" />
     <ClCompile Include="src\Audio\Resampler.cpp" />
@@ -150,6 +150,7 @@
     <ClCompile Include="src\ImGui\imgui_impl_glfw.cpp" />
     <ClCompile Include="src\ImGui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="src\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="src\main_test.cpp" />
     <ClCompile Include="src\Misc\StringHelper.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -193,9 +194,6 @@
     <ClInclude Include="src\ImGui\Widgets\FileViewer.h" />
     <ClInclude Include="src\License\LicenseWindow.h" />
     <ClInclude Include="src\Logger.h" />
-    <ClInclude Include="src\Audio\Decoder\dr_flac.h" />
-    <ClInclude Include="src\Audio\Decoder\dr_mp3.h" />
-    <ClInclude Include="src\Audio\Decoder\dr_wav.h" />
     <ClInclude Include="src\Audio\DummySampleProvider.h" />
     <ClInclude Include="src\Audio\ChannelMixer.h" />
     <ClInclude Include="src\Audio\ICallbackReceiver.h" />

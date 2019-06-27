@@ -1,9 +1,9 @@
 #include "MemoryAudioStream.h"
 #include "ChannelMixer.h"
 #include "AudioEngine.h"
-#include "Decoder/dr_wav.h"
-#include "Decoder/dr_flac.h"
-#include "Decoder/dr_mp3.h"
+#include <dr_wav.h>
+#include <dr_flac.h>
+#include <dr_mp3.h>
 #include <assert.h>
 #include <windows.h>
 
