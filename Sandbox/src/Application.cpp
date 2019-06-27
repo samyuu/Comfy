@@ -434,9 +434,12 @@ void Application::DrawGui()
 			}
 
 			if (openLicensePopup)
+			{
+				*licenseWindow.GetIsWindowOpen() = true;
 				ImGui::OpenPopup(licenseWindow.GetWindowName());
+			}
 
-			if (ImGui::BeginPopupModal(licenseWindow.GetWindowName(), licenseWindow.GetIsOpen(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+			if (ImGui::BeginPopupModal(licenseWindow.GetWindowName(), licenseWindow.GetIsWindowOpen(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 			{
 				auto viewPortPos = ImVec2(windowXPosition, windowYPosition);
 				auto viewPortSize = ImVec2(windowWidth, windowHeight);

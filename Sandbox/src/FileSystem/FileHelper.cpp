@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <shlwapi.h>
 #include <assert.h>
+#include <fstream>
 
 namespace FileSystem
 {
@@ -236,5 +237,29 @@ namespace FileSystem
 		CloseHandle(fileHandle);
 
 		return result;
+	}
+
+	bool ReadAllLines(const std::string& filePath, std::vector<std::string>& buffer)
+	{
+		std::ifstream file(filePath);
+		while (true)
+		{
+			buffer.emplace_back();
+			if (!std::getline(file, buffer.back()))
+				break;
+		}
+		return true;
+	}
+
+	bool ReadAllLines(const std::wstring& filePath, std::vector<std::wstring>& buffer)
+	{
+		std::wfstream file(filePath);
+		while (true)
+		{
+			buffer.emplace_back();
+			if (!std::getline(file, buffer.back()))
+				break;
+		}
+		return true;
 	}
 }

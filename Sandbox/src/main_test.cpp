@@ -192,8 +192,26 @@ void MainTest()
 {
 	glfwInit();
 
+	if (false)
+	{
+		DEBUG_STOPWATCH("Read All glad.txt Lines");
+
+		std::vector<std::string> fileLines;
+		ReadAllLines("license/glad.txt", fileLines);
+
+		for (auto& line : fileLines)
+			std::cout << line << std::endl;
+	}
+
+	if (false)
+	{
+		DEBUG_STOPWATCH("Read All glad.txt Bytes");
+		std::vector<uint8_t> fileBuffer;
+		ReadAllBytes("license/glad.txt", &fileBuffer);
+	}
+
 	// COLOR SWIZZLE TEST:
-	if (true)
+	if (false)
 	{
 		constexpr int HEADER_SIZE = 0x80;
 
@@ -202,7 +220,7 @@ void MainTest()
 		{
 			uint32_t* pixelBuffer = (uint32_t*)(fileBuffer.data() + HEADER_SIZE);
 			uint32_t pixelCount = (fileBuffer.size() - HEADER_SIZE) / sizeof(uint32_t);
-		
+
 			for (uint32_t i = 0; i < pixelCount; i++)
 			{
 				uint32_t pixel = pixelBuffer[i];

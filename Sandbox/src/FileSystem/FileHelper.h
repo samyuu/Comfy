@@ -44,4 +44,7 @@ namespace FileSystem
 
 	bool WriteAllBytes(const std::string& filePath, const std::vector<uint8_t>& buffer);
 	bool WriteAllBytes(const std::wstring& filePath, const std::vector<uint8_t>& buffer);
+
+	bool ReadAllLines(const std::string& filePath, std::vector<std::string>& buffer);
+	bool ReadAllLines(const std::wstring& filePath, std::vector<std::wstring>& buffer);
 }
