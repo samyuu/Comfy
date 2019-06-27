@@ -1,5 +1,5 @@
 #name
-dr_libs
+dr_wav
 
 #description
 GitHub: https://github.com/mackron/dr_libs
