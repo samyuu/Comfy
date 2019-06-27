@@ -1,6 +1,10 @@
 #pragma once
 #include <string>
 
+void TrimLeft(std::string &string);
+void TrimRight(std::string &string);
+void Trim(std::string &string);
+
 bool StartsWith(const std::string& string, const std::string& prefix);
 bool StartsWith(const std::wstring& string, const std::wstring& prefix);
 

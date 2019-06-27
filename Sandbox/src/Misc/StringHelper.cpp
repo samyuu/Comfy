@@ -1,4 +1,10 @@
 #include "StringHelper.h"
+#include <algorithm>
+
+static bool IsWhiteSpace(char character)
+{
+	return character == ' ' || character == '\t' || character == '\n' || character == '\r';
+}
 
 static bool CaseInsenitiveComparison(char a, char b)
 {
@@ -9,6 +15,22 @@ static bool CaseInsenitiveWideComparison(wchar_t a, wchar_t b)
 { 
 	return tolower(a) == tolower(b); 
 };
+
+void TrimLeft(std::string &string)
+{
+	string.erase(string.begin(), std::find_if(string.begin(), string.end(), [](int ch) { return !IsWhiteSpace(ch); }));
+}
+
+void TrimRight(std::string &string)
+{
+	string.erase(std::find_if(string.rbegin(), string.rend(), [](int ch) { return !IsWhiteSpace(ch); }).base(), string.end());
+}
+
+void Trim(std::string &string)
+{
+	TrimLeft(string);
+	TrimRight(string);
+}
 
 bool StartsWith(const std::string& string, const std::string& prefix)
 {

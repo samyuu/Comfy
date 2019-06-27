@@ -378,9 +378,6 @@ void Application::DrawGui()
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 	{
-		static bool showDemoWindow = true;
-		static bool showSwapInterval = true;
-
 		// Main Menu Bar
 		// -------------
 		if (ImGui::BeginMainMenuBar())
@@ -421,17 +418,45 @@ void Application::DrawGui()
 			// ---------------
 			DrawGuiBaseWindowMenus("Data Test", dataTestComponents);
 
-			if (ImGui::BeginMenu(u8"shinitai - Ž€‚É‚½‚¢"))
+			if (ImGui::BeginMenu(u8"UTF8 Test"))
 			{
 				if (ImGui::MenuItem(u8"test - ƒeƒXƒg", nullptr)) { ; }
+				if (ImGui::MenuItem(u8"shinitai - Ž€‚É‚½‚¢", nullptr)) { ; }
 				ImGui::EndMenu();
 			}
 
-			if (ImGui::MenuItem("Open Popup", nullptr))
+			bool openLicensePopup = false;
+			if (ImGui::BeginMenu("Help"))
 			{
-				ImGui::OpenPopup("Test Popup");
+				if (ImGui::MenuItem("License"))
+					openLicensePopup = true;
+				ImGui::EndMenu();
 			}
-			if (ImGui::BeginPopupModal("Test Popup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+
+			if (openLicensePopup)
+				ImGui::OpenPopup(licenseWindow.GetWindowName());
+
+			if (ImGui::BeginPopupModal(licenseWindow.GetWindowName(), licenseWindow.GetIsOpen(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+			{
+				auto viewPortPos = ImVec2(windowXPosition, windowYPosition);
+				auto viewPortSize = ImVec2(windowWidth, windowHeight);
+				
+				ImGuiWindow* window = ImGui::FindWindowByName(licenseWindow.GetWindowName());
+				ImGui::SetWindowPos(window, viewPortPos + viewPortSize / 8, ImGuiCond_Always);
+				ImGui::SetWindowSize(window, viewPortSize * .75f, ImGuiCond_Always);
+
+				licenseWindow.DrawGui();
+
+				if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE))
+					ImGui::CloseCurrentPopup();
+
+				ImGui::EndPopup();
+			}
+
+			if (false && ImGui::MenuItem("Open Popup", nullptr))
+				ImGui::OpenPopup("Test Popup");
+
+			if (ImGui::BeginPopupModal("Test Popup", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 			{
 				ImGui::Text("Test!\n\n");
 				if (ImGui::Button("OK", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
@@ -443,7 +468,7 @@ void Application::DrawGui()
 			if (focusLostFrame && false)
 				ImGui::OpenPopup("PeepoSleep zzzZZZ");
 
-			if (ImGui::BeginPopupModal("PeepoSleep zzzZZZ", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+			if (ImGui::BeginPopupModal("PeepoSleep zzzZZZ", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 			{
 				ImGui::Text("Window focus has been lost");
 				if (focusGainedFrame)

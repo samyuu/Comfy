@@ -113,6 +113,7 @@
     <ClCompile Include="src\FileSystem\FileStream.cpp" />
     <ClCompile Include="src\Graphics\Shader\Shader.cpp" />
     <ClCompile Include="src\ImGui\Widgets\FileViewer.cpp" />
+    <ClCompile Include="src\License\LicenseWindow.cpp" />
     <ClCompile Include="src\Logger.cpp" />
     <ClCompile Include="src\Audio\Decoder\dr_flac.cpp" />
     <ClCompile Include="src\Audio\Decoder\dr_mp3.cpp" />
@@ -190,6 +191,7 @@
     <ClInclude Include="src\Graphics\GraphicsInterface.h" />
     <ClInclude Include="src\Graphics\Shader\Shader.h" />
     <ClInclude Include="src\ImGui\Widgets\FileViewer.h" />
+    <ClInclude Include="src\License\LicenseWindow.h" />
     <ClInclude Include="src\Logger.h" />
     <ClInclude Include="src\Audio\Decoder\dr_flac.h" />
     <ClInclude Include="src\Audio\Decoder\dr_mp3.h" />

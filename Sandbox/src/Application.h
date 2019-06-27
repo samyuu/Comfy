@@ -3,6 +3,7 @@
 #include "BaseWindow.h"
 #include "Editor/Editor.h"
 #include "Audio/AudioEngine.h"
+#include "License/LicenseWindow.h"
 #include "TimeSpan.h"
 #include "Logger.h"
 #include <glad/glad.h>
@@ -127,6 +128,13 @@ private:
 	TimeSpan elapsedTime = 0.0f;
 	TimeSpan currentTime, lastTime;
 	uint64_t elapsedFrames = 0;
+
+	// ImGui Variables
+	// ---------------
+	LicenseWindow licenseWindow;
+	bool showDemoWindow = true;
+	bool showSwapInterval = true;
+	// ---------------
 
 	// Main Editor
 	// -----------

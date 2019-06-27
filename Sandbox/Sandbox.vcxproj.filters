@@ -216,6 +216,9 @@
     <ClCompile Include="src\Misc\StringHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\License\LicenseWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ImGui\imconfig.h">
@@ -447,6 +450,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Misc\BitFlagsHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\License\LicenseWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
