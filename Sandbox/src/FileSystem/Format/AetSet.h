@@ -17,13 +17,13 @@ namespace FileSystem
 		AetObjType_Eff = 3,
 	};
 
-	enum AetBlendMode : uint8_t
+	enum class AetBlendMode : uint8_t
 	{
-		AetBlendMode_Alpha = 3,
-		AetBlendMode_Additive = 5,
-		AetBlendMode_DstColorZero = 6,
-		AetBlendMode_SrcAlphaOneMinusSrcColor = 7,
-		AetBlendMode_Transparent = 8,
+		Alpha = 3,
+		Additive = 5,
+		DstColorZero = 6,
+		SrcAlphaOneMinusSrcColor = 7,
+		Transparent = 8,
 	};
 
 	struct AetSprite
