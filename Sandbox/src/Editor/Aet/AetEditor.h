@@ -22,7 +22,7 @@ namespace Editor
 		virtual ImGuiWindowFlags GetWindowFlags() const override;
 
 	private:
-		ImGui::FileViewer fileViewer{ "dev_ram/aetset/" };
+		ImGui::FileViewer fileViewer = { "dev_ram/aetset/" };
 
 		std::unique_ptr<AetTimeline> timeline;
 		std::unique_ptr<AetRenderWindow> renderWindow;

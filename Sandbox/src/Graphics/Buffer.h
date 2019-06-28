@@ -26,15 +26,16 @@ enum class BufferUsage
 class VertexBuffer : public IGraphicsObject
 {
 public:
-	VertexBuffer();
+	VertexBuffer(BufferUsage usage);
 	~VertexBuffer();
 	VertexBuffer(const VertexBuffer&) = delete;
 
 	void InitializeID() override;
-	void Upload(void* data, size_t dataSize, BufferUsage usage);
+	void Upload(size_t dataSize, void* data);
+	void UploadSubData(size_t dataSize, void* data);
 
-	void Bind() override;
-	void UnBind() override;
+	void Bind() const override;
+	void UnBind() const override;
 
 protected:
 	VertexBufferID_t vertexBufferID = NULL;

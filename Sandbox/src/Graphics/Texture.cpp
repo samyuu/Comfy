@@ -1,5 +1,6 @@
 #include "Texture.h"
 #include "Logger.h"
+#include "ErrorChecking.h"
 #include <stb/stb_image.h>
 #include <assert.h>
 
@@ -19,23 +20,23 @@ Texture2D::~Texture2D()
 	Dispose();
 }
 
-void Texture2D::Bind()
+void Texture2D::Bind() const
 {
 	Bind(0);
 }
 
-void Texture2D::Bind(int textureSlot)
+void Texture2D::Bind(int textureSlot) const
 {
 	glActiveTexture(GetTextureSlotEnum(textureSlot));
 	glBindTexture(GetTextureTarget(), textureID);
 }
 
-void Texture2D::UnBind()
+void Texture2D::UnBind() const
 {
 	UnBind(0);
 }
 
-void Texture2D::UnBind(int textureSlot)
+void Texture2D::UnBind(int textureSlot) const
 {
 	glActiveTexture(GetTextureSlotEnum(textureSlot));
 	glBindTexture(GetTextureTarget(), NULL);
@@ -44,14 +45,17 @@ void Texture2D::UnBind(int textureSlot)
 void Texture2D::InitializeID()
 {
 	glGenTextures(1, &textureID);
+	CHECK_GL_ERROR("glGenTextures()");
 }
 
 void Texture2D::UploadEmpty(int width, int height)
 {
-	imageWidth = width;
-	imageHeight = height;
+	imageSize.x = width;
+	imageSize.y = height;
 
 	glTexImage2D(GetTextureTarget(), 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	CHECK_GL_ERROR("glTexImage2D()");
+
 	glTexParameteri(GetTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
@@ -63,8 +67,8 @@ bool Texture2D::Upload(const FileSystem::Texture* texture)
 
 	const FileSystem::MipMap* baseMipMap = texture->MipMaps.front().get();
 
-	imageWidth = baseMipMap->Width;
-	imageHeight = baseMipMap->Height;
+	imageSize.x = baseMipMap->Width;
+	imageSize.y = baseMipMap->Height;
 	textureFormat = baseMipMap->Format;
 
 	InitializeID();
@@ -97,20 +101,21 @@ bool Texture2D::Upload(const FileSystem::Texture* texture)
 		if (GetIsCompressed(mipMap->Format))
 		{
 			glCompressedTexImage2D(GetTextureTarget(), i, glFormat, mipMap->Width, mipMap->Height, 0, dataSize, data);
+			CHECK_GL_ERROR("glCompressedTexImage2D()");
 		}
 		else
 		{
 			glTexImage2D(GetTextureTarget(), i, glFormat, mipMap->Width, mipMap->Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			CHECK_GL_ERROR("glTexImage2D()");
 		}
 
 		// else textureLod(...) won't work for RTC2 textures
 		if (i == 0 && mipMapCount <= 2)
+		{
 			glGenerateMipmap(GetTextureTarget());
+			CHECK_GL_ERROR("glGenerateMipmap()");
+		}
 	}
-
-	GLenum error = glGetError();
-	if (error != GL_NO_ERROR)
-		Logger::LogErrorLine("Texture2D::Upload: glGetError(): %d", error);
 
 	return true;
 }
@@ -127,15 +132,18 @@ bool Texture2D::UploadFromFile(const char* path)
 
 	assert(pixelData != nullptr);
 
-	imageWidth = (float)width;
-	imageHeight = (float)height;
+	imageSize.x = (float)width;
+	imageSize.y = (float)height;
 	textureFormat = TextureFormat::RGBA8;
 
 	InitializeID();
 	Bind();
 	
 	glTexImage2D(GetTextureTarget(), 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
+	CHECK_GL_ERROR("glTexImage2D()");
+
 	glGenerateMipmap(GetTextureTarget());
+	CHECK_GL_ERROR("glGenerateMipmap()");
 
 	stbi_image_free(pixelData);
 

@@ -9,8 +9,8 @@ public:
 class IBindable
 {
 public:
-	virtual void Bind() = 0;
-	virtual void UnBind() = 0;
+	virtual void Bind() const = 0;
+	virtual void UnBind() const = 0;
 };
 
 class IGraphicsObject : public IInitializable, IBindable

@@ -46,9 +46,9 @@ namespace Editor
 			VertexArray lineVao;
 			VertexArray screenVao;
 
-			VertexBuffer cubeVertexBuffer;
-			VertexBuffer lineVertexBuffer;
-			VertexBuffer screenVertexBuffer;
+			VertexBuffer cubeVertexBuffer = { BufferUsage::StaticDraw };
+			VertexBuffer lineVertexBuffer = { BufferUsage::StaticDraw };
+			VertexBuffer screenVertexBuffer = { BufferUsage::StaticDraw };
 		};
 
 		// Textures

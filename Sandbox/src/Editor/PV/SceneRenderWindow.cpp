@@ -44,7 +44,7 @@ namespace Editor
 
 			cubeVertexBuffer.InitializeID();
 			cubeVertexBuffer.Bind();
-			cubeVertexBuffer.Upload(cubeVertices, sizeof(cubeVertices), BufferUsage::StaticDraw);
+			cubeVertexBuffer.Upload(sizeof(cubeVertices), cubeVertices);
 
 			BufferLayout layout =
 			{
@@ -65,7 +65,7 @@ namespace Editor
 
 			lineVertexBuffer.InitializeID();
 			lineVertexBuffer.Bind();
-			lineVertexBuffer.Upload(axisVertices, sizeof(axisVertices), BufferUsage::StaticDraw);
+			lineVertexBuffer.Upload(sizeof(axisVertices), axisVertices);
 
 			BufferLayout layout =
 			{
@@ -85,7 +85,7 @@ namespace Editor
 
 			screenVertexBuffer.InitializeID();
 			screenVertexBuffer.Bind();
-			screenVertexBuffer.Upload(screenVertices, sizeof(screenVertices), BufferUsage::StaticDraw);
+			screenVertexBuffer.Upload(sizeof(screenVertices), screenVertices);
 
 			BufferLayout layout =
 			{

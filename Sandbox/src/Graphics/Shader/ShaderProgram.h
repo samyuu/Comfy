@@ -2,6 +2,7 @@
 #include "Types.h"
 #include "Graphics/GraphicsInterface.h"
 #include <string>
+#include <vector>
 #include <glad/glad.h>
 
 typedef GLint UniformLocation_t;
@@ -19,8 +20,8 @@ public:
 	ShaderProgram();
 	~ShaderProgram();
 
-	void Bind() override;
-	void UnBind() override;
+	void Bind() const override;
+	void UnBind() const override;
 	void SetUniform(UniformLocation_t, int);
 	void SetUniform(UniformLocation_t, float);
 	void SetUniform(UniformLocation_t, glm::mat4&);
@@ -32,6 +33,7 @@ public:
 	inline bool GetIsInitialized() const { return initialized; };
 
 protected:
+	std::vector<uint8_t> vertexSource, fragmentSource;
 	ProgramID_t programID = NULL;
 
 	UniformLocation_t GetUniformLocation(const std::string&);
@@ -43,7 +45,7 @@ protected:
 private:
 	bool initialized = false;
 
-	int GetShaderSource(const std::string&, char*, size_t);
-	int CompileShader(ShaderType, ShaderID_t*, const std::string&);
+	void LoadShaderSources();
+	int CompileShader(ShaderType, ShaderID_t*, const std::vector<uint8_t>&);
 	int AttachLinkShaders(ShaderID_t, ShaderID_t);
 };

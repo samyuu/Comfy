@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "GraphicsInterface.h"
 #include "FileSystem/Format/TxpSet.h"
 #include <glad/glad.h>
@@ -13,26 +14,27 @@ public:
 	~Texture2D();
 	Texture2D(const Texture2D&) = delete;
 
-	void Bind() override;
-	void Bind(int textureSlot);
-	void UnBind() override;
-	void UnBind(int textureSlot);
+	void Bind() const override;
+	void Bind(int textureSlot) const;
+	void UnBind() const override;
+	void UnBind(int textureSlot) const;
 
 	void InitializeID() override;
 	void UploadEmpty(int width, int height);
 	bool Upload(const FileSystem::Texture* texture);
 	bool UploadFromFile(const char* path);
 
-	inline float GetWidth() { return imageWidth; };
-	inline float GetHeight() { return imageHeight; };
+	inline float GetWidth() const { return imageSize.x; };
+	inline float GetHeight() const { return imageSize.y; };
+	inline const vec2& GetSize() const { return imageSize; };
 
-	inline void SetSize(float width, float height) { imageWidth = width; imageHeight = height; };
+	//inline void SetSize(float width, float height) { imageWidth = width; imageHeight = height; };
 
-	inline TextureID_t GetTextureID() { return textureID; }
-	inline void* GetVoidTexture() { return reinterpret_cast<void*>(GetTextureID()); }
+	inline TextureID_t GetTextureID() const { return textureID; }
+	inline void* GetVoidTexture() const { return reinterpret_cast<void*>(GetTextureID()); }
 
-	inline TextureTarget_t GetTextureTarget() { return textureTarget; };
-	inline TextureFormat GetTextureFormat() { return textureFormat; };
+	inline TextureTarget_t GetTextureTarget() const { return textureTarget; };
+	inline TextureFormat GetTextureFormat() const { return textureFormat; };
 
 	static constexpr GLenum GetTextureSlotEnum(int textureSlot)
 	{
@@ -47,8 +49,7 @@ protected:
 	TextureTarget_t textureTarget = GL_TEXTURE_2D;
 
 	TextureFormat textureFormat;
-	float imageWidth = 0.0f;
-	float imageHeight = 0.0f;
+	vec2 imageSize;
 	int imageChannels = 0;
 
 	void Dispose();

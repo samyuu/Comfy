@@ -1,4 +1,5 @@
 #include "RenderTarget.h"
+#include "ErrorChecking.h"
 #include <glad/glad.h>
 #include <assert.h>
 
@@ -18,14 +19,15 @@ Renderbuffer::~Renderbuffer()
 void Renderbuffer::InitializeID()
 {
 	glGenRenderbuffers(1, &renderbufferID);
+	CHECK_GL_ERROR("glGenRenderbuffers()");
 }
 
-void Renderbuffer::Bind()
+void Renderbuffer::Bind() const
 {
 	glBindRenderbuffer(GetRenderTarget(), renderbufferID);
 }
 
-void Renderbuffer::UnBind()
+void Renderbuffer::UnBind() const
 {
 	glBindRenderbuffer(GetRenderTarget(), NULL);
 }
@@ -33,6 +35,7 @@ void Renderbuffer::UnBind()
 void Renderbuffer::RenderbufferStorage(int width, int height, InternalFormat_t internalFormat)
 {
 	glRenderbufferStorage(GetRenderTarget(), internalFormat, width, height);
+	CHECK_GL_ERROR("glRenderbufferStorage()");
 }
 
 void Renderbuffer::Dispose()
@@ -57,6 +60,7 @@ Framebuffer::~Framebuffer()
 void Framebuffer::Initialize()
 {
 	glGenFramebuffers(1, &framebufferID);
+	CHECK_GL_ERROR("glGenFramebuffers()");
 }
 
 void Framebuffer::Bind()
@@ -77,11 +81,13 @@ FramebufferStatus_t Framebuffer::CheckStatus()
 void Framebuffer::AttachTexture(Texture2D& texture, Attachment_t attachment)
 {
 	glFramebufferTexture2D(GetBufferTarget(), attachment, texture.GetTextureTarget(), texture.GetTextureID(), 0);
+	CHECK_GL_ERROR("glFramebufferTexture2D()");
 }
 
 void Framebuffer::AttachRenderbuffer(Renderbuffer& renderbuffer, Attachment_t attachment)
 {
 	glFramebufferRenderbuffer(GetBufferTarget(), attachment, renderbuffer.GetRenderTarget(), renderbuffer.GetRenderbufferID());
+	CHECK_GL_ERROR("glFramebufferRenderbuffer()");
 }
 
 void Framebuffer::Dispose()

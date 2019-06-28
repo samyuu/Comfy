@@ -1,11 +1,12 @@
 #include "Buffer.h"
+#include "ErrorChecking.h"
 #include <assert.h>
 
 // ------------------------------------------------------------------------------------------------
 // --- VertexBuffer:
 // ------------------------------------------------------------------------------------------------
 
-VertexBuffer::VertexBuffer()
+VertexBuffer::VertexBuffer(BufferUsage usage) : bufferUsage(usage)
 {
 }
 
@@ -17,20 +18,29 @@ VertexBuffer::~VertexBuffer()
 void VertexBuffer::InitializeID()
 {
 	glGenBuffers(1, &vertexBufferID);
+	CHECK_GL_ERROR("InitializeID()");
 }
 
-void VertexBuffer::Upload(void* data, size_t dataSize, BufferUsage usage)
+void VertexBuffer::Upload(size_t dataSize, void* data)
 {
-	bufferUsage = usage;
 	glBufferData(GetGLBufferTarget(), dataSize, data, GetGLUsage());
+	CHECK_GL_ERROR("Upload()");
 }
 
-void VertexBuffer::Bind()
+void VertexBuffer::UploadSubData(size_t dataSize, void* data)
+{
+	glBufferData(GetGLBufferTarget(), dataSize, nullptr, GetGLUsage());
+	CHECK_GL_ERROR("glBufferData()");
+	glBufferSubData(GetGLBufferTarget(), (GLintptr)nullptr, dataSize, data);
+	CHECK_GL_ERROR("glBufferSubData()");
+}
+
+void VertexBuffer::Bind() const
 {
 	glBindBuffer(GetGLBufferTarget(), vertexBufferID);
 }
 
-void VertexBuffer::UnBind()
+void VertexBuffer::UnBind() const
 {
 	glBindBuffer(GetGLBufferTarget(), NULL);
 }

@@ -14,8 +14,8 @@ public:
 	VertexArray(const VertexArray&) = delete;
 
 	void InitializeID() override;
-	void Bind() override;
-	void UnBind() override;
+	void Bind() const override;
+	void UnBind() const override;
 
 	void SetLayout(const BufferLayout& layout);
 

@@ -1,5 +1,6 @@
 #include "ShaderProgram.h"
-#include "Logger.h"
+#include "Graphics/ErrorChecking.h"
+#include "FileSystem/FileHelper.h"
 #include <fstream>
 
 ShaderProgram::ShaderProgram()
@@ -12,12 +13,12 @@ ShaderProgram::~ShaderProgram()
 		glDeleteProgram(programID);
 }
 
-void ShaderProgram::Bind()
+void ShaderProgram::Bind() const
 {
 	glUseProgram(programID);
 }
 
-void ShaderProgram::UnBind()
+void ShaderProgram::UnBind() const
 {
 	glUseProgram(0);
 }
@@ -54,16 +55,15 @@ void ShaderProgram::SetUniformByName(const char* name, glm::mat4& value)
 
 void ShaderProgram::Initialize()
 {
+	LoadShaderSources();
+
 	ShaderID_t vertexShader, fragmentShader;
-	char sourceBuffer[4096];
-
-	GetShaderSource(GetVertexShaderPath(), sourceBuffer, sizeof(sourceBuffer));
-	CompileShader(ShaderType::Vertex, &vertexShader, sourceBuffer);
-
-	GetShaderSource(GetFragmentShaderPath(), sourceBuffer, sizeof(sourceBuffer));
-	CompileShader(ShaderType::Fragment, &fragmentShader, sourceBuffer);
+	CompileShader(ShaderType::Vertex, &vertexShader, vertexSource);
+	CompileShader(ShaderType::Fragment, &fragmentShader, fragmentSource);
 
 	programID = glCreateProgram();
+	CHECK_GL_ERROR("glCreateProgram()");
+
 	AttachLinkShaders(vertexShader, fragmentShader);
 
 	GetAllUniformLocations();
@@ -73,27 +73,16 @@ void ShaderProgram::Initialize()
 UniformLocation_t ShaderProgram::GetUniformLocation(const std::string &name)
 {
 	return glGetUniformLocation(programID, name.c_str());
+	CHECK_GL_ERROR("glGetUniformLocation()");
 }
 
-int ShaderProgram::GetShaderSource(const std::string& path, char* buffer, size_t bufferSize)
+void ShaderProgram::LoadShaderSources()
 {
-	std::ifstream file(path, std::ifstream::in);
-
-	int i = 0;
-	while (file.good())
-	{
-		buffer[i] = file.get();
-
-		if (!file.eof())
-			i++;
-	}
-	buffer[i] = '\0';
-
-	file.close();
-	return 0;
+	FileSystem::ReadAllBytes(GetVertexShaderPath(), &vertexSource);
+	FileSystem::ReadAllBytes(GetFragmentShaderPath(), &fragmentSource);
 }
 
-int ShaderProgram::CompileShader(ShaderType shaderType, ShaderID_t* shaderID, const std::string& shaderSource)
+int ShaderProgram::CompileShader(ShaderType shaderType, ShaderID_t* shaderID, const std::vector<uint8_t>& shaderSource)
 {
 	GLuint glShaderType = NULL;
 
@@ -109,11 +98,15 @@ int ShaderProgram::CompileShader(ShaderType shaderType, ShaderID_t* shaderID, co
 	}
 
 	*shaderID = glCreateShader(glShaderType);
+	CHECK_GL_ERROR("glCreateShader()");
 
-	const char* source = shaderSource.c_str();
-	glShaderSource(*shaderID, 1, &source, NULL);
+	int sourceSizes[1] = { (int)shaderSource.size() };
+	char* sources[1] = { (char*)shaderSource.data() };
 	
+	glShaderSource(*shaderID, 1, sources, sourceSizes);
+	CHECK_GL_ERROR("glShaderSource()");
 	glCompileShader(*shaderID);
+	CHECK_GL_ERROR("glCompileShader()");
 
 	int compileSuccess = NULL;
 	glGetShaderiv(*shaderID, GL_COMPILE_STATUS, &compileSuccess);
@@ -133,8 +126,11 @@ int ShaderProgram::CompileShader(ShaderType shaderType, ShaderID_t* shaderID, co
 int ShaderProgram::AttachLinkShaders(ShaderID_t vertexShader, ShaderID_t fragmentShader)
 {
 	glAttachShader(programID, vertexShader);
+	CHECK_GL_ERROR("glAttachShader()");
 	glAttachShader(programID, fragmentShader);
+	CHECK_GL_ERROR("glAttachShader()");
 	glLinkProgram(programID);
+	CHECK_GL_ERROR("glLinkProgram()");
 
 	int linkSuccess = NULL;
 	glGetProgramiv(programID, GL_LINK_STATUS, &linkSuccess);
