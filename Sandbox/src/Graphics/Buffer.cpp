@@ -3,31 +3,31 @@
 #include <assert.h>
 
 // ------------------------------------------------------------------------------------------------
-// --- VertexBuffer:
+// --- Buffer:
 // ------------------------------------------------------------------------------------------------
 
-VertexBuffer::VertexBuffer(BufferUsage usage) : bufferUsage(usage)
+Buffer::Buffer(BufferUsage usage) : bufferUsage(usage)
 {
 }
 
-VertexBuffer::~VertexBuffer()
+Buffer::~Buffer()
 {
 	Dispose();
 }
 
-void VertexBuffer::InitializeID()
+void Buffer::InitializeID()
 {
 	glGenBuffers(1, &vertexBufferID);
-	CHECK_GL_ERROR("InitializeID()");
+	CHECK_GL_ERROR("glGenBuffers()");
 }
 
-void VertexBuffer::Upload(size_t dataSize, void* data)
+void Buffer::Upload(size_t dataSize, void* data)
 {
 	glBufferData(GetGLBufferTarget(), dataSize, data, GetGLUsage());
-	CHECK_GL_ERROR("Upload()");
+	CHECK_GL_ERROR("glBufferData()");
 }
 
-void VertexBuffer::UploadSubData(size_t dataSize, void* data)
+void Buffer::UploadSubData(size_t dataSize, void* data)
 {
 	glBufferData(GetGLBufferTarget(), dataSize, nullptr, GetGLUsage());
 	CHECK_GL_ERROR("glBufferData()");
@@ -35,17 +35,17 @@ void VertexBuffer::UploadSubData(size_t dataSize, void* data)
 	CHECK_GL_ERROR("glBufferSubData()");
 }
 
-void VertexBuffer::Bind() const
+void Buffer::Bind() const
 {
 	glBindBuffer(GetGLBufferTarget(), vertexBufferID);
 }
 
-void VertexBuffer::UnBind() const
+void Buffer::UnBind() const
 {
 	glBindBuffer(GetGLBufferTarget(), NULL);
 }
 
-GLenum VertexBuffer::GetGLUsage() const
+GLenum Buffer::GetGLUsage() const
 {
 	switch (bufferUsage)
 	{
@@ -72,15 +72,44 @@ GLenum VertexBuffer::GetGLUsage() const
 	}
 }
 
+void Buffer::Dispose()
+{
+	if (vertexBufferID != NULL)
+		glDeleteBuffers(1, &vertexBufferID);
+}
+
+// ------------------------------------------------------------------------------------------------
+// --- VertexBuffer:
+// ------------------------------------------------------------------------------------------------
+
+VertexBuffer::VertexBuffer(BufferUsage usage) : Buffer(usage)
+{
+}
+
+VertexBuffer::~VertexBuffer()
+{
+}
+
 GLenum VertexBuffer::GetGLBufferTarget() const
 {
 	return GL_ARRAY_BUFFER;
 }
 
-void VertexBuffer::Dispose()
+// ------------------------------------------------------------------------------------------------
+// --- IndexBuffer:
+// ------------------------------------------------------------------------------------------------
+
+IndexBuffer::IndexBuffer(BufferUsage usage) : Buffer(usage)
 {
-	if (vertexBufferID != NULL)
-		glDeleteBuffers(1, &vertexBufferID);
+}
+
+IndexBuffer::~IndexBuffer()
+{
+}
+
+GLenum IndexBuffer::GetGLBufferTarget() const
+{
+	return GL_ELEMENT_ARRAY_BUFFER;
 }
 
 // ------------------------------------------------------------------------------------------------

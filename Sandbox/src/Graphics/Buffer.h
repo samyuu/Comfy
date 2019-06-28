@@ -5,10 +5,10 @@
 #include <vector>
 
 // ------------------------------------------------------------------------------------------------
-// --- VertexBuffer:
+// --- Buffer:
 // ------------------------------------------------------------------------------------------------
 
-typedef GLuint VertexBufferID_t;
+typedef GLuint BufferID_t;
 
 enum class BufferUsage
 {
@@ -23,12 +23,11 @@ enum class BufferUsage
 	DynamicCopy,
 };
 
-class VertexBuffer : public IGraphicsObject
+class Buffer : public IGraphicsObject
 {
 public:
-	VertexBuffer(BufferUsage usage);
-	~VertexBuffer();
-	VertexBuffer(const VertexBuffer&) = delete;
+	Buffer(BufferUsage usage);
+	~Buffer();
 
 	void InitializeID() override;
 	void Upload(size_t dataSize, void* data);
@@ -38,23 +37,44 @@ public:
 	void UnBind() const override;
 
 protected:
-	VertexBufferID_t vertexBufferID = NULL;
+	BufferID_t vertexBufferID = NULL;
 	BufferUsage bufferUsage;
-	
+
 	GLenum GetGLUsage() const;
-	GLenum GetGLBufferTarget() const;
+	virtual GLenum GetGLBufferTarget() const = 0;
+
 	void Dispose();
+};
+
+// ------------------------------------------------------------------------------------------------
+// --- VertexBuffer:
+// ------------------------------------------------------------------------------------------------
+
+class VertexBuffer : public Buffer
+{
+public:
+	VertexBuffer(BufferUsage usage);
+	~VertexBuffer();
+	VertexBuffer(const VertexBuffer&) = delete;
+
+protected:
+	GLenum GetGLBufferTarget() const override;
 };
 
 // ------------------------------------------------------------------------------------------------
 // --- IndexBuffer:
 // ------------------------------------------------------------------------------------------------
 
-// TODO: 
-// class IndexBuffer
-// {
-// 
-// };
+class IndexBuffer : public Buffer
+{
+public:
+	IndexBuffer(BufferUsage usage);
+	~IndexBuffer();
+	IndexBuffer(const IndexBuffer&) = delete;
+
+protected:
+	GLenum GetGLBufferTarget() const override;
+};
 
 // ------------------------------------------------------------------------------------------------
 // --- ShaderDataType:
