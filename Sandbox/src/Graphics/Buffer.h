@@ -37,7 +37,7 @@ public:
 	void UnBind() const override;
 
 protected:
-	BufferID_t vertexBufferID = NULL;
+	BufferID_t bufferID = NULL;
 	BufferUsage bufferUsage;
 
 	GLenum GetGLUsage() const;
@@ -65,14 +65,25 @@ protected:
 // --- IndexBuffer:
 // ------------------------------------------------------------------------------------------------
 
+enum class IndexType
+{
+	UnsignedByte,
+	UnsignedShort,
+	UnsignedInt,
+};
+
 class IndexBuffer : public Buffer
 {
 public:
-	IndexBuffer(BufferUsage usage);
+	IndexBuffer(BufferUsage usage, IndexType type);
 	~IndexBuffer();
 	IndexBuffer(const IndexBuffer&) = delete;
 
+	GLenum GetGLIndexType();
+
 protected:
+	IndexType indexType;
+
 	GLenum GetGLBufferTarget() const override;
 };
 

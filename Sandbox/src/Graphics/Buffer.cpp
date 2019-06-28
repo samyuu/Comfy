@@ -17,7 +17,7 @@ Buffer::~Buffer()
 
 void Buffer::InitializeID()
 {
-	glGenBuffers(1, &vertexBufferID);
+	glGenBuffers(1, &bufferID);
 	CHECK_GL_ERROR("glGenBuffers()");
 }
 
@@ -37,7 +37,7 @@ void Buffer::UploadSubData(size_t dataSize, void* data)
 
 void Buffer::Bind() const
 {
-	glBindBuffer(GetGLBufferTarget(), vertexBufferID);
+	glBindBuffer(GetGLBufferTarget(), bufferID);
 }
 
 void Buffer::UnBind() const
@@ -74,8 +74,8 @@ GLenum Buffer::GetGLUsage() const
 
 void Buffer::Dispose()
 {
-	if (vertexBufferID != NULL)
-		glDeleteBuffers(1, &vertexBufferID);
+	if (bufferID != NULL)
+		glDeleteBuffers(1, &bufferID);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -99,12 +99,27 @@ GLenum VertexBuffer::GetGLBufferTarget() const
 // --- IndexBuffer:
 // ------------------------------------------------------------------------------------------------
 
-IndexBuffer::IndexBuffer(BufferUsage usage) : Buffer(usage)
+IndexBuffer::IndexBuffer(BufferUsage usage, IndexType type) : Buffer(usage), indexType(type)
 {
 }
 
 IndexBuffer::~IndexBuffer()
 {
+}
+
+GLenum IndexBuffer::GetGLIndexType()
+{
+	switch (indexType)
+	{
+	case IndexType::UnsignedByte:
+		return GL_UNSIGNED_BYTE;
+	case IndexType::UnsignedShort:
+		return GL_UNSIGNED_SHORT;
+	case IndexType::UnsignedInt:
+		return GL_UNSIGNED_INT;
+	default:
+		assert(false);
+	}
 }
 
 GLenum IndexBuffer::GetGLBufferTarget() const
