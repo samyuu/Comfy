@@ -4,6 +4,7 @@ out vec4 fragColor;
 in vec4 vertexColor;
 in vec2 vertexTexCoord;
 
+uniform bool u_solidColor;
 uniform int u_textureFormat;
 uniform sampler2D textureSampler;
 uniform sampler2D textureMaskSampler;
@@ -40,25 +41,32 @@ const int TextureFormat_RGTC2 = 11;
 const int TextureFormat_L8 = 12;
 // GL_LUMINANCE8_ALPHA8
 const int TextureFormat_L8A8 = 13;
-	
-void main()
-{
-	vec4 textureColor;
 
+vec4 GetTextureColor()
+{
 	if (u_textureFormat == TextureFormat_RGTC2)
 	{
 		vec4 grayscale = textureLod(textureSampler, vertexTexCoord, 0.0).rrrg;
 		vec4 luminance = textureLod(textureSampler, vertexTexCoord, 1.0) * 1.003922 -0.503929;
 		grayscale.rb = luminance.gr;
-		textureColor.r = dot(grayscale.rgb, RED_COEF);
-		textureColor.g = dot(grayscale.rgb, GRN_COEF);
-		textureColor.b = dot(grayscale.rgb, BLU_COEF);
-		textureColor.a = grayscale.a;
+		
+		return vec4(
+			dot(grayscale.rgb, RED_COEF),
+			dot(grayscale.rgb, GRN_COEF),
+			dot(grayscale.rgb, BLU_COEF),
+			grayscale.a);
 	}
-	else
+		
+	return texture(textureSampler, vertexTexCoord);
+}
+
+void main()
+{
+	if (u_solidColor)
 	{
-		textureColor = texture(textureSampler, vertexTexCoord);
+		fragColor = vertexColor;
+		return;
 	}
 
-	fragColor = textureColor * vertexColor;
+	fragColor = GetTextureColor() * vertexColor;
 }
