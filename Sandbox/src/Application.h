@@ -11,7 +11,7 @@
 
 constexpr float DEFAULT_WINDOW_WIDTH = 1280.0f;
 constexpr float DEFAULT_WINDOW_HEIGHT = 720.0f;
-constexpr const char* DEFAULT_WINDOW_TITLE = "Comfy window";
+constexpr const char* DEFAULT_WINDOW_TITLE = "Comfy Window";
 
 class Application
 {
