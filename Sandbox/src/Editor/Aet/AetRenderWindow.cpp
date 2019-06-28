@@ -1,91 +1,12 @@
 #include "AetRenderWindow.h"
-#include "Graphics/VertexArray.h"
-#include "Graphics/Buffer.h"
-#include "Graphics/ComfyVertex.h"
-#include "Graphics/Shader/Shader.h"
-#include "Graphics/Texture.h"
-#include "FileSystem/Format/SprSet.h"
+#include "Editor/Theme.h"
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
+#include "TimeSpan.h"
+#include <glfw/glfw3.h>
 
 namespace Editor
 {
-	using namespace FileSystem;
-
-	// -----------------------------------------
-	// --- TEMP:
-	// -----------------------------------------
-	static float textureScale = 1.0f;
-	static SpriteShader shader;
-	static VertexBuffer vertexBuffer;
-	static VertexArray vertexArray;
-	static std::unique_ptr<SprSet> spriteSet;
-	static int txpIndex = 0;
-
-	void InitTex(const char* sprFilePath)
-	{
-		std::vector<uint8_t> fileBuffer;
-		ReadAllBytes(sprFilePath, &fileBuffer);
-
-		spriteSet = std::make_unique<SprSet>();
-		spriteSet->Parse(fileBuffer.data());
-
-		for (int i = 0; i < spriteSet->TxpSet->Textures.size(); i++)
-		{
-			spriteSet->TxpSet->Textures[i]->Texture2D = std::make_shared<Texture2D>();
-			spriteSet->TxpSet->Textures[i]->Texture2D->Upload(spriteSet->TxpSet->Textures[i].get());
-		}
-	}
-	void TempInit()
-	{
-		mat4 projection = glm::ortho(0.0f, 1280.0f, 0.0f, 720.0f, -1.0f, 1.0f);
-
-		shader.Initialize();
-		shader.Bind();
-		shader.SetUniform(shader.ProjectionLocation, projection);
-
-		constexpr float margin = 30;
-		constexpr vec4 color = vec4(1, 1, 1, 1);
-
-		SpriteVertex vertices[] =
-		{
-			{ vec2(1280 - margin,   0 + margin), vec2(1, 0), color }, // tr
-			{ vec2(1280 - margin, 720 - margin), vec2(1, 1), color }, // br
-			{ vec2(0 + margin, 720 - margin), vec2(0, 1), color }, // bl
-
-			{ vec2(0 + margin, 720 - margin), vec2(0, 1), color }, // bl
-			{ vec2(0 + margin,   0 + margin), vec2(0, 0), color }, // tl
-			{ vec2(1280 - margin,   0 + margin), vec2(1, 0), color }, // tr
-		};
-
-		vertexBuffer.InitializeID();
-		vertexBuffer.Bind();
-		vertexBuffer.Upload(vertices, sizeof(vertices), BufferUsage::StaticDraw);
-
-		BufferLayout layout =
-		{
-			{ ShaderDataType::Vec2, "in_position" },
-			{ ShaderDataType::Vec2, "in_texture_coords" },
-			{ ShaderDataType::Vec4, "in_color" }
-		};
-
-		vertexArray.InitializeID();
-		vertexArray.Bind();
-		vertexArray.SetLayout(layout);
-
-		//InitTex("dev_ram/sprset/spr_gam_cmn.bin");
-	}
-	void CheckTempInit()
-	{
-		static bool init = true;
-		if (!init)
-			return;
-
-		init = false;
-		TempInit();
-	}
-	// -----------------------------------------
-
 	AetRenderWindow::AetRenderWindow()
 	{
 	}
@@ -106,6 +27,9 @@ namespace Editor
 
 	void AetRenderWindow::OnDrawGui()
 	{
+		const char* blendModeNames = "None\0None\0None\0Alpha\0None\0Additive\0DstColorZero\0SrcAlphaOneMinusSrcColor\0Transparent";
+		ImGui::Combo("Blend Mode", &currentBlendItem, blendModeNames);
+
 		ImGui::Begin("SprSet Loader", nullptr, ImGuiWindowFlags_None);
 		{
 			ImGui::BeginChild("SprSetLoaderChild##AetRenderWindow");
@@ -113,7 +37,19 @@ namespace Editor
 			{
 				std::string sprPath = fileViewer.GetFileToOpen();
 				if (StartsWithInsensitive(GetFileName(sprPath), "spr_") && EndsWithInsensitive(sprPath, ".bin"))
-					InitTex(sprPath.c_str());
+				{
+					std::vector<uint8_t> fileBuffer;
+					ReadAllBytes(sprPath, &fileBuffer);
+
+					sprSet = std::make_unique<SprSet>();
+					sprSet->Parse(fileBuffer.data());
+
+					for (int i = 0; i < sprSet->TxpSet->Textures.size(); i++)
+					{
+						sprSet->TxpSet->Textures[i]->Texture2D = std::make_shared<Texture2D>();
+						sprSet->TxpSet->Textures[i]->Texture2D->Upload(sprSet->TxpSet->Textures[i].get());
+					}
+				}
 			}
 			ImGui::EndChild();
 		}
@@ -121,22 +57,29 @@ namespace Editor
 
 		ImGui::Begin("Txp Preview", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBackground);
 		{
-			ImGui::SliderFloat("Texture Scale", &textureScale, 0.1f, 2.0f);
-			if (spriteSet)
+			if (sprSet != nullptr)
 			{
-				for (int i = 0; i < spriteSet->TxpSet->Textures.size(); i++)
+				for (int i = 0; i < sprSet->TxpSet->Textures.size(); i++)
 				{
-					auto tex = spriteSet->TxpSet->Textures[i].get();
+					auto tex = sprSet->TxpSet->Textures[i].get();
 
 					ImGui::PushID(&tex);
 					ImGui::BeginChild("AetTexturePreviewChildInner", ImVec2(), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBackground);
-					if (ImGui::WideTreeNode(spriteSet->TxpSet->Textures[i]->Name.c_str()))
-					{
-						ImGui::Image(tex->Texture2D->GetVoidTexture(), ImVec2(tex->Texture2D->GetWidth() * textureScale, tex->Texture2D->GetHeight() * textureScale), ImGui::UV0_GL, ImGui::UV1_GL);
-						ImGui::TreePop();
-					}
-					if (ImGui::IsItemHovered())
+					if (ImGui::Selectable(sprSet->TxpSet->Textures[i]->Name.c_str(), i == txpIndex))
 						txpIndex = i;
+
+					if (ImGui::IsItemHovered())
+					{
+						auto size = ImVec2(tex->Texture2D->GetWidth(), tex->Texture2D->GetHeight());
+
+						float ratio = size.y / size.x;
+						size.x = __min(size.x, 320);
+						size.y = size.x * ratio;
+
+						ImGui::BeginTooltip();
+						ImGui::Image(tex->Texture2D->GetVoidTexture(), size, ImGui::UV0_GL, ImGui::UV1_GL);
+						ImGui::EndTooltip();
+					}
 
 					ImGui::EndChild();
 					ImGui::PopID();
@@ -156,8 +99,6 @@ namespace Editor
 
 	void AetRenderWindow::OnRender()
 	{
-		CheckTempInit();
-
 		renderTarget.Bind();
 		{
 			glViewport(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight());
@@ -165,25 +106,40 @@ namespace Editor
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			ImVec4 backgroundColor = (aetLyo == nullptr) ? ImVec4(.4f, .5f, .1f, 1.0f) : ImGui::ColorConvertU32ToFloat4(aetLyo->BackgroundColor);
+			//ImVec4 backgroundColor = (aetLyo == nullptr) ? ImVec4(.4f, .5f, .1f, 1.0f) : ImGui::ColorConvertU32ToFloat4(aetLyo->BackgroundColor);
+			//ImVec4 backgroundColor = ImVec4(0.65f, 0.50f, 0.00f, 1.0f);
+			ImVec4 backgroundColor = ImColor(GetColor(EditorColor_BaseClear)).Value;
 			glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z, backgroundColor.w);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			vertexArray.Bind();
-			shader.Bind();
-
-			if (spriteSet && spriteSet->TxpSet->Textures.size() > 0)
+			if ((sprSet != nullptr && sprSet->TxpSet->Textures.size() > 0) && (txpIndex >= 0 && txpIndex < sprSet->TxpSet->Textures.size()))
 			{
-				if (txpIndex >= 0 && txpIndex < spriteSet->TxpSet->Textures.size())
+				// swapBuffers(0) / FNT 24 
+				// glDrawArrays(): [DEBUG_STOPWATCH] Renderer2D Begin() to End() : 0.15 MS
+				// DEBUG_STOPWATCH("Renderer2D Begin() to End()");
+
+				renderer.Begin();
 				{
-					auto* texture = spriteSet->TxpSet->Textures.at(txpIndex).get();
+					constexpr float step = 10.0f;
+					static vec2 txpPos = vec2(0, 0);
+					if (ImGui::IsKeyPressed(GLFW_KEY_W, true)) txpPos.y -= step;
+					if (ImGui::IsKeyPressed(GLFW_KEY_S, true)) txpPos.y += step;
+					if (ImGui::IsKeyPressed(GLFW_KEY_A, true)) txpPos.x -= step;
+					if (ImGui::IsKeyPressed(GLFW_KEY_D, true)) txpPos.x += step;
+					if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE, true)) txpPos = vec2();
+					if (ImGui::IsWindowFocused() && ImGui::IsMouseDragging()) 
+						txpPos += vec2(ImGui::GetIO().MouseDelta.x, ImGui::GetIO().MouseDelta.y);
 
-					auto format = texture->MipMaps.front()->Format;
-					shader.SetUniform(shader.TextureFormatLocation, static_cast<int>(format));
+					auto* texture = sprSet->TxpSet->Textures.at(txpIndex).get();
+					auto relativeMouse = ImGui::GetMousePos() - ImGui::GetWindowPos();
+					auto mousePos = vec2(relativeMouse.x, relativeMouse.y);
 
-					texture->Texture2D->Bind(0);
-					glDrawArrays(GL_TRIANGLES, 0, 6);
+					renderer.Draw(vec2(), vec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight()), vec4(.1f, .1f, .1f, 1.0f));
+					renderer.Draw(txpPos, vec2(1920, 1080), vec4(.15f, .15f, .15f, 1.0f));
+
+					renderer.Draw(texture->Texture2D.get(), txpPos, vec4(1.0f, 1.0f, 1.0f, 1.0f), (AetBlendMode)currentBlendItem);
 				}
+				renderer.End();
 			}
 		}
 		renderTarget.UnBind();
@@ -193,13 +149,11 @@ namespace Editor
 	{
 		RenderWindowBase::OnResize(width, height);
 
-		//if (shader.GetIsInitialized())
-		//{
-		//	auto size = GetRenderRegion().GetSize();
-		//	mat4 projection = glm::ortho(0.0f, size.x, 0.0f, size.y, -1.0f, 1.0f);
+		renderer.Resize(width, height);
+	}
 
-		//	shader.Use();
-		//	shader.SetUniform(shader.ProjectionLocation, projection);
-		//}
+	void AetRenderWindow::OnInitialize()
+	{
+		renderer.Initialize();
 	}
 }

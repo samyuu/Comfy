@@ -28,6 +28,7 @@ namespace Editor
 	protected:
 		RenderTarget renderTarget;
 
+		virtual void OnInitialize() {};
 		virtual void OnDrawGui() {};
 		virtual void OnUpdateInput() = 0;
 		virtual void OnUpdate() = 0;

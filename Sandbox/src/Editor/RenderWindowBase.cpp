@@ -7,6 +7,8 @@ namespace Editor
 	{
 		renderTarget.Initialize(RENDER_TARGET_DEFAULT_WIDTH, RENDER_TARGET_DEFAULT_WIDTH);
 		renderRegion = lastRenderRegion = ImRect(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight());
+
+		OnInitialize();
 	}
 
 	void RenderWindowBase::DrawGui()
