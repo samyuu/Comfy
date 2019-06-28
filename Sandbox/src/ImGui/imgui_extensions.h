@@ -35,6 +35,8 @@ namespace ImGui
 
 	void StyleComfy(ImGuiStyle* dst = nullptr);
 
+	bool IsItemHoveredDelayed(ImGuiHoveredFlags flags = ImGuiHoveredFlags_None, float threshold = .5f);
+
 	bool WideTreeNode(const char* label);
 	bool WideTreeNode(const char* str_id, const char* fmt, ...);
 

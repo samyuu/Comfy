@@ -75,6 +75,11 @@ namespace ImGui
 		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.50f);
 	}
 
+	bool IsItemHoveredDelayed(ImGuiHoveredFlags flags, float threshold)
+	{
+		return IsItemHovered(flags) && GImGui->HoveredIdTimer > threshold;
+	}
+
 	// Same as imgui_widgets.cpp: TreeNodeBehavior(...) but with the interact_bb set to the frame_bb and a no_arrow paramter
 	bool WideTreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end, bool no_arrow = false)
 	{
