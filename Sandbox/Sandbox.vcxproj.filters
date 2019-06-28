@@ -222,6 +222,9 @@
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\Auth2D\Renderer2D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ImGui\imconfig.h">
@@ -447,6 +450,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\License\LicenseWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\IRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Auth2D\Renderer2D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\ErrorChecking.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
