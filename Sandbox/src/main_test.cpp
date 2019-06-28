@@ -197,7 +197,7 @@ void MainTest()
 		DEBUG_STOPWATCH("Read All glad.txt Lines");
 
 		std::vector<std::string> fileLines;
-		ReadAllLines("license/glad.txt", fileLines);
+		ReadAllLines("license/glad.txt", &fileLines);
 
 		for (auto& line : fileLines)
 			std::cout << line << std::endl;

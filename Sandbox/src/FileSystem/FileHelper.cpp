@@ -239,25 +239,25 @@ namespace FileSystem
 		return result;
 	}
 
-	bool ReadAllLines(const std::string& filePath, std::vector<std::string>& buffer)
+	bool ReadAllLines(const std::string& filePath, std::vector<std::string>* buffer)
 	{
 		std::ifstream file(filePath);
 		while (true)
 		{
-			buffer.emplace_back();
-			if (!std::getline(file, buffer.back()))
+			buffer->emplace_back();
+			if (!std::getline(file, buffer->back()))
 				break;
 		}
 		return true;
 	}
 
-	bool ReadAllLines(const std::wstring& filePath, std::vector<std::wstring>& buffer)
+	bool ReadAllLines(const std::wstring& filePath, std::vector<std::wstring>* buffer)
 	{
 		std::wfstream file(filePath);
 		while (true)
 		{
-			buffer.emplace_back();
-			if (!std::getline(file, buffer.back()))
+			buffer->emplace_back();
+			if (!std::getline(file, buffer->back()))
 				break;
 		}
 		return true;

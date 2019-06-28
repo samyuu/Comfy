@@ -66,7 +66,7 @@ void LicenseWindow::LoadLicenseData()
 	for (const auto& filePath : licenseFilePaths)
 	{
 		std::vector<std::string> lines;
-		FileSystem::ReadAllLines(filePath, lines);
+		FileSystem::ReadAllLines(filePath, &lines);
 
 		licenseData.emplace_back();
 		auto info = &licenseData.back();
