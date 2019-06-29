@@ -17,7 +17,9 @@ void SpriteShader::GetAllUniformLocations()
 	ProjectionLocation = GetUniformLocation("u_projection");
 
 	UseSolidColorLocation = GetUniformLocation("u_solidColor");
+	UseTextShadowLocation = GetUniformLocation("u_textShadow");
 	TextureFormatLocation = GetUniformLocation("u_textureFormat");
+
 	TextureLocation = GetUniformLocation("textureSampler");
 	TextureMaskLocation = GetUniformLocation("textureMaskSampler");
 }

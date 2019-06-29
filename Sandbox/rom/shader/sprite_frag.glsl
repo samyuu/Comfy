@@ -5,6 +5,7 @@ in vec4 vertexColor;
 in vec2 vertexTexCoord;
 
 uniform bool u_solidColor;
+uniform bool u_textShadow;
 uniform int u_textureFormat;
 uniform sampler2D textureSampler;
 uniform sampler2D textureMaskSampler;
@@ -153,8 +154,6 @@ vec4 GetFontTextureColor()
 
 void main()
 {
-	bool u_textShadow = false; // u_textureFormat != TextureFormat_RGTC2;
-
 	if (u_solidColor)
 	{
 		fragColor = vertexColor;

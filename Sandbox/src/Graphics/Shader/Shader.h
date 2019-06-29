@@ -15,7 +15,9 @@ public:
 	UniformLocation_t ProjectionLocation;
 
 	UniformLocation_t UseSolidColorLocation;
+	UniformLocation_t UseTextShadowLocation;
 	UniformLocation_t TextureFormatLocation;
+	
 	UniformLocation_t TextureLocation;
 	UniformLocation_t TextureMaskLocation;
 
