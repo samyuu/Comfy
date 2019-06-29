@@ -14,33 +14,19 @@ const vec3 RED_COEF = { +1.5748, 1.0, +0.0000 };
 const vec3 GRN_COEF = { -0.4681, 1.0, -0.1873 };
 const vec3 BLU_COEF = { +0.0000, 1.0, +1.8556 };
 
-// GL_ALPHA8
 const int TextureFormat_A8 = 0;
-// GL_RGB8
 const int TextureFormat_RGB8 = 1;
-// GL_RGBA8
 const int TextureFormat_RGBA8 = 2;
-// GL_RGB5
 const int TextureFormat_RGB5 = 3;
-// GL_RGB5_A1
 const int TextureFormat_RGB5_A1 = 4;
-// GL_RGBA4
 const int TextureFormat_RGBA4 = 5;
-// GL_COMPRESSED_RGB_S3TC_DXT1_EXT
 const int TextureFormat_DXT1 = 6;
-// GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
 const int TextureFormat_DXT1a = 7;
-// GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
 const int TextureFormat_DXT3 = 8;
-// GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
 const int TextureFormat_DXT5 = 9;
-// GL_COMPRESSED_RED_RGTC1
 const int TextureFormat_RGTC1 = 10;
-// GL_COMPRESSED_RG_RGTC2
 const int TextureFormat_RGTC2 = 11;
-// GL_LUMINANCE8
 const int TextureFormat_L8 = 12;
-// GL_LUMINANCE8_ALPHA8
 const int TextureFormat_L8A8 = 13;
 
 vec4 GetTextureColor()
@@ -61,34 +47,34 @@ vec4 GetTextureColor()
 	return texture(textureSampler, vertexTexCoord);
 }
 
-float GetTextureAlpha(vec2 offset)
+float GetTextureAlpha(float xOffset, float yOffset)
 {
 	return (u_textureFormat == TextureFormat_RGTC2) ? 
-		textureLod(textureSampler, vertexTexCoord + offset, 0).g :
-		texture(textureSampler, vertexTexCoord + offset).a;
+		textureLod(textureSampler, vertexTexCoord + vec2(xOffset, yOffset), 0).g :
+		texture(textureSampler, vertexTexCoord + vec2(xOffset, yOffset)).a;
 }
 
 vec4 GetFontTextureColor()
 {
 	vec2 size = 1.0 / textureSize(textureSampler, 0);
 
-	float textureAlpha = GetTextureAlpha(vec2(0.0, 0.0));
+	float textureAlpha = GetTextureAlpha(0.0, 0.0);
 	vec4 shadow = vec4(0.0, 0.0, 0.0, textureAlpha);
 	
-	shadow.x = max(shadow.x, GetTextureAlpha(vec2(-size.x, 0.0)));
-	shadow.x = max(shadow.x, GetTextureAlpha(vec2(+size.x, 0.0)));
-	shadow.x = max(shadow.x, GetTextureAlpha(vec2(0.0, -size.y)));
-	shadow.x = max(shadow.x, GetTextureAlpha(vec2(0.0, +size.y)));
+	shadow.x = max(shadow.x, GetTextureAlpha(-size.x, 0.0));
+	shadow.x = max(shadow.x, GetTextureAlpha(+size.x, 0.0));
+	shadow.x = max(shadow.x, GetTextureAlpha(0.0, -size.y));
+	shadow.x = max(shadow.x, GetTextureAlpha(0.0, +size.y));
 
-	shadow.y = max(shadow.y, GetTextureAlpha(vec2(-size.x * 2, 0.0)));
-	shadow.y = max(shadow.y, GetTextureAlpha(vec2(+size.x * 2, 0.0)));
-	shadow.y = max(shadow.y, GetTextureAlpha(vec2(0.0, -size.y * 2)));
-	shadow.y = max(shadow.y, GetTextureAlpha(vec2(0.0, +size.y * 2)));
+	shadow.y = max(shadow.y, GetTextureAlpha(-size.x * 2, 0.0));
+	shadow.y = max(shadow.y, GetTextureAlpha(+size.x * 2, 0.0));
+	shadow.y = max(shadow.y, GetTextureAlpha(0.0, -size.y * 2));
+	shadow.y = max(shadow.y, GetTextureAlpha(0.0, +size.y * 2));
 	
-	shadow.z = max(shadow.z, GetTextureAlpha(vec2(-size.x, -size.y)));
-	shadow.z = max(shadow.z, GetTextureAlpha(vec2(+size.x, -size.y)));
-	shadow.z = max(shadow.z, GetTextureAlpha(vec2(-size.x, +size.y)));
-	shadow.z = max(shadow.z, GetTextureAlpha(vec2(+size.x, +size.y)));
+	shadow.z = max(shadow.z, GetTextureAlpha(-size.x, -size.y));
+	shadow.z = max(shadow.z, GetTextureAlpha(+size.x, -size.y));
+	shadow.z = max(shadow.z, GetTextureAlpha(-size.x, +size.y));
+	shadow.z = max(shadow.z, GetTextureAlpha(+size.x, +size.y));
 	
 	shadow.a = max(shadow.a, shadow.r * 0.9);
 	shadow.a = max(shadow.a, shadow.g * 0.6);
