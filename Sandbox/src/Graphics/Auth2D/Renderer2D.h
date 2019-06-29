@@ -11,27 +11,42 @@ using namespace FileSystem;
 
 namespace Auth2D
 {
-	struct RectangleVertices
+	struct SpriteIndices
 	{
-		//SpriteVertex TopLeft;
-		//SpriteVertex TopRight;
-		//SpriteVertex BottomLeft;
-		//SpriteVertex BottomRight;
+		uint16_t TopLeft;
+		uint16_t BottomLeft;
+		uint16_t BottomRight;
+		uint16_t BottomRightCopy;
+		uint16_t TopRight;
+		uint16_t TopLeftCopy;
 
+	public:
+		static inline constexpr uint32_t GetIndexCount() { return sizeof(SpriteIndices) / sizeof(uint16_t); };
+	};
+
+	struct SpriteVertices
+	{
 		SpriteVertex TopLeft;
+		SpriteVertex TopRight;
 		SpriteVertex BottomLeft;
 		SpriteVertex BottomRight;
 
-		SpriteVertex BottomRightCopy;
-		SpriteVertex TopRight;
-		SpriteVertex TopLeftCopy;
-
 	public:
 		void SetValues(const vec2& position, const vec2& size, const vec4& color);
+		static inline constexpr uint32_t GetVertexCount() { return sizeof(SpriteVertices) / sizeof(SpriteVertex); };
+
 	private:
 		void SetPositions(const vec2& position, const vec2& size);
 		void SetTexCoords(const vec2& topLeft, const vec2& bottomRight);
 		void SetColors(const vec4& color);
+	};
+
+	struct Batch
+	{
+		uint16_t Index;
+		uint16_t Count;
+
+		Batch(uint16_t index, uint16_t count) : Index(index), Count(count) {};
 	};
 
 	struct BatchItem
@@ -46,7 +61,7 @@ namespace Auth2D
 	struct BatchPair
 	{
 		BatchItem* Item;
-		RectangleVertices* Vertices;
+		SpriteVertices* Vertices;
 	};
 
 	struct BlendFuncStruct
@@ -54,6 +69,8 @@ namespace Auth2D
 		GLenum SourceRGB, DestinationRGB;
 		GLenum SourceAlpha, DestinationAlpha;
 	};
+
+	constexpr uint32_t Renderer2DMaxItemSize = 2048;
 
 	class Renderer2D : public IRenderer
 	{
@@ -71,12 +88,17 @@ namespace Auth2D
 
 	private:
 		std::unique_ptr<SpriteShader> shader;
-		VertexBuffer vertexBuffer = { BufferUsage::DynamicDraw };
 		VertexArray vertexArray;
+		VertexBuffer vertexBuffer = { BufferUsage::StreamDraw };
+		IndexBuffer indexBuffer = { BufferUsage::StreamDraw, IndexType::UnsignedShort };
 
+		std::vector<Batch> batches;
 		std::vector<BatchItem> batchItems;
-		std::vector<RectangleVertices> vertices;
+		std::vector<SpriteVertices> vertices;
 
+		void GenerateUploadSpriteIndexBuffer(uint16_t elementCount);
+		void CreateBatches();
+		void CheckFlushItems();
 		BatchPair AddItem();
 		void ClearItems();
 	};

@@ -2,17 +2,14 @@
 
 namespace Auth2D
 {
-	void RectangleVertices::SetValues(const vec2& position, const vec2& size, const vec4& color)
+	void SpriteVertices::SetValues(const vec2& position, const vec2& size, const vec4& color)
 	{
 		SetPositions(position, size);
 		SetTexCoords(vec2(0, 1), vec2(1, 0));
 		SetColors(color);
-
-		BottomRightCopy = BottomRight;
-		TopLeftCopy = TopLeft;
 	}
 
-	void RectangleVertices::SetPositions(const vec2& position, const vec2& size)
+	void SpriteVertices::SetPositions(const vec2& position, const vec2& size)
 	{
 		TopLeft.Position.x = position.x;
 		TopLeft.Position.y = position.y;
@@ -27,7 +24,7 @@ namespace Auth2D
 		BottomRight.Position.y = position.y + size.y;
 	}
 
-	void RectangleVertices::SetTexCoords(const vec2& topLeft, const vec2& bottomRight)
+	void SpriteVertices::SetTexCoords(const vec2& topLeft, const vec2& bottomRight)
 	{
 		TopLeft.TextureCoordinates.x = topLeft.x;
 		TopLeft.TextureCoordinates.y = topLeft.y;
@@ -42,7 +39,7 @@ namespace Auth2D
 		BottomRight.TextureCoordinates.y = bottomRight.y;
 	}
 
-	void RectangleVertices::SetColors(const vec4& color)
+	void SpriteVertices::SetColors(const vec4& color)
 	{
 		TopLeft.Color = color;
 		TopRight.Color = color;
@@ -66,6 +63,10 @@ namespace Auth2D
 			{ ShaderDataType::Vec4, "in_color" }
 		};
 
+		indexBuffer.InitializeID();
+		indexBuffer.Bind();
+		GenerateUploadSpriteIndexBuffer(Renderer2DMaxItemSize);
+
 		vertexBuffer.InitializeID();
 		vertexBuffer.Bind();
 
@@ -77,9 +78,9 @@ namespace Auth2D
 		vertexArray.Bind();
 		vertexArray.SetLayout(layout);
 
-		constexpr size_t initialCapacity = 64;
-		batchItems.reserve(initialCapacity);
-		vertices.reserve(initialCapacity);
+		batches.reserve(Renderer2DMaxItemSize);
+		batchItems.reserve(Renderer2DMaxItemSize);
+		vertices.reserve(Renderer2DMaxItemSize);
 	}
 
 	void Renderer2D::Begin()
@@ -88,6 +89,7 @@ namespace Auth2D
 
 	void Renderer2D::Draw(const vec2& position, const vec2 size, const vec4& color)
 	{
+		CheckFlushItems();
 		BatchPair pair = AddItem();
 
 		pair.Item->SetValues(nullptr);
@@ -96,6 +98,7 @@ namespace Auth2D
 
 	void Renderer2D::Draw(const Texture2D* texture, const vec2& position, const vec4& color, AetBlendMode blendMode)
 	{
+		CheckFlushItems();
 		BatchPair pair = AddItem();
 
 		pair.Item->SetValues(texture, nullptr, blendMode);
@@ -109,29 +112,45 @@ namespace Auth2D
 
 	void Renderer2D::Flush()
 	{
+		CreateBatches();
+
+		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
 
 		vertexArray.Bind();
 		vertexBuffer.Bind();
-		vertexBuffer.UploadSubData(vertices.size() * sizeof(RectangleVertices), vertices.data());
+		vertexBuffer.Upload(vertices.size() * sizeof(SpriteVertices), vertices.data());
 		shader->Bind();
-		
-		for (size_t i = 0; i < batchItems.size(); i++)
-		{
-			BatchItem& item = batchItems[i];
 
-			SetBlendFunction(item.BlendMode);
+		indexBuffer.Bind();
+
+		AetBlendMode lastBlendMode;
+
+		for (uint16_t i = 0; i < batches.size(); i++)
+		{
+			Batch& batch = batches[i];
+			BatchItem& item = batchItems[batch.Index];
+
+			bool firstItem = i == 0;
+
+			if (firstItem || lastBlendMode != item.BlendMode)
+			{
+				lastBlendMode = item.BlendMode;
+				SetBlendFunction(lastBlendMode);
+			}
 
 			if (item.Texture != nullptr)
 			{
 				item.Texture->Bind();
-				shader->SetUniform(shader->TextureFormatLocation, (int)item.Texture->GetTextureFormat());
+				shader->SetUniform(shader->TextureFormatLocation, static_cast<int>(item.Texture->GetTextureFormat()));
 			}
 
 			shader->SetUniform(shader->UseSolidColorLocation, item.Texture == nullptr);
 
-			constexpr auto elementSize = sizeof(RectangleVertices) / sizeof(SpriteVertex);
-			glDrawArrays(GL_TRIANGLES, i * elementSize, elementSize);
+			glDrawElements(GL_TRIANGLES,
+				batch.Count * SpriteIndices::GetIndexCount(),
+				indexBuffer.GetGLIndexType(),
+				(void*)(batch.Index * sizeof(SpriteIndices)));
 		}
 
 		ClearItems();
@@ -151,7 +170,7 @@ namespace Auth2D
 		glBlendFuncSeparate(
 			blendFunc.SourceRGB,
 			blendFunc.DestinationRGB,
-			blendFunc.SourceAlpha, 
+			blendFunc.SourceAlpha,
 			blendFunc.DestinationAlpha);
 	}
 
@@ -170,18 +189,75 @@ namespace Auth2D
 		int lookupIndex = 0;
 		switch (blendMode)
 		{
-		case AetBlendMode::Alpha: 
+		case AetBlendMode::Alpha:
 			lookupIndex = 0; break;
-		case AetBlendMode::Additive: 
+		case AetBlendMode::Additive:
 			lookupIndex = 2; break;
-		case AetBlendMode::DstColorZero: 
+		case AetBlendMode::DstColorZero:
 			lookupIndex = 3; break;
-		case AetBlendMode::SrcAlphaOneMinusSrcColor: 
+		case AetBlendMode::SrcAlphaOneMinusSrcColor:
 			lookupIndex = 1; break;
-		case AetBlendMode::Transparent: 
+		case AetBlendMode::Transparent:
 			lookupIndex = 5; break;
 		}
 		return lookupTable[lookupIndex];
+	}
+
+	void Renderer2D::GenerateUploadSpriteIndexBuffer(uint16_t elementCount)
+	{
+		SpriteIndices* indexData = new SpriteIndices[elementCount];
+		{
+			for (uint16_t i = 0, offset = 0; i < elementCount; i++)
+			{
+				// [0] TopLeft	  - [1] TopRight
+				// [2] BottomLeft - [3] BottomRight;
+
+				indexData[i] =
+				{
+					static_cast<uint16_t>(offset + 0), // [0] TopLeft;
+					static_cast<uint16_t>(offset + 2), // [2] BottomLeft;
+					static_cast<uint16_t>(offset + 3), // [3] BottomRight;
+
+					static_cast<uint16_t>(offset + 3), // [3] BottomRightCopy;
+					static_cast<uint16_t>(offset + 1), // [1] TopRight;
+					static_cast<uint16_t>(offset + 0), // [0] TopLeftCopy;
+				};
+
+				offset += SpriteVertices::GetVertexCount();
+			}
+
+			indexBuffer.Upload(sizeof(SpriteIndices) * elementCount, indexData);
+		}
+		delete[] indexData;
+	}
+
+	void Renderer2D::CreateBatches()
+	{
+		// move to draw (?)
+		const Texture2D* lastTexture = nullptr;
+
+		for (uint16_t i = 0; i < batchItems.size(); i++)
+		{
+			bool first = i == 0;
+
+			BatchItem* item = &batchItems[i];
+			BatchItem* lastItem = first ? nullptr : &batchItems[batches.back().Index];
+
+			if (first || (item->BlendMode != lastItem->BlendMode) || (item->Texture != nullptr && (item->Texture != lastItem->Texture || item->MaskTexture != lastItem->MaskTexture)))
+			{
+				batches.emplace_back(i, 1);
+			}
+			else
+			{
+				batches.back().Count++;
+			}
+		}
+	}
+
+	void Renderer2D::CheckFlushItems()
+	{
+		if (batchItems.size() >= Renderer2DMaxItemSize)
+			Flush();
 	}
 
 	BatchPair Renderer2D::AddItem()
@@ -194,6 +270,7 @@ namespace Auth2D
 
 	void Renderer2D::ClearItems()
 	{
+		batches.clear();
 		batchItems.clear();
 		vertices.clear();
 	}
