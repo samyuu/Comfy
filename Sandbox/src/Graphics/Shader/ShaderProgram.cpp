@@ -9,8 +9,7 @@ ShaderProgram::ShaderProgram()
 
 ShaderProgram::~ShaderProgram()
 {
-	if (programID != NULL)
-		glDeleteProgram(programID);
+	Dispose();
 }
 
 void ShaderProgram::Bind() const
@@ -151,4 +150,10 @@ int ShaderProgram::AttachLinkShaders(ShaderID_t vertexShader, ShaderID_t fragmen
 	glDeleteShader(fragmentShader);
 
 	return 0;
+}
+
+void ShaderProgram::Dispose()
+{
+	if (programID != NULL)
+		glDeleteProgram(programID);
 }

@@ -28,6 +28,7 @@ class Buffer : public IGraphicsObject
 public:
 	Buffer(BufferUsage usage);
 	~Buffer();
+	Buffer(const Buffer&) = delete;
 
 	void InitializeID() override;
 	void Upload(size_t dataSize, void* data);

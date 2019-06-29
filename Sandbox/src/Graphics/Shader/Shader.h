@@ -10,6 +10,7 @@ class SpriteShader : public ShaderProgram
 public:
 	SpriteShader();
 	~SpriteShader();
+	SpriteShader(const SpriteShader&) = delete;
 
 	UniformLocation_t ProjectionLocation;
 
@@ -33,6 +34,7 @@ class ComfyShader : public ShaderProgram
 public:
 	ComfyShader();
 	~ComfyShader();
+	ComfyShader(const ComfyShader&) = delete;
 
 	UniformLocation_t ModelLocation;
 	UniformLocation_t ViewLocation;
@@ -56,6 +58,7 @@ class ScreenShader : public ShaderProgram
 public:
 	ScreenShader();
 	~ScreenShader();
+	ScreenShader(const ScreenShader&) = delete;
 
 	UniformLocation_t ScreenTextureLocation;
 
@@ -74,6 +77,7 @@ class LineShader : public ShaderProgram
 public:
 	LineShader();
 	~LineShader();
+	LineShader(const LineShader&) = delete;
 
 	UniformLocation_t ModelLocation;
 	UniformLocation_t ViewLocation;

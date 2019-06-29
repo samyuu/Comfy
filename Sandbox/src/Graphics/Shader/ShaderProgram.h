@@ -19,6 +19,7 @@ class ShaderProgram : public IBindable
 public:
 	ShaderProgram();
 	~ShaderProgram();
+	ShaderProgram(const ShaderProgram&) = delete;
 
 	void Bind() const override;
 	void UnBind() const override;
@@ -48,4 +49,5 @@ private:
 	void LoadShaderSources();
 	int CompileShader(ShaderType, ShaderID_t*, const std::vector<uint8_t>&);
 	int AttachLinkShaders(ShaderID_t, ShaderID_t);
+	void Dispose();
 };
