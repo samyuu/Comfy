@@ -80,7 +80,7 @@ namespace ImGui
 			for (auto& info : directoryInfo)
 			{
 				sprintf_s(pathBuffer, GetFileInfoFormatString(info), info.ChildName.c_str());
-				if (Selectable(pathBuffer, info.IsDirectory, ImGuiSelectableFlags_PressedOnRelease))
+				if (Selectable(pathBuffer, info.IsDirectory))
 					clickedInfo = &info;
 
 				info.IsHovered = IsItemHovered();
