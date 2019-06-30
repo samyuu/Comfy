@@ -2,10 +2,80 @@
 
 namespace Auth2D
 {
-	void SpriteVertices::SetValues(const vec2& position, const vec2& size, const vec4& color)
+	//const vec2 Renderer2D::DefaultPosition = { 0.0f, 0.0f };
+	//const vec2 Renderer2D::DefaultOrigin = { 0.0f, 0.0f };
+	//const vec4 Renderer2D::DefaultColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+	//const float Renderer2D::DefaultRotation = 0.0f;
+
+	constexpr vec2 DefaultPosition = { 0.0f, 0.0f };
+	constexpr vec2 DefaultOrigin = { 0.0f, 0.0f };
+	constexpr vec2 DefaultScale = { 1.0f, 1.0f };
+	constexpr vec4 DefaultColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+	constexpr float DefaultRotation = 0.0f;
+
+	static inline const vec2& PositionOrDefault(const vec2* position)
 	{
-		SetPositions(position, size);
-		SetTexCoords(vec2(0, 1), vec2(1, 0));
+		return position == nullptr ? DefaultPosition : *position;
+	}
+
+	static inline const vec4 SourceOrDefault(const vec4* source, const Texture2D* texture)
+	{
+		return source == nullptr ? vec4(0.0f, 0.0f, texture->GetWidth(), texture->GetHeight()) : *source;
+	}
+
+	static inline const vec2 SizeOrDefault(const Texture2D* texture, const vec4* source)
+	{
+		return texture != nullptr ? texture->GetSize() : vec2(source->w, source->z);
+	}
+
+	static inline const vec2 OriginOrDefault(const vec2* origin)
+	{
+		return origin == nullptr ? DefaultOrigin : -*origin;
+	}
+
+	static inline const vec2& ScaleOrDefault(const vec2* scale)
+	{
+		return scale == nullptr ? DefaultScale : *scale;
+	}
+
+	static inline const vec4& ColorOrDefault(const vec4* color)
+	{
+		return color == nullptr ? DefaultColor : *color;
+	}
+
+	//void SpriteVertices::SetValues(const vec2& position, const vec2& size, const vec4* color)
+	//{
+	//	SetPositions(position, size);
+	//	SetTexCoords(vec2(0.0f, 0.0f), vec2(1.0f, 1.0f));
+	//	SetColors(ColorOrDefault(color));
+	//}
+
+	//void SpriteVertices::SetValues(const vec2& position, const vec2& size, const vec2& origin, float rotation, const vec4* color)
+	//{
+	//	SetPositions(position, size, origin, rotation);
+	//	SetTexCoords(vec2(0.0f, 0.0f), vec2(1.0f, 1.0f));
+	//	SetColors(ColorOrDefault(color));
+	//}
+
+	//void SpriteVertices::SetValues(const vec2& position, const vec4& sourceRegion, const vec2& size, const vec4* color)
+	//{
+	//	SetPositions(position, vec2(sourceRegion.z, sourceRegion.w));
+
+	//	vec2 topLeft = vec2(sourceRegion.x / size.x, sourceRegion.y / size.y);
+	//	vec2 bottomRight = vec2((sourceRegion.x + sourceRegion.z) / size.x, (sourceRegion.y + sourceRegion.w) / size.y);
+
+	//	SetTexCoords(topLeft, bottomRight);
+	//	SetColors(ColorOrDefault(color));
+	//}
+
+	void SpriteVertices::SetValues(const vec2& position, const vec4& sourceRegion, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4& color)
+	{
+		SetPositions(position, vec2(sourceRegion.z, sourceRegion.w) * scale, origin * scale, rotation);
+
+		vec2 topLeft = vec2(sourceRegion.x / size.x, sourceRegion.y / size.y);
+		vec2 bottomRight = vec2((sourceRegion.x + sourceRegion.z) / size.x, (sourceRegion.y + sourceRegion.w) / size.y);
+
+		SetTexCoords(topLeft, bottomRight);
 		SetColors(color);
 	}
 
@@ -22,6 +92,31 @@ namespace Auth2D
 
 		BottomRight.Position.x = position.x + size.x;
 		BottomRight.Position.y = position.y + size.y;
+	}
+
+	void SpriteVertices::SetPositions(const vec2& position, const vec2& size, const vec2& origin, float rotation)
+	{
+		if (rotation == 0.0f)
+		{
+			SetPositions(position + origin, size);
+			return;
+		}
+
+		float radians = glm::radians(rotation);
+		float sin = glm::sin(radians);
+		float cos = glm::cos(radians);
+
+		TopLeft.Position.x = position.x + origin.x * cos - origin.y * sin;
+		TopLeft.Position.y = position.y + origin.x * sin + origin.y * cos;
+
+		TopRight.Position.x = position.x + (origin.x + size.x) * cos - origin.y * sin;
+		TopRight.Position.y = position.y + (origin.x + size.x) * sin + origin.y * cos;
+
+		BottomLeft.Position.x = position.x + origin.x * cos - (origin.y + size.y) * sin;
+		BottomLeft.Position.y = position.y + origin.x * sin + (origin.y + size.y) * cos;
+
+		BottomRight.Position.x = position.x + (origin.x + size.x) * cos - (origin.y + size.y) * sin;
+		BottomRight.Position.y = position.y + (origin.x + size.x) * sin + (origin.y + size.y) * cos;
 	}
 
 	void SpriteVertices::SetTexCoords(const vec2& topLeft, const vec2& bottomRight)
@@ -87,22 +182,30 @@ namespace Auth2D
 	{
 	}
 
-	void Renderer2D::Draw(const vec2& position, const vec2 size, const vec4& color)
+	void Renderer2D::Draw(const vec2& position, const vec2 size, const vec4* color)
 	{
-		CheckFlushItems();
-		BatchPair pair = AddItem();
-
-		pair.Item->SetValues(nullptr);
-		pair.Vertices->SetValues(position, size, color);
+		vec4 source = vec4(0.0f, 0.0f, size.x, size.y);
+		DrawInternal(nullptr, &source, &position, nullptr, DefaultRotation, nullptr, color);
 	}
 
-	void Renderer2D::Draw(const Texture2D* texture, const vec2& position, const vec4& color, AetBlendMode blendMode)
+	void Renderer2D::Draw(const Texture2D* texture, const vec2& position, const vec4* color, AetBlendMode blendMode)
 	{
-		CheckFlushItems();
-		BatchPair pair = AddItem();
+		DrawInternal(texture, nullptr, &position, nullptr, DefaultRotation, nullptr, color, blendMode);
+	}
 
-		pair.Item->SetValues(texture, nullptr, blendMode);
-		pair.Vertices->SetValues(position, texture->GetSize(), color);
+	void Renderer2D::Draw(const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec4* color, AetBlendMode blendMode)
+	{
+		DrawInternal(texture, &sourceRegion, &position, nullptr, 0.0f, nullptr, color, blendMode);
+	}
+
+	void Renderer2D::Draw(const Texture2D* texture, const vec2& position, const vec2* origin, float rotation, const vec4* color, AetBlendMode blendMode)
+	{
+		DrawInternal(texture, nullptr, &position, origin, rotation, nullptr, color, blendMode);
+	}
+
+	void Renderer2D::Draw(const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec2* origin, float rotation, const vec2* scale, const vec4* color, AetBlendMode blendMode)
+	{
+		DrawInternal(texture, &sourceRegion, &position, origin, rotation, scale, color, blendMode);
 	}
 
 	void Renderer2D::End()
@@ -218,9 +321,9 @@ namespace Auth2D
 					static_cast<uint16_t>(offset + 2), // [2] BottomLeft;
 					static_cast<uint16_t>(offset + 3), // [3] BottomRight;
 
-					static_cast<uint16_t>(offset + 3), // [3] BottomRightCopy;
+					static_cast<uint16_t>(offset + 3), // [3] BottomRight;
 					static_cast<uint16_t>(offset + 1), // [1] TopRight;
-					static_cast<uint16_t>(offset + 0), // [0] TopLeftCopy;
+					static_cast<uint16_t>(offset + 0), // [0] TopLeft;
 				};
 
 				offset += SpriteVertices::GetVertexCount();
@@ -260,6 +363,12 @@ namespace Auth2D
 			Flush();
 	}
 
+	BatchPair Renderer2D::CheckFlushAddItem()
+	{
+		CheckFlushItems();
+		return AddItem();
+	}
+
 	BatchPair Renderer2D::AddItem()
 	{
 		batchItems.emplace_back();
@@ -273,5 +382,51 @@ namespace Auth2D
 		batches.clear();
 		batchItems.clear();
 		vertices.clear();
+	}
+
+	void Renderer2D::DrawInternal(const Texture2D* texture, const vec4* sourceRegion, const vec2* position, const vec2* origin, float rotation, const vec2* scale, const vec4* color, AetBlendMode blendMode)
+	{
+		BatchPair pair = CheckFlushAddItem();
+
+		pair.Item->SetValues(
+			texture,
+			nullptr,
+			blendMode);
+
+		pair.Vertices->SetValues(
+			PositionOrDefault(position),
+			SourceOrDefault(sourceRegion, texture),
+			SizeOrDefault(texture, sourceRegion),
+			OriginOrDefault(origin),
+			rotation,
+			ScaleOrDefault(scale),
+			ColorOrDefault(color));
+
+		if (scale == nullptr || *scale == DefaultScale)
+		{
+			//pair.Vertices->SetValues(
+			//	PositionOrDefault(position),
+			//	SourceOrDefault(sourceRegion, texture),
+			//	SizeOrDefault(texture, sourceRegion),
+			//	OriginOrDefault(origin),
+			//	rotation,
+			//	ColorOrDefault(color));
+		}
+		else
+		{
+			//vec2 scaleValue = ScaleOrDefault(scale);
+			//vec4 sourceValue = SourceOrDefault(sourceRegion, texture);
+			//vec2 originValue = OriginOrDefault(origin) * scaleValue;
+			//sourceValue.z *= scaleValue.x;
+			//sourceValue.w *= scaleValue.y;
+
+			//pair.Vertices->SetValues(
+			//	PositionOrDefault(position),
+			//	sourceValue,
+			//	SizeOrDefault(texture, sourceRegion),
+			//	originValue,
+			//	rotation,
+			//	ColorOrDefault(color));
+		}
 	}
 }

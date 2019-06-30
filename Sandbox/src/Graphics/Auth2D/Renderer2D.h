@@ -7,10 +7,10 @@
 #include "Graphics/Texture.h"
 #include "FileSystem/Format/AetSet.h"
 
-using namespace FileSystem;
-
 namespace Auth2D
 {
+	using namespace FileSystem;
+
 	struct SpriteIndices
 	{
 		uint16_t TopLeft;
@@ -32,11 +32,15 @@ namespace Auth2D
 		SpriteVertex BottomRight;
 
 	public:
-		void SetValues(const vec2& position, const vec2& size, const vec4& color);
+		//void SetValues(const vec2& position, const vec2& size, const vec4* color);
+		//void SetValues(const vec2& position, const vec2& size, const vec2& origin, float rotation, const vec4* color);
+		//void SetValues(const vec2& position, const vec4& sourceRegion, const vec2& size, const vec4* color);
+		void SetValues(const vec2& position, const vec4& sourceRegion, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4& color);
 		static inline constexpr uint32_t GetVertexCount() { return sizeof(SpriteVertices) / sizeof(SpriteVertex); };
 
 	private:
 		void SetPositions(const vec2& position, const vec2& size);
+		void SetPositions(const vec2& position, const vec2& size, const vec2& origin, float rotation);
 		void SetTexCoords(const vec2& topLeft, const vec2& bottomRight);
 		void SetColors(const vec4& color);
 	};
@@ -76,16 +80,27 @@ namespace Auth2D
 	{
 	public:
 		void Initialize();
-		void Begin();
-		void Draw(const vec2& position, const vec2 size, const vec4& color);
-		void Draw(const Texture2D* texture, const vec2& position, const vec4& color, AetBlendMode blendMode = AetBlendMode::Alpha);
+		void Begin(/*TextureClamp*/);
+		void Draw(const vec2& position, const vec2 size, const vec4* color);
+		void Draw(const Texture2D* texture, const vec2& position, const vec4* color, AetBlendMode blendMode = AetBlendMode::Alpha);
+		void Draw(const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec4* color, AetBlendMode blendMode = AetBlendMode::Alpha);
+		void Draw(const Texture2D* texture, const vec2& position, const vec2* origin, float rotation, const vec4* color, AetBlendMode blendMode = AetBlendMode::Alpha);
+		void Draw(const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec2* origin, float rotation, const vec4* color, AetBlendMode blendMode = AetBlendMode::Alpha);
+		void Draw(const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec2* origin, float rotation, const vec2* scale, const vec4* color, AetBlendMode blendMode = AetBlendMode::Alpha);
 		void End();
 		void Flush();
 
 		void Resize(float width, float height);
+		inline SpriteShader* GetShader() { return shader.get(); };
+		
 		static void SetBlendFunction(AetBlendMode blendMode);
 		static const BlendFuncStruct& GetBlendFuncParamteres(AetBlendMode blendMode);
 
+		//static const vec2 DefaultPosition;
+		//static const vec2 DefaultOrigin;
+		//static const vec4 DefaultColor;
+		//static const float DefaultRotation;
+	
 	private:
 		std::unique_ptr<SpriteShader> shader;
 		VertexArray vertexArray;
@@ -98,8 +113,12 @@ namespace Auth2D
 
 		void GenerateUploadSpriteIndexBuffer(uint16_t elementCount);
 		void CreateBatches();
-		void CheckFlushItems();
-		BatchPair AddItem();
+		
+		inline void CheckFlushItems();
+		inline BatchPair CheckFlushAddItem();
+		inline BatchPair AddItem();
 		void ClearItems();
+		
+		void DrawInternal(const Texture2D* texture, const vec4* sourceRegion, const vec2* position, const vec2* origin, float rotation, const vec2* scale, const vec4* color, AetBlendMode blendMode = AetBlendMode::Alpha);
 	};
 }
