@@ -12,5 +12,5 @@ void main()
 {
 	gl_Position = u_projection * vec4(in_position, 0.0, 1.0);
 	vertexColor = in_color;
-	vertexTexCoord = vec2(in_texture_coords.x, in_texture_coords.y);
+	vertexTexCoord = vec2(in_texture_coords.x, 1.0 - in_texture_coords.y);
 }

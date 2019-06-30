@@ -76,11 +76,11 @@ vec4 GetFontTextureColor()
 	shadow.z = max(shadow.z, GetTextureAlpha(-size.x, +size.y));
 	shadow.z = max(shadow.z, GetTextureAlpha(+size.x, +size.y));
 	
-	shadow.a = max(shadow.a, shadow.r * 0.9);
-	shadow.a = max(shadow.a, shadow.g * 0.6);
-	shadow.a = max(shadow.a, shadow.b * 0.8);
+	shadow.a = max(shadow.a, shadow.x * 0.9);
+	shadow.a = max(shadow.a, shadow.y * 0.6);
+	shadow.a = max(shadow.a, shadow.z * 0.8);
 
-	vec3 color = vec3((vertexColor.rgb * textureAlpha) * vertexColor.a);
+	vec3 color = (vertexColor.rgb * textureAlpha) * vertexColor.a;
 	return vec4(color * inversesqrt(shadow.a), shadow.a * vertexColor.a);
 }
 

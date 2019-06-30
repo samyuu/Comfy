@@ -2,11 +2,6 @@
 
 namespace Auth2D
 {
-	//const vec2 Renderer2D::DefaultPosition = { 0.0f, 0.0f };
-	//const vec2 Renderer2D::DefaultOrigin = { 0.0f, 0.0f };
-	//const vec4 Renderer2D::DefaultColor = { 1.0f, 1.0f, 1.0f, 1.0f };
-	//const float Renderer2D::DefaultRotation = 0.0f;
-
 	constexpr vec2 DefaultPosition = { 0.0f, 0.0f };
 	constexpr vec2 DefaultOrigin = { 0.0f, 0.0f };
 	constexpr vec2 DefaultScale = { 1.0f, 1.0f };
@@ -42,31 +37,6 @@ namespace Auth2D
 	{
 		return color == nullptr ? DefaultColor : *color;
 	}
-
-	//void SpriteVertices::SetValues(const vec2& position, const vec2& size, const vec4* color)
-	//{
-	//	SetPositions(position, size);
-	//	SetTexCoords(vec2(0.0f, 0.0f), vec2(1.0f, 1.0f));
-	//	SetColors(ColorOrDefault(color));
-	//}
-
-	//void SpriteVertices::SetValues(const vec2& position, const vec2& size, const vec2& origin, float rotation, const vec4* color)
-	//{
-	//	SetPositions(position, size, origin, rotation);
-	//	SetTexCoords(vec2(0.0f, 0.0f), vec2(1.0f, 1.0f));
-	//	SetColors(ColorOrDefault(color));
-	//}
-
-	//void SpriteVertices::SetValues(const vec2& position, const vec4& sourceRegion, const vec2& size, const vec4* color)
-	//{
-	//	SetPositions(position, vec2(sourceRegion.z, sourceRegion.w));
-
-	//	vec2 topLeft = vec2(sourceRegion.x / size.x, sourceRegion.y / size.y);
-	//	vec2 bottomRight = vec2((sourceRegion.x + sourceRegion.z) / size.x, (sourceRegion.y + sourceRegion.w) / size.y);
-
-	//	SetTexCoords(topLeft, bottomRight);
-	//	SetColors(ColorOrDefault(color));
-	//}
 
 	void SpriteVertices::SetValues(const vec2& position, const vec4& sourceRegion, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4& color)
 	{
@@ -182,30 +152,36 @@ namespace Auth2D
 	{
 	}
 
-	void Renderer2D::Draw(const vec2& position, const vec2 size, const vec4* color)
+	void Renderer2D::Draw(const vec2& position, const vec2& size, const vec4& color)
 	{
 		vec4 source = vec4(0.0f, 0.0f, size.x, size.y);
-		DrawInternal(nullptr, &source, &position, nullptr, DefaultRotation, nullptr, color);
+		DrawInternal(nullptr, &source, &position, nullptr, DefaultRotation, nullptr, &color);
 	}
 
-	void Renderer2D::Draw(const Texture2D* texture, const vec2& position, const vec4* color, AetBlendMode blendMode)
+	void Renderer2D::Draw(const vec2& position, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4& color)
 	{
-		DrawInternal(texture, nullptr, &position, nullptr, DefaultRotation, nullptr, color, blendMode);
+		vec4 source = vec4(0.0f, 0.0f, size.x, size.y);
+		DrawInternal(nullptr, &source, &position, &origin, rotation, &scale, &color);
 	}
 
-	void Renderer2D::Draw(const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec4* color, AetBlendMode blendMode)
+	void Renderer2D::Draw(const Texture2D* texture, const vec2& position, const vec4& color)
 	{
-		DrawInternal(texture, &sourceRegion, &position, nullptr, 0.0f, nullptr, color, blendMode);
+		DrawInternal(texture, nullptr, &position, nullptr, DefaultRotation, nullptr, &color);
 	}
 
-	void Renderer2D::Draw(const Texture2D* texture, const vec2& position, const vec2* origin, float rotation, const vec4* color, AetBlendMode blendMode)
+	void Renderer2D::Draw(const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec4& color)
 	{
-		DrawInternal(texture, nullptr, &position, origin, rotation, nullptr, color, blendMode);
+		DrawInternal(texture, &sourceRegion, &position, nullptr, 0.0f, nullptr, &color);
 	}
 
-	void Renderer2D::Draw(const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec2* origin, float rotation, const vec2* scale, const vec4* color, AetBlendMode blendMode)
+	void Renderer2D::Draw(const Texture2D* texture, const vec2& position, const vec2& origin, float rotation, const vec4& color)
 	{
-		DrawInternal(texture, &sourceRegion, &position, origin, rotation, scale, color, blendMode);
+		DrawInternal(texture, nullptr, &position, &origin, rotation, nullptr, &color);
+	}
+
+	void Renderer2D::Draw(const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec2& origin, float rotation, const vec2& scale, const vec4& color, AetBlendMode blendMode)
+	{
+		DrawInternal(texture, &sourceRegion, &position, &origin, rotation, &scale, &color, blendMode);
 	}
 
 	void Renderer2D::End()
@@ -255,6 +231,8 @@ namespace Auth2D
 				indexBuffer.GetGLIndexType(),
 				(void*)(batch.Index * sizeof(SpriteIndices)));
 		}
+
+		vertexArray.UnBind();
 
 		ClearItems();
 	}
@@ -401,32 +379,5 @@ namespace Auth2D
 			rotation,
 			ScaleOrDefault(scale),
 			ColorOrDefault(color));
-
-		if (scale == nullptr || *scale == DefaultScale)
-		{
-			//pair.Vertices->SetValues(
-			//	PositionOrDefault(position),
-			//	SourceOrDefault(sourceRegion, texture),
-			//	SizeOrDefault(texture, sourceRegion),
-			//	OriginOrDefault(origin),
-			//	rotation,
-			//	ColorOrDefault(color));
-		}
-		else
-		{
-			//vec2 scaleValue = ScaleOrDefault(scale);
-			//vec4 sourceValue = SourceOrDefault(sourceRegion, texture);
-			//vec2 originValue = OriginOrDefault(origin) * scaleValue;
-			//sourceValue.z *= scaleValue.x;
-			//sourceValue.w *= scaleValue.y;
-
-			//pair.Vertices->SetValues(
-			//	PositionOrDefault(position),
-			//	sourceValue,
-			//	SizeOrDefault(texture, sourceRegion),
-			//	originValue,
-			//	rotation,
-			//	ColorOrDefault(color));
-		}
 	}
 }

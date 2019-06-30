@@ -27,8 +27,23 @@ namespace Editor
 
 	void AetRenderWindow::OnDrawGui()
 	{
-		const char* blendModeNames = "None\0None\0None\0Alpha\0None\0Additive\0DstColorZero\0SrcAlphaOneMinusSrcColor\0Transparent";
-		ImGui::Combo("Blend Mode", &currentBlendItem, blendModeNames);
+		if (ImGui::CollapsingHeader("View Settings"))
+		{
+			const char* blendModeNames = "None\0None\0None\0Alpha\0None\0Additive\0DstColorZero\0SrcAlphaOneMinusSrcColor\0Transparent";
+			ImGui::Combo("Blend Mode", &currentBlendItem, blendModeNames);
+			ImGui::SameLine();
+			ImGui::Checkbox("Use Text Shadow", &useTextShadow);
+
+			//ImGui::ShowDemoWindow
+			ImGui::InputFloat2("Position", glm::value_ptr(aetPosition));
+			ImGui::InputFloat2("Origin", glm::value_ptr(aetOrigin));
+			ImGui::InputFloat("Rotation", &aetRotation, 1.0f, 10.0f);
+			ImGui::InputFloat2("Scale", &aetScale.x, 1.0f, 10.0f);
+			ImGui::InputFloat2("Source Position", &aetSourceRegion.x, 1.0f, 10.0f);
+			ImGui::InputFloat2("Source Size", &aetSourceRegion.z, 1.0f, 10.0f);
+			//ImGui::ColorButton("Color", (const ImVec4&)aetColor);
+			ImGui::ColorEdit4("Color", glm::value_ptr(aetColor));
+		}
 
 		ImGui::Begin("SprSet Loader", nullptr, ImGuiWindowFlags_None);
 		{
@@ -99,6 +114,15 @@ namespace Editor
 
 	void AetRenderWindow::OnRender()
 	{
+		constexpr float step = 10.0f;
+		if (ImGui::IsKeyPressed(GLFW_KEY_W, true)) aetPosition.y -= step;
+		if (ImGui::IsKeyPressed(GLFW_KEY_S, true)) aetPosition.y += step;
+		if (ImGui::IsKeyPressed(GLFW_KEY_A, true)) aetPosition.x -= step;
+		if (ImGui::IsKeyPressed(GLFW_KEY_D, true)) aetPosition.x += step;
+		if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE, true)) aetPosition = vec2();
+		if (ImGui::IsWindowFocused() && ImGui::IsMouseDragging())
+			aetPosition += vec2(ImGui::GetIO().MouseDelta.x, ImGui::GetIO().MouseDelta.y);
+
 		renderTarget.Bind();
 		{
 			glViewport(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight());
@@ -106,41 +130,35 @@ namespace Editor
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			//ImVec4 backgroundColor = (aetLyo == nullptr) ? ImVec4(.4f, .5f, .1f, 1.0f) : ImGui::ColorConvertU32ToFloat4(aetLyo->BackgroundColor);
-			//ImVec4 backgroundColor = ImVec4(0.65f, 0.50f, 0.00f, 1.0f);
-			ImVec4 backgroundColor = ImColor(GetColor(EditorColor_BaseClear)).Value;
+			vec4 backgroundColor = GetColorVec4(EditorColor_DarkClear);
 			glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z, backgroundColor.w);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			if ((sprSet != nullptr && sprSet->TxpSet->Textures.size() > 0) && (txpIndex >= 0 && txpIndex < sprSet->TxpSet->Textures.size()))
+			if (newRendererSize.x != 0 && newRendererSize.y != 0)
 			{
-				// swapBuffers(0) / FNT 24 
-				// glDrawArrays(): [DEBUG_STOPWATCH] Renderer2D Begin() to End() : 0.15 MS
-				// DEBUG_STOPWATCH("Renderer2D Begin() to End()");
-
-				renderer.Begin();
-				{
-					constexpr float step = 10.0f;
-					static vec2 txpPos = vec2(0, 0);
-					if (ImGui::IsKeyPressed(GLFW_KEY_W, true)) txpPos.y -= step;
-					if (ImGui::IsKeyPressed(GLFW_KEY_S, true)) txpPos.y += step;
-					if (ImGui::IsKeyPressed(GLFW_KEY_A, true)) txpPos.x -= step;
-					if (ImGui::IsKeyPressed(GLFW_KEY_D, true)) txpPos.x += step;
-					if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE, true)) txpPos = vec2();
-					if (ImGui::IsWindowFocused() && ImGui::IsMouseDragging()) 
-						txpPos += vec2(ImGui::GetIO().MouseDelta.x, ImGui::GetIO().MouseDelta.y);
-
-					auto* texture = sprSet->TxpSet->Textures.at(txpIndex).get();
-					auto relativeMouse = ImGui::GetMousePos() - ImGui::GetWindowPos();
-					auto mousePos = vec2(relativeMouse.x, relativeMouse.y);
-
-					renderer.Draw(vec2(), vec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight()), vec4(.1f, .1f, .1f, 1.0f));
-					renderer.Draw(txpPos, vec2(1920, 1080), vec4(.15f, .15f, .15f, 1.0f));
-
-					renderer.Draw(texture->Texture2D.get(), txpPos, vec4(1.0f, 1.0f, 1.0f, 1.0f), (AetBlendMode)currentBlendItem);
-				}
-				renderer.End();
+				renderer.Resize(newRendererSize.x, newRendererSize.y);
+				newRendererSize = vec2();
 			}
+
+			renderer.Begin();
+			{
+				vec4 regionColor = vec4(.15f, .15f, .15f, 1.0f);
+				renderer.Draw(aetPosition, vec2(1920, 1080), regionColor);
+				//renderer.Draw(nullptr, aetSourceRegion, aetPosition, aetOrigin, aetRotation, aetScale, regionColor, (AetBlendMode)currentBlendItem);
+
+				if ((sprSet != nullptr && sprSet->TxpSet->Textures.size() > 0) && (txpIndex >= 0 && txpIndex < sprSet->TxpSet->Textures.size()))
+				{
+					auto* texture = sprSet->TxpSet->Textures.at(txpIndex).get();
+					auto texture2D = texture->Texture2D.get();
+
+					vec4 sourceRegion = (aetSourceRegion.z == 0.0f || aetSourceRegion.w == 0.0f) ? vec4(0.0f, 0.0f, texture2D->GetWidth(), texture2D->GetHeight()) : aetSourceRegion;
+					renderer.Draw(texture2D, sourceRegion, aetPosition, aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
+				}
+
+				renderer.GetShader()->Bind();
+				renderer.GetShader()->SetUniform(renderer.GetShader()->UseTextShadowLocation, useTextShadow);
+			}
+			renderer.End();
 		}
 		renderTarget.UnBind();
 	}
@@ -149,7 +167,7 @@ namespace Editor
 	{
 		RenderWindowBase::OnResize(width, height);
 
-		renderer.Resize(width, height);
+		newRendererSize = vec2(width, height);
 	}
 
 	void AetRenderWindow::OnInitialize()

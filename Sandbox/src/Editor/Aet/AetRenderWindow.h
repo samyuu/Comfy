@@ -35,9 +35,21 @@ namespace Editor
 		AetLyo* aetLyo = nullptr;
 		AetObj* aetObj = nullptr;
 
+		vec2 newRendererSize;
 		std::unique_ptr<SprSet> sprSet;
 		Renderer2D renderer;
 
+		struct
+		{
+			vec4 aetSourceRegion = { 0.0f, 0.0f, 0.0f, 0.0f };
+			vec4 aetColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+			vec2 aetPosition = { 100, 100 };
+			vec2 aetOrigin = { };
+			vec2 aetScale = { 1.0f, 1.0f };
+			float aetRotation = { };
+		};
+
+		bool useTextShadow = false;
 		int currentBlendItem = (int)AetBlendMode::Alpha;
 		int txpIndex = 0;
 	};
