@@ -14,6 +14,12 @@ namespace Editor
 		return DEBUG_RELEASE(EditorColors.at(color), EditorColors[color]);
 	}
 
+	vec4 GetColorVec4(EditorColor color)
+	{
+		ImVec4 imVec4 = ImColor(GetColor(color)).Value;
+		return vec4(imVec4.x, imVec4.y, imVec4.z, imVec4.w);
+	}
+
 	ImU32 GetColor(EditorColor color, float alpha)
 	{
 		ImVec4 colorVector = ImGui::ColorConvertU32ToFloat4(GetColor(color));
@@ -30,6 +36,7 @@ namespace Editor
 	void UpdateEditorColors()
 	{
 		SetColor(EditorColor_BaseClear, ImGui::GetColorU32(ImVec4(.12f, .12f, .12f, 1.0f)));
+		SetColor(EditorColor_DarkClear, ImGui::GetColorU32(ImVec4(.10f, .10f, .10f, 1.0f)));
 		SetColor(EditorColor_Grid, ImGui::GetColorU32(ImGuiCol_Separator, .75f));
 		SetColor(EditorColor_GridAlt, ImGui::GetColorU32(ImGuiCol_Separator, .5f));
 		SetColor(EditorColor_InfoColumn, ImGui::GetColorU32(ImGuiCol_ScrollbarBg));
