@@ -193,8 +193,8 @@ namespace Auth2D
 	{
 		CreateBatches();
 
-		glDisable(GL_DEPTH_TEST);
-		glEnable(GL_BLEND);
+		GLCall(glDisable(GL_DEPTH_TEST));
+		GLCall(glEnable(GL_BLEND));
 
 		vertexArray.Bind();
 		vertexBuffer.Bind();
@@ -226,10 +226,10 @@ namespace Auth2D
 
 			shader->SetUniform(shader->UseSolidColorLocation, item.Texture == nullptr);
 
-			glDrawElements(GL_TRIANGLES,
+			GLCall(glDrawElements(GL_TRIANGLES,
 				batch.Count * SpriteIndices::GetIndexCount(),
 				indexBuffer.GetGLIndexType(),
-				(void*)(batch.Index * sizeof(SpriteIndices)));
+				(void*)(batch.Index * sizeof(SpriteIndices))));
 		}
 
 		vertexArray.UnBind();
@@ -248,11 +248,11 @@ namespace Auth2D
 	void Renderer2D::SetBlendFunction(AetBlendMode blendMode)
 	{
 		const BlendFuncStruct& blendFunc = GetBlendFuncParamteres(blendMode);
-		glBlendFuncSeparate(
+		GLCall(glBlendFuncSeparate(
 			blendFunc.SourceRGB,
 			blendFunc.DestinationRGB,
 			blendFunc.SourceAlpha,
-			blendFunc.DestinationAlpha);
+			blendFunc.DestinationAlpha));
 	}
 
 	const BlendFuncStruct& Renderer2D::GetBlendFuncParamteres(AetBlendMode blendMode)

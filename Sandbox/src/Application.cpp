@@ -246,10 +246,10 @@ void Application::BaseDraw()
 {
 	const ImVec4 baseClearColor = ImColor(Editor::GetColor(Editor::EditorColor_BaseClear));
 
-	glClearColor(baseClearColor.x, baseClearColor.y, baseClearColor.z, baseClearColor.w);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GLCall(glClearColor(baseClearColor.x, baseClearColor.y, baseClearColor.z, baseClearColor.w));
+	GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-	glViewport(0, 0, windowWidth, windowHeight);
+	GLCall(glViewport(0, 0, windowWidth, windowHeight));
 	DrawGui();
 }
 
@@ -583,7 +583,7 @@ void Application::WindowResizeCallback(int width, int height)
 	windowWidth = (float)width;
 	windowHeight = (float)height;
 
-	glViewport(0, 0, width, height);
+	GLCall(glViewport(0, 0, width, height));
 }
 
 void Application::WindowDropCallback(size_t count, const char* paths[])

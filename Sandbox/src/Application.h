@@ -6,7 +6,7 @@
 #include "License/LicenseWindow.h"
 #include "TimeSpan.h"
 #include "Logger.h"
-#include <glad/glad.h>
+#include "Graphics/Graphics.h"
 #include <glfw/glfw3.h>
 
 constexpr float DEFAULT_WINDOW_WIDTH = 1280.0f;

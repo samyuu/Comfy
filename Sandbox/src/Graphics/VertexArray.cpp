@@ -1,6 +1,5 @@
 #include "VertexArray.h"
 #include "Buffer.h"
-#include "ErrorChecking.h"
 
 VertexArray::VertexArray()
 {
@@ -13,18 +12,17 @@ VertexArray::~VertexArray()
 
 void VertexArray::InitializeID()
 {
-	glGenVertexArrays(1, &vertexArrayID);
-	CHECK_GL_ERROR("glGenVertexArrays()");
+	GLCall(glGenVertexArrays(1, &vertexArrayID));
 }
 
 void VertexArray::Bind() const
 {
-	glBindVertexArray(vertexArrayID);
+	GLCall(glBindVertexArray(vertexArrayID));
 }
 
 void VertexArray::UnBind() const
 {
-	glBindVertexArray(NULL);
+	GLCall(glBindVertexArray(NULL));
 }
 
 void VertexArray::SetLayout(const BufferLayout& layout)
@@ -35,16 +33,16 @@ void VertexArray::SetLayout(const BufferLayout& layout)
 	{
 		const auto& element = elements[i];
 		
-		glEnableVertexAttribArray(i);
-		CHECK_GL_ERROR("glEnableVertexAttribArray()");
-
-		glVertexAttribPointer(i, element.GetElementCount(), element.GetDataType(), element.GetIsNormalized(), layout.GetStride(), element.GetOffset());
-		CHECK_GL_ERROR("glVertexAttribPointer()");
+		GLCall(glEnableVertexAttribArray(i));
+		GLCall(glVertexAttribPointer(i, element.GetElementCount(), element.GetDataType(), element.GetIsNormalized(), layout.GetStride(), element.GetOffset()));
 	}
 }
 
 void VertexArray::Dispose()
 {
 	if (vertexArrayID != NULL)
-		glDeleteVertexArrays(1, &vertexArrayID);
+	{
+		GLCall(glDeleteVertexArrays(1, &vertexArrayID));
+		vertexArrayID = NULL;
+	}
 }

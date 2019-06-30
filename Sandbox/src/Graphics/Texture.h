@@ -1,8 +1,8 @@
 #pragma once
 #include "Types.h"
+#include "Graphics.h"
 #include "GraphicsInterface.h"
 #include "FileSystem/Format/TxpSet.h"
-#include <glad/glad.h>
 
 typedef GLuint TextureID_t;
 typedef GLenum TextureTarget_t;
@@ -27,8 +27,6 @@ public:
 	inline float GetWidth() const { return imageSize.x; };
 	inline float GetHeight() const { return imageSize.y; };
 	inline const vec2& GetSize() const { return imageSize; };
-
-	//inline void SetSize(float width, float height) { imageWidth = width; imageHeight = height; };
 
 	inline TextureID_t GetTextureID() const { return textureID; }
 	inline void* GetVoidTexture() const { return reinterpret_cast<void*>(GetTextureID()); }

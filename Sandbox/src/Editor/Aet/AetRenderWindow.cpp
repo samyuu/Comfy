@@ -125,14 +125,14 @@ namespace Editor
 
 		renderTarget.Bind();
 		{
-			glViewport(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight());
+			GLCall(glViewport(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight()));
 
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			GLCall(glEnable(GL_BLEND));
+			GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
 			vec4 backgroundColor = GetColorVec4(EditorColor_DarkClear);
-			glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z, backgroundColor.w);
-			glClear(GL_COLOR_BUFFER_BIT);
+			GLCall(glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z, backgroundColor.w));
+			GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
 			if (newRendererSize.x != 0 && newRendererSize.y != 0)
 			{

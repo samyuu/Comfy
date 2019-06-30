@@ -1,7 +1,5 @@
 #include "ShaderProgram.h"
-#include "Graphics/ErrorChecking.h"
 #include "FileSystem/FileHelper.h"
-#include <fstream>
 
 ShaderProgram::ShaderProgram()
 {
@@ -14,27 +12,27 @@ ShaderProgram::~ShaderProgram()
 
 void ShaderProgram::Bind() const
 {
-	glUseProgram(programID);
+	GLCall(glUseProgram(programID));
 }
 
 void ShaderProgram::UnBind() const
 {
-	glUseProgram(0);
+	GLCall(glUseProgram(0));
 }
 
 void ShaderProgram::SetUniform(UniformLocation_t location, int value)
 {
-	glUniform1i(location, value);
+	GLCall(glUniform1i(location, value));
 }
 
 void ShaderProgram::SetUniform(UniformLocation_t location, float value)
 {
-	glUniform1f(location, value);
+	GLCall(glUniform1f(location, value));
 }
 
 void ShaderProgram::SetUniform(UniformLocation_t location, glm::mat4& value)
 {
-	glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
+	GLCall(glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value)));
 }
 
 void ShaderProgram::SetUniformByName(const char* name, int value)
@@ -60,8 +58,7 @@ void ShaderProgram::Initialize()
 	CompileShader(ShaderType::Vertex, &vertexShader, vertexSource);
 	CompileShader(ShaderType::Fragment, &fragmentShader, fragmentSource);
 
-	programID = glCreateProgram();
-	CHECK_GL_ERROR("glCreateProgram()");
+	GLCall(programID = glCreateProgram());
 
 	AttachLinkShaders(vertexShader, fragmentShader);
 
@@ -71,8 +68,9 @@ void ShaderProgram::Initialize()
 
 UniformLocation_t ShaderProgram::GetUniformLocation(const std::string &name)
 {
-	return glGetUniformLocation(programID, name.c_str());
-	CHECK_GL_ERROR("glGetUniformLocation()");
+	GLint location;
+	GLCall(location = glGetUniformLocation(programID, name.c_str()));
+	return location;
 }
 
 void ShaderProgram::LoadShaderSources()
@@ -97,23 +95,20 @@ int ShaderProgram::CompileShader(ShaderType shaderType, ShaderID_t* shaderID, co
 	}
 
 	*shaderID = glCreateShader(glShaderType);
-	CHECK_GL_ERROR("glCreateShader()");
 
 	int sourceSizes[1] = { (int)shaderSource.size() };
 	char* sources[1] = { (char*)shaderSource.data() };
 	
-	glShaderSource(*shaderID, 1, sources, sourceSizes);
-	CHECK_GL_ERROR("glShaderSource()");
-	glCompileShader(*shaderID);
-	CHECK_GL_ERROR("glCompileShader()");
+	GLCall(glShaderSource(*shaderID, 1, sources, sourceSizes));
+	GLCall(glCompileShader(*shaderID));
 
 	int compileSuccess = NULL;
-	glGetShaderiv(*shaderID, GL_COMPILE_STATUS, &compileSuccess);
+	GLCall(glGetShaderiv(*shaderID, GL_COMPILE_STATUS, &compileSuccess));
 
 	if (!compileSuccess)
 	{
 		char infoLog[512] = {};
-		glGetShaderInfoLog(*shaderID, sizeof(infoLog), NULL, infoLog);
+		GLCall(glGetShaderInfoLog(*shaderID, sizeof(infoLog), NULL, infoLog));
 
 		Logger::LogErrorLine("ShaderProgram::CompileShader(): Failed to compile shader %s", infoLog);
 		return -1;
@@ -124,30 +119,27 @@ int ShaderProgram::CompileShader(ShaderType shaderType, ShaderID_t* shaderID, co
 
 int ShaderProgram::AttachLinkShaders(ShaderID_t vertexShader, ShaderID_t fragmentShader)
 {
-	glAttachShader(programID, vertexShader);
-	CHECK_GL_ERROR("glAttachShader()");
-	glAttachShader(programID, fragmentShader);
-	CHECK_GL_ERROR("glAttachShader()");
-	glLinkProgram(programID);
-	CHECK_GL_ERROR("glLinkProgram()");
+	GLCall(glAttachShader(programID, vertexShader));
+	GLCall(glAttachShader(programID, fragmentShader));
+	GLCall(glLinkProgram(programID));
 
 	int linkSuccess = NULL;
-	glGetProgramiv(programID, GL_LINK_STATUS, &linkSuccess);
+	GLCall(glGetProgramiv(programID, GL_LINK_STATUS, &linkSuccess));
 
 	if (!linkSuccess)
 	{
 		char infoLog[512] = {};
-		glGetProgramInfoLog(programID, sizeof(infoLog), NULL, infoLog);
+		GLCall(glGetProgramInfoLog(programID, sizeof(infoLog), NULL, infoLog));
 
 		Logger::LogErrorLine("ShaderProgram::AttachLinkShaders(): Failed to link shaders %s", infoLog);
 		return -1;
 	}
 
-	glDetachShader(programID, vertexShader);
-	glDetachShader(programID, fragmentShader);
+	GLCall(glDetachShader(programID, vertexShader));
+	GLCall(glDetachShader(programID, fragmentShader));
 
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+	GLCall(glDeleteShader(vertexShader));
+	GLCall(glDeleteShader(fragmentShader));
 
 	return 0;
 }
@@ -155,5 +147,8 @@ int ShaderProgram::AttachLinkShaders(ShaderID_t vertexShader, ShaderID_t fragmen
 void ShaderProgram::Dispose()
 {
 	if (programID != NULL)
-		glDeleteProgram(programID);
+	{
+		GLCall(glDeleteProgram(programID));
+		programID = NULL;
+	}
 }

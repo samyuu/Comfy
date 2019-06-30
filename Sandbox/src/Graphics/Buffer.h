@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
+#include "Graphics.h"
 #include "GraphicsInterface.h"
-#include <glad/glad.h>
 #include <vector>
 
 // ------------------------------------------------------------------------------------------------

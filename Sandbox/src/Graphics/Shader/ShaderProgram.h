@@ -1,9 +1,9 @@
 #pragma once
 #include "Types.h"
+#include "Graphics/Graphics.h"
 #include "Graphics/GraphicsInterface.h"
 #include <string>
 #include <vector>
-#include <glad/glad.h>
 
 typedef GLint UniformLocation_t;
 typedef GLuint ShaderID_t;

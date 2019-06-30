@@ -1,7 +1,7 @@
 #pragma once
 #include "Texture.h"
+#include "Graphics.h"
 #include "GraphicsInterface.h"
-#include <glad/glad.h>
 
 // ------------------------------------------------------------------------------------------------
 // --- Renderbuffer:

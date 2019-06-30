@@ -272,15 +272,14 @@ namespace Editor
 
 		postProcessingRenderTarget.Bind();
 		{
-			glEnable(GL_DEPTH_TEST);
-			//glDisable(GL_BLEND);
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			GLCall(glEnable(GL_DEPTH_TEST));
+			GLCall(glEnable(GL_BLEND));
+			GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-			glClearColor(baseClearColor.x, baseClearColor.y, baseClearColor.z, baseClearColor.w);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			GLCall(glClearColor(baseClearColor.x, baseClearColor.y, baseClearColor.z, baseClearColor.w));
+			GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-			glViewport(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight());
+			GLCall(glViewport(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight()));
 			{
 				mat4 cubeModelMatrices[_countof(cubePositions)];
 				for (size_t i = 0; i < _countof(cubePositions); i++)
@@ -298,7 +297,7 @@ namespace Editor
 				for (size_t i = 0; i < _countof(cubePositions); i++)
 				{
 					comfyShader.SetUniform(comfyShader.ModelLocation, cubeModelMatrices[i]);
-					glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
+					GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
 				}
 
 				feelsBadManTexture->Texture2D->Bind(0);
@@ -306,21 +305,21 @@ namespace Editor
 				tileTexture->Texture2D->Bind(0);
 				mat4 tileModelMatrix = glm::scale(glm::translate(mat4(1.0f), vec3(0, -4.0f, 0)), vec3(39.0f, 1.0f, 39.0f));
 				comfyShader.SetUniform(comfyShader.ModelLocation, tileModelMatrix);
-				glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
+				GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
 
 				feelsBadManTexture->Texture2D->Bind(0);
 				skyTexture->Texture2D->Bind(1);
 				skyTexture->Texture2D->Bind(0);
 				mat4 skyModelMatrix = glm::scale(mat4(1.0f), vec3(1000.0f, 1000.0f, 1000.0f));
 				comfyShader.SetUniform(comfyShader.ModelLocation, skyModelMatrix);
-				glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
+				GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
 
 				feelsBadManTexture->Texture2D->Bind(0);
 				groundTexture->Texture2D->Bind(1);
 				groundTexture->Texture2D->Bind(0);
 				mat4 groundModelMatrix = glm::scale(glm::translate(mat4(1.0f), vec3(0, -5.0f, 0)), vec3(999.9f, 1.0f, 999.9));
 				comfyShader.SetUniform(comfyShader.ModelLocation, groundModelMatrix);
-				glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
+				GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
 
 				{
 					lineShader.Bind();
@@ -331,7 +330,7 @@ namespace Editor
 					for (size_t i = 0; i < _countof(cubePositions); i++)
 					{
 						lineShader.SetUniform(lineShader.ModelLocation, cubeModelMatrices[i]);
-						glDrawArrays(GL_LINES, 0, _countof(axisVertices));
+						GLCall(glDrawArrays(GL_LINES, 0, _countof(axisVertices)));
 					}
 				}
 			}
@@ -340,12 +339,12 @@ namespace Editor
 
 		renderTarget.Bind();
 		{
-			glDisable(GL_DEPTH_TEST);
+			GLCall(glDisable(GL_DEPTH_TEST));
 
 			screenVao.Bind();
 			screenShader.Bind();
 			postProcessingRenderTarget.GetTexture().Bind();
-			glDrawArrays(GL_TRIANGLES, 0, _countof(screenVertices));
+			GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(screenVertices)));
 		}
 		renderTarget.UnBind();
 	}

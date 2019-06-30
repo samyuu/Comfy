@@ -1,5 +1,4 @@
 #include "Buffer.h"
-#include "ErrorChecking.h"
 #include <assert.h>
 
 // ------------------------------------------------------------------------------------------------
@@ -17,32 +16,28 @@ Buffer::~Buffer()
 
 void Buffer::InitializeID()
 {
-	glGenBuffers(1, &bufferID);
-	CHECK_GL_ERROR("glGenBuffers()");
+	GLCall(glGenBuffers(1, &bufferID));
 }
 
 void Buffer::Upload(size_t dataSize, void* data)
 {
-	glBufferData(GetGLBufferTarget(), dataSize, data, GetGLUsage());
-	CHECK_GL_ERROR("glBufferData()");
+	GLCall(glBufferData(GetGLBufferTarget(), dataSize, data, GetGLUsage()));
 }
 
 void Buffer::UploadSubData(size_t dataSize, void* data)
 {
-	glBufferData(GetGLBufferTarget(), dataSize, nullptr, GetGLUsage());
-	CHECK_GL_ERROR("glBufferData()");
-	glBufferSubData(GetGLBufferTarget(), (GLintptr)nullptr, dataSize, data);
-	CHECK_GL_ERROR("glBufferSubData()");
+	GLCall(glBufferData(GetGLBufferTarget(), dataSize, nullptr, GetGLUsage()));
+	GLCall(glBufferSubData(GetGLBufferTarget(), (GLintptr)nullptr, dataSize, data));
 }
 
 void Buffer::Bind() const
 {
-	glBindBuffer(GetGLBufferTarget(), bufferID);
+	GLCall(glBindBuffer(GetGLBufferTarget(), bufferID));
 }
 
 void Buffer::UnBind() const
 {
-	glBindBuffer(GetGLBufferTarget(), NULL);
+	GLCall(glBindBuffer(GetGLBufferTarget(), NULL));
 }
 
 GLenum Buffer::GetGLUsage() const
@@ -75,7 +70,10 @@ GLenum Buffer::GetGLUsage() const
 void Buffer::Dispose()
 {
 	if (bufferID != NULL)
-		glDeleteBuffers(1, &bufferID);
+	{
+		GLCall(glDeleteBuffers(1, &bufferID));
+		bufferID = NULL;
+	}
 }
 
 // ------------------------------------------------------------------------------------------------

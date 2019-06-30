@@ -99,6 +99,7 @@
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_wav.cpp" />
+    <ClCompile Include="lib\glad\src\glad.c" />
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
     <ClCompile Include="lib\stb\src\stb_image_write.cpp" />
     <ClCompile Include="src\Editor\Aet\AetRenderWindow.cpp" />
@@ -144,7 +145,6 @@
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="lib\stb\src\stb_image.cpp" />
     <ClCompile Include="src\Graphics\Camera.cpp" />
-    <ClCompile Include="lib\glad\src\glad.c" />
     <ClCompile Include="src\ImGui\imgui.cpp" />
     <ClCompile Include="src\ImGui\imgui_demo.cpp" />
     <ClCompile Include="src\ImGui\imgui_draw.cpp" />
@@ -191,7 +191,7 @@
     <ClInclude Include="src\FileSystem\MemoryStream.h" />
     <ClInclude Include="src\FileSystem\FileStream.h" />
     <ClInclude Include="src\Graphics\Auth2D\Renderer2D.h" />
-    <ClInclude Include="src\Graphics\ErrorChecking.h" />
+    <ClInclude Include="src\Graphics\Graphics.h" />
     <ClInclude Include="src\Graphics\GraphicsInterface.h" />
     <ClInclude Include="src\Graphics\IRenderer.h" />
     <ClInclude Include="src\Graphics\Shader\Shader.h" />
