@@ -9,6 +9,13 @@ namespace FileSystem
 {
 	struct AetLayer;
 
+	typedef uint16_t AetTypeFlags;
+	enum AetTypeFlags_ : AetTypeFlags
+	{
+		AetTypeFlags_None = 0,
+		AetTypeFlags_Visible = 1 << 0,
+	};
+
 	enum AetObjType : uint8_t
 	{
 		AetObjType_Nop = 0,
@@ -17,7 +24,7 @@ namespace FileSystem
 		AetObjType_Eff = 3,
 	};
 
-	enum class AetBlendMode : uint8_t
+	enum class AetBlendMode : uint16_t
 	{
 		Alpha = 3,
 		Additive = 5,
@@ -72,9 +79,7 @@ namespace FileSystem
 	struct AnimationData
 	{
 		AetBlendMode BlendMode;
-		unk8_t UnknownFlag0;
 		bool UseTextureMask;
-		unk8_t UnknownFlag2;
 		std::unique_ptr<KeyFrameProperties> Properties;
 		std::unique_ptr<KeyFrameProperties> PerspectiveProperties;
 	};
@@ -87,8 +92,11 @@ namespace FileSystem
 		frame_t LoopEnd;
 		frame_t StartFrame;
 		float PlaybackSpeed;
-		unk8_t UnknownBytes[3];
+
+		AetTypeFlags TypeFlag;
+		unk8_t UnknownTypeByte;
 		AetObjType Type;
+
 		struct
 		{
 			void* DataFilePtr;

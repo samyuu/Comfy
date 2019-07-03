@@ -144,55 +144,51 @@ namespace FileSystem
 									aetObj->LoopEnd = reader.ReadFloat();
 									aetObj->StartFrame = reader.ReadFloat();
 									aetObj->PlaybackSpeed = reader.ReadFloat();
-									for (size_t i = 0; i < sizeof(aetObj->UnknownBytes); i++)
-										aetObj->UnknownBytes[i] = reader.ReadByte();
+
+									aetObj->TypeFlag = reader.Read<AetTypeFlags>();
+									aetObj->UnknownTypeByte = reader.ReadByte();
 									aetObj->Type = reader.Read<AetObjType>();
 
-									if (aetObj->Type != AetObjType_Nop)
+									aetObj->DataFilePtr = reader.ReadPtr();
+									aetObj->ParentFilePtr = reader.ReadPtr();
+
+									uint32_t markerCount = reader.ReadUInt32();
+									void* markersPointer = reader.ReadPtr();
+
+									if (markerCount > 0 && markersPointer != nullptr)
 									{
-										aetObj->DataFilePtr = reader.ReadPtr();
-										aetObj->ParentFilePtr = reader.ReadPtr();
-
-										uint32_t markerCount = reader.ReadUInt32();
-										void* markersPointer = reader.ReadPtr();
-
-										if (markerCount > 0 && markersPointer != nullptr)
+										reader.ReadAt(markersPointer, [markerCount, &aetObj](BinaryReader& reader)
 										{
-											reader.ReadAt(markersPointer, [markerCount, &aetObj](BinaryReader& reader)
-											{
-												aetObj->Markers.reserve(markerCount);
-												for (uint32_t i = 0; i < markerCount; i++)
-													aetObj->Markers.push_back({ reader.ReadFloat(), reader.ReadStrPtr() });
-											});
-										}
-
-										void* animationDataPointer = reader.ReadPtr();
-										if (animationDataPointer != nullptr)
-										{
-											AnimationData* animationData = &aetObj->AnimationData;
-											reader.ReadAt(animationDataPointer, [&animationData](BinaryReader& reader)
-											{
-												animationData->BlendMode = reader.Read<AetBlendMode>();
-												animationData->UnknownFlag0 = reader.Read<unk8_t>();
-												animationData->UseTextureMask = reader.ReadBool();
-												animationData->UnknownFlag2 = reader.Read<unk8_t>();
-												animationData->Properties = std::make_unique<KeyFrameProperties>();
-												ReadKeyFrameProperties(animationData->Properties.get(), reader);
-
-												void* propertiesExtraDataPointer = reader.ReadPtr();
-												if (propertiesExtraDataPointer != nullptr)
-												{
-													reader.ReadAt(propertiesExtraDataPointer, [&animationData](BinaryReader& reader)
-													{
-														animationData->PerspectiveProperties = std::make_unique<KeyFrameProperties>();
-														ReadKeyFrameProperties(animationData->PerspectiveProperties.get(), reader);
-													});
-												}
-											});
-										}
-
-										aetObj->UnknownFilePtr = reader.ReadPtr();
+											aetObj->Markers.reserve(markerCount);
+											for (uint32_t i = 0; i < markerCount; i++)
+												aetObj->Markers.push_back({ reader.ReadFloat(), reader.ReadStrPtr() });
+										});
 									}
+
+									void* animationDataPointer = reader.ReadPtr();
+									if (animationDataPointer != nullptr)
+									{
+										AnimationData* animationData = &aetObj->AnimationData;
+										reader.ReadAt(animationDataPointer, [&animationData](BinaryReader& reader)
+										{
+											animationData->BlendMode = reader.Read<AetBlendMode>();
+											animationData->UseTextureMask = reader.ReadUInt16();
+											animationData->Properties = std::make_unique<KeyFrameProperties>();
+											ReadKeyFrameProperties(animationData->Properties.get(), reader);
+
+											void* propertiesExtraDataPointer = reader.ReadPtr();
+											if (propertiesExtraDataPointer != nullptr)
+											{
+												reader.ReadAt(propertiesExtraDataPointer, [&animationData](BinaryReader& reader)
+												{
+													animationData->PerspectiveProperties = std::make_unique<KeyFrameProperties>();
+													ReadKeyFrameProperties(animationData->PerspectiveProperties.get(), reader);
+												});
+											}
+										});
+									}
+
+									aetObj->UnknownFilePtr = reader.ReadPtr();
 								}
 							});
 						}

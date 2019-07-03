@@ -137,6 +137,10 @@ namespace Editor
 			ImGui::InputFloat("Loop End", &aetObj->LoopEnd);
 			ImGui::InputFloat("Start Frame", &aetObj->StartFrame);
 
+			uint32_t flags = aetObj->TypeFlag;
+			if (ImGui::CheckboxFlags("Visible", &flags, AetTypeFlags_Visible))
+				aetObj->TypeFlag = flags;
+
 			ImGui::TreePop();
 		}
 
