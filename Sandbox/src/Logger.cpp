@@ -1,6 +1,11 @@
 #include "Logger.h"
 #include <stdarg.h>
 
+void Logger::NewLine()
+{
+	putc('\n', GetStream());
+}
+
 void Logger::Log(_Printf_format_string_ char const* const format, ...)
 {
 	va_list arguments;

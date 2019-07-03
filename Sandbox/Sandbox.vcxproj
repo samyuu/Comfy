@@ -115,6 +115,7 @@
     <ClCompile Include="src\FileSystem\Format\TxpSet.cpp" />
     <ClCompile Include="src\FileSystem\MemoryStream.cpp" />
     <ClCompile Include="src\FileSystem\FileStream.cpp" />
+    <ClCompile Include="src\Graphics\Auth2D\AetMgr.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\Renderer2D.cpp" />
     <ClCompile Include="src\Graphics\Shader\Shader.cpp" />
     <ClCompile Include="src\ImGui\Widgets\FileViewer.cpp" />
@@ -190,6 +191,7 @@
     <ClInclude Include="src\FileSystem\Format\TxpSet.h" />
     <ClInclude Include="src\FileSystem\MemoryStream.h" />
     <ClInclude Include="src\FileSystem\FileStream.h" />
+    <ClInclude Include="src\Graphics\Auth2D\AetMgr.h" />
     <ClInclude Include="src\Graphics\Auth2D\Renderer2D.h" />
     <ClInclude Include="src\Graphics\Graphics.h" />
     <ClInclude Include="src\Graphics\GraphicsInterface.h" />

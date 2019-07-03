@@ -8,6 +8,7 @@
 #include "FileSystem/Format/AetSet.h"
 #include "FileSystem/Format/SprSet.h"
 #include "FileSystem/Format/TxpSet.h"
+#include "Graphics/Auth2D/AetMgr.h"
 // #include "Graphics/Utilities/TextureUtilities.h"
 // #include "Graphics/Utilities/s3tc.h"
 // #include "Graphics/Utilities/decompress.h"
@@ -188,9 +189,81 @@ void SaveAsDDS(FileSystem::Texture* texture)
 	}
 }
 
+void AetTest()
+{
+	std::vector<KeyFrame> keyFrameVector = 
+	{
+		// { 0.0f, 0.2f, 0.03f},
+		// { 19.0f,0.77f, 0.03f },
+		// { 20.0f, 0.8f, 0.015f },
+		// { 21.0f, 0.8f, 0.0f },
+
+		{ 5.00f,  0.00f, 0.15f },
+		{ 8.00f,  0.30f, 0.15f },
+		{ 9.00f,  0.40f, 0.09f },
+		{ 10.00f, 0.42f, 0.04f },
+		{ 25.00f, 0.78f, 0.04f },
+		{ 26.00f, 0.80f, 0.02f },
+		{ 27.00f, 0.80f, 0.00f },
+	};
+
+	std::unique_ptr<float[]> rawValues = std::make_unique<float[]>(keyFrameVector.size() * 3);
+	for (size_t i = 0; i < keyFrameVector.size(); i++)
+		rawValues[i] = keyFrameVector[i].Frame;
+	
+	float* valuesPtr = &rawValues[keyFrameVector.size()];
+	for (size_t i = 0; i < keyFrameVector.size(); i++)
+	{
+		*valuesPtr = keyFrameVector[i].Value; valuesPtr++;
+		*valuesPtr = keyFrameVector[i].Interpolation; valuesPtr++;
+	}
+
+	for (float i = -1.0f; i <= keyFrameVector.back().Frame; i++)
+	{
+		float result = Auth2D::AetInterpolateAccurate(keyFrameVector.size(), rawValues.get(), i);
+		float recreation = Auth2D::AetMgr::Interpolate(keyFrameVector, i);
+		
+		Logger::LogLine("ORIG FRAME [%02.0f] = %.2f", i, result);
+		Logger::LogLine("EDIT FRAME [%02.0f] = %.2f", i, recreation);
+
+		if (result != recreation)
+			Logger::LogLine("--- NOT SAME ---");
+		Logger::NewLine();
+	}
+
+	// target:			- // output:
+	// 00 frame: 0.20	- // FRAME [00] = 0.20
+	// 01 frame: 0.23	- // FRAME [01] = 0.23
+	// 02 frame: 0.26	- // FRAME [02] = 0.26
+	// 03 frame: 0.29	- // FRAME [03] = 0.29
+	// 04 frame: 0.32	- // FRAME [04] = 0.32
+	// 05 frame: 0.35	- // FRAME [05] = 0.35
+	// 06 frame: 0.38	- // FRAME [06] = 0.38
+	// 07 frame: 0.41	- // FRAME [07] = 0.41
+	// 08 frame: 0.44	- // FRAME [08] = 0.44
+	// 09 frame: 0.47	- // FRAME [09] = 0.47
+	// 10 frame: 0.50	- // FRAME [10] = 0.50
+	// 11 frame: 0.53	- // FRAME [11] = 0.53
+	// 12 frame: 0.56	- // FRAME [12] = 0.56
+	// 13 frame: 0.59	- // FRAME [13] = 0.59
+	// 14 frame: 0.62	- // FRAME [14] = 0.62
+	// 15 frame: 0.65	- // FRAME [15] = 0.65
+	// 16 frame: 0.68	- // FRAME [16] = 0.68
+	// 17 frame: 0.71	- // FRAME [17] = 0.71
+	// 18 frame: 0.74	- // FRAME [18] = 0.74
+	// 19 frame: 0.77	- // FRAME [19] = 0.77
+	// 20 frame: 0.80	- // FRAME [20] = 0.80
+}
+
 void MainTest()
 {
 	glfwInit();
+
+	if (false)
+	{
+		AetTest();
+		int __debuggerbreak__ = 0;
+	}
 
 	if (false)
 	{

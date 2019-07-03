@@ -225,6 +225,9 @@
     <ClCompile Include="lib\glad\src\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\Auth2D\AetMgr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ImGui\imconfig.h">
@@ -459,6 +462,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Graphics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Auth2D\AetMgr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
