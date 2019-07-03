@@ -281,56 +281,65 @@ namespace Editor
 
 			GLCall(glViewport(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight()));
 			{
+				comfyShader.Bind();
+				cubeVao.Bind();
+
+				// Stage:
+				{
+					mat4 skyModelMatrix = glm::scale(mat4(1.0f), vec3(1000.0f, 1000.0f, 1000.0f));
+					mat4 groundModelMatrix = glm::scale(glm::translate(mat4(1.0f), vec3(0, -5.0f, 0)), vec3(999.9f, 1.0f, 999.9));
+					mat4 tileModelMatrix = glm::scale(glm::translate(mat4(1.0f), vec3(0, -4.0f, 0)), vec3(39.0f, 1.0f, 39.0f));
+					
+					skyTexture->Texture2D->Bind(1);
+					skyTexture->Texture2D->Bind(0);
+					comfyShader.SetUniform(comfyShader.ModelLocation, skyModelMatrix);
+					GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
+
+					groundTexture->Texture2D->Bind(1);
+					groundTexture->Texture2D->Bind(0);
+					comfyShader.SetUniform(comfyShader.ModelLocation, groundModelMatrix);
+					GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
+
+					tileTexture->Texture2D->Bind(1);
+					tileTexture->Texture2D->Bind(0);
+					comfyShader.SetUniform(comfyShader.ModelLocation, tileModelMatrix);
+					GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
+				}
+
 				mat4 cubeModelMatrices[_countof(cubePositions)];
 				for (size_t i = 0; i < _countof(cubePositions); i++)
 					cubeModelMatrices[i] = glm::translate(mat4(1.0f), cubePositions[i]);
 
-				feelsBadManTexture->Texture2D->Bind(0);
-				goodNiceTexture->Texture2D->Bind(1);
-				comfyShader.Bind();
-				comfyShader.SetUniform(comfyShader.Texture0Location, 0);
-				comfyShader.SetUniform(comfyShader.Texture1Location, 1);
-				comfyShader.SetUniform(comfyShader.ViewLocation, camera.GetViewMatrix());
-				comfyShader.SetUniform(comfyShader.ProjectionLocation, camera.GetProjectionMatrix());
-
-				cubeVao.Bind();
-				for (size_t i = 0; i < _countof(cubePositions); i++)
+				// Lines:
 				{
-					comfyShader.SetUniform(comfyShader.ModelLocation, cubeModelMatrices[i]);
-					GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
-				}
-
-				feelsBadManTexture->Texture2D->Bind(0);
-				tileTexture->Texture2D->Bind(1);
-				tileTexture->Texture2D->Bind(0);
-				mat4 tileModelMatrix = glm::scale(glm::translate(mat4(1.0f), vec3(0, -4.0f, 0)), vec3(39.0f, 1.0f, 39.0f));
-				comfyShader.SetUniform(comfyShader.ModelLocation, tileModelMatrix);
-				GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
-
-				feelsBadManTexture->Texture2D->Bind(0);
-				skyTexture->Texture2D->Bind(1);
-				skyTexture->Texture2D->Bind(0);
-				mat4 skyModelMatrix = glm::scale(mat4(1.0f), vec3(1000.0f, 1000.0f, 1000.0f));
-				comfyShader.SetUniform(comfyShader.ModelLocation, skyModelMatrix);
-				GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
-
-				feelsBadManTexture->Texture2D->Bind(0);
-				groundTexture->Texture2D->Bind(1);
-				groundTexture->Texture2D->Bind(0);
-				mat4 groundModelMatrix = glm::scale(glm::translate(mat4(1.0f), vec3(0, -5.0f, 0)), vec3(999.9f, 1.0f, 999.9));
-				comfyShader.SetUniform(comfyShader.ModelLocation, groundModelMatrix);
-				GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
-
-				{
+					lineVao.Bind();
 					lineShader.Bind();
 					lineShader.SetUniform(lineShader.ViewLocation, camera.GetViewMatrix());
 					lineShader.SetUniform(lineShader.ProjectionLocation, camera.GetProjectionMatrix());
 
-					lineVao.Bind();
 					for (size_t i = 0; i < _countof(cubePositions); i++)
 					{
 						lineShader.SetUniform(lineShader.ModelLocation, cubeModelMatrices[i]);
 						GLCall(glDrawArrays(GL_LINES, 0, _countof(axisVertices)));
+					}
+				}
+
+				// Cubes:
+				{
+					cubeVao.Bind();
+					comfyShader.Bind();
+					comfyShader.SetUniform(comfyShader.Texture0Location, 0);
+					comfyShader.SetUniform(comfyShader.Texture1Location, 1);
+					comfyShader.SetUniform(comfyShader.ViewLocation, camera.GetViewMatrix());
+					comfyShader.SetUniform(comfyShader.ProjectionLocation, camera.GetProjectionMatrix());
+
+					goodNiceTexture->Texture2D->Bind(1);
+					feelsBadManTexture->Texture2D->Bind(0);
+
+					for (size_t i = 0; i < _countof(cubePositions); i++)
+					{
+						comfyShader.SetUniform(comfyShader.ModelLocation, cubeModelMatrices[i]);
+						GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
 					}
 				}
 			}
