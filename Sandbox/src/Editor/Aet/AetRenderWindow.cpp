@@ -151,6 +151,7 @@ namespace Editor
 					auto* texture = sprSet->TxpSet->Textures.at(txpIndex).get();
 					auto texture2D = texture->Texture2D.get();
 
+					//aetSourceRegion.x += 100 * ImGui::GetIO().DeltaTime;
 					vec4 sourceRegion = (aetSourceRegion.z == 0.0f || aetSourceRegion.w == 0.0f) ? vec4(0.0f, 0.0f, texture2D->GetWidth(), texture2D->GetHeight()) : aetSourceRegion;
 					renderer.Draw(texture2D, sourceRegion, aetPosition, aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
 				}

@@ -94,7 +94,7 @@ void Application::CheckConnectedDevices()
 	{
 		if (Keyboard::TryInitializeInstance(GetWindow()))
 		{
-			//printf("Application::CheckConnectedDevices(): Keyboard connected and initialized\n");
+			//Logger::Log(__FUNCTION__"(): Keyboard connected and initialized\n");
 		}
 	}
 
@@ -102,7 +102,7 @@ void Application::CheckConnectedDevices()
 	{
 		if (DualShock4::TryInitializeInstance())
 		{
-			//printf("Application::CheckConnectedDevices(): DualShock4 connected and initialized\n");
+			//Logger::Log(__FUNCTION__"(): DualShock4 connected and initialized\n");
 		}
 	}
 }

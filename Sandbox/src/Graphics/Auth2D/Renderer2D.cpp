@@ -196,11 +196,10 @@ namespace Auth2D
 		GLCall(glDisable(GL_DEPTH_TEST));
 		GLCall(glEnable(GL_BLEND));
 
+		shader->Bind();
 		vertexArray.Bind();
 		vertexBuffer.Bind();
 		vertexBuffer.Upload(vertices.size() * sizeof(SpriteVertices), vertices.data());
-		shader->Bind();
-
 		indexBuffer.Bind();
 
 		AetBlendMode lastBlendMode;
