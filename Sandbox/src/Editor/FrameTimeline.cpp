@@ -3,6 +3,11 @@
 
 namespace Editor
 {
+	TimelineFrame FrameTimeline::GetFrame() const
+	{
+		return GetTimelineFrame(cursorTime);
+	}
+
 	TimelineFrame FrameTimeline::GetGridFrame() const
 	{
 		return TimelineFrame(gridDivision);

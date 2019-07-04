@@ -1,6 +1,6 @@
 #pragma once
-#include "../TimeSpan.h"
-#include "../pch.h"
+#include "TimeSpan.h"
+#include "pch.h"
 
 namespace Editor
 {

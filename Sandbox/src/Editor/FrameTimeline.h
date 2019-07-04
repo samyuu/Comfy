@@ -6,6 +6,9 @@ namespace Editor
 {
 	class FrameTimeline : public TimelineBase
 	{
+	public:
+		TimelineFrame GetFrame() const;
+
 	protected:
 		TimelineFrame loopStartFrame = 0.0f;
 		TimelineFrame loopEndFrame = 60.0f;

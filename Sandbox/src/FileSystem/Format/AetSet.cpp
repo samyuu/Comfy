@@ -16,6 +16,14 @@ namespace FileSystem
 		"Opcatiy",
 	};
 
+	std::array<const char*, 4> AetObj::TypeNames = 
+	{ 
+		"nop", 
+		"pic", 
+		"aif", 
+		"eff", 
+	};
+
 	static void ReadKeyFrameProperties(KeyFrameProperties* properties, BinaryReader& reader)
 	{
 		for (auto keyFrames = &properties->OriginX; keyFrames <= &properties->Opacity; keyFrames++)

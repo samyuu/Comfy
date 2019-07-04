@@ -138,6 +138,8 @@ namespace Auth2D
 		shader = std::make_unique<SpriteShader>();
 		shader->Initialize();
 		shader->Bind();
+		shader->SetUniform(shader->TextureLocation, 0);
+		shader->SetUniform(shader->TextureMaskLocation, 1);
 
 		vertexArray.InitializeID();
 		vertexArray.Bind();

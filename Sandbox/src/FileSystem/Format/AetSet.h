@@ -110,6 +110,8 @@ namespace FileSystem
 
 			AetObj* ReferencedObjParent;
 		};
+
+		static std::array<const char*, 4> TypeNames;
 	};
 
 	struct AetLayer

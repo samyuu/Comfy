@@ -35,7 +35,8 @@ namespace Editor
 
 	void UpdateEditorColors()
 	{
-		SetColor(EditorColor_BaseClear, ImGui::GetColorU32(ImVec4(.12f, .12f, .12f, 1.0f)));
+		//SetColor(EditorColor_BaseClear, ImGui::GetColorU32(ImVec4(.12f, .12f, .12f, 1.0f)));
+		SetColor(EditorColor_BaseClear, ImGui::GetColorU32(ImGuiCol_TabUnfocused));
 		SetColor(EditorColor_DarkClear, ImGui::GetColorU32(ImVec4(.10f, .10f, .10f, 1.0f)));
 		SetColor(EditorColor_Grid, ImGui::GetColorU32(ImGuiCol_Separator, .75f));
 		SetColor(EditorColor_GridAlt, ImGui::GetColorU32(ImGuiCol_Separator, .5f));

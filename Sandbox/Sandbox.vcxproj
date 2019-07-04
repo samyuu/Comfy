@@ -104,6 +104,7 @@
     <ClCompile Include="lib\stb\src\stb_image_write.cpp" />
     <ClCompile Include="src\Editor\Aet\AetRenderWindow.cpp" />
     <ClCompile Include="src\Editor\Aet\AetTimeline.cpp" />
+    <ClCompile Include="src\Editor\Aet\AetTreeView.cpp" />
     <ClCompile Include="src\Editor\FrameTimeline.cpp" />
     <ClCompile Include="src\Editor\PV\SceneRenderWindow.cpp" />
     <ClCompile Include="src\Editor\RenderWindowBase.cpp" />
@@ -177,6 +178,8 @@
     <ClInclude Include="src\Editor\Aet\AetEditor.h" />
     <ClInclude Include="src\Editor\Aet\AetRenderWindow.h" />
     <ClInclude Include="src\Editor\Aet\AetTimeline.h" />
+    <ClInclude Include="src\Editor\Aet\AetTreeView.h" />
+    <ClInclude Include="src\Editor\Aet\Selection.h" />
     <ClInclude Include="src\Editor\FrameTimeline.h" />
     <ClInclude Include="src\Editor\PV\SceneRenderWindow.h" />
     <ClInclude Include="src\Editor\RenderWindowBase.h" />
