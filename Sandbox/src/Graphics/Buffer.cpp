@@ -24,10 +24,9 @@ void Buffer::Upload(size_t dataSize, void* data)
 	GLCall(glBufferData(GetGLBufferTarget(), dataSize, data, GetGLUsage()));
 }
 
-void Buffer::UploadSubData(size_t dataSize, void* data)
+void Buffer::UploadSubData(size_t dataSize, size_t* offset, void* data)
 {
-	GLCall(glBufferData(GetGLBufferTarget(), dataSize, nullptr, GetGLUsage()));
-	GLCall(glBufferSubData(GetGLBufferTarget(), (GLintptr)nullptr, dataSize, data));
+	GLCall(glBufferSubData(GetGLBufferTarget(), (GLintptr)offset, dataSize, data));
 }
 
 void Buffer::Bind() const

@@ -32,7 +32,7 @@ public:
 
 	void InitializeID() override;
 	void Upload(size_t dataSize, void* data);
-	void UploadSubData(size_t dataSize, void* data);
+	void UploadSubData(size_t dataSize, size_t* offset, void* data);
 
 	void Bind() const override;
 	void UnBind() const override;
