@@ -2,60 +2,7 @@
 
 namespace Auth2D
 {
-	/*static*/ float AetInterpolateAccurate(size_t count, float* keyFrames, float inputFrame)
-	{
-		float *valueInterpolationPairs = &keyFrames[count];
-
-		if (!count)
-			return 0.0;
-
-		if (count == 1)
-			return *keyFrames;
-
-		if (inputFrame <= *keyFrames)
-			return *valueInterpolationPairs;
-
-		float *keyFrame = keyFrames;
-		float *firstValue = &keyFrames[count];
-
-		if (inputFrame >= *(valueInterpolationPairs - 1))
-			return valueInterpolationPairs[(2 * count - 2)];
-
-		float *startFrame = &keyFrames[(4 * count) >> 3];
-
-		if (keyFrames < startFrame)
-		{
-			do
-			{
-				if (inputFrame >= *startFrame)
-					keyFrame = startFrame;
-				else
-					firstValue = startFrame;
-				startFrame = &keyFrame[((char *)firstValue - (char *)keyFrame) >> 3];
-			} while (keyFrame < startFrame);
-		}
-
-		if (valueInterpolationPairs - 1 <= startFrame)
-			return valueInterpolationPairs[(2 * count - 2)];
-
-		size_t pairIndex = (((char *)startFrame - (char *)keyFrames) >> 1) & 0xFFFFFFFFFFFFFFFEui64;
-
-		float range = startFrame[1] - startFrame[0];
-		float t = (inputFrame - startFrame[0]) / range;
-
-		float startValue = valueInterpolationPairs[pairIndex + 0];
-		float startInterpolation = valueInterpolationPairs[pairIndex + 1];
-
-		float endValue = valueInterpolationPairs[pairIndex + 2];
-		float endInterpolation = valueInterpolationPairs[pairIndex + 3];
-
-		return (((((((t * t) * t) - ((t * t) * 2.0)) + t) * startInterpolation)
-			+ ((((t * t) * t) - (t * t)) * endInterpolation)) * range)
-			+ (((((t * t) * 3.0) - (((t * t) * t) * 2.0)) * endValue)
-				+ ((((((t * t) * t) * 2.0) - ((t * t) * 3.0)) + 1.0) * startValue));
-	}
-
-	float AetMgr::Interpolate(std::vector<KeyFrame>& keyFrames, float frame)
+	float AetMgr::Interpolate(const std::vector<KeyFrame>& keyFrames, float frame)
 	{
 		if (keyFrames.size() <= 0)
 			return 0.0f;
@@ -69,8 +16,8 @@ namespace Auth2D
 		if (frame >= last.Frame)
 			return last.Value;
 
-		KeyFrame* start = &keyFrames[0];
-		KeyFrame* end = nullptr;
+		const KeyFrame* start = &keyFrames[0];
+		const KeyFrame* end = nullptr;
 
 		for (int i = 1; i < keyFrames.size(); i++)
 		{
@@ -87,5 +34,20 @@ namespace Auth2D
 			+ ((((t * t) * t) - (t * t)) * end->Interpolation)) * range)
 			+ (((((t * t) * 3.0) - (((t * t) * t) * 2.0)) * end->Value)
 				+ ((((((t * t) * t) * 2.0) - ((t * t) * 3.0)) + 1.0) * start->Value));
+	}
+
+	void AetMgr::Interpolate(const AnimationData& animationData, float frame, Properties* properties)
+	{
+		float* results = reinterpret_cast<float*>(properties);
+
+		for (std::vector<KeyFrame>* keyFrames = &animationData.Properties->OriginX; keyFrames <= &animationData.Properties->Opacity; keyFrames++)
+		{
+			*results = AetMgr::Interpolate(*keyFrames, frame);
+			results++;
+		}
+
+		// std::vector<KeyFrame>* keyFrames = reinterpret_cast<std::vector<KeyFrame>*>(animationData.PerspectiveProperties.get());
+		// properties->Origin.x = AetMgr::Interpolate(animationData.Properties->OriginX, frame);
+		// properties->Origin.y = AetMgr::Interpolate(animationData.Properties->OriginY, frame);
 	}
 }
