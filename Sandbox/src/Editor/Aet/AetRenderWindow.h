@@ -51,6 +51,6 @@ namespace Editor
 
 		bool useTextShadow = false;
 		int currentBlendItem = (int)AetBlendMode::Alpha;
-		int txpIndex = 0;
+		int txpIndex = 0, spriteIndex = -1;
 	};
 }

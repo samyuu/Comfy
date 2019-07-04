@@ -207,9 +207,6 @@
     <ClCompile Include="src\License\LicenseWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\main_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="lib\dr_libs\src\dr_wav.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

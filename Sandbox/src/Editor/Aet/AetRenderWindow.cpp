@@ -38,9 +38,9 @@ namespace Editor
 			ImGui::InputFloat2("Position", glm::value_ptr(aetPosition));
 			ImGui::InputFloat2("Origin", glm::value_ptr(aetOrigin));
 			ImGui::InputFloat("Rotation", &aetRotation, 1.0f, 10.0f);
-			ImGui::InputFloat2("Scale", &aetScale.x, 1.0f, 10.0f);
-			ImGui::InputFloat2("Source Position", &aetSourceRegion.x, 1.0f, 10.0f);
-			ImGui::InputFloat2("Source Size", &aetSourceRegion.z, 1.0f, 10.0f);
+			ImGui::InputFloat2("Scale", &aetScale.x);
+			ImGui::InputFloat2("Source Position", &aetSourceRegion.x, 1.0f);
+			ImGui::InputFloat2("Source Size", &aetSourceRegion.z, 1.0f);
 			//ImGui::ColorButton("Color", (const ImVec4&)aetColor);
 			ImGui::ColorEdit4("Color", glm::value_ptr(aetColor));
 		}
@@ -74,30 +74,48 @@ namespace Editor
 		{
 			if (sprSet != nullptr)
 			{
-				for (int i = 0; i < sprSet->TxpSet->Textures.size(); i++)
+				if (ImGui::CollapsingHeader("Textures"))
 				{
-					auto tex = sprSet->TxpSet->Textures[i].get();
-
-					ImGui::PushID(&tex);
-					ImGui::BeginChild("AetTexturePreviewChildInner", ImVec2(), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBackground);
-					if (ImGui::Selectable(sprSet->TxpSet->Textures[i]->Name.c_str(), i == txpIndex))
-						txpIndex = i;
-
-					if (ImGui::IsItemHovered())
+					for (int i = 0; i < sprSet->TxpSet->Textures.size(); i++)
 					{
-						auto size = ImVec2(tex->Texture2D->GetWidth(), tex->Texture2D->GetHeight());
+						auto tex = sprSet->TxpSet->Textures[i].get();
 
-						float ratio = size.y / size.x;
-						size.x = __min(size.x, 320);
-						size.y = size.x * ratio;
+						ImGui::PushID(&tex);
+						ImGui::BeginChild("AetTexturePreviewChildInner", ImVec2(), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBackground);
+						if (ImGui::Selectable(tex->Name.c_str(), i == txpIndex))
+							txpIndex = i;
 
-						ImGui::BeginTooltip();
-						ImGui::Image(tex->Texture2D->GetVoidTexture(), size, ImGui::UV0_GL, ImGui::UV1_GL);
-						ImGui::EndTooltip();
+						if (ImGui::IsItemHovered())
+						{
+							auto size = ImVec2(tex->Texture2D->GetWidth(), tex->Texture2D->GetHeight());
+
+							float ratio = size.y / size.x;
+							size.x = __min(size.x, 320);
+							size.y = size.x * ratio;
+
+							ImGui::BeginTooltip();
+							ImGui::Image(tex->Texture2D->GetVoidTexture(), size, ImGui::UV0_GL, ImGui::UV1_GL);
+							ImGui::EndTooltip();
+						}
+
+						ImGui::EndChild();
+						ImGui::PopID();
 					}
 
-					ImGui::EndChild();
-					ImGui::PopID();
+					spriteIndex = -1;
+				}
+				else if (ImGui::CollapsingHeader("Sprites"))
+				{
+					for (int i = 0; i < sprSet->Sprites.size(); i++)
+					{
+						Sprite& sprite = sprSet->Sprites[i];
+
+						ImGui::PushID(&sprite);
+						if (ImGui::Selectable(sprite.Name.c_str(), i == spriteIndex))
+							spriteIndex = i;
+
+						ImGui::PopID();
+					}
 				}
 			}
 		}
@@ -146,14 +164,34 @@ namespace Editor
 				renderer.Draw(aetPosition, vec2(1920, 1080), regionColor);
 				//renderer.Draw(nullptr, aetSourceRegion, aetPosition, aetOrigin, aetRotation, aetScale, regionColor, (AetBlendMode)currentBlendItem);
 
-				if ((sprSet != nullptr && sprSet->TxpSet->Textures.size() > 0) && (txpIndex >= 0 && txpIndex < sprSet->TxpSet->Textures.size()))
+				if (sprSet != nullptr)
 				{
-					auto* texture = sprSet->TxpSet->Textures.at(txpIndex).get();
-					auto texture2D = texture->Texture2D.get();
+					if (spriteIndex >= 0 && spriteIndex < sprSet->Sprites.size())
+					{
+						Sprite* sprite = &sprSet->Sprites[spriteIndex];
+						vec4 sourceRegion = vec4(sprite->PixelX, sprite->PixelY, sprite->PixelWidth, sprite->PixelHeight);
 
-					//aetSourceRegion.x += 100 * ImGui::GetIO().DeltaTime;
-					vec4 sourceRegion = (aetSourceRegion.z == 0.0f || aetSourceRegion.w == 0.0f) ? vec4(0.0f, 0.0f, texture2D->GetWidth(), texture2D->GetHeight()) : aetSourceRegion;
-					renderer.Draw(texture2D, sourceRegion, aetPosition, aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
+						auto texture2D = sprSet->TxpSet->Textures[sprite->TextureIndex]->Texture2D.get();
+						//renderer.Draw(texture2D, sourceRegion, aetPosition, aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
+
+						{
+							vec4 fullRegion = vec4(0, 0, texture2D->GetWidth(), texture2D->GetHeight());
+							renderer.Draw(texture2D, fullRegion, aetPosition, aetOrigin, aetRotation, aetScale, regionColor, (AetBlendMode)currentBlendItem);
+						}
+
+						renderer.Draw(texture2D, sourceRegion, 
+							aetPosition + vec2(sourceRegion.x, sourceRegion.y) * aetScale, 
+							aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
+					}
+					else if (sprSet->TxpSet->Textures.size() > 0 && (txpIndex >= 0 && txpIndex < sprSet->TxpSet->Textures.size()))
+					{
+						auto* texture = sprSet->TxpSet->Textures.at(txpIndex).get();
+						auto texture2D = texture->Texture2D.get();
+
+						//aetSourceRegion.x += 100 * ImGui::GetIO().DeltaTime;
+						vec4 sourceRegion = (aetSourceRegion.z == 0.0f || aetSourceRegion.w == 0.0f) ? vec4(0.0f, 0.0f, texture2D->GetWidth(), texture2D->GetHeight()) : aetSourceRegion;
+						renderer.Draw(texture2D, sourceRegion, aetPosition, aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
+					}
 				}
 
 				renderer.GetShader()->Bind();

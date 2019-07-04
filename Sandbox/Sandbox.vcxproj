@@ -152,7 +152,6 @@
     <ClCompile Include="src\ImGui\imgui_impl_glfw.cpp" />
     <ClCompile Include="src\ImGui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="src\ImGui\imgui_widgets.cpp" />
-    <ClCompile Include="src\main_test.cpp" />
     <ClCompile Include="src\Misc\StringHelper.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
