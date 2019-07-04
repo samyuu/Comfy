@@ -132,7 +132,7 @@ namespace FileSystem
 		int32_t Height;
 		unk32_t DontChangeMe;
 		std::list<AetLayer> AetLayers;
-		std::list<AetRegion> AetRegions;
+		std::vector<AetRegion> AetRegions;
 	};
 
 	class AetSet : public IBinaryReadable

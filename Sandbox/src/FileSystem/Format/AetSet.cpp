@@ -196,13 +196,13 @@ namespace FileSystem
 						}
 					});
 
-					uint32_t spriteEntriesCount = reader.ReadUInt32();
-					reader.ReadAt(reader.ReadPtr(), [spriteEntriesCount, &aetLyo](BinaryReader& reader)
+					uint32_t regionCount = reader.ReadUInt32();
+					reader.ReadAt(reader.ReadPtr(), [regionCount, &aetLyo](BinaryReader& reader)
 					{
-						for (size_t i = 0; i < spriteEntriesCount; i++)
+						aetLyo->AetRegions.resize(regionCount);
+						for (size_t i = 0; i < regionCount; i++)
 						{
-							aetLyo->AetRegions.emplace_back();
-							AetRegion* region = &aetLyo->AetRegions.back();
+							AetRegion* region = &aetLyo->AetRegions[i];
 
 							region->FilePtr = reader.GetPositionPtr();
 							region->Color = reader.ReadUInt32();
