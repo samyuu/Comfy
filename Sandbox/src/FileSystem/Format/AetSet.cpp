@@ -172,7 +172,9 @@ namespace FileSystem
 										reader.ReadAt(animationDataPointer, [&animationData](BinaryReader& reader)
 										{
 											animationData->BlendMode = reader.Read<AetBlendMode>();
-											animationData->UseTextureMask = reader.ReadUInt16();
+											reader.ReadByte();
+											animationData->UseTextureMask = reader.ReadBool();
+											reader.ReadByte();
 											animationData->Properties = std::make_unique<KeyFrameProperties>();
 											ReadKeyFrameProperties(animationData->Properties.get(), reader);
 

@@ -110,17 +110,16 @@ namespace FileSystem
 			{
 				Sprite* sprite = &sprSet->Sprites[i];
 
-				sprSet->Signature = *(uint32_t*)(spritesBuffer + 0);
-				sprite->TextureIndex = *(uint32_t*)(spritesBuffer + 4);
-				sprite->Unknown = *(float*)(spritesBuffer + 8);
-				sprite->TexelX = *(float*)(spritesBuffer + 12);
-				sprite->TexelY = *(float*)(spritesBuffer + 16);
-				sprite->TexelWidth = *(float*)(spritesBuffer + 20);
-				sprite->TexelHeight = *(float*)(spritesBuffer + 24);
-				sprite->PixelX =*(float*)(spritesBuffer + 28);
-				sprite->PixelY =*(float*)(spritesBuffer + 32);
-				sprite->PixelWidth = *(float*)(spritesBuffer + 36);
-				sprite->PixelHeight = *(float*)(spritesBuffer + 40);
+				sprite->TextureIndex = *(uint32_t*)(spritesBuffer + 0);
+				sprite->Unknown = *(float*)(spritesBuffer + 4);
+				sprite->TexelX = *(float*)(spritesBuffer + 8);
+				sprite->TexelY = *(float*)(spritesBuffer + 12);
+				sprite->TexelWidth = *(float*)(spritesBuffer + 16);
+				sprite->TexelHeight = *(float*)(spritesBuffer + 20);
+				sprite->PixelX = *(float*)(spritesBuffer + 24);
+				sprite->PixelY = *(float*)(spritesBuffer + 28);
+				sprite->PixelWidth = *(float*)(spritesBuffer + 32);
+				sprite->PixelHeight = *(float*)(spritesBuffer + 36);
 				spritesBuffer += 40;
 			}
 		}

@@ -24,7 +24,7 @@ namespace FileSystem
 		AetObjType_Eff = 3,
 	};
 
-	enum class AetBlendMode : uint16_t
+	enum class AetBlendMode : uint8_t
 	{
 		Alpha = 3,
 		Additive = 5,
