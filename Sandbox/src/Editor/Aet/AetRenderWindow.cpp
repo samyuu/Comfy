@@ -15,13 +15,9 @@ namespace Editor
 	{
 	}
 
-	void AetRenderWindow::SetAetLyo(AetLyo* value)
+	void AetRenderWindow::SetAetObj(AetLyo* parent, AetObj* value)
 	{
-		aetLyo = value;
-	}
-
-	void AetRenderWindow::SetAetObj(AetObj* value)
-	{
+		aetLyo = parent;
 		aetObj = value;
 	}
 

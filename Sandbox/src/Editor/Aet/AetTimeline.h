@@ -14,9 +14,10 @@ namespace Editor
 		~AetTimeline();
 
 		AetObj* GetAetobj() const;
-		void SetAetObj(AetObj* value);
+		void SetAetObj(AetLyo* parent, AetObj* value);
 
 	private:
+		AetLyo* activeAetLyo = nullptr;
 		AetObj* aetObj = nullptr;
 		float rowHeight;
 		bool isPlayback = false;

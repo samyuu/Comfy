@@ -6,8 +6,7 @@ namespace Editor
 	constexpr ImGuiTreeNodeFlags SelectableTreeNodeFlags = ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow;
 	constexpr ImGuiTreeNodeFlags HeaderTreeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | SelectableTreeNodeFlags;
 
-	AetTreeView::AetTreeView(AetLyo** activeAetLyo, AetItemTypePtr* selected, AetItemTypePtr* hovered, AetItemTypePtr* lastHovered)
-		: activeAetLyo(activeAetLyo), selected(selected), hovered(hovered), lastHovered(lastHovered)
+	AetTreeView::AetTreeView()
 	{
 	}
 
@@ -24,8 +23,8 @@ namespace Editor
 		if (aetSet == nullptr)
 			return false;
 
-		*lastHovered = *hovered;
-		*hovered = { AetSelectionType::None, nullptr };
+		lastHovered = hovered;
+		hovered = { AetSelectionType::None, nullptr };
 
 		if (ImGui::WideTreeNodeEx((void*)aetSet, HeaderTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str()))
 		{
@@ -48,7 +47,7 @@ namespace Editor
 	void AetTreeView::DrawTreeViewLyo(AetLyo& aetLyo)
 	{
 		ImGuiTreeNodeFlags lyoNodeFlags = HeaderTreeNodeFlags;
-		if (&aetLyo == selected->AetLyo || &aetLyo == lastHovered->AetLyo)
+		if (&aetLyo == selected.AetLyo || &aetLyo == lastHovered.AetLyo)
 			lyoNodeFlags |= ImGuiTreeNodeFlags_Selected;
 
 		bool aetLyoNodeOpen = ImGui::WideTreeNodeEx((void*)&aetLyo, lyoNodeFlags, "%s", aetLyo.Name.c_str());
@@ -58,7 +57,7 @@ namespace Editor
 
 		if (aetLyoNodeOpen)
 		{
-			if (ImGui::WideTreeNode("Layers"))
+			if (ImGui::WideTreeNodeEx("Layers", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				// TODO: alternate background color (draw own background quad (?))
 				//auto textColorAlt = ImGui::GetStyleColorVec4(ImGuiCol_Text); textColorAlt.w *= .5f;
@@ -95,16 +94,16 @@ namespace Editor
 		ImGui::PushID(&aetLayer);
 
 		ImGuiTreeNodeFlags layerNodeFlags = SelectableTreeNodeFlags;
-		if (&aetLayer == selected->AetLayer)
+		if (&aetLayer == selected.AetLayer)
 			layerNodeFlags |= ImGuiTreeNodeFlags_Selected;
 
-		if (&aetLayer == lastHovered->AetLayer)
+		if (&aetLayer == lastHovered.AetLayer)
 			ImGui::PushStyleColor(ImGuiCol_Text, GetColor(EditorColor_TextHighlight));
 
 		AetLayer* rootLayer = &aetLyo.AetLayers.back();
 		bool aetLayerNodeOpen = ImGui::WideTreeNodeEx("##AetLayerTreeNode", layerNodeFlags, (&aetLayer == rootLayer) ? "Root" : "Layer %d (%s)", aetLayer.Index, aetLayer.CommaSeparatedNames.c_str());
 
-		if (&aetLayer == lastHovered->AetLayer)
+		if (&aetLayer == lastHovered.AetLayer)
 			ImGui::PopStyleColor();
 
 		if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1))
@@ -115,10 +114,7 @@ namespace Editor
 		bool openAddAetObjPopup = false;
 		if (ImGui::BeginPopupContextWindow(aetLayerContextMenuID))
 		{
-			openAddAetObjPopup = ImGui::MenuItem("Add new AetObj...");
-			if (ImGui::MenuItem("Move Up")) {}
-			if (ImGui::MenuItem("Move Down")) {}
-			if (ImGui::MenuItem("Delete...")) {}
+			openAddAetObjPopup = AddAetObjContextMenu(aetLayer);
 			ImGui::EndPopup();
 		}
 
@@ -127,27 +123,7 @@ namespace Editor
 
 		if (ImGui::BeginPopupModal(addAetObjPopupID, NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			if (ImGui::Combo("Obj Type", &newObjTypeIndex, AetObj::TypeNames.data(), AetObj::TypeNames.size()))
-			{
-				// TODO: automatically append .pic / .aif
-			}
-
-			ImGui::InputText("AetObj Name", newObjNameBuffer, sizeof(newObjNameBuffer));
-
-			if (ImGui::Button("OK", ImVec2(124, 0)))
-			{
-				aetLayer.Objects.emplace_front();
-
-				AetObj* newObj = &aetLayer.Objects.front();
-				newObj->Name = std::string(newObjNameBuffer);
-				newObj->Type = (AetObjType)newObjTypeIndex;
-				newObj->PlaybackSpeed = 1.0f;
-
-				ImGui::CloseCurrentPopup();
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Cancel", ImVec2(124, 0))) { ImGui::CloseCurrentPopup(); }
-
+			AddAetObjPopup(aetLayer);
 			ImGui::EndPopup();
 		}
 
@@ -157,13 +133,13 @@ namespace Editor
 			{
 				ImGui::PushID((void*)&aetObj);
 
-				bool isSelected = &aetObj == selected->AetObj || &aetObj == hovered->AetObj;
+				bool isSelected = &aetObj == selected.AetObj || &aetObj == hovered.AetObj;
 
 				if (ImGui::Selectable(aetObj.Name.c_str(), isSelected))
 					SetSelectedItem(&aetLyo, &aetObj);
 
-				if (aetObj.Type == AetObjType_Eff && (ImGui::IsItemHovered() || &aetObj == selected->AetObj))
-					*hovered = { AetSelectionType::AetLayer, aetObj.ReferencedLayer };
+				if (aetObj.Type == AetObjType_Eff && (ImGui::IsItemHovered() || &aetObj == selected.AetObj))
+					hovered = { AetSelectionType::AetLayer, aetObj.ReferencedLayer };
 
 				ImGui::PopID();
 			}
@@ -181,11 +157,49 @@ namespace Editor
 		char regionNameBuffer[32];
 		sprintf_s(regionNameBuffer, "Region %d", index);
 
-		bool isSelected = &region == selected->AetRegion;
+		bool isSelected = &region == selected.AetRegion;
 
 		if (ImGui::Selectable(regionNameBuffer, isSelected))
 			SetSelectedItem(&aetLyo, &region);
 
 		ImGui::PopID();
+	}
+
+	bool AetTreeView::AddAetObjContextMenu(AetLayer& aetLayer)
+	{
+		bool openAddAetObjPopup = ImGui::MenuItem("Add new AetObj...");
+		if (ImGui::MenuItem("Move Up")) {}
+		if (ImGui::MenuItem("Move Down")) {}
+		if (ImGui::MenuItem("Delete...")) {}
+
+		return openAddAetObjPopup;
+	}
+
+	void AetTreeView::AddAetObjPopup(AetLayer& aetLayer)
+	{
+		if (ImGui::Combo("Obj Type", &newObjTypeIndex, AetObj::TypeNames.data(), AetObj::TypeNames.size()))
+		{
+			// TODO: automatically append .pic / .aif
+		}
+
+		ImGui::InputText("AetObj Name", newObjNameBuffer, sizeof(newObjNameBuffer));
+
+		if (ImGui::Button("OK", ImVec2(124, 0)))
+		{
+			aetLayer.Objects.emplace_front();
+
+			AetObj* newObj = &aetLayer.Objects.front();
+			newObj->Name = std::string(newObjNameBuffer);
+			newObj->Type = (AetObjType)newObjTypeIndex;
+			newObj->PlaybackSpeed = 1.0f;
+
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::SameLine();
+		
+		if (ImGui::Button("Cancel", ImVec2(124, 0))) 
+		{ 
+			ImGui::CloseCurrentPopup(); 
+		}
 	}
 }

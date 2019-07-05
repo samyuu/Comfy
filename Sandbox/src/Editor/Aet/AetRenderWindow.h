@@ -16,8 +16,7 @@ namespace Editor
 		AetRenderWindow();
 		~AetRenderWindow();
 
-		void SetAetLyo(AetLyo* value);
-		void SetAetObj(AetObj* value);
+		void SetAetObj(AetLyo* parent, AetObj* value);
 
 	protected:
 		void OnDrawGui() override;

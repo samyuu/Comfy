@@ -19,8 +19,9 @@ namespace Editor
 		return aetObj;
 	}
 
-	void AetTimeline::SetAetObj(AetObj* value)
+	void AetTimeline::SetAetObj(AetLyo* parent, AetObj* value)
 	{
+		activeAetLyo = parent;
 		aetObj = value;
 	}
 
