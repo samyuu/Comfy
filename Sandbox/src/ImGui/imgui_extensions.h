@@ -45,6 +45,7 @@ namespace ImGui
 
 	bool WideTreeNodeNoArrow(const char* label);
 	bool WideTreeNodeNoArrow(const char* label, ImGuiTreeNodeFlags flags);
+	bool SmallButton(const char* label, const ImVec2& size);
 
 	inline void DRAW_DEBUG_REGION(ImRect& rect)
 	{

@@ -313,4 +313,15 @@ namespace ImGui
 
 		return WideTreeNodeBehavior(window->GetID(label), flags, label, NULL, true);
 	}
+
+	// Same as SmallButton(...) but with a size parameter
+	bool SmallButton(const char* label, const ImVec2& size)
+	{
+		ImGuiContext& g = *GImGui;
+		float backup_padding_y = g.Style.FramePadding.y;
+		g.Style.FramePadding.y = 0.0f;
+		bool pressed = ButtonEx(label, size, ImGuiButtonFlags_AlignTextBaseLine);
+		g.Style.FramePadding.y = backup_padding_y;
+		return pressed;
+	}
 }
