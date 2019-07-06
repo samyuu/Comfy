@@ -1,18 +1,6 @@
 #include "AetTreeView.h"
+#include "AetIcons.h"
 #include "ImGui/imgui_extensions.h"
-#include <FontIcons.h>
-
-#define ICON_AETLAYERS		ICON_FA_LAYER_GROUP
-#define ICON_AETLAYER		ICON_FA_FOLDER
-#define ICON_AETLAYER_OPEN	ICON_FA_FOLDER_OPEN
-#define ICON_AETREGIONS		ICON_FA_IMAGES
-#define ICON_AETREGION		ICON_FA_IMAGE
-#define ICON_AETOBJNOP		ICON_FA_QUESTION_CIRCLE
-#define ICON_AETOBJPIC		ICON_FA_DICE_D6
-#define ICON_AETOBJAIF		ICON_FA_VOLUME_UP
-#define ICON_AETOBJEFF		ICON_FA_CUBES
-#define ICON_VISIBLE		ICON_FA_EYE
-#define ICON_INVISIBLE		ICON_FA_EYE_SLASH
 
 namespace Editor
 {
@@ -41,6 +29,9 @@ namespace Editor
 
 		if (ImGui::WideTreeNodeEx((void*)aetSet, HeaderTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str()))
 		{
+			if (ImGui::IsItemClicked())
+				ResetSelectedItem();
+
 			for (auto& aetLyo : aetSet->AetLyos)
 				DrawTreeViewLyo(aetLyo);
 
@@ -71,8 +62,8 @@ namespace Editor
 
 			if (ImGui::WideTreeNodeEx(ICON_AETLAYERS "  Layers", SelectableTreeNodeFlags | ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				// TODO: alternate background color (draw own background quad (?))
-				//auto textColorAlt = ImGui::GetStyleColorVec4(ImGuiCol_Text); textColorAlt.w *= .5f;
+				if (ImGui::IsItemClicked())
+					ResetSelectedItem();
 
 				if (openLayers.size() != aetLyo.AetLayers.size())
 					openLayers.resize(aetLyo.AetLayers.size());
@@ -81,7 +72,6 @@ namespace Editor
 				for (auto& aetLayer : aetLyo.AetLayers)
 				{
 					aetLayer.Index = layerIndex++;
-
 					DrawTreeViewLayer(aetLyo, aetLayer);
 				}
 				ImGui::TreePop();
@@ -89,8 +79,13 @@ namespace Editor
 
 			if (ImGui::WideTreeNodeEx(ICON_AETREGIONS "  Regions", SelectableTreeNodeFlags))
 			{
+				if (ImGui::IsItemClicked())
+					ResetSelectedItem();
+
 				for (int32_t i = 0; i < aetLyo.AetRegions.size(); i++)
+				{
 					DrawTreeViewRegion(aetLyo, aetLyo.AetRegions[i], i);
+				}
 				ImGui::TreePop();
 			}
 
@@ -162,18 +157,13 @@ namespace Editor
 		{
 			bool isSelected = &aetObj == selected.AetObj || &aetObj == hovered.AetObj;
 
-			sprintf_s(objNameBuffer, "%s  %s", GetTypeIcon(aetObj.Type), aetObj.Name.c_str());
+			if (ImGui::SmallButton(aetObj.TypeFlag & AetTypeFlags_Visible ? ICON_VISIBLE : ICON_INVISIBLE, ImVec2(26, 0)))
+				aetObj.TypeFlag ^= AetTypeFlags_Visible;
+			ImGui::SameLine();
 
-			{
-				bool visible = (aetObj.TypeFlag & AetTypeFlags_Visible);
-				if (ImGui::SmallButton(visible ? ICON_VISIBLE : ICON_INVISIBLE, ImVec2(26, 0)))
-					aetObj.TypeFlag ^= AetTypeFlags_Visible;
-				ImGui::SameLine();
-			}
-			{
-				if (ImGui::Selectable(objNameBuffer, isSelected))
-					SetSelectedItem(&aetLyo, &aetObj);
-			}
+			sprintf_s(objNameBuffer, "%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.Name.c_str());
+			if (ImGui::Selectable(objNameBuffer, isSelected))
+				SetSelectedItem(&aetLyo, &aetObj);
 
 			if (aetObj.Type == AetObjType_Eff && (ImGui::IsItemHovered() || &aetObj == selected.AetObj))
 				hovered = { AetSelectionType::AetLayer, aetObj.ReferencedLayer };
@@ -234,22 +224,6 @@ namespace Editor
 		if (ImGui::Button("Cancel", ImVec2(124, 0)))
 		{
 			ImGui::CloseCurrentPopup();
-		}
-	}
-
-	const char* AetTreeView::GetTypeIcon(AetObjType type) const
-	{
-		switch (type)
-		{
-		case AetObjType_Pic:
-			return ICON_AETOBJPIC;
-		case AetObjType_Aif:
-			return ICON_AETOBJPIC;
-		case AetObjType_Eff:
-			return ICON_AETOBJEFF;
-		case AetObjType_Nop:
-		default:
-			return ICON_AETOBJNOP;
 		}
 	}
 }

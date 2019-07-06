@@ -103,6 +103,7 @@
     <ClCompile Include="src\DataTest\IconTestWindow.cpp" />
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
     <ClCompile Include="lib\stb\src\stb_image_write.cpp" />
+    <ClCompile Include="src\Editor\Aet\AetIcons.cpp" />
     <ClCompile Include="src\Editor\Aet\AetInspector.cpp" />
     <ClCompile Include="src\Editor\Aet\AetRenderWindow.cpp" />
     <ClCompile Include="src\Editor\Aet\AetTimeline.cpp" />
@@ -179,6 +180,7 @@
     <ClInclude Include="res\resource.h" />
     <ClInclude Include="src\DataTest\IconTestWindow.h" />
     <ClInclude Include="src\Editor\Aet\AetEditor.h" />
+    <ClInclude Include="src\Editor\Aet\AetIcons.h" />
     <ClInclude Include="src\Editor\Aet\AetInspector.h" />
     <ClInclude Include="src\Editor\Aet\AetRenderWindow.h" />
     <ClInclude Include="src\Editor\Aet\AetTimeline.h" />

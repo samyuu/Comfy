@@ -115,6 +115,9 @@ namespace Editor
 		if (selected.Type != AetSelectionType::AetObj || selected.AetObj == nullptr)
 			return;
 
+		if (selected.AetObj->AnimationData.Properties == nullptr)
+			return;
+
 		float frame = timeline->GetFrame().Frames();
 		AetMgr::Interpolate(selected.AetObj->AnimationData, frame, &currentProperties);
 

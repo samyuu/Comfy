@@ -155,7 +155,7 @@ namespace Editor
 
 	void AetTimeline::OnDrawTimelineContents()
 	{
-		if (aetObj == nullptr)
+		if (aetObj == nullptr || aetObj->AnimationData.Properties == nullptr)
 			return;
 
 		KeyFrameProperties* properties = aetObj->AnimationData.Properties.get();

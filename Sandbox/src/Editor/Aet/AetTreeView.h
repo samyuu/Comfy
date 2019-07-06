@@ -44,7 +44,5 @@ namespace Editor
 	
 		bool AddAetObjContextMenu(AetLayer& aetLayer);
 		void AddAetObjPopup(AetLayer& aetLayer);
-
-		const char* GetTypeIcon(AetObjType type) const;
 	};
 }

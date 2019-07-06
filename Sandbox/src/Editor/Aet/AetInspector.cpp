@@ -1,4 +1,5 @@
 #include "AetInspector.h"
+#include "AetIcons.h"
 #include "ImGui/imgui_extensions.h"
 
 namespace Editor
@@ -10,7 +11,7 @@ namespace Editor
 	AetInspector::~AetInspector()
 	{
 	}
-	
+
 	void AetInspector::Initialize()
 	{
 	}
@@ -22,7 +23,7 @@ namespace Editor
 
 		if (selected.ItemPtr == nullptr)
 		{
-			ImGui::Text("nullptr");
+			ImGui::Text("<none>");
 			return false;
 		}
 
@@ -49,9 +50,9 @@ namespace Editor
 
 	void AetInspector::DrawInspectorAetObj(AetSet* aetSet, AetObj* aetObj)
 	{
-		ImGui::Text("AetObj: %s", aetObj->Name.c_str());
+		ImGui::Text("AetObj:");
 
-		if (ImGui::WideTreeNodeEx("Object Data", ImGuiTreeNodeFlags_DefaultOpen))
+		//if (ImGui::WideTreeNodeEx("Object Data", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			static char aetObjNameBuffer[255];
 			strcpy_s(aetObjNameBuffer, aetObj->Name.c_str());
@@ -70,11 +71,11 @@ namespace Editor
 			ImGui::InputFloat("Loop End", &aetObj->LoopEnd);
 			ImGui::InputFloat("Start Frame", &aetObj->StartFrame);
 
-			uint32_t flags = aetObj->TypeFlag;
-			if (ImGui::CheckboxFlags("Visible", &flags, AetTypeFlags_Visible))
-				aetObj->TypeFlag = flags;
+			//uint32_t flags = aetObj->TypeFlag;
+			//if (ImGui::CheckboxFlags("Visible", &flags, AetTypeFlags_Visible))
+			//	aetObj->TypeFlag = flags;
 
-			ImGui::TreePop();
+			//ImGui::TreePop();
 		}
 
 		if ((aetObj->Type == AetObjType_Pic))
@@ -89,23 +90,38 @@ namespace Editor
 
 	void AetInspector::DrawInspectorRegionData(AetRegion* aetRegion)
 	{
-		if (ImGui::WideTreeNode("Region Data"))
+		if (ImGui::WideTreeNode(ICON_AETREGIONS "  Region Data"))
 		{
 			if (aetRegion != nullptr)
 			{
-				ImVec4 color = ImGui::ColorConvertU32ToFloat4(aetRegion->Color);
-				if (ImGui::ColorEdit4("##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
-					aetRegion->Color = ImGui::ColorConvertFloat4ToU32(color);
-
-				ImGui::InputScalarN("Dimensions", ImGuiDataType_S16, &aetRegion->Width, 2);
-
-				if (ImGui::WideTreeNodeEx("Sprites", ImGuiTreeNodeFlags_DefaultOpen))
+				if (aetRegion->Sprites.size() < 1)
+				{
+					ImGui::BulletText("<%dx%d>", aetRegion->Width, aetRegion->Height);
+				}
+				else
 				{
 					for (auto& sprite : aetRegion->Sprites)
-						ImGui::Selectable(sprite.Name.c_str());
-
-					ImGui::TreePop();
+						ImGui::BulletText(sprite.Name.c_str());
 				}
+
+				//ImVec4 color = ImGui::ColorConvertU32ToFloat4(aetRegion->Color);
+				//if (ImGui::ColorEdit4("##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
+				//	aetRegion->Color = ImGui::ColorConvertFloat4ToU32(color);
+
+				//ImGui::InputScalarN("Dimensions", ImGuiDataType_S16, &aetRegion->Width, 2);
+
+				//if (ImGui::WideTreeNodeEx("Sprites:", ImGuiTreeNodeFlags_DefaultOpen))
+				//{
+				//	char spriteNameBuffer[255];
+
+				//	for (auto& sprite : aetRegion->Sprites)
+				//	{
+				//		sprintf_s(spriteNameBuffer, ICON_AETREGION "  %s", sprite.Name.c_str());
+				//		ImGui::Selectable(spriteNameBuffer);
+				//	}
+
+				//	ImGui::TreePop();
+				//}
 			}
 			ImGui::TreePop();
 		}
@@ -113,11 +129,11 @@ namespace Editor
 
 	void AetInspector::DrawInspectorLayerData(AetLayer* aetLayer)
 	{
-		if (ImGui::WideTreeNode("Layer Data"))
+		if (ImGui::WideTreeNode(ICON_AETLAYERS "  Layer Data"))
 		{
 			if (aetLayer != nullptr)
 			{
-				ImGui::Text("Layer %d (%s)", aetLayer->Index, aetLayer->CommaSeparatedNames.c_str());
+				ImGui::BulletText(ICON_AETLAYER "  Layer %d (%s)", aetLayer->Index, aetLayer->CommaSeparatedNames.c_str());
 			}
 			ImGui::TreePop();
 		}
@@ -125,15 +141,13 @@ namespace Editor
 
 	void AetInspector::DrawInspectorAnimationData(AnimationData* animationData)
 	{
-		if (ImGui::WideTreeNode("Animation Data"))
+		if (ImGui::WideTreeNode(ICON_ANIMATIONDATA "  Animation Data"))
 		{
-			ImGui::Checkbox("Use Texture Mask", &animationData->UseTextureMask);
-
 			if (ImGui::WideTreeNode("Properties"))
 			{
 				if (animationData->Properties != nullptr)
 					DrawInspectorKeyFrameProperties(animationData->Properties.get());
-				else ImGui::Text("nullptr");
+				else ImGui::BulletText("<none>");
 				ImGui::TreePop();
 			}
 
@@ -141,9 +155,11 @@ namespace Editor
 			{
 				if (animationData->PerspectiveProperties != nullptr)
 					DrawInspectorKeyFrameProperties(animationData->PerspectiveProperties.get());
-				else ImGui::Text("nullptr");
+				else ImGui::BulletText("<none>");
 				ImGui::TreePop();
 			}
+
+			ImGui::Checkbox("Use Texture Mask", &animationData->UseTextureMask);
 
 			ImGui::TreePop();
 		}
@@ -175,7 +191,7 @@ namespace Editor
 	{
 		ImGui::Text("AetLayer:");
 
-		if (ImGui::WideTreeNodeEx("Names:", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::WideTreeNodeEx(ICON_NAMES "  Names:", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			for (auto& name : aetLayer->Names)
 				ImGui::BulletText(name.c_str());
@@ -183,10 +199,10 @@ namespace Editor
 			ImGui::TreePop();
 		}
 
-		if (ImGui::WideTreeNodeEx("Objects:", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::WideTreeNodeEx(ICON_AETLAYER "  Objects:", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			for (auto& aetObj : aetLayer->Objects)
-				ImGui::BulletText(aetObj.Name.c_str());
+				ImGui::BulletText("%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.Name.c_str());
 
 			ImGui::TreePop();
 		}
@@ -194,21 +210,17 @@ namespace Editor
 
 	void AetInspector::DrawInspectorAetLyo(AetSet* aetSet, AetLyo* aetLyo)
 	{
-		ImGui::Text("AetLyo: %s", aetLyo->Name.c_str());
-
-		if (ImGui::WideTreeNodeEx("Lyo Data", ImGuiTreeNodeFlags_DefaultOpen))
+		ImGui::Text("Aet:");
 		{
 			static char aetLyoNameBuffer[255];
 			strcpy_s(aetLyoNameBuffer, aetLyo->Name.c_str());
 
-			if (ImGui::InputText("Name##AetObj", aetLyoNameBuffer, sizeof(aetLyoNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+			if (ImGui::InputText("Name##AetLyo", aetLyoNameBuffer, sizeof(aetLyoNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
 				aetLyo->Name = std::string(aetLyoNameBuffer);
 
 			ImGui::InputFloat("Frame Rate", &aetLyo->FrameRate);
 			ImGui::InputFloat("Duration", &aetLyo->FrameDuration);
 			ImGui::InputInt2("Resolution", &aetLyo->Width);
-
-			ImGui::TreePop();
 		}
 	}
 
@@ -224,8 +236,13 @@ namespace Editor
 
 		if (ImGui::WideTreeNodeEx("Sprites:", ImGuiTreeNodeFlags_DefaultOpen))
 		{
+			char spriteNameBuffer[255];
+
 			for (auto& sprite : aetRegion->Sprites)
-				ImGui::Selectable(sprite.Name.c_str());
+			{
+				sprintf_s(spriteNameBuffer, ICON_AETREGION "  %s", sprite.Name.c_str());
+				ImGui::Selectable(spriteNameBuffer);
+			}
 
 			ImGui::TreePop();
 		}
