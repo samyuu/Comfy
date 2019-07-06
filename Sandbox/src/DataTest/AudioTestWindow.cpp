@@ -1,10 +1,10 @@
 #include "AudioTestWindow.h"
 #include <sstream>
 #include <memory>
-#include "../Application.h"
-#include "../Audio/AudioInstance.h"
-#include "../Input/DirectInput/DualShock4.h"
-#include "../Input/Keyboard.h"
+#include "Application.h"
+#include "Audio/AudioInstance.h"
+#include "Input/DirectInput/DualShock4.h"
+#include "Input/Keyboard.h"
 
 AudioTestWindow::AudioTestWindow(Application* parent) : BaseWindow(parent)
 {

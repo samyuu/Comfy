@@ -1,7 +1,7 @@
 #pragma once
-#include "../BaseWindow.h"
-#include "../Audio/AudioEngine.h"
-#include "../Audio/MemoryAudioStream.h"
+#include "BaseWindow.h"
+#include "Audio/AudioEngine.h"
+#include "Audio/MemoryAudioStream.h"
 #include <vector>
 #include <array>
 

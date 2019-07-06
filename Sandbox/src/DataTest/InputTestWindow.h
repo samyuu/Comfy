@@ -1,6 +1,6 @@
 #pragma once
-#include "../BaseWindow.h"
-#include "../Input/DirectInput/DualShock4.h"
+#include "BaseWindow.h"
+#include "Input/DirectInput/DualShock4.h"
 
 class InputTestWindow : public BaseWindow
 {

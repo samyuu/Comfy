@@ -1,6 +1,6 @@
 #include "InputTestWindow.h"
-#include "../Application.h"
-#include "../Input/Keyboard.h"
+#include "Application.h"
+#include "Input/Keyboard.h"
 
 InputTestWindow::InputTestWindow(Application* parent) : BaseWindow(parent)
 {
