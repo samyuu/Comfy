@@ -128,14 +128,17 @@ namespace Editor
 
 	void AetRenderWindow::OnRender()
 	{
-		constexpr float step = 10.0f;
-		if (ImGui::IsKeyPressed(GLFW_KEY_W, true)) aetPosition.y -= step;
-		if (ImGui::IsKeyPressed(GLFW_KEY_S, true)) aetPosition.y += step;
-		if (ImGui::IsKeyPressed(GLFW_KEY_A, true)) aetPosition.x -= step;
-		if (ImGui::IsKeyPressed(GLFW_KEY_D, true)) aetPosition.x += step;
-		if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE, true)) aetPosition = vec2();
-		if (ImGui::IsWindowFocused() && ImGui::IsMouseDragging())
-			aetPosition += vec2(ImGui::GetIO().MouseDelta.x, ImGui::GetIO().MouseDelta.y);
+		if (ImGui::IsWindowFocused())
+		{
+			constexpr float step = 10.0f;
+			if (ImGui::IsKeyPressed(GLFW_KEY_W, true)) aetPosition.y -= step;
+			if (ImGui::IsKeyPressed(GLFW_KEY_S, true)) aetPosition.y += step;
+			if (ImGui::IsKeyPressed(GLFW_KEY_A, true)) aetPosition.x -= step;
+			if (ImGui::IsKeyPressed(GLFW_KEY_D, true)) aetPosition.x += step;
+			if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE, true)) aetPosition = vec2();
+			if (ImGui::IsMouseDragging()) 
+				aetPosition += vec2(ImGui::GetIO().MouseDelta.x, ImGui::GetIO().MouseDelta.y);
+		}
 
 		renderTarget.Bind();
 		{
@@ -175,8 +178,8 @@ namespace Editor
 							renderer.Draw(texture2D, fullRegion, aetPosition, aetOrigin, aetRotation, aetScale, regionColor, (AetBlendMode)currentBlendItem);
 						}
 
-						renderer.Draw(texture2D, sourceRegion, 
-							aetPosition + vec2(sourceRegion.x, sourceRegion.y) * aetScale, 
+						renderer.Draw(texture2D, sourceRegion,
+							aetPosition + vec2(sourceRegion.x, sourceRegion.y) * aetScale,
 							aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
 					}
 					else if (sprSet->TxpSet->Textures.size() > 0 && (txpIndex >= 0 && txpIndex < sprSet->TxpSet->Textures.size()))

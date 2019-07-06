@@ -39,9 +39,12 @@ namespace Editor
 
 		void DrawTreeViewLyo(AetLyo& aetLyo);
 		void DrawTreeViewLayer(AetLyo& aetLyo, AetLayer& aetLayer);
+		void DrawTreeViewObj(AetLyo& aetLyo, AetObj& aetObj);
 		void DrawTreeViewRegion(AetLyo& aetLyo, AetRegion& region, int32_t index);
 	
 		bool AddAetObjContextMenu(AetLayer& aetLayer);
 		void AddAetObjPopup(AetLayer& aetLayer);
+
+		const char* GetTypeIcon(AetObjType type) const;
 	};
 }
