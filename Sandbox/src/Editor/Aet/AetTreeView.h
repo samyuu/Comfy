@@ -1,6 +1,7 @@
 #pragma once
 #include "Selection.h"
 #include "FileSystem/Format/AetSet.h"
+#include <vector>
 
 namespace Editor
 {
@@ -33,6 +34,8 @@ namespace Editor
 
 		AetLyo* activeAetLyo;
 		AetItemTypePtr selected, lastHovered, hovered;
+
+		std::vector<bool> openLayers;
 
 		void DrawTreeViewLyo(AetLyo& aetLyo);
 		void DrawTreeViewLayer(AetLyo& aetLyo, AetLayer& aetLayer);

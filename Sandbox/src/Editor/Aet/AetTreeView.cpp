@@ -1,5 +1,11 @@
 #include "AetTreeView.h"
 #include "ImGui/imgui_extensions.h"
+#include <FontIcons.h>
+
+#define ICON_AETLAYER		ICON_FA_FOLDER
+#define ICON_AETLAYER_OPEN	ICON_FA_FOLDER_OPEN
+#define ICON_AETREGION		ICON_FA_IMAGE
+#define ICON_AETOBJ			ICON_FA_DICE_D6
 
 namespace Editor
 {
@@ -28,12 +34,9 @@ namespace Editor
 
 		if (ImGui::WideTreeNodeEx((void*)aetSet, HeaderTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str()))
 		{
-			//ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, ImGui::GetFontSize() * 1.5f);
-
 			for (auto& aetLyo : aetSet->AetLyos)
 				DrawTreeViewLyo(aetLyo);
 
-			//ImGui::PopStyleVar();
 			ImGui::TreePop();
 		}
 		else
@@ -57,10 +60,14 @@ namespace Editor
 
 		if (aetLyoNodeOpen)
 		{
+			ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, ImGui::GetFontSize() * 1.5f);
 			if (ImGui::WideTreeNodeEx("Layers", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				// TODO: alternate background color (draw own background quad (?))
 				//auto textColorAlt = ImGui::GetStyleColorVec4(ImGuiCol_Text); textColorAlt.w *= .5f;
+
+				if (openLayers.size() != aetLyo.AetLayers.size())
+					openLayers.resize(aetLyo.AetLayers.size());
 
 				int32_t layerIndex = 0;
 				for (auto& aetLayer : aetLyo.AetLayers)
@@ -77,6 +84,7 @@ namespace Editor
 				}
 				ImGui::TreePop();
 			}
+			ImGui::PopStyleVar();
 
 			if (ImGui::WideTreeNode("Regions"))
 			{
@@ -101,7 +109,12 @@ namespace Editor
 			ImGui::PushStyleColor(ImGuiCol_Text, GetColor(EditorColor_TextHighlight));
 
 		AetLayer* rootLayer = &aetLyo.AetLayers.back();
-		bool aetLayerNodeOpen = ImGui::WideTreeNodeEx("##AetLayerTreeNode", layerNodeFlags, (&aetLayer == rootLayer) ? "Root" : "Layer %d (%s)", aetLayer.Index, aetLayer.CommaSeparatedNames.c_str());
+		bool aetLayerNodeOpen = ImGui::WideTreeNodeEx("##AetLayerTreeNode", layerNodeFlags, (&aetLayer == rootLayer) 
+			? "%s  Root" 
+			: "%s  Layer %d (%s)", 
+			openLayers[aetLayer.Index] ? ICON_AETLAYER_OPEN : ICON_AETLAYER, aetLayer.Index, aetLayer.CommaSeparatedNames.c_str());
+
+		openLayers[aetLayer.Index] = aetLayerNodeOpen;
 
 		if (&aetLayer == lastHovered.AetLayer)
 			ImGui::PopStyleColor();
@@ -129,13 +142,17 @@ namespace Editor
 
 		if (aetLayerNodeOpen)
 		{
+			char objNameBuffer[255];
+
 			for (auto& aetObj : aetLayer.Objects)
 			{
 				ImGui::PushID((void*)&aetObj);
 
 				bool isSelected = &aetObj == selected.AetObj || &aetObj == hovered.AetObj;
 
-				if (ImGui::Selectable(aetObj.Name.c_str(), isSelected))
+				sprintf_s(objNameBuffer, ICON_AETOBJ "  %s", aetObj.Name.c_str());
+
+				if (ImGui::Selectable(objNameBuffer, isSelected))
 					SetSelectedItem(&aetLyo, &aetObj);
 
 				if (aetObj.Type == AetObjType_Eff && (ImGui::IsItemHovered() || &aetObj == selected.AetObj))
@@ -155,7 +172,7 @@ namespace Editor
 		ImGui::PushID(&region);
 
 		char regionNameBuffer[32];
-		sprintf_s(regionNameBuffer, "Region %d", index);
+		sprintf_s(regionNameBuffer, ICON_AETREGION "  Region %d", index);
 
 		bool isSelected = &region == selected.AetRegion;
 
