@@ -14,6 +14,9 @@ namespace Editor
 	class TimelineBase
 	{
 	public:
+		TimelineBase() {};
+		virtual ~TimelineBase() {};
+
 		virtual float GetTimelinePosition(TimeSpan time) const;
 		virtual TimeSpan GetTimelineTime(float position) const;
 

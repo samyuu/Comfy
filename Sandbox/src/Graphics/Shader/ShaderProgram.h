@@ -18,7 +18,7 @@ class ShaderProgram : public IBindable
 {
 public:
 	ShaderProgram();
-	~ShaderProgram();
+	virtual ~ShaderProgram();
 	ShaderProgram(const ShaderProgram&) = delete;
 
 	void Bind() const override;

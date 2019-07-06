@@ -27,7 +27,7 @@ class Buffer : public IGraphicsObject
 {
 public:
 	Buffer(BufferUsage usage);
-	~Buffer();
+	virtual ~Buffer();
 	Buffer(const Buffer&) = delete;
 
 	void InitializeID() override;

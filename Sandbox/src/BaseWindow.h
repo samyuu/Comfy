@@ -7,7 +7,7 @@ class BaseWindow
 {
 public:
 	BaseWindow(Application* parent);
-	~BaseWindow();
+	virtual ~BaseWindow();
 
 	virtual const char* GetGuiName() const = 0;
 	virtual void DrawGui() {};
