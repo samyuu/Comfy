@@ -3,9 +3,9 @@
 #include "Editor/Theme.h"
 #include "DataTest/InputTestWindow.h"
 #include "DataTest/AudioTestWindow.h"
+#include "DataTest/IconTestWindow.h"
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
-#include <FontIcons.h>
 
 Application* Application::globalCallbackApplication;
 
@@ -305,7 +305,11 @@ void Application::InitializeGui()
 		config.MergeMode = true;
 		config.GlyphMinAdvanceX = 13.0f;
 
-		fonts->AddFontFromFileTTF("rom/font/" FONT_ICON_FILE_NAME_FAR, fontSize - 2.0f, &config, icon_ranges);
+		// Load Time: 0.05 MS
+		//fonts->AddFontFromFileTTF("rom/font/" FONT_ICON_FILE_NAME_FAR, fontSize - 2.0f, &config, icon_ranges); 
+		
+		// Load Time: 0.10 MS
+		fonts->AddFontFromFileTTF("rom/font/" FONT_ICON_FILE_NAME_FAS, fontSize - 2.0f, &config, icon_ranges); 
 	}
 
 	ImGui::StyleComfy();
@@ -327,6 +331,7 @@ void Application::InitializeApp()
 		dataTestComponents.reserve(2);
 		dataTestComponents.push_back(std::make_shared<InputTestWindow>(this));
 		dataTestComponents.push_back(std::make_shared<AudioTestWindow>(this));
+		dataTestComponents.push_back(std::make_shared<IconTestWindow>(this));
 	}
 }
 
