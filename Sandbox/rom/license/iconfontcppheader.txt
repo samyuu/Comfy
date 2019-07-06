@@ -1,5 +1,5 @@
 #name
-IconFontCppHeaders
+Icon Font Cpp Headers
 
 #description
 GitHub: https://github.com/juliettef/IconFontCppHeaders
