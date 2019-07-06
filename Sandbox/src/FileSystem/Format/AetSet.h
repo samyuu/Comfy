@@ -126,10 +126,10 @@ namespace FileSystem
 	struct AetLyo
 	{
 		std::string Name;
-		unk32_t BackgroundColor;
+		unk32_t Unknown;
 		frame_t FrameDuration;
 		frame_t FrameRate;
-		unk32_t MaybeColor;
+		unk32_t BackgroundColor;
 		int32_t Width;
 		int32_t Height;
 		unk32_t DontChangeMe;

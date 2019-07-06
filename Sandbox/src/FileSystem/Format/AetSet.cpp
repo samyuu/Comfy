@@ -121,10 +121,10 @@ namespace FileSystem
 				reader.ReadAt(lyoPointer, [&aetLyo](BinaryReader& reader)
 				{
 					aetLyo->Name = reader.ReadStrPtr();
-					aetLyo->BackgroundColor = reader.ReadUInt32();
+					aetLyo->Unknown = reader.ReadUInt32();
 					aetLyo->FrameDuration = reader.ReadFloat();
 					aetLyo->FrameRate = reader.ReadFloat();
-					aetLyo->MaybeColor = reader.ReadUInt32();
+					aetLyo->BackgroundColor = reader.ReadUInt32();
 					aetLyo->Width = reader.ReadInt32();
 					aetLyo->Height = reader.ReadInt32();
 					aetLyo->DontChangeMe = reader.ReadUInt32();

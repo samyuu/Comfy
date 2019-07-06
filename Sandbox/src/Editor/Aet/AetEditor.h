@@ -46,5 +46,6 @@ namespace Editor
 		void DrawProperties();
 
 		bool OpenAetSet(const std::string& filePath);
+		void OnOpenAetSet();
 	};
 }

@@ -10,6 +10,10 @@ namespace Editor
 
 	AetEditor::AetEditor(Application* parent, PvEditor* editor) : IEditorComponent(parent, editor)
 	{
+		treeView = std::make_unique<AetTreeView>();
+		inspector = std::make_unique<AetInspector>();
+		timeline = std::make_unique<AetTimeline>();
+		renderWindow = std::make_unique<AetRenderWindow>();
 	}
 
 	AetEditor::~AetEditor()
@@ -18,19 +22,12 @@ namespace Editor
 
 	void AetEditor::Initialize()
 	{
-		OpenAetSet(testAetPath);
-
-		treeView = std::make_unique<AetTreeView>();
 		treeView->Initialize();
-
-		inspector = std::make_unique<AetInspector>();
 		inspector->Initialize();
-
-		timeline = std::make_unique<AetTimeline>();
 		timeline->InitializeTimelineGuiState();
-
-		renderWindow = std::make_unique<AetRenderWindow>();
 		renderWindow->Initialize();
+
+		OpenAetSet(testAetPath);
 	}
 
 	void AetEditor::DrawGui()
@@ -133,11 +130,17 @@ namespace Editor
 		if (!FileExists(filePath))
 			return false;
 
-		aetSet.release();
+		aetSet.reset();
 		aetSet = std::make_unique<AetSet>();
 		aetSet->Name = GetFileName(filePath, false);
 		aetSet->Load(filePath);
 
+		OnOpenAetSet();
 		return true;
+	}
+
+	void AetEditor::OnOpenAetSet()
+	{
+		treeView->ResetSelectedItem();
 	}
 }

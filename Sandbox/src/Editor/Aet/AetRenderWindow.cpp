@@ -52,6 +52,7 @@ namespace Editor
 					std::vector<uint8_t> fileBuffer;
 					ReadAllBytes(sprPath, &fileBuffer);
 
+					sprSet.reset();
 					sprSet = std::make_unique<SprSet>();
 					sprSet->Parse(fileBuffer.data());
 

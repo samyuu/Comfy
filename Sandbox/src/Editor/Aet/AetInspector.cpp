@@ -18,31 +18,33 @@ namespace Editor
 
 	bool AetInspector::DrawGui(AetSet* aetSet, const AetItemTypePtr& selected)
 	{
-		ImGui::Text("Selection:");
-		ImGui::Separator();
-
-		if (selected.ItemPtr == nullptr)
+		if (ImGui::TreeNodeEx("Selection", ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			ImGui::Text("<none>");
-			return false;
-		}
+			ImGui::Separator();
 
-		switch (selected.Type)
-		{
-		case AetSelectionType::AetObj:
-			DrawInspectorAetObj(aetSet, selected.AetObj);
-			break;
-		case AetSelectionType::AetLayer:
-			DrawInspectorAetLayer(aetSet, selected.AetLayer);
-			break;
-		case AetSelectionType::AetLyo:
-			DrawInspectorAetLyo(aetSet, selected.AetLyo);
-			break;
-		case AetSelectionType::AetRegion:
-			DrawInspectorAetRegion(aetSet, selected.AetRegion);
-			break;
-		default:
-			break;
+			if (selected.ItemPtr == nullptr)
+			{
+				ImGui::Text("<none>");
+				return false;
+			}
+
+			switch (selected.Type)
+			{
+			case AetSelectionType::AetObj:
+				DrawInspectorAetObj(aetSet, selected.AetObj);
+				break;
+			case AetSelectionType::AetLayer:
+				DrawInspectorAetLayer(aetSet, selected.AetLayer);
+				break;
+			case AetSelectionType::AetLyo:
+				DrawInspectorAetLyo(aetSet, selected.AetLyo);
+				break;
+			case AetSelectionType::AetRegion:
+				DrawInspectorAetRegion(aetSet, selected.AetRegion);
+				break;
+			default:
+				break;
+			}
 		}
 
 		return true;
@@ -90,7 +92,7 @@ namespace Editor
 
 	void AetInspector::DrawInspectorRegionData(AetRegion* aetRegion)
 	{
-		if (ImGui::WideTreeNode(ICON_AETREGIONS "  Region Data"))
+		if (ImGui::TreeNodeEx(ICON_AETREGIONS "  Region Data", ImGuiTreeNodeFlags_Framed))
 		{
 			if (aetRegion != nullptr)
 			{
@@ -129,7 +131,7 @@ namespace Editor
 
 	void AetInspector::DrawInspectorLayerData(AetLayer* aetLayer)
 	{
-		if (ImGui::WideTreeNode(ICON_AETLAYERS "  Layer Data"))
+		if (ImGui::TreeNodeEx(ICON_AETLAYERS "  Layer Data", ImGuiTreeNodeFlags_Framed))
 		{
 			if (aetLayer != nullptr)
 			{
@@ -141,7 +143,7 @@ namespace Editor
 
 	void AetInspector::DrawInspectorAnimationData(AnimationData* animationData)
 	{
-		if (ImGui::WideTreeNode(ICON_ANIMATIONDATA "  Animation Data"))
+		if (ImGui::TreeNodeEx(ICON_ANIMATIONDATA "  Animation Data", ImGuiTreeNodeFlags_Framed))
 		{
 			if (ImGui::WideTreeNode("Properties"))
 			{
@@ -221,6 +223,10 @@ namespace Editor
 			ImGui::InputFloat("Frame Rate", &aetLyo->FrameRate);
 			ImGui::InputFloat("Duration", &aetLyo->FrameDuration);
 			ImGui::InputInt2("Resolution", &aetLyo->Width);
+
+			ImVec4 color = ImGui::ColorConvertU32ToFloat4(aetLyo->BackgroundColor);
+			if (ImGui::ColorEdit4("Background##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
+				aetLyo->BackgroundColor = ImGui::ColorConvertFloat4ToU32(color);
 		}
 	}
 
@@ -231,7 +237,7 @@ namespace Editor
 		ImGui::InputScalarN("Dimensions", ImGuiDataType_S16, &aetRegion->Width, 2);
 
 		ImVec4 color = ImGui::ColorConvertU32ToFloat4(aetRegion->Color);
-		if (ImGui::ColorEdit4("##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
+		if (ImGui::ColorEdit4("Background##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
 			aetRegion->Color = ImGui::ColorConvertFloat4ToU32(color);
 
 		if (ImGui::WideTreeNodeEx("Sprites:", ImGuiTreeNodeFlags_DefaultOpen))

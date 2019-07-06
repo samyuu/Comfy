@@ -15,11 +15,13 @@ namespace FileSystem
 	{
 		MemoryStream stream(filePath);
 		IBinaryReadableLoadBase(this, &stream);
+		stream.Close();
 	}
 
 	void IBinaryReadable::Load(const std::wstring& filePath)
 	{
 		MemoryStream stream(filePath);
 		IBinaryReadableLoadBase(this, &stream);
+		stream.Close();
 	}
 }
