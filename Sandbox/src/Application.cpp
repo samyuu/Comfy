@@ -259,6 +259,9 @@ void Application::BaseDispose()
 		return;
 	hasBeenDisposed = true;
 
+	// force delete before the OpenGL context is destroyed
+	pvEditor.reset();
+
 	AudioEngine::DisposeInstance();
 	AudioEngine::DeleteInstance();
 
@@ -307,9 +310,9 @@ void Application::InitializeGui()
 
 		// Load Time: 0.05 MS
 		//fonts->AddFontFromFileTTF("rom/font/" FONT_ICON_FILE_NAME_FAR, fontSize - 2.0f, &config, icon_ranges); 
-		
+
 		// Load Time: 0.10 MS
-		fonts->AddFontFromFileTTF("rom/font/" FONT_ICON_FILE_NAME_FAS, fontSize - 2.0f, &config, icon_ranges); 
+		fonts->AddFontFromFileTTF("rom/font/" FONT_ICON_FILE_NAME_FAS, fontSize - 2.0f, &config, icon_ranges);
 	}
 
 	ImGui::StyleComfy();
@@ -448,7 +451,7 @@ void Application::DrawGui()
 			{
 				auto viewPortPos = ImVec2(windowXPosition, windowYPosition);
 				auto viewPortSize = ImVec2(windowWidth, windowHeight);
-				
+
 				ImGuiWindow* window = ImGui::FindWindowByName(licenseWindow.GetWindowName());
 				ImGui::SetWindowPos(window, viewPortPos + viewPortSize / 8, ImGuiCond_Always);
 				ImGui::SetWindowSize(window, viewPortSize * .75f, ImGuiCond_Always);
