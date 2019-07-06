@@ -15,6 +15,7 @@
 #include <stb/stb_image_write.h>
 #include <string>
 #include <filesystem>
+#include <FontIcons.h>
 
 using namespace std::filesystem;
 using namespace FileSystem;
@@ -220,15 +221,15 @@ void AetTest()
 
 	for (float i = -1.0f; i <= keyFrameVector.back().Frame; i++)
 	{
-		float result = Auth2D::AetInterpolateAccurate(keyFrameVector.size(), rawValues.get(), i);
+		//float result = Auth2D::AetInterpolateAccurate(keyFrameVector.size(), rawValues.get(), i);
 		float recreation = Auth2D::AetMgr::Interpolate(keyFrameVector, i);
 		
-		Logger::LogLine("ORIG FRAME [%02.0f] = %.2f", i, result);
+		//Logger::LogLine("ORIG FRAME [%02.0f] = %.2f", i, result);
 		Logger::LogLine("EDIT FRAME [%02.0f] = %.2f", i, recreation);
 
-		if (result != recreation)
-			Logger::LogLine("--- NOT SAME ---");
-		Logger::NewLine();
+		//if (result != recreation)
+		//	Logger::LogLine("--- NOT SAME ---");
+		//Logger::NewLine();
 	}
 
 	// target:			- // output:
@@ -255,9 +256,56 @@ void AetTest()
 	// 20 frame: 0.80	- // FRAME [20] = 0.80
 }
 
+std::vector<std::string> GenerateIconListFromSource(const std::string& sourceFilePath)
+{
+	std::vector<std::string> sourceLines;
+	FileSystem::ReadAllLines(sourceFilePath, &sourceLines);
+
+	constexpr size_t defineStartLine = 10;
+	constexpr size_t defineStartCharacter = 8; // strlen("#define ")
+
+	std::vector<std::string> results;
+	results.reserve(sourceLines.size());
+
+	for (size_t i = defineStartLine; i < sourceLines.size(); i++)
+	{
+		std::string& sourceLine = sourceLines[i];
+		if (sourceLine.size() < defineStartCharacter)
+			continue;
+
+		size_t spacePosition;
+		for (spacePosition = defineStartCharacter; spacePosition < sourceLine.size(); spacePosition++)
+		{
+			if (sourceLine[spacePosition] == ' ')
+				break;
+		}
+
+		std::string defineName = sourceLine.substr(defineStartCharacter, spacePosition - defineStartCharacter);
+
+		results.emplace_back();
+		std::string& result = results.back();
+
+		result.reserve(defineName.size() + 3 + 2 + 2);
+		result += "{ \"";
+		result += defineName;
+		result += "\", ";
+		result += defineName;
+		result += " },";
+	}
+
+	return results;
+}
+
 void MainTest()
 {
 	glfwInit();
+
+	if (false)
+	{
+		auto results = GenerateFromSource("lib/iconfont/include/IconsFontAwesome5.h");
+		for (auto& line : results)
+			Logger::LogLine(line.c_str());
+	}
 
 	if (false)
 	{
