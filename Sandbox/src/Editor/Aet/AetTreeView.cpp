@@ -151,8 +151,6 @@ namespace Editor
 
 	void AetTreeView::DrawTreeViewObj(AetLyo & aetLyo, AetObj & aetObj)
 	{
-		char objNameBuffer[255];
-
 		ImGui::PushID((void*)&aetObj);
 		{
 			bool isSelected = &aetObj == selected.AetObj || &aetObj == hovered.AetObj;
@@ -175,7 +173,6 @@ namespace Editor
 	{
 		ImGui::PushID(&region);
 
-		char regionNameBuffer[255];
 		sprintf_s(regionNameBuffer,
 			ICON_AETREGION "  Region %d (%s)",
 			index,

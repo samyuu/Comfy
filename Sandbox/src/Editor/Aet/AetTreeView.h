@@ -30,7 +30,9 @@ namespace Editor
 		const char* addAetObjPopupID = "Add new AetObj";
 
 		int newObjTypeIndex = AetObjType_Pic;
+		char objNameBuffer[255];
 		char newObjNameBuffer[255];
+		char regionNameBuffer[255];
 
 		AetLyo* activeAetLyo;
 		AetItemTypePtr selected, lastHovered, hovered;

@@ -54,9 +54,7 @@ namespace Editor
 	{
 		ImGui::Text("AetObj:");
 
-		//if (ImGui::WideTreeNodeEx("Object Data", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			static char aetObjNameBuffer[255];
 			strcpy_s(aetObjNameBuffer, aetObj->Name.c_str());
 
 			if (ImGui::InputText("Name##AetObj", aetObjNameBuffer, sizeof(aetObjNameBuffer), ImGuiInputTextFlags_None /*ImGuiInputTextFlags_EnterReturnsTrue*/))
@@ -72,12 +70,6 @@ namespace Editor
 			ImGui::InputFloat("Loop Start", &aetObj->LoopStart);
 			ImGui::InputFloat("Loop End", &aetObj->LoopEnd);
 			ImGui::InputFloat("Start Frame", &aetObj->StartFrame);
-
-			//uint32_t flags = aetObj->TypeFlag;
-			//if (ImGui::CheckboxFlags("Visible", &flags, AetTypeFlags_Visible))
-			//	aetObj->TypeFlag = flags;
-
-			//ImGui::TreePop();
 		}
 
 		if ((aetObj->Type == AetObjType_Pic))
@@ -105,25 +97,6 @@ namespace Editor
 					for (auto& sprite : aetRegion->Sprites)
 						ImGui::BulletText(sprite.Name.c_str());
 				}
-
-				//ImVec4 color = ImGui::ColorConvertU32ToFloat4(aetRegion->Color);
-				//if (ImGui::ColorEdit4("##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
-				//	aetRegion->Color = ImGui::ColorConvertFloat4ToU32(color);
-
-				//ImGui::InputScalarN("Dimensions", ImGuiDataType_S16, &aetRegion->Width, 2);
-
-				//if (ImGui::WideTreeNodeEx("Sprites:", ImGuiTreeNodeFlags_DefaultOpen))
-				//{
-				//	char spriteNameBuffer[255];
-
-				//	for (auto& sprite : aetRegion->Sprites)
-				//	{
-				//		sprintf_s(spriteNameBuffer, ICON_AETREGION "  %s", sprite.Name.c_str());
-				//		ImGui::Selectable(spriteNameBuffer);
-				//	}
-
-				//	ImGui::TreePop();
-				//}
 			}
 			ImGui::TreePop();
 		}
@@ -214,7 +187,6 @@ namespace Editor
 	{
 		ImGui::Text("Aet:");
 		{
-			static char aetLyoNameBuffer[255];
 			strcpy_s(aetLyoNameBuffer, aetLyo->Name.c_str());
 
 			if (ImGui::InputText("Name##AetLyo", aetLyoNameBuffer, sizeof(aetLyoNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
@@ -242,8 +214,6 @@ namespace Editor
 
 		if (ImGui::WideTreeNodeEx("Sprites:", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			char spriteNameBuffer[255];
-
 			for (auto& sprite : aetRegion->Sprites)
 			{
 				sprintf_s(spriteNameBuffer, ICON_AETREGION "  %s", sprite.Name.c_str());

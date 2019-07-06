@@ -16,6 +16,10 @@ namespace Editor
 		bool DrawGui(AetSet* aetSet, const AetItemTypePtr& selected);
 
 	private:
+		char aetLyoNameBuffer[255];
+		char aetObjNameBuffer[255];
+		char spriteNameBuffer[255];
+
 		void DrawInspectorAetObj(AetSet* aetSet, AetObj* aetObj);
 		void DrawInspectorRegionData(AetRegion* spriteEntry);
 		void DrawInspectorLayerData(AetLayer* aetLayer);
