@@ -16,8 +16,7 @@ namespace Editor
 
 	vec4 GetColorVec4(EditorColor color)
 	{
-		ImVec4 imVec4 = ImColor(GetColor(color)).Value;
-		return vec4(imVec4.x, imVec4.y, imVec4.z, imVec4.w);
+		return ImColor(GetColor(color)).Value;
 	}
 
 	ImU32 GetColor(EditorColor color, float alpha)
