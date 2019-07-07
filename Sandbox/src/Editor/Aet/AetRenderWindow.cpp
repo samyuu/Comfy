@@ -46,18 +46,19 @@ namespace Editor
 		renderer.SetEnableAlphaTest(true);
 	}
 
-	AetRenderWindow::AetRenderWindow()
+	AetRenderWindow::AetRenderWindow(SpriteGetter spriteGetter)
 	{
+		getSprite = spriteGetter;
 	}
 
 	AetRenderWindow::~AetRenderWindow()
 	{
 	}
 
-	void AetRenderWindow::SetAetObj(AetLyo* parent, AetObj* value)
+	void AetRenderWindow::SetActive(AetLyo * parent, AetItemTypePtr value)
 	{
 		aetLyo = parent;
-		aetObj = value;
+		active = value;
 	}
 
 	void AetRenderWindow::OnDrawGui()
@@ -80,33 +81,7 @@ namespace Editor
 			ImGui::ColorEdit4("Color", glm::value_ptr(aetColor));
 		}
 
-		ImGui::Begin("SprSet Loader", nullptr, ImGuiWindowFlags_None);
-		{
-			ImGui::BeginChild("SprSetLoaderChild##AetRenderWindow");
-			if (fileViewer.DrawGui())
-			{
-				std::string sprPath = fileViewer.GetFileToOpen();
-				if (StartsWithInsensitive(GetFileName(sprPath), "spr_") && EndsWithInsensitive(sprPath, ".bin"))
-				{
-					std::vector<uint8_t> fileBuffer;
-					ReadAllBytes(sprPath, &fileBuffer);
-
-					sprSet.reset();
-					sprSet = std::make_unique<SprSet>();
-					sprSet->Parse(fileBuffer.data());
-					sprSet->Name = GetFileName(sprPath, false);
-
-					for (int i = 0; i < sprSet->TxpSet->Textures.size(); i++)
-					{
-						sprSet->TxpSet->Textures[i]->Texture2D = std::make_shared<Texture2D>();
-						sprSet->TxpSet->Textures[i]->Texture2D->Upload(sprSet->TxpSet->Textures[i].get());
-					}
-				}
-			}
-			ImGui::EndChild();
-		}
-		ImGui::End();
-
+		/*
 		ImGui::Begin("Txp Preview", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBackground);
 		{
 			if (sprSet != nullptr)
@@ -157,6 +132,7 @@ namespace Editor
 			}
 		}
 		ImGui::End();
+		*/
 	}
 
 	void AetRenderWindow::OnUpdateInput()
@@ -199,8 +175,38 @@ namespace Editor
 			renderer.Begin();
 			{
 				vec4 regionColor = vec4(.15f, .15f, .15f, 1.0f);
-				renderer.Draw(aetPosition, vec2(1920, 1080), regionColor);
 
+				if (aetLyo == nullptr)
+				{
+					renderer.Draw(aetPosition, vec2(1920, 1080), regionColor);
+				}
+				else
+				{
+					//vec4 regionColor = ImGui::ColorConvertU32ToFloat4(aetLyo->BackgroundColor); color.a = 1.0f;
+					renderer.Draw(aetPosition, vec2(aetLyo->Width, aetLyo->Height), regionColor);
+				}
+
+				if (active.ItemPtr != nullptr)
+				{
+					switch (active.Type)
+					{
+					case AetSelectionType::AetObj:
+						RenderAetObj(active.AetObj); 
+						break;
+					case AetSelectionType::AetLayer:
+						RenderAetLayer(active.AetLayer);
+						break;
+					case AetSelectionType::AetRegion:
+						RenderAetRegion(active.AetRegion); 
+						break;
+
+					case AetSelectionType::None:
+					default:
+						break;
+					}
+				}
+
+				/*
 				if (sprSet != nullptr)
 				{
 					if (spriteIndex >= 0 && spriteIndex < sprSet->Sprites.size())
@@ -221,6 +227,7 @@ namespace Editor
 						renderer.Draw(texture2D, sourceRegion, aetPosition, aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
 					}
 				}
+				*/
 			}
 			renderer.End();
 		}
@@ -237,5 +244,41 @@ namespace Editor
 	void AetRenderWindow::OnInitialize()
 	{
 		renderer.Initialize();
+	}
+	
+	void AetRenderWindow::RenderAetObj(AetObj* aetObj)
+	{
+	}
+
+	void AetRenderWindow::RenderAetLayer(AetLayer* aetLayer)
+	{
+	}
+
+	void AetRenderWindow::RenderAetRegion(AetRegion* aetRegion)
+	{
+		if (aetRegion->Sprites.size() < 1)
+		{
+			vec4 color = ImGui::ColorConvertU32ToFloat4(aetRegion->Color); 
+			color.a = 1.0f;
+			
+			renderer.Draw(aetPosition, vec2(aetRegion->Width, aetRegion->Height), color);
+			return;
+		}
+		
+		assert(getSprite != nullptr);
+
+		AetSprite* spriteRegion = &aetRegion->Sprites.front();
+		
+		Texture* texture;
+		Sprite* sprite;
+
+		if (!getSprite(spriteRegion, &texture, &sprite))
+		{
+			renderer.Draw(nullptr, vec4(0, 0, aetRegion->Width, aetRegion->Height), aetPosition, aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
+		}
+		else
+		{
+			renderer.Draw(texture->Texture2D.get(), sprite->PixelRegion, aetPosition, aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
+		}
 	}
 }

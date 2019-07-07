@@ -7,6 +7,7 @@
 #include "Editor/IEditorComponent.h"
 #include "FileSystem/Format/AetSet.h"
 #include "Graphics/Auth2D/AetMgr.h"
+#include "ImGui/Widgets/FileViewer.h"
 #include <memory>
 
 namespace Editor
@@ -24,8 +25,12 @@ namespace Editor
 		virtual const char* GetGuiName() const override;
 		virtual ImGuiWindowFlags GetWindowFlags() const override;
 
+		inline AetSet* GetAetSet() { return aetSet.get(); };
+		inline SprSet* GetSprSet() { return sprSet.get(); };
+
 	private:
-		ImGui::FileViewer fileViewer = { "dev_ram/aetset/" };
+		ImGui::FileViewer aetFileViewer = { "dev_ram/aetset/" };
+		ImGui::FileViewer sprFileViewer = { "dev_ram/sprset/" };
 
 		std::unique_ptr<AetTreeView> treeView;
 		std::unique_ptr<AetInspector> inspector;
@@ -35,17 +40,20 @@ namespace Editor
 		struct
 		{
 			std::unique_ptr<AetSet> aetSet;
-			//std::unique_ptr<SprSet> sprSet;
+			std::unique_ptr<SprSet> sprSet;
 		};
 
 		Properties currentProperties;
 
 		const char* testAetPath = "dev_ram/aetset/aet_tst000.bin";
 
-		void DrawSetLoader();
+		void DrawAetSetLoader();
+		void DrawSprSetLoader();
 		void DrawProperties();
 
-		bool OpenAetSet(const std::string& filePath);
-		void OnOpenAetSet();
+		bool LoadAetSet(const std::string& filePath);
+		bool LoadSprSet(const std::string& filePath);
+		void OnAetSetLoaded();
+		void OnSprSetLoaded();
 	};
 }

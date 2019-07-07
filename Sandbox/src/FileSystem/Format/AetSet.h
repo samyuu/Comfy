@@ -8,6 +8,7 @@
 namespace FileSystem
 {
 	struct AetLayer;
+	struct Sprite;
 
 	typedef uint16_t AetTypeFlags;
 	enum AetTypeFlags_ : AetTypeFlags
@@ -37,6 +38,7 @@ namespace FileSystem
 	{
 		std::string Name;
 		uint32_t ID;
+		Sprite* SpriteCache;
 	};
 
 	struct AetRegion
@@ -144,6 +146,7 @@ namespace FileSystem
 		std::list<AetLyo> AetLyos;
 
 		void UpdateLayerNames();
+		void ClearSpriteCache();
 
 		virtual void Read(BinaryReader& reader) override;
 

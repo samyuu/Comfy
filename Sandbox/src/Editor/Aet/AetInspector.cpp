@@ -196,7 +196,7 @@ namespace Editor
 			ImGui::InputInt2("Resolution", &aetLyo->Width);
 
 			ImVec4 color = ImGui::ColorConvertU32ToFloat4(aetLyo->BackgroundColor);
-			if (ImGui::ColorEdit4("Background##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
+			if (ImGui::ColorEdit3("Background##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
 				aetLyo->BackgroundColor = ImGui::ColorConvertFloat4ToU32(color);
 		}
 	}
@@ -208,7 +208,7 @@ namespace Editor
 		ImGui::InputScalarN("Dimensions", ImGuiDataType_S16, &aetRegion->Width, 2);
 
 		ImVec4 color = ImGui::ColorConvertU32ToFloat4(aetRegion->Color);
-		if (ImGui::ColorEdit4("Background##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
+		if (ImGui::ColorEdit3("Background##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
 			aetRegion->Color = ImGui::ColorConvertFloat4ToU32(color);
 
 		if (ImGui::TreeNodeEx("Sprites:", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))

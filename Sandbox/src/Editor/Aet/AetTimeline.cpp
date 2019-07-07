@@ -14,15 +14,10 @@ namespace Editor
 	{
 	}
 
-	AetObj* AetTimeline::GetAetobj() const
+	void AetTimeline::SetActive(AetLyo* parent, AetItemTypePtr value)
 	{
-		return aetObj;
-	}
-
-	void AetTimeline::SetAetObj(AetLyo* parent, AetObj* value)
-	{
-		activeAetLyo = parent;
-		aetObj = value;
+		aetLyo = parent;
+		active = value;
 	}
 
 	bool AetTimeline::GetIsPlayback() const
@@ -130,10 +125,10 @@ namespace Editor
 
 	void AetTimeline::OnUpdate()
 	{
-		if (aetObj != nullptr)
+		if (active.Type == AetSelectionType::AetObj && active.AetObj != nullptr)
 		{
-			loopStartFrame = aetObj->LoopStart;
-			loopEndFrame = aetObj->LoopEnd;
+			loopStartFrame = active.AetObj->LoopStart;
+			loopEndFrame = active.AetObj->LoopEnd;
 		}
 
 		if (isPlayback)
@@ -155,10 +150,13 @@ namespace Editor
 
 	void AetTimeline::OnDrawTimelineContents()
 	{
-		if (aetObj == nullptr || aetObj->AnimationData.Properties == nullptr)
+		if (active.Type != AetSelectionType::AetObj || active.AetObj == nullptr)
 			return;
 
-		KeyFrameProperties* properties = aetObj->AnimationData.Properties.get();
+		if (active.AetObj->AnimationData.Properties == nullptr)
+			return;
+
+		KeyFrameProperties* properties = active.AetObj->AnimationData.Properties.get();
 		std::vector<KeyFrame>* keyFrames = &properties->OriginX;
 
 		for (int i = 0; i < KeyFrameProperties::PropertyNames.size(); i++)

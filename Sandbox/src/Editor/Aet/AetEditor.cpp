@@ -8,12 +8,43 @@ namespace Editor
 {
 	constexpr ImGuiTreeNodeFlags LeafTreeNodeFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet;
 
+	static AetEditor* AetEditorInstance;
+
+	static bool AetEditorSpriteGetter(AetSprite* inSprite, Texture** outTexture, Sprite** outSprite)
+	{
+		SprSet* sprSet = AetEditorInstance->GetSprSet();
+
+		if (sprSet == nullptr)
+			return false;
+
+		if (inSprite->SpriteCache != nullptr)
+		{
+			from_sprite_cache:
+			*outTexture = sprSet->TxpSet->Textures[inSprite->SpriteCache->TextureIndex].get();
+			*outSprite = inSprite->SpriteCache;
+			return true;
+		}
+
+		for (auto& sprite : sprSet->Sprites)
+		{
+			if (EndsWith(inSprite->Name, sprite.Name))
+			{
+				inSprite->SpriteCache = &sprite;
+				goto from_sprite_cache;
+			}
+		}
+
+		return false;
+	}
+
 	AetEditor::AetEditor(Application* parent, PvEditor* editor) : IEditorComponent(parent, editor)
 	{
+		AetEditorInstance = this;
+
 		treeView = std::make_unique<AetTreeView>();
 		inspector = std::make_unique<AetInspector>();
 		timeline = std::make_unique<AetTimeline>();
-		renderWindow = std::make_unique<AetRenderWindow>();
+		renderWindow = std::make_unique<AetRenderWindow>(&AetEditorSpriteGetter);
 	}
 
 	AetEditor::~AetEditor()
@@ -27,7 +58,7 @@ namespace Editor
 		timeline->InitializeTimelineGuiState();
 		renderWindow->Initialize();
 
-		OpenAetSet(testAetPath);
+		LoadAetSet(testAetPath);
 	}
 
 	void AetEditor::DrawGui()
@@ -38,7 +69,15 @@ namespace Editor
 		if (ImGui::Begin("AetSet Loader##AetEditor", nullptr, ImGuiWindowFlags_None))
 		{
 			ImGui::BeginChild("AetSetLoaderChild##AetEditor");
-			DrawSetLoader();
+			DrawAetSetLoader();
+			ImGui::EndChild();
+		}
+		ImGui::End();
+
+		if (ImGui::Begin("SprSet Loader##AetEditor", nullptr, ImGuiWindowFlags_None))
+		{
+			ImGui::BeginChild("SprSetLoaderChild##AetEditor");
+			DrawSprSetLoader();
 			ImGui::EndChild();
 		}
 		ImGui::End();
@@ -54,8 +93,7 @@ namespace Editor
 		RenderWindowBase::PushWindowPadding();
 		if (ImGui::Begin("Aet Render Window##AetEditor", nullptr, windowFlags))
 		{
-			AetItemTypePtr selected = treeView->GetSelected();
-			renderWindow->SetAetObj(treeView->GetActiveAetLyo(), selected.Type == AetSelectionType::AetObj ? selected.AetObj : nullptr);
+			renderWindow->SetActive(treeView->GetActiveAetLyo(), treeView->GetSelected());
 			renderWindow->DrawGui();
 		}
 		ImGui::End();
@@ -80,7 +118,7 @@ namespace Editor
 		if (ImGui::Begin("Aet Timeline##AetEditor", nullptr))
 		{
 			AetItemTypePtr selected = treeView->GetSelected();
-			timeline->SetAetObj(treeView->GetActiveAetLyo(), selected.Type == AetSelectionType::AetObj ? selected.AetObj : nullptr);
+			timeline->SetActive(treeView->GetActiveAetLyo(), treeView->GetSelected());
 			timeline->DrawTimelineGui();
 		}
 		ImGui::End();
@@ -96,13 +134,23 @@ namespace Editor
 		return BaseWindow::GetNoWindowFlags();
 	}
 
-	void AetEditor::DrawSetLoader()
+	void AetEditor::DrawAetSetLoader()
 	{
-		if (fileViewer.DrawGui())
+		if (aetFileViewer.DrawGui())
 		{
-			std::string aetPath = fileViewer.GetFileToOpen();
+			std::string aetPath = aetFileViewer.GetFileToOpen();
 			if (StartsWithInsensitive(GetFileName(aetPath), "aet_") && EndsWithInsensitive(aetPath, ".bin"))
-				OpenAetSet(aetPath.c_str());
+				LoadAetSet(aetPath);
+		}
+	}
+
+	void AetEditor::DrawSprSetLoader()
+	{
+		if (sprFileViewer.DrawGui())
+		{
+			std::string sprPath = sprFileViewer.GetFileToOpen();
+			if (StartsWithInsensitive(GetFileName(sprPath), "spr_") && EndsWithInsensitive(sprPath, ".bin"))
+				LoadSprSet(sprPath);
 		}
 	}
 
@@ -125,7 +173,7 @@ namespace Editor
 		ImGui::InputFloat("Opacity", &currentProperties.Opcaity);
 	}
 
-	bool AetEditor::OpenAetSet(const std::string& filePath)
+	bool AetEditor::LoadAetSet(const std::string& filePath)
 	{
 		if (!FileExists(filePath))
 			return false;
@@ -135,12 +183,41 @@ namespace Editor
 		aetSet->Name = GetFileName(filePath, false);
 		aetSet->Load(filePath);
 
-		OnOpenAetSet();
+		OnAetSetLoaded();
 		return true;
 	}
 
-	void AetEditor::OnOpenAetSet()
+	bool AetEditor::LoadSprSet(const std::string& filePath)
+	{
+		if (!FileExists(filePath))
+			return false;
+
+		std::vector<uint8_t> fileBuffer;
+		ReadAllBytes(filePath, &fileBuffer);
+
+		sprSet.reset();
+		sprSet = std::make_unique<SprSet>();
+		sprSet->Parse(fileBuffer.data());
+		sprSet->Name = GetFileName(filePath, false);
+
+		for (int i = 0; i < sprSet->TxpSet->Textures.size(); i++)
+		{
+			sprSet->TxpSet->Textures[i]->Texture2D = std::make_shared<Texture2D>();
+			sprSet->TxpSet->Textures[i]->Texture2D->Upload(sprSet->TxpSet->Textures[i].get());
+		}
+
+		OnSprSetLoaded();
+		return true;
+	}
+
+	void AetEditor::OnAetSetLoaded()
 	{
 		treeView->ResetSelectedItem();
+	}
+
+	void AetEditor::OnSprSetLoaded()
+	{
+		if (aetSet != nullptr)
+			aetSet->ClearSpriteCache();
 	}
 }

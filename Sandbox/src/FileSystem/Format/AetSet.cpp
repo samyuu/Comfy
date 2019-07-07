@@ -105,6 +105,18 @@ namespace FileSystem
 		}
 	}
 
+	void AetSet::ClearSpriteCache()
+	{
+		for (auto& aetLyo : AetLyos)
+		{
+			for (auto& region : aetLyo.AetRegions)
+			{
+				for (auto& sprite : region.Sprites)
+					sprite.SpriteCache = nullptr;
+			}
+		}
+	}
+
 	void AetSet::Read(BinaryReader& reader)
 	{
 		AetSet* aetSet = this;

@@ -1,6 +1,7 @@
 #pragma once
-#include "../FrameTimeline.h"
-#include "../../FileSystem/Format/AetSet.h"
+#include "Selection.h"
+#include "Editor/FrameTimeline.h"
+#include "FileSystem/Format/AetSet.h"
 
 namespace Editor
 {
@@ -13,12 +14,12 @@ namespace Editor
 		AetTimeline();
 		~AetTimeline();
 
-		AetObj* GetAetobj() const;
-		void SetAetObj(AetLyo* parent, AetObj* value);
+		void SetActive(AetLyo* parent, AetItemTypePtr value);
 
 	private:
-		AetLyo* activeAetLyo = nullptr;
-		AetObj* aetObj = nullptr;
+		AetLyo* aetLyo = nullptr;
+		AetItemTypePtr active;
+
 		float rowHeight;
 		bool isPlayback = false;
 		bool loopPlayback = false;

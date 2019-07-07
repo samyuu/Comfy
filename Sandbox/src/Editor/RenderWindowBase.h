@@ -1,9 +1,9 @@
 #pragma once
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "../ImGui/imgui.h"
-#include "../ImGui/imgui_internal.h"
-#include "../ImGui/imgui_extensions.h"
-#include "../Graphics/RenderTarget.h"
+#include "ImGui/imgui.h"
+#include "ImGui/imgui_internal.h"
+#include "ImGui/imgui_extensions.h"
+#include "Graphics/RenderTarget.h"
 
 namespace Editor
 {
@@ -13,6 +13,9 @@ namespace Editor
 	class RenderWindowBase
 	{
 	public:
+		RenderWindowBase() {};
+		virtual ~RenderWindowBase() {};
+
 		void Initialize();
 		void DrawGui();
 
@@ -40,9 +43,7 @@ namespace Editor
 
 	private:
 		ImRect renderRegion, lastRenderRegion;
-
 		bool wasResized = false;
-
 		bool keepAspectRatio = false;
 		float targetAspectRatio = 16.0f / 9.0f;
 	};
