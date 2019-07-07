@@ -95,7 +95,7 @@ namespace Auth2D
 		void Resize(float width, float height);
 		inline SpriteShader* GetShader() { return shader.get(); };
 		
-		inline bool GetUseAlphaTest() { return enableAlphaTest; };
+		inline bool GetEnableAlphaTest() { return enableAlphaTest; };
 		inline void SetEnableAlphaTest(bool value) { enableAlphaTest = value; };
 
 		inline bool GetUseTextShadow() { return useTextShadow; };
