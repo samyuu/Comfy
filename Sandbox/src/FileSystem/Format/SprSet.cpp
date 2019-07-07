@@ -36,14 +36,8 @@ namespace FileSystem
 
 					sprite->TextureIndex = reader.ReadInt32();
 					sprite->Unknown = reader.ReadFloat();
-					sprite->TexelX = reader.ReadFloat();
-					sprite->TexelY = reader.ReadFloat();
-					sprite->TexelWidth = reader.ReadFloat();
-					sprite->TexelHeight = reader.ReadFloat();
-					sprite->PixelX = reader.ReadFloat();
-					sprite->PixelY = reader.ReadFloat();
-					sprite->PixelWidth = reader.ReadFloat();
-					sprite->PixelHeight = reader.ReadFloat();
+					sprite->TexelRegion = reader.Read<vec4>();
+					sprite->PixelRegion = reader.Read<vec4>();
 				}
 			});
 		}
@@ -112,14 +106,8 @@ namespace FileSystem
 
 				sprite->TextureIndex = *(uint32_t*)(spritesBuffer + 0);
 				sprite->Unknown = *(float*)(spritesBuffer + 4);
-				sprite->TexelX = *(float*)(spritesBuffer + 8);
-				sprite->TexelY = *(float*)(spritesBuffer + 12);
-				sprite->TexelWidth = *(float*)(spritesBuffer + 16);
-				sprite->TexelHeight = *(float*)(spritesBuffer + 20);
-				sprite->PixelX = *(float*)(spritesBuffer + 24);
-				sprite->PixelY = *(float*)(spritesBuffer + 28);
-				sprite->PixelWidth = *(float*)(spritesBuffer + 32);
-				sprite->PixelHeight = *(float*)(spritesBuffer + 36);
+				sprite->TexelRegion = *(vec4*)(spritesBuffer + 8);
+				sprite->PixelRegion = *(vec4*)(spritesBuffer + 24);
 				spritesBuffer += 40;
 			}
 		}

@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "TxpSet.h"
 #include <string>
 
@@ -8,14 +9,8 @@ namespace FileSystem
 	{
 		int32_t TextureIndex;
 		float Unknown;
-		float TexelX;
-		float TexelY;
-		float TexelWidth;
-		float TexelHeight;
-		float PixelX;
-		float PixelY;
-		float PixelWidth;
-		float PixelHeight;
+		vec4 TexelRegion;
+		vec4 PixelRegion;
 		std::string Name;
 		struct
 		{
