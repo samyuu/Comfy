@@ -80,21 +80,6 @@ namespace Editor
 			ImGui::ColorEdit4("Color", glm::value_ptr(aetColor));
 		}
 
-		//if (ImGui::Button("Export SprSet"))
-		//{
-		//	if (sprSet != nullptr)
-		//	{
-		//		std::string directory = "dev_ram/spr_export/" + sprSet->Name + "/";
-		//		FileSystem::CreateDirectory(directory);
-
-		//		for (auto& texture : sprSet->TxpSet->Textures)
-		//		{
-		//			std::string outputPath = directory + texture->Name + ".png";
-		//			RenderExportImage(renderTarget, renderer, texture.get(), outputPath.c_str());
-		//		}
-		//	}
-		//}
-
 		ImGui::Begin("SprSet Loader", nullptr, ImGuiWindowFlags_None);
 		{
 			ImGui::BeginChild("SprSetLoaderChild##AetRenderWindow");
@@ -213,24 +198,8 @@ namespace Editor
 			renderer.SetUseTextShadow(useTextShadow);
 			renderer.Begin();
 			{
-				if (false)
-				{
-					vec4 backgroundColors[4] =
-					{
-						vec4(.10f, .10f, .10f, 1.0f),
-						vec4(.10f, .10f, .10f, 1.0f),
-						vec4(.05f, .05f, .05f, 1.0f),
-						vec4(.05f, .05f, .05f, 1.0f),
-					};
-					renderer.Draw(vec2(0, 0), vec2(renderTarget.GetWidth(), renderTarget.GetHeight()), backgroundColors);
-				}
-
-				if (false)
-				{
-					vec4 regionColor = vec4(.15f, .15f, .15f, 1.0f);
-					renderer.Draw(aetPosition, vec2(1920, 1080), regionColor);
-					//renderer.Draw(nullptr, aetSourceRegion, aetPosition, aetOrigin, aetRotation, aetScale, regionColor, (AetBlendMode)currentBlendItem);
-				}
+				vec4 regionColor = vec4(.15f, .15f, .15f, 1.0f);
+				renderer.Draw(aetPosition, vec2(1920, 1080), regionColor);
 
 				if (sprSet != nullptr)
 				{
@@ -240,14 +209,6 @@ namespace Editor
 						vec4 sourceRegion = vec4(sprite->PixelX, sprite->PixelY, sprite->PixelWidth, sprite->PixelHeight);
 
 						auto texture2D = sprSet->TxpSet->Textures[sprite->TextureIndex]->Texture2D.get();
-						//renderer.Draw(texture2D, sourceRegion, aetPosition, aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
-
-						//vec4 fullRegion = vec4(0, 0, texture2D->GetWidth(), texture2D->GetHeight());
-						//renderer.Draw(texture2D, fullRegion, aetPosition, aetOrigin, aetRotation, aetScale, regionColor, (AetBlendMode)currentBlendItem);
-
-						//renderer.Draw(texture2D, sourceRegion,
-						//	aetPosition + vec2(sourceRegion.x, sourceRegion.y) * aetScale,
-						//	aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
 
 						renderer.Draw(texture2D, sourceRegion, aetPosition, aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
 					}
@@ -256,7 +217,6 @@ namespace Editor
 						auto* texture = sprSet->TxpSet->Textures.at(txpIndex).get();
 						auto texture2D = texture->Texture2D.get();
 
-						//aetSourceRegion.x += 100 * ImGui::GetIO().DeltaTime;
 						vec4 sourceRegion = (aetSourceRegion.z == 0.0f || aetSourceRegion.w == 0.0f) ? vec4(0.0f, 0.0f, texture2D->GetWidth(), texture2D->GetHeight()) : aetSourceRegion;
 						renderer.Draw(texture2D, sourceRegion, aetPosition, aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
 					}

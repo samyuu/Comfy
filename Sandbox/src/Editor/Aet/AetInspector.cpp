@@ -67,9 +67,9 @@ namespace Editor
 			if (ImGui::Combo("Obj Type", &objTypeIndex, AetObj::TypeNames.data(), AetObj::TypeNames.size()))
 				aetObj->Type = (AetObjType)objTypeIndex;
 
-			ImGui::InputFloat("Loop Start", &aetObj->LoopStart);
-			ImGui::InputFloat("Loop End", &aetObj->LoopEnd);
-			ImGui::InputFloat("Start Frame", &aetObj->StartFrame);
+			ImGui::InputFloat("Loop Start", &aetObj->LoopStart, 1.0f, 10.0f);
+			ImGui::InputFloat("Loop End", &aetObj->LoopEnd, 1.0f, 10.0f);
+			ImGui::InputFloat("Start Frame", &aetObj->StartFrame, 1.0f, 10.0f);
 		}
 
 		if ((aetObj->Type == AetObjType_Pic))
@@ -157,7 +157,6 @@ namespace Editor
 				ImGui::InputFloat3("F-V-I", &keyFrame.Frame);
 				ImGui::PopID();
 			}
-
 			ImGui::TreePop();
 		}
 	}
@@ -212,7 +211,7 @@ namespace Editor
 		if (ImGui::ColorEdit4("Background##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
 			aetRegion->Color = ImGui::ColorConvertFloat4ToU32(color);
 
-		if (ImGui::WideTreeNodeEx("Sprites:", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::TreeNodeEx("Sprites:", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			for (auto& sprite : aetRegion->Sprites)
 			{
