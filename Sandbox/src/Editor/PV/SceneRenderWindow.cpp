@@ -282,6 +282,9 @@ namespace Editor
 			GLCall(glViewport(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight()));
 			{
 				comfyShader.Bind();
+				comfyShader.SetUniform(comfyShader.ViewLocation, camera.GetViewMatrix());
+				comfyShader.SetUniform(comfyShader.ProjectionLocation, camera.GetProjectionMatrix());
+
 				cubeVao.Bind();
 
 				// Stage:
@@ -312,11 +315,11 @@ namespace Editor
 
 				// Lines:
 				{
-					lineVao.Bind();
 					lineShader.Bind();
 					lineShader.SetUniform(lineShader.ViewLocation, camera.GetViewMatrix());
 					lineShader.SetUniform(lineShader.ProjectionLocation, camera.GetProjectionMatrix());
 
+					lineVao.Bind();
 					for (size_t i = 0; i < _countof(cubePositions); i++)
 					{
 						lineShader.SetUniform(lineShader.ModelLocation, cubeModelMatrices[i]);
@@ -326,16 +329,14 @@ namespace Editor
 
 				// Cubes:
 				{
-					cubeVao.Bind();
 					comfyShader.Bind();
 					comfyShader.SetUniform(comfyShader.Texture0Location, 0);
 					comfyShader.SetUniform(comfyShader.Texture1Location, 1);
-					comfyShader.SetUniform(comfyShader.ViewLocation, camera.GetViewMatrix());
-					comfyShader.SetUniform(comfyShader.ProjectionLocation, camera.GetProjectionMatrix());
-
+					
 					goodNiceTexture->Texture2D->Bind(1);
 					feelsBadManTexture->Texture2D->Bind(0);
 
+					cubeVao.Bind();
 					for (size_t i = 0; i < _countof(cubePositions); i++)
 					{
 						comfyShader.SetUniform(comfyShader.ModelLocation, cubeModelMatrices[i]);

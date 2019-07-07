@@ -27,6 +27,7 @@ namespace FileSystem
 	class SprSet : public IBinaryReadable, IBufferParsable
 	{
 	public:
+		std::string Name;
 		uint32_t Signature;
 		std::unique_ptr<TxpSet> TxpSet;
 		std::vector<Sprite> Sprites;

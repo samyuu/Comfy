@@ -4,9 +4,48 @@
 #include "Misc/StringHelper.h"
 #include "TimeSpan.h"
 #include <glfw/glfw3.h>
+#include <stb/stb_image_write.h>
 
 namespace Editor
 {
+	static void RenderExportImage(RenderTarget& renderTarget, Renderer2D& renderer, Texture* texture, const char* filePath)
+	{
+		auto texture2D = texture->Texture2D.get();
+
+		auto origSize = renderTarget.GetSize();
+		auto newSize = texture2D->GetSize();
+
+		renderer.SetEnableAlphaTest(false);
+		{
+			renderer.Resize(newSize.x, newSize.y);
+			renderTarget.Bind();
+			renderTarget.Resize(newSize.x, newSize.y);
+
+			GLCall(glViewport(0, 0, newSize.x, newSize.y));
+			GLCall(glClearColor(0, 0, 0, 0));
+			GLCall(glClear(GL_COLOR_BUFFER_BIT));
+
+			renderer.Begin();
+			renderer.Draw(texture2D, vec4(0.0f, 0.0f, newSize.x, newSize.y), vec2(0, 0), vec2(0, 0), 0, vec2(1, 1), vec4(1, 1, 1, 1));
+			renderer.End();
+
+			uint8_t* pixels = new uint8_t[newSize.x * newSize.y * 4];
+			{
+				renderTarget.GetTexture().Bind();
+				GLCall(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
+
+				stbi_flip_vertically_on_write(true);
+				stbi_write_png(filePath, newSize.x, newSize.y, 4, pixels, 4 * newSize.x);
+			}
+			delete[] pixels;
+
+			renderer.Resize(origSize.x, origSize.y);
+			renderTarget.Resize(origSize.x, origSize.y);
+			renderTarget.UnBind();
+		}
+		renderer.SetEnableAlphaTest(true);
+	}
+
 	AetRenderWindow::AetRenderWindow()
 	{
 	}
@@ -41,6 +80,21 @@ namespace Editor
 			ImGui::ColorEdit4("Color", glm::value_ptr(aetColor));
 		}
 
+		//if (ImGui::Button("Export SprSet"))
+		//{
+		//	if (sprSet != nullptr)
+		//	{
+		//		std::string directory = "dev_ram/spr_export/" + sprSet->Name + "/";
+		//		FileSystem::CreateDirectory(directory);
+
+		//		for (auto& texture : sprSet->TxpSet->Textures)
+		//		{
+		//			std::string outputPath = directory + texture->Name + ".png";
+		//			RenderExportImage(renderTarget, renderer, texture.get(), outputPath.c_str());
+		//		}
+		//	}
+		//}
+
 		ImGui::Begin("SprSet Loader", nullptr, ImGuiWindowFlags_None);
 		{
 			ImGui::BeginChild("SprSetLoaderChild##AetRenderWindow");
@@ -55,6 +109,7 @@ namespace Editor
 					sprSet.reset();
 					sprSet = std::make_unique<SprSet>();
 					sprSet->Parse(fileBuffer.data());
+					sprSet->Name = GetFileName(sprPath, false);
 
 					for (int i = 0; i < sprSet->TxpSet->Textures.size(); i++)
 					{
@@ -137,16 +192,13 @@ namespace Editor
 			if (ImGui::IsKeyPressed(GLFW_KEY_A, true)) aetPosition.x -= step;
 			if (ImGui::IsKeyPressed(GLFW_KEY_D, true)) aetPosition.x += step;
 			if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE, true)) aetPosition = vec2();
-			if (ImGui::IsMouseDragging()) 
+			if (ImGui::IsMouseDragging())
 				aetPosition += vec2(ImGui::GetIO().MouseDelta.x, ImGui::GetIO().MouseDelta.y);
 		}
 
 		renderTarget.Bind();
 		{
 			GLCall(glViewport(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight()));
-
-			GLCall(glEnable(GL_BLEND));
-			GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
 			vec4 backgroundColor = GetColorVec4(EditorColor_DarkClear);
 			GLCall(glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z, backgroundColor.w));
@@ -158,11 +210,27 @@ namespace Editor
 				newRendererSize = vec2();
 			}
 
+			renderer.SetUseTextShadow(useTextShadow);
 			renderer.Begin();
 			{
-				vec4 regionColor = vec4(.15f, .15f, .15f, 1.0f);
-				renderer.Draw(aetPosition, vec2(1920, 1080), regionColor);
-				//renderer.Draw(nullptr, aetSourceRegion, aetPosition, aetOrigin, aetRotation, aetScale, regionColor, (AetBlendMode)currentBlendItem);
+				if (false)
+				{
+					vec4 backgroundColors[4] =
+					{
+						vec4(.10f, .10f, .10f, 1.0f),
+						vec4(.10f, .10f, .10f, 1.0f),
+						vec4(.05f, .05f, .05f, 1.0f),
+						vec4(.05f, .05f, .05f, 1.0f),
+					};
+					renderer.Draw(vec2(0, 0), vec2(renderTarget.GetWidth(), renderTarget.GetHeight()), backgroundColors);
+				}
+
+				if (false)
+				{
+					vec4 regionColor = vec4(.15f, .15f, .15f, 1.0f);
+					renderer.Draw(aetPosition, vec2(1920, 1080), regionColor);
+					//renderer.Draw(nullptr, aetSourceRegion, aetPosition, aetOrigin, aetRotation, aetScale, regionColor, (AetBlendMode)currentBlendItem);
+				}
 
 				if (sprSet != nullptr)
 				{
@@ -174,14 +242,14 @@ namespace Editor
 						auto texture2D = sprSet->TxpSet->Textures[sprite->TextureIndex]->Texture2D.get();
 						//renderer.Draw(texture2D, sourceRegion, aetPosition, aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
 
-						{
-							vec4 fullRegion = vec4(0, 0, texture2D->GetWidth(), texture2D->GetHeight());
-							renderer.Draw(texture2D, fullRegion, aetPosition, aetOrigin, aetRotation, aetScale, regionColor, (AetBlendMode)currentBlendItem);
-						}
+						//vec4 fullRegion = vec4(0, 0, texture2D->GetWidth(), texture2D->GetHeight());
+						//renderer.Draw(texture2D, fullRegion, aetPosition, aetOrigin, aetRotation, aetScale, regionColor, (AetBlendMode)currentBlendItem);
 
-						renderer.Draw(texture2D, sourceRegion,
-							aetPosition + vec2(sourceRegion.x, sourceRegion.y) * aetScale,
-							aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
+						//renderer.Draw(texture2D, sourceRegion,
+						//	aetPosition + vec2(sourceRegion.x, sourceRegion.y) * aetScale,
+						//	aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
+
+						renderer.Draw(texture2D, sourceRegion, aetPosition, aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
 					}
 					else if (sprSet->TxpSet->Textures.size() > 0 && (txpIndex >= 0 && txpIndex < sprSet->TxpSet->Textures.size()))
 					{
@@ -193,9 +261,6 @@ namespace Editor
 						renderer.Draw(texture2D, sourceRegion, aetPosition, aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
 					}
 				}
-
-				renderer.GetShader()->Bind();
-				renderer.GetShader()->SetUniform(renderer.GetShader()->UseTextShadowLocation, useTextShadow);
 			}
 			renderer.End();
 		}
