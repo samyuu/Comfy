@@ -49,6 +49,17 @@ namespace Auth2D
 		SetColors(color);
 	}
 
+	void SpriteVertices::SetValues(const vec2& position, const vec4& sourceRegion, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4 colors[4])
+	{
+		SetPositions(position, vec2(sourceRegion.z, sourceRegion.w) * scale, origin * scale, rotation);
+
+		vec2 topLeft = vec2(sourceRegion.x / size.x, sourceRegion.y / size.y);
+		vec2 bottomRight = vec2((sourceRegion.x + sourceRegion.z) / size.x, (sourceRegion.y + sourceRegion.w) / size.y);
+
+		SetTexCoords(topLeft, bottomRight);
+		SetColorArray(colors);
+	}
+
 	void SpriteVertices::SetPositions(const vec2& position, const vec2& size)
 	{
 		TopLeft.Position.x = position.x;
@@ -112,6 +123,14 @@ namespace Auth2D
 		BottomRight.Color = color;
 	}
 
+	void SpriteVertices::SetColorArray(const vec4 colors[4])
+	{
+		TopLeft.Color = colors[0];
+		TopRight.Color = colors[1];
+		BottomLeft.Color = colors[2];
+		BottomRight.Color = colors[3];
+	}
+
 	void BatchItem::SetValues(const Texture2D* texture, const Texture2D* alphaMask, AetBlendMode blendMode)
 	{
 		Texture = texture;
@@ -160,6 +179,15 @@ namespace Auth2D
 		DrawInternal(nullptr, &source, &position, nullptr, DefaultRotation, nullptr, &color);
 	}
 
+	void Renderer2D::Draw(const vec2& position, const vec2& size, const vec4 colors[4])
+	{
+		vec4 source = vec4(0.0f, 0.0f, size.x, size.y);
+
+		BatchPair pair = CheckFlushAddItem();
+		pair.Item->SetValues(nullptr, nullptr);
+		pair.Vertices->SetValues(position, source, size, DefaultOrigin, DefaultRotation, DefaultScale, colors);
+	}
+
 	void Renderer2D::Draw(const vec2& position, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4& color)
 	{
 		vec4 source = vec4(0.0f, 0.0f, size.x, size.y);
@@ -196,9 +224,19 @@ namespace Auth2D
 		CreateBatches();
 
 		GLCall(glDisable(GL_DEPTH_TEST));
-		GLCall(glEnable(GL_BLEND));
+		
+		if (enableAlphaTest)
+		{
+			GLCall(glEnable(GL_BLEND));
+		}
+		else
+		{
+			GLCall(glDisable(GL_BLEND));
+		}
 
 		shader->Bind();
+		shader->SetUniform(shader->UseTextShadowLocation, GetUseTextShadow());
+
 		vertexArray.Bind();
 		vertexBuffer.Bind();
 		vertexBuffer.Upload(vertices.size() * sizeof(SpriteVertices), vertices.data());

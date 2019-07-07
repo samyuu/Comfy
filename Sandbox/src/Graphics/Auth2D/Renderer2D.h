@@ -33,6 +33,7 @@ namespace Auth2D
 
 	public:
 		void SetValues(const vec2& position, const vec4& sourceRegion, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4& color);
+		void SetValues(const vec2& position, const vec4& sourceRegion, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4 colors[4]);
 		static inline constexpr uint32_t GetVertexCount() { return sizeof(SpriteVertices) / sizeof(SpriteVertex); };
 
 	private:
@@ -40,6 +41,7 @@ namespace Auth2D
 		void SetPositions(const vec2& position, const vec2& size, const vec2& origin, float rotation);
 		void SetTexCoords(const vec2& topLeft, const vec2& bottomRight);
 		void SetColors(const vec4& color);
+		void SetColorArray(const vec4 colors[4]);
 	};
 
 	struct Batch
@@ -79,6 +81,7 @@ namespace Auth2D
 		void Initialize();
 		void Begin(/*TextureClamp*/);
 		void Draw(const vec2& position, const vec2& size, const vec4& color);
+		void Draw(const vec2& position, const vec2& size, const vec4 colors[4]);
 		void Draw(const vec2& position, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4& color);
 
 		void Draw(const Texture2D* texture, const vec2& position, const vec4& color);
@@ -92,10 +95,19 @@ namespace Auth2D
 		void Resize(float width, float height);
 		inline SpriteShader* GetShader() { return shader.get(); };
 		
+		inline bool GetUseAlphaTest() { return enableAlphaTest; };
+		inline void SetEnableAlphaTest(bool value) { enableAlphaTest = value; };
+
+		inline bool GetUseTextShadow() { return useTextShadow; };
+		inline void SetUseTextShadow(bool value) { useTextShadow = value; };
+
 		static void SetBlendFunction(AetBlendMode blendMode);
 		static const BlendFuncStruct& GetBlendFuncParamteres(AetBlendMode blendMode);
 
 	private:
+		bool enableAlphaTest = true;
+		bool useTextShadow = false;
+
 		std::unique_ptr<SpriteShader> shader;
 		VertexArray vertexArray;
 		VertexBuffer vertexBuffer = { BufferUsage::StreamDraw };
