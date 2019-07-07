@@ -13,7 +13,7 @@ namespace FileSystem
 		"Rotation",
 		"Scale X",
 		"Scale Y",
-		"Opcatiy",
+		"Opactiy",
 	};
 
 	std::array<const char*, 4> AetObj::TypeNames = 
