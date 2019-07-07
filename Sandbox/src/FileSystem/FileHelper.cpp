@@ -9,6 +9,16 @@ namespace FileSystem
 	using FileSystemPath = std::filesystem::path;
 	using DirectoryIterator = std::filesystem::directory_iterator;
 
+	bool CreateDirectory(const std::string& filePath)
+	{
+		return ::CreateDirectoryA(filePath.c_str(), NULL);
+	}
+
+	bool CreateDirectory(const std::wstring& filePath)
+	{
+		return ::CreateDirectoryW(filePath.c_str(), NULL);
+	}
+
 	bool IsFile(const std::string& filePath)
 	{
 		return GetFileExtension(filePath) != "";

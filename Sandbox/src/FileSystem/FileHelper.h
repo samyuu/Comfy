@@ -4,6 +4,9 @@
 
 namespace FileSystem
 {
+	bool CreateDirectory(const std::string& filePath);
+	bool CreateDirectory(const std::wstring& filePath);
+
 	bool IsFile(const std::string& filePath);
 	bool IsFile(const std::wstring& filePath);
 
