@@ -1,8 +1,13 @@
 #pragma once
 
-#ifdef _DEBUG  
+#ifdef COMFY_DEBUG  
+#define DEBUG_ONLY(expression) expression
+#define RELEASE_ONLY(expression)
 #define DEBUG_RELEASE(debug, release) debug
-#else
+#endif
+#ifdef COMFY_RELEASE
+#define DEBUG_ONLY(expression)
+#define RELEASE_ONLY(expression) expression
 #define DEBUG_RELEASE(debug, release) release
 #endif
 

@@ -17,7 +17,7 @@ static void __OnGlError()
 		} \
 	}
 
-#ifdef _DEBUG  
+#ifdef COMFY_DEBUG  
 #define GLCall(expression) \
 	{ \
 		expression; \

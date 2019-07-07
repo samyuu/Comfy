@@ -75,9 +75,8 @@ namespace Editor
 			ImGui::InputFloat2("Origin", glm::value_ptr(aetOrigin));
 			ImGui::InputFloat("Rotation", &aetRotation, 1.0f, 10.0f);
 			ImGui::InputFloat2("Scale", &aetScale.x);
-			ImGui::InputFloat2("Source Position", &aetSourceRegion.x, 1.0f);
-			ImGui::InputFloat2("Source Size", &aetSourceRegion.z, 1.0f);
-			//ImGui::ColorButton("Color", (const ImVec4&)aetColor);
+			ImGui::InputFloat2("Source Position", &aetSourceRegion.x);
+			ImGui::InputFloat2("Source Size", &aetSourceRegion.z);
 			ImGui::ColorEdit4("Color", glm::value_ptr(aetColor));
 		}
 

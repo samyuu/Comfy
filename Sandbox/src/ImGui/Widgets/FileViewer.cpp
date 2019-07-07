@@ -36,7 +36,7 @@ namespace ImGui
 
 	bool FileViewer::DrawGui()
 	{
-		bool parentFocused = IsRootWindowOrAnyChildFocused() && IsRootWindowOrAnyChildHovered();
+		bool parentFocused = IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && IsWindowHovered(ImGuiFocusedFlags_RootAndChildWindows);
 		ImVec2 windowSize(ImGui::GetWindowWidth(), 0);
 
 		PushID(this);

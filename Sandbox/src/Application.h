@@ -132,7 +132,7 @@ private:
 	// ImGui Variables
 	// ---------------
 	LicenseWindow licenseWindow;
-	bool showDemoWindow = true;
+	bool showDemoWindow = false;
 	bool showSwapInterval = true;
 	// ---------------
 

@@ -647,7 +647,7 @@ namespace Editor
 			constexpr int selectionBoxButton = 1;
 			static ImRect dragRect;
 
-			if (ImGui::IsMouseClicked(selectionBoxButton) && ImGui::IsMouseHoveringWindow() && !ImGui::IsAnyItemHovered())
+			if (ImGui::IsMouseClicked(selectionBoxButton) && ImGui::IsWindowFocused() && !ImGui::IsAnyItemHovered())
 				dragRect.Min = ImGui::GetMousePos();
 			if (ImGui::IsMouseReleased(selectionBoxButton))
 				dragRect.Min = dragRect.Max = ImVec2();
@@ -688,7 +688,7 @@ namespace Editor
 
 	void TargetTimeline::UpdateInputCursorClick()
 	{
-		if (!ImGui::IsMouseHoveringWindow() || !timelineContentRegion.Contains(ImGui::GetMousePos()))
+		if (!ImGui::IsWindowFocused() || !timelineContentRegion.Contains(ImGui::GetMousePos()))
 			return;
 
 		// Cursor Mouse Click:

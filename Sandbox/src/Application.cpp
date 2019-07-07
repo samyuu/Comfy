@@ -409,7 +409,7 @@ void Application::DrawGui()
 				if (ImGui::MenuItem("Test Print", nullptr))
 					Logger::LogLine("DrawGui(): Test");
 
-				ImGui::MenuItem("Show Demo Window", nullptr, &showDemoWindow);
+				DEBUG_ONLY(ImGui::MenuItem("Show Demo Window", nullptr, &showDemoWindow));
 				ImGui::Separator();
 
 				if (ImGui::MenuItem("Exit...", nullptr))

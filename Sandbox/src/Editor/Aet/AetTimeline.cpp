@@ -190,7 +190,7 @@ namespace Editor
 
 	void AetTimeline::UpdateInputCursorClick()
 	{
-		if (!ImGui::IsMouseHoveringWindow() || !timelineContentRegion.Contains(ImGui::GetMousePos()))
+		if (!ImGui::IsWindowFocused() || !timelineContentRegion.Contains(ImGui::GetMousePos()))
 			return;
 
 		// Cursor Mouse Down:
