@@ -61,8 +61,9 @@ void Texture2D::UploadEmpty(int width, int height)
 {
 	imageSize.x = width;
 	imageSize.y = height;
+	textureFormat = TextureFormat::RGBA8;
 
-	GLCall(glTexImage2D(GetTextureTarget(), 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL));
+	GLCall(glTexImage2D(GetTextureTarget(), 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
 	
 	GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR));

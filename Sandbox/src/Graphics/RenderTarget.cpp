@@ -136,8 +136,7 @@ void RenderTarget::UnBind()
 
 void RenderTarget::Resize(int width, int height)
 {
-	this->width = width;
-	this->height = height;
+	dimensions = vec2(width, height);
 
 	colorTexture.Bind();
 	colorTexture.UploadEmpty(width, height);

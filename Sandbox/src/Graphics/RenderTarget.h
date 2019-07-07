@@ -83,11 +83,12 @@ public:
 
 	inline Texture2D& GetTexture() { return colorTexture; };
 	inline void* GetVoidTexture() { return GetTexture().GetVoidTexture(); };
-	inline int GetWidth() { return width; };
-	inline int GetHeight() { return height; };
+	inline float GetWidth() const { return dimensions.x; };
+	inline float GetHeight() const { return dimensions.y; };
+	inline const vec2& GetSize() const { return dimensions; };
 
 protected:
-	int width, height;
+	vec2 dimensions;
 
 	Framebuffer framebuffer;
 	Texture2D colorTexture;
