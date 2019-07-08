@@ -31,6 +31,9 @@ void AudioEngine::Initialize()
 
 void AudioEngine::Dispose()
 {
+	if (GetIsStreamOpen())
+		StopStream();
+
 	if (GetRtAudio() != nullptr)
 		delete GetRtAudio();
 
@@ -122,7 +125,10 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 	callbackRunning = true;
 
 	for (auto& callbackReceiver : callbackReceivers)
-		callbackReceiver->OnAudioCallback();
+	{
+		if (callbackReceiver != nullptr)
+			callbackReceiver->OnAudioCallback();
+	}
 
 	// need to clear out the buffer from the previous call
 	int64_t samplesInBuffer = bufferFrameCount * GetChannelCount();
@@ -140,10 +146,10 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 		if (audioInstance->GetAppendRemove() || (audioInstance->IsSampleProviderValid() && audioInstance->GetHasReachedEnd() && audioInstance->GetOnFinishedAction() == AUDIO_FINISHED_REMOVE))
 		{
 			audioInstance->SetHasBeenRemoved(true);
-			
+
 			audioInstances.erase(audioInstances.begin() + i);
 			audioInstancesSize--;
-			
+
 			continue;
 		}
 
@@ -220,7 +226,7 @@ void AudioEngine::AddAudioInstance(std::shared_ptr<AudioInstance> audioInstance)
 			break;
 		}
 	}
-	
+
 	if (unique)
 	{
 		audioInstances.push_back(audioInstance);
@@ -241,6 +247,15 @@ void AudioEngine::ShowControlPanel()
 void AudioEngine::AddCallbackReceiver(ICallbackReceiver* callbackReceiver)
 {
 	callbackReceivers.push_back(callbackReceiver);
+}
+
+void AudioEngine::RemoveCallbackReceiver(ICallbackReceiver* callbackReceiver)
+{
+	for (size_t i = 0; i < callbackReceivers.size(); i++)
+	{
+		if (callbackReceivers[i] == callbackReceiver)
+			callbackReceivers[i] == nullptr;
+	}
 }
 
 uint32_t AudioEngine::GetDeviceId()

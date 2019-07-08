@@ -60,6 +60,7 @@ public:
 	void PlaySound(ISampleProvider* sampleProvider, float volume = MAX_VOLUME, const char* name = nullptr);
 	void ShowControlPanel();
 	void AddCallbackReceiver(ICallbackReceiver* callbackReceiver);
+	void RemoveCallbackReceiver(ICallbackReceiver* callbackReceiver);
 
 	inline RtAudio* GetRtAudio() { return rtAudio; };
 	inline uint32_t GetChannelCount() { return 2; };

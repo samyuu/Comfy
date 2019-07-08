@@ -14,6 +14,7 @@ namespace Editor
 
 	TargetTimeline::~TargetTimeline()
 	{
+		AudioEngine::GetInstance()->RemoveCallbackReceiver(this);
 	}
 
 	const char* TargetTimeline::GetGuiName() const
