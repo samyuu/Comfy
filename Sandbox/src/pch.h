@@ -1,15 +1,14 @@
 #pragma once
 
-#ifdef COMFY_DEBUG  
+#if defined(COMFY_DEBUG)
 #define DEBUG_ONLY(expression) expression
 #define RELEASE_ONLY(expression)
 #define DEBUG_RELEASE(debug, release) debug
-#endif
-#ifdef COMFY_RELEASE
+#elif defined(COMFY_RELEASE)
 #define DEBUG_ONLY(expression)
 #define RELEASE_ONLY(expression) expression
 #define DEBUG_RELEASE(debug, release) release
-#endif
+#endif /* COMFY_DEBUG / COMFY_RELEASE */
 
 #include <stdio.h>
 #include <stddef.h>

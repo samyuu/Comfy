@@ -2,6 +2,8 @@
 #include "Logger.h"
 #include <glad/glad.h>
 
+#if defined(COMFY_DEBUG)
+
 static void __OnGlError()
 {
 	int __breakpoint__ = true;
@@ -17,15 +19,17 @@ static void __OnGlError()
 		} \
 	}
 
-#ifdef COMFY_DEBUG  
 #define GLCall(expression) \
 	{ \
 		expression; \
 		__CHECK_GL_ERROR(#expression); \
 	}
-#else
+
+#elif defined(COMFY_RELEASE)
+
 #define GLCall(expression) \
 	{ \
 		expression; \
 	}
-#endif
+
+#endif /* COMFY_DEBUG / COMFY_RELEASE */
