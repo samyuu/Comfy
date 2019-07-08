@@ -68,7 +68,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;dxguid.lib;dinput8.lib;shlwapi.lib;rtaudio-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)lib\glfw\lib-vc2017;$(ProjectDir)lib\libsndfile\lib;$(ProjectDir)lib\rtaudio\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)lib\glfw\lib;$(ProjectDir)lib\libsndfile\lib;$(ProjectDir)lib\rtaudio\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -94,7 +94,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;dxguid.lib;dinput8.lib;shlwapi.lib;rtaudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)lib\glfw\lib-vc2017;$(ProjectDir)lib\libsndfile\lib;$(ProjectDir)lib\rtaudio\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)lib\glfw\lib;$(ProjectDir)lib\libsndfile\lib;$(ProjectDir)lib\rtaudio\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>

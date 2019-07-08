@@ -48,7 +48,11 @@
 #define GLFW_HAS_WINDOW_HOVERED     (GLFW_VERSION_MAJOR * 1000 + GLFW_VERSION_MINOR * 100 >= 3300) // 3.3+ GLFW_HOVERED
 #define GLFW_HAS_WINDOW_ALPHA       (GLFW_VERSION_MAJOR * 1000 + GLFW_VERSION_MINOR * 100 >= 3300) // 3.3+ glfwSetWindowOpacity
 #define GLFW_HAS_PER_MONITOR_DPI    (GLFW_VERSION_MAJOR * 1000 + GLFW_VERSION_MINOR * 100 >= 3300) // 3.3+ glfwGetMonitorContentScale
+#if 0
 #define GLFW_HAS_VULKAN             (GLFW_VERSION_MAJOR * 1000 + GLFW_VERSION_MINOR * 100 >= 3200) // 3.2+ glfwCreateWindowSurface
+#else
+#define GLFW_HAS_VULKAN				(0)
+#endif
 #define GLFW_HAS_FOCUS_WINDOW       (GLFW_VERSION_MAJOR * 1000 + GLFW_VERSION_MINOR * 100 >= 3200) // 3.2+ glfwFocusWindow
 
 // Data
@@ -56,7 +60,9 @@ enum GlfwClientApi
 {
     GlfwClientApi_Unknown,
     GlfwClientApi_OpenGL,
-    GlfwClientApi_Vulkan
+#if GLFW_HAS_VULKAN
+	GlfwClientApi_Vulkan
+#endif
 };
 static GLFWwindow*          g_Window = NULL;    // Main window
 static GlfwClientApi        g_ClientApi = GlfwClientApi_Unknown;
@@ -212,10 +218,12 @@ bool ImGui_ImplGlfw_InitForOpenGL(GLFWwindow* window, bool install_callbacks)
     return ImGui_ImplGlfw_Init(window, install_callbacks, GlfwClientApi_OpenGL);
 }
 
+#if GLFW_HAS_VULKAN
 bool ImGui_ImplGlfw_InitForVulkan(GLFWwindow* window, bool install_callbacks)
 {
     return ImGui_ImplGlfw_Init(window, install_callbacks, GlfwClientApi_Vulkan);
 }
+#endif
 
 void ImGui_ImplGlfw_Shutdown()
 {
