@@ -21,7 +21,7 @@ Keyboard::~Keyboard()
 
 bool Keyboard::PollInput()
 {
-	for (size_t i = 0; i < KEY_COUNT; i++)
+	for (size_t i = FIRST_KEY; i < KEY_COUNT; i++)
 	{
 		lastState[i] = currentState[i];
 		currentState[i] = glfwGetKey(window, i);

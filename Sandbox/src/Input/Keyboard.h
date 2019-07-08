@@ -4,7 +4,8 @@
 
 struct GLFWwindow;
 
-constexpr size_t KEY_COUNT = GLFW_KEY_LAST;
+constexpr size_t FIRST_KEY = GLFW_KEY_SPACE;
+constexpr size_t KEY_COUNT = GLFW_KEY_LAST + 1;
 typedef int KeyCode;
 
 class Keyboard : public IInputDevice

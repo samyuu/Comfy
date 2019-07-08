@@ -6,8 +6,14 @@
 #include "DataTest/IconTestWindow.h"
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
+#include "FileSystem/FileHelper.h"
 
 Application* Application::globalCallbackApplication;
+
+static void GlfwErrorCallback(int error, const char* description)
+{
+	Logger::LogErrorLine(__FUNCTION__"(): [GLFW Error: 0x%X] %s", error, description);
+}
 
 Application::Application()
 {
@@ -18,7 +24,7 @@ Application::~Application()
 	BaseDispose();
 }
 
-bool Application::IsFullscreen()
+bool Application::IsFullscreen() const
 {
 	return glfwGetWindowMonitor(window) != nullptr;
 }
@@ -55,7 +61,7 @@ void Application::ToggleFullscreen()
 	SetFullscreen(!IsFullscreen());
 }
 
-GLFWmonitor* Application::GetActiveMonitor()
+GLFWmonitor* Application::GetActiveMonitor() const
 {
 	GLFWmonitor* monitor = glfwGetWindowMonitor(window);
 
@@ -94,7 +100,7 @@ void Application::CheckConnectedDevices()
 	{
 		if (Keyboard::TryInitializeInstance(GetWindow()))
 		{
-			//Logger::Log(__FUNCTION__"(): Keyboard connected and initialized\n");
+			//Logger::LogLine(__FUNCTION__"(): Keyboard connected and initialized");
 		}
 	}
 
@@ -102,7 +108,7 @@ void Application::CheckConnectedDevices()
 	{
 		if (DualShock4::TryInitializeInstance())
 		{
-			//Logger::Log(__FUNCTION__"(): DualShock4 connected and initialized\n");
+			//Logger::LogLine(__FUNCTION__"(): DualShock4 connected and initialized");
 		}
 	}
 }
@@ -117,16 +123,17 @@ void Application::SetFileDropDispatched(bool value)
 	fileDropDispatched = value;
 }
 
-const std::vector<std::string>* Application::GetDroppedFiles()
+const std::vector<std::string>* Application::GetDroppedFiles() const
 {
 	return &droppedFiles;
 }
 
 void Application::Run()
 {
-	BaseInitialize();
+	if (!BaseInitialize())
+		return;
 
-	//glfwSwapInterval(0);
+	// glfwSwapInterval(0);
 	while (!glfwWindowShouldClose(window))
 	{
 		BaseUpdate();
@@ -151,31 +158,33 @@ void Application::Exit()
 	glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
-int Application::BaseInitialize()
+bool Application::BaseInitialize()
 {
 	if (hasBeenInitialized)
-		return -1;
+		return false;
 	hasBeenInitialized = true;
 
+	glfwSetErrorCallback(&GlfwErrorCallback);
+
 	int glfwInitResult = glfwInit();
-	assert(glfwInitResult == GLFW_TRUE);
+	if (glfwInitResult == GLFW_FALSE)
+		return false;
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	window = glfwCreateWindow(windowWidth, windowHeight, DEFAULT_WINDOW_TITLE, nullptr, nullptr);
+	if (window == nullptr)
+		return false;
+
 	glfwGetWindowPos(window, &windowXPosition, &windowYPosition);
-
-	assert(window != nullptr);
-
 	glfwMakeContextCurrent(window);
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
 	BaseRegister();
 
-	HRESULT directInputResult = InitializeDirectInput(GetModuleHandle(nullptr));
-	assert(!FAILED(directInputResult));
+	InitializeDirectInput(GetModuleHandle(nullptr));
 	CheckConnectedDevices();
 
 	AudioEngine::CreateInstance();
@@ -184,7 +193,7 @@ int Application::BaseInitialize()
 	InitializeGui();
 	InitializeApp();
 
-	return 0;
+	return true;
 }
 
 void Application::BaseRegister()
@@ -276,7 +285,7 @@ void Application::BaseDispose()
 	glfwTerminate();
 }
 
-void Application::InitializeGui()
+bool Application::InitializeGui()
 {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -319,10 +328,18 @@ void Application::InitializeGui()
 
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 420");
+
+	return true;
 }
 
-void Application::InitializeApp()
+bool Application::InitializeApp()
 {
+	if (!FileSystem::DirectoryExists("rom"))
+	{
+		Logger::LogErrorLine(__FUNCTION__"(): Unable to locate rom directory.");
+		return false;
+	}
+
 	// Base PV Editor
 	// --------------
 	{
@@ -336,6 +353,8 @@ void Application::InitializeApp()
 		dataTestComponents.push_back(std::make_shared<AudioTestWindow>(this));
 		dataTestComponents.push_back(std::make_shared<IconTestWindow>(this));
 	}
+
+	return true;
 }
 
 void Application::UpdatePollInput()

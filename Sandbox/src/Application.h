@@ -33,27 +33,27 @@ public:
 
 	// Window Utilities
 	// ----------------
-	bool IsFullscreen();
+	bool IsFullscreen() const;
 	void SetFullscreen(bool value);
 	void ToggleFullscreen();
 
-	inline bool HasFocusBeenGained() { return focusGainedFrame; };
-	inline bool HasFocusBeenLost() { return focusLostFrame; };
+	inline bool HasFocusBeenGained() const { return focusGainedFrame; };
+	inline bool HasFocusBeenLost() const { return focusLostFrame; };
 	// ----------------
 
-	GLFWmonitor* GetActiveMonitor();
+	GLFWmonitor* GetActiveMonitor() const;
 	void CheckConnectedDevices();
 
 	bool GetDispatchFileDrop();
 	void SetFileDropDispatched(bool value = true);
-	const std::vector<std::string>* GetDroppedFiles();
+	const std::vector<std::string>* GetDroppedFiles() const;
 
 private:
 	// Base Methods
 	// --------------
 
 	// Initialize the application.
-	int BaseInitialize();
+	bool BaseInitialize();
 
 	// Register window callbacks.
 	void BaseRegister();
@@ -69,8 +69,8 @@ private:
 
 	// Initialization
 	// --------------
-	void InitializeGui();
-	void InitializeApp();
+	bool InitializeGui();
+	bool InitializeApp();
 
 	// Update Methods
 	// --------------
