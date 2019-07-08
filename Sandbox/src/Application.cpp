@@ -100,7 +100,7 @@ void Application::CheckConnectedDevices()
 	{
 		if (Keyboard::TryInitializeInstance(GetWindow()))
 		{
-			//Logger::LogLine(__FUNCTION__"(): Keyboard connected and initialized");
+			// Logger::LogLine(__FUNCTION__"(): Keyboard connected and initialized");
 		}
 	}
 
@@ -108,7 +108,7 @@ void Application::CheckConnectedDevices()
 	{
 		if (DualShock4::TryInitializeInstance())
 		{
-			//Logger::LogLine(__FUNCTION__"(): DualShock4 connected and initialized");
+			// Logger::LogLine(__FUNCTION__"(): DualShock4 connected and initialized");
 		}
 	}
 }
@@ -228,6 +228,12 @@ void Application::BaseRegister()
 	glfwSetWindowFocusCallback(window, [](GLFWwindow*, int focused)
 	{
 		globalCallbackApplication->WindowFocusCallback(focused);
+	});
+
+	glfwSetJoystickCallback([](int id, int event) 
+	{
+		if (event == GLFW_CONNECTED || event == GLFW_DISCONNECTED)
+			globalCallbackApplication->CheckConnectedDevices();
 	});
 }
 
