@@ -110,7 +110,7 @@ int ShaderProgram::CompileShader(ShaderType shaderType, ShaderID_t* shaderID, co
 		char infoLog[512] = {};
 		GLCall(glGetShaderInfoLog(*shaderID, sizeof(infoLog), NULL, infoLog));
 
-		Logger::LogErrorLine("ShaderProgram::CompileShader(): Failed to compile shader %s", infoLog);
+		Logger::LogErrorLine(__FUNCTION__"(): Failed to compile shader %s", infoLog);
 		return -1;
 	}
 
@@ -131,7 +131,7 @@ int ShaderProgram::AttachLinkShaders(ShaderID_t vertexShader, ShaderID_t fragmen
 		char infoLog[512] = {};
 		GLCall(glGetProgramInfoLog(programID, sizeof(infoLog), NULL, infoLog));
 
-		Logger::LogErrorLine("ShaderProgram::AttachLinkShaders(): Failed to link shaders %s", infoLog);
+		Logger::LogErrorLine(__FUNCTION__"(): Failed to link shaders %s", infoLog);
 		return -1;
 	}
 
