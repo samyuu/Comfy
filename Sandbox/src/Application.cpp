@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "Application.h"
 #include "Editor/Theme.h"
 #include "DataTest/InputTestWindow.h"
@@ -7,8 +6,17 @@
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
 #include "FileSystem/FileHelper.h"
+#include "ImGui/imgui_extensions.h"
+#include "ImGui/imgui_impl_glfw.h"
+#include "ImGui/imgui_impl_opengl3.h"
+
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include "../res/resource.h"
+#include <glfw/glfw3native.h>
 
 Application* Application::globalCallbackApplication;
+
+static HMODULE GlobalModuleHandle = NULL;
 
 static void GlfwErrorCallback(int error, const char* description)
 {
@@ -162,6 +170,7 @@ bool Application::BaseInitialize()
 {
 	if (hasBeenInitialized)
 		return false;
+
 	hasBeenInitialized = true;
 
 	glfwSetErrorCallback(&GlfwErrorCallback);
@@ -170,12 +179,9 @@ bool Application::BaseInitialize()
 	if (glfwInitResult == GLFW_FALSE)
 		return false;
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	GlobalModuleHandle = GetModuleHandle(nullptr);
 
-	window = glfwCreateWindow(windowWidth, windowHeight, DEFAULT_WINDOW_TITLE, nullptr, nullptr);
-	if (window == nullptr)
+	if (!InitializeWindow())
 		return false;
 
 	glfwGetWindowPos(window, &windowXPosition, &windowYPosition);
@@ -184,7 +190,7 @@ bool Application::BaseInitialize()
 
 	BaseRegister();
 
-	InitializeDirectInput(GetModuleHandle(nullptr));
+	InitializeDirectInput(GlobalModuleHandle);
 	CheckConnectedDevices();
 
 	AudioEngine::CreateInstance();
@@ -272,9 +278,10 @@ void Application::BaseDispose()
 {
 	if (hasBeenDisposed)
 		return;
+
 	hasBeenDisposed = true;
 
-	// force delete before the OpenGL context is destroyed
+	// Force delete before the OpenGL context is destroyed
 	pvEditor.reset();
 
 	AudioEngine::DisposeInstance();
@@ -289,6 +296,26 @@ void Application::BaseDispose()
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
+}
+
+bool Application::InitializeWindow()
+{
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	window = glfwCreateWindow(windowWidth, windowHeight, DEFAULT_WINDOW_TITLE, nullptr, nullptr);
+
+	if (window == nullptr)
+		return false;
+
+	HWND windowHandle = glfwGetWin32Window(window);
+	HICON iconhandle = LoadIcon(GlobalModuleHandle, MAKEINTRESOURCE(COMFY_ICON));
+
+	SendMessage(windowHandle, WM_SETICON, ICON_SMALL, (LPARAM)iconhandle);
+	SendMessage(windowHandle, WM_SETICON, ICON_BIG, (LPARAM)iconhandle);
+
+	return true;
 }
 
 bool Application::InitializeGui()
@@ -342,7 +369,7 @@ bool Application::InitializeApp()
 {
 	if (!FileSystem::DirectoryExists("rom"))
 	{
-		Logger::LogErrorLine(__FUNCTION__"(): Unable to locate rom directory.");
+		Logger::LogErrorLine(__FUNCTION__"(): Unable to locate rom directory");
 		return false;
 	}
 

@@ -1,6 +1,8 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
 // Used by Sandbox.rc
+//
+#define COMFY_ICON                      101
 
 // Next default values for new objects
 // 

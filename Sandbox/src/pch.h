@@ -1,15 +1,5 @@
 #pragma once
 
-#if defined(COMFY_DEBUG)
-#define DEBUG_ONLY(expression) expression
-#define RELEASE_ONLY(expression)
-#define DEBUG_RELEASE(debug, release) debug
-#elif defined(COMFY_RELEASE)
-#define DEBUG_ONLY(expression)
-#define RELEASE_ONLY(expression) expression
-#define DEBUG_RELEASE(debug, release) release
-#endif /* COMFY_DEBUG / COMFY_RELEASE */
-
 #include <stdio.h>
 #include <stddef.h>
 #include <vector>
@@ -24,12 +14,5 @@
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
 
-#define IMGUI_DEFINE_MATH_OPERATORS
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_internal.h"
-#include "ImGui/imgui_impl_glfw.h"
-#include "ImGui/imgui_impl_opengl3.h"
-#include "ImGui/imgui_extensions.h"
-#undef IMGUI_DEFINE_MATH_OPERATORS
-
-#include "Types.h"

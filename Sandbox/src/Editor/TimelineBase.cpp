@@ -1,5 +1,6 @@
 #include "TimelineBase.h"
 #include "Theme.h"
+#include <glfw/glfw3.h>
 
 namespace Editor
 {

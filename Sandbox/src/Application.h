@@ -69,6 +69,7 @@ private:
 
 	// Initialization
 	// --------------
+	bool InitializeWindow();
 	bool InitializeGui();
 	bool InitializeApp();
 
