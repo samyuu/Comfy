@@ -22,22 +22,25 @@ namespace Editor
 		{
 			ImGui::Separator();
 
-			if (selected.ItemPtr == nullptr)
+			if (selected.VoidPointer == nullptr)
 			{
-				ImGui::Text("<none>");
+				ImGui::BulletText("<none>");
 				return false;
 			}
 
-			switch (selected.Type)
+			switch (selected.Type())
 			{
-			case AetSelectionType::AetObj:
-				DrawInspectorAetObj(aetSet, selected.AetObj);
+			case AetSelectionType::AetSet:
+				DrawInspectorAetSet(aetSet);
+				break;
+			case AetSelectionType::Aet:
+				DrawInspectorAet(aetSet, selected.Aet);
 				break;
 			case AetSelectionType::AetLayer:
 				DrawInspectorAetLayer(aetSet, selected.AetLayer);
 				break;
-			case AetSelectionType::AetLyo:
-				DrawInspectorAetLyo(aetSet, selected.AetLyo);
+			case AetSelectionType::AetObj:
+				DrawInspectorAetObj(aetSet, selected.AetObj);
 				break;
 			case AetSelectionType::AetRegion:
 				DrawInspectorAetRegion(aetSet, selected.AetRegion);
@@ -48,6 +51,72 @@ namespace Editor
 		}
 
 		return true;
+	}
+
+	void AetInspector::DrawInspectorAetSet(AetSet* aetSet)
+	{
+		ImGui::Text("AetSet:");
+		{
+			if (ImGui::WideTreeNodeEx(ICON_NAMES "  Aets:", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				for (auto& aet : *aetSet)
+					ImGui::BulletText(aet.Name.c_str());
+
+				ImGui::TreePop();
+			}
+		}
+	}
+
+	void AetInspector::DrawInspectorAet(AetSet* aetSet, Aet* aet)
+	{
+		ImGui::Text("Aet:");
+		{
+			strcpy_s(aetNameBuffer, aet->Name.c_str());
+
+			if (ImGui::InputText("Name##Aet", aetNameBuffer, sizeof(aetNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+				aet->Name = std::string(aetNameBuffer);
+
+			ImGui::InputFloat("Frame Rate", &aet->FrameRate);
+			ImGui::InputFloat("Duration", &aet->FrameDuration);
+			ImGui::InputInt2("Resolution", &aet->Width);
+
+			ImVec4 color = ImGui::ColorConvertU32ToFloat4(aet->BackgroundColor);
+			if (ImGui::ColorEdit3("Background##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
+				aet->BackgroundColor = ImGui::ColorConvertFloat4ToU32(color);
+		}
+	}
+
+	void AetInspector::DrawInspectorAetLayer(AetSet* aetSet, AetLayer* aetLayer)
+	{
+		ImGui::Text("AetLayer:");
+
+		if (ImGui::WideTreeNodeEx(ICON_NAMES "  Names:", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			for (auto& name : aetLayer->Names)
+				ImGui::BulletText(name.c_str());
+
+			ImGui::TreePop();
+		}
+
+		if (ImGui::WideTreeNodeEx(ICON_AETLAYER "  Objects:", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			for (auto& aetObj : *aetLayer)
+				ImGui::BulletText("%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.Name.c_str());
+
+			ImGui::TreePop();
+		}
+	}
+
+	void AetInspector::DrawInspectorLayerData(AetLayer* aetLayer)
+	{
+		if (ImGui::TreeNodeEx(ICON_AETLAYERS "  Layer Data", ImGuiTreeNodeFlags_Framed))
+		{
+			if (aetLayer != nullptr)
+			{
+				ImGui::BulletText(ICON_AETLAYER "  Layer %d (%s)", aetLayer->GetThisIndex(), aetLayer->CommaSeparatedNames.c_str());
+			}
+			ImGui::TreePop();
+		}
 	}
 
 	void AetInspector::DrawInspectorAetObj(AetSet* aetSet, AetObj* aetObj)
@@ -63,23 +132,25 @@ namespace Editor
 				aetSet->UpdateLayerNames();
 			}
 
-			int objTypeIndex = aetObj->Type;
+			int objTypeIndex = static_cast<int>(aetObj->Type);
 			if (ImGui::Combo("Obj Type", &objTypeIndex, AetObj::TypeNames.data(), AetObj::TypeNames.size()))
-				aetObj->Type = (AetObjType)objTypeIndex;
+				aetObj->Type = static_cast<AetObjType>(objTypeIndex);
 
 			ImGui::InputFloat("Loop Start", &aetObj->LoopStart, 1.0f, 10.0f);
 			ImGui::InputFloat("Loop End", &aetObj->LoopEnd, 1.0f, 10.0f);
 			ImGui::InputFloat("Start Frame", &aetObj->StartFrame, 1.0f, 10.0f);
 		}
 
-		if ((aetObj->Type == AetObjType_Pic))
-			DrawInspectorRegionData(aetObj->ReferencedRegion);
+		if ((aetObj->Type == AetObjType::Pic))
+			DrawInspectorRegionData(aetObj->GetRegion());
 
-		if ((aetObj->Type == AetObjType_Eff))
-			DrawInspectorLayerData(aetObj->ReferencedLayer);
+		if ((aetObj->Type == AetObjType::Eff))
+			DrawInspectorLayerData(aetObj->GetLayer());
 
-		if ((aetObj->Type == AetObjType_Pic || aetObj->Type == AetObjType_Eff))
+		if ((aetObj->Type == AetObjType::Pic || aetObj->Type == AetObjType::Eff))
 			DrawInspectorAnimationData(&aetObj->AnimationData);
+
+		DrawInspectorAetObjParent(aetObj);
 	}
 
 	void AetInspector::DrawInspectorRegionData(AetRegion* aetRegion)
@@ -102,18 +173,6 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorLayerData(AetLayer* aetLayer)
-	{
-		if (ImGui::TreeNodeEx(ICON_AETLAYERS "  Layer Data", ImGuiTreeNodeFlags_Framed))
-		{
-			if (aetLayer != nullptr)
-			{
-				ImGui::BulletText(ICON_AETLAYER "  Layer %d (%s)", aetLayer->Index, aetLayer->CommaSeparatedNames.c_str());
-			}
-			ImGui::TreePop();
-		}
-	}
-
 	void AetInspector::DrawInspectorAnimationData(AnimationData* animationData)
 	{
 		if (ImGui::TreeNodeEx(ICON_ANIMATIONDATA "  Animation Data", ImGuiTreeNodeFlags_Framed))
@@ -121,16 +180,26 @@ namespace Editor
 			if (ImGui::WideTreeNode("Properties"))
 			{
 				if (animationData->Properties != nullptr)
+				{
 					DrawInspectorKeyFrameProperties(animationData->Properties.get());
-				else ImGui::BulletText("<none>");
+				}
+				else
+				{
+					ImGui::BulletText("<none>");
+				}
 				ImGui::TreePop();
 			}
 
 			if (ImGui::WideTreeNode("Perspective Properties"))
 			{
 				if (animationData->PerspectiveProperties != nullptr)
+				{
 					DrawInspectorKeyFrameProperties(animationData->PerspectiveProperties.get());
-				else ImGui::BulletText("<none>");
+				}
+				else
+				{
+					ImGui::BulletText("<none>");
+				}
 				ImGui::TreePop();
 			}
 
@@ -142,9 +211,8 @@ namespace Editor
 
 	void AetInspector::DrawInspectorKeyFrameProperties(KeyFrameProperties* properties)
 	{
-		size_t keyFrameIndex = 0;
-		for (auto keyFrames = &properties->OriginX; keyFrames <= &properties->Opacity; keyFrames++)
-			DrawInspectorKeyFrames(KeyFrameProperties::PropertyNames[keyFrameIndex++], keyFrames);
+		for (size_t i = 0; i < properties->size(); i++)
+			DrawInspectorKeyFrames(KeyFrameProperties::PropertyNames[i], &properties->at(i));
 	}
 
 	void AetInspector::DrawInspectorKeyFrames(const char* name, std::vector<KeyFrame>* keyFrames)
@@ -161,43 +229,22 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAetLayer(AetSet* aetSet, AetLayer* aetLayer)
+	void AetInspector::DrawInspectorAetObjParent(AetObj* aetObj)
 	{
-		ImGui::Text("AetLayer:");
-
-		if (ImGui::WideTreeNodeEx(ICON_NAMES "  Names:", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::TreeNodeEx(ICON_PARENT "  Parent", ImGuiTreeNodeFlags_Framed))
 		{
-			for (auto& name : aetLayer->Names)
-				ImGui::BulletText(name.c_str());
+			AetObj* parent = aetObj->GetParent();
+
+			if (parent == nullptr)
+			{
+				ImGui::BulletText("<none>");
+			}
+			else
+			{
+				ImGui::BulletText("%s  %s", GetObjTypeIcon(parent->Type), parent->Name.c_str());
+			}
 
 			ImGui::TreePop();
-		}
-
-		if (ImGui::WideTreeNodeEx(ICON_AETLAYER "  Objects:", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			for (auto& aetObj : aetLayer->Objects)
-				ImGui::BulletText("%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.Name.c_str());
-
-			ImGui::TreePop();
-		}
-	}
-
-	void AetInspector::DrawInspectorAetLyo(AetSet* aetSet, AetLyo* aetLyo)
-	{
-		ImGui::Text("Aet:");
-		{
-			strcpy_s(aetLyoNameBuffer, aetLyo->Name.c_str());
-
-			if (ImGui::InputText("Name##AetLyo", aetLyoNameBuffer, sizeof(aetLyoNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
-				aetLyo->Name = std::string(aetLyoNameBuffer);
-
-			ImGui::InputFloat("Frame Rate", &aetLyo->FrameRate);
-			ImGui::InputFloat("Duration", &aetLyo->FrameDuration);
-			ImGui::InputInt2("Resolution", &aetLyo->Width);
-
-			ImVec4 color = ImGui::ColorConvertU32ToFloat4(aetLyo->BackgroundColor);
-			if (ImGui::ColorEdit3("Background##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
-				aetLyo->BackgroundColor = ImGui::ColorConvertFloat4ToU32(color);
 		}
 	}
 

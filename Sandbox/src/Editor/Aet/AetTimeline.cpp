@@ -14,9 +14,9 @@ namespace Editor
 	{
 	}
 
-	void AetTimeline::SetActive(AetLyo* parent, AetItemTypePtr value)
+	void AetTimeline::SetActive(Aet* parent, AetItemTypePtr value)
 	{
-		aetLyo = parent;
+		aet = parent;
 		active = value;
 	}
 
@@ -125,7 +125,7 @@ namespace Editor
 
 	void AetTimeline::OnUpdate()
 	{
-		if (active.Type == AetSelectionType::AetObj && active.AetObj != nullptr)
+		if (active.Type() == AetSelectionType::AetObj && active.AetObj != nullptr)
 		{
 			loopStartFrame = active.AetObj->LoopStart;
 			loopEndFrame = active.AetObj->LoopEnd;
@@ -150,26 +150,21 @@ namespace Editor
 
 	void AetTimeline::OnDrawTimelineContents()
 	{
-		if (active.Type != AetSelectionType::AetObj || active.AetObj == nullptr)
+		if (active.Type() != AetSelectionType::AetObj || active.AetObj == nullptr)
 			return;
 
 		if (active.AetObj->AnimationData.Properties == nullptr)
 			return;
 
-		KeyFrameProperties* properties = active.AetObj->AnimationData.Properties.get();
-		std::vector<KeyFrame>* keyFrames = &properties->OriginX;
-
 		for (int i = 0; i < KeyFrameProperties::PropertyNames.size(); i++)
 		{
 			float y = (i * rowHeight) + (rowHeight / 2);
 
-			for (auto& keyFrame : *keyFrames)
+			for (auto& keyFrame : active.AetObj->AnimationData.Properties->at(i))
 			{
 				ImVec2 start = timelineContentRegion.GetTL() + ImVec2(GetTimelinePosition(TimelineFrame(keyFrame.Frame)) - GetScrollX(), y);
 				baseDrawList->AddCircleFilled(start, 6.0f, GetColor(EditorColor_KeyFrame));
 			}
-
-			keyFrames++;
 		}
 	}
 

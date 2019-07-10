@@ -281,6 +281,9 @@ void Application::BaseDispose()
 
 	hasBeenDisposed = true;
 
+	if (skipApplicationCleanup)
+		return;
+
 	// Force delete before the OpenGL context is destroyed
 	pvEditor.reset();
 
@@ -327,6 +330,7 @@ bool Application::InitializeGui()
 	io.IniFilename = "ram/imgui.ini";
 	io.LogFilename = "ram/imgui_log.txt";
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
+	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // | ImGuiConfigFlags_NavNoCaptureKeyboard;
 	io.KeyRepeatDelay = 0.500f;
 	io.KeyRepeatRate = 0.075f;
 	io.ConfigWindowsMoveFromTitleBarOnly = true;

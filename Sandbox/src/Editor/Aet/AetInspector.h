@@ -16,18 +16,23 @@ namespace Editor
 		bool DrawGui(AetSet* aetSet, const AetItemTypePtr& selected);
 
 	private:
-		char aetLyoNameBuffer[255];
+		char aetNameBuffer[255];
 		char aetObjNameBuffer[255];
 		char spriteNameBuffer[255];
 
+		void DrawInspectorAetSet(AetSet* aetSet);
+		void DrawInspectorAet(AetSet* aetSet, Aet* aet);
+		
+		void DrawInspectorAetLayer(AetSet* aetSet, AetLayer* aetLayer);
+		void DrawInspectorLayerData(AetLayer* aetLayer);
+		
 		void DrawInspectorAetObj(AetSet* aetSet, AetObj* aetObj);
 		void DrawInspectorRegionData(AetRegion* spriteEntry);
-		void DrawInspectorLayerData(AetLayer* aetLayer);
 		void DrawInspectorAnimationData(AnimationData* animationData);
 		void DrawInspectorKeyFrameProperties(KeyFrameProperties* properties);
 		void DrawInspectorKeyFrames(const char* name, std::vector<KeyFrame>* keyFrames);
-		void DrawInspectorAetLayer(AetSet* aetSet, AetLayer* aetLayer);
-		void DrawInspectorAetLyo(AetSet* aetSet, AetLyo* aetLyo);
+		void DrawInspectorAetObjParent(AetObj* aetObj);
+		
 		void DrawInspectorAetRegion(AetSet* aetSet, AetRegion* aetRegion);
 	};
 }

@@ -75,7 +75,7 @@ namespace Editor
 
 	void FrameTimeline::OnDrawTimlineDivisors()
 	{
-		const int framesPerBar = 30;
+		const int framesPerBar = 10;
 
 		char barStrBuffer[16];
 		

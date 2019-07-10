@@ -14,10 +14,10 @@ namespace Editor
 		AetTimeline();
 		~AetTimeline();
 
-		void SetActive(AetLyo* parent, AetItemTypePtr value);
+		void SetActive(Aet* parent, AetItemTypePtr value);
 
 	private:
-		AetLyo* aetLyo = nullptr;
+		Aet* aet = nullptr;
 		AetItemTypePtr active;
 
 		float rowHeight;

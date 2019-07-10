@@ -55,9 +55,9 @@ namespace Editor
 	{
 	}
 
-	void AetRenderWindow::SetActive(AetLyo * parent, AetItemTypePtr value)
+	void AetRenderWindow::SetActive(Aet* parent, AetItemTypePtr value)
 	{
-		aetLyo = parent;
+		aet = parent;
 		active = value;
 	}
 
@@ -175,25 +175,31 @@ namespace Editor
 			{
 				vec4 regionColor = vec4(.15f, .15f, .15f, 1.0f);
 
-				if (aetLyo == nullptr)
+				if (aet == nullptr)
 				{
 					renderer.Draw(aetPosition, vec2(1920, 1080), regionColor);
 				}
 				else
 				{
-					//vec4 regionColor = ImGui::ColorConvertU32ToFloat4(aetLyo->BackgroundColor); color.a = 1.0f;
-					renderer.Draw(aetPosition, vec2(aetLyo->Width, aetLyo->Height), regionColor);
+					//vec4 regionColor = ImGui::ColorConvertU32ToFloat4(aet->BackgroundColor); color.a = 1.0f;
+					renderer.Draw(aetPosition, vec2(aet->Width, aet->Height), regionColor);
 				}
 
-				if (active.ItemPtr != nullptr)
+				if (active.VoidPointer != nullptr)
 				{
-					switch (active.Type)
+					switch (active.Type())
 					{
-					case AetSelectionType::AetObj:
-						RenderAetObj(active.AetObj); 
+					case AetSelectionType::AetSet:
+						RenderAetSet(active.AetSet);
+						break;
+					case AetSelectionType::Aet:
+						RenderAet(active.Aet);
 						break;
 					case AetSelectionType::AetLayer:
 						RenderAetLayer(active.AetLayer);
+						break;
+					case AetSelectionType::AetObj:
+						RenderAetObj(active.AetObj); 
 						break;
 					case AetSelectionType::AetRegion:
 						RenderAetRegion(active.AetRegion); 
@@ -244,12 +250,20 @@ namespace Editor
 	{
 		renderer.Initialize();
 	}
-	
-	void AetRenderWindow::RenderAetObj(AetObj* aetObj)
+
+	void AetRenderWindow::RenderAetSet(AetSet* aetSet)
 	{
 	}
 
+	void AetRenderWindow::RenderAet(Aet* aet)
+	{
+	}
+	
 	void AetRenderWindow::RenderAetLayer(AetLayer* aetLayer)
+	{
+	}
+
+	void AetRenderWindow::RenderAetObj(AetObj* aetObj)
 	{
 	}
 

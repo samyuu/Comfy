@@ -25,15 +25,18 @@ namespace Editor
 			return false;
 
 		lastHovered = hovered;
-		hovered = { AetSelectionType::None, nullptr };
+		hovered.Reset();
 
 		if (ImGui::WideTreeNodeEx((void*)aetSet, HeaderTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str()))
 		{
 			if (ImGui::IsItemClicked())
-				ResetSelectedItem();
+				SetSelectedItem(aetSet);
 
-			for (auto& aetLyo : aetSet->AetLyos)
-				DrawTreeViewLyo(aetLyo);
+			if (openLayers.size() != aetSet->size())
+				openLayers.resize(aetSet->size());
+
+			for (auto& aet : *aetSet)
+				DrawTreeViewAet(aet);
 
 			ImGui::TreePop();
 		}
@@ -45,18 +48,18 @@ namespace Editor
 		return true;
 	}
 
-	void AetTreeView::DrawTreeViewLyo(AetLyo& aetLyo)
+	void AetTreeView::DrawTreeViewAet(Aet& aet)
 	{
-		ImGuiTreeNodeFlags lyoNodeFlags = HeaderTreeNodeFlags;
-		if (&aetLyo == selected.AetLyo || &aetLyo == lastHovered.AetLyo)
-			lyoNodeFlags |= ImGuiTreeNodeFlags_Selected;
+		ImGuiTreeNodeFlags aetNodeFlags = HeaderTreeNodeFlags;
+		if (&aet == selected.Aet || &aet == lastHovered.Aet)
+			aetNodeFlags |= ImGuiTreeNodeFlags_Selected;
 
-		bool aetLyoNodeOpen = ImGui::WideTreeNodeEx((void*)&aetLyo, lyoNodeFlags, "%s", aetLyo.Name.c_str());
+		bool aetNodeOpen = ImGui::WideTreeNodeEx((void*)&aet, aetNodeFlags, "Aet: %s", aet.Name.c_str());
 
 		if (ImGui::IsItemClicked())
-			SetSelectedItem(&aetLyo, &aetLyo);
+			SetSelectedItem(&aet, &aet);
 
-		if (aetLyoNodeOpen)
+		if (aetNodeOpen)
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, ImGui::GetFontSize() * 1.5f);
 
@@ -65,15 +68,12 @@ namespace Editor
 				if (ImGui::IsItemClicked())
 					ResetSelectedItem();
 
-				if (openLayers.size() != aetLyo.AetLayers.size())
-					openLayers.resize(aetLyo.AetLayers.size());
+				if (openLayers[aet.GetThisIndex()].size() != aet.AetLayers.size())
+					openLayers[aet.GetThisIndex()].resize(aet.AetLayers.size());
 
-				int32_t layerIndex = 0;
-				for (auto& aetLayer : aetLyo.AetLayers)
-				{
-					aetLayer.Index = layerIndex++;
-					DrawTreeViewLayer(aetLyo, aetLayer);
-				}
+				for (auto& aetLayer : aet.AetLayers)
+					DrawTreeViewLayer(aet, aetLayer);
+
 				ImGui::TreePop();
 			}
 
@@ -82,9 +82,9 @@ namespace Editor
 				if (ImGui::IsItemClicked())
 					ResetSelectedItem();
 
-				for (int32_t i = 0; i < aetLyo.AetRegions.size(); i++)
+				for (int32_t i = 0; i < aet.AetRegions.size(); i++)
 				{
-					DrawTreeViewRegion(aetLyo, aetLyo.AetRegions[i], i);
+					DrawTreeViewRegion(aet, aet.AetRegions[i], i);
 				}
 				ImGui::TreePop();
 			}
@@ -94,30 +94,35 @@ namespace Editor
 		}
 	}
 
-	void AetTreeView::DrawTreeViewLayer(AetLyo& aetLyo, AetLayer& aetLayer)
+	void AetTreeView::DrawTreeViewLayer(Aet& aet, AetLayer& aetLayer)
 	{
 		ImGui::PushID(&aetLayer);
 
 		ImGuiTreeNodeFlags layerNodeFlags = SelectableTreeNodeFlags;
 		if (&aetLayer == selected.AetLayer)
 			layerNodeFlags |= ImGuiTreeNodeFlags_Selected;
+		if (aetLayer.size() < 1)
+			layerNodeFlags |= ImGuiTreeNodeFlags_Leaf;
 
 		if (&aetLayer == lastHovered.AetLayer)
 			ImGui::PushStyleColor(ImGuiCol_Text, GetColor(EditorColor_TextHighlight));
 
-		AetLayer* rootLayer = &aetLyo.AetLayers.back();
-		bool aetLayerNodeOpen = ImGui::WideTreeNodeEx("##AetLayerTreeNode", layerNodeFlags, (&aetLayer == rootLayer)
-			? "%s  Root"
-			: "%s  Layer %d (%s)",
-			openLayers[aetLayer.Index] ? ICON_AETLAYER_OPEN : ICON_AETLAYER, aetLayer.Index, aetLayer.CommaSeparatedNames.c_str());
+		bool isRoot = (&aetLayer == &aet.AetLayers.back());
+		bool aetLayerNodeWasOpen = openLayers[aet.GetThisIndex()][aetLayer.GetThisIndex()];
 
-		openLayers[aetLayer.Index] = aetLayerNodeOpen;
+		bool aetLayerNodeOpen = ImGui::WideTreeNodeEx("##AetLayerTreeNode", layerNodeFlags,
+			isRoot ? "%s  Root" : "%s  Layer %d (%s)",
+			aetLayerNodeWasOpen ? ICON_AETLAYER_OPEN : ICON_AETLAYER,
+			aetLayer.GetThisIndex(),
+			aetLayer.CommaSeparatedNames.c_str());
+
+		openLayers[aet.GetThisIndex()][aetLayer.GetThisIndex()] = aetLayerNodeOpen;
 
 		if (&aetLayer == lastHovered.AetLayer)
 			ImGui::PopStyleColor();
 
 		if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1))
-			SetSelectedItem(&aetLyo, &aetLayer);
+			SetSelectedItem(&aet, &aetLayer);
 
 		ImGui::OpenPopupOnItemClick(aetLayerContextMenuID, 1);
 
@@ -139,17 +144,16 @@ namespace Editor
 
 		if (aetLayerNodeOpen)
 		{
-			for (auto& aetObj : aetLayer.Objects)
-			{
-				DrawTreeViewObj(aetLyo, aetObj);
-			}
+			for (auto& aetObj : aetLayer)
+				DrawTreeViewObj(aet, aetObj);
+
 			ImGui::TreePop();
 		}
 
 		ImGui::PopID();
 	}
 
-	void AetTreeView::DrawTreeViewObj(AetLyo & aetLyo, AetObj & aetObj)
+	void AetTreeView::DrawTreeViewObj(Aet& aet, AetObj & aetObj)
 	{
 		ImGui::PushID((void*)&aetObj);
 		{
@@ -161,27 +165,37 @@ namespace Editor
 
 			sprintf_s(objNameBuffer, "%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.Name.c_str());
 			if (ImGui::Selectable(objNameBuffer, isSelected))
-				SetSelectedItem(&aetLyo, &aetObj);
+				SetSelectedItem(&aet, &aetObj);
 
-			if (aetObj.Type == AetObjType_Eff && (ImGui::IsItemHovered() || &aetObj == selected.AetObj))
-				hovered = { AetSelectionType::AetLayer, aetObj.ReferencedLayer };
+			if (aetObj.Type == AetObjType::Eff && (ImGui::IsItemHovered() || &aetObj == selected.AetObj))
+				hovered.SetItem(aetObj.GetLayer());
 		}
 		ImGui::PopID();
 	}
 
-	void AetTreeView::DrawTreeViewRegion(AetLyo& aetLyo, AetRegion& region, int32_t index)
+	void AetTreeView::DrawTreeViewRegion(Aet& aet, AetRegion& region, int32_t index)
 	{
 		ImGui::PushID(&region);
 
-		sprintf_s(regionNameBuffer,
-			ICON_AETREGION "  Region %d (%s)",
-			index,
-			region.Sprites.size() == 1 ? region.Sprites.front().Name.c_str() : "...");
+		if (region.Sprites.size() >= 1)
+		{
+			sprintf_s(regionNameBuffer,
+				ICON_AETREGION "  Region %d (%s)",
+				index,
+				region.Sprites.front().Name.c_str());
+		}
+		else
+		{
+			sprintf_s(regionNameBuffer,
+				ICON_AETREGION "  Region %d (%dx%d)",
+				index,
+				region.Width, region.Height);
+		}
 
 		bool isSelected = &region == selected.AetRegion;
 
 		if (ImGui::Selectable(regionNameBuffer, isSelected))
-			SetSelectedItem(&aetLyo, &region);
+			SetSelectedItem(&aet, &region);
 
 		ImGui::PopID();
 	}
@@ -207,12 +221,13 @@ namespace Editor
 
 		if (ImGui::Button("OK", ImVec2(124, 0)))
 		{
-			aetLayer.Objects.emplace_front();
-
-			AetObj* newObj = &aetLayer.Objects.front();
-			newObj->Name = std::string(newObjNameBuffer);
-			newObj->Type = (AetObjType)newObjTypeIndex;
-			newObj->PlaybackSpeed = 1.0f;
+			// TODO:
+			// aetLayer.Objects.emplace(aetLayer.begin());
+			// AetObj* newObj = &aetLayer.Objects.front();
+			// 
+			// newObj->Name = std::string(newObjNameBuffer);
+			// newObj->Type = (AetObjType)newObjTypeIndex;
+			// newObj->PlaybackSpeed = 1.0f;
 
 			ImGui::CloseCurrentPopup();
 		}

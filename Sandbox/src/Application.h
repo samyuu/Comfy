@@ -101,6 +101,7 @@ private:
 	bool hasBeenInitialized = false;
 	bool hasBeenDisposed = false;
 	bool mainLoopLowPowerSleep = false;
+	bool skipApplicationCleanup = true;
 
 	GLFWwindow *window = nullptr;
 

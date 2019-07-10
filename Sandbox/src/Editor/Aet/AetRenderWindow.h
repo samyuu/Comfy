@@ -18,7 +18,7 @@ namespace Editor
 		AetRenderWindow(SpriteGetter spriteGetter);
 		~AetRenderWindow();
 
-		void SetActive(AetLyo* parent, AetItemTypePtr value);
+		void SetActive(Aet* parent, AetItemTypePtr value);
 
 	protected:
 		void OnDrawGui() override;
@@ -30,12 +30,14 @@ namespace Editor
 	protected:
 		void OnInitialize() override;
 
-		void RenderAetObj(AetObj* aetObj);
+		void RenderAetSet(AetSet* aetSet);
+		void RenderAet(Aet* aet);
 		void RenderAetLayer(AetLayer* aetLayer);
+		void RenderAetObj(AetObj* aetObj);
 		void RenderAetRegion(AetRegion* aetRegion);
 
 	private:
-		AetLyo* aetLyo = nullptr;
+		Aet* aet = nullptr;
 		AetItemTypePtr active;
 
 		vec2 newRendererSize;

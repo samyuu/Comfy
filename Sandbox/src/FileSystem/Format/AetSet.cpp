@@ -16,38 +16,40 @@ namespace FileSystem
 		"Opactiy",
 	};
 
-	std::array<const char*, 4> AetObj::TypeNames = 
-	{ 
-		"nop", 
-		"pic", 
-		"aif", 
-		"eff", 
+	std::array<const char*, 4> AetObj::TypeNames =
+	{
+		"nop",
+		"pic",
+		"aif",
+		"eff",
 	};
 
 	static void ReadKeyFrameProperties(KeyFrameProperties* properties, BinaryReader& reader)
 	{
-		for (auto keyFrames = &properties->OriginX; keyFrames <= &properties->Opacity; keyFrames++)
+		for (auto& keyFrames : *properties)
 		{
-			uint32_t keyFramesCount = reader.ReadUInt32();
+			uint32_t keyFrameCount = reader.ReadUInt32();
 			void* keyFramesPointer = reader.ReadPtr();
 
-			if (keyFramesCount > 0 && keyFramesPointer != nullptr)
+			if (keyFrameCount > 0 && keyFramesPointer != nullptr)
 			{
-				reader.ReadAt(keyFramesPointer, [keyFramesCount, keyFrames](BinaryReader& reader)
+				reader.ReadAt(keyFramesPointer, [keyFrameCount, &keyFrames](BinaryReader& reader)
 				{
-					if (keyFramesCount == 1)
+					keyFrames.resize(keyFrameCount);
+
+					if (keyFrameCount == 1)
 					{
-						keyFrames->push_back({ 0.0f, reader.ReadFloat(), 0.0f });
+						keyFrames[0].Value = reader.ReadFloat();
 					}
 					else
 					{
-						for (uint32_t i = 0; i < keyFramesCount; i++)
-							keyFrames->push_back({ reader.ReadFloat(), 0.0f, 0.0f });
+						for (uint32_t i = 0; i < keyFrameCount; i++)
+							keyFrames[i].Frame = reader.ReadFloat();
 
-						for (uint32_t i = 0; i < keyFramesCount; i++)
+						for (uint32_t i = 0; i < keyFrameCount; i++)
 						{
-							keyFrames->at(i).Value = reader.ReadFloat();
-							keyFrames->at(i).Interpolation = reader.ReadFloat();
+							keyFrames[i].Value = reader.ReadFloat();
+							keyFrames[i].Interpolation = reader.ReadFloat();
 						}
 					}
 				});
@@ -56,24 +58,287 @@ namespace FileSystem
 
 	}
 
+	static void ReadAnimationData(AnimationData* animationData, BinaryReader& reader)
+	{
+		animationData->BlendMode = reader.Read<AetBlendMode>();
+		reader.ReadByte();
+		animationData->UseTextureMask = reader.ReadBool();
+		reader.ReadByte();
+		animationData->Properties = std::make_shared<KeyFrameProperties>();
+
+		ReadKeyFrameProperties(animationData->Properties.get(), reader);
+
+		void* propertiesExtraDataPointer = reader.ReadPtr();
+		if (propertiesExtraDataPointer != nullptr)
+		{
+			reader.ReadAt(propertiesExtraDataPointer, [animationData](BinaryReader& reader)
+			{
+				animationData->PerspectiveProperties = std::make_shared<KeyFrameProperties>();
+				ReadKeyFrameProperties(animationData->PerspectiveProperties.get(), reader);
+			});
+		}
+	}
+
+	AetRegion* AetObj::GetRegion()
+	{
+		assert(parentAet != nullptr);
+
+		int32_t regionIndex = references.RegionIndex;
+
+		if (regionIndex >= 0 && regionIndex < parentAet->AetRegions.size())
+			return &parentAet->AetRegions[regionIndex];
+
+		return nullptr;
+	}
+
+	AetLayer* AetObj::GetLayer()
+	{
+		assert(parentAet != nullptr);
+
+		int32_t layerIndex = references.LayerIndex;
+
+		if (layerIndex >= 0 && layerIndex < parentAet->AetLayers.size())
+			return &parentAet->AetLayers[layerIndex];
+
+		return nullptr;
+	}
+
+	AetObj* AetObj::GetParent()
+	{
+		assert(parentAet != nullptr);
+
+		int32_t layerIndex = references.ParentLayerIndex;
+		int32_t objIndex = references.ParentObjIndex;
+
+		if (layerIndex >= 0 && layerIndex < parentAet->AetLayers.size() && objIndex >= 0 && objIndex < parentAet->AetLayers[layerIndex].size())
+			return &parentAet->AetLayers[layerIndex][objIndex];
+
+		return nullptr;
+	}
+
+	void AetObj::Read(BinaryReader& reader)
+	{
+		filePosition = reader.GetPositionPtr();
+		Name = reader.ReadStrPtr();
+		LoopStart = reader.ReadFloat();
+		LoopEnd = reader.ReadFloat();
+		StartFrame = reader.ReadFloat();
+		PlaybackSpeed = reader.ReadFloat();
+
+		TypeFlag = reader.Read<AetTypeFlags>();
+		UnknownTypeByte = reader.ReadByte();
+		Type = reader.Read<AetObjType>();
+
+		dataFilePtr = reader.ReadPtr();
+		parentFilePtr = reader.ReadPtr();
+
+		uint32_t markerCount = reader.ReadUInt32();
+		void* markersPointer = reader.ReadPtr();
+
+		if (markerCount > 0 && markersPointer != nullptr)
+		{
+			Markers.resize(markerCount);
+			reader.ReadAt(markersPointer, [this](BinaryReader& reader)
+			{
+				for (auto& marker : Markers)
+				{
+					marker.Frame = reader.ReadFloat();
+					marker.Name = reader.ReadStrPtr();
+				}
+			});
+		}
+
+		void* animationDataPointer = reader.ReadPtr();
+		if (animationDataPointer != nullptr)
+		{
+			reader.ReadAt(animationDataPointer, [this](BinaryReader& reader)
+			{
+				ReadAnimationData(&this->AnimationData, reader);
+			});
+		}
+
+		unknownFilePtr = reader.ReadPtr();
+	}
+
+	void Aet::Read(BinaryReader& reader)
+	{
+		Name = reader.ReadStrPtr();
+		unknownValue = reader.ReadUInt32();
+		FrameDuration = reader.ReadFloat();
+		FrameRate = reader.ReadFloat();
+		BackgroundColor = reader.ReadUInt32();
+		Width = reader.ReadInt32();
+		Height = reader.ReadInt32();
+		unknownFilePtr0 = reader.ReadPtr();
+
+		uint32_t layersCount = reader.ReadUInt32();
+		AetLayers.resize(layersCount);
+
+		reader.ReadAt(reader.ReadPtr(), [this](BinaryReader& reader)
+		{
+			for (auto& layer : AetLayers)
+			{
+				layer.filePosition = reader.GetPositionPtr();
+
+				uint32_t objectCount = reader.ReadUInt32();
+				void* objectsPointer = reader.ReadPtr();
+
+				if (objectCount > 0 && objectsPointer != nullptr)
+				{
+					layer.resize(objectCount);
+					reader.ReadAt(objectsPointer, [this, &layer](BinaryReader& reader)
+					{
+						for (auto& object : layer)
+						{
+							object.parentAet = this;
+							object.Read(reader);
+						}
+					});
+				}
+			}
+		});
+
+		uint32_t regionCount = reader.ReadUInt32();
+		AetRegions.resize(regionCount);
+
+		reader.ReadAt(reader.ReadPtr(), [this](BinaryReader& reader)
+		{
+			for (auto& region : AetRegions)
+			{
+				region.filePosition = reader.GetPositionPtr();
+				region.Color = reader.ReadUInt32();
+				region.Width = reader.ReadUInt16();
+				region.Height = reader.ReadUInt16();
+				region.Frames = reader.ReadFloat();
+
+				uint32_t spriteCount = reader.ReadUInt32();
+				void* spritesPointer = reader.ReadPtr();
+
+				if (spriteCount > 0 && spritesPointer != nullptr)
+				{
+					region.Sprites.resize(spriteCount);
+					reader.ReadAt(spritesPointer, [&region](BinaryReader& reader)
+					{
+						for (auto& sprite : region.Sprites)
+						{
+							sprite.Name = reader.ReadStrPtr();
+							sprite.ID = reader.ReadUInt32();
+						}
+					});
+				}
+			}
+		});
+
+		unknownFilePtr1 = reader.ReadPtr();
+		unknownFilePtr2 = reader.ReadPtr();
+	}
+
+	void Aet::LinkPostRead()
+	{
+		int32_t layerIndex = 0;
+		for (auto &aetLayer : AetLayers)
+		{
+			aetLayer.thisIndex = layerIndex++;
+
+			for (auto &aetObj : aetLayer)
+			{
+				if (aetObj.Type == AetObjType::Pic)
+					FindObjReferencedRegion(&aetObj);
+				else if (aetObj.Type == AetObjType::Eff)
+					FindObjReferencedLayer(&aetObj);
+
+				FindObjReferencedParent(&aetObj);
+			}
+		}
+	}
+
+	void Aet::FindObjReferencedRegion(AetObj* aetObj)
+	{
+		if (aetObj->dataFilePtr != nullptr)
+		{
+			int32_t regionIndex = 0;
+
+			for (auto &otherRegion : AetRegions)
+			{
+				if (otherRegion.filePosition == aetObj->dataFilePtr)
+				{
+					aetObj->references.RegionIndex = regionIndex;
+					return;
+				}
+				regionIndex++;
+			}
+		}
+
+		aetObj->references.RegionIndex = -1;
+	}
+
+	void Aet::FindObjReferencedLayer(AetObj* aetObj)
+	{
+		if (aetObj->dataFilePtr != nullptr)
+		{
+			int32_t layerIndex = 0;
+
+			for (auto &layer : AetLayers)
+			{
+				if (layer.filePosition == aetObj->dataFilePtr)
+				{
+					aetObj->references.LayerIndex = layerIndex;
+					return;
+				}
+				layerIndex++;
+			}
+		}
+
+		aetObj->references.LayerIndex = -1;
+	}
+
+	void Aet::FindObjReferencedParent(AetObj* aetObj)
+	{
+		if (aetObj->parentFilePtr != nullptr)
+		{
+			int32_t layerIndex = 0;
+			for (auto& otherLayer : AetLayers)
+			{
+				int32_t objIndex = 0;
+				for (auto& otherObj : otherLayer)
+				{
+					if (otherObj.filePosition == aetObj->parentFilePtr)
+					{
+						aetObj->references.ParentLayerIndex = layerIndex;
+						aetObj->references.ParentObjIndex = objIndex;
+						return;
+					}
+
+					objIndex++;
+				}
+				layerIndex++;
+			}
+		}
+
+		aetObj->references.ParentLayerIndex = -1;
+		aetObj->references.ParentObjIndex = -1;
+	}
+
 	void AetSet::UpdateLayerNames()
 	{
-		for (auto& aetLyo : AetLyos)
+		for (auto& aet : aets)
 		{
-			for (auto& aetLayer : aetLyo.AetLayers)
+			for (auto& aetLayer : aet.AetLayers)
 				aetLayer.Names.clear();
 		}
 
-		for (auto& aetLyo : AetLyos)
+		for (auto& aet : aets)
 		{
-			for (auto& aetLayer : aetLyo.AetLayers)
+			for (auto& aetLayer : aet.AetLayers)
 			{
-				for (auto& aetObj : aetLayer.Objects)
+				for (auto& aetObj : aetLayer)
 				{
-					if (aetObj.Type == AetObjType_Eff && aetObj.ReferencedLayer != nullptr)
+					AetLayer* referencedLayer;
+
+					if (aetObj.Type == AetObjType::Eff && (referencedLayer = aetObj.GetLayer()) != nullptr)
 					{
 						bool nameExists = false;
-						for (auto& layerNames : aetObj.ReferencedLayer->Names)
+						for (auto& layerNames : referencedLayer->Names)
 						{
 							if (layerNames == aetObj.Name)
 							{
@@ -83,15 +348,15 @@ namespace FileSystem
 						}
 
 						if (!nameExists)
-							aetObj.ReferencedLayer->Names.emplace_back(aetObj.Name);
+							referencedLayer->Names.emplace_back(aetObj.Name);
 					}
 				}
 			}
 		}
 
-		for (auto& aetLyo : AetLyos)
+		for (auto& aet : aets)
 		{
-			for (auto& aetLayer : aetLyo.AetLayers)
+			for (auto& aetLayer : aet.AetLayers)
 			{
 				aetLayer.CommaSeparatedNames.clear();
 
@@ -107,9 +372,9 @@ namespace FileSystem
 
 	void AetSet::ClearSpriteCache()
 	{
-		for (auto& aetLyo : AetLyos)
+		for (auto& aet : aets)
 		{
-			for (auto& region : aetLyo.AetRegions)
+			for (auto& region : aet.AetRegions)
 			{
 				for (auto& sprite : region.Sprites)
 					sprite.SpriteCache = nullptr;
@@ -119,171 +384,35 @@ namespace FileSystem
 
 	void AetSet::Read(BinaryReader& reader)
 	{
-		AetSet* aetSet = this;
-
 		void* startAddress = reader.GetPositionPtr();
-		reader.ReadAt(startAddress, [&aetSet](BinaryReader& reader)
+
+		uint32_t aetCount = 0;
+		while (reader.ReadPtr() != nullptr)
+			aetCount++;
+		aets.resize(aetCount);
+
+		reader.ReadAt(startAddress, [this](BinaryReader& reader)
 		{
-			void* lyoPointer;
-			while ((lyoPointer = reader.ReadPtr()) != nullptr)
+			for (auto& aet : aets)
 			{
-				aetSet->AetLyos.emplace_back();
-				AetLyo* aetLyo = &aetSet->AetLyos.back();
-
-				reader.ReadAt(lyoPointer, [&aetLyo](BinaryReader& reader)
+				reader.ReadAt(reader.ReadPtr(), [&aet](BinaryReader& reader)
 				{
-					aetLyo->Name = reader.ReadStrPtr();
-					aetLyo->Unknown = reader.ReadUInt32();
-					aetLyo->FrameDuration = reader.ReadFloat();
-					aetLyo->FrameRate = reader.ReadFloat();
-					aetLyo->BackgroundColor = reader.ReadUInt32();
-					aetLyo->Width = reader.ReadInt32();
-					aetLyo->Height = reader.ReadInt32();
-					aetLyo->DontChangeMe = reader.ReadUInt32();
-
-					uint32_t layersCount = reader.ReadUInt32();
-					reader.ReadAt(reader.ReadPtr(), [layersCount, &aetLyo](BinaryReader& reader)
-					{
-						for (size_t i = 0; i < layersCount; i++)
-						{
-							aetLyo->AetLayers.emplace_back();
-							AetLayer* aetLayer = &aetLyo->AetLayers.back();
-							aetLayer->FilePtr = reader.GetPositionPtr();
-
-							uint32_t objectCount = reader.ReadUInt32();
-							reader.ReadAt(reader.ReadPtr(), [objectCount, &aetLayer](BinaryReader& reader)
-							{
-								for (uint32_t i = 0; i < objectCount; i++)
-								{
-									aetLayer->Objects.emplace_back();
-									AetObj* aetObj = &aetLayer->Objects.back();
-
-									aetObj->FilePtr = reader.GetPositionPtr();
-									aetObj->Name = reader.ReadStrPtr();
-									aetObj->LoopStart = reader.ReadFloat();
-									aetObj->LoopEnd = reader.ReadFloat();
-									aetObj->StartFrame = reader.ReadFloat();
-									aetObj->PlaybackSpeed = reader.ReadFloat();
-
-									aetObj->TypeFlag = reader.Read<AetTypeFlags>();
-									aetObj->UnknownTypeByte = reader.ReadByte();
-									aetObj->Type = reader.Read<AetObjType>();
-
-									aetObj->DataFilePtr = reader.ReadPtr();
-									aetObj->ParentFilePtr = reader.ReadPtr();
-
-									uint32_t markerCount = reader.ReadUInt32();
-									void* markersPointer = reader.ReadPtr();
-
-									if (markerCount > 0 && markersPointer != nullptr)
-									{
-										reader.ReadAt(markersPointer, [markerCount, &aetObj](BinaryReader& reader)
-										{
-											aetObj->Markers.reserve(markerCount);
-											for (uint32_t i = 0; i < markerCount; i++)
-												aetObj->Markers.push_back({ reader.ReadFloat(), reader.ReadStrPtr() });
-										});
-									}
-
-									void* animationDataPointer = reader.ReadPtr();
-									if (animationDataPointer != nullptr)
-									{
-										AnimationData* animationData = &aetObj->AnimationData;
-										reader.ReadAt(animationDataPointer, [&animationData](BinaryReader& reader)
-										{
-											animationData->BlendMode = reader.Read<AetBlendMode>();
-											reader.ReadByte();
-											animationData->UseTextureMask = reader.ReadBool();
-											reader.ReadByte();
-											animationData->Properties = std::make_unique<KeyFrameProperties>();
-											ReadKeyFrameProperties(animationData->Properties.get(), reader);
-
-											void* propertiesExtraDataPointer = reader.ReadPtr();
-											if (propertiesExtraDataPointer != nullptr)
-											{
-												reader.ReadAt(propertiesExtraDataPointer, [&animationData](BinaryReader& reader)
-												{
-													animationData->PerspectiveProperties = std::make_unique<KeyFrameProperties>();
-													ReadKeyFrameProperties(animationData->PerspectiveProperties.get(), reader);
-												});
-											}
-										});
-									}
-
-									aetObj->UnknownFilePtr = reader.ReadPtr();
-								}
-							});
-						}
-					});
-
-					uint32_t regionCount = reader.ReadUInt32();
-					reader.ReadAt(reader.ReadPtr(), [regionCount, &aetLyo](BinaryReader& reader)
-					{
-						aetLyo->AetRegions.resize(regionCount);
-						for (size_t i = 0; i < regionCount; i++)
-						{
-							AetRegion* region = &aetLyo->AetRegions[i];
-
-							region->FilePtr = reader.GetPositionPtr();
-							region->Color = reader.ReadUInt32();
-							region->Width = reader.ReadUInt16();
-							region->Height = reader.ReadUInt16();
-							region->Frames = reader.ReadFloat();
-
-							uint32_t spritesCount = reader.ReadUInt32();
-							void* spritesPointer = reader.ReadPtr();
-
-							region->Sprites.reserve(spritesCount);
-							reader.ReadAt(spritesPointer, [spritesCount, &region](BinaryReader& reader)
-							{
-								for (uint32_t i = 0; i < spritesCount; i++)
-									region->Sprites.push_back({ reader.ReadStrPtr(), reader.ReadUInt32() });
-							});
-						}
-					});
+					aet.Read(reader);
 				});
 			}
 		});
 
-		LinkPostRead(aetSet);
+		LinkPostRead();
 		UpdateLayerNames();
 	}
 
-	void AetSet::LinkPostRead(AetSet* aetSet)
+	void AetSet::LinkPostRead()
 	{
-		for (auto &aetLyo : aetSet->AetLyos)
+		int32_t aetIndex = 0;
+		for (auto &aet : aets)
 		{
-			for (auto &aetLayer : aetLyo.AetLayers)
-			{
-				for (auto &aetObj : aetLayer.Objects)
-				{
-					aetObj.ReferencedRegion = nullptr;
-					aetObj.ReferencedLayer = nullptr;
-					if (aetObj.DataFilePtr != nullptr)
-					{
-						if (aetObj.Type == AetObjType_Pic)
-						{
-							for (auto &region : aetLyo.AetRegions)
-								if (region.FilePtr == aetObj.DataFilePtr)
-									aetObj.ReferencedRegion = &region;
-						}
-						else if (aetObj.Type == AetObjType_Eff)
-						{
-							for (auto &layer : aetLyo.AetLayers)
-								if (layer.FilePtr == aetObj.DataFilePtr)
-									aetObj.ReferencedLayer = &layer;
-						}
-					}
-
-					aetObj.ReferencedObjParent = nullptr;
-					if (aetObj.ParentFilePtr != nullptr)
-					{
-						for (auto &otherObj : aetLayer.Objects)
-							if (otherObj.FilePtr == aetObj.ParentFilePtr)
-								aetObj.ReferencedObjParent = &otherObj;
-					}
-				}
-			}
+			aet.thisIndex = aetIndex++;
+			aet.LinkPostRead();
 		}
 	}
 }

@@ -93,7 +93,7 @@ namespace Editor
 		RenderWindowBase::PushWindowPadding();
 		if (ImGui::Begin("Aet Render Window##AetEditor", nullptr, windowFlags))
 		{
-			renderWindow->SetActive(treeView->GetActiveAetLyo(), treeView->GetSelected());
+			renderWindow->SetActive(treeView->GetActiveAet(), treeView->GetSelected());
 			renderWindow->DrawGui();
 		}
 		ImGui::End();
@@ -118,7 +118,7 @@ namespace Editor
 		if (ImGui::Begin("Aet Timeline##AetEditor", nullptr))
 		{
 			AetItemTypePtr selected = treeView->GetSelected();
-			timeline->SetActive(treeView->GetActiveAetLyo(), treeView->GetSelected());
+			timeline->SetActive(treeView->GetActiveAet(), treeView->GetSelected());
 			timeline->DrawTimelineGui();
 		}
 		ImGui::End();
@@ -157,7 +157,7 @@ namespace Editor
 	void AetEditor::DrawProperties()
 	{
 		AetItemTypePtr selected = treeView->GetSelected();
-		if (selected.Type != AetSelectionType::AetObj || selected.AetObj == nullptr)
+		if (selected.Type() != AetSelectionType::AetObj || selected.AetObj == nullptr)
 			return;
 
 		if (selected.AetObj->AnimationData.Properties == nullptr)

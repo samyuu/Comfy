@@ -16,33 +16,34 @@ namespace Editor
 		void Initialize();
 		bool DrawGui(AetSet* aetSet);
 
-		inline AetLyo* GetActiveAetLyo() const { return activeAetLyo; };
+		inline Aet* GetActiveAet() const { return activeAet; };
 		inline AetItemTypePtr GetSelected() const { return selected; };
 
-		inline void SetSelectedItem(AetLyo* aetLyo, AetObj* value) { activeAetLyo = aetLyo; selected = { AetSelectionType::AetObj, value }; };
-		inline void SetSelectedItem(AetLyo* aetLyo, AetLyo* value) { activeAetLyo = aetLyo; selected = { AetSelectionType::AetLyo, value }; };
-		inline void SetSelectedItem(AetLyo* aetLyo, AetLayer* value) { activeAetLyo = aetLyo; selected = { AetSelectionType::AetLayer, value }; };
-		inline void SetSelectedItem(AetLyo* aetLyo, AetRegion* value) { activeAetLyo = aetLyo; selected = { AetSelectionType::AetRegion, value }; };
-		inline void ResetSelectedItem() { activeAetLyo = nullptr; selected = { AetSelectionType::None, nullptr }; };
+		inline void SetSelectedItem(AetSet* value)				{ activeAet = nullptr; selected.SetItem(value); };
+		inline void SetSelectedItem(Aet* aet, Aet* value)		{ activeAet = aet; selected.SetItem(value); };
+		inline void SetSelectedItem(Aet* aet, AetObj* value)	{ activeAet = aet; selected.SetItem(value); };
+		inline void SetSelectedItem(Aet* aet, AetLayer* value)	{ activeAet = aet; selected.SetItem(value); };
+		inline void SetSelectedItem(Aet* aet, AetRegion* value)	{ activeAet = aet; selected.SetItem(value); };
+		inline void ResetSelectedItem()							{ activeAet = nullptr; selected.Reset(); };
 
 	private:
 		const char* aetLayerContextMenuID = "AetLayerContextMenu";
 		const char* addAetObjPopupID = "Add new AetObj";
 
-		int newObjTypeIndex = AetObjType_Pic;
+		int newObjTypeIndex = static_cast<int>(AetObjType::Pic);
 		char objNameBuffer[255];
 		char newObjNameBuffer[255];
 		char regionNameBuffer[255];
 
-		AetLyo* activeAetLyo;
+		Aet* activeAet;
 		AetItemTypePtr selected, lastHovered, hovered;
 
-		std::vector<bool> openLayers;
+		std::vector<std::vector<bool>> openLayers;
 
-		void DrawTreeViewLyo(AetLyo& aetLyo);
-		void DrawTreeViewLayer(AetLyo& aetLyo, AetLayer& aetLayer);
-		void DrawTreeViewObj(AetLyo& aetLyo, AetObj& aetObj);
-		void DrawTreeViewRegion(AetLyo& aetLyo, AetRegion& region, int32_t index);
+		void DrawTreeViewAet(Aet& aet);
+		void DrawTreeViewLayer(Aet& aet, AetLayer& aetLayer);
+		void DrawTreeViewObj(Aet& aet, AetObj& aetObj);
+		void DrawTreeViewRegion(Aet& aet, AetRegion& region, int32_t index);
 	
 		bool AddAetObjContextMenu(AetLayer& aetLayer);
 		void AddAetObjPopup(AetLayer& aetLayer);

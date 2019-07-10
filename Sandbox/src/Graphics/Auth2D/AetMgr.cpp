@@ -40,9 +40,9 @@ namespace Auth2D
 	{
 		float* results = reinterpret_cast<float*>(properties);
 
-		for (std::vector<KeyFrame>* keyFrames = &animationData.Properties->OriginX; keyFrames <= &animationData.Properties->Opacity; keyFrames++)
+		for (auto& keyFrames : *animationData.Properties.get())
 		{
-			*results = AetMgr::Interpolate(*keyFrames, frame);
+			*results = AetMgr::Interpolate(keyFrames, frame);
 			results++;
 		}
 

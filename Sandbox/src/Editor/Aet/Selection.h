@@ -9,22 +9,41 @@ namespace Editor
 	enum class AetSelectionType
 	{
 		None,
-		AetObj,
+		AetSet,
+		Aet,
 		AetLayer,
-		AetLyo,
+		AetObj,
 		AetRegion,
 	};
 
 	struct AetItemTypePtr
 	{
-		AetSelectionType Type;
+	public:
 		union
 		{
-			void* ItemPtr;
-			AetObj* AetObj;
-			AetLyo* AetLyo;
+			void* VoidPointer;
+
+			AetSet* AetSet;
+			Aet* Aet;
 			AetLayer* AetLayer;
+			AetObj* AetObj;
 			AetRegion* AetRegion;
 		};
+
+		#define Inline_SetItemMethod(typeName) inline void SetItem(FileSystem::##typeName* value) { type = AetSelectionType::##typeName; typeName = value; }
+		// --------------------------
+		Inline_SetItemMethod(AetSet);
+		Inline_SetItemMethod(Aet);
+		Inline_SetItemMethod(AetLayer);
+		Inline_SetItemMethod(AetObj);
+		Inline_SetItemMethod(AetRegion);
+		// --------------------------
+		#undef Inline_SetItemMethod
+
+		inline AetSelectionType Type() const	{ return type; };
+		inline void Reset()						{ type = AetSelectionType::None; VoidPointer = nullptr; };
+
+	private:
+		AetSelectionType type;
 	};
 }

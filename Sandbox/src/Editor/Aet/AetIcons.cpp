@@ -6,13 +6,13 @@ namespace Editor
 	{
 		switch (type)
 		{
-		case AetObjType_Pic:
+		case AetObjType::Pic:
 			return ICON_AETOBJPIC;
-		case AetObjType_Aif:
+		case AetObjType::Aif:
 			return ICON_AETOBJAIF;
-		case AetObjType_Eff:
+		case AetObjType::Eff:
 			return ICON_AETOBJEFF;
-		case AetObjType_Nop:
+		case AetObjType::Nop:
 		default:
 			return ICON_AETOBJNOP;
 		}
