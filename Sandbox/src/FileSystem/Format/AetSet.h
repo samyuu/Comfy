@@ -128,7 +128,6 @@ namespace FileSystem
 	public:
 		static std::array<const char*, 4> TypeNames;
 
-		std::string Name;
 		frame_t LoopStart;
 		frame_t LoopEnd;
 		frame_t StartFrame;
@@ -141,16 +140,15 @@ namespace FileSystem
 		std::vector<Marker> Markers;
 		AnimationData AnimationData;
 
-		// TODO:
-		// AetRegion* ReferencedRegion;
-		// AetLayer* ReferencedLayer;
-		// AetObj* ReferencedObjParent;
+		const char* GetName();
+		void SetName(const char* value);
 
 		AetRegion* GetRegion();
 		AetLayer* GetLayer();
 		AetObj* GetParent();
 
 	private:
+		std::string name;
 		Aet* parentAet;
 
 		struct
@@ -195,6 +193,7 @@ namespace FileSystem
 		inline void resize(size_t newSize)		 { objects.resize(newSize); };
 		inline void reserve(size_t newCapacity)  { objects.reserve(newCapacity); };
 		inline size_t size() const				 { return objects.size(); };
+		inline AetObj& at(size_t index)			 { return objects.at(index); };
 		inline AetObj& operator[] (size_t index) { return objects[index]; };
 
 	private:
@@ -207,6 +206,7 @@ namespace FileSystem
 	class Aet
 	{
 		friend class AetSet;
+		friend class AetObj;
 
 	public:
 		std::string Name;
@@ -230,6 +230,7 @@ namespace FileSystem
 		fileptr_t unknownFilePtr2;
 
 		void Read(BinaryReader& reader);
+		void UpdateLayerNames();
 		void LinkPostRead();
 		void FindObjReferencedRegion(AetObj* aetObj);
 		void FindObjReferencedLayer(AetObj* aetObj);
@@ -245,11 +246,6 @@ namespace FileSystem
 	public:
 		std::string Name;
 
-		void UpdateLayerNames();
-		void ClearSpriteCache();
-
-		virtual void Read(BinaryReader& reader) override;
-
 		AetIterator begin()				{ return aets.begin(); }
 		AetIterator end()				{ return aets.end(); }
 		ConstAetIterator begin() const	{ return aets.begin(); }
@@ -260,11 +256,13 @@ namespace FileSystem
 		inline void resize(size_t newSize)		{ aets.resize(newSize); };
 		inline void reserve(size_t newCapacity) { aets.reserve(newCapacity); };
 		inline size_t size() const				{ return aets.size(); };
+		inline Aet& at(size_t index)			{ return aets.at(index); };
 		inline Aet& operator[] (size_t index)	{ return aets[index]; };
+
+		void ClearSpriteCache();
+		virtual void Read(BinaryReader& reader) override;
 
 	private:
 		AetCollection aets;
-
-		void LinkPostRead();
 	};
 }

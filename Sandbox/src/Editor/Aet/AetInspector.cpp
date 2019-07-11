@@ -101,7 +101,7 @@ namespace Editor
 		if (ImGui::WideTreeNodeEx(ICON_AETLAYER "  Objects:", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			for (auto& aetObj : *aetLayer)
-				ImGui::BulletText("%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.Name.c_str());
+				ImGui::BulletText("%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.GetName());
 
 			ImGui::TreePop();
 		}
@@ -124,12 +124,11 @@ namespace Editor
 		ImGui::Text("AetObj:");
 
 		{
-			strcpy_s(aetObjNameBuffer, aetObj->Name.c_str());
+			strcpy_s(aetObjNameBuffer, aetObj->GetName());
 
 			if (ImGui::InputText("Name##AetObj", aetObjNameBuffer, sizeof(aetObjNameBuffer), ImGuiInputTextFlags_None /*ImGuiInputTextFlags_EnterReturnsTrue*/))
 			{
-				aetObj->Name = std::string(aetObjNameBuffer);
-				aetSet->UpdateLayerNames();
+				aetObj->SetName(aetObjNameBuffer);
 			}
 
 			int objTypeIndex = static_cast<int>(aetObj->Type);
@@ -139,6 +138,8 @@ namespace Editor
 			ImGui::InputFloat("Loop Start", &aetObj->LoopStart, 1.0f, 10.0f);
 			ImGui::InputFloat("Loop End", &aetObj->LoopEnd, 1.0f, 10.0f);
 			ImGui::InputFloat("Start Frame", &aetObj->StartFrame, 1.0f, 10.0f);
+			ImGui::InputFloat("Playback Speed", &aetObj->PlaybackSpeed, 1.0f, 10.0f);
+			// aetObj->Markers
 		}
 
 		if ((aetObj->Type == AetObjType::Pic))
@@ -150,6 +151,7 @@ namespace Editor
 		if ((aetObj->Type == AetObjType::Pic || aetObj->Type == AetObjType::Eff))
 			DrawInspectorAnimationData(&aetObj->AnimationData);
 
+		DrawInspectorAetObjMarkers(&aetObj->Markers);
 		DrawInspectorAetObjParent(aetObj);
 	}
 
@@ -203,6 +205,12 @@ namespace Editor
 				ImGui::TreePop();
 			}
 
+			const char* blendModeNames = "None\0None\0None\0Alpha\0None\0Additive\0DstColorZero\0SrcAlphaOneMinusSrcColor\0Transparent";
+
+			int32_t blendMode = static_cast<int32_t>(animationData->BlendMode);
+			if (ImGui::Combo("Blend Mode", &blendMode, blendModeNames))
+				animationData->BlendMode = static_cast<AetBlendMode>(blendMode);
+
 			ImGui::Checkbox("Use Texture Mask", &animationData->UseTextureMask);
 
 			ImGui::TreePop();
@@ -229,6 +237,39 @@ namespace Editor
 		}
 	}
 
+	void AetInspector::DrawInspectorAetObjMarkers(std::vector<Marker>* markers)
+	{
+		if (ImGui::TreeNodeEx(ICON_MARKERS "  Markers", ImGuiTreeNodeFlags_Framed))
+		{
+			if (markers->size() < 1)
+			{
+				ImGui::BulletText("<none>");
+			}
+			else
+			{
+				for (size_t i = 0; i < markers->size(); i++)
+				{
+					Marker& marker = markers->at(i);
+
+					ImGui::PushID((void*)&marker);
+					if (ImGui::WideTreeNode("##AetInspectorMarker", "Marker %d", i))
+					{
+						ImGui::InputFloat("Frame", &marker.Frame, 1.0f, 10.0f);
+						strcpy_s(markerNameBuffer, marker.Name.c_str());
+
+						if (ImGui::InputText("Name", markerNameBuffer, sizeof(markerNameBuffer)))
+							marker.Name = std::string(markerNameBuffer);
+
+						ImGui::TreePop();
+					}
+					ImGui::PopID();
+				}
+			}
+
+			ImGui::TreePop();
+		}
+	}
+
 	void AetInspector::DrawInspectorAetObjParent(AetObj* aetObj)
 	{
 		if (ImGui::TreeNodeEx(ICON_PARENT "  Parent", ImGuiTreeNodeFlags_Framed))
@@ -241,7 +282,7 @@ namespace Editor
 			}
 			else
 			{
-				ImGui::BulletText("%s  %s", GetObjTypeIcon(parent->Type), parent->Name.c_str());
+				ImGui::BulletText("%s  %s", GetObjTypeIcon(parent->Type), parent->GetName());
 			}
 
 			ImGui::TreePop();

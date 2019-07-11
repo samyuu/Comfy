@@ -18,6 +18,7 @@ namespace Editor
 	private:
 		char aetNameBuffer[255];
 		char aetObjNameBuffer[255];
+		char markerNameBuffer[255];
 		char spriteNameBuffer[255];
 
 		void DrawInspectorAetSet(AetSet* aetSet);
@@ -31,6 +32,7 @@ namespace Editor
 		void DrawInspectorAnimationData(AnimationData* animationData);
 		void DrawInspectorKeyFrameProperties(KeyFrameProperties* properties);
 		void DrawInspectorKeyFrames(const char* name, std::vector<KeyFrame>* keyFrames);
+		void DrawInspectorAetObjMarkers(std::vector<Marker>* markers);
 		void DrawInspectorAetObjParent(AetObj* aetObj);
 		
 		void DrawInspectorAetRegion(AetSet* aetSet, AetRegion* aetRegion);

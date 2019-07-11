@@ -61,6 +61,11 @@ namespace Editor
 		active = value;
 	}
 
+	float AetRenderWindow::SetCurrentFrame(float value)
+	{
+		return currentFrame = value;
+	}
+
 	void AetRenderWindow::OnDrawGui()
 	{
 		if (ImGui::CollapsingHeader("View Settings"))
@@ -199,10 +204,10 @@ namespace Editor
 						RenderAetLayer(active.AetLayer);
 						break;
 					case AetSelectionType::AetObj:
-						RenderAetObj(active.AetObj); 
+						RenderAetObj(active.AetObj);
 						break;
 					case AetSelectionType::AetRegion:
-						RenderAetRegion(active.AetRegion); 
+						RenderAetRegion(active.AetRegion);
 						break;
 
 					case AetSelectionType::None:
@@ -258,30 +263,80 @@ namespace Editor
 	void AetRenderWindow::RenderAet(Aet* aet)
 	{
 	}
-	
+
 	void AetRenderWindow::RenderAetLayer(AetLayer* aetLayer)
 	{
+		objectCache.clear();
+		AetMgr::GetAddObjects(objectCache, aetLayer, currentFrame);
+
+		for (auto& obj : objectCache)
+			RenderObjCache(obj);
 	}
 
 	void AetRenderWindow::RenderAetObj(AetObj* aetObj)
 	{
+		if (aetObj->Type != AetObjType::Pic && aetObj->Type != AetObjType::Eff)
+			return;
+
+		//Properties properties;
+		//AetMgr::Interpolate(aetObj->AnimationData, currentFrame, &properties);
+
+		//AetRegion* region = aetObj->GetRegion();
+		//AetSprite* aetSprite = region->Sprites.size() < 1 ? nullptr : &region->Sprites.front();
+
+		//const bool drawPath = true;
+		//if (drawPath)
+		//{
+		//	if (aetObj->AnimationData.Properties != nullptr)
+		//	{
+		//		const vec4 pathColor = vec4(.5f, .5f, .5f, .75f);
+		//		const vec4 directionColor = vec4(.75f, .15f, .15f, .5f);
+
+		//		const KeyFrameCollection& posX = aetObj->AnimationData.Properties->PositionX();
+		//		const KeyFrameCollection& posY = aetObj->AnimationData.Properties->PositionY();
+
+		//		const float startFrame = aetObj->LoopStart;
+		//		const float endFrame = aetObj->LoopEnd;
+
+		//		vec2 lastPos, pos = vec2(AetMgr::Interpolate(posX, startFrame), AetMgr::Interpolate(posY, startFrame));
+
+		//		for (float f = startFrame; f < endFrame; f += 1.0f)
+		//		{
+		//			lastPos = pos;
+		//			pos = vec2(AetMgr::Interpolate(posX, f), AetMgr::Interpolate(posY, f));
+
+		//			renderer.DrawLine(aetPosition + lastPos, aetPosition + pos, pathColor, 1.5f);
+		//		}
+
+		//		renderer.DrawLine(properties.Position + aetPosition, properties.Rotation - 90.0f, properties.Scale.x * region->Width * 1.25f, directionColor, 2.0f);
+		//	}
+		//}
+
+		objectCache.clear();
+		AetMgr::GetAddObjects(objectCache, aetObj, currentFrame);
+
+		for (auto& obj : objectCache)
+			RenderObjCache(obj);
+
+		//ImGui::GetForegroundDrawList()->AddText(ImGui::GetWindowPos() + aetPosition + properties.Position - properties.Origin, IM_COL32_WHITE, aetObj->GetName());
 	}
 
 	void AetRenderWindow::RenderAetRegion(AetRegion* aetRegion)
 	{
 		if (aetRegion->Sprites.size() < 1)
 		{
-			vec4 color = ImGui::ColorConvertU32ToFloat4(aetRegion->Color); 
+			vec4 color = ImGui::ColorConvertU32ToFloat4(aetRegion->Color);
 			color.a = 1.0f;
-			
+
 			renderer.Draw(aetPosition, vec2(aetRegion->Width, aetRegion->Height), color);
 			return;
 		}
-		
+
 		assert(getSprite != nullptr);
 
-		AetSprite* spriteRegion = &aetRegion->Sprites.front();
-		
+		size_t spriteIndex = glm::clamp(static_cast<size_t>(0), static_cast<size_t>(currentFrame), aetRegion->Sprites.size() - 1);
+		AetSprite* spriteRegion = &aetRegion->Sprites.at(spriteIndex);
+
 		Texture* texture;
 		Sprite* sprite;
 
@@ -293,5 +348,24 @@ namespace Editor
 		{
 			renderer.Draw(texture->Texture2D.get(), sprite->PixelRegion, aetPosition, aetOrigin, aetRotation, aetScale, aetColor, (AetBlendMode)currentBlendItem);
 		}
+	}
+
+	void AetRenderWindow::RenderObjCache(const AetMgr::ObjCache& obj)
+	{
+		AetSprite* aetSprite = obj.Region->Sprites.size() < 1 ? nullptr : &obj.Region->Sprites.at(obj.SpriteIndex);
+
+		Texture* texture;
+		Sprite* sprite;
+		bool validSprite = getSprite(aetSprite, &texture, &sprite);
+
+		renderer.Draw(
+			validSprite ? texture->Texture2D.get() : nullptr,
+			validSprite ? sprite->PixelRegion : vec4(0, 0, obj.Region->Width, obj.Region->Height),
+			obj.Properties.Position + aetPosition,
+			obj.Properties.Origin,
+			obj.Properties.Rotation,
+			obj.Properties.Scale,
+			vec4(1.0f, 1.0f, 1.0f, obj.Properties.Opcaity),
+			obj.BlendMode);
 	}
 }

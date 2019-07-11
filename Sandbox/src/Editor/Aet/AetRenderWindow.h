@@ -4,6 +4,7 @@
 #include "FileSystem/Format/AetSet.h"
 #include "FileSystem/Format/SprSet.h"
 #include "Graphics/Auth2D/Renderer2D.h"
+#include "Graphics/Auth2D/AetMgr.h"
 
 namespace Editor
 {
@@ -19,6 +20,7 @@ namespace Editor
 		~AetRenderWindow();
 
 		void SetActive(Aet* parent, AetItemTypePtr value);
+		float SetCurrentFrame(float value);
 
 	protected:
 		void OnDrawGui() override;
@@ -36,12 +38,19 @@ namespace Editor
 		void RenderAetObj(AetObj* aetObj);
 		void RenderAetRegion(AetRegion* aetRegion);
 
+	protected:
+		void RenderObjCache(const AetMgr::ObjCache& obj);
+
 	private:
+		float currentFrame = 0.0f;
+
 		Aet* aet = nullptr;
 		AetItemTypePtr active;
 
 		vec2 newRendererSize;
 		Renderer2D renderer;
+
+		std::vector<AetMgr::ObjCache> objectCache;
 
 		struct
 		{

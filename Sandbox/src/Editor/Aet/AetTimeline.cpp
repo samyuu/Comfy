@@ -76,7 +76,7 @@ namespace Editor
 		ImGui::PushItemWidth(280);
 		ImGui::SliderFloat("Zoom Level", &zoomLevel, ZOOM_MIN, ZOOM_MAX);
 		ImGui::PopItemWidth();
-	
+
 		ImGui::SameLine();
 		ImGui::Checkbox("Loop Animation", &loopPlayback);
 	}
@@ -125,10 +125,29 @@ namespace Editor
 
 	void AetTimeline::OnUpdate()
 	{
-		if (active.Type() == AetSelectionType::AetObj && active.AetObj != nullptr)
+		if (active.VoidPointer != nullptr)
 		{
-			loopStartFrame = active.AetObj->LoopStart;
-			loopEndFrame = active.AetObj->LoopEnd;
+			switch (active.Type())
+			{
+			case AetSelectionType::Aet:
+			case AetSelectionType::AetLayer:
+				loopStartFrame = 0;
+				loopEndFrame = aet->FrameDuration;
+				break;
+
+			case AetSelectionType::AetObj:
+				loopStartFrame = active.AetObj->LoopStart;
+				loopEndFrame = active.AetObj->LoopEnd;
+				break;
+
+			case AetSelectionType::AetRegion:
+				loopStartFrame = 0;
+				loopEndFrame = glm::max(0.0f, static_cast<float>(active.AetRegion->Sprites.size()) - 1.0f);
+				break;
+
+			default:
+				break;
+			}
 		}
 
 		if (isPlayback)
@@ -138,8 +157,21 @@ namespace Editor
 			TimeSpan startTime = GetTimelineTime(loopStartFrame);
 			TimeSpan endTime = GetTimelineTime(loopEndFrame);
 
+			if (cursorTime < startTime)
+				cursorTime = startTime;
+
 			if (cursorTime > endTime)
-				cursorTime = loopPlayback ? startTime : endTime;
+			{
+				if (loopPlayback)
+				{
+					cursorTime = startTime;
+					SetScrollX(0);
+				}
+				else
+				{
+					cursorTime = endTime;
+				}
+			}
 		}
 	}
 

@@ -163,7 +163,7 @@ namespace Editor
 				aetObj.TypeFlag ^= AetTypeFlags_Visible;
 			ImGui::SameLine();
 
-			sprintf_s(objNameBuffer, "%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.Name.c_str());
+			sprintf_s(objNameBuffer, "%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.GetName());
 			if (ImGui::Selectable(objNameBuffer, isSelected))
 				SetSelectedItem(&aet, &aetObj);
 

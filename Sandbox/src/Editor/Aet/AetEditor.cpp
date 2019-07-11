@@ -14,12 +14,12 @@ namespace Editor
 	{
 		SprSet* sprSet = AetEditorInstance->GetSprSet();
 
-		if (sprSet == nullptr)
+		if (inSprite == nullptr || sprSet == nullptr)
 			return false;
 
 		if (inSprite->SpriteCache != nullptr)
 		{
-			from_sprite_cache:
+		from_sprite_cache:
 			*outTexture = sprSet->TxpSet->Textures[inSprite->SpriteCache->TextureIndex].get();
 			*outSprite = inSprite->SpriteCache;
 			return true;
@@ -94,6 +94,7 @@ namespace Editor
 		if (ImGui::Begin("Aet Render Window##AetEditor", nullptr, windowFlags))
 		{
 			renderWindow->SetActive(treeView->GetActiveAet(), treeView->GetSelected());
+			renderWindow->SetCurrentFrame(timeline->GetFrame().Frames());
 			renderWindow->DrawGui();
 		}
 		ImGui::End();
@@ -157,14 +158,16 @@ namespace Editor
 	void AetEditor::DrawProperties()
 	{
 		AetItemTypePtr selected = treeView->GetSelected();
-		if (selected.Type() != AetSelectionType::AetObj || selected.AetObj == nullptr)
-			return;
 
-		if (selected.AetObj->AnimationData.Properties == nullptr)
-			return;
-
-		float frame = timeline->GetFrame().Frames();
-		AetMgr::Interpolate(selected.AetObj->AnimationData, frame, &currentProperties);
+		if (selected.Type() == AetSelectionType::AetObj && selected.AetObj != nullptr && selected.AetObj->AnimationData.Properties != nullptr)
+		{
+			float frame = timeline->GetFrame().Frames();
+			AetMgr::Interpolate(selected.AetObj->AnimationData, &currentProperties, frame);
+		}
+		else
+		{
+			currentProperties = {};
+		}
 
 		ImGui::InputFloat2("Origin", glm::value_ptr(currentProperties.Origin));
 		ImGui::InputFloat2("Position", glm::value_ptr(currentProperties.Position));

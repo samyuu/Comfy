@@ -79,6 +79,17 @@ namespace FileSystem
 		}
 	}
 
+	const char* AetObj::GetName()
+	{
+		return name.c_str();
+	}
+
+	void AetObj::SetName(const char* value)
+	{
+		name = value; 
+		parentAet->UpdateLayerNames();
+	}
+
 	AetRegion* AetObj::GetRegion()
 	{
 		assert(parentAet != nullptr);
@@ -119,7 +130,7 @@ namespace FileSystem
 	void AetObj::Read(BinaryReader& reader)
 	{
 		filePosition = reader.GetPositionPtr();
-		Name = reader.ReadStrPtr();
+		name = reader.ReadStrPtr();
 		LoopStart = reader.ReadFloat();
 		LoopEnd = reader.ReadFloat();
 		StartFrame = reader.ReadFloat();
@@ -233,6 +244,47 @@ namespace FileSystem
 		unknownFilePtr2 = reader.ReadPtr();
 	}
 
+	void Aet::UpdateLayerNames()
+	{
+		for (auto& aetLayer : AetLayers)
+		{
+			aetLayer.Names.clear();
+
+			for (auto& aetObj : aetLayer)
+			{
+				AetLayer* referencedLayer;
+
+				if (aetObj.Type == AetObjType::Eff && (referencedLayer = aetObj.GetLayer()) != nullptr)
+				{
+					bool nameExists = false;
+					for (auto& layerNames : referencedLayer->Names)
+					{
+						if (layerNames == aetObj.name)
+						{
+							nameExists = true;
+							break;
+						}
+					}
+
+					if (!nameExists)
+						referencedLayer->Names.emplace_back(aetObj.name);
+				}
+			}
+		}
+
+		for (auto& aetLayer : AetLayers)
+		{
+			aetLayer.CommaSeparatedNames.clear();
+
+			for (size_t i = 0; i < aetLayer.Names.size(); i++)
+			{
+				aetLayer.CommaSeparatedNames.append(aetLayer.Names[i]);
+				if (i < aetLayer.Names.size() - 1)
+					aetLayer.CommaSeparatedNames.append(", ");
+			}
+		}
+	}
+
 	void Aet::LinkPostRead()
 	{
 		int32_t layerIndex = 0;
@@ -319,57 +371,6 @@ namespace FileSystem
 		aetObj->references.ParentObjIndex = -1;
 	}
 
-	void AetSet::UpdateLayerNames()
-	{
-		for (auto& aet : aets)
-		{
-			for (auto& aetLayer : aet.AetLayers)
-				aetLayer.Names.clear();
-		}
-
-		for (auto& aet : aets)
-		{
-			for (auto& aetLayer : aet.AetLayers)
-			{
-				for (auto& aetObj : aetLayer)
-				{
-					AetLayer* referencedLayer;
-
-					if (aetObj.Type == AetObjType::Eff && (referencedLayer = aetObj.GetLayer()) != nullptr)
-					{
-						bool nameExists = false;
-						for (auto& layerNames : referencedLayer->Names)
-						{
-							if (layerNames == aetObj.Name)
-							{
-								nameExists = true;
-								break;
-							}
-						}
-
-						if (!nameExists)
-							referencedLayer->Names.emplace_back(aetObj.Name);
-					}
-				}
-			}
-		}
-
-		for (auto& aet : aets)
-		{
-			for (auto& aetLayer : aet.AetLayers)
-			{
-				aetLayer.CommaSeparatedNames.clear();
-
-				for (size_t i = 0; i < aetLayer.Names.size(); i++)
-				{
-					aetLayer.CommaSeparatedNames.append(aetLayer.Names[i]);
-					if (i < aetLayer.Names.size() - 1)
-						aetLayer.CommaSeparatedNames.append(", ");
-				}
-			}
-		}
-	}
-
 	void AetSet::ClearSpriteCache()
 	{
 		for (auto& aet : aets)
@@ -393,26 +394,19 @@ namespace FileSystem
 
 		reader.ReadAt(startAddress, [this](BinaryReader& reader)
 		{
+			int32_t aetIndex = 0;
 			for (auto& aet : aets)
 			{
 				reader.ReadAt(reader.ReadPtr(), [&aet](BinaryReader& reader)
 				{
 					aet.Read(reader);
 				});
+			
+				aet.thisIndex = aetIndex++;
+				aet.LinkPostRead();
+
+				aet.UpdateLayerNames();
 			}
 		});
-
-		LinkPostRead();
-		UpdateLayerNames();
-	}
-
-	void AetSet::LinkPostRead()
-	{
-		int32_t aetIndex = 0;
-		for (auto &aet : aets)
-		{
-			aet.thisIndex = aetIndex++;
-			aet.LinkPostRead();
-		}
 	}
 }

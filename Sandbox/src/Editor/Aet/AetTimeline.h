@@ -22,7 +22,7 @@ namespace Editor
 
 		float rowHeight;
 		bool isPlayback = false;
-		bool loopPlayback = false;
+		bool loopPlayback = true;
 
 		bool GetIsPlayback() const override;
 		float GetTimelineSize() const override;
