@@ -95,6 +95,7 @@ private:
 	void WindowResizeCallback(int width, int height);
 	void WindowDropCallback(size_t count, const char* paths[]);
 	void WindowFocusCallback(bool focused);
+	void WindowClosingCallback();
 
 	// Member variables
 	// -----------------
@@ -149,4 +150,5 @@ private:
 	// -----------------
 
 	static Application* globalCallbackApplication;
+	static Application* GetApplicationPointer(GLFWwindow* window);
 };

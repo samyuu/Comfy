@@ -205,35 +205,41 @@ bool Application::BaseInitialize()
 void Application::BaseRegister()
 {
 	globalCallbackApplication = this;
+	glfwSetWindowUserPointer(window, this);
 
-	glfwSetWindowSizeCallback(window, [](GLFWwindow*, int width, int height)
+	glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int width, int height)
 	{
-		globalCallbackApplication->WindowResizeCallback(width, height);
+		GetApplicationPointer(window)->WindowResizeCallback(width, height);
 	});
 
-	glfwSetWindowPosCallback(window, [](GLFWwindow*, int xPosition, int yPosition)
+	glfwSetWindowPosCallback(window, [](GLFWwindow* window, int xPosition, int yPosition)
 	{
-		globalCallbackApplication->WindowMoveCallback(xPosition, yPosition);
+		GetApplicationPointer(window)->WindowMoveCallback(xPosition, yPosition);
 	});
 
-	glfwSetCursorPosCallback(window, [](GLFWwindow*, double x, double y)
+	glfwSetCursorPosCallback(window, [](GLFWwindow* window, double x, double y)
 	{
-		globalCallbackApplication->MouseMoveCallback((int)x, (int)y);
+		GetApplicationPointer(window)->MouseMoveCallback((int)x, (int)y);
 	});
 
-	glfwSetScrollCallback(window, [](GLFWwindow*, double xOffset, double yOffset)
+	glfwSetScrollCallback(window, [](GLFWwindow* window, double xOffset, double yOffset)
 	{
-		globalCallbackApplication->MouseScrollCallback((float)yOffset);
+		GetApplicationPointer(window)->MouseScrollCallback((float)yOffset);
 	});
 
-	glfwSetDropCallback(window, [](GLFWwindow*, int count, const char* paths[])
+	glfwSetDropCallback(window, [](GLFWwindow* window, int count, const char* paths[])
 	{
-		globalCallbackApplication->WindowDropCallback(count, paths);
+		GetApplicationPointer(window)->WindowDropCallback(count, paths);
 	});
 
-	glfwSetWindowFocusCallback(window, [](GLFWwindow*, int focused)
+	glfwSetWindowFocusCallback(window, [](GLFWwindow* window, int focused)
 	{
-		globalCallbackApplication->WindowFocusCallback(focused);
+		GetApplicationPointer(window)->WindowFocusCallback(focused);
+	});
+
+	glfwSetWindowCloseCallback(window, [](GLFWwindow* window)
+	{
+		GetApplicationPointer(window)->WindowClosingCallback();
 	});
 
 	glfwSetJoystickCallback([](int id, int event) 
@@ -665,4 +671,17 @@ void Application::WindowDropCallback(size_t count, const char* paths[])
 void Application::WindowFocusCallback(bool focused)
 {
 	windowFocused = focused;
+}
+
+void Application::WindowClosingCallback()
+{
+	AudioEngine* audioEngine = AudioEngine::GetInstance();
+
+	if (audioEngine != nullptr)
+		audioEngine->StopStream();
+}
+
+Application* Application::GetApplicationPointer(GLFWwindow* window)
+{
+	return static_cast<Application*>(glfwGetWindowUserPointer(window));
 }
