@@ -2,6 +2,47 @@
 
 namespace Auth2D
 {
+	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, AetLayer* aetLayer, float frame)
+	{
+		for (int i = aetLayer->size() - 1; i >= 0; i--)
+		{
+			if (i == 0)
+				int yoo = 0;
+
+			GetAddObjects(objects, &aetLayer->at(i), frame);
+		}
+	}
+
+	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, AetObj* aetObj, float frame)
+	{
+		if (aetObj->Type == AetObjType::Pic)
+		{
+			if (frame < aetObj->LoopStart || frame > aetObj->LoopEnd)
+				return;
+
+			objects.emplace_back();
+			ObjCache& objCache = objects.back();
+
+			objCache.BlendMode = aetObj->AnimationData.BlendMode;
+			objCache.Region = aetObj->GetRegion();
+			objCache.SpriteIndex = static_cast<int32_t>(frame - aetObj->StartFrame);
+
+			if (objCache.SpriteIndex >= objCache.Region->Sprites.size())
+				objCache.SpriteIndex = static_cast<int32_t>(objCache.Region->Sprites.size() - 1);
+			if (objCache.SpriteIndex < 0)
+				objCache.SpriteIndex = 0;
+
+			Interpolate(aetObj->AnimationData, &objCache.Properties, frame * aetObj->PlaybackSpeed);
+		}
+		else if (aetObj->Type == AetObjType::Eff)
+		{
+			AetLayer* aetLayer = aetObj->GetLayer();
+			
+			if (aetLayer != nullptr)
+				GetAddObjects(objects, aetLayer, frame * aetObj->PlaybackSpeed);
+		}
+	}
+
 	float AetMgr::Interpolate(const std::vector<KeyFrame>& keyFrames, float frame)
 	{
 		if (keyFrames.size() <= 0)
@@ -36,7 +77,7 @@ namespace Auth2D
 				+ ((((((t * t) * t) * 2.0) - ((t * t) * 3.0)) + 1.0) * start->Value));
 	}
 
-	void AetMgr::Interpolate(const AnimationData& animationData, float frame, Properties* properties)
+	void AetMgr::Interpolate(const AnimationData& animationData, Properties* properties, float frame)
 	{
 		float* results = reinterpret_cast<float*>(properties);
 
@@ -45,9 +86,5 @@ namespace Auth2D
 			*results = AetMgr::Interpolate(keyFrames, frame);
 			results++;
 		}
-
-		// std::vector<KeyFrame>* keyFrames = reinterpret_cast<std::vector<KeyFrame>*>(animationData.PerspectiveProperties.get());
-		// properties->Origin.x = AetMgr::Interpolate(animationData.Properties->OriginX, frame);
-		// properties->Origin.y = AetMgr::Interpolate(animationData.Properties->OriginY, frame);
 	}
 }

@@ -18,9 +18,19 @@ namespace Auth2D
 	class AetMgr
 	{
 	public:
+		struct ObjCache
+		{
+			Properties Properties;
+			int32_t SpriteIndex;
+			AetRegion* Region;
+			AetBlendMode BlendMode;
+		};
+
+		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, AetLayer* aetLayer, float frame);
+		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, AetObj* aetObj, float frame);
 
 		static float Interpolate(const std::vector<KeyFrame>& keyFrames, float frame);
-		static void Interpolate(const AnimationData& animationData, float frame, Properties* properties);
+		static void Interpolate(const AnimationData& animationData, Properties* properties, float frame);
 
 	private:
 	};
