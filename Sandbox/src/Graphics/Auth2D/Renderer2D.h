@@ -89,6 +89,10 @@ namespace Auth2D
 
 		void Draw(const Texture2D* texture, const vec2& position, const vec2& origin, float rotation, const vec4& color);
 		void Draw(const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec2& origin, float rotation, const vec2& scale, const vec4& color, AetBlendMode blendMode = AetBlendMode::Alpha);
+		
+		void DrawLine(const vec2& start, const vec2& end, const vec4& color, float thickness = 1.0f);
+		void DrawLine(const vec2& start, float angle, float length, const vec4& color, float thickness = 1.0f);
+		
 		void End();
 		void Flush();
 

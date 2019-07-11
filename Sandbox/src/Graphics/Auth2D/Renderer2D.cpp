@@ -1,4 +1,5 @@
 #include "Renderer2D.h"
+#include <glm/trigonometric.hpp>
 
 namespace Auth2D
 {
@@ -212,6 +213,27 @@ namespace Auth2D
 	void Renderer2D::Draw(const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec2& origin, float rotation, const vec2& scale, const vec4& color, AetBlendMode blendMode)
 	{
 		DrawInternal(texture, &sourceRegion, &position, &origin, rotation, &scale, &color, blendMode);
+	}
+
+	void Renderer2D::DrawLine(const vec2& start, const vec2& end, const vec4& color, float thickness)
+	{
+		vec2 edge = end - start;
+		
+		float distance = glm::distance(start, end);
+		float angle = glm::degrees(glm::atan(edge.y, edge.x));
+		
+		vec4 source = vec4(0.0f, 0.0f, distance, thickness);
+		vec2 origin = vec2(0.0f, thickness / 2.0f);
+
+		DrawInternal(nullptr, &source, &start, &origin, angle, nullptr, &color);
+	}
+
+	void Renderer2D::DrawLine(const vec2& start, float angle, float length, const vec4& color, float thickness)
+	{
+		vec4 source = vec4(0.0f, 0.0f, length, thickness);
+		vec2 origin = vec2(0.0f, thickness / 2.0f);
+
+		DrawInternal(nullptr, &source, &start, &origin, angle, nullptr, &color);
 	}
 
 	void Renderer2D::End()
