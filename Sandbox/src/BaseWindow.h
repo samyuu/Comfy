@@ -16,6 +16,8 @@ public:
 	inline bool* GetIsGuiOpenPtr() { return &isGuiOpen; };
 	inline Application* GetParent() const { return parentApplication; };
 
+	inline void CloseWindow() { *GetIsGuiOpenPtr() = false; };
+
 	static inline ImGuiWindowFlags GetNoWindowFlags()
 	{
 		return ImGuiWindowFlags_NoTitleBar |

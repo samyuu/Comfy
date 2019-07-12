@@ -8,6 +8,7 @@
 
 AudioTestWindow::AudioTestWindow(Application* parent) : BaseWindow(parent)
 {
+	CloseWindow();
 }
 
 AudioTestWindow::~AudioTestWindow()

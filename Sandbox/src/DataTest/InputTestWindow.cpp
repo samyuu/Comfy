@@ -4,6 +4,7 @@
 
 InputTestWindow::InputTestWindow(Application* parent) : BaseWindow(parent)
 {
+	CloseWindow();
 }
 
 InputTestWindow::~InputTestWindow()

@@ -5,7 +5,7 @@
 
 IconTestWindow::IconTestWindow(Application* parent) : BaseWindow(parent)
 {
-	*GetIsGuiOpenPtr() = false;
+	CloseWindow();
 }
 
 IconTestWindow::~IconTestWindow()
