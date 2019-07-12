@@ -134,6 +134,8 @@ private:
 
 	// ImGui Variables
 	// ---------------
+	const char* dockSpaceID = "MainDockSpace##Application";
+
 	LicenseWindow licenseWindow;
 	bool showDemoWindow = false;
 	bool showSwapInterval = true;

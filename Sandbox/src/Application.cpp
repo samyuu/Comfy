@@ -575,12 +575,20 @@ void Application::DrawGui()
 			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 			window_flags |= ImGuiWindowFlags_NoBackground;
 
-			ImGui::Begin("main_docking_space", nullptr, window_flags);
-			ImGuiID dockspace_id = ImGui::GetID("main_docking_space");
+			ImGui::Begin(dockSpaceID, nullptr, window_flags);
+			ImGuiID dockspace_id = ImGui::GetID(dockSpaceID);
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 			ImGui::End();
 
 			ImGui::PopStyleVar(3);
+
+			if (ImGui::GetFrameCount() < 1)
+			{
+				ImGui::DockBuilderRemoveNode(dockspace_id);
+				ImGuiDockNodeFlags dockSpaceFlags = 0;
+
+				ImGuiID dockLeft = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.40f, NULL, &dockspace_id);
+			}
 		}
 
 		// Demo Window
