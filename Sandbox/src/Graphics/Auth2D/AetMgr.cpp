@@ -2,45 +2,15 @@
 
 namespace Auth2D
 {
-	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, AetLayer* aetLayer, float frame)
+	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetLayer* aetLayer, float frame)
 	{
 		for (int i = aetLayer->size() - 1; i >= 0; i--)
-		{
-			if (i == 0)
-				int yoo = 0;
-
 			GetAddObjects(objects, &aetLayer->at(i), frame);
-		}
 	}
 
-	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, AetObj* aetObj, float frame)
+	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetObj* aetObj, float frame)
 	{
-		if (aetObj->Type == AetObjType::Pic)
-		{
-			if (frame < aetObj->LoopStart || frame > aetObj->LoopEnd)
-				return;
-
-			objects.emplace_back();
-			ObjCache& objCache = objects.back();
-
-			objCache.BlendMode = aetObj->AnimationData.BlendMode;
-			objCache.Region = aetObj->GetRegion();
-			objCache.SpriteIndex = static_cast<int32_t>(frame - aetObj->StartFrame);
-
-			if (objCache.SpriteIndex >= objCache.Region->Sprites.size())
-				objCache.SpriteIndex = static_cast<int32_t>(objCache.Region->Sprites.size() - 1);
-			if (objCache.SpriteIndex < 0)
-				objCache.SpriteIndex = 0;
-
-			Interpolate(aetObj->AnimationData, &objCache.Properties, frame * aetObj->PlaybackSpeed);
-		}
-		else if (aetObj->Type == AetObjType::Eff)
-		{
-			AetLayer* aetLayer = aetObj->GetLayer();
-			
-			if (aetLayer != nullptr)
-				GetAddObjects(objects, aetLayer, frame * aetObj->PlaybackSpeed);
-		}
+		InternalAddObjects(objects, nullptr, aetObj, frame);
 	}
 
 	float AetMgr::Interpolate(const std::vector<KeyFrame>& keyFrames, float frame)
@@ -86,5 +56,54 @@ namespace Auth2D
 			*results = AetMgr::Interpolate(keyFrames, frame);
 			results++;
 		}
+	}
+
+	void AetMgr::InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, Properties* parentProperties, const AetObj* aetObj, float frame)
+	{
+		if (aetObj->Type == AetObjType::Pic)
+		{
+			InternalPicAddObjects(objects, nullptr, aetObj, frame);
+		}
+		else if (aetObj->Type == AetObjType::Eff)
+		{
+			InternalEffAddObjects(objects, nullptr, aetObj, frame);
+		}
+	}
+
+	void AetMgr::InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, Properties* parentProperties, const AetObj* aetObj, float frame)
+	{
+		assert(aetObj->Type == AetObjType::Pic);
+
+		if (frame < aetObj->LoopStart || frame > aetObj->LoopEnd)
+			return;
+
+		objects.emplace_back();
+		ObjCache& objCache = objects.back();
+
+		objCache.BlendMode = aetObj->AnimationData.BlendMode;
+		objCache.Region = aetObj->GetRegion();
+		objCache.SpriteIndex = static_cast<int32_t>(frame - aetObj->StartFrame);
+
+		if (objCache.SpriteIndex >= objCache.Region->Sprites.size())
+			objCache.SpriteIndex = static_cast<int32_t>(objCache.Region->Sprites.size() - 1);
+		if (objCache.SpriteIndex < 0)
+			objCache.SpriteIndex = 0;
+
+		Interpolate(aetObj->AnimationData, &objCache.Properties, frame * aetObj->PlaybackSpeed);
+	}
+
+	void AetMgr::InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, Properties* parentProperties, const AetObj* aetObj, float frame)
+	{
+		assert(aetObj->Type == AetObjType::Eff);
+
+		if (frame < aetObj->LoopStart || frame > aetObj->LoopEnd)
+			return;
+
+		frame *= aetObj->PlaybackSpeed;
+		frame -= aetObj->LoopStart;
+
+		AetLayer* aetLayer = aetObj->GetLayer();
+		for (int i = aetLayer->size() - 1; i >= 0; i--)
+			InternalAddObjects(objects, nullptr, &aetLayer->at(i), frame);
 	}
 }

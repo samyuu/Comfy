@@ -26,12 +26,15 @@ namespace Auth2D
 			AetBlendMode BlendMode;
 		};
 
-		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, AetLayer* aetLayer, float frame);
-		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, AetObj* aetObj, float frame);
+		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, const AetLayer* aetLayer, float frame);
+		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, const AetObj* aetObj, float frame);
 
 		static float Interpolate(const std::vector<KeyFrame>& keyFrames, float frame);
 		static void Interpolate(const AnimationData& animationData, Properties* properties, float frame);
 
 	private:
+		static void InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, Properties* parentProperties, const AetObj* aetObj, float frame);
+		static void InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, Properties* parentProperties, const AetObj* aetObj, float frame);
+		static void InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, Properties* parentProperties, const AetObj* aetObj, float frame);
 	};
 }
