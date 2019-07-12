@@ -143,9 +143,9 @@ namespace FileSystem
 		const char* GetName();
 		void SetName(const char* value);
 
-		AetRegion* GetRegion();
-		AetLayer* GetLayer();
-		AetObj* GetParent();
+		AetRegion* GetRegion() const;
+		AetLayer* GetLayer() const;
+		AetObj* GetParent() const;
 
 	private:
 		std::string name;
@@ -190,11 +190,13 @@ namespace FileSystem
 		ConstAetObjIterator cbegin() const	{ return objects.cbegin(); }
 		ConstAetObjIterator cend() const	{ return objects.cend(); }
 
-		inline void resize(size_t newSize)		 { objects.resize(newSize); };
-		inline void reserve(size_t newCapacity)  { objects.reserve(newCapacity); };
-		inline size_t size() const				 { return objects.size(); };
-		inline AetObj& at(size_t index)			 { return objects.at(index); };
-		inline AetObj& operator[] (size_t index) { return objects[index]; };
+		inline void resize(size_t newSize)					 { objects.resize(newSize); };
+		inline void reserve(size_t newCapacity)				 { objects.reserve(newCapacity); };
+		inline size_t size() const							 { return objects.size(); };
+		inline AetObj& at(size_t index)						 { return objects.at(index); };
+		inline const AetObj& at(size_t index) const			 { return objects.at(index); };
+		inline AetObj& operator[] (size_t index)			 { return objects[index]; };
+		inline const AetObj& operator[] (size_t index) const { return objects[index]; };
 
 	private:
 		int32_t thisIndex;

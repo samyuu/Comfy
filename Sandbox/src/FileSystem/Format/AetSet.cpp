@@ -90,7 +90,7 @@ namespace FileSystem
 		parentAet->UpdateLayerNames();
 	}
 
-	AetRegion* AetObj::GetRegion()
+	AetRegion* AetObj::GetRegion() const
 	{
 		assert(parentAet != nullptr);
 
@@ -102,7 +102,7 @@ namespace FileSystem
 		return nullptr;
 	}
 
-	AetLayer* AetObj::GetLayer()
+	AetLayer* AetObj::GetLayer() const
 	{
 		assert(parentAet != nullptr);
 
@@ -114,7 +114,7 @@ namespace FileSystem
 		return nullptr;
 	}
 
-	AetObj* AetObj::GetParent()
+	AetObj* AetObj::GetParent() const
 	{
 		assert(parentAet != nullptr);
 
