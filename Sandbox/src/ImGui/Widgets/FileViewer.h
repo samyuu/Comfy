@@ -10,7 +10,7 @@ namespace ImGui
 {
 	enum class FileType : uint16_t
 	{
-		Default, Text, Config, Binary, Image, Code, Archive, Video, Audio, Count
+		Default, Text, Config, Binary, Image, Code, Archive, Video, Audio, Application, Count
 	};
 
 	struct FileTypeDefinition
@@ -38,22 +38,32 @@ namespace ImGui
 			bool IsDirectory;
 			bool IsHovered;
 			FileType FileType;
+			uint64_t FileSize;
+			std::string ReadableFileSize;
 		};
 
+		const char* contextMenuID = "ContextMenu##FileViewer";
+
+		bool resizeColumns = true;
 		bool useFileTypeIcons = true;
-		char pathBuffer[_MAX_PATH];
+		char currentDirectoryBuffer[_MAX_PATH];
 
 		std::vector<FilePathInfo> directoryInfo;
 		std::string directory, previousDirectory;
 		std::string fileToOpen;
 
-		FileType GetFileType(const std::string& fileName) const;
-		const char* GetFileInfoFormatString(const FilePathInfo& info) const;
+		FilePathInfo* DrawFileListGui();
+
 		void UpdateDirectoryInformation();
 		void SetDirectoryInternal(const std::string& newDirectory);
 		void SetParentDirectory(const std::string& directory);
 		void OpenDirectoryInExplorer();
 
+		static FileType GetFileType(const std::string& fileName);
+		static const char* GetFileInfoFormatString(const FilePathInfo& info);
+		static const char* FormatFileType(FileType type);
+		static void FormatReadableFileSize(std::string& value, uint64_t fileSize);
+		
 		static std::array<FileTypeDefinition, static_cast<size_t>(FileType::Count)> fileTypeDictionary;
 	};
 }
