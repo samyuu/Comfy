@@ -324,4 +324,51 @@ namespace ImGui
 		g.Style.FramePadding.y = backup_padding_y;
 		return pressed;
 	}
+
+	constexpr int ContextMenuMouseButton_button = 1;
+
+	bool OpenContextMenuOnRelease(const char* str_id)
+	{
+		if (IsMouseReleased(ContextMenuMouseButton_button) && IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup))
+		{
+			OpenContextMenu(str_id);
+			return true;
+		}
+		return false;
+	}
+
+	bool OpenContextMenuOnHoverRelease(const char* str_id)
+	{
+		if (IsMouseReleased(ContextMenuMouseButton_button) && IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup))
+		{
+			OpenContextMenu(str_id);
+			return true;
+		}
+		return false;
+	}
+
+	void OpenContextMenu(const char* str_id)
+	{
+		IM_ASSERT(str_id != nullptr);
+
+		ImGuiWindow* window = GImGui->CurrentWindow;
+		ImGuiID id = window->GetID(str_id);
+
+		IM_ASSERT(id != 0);
+		OpenPopupEx(id);
+	}
+
+	bool BeginItemContextMenu(const char* str_id)
+	{
+		IM_ASSERT(str_id != nullptr);
+		ImGuiID id = GImGui->CurrentWindow->GetID(str_id);
+		IM_ASSERT(id != 0);
+
+		return BeginPopupEx(id, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoMove);
+	}
+
+	void EndItemContextMenu()
+	{
+		ImGui::EndPopup();
+	}
 }

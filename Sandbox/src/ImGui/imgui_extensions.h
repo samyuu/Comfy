@@ -48,6 +48,12 @@ namespace ImGui
 	bool WideTreeNodeNoArrow(const char* label, ImGuiTreeNodeFlags flags);
 	bool SmallButton(const char* label, const ImVec2& size);
 
+	bool OpenContextMenuOnRelease(const char* str_id);
+	bool OpenContextMenuOnHoverRelease(const char* str_id);
+	void OpenContextMenu(const char* str_id);
+	bool BeginItemContextMenu(const char* str_id);
+	void EndItemContextMenu();
+
 	inline void DRAW_DEBUG_REGION(ImRect& rect)
 	{
 		ImGui::AddRectFilled(ImGui::GetForegroundDrawList(), rect, static_cast<ImU32>(IM_COL32_BLACK * .5f));
