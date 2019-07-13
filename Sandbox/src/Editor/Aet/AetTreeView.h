@@ -27,7 +27,8 @@ namespace Editor
 		inline void ResetSelectedItem()							{ activeAet = nullptr; selected.Reset(); };
 
 	private:
-		const char* aetLayerContextMenuID = "AetLayerContextMenu";
+		const char* aetLayerContextMenuID = "AetLayerContextMenu##AetTreeView";
+		const char* aetObjContextMenuID = "AetObjContextMenu##AetTreeView";
 		const char* addAetObjPopupID = "Add new AetObj";
 
 		int newObjTypeIndex = static_cast<int>(AetObjType::Pic);
@@ -45,7 +46,9 @@ namespace Editor
 		void DrawTreeViewObj(Aet& aet, AetObj& aetObj);
 		void DrawTreeViewRegion(Aet& aet, AetRegion& region, int32_t index);
 	
-		bool AddAetObjContextMenu(AetLayer& aetLayer);
-		void AddAetObjPopup(AetLayer& aetLayer);
+		bool DrawAetLayerContextMenu(AetLayer& aetLayer);
+		void DrawAddAetObjPopup(AetLayer& aetLayer);
+		
+		bool DrawAetObjContextMenu(AetObj& aetObj);
 	};
 }

@@ -1,6 +1,7 @@
 #include "AetTreeView.h"
 #include "AetIcons.h"
 #include "ImGui/imgui_extensions.h"
+#include "Logger.h"
 
 namespace Editor
 {
@@ -121,16 +122,15 @@ namespace Editor
 		if (&aetLayer == lastHovered.AetLayer)
 			ImGui::PopStyleColor();
 
-		if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1))
+		if (ImGui::IsItemClicked())
 			SetSelectedItem(&aet, &aetLayer);
 
-		ImGui::OpenPopupOnItemClick(aetLayerContextMenuID, 1);
-
 		bool openAddAetObjPopup = false;
-		if (ImGui::BeginPopupContextWindow(aetLayerContextMenuID))
+		ImGui::OpenContextMenuOnHoverRelease(aetLayerContextMenuID);
+		if (ImGui::BeginItemContextMenu(aetLayerContextMenuID))
 		{
-			openAddAetObjPopup = AddAetObjContextMenu(aetLayer);
-			ImGui::EndPopup();
+			openAddAetObjPopup = DrawAetLayerContextMenu(aetLayer);
+			ImGui::EndItemContextMenu();
 		}
 
 		if (openAddAetObjPopup)
@@ -138,7 +138,7 @@ namespace Editor
 
 		if (ImGui::BeginPopupModal(addAetObjPopupID, NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			AddAetObjPopup(aetLayer);
+			DrawAddAetObjPopup(aetLayer);
 			ImGui::EndPopup();
 		}
 
@@ -153,7 +153,7 @@ namespace Editor
 		ImGui::PopID();
 	}
 
-	void AetTreeView::DrawTreeViewObj(Aet& aet, AetObj & aetObj)
+	void AetTreeView::DrawTreeViewObj(Aet& aet, AetObj& aetObj)
 	{
 		ImGui::PushID((void*)&aetObj);
 		{
@@ -166,6 +166,13 @@ namespace Editor
 			sprintf_s(objNameBuffer, "%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.GetName());
 			if (ImGui::Selectable(objNameBuffer, isSelected))
 				SetSelectedItem(&aet, &aetObj);
+
+			ImGui::OpenContextMenuOnHoverRelease(aetObjContextMenuID);
+			if (ImGui::BeginItemContextMenu(aetObjContextMenuID))
+			{
+				DrawAetObjContextMenu(aetObj);
+				ImGui::EndItemContextMenu();
+			}
 
 			if (aetObj.Type == AetObjType::Eff && (ImGui::IsItemHovered() || &aetObj == selected.AetObj))
 				hovered.SetItem(aetObj.GetLayer());
@@ -200,8 +207,9 @@ namespace Editor
 		ImGui::PopID();
 	}
 
-	bool AetTreeView::AddAetObjContextMenu(AetLayer& aetLayer)
+	bool AetTreeView::DrawAetLayerContextMenu(AetLayer& aetLayer)
 	{
+		//ImGui::BulletText(__func__);
 		bool openAddAetObjPopup = ImGui::MenuItem("Add new AetObj...");
 		if (ImGui::MenuItem("Move Up")) {}
 		if (ImGui::MenuItem("Move Down")) {}
@@ -210,7 +218,7 @@ namespace Editor
 		return openAddAetObjPopup;
 	}
 
-	void AetTreeView::AddAetObjPopup(AetLayer& aetLayer)
+	void AetTreeView::DrawAddAetObjPopup(AetLayer& aetLayer)
 	{
 		if (ImGui::Combo("Obj Type", &newObjTypeIndex, AetObj::TypeNames.data(), AetObj::TypeNames.size()))
 		{
@@ -237,5 +245,15 @@ namespace Editor
 		{
 			ImGui::CloseCurrentPopup();
 		}
+	}
+
+	bool AetTreeView::DrawAetObjContextMenu(AetObj& aetObj)
+	{
+		//ImGui::BulletText(__func__);
+		if (ImGui::MenuItem("Move Up")) {}
+		if (ImGui::MenuItem("Move Down")) {}
+		if (ImGui::MenuItem("Delete...")) {}
+
+		return false;
 	}
 }
