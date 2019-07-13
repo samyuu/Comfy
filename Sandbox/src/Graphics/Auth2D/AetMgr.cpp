@@ -2,6 +2,9 @@
 
 namespace Auth2D
 {
+	static_assert((sizeof(KeyFrameCollectionArray) / sizeof(KeyFrameCollection)) == (sizeof(Properties) / sizeof(float)), 
+		"The AetMgr Properties struct must have an equal number of float fields as the KeyFrameCollectionArray has KeyFrameCollections");
+
 	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetLayer* aetLayer, float frame)
 	{
 		for (int i = aetLayer->size() - 1; i >= 0; i--)
