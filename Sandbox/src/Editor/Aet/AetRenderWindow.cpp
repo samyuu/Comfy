@@ -68,7 +68,7 @@ namespace Editor
 
 	void AetRenderWindow::OnDrawGui()
 	{
-		if (ImGui::CollapsingHeader("View Settings"))
+		if (false && ImGui::CollapsingHeader("View Settings"))
 		{
 			const char* blendModeNames = "None\0None\0None\0Alpha\0None\0Additive\0DstColorZero\0SrcAlphaOneMinusSrcColor\0Transparent";
 			ImGui::Combo("Blend Mode", &currentBlendItem, blendModeNames);
@@ -278,47 +278,11 @@ namespace Editor
 		if (aetObj->Type != AetObjType::Pic && aetObj->Type != AetObjType::Eff)
 			return;
 
-		//Properties properties;
-		//AetMgr::Interpolate(aetObj->AnimationData, currentFrame, &properties);
-
-		//AetRegion* region = aetObj->GetRegion();
-		//AetSprite* aetSprite = region->Sprites.size() < 1 ? nullptr : &region->Sprites.front();
-
-		//const bool drawPath = true;
-		//if (drawPath)
-		//{
-		//	if (aetObj->AnimationData.Properties != nullptr)
-		//	{
-		//		const vec4 pathColor = vec4(.5f, .5f, .5f, .75f);
-		//		const vec4 directionColor = vec4(.75f, .15f, .15f, .5f);
-
-		//		const KeyFrameCollection& posX = aetObj->AnimationData.Properties->PositionX();
-		//		const KeyFrameCollection& posY = aetObj->AnimationData.Properties->PositionY();
-
-		//		const float startFrame = aetObj->LoopStart;
-		//		const float endFrame = aetObj->LoopEnd;
-
-		//		vec2 lastPos, pos = vec2(AetMgr::Interpolate(posX, startFrame), AetMgr::Interpolate(posY, startFrame));
-
-		//		for (float f = startFrame; f < endFrame; f += 1.0f)
-		//		{
-		//			lastPos = pos;
-		//			pos = vec2(AetMgr::Interpolate(posX, f), AetMgr::Interpolate(posY, f));
-
-		//			renderer.DrawLine(aetPosition + lastPos, aetPosition + pos, pathColor, 1.5f);
-		//		}
-
-		//		renderer.DrawLine(properties.Position + aetPosition, properties.Rotation - 90.0f, properties.Scale.x * region->Width * 1.25f, directionColor, 2.0f);
-		//	}
-		//}
-
 		objectCache.clear();
 		AetMgr::GetAddObjects(objectCache, aetObj, currentFrame);
 
 		for (auto& obj : objectCache)
 			RenderObjCache(obj);
-
-		//ImGui::GetForegroundDrawList()->AddText(ImGui::GetWindowPos() + aetPosition + properties.Position - properties.Origin, IM_COL32_WHITE, aetObj->GetName());
 	}
 
 	void AetRenderWindow::RenderAetRegion(AetRegion* aetRegion)
@@ -365,7 +329,7 @@ namespace Editor
 			obj.Properties.Origin,
 			obj.Properties.Rotation,
 			obj.Properties.Scale,
-			vec4(1.0f, 1.0f, 1.0f, obj.Properties.Opcaity),
+			vec4(1.0f, 1.0f, 1.0f, obj.Properties.Opacity),
 			obj.BlendMode);
 	}
 }

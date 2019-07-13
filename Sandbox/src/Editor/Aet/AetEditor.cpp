@@ -173,7 +173,7 @@ namespace Editor
 		ImGui::InputFloat2("Position", glm::value_ptr(currentProperties.Position));
 		ImGui::InputFloat("Rotation", &currentProperties.Rotation);
 		ImGui::InputFloat("Scale", glm::value_ptr(currentProperties.Scale));
-		ImGui::InputFloat("Opacity", &currentProperties.Opcaity);
+		ImGui::InputFloat("Opacity", &currentProperties.Opacity);
 	}
 
 	bool AetEditor::LoadAetSet(const std::string& filePath)

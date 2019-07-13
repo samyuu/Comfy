@@ -13,11 +13,12 @@ namespace FileSystem
 
 	typedef void* fileptr_t;
 
-	typedef uint16_t AetTypeFlags;
-	enum AetTypeFlags_Enum : AetTypeFlags
+	typedef uint16_t AetObjFlags;
+	enum AetObjFlags_Enum : AetObjFlags
 	{
-		AetTypeFlags_None = 0,
-		AetTypeFlags_Visible = 1 << 0,
+		AetObjFlags_None = 0,
+		AetObjFlags_Visible = 1 << 0,
+		AetObjFlags_Audible = 1 << 1,
 	};
 
 	enum class AetObjType : uint8_t
@@ -133,7 +134,7 @@ namespace FileSystem
 		frame_t StartFrame;
 		float PlaybackSpeed;
 
-		AetTypeFlags TypeFlag;
+		AetObjFlags Flags;
 		unk8_t UnknownTypeByte;
 		AetObjType Type;
 

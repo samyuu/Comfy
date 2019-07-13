@@ -159,8 +159,17 @@ namespace Editor
 		{
 			bool isSelected = &aetObj == selected.AetObj || &aetObj == hovered.AetObj;
 
-			if (ImGui::SmallButton(aetObj.TypeFlag & AetTypeFlags_Visible ? ICON_VISIBLE : ICON_INVISIBLE, ImVec2(26, 0)))
-				aetObj.TypeFlag ^= AetTypeFlags_Visible;
+			const ImVec2 smallButtonSize = ImVec2(26, 0);
+			if (aetObj.Type == AetObjType::Aif)
+			{
+				if (ImGui::SmallButton(aetObj.Flags & AetObjFlags_Audible ? ICON_AUDIBLE : ICON_INAUDIBLE, smallButtonSize))
+					aetObj.Flags ^= AetObjFlags_Audible;
+			}
+			else
+			{
+				if (ImGui::SmallButton(aetObj.Flags & AetObjFlags_Visible ? ICON_VISIBLE : ICON_INVISIBLE, smallButtonSize))
+					aetObj.Flags ^= AetObjFlags_Visible;
+			}
 			ImGui::SameLine();
 
 			sprintf_s(objNameBuffer, "%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.GetName());
@@ -186,17 +195,21 @@ namespace Editor
 
 		if (region.Sprites.size() >= 1)
 		{
-			sprintf_s(regionNameBuffer,
-				ICON_AETREGION "  Region %d (%s)",
-				index,
-				region.Sprites.front().Name.c_str());
+			if (region.Sprites.size() > 1)
+			{
+				sprintf_s(regionNameBuffer, ICON_AETREGION "  Region %d (%s - %s)", index, 
+					region.Sprites.front().Name.c_str(),
+					region.Sprites.back().Name.c_str());
+			}
+			else
+			{
+				sprintf_s(regionNameBuffer, ICON_AETREGION "  Region %d (%s)", index, 
+					region.Sprites.front().Name.c_str());
+			}
 		}
 		else
 		{
-			sprintf_s(regionNameBuffer,
-				ICON_AETREGION "  Region %d (%dx%d)",
-				index,
-				region.Width, region.Height);
+			sprintf_s(regionNameBuffer, ICON_AETREGION "  Region %d (%dx%d)", index, region.Width, region.Height);
 		}
 
 		bool isSelected = &region == selected.AetRegion;

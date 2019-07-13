@@ -136,7 +136,7 @@ namespace FileSystem
 		StartFrame = reader.ReadFloat();
 		PlaybackSpeed = reader.ReadFloat();
 
-		TypeFlag = reader.Read<AetTypeFlags>();
+		Flags = reader.Read<AetObjFlags>();
 		UnknownTypeByte = reader.ReadByte();
 		Type = reader.Read<AetObjType>();
 
