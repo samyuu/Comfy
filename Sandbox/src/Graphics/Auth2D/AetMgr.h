@@ -12,7 +12,7 @@ namespace Auth2D
 		vec2 Position;
 		float Rotation;
 		vec2 Scale;
-		float Opcaity;
+		float Opacity;
 	};
 
 	class AetMgr
@@ -33,8 +33,8 @@ namespace Auth2D
 		static void Interpolate(const AnimationData& animationData, Properties* properties, float frame);
 
 	private:
-		static void InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, Properties* parentProperties, const AetObj* aetObj, float frame);
-		static void InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, Properties* parentProperties, const AetObj* aetObj, float frame);
-		static void InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, Properties* parentProperties, const AetObj* aetObj, float frame);
+		static void InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame);
+		static void InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame);
+		static void InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame);
 	};
 }
