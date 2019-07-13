@@ -385,7 +385,9 @@ namespace Auth2D
 			BatchItem* item = &batchItems[i];
 			BatchItem* lastItem = first ? nullptr : &batchItems[batches.back().Index];
 
-			if (first || (item->BlendMode != lastItem->BlendMode) || (item->Texture != nullptr && (item->Texture != lastItem->Texture || item->MaskTexture != lastItem->MaskTexture)))
+			bool newBatch = first || (item->BlendMode != lastItem->BlendMode) || (item->Texture != lastItem->Texture || item->MaskTexture != lastItem->MaskTexture);
+			
+			if (newBatch)
 			{
 				batches.emplace_back(i, 1);
 			}
