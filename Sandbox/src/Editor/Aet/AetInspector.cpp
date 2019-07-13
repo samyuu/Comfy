@@ -109,7 +109,7 @@ namespace Editor
 
 	void AetInspector::DrawInspectorLayerData(AetLayer* aetLayer)
 	{
-		if (ImGui::TreeNodeEx(ICON_AETLAYERS "  Layer Data", ImGuiTreeNodeFlags_Framed))
+		if (ImGui::TreeNodeEx(ICON_AETLAYERS "  Layer Data", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			if (aetLayer != nullptr)
 			{
@@ -138,8 +138,7 @@ namespace Editor
 			ImGui::InputFloat("Loop Start", &aetObj->LoopStart, 1.0f, 10.0f);
 			ImGui::InputFloat("Loop End", &aetObj->LoopEnd, 1.0f, 10.0f);
 			ImGui::InputFloat("Start Frame", &aetObj->StartFrame, 1.0f, 10.0f);
-			ImGui::InputFloat("Playback Speed", &aetObj->PlaybackSpeed, 1.0f, 10.0f);
-			// aetObj->Markers
+			ImGui::InputFloat("Playback Speed", &aetObj->PlaybackSpeed, 0.1f, 1.0f);
 		}
 
 		if ((aetObj->Type == AetObjType::Pic))
@@ -157,7 +156,7 @@ namespace Editor
 
 	void AetInspector::DrawInspectorRegionData(AetRegion* aetRegion)
 	{
-		if (ImGui::TreeNodeEx(ICON_AETREGIONS "  Region Data", ImGuiTreeNodeFlags_Framed))
+		if (ImGui::TreeNodeEx(ICON_AETREGIONS "  Region Data", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			if (aetRegion != nullptr)
 			{
@@ -177,7 +176,7 @@ namespace Editor
 
 	void AetInspector::DrawInspectorAnimationData(AnimationData* animationData)
 	{
-		if (ImGui::TreeNodeEx(ICON_ANIMATIONDATA "  Animation Data", ImGuiTreeNodeFlags_Framed))
+		if (ImGui::TreeNodeEx(ICON_ANIMATIONDATA "  Animation Data", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			if (ImGui::WideTreeNode("Properties"))
 			{
@@ -239,7 +238,7 @@ namespace Editor
 
 	void AetInspector::DrawInspectorAetObjMarkers(std::vector<Marker>* markers)
 	{
-		if (ImGui::TreeNodeEx(ICON_MARKERS "  Markers", ImGuiTreeNodeFlags_Framed))
+		if (ImGui::TreeNodeEx(ICON_MARKERS "  Markers", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			if (markers->size() < 1)
 			{
@@ -272,7 +271,7 @@ namespace Editor
 
 	void AetInspector::DrawInspectorAetObjParent(AetObj* aetObj)
 	{
-		if (ImGui::TreeNodeEx(ICON_PARENT "  Parent", ImGuiTreeNodeFlags_Framed))
+		if (ImGui::TreeNodeEx(ICON_PARENT "  Parent", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			AetObj* parent = aetObj->GetParent();
 
