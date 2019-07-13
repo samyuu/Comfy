@@ -42,6 +42,7 @@ namespace ImGui
 			std::string ReadableFileSize;
 		};
 
+		const FilePathInfo* contextMenuFilePathInfo = nullptr;
 		const char* contextMenuID = "ContextMenu##FileViewer";
 
 		bool resizeColumns = true;
@@ -58,6 +59,7 @@ namespace ImGui
 		void SetDirectoryInternal(const std::string& newDirectory);
 		void SetParentDirectory(const std::string& directory);
 		void OpenDirectoryInExplorer();
+		void OpenContextItemProperties();
 
 		static FileType GetFileType(const std::string& fileName);
 		static const char* GetFileInfoFormatString(const FilePathInfo& info);

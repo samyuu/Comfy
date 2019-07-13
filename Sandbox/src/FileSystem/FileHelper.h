@@ -22,6 +22,9 @@ namespace FileSystem
 	void OpenInExplorer(const std::string& filePath);
 	void OpenInExplorer(const std::wstring& filePath);
 	
+	void OpenExplorerProperties(const std::string& filePath);
+	void OpenExplorerProperties(const std::wstring& filePath);
+
 	std::string GetWorkingDirectory();
 	std::wstring GetWorkingDirectoryW();
 	

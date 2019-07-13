@@ -79,6 +79,32 @@ namespace FileSystem
 		ShellExecuteW(NULL, L"open", currentDirectory.c_str(), NULL, NULL, SW_SHOWDEFAULT);
 	}
 
+	void OpenExplorerProperties(const std::string& filePath)
+	{
+		SHELLEXECUTEINFOA info = { };
+
+		info.cbSize = sizeof info;
+		info.lpFile = filePath.c_str();
+		info.nShow = SW_SHOW;
+		info.fMask = SEE_MASK_INVOKEIDLIST;
+		info.lpVerb = "properties";
+
+		ShellExecuteExA(&info);
+	}
+
+	void OpenExplorerProperties(const std::wstring& filePath)
+	{
+		SHELLEXECUTEINFOW info = { };
+
+		info.cbSize = sizeof info;
+		info.lpFile = filePath.c_str();
+		info.nShow = SW_SHOW;
+		info.fMask = SEE_MASK_INVOKEIDLIST;
+		info.lpVerb = L"properties";
+
+		ShellExecuteExW(&info);
+	}
+
 	std::string GetWorkingDirectory()
 	{
 		char buffer[MAX_PATH];

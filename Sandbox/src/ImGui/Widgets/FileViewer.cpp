@@ -66,14 +66,6 @@ namespace ImGui
 		bool filedClicked = false;
 		BeginChild("FileListChild##FileViewer");
 		{
-			OpenContextMenuOnRelease(contextMenuID);
-			if (BeginItemContextMenu(contextMenuID))
-			{
-				if (MenuItem("Open in Explorer..."))
-					OpenDirectoryInExplorer();
-				EndPopup();
-			}
-
 			FilePathInfo* clickedInfo = DrawFileListGui();
 			if (clickedInfo != nullptr)
 			{
@@ -86,6 +78,21 @@ namespace ImGui
 					fileToOpen = std::string(clickedInfo->FullPath);
 					filedClicked = true;
 				}
+			}
+
+			OpenContextMenuOnRelease(contextMenuID);
+			if (BeginItemContextMenu(contextMenuID))
+			{
+				if (MenuItem("Open in Explorer..."))
+					OpenDirectoryInExplorer();
+
+				if (contextMenuFilePathInfo != nullptr)
+				{
+					Separator();
+					if (MenuItem("Properties"))
+						OpenContextItemProperties();
+				}
+				EndPopup();
 			}
 		}
 		EndChild();
@@ -122,6 +129,7 @@ namespace ImGui
 	FileViewer::FilePathInfo* FileViewer::DrawFileListGui()
 	{
 		FilePathInfo* clickedInfo = nullptr;
+		bool anyContextMenuClicked = false;
 
 		ImGui::Columns(3, "FileListColumns##FileViewer");
 		ImGui::Text("Name"); ImGui::NextColumn();
@@ -144,6 +152,12 @@ namespace ImGui
 
 				info.IsHovered = IsItemHovered();
 
+				if (IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && IsMouseClicked(1))
+				{
+					contextMenuFilePathInfo = &info;
+					anyContextMenuClicked = true;
+				}
+
 				ImGui::NextColumn();
 				if (!info.IsDirectory)
 					ImGui::Text(info.ReadableFileSize.c_str());
@@ -154,6 +168,9 @@ namespace ImGui
 			}
 		}
 		ImGui::Columns(1);
+
+		if (!anyContextMenuClicked && IsMouseClicked(1))
+			contextMenuFilePathInfo = nullptr;
 
 		return clickedInfo;
 	}
@@ -223,6 +240,11 @@ namespace ImGui
 	void FileViewer::OpenDirectoryInExplorer()
 	{
 		FileSystem::OpenInExplorer(directory);
+	}
+
+	void FileViewer::OpenContextItemProperties()
+	{
+		FileSystem::OpenExplorerProperties(contextMenuFilePathInfo != nullptr ? contextMenuFilePathInfo->FullPath : directory);
 	}
 
 	FileType FileViewer::GetFileType(const std::string& fileName)
