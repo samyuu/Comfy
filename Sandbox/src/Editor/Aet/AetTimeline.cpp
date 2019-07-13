@@ -150,27 +150,25 @@ namespace Editor
 			}
 		}
 
-		if (isPlayback)
-		{
+		if (GetIsPlayback())
 			cursorTime += io->DeltaTime;
 
-			TimeSpan startTime = GetTimelineTime(loopStartFrame);
-			TimeSpan endTime = GetTimelineTime(loopEndFrame);
+		TimeSpan startTime = GetTimelineTime(loopStartFrame);
+		TimeSpan endTime = GetTimelineTime(loopEndFrame);
 
-			if (cursorTime < startTime)
-				cursorTime = startTime;
+		if (cursorTime < startTime)
+			cursorTime = startTime;
 
-			if (cursorTime > endTime)
+		if (cursorTime > endTime)
+		{
+			if (loopPlayback)
 			{
-				if (loopPlayback)
-				{
-					cursorTime = startTime;
-					SetScrollX(0);
-				}
-				else
-				{
-					cursorTime = endTime;
-				}
+				cursorTime = startTime;
+				SetScrollX(0);
+			}
+			else
+			{
+				cursorTime = endTime;
 			}
 		}
 	}
