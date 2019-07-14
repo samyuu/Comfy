@@ -79,7 +79,7 @@ namespace Auth2D
 	{
 	public:
 		void Initialize();
-		void Begin(/*TextureClamp*/);
+		void Begin(const mat4* viewMatrix = nullptr);
 		void Draw(const vec2& position, const vec2& size, const vec4& color);
 		void Draw(const vec2& position, const vec2& size, const vec4 colors[4]);
 		void Draw(const vec2& position, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4& color);
@@ -93,6 +93,10 @@ namespace Auth2D
 		void DrawLine(const vec2& start, const vec2& end, const vec4& color, float thickness = 1.0f);
 		void DrawLine(const vec2& start, float angle, float length, const vec4& color, float thickness = 1.0f);
 		
+		void DrawRectangle(const vec2& topLeft, const vec2& topRight, const vec2& bottomLeft, const vec2& bottomRight, const vec4& color, float thickness = 1.0f);
+
+		const SpriteVertices& GetLastVertices() const;
+
 		void End();
 		void Flush();
 
@@ -121,8 +125,8 @@ namespace Auth2D
 		std::vector<BatchItem> batchItems;
 		std::vector<SpriteVertices> vertices;
 
-		vec2 projectionSize { 1.0f, 1.0f };
-		bool projectionChanged = true;
+		const mat4* viewMatrix = nullptr;
+		vec2 projectionSize = { 64.0f, 64.0f };
 
 		void GenerateUploadSpriteIndexBuffer(uint16_t elementCount);
 		void CreateBatches();

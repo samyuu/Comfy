@@ -14,7 +14,7 @@ SpriteShader::~SpriteShader()
 
 void SpriteShader::GetAllUniformLocations()
 {
-	ProjectionLocation = GetUniformLocation("u_projection");
+	ProjectionViewLocation = GetUniformLocation("u_projectionView");
 
 	UseSolidColorLocation = GetUniformLocation("u_solidColor");
 	UseTextShadowLocation = GetUniformLocation("u_textShadow");

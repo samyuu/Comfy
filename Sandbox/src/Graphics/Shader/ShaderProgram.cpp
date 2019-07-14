@@ -30,7 +30,7 @@ void ShaderProgram::SetUniform(UniformLocation_t location, float value)
 	GLCall(glUniform1f(location, value));
 }
 
-void ShaderProgram::SetUniform(UniformLocation_t location, glm::mat4& value)
+void ShaderProgram::SetUniform(UniformLocation_t location, const glm::mat4& value)
 {
 	GLCall(glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value)));
 }
@@ -45,7 +45,7 @@ void ShaderProgram::SetUniformByName(const char* name, float value)
 	SetUniform(GetUniformLocation(name), value);
 }
 
-void ShaderProgram::SetUniformByName(const char* name, glm::mat4& value)
+void ShaderProgram::SetUniformByName(const char* name, const glm::mat4& value)
 {
 	SetUniform(GetUniformLocation(name), value);
 }

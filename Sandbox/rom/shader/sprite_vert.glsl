@@ -6,11 +6,11 @@ layout (location = 2) in vec4 in_color;
 out vec4 vertexColor;
 out vec2 vertexTexCoord;
 
-uniform mat4 u_projection;
+uniform mat4 u_projectionView;
 
 void main()
 {
-	gl_Position = u_projection * vec4(in_position, 0.0, 1.0);
+	gl_Position = u_projectionView * vec4(in_position, 0.0, 1.0);
 	vertexColor = in_color;
 	vertexTexCoord = vec2(in_texture_coords.x, 1.0 - in_texture_coords.y);
 }

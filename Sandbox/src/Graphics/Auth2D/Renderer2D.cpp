@@ -170,8 +170,9 @@ namespace Auth2D
 		vertices.reserve(Renderer2DMaxItemSize);
 	}
 
-	void Renderer2D::Begin()
+	void Renderer2D::Begin(const mat4* viewMatrix)
 	{
+		this->viewMatrix = viewMatrix;
 	}
 
 	void Renderer2D::Draw(const vec2& position, const vec2& size, const vec4& color)
@@ -236,6 +237,20 @@ namespace Auth2D
 		DrawInternal(nullptr, &source, &start, &origin, angle, nullptr, &color);
 	}
 
+	void Renderer2D::DrawRectangle(const vec2& topLeft, const vec2& topRight, const vec2& bottomLeft, const vec2& bottomRight, const vec4& color, float thickness)
+	{
+		DrawLine(topLeft, topRight, color, thickness);
+		DrawLine(topRight, bottomRight, color, thickness);
+		DrawLine(bottomRight, bottomLeft, color, thickness);
+		DrawLine(bottomLeft, topLeft, color, thickness);
+	}
+
+	const SpriteVertices& Renderer2D::GetLastVertices() const
+	{
+		assert(vertices.size() > 0);
+		return vertices.back();
+	}
+
 	void Renderer2D::End()
 	{
 		Flush();
@@ -258,11 +273,12 @@ namespace Auth2D
 
 		shader->Bind();
 		shader->SetUniform(shader->UseTextShadowLocation, GetUseTextShadow());
-		if (projectionChanged)
 		{
-			mat4 projection = glm::ortho(0.0f, projectionSize.x, projectionSize.y, 0.0f, -1.0f, 1.0f);
-			shader->SetUniform(shader->ProjectionLocation, projection);
-			projectionChanged = false;
+			mat4 projectionView = glm::ortho(0.0f, projectionSize.x, projectionSize.y, 0.0f, -1.0f, 1.0f);
+			if (viewMatrix != nullptr)
+				projectionView *= (*viewMatrix);
+
+			shader->SetUniform(shader->ProjectionViewLocation, projectionView);
 		}
 
 		vertexArray.Bind();
@@ -309,7 +325,6 @@ namespace Auth2D
 		if (width == projectionSize.x && height == projectionSize.y)
 			return;
 
-		projectionChanged = true;
 		projectionSize = vec2(width, height);
 	}
 

@@ -12,7 +12,7 @@ public:
 	~SpriteShader();
 	SpriteShader(const SpriteShader&) = delete;
 
-	UniformLocation_t ProjectionLocation;
+	UniformLocation_t ProjectionViewLocation;
 
 	UniformLocation_t UseSolidColorLocation;
 	UniformLocation_t UseTextShadowLocation;
