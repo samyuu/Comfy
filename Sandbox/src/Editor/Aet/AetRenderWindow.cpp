@@ -169,12 +169,6 @@ namespace Editor
 			GLCall(glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z, backgroundColor.w));
 			GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-			if (newRendererSize.x != 0 && newRendererSize.y != 0)
-			{
-				renderer.Resize(newRendererSize.x, newRendererSize.y);
-				newRendererSize = vec2();
-			}
-
 			renderer.SetUseTextShadow(useTextShadow);
 			renderer.Begin();
 			{
@@ -248,7 +242,7 @@ namespace Editor
 	{
 		RenderWindowBase::OnResize(width, height);
 
-		newRendererSize = vec2(width, height);
+		renderer.Resize(static_cast<float>(width), static_cast<float>(height));
 	}
 
 	void AetRenderWindow::OnInitialize()
@@ -269,7 +263,7 @@ namespace Editor
 		objectCache.clear();
 		AetMgr::GetAddObjects(objectCache, aetLayer, currentFrame);
 
-		for (auto& obj : objectCache)
+		for (const auto& obj : objectCache)
 			RenderObjCache(obj);
 	}
 
@@ -281,7 +275,7 @@ namespace Editor
 		objectCache.clear();
 		AetMgr::GetAddObjects(objectCache, aetObj, currentFrame);
 
-		for (auto& obj : objectCache)
+		for (const auto& obj : objectCache)
 			RenderObjCache(obj);
 	}
 

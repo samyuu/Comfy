@@ -109,6 +109,7 @@ namespace FileSystem
 
 		inline constexpr size_t size() const					{ return KeyFrames.size(); };
 		inline KeyFrameCollection& at(size_t index)				{ return KeyFrames.at(index); };
+		inline const KeyFrameCollection& at(size_t index) const	{ return KeyFrames.at(index); };
 		inline KeyFrameCollection& operator[] (size_t index)	{ return KeyFrames[index]; };
 	};
 

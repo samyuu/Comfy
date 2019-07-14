@@ -30,6 +30,33 @@ namespace Editor
 		return GetTimelinePosition(loopEndFrame);
 	}
 
+	void AetTimeline::DrawTimelineContentNone()
+	{
+		ImU32 dimColor = ImGui::GetColorU32(ImGuiCol_PopupBg, 0.25f);
+		ImGui::GetWindowDrawList()->AddRectFilled(timelineBaseRegion.GetTL(), timelineBaseRegion.GetBR(), dimColor);
+	}
+
+	void AetTimeline::DrawTimelineContentKeyFrames()
+	{
+		const KeyFrameProperties* properties = active.AetObj->AnimationData.Properties.get();
+		if (properties == nullptr)
+			return;
+
+		for (int i = 0; i < properties->size(); i++)
+		{
+			float y = (i * rowHeight) + (rowHeight / 2);
+
+			const KeyFrameCollection& keyFrames = properties->at(i);
+			for (const auto& keyFrame : keyFrames)
+			{
+				TimelineFrame keyFrameFrame = keyFrames.size() == 1 ? loopStartFrame : keyFrame.Frame;
+
+				ImVec2 start = timelineContentRegion.GetTL() + ImVec2(GetTimelinePosition(keyFrameFrame) - GetScrollX(), y);
+				baseDrawList->AddCircleFilled(start, 6.0f, GetColor(EditorColor_KeyFrame));
+			}
+		}
+	}
+
 	void AetTimeline::OnDrawTimelineHeaderWidgets()
 	{
 		static char timeInputBuffer[32];
@@ -180,21 +207,27 @@ namespace Editor
 
 	void AetTimeline::OnDrawTimelineContents()
 	{
-		if (active.Type() != AetSelectionType::AetObj || active.AetObj == nullptr)
-			return;
-
-		if (active.AetObj->AnimationData.Properties == nullptr)
-			return;
-
-		for (int i = 0; i < KeyFrameProperties::PropertyNames.size(); i++)
+		if (active.Type() == AetSelectionType::None || active.VoidPointer == nullptr)
 		{
-			float y = (i * rowHeight) + (rowHeight / 2);
+			DrawTimelineContentNone();
+			return;
+		}
 
-			for (auto& keyFrame : active.AetObj->AnimationData.Properties->at(i))
-			{
-				ImVec2 start = timelineContentRegion.GetTL() + ImVec2(GetTimelinePosition(TimelineFrame(keyFrame.Frame)) - GetScrollX(), y);
-				baseDrawList->AddCircleFilled(start, 6.0f, GetColor(EditorColor_KeyFrame));
-			}
+		switch (active.Type())
+		{
+		case AetSelectionType::AetSet:
+		case AetSelectionType::Aet:
+			DrawTimelineContentNone();
+			break;
+		case AetSelectionType::AetLayer:
+			break;
+		case AetSelectionType::AetObj:
+			DrawTimelineContentKeyFrames();
+			break;
+		case AetSelectionType::AetRegion:
+			break;
+		default:
+			break;
 		}
 	}
 

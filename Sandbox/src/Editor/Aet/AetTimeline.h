@@ -27,6 +27,9 @@ namespace Editor
 		bool GetIsPlayback() const override;
 		float GetTimelineSize() const override;
 
+		void DrawTimelineContentNone();
+		void DrawTimelineContentKeyFrames();
+
 		void OnDrawTimelineHeaderWidgets() override;
 		void OnDrawTimelineInfoColumnHeader() override;
 		void OnDrawTimelineInfoColumn() override;

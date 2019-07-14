@@ -47,7 +47,6 @@ namespace Editor
 		Aet* aet = nullptr;
 		AetItemTypePtr active;
 
-		vec2 newRendererSize;
 		Renderer2D renderer;
 
 		std::vector<AetMgr::ObjCache> objectCache;
