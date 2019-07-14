@@ -19,6 +19,8 @@ namespace Editor
 		void Initialize();
 		void DrawGui();
 
+		vec2 GetRelativeMouse() const;
+
 		inline bool GetKeepAspectRatio() { return keepAspectRatio; };
 		inline void SetKeepAspectRatio(bool value) { keepAspectRatio = value; };
 
@@ -33,6 +35,7 @@ namespace Editor
 
 		virtual void OnInitialize() {};
 		virtual void OnDrawGui() {};
+		virtual void PostDrawGui() {};
 		virtual void OnUpdateInput() = 0;
 		virtual void OnUpdate() = 0;
 		virtual void OnRender() = 0;

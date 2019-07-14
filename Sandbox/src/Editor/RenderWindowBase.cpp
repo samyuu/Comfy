@@ -17,7 +17,7 @@ namespace Editor
 		OnDrawGui();
 
 		ImGui::PushID((void*)this);
-		ImGui::BeginChild("RenderWindowBaseChild");
+		ImGui::BeginChild("BaseChild##RenderWindowBase");
 
 		lastRenderRegion = renderRegion;
 
@@ -71,10 +71,17 @@ namespace Editor
 			renderRegion.GetBR(),
 			ImGui::UV0_GL, ImGui::UV1_GL);
 
+		PostDrawGui();
+
 		ImGui::EndChild();
 		ImGui::PopID();
 
 		RenderWindowBase::PushWindowPadding();
+	}
+
+	vec2 RenderWindowBase::GetRelativeMouse() const
+	{
+		return ImGui::GetMousePos() - renderRegion.Min;
 	}
 
 	const ImRect& RenderWindowBase::GetRenderRegion() const
