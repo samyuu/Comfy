@@ -16,22 +16,23 @@ namespace Auth2D
 
 	static void TransformProperties(const Properties& input, Properties& output)
 	{
-		vec2 inputOrigin = input.Origin * input.Scale;
-		vec2 inputPosition = input.Position * input.Scale;
+		// TODO:
+		output.Position -= input.Origin;
+		output.Position *= input.Scale;
+		if (input.Rotation != 0.0f)
+		{
+			float radians = glm::radians(input.Rotation);
+			float sin = glm::sin(radians);
+			float cos = glm::cos(radians);
+
+			output.Position.x = output.Position.x * cos - output.Position.y * sin;
+			output.Position.y = output.Position.x * sin + output.Position.y * cos;
+		}
+		output.Position += input.Position;
 
 		output.Rotation += input.Rotation;
 		output.Scale *= input.Scale;
 		output.Opacity *= input.Opacity;
-
-		float radians = glm::radians(input.Rotation);
-		float sin = glm::sin(radians);
-		float cos = glm::cos(radians);
-
-		float xDiff = inputPosition.x - (inputOrigin.x * cos - inputOrigin.y * sin);
-		float yDiff = inputPosition.y - (inputOrigin.x * sin + inputOrigin.y * cos);
-
-		output.Position.x += xDiff;
-		output.Position.y += yDiff;
 	}
 
 	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetLayer* aetLayer, float frame)
@@ -107,7 +108,7 @@ namespace Auth2D
 	{
 		assert(aetObj->Type == AetObjType::Pic);
 
-		if (frame < aetObj->LoopStart || frame >= aetObj->LoopEnd) // (aetObj->Flags & AetObjFlags_Visible || aetObj->AnimationData.UseTextureMask) )
+		if (frame < aetObj->LoopStart || frame >= aetObj->LoopEnd || !(aetObj->Flags & AetObjFlags_Visible)) // (aetObj->Flags & AetObjFlags_Visible || aetObj->AnimationData.UseTextureMask) )
 			return;
 
 		float adjustedFrame = ((frame - aetObj->LoopStart) * aetObj->PlaybackSpeed) + aetObj->StartFrame;
@@ -150,7 +151,7 @@ namespace Auth2D
 	{
 		assert(aetObj->Type == AetObjType::Eff);
 
-		if (frame < aetObj->LoopStart || frame >= aetObj->LoopEnd)
+		if (frame < aetObj->LoopStart || frame >= aetObj->LoopEnd || !(aetObj->Flags & AetObjFlags_Visible))
 			return;
 
 		float adjustedFrame = ((frame - aetObj->LoopStart) * aetObj->PlaybackSpeed) + aetObj->StartFrame;
