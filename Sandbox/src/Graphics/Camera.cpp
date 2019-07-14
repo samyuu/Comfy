@@ -1,21 +1,39 @@
+#define GLM_FORCE_SWIZZLE
 #include "Camera.h"
+#undef GLM_FORCE_SWIZZLE
 
-void Camera::Update()
+vec3 ScreenToWorldSpace(const mat4& matrix, const vec3& screenSpace)
 {
-	// Direction = glm::normalize(Position - Target);
-	// Right = glm::cross(UP_DIRECTION, Direction);
-	// Up = glm::cross(Direction, Right);
+	return (glm::inverse(matrix) * vec4(screenSpace, 1.0f)).xyz;
+}
 
-	//viewMatrix = glm::lookAt(Position, Target, UP_DIRECTION);
+vec3 WorldToScreenSpace(const mat4& matrix, const vec3& worldSpace)
+{
+	return (matrix * vec4(worldSpace, 1.0f)).xyz;
+}
 
-	//viewMatrix = glm::lookAt(Position, Position + Front, UP_DIRECTION);
+vec2 ScreenToWorldSpace(const mat4& matrix, const vec2& screenSpace)
+{
+	return (glm::inverse(matrix) * vec4(screenSpace, 0.0f, 1.0f)).xy;
+}
 
+vec2 WorldToScreenSpace(const mat4& matrix, const vec2& worldSpace)
+{
+	return (matrix * vec4(worldSpace, 0.0f, 1.0f)).xy;
+}
+
+void PerspectiveCamera::Update()
+{
 	viewMatrix = glm::lookAt(Position, Target, UpDirection);
-	
-	//if (Rotation != 0.0f)
-	//	viewMatrix = glm::rotate(viewMatrix, glm::radians(Rotation), (Position + Target));
-	//viewMatrix = glm::rotate(viewMatrix, glm::radians(Rotation), (Position + Target));
-	//viewMatrix = glm::rotate(viewMatrix, glm::radians(Rotation), vec3(0.0f, 0.0f, 1.0f));
-
 	projectionMatrix = glm::perspective(glm::radians(FieldOfView), AspectRatio, NearPlane, FarPlane);
+}
+
+const mat4& PerspectiveCamera::GetViewMatrix() const
+{
+	return viewMatrix;
+}
+
+const mat4& PerspectiveCamera::GetProjectionMatrix() const
+{
+	return projectionMatrix;
 }

@@ -35,7 +35,7 @@ namespace Editor
 			float cameraPitch, cameraYaw = -90.0f, cameraRoll;
 			float targetCameraPitch, targetCameraYaw = -90.0f;
 			float cameraSensitivity = 0.25f;
-			Camera camera;
+			PerspectiveCamera camera;
 		};
 
 		// Vertex Storage
