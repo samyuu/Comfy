@@ -227,6 +227,9 @@ namespace Editor
 
 	void AetRenderWindow::RenderObjCache(const AetMgr::ObjCache& obj)
 	{
+		if (obj.Region == nullptr)
+			return;
+
 		AetSprite* aetSprite = obj.Region->Sprites.size() < 1 ? nullptr : &obj.Region->Sprites.at(obj.SpriteIndex);
 
 		Texture* texture;

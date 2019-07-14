@@ -118,12 +118,16 @@ namespace Auth2D
 
 		objCache.BlendMode = aetObj->AnimationData.BlendMode;
 		objCache.Region = aetObj->GetRegion();
-		objCache.SpriteIndex = static_cast<int32_t>(adjustedFrame - 1);
 
-		if (objCache.SpriteIndex >= objCache.Region->Sprites.size())
-			objCache.SpriteIndex = static_cast<int32_t>(objCache.Region->Sprites.size() - 1);
-		if (objCache.SpriteIndex < 0)
-			objCache.SpriteIndex = 0;
+		if (objCache.Region != nullptr)
+		{
+			objCache.SpriteIndex = static_cast<int32_t>(adjustedFrame - 1);
+
+			if (objCache.SpriteIndex >= objCache.Region->Sprites.size())
+				objCache.SpriteIndex = static_cast<int32_t>(objCache.Region->Sprites.size() - 1);
+			if (objCache.SpriteIndex < 0)
+				objCache.SpriteIndex = 0;
+		}
 
 		Interpolate(aetObj->AnimationData, &objCache.Properties, adjustedFrame);
 
@@ -161,6 +165,10 @@ namespace Auth2D
 		TransformProperties(*parentProperties, effProperties);
 
 		AetLayer* aetLayer = aetObj->GetLayer();
+		
+		if (aetLayer == nullptr)
+			return;
+		
 		for (int i = aetLayer->size() - 1; i >= 0; i--)
 			InternalAddObjects(objects, &effProperties, &aetLayer->at(i), adjustedFrame);
 	}
