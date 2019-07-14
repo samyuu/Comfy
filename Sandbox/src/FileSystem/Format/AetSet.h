@@ -8,7 +8,7 @@
 namespace FileSystem
 {
 	class Aet;
-	struct AetLayer;
+	class AetLayer;
 	struct Sprite;
 
 	typedef void* fileptr_t;
@@ -155,11 +155,11 @@ namespace FileSystem
 
 		struct
 		{
-			int32_t RegionIndex;
-			int32_t LayerIndex;
+			int32_t RegionIndex = -1;
+			int32_t LayerIndex = -1;
 
-			int32_t ParentLayerIndex;
-			int32_t ParentObjIndex;
+			int32_t ParentLayerIndex = -1;
+			int32_t ParentObjIndex = -1;
 
 		} references;
 
