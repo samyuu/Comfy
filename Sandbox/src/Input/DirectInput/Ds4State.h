@@ -1,13 +1,12 @@
 #pragma once
 #include "DirectInput.h"
 #include "Ds4Button.h"
-#include <glm/vec2.hpp>
-#include <glm/glm.hpp>
+#include "Types.h"
 
-inline glm::vec2 GetDirection(float degrees)
+inline vec2 GetDirection(float degrees)
 {
 	float radians = glm::radians(degrees);
-	return glm::vec2(cos(radians), sin(radians));
+	return vec2(cos(radians), sin(radians));
 }
 
 struct Joystick
