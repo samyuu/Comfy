@@ -262,6 +262,10 @@ namespace Editor
 			if (previousTime == newTime)
 				return;
 
+			TimeSpan endTime = GetTimelineTime(loopEndFrame);
+			if (newTime > endTime)
+				newTime = endTime;
+
 			cursorTime = newTime;
 		}
 	}

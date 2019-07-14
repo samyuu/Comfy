@@ -147,7 +147,7 @@ namespace Editor
 
 					float amount = .5f;
 					zoomLevel = zoomLevel + amount * io->MouseWheel;
-
+					
 					if (zoomLevel <= 0)
 						zoomLevel = amount;
 
