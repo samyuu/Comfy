@@ -226,11 +226,20 @@ namespace Editor
 	{
 		if (ImGui::WideTreeNode(name))
 		{
-			for (KeyFrame& keyFrame : *keyFrames)
+			if (keyFrames->size() == 1)
 			{
-				ImGui::PushID((void*)&keyFrame.Frame);
-				ImGui::InputFloat3("F-V-I", &keyFrame.Frame);
+				ImGui::PushID((void*)keyFrames);
+				ImGui::InputFloat("Value", &keyFrames->front().Value, 0.1f, 1.0f);
 				ImGui::PopID();
+			}
+			else
+			{
+				for (KeyFrame& keyFrame : *keyFrames)
+				{
+					ImGui::PushID((void*)&keyFrame.Frame);
+					ImGui::InputFloat3("F-V-I", &keyFrame.Frame);
+					ImGui::PopID();
+				}
 			}
 			ImGui::TreePop();
 		}
