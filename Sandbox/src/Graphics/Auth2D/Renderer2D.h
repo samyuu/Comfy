@@ -121,6 +121,9 @@ namespace Auth2D
 		std::vector<BatchItem> batchItems;
 		std::vector<SpriteVertices> vertices;
 
+		vec2 projectionSize { 1.0f, 1.0f };
+		bool projectionChanged = true;
+
 		void GenerateUploadSpriteIndexBuffer(uint16_t elementCount);
 		void CreateBatches();
 		

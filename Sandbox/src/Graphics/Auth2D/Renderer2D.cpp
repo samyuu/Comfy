@@ -218,10 +218,10 @@ namespace Auth2D
 	void Renderer2D::DrawLine(const vec2& start, const vec2& end, const vec4& color, float thickness)
 	{
 		vec2 edge = end - start;
-		
+
 		float distance = glm::distance(start, end);
 		float angle = glm::degrees(glm::atan(edge.y, edge.x));
-		
+
 		vec4 source = vec4(0.0f, 0.0f, distance, thickness);
 		vec2 origin = vec2(0.0f, thickness / 2.0f);
 
@@ -246,7 +246,7 @@ namespace Auth2D
 		CreateBatches();
 
 		GLCall(glDisable(GL_DEPTH_TEST));
-		
+
 		if (enableAlphaTest)
 		{
 			GLCall(glEnable(GL_BLEND));
@@ -258,6 +258,12 @@ namespace Auth2D
 
 		shader->Bind();
 		shader->SetUniform(shader->UseTextShadowLocation, GetUseTextShadow());
+		if (projectionChanged)
+		{
+			mat4 projection = glm::ortho(0.0f, projectionSize.x, projectionSize.y, 0.0f, -1.0f, 1.0f);
+			shader->SetUniform(shader->ProjectionLocation, projection);
+			projectionChanged = false;
+		}
 
 		vertexArray.Bind();
 		vertexBuffer.Bind();
@@ -300,10 +306,11 @@ namespace Auth2D
 
 	void Renderer2D::Resize(float width, float height)
 	{
-		mat4 projection = glm::ortho(0.0f, width, height, 0.0f, -1.0f, 1.0f);
+		if (width == projectionSize.x && height == projectionSize.y)
+			return;
 
-		shader->Bind();
-		shader->SetUniform(shader->ProjectionLocation, projection);
+		projectionChanged = true;
+		projectionSize = vec2(width, height);
 	}
 
 	void Renderer2D::SetBlendFunction(AetBlendMode blendMode)
@@ -386,7 +393,7 @@ namespace Auth2D
 			BatchItem* lastItem = first ? nullptr : &batchItems[batches.back().Index];
 
 			bool newBatch = first || (item->BlendMode != lastItem->BlendMode) || (item->Texture != lastItem->Texture || item->MaskTexture != lastItem->MaskTexture);
-			
+
 			if (newBatch)
 			{
 				batches.emplace_back(i, 1);
