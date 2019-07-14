@@ -24,6 +24,7 @@ namespace Editor
 
 	protected:
 		void OnDrawGui() override;
+		void PostDrawGui() override;
 		void OnUpdateInput() override;
 		void OnUpdate() override;
 		void OnRender() override;
@@ -39,6 +40,9 @@ namespace Editor
 		void RenderAetRegion(AetRegion* aetRegion);
 
 	protected:
+		void UpdateViewMatrix();
+		void UpdateViewControlInput();
+		
 		void RenderObjCache(const AetMgr::ObjCache& obj);
 
 	private:
@@ -51,19 +55,16 @@ namespace Editor
 
 		std::vector<AetMgr::ObjCache> objectCache;
 
-		struct
+		struct AetCamera
 		{
-			vec4 aetSourceRegion = { 0.0f, 0.0f, 0.0f, 0.0f };
-			vec4 aetColor = { 1.0f, 1.0f, 1.0f, 1.0f };
-			vec2 aetPosition = { 100, 100 };
-			vec2 aetOrigin = { };
-			vec2 aetScale = { 1.0f, 1.0f };
-			float aetRotation = { };
-		};
+			vec2 Position;
+			float Zoom = 1.0f;
+			const float ZoomStep = 1.1f;
+			mat4 ViewMatrix;
+		} camera;
 
 		bool useTextShadow = false;
-		int currentBlendItem = (int)AetBlendMode::Alpha;
-		int txpIndex = 0, spriteIndex = -1;
+		int currentBlendItem = static_cast<int>(AetBlendMode::Alpha);
 
 		SpriteGetter getSprite = nullptr;
 	};
