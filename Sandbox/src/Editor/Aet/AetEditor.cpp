@@ -1,4 +1,5 @@
 #include "AetEditor.h"
+#include "AetIcons.h"
 #include "FileSystem/MemoryStream.h"
 #include "FileSystem/BinaryReader.h"
 #include "FileSystem/FileHelper.h"
@@ -66,7 +67,7 @@ namespace Editor
 		ImGui::GetCurrentWindow()->Hidden = true;
 		constexpr ImGuiWindowFlags windowFlags = ImGuiWindowFlags_None; // ImGuiWindowFlags_NoBackground;
 
-		if (ImGui::Begin("AetSet Loader##AetEditor", nullptr, ImGuiWindowFlags_None))
+		if (ImGui::Begin(ICON_SETLOADER "  AetSet Loader##AetEditor", nullptr, ImGuiWindowFlags_None))
 		{
 			ImGui::BeginChild("AetSetLoaderChild##AetEditor");
 			DrawAetSetLoader();
@@ -74,7 +75,7 @@ namespace Editor
 		}
 		ImGui::End();
 
-		if (ImGui::Begin("SprSet Loader##AetEditor", nullptr, ImGuiWindowFlags_None))
+		if (ImGui::Begin(ICON_SETLOADER "  SprSet Loader##AetEditor", nullptr, ImGuiWindowFlags_None))
 		{
 			ImGui::BeginChild("SprSetLoaderChild##AetEditor");
 			DrawSprSetLoader();
@@ -82,7 +83,7 @@ namespace Editor
 		}
 		ImGui::End();
 
-		if (ImGui::Begin("Aet Tree View##AetEditor", nullptr, windowFlags))
+		if (ImGui::Begin(ICON_TREEVIEW "  Aet Tree View##AetEditor", nullptr, windowFlags))
 		{
 			ImGui::BeginChild("AetTreeViewChild##AetEditor", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 			treeView->DrawGui(aetSet.get());
@@ -91,7 +92,7 @@ namespace Editor
 		ImGui::End();
 
 		RenderWindowBase::PushWindowPadding();
-		if (ImGui::Begin("Aet Render Window##AetEditor", nullptr, windowFlags))
+		if (ImGui::Begin(ICON_RENDERWINDOW "  Aet Render Window##AetEditor", nullptr, windowFlags))
 		{
 			renderWindow->SetActive(treeView->GetActiveAet(), treeView->GetSelected());
 			renderWindow->SetCurrentFrame(timeline->GetFrame().Frames());
@@ -100,7 +101,7 @@ namespace Editor
 		ImGui::End();
 		RenderWindowBase::PopWindowPadding();
 
-		if (ImGui::Begin("Aet Inspector##AetEditor", nullptr, windowFlags))
+		if (ImGui::Begin(ICON_INSPECTOR "  Aet Inspector##AetEditor", nullptr, windowFlags))
 		{
 			ImGui::BeginChild("AetInspectorChild##AetEditor");
 			inspector->DrawGui(aetSet.get(), treeView->GetSelected());
@@ -108,7 +109,7 @@ namespace Editor
 		}
 		ImGui::End();
 
-		if (ImGui::Begin("Aet Properties##AetEditor", nullptr, windowFlags))
+		if (ImGui::Begin(ICON_PROPERTIES "  Aet Properties##AetEditor", nullptr, windowFlags))
 		{
 			ImGui::BeginChild("AetPropertiesChild##AetEditor");
 			DrawProperties();
@@ -116,7 +117,7 @@ namespace Editor
 		}
 		ImGui::End();
 
-		if (ImGui::Begin("Aet Timeline##AetEditor", nullptr))
+		if (ImGui::Begin(ICON_FA_CLOCK "  Aet Timeline##AetEditor", nullptr))
 		{
 			AetItemTypePtr selected = treeView->GetSelected();
 			timeline->SetActive(treeView->GetActiveAet(), treeView->GetSelected());
