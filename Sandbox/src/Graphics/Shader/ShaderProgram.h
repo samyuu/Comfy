@@ -25,9 +25,13 @@ public:
 	void UnBind() const override;
 	void SetUniform(UniformLocation_t, int);
 	void SetUniform(UniformLocation_t, float);
+	void SetUniform(UniformLocation_t, const vec2&);
+	void SetUniform(UniformLocation_t, const vec3&);
 	void SetUniform(UniformLocation_t, const glm::mat4&);
 	void SetUniformByName(const char*, int);
 	void SetUniformByName(const char*, float);
+	void SetUniformByName(const char*, const glm::vec2&);
+	void SetUniformByName(const char*, const glm::vec3&);
 	void SetUniformByName(const char*, const glm::mat4&);
 
 	void Initialize();

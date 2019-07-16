@@ -30,6 +30,16 @@ void ShaderProgram::SetUniform(UniformLocation_t location, float value)
 	GLCall(glUniform1f(location, value));
 }
 
+void ShaderProgram::SetUniform(UniformLocation_t location, const vec2& value)
+{
+	GLCall(glUniform2f(location, value.x, value.y));
+}
+
+void ShaderProgram::SetUniform(UniformLocation_t location, const vec3& value)
+{
+	GLCall(glUniform3f(location, value.x, value.y, value.z));
+}
+
 void ShaderProgram::SetUniform(UniformLocation_t location, const glm::mat4& value)
 {
 	GLCall(glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value)));
@@ -41,6 +51,16 @@ void ShaderProgram::SetUniformByName(const char* name, int value)
 }
 
 void ShaderProgram::SetUniformByName(const char* name, float value)
+{
+	SetUniform(GetUniformLocation(name), value);
+}
+
+void ShaderProgram::SetUniformByName(const char* name, const vec2& value)
+{
+	SetUniform(GetUniformLocation(name), value);
+}
+
+void ShaderProgram::SetUniformByName(const char* name, const vec3& value)
 {
 	SetUniform(GetUniformLocation(name), value);
 }
