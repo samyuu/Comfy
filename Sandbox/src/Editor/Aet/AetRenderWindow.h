@@ -33,6 +33,7 @@ namespace Editor
 	protected:
 		void OnInitialize() override;
 
+		void RenderGrid();
 		void RenderAetSet(AetSet* aetSet);
 		void RenderAet(Aet* aet);
 		void RenderAetLayer(AetLayer* aetLayer);
@@ -43,6 +44,8 @@ namespace Editor
 		void UpdateViewMatrix();
 		void UpdateViewControlInput();
 		
+		void SetUpdateCameraZoom(float newZoom, vec2 origin);
+
 		void RenderObjCache(const AetMgr::ObjCache& obj);
 
 	private:
@@ -58,9 +61,12 @@ namespace Editor
 		struct AetCamera
 		{
 			vec2 Position;
-			float Zoom = 1.0f;
-			const float ZoomStep = 1.1f;
 			mat4 ViewMatrix;
+			
+			const float ZoomStep = 1.1f;
+			const float ZoomMin = 0.1f;
+			const float ZoomMax = 12.8f;
+			float Zoom = 1.0f;
 		} camera;
 
 		bool useTextShadow = false;
