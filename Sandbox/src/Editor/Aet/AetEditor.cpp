@@ -109,13 +109,16 @@ namespace Editor
 		}
 		ImGui::End();
 
-		if (ImGui::Begin(ICON_PROPERTIES "  Aet Properties##AetEditor", nullptr, windowFlags))
+		if (false)
 		{
-			ImGui::BeginChild("AetPropertiesChild##AetEditor");
-			DrawProperties();
-			ImGui::EndChild();
+			if (ImGui::Begin(ICON_PROPERTIES "  Aet Properties##AetEditor", nullptr, windowFlags))
+			{
+				ImGui::BeginChild("AetPropertiesChild##AetEditor");
+				DrawProperties();
+				ImGui::EndChild();
+			}
+			ImGui::End();
 		}
-		ImGui::End();
 
 		if (ImGui::Begin(ICON_FA_CLOCK "  Aet Timeline##AetEditor", nullptr))
 		{
