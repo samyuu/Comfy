@@ -24,6 +24,7 @@ namespace Auth2D
 			int32_t SpriteIndex;
 			AetRegion* Region;
 			AetBlendMode BlendMode;
+			const AetObj* AetObj;
 		};
 
 		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, const AetLayer* aetLayer, float frame);

@@ -116,8 +116,9 @@ namespace Auth2D
 		objects.emplace_back();
 		ObjCache& objCache = objects.back();
 
-		objCache.BlendMode = aetObj->AnimationData.BlendMode;
+		objCache.AetObj = aetObj;
 		objCache.Region = aetObj->GetRegion();
+		objCache.BlendMode = aetObj->AnimationData.BlendMode;
 
 		if (objCache.Region != nullptr)
 		{
@@ -135,7 +136,6 @@ namespace Auth2D
 		if (parent != nullptr)
 		{
 			// TODO:
-
 			Properties objParentProperties;
 			Interpolate(parent->AnimationData, &objParentProperties, adjustedFrame);
 
