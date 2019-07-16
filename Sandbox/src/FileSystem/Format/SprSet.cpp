@@ -28,11 +28,10 @@ namespace FileSystem
 		{
 			reader.ReadAt(spritesOffset, [spritesCount, &sprSet](BinaryReader& reader)
 			{
-				sprSet->Sprites.reserve(spritesCount);
+				sprSet->Sprites.resize(spritesCount);
 				for (uint32_t i = 0; i < spritesCount; i++)
 				{
-					sprSet->Sprites.emplace_back();
-					Sprite* sprite = &sprSet->Sprites.back();
+					Sprite* sprite = &sprSet->Sprites[i];
 
 					sprite->TextureIndex = reader.ReadInt32();
 					sprite->Unknown = reader.ReadFloat();
@@ -69,8 +68,8 @@ namespace FileSystem
 			{
 				for (Sprite &sprite : sprSet->Sprites)
 				{
-					sprite.ExtraData.Zero = reader.ReadUInt32();
-					sprite.ExtraData.Low = reader.ReadUInt32();
+					sprite.GraphicsReserved = reader.ReadUInt32();
+					sprite.GraphicsMode = reader.Read<GraphicsMode>();
 				}
 			});
 		}
@@ -142,8 +141,8 @@ namespace FileSystem
 
 			for (Sprite &sprite : sprSet->Sprites)
 			{
-				sprite.ExtraData.Zero = *((uint32_t*)extraDataBuffer + 0);
-				sprite.ExtraData.Low = *((uint32_t*)extraDataBuffer + 4);
+				sprite.GraphicsReserved = *((uint32_t*)extraDataBuffer + 0);
+				sprite.GraphicsMode = *((GraphicsMode*)extraDataBuffer + 4);
 				extraDataBuffer += 8;
 			}
 		}
