@@ -18,6 +18,8 @@ void SpriteShader::GetAllUniformLocations()
 
 	UseSolidColorLocation = GetUniformLocation("u_solidColor");
 	UseTextShadowLocation = GetUniformLocation("u_textShadow");
+	UseCheckerboardLocation = GetUniformLocation("u_checkerboard");
+	CheckerboardSizeLocation = GetUniformLocation("u_checkboardSize");
 	TextureFormatLocation = GetUniformLocation("u_textureFormat");
 
 	TextureLocation = GetUniformLocation("textureSampler");

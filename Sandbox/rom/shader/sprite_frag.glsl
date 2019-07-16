@@ -6,6 +6,8 @@ in vec2 vertexTexCoord;
 
 uniform bool u_solidColor;
 uniform bool u_textShadow;
+uniform bool u_checkerboard;
+uniform vec2 u_checkboardSize;
 uniform int u_textureFormat;
 uniform sampler2D textureSampler;
 uniform sampler2D textureMaskSampler;
@@ -34,7 +36,7 @@ vec4 GetTextureColor()
 	if (u_textureFormat == TextureFormat_RGTC2)
 	{
 		vec4 grayscale = textureLod(textureSampler, vertexTexCoord, 0.0).rrrg;
-		vec4 luminance = textureLod(textureSampler, vertexTexCoord, 1.0) * 1.003922 -0.503929;
+		vec4 luminance = textureLod(textureSampler, vertexTexCoord, 1.0) * 1.003922 - 0.503929;
 		grayscale.rb = luminance.gr;
 		
 		return vec4(
@@ -86,6 +88,13 @@ vec4 GetFontTextureColor()
 
 void main()
 {
+	if (u_checkerboard)
+	{
+		vec2 point = vertexTexCoord * u_checkboardSize;
+		if ((mod(0.08 * (point.x), 1.0) < 0.5) ^^ (mod(0.08 * (point.y), 1.0) < 0.5))
+			discard;
+	}
+
 	if (u_solidColor)
 	{
 		fragColor = vertexColor;

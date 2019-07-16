@@ -16,6 +16,8 @@ public:
 
 	UniformLocation_t UseSolidColorLocation;
 	UniformLocation_t UseTextShadowLocation;
+	UniformLocation_t UseCheckerboardLocation;
+	UniformLocation_t CheckerboardSizeLocation;
 	UniformLocation_t TextureFormatLocation;
 	
 	UniformLocation_t TextureLocation;
