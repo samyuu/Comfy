@@ -336,9 +336,12 @@ bool Application::InitializeGui()
 	io.IniFilename = "ram/imgui.ini";
 	io.LogFilename = "ram/imgui_log.txt";
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
-	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // | ImGuiConfigFlags_NavNoCaptureKeyboard;
-	io.KeyRepeatDelay = 0.500f;
-	io.KeyRepeatRate = 0.075f;
+	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	// io.ConfigFlags |= ImGuiConfigFlags_NavNoCaptureKeyboard;
+	io.ConfigDockingWithShift = false;
+	io.ConfigViewportsNoDecoration = true;
+	io.KeyRepeatDelay = 0.250f;
+	io.KeyRepeatRate = 0.050f;
 	io.ConfigWindowsMoveFromTitleBarOnly = true;
 	io.ConfigDockingTabBarOnSingleWindows = true;
 
