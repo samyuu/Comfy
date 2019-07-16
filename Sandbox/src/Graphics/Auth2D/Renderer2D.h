@@ -57,6 +57,7 @@ namespace Auth2D
 		const Texture2D* Texture;
 		const Texture2D* MaskTexture;
 		AetBlendMode BlendMode;
+		vec2 CheckerboardSize;
 
 		void SetValues(const Texture2D* texture, const Texture2D* alphaMask = nullptr, AetBlendMode blendMode = AetBlendMode::Alpha);
 	};
@@ -94,6 +95,7 @@ namespace Auth2D
 		void DrawLine(const vec2& start, float angle, float length, const vec4& color, float thickness = 1.0f);
 		
 		void DrawRectangle(const vec2& topLeft, const vec2& topRight, const vec2& bottomLeft, const vec2& bottomRight, const vec4& color, float thickness = 1.0f);
+		void DrawCheckerboardRectangle(const vec2& position, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4& color, float precision = 1.0f);
 
 		const SpriteVertices& GetLastVertices() const;
 

@@ -245,6 +245,14 @@ namespace Auth2D
 		DrawLine(bottomLeft, topLeft, color, thickness);
 	}
 
+	void Renderer2D::DrawCheckerboardRectangle(const vec2& position, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4& color, float precision)
+	{
+		vec4 source = vec4(0.0f, 0.0f, size.x, size.y);
+		DrawInternal(nullptr, &source, &position, &origin, rotation, &scale, &color);
+
+		batchItems.back().CheckerboardSize = size * scale * precision;
+	}
+
 	const SpriteVertices& Renderer2D::GetLastVertices() const
 	{
 		assert(vertices.size() > 0);
@@ -308,6 +316,11 @@ namespace Auth2D
 			}
 
 			shader->SetUniform(shader->UseSolidColorLocation, item.Texture == nullptr);
+
+			bool useCheckerboard = item.CheckerboardSize != vec2(0.0f);
+			shader->SetUniform(shader->UseCheckerboardLocation, useCheckerboard);
+			if (useCheckerboard)
+				shader->SetUniform(shader->CheckerboardSizeLocation, item.CheckerboardSize);
 
 			GLCall(glDrawElements(GL_TRIANGLES,
 				batch.Count * SpriteIndices::GetIndexCount(),
@@ -397,7 +410,6 @@ namespace Auth2D
 
 	void Renderer2D::CreateBatches()
 	{
-		// move to draw (?)
 		const Texture2D* lastTexture = nullptr;
 
 		for (uint16_t i = 0; i < batchItems.size(); i++)
@@ -407,7 +419,8 @@ namespace Auth2D
 			BatchItem* item = &batchItems[i];
 			BatchItem* lastItem = first ? nullptr : &batchItems[batches.back().Index];
 
-			bool newBatch = first || (item->BlendMode != lastItem->BlendMode) || (item->Texture != lastItem->Texture || item->MaskTexture != lastItem->MaskTexture);
+			constexpr vec2 sizeZero = vec2(0.0f);
+			bool newBatch = first || (item->BlendMode != lastItem->BlendMode) || (item->Texture != lastItem->Texture || item->MaskTexture != lastItem->MaskTexture) || (item->CheckerboardSize != sizeZero || lastItem->CheckerboardSize != sizeZero);
 
 			if (newBatch)
 			{
