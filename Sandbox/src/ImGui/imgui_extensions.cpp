@@ -70,8 +70,8 @@ namespace ImGui
 		colors[ImGuiCol_TextSelectedBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.27f);
 		colors[ImGuiCol_DragDropTarget] = ImVec4(0.59f, 0.59f, 0.59f, 0.98f);
 		colors[ImGuiCol_NavHighlight] = ImVec4(0.83f, 0.83f, 0.83f, 1.00f);
-		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.99f);
-		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.99f);
+		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(0.83f, 0.83f, 0.83f, 1.00f);
+		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.50f);
 		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.50f);
 	}
 
@@ -97,9 +97,24 @@ namespace ImGui
 		const ImVec2 label_size = CalcTextSize(label, label_end, false);
 
 		// We vertically grow up to current line height up the typical widget height.
-		const float text_base_offset_y = ImMax(padding.y, window->DC.CurrentLineTextBaseOffset); // Latch before ItemSize changes it
+		float text_base_offset_y = ImMax(padding.y, window->DC.CurrentLineTextBaseOffset); // Latch before ItemSize changes it
 		const float frame_height = ImMax(ImMin(window->DC.CurrentLineSize.y, g.FontSize + style.FramePadding.y * 2), label_size.y + padding.y * 2);
 		ImRect frame_bb = ImRect(window->DC.CursorPos, ImVec2(window->Pos.x + GetContentRegionMax().x, window->DC.CursorPos.y + frame_height));
+		
+		// Selectables are tightly packed together so we extend the box to cover spacing between selectable.
+		{
+			const float spacing_x = style.ItemSpacing.x;
+			const float spacing_y = style.ItemSpacing.y;
+			const float spacing_L = (float)(int)(spacing_x * 0.50f);
+			const float spacing_U = (float)(int)(spacing_y * 0.50f);
+			frame_bb.Min.x -= spacing_L;
+			frame_bb.Min.y -= spacing_U;
+			frame_bb.Max.x += (spacing_x - spacing_L);
+			frame_bb.Max.y += (spacing_y - spacing_U);
+
+			text_base_offset_y += spacing_U;
+		}
+
 		if (display_frame)
 		{
 			// Framed header expand a little outside the default padding
@@ -112,6 +127,7 @@ namespace ImGui
 		ItemSize(ImVec2(text_width, frame_height), text_base_offset_y);
 
 		// Always use the hit test up to the right side of the content
+		//const ImRect interact_bb = ImRect(frame_bb.Min.x, frame_bb.Min.y, frame_bb.Min.x + text_width + style.ItemSpacing.x * 2, frame_bb.Max.y);
 		const ImRect interact_bb = frame_bb;
 		bool is_open = TreeNodeBehaviorIsOpen(id, flags);
 		bool is_leaf = (flags & ImGuiTreeNodeFlags_Leaf) != 0;
