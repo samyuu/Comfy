@@ -132,7 +132,7 @@ namespace Editor
 			}
 
 			int objTypeIndex = static_cast<int>(aetObj->Type);
-			if (ImGui::Combo("Obj Type", &objTypeIndex, AetObj::TypeNames.data(), AetObj::TypeNames.size()))
+			if (ImGui::Combo("Obj Type", &objTypeIndex, AetObj::TypeNames.data(), static_cast<int>(AetObj::TypeNames.size())))
 				aetObj->Type = static_cast<AetObjType>(objTypeIndex);
 
 			ImGui::InputFloat("Loop Start", &aetObj->LoopStart, 1.0f, 10.0f);

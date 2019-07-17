@@ -210,7 +210,7 @@ namespace Editor
 
 		renderTarget.Bind();
 		{
-			GLCall(glViewport(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight()));
+			GLCall(glViewport(0, 0, static_cast<GLint>(renderTarget.GetWidth()), static_cast<GLint>(renderTarget.GetHeight())));
 
 			vec4 backgroundColor = GetColorVec4(EditorColor_DarkClear);
 			GLCall(glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z, backgroundColor.w));
@@ -250,11 +250,12 @@ namespace Editor
 				}
 
 				// Screen - WorldSpace Test
+				if (ImGui::IsWindowFocused())
 				{
 					constexpr float cursorSize = 4.0f;
 
 					vec2 mouseWorldSpace = ScreenToWorldSpace(camera.ViewMatrix, GetRelativeMouse());
-					renderer.Draw(mouseWorldSpace - vec2(cursorSize * 0.5f), vec2(cursorSize), vec4(.85f, .14f, .12f, .85f));
+					renderer.Draw(mouseWorldSpace - vec2(cursorSize * 0.5f), vec2(cursorSize), GetColorVec4(EditorColor_CursorInner));
 				}
 			}
 			renderer.End();
@@ -324,22 +325,13 @@ namespace Editor
 
 	void AetRenderWindow::RenderAetRegion(AetRegion* aetRegion)
 	{
-		if (aetRegion->Sprites.size() < 1)
-		{
-			vec4 color = ImGui::ColorConvertU32ToFloat4(aetRegion->Color);
-			color.a = 1.0f;
-
-			renderer.Draw(vec2(0.0f), vec2(aetRegion->Width, aetRegion->Height), color);
-			return;
-		}
-
 		size_t spriteIndex = glm::clamp(static_cast<size_t>(0), static_cast<size_t>(currentFrame), aetRegion->Sprites.size() - 1);
 		AetSprite* spriteRegion = &aetRegion->Sprites.at(spriteIndex);
 
 		Texture* texture;
 		Sprite* sprite;
 
-		if (!getSprite(spriteRegion, &texture, &sprite))
+		if (aetRegion->Sprites.size() < 1 || !getSprite(spriteRegion, &texture, &sprite))
 		{
 			renderer.Draw(nullptr, vec4(0, 0, aetRegion->Width, aetRegion->Height), vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), dummyColor, static_cast<AetBlendMode>(currentBlendItem));
 		}
