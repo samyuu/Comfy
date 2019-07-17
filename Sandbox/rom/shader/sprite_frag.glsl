@@ -90,8 +90,8 @@ void main()
 {
 	if (u_checkerboard)
 	{
-		vec2 point = vertexTexCoord * u_checkboardSize;
-		if ((mod(0.08 * (point.x), 1.0) < 0.5) ^^ (mod(0.08 * (point.y), 1.0) < 0.5))
+		vec2 point = (vertexTexCoord - vec2(0.0, 1.0)) * u_checkboardSize * 0.08;
+		if ((mod(point.x, 1.0) < 0.5) ^^ (mod(point.y, 1.0) < 0.5))
 			discard;
 	}
 
