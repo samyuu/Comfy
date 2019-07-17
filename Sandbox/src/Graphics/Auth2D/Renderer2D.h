@@ -111,6 +111,8 @@ namespace Auth2D
 		inline bool GetUseTextShadow() { return useTextShadow; };
 		inline void SetUseTextShadow(bool value) { useTextShadow = value; };
 
+		inline uint16_t GetDrawCallCount() { return drawCallCount; };
+
 		static void SetBlendFunction(AetBlendMode blendMode);
 		static const BlendFuncStruct& GetBlendFuncParamteres(AetBlendMode blendMode);
 
@@ -119,6 +121,7 @@ namespace Auth2D
 		bool useTextShadow = false;
 
 		std::unique_ptr<SpriteShader> shader;
+
 		VertexArray vertexArray;
 		VertexBuffer vertexBuffer = { BufferUsage::StreamDraw };
 		IndexBuffer indexBuffer = { BufferUsage::StreamDraw, IndexType::UnsignedShort };
@@ -129,6 +132,8 @@ namespace Auth2D
 
 		const mat4* viewMatrix = nullptr;
 		vec2 projectionSize = { 64.0f, 64.0f };
+
+		uint16_t drawCallCount;
 
 		void GenerateUploadSpriteIndexBuffer(uint16_t elementCount);
 		void CreateBatches();

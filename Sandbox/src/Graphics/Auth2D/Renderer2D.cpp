@@ -172,6 +172,7 @@ namespace Auth2D
 
 	void Renderer2D::Begin(const mat4* viewMatrix)
 	{
+		drawCallCount = 0;
 		this->viewMatrix = viewMatrix;
 	}
 
@@ -326,6 +327,8 @@ namespace Auth2D
 				batch.Count * SpriteIndices::GetIndexCount(),
 				indexBuffer.GetGLIndexType(),
 				(void*)(batch.Index * sizeof(SpriteIndices))));
+
+			drawCallCount++;
 		}
 
 		vertexArray.UnBind();
