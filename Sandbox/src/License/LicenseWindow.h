@@ -34,12 +34,11 @@ public:
 	const char* GetWindowName() const;
 
 private:
-	bool initialized = false;
+	bool dataLoaded = false;
 	bool isWindowOpen = true;
 	int selectedIndex = 0;
 	const float listWidth = .2f;
 
-	const char* licenseDirectory = "rom/license";
 	std::vector<LicenseInfo> licenseData;
 
 	void LoadLicenseData();

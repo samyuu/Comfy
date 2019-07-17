@@ -4,10 +4,10 @@
 
 bool LicenseWindow::DrawGui()
 {
-	if (!initialized)
+	if (!dataLoaded)
 	{
 		LoadLicenseData();
-		initialized = true;
+		dataLoaded = true;
 	}
 
 	constexpr ImGuiWindowFlags scrollBarWindowFlags = ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar;
@@ -61,7 +61,7 @@ const char* LicenseWindow::GetWindowName() const
 
 void LicenseWindow::LoadLicenseData()
 {
-	auto licenseFilePaths = FileSystem::GetFiles(licenseDirectory);
+	auto licenseFilePaths = FileSystem::GetFiles("rom/license");
 
 	for (const auto& filePath : licenseFilePaths)
 	{
