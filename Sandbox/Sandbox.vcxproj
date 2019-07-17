@@ -108,6 +108,7 @@
     <ClCompile Include="lib\dr_libs\src\dr_wav.cpp" />
     <ClCompile Include="lib\glad\src\glad.c" />
     <ClCompile Include="src\DataTest\IconTestWindow.cpp" />
+    <ClCompile Include="src\Editor\Aet\AetDialogs.cpp" />
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
     <ClCompile Include="lib\stb\src\stb_image_write.cpp" />
     <ClCompile Include="src\Editor\Aet\AetIcons.cpp" />
@@ -193,6 +194,7 @@
     <ClInclude Include="src\Editor\Aet\AetTimeline.h" />
     <ClInclude Include="src\Editor\Aet\AetTreeView.h" />
     <ClInclude Include="src\Editor\Aet\Selection.h" />
+    <ClInclude Include="src\Editor\Aet\AetDialogs.h" />
     <ClInclude Include="src\Editor\FrameTimeline.h" />
     <ClInclude Include="src\Editor\PV\SceneRenderWindow.h" />
     <ClInclude Include="src\Editor\RenderWindowBase.h" />

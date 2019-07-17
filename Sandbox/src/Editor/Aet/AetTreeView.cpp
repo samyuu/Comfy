@@ -1,6 +1,7 @@
 #include "AetTreeView.h"
 #include "AetIcons.h"
 #include "ImGui/imgui_extensions.h"
+#include "Input/KeyCode.h"
 #include "Logger.h"
 
 namespace Editor
@@ -134,11 +135,22 @@ namespace Editor
 		}
 
 		if (openAddAetObjPopup)
-			ImGui::OpenPopup(addAetObjPopupID);
-
-		if (ImGui::BeginPopupModal(addAetObjPopupID, NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			DrawAddAetObjPopup(aetLayer);
+			ImGui::OpenPopup(addAetObjPopupID);
+			*addAetObjDialog.GetIsGuiOpenPtr() = true;
+		}
+
+		if (ImGui::BeginPopupModal(addAetObjPopupID, addAetObjDialog.GetIsGuiOpenPtr(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+		{
+			ImGuiViewport* viewPort = ImGui::GetMainViewport();
+			ImGuiWindow* window = ImGui::FindWindowByName(addAetObjPopupID);
+			ImGui::SetWindowPos(window, viewPort->Pos + viewPort->Size / 8, ImGuiCond_Always);
+			ImGui::SetWindowSize(window, viewPort->Size * .75f, ImGuiCond_Always);
+
+			if (ImGui::IsKeyPressed(KeyCode_Escape))
+				ImGui::CloseCurrentPopup();
+
+			addAetObjDialog.DrawGui(&aet, &aetLayer);
 			ImGui::EndPopup();
 		}
 
@@ -197,13 +209,13 @@ namespace Editor
 		{
 			if (region.Sprites.size() > 1)
 			{
-				sprintf_s(regionNameBuffer, ICON_AETREGION "  Region %d (%s - %s)", index, 
+				sprintf_s(regionNameBuffer, ICON_AETREGION "  Region %d (%s - %s)", index,
 					region.Sprites.front().Name.c_str(),
 					region.Sprites.back().Name.c_str());
 			}
 			else
 			{
-				sprintf_s(regionNameBuffer, ICON_AETREGION "  Region %d (%s)", index, 
+				sprintf_s(regionNameBuffer, ICON_AETREGION "  Region %d (%s)", index,
 					region.Sprites.front().Name.c_str());
 			}
 		}
@@ -222,50 +234,20 @@ namespace Editor
 
 	bool AetTreeView::DrawAetLayerContextMenu(AetLayer& aetLayer)
 	{
-		//ImGui::BulletText(__func__);
-		bool openAddAetObjPopup = ImGui::MenuItem("Add new AetObj...");
-		if (ImGui::MenuItem("Move Up")) {}
-		if (ImGui::MenuItem("Move Down")) {}
-		if (ImGui::MenuItem("Delete...")) {}
+		bool openAddAetObjPopup = ImGui::MenuItem(ICON_FA_PLUS "  Add new AetObj...");
+		if (ImGui::MenuItem(ICON_FA_ARROW_UP "  Move Up")) {}
+		if (ImGui::MenuItem(ICON_FA_ARROW_DOWN "  Move Down")) {}
+		if (ImGui::MenuItem(ICON_FA_TRASH "  Delete...")) {}
 
 		return openAddAetObjPopup;
-	}
-
-	void AetTreeView::DrawAddAetObjPopup(AetLayer& aetLayer)
-	{
-		if (ImGui::Combo("Obj Type", &newObjTypeIndex, AetObj::TypeNames.data(), AetObj::TypeNames.size()))
-		{
-			// TODO: automatically append .pic / .aif
-		}
-
-		ImGui::InputText("AetObj Name", newObjNameBuffer, sizeof(newObjNameBuffer));
-
-		if (ImGui::Button("OK", ImVec2(124, 0)))
-		{
-			// TODO:
-			// aetLayer.Objects.emplace(aetLayer.begin());
-			// AetObj* newObj = &aetLayer.Objects.front();
-			// 
-			// newObj->Name = std::string(newObjNameBuffer);
-			// newObj->Type = (AetObjType)newObjTypeIndex;
-			// newObj->PlaybackSpeed = 1.0f;
-
-			ImGui::CloseCurrentPopup();
-		}
-		ImGui::SameLine();
-
-		if (ImGui::Button("Cancel", ImVec2(124, 0)))
-		{
-			ImGui::CloseCurrentPopup();
-		}
 	}
 
 	bool AetTreeView::DrawAetObjContextMenu(AetObj& aetObj)
 	{
 		//ImGui::BulletText(__func__);
-		if (ImGui::MenuItem("Move Up")) {}
-		if (ImGui::MenuItem("Move Down")) {}
-		if (ImGui::MenuItem("Delete...")) {}
+		if (ImGui::MenuItem(ICON_FA_ARROW_UP "  Move Up")) {}
+		if (ImGui::MenuItem(ICON_FA_ARROW_DOWN "  Move Down")) {}
+		if (ImGui::MenuItem(ICON_FA_TRASH "  Delete...")) {}
 
 		return false;
 	}

@@ -1,5 +1,6 @@
 #pragma once
 #include "Selection.h"
+#include "AetDialogs.h"
 #include "FileSystem/Format/AetSet.h"
 #include <vector>
 
@@ -31,10 +32,10 @@ namespace Editor
 		const char* aetObjContextMenuID = "AetObjContextMenu##AetTreeView";
 		const char* addAetObjPopupID = "Add new AetObj";
 
-		int newObjTypeIndex = static_cast<int>(AetObjType::Pic);
 		char objNameBuffer[255];
-		char newObjNameBuffer[255];
 		char regionNameBuffer[255];
+
+		AddAetObjDialog addAetObjDialog;
 
 		Aet* activeAet;
 		AetItemTypePtr selected, lastHovered, hovered;
@@ -47,8 +48,6 @@ namespace Editor
 		void DrawTreeViewRegion(Aet& aet, AetRegion& region, int32_t index);
 	
 		bool DrawAetLayerContextMenu(AetLayer& aetLayer);
-		void DrawAddAetObjPopup(AetLayer& aetLayer);
-		
 		bool DrawAetObjContextMenu(AetObj& aetObj);
 	};
 }
