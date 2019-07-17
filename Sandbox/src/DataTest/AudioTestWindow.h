@@ -38,8 +38,8 @@ private:
 
 	std::array<const char*, static_cast<size_t>(AudioApi::Count)> audioApiNames =
 	{ 
-		"AUDIO_API_ASIO",
-		"AUDIO_API_WASAPI",
+		"AudioApi::ASIO",
+		"AudioApi::WASAPI",
 	};
 
 	std::array<const char*, 8> deviceInfoFieldNames =
