@@ -138,7 +138,7 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 	// 2 channels * 64 frames * sizeof(int16_t) -> 256 bytes inside the outputBuffer
 	// 64 samples for each ear
 
-	int audioInstancesSize = audioInstances.size();
+	size_t audioInstancesSize = audioInstances.size();
 	for (size_t i = 0; i < audioInstancesSize; i++)
 	{
 		AudioInstance* audioInstance = audioInstances[i].get();
@@ -173,11 +173,11 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 			audioInstance->SetSamplePosition(audioInstance->GetSampleCount());
 
 		for (int64_t i = 0; i < samplesRead; i++)
-			outputBuffer[i] = MixSamples(outputBuffer[i], tempOutputBuffer[i] * audioInstance->GetVolume());
+			outputBuffer[i] = MixSamples(outputBuffer[i], static_cast<int16_t>(tempOutputBuffer[i] * audioInstance->GetVolume()));
 	}
 
 	for (int64_t i = 0; i < samplesInBuffer; i++)
-		outputBuffer[i] *= GetMasterVolume();
+		outputBuffer[i] = static_cast<int16_t>(outputBuffer[i] * GetMasterVolume());
 
 	callbackRunning = false;
 	return AUDIO_CALLBACK_CONTINUE;
@@ -254,7 +254,7 @@ void AudioEngine::RemoveCallbackReceiver(ICallbackReceiver* callbackReceiver)
 	for (size_t i = 0; i < callbackReceivers.size(); i++)
 	{
 		if (callbackReceivers[i] == callbackReceiver)
-			callbackReceivers[i] == nullptr;
+			callbackReceivers[i] = nullptr;
 	}
 }
 

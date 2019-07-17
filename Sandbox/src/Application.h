@@ -12,8 +12,8 @@
 constexpr float DefaultWindowWidth = 1280.0f;
 constexpr float DefaultWindowHeight = 720.0f;
 
-constexpr int WindowWidthMin = 640;
-constexpr int WindowHeightMin = WindowWidthMin * (9.0f / 16.0f);
+constexpr int WindowWidthMin = static_cast<int>(640);
+constexpr int WindowHeightMin = static_cast<int>(WindowWidthMin * (9.0f / 16.0f));
 
 constexpr const char* DefaultWindowTitle = "Comfy Window";
 

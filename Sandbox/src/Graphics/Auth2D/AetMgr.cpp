@@ -37,7 +37,7 @@ namespace Auth2D
 
 	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetLayer* aetLayer, float frame)
 	{
-		for (int i = aetLayer->size() - 1; i >= 0; i--)
+		for (int i = static_cast<int>(aetLayer->size() - 1); i >= 0; i--)
 			GetAddObjects(objects, &aetLayer->at(i), frame);
 	}
 
@@ -75,10 +75,10 @@ namespace Auth2D
 		float range = end->Frame - start->Frame;
 		float t = (frame - start->Frame) / range;
 
-		return (((((((t * t) * t) - ((t * t) * 2.0)) + t) * start->Interpolation)
+		return (((((((t * t) * t) - ((t * t) * 2.0f)) + t) * start->Interpolation)
 			+ ((((t * t) * t) - (t * t)) * end->Interpolation)) * range)
-			+ (((((t * t) * 3.0) - (((t * t) * t) * 2.0)) * end->Value)
-				+ ((((((t * t) * t) * 2.0) - ((t * t) * 3.0)) + 1.0) * start->Value));
+			+ (((((t * t) * 3.0f) - (((t * t) * t) * 2.0f)) * end->Value)
+				+ ((((((t * t) * t) * 2.0f) - ((t * t) * 3.0f)) + 1.0f) * start->Value));
 	}
 
 	void AetMgr::Interpolate(const AnimationData& animationData, Properties* properties, float frame)
@@ -169,7 +169,7 @@ namespace Auth2D
 		if (aetLayer == nullptr)
 			return;
 		
-		for (int i = aetLayer->size() - 1; i >= 0; i--)
+		for (int i = static_cast<int>(aetLayer->size() - 1); i >= 0; i--)
 			InternalAddObjects(objects, &effProperties, &aetLayer->at(i), adjustedFrame);
 	}
 }

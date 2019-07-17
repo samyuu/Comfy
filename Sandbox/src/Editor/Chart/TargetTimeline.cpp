@@ -81,7 +81,7 @@ namespace Editor
 
 	int TargetTimeline::GetGridDivisionIndex() const
 	{
-		for (size_t i = 0; i < gridDivisions.size(); i++)
+		for (int i = 0; i < gridDivisions.size(); i++)
 		{
 			if (gridDivisions[i] == gridDivision)
 				return i;
@@ -208,7 +208,7 @@ namespace Editor
 		ImGui::Text("Adjust Sync:");
 		ImGui::Separator();
 
-		float startOffset = pvEditor->songStartOffset.TotalMilliseconds();
+		float startOffset = static_cast<float>(pvEditor->songStartOffset.TotalMilliseconds());
 		if (ImGui::InputFloat("Offset##test", &startOffset, 1.0f, 10.0f, "%.2f ms"))
 			pvEditor->songStartOffset = TimeSpan::FromMilliseconds(startOffset);
 		ImGui::Separator();
@@ -334,7 +334,7 @@ namespace Editor
 			if (gridDivisions[gridDivisionIndex] != gridDivision)
 				gridDivisionIndex = GetGridDivisionIndex();
 
-			if (ImGui::Combo("Grid Precision", &gridDivisionIndex, gridDivisionStrings.data(), gridDivisionStrings.size()))
+			if (ImGui::Combo("Grid Precision", &gridDivisionIndex, gridDivisionStrings.data(), static_cast<int>(gridDivisionStrings.size())))
 				gridDivision = gridDivisions[gridDivisionIndex];
 		}
 		ImGui::PopItemWidth();
@@ -469,10 +469,10 @@ namespace Editor
 				float timelineTargetHeight = (TargetType_Max * ROW_HEIGHT);
 				float y = timelineContentRegion.GetTL().y + ((TargetType_Max * ROW_HEIGHT) / 2);
 
-				int linesDrawn = 0;
-				for (int64_t screenPixel = leftMostVisiblePixel; screenPixel < songWaveform.GetPixelCount() && screenPixel < rightMostVisiblePixel; screenPixel++)
+				int64_t waveformPixelCount = static_cast<int64_t>(songWaveform.GetPixelCount());
+				for (int64_t screenPixel = leftMostVisiblePixel; screenPixel < waveformPixelCount && screenPixel < rightMostVisiblePixel; screenPixel++)
 				{
-					size_t timelinePixel = std::min((size_t)(screenPixel + scrollX), (size_t)(pixelCount - 1));
+					size_t timelinePixel = std::min(static_cast<size_t>(screenPixel + scrollX), static_cast<size_t>(pixelCount - 1));
 
 					if (timelinePixel < 0)
 						continue;
@@ -485,11 +485,7 @@ namespace Editor
 					ImVec2 end = ImVec2(x, y + halfAmplitude);
 
 					drawList->AddLine(start, end, GetColor(EditorColor_GridAlt));
-
-					linesDrawn++;
 				}
-
-				//Logger::Log("%d line(s) drawn \n", i);
 			}
 		}
 		// -------------

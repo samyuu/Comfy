@@ -17,8 +17,8 @@ void Waveform::Calculate(MemoryAudioStream* audioStream, TimeSpan timePerPixel)
 	size_t channelCount = audioStream->GetChannelCount();
 
 	// calculate how many samples per pixel at the current zoom
-	int64_t samplesPerPixel = timePerPixel.TotalSeconds() * sampleRate * channelCount;
-	int64_t samplesPerChannelPixel = (samplesPerPixel / channelCount);
+	int64_t samplesPerPixel = static_cast<int64_t>(timePerPixel.TotalSeconds() * sampleRate * channelCount);
+	int64_t samplesPerChannelPixel = static_cast<int64_t>(samplesPerPixel / channelCount);
 
 	int64_t totalPixels = sampleCount / samplesPerPixel;
 	
@@ -31,7 +31,7 @@ void Waveform::Calculate(MemoryAudioStream* audioStream, TimeSpan timePerPixel)
 		// calculate the average of all samples in the per pixel range
 		int64_t totalPcm = 0;
 
-		for (size_t i = 0; i < samplesPerPixel; i += channelCount)
+		for (int64_t i = 0; i < samplesPerPixel; i += channelCount)
 		{
 			int16_t shortPcm = sampleData[(pixel * samplesPerPixel) + i];
 			totalPcm += abs(shortPcm);

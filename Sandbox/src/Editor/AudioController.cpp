@@ -77,7 +77,7 @@ namespace Editor
 		float threshold = 50.0f;
 		if (timeSinceLastButtonSound.TotalMilliseconds() < threshold)
 		{
-			float elapsed = timeSinceLastButtonSound.TotalMilliseconds() / threshold;
+			float elapsed = static_cast<float>(timeSinceLastButtonSound.TotalMilliseconds() / threshold);
 			volume *= (0.0f + elapsed * (1.0f - 0.0f));
 		}
 		// -----------------

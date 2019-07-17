@@ -29,9 +29,9 @@ void VertexArray::SetLayout(const BufferLayout& layout)
 {
 	const auto& elements = layout.GetElemenets();
 
-	for (size_t i = 0; i < elements.size(); i++)
+	for (GLuint i = 0; i < static_cast<GLuint>(elements.size()); i++)
 	{
-		const auto& element = elements[i];
+		const BufferElement& element = elements[i];
 		
 		GLCall(glEnableVertexAttribArray(i));
 		GLCall(glVertexAttribPointer(i, element.GetElementCount(), element.GetDataType(), element.GetIsNormalized(), layout.GetStride(), element.GetOffset()));

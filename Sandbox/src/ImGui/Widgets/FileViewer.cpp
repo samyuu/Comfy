@@ -311,6 +311,7 @@ namespace ImGui
 			return "Application";
 		default:
 			assert(false);
+			return "Unknown";
 		}
 	}
 

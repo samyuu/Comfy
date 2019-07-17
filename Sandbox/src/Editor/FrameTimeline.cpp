@@ -44,7 +44,7 @@ namespace Editor
 
 	TimelineFrame FrameTimeline::GetTimelineFrame(TimeSpan time) const
 	{
-		return TimelineFrame((time.TotalSeconds() / (1.0f / frameRate)));
+		return TimelineFrame(static_cast<float>(time.TotalSeconds() / (1.0f / frameRate)));
 	}
 
 	TimelineFrame FrameTimeline::GetTimelineFrame(float position) const
@@ -81,14 +81,14 @@ namespace Editor
 		
 		const int startFrame = static_cast<int>(loopStartFrame.Frames());
 		const int endFrame = static_cast<int>(loopEndFrame.Frames());
-		const int frameStep = gridDivision;
+		const int frameStep = static_cast<int>(gridDivision);
 
 		int divisions = 0;
 		for (int frame = startFrame; frame <= endFrame; frame += frameStep)
 		{
 			bool isBar = (frame == startFrame) || (frame == endFrame) || (frame % framesPerBar == 0);
 
-			float screenX = GetTimelinePosition(TimelineFrame(frame)) - GetScrollX();
+			float screenX = GetTimelinePosition(TimelineFrame(static_cast<float>(frame))) - GetScrollX();
 			TimelineVisibility visiblity = GetTimelineVisibility(screenX);
 
 			if (visiblity == TimelineVisibility::Left)

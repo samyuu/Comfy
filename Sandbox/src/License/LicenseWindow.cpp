@@ -17,7 +17,7 @@ bool LicenseWindow::DrawGui()
 
 	ImGui::BeginChild("##LicenseWindowListChild", ImVec2(ImGui::GetWindowWidth() * listWidth, 0), true, scrollBarWindowFlags);
 	{
-		for (size_t i = 0; i < licenseData.size(); i++)
+		for (int i = 0; i < licenseData.size(); i++)
 			if (ImGui::Selectable(licenseData[i].Name.c_str(), i == selectedIndex))
 				selectedIndex = i;
 	}

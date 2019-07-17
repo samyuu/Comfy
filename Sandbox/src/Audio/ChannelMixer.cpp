@@ -1,5 +1,5 @@
 #include "ChannelMixer.h"
-#include <assert.h>>
+#include <assert.h>
 
 ChannelMixer::ChannelMixer(uint32_t channelTargetCount) : channelTargetCount(channelTargetCount)
 {

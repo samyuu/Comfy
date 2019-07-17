@@ -57,7 +57,7 @@ bool AudioInstance::IsSampleProviderValid()
 
 TimeSpan AudioInstance::GetPosition() const
 {
-	return SamplesToTimeSpan(GetSamplePosition());
+	return SamplesToTimeSpan(static_cast<double>(GetSamplePosition()));
 }
 
 void AudioInstance::SetPosition(TimeSpan value)
@@ -72,7 +72,7 @@ void AudioInstance::Restart()
 
 TimeSpan AudioInstance::GetDuration() const
 {
-	return SamplesToTimeSpan(GetSampleCount());
+	return SamplesToTimeSpan(static_cast<double>(GetSampleCount()));
 }
 
 const char* AudioInstance::GetName() const
@@ -189,5 +189,5 @@ inline TimeSpan AudioInstance::SamplesToTimeSpan(double samples, double sampleRa
 
 inline int64_t AudioInstance::TimeSpanToSamples(TimeSpan time, double sampleRate, double channelCount)
 {
-	return (time.TotalSeconds() * sampleRate * channelCount);
+	return static_cast<int64_t>(time.TotalSeconds() * sampleRate * channelCount);
 }

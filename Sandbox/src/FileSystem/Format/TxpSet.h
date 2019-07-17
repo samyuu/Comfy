@@ -6,7 +6,7 @@
 
 class Texture2D;
 
-enum class TextureFormat : uint32_t
+enum class TextureFormat : int32_t
 {
 	Unknown = -1,
 	// GL_ALPHA8

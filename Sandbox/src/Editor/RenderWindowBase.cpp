@@ -42,8 +42,8 @@ namespace Editor
 			else
 			{
 				// output is wider than it is tall, bars left/right
-				int presentWidth = (renderRegionSize.y * targetAspectRatio) + 0.5f;
-				int barWidth = (renderRegionSize.x - presentWidth) / 2;
+				int presentWidth = static_cast<int>((renderRegionSize.y * targetAspectRatio) + 0.5f);
+				int barWidth = static_cast<int>((renderRegionSize.x - presentWidth) / 2.0f);
 
 				renderRegion.Min.x += barWidth;
 				renderRegion.Max.x += barWidth;
@@ -55,7 +55,7 @@ namespace Editor
 		wasResized = (renderSize.x != lastRenderSize.x) || (renderSize.y != lastRenderSize.y);
 
 		if (GetWasResized() && ImGui::GetFrameCount() >= 2)
-			OnResize(renderSize.x, renderSize.y);
+			OnResize(static_cast<int>(renderSize.x), static_cast<int>(renderSize.y));
 
 		if (!ImGui::GetCurrentWindow()->Hidden)
 		{

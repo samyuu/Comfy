@@ -14,7 +14,7 @@ namespace Editor
 
 	TimeSpan TimelineMap::GetTimeAt(TimelineTick tick) const
 	{
-		int tickTimeCount = tickTimes.size();
+		int32_t tickTimeCount = static_cast<int32_t>(tickTimes.size());
 
 		if (tick.TotalTicks() < 0) // negative tick
 		{
@@ -50,7 +50,7 @@ namespace Editor
 
 	TimelineTick TimelineMap::GetTickAt(TimeSpan time) const
 	{
-		int tickTimeCount = tickTimes.size();
+		int32_t tickTimeCount = static_cast<int32_t>(tickTimes.size());
 		TimeSpan lastTime = GetLastCalculatedTime();
 
 		if (time < 0.0) // negative time
@@ -59,7 +59,7 @@ namespace Editor
 			TimeSpan firstTickDuration = ((60.0 / firstTempo.BeatsPerMinute) / TimelineTick::TICKS_PER_BEAT);
 
 			// then the time by the negative tick, this is assuming all tempo changes happen on positive ticks
-			return (time / firstTickDuration);
+			return TimelineTick(static_cast<int32_t>(time / firstTickDuration));
 		}
 		else if (time >= lastTime) // tick is outside the defined tempo map
 		{
@@ -71,7 +71,7 @@ namespace Editor
 			// so we just have to divide the remaining ticks by the duration
 			double ticks = timePastLast / lastTickDuration;
 			// and add it to the last tick
-			return (tickTimeCount + ticks);
+			return TimelineTick(static_cast<int32_t>(tickTimeCount + ticks));
 		}
 		else // perform a binary search
 		{

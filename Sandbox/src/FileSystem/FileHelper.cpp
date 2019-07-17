@@ -210,7 +210,7 @@ namespace FileSystem
 		LARGE_INTEGER fileSizeLarge = {};
 		GetFileSizeEx(fileHandle, &fileSizeLarge);
 
-		DWORD fileSize = fileSizeLarge.QuadPart;
+		DWORD fileSize = static_cast<DWORD>(fileSizeLarge.QuadPart);
 		buffer->resize(fileSize);
 
 		DWORD bytesRead = {};
@@ -222,7 +222,7 @@ namespace FileSystem
 
 	static bool WriteAllBytesInternal(HANDLE fileHandle, const std::vector<uint8_t>& buffer)
 	{
-		DWORD bytesToWrite = buffer.size();
+		DWORD bytesToWrite = static_cast<DWORD>(buffer.size());
 		DWORD bytesWritten = {};
 
 		WriteFile(fileHandle, buffer.data(), bytesToWrite, &bytesWritten, nullptr);

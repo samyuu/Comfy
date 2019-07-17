@@ -77,8 +77,8 @@ namespace FileSystem
 
 	private:
 		static inline void* ReadInvalidPtr(BinaryReader* reader) { return nullptr; }
-		static inline void* Read32BitPtr(BinaryReader* reader) { return reinterpret_cast<void*>(reader->ReadInt32()); };
-		static inline void* Read64BitPtr(BinaryReader* reader) { return reinterpret_cast<void*>(reader->ReadInt64()); };
+		static inline void* Read32BitPtr(BinaryReader* reader) { return reinterpret_cast<void*>(static_cast<ptrdiff_t>(reader->ReadInt32())); };
+		static inline void* Read64BitPtr(BinaryReader* reader) { return reinterpret_cast<void*>(static_cast<ptrdiff_t>(reader->ReadInt64())); };
 	};
 
 	template<typename T> 

@@ -63,6 +63,7 @@ GLenum Buffer::GetGLUsage() const
 		return GL_DYNAMIC_COPY;
 	default:
 		assert(false);
+		return GL_INVALID_ENUM;
 	}
 }
 
@@ -116,6 +117,7 @@ GLenum IndexBuffer::GetGLIndexType()
 		return GL_UNSIGNED_INT;
 	default:
 		assert(false);
+		return GL_INVALID_ENUM;
 	}
 }
 
@@ -132,7 +134,7 @@ BufferElement::BufferElement(ShaderDataType type, const char* name) : Name(name)
 {
 }
 
-size_t BufferElement::GetElementCount() const
+int BufferElement::GetElementCount() const
 {
 	switch (Type)
 	{
@@ -152,6 +154,7 @@ size_t BufferElement::GetElementCount() const
 		return mat4::length();
 	default:
 		assert(false);
+		return GL_INVALID_ENUM;
 	}
 }
 
@@ -173,6 +176,7 @@ GLenum BufferElement::GetDataType() const
 		return GL_FLOAT;
 	default:
 		assert(false);
+		return GL_INVALID_ENUM;
 	}
 }
 
@@ -223,6 +227,7 @@ uint16_t BufferLayout::GetElementSize(ShaderDataType type)
 		return sizeof(mat4);
 	default:
 		assert(false);
+		return 0;
 	}
 }
 

@@ -57,7 +57,7 @@ void AudioTestWindow::DrawGui()
 		ImGui::Columns(2);
 
 		for (size_t i = 0; i < deviceInfoList.size(); i++)
-			ShowDeviceInfoProperties(deviceInfoList.at(i), i);
+			ShowDeviceInfoProperties(deviceInfoList.at(i), static_cast<int>(i));
 
 		ImGui::Columns(1);
 		ImGui::PopStyleVar();
@@ -116,7 +116,7 @@ void AudioTestWindow::DrawGui()
 		if (selectedAudioApi == AUDIO_API_INVALID)
 			selectedAudioApi = engine->GetActiveAudioApi();
 
-		ImGui::Combo("Audio API##combo", (int*)&selectedAudioApi, audioApiNames.data(), audioApiNames.size());
+		ImGui::Combo("Audio API##combo", reinterpret_cast<int*>(&selectedAudioApi), audioApiNames.data(), static_cast<int>(audioApiNames.size()));
 		ImGui::Separator();
 
 		if (ImGui::Button("engine->SetAudioApi()", ImVec2(ImGui::CalcItemWidth(), 0)))
@@ -216,12 +216,14 @@ void AudioTestWindow::DrawGui()
 			ImGui::Text("audioInstance->GetSampleCount(): %u", songTestStream.GetSampleCount());
 			ImGui::Text("audioInstance->GetSampleRate(): %u", songTestStream.GetSampleRate());
 
-			int samplePosition = audioInstance->GetSamplePosition();
-			if (ImGui::SliderInt("audioInstance->SamplePosition", &samplePosition, 0, audioInstance->GetSampleCount()))
+			int samplePosition = static_cast<int>(audioInstance->GetSamplePosition());
+			int sampleCount = static_cast<int>(audioInstance->GetSampleCount());
+			if (ImGui::SliderInt("audioInstance->SamplePosition", &samplePosition, 0, sampleCount))
 				audioInstance->SetSamplePosition(samplePosition);
 
-			float position = audioInstance->GetPosition().TotalSeconds();
-			if (ImGui::SliderFloat("audioInstance->Position", &position, 0, audioInstance->GetDuration().TotalSeconds(), "%f"))
+			float position = static_cast<float>(audioInstance->GetPosition().TotalSeconds());
+			float duration = static_cast<float>(audioInstance->GetDuration().TotalSeconds());
+			if (ImGui::SliderFloat("audioInstance->Position", &position, 0, duration, "%f"))
 				audioInstance->SetPosition(TimeSpan::FromSeconds(position));
 
 			ImGui::Separator();
@@ -296,23 +298,23 @@ ImGuiWindowFlags AudioTestWindow::GetWindowFlags() const
 
 void AudioTestWindow::RefreshDeviceInfoList()
 {
-	auto engine = AudioEngine::GetInstance();
-	int deviceCount = engine->GetDeviceCount();
+	AudioEngine* engine = AudioEngine::GetInstance();
+	size_t deviceCount = engine->GetDeviceCount();
 
 	deviceInfoList.clear();
 	deviceInfoList.reserve(deviceCount);
 
-	for (size_t i = 0; i < deviceCount; i++)
+	for (int i = 0; i < deviceCount; i++)
 	{
 		deviceInfoList.push_back({ engine->GetDeviceInfo(i) });
 
 		std::stringstream stringStream;
 		{
 			auto sampleRates = &deviceInfoList[i].Info.sampleRates;
-			for (size_t i = 0; i < sampleRates->size(); i++)
+			for (size_t j = 0; j < sampleRates->size(); j++)
 			{
-				stringStream << sampleRates->at(i);
-				if (i < sampleRates->size() - 1)
+				stringStream << sampleRates->at(j);
+				if (j < sampleRates->size() - 1)
 					stringStream << ", ";
 			}
 
@@ -350,10 +352,8 @@ void AudioTestWindow::RefreshDeviceInfoList()
 
 void AudioTestWindow::ShowDeviceInfoProperties(ExtendedDeviceInfo& deviceInfo, int uid)
 {
-	// Use object uid as identifier. Most commonly you could also use the object pointer as a base ID.
 	ImGui::PushID(uid);
 
-	// Text and Tree nodes are less high than regular widgets, here we add vertical spacing to make the tree lines equal high.
 	ImGui::AlignTextToFramePadding();
 
 	bool nodeOpen = ImGui::TreeNode("DeviceInfo", "%s", deviceInfo.Info.name.c_str(), uid);

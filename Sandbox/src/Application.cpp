@@ -276,7 +276,7 @@ void Application::BaseDraw()
 	GLCall(glClearColor(baseClearColor.x, baseClearColor.y, baseClearColor.z, baseClearColor.w));
 	GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-	GLCall(glViewport(0, 0, windowWidth, windowHeight));
+	GLCall(glViewport(0, 0, static_cast<GLint>(windowWidth), static_cast<GLint>(windowHeight)));
 	DrawGui();
 }
 

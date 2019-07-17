@@ -1,7 +1,7 @@
 #include "MemoryStream.h"
 #include "FileStream.h"
 #include <assert.h>
-#include <stdlib.h>
+#include <algorithm>
 #include <memory>
 
 namespace FileSystem
@@ -32,7 +32,7 @@ namespace FileSystem
 	void MemoryStream::Seek(int64_t position)
 	{
 		this->position = position;
-		this->position = __min(position, GetLength());
+		this->position = std::min(position, GetLength());
 	}
 
 	int64_t MemoryStream::GetPosition() const
@@ -64,8 +64,8 @@ namespace FileSystem
 	{
 		assert(CanRead());
 
-		auto remaining = RemainingBytes();
-		int64_t bytesRead = __min(size, remaining);
+		int64_t remaining = RemainingBytes();
+		int64_t bytesRead = std::min(static_cast<int64_t>(size), remaining);
 
 		void* source = &data[position];
 		memcpy(buffer, source, bytesRead);
@@ -80,7 +80,7 @@ namespace FileSystem
 
 		data.resize(data.size() + size);
 
-		uint8_t* bufferStart = (uint8_t*)buffer;
+		uint8_t* bufferStart = reinterpret_cast<uint8_t*>(buffer);
 		uint8_t* bufferEnd = &bufferStart[size];
 		std::copy(bufferStart, bufferEnd, std::back_inserter(data));
 

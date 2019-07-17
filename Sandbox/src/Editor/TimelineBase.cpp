@@ -6,7 +6,7 @@ namespace Editor
 {
 	float TimelineBase::GetTimelinePosition(TimeSpan time) const
 	{
-		return time.TotalSeconds() * zoomLevel * ZOOM_BASE;
+		return static_cast<float>(time.TotalSeconds() * zoomLevel * ZOOM_BASE);
 	}
 
 	TimeSpan TimelineBase::GetTimelineTime(float position) const

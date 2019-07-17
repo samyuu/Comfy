@@ -118,7 +118,7 @@ struct BufferElement
 
 	BufferElement(ShaderDataType type, const char* name);
 	
-	size_t GetElementCount() const;
+	int GetElementCount() const;
 	GLenum GetDataType() const;
 	bool GetIsNormalized() const;
 	inline void* GetOffset() const { return (void*)Offset; };

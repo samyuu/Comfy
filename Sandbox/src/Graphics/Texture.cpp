@@ -30,7 +30,7 @@ void Texture2D::Bind(int textureSlot) const
 {
 	GLCall(glActiveTexture(GetTextureSlotEnum(textureSlot)));
 	GLCall(glBindTexture(GetTextureTarget(), textureID));
-	
+
 	// TextureID_t& boundTexture = BoundTextures[textureSlot];
 	// 
 	// if (boundTexture != textureID)
@@ -59,25 +59,25 @@ void Texture2D::InitializeID()
 
 void Texture2D::UploadEmpty(int width, int height)
 {
-	imageSize.x = width;
-	imageSize.y = height;
+	imageSize.x = static_cast<float>(width);
+	imageSize.y = static_cast<float>(height);
 	textureFormat = TextureFormat::RGBA8;
 
 	GLCall(glTexImage2D(GetTextureTarget(), 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
-	
+
 	GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 }
 
 bool Texture2D::Upload(const FileSystem::Texture* texture)
 {
-	size_t mipMapCount = texture->MipMaps.size();
+	GLint mipMapCount = static_cast<GLint>(texture->MipMaps.size());
 	assert(mipMapCount >= 1);
 
 	const FileSystem::MipMap* baseMipMap = texture->MipMaps.front().get();
 
-	imageSize.x = baseMipMap->Width;
-	imageSize.y = baseMipMap->Height;
+	imageSize.x = static_cast<float>(baseMipMap->Width);
+	imageSize.y = static_cast<float>(baseMipMap->Height);
 	textureFormat = baseMipMap->Format;
 
 	InitializeID();
@@ -91,11 +91,11 @@ bool Texture2D::Upload(const FileSystem::Texture* texture)
 
 	if (mipMapCount > 2)
 	{
-		GLCall(glTexParameterf(GetTextureTarget(), GL_TEXTURE_BASE_LEVEL, 0));
-		GLCall(glTexParameterf(GetTextureTarget(), GL_TEXTURE_MAX_LEVEL, mipMapCount - 1));
-		
-		GLCall(glTexParameterf(GetTextureTarget(), GL_TEXTURE_MIN_LOD, 0));
-		GLCall(glTexParameterf(GetTextureTarget(), GL_TEXTURE_MAX_LOD, mipMapCount - 1));
+		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_BASE_LEVEL, 0));
+		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAX_LEVEL, mipMapCount - 1));
+
+		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MIN_LOD, 0));
+		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAX_LOD, mipMapCount - 1));
 		GLCall(glTexParameterf(GetTextureTarget(), GL_TEXTURE_LOD_BIAS, -1.0f));
 	}
 
@@ -105,7 +105,7 @@ bool Texture2D::Upload(const FileSystem::Texture* texture)
 		GLenum glFormat = GetGLTextureFormat(mipMap->Format);
 
 		uint8_t* data = mipMap->DataPointer != nullptr ? mipMap->DataPointer : mipMap->Data.data();
-		uint32_t dataSize = mipMap->DataPointer != nullptr ? mipMap->DataPointerSize : mipMap->Data.size();
+		uint32_t dataSize = mipMap->DataPointer != nullptr ? mipMap->DataPointerSize : static_cast<uint32_t>(mipMap->Data.size());
 
 		if (GetIsCompressed(mipMap->Format))
 		{
@@ -147,7 +147,7 @@ bool Texture2D::UploadFromFile(const char* path)
 
 	GLCall(glTexImage2D(GetTextureTarget(), 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData));
 	GLCall(glGenerateMipmap(GetTextureTarget()));
-	
+
 	stbi_image_free(pixelData);
 
 	GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_WRAP_S, GL_REPEAT));
@@ -157,6 +157,44 @@ bool Texture2D::UploadFromFile(const char* path)
 
 	return true;
 }
+
+float Texture2D::GetWidth() const
+{
+	return imageSize.x;
+};
+
+float Texture2D::GetHeight() const
+{
+	return imageSize.y;
+};
+
+const vec2& Texture2D::GetSize() const
+{
+	return imageSize;
+};
+
+TextureID_t Texture2D::GetTextureID() const
+{
+	return textureID;
+}
+
+#pragma warning(push)
+#pragma warning(disable : 4312) // 'operation' : conversion from 'type1' to 'type2' of greater size
+void* Texture2D::GetVoidTexture() const
+{
+	return reinterpret_cast<void*>(GetTextureID());
+}
+#pragma warning(pop)
+
+TextureTarget_t Texture2D::GetTextureTarget() const
+{
+	return textureTarget;
+};
+
+TextureFormat Texture2D::GetTextureFormat() const
+{
+	return textureFormat;
+};
 
 bool Texture2D::GetIsCompressed(TextureFormat format)
 {

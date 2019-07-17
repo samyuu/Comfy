@@ -8,7 +8,7 @@ namespace Editor
 	{
 		// Constructors / Destructors:
 		// ---------------------------
-		TimelineFrame() : frames(0) {};
+		TimelineFrame() : frames(0.0f) {};
 		TimelineFrame(float frame) : frames(frame) {};
 		// ---------------------------
 

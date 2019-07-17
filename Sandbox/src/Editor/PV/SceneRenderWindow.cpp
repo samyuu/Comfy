@@ -150,9 +150,9 @@ namespace Editor
 		if (ImGui::CollapsingHeader("Cubes"))
 		{
 			char nameBuffer[32];
-			for (size_t i = 0; i < _countof(cubePositions); i++)
+			for (int i = 0; i < _countof(cubePositions); i++)
 			{
-				sprintf_s(nameBuffer, sizeof(nameBuffer), "CUBE[%zd]", i);
+				sprintf_s(nameBuffer, sizeof(nameBuffer), "CUBE[%d]", i);
 				ImGui::DragFloat3(nameBuffer, glm::value_ptr(cubePositions[i]), 0.1f);
 			}
 		}
@@ -164,9 +164,9 @@ namespace Editor
 			char buffer[32];
 			char hiddenBuffer[sizeof(buffer)];
 
-			for (size_t i = 0; i < 100; i++)
+			for (int i = 0; i < 100; i++)
 			{
-				sprintf_s(buffer, sizeof(buffer), "eff_pv%03d_F%04zd", i, i + 1800);
+				sprintf_s(buffer, sizeof(buffer), "eff_pv%03d_F%04d", i, i + 1800);
 				sprintf_s(hiddenBuffer, sizeof(hiddenBuffer), "##%s", buffer);
 
 				bool treeNode = ImGui::TreeNode(hiddenBuffer);
@@ -187,7 +187,7 @@ namespace Editor
 
 		if (ImGui::CollapsingHeader("Image Test"))
 		{
-			for (auto txp : sprSet.TxpSet->Textures)
+			for (auto& txp : sprSet.TxpSet->Textures)
 			{
 				ImGui::Text(txp->Name.c_str());
 				ImGui::Image(txp->Texture2D->GetVoidTexture(), { 200, 200 }, ImGui::UV0_GL, ImGui::UV1_GL);
@@ -279,7 +279,7 @@ namespace Editor
 			GLCall(glClearColor(baseClearColor.x, baseClearColor.y, baseClearColor.z, baseClearColor.w));
 			GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-			GLCall(glViewport(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight()));
+			GLCall(glViewport(0, 0, static_cast<GLint>(renderTarget.GetWidth()), static_cast<GLint>(renderTarget.GetHeight())));
 			{
 				comfyShader.Bind();
 				comfyShader.SetUniform(comfyShader.ViewLocation, camera.GetViewMatrix());

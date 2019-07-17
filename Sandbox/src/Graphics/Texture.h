@@ -24,15 +24,15 @@ public:
 	bool Upload(const FileSystem::Texture* texture);
 	bool UploadFromFile(const char* path);
 
-	inline float GetWidth() const { return imageSize.x; };
-	inline float GetHeight() const { return imageSize.y; };
-	inline const vec2& GetSize() const { return imageSize; };
+	float GetWidth() const;
+	float GetHeight() const;
+	const vec2& GetSize() const;
 
-	inline TextureID_t GetTextureID() const { return textureID; }
-	inline void* GetVoidTexture() const { return reinterpret_cast<void*>(GetTextureID()); }
+	TextureID_t GetTextureID() const;
+	void* GetVoidTexture() const;
 
-	inline TextureTarget_t GetTextureTarget() const { return textureTarget; };
-	inline TextureFormat GetTextureFormat() const { return textureFormat; };
+	TextureTarget_t GetTextureTarget() const;
+	TextureFormat GetTextureFormat() const;
 
 	static constexpr GLenum GetTextureSlotEnum(int textureSlot)
 	{
