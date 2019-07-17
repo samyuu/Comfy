@@ -44,8 +44,8 @@ void Application::SetFullscreen(bool value)
 
 	if (value)
 	{
-		preFullScreenWindowPosition = { (float)windowXPosition, (float)windowYPosition };
-		preFullScreenWindowSize = { (float)windowWidth, (float)windowHeight };
+		preFullScreenWindowPosition = vec2(windowXPosition, windowYPosition);
+		preFullScreenWindowSize = vec2(windowWidth, windowHeight);
 
 		GLFWmonitor* monitor = GetActiveMonitor();
 		const GLFWvidmode* videoMode = glfwGetVideoMode(monitor);
@@ -56,11 +56,11 @@ void Application::SetFullscreen(bool value)
 	{
 		// restore last window size and position
 		glfwSetWindowMonitor(window, nullptr,
-			(int)preFullScreenWindowPosition.x,
-			(int)preFullScreenWindowPosition.y,
-			(int)preFullScreenWindowSize.x,
-			(int)preFullScreenWindowSize.y,
-			NULL);
+			static_cast<int>(preFullScreenWindowPosition.x),
+			static_cast<int>(preFullScreenWindowPosition.y),
+			static_cast<int>(preFullScreenWindowSize.x),
+			static_cast<int>(preFullScreenWindowSize.y),
+			GLFW_DONT_CARE);
 	}
 }
 
@@ -89,8 +89,8 @@ GLFWmonitor* Application::GetActiveMonitor() const
 		glfwGetMonitorPos(monitors[i], &monitorX, &monitorY);
 
 		int overlap =
-			__max(0, __min(windowXPosition + windowWidth, monitorX + videoMode->width) - __max(windowXPosition, monitorX)) *
-			__max(0, __min(windowYPosition + windowHeight, monitorY + videoMode->height) - __max(windowYPosition, monitorY));
+			glm::max(0, glm::min(static_cast<int>(windowXPosition + windowWidth), monitorX + videoMode->width) - glm::max(windowXPosition, monitorX)) *
+			glm::max(0, glm::min(static_cast<int>(windowYPosition + windowHeight), monitorY + videoMode->height) - glm::max(windowYPosition, monitorY));
 
 		if (bestoverlap < overlap)
 		{
@@ -312,11 +312,13 @@ bool Application::InitializeWindow()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	window = glfwCreateWindow(windowWidth, windowHeight, DEFAULT_WINDOW_TITLE, nullptr, nullptr);
+	
+	window = glfwCreateWindow(static_cast<int>(windowWidth), static_cast<int>(windowHeight), DefaultWindowTitle, nullptr, nullptr);
 
 	if (window == nullptr)
 		return false;
+
+	glfwSetWindowSizeLimits(window, WindowWidthMin, WindowHeightMin, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
 	HWND windowHandle = glfwGetWin32Window(window);
 	HICON iconhandle = LoadIcon(GlobalModuleHandle, MAKEINTRESOURCE(COMFY_ICON));

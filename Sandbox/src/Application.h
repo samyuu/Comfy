@@ -9,9 +9,13 @@
 #include "Graphics/Graphics.h"
 #include <glfw/glfw3.h>
 
-constexpr float DEFAULT_WINDOW_WIDTH = 1280.0f;
-constexpr float DEFAULT_WINDOW_HEIGHT = 720.0f;
-constexpr const char* DEFAULT_WINDOW_TITLE = "Comfy Window";
+constexpr float DefaultWindowWidth = 1280.0f;
+constexpr float DefaultWindowHeight = 720.0f;
+
+constexpr int WindowWidthMin = 640;
+constexpr int WindowHeightMin = WindowWidthMin * (9.0f / 16.0f);
+
+constexpr const char* DefaultWindowTitle = "Comfy Window";
 
 class Application
 {
@@ -121,10 +125,10 @@ private:
 	bool windowFocused = true, lastWindowFocused, focusLostFrame = false, focusGainedFrame = false;
 
 	int windowXPosition, windowYPosition;
-	float windowWidth = DEFAULT_WINDOW_WIDTH;
-	float windowHeight = DEFAULT_WINDOW_HEIGHT;
+	float windowWidth = DefaultWindowWidth;
+	float windowHeight = DefaultWindowHeight;
 	vec2 preFullScreenWindowPosition = { 0, 0 };
-	vec2 preFullScreenWindowSize = { DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT };
+	vec2 preFullScreenWindowSize = { DefaultWindowWidth, DefaultWindowHeight };
 
 	// Engine Timing
 	// -------------
