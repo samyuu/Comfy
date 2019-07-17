@@ -49,12 +49,20 @@ namespace Editor
 		void RenderObjCache(const AetMgr::ObjCache& obj);
 
 	private:
+		struct
+		{
+			float GridSize = 1.0f;
+			vec4 Color = vec4(0.15f, 0.15f, 0.15f, 1.0f);
+			vec4 ColorAlt = vec4(0.32f, 0.32f, 0.32f, 1.0f);
+		} gridConfig;
+
 		float currentFrame = 0.0f;
 
 		Aet* aet = nullptr;
 		AetItemTypePtr active;
 
 		Renderer2D renderer;
+		const vec4 dummyColor = vec4(0.79f, 0.90f, 0.57f, 0.50f);
 
 		std::vector<AetMgr::ObjCache> objectCache;
 

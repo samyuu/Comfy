@@ -44,6 +44,7 @@ namespace Editor
 			properties = {};
 		}
 
+		bool updateKeyFrames = false;
 		constexpr float itemWidth = 68.0f;
 
 		// ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetStyleColorVec4(ImGuiCol_TabUnfocused));
@@ -57,25 +58,40 @@ namespace Editor
 			const ImVec2 spacing(4.0f, 0.0f);
 			float buffer;
 
-			ImGui::DragFloat("##PositionXDragFloat::AetRenderWindow", &properties.Position.x, 1.0f, 0.0f, 0.0f, "X: %.f");
+			if (ImGui::DragFloat("##PositionXDragFloat::AetRenderWindow", &properties.Position.x, 1.0f, 0.0f, 0.0f, "X: %.f"))
+			{
+				updateKeyFrames = true;
+			}
 			ImGui::SameLine();
 
-			ImGui::DragFloat("##PositionYDragFloat::AetRenderWindow", &properties.Position.y, 1.0f, 0.0f, 0.0f, "Y: %.f");
-			ImGui::SameLine();
-
-			ImGui::ItemSize(spacing);
-			ImGui::SameLine();
-
-			ImGui::DragFloat("##OriginXDragFloat::AetRenderWindow", &properties.Origin.x, 1.0f, 0.0f, 0.0f, "X: %.f");
-			ImGui::SameLine();
-
-			ImGui::DragFloat("##OriginYDragFloat::AetRenderWindow", &properties.Origin.y, 1.0f, 0.0f, 0.0f, "Y: %.f");
+			if (ImGui::DragFloat("##PositionYDragFloat::AetRenderWindow", &properties.Position.y, 1.0f, 0.0f, 0.0f, "Y: %.f"))
+			{
+				updateKeyFrames = true;
+			}
 			ImGui::SameLine();
 
 			ImGui::ItemSize(spacing);
 			ImGui::SameLine();
 
-			ImGui::DragFloat("##RotationDragFloat::AetRenderWindow", &properties.Rotation, 1.0f, 0.0f, 0.0f, "R: %.2f");
+			if (ImGui::DragFloat("##OriginXDragFloat::AetRenderWindow", &properties.Origin.x, 1.0f, 0.0f, 0.0f, "X: %.f"))
+			{
+				updateKeyFrames = true;
+			}
+			ImGui::SameLine();
+
+			if (ImGui::DragFloat("##OriginYDragFloat::AetRenderWindow", &properties.Origin.y, 1.0f, 0.0f, 0.0f, "Y: %.f"))
+			{
+				updateKeyFrames = true;
+			}
+			ImGui::SameLine();
+
+			ImGui::ItemSize(spacing);
+			ImGui::SameLine();
+
+			if (ImGui::DragFloat("##RotationDragFloat::AetRenderWindow", &properties.Rotation, 1.0f, 0.0f, 0.0f, "R: %.2f"))
+			{
+				updateKeyFrames = true;
+			}
 			ImGui::SameLine();
 
 			ImGui::ItemSize(spacing);
@@ -83,12 +99,18 @@ namespace Editor
 
 			buffer = properties.Scale.x * percentFactor;
 			if (ImGui::DragFloat("##ScaleXDragFloat::AetRenderWindow", &buffer, 1.0f, 0.0f, 0.0f, "W: %.2f %%"))
+			{
 				properties.Scale.x = buffer * (1.0f / percentFactor);
+				updateKeyFrames = true;
+			}
 			ImGui::SameLine();
 
 			buffer = properties.Scale.y * percentFactor;
 			if (ImGui::DragFloat("##ScaleYDragFloat::AetRenderWindow", &buffer, 1.0f, 0.0f, 0.0f, "H: %.2f %%"))
+			{
 				properties.Scale.y = buffer * (1.0f / percentFactor);
+				updateKeyFrames = true;
+			}
 			ImGui::SameLine();
 
 			ImGui::ItemSize(spacing);
@@ -96,11 +118,14 @@ namespace Editor
 
 			buffer = properties.Opacity * percentFactor;
 			if (ImGui::DragFloat("##OpacityDragFloat::AetRenderWindow", &buffer, 1.0f, 0.00000001f, 100.0f, "O: %.2f %%"))
+			{
 				properties.Opacity = glm::max(0.0f, buffer * (1.0f / percentFactor));
+				updateKeyFrames = true;
+			}
 			ImGui::SameLine();
 
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - itemWidth - 2);
-			
+
 			float zoomPercentage = camera.Zoom * percentFactor;
 			if (ImGui::DragFloat("##ZoomDragFloat::AetRenderWindow", &zoomPercentage, 0.15f, camera.ZoomMin * percentFactor, camera.ZoomMax * percentFactor, "%.2f %%"))
 				this->SetUpdateCameraZoom(zoomPercentage * (1.0f / percentFactor), ImGui::GetWindowSize() / 2.0f);
@@ -109,7 +134,7 @@ namespace Editor
 		ImGui::PopStyleVar(2);
 		// ImGui::PopStyleColor(2);
 
-		if (active.Type() == AetSelectionType::AetObj && active.AetObj != nullptr && active.AetObj->AnimationData.Properties != nullptr)
+		if (updateKeyFrames && active.Type() == AetSelectionType::AetObj && active.AetObj->AnimationData.Properties != nullptr)
 		{
 			KeyFrameProperties& keyFrameProperties = *active.AetObj->AnimationData.Properties;
 
@@ -129,21 +154,6 @@ namespace Editor
 
 	void AetRenderWindow::PostDrawGui()
 	{
-		if (false)
-		{
-			ImGui::Text("Camera.Position: (%.f x %.f)", camera.Position.x, camera.Position.y);
-			ImGui::Text("Camera.Zoom: (%.2f)", camera.Zoom);
-
-			vec2 relativeMouse = GetRelativeMouse();
-			ImGui::Text("Relative Mouse: %d %d", static_cast<int>(relativeMouse.x), static_cast<int>(relativeMouse.y));
-
-			vec2 mouseWorldSpace = ScreenToWorldSpace(camera.ViewMatrix, GetRelativeMouse());
-			ImGui::Text("Mouse World Space: %d %d", static_cast<int>(mouseWorldSpace.x), static_cast<int>(mouseWorldSpace.y));
-
-			vec2 backToScreenSpace = WorldToScreenSpace(camera.ViewMatrix, mouseWorldSpace);
-			ImGui::Text("backToScreenSpace: %d %d", static_cast<int>(backToScreenSpace.x), static_cast<int>(backToScreenSpace.y));
-		}
-
 		//if (ImGui::IsMouseClicked())
 		//{
 		//	selectedObjIndex = -1;
@@ -157,10 +167,9 @@ namespace Editor
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		auto renderRegion = GetRenderRegion();
 
+		ImU32 outlineColor = ImColor(vec4(1.0f));
 		for (const auto& vertices : verticesPointers)
 		{
-			ImU32 outlineColor = ImColor(vec4(1.0f));
-
 			vec2 tl = WorldToScreenSpace(camera.ViewMatrix, vertices->TopLeft.Position) + renderRegion.GetTL();
 			vec2 tr = WorldToScreenSpace(camera.ViewMatrix, vertices->TopRight.Position) + renderRegion.GetTL();
 			vec2 bl = WorldToScreenSpace(camera.ViewMatrix, vertices->BottomLeft.Position) + renderRegion.GetTL();
@@ -269,16 +278,10 @@ namespace Editor
 	{
 		vec2 regionSize = (aet == nullptr) ? vec2(1280.0f, 720.0f) : vec2(aet->Width, aet->Height);
 
-		vec4 gridColors[2] =
-		{
-			vec4(.15f, .15f, .15f, 1.0f),
-			vec4(0.32f, 0.32f, 0.32f, 1.0f)
-		};
-
 		renderer.Draw(
 			vec2(0.0f),
 			regionSize,
-			gridColors[0]);
+			gridConfig.Color);
 
 		renderer.DrawCheckerboardRectangle(
 			vec2(0.0f),
@@ -286,8 +289,8 @@ namespace Editor
 			vec2(0.0f),
 			0.0f,
 			regionSize,
-			gridColors[1],
-			camera.Zoom);
+			gridConfig.ColorAlt,
+			camera.Zoom * gridConfig.GridSize);
 	}
 
 	void AetRenderWindow::RenderAetSet(AetSet* aetSet)
@@ -338,7 +341,7 @@ namespace Editor
 
 		if (!getSprite(spriteRegion, &texture, &sprite))
 		{
-			renderer.Draw(nullptr, vec4(0, 0, aetRegion->Width, aetRegion->Height), vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), vec4(1.0f), static_cast<AetBlendMode>(currentBlendItem));
+			renderer.Draw(nullptr, vec4(0, 0, aetRegion->Width, aetRegion->Height), vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), dummyColor, static_cast<AetBlendMode>(currentBlendItem));
 		}
 		else
 		{
@@ -366,9 +369,9 @@ namespace Editor
 		if (ImGui::IsKeyPressed(KeyCode_D, true))
 			camera.Position.x -= step;
 		if (ImGui::IsKeyPressed(KeyCode_Escape, true))
-		{ 
-			camera.Position = vec2(0.0f); 
-			camera.Zoom = 1.0f; 
+		{
+			camera.Position = vec2(0.0f);
+			camera.Zoom = 1.0f;
 		}
 		if (ImGui::IsMouseDragging())
 			camera.Position -= vec2(io.MouseDelta.x, io.MouseDelta.y);
@@ -427,9 +430,6 @@ namespace Editor
 		}
 		else
 		{
-			vec4 dummyColor(0.79f, 0.90f, 0.57f, 0.50f);
-			dummyColor.a *= obj.Properties.Opacity;
-
 			renderer.Draw(
 				nullptr,
 				vec4(0, 0, obj.Region->Width, obj.Region->Height),
@@ -437,11 +437,11 @@ namespace Editor
 				obj.Properties.Origin,
 				obj.Properties.Rotation,
 				obj.Properties.Scale,
-				dummyColor,
+				vec4(dummyColor.r, dummyColor.g, dummyColor.b, dummyColor.a * obj.Properties.Opacity),
 				obj.BlendMode);
 		}
 
-		//if (ImGui::IsMouseClicked(0))
+		if (ImGui::IsWindowFocused() && ImGui::IsWindowHovered())
 		{
 			const SpriteVertices& objVertices = renderer.GetLastVertices();
 
