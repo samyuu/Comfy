@@ -5,7 +5,7 @@
 #include "Misc/StringHelper.h"
 #include "Graphics/Camera.h"
 #include "TimeSpan.h"
-#include <glfw/glfw3.h>
+#include "Input/KeyCode.h"
 
 namespace Editor
 {
@@ -95,8 +95,8 @@ namespace Editor
 			ImGui::SameLine();
 
 			buffer = properties.Opacity * percentFactor;
-			if (ImGui::DragFloat("##OpacityDragFloat::AetRenderWindow", &properties.Opacity, 1.0f, 0.0f, 0.0f, "%.2f %%"))
-				properties.Opacity = buffer * (1.0f / percentFactor);
+			if (ImGui::DragFloat("##OpacityDragFloat::AetRenderWindow", &buffer, 1.0f, 0.00000001f, 100.0f, "O: %.2f %%"))
+				properties.Opacity = glm::max(0.0f, buffer * (1.0f / percentFactor));
 			ImGui::SameLine();
 
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - itemWidth - 2);
@@ -357,15 +357,15 @@ namespace Editor
 		ImGuiIO& io = ImGui::GetIO();
 
 		constexpr float step = 10.0f;
-		if (ImGui::IsKeyPressed(GLFW_KEY_W, true))
+		if (ImGui::IsKeyPressed(KeyCode_W, true))
 			camera.Position.y += step;
-		if (ImGui::IsKeyPressed(GLFW_KEY_S, true))
+		if (ImGui::IsKeyPressed(KeyCode_S, true))
 			camera.Position.y -= step;
-		if (ImGui::IsKeyPressed(GLFW_KEY_A, true))
+		if (ImGui::IsKeyPressed(KeyCode_A, true))
 			camera.Position.x += step;
-		if (ImGui::IsKeyPressed(GLFW_KEY_D, true))
+		if (ImGui::IsKeyPressed(KeyCode_D, true))
 			camera.Position.x -= step;
-		if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE, true))
+		if (ImGui::IsKeyPressed(KeyCode_Escape, true))
 		{ 
 			camera.Position = vec2(0.0f); 
 			camera.Zoom = 1.0f; 
@@ -383,7 +383,7 @@ namespace Editor
 	void AetRenderWindow::SetUpdateCameraZoom(float newZoom, vec2 origin)
 	{
 		vec2 worldSpace = ScreenToWorldSpace(camera.ViewMatrix, origin);
-		camera.Zoom = std::clamp(newZoom, camera.ZoomMin, camera.ZoomMax);
+		camera.Zoom = glm::clamp(newZoom, camera.ZoomMin, camera.ZoomMax);
 		UpdateViewMatrix();
 		vec2 postWorldSpace = ScreenToWorldSpace(camera.ViewMatrix, origin);
 

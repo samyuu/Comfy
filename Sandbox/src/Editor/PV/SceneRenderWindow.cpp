@@ -1,7 +1,7 @@
 #include "SceneRenderWindow.h"
-#include "TimeSpan.h"
 #include "FileSystem/FileHelper.h"
-#include <glfw/glfw3.h>
+#include "Input/KeyCode.h"
+#include "TimeSpan.h"
 
 namespace Editor
 {
@@ -214,8 +214,8 @@ namespace Editor
 		front.y = sin(glm::radians(cameraPitch));
 		front.z = sin(glm::radians(cameraYaw)) * cos(glm::radians(cameraPitch));
 
-		const bool fastCamera = ImGui::IsKeyDown(GLFW_KEY_LEFT_SHIFT);
-		const bool slowCamera = ImGui::IsKeyDown(GLFW_KEY_LEFT_ALT);
+		const bool fastCamera = ImGui::IsKeyDown(KeyCode_Left_Shift);
+		const bool slowCamera = ImGui::IsKeyDown(KeyCode_Left_Alt);
 
 		const float cameraSpeed = (slowCamera ? 0.25f : (fastCamera ? 5.5f : 2.25f)) * io.DeltaTime;
 
@@ -243,18 +243,18 @@ namespace Editor
 
 		if (ImGui::IsWindowFocused())
 		{
-			if (ImGui::IsKeyDown(GLFW_KEY_W) == GLFW_PRESS)
+			if (ImGui::IsKeyDown(KeyCode_W) == KeyState_Press)
 				camera.Position += front * cameraSpeed;
-			if (ImGui::IsKeyDown(GLFW_KEY_S) == GLFW_PRESS)
+			if (ImGui::IsKeyDown(KeyCode_S) == KeyState_Press)
 				camera.Position -= front * cameraSpeed;
-			if (ImGui::IsKeyDown(GLFW_KEY_A) == GLFW_PRESS)
+			if (ImGui::IsKeyDown(KeyCode_A) == KeyState_Press)
 				camera.Position -= glm::normalize(glm::cross(front, camera.UpDirection)) * cameraSpeed;
-			if (ImGui::IsKeyDown(GLFW_KEY_D) == GLFW_PRESS)
+			if (ImGui::IsKeyDown(KeyCode_D) == KeyState_Press)
 				camera.Position += glm::normalize(glm::cross(front, camera.UpDirection)) * cameraSpeed;
 
-			if (ImGui::IsKeyDown(GLFW_KEY_SPACE))
+			if (ImGui::IsKeyDown(KeyCode_Space))
 				camera.Position += camera.UpDirection * cameraSpeed;
-			if (ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL))
+			if (ImGui::IsKeyDown(KeyCode_Left_Control))
 				camera.Position -= camera.UpDirection * cameraSpeed;
 		}
 

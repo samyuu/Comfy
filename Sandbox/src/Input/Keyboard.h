@@ -1,12 +1,8 @@
 #pragma once
 #include "IInputDevice.h"
-#include "glfw/glfw3.h"
+#include "KeyCode.h"
 
 struct GLFWwindow;
-
-constexpr size_t FIRST_KEY = GLFW_KEY_SPACE;
-constexpr size_t KEY_COUNT = GLFW_KEY_LAST + 1;
-typedef int KeyCode;
 
 class Keyboard : public IInputDevice
 {
@@ -40,6 +36,6 @@ private:
 	static Keyboard* instance;
 	GLFWwindow* window;
 
-	bool lastState[KEY_COUNT];
-	bool currentState[KEY_COUNT];
+	bool lastState[KeyCode_Count];
+	bool currentState[KeyCode_Count];
 };

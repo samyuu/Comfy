@@ -1,4 +1,5 @@
 #include "Keyboard.h"
+#include <glfw/glfw3.h>
 
 Keyboard* Keyboard::instance;
 
@@ -21,7 +22,7 @@ Keyboard::~Keyboard()
 
 bool Keyboard::PollInput()
 {
-	for (size_t i = FIRST_KEY; i < KEY_COUNT; i++)
+	for (size_t i = KeyCode_Space; i < KeyCode_Count; i++)
 	{
 		lastState[i] = currentState[i];
 		currentState[i] = glfwGetKey(window, i);

@@ -1,6 +1,6 @@
 #include "TimelineBase.h"
 #include "Theme.h"
-#include <glfw/glfw3.h>
+#include "Input/KeyCode.h"
 
 namespace Editor
 {
@@ -131,7 +131,7 @@ namespace Editor
 		// Focus Control
 		// -------------
 		{
-			if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE))
+			if (ImGui::IsKeyPressed(KeyCode_Escape))
 				CenterCursor();
 		}
 		// -------------
@@ -164,7 +164,7 @@ namespace Editor
 
 	void TimelineBase::UpdateInputPlaybackToggle()
 	{
-		if (ImGui::IsKeyPressed(GLFW_KEY_SPACE))
+		if (ImGui::IsKeyPressed(KeyCode_Space))
 		{
 			if (GetIsPlayback())
 				PausePlayback();
@@ -172,7 +172,7 @@ namespace Editor
 				ResumePlayback();
 		}
 
-		if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE) && GetIsPlayback())
+		if (ImGui::IsKeyPressed(KeyCode_Escape) && GetIsPlayback())
 		{
 			if (GetIsPlayback())
 				StopPlayback();

@@ -491,6 +491,9 @@
     <ClInclude Include="src\Editor\Aet\AetIcons.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Input\KeyCode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="rom\shader\line_frag.glsl" />

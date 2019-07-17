@@ -213,6 +213,7 @@
     <ClInclude Include="src\Graphics\IRenderer.h" />
     <ClInclude Include="src\Graphics\Shader\Shader.h" />
     <ClInclude Include="src\ImGui\Widgets\FileViewer.h" />
+    <ClInclude Include="src\Input\KeyCode.h" />
     <ClInclude Include="src\License\LicenseWindow.h" />
     <ClInclude Include="src\Logger.h" />
     <ClInclude Include="src\Audio\DummySampleProvider.h" />

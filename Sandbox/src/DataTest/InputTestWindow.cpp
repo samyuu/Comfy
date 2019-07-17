@@ -39,7 +39,7 @@ void InputTestWindow::DrawGui()
 	
 		if (initialized)
 		{
-			for (KeyCode key = 0; key < KEY_COUNT; key++)
+			for (KeyCode key = 0; key < KeyCode_Count; key++)
 			{
 				if (keyboard->IsDown(key))
 				{
