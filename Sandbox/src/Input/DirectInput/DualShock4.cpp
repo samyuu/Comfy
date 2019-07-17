@@ -67,8 +67,8 @@ bool DualShock4::PollInput()
 
 	UpdateInternalDs4State(currentState);
 
-	for (int button = 0; button < DS4_BUTTON_MAX; button++)
-		currentState.Buttons[button] = GetButtonState(currentState, (Ds4Button)button);
+	for (int32_t button = 0; button < static_cast<int32_t>(Ds4Button::Count); button++)
+		currentState.Buttons[button] = GetButtonState(currentState, static_cast<Ds4Button>(button));
 
 	return true;
 }
@@ -97,7 +97,7 @@ void DualShock4::UpdateInternalDs4State(Ds4State &state)
 
 bool DualShock4::_IsDown(Ds4Button button)
 {
-	return currentState.Buttons[button];
+	return currentState.Buttons[static_cast<int32_t>(button)];
 }
 
 bool DualShock4::_IsUp(Ds4Button button)
@@ -117,7 +117,7 @@ bool DualShock4::_IsReleased(Ds4Button button)
 
 bool DualShock4::_WasDown(Ds4Button button)
 {
-	return lastState.Buttons[button];
+	return lastState.Buttons[static_cast<int32_t>(button)];
 }
 
 bool DualShock4::_WasUp(Ds4Button button)
@@ -129,16 +129,16 @@ bool DualShock4::MatchesDirection(Joystick joystick, Direction directionEnum, fl
 {
 	switch (directionEnum)
 	{
-	case DIR_UP:
+	case Direction::Up:
 		return joystick.YAxis <= -threshold;
 
-	case DIR_RIGHT:
+	case Direction::Right:
 		return joystick.XAxis >= +threshold;
 
-	case DIR_DOWN:
+	case Direction::Down:
 		return joystick.YAxis >= +threshold;
 
-	case DIR_LEFT:
+	case Direction::Left:
 		return joystick.XAxis <= -threshold;
 
 	default:
@@ -148,17 +148,17 @@ bool DualShock4::MatchesDirection(Joystick joystick, Direction directionEnum, fl
 
 bool DualShock4::GetButtonState(Ds4State &state, Ds4Button button)
 {
-	if (button >= DS4_SQUARE && button <= DS4_TOUCH)
-		return state.DI_JoyState.rgbButtons[button];
+	if (button >= Ds4Button::Square && button <= Ds4Button::Touch)
+		return state.DI_JoyState.rgbButtons[static_cast<int32_t>(button)];
 
-	if (button >= DS4_DPAD_UP && button <= DS4_DPAD_LEFT)
-		return state.Dpad.IsDown ? MatchesDirection(state.Dpad.Stick, (Direction)(button - DS4_DPAD_UP), dpadThreshold) : false;
+	if (button >= Ds4Button::DPad_Up && button <= Ds4Button::DPad_Left)
+		return state.Dpad.IsDown ? MatchesDirection(state.Dpad.Stick, static_cast<Direction>(static_cast<int32_t>(button) - static_cast<int32_t>(Ds4Button::DPad_Up)), dpadThreshold) : false;
 
-	if (button >= DS4_L_STICK_UP && button <= DS4_L_STICK_LEFT)
-		return MatchesDirection(state.LeftStick, (Direction)(button - DS4_L_STICK_UP), joystickThreshold);
+	if (button >= Ds4Button::L_Stick_Up && button <= Ds4Button::L_Stick_Left)
+		return MatchesDirection(state.LeftStick, (Direction)(static_cast<int32_t>(button) - static_cast<int32_t>(Ds4Button::L_Stick_Up)), joystickThreshold);
 
-	if (button >= DS4_R_STICK_UP && button <= DS4_R_STICK_LEFT)
-		return MatchesDirection(state.RightStick, (Direction)(button - DS4_R_STICK_UP), joystickThreshold);
+	if (button >= Ds4Button::R_Stick_Up && button <= Ds4Button::R_Stick_Left)
+		return MatchesDirection(state.RightStick, (Direction)(static_cast<int32_t>(button) - static_cast<int32_t>(Ds4Button::R_Stick_Up)), joystickThreshold);
 
 	return false;
 }

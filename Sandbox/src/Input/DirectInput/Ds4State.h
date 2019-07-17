@@ -33,7 +33,7 @@ struct Ds4State
 {
 	DIJOYSTATE2 DI_JoyState;
 
-	BYTE Buttons[DS4_BUTTON_MAX];
+	BYTE Buttons[static_cast<size_t>(Ds4Button::Count)];
 
 	Dpad Dpad;
 	Joystick LeftStick;

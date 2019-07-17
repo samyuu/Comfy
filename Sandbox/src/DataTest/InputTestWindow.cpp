@@ -61,7 +61,7 @@ void InputTestWindow::DrawGui()
 
 		if (initialized)
 		{
-			for (size_t button = 0; button < DS4_BUTTON_MAX; button++)
+			for (size_t button = 0; button < static_cast<size_t>(Ds4Button::Count); button++)
 			{
 				if (ds4->IsDown((Ds4Button)button))
 					ImGui::BulletText(ds4ButtonNames[button]);

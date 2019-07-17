@@ -1,49 +1,50 @@
 #pragma once
+#include "Types.h"
 
-enum Direction
+enum class Direction : int32_t
 {
-	DIR_UP,
-	DIR_RIGHT,
-	DIR_DOWN,
-	DIR_LEFT
+	Up,
+	Right,
+	Down,
+	Left
 };
 
-enum Ds4Button : int
+enum class Ds4Button : int32_t
 {
-	DS4_SQUARE = 0,
-	DS4_CROSS = 1,
-	DS4_CIRCLE = 2,
-	DS4_TRIANGLE = 3,
+	Square = 0,
+	Cross = 1,
+	Circle = 2,
+	Triangle = 3,
 
-	DS4_L1 = 4,
-	DS4_R1 = 5,
+	L1 = 4,
+	R2 = 5,
 
-	DS4_L_TRIGGER = 6,
-	DS4_R_TRIGGER = 7,
+	L_Trigger = 6,
+	R_Trigger = 7,
 
-	DS4_SHARE = 8,
-	DS4_OPTIONS = 9,
+	Share = 8,
+	Options = 9,
 
-	DS4_L3 = 10,
-	DS4_R3 = 11,
+	L3 = 10,
+	R3 = 11,
 
-	DS4_PS = 12,
-	DS4_TOUCH = 13,
+	PS = 12,
+	Touch = 13,
 
-	DS4_DPAD_UP,
-	DS4_DPAD_RIGHT,
-	DS4_DPAD_DOWN,
-	DS4_DPAD_LEFT,
+	DPad_Up = 14,
+	DPad_Right = 15,
+	DPad_Down = 16,
+	DPad_Left = 17,
 
-	DS4_L_STICK_UP,
-	DS4_L_STICK_RIGHT,
-	DS4_L_STICK_DOWN,
-	DS4_L_STICK_LEFT,
+	L_Stick_Up = 18,
+	L_Stick_Right = 19,
+	L_Stick_Down = 20,
+	L_Stick_Left = 21,
 
-	DS4_R_STICK_UP,
-	DS4_R_STICK_RIGHT,
-	DS4_R_STICK_DOWN,
-	DS4_R_STICK_LEFT,
+	R_Stick_Up = 22,
+	R_Stick_Right = 23,
+	R_Stick_Down = 24,
+	R_Stick_Left = 25,
 
-	DS4_BUTTON_MAX,
+	Count
 };

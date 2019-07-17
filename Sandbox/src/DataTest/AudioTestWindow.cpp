@@ -1,10 +1,10 @@
 #include "AudioTestWindow.h"
-#include <sstream>
-#include <memory>
 #include "Application.h"
 #include "Audio/AudioInstance.h"
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
+#include <sstream>
+#include <memory>
 
 AudioTestWindow::AudioTestWindow(Application* parent) : BaseWindow(parent)
 {
@@ -271,11 +271,33 @@ void AudioTestWindow::DrawGui()
 
 		if (ImGui::IsWindowFocused())
 		{
-			short keys[] = { 'W', 'A', 'S', 'D', 'I', 'J', 'K', 'L' };
+			static KeyCode keys[] = 
+			{ 
+				'W', 
+				'A', 
+				'S', 
+				'D', 
+				'I', 
+				'J', 
+				'K', 
+				'L' 
+			};
 			for (size_t i = 0; i < IM_ARRAYSIZE(keys); i++)
 				addButtonSound |= Keyboard::IsTapped(keys[i]);
 
-			Ds4Button buttons[] = { DS4_DPAD_UP, DS4_DPAD_DOWN, DS4_DPAD_LEFT, DS4_DPAD_RIGHT, DS4_TRIANGLE, DS4_CIRCLE, DS4_CROSS, DS4_SQUARE, DS4_L_TRIGGER, DS4_R_TRIGGER };
+			static Ds4Button buttons[] = 
+			{ 
+				Ds4Button::DPad_Up, 
+				Ds4Button::DPad_Down, 
+				Ds4Button::DPad_Left, 
+				Ds4Button::DPad_Right, 
+				Ds4Button::Triangle, 
+				Ds4Button::Circle, 
+				Ds4Button::Cross, 
+				Ds4Button::Square, 
+				Ds4Button::L_Trigger, 
+				Ds4Button::R_Trigger,
+			};
 			for (size_t i = 0; i < IM_ARRAYSIZE(buttons); i++)
 				addButtonSound |= DualShock4::IsTapped(buttons[i]);
 		}
