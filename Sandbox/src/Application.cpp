@@ -435,7 +435,7 @@ void Application::UpdatePollInput()
 
 void Application::UpdateInput()
 {
-	if (Keyboard::IsTapped(GLFW_KEY_F11))
+	if (Keyboard::IsTapped(KeyCode_F11))
 		ToggleFullscreen();
 }
 
@@ -514,16 +514,14 @@ void Application::DrawGui()
 
 			if (ImGui::BeginPopupModal(licenseWindow.GetWindowName(), licenseWindow.GetIsWindowOpen(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 			{
-				auto viewPortPos = ImVec2(windowXPosition, windowYPosition);
-				auto viewPortSize = ImVec2(windowWidth, windowHeight);
-
+				ImGuiViewport* viewPort = ImGui::GetMainViewport();
 				ImGuiWindow* window = ImGui::FindWindowByName(licenseWindow.GetWindowName());
-				ImGui::SetWindowPos(window, viewPortPos + viewPortSize / 8, ImGuiCond_Always);
-				ImGui::SetWindowSize(window, viewPortSize * .75f, ImGuiCond_Always);
+				ImGui::SetWindowPos(window, viewPort->Pos + viewPort->Size / 8, ImGuiCond_Always);
+				ImGui::SetWindowSize(window, viewPort->Size * .75f, ImGuiCond_Always);
 
 				licenseWindow.DrawGui();
 
-				if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE))
+				if (ImGui::IsKeyPressed(KeyCode_Escape))
 					ImGui::CloseCurrentPopup();
 
 				ImGui::EndPopup();
