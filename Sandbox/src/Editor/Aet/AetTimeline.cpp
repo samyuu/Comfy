@@ -18,6 +18,8 @@ namespace Editor
 	{
 		aet = parent;
 		active = value;
+	
+		frameRate = (aet != nullptr) ? aet->FrameRate : 60.0f;
 	}
 
 	bool AetTimeline::GetIsPlayback() const
