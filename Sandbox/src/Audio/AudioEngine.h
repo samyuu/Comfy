@@ -7,25 +7,24 @@
 #include <array>
 #include <memory>
 
-typedef uint8_t byte;
 typedef RtAudio::StreamParameters StreamParameters;
 
 class AudioInstance;
 class ISampleProvider;
 class AudioTestWindow;
 
-enum AudioApi
+enum class AudioApi : int32_t
 {
-	AUDIO_API_INVALID = -1,
-	AUDIO_API_ASIO,
-	AUDIO_API_WASAPI,
-	AUDIO_API_COUNT,
+	Invalid = -1,
+	ASIO = 0,
+	WASAPI = 1,
+	Count,
 };
 
-enum AudioCallbackResult
+enum class AudioCallbackResult
 {
-	AUDIO_CALLBACK_CONTINUE = 0,
-	AUDIO_CALLBACK_STOP = 1,
+	Continue = 0,
+	Stop = 1,
 };
 
 constexpr float MIN_VOLUME = 0.0f;
@@ -68,24 +67,24 @@ public:
 	inline uint32_t GetBufferSize() { return bufferSize; };
 	inline RtAudioFormat GetStreamFormat() { return RTAUDIO_SINT16; };
 
-	inline double GetStreamTime() { return GetRtAudio() && GetIsStreamOpen() ? GetRtAudio()->getStreamTime() : 0.0; };
-	inline void SetStreamTime(double value) { if (GetRtAudio()) { GetRtAudio()->setStreamTime(value); } };
-	inline double GetCallbackLatency() { return callbackLatency; };
+	double GetStreamTime();
+	void SetStreamTime(double value);
+	double GetCallbackLatency();
 
-	inline AudioApi GetDefaultAudioApi() { return AUDIO_API_WASAPI; };
+	inline AudioApi GetDefaultAudioApi() { return AudioApi::WASAPI; };
 	inline AudioApi GetActiveAudioApi() { return audioApi; };
 
 	inline bool GetIsStreamOpen() { return isStreamOpen; };
 	inline bool GetIsStreamRunning() { return isStreamRunning; };
 
-	inline float GetMasterVolume() { return masterVolume; };
-	inline void SetMasterVolume(float value) { masterVolume = std::clamp(value, MIN_VOLUME, MAX_VOLUME); };
-	inline bool GetIsExclusiveMode() { return GetActiveAudioApi() == AUDIO_API_ASIO; };
+	float GetMasterVolume();
+	void SetMasterVolume(float value);
+	bool GetIsExclusiveMode();
 
-	static inline void CreateInstance() { engineInstance = new AudioEngine(); };
-	static inline void InitializeInstance() { GetInstance()->Initialize(); };
-	static inline void DisposeInstance() { GetInstance()->Dispose(); };
-	static inline void DeleteInstance() { delete GetInstance(); engineInstance = nullptr; };
+	static void CreateInstance();
+	static void InitializeInstance();
+	static void DisposeInstance();
+	static void DeleteInstance();
 	static inline AudioEngine* GetInstance() { return engineInstance; };
 	// ----------------------
 
@@ -93,7 +92,6 @@ private:
 	AudioEngine();
 	~AudioEngine();
 
-	//int16_t currentSampleBuffer[64 * 2];
 	std::vector<std::shared_ptr<AudioInstance>> audioInstances;
 	std::vector<ICallbackReceiver*> callbackReceivers;
 
@@ -107,33 +105,18 @@ private:
 	double callbackLatency;
 	double callbackStreamTime, lastCallbackStreamTime;
 
-	AudioApi audioApi = AUDIO_API_INVALID;
+	AudioApi audioApi = AudioApi::Invalid;
 	RtAudio* rtAudio = nullptr;
 
 	StreamParameters streamOutputParameter;
 
-	inline int16_t MixSamples(int16_t sample1, int16_t sample2)
-	{
-		const int32_t result(static_cast<int32_t>(sample1) + static_cast<int32_t>(sample2));
-		typedef std::numeric_limits<short int> Range;
+	int16_t MixSamples(int16_t sampleA, int16_t sampleB);
+	RtAudio::Api GetRtAudioApi(AudioApi audioApi);
 
-		if (Range::max() < result)
-			return Range::max();
-		else if (Range::min() > result)
-			return Range::min();
-		else
-			return result;
-	}
-
-	inline RtAudio::Api GetRtAudioApi(AudioApi audioApi)
+	std::array<RtAudio::Api, static_cast<size_t>(AudioApi::Count)> audioApis =
 	{
-		return (audioApi > AUDIO_API_INVALID && audioApi < AUDIO_API_COUNT) ? audioApis.at(audioApi) : RtAudio::UNSPECIFIED;
-	};
-
-	std::array<RtAudio::Api, AUDIO_API_COUNT> audioApis =
-	{
-		RtAudio::WINDOWS_ASIO,		// AUDIO_API_ASIO
-		RtAudio::WINDOWS_WASAPI,	// AUDIO_API_WASAPI
+		RtAudio::WINDOWS_ASIO,		// AudioApi::ASIO
+		RtAudio::WINDOWS_WASAPI,	// AudioApi::WASAPI
 	};
 
 	AudioCallbackResult InternalAudioCallback(int16_t* outputBuffer, uint32_t bufferFrameCount, double streamTime);

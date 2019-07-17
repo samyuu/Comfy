@@ -33,10 +33,10 @@ private:
 	};
 
 	std::vector<ExtendedDeviceInfo> deviceInfoList;
-	AudioApi selectedAudioApi = AUDIO_API_INVALID;
+	AudioApi selectedAudioApi = AudioApi::Invalid;
 	int newBufferSize = -1;
 
-	std::array<const char*, AUDIO_API_COUNT> audioApiNames =
+	std::array<const char*, static_cast<size_t>(AudioApi::Count)> audioApiNames =
 	{ 
 		"AUDIO_API_ASIO",
 		"AUDIO_API_WASAPI",

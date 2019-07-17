@@ -4,11 +4,11 @@
 #include "TimeSpan.h"
 #include <string>
 
-enum AudioFinishedAction : byte
+enum class AudioFinishedAction : int8_t
 {
-	AUDIO_FINISHED_NONE,
-	AUDIO_FINISHED_REMOVE,
-	AUDIO_FINISHED_MAX,
+	None,
+	Remove,
+	Count,
 };
 
 class AudioInstance
@@ -86,7 +86,7 @@ public:
 private:
 	// Members Variables
 	// -----------------
-	const char* name = "NO-NAME";
+	const char* name = "<NO-NAME>";
 
 	float volume = MAX_VOLUME;
 
@@ -97,7 +97,7 @@ private:
 	bool appendRemove = false;
 
 	int64_t samplePosition = 0;
-	AudioFinishedAction onFinishedAction = AUDIO_FINISHED_NONE;
+	AudioFinishedAction onFinishedAction = AudioFinishedAction::None;
 	ISampleProvider* sampleProvider = nullptr;
 	// -----------------
 

@@ -111,9 +111,9 @@ void AudioTestWindow::DrawGui()
 
 	if (ImGui::CollapsingHeader("Audio API"))
 	{
-		ImGui::TextDisabled("(engine->GetActiveAudioApi(): %s)", audioApiNames[engine->GetActiveAudioApi()]);
+		ImGui::TextDisabled("(engine->GetActiveAudioApi(): %s)", audioApiNames[static_cast<int>(engine->GetActiveAudioApi())]);
 
-		if (selectedAudioApi == AUDIO_API_INVALID)
+		if (selectedAudioApi == AudioApi::Invalid)
 			selectedAudioApi = engine->GetActiveAudioApi();
 
 		ImGui::Combo("Audio API##combo", reinterpret_cast<int*>(&selectedAudioApi), audioApiNames.data(), static_cast<int>(audioApiNames.size()));

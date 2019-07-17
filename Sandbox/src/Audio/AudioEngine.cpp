@@ -115,6 +115,78 @@ void AudioEngine::StopStream()
 	GetRtAudio()->stopStream();
 }
 
+double AudioEngine::GetStreamTime()
+{ 
+	return GetRtAudio() && GetIsStreamOpen() ? GetRtAudio()->getStreamTime() : 0.0; 
+};
+
+void AudioEngine::SetStreamTime(double value)
+{ 
+	if (GetRtAudio() != nullptr) 
+	{ 
+		GetRtAudio()->setStreamTime(value); 
+	} 
+};
+
+double AudioEngine::GetCallbackLatency()
+{ 
+	return callbackLatency; 
+};
+
+float AudioEngine::GetMasterVolume() 
+{ 
+	return masterVolume; 
+}
+
+void AudioEngine::SetMasterVolume(float value) 
+{ 
+	masterVolume = std::clamp(value, MIN_VOLUME, MAX_VOLUME); 
+}
+
+bool AudioEngine::GetIsExclusiveMode() 
+{ 
+	return GetActiveAudioApi() == AudioApi::ASIO; 
+}
+
+void AudioEngine::CreateInstance()
+{
+	engineInstance = new AudioEngine();
+}
+
+void AudioEngine::InitializeInstance()
+{
+	GetInstance()->Initialize();
+}
+
+void AudioEngine::DisposeInstance()
+{
+	GetInstance()->Dispose();
+}
+
+void AudioEngine::DeleteInstance()
+{
+	delete GetInstance();
+	engineInstance = nullptr;
+}
+
+int16_t AudioEngine::MixSamples(int16_t sampleA, int16_t sampleB)
+{
+	const int32_t result = static_cast<int32_t>(sampleA) + static_cast<int32_t>(sampleB);
+	typedef std::numeric_limits<short int> Range;
+
+	if (Range::max() < result)
+		return Range::max();
+	else if (Range::min() > result)
+		return Range::min();
+	else
+		return result;
+}
+
+RtAudio::Api AudioEngine::GetRtAudioApi(AudioApi audioApi)
+{
+	return (audioApi > AudioApi::Invalid && audioApi < AudioApi::Count) ? audioApis.at(static_cast<int>(audioApi)) : RtAudio::UNSPECIFIED;
+}
+
 AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, uint32_t bufferFrameCount, double streamTime)
 {
 	this->bufferSize = bufferFrameCount;
@@ -143,7 +215,7 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 	{
 		AudioInstance* audioInstance = audioInstances[i].get();
 
-		if (audioInstance->GetAppendRemove() || (audioInstance->IsSampleProviderValid() && audioInstance->GetHasReachedEnd() && audioInstance->GetOnFinishedAction() == AUDIO_FINISHED_REMOVE))
+		if (audioInstance->GetAppendRemove() || (audioInstance->IsSampleProviderValid() && audioInstance->GetHasReachedEnd() && audioInstance->GetOnFinishedAction() == AudioFinishedAction::Remove))
 		{
 			audioInstance->SetHasBeenRemoved(true);
 
@@ -180,7 +252,7 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 		outputBuffer[i] = static_cast<int16_t>(outputBuffer[i] * GetMasterVolume());
 
 	callbackRunning = false;
-	return AUDIO_CALLBACK_CONTINUE;
+	return AudioCallbackResult::Continue;
 }
 
 size_t AudioEngine::GetDeviceCount()
@@ -235,12 +307,12 @@ void AudioEngine::AddAudioInstance(std::shared_ptr<AudioInstance> audioInstance)
 
 void AudioEngine::PlaySound(ISampleProvider* sampleProvider, float volume, const char* name)
 {
-	AddAudioInstance(std::make_shared<AudioInstance>(sampleProvider, true, AUDIO_FINISHED_REMOVE, volume, name));
+	AddAudioInstance(std::make_shared<AudioInstance>(sampleProvider, true, AudioFinishedAction::Remove, volume, name));
 }
 
 void AudioEngine::ShowControlPanel()
 {
-	if (GetActiveAudioApi() == AUDIO_API_ASIO)
+	if (GetActiveAudioApi() == AudioApi::ASIO)
 		ASIOControlPanel();
 }
 
@@ -280,5 +352,5 @@ StreamParameters* AudioEngine::GetStreamInputParameters()
 
 int AudioEngine::InternalStaticAudioCallback(void* outputBuffer, void*, uint32_t bufferFrames, double streamTime, RtAudioStreamStatus, void*)
 {
-	return GetInstance()->InternalAudioCallback(static_cast<int16_t*>(outputBuffer), bufferFrames, streamTime);
+	return static_cast<int>(GetInstance()->InternalAudioCallback(static_cast<int16_t*>(outputBuffer), bufferFrames, streamTime));
 }
