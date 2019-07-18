@@ -23,7 +23,7 @@ namespace FileSystem
 		virtual bool CanWrite() const override;
 
 		virtual int64_t Read(void* buffer, size_t size) override;
-		virtual int64_t Write(void* buffer, size_t size) override;
+		virtual int64_t Write(const void* buffer, size_t size) override;
 
 		void FromFile(const std::string& filePath);
 		void FromFile(const std::wstring& filePath);

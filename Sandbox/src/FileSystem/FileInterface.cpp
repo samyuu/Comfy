@@ -1,6 +1,8 @@
 #include "FileInterface.h"
 #include "MemoryStream.h"
+#include "FileStream.h"
 #include "BinaryReader.h"
+#include "BinaryWriter.h"
 
 namespace FileSystem
 {
@@ -9,6 +11,13 @@ namespace FileSystem
 		BinaryReader reader(stream);
 		readable->Read(reader);
 		reader.Close();
+	}
+
+	static void IBinaryWritableSaveBase(IBinaryWritable* writable, Stream* stream)
+	{
+		BinaryWriter writer(stream);
+		writable->Write(writer);
+		writer.Close();
 	}
 
 	void IBinaryReadable::Load(const std::string& filePath)
@@ -22,6 +31,24 @@ namespace FileSystem
 	{
 		MemoryStream stream(filePath);
 		IBinaryReadableLoadBase(this, &stream);
+		stream.Close();
+	}
+
+	void IBinaryWritable::Save(const std::string& filePath)
+	{
+		FileStream stream;
+		
+		std::wstring widePath = std::wstring(filePath.begin(), filePath.end());
+		stream.CreateReadWrite(widePath);
+		IBinaryWritableSaveBase(this, &stream);
+		stream.Close();
+	}
+
+	void IBinaryWritable::Save(const std::wstring& filePath)
+	{
+		FileStream stream;
+		stream.CreateReadWrite(filePath);
+		IBinaryWritableSaveBase(this, &stream);
 		stream.Close();
 	}
 }

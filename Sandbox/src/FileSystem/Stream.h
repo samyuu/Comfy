@@ -23,7 +23,7 @@ namespace FileSystem
 		virtual bool CanWrite() const = 0;
 
 		virtual int64_t Read(void* buffer, size_t size) = 0;
-		virtual int64_t Write(void* buffer, size_t size) = 0;
+		virtual int64_t Write(const void* buffer, size_t size) = 0;
 
 		virtual void Close() = 0;
 	};

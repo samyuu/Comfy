@@ -32,7 +32,10 @@ namespace FileSystem
 	class IBinaryWritable : public IWritable
 	{
 	public:
-		virtual void Read(BinaryWriter& writer) = 0;
+		virtual void Write(BinaryWriter& writer) = 0;
+
+		virtual void Save(const std::string& filePath) override;
+		virtual void Save(const std::wstring& filePath) override;
 	};
 
 	class IBinaryFile : public IBinaryReadable, public IBinaryWritable

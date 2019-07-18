@@ -20,10 +20,10 @@ namespace FileSystem
 	void FileStream::Seek(int64_t position)
 	{
 		LARGE_INTEGER distanceToMove;
-		distanceToMove.QuadPart = 0;
+		distanceToMove.QuadPart = position;
 		SetFilePointerEx(fileHandle, distanceToMove, NULL, FILE_BEGIN);
 
-		fileSize = __min(position, GetLength());
+		this->position = position;
 	}
 
 	int64_t FileStream::GetPosition() const
@@ -62,14 +62,14 @@ namespace FileSystem
 		return bytesRead;
 	}
 
-	int64_t FileStream::Write(void* buffer, size_t size)
+	int64_t FileStream::Write(const void* buffer, size_t size)
 	{
 		assert(CanWrite());
 
 		DWORD bytesWritten = -1;
 		WriteFile(fileHandle, buffer, static_cast<DWORD>(size), &bytesWritten, nullptr);
 
-		if (position < (GetLength() - static_cast<int64_t>(size)))
+		if (position > (GetLength() - static_cast<int64_t>(bytesWritten)))
 			fileSize += bytesWritten;
 		position += bytesWritten;
 
@@ -100,6 +100,15 @@ namespace FileSystem
 		canRead = canWrite = true;
 
 		fileHandle = CreateFileW(filePath.c_str(), GENERIC_READ | GENERIC_WRITE, GetShareMode(), NULL, OPEN_EXISTING, GetFileAttribute(), NULL);
+		UpdateFileSize();
+	}
+
+	void FileStream::CreateWrite(const std::wstring& filePath)
+	{
+		assert(!IsOpen());
+		canWrite = true;
+
+		fileHandle = CreateFileW(filePath.c_str(), GENERIC_WRITE, GetShareMode(), NULL, CREATE_ALWAYS, GetFileAttribute(), NULL);
 		UpdateFileSize();
 	}
 

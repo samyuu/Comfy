@@ -74,14 +74,14 @@ namespace FileSystem
 		return bytesRead;
 	}
 
-	int64_t MemoryStream::Write(void* buffer, size_t size)
+	int64_t MemoryStream::Write(const void* buffer, size_t size)
 	{
 		assert(CanWrite());
 
 		data.resize(data.size() + size);
 
-		uint8_t* bufferStart = reinterpret_cast<uint8_t*>(buffer);
-		uint8_t* bufferEnd = &bufferStart[size];
+		const uint8_t* bufferStart = reinterpret_cast<const uint8_t*>(buffer);
+		const uint8_t* bufferEnd = &bufferStart[size];
 		std::copy(bufferStart, bufferEnd, std::back_inserter(data));
 
 		return size;
