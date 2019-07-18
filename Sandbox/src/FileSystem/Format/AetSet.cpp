@@ -1,5 +1,6 @@
 #include "AetSet.h"
 #include "FileSystem/BinaryReader.h"
+#include "FileSystem/BinaryWriter.h"
 #include <assert.h>
 
 namespace FileSystem
@@ -58,15 +59,48 @@ namespace FileSystem
 
 	}
 
-	static void ReadAnimationData(AnimationData* animationData, BinaryReader& reader)
+	static void WriteKeyFrameProperties(KeyFrameProperties* properties, BinaryWriter& writer)
 	{
+		for (auto& keyFrames : *properties)
+		{
+			if (keyFrames.size() > 0)
+			{
+				writer.WriteUInt32(keyFrames.size());
+				writer.WritePtr([&keyFrames](BinaryWriter& writer)
+				{
+					if (keyFrames.size() == 1)
+					{
+						writer.WriteFloat(keyFrames.front().Value);
+					}
+					else
+					{
+						for (auto& keyFrame : keyFrames)
+							writer.WriteFloat(keyFrame.Frame);
+						for (auto& keyFrame : keyFrames)
+						{
+							writer.WriteFloat(keyFrame.Value);
+							writer.WriteFloat(keyFrame.Interpolation);
+						}
+					}
+				});
+			}
+			else
+			{
+				writer.WriteUInt32(0x00000000); // key frames count
+				writer.WriteUInt32(0x00000000); // key frames offset
+			}
+		}
+	}
+
+	static void ReadAnimationData(std::shared_ptr<AnimationData>& animationData, BinaryReader& reader)
+	{
+		animationData = std::make_shared<FileSystem::AnimationData>();
 		animationData->BlendMode = reader.Read<AetBlendMode>();
 		reader.ReadByte();
 		animationData->UseTextureMask = reader.ReadBool();
 		reader.ReadByte();
-		animationData->Properties = std::make_shared<KeyFrameProperties>();
 
-		ReadKeyFrameProperties(animationData->Properties.get(), reader);
+		ReadKeyFrameProperties(&animationData->Properties, reader);
 
 		void* propertiesExtraDataPointer = reader.ReadPtr();
 		if (propertiesExtraDataPointer != nullptr)
@@ -79,6 +113,35 @@ namespace FileSystem
 		}
 	}
 
+	AetObj::AetObj()
+	{
+	}
+
+	AetObj::AetObj(AetObjType type, const char* name, Aet* parent)
+	{
+		LoopStart = 0.0f;
+		LoopEnd = 60.0f;
+		StartFrame = 0.0f;
+		PlaybackSpeed = 1.0f;
+		Flags = AetObjFlags_Visible | AetObjFlags_Audible;
+		UnknownTypeByte = 0x3;
+		Type = type;
+
+		if (type != AetObjType::Aif)
+		{
+			AnimationData = std::make_shared<FileSystem::AnimationData>();
+			AnimationData->BlendMode = AetBlendMode::Alpha;
+			AnimationData->UseTextureMask = false;
+		}
+
+		parentAet = parent;
+		SetName(name);
+	}
+
+	AetObj::~AetObj()
+	{
+	}
+
 	const char* AetObj::GetName()
 	{
 		return name.c_str();
@@ -86,7 +149,7 @@ namespace FileSystem
 
 	void AetObj::SetName(const char* value)
 	{
-		name = value; 
+		name = value;
 		parentAet->UpdateLayerNames();
 	}
 
@@ -164,7 +227,7 @@ namespace FileSystem
 		{
 			reader.ReadAt(animationDataPointer, [this](BinaryReader& reader)
 			{
-				ReadAnimationData(&this->AnimationData, reader);
+				ReadAnimationData(this->AnimationData, reader);
 			});
 		}
 
@@ -241,7 +304,193 @@ namespace FileSystem
 		});
 
 		unknownFilePtr1 = reader.ReadPtr();
+		unknownFilePtr1Size = reader.ReadUInt32();
 		unknownFilePtr2 = reader.ReadPtr();
+		unknownFilePtr2Size = reader.ReadUInt32();
+	}
+
+	void Aet::Write(BinaryWriter& writer)
+	{
+		writer.WritePtr([this](BinaryWriter& writer)
+		{
+			void* aetFilePosition = writer.GetPositionPtr();
+
+			writer.WriteStrPtr(&Name);
+			writer.WriteUInt32(0x00000000); // unknownValue
+			writer.WriteFloat(FrameDuration);
+			writer.WriteFloat(FrameRate);
+			writer.WriteUInt32(BackgroundColor);
+			writer.WriteInt32(Width);
+			writer.WriteInt32(Height);
+			writer.WriteUInt32(0x00000000); // unknownFilePtr0
+
+			if (AetLayers.size() > 0)
+			{
+				writer.WriteUInt32(AetLayers.size());
+				writer.WritePtr([this](BinaryWriter& writer)
+				{
+					for (auto& layer : AetLayers)
+					{
+						layer.filePosition = writer.GetPositionPtr();
+
+						if (layer.size() > 0)
+						{
+							writer.WriteUInt32(layer.size());
+							writer.WritePtr([&layer](BinaryWriter& writer)
+							{
+								for (auto& obj : layer)
+								{
+									obj.filePosition = writer.GetPositionPtr();
+									writer.WriteStrPtr(&obj.name);
+									writer.WriteFloat(obj.LoopStart);
+									writer.WriteFloat(obj.LoopEnd);
+									writer.WriteFloat(obj.StartFrame);
+									writer.WriteFloat(obj.PlaybackSpeed);
+									writer.Write<AetObjFlags>(obj.Flags);
+									writer.WriteByte(obj.UnknownTypeByte);
+									writer.Write<AetObjType>(obj.Type);
+
+									if ((obj.Type == AetObjType::Pic && obj.GetRegion() != nullptr) || (obj.Type == AetObjType::Eff && obj.GetLayer() != nullptr))
+									{
+										writer.WriteDelayedPtr([&obj](BinaryWriter& writer) 
+										{
+											writer.WriteUInt32((uint32_t) (obj.Type == AetObjType::Pic ? obj.GetRegion()->filePosition : obj.GetLayer()->filePosition));
+										});
+									}
+									else
+									{
+										writer.WriteUInt32(0x00000000); // data offset
+									}
+
+									if (obj.GetParent() != nullptr)
+									{
+										writer.WriteDelayedPtr([&obj](BinaryWriter& writer)
+										{
+											writer.WriteUInt32((uint32_t)obj.GetParent()->filePosition);
+										});
+									}
+									else
+									{
+										writer.WriteUInt32(0x00000000); // parent offset
+									}
+
+									if (obj.Markers.size() > 0)
+									{
+										writer.WriteUInt32(obj.Markers.size());
+										writer.WritePtr([&obj](BinaryWriter& writer)
+										{
+											for (auto& marker : obj.Markers)
+											{
+												writer.WriteFloat(marker.Frame);
+												writer.WriteStrPtr(&marker.Name);
+											}
+										});
+									}
+									else
+									{
+										writer.WriteUInt32(0x00000000); // Markers size
+										writer.WriteUInt32(0x00000000); // Markers offset
+									}
+
+									if (obj.AnimationData != nullptr)
+									{
+										AnimationData& animationData = *obj.AnimationData.get();
+										writer.WritePtr([&animationData](BinaryWriter& writer)
+										{
+											writer.Write<AetBlendMode>(animationData.BlendMode);
+											writer.WriteByte(0x00);
+											writer.WriteBool(animationData.UseTextureMask);
+											writer.WriteByte(0x00);
+
+											WriteKeyFrameProperties(&animationData.Properties, writer);
+
+											if (animationData.PerspectiveProperties != nullptr)
+											{
+												writer.WritePtr([&animationData](BinaryWriter& writer)
+												{
+													WriteKeyFrameProperties(animationData.PerspectiveProperties.get(), writer);
+													writer.WriteAlignmentPadding(16);
+												});
+											}
+											else
+											{
+												writer.WriteUInt32(0x00000000); // prespective properties offset
+											}
+
+											writer.WriteAlignmentPadding(16);
+										});
+									}
+									else
+									{
+										writer.WriteUInt32(0x00000000); // animation data offset
+									}
+
+									writer.WriteUInt32(0x00000000); // extra data offset
+								}
+
+								writer.WriteAlignmentPadding(16);
+							});
+						}
+						else
+						{
+							writer.WriteUInt32(0x00000000); // AetLayer size
+							writer.WriteUInt32(0x00000000); // AetLayer offset
+						}
+					}
+				});
+			}
+			else
+			{
+				writer.WriteUInt32(0x00000000); // AetLayers size
+				writer.WriteUInt32(0x00000000); // AetLayers offset
+			}
+
+			if (AetRegions.size() > 0)
+			{
+				writer.WriteUInt32(AetRegions.size());
+				writer.WritePtr([this](BinaryWriter& writer)
+				{
+					for (auto& region : AetRegions)
+					{
+						region.filePosition = writer.GetPositionPtr();
+						writer.WriteUInt32(region.Color);
+						writer.WriteInt16(region.Width);
+						writer.WriteInt16(region.Height);
+						writer.WriteFloat(region.Frames);
+						if (region.Sprites.size() > 0)
+						{
+							writer.WriteUInt32(region.Sprites.size());
+							writer.WritePtr([&region](BinaryWriter& writer)
+							{
+								for (auto& sprite : region.Sprites)
+								{
+									writer.WriteStrPtr(&sprite.Name);
+									writer.WriteUInt32(sprite.ID);
+								}
+							});
+						}
+						else
+						{
+							writer.WriteUInt32(0x00000000); // AetSprites size
+							writer.WriteUInt32(0x00000000); // AetSprites offset
+						}
+					}
+				});
+			}
+			else
+			{
+				writer.WriteUInt32(0x00000000); // AetRegions size
+				writer.WriteUInt32(0x00000000); // AetRegions offset
+			}
+
+			writer.WriteUInt32(0x00000000); // unknownFilePtr1
+			writer.WriteUInt32(0x00000000); // unknownFilePtr1Size
+
+			writer.WriteUInt32(0x00000000); // unknownFilePtr2Size
+			writer.WriteUInt32(0x00000000); // unknownFilePtr2Size
+
+			writer.WriteAlignmentPadding(16);
+		});
 	}
 
 	void Aet::UpdateLayerNames()
@@ -401,12 +650,29 @@ namespace FileSystem
 				{
 					aet.Read(reader);
 				});
-			
+
 				aet.thisIndex = aetIndex++;
 				aet.LinkPostRead();
 
 				aet.UpdateLayerNames();
 			}
 		});
+	}
+
+	void AetSet::Write(BinaryWriter& writer)
+	{
+		for (auto& aet : aets)
+			aet.Write(writer);
+		writer.WriteUInt32(0x00000000);
+
+		writer.WriteAlignmentPadding(32);
+
+		writer.FlushPointerPool();
+		writer.WriteAlignmentPadding(16);
+
+		writer.FlushStringPointerPool();
+		writer.WriteAlignmentPadding(16);
+
+		writer.FlushDelayedWritePool();
 	}
 }

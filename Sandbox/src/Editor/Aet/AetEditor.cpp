@@ -163,10 +163,10 @@ namespace Editor
 	{
 		AetItemTypePtr selected = treeView->GetSelected();
 
-		if (selected.Type() == AetSelectionType::AetObj && selected.AetObj != nullptr && selected.AetObj->AnimationData.Properties != nullptr)
+		if (selected.Type() == AetSelectionType::AetObj && selected.AetObj != nullptr && selected.AetObj->AnimationData != nullptr)
 		{
 			float frame = timeline->GetFrame().Frames();
-			AetMgr::Interpolate(selected.AetObj->AnimationData, &currentProperties, frame);
+			AetMgr::Interpolate(selected.AetObj->AnimationData.get(), &currentProperties, frame);
 		}
 		else
 		{

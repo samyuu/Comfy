@@ -40,10 +40,10 @@ namespace Editor
 
 	void AetTimeline::DrawTimelineContentKeyFrames()
 	{
-		const KeyFrameProperties* properties = active.AetObj->AnimationData.Properties.get();
-		if (properties == nullptr)
+		if (active.AetObj->AnimationData == nullptr)
 			return;
 
+		const KeyFrameProperties* properties = &active.AetObj->AnimationData->Properties;
 		for (int i = 0; i < properties->size(); i++)
 		{
 			float y = (i * rowHeight) + (rowHeight / 2);

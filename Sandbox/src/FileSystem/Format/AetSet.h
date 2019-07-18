@@ -118,7 +118,7 @@ namespace FileSystem
 		AetBlendMode BlendMode;
 		bool UseTextureMask;
 
-		std::shared_ptr<KeyFrameProperties> Properties;
+		KeyFrameProperties Properties;
 		std::shared_ptr<KeyFrameProperties> PerspectiveProperties;
 	};
 
@@ -130,6 +130,10 @@ namespace FileSystem
 	public:
 		static std::array<const char*, 4> TypeNames;
 
+		AetObj();
+		AetObj(AetObjType type, const char* name, Aet* parent);
+		~AetObj();
+
 		frame_t LoopStart;
 		frame_t LoopEnd;
 		frame_t StartFrame;
@@ -140,7 +144,7 @@ namespace FileSystem
 		AetObjType Type;
 
 		std::vector<Marker> Markers;
-		AnimationData AnimationData;
+		std::shared_ptr<AnimationData> AnimationData;
 
 		const char* GetName();
 		void SetName(const char* value);
@@ -230,10 +234,15 @@ namespace FileSystem
 		int32_t thisIndex;
 		unk32_t unknownValue;
 		fileptr_t unknownFilePtr0;
+
+		uint32_t unknownFilePtr1Size;
 		fileptr_t unknownFilePtr1;
+		uint32_t unknownFilePtr2Size;
 		fileptr_t unknownFilePtr2;
 
 		void Read(BinaryReader& reader);
+		void Write(BinaryWriter& writer);
+
 		void UpdateLayerNames();
 		void LinkPostRead();
 		void FindObjReferencedRegion(AetObj* aetObj);
@@ -245,7 +254,7 @@ namespace FileSystem
 	using AetIterator = AetCollection::iterator;
 	using ConstAetIterator = AetCollection::const_iterator;
 
-	class AetSet : public IBinaryReadable
+	class AetSet : public IBinaryFile
 	{
 	public:
 		std::string Name;
@@ -265,6 +274,7 @@ namespace FileSystem
 
 		void ClearSpriteCache();
 		virtual void Read(BinaryReader& reader) override;
+		virtual void Write(BinaryWriter& writer) override;
 
 	private:
 		AetCollection aets;

@@ -81,11 +81,11 @@ namespace Auth2D
 				+ ((((((t * t) * t) * 2.0f) - ((t * t) * 3.0f)) + 1.0f) * start->Value));
 	}
 
-	void AetMgr::Interpolate(const AnimationData& animationData, Properties* properties, float frame)
+	void AetMgr::Interpolate(const AnimationData* animationData, Properties* properties, float frame)
 	{
 		float* results = reinterpret_cast<float*>(properties);
 
-		for (auto& keyFrames : *animationData.Properties.get())
+		for (auto& keyFrames : animationData->Properties)
 		{
 			*results = AetMgr::Interpolate(keyFrames, frame);
 			results++;
@@ -118,7 +118,7 @@ namespace Auth2D
 
 		objCache.AetObj = aetObj;
 		objCache.Region = aetObj->GetRegion();
-		objCache.BlendMode = aetObj->AnimationData.BlendMode;
+		objCache.BlendMode = aetObj->AnimationData->BlendMode;
 
 		if (objCache.Region != nullptr)
 		{
@@ -130,14 +130,14 @@ namespace Auth2D
 				objCache.SpriteIndex = 0;
 		}
 
-		Interpolate(aetObj->AnimationData, &objCache.Properties, adjustedFrame);
+		Interpolate(aetObj->AnimationData.get(), &objCache.Properties, adjustedFrame);
 
 		AetObj* parent = aetObj->GetParent();
 		if (parent != nullptr)
 		{
 			// TODO:
 			Properties objParentProperties;
-			Interpolate(parent->AnimationData, &objParentProperties, adjustedFrame);
+			Interpolate(parent->AnimationData.get(), &objParentProperties, adjustedFrame);
 
 			objCache.Properties.Origin += objParentProperties.Origin;
 			objCache.Properties.Position += objParentProperties.Position;
@@ -161,7 +161,7 @@ namespace Auth2D
 		float adjustedFrame = ((frame - aetObj->LoopStart) * aetObj->PlaybackSpeed) + aetObj->StartFrame;
 
 		Properties effProperties;
-		Interpolate(aetObj->AnimationData, &effProperties, adjustedFrame);
+		Interpolate(aetObj->AnimationData.get(), &effProperties, adjustedFrame);
 		TransformProperties(*parentProperties, effProperties);
 
 		AetLayer* aetLayer = aetObj->GetLayer();

@@ -31,7 +31,7 @@ namespace Auth2D
 		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, const AetObj* aetObj, float frame);
 
 		static float Interpolate(const std::vector<KeyFrame>& keyFrames, float frame);
-		static void Interpolate(const AnimationData& animationData, Properties* properties, float frame);
+		static void Interpolate(const AnimationData* animationData, Properties* properties, float frame);
 
 	private:
 		static void InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame);

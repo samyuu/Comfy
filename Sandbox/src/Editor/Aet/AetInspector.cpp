@@ -148,7 +148,7 @@ namespace Editor
 			DrawInspectorLayerData(aetObj->GetLayer());
 
 		if ((aetObj->Type == AetObjType::Pic || aetObj->Type == AetObjType::Eff))
-			DrawInspectorAnimationData(&aetObj->AnimationData);
+			DrawInspectorAnimationData(aetObj->AnimationData.get());
 
 		DrawInspectorAetObjMarkers(&aetObj->Markers);
 		DrawInspectorAetObjParent(aetObj);
@@ -180,9 +180,9 @@ namespace Editor
 		{
 			if (ImGui::WideTreeNode("Properties"))
 			{
-				if (animationData->Properties != nullptr)
+				if (animationData != nullptr)
 				{
-					DrawInspectorKeyFrameProperties(animationData->Properties.get());
+					DrawInspectorKeyFrameProperties(&animationData->Properties);
 				}
 				else
 				{

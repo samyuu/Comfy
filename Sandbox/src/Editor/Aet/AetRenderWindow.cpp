@@ -35,9 +35,9 @@ namespace Editor
 	{
 		static Properties properties;
 
-		if (active.Type() == AetSelectionType::AetObj && active.AetObj != nullptr && active.AetObj->AnimationData.Properties != nullptr)
+		if (active.Type() == AetSelectionType::AetObj && active.AetObj != nullptr && active.AetObj->AnimationData != nullptr)
 		{
-			AetMgr::Interpolate(active.AetObj->AnimationData, &properties, currentFrame);
+			AetMgr::Interpolate(active.AetObj->AnimationData.get(), &properties, currentFrame);
 		}
 		else
 		{
@@ -134,9 +134,9 @@ namespace Editor
 		ImGui::PopStyleVar(2);
 		// ImGui::PopStyleColor(2);
 
-		if (updateKeyFrames && active.Type() == AetSelectionType::AetObj && active.AetObj->AnimationData.Properties != nullptr)
+		if (updateKeyFrames && active.Type() == AetSelectionType::AetObj && active.AetObj->AnimationData != nullptr)
 		{
-			KeyFrameProperties& keyFrameProperties = *active.AetObj->AnimationData.Properties;
+			KeyFrameProperties& keyFrameProperties = active.AetObj->AnimationData->Properties;
 
 			keyFrameProperties.OriginX().front().Value = properties.Origin.x;
 			keyFrameProperties.OriginY().front().Value = properties.Origin.y;
