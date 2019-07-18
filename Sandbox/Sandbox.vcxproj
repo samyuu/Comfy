@@ -122,6 +122,7 @@
     <ClCompile Include="src\Editor\RenderWindowBase.cpp" />
     <ClCompile Include="src\Editor\TimelineBase.cpp" />
     <ClCompile Include="src\FileSystem\BinaryReader.cpp" />
+    <ClCompile Include="src\FileSystem\BinaryWriter.cpp" />
     <ClCompile Include="src\FileSystem\FileHelper.cpp" />
     <ClCompile Include="src\FileSystem\FileInterface.cpp" />
     <ClCompile Include="src\FileSystem\Format\SprSet.cpp" />
@@ -203,6 +204,7 @@
     <ClInclude Include="src\Editor\TimelineBase.h" />
     <ClInclude Include="src\Editor\TimelineFrame.h" />
     <ClInclude Include="src\FileSystem\BinaryReader.h" />
+    <ClInclude Include="src\FileSystem\BinaryWriter.h" />
     <ClInclude Include="src\FileSystem\FileHelper.h" />
     <ClInclude Include="src\FileSystem\FileInterface.h" />
     <ClInclude Include="src\FileSystem\Format\SprSet.h" />
