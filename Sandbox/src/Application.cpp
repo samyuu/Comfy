@@ -476,7 +476,6 @@ void Application::DrawGui()
 				if (ImGui::MenuItem("Test Print", nullptr))
 					Logger::LogLine(__FUNCTION__"(): Test");
 
-				DEBUG_ONLY(ImGui::MenuItem("Show Demo Window", nullptr, &showDemoWindow));
 				ImGui::Separator();
 
 				if (ImGui::MenuItem("Exit...", nullptr))
@@ -624,8 +623,11 @@ void Application::DrawGuiBaseWindowMenus(const char* header, std::vector<std::sh
 {
 	if (ImGui::BeginMenu(header))
 	{
+		DEBUG_ONLY(ImGui::MenuItem("Demo Window", nullptr, &showDemoWindow));
+		
 		for (const auto& component : components)
 			ImGui::MenuItem(component->GetGuiName(), nullptr, component->GetIsGuiOpenPtr());
+
 		ImGui::EndMenu();
 	}
 }
