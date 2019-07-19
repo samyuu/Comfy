@@ -14,16 +14,16 @@ SpriteShader::~SpriteShader()
 
 void SpriteShader::GetAllUniformLocations()
 {
-	ProjectionViewLocation = GetUniformLocation("u_projectionView");
+	ProjectionViewLocation = GetUniformLocation("u_ProjectionView");
 
-	UseSolidColorLocation = GetUniformLocation("u_solidColor");
-	UseTextShadowLocation = GetUniformLocation("u_textShadow");
-	UseCheckerboardLocation = GetUniformLocation("u_checkerboard");
-	CheckerboardSizeLocation = GetUniformLocation("u_checkboardSize");
-	TextureFormatLocation = GetUniformLocation("u_textureFormat");
+	UseSolidColorLocation = GetUniformLocation("u_SolidColor");
+	UseTextShadowLocation = GetUniformLocation("u_TextShadow");
+	UseCheckerboardLocation = GetUniformLocation("u_Checkerboard");
+	CheckerboardSizeLocation = GetUniformLocation("u_CheckboardSize");
+	TextureFormatLocation = GetUniformLocation("u_TextureFormat");
 
-	TextureLocation = GetUniformLocation("textureSampler");
-	TextureMaskLocation = GetUniformLocation("textureMaskSampler");
+	TextureLocation = GetUniformLocation("u_TextureSampler");
+	TextureMaskLocation = GetUniformLocation("u_TextureMaskSampler");
 }
 
 const char* SpriteShader::GetVertexShaderPath()
@@ -50,12 +50,12 @@ ComfyShader::~ComfyShader()
 
 void ComfyShader::GetAllUniformLocations()
 {
-	ModelLocation = GetUniformLocation("u_model");
-	ViewLocation = GetUniformLocation("u_view");
-	ProjectionLocation = GetUniformLocation("u_projection");
+	ModelLocation = GetUniformLocation("u_Model");
+	ViewLocation = GetUniformLocation("u_View");
+	ProjectionLocation = GetUniformLocation("u_Projection");
 
-	Texture0Location = GetUniformLocation("textureSampler0");
-	Texture1Location = GetUniformLocation("textureSampler1");
+	Texture0Location = GetUniformLocation("u_TextureSampler0");
+	Texture1Location = GetUniformLocation("u_TextureSampler1");
 }
 
 const char* ComfyShader::GetVertexShaderPath()
@@ -82,7 +82,7 @@ ScreenShader::~ScreenShader()
 
 void ScreenShader::GetAllUniformLocations()
 {
-	ScreenTextureLocation = GetUniformLocation("screenTexture");
+	ScreenTextureLocation = GetUniformLocation("u_ScreenTexture");
 }
 
 const char* ScreenShader::GetVertexShaderPath()
@@ -109,9 +109,9 @@ LineShader::~LineShader()
 
 void LineShader::GetAllUniformLocations()
 {
-	ModelLocation = GetUniformLocation("u_model");
-	ViewLocation = GetUniformLocation("u_view");
-	ProjectionLocation = GetUniformLocation("u_projection");
+	ModelLocation = GetUniformLocation("u_Model");
+	ViewLocation = GetUniformLocation("u_View");
+	ProjectionLocation = GetUniformLocation("u_Projection");
 }
 
 const char* LineShader::GetVertexShaderPath()

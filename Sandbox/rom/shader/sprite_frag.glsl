@@ -1,16 +1,16 @@
 #version 420 core
-out vec4 fragColor;
+out vec4 FragColor;
 
-in vec4 vertexColor;
-in vec2 vertexTexCoord;
+in vec4 VertexColor;
+in vec2 VertexTexCoord;
 
-uniform bool u_solidColor;
-uniform bool u_textShadow;
-uniform bool u_checkerboard;
-uniform vec2 u_checkboardSize;
-uniform int u_textureFormat;
-uniform sampler2D textureSampler;
-uniform sampler2D textureMaskSampler;
+uniform bool u_SolidColor;
+uniform bool u_TextShadow;
+uniform bool u_Checkerboard;
+uniform vec2 u_CheckboardSize;
+uniform int u_TextureFormat;
+uniform sampler2D u_TextureSampler;
+uniform sampler2D u_TextureMaskSampler;
 
 const vec3 RED_COEF = { +1.5748, 1.0, +0.0000 };
 const vec3 GRN_COEF = { -0.4681, 1.0, -0.1873 };
@@ -33,10 +33,10 @@ const int TextureFormat_L8A8 = 13;
 
 vec4 GetTextureColor()
 {
-	if (u_textureFormat == TextureFormat_RGTC2)
+	if (u_TextureFormat == TextureFormat_RGTC2)
 	{
-		vec4 grayscale = textureLod(textureSampler, vertexTexCoord, 0.0).rrrg;
-		vec4 luminance = textureLod(textureSampler, vertexTexCoord, 1.0) * 1.003922 - 0.503929;
+		vec4 grayscale = textureLod(u_TextureSampler, VertexTexCoord, 0.0).rrrg;
+		vec4 luminance = textureLod(u_TextureSampler, VertexTexCoord, 1.0) * 1.003922 - 0.503929;
 		grayscale.rb = luminance.gr;
 		
 		return vec4(
@@ -46,19 +46,19 @@ vec4 GetTextureColor()
 			grayscale.a);
 	}
 		
-	return texture(textureSampler, vertexTexCoord);
+	return texture(u_TextureSampler, VertexTexCoord);
 }
 
 float GetTextureAlpha(float xOffset, float yOffset)
 {
-	return (u_textureFormat == TextureFormat_RGTC2) ? 
-		textureLod(textureSampler, vertexTexCoord + vec2(xOffset, yOffset), 0).g :
-		texture(textureSampler, vertexTexCoord + vec2(xOffset, yOffset)).a;
+	return (u_TextureFormat == TextureFormat_RGTC2) ? 
+		textureLod(u_TextureSampler, VertexTexCoord + vec2(xOffset, yOffset), 0).g :
+		texture(u_TextureSampler, VertexTexCoord + vec2(xOffset, yOffset)).a;
 }
 
 vec4 GetFontTextureColor()
 {
-	vec2 size = 1.0 / textureSize(textureSampler, 0);
+	vec2 size = 1.0 / textureSize(u_TextureSampler, 0);
 
 	float textureAlpha = GetTextureAlpha(0.0, 0.0);
 	vec4 shadow = vec4(0.0, 0.0, 0.0, textureAlpha);
@@ -82,29 +82,29 @@ vec4 GetFontTextureColor()
 	shadow.a = max(shadow.a, shadow.y * 0.6);
 	shadow.a = max(shadow.a, shadow.z * 0.8);
 
-	vec3 color = (vertexColor.rgb * textureAlpha) * vertexColor.a;
-	return vec4(color * inversesqrt(shadow.a), shadow.a * vertexColor.a);
+	vec3 color = (VertexColor.rgb * textureAlpha) * VertexColor.a;
+	return vec4(color * inversesqrt(shadow.a), shadow.a * VertexColor.a);
 }
 
 void main()
 {
-	if (u_checkerboard)
+	if (u_Checkerboard)
 	{
-		vec2 point = (vertexTexCoord - vec2(0.0, 1.0)) * u_checkboardSize * 0.08;
+		vec2 point = (VertexTexCoord - vec2(0.0, 1.0)) * u_CheckboardSize * 0.08;
 		if ((mod(point.x, 1.0) < 0.5) ^^ (mod(point.y, 1.0) < 0.5))
 			discard;
 	}
 
-	if (u_solidColor)
+	if (u_SolidColor)
 	{
-		fragColor = vertexColor;
+		FragColor = VertexColor;
 		return;
 	}
-	else if (u_textShadow)
+	else if (u_TextShadow)
 	{ 
-		fragColor = GetFontTextureColor(); 
+		FragColor = GetFontTextureColor(); 
 		return; 
 	}
 
-	fragColor = GetTextureColor() * vertexColor;
+	FragColor = GetTextureColor() * VertexColor;
 }
