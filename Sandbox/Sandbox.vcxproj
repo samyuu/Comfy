@@ -164,8 +164,8 @@
     <ClCompile Include="src\ImGui\imgui.cpp" />
     <ClCompile Include="src\ImGui\imgui_demo.cpp" />
     <ClCompile Include="src\ImGui\imgui_draw.cpp" />
-    <ClCompile Include="src\ImGui\Implementation\imgui_Impl.cpp" />
-    <ClCompile Include="src\ImGui\Implementation\imgui_impl_renderer.cpp" />
+    <ClCompile Include="src\ImGui\Implementation\ImGui_Impl.cpp" />
+    <ClCompile Include="src\ImGui\Implementation\ImGui_Impl_Renderer.cpp" />
     <ClCompile Include="src\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="src\Misc\StringHelper.cpp" />
     <ClCompile Include="src\pch.cpp">
@@ -256,8 +256,8 @@
     <ClInclude Include="src\Graphics\ComfyVertex.h" />
     <ClInclude Include="src\ImGui\imconfig.h" />
     <ClInclude Include="src\ImGui\imgui.h" />
-    <ClInclude Include="src\ImGui\Implementation\imgui_impl.h" />
-    <ClInclude Include="src\ImGui\Implementation\imgui_impl_renderer.h" />
+    <ClInclude Include="src\ImGui\Implementation\ImGui_Impl.h" />
+    <ClInclude Include="src\ImGui\Implementation\ImGui_Impl_Renderer.h" />
     <ClInclude Include="src\ImGui\imgui_internal.h" />
     <ClInclude Include="src\ImGui\imstb_rectpack.h" />
     <ClInclude Include="src\ImGui\imstb_textedit.h" />

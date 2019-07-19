@@ -240,10 +240,10 @@
     <ClCompile Include="src\Editor\Aet\BoxTransformControl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ImGui\Implementation\imgui_Impl.cpp">
+    <ClCompile Include="src\ImGui\Implementation\ImGui_Impl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ImGui\Implementation\imgui_impl_renderer.cpp">
+    <ClCompile Include="src\ImGui\Implementation\ImGui_Impl_Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -506,10 +506,10 @@
     <ClInclude Include="src\Editor\Aet\BoxTransformControl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ImGui\Implementation\imgui_impl.h">
+    <ClInclude Include="src\ImGui\Implementation\ImGui_Impl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ImGui\Implementation\imgui_impl_renderer.h">
+    <ClInclude Include="src\ImGui\Implementation\ImGui_Impl_Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
