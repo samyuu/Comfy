@@ -152,17 +152,18 @@ namespace Editor
 	static std::vector<const SpriteVertices*> verticesPointers;
 	static const AetMgr::ObjCache* selectedAetObj = nullptr;
 
+
 	void AetRenderWindow::PostDrawGui()
 	{
-		//if (ImGui::IsMouseClicked())
-		//{
-		//	selectedObjIndex = -1;
+		static BoxTransformControl testTransformControl;
+		static Properties testProperties {};
 
-		//	for (const auto& obj : objectCache)
-		//	{
-		//		obj.Properties
-		//	}
-		//}
+		auto worldToScreen = [this](vec2& value) { value = WorldToScreenSpace(camera.ViewMatrix, value) + GetRenderRegion().GetTL(); };
+		auto screenToWorld = [this](vec2& value) { value = ScreenToWorldSpace(camera.ViewMatrix, value) - GetRenderRegion().GetTL(); };
+
+		//testProperties.Rotation = 45.0f;
+		testProperties.Scale = vec2(2.0f);
+		testTransformControl.Draw(&testProperties, vec2(200.0f, 200.0f), worldToScreen, screenToWorld, camera.Zoom);
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		auto renderRegion = GetRenderRegion();
@@ -353,19 +354,19 @@ namespace Editor
 
 		constexpr float step = 10.0f;
 		if (ImGui::IsKeyPressed(KeyCode_W, true))
-			camera.Position.y += step;
-		if (ImGui::IsKeyPressed(KeyCode_S, true))
 			camera.Position.y -= step;
+		if (ImGui::IsKeyPressed(KeyCode_S, true))
+			camera.Position.y += step;
 		if (ImGui::IsKeyPressed(KeyCode_A, true))
-			camera.Position.x += step;
-		if (ImGui::IsKeyPressed(KeyCode_D, true))
 			camera.Position.x -= step;
+		if (ImGui::IsKeyPressed(KeyCode_D, true))
+			camera.Position.x += step;
 		if (ImGui::IsKeyPressed(KeyCode_Escape, true))
 		{
 			camera.Position = vec2(0.0f);
 			camera.Zoom = 1.0f;
 		}
-		if (ImGui::IsMouseDragging())
+		if (ImGui::IsMouseDragging(2))
 			camera.Position -= vec2(io.MouseDelta.x, io.MouseDelta.y);
 
 		if (io.KeyAlt && io.MouseWheel != 0.0f)

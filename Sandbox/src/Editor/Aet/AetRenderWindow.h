@@ -1,5 +1,6 @@
 #pragma once
 #include "Selection.h"
+#include "BoxTransformControl.h"
 #include "Editor/RenderWindowBase.h"
 #include "FileSystem/Format/AetSet.h"
 #include "FileSystem/Format/SprSet.h"
