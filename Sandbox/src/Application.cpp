@@ -7,8 +7,7 @@
 #include "Input/Keyboard.h"
 #include "FileSystem/FileHelper.h"
 #include "ImGui/imgui_extensions.h"
-#include "ImGui/imgui_impl_glfw.h"
-#include "ImGui/imgui_impl_opengl3.h"
+#include "ImGui/Implementation/imgui_impl.h"
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include "../res/resource.h"

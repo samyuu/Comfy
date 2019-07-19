@@ -117,6 +117,7 @@
     <ClCompile Include="src\Editor\Aet\AetRenderWindow.cpp" />
     <ClCompile Include="src\Editor\Aet\AetTimeline.cpp" />
     <ClCompile Include="src\Editor\Aet\AetTreeView.cpp" />
+    <ClCompile Include="src\Editor\Aet\BoxTransformControl.cpp" />
     <ClCompile Include="src\Editor\FrameTimeline.cpp" />
     <ClCompile Include="src\Editor\PV\SceneRenderWindow.cpp" />
     <ClCompile Include="src\Editor\RenderWindowBase.cpp" />
@@ -163,8 +164,8 @@
     <ClCompile Include="src\ImGui\imgui.cpp" />
     <ClCompile Include="src\ImGui\imgui_demo.cpp" />
     <ClCompile Include="src\ImGui\imgui_draw.cpp" />
-    <ClCompile Include="src\ImGui\imgui_impl_glfw.cpp" />
-    <ClCompile Include="src\ImGui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="src\ImGui\Implementation\imgui_Impl.cpp" />
+    <ClCompile Include="src\ImGui\Implementation\imgui_impl_renderer.cpp" />
     <ClCompile Include="src\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="src\Misc\StringHelper.cpp" />
     <ClCompile Include="src\pch.cpp">
@@ -195,6 +196,7 @@
     <ClInclude Include="src\Editor\Aet\AetRenderWindow.h" />
     <ClInclude Include="src\Editor\Aet\AetTimeline.h" />
     <ClInclude Include="src\Editor\Aet\AetTreeView.h" />
+    <ClInclude Include="src\Editor\Aet\BoxTransformControl.h" />
     <ClInclude Include="src\Editor\Aet\Selection.h" />
     <ClInclude Include="src\Editor\Aet\AetDialogs.h" />
     <ClInclude Include="src\Editor\FrameTimeline.h" />
@@ -254,8 +256,8 @@
     <ClInclude Include="src\Graphics\ComfyVertex.h" />
     <ClInclude Include="src\ImGui\imconfig.h" />
     <ClInclude Include="src\ImGui\imgui.h" />
-    <ClInclude Include="src\ImGui\imgui_impl_glfw.h" />
-    <ClInclude Include="src\ImGui\imgui_impl_opengl3.h" />
+    <ClInclude Include="src\ImGui\Implementation\imgui_impl.h" />
+    <ClInclude Include="src\ImGui\Implementation\imgui_impl_renderer.h" />
     <ClInclude Include="src\ImGui\imgui_internal.h" />
     <ClInclude Include="src\ImGui\imstb_rectpack.h" />
     <ClInclude Include="src\ImGui\imstb_textedit.h" />
