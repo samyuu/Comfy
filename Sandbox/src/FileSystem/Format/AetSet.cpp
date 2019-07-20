@@ -740,8 +740,6 @@ namespace FileSystem
 
 	void AetSet::Read(BinaryReader& reader)
 	{
-		//reader.SetPosition(0x40);
-
 		void* startAddress = reader.GetPositionPtr();
 
 		uint32_t aetCount = 0;
