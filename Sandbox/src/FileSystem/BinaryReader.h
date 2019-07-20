@@ -1,8 +1,13 @@
 #pragma once
 #include "Stream.h"
 #include "PtrMode.h"
-#include <array>
 #include <functional>
+
+//#define BIG_ENDIAN
+#define LITTLE_ENDIAN
+#if defined (BIG_ENDIAN)
+#include <intrin.h>
+#endif
 
 namespace FileSystem
 {
@@ -33,16 +38,9 @@ namespace FileSystem
 
 		inline int64_t Read(void* buffer, size_t size);
 
-		template <typename T> 
-		T Read();
-
-		template <typename T, size_t size> 
-		std::array<T, size> Read();
-
 		void ReadAt(void* position, const std::function<void(BinaryReader&)>& func);
 
-		template <typename T> 
-		T ReadAt(void* position, const std::function<T(BinaryReader&)>& func);
+		template <typename T> T ReadAt(void* position, const std::function<T(BinaryReader&)>& func);
 
 		inline void* ReadPtr() { return readPtrFunction(this); };
 
@@ -51,7 +49,10 @@ namespace FileSystem
 
 		inline bool ReadBool() { return Read<bool>(); };
 		inline char ReadChar() { return Read<char>(); };
-		inline uint8_t ReadByte() { return Read<uint8_t>(); };
+		inline uint8_t ReadInt8() { return Read<int8_t>(); };
+		inline uint8_t ReadUInt8() { return Read<uint8_t>(); };
+
+#if defined(LITTLE_ENDIAN)
 		inline int16_t ReadInt16() { return Read<int16_t>(); };
 		inline uint16_t ReadUInt16() { return Read<uint16_t>(); };
 		inline int32_t ReadInt32() { return Read<int32_t>(); };
@@ -60,6 +61,20 @@ namespace FileSystem
 		inline uint64_t ReadUInt64() { return Read<uint64_t>(); };
 		inline float ReadFloat() { return Read<float>(); };
 		inline double ReadDouble() { return Read<double>(); };
+
+#elif defined (BIG_ENDIAN)
+		inline int16_t ReadInt16() { return _byteswap_ushort(Read<int16_t>()); };
+		inline int16_t ReadUInt16() { return _byteswap_ushort(Read<uint16_t>()); };
+
+		inline int32_t ReadInt32() { return _byteswap_ulong(Read<int32_t>()); };
+		inline uint32_t ReadUInt32() { return _byteswap_ulong(Read<uint32_t>()); };
+
+		inline int64_t ReadInt64() { return _byteswap_uint64(Read<int64_t>()); };
+		inline uint64_t ReadUInt64() { return _byteswap_uint64(Read<uint64_t>()); };
+
+		inline float ReadFloat() { uint32_t value = _byteswap_ulong(Read<uint32_t>()); return *(float*)&value; };
+		inline double ReadDouble() { uint64_t value = _byteswap_uint64(Read<uint64_t>()); return *(double*)&value; };
+#endif
 
 	protected:
 		typedef void* (*ReadPtr_t)(BinaryReader*);
@@ -70,25 +85,16 @@ namespace FileSystem
 		Stream* stream = nullptr;
 
 	private:
+		template <typename T> T Read()
+		{
+			T value;
+			Read(&value, sizeof(value));
+			return value;
+		};
+
 		static void* Read32BitPtr(BinaryReader* reader) { return reinterpret_cast<void*>(static_cast<ptrdiff_t>(reader->ReadInt32())); };
 		static void* Read64BitPtr(BinaryReader* reader) { return reinterpret_cast<void*>(static_cast<ptrdiff_t>(reader->ReadInt64())); };
 	};
-
-	template<typename T> 
-	T BinaryReader::Read()
-	{
-		T value;
-		Read(&value, sizeof(value));
-		return value;
-	}
-
-	template <typename T, size_t size>
-	std::array<T, size> BinaryReader::Read()
-	{
-		std::array<T, size> value;
-		Read(value.data(), sizeof(T) * size);
-		return value;
-	}
 
 	template <typename T>
 	T BinaryReader::ReadAt(void* position, const std::function<T(BinaryReader&)>& func)

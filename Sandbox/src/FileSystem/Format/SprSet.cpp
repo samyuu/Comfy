@@ -3,6 +3,14 @@
 
 namespace FileSystem
 {
+	static void ReadVec4(vec4& value, BinaryReader& reader)
+	{
+		value.x = reader.ReadFloat();
+		value.y = reader.ReadFloat();
+		value.z = reader.ReadFloat();
+		value.w = reader.ReadFloat();
+	}
+
 	void SprSet::Read(BinaryReader& reader)
 	{
 		SprSet* sprSet = this;
@@ -35,8 +43,8 @@ namespace FileSystem
 
 					sprite->TextureIndex = reader.ReadInt32();
 					sprite->Unknown = reader.ReadFloat();
-					sprite->TexelRegion = reader.Read<vec4>();
-					sprite->PixelRegion = reader.Read<vec4>();
+					ReadVec4(sprite->TexelRegion, reader);
+					ReadVec4(sprite->PixelRegion, reader);
 				}
 			});
 		}
@@ -69,7 +77,7 @@ namespace FileSystem
 				for (Sprite &sprite : sprSet->Sprites)
 				{
 					sprite.GraphicsReserved = reader.ReadUInt32();
-					sprite.GraphicsMode = reader.Read<GraphicsMode>();
+					sprite.GraphicsMode = static_cast<GraphicsMode>(reader.ReadUInt32());
 				}
 			});
 		}

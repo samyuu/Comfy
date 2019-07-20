@@ -6,12 +6,17 @@
 
 namespace FileSystem
 {
+	static TxpSig ReadTxpSig(BinaryReader& reader)
+	{
+		return { reader.ReadChar(), reader.ReadChar(), reader.ReadChar(), static_cast<TxpType>(reader.ReadChar()) };
+	}
+
 	void TxpSet::Read(BinaryReader& reader)
 	{
 		TxpSet* txpSet = this;
 		int64_t baseAddress = reader.GetPosition();
 
-		txpSet->Signature = reader.Read<TxpSig>();
+		txpSet->Signature = ReadTxpSig(reader);
 		assert(txpSet->Signature.Type == TxpType_TxpSet);
 
 		uint32_t textureCount = reader.ReadUInt32();
@@ -28,7 +33,7 @@ namespace FileSystem
 			{
 				int64_t textureBaseAddress = reader.GetPosition();
 
-				texture->Signature = reader.Read<TxpSig>();
+				texture->Signature = ReadTxpSig(reader);
 				assert(texture->Signature.Type == TxpType_Texture || texture->Signature.Type == TxpType_TextureAlt);
 
 				uint32_t mipMapCount = reader.ReadUInt32();
@@ -43,12 +48,12 @@ namespace FileSystem
 						texture->MipMaps.push_back(std::make_shared<MipMap>());
 						MipMap* mipMap = texture->MipMaps.back().get();
 
-						mipMap->Signature = reader.Read<TxpSig>();
+						mipMap->Signature = ReadTxpSig(reader);
 						assert(mipMap->Signature.Type == TxpType_MipMap);
 
 						mipMap->Width = reader.ReadInt32();
 						mipMap->Height = reader.ReadInt32();
-						mipMap->Format = reader.Read<TextureFormat>();
+						mipMap->Format = static_cast<TextureFormat>(reader.ReadInt32());
 						mipMap->Index = reader.ReadUInt32();
 						
 						uint32_t dataSize = reader.ReadUInt32();

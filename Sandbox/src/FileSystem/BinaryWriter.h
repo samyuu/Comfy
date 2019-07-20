@@ -54,7 +54,8 @@ namespace FileSystem
 
 		inline void WriteBool(bool value) { return Write<bool>(value); };
 		inline void WriteChar(char value) { return Write<char>(value); };
-		inline void WriteByte(uint8_t value) { return Write<uint8_t>(value); };
+		inline void WriteInt8(uint8_t value) { return Write<int8_t>(value); };
+		inline void WriteUInt8(uint8_t value) { return Write<uint8_t>(value); };
 		inline void WriteInt16(int16_t value) { return Write<int16_t>(value); };
 		inline void WriteUInt16(uint16_t value) { return Write<uint16_t>(value); };
 		inline void WriteInt32(int32_t value) { return Write<int32_t>(value); };

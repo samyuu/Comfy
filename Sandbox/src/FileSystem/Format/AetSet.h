@@ -172,7 +172,7 @@ namespace FileSystem
 		fileptr_t filePosition;
 		fileptr_t dataFilePtr;
 		fileptr_t parentFilePtr;
-		fileptr_t unknownFilePtr;
+		//fileptr_t unknownFilePtr;
 
 		void Read(BinaryReader& reader);
 	};

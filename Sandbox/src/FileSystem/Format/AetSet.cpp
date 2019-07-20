@@ -25,6 +25,16 @@ namespace FileSystem
 		"eff",
 	};
 
+	static uint32_t ReadColor(BinaryReader& reader)
+	{
+		uint32_t value = 0;
+		*((uint8_t*)&value + 0) = reader.ReadUInt8();
+		*((uint8_t*)&value + 1) = reader.ReadUInt8();
+		*((uint8_t*)&value + 2) = reader.ReadUInt8();
+		reader.SetPosition(reader.GetPosition() + 1);
+		return value;
+	}
+
 	static void ReadKeyFramesPointer(KeyFrameCollection& keyFrames, BinaryReader& reader)
 	{
 		uint32_t keyFrameCount = reader.ReadUInt32();
@@ -100,17 +110,17 @@ namespace FileSystem
 	static void ReadAnimationData(std::shared_ptr<AnimationData>& animationData, BinaryReader& reader)
 	{
 		animationData = std::make_shared<FileSystem::AnimationData>();
-		animationData->BlendMode = reader.Read<AetBlendMode>();
-		reader.ReadByte();
+		animationData->BlendMode = static_cast<AetBlendMode>(reader.ReadUInt8());
+		reader.ReadUInt8();
 		animationData->UseTextureMask = reader.ReadBool();
-		reader.ReadByte();
+		reader.ReadUInt8();
 
 		ReadKeyFrameProperties(&animationData->Properties, reader);
 
-		void* propertiesExtraDataPointer = reader.ReadPtr();
-		if (propertiesExtraDataPointer != nullptr)
+		void* perspectivePropertiesPointer = reader.ReadPtr();
+		if (perspectivePropertiesPointer != nullptr)
 		{
-			reader.ReadAt(propertiesExtraDataPointer, [animationData](BinaryReader& reader)
+			reader.ReadAt(perspectivePropertiesPointer, [animationData](BinaryReader& reader)
 			{
 				animationData->PerspectiveProperties = std::make_shared<KeyFrameProperties>();
 				ReadKeyFrameProperties(animationData->PerspectiveProperties.get(), reader);
@@ -213,9 +223,9 @@ namespace FileSystem
 		StartFrame = reader.ReadFloat();
 		PlaybackSpeed = reader.ReadFloat();
 
-		Flags = reader.Read<AetObjFlags>();
-		TypePaddingByte = reader.ReadByte();
-		Type = reader.Read<AetObjType>();
+		Flags = static_cast<AetObjFlags>(reader.ReadUInt16());
+		TypePaddingByte = reader.ReadUInt8();
+		Type = static_cast<AetObjType>(reader.ReadUInt8());
 
 		dataFilePtr = reader.ReadPtr();
 		parentFilePtr = reader.ReadPtr();
@@ -245,7 +255,8 @@ namespace FileSystem
 			});
 		}
 
-		unknownFilePtr = reader.ReadPtr();
+		// TODO:
+		/*unknownFilePtr =*/ reader.ReadPtr();
 	}
 
 	void Aet::Read(BinaryReader& reader)
@@ -254,7 +265,7 @@ namespace FileSystem
 		FrameStart = reader.ReadFloat();
 		FrameDuration = reader.ReadFloat();
 		FrameRate = reader.ReadFloat();
-		BackgroundColor = reader.ReadUInt32();
+		BackgroundColor = ReadColor(reader);
 
 		Width = reader.ReadInt32();
 		Height = reader.ReadInt32();
@@ -310,7 +321,7 @@ namespace FileSystem
 				for (auto& region : AetRegions)
 				{
 					region.filePosition = reader.GetPositionPtr();
-					region.Color = reader.ReadUInt32();
+					region.Color = ReadColor(reader);
 					region.Width = reader.ReadUInt16();
 					region.Height = reader.ReadUInt16();
 					region.Frames = reader.ReadFloat();
@@ -401,7 +412,7 @@ namespace FileSystem
 									writer.WriteFloat(obj.StartFrame);
 									writer.WriteFloat(obj.PlaybackSpeed);
 									writer.Write<AetObjFlags>(obj.Flags);
-									writer.WriteByte(obj.TypePaddingByte);
+									writer.WriteUInt8(obj.TypePaddingByte);
 									writer.Write<AetObjType>(obj.Type);
 
 									bool hasData =
@@ -462,9 +473,9 @@ namespace FileSystem
 										writer.WritePtr([&animationData](BinaryWriter& writer)
 										{
 											writer.Write<AetBlendMode>(animationData.BlendMode);
-											writer.WriteByte(0x00);
+											writer.WriteUInt8(0x00);
 											writer.WriteBool(animationData.UseTextureMask);
-											writer.WriteByte(0x00);
+											writer.WriteUInt8(0x00);
 
 											WriteKeyFrameProperties(&animationData.Properties, writer);
 
@@ -489,7 +500,7 @@ namespace FileSystem
 										writer.WritePtr(nullptr); // AnimationData offset
 									}
 
-									// TODO:
+									// TODO: unknownFilePtr
 									writer.WritePtr(nullptr); // extra data offset
 								}
 
@@ -729,6 +740,8 @@ namespace FileSystem
 
 	void AetSet::Read(BinaryReader& reader)
 	{
+		//reader.SetPosition(0x40);
+
 		void* startAddress = reader.GetPositionPtr();
 
 		uint32_t aetCount = 0;

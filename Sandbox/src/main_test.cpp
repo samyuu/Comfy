@@ -192,7 +192,7 @@ void SaveAsDDS(FileSystem::Texture* texture)
 
 void AetTest()
 {
-	std::vector<KeyFrame> keyFrameVector = 
+	std::vector<KeyFrame> keyFrameVector =
 	{
 		// { 0.0f, 0.2f, 0.03f},
 		// { 19.0f,0.77f, 0.03f },
@@ -211,7 +211,7 @@ void AetTest()
 	std::unique_ptr<float[]> rawValues = std::make_unique<float[]>(keyFrameVector.size() * 3);
 	for (size_t i = 0; i < keyFrameVector.size(); i++)
 		rawValues[i] = keyFrameVector[i].Frame;
-	
+
 	float* valuesPtr = &rawValues[keyFrameVector.size()];
 	for (size_t i = 0; i < keyFrameVector.size(); i++)
 	{
@@ -223,7 +223,7 @@ void AetTest()
 	{
 		//float result = Auth2D::AetInterpolateAccurate(keyFrameVector.size(), rawValues.get(), i);
 		float recreation = Auth2D::AetMgr::Interpolate(keyFrameVector, i);
-		
+
 		//Logger::LogLine("ORIG FRAME [%02.0f] = %.2f", i, result);
 		Logger::LogLine("EDIT FRAME [%02.0f] = %.2f", i, recreation);
 
@@ -296,15 +296,180 @@ std::vector<std::string> GenerateIconListFromSource(const std::string& sourceFil
 	return results;
 }
 
+void AetWriteTest()
+{
+	if (false)
+	{
+		AetSet aetSet;
+		aetSet.Load("Y:/Games/SBZV/7.10.00/mdata/M910/rom/2d/aet_gam_eff000.bin");
+		aetSet.Save("Y:/Games/SBZV/7.10.00/mdata/M910/rom/2d/aet_gam_eff000_write_test.bin");
+		return;
+	}
+
+	return;
+
+	//AetSet aetSet;
+	//aetSet.Load("dev_ram/aetset/aet_tst000.bin");
+
+	//if (false)
+	//{
+	//	AetSet aetSet;
+	//	aetSet.Load("Y:/Games/SBZV/7.10.00/rom/2d/aet_gam_cmn.bin");
+	//	aetSet.Save("Y:/Games/SBZV/7.10.00/mdata/M969/rom/2d/aet_gam_cmn.bin");
+	//}
+
+	//for (auto& layer : aetSet[0].AetLayers)
+	//{
+	//	for (auto& obj : layer)
+	//	{
+	//		if (obj.AnimationData != nullptr)
+	//		{
+	//			// obj.AnimationData->PerspectiveProperties = nullptr;
+
+	//			for (auto& keyFrame : obj.AnimationData->Properties.ScaleX())
+	//				keyFrame.Value *= 4.0f;
+
+	//			for (auto& keyFrame : obj.AnimationData->Properties.ScaleY())
+	//				keyFrame.Value *= 4.0f;
+	//		}
+	//	}
+	//}
+
+	if (false)
+	{
+		DEBUG_STOPWATCH(__FUNCTION__);
+		{
+			AetSet aftGamCmn; aftGamCmn.Load("Y:/Games/SBZV/7.10.00/rom/2d/aet_gam_cmn.bin");
+
+			AetSet aetSet;
+			aetSet.Load("Y:/Games/SBZV/7.10.00/mdata/M912/rom/2d/gam_cmn_manual/aet_gam_cmn.bin");
+			{
+				Aet& aet = aetSet[0];
+				for (size_t i = 79; i <= 103; i++)
+				{
+					for (size_t j = 0; j < aet.AetLayers[i].size(); j++)
+					{
+						auto& obj = aet.AetLayers[i][j];
+
+						//const char* name = obj.GetName();
+						//if ((name[0] == 'p' || name[1] == '_'))
+						//	continue;
+
+						AetObj* aftObj = &aftGamCmn[0].AetLayers[i + 18][j];
+
+						float factor = (1280.0f / 1920.0f);
+
+						obj.AnimationData->Properties = aftObj->AnimationData->Properties;
+						//obj.AnimationData->Properties.PositionX() = aftObj->AnimationData->Properties.PositionX();
+						//obj.AnimationData->Properties.PositionY() = aftObj->AnimationData->Properties.PositionY();
+
+						//if ((name[0] == 'p' || name[1] == '_'))
+						//{
+						//	for (auto& keyFrame : obj.AnimationData->Properties.ScaleX()) keyFrame.Value *= factor;
+						//	for (auto& keyFrame : obj.AnimationData->Properties.ScaleY()) keyFrame.Value *= factor;
+						//}
+
+						// for (auto& keyFrame : obj.AnimationData->Properties.OriginX()) keyFrame.Value *= factor;
+						// for (auto& keyFrame : obj.AnimationData->Properties.OriginY()) keyFrame.Value *= factor;
+						// 
+						// for (auto& keyFrame : obj.AnimationData->Properties.ScaleX()) keyFrame.Value *= factor;
+						// for (auto& keyFrame : obj.AnimationData->Properties.ScaleY()) keyFrame.Value *= factor;
+
+						//for (auto& keyFrame : obj.AnimationData->Properties.ScaleX()) keyFrame.Value *= factor;
+						//for (auto& keyFrame : obj.AnimationData->Properties.ScaleY()) keyFrame.Value *= factor;
+						//for (auto& keyFrame : obj.AnimationData->Properties.PositionX()) keyFrame.Value -= 34;
+						//for (auto& keyFrame : obj.AnimationData->Properties.PositionY()) keyFrame.Value += 40;
+					}
+				}
+
+				for (size_t i = 0; i < 24; i++)
+				{
+					AetObj& obj = aet.AetLayers.back()[i + 83];
+					AetObj& aftObj = aftGamCmn[0].AetLayers.back()[i + 86];
+
+					obj.AnimationData = aftObj.AnimationData;
+				}
+			}
+			aetSet.Save("Y:/Games/SBZV/7.10.00/mdata/M912/rom/2d/aet_gam_cmn.bin");
+		}
+	}
+
+	//aetSet.Save("dev_ram/aetset/write_test/aet_write_test.bin");
+	//aetSet.Save("Y:/Games/SBZV/7.10.00/mdata/M969/rom/2d/aet_gam_eff000.bin");
+
+	if (true)
+	{
+		auto files = FileSystem::GetFiles("Y:/Games/SBZV/7.10.00/rom/2d");
+		for (auto& file : files)
+		{
+			auto fileName = FileSystem::GetFileName(file);
+			if (StartsWith(fileName, "aet_") && EndsWith(fileName, ".bin") && fileName != "aet_db.bin")
+			{
+				AetSet aetSet;
+				aetSet.Load(file);
+
+				// for (auto& aet : aetSet)
+				// {
+				// 	//for (auto& layer : aet.AetLayers)
+				// 	auto& layer = aet.AetLayers.back();
+				// 	for (auto& obj : layer)
+				// 		if (obj.AnimationData != nullptr)
+				// 		{
+				// 			for (auto& keyFrame : obj.AnimationData->Properties.ScaleX())
+				// 				keyFrame.Value *= .75f;
+				// 			for (auto& keyFrame : obj.AnimationData->Properties.ScaleY())
+				// 				keyFrame.Value *= .75f;
+				// 		}
+				// }
+
+				aetSet.Save("Y:/Games/SBZV/7.10.00/mdata/M969/rom/2d/" + fileName);
+			}
+		}
+	}
+}
+
+void AetConvertTest()
+{
+	const auto directory = "Y:/Games/Project Diva/BLJM61079/PS3_GAME/USRDIR/rom/data/2d/";
+
+	auto files = GetFiles(directory + std::string("input"));
+	for (auto& file : files)
+	{
+		if (!EndsWith(file, ".aec"))
+			continue;
+
+		AetSet aetSet;
+		aetSet.Load(file);
+
+		auto fileName = GetFileName(file, false);
+		aetSet.Save(directory + std::string("output/") + fileName + ".bin");
+	}
+
+	//AetSet aetSet;
+	//aetSet.Load("Y:/Games/Project Diva/BLJM61079/PS3_GAME/USRDIR/rom/data/2d/aet_gam_win.aec");
+
+	int test = 0;
+}
+
 void MainTest()
 {
 	glfwInit();
 
 	if (false)
 	{
-		auto results = GenerateFromSource("lib/iconfont/include/IconsFontAwesome5.h");
-		for (auto& line : results)
-			Logger::LogLine(line.c_str());
+		AetConvertTest();
+	}
+
+	if (false)
+	{
+		AetWriteTest();
+	}
+
+	if (false)
+	{
+		//auto results = GenerateFromSource("lib/iconfont/include/IconsFontAwesome5.h");
+		//for (auto& line : results)
+		//	Logger::LogLine(line.c_str());
 	}
 
 	if (false)
