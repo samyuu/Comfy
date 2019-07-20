@@ -140,7 +140,7 @@ namespace FileSystem
 		float PlaybackSpeed;
 
 		AetObjFlags Flags;
-		unk8_t UnknownTypeByte;
+		unk8_t TypePaddingByte;
 		AetObjType Type;
 
 		std::vector<Marker> Markers;
@@ -211,6 +211,12 @@ namespace FileSystem
 		AetObjCollection objects;
 	};
 
+	struct PositionOffset
+	{
+		KeyFrameCollection PositionX;
+		KeyFrameCollection PositionY;
+	};
+
 	class Aet
 	{
 		friend class AetSet;
@@ -218,12 +224,14 @@ namespace FileSystem
 
 	public:
 		std::string Name;
+		frame_t FrameStart;
 		frame_t FrameDuration;
 		frame_t FrameRate;
 		unk32_t BackgroundColor;
 
 		int32_t Width;
 		int32_t Height;
+		std::shared_ptr<PositionOffset> PositionOffset;
 
 		std::vector<AetLayer> AetLayers;
 		std::vector<AetRegion> AetRegions;
@@ -232,8 +240,6 @@ namespace FileSystem
 
 	private:
 		int32_t thisIndex;
-		unk32_t unknownValue;
-		fileptr_t unknownFilePtr0;
 
 		uint32_t unknownFilePtr1Size;
 		fileptr_t unknownFilePtr1;

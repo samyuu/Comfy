@@ -160,7 +160,7 @@ namespace Editor
 			{
 			case AetSelectionType::Aet:
 			case AetSelectionType::AetLayer:
-				loopStartFrame = 0;
+				loopStartFrame = aet->FrameStart;
 				loopEndFrame = aet->FrameDuration;
 				break;
 

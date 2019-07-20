@@ -76,8 +76,10 @@ namespace Editor
 			if (ImGui::InputText("Name##Aet", aetNameBuffer, sizeof(aetNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
 				aet->Name = std::string(aetNameBuffer);
 
-			ImGui::InputFloat("Frame Rate", &aet->FrameRate);
-			ImGui::InputFloat("Duration", &aet->FrameDuration);
+			ImGui::InputFloat("Start Frame", &aet->FrameStart, 1.0f, 10.0f);
+			ImGui::InputFloat("Duration", &aet->FrameDuration, 1.0f, 10.0f);
+			if (ImGui::InputFloat("Frame Rate", &aet->FrameRate, 1.0f, 10.0f))
+				aet->FrameRate = glm::clamp(aet->FrameRate, 1.0f, 1000.0f);
 			ImGui::InputInt2("Resolution", &aet->Width);
 
 			ImVec4 color = ImGui::ColorConvertU32ToFloat4(aet->BackgroundColor);

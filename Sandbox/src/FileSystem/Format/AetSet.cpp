@@ -25,71 +25,76 @@ namespace FileSystem
 		"eff",
 	};
 
+	static void ReadKeyFramesPointer(KeyFrameCollection& keyFrames, BinaryReader& reader)
+	{
+		uint32_t keyFrameCount = reader.ReadUInt32();
+		void* keyFramesPointer = reader.ReadPtr();
+
+		if (keyFrameCount > 0 && keyFramesPointer != nullptr)
+		{
+			reader.ReadAt(keyFramesPointer, [keyFrameCount, &keyFrames](BinaryReader& reader)
+			{
+				keyFrames.resize(keyFrameCount);
+
+				if (keyFrameCount == 1)
+				{
+					keyFrames[0].Value = reader.ReadFloat();
+				}
+				else
+				{
+					for (uint32_t i = 0; i < keyFrameCount; i++)
+						keyFrames[i].Frame = reader.ReadFloat();
+
+					for (uint32_t i = 0; i < keyFrameCount; i++)
+					{
+						keyFrames[i].Value = reader.ReadFloat();
+						keyFrames[i].Interpolation = reader.ReadFloat();
+					}
+				}
+			});
+		}
+	}
+
 	static void ReadKeyFrameProperties(KeyFrameProperties* properties, BinaryReader& reader)
 	{
 		for (auto& keyFrames : *properties)
+			ReadKeyFramesPointer(keyFrames, reader);
+	}
+
+	static void WriteKeyFramesPointer(KeyFrameCollection& keyFrames, BinaryWriter& writer)
+	{
+		if (keyFrames.size() > 0)
 		{
-			uint32_t keyFrameCount = reader.ReadUInt32();
-			void* keyFramesPointer = reader.ReadPtr();
-
-			if (keyFrameCount > 0 && keyFramesPointer != nullptr)
+			writer.WriteUInt32(static_cast<uint32_t>(keyFrames.size()));
+			writer.WritePtr([&keyFrames](BinaryWriter& writer)
 			{
-				reader.ReadAt(keyFramesPointer, [keyFrameCount, &keyFrames](BinaryReader& reader)
+				if (keyFrames.size() == 1)
 				{
-					keyFrames.resize(keyFrameCount);
-
-					if (keyFrameCount == 1)
+					writer.WriteFloat(keyFrames.front().Value);
+				}
+				else
+				{
+					for (auto& keyFrame : keyFrames)
+						writer.WriteFloat(keyFrame.Frame);
+					for (auto& keyFrame : keyFrames)
 					{
-						keyFrames[0].Value = reader.ReadFloat();
+						writer.WriteFloat(keyFrame.Value);
+						writer.WriteFloat(keyFrame.Interpolation);
 					}
-					else
-					{
-						for (uint32_t i = 0; i < keyFrameCount; i++)
-							keyFrames[i].Frame = reader.ReadFloat();
-
-						for (uint32_t i = 0; i < keyFrameCount; i++)
-						{
-							keyFrames[i].Value = reader.ReadFloat();
-							keyFrames[i].Interpolation = reader.ReadFloat();
-						}
-					}
-				});
-			}
+				}
+			});
 		}
-
+		else
+		{
+			writer.WriteUInt32(0x00000000); // key frames count
+			writer.WriteUInt32(0x00000000); // key frames offset
+		}
 	}
 
 	static void WriteKeyFrameProperties(KeyFrameProperties* properties, BinaryWriter& writer)
 	{
 		for (auto& keyFrames : *properties)
-		{
-			if (keyFrames.size() > 0)
-			{
-				writer.WriteUInt32(keyFrames.size());
-				writer.WritePtr([&keyFrames](BinaryWriter& writer)
-				{
-					if (keyFrames.size() == 1)
-					{
-						writer.WriteFloat(keyFrames.front().Value);
-					}
-					else
-					{
-						for (auto& keyFrame : keyFrames)
-							writer.WriteFloat(keyFrame.Frame);
-						for (auto& keyFrame : keyFrames)
-						{
-							writer.WriteFloat(keyFrame.Value);
-							writer.WriteFloat(keyFrame.Interpolation);
-						}
-					}
-				});
-			}
-			else
-			{
-				writer.WriteUInt32(0x00000000); // key frames count
-				writer.WriteUInt32(0x00000000); // key frames offset
-			}
-		}
+			WriteKeyFramesPointer(keyFrames, writer);
 	}
 
 	static void ReadAnimationData(std::shared_ptr<AnimationData>& animationData, BinaryReader& reader)
@@ -124,7 +129,7 @@ namespace FileSystem
 		StartFrame = 0.0f;
 		PlaybackSpeed = 1.0f;
 		Flags = AetObjFlags_Visible | AetObjFlags_Audible;
-		UnknownTypeByte = 0x3;
+		TypePaddingByte = 0x3;
 		Type = type;
 
 		if (type != AetObjType::Aif)
@@ -200,7 +205,7 @@ namespace FileSystem
 		PlaybackSpeed = reader.ReadFloat();
 
 		Flags = reader.Read<AetObjFlags>();
-		UnknownTypeByte = reader.ReadByte();
+		TypePaddingByte = reader.ReadByte();
 		Type = reader.Read<AetObjType>();
 
 		dataFilePtr = reader.ReadPtr();
@@ -237,71 +242,90 @@ namespace FileSystem
 	void Aet::Read(BinaryReader& reader)
 	{
 		Name = reader.ReadStrPtr();
-		unknownValue = reader.ReadUInt32();
+		FrameStart = reader.ReadFloat();
 		FrameDuration = reader.ReadFloat();
 		FrameRate = reader.ReadFloat();
 		BackgroundColor = reader.ReadUInt32();
+
 		Width = reader.ReadInt32();
 		Height = reader.ReadInt32();
-		unknownFilePtr0 = reader.ReadPtr();
+
+		void* positionOffsetPtr = reader.ReadPtr();
+		if (positionOffsetPtr != nullptr)
+		{
+			this->PositionOffset = std::make_shared<FileSystem::PositionOffset>();
+			reader.ReadAt(positionOffsetPtr, [this](BinaryReader& reader)
+			{
+				ReadKeyFramesPointer(this->PositionOffset->PositionX, reader);
+				ReadKeyFramesPointer(this->PositionOffset->PositionY, reader);
+			});
+		}
 
 		uint32_t layersCount = reader.ReadUInt32();
 		AetLayers.resize(layersCount);
 
-		reader.ReadAt(reader.ReadPtr(), [this](BinaryReader& reader)
+		void* layersPtr = reader.ReadPtr();
+		if (layersPtr != nullptr)
 		{
-			for (auto& layer : AetLayers)
+			reader.ReadAt(layersPtr, [this](BinaryReader& reader)
 			{
-				layer.filePosition = reader.GetPositionPtr();
-
-				uint32_t objectCount = reader.ReadUInt32();
-				void* objectsPointer = reader.ReadPtr();
-
-				if (objectCount > 0 && objectsPointer != nullptr)
+				for (auto& layer : AetLayers)
 				{
-					layer.resize(objectCount);
-					reader.ReadAt(objectsPointer, [this, &layer](BinaryReader& reader)
+					layer.filePosition = reader.GetPositionPtr();
+
+					uint32_t objectCount = reader.ReadUInt32();
+					void* objectsPointer = reader.ReadPtr();
+
+					if (objectCount > 0 && objectsPointer != nullptr)
 					{
-						for (auto& object : layer)
+						layer.resize(objectCount);
+						reader.ReadAt(objectsPointer, [this, &layer](BinaryReader& reader)
 						{
-							object.parentAet = this;
-							object.Read(reader);
-						}
-					});
+							for (auto& object : layer)
+							{
+								object.parentAet = this;
+								object.Read(reader);
+							}
+						});
+					}
 				}
-			}
-		});
+			});
+		}
 
 		uint32_t regionCount = reader.ReadUInt32();
 		AetRegions.resize(regionCount);
 
-		reader.ReadAt(reader.ReadPtr(), [this](BinaryReader& reader)
+		void* regionsPtr = reader.ReadPtr();
+		if (regionsPtr != nullptr)
 		{
-			for (auto& region : AetRegions)
+			reader.ReadAt(regionsPtr, [this](BinaryReader& reader)
 			{
-				region.filePosition = reader.GetPositionPtr();
-				region.Color = reader.ReadUInt32();
-				region.Width = reader.ReadUInt16();
-				region.Height = reader.ReadUInt16();
-				region.Frames = reader.ReadFloat();
-
-				uint32_t spriteCount = reader.ReadUInt32();
-				void* spritesPointer = reader.ReadPtr();
-
-				if (spriteCount > 0 && spritesPointer != nullptr)
+				for (auto& region : AetRegions)
 				{
-					region.Sprites.resize(spriteCount);
-					reader.ReadAt(spritesPointer, [&region](BinaryReader& reader)
+					region.filePosition = reader.GetPositionPtr();
+					region.Color = reader.ReadUInt32();
+					region.Width = reader.ReadUInt16();
+					region.Height = reader.ReadUInt16();
+					region.Frames = reader.ReadFloat();
+
+					uint32_t spriteCount = reader.ReadUInt32();
+					void* spritesPointer = reader.ReadPtr();
+
+					if (spriteCount > 0 && spritesPointer != nullptr)
 					{
-						for (auto& sprite : region.Sprites)
+						region.Sprites.resize(spriteCount);
+						reader.ReadAt(spritesPointer, [&region](BinaryReader& reader)
 						{
-							sprite.Name = reader.ReadStrPtr();
-							sprite.ID = reader.ReadUInt32();
-						}
-					});
+							for (auto& sprite : region.Sprites)
+							{
+								sprite.Name = reader.ReadStrPtr();
+								sprite.ID = reader.ReadUInt32();
+							}
+						});
+					}
 				}
-			}
-		});
+			});
+		}
 
 		unknownFilePtr1 = reader.ReadPtr();
 		unknownFilePtr1Size = reader.ReadUInt32();
@@ -314,28 +338,38 @@ namespace FileSystem
 		writer.WritePtr([this](BinaryWriter& writer)
 		{
 			void* aetFilePosition = writer.GetPositionPtr();
-
 			writer.WriteStrPtr(&Name);
-			writer.WriteUInt32(0x00000000); // unknownValue
+			writer.WriteFloat(FrameStart);
 			writer.WriteFloat(FrameDuration);
 			writer.WriteFloat(FrameRate);
 			writer.WriteUInt32(BackgroundColor);
 			writer.WriteInt32(Width);
 			writer.WriteInt32(Height);
-			writer.WriteUInt32(0x00000000); // unknownFilePtr0
+
+			if (this->PositionOffset != nullptr)
+			{
+				writer.WritePtr([this](BinaryWriter& writer)
+				{
+					WriteKeyFramesPointer(this->PositionOffset->PositionX, writer);
+					WriteKeyFramesPointer(this->PositionOffset->PositionY, writer);
+				});
+			}
+			else
+			{
+				writer.WriteUInt32(0x00000000); // PositionOffset offset
+			}
 
 			if (AetLayers.size() > 0)
 			{
-				writer.WriteUInt32(AetLayers.size());
+				writer.WriteUInt32(static_cast<uint32_t>(AetLayers.size()));
 				writer.WritePtr([this](BinaryWriter& writer)
 				{
 					for (auto& layer : AetLayers)
 					{
 						layer.filePosition = writer.GetPositionPtr();
-
 						if (layer.size() > 0)
 						{
-							writer.WriteUInt32(layer.size());
+							writer.WriteUInt32(static_cast<uint32_t>(layer.size()));
 							writer.WritePtr([&layer](BinaryWriter& writer)
 							{
 								for (auto& obj : layer)
@@ -347,36 +381,43 @@ namespace FileSystem
 									writer.WriteFloat(obj.StartFrame);
 									writer.WriteFloat(obj.PlaybackSpeed);
 									writer.Write<AetObjFlags>(obj.Flags);
-									writer.WriteByte(obj.UnknownTypeByte);
+									writer.WriteByte(obj.TypePaddingByte);
 									writer.Write<AetObjType>(obj.Type);
 
 									if ((obj.Type == AetObjType::Pic && obj.GetRegion() != nullptr) || (obj.Type == AetObjType::Eff && obj.GetLayer() != nullptr))
 									{
-										writer.WriteDelayedPtr([&obj](BinaryWriter& writer) 
+										writer.WriteDelayedPtr([&obj](BinaryWriter& writer)
 										{
-											writer.WriteUInt32((uint32_t) (obj.Type == AetObjType::Pic ? obj.GetRegion()->filePosition : obj.GetLayer()->filePosition));
+											if (obj.Type == AetObjType::Pic)
+											{
+												writer.WriteUInt32(static_cast<uint32_t>((uintptr_t)obj.GetRegion()->filePosition));
+											}
+											else
+											{
+												writer.WriteUInt32(static_cast<uint32_t>((uintptr_t)obj.GetLayer()->filePosition));
+											}
 										});
 									}
 									else
 									{
-										writer.WriteUInt32(0x00000000); // data offset
+										writer.WriteUInt32(0x00000000); // Data offset
 									}
 
 									if (obj.GetParent() != nullptr)
 									{
 										writer.WriteDelayedPtr([&obj](BinaryWriter& writer)
 										{
-											writer.WriteUInt32((uint32_t)obj.GetParent()->filePosition);
+											writer.WriteUInt32(static_cast<uint32_t>((uintptr_t)obj.GetParent()->filePosition));
 										});
 									}
 									else
 									{
-										writer.WriteUInt32(0x00000000); // parent offset
+										writer.WriteUInt32(0x00000000); // Parent offset
 									}
 
 									if (obj.Markers.size() > 0)
 									{
-										writer.WriteUInt32(obj.Markers.size());
+										writer.WriteUInt32(static_cast<uint32_t>(obj.Markers.size()));
 										writer.WritePtr([&obj](BinaryWriter& writer)
 										{
 											for (auto& marker : obj.Markers)
@@ -447,7 +488,7 @@ namespace FileSystem
 
 			if (AetRegions.size() > 0)
 			{
-				writer.WriteUInt32(AetRegions.size());
+				writer.WriteUInt32(static_cast<uint32_t>(AetRegions.size()));
 				writer.WritePtr([this](BinaryWriter& writer)
 				{
 					for (auto& region : AetRegions)
@@ -459,7 +500,7 @@ namespace FileSystem
 						writer.WriteFloat(region.Frames);
 						if (region.Sprites.size() > 0)
 						{
-							writer.WriteUInt32(region.Sprites.size());
+							writer.WriteUInt32(static_cast<uint32_t>(region.Sprites.size()));
 							writer.WritePtr([&region](BinaryWriter& writer)
 							{
 								for (auto& sprite : region.Sprites)
