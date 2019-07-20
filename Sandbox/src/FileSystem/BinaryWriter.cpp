@@ -3,7 +3,12 @@
 
 namespace FileSystem
 {
-	BinaryWriter::BinaryWriter(Stream* stream)
+	BinaryWriter::BinaryWriter()
+	{
+		SetPointerMode(PtrMode_32Bit);
+	}
+
+	BinaryWriter::BinaryWriter(Stream* stream) : BinaryWriter()
 	{
 		OpenStream(stream);
 	}
@@ -37,6 +42,33 @@ namespace FileSystem
 		return leaveOpen;
 	}
 
+	PtrMode BinaryWriter::GetPointerMode() const
+	{
+		return pointerMode;
+	}
+
+	void BinaryWriter::SetPointerMode(PtrMode mode)
+	{
+		pointerMode = mode;
+
+		switch (pointerMode)
+		{
+		case PtrMode_32Bit:
+			writePtrFunction = Write32BitPtr;
+			return;
+
+		case PtrMode_64Bit:
+			writePtrFunction = Write64BitPtr;
+			return;
+
+		default:
+			writePtrFunction = nullptr;
+			break;
+		}
+
+		assert(false);
+	}
+
 	int64_t BinaryWriter::Write(const void* buffer, size_t size)
 	{
 		return stream->Write(buffer, size);
@@ -50,19 +82,19 @@ namespace FileSystem
 	void BinaryWriter::WriteStrPtr(const std::string* value)
 	{
 		stringPointerPool.push_back({ GetPositionPtr(), value });
-		WriteUInt32(PaddingValue);
+		WritePtr(nullptr);
 	}
 
 	void BinaryWriter::WritePtr(const std::function<void(BinaryWriter&)>& func)
 	{
 		pointerPool.push_back({ GetPositionPtr(), func });
-		WriteUInt32(PaddingValue);
+		WritePtr(nullptr);
 	}
 
 	void BinaryWriter::WriteDelayedPtr(const std::function<void(BinaryWriter&)>& func)
 	{
 		delayedWritePool.push_back({ GetPositionPtr(), func });
-		WriteUInt32(PaddingValue);
+		WritePtr(nullptr);
 	}
 
 	void BinaryWriter::WriteAlignmentPadding(int32_t alignment, uint32_t paddingValue)
@@ -73,7 +105,7 @@ namespace FileSystem
 		assert(alignment <= maxAlignment);
 		uint8_t paddingValues[maxAlignment];
 
-		int32_t value = GetPosition();
+		int32_t value = static_cast<int32_t>(GetPosition());
 		int32_t paddingSize = ((value + (alignment - 1)) & ~(alignment - 1)) - value;
 
 		if (forceExtraPadding && paddingSize <= 0)
@@ -90,10 +122,10 @@ namespace FileSystem
 	{
 		for (auto& value : stringPointerPool)
 		{
-			uint32_t stringOffset = static_cast<uint32_t>(GetPosition());
+			void* stringOffset = GetPositionPtr();
 
 			SetPosition(value.ReturnAddress);
-			WriteUInt32(stringOffset);
+			WritePtr(stringOffset);
 
 			SetPosition(stringOffset);
 			WriteStr(*value.String);
@@ -106,10 +138,10 @@ namespace FileSystem
 	{
 		for (auto& value : pointerPool)
 		{
-			uint32_t offset = static_cast<uint32_t>(GetPosition());
+			void* offset = GetPositionPtr();
 
 			SetPosition(value.ReturnAddress);
-			WriteUInt32(offset);
+			WritePtr(offset);
 
 			SetPosition(offset);
 			value.Function(*this);
@@ -122,7 +154,7 @@ namespace FileSystem
 	{
 		for (auto& value : delayedWritePool)
 		{
-			uint32_t offset = static_cast<uint32_t>(GetPosition());
+			void* offset = GetPositionPtr();
 
 			SetPosition(value.ReturnAddress);
 			value.Function(*this);

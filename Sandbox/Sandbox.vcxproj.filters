@@ -512,6 +512,9 @@
     <ClInclude Include="src\ImGui\Implementation\ImGui_Impl_Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\FileSystem\PtrMode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="rom\shader\line_frag.glsl" />

@@ -9,6 +9,7 @@ namespace FileSystem
 {
 	class Aet;
 	class AetLayer;
+	class AetSoundEffect;
 	struct Sprite;
 
 	typedef void* fileptr_t;
@@ -55,16 +56,15 @@ namespace FileSystem
 		friend class Aet;
 
 	public:
-		unk32_t Color;
+		uint32_t Color;
 		int16_t Width;
 		int16_t Height;
 		frame_t Frames;
 		std::vector<AetSprite> Sprites;
 
 	private:
-		// AetSprite* dynamicSprite;
-
 		fileptr_t filePosition;
+		// AetSprite* dynamicSprite;
 	};
 
 	struct Marker
@@ -150,6 +150,7 @@ namespace FileSystem
 		void SetName(const char* value);
 
 		AetRegion* GetRegion() const;
+		AetSoundEffect* GetSoundEffect() const;
 		AetLayer* GetLayer() const;
 		AetObj* GetParent() const;
 
@@ -160,6 +161,7 @@ namespace FileSystem
 		struct
 		{
 			int32_t RegionIndex = -1;
+			int32_t SoundEffectIndex = -1;
 			int32_t LayerIndex = -1;
 
 			int32_t ParentLayerIndex = -1;
@@ -217,6 +219,17 @@ namespace FileSystem
 		KeyFrameCollection PositionY;
 	};
 
+	class AetSoundEffect
+	{
+		friend class Aet;
+
+	public:
+		unk32_t Data[4];
+
+	private:
+		fileptr_t filePosition;
+	};
+
 	class Aet
 	{
 		friend class AetSet;
@@ -227,24 +240,20 @@ namespace FileSystem
 		frame_t FrameStart;
 		frame_t FrameDuration;
 		frame_t FrameRate;
-		unk32_t BackgroundColor;
+		uint32_t BackgroundColor;
 
 		int32_t Width;
 		int32_t Height;
-		std::shared_ptr<PositionOffset> PositionOffset;
+		std::shared_ptr<FileSystem::PositionOffset> PositionOffset;
 
 		std::vector<AetLayer> AetLayers;
 		std::vector<AetRegion> AetRegions;
+		std::vector<AetSoundEffect> AetSoundEffects;
 
 		inline int32_t GetThisIndex() { return thisIndex; };
 
 	private:
 		int32_t thisIndex;
-
-		uint32_t unknownFilePtr1Size;
-		fileptr_t unknownFilePtr1;
-		uint32_t unknownFilePtr2Size;
-		fileptr_t unknownFilePtr2;
 
 		void Read(BinaryReader& reader);
 		void Write(BinaryWriter& writer);
@@ -252,6 +261,7 @@ namespace FileSystem
 		void UpdateLayerNames();
 		void LinkPostRead();
 		void FindObjReferencedRegion(AetObj* aetObj);
+		void FindObjReferencedSoundEffect(AetObj* aetObj);
 		void FindObjReferencedLayer(AetObj* aetObj);
 		void FindObjReferencedParent(AetObj* aetObj);
 	};

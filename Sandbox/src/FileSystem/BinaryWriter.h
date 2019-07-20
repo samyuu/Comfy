@@ -1,5 +1,6 @@
 #pragma once
 #include "Stream.h"
+#include "PtrMode.h"
 #include <vector>
 #include <list>
 #include <functional>
@@ -11,6 +12,7 @@ namespace FileSystem
 	class BinaryWriter
 	{
 	public:
+		BinaryWriter();
 		BinaryWriter(Stream* stream);
 		~BinaryWriter();
 
@@ -29,13 +31,18 @@ namespace FileSystem
 		inline int64_t GetLength() const { return stream->GetLength(); }
 		inline bool EndOfFile() const { return stream->EndOfFile(); }
 
+		PtrMode GetPointerMode() const;
+		void SetPointerMode(PtrMode mode);
+
 		inline int64_t Write(const void* buffer, size_t size);
 
 		template <typename T> void Write(T value) { Write(&value, sizeof(value)); };
 
 		void WriteStr(const std::string& value);
 		void WriteStrPtr(const std::string* value);
-		
+
+		inline void WritePtr(void* value) { writePtrFunction(this, value); };
+
 		void WritePtr(const std::function<void(BinaryWriter&)>& func);
 		void WriteDelayedPtr(const std::function<void(BinaryWriter&)>& func);
 
@@ -58,6 +65,10 @@ namespace FileSystem
 		inline void WriteDouble(double value) { return Write<double>(value); };
 
 	protected:
+		typedef void (*WritePtr_t)(BinaryWriter*, void*);
+		WritePtr_t writePtrFunction = nullptr;
+
+		PtrMode pointerMode;
 		bool leaveOpen = false;
 		Stream* stream = nullptr;
 
@@ -82,6 +93,10 @@ namespace FileSystem
 		std::vector<StringPointerEntry> stringPointerPool;
 		std::list<FunctionPointerEntry> pointerPool;
 		std::vector<DelayedWriteEntry> delayedWritePool;
+
+	private:
+		static void Write32BitPtr(BinaryWriter* writer, void* value) { writer->WriteInt32(static_cast<int32_t>((ptrdiff_t)value)); };
+		static void Write64BitPtr(BinaryWriter* writer, void* value) { writer->WriteInt64(static_cast<int64_t>((ptrdiff_t)value)); };
 	};
 
 }

@@ -213,6 +213,7 @@
     <ClInclude Include="src\FileSystem\Format\TxpSet.h" />
     <ClInclude Include="src\FileSystem\MemoryStream.h" />
     <ClInclude Include="src\FileSystem\FileStream.h" />
+    <ClInclude Include="src\FileSystem\PtrMode.h" />
     <ClInclude Include="src\Graphics\Auth2D\AetMgr.h" />
     <ClInclude Include="src\Graphics\Auth2D\Renderer2D.h" />
     <ClInclude Include="src\Graphics\Graphics.h" />

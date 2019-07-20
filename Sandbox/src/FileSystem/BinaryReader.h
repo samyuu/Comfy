@@ -1,17 +1,11 @@
 #pragma once
 #include "Stream.h"
+#include "PtrMode.h"
 #include <array>
 #include <functional>
 
 namespace FileSystem
 {
-	enum PtrMode : uint8_t
-	{
-		PtrMode_Invalid,
-		PtrMode_32Bit,
-		PtrMode_64Bit,
-	};
-
 	class BinaryReader
 	{
 	public:
@@ -69,16 +63,15 @@ namespace FileSystem
 
 	protected:
 		typedef void* (*ReadPtr_t)(BinaryReader*);
-		ReadPtr_t readPtrFunction = ReadInvalidPtr;
+		ReadPtr_t readPtrFunction = nullptr;
 
-		PtrMode pointerMode = PtrMode_Invalid;
+		PtrMode pointerMode;
 		bool leaveOpen = false;
 		Stream* stream = nullptr;
 
 	private:
-		static inline void* ReadInvalidPtr(BinaryReader* reader) { return nullptr; }
-		static inline void* Read32BitPtr(BinaryReader* reader) { return reinterpret_cast<void*>(static_cast<ptrdiff_t>(reader->ReadInt32())); };
-		static inline void* Read64BitPtr(BinaryReader* reader) { return reinterpret_cast<void*>(static_cast<ptrdiff_t>(reader->ReadInt64())); };
+		static void* Read32BitPtr(BinaryReader* reader) { return reinterpret_cast<void*>(static_cast<ptrdiff_t>(reader->ReadInt32())); };
+		static void* Read64BitPtr(BinaryReader* reader) { return reinterpret_cast<void*>(static_cast<ptrdiff_t>(reader->ReadInt64())); };
 	};
 
 	template<typename T> 

@@ -5,7 +5,7 @@ namespace FileSystem
 {
 	BinaryReader::BinaryReader()
 	{
-		SetPointerMode(PtrMode::PtrMode_32Bit);
+		SetPointerMode(PtrMode_32Bit);
 	}
 
 	BinaryReader::BinaryReader(Stream* stream) : BinaryReader()
@@ -62,10 +62,10 @@ namespace FileSystem
 			return;
 
 		default:
+			readPtrFunction = nullptr;
 			break;
 		}
 
-		readPtrFunction = ReadInvalidPtr;
 		assert(false);
 	}
 
