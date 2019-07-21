@@ -1,6 +1,6 @@
 #pragma once
 #include "Stream.h"
-#include "PtrMode.h"
+#include "BinaryMode.h"
 #include <vector>
 #include <list>
 #include <functional>

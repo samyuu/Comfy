@@ -5,7 +5,7 @@ namespace FileSystem
 {
 	BinaryWriter::BinaryWriter()
 	{
-		SetPointerMode(PtrMode_32Bit);
+		SetPointerMode(PtrMode::Mode32Bit);
 	}
 
 	BinaryWriter::BinaryWriter(Stream* stream) : BinaryWriter()
@@ -53,11 +53,11 @@ namespace FileSystem
 
 		switch (pointerMode)
 		{
-		case PtrMode_32Bit:
+		case PtrMode::Mode32Bit:
 			writePtrFunction = Write32BitPtr;
 			return;
 
-		case PtrMode_64Bit:
+		case PtrMode::Mode64Bit:
 			writePtrFunction = Write64BitPtr;
 			return;
 

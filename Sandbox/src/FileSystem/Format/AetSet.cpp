@@ -740,6 +740,18 @@ namespace FileSystem
 
 	void AetSet::Read(BinaryReader& reader)
 	{
+		uint32_t signature = reader.ReadUInt32();
+		if (signature == 'AETC' || signature == 'CTEA')
+		{
+			reader.ReadUInt32();
+			reader.SetPosition(reader.ReadPtr());
+			reader.SetEndianness(Endianness::Big);
+		}
+		else
+		{
+			reader.SetPosition(reader.GetPosition() - sizeof(uint32_t));
+		}
+
 		void* startAddress = reader.GetPositionPtr();
 
 		uint32_t aetCount = 0;

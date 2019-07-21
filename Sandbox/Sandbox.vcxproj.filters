@@ -512,7 +512,7 @@
     <ClInclude Include="src\ImGui\Implementation\ImGui_Impl_Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\FileSystem\PtrMode.h">
+    <ClInclude Include="src\FileSystem\BinaryMode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

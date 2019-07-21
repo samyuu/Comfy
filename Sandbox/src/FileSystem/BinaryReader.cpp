@@ -5,7 +5,8 @@ namespace FileSystem
 {
 	BinaryReader::BinaryReader()
 	{
-		SetPointerMode(PtrMode_32Bit);
+		SetPointerMode(PtrMode::Mode32Bit);
+		SetEndianness(Endianness::Little);
 	}
 
 	BinaryReader::BinaryReader(Stream* stream) : BinaryReader()
@@ -47,22 +48,61 @@ namespace FileSystem
 		return pointerMode;
 	}
 
-	void BinaryReader::SetPointerMode(PtrMode mode)
+	void BinaryReader::SetPointerMode(PtrMode value)
 	{
-		pointerMode = mode;
+		pointerMode = value;
 
 		switch (pointerMode)
 		{
-		case PtrMode_32Bit:
+		case PtrMode::Mode32Bit:
 			readPtrFunction = Read32BitPtr; 
 			return;
 
-		case PtrMode_64Bit:
+		case PtrMode::Mode64Bit:
 			readPtrFunction = Read64BitPtr;
 			return;
 
 		default:
-			readPtrFunction = nullptr;
+			break;
+		}
+
+		assert(false);
+	}
+
+	Endianness BinaryReader::GetEndianness() const
+	{
+		return endianness;
+	}
+
+	void BinaryReader::SetEndianness(Endianness value)
+	{
+		endianness = value;
+		
+		switch (value)
+		{
+		case Endianness::Little:
+			readInt16Function = LE_ReadInt16;
+			readUInt16Function = LE_ReadUInt16;
+			readInt32Function = LE_ReadInt32;
+			readUInt32Function = LE_ReadUInt32;
+			readInt64Function = LE_ReadInt64;
+			readUInt64Function = LE_ReadUInt64;
+			readFloatFunction = LE_ReadFloat;
+			readDoubleFunction = LE_ReadDouble;
+			return;
+		
+		case Endianness::Big:
+			readInt16Function = BE_ReadInt16;
+			readUInt16Function = BE_ReadUInt16;
+			readInt32Function = BE_ReadInt32;
+			readUInt32Function = BE_ReadUInt32;
+			readInt64Function = BE_ReadInt64;
+			readUInt64Function = BE_ReadUInt64;
+			readFloatFunction = BE_ReadFloat;
+			readDoubleFunction = BE_ReadDouble;
+			return;
+		
+		default:
 			break;
 		}
 

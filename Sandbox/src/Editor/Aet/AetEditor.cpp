@@ -144,7 +144,7 @@ namespace Editor
 		if (aetFileViewer.DrawGui())
 		{
 			std::string aetPath = aetFileViewer.GetFileToOpen();
-			if (StartsWithInsensitive(GetFileName(aetPath), "aet_") && EndsWithInsensitive(aetPath, ".bin"))
+			if (StartsWithInsensitive(GetFileName(aetPath), "aet_") && (EndsWithInsensitive(aetPath, ".bin") || EndsWithInsensitive(aetPath, ".aec")))
 				LoadAetSet(aetPath);
 		}
 	}
