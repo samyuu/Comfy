@@ -1,6 +1,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui_extensions.h"
-#include "../Graphics/Texture.h"
+#include "Graphics/Texture.h"
+#include "FontIcons.h"
 
 namespace ImGui
 {
@@ -78,6 +79,26 @@ namespace ImGui
 	bool IsItemHoveredDelayed(ImGuiHoveredFlags flags, float threshold)
 	{
 		return IsItemHovered(flags) && GImGui->HoveredIdTimer > threshold;
+	}
+
+	void HelpMarker(const char* description)
+	{
+		//TextDisabled("(" ICON_FA_QUESTION ")");
+		TextDisabled("(?)");
+		if (IsItemHovered())
+		{
+			BeginTooltip();
+			PushTextWrapPos(GetFontSize() * 35.0f);
+			TextUnformatted(description);
+			PopTextWrapPos();
+			EndTooltip();
+		}
+	}
+
+	void SameLineHelpMarker(const char* description)
+	{
+		SameLine();
+		HelpMarker(description);
 	}
 
 	// Same as imgui_widgets.cpp: TreeNodeBehavior(...) but with the interact_bb set to the frame_bb and a no_arrow paramter

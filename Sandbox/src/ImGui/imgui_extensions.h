@@ -38,6 +38,9 @@ namespace ImGui
 
 	bool IsItemHoveredDelayed(ImGuiHoveredFlags flags = ImGuiHoveredFlags_None, float threshold = .5f);
 
+	void HelpMarker(const char* description);
+	void SameLineHelpMarker(const char* description);
+
 	bool WideTreeNode(const char* label);
 	bool WideTreeNode(const char* str_id, const char* fmt, ...);
 
