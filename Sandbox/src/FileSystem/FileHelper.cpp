@@ -245,7 +245,7 @@ namespace FileSystem
 	bool ReadAllBytes(const std::wstring& filePath, std::vector<uint8_t>* buffer)
 	{
 		HANDLE fileHandle = CreateFileHandleInternal(filePath.c_str(), true);
-		bool error = GetLastError();
+		int error = GetLastError();
 
 		bool result = ReadAllBytesInternal(fileHandle, buffer);
 		CloseHandle(fileHandle);
@@ -256,7 +256,7 @@ namespace FileSystem
 	bool WriteAllBytes(const std::string& filePath, const std::vector<uint8_t>& buffer)
 	{
 		HANDLE fileHandle = CreateFileHandleInternal(filePath.c_str(), false);
-		bool error = GetLastError();
+		int error = GetLastError();
 
 		bool result = WriteAllBytesInternal(fileHandle, buffer);
 		CloseHandle(fileHandle);
@@ -267,7 +267,7 @@ namespace FileSystem
 	bool WriteAllBytes(const std::wstring& filePath, const std::vector<uint8_t>& buffer)
 	{
 		HANDLE fileHandle = CreateFileHandleInternal(filePath.c_str(), false);
-		bool error = GetLastError();
+		int error = GetLastError();
 
 		bool result = WriteAllBytesInternal(fileHandle, buffer);
 		CloseHandle(fileHandle);
