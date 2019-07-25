@@ -64,6 +64,9 @@ public:
 	~ScreenShader();
 	ScreenShader(const ScreenShader&) = delete;
 
+	UniformLocation_t SaturationLocation;
+	UniformLocation_t BrightnessLocation;
+
 	UniformLocation_t ScreenTextureLocation;
 
 protected:

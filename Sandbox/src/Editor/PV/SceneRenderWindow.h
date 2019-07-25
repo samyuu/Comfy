@@ -38,17 +38,21 @@ namespace Editor
 			PerspectiveCamera camera;
 		};
 
+		struct
+		{
+			float Saturation = 2.2f;
+			float Brightness = 0.455;
+		} postProcessData;
+
 		// Vertex Storage
 		// --------------
 		struct
 		{
 			VertexArray cubeVao;
 			VertexArray lineVao;
-			VertexArray screenVao;
 
 			VertexBuffer cubeVertexBuffer = { BufferUsage::StaticDraw };
 			VertexBuffer lineVertexBuffer = { BufferUsage::StaticDraw };
-			VertexBuffer screenVertexBuffer = { BufferUsage::StaticDraw };
 		};
 
 		// Textures
@@ -159,17 +163,6 @@ namespace Editor
 			// Z-Axis										 
 			{ vec3(0.0f, 0.0f, 0.0f), vec4(0.1f, 0.7f, 1.0f, 1.0f) },
 			{ vec3(0.0f, 0.0f, 1.0f), vec4(0.1f, 0.7f, 1.0f, 1.0f) },
-		};
-
-		ScreenVertex screenVertices[6]
-		{
-			{ vec2(-1.0f, +1.0f),  vec2(0.0f, 1.0f) }, // top left
-			{ vec2(+1.0f, +1.0f),  vec2(1.0f, 1.0f) }, // top right
-			{ vec2(+1.0f, -1.0f),  vec2(1.0f, 0.0f) }, // bottom rights
-
-			{ vec2(-1.0f, +1.0f),  vec2(0.0f, 1.0f) }, // top left
-			{ vec2(+1.0f, -1.0f),  vec2(1.0f, 0.0f) }, // bottom right
-			{ vec2(-1.0f, -1.0f),  vec2(0.0f, 0.0f) }, // bottom left
 		};
 		// ------------------
 

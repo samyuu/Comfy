@@ -82,20 +82,6 @@ namespace Editor
 		// ------------------
 		{
 			screenShader.Initialize();
-
-			screenVertexBuffer.InitializeID();
-			screenVertexBuffer.Bind();
-			screenVertexBuffer.Upload(sizeof(screenVertices), screenVertices);
-
-			BufferLayout layout =
-			{
-				{ ShaderDataType::Vec2, "in_position" },
-				{ ShaderDataType::Vec2, "in_texture_coords" },
-			};
-
-			screenVao.InitializeID();
-			screenVao.Bind();
-			screenVao.SetLayout(layout);
 		}
 
 		// Render Targets
@@ -145,6 +131,12 @@ namespace Editor
 			ImGui::Text("Camera Rotation");
 			ImGui::DragFloat("Pitch", &targetCameraPitch, 1.0f);
 			ImGui::DragFloat("Yaw", &targetCameraYaw, 1.0f);
+		}
+
+		if (ImGui::CollapsingHeader("Post Processing"))
+		{
+			ImGui::DragFloat("Saturation", &postProcessData.Saturation, 0.015f, 1.0f, 5.0f);
+			ImGui::DragFloat("Brightness", &postProcessData.Brightness, 0.015f, 0.1f, 5.0f);
 		}
 
 		if (ImGui::CollapsingHeader("Cubes"))
@@ -351,10 +343,12 @@ namespace Editor
 		{
 			GLCall(glDisable(GL_DEPTH_TEST));
 
-			screenVao.Bind();
 			screenShader.Bind();
+			screenShader.SetUniform(screenShader.SaturationLocation, postProcessData.Saturation);
+			screenShader.SetUniform(screenShader.BrightnessLocation, postProcessData.Brightness);
+
 			postProcessingRenderTarget.GetTexture().Bind();
-			GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(screenVertices)));
+			GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
 		}
 		renderTarget.UnBind();
 	}

@@ -20,9 +20,3 @@ struct LineVertex
 	vec3 Position;
 	vec4 Color;
 };
-
-struct ScreenVertex
-{
-	vec2 Position;
-	vec2 TextureCoordinates;
-};

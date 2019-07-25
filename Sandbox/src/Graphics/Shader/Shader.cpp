@@ -82,6 +82,8 @@ ScreenShader::~ScreenShader()
 
 void ScreenShader::GetAllUniformLocations()
 {
+	SaturationLocation = GetUniformLocation("u_Saturation");
+	BrightnessLocation = GetUniformLocation("u_Brightness");
 	ScreenTextureLocation = GetUniformLocation("u_ScreenTexture");
 }
 
