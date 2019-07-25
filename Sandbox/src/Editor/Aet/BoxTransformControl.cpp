@@ -35,6 +35,26 @@ namespace Editor
 		}
 	}
 
+	vec2 Box::Top() const
+	{
+		return (TL + TR) / 2.0f;
+	}
+
+	vec2 Box::Right() const
+	{
+		return (TR + BR) / 2.0f;
+	}
+
+	vec2 Box::Bottom() const
+	{
+		return (BL + BR) / 2.0f;
+	}
+
+	vec2 Box::Left() const
+	{
+		return (TL + BL) / 2.0f;
+	}
+
 	bool Box::Contains(const vec2& point) const
 	{
 		vec2 e = vec2(TR.x - TL.x, TR.y - TL.y);
@@ -47,7 +67,7 @@ namespace Editor
 			((point.x - BL.x) * f.x + (point.y - BL.y) * f.y > 0.0));
 	}
 
-	constexpr float BoxNodeRadius = 3.5f;
+	constexpr float BoxNodeRadius = 4.0f;
 
 	static void DrawBox(ImDrawList* drawList, const Box& box, bool cross, const vec4& color)
 	{
@@ -67,6 +87,11 @@ namespace Editor
 		drawList->AddCircleFilled(box.TR, BoxNodeRadius, colorU32);
 		drawList->AddCircleFilled(box.BL, BoxNodeRadius, colorU32);
 		drawList->AddCircleFilled(box.BR, BoxNodeRadius, colorU32);
+
+		drawList->AddCircleFilled(box.Top(), BoxNodeRadius, colorU32);
+		drawList->AddCircleFilled(box.Right(), BoxNodeRadius, colorU32);
+		drawList->AddCircleFilled(box.Bottom(), BoxNodeRadius, colorU32);
+		drawList->AddCircleFilled(box.Left(), BoxNodeRadius, colorU32);
 	}
 
 	void BoxTransformControl::Draw(Properties* properties, vec2 dimensions, const std::function<void(vec2&)>& worldToScreenSpace, const std::function<void(vec2&)>& screenToWorldSpace, float zoom)
@@ -75,7 +100,7 @@ namespace Editor
 		vec2 mousePos = io.MousePos;
 
 		static int nodeIndex = -1;
-		if (ImGui::IsMouseClicked(0))
+		//if (ImGui::IsMouseClicked(0))
 			nodeIndex = -1;
 
 		Box box(*properties, dimensions);
@@ -84,7 +109,7 @@ namespace Editor
 		{
 			worldToScreenSpace(*pos);
 
-			if (ImGui::IsMouseClicked(0) && glm::distance(*pos, mousePos) < BoxNodeRadius)
+			if (/*ImGui::IsMouseClicked(0) &&*/ glm::distance(*pos, mousePos) < BoxNodeRadius)
 				nodeIndex = i;
 
 			i++;
@@ -97,6 +122,8 @@ namespace Editor
 
 		if (dragMoving)
 		{
+			ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+
 			if (vec2(io.MouseDelta) != vec2(0.0f) && ImGui::IsWindowHovered())
 				properties->Position += vec2(io.MouseDelta) * (1.0f / zoom);
 
@@ -122,6 +149,30 @@ namespace Editor
 		}
 
 		bool scaling = nodeIndex != -1;
+
+		if (scaling)
+		{
+			ImGuiMouseCursor cursor;
+			switch (nodeIndex)
+			{
+			case BoxNode_TL:
+			case BoxNode_BR:
+				cursor = ImGuiMouseCursor_ResizeNWSE;
+				break;
+			
+			case BoxNode_TR:
+			case BoxNode_BL:
+				cursor = ImGuiMouseCursor_ResizeNESW;
+				break;
+
+			default:
+				cursor = ImGuiMouseCursor_Hand;
+				break;
+			}
+
+			ImGui::SetMouseCursor(cursor);
+
+		}
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		DrawBox(drawList, box, scaling, contains ? vec4(1.0f, .25f, .25f, 1.0f) : vec4(1.0f));

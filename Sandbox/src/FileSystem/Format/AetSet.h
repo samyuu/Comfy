@@ -134,6 +134,7 @@ namespace FileSystem
 		AetObj(AetObjType type, const char* name, Aet* parent);
 		~AetObj();
 
+		std::string Name;
 		frame_t LoopStart;
 		frame_t LoopEnd;
 		frame_t StartFrame;
@@ -152,10 +153,9 @@ namespace FileSystem
 		AetRegion* GetRegion() const;
 		AetSoundEffect* GetSoundEffect() const;
 		AetLayer* GetLayer() const;
-		AetObj* GetParent() const;
+		AetObj* GetParentObj() const;
 
 	private:
-		std::string name;
 		Aet* parentAet;
 
 		struct
@@ -197,6 +197,8 @@ namespace FileSystem
 		ConstAetObjIterator end() const		{ return objects.end(); }
 		ConstAetObjIterator cbegin() const	{ return objects.cbegin(); }
 		ConstAetObjIterator cend() const	{ return objects.cend(); }
+		AetObj& front()						{ return objects.front(); }
+		AetObj& back()						{ return objects.back(); }
 
 		inline void resize(size_t newSize)					 { objects.resize(newSize); };
 		inline void reserve(size_t newCapacity)				 { objects.reserve(newCapacity); };
@@ -250,6 +252,8 @@ namespace FileSystem
 		std::vector<AetRegion> AetRegions;
 		std::vector<AetSoundEffect> AetSoundEffects;
 
+		AetObj* GetObj(const std::string& name);
+		int32_t GetObjIndex(AetLayer& layer, const std::string& name) const;
 		inline int32_t GetThisIndex() { return thisIndex; };
 
 	private:
@@ -281,6 +285,8 @@ namespace FileSystem
 		ConstAetIterator end() const	{ return aets.end(); }
 		ConstAetIterator cbegin() const { return aets.cbegin(); }
 		ConstAetIterator cend() const	{ return aets.cend(); }
+		Aet& front()					{ return aets.front(); }
+		Aet& back()						{ return aets.back(); }
 
 		inline void resize(size_t newSize)		{ aets.resize(newSize); };
 		inline void reserve(size_t newCapacity) { aets.reserve(newCapacity); };

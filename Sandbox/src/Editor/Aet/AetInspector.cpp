@@ -284,7 +284,7 @@ namespace Editor
 	{
 		if (ImGui::TreeNodeEx(ICON_PARENT "  Parent", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			AetObj* parent = aetObj->GetParent();
+			AetObj* parent = aetObj->GetParentObj();
 
 			if (parent == nullptr)
 			{

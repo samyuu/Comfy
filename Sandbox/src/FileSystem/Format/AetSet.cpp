@@ -159,12 +159,12 @@ namespace FileSystem
 
 	const char* AetObj::GetName()
 	{
-		return name.c_str();
+		return Name.c_str();
 	}
 
 	void AetObj::SetName(const char* value)
 	{
-		name = value;
+		Name = value;
 		parentAet->UpdateLayerNames();
 	}
 
@@ -201,7 +201,7 @@ namespace FileSystem
 		return nullptr;
 	}
 
-	AetObj* AetObj::GetParent() const
+	AetObj* AetObj::GetParentObj() const
 	{
 		assert(parentAet != nullptr);
 
@@ -217,7 +217,7 @@ namespace FileSystem
 	void AetObj::Read(BinaryReader& reader)
 	{
 		filePosition = reader.GetPositionPtr();
-		name = reader.ReadStrPtr();
+		Name = reader.ReadStrPtr();
 		LoopStart = reader.ReadFloat();
 		LoopEnd = reader.ReadFloat();
 		StartFrame = reader.ReadFloat();
@@ -257,6 +257,31 @@ namespace FileSystem
 
 		// TODO:
 		/*unknownFilePtr =*/ reader.ReadPtr();
+	}
+
+	AetObj* Aet::GetObj(const std::string& name)
+	{
+		for (auto& layer : AetLayers)
+		{
+			for (size_t i = 0; i < layer.size(); i++)
+			{
+				if (layer.objects[i].Name == name)
+					return &layer.objects[i];
+			}
+		}
+
+		return nullptr;
+	}
+
+	int32_t Aet::GetObjIndex(AetLayer& layer, const std::string & name) const
+	{
+		for (size_t i = 0; i < layer.size(); i++)
+		{
+			if (layer.objects[i].Name == name)
+				return i;
+		}
+
+		return -1;
 	}
 
 	void Aet::Read(BinaryReader& reader)
@@ -406,7 +431,7 @@ namespace FileSystem
 								for (auto& obj : layer)
 								{
 									obj.filePosition = writer.GetPositionPtr();
-									writer.WriteStrPtr(&obj.name);
+									writer.WriteStrPtr(&obj.Name);
 									writer.WriteFloat(obj.LoopStart);
 									writer.WriteFloat(obj.LoopEnd);
 									writer.WriteFloat(obj.StartFrame);
@@ -437,11 +462,11 @@ namespace FileSystem
 										writer.WritePtr(nullptr); // Data offset
 									}
 
-									if (obj.GetParent() != nullptr)
+									if (obj.GetParentObj() != nullptr)
 									{
 										writer.WriteDelayedPtr([&obj](BinaryWriter& writer)
 										{
-											writer.WritePtr(obj.GetParent()->filePosition);
+											writer.WritePtr(obj.GetParentObj()->filePosition);
 										});
 									}
 									else
@@ -602,7 +627,7 @@ namespace FileSystem
 					bool nameExists = false;
 					for (auto& layerNames : referencedLayer->Names)
 					{
-						if (layerNames == aetObj.name)
+						if (layerNames == aetObj.Name)
 						{
 							nameExists = true;
 							break;
@@ -610,7 +635,7 @@ namespace FileSystem
 					}
 
 					if (!nameExists)
-						referencedLayer->Names.emplace_back(aetObj.name);
+						referencedLayer->Names.emplace_back(aetObj.Name);
 				}
 			}
 		}

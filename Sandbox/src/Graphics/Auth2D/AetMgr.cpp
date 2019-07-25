@@ -132,7 +132,7 @@ namespace Auth2D
 
 		Interpolate(aetObj->AnimationData.get(), &objCache.Properties, adjustedFrame);
 
-		AetObj* parent = aetObj->GetParent();
+		AetObj* parent = aetObj->GetParentObj();
 		if (parent != nullptr)
 		{
 			// TODO:

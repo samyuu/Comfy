@@ -156,7 +156,7 @@ namespace Editor
 	void AetRenderWindow::PostDrawGui()
 	{
 		static BoxTransformControl testTransformControl;
-		static Properties testProperties {};
+		static Properties testProperties{};
 
 		auto worldToScreen = [this](vec2& value) { value = WorldToScreenSpace(camera.ViewMatrix, value) + GetRenderRegion().GetTL(); };
 		auto screenToWorld = [this](vec2& value) { value = ScreenToWorldSpace(camera.ViewMatrix, value) - GetRenderRegion().GetTL(); };
@@ -366,8 +366,11 @@ namespace Editor
 			camera.Position = vec2(0.0f);
 			camera.Zoom = 1.0f;
 		}
-		if (ImGui::IsMouseDragging(2))
+		if (ImGui::IsMouseDown(1))
+		{
 			camera.Position -= vec2(io.MouseDelta.x, io.MouseDelta.y);
+			ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+		}
 
 		if (io.KeyAlt && io.MouseWheel != 0.0f)
 		{
