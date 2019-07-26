@@ -14,6 +14,7 @@
 // #include "Graphics/Utilities/decompress.h"
 #include <stb/stb_image_write.h>
 #include <string>
+#include <unordered_map>
 #include <filesystem>
 #include <FontIcons.h>
 
@@ -430,6 +431,19 @@ void AetWriteTest()
 
 void AetConvertTest()
 {
+	if (false)
+	{
+		auto input = "aet_gam_pv757/aet_gam_pv757.aec";
+		auto output = "aet_gam_pv757/aet_gam_pv757.bin";
+
+		AetSet aetSet;
+		aetSet.Load(input);
+		aetSet.Save(output);
+		return;
+	}
+
+	return;
+
 	const auto directory = "Y:/Games/Project Diva/BLJM61079/PS3_GAME/USRDIR/rom/data/2d/";
 
 	auto files = GetFiles(directory + std::string("input"));
@@ -451,9 +465,260 @@ void AetConvertTest()
 	int test = 0;
 }
 
+void ScaleAnimationDataPositions(AnimationData* animationData, float factor)
+{
+	for (auto& keyFrame : animationData->Properties.PositionX())
+		keyFrame.Value *= factor;
+	for (auto& keyFrame : animationData->Properties.PositionY())
+		keyFrame.Value *= factor;
+}
+
+void ScaleAnimationDataScale(AnimationData* animationData, float factor)
+{
+	//for (auto& keyFrame : animationData->Properties.OriginX())
+	//	keyFrame.Value *= 1.0f / factor;
+	//for (auto& keyFrame : animationData->Properties.OriginY())
+	//	keyFrame.Value *= 1.0f / factor;
+	for (auto& keyFrame : animationData->Properties.ScaleX())
+		keyFrame.Value *= factor;
+	for (auto& keyFrame : animationData->Properties.ScaleY())
+		keyFrame.Value *= factor;
+}
+
+void AdjustAetThemeObjects(Aet& aet, const char* originalName, const char* newName)
+{
+	char dummyName[255];
+	sprintf_s(dummyName, "<%s>", originalName);
+
+	aet.GetObj(originalName)->SetName(dummyName);
+
+	AetObj* newObj = aet.GetObj(newName);
+	newObj->SetName(originalName);
+	//newObj->LoopEnd = 420.0f;
+}
+
+void AdjustPositionAnimations(AetLayer& layer, float factor, bool dynamicOnly = true)
+{
+	for (auto& obj : layer)
+	{
+		if (obj.GetRegion() != nullptr)
+		{
+			if (!dynamicOnly || obj.GetRegion()->Sprites.size() == 0)
+				ScaleAnimationDataPositions(obj.AnimationData.get(), factor);
+		}
+	}
+}
+
+void CenterAwareRescale(AnimationData& animationData, float width, float height, float factor)
+{
+	for (auto& keyFrame : animationData.Properties.PositionX())
+	{
+		keyFrame.Value -= width / 2.0f;
+		keyFrame.Value *= factor;
+		keyFrame.Value += width / 2.0f;
+	}
+	for (auto& keyFrame : animationData.Properties.PositionY())
+	{
+		keyFrame.Value -= height / 2.0f;
+		keyFrame.Value *= factor;
+		keyFrame.Value += height / 2.0f;
+	}
+}
+
+std::vector<uint32_t> usedUpIds;
+
+struct SpriteEntry
+{
+	uint32_t ID;
+	uint32_t NameOffset;
+	uint16_t InternalIndex;
+	uint16_t PackedSetIndex;
+};
+
+void AddToUsedDBIds(const char* dbPath)
+{
+	std::vector<uint8_t> data;
+	FileSystem::ReadAllBytes(dbPath, &data);
+	
+	if (data.size() == 0)
+		return;
+
+	uint32_t count = *(uint32_t*)(data.data() + 0x8);
+	uint32_t offset = *(uint32_t*)(data.data() + 0xC);
+
+	SpriteEntry* spriteEntries = reinterpret_cast<SpriteEntry*>(data.data() + offset);
+	for (size_t i = 0; i < count; i++)
+	{
+		usedUpIds.push_back(spriteEntries[i].ID);
+	}
+}
+
+void AdjustID(uint32_t& id)
+{
+	for (auto& usedId : usedUpIds)
+	{
+		if (usedId == id)
+		{
+			id += 0x393939;
+			return;
+		}
+	}
+
+	//if (id >= 2600 && id <= 2999)
+		//id += 0x3939;
+	//id += 1;
+}
+
+void AetAdjustGamCmn()
+{
+	const char* ps4InputPath = "Y:/Games/SBZV/7.10.00/mdata/M912/rom/2d/gam_cmn_readonly/aet_gam_cmn.bin";
+	const char* aftInputPath = "Y:/Games/SBZV/7.10.00/mdata/M912/rom/2d/gam_cmn_readonly/aet_gam_cmn_AFT.bin";
+	const char* aftOutputPath = "Y:/Games/SBZV/7.10.00/mdata/M912/rom/2d/aet_gam_cmn.bin";
+
+	constexpr float factor = 1280.0f / 1920.0f;
+
+	AetSet aftAetSet; aftAetSet.Load(aftInputPath);
+	Aet& aftMainAet = aftAetSet.front();
+
+	AetSet aetSet;
+	aetSet.Load(ps4InputPath);
+	{
+		Aet& mainAet = aetSet.front();
+		AetLayer& rootLayer = mainAet.AetLayers.back();
+
+		{
+			#define MDATA_PATH "Y:/Games/SBZV/7.10.00/mdata/"
+			AddToUsedDBIds(MDATA_PATH "M215/rom/2d/mdata_spr_db.bin");
+			AddToUsedDBIds(MDATA_PATH "M220/rom/2d/mdata_spr_db.bin");
+			AddToUsedDBIds(MDATA_PATH "M230/rom/2d/mdata_spr_db.bin");
+			AddToUsedDBIds(MDATA_PATH "M240/rom/2d/mdata_spr_db.bin");
+			AddToUsedDBIds(MDATA_PATH "M250/rom/2d/mdata_spr_db.bin");
+			AddToUsedDBIds(MDATA_PATH "M260/rom/2d/mdata_spr_db.bin");
+			AddToUsedDBIds(MDATA_PATH "M270/rom/2d/mdata_spr_db.bin");
+		}
+
+		for (auto& region : mainAet.AetRegions)
+		{
+			for (auto& sprite : region.Sprites)
+				AdjustID(sprite.ID);
+		}
+
+		{
+			std::vector<uint8_t> data;
+			FileSystem::ReadAllBytes("Y:/Games/SBZV/7.10.00/mdata/M912/rom/2d/mdata_spr_db_ORIG.bin", &data);
+
+			SpriteEntry* spriteEntries = reinterpret_cast<SpriteEntry*>(data.data() + 0x20);
+
+			for (uint32_t i = 0; i <= 352; i++)
+			{
+				char* namePtr = reinterpret_cast<char*>(data.data() + spriteEntries[i].NameOffset);
+				std::string name = std::string(namePtr);
+				//std::string subString = name.substr(4);
+				//spriteEntries[i].ID = std::hash<std::string>{}(subString);
+				
+				AdjustID(spriteEntries[i].ID);
+			}
+
+			FileSystem::WriteAllBytes("Y:/Games/SBZV/7.10.00/mdata/M912/rom/2d/mdata_spr_db.bin", data);
+		}
+
+		AdjustAetThemeObjects(mainAet, "song_energy_base", "song_energy_base_f");
+		AdjustAetThemeObjects(mainAet, "song_energy_base_reach", "song_energy_base_reach_f");
+		AdjustAetThemeObjects(mainAet, "frame_up", "frame_up_f");
+		AdjustAetThemeObjects(mainAet, "frame_bottom", "frame_bottom_f");
+		AdjustAetThemeObjects(mainAet, "frame_up_danger", "frame_up_danger_f");
+		AdjustAetThemeObjects(mainAet, "frame_bottom_danger", "frame_bottom_danger_f");
+
+		ScaleAnimationDataPositions(rootLayer[mainAet.GetObjIndex(rootLayer, "p_song_title_lt")].AnimationData.get(), factor);
+		ScaleAnimationDataPositions(rootLayer[mainAet.GetObjIndex(rootLayer, "p_song_lyric_lt")].AnimationData.get(), factor);
+
+		for (int32_t i = 0; i < 7; i++)
+			ScaleAnimationDataPositions(rootLayer[mainAet.GetObjIndex(rootLayer, "p_energy_num01_c") - i].AnimationData.get(), factor);
+
+		for (int32_t i = 0; i < 7; i++)
+			ScaleAnimationDataPositions(rootLayer[mainAet.GetObjIndex(rootLayer, "p_score01_c") - i].AnimationData.get(), factor);
+
+		for (int32_t i = 0; i <= 4; i++)
+		{
+			AetLayer& comboLayer = *rootLayer[mainAet.GetObjIndex(rootLayer, "max_slide_point_odd") + i].GetLayer();
+
+			for (size_t i = 0; i < comboLayer.size(); i++)
+			{
+				if (comboLayer[i].GetRegion()->Sprites.size() == 0)
+					CenterAwareRescale(*comboLayer[i].AnimationData.get(), mainAet.Width, mainAet.Height, factor);
+			}
+		}
+
+		AdjustPositionAnimations(*mainAet.GetObj("target_txt_synchold_2")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("target_txt_synchold_3")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("target_txt_synchold_4")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("target_txt_sync_2")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("target_txt_sync_3")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("target_txt_sync_4")->GetLayer(), factor);
+
+		AdjustPositionAnimations(*mainAet.GetObj("sync_info_double_add")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("sync_info_triple_add")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("sync_info_quadruple_add")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("sync_info_max_add")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("sync_info_single")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("sync_info_double")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("sync_info_triple")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("sync_info_quadruple")->GetLayer(), factor);
+
+		AdjustPositionAnimations(*mainAet.GetObj("life_gauge_insurance")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("life_bonus")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("life_bonus_insu")->GetLayer(), factor);
+
+		{
+			AetObj* lifeSafeTxt = mainAet.GetObj("life_safe_txt");
+
+			for (size_t i = 0; i < lifeSafeTxt->GetLayer()->size(); i++)
+			{
+				AetObj& obj = lifeSafeTxt->GetLayer()->at(i);
+				auto animationData = obj.AnimationData.get();
+
+				if (i == 2)
+				{
+					animationData->Properties.PositionX().front().Value -= 156.0f;
+					animationData->Properties.PositionY().front().Value -= 36.5f;
+				}
+				else
+				{
+					for (auto& k : animationData->Properties.PositionX()) k.Value -= 121.0f;
+					for (auto& k : animationData->Properties.PositionY()) k.Value -= 24.0f;
+				}
+			}
+		}
+
+		AdjustPositionAnimations(*mainAet.GetObj("life_gauge_full")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("life_gauge_skin")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("life_gauge")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("song_energy_not_clear_txt")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("song_energy_edge_line02")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("song_energy_clear_txt")->GetLayer(), factor);
+		AdjustPositionAnimations(*mainAet.GetObj("song_energy_border")->GetLayer(), factor);
+
+		for (int32_t i = 0; i <= 24; i++)
+		{
+			AetLayer& comboLayer = *rootLayer[mainAet.GetObjIndex(rootLayer, "combo_cool001") + i].GetLayer();
+			for (size_t i = 0; i < comboLayer.size(); i++)
+			{
+				if (comboLayer[i].GetRegion()->Sprites.size() == 0)
+					CenterAwareRescale(*comboLayer[i].AnimationData.get(), mainAet.Width, mainAet.Height, factor);
+			}
+		}
+	}
+	aetSet.Save(aftOutputPath);
+}
+
 void MainTest()
 {
 	glfwInit();
+
+	if (true)
+	{
+		AetAdjustGamCmn();
+	}
 
 	if (false)
 	{
