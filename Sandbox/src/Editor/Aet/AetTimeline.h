@@ -15,6 +15,7 @@ namespace Editor
 		~AetTimeline();
 
 		void SetActive(Aet* parent, AetItemTypePtr value);
+		bool GetIsPlayback() const override;
 
 	private:
 		Aet* aet = nullptr;
@@ -24,7 +25,6 @@ namespace Editor
 		bool isPlayback = false;
 		bool loopPlayback = true;
 
-		bool GetIsPlayback() const override;
 		float GetTimelineSize() const override;
 
 		void DrawTimelineContentNone();

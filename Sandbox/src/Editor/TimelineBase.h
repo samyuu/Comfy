@@ -26,6 +26,8 @@ namespace Editor
 		virtual TimeSpan GetCursorTime() const;
 		TimelineVisibility GetTimelineVisibility(float screenX) const;
 
+		virtual bool GetIsPlayback() const = 0;
+
 		void DrawTimelineGui();
 		void InitializeTimelineGuiState();
 
@@ -135,7 +137,6 @@ namespace Editor
 
 		// Timeline Control:
 		// -----------------
-		virtual bool GetIsPlayback() const = 0;
 		virtual void PausePlayback() = 0;
 		virtual void ResumePlayback() = 0;
 		virtual void StopPlayback() = 0;

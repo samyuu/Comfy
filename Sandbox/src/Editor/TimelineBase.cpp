@@ -253,13 +253,13 @@ namespace Editor
 
 		UpdateTimelineRegions();
 
-		ImGui::BeginChild("##timeline_info_column", ImVec2(0, -ImGui::GetStyle().ScrollbarSize));
+		ImGui::BeginChild("##InfoColumnChild::TimelineBase", ImVec2(0, -ImGui::GetStyle().ScrollbarSize));
 		OnDrawTimelineInfoColumnHeader();
 		OnDrawTimelineInfoColumn();
 		ImGui::EndChild();
 
 		ImGui::SetCursorScreenPos(infoColumnHeaderRegion.GetTR());
-		ImGui::BeginChild("##timeline_base", ImVec2(), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+		ImGui::BeginChild("##BaseChild::TimelineBase", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 		UpdateTimelineBaseState();
 		DrawTimelineBase();
 		ImGui::EndChild();
