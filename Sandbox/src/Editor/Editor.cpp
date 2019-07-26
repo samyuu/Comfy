@@ -42,7 +42,7 @@ namespace Editor
 		SetColor(EditorColor_InfoColumn, ImGui::GetColorU32(ImGuiCol_ScrollbarBg));
 		SetColor(EditorColor_TempoMapBg, ImGui::GetColorU32(ImGuiCol_MenuBarBg));
 		SetColor(EditorColor_Selection, ImGui::GetColorU32(ImGuiCol_TextSelectedBg));
-		SetColor(EditorColor_TimelineBg, ImGui::GetColorU32(ImGuiCol_DockingEmptyBg));
+		SetColor(EditorColor_TimelineBg, ImGui::GetColorU32(ImGuiCol_ChildBg));
 		SetColor(EditorColor_TimelineRowSeparator, ImGui::GetColorU32(ImGuiCol_Separator));
 		SetColor(EditorColor_Bar, ImGui::GetColorU32(ImGuiCol_PlotLines));
 		SetColor(EditorColor_Cursor, ImColor(0.71f, 0.54f, 0.15f));
