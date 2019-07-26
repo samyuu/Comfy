@@ -5,6 +5,8 @@ namespace Auth2D
 	static_assert((sizeof(KeyFrameCollectionArray) / sizeof(KeyFrameCollection)) == (sizeof(Properties) / sizeof(float)),
 		"The AetMgr Properties struct must have an equal number of float fields as the KeyFrameCollectionArray has KeyFrameCollections");
 
+	static_assert(sizeof(KeyFrameCollectionArray) / sizeof(KeyFrameCollection) == PropertyType_Count);
+
 	static Properties DefaultProperites =
 	{
 		vec2(0.0f),	// Origin
@@ -17,8 +19,40 @@ namespace Auth2D
 	static void TransformProperties(const Properties& input, Properties& output)
 	{
 		// TODO:
+
+		/*
+		//output.Position -= input.Origin;
+
+		output.Position *= input.Scale;
+		output.Scale *= input.Scale;
+
+		vec2 origin = input.Origin * input.Scale;
+
+		//if (input.Rotation != 0.0f)
+		{
+			float radians = glm::radians(input.Rotation);
+			float sin = glm::sin(radians);
+			float cos = glm::cos(radians);
+
+			output.Position.x += origin.x * cos - origin.y * sin;
+			output.Position.y += origin.x * sin + origin.y * cos;
+
+			// output.Position -= input.Origin;
+			// output.Position.x = output.Position.x * cos - output.Position.y * sin;
+			// output.Position.y = output.Position.x * sin + output.Position.y * cos;
+			// output.Position += input.Origin;
+		}
+
+		//output.Position += input.Origin;
+		output.Position += input.Position;
+
+		output.Rotation += input.Rotation;
+		output.Opacity *= input.Opacity;
+		*/
+
 		output.Position -= input.Origin;
 		output.Position *= input.Scale;
+
 		if (input.Rotation != 0.0f)
 		{
 			float radians = glm::radians(input.Rotation);
@@ -28,10 +62,12 @@ namespace Auth2D
 			output.Position.x = output.Position.x * cos - output.Position.y * sin;
 			output.Position.y = output.Position.x * sin + output.Position.y * cos;
 		}
+
 		output.Position += input.Position;
 
-		output.Rotation += input.Rotation;
+
 		output.Scale *= input.Scale;
+		output.Rotation += input.Rotation;
 		output.Opacity *= input.Opacity;
 	}
 
@@ -92,6 +128,17 @@ namespace Auth2D
 		}
 	}
 
+	KeyFrame* AetMgr::GetKeyFrameAt(KeyFrameCollection& keyFrames, float frame)
+	{
+		for (auto& keyFrame : keyFrames)
+		{
+			if (glm::round(keyFrame.Frame) == frame)
+				return &keyFrame;
+		}
+
+		return nullptr;
+	}
+
 	void AetMgr::InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame)
 	{
 		if (aetObj->Type == AetObjType::Pic)
@@ -139,9 +186,9 @@ namespace Auth2D
 			Properties objParentProperties;
 			Interpolate(parent->AnimationData.get(), &objParentProperties, adjustedFrame);
 
-			objCache.Properties.Origin += objParentProperties.Origin;
+			//objCache.Properties.Origin += objParentProperties.Origin;
 			objCache.Properties.Position += objParentProperties.Position;
-			//objCache.Properties.Position -= objParentProperties.Origin;
+			objCache.Properties.Position -= objParentProperties.Origin;
 			objCache.Properties.Rotation += objParentProperties.Rotation;
 			objCache.Properties.Scale *= objParentProperties.Scale;
 			objCache.Properties.Opacity *= objParentProperties.Opacity;

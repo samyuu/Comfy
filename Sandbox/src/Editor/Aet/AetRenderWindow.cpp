@@ -26,132 +26,127 @@ namespace Editor
 		active = value;
 	}
 
+	void AetRenderWindow::SetIsPlayback(bool value)
+	{
+		isPlayback = value;
+	}
+
 	float AetRenderWindow::SetCurrentFrame(float value)
 	{
 		return currentFrame = value;
 	}
 
+	static KeyFrame* GetKeyFrame(AetObj* aetObj, int propertyIndex, float inputFrame)
+	{
+		KeyFrameCollection& keyFrames = aetObj->AnimationData->Properties[propertyIndex];
+		bool firstFrame = inputFrame == aetObj->LoopStart;
+
+		return AetMgr::GetKeyFrameAt(keyFrames, (firstFrame && keyFrames.size() == 1 ? keyFrames.front().Frame : inputFrame));
+	}
+
 	void AetRenderWindow::OnDrawGui()
 	{
-		static Properties properties;
+		constexpr float percentFactor = 100.0f;
+		constexpr float itemWidth = 74.0f;
 
-		if (active.Type() == AetSelectionType::AetObj && active.AetObj != nullptr && active.AetObj->AnimationData != nullptr)
-		{
-			AetMgr::Interpolate(active.AetObj->AnimationData.get(), &properties, currentFrame);
-		}
-		else
-		{
-			properties = {};
-		}
-
-		bool updateKeyFrames = false;
-		constexpr float itemWidth = 68.0f;
-
-		// ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetStyleColorVec4(ImGuiCol_TabUnfocused));
-		// ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImGui::GetStyleColorVec4(ImGuiCol_TabHovered));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2.0f, 3.0f));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 1.0f));
 		ImGui::PushItemWidth(itemWidth);
 		{
-			constexpr float percentFactor = 100.0f;
-
-			const ImVec2 spacing(4.0f, 0.0f);
-			float buffer;
-
-			if (ImGui::DragFloat("##PositionXDragFloat::AetRenderWindow", &properties.Position.x, 1.0f, 0.0f, 0.0f, "X: %.f"))
+			if (active.Type() == AetSelectionType::AetObj && active.AetObj->AnimationData != nullptr)
 			{
-				updateKeyFrames = true;
+				static Properties properties;
+
+				AetMgr::Interpolate(active.AetObj->AnimationData.get(), &properties, currentFrame);
+
+				float roundedCurrentFrame = glm::round(currentFrame);
+				KeyFrame* currentKeyFrames[PropertyType_Count];
+
+				for (int i = 0; i < PropertyType_Count; i++)
+					currentKeyFrames[i] = isPlayback ? nullptr : GetKeyFrame(active.AetObj, i, roundedCurrentFrame);
+
+				if (ImGui::ExtendedInputFloat("##PositionXDragFloat::AetRenderWindow", &properties.Position.x, 1.0f, 0.0f, 0.0f, "X: %.f", !currentKeyFrames[PropertyType_PositionX]))
+				{
+					currentKeyFrames[PropertyType_PositionX]->Value = properties.Position.x;
+				}
+				ImGui::SameLine();
+
+				if (ImGui::ExtendedInputFloat("##PositionYDragFloat::AetRenderWindow", &properties.Position.y, 1.0f, 0.0f, 0.0f, "Y: %.f", !currentKeyFrames[PropertyType_PositionY]))
+				{
+					currentKeyFrames[PropertyType_PositionY]->Value = properties.Position.y;
+				}
+				ImGui::SameLine();
+				ImGui::ExtendedVerticalSeparator();
+
+				if (ImGui::ExtendedInputFloat("##OriginXDragFloat::AetRenderWindow", &properties.Origin.x, 1.0f, 0.0f, 0.0f, "X: %.f", !currentKeyFrames[PropertyType_OriginX]))
+				{
+					currentKeyFrames[PropertyType_OriginX]->Value = properties.Origin.x;
+				}
+				ImGui::SameLine();
+
+				if (ImGui::ExtendedInputFloat("##OriginYDragFloat::AetRenderWindow", &properties.Origin.y, 1.0f, 0.0f, 0.0f, "Y: %.f", !currentKeyFrames[PropertyType_OriginY]))
+				{
+					currentKeyFrames[PropertyType_OriginY]->Value = properties.Origin.y;
+				}
+				ImGui::SameLine();
+				ImGui::ExtendedVerticalSeparator();
+
+				if (ImGui::ExtendedInputFloat("##RotationDragFloat::AetRenderWindow", &properties.Rotation, 1.0f, 0.0f, 0.0f, "R: %.2f", !currentKeyFrames[PropertyType_Rotation]))
+				{
+					currentKeyFrames[PropertyType_Rotation]->Value = properties.Rotation;
+				}
+				ImGui::SameLine();
+				ImGui::ExtendedVerticalSeparator();
+
+				float scaleXBuffer = properties.Scale.x * percentFactor;
+				if (ImGui::ExtendedInputFloat("##ScaleXDragFloat::AetRenderWindow", &scaleXBuffer, 1.0f, 0.0f, 0.0f, "W: %.2f %%", !currentKeyFrames[PropertyType_ScaleX]))
+				{
+					properties.Scale.x = scaleXBuffer * (1.0f / percentFactor);
+					currentKeyFrames[PropertyType_ScaleX]->Value = properties.Scale.x;
+				}
+				ImGui::SameLine();
+
+				float scaleYBuffer = properties.Scale.y * percentFactor;
+				if (ImGui::ExtendedInputFloat("##ScaleYDragFloat::AetRenderWindow", &scaleYBuffer, 1.0f, 0.0f, 0.0f, "H: %.2f %%", !currentKeyFrames[PropertyType_ScaleY]))
+				{
+					properties.Scale.y = scaleYBuffer * (1.0f / percentFactor);
+					currentKeyFrames[PropertyType_ScaleY]->Value = properties.Scale.y;
+				}
+				ImGui::SameLine();
+				ImGui::ExtendedVerticalSeparator();
+
+				float opacityBuffer = properties.Opacity * percentFactor;
+				if (ImGui::ExtendedInputFloat("##OpacityDragFloat::AetRenderWindow", &opacityBuffer, 1.0f, 0.00000001f, 100.0f, "O: %.2f %%", !currentKeyFrames[PropertyType_Opacity]))
+				{
+					properties.Opacity = glm::max(0.0f, opacityBuffer * (1.0f / percentFactor));
+					currentKeyFrames[PropertyType_Opacity]->Value = properties.Opacity;
+				}
 			}
-			ImGui::SameLine();
-
-			if (ImGui::DragFloat("##PositionYDragFloat::AetRenderWindow", &properties.Position.y, 1.0f, 0.0f, 0.0f, "Y: %.f"))
+			else
 			{
-				updateKeyFrames = true;
-			}
-			ImGui::SameLine();
-
-			ImGui::ItemSize(spacing);
-			ImGui::SameLine();
-
-			if (ImGui::DragFloat("##OriginXDragFloat::AetRenderWindow", &properties.Origin.x, 1.0f, 0.0f, 0.0f, "X: %.f"))
-			{
-				updateKeyFrames = true;
-			}
-			ImGui::SameLine();
-
-			if (ImGui::DragFloat("##OriginYDragFloat::AetRenderWindow", &properties.Origin.y, 1.0f, 0.0f, 0.0f, "Y: %.f"))
-			{
-				updateKeyFrames = true;
-			}
-			ImGui::SameLine();
-
-			ImGui::ItemSize(spacing);
-			ImGui::SameLine();
-
-			if (ImGui::DragFloat("##RotationDragFloat::AetRenderWindow", &properties.Rotation, 1.0f, 0.0f, 0.0f, "R: %.2f"))
-			{
-				updateKeyFrames = true;
-			}
-			ImGui::SameLine();
-
-			ImGui::ItemSize(spacing);
-			ImGui::SameLine();
-
-			buffer = properties.Scale.x * percentFactor;
-			if (ImGui::DragFloat("##ScaleXDragFloat::AetRenderWindow", &buffer, 1.0f, 0.0f, 0.0f, "W: %.2f %%"))
-			{
-				properties.Scale.x = buffer * (1.0f / percentFactor);
-				updateKeyFrames = true;
-			}
-			ImGui::SameLine();
-
-			buffer = properties.Scale.y * percentFactor;
-			if (ImGui::DragFloat("##ScaleYDragFloat::AetRenderWindow", &buffer, 1.0f, 0.0f, 0.0f, "H: %.2f %%"))
-			{
-				properties.Scale.y = buffer * (1.0f / percentFactor);
-				updateKeyFrames = true;
-			}
-			ImGui::SameLine();
-
-			ImGui::ItemSize(spacing);
-			ImGui::SameLine();
-
-			buffer = properties.Opacity * percentFactor;
-			if (ImGui::DragFloat("##OpacityDragFloat::AetRenderWindow", &buffer, 1.0f, 0.00000001f, 100.0f, "O: %.2f %%"))
-			{
-				properties.Opacity = glm::max(0.0f, buffer * (1.0f / percentFactor));
-				updateKeyFrames = true;
+				ImGui::Text("	<none>");
 			}
 			ImGui::SameLine();
 
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - itemWidth - 2);
 
 			float zoomPercentage = camera.Zoom * percentFactor;
-			if (ImGui::DragFloat("##ZoomDragFloat::AetRenderWindow", &zoomPercentage, 0.15f, camera.ZoomMin * percentFactor, camera.ZoomMax * percentFactor, "%.2f %%"))
+			if (ImGui::ExtendedInputFloat("##ZoomDragFloat::AetRenderWindow", &zoomPercentage, 0.15f, camera.ZoomMin * percentFactor, camera.ZoomMax * percentFactor, "%.2f %%"))
 				this->SetUpdateCameraZoom(zoomPercentage * (1.0f / percentFactor), ImGui::GetWindowSize() / 2.0f);
+
 		}
 		ImGui::PopItemWidth();
 		ImGui::PopStyleVar(2);
-		// ImGui::PopStyleColor(2);
-
-		if (updateKeyFrames && active.Type() == AetSelectionType::AetObj && active.AetObj->AnimationData != nullptr)
-		{
-			KeyFrameProperties& keyFrameProperties = active.AetObj->AnimationData->Properties;
-
-			keyFrameProperties.OriginX().front().Value = properties.Origin.x;
-			keyFrameProperties.OriginY().front().Value = properties.Origin.y;
-			keyFrameProperties.PositionX().front().Value = properties.Position.x;
-			keyFrameProperties.PositionY().front().Value = properties.Position.y;
-			keyFrameProperties.Rotation().front().Value = properties.Rotation;
-			keyFrameProperties.ScaleX().front().Value = properties.Scale.x;
-			keyFrameProperties.ScaleY().front().Value = properties.Scale.y;
-			keyFrameProperties.Opacity().front().Value = properties.Opacity;
-		}
 	}
 
-	static std::vector<const SpriteVertices*> verticesPointers;
-	static const AetMgr::ObjCache* selectedAetObj = nullptr;
+	struct TempVertexStruct
+	{
+		const SpriteVertices* Vertices;
+		const AetMgr::ObjCache* ObjCache;
+	};
 
+	static std::vector<TempVertexStruct> verticesPointers(0);
+	static const AetMgr::ObjCache* selectedAetObj = nullptr;
 
 	void AetRenderWindow::PostDrawGui()
 	{
@@ -169,12 +164,13 @@ namespace Editor
 		auto renderRegion = GetRenderRegion();
 
 		ImU32 outlineColor = ImColor(vec4(1.0f));
+		ImU32 originColor = ImColor(vec4(1.0f, 0.0f, 0.0f, 1.0f));
 		for (const auto& vertices : verticesPointers)
 		{
-			vec2 tl = WorldToScreenSpace(camera.ViewMatrix, vertices->TopLeft.Position) + renderRegion.GetTL();
-			vec2 tr = WorldToScreenSpace(camera.ViewMatrix, vertices->TopRight.Position) + renderRegion.GetTL();
-			vec2 bl = WorldToScreenSpace(camera.ViewMatrix, vertices->BottomLeft.Position) + renderRegion.GetTL();
-			vec2 br = WorldToScreenSpace(camera.ViewMatrix, vertices->BottomRight.Position) + renderRegion.GetTL();
+			vec2 tl = WorldToScreenSpace(camera.ViewMatrix, vertices.Vertices->TopLeft.Position) + renderRegion.GetTL();
+			vec2 tr = WorldToScreenSpace(camera.ViewMatrix, vertices.Vertices->TopRight.Position) + renderRegion.GetTL();
+			vec2 bl = WorldToScreenSpace(camera.ViewMatrix, vertices.Vertices->BottomLeft.Position) + renderRegion.GetTL();
+			vec2 br = WorldToScreenSpace(camera.ViewMatrix, vertices.Vertices->BottomRight.Position) + renderRegion.GetTL();
 
 			drawList->AddLine(tl, tr, outlineColor);
 			drawList->AddLine(tr, br, outlineColor);
@@ -188,6 +184,11 @@ namespace Editor
 			drawList->AddCircleFilled(tr, 3.5f, outlineColor);
 			drawList->AddCircleFilled(bl, 3.5f, outlineColor);
 			drawList->AddCircleFilled(br, 3.5f, outlineColor);
+
+
+			//vec2 origin = vertices.ObjCache->Properties.Origin + vertices.ObjCache->Properties.Position;
+			//vec2 originScreenSpace = WorldToScreenSpace(camera.ViewMatrix, origin) + renderRegion.GetTL();
+			//drawList->AddCircle(originScreenSpace, 3.5f, originColor);
 		}
 
 		verticesPointers.clear();
@@ -206,6 +207,12 @@ namespace Editor
 
 	void AetRenderWindow::OnRender()
 	{
+		for (int i = 0; i < 5; i++)
+		{
+			if (ImGui::IsMouseClicked(i))
+				windowHoveredOnClick[i] = ImGui::IsWindowHovered();
+		}
+
 		if (ImGui::IsWindowFocused())
 			UpdateViewControlInput();
 
@@ -366,7 +373,7 @@ namespace Editor
 			camera.Position = vec2(0.0f);
 			camera.Zoom = 1.0f;
 		}
-		if (ImGui::IsMouseDown(1))
+		if (windowHoveredOnClick[1] && ImGui::IsMouseDown(1))
 		{
 			camera.Position -= vec2(io.MouseDelta.x, io.MouseDelta.y);
 			ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
@@ -453,9 +460,7 @@ namespace Editor
 			if (contains)
 			{
 				selectedAetObj = &obj;
-
-				const SpriteVertices& objVertices = renderer.GetLastVertices();
-				verticesPointers.push_back(&objVertices);
+				verticesPointers.push_back(TempVertexStruct{ &objVertices, &obj });
 			}
 		}
 

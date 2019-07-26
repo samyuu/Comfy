@@ -6,6 +6,19 @@ namespace Auth2D
 {
 	using namespace FileSystem;
 
+	enum PropertyType_Enum
+	{
+		PropertyType_OriginX,
+		PropertyType_OriginY,
+		PropertyType_PositionX,
+		PropertyType_PositionY,
+		PropertyType_Rotation,
+		PropertyType_ScaleX,
+		PropertyType_ScaleY,
+		PropertyType_Opacity,
+		PropertyType_Count,
+	};
+
 	struct Properties
 	{
 		vec2 Origin;
@@ -32,6 +45,8 @@ namespace Auth2D
 
 		static float Interpolate(const std::vector<KeyFrame>& keyFrames, float frame);
 		static void Interpolate(const AnimationData* animationData, Properties* properties, float frame);
+
+		static KeyFrame* GetKeyFrameAt(KeyFrameCollection& keyFrames, float frame);
 
 	private:
 		static void InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame);

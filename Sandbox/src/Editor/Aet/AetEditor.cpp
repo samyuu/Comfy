@@ -95,6 +95,7 @@ namespace Editor
 		if (ImGui::Begin(ICON_RENDERWINDOW "  Aet Render Window##AetEditor", nullptr, windowFlags))
 		{
 			renderWindow->SetActive(treeView->GetActiveAet(), treeView->GetSelected());
+			renderWindow->SetIsPlayback(timeline->GetIsPlayback());
 			renderWindow->SetCurrentFrame(timeline->GetFrame().Frames());
 			renderWindow->DrawGui();
 		}

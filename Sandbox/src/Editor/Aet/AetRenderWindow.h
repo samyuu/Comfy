@@ -21,6 +21,7 @@ namespace Editor
 		~AetRenderWindow();
 
 		void SetActive(Aet* parent, AetItemTypePtr value);
+		void SetIsPlayback(bool value);
 		float SetCurrentFrame(float value);
 
 	protected:
@@ -46,10 +47,11 @@ namespace Editor
 		void UpdateViewControlInput();
 		
 		void SetUpdateCameraZoom(float newZoom, vec2 origin);
-
 		void RenderObjCache(const AetMgr::ObjCache& obj);
 
 	private:
+		bool windowHoveredOnClick[5];
+
 		struct
 		{
 			float GridSize = 1.0f;
@@ -57,6 +59,7 @@ namespace Editor
 			vec4 ColorAlt = vec4(0.32f, 0.32f, 0.32f, 1.0f);
 		} gridConfig;
 
+		bool isPlayback = false;
 		float currentFrame = 0.0f;
 
 		Aet* aet = nullptr;
