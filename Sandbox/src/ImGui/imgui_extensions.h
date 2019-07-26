@@ -57,6 +57,10 @@ namespace ImGui
 	bool BeginItemContextMenu(const char* str_id);
 	void EndItemContextMenu();
 
+	bool ExtendedInputFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* format, bool disabled = false);
+
+	void ExtendedVerticalSeparator(float spacing = 8.0f);
+
 	inline void DRAW_DEBUG_REGION(ImRect& rect)
 	{
 		ImGui::AddRectFilled(ImGui::GetForegroundDrawList(), rect, static_cast<ImU32>(IM_COL32_BLACK * .5f));
