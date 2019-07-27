@@ -146,15 +146,20 @@ namespace FileSystem
 		return value;
 	}
 
-	std::string BinaryReader::ReadStrPtr()
+	std::string BinaryReader::ReadStr(void* position)
 	{
-		void* stringPointer = ReadPtr();
-		if (stringPointer == nullptr)
+		if (position == nullptr)
 			return "";
 
-		return ReadAt<std::string>(stringPointer, [&](BinaryReader&)
+		return ReadAt<std::string>(position, [this](BinaryReader&)
 		{
 			return ReadStr();
 		});
+	}
+
+	std::string BinaryReader::ReadStrPtr()
+	{
+		void* stringPointer = ReadPtr();
+		return ReadStr(stringPointer);
 	}
 }

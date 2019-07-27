@@ -43,6 +43,7 @@ namespace FileSystem
 		inline void* ReadPtr() { return readPtrFunction(this); };
 
 		std::string ReadStr();
+		std::string ReadStr(void* position);
 		std::string ReadStrPtr();
 
 		inline bool ReadBool() { return Read<bool>(); };
