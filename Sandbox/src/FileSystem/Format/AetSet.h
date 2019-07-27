@@ -147,7 +147,7 @@ namespace FileSystem
 		std::vector<Marker> Markers;
 		std::shared_ptr<AnimationData> AnimationData;
 
-		const char* GetName();
+		const char* GetName() const;
 		void SetName(const char* value);
 
 		AetRegion* GetRegion() const;
@@ -199,6 +199,8 @@ namespace FileSystem
 		ConstAetObjIterator cend() const	{ return objects.cend(); }
 		AetObj& front()						{ return objects.front(); }
 		AetObj& back()						{ return objects.back(); }
+		const AetObj& front() const			{ return objects.front(); }
+		const AetObj& back() const			{ return objects.back(); }
 
 		inline void resize(size_t newSize)					 { objects.resize(newSize); };
 		inline void reserve(size_t newCapacity)				 { objects.reserve(newCapacity); };
@@ -207,6 +209,8 @@ namespace FileSystem
 		inline const AetObj& at(size_t index) const			 { return objects.at(index); };
 		inline AetObj& operator[] (size_t index)			 { return objects[index]; };
 		inline const AetObj& operator[] (size_t index) const { return objects[index]; };
+
+		AetObj* GetObj(const std::string& name);
 
 	private:
 		int32_t thisIndex;
@@ -253,6 +257,7 @@ namespace FileSystem
 		std::vector<AetSoundEffect> AetSoundEffects;
 
 		AetObj* GetObj(const std::string& name);
+		const AetObj* GetObj(const std::string& name) const;
 		int32_t GetObjIndex(AetLayer& layer, const std::string& name) const;
 		inline int32_t GetThisIndex() { return thisIndex; };
 
@@ -287,6 +292,8 @@ namespace FileSystem
 		ConstAetIterator cend() const	{ return aets.cend(); }
 		Aet& front()					{ return aets.front(); }
 		Aet& back()						{ return aets.back(); }
+		const Aet& front() const		{ return aets.front(); }
+		const Aet& back() const			{ return aets.back(); }
 
 		inline void resize(size_t newSize)		{ aets.resize(newSize); };
 		inline void reserve(size_t newCapacity) { aets.reserve(newCapacity); };

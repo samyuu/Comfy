@@ -157,7 +157,7 @@ namespace FileSystem
 	{
 	}
 
-	const char* AetObj::GetName()
+	const char* AetObj::GetName() const
 	{
 		return Name.c_str();
 	}
@@ -259,23 +259,37 @@ namespace FileSystem
 		/*unknownFilePtr =*/ reader.ReadPtr();
 	}
 
-	AetObj* Aet::GetObj(const std::string& name)
+	AetObj* AetLayer::GetObj(const std::string& name)
 	{
-		for (auto& layer : AetLayers)
+		for (int32_t i = 0; i < size(); i++)
 		{
-			for (size_t i = 0; i < layer.size(); i++)
-			{
-				if (layer.objects[i].Name == name)
-					return &layer.objects[i];
-			}
+			if (objects[i].Name == name)
+				return &objects[i];
 		}
 
 		return nullptr;
 	}
 
+	AetObj* Aet::GetObj(const std::string& name)
+	{
+		for (int32_t i = static_cast<int32_t>(AetLayers.size()) - 1; i >= 0; i--)
+		{
+			AetObj* obj = AetLayers[i].GetObj(name);
+			if (obj != nullptr)
+				return obj;
+		}
+
+		return nullptr;
+	}
+
+	const AetObj* Aet::GetObj(const std::string& name) const
+	{
+		return const_cast<AetObj*>(const_cast<Aet*>(this)->GetObj(name));
+	}
+
 	int32_t Aet::GetObjIndex(AetLayer& layer, const std::string & name) const
 	{
-		for (size_t i = 0; i < layer.size(); i++)
+		for (int32_t i = static_cast<int32_t>(AetLayers.size()) - 1; i >= 0; i--)
 		{
 			if (layer.objects[i].Name == name)
 				return i;
