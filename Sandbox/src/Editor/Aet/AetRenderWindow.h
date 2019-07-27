@@ -6,6 +6,7 @@
 #include "FileSystem/Format/SprSet.h"
 #include "Graphics/Auth2D/Renderer2D.h"
 #include "Graphics/Auth2D/AetMgr.h"
+#include "App/Task.h"
 
 namespace Editor
 {
@@ -50,6 +51,8 @@ namespace Editor
 		void RenderObjCache(const AetMgr::ObjCache& obj);
 
 	private:
+		std::unique_ptr<App::Task> testTask = nullptr;
+
 		bool windowHoveredOnClick[5];
 
 		struct

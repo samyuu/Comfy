@@ -6,6 +6,7 @@
 #include "Graphics/Camera.h"
 #include "TimeSpan.h"
 #include "Input/KeyCode.h"
+#include "App/TestTasks.h"
 
 namespace Editor
 {
@@ -46,6 +47,12 @@ namespace Editor
 
 	void AetRenderWindow::OnDrawGui()
 	{
+		if (testTask != nullptr)
+		{
+			testTask->PreDrawGui();
+			return;
+		}
+
 		constexpr float percentFactor = 100.0f;
 		constexpr float itemWidth = 74.0f;
 
@@ -150,6 +157,12 @@ namespace Editor
 
 	void AetRenderWindow::PostDrawGui()
 	{
+		if (testTask != nullptr)
+		{
+			testTask->PostDrawGui();
+			return;
+		}
+
 		static BoxTransformControl testTransformControl;
 		static Properties testProperties{};
 
@@ -199,6 +212,19 @@ namespace Editor
 	{
 		//if (ImGui::IsMouseClicked(0))
 		selectedAetObj = nullptr;
+
+		if (ImGui::IsKeyPressed(KeyCode_F10, false))
+		{
+			if (testTask == nullptr)
+			{
+				testTask = std::make_unique<App::TaskPs4Menu>();
+				testTask->Initialize();
+			}
+			else
+			{
+				testTask.reset();
+			}
+		}
 	}
 
 	void AetRenderWindow::OnUpdate()
@@ -226,47 +252,57 @@ namespace Editor
 
 			UpdateViewMatrix();
 
-			renderer.SetUseTextShadow(useTextShadow);
-			renderer.Begin(&camera.ViewMatrix);
+			if (testTask != nullptr)
 			{
-				RenderGrid();
-
-				if (active.VoidPointer != nullptr)
+				renderer.Begin(&camera.ViewMatrix);
+				testTask->Update();
+				testTask->Render(renderer);
+				renderer.End();
+			}
+			else
+			{
+				renderer.SetUseTextShadow(useTextShadow);
+				renderer.Begin(&camera.ViewMatrix);
 				{
-					switch (active.Type())
-					{
-					case AetSelectionType::AetSet:
-						RenderAetSet(active.AetSet);
-						break;
-					case AetSelectionType::Aet:
-						RenderAet(active.Aet);
-						break;
-					case AetSelectionType::AetLayer:
-						RenderAetLayer(active.AetLayer);
-						break;
-					case AetSelectionType::AetObj:
-						RenderAetObj(active.AetObj);
-						break;
-					case AetSelectionType::AetRegion:
-						RenderAetRegion(active.AetRegion);
-						break;
+					RenderGrid();
 
-					case AetSelectionType::None:
-					default:
-						break;
+					if (active.VoidPointer != nullptr)
+					{
+						switch (active.Type())
+						{
+						case AetSelectionType::AetSet:
+							RenderAetSet(active.AetSet);
+							break;
+						case AetSelectionType::Aet:
+							RenderAet(active.Aet);
+							break;
+						case AetSelectionType::AetLayer:
+							RenderAetLayer(active.AetLayer);
+							break;
+						case AetSelectionType::AetObj:
+							RenderAetObj(active.AetObj);
+							break;
+						case AetSelectionType::AetRegion:
+							RenderAetRegion(active.AetRegion);
+							break;
+
+						case AetSelectionType::None:
+						default:
+							break;
+						}
+					}
+
+					// Screen - WorldSpace Test
+					if (ImGui::IsWindowFocused())
+					{
+						constexpr float cursorSize = 4.0f;
+
+						vec2 mouseWorldSpace = ScreenToWorldSpace(camera.ViewMatrix, GetRelativeMouse());
+						renderer.Draw(mouseWorldSpace - vec2(cursorSize * 0.5f), vec2(cursorSize), GetColorVec4(EditorColor_CursorInner));
 					}
 				}
-
-				// Screen - WorldSpace Test
-				if (ImGui::IsWindowFocused())
-				{
-					constexpr float cursorSize = 4.0f;
-
-					vec2 mouseWorldSpace = ScreenToWorldSpace(camera.ViewMatrix, GetRelativeMouse());
-					renderer.Draw(mouseWorldSpace - vec2(cursorSize * 0.5f), vec2(cursorSize), GetColorVec4(EditorColor_CursorInner));
-				}
+				renderer.End();
 			}
-			renderer.End();
 		}
 		renderTarget.UnBind();
 	}

@@ -246,6 +246,9 @@
     <ClCompile Include="src\ImGui\Implementation\ImGui_Impl_Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\App\TestTasks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ImGui\imconfig.h">
@@ -513,6 +516,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\FileSystem\BinaryMode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\App\Task.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\App\TestTasks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FileSystem\Format\Database.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

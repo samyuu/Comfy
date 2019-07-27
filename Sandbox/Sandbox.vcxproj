@@ -108,6 +108,7 @@
     <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_wav.cpp" />
     <ClCompile Include="lib\glad\src\glad.c" />
+    <ClCompile Include="src\App\TestTasks.cpp" />
     <ClCompile Include="src\DataTest\IconTestWindow.cpp" />
     <ClCompile Include="src\Editor\Aet\AetDialogs.cpp" />
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
@@ -189,6 +190,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="res\resource.h" />
+    <ClInclude Include="src\App\TestTasks.h" />
     <ClInclude Include="src\DataTest\IconTestWindow.h" />
     <ClInclude Include="src\Editor\Aet\AetEditor.h" />
     <ClInclude Include="src\Editor\Aet\AetIcons.h" />
@@ -209,11 +211,13 @@
     <ClInclude Include="src\FileSystem\BinaryWriter.h" />
     <ClInclude Include="src\FileSystem\FileHelper.h" />
     <ClInclude Include="src\FileSystem\FileInterface.h" />
+    <ClInclude Include="src\FileSystem\Format\Database.h" />
     <ClInclude Include="src\FileSystem\Format\SprSet.h" />
     <ClInclude Include="src\FileSystem\Format\TxpSet.h" />
     <ClInclude Include="src\FileSystem\MemoryStream.h" />
     <ClInclude Include="src\FileSystem\FileStream.h" />
     <ClInclude Include="src\FileSystem\BinaryMode.h" />
+    <ClInclude Include="src\App\Task.h" />
     <ClInclude Include="src\Graphics\Auth2D\AetMgr.h" />
     <ClInclude Include="src\Graphics\Auth2D\Renderer2D.h" />
     <ClInclude Include="src\Graphics\Graphics.h" />
