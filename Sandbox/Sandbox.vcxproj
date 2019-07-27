@@ -127,6 +127,7 @@
     <ClCompile Include="src\FileSystem\BinaryWriter.cpp" />
     <ClCompile Include="src\FileSystem\FileHelper.cpp" />
     <ClCompile Include="src\FileSystem\FileInterface.cpp" />
+    <ClCompile Include="src\FileSystem\Format\Database.cpp" />
     <ClCompile Include="src\FileSystem\Format\SprSet.cpp" />
     <ClCompile Include="src\FileSystem\Format\TxpSet.cpp" />
     <ClCompile Include="src\FileSystem\MemoryStream.cpp" />
