@@ -88,6 +88,8 @@ namespace FileSystem
 
 		virtual void Read(BinaryReader& reader) override;
 		virtual void Parse(uint8_t* buffer) override;
+		
+		void UploadAll();
 
 	private:
 	};

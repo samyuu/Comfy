@@ -207,12 +207,7 @@ namespace Editor
 		sprSet = std::make_unique<SprSet>();
 		sprSet->Parse(fileBuffer.data());
 		sprSet->Name = GetFileName(filePath, false);
-
-		for (int i = 0; i < sprSet->TxpSet->Textures.size(); i++)
-		{
-			sprSet->TxpSet->Textures[i]->Texture2D = std::make_shared<Texture2D>();
-			sprSet->TxpSet->Textures[i]->Texture2D->Upload(sprSet->TxpSet->Textures[i].get());
-		}
+		sprSet->TxpSet->UploadAll();
 
 		OnSprSetLoaded();
 		return true;

@@ -38,7 +38,7 @@ namespace FileSystem
 
 				uint32_t mipMapCount = reader.ReadUInt32();
 				uint32_t packedInfo = reader.ReadUInt32();
-				
+
 				void* mipMapsAddress = (void*)((int64_t)reader.ReadPtr() + textureBaseAddress);
 				reader.ReadAt(mipMapsAddress, [mipMapCount, &texture](BinaryReader& reader)
 				{
@@ -55,7 +55,7 @@ namespace FileSystem
 						mipMap->Height = reader.ReadInt32();
 						mipMap->Format = static_cast<TextureFormat>(reader.ReadInt32());
 						mipMap->Index = reader.ReadUInt32();
-						
+
 						uint32_t dataSize = reader.ReadUInt32();
 						mipMap->Data.resize(dataSize);
 
@@ -115,6 +115,16 @@ namespace FileSystem
 
 			uint32_t offset = offsets[i];
 			ParseTexture(buffer + offset, texture);
+		}
+	}
+
+	void TxpSet::UploadAll()
+	{
+		for (int i = 0; i < Textures.size(); i++)
+		{
+			Texture* texture = Textures[i].get();
+			texture->Texture2D = std::make_shared<Texture2D>();
+			texture->Texture2D->Upload(texture);
 		}
 	}
 
