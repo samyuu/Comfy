@@ -1,5 +1,6 @@
 #include "TestTasks.h"
 #include "ImGui/imgui_extensions.h"
+#include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
 #include "Input/KeyCode.h"
 #include <assert.h>
@@ -187,8 +188,11 @@ namespace App
 		aetSet = std::make_unique<AetSet>();
 		aetSet->Load(aetSetPath);
 
+		std::vector<uint8_t> sprFileBuffer;
+		FileSystem::ReadAllBytes(sprSetPath, &sprFileBuffer);
+
 		sprSet = std::make_unique<SprSet>();
-		sprSet->Load(sprSetPath);
+		sprSet->Parse(sprFileBuffer.data());
 		sprSet->TxpSet->UploadAll();
 
 		aetData.Initialize(aetSet.get());
@@ -209,7 +213,7 @@ namespace App
 
 		float deltaFrame = TimespanToFrame(ImGui::GetIO().DeltaTime);
 		elapsedFrames += deltaFrame;
-		
+
 		if (IsWindowFocused())
 		{
 			if (IsKeyPressed(KeyCode_1))
