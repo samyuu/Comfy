@@ -8,6 +8,7 @@
 #include "FileSystem/Format/AetSet.h"
 #include "FileSystem/Format/SprSet.h"
 #include "FileSystem/Format/TxpSet.h"
+#include "FileSystem/Format/Database.h"
 #include "Graphics/Auth2D/AetMgr.h"
 // #include "Graphics/Utilities/TextureUtilities.h"
 // #include "Graphics/Utilities/s3tc.h"
@@ -444,9 +445,10 @@ void AetConvertTest()
 
 	return;
 
-	const auto directory = "Y:/Games/Project Diva/BLJM61079/PS3_GAME/USRDIR/rom/data/2d/";
+	//const auto directory = "Y:/Games/Project Diva/BLJM61079/PS3_GAME/USRDIR/rom/data/2d/";
+	const auto directory = "Y:/Games/Project Diva/BLJM61079/PS3_GAME/USRDIR/rom/data/2d/aetset_dlc/";
 
-	auto files = GetFiles(directory + std::string("input"));
+	auto files = GetFiles(directory);
 	for (auto& file : files)
 	{
 		if (!EndsWith(file, ".aec"))
@@ -473,12 +475,19 @@ void ScaleAnimationDataPositions(AnimationData* animationData, float factor)
 		keyFrame.Value *= factor;
 }
 
+void ScaleLayerAnimationDataScale(AetLayer* layer, float factor)
+{
+	for (auto& obj : *layer)
+	{
+		for (auto& keyFrame : obj.AnimationData->Properties.ScaleX())
+			keyFrame.Value *= factor;
+		for (auto& keyFrame : obj.AnimationData->Properties.ScaleY())
+			keyFrame.Value *= factor;
+	}
+}
+
 void ScaleAnimationDataScale(AnimationData* animationData, float factor)
 {
-	//for (auto& keyFrame : animationData->Properties.OriginX())
-	//	keyFrame.Value *= 1.0f / factor;
-	//for (auto& keyFrame : animationData->Properties.OriginY())
-	//	keyFrame.Value *= 1.0f / factor;
 	for (auto& keyFrame : animationData->Properties.ScaleX())
 		keyFrame.Value *= factor;
 	for (auto& keyFrame : animationData->Properties.ScaleY())
@@ -525,48 +534,76 @@ void CenterAwareRescale(AnimationData& animationData, float width, float height,
 	}
 }
 
-std::vector<uint32_t> usedUpIds;
-
-struct SpriteEntry
+void PortGamPv2D()
 {
-	uint32_t ID;
-	uint32_t NameOffset;
-	uint16_t InternalIndex;
-	uint16_t PackedSetIndex;
-};
+	SprDB aftSprDB; aftSprDB.Load("dev_ram/spr_db/aft_spr_db.bin");
+	SprDB ps4SprDB; ps4SprDB.Load("dev_ram/spr_db/ps4_spr_db.bin");
 
-void AddToUsedDBIds(const char* dbPath)
-{
-	std::vector<uint8_t> data;
-	FileSystem::ReadAllBytes(dbPath, &data);
-	
-	if (data.size() == 0)
-		return;
+	const char* directory = "Y:/Games/SBZV/7.10.00/mdata/M888/rom/2d/";
 
-	uint32_t count = *(uint32_t*)(data.data() + 0x8);
-	uint32_t offset = *(uint32_t*)(data.data() + 0xC);
-
-	SpriteEntry* spriteEntries = reinterpret_cast<SpriteEntry*>(data.data() + offset);
-	for (size_t i = 0; i < count; i++)
+	/*auto files = GetFiles(directory);
+	for (auto& file : files)
 	{
-		usedUpIds.push_back(spriteEntries[i].ID);
-	}
-}
+		if (!EndsWith(file, ".bin"))
+			continue;
 
-void AdjustID(uint32_t& id)
-{
-	for (auto& usedId : usedUpIds)
-	{
-		if (usedId == id)
+		AetSet aetSet;
+		aetSet.Load(file);
 		{
-			id += 0x393939;
-			return;
 		}
+		aetSet.Save(file);
+	}*/
+
+
+	for (SprSetEntry& aftEntry : aftSprDB.Entries)
+	{
+		if (!StartsWith(aftEntry.Name, "SPR_GAM_PV"))
+			continue;
+
+		SprSetEntry* ps4Entry = ps4SprDB.GetSprSetEntry(aftEntry.Name);
+		
+		if (ps4Entry == nullptr)
+		{
+			Logger::LogLine("PS4 %s not found", aftEntry.Name.c_str());
+			continue;
+		}
+
+		std::string aetFileName = aftEntry.FileName;
+		aetFileName[0] = 'a';
+		aetFileName[1] = 'e';
+		aetFileName[2] = 't';
+		std::string aetSetInputPath = directory + std::string("aet/") + aetFileName;
+		std::string aetSetOutputPath = directory + aetFileName;
+
+		AetSet aetSet;
+		aetSet.Load(aetSetInputPath);
+		{
+			for (auto& region : aetSet.front().AetRegions)
+			{
+				for (auto& sprite : region.Sprites)
+				{
+					for (auto& ps4SprEntry : ps4Entry->SprEntries)
+					{
+						if (sprite.ID == ps4SprEntry.ID)
+						{
+							SprEntry* aftEquivilant = aftEntry.GetSprEntry(ps4SprEntry.Name);
+							if (aftEquivilant != nullptr)
+							{
+								sprite.ID = aftEquivilant->ID;
+							}
+							else
+							{
+								Logger::LogLine("Sprite: %s not found", sprite.Name.c_str());
+							}
+						}
+					}
+
+				}
+			}
+		}
+		aetSet.Save(aetSetOutputPath);
 	}
 
-	//if (id >= 2600 && id <= 2999)
-		//id += 0x3939;
-	//id += 1;
 }
 
 void AetAdjustGamCmn()
@@ -580,46 +617,30 @@ void AetAdjustGamCmn()
 	AetSet aftAetSet; aftAetSet.Load(aftInputPath);
 	Aet& aftMainAet = aftAetSet.front();
 
+	SprDB aftSprDB; aftSprDB.Load("dev_ram/spr_db/aft_spr_db.bin");
+	SprDB ps4SprDB; ps4SprDB.Load("dev_ram/spr_db/ps4_spr_db.bin");
+	SprSetEntry* aftGamCmnEntry = aftSprDB.GetSprSetEntry("SPR_GAM_CMN");
+	SprSetEntry* ps4GamCmnEntry = ps4SprDB.GetSprSetEntry("SPR_GAM_CMN");
+
+	constexpr uint32_t SPR_ID_MASK = (0xCCCC << 16);
+
+	SprDB metadataDB;
+	metadataDB.Entries.push_back(*ps4GamCmnEntry);
+
 	AetSet aetSet;
 	aetSet.Load(ps4InputPath);
+	Aet& mainAet = aetSet.front();
 	{
-		Aet& mainAet = aetSet.front();
-		AetLayer& rootLayer = mainAet.AetLayers.back();
-
-		{
-			#define MDATA_PATH "Y:/Games/SBZV/7.10.00/mdata/"
-			AddToUsedDBIds(MDATA_PATH "M215/rom/2d/mdata_spr_db.bin");
-			AddToUsedDBIds(MDATA_PATH "M220/rom/2d/mdata_spr_db.bin");
-			AddToUsedDBIds(MDATA_PATH "M230/rom/2d/mdata_spr_db.bin");
-			AddToUsedDBIds(MDATA_PATH "M240/rom/2d/mdata_spr_db.bin");
-			AddToUsedDBIds(MDATA_PATH "M250/rom/2d/mdata_spr_db.bin");
-			AddToUsedDBIds(MDATA_PATH "M260/rom/2d/mdata_spr_db.bin");
-			AddToUsedDBIds(MDATA_PATH "M270/rom/2d/mdata_spr_db.bin");
-		}
-
 		for (auto& region : mainAet.AetRegions)
 		{
 			for (auto& sprite : region.Sprites)
-				AdjustID(sprite.ID);
-		}
-
-		{
-			std::vector<uint8_t> data;
-			FileSystem::ReadAllBytes("Y:/Games/SBZV/7.10.00/mdata/M912/rom/2d/mdata_spr_db_ORIG.bin", &data);
-
-			SpriteEntry* spriteEntries = reinterpret_cast<SpriteEntry*>(data.data() + 0x20);
-
-			for (uint32_t i = 0; i <= 352; i++)
 			{
-				char* namePtr = reinterpret_cast<char*>(data.data() + spriteEntries[i].NameOffset);
-				std::string name = std::string(namePtr);
-				//std::string subString = name.substr(4);
-				//spriteEntries[i].ID = std::hash<std::string>{}(subString);
-				
-				AdjustID(spriteEntries[i].ID);
+				if (aftGamCmnEntry->GetSprEntry(sprite.ID) == nullptr)
+				{
+					metadataDB.Entries[0].GetSprEntry(sprite.ID)->ID |= SPR_ID_MASK;
+					sprite.ID |= SPR_ID_MASK;
+				}
 			}
-
-			FileSystem::WriteAllBytes("Y:/Games/SBZV/7.10.00/mdata/M912/rom/2d/mdata_spr_db.bin", data);
 		}
 
 		AdjustAetThemeObjects(mainAet, "song_energy_base", "song_energy_base_f");
@@ -628,6 +649,11 @@ void AetAdjustGamCmn()
 		AdjustAetThemeObjects(mainAet, "frame_bottom", "frame_bottom_f");
 		AdjustAetThemeObjects(mainAet, "frame_up_danger", "frame_up_danger_f");
 		AdjustAetThemeObjects(mainAet, "frame_bottom_danger", "frame_bottom_danger_f");
+
+		//ScaleAnimationDataScale(mainAet.GetObj("frame_up")->AnimationData.get(), factor);
+		//ScaleAnimationDataPositions(mainAet.GetObj("frame_up")->AnimationData.get(), factor);
+
+		AetLayer& rootLayer = mainAet.AetLayers.back();
 
 		ScaleAnimationDataPositions(rootLayer[mainAet.GetObjIndex(rootLayer, "p_song_title_lt")].AnimationData.get(), factor);
 		ScaleAnimationDataPositions(rootLayer[mainAet.GetObjIndex(rootLayer, "p_song_lyric_lt")].AnimationData.get(), factor);
@@ -648,6 +674,34 @@ void AetAdjustGamCmn()
 					CenterAwareRescale(*comboLayer[i].AnimationData.get(), mainAet.Width, mainAet.Height, factor);
 			}
 		}
+
+		//AdjustPositionAnimations(*mainAet.GetObj("max_slide_point_odd")->GetLayer(), factor);
+		//AdjustPositionAnimations(*mainAet.GetObj("max_slide_point_even")->GetLayer(), factor);
+
+		// TODO: max_slide_num_00 (?)
+		//ScaleAnimationDataScale(mainAet.GetObj("max_slide_num_00")->AnimationData.get(), 1.5f);
+		//ScaleAnimationDataScale(mainAet.GetObj("max_slide_num_01")->AnimationData.get(), 1.5f);
+		//ScaleAnimationDataScale(mainAet.GetObj("max_slide_num_02")->AnimationData.get(), 1.5f);
+		//ScaleAnimationDataScale(mainAet.GetObj("max_slide_num_03")->AnimationData.get(), 1.5f);
+		//ScaleAnimationDataScale(mainAet.GetObj("max_slide_num_04")->AnimationData.get(), 1.5f);
+		//ScaleAnimationDataScale(mainAet.GetObj("max_slide_num_05")->AnimationData.get(), 1.5f);
+		//ScaleAnimationDataScale(mainAet.GetObj("max_slide_num_06")->AnimationData.get(), 1.5f);
+		//ScaleAnimationDataScale(mainAet.GetObj("max_slide_num_07")->AnimationData.get(), 1.5f);
+		//ScaleAnimationDataScale(mainAet.GetObj("max_slide_num_08")->AnimationData.get(), 1.5f);
+		//ScaleAnimationDataScale(mainAet.GetObj("max_slide_num_09")->AnimationData.get(), 1.5f);
+		//ScaleAnimationDataScale(mainAet.GetObj("max_slide_num_plus")->AnimationData.get(), 1.5f);
+
+		//ScaleLayerAnimationDataScale(mainAet.GetObj("max_slide_num_00")->GetLayer(), .15f);
+		//ScaleLayerAnimationDataScale(mainAet.GetObj("max_slide_num_01")->GetLayer(), .15f);
+		//ScaleLayerAnimationDataScale(mainAet.GetObj("max_slide_num_02")->GetLayer(), .15f);
+		//ScaleLayerAnimationDataScale(mainAet.GetObj("max_slide_num_03")->GetLayer(), .15f);
+		//ScaleLayerAnimationDataScale(mainAet.GetObj("max_slide_num_04")->GetLayer(), .15f);
+		//ScaleLayerAnimationDataScale(mainAet.GetObj("max_slide_num_05")->GetLayer(), .15f);
+		//ScaleLayerAnimationDataScale(mainAet.GetObj("max_slide_num_06")->GetLayer(), .15f);
+		//ScaleLayerAnimationDataScale(mainAet.GetObj("max_slide_num_07")->GetLayer(), .15f);
+		//ScaleLayerAnimationDataScale(mainAet.GetObj("max_slide_num_08")->GetLayer(), .15f);
+		//ScaleLayerAnimationDataScale(mainAet.GetObj("max_slide_num_09")->GetLayer(), .15f);
+		//ScaleLayerAnimationDataScale(mainAet.GetObj("max_slide_num_plus")->GetLayer(), .15f);
 
 		AdjustPositionAnimations(*mainAet.GetObj("target_txt_synchold_2")->GetLayer(), factor);
 		AdjustPositionAnimations(*mainAet.GetObj("target_txt_synchold_3")->GetLayer(), factor);
@@ -671,6 +725,9 @@ void AetAdjustGamCmn()
 
 		{
 			AetObj* lifeSafeTxt = mainAet.GetObj("life_safe_txt");
+
+			//ScaleAnimationDataScale(lifeSafeTxt->AnimationData.get(), factor);
+			//CenterAwareRescale(*lifeSafeTxt->AnimationData.get(), mainAet.Width, mainAet.Height, factor);
 
 			for (size_t i = 0; i < lifeSafeTxt->GetLayer()->size(); i++)
 			{
@@ -709,13 +766,51 @@ void AetAdjustGamCmn()
 		}
 	}
 	aetSet.Save(aftOutputPath);
+
+	for (auto& sprTexEntry : metadataDB.Entries[0].SprTexEntries)
+		sprTexEntry.ID |= SPR_ID_MASK;
+
+	//metadataDB.Save("Y:/Games/SBZV/7.10.00/mdata/M912/rom/2d/mdata_spr_db.bin");
+
+	//{
+	//	for (auto& region : mainAet.AetRegions)
+	//	{
+	//		for (auto& sprite : region.Sprites)
+	//		{
+	//			SprEntry* entry = metadataDB.Entries[0].GetSprEntry(sprite.ID);
+	//			Logger::LogLine("%s - %s", sprite.Name.c_str(), entry->Name.c_str());
+	//		}
+	//	}
+	//}
+}
+
+void DatabaseTest()
+{
+	//AetDB aetDB;
+	//aetDB.Load("dev_ram/aet_db/ps4_aet_db.bin");
+
+	SprDB sprDB;
+	sprDB.Load("dev_ram/spr_db/aft_spr_db.bin");
+	sprDB.Save("dev_ram/spr_db/output_aft_spr_db.bin");
+
+	int test = 0;
 }
 
 void MainTest()
 {
 	glfwInit();
 
+	if (false)
+	{
+		DatabaseTest();
+	}
+
 	if (true)
+	{
+		PortGamPv2D();
+	}
+
+	if (false)
 	{
 		AetAdjustGamCmn();
 	}
