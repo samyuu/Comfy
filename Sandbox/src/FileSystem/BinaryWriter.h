@@ -28,6 +28,8 @@ namespace FileSystem
 		inline void SetPosition(int64_t position) { return stream->Seek(position); }
 		inline void SetPosition(void* position) { return stream->Seek((int64_t)position); }
 
+		inline void SkipPosition(int64_t increment) { return stream->Seek(GetPosition() + increment); }
+
 		inline int64_t GetLength() const { return stream->GetLength(); }
 		inline bool EndOfFile() const { return stream->EndOfFile(); }
 
@@ -39,13 +41,14 @@ namespace FileSystem
 		template <typename T> void Write(T value) { Write(&value, sizeof(value)); };
 
 		void WriteStr(const std::string& value);
-		void WriteStrPtr(const std::string* value);
+		void WriteStrPtr(const std::string* value, int32_t alignment = 0);
 
 		inline void WritePtr(void* value) { writePtrFunction(this, value); };
 
 		void WritePtr(const std::function<void(BinaryWriter&)>& func);
 		void WriteDelayedPtr(const std::function<void(BinaryWriter&)>& func);
 
+		void WritePadding(size_t size, uint32_t paddingValue = PaddingValue);
 		void WriteAlignmentPadding(int32_t alignment, uint32_t paddingValue = PaddingValue);
 
 		void FlushStringPointerPool();
@@ -77,6 +80,7 @@ namespace FileSystem
 		{
 			void* ReturnAddress;
 			const std::string* String;
+			int32_t Alignment;
 		};
 
 		struct FunctionPointerEntry

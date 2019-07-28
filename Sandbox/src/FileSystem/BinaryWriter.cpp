@@ -79,9 +79,9 @@ namespace FileSystem
 		Write(reinterpret_cast<const void*>(value.data()), value.size() + 1);
 	}
 
-	void BinaryWriter::WriteStrPtr(const std::string* value)
+	void BinaryWriter::WriteStrPtr(const std::string* value, int32_t alignment)
 	{
-		stringPointerPool.push_back({ GetPositionPtr(), value });
+		stringPointerPool.push_back({ GetPositionPtr(), value, alignment });
 		WritePtr(nullptr);
 	}
 
@@ -95,6 +95,19 @@ namespace FileSystem
 	{
 		delayedWritePool.push_back({ GetPositionPtr(), func });
 		WritePtr(nullptr);
+	}
+
+	void BinaryWriter::WritePadding(size_t size, uint32_t paddingValue)
+	{
+		if (size < 0)
+			return;
+
+		constexpr size_t maxSize = 32;
+		assert(size <= maxSize);
+		uint8_t paddingValues[maxSize];
+
+		memset(paddingValues, paddingValue, size);
+		Write(paddingValues, size);
 	}
 
 	void BinaryWriter::WriteAlignmentPadding(int32_t alignment, uint32_t paddingValue)
@@ -129,6 +142,8 @@ namespace FileSystem
 
 			SetPosition(stringOffset);
 			WriteStr(*value.String);
+			if (value.Alignment > 0)
+				WriteAlignmentPadding(value.Alignment);
 		}
 
 		stringPointerPool.clear();
