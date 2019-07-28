@@ -287,11 +287,11 @@ namespace FileSystem
 		return const_cast<AetObj*>(const_cast<Aet*>(this)->GetObj(name));
 	}
 
-	int32_t Aet::GetObjIndex(AetLayer& layer, const std::string & name) const
+	int32_t Aet::GetObjIndex(AetLayer& layer, const std::string& name) const
 	{
-		for (int32_t i = static_cast<int32_t>(AetLayers.size()) - 1; i >= 0; i--)
+		for (int32_t i = static_cast<int32_t>(layer.size()) - 1; i >= 0; i--)
 		{
-			if (layer.objects[i].Name == name)
+			if (layer[i].Name == name)
 				return i;
 		}
 
