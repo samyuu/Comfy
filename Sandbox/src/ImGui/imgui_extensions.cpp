@@ -24,56 +24,56 @@ namespace ImGui
 		style->FrameBorderSize = 0.0f;
 
 		ImVec4* colors = style->Colors;
-		colors[ImGuiCol_Text] = ImVec4(0.88f, 0.88f, 0.88f, 1.00f);
-		colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-		colors[ImGuiCol_WindowBg] = ImVec4(0.11f, 0.11f, 0.11f, 1.00f);
-		colors[ImGuiCol_ChildBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
-		colors[ImGuiCol_PopupBg] = ImVec4(0.11f, 0.11f, 0.11f, 1.00f);
-		colors[ImGuiCol_Border] = ImVec4(0.11f, 0.11f, 0.11f, 1.00f);
-		colors[ImGuiCol_BorderShadow] = ImVec4(0.36f, 0.36f, 0.36f, 0.21f);
-		colors[ImGuiCol_FrameBg] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
-		colors[ImGuiCol_FrameBgHovered] = ImVec4(0.13f, 0.13f, 0.13f, 1.00f);
-		colors[ImGuiCol_FrameBgActive] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
-		colors[ImGuiCol_TitleBg] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
-		colors[ImGuiCol_TitleBgActive] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
-		colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
-		colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-		colors[ImGuiCol_ScrollbarBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.15f);
-		colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
-		colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.44f, 0.44f, 0.44f, 1.00f);
-		colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.56f, 0.56f, 0.56f, 1.00f);
-		colors[ImGuiCol_CheckMark] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-		colors[ImGuiCol_SliderGrab] = ImVec4(0.26f, 0.26f, 0.26f, 1.00f);
-		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
-		colors[ImGuiCol_Button] = ImVec4(0.26f, 0.26f, 0.26f, 1.00f);
-		colors[ImGuiCol_ButtonHovered] = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
-		colors[ImGuiCol_ButtonActive] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
-		colors[ImGuiCol_Header] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
-		colors[ImGuiCol_HeaderHovered] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
-		colors[ImGuiCol_HeaderActive] = ImVec4(0.13f, 0.13f, 0.13f, 1.00f);
-		colors[ImGuiCol_Separator] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-		colors[ImGuiCol_SeparatorHovered] = ImVec4(0.37f, 0.37f, 0.37f, 1.00f);
-		colors[ImGuiCol_SeparatorActive] = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
-		colors[ImGuiCol_ResizeGrip] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
-		colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
-		colors[ImGuiCol_ResizeGripActive] = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
-		colors[ImGuiCol_Tab] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
-		colors[ImGuiCol_TabHovered] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
-		colors[ImGuiCol_TabActive] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
-		colors[ImGuiCol_TabUnfocused] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
-		colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
-		colors[ImGuiCol_DockingPreview] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
-		colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
-		colors[ImGuiCol_PlotLines] = ImVec4(0.66f, 0.66f, 0.66f, 1.00f);
-		colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.27f, 0.37f, 0.13f, 1.00f);
-		colors[ImGuiCol_PlotHistogram] = ImVec4(0.34f, 0.47f, 0.17f, 1.00f);
-		colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.41f, 0.56f, 0.20f, 0.99f);
-		colors[ImGuiCol_TextSelectedBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.27f);
-		colors[ImGuiCol_DragDropTarget] = ImVec4(0.59f, 0.59f, 0.59f, 0.98f);
-		colors[ImGuiCol_NavHighlight] = ImVec4(0.83f, 0.83f, 0.83f, 1.00f);
-		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(0.83f, 0.83f, 0.83f, 1.00f);
-		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.50f);
-		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.50f);
+		colors[ImGuiCol_Text]                   = ImVec4(0.88f, 0.88f, 0.88f, 1.00f);
+		colors[ImGuiCol_TextDisabled]           = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+		colors[ImGuiCol_WindowBg]               = ImVec4(0.11f, 0.11f, 0.11f, 1.00f);
+		colors[ImGuiCol_ChildBg]                = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+		colors[ImGuiCol_PopupBg]                = ImVec4(0.11f, 0.11f, 0.11f, 1.00f);
+		colors[ImGuiCol_Border]                 = ImVec4(0.13f, 0.13f, 0.13f, 1.00f);
+		colors[ImGuiCol_BorderShadow]           = ImVec4(0.36f, 0.36f, 0.36f, 0.21f);
+		colors[ImGuiCol_FrameBg]                = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+		colors[ImGuiCol_FrameBgHovered]         = ImVec4(0.13f, 0.13f, 0.13f, 1.00f);
+		colors[ImGuiCol_FrameBgActive]          = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+		colors[ImGuiCol_TitleBg]                = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+		colors[ImGuiCol_TitleBgActive]          = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+		colors[ImGuiCol_TitleBgCollapsed]       = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
+		colors[ImGuiCol_MenuBarBg]              = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+		colors[ImGuiCol_ScrollbarBg]            = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrab]          = ImVec4(0.28f, 0.28f, 0.28f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabHovered]   = ImVec4(0.28f, 0.28f, 0.28f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabActive]    = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
+		colors[ImGuiCol_CheckMark]              = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+		colors[ImGuiCol_SliderGrab]             = ImVec4(0.28f, 0.28f, 0.28f, 1.00f);
+		colors[ImGuiCol_SliderGrabActive]       = ImVec4(0.28f, 0.28f, 0.28f, 1.00f);
+		colors[ImGuiCol_Button]                 = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
+		colors[ImGuiCol_ButtonHovered]          = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+		colors[ImGuiCol_ButtonActive]           = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+		colors[ImGuiCol_Header]                 = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
+		colors[ImGuiCol_HeaderHovered]          = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
+		colors[ImGuiCol_HeaderActive]           = ImVec4(0.13f, 0.13f, 0.13f, 1.00f);
+		colors[ImGuiCol_Separator]              = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+		colors[ImGuiCol_SeparatorHovered]       = ImVec4(0.37f, 0.37f, 0.37f, 1.00f);
+		colors[ImGuiCol_SeparatorActive]        = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
+		colors[ImGuiCol_ResizeGrip]             = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+		colors[ImGuiCol_ResizeGripHovered]      = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
+		colors[ImGuiCol_ResizeGripActive]       = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
+		colors[ImGuiCol_Tab]                    = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+		colors[ImGuiCol_TabHovered]             = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
+		colors[ImGuiCol_TabActive]              = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+		colors[ImGuiCol_TabUnfocused]           = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+		colors[ImGuiCol_TabUnfocusedActive]     = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+		colors[ImGuiCol_DockingPreview]         = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
+		colors[ImGuiCol_DockingEmptyBg]         = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+		colors[ImGuiCol_PlotLines]              = ImVec4(0.66f, 0.66f, 0.66f, 1.00f);
+		colors[ImGuiCol_PlotLinesHovered]       = ImVec4(0.27f, 0.37f, 0.13f, 1.00f);
+		colors[ImGuiCol_PlotHistogram]          = ImVec4(0.34f, 0.47f, 0.17f, 1.00f);
+		colors[ImGuiCol_PlotHistogramHovered]   = ImVec4(0.41f, 0.56f, 0.20f, 0.99f);
+		colors[ImGuiCol_TextSelectedBg]         = ImVec4(0.80f, 0.80f, 0.80f, 0.27f);
+		colors[ImGuiCol_DragDropTarget]         = ImVec4(0.59f, 0.59f, 0.59f, 0.98f);
+		colors[ImGuiCol_NavHighlight]           = ImVec4(0.83f, 0.83f, 0.83f, 1.00f);
+		colors[ImGuiCol_NavWindowingHighlight]  = ImVec4(0.83f, 0.83f, 0.83f, 1.00f);
+		colors[ImGuiCol_NavWindowingDimBg]      = ImVec4(0.05f, 0.05f, 0.05f, 0.50f);
+		colors[ImGuiCol_ModalWindowDimBg]       = ImVec4(0.05f, 0.05f, 0.05f, 0.50f);
 	}
 
 	bool IsItemHoveredDelayed(ImGuiHoveredFlags flags, float threshold)
@@ -101,7 +101,7 @@ namespace ImGui
 		HelpMarker(description);
 	}
 
-	// Same as imgui_widgets.cpp: TreeNodeBehavior(...) but with the interact_bb set to the frame_bb and a no_arrow paramter
+	// Same as imgui_widgets.cpp: TreeNodeBehavior(...) but with wider collision detection and a no_arrow paramter
 	bool WideTreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end, bool no_arrow = false)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
@@ -120,7 +120,7 @@ namespace ImGui
 		// We vertically grow up to current line height up the typical widget height.
 		float text_base_offset_y = ImMax(padding.y, window->DC.CurrentLineTextBaseOffset); // Latch before ItemSize changes it
 		const float frame_height = ImMax(ImMin(window->DC.CurrentLineSize.y, g.FontSize + style.FramePadding.y * 2), label_size.y + padding.y * 2);
-		ImRect frame_bb = ImRect(window->DC.CursorPos, ImVec2(window->Pos.x + GetContentRegionMax().x, window->DC.CursorPos.y + frame_height));
+		ImRect frame_bb = ImRect(ImVec2(window->Pos.x, window->DC.CursorPos.y), ImVec2(window->Pos.x + GetContentRegionMax().x, window->DC.CursorPos.y + frame_height));
 
 		// Selectables are tightly packed together so we extend the box to cover spacing between selectable.
 		{
@@ -142,6 +142,10 @@ namespace ImGui
 			frame_bb.Min.x -= (float)(int)(window->WindowPadding.x*0.5f) - 1;
 			frame_bb.Max.x += (float)(int)(window->WindowPadding.x*0.5f) - 1;
 		}
+
+		//ImRect indended_frame_bb = frame_bb;
+		//indended_frame_bb.Min.x -= window->Pos.x - window->DC.CursorPos.x;
+		ImRect indended_frame_bb(frame_bb.Min.x - (window->Pos.x - window->DC.CursorPos.x), frame_bb.Min.y, frame_bb.Max.x, frame_bb.Max.y);
 
 		const float text_offset_x = no_arrow ? padding.x * 2 : (g.FontSize + (display_frame ? padding.x * 3 : padding.x * 2));   // Collapser arrow width + Spacing
 		const float text_width = g.FontSize + (label_size.x > 0.0f ? label_size.x + padding.x * 2 : 0.0f);   // Include collapser
@@ -196,7 +200,7 @@ namespace ImGui
 			{
 				toggled = !(flags & (ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick)) || (g.NavActivateId == id);
 				if (flags & ImGuiTreeNodeFlags_OpenOnArrow)
-					toggled |= IsMouseHoveringRect(interact_bb.Min, ImVec2(interact_bb.Min.x + text_offset_x, interact_bb.Max.y)) && (!g.NavDisableMouseHover);
+					toggled |= IsMouseHoveringRect(indended_frame_bb.Min, ImVec2(indended_frame_bb.Min.x + text_offset_x, indended_frame_bb.Max.y)) && (!g.NavDisableMouseHover);
 				if (flags & ImGuiTreeNodeFlags_OpenOnDoubleClick)
 					toggled |= g.IO.MouseDoubleClicked[0];
 				if (g.DragDropActive && is_open) // When using Drag and Drop "hold to open" we keep the node highlighted after opening, but never close it again.
@@ -229,7 +233,7 @@ namespace ImGui
 
 		// Render
 		const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
-		const ImVec2 text_pos = frame_bb.Min + ImVec2(text_offset_x, text_base_offset_y);
+		const ImVec2 text_pos = indended_frame_bb.Min + ImVec2(text_offset_x, text_base_offset_y);
 		ImGuiNavHighlightFlags nav_highlight_flags = ImGuiNavHighlightFlags_TypeThin;
 		if (display_frame)
 		{
@@ -237,19 +241,19 @@ namespace ImGui
 			RenderFrame(frame_bb.Min, frame_bb.Max, col, true, style.FrameRounding);
 			RenderNavHighlight(frame_bb, id, nav_highlight_flags);
 			if (!no_arrow)
-				RenderArrow(frame_bb.Min + ImVec2(padding.x, text_base_offset_y), is_open ? ImGuiDir_Down : ImGuiDir_Right, 1.0f);
+				RenderArrow(indended_frame_bb.Min + ImVec2(padding.x, text_base_offset_y), is_open ? ImGuiDir_Down : ImGuiDir_Right, 1.0f);
 			if (g.LogEnabled)
 			{
 				// NB: '##' is normally used to hide text (as a library-wide feature), so we need to specify the text range to make sure the ## aren't stripped out here.
 				const char log_prefix[] = "\n##";
 				const char log_suffix[] = "##";
 				LogRenderedText(&text_pos, log_prefix, log_prefix + 3);
-				RenderTextClipped(text_pos, frame_bb.Max, label, label_end, &label_size);
+				RenderTextClipped(text_pos, indended_frame_bb.Max, label, label_end, &label_size);
 				LogRenderedText(&text_pos, log_suffix, log_suffix + 2);
 			}
 			else
 			{
-				RenderTextClipped(text_pos, frame_bb.Max, label, label_end, &label_size);
+				RenderTextClipped(text_pos, indended_frame_bb.Max, label, label_end, &label_size);
 			}
 		}
 		else
@@ -264,9 +268,9 @@ namespace ImGui
 			if (!no_arrow)
 			{
 				if (flags & ImGuiTreeNodeFlags_Bullet)
-					RenderBullet(frame_bb.Min + ImVec2(text_offset_x * 0.5f, g.FontSize*0.50f + text_base_offset_y));
+					RenderBullet(indended_frame_bb.Min + ImVec2(text_offset_x * 0.5f, g.FontSize*0.50f + text_base_offset_y));
 				else if (!is_leaf)
-					RenderArrow(frame_bb.Min + ImVec2(padding.x, g.FontSize*0.15f + text_base_offset_y), is_open ? ImGuiDir_Down : ImGuiDir_Right, 0.70f);
+					RenderArrow(indended_frame_bb.Min + ImVec2(padding.x, g.FontSize*0.15f + text_base_offset_y), is_open ? ImGuiDir_Down : ImGuiDir_Right, 0.70f);
 			}
 			if (g.LogEnabled)
 				LogRenderedText(&text_pos, ">");
