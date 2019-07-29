@@ -82,7 +82,7 @@ namespace Editor
 		struct
 		{
 			float infoColumnWidth = 46.0f;
-			float timelineHeaderHeight = 40.0f - 13.0f;
+			float timelineHeaderHeight = 32.0f - 13.0f;
 			float tempoMapHeight = 13.0f;
 		};
 		// ----------------------
