@@ -2,6 +2,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui.h"
 #include "imgui_internal.h"
+#include <functional>
 
 class Texture2D;
 
@@ -9,6 +10,14 @@ namespace ImGui
 {
 	const ImVec2 UV0 = ImVec2(0, 0), UV1 = ImVec2(1, 1);
 	const ImVec2 UV0_GL = ImVec2(0, 1), UV1_GL = ImVec2(1, 0);
+
+	void UpdateExtendedState();
+
+	bool WasActiveWindowFocusedOnMouseClicked(int button);
+	bool WasActiveWindowHoveredOnMouseClicked(int button);
+	
+	bool WasHoveredWindowFocusedOnMouseClicked(int button);
+	bool WasHoveredWindowHoveredOnMouseClicked(int button);
 
 	void AddTexture(ImDrawList* drawList, Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0 = UV0_GL, const ImVec2& uv1 = UV1_GL);
 
@@ -51,11 +60,8 @@ namespace ImGui
 	bool WideTreeNodeNoArrow(const char* label, ImGuiTreeNodeFlags flags);
 	bool SmallButton(const char* label, const ImVec2& size);
 
-	bool OpenContextMenuOnRelease(const char* str_id);
-	bool OpenContextMenuOnHoverRelease(const char* str_id);
-	void OpenContextMenu(const char* str_id);
-	bool BeginItemContextMenu(const char* str_id);
-	void EndItemContextMenu();
+	void WindowContextMenu(const char* std_id, const std::function<void(void)>& func);
+	void ItemContextMenu(const char* std_id, const std::function<void(void)>& func);
 
 	bool ExtendedInputFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* format, bool disabled = false);
 

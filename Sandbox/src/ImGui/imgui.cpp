@@ -3326,7 +3326,7 @@ void ImGui::UpdateMouseMovingWindowEndFrame()
         return;
 
     // Click to focus window and start moving (after we're done with all our widgets)
-    if (g.IO.MouseClicked[0])
+    if (g.IO.MouseClicked[0] || g.IO.MouseClicked[2])
     {
         if (g.HoveredRootWindow != NULL)
         {
