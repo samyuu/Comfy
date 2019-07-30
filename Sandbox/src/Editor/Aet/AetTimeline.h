@@ -21,11 +21,17 @@ namespace Editor
 		Aet* aet = nullptr;
 		AetItemTypePtr active;
 
+		const float keyFrameSize = 6.0f;
 		float rowHeight;
 		bool isPlayback = false;
 		bool loopPlayback = true;
 
 		float GetTimelineSize() const override;
+
+		enum class KeyFrameType { Single, DoubleX, DoubleY };
+		void DrawTimelineContentKeyFrameDoubleX(const vec2& position) const;
+		void DrawTimelineContentKeyFrameDoubleY(const vec2& position) const;
+		void DrawTimelineContentKeyFrame(const vec2& position, KeyFrameType type) const;
 
 		void DrawTimelineContentNone();
 		void DrawTimelineContentKeyFrames();
@@ -44,5 +50,20 @@ namespace Editor
 		void StopPlayback() override;
 
 		void UpdateInputCursorClick();
+
+	private:
+		enum class PropertyType
+		{
+			Origin, Position, Rotation, Scale, Opacity, Count
+		};
+
+		std::array<const char*, static_cast<size_t>(PropertyType::Count)> timelinePropertyNames =
+		{
+			"Origin",
+			"Position",
+			"Rotation",
+			"Scale",
+			"Opacity",
+		};
 	};
 }

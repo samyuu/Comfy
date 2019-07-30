@@ -18,7 +18,7 @@ namespace Editor
 	{
 		aet = parent;
 		active = value;
-	
+
 		frameRate = (aet != nullptr) ? aet->FrameRate : 60.0f;
 	}
 
@@ -32,6 +32,43 @@ namespace Editor
 		return GetTimelinePosition(loopEndFrame);
 	}
 
+	void AetTimeline::DrawTimelineContentKeyFrameDoubleX(const vec2& position) const
+	{
+		baseDrawList->AddTriangleFilled(
+			position - vec2(keyFrameSize, 0.0f),
+			position - vec2(0.0f, keyFrameSize),
+			position + vec2(0.0f, keyFrameSize),
+			GetColor(EditorColor_KeyFrame));
+	}
+
+	void AetTimeline::DrawTimelineContentKeyFrameDoubleY(const vec2& position) const
+	{
+		baseDrawList->AddTriangleFilled(
+			position + vec2(keyFrameSize, 0.0f),
+			position - vec2(0.0f, keyFrameSize),
+			position + vec2(0.0f, keyFrameSize),
+			GetColor(EditorColor_KeyFrame));
+	}
+
+	void AetTimeline::DrawTimelineContentKeyFrame(const vec2& position, KeyFrameType type) const
+	{
+		switch (type)
+		{
+		case KeyFrameType::Single:
+			DrawTimelineContentKeyFrameDoubleX(position);
+			DrawTimelineContentKeyFrameDoubleY(position);
+			break;
+		case KeyFrameType::DoubleX:
+			DrawTimelineContentKeyFrameDoubleX(position);
+			break;
+		case KeyFrameType::DoubleY:
+			DrawTimelineContentKeyFrameDoubleY(position);
+			break;
+		default:
+			break;
+		}
+	}
+
 	void AetTimeline::DrawTimelineContentNone()
 	{
 		ImU32 dimColor = ImGui::GetColorU32(ImGuiCol_PopupBg, 0.25f);
@@ -43,19 +80,46 @@ namespace Editor
 		if (active.AetObj->AnimationData == nullptr)
 			return;
 
+		vec2 timelineTL = timelineContentRegion.GetTL() - vec2(GetScrollX(), 0.0f);
+		float y = (rowHeight / 2.0f);
+
 		const KeyFrameProperties* properties = &active.AetObj->AnimationData->Properties;
 		for (int i = 0; i < properties->size(); i++)
 		{
-			float y = (i * rowHeight) + (rowHeight / 2);
+			KeyFrameType type;
+
+			switch (i)
+			{
+			case PropertyType_OriginX:
+			case PropertyType_PositionX:
+			case PropertyType_ScaleX:
+				type = KeyFrameType::DoubleX;
+				break;
+
+			case PropertyType_OriginY:
+			case PropertyType_PositionY:
+			case PropertyType_ScaleY:
+				type = KeyFrameType::DoubleY;
+				break;
+
+			case PropertyType_Rotation:
+			case PropertyType_Opacity:
+			default:
+				type = KeyFrameType::Single;
+				break;
+			}
 
 			const KeyFrameCollection& keyFrames = properties->at(i);
 			for (const auto& keyFrame : keyFrames)
 			{
 				TimelineFrame keyFrameFrame = keyFrames.size() == 1 ? loopStartFrame : keyFrame.Frame;
+				vec2 position = timelineTL + vec2(GetTimelinePosition(keyFrameFrame), y);
 
-				ImVec2 start = timelineContentRegion.GetTL() + ImVec2(GetTimelinePosition(keyFrameFrame) - GetScrollX(), y);
-				baseDrawList->AddCircleFilled(start, 6.0f, GetColor(EditorColor_KeyFrame));
+				DrawTimelineContentKeyFrame(position, type);
 			}
+
+			if (type == KeyFrameType::Single || type == KeyFrameType::DoubleY)
+				y += rowHeight;
 		}
 	}
 
@@ -90,17 +154,6 @@ namespace Editor
 		ImGui::Button(">|");
 		if (ImGui::IsItemActive()) { scrollDelta += io->DeltaTime * 1000.0f; }
 
-		//ImGui::SameLine();
-		//ImGui::PushItemWidth(80);
-		//{
-		//	if (gridDivisions[gridDivisionIndex] != gridDivision)
-		//		gridDivisionIndex = GetGridDivisionIndex();
-
-		//	if (ImGui::Combo("Grid Precision", &gridDivisionIndex, gridDivisionStrings.data(), gridDivisionStrings.size()))
-		//		gridDivision = gridDivisions[gridDivisionIndex];
-		//}
-		//ImGui::PopItemWidth();
-
 		ImGui::SameLine();
 		ImGui::PushItemWidth(280);
 		ImGui::SliderFloat("Zoom Level", &zoomLevel, ZOOM_MIN, ZOOM_MAX);
@@ -120,12 +173,12 @@ namespace Editor
 		TimelineBase::OnDrawTimelineInfoColumn();
 
 		auto drawList = ImGui::GetWindowDrawList();
-		for (int i = 0; i < KeyFrameProperties::PropertyNames.size(); i++)
+		for (int i = 0; i < static_cast<size_t>(PropertyType::Count); i++)
 		{
 			float y = i * rowHeight + 2;
 			auto start = ImVec2(2, y) + infoColumnRegion.GetTL();
 
-			drawList->AddText(start, ImGui::GetColorU32(ImGuiCol_Text), KeyFrameProperties::PropertyNames[i]);
+			drawList->AddText(start, ImGui::GetColorU32(ImGuiCol_Text), timelinePropertyNames[i]);
 		}
 	}
 
@@ -133,7 +186,7 @@ namespace Editor
 	{
 		// Key Frame Property Rows
 		// -----------------------
-		for (int i = 0; i <= KeyFrameProperties::PropertyNames.size(); i++)
+		for (int i = 0; i <= static_cast<size_t>(PropertyType::Count); i++)
 		{
 			float y = i * rowHeight;
 			ImVec2 start = timelineContentRegion.GetTL() + ImVec2(0, y);
@@ -171,7 +224,7 @@ namespace Editor
 
 			case AetSelectionType::AetRegion:
 				loopStartFrame = 0;
-				loopEndFrame = glm::max(0.0f, static_cast<float>(active.AetRegion->Sprites.size()) - 1.0f);
+				loopEndFrame = glm::max(0.0f, static_cast<float>(active.AetRegion->SpriteSize()) - 1.0f);
 				break;
 
 			default:
