@@ -96,6 +96,8 @@ namespace Editor
 
 	void BoxTransformControl::Draw(Properties* properties, vec2 dimensions, const std::function<void(vec2&)>& worldToScreenSpace, const std::function<void(vec2&)>& screenToWorldSpace, float zoom)
 	{
+		bool focused = ImGui::IsWindowFocused();
+
 		ImGuiIO& io = ImGui::GetIO();
 		vec2 mousePos = io.MousePos;
 
@@ -109,14 +111,14 @@ namespace Editor
 		{
 			worldToScreenSpace(*pos);
 
-			if (/*ImGui::IsMouseClicked(0) &&*/ glm::distance(*pos, mousePos) < BoxNodeRadius)
+			if (focused && /*ImGui::IsMouseClicked(0) &&*/ glm::distance(*pos, mousePos) < BoxNodeRadius)
 				nodeIndex = i;
 
 			i++;
 		}
 
-		bool contains = box.Contains(mousePos);
-		bool dragMoving = ImGui::IsMouseDown(0) && contains;
+		bool contains = focused && box.Contains(mousePos);
+		bool dragMoving = focused && ImGui::IsMouseDown(0) && contains;
 
 		//ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
 
@@ -150,7 +152,7 @@ namespace Editor
 
 		bool scaling = nodeIndex != -1;
 
-		if (scaling)
+		if (focused && scaling)
 		{
 			ImGuiMouseCursor cursor;
 			switch (nodeIndex)
