@@ -2,8 +2,10 @@
 #include "Selection.h"
 #include "BoxTransformControl.h"
 #include "Editor/RenderWindowBase.h"
+#include "Editor/CameraController2D.h"
 #include "FileSystem/Format/AetSet.h"
 #include "FileSystem/Format/SprSet.h"
+#include "Graphics/Camera.h"
 #include "Graphics/Auth2D/Renderer2D.h"
 #include "Graphics/Auth2D/AetMgr.h"
 #include "App/Task.h"
@@ -44,16 +46,10 @@ namespace Editor
 		void RenderAetRegion(AetRegion* aetRegion);
 
 	protected:
-		void UpdateViewMatrix();
-		void UpdateViewControlInput();
-		
-		void SetUpdateCameraZoom(float newZoom, vec2 origin);
 		void RenderObjCache(const AetMgr::ObjCache& obj);
 
 	private:
 		std::unique_ptr<App::Task> testTask = nullptr;
-
-		bool windowHoveredOnClick[5];
 
 		struct
 		{
@@ -73,16 +69,8 @@ namespace Editor
 
 		std::vector<AetMgr::ObjCache> objectCache;
 
-		struct AetCamera
-		{
-			vec2 Position;
-			mat4 ViewMatrix;
-			
-			const float ZoomStep = 1.1f;
-			const float ZoomMin = 0.1f;
-			const float ZoomMax = 12.8f;
-			float Zoom = 1.0f;
-		} camera;
+		OrthographicCamera camera;
+		CameraController2D cameraController;
 
 		bool useTextShadow = false;
 		int currentBlendItem = static_cast<int>(AetBlendMode::Alpha);

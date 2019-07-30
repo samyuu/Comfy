@@ -3,7 +3,6 @@
 #include "Editor/Theme.h"
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
-#include "Graphics/Camera.h"
 #include "TimeSpan.h"
 #include "Input/KeyCode.h"
 #include "App/TestTasks.h"
@@ -138,9 +137,8 @@ namespace Editor
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - itemWidth - 2);
 
 			float zoomPercentage = camera.Zoom * percentFactor;
-			if (ImGui::ExtendedInputFloat("##ZoomDragFloat::AetRenderWindow", &zoomPercentage, 0.15f, camera.ZoomMin * percentFactor, camera.ZoomMax * percentFactor, "%.2f %%"))
-				this->SetUpdateCameraZoom(zoomPercentage * (1.0f / percentFactor), ImGui::GetWindowSize() / 2.0f);
-
+			if (ImGui::ExtendedInputFloat("##ZoomDragFloat::AetRenderWindow", &zoomPercentage, 0.15f, cameraController.ZoomMin * percentFactor, cameraController.ZoomMax * percentFactor, "%.2f %%"))
+				cameraController.SetUpdateCameraZoom(camera, zoomPercentage * (1.0f / percentFactor), camera.GetProjectionCenter());
 		}
 		ImGui::PopItemWidth();
 		ImGui::PopStyleVar(2);
@@ -166,12 +164,12 @@ namespace Editor
 		static BoxTransformControl testTransformControl;
 		static Properties testProperties{};
 
-		auto worldToScreen = [this](vec2& value) { value = WorldToScreenSpace(camera.ViewMatrix, value) + GetRenderRegion().GetTL(); };
-		auto screenToWorld = [this](vec2& value) { value = ScreenToWorldSpace(camera.ViewMatrix, value) - GetRenderRegion().GetTL(); };
+		auto worldToScreen = [this](vec2& value) { value = camera.WorldToScreenSpace(value) + GetRenderRegion().GetTL(); };
+		auto screenToWorld = [this](vec2& value) { value = camera.ScreenToWorldSpace(value) - GetRenderRegion().GetTL(); };
 
 		//testProperties.Rotation = 45.0f;
 		testProperties.Scale = vec2(2.0f);
-		testTransformControl.Draw(&testProperties, vec2(200.0f, 200.0f), worldToScreen, screenToWorld, camera.Zoom);
+		//testTransformControl.Draw(&testProperties, vec2(200.0f, 200.0f), worldToScreen, screenToWorld, camera.Zoom);
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		auto renderRegion = GetRenderRegion();
@@ -180,10 +178,10 @@ namespace Editor
 		ImU32 originColor = ImColor(vec4(1.0f, 0.0f, 0.0f, 1.0f));
 		for (const auto& vertices : verticesPointers)
 		{
-			vec2 tl = WorldToScreenSpace(camera.ViewMatrix, vertices.Vertices->TopLeft.Position) + renderRegion.GetTL();
-			vec2 tr = WorldToScreenSpace(camera.ViewMatrix, vertices.Vertices->TopRight.Position) + renderRegion.GetTL();
-			vec2 bl = WorldToScreenSpace(camera.ViewMatrix, vertices.Vertices->BottomLeft.Position) + renderRegion.GetTL();
-			vec2 br = WorldToScreenSpace(camera.ViewMatrix, vertices.Vertices->BottomRight.Position) + renderRegion.GetTL();
+			vec2 tl = camera.WorldToScreenSpace(vertices.Vertices->TopLeft.Position) + renderRegion.GetTL();
+			vec2 tr = camera.WorldToScreenSpace(vertices.Vertices->TopRight.Position) + renderRegion.GetTL();
+			vec2 bl = camera.WorldToScreenSpace(vertices.Vertices->BottomLeft.Position) + renderRegion.GetTL();
+			vec2 br = camera.WorldToScreenSpace(vertices.Vertices->BottomRight.Position) + renderRegion.GetTL();
 
 			drawList->AddLine(tl, tr, outlineColor);
 			drawList->AddLine(tr, br, outlineColor);
@@ -197,7 +195,6 @@ namespace Editor
 			drawList->AddCircleFilled(tr, 3.5f, outlineColor);
 			drawList->AddCircleFilled(bl, 3.5f, outlineColor);
 			drawList->AddCircleFilled(br, 3.5f, outlineColor);
-
 
 			//vec2 origin = vertices.ObjCache->Properties.Origin + vertices.ObjCache->Properties.Position;
 			//vec2 originScreenSpace = WorldToScreenSpace(camera.ViewMatrix, origin) + renderRegion.GetTL();
@@ -233,14 +230,7 @@ namespace Editor
 
 	void AetRenderWindow::OnRender()
 	{
-		for (int i = 0; i < 5; i++)
-		{
-			if (ImGui::IsMouseClicked(i))
-				windowHoveredOnClick[i] = ImGui::IsWindowHovered();
-		}
-
-		if (ImGui::IsWindowFocused())
-			UpdateViewControlInput();
+		cameraController.UpdateInput(camera, GetRelativeMouse());
 
 		renderTarget.Bind();
 		{
@@ -250,11 +240,11 @@ namespace Editor
 			GLCall(glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z, backgroundColor.w));
 			GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-			UpdateViewMatrix();
+			camera.UpdateMatrices();
 
 			if (testTask != nullptr)
 			{
-				renderer.Begin(&camera.ViewMatrix);
+				renderer.Begin(camera);
 				testTask->Update();
 				testTask->Render(renderer);
 				renderer.End();
@@ -262,7 +252,7 @@ namespace Editor
 			else
 			{
 				renderer.SetUseTextShadow(useTextShadow);
-				renderer.Begin(&camera.ViewMatrix);
+				renderer.Begin(camera);
 				{
 					RenderGrid();
 
@@ -297,7 +287,7 @@ namespace Editor
 					{
 						constexpr float cursorSize = 4.0f;
 
-						vec2 mouseWorldSpace = ScreenToWorldSpace(camera.ViewMatrix, GetRelativeMouse());
+						vec2 mouseWorldSpace = camera.ScreenToWorldSpace(GetRelativeMouse());
 						renderer.Draw(mouseWorldSpace - vec2(cursorSize * 0.5f), vec2(cursorSize), GetColorVec4(EditorColor_CursorInner));
 					}
 				}
@@ -310,8 +300,7 @@ namespace Editor
 	void AetRenderWindow::OnResize(int width, int height)
 	{
 		RenderWindowBase::OnResize(width, height);
-
-		renderer.Resize(static_cast<float>(width), static_cast<float>(height));
+		camera.ProjectionSize = vec2(width, height);
 	}
 
 	void AetRenderWindow::OnInitialize()
@@ -369,13 +358,13 @@ namespace Editor
 
 	void AetRenderWindow::RenderAetRegion(AetRegion* aetRegion)
 	{
-		size_t spriteIndex = glm::clamp(static_cast<size_t>(0), static_cast<size_t>(currentFrame), aetRegion->Sprites.size() - 1);
-		AetSprite* spriteRegion = &aetRegion->Sprites.at(spriteIndex);
+		int32_t spriteIndex = glm::clamp(0, static_cast<int32_t>(currentFrame), aetRegion->SpriteSize() - 1);
+		AetSprite* spriteRegion = aetRegion->GetSprite(spriteIndex);
 
 		Texture* texture;
 		Sprite* sprite;
 
-		if (aetRegion->Sprites.size() < 1 || !getSprite(spriteRegion, &texture, &sprite))
+		if (aetRegion->SpriteSize() < 1 || !getSprite(spriteRegion, &texture, &sprite))
 		{
 			renderer.Draw(nullptr, vec4(0, 0, aetRegion->Width, aetRegion->Height), vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), dummyColor, static_cast<AetBlendMode>(currentBlendItem));
 		}
@@ -383,53 +372,6 @@ namespace Editor
 		{
 			renderer.Draw(texture->Texture2D.get(), sprite->PixelRegion, vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), vec4(1.0f), static_cast<AetBlendMode>(currentBlendItem));
 		}
-	}
-
-	void AetRenderWindow::UpdateViewMatrix()
-	{
-		const mat4 identity = mat4(1.0f);
-		camera.ViewMatrix = glm::translate(identity, vec3(-camera.Position, 0.0f)) * glm::scale(identity, vec3(camera.Zoom, camera.Zoom, 1.0f));
-	}
-
-	void AetRenderWindow::UpdateViewControlInput()
-	{
-		ImGuiIO& io = ImGui::GetIO();
-
-		constexpr float step = 10.0f;
-		if (ImGui::IsKeyPressed(KeyCode_W, true))
-			camera.Position.y -= step;
-		if (ImGui::IsKeyPressed(KeyCode_S, true))
-			camera.Position.y += step;
-		if (ImGui::IsKeyPressed(KeyCode_A, true))
-			camera.Position.x -= step;
-		if (ImGui::IsKeyPressed(KeyCode_D, true))
-			camera.Position.x += step;
-		if (ImGui::IsKeyPressed(KeyCode_Escape, true))
-		{
-			camera.Position = vec2(0.0f);
-			camera.Zoom = 1.0f;
-		}
-		if (windowHoveredOnClick[1] && ImGui::IsMouseDown(1))
-		{
-			camera.Position -= vec2(io.MouseDelta.x, io.MouseDelta.y);
-			ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-		}
-
-		if (io.KeyAlt && io.MouseWheel != 0.0f)
-		{
-			float newZoom = camera.Zoom * ((io.MouseWheel > 0) ? camera.ZoomStep : (1.0f / camera.ZoomStep));
-			SetUpdateCameraZoom(newZoom, GetRelativeMouse());
-		}
-	}
-
-	void AetRenderWindow::SetUpdateCameraZoom(float newZoom, vec2 origin)
-	{
-		vec2 worldSpace = ScreenToWorldSpace(camera.ViewMatrix, origin);
-		camera.Zoom = glm::clamp(newZoom, camera.ZoomMin, camera.ZoomMax);
-		UpdateViewMatrix();
-		vec2 postWorldSpace = ScreenToWorldSpace(camera.ViewMatrix, origin);
-
-		camera.Position -= (postWorldSpace - worldSpace) * vec2(camera.Zoom);
 	}
 
 	static bool Contains(const vec2& tl, const vec2& tr, const vec2& bl, const vec2& br, const vec2& point)
@@ -449,11 +391,9 @@ namespace Editor
 		if (obj.Region == nullptr)
 			return;
 
-		AetSprite* aetSprite = obj.Region->Sprites.size() < 1 ? nullptr : &obj.Region->Sprites.at(obj.SpriteIndex);
-
 		Texture* texture;
 		Sprite* sprite;
-		bool validSprite = getSprite(aetSprite, &texture, &sprite);
+		bool validSprite = getSprite(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
 
 		if (validSprite)
 		{
@@ -484,7 +424,7 @@ namespace Editor
 		{
 			const SpriteVertices& objVertices = renderer.GetLastVertices();
 
-			vec2 value = ScreenToWorldSpace(camera.ViewMatrix, GetRelativeMouse());
+			vec2 value = camera.ScreenToWorldSpace(GetRelativeMouse());
 
 			bool contains = Contains(
 				objVertices.TopLeft.Position,
@@ -498,17 +438,6 @@ namespace Editor
 				selectedAetObj = &obj;
 				verticesPointers.push_back(TempVertexStruct{ &objVertices, &obj });
 			}
-		}
-
-		if (!validSprite)
-		{
-			//const SpriteVertices& vertices = renderer.GetLastVertices();
-			//renderer.DrawRectangle(
-			//	vertices.TopLeft.Position, 
-			//	vertices.TopRight.Position, 
-			//	vertices.BottomLeft.Position, 
-			//	vertices.BottomRight.Position, 
-			//	vec4(2.0f));
 		}
 	}
 }
