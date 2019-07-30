@@ -223,11 +223,11 @@ namespace FileSystem
 
 		if (value != nullptr)
 		{
-			for (int32_t i = 0; i < static_cast<int32_t>(parentAet->AetRegions.size()); i++)
+			for (int32_t regionIndex = 0; regionIndex < static_cast<int32_t>(parentAet->AetRegions.size()); regionIndex++)
 			{
-				if (&parentAet->AetRegions[i] == value)
+				if (&parentAet->AetRegions[regionIndex] == value)
 				{
-					references.RegionIndex = i;
+					references.RegionIndex = regionIndex;
 					return;
 				}
 			}
@@ -275,6 +275,50 @@ namespace FileSystem
 			return &parentAet->AetLayers[layerIndex][objIndex];
 
 		return nullptr;
+	}
+
+	AetLayer* AetObj::GetParentObjLayer() const
+	{
+		assert(parentAet != nullptr);
+
+		AetObj* parentObj = GetParentObj();
+		if (parentObj != nullptr)
+		{
+			for (auto& layer : parentAet->AetLayers)
+			{
+				for (auto& object : layer)
+				{
+					if (&object == parentObj)
+						return &layer;
+				}
+			}
+		}
+		return nullptr;
+	}
+
+	void AetObj::SetParentObj(const AetObj* value)
+	{
+		assert(parentAet != nullptr);
+
+		if (value != nullptr)
+		{
+			for (int32_t layerIndex = 0; layerIndex < static_cast<int32_t>(parentAet->AetLayers.size()); layerIndex++)
+			{
+				AetLayer& aetLayer = parentAet->AetLayers[layerIndex];
+				for (int32_t objIndex = 0; objIndex < static_cast<int32_t>(aetLayer.size()); objIndex++)
+				{
+					if (&aetLayer[objIndex] == value)
+					{
+						references.ParentLayerIndex = layerIndex;
+						references.ParentObjIndex = objIndex;
+						return;
+					}
+				}
+			}
+		}
+
+		references.ParentLayerIndex = -1;
+		references.ParentObjIndex = -1;
 	}
 
 	void AetObj::Read(BinaryReader& reader)
@@ -331,6 +375,21 @@ namespace FileSystem
 		}
 
 		return nullptr;
+	}
+
+	const std::vector<std::string>& AetLayer::GetGivenNames() const
+	{
+		return givenNames;
+	}
+
+	const char* AetLayer::GetCommaSeparatedNames() const
+	{
+		return commaSeparatedNames.c_str();
+	}
+
+	AetLayer* Aet::GetRootLayer()
+	{
+		return AetLayers.size() > 0 ? &AetLayers.back() : nullptr;
 	}
 
 	AetObj* Aet::GetObj(const std::string& name)
@@ -691,9 +750,10 @@ namespace FileSystem
 
 	void Aet::UpdateLayerNames()
 	{
+		AetLayer* rootLayer = GetRootLayer();
 		for (auto& aetLayer : AetLayers)
 		{
-			aetLayer.Names.clear();
+			aetLayer.givenNames.clear();
 
 			for (auto& aetObj : aetLayer)
 			{
@@ -702,7 +762,7 @@ namespace FileSystem
 				if (aetObj.Type == AetObjType::Eff && (referencedLayer = aetObj.GetLayer()) != nullptr)
 				{
 					bool nameExists = false;
-					for (auto& layerNames : referencedLayer->Names)
+					for (auto& layerNames : referencedLayer->givenNames)
 					{
 						if (layerNames == aetObj.Name)
 						{
@@ -712,20 +772,23 @@ namespace FileSystem
 					}
 
 					if (!nameExists)
-						referencedLayer->Names.emplace_back(aetObj.Name);
+						referencedLayer->givenNames.emplace_back(aetObj.Name);
 				}
+
+				if (&aetLayer == rootLayer)
+					aetLayer.givenNames.emplace_back("Root");
 			}
 		}
 
 		for (auto& aetLayer : AetLayers)
 		{
-			aetLayer.CommaSeparatedNames.clear();
+			aetLayer.commaSeparatedNames.clear();
 
-			for (size_t i = 0; i < aetLayer.Names.size(); i++)
+			for (size_t i = 0; i < aetLayer.givenNames.size(); i++)
 			{
-				aetLayer.CommaSeparatedNames.append(aetLayer.Names[i]);
-				if (i < aetLayer.Names.size() - 1)
-					aetLayer.CommaSeparatedNames.append(", ");
+				aetLayer.commaSeparatedNames.append(aetLayer.givenNames[i]);
+				if (i < aetLayer.givenNames.size() - 1)
+					aetLayer.commaSeparatedNames.append(", ");
 			}
 		}
 	}

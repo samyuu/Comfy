@@ -173,6 +173,12 @@ namespace FileSystem
 		void SetLayer(const AetLayer* value);
 		
 		AetObj* GetParentObj() const;
+		AetLayer* GetParentObjLayer() const;
+		void SetParentObj(const AetObj* value);
+
+	public:
+		inline int32_t GetParentObjIndex() { return references.ParentObjIndex; };
+		inline int32_t GetParentObjLayerIndex() { return references.ParentLayerIndex; };
 
 	private:
 		Aet* parentAet;
@@ -205,9 +211,6 @@ namespace FileSystem
 		friend class Aet;
 
 	public:
-		std::vector<std::string> Names;
-		std::string CommaSeparatedNames;
-
 		inline int32_t GetThisIndex() const { return thisIndex; };
 
 		AetObjIterator begin()				{ return objects.begin(); }
@@ -231,7 +234,13 @@ namespace FileSystem
 
 		AetObj* GetObj(const std::string& name);
 
+		const std::vector<std::string>& GetGivenNames() const;
+		const char* GetCommaSeparatedNames() const;
+
 	private:
+		std::vector<std::string> givenNames;
+		std::string commaSeparatedNames;
+
 		int32_t thisIndex;
 		fileptr_t filePosition;
 	
@@ -274,6 +283,8 @@ namespace FileSystem
 		std::vector<AetLayer> AetLayers;
 		std::vector<AetRegion> AetRegions;
 		std::vector<AetSoundEffect> AetSoundEffects;
+
+		AetLayer* GetRootLayer();
 
 		AetObj* GetObj(const std::string& name);
 		const AetObj* GetObj(const std::string& name) const;
