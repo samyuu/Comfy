@@ -43,6 +43,7 @@ namespace Editor
 		AetEditorInstance = this;
 
 		treeView = std::make_unique<AetTreeView>();
+		layerView = std::make_unique<AetLayerView>();
 		inspector = std::make_unique<AetInspector>();
 		timeline = std::make_unique<AetTimeline>();
 		renderWindow = std::make_unique<AetRenderWindow>(&AetEditorSpriteGetter);
@@ -91,6 +92,14 @@ namespace Editor
 		}
 		ImGui::End();
 
+		if (ImGui::Begin(ICON_AETLAYERS "  Aet Layers##AetEditor", nullptr, windowFlags))
+		{
+			ImGui::BeginChild("AetLayerViewChild##AetEditor", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+			layerView->DrawGui();
+			ImGui::EndChild();
+		}
+		ImGui::End();
+
 		RenderWindowBase::PushWindowPadding();
 		if (ImGui::Begin(ICON_RENDERWINDOW "  Aet Render Window##AetEditor", nullptr, windowFlags))
 		{
@@ -105,21 +114,10 @@ namespace Editor
 		if (ImGui::Begin(ICON_INSPECTOR "  Aet Inspector##AetEditor", nullptr, windowFlags))
 		{
 			ImGui::BeginChild("AetInspectorChild##AetEditor");
-			inspector->DrawGui(aetSet.get(), treeView->GetSelected());
+			inspector->DrawGui(treeView->GetActiveAet(), treeView->GetSelected());
 			ImGui::EndChild();
 		}
 		ImGui::End();
-
-		if (false)
-		{
-			if (ImGui::Begin(ICON_PROPERTIES "  Aet Properties##AetEditor", nullptr, windowFlags))
-			{
-				ImGui::BeginChild("AetPropertiesChild##AetEditor");
-				DrawProperties();
-				ImGui::EndChild();
-			}
-			ImGui::End();
-		}
 
 		if (ImGui::Begin(ICON_FA_CLOCK "  Aet Timeline##AetEditor", nullptr))
 		{
@@ -158,27 +156,6 @@ namespace Editor
 			if (StartsWithInsensitive(GetFileName(sprPath), "spr_") && EndsWithInsensitive(sprPath, ".bin"))
 				LoadSprSet(sprPath);
 		}
-	}
-
-	void AetEditor::DrawProperties()
-	{
-		AetItemTypePtr selected = treeView->GetSelected();
-
-		if (selected.Type() == AetSelectionType::AetObj && selected.AetObj != nullptr && selected.AetObj->AnimationData != nullptr)
-		{
-			float frame = timeline->GetFrame().Frames();
-			AetMgr::Interpolate(selected.AetObj->AnimationData.get(), &currentProperties, frame);
-		}
-		else
-		{
-			currentProperties = {};
-		}
-
-		ImGui::InputFloat2("Origin", glm::value_ptr(currentProperties.Origin));
-		ImGui::InputFloat2("Position", glm::value_ptr(currentProperties.Position));
-		ImGui::InputFloat("Rotation", &currentProperties.Rotation);
-		ImGui::InputFloat("Scale", glm::value_ptr(currentProperties.Scale));
-		ImGui::InputFloat("Opacity", &currentProperties.Opacity);
 	}
 
 	bool AetEditor::LoadAetSet(const std::string& filePath)

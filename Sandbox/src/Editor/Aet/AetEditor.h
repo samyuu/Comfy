@@ -1,12 +1,13 @@
 #pragma once
 #include "Selection.h"
 #include "AetTreeView.h"
+#include "AetLayerView.h"
 #include "AetInspector.h"
 #include "AetTimeline.h"
 #include "AetRenderWindow.h"
 #include "Editor/IEditorComponent.h"
-#include "FileSystem/Format/AetSet.h"
 #include "Graphics/Auth2D/AetMgr.h"
+#include "FileSystem/Format/AetSet.h"
 #include "ImGui/Widgets/FileViewer.h"
 #include <memory>
 
@@ -33,6 +34,7 @@ namespace Editor
 		ImGui::FileViewer sprFileViewer = { "dev_ram/sprset/" };
 
 		std::unique_ptr<AetTreeView> treeView;
+		std::unique_ptr<AetLayerView> layerView;
 		std::unique_ptr<AetInspector> inspector;
 		std::unique_ptr<AetTimeline> timeline;
 		std::unique_ptr<AetRenderWindow> renderWindow;
@@ -49,7 +51,6 @@ namespace Editor
 
 		void DrawAetSetLoader();
 		void DrawSprSetLoader();
-		void DrawProperties();
 
 		bool LoadAetSet(const std::string& filePath);
 		bool LoadSprSet(const std::string& filePath);
