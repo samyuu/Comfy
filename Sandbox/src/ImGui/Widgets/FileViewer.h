@@ -43,8 +43,7 @@ namespace ImGui
 		};
 
 		const FilePathInfo* contextMenuFilePathInfo = nullptr;
-		const char* contextMenuID = "ContextMenu##FileViewer";
-
+		
 		bool resizeColumns = true;
 		bool useFileTypeIcons = true;
 		char currentDirectoryBuffer[_MAX_PATH];

@@ -80,8 +80,7 @@ namespace ImGui
 				}
 			}
 
-			OpenContextMenuOnRelease(contextMenuID);
-			if (BeginItemContextMenu(contextMenuID))
+			ImGui::WindowContextMenu("ContextMenu##FileViewer", [this]()
 			{
 				if (MenuItem("Open in Explorer..."))
 					OpenDirectoryInExplorer();
@@ -92,8 +91,7 @@ namespace ImGui
 					if (MenuItem("Properties"))
 						OpenContextItemProperties();
 				}
-				EndPopup();
-			}
+			});
 		}
 		EndChild();
 
