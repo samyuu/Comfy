@@ -28,8 +28,6 @@ namespace Editor
 		inline void ResetSelectedItem()							{ activeAet = nullptr; selected.Reset(); };
 
 	private:
-		const char* aetLayerContextMenuID = "AetLayerContextMenu##AetTreeView";
-		const char* aetObjContextMenuID = "AetObjContextMenu##AetTreeView";
 		const char* addAetObjPopupID = "Add new AetObj";
 
 		char objNameBuffer[255];
@@ -42,6 +40,7 @@ namespace Editor
 
 		std::vector<std::vector<bool>> openLayers;
 
+		void DrawTreeViewBackground();
 		void DrawTreeViewAet(Aet& aet);
 		void DrawTreeViewLayer(Aet& aet, AetLayer& aetLayer);
 		void DrawTreeViewObj(Aet& aet, AetObj& aetObj);
