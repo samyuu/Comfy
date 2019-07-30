@@ -171,8 +171,8 @@ namespace Auth2D
 		{
 			objCache.SpriteIndex = static_cast<int32_t>(adjustedFrame - 1);
 
-			if (objCache.SpriteIndex >= objCache.Region->Sprites.size())
-				objCache.SpriteIndex = static_cast<int32_t>(objCache.Region->Sprites.size() - 1);
+			if (objCache.SpriteIndex >= objCache.Region->SpriteSize())
+				objCache.SpriteIndex = objCache.Region->SpriteSize() - 1;
 			if (objCache.SpriteIndex < 0)
 				objCache.SpriteIndex = 0;
 		}

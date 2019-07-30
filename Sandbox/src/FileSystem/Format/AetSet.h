@@ -51,6 +51,10 @@ namespace FileSystem
 		Sprite* SpriteCache;
 	};
 
+	using SpriteCollection = std::vector<AetSprite>;
+	using SpriteCollectionIterator = SpriteCollection::iterator;
+	using ConstSpriteCollectionIterator = SpriteCollection::const_iterator;
+
 	class AetRegion
 	{
 		friend class Aet;
@@ -60,17 +64,27 @@ namespace FileSystem
 		int16_t Width;
 		int16_t Height;
 		frame_t Frames;
-		std::vector<AetSprite> Sprites;
+
+		AetSprite* GetSprite(int32_t index);
+		AetSprite* GetFrontSprite();
+		AetSprite* GetBackSprite();
+
+		int32_t SpriteSize() const;
+		SpriteCollection& GetSprites();
+		const SpriteCollection& GetSprites() const;
 
 	private:
+		SpriteCollection sprites;
 		fileptr_t filePosition;
-		// AetSprite* dynamicSprite;
 	};
 
 	struct Marker
 	{
 		frame_t Frame;
 		std::string Name;
+
+		Marker();
+		Marker(frame_t frame, const std::string& name);
 	};
 
 	struct KeyFrame
@@ -151,8 +165,13 @@ namespace FileSystem
 		void SetName(const char* value);
 
 		AetRegion* GetRegion() const;
+		void SetRegion(const AetRegion* value);
+		
 		AetSoundEffect* GetSoundEffect() const;
+		
 		AetLayer* GetLayer() const;
+		void SetLayer(const AetLayer* value);
+		
 		AetObj* GetParentObj() const;
 
 	private:
@@ -189,7 +208,7 @@ namespace FileSystem
 		std::vector<std::string> Names;
 		std::string CommaSeparatedNames;
 
-		inline int32_t GetThisIndex() { return thisIndex; };
+		inline int32_t GetThisIndex() const { return thisIndex; };
 
 		AetObjIterator begin()				{ return objects.begin(); }
 		AetObjIterator end()				{ return objects.end(); }
@@ -259,7 +278,7 @@ namespace FileSystem
 		AetObj* GetObj(const std::string& name);
 		const AetObj* GetObj(const std::string& name) const;
 		int32_t GetObjIndex(AetLayer& layer, const std::string& name) const;
-		inline int32_t GetThisIndex() { return thisIndex; };
+		inline int32_t GetThisIndex() const { return thisIndex; };
 
 	private:
 		int32_t thisIndex;

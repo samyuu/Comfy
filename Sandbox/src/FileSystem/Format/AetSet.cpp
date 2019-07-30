@@ -128,6 +128,44 @@ namespace FileSystem
 		}
 	}
 
+	AetSprite* AetRegion::GetSprite(int32_t index)
+	{
+		return (SpriteSize() > 0 && index < SpriteSize()) ? &sprites.at(index) : nullptr;
+	}
+
+	AetSprite* AetRegion::GetFrontSprite()
+	{
+		return (SpriteSize() > 0) ? &sprites.front() : nullptr;
+	}
+
+	AetSprite* AetRegion::GetBackSprite()
+	{
+		return SpriteSize() > 0 ? &sprites.back() : nullptr;
+	}
+
+	int32_t AetRegion::SpriteSize() const
+	{
+		return static_cast<int32_t>(sprites.size());
+	}
+
+	SpriteCollection& AetRegion::GetSprites()
+	{
+		return sprites;
+	}
+
+	const SpriteCollection& AetRegion::GetSprites() const
+	{
+		return sprites;
+	}
+
+	Marker::Marker()
+	{
+	}
+
+	Marker::Marker(frame_t frame, const std::string& name) : Frame(frame), Name(name)
+	{
+	}
+
 	AetObj::AetObj()
 	{
 	}
@@ -179,6 +217,25 @@ namespace FileSystem
 		return nullptr;
 	}
 
+	void AetObj::SetRegion(const AetRegion* value)
+	{
+		assert(parentAet != nullptr);
+
+		if (value != nullptr)
+		{
+			for (int32_t i = 0; i < static_cast<int32_t>(parentAet->AetRegions.size()); i++)
+			{
+				if (&parentAet->AetRegions[i] == value)
+				{
+					references.RegionIndex = i;
+					return;
+				}
+			}
+		}
+
+		references.RegionIndex = -1;
+	}
+
 	AetSoundEffect* AetObj::GetSoundEffect() const
 	{
 		assert(parentAet != nullptr);
@@ -199,6 +256,12 @@ namespace FileSystem
 			return &parentAet->AetLayers[layerIndex];
 
 		return nullptr;
+	}
+
+	void AetObj::SetLayer(const AetLayer* value)
+	{
+		assert(parentAet != nullptr);
+		references.LayerIndex = value == nullptr ? -1 : value->GetThisIndex();
 	}
 
 	AetObj* AetObj::GetParentObj() const
@@ -370,10 +433,10 @@ namespace FileSystem
 
 					if (spriteCount > 0 && spritesPointer != nullptr)
 					{
-						region.Sprites.resize(spriteCount);
+						region.sprites.resize(spriteCount);
 						reader.ReadAt(spritesPointer, [&region](BinaryReader& reader)
 						{
-							for (auto& sprite : region.Sprites)
+							for (auto& sprite : region.GetSprites())
 							{
 								sprite.Name = reader.ReadStrPtr();
 								sprite.ID = reader.ReadUInt32();
@@ -573,12 +636,12 @@ namespace FileSystem
 						writer.WriteInt16(region.Width);
 						writer.WriteInt16(region.Height);
 						writer.WriteFloat(region.Frames);
-						if (region.Sprites.size() > 0)
+						if (region.SpriteSize() > 0)
 						{
-							writer.WriteUInt32(static_cast<uint32_t>(region.Sprites.size()));
+							writer.WriteUInt32(static_cast<uint32_t>(region.SpriteSize()));
 							writer.WritePtr([&region](BinaryWriter& writer)
 							{
-								for (auto& sprite : region.Sprites)
+								for (auto& sprite : region.GetSprites())
 								{
 									writer.WriteStrPtr(&sprite.Name);
 									writer.WriteUInt32(sprite.ID);
@@ -771,7 +834,7 @@ namespace FileSystem
 		{
 			for (auto& region : aet.AetRegions)
 			{
-				for (auto& sprite : region.Sprites)
+				for (auto& sprite : region.GetSprites())
 					sprite.SpriteCache = nullptr;
 			}
 		}
