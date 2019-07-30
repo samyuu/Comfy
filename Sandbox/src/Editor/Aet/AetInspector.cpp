@@ -16,7 +16,7 @@ namespace Editor
 	{
 	}
 
-	bool AetInspector::DrawGui(AetSet* aetSet, const AetItemTypePtr& selected)
+	bool AetInspector::DrawGui(Aet* aet, const AetItemTypePtr& selected)
 	{
 		if (ImGui::TreeNodeEx("Selection", ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_DefaultOpen))
 		{
@@ -24,26 +24,26 @@ namespace Editor
 
 			if (selected.VoidPointer == nullptr)
 			{
-				ImGui::BulletText("<none>");
+				ImGui::BulletText("none");
 				return false;
 			}
 
 			switch (selected.Type())
 			{
 			case AetSelectionType::AetSet:
-				DrawInspectorAetSet(aetSet);
+				DrawInspectorAetSet(selected.AetSet);
 				break;
 			case AetSelectionType::Aet:
-				DrawInspectorAet(aetSet, selected.Aet);
+				DrawInspectorAet(selected.Aet);
 				break;
 			case AetSelectionType::AetLayer:
-				DrawInspectorAetLayer(aetSet, selected.AetLayer);
+				DrawInspectorAetLayer(aet, selected.AetLayer);
 				break;
 			case AetSelectionType::AetObj:
-				DrawInspectorAetObj(aetSet, selected.AetObj);
+				DrawInspectorAetObj(aet, selected.AetObj);
 				break;
 			case AetSelectionType::AetRegion:
-				DrawInspectorAetRegion(aetSet, selected.AetRegion);
+				DrawInspectorAetRegion(aet, selected.AetRegion);
 				break;
 			default:
 				break;
@@ -67,7 +67,7 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAet(AetSet* aetSet, Aet* aet)
+	void AetInspector::DrawInspectorAet(Aet* aet)
 	{
 		ImGui::Text("Aet:");
 		{
@@ -88,7 +88,7 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAetLayer(AetSet* aetSet, AetLayer* aetLayer)
+	void AetInspector::DrawInspectorAetLayer(Aet* aet, AetLayer* aetLayer)
 	{
 		ImGui::Text("AetLayer:");
 
@@ -109,19 +109,44 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorLayerData(AetLayer* aetLayer)
+	void AetInspector::DrawInspectorLayerData(Aet* aet, AetObj* aetObj, AetLayer* aetLayer)
 	{
 		if (ImGui::TreeNodeEx(ICON_AETLAYERS "  Layer Data", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			if (aetLayer != nullptr)
+				sprintf_s(layerDataNameBuffer, "Layer %d (%s)", aetLayer->GetThisIndex(), aetLayer->CommaSeparatedNames.c_str());
+
+			if (ImGui::BeginCombo("Region", aetLayer == nullptr ? "nullptr" : layerDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
-				ImGui::BulletText(ICON_AETLAYER "  Layer %d (%s)", aetLayer->GetThisIndex(), aetLayer->CommaSeparatedNames.c_str());
+				if (ImGui::Selectable("nullptr", aetLayer == nullptr))
+					aetObj->SetLayer(nullptr);
+
+				for (auto& layer : aet->AetLayers)
+				{
+					if (&aet->AetLayers.back() == &layer)
+						break;
+
+					ImGui::PushID(&layer);
+
+					bool isSelected = (aetLayer == &layer);
+					sprintf_s(layerDataNameBuffer, "Layer %d (%s)", layer.GetThisIndex(), layer.CommaSeparatedNames.c_str());
+
+					if (ImGui::Selectable(layerDataNameBuffer, isSelected))
+						aetObj->SetLayer(&layer);
+
+					if (isSelected)
+						ImGui::SetItemDefaultFocus();
+					ImGui::PopID();
+				}
+
+				ImGui::EndCombo();
 			}
+
 			ImGui::TreePop();
 		}
 	}
 
-	void AetInspector::DrawInspectorAetObj(AetSet* aetSet, AetObj* aetObj)
+	void AetInspector::DrawInspectorAetObj(Aet* aet, AetObj* aetObj)
 	{
 		ImGui::Text("AetObj:");
 
@@ -144,10 +169,10 @@ namespace Editor
 		}
 
 		if ((aetObj->Type == AetObjType::Pic))
-			DrawInspectorRegionData(aetObj->GetRegion());
+			DrawInspectorRegionData(aet, aetObj, aetObj->GetRegion());
 
 		if ((aetObj->Type == AetObjType::Eff))
-			DrawInspectorLayerData(aetObj->GetLayer());
+			DrawInspectorLayerData(aet, aetObj, aetObj->GetLayer());
 
 		if ((aetObj->Type == AetObjType::Pic || aetObj->Type == AetObjType::Eff))
 			DrawInspectorAnimationData(aetObj->AnimationData.get());
@@ -156,22 +181,48 @@ namespace Editor
 		DrawInspectorAetObjParent(aetObj);
 	}
 
-	void AetInspector::DrawInspectorRegionData(AetRegion* aetRegion)
+	void AetInspector::DrawInspectorRegionData(Aet* aet, AetObj* aetObj, AetRegion* aetRegion)
 	{
 		if (ImGui::TreeNodeEx(ICON_AETREGIONS "  Region Data", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			if (aetRegion != nullptr)
 			{
-				if (aetRegion->Sprites.size() < 1)
-				{
-					ImGui::BulletText("<%dx%d>", aetRegion->Width, aetRegion->Height);
-				}
+				AetSprite* frontSprite = aetRegion->GetFrontSprite();
+
+				if (frontSprite == nullptr)
+					sprintf_s(regionDataNameBuffer, "Dynamic Region (%dx%d)", aetRegion->Width, aetRegion->Height);
 				else
-				{
-					for (auto& sprite : aetRegion->Sprites)
-						ImGui::BulletText(sprite.Name.c_str());
-				}
+					strcpy_s(regionDataNameBuffer, frontSprite->Name.c_str());
 			}
+
+			if (ImGui::BeginCombo("Region", aetRegion == nullptr ? "nullptr" : regionDataNameBuffer, ImGuiComboFlags_HeightLarge))
+			{
+				if (ImGui::Selectable("nullptr", aetRegion == nullptr))
+					aetObj->SetRegion(nullptr);
+
+				int32_t regionIndex = 0;
+				for (auto& region : aet->AetRegions)
+				{
+					ImGui::PushID(&region);
+
+					bool isSelected = (aetRegion == &region);
+
+					AetSprite* frontSprite = region.GetFrontSprite();
+					if (frontSprite == nullptr)
+						sprintf_s(regionDataNameBuffer, "Region %d (%dx%d)", regionIndex, region.Width, region.Height);
+
+					if (ImGui::Selectable(frontSprite == nullptr ? regionDataNameBuffer : frontSprite->Name.c_str(), isSelected))
+						aetObj->SetRegion(&region);
+
+					if (isSelected)
+						ImGui::SetItemDefaultFocus();
+					ImGui::PopID();
+					regionIndex++;
+				}
+
+				ImGui::EndCombo();
+			}
+
 			ImGui::TreePop();
 		}
 	}
@@ -188,7 +239,7 @@ namespace Editor
 				}
 				else
 				{
-					ImGui::BulletText("<none>");
+					ImGui::BulletText("none");
 				}
 				ImGui::TreePop();
 			}
@@ -201,16 +252,16 @@ namespace Editor
 				}
 				else
 				{
-					ImGui::BulletText("<none>");
+					ImGui::BulletText("none");
 				}
 				ImGui::TreePop();
 			}
 
-			const char* blendModeNames = "None\0None\0None\0Alpha\0None\0Additive\0DstColorZero\0SrcAlphaOneMinusSrcColor\0Transparent";
+			const char* blendModeNames = "Alpha\0None\0Additive\0DstColorZero\0SrcAlphaOneMinusSrcColor\0Transparent";
 
-			int32_t blendMode = static_cast<int32_t>(animationData->BlendMode);
+			int32_t blendMode = static_cast<int32_t>(animationData->BlendMode) - 3;
 			if (ImGui::Combo("Blend Mode", &blendMode, blendModeNames))
-				animationData->BlendMode = static_cast<AetBlendMode>(blendMode);
+				animationData->BlendMode = static_cast<AetBlendMode>(blendMode + 3);
 
 			ImGui::Checkbox("Use Texture Mask", &animationData->UseTextureMask);
 
@@ -231,7 +282,7 @@ namespace Editor
 			if (keyFrames->size() == 1)
 			{
 				ImGui::PushID((void*)keyFrames);
-				ImGui::InputFloat("Value", &keyFrames->front().Value, 0.1f, 1.0f);
+				ImGui::DragFloat("Value", &keyFrames->front().Value, 0.1f, 1.0f);
 				ImGui::PopID();
 			}
 			else
@@ -239,7 +290,7 @@ namespace Editor
 				for (KeyFrame& keyFrame : *keyFrames)
 				{
 					ImGui::PushID((void*)&keyFrame.Frame);
-					ImGui::InputFloat3("F-V-I", &keyFrame.Frame);
+					ImGui::DragFloat3("F-V-I", &keyFrame.Frame);
 					ImGui::PopID();
 				}
 			}
@@ -251,29 +302,40 @@ namespace Editor
 	{
 		if (ImGui::TreeNodeEx(ICON_MARKERS "  Markers", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			if (markers->size() < 1)
+			for (int i = 0; i < markers->size(); i++)
 			{
-				ImGui::BulletText("<none>");
-			}
-			else
-			{
-				for (size_t i = 0; i < markers->size(); i++)
+				Marker& marker = markers->at(i);
+
+				ImGui::PushID((void*)&marker);
+				bool open = ImGui::WideTreeNode("##AetInspectorMarker", "Frame: %.1f  :  %s", marker.Frame, marker.Name.c_str());
+				
+				ImGui::ItemContextMenu("AddMarkerContextMenu##AetInspector", [&markers, &i]() 
 				{
-					Marker& marker = markers->at(i);
-
-					ImGui::PushID((void*)&marker);
-					if (ImGui::WideTreeNode("##AetInspectorMarker", "Marker %d", i))
+					if (ImGui::MenuItem("Delete"))
 					{
-						ImGui::InputFloat("Frame", &marker.Frame, 1.0f, 10.0f);
-						strcpy_s(markerNameBuffer, marker.Name.c_str());
-
-						if (ImGui::InputText("Name", markerNameBuffer, sizeof(markerNameBuffer)))
-							marker.Name = std::string(markerNameBuffer);
-
-						ImGui::TreePop();
+						markers->erase(markers->begin() + i);
+						i--;
 					}
-					ImGui::PopID();
+				});
+
+				if (open)
+				{
+					ImGui::InputFloat("Frame", &marker.Frame, 1.0f, 10.0f);
+					strcpy_s(markerNameBuffer, marker.Name.c_str());
+
+					if (ImGui::InputText("Name", markerNameBuffer, sizeof(markerNameBuffer)))
+						marker.Name = std::string(markerNameBuffer);
+
+					ImGui::TreePop();
 				}
+				ImGui::PopID();
+			}
+
+			if (ImGui::Button("Add Marker", ImVec2(ImGui::GetWindowWidth(), 0)))
+			{
+				char newMarkerBuffer[32];
+				sprintf_s(newMarkerBuffer, "marker_%02zd", markers->size());
+				markers->emplace_back(0.0f, newMarkerBuffer);
 			}
 
 			ImGui::TreePop();
@@ -288,7 +350,7 @@ namespace Editor
 
 			if (parent == nullptr)
 			{
-				ImGui::BulletText("<none>");
+				ImGui::BulletText("none");
 			}
 			else
 			{
@@ -299,7 +361,7 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAetRegion(AetSet* aetSet, AetRegion* aetRegion)
+	void AetInspector::DrawInspectorAetRegion(Aet* aet, AetRegion* aetRegion)
 	{
 		ImGui::Text("AetRegion:");
 
@@ -311,7 +373,7 @@ namespace Editor
 
 		if (ImGui::TreeNodeEx("Sprites:", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			for (auto& sprite : aetRegion->Sprites)
+			for (auto& sprite : aetRegion->GetSprites())
 			{
 				sprintf_s(spriteNameBuffer, ICON_AETREGION "  %s", sprite.Name.c_str());
 				ImGui::Selectable(spriteNameBuffer);

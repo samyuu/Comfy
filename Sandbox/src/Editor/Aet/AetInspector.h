@@ -13,28 +13,31 @@ namespace Editor
 		~AetInspector();
 
 		void Initialize();
-		bool DrawGui(AetSet* aetSet, const AetItemTypePtr& selected);
+		bool DrawGui(Aet* aet, const AetItemTypePtr& selected);
 
 	private:
+
 		char aetNameBuffer[255];
 		char aetObjNameBuffer[255];
 		char markerNameBuffer[255];
 		char spriteNameBuffer[255];
+		char layerDataNameBuffer[255];
+		char regionDataNameBuffer[255];
 
 		void DrawInspectorAetSet(AetSet* aetSet);
-		void DrawInspectorAet(AetSet* aetSet, Aet* aet);
+		void DrawInspectorAet(Aet* aet);
 		
-		void DrawInspectorAetLayer(AetSet* aetSet, AetLayer* aetLayer);
-		void DrawInspectorLayerData(AetLayer* aetLayer);
+		void DrawInspectorAetLayer(Aet* aet, AetLayer* aetLayer);
+		void DrawInspectorLayerData(Aet* aet, AetObj* aetObj, AetLayer* aetLayer);
 		
-		void DrawInspectorAetObj(AetSet* aetSet, AetObj* aetObj);
-		void DrawInspectorRegionData(AetRegion* spriteEntry);
+		void DrawInspectorAetObj(Aet* aet, AetObj* aetObj);
+		void DrawInspectorRegionData(Aet* aet, AetObj* aetObj, AetRegion* spriteEntry);
 		void DrawInspectorAnimationData(AnimationData* animationData);
 		void DrawInspectorKeyFrameProperties(KeyFrameProperties* properties);
 		void DrawInspectorKeyFrames(const char* name, std::vector<KeyFrame>* keyFrames);
 		void DrawInspectorAetObjMarkers(std::vector<Marker>* markers);
 		void DrawInspectorAetObjParent(AetObj* aetObj);
 		
-		void DrawInspectorAetRegion(AetSet* aetSet, AetRegion* aetRegion);
+		void DrawInspectorAetRegion(Aet* aet, AetRegion* aetRegion);
 	};
 }
