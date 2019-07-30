@@ -3,10 +3,11 @@
 #include "BaseWindow.h"
 #include "Editor/Editor.h"
 #include "Audio/AudioEngine.h"
+#include "Graphics/Graphics.h"
+#include "App/Engine.h"
 #include "License/LicenseWindow.h"
 #include "TimeSpan.h"
 #include "Logger.h"
-#include "Graphics/Graphics.h"
 #include <glfw/glfw3.h>
 
 constexpr float DefaultWindowWidth = 1280.0f;
@@ -87,6 +88,7 @@ private:
 	// ------------
 
 	void DrawGui();
+	void DrawAppEngineWindow();
 
 	void DrawGuiBaseWindowMenus(const char* header, std::vector<std::shared_ptr<BaseWindow>>& components);
 	void DrawGuiBaseWindowWindows(std::vector<std::shared_ptr<BaseWindow>>& components);
@@ -138,16 +140,25 @@ private:
 
 	// ImGui Variables
 	// ---------------
+	bool showMainAppEngineWindow = false;
+	bool exclusiveAppEngineWindow = false;
+	bool showMainMenuBar = true;
 	const char* dockSpaceID = "MainDockSpace##Application";
 
 	LicenseWindow licenseWindow;
+	bool showStyleEditor = false;
 	bool showDemoWindow = false;
 	bool showSwapInterval = true;
 	// ---------------
 
+	// App Engine
+	// -----------
+	std::unique_ptr<App::Engine> appEngine = nullptr;
+	// -----------------
+
 	// Main Editor
 	// -----------
-	std::unique_ptr<Editor::PvEditor> pvEditor;
+	std::unique_ptr<Editor::PvEditor> pvEditor = nullptr;
 	// -----------------
 
 	// Data Test Components

@@ -73,11 +73,9 @@ namespace App
 		if (obj.Region == nullptr)
 			return;
 
-		AetSprite* aetSprite = obj.Region->Sprites.size() < 1 ? nullptr : &obj.Region->Sprites.at(obj.SpriteIndex);
-
 		Texture* texture;
 		Sprite* sprite;
-		bool validSprite = SpriteGetter(aetSprite, &texture, &sprite);
+		bool validSprite = SpriteGetter(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
 
 		if (validSprite)
 		{

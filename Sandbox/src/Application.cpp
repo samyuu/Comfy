@@ -241,7 +241,7 @@ void Application::BaseRegister()
 		GetApplicationPointer(window)->WindowClosingCallback();
 	});
 
-	glfwSetJoystickCallback([](int id, int event) 
+	glfwSetJoystickCallback([](int id, int event)
 	{
 		if (event == GLFW_CONNECTED || event == GLFW_DISCONNECTED)
 			globalCallbackApplication->CheckConnectedDevices();
@@ -311,7 +311,7 @@ bool Application::InitializeWindow()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	
+
 	window = glfwCreateWindow(static_cast<int>(windowWidth), static_cast<int>(windowHeight), DefaultWindowTitle, nullptr, nullptr);
 
 	if (window == nullptr)
@@ -336,7 +336,8 @@ bool Application::InitializeGui()
 	ImGuiIO& io = ImGui::GetIO();
 	io.IniFilename = "ram/imgui.ini";
 	io.LogFilename = "ram/imgui_log.txt";
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	// io.ConfigFlags |= ImGuiConfigFlags_NavNoCaptureKeyboard;
 	io.ConfigDockingWithShift = false;
@@ -451,10 +452,18 @@ void Application::DrawGui()
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
+	ImGui::UpdateExtendedState();
 	{
+		if (ImGui::IsKeyPressed(KeyCode_F7))
+			showMainAppEngineWindow ^= true;
+		if (ImGui::IsKeyPressed(KeyCode_F8))
+			exclusiveAppEngineWindow ^= true;
+		if (ImGui::IsKeyPressed(KeyCode_F9))
+			showMainMenuBar ^= true;
+
 		// Main Menu Bar
 		// -------------
-		if (ImGui::BeginMainMenuBar())
+		if (showMainMenuBar && !exclusiveAppEngineWindow && ImGui::BeginMainMenuBar())
 		{
 			if (ImGui::BeginMenu("Debug"))
 			{
@@ -571,39 +580,78 @@ void Application::DrawGui()
 			ImGui::SetNextWindowSize(viewport->Size);
 			ImGui::SetNextWindowViewport(viewport->ID);
 
-			ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-			window_flags |= ImGuiWindowFlags_NoBackground;
+			ImGuiWindowFlags dockspaceWindowFlags = ImGuiWindowFlags_NoDocking;
+			dockspaceWindowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+			dockspaceWindowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+			dockspaceWindowFlags |= ImGuiWindowFlags_NoBackground;
+			if (showMainMenuBar)
+				dockspaceWindowFlags |= ImGuiWindowFlags_MenuBar;
 
-			ImGui::Begin(dockSpaceID, nullptr, window_flags);
-			ImGuiID dockspace_id = ImGui::GetID(dockSpaceID);
-			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+			ImGui::Begin(dockSpaceID, nullptr, dockspaceWindowFlags);
+			ImGuiID dockspaceID = ImGui::GetID(dockSpaceID);
+			ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 			ImGui::End();
 
 			ImGui::PopStyleVar(3);
-
-			if (ImGui::GetFrameCount() < 1)
-			{
-				ImGui::DockBuilderRemoveNode(dockspace_id);
-				ImGuiDockNodeFlags dockSpaceFlags = 0;
-
-				ImGuiID dockLeft = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.40f, NULL, &dockspace_id);
-			}
 		}
 
-		// Demo Window
-		// -----------
-		if (showDemoWindow)
-			ImGui::ShowDemoWindow(&showDemoWindow);
-
-		// Editor Windows
-		// --------------
-		pvEditor->DrawGuiWindows();
-
-		// Data Test Windows
+		// App Engine Window
 		// -----------------
-		DrawGuiBaseWindowWindows(dataTestComponents);
+		if (exclusiveAppEngineWindow)
+		{
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(viewport->Pos);
+			ImGui::SetNextWindowSize(viewport->Size);
+			ImGui::SetNextWindowViewport(viewport->ID);
+
+			ImGuiWindowFlags engineWindowFlags = ImGuiWindowFlags_None;
+			engineWindowFlags |= ImGuiWindowFlags_NoDocking;
+			engineWindowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+			engineWindowFlags |= ImGuiWindowFlags_NoNavFocus;
+			engineWindowFlags |= ImGuiWindowFlags_NoSavedSettings;
+
+			if (showMainAppEngineWindow)
+			{
+				if (ImGui::Begin("App::Engine::Window##Application", &showMainAppEngineWindow, engineWindowFlags))
+					DrawAppEngineWindow();
+				ImGui::End();
+			}
+		}
+		else
+		{
+			// App Engine Window
+			// -----------------
+			if (showMainAppEngineWindow)
+			{
+				if (ImGui::Begin("Engine Window##Application", &showMainAppEngineWindow, ImGuiWindowFlags_None))
+					DrawAppEngineWindow();
+				ImGui::End();
+			}
+
+			// Style Editor
+			// ------------
+			if (showStyleEditor)
+			{
+				ImGui::Begin("Style Editor##Application", &showStyleEditor);
+				ImGui::ShowStyleEditor();
+				ImGui::End();
+			}
+
+			// Demo Window
+			// -----------
+			if (showDemoWindow)
+			{
+				ImGui::ShowDemoWindow(&showDemoWindow);
+			}
+
+			// Editor Windows
+			// --------------
+			pvEditor->DrawGuiWindows();
+
+			// Data Test Windows
+			// -----------------
+			DrawGuiBaseWindowWindows(dataTestComponents);
+		}
 	}
 	ImGui::Render();
 
@@ -618,12 +666,21 @@ void Application::DrawGui()
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
+void Application::DrawAppEngineWindow()
+{
+	if (appEngine == nullptr)
+		appEngine = std::make_unique<App::Engine>();
+
+	appEngine->Tick();
+}
+
 void Application::DrawGuiBaseWindowMenus(const char* header, std::vector<std::shared_ptr<BaseWindow>>& components)
 {
 	if (ImGui::BeginMenu(header))
 	{
+		DEBUG_ONLY(ImGui::MenuItem("Style Editor", nullptr, &showStyleEditor));
 		DEBUG_ONLY(ImGui::MenuItem("Demo Window", nullptr, &showDemoWindow));
-		
+
 		for (const auto& component : components)
 			ImGui::MenuItem(component->GetGuiName(), nullptr, component->GetIsGuiOpenPtr());
 
