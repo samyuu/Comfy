@@ -44,16 +44,16 @@ namespace Editor
 						Text("Region: %dx%d", region.Width, region.Height);
 
 						NextColumn();
-						if (region.Sprites.size() > 0)
+						if (region.SpriteSize() > 0)
 						{
-							Text(ICON_AETREGION "  %s", region.Sprites.front().Name.c_str());
+							Text(ICON_AETREGION "  %s", region.GetFrontSprite()->Name.c_str());
 
-							if (region.Sprites.size() > 1)
+							if (region.SpriteSize() > 1)
 							{
 								SameLine();
 								Text("...");
 								SameLine();
-								Text(region.Sprites.back().Name.c_str());
+								Text(region.GetBackSprite()->Name.c_str());
 							}
 						}
 						else
