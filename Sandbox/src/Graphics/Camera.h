@@ -1,32 +1,71 @@
 #pragma once
 #include "Types.h"
 
-constexpr vec3 UP_DIRECTION = vec3(0.0f, 1.0f, 0.0f);
+constexpr vec3 Vec3_UpDirection = vec3(0.0f, 1.0f, 0.0f);
 
-vec3 ScreenToWorldSpace(const mat4& matrix, const vec3& screenSpace);
-vec3 WorldToScreenSpace(const mat4& matrix, const vec3& worldSpace);
-
-vec2 ScreenToWorldSpace(const mat4& matrix, const vec2& screenSpace);
-vec2 WorldToScreenSpace(const mat4& matrix, const vec2& worldSpace);
-
-class PerspectiveCamera
+class ICamera
 {
 public:
-	vec3 Position = vec3(0, 0, 3);
+	virtual void UpdateMatrices() = 0;
+
+	virtual const mat4& GetViewMatrix() const = 0;
+	virtual const mat4& GetProjectionMatrix() const = 0;
+
+public:
+	static vec3 ScreenToWorldSpace(const mat4& matrix, const vec3& screenSpace);
+	static vec3 WorldToScreenSpace(const mat4& matrix, const vec3& worldSpace);
+
+	static vec2 ScreenToWorldSpace(const mat4& matrix, const vec2& screenSpace);
+	static vec2 WorldToScreenSpace(const mat4& matrix, const vec2& worldSpace);
+
+protected:
+	static const mat4 identityMatrix;
+};
+
+class PerspectiveCamera : public ICamera
+{
+public:
+	vec3 Position = vec3(0.0f, 0.0f, 3.0f);
 	vec3 Target;
 
-	vec3 UpDirection = UP_DIRECTION;
-	//float Rotation = 0.0f;
+	vec3 UpDirection = Vec3_UpDirection;
 
 	float FieldOfView = 90.0f;
 	float AspectRatio = 16.0f / 9.0f;
 	float NearPlane = 0.001f;
 	float FarPlane = 3939.0f;
 
-	void Update();
+public:
+	virtual void UpdateMatrices() override;
 
-	const mat4& GetViewMatrix() const;
-	const mat4& GetProjectionMatrix() const;
+	virtual const mat4& GetViewMatrix() const override;
+	virtual const mat4& GetProjectionMatrix() const override;
+
+protected:
+	mat4 viewMatrix;
+	mat4 projectionMatrix;
+};
+
+class OrthographicCamera : public ICamera
+{
+public:
+	float Zoom = 1.0f;
+	vec2 Position = vec2(0.0f, 0.0f);
+	vec2 ProjectionSize = vec2(-1.0f);
+
+	const float NearPlane = -1.0f;
+	const float FarPlane = 1.0f;
+
+public:
+	virtual void UpdateMatrices() override;
+
+	virtual const mat4& GetViewMatrix() const override;
+	virtual const mat4& GetProjectionMatrix() const override;
+
+	vec2 GetProjectionCenter() const;
+
+	vec2 ScreenToWorldSpace(const vec2& screenSpace) const;
+	vec2 WorldToScreenSpace(const vec2& worldSpace) const;
 
 protected:
 	mat4 viewMatrix;

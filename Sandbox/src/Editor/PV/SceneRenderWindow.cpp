@@ -255,7 +255,7 @@ namespace Editor
 		cameraYaw = ImLerp(cameraYaw, targetCameraYaw, io.DeltaTime * cameraSmoothness);
 		cameraPitch = ImLerp(cameraPitch, targetCameraPitch, io.DeltaTime * cameraSmoothness);
 
-		camera.Update();
+		camera.UpdateMatrices();
 	}
 
 	void SceneRenderWindow::OnRender()

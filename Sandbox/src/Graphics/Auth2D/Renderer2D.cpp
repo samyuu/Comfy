@@ -170,10 +170,12 @@ namespace Auth2D
 		vertices.reserve(Renderer2DMaxItemSize);
 	}
 
-	void Renderer2D::Begin(const mat4* viewMatrix)
+	void Renderer2D::Begin(const OrthographicCamera& camera)
 	{
-		drawCallCount = 0;
-		this->viewMatrix = viewMatrix;
+		this->drawCallCount = 0;
+		this->camera = &camera;
+		
+		assert(this->camera != nullptr);
 	}
 
 	void Renderer2D::Draw(const vec2& position, const vec2& size, const vec4& color)
@@ -283,10 +285,7 @@ namespace Auth2D
 		shader->Bind();
 		shader->SetUniform(shader->UseTextShadowLocation, GetUseTextShadow());
 		{
-			mat4 projectionView = glm::ortho(0.0f, projectionSize.x, projectionSize.y, 0.0f, -1.0f, 1.0f);
-			if (viewMatrix != nullptr)
-				projectionView *= (*viewMatrix);
-
+			const mat4 projectionView = camera->GetProjectionMatrix() * camera->GetViewMatrix();
 			shader->SetUniform(shader->ProjectionViewLocation, projectionView);
 		}
 
@@ -334,14 +333,6 @@ namespace Auth2D
 		vertexArray.UnBind();
 
 		ClearItems();
-	}
-
-	void Renderer2D::Resize(float width, float height)
-	{
-		if (width == projectionSize.x && height == projectionSize.y)
-			return;
-
-		projectionSize = vec2(width, height);
 	}
 
 	void Renderer2D::SetBlendFunction(AetBlendMode blendMode)

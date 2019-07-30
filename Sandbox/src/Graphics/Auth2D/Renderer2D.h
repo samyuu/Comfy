@@ -5,6 +5,7 @@
 #include "Graphics/Shader/Shader.h"
 #include "Graphics/ComfyVertex.h"
 #include "Graphics/Texture.h"
+#include "Graphics/Camera.h"
 #include "FileSystem/Format/AetSet.h"
 
 namespace Auth2D
@@ -80,7 +81,7 @@ namespace Auth2D
 	{
 	public:
 		void Initialize();
-		void Begin(const mat4* viewMatrix = nullptr);
+		void Begin(const OrthographicCamera& camera);
 		void Draw(const vec2& position, const vec2& size, const vec4& color);
 		void Draw(const vec2& position, const vec2& size, const vec4 colors[4]);
 		void Draw(const vec2& position, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4& color);
@@ -102,7 +103,6 @@ namespace Auth2D
 		void End();
 		void Flush();
 
-		void Resize(float width, float height);
 		inline SpriteShader* GetShader() { return shader.get(); };
 		
 		inline bool GetEnableAlphaTest() { return enableAlphaTest; };
@@ -130,8 +130,7 @@ namespace Auth2D
 		std::vector<BatchItem> batchItems;
 		std::vector<SpriteVertices> vertices;
 
-		const mat4* viewMatrix = nullptr;
-		vec2 projectionSize = { 64.0f, 64.0f };
+		const OrthographicCamera* camera;
 
 		uint16_t drawCallCount;
 
