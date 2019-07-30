@@ -49,6 +49,7 @@ dlldata.c
 
 # Sandbox development files
 dev_ram/
+dev_rom/
 
 # AudioTest files
 AudioTest/rom
