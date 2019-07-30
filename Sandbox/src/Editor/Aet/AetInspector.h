@@ -16,6 +16,8 @@ namespace Editor
 		bool DrawGui(Aet* aet, const AetItemTypePtr& selected);
 
 	private:
+		AetItemTypePtr lastSelectedItem;
+		int newParentObjLayerIndex = -1;
 
 		char aetNameBuffer[255];
 		char aetObjNameBuffer[255];
@@ -23,6 +25,7 @@ namespace Editor
 		char spriteNameBuffer[255];
 		char layerDataNameBuffer[255];
 		char regionDataNameBuffer[255];
+		char parentObjDataNameBuffer[255];
 
 		void DrawInspectorAetSet(AetSet* aetSet);
 		void DrawInspectorAet(Aet* aet);
@@ -36,7 +39,7 @@ namespace Editor
 		void DrawInspectorKeyFrameProperties(KeyFrameProperties* properties);
 		void DrawInspectorKeyFrames(const char* name, std::vector<KeyFrame>* keyFrames);
 		void DrawInspectorAetObjMarkers(std::vector<Marker>* markers);
-		void DrawInspectorAetObjParent(AetObj* aetObj);
+		void DrawInspectorAetObjParent(Aet* aet, AetObj* aetObj);
 		
 		void DrawInspectorAetRegion(Aet* aet, AetRegion* aetRegion);
 	};

@@ -18,6 +18,11 @@ namespace Editor
 
 	bool AetInspector::DrawGui(Aet* aet, const AetItemTypePtr& selected)
 	{
+		if (lastSelectedItem.VoidPointer != selected.VoidPointer)
+			newParentObjLayerIndex = -1;
+		
+		lastSelectedItem = selected;
+
 		if (ImGui::TreeNodeEx("Selection", ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			ImGui::Separator();
@@ -92,9 +97,9 @@ namespace Editor
 	{
 		ImGui::Text("AetLayer:");
 
-		if (ImGui::WideTreeNodeEx(ICON_NAMES "  Names:", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::WideTreeNodeEx(ICON_NAMES "  Given Names:", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			for (auto& name : aetLayer->Names)
+			for (auto& name : aetLayer->GetGivenNames())
 				ImGui::BulletText(name.c_str());
 
 			ImGui::TreePop();
@@ -114,7 +119,7 @@ namespace Editor
 		if (ImGui::TreeNodeEx(ICON_AETLAYERS "  Layer Data", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			if (aetLayer != nullptr)
-				sprintf_s(layerDataNameBuffer, "Layer %d (%s)", aetLayer->GetThisIndex(), aetLayer->CommaSeparatedNames.c_str());
+				sprintf_s(layerDataNameBuffer, "Layer %d (%s)", aetLayer->GetThisIndex(), aetLayer->GetCommaSeparatedNames());
 
 			if (ImGui::BeginCombo("Region", aetLayer == nullptr ? "nullptr" : layerDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
@@ -129,7 +134,7 @@ namespace Editor
 					ImGui::PushID(&layer);
 
 					bool isSelected = (aetLayer == &layer);
-					sprintf_s(layerDataNameBuffer, "Layer %d (%s)", layer.GetThisIndex(), layer.CommaSeparatedNames.c_str());
+					sprintf_s(layerDataNameBuffer, "Layer %d (%s)", layer.GetThisIndex(), layer.GetCommaSeparatedNames());
 
 					if (ImGui::Selectable(layerDataNameBuffer, isSelected))
 						aetObj->SetLayer(&layer);
@@ -178,7 +183,7 @@ namespace Editor
 			DrawInspectorAnimationData(aetObj->AnimationData.get());
 
 		DrawInspectorAetObjMarkers(&aetObj->Markers);
-		DrawInspectorAetObjParent(aetObj);
+		DrawInspectorAetObjParent(aet, aetObj);
 	}
 
 	void AetInspector::DrawInspectorRegionData(Aet* aet, AetObj* aetObj, AetRegion* aetRegion)
@@ -308,8 +313,8 @@ namespace Editor
 
 				ImGui::PushID((void*)&marker);
 				bool open = ImGui::WideTreeNode("##AetInspectorMarker", "Frame: %.1f  :  %s", marker.Frame, marker.Name.c_str());
-				
-				ImGui::ItemContextMenu("AddMarkerContextMenu##AetInspector", [&markers, &i]() 
+
+				ImGui::ItemContextMenu("AddMarkerContextMenu##AetInspector", [&markers, &i]()
 				{
 					if (ImGui::MenuItem("Delete"))
 					{
@@ -342,21 +347,80 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAetObjParent(AetObj* aetObj)
+	void AetInspector::DrawInspectorAetObjParent(Aet* aet, AetObj* aetObj)
 	{
 		if (ImGui::TreeNodeEx(ICON_PARENT "  Parent", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			AetObj* parent = aetObj->GetParentObj();
+			AetObj* parentObj = aetObj->GetParentObj();
+			AetLayer* parentObjLayer = aetObj->GetParentObjLayer();
 
-			if (parent == nullptr)
-			{
-				ImGui::BulletText("none");
+			if (parentObj != nullptr)
+				newParentObjLayerIndex = aetObj->GetParentObjLayerIndex();
+			
+			if (newParentObjLayerIndex >= 0)
+			{ 
+				parentObjLayer = &aet->AetLayers[newParentObjLayerIndex];
+				sprintf_s(parentObjDataNameBuffer, "Layer %d (%s)", parentObjLayer->GetThisIndex(), parentObjLayer->GetCommaSeparatedNames());
 			}
 			else
 			{
-				ImGui::BulletText("%s  %s", GetObjTypeIcon(parent->Type), parent->GetName());
+				strcpy_s(parentObjDataNameBuffer, "nullptr");
 			}
 
+			if (ImGui::BeginCombo("Parent Layer", parentObjDataNameBuffer, ImGuiComboFlags_HeightLarge))
+			{
+				if (ImGui::Selectable("nullptr", parentObjLayer == nullptr))
+				{
+					aetObj->SetParentObj(nullptr);
+					newParentObjLayerIndex = -1;
+				}
+
+				for (int32_t layerIndex = 0; layerIndex < aet->AetLayers.size(); layerIndex++)
+				{
+					auto& layer = aet->AetLayers[layerIndex];
+
+					bool isSelected = (layerIndex == newParentObjLayerIndex);
+					sprintf_s(parentObjDataNameBuffer, "Layer %d (%s)", layer.GetThisIndex(), layer.GetCommaSeparatedNames());
+
+					ImGui::PushID(&layer);
+					if (ImGui::Selectable(parentObjDataNameBuffer, isSelected))
+					{
+						aetObj->SetParentObj(nullptr);
+						newParentObjLayerIndex = layerIndex;
+					}
+
+					if (isSelected)
+						ImGui::SetItemDefaultFocus();
+					ImGui::PopID();
+				}
+
+				ImGui::EndCombo();
+			}
+
+			if (ImGui::BeginCombo("Parent Object", parentObj == nullptr ? "nullptr" : parentObj->GetName(), ImGuiComboFlags_HeightLarge))
+			{
+				if (ImGui::Selectable("nullptr", parentObj == nullptr))
+					aetObj->SetParentObj(nullptr);
+
+				if (parentObjLayer != nullptr)
+				{
+					for (int32_t objIndex = 0; objIndex < parentObjLayer->size(); objIndex++)
+					{
+						auto& obj = parentObjLayer->at(objIndex);
+						bool isSelected = (&obj == parentObj);
+
+						ImGui::PushID(&obj);
+						if (ImGui::Selectable(obj.GetName(), isSelected))
+							aetObj->SetParentObj(&obj);
+
+						if (isSelected)
+							ImGui::SetItemDefaultFocus();
+						ImGui::PopID();
+					}
+				}
+				ImGui::EndCombo();
+
+			}
 			ImGui::TreePop();
 		}
 	}

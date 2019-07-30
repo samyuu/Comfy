@@ -144,14 +144,13 @@ namespace Editor
 		if (&aetLayer == lastHovered.AetLayer)
 			ImGui::PushStyleColor(ImGuiCol_Text, GetColor(EditorColor_TextHighlight));
 
-		bool isRoot = (&aetLayer == &aet.AetLayers.back());
 		bool aetLayerNodeWasOpen = openLayers[aet.GetThisIndex()][aetLayer.GetThisIndex()];
 
 		bool aetLayerNodeOpen = ImGui::WideTreeNodeEx("##AetLayerTreeNode", layerNodeFlags,
-			isRoot ? "%s  Root" : "%s  Layer %d (%s)",
+			"%s  Layer %d (%s)",
 			aetLayerNodeWasOpen ? ICON_AETLAYER_OPEN : ICON_AETLAYER,
 			aetLayer.GetThisIndex(),
-			aetLayer.CommaSeparatedNames.c_str());
+			aetLayer.GetCommaSeparatedNames());
 
 		openLayers[aet.GetThisIndex()][aetLayer.GetThisIndex()] = aetLayerNodeOpen;
 
@@ -166,12 +165,6 @@ namespace Editor
 		{
 			openAddAetObjPopup = DrawAetLayerContextMenu(aetLayer);
 		});
-
-		/*if (ImGui::BeginPopupContextItem("AetLayerContextMenu##AetTreeView"))
-		{
-			openAddAetObjPopup = DrawAetLayerContextMenu(aetLayer);
-			ImGui::EndItemContextMenu();
-		}*/
 
 		if (openAddAetObjPopup)
 		{
