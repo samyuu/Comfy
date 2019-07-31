@@ -28,6 +28,11 @@
 #define ICON_AUDIBLE		ICON_FA_VOLUME_UP
 #define ICON_INAUDIBLE		ICON_FA_VOLUME_MUTE
 
+#define ICON_ADD			ICON_FA_PLUS
+#define ICON_MOVEUP			ICON_FA_ARROW_UP
+#define ICON_MOVEDOWN		ICON_FA_ARROW_DOWN
+#define ICON_DELETE			ICON_FA_TRASH
+
 namespace Editor
 {
 	using namespace FileSystem;
