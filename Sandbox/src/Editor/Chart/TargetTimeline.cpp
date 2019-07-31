@@ -8,6 +8,16 @@
 
 namespace Editor
 {
+	static void EnsureStreamOpenAndRunning()
+	{
+		auto audioEngine = AudioEngine::GetInstance();
+
+		if (!audioEngine->GetIsStreamOpen())
+			audioEngine->OpenStream();
+		if (!audioEngine->GetIsStreamRunning())
+			audioEngine->StartStream();
+	}
+
 	TargetTimeline::TargetTimeline(Application* parent, PvEditor* editor) : IEditorComponent(parent, editor)
 	{
 	}
@@ -188,7 +198,10 @@ namespace Editor
 			buttonPlacementKeyStates[i].Down = glfwGetKey(GetParent()->GetWindow(), buttonPlacementMapping[i].Key);
 
 			if (buttonPlacementKeyStates[i].Down && !buttonPlacementKeyStates[i].WasDown)
+			{
+				EnsureStreamOpenAndRunning();
 				audioController.PlayButtonSound();
+			}
 		}
 	}
 
@@ -268,6 +281,8 @@ namespace Editor
 
 	void TargetTimeline::OnPlaybackResumed()
 	{
+		EnsureStreamOpenAndRunning();
+
 		buttonSoundTimesList.clear();
 		for (const auto &target : targets)
 		{

@@ -90,8 +90,6 @@ namespace Editor
 	void PvEditor::Initialize()
 	{
 		auto audioEngine = AudioEngine::GetInstance();
-		audioEngine->OpenStream();
-		audioEngine->StartStream();
 
 		songInstance = std::make_shared<AudioInstance>(&dummySampleProvider, "PvEditor::SongInstance");
 		songInstance->SetPlayPastEnd(true);
