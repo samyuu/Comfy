@@ -774,10 +774,10 @@ namespace FileSystem
 					if (!nameExists)
 						referencedLayer->givenNames.emplace_back(aetObj.Name);
 				}
-
-				if (&aetLayer == rootLayer)
-					aetLayer.givenNames.emplace_back("Root");
 			}
+
+			if (&aetLayer == rootLayer)
+				aetLayer.givenNames.emplace_back("Root");
 		}
 
 		for (auto& aetLayer : AetLayers)
