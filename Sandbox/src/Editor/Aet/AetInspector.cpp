@@ -312,11 +312,17 @@ namespace Editor
 				Marker& marker = markers->at(i);
 
 				ImGui::PushID((void*)&marker);
-				bool open = ImGui::WideTreeNode("##AetInspectorMarker", "Frame: %.1f  :  %s", marker.Frame, marker.Name.c_str());
+				bool open = ImGui::WideTreeNode("##AetInspectorMarker", "Frame: %.2f  :  %s", marker.Frame, marker.Name.c_str());
 
 				ImGui::ItemContextMenu("AddMarkerContextMenu##AetInspector", [&markers, &i]()
 				{
-					if (ImGui::MenuItem("Delete"))
+					if (ImGui::MenuItem(ICON_MOVEUP "  Move Up", nullptr, nullptr, i > 0))
+						std::iter_swap(markers->begin() + i, markers->begin() + i - 1);
+
+					if (ImGui::MenuItem(ICON_MOVEDOWN "  Move Down", nullptr, nullptr, i < markers->size() - 1))
+						std::iter_swap(markers->begin() + i, markers->begin() + i + 1);
+
+					if (ImGui::MenuItem(ICON_DELETE "  Delete"))
 					{
 						markers->erase(markers->begin() + i);
 						i--;
