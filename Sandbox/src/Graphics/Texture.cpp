@@ -140,12 +140,12 @@ bool Texture2D::UploadFromFile(const char* path)
 
 	imageSize.x = (float)width;
 	imageSize.y = (float)height;
-	textureFormat = TextureFormat::RGBA8;
+	textureFormat = imageChannels == 3 ? TextureFormat::RGB8 : TextureFormat::RGBA8;
 
 	InitializeID();
 	Bind();
 
-	GLCall(glTexImage2D(GetTextureTarget(), 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData));
+	GLCall(glTexImage2D(GetTextureTarget(), 0, GetGLTextureFormat(textureFormat), width, height, 0, imageChannels == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, pixelData));
 	GLCall(glGenerateMipmap(GetTextureTarget()));
 
 	stbi_image_free(pixelData);
