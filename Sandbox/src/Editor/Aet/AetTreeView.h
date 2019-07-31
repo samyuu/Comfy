@@ -38,8 +38,6 @@ namespace Editor
 		Aet* activeAet;
 		AetItemTypePtr selected, lastHovered, hovered;
 
-		std::vector<std::vector<bool>> openLayers;
-
 		void DrawTreeViewBackground();
 		void DrawTreeViewAet(Aet& aet);
 		void DrawTreeViewLayer(Aet& aet, AetLayer& aetLayer);

@@ -37,9 +37,6 @@ namespace Editor
 			if (ImGui::IsItemClicked())
 				SetSelectedItem(aetSet);
 
-			if (openLayers.size() != aetSet->size())
-				openLayers.resize(aetSet->size());
-
 			for (auto& aet : *aetSet)
 				DrawTreeViewAet(aet);
 
@@ -105,9 +102,6 @@ namespace Editor
 				if (ImGui::IsItemClicked())
 					ResetSelectedItem();
 
-				if (openLayers[aet.GetThisIndex()].size() != aet.AetLayers.size())
-					openLayers[aet.GetThisIndex()].resize(aet.AetLayers.size());
-
 				for (auto& aetLayer : aet.AetLayers)
 					DrawTreeViewLayer(aet, aetLayer);
 
@@ -141,21 +135,8 @@ namespace Editor
 		if (aetLayer.size() < 1)
 			layerNodeFlags |= ImGuiTreeNodeFlags_Leaf;
 
-		if (&aetLayer == lastHovered.AetLayer)
-			ImGui::PushStyleColor(ImGuiCol_Text, GetColor(EditorColor_TextHighlight));
-
-		bool aetLayerNodeWasOpen = openLayers[aet.GetThisIndex()][aetLayer.GetThisIndex()];
-
-		bool aetLayerNodeOpen = ImGui::WideTreeNodeEx("##AetLayerTreeNode", layerNodeFlags,
-			"%s  Layer %d (%s)",
-			aetLayerNodeWasOpen ? ICON_AETLAYER_OPEN : ICON_AETLAYER,
-			aetLayer.GetThisIndex(),
-			aetLayer.GetCommaSeparatedNames());
-
-		openLayers[aet.GetThisIndex()][aetLayer.GetThisIndex()] = aetLayerNodeOpen;
-
-		if (&aetLayer == lastHovered.AetLayer)
-			ImGui::PopStyleColor();
+		ImVec2 treeNodeCursorPos = ImGui::GetCursorScreenPos();
+		bool aetLayerNodeOpen = ImGui::WideTreeNodeEx("##AetLayerTreeNode", layerNodeFlags);
 
 		if (ImGui::IsItemClicked())
 			SetSelectedItem(&aet, &aetLayer);
@@ -165,6 +146,19 @@ namespace Editor
 		{
 			openAddAetObjPopup = DrawAetLayerContextMenu(aetLayer);
 		});
+
+		if (&aetLayer == lastHovered.AetLayer)
+			ImGui::PushStyleColor(ImGuiCol_Text, GetColor(EditorColor_TextHighlight));
+
+		ImGui::SetCursorScreenPos(treeNodeCursorPos + ImVec2(GImGui->FontSize + (GImGui->Style.FramePadding.x * 1), 0));
+		ImGui::Text(
+			"%s  Layer %d (%s)",
+			aetLayerNodeOpen ? ICON_AETLAYER_OPEN : ICON_AETLAYER,
+			aetLayer.GetThisIndex(),
+			aetLayer.GetCommaSeparatedNames());
+
+		if (&aetLayer == lastHovered.AetLayer)
+			ImGui::PopStyleColor();
 
 		if (openAddAetObjPopup)
 		{
@@ -235,7 +229,7 @@ namespace Editor
 					SetSelectedItem(&aet, &aetObj);
 			}
 
-			ImGui::ItemContextMenu("AetObjContextMenu##AetInspector", [this, &aetObj]() 
+			ImGui::ItemContextMenu("AetObjContextMenu##AetInspector", [this, &aetObj]()
 			{
 				DrawAetObjContextMenu(aetObj);
 			});
@@ -282,21 +276,27 @@ namespace Editor
 
 	bool AetTreeView::DrawAetLayerContextMenu(AetLayer& aetLayer)
 	{
+		ImGui::Text(aetLayer.GetCommaSeparatedNames(), nullptr);
+		ImGui::Separator();
+
 		// TODO:
-		bool openAddAetObjPopup = ImGui::MenuItem(ICON_FA_PLUS "  Add new AetObj...");
-		if (ImGui::MenuItem(ICON_FA_ARROW_UP "  Move Up")) {}
-		if (ImGui::MenuItem(ICON_FA_ARROW_DOWN "  Move Down")) {}
-		if (ImGui::MenuItem(ICON_FA_TRASH "  Delete...")) {}
+		bool openAddAetObjPopup = ImGui::MenuItem(ICON_ADD "  Add new AetObj...");
+		if (ImGui::MenuItem(ICON_MOVEUP "  Move Up")) {}
+		if (ImGui::MenuItem(ICON_MOVEDOWN "  Move Down")) {}
+		if (ImGui::MenuItem(ICON_DELETE "  Delete...")) {}
 
 		return openAddAetObjPopup;
 	}
 
 	bool AetTreeView::DrawAetObjContextMenu(AetObj& aetObj)
 	{
+		ImGui::Text(aetObj.GetName(), nullptr);
+		ImGui::Separator();
+
 		// TODO:
-		if (ImGui::MenuItem(ICON_FA_ARROW_UP "  Move Up")) {}
-		if (ImGui::MenuItem(ICON_FA_ARROW_DOWN "  Move Down")) {}
-		if (ImGui::MenuItem(ICON_FA_TRASH "  Delete...")) {}
+		if (ImGui::MenuItem(ICON_MOVEUP "  Move Up")) {}
+		if (ImGui::MenuItem(ICON_MOVEDOWN "  Move Down")) {}
+		if (ImGui::MenuItem(ICON_DELETE "  Delete...")) {}
 
 		return false;
 	}
