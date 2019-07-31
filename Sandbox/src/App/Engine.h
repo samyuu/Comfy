@@ -1,8 +1,46 @@
 #pragma once
+#include "Task.h"
+#include "Editor/RenderWindowBase.h"
+#include "Editor/CameraController2D.h"
+#include "Graphics/Camera.h"
+#include "Graphics/Auth2D/Renderer2D.h"
 #include "ImGui/imgui_extensions.h"
 
 namespace App
 {
+	class EngineRenderWindow : public Editor::RenderWindowBase
+	{
+	public:
+		EngineRenderWindow();
+		EngineRenderWindow(const EngineRenderWindow& other) = delete;
+		~EngineRenderWindow();
+
+		void OnUpdateInput() override;
+		void OnUpdate() override;
+		void OnRender() override;
+
+		template <class T> void StartTask() 
+		{
+			static_assert(std::is_convertible<T*, Task*>::value);
+
+			tasks.push_back(std::make_shared<T>());
+			tasks.back()->Initialize();
+		};
+
+	protected:
+		void OnResize(int width, int height) override;
+
+	protected:
+		Auth2D::Renderer2D renderer;
+
+		OrthographicCamera camera;
+		Editor::CameraController2D cameraController;
+
+		std::vector<std::shared_ptr<Task>> tasks;
+
+		ImGuiWindow* guiWindow;
+	};
+
 	class Engine
 	{
 	public:
@@ -13,6 +51,6 @@ namespace App
 		void Tick();
 
 	protected:
-		ImGuiWindow* guiWindow;
+		EngineRenderWindow engineWindow;
 	};
 }

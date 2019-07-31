@@ -33,6 +33,8 @@ namespace Editor
 	protected:
 		RenderTarget renderTarget;
 
+		virtual ImGuiWindowFlags GetChildWinodwFlags() const { return ImGuiWindowFlags_None; };
+
 		virtual void OnInitialize() {};
 		virtual void OnDrawGui() {};
 		virtual void PostDrawGui() {};

@@ -12,7 +12,7 @@ namespace Editor
 		float ZoomMax = 12.8f;
 
 	public:
-		void UpdateInput(OrthographicCamera& camera, vec2 relativeMouse);
+		void Update(OrthographicCamera& camera, vec2 relativeMouse);
 		void SetUpdateCameraZoom(OrthographicCamera& camera, float newZoom, vec2 origin) const;
 
 	private:

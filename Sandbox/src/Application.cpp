@@ -437,7 +437,9 @@ void Application::UpdatePollInput()
 
 void Application::UpdateInput()
 {
-	if (Keyboard::IsTapped(KeyCode_F11))
+	ImGuiIO& io = ImGui::GetIO();
+
+	if (ImGui::IsKeyPressed(KeyCode_F11) || (io.KeyAlt && ImGui::IsKeyPressed(KeyCode_Enter)))
 		ToggleFullscreen();
 }
 
@@ -454,12 +456,14 @@ void Application::DrawGui()
 	ImGui::NewFrame();
 	ImGui::UpdateExtendedState();
 	{
-		if (ImGui::IsKeyPressed(KeyCode_F7))
-			showMainAppEngineWindow ^= true;
-		if (ImGui::IsKeyPressed(KeyCode_F8))
+		//if (ImGui::IsKeyPressed(KeyCode_F9))
+		//	showMainMenuBar ^= true;
+		
+		if (ImGui::IsKeyPressed(KeyCode_F10))
+		{
+			showMainAppEngineWindow = true;
 			exclusiveAppEngineWindow ^= true;
-		if (ImGui::IsKeyPressed(KeyCode_F9))
-			showMainMenuBar ^= true;
+		}
 
 		// Main Menu Bar
 		// -------------
@@ -495,6 +499,10 @@ void Application::DrawGui()
 			// Editor Menus Items
 			// ------------------
 			pvEditor->DrawGuiMenuItems();
+
+			// App Engine Menu Items
+			// ---------------------
+			DrawAppEngineMenus("Engine");
 
 			// Data Test Menus
 			// ---------------
@@ -612,9 +620,11 @@ void Application::DrawGui()
 
 			if (showMainAppEngineWindow)
 			{
+				Editor::RenderWindowBase::PushWindowPadding();
 				if (ImGui::Begin("App::Engine::Window##Application", &showMainAppEngineWindow, engineWindowFlags))
 					DrawAppEngineWindow();
 				ImGui::End();
+				Editor::RenderWindowBase::PopWindowPadding();
 			}
 		}
 		else
@@ -623,9 +633,11 @@ void Application::DrawGui()
 			// -----------------
 			if (showMainAppEngineWindow)
 			{
+				Editor::RenderWindowBase::PushWindowPadding();
 				if (ImGui::Begin("Engine Window##Application", &showMainAppEngineWindow, ImGuiWindowFlags_None))
 					DrawAppEngineWindow();
 				ImGui::End();
+				Editor::RenderWindowBase::PopWindowPadding();
 			}
 
 			// Style Editor
@@ -672,6 +684,15 @@ void Application::DrawAppEngineWindow()
 		appEngine = std::make_unique<App::Engine>();
 
 	appEngine->Tick();
+}
+
+void Application::DrawAppEngineMenus(const char* header)
+{
+	if (ImGui::BeginMenu(header))
+	{
+		ImGui::MenuItem("Engine Window", nullptr, &showMainAppEngineWindow);
+		ImGui::EndMenu();
+	}
 }
 
 void Application::DrawGuiBaseWindowMenus(const char* header, std::vector<std::shared_ptr<BaseWindow>>& components)

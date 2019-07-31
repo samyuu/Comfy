@@ -89,6 +89,7 @@ private:
 
 	void DrawGui();
 	void DrawAppEngineWindow();
+	void DrawAppEngineMenus(const char* header);
 
 	void DrawGuiBaseWindowMenus(const char* header, std::vector<std::shared_ptr<BaseWindow>>& components);
 	void DrawGuiBaseWindowWindows(std::vector<std::shared_ptr<BaseWindow>>& components);

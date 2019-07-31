@@ -3,9 +3,8 @@
 #include "Editor/Theme.h"
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
-#include "TimeSpan.h"
 #include "Input/KeyCode.h"
-#include "App/TestTasks.h"
+#include "TimeSpan.h"
 
 namespace Editor
 {
@@ -44,16 +43,18 @@ namespace Editor
 		return AetMgr::GetKeyFrameAt(keyFrames, (firstFrame && keyFrames.size() == 1 ? keyFrames.front().Frame : inputFrame));
 	}
 
+	ImGuiWindowFlags AetRenderWindow::GetChildWinodwFlags() const
+	{
+		return ImGuiWindowFlags_None;
+		return ImGuiWindowFlags_AlwaysHorizontalScrollbar | ImGuiWindowFlags_AlwaysVerticalScrollbar;
+	}
+
 	void AetRenderWindow::OnDrawGui()
 	{
-		if (testTask != nullptr)
-		{
-			testTask->PreDrawGui();
-			return;
-		}
-
+		constexpr bool showRuler = false;
 		constexpr float percentFactor = 100.0f;
 		constexpr float itemWidth = 74.0f;
+		constexpr float rulerSize = 18.0f;
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2.0f, 3.0f));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 1.0f));
@@ -142,6 +143,33 @@ namespace Editor
 		}
 		ImGui::PopItemWidth();
 		ImGui::PopStyleVar(2);
+
+		if (showRuler)
+		{
+			ImU32 rulerColor = ImGui::GetColorU32(ImGuiCol_ScrollbarBg);
+			ImU32 rulerSeparatorColor = ImU32(0xFF212121);
+
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f));
+			vec2 rulerTopLeft = ImGui::GetCursorScreenPos();
+			vec2 rulerTopRight = rulerTopLeft + vec2(ImGui::GetContentRegionAvail().x, 0.0);
+			vec2 rulerBotLeft = rulerTopLeft + vec2(0.0f, ImGui::GetContentRegionAvail().y);
+
+			auto* drawList = ImGui::GetWindowDrawList();
+
+			vec2 size(ImGui::GetContentRegionAvail().x, rulerSize);
+			drawList->AddRectFilled(rulerTopLeft, rulerTopLeft + size, rulerColor);
+			ImGui::ItemSize(size);
+
+			size = vec2(rulerSize, ImGui::GetContentRegionAvail().y);
+			drawList->AddRectFilled(ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() + size, rulerColor);
+			ImGui::ItemSize(size);
+
+			ImGui::SameLine();
+			ImGui::PopStyleVar();
+
+			drawList->AddLine(rulerTopLeft, rulerTopRight, rulerSeparatorColor);
+			drawList->AddLine(rulerTopLeft, rulerBotLeft, rulerSeparatorColor);
+		}
 	}
 
 	struct TempVertexStruct
@@ -155,12 +183,6 @@ namespace Editor
 
 	void AetRenderWindow::PostDrawGui()
 	{
-		if (testTask != nullptr)
-		{
-			testTask->PostDrawGui();
-			return;
-		}
-
 		static BoxTransformControl testTransformControl;
 		static Properties testProperties{};
 
@@ -209,19 +231,6 @@ namespace Editor
 	{
 		//if (ImGui::IsMouseClicked(0))
 		selectedAetObj = nullptr;
-
-		if (ImGui::IsKeyPressed(KeyCode_F10, false))
-		{
-			if (testTask == nullptr)
-			{
-				testTask = std::make_unique<App::TaskPs4Menu>();
-				testTask->Initialize();
-			}
-			else
-			{
-				testTask.reset();
-			}
-		}
 	}
 
 	void AetRenderWindow::OnUpdate()
@@ -230,7 +239,7 @@ namespace Editor
 
 	void AetRenderWindow::OnRender()
 	{
-		cameraController.UpdateInput(camera, GetRelativeMouse());
+		cameraController.Update(camera, GetRelativeMouse());
 
 		renderTarget.Bind();
 		{
@@ -242,59 +251,52 @@ namespace Editor
 
 			camera.UpdateMatrices();
 
-			if (testTask != nullptr)
+			renderer.SetUseTextShadow(useTextShadow);
+			renderer.Begin(camera);
 			{
-				renderer.Begin(camera);
-				testTask->Update();
-				testTask->Render(renderer);
-				renderer.End();
-			}
-			else
-			{
-				renderer.SetUseTextShadow(useTextShadow);
-				renderer.Begin(camera);
+				RenderGrid();
+
+				if (active.VoidPointer != nullptr)
 				{
-					RenderGrid();
-
-					if (active.VoidPointer != nullptr)
+					switch (active.Type())
 					{
-						switch (active.Type())
-						{
-						case AetSelectionType::AetSet:
-							RenderAetSet(active.AetSet);
-							break;
-						case AetSelectionType::Aet:
-							RenderAet(active.Aet);
-							break;
-						case AetSelectionType::AetLayer:
-							RenderAetLayer(active.AetLayer);
-							break;
-						case AetSelectionType::AetObj:
-							RenderAetObj(active.AetObj);
-							break;
-						case AetSelectionType::AetRegion:
-							RenderAetRegion(active.AetRegion);
-							break;
+					case AetSelectionType::AetSet:
+						RenderAetSet(active.AetSet);
+						break;
+					case AetSelectionType::Aet:
+						RenderAet(active.Aet);
+						break;
+					case AetSelectionType::AetLayer:
+						RenderAetLayer(active.AetLayer);
+						break;
+					case AetSelectionType::AetObj:
+						RenderAetObj(active.AetObj);
+						break;
+					case AetSelectionType::AetRegion:
+						RenderAetRegion(active.AetRegion);
+						break;
 
-						case AetSelectionType::None:
-						default:
-							break;
-						}
-					}
-
-					// Screen - WorldSpace Test
-					if (ImGui::IsWindowFocused())
-					{
-						constexpr float cursorSize = 4.0f;
-
-						vec2 mouseWorldSpace = camera.ScreenToWorldSpace(GetRelativeMouse());
-						renderer.Draw(mouseWorldSpace - vec2(cursorSize * 0.5f), vec2(cursorSize), GetColorVec4(EditorColor_CursorInner));
+					case AetSelectionType::None:
+					default:
+						break;
 					}
 				}
-				renderer.End();
+
+				// Screen - WorldSpace Test
+				if (ImGui::IsWindowFocused())
+				{
+					constexpr float cursorSize = 4.0f;
+
+					vec2 mouseWorldSpace = camera.ScreenToWorldSpace(GetRelativeMouse());
+					renderer.Draw(mouseWorldSpace - vec2(cursorSize * 0.5f), vec2(cursorSize), GetColorVec4(EditorColor_CursorInner));
+				}
 			}
+			renderer.End();
 		}
 		renderTarget.UnBind();
+
+		// TODO:
+		//ImGui::ItemSize(GetRenderRegion().GetSize() - vec2(ImGui::GetStyle) + camera.Position);
 	}
 
 	void AetRenderWindow::OnResize(int width, int height)

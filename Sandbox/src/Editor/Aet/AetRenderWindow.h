@@ -8,7 +8,6 @@
 #include "Graphics/Camera.h"
 #include "Graphics/Auth2D/Renderer2D.h"
 #include "Graphics/Auth2D/AetMgr.h"
-#include "App/Task.h"
 
 namespace Editor
 {
@@ -28,6 +27,8 @@ namespace Editor
 		float SetCurrentFrame(float value);
 
 	protected:
+		ImGuiWindowFlags GetChildWinodwFlags() const override;
+
 		void OnDrawGui() override;
 		void PostDrawGui() override;
 		void OnUpdateInput() override;
@@ -49,8 +50,6 @@ namespace Editor
 		void RenderObjCache(const AetMgr::ObjCache& obj);
 
 	private:
-		std::unique_ptr<App::Task> testTask = nullptr;
-
 		struct
 		{
 			float GridSize = 1.0f;

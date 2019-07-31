@@ -5,7 +5,7 @@
 
 namespace Editor
 {
-	void CameraController2D::UpdateInput(OrthographicCamera& camera, vec2 relativeMouse)
+	void CameraController2D::Update(OrthographicCamera& camera, vec2 relativeMouse)
 	{
 		for (int i = 0; i < IM_ARRAYSIZE(windowHoveredOnClick); i++)
 		{

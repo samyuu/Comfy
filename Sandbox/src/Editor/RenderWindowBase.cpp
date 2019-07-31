@@ -17,7 +17,7 @@ namespace Editor
 		OnDrawGui();
 
 		ImGui::PushID((void*)this);
-		ImGui::BeginChild("BaseChild##RenderWindowBase");
+		ImGui::BeginChild("BaseChild##RenderWindowBase", ImVec2(0, 0), false, GetChildWinodwFlags());
 
 		lastRenderRegion = renderRegion;
 
