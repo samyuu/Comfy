@@ -183,18 +183,6 @@ namespace App
 
 	bool TaskPs4Menu::Initialize()
 	{
-		aetSet = std::make_unique<AetSet>();
-		aetSet->Load(aetSetPath);
-
-		std::vector<uint8_t> sprFileBuffer;
-		FileSystem::ReadAllBytes(sprSetPath, &sprFileBuffer);
-
-		sprSet = std::make_unique<SprSet>();
-		sprSet->Parse(sprFileBuffer.data());
-		sprSet->TxpSet->UploadAll();
-
-		aetData.Initialize(aetSet.get());
-
 		return true;
 	}
 
@@ -202,11 +190,48 @@ namespace App
 	{
 		elapsedTime += ImGui::GetIO().DeltaTime;
 
+		if (aetSet == nullptr || sprSet == nullptr)
+		{
+			if (aetSet == nullptr && aetSetLoader.GetIsLoaded())
+			{
+				aetSet = std::make_unique<AetSet>();
+
+				aetSetLoader.Read(aetSet.get());
+				aetSetLoader.FreeData();
+				aetData.Initialize(aetSet.get());
+			}
+			else
+			{
+				aetSetLoader.CheckStartLoadAsync();
+			}
+
+			if (sprSet == nullptr && sprSetLoader.GetIsLoaded())
+			{
+				sprSet = std::make_unique<SprSet>();
+				sprSetLoader.Parse(sprSet.get());
+				sprSet->TxpSet->UploadAll();
+				sprSetLoader.FreeData();
+			}
+			else
+			{
+				sprSetLoader.CheckStartLoadAsync();
+			}
+
+			return true;
+		}
+		else
+		{
+			isLoading = false;
+		}
+
 		return true;
 	}
 
 	bool TaskPs4Menu::Render(Auth2D::Renderer2D& renderer)
 	{
+		if (isLoading)
+			return true;
+
 		using namespace ImGui;
 
 		float deltaFrame = TimespanToFrame(ImGui::GetIO().DeltaTime);
@@ -297,6 +322,24 @@ namespace App
 
 		default:
 			break;
+		}
+
+		return true;
+	}
+
+	bool TaskPs4Menu::PostDrawGui()
+	{
+		if (isLoading)
+		{
+			static int frameCount = 0;
+			//ImGui::Text("Loading...");
+
+			for (size_t i = 0; i < frameCount; i++)
+			{
+				ImGui::Text("Loading... %d", frameCount);
+			}
+
+			frameCount++;
 		}
 
 		return true;

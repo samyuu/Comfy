@@ -4,6 +4,7 @@
 #include "Graphics/Auth2D/AetMgr.h"
 #include "FileSystem/Format/AetSet.h"
 #include "FileSystem/Format/SprSet.h"
+#include "FileSystem/FileLoader.h"
 #include <memory>
 
 namespace App
@@ -103,10 +104,11 @@ namespace App
 		bool Initialize() override;
 		bool Update() override;
 		bool Render(Renderer2D& renderer) override;
+		bool PostDrawGui() override;
 
 	protected:
-		const char* aetSetPath = "dev_ram/aetset/aet_ps4_menu.bin";
-		const char* sprSetPath = "dev_ram/sprset/spr_ps4_menu.bin";
+		FileLoader aetSetLoader { "dev_ram/aetset/aet_ps4_menu.bin" };
+		FileLoader sprSetLoader { "dev_ram/sprset/spr_ps4_menu.bin" };
 
 		std::unique_ptr<AetSet> aetSet;
 		std::unique_ptr<SprSet> sprSet;
@@ -123,6 +125,8 @@ namespace App
 		void RenderAetObjClamped(Renderer2D& renderer, const AetObj* aetObj, float frame, const vec2& position = vec2(0, 0), float opacity = 1.0f);
 	
 	private:
+		bool isLoading = true;
+
 		void RenderMenuBackground(Renderer2D& renderer, float frame);
 		void RenderMainMenuChara(Renderer2D& renderer, float frame);
 		void RenderMainMenuList(Renderer2D& renderer, bool selectedLayer, float menuListFrame, float menuPlateFrame);

@@ -17,7 +17,9 @@ namespace App
 
 		void OnUpdateInput() override;
 		void OnUpdate() override;
+		void OnDrawGui() override;
 		void OnRender() override;
+		void PostDrawGui() override;
 
 		template <class T> void StartTask() 
 		{

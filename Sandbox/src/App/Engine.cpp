@@ -26,6 +26,12 @@ namespace App
 			task->Update();
 	}
 
+	void EngineRenderWindow::OnDrawGui()
+	{
+		for (auto& task : tasks)
+			task->PreDrawGui();
+	}
+
 	void EngineRenderWindow::OnRender()
 	{
 		renderTarget.Bind();
@@ -44,6 +50,12 @@ namespace App
 			renderer.End();
 		}
 		renderTarget.UnBind();
+	}
+
+	void EngineRenderWindow::PostDrawGui()
+	{
+		for (auto& task : tasks)
+			task->PostDrawGui();
 	}
 
 	void EngineRenderWindow::OnResize(int width, int height)
