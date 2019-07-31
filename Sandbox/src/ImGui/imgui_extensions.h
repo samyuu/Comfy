@@ -60,8 +60,8 @@ namespace ImGui
 	bool WideTreeNodeNoArrow(const char* label, ImGuiTreeNodeFlags flags);
 	bool SmallButton(const char* label, const ImVec2& size);
 
-	void WindowContextMenu(const char* std_id, const std::function<void(void)>& func);
-	void ItemContextMenu(const char* std_id, const std::function<void(void)>& func);
+	void WindowContextMenu(const char* str_id, const std::function<void(void)>& func);
+	void ItemContextMenu(const char* str_id, const std::function<void(void)>& func);
 
 	bool ExtendedInputFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* format, bool disabled = false);
 

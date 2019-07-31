@@ -407,28 +407,31 @@ namespace ImGui
 
 	constexpr int ContextMenuMouseButton_button = 1;
 
-	static bool InternalBeginContextMenu(const char* str_id)
+	static bool InternalBeginContextMenu(const char* str_id, bool checkItemHover)
 	{
-		if (!str_id)
-			str_id = "window_context";
-		ImGuiID id = GImGui->CurrentWindow->GetID(str_id);
-		if (IsMouseReleased(ContextMenuMouseButton_button) && IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && WasHoveredWindowHoveredOnMouseClicked(ContextMenuMouseButton_button))
-			OpenPopupEx(id);
+		ImGuiID id = GetID(str_id);
+		if (IsMouseReleased(ContextMenuMouseButton_button) && (IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && WasHoveredWindowHoveredOnMouseClicked(ContextMenuMouseButton_button)))
+		{
+			if (checkItemHover == IsItemHovered())
+				OpenPopupEx(id);
+		}
 		return BeginPopupEx(id, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove);
 	}
 
-	void WindowContextMenu(const char* std_id, const std::function<void(void)>& func)
+	void WindowContextMenu(const char* str_id, const std::function<void(void)>& func)
 	{
-		if (InternalBeginContextMenu(std_id))
+		IM_ASSERT(str_id != nullptr);
+		if (InternalBeginContextMenu(str_id, false))
 		{
 			func();
 			EndPopup();
 		}
 	}
 
-	void ItemContextMenu(const char* std_id, const std::function<void(void)>& func)
+	void ItemContextMenu(const char* str_id, const std::function<void(void)>& func)
 	{
-		if (InternalBeginContextMenu(std_id))
+		IM_ASSERT(str_id != nullptr);
+		if (InternalBeginContextMenu(str_id, true))
 		{
 			func();
 			EndPopup();
