@@ -512,7 +512,7 @@ void AdjustPositionAnimations(AetLayer& layer, float factor, bool dynamicOnly = 
 	{
 		if (obj.GetRegion() != nullptr)
 		{
-			if (!dynamicOnly || obj.GetRegion()->Sprites.size() == 0)
+			if (!dynamicOnly || obj.GetRegion()->SpriteSize() == 0)
 				ScaleAnimationDataPositions(obj.AnimationData.get(), factor);
 		}
 	}
@@ -561,7 +561,7 @@ void PortGamPv2D()
 			continue;
 
 		SprSetEntry* ps4Entry = ps4SprDB.GetSprSetEntry(aftEntry.Name);
-		
+
 		if (ps4Entry == nullptr)
 		{
 			Logger::LogLine("PS4 %s not found", aftEntry.Name.c_str());
@@ -580,7 +580,7 @@ void PortGamPv2D()
 		{
 			for (auto& region : aetSet.front().AetRegions)
 			{
-				for (auto& sprite : region.Sprites)
+				for (auto& sprite : region.GetSprites())
 				{
 					for (auto& ps4SprEntry : ps4Entry->SprEntries)
 					{
@@ -633,7 +633,7 @@ void AetAdjustGamCmn()
 	{
 		for (auto& region : mainAet.AetRegions)
 		{
-			for (auto& sprite : region.Sprites)
+			for (auto& sprite : region.GetSprites())
 			{
 				if (aftGamCmnEntry->GetSprEntry(sprite.ID) == nullptr)
 				{
@@ -670,7 +670,7 @@ void AetAdjustGamCmn()
 
 			for (size_t i = 0; i < comboLayer.size(); i++)
 			{
-				if (comboLayer[i].GetRegion()->Sprites.size() == 0)
+				if (comboLayer[i].GetRegion()->SpriteSize() == 0)
 					CenterAwareRescale(*comboLayer[i].AnimationData.get(), mainAet.Width, mainAet.Height, factor);
 			}
 		}
@@ -760,7 +760,7 @@ void AetAdjustGamCmn()
 			AetLayer& comboLayer = *rootLayer[mainAet.GetObjIndex(rootLayer, "combo_cool001") + i].GetLayer();
 			for (size_t i = 0; i < comboLayer.size(); i++)
 			{
-				if (comboLayer[i].GetRegion()->Sprites.size() == 0)
+				if (comboLayer[i].GetRegion()->SpriteSize() == 0)
 					CenterAwareRescale(*comboLayer[i].AnimationData.get(), mainAet.Width, mainAet.Height, factor);
 			}
 		}
@@ -796,16 +796,46 @@ void DatabaseTest()
 	int test = 0;
 }
 
+void AetF2ndToFAdjustmentTest()
+{
+	SprDB sprDB; sprDB.Load("dev_ram/test_files/spr_db.bin");
+	AetSet aetSet; aetSet.Load("dev_ram/test_files/aet_gam_cmn.bin");
+
+	SprSetEntry* sprGamCmnEntry = sprDB.GetSprSetEntry("SPR_GAM_CMN");
+
+	for (auto& aet : aetSet)
+	{
+		for (auto& region : aet.AetRegions)
+		{
+			for (auto& sprite : region.GetSprites())
+			{
+				sprite.Name = "SPR_" + sprite.Name;
+				SprEntry* entry = sprGamCmnEntry->GetSprEntry(sprite.Name);
+
+				if (entry != nullptr)
+					sprite.ID = entry->ID;
+			}
+		}
+	}
+
+	aetSet.Save("dev_ram/test_files/aet_gam_cmn_output.bin");
+}
+
 void MainTest()
 {
 	glfwInit();
 
 	if (false)
 	{
+		AetF2ndToFAdjustmentTest();
+	}
+
+	if (false)
+	{
 		DatabaseTest();
 	}
 
-	if (true)
+	if (false)
 	{
 		PortGamPv2D();
 	}
