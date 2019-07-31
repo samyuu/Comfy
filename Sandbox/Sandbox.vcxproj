@@ -130,6 +130,7 @@
     <ClCompile Include="src\FileSystem\BinaryWriter.cpp" />
     <ClCompile Include="src\FileSystem\FileHelper.cpp" />
     <ClCompile Include="src\FileSystem\FileInterface.cpp" />
+    <ClCompile Include="src\FileSystem\FileLoader.cpp" />
     <ClCompile Include="src\FileSystem\Format\Database.cpp" />
     <ClCompile Include="src\FileSystem\Format\SprSet.cpp" />
     <ClCompile Include="src\FileSystem\Format\TxpSet.cpp" />
@@ -218,6 +219,7 @@
     <ClInclude Include="src\FileSystem\BinaryWriter.h" />
     <ClInclude Include="src\FileSystem\FileHelper.h" />
     <ClInclude Include="src\FileSystem\FileInterface.h" />
+    <ClInclude Include="src\FileSystem\FileLoader.h" />
     <ClInclude Include="src\FileSystem\Format\Database.h" />
     <ClInclude Include="src\FileSystem\Format\SprSet.h" />
     <ClInclude Include="src\FileSystem\Format\TxpSet.h" />

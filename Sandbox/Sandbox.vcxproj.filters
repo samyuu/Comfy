@@ -261,6 +261,9 @@
     <ClCompile Include="src\Editor\Aet\AetLayerView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\FileSystem\FileLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ImGui\imconfig.h">
@@ -546,6 +549,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Aet\AetLayerView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FileSystem\FileLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
