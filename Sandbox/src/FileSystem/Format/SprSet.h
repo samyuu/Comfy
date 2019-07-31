@@ -32,7 +32,7 @@ namespace FileSystem
 		GraphicsMode GraphicsMode;
 	};
 
-	class SprSet : public IBinaryReadable, IBufferParsable
+	class SprSet : public IBinaryReadable, public IBufferParsable
 	{
 	public:
 		std::string Name;
@@ -41,7 +41,7 @@ namespace FileSystem
 		std::vector<Sprite> Sprites;
 
 		virtual void Read(BinaryReader& reader) override;
-		virtual void Parse(uint8_t* buffer) override;
+		virtual void Parse(const uint8_t* buffer) override;
 
 	private:
 	};

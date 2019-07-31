@@ -65,7 +65,7 @@ namespace FileSystem
 		std::vector<uint8_t> Data;
 		struct
 		{
-			uint8_t* DataPointer;
+			const uint8_t* DataPointer;
 			uint32_t DataPointerSize;
 		};
 	};
@@ -80,14 +80,14 @@ namespace FileSystem
 		void UploadTexture2D();
 	};
 
-	class TxpSet : public IBinaryReadable, IBufferParsable
+	class TxpSet : public IBinaryReadable, public IBufferParsable
 	{
 	public:
 		TxpSig Signature;
 		std::vector<std::shared_ptr<Texture>> Textures;
 
 		virtual void Read(BinaryReader& reader) override;
-		virtual void Parse(uint8_t* buffer) override;
+		virtual void Parse(const uint8_t* buffer) override;
 		
 		void UploadAll();
 

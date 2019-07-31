@@ -104,7 +104,7 @@ bool Texture2D::Upload(const FileSystem::Texture* texture)
 		FileSystem::MipMap* mipMap = texture->MipMaps[i].get();
 		GLenum glFormat = GetGLTextureFormat(mipMap->Format);
 
-		uint8_t* data = mipMap->DataPointer != nullptr ? mipMap->DataPointer : mipMap->Data.data();
+		const uint8_t* data = mipMap->DataPointer != nullptr ? mipMap->DataPointer : mipMap->Data.data();
 		uint32_t dataSize = mipMap->DataPointer != nullptr ? mipMap->DataPointerSize : static_cast<uint32_t>(mipMap->Data.size());
 
 		if (GetIsCompressed(mipMap->Format))

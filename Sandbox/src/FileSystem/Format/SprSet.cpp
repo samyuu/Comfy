@@ -83,7 +83,7 @@ namespace FileSystem
 		}
 	}
 
-	void SprSet::Parse(uint8_t* buffer)
+	void SprSet::Parse(const uint8_t* buffer)
 	{
 		SprSet* sprSet = this;
 
@@ -104,7 +104,7 @@ namespace FileSystem
 
 		if (spritesOffset != 0)
 		{
-			uint8_t* spritesBuffer = buffer + spritesOffset;
+			const uint8_t* spritesBuffer = buffer + spritesOffset;
 
 			sprSet->Sprites.resize(spritesCount);
 			for (uint32_t i = 0; i < spritesCount; i++)
@@ -121,7 +121,7 @@ namespace FileSystem
 
 		if (textureNamesOffset != 0)
 		{
-			uint8_t* textureNamesOffsetBuffer = buffer + textureNamesOffset;
+			const uint8_t* textureNamesOffsetBuffer = buffer + textureNamesOffset;
 
 			for (uint32_t i = 0; i < textureCount; i++)
 			{
@@ -133,7 +133,7 @@ namespace FileSystem
 
 		if (spriteNamesOffset != 0)
 		{
-			uint8_t* spriteNamesOffsetBuffer = buffer + spriteNamesOffset;
+			const uint8_t* spriteNamesOffsetBuffer = buffer + spriteNamesOffset;
 
 			for (uint32_t i = 0; i < spritesCount; i++)
 			{
@@ -145,7 +145,7 @@ namespace FileSystem
 
 		if (spriteExtraDataOffset != 0)
 		{
-			uint8_t* extraDataBuffer = buffer + spriteExtraDataOffset;
+			const uint8_t* extraDataBuffer = buffer + spriteExtraDataOffset;
 
 			for (Sprite &sprite : sprSet->Sprites)
 			{

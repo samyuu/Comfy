@@ -8,21 +8,27 @@ namespace FileSystem
 {
 	MemoryStream::MemoryStream()
 	{
+		dataSource = &dataVector;
 	}
 
-	MemoryStream::MemoryStream(const std::string& filePath)
+	MemoryStream::MemoryStream(const std::string& filePath) : MemoryStream()
 	{
 		FromFile(filePath);
 	}
 
-	MemoryStream::MemoryStream(const std::wstring& filePath)
+	MemoryStream::MemoryStream(const std::wstring& filePath) : MemoryStream()
 	{
 		FromFile(filePath);
 	}
 
-	MemoryStream::MemoryStream(Stream* stream)
+	MemoryStream::MemoryStream(Stream* stream) : MemoryStream()
 	{
 		FromStream(stream);
+	}
+
+	MemoryStream::MemoryStream(std::vector<uint8_t>* source)
+	{
+		FromStreamSource(source);
 	}
 
 	MemoryStream::~MemoryStream()
@@ -67,7 +73,7 @@ namespace FileSystem
 		int64_t remaining = RemainingBytes();
 		int64_t bytesRead = std::min(static_cast<int64_t>(size), remaining);
 
-		void* source = &data[position];
+		void* source = &(*dataSource)[position];
 		memcpy(buffer, source, bytesRead);
 
 		position += bytesRead;
@@ -78,13 +84,21 @@ namespace FileSystem
 	{
 		assert(CanWrite());
 
-		data.resize(data.size() + size);
+		dataSource->resize(dataSource->size() + size);
 
 		const uint8_t* bufferStart = reinterpret_cast<const uint8_t*>(buffer);
 		const uint8_t* bufferEnd = &bufferStart[size];
-		std::copy(bufferStart, bufferEnd, std::back_inserter(data));
+		std::copy(bufferStart, bufferEnd, std::back_inserter(*dataSource));
 
 		return size;
+	}
+
+	void MemoryStream::FromStreamSource(std::vector<uint8_t>* source)
+	{
+		dataSource = source;
+
+		canRead = true;
+		dataSize = static_cast<int64_t>(source->size());
 	}
 
 	void MemoryStream::FromFile(const std::string& filePath)
@@ -106,10 +120,10 @@ namespace FileSystem
 
 		canRead = true;
 		dataSize = stream->RemainingBytes();
-		data.resize(dataSize);
+		dataSource->resize(dataSize);
 
 		int64_t prePos = stream->GetPosition();
-		stream->Read(data.data(), dataSize);
+		stream->Read(dataSource->data(), dataSize);
 		stream->Seek(prePos);
 	}
 

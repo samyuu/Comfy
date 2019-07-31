@@ -71,13 +71,13 @@ namespace FileSystem
 		}
 	}
 
-	static void ParseTexture(uint8_t* buffer, Texture* texture)
+	static void ParseTexture(const uint8_t* buffer, Texture* texture)
 	{
 		texture->Signature = *(TxpSig*)(buffer + 0);
 		uint32_t mipMapCount = *(uint32_t*)(buffer + 4);
 		uint32_t packedInfo = *(uint32_t*)(buffer + 8);
 		uint32_t offset = *(uint32_t*)(buffer + 12);
-		uint8_t* mipMapBuffer = buffer + offset;
+		const uint8_t* mipMapBuffer = buffer + offset;
 
 		texture->MipMaps.reserve(mipMapCount);
 		for (uint32_t i = 0; i < mipMapCount; i++)
@@ -98,7 +98,7 @@ namespace FileSystem
 		}
 	}
 
-	void TxpSet::Parse(uint8_t* buffer)
+	void TxpSet::Parse(const uint8_t* buffer)
 	{
 		TxpSet* txpSet = this;
 
