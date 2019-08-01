@@ -7,11 +7,12 @@
 
 namespace Editor
 {
-	std::array<ImU32, EditorColor_Max> EditorColors;
+	std::array<ImU32, EditorColor_Count> EditorColors;
 
 	ImU32 GetColor(EditorColor color)
 	{
-		return DEBUG_RELEASE(EditorColors.at(color), EditorColors[color]);
+		assert(color >= 0 && color < EditorColor_Count);
+		return EditorColors[color];
 	}
 
 	vec4 GetColorVec4(EditorColor color)

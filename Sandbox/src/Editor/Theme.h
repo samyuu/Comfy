@@ -22,10 +22,10 @@ namespace Editor
 		EditorColor_CursorInner,
 		EditorColor_TextHighlight,
 		EditorColor_KeyFrame,
-		EditorColor_Max,
+		EditorColor_Count,
 	};
 
-	extern std::array<ImU32, EditorColor_Max> EditorColors;
+	extern std::array<ImU32, EditorColor_Count> EditorColors;
 
 	ImU32 GetColor(EditorColor color);
 	vec4 GetColorVec4(EditorColor color);
