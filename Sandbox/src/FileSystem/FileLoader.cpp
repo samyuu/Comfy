@@ -22,8 +22,16 @@ namespace FileSystem
 			loaderThread.join();
 	}
 
+	const std::string& FileLoader::GetFilePath() const
+	{
+		return filePath;
+	}
+
 	void FileLoader::SetFilePath(const std::string& value)
 	{
+		assert(!isLoaded);
+		assert(!threadRunning && !threadStarted);
+	
 		filePath = value;
 	}
 

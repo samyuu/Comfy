@@ -1,6 +1,5 @@
 #include "AetEditor.h"
 #include "AetIcons.h"
-#include "FileSystem/Stream/MemoryStream.h"
 #include "FileSystem/BinaryReader.h"
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
@@ -126,6 +125,8 @@ namespace Editor
 			timeline->DrawTimelineGui();
 		}
 		ImGui::End();
+
+		UpdateFileLoading();
 	}
 
 	const char* AetEditor::GetGuiName() const
@@ -136,6 +137,20 @@ namespace Editor
 	ImGuiWindowFlags AetEditor::GetWindowFlags() const
 	{
 		return BaseWindow::GetNoWindowFlags();
+	}
+
+	void AetEditor::UpdateFileLoading()
+	{
+		if (sprSetFileLoader != nullptr && sprSetFileLoader->GetIsLoaded())
+		{
+			sprSet = std::make_unique<SprSet>();
+			sprSetFileLoader->Parse(sprSet.get());
+			sprSet->Name = GetFileName(sprSetFileLoader->GetFilePath(), false);
+			sprSet->TxpSet->UploadAll();
+
+			OnSprSetLoaded();
+			sprSetFileLoader.reset();
+		}
 	}
 
 	void AetEditor::DrawAetSetLoader()
@@ -163,7 +178,6 @@ namespace Editor
 		if (!FileExists(filePath))
 			return false;
 
-		aetSet.reset();
 		aetSet = std::make_unique<AetSet>();
 		aetSet->Name = GetFileName(filePath, false);
 		aetSet->Load(filePath);
@@ -177,16 +191,12 @@ namespace Editor
 		if (!FileExists(filePath))
 			return false;
 
-		std::vector<uint8_t> fileBuffer;
-		ReadAllBytes(filePath, &fileBuffer);
+		if (sprSetFileLoader != nullptr)
+			return false;
 
-		sprSet.reset();
-		sprSet = std::make_unique<SprSet>();
-		sprSet->Parse(fileBuffer.data());
-		sprSet->Name = GetFileName(filePath, false);
-		sprSet->TxpSet->UploadAll();
+		sprSetFileLoader = std::make_unique<FileLoader>(filePath);
+		sprSetFileLoader->LoadAsync();
 
-		OnSprSetLoaded();
 		return true;
 	}
 

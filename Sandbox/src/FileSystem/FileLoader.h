@@ -43,6 +43,7 @@ namespace FileSystem
 		FileLoader(const std::string& filePath);
 		~FileLoader();
 
+		const std::string& GetFilePath() const;
 		void SetFilePath(const std::string& value);
 
 		virtual void LoadSync() override;

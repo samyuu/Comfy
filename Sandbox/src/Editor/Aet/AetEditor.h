@@ -8,6 +8,7 @@
 #include "Editor/IEditorComponent.h"
 #include "Graphics/Auth2D/AetMgr.h"
 #include "FileSystem/Format/AetSet.h"
+#include "FileSystem/FileLoader.h"
 #include "ImGui/Widgets/FileViewer.h"
 #include <memory>
 
@@ -30,6 +31,8 @@ namespace Editor
 		inline SprSet* GetSprSet() { return sprSet.get(); };
 
 	private:
+		std::unique_ptr<FileLoader> sprSetFileLoader;
+
 		ImGui::FileViewer aetFileViewer = { "dev_ram/aetset/" };
 		ImGui::FileViewer sprFileViewer = { "dev_ram/sprset/" };
 
@@ -48,6 +51,8 @@ namespace Editor
 		Properties currentProperties;
 
 		const char* testAetPath = "dev_ram/aetset/aet_tst000.bin";
+
+		void UpdateFileLoading();
 
 		void DrawAetSetLoader();
 		void DrawSprSetLoader();
