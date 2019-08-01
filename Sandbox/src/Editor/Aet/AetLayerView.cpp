@@ -101,7 +101,7 @@ namespace Editor
 					ImVec2 bottomLeft = ImVec2(GetItemRectMin().x, GetItemRectMax().y);
 					GetForegroundDrawList()->AddRect(bottomLeft, bottomLeft + ImVec2(GetItemRectSize().x, 3), GetColorU32(ImGuiCol_NavWindowingHighlight, .75f));
 			
-					dragDestinationIndex = testData.size();
+					dragDestinationIndex = static_cast<int32_t>(testData.size());
 				}
 			}
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "Stream.h"
+#include "Stream/Stream.h"
 #include "BinaryMode.h"
 #include <vector>
 #include <list>

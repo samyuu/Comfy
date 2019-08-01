@@ -1,6 +1,6 @@
 #include "FileInterface.h"
-#include "MemoryStream.h"
-#include "FileStream.h"
+#include "Stream/MemoryStream.h"
+#include "Stream/FileStream.h"
 #include "BinaryReader.h"
 #include "BinaryWriter.h"
 

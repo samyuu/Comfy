@@ -1,6 +1,6 @@
 #include "FileLoader.h"
 #include "FileHelper.h"
-#include "MemoryStream.h"
+#include "Stream/MemoryStream.h"
 #include "BinaryReader.h"
 #include "Logger.h"
 #include <assert.h>

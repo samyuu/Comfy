@@ -134,8 +134,8 @@
     <ClCompile Include="src\FileSystem\Format\Database.cpp" />
     <ClCompile Include="src\FileSystem\Format\SprSet.cpp" />
     <ClCompile Include="src\FileSystem\Format\TxpSet.cpp" />
-    <ClCompile Include="src\FileSystem\MemoryStream.cpp" />
-    <ClCompile Include="src\FileSystem\FileStream.cpp" />
+    <ClCompile Include="src\FileSystem\Stream\MemoryStream.cpp" />
+    <ClCompile Include="src\FileSystem\Stream\FileStream.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\AetMgr.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\Renderer2D.cpp" />
     <ClCompile Include="src\Graphics\Shader\Shader.cpp" />
@@ -191,7 +191,7 @@
     <ClCompile Include="src\Editor\Chart\TimelineMap.cpp" />
     <ClCompile Include="src\Audio\Waveform.cpp" />
     <ClCompile Include="src\TimeSpan.cpp" />
-    <ClCompile Include="src\FileSystem\Stream.cpp" />
+    <ClCompile Include="src\FileSystem\Stream\Stream.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="res\resource.h" />
@@ -223,8 +223,8 @@
     <ClInclude Include="src\FileSystem\Format\Database.h" />
     <ClInclude Include="src\FileSystem\Format\SprSet.h" />
     <ClInclude Include="src\FileSystem\Format\TxpSet.h" />
-    <ClInclude Include="src\FileSystem\MemoryStream.h" />
-    <ClInclude Include="src\FileSystem\FileStream.h" />
+    <ClInclude Include="src\FileSystem\Stream\MemoryStream.h" />
+    <ClInclude Include="src\FileSystem\Stream\FileStream.h" />
     <ClInclude Include="src\FileSystem\BinaryMode.h" />
     <ClInclude Include="src\App\Task.h" />
     <ClInclude Include="src\Graphics\Auth2D\AetMgr.h" />
@@ -288,7 +288,7 @@
     <ClInclude Include="src\Editor\Chart\TempoMap.h" />
     <ClInclude Include="src\Editor\Chart\TimelineMap.h" />
     <ClInclude Include="src\Audio\Waveform.h" />
-    <ClInclude Include="src\FileSystem\Stream.h" />
+    <ClInclude Include="src\FileSystem\Stream\Stream.h" />
     <ClInclude Include="src\Types.h" />
   </ItemGroup>
   <ItemGroup>
