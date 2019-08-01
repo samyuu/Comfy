@@ -119,7 +119,7 @@ namespace ImGui
 		SetDirectoryInternal(adjustedDirectory);
 	}
 
-	std::string FileViewer::GetFileToOpen() const
+	const std::string& FileViewer::GetFileToOpen() const
 	{
 		return fileToOpen;
 	}

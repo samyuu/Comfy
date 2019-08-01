@@ -28,7 +28,7 @@ namespace ImGui
 
 		bool DrawGui();
 		void SetDirectory(std::string directory);
-		std::string GetFileToOpen() const;
+		const std::string& GetFileToOpen() const;
 
 	private:
 		struct FilePathInfo 
