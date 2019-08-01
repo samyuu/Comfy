@@ -88,6 +88,11 @@ namespace FileSystem
 		return fileFound;
 	}
 
+	bool FileLoader::GetIsLoading() const
+	{
+		return fileFound && threadRunning && !isLoaded;
+	}
+
 	const std::vector<uint8_t>& FileLoader::GetFileContent() const
 	{
 		assert(fileFound && isLoaded);

@@ -24,6 +24,7 @@ namespace FileSystem
 	public:
 		virtual bool GetIsLoaded() const = 0;
 		virtual bool GetFileFound() const = 0;
+		virtual bool GetIsLoading() const = 0;
 
 		virtual const std::vector<uint8_t>& GetFileContent() const = 0;
 		virtual void Read(IBinaryReadable* readable) const = 0;
@@ -52,6 +53,7 @@ namespace FileSystem
 
 		virtual bool GetIsLoaded() const override;
 		virtual bool GetFileFound() const override;
+		virtual bool GetIsLoading() const override;
 		
 		virtual const std::vector<uint8_t>& GetFileContent() const override;
 		virtual void Read(IBinaryReadable* readable) const override;
