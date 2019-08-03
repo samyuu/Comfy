@@ -1,5 +1,6 @@
 #include "StringHelper.h"
 #include <algorithm>
+#include <windows.h>
 
 static bool IsWhiteSpace(char character)
 {
@@ -12,8 +13,8 @@ static bool CaseInsenitiveComparison(char a, char b)
 }
 
 static bool CaseInsenitiveWideComparison(wchar_t a, wchar_t b)
-{ 
-	return tolower(a) == tolower(b); 
+{
+	return tolower(a) == tolower(b);
 };
 
 void TrimLeft(std::string &string)
@@ -92,4 +93,18 @@ bool EndsWithInsensitive(const std::wstring& string, const std::wstring& suffix)
 		return false;
 
 	return std::equal(string.rbegin(), string.rbegin() + suffix.size(), suffix.rbegin(), suffix.rend(), CaseInsenitiveWideComparison);
+}
+
+std::wstring Utf8ToUtf16(const std::string& string)
+{
+	std::wstring utf16String;
+	
+	int utf16Length = ::MultiByteToWideChar(CP_UTF8, 0, string.c_str(), string.length(), NULL, 0);
+	if (utf16Length > 0)
+	{
+		utf16String.resize(utf16Length);
+		::MultiByteToWideChar(CP_UTF8, 0, string.c_str(), string.length(), &utf16String[0], utf16Length);
+	}
+	
+	return utf16String;
 }

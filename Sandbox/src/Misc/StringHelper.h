@@ -19,3 +19,5 @@ bool EndsWith(const std::wstring& string, const std::wstring& suffix);
 
 bool EndsWithInsensitive(const std::string& string, const std::string& suffix);
 bool EndsWithInsensitive(const std::wstring& string, const std::wstring& suffix);
+
+std::wstring Utf8ToUtf16(const std::string& string);

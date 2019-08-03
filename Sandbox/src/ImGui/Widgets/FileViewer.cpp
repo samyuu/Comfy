@@ -237,12 +237,12 @@ namespace ImGui
 
 	void FileViewer::OpenDirectoryInExplorer()
 	{
-		FileSystem::OpenInExplorer(directory);
+		FileSystem::OpenInExplorer(Utf8ToUtf16(directory));
 	}
 
 	void FileViewer::OpenContextItemProperties()
 	{
-		FileSystem::OpenExplorerProperties(contextMenuFilePathInfo != nullptr ? contextMenuFilePathInfo->FullPath : directory);
+		FileSystem::OpenExplorerProperties(Utf8ToUtf16(contextMenuFilePathInfo != nullptr ? contextMenuFilePathInfo->FullPath : directory));
 	}
 
 	FileType FileViewer::GetFileType(const std::string& fileName)
