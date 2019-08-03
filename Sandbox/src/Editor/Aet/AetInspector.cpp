@@ -121,7 +121,7 @@ namespace Editor
 			if (aetLayer != nullptr)
 				sprintf_s(layerDataNameBuffer, "Layer %d (%s)", aetLayer->GetThisIndex(), aetLayer->GetCommaSeparatedNames());
 
-			if (ImGui::BeginCombo("Region", aetLayer == nullptr ? "nullptr" : layerDataNameBuffer, ImGuiComboFlags_HeightLarge))
+			if (ImGui::BeginCombo("Layer", aetLayer == nullptr ? "nullptr" : layerDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
 				if (ImGui::Selectable("nullptr", aetLayer == nullptr))
 					aetObj->SetLayer(nullptr);
@@ -138,7 +138,7 @@ namespace Editor
 
 					if (ImGui::Selectable(layerDataNameBuffer, isSelected))
 						aetObj->SetLayer(&layer);
-
+					
 					if (isSelected)
 						ImGui::SetItemDefaultFocus();
 					ImGui::PopID();
