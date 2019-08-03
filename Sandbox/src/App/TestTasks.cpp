@@ -331,15 +331,8 @@ namespace App
 	{
 		if (isLoading)
 		{
-			static int frameCount = 0;
-			//ImGui::Text("Loading...");
-
-			for (size_t i = 0; i < frameCount; i++)
-			{
-				ImGui::Text("Loading... %d", frameCount);
-			}
-
-			frameCount++;
+			static int loadingFrameCount = 0;
+			ImGui::Text("Loading... %d", loadingFrameCount++);
 		}
 
 		return true;
