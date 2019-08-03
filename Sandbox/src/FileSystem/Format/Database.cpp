@@ -221,7 +221,7 @@ namespace FileSystem
 	{
 		uint32_t sprEntryCount = 0;
 		for (auto& sprSetEntry : Entries)
-			sprEntryCount += sprSetEntry.SprEntries.size() + sprSetEntry.SprTexEntries.size();
+			sprEntryCount += static_cast<uint32_t>(sprSetEntry.SprEntries.size() + sprSetEntry.SprTexEntries.size());
 		return sprEntryCount;
 	}
 }
