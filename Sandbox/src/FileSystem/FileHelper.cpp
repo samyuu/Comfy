@@ -61,22 +61,36 @@ namespace FileSystem
 
 	void OpenInExplorer(const std::string& filePath)
 	{
-		std::string currentDirectory = GetWorkingDirectory();
-		currentDirectory.reserve(currentDirectory.size() + filePath.size() + 2);
-		currentDirectory += "/";
-		currentDirectory += filePath;
+		if (PathIsRelativeA(filePath.c_str()))
+		{
+			std::string currentDirectory = GetWorkingDirectory();
+			currentDirectory.reserve(currentDirectory.size() + filePath.size() + 2);
+			currentDirectory += "/";
+			currentDirectory += filePath;
 
-		ShellExecuteA(NULL, "open", currentDirectory.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+			ShellExecuteA(NULL, "open", currentDirectory.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+		}
+		else
+		{
+			ShellExecuteA(NULL, "open", filePath.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+		}
 	}
 
 	void OpenInExplorer(const std::wstring& filePath)
 	{
-		std::wstring currentDirectory = GetWorkingDirectoryW();
-		currentDirectory.reserve(currentDirectory.size() + filePath.size() + 2);
-		currentDirectory += L"/";
-		currentDirectory += filePath;
+		if (PathIsRelativeW(filePath.c_str()))
+		{
+			std::wstring currentDirectory = GetWorkingDirectoryW();
+			currentDirectory.reserve(currentDirectory.size() + filePath.size() + 2);
+			currentDirectory += L"/";
+			currentDirectory += filePath;
 
-		ShellExecuteW(NULL, L"open", currentDirectory.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+			ShellExecuteW(NULL, L"open", currentDirectory.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+		}
+		else
+		{
+			ShellExecuteW(NULL, L"open", filePath.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+		}
 	}
 
 	void OpenExplorerProperties(const std::string& filePath)
