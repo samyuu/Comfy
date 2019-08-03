@@ -41,7 +41,7 @@ namespace Editor
 		struct
 		{
 			float Saturation = 2.2f;
-			float Brightness = 0.455f;
+			float Brightness = 0.45455f;
 		} postProcessData;
 
 		// Vertex Storage

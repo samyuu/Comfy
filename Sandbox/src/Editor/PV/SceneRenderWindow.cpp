@@ -48,9 +48,9 @@ namespace Editor
 
 			BufferLayout layout =
 			{
-				{ ShaderDataType::Vec3, "in_position" },
-				{ ShaderDataType::Vec2, "in_texture_coords" },
-				{ ShaderDataType::Vec4, "in_color" },
+				{ ShaderDataType::Vec3, "in_Position" },
+				{ ShaderDataType::Vec2, "in_TextureCoords" },
+				{ ShaderDataType::Vec4, "in_Color" },
 			};
 
 			cubeVao.InitializeID();
@@ -69,8 +69,8 @@ namespace Editor
 
 			BufferLayout layout =
 			{
-				{ ShaderDataType::Vec3, "in_position" },
-				{ ShaderDataType::Vec4, "in_color" },
+				{ ShaderDataType::Vec3, "in_Position" },
+				{ ShaderDataType::Vec4, "in_Color" },
 			};
 
 			lineVao.InitializeID();
@@ -274,8 +274,8 @@ namespace Editor
 			GLCall(glViewport(0, 0, static_cast<GLint>(renderTarget.GetWidth()), static_cast<GLint>(renderTarget.GetHeight())));
 			{
 				comfyShader.Bind();
-				comfyShader.SetUniform(comfyShader.ViewLocation, camera.GetViewMatrix());
-				comfyShader.SetUniform(comfyShader.ProjectionLocation, camera.GetProjectionMatrix());
+				comfyShader.SetUniform(comfyShader.View, camera.GetViewMatrix());
+				comfyShader.SetUniform(comfyShader.Projection, camera.GetProjectionMatrix());
 
 				cubeVao.Bind();
 
@@ -287,17 +287,17 @@ namespace Editor
 					
 					skyTexture->Texture2D->Bind(1);
 					skyTexture->Texture2D->Bind(0);
-					comfyShader.SetUniform(comfyShader.ModelLocation, skyModelMatrix);
+					comfyShader.SetUniform(comfyShader.Model, skyModelMatrix);
 					GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
 
 					groundTexture->Texture2D->Bind(1);
 					groundTexture->Texture2D->Bind(0);
-					comfyShader.SetUniform(comfyShader.ModelLocation, groundModelMatrix);
+					comfyShader.SetUniform(comfyShader.Model, groundModelMatrix);
 					GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
 
 					tileTexture->Texture2D->Bind(1);
 					tileTexture->Texture2D->Bind(0);
-					comfyShader.SetUniform(comfyShader.ModelLocation, tileModelMatrix);
+					comfyShader.SetUniform(comfyShader.Model, tileModelMatrix);
 					GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
 				}
 
@@ -308,13 +308,13 @@ namespace Editor
 				// Lines:
 				{
 					lineShader.Bind();
-					lineShader.SetUniform(lineShader.ViewLocation, camera.GetViewMatrix());
-					lineShader.SetUniform(lineShader.ProjectionLocation, camera.GetProjectionMatrix());
+					lineShader.SetUniform(lineShader.View, camera.GetViewMatrix());
+					lineShader.SetUniform(lineShader.Projection, camera.GetProjectionMatrix());
 
 					lineVao.Bind();
 					for (size_t i = 0; i < _countof(cubePositions); i++)
 					{
-						lineShader.SetUniform(lineShader.ModelLocation, cubeModelMatrices[i]);
+						lineShader.SetUniform(lineShader.Model, cubeModelMatrices[i]);
 						GLCall(glDrawArrays(GL_LINES, 0, _countof(axisVertices)));
 					}
 				}
@@ -322,8 +322,8 @@ namespace Editor
 				// Cubes:
 				{
 					comfyShader.Bind();
-					comfyShader.SetUniform(comfyShader.Texture0Location, 0);
-					comfyShader.SetUniform(comfyShader.Texture1Location, 1);
+					comfyShader.SetUniform(comfyShader.Texture0, 0);
+					comfyShader.SetUniform(comfyShader.Texture1, 1);
 					
 					goodNiceTexture->Texture2D->Bind(1);
 					feelsBadManTexture->Texture2D->Bind(0);
@@ -331,7 +331,7 @@ namespace Editor
 					cubeVao.Bind();
 					for (size_t i = 0; i < _countof(cubePositions); i++)
 					{
-						comfyShader.SetUniform(comfyShader.ModelLocation, cubeModelMatrices[i]);
+						comfyShader.SetUniform(comfyShader.Model, cubeModelMatrices[i]);
 						GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
 					}
 				}
@@ -344,8 +344,8 @@ namespace Editor
 			GLCall(glDisable(GL_DEPTH_TEST));
 
 			screenShader.Bind();
-			screenShader.SetUniform(screenShader.SaturationLocation, postProcessData.Saturation);
-			screenShader.SetUniform(screenShader.BrightnessLocation, postProcessData.Brightness);
+			screenShader.SetUniform(screenShader.Saturation, postProcessData.Saturation);
+			screenShader.SetUniform(screenShader.Brightness, postProcessData.Brightness);
 
 			postProcessingRenderTarget.GetTexture().Bind();
 			GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
