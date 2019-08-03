@@ -22,7 +22,11 @@ vec2 ICamera::WorldToScreenSpace(const mat4& matrix, const vec2& worldSpace)
 	return (matrix * vec4(worldSpace, 0.0f, 1.0f)).xy;
 }
 
-const mat4 ICamera::identityMatrix = mat4(1.0f);
+const mat4& ICamera::GetIdentityMatrix()
+{
+	static const mat4 identityMatrix = mat4(1.0f);
+	return identityMatrix;
+}
 
 void PerspectiveCamera::UpdateMatrices()
 {
@@ -45,7 +49,7 @@ void OrthographicCamera::UpdateMatrices()
 	constexpr float projectionLeft = 0.0f;
 	constexpr float projectionTop = 0.0f;
 
-	viewMatrix = glm::translate(ICamera::identityMatrix, vec3(-Position.x, -Position.y, 0.0f)) * glm::scale(ICamera::identityMatrix, vec3(Zoom, Zoom, 1.0f));
+	viewMatrix = glm::translate(ICamera::GetIdentityMatrix(), vec3(-Position.x, -Position.y, 0.0f)) * glm::scale(ICamera::GetIdentityMatrix(), vec3(Zoom, Zoom, 1.0f));
 	projectionMatrix = glm::ortho(projectionLeft, ProjectionSize.x, ProjectionSize.y, projectionTop, NearPlane, FarPlane);
 }
 

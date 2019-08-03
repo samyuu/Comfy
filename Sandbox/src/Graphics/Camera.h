@@ -19,7 +19,7 @@ public:
 	static vec2 WorldToScreenSpace(const mat4& matrix, const vec2& worldSpace);
 
 protected:
-	static const mat4 identityMatrix;
+	static const mat4& GetIdentityMatrix();
 };
 
 class PerspectiveCamera : public ICamera
