@@ -262,6 +262,7 @@ namespace FileSystem
 	{
 		assert(parentAet != nullptr);
 		references.LayerIndex = value == nullptr ? -1 : value->GetThisIndex();
+		parentAet->UpdateLayerNames();
 	}
 
 	AetObj* AetObj::GetParentObj() const
