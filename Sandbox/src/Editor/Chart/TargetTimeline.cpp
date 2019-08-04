@@ -258,9 +258,8 @@ namespace Editor
 			FileSystem::ReadAllBytes("rom/spr/spr_comfy_editor.bin", &sprFileBuffer);
 			
 			sprSet.Parse(sprFileBuffer.data());
-			for (auto texture : sprSet.TxpSet->Textures)
-				texture->UploadTexture2D();
-
+			sprSet.TxpSet->UploadAll();
+			
 			buttonIconsTexture = sprSet.TxpSet->Textures.front()->Texture2D.get();
 		}
 
@@ -320,7 +319,7 @@ namespace Editor
 		strcpy_s<sizeof(timeInputBuffer)>(timeInputBuffer, GetCursorTime().FormatTime().c_str());
 
 		ImGui::PushItemWidth(140);
-		ImGui::InputTextWithHint("##time_input", "00:00.000", timeInputBuffer, sizeof(timeInputBuffer));
+		ImGui::InputTextWithHint("##TimeInput", "00:00.000", timeInputBuffer, sizeof(timeInputBuffer));
 		ImGui::PopItemWidth();
 
 		ImGui::SameLine();
@@ -730,6 +729,7 @@ namespace Editor
 				{
 					if (target.Tick == cursorMouseTick)
 					{
+						EnsureStreamOpenAndRunning();
 						audioController.PlayButtonSound();
 
 						buttonAnimations[target.Type].Tick = target.Tick;
@@ -781,8 +781,10 @@ namespace Editor
 			if (ImGui::IsKeyPressed(buttonPlacementMapping[i].Key, false))
 			{
 				if (!checkHitsoundsInCallback)
+				{
+					EnsureStreamOpenAndRunning();
 					audioController.PlayButtonSound();
-
+				}
 				PlaceOrRemoveTarget(cursorTick, buttonPlacementMapping[i].Type);
 			}
 		}
