@@ -1,8 +1,8 @@
 #include "Editor.h"
+#include "Application.h"
 #include "Aet/AetEditor.h"
 #include "Chart/TargetTimeline.h"
 #include "PV/SceneRenderWindow.h"
-#include "Application.h"
 #include "Misc/StringHelper.h"
 
 namespace Editor
