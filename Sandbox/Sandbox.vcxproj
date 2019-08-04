@@ -111,6 +111,7 @@
     <ClCompile Include="src\App\Engine.cpp" />
     <ClCompile Include="src\App\TestTasks.cpp" />
     <ClCompile Include="src\DataTest\IconTestWindow.cpp" />
+    <ClCompile Include="src\DataTest\ShaderTestWindow.cpp" />
     <ClCompile Include="src\Editor\Aet\AetDialogs.cpp" />
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
     <ClCompile Include="lib\stb\src\stb_image_write.cpp" />
@@ -198,6 +199,7 @@
     <ClInclude Include="src\App\Engine.h" />
     <ClInclude Include="src\App\TestTasks.h" />
     <ClInclude Include="src\DataTest\IconTestWindow.h" />
+    <ClInclude Include="src\DataTest\ShaderTestWindow.h" />
     <ClInclude Include="src\Editor\Aet\AetEditor.h" />
     <ClInclude Include="src\Editor\Aet\AetIcons.h" />
     <ClInclude Include="src\Editor\Aet\AetInspector.h" />

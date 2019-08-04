@@ -264,6 +264,9 @@
     <ClCompile Include="src\FileSystem\Stream\Stream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\DataTest\ShaderTestWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ImGui\imconfig.h">
@@ -552,6 +555,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\FileSystem\Stream\Stream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DataTest\ShaderTestWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
