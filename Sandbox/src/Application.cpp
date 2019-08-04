@@ -1,8 +1,9 @@
 #include "Application.h"
 #include "Editor/Theme.h"
-#include "DataTest/InputTestWindow.h"
 #include "DataTest/AudioTestWindow.h"
 #include "DataTest/IconTestWindow.h"
+#include "DataTest/InputTestWindow.h"
+#include "DataTest/ShaderTestWindow.h"
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
 #include "FileSystem/FileHelper.h"
@@ -353,8 +354,7 @@ bool Application::InitializeGui()
 	// Load Text Font
 	// --------------
 	{
-		const bool loadJapaneseRange = false;
-		fonts->AddFontFromFileTTF("rom/font/NotoSansCJKjp-Regular.otf", fontSize, nullptr, loadJapaneseRange ? fonts->GetGlyphRangesJapanese() : fonts->GetGlyphRangesDefault());
+		fonts->AddFontFromFileTTF("rom/font/NotoSansCJKjp-Regular.otf", fontSize, nullptr, fonts->GetGlyphRangesJapanese());
 	}
 	// Load Icon Font
 	// --------------
@@ -365,10 +365,6 @@ bool Application::InitializeGui()
 		config.MergeMode = true;
 		config.GlyphMinAdvanceX = 13.0f;
 
-		// Load Time: 0.05 MS
-		//fonts->AddFontFromFileTTF("rom/font/" FONT_ICON_FILE_NAME_FAR, fontSize - 2.0f, &config, icon_ranges); 
-
-		// Load Time: 0.10 MS
 		fonts->AddFontFromFileTTF("rom/font/" FONT_ICON_FILE_NAME_FAS, fontSize - 2.0f, &config, icon_ranges);
 	}
 
@@ -396,10 +392,11 @@ bool Application::InitializeApp()
 	// Data Test Components
 	// --------------------
 	{
-		dataTestComponents.reserve(2);
-		dataTestComponents.push_back(std::make_shared<InputTestWindow>(this));
-		dataTestComponents.push_back(std::make_shared<AudioTestWindow>(this));
-		dataTestComponents.push_back(std::make_shared<IconTestWindow>(this));
+		dataTestComponents.reserve(4);
+		dataTestComponents.push_back(std::make_shared<DataTest::InputTestWindow>(this));
+		dataTestComponents.push_back(std::make_shared<DataTest::AudioTestWindow>(this));
+		dataTestComponents.push_back(std::make_shared<DataTest::IconTestWindow>(this));
+		dataTestComponents.push_back(std::make_shared<DataTest::ShaderTestWindow>(this));
 	}
 
 	return true;
@@ -412,8 +409,8 @@ void Application::UpdatePollInput()
 
 	lastMouseX = mouseX;
 	lastMouseY = mouseY;
-	mouseX = (int)doubleX;
-	mouseY = (int)doubleY;
+	mouseX = static_cast<int>(doubleX);
+	mouseY = static_cast<int>(doubleY);
 
 	mouseDeltaX = mouseX - lastMouseX;
 	mouseDeltaY = lastMouseY - mouseY;
@@ -458,7 +455,7 @@ void Application::DrawGui()
 	{
 		//if (ImGui::IsKeyPressed(KeyCode_F9))
 		//	showMainMenuBar ^= true;
-		
+
 		if (ImGui::IsKeyPressed(KeyCode_F10))
 		{
 			showMainAppEngineWindow = true;
@@ -471,6 +468,11 @@ void Application::DrawGui()
 		{
 			if (ImGui::BeginMenu("Debug"))
 			{
+				ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_PlotHistogramHovered));
+				if (ImGui::MenuItem("Recompile Shaders", nullptr))
+					ShaderProgram::RecompileAllShaders();
+				ImGui::PopStyleColor();
+
 				if (ImGui::MenuItem("Toggle Fullscreen", nullptr))
 					ToggleFullscreen();
 
