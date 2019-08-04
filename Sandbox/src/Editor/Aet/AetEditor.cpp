@@ -59,7 +59,10 @@ namespace Editor
 		timeline->InitializeTimelineGuiState();
 		renderWindow->Initialize();
 
-		LoadAetSet(testAetPath);
+		if (testAetPath != nullptr)
+			LoadAetSet(testAetPath);
+		if (testSprPath != nullptr)
+			LoadSprSet(testSprPath);
 	}
 
 	void AetEditor::DrawGui()

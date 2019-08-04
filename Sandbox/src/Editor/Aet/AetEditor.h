@@ -50,7 +50,8 @@ namespace Editor
 
 		Properties currentProperties;
 
-		const char* testAetPath = "dev_ram/aetset/aet_tst000.bin";
+		const char* testAetPath = "dev_ram/aetset/aet_gam_cmn.bin";
+		const char* testSprPath = "dev_ram/sprset/spr_gam_cmn.bin";
 
 		void UpdateFileLoading();
 
