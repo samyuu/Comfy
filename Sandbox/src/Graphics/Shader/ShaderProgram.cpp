@@ -1,12 +1,51 @@
 #include "ShaderProgram.h"
 #include "FileSystem/FileHelper.h"
+#include <algorithm>
+#include <assert.h>
+
+constexpr int32_t UniformLocation_Uninitialized = 0xCCCCCCCC;
+
+Uniform::Uniform(UniformType type, const char* name) : location(UniformLocation_Uninitialized), type(type), name(name)
+{
+}
+
+void Uniform::UpdateLocation(const ShaderProgram& shader)
+{
+	GLCall(location = glGetUniformLocation(shader.GetProgramID(), name));
+
+	if (location == -1)
+		Logger::LogLine(__FUNCTION__ "(): %s not found", GetName());
+}
+
+void Uniform::AssertLocationSetType(UniformType targetType) const
+{
+	assert(location != UniformLocation_Uninitialized);
+	assert(type == targetType);
+}
+
+int32_t Uniform::GetLocation() const
+{
+	return location;
+}
+
+UniformType Uniform::GetType() const
+{
+	return type;
+}
+
+const char* Uniform::GetName() const
+{
+	return name;
+}
 
 ShaderProgram::ShaderProgram()
 {
+	RegisterProgram(this);
 }
 
 ShaderProgram::~ShaderProgram()
 {
+	UnregisterProgram(this);
 	Dispose();
 }
 
@@ -20,54 +59,40 @@ void ShaderProgram::UnBind() const
 	GLCall(glUseProgram(0));
 }
 
-void ShaderProgram::SetUniform(UniformLocation_t location, int value)
+void ShaderProgram::SetUniform(const Uniform& uniform, int value)
 {
-	GLCall(glUniform1i(location, value));
+	uniform.AssertLocationSetType(UniformType::Int);
+	GLCall(glUniform1i(uniform.GetLocation(), value));
 }
 
-void ShaderProgram::SetUniform(UniformLocation_t location, float value)
+void ShaderProgram::SetUniform(const Uniform& uniform, float value)
 {
-	GLCall(glUniform1f(location, value));
+	uniform.AssertLocationSetType(UniformType::Float);
+	GLCall(glUniform1f(uniform.GetLocation(), value));
 }
 
-void ShaderProgram::SetUniform(UniformLocation_t location, const vec2& value)
+void ShaderProgram::SetUniform(const Uniform& uniform, const vec2& value)
 {
-	GLCall(glUniform2f(location, value.x, value.y));
+	uniform.AssertLocationSetType(UniformType::Vec2);
+	GLCall(glUniform2f(uniform.GetLocation(), value.x, value.y));
 }
 
-void ShaderProgram::SetUniform(UniformLocation_t location, const vec3& value)
+void ShaderProgram::SetUniform(const Uniform& uniform, const vec3& value)
 {
-	GLCall(glUniform3f(location, value.x, value.y, value.z));
+	uniform.AssertLocationSetType(UniformType::Vec3);
+	GLCall(glUniform3f(uniform.GetLocation(), value.x, value.y, value.z));
 }
 
-void ShaderProgram::SetUniform(UniformLocation_t location, const glm::mat4& value)
+void ShaderProgram::SetUniform(const Uniform& uniform, const vec4& value)
 {
-	GLCall(glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value)));
+	uniform.AssertLocationSetType(UniformType::Vec4);
+	GLCall(glUniform4f(uniform.GetLocation(), value.x, value.y, value.z, value.w));
 }
 
-void ShaderProgram::SetUniformByName(const char* name, int value)
+void ShaderProgram::SetUniform(const Uniform& uniform, const glm::mat4& value)
 {
-	SetUniform(GetUniformLocation(name), value);
-}
-
-void ShaderProgram::SetUniformByName(const char* name, float value)
-{
-	SetUniform(GetUniformLocation(name), value);
-}
-
-void ShaderProgram::SetUniformByName(const char* name, const vec2& value)
-{
-	SetUniform(GetUniformLocation(name), value);
-}
-
-void ShaderProgram::SetUniformByName(const char* name, const vec3& value)
-{
-	SetUniform(GetUniformLocation(name), value);
-}
-
-void ShaderProgram::SetUniformByName(const char* name, const glm::mat4& value)
-{
-	SetUniform(GetUniformLocation(name), value);
+	uniform.AssertLocationSetType(UniformType::Mat4);
+	GLCall(glUniformMatrix4fv(uniform.GetLocation(), 1, GL_FALSE, glm::value_ptr(value)));
 }
 
 void ShaderProgram::Initialize()
@@ -86,11 +111,44 @@ void ShaderProgram::Initialize()
 	initialized = true;
 }
 
-UniformLocation_t ShaderProgram::GetUniformLocation(const std::string &name)
+void ShaderProgram::Recompile()
 {
-	GLint location;
-	GLCall(location = glGetUniformLocation(programID, name.c_str()));
-	return location;
+	if (!GetIsInitialized())
+		return;
+
+	Dispose();
+	Initialize();
+}
+
+void ShaderProgram::RecompileAllShaders()
+{
+	Logger::LogLine(__FUNCTION__ "(): Recompiling Shaders...");
+
+	for (auto shader : allShaderPrograms)
+	{
+		shader->Recompile();
+	}
+}
+
+const std::vector<ShaderProgram*>& ShaderProgram::GetAllShaderPrograms()
+{
+	return allShaderPrograms;
+}
+
+void ShaderProgram::UpdateUniformLocation(Uniform& uniform) const
+{
+	uniform.UpdateLocation(*this);
+}
+
+void ShaderProgram::UpdateUniformArrayLocations(Uniform* firstUniform, Uniform* lastUniform) const
+{
+	for (Uniform* uniform = firstUniform; uniform <= lastUniform; uniform++)
+		uniform->UpdateLocation(*this);
+}
+
+void ShaderProgram::GetAllUniformLocations()
+{
+	UpdateUniformArrayLocations(GetFirstUniform(), GetLastUniform());
 }
 
 void ShaderProgram::LoadShaderSources()
@@ -108,7 +166,7 @@ int ShaderProgram::CompileShader(ShaderType shaderType, ShaderID_t* shaderID, co
 	case ShaderType::Vertex:
 		glShaderType = GL_VERTEX_SHADER;
 		break;
-	
+
 	case ShaderType::Fragment:
 		glShaderType = GL_FRAGMENT_SHADER;
 		break;
@@ -116,9 +174,9 @@ int ShaderProgram::CompileShader(ShaderType shaderType, ShaderID_t* shaderID, co
 
 	*shaderID = glCreateShader(glShaderType);
 
-	int sourceSizes[1] = { (int)shaderSource.size() };
-	char* sources[1] = { (char*)shaderSource.data() };
-	
+	int sourceSizes[1] = { static_cast<int>(shaderSource.size()) };
+	const char* sources[1] = { reinterpret_cast<const char*>(shaderSource.data()) };
+
 	GLCall(glShaderSource(*shaderID, 1, sources, sourceSizes));
 	GLCall(glCompileShader(*shaderID));
 
@@ -127,10 +185,11 @@ int ShaderProgram::CompileShader(ShaderType shaderType, ShaderID_t* shaderID, co
 
 	if (!compileSuccess)
 	{
-		char infoLog[512] = {};
-		GLCall(glGetShaderInfoLog(*shaderID, sizeof(infoLog), NULL, infoLog));
+		std::string infoLog;
+		ReserveShaderInfoLogLength(*shaderID, infoLog);
+		GLCall(glGetShaderInfoLog(*shaderID, static_cast<int>(infoLog.capacity()), NULL, infoLog.data()));
 
-		Logger::LogErrorLine(__FUNCTION__"(): Failed to compile shader %s", infoLog);
+		Logger::LogErrorLine(__FUNCTION__"(): Failed to compile shader %s", infoLog.c_str());
 		return -1;
 	}
 
@@ -148,11 +207,11 @@ int ShaderProgram::AttachLinkShaders(ShaderID_t vertexShader, ShaderID_t fragmen
 
 	if (!linkSuccess)
 	{
-		char infoLog[512] = {};
-		GLCall(glGetProgramInfoLog(programID, sizeof(infoLog), NULL, infoLog));
+		std::string infoLog;
+		ReserveProgramInfoLogLength(programID, infoLog);
+		GLCall(glGetProgramInfoLog(programID, static_cast<int>(infoLog.capacity()), NULL, infoLog.data()));
 
-		Logger::LogErrorLine(__FUNCTION__"(): Failed to link shaders %s", infoLog);
-		return -1;
+		Logger::LogErrorLine(__FUNCTION__"(): Failed to link shaders %s", infoLog.c_str());
 	}
 
 	GLCall(glDetachShader(programID, vertexShader));
@@ -161,7 +220,7 @@ int ShaderProgram::AttachLinkShaders(ShaderID_t vertexShader, ShaderID_t fragmen
 	GLCall(glDeleteShader(vertexShader));
 	GLCall(glDeleteShader(fragmentShader));
 
-	return 0;
+	return linkSuccess;
 }
 
 void ShaderProgram::Dispose()
@@ -171,4 +230,34 @@ void ShaderProgram::Dispose()
 		GLCall(glDeleteProgram(programID));
 		programID = NULL;
 	}
+}
+
+void ShaderProgram::ReserveShaderInfoLogLength(const ShaderID_t& shaderID, std::string& infoLog)
+{
+	int logLength;
+	GLCall(glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &logLength));
+
+	if (logLength > 0)
+		infoLog.reserve(logLength);
+}
+
+void ShaderProgram::ReserveProgramInfoLogLength(const ProgramID_t& programID, std::string & infoLog)
+{
+	int logLength;
+	GLCall(glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &logLength));
+
+	if (logLength > 0)
+		infoLog.reserve(logLength);
+}
+
+std::vector<ShaderProgram*> ShaderProgram::allShaderPrograms;
+
+void ShaderProgram::RegisterProgram(ShaderProgram* program)
+{
+	allShaderPrograms.push_back(program);
+}
+
+void ShaderProgram::UnregisterProgram(ShaderProgram* program)
+{
+	allShaderPrograms.erase(std::remove(allShaderPrograms.begin(), allShaderPrograms.end(), program), allShaderPrograms.end());
 }

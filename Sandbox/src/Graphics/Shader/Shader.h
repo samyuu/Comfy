@@ -9,22 +9,24 @@ class SpriteShader : public ShaderProgram
 {
 public:
 	SpriteShader();
-	~SpriteShader();
 	SpriteShader(const SpriteShader&) = delete;
+	~SpriteShader();
 
-	UniformLocation_t ProjectionViewLocation;
+	Uniform ProjectionView = { UniformType::Mat4, "u_ProjectionView" };
+	Uniform UseSolidColor = { UniformType::Int, "u_SolidColor" };
+	Uniform UseTextShadow = { UniformType::Int, "u_TextShadow" };
+	Uniform UseCheckerboard = { UniformType::Int, "u_Checkerboard" };
+	Uniform CheckerboardSize = { UniformType::Vec2, "u_CheckboardSize" };
+	Uniform TextureFormat = { UniformType::Int, "u_TextureFormat" };
+	Uniform TextureMaskFormat = { UniformType::Int, "u_TextureMaskFormat" };
+	Uniform Texture = { UniformType::Int, "u_TextureSampler" };
+	Uniform TextureMask = { UniformType::Int, "u_TextureMaskSampler" };
 
-	UniformLocation_t UseSolidColorLocation;
-	UniformLocation_t UseTextShadowLocation;
-	UniformLocation_t UseCheckerboardLocation;
-	UniformLocation_t CheckerboardSizeLocation;
-	UniformLocation_t TextureFormatLocation;
-	
-	UniformLocation_t TextureLocation;
-	UniformLocation_t TextureMaskLocation;
+public:
+	virtual Uniform* GetFirstUniform() override;
+	virtual Uniform* GetLastUniform() override;
 
-protected:
-	virtual void GetAllUniformLocations() override;
+	virtual const char* GetShaderName() override;
 	virtual const char* GetVertexShaderPath() override;
 	virtual const char* GetFragmentShaderPath() override;
 };
@@ -37,18 +39,20 @@ class ComfyShader : public ShaderProgram
 {
 public:
 	ComfyShader();
-	~ComfyShader();
 	ComfyShader(const ComfyShader&) = delete;
+	~ComfyShader();
 
-	UniformLocation_t ModelLocation;
-	UniformLocation_t ViewLocation;
-	UniformLocation_t ProjectionLocation;
+	Uniform Model = { UniformType::Mat4, "u_Model" };
+	Uniform View = { UniformType::Mat4, "u_View" };
+	Uniform Projection = { UniformType::Mat4, "u_Projection" };
+	Uniform Texture0 = { UniformType::Int, "u_TextureSampler0" };
+	Uniform Texture1 = { UniformType::Int, "u_TextureSampler1" };
 
-	UniformLocation_t Texture0Location;
-	UniformLocation_t Texture1Location;
+public:
+	virtual Uniform* GetFirstUniform() override;
+	virtual Uniform* GetLastUniform() override;
 
-protected:
-	virtual void GetAllUniformLocations() override;
+	virtual const char* GetShaderName() override;
 	virtual const char* GetVertexShaderPath() override;
 	virtual const char* GetFragmentShaderPath() override;
 };
@@ -61,16 +65,18 @@ class ScreenShader : public ShaderProgram
 {
 public:
 	ScreenShader();
-	~ScreenShader();
 	ScreenShader(const ScreenShader&) = delete;
+	~ScreenShader();
 
-	UniformLocation_t SaturationLocation;
-	UniformLocation_t BrightnessLocation;
+	Uniform Saturation = { UniformType::Float, "u_Saturation" };
+	Uniform Brightness = { UniformType::Float, "u_Brightness" };
+	Uniform ScreenTexture = { UniformType::Int, "u_ScreenTexture" };
 
-	UniformLocation_t ScreenTextureLocation;
+public:
+	virtual Uniform* GetFirstUniform() override;
+	virtual Uniform* GetLastUniform() override;
 
-protected:
-	virtual void GetAllUniformLocations() override;
+	virtual const char* GetShaderName() override;
 	virtual const char* GetVertexShaderPath() override;
 	virtual const char* GetFragmentShaderPath() override;
 };
@@ -83,15 +89,18 @@ class LineShader : public ShaderProgram
 {
 public:
 	LineShader();
-	~LineShader();
 	LineShader(const LineShader&) = delete;
+	~LineShader();
 
-	UniformLocation_t ModelLocation;
-	UniformLocation_t ViewLocation;
-	UniformLocation_t ProjectionLocation;
+	Uniform Model = { UniformType::Mat4, "u_Model" };
+	Uniform View = { UniformType::Mat4, "u_View" };
+	Uniform Projection = { UniformType::Mat4, "u_Projection" };
 
-protected:
-	virtual void GetAllUniformLocations() override;
+public:
+	virtual Uniform* GetFirstUniform() override;
+	virtual Uniform* GetLastUniform() override;
+
+	virtual const char* GetShaderName() override;
 	virtual const char* GetVertexShaderPath() override;
 	virtual const char* GetFragmentShaderPath() override;
 };
