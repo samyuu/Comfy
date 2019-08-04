@@ -5,65 +5,68 @@
 #include <vector>
 #include <array>
 
-class AudioTestWindow : public BaseWindow
+namespace DataTest
 {
-public:
-	AudioTestWindow(Application*);
-	~AudioTestWindow();
-
-	virtual void DrawGui() override;
-	virtual const char* GetGuiName() const override;
-	virtual ImGuiWindowFlags GetWindowFlags() const override;
-
-private:
-	const float audioInstancesChildHeight = 0; // 128;
-	const char* testSongPath = "rom/sound/sngtst.flac";
-
-	MemoryAudioStream songTestStream;
-	std::shared_ptr<AudioInstance> songAudioInstance = nullptr;
-
-	MemoryAudioStream testButtonSound;
-	float testButtonVolume = MAX_VOLUME;
-
-	struct ExtendedDeviceInfo
+	class AudioTestWindow : public BaseWindow
 	{
-		RtAudio::DeviceInfo Info;
-		std::string SampleRatesString;
-		std::string NativeFormatsString;
+	public:
+		AudioTestWindow(Application*);
+		~AudioTestWindow();
+
+		virtual void DrawGui() override;
+		virtual const char* GetGuiName() const override;
+		virtual ImGuiWindowFlags GetWindowFlags() const override;
+
+	private:
+		const float audioInstancesChildHeight = 0; // 128;
+		const char* testSongPath = "rom/sound/sngtst.flac";
+
+		MemoryAudioStream songTestStream;
+		std::shared_ptr<AudioInstance> songAudioInstance = nullptr;
+
+		MemoryAudioStream testButtonSound;
+		float testButtonVolume = MAX_VOLUME;
+
+		struct ExtendedDeviceInfo
+		{
+			RtAudio::DeviceInfo Info;
+			std::string SampleRatesString;
+			std::string NativeFormatsString;
+		};
+
+		std::vector<ExtendedDeviceInfo> deviceInfoList;
+		AudioApi selectedAudioApi = AudioApi::Invalid;
+		int newBufferSize = -1;
+
+		std::array<const char*, static_cast<size_t>(AudioApi::Count)> audioApiNames =
+		{
+			"AudioApi::ASIO",
+			"AudioApi::WASAPI",
+		};
+
+		std::array<const char*, 8> deviceInfoFieldNames =
+		{
+			"Name",
+			"Output Channels",
+			"Input Channels",
+			"Duplex Channels",
+			"Default Output",
+			"Default Input",
+			"Sample Rates",
+			"Native Formats",
+		};
+
+		struct { RtAudioFormat Format; const char* Name; } audioFormatDescriptions[6] =
+		{
+			{ RTAUDIO_SINT8,	"SINT8"   },
+			{ RTAUDIO_SINT16,	"SINT16"  },
+			{ RTAUDIO_SINT24,	"SINT24"  },
+			{ RTAUDIO_SINT32,	"SINT32"  },
+			{ RTAUDIO_FLOAT32,	"FLOAT32" },
+			{ RTAUDIO_FLOAT64,	"FLOAT64" },
+		};
+
+		void RefreshDeviceInfoList();
+		void ShowDeviceInfoProperties(ExtendedDeviceInfo& deviceInfo, int uid);
 	};
-
-	std::vector<ExtendedDeviceInfo> deviceInfoList;
-	AudioApi selectedAudioApi = AudioApi::Invalid;
-	int newBufferSize = -1;
-
-	std::array<const char*, static_cast<size_t>(AudioApi::Count)> audioApiNames =
-	{ 
-		"AudioApi::ASIO",
-		"AudioApi::WASAPI",
-	};
-
-	std::array<const char*, 8> deviceInfoFieldNames =
-	{
-		"Name",
-		"Output Channels",
-		"Input Channels",
-		"Duplex Channels",
-		"Default Output",
-		"Default Input",
-		"Sample Rates",
-		"Native Formats",
-	};
-
-	struct { RtAudioFormat Format; const char* Name; } audioFormatDescriptions[6] =
-	{
-		{ RTAUDIO_SINT8,	"SINT8"   },
-		{ RTAUDIO_SINT16,	"SINT16"  },
-		{ RTAUDIO_SINT24,	"SINT24"  },
-		{ RTAUDIO_SINT32,	"SINT32"  },
-		{ RTAUDIO_FLOAT32,	"FLOAT32" },
-		{ RTAUDIO_FLOAT64,	"FLOAT64" },
-	};
-
-	void RefreshDeviceInfoList();
-	void ShowDeviceInfoProperties(ExtendedDeviceInfo& deviceInfo, int uid);
-};
+}

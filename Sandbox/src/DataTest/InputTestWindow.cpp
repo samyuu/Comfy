@@ -2,90 +2,93 @@
 #include "Application.h"
 #include "Input/Keyboard.h"
 
-InputTestWindow::InputTestWindow(Application* parent) : BaseWindow(parent)
+namespace DataTest
 {
-	CloseWindow();
-}
-
-InputTestWindow::~InputTestWindow()
-{
-}
-
-void InputTestWindow::DrawGui()
-{
-	static const ImVec4 onColor = ImVec4(0.14f, 0.78f, 0.21f, 1.00f);
-	static const ImVec4 offColor = ImVec4(0.95f, 0.12f, 0.12f, 1.00f);
-
-	auto boolColoredText = [](const char* label, const char* trueText, const char* falseText, bool condition)
+	InputTestWindow::InputTestWindow(Application* parent) : BaseWindow(parent)
 	{
-		ImGui::Text(label);
-		ImGui::SameLine();
-		ImGui::TextColored(condition ? onColor : offColor, condition ? trueText : falseText);
-	};
+		CloseWindow();
+	}
 
-	ImGui::Text("INPUT TEST:");
-	ImGui::Separator();
-
-	if (ImGui::Button("Refresh Devices", ImVec2(ImGui::GetWindowWidth(), 0)))
-		RefreshDevices();
-	ImGui::Separator();
-
-	if (ImGui::CollapsingHeader("Keyboard", ImGuiTreeNodeFlags_DefaultOpen))
+	InputTestWindow::~InputTestWindow()
 	{
-		Keyboard* keyboard = Keyboard::GetInstance();
+	}
 
-		bool initialized = Keyboard::GetInstanceInitialized();
-		boolColoredText("KEYBOARD : ", "OK", "NG", initialized);
-	
-		if (initialized)
+	void InputTestWindow::DrawGui()
+	{
+		static const ImVec4 onColor = ImVec4(0.14f, 0.78f, 0.21f, 1.00f);
+		static const ImVec4 offColor = ImVec4(0.95f, 0.12f, 0.12f, 1.00f);
+
+		auto boolColoredText = [](const char* label, const char* trueText, const char* falseText, bool condition)
 		{
-			for (KeyCode key = 0; key < KeyCode_Count; key++)
+			ImGui::Text(label);
+			ImGui::SameLine();
+			ImGui::TextColored(condition ? onColor : offColor, condition ? trueText : falseText);
+		};
+
+		ImGui::Text("Input Test:");
+		ImGui::Separator();
+
+		if (ImGui::Button("Refresh Devices", ImVec2(ImGui::GetWindowWidth(), 0)))
+			RefreshDevices();
+		ImGui::Separator();
+
+		if (ImGui::CollapsingHeader("Keyboard", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			Keyboard* keyboard = Keyboard::GetInstance();
+
+			bool initialized = Keyboard::GetInstanceInitialized();
+			boolColoredText("KEYBOARD : ", "OK", "NG", initialized);
+
+			if (initialized)
 			{
-				if (keyboard->IsDown(key))
+				for (KeyCode key = 0; key < KeyCode_Count; key++)
 				{
-					const char* keyName = glfwGetKeyName(key, glfwGetKeyScancode(key));
-					if (keyName != nullptr)
-						ImGui::BulletText(keyName);
+					if (keyboard->IsDown(key))
+					{
+						const char* keyName = glfwGetKeyName(key, glfwGetKeyScancode(key));
+						if (keyName != nullptr)
+							ImGui::BulletText(keyName);
+					}
 				}
 			}
 		}
-	}
-	ImGui::Separator();
+		ImGui::Separator();
 
-	if (ImGui::CollapsingHeader("DualShock4", ImGuiTreeNodeFlags_DefaultOpen))
-	{
-		DualShock4* ds4 = DualShock4::GetInstance();
-
-		bool initialized = DualShock4::GetInstanceInitialized();
-		boolColoredText("DUALSHOCK4 : ", "OK", "NG", initialized);
-
-		if (initialized)
+		if (ImGui::CollapsingHeader("DualShock4", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			for (size_t button = 0; button < static_cast<size_t>(Ds4Button::Count); button++)
+			DualShock4* ds4 = DualShock4::GetInstance();
+
+			bool initialized = DualShock4::GetInstanceInitialized();
+			boolColoredText("DUALSHOCK4 : ", "OK", "NG", initialized);
+
+			if (initialized)
 			{
-				if (ds4->IsDown((Ds4Button)button))
-					ImGui::BulletText(ds4ButtonNames[button]);
+				for (size_t button = 0; button < static_cast<size_t>(Ds4Button::Count); button++)
+				{
+					if (ds4->IsDown((Ds4Button)button))
+						ImGui::BulletText(ds4ButtonNames[button]);
+				}
 			}
 		}
+		ImGui::Separator();
 	}
-	ImGui::Separator();
-}
 
-const char* InputTestWindow::GetGuiName() const
-{
-	return u8"Input Test";
-}
+	const char* InputTestWindow::GetGuiName() const
+	{
+		return u8"Input Test";
+	}
 
-ImGuiWindowFlags InputTestWindow::GetWindowFlags() const
-{
-	return ImGuiWindowFlags_None;
-}
+	ImGuiWindowFlags InputTestWindow::GetWindowFlags() const
+	{
+		return ImGuiWindowFlags_None;
+	}
 
-void InputTestWindow::RefreshDevices()
-{
-	if (!Keyboard::GetInstanceInitialized())
-		Keyboard::TryInitializeInstance(GetParent()->GetWindow());
+	void InputTestWindow::RefreshDevices()
+	{
+		if (!Keyboard::GetInstanceInitialized())
+			Keyboard::TryInitializeInstance(GetParent()->GetWindow());
 
-	if (!DualShock4::GetInstanceInitialized())
-		DualShock4::TryInitializeInstance();
+		if (!DualShock4::GetInstanceInitialized())
+			DualShock4::TryInitializeInstance();
+	}
 }

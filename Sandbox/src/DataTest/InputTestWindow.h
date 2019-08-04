@@ -3,46 +3,49 @@
 #include "Input/DirectInput/DualShock4.h"
 #include <array>
 
-class InputTestWindow : public BaseWindow
+namespace DataTest
 {
-public:
-	InputTestWindow(Application*);
-	~InputTestWindow();
-
-	virtual void DrawGui() override;
-	virtual const char* GetGuiName() const override;
-	virtual ImGuiWindowFlags GetWindowFlags() const override;
-
-private:
-	std::array<const char*, static_cast<size_t>(Ds4Button::Count)> ds4ButtonNames =
+	class InputTestWindow : public BaseWindow
 	{
-		"Square",
-		"Cross",
-		"Circle",
-		"Triangle",
-		"L1",
-		"R1",
-		"L_Trigger",
-		"R_Trigger",
-		"Share",
-		"Options",
-		"L3",
-		"R3",
-		"PS",
-		"Touch",
-		"DPad_Up",
-		"DPad_Right",
-		"DPad_Down",
-		"DPad_Left",
-		"L_Stick_Up",
-		"L_Stick_Right",
-		"L_Stick_Down",
-		"L_Stick_Left",
-		"R_Stick_Up",
-		"R_Stick_Right",
-		"R_Stick_Down",
-		"R_Stick_Left",
-	};
+	public:
+		InputTestWindow(Application*);
+		~InputTestWindow();
 
-	void RefreshDevices();
-};
+		virtual void DrawGui() override;
+		virtual const char* GetGuiName() const override;
+		virtual ImGuiWindowFlags GetWindowFlags() const override;
+
+	private:
+		std::array<const char*, static_cast<size_t>(Ds4Button::Count)> ds4ButtonNames =
+		{
+			"Square",
+			"Cross",
+			"Circle",
+			"Triangle",
+			"L1",
+			"R1",
+			"L_Trigger",
+			"R_Trigger",
+			"Share",
+			"Options",
+			"L3",
+			"R3",
+			"PS",
+			"Touch",
+			"DPad_Up",
+			"DPad_Right",
+			"DPad_Down",
+			"DPad_Left",
+			"L_Stick_Up",
+			"L_Stick_Right",
+			"L_Stick_Down",
+			"L_Stick_Left",
+			"R_Stick_Up",
+			"R_Stick_Right",
+			"R_Stick_Down",
+			"R_Stick_Left",
+		};
+
+		void RefreshDevices();
+	};
+}

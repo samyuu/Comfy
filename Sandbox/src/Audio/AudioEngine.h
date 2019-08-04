@@ -11,7 +11,7 @@ typedef RtAudio::StreamParameters StreamParameters;
 
 class AudioInstance;
 class ISampleProvider;
-class AudioTestWindow;
+namespace DataTest { class AudioTestWindow; }
 
 enum class AudioApi : int32_t
 {
@@ -35,7 +35,7 @@ constexpr uint32_t MAX_BUFFER_SIZE = 0x2000;
 
 class AudioEngine
 {
-	friend AudioTestWindow;
+	friend DataTest::AudioTestWindow;
 
 public:
 	// ----------------------
