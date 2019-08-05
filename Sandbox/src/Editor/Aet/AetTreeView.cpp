@@ -30,6 +30,12 @@ namespace Editor
 		lastHovered = hovered;
 		hovered.Reset();
 
+		if (selected.VoidPointer == nullptr && GetDebugObjectName() != nullptr)
+		{
+			activeAet = &aetSet->front();
+			selected.SetItem(activeAet->GetObj(GetDebugObjectName()));
+		}
+
 		DrawTreeViewBackground();
 
 		if (ImGui::WideTreeNodeEx((void*)aetSet, HeaderTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str()))
@@ -299,5 +305,11 @@ namespace Editor
 		if (ImGui::MenuItem(ICON_DELETE "  Delete...")) {}
 
 		return false;
+	}
+
+	const char* AetTreeView::GetDebugObjectName()
+	{
+		// return nullptr;
+		return "target_slide18_r";
 	}
 }

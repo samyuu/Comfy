@@ -46,5 +46,8 @@ namespace Editor
 	
 		bool DrawAetLayerContextMenu(AetLayer& aetLayer);
 		bool DrawAetObjContextMenu(AetObj& aetObj);
+
+	private:
+		const char* GetDebugObjectName();
 	};
 }
