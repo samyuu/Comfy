@@ -16,7 +16,7 @@ namespace Editor
 	class SceneRenderWindow : public IEditorComponent, public RenderWindowBase
 	{
 	public:
-		SceneRenderWindow(Application* parent, PvEditor* editor);
+		SceneRenderWindow(Application* parent, EditorManager* editor);
 		~SceneRenderWindow();
 
 		const char* GetGuiName() const override;

@@ -5,7 +5,7 @@
 
 namespace Editor
 {
-	SceneRenderWindow::SceneRenderWindow(Application* parent, PvEditor* editor) : IEditorComponent(parent, editor)
+	SceneRenderWindow::SceneRenderWindow(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
 	}
 
@@ -268,10 +268,10 @@ namespace Editor
 			GLCall(glEnable(GL_BLEND));
 			GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-			GLCall(glClearColor(baseClearColor.x, baseClearColor.y, baseClearColor.z, baseClearColor.w));
-			GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+			RenderCommand::SetClearColor(baseClearColor);
+			RenderCommand::Clear(ClearTarget_ColorBuffer | ClearTarget_DepthBuffer);
 
-			GLCall(glViewport(0, 0, static_cast<GLint>(renderTarget.GetWidth()), static_cast<GLint>(renderTarget.GetHeight())));
+			RenderCommand::SetViewport(renderTarget.GetSize());
 			{
 				comfyShader.Bind();
 				comfyShader.SetUniform(comfyShader.View, camera.GetViewMatrix());
