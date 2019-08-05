@@ -8,11 +8,13 @@
 
 namespace Editor
 {
-	AetRenderWindow::AetRenderWindow(SpriteGetter spriteGetter)
+	AetRenderWindow::AetRenderWindow(SpriteGetterFunction* spriteGetter)
 	{
 		assert(spriteGetter != nullptr);
 
-		getSprite = spriteGetter;
+		renderer = std::make_unique<Renderer2D>();
+		aetRenderer = std::make_unique<AetRenderer>(renderer.get());
+		aetRenderer->SetSpriteGetterFunction(spriteGetter);
 	}
 
 	AetRenderWindow::~AetRenderWindow()
@@ -60,7 +62,7 @@ namespace Editor
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 1.0f));
 		ImGui::PushItemWidth(itemWidth);
 		{
-			if (active.Type() == AetSelectionType::AetObj && active.AetObj->AnimationData != nullptr)
+			if (active.Type() == AetSelectionType::AetObj && active.VoidPointer != nullptr && active.AetObj->AnimationData != nullptr)
 			{
 				static Properties properties;
 
@@ -243,16 +245,15 @@ namespace Editor
 
 		renderTarget.Bind();
 		{
-			GLCall(glViewport(0, 0, static_cast<GLint>(renderTarget.GetWidth()), static_cast<GLint>(renderTarget.GetHeight())));
+			RenderCommand::SetViewport(renderTarget.GetSize());
 
-			vec4 backgroundColor = GetColorVec4(EditorColor_DarkClear);
-			GLCall(glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z, backgroundColor.w));
-			GLCall(glClear(GL_COLOR_BUFFER_BIT));
+			RenderCommand::SetClearColor(GetColorVec4(EditorColor_DarkClear));
+			RenderCommand::Clear(ClearTarget_ColorBuffer);
 
 			camera.UpdateMatrices();
 
-			renderer.SetUseTextShadow(useTextShadow);
-			renderer.Begin(camera);
+			renderer->SetUseTextShadow(useTextShadow);
+			renderer->Begin(camera);
 			{
 				RenderGrid();
 
@@ -288,10 +289,10 @@ namespace Editor
 					constexpr float cursorSize = 4.0f;
 
 					vec2 mouseWorldSpace = camera.ScreenToWorldSpace(GetRelativeMouse());
-					renderer.Draw(mouseWorldSpace - vec2(cursorSize * 0.5f), vec2(cursorSize), GetColorVec4(EditorColor_CursorInner));
+					renderer->Draw(mouseWorldSpace - vec2(cursorSize * 0.5f), vec2(cursorSize), GetColorVec4(EditorColor_CursorInner));
 				}
 			}
-			renderer.End();
+			renderer->End();
 		}
 		renderTarget.UnBind();
 
@@ -307,26 +308,13 @@ namespace Editor
 
 	void AetRenderWindow::OnInitialize()
 	{
-		renderer.Initialize();
+		renderer->Initialize();
 	}
 
 	void AetRenderWindow::RenderGrid()
 	{
-		vec2 regionSize = (aet == nullptr) ? vec2(1280.0f, 720.0f) : vec2(aet->Width, aet->Height);
-
-		renderer.Draw(
-			vec2(0.0f),
-			regionSize,
-			gridConfig.Color);
-
-		renderer.DrawCheckerboardRectangle(
-			vec2(0.0f),
-			vec2(1.0f),
-			vec2(0.0f),
-			0.0f,
-			regionSize,
-			gridConfig.ColorAlt,
-			camera.Zoom * gridConfig.GridSize);
+		checkerboardGrid.Size = (aet == nullptr) ? vec2(1280.0f, 720.0f) : vec2(aet->Width, aet->Height);
+		checkerboardGrid.Render(renderer.get());
 	}
 
 	void AetRenderWindow::RenderAetSet(AetSet* aetSet)
@@ -354,8 +342,23 @@ namespace Editor
 		objectCache.clear();
 		AetMgr::GetAddObjects(objectCache, aetObj, currentFrame);
 
-		for (const auto& obj : objectCache)
-			RenderObjCache(obj);
+		for (size_t i = 0; i < objectCache.size(); i++)
+		{
+			auto& obj = objectCache[i];
+
+			if (!obj.UseTextureMask)
+			{
+				RenderObjCache(obj);
+			}
+			else
+			{
+				if (i + 1 < objectCache.size())
+				{
+					RenderObjCache(objectCache[i + 1], obj);
+					i++;
+				}
+			}
+		}
 	}
 
 	void AetRenderWindow::RenderAetRegion(AetRegion* aetRegion)
@@ -366,13 +369,13 @@ namespace Editor
 		Texture* texture;
 		Sprite* sprite;
 
-		if (aetRegion->SpriteSize() < 1 || !getSprite(spriteRegion, &texture, &sprite))
+		if (aetRegion->SpriteSize() < 1 || !(*aetRenderer->GetSpriteGetterFunction())(spriteRegion, &texture, &sprite))
 		{
-			renderer.Draw(nullptr, vec4(0, 0, aetRegion->Width, aetRegion->Height), vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), dummyColor, static_cast<AetBlendMode>(currentBlendItem));
+			renderer->Draw(nullptr, vec4(0, 0, aetRegion->Width, aetRegion->Height), vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), dummyColor, static_cast<AetBlendMode>(currentBlendItem));
 		}
 		else
 		{
-			renderer.Draw(texture->Texture2D.get(), sprite->PixelRegion, vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), vec4(1.0f), static_cast<AetBlendMode>(currentBlendItem));
+			renderer->Draw(texture->Texture2D.get(), sprite->PixelRegion, vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), vec4(1.0f), static_cast<AetBlendMode>(currentBlendItem));
 		}
 	}
 
@@ -390,16 +393,16 @@ namespace Editor
 
 	void AetRenderWindow::RenderObjCache(const AetMgr::ObjCache& obj)
 	{
-		if (obj.Region == nullptr)
+		if (obj.Region == nullptr || !obj.Visible)
 			return;
 
 		Texture* texture;
 		Sprite* sprite;
-		bool validSprite = getSprite(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
+		bool validSprite = (*aetRenderer->GetSpriteGetterFunction())(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
 
 		if (validSprite)
 		{
-			renderer.Draw(
+			renderer->Draw(
 				texture->Texture2D.get(),
 				sprite->PixelRegion,
 				obj.Properties.Position,
@@ -411,7 +414,7 @@ namespace Editor
 		}
 		else
 		{
-			renderer.Draw(
+			renderer->Draw(
 				nullptr,
 				vec4(0, 0, obj.Region->Width, obj.Region->Height),
 				obj.Properties.Position,
@@ -424,7 +427,7 @@ namespace Editor
 
 		if (ImGui::IsWindowFocused() && ImGui::IsWindowHovered())
 		{
-			const SpriteVertices& objVertices = renderer.GetLastVertices();
+			const SpriteVertices& objVertices = renderer->GetLastVertices();
 
 			vec2 value = camera.ScreenToWorldSpace(GetRelativeMouse());
 
@@ -440,6 +443,39 @@ namespace Editor
 				selectedAetObj = &obj;
 				verticesPointers.push_back(TempVertexStruct{ &objVertices, &obj });
 			}
+		}
+	}
+
+	void AetRenderWindow::RenderObjCache(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj)
+	{
+		if (maskObj.Region == nullptr || obj.Region == nullptr)
+			return;
+
+		Texture* maskTexture;
+		Sprite* maskSprite;
+		bool validMaskSprite = (*aetRenderer->GetSpriteGetterFunction())(maskObj.Region->GetSprite(maskObj.SpriteIndex), &maskTexture, &maskSprite);
+
+		Texture* texture;
+		Sprite* sprite;
+		bool validSprite = (*aetRenderer->GetSpriteGetterFunction())(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
+
+		if (validMaskSprite && validSprite)
+		{
+			renderer->Draw(
+				maskTexture->Texture2D.get(),
+				maskSprite->PixelRegion,
+				maskObj.Properties.Position,
+				maskObj.Properties.Origin,
+				maskObj.Properties.Rotation,
+				maskObj.Properties.Scale,
+				texture->Texture2D.get(),
+				sprite->PixelRegion,
+				obj.Properties.Position,
+				obj.Properties.Origin,
+				obj.Properties.Rotation,
+				obj.Properties.Scale,
+				vec4(1.0f, 1.0f, 1.0f, obj.Properties.Opacity),
+				obj.BlendMode);
 		}
 	}
 }

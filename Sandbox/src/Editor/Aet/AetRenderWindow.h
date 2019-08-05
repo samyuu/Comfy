@@ -3,10 +3,12 @@
 #include "BoxTransformControl.h"
 #include "Editor/RenderWindowBase.h"
 #include "Editor/CameraController2D.h"
+#include "Editor/CheckerboardGrid.h"
 #include "FileSystem/Format/AetSet.h"
 #include "FileSystem/Format/SprSet.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Auth2D/Renderer2D.h"
+#include "Graphics/Auth2D/AetRenderer.h"
 #include "Graphics/Auth2D/AetMgr.h"
 
 namespace Editor
@@ -14,12 +16,10 @@ namespace Editor
 	using namespace FileSystem;
 	using namespace Auth2D;
 
-	typedef bool (*SpriteGetter)(AetSprite* inSprite, Texture** outTexture, Sprite** outSprite);
-
 	class AetRenderWindow : public RenderWindowBase
 	{
 	public:
-		AetRenderWindow(SpriteGetter spriteGetter);
+		AetRenderWindow(SpriteGetterFunction* spriteGetter);
 		~AetRenderWindow();
 
 		void SetActive(Aet* parent, AetItemTypePtr value);
@@ -48,14 +48,10 @@ namespace Editor
 
 	protected:
 		void RenderObjCache(const AetMgr::ObjCache& obj);
+		void RenderObjCache(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj);
 
 	private:
-		struct
-		{
-			float GridSize = 1.0f;
-			vec4 Color = vec4(0.15f, 0.15f, 0.15f, 1.0f);
-			vec4 ColorAlt = vec4(0.32f, 0.32f, 0.32f, 1.0f);
-		} gridConfig;
+		CheckerboardGrid checkerboardGrid;
 
 		bool isPlayback = false;
 		float currentFrame = 0.0f;
@@ -63,7 +59,9 @@ namespace Editor
 		Aet* aet = nullptr;
 		AetItemTypePtr active;
 
-		Renderer2D renderer;
+		std::unique_ptr<Renderer2D> renderer;
+		std::unique_ptr<AetRenderer> aetRenderer;
+		
 		const vec4 dummyColor = vec4(0.79f, 0.90f, 0.57f, 0.50f);
 
 		std::vector<AetMgr::ObjCache> objectCache;
@@ -73,7 +71,5 @@ namespace Editor
 
 		bool useTextShadow = false;
 		int currentBlendItem = static_cast<int>(AetBlendMode::Alpha);
-
-		SpriteGetter getSprite = nullptr;
 	};
 }

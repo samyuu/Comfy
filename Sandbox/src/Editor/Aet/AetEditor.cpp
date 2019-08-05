@@ -8,44 +8,15 @@ namespace Editor
 {
 	constexpr ImGuiTreeNodeFlags LeafTreeNodeFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet;
 
-	static AetEditor* AetEditorInstance;
-
-	static bool AetEditorSpriteGetter(AetSprite* inSprite, Texture** outTexture, Sprite** outSprite)
+	AetEditor::AetEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
-		SprSet* sprSet = AetEditorInstance->GetSprSet();
-
-		if (inSprite == nullptr || sprSet == nullptr)
-			return false;
-
-		if (inSprite->SpriteCache != nullptr)
-		{
-		from_sprite_cache:
-			*outTexture = sprSet->TxpSet->Textures[inSprite->SpriteCache->TextureIndex].get();
-			*outSprite = inSprite->SpriteCache;
-			return true;
-		}
-
-		for (auto& sprite : sprSet->Sprites)
-		{
-			if (EndsWith(inSprite->Name, sprite.Name))
-			{
-				inSprite->SpriteCache = &sprite;
-				goto from_sprite_cache;
-			}
-		}
-
-		return false;
-	}
-
-	AetEditor::AetEditor(Application* parent, PvEditor* editor) : IEditorComponent(parent, editor)
-	{
-		AetEditorInstance = this;
+		spriteGetterFunction = [this](AetSprite* inSprite, Texture** outTexture, Sprite** outSprite) { return false; };
 
 		treeView = std::make_unique<AetTreeView>();
 		layerView = std::make_unique<AetLayerView>();
 		inspector = std::make_unique<AetInspector>();
 		timeline = std::make_unique<AetTimeline>();
-		renderWindow = std::make_unique<AetRenderWindow>(&AetEditorSpriteGetter);
+		renderWindow = std::make_unique<AetRenderWindow>(&spriteGetterFunction);
 	}
 
 	AetEditor::~AetEditor()
@@ -212,5 +183,7 @@ namespace Editor
 	{
 		if (aetSet != nullptr)
 			aetSet->ClearSpriteCache();
+	
+		spriteGetterFunction = [this](AetSprite* inSprite, Texture** outTexture, Sprite** outSprite) { return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite); };
 	}
 }

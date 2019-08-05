@@ -7,6 +7,7 @@
 #include "AetRenderWindow.h"
 #include "Editor/IEditorComponent.h"
 #include "Graphics/Auth2D/AetMgr.h"
+#include "Graphics/Auth2D/AetRenderer.h"
 #include "FileSystem/Format/AetSet.h"
 #include "FileSystem/FileLoader.h"
 #include "ImGui/Widgets/FileViewer.h"
@@ -15,11 +16,12 @@
 namespace Editor
 {
 	using namespace FileSystem;
+	using namespace Auth2D;
 
 	class AetEditor : public IEditorComponent
 	{
 	public:
-		AetEditor(Application* parent, PvEditor* editor);
+		AetEditor(Application* parent, EditorManager* editor);
 		~AetEditor();
 
 		virtual void Initialize() override;
@@ -31,6 +33,8 @@ namespace Editor
 		inline SprSet* GetSprSet() { return sprSet.get(); };
 
 	private:
+		SpriteGetterFunction spriteGetterFunction;
+
 		std::unique_ptr<FileLoader> sprSetFileLoader;
 
 		ImGui::FileViewer aetFileViewer = { "dev_ram/aetset/" };
