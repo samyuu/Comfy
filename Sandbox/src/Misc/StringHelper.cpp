@@ -99,11 +99,11 @@ std::wstring Utf8ToUtf16(const std::string& string)
 {
 	std::wstring utf16String;
 	
-	int utf16Length = ::MultiByteToWideChar(CP_UTF8, 0, string.c_str(), string.length(), NULL, 0);
+	int utf16Length = ::MultiByteToWideChar(CP_UTF8, 0, string.c_str(), static_cast<int>(string.length()), NULL, 0);
 	if (utf16Length > 0)
 	{
 		utf16String.resize(utf16Length);
-		::MultiByteToWideChar(CP_UTF8, 0, string.c_str(), string.length(), &utf16String[0], utf16Length);
+		::MultiByteToWideChar(CP_UTF8, 0, string.c_str(), static_cast<int>(string.length()), &utf16String[0], utf16Length);
 	}
 	
 	return utf16String;
