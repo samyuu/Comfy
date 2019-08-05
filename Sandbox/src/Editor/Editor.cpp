@@ -1,7 +1,7 @@
 #include "Editor.h"
 #include "Application.h"
 #include "Aet/AetEditor.h"
-#include "Chart/TargetTimeline.h"
+#include "Chart/ChartEditor.h"
 #include "PV/SceneRenderWindow.h"
 #include "Misc/StringHelper.h"
 
@@ -35,9 +35,8 @@ namespace Editor
 
 	void UpdateEditorColors()
 	{
-		//SetColor(EditorColor_BaseClear, ImGui::GetColorU32(ImVec4(.12f, .12f, .12f, 1.0f)));
 		SetColor(EditorColor_BaseClear, ImGui::GetColorU32(ImGuiCol_TabUnfocused));
-		SetColor(EditorColor_DarkClear, ImGui::GetColorU32(ImVec4(.10f, .10f, .10f, 1.0f)));
+		SetColor(EditorColor_DarkClear, ImGui::GetColorU32(ImGuiCol_WindowBg));
 		SetColor(EditorColor_Grid, ImGui::GetColorU32(ImGuiCol_Separator, .75f));
 		SetColor(EditorColor_GridAlt, ImGui::GetColorU32(ImGuiCol_Separator, .5f));
 		SetColor(EditorColor_InfoColumn, ImGui::GetColorU32(ImGuiCol_ScrollbarBg));
@@ -52,20 +51,20 @@ namespace Editor
 		SetColor(EditorColor_KeyFrame, GetColor(EditorColor_Cursor, 0.85f));
 	}
 
-	PvEditor::PvEditor(Application* parent) : parent(parent)
+	EditorManager::EditorManager(Application* parent) : parent(parent)
 	{
 		editorComponents.reserve(3);
-		editorComponents.push_back(std::move(std::make_unique<TargetTimeline>(parent, this)));
+		editorComponents.push_back(std::move(std::make_unique<ChartEditor>(parent, this)));
 		editorComponents.push_back(std::move(std::make_unique<AetEditor>(parent, this)));
 		editorComponents.push_back(std::move(std::make_unique<SceneRenderWindow>(parent, this)));
 	}
 
-	PvEditor::~PvEditor()
+	EditorManager::~EditorManager()
 	{
 
 	}
 
-	void PvEditor::DrawGuiMenuItems()
+	void EditorManager::DrawGuiMenuItems()
 	{
 		if (ImGui::BeginMenu("Editor"))
 		{
@@ -76,7 +75,7 @@ namespace Editor
 		}
 	}
 
-	void PvEditor::DrawGuiWindows()
+	void EditorManager::DrawGuiWindows()
 	{
 		if (!initialized)
 		{
@@ -88,29 +87,20 @@ namespace Editor
 		DrawGui();
 	}
 
-	void PvEditor::Initialize()
+	void EditorManager::Initialize()
 	{
-		auto audioEngine = AudioEngine::GetInstance();
-
-		songInstance = std::make_shared<AudioInstance>(&dummySampleProvider, "PvEditor::SongInstance");
-		songInstance->SetPlayPastEnd(true);
-		audioEngine->AddAudioInstance(songInstance);
-
 		for (const auto &component : editorComponents)
 			component->Initialize();
 	}
 
-	void PvEditor::Update()
+	void EditorManager::Update()
 	{
-		if (!isPlaying)
-		{
-			UpdateFileDrop();
-		}
+		UpdateFileDrop();
 
 		UpdateEditorColors();
 	}
 
-	void PvEditor::DrawGui()
+	void EditorManager::DrawGui()
 	{
 		for (const auto &component : editorComponents)
 		{
@@ -127,100 +117,23 @@ namespace Editor
 		}
 	}
 
-	void PvEditor::UpdateFileDrop()
+	void EditorManager::UpdateFileDrop()
 	{
-		if (!parent->GetDispatchFileDrop())
-			return;
-
-		auto droppedFiles = parent->GetDroppedFiles();
-		for (size_t i = 0; i < droppedFiles->size(); i++)
+		if (parent->GetDispatchFileDrop())
 		{
-			if (Load(droppedFiles->at(i)))
-				parent->SetFileDropDispatched();
-		}
-	}
+			const std::vector<std::string>& droppedFiles = parent->GetDroppedFiles();
 
-	bool PvEditor::Load(const std::string& filePath)
-	{
-		bool loaded = false;
-
-		for (size_t e = 0; e < audioFileExtensions.size(); e++)
-		{
-			if (EndsWithInsensitive(filePath, audioFileExtensions[e]))
+			for (const auto &component : editorComponents)
 			{
-				if (LoadSong(filePath))
+				for (const std::string& filePath : droppedFiles)
 				{
-					loaded = true;
-					break;
+					if (component->OnFileDropped(filePath))
+					{
+						parent->SetFileDropDispatched();
+						break;
+					}
 				}
 			}
 		}
-
-		for (const auto &component : editorComponents)
-			component->OnLoad();
-
-		return loaded;
-	}
-
-	bool PvEditor::LoadSong(const std::string& filePath)
-	{
-		TimeSpan playbackTime = GetPlaybackTime();
-		auto newSongStream = std::make_shared<MemoryAudioStream>(filePath);
-
-		songInstance->SetSampleProvider(newSongStream.get());
-		songDuration = songInstance->GetDuration();
-
-		if (songStream != nullptr)
-			songStream->Dispose();
-
-		// adds some copy overhead but we don't want to delete the old pointer while the new one is still loading
-		songStream = newSongStream;
-
-		SetPlaybackTime(playbackTime);
-		return true;
-	}
-
-	TimeSpan PvEditor::GetPlaybackTime() const
-	{
-		return songInstance->GetPosition() - songStartOffset;
-	}
-
-	void PvEditor::SetPlaybackTime(TimeSpan value)
-	{
-		songInstance->SetPosition(value + songStartOffset);
-	}
-
-	bool PvEditor::GetIsPlayback() const
-	{
-		return isPlaying;
-	}
-
-	void PvEditor::ResumePlayback()
-	{
-		playbackTimeOnPlaybackStart = GetPlaybackTime();
-
-		isPlaying = true;
-		songInstance->SetIsPlaying(true);
-
-		for (const auto &component : editorComponents)
-			component->OnPlaybackResumed();
-	}
-
-	void PvEditor::PausePlayback()
-	{
-		songInstance->SetIsPlaying(false);
-		isPlaying = false;
-
-		for (const auto &component : editorComponents)
-			component->OnPlaybackPaused();
-	}
-
-	void PvEditor::StopPlayback()
-	{
-		SetPlaybackTime(playbackTimeOnPlaybackStart);
-		PausePlayback();
-
-		for (const auto &component : editorComponents)
-			component->OnPlaybackStopped();
 	}
 }
