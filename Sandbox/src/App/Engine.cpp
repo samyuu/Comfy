@@ -5,7 +5,9 @@ namespace App
 {
 	EngineRenderWindow::EngineRenderWindow()
 	{
-		renderer.Initialize();
+		renderer = std::make_unique<Auth2D::Renderer2D>();
+		renderer->Initialize();
+		aetRenderer = std::make_unique<Auth2D::AetRenderer>(renderer.get());
 
 		StartTask<TaskPs4Menu>();
 	}
@@ -36,18 +38,18 @@ namespace App
 	{
 		renderTarget.Bind();
 		{
-			GLCall(glViewport(0, 0, static_cast<GLint>(renderTarget.GetWidth()), static_cast<GLint>(renderTarget.GetHeight())));
+			RenderCommand::SetViewport(renderTarget.GetSize());
 
 			vec4 backgroundColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-			GLCall(glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z, backgroundColor.w));
-			GLCall(glClear(GL_COLOR_BUFFER_BIT));
+			RenderCommand::SetClearColor(backgroundColor);
+			RenderCommand::Clear(ClearTarget_ColorBuffer);
 
 			camera.UpdateMatrices();
 
-			renderer.Begin(camera);
+			renderer->Begin(camera);
 			for (auto& task : tasks)
-				task->Render(renderer);
-			renderer.End();
+				task->Render(renderer.get(), aetRenderer.get());
+			renderer->End();
 		}
 		renderTarget.UnBind();
 	}

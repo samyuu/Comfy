@@ -1,5 +1,6 @@
 #pragma once
 #include "Graphics/Auth2D/Renderer2D.h"
+#include "Graphics/Auth2D/AetRenderer.h"
 #include "TimeSpan.h"
 
 namespace App
@@ -9,7 +10,7 @@ namespace App
 	public:
 		virtual bool Initialize() = 0;
 		virtual bool Update() = 0;
-		virtual bool Render(Auth2D::Renderer2D& renderer) = 0;
+		virtual bool Render(Auth2D::Renderer2D* renderer, Auth2D::AetRenderer* aetRenderer) = 0;
 		virtual bool PreDrawGui() = 0;
 		virtual bool PostDrawGui() = 0;
 	};

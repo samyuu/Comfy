@@ -4,6 +4,7 @@
 #include "Editor/CameraController2D.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Auth2D/Renderer2D.h"
+#include "Graphics/Auth2D/AetRenderer.h"
 #include "ImGui/imgui_extensions.h"
 
 namespace App
@@ -33,7 +34,8 @@ namespace App
 		void OnResize(int width, int height) override;
 
 	protected:
-		Auth2D::Renderer2D renderer;
+		std::unique_ptr<Auth2D::Renderer2D> renderer;
+		std::unique_ptr<Auth2D::AetRenderer> aetRenderer;
 
 		OrthographicCamera camera;
 		Editor::CameraController2D cameraController;
