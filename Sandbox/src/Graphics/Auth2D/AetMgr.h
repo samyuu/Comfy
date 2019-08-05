@@ -38,6 +38,8 @@ namespace Auth2D
 			AetRegion* Region;
 			AetBlendMode BlendMode;
 			const AetObj* AetObj;
+			bool UseTextureMask;
+			bool Visible;
 		};
 
 		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, const AetLayer* aetLayer, float frame);

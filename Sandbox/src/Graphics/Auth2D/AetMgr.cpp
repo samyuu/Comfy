@@ -155,17 +155,19 @@ namespace Auth2D
 	{
 		assert(aetObj->Type == AetObjType::Pic);
 
-		if (frame < aetObj->LoopStart || frame >= aetObj->LoopEnd || !(aetObj->Flags & AetObjFlags_Visible)) // (aetObj->Flags & AetObjFlags_Visible || aetObj->AnimationData.UseTextureMask) )
+		if (frame < aetObj->LoopStart || frame >= aetObj->LoopEnd)
 			return;
 
 		float adjustedFrame = ((frame - aetObj->LoopStart) * aetObj->PlaybackSpeed) + aetObj->StartFrame;
 
 		objects.emplace_back();
 		ObjCache& objCache = objects.back();
-
+		
 		objCache.AetObj = aetObj;
 		objCache.Region = aetObj->GetRegion();
 		objCache.BlendMode = aetObj->AnimationData->BlendMode;
+		objCache.UseTextureMask = aetObj->AnimationData->UseTextureMask;
+		objCache.Visible = aetObj->Flags & AetObjFlags_Visible;
 
 		if (objCache.Region != nullptr)
 		{
@@ -207,15 +209,15 @@ namespace Auth2D
 
 		float adjustedFrame = ((frame - aetObj->LoopStart) * aetObj->PlaybackSpeed) + aetObj->StartFrame;
 
-		Properties effProperties;
+		Properties effProperties = {};
 		Interpolate(aetObj->AnimationData.get(), &effProperties, adjustedFrame);
 		TransformProperties(*parentProperties, effProperties);
 
 		AetLayer* aetLayer = aetObj->GetLayer();
-		
+
 		if (aetLayer == nullptr)
 			return;
-		
+
 		for (int i = static_cast<int>(aetLayer->size() - 1); i >= 0; i--)
 			InternalAddObjects(objects, &effProperties, &aetLayer->at(i), adjustedFrame);
 	}
