@@ -1,5 +1,5 @@
 #pragma once
-#include "TimelineTick.h"
+#include "Timeline/TimelineTick.h"
 #include "Types.h"
 #include <vector>
 

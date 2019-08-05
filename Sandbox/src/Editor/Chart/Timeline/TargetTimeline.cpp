@@ -1,10 +1,11 @@
 #include "TargetTimeline.h"
-#include "TempoMap.h"
+#include "Editor/Chart/ChartEditor.h"
+#include "Editor/Chart/TempoMap.h"
 #include "Editor/Editor.h"
-#include "TimeSpan.h"
-#include "Application.h"
-#include "Misc/BitFlagsHelper.h"
+#include "Audio/AudioEngine.h"
 #include "FileSystem/FileHelper.h"
+#include "TimeSpan.h"
+#include <FontIcons.h>
 
 namespace Editor
 {
@@ -18,18 +19,15 @@ namespace Editor
 			audioEngine->StartStream();
 	}
 
-	TargetTimeline::TargetTimeline(Application* parent, PvEditor* editor) : IEditorComponent(parent, editor)
+	TargetTimeline::TargetTimeline(ChartEditor* parentChartEditor)
 	{
+		chartEditor = parentChartEditor;
+		chart = chartEditor->GetChart();
 	}
 
 	TargetTimeline::~TargetTimeline()
 	{
 		AudioEngine::GetInstance()->RemoveCallbackReceiver(this);
-	}
-
-	const char* TargetTimeline::GetGuiName() const
-	{
-		return u8"Target Timeline";
 	}
 
 	TimelineTick TargetTimeline::GetGridTick() const
@@ -40,13 +38,13 @@ namespace Editor
 	TimelineTick TargetTimeline::FloorToGrid(TimelineTick tick) const
 	{
 		int gridTicks = GetGridTick().TotalTicks();
-		return (int)(floor(tick.TotalTicks() / (float)gridTicks) * gridTicks);
+		return static_cast<int>(floor(tick.TotalTicks() / (float)gridTicks) * gridTicks);
 	}
 
 	TimelineTick TargetTimeline::RoundToGrid(TimelineTick tick) const
 	{
 		int gridTicks = GetGridTick().TotalTicks();
-		return (int)(round(tick.TotalTicks() / (float)gridTicks) * gridTicks);
+		return static_cast<int>(round(tick.TotalTicks() / (float)gridTicks) * gridTicks);
 	}
 
 	float TargetTimeline::GetTimelinePosition(TimeSpan time) const
@@ -61,7 +59,7 @@ namespace Editor
 
 	TimelineTick TargetTimeline::GetTimelineTick(TimeSpan time) const
 	{
-		return timelineMap.GetTickAt(time);
+		return chart->GetTimelineMap().GetTickAt(time);
 	}
 
 	TimelineTick TargetTimeline::GetTimelineTick(float position) const
@@ -71,7 +69,7 @@ namespace Editor
 
 	TimeSpan TargetTimeline::GetTimelineTime(TimelineTick tick) const
 	{
-		return timelineMap.GetTimeAt(tick);
+		return chart->GetTimelineMap().GetTimeAt(tick);
 	}
 
 	TimeSpan TargetTimeline::GetTimelineTime(float position) const
@@ -122,10 +120,10 @@ namespace Editor
 	{
 		int type = target.Type;
 
-		if (HasFlag(target.Flags, TargetFlags_Chain) && (type == TargetType_SlideL || type == TargetType_SlideR))
+		if ((target.Flags & TargetFlags_Chain) && (type == TargetType_SlideL || type == TargetType_SlideR))
 			type += 2;
 
-		if (HasFlag(target.Flags, TargetFlags_Sync))
+		if ((target.Flags & TargetFlags_Sync))
 			return type;
 
 		return type + 8;
@@ -145,7 +143,7 @@ namespace Editor
 		const ImU32 color = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF * transparency);
 		drawList->AddImage(buttonIconsTexture->GetVoidTexture(), position, bottomRight, textureCoordinates.GetBL(), textureCoordinates.GetTR(), color);
 
-		if (HasFlag(target.Flags, TargetFlags_Hold))
+		if ((target.Flags & TargetFlags_Hold))
 		{
 			// TODO: draw tgt_txt
 		}
@@ -168,7 +166,7 @@ namespace Editor
 
 	void TargetTimeline::UpdateTimelineMap()
 	{
-		timelineMap.CalculateMapTimes(tempoMap);
+		chart->GetTimelineMap().CalculateMapTimes(chart->GetTempoMap());
 	}
 
 	void TargetTimeline::UpdateOnCallbackSounds()
@@ -178,7 +176,7 @@ namespace Editor
 
 		for (int i = 0; i < buttonSoundTimesList.size(); ++i)
 		{
-			if (pvEditor->GetPlaybackTime() >= buttonSoundTimesList[i])
+			if (chartEditor->GetPlaybackTime() >= buttonSoundTimesList[i])
 			{
 				audioController.PlayButtonSound();
 				buttonSoundTimesList.erase(buttonSoundTimesList.begin() + (i--));
@@ -195,7 +193,7 @@ namespace Editor
 		for (size_t i = 0; i < IM_ARRAYSIZE(buttonPlacementMapping); i++)
 		{
 			buttonPlacementKeyStates[i].WasDown = buttonPlacementKeyStates[i].Down;
-			buttonPlacementKeyStates[i].Down = glfwGetKey(GetParent()->GetWindow(), buttonPlacementMapping[i].Key);
+			buttonPlacementKeyStates[i].Down = ImGui::IsKeyDown(buttonPlacementMapping[i].Key);
 
 			if (buttonPlacementKeyStates[i].Down && !buttonPlacementKeyStates[i].WasDown)
 			{
@@ -205,50 +203,6 @@ namespace Editor
 		}
 	}
 
-	void TargetTimeline::DrawGui()
-	{
-		DrawTimelineGui();
-
-		if (ImGui::Begin("Sync Window"))
-			DrawSyncWindow();
-		ImGui::End();
-	}
-
-	void TargetTimeline::DrawSyncWindow()
-	{
-		ImGuiWindow* syncWindow = ImGui::GetCurrentWindow();
-
-		ImGui::Text("Adjust Sync:");
-		ImGui::Separator();
-
-		float startOffset = static_cast<float>(pvEditor->songStartOffset.TotalMilliseconds());
-		if (ImGui::InputFloat("Offset##test", &startOffset, 1.0f, 10.0f, "%.2f ms"))
-			pvEditor->songStartOffset = TimeSpan::FromMilliseconds(startOffset);
-		ImGui::Separator();
-
-		static Tempo newTempo = DEFAULT_TEMPO;
-		if (ImGui::InputFloat("Tempo##test", &newTempo.BeatsPerMinute, 1.0f, 10.0f, "%.2f BPM"))
-			newTempo = std::clamp(newTempo.BeatsPerMinute, MIN_BPM, MAX_BPM);
-
-		const float width = ImGui::CalcItemWidth();
-
-		if (ImGui::Button("Set Tempo Change", ImVec2(width, 0)))
-		{
-			TimelineTick cursorTick = RoundToGrid(GetCursorTick());
-
-			tempoMap.SetTempoChange(cursorTick, newTempo);
-			UpdateTimelineMap();
-		}
-		if (ImGui::Button("Remove Tempo Change", ImVec2(width, 0)))
-		{
-			TimelineTick cursorTick = RoundToGrid(GetCursorTick());
-
-			tempoMap.RemoveTempoChange(cursorTick);
-			UpdateTimelineMap();
-		}
-		ImGui::Separator();
-	}
-
 	void TargetTimeline::InitializeButtonIcons()
 	{
 		// sankaku		| shikaku		| batsu		 | maru		 | slide_l		| slide_r	   | slide_chain_l		| slide_chain_r
@@ -256,10 +210,10 @@ namespace Editor
 		{
 			std::vector<uint8_t> sprFileBuffer;
 			FileSystem::ReadAllBytes("rom/spr/spr_comfy_editor.bin", &sprFileBuffer);
-			
+
 			sprSet.Parse(sprFileBuffer.data());
 			sprSet.TxpSet->UploadAll();
-			
+
 			buttonIconsTexture = sprSet.TxpSet->Textures.front()->Texture2D.get();
 		}
 
@@ -283,10 +237,10 @@ namespace Editor
 		EnsureStreamOpenAndRunning();
 
 		buttonSoundTimesList.clear();
-		for (const auto &target : targets)
+		for (const auto &target : chart->GetTargets())
 		{
 			TimeSpan buttonTime = GetTimelineTime(target.Tick);
-			if (buttonTime >= pvEditor->GetPlaybackTime())
+			if (buttonTime >= chartEditor->GetPlaybackTime())
 				buttonSoundTimesList.push_back(buttonTime);
 		}
 	}
@@ -308,38 +262,37 @@ namespace Editor
 			UpdateOnCallbackPlacementSounds();
 	}
 
-	void TargetTimeline::OnLoad()
+	void TargetTimeline::OnSongLoaded()
 	{
 		updateWaveform = true;
 	}
 
 	void TargetTimeline::OnDrawTimelineHeaderWidgets()
 	{
-		static char timeInputBuffer[32] = "00:00.000";
-		strcpy_s<sizeof(timeInputBuffer)>(timeInputBuffer, GetCursorTime().FormatTime().c_str());
+		strcpy_s(timeInputBuffer, GetCursorTime().FormatTime().c_str());
 
 		ImGui::PushItemWidth(140);
 		ImGui::InputTextWithHint("##TimeInput", "00:00.000", timeInputBuffer, sizeof(timeInputBuffer));
 		ImGui::PopItemWidth();
 
 		ImGui::SameLine();
-		if (ImGui::Button("Stop") && GetIsPlayback())
+		if (ImGui::Button(ICON_FA_STOP) && GetIsPlayback())
 			StopPlayback();
 
 		ImGui::SameLine();
-		if (ImGui::Button("Pause") && GetIsPlayback())
+		if (ImGui::Button(ICON_FA_PAUSE) && GetIsPlayback())
 			PausePlayback();
 
 		ImGui::SameLine();
-		if (ImGui::Button("Play") && !GetIsPlayback())
+		if (ImGui::Button(ICON_FA_PLAY) && !GetIsPlayback())
 			ResumePlayback();
 
 		ImGui::SameLine();
-		ImGui::Button("|<");
+		ImGui::Button(ICON_FA_FAST_BACKWARD);
 		if (ImGui::IsItemActive()) { scrollDelta -= io->DeltaTime * 1000.0f; }
 
 		ImGui::SameLine();
-		ImGui::Button(">|");
+		ImGui::Button(ICON_FA_FAST_FORWARD);
 		if (ImGui::IsItemActive()) { scrollDelta += io->DeltaTime * 1000.0f; }
 
 		ImGui::SameLine();
@@ -355,14 +308,8 @@ namespace Editor
 
 		ImGui::SameLine();
 		ImGui::PushItemWidth(280);
-		ImGui::SliderFloat("Zoom Level", &zoomLevel, ZOOM_MIN, ZOOM_MAX);
+		ImGui::SliderFloat(ICON_FA_SEARCH, &zoomLevel, ZOOM_MIN, ZOOM_MAX);
 		ImGui::PopItemWidth();
-
-		ImGui::SameLine();
-		if (ImGui::Button("Load Test Song"))
-		{
-			pvEditor->Load(testSongPath);
-		}
 	}
 
 	void TargetTimeline::OnDrawTimelineInfoColumnHeader()
@@ -411,7 +358,7 @@ namespace Editor
 			char barStrBuffer[16];
 			int barCount = -1;
 
-			const int totalTicks = GetTimelineTick(pvEditor->songDuration).TotalTicks();
+			const int totalTicks = GetTimelineTick(chart->GetDuration()).TotalTicks();
 			const int tickStep = GetGridTick().TotalTicks();
 
 			const float scrollX = GetScrollX();
@@ -456,53 +403,48 @@ namespace Editor
 
 	void TargetTimeline::DrawWaveform()
 	{
-		// TEST WAVEFORM
-		// -------------
+		//ImGui::SetTooltip("timleine mouse: %f", ImGui::GetMousePos().x + GetScrollX() - timelineContentRegion.GetTL().x);
+
+		if (chartEditor->GetSongStream() == nullptr)
+			return;
+
+		if (zoomLevelChanged)
+			updateWaveform = true;
+
+		if (updateWaveform)
 		{
-			//ImGui::SetTooltip("timleine mouse: %f", ImGui::GetMousePos().x + GetScrollX() - timelineContentRegion.GetTL().x);
-
-			if (pvEditor->songStream != nullptr)
-			{
-				if (zoomLevelChanged)
-					updateWaveform = true;
-
-				if (updateWaveform)
-				{
-					TimeSpan timePerPixel = GetTimelineTime(1.0f);
-					songWaveform.Calculate(pvEditor->songStream.get(), timePerPixel);
-					updateWaveform = false;
-				}
-
-				ImDrawList* drawList = baseDrawList;
-
-				float scrollX = GetScrollX() + GetTimelinePosition(pvEditor->songStartOffset);
-				int64_t leftMostVisiblePixel = 0;
-				int64_t rightMostVisiblePixel = static_cast<int64_t>(timelineBaseRegion.GetWidth());
-				int64_t pixelCount = songWaveform.GetPixelCount();
-				float timelineTargetX = timelineContentRegion.GetTL().x;
-				float timelineTargetHeight = (TargetType_Max * ROW_HEIGHT);
-				float y = timelineContentRegion.GetTL().y + ((TargetType_Max * ROW_HEIGHT) / 2);
-
-				int64_t waveformPixelCount = static_cast<int64_t>(songWaveform.GetPixelCount());
-				for (int64_t screenPixel = leftMostVisiblePixel; screenPixel < waveformPixelCount && screenPixel < rightMostVisiblePixel; screenPixel++)
-				{
-					size_t timelinePixel = std::min(static_cast<size_t>(screenPixel + scrollX), static_cast<size_t>(pixelCount - 1));
-
-					if (timelinePixel < 0)
-						continue;
-
-					float amplitude = songWaveform.GetPcmForPixel(timelinePixel) * timelineTargetHeight;
-
-					float x = screenPixel + timelineTargetX;
-					float halfAmplitude = amplitude * .5f;
-					ImVec2 start = ImVec2(x, y - halfAmplitude);
-					ImVec2 end = ImVec2(x, y + halfAmplitude);
-
-					drawList->AddLine(start, end, GetColor(EditorColor_GridAlt));
-				}
-			}
+			TimeSpan timePerPixel = GetTimelineTime(1.0f);
+			songWaveform.Calculate(chartEditor->GetSongStream(), timePerPixel);
+			updateWaveform = false;
 		}
-		// -------------
+
+		ImDrawList* drawList = baseDrawList;
+
+		float scrollX = GetScrollX() + GetTimelinePosition(chart->GetStartOffset());
+		int64_t leftMostVisiblePixel = 0;
+		int64_t rightMostVisiblePixel = static_cast<int64_t>(timelineBaseRegion.GetWidth());
+		int64_t pixelCount = songWaveform.GetPixelCount();
+		float timelineTargetX = timelineContentRegion.GetTL().x;
+		float timelineTargetHeight = (TargetType_Max * ROW_HEIGHT);
+		float y = timelineContentRegion.GetTL().y + ((TargetType_Max * ROW_HEIGHT) / 2);
+
+		int64_t waveformPixelCount = static_cast<int64_t>(songWaveform.GetPixelCount());
+		for (int64_t screenPixel = leftMostVisiblePixel; screenPixel < waveformPixelCount && screenPixel < rightMostVisiblePixel; screenPixel++)
+		{
+			size_t timelinePixel = std::min(static_cast<size_t>(screenPixel + scrollX), static_cast<size_t>(pixelCount - 1));
+
+			if (timelinePixel < 0)
+				continue;
+
+			float amplitude = songWaveform.GetPcmForPixel(timelinePixel) * timelineTargetHeight;
+
+			float x = screenPixel + timelineTargetX;
+			float halfAmplitude = amplitude * .5f;
+			ImVec2 start = ImVec2(x, y - halfAmplitude);
+			ImVec2 end = ImVec2(x, y + halfAmplitude);
+
+			drawList->AddLine(start, end, GetColor(EditorColor_GridAlt));
+		}
 	}
 
 	void TargetTimeline::DrawTimelineTempoMap()
@@ -513,9 +455,9 @@ namespace Editor
 			char tempoStr[16];
 			static int tempoPopupIndex = -1;
 
-			for (size_t i = 0; i < tempoMap.TempoChangeCount(); i++)
+			for (size_t i = 0; i < chart->GetTempoMap().TempoChangeCount(); i++)
 			{
-				TempoChange& tempoChange = tempoMap.GetTempoChangeAt(i);
+				TempoChange& tempoChange = chart->GetTempoMap().GetTempoChangeAt(i);
 
 				float screenX = GetTimelinePosition(tempoChange.Tick) - GetScrollX();
 
@@ -571,7 +513,7 @@ namespace Editor
 
 				if (tempoPopupIndex >= 0)
 				{
-					TempoChange& tempoChange = tempoMap.GetTempoChangeAt(tempoPopupIndex);
+					TempoChange& tempoChange = chart->GetTempoMap().GetTempoChangeAt(tempoPopupIndex);
 					float bpm = tempoChange.Tempo.BeatsPerMinute;
 
 					if (ImGui::DragFloat("##bpm_drag_float", &bpm, 1.0f, MIN_BPM, MAX_BPM, "%.2f BPM"))
@@ -592,7 +534,7 @@ namespace Editor
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		ImDrawList* windowDrawList = window->DrawList;
 
-		for (const auto& target : targets)
+		for (const auto& target : chart->GetTargets())
 		{
 			TimeSpan buttonTime = GetTimelineTime(target.Tick);
 			float screenX = GetTimelinePosition(buttonTime) - GetScrollX();
@@ -639,7 +581,7 @@ namespace Editor
 	{
 		if (GetIsPlayback())
 		{
-			float prePlaybackX = GetTimelinePosition(pvEditor->playbackTimeOnPlaybackStart) - GetScrollX();
+			float prePlaybackX = GetTimelinePosition(chartEditor->GetPlaybackTimeOnPlaybackStart()) - GetScrollX();
 
 			ImVec2 start = timelineHeaderRegion.GetTL() + ImVec2(prePlaybackX, 0);
 			ImVec2 end = timelineContentRegion.GetBL() + ImVec2(prePlaybackX, 0);
@@ -708,7 +650,7 @@ namespace Editor
 		{
 			const bool wasPlaying = GetIsPlayback();
 			if (wasPlaying)
-				pvEditor->PausePlayback();
+				chartEditor->PausePlayback();
 
 			const TimelineTick cursorMouseTick = GetCursorMouseXTick();
 			TimeSpan previousTime = GetCursorTime();
@@ -717,15 +659,15 @@ namespace Editor
 			if (previousTime == newTime)
 				return;
 
-			pvEditor->SetPlaybackTime(newTime);
+			chartEditor->SetPlaybackTime(newTime);
 
 			if (wasPlaying)
 			{
-				pvEditor->ResumePlayback();
+				chartEditor->ResumePlayback();
 			}
 			else // play a button sound if a target exists at the cursor tick
 			{
-				for (const auto& target : targets)
+				for (const auto& target : chart->GetTargets())
 				{
 					if (target.Tick == cursorMouseTick)
 					{
@@ -792,16 +734,16 @@ namespace Editor
 
 	void TargetTimeline::PlaceOrRemoveTarget(TimelineTick tick, TargetType type)
 	{
-		int64_t existingTarget = targets.FindIndex(tick, type);
+		int64_t existingTarget = chart->GetTargets().FindIndex(tick, type);
 
 		if (existingTarget > -1)
 		{
 			if (!GetIsPlayback())
-				targets.Remove(existingTarget);
+				chart->GetTargets().Remove(existingTarget);
 		}
 		else
 		{
-			targets.Add(tick, type);
+			chart->GetTargets().Add(tick, type);
 
 			buttonAnimations[type].Tick = tick;
 			buttonAnimations[type].ElapsedTime = 0;
@@ -810,38 +752,38 @@ namespace Editor
 
 	void TargetTimeline::SelectNextGridDivision(int direction)
 	{
-		int nextIndex = ImClamp(gridDivisionIndex + direction, 0, (int)gridDivisions.size() - 1);
+		int nextIndex = ImClamp(gridDivisionIndex + direction, 0, static_cast<int>(gridDivisions.size()) - 1);
 		gridDivision = gridDivisions[nextIndex];
 	}
 
 	TimeSpan TargetTimeline::GetCursorTime() const
 	{
-		return pvEditor->GetPlaybackTime();
+		return chartEditor->GetPlaybackTime();
 	}
 
 	bool TargetTimeline::GetIsPlayback() const
 	{
-		return pvEditor->GetIsPlayback();
+		return chartEditor->GetIsPlayback();
 	}
 
 	void TargetTimeline::PausePlayback()
 	{
-		pvEditor->PausePlayback();
+		chartEditor->PausePlayback();
 	}
 
 	void TargetTimeline::ResumePlayback()
 	{
-		pvEditor->ResumePlayback();
+		chartEditor->ResumePlayback();
 	}
 
 	void TargetTimeline::StopPlayback()
 	{
-		pvEditor->StopPlayback();
+		chartEditor->StopPlayback();
 	}
 
 	float TargetTimeline::GetTimelineSize() const
 	{
-		return GetTimelinePosition(pvEditor->songDuration);
+		return GetTimelinePosition(chart->GetDuration());
 	}
 
 	void TargetTimeline::OnTimelineBaseScroll()
@@ -850,13 +792,13 @@ namespace Editor
 		{
 			const TimeSpan increment = TimeSpan((io->KeyShift ? 1.0 : 0.5) * io->MouseWheel);
 
-			pvEditor->PausePlayback();
-			pvEditor->SetPlaybackTime(pvEditor->GetPlaybackTime() + increment);
+			chartEditor->PausePlayback();
+			chartEditor->SetPlaybackTime(chartEditor->GetPlaybackTime() + increment);
 
-			if (pvEditor->GetPlaybackTime() < 0.0)
-				pvEditor->SetPlaybackTime(0.0);
+			if (chartEditor->GetPlaybackTime() < 0.0)
+				chartEditor->SetPlaybackTime(0.0);
 
-			pvEditor->ResumePlayback();
+			chartEditor->ResumePlayback();
 
 			CenterCursor();
 		}

@@ -1,5 +1,4 @@
 #include "TargetList.h"
-#include "Misc/BitFlagsHelper.h"
 #include <algorithm>
 
 namespace Editor
