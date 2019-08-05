@@ -1,29 +1,25 @@
 #pragma once
-#include "../BaseWindow.h"
+#include "BaseWindow.h"
+#include "IFileDropReceiver.h"
 #include "Theme.h"
 
 class Application;
 
 namespace Editor
 {
-	class PvEditor;
+	class EditorManager;
 
-	class IEditorComponent : public BaseWindow
+	class IEditorComponent : public BaseWindow, public IFileDropReceiver
 	{
 	public:
-		IEditorComponent(Application* parent, PvEditor* editor);
-		virtual void Initialize() = 0;
+		IEditorComponent(Application* parent, EditorManager* editor);
 
-		virtual void OnPlaybackResumed() {};
-		virtual void OnPlaybackPaused() {};
-		virtual void OnPlaybackStopped() {};
+		virtual void Initialize() = 0;
 
 		virtual void OnWindowBegin() {};
 		virtual void OnWindowEnd() {};
 
-		virtual void OnLoad() {};
-
 	protected:
-		PvEditor* pvEditor;
+		EditorManager* pvEditor;
 	};
 }
