@@ -131,9 +131,9 @@ void Application::SetFileDropDispatched(bool value)
 	fileDropDispatched = value;
 }
 
-const std::vector<std::string>* Application::GetDroppedFiles() const
+const std::vector<std::string>& Application::GetDroppedFiles() const
 {
-	return &droppedFiles;
+	return droppedFiles;
 }
 
 void Application::Run()
@@ -273,10 +273,10 @@ void Application::BaseDraw()
 {
 	const ImVec4 baseClearColor = ImColor(Editor::GetColor(Editor::EditorColor_BaseClear));
 
-	GLCall(glClearColor(baseClearColor.x, baseClearColor.y, baseClearColor.z, baseClearColor.w));
-	GLCall(glClear(GL_COLOR_BUFFER_BIT));
+	RenderCommand::SetClearColor(baseClearColor);
+	RenderCommand::Clear(ClearTarget_ColorBuffer);
 
-	GLCall(glViewport(0, 0, static_cast<GLint>(windowWidth), static_cast<GLint>(windowHeight)));
+	RenderCommand::SetViewport(vec2(windowWidth, windowHeight));
 	DrawGui();
 }
 
@@ -387,7 +387,7 @@ bool Application::InitializeApp()
 	// Base PV Editor
 	// --------------
 	{
-		pvEditor = std::make_unique<Editor::PvEditor>(this);
+		pvEditor = std::make_unique<Editor::EditorManager>(this);
 	}
 	// Data Test Components
 	// --------------------
@@ -745,7 +745,7 @@ void Application::WindowResizeCallback(int width, int height)
 	windowWidth = (float)width;
 	windowHeight = (float)height;
 
-	GLCall(glViewport(0, 0, width, height));
+	RenderCommand::SetViewport(vec2(width, height));
 }
 
 void Application::WindowDropCallback(size_t count, const char* paths[])

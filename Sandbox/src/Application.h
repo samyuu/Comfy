@@ -51,7 +51,7 @@ public:
 
 	bool GetDispatchFileDrop();
 	void SetFileDropDispatched(bool value = true);
-	const std::vector<std::string>* GetDroppedFiles() const;
+	const std::vector<std::string>& GetDroppedFiles() const;
 
 private:
 	// Base Methods
@@ -159,7 +159,7 @@ private:
 
 	// Main Editor
 	// -----------
-	std::unique_ptr<Editor::PvEditor> pvEditor = nullptr;
+	std::unique_ptr<Editor::EditorManager> pvEditor = nullptr;
 	// -----------------
 
 	// Data Test Components
