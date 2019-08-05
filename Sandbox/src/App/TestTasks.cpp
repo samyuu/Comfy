@@ -8,15 +8,6 @@
 
 namespace App
 {
-	static std::vector<AetMgr::ObjCache>& GetObjCache(const AetObj* aetObj, float frame)
-	{
-		static std::vector<AetMgr::ObjCache> objects;
-		objects.clear();
-		AetMgr::GetAddObjects(objects, aetObj, frame);
-
-		return objects;
-	}
-
 	static float TimespanToFrame(TimeSpan time, float frameRate = 60.0f)
 	{
 		return static_cast<float>(time.TotalSeconds() / (1.0f / frameRate));
@@ -43,82 +34,13 @@ namespace App
 		p_MenuList06_c.Obj = MenuListIn02.Obj->GetLayer()->GetObj(p_MenuList06_c.Name);
 	}
 
-	bool TaskPs4Menu::SpriteGetter(AetSprite* inSprite, Texture** outTexture, Sprite** outSprite)
+	void TaskPs4Menu::RenderMenuBackground(AetRenderer* aetRenderer, float frame)
 	{
-		if (inSprite == nullptr)
-			return false;
-
-		if (inSprite->SpriteCache != nullptr)
-		{
-		from_sprite_cache:
-			*outTexture = sprSet->TxpSet->Textures[inSprite->SpriteCache->TextureIndex].get();
-			*outSprite = inSprite->SpriteCache;
-			return true;
-		}
-
-		for (auto& sprite : sprSet->Sprites)
-		{
-			if (EndsWith(inSprite->Name, sprite.Name))
-			{
-				inSprite->SpriteCache = &sprite;
-				goto from_sprite_cache;
-			}
-		}
-
-		return false;
+		aetRenderer->RenderAetObjLooped(aetData.CommonBackground, frame);
+		aetRenderer->RenderAetObjLooped(aetData.MenuDeco, frame);
 	}
 
-	void TaskPs4Menu::RenderObjCache(Renderer2D& renderer, const AetMgr::ObjCache& obj, const vec2& position, float opacity)
-	{
-		if (obj.Region == nullptr)
-			return;
-
-		Texture* texture;
-		Sprite* sprite;
-		bool validSprite = SpriteGetter(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
-
-		if (validSprite)
-		{
-			renderer.Draw(
-				texture->Texture2D.get(),
-				sprite->PixelRegion,
-				obj.Properties.Position + position,
-				obj.Properties.Origin,
-				obj.Properties.Rotation,
-				obj.Properties.Scale,
-				vec4(1.0f, 1.0f, 1.0f, obj.Properties.Opacity * opacity),
-				obj.BlendMode);
-		}
-	}
-
-	void TaskPs4Menu::RenderAetObj(Renderer2D& renderer, const AetObj* aetObj, float frame, const vec2& position, float opacity)
-	{
-		static std::vector<AetMgr::ObjCache> objects;
-		objects.clear();
-
-		AetMgr::GetAddObjects(objects, aetObj, frame);
-
-		for (auto& objCache : objects)
-			RenderObjCache(renderer, objCache, position, opacity);
-	}
-
-	void TaskPs4Menu::RenderAetObjLooped(Renderer2D& renderer, const AetObj* aetObj, float frame, const vec2& position, float opacity)
-	{
-		RenderAetObj(renderer, aetObj, fmod(frame, aetObj->LoopEnd - 1.0f), position, opacity);
-	}
-
-	void TaskPs4Menu::RenderAetObjClamped(Renderer2D& renderer, const AetObj* aetObj, float frame, const vec2& position, float opacity)
-	{
-		RenderAetObj(renderer, aetObj, (frame >= aetObj->LoopEnd ? aetObj->LoopEnd : frame), position, opacity);
-	}
-
-	void TaskPs4Menu::RenderMenuBackground(Renderer2D& renderer, float frame)
-	{
-		RenderAetObjLooped(renderer, aetData.CommonBackground, frame);
-		RenderAetObjLooped(renderer, aetData.MenuDeco, frame);
-	}
-
-	void TaskPs4Menu::RenderMainMenuChara(Renderer2D& renderer, float frame)
+	void TaskPs4Menu::RenderMainMenuChara(AetRenderer* aetRenderer, float frame)
 	{
 		struct { const AetObj *MenuChara, *MenuText; } charaData[MainMenuItem_Count]
 		{
@@ -133,11 +55,11 @@ namespace App
 		auto& data = charaData[mainMenuState.selectedItem];
 		float inputFrame = glm::clamp(frame, 0.0f, 21.0f);
 
-		RenderAetObjClamped(renderer, data.MenuChara, inputFrame);
-		RenderAetObjClamped(renderer, data.MenuText, inputFrame);
+		aetRenderer->RenderAetObjClamped(data.MenuChara, inputFrame);
+		aetRenderer->RenderAetObjClamped(data.MenuText, inputFrame);
 	}
 
-	void TaskPs4Menu::RenderMainMenuList(Renderer2D& renderer, bool selectedLayer, float menuListFrame, float menuPlateFrame)
+	void TaskPs4Menu::RenderMainMenuList(AetRenderer* aetRenderer, bool selectedLayer, float menuListFrame, float menuPlateFrame)
 	{
 		struct { const AetObj *PointObj, *MenuPlate, *MenuPlateSel; } listObjData[MainMenuItem_Count]
 		{
@@ -149,7 +71,9 @@ namespace App
 			{ aetData.p_MenuList06_c, aetData.MenuPlateOption, aetData.MenuPlateOptionSel },
 		};
 
-		auto& objects = GetObjCache(aetData.MenuListIn02, menuListFrame);
+		static std::vector<AetMgr::ObjCache> objects; objects.clear();
+		AetMgr::GetAddObjects(objects, aetData.MenuListIn02, menuListFrame);
+		
 		for (auto& obj : objects)
 		{
 			for (MainMenuItem i = 0; i < MainMenuItem_Count; i++)
@@ -161,7 +85,7 @@ namespace App
 					{
 						if (mainMenuState.selectedItem == i)
 						{
-							RenderAetObjLooped(renderer,
+							aetRenderer->RenderAetObjLooped(
 								data.MenuPlateSel,
 								menuPlateFrame,
 								obj.Properties.Position,
@@ -170,7 +94,7 @@ namespace App
 					}
 					else
 					{
-						RenderAetObjLooped(renderer,
+						aetRenderer->RenderAetObjLooped(
 							data.MenuPlate,
 							menuPlateFrame,
 							obj.Properties.Position,
@@ -183,6 +107,8 @@ namespace App
 
 	bool TaskPs4Menu::Initialize()
 	{
+		spriteGetterFunction = [this](AetSprite* inSprite, Texture** outTexture, Sprite** outSprite) { return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite); };
+
 		return true;
 	}
 
@@ -227,12 +153,14 @@ namespace App
 		return true;
 	}
 
-	bool TaskPs4Menu::Render(Auth2D::Renderer2D& renderer)
+	bool TaskPs4Menu::Render(Renderer2D* renderer, Auth2D::AetRenderer* aetRenderer)
 	{
 		if (isLoading)
 			return true;
 
 		using namespace ImGui;
+
+		aetRenderer->SetSpriteGetterFunction(&spriteGetterFunction);
 
 		float deltaFrame = TimespanToFrame(ImGui::GetIO().DeltaTime);
 		elapsedFrames += deltaFrame;
@@ -253,9 +181,9 @@ namespace App
 			mainMenuState.selectedItem = 0;
 			stateType = TaskPs4MenuStateType::MainMenuIn;
 
-			RenderMenuBackground(renderer, elapsedFrames);
-			RenderAetObjLooped(renderer, aetData.MenuFooter, elapsedFrames);
-			RenderAetObjLooped(renderer, aetData.MenuHeader, elapsedFrames);
+			RenderMenuBackground(aetRenderer, elapsedFrames);
+			aetRenderer->RenderAetObjLooped(aetData.MenuFooter, elapsedFrames);
+			aetRenderer->RenderAetObjLooped(aetData.MenuHeader, elapsedFrames);
 
 			break;
 		}
@@ -271,11 +199,11 @@ namespace App
 				stateType = TaskPs4MenuStateType::MainMenuLoop;
 			}
 
-			RenderMenuBackground(renderer, elapsedFrames);
-			RenderMainMenuChara(renderer, mainMenuState.Frames);
-			RenderMainMenuList(renderer, false, mainMenuState.Frames, mainMenuState.FramesSinceItemSwitch);
-			RenderAetObjLooped(renderer, aetData.MenuFooter, elapsedFrames);
-			RenderAetObjLooped(renderer, aetData.MenuHeader, elapsedFrames);
+			RenderMenuBackground(aetRenderer, elapsedFrames);
+			RenderMainMenuChara(aetRenderer, mainMenuState.Frames);
+			RenderMainMenuList(aetRenderer, false, mainMenuState.Frames, mainMenuState.FramesSinceItemSwitch);
+			aetRenderer->RenderAetObjLooped(aetData.MenuFooter, elapsedFrames);
+			aetRenderer->RenderAetObjLooped(aetData.MenuHeader, elapsedFrames);
 
 			break;
 		}
@@ -310,12 +238,12 @@ namespace App
 				}
 			}
 
-			RenderMenuBackground(renderer, elapsedFrames);
-			RenderMainMenuChara(renderer, mainMenuState.FramesSinceItemSwitch);
-			RenderMainMenuList(renderer, false, mainMenuState.Frames, mainMenuState.FramesSinceItemSwitch);
-			RenderMainMenuList(renderer, true, mainMenuState.Frames, mainMenuState.FramesSinceItemSwitch);
-			RenderAetObjLooped(renderer, aetData.MenuFooter, elapsedFrames);
-			RenderAetObjLooped(renderer, aetData.MenuHeader, elapsedFrames);
+			RenderMenuBackground(aetRenderer, elapsedFrames);
+			RenderMainMenuChara(aetRenderer, mainMenuState.FramesSinceItemSwitch);
+			RenderMainMenuList(aetRenderer, false, mainMenuState.Frames, mainMenuState.FramesSinceItemSwitch);
+			RenderMainMenuList(aetRenderer, true, mainMenuState.Frames, mainMenuState.FramesSinceItemSwitch);
+			aetRenderer->RenderAetObjLooped(aetData.MenuFooter, elapsedFrames);
+			aetRenderer->RenderAetObjLooped(aetData.MenuHeader, elapsedFrames);
 
 			break;
 		}
