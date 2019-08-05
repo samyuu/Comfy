@@ -24,6 +24,8 @@ namespace Editor
 		renderRegion.Min = ImGui::GetWindowPos();
 		renderRegion.Max = renderRegion.Min + ImGui::GetWindowSize();
 
+		const ImRect fullRenderRegion = renderRegion;
+
 		if (GetKeepAspectRatio())
 		{
 			ImVec2 renderRegionSize = renderRegion.GetSize();
@@ -57,7 +59,9 @@ namespace Editor
 		if (GetWasResized() && ImGui::GetFrameCount() >= 2)
 			OnResize(static_cast<int>(renderSize.x), static_cast<int>(renderSize.y));
 
-		if (!ImGui::GetCurrentWindow()->Hidden)
+		ImGuiWindow* currentWindow = ImGui::GetCurrentWindow();
+
+		if (!currentWindow->Hidden)
 		{
 			OnUpdate();
 			if (ImGui::IsWindowFocused())
@@ -65,7 +69,15 @@ namespace Editor
 			OnRender();
 		}
 
-		ImGui::GetWindowDrawList()->AddImage(
+		if (GetKeepAspectRatio())
+		{
+			currentWindow->DrawList->AddRectFilled(
+				fullRenderRegion.Min, 
+				fullRenderRegion.Max, 
+				ImGui::GetColorU32(ImGuiCol_WindowBg));
+		}
+
+		currentWindow->DrawList->AddImage(
 			renderTarget.GetTexture().GetVoidTexture(),
 			renderRegion.GetTL(),
 			renderRegion.GetBR(),

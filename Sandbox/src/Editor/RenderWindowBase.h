@@ -4,6 +4,7 @@
 #include "ImGui/imgui_internal.h"
 #include "ImGui/imgui_extensions.h"
 #include "Graphics/RenderTarget.h"
+#include "Graphics/RenderCommand.h"
 
 namespace Editor
 {
