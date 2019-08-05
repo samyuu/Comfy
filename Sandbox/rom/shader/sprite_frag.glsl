@@ -3,12 +3,16 @@ out vec4 FragColor;
 
 in vec4 VertexColor;
 in vec2 VertexTexCoord;
+in vec2 VertexTexMaskCoord;
 
 uniform bool u_SolidColor;
 uniform bool u_TextShadow;
 uniform bool u_Checkerboard;
 uniform vec2 u_CheckboardSize;
+
 uniform int u_TextureFormat;
+uniform int u_TextureMaskFormat;
+
 uniform sampler2D u_TextureSampler;
 uniform sampler2D u_TextureMaskSampler;
 
@@ -31,12 +35,12 @@ const int TextureFormat_RGTC2 = 11;
 const int TextureFormat_L8 = 12;
 const int TextureFormat_L8A8 = 13;
 
-vec4 GetTextureColor()
+vec4 GetTextureColor(sampler2D sampler, vec2 texCoord, int textureFormat)
 {
-	if (u_TextureFormat == TextureFormat_RGTC2)
+	if (textureFormat == TextureFormat_RGTC2)
 	{
-		vec4 grayscale = textureLod(u_TextureSampler, VertexTexCoord, 0.0).rrrg;
-		vec4 luminance = textureLod(u_TextureSampler, VertexTexCoord, 1.0) * 1.003922 - 0.503929;
+		vec4 grayscale = textureLod(sampler, texCoord, 0.0).rrrg;
+		vec4 luminance = textureLod(sampler, texCoord, 1.0) * 1.003922 - 0.503929;
 		grayscale.rb = luminance.gr;
 		
 		return vec4(
@@ -46,7 +50,7 @@ vec4 GetTextureColor()
 			grayscale.a);
 	}
 		
-	return texture(u_TextureSampler, VertexTexCoord);
+	return texture(sampler, texCoord);
 }
 
 float GetTextureAlpha(float xOffset, float yOffset)
@@ -88,23 +92,28 @@ vec4 GetFontTextureColor()
 
 void main()
 {
-	if (u_Checkerboard)
-	{
-		vec2 point = (VertexTexCoord - vec2(0.0, 1.0)) * u_CheckboardSize * 0.08;
-		if ((mod(point.x, 1.0) < 0.5) ^^ (mod(point.y, 1.0) < 0.5))
-			discard;
-	}
-
 	if (u_SolidColor)
 	{
+		if (u_Checkerboard)
+		{
+			vec2 point = (VertexTexCoord - vec2(0.0, 1.0)) * u_CheckboardSize * 0.08;
+			if ((mod(point.x, 1.0) < 0.5) ^^ (mod(point.y, 1.0) < 0.5))
+				discard;
+		}
+
 		FragColor = VertexColor;
-		return;
 	}
 	else if (u_TextShadow)
 	{ 
-		FragColor = GetFontTextureColor(); 
-		return; 
+		FragColor = GetFontTextureColor();
 	}
-
-	FragColor = GetTextureColor() * VertexColor;
+	else if (u_TextureMaskFormat >= 0)
+	{
+		FragColor = GetTextureColor(u_TextureSampler, VertexTexMaskCoord, u_TextureMaskFormat) * VertexColor;
+		FragColor.a *= GetTextureColor(u_TextureMaskSampler, VertexTexCoord, u_TextureFormat).a;
+	}
+	else
+	{
+		FragColor = GetTextureColor(u_TextureSampler, VertexTexCoord, u_TextureFormat) * VertexColor;
+	}
 }
