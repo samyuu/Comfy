@@ -34,8 +34,8 @@ namespace Editor
 			if (outputAspect <= targetAspectRatio)
 			{
 				// output is taller than it is wider, bars on top/bottom
-				float presentHeight = (renderRegionSize.x / targetAspectRatio) + 0.5f;
-				float barHeight = (renderRegionSize.y - presentHeight) / 2;
+				float presentHeight = glm::round((renderRegionSize.x / targetAspectRatio) + 0.5f);
+				float barHeight = glm::round((renderRegionSize.y - presentHeight) / 2);
 
 				renderRegion.Min.y += barHeight;
 				renderRegion.Max.y += barHeight;
