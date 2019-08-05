@@ -116,6 +116,21 @@ namespace Auth2D
 		BottomRight.TextureCoordinates.y = bottomRight.y;
 	}
 
+	void SpriteVertices::SetTexMaskCoords(const vec2 & topLeft, const vec2 & bottomRight)
+	{
+		TopLeft.TextureMaskCoordinates.x = topLeft.x;
+		TopLeft.TextureMaskCoordinates.y = topLeft.y;
+
+		TopRight.TextureMaskCoordinates.x = bottomRight.x;
+		TopRight.TextureMaskCoordinates.y = topLeft.y;
+
+		BottomLeft.TextureMaskCoordinates.x = topLeft.x;
+		BottomLeft.TextureMaskCoordinates.y = bottomRight.y;
+
+		BottomRight.TextureMaskCoordinates.x = bottomRight.x;
+		BottomRight.TextureMaskCoordinates.y = bottomRight.y;
+	}
+
 	void SpriteVertices::SetColors(const vec4& color)
 	{
 		TopLeft.Color = color;
@@ -143,9 +158,10 @@ namespace Auth2D
 	{
 		BufferLayout layout =
 		{
-			{ ShaderDataType::Vec2, "in_position" },
-			{ ShaderDataType::Vec2, "in_texture_coords" },
-			{ ShaderDataType::Vec4, "in_color" }
+			{ ShaderDataType::Vec2, "in_Position" },
+			{ ShaderDataType::Vec2, "in_TextureCoords" },
+			{ ShaderDataType::Vec4, "in_Color" },
+			{ ShaderDataType::Vec2, "in_TextureMaskCoords" },
 		};
 
 		indexBuffer.InitializeID();
@@ -157,9 +173,6 @@ namespace Auth2D
 
 		shader = std::make_unique<SpriteShader>();
 		shader->Initialize();
-		shader->Bind();
-		shader->SetUniform(shader->TextureLocation, 0);
-		shader->SetUniform(shader->TextureMaskLocation, 1);
 
 		vertexArray.InitializeID();
 		vertexArray.Bind();
@@ -174,7 +187,7 @@ namespace Auth2D
 	{
 		this->drawCallCount = 0;
 		this->camera = &camera;
-		
+
 		assert(this->camera != nullptr);
 	}
 
@@ -217,6 +230,38 @@ namespace Auth2D
 	void Renderer2D::Draw(const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec2& origin, float rotation, const vec2& scale, const vec4& color, AetBlendMode blendMode)
 	{
 		DrawInternal(texture, &sourceRegion, &position, &origin, rotation, &scale, &color, blendMode);
+	}
+
+	void Renderer2D::Draw(
+		const Texture2D* maskTexture, const vec4& maskSourceRegion, const vec2& maskPosition, const vec2& maskOrigin, float maskRotation, const vec2& maskScale,
+		const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec2& origin, float rotation, const vec2& scale, const vec4& color,
+		AetBlendMode blendMode)
+	{
+		BatchPair pair = CheckFlushAddItem();
+
+		pair.Item->SetValues(
+			texture,
+			maskTexture,
+			blendMode);
+
+		pair.Vertices->SetValues(
+			maskPosition,
+			maskSourceRegion,
+			maskTexture->GetSize(),
+			-maskOrigin,
+			maskRotation,
+			maskScale,
+			color);
+
+		// TODO:
+		vec2 maskSize = texture->GetSize();
+		vec2 topLeft = vec2(sourceRegion.x / maskSize.x, sourceRegion.y / maskSize.y);
+		vec2 bottomRight = vec2((sourceRegion.x + sourceRegion.z) / maskSize.x, (sourceRegion.y + sourceRegion.w) / maskSize.y);
+
+		topLeft -= pair.Vertices->TopLeft.TextureCoordinates;
+		bottomRight -= pair.Vertices->BottomRight.TextureCoordinates;
+
+		pair.Vertices->SetTexMaskCoords(topLeft, bottomRight);
 	}
 
 	void Renderer2D::DrawLine(const vec2& start, const vec2& end, const vec4& color, float thickness)
@@ -282,12 +327,13 @@ namespace Auth2D
 			GLCall(glDisable(GL_BLEND));
 		}
 
+		enum { TextureSlot = 0, TextureMaskSlot = 1 };
+
 		shader->Bind();
-		shader->SetUniform(shader->UseTextShadowLocation, GetUseTextShadow());
-		{
-			const mat4 projectionView = camera->GetProjectionMatrix() * camera->GetViewMatrix();
-			shader->SetUniform(shader->ProjectionViewLocation, projectionView);
-		}
+		shader->SetUniform(shader->Texture, TextureSlot);
+		shader->SetUniform(shader->TextureMask, TextureMaskSlot);
+		shader->SetUniform(shader->UseTextShadow, GetUseTextShadow());
+		shader->SetUniform(shader->ProjectionView, camera->GetProjectionMatrix() * camera->GetViewMatrix());
 
 		vertexArray.Bind();
 		vertexBuffer.Bind();
@@ -302,30 +348,35 @@ namespace Auth2D
 			BatchItem& item = batchItems[batch.Index];
 
 			bool firstItem = i == 0;
-
 			if (firstItem || lastBlendMode != item.BlendMode)
 			{
 				lastBlendMode = item.BlendMode;
 				SetBlendFunction(lastBlendMode);
 			}
 
-			if (item.Texture != nullptr)
+			shader->SetUniform(shader->TextureMaskFormat, item.MaskTexture != nullptr ? static_cast<int>(item.MaskTexture->GetTextureFormat()) : -1);
+			if (item.MaskTexture != nullptr)
 			{
-				item.Texture->Bind();
-				shader->SetUniform(shader->TextureFormatLocation, static_cast<int>(item.Texture->GetTextureFormat()));
+				item.MaskTexture->Bind(TextureMaskSlot);
 			}
 
-			shader->SetUniform(shader->UseSolidColorLocation, item.Texture == nullptr);
+			if (item.Texture != nullptr)
+			{
+				item.Texture->Bind(TextureSlot);
+				shader->SetUniform(shader->TextureFormat, static_cast<int>(item.Texture->GetTextureFormat()));
+			}
+
+			shader->SetUniform(shader->UseSolidColor, item.Texture == nullptr);
 
 			bool useCheckerboard = item.CheckerboardSize != vec2(0.0f);
-			shader->SetUniform(shader->UseCheckerboardLocation, useCheckerboard);
+			shader->SetUniform(shader->UseCheckerboard, useCheckerboard);
 			if (useCheckerboard)
-				shader->SetUniform(shader->CheckerboardSizeLocation, item.CheckerboardSize);
+				shader->SetUniform(shader->CheckerboardSize, item.CheckerboardSize);
 
 			GLCall(glDrawElements(GL_TRIANGLES,
 				batch.Count * SpriteIndices::GetIndexCount(),
 				indexBuffer.GetGLIndexType(),
-				(void*)(batch.Index * sizeof(SpriteIndices))));
+				reinterpret_cast<void*>(batch.Index * sizeof(SpriteIndices))));
 
 			drawCallCount++;
 		}
@@ -337,7 +388,7 @@ namespace Auth2D
 
 	void Renderer2D::SetBlendFunction(AetBlendMode blendMode)
 	{
-		const BlendFuncStruct& blendFunc = GetBlendFuncParamteres(blendMode);
+		const BlendFuncStruct blendFunc = GetBlendFuncParamteres(blendMode);
 		GLCall(glBlendFuncSeparate(
 			blendFunc.SourceRGB,
 			blendFunc.DestinationRGB,
@@ -345,33 +396,24 @@ namespace Auth2D
 			blendFunc.DestinationAlpha));
 	}
 
-	const BlendFuncStruct& Renderer2D::GetBlendFuncParamteres(AetBlendMode blendMode)
+	const BlendFuncStruct Renderer2D::GetBlendFuncParamteres(AetBlendMode blendMode)
 	{
-		static BlendFuncStruct lookupTable[6] =
-		{
-			{ GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE },
-			{ GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR, GL_ZERO, GL_ONE },
-			{ GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE },
-			{ GL_DST_COLOR, GL_ZERO, GL_ZERO, GL_ONE },
-			{ GL_ONE, GL_ZERO, GL_ONE, GL_ZERO },
-			{ GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE },
-		};
-
-		int lookupIndex = 0;
 		switch (blendMode)
 		{
+		default:
 		case AetBlendMode::Alpha:
-			lookupIndex = 0; break;
+			return { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE };
 		case AetBlendMode::Additive:
-			lookupIndex = 2; break;
+			return { GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE };
 		case AetBlendMode::DstColorZero:
-			lookupIndex = 3; break;
+			return { GL_DST_COLOR, GL_ZERO, GL_ZERO, GL_ONE };
 		case AetBlendMode::SrcAlphaOneMinusSrcColor:
-			lookupIndex = 1; break;
+			return { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR, GL_ZERO, GL_ONE };
 		case AetBlendMode::Transparent:
-			lookupIndex = 5; break;
+			return { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE };
 		}
-		return lookupTable[lookupIndex];
+
+		return { GL_INVALID_ENUM, GL_INVALID_ENUM, GL_INVALID_ENUM, GL_INVALID_ENUM };
 	}
 
 	void Renderer2D::GenerateUploadSpriteIndexBuffer(uint16_t elementCount)
@@ -414,7 +456,14 @@ namespace Auth2D
 			BatchItem* lastItem = first ? nullptr : &batchItems[batches.back().Index];
 
 			constexpr vec2 sizeZero = vec2(0.0f);
-			bool newBatch = first || (item->BlendMode != lastItem->BlendMode) || (item->Texture != lastItem->Texture || item->MaskTexture != lastItem->MaskTexture) || (item->CheckerboardSize != sizeZero || lastItem->CheckerboardSize != sizeZero);
+			bool newBatch = first ||
+				(item->BlendMode != lastItem->BlendMode) ||
+				(item->Texture != lastItem->Texture) ||
+				(item->CheckerboardSize != sizeZero || lastItem->CheckerboardSize != sizeZero) ||
+				(item->MaskTexture != nullptr);
+
+			if (!batchSprites)
+				newBatch = true;
 
 			if (newBatch)
 			{

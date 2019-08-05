@@ -37,10 +37,11 @@ namespace Auth2D
 		void SetValues(const vec2& position, const vec4& sourceRegion, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4 colors[4]);
 		static inline constexpr uint32_t GetVertexCount() { return sizeof(SpriteVertices) / sizeof(SpriteVertex); };
 
-	private:
+	public:
 		void SetPositions(const vec2& position, const vec2& size);
 		void SetPositions(const vec2& position, const vec2& size, const vec2& origin, float rotation);
 		void SetTexCoords(const vec2& topLeft, const vec2& bottomRight);
+		void SetTexMaskCoords(const vec2& topLeft, const vec2& bottomRight);
 		void SetColors(const vec4& color);
 		void SetColorArray(const vec4 colors[4]);
 	};
@@ -92,6 +93,11 @@ namespace Auth2D
 		void Draw(const Texture2D* texture, const vec2& position, const vec2& origin, float rotation, const vec4& color);
 		void Draw(const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec2& origin, float rotation, const vec2& scale, const vec4& color, AetBlendMode blendMode = AetBlendMode::Alpha);
 		
+		void Draw(
+			const Texture2D* maskTexture, const vec4& maskSourceRegion, const vec2& maskPosition, const vec2& maskOrigin, float maskRotation, const vec2& maskScale,
+			const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec2& origin, float rotation, const vec2& scale, const vec4& color,
+			AetBlendMode blendMode);
+		
 		void DrawLine(const vec2& start, const vec2& end, const vec4& color, float thickness = 1.0f);
 		void DrawLine(const vec2& start, float angle, float length, const vec4& color, float thickness = 1.0f);
 		
@@ -104,17 +110,18 @@ namespace Auth2D
 		void Flush();
 
 		inline SpriteShader* GetShader() { return shader.get(); };
-		
-		inline bool GetEnableAlphaTest() { return enableAlphaTest; };
+		inline const OrthographicCamera* GetCamera() const { return camera; };
+
+		inline bool GetEnableAlphaTest() const { return enableAlphaTest; };
 		inline void SetEnableAlphaTest(bool value) { enableAlphaTest = value; };
 
-		inline bool GetUseTextShadow() { return useTextShadow; };
+		inline bool GetUseTextShadow() const { return useTextShadow; };
 		inline void SetUseTextShadow(bool value) { useTextShadow = value; };
 
-		inline uint16_t GetDrawCallCount() { return drawCallCount; };
+		inline uint16_t GetDrawCallCount() const { return drawCallCount; };
 
 		static void SetBlendFunction(AetBlendMode blendMode);
-		static const BlendFuncStruct& GetBlendFuncParamteres(AetBlendMode blendMode);
+		static const BlendFuncStruct GetBlendFuncParamteres(AetBlendMode blendMode);
 
 	private:
 		bool enableAlphaTest = true;
@@ -126,6 +133,7 @@ namespace Auth2D
 		VertexBuffer vertexBuffer = { BufferUsage::StreamDraw };
 		IndexBuffer indexBuffer = { BufferUsage::StreamDraw, IndexType::UnsignedShort };
 
+		bool batchSprites = true;
 		std::vector<Batch> batches;
 		std::vector<BatchItem> batchItems;
 		std::vector<SpriteVertices> vertices;
