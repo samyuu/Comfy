@@ -58,6 +58,7 @@ namespace ImGui
 		void SetDirectoryInternal(const std::string& newDirectory);
 		void SetParentDirectory(const std::string& directory);
 		void OpenDirectoryInExplorer();
+		void OpenContextItemDefaultProgram();
 		void OpenContextItemProperties();
 
 		static FileType GetFileType(const std::string& fileName);

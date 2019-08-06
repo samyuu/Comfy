@@ -59,6 +59,16 @@ namespace FileSystem
 		return PathFileExistsW(directory.c_str()) && IsDirectory(directory);
 	}
 
+	void OpenWithDefaultProgram(const std::string& filePath)
+	{
+		ShellExecuteA(NULL, "open", filePath.c_str(), NULL, NULL, SW_SHOW);
+	}
+
+	void OpenWithDefaultProgram(const std::wstring& filePath)
+	{
+		ShellExecuteW(NULL, L"open", filePath.c_str(), NULL, NULL, SW_SHOW);
+	}
+
 	void OpenInExplorer(const std::string& filePath)
 	{
 		if (PathIsRelativeA(filePath.c_str()))

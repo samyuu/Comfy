@@ -19,6 +19,9 @@ namespace FileSystem
 	bool DirectoryExists(const std::string& directory);
 	bool DirectoryExists(const std::wstring& directory);
 
+	void OpenWithDefaultProgram(const std::string& filePath);
+	void OpenWithDefaultProgram(const std::wstring& filePath);
+
 	void OpenInExplorer(const std::string& filePath);
 	void OpenInExplorer(const std::wstring& filePath);
 	

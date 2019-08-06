@@ -82,6 +82,12 @@ namespace ImGui
 
 			ImGui::WindowContextMenu("ContextMenu##FileViewer", [this]()
 			{
+				if (contextMenuFilePathInfo != nullptr)
+				{
+					if (MenuItem("Open"))
+						OpenContextItemDefaultProgram();
+				}
+
 				if (MenuItem("Open in Explorer..."))
 					OpenDirectoryInExplorer();
 
@@ -238,6 +244,12 @@ namespace ImGui
 	void FileViewer::OpenDirectoryInExplorer()
 	{
 		FileSystem::OpenInExplorer(Utf8ToUtf16(directory));
+	}
+
+	void FileViewer::OpenContextItemDefaultProgram()
+	{
+		if (contextMenuFilePathInfo != nullptr)
+			FileSystem::OpenWithDefaultProgram(Utf8ToUtf16(contextMenuFilePathInfo->FullPath));
 	}
 
 	void FileViewer::OpenContextItemProperties()
