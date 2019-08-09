@@ -85,8 +85,8 @@ namespace Editor
 		Texture2D* buttonIconsTexture;
 
 		bool checkHitsoundsInCallback = false;
-		struct { bool Down, WasDown; } buttonPlacementKeyStates[6];
-		struct { TargetType Type; KeyCode Key; } buttonPlacementMapping[6]
+		struct { bool Down, WasDown; } buttonPlacementKeyStates[12];
+		struct { TargetType Type; KeyCode Key; } buttonPlacementMapping[12]
 		{
 			{ TargetType_Sankaku, KeyCode_W },
 			{ TargetType_Shikaku, KeyCode_A },
@@ -94,6 +94,13 @@ namespace Editor
 			{ TargetType_Maru, KeyCode_D },
 			{ TargetType_SlideL, KeyCode_Q },
 			{ TargetType_SlideR, KeyCode_E },
+
+			{ TargetType_Sankaku, KeyCode_I },
+			{ TargetType_Shikaku, KeyCode_J },
+			{ TargetType_Batsu, KeyCode_K },
+			{ TargetType_Maru, KeyCode_L },
+			{ TargetType_SlideL, KeyCode_U },
+			{ TargetType_SlideR, KeyCode_O },
 		};
 		// ----------------------
 
@@ -117,8 +124,8 @@ namespace Editor
 		// --------------------------
 
 		// ----------------------
-		const float ICON_SCALE = .6f; // 1.0f;
-		const float ROW_HEIGHT = 25; // 42.0f;
+		const float ICON_SCALE = 1.0f;
+		const float ROW_HEIGHT = 36;
 		// ----------------------
 
 		// ----------------
@@ -175,7 +182,7 @@ namespace Editor
 		// -------------------
 		float GetButtonTransparency(float screenX) const;
 		int GetButtonIconIndex(const TimelineTarget& target) const;
-		void DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, ImVec2 position, float scale, float transparency = 1.0f);
+		void DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, vec2 position, float scale, float transparency = 1.0f);
 		// -------------------
 	};
 }

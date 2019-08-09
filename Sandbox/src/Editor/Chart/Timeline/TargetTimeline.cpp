@@ -21,6 +21,9 @@ namespace Editor
 
 	TargetTimeline::TargetTimeline(ChartEditor* parentChartEditor)
 	{
+		scrollSpeed = 2.5;
+		scrollSpeedFast = 5.5;
+
 		chartEditor = parentChartEditor;
 		chart = chartEditor->GetChart();
 	}
@@ -38,13 +41,13 @@ namespace Editor
 	TimelineTick TargetTimeline::FloorToGrid(TimelineTick tick) const
 	{
 		int gridTicks = GetGridTick().TotalTicks();
-		return static_cast<int>(floor(tick.TotalTicks() / (float)gridTicks) * gridTicks);
+		return static_cast<int>(glm::floor(tick.TotalTicks() / static_cast<float>(gridTicks)) * gridTicks);
 	}
 
 	TimelineTick TargetTimeline::RoundToGrid(TimelineTick tick) const
 	{
 		int gridTicks = GetGridTick().TotalTicks();
-		return static_cast<int>(round(tick.TotalTicks() / (float)gridTicks) * gridTicks);
+		return static_cast<int>(glm::round(tick.TotalTicks() / static_cast<float>(gridTicks)) * gridTicks);
 	}
 
 	float TargetTimeline::GetTimelinePosition(TimeSpan time) const
@@ -102,12 +105,12 @@ namespace Editor
 	{
 		constexpr float fadeSpan = 35.0f;
 
-		if (screenX < 0.0f || screenX > baseWindow->Size.x)
+		if (/*screenX < 0.0f ||*/ screenX > baseWindow->Size.x)
 			return 0.0f;
 
-		const float lowerThreshold = fadeSpan;
-		if (screenX < lowerThreshold)
-			return ImLerp(0.0f, 1.0f, screenX / lowerThreshold);
+		// const float lowerThreshold = fadeSpan;
+		// if (screenX < lowerThreshold)
+		// 	return ImLerp(0.0f, 1.0f, screenX / lowerThreshold);
 
 		const float upperThreshold = baseWindow->Size.x - fadeSpan;
 		if (screenX > upperThreshold)
@@ -129,15 +132,15 @@ namespace Editor
 		return type + 8;
 	}
 
-	void TargetTimeline::DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, ImVec2 position, float scale, float transparency)
+	void TargetTimeline::DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, vec2 position, float scale, float transparency)
 	{
 		const float width = buttonIconWidth * scale;
 		const float height = buttonIconWidth * scale;
 
-		position.x -= width * .5f;
-		position.y -= height * .5f;
+		position.x = glm::round(position.x - (width * .5f));
+		position.y = glm::round(position.y - (height * .5f));
 
-		ImVec2 bottomRight(position.x + width, position.y + height);
+		vec2 bottomRight = vec2(position.x + width,position.y + height);
 		ImRect textureCoordinates = buttonIconsTextureCoordinates[GetButtonIconIndex(target)];
 
 		const ImU32 color = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF * transparency);
@@ -369,7 +372,7 @@ namespace Editor
 				if (isBar)
 					barCount++;
 
-				float screenX = GetTimelinePosition(TimelineTick(tick)) - scrollX;
+				float screenX = glm::round(GetTimelinePosition(TimelineTick(tick)) - scrollX);
 				TimelineVisibility visiblity = GetTimelineVisibility(screenX);
 
 				if (visiblity == TimelineVisibility::Left)
@@ -459,7 +462,7 @@ namespace Editor
 			{
 				TempoChange& tempoChange = chart->GetTempoMap().GetTempoChangeAt(i);
 
-				float screenX = GetTimelinePosition(tempoChange.Tick) - GetScrollX();
+				float screenX = glm::round(GetTimelinePosition(tempoChange.Tick) - GetScrollX());
 
 				TimelineVisibility visiblity = GetTimelineVisibility(screenX);
 				if (visiblity == TimelineVisibility::Left)
@@ -496,7 +499,7 @@ namespace Editor
 
 					if (ImGui::IsMouseClicked(1))
 					{
-						ImGui::OpenPopup("##change_tempo_popup");
+						ImGui::OpenPopup("##ChangeTempoPopup");
 						tempoPopupIndex = static_cast<int>(i);
 					}
 				}
@@ -507,7 +510,7 @@ namespace Editor
 
 			// Test Popup
 			// ----------
-			if (ImGui::BeginPopup("##change_tempo_popup"))
+			if (ImGui::BeginPopup("##ChangeTempoPopup"))
 			{
 				ImGui::Text("Change Tempo:");
 
@@ -516,7 +519,7 @@ namespace Editor
 					TempoChange& tempoChange = chart->GetTempoMap().GetTempoChangeAt(tempoPopupIndex);
 					float bpm = tempoChange.Tempo.BeatsPerMinute;
 
-					if (ImGui::DragFloat("##bpm_drag_float", &bpm, 1.0f, MIN_BPM, MAX_BPM, "%.2f BPM"))
+					if (ImGui::DragFloat("##TempoDragFloat", &bpm, 1.0f, MIN_BPM, MAX_BPM, "%.2f BPM"))
 					{
 						tempoChange.Tempo = bpm;
 						UpdateTimelineMap();
@@ -581,7 +584,7 @@ namespace Editor
 	{
 		if (GetIsPlayback())
 		{
-			float prePlaybackX = GetTimelinePosition(chartEditor->GetPlaybackTimeOnPlaybackStart()) - GetScrollX();
+			float prePlaybackX = glm::round(GetTimelinePosition(chartEditor->GetPlaybackTimeOnPlaybackStart()) - GetScrollX());
 
 			ImVec2 start = timelineHeaderRegion.GetTL() + ImVec2(prePlaybackX, 0);
 			ImVec2 end = timelineContentRegion.GetBL() + ImVec2(prePlaybackX, 0);
@@ -734,20 +737,20 @@ namespace Editor
 
 	void TargetTimeline::PlaceOrRemoveTarget(TimelineTick tick, TargetType type)
 	{
-		int64_t existingTarget = chart->GetTargets().FindIndex(tick, type);
+		int64_t existingTargetIndex = chart->GetTargets().FindIndex(tick, type);
 
-		if (existingTarget > -1)
+		if (existingTargetIndex > -1)
 		{
 			if (!GetIsPlayback())
-				chart->GetTargets().Remove(existingTarget);
+				chart->GetTargets().Remove(existingTargetIndex);
 		}
 		else
 		{
 			chart->GetTargets().Add(tick, type);
-
-			buttonAnimations[type].Tick = tick;
-			buttonAnimations[type].ElapsedTime = 0;
 		}
+
+		buttonAnimations[type].Tick = tick;
+		buttonAnimations[type].ElapsedTime = 0;
 	}
 
 	void TargetTimeline::SelectNextGridDivision(int direction)
