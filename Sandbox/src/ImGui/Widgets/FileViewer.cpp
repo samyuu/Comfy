@@ -82,21 +82,20 @@ namespace ImGui
 
 			ImGui::WindowContextMenu("ContextMenu##FileViewer", [this]()
 			{
-				if (contextMenuFilePathInfo != nullptr)
-				{
-					if (MenuItem("Open"))
-						OpenContextItemDefaultProgram();
-				}
+				bool fileItemSelected = contextMenuFilePathInfo != nullptr;
+
+				if (MenuItem("Open", nullptr, nullptr, fileItemSelected))
+					OpenContextItemDefaultProgram();
 
 				if (MenuItem("Open in Explorer..."))
 					OpenDirectoryInExplorer();
 
-				if (contextMenuFilePathInfo != nullptr)
-				{
-					Separator();
-					if (MenuItem("Properties"))
-						OpenContextItemProperties();
-				}
+				if (MenuItem("Refresh"))
+					SetDirectory(directory);
+
+				Separator();
+				if (MenuItem("Properties", nullptr, nullptr, fileItemSelected))
+					OpenContextItemProperties();
 			});
 		}
 		EndChild();
