@@ -2,13 +2,14 @@
 #include "Application.h"
 #include "TimeSpan.h"
 #include "FileSystem/FileHelper.h"
-#include "FileSystem/FileStream.h"
-#include "FileSystem/MemoryStream.h"
+#include "FileSystem/Stream/FileStream.h"
+#include "FileSystem/Stream/MemoryStream.h"
 #include "FileSystem/BinaryReader.h"
 #include "FileSystem/Format/AetSet.h"
 #include "FileSystem/Format/SprSet.h"
 #include "FileSystem/Format/TxpSet.h"
 #include "FileSystem/Format/Database.h"
+#include "System/LibraryLoader.h"
 #include "Graphics/Auth2D/AetMgr.h"
 // #include "Graphics/Utilities/TextureUtilities.h"
 // #include "Graphics/Utilities/s3tc.h"
@@ -554,7 +555,6 @@ void PortGamPv2D()
 		aetSet.Save(file);
 	}*/
 
-
 	for (SprSetEntry& aftEntry : aftSprDB.Entries)
 	{
 		if (!StartsWith(aftEntry.Name, "SPR_GAM_PV"))
@@ -608,9 +608,9 @@ void PortGamPv2D()
 
 void AetAdjustGamCmn()
 {
-	const char* ps4InputPath = "Y:/Games/SBZV/7.10.00/mdata/M912/rom/2d/gam_cmn_readonly/aet_gam_cmn.bin";
-	const char* aftInputPath = "Y:/Games/SBZV/7.10.00/mdata/M912/rom/2d/gam_cmn_readonly/aet_gam_cmn_AFT.bin";
-	const char* aftOutputPath = "Y:/Games/SBZV/7.10.00/mdata/M912/rom/2d/aet_gam_cmn.bin";
+	const char* ps4InputPath = "Y:/Games/SBZV/7.10.00/mdata/M912_/rom/2d/gam_cmn_readonly/aet_gam_cmn.bin";
+	const char* aftInputPath = "Y:/Games/SBZV/7.10.00/mdata/M912_/rom/2d/gam_cmn_readonly/aet_gam_cmn_AFT.bin";
+	const char* aftOutputPath = "Y:/Games/SBZV/7.10.00/mdata/M139/rom/2d/aet_gam_cmn_t.bin";
 
 	constexpr float factor = 1280.0f / 1920.0f;
 
@@ -643,12 +643,12 @@ void AetAdjustGamCmn()
 			}
 		}
 
-		AdjustAetThemeObjects(mainAet, "song_energy_base", "song_energy_base_f");
-		AdjustAetThemeObjects(mainAet, "song_energy_base_reach", "song_energy_base_reach_f");
-		AdjustAetThemeObjects(mainAet, "frame_up", "frame_up_f");
-		AdjustAetThemeObjects(mainAet, "frame_bottom", "frame_bottom_f");
-		AdjustAetThemeObjects(mainAet, "frame_up_danger", "frame_up_danger_f");
-		AdjustAetThemeObjects(mainAet, "frame_bottom_danger", "frame_bottom_danger_f");
+		AdjustAetThemeObjects(mainAet, "song_energy_base", "song_energy_base_t");
+		AdjustAetThemeObjects(mainAet, "song_energy_base_reach", "song_energy_base_reach_t");
+		AdjustAetThemeObjects(mainAet, "frame_up", "frame_up_t");
+		AdjustAetThemeObjects(mainAet, "frame_bottom", "frame_bottom_t");
+		AdjustAetThemeObjects(mainAet, "frame_up_danger", "frame_up_danger_t");
+		AdjustAetThemeObjects(mainAet, "frame_bottom_danger", "frame_bottom_danger_t");
 
 		//ScaleAnimationDataScale(mainAet.GetObj("frame_up")->AnimationData.get(), factor);
 		//ScaleAnimationDataPositions(mainAet.GetObj("frame_up")->AnimationData.get(), factor);
@@ -819,6 +819,32 @@ void AetF2ndToFAdjustmentTest()
 	}
 
 	aetSet.Save("dev_ram/test_files/aet_gam_cmn_output.bin");
+}
+
+void DynamicLibraryTest()
+{
+	const char* directory = "Y:/Libraries/x64/ffmpeg/ffmpeg-4.1.4-win64-shared/bin";
+	// System::LibraryLoader("avdevice-58.dll").Load(directory);
+	// System::LibraryLoader("avfilter-7.dll").Load(directory);
+	// System::LibraryLoader("avformat-58.dll").Load(directory);
+	// System::LibraryLoader("avutil-56.dll").Load(directory);
+	// System::LibraryLoader("postproc-55.dll").Load(directory);
+	// System::LibraryLoader("swresample-3.dll").Load(directory);
+
+	System::LibraryLoader loader("avformat-58.dll");
+	loader.Load(directory);
+	{
+		typedef void* avformat_alloc_context_t();
+		avformat_alloc_context_t* avformat_alloc_context_address = (avformat_alloc_context_t*)loader.GetFunctionAddress("avformat_alloc_context");
+
+		typedef void avformat_free_context_t(void*);
+		avformat_free_context_t* avformat_free_context_address = (avformat_free_context_t*)loader.GetFunctionAddress("avformat_free_context");
+
+		void* context = avformat_alloc_context_address();
+
+		avformat_free_context_address(context);
+	}
+	loader.UnLoad();
 }
 
 void MainTest()
