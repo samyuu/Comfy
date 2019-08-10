@@ -99,12 +99,26 @@ std::wstring Utf8ToUtf16(const std::string& string)
 {
 	std::wstring utf16String;
 	
-	int utf16Length = ::MultiByteToWideChar(CP_UTF8, 0, string.c_str(), static_cast<int>(string.length()), NULL, 0);
+	int utf16Length = ::MultiByteToWideChar(CP_UTF8, NULL, string.c_str(), -1, nullptr, 0) - 1;
 	if (utf16Length > 0)
 	{
 		utf16String.resize(utf16Length);
-		::MultiByteToWideChar(CP_UTF8, 0, string.c_str(), static_cast<int>(string.length()), &utf16String[0], utf16Length);
+		::MultiByteToWideChar(CP_UTF8, NULL, string.c_str(), static_cast<int>(string.length()), utf16String.data(), utf16Length);
 	}
 	
 	return utf16String;
+}
+
+std::string Utf16ToUtf8(const std::wstring& string)
+{
+	std::string utf8String;
+
+	int utf8Length = ::WideCharToMultiByte(CP_UTF8, NULL, string.c_str(), -1, nullptr, 0, nullptr, nullptr) - 1;
+	if (utf8Length > 0)
+	{
+		utf8String.resize(utf8Length);
+		::WideCharToMultiByte(CP_UTF8, NULL, string.c_str(), static_cast<int>(string.length()), utf8String.data(), utf8Length, nullptr, nullptr);
+	}
+
+	return utf8String;
 }
