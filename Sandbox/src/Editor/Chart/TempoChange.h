@@ -18,7 +18,7 @@ namespace Editor
 		constexpr Tempo(float bpm) : BeatsPerMinute(bpm) {};
 	};
 
-	constexpr Tempo DEFAULT_TEMPO = Tempo(120.0f);
+	constexpr Tempo DEFAULT_TEMPO = Tempo(160.0f);
 
 	// TimelineTick + Tempo value struct
 	// ---------------------------------
