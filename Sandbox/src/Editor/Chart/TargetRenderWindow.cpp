@@ -67,7 +67,7 @@ namespace Editor
 				aetRenderer->RenderAetObj(aetSet->front().GetObj("frame_up_f"), 0.0f);
 				aetRenderer->RenderAetObj(aetSet->front().GetObj("frame_bottom_f"), 0.0f);
 				aetRenderer->RenderAetObj(aetSet->front().GetObj("life_gauge"), 0.0f);
-				aetRenderer->RenderAetObj(aetSet->front().GetObj("song_energy_base_f"), 0.0f);
+				aetRenderer->RenderAetObj(aetSet->front().GetObj("song_energy_base_f"), 100.0f);
 				aetRenderer->RenderAetObj(aetSet->front().GetObj("song_icon_loop"), 0.0f);
 				aetRenderer->RenderAetObj(aetSet->front().GetObj("level_info_easy"), 0.0f);
 				aetRenderer->RenderAetObj(aetSet->front().GetObj("song_icon_loop"), 0.0f);

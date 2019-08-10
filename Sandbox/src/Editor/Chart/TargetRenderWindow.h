@@ -37,6 +37,7 @@ namespace Editor
 		std::unique_ptr<Auth2D::Renderer2D> renderer;
 		std::unique_ptr<Auth2D::AetRenderer> aetRenderer;
 
+		// TODO: ps4_gam
 		FileLoader aetSetLoader = { "dev_rom/2d/aet_gam_cmn.bin" };
 		FileLoader sprSetLoader = { "dev_rom/2d/spr_gam_cmn.bin" };
 

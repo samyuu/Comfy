@@ -140,7 +140,7 @@ namespace Editor
 		position.x = glm::round(position.x - (width * .5f));
 		position.y = glm::round(position.y - (height * .5f));
 
-		vec2 bottomRight = vec2(position.x + width,position.y + height);
+		vec2 bottomRight = vec2(position.x + width, position.y + height);
 		ImRect textureCoordinates = buttonIconsTextureCoordinates[GetButtonIconIndex(target)];
 
 		const ImU32 color = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF * transparency);
@@ -272,31 +272,61 @@ namespace Editor
 
 	void TargetTimeline::OnDrawTimelineHeaderWidgets()
 	{
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
+
+		ImGuiStyle& style = ImGui::GetStyle();
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, style.FramePadding.y));
+
 		strcpy_s(timeInputBuffer, GetCursorTime().FormatTime().c_str());
 
 		ImGui::PushItemWidth(140);
-		ImGui::InputTextWithHint("##TimeInput", "00:00.000", timeInputBuffer, sizeof(timeInputBuffer));
+		ImGui::InputTextWithHint("##TargetTimeline::TimeInput", "00:00.000", timeInputBuffer, sizeof(timeInputBuffer));
 		ImGui::PopItemWidth();
+
+		ImGui::SameLine();
+		ImGui::Button(ICON_FA_FAST_BACKWARD);
+		if (ImGui::IsItemActive()) { scrollDelta -= io->DeltaTime * 1000.0f; }
+
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+
+		// TODO: jump to last / next target
+		ImGui::SameLine();
+		ImGui::Button(ICON_FA_BACKWARD);
+		if (ImGui::IsItemActive()) { scrollDelta -= io->DeltaTime * 400.0f; }
+
+		ImGui::SameLine();
+
+		if (GetIsPlayback())
+		{
+			if (ImGui::Button(ICON_FA_PAUSE))
+				PausePlayback();
+		}
+		else
+		{
+			if (ImGui::Button(ICON_FA_PLAY))
+				ResumePlayback();
+		}
 
 		ImGui::SameLine();
 		if (ImGui::Button(ICON_FA_STOP) && GetIsPlayback())
 			StopPlayback();
 
 		ImGui::SameLine();
-		if (ImGui::Button(ICON_FA_PAUSE) && GetIsPlayback())
-			PausePlayback();
-
-		ImGui::SameLine();
-		if (ImGui::Button(ICON_FA_PLAY) && !GetIsPlayback())
-			ResumePlayback();
-
-		ImGui::SameLine();
-		ImGui::Button(ICON_FA_FAST_BACKWARD);
-		if (ImGui::IsItemActive()) { scrollDelta -= io->DeltaTime * 1000.0f; }
+		ImGui::Button(ICON_FA_FORWARD);
+		if (ImGui::IsItemActive()) { scrollDelta += io->DeltaTime * 400.0f; }
 
 		ImGui::SameLine();
 		ImGui::Button(ICON_FA_FAST_FORWARD);
 		if (ImGui::IsItemActive()) { scrollDelta += io->DeltaTime * 1000.0f; }
+
+		ImGui::PopStyleVar(2);
+
+		ImGui::SameLine();
+		ImGui::PushItemWidth(280);
+		ImGui::SliderFloat(ICON_FA_SEARCH, &zoomLevel, ZOOM_MIN, ZOOM_MAX);
+		ImGui::PopItemWidth();
+
+		ImGui::PopStyleVar(1);
 
 		ImGui::SameLine();
 		ImGui::PushItemWidth(80);
@@ -307,11 +337,6 @@ namespace Editor
 			if (ImGui::Combo("Grid Precision", &gridDivisionIndex, gridDivisionStrings.data(), static_cast<int>(gridDivisionStrings.size())))
 				gridDivision = gridDivisions[gridDivisionIndex];
 		}
-		ImGui::PopItemWidth();
-
-		ImGui::SameLine();
-		ImGui::PushItemWidth(280);
-		ImGui::SliderFloat(ICON_FA_SEARCH, &zoomLevel, ZOOM_MIN, ZOOM_MAX);
 		ImGui::PopItemWidth();
 	}
 
