@@ -149,12 +149,13 @@ namespace Editor
 
 	bool AetEditor::LoadAetSet(const std::string& filePath)
 	{
-		if (!FileExists(filePath))
+		const std::wstring widePath = Utf8ToUtf16(filePath);
+		if (!FileExists(widePath))
 			return false;
 
 		aetSet = std::make_unique<AetSet>();
 		aetSet->Name = GetFileName(filePath, false);
-		aetSet->Load(filePath);
+		aetSet->Load(widePath);
 
 		OnAetSetLoaded();
 		return true;
@@ -162,7 +163,7 @@ namespace Editor
 
 	bool AetEditor::LoadSprSet(const std::string& filePath)
 	{
-		if (!FileExists(filePath))
+		if (!FileExists(Utf8ToUtf16(filePath)))
 			return false;
 
 		if (sprSetFileLoader != nullptr)
