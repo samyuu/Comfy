@@ -36,7 +36,7 @@ namespace Editor
 		TimeSpan GetTimelineTime(float position) const override;
 
 		TimelineFrame GetCursorFrame() const;
-		TimelineFrame GetCursorMouseXFrame() const;
+		TimelineFrame GetTimelineFrameAtMouseX() const;
 		// -------------------
 
 		void OnDrawTimlineDivisors() override;

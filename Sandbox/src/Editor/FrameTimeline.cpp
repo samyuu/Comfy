@@ -16,10 +16,10 @@ namespace Editor
 	TimelineFrame FrameTimeline::FloorToGrid(TimelineFrame frame) const
 	{
 		// TODO: ...
-		return floor(frame.Frames());
+		return glm::floor(frame.Frames());
 
 		float gridFrame = GetGridFrame().Frames();
-		return floor(gridFrame);
+		return glm::floor(gridFrame);
 
 		//float gridFrame = GetGridFrame().Frames();
 		//return (floor((int)gridFrame / gridFrame) * gridFrame);
@@ -27,8 +27,11 @@ namespace Editor
 
 	TimelineFrame FrameTimeline::RoundToGrid(TimelineFrame frame) const
 	{
+		// not sure how to handle this
+		return glm::round(frame.Frames());
+
 		float gridFrame = GetGridFrame().Frames();
-		return (round((int)gridFrame / gridFrame) * gridFrame);
+		return (glm::round(static_cast<int>(gridFrame) / gridFrame) * gridFrame);
 	}
 
 	float FrameTimeline::GetTimelinePosition(TimeSpan time) const
@@ -68,9 +71,10 @@ namespace Editor
 		return GetTimelineFrame(GetCursorTime());
 	}
 
-	TimelineFrame FrameTimeline::GetCursorMouseXFrame() const
+	TimelineFrame FrameTimeline::GetTimelineFrameAtMouseX() const
 	{
-		return FloorToGrid(GetTimelineFrame(ScreenToTimelinePosition(ImGui::GetMousePos().x)));
+		float mouseX = glm::max(infoColumnRegion.Max.x, ImGui::GetMousePos().x);
+		return RoundToGrid(GetTimelineFrame(ScreenToTimelinePosition(mouseX)));
 	}
 
 	void FrameTimeline::OnDrawTimlineDivisors()
@@ -88,7 +92,7 @@ namespace Editor
 		{
 			bool isBar = (frame == startFrame) || (frame == endFrame) || (frame % framesPerBar == 0);
 
-			float screenX = GetTimelinePosition(TimelineFrame(static_cast<float>(frame))) - GetScrollX();
+			float screenX = glm::round(GetTimelinePosition(TimelineFrame(static_cast<float>(frame))) - GetScrollX());
 			TimelineVisibility visiblity = GetTimelineVisibility(screenX);
 
 			if (visiblity == TimelineVisibility::Left)
