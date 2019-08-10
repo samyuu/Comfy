@@ -21,6 +21,7 @@ namespace Editor
 	{
 		songInstance = std::make_shared<AudioInstance>(&dummySampleProvider, "ChartEditor::SongInstance");
 		songInstance->SetPlayPastEnd(true);
+		songInstance->SetVolume(0.75f);
 
 		AudioEngine* audioEngine = AudioEngine::GetInstance();
 		audioEngine->AddAudioInstance(songInstance);
