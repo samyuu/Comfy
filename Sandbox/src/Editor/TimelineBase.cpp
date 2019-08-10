@@ -56,6 +56,8 @@ namespace Editor
 		if (autoScrollCursor)
 			cursorScreenX = timelineContentRegion.GetWidth() - (timelineContentRegion.GetWidth() / autoScrollOffsetFraction);
 
+		cursorScreenX = glm::round(cursorScreenX);
+
 		ImVec2 start = timelineHeaderRegion.GetTL() + ImVec2(cursorScreenX, 0);
 		ImVec2 end = timelineContentRegion.GetBL() + ImVec2(cursorScreenX, 0);
 
@@ -124,8 +126,11 @@ namespace Editor
 		{
 			constexpr int timelineGrabButton = 2;
 
-			if (ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive() && ImGui::IsMouseDragging(timelineGrabButton, 0.0f))
+			if (ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive() && ImGui::IsMouseDown(timelineGrabButton))
+			{
 				SetScrollX(GetScrollX() - io->MouseDelta.x);
+				ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+			}
 		}
 
 		// Focus Control
@@ -288,11 +293,6 @@ namespace Editor
 		OnDrawTimlineRows();
 		OnDrawTimlineDivisors();
 		OnDrawTimlineBackground();
-
-		if (timelineHeaderRegion.Contains(ImGui::GetMousePos()) && ImGui::IsWindowHovered())
-		{
-			ImGui::SetTooltip("TIME: %s", GetTimelineTime(ScreenToTimelinePosition(ImGui::GetMousePos().x)).FormatTime().c_str());
-		}
 
 		UpdateTimelineBase();
 		UpdateAllInput();

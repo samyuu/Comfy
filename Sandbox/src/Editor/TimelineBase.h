@@ -98,7 +98,7 @@ namespace Editor
 			const float CURSOR_HEAD_HEIGHT = 8.0f;
 
 			float scrollDelta = 0.0f;
-			const float scrollSpeed = 2.0f, scrollSpeedFast = 4.5f;
+			float scrollSpeed = 2.0f, scrollSpeedFast = 4.5f;
 		};
 		// ----------------------
 
