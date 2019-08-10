@@ -1,6 +1,5 @@
 #pragma once
-#include "ImGui/imgui.h"
-#include "ImGui/imgui_internal.h"
+#include "ImGui/imgui_extensions.h"
 #include <string>
 #include <vector>
 #include <array>
@@ -43,8 +42,10 @@ namespace ImGui
 		};
 
 		const FilePathInfo* contextMenuFilePathInfo = nullptr;
-		
+		ExtendedImGuiTextFilter fileFilter;
+
 		bool resizeColumns = true;
+		bool appendDirectorySlash = false;
 		bool useFileTypeIcons = true;
 		char currentDirectoryBuffer[_MAX_PATH];
 

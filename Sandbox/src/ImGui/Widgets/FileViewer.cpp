@@ -1,5 +1,4 @@
 #include "FileViewer.h"
-#include "ImGui/imgui_extensions.h"
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
 #include <filesystem>
@@ -48,17 +47,23 @@ namespace ImGui
 			PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 			{
 				bool backClicked = parentFocused && IsMouseReleased(3);
-				if (ArrowButton("PreviousDirectoryButton##FileViewer", ImGuiDir_Up) || backClicked)
+				if (ArrowButton("PreviousDirectoryButton::FileViewer", ImGuiDir_Up) || backClicked)
 					SetParentDirectory(directory);
 
 				SameLine();
 
-				PushItemWidth(windowSize.x);
-				if (InputText("##DirectoryInputText##FileViewer", currentDirectoryBuffer, sizeof(currentDirectoryBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+				constexpr float searchBarWidth = .25f;
+
+				PushItemWidth(windowSize.x * (1.0f - searchBarWidth));
+				if (InputText("##DirectoryInputText::FileViewer", currentDirectoryBuffer, sizeof(currentDirectoryBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
 					SetDirectory(currentDirectoryBuffer);
 				PopItemWidth();
+
+				PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1, 0));
+				SameLine();
+				fileFilter.Draw("##FileFilter::FileViewer", ICON_FA_SEARCH, windowSize.x * searchBarWidth);
 			}
-			PopStyleVar(1);
+			PopStyleVar(2);
 		}
 		EndChild();
 		ImGui::Separator();
@@ -108,7 +113,7 @@ namespace ImGui
 
 	void FileViewer::SetDirectory(std::string directory)
 	{
-		std::replace(directory.begin(), directory.end(), '\\', '/');
+		FileSystem::SanitizePath(directory);
 
 		bool endingSlash = EndsWith(directory, '/');
 		auto adjustedDirectory = endingSlash ? directory.substr(0, directory.length() - 1) : directory;
@@ -149,6 +154,9 @@ namespace ImGui
 			char displayNameBuffer[_MAX_PATH];
 			for (auto& info : directoryInfo)
 			{
+				if (!fileFilter.PassFilter(info.ChildName.c_str()))
+					continue;
+
 				sprintf_s(displayNameBuffer, GetFileInfoFormatString(info), info.ChildName.c_str());
 				if (Selectable(displayNameBuffer, info.IsDirectory, ImGuiSelectableFlags_SpanAllColumns))
 					clickedInfo = &info;
@@ -180,9 +188,11 @@ namespace ImGui
 
 	void FileViewer::UpdateDirectoryInformation()
 	{
-		std::wstring widePath = FileSystem::Utf8ToWideString(directory);
+		std::wstring widePath = Utf8ToUtf16(directory);
 		if (!FileSystem::DirectoryExists(widePath))
 			return;
+
+		fileFilter.Clear();
 
 		std::vector<FilePathInfo> newDirectoryInfo;
 		newDirectoryInfo.reserve(8);
@@ -195,16 +205,19 @@ namespace ImGui
 			newDirectoryInfo.emplace_back();
 			FilePathInfo *info = &newDirectoryInfo.back();
 
-			auto path = file.path();
+			FileSystemPath path = file.path();
 			info->FullPath = path.u8string();
 			info->ChildName = path.filename().u8string();
 			info->IsDirectory = file.is_directory();
 			info->FileSize = file.file_size();
+			
+			FileSystem::SanitizePath(info->FullPath);
 			FormatReadableFileSize(info->ReadableFileSize, info->FileSize);
 
 			if (info->IsDirectory)
 			{
-				info->ChildName += "/";
+				if (appendDirectorySlash)
+					info->ChildName += "/";
 			}
 			else
 			{
@@ -339,7 +352,7 @@ namespace ImGui
 		const char* units = "B  KB MB GB TB PB EB ZB YB";
 		const char* unit = &units[unitIndex * 3];
 
-		value.reserve(32);
+		value.reserve(16);
 		snprintf(const_cast<char*>(value.c_str()), value.capacity(), "%llu %c%c", fileSize, *(unit + 0), *(unit + 1));
 	}
 }
