@@ -1,7 +1,8 @@
 #include "FileLoader.h"
 #include "FileHelper.h"
-#include "Stream/MemoryStream.h"
 #include "BinaryReader.h"
+#include "Stream/MemoryStream.h"
+#include "Misc/StringHelper.h"
 #include "Logger.h"
 #include <assert.h>
 
@@ -64,7 +65,7 @@ namespace FileSystem
 		loaderThread = std::thread([this]()
 		{
 			threadRunning = true;
-			if (ReadAllBytes(filePath, &fileContent))
+			if (ReadAllBytes(Utf8ToUtf16(filePath), &fileContent))
 			{
 				SetIsLoaded(true);
 			}
@@ -127,7 +128,7 @@ namespace FileSystem
 
 	void FileLoader::CheckFileLocation()
 	{
-		SetFileFound(FileExists(filePath));
+		SetFileFound(FileExists(Utf8ToUtf16(filePath)));
 
 		if (!GetFileFound())
 		{
