@@ -4,14 +4,18 @@
 
 namespace FileSystem
 {
-	bool CreateDirectory(const std::string& filePath);
+	const std::vector<std::string> AllFilesFilter = { "All Files (*.*)", "*.*" };
+
 	bool CreateDirectory(const std::wstring& filePath);
 
-	bool IsFile(const std::string& filePath);
-	bool IsFile(const std::wstring& filePath);
+	bool IsFilePath(const std::string& filePath);
+	bool IsFilePath(const std::wstring& filePath);
 
-	bool IsDirectory(const std::string& directory);
-	bool IsDirectory(const std::wstring& directory);
+	bool IsDirectoryPath(const std::string& directory);
+	bool IsDirectoryPath(const std::wstring& directory);
+
+	bool IsPathRelative(const std::string& path);
+	bool IsPathRelative(const std::wstring& path);
 
 	bool FileExists(const std::string& filePath);
 	bool FileExists(const std::wstring& filePath);
@@ -19,19 +23,21 @@ namespace FileSystem
 	bool DirectoryExists(const std::string& directory);
 	bool DirectoryExists(const std::wstring& directory);
 
-	void OpenWithDefaultProgram(const std::string& filePath);
-	void OpenWithDefaultProgram(const std::wstring& filePath);
+	bool CreateOpenFileDialog(std::wstring& outFilePath, const char* title = nullptr, const char* directory = nullptr, const std::vector<std::string>& filter = AllFilesFilter);
+	bool CreateSaveFileDialog(std::wstring& outFilePath, const char* title = nullptr, const char* directory = nullptr, const std::vector<std::string>& filter = AllFilesFilter);
 
-	void OpenInExplorer(const std::string& filePath);
+	void OpenWithDefaultProgram(const std::wstring& filePath);
 	void OpenInExplorer(const std::wstring& filePath);
-	
-	void OpenExplorerProperties(const std::string& filePath);
 	void OpenExplorerProperties(const std::wstring& filePath);
+
+	void SanitizePath(std::string& path);
+	void SanitizePath(std::wstring& path);
 
 	std::string GetWorkingDirectory();
 	std::wstring GetWorkingDirectoryW();
 	
-	std::wstring Utf8ToWideString(const std::string& filePath);
+	void SetWorkingDirectory(const std::string& value);
+	void SetWorkingDirectoryW(const std::wstring& value);
 
 	std::string Combine(const std::string& pathA, const std::string& pathB);
 	std::wstring Combine(const std::wstring& pathA, const std::wstring& pathB);

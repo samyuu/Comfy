@@ -1,105 +1,176 @@
 #include "FileHelper.h"
+#include "Misc/StringHelper.h"
 #include <filesystem>
 #include <shlwapi.h>
 #include <assert.h>
 #include <fstream>
+#include <regex>
 
 namespace FileSystem
 {
 	using FileSystemPath = std::filesystem::path;
 	using DirectoryIterator = std::filesystem::directory_iterator;
 
-	bool CreateDirectory(const std::string& filePath)
-	{
-		return ::CreateDirectoryA(filePath.c_str(), NULL);
-	}
-
 	bool CreateDirectory(const std::wstring& filePath)
 	{
 		return ::CreateDirectoryW(filePath.c_str(), NULL);
 	}
 
-	bool IsFile(const std::string& filePath)
+	bool IsFilePath(const std::string& filePath)
 	{
-		return GetFileExtension(filePath) != "";
+		for (int i = static_cast<int>(filePath.size()) - 1; i >= 0; i--)
+		{
+			if (filePath[i] == '.')
+				return true;
+		}
+		return false;
 	}
 
-	bool IsFile(const std::wstring& filePath)
+	bool IsFilePath(const std::wstring& filePath)
 	{
-		return GetFileExtension(filePath) != L"";
+		for (int i = static_cast<int>(filePath.size()) - 1; i >= 0; i--)
+		{
+			if (filePath[i] == L'.')
+				return true;
+		}
+		return false;
 	}
 
-	bool IsDirectory(const std::string& directory)
+	bool IsDirectoryPath(const std::string& directory)
 	{
-		return !IsFile(directory);
+		return ::PathIsDirectoryA(directory.c_str());
 	}
 
-	bool IsDirectory(const std::wstring& directory)
+	bool IsDirectoryPath(const std::wstring& directory)
 	{
-		return !IsFile(directory);
+		return ::PathIsDirectoryW(directory.c_str());
+	}
+
+	bool IsPathRelative(const std::string& path)
+	{
+		return ::PathIsRelativeA(path.c_str());
+	}
+
+	bool IsPathRelative(const std::wstring& path)
+	{
+		return ::PathIsRelativeW(path.c_str());
 	}
 
 	bool FileExists(const std::string& filePath)
 	{
-		return PathFileExistsA(filePath.c_str()) && IsFile(filePath);
+		return ::PathFileExistsA(filePath.c_str()) && IsFilePath(filePath);
 	}
 
 	bool FileExists(const std::wstring& filePath)
 	{
-		return PathFileExistsW(filePath.c_str()) && IsFile(filePath);
+		return ::PathFileExistsW(filePath.c_str()) && IsFilePath(filePath);
 	}
 
 	bool DirectoryExists(const std::string& directory)
 	{
-		return PathFileExistsA(directory.c_str()) && IsDirectory(directory);
+		return ::PathFileExistsA(directory.c_str()) && IsDirectoryPath(directory);
 	}
 
 	bool DirectoryExists(const std::wstring& directory)
 	{
-		return PathFileExistsW(directory.c_str()) && IsDirectory(directory);
+		return ::PathFileExistsW(directory.c_str()) && IsDirectoryPath(directory);
 	}
 
-	void OpenWithDefaultProgram(const std::string& filePath)
+	static std::wstring InternalFilterVectorToString(const std::vector<std::string>& filterVector)
 	{
-		ShellExecuteA(NULL, "open", filePath.c_str(), NULL, NULL, SW_SHOW);
+		assert(filterVector.size() % 2 == 0);
+
+		static const std::regex whitespace("  *");
+
+		std::wstring filterString;
+		for (size_t i = 0; i + 1 < filterVector.size(); i += 2)
+		{
+			filterString += Utf8ToUtf16(filterVector[i]);
+			filterString += L'\0';
+			filterString += Utf8ToUtf16(std::regex_replace(filterVector[i + 1], whitespace, ";"));
+			filterString += L'\0';
+		}
+		filterString += L'\0';
+
+		return filterString;
+	}
+
+	bool CreateOpenFileDialog(std::wstring& outFilePath, const char* title, const char* directory, const std::vector<std::string>& filter)
+	{
+		std::wstring currentDirectory = GetWorkingDirectoryW();
+		wchar_t filePathBuffer[MAX_PATH]; filePathBuffer[0] = '\0';
+
+		assert(!filter.empty());
+		std::wstring filterString = InternalFilterVectorToString(filter);
+		std::wstring directoryString = (directory != nullptr) ? Utf8ToUtf16(directory) : L"";
+		std::wstring titleString = (title != nullptr) ? Utf8ToUtf16(title) : L"";
+
+		OPENFILENAMEW openFileName = {};
+		openFileName.lStructSize = sizeof(OPENFILENAMEW);
+		openFileName.hwndOwner = NULL;
+		openFileName.lpstrFilter = filterString.c_str();
+		openFileName.lpstrFile = filePathBuffer;
+		openFileName.nMaxFile = MAX_PATH;
+		openFileName.lpstrInitialDir = (directory != nullptr) ? directoryString.c_str() : nullptr;
+		openFileName.lpstrTitle = (title != nullptr) ? titleString.c_str() : nullptr;
+		openFileName.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+		openFileName.lpstrDefExt = L"";
+
+		bool fileSelected = ::GetOpenFileNameW(&openFileName);
+		if (fileSelected)
+			outFilePath = std::wstring(filePathBuffer);
+
+		SetWorkingDirectoryW(currentDirectory);
+		return fileSelected;
+	}
+
+	bool CreateSaveFileDialog(std::wstring& outFilePath, const char* title, const char* directory, const std::vector<std::string>& filter)
+	{
+		std::wstring currentDirectory = GetWorkingDirectoryW();
+		wchar_t filePathBuffer[MAX_PATH] = {};
+
+		assert(!filter.empty());
+		std::wstring filterString = InternalFilterVectorToString(filter);
+		std::wstring directoryString = (directory != nullptr) ? Utf8ToUtf16(directory) : L"";
+		std::wstring titleString = (title != nullptr) ? Utf8ToUtf16(title) : L"";
+
+		OPENFILENAMEW openFileName = {};
+		openFileName.lStructSize = sizeof(OPENFILENAMEW);
+		openFileName.hwndOwner = NULL;
+		openFileName.lpstrFilter = filterString.c_str();
+		openFileName.lpstrFile = filePathBuffer;
+		openFileName.nMaxFile = MAX_PATH;
+		openFileName.lpstrInitialDir = (directory != nullptr) ? directoryString.c_str() : nullptr;
+		openFileName.lpstrTitle = (title != nullptr) ? titleString.c_str() : nullptr;
+		openFileName.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY;
+
+		bool fileSelected = ::GetSaveFileNameW(&openFileName);
+		if (fileSelected)
+			outFilePath = std::wstring(filePathBuffer);
+
+		SetWorkingDirectoryW(currentDirectory);
+		return fileSelected;
 	}
 
 	void OpenWithDefaultProgram(const std::wstring& filePath)
 	{
-		ShellExecuteW(NULL, L"open", filePath.c_str(), NULL, NULL, SW_SHOW);
-	}
-
-	void OpenInExplorer(const std::string& filePath)
-	{
-		if (PathIsRelativeA(filePath.c_str()))
-		{
-			std::string currentDirectory = GetWorkingDirectory();
-			currentDirectory.reserve(currentDirectory.size() + filePath.size() + 2);
-			currentDirectory += "/";
-			currentDirectory += filePath;
-
-			ShellExecuteA(NULL, "open", currentDirectory.c_str(), NULL, NULL, SW_SHOWDEFAULT);
-		}
-		else
-		{
-			ShellExecuteA(NULL, "open", filePath.c_str(), NULL, NULL, SW_SHOWDEFAULT);
-		}
+		::ShellExecuteW(NULL, L"open", filePath.c_str(), NULL, NULL, SW_SHOW);
 	}
 
 	void OpenInExplorer(const std::wstring& filePath)
 	{
-		if (PathIsRelativeW(filePath.c_str()))
+		if (IsPathRelative(filePath))
 		{
 			std::wstring currentDirectory = GetWorkingDirectoryW();
 			currentDirectory.reserve(currentDirectory.size() + filePath.size() + 2);
 			currentDirectory += L"/";
 			currentDirectory += filePath;
 
-			ShellExecuteW(NULL, L"open", currentDirectory.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+			::ShellExecuteW(NULL, L"open", currentDirectory.c_str(), NULL, NULL, SW_SHOWDEFAULT);
 		}
 		else
 		{
-			ShellExecuteW(NULL, L"open", filePath.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+			::ShellExecuteW(NULL, L"open", filePath.c_str(), NULL, NULL, SW_SHOWDEFAULT);
 		}
 	}
 
@@ -113,7 +184,7 @@ namespace FileSystem
 		info.fMask = SEE_MASK_INVOKEIDLIST;
 		info.lpVerb = "properties";
 
-		ShellExecuteExA(&info);
+		::ShellExecuteExA(&info);
 	}
 
 	void OpenExplorerProperties(const std::wstring& filePath)
@@ -126,7 +197,17 @@ namespace FileSystem
 		info.fMask = SEE_MASK_INVOKEIDLIST;
 		info.lpVerb = L"properties";
 
-		ShellExecuteExW(&info);
+		::ShellExecuteExW(&info);
+	}
+
+	void SanitizePath(std::string& path)
+	{
+		std::replace(path.begin(), path.end(), '\\', '/');
+	}
+
+	void SanitizePath(std::wstring& path)
+	{
+		std::replace(path.begin(), path.end(), L'\\', L'/');
 	}
 
 	std::string GetWorkingDirectory()
@@ -140,17 +221,19 @@ namespace FileSystem
 	std::wstring GetWorkingDirectoryW()
 	{
 		wchar_t buffer[MAX_PATH];
-		GetCurrentDirectoryW(sizeof(buffer), buffer);
+		::GetCurrentDirectoryW(sizeof(buffer), buffer);
 
 		return std::wstring(buffer);
 	}
 
-	std::wstring Utf8ToWideString(const std::string& filePath)
+	void SetWorkingDirectory(const std::string& value)
 	{
-		wchar_t widePath[MAX_PATH];
-		int wideBytes = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, filePath.c_str(), -1, widePath, sizeof(widePath));
+		::SetCurrentDirectoryA(value.c_str());
+	}
 
-		return widePath;
+	void SetWorkingDirectoryW(const std::wstring& value)
+	{
+		::SetCurrentDirectoryW(value.c_str());
 	}
 
 	std::string Combine(const std::string& pathA, const std::string & pathB)
@@ -221,25 +304,25 @@ namespace FileSystem
 
 	static HANDLE CreateFileHandleInternal(const std::string& filePath, bool read)
 	{
-		return CreateFileA(filePath.c_str(), read ? GENERIC_READ : GENERIC_WRITE, NULL, NULL, read ? OPEN_EXISTING : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		return ::CreateFileA(filePath.c_str(), read ? GENERIC_READ : GENERIC_WRITE, NULL, NULL, read ? OPEN_EXISTING : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	}
 
 	static HANDLE CreateFileHandleInternal(const std::wstring& filePath, bool read)
 	{
-		return CreateFileW(filePath.c_str(), read ? GENERIC_READ : GENERIC_WRITE, NULL, NULL, read ? OPEN_EXISTING : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		return ::CreateFileW(filePath.c_str(), read ? GENERIC_READ : GENERIC_WRITE, NULL, NULL, read ? OPEN_EXISTING : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	}
 
 	static bool ReadAllBytesInternal(HANDLE fileHandle, std::vector<uint8_t>* buffer)
 	{
 		LARGE_INTEGER fileSizeLarge = {};
-		GetFileSizeEx(fileHandle, &fileSizeLarge);
+		::GetFileSizeEx(fileHandle, &fileSizeLarge);
 
 		DWORD fileSize = static_cast<DWORD>(fileSizeLarge.QuadPart);
 		buffer->resize(fileSize);
 
 		DWORD bytesRead = {};
-		ReadFile(fileHandle, buffer->data(), fileSize, &bytesRead, nullptr);
-		int error = GetLastError();
+		::ReadFile(fileHandle, buffer->data(), fileSize, &bytesRead, nullptr);
+		int error = ::GetLastError();
 
 		return !FAILED(error) && (bytesRead == fileSize);
 	}
@@ -249,8 +332,8 @@ namespace FileSystem
 		DWORD bytesToWrite = static_cast<DWORD>(buffer.size());
 		DWORD bytesWritten = {};
 
-		WriteFile(fileHandle, buffer.data(), bytesToWrite, &bytesWritten, nullptr);
-		int error = GetLastError();
+		::WriteFile(fileHandle, buffer.data(), bytesToWrite, &bytesWritten, nullptr);
+		int error = ::GetLastError();
 
 		return !FAILED(error) && (bytesWritten == bytesToWrite);
 	}
@@ -258,10 +341,10 @@ namespace FileSystem
 	bool ReadAllBytes(const std::string& filePath, std::vector<uint8_t>* buffer)
 	{
 		HANDLE fileHandle = CreateFileHandleInternal(filePath.c_str(), true);
-		int error = GetLastError();
+		int error = ::GetLastError();
 
 		bool result = ReadAllBytesInternal(fileHandle, buffer);
-		CloseHandle(fileHandle);
+		::CloseHandle(fileHandle);
 
 		return result;
 	}
@@ -269,10 +352,10 @@ namespace FileSystem
 	bool ReadAllBytes(const std::wstring& filePath, std::vector<uint8_t>* buffer)
 	{
 		HANDLE fileHandle = CreateFileHandleInternal(filePath.c_str(), true);
-		int error = GetLastError();
+		int error = ::GetLastError();
 
 		bool result = ReadAllBytesInternal(fileHandle, buffer);
-		CloseHandle(fileHandle);
+		::CloseHandle(fileHandle);
 
 		return result;
 	}
@@ -280,10 +363,10 @@ namespace FileSystem
 	bool WriteAllBytes(const std::string& filePath, const std::vector<uint8_t>& buffer)
 	{
 		HANDLE fileHandle = CreateFileHandleInternal(filePath.c_str(), false);
-		int error = GetLastError();
+		int error = ::GetLastError();
 
 		bool result = WriteAllBytesInternal(fileHandle, buffer);
-		CloseHandle(fileHandle);
+		::CloseHandle(fileHandle);
 
 		return result;
 	}
@@ -291,10 +374,10 @@ namespace FileSystem
 	bool WriteAllBytes(const std::wstring& filePath, const std::vector<uint8_t>& buffer)
 	{
 		HANDLE fileHandle = CreateFileHandleInternal(filePath.c_str(), false);
-		int error = GetLastError();
+		int error = ::GetLastError();
 
 		bool result = WriteAllBytesInternal(fileHandle, buffer);
-		CloseHandle(fileHandle);
+		::CloseHandle(fileHandle);
 
 		return result;
 	}
