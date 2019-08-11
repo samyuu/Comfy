@@ -67,18 +67,18 @@ namespace Editor
 
 		if (ImGui::Begin(ICON_AETLAYERS "  Aet Layers##AetEditor", nullptr, windowFlags))
 		{
-			ImGui::BeginChild("AetLayerViewChild##AetEditor", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+			ImGui::BeginChild("AetLayerViewChild##AetEditor", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
 			layerView->DrawGui();
 			ImGui::EndChild();
 		}
 		ImGui::End();
 
 		RenderWindowBase::PushWindowPadding();
-		if (ImGui::Begin(ICON_RENDERWINDOW "  Aet Render Window##AetEditor", nullptr, windowFlags))
+		if (ImGui::Begin(ICON_RENDERWINDOW "  Aet Window##AetEditor", nullptr, windowFlags))
 		{
 			renderWindow->SetActive(treeView->GetActiveAet(), treeView->GetSelected());
 			renderWindow->SetIsPlayback(timeline->GetIsPlayback());
-			renderWindow->SetCurrentFrame(timeline->GetFrame().Frames());
+			renderWindow->SetCurrentFrame(timeline->GetCursorFrame().Frames());
 			renderWindow->DrawGui();
 		}
 		ImGui::End();

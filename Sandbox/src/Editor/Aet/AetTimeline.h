@@ -1,12 +1,29 @@
 #pragma once
 #include "Selection.h"
-#include "Editor/FrameTimeline.h"
+#include "KeyFrameRenderer.h"
+#include "AetTimelineController.h"
+#include "Editor/Timeline/FrameTimeline.h"
+#include "Graphics/Auth2D/AetMgr.h"
 #include "FileSystem/Format/AetSet.h"
 
 namespace Editor
 {
 	using namespace FileSystem;
+	using namespace Auth2D;
 	class AetEditor;
+
+	struct KeyFrameIndex
+	{
+		union
+		{
+			struct PropertyKeyFrameIndexPair
+			{
+				PropertyType_Enum Property;
+				int32_t KeyFrame;
+			} Pair;
+			int64_t PackedValue;
+		};
+	};
 
 	class AetTimeline : public FrameTimeline
 	{
@@ -17,21 +34,31 @@ namespace Editor
 		void SetActive(Aet* parent, AetItemTypePtr value);
 		bool GetIsPlayback() const override;
 
+	public:
+		// screen position of row index
+		float GetRowScreenY(int index) const;
+
+		// row index at input height
+		int GetRowIndexFromScreenY(float screenY) const;
+
+		inline float GetRowHeight() const { return rowHeight; };
+
 	private:
 		Aet* aet = nullptr;
 		AetItemTypePtr active;
 
-		const float keyFrameSize = 6.0f;
 		float rowHeight;
 		bool isPlayback = false;
 		bool loopPlayback = true;
 
-		float GetTimelineSize() const override;
+		char timeInputBuffer[32];
 
-		enum class KeyFrameType { Single, DoubleX, DoubleY };
-		void DrawTimelineContentKeyFrameDoubleX(const vec2& position) const;
-		void DrawTimelineContentKeyFrameDoubleY(const vec2& position) const;
-		void DrawTimelineContentKeyFrame(const vec2& position, KeyFrameType type) const;
+	private:
+		KeyFrameRenderer keyFrameRenderer;
+		AetTimelineController timelineController;
+
+	private:
+		float GetTimelineSize() const override;
 
 		void DrawTimelineContentNone();
 		void DrawTimelineContentKeyFrames();
@@ -50,20 +77,20 @@ namespace Editor
 		void StopPlayback() override;
 
 		void UpdateInputCursorClick();
-
+		
 	private:
-		enum class PropertyType
-		{
-			Origin, Position, Rotation, Scale, Opacity, Count
-		};
+		std::vector<KeyFrameIndex> selectedKeyFrames;
 
-		std::array<const char*, static_cast<size_t>(PropertyType::Count)> timelinePropertyNames =
+		std::array<const char*, static_cast<size_t>(PropertyType_Count)> timelinePropertyNames =
 		{
-			"Origin",
-			"Position",
-			"Rotation",
-			"Scale",
-			"Opacity",
+			"Transform  :  Origin.X",
+			"Transform  :  Origin.Y",
+			"Transform  :  Position.X",
+			"Transform  :  Position.Y",
+			"Transform  :  Rotation",
+			"Transform  :  Scale.X",
+			"Transform  :  Scale.Y",
+			"Color               Opacity",
 		};
 	};
 }

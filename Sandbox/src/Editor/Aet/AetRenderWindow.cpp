@@ -8,6 +8,11 @@
 
 namespace Editor
 {
+	class AetObjMousePicker
+	{
+		// TODO:
+	};
+
 	AetRenderWindow::AetRenderWindow(SpriteGetterFunction* spriteGetter)
 	{
 		assert(spriteGetter != nullptr);

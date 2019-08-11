@@ -121,7 +121,7 @@ namespace Editor
 
 		if (aetNodeOpen)
 		{
-			ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, ImGui::GetFontSize() * 1.5f);
+			//ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, ImGui::GetFontSize() * 1.5f);
 
 			if (ImGui::WideTreeNodeEx(ICON_AETLAYERS "  Layers", SelectableTreeNodeFlags | ImGuiTreeNodeFlags_DefaultOpen))
 			{
@@ -146,7 +146,7 @@ namespace Editor
 				ImGui::TreePop();
 			}
 
-			ImGui::PopStyleVar();
+			//ImGui::PopStyleVar();
 			ImGui::TreePop();
 		}
 	}
@@ -226,7 +226,7 @@ namespace Editor
 			bool drawActiveButton = true;
 			if (drawActiveButton)
 			{
-				const ImVec2 smallButtonSize = ImVec2(26, 0);
+				const ImVec2 smallButtonSize = ImVec2(26.0f, 0.0f);
 				if (aetObj.Type == AetObjType::Aif)
 				{
 					if (ImGui::SmallButton(aetObj.Flags.Audible ? ICON_AUDIBLE : ICON_INAUDIBLE, smallButtonSize))

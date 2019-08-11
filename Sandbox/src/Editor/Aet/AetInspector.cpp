@@ -52,43 +52,35 @@ namespace Editor
 
 	void AetInspector::DrawInspectorAetSet(AetSet* aetSet)
 	{
-		ImGui::Text("AetSet:");
+		if (ImGui::WideTreeNodeEx(ICON_NAMES "  Aets:", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			if (ImGui::WideTreeNodeEx(ICON_NAMES "  Aets:", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				for (auto& aet : *aetSet)
-					ImGui::BulletText(aet.Name.c_str());
+			for (auto& aet : *aetSet)
+				ImGui::BulletText(aet.Name.c_str());
 
-				ImGui::TreePop();
-			}
+			ImGui::TreePop();
 		}
 	}
 
 	void AetInspector::DrawInspectorAet(Aet* aet)
 	{
-		ImGui::Text("Aet:");
-		{
-			strcpy_s(aetNameBuffer, aet->Name.c_str());
+		strcpy_s(aetNameBuffer, aet->Name.c_str());
 
-			if (ImGui::InputText("Name##Aet", aetNameBuffer, sizeof(aetNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
-				aet->Name = std::string(aetNameBuffer);
+		if (ImGui::InputText("Name##Aet", aetNameBuffer, sizeof(aetNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+			aet->Name = std::string(aetNameBuffer);
 
-			ImGui::InputFloat("Start Frame", &aet->FrameStart, 1.0f, 10.0f);
-			ImGui::InputFloat("Duration", &aet->FrameDuration, 1.0f, 10.0f);
-			if (ImGui::InputFloat("Frame Rate", &aet->FrameRate, 1.0f, 10.0f))
-				aet->FrameRate = glm::clamp(aet->FrameRate, 1.0f, 1000.0f);
-			ImGui::InputInt2("Resolution", &aet->Width);
+		ImGui::InputFloat("Start Frame", &aet->FrameStart, 1.0f, 10.0f);
+		ImGui::InputFloat("Duration", &aet->FrameDuration, 1.0f, 10.0f);
+		if (ImGui::InputFloat("Frame Rate", &aet->FrameRate, 1.0f, 10.0f))
+			aet->FrameRate = glm::clamp(aet->FrameRate, 1.0f, 1000.0f);
+		ImGui::InputInt2("Resolution", &aet->Width);
 
-			ImVec4 color = ImGui::ColorConvertU32ToFloat4(aet->BackgroundColor);
-			if (ImGui::ColorEdit3("Background##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
-				aet->BackgroundColor = ImGui::ColorConvertFloat4ToU32(color);
-		}
+		ImVec4 color = ImGui::ColorConvertU32ToFloat4(aet->BackgroundColor);
+		if (ImGui::ColorEdit3("Background##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
+			aet->BackgroundColor = ImGui::ColorConvertFloat4ToU32(color);
 	}
 
 	void AetInspector::DrawInspectorAetLayer(Aet* aet, AetLayer* aetLayer)
 	{
-		ImGui::Text("AetLayer:");
-
 		if (ImGui::WideTreeNodeEx(ICON_NAMES "  Given Names:", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			for (auto& name : aetLayer->GetGivenNames())
@@ -145,8 +137,6 @@ namespace Editor
 
 	void AetInspector::DrawInspectorAetObj(Aet* aet, AetObj* aetObj)
 	{
-		ImGui::Text("AetObj:");
-
 		{
 			strcpy_s(aetObjNameBuffer, aetObj->GetName().c_str());
 
@@ -425,8 +415,6 @@ namespace Editor
 
 	void AetInspector::DrawInspectorAetRegion(Aet* aet, AetRegion* aetRegion)
 	{
-		ImGui::Text("AetRegion:");
-
 		ImGui::InputScalarN("Dimensions", ImGuiDataType_S16, &aetRegion->Width, 2);
 
 		ImVec4 color = ImGui::ColorConvertU32ToFloat4(aetRegion->Color);
