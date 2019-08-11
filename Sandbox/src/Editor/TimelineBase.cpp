@@ -121,6 +121,9 @@ namespace Editor
 
 	void TimelineBase::UpdateInputTimelineScroll()
 	{
+		if (!ImGui::IsWindowFocused())
+			return;
+
 		// Grab Control
 		// ------------
 		{
@@ -152,7 +155,7 @@ namespace Editor
 
 					float amount = .5f;
 					zoomLevel = zoomLevel + amount * io->MouseWheel;
-					
+
 					if (zoomLevel <= 0)
 						zoomLevel = amount;
 
@@ -169,6 +172,9 @@ namespace Editor
 
 	void TimelineBase::UpdateInputPlaybackToggle()
 	{
+		if (!ImGui::IsWindowFocused())
+			return;
+
 		if (ImGui::IsKeyPressed(KeyCode_Space))
 		{
 			if (GetIsPlayback())
@@ -216,8 +222,7 @@ namespace Editor
 
 	void TimelineBase::UpdateAllInput()
 	{
-		if (!(updateInput = ImGui::IsWindowFocused()))
-			return;
+		updateInput = ImGui::IsWindowFocused();
 
 		UpdateInputTimelineScroll();
 		UpdateInputPlaybackToggle();
