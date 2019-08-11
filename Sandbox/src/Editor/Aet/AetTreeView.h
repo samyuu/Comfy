@@ -2,6 +2,7 @@
 #include "Selection.h"
 #include "AetDialogs.h"
 #include "FileSystem/Format/AetSet.h"
+#include "ImGui/imgui_extensions.h"
 #include <vector>
 
 namespace Editor

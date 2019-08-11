@@ -1,7 +1,8 @@
 #include "AetTreeView.h"
 #include "AetIcons.h"
-#include "ImGui/imgui_extensions.h"
 #include "Input/KeyCode.h"
+#include "FileSystem/FileHelper.h"
+#include "Misc/StringHelper.h"
 #include "Logger.h"
 
 namespace Editor
@@ -38,7 +39,26 @@ namespace Editor
 
 		DrawTreeViewBackground();
 
-		if (ImGui::WideTreeNodeEx((void*)aetSet, HeaderTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str()))
+		bool aetSetNodeOpen = ImGui::WideTreeNodeEx((void*)aetSet, HeaderTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str());
+		ImGui::ItemContextMenu("AetSettAetContextMenu##AetTreeView", [this, aetSet]() 
+		{
+			ImGui::Text("AetSet: %s", aetSet->Name.c_str());
+			ImGui::Separator();
+
+			if (ImGui::MenuItem("Save", nullptr, nullptr, false))
+			{
+				// don't wanna overwrite files during early development stage
+			}
+
+			if (ImGui::MenuItem("Save As..."))
+			{
+				std::wstring filePath;
+				if (FileSystem::CreateSaveFileDialog(filePath, "Save AetSet file", "dev_ram/aetset", { "AetSet (*.bin)", "*.bin", "All Files (*.*)", "*", }))
+					aetSet->Save(filePath);
+			}
+		});
+
+		if (aetSetNodeOpen)
 		{
 			if (ImGui::IsItemClicked())
 				SetSelectedItem(aetSet);
@@ -209,18 +229,18 @@ namespace Editor
 				const ImVec2 smallButtonSize = ImVec2(26, 0);
 				if (aetObj.Type == AetObjType::Aif)
 				{
-					if (ImGui::SmallButton(aetObj.Flags & AetObjFlags_Audible ? ICON_AUDIBLE : ICON_INAUDIBLE, smallButtonSize))
-						aetObj.Flags ^= AetObjFlags_Audible;
+					if (ImGui::SmallButton(aetObj.Flags.Audible ? ICON_AUDIBLE : ICON_INAUDIBLE, smallButtonSize))
+						aetObj.Flags.Audible ^= true;
 				}
 				else
 				{
-					if (ImGui::SmallButton(aetObj.Flags & AetObjFlags_Visible ? ICON_VISIBLE : ICON_INVISIBLE, smallButtonSize))
-						aetObj.Flags ^= AetObjFlags_Visible;
+					if (ImGui::SmallButton(aetObj.Flags.Visible ? ICON_VISIBLE : ICON_INVISIBLE, smallButtonSize))
+						aetObj.Flags.Visible ^= true;
 				}
 				ImGui::SameLine();
 			}
 
-			sprintf_s(objNameBuffer, "%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.GetName());
+			sprintf_s(objNameBuffer, "%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.GetName().c_str());
 
 			if (drawActiveButton)
 			{
@@ -282,27 +302,42 @@ namespace Editor
 
 	bool AetTreeView::DrawAetLayerContextMenu(AetLayer& aetLayer)
 	{
-		ImGui::Text(aetLayer.GetCommaSeparatedNames(), nullptr);
+		ImGui::Text(ICON_AETLAYER "  %s", aetLayer.GetCommaSeparatedNames());
 		ImGui::Separator();
 
 		// TODO:
-		bool openAddAetObjPopup = ImGui::MenuItem(ICON_ADD "  Add new AetObj...");
+		//bool openAddAetObjPopup = ImGui::MenuItem(ICON_ADD "  Add new AetObj...");
+		bool openAddAetObjPopup = false;
+
+		//if (ImGui::MenuItem(ICON_ADD "  Image Object", ICON_AETOBJPIC)) {}
+		//if (ImGui::MenuItem(ICON_ADD "  Layer Object", ICON_AETOBJEFF)) {}
+		//if (ImGui::MenuItem(ICON_ADD "  Sound Effect Object", ICON_AETOBJAIF)) {}
+		//ImGui::Separator();
+
+		if (ImGui::BeginMenu(ICON_ADD "  Add new AetObj..."))
+		{
+			if (ImGui::MenuItem(ICON_AETOBJPIC "  Image")) {}
+			if (ImGui::MenuItem(ICON_AETOBJEFF "  Layer")) {}
+			if (ImGui::MenuItem(ICON_AETOBJAIF "  Sound Effect")) {}
+			ImGui::EndMenu();
+		}
+
 		if (ImGui::MenuItem(ICON_MOVEUP "  Move Up")) {}
 		if (ImGui::MenuItem(ICON_MOVEDOWN "  Move Down")) {}
-		if (ImGui::MenuItem(ICON_DELETE "  Delete...")) {}
+		if (ImGui::MenuItem(ICON_DELETE "  Delete Layer")) {}
 
 		return openAddAetObjPopup;
 	}
 
 	bool AetTreeView::DrawAetObjContextMenu(AetObj& aetObj)
 	{
-		ImGui::Text(aetObj.GetName(), nullptr);
+		ImGui::Text("%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.GetName().c_str());
 		ImGui::Separator();
 
 		// TODO:
 		if (ImGui::MenuItem(ICON_MOVEUP "  Move Up")) {}
 		if (ImGui::MenuItem(ICON_MOVEDOWN "  Move Down")) {}
-		if (ImGui::MenuItem(ICON_DELETE "  Delete...")) {}
+		if (ImGui::MenuItem(ICON_DELETE "  Delete Object")) {}
 
 		return false;
 	}
