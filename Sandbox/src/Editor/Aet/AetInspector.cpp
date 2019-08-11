@@ -20,39 +20,31 @@ namespace Editor
 	{
 		if (lastSelectedItem.VoidPointer != selected.VoidPointer)
 			newParentObjLayerIndex = -1;
-		
+
 		lastSelectedItem = selected;
 
-		if (ImGui::TreeNodeEx("Selection", ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_DefaultOpen))
+		if (selected.VoidPointer == nullptr)
+			return false;
+
+		switch (selected.Type())
 		{
-			ImGui::Separator();
-
-			if (selected.VoidPointer == nullptr)
-			{
-				ImGui::BulletText("none");
-				return false;
-			}
-
-			switch (selected.Type())
-			{
-			case AetSelectionType::AetSet:
-				DrawInspectorAetSet(selected.AetSet);
-				break;
-			case AetSelectionType::Aet:
-				DrawInspectorAet(selected.Aet);
-				break;
-			case AetSelectionType::AetLayer:
-				DrawInspectorAetLayer(aet, selected.AetLayer);
-				break;
-			case AetSelectionType::AetObj:
-				DrawInspectorAetObj(aet, selected.AetObj);
-				break;
-			case AetSelectionType::AetRegion:
-				DrawInspectorAetRegion(aet, selected.AetRegion);
-				break;
-			default:
-				break;
-			}
+		case AetSelectionType::AetSet:
+			DrawInspectorAetSet(selected.AetSet);
+			break;
+		case AetSelectionType::Aet:
+			DrawInspectorAet(selected.Aet);
+			break;
+		case AetSelectionType::AetLayer:
+			DrawInspectorAetLayer(aet, selected.AetLayer);
+			break;
+		case AetSelectionType::AetObj:
+			DrawInspectorAetObj(aet, selected.AetObj);
+			break;
+		case AetSelectionType::AetRegion:
+			DrawInspectorAetRegion(aet, selected.AetRegion);
+			break;
+		default:
+			break;
 		}
 
 		return true;
@@ -108,7 +100,7 @@ namespace Editor
 		if (ImGui::WideTreeNodeEx(ICON_AETLAYER "  Objects:", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			for (auto& aetObj : *aetLayer)
-				ImGui::BulletText("%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.GetName());
+				ImGui::BulletText("%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.GetName().c_str());
 
 			ImGui::TreePop();
 		}
@@ -138,7 +130,7 @@ namespace Editor
 
 					if (ImGui::Selectable(layerDataNameBuffer, isSelected))
 						aetObj->SetLayer(&layer);
-					
+
 					if (isSelected)
 						ImGui::SetItemDefaultFocus();
 					ImGui::PopID();
@@ -156,7 +148,7 @@ namespace Editor
 		ImGui::Text("AetObj:");
 
 		{
-			strcpy_s(aetObjNameBuffer, aetObj->GetName());
+			strcpy_s(aetObjNameBuffer, aetObj->GetName().c_str());
 
 			if (ImGui::InputText("Name##AetObj", aetObjNameBuffer, sizeof(aetObjNameBuffer), ImGuiInputTextFlags_None /*ImGuiInputTextFlags_EnterReturnsTrue*/))
 			{
@@ -362,9 +354,9 @@ namespace Editor
 
 			if (parentObj != nullptr)
 				newParentObjLayerIndex = aetObj->GetParentObjLayerIndex();
-			
+
 			if (newParentObjLayerIndex >= 0)
-			{ 
+			{
 				parentObjLayer = &aet->AetLayers[newParentObjLayerIndex];
 				sprintf_s(parentObjDataNameBuffer, "Layer %d (%s)", parentObjLayer->GetThisIndex(), parentObjLayer->GetCommaSeparatedNames());
 			}
@@ -403,7 +395,7 @@ namespace Editor
 				ImGui::EndCombo();
 			}
 
-			if (ImGui::BeginCombo("Parent Object", parentObj == nullptr ? "nullptr" : parentObj->GetName(), ImGuiComboFlags_HeightLarge))
+			if (ImGui::BeginCombo("Parent Object", parentObj == nullptr ? "nullptr" : parentObj->GetName().c_str(), ImGuiComboFlags_HeightLarge))
 			{
 				if (ImGui::Selectable("nullptr", parentObj == nullptr))
 					aetObj->SetParentObj(nullptr);
@@ -416,7 +408,7 @@ namespace Editor
 						bool isSelected = (&obj == parentObj);
 
 						ImGui::PushID(&obj);
-						if (ImGui::Selectable(obj.GetName(), isSelected))
+						if (ImGui::Selectable(obj.GetName().c_str(), isSelected))
 							aetObj->SetParentObj(&obj);
 
 						if (isSelected)
