@@ -1,11 +1,11 @@
 #include "FrameTimeline.h"
-#include "Theme.h"
+#include "Editor/Theme.h"
 
 namespace Editor
 {
-	TimelineFrame FrameTimeline::GetFrame() const
+	TimelineFrame FrameTimeline::GetCursorFrame() const
 	{
-		return GetTimelineFrame(cursorTime);
+		return GetTimelineFrame(GetCursorTime());
 	}
 
 	TimelineFrame FrameTimeline::GetGridFrame() const
@@ -37,7 +37,7 @@ namespace Editor
 	float FrameTimeline::GetTimelinePosition(TimeSpan time) const
 	{
 		time -= GetTimelineTime(loopStartFrame);
-		return TimelineBase::GetTimelinePosition(time);
+		return TimelineBase::GetTimelinePosition(time) + timelineContentWidthMargin;
 	}
 
 	float FrameTimeline::GetTimelinePosition(TimelineFrame frame) const
@@ -63,12 +63,7 @@ namespace Editor
 	TimeSpan FrameTimeline::GetTimelineTime(float position) const
 	{
 		position += TimelineBase::GetTimelinePosition(GetTimelineTime(loopStartFrame));
-		return TimelineBase::GetTimelineTime(position);
-	}
-
-	TimelineFrame FrameTimeline::GetCursorFrame() const
-	{
-		return GetTimelineFrame(GetCursorTime());
+		return TimelineBase::GetTimelineTime(position - timelineContentWidthMargin);
 	}
 
 	TimelineFrame FrameTimeline::GetTimelineFrameAtMouseX() const

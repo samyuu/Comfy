@@ -104,6 +104,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Editor\Aet\KeyFrameRenderer.cpp" />
+    <ClCompile Include="src\Editor\Aet\AetTimelineController.cpp" />
     <ClCompile Include="src\System\LibraryLoader.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp" />
@@ -129,10 +131,10 @@
     <ClCompile Include="src\Editor\Chart\TargetRenderWindow.cpp" />
     <ClCompile Include="src\Editor\Chart\SyncWindow.cpp" />
     <ClCompile Include="src\Editor\CheckerboardGrid.cpp" />
-    <ClCompile Include="src\Editor\FrameTimeline.cpp" />
+    <ClCompile Include="src\Editor\Timeline\FrameTimeline.cpp" />
     <ClCompile Include="src\Editor\PV\SceneRenderWindow.cpp" />
     <ClCompile Include="src\Editor\RenderWindowBase.cpp" />
-    <ClCompile Include="src\Editor\TimelineBase.cpp" />
+    <ClCompile Include="src\Editor\Timeline\TimelineBase.cpp" />
     <ClCompile Include="src\FileSystem\BinaryReader.cpp" />
     <ClCompile Include="src\FileSystem\BinaryWriter.cpp" />
     <ClCompile Include="src\FileSystem\FileHelper.cpp" />
@@ -202,6 +204,11 @@
     <ClCompile Include="src\FileSystem\Stream\Stream.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Editor\Aet\KeyFrameRenderer.h" />
+    <ClInclude Include="src\Editor\Aet\AetTimelineController.h" />
+    <ClInclude Include="src\Editor\Timeline\ITimelinePlaybackControllable.h" />
+    <ClInclude Include="src\Editor\Timeline\ITimelineUnitConverter.h" />
+    <ClInclude Include="src\Editor\Timeline\TimelineBaseRegions.h" />
     <ClInclude Include="src\System\LibraryLoader.h" />
     <ClInclude Include="res\resource.h" />
     <ClInclude Include="src\App\Engine.h" />
@@ -225,14 +232,14 @@
     <ClInclude Include="src\Editor\Chart\TargetRenderWindow.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TimelineControlMode.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TimelineRenderer.h" />
-    <ClInclude Include="src\Editor\FrameTimeline.h" />
+    <ClInclude Include="src\Editor\Timeline\FrameTimeline.h" />
     <ClInclude Include="src\Editor\CheckerboardGrid.h" />
     <ClInclude Include="src\Editor\IFileDropReceiver.h" />
     <ClInclude Include="src\Editor\PV\SceneRenderWindow.h" />
     <ClInclude Include="src\Editor\RenderWindowBase.h" />
     <ClInclude Include="src\Editor\Theme.h" />
-    <ClInclude Include="src\Editor\TimelineBase.h" />
-    <ClInclude Include="src\Editor\TimelineFrame.h" />
+    <ClInclude Include="src\Editor\Timeline\TimelineBase.h" />
+    <ClInclude Include="src\Editor\Timeline\TimelineFrame.h" />
     <ClInclude Include="src\FileSystem\BinaryReader.h" />
     <ClInclude Include="src\FileSystem\BinaryWriter.h" />
     <ClInclude Include="src\FileSystem\FileHelper.h" />

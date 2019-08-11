@@ -7,21 +7,8 @@ namespace Editor
 	class FrameTimeline : public TimelineBase
 	{
 	public:
-		TimelineFrame GetFrame() const;
+		TimelineFrame GetCursorFrame() const;
 
-	protected:
-		TimelineFrame loopStartFrame = 0.0f;
-		TimelineFrame loopEndFrame = 60.0f;
-		float frameRate = 60.0f;
-
-		// const std::array<const char*, 10> gridDivisionStrings = { "1/1", "1/2", "1/4", "1/8", "1/12", "1/16", "1/24", "1/32", "1/48", "1/64" };
-		// const std::array<int, 10> gridDivisions = { 1, 2, 4, 8, 12, 16, 24, 32, 48, 64 };
-		// int gridDivisionIndex = 0;
-
-		float gridDivision = 1.0f;
-
-		// Conversion Methods:
-		// -------------------
 		TimelineFrame GetGridFrame() const;
 		TimelineFrame FloorToGrid(TimelineFrame frame) const;
 		TimelineFrame RoundToGrid(TimelineFrame frame) const;
@@ -35,9 +22,18 @@ namespace Editor
 		TimeSpan GetTimelineTime(TimelineFrame frame) const;
 		TimeSpan GetTimelineTime(float position) const override;
 
-		TimelineFrame GetCursorFrame() const;
 		TimelineFrame GetTimelineFrameAtMouseX() const;
-		// -------------------
+
+		inline TimelineFrame GetLoopStartFrame() const { return loopStartFrame; };
+		inline TimelineFrame GetLoopEndFrame() const { return loopEndFrame; };
+
+	protected:
+		const float timelineContentWidthMargin = 40.0;
+
+		TimelineFrame loopStartFrame = 0.0f;
+		TimelineFrame loopEndFrame = 60.0f;
+		float frameRate = 60.0f;
+		float gridDivision = 1.0f;
 
 		void OnDrawTimlineDivisors() override;
 		void DrawTimelineCursor() override;

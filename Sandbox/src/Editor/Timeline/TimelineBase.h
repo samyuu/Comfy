@@ -1,5 +1,8 @@
 #pragma once
 #include "TimeSpan.h"
+#include "TimelineBaseRegions.h"
+#include "ITimelinePlaybackControllable.h"
+#include "ITimelineUnitConverter.h"
 #include "ImGui/imgui_extensions.h"
 
 namespace Editor
@@ -11,7 +14,7 @@ namespace Editor
 		Right
 	};
 
-	class TimelineBase
+	class TimelineBase : public TimelineBaseRegions, public ITimelinePlaybackControllable
 	{
 	public:
 		TimelineBase() {};
@@ -26,15 +29,40 @@ namespace Editor
 		virtual TimeSpan GetCursorTime() const;
 		TimelineVisibility GetTimelineVisibility(float screenX) const;
 
-		virtual bool GetIsPlayback() const = 0;
-
 		void DrawTimelineGui();
 		void InitializeTimelineGuiState();
 
+	public:
+		virtual inline float GetMaxScrollX() const { return ImGui::GetScrollMaxX(); };
+		virtual inline float GetScrollX() const { return ImGui::GetScrollX(); };
+
 	protected:
-		// Timeline Zoom:
-		// --------------
+		virtual inline void SetScrollX(float value) { ImGui::SetScrollX(value); };
+
+	protected:
+		// TODO: initialize by derived class, each derived class then exposes its own casted getter
+		// std::unique_ptr<ITimelineUnitConverter> unitConverter;
+
+		TimeSpan cursorTime;
+
+		struct /* TimelineImGuiData */
+		{
+			ImGuiWindow* baseWindow;
+			ImDrawList* baseDrawList;
+			ImGuiIO* io;
+
+			bool updateInput;
+		};
+
 		struct
+		{
+			const float timelineVisibleThreshold = 46.0f;
+			float infoColumnWidth = 46.0f;
+			float timelineHeaderHeight = 32.0f - 13.0f;
+			float tempoMapHeight = 13.0f;
+		};
+
+		struct /* TimelineZoomData */
 		{
 			const float ZOOM_BASE = 150.0f;
 			const float ZOOM_MIN = 1.0f;
@@ -43,52 +71,8 @@ namespace Editor
 			bool zoomLevelChanged = false;
 			float zoomLevel = 2.0f, lastZoomLevel;
 		};
-		// --------------
 
-
-		// ----------------------
-		ImGuiWindow* baseWindow;
-		ImDrawList* baseDrawList;
-
-		const float timelineVisibleThreshold = 46.0f;
-
-		TimeSpan cursorTime;
-		// --------------
-
-		// ImGui Data:
-		// -----------
-		struct
-		{
-			bool updateInput;
-			ImGuiIO* io;
-		};
-		// -----------
-
-		// Timeline Regions:
-		// -----------------
-		struct
-		{
-			ImRect timelineRegion;
-			ImRect infoColumnHeaderRegion;
-			ImRect infoColumnRegion;
-			ImRect timelineBaseRegion;
-			ImRect tempoMapRegion;
-			ImRect timelineHeaderRegion;
-			ImRect timelineContentRegion;
-		};
-		// -----------------
-
-		// ----------------------
-		struct
-		{
-			float infoColumnWidth = 46.0f;
-			float timelineHeaderHeight = 32.0f - 13.0f;
-			float tempoMapHeight = 13.0f;
-		};
-		// ----------------------
-
-		// ----------------------
-		struct
+		struct /* TimelineScrollData */
 		{
 			// fraction of the timeline width at which the timeline starts scrolling relative to the cursor
 			const float autoScrollOffsetFraction = 4.0f;
@@ -100,7 +84,6 @@ namespace Editor
 			float scrollDelta = 0.0f;
 			float scrollSpeed = 2.0f, scrollSpeedFast = 4.5f;
 		};
-		// ----------------------
 
 		// ----------------------
 		void DrawTimelineBase();
@@ -116,39 +99,26 @@ namespace Editor
 		virtual void DrawTimelineCursor();
 		// ----------------------
 
-		// ----------------------
 		void UpdateTimelineBaseState();
-		// ----------------------
 
 		// ----------------------
 		virtual void UpdateTimelineBase();
 		virtual void OnUpdate() = 0;
 		virtual void OnUpdateInput() = 0;
 		virtual void OnDrawTimelineContents() = 0;
+
 		void UpdateTimelineSize();
-		virtual void UpdateTimelineRegions();
-		// ----------------------
+		virtual void UpdateTimelineRegions() override;
+
 		virtual void UpdateInputTimelineScroll();
 		virtual void UpdateInputPlaybackToggle();
 		virtual void OnTimelineBaseScroll();
-		// ----------------------
-		virtual void UpdateCursorAutoScroll();
-		// ----------------------
 
-		// Timeline Control:
-		// -----------------
-		virtual void PausePlayback() = 0;
-		virtual void ResumePlayback() = 0;
-		virtual void StopPlayback() = 0;
+		virtual void UpdateCursorAutoScroll();
 
 		virtual float GetTimelineSize() const = 0;
 		virtual void CenterCursor();
 		virtual bool IsCursorOnScreen() const;
-		// -----------------
-
-		virtual inline float GetMaxScrollX() const { return ImGui::GetScrollMaxX(); };
-		virtual inline float GetScrollX() const { return ImGui::GetScrollX(); };
-		virtual inline void SetScrollX(float value) { ImGui::SetScrollX(value); };
 
 	private:
 		void UpdateAllInput();

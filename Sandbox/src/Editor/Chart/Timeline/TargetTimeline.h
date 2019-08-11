@@ -1,6 +1,6 @@
 #pragma once
 #include "Editor/IEditorComponent.h"
-#include "Editor/TimelineBase.h"
+#include "Editor/Timeline/TimelineBase.h"
 #include "Editor/AudioController.h"
 #include "Editor/Chart/Chart.h"
 #include "Audio/Waveform.h"
