@@ -1,5 +1,6 @@
 #include "MemoryStream.h"
 #include "FileStream.h"
+#include "Misc/StringHelper.h"
 #include <assert.h>
 #include <algorithm>
 #include <memory>
@@ -103,8 +104,7 @@ namespace FileSystem
 
 	void MemoryStream::FromFile(const std::string& filePath)
 	{
-		auto widePath = std::wstring(filePath.begin(), filePath.end());
-		FromFile(widePath);
+		FromFile(Utf8ToUtf16(filePath));
 	}
 
 	void MemoryStream::FromFile(const std::wstring& filePath)

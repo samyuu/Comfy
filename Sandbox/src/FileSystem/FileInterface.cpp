@@ -3,6 +3,7 @@
 #include "Stream/FileStream.h"
 #include "BinaryReader.h"
 #include "BinaryWriter.h"
+#include "Misc/StringHelper.h"
 
 namespace FileSystem
 {
@@ -38,7 +39,7 @@ namespace FileSystem
 	{
 		FileStream stream;
 		
-		std::wstring widePath = std::wstring(filePath.begin(), filePath.end());
+		std::wstring widePath = Utf8ToUtf16(filePath);
 		stream.CreateReadWrite(widePath);
 		IBinaryWritableSaveBase(this, &stream);
 		stream.Close();
