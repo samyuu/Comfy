@@ -59,8 +59,14 @@ namespace ImGui
 	void StyleComfy(ImGuiStyle* dst)
 	{
 		ImGuiStyle* style = dst ? dst : &ImGui::GetStyle();
+		style->WindowPadding = ImVec2(2.0f, 2.0f);
 		style->WindowRounding = 0.0f;
 		style->FrameBorderSize = 0.0f;
+		style->ItemSpacing = ImVec2(8.0f, 2.0f);
+		style->ItemInnerSpacing = ImVec2(2.0f, 4.0f);
+		style->ScrollbarSize = 14.0f;
+		style->IndentSpacing = 14.0f;
+		style->GrabMinSize = 12.0f;
 
 		ImVec4* colors = style->Colors;
 		colors[ImGuiCol_Text] = ImVec4(0.88f, 0.88f, 0.88f, 1.00f);
