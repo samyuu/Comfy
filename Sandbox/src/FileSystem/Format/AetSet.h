@@ -14,14 +14,6 @@ namespace FileSystem
 
 	typedef void* fileptr_t;
 
-	typedef uint16_t AetObjFlags;
-	enum AetObjFlags_Enum : AetObjFlags
-	{
-		AetObjFlags_None = 0,
-		AetObjFlags_Visible = 1 << 0,
-		AetObjFlags_Audible = 1 << 1,
-	};
-
 	enum class AetObjType : uint8_t
 	{
 		Nop = 0,
@@ -136,6 +128,16 @@ namespace FileSystem
 		std::shared_ptr<KeyFrameProperties> PerspectiveProperties;
 	};
 
+	union AetObjFlags
+	{
+		struct
+		{
+			uint16_t Visible : 1;
+			uint16_t Audible : 1;
+		};
+		uint16_t AllBits;
+	};
+
 	class AetObj
 	{
 		friend class Aet;
@@ -148,7 +150,6 @@ namespace FileSystem
 		AetObj(AetObjType type, const char* name, Aet* parent);
 		~AetObj();
 
-		std::string Name;
 		frame_t LoopStart;
 		frame_t LoopEnd;
 		frame_t StartFrame;
@@ -161,8 +162,9 @@ namespace FileSystem
 		std::vector<Marker> Markers;
 		std::shared_ptr<AnimationData> AnimationData;
 
-		const char* GetName() const;
+		const std::string& GetName() const;
 		void SetName(const char* value);
+		void SetName(const std::string& value);
 
 		AetRegion* GetRegion() const;
 		void SetRegion(const AetRegion* value);
@@ -181,6 +183,7 @@ namespace FileSystem
 		inline int32_t GetParentObjLayerIndex() { return references.ParentLayerIndex; };
 
 	private:
+		std::string name;
 		Aet* parentAet;
 
 		struct

@@ -176,7 +176,8 @@ namespace FileSystem
 		LoopEnd = 60.0f;
 		StartFrame = 0.0f;
 		PlaybackSpeed = 1.0f;
-		Flags = AetObjFlags_Visible | AetObjFlags_Audible;
+		Flags.Visible = true;
+		Flags.Audible = true;
 		TypePaddingByte = 0x3;
 		Type = type;
 
@@ -195,14 +196,20 @@ namespace FileSystem
 	{
 	}
 
-	const char* AetObj::GetName() const
+	const std::string& AetObj::GetName() const
 	{
-		return Name.c_str();
+		return name;
 	}
 
 	void AetObj::SetName(const char* value)
 	{
-		Name = value;
+		name = value;
+		parentAet->UpdateLayerNames();
+	}
+
+	void AetObj::SetName(const std::string& value)
+	{
+		name = value;
 		parentAet->UpdateLayerNames();
 	}
 
@@ -325,13 +332,13 @@ namespace FileSystem
 	void AetObj::Read(BinaryReader& reader)
 	{
 		filePosition = reader.GetPositionPtr();
-		Name = reader.ReadStrPtr();
+		name = reader.ReadStrPtr();
 		LoopStart = reader.ReadFloat();
 		LoopEnd = reader.ReadFloat();
 		StartFrame = reader.ReadFloat();
 		PlaybackSpeed = reader.ReadFloat();
 
-		Flags = static_cast<AetObjFlags>(reader.ReadUInt16());
+		Flags.AllBits = reader.ReadUInt16();
 		TypePaddingByte = reader.ReadUInt8();
 		Type = static_cast<AetObjType>(reader.ReadUInt8());
 
@@ -371,7 +378,7 @@ namespace FileSystem
 	{
 		for (int32_t i = 0; i < size(); i++)
 		{
-			if (objects[i].Name == name)
+			if (objects[i].GetName() == name)
 				return &objects[i];
 		}
 
@@ -414,7 +421,7 @@ namespace FileSystem
 	{
 		for (int32_t i = static_cast<int32_t>(layer.size()) - 1; i >= 0; i--)
 		{
-			if (layer[i].Name == name)
+			if (layer[i].GetName() == name)
 				return i;
 		}
 
@@ -568,7 +575,7 @@ namespace FileSystem
 								for (auto& obj : layer)
 								{
 									obj.filePosition = writer.GetPositionPtr();
-									writer.WriteStrPtr(&obj.Name);
+									writer.WriteStrPtr(&obj.name);
 									writer.WriteFloat(obj.LoopStart);
 									writer.WriteFloat(obj.LoopEnd);
 									writer.WriteFloat(obj.StartFrame);
@@ -765,7 +772,7 @@ namespace FileSystem
 					bool nameExists = false;
 					for (auto& layerNames : referencedLayer->givenNames)
 					{
-						if (layerNames == aetObj.Name)
+						if (layerNames == aetObj.GetName())
 						{
 							nameExists = true;
 							break;
@@ -773,7 +780,7 @@ namespace FileSystem
 					}
 
 					if (!nameExists)
-						referencedLayer->givenNames.emplace_back(aetObj.Name);
+						referencedLayer->givenNames.emplace_back(aetObj.GetName());
 				}
 			}
 
