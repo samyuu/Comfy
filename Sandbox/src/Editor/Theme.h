@@ -18,10 +18,14 @@ namespace Editor
 		EditorColor_TempoMapBg,
 		EditorColor_TimelineBg,
 		EditorColor_TimelineRowSeparator,
+		EditorColor_TimelineSelection,
+		EditorColor_TimelineSelectionBorder,
 		EditorColor_Cursor,
 		EditorColor_CursorInner,
 		EditorColor_TextHighlight,
 		EditorColor_KeyFrame,
+		EditorColor_KeyFrameSelected,
+		EditorColor_KeyFrameBorder,
 		EditorColor_Count,
 	};
 

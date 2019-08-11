@@ -44,11 +44,15 @@ namespace Editor
 		SetColor(EditorColor_Selection, ImGui::GetColorU32(ImGuiCol_TextSelectedBg));
 		SetColor(EditorColor_TimelineBg, ImGui::GetColorU32(ImGuiCol_ChildBg));
 		SetColor(EditorColor_TimelineRowSeparator, ImGui::GetColorU32(ImGuiCol_Separator));
+		SetColor(EditorColor_TimelineSelection, 0x20D0D0D0);
+		SetColor(EditorColor_TimelineSelectionBorder, 0x60E0E0E0);
 		SetColor(EditorColor_Bar, ImGui::GetColorU32(ImGuiCol_PlotLines));
-		SetColor(EditorColor_Cursor, ImColor(0.71f, 0.54f, 0.15f));
-		SetColor(EditorColor_CursorInner, GetColor(EditorColor_Cursor, 0.5f));
+		SetColor(EditorColor_Cursor, 0xFFE0E0E0);
+		SetColor(EditorColor_CursorInner, GetColor(EditorColor_Cursor, 0.75f));
 		SetColor(EditorColor_TextHighlight, ImColor(0.87f, 0.77f, 0.02f));
-		SetColor(EditorColor_KeyFrame, GetColor(EditorColor_Cursor, 0.85f));
+		SetColor(EditorColor_KeyFrame, 0xFF999999);
+		SetColor(EditorColor_KeyFrameSelected, 0xFF5785D9);
+		SetColor(EditorColor_KeyFrameBorder, 0xFF05070B);
 	}
 
 	EditorManager::EditorManager(Application* parent) : parent(parent)
