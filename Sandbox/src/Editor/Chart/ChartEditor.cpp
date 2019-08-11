@@ -55,12 +55,14 @@ namespace Editor
 
 		if (ImGui::Begin(ICON_FA_SYNC "  Sync Window##ChartEditor", nullptr, ImGuiWindowFlags_None))
 		{
+			ImGui::BeginChild("SyncWindowChild##ChartEditor", ImVec2(0, 0), true);
 			syncWindow->DrawGui(chart.get(), timeline.get());
+			ImGui::EndChild();
 		}
 		ImGui::End();
 
 		RenderWindowBase::PushWindowPadding();
-		if (ImGui::Begin(ICON_FA_TH "  Target Render Window##ChartEditor", nullptr, ImGuiWindowFlags_None))
+		if (ImGui::Begin(ICON_FA_CHART_BAR "  Target Window##ChartEditor", nullptr, ImGuiWindowFlags_None))
 		{
 			//renderWindow->SetActive(treeView->GetActiveAet(), treeView->GetSelected());
 			//renderWindow->SetIsPlayback(timeline->GetIsPlayback());
