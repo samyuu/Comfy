@@ -2,6 +2,7 @@
 #include "FileSystem/FileHelper.h"
 #include "Input/KeyCode.h"
 #include "TimeSpan.h"
+#include <FontIcons.h>
 
 namespace Editor
 {
@@ -15,7 +16,7 @@ namespace Editor
 
 	const char* SceneRenderWindow::GetGuiName() const
 	{
-		return "Scene Window";
+		return ICON_FA_TREE "  Scene Window";
 	}
 
 	void SceneRenderWindow::Initialize()
