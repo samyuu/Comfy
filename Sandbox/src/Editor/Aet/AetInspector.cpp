@@ -54,8 +54,8 @@ namespace Editor
 	{
 		if (ImGui::WideTreeNodeEx(ICON_NAMES "  Aets:", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			for (auto& aet : *aetSet)
-				ImGui::BulletText(aet.Name.c_str());
+			for (RefPtr<Aet>& aet : *aetSet)
+				ImGui::BulletText(aet->Name.c_str());
 
 			ImGui::TreePop();
 		}
@@ -91,8 +91,8 @@ namespace Editor
 
 		if (ImGui::WideTreeNodeEx(ICON_AETLAYER "  Objects:", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			for (auto& aetObj : *aetLayer)
-				ImGui::BulletText("%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.GetName().c_str());
+			for (RefPtr<AetObj>& aetObj : *aetLayer)
+				ImGui::BulletText("%s  %s", GetObjTypeIcon(aetObj->Type), aetObj->GetName().c_str());
 
 			ImGui::TreePop();
 		}
@@ -108,20 +108,21 @@ namespace Editor
 			if (ImGui::BeginCombo("Layer", aetLayer == nullptr ? "nullptr" : layerDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
 				if (ImGui::Selectable("nullptr", aetLayer == nullptr))
-					aetObj->SetLayer(nullptr);
+					aetObj->SetReferencedLayer(nullptr);
 
-				for (auto& layer : aet->AetLayers)
+				int layerIndex = 0;
+				for (RefPtr<AetLayer>& layer : aet->AetLayers)
 				{
 					if (&aet->AetLayers.back() == &layer)
 						break;
 
 					ImGui::PushID(&layer);
 
-					bool isSelected = (aetLayer == &layer);
-					sprintf_s(layerDataNameBuffer, "Layer %d (%s)", layer.GetThisIndex(), layer.GetCommaSeparatedNames());
+					bool isSelected = (aetLayer == layer.get());
+					sprintf_s(layerDataNameBuffer, "Layer %d (%s)", layerIndex++, layer->GetCommaSeparatedNames());
 
 					if (ImGui::Selectable(layerDataNameBuffer, isSelected))
-						aetObj->SetLayer(&layer);
+						aetObj->SetReferencedLayer(layer);
 
 					if (isSelected)
 						ImGui::SetItemDefaultFocus();
@@ -156,10 +157,10 @@ namespace Editor
 		}
 
 		if ((aetObj->Type == AetObjType::Pic))
-			DrawInspectorRegionData(aet, aetObj, aetObj->GetRegion());
+			DrawInspectorRegionData(aet, aetObj, aetObj->GetReferencedRegion());
 
 		if ((aetObj->Type == AetObjType::Eff))
-			DrawInspectorLayerData(aet, aetObj, aetObj->GetLayer());
+			DrawInspectorLayerData(aet, aetObj, aetObj->GetReferencedLayer());
 
 		if ((aetObj->Type == AetObjType::Pic || aetObj->Type == AetObjType::Eff))
 			DrawInspectorAnimationData(aetObj->AnimationData.get());
@@ -185,21 +186,21 @@ namespace Editor
 			if (ImGui::BeginCombo("Region", aetRegion == nullptr ? "nullptr" : regionDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
 				if (ImGui::Selectable("nullptr", aetRegion == nullptr))
-					aetObj->SetRegion(nullptr);
+					aetObj->SetReferencedRegion(nullptr);
 
 				int32_t regionIndex = 0;
-				for (auto& region : aet->AetRegions)
+				for (RefPtr<AetRegion>& region : aet->AetRegions)
 				{
 					ImGui::PushID(&region);
 
-					bool isSelected = (aetRegion == &region);
+					bool isSelected = (aetRegion == region.get());
 
-					AetSprite* frontSprite = region.GetFrontSprite();
+					AetSprite* frontSprite = region->GetFrontSprite();
 					if (frontSprite == nullptr)
-						sprintf_s(regionDataNameBuffer, "Region %d (%dx%d)", regionIndex, region.Width, region.Height);
+						sprintf_s(regionDataNameBuffer, "Region %d (%dx%d)", regionIndex, region->Width, region->Height);
 
 					if (ImGui::Selectable(frontSprite == nullptr ? regionDataNameBuffer : frontSprite->Name.c_str(), isSelected))
-						aetObj->SetRegion(&region);
+						aetObj->SetReferencedRegion(region);
 
 					if (isSelected)
 						ImGui::SetItemDefaultFocus();
@@ -262,7 +263,7 @@ namespace Editor
 			DrawInspectorKeyFrames(KeyFrameProperties::PropertyNames[i], &properties->at(i));
 	}
 
-	void AetInspector::DrawInspectorKeyFrames(const char* name, std::vector<KeyFrame>* keyFrames)
+	void AetInspector::DrawInspectorKeyFrames(const char* name, std::vector<AetKeyFrame>* keyFrames)
 	{
 		if (ImGui::WideTreeNode(name))
 		{
@@ -274,7 +275,7 @@ namespace Editor
 			}
 			else
 			{
-				for (KeyFrame& keyFrame : *keyFrames)
+				for (AetKeyFrame& keyFrame : *keyFrames)
 				{
 					ImGui::PushID((void*)&keyFrame.Frame);
 					ImGui::DragFloat3("F-V-I", &keyFrame.Frame);
@@ -285,13 +286,13 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAetObjMarkers(std::vector<Marker>* markers)
+	void AetInspector::DrawInspectorAetObjMarkers(std::vector<AetMarker>* markers)
 	{
 		if (ImGui::TreeNodeEx(ICON_MARKERS "  Markers", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			for (int i = 0; i < markers->size(); i++)
 			{
-				Marker& marker = markers->at(i);
+				AetMarker& marker = markers->at(i);
 
 				ImGui::PushID((void*)&marker);
 				bool open = ImGui::WideTreeNode("##AetInspectorMarker", "Frame: %.2f  :  %s", marker.Frame, marker.Name.c_str());
@@ -339,15 +340,15 @@ namespace Editor
 	{
 		if (ImGui::TreeNodeEx(ICON_PARENT "  Parent", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			AetObj* parentObj = aetObj->GetParentObj();
-			AetLayer* parentObjLayer = aetObj->GetParentObjLayer();
+			AetObj* parentObj = aetObj->GetReferebcedParentObj();
+			AetLayer* parentObjLayer = parentObj != nullptr ? parentObj->GetParentLayer() : nullptr;
 
 			if (parentObj != nullptr)
-				newParentObjLayerIndex = aetObj->GetParentObjLayerIndex();
+				newParentObjLayerIndex = parentObjLayer->GetThisIndex();
 
 			if (newParentObjLayerIndex >= 0)
 			{
-				parentObjLayer = &aet->AetLayers[newParentObjLayerIndex];
+				parentObjLayer = aet->AetLayers[newParentObjLayerIndex].get();
 				sprintf_s(parentObjDataNameBuffer, "Layer %d (%s)", parentObjLayer->GetThisIndex(), parentObjLayer->GetCommaSeparatedNames());
 			}
 			else
@@ -368,7 +369,7 @@ namespace Editor
 					auto& layer = aet->AetLayers[layerIndex];
 
 					bool isSelected = (layerIndex == newParentObjLayerIndex);
-					sprintf_s(parentObjDataNameBuffer, "Layer %d (%s)", layer.GetThisIndex(), layer.GetCommaSeparatedNames());
+					sprintf_s(parentObjDataNameBuffer, "Layer %d (%s)", layerIndex, layer->GetCommaSeparatedNames());
 
 					ImGui::PushID(&layer);
 					if (ImGui::Selectable(parentObjDataNameBuffer, isSelected))
@@ -395,11 +396,11 @@ namespace Editor
 					for (int32_t objIndex = 0; objIndex < parentObjLayer->size(); objIndex++)
 					{
 						auto& obj = parentObjLayer->at(objIndex);
-						bool isSelected = (&obj == parentObj);
+						bool isSelected = (obj.get() == parentObj);
 
 						ImGui::PushID(&obj);
-						if (ImGui::Selectable(obj.GetName().c_str(), isSelected))
-							aetObj->SetParentObj(&obj);
+						if (ImGui::Selectable(obj->GetName().c_str(), isSelected))
+							aetObj->SetParentObj(obj);
 
 						if (isSelected)
 							ImGui::SetItemDefaultFocus();

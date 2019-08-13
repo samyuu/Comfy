@@ -17,8 +17,8 @@ namespace Editor
 	{
 		assert(spriteGetter != nullptr);
 
-		renderer = std::make_unique<Renderer2D>();
-		aetRenderer = std::make_unique<AetRenderer>(renderer.get());
+		renderer = MakeUnique<Renderer2D>();
+		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
 		aetRenderer->SetSpriteGetterFunction(spriteGetter);
 	}
 
@@ -42,7 +42,7 @@ namespace Editor
 		return currentFrame = value;
 	}
 
-	static KeyFrame* GetKeyFrame(AetObj* aetObj, int propertyIndex, float inputFrame)
+	static AetKeyFrame* GetKeyFrame(AetObj* aetObj, int propertyIndex, float inputFrame)
 	{
 		KeyFrameCollection& keyFrames = aetObj->AnimationData->Properties[propertyIndex];
 		bool firstFrame = inputFrame == aetObj->LoopStart;
@@ -74,7 +74,7 @@ namespace Editor
 				AetMgr::Interpolate(active.AetObj->AnimationData.get(), &properties, currentFrame);
 
 				float roundedCurrentFrame = glm::round(currentFrame);
-				KeyFrame* currentKeyFrames[PropertyType_Count];
+				AetKeyFrame* currentKeyFrames[PropertyType_Count];
 
 				for (int i = 0; i < PropertyType_Count; i++)
 					currentKeyFrames[i] = isPlayback ? nullptr : GetKeyFrame(active.AetObj, i, roundedCurrentFrame);
@@ -371,8 +371,8 @@ namespace Editor
 		int32_t spriteIndex = glm::clamp(0, static_cast<int32_t>(currentFrame), aetRegion->SpriteSize() - 1);
 		AetSprite* spriteRegion = aetRegion->GetSprite(spriteIndex);
 
-		Texture* texture;
-		Sprite* sprite;
+		const Texture* texture;
+		const Sprite* sprite;
 
 		if (aetRegion->SpriteSize() < 1 || !(*aetRenderer->GetSpriteGetterFunction())(spriteRegion, &texture, &sprite))
 		{
@@ -401,8 +401,8 @@ namespace Editor
 		if (obj.Region == nullptr || !obj.Visible)
 			return;
 
-		Texture* texture;
-		Sprite* sprite;
+		const Texture* texture;
+		const Sprite* sprite;
 		bool validSprite = (*aetRenderer->GetSpriteGetterFunction())(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
 
 		if (validSprite)
@@ -456,12 +456,12 @@ namespace Editor
 		if (maskObj.Region == nullptr || obj.Region == nullptr)
 			return;
 
-		Texture* maskTexture;
-		Sprite* maskSprite;
+		const Texture* maskTexture;
+		const Sprite* maskSprite;
 		bool validMaskSprite = (*aetRenderer->GetSpriteGetterFunction())(maskObj.Region->GetSprite(maskObj.SpriteIndex), &maskTexture, &maskSprite);
 
-		Texture* texture;
-		Sprite* sprite;
+		const Texture* texture;
+		const Sprite* sprite;
 		bool validSprite = (*aetRenderer->GetSpriteGetterFunction())(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
 
 		if (validMaskSprite && validSprite)

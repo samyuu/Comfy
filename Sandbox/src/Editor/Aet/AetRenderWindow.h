@@ -59,8 +59,8 @@ namespace Editor
 		Aet* aet = nullptr;
 		AetItemTypePtr active;
 
-		std::unique_ptr<Renderer2D> renderer;
-		std::unique_ptr<AetRenderer> aetRenderer;
+		UniquePtr<Renderer2D> renderer;
+		UniquePtr<AetRenderer> aetRenderer;
 		
 		const vec4 dummyColor = vec4(0.79f, 0.90f, 0.57f, 0.50f);
 

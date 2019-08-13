@@ -39,14 +39,20 @@ namespace Editor
 		Aet* activeAet;
 		AetItemTypePtr selected, lastHovered, hovered;
 
+		struct AetObjLayerPair
+		{
+			AetLayer* Layer;
+			AetObj* Obj;
+		} objToDelete;
+
 		void DrawTreeViewBackground();
 		void DrawTreeViewAet(Aet& aet);
 		void DrawTreeViewLayer(Aet& aet, AetLayer& aetLayer);
-		void DrawTreeViewObj(Aet& aet, AetObj& aetObj);
+		void DrawTreeViewObj(Aet& aet, AetLayer& aetLayer, AetObj& aetObj);
 		void DrawTreeViewRegion(Aet& aet, AetRegion& region, int32_t index);
 	
-		bool DrawAetLayerContextMenu(AetLayer& aetLayer);
-		bool DrawAetObjContextMenu(AetObj& aetObj);
+		bool DrawAetLayerContextMenu(Aet& aet, AetLayer& aetLayer);
+		bool DrawAetObjContextMenu(AetLayer& aetLayer, AetObj& aetObj);
 
 	private:
 		const char* GetDebugObjectName();

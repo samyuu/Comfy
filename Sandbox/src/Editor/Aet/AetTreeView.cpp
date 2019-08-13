@@ -33,7 +33,7 @@ namespace Editor
 
 		if (selected.VoidPointer == nullptr && GetDebugObjectName() != nullptr)
 		{
-			activeAet = &aetSet->front();
+			activeAet = aetSet->front().get();
 			selected.SetItem(activeAet->GetObj(GetDebugObjectName()));
 		}
 
@@ -63,14 +63,23 @@ namespace Editor
 			if (ImGui::IsItemClicked())
 				SetSelectedItem(aetSet);
 
-			for (auto& aet : *aetSet)
-				DrawTreeViewAet(aet);
+			for (RefPtr<Aet>& aet : *aetSet)
+				DrawTreeViewAet(*aet);
 
 			ImGui::TreePop();
 		}
 		else
 		{
 			ResetSelectedItem();
+		}
+
+		if (objToDelete.Layer != nullptr && objToDelete.Obj != nullptr)
+		{
+			if (selected.AetObj == objToDelete.Obj)
+				selected.AetObj = nullptr;
+
+			objToDelete.Layer->DeleteObject(objToDelete.Obj);
+			objToDelete = { nullptr, nullptr };
 		}
 
 		return true;
@@ -128,8 +137,8 @@ namespace Editor
 				if (ImGui::IsItemClicked())
 					ResetSelectedItem();
 
-				for (auto& aetLayer : aet.AetLayers)
-					DrawTreeViewLayer(aet, aetLayer);
+				for (RefPtr<AetLayer>& aetLayer : aet.AetLayers)
+					DrawTreeViewLayer(aet, *aetLayer);
 
 				ImGui::TreePop();
 			}
@@ -141,7 +150,7 @@ namespace Editor
 
 				for (int32_t i = 0; i < aet.AetRegions.size(); i++)
 				{
-					DrawTreeViewRegion(aet, aet.AetRegions[i], i);
+					DrawTreeViewRegion(aet, *aet.AetRegions[i], i);
 				}
 				ImGui::TreePop();
 			}
@@ -168,9 +177,9 @@ namespace Editor
 			SetSelectedItem(&aet, &aetLayer);
 
 		bool openAddAetObjPopup = false;
-		ImGui::ItemContextMenu("AetLayerContextMenu##AetTreeView", [this, &aetLayer, &openAddAetObjPopup]()
+		ImGui::ItemContextMenu("AetLayerContextMenu##AetTreeView", [this, &aet, &aetLayer, &openAddAetObjPopup]()
 		{
-			openAddAetObjPopup = DrawAetLayerContextMenu(aetLayer);
+			openAddAetObjPopup = DrawAetLayerContextMenu(aet, aetLayer);
 		});
 
 		if (&aetLayer == lastHovered.AetLayer)
@@ -208,8 +217,8 @@ namespace Editor
 
 		if (aetLayerNodeOpen)
 		{
-			for (auto& aetObj : aetLayer)
-				DrawTreeViewObj(aet, aetObj);
+			for (RefPtr<AetObj>& aetObj : aetLayer)
+				DrawTreeViewObj(aet, aetLayer, *aetObj);
 
 			ImGui::TreePop();
 		}
@@ -217,7 +226,7 @@ namespace Editor
 		ImGui::PopID();
 	}
 
-	void AetTreeView::DrawTreeViewObj(Aet& aet, AetObj& aetObj)
+	void AetTreeView::DrawTreeViewObj(Aet& aet, AetLayer& aetLayer, AetObj& aetObj)
 	{
 		ImGui::PushID((void*)&aetObj);
 		{
@@ -255,13 +264,13 @@ namespace Editor
 					SetSelectedItem(&aet, &aetObj);
 			}
 
-			ImGui::ItemContextMenu("AetObjContextMenu##AetInspector", [this, &aetObj]()
+			ImGui::ItemContextMenu("AetObjContextMenu##AetInspector", [this, &aetLayer, &aetObj]()
 			{
-				DrawAetObjContextMenu(aetObj);
+				DrawAetObjContextMenu(aetLayer, aetObj);
 			});
 
 			if (aetObj.Type == AetObjType::Eff && (ImGui::IsItemHovered() || &aetObj == selected.AetObj))
-				hovered.SetItem(aetObj.GetLayer());
+				hovered.SetItem(aetObj.GetReferencedLayer());
 		}
 		ImGui::PopID();
 	}
@@ -300,36 +309,27 @@ namespace Editor
 		ImGui::PopID();
 	}
 
-	bool AetTreeView::DrawAetLayerContextMenu(AetLayer& aetLayer)
+	bool AetTreeView::DrawAetLayerContextMenu(Aet& aet, AetLayer& aetLayer)
 	{
 		ImGui::Text(ICON_AETLAYER "  %s", aetLayer.GetCommaSeparatedNames());
 		ImGui::Separator();
 
-		// TODO:
-		//bool openAddAetObjPopup = ImGui::MenuItem(ICON_ADD "  Add new AetObj...");
-		bool openAddAetObjPopup = false;
-
-		//if (ImGui::MenuItem(ICON_ADD "  Image Object", ICON_AETOBJPIC)) {}
-		//if (ImGui::MenuItem(ICON_ADD "  Layer Object", ICON_AETOBJEFF)) {}
-		//if (ImGui::MenuItem(ICON_ADD "  Sound Effect Object", ICON_AETOBJAIF)) {}
-		//ImGui::Separator();
-
 		if (ImGui::BeginMenu(ICON_ADD "  Add new AetObj..."))
 		{
-			if (ImGui::MenuItem(ICON_AETOBJPIC "  Image")) {}
-			if (ImGui::MenuItem(ICON_AETOBJEFF "  Layer")) {}
-			if (ImGui::MenuItem(ICON_AETOBJAIF "  Sound Effect")) {}
+			if (ImGui::MenuItem(ICON_AETOBJPIC "  Image")) { aetLayer.AddNewObject(AetObjType::Pic, "null.pic"); }
+			if (ImGui::MenuItem(ICON_AETOBJEFF "  Layer")) { aetLayer.AddNewObject(AetObjType::Eff, "null_eff"); }
+			if (ImGui::MenuItem(ICON_AETOBJAIF "  Sound Effect")) { aetLayer.AddNewObject(AetObjType::Aif, "null.aif"); }
 			ImGui::EndMenu();
 		}
 
 		if (ImGui::MenuItem(ICON_MOVEUP "  Move Up")) {}
 		if (ImGui::MenuItem(ICON_MOVEDOWN "  Move Down")) {}
-		if (ImGui::MenuItem(ICON_DELETE "  Delete Layer")) {}
+		if (ImGui::MenuItem(ICON_DELETE "  Delete Layer")) { }
 
-		return openAddAetObjPopup;
+		return false;
 	}
 
-	bool AetTreeView::DrawAetObjContextMenu(AetObj& aetObj)
+	bool AetTreeView::DrawAetObjContextMenu(AetLayer& aetLayer, AetObj& aetObj)
 	{
 		ImGui::Text("%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.GetName().c_str());
 		ImGui::Separator();
@@ -337,7 +337,7 @@ namespace Editor
 		// TODO:
 		if (ImGui::MenuItem(ICON_MOVEUP "  Move Up")) {}
 		if (ImGui::MenuItem(ICON_MOVEDOWN "  Move Down")) {}
-		if (ImGui::MenuItem(ICON_DELETE "  Delete Object")) {}
+		if (ImGui::MenuItem(ICON_DELETE "  Delete Object")) { objToDelete = { &aetLayer, &aetObj }; }
 
 		return false;
 	}

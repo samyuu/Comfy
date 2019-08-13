@@ -38,8 +38,8 @@ namespace Auth2D
 
 		// TODO: render texture mask
 
-		Texture* texture;
-		Sprite* sprite;
+		const Texture* texture;
+		const Sprite* sprite;
 		bool validSprite = GetSprite(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
 
 		if (validSprite)
@@ -76,7 +76,7 @@ namespace Auth2D
 		RenderAetObj(aetObj, (frame >= aetObj->LoopEnd ? aetObj->LoopEnd : frame), position, opacity);
 	}
 
-	bool AetRenderer::SpriteNameSprSetSpriteGetter(SprSet* sprSet, AetSprite* inSprite, Texture** outTexture, Sprite** outSprite)
+	bool AetRenderer::SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite)
 	{
 		if (inSprite == nullptr)
 			return false;
@@ -93,6 +93,7 @@ namespace Auth2D
 		{
 			if (EndsWith(inSprite->Name, sprite.Name))
 			{
+				// temporary
 				inSprite->SpriteCache = &sprite;
 				goto from_sprite_cache;
 			}
@@ -101,7 +102,7 @@ namespace Auth2D
 		return false;
 	}
 
-	bool AetRenderer::GetSprite(AetSprite* inSprite, Texture** outTexture, Sprite** outSprite)
+	bool AetRenderer::GetSprite(const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite)
 	{
 		assert(spriteGetter != nullptr);
 		return (*spriteGetter)(inSprite, outTexture, outSprite);

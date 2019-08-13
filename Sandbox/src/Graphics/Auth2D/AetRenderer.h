@@ -7,7 +7,7 @@
 
 namespace Auth2D
 {
-	typedef std::function<bool(AetSprite* inSprite, Texture** outTexture, Sprite** outSprite)> SpriteGetterFunction;
+	typedef std::function<bool(const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite)> SpriteGetterFunction;
 
 	using namespace FileSystem;
 
@@ -30,10 +30,10 @@ namespace Auth2D
 		void RenderAetObjLooped(const AetObj* aetObj, float frame, const vec2& position = vec2(0, 0), float opacity = 1.0f);
 		void RenderAetObjClamped(const AetObj* aetObj, float frame, const vec2& position = vec2(0, 0), float opacity = 1.0f);
 	
-		static bool SpriteNameSprSetSpriteGetter(SprSet* sprSet, AetSprite* inSprite, Texture** outTexture, Sprite** outSprite);
+		static bool SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite);
 
 	protected:
-		bool GetSprite(AetSprite* inSprite, Texture** outTexture, Sprite** outSprite);
+		bool GetSprite(const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite);
 
 	private:
 		Renderer2D* renderer2D = nullptr;
