@@ -34,15 +34,15 @@ namespace Editor
 		OrthographicCamera camera;
 
 		Auth2D::SpriteGetterFunction spriteGetterFunction;
-		std::unique_ptr<Auth2D::Renderer2D> renderer;
-		std::unique_ptr<Auth2D::AetRenderer> aetRenderer;
+		UniquePtr<Auth2D::Renderer2D> renderer;
+		UniquePtr<Auth2D::AetRenderer> aetRenderer;
 
 		// TODO: ps4_gam
 		FileLoader aetSetLoader = { "dev_rom/2d/aet_gam_cmn.bin" };
 		FileLoader sprSetLoader = { "dev_rom/2d/spr_gam_cmn.bin" };
 
-		std::unique_ptr<AetSet> aetSet;
-		std::unique_ptr<SprSet> sprSet;
+		UniquePtr<AetSet> aetSet;
+		UniquePtr<SprSet> sprSet;
 
 		void RenderBackground();
 

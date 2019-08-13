@@ -7,7 +7,6 @@
 #include "Graphics/Texture.h"
 #include "FileSystem/Format/SprSet.h"
 #include "Input/KeyCode.h"
-#include <memory>
 
 namespace Editor
 {

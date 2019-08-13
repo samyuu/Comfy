@@ -3,7 +3,6 @@
 #include "Misc/StringHelper.h"
 #include <assert.h>
 #include <algorithm>
-#include <memory>
 
 namespace FileSystem
 {

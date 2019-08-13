@@ -41,7 +41,7 @@ namespace Editor
 
 	protected:
 		// TODO: initialize by derived class, each derived class then exposes its own casted getter
-		// std::unique_ptr<ITimelineUnitConverter> unitConverter;
+		// UniquePtr<ITimelineUnitConverter> unitConverter;
 
 		TimeSpan cursorTime;
 

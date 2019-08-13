@@ -26,7 +26,7 @@ namespace App
 		{
 			static_assert(std::is_convertible<T*, Task*>::value);
 
-			tasks.push_back(std::make_shared<T>());
+			tasks.push_back(MakeRefPtr<T>());
 			tasks.back()->Initialize();
 		};
 
@@ -34,13 +34,13 @@ namespace App
 		void OnResize(int width, int height) override;
 
 	protected:
-		std::unique_ptr<Auth2D::Renderer2D> renderer;
-		std::unique_ptr<Auth2D::AetRenderer> aetRenderer;
+		UniquePtr<Auth2D::Renderer2D> renderer;
+		UniquePtr<Auth2D::AetRenderer> aetRenderer;
 
 		OrthographicCamera camera;
 		Editor::CameraController2D cameraController;
 
-		std::vector<std::shared_ptr<Task>> tasks;
+		std::vector<RefPtr<Task>> tasks;
 
 		ImGuiWindow* guiWindow;
 	};

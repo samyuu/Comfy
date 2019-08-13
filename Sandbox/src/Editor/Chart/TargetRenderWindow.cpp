@@ -8,10 +8,10 @@ namespace Editor
 
 	TargetRenderWindow::TargetRenderWindow()
 	{
-		spriteGetterFunction = [this](AetSprite* inSprite, Texture** outTexture, Sprite** outSprite) { return false; };
+		spriteGetterFunction = [this](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite) { return false; };
 
-		renderer = std::make_unique<Renderer2D>();
-		aetRenderer = std::make_unique<AetRenderer>(renderer.get());
+		renderer = MakeUnique<Renderer2D>();
+		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
 		aetRenderer->SetSpriteGetterFunction(&spriteGetterFunction);
 	}
 
@@ -27,7 +27,7 @@ namespace Editor
 
 		sprSetLoader.LoadAsync();
 
-		aetSet = std::make_unique<AetSet>();
+		aetSet = MakeUnique<AetSet>();
 		aetSetLoader.LoadSync();
 		aetSetLoader.Read(aetSet.get());
 		aetSetLoader.FreeData();
@@ -64,13 +64,13 @@ namespace Editor
 			{
 				RenderBackground();
 
-				aetRenderer->RenderAetObj(aetSet->front().GetObj("frame_up_f"), 0.0f);
-				aetRenderer->RenderAetObj(aetSet->front().GetObj("frame_bottom_f"), 0.0f);
-				aetRenderer->RenderAetObj(aetSet->front().GetObj("life_gauge"), 0.0f);
-				aetRenderer->RenderAetObj(aetSet->front().GetObj("song_energy_base_f"), 100.0f);
-				aetRenderer->RenderAetObj(aetSet->front().GetObj("song_icon_loop"), 0.0f);
-				aetRenderer->RenderAetObj(aetSet->front().GetObj("level_info_easy"), 0.0f);
-				aetRenderer->RenderAetObj(aetSet->front().GetObj("song_icon_loop"), 0.0f);
+				aetRenderer->RenderAetObj(aetSet->front()->GetObj("frame_up_f"), 0.0f);
+				aetRenderer->RenderAetObj(aetSet->front()->GetObj("frame_bottom_f"), 0.0f);
+				aetRenderer->RenderAetObj(aetSet->front()->GetObj("life_gauge"), 0.0f);
+				aetRenderer->RenderAetObj(aetSet->front()->GetObj("song_energy_base_f"), 100.0f);
+				aetRenderer->RenderAetObj(aetSet->front()->GetObj("song_icon_loop"), 0.0f);
+				aetRenderer->RenderAetObj(aetSet->front()->GetObj("level_info_easy"), 0.0f);
+				aetRenderer->RenderAetObj(aetSet->front()->GetObj("song_icon_loop"), 0.0f);
 			}
 			renderer->End();
 		}
@@ -99,12 +99,12 @@ namespace Editor
 
 		if (sprSet == nullptr && sprSetLoader.GetIsLoaded())
 		{
-			sprSet = std::make_unique<SprSet>();
+			sprSet = MakeUnique<SprSet>();
 			sprSetLoader.Parse(sprSet.get());
 			sprSet->TxpSet->UploadAll();
 			sprSetLoader.FreeData();
 
-			spriteGetterFunction = [this](AetSprite* inSprite, Texture** outTexture, Sprite** outSprite) { return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite); };
+			spriteGetterFunction = [this](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite) { return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite); };
 			aetRenderer->SetSpriteGetterFunction(&spriteGetterFunction);
 		}
 	}

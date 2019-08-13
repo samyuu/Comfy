@@ -387,16 +387,16 @@ bool Application::InitializeApp()
 	// Base PV Editor
 	// --------------
 	{
-		pvEditor = std::make_unique<Editor::EditorManager>(this);
+		pvEditor = MakeUnique<Editor::EditorManager>(this);
 	}
 	// Data Test Components
 	// --------------------
 	{
 		dataTestComponents.reserve(4);
-		dataTestComponents.push_back(std::make_shared<DataTest::InputTestWindow>(this));
-		dataTestComponents.push_back(std::make_shared<DataTest::AudioTestWindow>(this));
-		dataTestComponents.push_back(std::make_shared<DataTest::IconTestWindow>(this));
-		dataTestComponents.push_back(std::make_shared<DataTest::ShaderTestWindow>(this));
+		dataTestComponents.push_back(MakeRefPtr<DataTest::InputTestWindow>(this));
+		dataTestComponents.push_back(MakeRefPtr<DataTest::AudioTestWindow>(this));
+		dataTestComponents.push_back(MakeRefPtr<DataTest::IconTestWindow>(this));
+		dataTestComponents.push_back(MakeRefPtr<DataTest::ShaderTestWindow>(this));
 	}
 
 	return true;
@@ -683,7 +683,7 @@ void Application::DrawGui()
 void Application::DrawAppEngineWindow()
 {
 	if (appEngine == nullptr)
-		appEngine = std::make_unique<App::Engine>();
+		appEngine = MakeUnique<App::Engine>();
 
 	appEngine->Tick();
 }
@@ -697,7 +697,7 @@ void Application::DrawAppEngineMenus(const char* header)
 	}
 }
 
-void Application::DrawGuiBaseWindowMenus(const char* header, std::vector<std::shared_ptr<BaseWindow>>& components)
+void Application::DrawGuiBaseWindowMenus(const char* header, std::vector<RefPtr<BaseWindow>>& components)
 {
 	if (ImGui::BeginMenu(header))
 	{
@@ -711,7 +711,7 @@ void Application::DrawGuiBaseWindowMenus(const char* header, std::vector<std::sh
 	}
 }
 
-void Application::DrawGuiBaseWindowWindows(std::vector<std::shared_ptr<BaseWindow>>& components)
+void Application::DrawGuiBaseWindowWindows(std::vector<RefPtr<BaseWindow>>& components)
 {
 	for (const auto& component : components)
 	{

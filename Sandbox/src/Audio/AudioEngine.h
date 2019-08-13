@@ -1,13 +1,13 @@
 #pragma once
+#include "Types.h"
 #include "ICallbackReceiver.h"
 #include <RtAudio.h>
 #include <stdint.h>
 #include <algorithm>
 #include <vector>
 #include <array>
-#include <memory>
 
-typedef RtAudio::StreamParameters StreamParameters;
+using StreamParameters = RtAudio::StreamParameters;
 
 class AudioInstance;
 class ISampleProvider;
@@ -55,13 +55,13 @@ public:
 	RtAudio::DeviceInfo GetDeviceInfo(uint32_t device);
 
 	void SetBufferSize(uint32_t bufferSize);
-	void AddAudioInstance(std::shared_ptr<AudioInstance> audioInstance);
+	void AddAudioInstance(RefPtr<AudioInstance> audioInstance);
 	void PlaySound(ISampleProvider* sampleProvider, float volume = MAX_VOLUME, const char* name = nullptr);
 	void ShowControlPanel();
 	void AddCallbackReceiver(ICallbackReceiver* callbackReceiver);
 	void RemoveCallbackReceiver(ICallbackReceiver* callbackReceiver);
 
-	inline RtAudio* GetRtAudio() { return rtAudio; };
+	inline RtAudio* GetRtAudio() { return rtAudio.get(); };
 	inline uint32_t GetChannelCount() { return 2; };
 	inline uint32_t GetSampleRate() { return 44100; };
 	inline uint32_t GetBufferSize() { return bufferSize; };
@@ -92,10 +92,10 @@ private:
 	AudioEngine();
 	~AudioEngine();
 
-	std::vector<std::shared_ptr<AudioInstance>> audioInstances;
+	std::vector<RefPtr<AudioInstance>> audioInstances;
 	std::vector<ICallbackReceiver*> callbackReceivers;
 
-	int16_t* tempOutputBuffer;
+	UniquePtr<int16_t[]> tempOutputBuffer;
 	uint32_t bufferSize = DEFAULT_BUFFER_SIZE;
 
 	bool isStreamOpen = false, isStreamRunning = false;
@@ -106,7 +106,7 @@ private:
 	double callbackStreamTime, lastCallbackStreamTime;
 
 	AudioApi audioApi = AudioApi::Invalid;
-	RtAudio* rtAudio = nullptr;
+	UniquePtr<RtAudio> rtAudio = nullptr;
 
 	StreamParameters streamOutputParameter;
 

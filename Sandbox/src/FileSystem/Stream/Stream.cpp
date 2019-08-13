@@ -1,5 +1,4 @@
 #include "Stream.h"
-#include <memory>
 
 namespace FileSystem
 {

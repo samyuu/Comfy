@@ -1,6 +1,6 @@
 #pragma once
+#include "Types.h"
 #include "FileSystem/FileInterface.h"
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -73,10 +73,10 @@ namespace FileSystem
 	struct Texture
 	{
 		TxpSig Signature;
-		std::vector<std::shared_ptr<MipMap>> MipMaps;
+		std::vector<RefPtr<MipMap>> MipMaps;
 		std::string Name;
 
-		std::shared_ptr<Texture2D> Texture2D;
+		RefPtr<Texture2D> Texture2D;
 		void UploadTexture2D();
 	};
 
@@ -84,7 +84,7 @@ namespace FileSystem
 	{
 	public:
 		TxpSig Signature;
-		std::vector<std::shared_ptr<Texture>> Textures;
+		std::vector<RefPtr<Texture>> Textures;
 
 		virtual void Read(BinaryReader& reader) override;
 		virtual void Parse(const uint8_t* buffer) override;

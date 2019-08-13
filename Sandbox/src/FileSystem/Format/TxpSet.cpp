@@ -25,7 +25,7 @@ namespace FileSystem
 		Textures.reserve(textureCount);
 		for (uint32_t i = 0; i < textureCount; i++)
 		{
-			Textures.push_back(std::make_unique<Texture>());
+			Textures.push_back(MakeUnique<Texture>());
 			Texture* texture = Textures.back().get();
 
 			void* textureAddress = (void*)((int64_t)reader.ReadPtr() + baseAddress);
@@ -45,7 +45,7 @@ namespace FileSystem
 					texture->MipMaps.reserve(mipMapCount);
 					for (uint32_t i = 0; i < mipMapCount; i++)
 					{
-						texture->MipMaps.push_back(std::make_shared<MipMap>());
+						texture->MipMaps.push_back(MakeRefPtr<MipMap>());
 						MipMap* mipMap = texture->MipMaps.back().get();
 
 						mipMap->Signature = ReadTxpSig(reader);
@@ -82,7 +82,7 @@ namespace FileSystem
 		texture->MipMaps.reserve(mipMapCount);
 		for (uint32_t i = 0; i < mipMapCount; i++)
 		{
-			texture->MipMaps.push_back(std::make_shared<MipMap>());
+			texture->MipMaps.push_back(MakeRefPtr<MipMap>());
 			MipMap* mipMap = texture->MipMaps.back().get();
 
 			mipMap->Signature = *(TxpSig*)(mipMapBuffer + 0);
@@ -110,7 +110,7 @@ namespace FileSystem
 		Textures.reserve(textureCount);
 		for (uint32_t i = 0; i < textureCount; i++)
 		{
-			Textures.push_back(std::make_unique<Texture>());
+			Textures.push_back(MakeUnique<Texture>());
 			Texture* texture = Textures.back().get();
 
 			uint32_t offset = offsets[i];
@@ -123,7 +123,7 @@ namespace FileSystem
 		for (int i = 0; i < Textures.size(); i++)
 		{
 			Texture* texture = Textures[i].get();
-			texture->Texture2D = std::make_shared<Texture2D>();
+			texture->Texture2D = MakeRefPtr<Texture2D>();
 			texture->Texture2D->Upload(texture);
 		}
 	}
@@ -132,7 +132,7 @@ namespace FileSystem
 	{
 		assert(Texture2D == nullptr);
 
-		Texture2D = std::make_shared<::Texture2D>();
+		Texture2D = MakeRefPtr<::Texture2D>();
 		Texture2D->Upload(this);
 	}
 }

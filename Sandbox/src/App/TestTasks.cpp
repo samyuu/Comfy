@@ -15,23 +15,23 @@ namespace App
 
 	void Ps4MenuAetData::Initialize(const AetSet* aetSet)
 	{
-		const Aet& mainAet = aetSet->front();
+		const Aet* mainAet = aetSet->front().get();
 
 		AetObjSourceData* objSourcesBegin = reinterpret_cast<AetObjSourceData*>(this);
 		AetObjSourceData* objSourcesEnd = reinterpret_cast<AetObjSourceData*>(this + 1);
 
 		for (AetObjSourceData* objSource = objSourcesBegin; objSource < objSourcesEnd; objSource++)
 		{
-			objSource->Obj = mainAet.GetObj(objSource->Name);
+			objSource->Obj = mainAet->GetObj(objSource->Name);
 			assert(objSource->Obj != nullptr);
 		}
 
-		p_MenuList01_c.Obj = MenuListIn02.Obj->GetLayer()->GetObj(p_MenuList01_c.Name);
-		p_MenuList02_c.Obj = MenuListIn02.Obj->GetLayer()->GetObj(p_MenuList02_c.Name);
-		p_MenuList03_c.Obj = MenuListIn02.Obj->GetLayer()->GetObj(p_MenuList03_c.Name);
-		p_MenuList04_c.Obj = MenuListIn02.Obj->GetLayer()->GetObj(p_MenuList04_c.Name);
-		p_MenuList05_c.Obj = MenuListIn02.Obj->GetLayer()->GetObj(p_MenuList05_c.Name);
-		p_MenuList06_c.Obj = MenuListIn02.Obj->GetLayer()->GetObj(p_MenuList06_c.Name);
+		p_MenuList01_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->GetObj(p_MenuList01_c.Name);
+		p_MenuList02_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->GetObj(p_MenuList02_c.Name);
+		p_MenuList03_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->GetObj(p_MenuList03_c.Name);
+		p_MenuList04_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->GetObj(p_MenuList04_c.Name);
+		p_MenuList05_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->GetObj(p_MenuList05_c.Name);
+		p_MenuList06_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->GetObj(p_MenuList06_c.Name);
 	}
 
 	void TaskPs4Menu::RenderMenuBackground(AetRenderer* aetRenderer, float frame)
@@ -107,7 +107,7 @@ namespace App
 
 	bool TaskPs4Menu::Initialize()
 	{
-		spriteGetterFunction = [this](AetSprite* inSprite, Texture** outTexture, Sprite** outSprite) { return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite); };
+		spriteGetterFunction = [this](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite) { return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite); };
 
 		return true;
 	}
@@ -120,7 +120,7 @@ namespace App
 		{
 			if (aetSet == nullptr && aetSetLoader.GetIsLoaded())
 			{
-				aetSet = std::make_unique<AetSet>();
+				aetSet = MakeUnique<AetSet>();
 
 				aetSetLoader.Read(aetSet.get());
 				aetSetLoader.FreeData();
@@ -133,7 +133,7 @@ namespace App
 
 			if (sprSet == nullptr && sprSetLoader.GetIsLoaded())
 			{
-				sprSet = std::make_unique<SprSet>();
+				sprSet = MakeUnique<SprSet>();
 				sprSetLoader.Parse(sprSet.get());
 				sprSet->TxpSet->UploadAll();
 				sprSetLoader.FreeData();

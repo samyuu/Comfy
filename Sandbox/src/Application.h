@@ -91,8 +91,8 @@ private:
 	void DrawAppEngineWindow();
 	void DrawAppEngineMenus(const char* header);
 
-	void DrawGuiBaseWindowMenus(const char* header, std::vector<std::shared_ptr<BaseWindow>>& components);
-	void DrawGuiBaseWindowWindows(std::vector<std::shared_ptr<BaseWindow>>& components);
+	void DrawGuiBaseWindowMenus(const char* header, std::vector<RefPtr<BaseWindow>>& components);
+	void DrawGuiBaseWindowWindows(std::vector<RefPtr<BaseWindow>>& components);
 
 	// Callbacks
 	// ---------
@@ -154,17 +154,17 @@ private:
 
 	// App Engine
 	// -----------
-	std::unique_ptr<App::Engine> appEngine = nullptr;
+	UniquePtr<App::Engine> appEngine = nullptr;
 	// -----------------
 
 	// Main Editor
 	// -----------
-	std::unique_ptr<Editor::EditorManager> pvEditor = nullptr;
+	UniquePtr<Editor::EditorManager> pvEditor = nullptr;
 	// -----------------
 
 	// Data Test Components
 	// -----------------
-	std::vector<std::shared_ptr<BaseWindow>> dataTestComponents;
+	std::vector<RefPtr<BaseWindow>> dataTestComponents;
 	// -----------------
 
 	static Application* globalCallbackApplication;

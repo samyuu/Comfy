@@ -10,13 +10,13 @@ namespace Editor
 
 	AetEditor::AetEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
-		spriteGetterFunction = [this](AetSprite* inSprite, Texture** outTexture, Sprite** outSprite) { return false; };
+		spriteGetterFunction = [this](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite) { return false; };
 
-		treeView = std::make_unique<AetTreeView>();
-		layerView = std::make_unique<AetLayerView>();
-		inspector = std::make_unique<AetInspector>();
-		timeline = std::make_unique<AetTimeline>();
-		renderWindow = std::make_unique<AetRenderWindow>(&spriteGetterFunction);
+		treeView = MakeUnique<AetTreeView>();
+		layerView = MakeUnique<AetLayerView>();
+		inspector = MakeUnique<AetInspector>();
+		timeline = MakeUnique<AetTimeline>();
+		renderWindow = MakeUnique<AetRenderWindow>(&spriteGetterFunction);
 	}
 
 	AetEditor::~AetEditor()
@@ -117,7 +117,7 @@ namespace Editor
 	{
 		if (sprSetFileLoader != nullptr && sprSetFileLoader->GetIsLoaded())
 		{
-			sprSet = std::make_unique<SprSet>();
+			sprSet = MakeUnique<SprSet>();
 			sprSetFileLoader->Parse(sprSet.get());
 			sprSet->Name = GetFileName(sprSetFileLoader->GetFilePath(), false);
 			sprSet->TxpSet->UploadAll();
@@ -153,7 +153,7 @@ namespace Editor
 		if (!FileExists(widePath))
 			return false;
 
-		aetSet = std::make_unique<AetSet>();
+		aetSet = MakeUnique<AetSet>();
 		aetSet->Name = GetFileName(filePath, false);
 		aetSet->Load(widePath);
 
@@ -169,7 +169,7 @@ namespace Editor
 		if (sprSetFileLoader != nullptr)
 			return false;
 
-		sprSetFileLoader = std::make_unique<FileLoader>(filePath);
+		sprSetFileLoader = MakeUnique<FileLoader>(filePath);
 		sprSetFileLoader->LoadAsync();
 
 		return true;
@@ -185,6 +185,6 @@ namespace Editor
 		if (aetSet != nullptr)
 			aetSet->ClearSpriteCache();
 	
-		spriteGetterFunction = [this](AetSprite* inSprite, Texture** outTexture, Sprite** outSprite) { return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite); };
+		spriteGetterFunction = [this](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite) { return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite); };
 	}
 }

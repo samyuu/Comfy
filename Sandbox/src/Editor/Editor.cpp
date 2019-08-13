@@ -58,9 +58,9 @@ namespace Editor
 	EditorManager::EditorManager(Application* parent) : parent(parent)
 	{
 		editorComponents.reserve(3);
-		editorComponents.push_back(std::move(std::make_unique<ChartEditor>(parent, this)));
-		editorComponents.push_back(std::move(std::make_unique<AetEditor>(parent, this)));
-		editorComponents.push_back(std::move(std::make_unique<SceneRenderWindow>(parent, this)));
+		editorComponents.push_back(std::move(MakeUnique<ChartEditor>(parent, this)));
+		editorComponents.push_back(std::move(MakeUnique<AetEditor>(parent, this)));
+		editorComponents.push_back(std::move(MakeUnique<SceneRenderWindow>(parent, this)));
 	}
 
 	EditorManager::~EditorManager()

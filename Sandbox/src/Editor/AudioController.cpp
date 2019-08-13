@@ -26,7 +26,7 @@ namespace Editor
 
 		for (auto &instance : buttonSoundInstancePool)
 		{
-			instance = std::make_shared<AudioInstance>(nullptr, "AudioController::ButtonSoundInstance");
+			instance = MakeRefPtr<AudioInstance>(nullptr, "AudioController::ButtonSoundInstance");
 			audioEngine->AddAudioInstance(instance);
 		}
 

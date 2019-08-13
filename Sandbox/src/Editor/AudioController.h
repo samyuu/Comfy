@@ -1,9 +1,8 @@
 #pragma once
+#include "TimeSpan.h"
+#include "Audio/AudioInstance.h"
+#include "Audio/MemoryAudioStream.h"
 #include <array>
-#include <memory>
-#include "../TimeSpan.h"
-#include "../Audio/AudioInstance.h"
-#include "../Audio/MemoryAudioStream.h"
 
 namespace Editor
 {
@@ -28,7 +27,7 @@ namespace Editor
 		
 		int buttonSoundIndex = -1;
 		std::vector<MemoryAudioStream> buttonSoundSources;
-		std::array<std::shared_ptr<AudioInstance>, 16> buttonSoundInstancePool;
+		std::array<RefPtr<AudioInstance>, 16> buttonSoundInstancePool;
 
 		void PlayButtonSound(AudioInstance* audioInstance);
 	};

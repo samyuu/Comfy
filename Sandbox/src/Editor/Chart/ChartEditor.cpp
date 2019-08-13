@@ -6,11 +6,11 @@ namespace Editor
 {
 	ChartEditor::ChartEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
-		chart = std::make_unique<Chart>();
+		chart = MakeUnique<Chart>();
 
-		timeline = std::make_unique<TargetTimeline>(this);
-		syncWindow = std::make_unique<SyncWindow>();
-		renderWindow = std::make_unique<TargetRenderWindow>();
+		timeline = MakeUnique<TargetTimeline>(this);
+		syncWindow = MakeUnique<SyncWindow>();
+		renderWindow = MakeUnique<TargetRenderWindow>();
 	}
 
 	ChartEditor::~ChartEditor()
@@ -19,7 +19,7 @@ namespace Editor
 
 	void ChartEditor::Initialize()
 	{
-		songInstance = std::make_shared<AudioInstance>(&dummySampleProvider, "ChartEditor::SongInstance");
+		songInstance = MakeRefPtr<AudioInstance>(&dummySampleProvider, "ChartEditor::SongInstance");
 		songInstance->SetPlayPastEnd(true);
 		songInstance->SetVolume(0.75f);
 
@@ -103,7 +103,7 @@ namespace Editor
 	{
 		TimeSpan playbackTime = GetPlaybackTime();
 		{
-			std::shared_ptr<MemoryAudioStream> newSongStream = std::make_shared<MemoryAudioStream>(filePath);
+			RefPtr<MemoryAudioStream> newSongStream = MakeRefPtr<MemoryAudioStream>(filePath);
 
 			songInstance->SetSampleProvider(newSongStream.get());
 			chart->SetDuration(songInstance->GetDuration());

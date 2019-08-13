@@ -294,6 +294,9 @@
     <ClCompile Include="src\Editor\Timeline\FrameTimeline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\FileSystem\Format\AetSetFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ImGui\imconfig.h">
@@ -627,6 +630,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Timeline\ITimelinePlaybackControllable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SmartPointers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

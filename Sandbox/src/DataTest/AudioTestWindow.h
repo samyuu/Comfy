@@ -22,7 +22,7 @@ namespace DataTest
 		const char* testSongPath = "rom/sound/sngtst.flac";
 
 		MemoryAudioStream songTestStream;
-		std::shared_ptr<AudioInstance> songAudioInstance = nullptr;
+		RefPtr<AudioInstance> songAudioInstance = nullptr;
 
 		MemoryAudioStream testButtonSound;
 		float testButtonVolume = MAX_VOLUME;

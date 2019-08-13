@@ -5,9 +5,9 @@ namespace App
 {
 	EngineRenderWindow::EngineRenderWindow()
 	{
-		renderer = std::make_unique<Auth2D::Renderer2D>();
+		renderer = MakeUnique<Auth2D::Renderer2D>();
 		renderer->Initialize();
-		aetRenderer = std::make_unique<Auth2D::AetRenderer>(renderer.get());
+		aetRenderer = MakeUnique<Auth2D::AetRenderer>(renderer.get());
 
 		StartTask<TaskPs4Menu>();
 	}

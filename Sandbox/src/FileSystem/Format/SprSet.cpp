@@ -24,7 +24,7 @@ namespace FileSystem
 		{
 			reader.ReadAt(txpSetOffset, [&sprSet](BinaryReader& reader)
 			{
-				sprSet->TxpSet = std::make_unique<FileSystem::TxpSet>();
+				sprSet->TxpSet = MakeUnique<FileSystem::TxpSet>();
 				sprSet->TxpSet->Read(reader);
 			});
 		}
@@ -98,7 +98,7 @@ namespace FileSystem
 
 		if (txpSetOffset != 0)
 		{
-			sprSet->TxpSet = std::make_unique<FileSystem::TxpSet>();
+			sprSet->TxpSet = MakeUnique<FileSystem::TxpSet>();
 			sprSet->TxpSet->Parse(buffer + txpSetOffset);
 		}
 

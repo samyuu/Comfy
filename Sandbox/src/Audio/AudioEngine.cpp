@@ -26,19 +26,13 @@ void AudioEngine::Initialize()
 	SetAudioApi(GetDefaultAudioApi());
 
 	audioInstances.reserve(64);
-	tempOutputBuffer = new int16_t[MAX_BUFFER_SIZE * GetChannelCount()];
+	tempOutputBuffer = MakeUnique<int16_t[]>(MAX_BUFFER_SIZE * GetChannelCount());
 }
 
 void AudioEngine::Dispose()
 {
 	if (GetIsStreamOpen())
 		StopStream();
-
-	if (GetRtAudio() != nullptr)
-		delete GetRtAudio();
-
-	if (tempOutputBuffer != nullptr)
-		delete[] tempOutputBuffer;
 }
 
 void AudioEngine::SetAudioApi(AudioApi audioApi)
@@ -52,10 +46,7 @@ void AudioEngine::SetAudioApi(AudioApi audioApi)
 	if (GetIsStreamOpen())
 		CloseStream();
 
-	if (GetRtAudio() != nullptr)
-		delete GetRtAudio();
-
-	rtAudio = new RtAudio(GetRtAudioApi(audioApi));
+	rtAudio = MakeUnique<RtAudio>(GetRtAudioApi(audioApi));
 
 	if (wasStreamRunning)
 	{
@@ -238,7 +229,7 @@ AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, ui
 				continue;
 		}
 
-		int64_t samplesRead = audioInstance->GetSampleProvider()->ReadSamples(tempOutputBuffer, audioInstance->GetSamplePosition(), samplesInBuffer);
+		int64_t samplesRead = audioInstance->GetSampleProvider()->ReadSamples(tempOutputBuffer.get(), audioInstance->GetSamplePosition(), samplesInBuffer);
 		audioInstance->IncrementSamplePosition(samplesRead);
 
 		if (!audioInstance->GetPlayPastEnd() && audioInstance->GetHasReachedEnd())
@@ -287,7 +278,7 @@ void AudioEngine::SetBufferSize(uint32_t bufferSize)
 		StartStream();
 }
 
-void AudioEngine::AddAudioInstance(std::shared_ptr<AudioInstance> audioInstance)
+void AudioEngine::AddAudioInstance(RefPtr<AudioInstance> audioInstance)
 {
 	bool unique = true;
 	for (const auto &instance : audioInstances)
@@ -307,7 +298,7 @@ void AudioEngine::AddAudioInstance(std::shared_ptr<AudioInstance> audioInstance)
 
 void AudioEngine::PlaySound(ISampleProvider* sampleProvider, float volume, const char* name)
 {
-	AddAudioInstance(std::make_shared<AudioInstance>(sampleProvider, true, AudioFinishedAction::Remove, volume, name));
+	AddAudioInstance(MakeRefPtr<AudioInstance>(sampleProvider, true, AudioFinishedAction::Remove, volume, name));
 }
 
 void AudioEngine::ShowControlPanel()

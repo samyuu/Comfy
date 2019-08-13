@@ -5,7 +5,6 @@
 #include "FileSystem/Format/AetSet.h"
 #include "FileSystem/Format/SprSet.h"
 #include "FileSystem/FileLoader.h"
-#include <memory>
 
 namespace App
 {
@@ -112,8 +111,8 @@ namespace App
 		FileLoader aetSetLoader = { "dev_ram/aetset/aet_ps4_menu.bin" };
 		FileLoader sprSetLoader = { "dev_ram/sprset/spr_ps4_menu.bin" };
 
-		std::unique_ptr<AetSet> aetSet;
-		std::unique_ptr<SprSet> sprSet;
+		UniquePtr<AetSet> aetSet;
+		UniquePtr<SprSet> sprSet;
 
 		float elapsedFrames;
 		Ps4MenuAetData aetData;

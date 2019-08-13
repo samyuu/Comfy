@@ -37,7 +37,7 @@ namespace FileSystem
 	public:
 		std::string Name;
 		uint32_t Signature;
-		std::unique_ptr<TxpSet> TxpSet;
+		UniquePtr<TxpSet> TxpSet;
 		std::vector<Sprite> Sprites;
 
 		virtual void Read(BinaryReader& reader) override;

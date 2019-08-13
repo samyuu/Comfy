@@ -4,7 +4,6 @@
 #include "Audio/MemoryAudioStream.h"
 #include "Audio/AudioInstance.h"
 #include <vector>
-#include <memory>
 #include <string>
 
 class Application;
@@ -31,7 +30,7 @@ namespace Editor
 		// -------------
 		Application* parent;
 
-		std::vector<std::unique_ptr<IEditorComponent>> editorComponents;
+		std::vector<UniquePtr<IEditorComponent>> editorComponents;
 		bool initialized = false;
 		// -------------
 

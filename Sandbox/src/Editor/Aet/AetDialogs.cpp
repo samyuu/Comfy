@@ -34,26 +34,26 @@ namespace Editor
 
 					for (int32_t i = 0; i < aet->AetRegions.size(); i++)
 					{
-						AetRegion& region = aet->AetRegions[i];
+						RefPtr<AetRegion>& region = aet->AetRegions[i];
 
 						PushID(&region);
 						if (Selectable("##AetRegion", i == newRegionIndex, ImGuiSelectableFlags_SpanAllColumns))
 							newRegionIndex = i;
 
 						SameLine();
-						Text("Region: %dx%d", region.Width, region.Height);
+						Text("Region: %dx%d", region->Width, region->Height);
 
 						NextColumn();
-						if (region.SpriteSize() > 0)
+						if (region->SpriteSize() > 0)
 						{
-							Text(ICON_AETREGION "  %s", region.GetFrontSprite()->Name.c_str());
+							Text(ICON_AETREGION "  %s", region->GetFrontSprite()->Name.c_str());
 
-							if (region.SpriteSize() > 1)
+							if (region->SpriteSize() > 1)
 							{
 								SameLine();
 								Text("...");
 								SameLine();
-								Text(region.GetBackSprite()->Name.c_str());
+								Text(region->GetBackSprite()->Name.c_str());
 							}
 						}
 						else

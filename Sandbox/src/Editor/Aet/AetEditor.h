@@ -11,7 +11,6 @@
 #include "FileSystem/Format/AetSet.h"
 #include "FileSystem/FileLoader.h"
 #include "ImGui/Widgets/FileViewer.h"
-#include <memory>
 
 namespace Editor
 {
@@ -35,21 +34,21 @@ namespace Editor
 	private:
 		SpriteGetterFunction spriteGetterFunction;
 
-		std::unique_ptr<FileLoader> sprSetFileLoader;
+		UniquePtr<FileLoader> sprSetFileLoader;
 
 		ImGui::FileViewer aetFileViewer = { "dev_ram/aetset/" };
 		ImGui::FileViewer sprFileViewer = { "dev_ram/sprset/" };
 
-		std::unique_ptr<AetTreeView> treeView;
-		std::unique_ptr<AetLayerView> layerView;
-		std::unique_ptr<AetInspector> inspector;
-		std::unique_ptr<AetTimeline> timeline;
-		std::unique_ptr<AetRenderWindow> renderWindow;
+		UniquePtr<AetTreeView> treeView;
+		UniquePtr<AetLayerView> layerView;
+		UniquePtr<AetInspector> inspector;
+		UniquePtr<AetTimeline> timeline;
+		UniquePtr<AetRenderWindow> renderWindow;
 
 		struct
 		{
-			std::unique_ptr<AetSet> aetSet;
-			std::unique_ptr<SprSet> sprSet;
+			UniquePtr<AetSet> aetSet;
+			UniquePtr<SprSet> sprSet;
 		};
 
 		Properties currentProperties;

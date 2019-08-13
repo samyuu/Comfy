@@ -4,7 +4,6 @@
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
 #include <sstream>
-#include <memory>
 
 namespace DataTest
 {
@@ -202,7 +201,7 @@ namespace DataTest
 				if (songAudioInstance != nullptr)
 					songAudioInstance->SetAppendRemove(true);
 
-				songAudioInstance = std::make_shared<AudioInstance>(&songTestStream, true, "AudioTestWindow::TestSongInstance");
+				songAudioInstance = MakeRefPtr<AudioInstance>(&songTestStream, true, "AudioTestWindow::TestSongInstance");
 				engine->AddAudioInstance(songAudioInstance);
 			}
 
