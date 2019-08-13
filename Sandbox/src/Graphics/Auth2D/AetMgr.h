@@ -35,7 +35,7 @@ namespace Auth2D
 		{
 			Properties Properties;
 			int32_t SpriteIndex;
-			AetRegion* Region;
+			const AetRegion* Region;
 			AetBlendMode BlendMode;
 			const AetObj* AetObj;
 			bool UseTextureMask;
@@ -45,10 +45,10 @@ namespace Auth2D
 		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, const AetLayer* aetLayer, float frame);
 		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, const AetObj* aetObj, float frame);
 
-		static float Interpolate(const std::vector<KeyFrame>& keyFrames, float frame);
+		static float Interpolate(const std::vector<AetKeyFrame>& keyFrames, float frame);
 		static void Interpolate(const AnimationData* animationData, Properties* properties, float frame);
 
-		static KeyFrame* GetKeyFrameAt(KeyFrameCollection& keyFrames, float frame);
+		static AetKeyFrame* GetKeyFrameAt(KeyFrameCollection& keyFrames, float frame);
 
 	private:
 		static void InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame);

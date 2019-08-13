@@ -18,40 +18,7 @@ namespace Auth2D
 
 	static void TransformProperties(const Properties& input, Properties& output)
 	{
-		// TODO:
-
-		/*
-		//output.Position -= input.Origin;
-
-		output.Position *= input.Scale;
-		output.Scale *= input.Scale;
-
-		vec2 origin = input.Origin * input.Scale;
-
-		//if (input.Rotation != 0.0f)
-		{
-			float radians = glm::radians(input.Rotation);
-			float sin = glm::sin(radians);
-			float cos = glm::cos(radians);
-
-			output.Position.x += origin.x * cos - origin.y * sin;
-			output.Position.y += origin.x * sin + origin.y * cos;
-
-			// output.Position -= input.Origin;
-			// output.Position.x = output.Position.x * cos - output.Position.y * sin;
-			// output.Position.y = output.Position.x * sin + output.Position.y * cos;
-			// output.Position += input.Origin;
-		}
-
-		//output.Position += input.Origin;
-		output.Position += input.Position;
-
-		output.Rotation += input.Rotation;
-		output.Opacity *= input.Opacity;
-		*/
-
 		output.Position -= input.Origin;
-		output.Position *= input.Scale;
 
 		if (input.Rotation != 0.0f)
 		{
@@ -63,18 +30,18 @@ namespace Auth2D
 			output.Position.y = output.Position.x * sin + output.Position.y * cos;
 		}
 
+		output.Position *= input.Scale;
 		output.Position += input.Position;
 
-
-		output.Scale *= input.Scale;
 		output.Rotation += input.Rotation;
+		output.Scale *= input.Scale;
 		output.Opacity *= input.Opacity;
 	}
 
 	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetLayer* aetLayer, float frame)
 	{
-		for (int i = static_cast<int>(aetLayer->size() - 1); i >= 0; i--)
-			GetAddObjects(objects, &aetLayer->at(i), frame);
+		for (int i = static_cast<int>(aetLayer->size()) - 1; i >= 0; i--)
+			GetAddObjects(objects, aetLayer->GetObjAt(i), frame);
 	}
 
 	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetObj* aetObj, float frame)
@@ -83,7 +50,7 @@ namespace Auth2D
 		InternalAddObjects(objects, &propreties, aetObj, frame);
 	}
 
-	float AetMgr::Interpolate(const std::vector<KeyFrame>& keyFrames, float frame)
+	float AetMgr::Interpolate(const std::vector<AetKeyFrame>& keyFrames, float frame)
 	{
 		if (keyFrames.size() <= 0)
 			return 0.0f;
@@ -97,8 +64,8 @@ namespace Auth2D
 		if (frame >= last.Frame)
 			return last.Value;
 
-		const KeyFrame* start = &keyFrames[0];
-		const KeyFrame* end = nullptr;
+		const AetKeyFrame* start = &keyFrames[0];
+		const AetKeyFrame* end = nullptr;
 
 		for (int i = 1; i < keyFrames.size(); i++)
 		{
@@ -128,7 +95,7 @@ namespace Auth2D
 		}
 	}
 
-	KeyFrame* AetMgr::GetKeyFrameAt(KeyFrameCollection& keyFrames, float frame)
+	AetKeyFrame* AetMgr::GetKeyFrameAt(KeyFrameCollection& keyFrames, float frame)
 	{
 		for (auto& keyFrame : keyFrames)
 		{
@@ -164,10 +131,10 @@ namespace Auth2D
 		ObjCache& objCache = objects.back();
 		
 		objCache.AetObj = aetObj;
-		objCache.Region = aetObj->GetRegion();
+		objCache.Region = aetObj->GetReferencedRegion();
 		objCache.BlendMode = aetObj->AnimationData->BlendMode;
 		objCache.UseTextureMask = aetObj->AnimationData->UseTextureMask;
-		objCache.Visible = aetObj->Flags & AetObjFlags_Visible;
+		objCache.Visible = aetObj->Flags.Visible;
 
 		if (objCache.Region != nullptr)
 		{
@@ -181,16 +148,16 @@ namespace Auth2D
 
 		Interpolate(aetObj->AnimationData.get(), &objCache.Properties, adjustedFrame);
 
-		AetObj* parent = aetObj->GetParentObj();
+		const AetObj* parent = aetObj->GetReferebcedParentObj();
 		if (parent != nullptr)
 		{
 			// TODO:
 			Properties objParentProperties;
 			Interpolate(parent->AnimationData.get(), &objParentProperties, adjustedFrame);
 
-			//objCache.Properties.Origin += objParentProperties.Origin;
+			objCache.Properties.Origin += objParentProperties.Origin;
 			objCache.Properties.Position += objParentProperties.Position;
-			objCache.Properties.Position -= objParentProperties.Origin;
+			//objCache.Properties.Position -= objParentProperties.Origin;
 			objCache.Properties.Rotation += objParentProperties.Rotation;
 			objCache.Properties.Scale *= objParentProperties.Scale;
 			objCache.Properties.Opacity *= objParentProperties.Opacity;
@@ -204,7 +171,7 @@ namespace Auth2D
 	{
 		assert(aetObj->Type == AetObjType::Eff);
 
-		if (frame < aetObj->LoopStart || frame >= aetObj->LoopEnd || !(aetObj->Flags & AetObjFlags_Visible))
+		if (frame < aetObj->LoopStart || frame >= aetObj->LoopEnd || !aetObj->Flags.Visible)
 			return;
 
 		float adjustedFrame = ((frame - aetObj->LoopStart) * aetObj->PlaybackSpeed) + aetObj->StartFrame;
@@ -213,12 +180,12 @@ namespace Auth2D
 		Interpolate(aetObj->AnimationData.get(), &effProperties, adjustedFrame);
 		TransformProperties(*parentProperties, effProperties);
 
-		AetLayer* aetLayer = aetObj->GetLayer();
+		const AetLayer* aetLayer = aetObj->GetReferencedLayer();
 
 		if (aetLayer == nullptr)
 			return;
 
-		for (int i = static_cast<int>(aetLayer->size() - 1); i >= 0; i--)
-			InternalAddObjects(objects, &effProperties, &aetLayer->at(i), adjustedFrame);
+		for (int i = static_cast<int>(aetLayer->size()) - 1; i >= 0; i--)
+			InternalAddObjects(objects, &effProperties, aetLayer->GetObjAt(i), adjustedFrame);
 	}
 }

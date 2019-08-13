@@ -127,7 +127,7 @@ namespace Auth2D
 		bool enableAlphaTest = true;
 		bool useTextShadow = false;
 
-		std::unique_ptr<SpriteShader> shader;
+		UniquePtr<SpriteShader> shader;
 
 		VertexArray vertexArray;
 		VertexBuffer vertexBuffer = { BufferUsage::StreamDraw };
