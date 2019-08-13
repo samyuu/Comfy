@@ -1,7 +1,6 @@
 #pragma once
 #include "Types.h"
 #include "FileSystem/FileInterface.h"
-#include <memory>
 #include <vector>
 #include <array>
 
@@ -16,10 +15,10 @@ namespace FileSystem
 
 	enum class AetObjType : uint8_t
 	{
-		Nop = 0,
-		Pic = 1,
-		Aif = 2,
-		Eff = 3,
+		Nop = 0, // none
+		Pic = 1, // image
+		Aif = 2, // sound
+		Eff = 3, // layer
 	};
 
 	enum class AetBlendMode : uint8_t
@@ -40,7 +39,7 @@ namespace FileSystem
 	{
 		std::string Name;
 		uint32_t ID;
-		Sprite* SpriteCache;
+		mutable const Sprite* SpriteCache;
 	};
 
 	using SpriteCollection = std::vector<AetSprite>;
@@ -52,12 +51,20 @@ namespace FileSystem
 		friend class Aet;
 
 	public:
+		AetRegion() = default;
+		AetRegion(AetRegion& other) = delete;
+		AetRegion& operator= (AetRegion& other) = delete;
+		~AetRegion() = default;
+
+	public:
 		uint32_t Color;
 		int16_t Width;
 		int16_t Height;
 		frame_t Frames;
 
 		AetSprite* GetSprite(int32_t index);
+		const AetSprite* GetSprite(int32_t index) const;
+
 		AetSprite* GetFrontSprite();
 		AetSprite* GetBackSprite();
 
@@ -70,23 +77,30 @@ namespace FileSystem
 		fileptr_t filePosition;
 	};
 
-	struct Marker
+	struct AetMarker
 	{
+		AetMarker();
+		AetMarker(frame_t frame, const std::string& name);
+
 		frame_t Frame;
 		std::string Name;
-
-		Marker();
-		Marker(frame_t frame, const std::string& name);
 	};
 
-	struct KeyFrame
+	struct AetKeyFrame
 	{
+		AetKeyFrame();
+		AetKeyFrame(float value);
+		AetKeyFrame(frame_t frame, float value, float interpolation);
+		AetKeyFrame(const AetKeyFrame& other) = default;
+		AetKeyFrame& operator= (const AetKeyFrame& other) = default;
+		~AetKeyFrame() = default;
+
 		frame_t Frame;
 		float Value;
 		float Interpolation;
 	};
 
-	using KeyFrameCollection = std::vector<KeyFrame>;
+	using KeyFrameCollection = std::vector<AetKeyFrame>;
 	using KeyFrameCollectionArray = std::array<KeyFrameCollection, 8>;
 	using KeyFrameCollectionArrayIterator = KeyFrameCollectionArray::iterator;
 	using ConstKeyFrameCollectionArrayIterator = KeyFrameCollectionArray::const_iterator;
@@ -97,26 +111,26 @@ namespace FileSystem
 
 		KeyFrameCollectionArray KeyFrames;
 
-		inline KeyFrameCollection& OriginX()	{ return KeyFrames[0]; };
-		inline KeyFrameCollection& OriginY()	{ return KeyFrames[1]; };
-		inline KeyFrameCollection& PositionX()	{ return KeyFrames[2]; };
-		inline KeyFrameCollection& PositionY()	{ return KeyFrames[3]; };
-		inline KeyFrameCollection& Rotation()	{ return KeyFrames[4]; };
-		inline KeyFrameCollection& ScaleX()		{ return KeyFrames[5]; };
-		inline KeyFrameCollection& ScaleY()		{ return KeyFrames[6]; };
-		inline KeyFrameCollection& Opacity()	{ return KeyFrames[7]; };
+		inline KeyFrameCollection& OriginX() { return KeyFrames[0]; };
+		inline KeyFrameCollection& OriginY() { return KeyFrames[1]; };
+		inline KeyFrameCollection& PositionX() { return KeyFrames[2]; };
+		inline KeyFrameCollection& PositionY() { return KeyFrames[3]; };
+		inline KeyFrameCollection& Rotation() { return KeyFrames[4]; };
+		inline KeyFrameCollection& ScaleX() { return KeyFrames[5]; };
+		inline KeyFrameCollection& ScaleY() { return KeyFrames[6]; };
+		inline KeyFrameCollection& Opacity() { return KeyFrames[7]; };
 
-		KeyFrameCollectionArrayIterator begin()				{ return KeyFrames.begin(); };
-		KeyFrameCollectionArrayIterator end()				{ return KeyFrames.end(); };
-		ConstKeyFrameCollectionArrayIterator begin() const	{ return KeyFrames.begin(); }
-		ConstKeyFrameCollectionArrayIterator end() const	{ return KeyFrames.end(); }
+		KeyFrameCollectionArrayIterator begin() { return KeyFrames.begin(); };
+		KeyFrameCollectionArrayIterator end() { return KeyFrames.end(); };
+		ConstKeyFrameCollectionArrayIterator begin() const { return KeyFrames.begin(); }
+		ConstKeyFrameCollectionArrayIterator end() const { return KeyFrames.end(); }
 		ConstKeyFrameCollectionArrayIterator cbegin() const { return KeyFrames.cbegin(); }
-		ConstKeyFrameCollectionArrayIterator cend() const	{ return KeyFrames.cend(); }
+		ConstKeyFrameCollectionArrayIterator cend() const { return KeyFrames.cend(); }
 
-		inline constexpr size_t size() const					{ return KeyFrames.size(); };
-		inline KeyFrameCollection& at(size_t index)				{ return KeyFrames.at(index); };
-		inline const KeyFrameCollection& at(size_t index) const	{ return KeyFrames.at(index); };
-		inline KeyFrameCollection& operator[] (size_t index)	{ return KeyFrames[index]; };
+		inline constexpr size_t size() const { return KeyFrames.size(); };
+		inline KeyFrameCollection& at(size_t index) { return KeyFrames.at(index); };
+		inline const KeyFrameCollection& at(size_t index) const { return KeyFrames.at(index); };
+		inline KeyFrameCollection& operator[] (size_t index) { return KeyFrames[index]; };
 	};
 
 	struct AnimationData
@@ -125,7 +139,7 @@ namespace FileSystem
 		bool UseTextureMask;
 
 		KeyFrameProperties Properties;
-		std::shared_ptr<KeyFrameProperties> PerspectiveProperties;
+		RefPtr<KeyFrameProperties> PerspectiveProperties;
 	};
 
 	union AetObjFlags
@@ -146,9 +160,12 @@ namespace FileSystem
 	public:
 		static std::array<const char*, 4> TypeNames;
 
+	public:
 		AetObj();
-		AetObj(AetObjType type, const char* name, Aet* parent);
-		~AetObj();
+		AetObj(AetObjType type, const std::string& name, AetLayer* parentLayer);
+		AetObj(AetObj& other) = delete;
+		AetObj& operator= (AetObj& other) = delete;
+		~AetObj() = default;
 
 		frame_t LoopStart;
 		frame_t LoopEnd;
@@ -159,53 +176,57 @@ namespace FileSystem
 		unk8_t TypePaddingByte;
 		AetObjType Type;
 
-		std::vector<Marker> Markers;
-		std::shared_ptr<AnimationData> AnimationData;
+		std::vector<AetMarker> Markers;
+		RefPtr<AnimationData> AnimationData;
 
 		const std::string& GetName() const;
 		void SetName(const char* value);
 		void SetName(const std::string& value);
 
-		AetRegion* GetRegion() const;
-		void SetRegion(const AetRegion* value);
-		
-		AetSoundEffect* GetSoundEffect() const;
-		
-		AetLayer* GetLayer() const;
-		void SetLayer(const AetLayer* value);
-		
-		AetObj* GetParentObj() const;
-		AetLayer* GetParentObjLayer() const;
-		void SetParentObj(const AetObj* value);
+		AetRegion* GetReferencedRegion();
+		const AetRegion* GetReferencedRegion() const;
+		void SetReferencedRegion(const RefPtr<AetRegion>& value);
+
+		AetSoundEffect* GetReferencedSoundEffect();
+		const AetSoundEffect* GetReferencedSoundEffect() const;
+		void SetReferencedSoundEffect(const RefPtr<AetSoundEffect>& value);
+
+		AetLayer* GetReferencedLayer();
+		const AetLayer* GetReferencedLayer() const;
+		void SetReferencedLayer(const RefPtr<AetLayer>& value);
+
+		AetObj* GetReferebcedParentObj();
+		const AetObj* GetReferebcedParentObj() const;
+		void SetParentObj(const RefPtr<AetObj>& value);
 
 	public:
-		inline int32_t GetParentObjIndex() { return references.ParentObjIndex; };
-		inline int32_t GetParentObjLayerIndex() { return references.ParentLayerIndex; };
+		Aet* GetParentAet();
+		const Aet* GetParentAet() const;
+
+		AetLayer* GetParentLayer();
+		const AetLayer* GetParentLayer() const;
 
 	private:
 		std::string name;
-		Aet* parentAet;
 
-		struct
+		AetLayer* parentLayer;
+
+		struct AetObjReferenceData
 		{
-			int32_t RegionIndex = -1;
-			int32_t SoundEffectIndex = -1;
-			int32_t LayerIndex = -1;
-
-			int32_t ParentLayerIndex = -1;
-			int32_t ParentObjIndex = -1;
-
+			RefPtr<AetRegion> Region;
+			RefPtr<AetSoundEffect> SoundEffect;
+			RefPtr<AetLayer> Layer;
+			RefPtr<AetObj> ParentObj;
 		} references;
 
 		fileptr_t filePosition;
 		fileptr_t dataFilePtr;
 		fileptr_t parentFilePtr;
-		//fileptr_t unknownFilePtr;
 
 		void Read(BinaryReader& reader);
 	};
-	
-	using AetObjCollection = std::vector<AetObj>;
+
+	using AetObjCollection = std::vector<RefPtr<AetObj>>;
 	using AetObjIterator = AetObjCollection::iterator;
 	using ConstAetObjIterator = AetObjCollection::const_iterator;
 
@@ -214,39 +235,56 @@ namespace FileSystem
 		friend class Aet;
 
 	public:
+		AetLayer() = default;
+		AetLayer(AetLayer& other) = delete;
+		AetLayer& operator= (AetLayer& other) = delete;
+		~AetLayer() = default;
+
+	public:
 		inline int32_t GetThisIndex() const { return thisIndex; };
+		inline Aet* GetParentAet() { return parentAet; };
 
-		AetObjIterator begin()				{ return objects.begin(); }
-		AetObjIterator end()				{ return objects.end(); }
-		ConstAetObjIterator begin() const	{ return objects.begin(); }
-		ConstAetObjIterator end() const		{ return objects.end(); }
-		ConstAetObjIterator cbegin() const	{ return objects.cbegin(); }
-		ConstAetObjIterator cend() const	{ return objects.cend(); }
-		AetObj& front()						{ return objects.front(); }
-		AetObj& back()						{ return objects.back(); }
-		const AetObj& front() const			{ return objects.front(); }
-		const AetObj& back() const			{ return objects.back(); }
+		AetObjIterator begin() { return objects.begin(); }
+		AetObjIterator end() { return objects.end(); }
+		ConstAetObjIterator begin() const { return objects.begin(); }
+		ConstAetObjIterator end() const { return objects.end(); }
+		ConstAetObjIterator cbegin() const { return objects.cbegin(); }
+		ConstAetObjIterator cend() const { return objects.cend(); }
 
-		inline void resize(size_t newSize)					 { objects.resize(newSize); };
-		inline void reserve(size_t newCapacity)				 { objects.reserve(newCapacity); };
-		inline size_t size() const							 { return objects.size(); };
-		inline AetObj& at(size_t index)						 { return objects.at(index); };
-		inline const AetObj& at(size_t index) const			 { return objects.at(index); };
-		inline AetObj& operator[] (size_t index)			 { return objects[index]; };
-		inline const AetObj& operator[] (size_t index) const { return objects[index]; };
+		RefPtr<AetObj>& front() { return objects.front(); }
+		RefPtr<AetObj>& back() { return objects.back(); }
+		const RefPtr<AetObj>& front() const { return objects.front(); }
+		const RefPtr<AetObj>& back() const { return objects.back(); }
+
+		inline void resize(size_t newSize) { objects.resize(newSize); };
+		inline void reserve(size_t newCapacity) { objects.reserve(newCapacity); };
+		inline size_t size() const { return objects.size(); };
+
+		inline RefPtr<AetObj>& at(size_t index) { return objects.at(index); };
+		inline RefPtr<AetObj>& operator[] (size_t index) { return objects[index]; };
+
+	public:
+		inline AetObj* GetObjAt(int index) { return objects.at(index).get(); };
+		inline const AetObj* GetObjAt(int index) const { return objects[index].get(); };
 
 		AetObj* GetObj(const std::string& name);
+		const AetObj* GetObj(const std::string& name) const;
 
 		const std::vector<std::string>& GetGivenNames() const;
 		const char* GetCommaSeparatedNames() const;
+
+	public:
+		void AddNewObject(AetObjType type, const std::string& name);
+		void DeleteObject(AetObj* object);
 
 	private:
 		std::vector<std::string> givenNames;
 		std::string commaSeparatedNames;
 
+		Aet* parentAet;
 		int32_t thisIndex;
 		fileptr_t filePosition;
-	
+
 		AetObjCollection objects;
 	};
 
@@ -261,6 +299,12 @@ namespace FileSystem
 		friend class Aet;
 
 	public:
+		AetSoundEffect() = default;
+		AetSoundEffect(AetSoundEffect& other) = delete;
+		AetSoundEffect& operator= (AetSoundEffect& other) = delete;
+		~AetSoundEffect() = default;
+
+	public:
 		unk32_t Data[4];
 
 	private:
@@ -273,6 +317,12 @@ namespace FileSystem
 		friend class AetObj;
 
 	public:
+		Aet() = default;
+		Aet(Aet& other) = delete;
+		Aet& operator= (Aet& other) = delete;
+		~Aet() = default;
+
+	public:
 		std::string Name;
 		frame_t FrameStart;
 		frame_t FrameDuration;
@@ -281,60 +331,76 @@ namespace FileSystem
 
 		int32_t Width;
 		int32_t Height;
-		std::shared_ptr<FileSystem::PositionOffset> PositionOffset;
+		RefPtr<PositionOffset> PositionOffset;
 
-		std::vector<AetLayer> AetLayers;
-		std::vector<AetRegion> AetRegions;
-		std::vector<AetSoundEffect> AetSoundEffects;
+		std::vector<RefPtr<AetLayer>> AetLayers;
+		std::vector<RefPtr<AetRegion>> AetRegions;
+		std::vector<RefPtr<AetSoundEffect>> AetSoundEffects;
 
+	public:
 		AetLayer* GetRootLayer();
 
 		AetObj* GetObj(const std::string& name);
 		const AetObj* GetObj(const std::string& name) const;
 		int32_t GetObjIndex(AetLayer& layer, const std::string& name) const;
-		inline int32_t GetThisIndex() const { return thisIndex; };
+
+	public:
+		void UpdateParentPointers();
 
 	private:
-		int32_t thisIndex;
-
 		void Read(BinaryReader& reader);
 		void Write(BinaryWriter& writer);
 
-		void UpdateLayerNames();
-		void LinkPostRead();
-		void FindObjReferencedRegion(AetObj* aetObj);
-		void FindObjReferencedSoundEffect(AetObj* aetObj);
-		void FindObjReferencedLayer(AetObj* aetObj);
-		void FindObjReferencedParent(AetObj* aetObj);
+	private:
+		void InternalUpdateLayerNames();
+		void InternalLinkPostRead();
+		void InternalFindObjReferencedRegion(AetObj* aetObj);
+		void InternalFindObjReferencedSoundEffect(AetObj* aetObj);
+		void InternalFindObjReferencedLayer(AetObj* aetObj);
+		void InternalFindObjReferencedParent(AetObj* aetObj);
 	};
 
-	using AetCollection = std::vector<Aet>;
+	using AetCollection = std::vector<RefPtr<Aet>>;
 	using AetIterator = AetCollection::iterator;
 	using ConstAetIterator = AetCollection::const_iterator;
 
 	class AetSet : public IBinaryFile
 	{
 	public:
+		AetSet() = default;
+		AetSet(AetSet& other) = delete;
+		AetSet& operator= (AetSet& other) = delete;
+		~AetSet() = default;
+
+	public:
 		std::string Name;
 
-		AetIterator begin()				{ return aets.begin(); }
-		AetIterator end()				{ return aets.end(); }
-		ConstAetIterator begin() const	{ return aets.begin(); }
-		ConstAetIterator end() const	{ return aets.end(); }
+		AetIterator begin() { return aets.begin(); }
+		AetIterator end() { return aets.end(); }
+		ConstAetIterator begin() const { return aets.begin(); }
+		ConstAetIterator end() const { return aets.end(); }
 		ConstAetIterator cbegin() const { return aets.cbegin(); }
-		ConstAetIterator cend() const	{ return aets.cend(); }
-		Aet& front()					{ return aets.front(); }
-		Aet& back()						{ return aets.back(); }
-		const Aet& front() const		{ return aets.front(); }
-		const Aet& back() const			{ return aets.back(); }
+		ConstAetIterator cend() const { return aets.cend(); }
 
-		inline void resize(size_t newSize)		{ aets.resize(newSize); };
+		RefPtr<Aet>& front() { return aets.front(); }
+		RefPtr<Aet>& back() { return aets.back(); }
+		const RefPtr<Aet>& front() const { return aets.front(); }
+		const RefPtr<Aet>& back() const { return aets.back(); }
+
+		inline void resize(size_t newSize) { aets.resize(newSize); };
 		inline void reserve(size_t newCapacity) { aets.reserve(newCapacity); };
-		inline size_t size() const				{ return aets.size(); };
-		inline Aet& at(size_t index)			{ return aets.at(index); };
-		inline Aet& operator[] (size_t index)	{ return aets[index]; };
+		inline size_t size() const { return aets.size(); };
 
+		inline RefPtr<Aet>& at(size_t index) { return aets.at(index); };
+		inline RefPtr<Aet>& operator[] (size_t index) { return aets[index]; };
+
+		inline Aet* GetAetAt(int index) { return aets.at(index).get(); };
+		inline const Aet* GetAetAt(int index) const { return aets[index].get(); };
+
+	public:
 		void ClearSpriteCache();
+
+	public:
 		virtual void Read(BinaryReader& reader) override;
 		virtual void Write(BinaryWriter& writer) override;
 

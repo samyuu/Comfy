@@ -1,6 +1,4 @@
 #include "AetSet.h"
-#include "FileSystem/BinaryReader.h"
-#include "FileSystem/BinaryWriter.h"
 #include <assert.h>
 
 namespace FileSystem
@@ -25,112 +23,14 @@ namespace FileSystem
 		"eff",
 	};
 
-	static uint32_t ReadColor(BinaryReader& reader)
-	{
-		uint32_t value = 0;
-		*((uint8_t*)&value + 0) = reader.ReadUInt8();
-		*((uint8_t*)&value + 1) = reader.ReadUInt8();
-		*((uint8_t*)&value + 2) = reader.ReadUInt8();
-		reader.SetPosition(reader.GetPosition() + 1);
-		return value;
-	}
-
-	static void ReadKeyFramesPointer(KeyFrameCollection& keyFrames, BinaryReader& reader)
-	{
-		uint32_t keyFrameCount = reader.ReadUInt32();
-		void* keyFramesPointer = reader.ReadPtr();
-
-		if (keyFrameCount > 0 && keyFramesPointer != nullptr)
-		{
-			reader.ReadAt(keyFramesPointer, [keyFrameCount, &keyFrames](BinaryReader& reader)
-			{
-				keyFrames.resize(keyFrameCount);
-
-				if (keyFrameCount == 1)
-				{
-					keyFrames[0].Value = reader.ReadFloat();
-				}
-				else
-				{
-					for (uint32_t i = 0; i < keyFrameCount; i++)
-						keyFrames[i].Frame = reader.ReadFloat();
-
-					for (uint32_t i = 0; i < keyFrameCount; i++)
-					{
-						keyFrames[i].Value = reader.ReadFloat();
-						keyFrames[i].Interpolation = reader.ReadFloat();
-					}
-				}
-			});
-		}
-	}
-
-	static void ReadKeyFrameProperties(KeyFrameProperties* properties, BinaryReader& reader)
-	{
-		for (auto& keyFrames : *properties)
-			ReadKeyFramesPointer(keyFrames, reader);
-	}
-
-	static void WriteKeyFramesPointer(KeyFrameCollection& keyFrames, BinaryWriter& writer)
-	{
-		if (keyFrames.size() > 0)
-		{
-			writer.WriteUInt32(static_cast<uint32_t>(keyFrames.size()));
-			writer.WritePtr([&keyFrames](BinaryWriter& writer)
-			{
-				if (keyFrames.size() == 1)
-				{
-					writer.WriteFloat(keyFrames.front().Value);
-				}
-				else
-				{
-					for (auto& keyFrame : keyFrames)
-						writer.WriteFloat(keyFrame.Frame);
-					for (auto& keyFrame : keyFrames)
-					{
-						writer.WriteFloat(keyFrame.Value);
-						writer.WriteFloat(keyFrame.Interpolation);
-					}
-				}
-			});
-		}
-		else
-		{
-			writer.WriteUInt32(0x00000000); // key frames count
-			writer.WritePtr(nullptr);		// key frames offset
-		}
-	}
-
-	static void WriteKeyFrameProperties(KeyFrameProperties* properties, BinaryWriter& writer)
-	{
-		for (auto& keyFrames : *properties)
-			WriteKeyFramesPointer(keyFrames, writer);
-	}
-
-	static void ReadAnimationData(std::shared_ptr<AnimationData>& animationData, BinaryReader& reader)
-	{
-		animationData = std::make_shared<FileSystem::AnimationData>();
-		animationData->BlendMode = static_cast<AetBlendMode>(reader.ReadUInt8());
-		reader.ReadUInt8();
-		animationData->UseTextureMask = reader.ReadBool();
-		reader.ReadUInt8();
-
-		ReadKeyFrameProperties(&animationData->Properties, reader);
-
-		void* perspectivePropertiesPointer = reader.ReadPtr();
-		if (perspectivePropertiesPointer != nullptr)
-		{
-			reader.ReadAt(perspectivePropertiesPointer, [animationData](BinaryReader& reader)
-			{
-				animationData->PerspectiveProperties = std::make_shared<KeyFrameProperties>();
-				ReadKeyFrameProperties(animationData->PerspectiveProperties.get(), reader);
-			});
-		}
-	}
-
 	AetSprite* AetRegion::GetSprite(int32_t index)
 	{
 		return (SpriteSize() > 0 && index < SpriteSize()) ? &sprites.at(index) : nullptr;
+	}
+
+	const AetSprite* AetRegion::GetSprite(int32_t index) const
+	{
+		return const_cast<AetRegion*>(this)->GetSprite(index);
 	}
 
 	AetSprite* AetRegion::GetFrontSprite()
@@ -158,11 +58,23 @@ namespace FileSystem
 		return sprites;
 	}
 
-	Marker::Marker()
+	AetMarker::AetMarker()
 	{
 	}
 
-	Marker::Marker(frame_t frame, const std::string& name) : Frame(frame), Name(name)
+	AetMarker::AetMarker(frame_t frame, const std::string& name) : Frame(frame), Name(name)
+	{
+	}
+
+	AetKeyFrame::AetKeyFrame() : AetKeyFrame(0.0f, 0.0f, 0.0f)
+	{
+	}
+
+	AetKeyFrame::AetKeyFrame(float value) : AetKeyFrame(0.0f, value, 0.0f)
+	{
+	}
+
+	AetKeyFrame::AetKeyFrame(frame_t frame, float value, float interpolation) : Frame(frame), Value(value), Interpolation(interpolation)
 	{
 	}
 
@@ -170,7 +82,7 @@ namespace FileSystem
 	{
 	}
 
-	AetObj::AetObj(AetObjType type, const char* name, Aet* parent)
+	AetObj::AetObj(AetObjType type, const std::string& name, AetLayer* parentLayer)
 	{
 		LoopStart = 0.0f;
 		LoopEnd = 60.0f;
@@ -183,17 +95,22 @@ namespace FileSystem
 
 		if (type != AetObjType::Aif)
 		{
-			AnimationData = std::make_shared<FileSystem::AnimationData>();
+			AnimationData = MakeRefPtr<FileSystem::AnimationData>();
 			AnimationData->BlendMode = AetBlendMode::Alpha;
 			AnimationData->UseTextureMask = false;
+			AnimationData->Properties.OriginX().emplace_back(0.0f);
+			AnimationData->Properties.OriginY().emplace_back(0.0f);
+			AnimationData->Properties.PositionX().emplace_back(0.0f);
+			AnimationData->Properties.PositionY().emplace_back(0.0f);
+			AnimationData->Properties.Rotation().emplace_back(0.0f);
+			AnimationData->Properties.ScaleX().emplace_back(1.0f);
+			AnimationData->Properties.ScaleY().emplace_back(1.0f);
+			AnimationData->Properties.Opacity().emplace_back(1.0f);
 		}
 
-		parentAet = parent;
-		SetName(name);
-	}
+		this->parentLayer = parentLayer;
 
-	AetObj::~AetObj()
-	{
+		SetName(name);
 	}
 
 	const std::string& AetObj::GetName() const
@@ -204,185 +121,111 @@ namespace FileSystem
 	void AetObj::SetName(const char* value)
 	{
 		name = value;
-		parentAet->UpdateLayerNames();
+		assert(parentLayer != nullptr && parentLayer->GetParentAet() != nullptr);
+		GetParentAet()->InternalUpdateLayerNames();
 	}
 
 	void AetObj::SetName(const std::string& value)
 	{
-		name = value;
-		parentAet->UpdateLayerNames();
+		SetName(value.c_str());
 	}
 
-	AetRegion* AetObj::GetRegion() const
+	AetRegion* AetObj::GetReferencedRegion()
 	{
-		assert(parentAet != nullptr);
-
-		int32_t regionIndex = references.RegionIndex;
-		if (regionIndex >= 0 && regionIndex < parentAet->AetRegions.size())
-			return &parentAet->AetRegions[regionIndex];
-
-		return nullptr;
+		return references.Region.get();
 	}
 
-	void AetObj::SetRegion(const AetRegion* value)
+	const AetRegion* AetObj::GetReferencedRegion() const
 	{
-		assert(parentAet != nullptr);
-
-		if (value != nullptr)
-		{
-			for (int32_t regionIndex = 0; regionIndex < static_cast<int32_t>(parentAet->AetRegions.size()); regionIndex++)
-			{
-				if (&parentAet->AetRegions[regionIndex] == value)
-				{
-					references.RegionIndex = regionIndex;
-					return;
-				}
-			}
-		}
-
-		references.RegionIndex = -1;
+		return references.Region.get();
 	}
 
-	AetSoundEffect* AetObj::GetSoundEffect() const
+	void AetObj::SetReferencedRegion(const RefPtr<AetRegion>& value)
 	{
-		assert(parentAet != nullptr);
-
-		int32_t soundEffectIndex = references.SoundEffectIndex;
-		if (soundEffectIndex >= 0 && soundEffectIndex < parentAet->AetSoundEffects.size())
-			return &parentAet->AetSoundEffects[soundEffectIndex];
-
-		return nullptr;
+		references.Region = value;
 	}
 
-	AetLayer* AetObj::GetLayer() const
+	AetSoundEffect* AetObj::GetReferencedSoundEffect()
 	{
-		assert(parentAet != nullptr);
-
-		int32_t layerIndex = references.LayerIndex;
-		if (layerIndex >= 0 && layerIndex < parentAet->AetLayers.size())
-			return &parentAet->AetLayers[layerIndex];
-
-		return nullptr;
+		return references.SoundEffect.get();
 	}
 
-	void AetObj::SetLayer(const AetLayer* value)
+	const AetSoundEffect* AetObj::GetReferencedSoundEffect() const
 	{
-		assert(parentAet != nullptr);
-		references.LayerIndex = value == nullptr ? -1 : value->GetThisIndex();
-		parentAet->UpdateLayerNames();
+		return references.SoundEffect.get();
 	}
 
-	AetObj* AetObj::GetParentObj() const
+	void AetObj::SetReferencedSoundEffect(const RefPtr<AetSoundEffect>& value)
 	{
-		assert(parentAet != nullptr);
-
-		int32_t layerIndex = references.ParentLayerIndex;
-		int32_t objIndex = references.ParentObjIndex;
-
-		if (layerIndex >= 0 && layerIndex < parentAet->AetLayers.size() && objIndex >= 0 && objIndex < parentAet->AetLayers[layerIndex].size())
-			return &parentAet->AetLayers[layerIndex][objIndex];
-
-		return nullptr;
+		references.SoundEffect = value;
 	}
 
-	AetLayer* AetObj::GetParentObjLayer() const
+	AetLayer* AetObj::GetReferencedLayer()
 	{
-		assert(parentAet != nullptr);
-
-		AetObj* parentObj = GetParentObj();
-		if (parentObj != nullptr)
-		{
-			for (auto& layer : parentAet->AetLayers)
-			{
-				for (auto& object : layer)
-				{
-					if (&object == parentObj)
-						return &layer;
-				}
-			}
-		}
-		return nullptr;
+		return references.Layer.get();
 	}
 
-	void AetObj::SetParentObj(const AetObj* value)
+	const AetLayer* AetObj::GetReferencedLayer() const
 	{
-		assert(parentAet != nullptr);
-
-		if (value != nullptr)
-		{
-			for (int32_t layerIndex = 0; layerIndex < static_cast<int32_t>(parentAet->AetLayers.size()); layerIndex++)
-			{
-				AetLayer& aetLayer = parentAet->AetLayers[layerIndex];
-				for (int32_t objIndex = 0; objIndex < static_cast<int32_t>(aetLayer.size()); objIndex++)
-				{
-					if (&aetLayer[objIndex] == value)
-					{
-						references.ParentLayerIndex = layerIndex;
-						references.ParentObjIndex = objIndex;
-						return;
-					}
-				}
-			}
-		}
-
-		references.ParentLayerIndex = -1;
-		references.ParentObjIndex = -1;
+		return references.Layer.get();
 	}
 
-	void AetObj::Read(BinaryReader& reader)
+	void AetObj::SetReferencedLayer(const RefPtr<AetLayer>& value)
 	{
-		filePosition = reader.GetPositionPtr();
-		name = reader.ReadStrPtr();
-		LoopStart = reader.ReadFloat();
-		LoopEnd = reader.ReadFloat();
-		StartFrame = reader.ReadFloat();
-		PlaybackSpeed = reader.ReadFloat();
+		references.Layer = value;
+	}
 
-		Flags.AllBits = reader.ReadUInt16();
-		TypePaddingByte = reader.ReadUInt8();
-		Type = static_cast<AetObjType>(reader.ReadUInt8());
+	AetObj* AetObj::GetReferebcedParentObj()
+	{
+		return references.ParentObj.get();
+	}
 
-		dataFilePtr = reader.ReadPtr();
-		parentFilePtr = reader.ReadPtr();
+	const AetObj* AetObj::GetReferebcedParentObj() const
+	{
+		return references.ParentObj.get();
+	}
 
-		uint32_t markerCount = reader.ReadUInt32();
-		void* markersPointer = reader.ReadPtr();
+	void AetObj::SetParentObj(const RefPtr<AetObj>& value)
+	{
+		references.ParentObj = value;
+	}
 
-		if (markerCount > 0 && markersPointer != nullptr)
-		{
-			Markers.resize(markerCount);
-			reader.ReadAt(markersPointer, [this](BinaryReader& reader)
-			{
-				for (auto& marker : Markers)
-				{
-					marker.Frame = reader.ReadFloat();
-					marker.Name = reader.ReadStrPtr();
-				}
-			});
-		}
+	Aet* AetObj::GetParentAet()
+	{
+		assert(parentLayer != nullptr);
+		return parentLayer->GetParentAet();
+	}
 
-		void* animationDataPointer = reader.ReadPtr();
-		if (animationDataPointer != nullptr)
-		{
-			reader.ReadAt(animationDataPointer, [this](BinaryReader& reader)
-			{
-				ReadAnimationData(this->AnimationData, reader);
-			});
-		}
+	const Aet* AetObj::GetParentAet() const
+	{
+		assert(parentLayer != nullptr);
+		return parentLayer->GetParentAet();
+	}
 
-		// TODO:
-		/*unknownFilePtr =*/ reader.ReadPtr();
+	AetLayer* AetObj::GetParentLayer()
+	{
+		return parentLayer;
+	}
+
+	const AetLayer* AetObj::GetParentLayer() const
+	{
+		return parentLayer;
 	}
 
 	AetObj* AetLayer::GetObj(const std::string& name)
 	{
 		for (int32_t i = 0; i < size(); i++)
 		{
-			if (objects[i].GetName() == name)
-				return &objects[i];
+			if (objects[i]->GetName() == name)
+				return objects[i].get();
 		}
 
 		return nullptr;
+	}
+
+	const AetObj* AetLayer::GetObj(const std::string& name) const
+	{
+		return const_cast<AetLayer*>(this)->GetObj(name);
 	}
 
 	const std::vector<std::string>& AetLayer::GetGivenNames() const
@@ -395,16 +238,36 @@ namespace FileSystem
 		return commaSeparatedNames.c_str();
 	}
 
+	void AetLayer::AddNewObject(AetObjType type, const std::string& name)
+	{
+		objects.push_back(MakeRefPtr<AetObj>(type, name, this));
+	}
+
+	void AetLayer::DeleteObject(AetObj* object)
+	{
+		int index = 0;
+		for (RefPtr<AetObj>& obj : objects)
+		{
+			if (obj.get() == object)
+			{
+				objects.erase(objects.begin() + index);
+				break;
+			}
+
+			index++;
+		}
+	}
+
 	AetLayer* Aet::GetRootLayer()
 	{
-		return AetLayers.size() > 0 ? &AetLayers.back() : nullptr;
+		return AetLayers.size() > 0 ? AetLayers.back().get() : nullptr;
 	}
 
 	AetObj* Aet::GetObj(const std::string& name)
 	{
 		for (int32_t i = static_cast<int32_t>(AetLayers.size()) - 1; i >= 0; i--)
 		{
-			AetObj* obj = AetLayers[i].GetObj(name);
+			AetObj* obj = AetLayers[i]->GetObj(name);
 			if (obj != nullptr)
 				return obj;
 		}
@@ -421,358 +284,42 @@ namespace FileSystem
 	{
 		for (int32_t i = static_cast<int32_t>(layer.size()) - 1; i >= 0; i--)
 		{
-			if (layer[i].GetName() == name)
+			if (layer[i]->GetName() == name)
 				return i;
 		}
 
 		return -1;
 	}
 
-	void Aet::Read(BinaryReader& reader)
+	void Aet::UpdateParentPointers()
 	{
-		Name = reader.ReadStrPtr();
-		FrameStart = reader.ReadFloat();
-		FrameDuration = reader.ReadFloat();
-		FrameRate = reader.ReadFloat();
-		BackgroundColor = ReadColor(reader);
-
-		Width = reader.ReadInt32();
-		Height = reader.ReadInt32();
-
-		void* positionOffsetPtr = reader.ReadPtr();
-		if (positionOffsetPtr != nullptr)
+		for (RefPtr<AetLayer>& layer : AetLayers)
 		{
-			this->PositionOffset = std::make_shared<FileSystem::PositionOffset>();
-			reader.ReadAt(positionOffsetPtr, [this](BinaryReader& reader)
-			{
-				ReadKeyFramesPointer(this->PositionOffset->PositionX, reader);
-				ReadKeyFramesPointer(this->PositionOffset->PositionY, reader);
-			});
-		}
+			layer->parentAet = this;
 
-		uint32_t layersCount = reader.ReadUInt32();
-		void* layersPtr = reader.ReadPtr();
-		if (layersCount > 0 && layersPtr != nullptr)
-		{
-			AetLayers.resize(layersCount);
-			reader.ReadAt(layersPtr, [this](BinaryReader& reader)
-			{
-				for (auto& layer : AetLayers)
-				{
-					layer.filePosition = reader.GetPositionPtr();
-
-					uint32_t objectCount = reader.ReadUInt32();
-					void* objectsPointer = reader.ReadPtr();
-
-					if (objectCount > 0 && objectsPointer != nullptr)
-					{
-						layer.resize(objectCount);
-						reader.ReadAt(objectsPointer, [this, &layer](BinaryReader& reader)
-						{
-							for (auto& object : layer)
-							{
-								object.parentAet = this;
-								object.Read(reader);
-							}
-						});
-					}
-				}
-			});
-		}
-
-		uint32_t regionCount = reader.ReadUInt32();
-		void* regionsPtr = reader.ReadPtr();
-		if (regionCount > 0 && regionsPtr != nullptr)
-		{
-			AetRegions.resize(regionCount);
-			reader.ReadAt(regionsPtr, [this](BinaryReader& reader)
-			{
-				for (auto& region : AetRegions)
-				{
-					region.filePosition = reader.GetPositionPtr();
-					region.Color = ReadColor(reader);
-					region.Width = reader.ReadUInt16();
-					region.Height = reader.ReadUInt16();
-					region.Frames = reader.ReadFloat();
-
-					uint32_t spriteCount = reader.ReadUInt32();
-					void* spritesPointer = reader.ReadPtr();
-
-					if (spriteCount > 0 && spritesPointer != nullptr)
-					{
-						region.sprites.resize(spriteCount);
-						reader.ReadAt(spritesPointer, [&region](BinaryReader& reader)
-						{
-							for (auto& sprite : region.GetSprites())
-							{
-								sprite.Name = reader.ReadStrPtr();
-								sprite.ID = reader.ReadUInt32();
-							}
-						});
-					}
-				}
-			});
-		}
-
-		uint32_t soundEffectCount = reader.ReadUInt32();
-		void* soundEffectsPtr = reader.ReadPtr();
-		if (soundEffectCount > 0 && soundEffectsPtr != nullptr)
-		{
-			AetSoundEffects.resize(soundEffectCount);
-			reader.ReadAt(soundEffectsPtr, [this](BinaryReader& reader)
-			{
-				for (auto& soundEffect : AetSoundEffects)
-				{
-					soundEffect.filePosition = reader.GetPositionPtr();
-					soundEffect.Data[0] = reader.ReadUInt32();
-					soundEffect.Data[1] = reader.ReadUInt32();
-					soundEffect.Data[2] = reader.ReadUInt32();
-					soundEffect.Data[3] = reader.ReadUInt32();
-				}
-			});
+			for (RefPtr<AetObj>& obj : *layer)
+				obj->parentLayer = layer.get();
 		}
 	}
 
-	void Aet::Write(BinaryWriter& writer)
-	{
-		writer.WritePtr([this](BinaryWriter& writer)
-		{
-			void* aetFilePosition = writer.GetPositionPtr();
-			writer.WriteStrPtr(&Name);
-			writer.WriteFloat(FrameStart);
-			writer.WriteFloat(FrameDuration);
-			writer.WriteFloat(FrameRate);
-			writer.WriteUInt32(BackgroundColor);
-			writer.WriteInt32(Width);
-			writer.WriteInt32(Height);
-
-			if (this->PositionOffset != nullptr)
-			{
-				writer.WritePtr([this](BinaryWriter& writer)
-				{
-					WriteKeyFramesPointer(this->PositionOffset->PositionX, writer);
-					WriteKeyFramesPointer(this->PositionOffset->PositionY, writer);
-				});
-			}
-			else
-			{
-				writer.WritePtr(nullptr); // PositionOffset offset
-			}
-
-			if (AetLayers.size() > 0)
-			{
-				writer.WriteUInt32(static_cast<uint32_t>(AetLayers.size()));
-				writer.WritePtr([this](BinaryWriter& writer)
-				{
-					for (auto& layer : AetLayers)
-					{
-						layer.filePosition = writer.GetPositionPtr();
-						if (layer.size() > 0)
-						{
-							writer.WriteUInt32(static_cast<uint32_t>(layer.size()));
-							writer.WritePtr([&layer](BinaryWriter& writer)
-							{
-								for (auto& obj : layer)
-								{
-									obj.filePosition = writer.GetPositionPtr();
-									writer.WriteStrPtr(&obj.name);
-									writer.WriteFloat(obj.LoopStart);
-									writer.WriteFloat(obj.LoopEnd);
-									writer.WriteFloat(obj.StartFrame);
-									writer.WriteFloat(obj.PlaybackSpeed);
-									writer.Write<AetObjFlags>(obj.Flags);
-									writer.WriteUInt8(obj.TypePaddingByte);
-									writer.Write<AetObjType>(obj.Type);
-
-									bool hasData =
-										(obj.Type == AetObjType::Pic && obj.GetRegion() != nullptr) ||
-										(obj.Type == AetObjType::Aif && obj.GetSoundEffect() != nullptr) ||
-										(obj.Type == AetObjType::Eff && obj.GetLayer() != nullptr);
-
-									if (hasData)
-									{
-										writer.WriteDelayedPtr([&obj](BinaryWriter& writer)
-										{
-											void* filePosition =
-												(obj.Type == AetObjType::Pic) ? obj.GetRegion()->filePosition :
-												(obj.Type == AetObjType::Aif) ? obj.GetSoundEffect()->filePosition :
-												obj.GetLayer()->filePosition;
-
-											writer.WritePtr(filePosition);
-										});
-									}
-									else
-									{
-										writer.WritePtr(nullptr); // Data offset
-									}
-
-									if (obj.GetParentObj() != nullptr)
-									{
-										writer.WriteDelayedPtr([&obj](BinaryWriter& writer)
-										{
-											writer.WritePtr(obj.GetParentObj()->filePosition);
-										});
-									}
-									else
-									{
-										writer.WritePtr(nullptr); // Parent offset
-									}
-
-									if (obj.Markers.size() > 0)
-									{
-										writer.WriteUInt32(static_cast<uint32_t>(obj.Markers.size()));
-										writer.WritePtr([&obj](BinaryWriter& writer)
-										{
-											for (auto& marker : obj.Markers)
-											{
-												writer.WriteFloat(marker.Frame);
-												writer.WriteStrPtr(&marker.Name);
-											}
-										});
-									}
-									else
-									{
-										writer.WriteUInt32(0x00000000); // Markers size
-										writer.WritePtr(nullptr);		// Markers offset
-									}
-
-									if (obj.AnimationData != nullptr)
-									{
-										AnimationData& animationData = *obj.AnimationData.get();
-										writer.WritePtr([&animationData](BinaryWriter& writer)
-										{
-											writer.Write<AetBlendMode>(animationData.BlendMode);
-											writer.WriteUInt8(0x00);
-											writer.WriteBool(animationData.UseTextureMask);
-											writer.WriteUInt8(0x00);
-
-											WriteKeyFrameProperties(&animationData.Properties, writer);
-
-											if (animationData.PerspectiveProperties != nullptr)
-											{
-												writer.WritePtr([&animationData](BinaryWriter& writer)
-												{
-													WriteKeyFrameProperties(animationData.PerspectiveProperties.get(), writer);
-													writer.WriteAlignmentPadding(16);
-												});
-											}
-											else
-											{
-												writer.WritePtr(nullptr); // PerspectiveProperties offset
-											}
-
-											writer.WriteAlignmentPadding(16);
-										});
-									}
-									else
-									{
-										writer.WritePtr(nullptr); // AnimationData offset
-									}
-
-									// TODO: unknownFilePtr
-									writer.WritePtr(nullptr); // extra data offset
-								}
-
-								writer.WriteAlignmentPadding(16);
-							});
-						}
-						else
-						{
-							writer.WriteUInt32(0x00000000); // AetLayer size
-							writer.WritePtr(nullptr);		// AetLayer offset
-						}
-					}
-					writer.WriteAlignmentPadding(16);
-				});
-			}
-			else
-			{
-				writer.WriteUInt32(0x00000000); // AetLayers size
-				writer.WritePtr(nullptr);		// AetLayers offset
-			}
-
-			if (AetRegions.size() > 0)
-			{
-				writer.WriteUInt32(static_cast<uint32_t>(AetRegions.size()));
-				writer.WritePtr([this](BinaryWriter& writer)
-				{
-					for (auto& region : AetRegions)
-					{
-						region.filePosition = writer.GetPositionPtr();
-						writer.WriteUInt32(region.Color);
-						writer.WriteInt16(region.Width);
-						writer.WriteInt16(region.Height);
-						writer.WriteFloat(region.Frames);
-						if (region.SpriteSize() > 0)
-						{
-							writer.WriteUInt32(static_cast<uint32_t>(region.SpriteSize()));
-							writer.WritePtr([&region](BinaryWriter& writer)
-							{
-								for (auto& sprite : region.GetSprites())
-								{
-									writer.WriteStrPtr(&sprite.Name);
-									writer.WriteUInt32(sprite.ID);
-								}
-							});
-						}
-						else
-						{
-							writer.WriteUInt32(0x00000000); // AetSprites size
-							writer.WritePtr(nullptr);		// AetSprites offset
-						}
-					}
-					writer.WriteAlignmentPadding(16);
-				});
-			}
-			else
-			{
-				writer.WriteUInt32(0x00000000); // AetRegions size
-				writer.WritePtr(nullptr);		// AetRegions offset
-			}
-
-			if (AetSoundEffects.size() > 0)
-			{
-				writer.WriteUInt32(static_cast<uint32_t>(AetSoundEffects.size()));
-				writer.WritePtr([this](BinaryWriter& writer)
-				{
-					for (auto& soundEffect : AetSoundEffects)
-					{
-						soundEffect.filePosition = writer.GetPositionPtr();
-						writer.WriteUInt32(soundEffect.Data[0]);
-						writer.WriteUInt32(soundEffect.Data[1]);
-						writer.WriteUInt32(soundEffect.Data[2]);
-						writer.WriteUInt32(soundEffect.Data[3]);
-					}
-					writer.WriteAlignmentPadding(16);
-				});
-			}
-			else
-			{
-				writer.WriteUInt32(0x00000000); // AetSoundEffects size
-				writer.WritePtr(nullptr);		// AetSoundEffects offset
-			}
-
-			writer.WriteAlignmentPadding(16);
-		});
-	}
-
-	void Aet::UpdateLayerNames()
+	void Aet::InternalUpdateLayerNames()
 	{
 		AetLayer* rootLayer = GetRootLayer();
-		for (auto& aetLayer : AetLayers)
+
+		for (RefPtr<AetLayer>& aetLayer : AetLayers)
 		{
-			aetLayer.givenNames.clear();
+			aetLayer->givenNames.clear();
 
-			for (auto& aetObj : aetLayer)
+			for (RefPtr<AetObj>& aetObj : *aetLayer)
 			{
-				AetLayer* referencedLayer;
+				const AetLayer* referencedLayer;
 
-				if (aetObj.Type == AetObjType::Eff && (referencedLayer = aetObj.GetLayer()) != nullptr)
+				if (aetObj->Type == AetObjType::Eff && (referencedLayer = aetObj->GetReferencedLayer()) != nullptr)
 				{
 					bool nameExists = false;
 					for (auto& layerNames : referencedLayer->givenNames)
 					{
-						if (layerNames == aetObj.GetName())
+						if (layerNames == aetObj->GetName())
 						{
 							nameExists = true;
 							break;
@@ -780,190 +327,110 @@ namespace FileSystem
 					}
 
 					if (!nameExists)
-						referencedLayer->givenNames.emplace_back(aetObj.GetName());
+						const_cast<AetLayer*>(referencedLayer)->givenNames.emplace_back(aetObj->GetName());
 				}
 			}
 
-			if (&aetLayer == rootLayer)
-				aetLayer.givenNames.emplace_back("Root");
+			if (aetLayer.get() == rootLayer)
+				aetLayer->givenNames.emplace_back("Root");
 		}
 
-		for (auto& aetLayer : AetLayers)
+		for (RefPtr<AetLayer>& aetLayer : AetLayers)
 		{
-			aetLayer.commaSeparatedNames.clear();
+			aetLayer->commaSeparatedNames.clear();
 
-			for (size_t i = 0; i < aetLayer.givenNames.size(); i++)
+			for (size_t i = 0; i < aetLayer->givenNames.size(); i++)
 			{
-				aetLayer.commaSeparatedNames.append(aetLayer.givenNames[i]);
-				if (i < aetLayer.givenNames.size() - 1)
-					aetLayer.commaSeparatedNames.append(", ");
+				aetLayer->commaSeparatedNames.append(aetLayer->givenNames[i]);
+				if (i < aetLayer->givenNames.size() - 1)
+					aetLayer->commaSeparatedNames.append(", ");
 			}
 		}
 	}
 
-	void Aet::LinkPostRead()
+	void Aet::InternalLinkPostRead()
 	{
 		int32_t layerIndex = 0;
-		for (auto &aetLayer : AetLayers)
+		for (RefPtr<AetLayer>& aetLayer : AetLayers)
 		{
-			aetLayer.thisIndex = layerIndex++;
+			aetLayer->thisIndex = layerIndex++;
 
-			for (auto &aetObj : aetLayer)
+			for (RefPtr<AetObj>& aetObj : *aetLayer)
 			{
-				if (aetObj.dataFilePtr != nullptr)
+				if (aetObj->dataFilePtr != nullptr)
 				{
-					if (aetObj.Type == AetObjType::Pic)
-						FindObjReferencedRegion(&aetObj);
-					else if (aetObj.Type == AetObjType::Aif)
-						FindObjReferencedSoundEffect(&aetObj);
-					else if (aetObj.Type == AetObjType::Eff)
-						FindObjReferencedLayer(&aetObj);
+					if (aetObj->Type == AetObjType::Pic)
+						InternalFindObjReferencedRegion(aetObj.get());
+					else if (aetObj->Type == AetObjType::Aif)
+						InternalFindObjReferencedSoundEffect(aetObj.get());
+					else if (aetObj->Type == AetObjType::Eff)
+						InternalFindObjReferencedLayer(aetObj.get());
 				}
-				FindObjReferencedParent(&aetObj);
-			}
-		}
-	}
-
-	void Aet::FindObjReferencedRegion(AetObj* aetObj)
-	{
-		int32_t regionIndex = 0;
-		for (auto &otherRegion : AetRegions)
-		{
-			if (otherRegion.filePosition == aetObj->dataFilePtr)
-			{
-				aetObj->references.RegionIndex = regionIndex;
-				return;
-			}
-			regionIndex++;
-		}
-
-		aetObj->references.RegionIndex = -1;
-	}
-
-	void Aet::FindObjReferencedSoundEffect(AetObj* aetObj)
-	{
-		int32_t soundEffectIndex = 0;
-		for (auto &otherSoundEffect : AetSoundEffects)
-		{
-			if (otherSoundEffect.filePosition == aetObj->dataFilePtr)
-			{
-				aetObj->references.SoundEffectIndex = soundEffectIndex;
-				return;
-			}
-			soundEffectIndex++;
-		}
-
-		aetObj->references.SoundEffectIndex = -1;
-	}
-
-	void Aet::FindObjReferencedLayer(AetObj* aetObj)
-	{
-		int32_t layerIndex = 0;
-		for (auto &layer : AetLayers)
-		{
-			if (layer.filePosition == aetObj->dataFilePtr)
-			{
-				aetObj->references.LayerIndex = layerIndex;
-				return;
-			}
-			layerIndex++;
-		}
-
-		aetObj->references.LayerIndex = -1;
-	}
-
-	void Aet::FindObjReferencedParent(AetObj* aetObj)
-	{
-		if (aetObj->parentFilePtr != nullptr)
-		{
-			int32_t layerIndex = 0;
-			for (auto& otherLayer : AetLayers)
-			{
-				int32_t objIndex = 0;
-				for (auto& otherObj : otherLayer)
+				if (aetObj->parentFilePtr != nullptr)
 				{
-					if (otherObj.filePosition == aetObj->parentFilePtr)
-					{
-						aetObj->references.ParentLayerIndex = layerIndex;
-						aetObj->references.ParentObjIndex = objIndex;
-						return;
-					}
-
-					objIndex++;
+					InternalFindObjReferencedParent(aetObj.get());
 				}
-				layerIndex++;
 			}
 		}
+	}
 
-		aetObj->references.ParentLayerIndex = -1;
-		aetObj->references.ParentObjIndex = -1;
+	void Aet::InternalFindObjReferencedRegion(AetObj* aetObj)
+	{
+		for (RefPtr<AetRegion>& otherRegion : AetRegions)
+		{
+			if (otherRegion->filePosition == aetObj->dataFilePtr)
+			{
+				aetObj->references.Region = otherRegion;
+				return;
+			}
+		}
+	}
+
+	void Aet::InternalFindObjReferencedSoundEffect(AetObj* aetObj)
+	{
+		for (RefPtr<AetSoundEffect>& otherSoundEffect : AetSoundEffects)
+		{
+			if (otherSoundEffect->filePosition == aetObj->dataFilePtr)
+			{
+				aetObj->references.SoundEffect = otherSoundEffect;
+				return;
+			}
+		}
+	}
+
+	void Aet::InternalFindObjReferencedLayer(AetObj* aetObj)
+	{
+		for (RefPtr<AetLayer>& otherLayer : AetLayers)
+		{
+			if (otherLayer->filePosition == aetObj->dataFilePtr)
+			{
+				aetObj->references.Layer = otherLayer;
+				return;
+			}
+		}
+	}
+
+	void Aet::InternalFindObjReferencedParent(AetObj* aetObj)
+	{
+		for (RefPtr<AetLayer>& otherLayer : AetLayers) for (RefPtr<AetObj>& otherObj : *otherLayer)
+		{
+			if (otherObj->filePosition == aetObj->parentFilePtr)
+			{
+				aetObj->references.ParentObj = otherObj;
+				return;
+			}
+		}
 	}
 
 	void AetSet::ClearSpriteCache()
 	{
-		for (auto& aet : aets)
+		for (RefPtr<Aet>& aet : aets)
 		{
-			for (auto& region : aet.AetRegions)
+			for (RefPtr<AetRegion>& region : aet->AetRegions)
 			{
-				for (auto& sprite : region.GetSprites())
+				for (AetSprite& sprite : region->GetSprites())
 					sprite.SpriteCache = nullptr;
 			}
 		}
-	}
-
-	void AetSet::Read(BinaryReader& reader)
-	{
-		uint32_t signature = reader.ReadUInt32();
-		if (signature == 'AETC' || signature == 'CTEA')
-		{
-			reader.ReadUInt32();
-			reader.SetPosition(reader.ReadPtr());
-			reader.SetEndianness(Endianness::Big);
-		}
-		else
-		{
-			reader.SetPosition(reader.GetPosition() - sizeof(uint32_t));
-		}
-
-		void* startAddress = reader.GetPositionPtr();
-
-		uint32_t aetCount = 0;
-		while (reader.ReadPtr() != nullptr)
-			aetCount++;
-		aets.resize(aetCount);
-
-		reader.ReadAt(startAddress, [this](BinaryReader& reader)
-		{
-			int32_t aetIndex = 0;
-			for (auto& aet : aets)
-			{
-				reader.ReadAt(reader.ReadPtr(), [&aet](BinaryReader& reader)
-				{
-					aet.Read(reader);
-				});
-
-				aet.thisIndex = aetIndex++;
-				aet.LinkPostRead();
-
-				aet.UpdateLayerNames();
-			}
-		});
-	}
-
-	void AetSet::Write(BinaryWriter& writer)
-	{
-		for (auto& aet : aets)
-			aet.Write(writer);
-
-		writer.WritePtr(nullptr);
-		writer.WriteAlignmentPadding(16);
-
-		writer.FlushPointerPool();
-		writer.WriteAlignmentPadding(16);
-
-		writer.FlushStringPointerPool();
-		writer.WriteAlignmentPadding(16);
-
-		writer.FlushDelayedWritePool();
 	}
 }
