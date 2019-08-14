@@ -31,7 +31,7 @@ namespace Editor
 
 	float AetTimeline::GetTimelineSize() const
 	{
-		return GetTimelinePosition(loopEndFrame) + timelineContentWidthMargin;
+		return GetTimelinePosition(loopEndFrame) + timelineContentMarginWidth;
 	}
 
 	void AetTimeline::DrawTimelineContentNone()
@@ -172,7 +172,7 @@ namespace Editor
 
 			case AetSelectionType::AetRegion:
 				loopStartFrame = 0;
-				loopEndFrame = glm::max(0.0f, static_cast<float>(active.AetRegion->SpriteSize()) - 1.0f);
+				loopEndFrame = glm::max(0.0f, active.AetRegion->Frames - 1.0f);
 				break;
 
 			default:

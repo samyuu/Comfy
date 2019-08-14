@@ -15,29 +15,18 @@ namespace Editor
 
 	TimelineFrame FrameTimeline::FloorToGrid(TimelineFrame frame) const
 	{
-		// TODO: ...
 		return glm::floor(frame.Frames());
-
-		float gridFrame = GetGridFrame().Frames();
-		return glm::floor(gridFrame);
-
-		//float gridFrame = GetGridFrame().Frames();
-		//return (floor((int)gridFrame / gridFrame) * gridFrame);
 	}
 
 	TimelineFrame FrameTimeline::RoundToGrid(TimelineFrame frame) const
 	{
-		// not sure how to handle this
 		return glm::round(frame.Frames());
-
-		float gridFrame = GetGridFrame().Frames();
-		return (glm::round(static_cast<int>(gridFrame) / gridFrame) * gridFrame);
 	}
 
 	float FrameTimeline::GetTimelinePosition(TimeSpan time) const
 	{
 		time -= GetTimelineTime(loopStartFrame);
-		return TimelineBase::GetTimelinePosition(time) + timelineContentWidthMargin;
+		return TimelineBase::GetTimelinePosition(time) + timelineContentMarginWidth;
 	}
 
 	float FrameTimeline::GetTimelinePosition(TimelineFrame frame) const
@@ -63,7 +52,7 @@ namespace Editor
 	TimeSpan FrameTimeline::GetTimelineTime(float position) const
 	{
 		position += TimelineBase::GetTimelinePosition(GetTimelineTime(loopStartFrame));
-		return TimelineBase::GetTimelineTime(position - timelineContentWidthMargin);
+		return TimelineBase::GetTimelineTime(position - timelineContentMarginWidth);
 	}
 
 	TimelineFrame FrameTimeline::GetTimelineFrameAtMouseX() const

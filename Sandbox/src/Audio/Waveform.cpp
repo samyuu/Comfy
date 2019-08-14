@@ -44,9 +44,10 @@ void Waveform::Calculate(MemoryAudioStream* audioStream, TimeSpan timePerPixel)
 	}
 }
 
-float Waveform::GetPcmForPixel(size_t pixel)
+float Waveform::GetPcmForPixel(int64_t pixel)
 {
-	return pixelPCMs.at(pixel);
+	DEBUG_ONLY(return pixelPCMs.at(pixel));
+	return pixelPCMs[pixel];
 }
 
 size_t Waveform::GetPixelCount()

@@ -11,7 +11,7 @@ public:
 	~Waveform();
 
 	void Calculate(MemoryAudioStream* audioStream, TimeSpan timePerPixel);
-	float GetPcmForPixel(size_t pixel);
+	float GetPcmForPixel(int64_t pixel);
 	size_t GetPixelCount();
 
 protected:

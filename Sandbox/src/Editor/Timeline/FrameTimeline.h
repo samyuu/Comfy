@@ -28,7 +28,7 @@ namespace Editor
 		inline TimelineFrame GetLoopEndFrame() const { return loopEndFrame; };
 
 	protected:
-		const float timelineContentWidthMargin = 40.0;
+		const float timelineContentMarginWidth = 40.0f;
 
 		TimelineFrame loopStartFrame = 0.0f;
 		TimelineFrame loopEndFrame = 60.0f;

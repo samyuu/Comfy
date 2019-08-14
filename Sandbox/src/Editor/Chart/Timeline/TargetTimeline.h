@@ -127,9 +127,8 @@ namespace Editor
 		const float ROW_HEIGHT = 36;
 		// ----------------------
 
-		// ----------------
+	protected:
 		void InitializeButtonIcons();
-		// ----------------
 
 		// ----------------
 		void OnUpdate() override;

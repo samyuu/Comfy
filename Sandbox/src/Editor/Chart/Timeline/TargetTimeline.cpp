@@ -21,8 +21,8 @@ namespace Editor
 
 	TargetTimeline::TargetTimeline(ChartEditor* parentChartEditor)
 	{
-		scrollSpeed = 2.5;
-		scrollSpeedFast = 5.5;
+		scrollSpeed = 2.5f;
+		scrollSpeedFast = 5.5f;
 
 		chartEditor = parentChartEditor;
 		chart = chartEditor->GetChart();
@@ -366,15 +366,19 @@ namespace Editor
 
 	void TargetTimeline::OnDrawTimlineRows()
 	{
+		ImVec2 timelineTL = timelineContentRegion.GetTL();
+		ImVec2 timelineWidth = ImVec2(timelineContentRegion.GetWidth(), 0);
+
+		ImU32 rowColor = GetColor(EditorColor_TimelineRowSeparator);
+
 		// Timeline Target Region rows
 		// ---------------------------
 		for (int t = 0; t <= TargetType_Max; t++)
 		{
-			float y = t * ROW_HEIGHT;
-			ImVec2 start = timelineContentRegion.GetTL() + ImVec2(0, y);
-			ImVec2 end = start + ImVec2(timelineContentRegion.GetWidth(), 0);
+			ImVec2 start = timelineTL + ImVec2(0, t * ROW_HEIGHT);
+			ImVec2 end = start + timelineWidth;
 
-			baseDrawList->AddLine(start, end, GetColor(EditorColor_TimelineRowSeparator));
+			baseDrawList->AddLine(start, end, rowColor);
 		}
 	}
 
@@ -383,6 +387,10 @@ namespace Editor
 		// Timeline Bar / Beat lines
 		// -------------------------
 		{
+			ImU32 barColor = GetColor(EditorColor_Bar);
+			ImU32 gridColor = GetColor(EditorColor_Grid);
+			ImU32 gridAltColor = GetColor(EditorColor_GridAlt);
+
 			char barStrBuffer[16];
 			int barCount = -1;
 
@@ -409,7 +417,7 @@ namespace Editor
 				ImVec2 start = timelineContentRegion.GetTL() + ImVec2(screenX, -startYOffset);
 				ImVec2 end = timelineContentRegion.GetBL() + ImVec2(screenX, 0);
 
-				const ImU32 color = GetColor(isBar ? EditorColor_Bar : (divisions++ % 2 == 0 ? EditorColor_Grid : EditorColor_GridAlt));
+				const ImU32 color = isBar ? barColor : (divisions++ % 2 == 0 ? gridColor : gridAltColor);
 				baseDrawList->AddLine(start, end, color);
 
 				if (isBar)
@@ -431,8 +439,6 @@ namespace Editor
 
 	void TargetTimeline::DrawWaveform()
 	{
-		//ImGui::SetTooltip("timleine mouse: %f", ImGui::GetMousePos().x + GetScrollX() - timelineContentRegion.GetTL().x);
-
 		if (chartEditor->GetSongStream() == nullptr)
 			return;
 
@@ -441,37 +447,41 @@ namespace Editor
 
 		if (updateWaveform)
 		{
-			TimeSpan timePerPixel = GetTimelineTime(1.0f);
+			TimeSpan timePerPixel = GetTimelineTime(2.0f) - GetTimelineTime(1.0f);
 			songWaveform.Calculate(chartEditor->GetSongStream(), timePerPixel);
 			updateWaveform = false;
 		}
 
-		ImDrawList* drawList = baseDrawList;
+		float scrollXStartOffset = GetScrollX() + GetTimelinePosition(chart->GetStartOffset());
 
-		float scrollX = GetScrollX() + GetTimelinePosition(chart->GetStartOffset());
-		int64_t leftMostVisiblePixel = 0;
-		int64_t rightMostVisiblePixel = static_cast<int64_t>(timelineBaseRegion.GetWidth());
-		int64_t pixelCount = songWaveform.GetPixelCount();
-		float timelineTargetX = timelineContentRegion.GetTL().x;
-		float timelineTargetHeight = (TargetType_Max * ROW_HEIGHT);
-		float y = timelineContentRegion.GetTL().y + ((TargetType_Max * ROW_HEIGHT) / 2);
-
+		int64_t leftMostVisiblePixel = static_cast<int64_t>(GetTimelinePosition(TimelineTick(0)));
+		int64_t rightMostVisiblePixel = leftMostVisiblePixel + static_cast<int64_t>(timelineContentRegion.GetWidth());
 		int64_t waveformPixelCount = static_cast<int64_t>(songWaveform.GetPixelCount());
+
+		float timelineX = timelineContentRegion.GetTL().x;
+		float timelineHeight = (TargetType_Max * ROW_HEIGHT);
+		float timelineCenterY = timelineContentRegion.GetTL().y + (timelineHeight * 0.5f);
+
+		int64_t waveformPixelsDrawn = 0;
+		ImU32 waveformColor = GetColor(EditorColor_GridAlt);
+
 		for (int64_t screenPixel = leftMostVisiblePixel; screenPixel < waveformPixelCount && screenPixel < rightMostVisiblePixel; screenPixel++)
 		{
-			size_t timelinePixel = std::min(static_cast<size_t>(screenPixel + scrollX), static_cast<size_t>(pixelCount - 1));
+			int64_t timelinePixel = std::min(static_cast<int64_t>(screenPixel + scrollXStartOffset), static_cast<int64_t>(waveformPixelCount - 1));
 
 			if (timelinePixel < 0)
 				continue;
 
-			float amplitude = songWaveform.GetPcmForPixel(timelinePixel) * timelineTargetHeight;
+			float amplitude = songWaveform.GetPcmForPixel(timelinePixel) * timelineHeight;
 
-			float x = screenPixel + timelineTargetX;
-			float halfAmplitude = amplitude * .5f;
-			ImVec2 start = ImVec2(x, y - halfAmplitude);
-			ImVec2 end = ImVec2(x, y + halfAmplitude);
+			float x = screenPixel + timelineX;
+			float halfAmplitude = amplitude * 0.5f;
 
-			drawList->AddLine(start, end, GetColor(EditorColor_GridAlt));
+			ImVec2 start = ImVec2(x, timelineCenterY - halfAmplitude);
+			ImVec2 end = ImVec2(x, timelineCenterY + halfAmplitude);
+
+			baseDrawList->AddLine(start, end, waveformColor);
+			waveformPixelsDrawn++;
 		}
 	}
 
@@ -495,7 +505,6 @@ namespace Editor
 				if (visiblity == TimelineVisibility::Right)
 					break;
 
-				//auto tempoBgColor = IM_COL32(147, 125, 125, 255);
 				auto tempoFgColor = IM_COL32(139, 56, 51, 255);
 
 				sprintf_s(tempoStr, sizeof(tempoStr), "%.2f BPM", tempoChange.Tempo.BeatsPerMinute);
@@ -506,7 +515,7 @@ namespace Editor
 				ImGui::SetCursorScreenPos(buttonPosition);
 
 				ImGui::PushID(&tempoChange);
-				ImGui::InvisibleButton("##invisible_tempo_button", buttonSize);
+				ImGui::InvisibleButton("##InvisibleTempoButton", buttonSize);
 				ImGui::PopID();
 
 				// prevent overlapping tempo changes
