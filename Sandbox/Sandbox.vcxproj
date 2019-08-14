@@ -107,6 +107,8 @@
     <ClCompile Include="src\Editor\Aet\KeyFrameRenderer.cpp" />
     <ClCompile Include="src\Editor\Aet\AetTimelineController.cpp" />
     <ClCompile Include="src\FileSystem\Format\AetSetFile.cpp" />
+    <ClCompile Include="src\Graphics\Texture\Texture2D.cpp" />
+    <ClCompile Include="src\ImGui\theme.cpp" />
     <ClCompile Include="src\System\LibraryLoader.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp" />
@@ -194,7 +196,7 @@
     </ClCompile>
     <ClCompile Include="src\Graphics\Shader\ShaderProgram.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Graphics\Texture.cpp" />
+    <ClCompile Include="src\Graphics\Texture\Texture.cpp" />
     <ClCompile Include="src\Graphics\VertexArray.cpp" />
     <ClCompile Include="src\Graphics\Buffer.cpp" />
     <ClCompile Include="src\Editor\Chart\Timeline\TargetTimeline.cpp" />
@@ -211,6 +213,8 @@
     <ClInclude Include="src\Editor\Timeline\ITimelineUnitConverter.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineBaseRegions.h" />
     <ClInclude Include="src\Core\SmartPointers.h" />
+    <ClInclude Include="src\Graphics\Texture\Texture2D.h" />
+    <ClInclude Include="src\ImGui\theme.h" />
     <ClInclude Include="src\System\LibraryLoader.h" />
     <ClInclude Include="res\resource.h" />
     <ClInclude Include="src\App\Engine.h" />
@@ -307,7 +311,7 @@
     <ClInclude Include="src\Misc\StringHelper.h" />
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\Graphics\Shader\ShaderProgram.h" />
-    <ClInclude Include="src\Graphics\Texture.h" />
+    <ClInclude Include="src\Graphics\Texture\Texture.h" />
     <ClInclude Include="src\Graphics\VertexArray.h" />
     <ClInclude Include="src\Graphics\Buffer.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TargetTimeline.h" />

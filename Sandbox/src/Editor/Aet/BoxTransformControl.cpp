@@ -8,7 +8,7 @@ namespace Editor
 	{
 	}
 
-	Box::Box(const Properties& properties, const vec2& dimensions)
+	Box::Box(const Graphics::Auth2D::Properties& properties, const vec2& dimensions)
 	{
 		if (properties.Rotation == 0.0f)
 		{
@@ -94,7 +94,7 @@ namespace Editor
 		drawList->AddCircleFilled(box.Left(), BoxNodeRadius, colorU32);
 	}
 
-	void BoxTransformControl::Draw(Properties* properties, vec2 dimensions, const std::function<void(vec2&)>& worldToScreenSpace, const std::function<void(vec2&)>& screenToWorldSpace, float zoom)
+	void BoxTransformControl::Draw(Graphics::Auth2D::Properties* properties, vec2 dimensions, const std::function<void(vec2&)>& worldToScreenSpace, const std::function<void(vec2&)>& screenToWorldSpace, float zoom)
 	{
 		bool focused = ImGui::IsWindowFocused();
 

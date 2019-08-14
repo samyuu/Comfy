@@ -15,7 +15,6 @@
 namespace Editor
 {
 	using namespace FileSystem;
-	using namespace Auth2D;
 
 	class AetEditor : public IEditorComponent
 	{

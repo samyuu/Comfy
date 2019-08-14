@@ -250,10 +250,10 @@ namespace Editor
 
 		renderTarget.Bind();
 		{
-			RenderCommand::SetViewport(renderTarget.GetSize());
+			Graphics::RenderCommand::SetViewport(renderTarget.GetSize());
 
-			RenderCommand::SetClearColor(GetColorVec4(EditorColor_DarkClear));
-			RenderCommand::Clear(ClearTarget_ColorBuffer);
+			Graphics::RenderCommand::SetClearColor(GetColorVec4(EditorColor_DarkClear));
+			Graphics::RenderCommand::Clear(Graphics::ClearTarget_ColorBuffer);
 
 			camera.UpdateMatrices();
 
@@ -380,7 +380,7 @@ namespace Editor
 		}
 		else
 		{
-			renderer->Draw(texture->Texture2D.get(), sprite->PixelRegion, vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), vec4(1.0f), static_cast<AetBlendMode>(currentBlendItem));
+			renderer->Draw(texture->GraphicsTexture.get(), sprite->PixelRegion, vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), vec4(1.0f), static_cast<AetBlendMode>(currentBlendItem));
 		}
 	}
 
@@ -408,7 +408,7 @@ namespace Editor
 		if (validSprite)
 		{
 			renderer->Draw(
-				texture->Texture2D.get(),
+				texture->GraphicsTexture.get(),
 				sprite->PixelRegion,
 				obj.Properties.Position,
 				obj.Properties.Origin,
@@ -467,13 +467,13 @@ namespace Editor
 		if (validMaskSprite && validSprite)
 		{
 			renderer->Draw(
-				maskTexture->Texture2D.get(),
+				maskTexture->GraphicsTexture.get(),
 				maskSprite->PixelRegion,
 				maskObj.Properties.Position,
 				maskObj.Properties.Origin,
 				maskObj.Properties.Rotation,
 				maskObj.Properties.Scale,
-				texture->Texture2D.get(),
+				texture->GraphicsTexture.get(),
 				sprite->PixelRegion,
 				obj.Properties.Position,
 				obj.Properties.Origin,

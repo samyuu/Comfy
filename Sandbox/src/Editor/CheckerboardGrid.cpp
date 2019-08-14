@@ -2,7 +2,7 @@
 
 namespace Editor
 {
-	void CheckerboardGrid::Render(Auth2D::Renderer2D* renderer) const
+	void CheckerboardGrid::Render(Graphics::Auth2D::Renderer2D* renderer) const
 	{
 		renderer->Draw(
 			vec2(0.0f),

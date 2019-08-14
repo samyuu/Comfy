@@ -12,13 +12,13 @@ namespace Editor
 		float ZoomMax = 12.8f;
 
 	public:
-		void Update(OrthographicCamera& camera, vec2 relativeMouse);
-		void SetUpdateCameraZoom(OrthographicCamera& camera, float newZoom, vec2 origin) const;
+		void Update(Graphics::OrthographicCamera& camera, vec2 relativeMouse);
+		void SetUpdateCameraZoom(Graphics::OrthographicCamera& camera, float newZoom, vec2 origin) const;
 
 	private:
 		bool windowHoveredOnClick[5];
 
-		void UpdateKeyboardInput(OrthographicCamera& camera);
-		void UpdateMouseInput(OrthographicCamera& camera, vec2 relativeMouse);
+		void UpdateKeyboardInput(Graphics::OrthographicCamera& camera);
+		void UpdateMouseInput(Graphics::OrthographicCamera& camera, vec2 relativeMouse);
 	};
 }

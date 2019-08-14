@@ -1,6 +1,9 @@
 #pragma once
 
-class IRenderer
+namespace Graphics
 {
-public:
-};
+	class IRenderer
+	{
+	public:
+	};
+}

@@ -273,10 +273,10 @@ void Application::BaseDraw()
 {
 	const ImVec4 baseClearColor = ImColor(Editor::GetColor(Editor::EditorColor_BaseClear));
 
-	RenderCommand::SetClearColor(baseClearColor);
-	RenderCommand::Clear(ClearTarget_ColorBuffer);
+	Graphics::RenderCommand::SetClearColor(baseClearColor);
+	Graphics::RenderCommand::Clear(Graphics::ClearTarget_ColorBuffer);
 
-	RenderCommand::SetViewport(vec2(windowWidth, windowHeight));
+	Graphics::RenderCommand::SetViewport(vec2(windowWidth, windowHeight));
 	DrawGui();
 }
 
@@ -470,7 +470,7 @@ void Application::DrawGui()
 			{
 				ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_PlotHistogramHovered));
 				if (ImGui::MenuItem("Recompile Shaders", nullptr))
-					ShaderProgram::RecompileAllShaders();
+					Graphics::ShaderProgram::RecompileAllShaders();
 				ImGui::PopStyleColor();
 
 				if (ImGui::MenuItem("Toggle Fullscreen", nullptr))
@@ -745,7 +745,7 @@ void Application::WindowResizeCallback(int width, int height)
 	windowWidth = (float)width;
 	windowHeight = (float)height;
 
-	RenderCommand::SetViewport(vec2(width, height));
+	Graphics::RenderCommand::SetViewport(vec2(width, height));
 }
 
 void Application::WindowDropCallback(size_t count, const char* paths[])

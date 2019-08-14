@@ -217,7 +217,7 @@ namespace Editor
 			sprSet.Parse(sprFileBuffer.data());
 			sprSet.TxpSet->UploadAll();
 
-			buttonIconsTexture = sprSet.TxpSet->Textures.front()->Texture2D.get();
+			buttonIconsTexture = sprSet.TxpSet->Textures.front()->GraphicsTexture.get();
 		}
 
 		const float texelWidth = 1.0f / buttonIconsTexture->GetWidth();

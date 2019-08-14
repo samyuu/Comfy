@@ -1,100 +1,103 @@
 #pragma once
-#include "Texture.h"
+#include "Texture/Texture2D.h"
 #include "Graphics.h"
 #include "GraphicsInterface.h"
 
-// ------------------------------------------------------------------------------------------------
-// --- Renderbuffer:
-// ------------------------------------------------------------------------------------------------
-
-typedef GLuint RenderbufferID_t;
-typedef GLenum RenderTarget_t;
-typedef GLenum InternalFormat_t;
-
-class Renderbuffer : public IGraphicsObject
+namespace Graphics
 {
-public:
-	Renderbuffer();
-	~Renderbuffer();
-	Renderbuffer(const Renderbuffer&) = delete;
+	// ------------------------------------------------------------------------------------------------
+	// --- Renderbuffer:
+	// ------------------------------------------------------------------------------------------------
 
-	void InitializeID() override;
-	void Bind() const override;
-	void UnBind() const override;
-	void RenderbufferStorage(int width, int height, InternalFormat_t internalFormat);
+	typedef GLuint RenderbufferID_t;
+	typedef GLenum RenderTarget_t;
+	typedef GLenum InternalFormat_t;
 
-	inline RenderbufferID_t GetRenderbufferID() const { return renderbufferID; };
-	inline RenderTarget_t GetRenderTarget() const { return GL_RENDERBUFFER; };
+	class Renderbuffer : public IGraphicsObject
+	{
+	public:
+		Renderbuffer();
+		~Renderbuffer();
+		Renderbuffer(const Renderbuffer&) = delete;
 
-protected:
-	RenderbufferID_t renderbufferID = NULL;
+		void InitializeID() override;
+		void Bind() const override;
+		void UnBind() const override;
+		void RenderbufferStorage(int width, int height, InternalFormat_t internalFormat);
 
-	void Dispose();
-};
+		inline RenderbufferID_t GetRenderbufferID() const { return renderbufferID; };
+		inline RenderTarget_t GetRenderTarget() const { return GL_RENDERBUFFER; };
 
-// ------------------------------------------------------------------------------------------------
-// --- Framebuffer:
-// ------------------------------------------------------------------------------------------------
+	protected:
+		RenderbufferID_t renderbufferID = NULL;
 
-typedef GLuint FramebufferID_t;
-typedef GLenum BufferTarget_t;
-typedef GLenum FramebufferStatus_t;
-typedef GLenum Attachment_t;
+		void Dispose();
+	};
 
-class Framebuffer
-{
-public:
-	Framebuffer();
-	~Framebuffer();
-	Framebuffer(const Framebuffer&) = delete;
+	// ------------------------------------------------------------------------------------------------
+	// --- Framebuffer:
+	// ------------------------------------------------------------------------------------------------
 
-	void Initialize();
+	typedef GLuint FramebufferID_t;
+	typedef GLenum BufferTarget_t;
+	typedef GLenum FramebufferStatus_t;
+	typedef GLenum Attachment_t;
 
-	void Bind();
-	void UnBind();
+	class Framebuffer
+	{
+	public:
+		Framebuffer();
+		~Framebuffer();
+		Framebuffer(const Framebuffer&) = delete;
 
-	FramebufferStatus_t CheckStatus();
-	void AttachTexture(Texture2D& texture, Attachment_t attachment);
-	void AttachRenderbuffer(Renderbuffer& renderbuffer, Attachment_t attachment);
+		void Initialize();
 
-protected:
-	FramebufferID_t framebufferID = NULL;
+		void Bind();
+		void UnBind();
 
-	inline BufferTarget_t GetBufferTarget() { return GL_FRAMEBUFFER; };
-	void Dispose();
-};
+		FramebufferStatus_t CheckStatus();
+		void AttachTexture(Texture2D& texture, Attachment_t attachment);
+		void AttachRenderbuffer(Renderbuffer& renderbuffer, Attachment_t attachment);
 
-// ------------------------------------------------------------------------------------------------
-// --- RenderTarget:
-// ------------------------------------------------------------------------------------------------
+	protected:
+		FramebufferID_t framebufferID = NULL;
 
-class RenderTarget
-{
-public:
-	RenderTarget();
-	~RenderTarget();
-	RenderTarget(const RenderTarget&) = delete;
+		inline BufferTarget_t GetBufferTarget() { return GL_FRAMEBUFFER; };
+		void Dispose();
+	};
 
-	void Initialize(int width, int height);
-	void Bind();
-	void UnBind();
+	// ------------------------------------------------------------------------------------------------
+	// --- RenderTarget:
+	// ------------------------------------------------------------------------------------------------
 
-	void Resize(int width, int height);
+	class RenderTarget
+	{
+	public:
+		RenderTarget();
+		~RenderTarget();
+		RenderTarget(const RenderTarget&) = delete;
 
-	inline Texture2D& GetTexture() { return colorTexture; };
-	inline void* GetVoidTexture() { return GetTexture().GetVoidTexture(); };
-	inline float GetWidth() const { return dimensions.x; };
-	inline float GetHeight() const { return dimensions.y; };
-	inline const vec2& GetSize() const { return dimensions; };
+		void Initialize(int width, int height);
+		void Bind();
+		void UnBind();
 
-protected:
-	vec2 dimensions;
+		void Resize(int width, int height);
 
-	Framebuffer framebuffer;
-	Texture2D colorTexture;
-	Renderbuffer depthRenderbuffer;
+		inline Texture2D& GetTexture() { return colorTexture; };
+		inline void* GetVoidTexture() { return GetTexture().GetVoidTexture(); };
+		inline float GetWidth() const { return dimensions.x; };
+		inline float GetHeight() const { return dimensions.y; };
+		inline const vec2& GetSize() const { return dimensions; };
 
-	void Dispose();
-};
+	protected:
+		vec2 dimensions;
 
-// ------------------------------------------------------------------------------------------------
+		Framebuffer framebuffer;
+		Texture2D colorTexture;
+		Renderbuffer depthRenderbuffer;
+
+		void Dispose();
+	};
+
+	// ------------------------------------------------------------------------------------------------
+}

@@ -32,7 +32,7 @@ namespace Editor
 		static inline void PopWindowPadding() { ImGui::PopStyleVar(); };
 
 	protected:
-		RenderTarget renderTarget;
+		Graphics::RenderTarget renderTarget;
 
 		virtual ImGuiWindowFlags GetChildWinodwFlags() const { return ImGuiWindowFlags_None; };
 

@@ -34,10 +34,10 @@ namespace App
 		void OnResize(int width, int height) override;
 
 	protected:
-		UniquePtr<Auth2D::Renderer2D> renderer;
-		UniquePtr<Auth2D::AetRenderer> aetRenderer;
+		UniquePtr<Graphics::Auth2D::Renderer2D> renderer;
+		UniquePtr<Graphics::Auth2D::AetRenderer> aetRenderer;
 
-		OrthographicCamera camera;
+		Graphics::OrthographicCamera camera;
 		Editor::CameraController2D cameraController;
 
 		std::vector<RefPtr<Task>> tasks;

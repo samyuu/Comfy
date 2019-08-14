@@ -4,7 +4,10 @@
 #include <string>
 #include <vector>
 
-class Texture2D;
+namespace Graphics
+{
+	class Texture2D;
+}
 
 enum class TextureFormat : int32_t
 {
@@ -76,7 +79,7 @@ namespace FileSystem
 		std::vector<RefPtr<MipMap>> MipMaps;
 		std::string Name;
 
-		RefPtr<Texture2D> Texture2D;
+		RefPtr<Graphics::Texture2D> GraphicsTexture;
 		void UploadTexture2D();
 	};
 
@@ -88,7 +91,7 @@ namespace FileSystem
 
 		virtual void Read(BinaryReader& reader) override;
 		virtual void Parse(const uint8_t* buffer) override;
-		
+
 		void UploadAll();
 
 	private:

@@ -5,7 +5,7 @@
 #include "Graphics/Buffer.h"
 #include "Graphics/ComfyVertex.h"
 #include "Graphics/Shader/Shader.h"
-#include "Graphics/Texture.h"
+#include "Graphics/Texture/Texture2D.h"
 #include "Graphics/Camera.h"
 #include "FileSystem/Format/SprSet.h"
 
@@ -35,7 +35,7 @@ namespace Editor
 			float cameraPitch, cameraYaw = -90.0f, cameraRoll;
 			float targetCameraPitch, targetCameraYaw = -90.0f;
 			float cameraSensitivity = 0.25f;
-			PerspectiveCamera camera;
+			Graphics::PerspectiveCamera camera;
 		};
 
 		struct
@@ -48,11 +48,11 @@ namespace Editor
 		// --------------
 		struct
 		{
-			VertexArray cubeVao;
-			VertexArray lineVao;
+			Graphics::VertexArray cubeVao;
+			Graphics::VertexArray lineVao;
 
-			VertexBuffer cubeVertexBuffer = { BufferUsage::StaticDraw };
-			VertexBuffer lineVertexBuffer = { BufferUsage::StaticDraw };
+			Graphics::VertexBuffer cubeVertexBuffer = { Graphics::BufferUsage::StaticDraw };
+			Graphics::VertexBuffer lineVertexBuffer = { Graphics::BufferUsage::StaticDraw };
 		};
 
 		// Textures
@@ -78,12 +78,12 @@ namespace Editor
 		// -------
 		struct
 		{
-			ComfyShader comfyShader;
-			LineShader lineShader;
-			ScreenShader screenShader;
+			Graphics::ComfyShader comfyShader;
+			Graphics::LineShader lineShader;
+			Graphics::ScreenShader screenShader;
 		};
 
-		RenderTarget postProcessingRenderTarget;
+		Graphics::RenderTarget postProcessingRenderTarget;
 
 		// Dynamic Scene Data
 		// ------------------
@@ -105,7 +105,7 @@ namespace Editor
 		// Static Vertex Data
 		// ------------------
 		const vec4 cubeColor = vec4(0.9f, 0.8f, 0.01f, 1.00f);
-		ComfyVertex cubeVertices[36]
+		Graphics::ComfyVertex cubeVertices[36]
 		{
 			{ vec3(-0.5f, -0.5f, -0.5f), vec2(0.0f, 0.0f), cubeColor },
 			{ vec3(+0.5f, -0.5f, -0.5f), vec2(1.0f, 0.0f), cubeColor },
@@ -150,7 +150,7 @@ namespace Editor
 			{ vec3(-0.5f, +0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
 		};
 
-		LineVertex axisVertices[6] =
+		Graphics::LineVertex axisVertices[6] =
 		{
 			// X-Axis
 			{ vec3(0.0f, 0.0f, 0.0f), vec4(1.0f, 0.1f, 0.3f, 1.0f) },

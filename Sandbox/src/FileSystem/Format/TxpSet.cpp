@@ -1,7 +1,7 @@
 #include "TxpSet.h"
 #include "FileSystem/FileInterface.h"
 #include "FileSystem/BinaryReader.h"
-#include "Graphics/Texture.h"
+#include "Graphics/Texture/Texture2D.h"
 #include <assert.h>
 
 namespace FileSystem
@@ -123,16 +123,16 @@ namespace FileSystem
 		for (int i = 0; i < Textures.size(); i++)
 		{
 			Texture* texture = Textures[i].get();
-			texture->Texture2D = MakeRefPtr<Texture2D>();
-			texture->Texture2D->Upload(texture);
+			texture->GraphicsTexture = MakeRefPtr<Graphics::Texture2D>();
+			texture->GraphicsTexture->Upload(texture);
 		}
 	}
 
 	void Texture::UploadTexture2D()
 	{
-		assert(Texture2D == nullptr);
+		assert(GraphicsTexture == nullptr);
 
-		Texture2D = MakeRefPtr<::Texture2D>();
-		Texture2D->Upload(this);
+		GraphicsTexture = MakeRefPtr<Graphics::Texture2D>();
+		GraphicsTexture->Upload(this);
 	}
 }

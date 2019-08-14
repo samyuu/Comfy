@@ -1,7 +1,7 @@
 #include "AetRenderer.h"
 #include "Misc/StringHelper.h"
 
-namespace Auth2D
+namespace Graphics::Auth2D
 {
 	AetRenderer::AetRenderer(Renderer2D* renderer) : renderer2D(renderer)
 	{
@@ -38,14 +38,14 @@ namespace Auth2D
 
 		// TODO: render texture mask
 
-		const Texture* texture;
-		const Sprite* sprite;
+		const FileSystem::Texture* texture;
+		const FileSystem::Sprite* sprite;
 		bool validSprite = GetSprite(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
 
 		if (validSprite)
 		{
 			renderer2D->Draw(
-				texture->Texture2D.get(),
+				texture->GraphicsTexture.get(),
 				sprite->PixelRegion,
 				obj.Properties.Position + position,
 				obj.Properties.Origin,
@@ -76,7 +76,7 @@ namespace Auth2D
 		RenderAetObj(aetObj, (frame >= aetObj->LoopEnd ? aetObj->LoopEnd : frame), position, opacity);
 	}
 
-	bool AetRenderer::SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite)
+	bool AetRenderer::SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const AetSprite* inSprite, const FileSystem::Texture** outTexture, const Sprite** outSprite)
 	{
 		if (inSprite == nullptr)
 			return false;
@@ -102,7 +102,7 @@ namespace Auth2D
 		return false;
 	}
 
-	bool AetRenderer::GetSprite(const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite)
+	bool AetRenderer::GetSprite(const AetSprite* inSprite, const FileSystem::Texture** outTexture, const Sprite** outSprite)
 	{
 		assert(spriteGetter != nullptr);
 		return (*spriteGetter)(inSprite, outTexture, outSprite);

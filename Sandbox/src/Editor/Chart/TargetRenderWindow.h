@@ -31,11 +31,11 @@ namespace Editor
 		CheckerboardGrid checkerboardGrid;
 
 		const vec2 renderSize = vec2(1920.0f, 1080.0f);
-		OrthographicCamera camera;
+		Graphics::OrthographicCamera camera;
 
-		Auth2D::SpriteGetterFunction spriteGetterFunction;
-		UniquePtr<Auth2D::Renderer2D> renderer;
-		UniquePtr<Auth2D::AetRenderer> aetRenderer;
+		Graphics::Auth2D::SpriteGetterFunction spriteGetterFunction;
+		UniquePtr<Graphics::Auth2D::Renderer2D> renderer;
+		UniquePtr<Graphics::Auth2D::AetRenderer> aetRenderer;
 
 		// TODO: ps4_gam
 		FileLoader aetSetLoader = { "dev_rom/2d/aet_gam_cmn.bin" };

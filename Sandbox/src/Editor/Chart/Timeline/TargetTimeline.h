@@ -4,7 +4,7 @@
 #include "Editor/AudioController.h"
 #include "Editor/Chart/Chart.h"
 #include "Audio/Waveform.h"
-#include "Graphics/Texture.h"
+#include "Graphics/Texture/Texture2D.h"
 #include "FileSystem/Format/SprSet.h"
 #include "Input/KeyCode.h"
 
@@ -81,7 +81,7 @@ namespace Editor
 
 		std::array<ImRect, buttonIconsTypeCount * 2> buttonIconsTextureCoordinates;
 		FileSystem::SprSet sprSet;
-		Texture2D* buttonIconsTexture;
+		Graphics::Texture2D* buttonIconsTexture;
 
 		bool checkHitsoundsInCallback = false;
 		struct { bool Down, WasDown; } buttonPlacementKeyStates[12];

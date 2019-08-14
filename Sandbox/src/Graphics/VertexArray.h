@@ -2,26 +2,28 @@
 #include "Types.h"
 #include "GraphicsInterface.h"
 
-class BufferLayout;
-
-typedef uint32_t VertexArrayID_t;
-
-class VertexArray : public IGraphicsObject
+namespace Graphics
 {
-public:
-	VertexArray();
-	~VertexArray();
-	VertexArray(const VertexArray&) = delete;
+	class BufferLayout;
 
-	void InitializeID() override;
-	void Bind() const override;
-	void UnBind() const override;
+	typedef uint32_t VertexArrayID_t;
 
-	void SetLayout(const BufferLayout& layout);
+	class VertexArray : public IGraphicsObject
+	{
+	public:
+		VertexArray();
+		~VertexArray();
+		VertexArray(const VertexArray&) = delete;
 
-protected:
-	VertexArrayID_t vertexArrayID = NULL;
+		void InitializeID() override;
+		void Bind() const override;
+		void UnBind() const override;
 
-	void Dispose();
-};
+		void SetLayout(const BufferLayout& layout);
 
+	protected:
+		VertexArrayID_t vertexArrayID = NULL;
+
+		void Dispose();
+	};
+}

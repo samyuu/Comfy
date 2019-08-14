@@ -5,9 +5,9 @@ namespace App
 {
 	EngineRenderWindow::EngineRenderWindow()
 	{
-		renderer = MakeUnique<Auth2D::Renderer2D>();
+		renderer = MakeUnique<Graphics::Auth2D::Renderer2D>();
 		renderer->Initialize();
-		aetRenderer = MakeUnique<Auth2D::AetRenderer>(renderer.get());
+		aetRenderer = MakeUnique<Graphics::Auth2D::AetRenderer>(renderer.get());
 
 		StartTask<TaskPs4Menu>();
 	}
@@ -38,11 +38,11 @@ namespace App
 	{
 		renderTarget.Bind();
 		{
-			RenderCommand::SetViewport(renderTarget.GetSize());
+			Graphics::RenderCommand::SetViewport(renderTarget.GetSize());
 
 			vec4 backgroundColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-			RenderCommand::SetClearColor(backgroundColor);
-			RenderCommand::Clear(ClearTarget_ColorBuffer);
+			Graphics::RenderCommand::SetClearColor(backgroundColor);
+			Graphics::RenderCommand::Clear(Graphics::ClearTarget_ColorBuffer);
 
 			camera.UpdateMatrices();
 

@@ -1,23 +1,26 @@
 #pragma once
 #include "Types.h"
 
-struct SpriteVertex
+namespace Graphics
 {
-	vec2 Position;
-	vec2 TextureCoordinates;
-	vec4 Color;
-	vec2 TextureMaskCoordinates;
-};
+	struct SpriteVertex
+	{
+		vec2 Position;
+		vec2 TextureCoordinates;
+		vec4 Color;
+		vec2 TextureMaskCoordinates;
+	};
 
-struct ComfyVertex
-{
-	vec3 Position;
-	vec2 TextureCoordinates;
-	vec4 Color;
-};
+	struct ComfyVertex
+	{
+		vec3 Position;
+		vec2 TextureCoordinates;
+		vec4 Color;
+	};
 
-struct LineVertex
-{
-	vec3 Position;
-	vec4 Color;
-};
+	struct LineVertex
+	{
+		vec3 Position;
+		vec4 Color;
+	};
+}

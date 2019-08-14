@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "FileSystem/Format/AetSet.h"
 
-namespace Auth2D
+namespace Graphics::Auth2D
 {
 	using namespace FileSystem;
 

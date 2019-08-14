@@ -23,7 +23,7 @@ namespace DataTest
 		BeginChild("##ShaderTestWindowListChild", ImVec2(GetWindowWidth() * listWidth, 0), true, scrollBarWindowFlags);
 		{
 			int i = 0;
-			for (auto& shader : ShaderProgram::GetAllShaderPrograms())
+			for (auto& shader : Graphics::ShaderProgram::GetAllShaderPrograms())
 			{
 				PushID(shader);
 				if (ImGui::Selectable(shader->GetShaderName(), i == selectedIndex))
@@ -36,9 +36,9 @@ namespace DataTest
 		SameLine();
 		BeginChild("##ShaderTestWindowInfoChild", ImVec2(0, 0), true);
 		{
-			if (selectedIndex >= 0 && selectedIndex < ShaderProgram::GetAllShaderPrograms().size())
+			if (selectedIndex >= 0 && selectedIndex < Graphics::ShaderProgram::GetAllShaderPrograms().size())
 			{
-				ShaderProgram* shader = ShaderProgram::GetAllShaderPrograms()[selectedIndex];
+				Graphics::ShaderProgram* shader = Graphics::ShaderProgram::GetAllShaderPrograms()[selectedIndex];
 
 				BulletText("%s	[ OpenGL ID: %d ]", shader->GetShaderName(), shader->GetProgramID());
 				BeginChild("##ShaderTestWindowSourceChild", ImVec2(0, 102), true);
@@ -90,14 +90,14 @@ namespace DataTest
 					NextColumn();
 					Separator();
 
-					for (Uniform* uniform = shader->GetFirstUniform(); uniform <= shader->GetLastUniform(); uniform++)
+					for (Graphics::Uniform* uniform = shader->GetFirstUniform(); uniform <= shader->GetLastUniform(); uniform++)
 					{
 						PushID(uniform);
 						Selectable("##UniformSelectable::ShaderTestWindow", false, ImGuiSelectableFlags_SpanAllColumns);
 						PopID();
 						SameLine();
 
-						const char* typeName = uniform->GetType() <= UniformType::Count ? typeNames.at(static_cast<int32_t>(uniform->GetType())) : "Unknown";
+						const char* typeName = uniform->GetType() <= Graphics::UniformType::Count ? typeNames.at(static_cast<int32_t>(uniform->GetType())) : "Unknown";
 						Text("%s", typeName);
 						NextColumn();
 						Text("%s", uniform->GetName());

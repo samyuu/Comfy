@@ -1,19 +1,22 @@
 #pragma once
 
-class IInitializable
+namespace Graphics
 {
-public:
-	virtual void InitializeID() = 0;
-};
+	class IInitializable
+	{
+	public:
+		virtual void InitializeID() = 0;
+	};
 
-class IBindable
-{
-public:
-	virtual void Bind() const = 0;
-	virtual void UnBind() const = 0;
-};
+	class IBindable
+	{
+	public:
+		virtual void Bind() const = 0;
+		virtual void UnBind() const = 0;
+	};
 
-class IGraphicsObject : public IInitializable, IBindable
-{
-public:
-};
+	class IGraphicsObject : public IInitializable, IBindable
+	{
+	public:
+	};
+}

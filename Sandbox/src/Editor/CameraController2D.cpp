@@ -5,7 +5,7 @@
 
 namespace Editor
 {
-	void CameraController2D::Update(OrthographicCamera& camera, vec2 relativeMouse)
+	void CameraController2D::Update(Graphics::OrthographicCamera& camera, vec2 relativeMouse)
 	{
 		for (int i = 0; i < IM_ARRAYSIZE(windowHoveredOnClick); i++)
 		{
@@ -20,7 +20,7 @@ namespace Editor
 		}
 	}
 
-	void CameraController2D::SetUpdateCameraZoom(OrthographicCamera& camera, float newZoom, vec2 origin) const
+	void CameraController2D::SetUpdateCameraZoom(Graphics::OrthographicCamera& camera, float newZoom, vec2 origin) const
 	{
 		vec2 worldSpace = camera.ScreenToWorldSpace(origin);
 		
@@ -32,7 +32,7 @@ namespace Editor
 		camera.Position -= (postWorldSpace - worldSpace) * vec2(camera.Zoom);
 	}
 
-	void CameraController2D::UpdateKeyboardInput(OrthographicCamera& camera)
+	void CameraController2D::UpdateKeyboardInput(Graphics::OrthographicCamera& camera)
 	{
 		constexpr float step = 10.0f;
 		if (ImGui::IsKeyPressed(KeyCode_W, true))
@@ -51,7 +51,7 @@ namespace Editor
 		}
 	}
 
-	void CameraController2D::UpdateMouseInput(OrthographicCamera& camera, vec2 relativeMouse)
+	void CameraController2D::UpdateMouseInput(Graphics::OrthographicCamera& camera, vec2 relativeMouse)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 

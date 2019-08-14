@@ -1,73 +1,76 @@
 #pragma once
 #include "Types.h"
 
-constexpr vec3 Vec3_UpDirection = vec3(0.0f, 1.0f, 0.0f);
-
-class ICamera
+namespace Graphics
 {
-public:
-	virtual void UpdateMatrices() = 0;
+	constexpr vec3 Vec3_UpDirection = vec3(0.0f, 1.0f, 0.0f);
 
-	virtual const mat4& GetViewMatrix() const = 0;
-	virtual const mat4& GetProjectionMatrix() const = 0;
+	class ICamera
+	{
+	public:
+		virtual void UpdateMatrices() = 0;
 
-public:
-	static vec3 ScreenToWorldSpace(const mat4& matrix, const vec3& screenSpace);
-	static vec3 WorldToScreenSpace(const mat4& matrix, const vec3& worldSpace);
+		virtual const mat4& GetViewMatrix() const = 0;
+		virtual const mat4& GetProjectionMatrix() const = 0;
 
-	static vec2 ScreenToWorldSpace(const mat4& matrix, const vec2& screenSpace);
-	static vec2 WorldToScreenSpace(const mat4& matrix, const vec2& worldSpace);
+	public:
+		static vec3 ScreenToWorldSpace(const mat4& matrix, const vec3& screenSpace);
+		static vec3 WorldToScreenSpace(const mat4& matrix, const vec3& worldSpace);
 
-protected:
-	static const mat4& GetIdentityMatrix();
-};
+		static vec2 ScreenToWorldSpace(const mat4& matrix, const vec2& screenSpace);
+		static vec2 WorldToScreenSpace(const mat4& matrix, const vec2& worldSpace);
 
-class PerspectiveCamera : public ICamera
-{
-public:
-	vec3 Position = vec3(0.0f, 0.0f, 3.0f);
-	vec3 Target;
+	protected:
+		static const mat4& GetIdentityMatrix();
+	};
 
-	vec3 UpDirection = Vec3_UpDirection;
+	class PerspectiveCamera : public ICamera
+	{
+	public:
+		vec3 Position = vec3(0.0f, 0.0f, 3.0f);
+		vec3 Target;
 
-	float FieldOfView = 90.0f;
-	float AspectRatio = 16.0f / 9.0f;
-	float NearPlane = 0.001f;
-	float FarPlane = 3939.0f;
+		vec3 UpDirection = Vec3_UpDirection;
 
-public:
-	virtual void UpdateMatrices() override;
+		float FieldOfView = 90.0f;
+		float AspectRatio = 16.0f / 9.0f;
+		float NearPlane = 0.001f;
+		float FarPlane = 3939.0f;
 
-	virtual const mat4& GetViewMatrix() const override;
-	virtual const mat4& GetProjectionMatrix() const override;
+	public:
+		virtual void UpdateMatrices() override;
 
-protected:
-	mat4 viewMatrix;
-	mat4 projectionMatrix;
-};
+		virtual const mat4& GetViewMatrix() const override;
+		virtual const mat4& GetProjectionMatrix() const override;
 
-class OrthographicCamera : public ICamera
-{
-public:
-	float Zoom = 1.0f;
-	vec2 Position = vec2(0.0f, 0.0f);
-	vec2 ProjectionSize = vec2(-1.0f);
+	protected:
+		mat4 viewMatrix;
+		mat4 projectionMatrix;
+	};
 
-	const float NearPlane = -1.0f;
-	const float FarPlane = 1.0f;
+	class OrthographicCamera : public ICamera
+	{
+	public:
+		float Zoom = 1.0f;
+		vec2 Position = vec2(0.0f, 0.0f);
+		vec2 ProjectionSize = vec2(-1.0f);
 
-public:
-	virtual void UpdateMatrices() override;
+		const float NearPlane = -1.0f;
+		const float FarPlane = 1.0f;
 
-	virtual const mat4& GetViewMatrix() const override;
-	virtual const mat4& GetProjectionMatrix() const override;
+	public:
+		virtual void UpdateMatrices() override;
 
-	vec2 GetProjectionCenter() const;
+		virtual const mat4& GetViewMatrix() const override;
+		virtual const mat4& GetProjectionMatrix() const override;
 
-	vec2 ScreenToWorldSpace(const vec2& screenSpace) const;
-	vec2 WorldToScreenSpace(const vec2& worldSpace) const;
+		vec2 GetProjectionCenter() const;
 
-protected:
-	mat4 viewMatrix;
-	mat4 projectionMatrix;
-};
+		vec2 ScreenToWorldSpace(const vec2& screenSpace) const;
+		vec2 WorldToScreenSpace(const vec2& worldSpace) const;
+
+	protected:
+		mat4 viewMatrix;
+		mat4 projectionMatrix;
+	};
+}

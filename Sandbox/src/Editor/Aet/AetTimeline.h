@@ -9,7 +9,7 @@
 namespace Editor
 {
 	using namespace FileSystem;
-	using namespace Auth2D;
+	using namespace Graphics::Auth2D;
 	class AetEditor;
 
 	struct KeyFrameIndex

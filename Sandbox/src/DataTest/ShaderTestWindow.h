@@ -16,7 +16,7 @@ namespace DataTest
 		virtual ImGuiWindowFlags GetWindowFlags() const override;
 
 	private:
-		std::array<const char*, static_cast<size_t>(UniformType::Count)> typeNames =
+		std::array<const char*, static_cast<size_t>(Graphics::UniformType::Count)> typeNames =
 		{
 			"Int", 
 			"Float", 

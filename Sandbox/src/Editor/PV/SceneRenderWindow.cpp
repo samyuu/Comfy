@@ -47,11 +47,11 @@ namespace Editor
 			cubeVertexBuffer.Bind();
 			cubeVertexBuffer.Upload(sizeof(cubeVertices), cubeVertices);
 
-			BufferLayout layout =
+			Graphics::BufferLayout layout =
 			{
-				{ ShaderDataType::Vec3, "in_Position" },
-				{ ShaderDataType::Vec2, "in_TextureCoords" },
-				{ ShaderDataType::Vec4, "in_Color" },
+				{ Graphics::ShaderDataType::Vec3, "in_Position" },
+				{ Graphics::ShaderDataType::Vec2, "in_TextureCoords" },
+				{ Graphics::ShaderDataType::Vec4, "in_Color" },
 			};
 
 			cubeVao.InitializeID();
@@ -68,10 +68,10 @@ namespace Editor
 			lineVertexBuffer.Bind();
 			lineVertexBuffer.Upload(sizeof(axisVertices), axisVertices);
 
-			BufferLayout layout =
+			Graphics::BufferLayout layout =
 			{
-				{ ShaderDataType::Vec3, "in_Position" },
-				{ ShaderDataType::Vec4, "in_Color" },
+				{ Graphics::ShaderDataType::Vec3, "in_Position" },
+				{ Graphics::ShaderDataType::Vec4, "in_Color" },
 			};
 
 			lineVao.InitializeID();
@@ -183,7 +183,7 @@ namespace Editor
 			for (auto& txp : sprSet.TxpSet->Textures)
 			{
 				ImGui::Text(txp->Name.c_str());
-				ImGui::Image(txp->Texture2D->GetVoidTexture(), { 200, 200 }, ImGui::UV0_GL, ImGui::UV1_GL);
+				ImGui::Image(txp->GraphicsTexture->GetVoidTexture(), { 200, 200 }, ImGui::UV0_GL, ImGui::UV1_GL);
 			}
 		}
 	}
@@ -269,10 +269,10 @@ namespace Editor
 			GLCall(glEnable(GL_BLEND));
 			GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-			RenderCommand::SetClearColor(baseClearColor);
-			RenderCommand::Clear(ClearTarget_ColorBuffer | ClearTarget_DepthBuffer);
+			Graphics::RenderCommand::SetClearColor(baseClearColor);
+			Graphics::RenderCommand::Clear(Graphics::ClearTarget_ColorBuffer | Graphics::ClearTarget_DepthBuffer);
 
-			RenderCommand::SetViewport(renderTarget.GetSize());
+			Graphics::RenderCommand::SetViewport(renderTarget.GetSize());
 			{
 				comfyShader.Bind();
 				comfyShader.SetUniform(comfyShader.View, camera.GetViewMatrix());
@@ -286,18 +286,18 @@ namespace Editor
 					mat4 groundModelMatrix = glm::scale(glm::translate(mat4(1.0f), vec3(0, -5.0f, 0)), vec3(999.9f, 1.0f, 999.9));
 					mat4 tileModelMatrix = glm::scale(glm::translate(mat4(1.0f), vec3(0, -4.0f, 0)), vec3(39.0f, 1.0f, 39.0f));
 					
-					skyTexture->Texture2D->Bind(1);
-					skyTexture->Texture2D->Bind(0);
+					skyTexture->GraphicsTexture->Bind(1);
+					skyTexture->GraphicsTexture->Bind(0);
 					comfyShader.SetUniform(comfyShader.Model, skyModelMatrix);
 					GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
 
-					groundTexture->Texture2D->Bind(1);
-					groundTexture->Texture2D->Bind(0);
+					groundTexture->GraphicsTexture->Bind(1);
+					groundTexture->GraphicsTexture->Bind(0);
 					comfyShader.SetUniform(comfyShader.Model, groundModelMatrix);
 					GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
 
-					tileTexture->Texture2D->Bind(1);
-					tileTexture->Texture2D->Bind(0);
+					tileTexture->GraphicsTexture->Bind(1);
+					tileTexture->GraphicsTexture->Bind(0);
 					comfyShader.SetUniform(comfyShader.Model, tileModelMatrix);
 					GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
 				}
@@ -326,8 +326,8 @@ namespace Editor
 					comfyShader.SetUniform(comfyShader.Texture0, 0);
 					comfyShader.SetUniform(comfyShader.Texture1, 1);
 					
-					goodNiceTexture->Texture2D->Bind(1);
-					feelsBadManTexture->Texture2D->Bind(0);
+					goodNiceTexture->GraphicsTexture->Bind(1);
+					feelsBadManTexture->GraphicsTexture->Bind(0);
 
 					cubeVao.Bind();
 					for (size_t i = 0; i < _countof(cubePositions); i++)

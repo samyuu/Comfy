@@ -5,94 +5,97 @@
 #include <string>
 #include <vector>
 
-typedef GLuint ShaderID_t;
-typedef GLuint ProgramID_t;
-
-class ShaderProgram;
-
-enum class ShaderType
+namespace Graphics
 {
-	Vertex, Fragment
-};
+	typedef GLuint ShaderID_t;
+	typedef GLuint ProgramID_t;
 
-enum class UniformType
-{
-	Int, Float, Vec2, Vec3, Vec4, Mat4, Count
-};
+	class ShaderProgram;
 
-class Uniform
-{
-public:
-	Uniform(UniformType type, const char* name);
+	enum class ShaderType
+	{
+		Vertex, Fragment
+	};
 
-	void UpdateLocation(const ShaderProgram& shader);
-	void AssertLocationSetType(UniformType targetType) const;
-	int32_t GetLocation() const;
-	UniformType GetType() const;
-	const char* GetName() const;
+	enum class UniformType
+	{
+		Int, Float, Vec2, Vec3, Vec4, Mat4, Count
+	};
 
-private:
-	int32_t location;
-	UniformType type;
-	const char* name;
-};
+	class Uniform
+	{
+	public:
+		Uniform(UniformType type, const char* name);
 
-class ShaderProgram : public IBindable
-{
-public:
-	ShaderProgram();
-	ShaderProgram(const ShaderProgram&) = delete;
-	virtual ~ShaderProgram();
+		void UpdateLocation(const ShaderProgram& shader);
+		void AssertLocationSetType(UniformType targetType) const;
+		int32_t GetLocation() const;
+		UniformType GetType() const;
+		const char* GetName() const;
 
-	void Bind() const override;
-	void UnBind() const override;
-	void SetUniform(const Uniform&, int);
-	void SetUniform(const Uniform&, float);
-	void SetUniform(const Uniform&, const vec2&);
-	void SetUniform(const Uniform&, const vec3&);
-	void SetUniform(const Uniform&, const vec4&);
-	void SetUniform(const Uniform&, const glm::mat4&);
+	private:
+		int32_t location;
+		UniformType type;
+		const char* name;
+	};
 
-	void Initialize();
-	inline bool GetIsInitialized() const { return initialized; };
-	inline ProgramID_t GetProgramID() const { return programID; };
+	class ShaderProgram : public IBindable
+	{
+	public:
+		ShaderProgram();
+		ShaderProgram(const ShaderProgram&) = delete;
+		virtual ~ShaderProgram();
 
-public:
-	void Recompile();
-	static void RecompileAllShaders();
+		void Bind() const override;
+		void UnBind() const override;
+		void SetUniform(const Uniform&, int);
+		void SetUniform(const Uniform&, float);
+		void SetUniform(const Uniform&, const vec2&);
+		void SetUniform(const Uniform&, const vec3&);
+		void SetUniform(const Uniform&, const vec4&);
+		void SetUniform(const Uniform&, const glm::mat4&);
 
-	virtual Uniform* GetFirstUniform() = 0;
-	virtual Uniform* GetLastUniform() = 0;
+		void Initialize();
+		inline bool GetIsInitialized() const { return initialized; };
+		inline ProgramID_t GetProgramID() const { return programID; };
 
-	virtual const char* GetShaderName() = 0;
-	virtual const char* GetVertexShaderPath() = 0;
-	virtual const char* GetFragmentShaderPath() = 0;
+	public:
+		void Recompile();
+		static void RecompileAllShaders();
 
-	static const std::vector<ShaderProgram*>& GetAllShaderPrograms();
+		virtual Uniform* GetFirstUniform() = 0;
+		virtual Uniform* GetLastUniform() = 0;
 
-protected:
-	std::vector<uint8_t> vertexSource, fragmentSource;
-	ProgramID_t programID = NULL;
+		virtual const char* GetShaderName() = 0;
+		virtual const char* GetVertexShaderPath() = 0;
+		virtual const char* GetFragmentShaderPath() = 0;
 
-	void UpdateUniformLocation(Uniform& uniform) const;
-	void UpdateUniformArrayLocations(Uniform* firstUniform, Uniform* lastUniform) const;
+		static const std::vector<ShaderProgram*>& GetAllShaderPrograms();
 
-	virtual void GetAllUniformLocations();
+	protected:
+		std::vector<uint8_t> vertexSource, fragmentSource;
+		ProgramID_t programID = NULL;
 
-private:
-	bool initialized = false;
+		void UpdateUniformLocation(Uniform& uniform) const;
+		void UpdateUniformArrayLocations(Uniform* firstUniform, Uniform* lastUniform) const;
 
-	void LoadShaderSources();
-	int CompileShader(ShaderType, ShaderID_t*, const std::vector<uint8_t>&);
-	int AttachLinkShaders(ShaderID_t, ShaderID_t);
-	void Dispose();
+		virtual void GetAllUniformLocations();
 
-	static void ReserveShaderInfoLogLength(const ShaderID_t& shaderID, std::string& infoLog);
-	static void ReserveProgramInfoLogLength(const ProgramID_t& programID, std::string& infoLog);
+	private:
+		bool initialized = false;
 
-private:
-	static std::vector<ShaderProgram*> allShaderPrograms;
+		void LoadShaderSources();
+		int CompileShader(ShaderType, ShaderID_t*, const std::vector<uint8_t>&);
+		int AttachLinkShaders(ShaderID_t, ShaderID_t);
+		void Dispose();
 
-	static void RegisterProgram(ShaderProgram* program);
-	static void UnregisterProgram(ShaderProgram* program);
-};
+		static void ReserveShaderInfoLogLength(const ShaderID_t& shaderID, std::string& infoLog);
+		static void ReserveProgramInfoLogLength(const ProgramID_t& programID, std::string& infoLog);
+
+	private:
+		static std::vector<ShaderProgram*> allShaderPrograms;
+
+		static void RegisterProgram(ShaderProgram* program);
+		static void UnregisterProgram(ShaderProgram* program);
+	};
+}

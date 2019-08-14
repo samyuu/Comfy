@@ -14,7 +14,7 @@
 namespace Editor
 {
 	using namespace FileSystem;
-	using namespace Auth2D;
+	using namespace Graphics::Auth2D;
 
 	class AetRenderWindow : public RenderWindowBase
 	{
@@ -66,7 +66,7 @@ namespace Editor
 
 		std::vector<AetMgr::ObjCache> objectCache;
 
-		OrthographicCamera camera;
+		Graphics::OrthographicCamera camera;
 		CameraController2D cameraController;
 
 		bool useTextShadow = false;

@@ -1,6 +1,6 @@
 #include "AetMgr.h"
 
-namespace Auth2D
+namespace Graphics::Auth2D
 {
 	static_assert((sizeof(KeyFrameCollectionArray) / sizeof(KeyFrameCollection)) == (sizeof(Properties) / sizeof(float)),
 		"The AetMgr Properties struct must have an equal number of float fields as the KeyFrameCollectionArray has KeyFrameCollections");
