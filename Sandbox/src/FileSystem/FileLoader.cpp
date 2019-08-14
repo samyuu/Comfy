@@ -3,7 +3,7 @@
 #include "BinaryReader.h"
 #include "Stream/MemoryStream.h"
 #include "Misc/StringHelper.h"
-#include "Logger.h"
+#include "Core/Logger.h"
 #include <assert.h>
 
 namespace FileSystem

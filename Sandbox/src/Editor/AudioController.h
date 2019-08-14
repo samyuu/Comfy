@@ -1,5 +1,5 @@
 #pragma once
-#include "TimeSpan.h"
+#include "Core/TimeSpan.h"
 #include "Audio/AudioInstance.h"
 #include "Audio/MemoryAudioStream.h"
 #include <array>

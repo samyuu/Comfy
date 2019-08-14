@@ -1,5 +1,5 @@
 #include "InputTestWindow.h"
-#include "Application.h"
+#include "Core/Application.h"
 #include "Input/Keyboard.h"
 
 namespace DataTest

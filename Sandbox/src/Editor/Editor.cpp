@@ -1,5 +1,5 @@
 #include "Editor.h"
-#include "Application.h"
+#include "Core/Application.h"
 #include "Aet/AetEditor.h"
 #include "Chart/ChartEditor.h"
 #include "PV/SceneRenderWindow.h"

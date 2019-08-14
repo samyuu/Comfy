@@ -1,5 +1,5 @@
 #include "AudioTestWindow.h"
-#include "Application.h"
+#include "Core/Application.h"
 #include "Audio/AudioInstance.h"
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"

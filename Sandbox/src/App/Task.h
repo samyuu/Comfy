@@ -1,7 +1,7 @@
 #pragma once
 #include "Graphics/Auth2D/Renderer2D.h"
 #include "Graphics/Auth2D/AetRenderer.h"
-#include "TimeSpan.h"
+#include "Core/TimeSpan.h"
 
 namespace App
 {

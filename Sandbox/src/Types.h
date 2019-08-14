@@ -8,7 +8,7 @@
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
 
-#include "SmartPointers.h"
+#include "Core/SmartPointers.h"
 
 typedef uint8_t unk8_t;
 typedef uint16_t unk16_t;

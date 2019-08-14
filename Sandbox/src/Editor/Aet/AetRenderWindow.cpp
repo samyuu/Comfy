@@ -4,7 +4,7 @@
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
 #include "Input/KeyCode.h"
-#include "TimeSpan.h"
+#include "Core/TimeSpan.h"
 
 namespace Editor
 {

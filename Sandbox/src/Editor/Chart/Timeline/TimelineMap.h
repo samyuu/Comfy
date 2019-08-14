@@ -1,6 +1,6 @@
 #pragma once
 #include "Editor/Chart/TempoMap.h"
-#include "TimeSpan.h"
+#include "Core/TimeSpan.h"
 
 namespace Editor
 {

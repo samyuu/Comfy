@@ -1,5 +1,5 @@
 #include "DirectInput.h"
-#include "Logger.h"
+#include "Core/Logger.h"
 
 IDirectInput8 *IDirectInputInstance = nullptr;
 

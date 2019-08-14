@@ -1,5 +1,5 @@
 #pragma once
-#include "BaseWindow.h"
+#include "Core/BaseWindow.h"
 #include "IFileDropReceiver.h"
 #include "Theme.h"
 

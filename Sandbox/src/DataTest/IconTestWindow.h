@@ -1,5 +1,5 @@
 #pragma once
-#include "BaseWindow.h"
+#include "Core/BaseWindow.h"
 #include <FontIcons.h>
 
 namespace DataTest

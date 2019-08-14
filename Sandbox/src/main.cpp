@@ -1,11 +1,11 @@
-#include "pch.h"
-#include "Application.h"
+﻿#include "pch.h"
+#include "Core/Application.h"
 
 void MainTest();
 
 int main()
 {
-	//MainTest();
+	//MainTest(); return 0;
 
 	Application application;
 	application.Run();

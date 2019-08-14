@@ -4,7 +4,7 @@
 #include "Editor/Editor.h"
 #include "Audio/AudioEngine.h"
 #include "FileSystem/FileHelper.h"
-#include "TimeSpan.h"
+#include "Core/TimeSpan.h"
 #include <FontIcons.h>
 
 namespace Editor

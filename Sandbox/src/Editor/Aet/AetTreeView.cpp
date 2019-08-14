@@ -3,7 +3,7 @@
 #include "Input/KeyCode.h"
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
-#include "Logger.h"
+#include "Core/Logger.h"
 
 namespace Editor
 {

@@ -1,6 +1,6 @@
 #include "pch.h"
-#include "Application.h"
-#include "TimeSpan.h"
+#include "Core/Application.h"
+#include "Core/TimeSpan.h"
 #include "FileSystem/FileHelper.h"
 #include "FileSystem/Stream/FileStream.h"
 #include "FileSystem/Stream/MemoryStream.h"
@@ -11,9 +11,6 @@
 #include "FileSystem/Format/Database.h"
 #include "System/LibraryLoader.h"
 #include "Graphics/Auth2D/AetMgr.h"
-// #include "Graphics/Utilities/TextureUtilities.h"
-// #include "Graphics/Utilities/s3tc.h"
-// #include "Graphics/Utilities/decompress.h"
 #include <stb/stb_image_write.h>
 #include <string>
 #include <unordered_map>

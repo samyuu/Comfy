@@ -1,5 +1,5 @@
 #pragma once
-#include "Logger.h"
+#include "Core/Logger.h"
 #include <glad/glad.h>
 
 #if defined(COMFY_DEBUG)

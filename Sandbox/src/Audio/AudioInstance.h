@@ -1,7 +1,7 @@
 #pragma once
 #include "ISampleProvider.h"
 #include "AudioEngine.h"
-#include "TimeSpan.h"
+#include "Core/TimeSpan.h"
 #include <string>
 
 enum class AudioFinishedAction : int8_t
@@ -25,6 +25,8 @@ public:
 	AudioInstance(ISampleProvider* sampleProvider, bool playing, AudioFinishedAction finishedAction);
 	AudioInstance(ISampleProvider* sampleProvider, bool playing, AudioFinishedAction finishedAction, float volume);
 	AudioInstance(ISampleProvider* sampleProvider, bool playing, AudioFinishedAction finishedAction, float volume, const char* name);
+
+	AudioInstance(AudioInstance& other) = delete;
 
 	// Destructors
 	// -----------
@@ -82,6 +84,9 @@ public:
 	inline int64_t GetSampleCount() const;
 	inline uint32_t GetSampleRate() const;
 	inline uint32_t GetChannelCount() const;
+
+public:
+	AudioInstance& operator= (AudioInstance& other) = delete;
 
 private:
 	// Members Variables

@@ -1,7 +1,7 @@
 #include "SceneRenderWindow.h"
 #include "FileSystem/FileHelper.h"
 #include "Input/KeyCode.h"
-#include "TimeSpan.h"
+#include "Core/TimeSpan.h"
 #include <FontIcons.h>
 
 namespace Editor

@@ -2,7 +2,7 @@
 #include "TargetList.h"
 #include "TempoMap.h"
 #include "Timeline/TimelineMap.h"
-#include "TimeSpan.h"
+#include "Core/TimeSpan.h"
 
 namespace Editor
 {
