@@ -248,7 +248,7 @@ namespace Editor
 			const char* blendModeNames = "Alpha\0None\0Additive\0DstColorZero\0SrcAlphaOneMinusSrcColor\0Transparent";
 
 			int32_t blendMode = static_cast<int32_t>(animationData->BlendMode) - 3;
-			if (ImGui::Combo("Blend Mode", &blendMode, blendModeNames))
+			if (ImGui::WideCombo("Blend Mode", &blendMode, blendModeNames))
 				animationData->BlendMode = static_cast<AetBlendMode>(blendMode + 3);
 
 			ImGui::Checkbox("Use Texture Mask", &animationData->UseTextureMask);

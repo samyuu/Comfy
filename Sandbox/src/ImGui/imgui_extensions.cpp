@@ -1,12 +1,21 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui_extensions.h"
 #include "Graphics/Texture/Texture2D.h"
+#include "Core/DebugStopwatch.h"
 #include "FontIcons.h"
 
 namespace ImGui
 {
 	static ImGuiWindow* activeWindowsOnMouseClicks[5];
 	static ImGuiWindow* hoveredWindowsOnMouseClicks[5];
+
+	struct RAII_PopupWindowPadding
+	{
+		RAII_PopupWindowPadding() { PushStyleVar(ImGuiStyleVar_WindowPadding, PopupWindowPadding); }
+		~RAII_PopupWindowPadding() { PopStyleVar(); }
+	};
+
+#define RAII_POPUP_WINDOW_PADDING() RAII_PopupWindowPadding uniquename(__RAII_POPUP_WINDOW_PADDING)
 
 	void UpdateExtendedState()
 	{
@@ -63,7 +72,6 @@ namespace ImGui
 
 	void HelpMarker(const char* description)
 	{
-		//TextDisabled("(" ICON_FA_QUESTION ")");
 		TextDisabled("(?)");
 		if (IsItemHovered())
 		{
@@ -346,10 +354,59 @@ namespace ImGui
 		return pressed;
 	}
 
+	bool WideBeginPopup(const char* label)
+	{
+		RAII_POPUP_WINDOW_PADDING();
+		return BeginPopup(label);
+	}
+
+	bool WideBeginMenu(const char* label, bool enabled)
+	{
+		RAII_POPUP_WINDOW_PADDING();
+#undef BeginMenu
+		return BeginMenu(label, enabled);
+	}
+
+	bool WideBeginCombo(const char* label, const char* preview_value, ImGuiComboFlags flags)
+	{
+		RAII_POPUP_WINDOW_PADDING();
+		return BeginCombo(label, preview_value, flags);
+	}
+
+	bool WideCombo(const char* label, int* current_item, const char* const items[], int items_count, int popup_max_height_in_items)
+	{
+		RAII_POPUP_WINDOW_PADDING();
+		return Combo(label, current_item, items, items_count, popup_max_height_in_items);
+	}
+
+	bool WideCombo(const char* label, int* current_item, const char* items_separated_by_zeros, int popup_max_height_in_items)
+	{
+		RAII_POPUP_WINDOW_PADDING();
+		return Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items);
+	}
+
+	bool WideCombo(const char* label, int* current_item, bool(*items_getter)(void* data, int idx, const char** out_text), void* data, int items_count, int popup_max_height_in_items)
+	{
+		RAII_POPUP_WINDOW_PADDING();
+		return Combo(label, current_item, items_getter, data, items_count, popup_max_height_in_items);
+	}
+
+	void WideSetTooltip(const char* fmt, ...)
+	{
+		RAII_POPUP_WINDOW_PADDING();
+
+		va_list args;
+		va_start(args, fmt);
+		SetTooltipV(fmt, args);
+		va_end(args);
+	}
+
 	constexpr int ContextMenuMouseButton_button = 1;
 
 	static bool InternalBeginContextMenu(const char* str_id, bool checkItemHover)
 	{
+		RAII_POPUP_WINDOW_PADDING();
+
 		ImGuiID id = GetID(str_id);
 		if (IsMouseReleased(ContextMenuMouseButton_button) && (IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && WasHoveredWindowHoveredOnMouseClicked(ContextMenuMouseButton_button)))
 		{

@@ -10,6 +10,8 @@ namespace Graphics
 	class Texture2D;
 }
 
+#define BeginMenu WideBeginMenu
+
 namespace ImGui
 {
 	const ImVec2 UV0 = ImVec2(0, 0), UV1 = ImVec2(1, 1);
@@ -61,6 +63,17 @@ namespace ImGui
 	bool WideTreeNodeNoArrow(const char* label);
 	bool WideTreeNodeNoArrow(const char* label, ImGuiTreeNodeFlags flags);
 	bool SmallButton(const char* label, const ImVec2& size);
+
+	bool WideBeginPopup(const char* label);
+	bool WideBeginMenu(const char* label, bool enabled = true);
+
+	bool WideBeginCombo(const char* label, const char* preview_value, ImGuiComboFlags flags = 0);
+
+	bool WideCombo(const char* label, int* current_item, const char* const items[], int items_count, int popup_max_height_in_items = -1);
+	bool WideCombo(const char* label, int* current_item, const char* items_separated_by_zeros, int popup_max_height_in_items = -1);
+	bool WideCombo(const char* label, int* current_item, bool(*items_getter)(void* data, int idx, const char** out_text), void* data, int items_count, int popup_max_height_in_items = -1);
+
+	void WideSetTooltip(const char* fmt, ...);
 
 	void WindowContextMenu(const char* str_id, const std::function<void(void)>& func);
 	void ItemContextMenu(const char* str_id, const std::function<void(void)>& func);

@@ -522,7 +522,7 @@ namespace Editor
 				//windowDrawList->AddRectFilled(buttonPosition, buttonPosition + buttonSize, TEMPO_MAP_BAR_COLOR);
 				if (ImGui::IsItemHovered() && ImGui::IsWindowHovered())
 				{
-					ImGui::SetTooltip("TIME: %s", GetTimelineTime(tempoChange.Tick).FormatTime().c_str());
+					ImGui::WideSetTooltip("TIME: %s", GetTimelineTime(tempoChange.Tick).FormatTime().c_str());
 
 					baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, GetColor(EditorColor_TimelineBg));
 					if (ImGui::IsMouseDoubleClicked(0))
@@ -544,7 +544,7 @@ namespace Editor
 
 			// Test Popup
 			// ----------
-			if (ImGui::BeginPopup("##ChangeTempoPopup"))
+			if (ImGui::WideBeginPopup("##ChangeTempoPopup"))
 			{
 				ImGui::Text("Change Tempo:");
 
