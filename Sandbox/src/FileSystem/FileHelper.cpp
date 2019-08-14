@@ -152,6 +152,16 @@ namespace FileSystem
 		return fileSelected;
 	}
 
+	static void FuckUpWindowPath(std::string& path)
+	{
+		std::replace(path.begin(), path.end(), '/', '\\');
+	}
+
+	static void FuckUpWindowPath(std::wstring& path)
+	{
+		std::replace(path.begin(), path.end(), L'/', L'\\');
+	}
+
 	void OpenWithDefaultProgram(const std::wstring& filePath)
 	{
 		::ShellExecuteW(NULL, L"open", filePath.c_str(), NULL, NULL, SW_SHOW);
@@ -174,25 +184,16 @@ namespace FileSystem
 		}
 	}
 
-	void OpenExplorerProperties(const std::string& filePath)
-	{
-		SHELLEXECUTEINFOA info = { };
-
-		info.cbSize = sizeof info;
-		info.lpFile = filePath.c_str();
-		info.nShow = SW_SHOW;
-		info.fMask = SEE_MASK_INVOKEIDLIST;
-		info.lpVerb = "properties";
-
-		::ShellExecuteExA(&info);
-	}
-
 	void OpenExplorerProperties(const std::wstring& filePath)
 	{
 		SHELLEXECUTEINFOW info = { };
 
+		// thanks windows
+		std::wstring windowsPath = filePath;
+		FuckUpWindowPath(windowsPath);
+
 		info.cbSize = sizeof info;
-		info.lpFile = filePath.c_str();
+		info.lpFile = windowsPath.c_str();
 		info.nShow = SW_SHOW;
 		info.fMask = SEE_MASK_INVOKEIDLIST;
 		info.lpVerb = L"properties";
