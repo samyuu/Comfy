@@ -2,14 +2,12 @@
 #include "Core/Logger.h"
 #include <glad/glad.h>
 
-namespace Graphics
-{
 #if defined(COMFY_DEBUG)
 
-	static void __OnGlError()
-	{
-		int __breakpoint__ = true;
-	}
+static void __OnGlError()
+{
+	int __breakpoint__ = true;
+}
 
 #define __CHECK_GL_ERROR(description) \
 	{ \
@@ -35,4 +33,3 @@ namespace Graphics
 	}
 
 #endif /* COMFY_DEBUG / COMFY_RELEASE */
-}
