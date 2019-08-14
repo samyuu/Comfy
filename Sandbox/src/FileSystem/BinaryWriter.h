@@ -3,6 +3,7 @@
 #include "BinaryMode.h"
 #include <vector>
 #include <list>
+#include <map>
 #include <functional>
 
 namespace FileSystem
@@ -74,6 +75,7 @@ namespace FileSystem
 
 		PtrMode pointerMode;
 		bool leaveOpen = false;
+		bool poolStrings = true;
 		Stream* stream = nullptr;
 
 		struct StringPointerEntry
@@ -95,6 +97,7 @@ namespace FileSystem
 			const std::function<void(BinaryWriter&)> Function;
 		};
 
+		std::unordered_map<std::string, void*> writtenStringPool;
 		std::vector<StringPointerEntry> stringPointerPool;
 		std::list<FunctionPointerEntry> pointerPool;
 		std::vector<DelayedWriteEntry> delayedWritePool;

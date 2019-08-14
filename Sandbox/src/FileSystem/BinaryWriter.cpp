@@ -135,17 +135,44 @@ namespace FileSystem
 	{
 		for (auto& value : stringPointerPool)
 		{
-			void* stringOffset = GetPositionPtr();
+			void* originalStringOffset = GetPositionPtr();
+			void* stringOffset = originalStringOffset;
+
+			bool pooledStringFound = false;
+
+			if (poolStrings)
+			{
+				auto pooledString = writtenStringPool.find(*value.String);
+				if (pooledString != writtenStringPool.end())
+				{
+					stringOffset = pooledString->second;
+					pooledStringFound = true;
+				}
+			}
 
 			SetPosition(value.ReturnAddress);
 			WritePtr(stringOffset);
 
-			SetPosition(stringOffset);
-			WriteStr(*value.String);
-			if (value.Alignment > 0)
-				WriteAlignmentPadding(value.Alignment);
+			if (!pooledStringFound)
+			{
+				SetPosition(stringOffset);
+				WriteStr(*value.String);
+
+				if (value.Alignment > 0)
+					WriteAlignmentPadding(value.Alignment);
+			}
+			else
+			{
+				SetPosition(originalStringOffset);
+			}
+
+			if (poolStrings && !pooledStringFound)
+				writtenStringPool.insert(std::make_pair(*value.String, stringOffset));
 		}
 
+		if (poolStrings)
+			writtenStringPool.clear();
+		
 		stringPointerPool.clear();
 	}
 
