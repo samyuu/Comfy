@@ -2,9 +2,13 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "theme.h"
 #include <functional>
 
-class Texture2D;
+namespace Graphics
+{
+	class Texture2D;
+}
 
 namespace ImGui
 {
@@ -15,18 +19,18 @@ namespace ImGui
 
 	bool WasActiveWindowFocusedOnMouseClicked(int button);
 	bool WasActiveWindowHoveredOnMouseClicked(int button);
-	
+
 	bool WasHoveredWindowFocusedOnMouseClicked(int button);
 	bool WasHoveredWindowHoveredOnMouseClicked(int button);
 
-	void AddTexture(ImDrawList* drawList, Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0 = UV0_GL, const ImVec2& uv1 = UV1_GL);
+	void AddTexture(ImDrawList* drawList, Graphics::Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0 = UV0_GL, const ImVec2& uv1 = UV1_GL);
 
-	inline void AddTexture(ImDrawList* drawList, Texture2D* texture, ImVec2 center, float scale, const ImVec2& uv0, const ImVec2& uv1)
+	inline void AddTexture(ImDrawList* drawList, Graphics::Texture2D* texture, ImVec2 center, float scale, const ImVec2& uv0, const ImVec2& uv1)
 	{
 		AddTexture(drawList, texture, center, ImVec2(scale, scale), uv0, uv1);
 	};
 
-	inline void AddTexture(ImDrawList* drawList, Texture2D* texture, ImVec2 center, float scale)
+	inline void AddTexture(ImDrawList* drawList, Graphics::Texture2D* texture, ImVec2 center, float scale)
 	{
 		AddTexture(drawList, texture, center, ImVec2(scale, scale));
 	};
@@ -42,8 +46,6 @@ namespace ImGui
 	{
 		drawList->AddRectFilled(rect.GetTL(), rect.GetBR(), color);
 	}
-
-	void StyleComfy(ImGuiStyle* dst = nullptr);
 
 	bool IsItemHoveredDelayed(ImGuiHoveredFlags flags = ImGuiHoveredFlags_None, float threshold = .5f);
 
