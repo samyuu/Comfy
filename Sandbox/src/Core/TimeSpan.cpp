@@ -1,4 +1,5 @@
 #include "TimeSpan.h"
+#include "DebugStopwatch.h"
 #include "glfw/glfw3.h"
 #include "Logger.h"
 

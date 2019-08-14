@@ -207,6 +207,7 @@
     <ClCompile Include="src\FileSystem\Stream\Stream.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Core\DebugStopwatch.h" />
     <ClInclude Include="src\Editor\Aet\KeyFrameRenderer.h" />
     <ClInclude Include="src\Editor\Aet\AetTimelineController.h" />
     <ClInclude Include="src\Editor\Timeline\ITimelinePlaybackControllable.h" />

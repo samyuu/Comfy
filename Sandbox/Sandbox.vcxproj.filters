@@ -147,9 +147,6 @@
     <ClCompile Include="src\FileSystem\FileInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ImGui\imgui_extensions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\ImGui\Widgets\FileViewer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -301,6 +298,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ImGui\theme.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ImGui\imgui_extensions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -456,9 +456,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\FileSystem\Format\TxpSet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ImGui\imgui_extensions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\Widgets\FileViewer.h">
@@ -645,6 +642,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\theme.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ImGui\imgui_extensions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\DebugStopwatch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
