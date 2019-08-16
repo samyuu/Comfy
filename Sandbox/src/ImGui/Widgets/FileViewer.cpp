@@ -88,8 +88,9 @@ namespace ImGui
 			ImGui::WindowContextMenu("ContextMenu##FileViewer", [this]()
 			{
 				bool fileItemSelected = contextMenuFilePathInfo != nullptr;
+				bool isDirectory = fileItemSelected && contextMenuFilePathInfo->IsDirectory;
 
-				if (MenuItem("Open", nullptr, nullptr, fileItemSelected))
+				if (MenuItem("Open", nullptr, nullptr, fileItemSelected && !isDirectory))
 					OpenContextItemDefaultProgram();
 
 				if (MenuItem("Open in Explorer..."))
@@ -271,7 +272,9 @@ namespace ImGui
 
 	void FileViewer::OpenContextItemProperties()
 	{
-		FileSystem::OpenExplorerProperties(Utf8ToUtf16(contextMenuFilePathInfo != nullptr ? contextMenuFilePathInfo->FullPath : directory));
+		std::string filePath = contextMenuFilePathInfo != nullptr ? contextMenuFilePathInfo->FullPath : directory;
+		FileSystem::FuckUpWindowsPath(filePath);
+		FileSystem::OpenExplorerProperties(Utf8ToUtf16(filePath));
 	}
 
 	FileType FileViewer::GetFileType(const std::string& fileName)

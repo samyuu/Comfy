@@ -30,12 +30,15 @@ namespace FileSystem
 	void OpenInExplorer(const std::wstring& filePath);
 	void OpenExplorerProperties(const std::wstring& filePath);
 
+	void FuckUpWindowsPath(std::string& path);
+	void FuckUpWindowsPath(std::wstring& path);
+
 	void SanitizePath(std::string& path);
 	void SanitizePath(std::wstring& path);
 
 	std::string GetWorkingDirectory();
 	std::wstring GetWorkingDirectoryW();
-	
+
 	void SetWorkingDirectory(const std::string& value);
 	void SetWorkingDirectoryW(const std::wstring& value);
 

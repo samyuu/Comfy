@@ -152,16 +152,6 @@ namespace FileSystem
 		return fileSelected;
 	}
 
-	static void FuckUpWindowPath(std::string& path)
-	{
-		std::replace(path.begin(), path.end(), '/', '\\');
-	}
-
-	static void FuckUpWindowPath(std::wstring& path)
-	{
-		std::replace(path.begin(), path.end(), L'/', L'\\');
-	}
-
 	void OpenWithDefaultProgram(const std::wstring& filePath)
 	{
 		::ShellExecuteW(NULL, L"open", filePath.c_str(), NULL, NULL, SW_SHOW);
@@ -188,17 +178,23 @@ namespace FileSystem
 	{
 		SHELLEXECUTEINFOW info = { };
 
-		// thanks windows
-		std::wstring windowsPath = filePath;
-		FuckUpWindowPath(windowsPath);
-
 		info.cbSize = sizeof info;
-		info.lpFile = windowsPath.c_str();
+		info.lpFile = filePath.c_str();
 		info.nShow = SW_SHOW;
 		info.fMask = SEE_MASK_INVOKEIDLIST;
 		info.lpVerb = L"properties";
 
 		::ShellExecuteExW(&info);
+	}
+
+	void FuckUpWindowsPath(std::string& path)
+	{
+		std::replace(path.begin(), path.end(), '/', '\\');
+	}
+
+	void FuckUpWindowsPath(std::wstring& path)
+	{
+		std::replace(path.begin(), path.end(), L'/', L'\\');
 	}
 
 	void SanitizePath(std::string& path)
