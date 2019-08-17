@@ -41,7 +41,7 @@ namespace DataTest
 				Graphics::ShaderProgram* shader = Graphics::ShaderProgram::GetAllShaderPrograms()[selectedIndex];
 
 				BulletText("%s	[ OpenGL ID: %d ]", shader->GetShaderName(), shader->GetProgramID());
-				BeginChild("##ShaderTestWindowSourceChild", ImVec2(0, 102), true);
+				BeginChild("##ShaderTestWindowSourceChild", ImVec2(0, 82), true);
 				{
 					Columns(2);
 
