@@ -5,6 +5,7 @@
 #include "ImGui/imgui.h"
 #include "Imgui_Impl_Renderer.h"
 #include "Graphics/Graphics.h"
+#include "Graphics/RenderCommand.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <glad/glad.h>
@@ -37,12 +38,6 @@ bool ImGui_ImplOpenGL3_Init(const char* glsl_version)
 	strcpy(g_GlslVersionString, glsl_version);
 	strcat(g_GlslVersionString, "\n");
 
-	// Make a dummy GL call (we don't actually need the result)
-	// IF YOU GET A CRASH HERE: it probably means that you haven't initialized the OpenGL function loader used by this code.
-	// Desktop OpenGL 3/4 need a function loader. See the IMGUI_IMPL_OPENGL_LOADER_xxx explanation above.
-	GLint current_texture;
-	GLCall(glGetIntegerv(GL_TEXTURE_BINDING_2D, &current_texture));
-
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		ImGui_ImplOpenGL3_InitPlatformInterface();
 
@@ -72,49 +67,67 @@ void ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
 	if (fb_width <= 0 || fb_height <= 0)
 		return;
 
+	const Graphics::RenderCommand::State& renderCommandState = Graphics::RenderCommand::GetState();
+
 	// Backup GL state
-	GLenum last_active_texture; 
-	GLCall(glGetIntegerv(GL_ACTIVE_TEXTURE, (GLint*)&last_active_texture));
-	GLCall(glActiveTexture(GL_TEXTURE0));
-	GLint last_program; 
-	GLCall(glGetIntegerv(GL_CURRENT_PROGRAM, &last_program));
-	GLint last_texture; 
-	GLCall(glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
+	int32_t lastTextureSlot = renderCommandState.LastTextureSlot;
+	uint32_t lastProgramID = renderCommandState.LastBoundShaderProgram;
+	uint32_t lastTextureID = renderCommandState.GetLastBoundTextureID();
+	
 	GLint last_sampler; 
 	GLCall(glGetIntegerv(GL_SAMPLER_BINDING, &last_sampler));
+	
 	GLint last_array_buffer; 
 	GLCall(glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer));
+	
 	GLint last_vertex_array_object; 
 	GLCall(glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array_object));
+	
 	GLint last_polygon_mode[2]; 
 	GLCall(glGetIntegerv(GL_POLYGON_MODE, last_polygon_mode));
+	
 	GLint last_viewport[4]; 
 	GLCall(glGetIntegerv(GL_VIEWPORT, last_viewport));
+	
 	GLint last_scissor_box[4]; 
 	GLCall(glGetIntegerv(GL_SCISSOR_BOX, last_scissor_box));
+	
 	GLenum last_blend_src_rgb; 
 	GLCall(glGetIntegerv(GL_BLEND_SRC_RGB, (GLint*)&last_blend_src_rgb));
+	
 	GLenum last_blend_dst_rgb; 
 	GLCall(glGetIntegerv(GL_BLEND_DST_RGB, (GLint*)&last_blend_dst_rgb));
+	
 	GLenum last_blend_src_alpha; 
 	GLCall(glGetIntegerv(GL_BLEND_SRC_ALPHA, (GLint*)&last_blend_src_alpha));
+	
 	GLenum last_blend_dst_alpha; 
 	GLCall(glGetIntegerv(GL_BLEND_DST_ALPHA, (GLint*)&last_blend_dst_alpha));
+	
 	GLenum last_blend_equation_rgb; 
 	GLCall(glGetIntegerv(GL_BLEND_EQUATION_RGB, (GLint*)&last_blend_equation_rgb));
+	
 	GLenum last_blend_equation_alpha; 
 	GLCall(glGetIntegerv(GL_BLEND_EQUATION_ALPHA, (GLint*)&last_blend_equation_alpha));
+	
+	Graphics::RenderCommand::SetTextureSlot(0);
+
 	GLboolean last_enable_blend; 
 	GLCall(last_enable_blend = glIsEnabled(GL_BLEND));
+	
 	GLboolean last_enable_cull_face; 
 	GLCall(last_enable_cull_face = glIsEnabled(GL_CULL_FACE));
+	
 	GLboolean last_enable_depth_test; 
 	GLCall(last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST));
+	
 	GLboolean last_enable_scissor_test; 
 	GLCall(last_enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST));
+	
 	bool clip_origin_lower_left = true;
 	GLenum last_clip_origin = 0; 
 	GLCall(glGetIntegerv(GL_CLIP_ORIGIN, (GLint*)&last_clip_origin)); // Support for GL 4.5's glClipControl(GL_UPPER_LEFT)
+	
 	if (last_clip_origin == GL_UPPER_LEFT)
 		clip_origin_lower_left = false;
 
@@ -141,7 +154,8 @@ void ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
 		{ 0.0f,         0.0f,        -1.0f,   0.0f },
 		{ (R + L) / (L - R),  (T + B) / (B - T),  0.0f,   1.0f },
 	};
-	GLCall(glUseProgram(g_ShaderHandle));
+
+	Graphics::RenderCommand::BindShaderProgram(g_ShaderHandle);
 	GLCall(glUniform1i(g_AttribLocationTex, 0));
 	GLCall(glUniformMatrix4fv(g_AttribLocationProjMtx, 1, GL_FALSE, &ortho_projection[0][0]));
 	GLCall(glBindSampler(0, 0)); // We use combined texture/sampler state. Applications using GL 3.3 may set that otherwise.
@@ -206,7 +220,7 @@ void ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
 					}
 
 					// Bind texture, Draw
-					GLCall(glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId));
+					Graphics::RenderCommand::BindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId);
 					GLCall(glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, (void*)idx_buffer_offset));
 				}
 			}
@@ -218,10 +232,12 @@ void ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
 	GLCall(glDeleteVertexArrays(1, &vertex_array_object));
 
 	// Restore modified GL state
-	GLCall(glUseProgram(last_program));
-	GLCall(glBindTexture(GL_TEXTURE_2D, last_texture));
+	Graphics::RenderCommand::BindShaderProgram(lastProgramID);
+	
+	Graphics::RenderCommand::BindTexture(GL_TEXTURE_2D, lastTextureID);
+	Graphics::RenderCommand::SetTextureSlot(lastTextureSlot);
+	
 	GLCall(glBindSampler(0, last_sampler));
-	GLCall(glActiveTexture(last_active_texture));
 	GLCall(glBindVertexArray(last_vertex_array_object));
 
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer));
@@ -247,10 +263,10 @@ bool ImGui_ImplOpenGL3_CreateFontsTexture()
 	io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height); // Load as RGBA 32-bits (75% of the memory is wasted, but default font is so small) because it is more likely to be compatible with user's existing shaders. If your ImTextureId represent a higher-level concept than just a GL texture id, consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
 
 	// Upload texture to graphics system
-	GLint last_texture;
-	GLCall(glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
+	uint32_t lastTextureID = Graphics::RenderCommand::GetState().GetLastBoundTextureID();
+
 	GLCall(glGenTextures(1, &g_FontTexture));
-	GLCall(glBindTexture(GL_TEXTURE_2D, g_FontTexture));
+	Graphics::RenderCommand::BindTexture(GL_TEXTURE_2D, g_FontTexture);
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 	GLCall(glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
@@ -260,7 +276,7 @@ bool ImGui_ImplOpenGL3_CreateFontsTexture()
 	io.Fonts->TexID = (ImTextureID)(intptr_t)g_FontTexture;
 
 	// Restore state
-	GLCall(glBindTexture(GL_TEXTURE_2D, last_texture));
+	Graphics::RenderCommand::BindTexture(GL_TEXTURE_2D, lastTextureID);
 
 	return true;
 }
@@ -315,9 +331,11 @@ static bool CheckProgram(GLuint handle, const char* desc)
 bool ImGui_ImplOpenGL3_CreateDeviceObjects()
 {
 	// Backup GL state
-	GLint last_texture, last_array_buffer;
-	GLCall(glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
+	uint32_t lastTextureID = Graphics::RenderCommand::GetState().GetLastBoundTextureID();
+	
+	GLint last_array_buffer;
 	GLCall(glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer));
+	
 	GLint last_vertex_array;
 	GLCall(glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array));
 
@@ -387,7 +405,7 @@ bool ImGui_ImplOpenGL3_CreateDeviceObjects()
 	ImGui_ImplOpenGL3_CreateFontsTexture();
 
 	// Restore modified GL state
-	GLCall(glBindTexture(GL_TEXTURE_2D, last_texture));
+	Graphics::RenderCommand::BindTexture(GL_TEXTURE_2D, lastTextureID);
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer));
 	GLCall(glBindVertexArray(last_vertex_array));
 

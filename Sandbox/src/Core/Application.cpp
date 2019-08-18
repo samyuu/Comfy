@@ -17,6 +17,7 @@
 Application* Application::globalCallbackApplication;
 
 static HMODULE GlobalModuleHandle = NULL;
+static HICON GlobalIconHandle = NULL;
 
 static void GlfwErrorCallback(int error, const char* description)
 {
@@ -136,6 +137,21 @@ const std::vector<std::string>& Application::GetDroppedFiles() const
 	return droppedFiles;
 }
 
+void Application::LoadComfyWindowIcon()
+{
+	assert(GlobalIconHandle == NULL);
+	GlobalIconHandle = ::LoadIconA(GlobalModuleHandle, MAKEINTRESOURCE(COMFY_ICON));
+}
+
+void Application::SetComfyWindowIcon(GLFWwindow* window)
+{
+	assert(GlobalIconHandle != NULL);
+	
+	HWND windowHandle = glfwGetWin32Window(window);
+	::SendMessageA(windowHandle, WM_SETICON, ICON_SMALL, (LPARAM)GlobalIconHandle);
+	::SendMessageA(windowHandle, WM_SETICON, ICON_BIG, (LPARAM)GlobalIconHandle);
+}
+
 void Application::Run()
 {
 	if (!BaseInitialize())
@@ -179,7 +195,7 @@ bool Application::BaseInitialize()
 	if (glfwInitResult == GLFW_FALSE)
 		return false;
 
-	GlobalModuleHandle = GetModuleHandle(nullptr);
+	GlobalModuleHandle = ::GetModuleHandleA(nullptr);
 
 	if (!InitializeWindow())
 		return false;
@@ -320,11 +336,8 @@ bool Application::InitializeWindow()
 
 	glfwSetWindowSizeLimits(window, WindowWidthMin, WindowHeightMin, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
-	HWND windowHandle = glfwGetWin32Window(window);
-	HICON iconhandle = LoadIcon(GlobalModuleHandle, MAKEINTRESOURCE(COMFY_ICON));
-
-	SendMessage(windowHandle, WM_SETICON, ICON_SMALL, (LPARAM)iconhandle);
-	SendMessage(windowHandle, WM_SETICON, ICON_BIG, (LPARAM)iconhandle);
+	Application::LoadComfyWindowIcon();
+	Application::SetComfyWindowIcon(window);
 
 	return true;
 }
@@ -742,10 +755,10 @@ void Application::WindowMoveCallback(int xPosition, int yPosition)
 
 void Application::WindowResizeCallback(int width, int height)
 {
-	windowWidth = (float)width;
-	windowHeight = (float)height;
+	windowWidth = static_cast<float>(width);
+	windowHeight = static_cast<float>(height);
 
-	Graphics::RenderCommand::SetViewport(vec2(width, height));
+	Graphics::RenderCommand::SetViewport(width, height);
 }
 
 void Application::WindowDropCallback(size_t count, const char* paths[])

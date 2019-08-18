@@ -36,6 +36,7 @@ public:
 	inline float GetWidth() { return windowWidth; };
 	inline float GetHeight() { return windowHeight; };
 
+public:
 	// Window Utilities
 	// ----------------
 	bool IsFullscreen() const;
@@ -52,6 +53,12 @@ public:
 	bool GetDispatchFileDrop();
 	void SetFileDropDispatched(bool value = true);
 	const std::vector<std::string>& GetDroppedFiles() const;
+
+private:
+	static void LoadComfyWindowIcon();
+
+public:
+	static void SetComfyWindowIcon(GLFWwindow* window);
 
 private:
 	// Base Methods
