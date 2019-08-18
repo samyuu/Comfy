@@ -15,6 +15,19 @@ namespace FileSystem
 		"Opactiy",
 	};
 
+	std::array<const char*, 9> AnimationData::BlendModeNames =
+	{
+		nullptr,
+		nullptr,
+		nullptr,
+		"Alpha",
+		nullptr,
+		"Additive",
+		"Destination Color Zero",
+		"Source Alpha One Minus Source Color",
+		"Transparent",
+	};
+
 	std::array<const char*, 4> AetObj::TypeNames =
 	{
 		"nop",
@@ -243,12 +256,12 @@ namespace FileSystem
 		objects.push_back(MakeRefPtr<AetObj>(type, name, this));
 	}
 
-	void AetLayer::DeleteObject(AetObj* object)
+	void AetLayer::DeleteObject(AetObj* value)
 	{
 		int index = 0;
 		for (RefPtr<AetObj>& obj : objects)
 		{
-			if (obj.get() == object)
+			if (obj.get() == value)
 			{
 				objects.erase(objects.begin() + index);
 				break;
@@ -256,6 +269,8 @@ namespace FileSystem
 
 			index++;
 		}
+
+		parentAet->InternalUpdateLayerNames();
 	}
 
 	AetLayer* Aet::GetRootLayer()
@@ -289,6 +304,38 @@ namespace FileSystem
 		}
 
 		return -1;
+	}
+
+	void Aet::DeleteLayer(AetLayer* value)
+	{
+		int index = 0;
+		for (RefPtr<AetLayer>& layer : AetLayers)
+		{
+			if (layer.get() == value)
+			{
+				AetLayers.erase(AetLayers.begin() + index);
+				break;
+			}
+
+			index++;
+		}
+
+		for (RefPtr<AetLayer>& layer : AetLayers)
+		{
+			for (RefPtr<AetObj>& obj : *layer)
+			{
+				if (obj->GetReferencedLayer() == value)
+				{
+					// TODO: maybe store them in a separate "lastDeleted" field to easily recover for undo
+					obj->SetReferencedLayer(nullptr);
+				}
+			}
+		}
+
+		for (int32_t index = 0; index < AetLayers.size(); index++)
+			AetLayers[index]->thisIndex = index;
+
+		InternalUpdateLayerNames();
 	}
 
 	void Aet::UpdateParentPointers()

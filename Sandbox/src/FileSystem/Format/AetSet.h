@@ -135,6 +135,8 @@ namespace FileSystem
 
 	struct AnimationData
 	{
+		static std::array<const char*, 9> BlendModeNames;
+
 		AetBlendMode BlendMode;
 		bool UseTextureMask;
 
@@ -275,7 +277,7 @@ namespace FileSystem
 
 	public:
 		void AddNewObject(AetObjType type, const std::string& name);
-		void DeleteObject(AetObj* object);
+		void DeleteObject(AetObj* value);
 
 	private:
 		std::vector<std::string> givenNames;
@@ -314,6 +316,7 @@ namespace FileSystem
 	class Aet
 	{
 		friend class AetSet;
+		friend class AetLayer;
 		friend class AetObj;
 
 	public:
@@ -343,6 +346,10 @@ namespace FileSystem
 		AetObj* GetObj(const std::string& name);
 		const AetObj* GetObj(const std::string& name) const;
 		int32_t GetObjIndex(AetLayer& layer, const std::string& name) const;
+
+	public:
+		//void AddNewLayer();
+		void DeleteLayer(AetLayer* value);
 
 	public:
 		void UpdateParentPointers();
