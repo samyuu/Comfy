@@ -96,24 +96,25 @@ namespace Graphics::Auth2D
 		if (rotation == 0.0f)
 		{
 			SetPositions(position + origin, size);
-			return;
 		}
+		else
+		{
+			const float radians = glm::radians(rotation);
+			const float sin = glm::sin(radians);
+			const float cos = glm::cos(radians);
 
-		float radians = glm::radians(rotation);
-		float sin = glm::sin(radians);
-		float cos = glm::cos(radians);
+			TopLeft.Position.x = position.x + origin.x * cos - origin.y * sin;
+			TopLeft.Position.y = position.y + origin.x * sin + origin.y * cos;
 
-		TopLeft.Position.x = position.x + origin.x * cos - origin.y * sin;
-		TopLeft.Position.y = position.y + origin.x * sin + origin.y * cos;
+			TopRight.Position.x = position.x + (origin.x + size.x) * cos - origin.y * sin;
+			TopRight.Position.y = position.y + (origin.x + size.x) * sin + origin.y * cos;
 
-		TopRight.Position.x = position.x + (origin.x + size.x) * cos - origin.y * sin;
-		TopRight.Position.y = position.y + (origin.x + size.x) * sin + origin.y * cos;
+			BottomLeft.Position.x = position.x + origin.x * cos - (origin.y + size.y) * sin;
+			BottomLeft.Position.y = position.y + origin.x * sin + (origin.y + size.y) * cos;
 
-		BottomLeft.Position.x = position.x + origin.x * cos - (origin.y + size.y) * sin;
-		BottomLeft.Position.y = position.y + origin.x * sin + (origin.y + size.y) * cos;
-
-		BottomRight.Position.x = position.x + (origin.x + size.x) * cos - (origin.y + size.y) * sin;
-		BottomRight.Position.y = position.y + (origin.x + size.x) * sin + (origin.y + size.y) * cos;
+			BottomRight.Position.x = position.x + (origin.x + size.x) * cos - (origin.y + size.y) * sin;
+			BottomRight.Position.y = position.y + (origin.x + size.x) * sin + (origin.y + size.y) * cos;
+		}
 	}
 
 	void SpriteVertices::SetTexCoords(const vec2& topLeft, const vec2& bottomRight)
@@ -137,9 +138,9 @@ namespace Graphics::Auth2D
 		const vec2 maskRectSize = vec2(maskScale.x * maskSourceRegion.z, maskScale.y * maskSourceRegion.w);
 
 		TopLeft.TextureMaskCoordinates = vec2(0.0f, 0.0f) + maskOffset;
+		TopRight.TextureMaskCoordinates = vec2(maskRectSize.x, 0.0f) + maskOffset;
 		BottomLeft.TextureMaskCoordinates = vec2(0.0f, maskRectSize.y) + maskOffset;
 		BottomRight.TextureMaskCoordinates = vec2(maskRectSize.x, maskRectSize.y) + maskOffset;
-		TopRight.TextureMaskCoordinates = vec2(maskRectSize.x, 0.0f) + maskOffset;
 
 		const vec2 scaledOrigin = (origin * scale);
 		const float rotationDifference = maskRotation - rotation;
@@ -151,34 +152,34 @@ namespace Graphics::Auth2D
 			const float cos = glm::cos(radians);
 
 			TopLeft.TextureMaskCoordinates -= position;
+			TopRight.TextureMaskCoordinates -= position;
 			BottomLeft.TextureMaskCoordinates -= position;
 			BottomRight.TextureMaskCoordinates -= position;
-			TopRight.TextureMaskCoordinates -= position;
 
 			RotateVector(TopLeft.TextureMaskCoordinates, sin, cos);
+			RotateVector(TopRight.TextureMaskCoordinates, sin, cos);
 			RotateVector(BottomLeft.TextureMaskCoordinates, sin, cos);
 			RotateVector(BottomRight.TextureMaskCoordinates, sin, cos);
-			RotateVector(TopRight.TextureMaskCoordinates, sin, cos);
 
 			TopLeft.TextureMaskCoordinates += scaledOrigin;
+			TopRight.TextureMaskCoordinates += scaledOrigin;
 			BottomLeft.TextureMaskCoordinates += scaledOrigin;
 			BottomRight.TextureMaskCoordinates += scaledOrigin;
-			TopRight.TextureMaskCoordinates += scaledOrigin;
 		}
 		else
 		{
 			const vec2 positionOffset = position - scaledOrigin;
 			TopLeft.TextureMaskCoordinates -= positionOffset;
+			TopRight.TextureMaskCoordinates -= positionOffset;
 			BottomLeft.TextureMaskCoordinates -= positionOffset;
 			BottomRight.TextureMaskCoordinates -= positionOffset;
-			TopRight.TextureMaskCoordinates -= positionOffset;
 		}
 
 		const vec2 scaledTextureSize = texture->GetSize() * scale;
 		TopLeft.TextureMaskCoordinates /= scaledTextureSize;
+		TopRight.TextureMaskCoordinates /= scaledTextureSize;
 		BottomLeft.TextureMaskCoordinates /= scaledTextureSize;
 		BottomRight.TextureMaskCoordinates /= scaledTextureSize;
-		TopRight.TextureMaskCoordinates /= scaledTextureSize;
 	}
 
 	void SpriteVertices::SetColors(const vec4& color)
