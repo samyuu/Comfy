@@ -1,4 +1,5 @@
 #include "Texture.h"
+#include "Graphics/RenderCommand.h"
 
 #define GL_COMPRESSED_RGB_S3TC_DXT1_EXT   0x83F0
 #define GL_COMPRESSED_RGBA_S3TC_DXT1_EXT  0x83F1
@@ -22,10 +23,10 @@ namespace Graphics
 		Bind(0);
 	}
 
-	void Texture::Bind(int textureSlot) const
+	void Texture::Bind(int32_t textureSlot) const
 	{
-		GLCall(glActiveTexture(GetTextureSlotEnum(textureSlot)));
-		GLCall(glBindTexture(GetTextureTarget(), textureID));
+		RenderCommand::SetTextureSlot(textureSlot);
+		RenderCommand::BindTexture(GetTextureTarget(), textureID);
 	}
 
 	void Texture::UnBind() const
@@ -33,10 +34,10 @@ namespace Graphics
 		UnBind(0);
 	}
 
-	void Texture::UnBind(int textureSlot) const
+	void Texture::UnBind(int32_t textureSlot) const
 	{
-		GLCall(glActiveTexture(GetTextureSlotEnum(textureSlot)));
-		GLCall(glBindTexture(GetTextureTarget(), NULL));
+		RenderCommand::SetTextureSlot(textureSlot);
+		RenderCommand::BindTexture(GetTextureTarget(), NULL);
 	}
 
 	void Texture::InitializeID()
@@ -120,10 +121,5 @@ namespace Graphics
 		}
 
 		return GL_INVALID_ENUM;
-	}
-
-	constexpr GLenum Texture::GetTextureSlotEnum(int textureSlot)
-	{
-		return GL_TEXTURE0 + textureSlot;
 	}
 }

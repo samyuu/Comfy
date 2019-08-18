@@ -17,9 +17,9 @@ namespace Graphics
 		virtual ~Texture();
 
 		void Bind() const override;
-		void Bind(int textureSlot) const;
+		void Bind(int32_t textureSlot) const;
 		void UnBind() const override;
-		void UnBind(int textureSlot) const;
+		void UnBind(int32_t  textureSlot) const;
 
 		void InitializeID() override;
 
@@ -28,7 +28,6 @@ namespace Graphics
 
 		static bool GetIsCompressed(TextureFormat format);
 		static GLenum GetGLTextureFormat(TextureFormat format);
-		static constexpr GLenum GetTextureSlotEnum(int textureSlot);
 
 	protected:
 		TextureID_t textureID = NULL;

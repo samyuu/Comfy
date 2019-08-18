@@ -132,7 +132,7 @@ namespace Graphics
 	// --- BufferElement:
 	// ------------------------------------------------------------------------------------------------
 
-	BufferElement::BufferElement(ShaderDataType type, const char* name) : Name(name), Type(type), Size(0), Offset(0), Normalized(false)
+	BufferElement::BufferElement(ShaderDataType type, const char* name, bool normalized) : Name(name), Type(type), Size(0), Offset(0), Normalized(normalized)
 	{
 	}
 
@@ -140,6 +140,8 @@ namespace Graphics
 	{
 		switch (Type)
 		{
+		case ShaderDataType::Byte:
+		case ShaderDataType::SByte:
 		case ShaderDataType::Int:
 		case ShaderDataType::Float:
 		case ShaderDataType::Bool:
@@ -154,6 +156,8 @@ namespace Graphics
 			return mat3::length();
 		case ShaderDataType::Mat4:
 			return mat4::length();
+		case ShaderDataType::vec4_Byte:
+			return 4;
 		default:
 			assert(false);
 			return GL_INVALID_ENUM;
@@ -164,6 +168,11 @@ namespace Graphics
 	{
 		switch (Type)
 		{
+		case ShaderDataType::Byte:
+		case ShaderDataType::vec4_Byte:
+			return GL_UNSIGNED_BYTE;
+		case ShaderDataType::SByte:
+			return GL_BYTE;
 		case ShaderDataType::Int:
 			return GL_INT;
 		case ShaderDataType::Float:
@@ -211,6 +220,10 @@ namespace Graphics
 	{
 		switch (type)
 		{
+		case ShaderDataType::Byte:
+			return sizeof(unsigned char);
+		case ShaderDataType::SByte:
+			return sizeof(char);
 		case ShaderDataType::Int:
 			return sizeof(int);
 		case ShaderDataType::Float:
@@ -227,6 +240,8 @@ namespace Graphics
 			return sizeof(mat3);
 		case ShaderDataType::Mat4:
 			return sizeof(mat4);
+		case ShaderDataType::vec4_Byte:
+			return sizeof(unsigned char) * 4;
 		default:
 			assert(false);
 			return 0;

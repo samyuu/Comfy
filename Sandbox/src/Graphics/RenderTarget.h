@@ -17,8 +17,8 @@ namespace Graphics
 	{
 	public:
 		Renderbuffer();
-		~Renderbuffer();
 		Renderbuffer(const Renderbuffer&) = delete;
+		~Renderbuffer();
 
 		void InitializeID() override;
 		void Bind() const override;

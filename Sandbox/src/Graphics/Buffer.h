@@ -29,8 +29,8 @@ namespace Graphics
 	{
 	public:
 		Buffer(BufferUsage usage);
-		virtual ~Buffer();
 		Buffer(const Buffer&) = delete;
+		virtual ~Buffer();
 
 		void InitializeID() override;
 		void Upload(size_t dataSize, void* data);
@@ -57,8 +57,8 @@ namespace Graphics
 	{
 	public:
 		VertexBuffer(BufferUsage usage);
-		~VertexBuffer();
 		VertexBuffer(const VertexBuffer&) = delete;
+		virtual ~VertexBuffer();
 
 	protected:
 		GLenum GetGLBufferTarget() const override;
@@ -79,8 +79,8 @@ namespace Graphics
 	{
 	public:
 		IndexBuffer(BufferUsage usage, IndexType type);
-		~IndexBuffer();
 		IndexBuffer(const IndexBuffer&) = delete;
+		virtual ~IndexBuffer();
 
 		GLenum GetGLIndexType();
 
@@ -96,6 +96,8 @@ namespace Graphics
 
 	enum class ShaderDataType : uint16_t
 	{
+		Byte,
+		SByte,
 		Int,
 		Float,
 		Bool,
@@ -104,6 +106,7 @@ namespace Graphics
 		Vec4,
 		Mat3,
 		Mat4,
+		vec4_Byte,
 	};
 
 	// ------------------------------------------------------------------------------------------------
@@ -118,7 +121,7 @@ namespace Graphics
 		uint16_t Offset;
 		bool Normalized;
 
-		BufferElement(ShaderDataType type, const char* name);
+		BufferElement(ShaderDataType type, const char* name, bool normalized = false);
 
 		int GetElementCount() const;
 		GLenum GetDataType() const;

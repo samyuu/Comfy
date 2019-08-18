@@ -1,4 +1,5 @@
 #include "ShaderProgram.h"
+#include "Graphics/RenderCommand.h"
 #include "FileSystem/FileHelper.h"
 #include <algorithm>
 #include <assert.h>
@@ -53,12 +54,12 @@ namespace Graphics
 
 	void ShaderProgram::Bind() const
 	{
-		GLCall(glUseProgram(programID));
+		RenderCommand::BindShaderProgram(programID);
 	}
 
 	void ShaderProgram::UnBind() const
 	{
-		GLCall(glUseProgram(0));
+		RenderCommand::BindShaderProgram(0);
 	}
 
 	void ShaderProgram::SetUniform(const Uniform& uniform, int value)
