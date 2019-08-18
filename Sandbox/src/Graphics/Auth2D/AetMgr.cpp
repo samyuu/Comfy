@@ -125,8 +125,6 @@ namespace Graphics::Auth2D
 		if (frame < aetObj->LoopStart || frame >= aetObj->LoopEnd)
 			return;
 
-		float adjustedFrame = ((frame - aetObj->LoopStart) * aetObj->PlaybackSpeed) + aetObj->StartFrame;
-
 		objects.emplace_back();
 		ObjCache& objCache = objects.back();
 		
@@ -138,22 +136,22 @@ namespace Graphics::Auth2D
 
 		if (objCache.Region != nullptr)
 		{
-			objCache.SpriteIndex = static_cast<int32_t>(adjustedFrame - 1);
+			objCache.SpriteIndex = static_cast<int32_t>(frame - 1.0f);
 
-			if (objCache.SpriteIndex >= objCache.Region->SpriteSize())
-				objCache.SpriteIndex = objCache.Region->SpriteSize() - 1;
+			if (objCache.SpriteIndex >= objCache.Region->Frames)
+				objCache.SpriteIndex = static_cast<int32_t>(objCache.Region->Frames - 1.0f);
 			if (objCache.SpriteIndex < 0)
 				objCache.SpriteIndex = 0;
 		}
 
-		Interpolate(aetObj->AnimationData.get(), &objCache.Properties, adjustedFrame);
+		Interpolate(aetObj->AnimationData.get(), &objCache.Properties, frame);
 
 		const AetObj* parent = aetObj->GetReferebcedParentObj();
 		if (parent != nullptr)
 		{
 			// TODO:
 			Properties objParentProperties;
-			Interpolate(parent->AnimationData.get(), &objParentProperties, adjustedFrame);
+			Interpolate(parent->AnimationData.get(), &objParentProperties, frame);
 
 			objCache.Properties.Origin += objParentProperties.Origin;
 			objCache.Properties.Position += objParentProperties.Position;
@@ -174,16 +172,16 @@ namespace Graphics::Auth2D
 		if (frame < aetObj->LoopStart || frame >= aetObj->LoopEnd || !aetObj->Flags.Visible)
 			return;
 
-		float adjustedFrame = ((frame - aetObj->LoopStart) * aetObj->PlaybackSpeed) + aetObj->StartFrame;
-
 		Properties effProperties = {};
-		Interpolate(aetObj->AnimationData.get(), &effProperties, adjustedFrame);
+		Interpolate(aetObj->AnimationData.get(), &effProperties, frame);
 		TransformProperties(*parentProperties, effProperties);
 
 		const AetLayer* aetLayer = aetObj->GetReferencedLayer();
 
 		if (aetLayer == nullptr)
 			return;
+
+		float adjustedFrame = ((frame - aetObj->LoopStart) * aetObj->PlaybackSpeed) + aetObj->StartFrame;
 
 		for (int i = static_cast<int>(aetLayer->size()) - 1; i >= 0; i--)
 			InternalAddObjects(objects, &effProperties, aetLayer->GetObjAt(i), adjustedFrame);
