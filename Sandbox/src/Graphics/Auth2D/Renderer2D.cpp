@@ -1,8 +1,18 @@
 #include "Renderer2D.h"
 #include <glm/trigonometric.hpp>
 
-namespace Auth2D
+namespace Graphics::Auth2D
 {
+	static inline uint32_t FloatToUInt32Sat(float value)
+	{
+		return static_cast<uint32_t>(((value < 0.0f) ? 0.0f : (value > 1.0f) ? 1.0f : value) * 255.0f + 0.5f);
+	};
+
+	static inline uint32_t Vec4ToUInt32(const vec4& value)
+	{
+		return ((FloatToUInt32Sat(value.x)) << 0) | ((FloatToUInt32Sat(value.y)) << 8) | ((FloatToUInt32Sat(value.z)) << 16) | ((FloatToUInt32Sat(value.w)) << 24);
+	}
+
 	constexpr vec2 DefaultPosition = { 0.0f, 0.0f };
 	constexpr vec2 DefaultOrigin = { 0.0f, 0.0f };
 	constexpr vec2 DefaultScale = { 1.0f, 1.0f };
@@ -37,6 +47,11 @@ namespace Auth2D
 	static inline const vec4& ColorOrDefault(const vec4* color)
 	{
 		return color == nullptr ? DefaultColor : *color;
+	}
+
+	static inline void RotateVector(vec2& point, float sin, float cos)
+	{
+		point = vec2(point.x * cos - point.y * sin, point.x * sin + point.y * cos);
 	}
 
 	void SpriteVertices::SetValues(const vec2& position, const vec4& sourceRegion, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4& color)
@@ -116,35 +131,71 @@ namespace Auth2D
 		BottomRight.TextureCoordinates.y = bottomRight.y;
 	}
 
-	void SpriteVertices::SetTexMaskCoords(const vec2 & topLeft, const vec2 & bottomRight)
+	void SpriteVertices::SetTexMaskCoords(const Texture2D* texture, const vec2& position, const vec2& scale, const vec2& origin, float rotation, const vec2& maskPosition, const vec2& maskScale, const vec2& maskOrigin, float maskRotation, const vec4& maskSourceRegion)
 	{
-		TopLeft.TextureMaskCoordinates.x = topLeft.x;
-		TopLeft.TextureMaskCoordinates.y = topLeft.y;
+		const vec2 maskOffset = maskPosition - (maskOrigin * maskScale);
+		const vec2 maskRectSize = vec2(maskScale.x * maskSourceRegion.z, maskScale.y * maskSourceRegion.w);
 
-		TopRight.TextureMaskCoordinates.x = bottomRight.x;
-		TopRight.TextureMaskCoordinates.y = topLeft.y;
+		TopLeft.TextureMaskCoordinates = vec2(0.0f, 0.0f) + maskOffset;
+		BottomLeft.TextureMaskCoordinates = vec2(0.0f, maskRectSize.y) + maskOffset;
+		BottomRight.TextureMaskCoordinates = vec2(maskRectSize.x, maskRectSize.y) + maskOffset;
+		TopRight.TextureMaskCoordinates = vec2(maskRectSize.x, 0.0f) + maskOffset;
 
-		BottomLeft.TextureMaskCoordinates.x = topLeft.x;
-		BottomLeft.TextureMaskCoordinates.y = bottomRight.y;
+		const vec2 scaledOrigin = (origin * scale);
+		const float rotationDifference = maskRotation - rotation;
 
-		BottomRight.TextureMaskCoordinates.x = bottomRight.x;
-		BottomRight.TextureMaskCoordinates.y = bottomRight.y;
+		if (rotationDifference != 0.0f)
+		{
+			const float radians = glm::radians(rotationDifference);
+			const float sin = glm::sin(radians);
+			const float cos = glm::cos(radians);
+
+			TopLeft.TextureMaskCoordinates -= position;
+			BottomLeft.TextureMaskCoordinates -= position;
+			BottomRight.TextureMaskCoordinates -= position;
+			TopRight.TextureMaskCoordinates -= position;
+
+			RotateVector(TopLeft.TextureMaskCoordinates, sin, cos);
+			RotateVector(BottomLeft.TextureMaskCoordinates, sin, cos);
+			RotateVector(BottomRight.TextureMaskCoordinates, sin, cos);
+			RotateVector(TopRight.TextureMaskCoordinates, sin, cos);
+
+			TopLeft.TextureMaskCoordinates += scaledOrigin;
+			BottomLeft.TextureMaskCoordinates += scaledOrigin;
+			BottomRight.TextureMaskCoordinates += scaledOrigin;
+			TopRight.TextureMaskCoordinates += scaledOrigin;
+		}
+		else
+		{
+			const vec2 positionOffset = position - scaledOrigin;
+			TopLeft.TextureMaskCoordinates -= positionOffset;
+			BottomLeft.TextureMaskCoordinates -= positionOffset;
+			BottomRight.TextureMaskCoordinates -= positionOffset;
+			TopRight.TextureMaskCoordinates -= positionOffset;
+		}
+
+		const vec2 scaledTextureSize = texture->GetSize() * scale;
+		TopLeft.TextureMaskCoordinates /= scaledTextureSize;
+		BottomLeft.TextureMaskCoordinates /= scaledTextureSize;
+		BottomRight.TextureMaskCoordinates /= scaledTextureSize;
+		TopRight.TextureMaskCoordinates /= scaledTextureSize;
 	}
 
 	void SpriteVertices::SetColors(const vec4& color)
 	{
-		TopLeft.Color = color;
-		TopRight.Color = color;
-		BottomLeft.Color = color;
-		BottomRight.Color = color;
+		uint32_t packedColor = Vec4ToUInt32(color);
+		TopLeft.Color = packedColor;
+		TopRight.Color = packedColor;
+		BottomLeft.Color = packedColor;
+		BottomRight.Color = packedColor;
 	}
 
 	void SpriteVertices::SetColorArray(const vec4 colors[4])
 	{
-		TopLeft.Color = colors[0];
-		TopRight.Color = colors[1];
-		BottomLeft.Color = colors[2];
-		BottomRight.Color = colors[3];
+		TopLeft.Color = Vec4ToUInt32(colors[0]);
+		TopRight.Color = Vec4ToUInt32(colors[1]);
+		BottomLeft.Color = Vec4ToUInt32(colors[2]);
+		BottomRight.Color = Vec4ToUInt32(colors[3]);
 	}
 
 	void BatchItem::SetValues(const Texture2D* texture, const Texture2D* alphaMask, AetBlendMode blendMode)
@@ -158,10 +209,10 @@ namespace Auth2D
 	{
 		BufferLayout layout =
 		{
-			{ ShaderDataType::Vec2, "in_Position" },
-			{ ShaderDataType::Vec2, "in_TextureCoords" },
-			{ ShaderDataType::Vec4, "in_Color" },
-			{ ShaderDataType::Vec2, "in_TextureMaskCoords" },
+			{ ShaderDataType::Vec2,		 "in_Position" },
+			{ ShaderDataType::Vec2,		 "in_TextureCoords" },
+			{ ShaderDataType::Vec2,		 "in_TextureMaskCoords" },
+			{ ShaderDataType::vec4_Byte, "in_Color", true },
 		};
 
 		indexBuffer.InitializeID();
@@ -171,7 +222,7 @@ namespace Auth2D
 		vertexBuffer.InitializeID();
 		vertexBuffer.Bind();
 
-		shader = std::make_unique<SpriteShader>();
+		shader = MakeUnique<SpriteShader>();
 		shader->Initialize();
 
 		vertexArray.InitializeID();
@@ -253,15 +304,17 @@ namespace Auth2D
 			maskScale,
 			color);
 
-		// TODO:
-		vec2 maskSize = texture->GetSize();
-		vec2 topLeft = vec2(sourceRegion.x / maskSize.x, sourceRegion.y / maskSize.y);
-		vec2 bottomRight = vec2((sourceRegion.x + sourceRegion.z) / maskSize.x, (sourceRegion.y + sourceRegion.w) / maskSize.y);
-
-		topLeft -= pair.Vertices->TopLeft.TextureCoordinates;
-		bottomRight -= pair.Vertices->BottomRight.TextureCoordinates;
-
-		pair.Vertices->SetTexMaskCoords(topLeft, bottomRight);
+		pair.Vertices->SetTexMaskCoords(
+			texture,
+			position,
+			scale,
+			origin,
+			rotation,
+			maskPosition,
+			maskScale,
+			maskOrigin,
+			maskRotation,
+			maskSourceRegion);
 	}
 
 	void Renderer2D::DrawLine(const vec2& start, const vec2& end, const vec4& color, float thickness)

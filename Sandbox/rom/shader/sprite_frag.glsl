@@ -96,7 +96,7 @@ void main()
 	{
 		if (u_Checkerboard)
 		{
-			vec2 point = (VertexTexCoord - vec2(0.0, 1.0)) * u_CheckboardSize * 0.08;
+			vec2 point = (VertexTexCoord - vec2(0.0, 1.0)) * u_CheckboardSize * 0.1;
 			if ((mod(point.x, 1.0) < 0.5) ^^ (mod(point.y, 1.0) < 0.5))
 				discard;
 		}
@@ -109,8 +109,8 @@ void main()
 	}
 	else if (u_TextureMaskFormat >= 0)
 	{
-		FragColor = GetTextureColor(u_TextureSampler, VertexTexMaskCoord, u_TextureMaskFormat) * VertexColor;
-		FragColor.a *= GetTextureColor(u_TextureMaskSampler, VertexTexCoord, u_TextureFormat).a;
+		FragColor = GetTextureColor(u_TextureSampler, VertexTexMaskCoord, u_TextureFormat) * VertexColor;
+		FragColor.a *= GetTextureColor(u_TextureMaskSampler, VertexTexCoord, u_TextureMaskFormat).a;
 	}
 	else
 	{
