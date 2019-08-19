@@ -36,6 +36,8 @@ namespace Graphics
 		};
 
 	public:
+		static inline const State& GetState() { return state; };
+		
 		static void SetClearColor(const vec4& color);
 		static void Clear(ClearTarget target);
 
@@ -47,7 +49,8 @@ namespace Graphics
 		static void SetTextureSlot(int32_t textureSlot);
 		static void BindTexture(uint32_t textureTargetEnum, uint32_t textureID);
 
-		static inline const State& GetState() { return state; };
+		static void DrawArrays(uint32_t primitiveEnum, int32_t first, int32_t count);
+		static void DrawElements(uint32_t primitiveEnum, int32_t count, uint32_t typeEnum, const void* indices);
 
 	private:
 		static State state;

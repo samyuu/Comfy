@@ -1,4 +1,5 @@
 #include "Renderer2D.h"
+#include "Graphics/RenderCommand.h"
 #include <glm/trigonometric.hpp>
 
 namespace Graphics::Auth2D
@@ -427,10 +428,10 @@ namespace Graphics::Auth2D
 			if (useCheckerboard)
 				shader->SetUniform(shader->CheckerboardSize, item.CheckerboardSize);
 
-			GLCall(glDrawElements(GL_TRIANGLES,
+			RenderCommand::DrawElements(GL_TRIANGLES, 
 				batch.Count * SpriteIndices::GetIndexCount(),
 				indexBuffer.GetGLIndexType(),
-				reinterpret_cast<void*>(batch.Index * sizeof(SpriteIndices))));
+				reinterpret_cast<void*>(batch.Index * sizeof(SpriteIndices)));
 
 			drawCallCount++;
 		}

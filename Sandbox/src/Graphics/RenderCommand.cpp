@@ -82,4 +82,16 @@ namespace Graphics
 
 		lastBoundTextureID = textureID;
 	}
+
+	void RenderCommand::DrawArrays(uint32_t primitiveEnum, int32_t first, int32_t count)
+	{
+		// TODO: count vertices
+		GLCall(glDrawArrays(primitiveEnum, first, count));
+	}
+
+	void RenderCommand::DrawElements(uint32_t primitiveEnum, int32_t count, uint32_t typeEnum, const void* indices)
+	{
+		// TODO: count vertices
+		GLCall(glDrawElements(primitiveEnum, count, typeEnum, indices));
+	}
 }

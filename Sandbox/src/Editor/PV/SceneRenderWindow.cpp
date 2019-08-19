@@ -100,9 +100,9 @@ namespace Editor
 		// Push / Pop reset the StyleVar for the ComfyDebug window
 		OnWindowEnd();
 		{
-			if (ImGui::Begin("Comfy Debug"))
+			if (Gui::Begin("Comfy Debug"))
 				DrawComfyDebugGui();
-			ImGui::End();
+			Gui::End();
 		}
 		OnWindowBegin();
 	}
@@ -119,38 +119,38 @@ namespace Editor
 
 	void SceneRenderWindow::DrawComfyDebugGui()
 	{
-		if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
+		if (Gui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			ImGui::Text("Camera");
-			ImGui::DragFloat("Field Of View", &camera.FieldOfView, 1.0f, 1.0f, 180.0f);
-			ImGui::DragFloat("Near Plane", &camera.NearPlane, 0.001f, 0.001f, 1.0f);
-			ImGui::DragFloat("Far Plane", &camera.FarPlane);
-			ImGui::DragFloat3("Position", glm::value_ptr(camera.Position), 0.01f);
-			ImGui::DragFloat3("Target", glm::value_ptr(camera.Target), 0.01f);
-			ImGui::DragFloat("Smoothness", &cameraSmoothness, 1.0f, 1.0f, 250.0f);
+			Gui::Text("Camera");
+			Gui::DragFloat("Field Of View", &camera.FieldOfView, 1.0f, 1.0f, 180.0f);
+			Gui::DragFloat("Near Plane", &camera.NearPlane, 0.001f, 0.001f, 1.0f);
+			Gui::DragFloat("Far Plane", &camera.FarPlane);
+			Gui::DragFloat3("Position", glm::value_ptr(camera.Position), 0.01f);
+			Gui::DragFloat3("Target", glm::value_ptr(camera.Target), 0.01f);
+			Gui::DragFloat("Smoothness", &cameraSmoothness, 1.0f, 1.0f, 250.0f);
 
-			ImGui::Text("Camera Rotation");
-			ImGui::DragFloat("Pitch", &targetCameraPitch, 1.0f);
-			ImGui::DragFloat("Yaw", &targetCameraYaw, 1.0f);
+			Gui::Text("Camera Rotation");
+			Gui::DragFloat("Pitch", &targetCameraPitch, 1.0f);
+			Gui::DragFloat("Yaw", &targetCameraYaw, 1.0f);
 		}
 
-		if (ImGui::CollapsingHeader("Post Processing"))
+		if (Gui::CollapsingHeader("Post Processing"))
 		{
-			ImGui::DragFloat("Saturation", &postProcessData.Saturation, 0.015f, 1.0f, 5.0f);
-			ImGui::DragFloat("Brightness", &postProcessData.Brightness, 0.015f, 0.1f, 5.0f);
+			Gui::DragFloat("Saturation", &postProcessData.Saturation, 0.015f, 1.0f, 5.0f);
+			Gui::DragFloat("Brightness", &postProcessData.Brightness, 0.015f, 0.1f, 5.0f);
 		}
 
-		if (ImGui::CollapsingHeader("Cubes"))
+		if (Gui::CollapsingHeader("Cubes"))
 		{
 			char nameBuffer[32];
 			for (int i = 0; i < _countof(cubePositions); i++)
 			{
 				sprintf_s(nameBuffer, sizeof(nameBuffer), "CUBE[%d]", i);
-				ImGui::DragFloat3(nameBuffer, glm::value_ptr(cubePositions[i]), 0.1f);
+				Gui::DragFloat3(nameBuffer, glm::value_ptr(cubePositions[i]), 0.1f);
 			}
 		}
 
-		if (ImGui::CollapsingHeader("Test Tree"))
+		if (Gui::CollapsingHeader("Test Tree"))
 		{
 			static bool treeNodeCheckboxBool[100];
 			static bool treeNodeParticleboxBool[100];
@@ -162,28 +162,28 @@ namespace Editor
 				sprintf_s(buffer, sizeof(buffer), "eff_pv%03d_F%04d", i, i + 1800);
 				sprintf_s(hiddenBuffer, sizeof(hiddenBuffer), "##%s", buffer);
 
-				bool treeNode = ImGui::TreeNode(hiddenBuffer);
-				ImGui::SameLine();
-				ImGui::Checkbox(buffer, &treeNodeCheckboxBool[i]);
+				bool treeNode = Gui::TreeNode(hiddenBuffer);
+				Gui::SameLine();
+				Gui::Checkbox(buffer, &treeNodeCheckboxBool[i]);
 
 				if (treeNode)
 				{
-					if (ImGui::TreeNode("Emitter"))
+					if (Gui::TreeNode("Emitter"))
 					{
-						ImGui::Checkbox("Particle", &treeNodeParticleboxBool[i]);
-						ImGui::TreePop();
+						Gui::Checkbox("Particle", &treeNodeParticleboxBool[i]);
+						Gui::TreePop();
 					}
-					ImGui::TreePop();
+					Gui::TreePop();
 				}
 			}
 		}
 
-		if (ImGui::CollapsingHeader("Image Test"))
+		if (Gui::CollapsingHeader("Image Test"))
 		{
 			for (auto& txp : sprSet.TxpSet->Textures)
 			{
-				ImGui::Text(txp->Name.c_str());
-				ImGui::Image(txp->GraphicsTexture->GetVoidTexture(), { 200, 200 }, ImGui::UV0_GL, ImGui::UV1_GL);
+				Gui::Text(txp->Name.c_str());
+				Gui::Image(txp->GraphicsTexture->GetVoidTexture(), { 200, 200 }, Gui::UV0_GL, Gui::UV1_GL);
 			}
 		}
 	}
@@ -200,27 +200,27 @@ namespace Editor
 
 	void SceneRenderWindow::UpdateCamera()
 	{
-		ImGuiIO& io = ImGui::GetIO();
+		ImGuiIO& io = Gui::GetIO();
 
 		glm::vec3 front;
 		front.x = cos(glm::radians(cameraYaw)) * cos(glm::radians(cameraPitch));
 		front.y = sin(glm::radians(cameraPitch));
 		front.z = sin(glm::radians(cameraYaw)) * cos(glm::radians(cameraPitch));
 
-		const bool fastCamera = ImGui::IsKeyDown(KeyCode_Left_Shift);
-		const bool slowCamera = ImGui::IsKeyDown(KeyCode_Left_Alt);
+		const bool fastCamera = Gui::IsKeyDown(KeyCode_Left_Shift);
+		const bool slowCamera = Gui::IsKeyDown(KeyCode_Left_Alt);
 
 		const float cameraSpeed = (slowCamera ? 0.25f : (fastCamera ? 5.5f : 2.25f)) * io.DeltaTime;
 
-		if (ImGui::IsWindowFocused())
+		if (Gui::IsWindowFocused())
 		{
-			if (ImGui::IsMouseDown(0))
+			if (Gui::IsMouseDown(0))
 			{
 				targetCameraYaw += io.MouseDelta.x * cameraSensitivity;
 				targetCameraPitch -= io.MouseDelta.y * cameraSensitivity;
 			}
 
-			if (ImGui::IsWindowHovered())
+			if (Gui::IsWindowHovered())
 			{
 				const float scrollStep = slowCamera ? 0.5f : (fastCamera ? 12.5f : 1.5f);
 
@@ -234,20 +234,20 @@ namespace Editor
 		if (targetCameraPitch > +89.0f) targetCameraPitch = +89.0f;
 		if (targetCameraPitch < -89.0f) targetCameraPitch = -89.0f;
 
-		if (ImGui::IsWindowFocused())
+		if (Gui::IsWindowFocused())
 		{
-			if (ImGui::IsKeyDown(KeyCode_W) == KeyState_Press)
+			if (Gui::IsKeyDown(KeyCode_W) == KeyState_Press)
 				camera.Position += front * cameraSpeed;
-			if (ImGui::IsKeyDown(KeyCode_S) == KeyState_Press)
+			if (Gui::IsKeyDown(KeyCode_S) == KeyState_Press)
 				camera.Position -= front * cameraSpeed;
-			if (ImGui::IsKeyDown(KeyCode_A) == KeyState_Press)
+			if (Gui::IsKeyDown(KeyCode_A) == KeyState_Press)
 				camera.Position -= glm::normalize(glm::cross(front, camera.UpDirection)) * cameraSpeed;
-			if (ImGui::IsKeyDown(KeyCode_D) == KeyState_Press)
+			if (Gui::IsKeyDown(KeyCode_D) == KeyState_Press)
 				camera.Position += glm::normalize(glm::cross(front, camera.UpDirection)) * cameraSpeed;
 
-			if (ImGui::IsKeyDown(KeyCode_Space))
+			if (Gui::IsKeyDown(KeyCode_Space))
 				camera.Position += camera.UpDirection * cameraSpeed;
-			if (ImGui::IsKeyDown(KeyCode_Left_Control))
+			if (Gui::IsKeyDown(KeyCode_Left_Control))
 				camera.Position -= camera.UpDirection * cameraSpeed;
 		}
 
@@ -289,17 +289,17 @@ namespace Editor
 					skyTexture->GraphicsTexture->Bind(1);
 					skyTexture->GraphicsTexture->Bind(0);
 					comfyShader.SetUniform(comfyShader.Model, skyModelMatrix);
-					GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
+					Graphics::RenderCommand::DrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
 
 					groundTexture->GraphicsTexture->Bind(1);
 					groundTexture->GraphicsTexture->Bind(0);
 					comfyShader.SetUniform(comfyShader.Model, groundModelMatrix);
-					GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
+					Graphics::RenderCommand::DrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
 
 					tileTexture->GraphicsTexture->Bind(1);
 					tileTexture->GraphicsTexture->Bind(0);
 					comfyShader.SetUniform(comfyShader.Model, tileModelMatrix);
-					GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
+					Graphics::RenderCommand::DrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
 				}
 
 				mat4 cubeModelMatrices[_countof(cubePositions)];
@@ -316,7 +316,7 @@ namespace Editor
 					for (size_t i = 0; i < _countof(cubePositions); i++)
 					{
 						lineShader.SetUniform(lineShader.Model, cubeModelMatrices[i]);
-						GLCall(glDrawArrays(GL_LINES, 0, _countof(axisVertices)));
+						Graphics::RenderCommand::DrawArrays(GL_LINES, 0, _countof(axisVertices));
 					}
 				}
 
@@ -333,7 +333,7 @@ namespace Editor
 					for (size_t i = 0; i < _countof(cubePositions); i++)
 					{
 						comfyShader.SetUniform(comfyShader.Model, cubeModelMatrices[i]);
-						GLCall(glDrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices)));
+						Graphics::RenderCommand::DrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
 					}
 				}
 			}
@@ -349,7 +349,7 @@ namespace Editor
 			screenShader.SetUniform(screenShader.Brightness, postProcessData.Brightness);
 
 			postProcessingRenderTarget.GetTexture().Bind();
-			GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
+			Graphics::RenderCommand::DrawArrays(GL_TRIANGLES, 0, 6);
 		}
 		renderTarget.UnBind();
 	}
