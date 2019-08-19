@@ -1,7 +1,7 @@
 #include "TargetTimeline.h"
 #include "Editor/Chart/ChartEditor.h"
 #include "Editor/Chart/TempoMap.h"
-#include "Editor/Editor.h"
+#include "Editor/Core/Editor.h"
 #include "Audio/AudioEngine.h"
 #include "FileSystem/FileHelper.h"
 #include "Core/TimeSpan.h"

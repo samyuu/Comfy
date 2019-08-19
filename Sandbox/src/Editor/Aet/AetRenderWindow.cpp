@@ -1,6 +1,6 @@
 #include "AetRenderWindow.h"
 #include "AetIcons.h"
-#include "Editor/Theme.h"
+#include "Editor/Core/Theme.h"
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
 #include "Input/KeyCode.h"

@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "BaseWindow.h"
-#include "Editor/Editor.h"
+#include "Editor/Core/Editor.h"
 #include "Audio/AudioEngine.h"
 #include "Graphics/Graphics.h"
 #include "App/Engine.h"

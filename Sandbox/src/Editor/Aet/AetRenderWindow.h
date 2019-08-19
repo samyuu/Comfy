@@ -1,9 +1,9 @@
 #pragma once
 #include "Selection.h"
 #include "BoxTransformControl.h"
-#include "Editor/RenderWindowBase.h"
-#include "Editor/CameraController2D.h"
-#include "Editor/CheckerboardGrid.h"
+#include "Editor/Core/RenderWindowBase.h"
+#include "Editor/Common/CameraController2D.h"
+#include "Editor/Common/CheckerboardGrid.h"
 #include "FileSystem/Format/AetSet.h"
 #include "FileSystem/Format/SprSet.h"
 #include "Graphics/Camera.h"

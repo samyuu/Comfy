@@ -1,5 +1,4 @@
 #pragma once
-#define IMGUI_DEFINE_MATH_OPERATORS
 #include "ImGui/Gui.h"
 #include "Graphics/RenderTarget.h"
 #include "Graphics/RenderCommand.h"

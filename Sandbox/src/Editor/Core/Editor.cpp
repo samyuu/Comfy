@@ -1,8 +1,8 @@
 #include "Editor.h"
 #include "Core/Application.h"
-#include "Aet/AetEditor.h"
-#include "Chart/ChartEditor.h"
-#include "PV/SceneRenderWindow.h"
+#include "Editor/Aet/AetEditor.h"
+#include "Editor/Chart/ChartEditor.h"
+#include "Editor/PV/SceneRenderWindow.h"
 #include "Misc/StringHelper.h"
 
 namespace Editor

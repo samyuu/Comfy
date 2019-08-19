@@ -1,7 +1,7 @@
 #pragma once
 #include "Task.h"
-#include "Editor/RenderWindowBase.h"
-#include "Editor/CameraController2D.h"
+#include "Editor/Core/RenderWindowBase.h"
+#include "Editor/Common/CameraController2D.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Auth2D/Renderer2D.h"
 #include "Graphics/Auth2D/AetRenderer.h"

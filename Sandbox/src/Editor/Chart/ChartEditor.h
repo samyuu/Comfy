@@ -1,5 +1,5 @@
 #pragma once
-#include "Editor/IEditorComponent.h"
+#include "Editor/Core/IEditorComponent.h"
 #include "Chart.h"
 #include "SyncWindow.h"
 #include "Timeline/TargetTimeline.h"

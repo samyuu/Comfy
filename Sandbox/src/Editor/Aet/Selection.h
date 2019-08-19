@@ -1,5 +1,5 @@
 #pragma once
-#include "Editor/IEditorComponent.h"
+#include "Editor/Core/IEditorComponent.h"
 #include "FileSystem/Format/AetSet.h"
 
 namespace Editor

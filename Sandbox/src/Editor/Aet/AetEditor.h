@@ -5,7 +5,7 @@
 #include "AetInspector.h"
 #include "AetTimeline.h"
 #include "AetRenderWindow.h"
-#include "Editor/IEditorComponent.h"
+#include "Editor/Core/IEditorComponent.h"
 #include "Graphics/Auth2D/AetMgr.h"
 #include "Graphics/Auth2D/AetRenderer.h"
 #include "FileSystem/Format/AetSet.h"

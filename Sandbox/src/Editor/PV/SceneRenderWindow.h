@@ -1,6 +1,6 @@
 #pragma once
-#include "Editor/IEditorComponent.h"
-#include "Editor/RenderWindowBase.h"
+#include "Editor/Core/IEditorComponent.h"
+#include "Editor/Core/RenderWindowBase.h"
 #include "Graphics/VertexArray.h"
 #include "Graphics/Buffer.h"
 #include "Graphics/ComfyVertex.h"

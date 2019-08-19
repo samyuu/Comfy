@@ -1,6 +1,6 @@
 #pragma once
-#include "Editor/RenderWindowBase.h"
-#include "Editor/CheckerboardGrid.h"
+#include "Editor/Core/RenderWindowBase.h"
+#include "Editor/Common/CheckerboardGrid.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Auth2D/Renderer2D.h"
 #include "Graphics/Auth2D/AetRenderer.h"
