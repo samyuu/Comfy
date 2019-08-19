@@ -11,34 +11,52 @@ namespace Editor
 	{
 		AetCommandManager* commandManager = GetCommandManager();
 
-		// TEMP TEST:
+		if (Gui::MenuItem("EnqueCommand<TestCommand>()")) commandManager->EnqueCommand<TestCommand>();
+		if (Gui::MenuItem("EnqueCommand<NameTestCommand>()")) commandManager->EnqueCommand<NameTestCommand>();
+		if (Gui::MenuItem("EnqueCommand<NumberTestCommand>()")) commandManager->EnqueCommand<NumberTestCommand>(rand());
+		Gui::Separator();
 
-		if (Gui::Button("EnqueCommand<TestCommand>()")) commandManager->EnqueCommand<TestCommand>();
-		if (Gui::Button("EnqueCommand<NameTestCommand>()")) commandManager->EnqueCommand<NameTestCommand>();
-		if (Gui::Button("EnqueCommand<NumberTestCommand>()")) commandManager->EnqueCommand<NumberTestCommand>(rand());
+		Gui::Columns(2, nullptr, false);
 
-		if (Gui::MenuItem("commandManager->Undo()", nullptr, nullptr, commandManager->GetCanUndo()))
+		if (Gui::MenuItem("AetCommandManager::Undo()", nullptr, nullptr, commandManager->GetCanUndo()))
 			commandManager->Undo();
-		if (Gui::MenuItem("commandManager->Redo()", nullptr, nullptr, commandManager->GetCanRedo()))
+		Gui::NextColumn();
+
+		if (Gui::MenuItem("AetCommandManager::Redo()", nullptr, nullptr, commandManager->GetCanRedo()))
 			commandManager->Redo();
+		Gui::NextColumn();
 
-		Gui::BeginChild("UndoStackWindow", vec2(200, 300), true);
+		if (Gui::ListBoxHeader("##AetHistoryWindow::UndoListBox", Gui::GetContentRegionAvail()))
 		{
-			Gui::BulletText("Undo Stack");
-			for (auto& undoCommand : commandManager->GetUndoStack())
-				Gui::TextUnformatted(undoCommand->GetName());
+			if (commandManager->GetUndoStack().empty())
+			{
+				Gui::Selectable("Empty", false, ImGuiSelectableFlags_Disabled);
+			}
+			else
+			{
+				for (auto& undoCommand : commandManager->GetUndoStack())
+					Gui::Selectable(undoCommand->GetName());
+			}
+			Gui::ListBoxFooter();
 		}
-		Gui::EndChild();
+		Gui::NextColumn();
 
-		Gui::SameLine();
-		Gui::BeginChild("RedoStackWindow", vec2(200, 300), true);
+		if (Gui::ListBoxHeader("##AetHistoryWindow::RedoListBox", Gui::GetContentRegionAvail()))
 		{
-			Gui::BulletText("Redo Stack");
-			for (auto& redoCommand : commandManager->GetRedoStack())
-				Gui::TextUnformatted(redoCommand->GetName());
+			if (commandManager->GetRedoStack().empty())
+			{
+				Gui::Selectable("Empty", false, ImGuiSelectableFlags_Disabled);
+			}
+			else
+			{
+				for (auto& redoCommand : commandManager->GetRedoStack())
+					Gui::Selectable(redoCommand->GetName());
+			}
+			Gui::ListBoxFooter();
 		}
-		Gui::EndChild();
+		Gui::NextColumn();
 
+		Gui::Columns(1);
 		return false;
 	}
 }
