@@ -44,9 +44,8 @@ namespace Graphics
 		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER));
 		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER));
 
-		// TEST:
-		//vec4 borderColor = { 0.0, 0.0, 0.0, 0.0f };
-		//GLCall(glTexParameterfv(GetTextureTarget(), GL_TEXTURE_BORDER_COLOR, glm::value_ptr(borderColor)));
+		vec4 borderColor = { 0.0, 0.0, 0.0, 0.0f };
+		GLCall(glTexParameterfv(GetTextureTarget(), GL_TEXTURE_BORDER_COLOR, glm::value_ptr(borderColor)));
 
 		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MIN_FILTER, (mipMapCount > 1) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR));
 		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR));
