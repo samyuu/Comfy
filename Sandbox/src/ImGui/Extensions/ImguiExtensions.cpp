@@ -365,12 +365,20 @@ namespace ImGui
 
 	constexpr int ContextMenuMouseButton_button = 1;
 
+	static bool GetIsMouseSteady()
+	{
+		constexpr float threshold = 2.0f;
+
+		vec2 mouseDragDelta = GetMouseDragDelta(1);
+		return fabs(mouseDragDelta.x) < threshold && fabs(mouseDragDelta.y) < threshold;
+	}
+
 	static bool InternalBeginContextMenu(const char* str_id, bool checkItemHover)
 	{
 		RAII_POPUP_WINDOW_PADDING();
 
 		ImGuiID id = GetID(str_id);
-		if (IsMouseReleased(ContextMenuMouseButton_button) && (IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && WasHoveredWindowHoveredOnMouseClicked(ContextMenuMouseButton_button)))
+		if (IsMouseReleased(ContextMenuMouseButton_button) && (IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && WasHoveredWindowHoveredOnMouseClicked(ContextMenuMouseButton_button)) && GetIsMouseSteady())
 		{
 			if (checkItemHover == IsItemHovered())
 				OpenPopupEx(id);
