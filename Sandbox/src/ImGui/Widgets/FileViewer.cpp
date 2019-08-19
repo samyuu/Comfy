@@ -37,7 +37,7 @@ namespace ImGui
 	bool FileViewer::DrawGui()
 	{
 		bool parentFocused = IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && IsWindowHovered(ImGuiFocusedFlags_RootAndChildWindows);
-		ImVec2 windowSize(ImGui::GetWindowWidth(), 0);
+		ImVec2 windowSize(GetWindowWidth(), 0);
 
 		PushID(this);
 		PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f, 0.5f));
@@ -66,7 +66,7 @@ namespace ImGui
 			PopStyleVar(2);
 		}
 		EndChild();
-		ImGui::Separator();
+		Separator();
 
 		bool filedClicked = false;
 		BeginChild("FileListChild##FileViewer");
@@ -85,7 +85,7 @@ namespace ImGui
 				}
 			}
 
-			ImGui::WindowContextMenu("ContextMenu##FileViewer", [this]()
+			WindowContextMenu("ContextMenu##FileViewer", [this]()
 			{
 				bool fileItemSelected = contextMenuFilePathInfo != nullptr;
 				bool isDirectory = fileItemSelected && contextMenuFilePathInfo->IsDirectory;
@@ -145,15 +145,15 @@ namespace ImGui
 		FilePathInfo* clickedInfo = nullptr;
 		bool anyContextMenuClicked = false;
 
-		ImGui::Columns(3, "FileListColumns##FileViewer");
-		ImGui::Text("Name"); ImGui::NextColumn();
-		ImGui::Text("Size"); ImGui::NextColumn();
-		ImGui::Text("Type"); ImGui::NextColumn();
-		ImGui::Separator();
+		Columns(3, "FileListColumns##FileViewer");
+		Text("Name"); NextColumn();
+		Text("Size"); NextColumn();
+		Text("Type"); NextColumn();
+		Separator();
 		{
 			if (resizeColumns)
 			{
-				SetColumnOffset(1, ImGui::GetWindowWidth() * .75f);
+				SetColumnOffset(1, GetWindowWidth() * .75f);
 				resizeColumns = false;
 			}
 
@@ -175,16 +175,16 @@ namespace ImGui
 					anyContextMenuClicked = true;
 				}
 
-				ImGui::NextColumn();
+				NextColumn();
 				if (!info.IsDirectory)
-					ImGui::Text(info.ReadableFileSize.c_str());
-				ImGui::NextColumn();
+					Text(info.ReadableFileSize.c_str());
+				NextColumn();
 
-				ImGui::Text(info.IsDirectory ? "File Folder" : FormatFileType(info.FileType));
-				ImGui::NextColumn();
+				Text(info.IsDirectory ? "File Folder" : FormatFileType(info.FileType));
+				NextColumn();
 			}
 		}
-		ImGui::Columns(1);
+		Columns(1);
 
 		if (!anyContextMenuClicked && IsMouseClicked(1))
 			contextMenuFilePathInfo = nullptr;

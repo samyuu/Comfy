@@ -3,7 +3,7 @@
 // Only override if your GL version doesn't handle this GLSL version. Keep NULL if unsure!
 
 #pragma once
-#include "Imgui_Impl_Renderer.h"
+#include "ImGui/Implementation/Imgui_Impl_Renderer.h"
 
 struct GLFWwindow;
 

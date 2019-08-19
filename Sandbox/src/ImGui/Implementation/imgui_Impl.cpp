@@ -1,5 +1,6 @@
 #include "Core/Application.h"
-#include "ImGui/imgui.h"
+#include "Input/KeyCode.h"
+#include "ImGui/Core/imgui.h"
 #include <glfw/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <glfw/glfw3native.h>
@@ -36,7 +37,7 @@ void ImGui_ImplGlfw_MouseButtonCallback(GLFWwindow* window, int button, int acti
 	if (g_PrevUserCallbackMousebutton != NULL && window == g_Window)
 		g_PrevUserCallbackMousebutton(window, button, action, mods);
 
-	if (action == GLFW_PRESS && button >= 0 && button < IM_ARRAYSIZE(g_MouseJustPressed))
+	if (action == KeyState_Press && button >= 0 && button < IM_ARRAYSIZE(g_MouseJustPressed))
 		g_MouseJustPressed[button] = true;
 }
 
@@ -56,16 +57,16 @@ void ImGui_ImplGlfw_KeyCallback(GLFWwindow* window, int key, int scancode, int a
 		g_PrevUserCallbackKey(window, key, scancode, action, mods);
 
 	ImGuiIO& io = ImGui::GetIO();
-	if (action == GLFW_PRESS)
+	if (action == KeyState_Press)
 		io.KeysDown[key] = true;
-	if (action == GLFW_RELEASE)
+	if (action == KeyState_Release)
 		io.KeysDown[key] = false;
 
 	// Modifiers are not reliable across systems
-	io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
-	io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
-	io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
-	io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
+	io.KeyCtrl = io.KeysDown[KeyCode_Left_Control] || io.KeysDown[KeyCode_Right_Control];
+	io.KeyShift = io.KeysDown[KeyCode_Left_Shift] || io.KeysDown[KeyCode_Right_Shift];
+	io.KeyAlt = io.KeysDown[KeyCode_Left_Alt] || io.KeysDown[KeyCode_Right_Alt];
+	io.KeySuper = io.KeysDown[KeyCode_Left_Super] || io.KeysDown[KeyCode_Right_Super];
 }
 
 void ImGui_ImplGlfw_CharCallback(GLFWwindow* window, unsigned int c)
@@ -88,30 +89,30 @@ static bool ImGui_ImplGlfw_Init(GLFWwindow* window, bool install_callbacks)
 	io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;         // We can honor GetMouseCursor() values (optional)
 	io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;          // We can honor io.WantSetMousePos requests (optional, rarely used)
 	io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;    // We can create multi-viewports on the Platform side (optional)
-	io.BackendPlatformName = "imgui_impl_glfw";
+	io.BackendPlatformName = "ComfyImGui";
 
 	// Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
-	io.KeyMap[ImGuiKey_Tab] = GLFW_KEY_TAB;
-	io.KeyMap[ImGuiKey_LeftArrow] = GLFW_KEY_LEFT;
-	io.KeyMap[ImGuiKey_RightArrow] = GLFW_KEY_RIGHT;
-	io.KeyMap[ImGuiKey_UpArrow] = GLFW_KEY_UP;
-	io.KeyMap[ImGuiKey_DownArrow] = GLFW_KEY_DOWN;
-	io.KeyMap[ImGuiKey_PageUp] = GLFW_KEY_PAGE_UP;
-	io.KeyMap[ImGuiKey_PageDown] = GLFW_KEY_PAGE_DOWN;
-	io.KeyMap[ImGuiKey_Home] = GLFW_KEY_HOME;
-	io.KeyMap[ImGuiKey_End] = GLFW_KEY_END;
-	io.KeyMap[ImGuiKey_Insert] = GLFW_KEY_INSERT;
-	io.KeyMap[ImGuiKey_Delete] = GLFW_KEY_DELETE;
-	io.KeyMap[ImGuiKey_Backspace] = GLFW_KEY_BACKSPACE;
-	io.KeyMap[ImGuiKey_Space] = GLFW_KEY_SPACE;
-	io.KeyMap[ImGuiKey_Enter] = GLFW_KEY_ENTER;
-	io.KeyMap[ImGuiKey_Escape] = GLFW_KEY_ESCAPE;
-	io.KeyMap[ImGuiKey_A] = GLFW_KEY_A;
-	io.KeyMap[ImGuiKey_C] = GLFW_KEY_C;
-	io.KeyMap[ImGuiKey_V] = GLFW_KEY_V;
-	io.KeyMap[ImGuiKey_X] = GLFW_KEY_X;
-	io.KeyMap[ImGuiKey_Y] = GLFW_KEY_Y;
-	io.KeyMap[ImGuiKey_Z] = GLFW_KEY_Z;
+	io.KeyMap[ImGuiKey_Tab] = KeyCode_Tab;
+	io.KeyMap[ImGuiKey_LeftArrow] = KeyCode_Left;
+	io.KeyMap[ImGuiKey_RightArrow] = KeyCode_Right;
+	io.KeyMap[ImGuiKey_UpArrow] = KeyCode_Up;
+	io.KeyMap[ImGuiKey_DownArrow] = KeyCode_Down;
+	io.KeyMap[ImGuiKey_PageUp] = KeyCode_Page_Up;
+	io.KeyMap[ImGuiKey_PageDown] = KeyCode_Page_Down;
+	io.KeyMap[ImGuiKey_Home] = KeyCode_Home;
+	io.KeyMap[ImGuiKey_End] = KeyCode_End;
+	io.KeyMap[ImGuiKey_Insert] = KeyCode_Insert;
+	io.KeyMap[ImGuiKey_Delete] = KeyCode_Delete;
+	io.KeyMap[ImGuiKey_Backspace] = KeyCode_Backspace;
+	io.KeyMap[ImGuiKey_Space] = KeyCode_Space;
+	io.KeyMap[ImGuiKey_Enter] = KeyCode_Enter;
+	io.KeyMap[ImGuiKey_Escape] = KeyCode_Escape;
+	io.KeyMap[ImGuiKey_A] = KeyCode_A;
+	io.KeyMap[ImGuiKey_C] = KeyCode_C;
+	io.KeyMap[ImGuiKey_V] = KeyCode_V;
+	io.KeyMap[ImGuiKey_X] = KeyCode_X;
+	io.KeyMap[ImGuiKey_Y] = KeyCode_Y;
+	io.KeyMap[ImGuiKey_Z] = KeyCode_Z;
 
 	io.SetClipboardTextFn = ImGui_ImplGlfw_SetClipboardText;
 	io.GetClipboardTextFn = ImGui_ImplGlfw_GetClipboardText;
@@ -249,7 +250,7 @@ static void ImGui_ImplGlfw_UpdateGamepads()
 		return;
 
 	// Update gamepad inputs
-#define MAP_BUTTON(NAV_NO, BUTTON_NO)       { if (buttons_count > BUTTON_NO && buttons[BUTTON_NO] == GLFW_PRESS) io.NavInputs[NAV_NO] = 1.0f; }
+#define MAP_BUTTON(NAV_NO, BUTTON_NO)       { if (buttons_count > BUTTON_NO && buttons[BUTTON_NO] == KeyState_Press) io.NavInputs[NAV_NO] = 1.0f; }
 #define MAP_ANALOG(NAV_NO, AXIS_NO, V0, V1) { float v = (axes_count > AXIS_NO) ? axes[AXIS_NO] : V0; v = (v - V0) / (V1 - V0); if (v > 1.0f) v = 1.0f; if (io.NavInputs[NAV_NO] < v) io.NavInputs[NAV_NO] = v; }
 	int axes_count = 0, buttons_count = 0;
 	const float* axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axes_count);

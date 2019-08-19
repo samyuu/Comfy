@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "imgui.h"
+#include "ImGui/Core/imgui.h"
 
 namespace ImGui
 {

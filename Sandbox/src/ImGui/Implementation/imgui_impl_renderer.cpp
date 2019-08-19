@@ -2,12 +2,10 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "ImGui/imgui.h"
-#include "Imgui_Impl_Renderer.h"
+#include "ImGui/Core/imgui.h"
+#include "ImGui/Implementation/Imgui_Impl_Renderer.h"
 #include "Graphics/Graphics.h"
 #include "Graphics/RenderCommand.h"
-#include <stdio.h>
-#include <stdint.h>
 #include <glad/glad.h>
 
 // OpenGL Data
@@ -28,7 +26,7 @@ bool ImGui_ImplOpenGL3_Init(const char* glsl_version)
 	// Setup back-end capabilities flags
 	ImGuiIO& io = ImGui::GetIO();
 	io.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;    // We can create multi-viewports on the Renderer side (optional)
-	io.BackendRendererName = "imgui_impl_opengl3";
+	io.BackendRendererName = "ComfyGL3";
 
 	// Store GLSL version string so we can refer to it later in case we recreate shaders. Note: GLSL version is NOT the same as GL version. Leave this to NULL if unsure.
 	if (glsl_version == nullptr)
@@ -221,7 +219,7 @@ void ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
 
 					// Bind texture, Draw
 					Graphics::RenderCommand::BindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId);
-					GLCall(glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, (void*)idx_buffer_offset));
+					Graphics::RenderCommand::DrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, (void*)idx_buffer_offset);
 				}
 			}
 			idx_buffer_offset += pcmd->ElemCount * sizeof(ImDrawIdx);

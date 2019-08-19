@@ -1,5 +1,5 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "imgui_extensions.h"
+#include "ImguiExtensions.h"
 #include "Graphics/Texture/Texture2D.h"
 #include "Core/DebugStopwatch.h"
 #include "FontIcons.h"
@@ -70,26 +70,6 @@ namespace ImGui
 		return IsItemHovered(flags) && GImGui->HoveredIdTimer > threshold;
 	}
 
-	void HelpMarker(const char* description)
-	{
-		TextDisabled("(?)");
-		if (IsItemHovered())
-		{
-			BeginTooltip();
-			PushTextWrapPos(GetFontSize() * 35.0f);
-			TextUnformatted(description);
-			PopTextWrapPos();
-			EndTooltip();
-		}
-	}
-
-	void SameLineHelpMarker(const char* description)
-	{
-		SameLine();
-		HelpMarker(description);
-	}
-
-	// Same as imgui_widgets.cpp: TreeNodeBehavior(...) but with wider collision detection and a no_arrow paramter
 	bool WideTreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end, bool no_arrow = false)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
@@ -271,7 +251,6 @@ namespace ImGui
 		return is_open;
 	}
 
-	// Same as imgui_widgets.cpp: TreeNodeExV(...) but calls WideTreeNodeBehavior(...) instead of TreeNodeBehavior(...)
 	bool WideTreeNodeExV(const void* ptr_id, ImGuiTreeNodeFlags flags, const char* fmt, va_list args)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
@@ -283,7 +262,6 @@ namespace ImGui
 		return WideTreeNodeBehavior(window->GetID(ptr_id), flags, g.TempBuffer, label_end);
 	}
 
-	// Same as imgui_widgets.cpp: TreeNode(...) but calls WideTreeNodeBehavior(...) instead of TreeNodeBehavior(...)
 	bool WideTreeNode(const char* label)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
@@ -293,7 +271,6 @@ namespace ImGui
 		return WideTreeNodeBehavior(window->GetID(label), 0, label, NULL);
 	}
 
-	// Same as imgui_widgets.cpp: TreeNode(...) but calls WideTreeNodeExV(...) instead of TreeNodeExV(...)
 	bool WideTreeNode(const char* str_id, const char* fmt, ...)
 	{
 		va_list args;
@@ -303,7 +280,6 @@ namespace ImGui
 		return is_open;
 	}
 
-	// Same as imgui_widgets.cpp: TreeNodeEx(...) but calls WideTreeNodeBehavior(...) instead of TreeNodeBehavior(...)
 	bool WideTreeNodeEx(const char* label, ImGuiTreeNodeFlags flags)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
@@ -313,7 +289,6 @@ namespace ImGui
 		return WideTreeNodeBehavior(window->GetID(label), flags, label, NULL);
 	}
 
-	// Same as imgui_widgets.cpp: TreeNodeEx(...) but calls WideTreeNodeExV(...) instead of TreeNodeExV(...)
 	bool WideTreeNodeEx(const void* ptr_id, ImGuiTreeNodeFlags flags, const char* fmt, ...)
 	{
 		va_list args;
@@ -323,7 +298,6 @@ namespace ImGui
 		return is_open;
 	}
 
-	// Same as WideTreeNode(...) but without the tree arrow / bullet
 	bool WideTreeNodeNoArrow(const char* label)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
@@ -333,7 +307,6 @@ namespace ImGui
 		return WideTreeNodeBehavior(window->GetID(label), 0, label, NULL, true);
 	}
 
-	// Same as WideTreeNodeEx(...) but without the tree arrow / bullet
 	bool WideTreeNodeNoArrow(const char* label, ImGuiTreeNodeFlags flags)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
@@ -341,17 +314,6 @@ namespace ImGui
 			return false;
 
 		return WideTreeNodeBehavior(window->GetID(label), flags, label, NULL, true);
-	}
-
-	// Same as SmallButton(...) but with a size parameter
-	bool SmallButton(const char* label, const ImVec2& size)
-	{
-		ImGuiContext& g = *GImGui;
-		float backup_padding_y = g.Style.FramePadding.y;
-		g.Style.FramePadding.y = 0.0f;
-		bool pressed = ButtonEx(label, size, ImGuiButtonFlags_AlignTextBaseLine);
-		g.Style.FramePadding.y = backup_padding_y;
-		return pressed;
 	}
 
 	bool WideBeginPopup(const char* label)
@@ -433,26 +395,6 @@ namespace ImGui
 		{
 			func();
 			EndPopup();
-		}
-	}
-
-	bool ExtendedInputFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* format, bool disabled)
-	{
-		if (disabled)
-		{
-			PushStyleColor(ImGuiCol_Text, GImGui->Style.Colors[ImGuiCol_TextDisabled]);
-			{
-				float pre_value = *v;
-				bool result = DragScalar(label, ImGuiDataType_Float, v, v_speed, &v_min, &v_max, format, 1.0f);
-				*v = pre_value;
-			}
-			PopStyleColor();
-
-			return false;
-		}
-		else
-		{
-			return DragScalar(label, ImGuiDataType_Float, v, v_speed, &v_min, &v_max, format, 1.0f);
 		}
 	}
 

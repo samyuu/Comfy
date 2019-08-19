@@ -1,8 +1,8 @@
 #pragma once
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "imgui.h"
-#include "imgui_internal.h"
-#include "theme.h"
+#include "ImGui/Core/imgui.h"
+#include "ImGui/Core/imgui_internal.h"
+#include "ImGui/Extensions/Theme.h"
 #include <functional>
 
 namespace Graphics
@@ -51,9 +51,6 @@ namespace ImGui
 
 	bool IsItemHoveredDelayed(ImGuiHoveredFlags flags = ImGuiHoveredFlags_None, float threshold = .5f);
 
-	void HelpMarker(const char* description);
-	void SameLineHelpMarker(const char* description);
-
 	bool WideTreeNode(const char* label);
 	bool WideTreeNode(const char* str_id, const char* fmt, ...);
 
@@ -62,7 +59,6 @@ namespace ImGui
 
 	bool WideTreeNodeNoArrow(const char* label);
 	bool WideTreeNodeNoArrow(const char* label, ImGuiTreeNodeFlags flags);
-	bool SmallButton(const char* label, const ImVec2& size);
 
 	bool WideBeginPopup(const char* label);
 	bool WideBeginMenu(const char* label, bool enabled = true);
@@ -77,8 +73,6 @@ namespace ImGui
 
 	void WindowContextMenu(const char* str_id, const std::function<void(void)>& func);
 	void ItemContextMenu(const char* str_id, const std::function<void(void)>& func);
-
-	bool ExtendedInputFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* format, bool disabled = false);
 
 	void ExtendedVerticalSeparator(float spacing = 8.0f);
 

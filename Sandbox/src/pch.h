@@ -14,5 +14,5 @@
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
 
-#include "ImGui/imgui.h"
-#include "ImGui/imgui_internal.h"
+#include "ImGui/Core/imgui.h"
+#include "ImGui/Core/imgui_internal.h"
