@@ -1,5 +1,5 @@
 #include "AetInspector.h"
-#include "AetIcons.h"
+#include "Editor/Aet/AetIcons.h"
 #include "ImGui/Gui.h"
 
 namespace Editor

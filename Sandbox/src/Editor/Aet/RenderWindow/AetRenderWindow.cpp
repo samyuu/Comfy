@@ -1,5 +1,5 @@
 #include "AetRenderWindow.h"
-#include "AetIcons.h"
+#include "Editor/Aet/AetIcons.h"
 #include "Editor/Core/Theme.h"
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
