@@ -104,8 +104,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Editor\Aet\KeyFrameRenderer.cpp" />
-    <ClCompile Include="src\Editor\Aet\AetTimelineController.cpp" />
+    <ClCompile Include="src\Editor\Aet\Timeline\KeyFrameRenderer.cpp" />
+    <ClCompile Include="src\Editor\Aet\Timeline\AetTimelineController.cpp" />
     <ClCompile Include="src\FileSystem\Format\AetSetFile.cpp" />
     <ClCompile Include="src\Graphics\Texture\Texture2D.cpp" />
     <ClCompile Include="src\ImGui\Extensions\Theme.cpp" />
@@ -126,7 +126,7 @@
     <ClCompile Include="src\Editor\Aet\AetInspector.cpp" />
     <ClCompile Include="src\Editor\Aet\AetLayerView.cpp" />
     <ClCompile Include="src\Editor\Aet\AetRenderWindow.cpp" />
-    <ClCompile Include="src\Editor\Aet\AetTimeline.cpp" />
+    <ClCompile Include="src\Editor\Aet\Timeline\AetTimeline.cpp" />
     <ClCompile Include="src\Editor\Aet\AetTreeView.cpp" />
     <ClCompile Include="src\Editor\Aet\BoxTransformControl.cpp" />
     <ClCompile Include="src\Editor\Common\CameraController2D.cpp" />
@@ -209,8 +209,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Core\DebugStopwatch.h" />
-    <ClInclude Include="src\Editor\Aet\KeyFrameRenderer.h" />
-    <ClInclude Include="src\Editor\Aet\AetTimelineController.h" />
+    <ClInclude Include="src\Editor\Aet\Timeline\KeyFrameRenderer.h" />
+    <ClInclude Include="src\Editor\Aet\Timeline\AetTimelineController.h" />
     <ClInclude Include="src\Editor\Timeline\ITimelinePlaybackControllable.h" />
     <ClInclude Include="src\Editor\Timeline\ITimelineUnitConverter.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineBaseRegions.h" />
@@ -233,7 +233,7 @@
     <ClInclude Include="src\Editor\Aet\AetInspector.h" />
     <ClInclude Include="src\Editor\Aet\AetLayerView.h" />
     <ClInclude Include="src\Editor\Aet\AetRenderWindow.h" />
-    <ClInclude Include="src\Editor\Aet\AetTimeline.h" />
+    <ClInclude Include="src\Editor\Aet\Timeline\AetTimeline.h" />
     <ClInclude Include="src\Editor\Aet\AetTreeView.h" />
     <ClInclude Include="src\Editor\Aet\BoxTransformControl.h" />
     <ClInclude Include="src\Editor\Aet\Selection.h" />

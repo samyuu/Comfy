@@ -1,5 +1,5 @@
 #include "AetTimeline.h"
-#include "AetEditor.h"
+#include "Editor/Aet/AetEditor.h"
 
 namespace Editor
 {
@@ -21,7 +21,8 @@ namespace Editor
 		aet = parent;
 		active = value;
 
-		frameRate = (aet != nullptr) ? aet->FrameRate : 60.0f;
+		constexpr float defaultFrameRate = 60.0f;
+		frameRate = (aet != nullptr) ? aet->FrameRate : defaultFrameRate;
 	}
 
 	bool AetTimeline::GetIsPlayback() const

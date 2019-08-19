@@ -105,9 +105,6 @@
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Editor\Aet\AetTimeline.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Editor\PV\SceneRenderWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -234,12 +231,6 @@
     <ClCompile Include="src\System\LibraryLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Editor\Aet\AetTimelineController.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Editor\Aet\KeyFrameRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Editor\Timeline\TimelineBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -304,6 +295,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Editor\Core\RenderWindowBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Aet\Timeline\AetTimelineController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Aet\Timeline\AetTimeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Aet\Timeline\KeyFrameRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -405,9 +405,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Aet\AetEditor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\Aet\AetTimeline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Aet\AetRenderWindow.h">
@@ -557,12 +554,6 @@
     <ClInclude Include="src\System\LibraryLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Editor\Aet\AetTimelineController.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\Aet\KeyFrameRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\Timeline\TimelineBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -666,6 +657,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Core\RenderWindowBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Aet\Timeline\AetTimelineController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Aet\Timeline\AetTimeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Aet\Timeline\KeyFrameRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

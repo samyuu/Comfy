@@ -3,7 +3,7 @@
 #include "AetTreeView.h"
 #include "AetLayerView.h"
 #include "AetInspector.h"
-#include "AetTimeline.h"
+#include "Timeline/AetTimeline.h"
 #include "AetRenderWindow.h"
 #include "Editor/Core/IEditorComponent.h"
 #include "Graphics/Auth2D/AetMgr.h"
