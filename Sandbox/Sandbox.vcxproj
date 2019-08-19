@@ -104,6 +104,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Editor\Aet\Command\AetCommand.cpp" />
+    <ClCompile Include="src\Editor\Aet\Command\AetHistoryWindow.cpp" />
+    <ClCompile Include="src\Editor\Aet\IMutableAetEditorComponent.cpp" />
     <ClCompile Include="src\Editor\Aet\Timeline\KeyFrameRenderer.cpp" />
     <ClCompile Include="src\Editor\Aet\Timeline\AetTimelineController.cpp" />
     <ClCompile Include="src\FileSystem\Format\AetSetFile.cpp" />
@@ -209,13 +212,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Core\DebugStopwatch.h" />
+    <ClInclude Include="src\Editor\Aet\IMutableAetEditorComponent.h" />
+    <ClInclude Include="src\Editor\Aet\Command\AetCommand.h" />
+    <ClInclude Include="src\Editor\Aet\Command\AetHistoryWindow.h" />
     <ClInclude Include="src\Editor\Aet\Timeline\KeyFrameRenderer.h" />
     <ClInclude Include="src\Editor\Aet\Timeline\AetTimelineController.h" />
+    <ClInclude Include="src\Editor\Command\ICommand.h" />
     <ClInclude Include="src\Editor\Timeline\ITimelinePlaybackControllable.h" />
     <ClInclude Include="src\Editor\Timeline\ITimelineUnitConverter.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineBaseRegions.h" />
     <ClInclude Include="src\Core\SmartPointers.h" />
-    <ClInclude Include="src\Editor\Command\AetCommandManager.h" />
+    <ClInclude Include="src\Editor\Aet\Command\AetCommandManager.h" />
     <ClInclude Include="src\Editor\Command\CommandManager.h" />
     <ClInclude Include="src\Graphics\Texture\Texture2D.h" />
     <ClInclude Include="src\ImGui\Gui.h" />

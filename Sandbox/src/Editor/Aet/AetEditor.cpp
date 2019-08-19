@@ -10,6 +10,8 @@ namespace Editor
 
 	AetEditor::AetEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
+		commandManager = MakeUnique<AetCommandManager>();
+
 		spriteGetterFunction = [this](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite) { return false; };
 
 		treeView = MakeUnique<AetTreeView>();
@@ -17,6 +19,7 @@ namespace Editor
 		inspector = MakeUnique<AetInspector>();
 		timeline = MakeUnique<AetTimeline>();
 		renderWindow = MakeUnique<AetRenderWindow>(&spriteGetterFunction);
+		historyWindow = MakeUnique<AetHistoryWindow>(commandManager.get());
 	}
 
 	AetEditor::~AetEditor()
@@ -92,7 +95,7 @@ namespace Editor
 		}
 		Gui::End();
 
-		if (Gui::Begin(ICON_FA_CLOCK "  Aet Timeline##AetEditor", nullptr))
+		if (Gui::Begin(ICON_TIMELINE "  Aet Timeline##AetEditor", nullptr))
 		{
 			AetItemTypePtr selected = treeView->GetSelected();
 			timeline->SetActive(treeView->GetActiveAet(), treeView->GetSelected());
@@ -100,7 +103,14 @@ namespace Editor
 		}
 		Gui::End();
 
+		if (Gui::Begin(ICON_HISTORY "  Aet Editor History##AetEditor", nullptr))
+		{
+			historyWindow->DrawGui();
+		}
+		Gui::End();
+
 		UpdateFileLoading();
+		commandManager->ExecuteClearCommandQueue();
 	}
 
 	const char* AetEditor::GetGuiName() const

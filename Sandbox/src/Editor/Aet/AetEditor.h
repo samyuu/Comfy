@@ -5,6 +5,8 @@
 #include "AetInspector.h"
 #include "Timeline/AetTimeline.h"
 #include "AetRenderWindow.h"
+#include "Command/AetHistoryWindow.h"
+#include "Command/AetCommandManager.h"
 #include "Editor/Core/IEditorComponent.h"
 #include "Graphics/Auth2D/AetMgr.h"
 #include "Graphics/Auth2D/AetRenderer.h"
@@ -31,8 +33,9 @@ namespace Editor
 		inline SprSet* GetSprSet() { return sprSet.get(); };
 
 	private:
-		SpriteGetterFunction spriteGetterFunction;
+		UniquePtr<AetCommandManager> commandManager;
 
+		SpriteGetterFunction spriteGetterFunction;
 		UniquePtr<FileLoader> sprSetFileLoader;
 
 		Gui::FileViewer aetFileViewer = { "dev_ram/aetset/" };
@@ -43,6 +46,7 @@ namespace Editor
 		UniquePtr<AetInspector> inspector;
 		UniquePtr<AetTimeline> timeline;
 		UniquePtr<AetRenderWindow> renderWindow;
+		UniquePtr<AetHistoryWindow> historyWindow;
 
 		struct
 		{
