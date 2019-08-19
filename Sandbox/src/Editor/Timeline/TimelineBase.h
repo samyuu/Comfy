@@ -3,7 +3,7 @@
 #include "TimelineBaseRegions.h"
 #include "ITimelinePlaybackControllable.h"
 #include "ITimelineUnitConverter.h"
-#include "ImGui/imgui_extensions.h"
+#include "ImGui/Gui.h"
 
 namespace Editor
 {
@@ -33,11 +33,11 @@ namespace Editor
 		void InitializeTimelineGuiState();
 
 	public:
-		virtual inline float GetMaxScrollX() const { return ImGui::GetScrollMaxX(); };
-		virtual inline float GetScrollX() const { return ImGui::GetScrollX(); };
+		virtual inline float GetMaxScrollX() const { return Gui::GetScrollMaxX(); };
+		virtual inline float GetScrollX() const { return Gui::GetScrollX(); };
 
 	protected:
-		virtual inline void SetScrollX(float value) { ImGui::SetScrollX(value); };
+		virtual inline void SetScrollX(float value) { Gui::SetScrollX(value); };
 
 	protected:
 		// TODO: initialize by derived class, each derived class then exposes its own casted getter

@@ -42,7 +42,7 @@ namespace Editor
 
 	private:
 		std::array<const char*, 4> audioFileExtensions = { ".wav", ".flac", ".ogg", ".mp3" };
-		ImGui::FileViewer songFileViewer = { "dev_ram/sound/song" };
+		Gui::FileViewer songFileViewer = { "dev_ram/sound/song" };
 
 		UniquePtr<Chart> chart;
 

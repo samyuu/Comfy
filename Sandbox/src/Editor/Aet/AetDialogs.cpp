@@ -1,6 +1,6 @@
 #include "AetDialogs.h"
 #include "AetIcons.h"
-#include "ImGui/imgui_extensions.h"
+#include "ImGui/Gui.h"
 
 namespace Editor
 {

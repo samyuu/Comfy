@@ -1,6 +1,6 @@
 #include "IconTestWindow.h"
 #include "Core/Application.h"
-#include "ImGui/imgui_extensions.h"
+#include "ImGui/Gui.h"
 
 namespace DataTest
 {
@@ -15,16 +15,16 @@ namespace DataTest
 
 	void IconTestWindow::DrawGui()
 	{
-		ImGui::Text("Icon Name Filter:");
+		Gui::Text("Icon Name Filter:");
 		iconFilter.Draw();
 
-		ImGui::BeginChild("IconTestColumnsChild##IconTestWindow", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysHorizontalScrollbar);
-		ImGui::Columns(2, "IconTestColumns");
+		Gui::BeginChild("IconTestColumnsChild##IconTestWindow", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysHorizontalScrollbar);
+		Gui::Columns(2, "IconTestColumns");
 		{
-			ImGui::Separator();
-			ImGui::Text("Name"); ImGui::NextColumn();
-			ImGui::Text("Icon"); ImGui::NextColumn();
-			ImGui::Separator();
+			Gui::Separator();
+			Gui::Text("Name"); Gui::NextColumn();
+			Gui::Text("Icon"); Gui::NextColumn();
+			Gui::Separator();
 			for (size_t i = 0; i < IM_ARRAYSIZE(namedFontIcons); i++)
 			{
 				NamedFontIcon& fontIcon = namedFontIcons[i];
@@ -32,17 +32,17 @@ namespace DataTest
 				if (!iconFilter.PassFilter(fontIcon.Name))
 					continue;
 
-				if (ImGui::Selectable(fontIcon.Name, false, ImGuiSelectableFlags_AllowDoubleClick))
+				if (Gui::Selectable(fontIcon.Name, false, ImGuiSelectableFlags_AllowDoubleClick))
 					glfwSetClipboardString(GetParent()->GetWindow(), fontIcon.Name);
-				ImGui::NextColumn();
+				Gui::NextColumn();
 
-				if (ImGui::Selectable(fontIcon.Value, false, ImGuiSelectableFlags_AllowDoubleClick))
+				if (Gui::Selectable(fontIcon.Value, false, ImGuiSelectableFlags_AllowDoubleClick))
 					glfwSetClipboardString(GetParent()->GetWindow(), fontIcon.Value);
-				ImGui::NextColumn();
+				Gui::NextColumn();
 			}
 		}
-		ImGui::Columns(1);
-		ImGui::EndChild();
+		Gui::Columns(1);
+		Gui::EndChild();
 	}
 
 	const char* IconTestWindow::GetGuiName() const

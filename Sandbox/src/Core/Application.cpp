@@ -7,7 +7,7 @@
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
 #include "FileSystem/FileHelper.h"
-#include "ImGui/imgui_extensions.h"
+#include "ImGui/Gui.h"
 #include "ImGui/Implementation/Imgui_Impl.h"
 
 #define GLFW_EXPOSE_NATIVE_WIN32
@@ -317,7 +317,7 @@ void Application::BaseDispose()
 
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
+	Gui::DestroyContext();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -345,9 +345,9 @@ bool Application::InitializeWindow()
 bool Application::InitializeGui()
 {
 	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
+	Gui::CreateContext();
 
-	ImGuiIO& io = ImGui::GetIO();
+	ImGuiIO& io = Gui::GetIO();
 	io.IniFilename = "ram/imgui.ini";
 	io.LogFilename = "ram/imgui_log.txt";
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -381,7 +381,7 @@ bool Application::InitializeGui()
 		fonts->AddFontFromFileTTF("rom/font/" FONT_ICON_FILE_NAME_FAS, fontSize - 2.0f, &config, icon_ranges);
 	}
 
-	ImGui::StyleComfy();
+	Gui::StyleComfy();
 
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 420");
@@ -447,9 +447,9 @@ void Application::UpdatePollInput()
 
 void Application::UpdateInput()
 {
-	ImGuiIO& io = ImGui::GetIO();
+	ImGuiIO& io = Gui::GetIO();
 
-	if (ImGui::IsKeyPressed(KeyCode_F11) || (io.KeyAlt && ImGui::IsKeyPressed(KeyCode_Enter)))
+	if (Gui::IsKeyPressed(KeyCode_F11) || (io.KeyAlt && Gui::IsKeyPressed(KeyCode_Enter)))
 		ToggleFullscreen();
 }
 
@@ -459,17 +459,17 @@ void Application::UpdateTasks()
 
 void Application::DrawGui()
 {
-	ImGuiIO& io = ImGui::GetIO();
+	ImGuiIO& io = Gui::GetIO();
 
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
-	ImGui::UpdateExtendedState();
+	Gui::NewFrame();
+	Gui::UpdateExtendedState();
 	{
-		//if (ImGui::IsKeyPressed(KeyCode_F9))
+		//if (Gui::IsKeyPressed(KeyCode_F9))
 		//	showMainMenuBar ^= true;
 
-		if (ImGui::IsKeyPressed(KeyCode_F10))
+		if (Gui::IsKeyPressed(KeyCode_F10))
 		{
 			showMainAppEngineWindow = true;
 			exclusiveAppEngineWindow ^= true;
@@ -477,38 +477,38 @@ void Application::DrawGui()
 
 		// Main Menu Bar
 		// -------------
-		if (showMainMenuBar && !exclusiveAppEngineWindow && ImGui::BeginMainMenuBar())
+		if (showMainMenuBar && !exclusiveAppEngineWindow && Gui::BeginMainMenuBar())
 		{
-			if (ImGui::BeginMenu("Debug"))
+			if (Gui::BeginMenu("Debug"))
 			{
-				ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_PlotHistogramHovered));
-				if (ImGui::MenuItem("Recompile Shaders", nullptr))
+				Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(ImGuiCol_PlotHistogramHovered));
+				if (Gui::MenuItem("Recompile Shaders", nullptr))
 					Graphics::ShaderProgram::RecompileAllShaders();
-				ImGui::PopStyleColor();
+				Gui::PopStyleColor();
 
-				if (ImGui::MenuItem("Toggle Fullscreen", nullptr))
+				if (Gui::MenuItem("Toggle Fullscreen", nullptr))
 					ToggleFullscreen();
 
-				if (ImGui::BeginMenu("Swap Interval", &showSwapInterval))
+				if (Gui::BeginMenu("Swap Interval", &showSwapInterval))
 				{
-					if (ImGui::MenuItem("glfwSwapInterval(0)", nullptr))
+					if (Gui::MenuItem("glfwSwapInterval(0)", nullptr))
 						glfwSwapInterval(0);
 
-					if (ImGui::MenuItem("glfwSwapInterval(1)", nullptr))
+					if (Gui::MenuItem("glfwSwapInterval(1)", nullptr))
 						glfwSwapInterval(1);
 
-					ImGui::EndMenu();
+					Gui::EndMenu();
 				}
 
-				if (ImGui::MenuItem("Test Print", nullptr))
+				if (Gui::MenuItem("Test Print", nullptr))
 					Logger::LogLine(__FUNCTION__"(): Test");
 
-				ImGui::Separator();
+				Gui::Separator();
 
-				if (ImGui::MenuItem("Exit...", nullptr))
+				if (Gui::MenuItem("Exit...", nullptr))
 					Exit();
 
-				ImGui::EndMenu();
+				Gui::EndMenu();
 			}
 
 			// Editor Menus Items
@@ -523,85 +523,85 @@ void Application::DrawGui()
 			// ---------------
 			DrawGuiBaseWindowMenus("Data Test", dataTestComponents);
 
-			if (ImGui::BeginMenu(u8"UTF8 Test"))
+			if (Gui::BeginMenu(u8"UTF8 Test"))
 			{
-				if (ImGui::MenuItem(u8"test - テスト", nullptr)) { ; }
-				if (ImGui::MenuItem(u8"shinitai - 死にたい", nullptr)) { ; }
-				ImGui::EndMenu();
+				if (Gui::MenuItem(u8"test - テスト", nullptr)) { ; }
+				if (Gui::MenuItem(u8"shinitai - 死にたい", nullptr)) { ; }
+				Gui::EndMenu();
 			}
 
 			bool openLicensePopup = false;
-			if (ImGui::BeginMenu("Help"))
+			if (Gui::BeginMenu("Help"))
 			{
-				if (ImGui::MenuItem("License"))
+				if (Gui::MenuItem("License"))
 					openLicensePopup = true;
-				ImGui::EndMenu();
+				Gui::EndMenu();
 			}
 
 			if (openLicensePopup)
 			{
 				*licenseWindow.GetIsWindowOpen() = true;
-				ImGui::OpenPopup(licenseWindow.GetWindowName());
+				Gui::OpenPopup(licenseWindow.GetWindowName());
 			}
 
-			if (ImGui::BeginPopupModal(licenseWindow.GetWindowName(), licenseWindow.GetIsWindowOpen(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+			if (Gui::BeginPopupModal(licenseWindow.GetWindowName(), licenseWindow.GetIsWindowOpen(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 			{
-				ImGuiViewport* viewPort = ImGui::GetMainViewport();
-				ImGuiWindow* window = ImGui::FindWindowByName(licenseWindow.GetWindowName());
-				ImGui::SetWindowPos(window, viewPort->Pos + viewPort->Size / 8, ImGuiCond_Always);
-				ImGui::SetWindowSize(window, viewPort->Size * .75f, ImGuiCond_Always);
+				ImGuiViewport* viewPort = Gui::GetMainViewport();
+				ImGuiWindow* window = Gui::FindWindowByName(licenseWindow.GetWindowName());
+				Gui::SetWindowPos(window, viewPort->Pos + viewPort->Size / 8, ImGuiCond_Always);
+				Gui::SetWindowSize(window, viewPort->Size * .75f, ImGuiCond_Always);
 
 				licenseWindow.DrawGui();
 
-				if (ImGui::IsKeyPressed(KeyCode_Escape))
-					ImGui::CloseCurrentPopup();
+				if (Gui::IsKeyPressed(KeyCode_Escape))
+					Gui::CloseCurrentPopup();
 
-				ImGui::EndPopup();
+				Gui::EndPopup();
 			}
 
-			if (false && ImGui::MenuItem("Open Popup", nullptr))
-				ImGui::OpenPopup("Test Popup");
+			if (false && Gui::MenuItem("Open Popup", nullptr))
+				Gui::OpenPopup("Test Popup");
 
-			if (ImGui::BeginPopupModal("Test Popup", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			if (Gui::BeginPopupModal("Test Popup", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 			{
-				ImGui::Text("Test!\n\n");
-				if (ImGui::Button("OK", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
-				ImGui::SameLine();
-				if (ImGui::Button("Cancel", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
-				ImGui::EndPopup();
+				Gui::Text("Test!\n\n");
+				if (Gui::Button("OK", ImVec2(120, 0))) { Gui::CloseCurrentPopup(); }
+				Gui::SameLine();
+				if (Gui::Button("Cancel", ImVec2(120, 0))) { Gui::CloseCurrentPopup(); }
+				Gui::EndPopup();
 			}
 
 			if (focusLostFrame && false)
-				ImGui::OpenPopup("PeepoSleep zzzZZZ");
+				Gui::OpenPopup("PeepoSleep zzzZZZ");
 
-			if (ImGui::BeginPopupModal("PeepoSleep zzzZZZ", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			if (Gui::BeginPopupModal("PeepoSleep zzzZZZ", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 			{
-				ImGui::Text("Window focus has been lost");
+				Gui::Text("Window focus has been lost");
 				if (focusGainedFrame)
-					ImGui::CloseCurrentPopup();
-				ImGui::EndPopup();
+					Gui::CloseCurrentPopup();
+				Gui::EndPopup();
 			}
 
 			char infoBuffer[32];
 			sprintf_s(infoBuffer, sizeof(infoBuffer), "%.3f ms (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 
-			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ImGui::CalcTextSize(infoBuffer).x - ImGui::GetStyle().WindowPadding.x);
-			ImGui::Text(infoBuffer);
+			Gui::SetCursorPosX(Gui::GetWindowWidth() - Gui::CalcTextSize(infoBuffer).x - Gui::GetStyle().WindowPadding.x);
+			Gui::Text(infoBuffer);
 
-			ImGui::EndMainMenuBar();
+			Gui::EndMainMenuBar();
 		}
 
 		// Window Dockspace
 		// ----------------
 		{
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+			Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+			Gui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+			Gui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
-			ImGuiViewport* viewport = ImGui::GetMainViewport();
-			ImGui::SetNextWindowPos(viewport->Pos);
-			ImGui::SetNextWindowSize(viewport->Size);
-			ImGui::SetNextWindowViewport(viewport->ID);
+			ImGuiViewport* viewport = Gui::GetMainViewport();
+			Gui::SetNextWindowPos(viewport->Pos);
+			Gui::SetNextWindowSize(viewport->Size);
+			Gui::SetNextWindowViewport(viewport->ID);
 
 			ImGuiWindowFlags dockspaceWindowFlags = ImGuiWindowFlags_NoDocking;
 			dockspaceWindowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
@@ -610,22 +610,22 @@ void Application::DrawGui()
 			if (showMainMenuBar)
 				dockspaceWindowFlags |= ImGuiWindowFlags_MenuBar;
 
-			ImGui::Begin(dockSpaceID, nullptr, dockspaceWindowFlags);
-			ImGuiID dockspaceID = ImGui::GetID(dockSpaceID);
-			ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
-			ImGui::End();
+			Gui::Begin(dockSpaceID, nullptr, dockspaceWindowFlags);
+			ImGuiID dockspaceID = Gui::GetID(dockSpaceID);
+			Gui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+			Gui::End();
 
-			ImGui::PopStyleVar(3);
+			Gui::PopStyleVar(3);
 		}
 
 		// App Engine Window
 		// -----------------
 		if (exclusiveAppEngineWindow)
 		{
-			ImGuiViewport* viewport = ImGui::GetMainViewport();
-			ImGui::SetNextWindowPos(viewport->Pos);
-			ImGui::SetNextWindowSize(viewport->Size);
-			ImGui::SetNextWindowViewport(viewport->ID);
+			ImGuiViewport* viewport = Gui::GetMainViewport();
+			Gui::SetNextWindowPos(viewport->Pos);
+			Gui::SetNextWindowSize(viewport->Size);
+			Gui::SetNextWindowViewport(viewport->ID);
 
 			ImGuiWindowFlags engineWindowFlags = ImGuiWindowFlags_None;
 			engineWindowFlags |= ImGuiWindowFlags_NoDocking;
@@ -636,9 +636,9 @@ void Application::DrawGui()
 			if (showMainAppEngineWindow)
 			{
 				Editor::RenderWindowBase::PushWindowPadding();
-				if (ImGui::Begin("App::Engine::Window##Application", &showMainAppEngineWindow, engineWindowFlags))
+				if (Gui::Begin("App::Engine::Window##Application", &showMainAppEngineWindow, engineWindowFlags))
 					DrawAppEngineWindow();
-				ImGui::End();
+				Gui::End();
 				Editor::RenderWindowBase::PopWindowPadding();
 			}
 		}
@@ -649,9 +649,9 @@ void Application::DrawGui()
 			if (showMainAppEngineWindow)
 			{
 				Editor::RenderWindowBase::PushWindowPadding();
-				if (ImGui::Begin("Engine Window##Application", &showMainAppEngineWindow, ImGuiWindowFlags_None))
+				if (Gui::Begin("Engine Window##Application", &showMainAppEngineWindow, ImGuiWindowFlags_None))
 					DrawAppEngineWindow();
-				ImGui::End();
+				Gui::End();
 				Editor::RenderWindowBase::PopWindowPadding();
 			}
 
@@ -659,16 +659,16 @@ void Application::DrawGui()
 			// ------------
 			if (showStyleEditor)
 			{
-				ImGui::Begin("Style Editor##Application", &showStyleEditor);
-				ImGui::ShowStyleEditor();
-				ImGui::End();
+				Gui::Begin("Style Editor##Application", &showStyleEditor);
+				Gui::ShowStyleEditor();
+				Gui::End();
 			}
 
 			// Demo Window
 			// -----------
 			if (showDemoWindow)
 			{
-				ImGui::ShowDemoWindow(&showDemoWindow);
+				Gui::ShowDemoWindow(&showDemoWindow);
 			}
 
 			// Editor Windows
@@ -680,17 +680,17 @@ void Application::DrawGui()
 			DrawGuiBaseWindowWindows(dataTestComponents);
 		}
 	}
-	ImGui::Render();
+	Gui::Render();
 
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 	{
 		GLFWwindow* context = glfwGetCurrentContext();
-		ImGui::UpdatePlatformWindows();
-		ImGui::RenderPlatformWindowsDefault();
+		Gui::UpdatePlatformWindows();
+		Gui::RenderPlatformWindowsDefault();
 		glfwMakeContextCurrent(context);
 	}
 
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	ImGui_ImplOpenGL3_RenderDrawData(Gui::GetDrawData());
 }
 
 void Application::DrawAppEngineWindow()
@@ -703,24 +703,24 @@ void Application::DrawAppEngineWindow()
 
 void Application::DrawAppEngineMenus(const char* header)
 {
-	if (ImGui::BeginMenu(header))
+	if (Gui::BeginMenu(header))
 	{
-		ImGui::MenuItem("Engine Window", nullptr, &showMainAppEngineWindow);
-		ImGui::EndMenu();
+		Gui::MenuItem("Engine Window", nullptr, &showMainAppEngineWindow);
+		Gui::EndMenu();
 	}
 }
 
 void Application::DrawGuiBaseWindowMenus(const char* header, std::vector<RefPtr<BaseWindow>>& components)
 {
-	if (ImGui::BeginMenu(header))
+	if (Gui::BeginMenu(header))
 	{
-		DEBUG_ONLY(ImGui::MenuItem("Style Editor", nullptr, &showStyleEditor));
-		DEBUG_ONLY(ImGui::MenuItem("Demo Window", nullptr, &showDemoWindow));
+		DEBUG_ONLY(Gui::MenuItem("Style Editor", nullptr, &showStyleEditor));
+		DEBUG_ONLY(Gui::MenuItem("Demo Window", nullptr, &showDemoWindow));
 
 		for (const auto& component : components)
-			ImGui::MenuItem(component->GetGuiName(), nullptr, component->GetIsGuiOpenPtr());
+			Gui::MenuItem(component->GetGuiName(), nullptr, component->GetIsGuiOpenPtr());
 
-		ImGui::EndMenu();
+		Gui::EndMenu();
 	}
 }
 
@@ -730,9 +730,9 @@ void Application::DrawGuiBaseWindowWindows(std::vector<RefPtr<BaseWindow>>& comp
 	{
 		if (*component->GetIsGuiOpenPtr())
 		{
-			if (ImGui::Begin(component->GetGuiName(), component->GetIsGuiOpenPtr(), component->GetWindowFlags()))
+			if (Gui::Begin(component->GetGuiName(), component->GetIsGuiOpenPtr(), component->GetWindowFlags()))
 				component->DrawGui();
-			ImGui::End();
+			Gui::End();
 		}
 	}
 }

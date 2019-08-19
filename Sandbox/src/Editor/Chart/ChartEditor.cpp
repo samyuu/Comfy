@@ -33,43 +33,43 @@ namespace Editor
 
 	void ChartEditor::DrawGui()
 	{
-		ImGui::GetCurrentWindow()->Hidden = true;
+		Gui::GetCurrentWindow()->Hidden = true;
 
-		if (ImGui::Begin(ICON_FA_FOLDER "  Song Loader##AetEditor", nullptr, ImGuiWindowFlags_None))
+		if (Gui::Begin(ICON_FA_FOLDER "  Song Loader##AetEditor", nullptr, ImGuiWindowFlags_None))
 		{
-			ImGui::BeginChild("SongLoaderChild##ChartEditor");
+			Gui::BeginChild("SongLoaderChild##ChartEditor");
 			if (songFileViewer.DrawGui())
 			{
 				if (IsAudioFile(songFileViewer.GetFileToOpen()))
 					LoadSong(songFileViewer.GetFileToOpen());
 			}
-			ImGui::EndChild();
+			Gui::EndChild();
 		}
-		ImGui::End();
+		Gui::End();
 
-		if (ImGui::Begin(ICON_FA_MUSIC "  Target Timeline##ChartEditor", nullptr, ImGuiWindowFlags_None))
+		if (Gui::Begin(ICON_FA_MUSIC "  Target Timeline##ChartEditor", nullptr, ImGuiWindowFlags_None))
 		{
 			timeline->DrawTimelineGui();
 		}
-		ImGui::End();
+		Gui::End();
 
-		if (ImGui::Begin(ICON_FA_SYNC "  Sync Window##ChartEditor", nullptr, ImGuiWindowFlags_None))
+		if (Gui::Begin(ICON_FA_SYNC "  Sync Window##ChartEditor", nullptr, ImGuiWindowFlags_None))
 		{
-			ImGui::BeginChild("SyncWindowChild##ChartEditor", ImVec2(0, 0), true);
+			Gui::BeginChild("SyncWindowChild##ChartEditor", ImVec2(0, 0), true);
 			syncWindow->DrawGui(chart.get(), timeline.get());
-			ImGui::EndChild();
+			Gui::EndChild();
 		}
-		ImGui::End();
+		Gui::End();
 
 		RenderWindowBase::PushWindowPadding();
-		if (ImGui::Begin(ICON_FA_CHART_BAR "  Target Window##ChartEditor", nullptr, ImGuiWindowFlags_None))
+		if (Gui::Begin(ICON_FA_CHART_BAR "  Target Window##ChartEditor", nullptr, ImGuiWindowFlags_None))
 		{
 			//renderWindow->SetActive(treeView->GetActiveAet(), treeView->GetSelected());
 			//renderWindow->SetIsPlayback(timeline->GetIsPlayback());
 			//renderWindow->SetCurrentFrame(timeline->GetFrame().Frames());
 			renderWindow->DrawGui();
 		}
-		ImGui::End();
+		Gui::End();
 		RenderWindowBase::PopWindowPadding();
 	}
 

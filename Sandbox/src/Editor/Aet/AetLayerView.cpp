@@ -1,6 +1,6 @@
 #include "AetLayerView.h"
 #include "AetIcons.h"
-#include "ImGui/imgui_extensions.h"
+#include "ImGui/Gui.h"
 
 namespace Editor
 {
@@ -38,15 +38,15 @@ namespace Editor
 
 	bool AetLayerView::DrawGui()
 	{
-		using namespace ImGui;
+		using namespace Gui;
 
 		static std::vector<Data> testData = { "0. test_eff", "1. gam_cmn_block.pic", "2. gam_cmn_blimp.pic", "3. kirai" };
 
 		BeginChild("Test Child", GetContentRegionAvail() - ImVec2(0, 26), false, ImGuiWindowFlags_None);
 		{
-			ImGui::Text("sel: %d", selectedIndex);
-			ImGui::Text("src: %d", dragSourceIndex);
-			ImGui::Text("dst: %d", dragDestinationIndex);
+			Text("sel: %d", selectedIndex);
+			Text("src: %d", dragSourceIndex);
+			Text("dst: %d", dragDestinationIndex);
 
 			//Columns(2, nullptr, false);
 			//SetColumnWidth(0, 34);
@@ -127,10 +127,10 @@ namespace Editor
 		Separator();
 		{
 			SetCursorPosX(GetWindowWidth() - 22 * 2);
-			SmallButton(ICON_ADD, ImVec2(22, 22));
+			ComfySmallButton(ICON_ADD, ImVec2(22, 22));
 			SameLine();
 			SetCursorPosX(GetWindowWidth() - 22 * 1);
-			SmallButton(ICON_DELETE, ImVec2(22, 22));
+			ComfySmallButton(ICON_DELETE, ImVec2(22, 22));
 		}
 		PopStyleVar(2);
 

@@ -36,8 +36,8 @@ namespace Editor
 
 	void AetTimeline::DrawTimelineContentNone()
 	{
-		ImU32 dimColor = ImGui::GetColorU32(ImGuiCol_PopupBg, 0.25f);
-		ImGui::GetWindowDrawList()->AddRectFilled(timelineBaseRegion.GetTL(), timelineBaseRegion.GetBR(), dimColor);
+		ImU32 dimColor = Gui::GetColorU32(ImGuiCol_PopupBg, 0.25f);
+		Gui::GetWindowDrawList()->AddRectFilled(timelineBaseRegion.GetTL(), timelineBaseRegion.GetBR(), dimColor);
 	}
 
 	void AetTimeline::DrawTimelineContentKeyFrames()
@@ -50,65 +50,65 @@ namespace Editor
 
 	void AetTimeline::OnDrawTimelineHeaderWidgets()
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
 
-		ImGuiStyle& style = ImGui::GetStyle();
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, style.FramePadding.y));
+		ImGuiStyle& style = Gui::GetStyle();
+		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, style.FramePadding.y));
 
 		TimeSpan cursorTime = GetCursorTime();
 		sprintf_s(timeInputBuffer, "%s (%.f/%.f)", cursorTime.FormatTime().c_str(), GetTimelineFrame(cursorTime).Frames(), loopEndFrame.Frames());
 
-		ImGui::PushItemWidth(140);
-		ImGui::InputTextWithHint("##AetTimeline::TimeInput", "00:00.000", timeInputBuffer, sizeof(timeInputBuffer));
-		ImGui::PopItemWidth();
+		Gui::PushItemWidth(140);
+		Gui::InputTextWithHint("##AetTimeline::TimeInput", "00:00.000", timeInputBuffer, sizeof(timeInputBuffer));
+		Gui::PopItemWidth();
 
-		ImGui::SameLine();
-		ImGui::Button(ICON_FA_FAST_BACKWARD);
-		if (ImGui::IsItemActive()) { scrollDelta -= io->DeltaTime * 1000.0f; }
+		Gui::SameLine();
+		Gui::Button(ICON_FA_FAST_BACKWARD);
+		if (Gui::IsItemActive()) { scrollDelta -= io->DeltaTime * 1000.0f; }
 
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
 		// TODO: jump to last / next keyframe
-		ImGui::SameLine();
-		ImGui::Button(ICON_FA_BACKWARD);
-		if (ImGui::IsItemActive()) { scrollDelta -= io->DeltaTime * 400.0f; }
+		Gui::SameLine();
+		Gui::Button(ICON_FA_BACKWARD);
+		if (Gui::IsItemActive()) { scrollDelta -= io->DeltaTime * 400.0f; }
 
-		ImGui::SameLine();
+		Gui::SameLine();
 
 		if (GetIsPlayback())
 		{
-			if (ImGui::Button(ICON_FA_PAUSE))
+			if (Gui::Button(ICON_FA_PAUSE))
 				PausePlayback();
 		}
 		else
 		{
-			if (ImGui::Button(ICON_FA_PLAY))
+			if (Gui::Button(ICON_FA_PLAY))
 				ResumePlayback();
 		}
 
-		ImGui::SameLine();
-		if (ImGui::Button(ICON_FA_STOP) && GetIsPlayback())
+		Gui::SameLine();
+		if (Gui::Button(ICON_FA_STOP) && GetIsPlayback())
 			StopPlayback();
 
-		ImGui::SameLine();
-		ImGui::Button(ICON_FA_FORWARD);
-		if (ImGui::IsItemActive()) { scrollDelta += io->DeltaTime * 400.0f; }
+		Gui::SameLine();
+		Gui::Button(ICON_FA_FORWARD);
+		if (Gui::IsItemActive()) { scrollDelta += io->DeltaTime * 400.0f; }
 
-		ImGui::SameLine();
-		ImGui::Button(ICON_FA_FAST_FORWARD);
-		if (ImGui::IsItemActive()) { scrollDelta += io->DeltaTime * 1000.0f; }
+		Gui::SameLine();
+		Gui::Button(ICON_FA_FAST_FORWARD);
+		if (Gui::IsItemActive()) { scrollDelta += io->DeltaTime * 1000.0f; }
 
-		ImGui::PopStyleVar(2);
+		Gui::PopStyleVar(2);
 
-		ImGui::SameLine();
-		ImGui::PushItemWidth(280);
-		ImGui::SliderFloat(ICON_FA_SEARCH, &zoomLevel, ZOOM_MIN, ZOOM_MAX);
-		ImGui::PopItemWidth();
+		Gui::SameLine();
+		Gui::PushItemWidth(280);
+		Gui::SliderFloat(ICON_FA_SEARCH, &zoomLevel, ZOOM_MIN, ZOOM_MAX);
+		Gui::PopItemWidth();
 
-		ImGui::PopStyleVar(1);
+		Gui::PopStyleVar(1);
 
-		ImGui::SameLine();
-		ImGui::Checkbox("Loop Animation", &loopPlayback);
+		Gui::SameLine();
+		Gui::Checkbox("Loop Animation", &loopPlayback);
 	}
 
 	void AetTimeline::OnDrawTimelineInfoColumnHeader()
@@ -120,13 +120,13 @@ namespace Editor
 	{
 		TimelineBase::OnDrawTimelineInfoColumn();
 
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		ImDrawList* drawList = Gui::GetWindowDrawList();
 		for (int i = 0; i < PropertyType_Count; i++)
 		{
 			float y = i * rowHeight + 2;
 			auto start = ImVec2(2, y) + infoColumnRegion.GetTL();
 
-			drawList->AddText(start, ImGui::GetColorU32(ImGuiCol_Text), timelinePropertyNames[i]);
+			drawList->AddText(start, Gui::GetColorU32(ImGuiCol_Text), timelinePropertyNames[i]);
 		}
 	}
 
@@ -160,9 +160,20 @@ namespace Editor
 			switch (active.Type())
 			{
 			case AetSelectionType::Aet:
-			case AetSelectionType::AetLayer:
 				loopStartFrame = aet->FrameStart;
 				loopEndFrame = aet->FrameDuration;
+				break;
+
+			case AetSelectionType::AetLayer:
+				loopStartFrame = aet->FrameStart;
+				loopEndFrame = 0.0f;
+
+				for (RefPtr<AetObj>& obj : *active.AetLayer)
+				{
+					if (obj->LoopEnd > loopEndFrame.Frames())
+						loopEndFrame = obj->LoopEnd;
+				}
+
 				break;
 
 			case AetSelectionType::AetObj:
@@ -252,7 +263,7 @@ namespace Editor
 					vec2(glm::round(offset + GetTimelinePosition(selectonData.StartX) - padding), GetRowScreenY(selectonData.RowStartIndex)),
 					vec2(glm::round(offset + GetTimelinePosition(selectonData.EndX) + padding), GetRowScreenY(selectonData.RowEndIndex)));
 
-				ImDrawList* windowDrawList = ImGui::GetWindowDrawList();
+				ImDrawList* windowDrawList = Gui::GetWindowDrawList();
 				windowDrawList->AddRectFilled(selectionRegion.Min, selectionRegion.Max, GetColor(EditorColor_TimelineSelection));
 				windowDrawList->AddRect(selectionRegion.Min, selectionRegion.Max, GetColor(EditorColor_TimelineSelectionBorder));
 			}
@@ -277,7 +288,7 @@ namespace Editor
 	void AetTimeline::UpdateInputCursorClick()
 	{
 		timelineController.UpdateInput(this);
-	
+
 		if (timelineController.GetUpdateCursorTime())
 			cursorTime = timelineController.GetNewCursorTime();
 	}

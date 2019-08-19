@@ -2,7 +2,7 @@
 #include "Selection.h"
 #include "AetDialogs.h"
 #include "FileSystem/Format/AetSet.h"
-#include "ImGui/imgui_extensions.h"
+#include "ImGui/Gui.h"
 #include <vector>
 
 namespace Editor
@@ -39,10 +39,16 @@ namespace Editor
 		Aet* activeAet;
 		AetItemTypePtr selected, lastHovered, hovered;
 
+		struct AetAetLayerPair
+		{
+			Aet* Aet = nullptr;
+			AetLayer* Layer = nullptr;
+		} layerToDelete;
+
 		struct AetObjLayerPair
 		{
-			AetLayer* Layer;
-			AetObj* Obj;
+			AetLayer* Layer = nullptr;
+			AetObj* Obj = nullptr;
 		} objToDelete;
 
 		void DrawTreeViewBackground();

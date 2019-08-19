@@ -16,13 +16,13 @@ namespace Editor
 		RenderWindowBase::PopWindowPadding();
 		OnDrawGui();
 
-		ImGui::PushID((void*)this);
-		ImGui::BeginChild("BaseChild##RenderWindowBase", ImVec2(0, 0), false, GetChildWinodwFlags());
+		Gui::PushID((void*)this);
+		Gui::BeginChild("BaseChild##RenderWindowBase", ImVec2(0, 0), false, GetChildWinodwFlags());
 
 		lastRenderRegion = renderRegion;
 
-		renderRegion.Min = ImGui::GetWindowPos();
-		renderRegion.Max = renderRegion.Min + ImGui::GetWindowSize();
+		renderRegion.Min = Gui::GetWindowPos();
+		renderRegion.Max = renderRegion.Min + Gui::GetWindowSize();
 
 		const ImRect fullRenderRegion = renderRegion;
 
@@ -56,15 +56,15 @@ namespace Editor
 		const ImVec2 renderSize = renderRegion.GetSize(), lastRenderSize = lastRenderRegion.GetSize();
 		wasResized = (renderSize.x != lastRenderSize.x) || (renderSize.y != lastRenderSize.y);
 
-		if (GetWasResized() && ImGui::GetFrameCount() >= 2)
+		if (GetWasResized() && Gui::GetFrameCount() >= 2)
 			OnResize(static_cast<int>(renderSize.x), static_cast<int>(renderSize.y));
 
-		ImGuiWindow* currentWindow = ImGui::GetCurrentWindow();
+		ImGuiWindow* currentWindow = Gui::GetCurrentWindow();
 
 		if (!currentWindow->Hidden)
 		{
 			OnUpdate();
-			if (ImGui::IsWindowFocused())
+			if (Gui::IsWindowFocused())
 				OnUpdateInput();
 			OnRender();
 		}
@@ -74,26 +74,26 @@ namespace Editor
 			currentWindow->DrawList->AddRectFilled(
 				fullRenderRegion.Min, 
 				fullRenderRegion.Max, 
-				ImGui::GetColorU32(ImGuiCol_WindowBg));
+				Gui::GetColorU32(ImGuiCol_WindowBg));
 		}
 
 		currentWindow->DrawList->AddImage(
 			renderTarget.GetTexture().GetVoidTexture(),
 			renderRegion.GetTL(),
 			renderRegion.GetBR(),
-			ImGui::UV0_GL, ImGui::UV1_GL);
+			Gui::UV0_GL, Gui::UV1_GL);
 
 		PostDrawGui();
 
-		ImGui::EndChild();
-		ImGui::PopID();
+		Gui::EndChild();
+		Gui::PopID();
 
 		RenderWindowBase::PushWindowPadding();
 	}
 
 	vec2 RenderWindowBase::GetRelativeMouse() const
 	{
-		return ImGui::GetMousePos() - renderRegion.Min;
+		return Gui::GetMousePos() - renderRegion.Min;
 	}
 
 	const ImRect& RenderWindowBase::GetRenderRegion() const

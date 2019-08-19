@@ -35,8 +35,8 @@ namespace Editor
 
 		UniquePtr<FileLoader> sprSetFileLoader;
 
-		ImGui::FileViewer aetFileViewer = { "dev_ram/aetset/" };
-		ImGui::FileViewer sprFileViewer = { "dev_ram/sprset/" };
+		Gui::FileViewer aetFileViewer = { "dev_ram/aetset/" };
+		Gui::FileViewer sprFileViewer = { "dev_ram/sprset/" };
 
 		UniquePtr<AetTreeView> treeView;
 		UniquePtr<AetLayerView> layerView;
@@ -52,8 +52,8 @@ namespace Editor
 
 		Properties currentProperties;
 
-		const char* testAetPath = "dev_ram/aetset/aet_gam_cmn.bin";
-		const char* testSprPath = "dev_ram/sprset/spr_gam_cmn.bin";
+		const char* debugAetPath = "dev_ram/aetset/aet_gam_cmn.bin";
+		const char* debugSprPath = "dev_ram/sprset/spr_gam_cmn.bin";
 
 		void UpdateFileLoading();
 

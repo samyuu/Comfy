@@ -26,11 +26,11 @@ namespace Editor
 	{
 		updateCursorTime = false;
 
-		if (!ImGui::IsWindowFocused() || ImGui::IsMouseReleased(0))
+		if (!Gui::IsWindowFocused() || Gui::IsMouseReleased(0))
 			isCursorDragging = false;
 
-		vec2 mousePos = ImGui::GetMousePos();
-		if (ImGui::IsMouseClicked(0))
+		vec2 mousePos = Gui::GetMousePos();
+		if (Gui::IsMouseClicked(0))
 		{
 			// allow cursor dragging
 			if (timeline->GetTimelineHeaderRegion().Contains(mousePos))
@@ -45,13 +45,13 @@ namespace Editor
 			}
 		}
 
-		if (!ImGui::IsWindowFocused())
+		if (!Gui::IsWindowFocused())
 			return;
 
 		// dragging has started, don't set RowStartIndex if the mouse is initially hovering over a keyframe
 		if (!isCursorDragging && selectionData.RowStartIndex >= 0)
 		{
-			if (ImGui::IsMouseDown(0))
+			if (Gui::IsMouseDown(0))
 			{
 				selectionData.RowEndIndex = timeline->GetRowIndexFromScreenY(mousePos.y);
 				selectionData.EndX = timeline->GetTimelineFrameAtMouseX();
@@ -68,7 +68,7 @@ namespace Editor
 					selectionData.RowStartIndex = selectionData.RowInitialStartIndex + 1;
 				}
 			}
-			else if (ImGui::IsMouseReleased(0))
+			else if (Gui::IsMouseReleased(0))
 			{
 				selectionData.Reset();
 			}

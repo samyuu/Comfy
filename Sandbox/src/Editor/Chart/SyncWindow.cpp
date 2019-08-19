@@ -1,7 +1,7 @@
 #include "SyncWindow.h"
 #include "TempoMap.h"
 #include "Timeline/TimelineTick.h"
-#include "ImGui/imgui_extensions.h"
+#include "ImGui/Gui.h"
 
 namespace Editor
 {
@@ -19,23 +19,23 @@ namespace Editor
 	
 	void SyncWindow::DrawGui(Chart* chart, TargetTimeline* timeline)
 	{
-		ImGuiWindow* syncWindow = ImGui::GetCurrentWindow();
+		ImGuiWindow* syncWindow = Gui::GetCurrentWindow();
 
-		ImGui::Text("Adjust Sync:");
-		ImGui::Separator();
+		Gui::Text("Adjust Sync:");
+		Gui::Separator();
 
 		float startOffset = static_cast<float>(chart->GetStartOffset().TotalMilliseconds());
-		if (ImGui::InputFloat("Offset##SyncWindow", &startOffset, 1.0f, 10.0f, "%.2f ms"))
+		if (Gui::InputFloat("Offset##SyncWindow", &startOffset, 1.0f, 10.0f, "%.2f ms"))
 			chart->SetStartOffset(TimeSpan::FromMilliseconds(startOffset));
 
-		ImGui::Separator();
+		Gui::Separator();
 
-		if (ImGui::InputFloat("Tempo##SyncWindow", &newTempo.BeatsPerMinute, 1.0f, 10.0f, "%.2f BPM"))
+		if (Gui::InputFloat("Tempo##SyncWindow", &newTempo.BeatsPerMinute, 1.0f, 10.0f, "%.2f BPM"))
 			newTempo = glm::clamp(newTempo.BeatsPerMinute, MIN_BPM, MAX_BPM);
 
-		const float width = ImGui::CalcItemWidth();
+		const float width = Gui::CalcItemWidth();
 
-		if (ImGui::Button("Set Tempo Change", ImVec2(width, 0)))
+		if (Gui::Button("Set Tempo Change", ImVec2(width, 0)))
 		{
 			TimelineTick cursorTick = timeline->RoundToGrid(timeline->GetCursorTick());
 
@@ -43,7 +43,7 @@ namespace Editor
 			timeline->UpdateTimelineMap();
 		}
 
-		if (ImGui::Button("Remove Tempo Change", ImVec2(width, 0)))
+		if (Gui::Button("Remove Tempo Change", ImVec2(width, 0)))
 		{
 			TimelineTick cursorTick = timeline->RoundToGrid(timeline->GetCursorTick());
 

@@ -34,150 +34,150 @@ namespace DataTest
 		};
 
 		if (false)
-			ImGui::ShowDemoWindow(nullptr);
+			Gui::ShowDemoWindow(nullptr);
 
-		ImGui::Text("Audio Test:");
-		ImGui::Separator();
+		Gui::Text("Audio Test:");
+		Gui::Separator();
 
 		float masterVolume = engine->GetMasterVolume();
-		if (ImGui::SliderFloat("Master Volume", &masterVolume, MIN_VOLUME, MAX_VOLUME))
+		if (Gui::SliderFloat("Master Volume", &masterVolume, MIN_VOLUME, MAX_VOLUME))
 			engine->SetMasterVolume(masterVolume);
-		ImGui::Separator();
+		Gui::Separator();
 
-		if (ImGui::CollapsingHeader("Device List"))
+		if (Gui::CollapsingHeader("Device List"))
 		{
-			ImGui::Text("Device(s): %d", deviceInfoList.size());
+			Gui::Text("Device(s): %d", deviceInfoList.size());
 
-			float halfWindowWidth = ImGui::GetWindowWidth() / 2.0f;
+			float halfWindowWidth = Gui::GetWindowWidth() / 2.0f;
 
-			ImGui::SameLine(halfWindowWidth);
-			if (ImGui::Button("Refresh Device List", ImVec2(halfWindowWidth, 0)))
+			Gui::SameLine(halfWindowWidth);
+			if (Gui::Button("Refresh Device List", ImVec2(halfWindowWidth, 0)))
 				RefreshDeviceInfoList();
 
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-			ImGui::Columns(2);
+			Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			Gui::Columns(2);
 
 			for (size_t i = 0; i < deviceInfoList.size(); i++)
 				ShowDeviceInfoProperties(deviceInfoList.at(i), static_cast<int>(i));
 
-			ImGui::Columns(1);
-			ImGui::PopStyleVar();
+			Gui::Columns(1);
+			Gui::PopStyleVar();
 		}
-		ImGui::Separator();
+		Gui::Separator();
 
 		const ImVec4 onColor = ImVec4(0.14f, 0.78f, 0.21f, 1.00f);
 		const ImVec4 offColor = ImVec4(0.95f, 0.12f, 0.12f, 1.00f);
 
-		if (ImGui::CollapsingHeader("Stream Control"))
+		if (Gui::CollapsingHeader("Stream Control"))
 		{
-			const ImVec2 buttonSize(ImGui::GetWindowWidth() / 4.f, 0);
+			const ImVec2 buttonSize(Gui::GetWindowWidth() / 4.f, 0);
 
-			ImGui::PushItemWidth(buttonSize.x);
+			Gui::PushItemWidth(buttonSize.x);
 			{
-				if (ImGui::Button("engine->OpenStream()", buttonSize))
+				if (Gui::Button("engine->OpenStream()", buttonSize))
 					engine->OpenStream();
-				ImGui::SameLine();
-				if (ImGui::Button("engine->CloseStream()", buttonSize))
+				Gui::SameLine();
+				if (Gui::Button("engine->CloseStream()", buttonSize))
 					engine->CloseStream();
 
 				bool isStreamOpen = engine->GetIsStreamOpen();
 
-				ImGui::SameLine();
-				ImGui::Text("engine->GetIsStreamOpen():");
-				ImGui::SameLine();
-				ImGui::TextColored(isStreamOpen ? onColor : offColor, isStreamOpen ? "open" : "closed");
+				Gui::SameLine();
+				Gui::Text("engine->GetIsStreamOpen():");
+				Gui::SameLine();
+				Gui::TextColored(isStreamOpen ? onColor : offColor, isStreamOpen ? "open" : "closed");
 			}
 
 			{
-				if (ImGui::Button("engine->StartStream()", buttonSize))
+				if (Gui::Button("engine->StartStream()", buttonSize))
 					engine->StartStream();
-				ImGui::SameLine();
-				if (ImGui::Button("engine->StopStream()", buttonSize))
+				Gui::SameLine();
+				if (Gui::Button("engine->StopStream()", buttonSize))
 					engine->StopStream();
 
 				bool isStreamRunning = engine->GetIsStreamRunning();
 
-				ImGui::SameLine();
-				ImGui::Text("engine->GetIsStreamRunning():");
-				ImGui::SameLine();
-				ImGui::TextColored(isStreamRunning ? onColor : offColor, isStreamRunning ? "running" : "stopped");
+				Gui::SameLine();
+				Gui::Text("engine->GetIsStreamRunning():");
+				Gui::SameLine();
+				Gui::TextColored(isStreamRunning ? onColor : offColor, isStreamRunning ? "running" : "stopped");
 			}
-			ImGui::PopItemWidth();
+			Gui::PopItemWidth();
 
-			ImGui::Text("engine->GetStreamTime(): %.3f s", engine->GetStreamTime());
-			ImGui::Text("engine->GetCallbackLatency(): %.3f ms", engine->GetCallbackLatency() * 1000.0);
-			ImGui::Text("engine->GetBufferSize(): %d", engine->GetBufferSize());
+			Gui::Text("engine->GetStreamTime(): %.3f s", engine->GetStreamTime());
+			Gui::Text("engine->GetCallbackLatency(): %.3f ms", engine->GetCallbackLatency() * 1000.0);
+			Gui::Text("engine->GetBufferSize(): %d", engine->GetBufferSize());
 		}
-		ImGui::Separator();
+		Gui::Separator();
 
-		if (ImGui::CollapsingHeader("Audio API"))
+		if (Gui::CollapsingHeader("Audio API"))
 		{
-			ImGui::TextDisabled("(engine->GetActiveAudioApi(): %s)", audioApiNames[static_cast<int>(engine->GetActiveAudioApi())]);
+			Gui::TextDisabled("(engine->GetActiveAudioApi(): %s)", audioApiNames[static_cast<int>(engine->GetActiveAudioApi())]);
 
 			if (selectedAudioApi == AudioApi::Invalid)
 				selectedAudioApi = engine->GetActiveAudioApi();
 
-			ImGui::Combo("Audio API##combo", reinterpret_cast<int*>(&selectedAudioApi), audioApiNames.data(), static_cast<int>(audioApiNames.size()));
-			ImGui::Separator();
+			Gui::Combo("Audio API##combo", reinterpret_cast<int*>(&selectedAudioApi), audioApiNames.data(), static_cast<int>(audioApiNames.size()));
+			Gui::Separator();
 
-			if (ImGui::Button("engine->SetAudioApi()", ImVec2(ImGui::CalcItemWidth(), 0)))
+			if (Gui::Button("engine->SetAudioApi()", ImVec2(Gui::CalcItemWidth(), 0)))
 				engine->SetAudioApi(selectedAudioApi);
 
-			if (ImGui::Button("engine->ShowControlPanel()", ImVec2(ImGui::CalcItemWidth(), 0)))
+			if (Gui::Button("engine->ShowControlPanel()", ImVec2(Gui::CalcItemWidth(), 0)))
 				engine->ShowControlPanel();
 		}
-		ImGui::Separator();
+		Gui::Separator();
 
-		if (ImGui::CollapsingHeader("Audio Buffer"))
+		if (Gui::CollapsingHeader("Audio Buffer"))
 		{
-			ImGui::TextDisabled("(engine->GetBufferSize(): %d)", engine->GetBufferSize());
+			Gui::TextDisabled("(engine->GetBufferSize(): %d)", engine->GetBufferSize());
 
 			if (newBufferSize < 0)
 				newBufferSize = engine->GetBufferSize();
 
 			const uint32_t slowStep = 8, fastStep = 64;
-			ImGui::InputScalar("Buffer Size", ImGuiDataType_U32, &newBufferSize, &slowStep, &fastStep, "%u");
+			Gui::InputScalar("Buffer Size", ImGuiDataType_U32, &newBufferSize, &slowStep, &fastStep, "%u");
 
 			if (newBufferSize > MAX_BUFFER_SIZE)
 				newBufferSize = MAX_BUFFER_SIZE;
 
-			if (ImGui::Button("engine->SetBufferSize()", ImVec2(ImGui::CalcItemWidth(), 0)))
+			if (Gui::Button("engine->SetBufferSize()", ImVec2(Gui::CalcItemWidth(), 0)))
 				engine->SetBufferSize(newBufferSize);
 		}
-		ImGui::Separator();
+		Gui::Separator();
 
-		if (ImGui::CollapsingHeader("Audio Data"))
+		if (Gui::CollapsingHeader("Audio Data"))
 		{
-			ImGui::TextDisabled("(Dummy)");
-			//ImGui::BeginCombo();
-			//ImGui::PlotLines("PlitPLines", );
+			Gui::TextDisabled("(Dummy)");
+			//Gui::BeginCombo();
+			//Gui::PlotLines("PlitPLines", );
 
 			// static float arr[] = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
-			// ImGui::PlotLines("Frame Times", arr, IM_ARRAYSIZE(arr));
+			// Gui::PlotLines("Frame Times", arr, IM_ARRAYSIZE(arr));
 
 			//float floatBuffer[MAX_BUFFER_SIZE];
 			//for (size_t i = 0; i < engine->GetBufferSize(); i++)
 			//	floatBuffer[i] = (float)(engine->SAMPLE_BUFFER_PTR[i]);
-			//ImGui::PlotLines("engine->SAMPLE_BUFFER_PTR", floatBuffer, engine->GetBufferSize());
+			//Gui::PlotLines("engine->SAMPLE_BUFFER_PTR", floatBuffer, engine->GetBufferSize());
 		}
-		ImGui::Separator();
+		Gui::Separator();
 
-		if (ImGui::CollapsingHeader("Audio Instances"))
+		if (Gui::CollapsingHeader("Audio Instances"))
 		{
-			ImGui::BeginChild("##audio_instances_child", ImVec2(0, audioInstancesChildHeight), true);
+			Gui::BeginChild("##audio_instances_child", ImVec2(0, audioInstancesChildHeight), true);
 			if (!engine->callbackRunning)
 			{
 				for (auto &instance : engine->audioInstances)
 				{
 					if (instance == nullptr || instance->GetSampleProvider() == nullptr)
 					{
-						ImGui::TextDisabled("nullptr");
+						Gui::TextDisabled("nullptr");
 						continue;
 					}
 
 					auto playingString = instance->GetIsPlaying() ? "PLAY" : "PAUSE";
 
-					ImGui::TextDisabled("%s | (%s / %s) | (%d%%) | %s",
+					Gui::TextDisabled("%s | (%s / %s) | (%d%%) | %s",
 						instance->GetName(),
 						instance->GetPosition().FormatTime().c_str(),
 						instance->GetDuration().FormatTime().c_str(),
@@ -185,18 +185,18 @@ namespace DataTest
 						playingString);
 				}
 			}
-			ImGui::EndChild();
+			Gui::EndChild();
 		}
-		ImGui::Separator();
+		Gui::Separator();
 
-		if (ImGui::CollapsingHeader("Audio File Test"))
+		if (Gui::CollapsingHeader("Audio File Test"))
 		{
 			checkStartStream();
 
 			if (!songTestStream.GetIsInitialized())
 				songTestStream.LoadFromFile(testSongPath);
 
-			if (ImGui::Button("engine->AddAudioInstance()"))
+			if (Gui::Button("engine->AddAudioInstance()"))
 			{
 				if (songAudioInstance != nullptr)
 					songAudioInstance->SetAppendRemove(true);
@@ -212,35 +212,35 @@ namespace DataTest
 
 				AudioInstance* audioInstance = songAudioInstance.get();
 
-				ImGui::Separator();
-				ImGui::Text("audioInstance->GetChannelCount(): %u", songTestStream.GetChannelCount());
-				ImGui::Text("audioInstance->GetSampleCount(): %u", songTestStream.GetSampleCount());
-				ImGui::Text("audioInstance->GetSampleRate(): %u", songTestStream.GetSampleRate());
+				Gui::Separator();
+				Gui::Text("audioInstance->GetChannelCount(): %u", songTestStream.GetChannelCount());
+				Gui::Text("audioInstance->GetSampleCount(): %u", songTestStream.GetSampleCount());
+				Gui::Text("audioInstance->GetSampleRate(): %u", songTestStream.GetSampleRate());
 
 				int samplePosition = static_cast<int>(audioInstance->GetSamplePosition());
 				int sampleCount = static_cast<int>(audioInstance->GetSampleCount());
-				if (ImGui::SliderInt("audioInstance->SamplePosition", &samplePosition, 0, sampleCount))
+				if (Gui::SliderInt("audioInstance->SamplePosition", &samplePosition, 0, sampleCount))
 					audioInstance->SetSamplePosition(samplePosition);
 
 				float position = static_cast<float>(audioInstance->GetPosition().TotalSeconds());
 				float duration = static_cast<float>(audioInstance->GetDuration().TotalSeconds());
-				if (ImGui::SliderFloat("audioInstance->Position", &position, 0, duration, "%f"))
+				if (Gui::SliderFloat("audioInstance->Position", &position, 0, duration, "%f"))
 					audioInstance->SetPosition(TimeSpan::FromSeconds(position));
 
-				ImGui::Separator();
-				ImGui::Text("audioInstance->GetDuration(): %s", audioInstance->GetDuration().FormatTime().c_str());
-				ImGui::Separator();
-				ImGui::Text("audioInstance->GetPosition(): %s", audioInstance->GetPosition().FormatTime().c_str());
-				ImGui::Separator();
+				Gui::Separator();
+				Gui::Text("audioInstance->GetDuration(): %s", audioInstance->GetDuration().FormatTime().c_str());
+				Gui::Separator();
+				Gui::Text("audioInstance->GetPosition(): %s", audioInstance->GetPosition().FormatTime().c_str());
+				Gui::Separator();
 
 				float volume = audioInstance->GetVolume();
-				if (ImGui::SliderFloat("volume", &volume, MIN_VOLUME, MAX_VOLUME))
+				if (Gui::SliderFloat("volume", &volume, MIN_VOLUME, MAX_VOLUME))
 					audioInstance->SetVolume(volume);
 
 				auto boolColorText = [&onColor, &offColor](const char* label, bool value)
 				{
-					ImGui::Text(label); ImGui::SameLine();
-					ImGui::TextColored(value ? onColor : offColor, value ? "true" : "false");
+					Gui::Text(label); Gui::SameLine();
+					Gui::TextColored(value ? onColor : offColor, value ? "true" : "false");
 				};
 
 				boolColorText("audioInstance->GetIsPlaying(): ", audioInstance->GetIsPlaying());
@@ -248,29 +248,29 @@ namespace DataTest
 				boolColorText("audioInstance->GetHasBeenRemoved(): ", audioInstance->GetHasBeenRemoved());
 
 				bool isPlaying = audioInstance->GetIsPlaying();
-				if (ImGui::Checkbox("audioInstance->IsPlaying", &isPlaying))
+				if (Gui::Checkbox("audioInstance->IsPlaying", &isPlaying))
 					audioInstance->SetIsPlaying(isPlaying);
 
 				bool isLooping = audioInstance->GetIsLooping();
-				if (ImGui::Checkbox("audioInstance->IsLooping", &isLooping))
+				if (Gui::Checkbox("audioInstance->IsLooping", &isLooping))
 					audioInstance->SetIsLooping(isLooping);
 			}
 		}
-		ImGui::Separator();
+		Gui::Separator();
 
-		if (ImGui::CollapsingHeader("Button Sound Test"))
+		if (Gui::CollapsingHeader("Button Sound Test"))
 		{
 			checkStartStream();
 
 			if (!testButtonSound.GetIsInitialized())
 				testButtonSound.LoadFromFile("rom/sound/button/01_button1.wav");
 
-			ImGui::Button("PlaySound(TestButtonSound)");
-			bool addButtonSound = ImGui::IsItemHovered() && ImGui::IsMouseClicked(0);
+			Gui::Button("PlaySound(TestButtonSound)");
+			bool addButtonSound = Gui::IsItemHovered() && Gui::IsMouseClicked(0);
 
-			ImGui::SliderFloat("Button Volume", &testButtonVolume, MIN_VOLUME, MAX_VOLUME);
+			Gui::SliderFloat("Button Volume", &testButtonVolume, MIN_VOLUME, MAX_VOLUME);
 
-			if (ImGui::IsWindowFocused())
+			if (Gui::IsWindowFocused())
 			{
 				static KeyCode keys[] =
 				{
@@ -306,7 +306,7 @@ namespace DataTest
 			if (addButtonSound)
 				engine->PlaySound(&testButtonSound, testButtonVolume, "AudioTestWindow::TestButtonSound");
 		}
-		ImGui::Separator();
+		Gui::Separator();
 	}
 
 	const char* AudioTestWindow::GetGuiName() const
@@ -375,54 +375,54 @@ namespace DataTest
 
 	void AudioTestWindow::ShowDeviceInfoProperties(ExtendedDeviceInfo& deviceInfo, int uid)
 	{
-		ImGui::PushID(uid);
+		Gui::PushID(uid);
 
-		ImGui::AlignTextToFramePadding();
+		Gui::AlignTextToFramePadding();
 
-		bool nodeOpen = ImGui::TreeNode("DeviceInfo", "%s", deviceInfo.Info.name.c_str(), uid);
+		bool nodeOpen = Gui::TreeNode("DeviceInfo", "%s", deviceInfo.Info.name.c_str(), uid);
 
-		ImGui::NextColumn();
-		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Properties");
-		ImGui::NextColumn();
+		Gui::NextColumn();
+		Gui::AlignTextToFramePadding();
+		Gui::Text("Properties");
+		Gui::NextColumn();
 
 		if (!nodeOpen)
 		{
-			ImGui::PopID();
+			Gui::PopID();
 			return;
 		}
 
 		for (int i = 0; i < deviceInfoFieldNames.size(); i++)
 		{
-			ImGui::PushID(i);
+			Gui::PushID(i);
 			{
-				ImGui::AlignTextToFramePadding();
-				ImGui::TreeNodeEx("DeviceInfoField", ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet, "%s", deviceInfoFieldNames[i]);
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
+				Gui::AlignTextToFramePadding();
+				Gui::TreeNodeEx("DeviceInfoField", ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet, "%s", deviceInfoFieldNames[i]);
+				Gui::NextColumn();
+				Gui::PushItemWidth(-1);
 
 				const char* identifierLabel = "##value";
 
 				switch (i)
 				{
-				case 0: ImGui::InputText(identifierLabel, (char*)deviceInfo.Info.name.c_str(), deviceInfo.Info.name.length(), ImGuiInputTextFlags_ReadOnly); break;
-				case 1: ImGui::InputInt(identifierLabel, (int*)&deviceInfo.Info.outputChannels, 1, 4, ImGuiInputTextFlags_ReadOnly); break;
-				case 2: ImGui::InputInt(identifierLabel, (int*)&deviceInfo.Info.inputChannels, 1, 4, ImGuiInputTextFlags_ReadOnly); break;
-				case 3: ImGui::InputInt(identifierLabel, (int*)&deviceInfo.Info.duplexChannels, 1, 4, ImGuiInputTextFlags_ReadOnly); break;
-				case 4: ImGui::Text(deviceInfo.Info.isDefaultOutput ? "true" : "false"); break;
-				case 5: ImGui::Text(deviceInfo.Info.isDefaultInput ? "true" : "false"); break;
-				case 6: ImGui::TextWrapped(deviceInfo.SampleRatesString.c_str()); break;
-				case 7: ImGui::TextWrapped(deviceInfo.NativeFormatsString.c_str()); break;
+				case 0: Gui::InputText(identifierLabel, (char*)deviceInfo.Info.name.c_str(), deviceInfo.Info.name.length(), ImGuiInputTextFlags_ReadOnly); break;
+				case 1: Gui::InputInt(identifierLabel, (int*)&deviceInfo.Info.outputChannels, 1, 4, ImGuiInputTextFlags_ReadOnly); break;
+				case 2: Gui::InputInt(identifierLabel, (int*)&deviceInfo.Info.inputChannels, 1, 4, ImGuiInputTextFlags_ReadOnly); break;
+				case 3: Gui::InputInt(identifierLabel, (int*)&deviceInfo.Info.duplexChannels, 1, 4, ImGuiInputTextFlags_ReadOnly); break;
+				case 4: Gui::Text(deviceInfo.Info.isDefaultOutput ? "true" : "false"); break;
+				case 5: Gui::Text(deviceInfo.Info.isDefaultInput ? "true" : "false"); break;
+				case 6: Gui::TextWrapped(deviceInfo.SampleRatesString.c_str()); break;
+				case 7: Gui::TextWrapped(deviceInfo.NativeFormatsString.c_str()); break;
 				}
 
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
+				Gui::PopItemWidth();
+				Gui::NextColumn();
 			}
-			ImGui::PopID();
+			Gui::PopID();
 		}
 
-		ImGui::TreePop();
+		Gui::TreePop();
 
-		ImGui::PopID();
+		Gui::PopID();
 	}
 }

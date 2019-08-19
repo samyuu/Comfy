@@ -1,5 +1,5 @@
 #include "LicenseWindow.h"
-#include "ImGui/imgui.h"
+#include "ImGui/Gui.h"
 #include "FileSystem/FileHelper.h"
 
 bool LicenseWindow::DrawGui()
@@ -12,40 +12,40 @@ bool LicenseWindow::DrawGui()
 
 	constexpr ImGuiWindowFlags scrollBarWindowFlags = ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar;
 
-	ImGui::BulletText("License:");
-	ImGui::Separator();
+	Gui::BulletText("License:");
+	Gui::Separator();
 
-	ImGui::BeginChild("##LicenseWindowListChild", ImVec2(ImGui::GetWindowWidth() * listWidth, 0), true, scrollBarWindowFlags);
+	Gui::BeginChild("##LicenseWindowListChild", ImVec2(Gui::GetWindowWidth() * listWidth, 0), true, scrollBarWindowFlags);
 	{
 		for (int i = 0; i < licenseData.size(); i++)
-			if (ImGui::Selectable(licenseData[i].Name.c_str(), i == selectedIndex))
+			if (Gui::Selectable(licenseData[i].Name.c_str(), i == selectedIndex))
 				selectedIndex = i;
 	}
-	ImGui::EndChild();
-	ImGui::SameLine();
-	ImGui::BeginChild("##LicenseWindowInfoChild", ImVec2(0, 0), true);
+	Gui::EndChild();
+	Gui::SameLine();
+	Gui::BeginChild("##LicenseWindowInfoChild", ImVec2(0, 0), true);
 	{
 		if (selectedIndex >= 0 && selectedIndex < licenseData.size())
 		{
 			auto data = &licenseData[selectedIndex];
 
-			ImGui::BulletText("%s / %s:", data->Name.c_str(), data->LicenseName.c_str());
-			ImGui::Separator();
+			Gui::BulletText("%s / %s:", data->Name.c_str(), data->LicenseName.c_str());
+			Gui::Separator();
 
-			ImGui::BeginChild("##LicenseWindowInfoChildInner", ImVec2(0, 0), true);
+			Gui::BeginChild("##LicenseWindowInfoChildInner", ImVec2(0, 0), true);
 			{
-				ImGui::Text("%s", data->Description.c_str());
+				Gui::Text("%s", data->Description.c_str());
 
-				ImGui::BeginChild("##LicenseWindowInfoChildLicense", ImVec2(0, 0), true, scrollBarWindowFlags);
+				Gui::BeginChild("##LicenseWindowInfoChildLicense", ImVec2(0, 0), true, scrollBarWindowFlags);
 				{
-					ImGui::Text("%s", data->License.c_str());
+					Gui::Text("%s", data->License.c_str());
 				}
-				ImGui::EndChild();
+				Gui::EndChild();
 			}
-			ImGui::EndChild();
+			Gui::EndChild();
 		}
 	}
-	ImGui::EndChild();
+	Gui::EndChild();
 	return true;
 }
 

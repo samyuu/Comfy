@@ -5,7 +5,7 @@
 #include "Graphics/Camera.h"
 #include "Graphics/Auth2D/Renderer2D.h"
 #include "Graphics/Auth2D/AetRenderer.h"
-#include "ImGui/imgui_extensions.h"
+#include "ImGui/Gui.h"
 
 namespace App
 {

@@ -57,7 +57,7 @@ namespace Editor
 
 	TimelineFrame FrameTimeline::GetTimelineFrameAtMouseX() const
 	{
-		float mouseX = glm::max(infoColumnRegion.Max.x, ImGui::GetMousePos().x);
+		float mouseX = glm::max(infoColumnRegion.Max.x, Gui::GetMousePos().x);
 		return RoundToGrid(GetTimelineFrame(ScreenToTimelinePosition(mouseX)));
 	}
 

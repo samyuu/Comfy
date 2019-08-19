@@ -13,7 +13,7 @@ namespace Editor
 
 	void KeyFrameRenderer::DrawKeyFrames(const AetTimeline* timeline, const KeyFrameProperties& keyFramesProperties)
 	{
-		ImDrawList* windowDrawList = ImGui::GetWindowDrawList();
+		ImDrawList* windowDrawList = Gui::GetWindowDrawList();
 		vec2 timelineTL = timeline->GetTimelineContentRegion().GetTL() - vec2(timeline->GetScrollX(), 0.0f);
 
 		const float rowHeight = timeline->GetRowHeight();

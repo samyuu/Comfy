@@ -1,5 +1,5 @@
 #include "ShaderTestWindow.h"
-#include "ImGui/imgui_extensions.h"
+#include "ImGui/Gui.h"
 
 namespace DataTest
 {
@@ -26,7 +26,7 @@ namespace DataTest
 			for (auto& shader : Graphics::ShaderProgram::GetAllShaderPrograms())
 			{
 				PushID(shader);
-				if (ImGui::Selectable(shader->GetShaderName(), i == selectedIndex))
+				if (Gui::Selectable(shader->GetShaderName(), i == selectedIndex))
 					selectedIndex = i;
 				i++;
 				PopID();

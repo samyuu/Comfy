@@ -1,5 +1,5 @@
 #include "BoxTransformControl.h"
-#include "ImGui/imgui_extensions.h"
+#include "ImGui/Gui.h"
 #include "AetIcons.h"
 
 namespace Editor
@@ -96,13 +96,13 @@ namespace Editor
 
 	void BoxTransformControl::Draw(Graphics::Auth2D::Properties* properties, vec2 dimensions, const std::function<void(vec2&)>& worldToScreenSpace, const std::function<void(vec2&)>& screenToWorldSpace, float zoom)
 	{
-		bool focused = ImGui::IsWindowFocused();
+		bool focused = Gui::IsWindowFocused();
 
-		ImGuiIO& io = ImGui::GetIO();
+		ImGuiIO& io = Gui::GetIO();
 		vec2 mousePos = io.MousePos;
 
 		static int nodeIndex = -1;
-		//if (ImGui::IsMouseClicked(0))
+		//if (Gui::IsMouseClicked(0))
 			nodeIndex = -1;
 
 		Box box(*properties, dimensions);
@@ -111,43 +111,43 @@ namespace Editor
 		{
 			worldToScreenSpace(*pos);
 
-			if (focused && /*ImGui::IsMouseClicked(0) &&*/ glm::distance(*pos, mousePos) < BoxNodeRadius)
+			if (focused && /*Gui::IsMouseClicked(0) &&*/ glm::distance(*pos, mousePos) < BoxNodeRadius)
 				nodeIndex = i;
 
 			i++;
 		}
 
 		bool contains = focused && box.Contains(mousePos);
-		bool dragMoving = focused && ImGui::IsMouseDown(0) && contains;
+		bool dragMoving = focused && Gui::IsMouseDown(0) && contains;
 
-		//ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+		//Gui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
 
 		if (dragMoving)
 		{
-			ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+			Gui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
 
-			if (vec2(io.MouseDelta) != vec2(0.0f) && ImGui::IsWindowHovered())
+			if (vec2(io.MouseDelta) != vec2(0.0f) && Gui::IsWindowHovered())
 				properties->Position += vec2(io.MouseDelta) * (1.0f / zoom);
 
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(3.0f, 3.0f));
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
+			Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(3.0f, 3.0f));
+			Gui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
 			{
-				vec4 popupBg = ImGui::GetStyleColorVec4(ImGuiCol_PopupBg);
+				vec4 popupBg = Gui::GetStyleColorVec4(ImGuiCol_PopupBg);
 				popupBg.a *= .85f;
-				ImGui::PushStyleColor(ImGuiCol_PopupBg, popupBg);
+				Gui::PushStyleColor(ImGuiCol_PopupBg, popupBg);
 				{
-					ImGui::BeginTooltip();
+					Gui::BeginTooltip();
 					{
-						ImGui::Text(ICON_FA_ARROWS_ALT_H); ImGui::SameLine();
-						ImGui::Text(":  %.f px", properties->Position.x);
-						ImGui::Text(ICON_FA_ARROWS_ALT_V); ImGui::SameLine();
-						ImGui::Text(":  %.f px", properties->Position.y);
+						Gui::Text(ICON_FA_ARROWS_ALT_H); Gui::SameLine();
+						Gui::Text(":  %.f px", properties->Position.x);
+						Gui::Text(ICON_FA_ARROWS_ALT_V); Gui::SameLine();
+						Gui::Text(":  %.f px", properties->Position.y);
 					}
-					ImGui::EndTooltip();
+					Gui::EndTooltip();
 				}
-				ImGui::PopStyleColor();
+				Gui::PopStyleColor();
 			}
-			ImGui::PopStyleVar(2);
+			Gui::PopStyleVar(2);
 		}
 
 		bool scaling = nodeIndex != -1;
@@ -172,11 +172,11 @@ namespace Editor
 				break;
 			}
 
-			ImGui::SetMouseCursor(cursor);
+			Gui::SetMouseCursor(cursor);
 
 		}
 
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		ImDrawList* drawList = Gui::GetWindowDrawList();
 		DrawBox(drawList, box, scaling, contains ? vec4(1.0f, .25f, .25f, 1.0f) : vec4(1.0f));
 	}
 }

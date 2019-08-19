@@ -20,19 +20,19 @@ namespace DataTest
 
 		auto boolColoredText = [](const char* label, const char* trueText, const char* falseText, bool condition)
 		{
-			ImGui::Text(label);
-			ImGui::SameLine();
-			ImGui::TextColored(condition ? onColor : offColor, condition ? trueText : falseText);
+			Gui::Text(label);
+			Gui::SameLine();
+			Gui::TextColored(condition ? onColor : offColor, condition ? trueText : falseText);
 		};
 
-		ImGui::Text("Input Test:");
-		ImGui::Separator();
+		Gui::Text("Input Test:");
+		Gui::Separator();
 
-		if (ImGui::Button("Refresh Devices", ImVec2(ImGui::GetWindowWidth(), 0)))
+		if (Gui::Button("Refresh Devices", ImVec2(Gui::GetWindowWidth(), 0)))
 			RefreshDevices();
-		ImGui::Separator();
+		Gui::Separator();
 
-		if (ImGui::CollapsingHeader("Keyboard", ImGuiTreeNodeFlags_DefaultOpen))
+		if (Gui::CollapsingHeader("Keyboard", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			Keyboard* keyboard = Keyboard::GetInstance();
 
@@ -47,14 +47,14 @@ namespace DataTest
 					{
 						const char* keyName = glfwGetKeyName(key, glfwGetKeyScancode(key));
 						if (keyName != nullptr)
-							ImGui::BulletText(keyName);
+							Gui::BulletText(keyName);
 					}
 				}
 			}
 		}
-		ImGui::Separator();
+		Gui::Separator();
 
-		if (ImGui::CollapsingHeader("DualShock4", ImGuiTreeNodeFlags_DefaultOpen))
+		if (Gui::CollapsingHeader("DualShock4", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			DualShock4* ds4 = DualShock4::GetInstance();
 
@@ -66,11 +66,11 @@ namespace DataTest
 				for (size_t button = 0; button < static_cast<size_t>(Ds4Button::Count); button++)
 				{
 					if (ds4->IsDown((Ds4Button)button))
-						ImGui::BulletText(ds4ButtonNames[button]);
+						Gui::BulletText(ds4ButtonNames[button]);
 				}
 			}
 		}
-		ImGui::Separator();
+		Gui::Separator();
 	}
 
 	const char* InputTestWindow::GetGuiName() const

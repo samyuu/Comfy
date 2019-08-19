@@ -87,7 +87,7 @@ namespace Editor
 
 	TimelineTick TargetTimeline::GetCursorMouseXTick() const
 	{
-		return FloorToGrid(GetTimelineTick(ScreenToTimelinePosition(ImGui::GetMousePos().x)));
+		return FloorToGrid(GetTimelineTick(ScreenToTimelinePosition(Gui::GetMousePos().x)));
 	}
 
 	int TargetTimeline::GetGridDivisionIndex() const
@@ -196,7 +196,7 @@ namespace Editor
 		for (size_t i = 0; i < IM_ARRAYSIZE(buttonPlacementMapping); i++)
 		{
 			buttonPlacementKeyStates[i].WasDown = buttonPlacementKeyStates[i].Down;
-			buttonPlacementKeyStates[i].Down = ImGui::IsKeyDown(buttonPlacementMapping[i].Key);
+			buttonPlacementKeyStates[i].Down = Gui::IsKeyDown(buttonPlacementMapping[i].Key);
 
 			if (buttonPlacementKeyStates[i].Down && !buttonPlacementKeyStates[i].WasDown)
 			{
@@ -272,72 +272,72 @@ namespace Editor
 
 	void TargetTimeline::OnDrawTimelineHeaderWidgets()
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
 
-		ImGuiStyle& style = ImGui::GetStyle();
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, style.FramePadding.y));
+		ImGuiStyle& style = Gui::GetStyle();
+		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, style.FramePadding.y));
 
 		strcpy_s(timeInputBuffer, GetCursorTime().FormatTime().c_str());
 
-		ImGui::PushItemWidth(140);
-		ImGui::InputTextWithHint("##TargetTimeline::TimeInput", "00:00.000", timeInputBuffer, sizeof(timeInputBuffer));
-		ImGui::PopItemWidth();
+		Gui::PushItemWidth(140);
+		Gui::InputTextWithHint("##TargetTimeline::TimeInput", "00:00.000", timeInputBuffer, sizeof(timeInputBuffer));
+		Gui::PopItemWidth();
 
-		ImGui::SameLine();
-		ImGui::Button(ICON_FA_FAST_BACKWARD);
-		if (ImGui::IsItemActive()) { scrollDelta -= io->DeltaTime * 1000.0f; }
+		Gui::SameLine();
+		Gui::Button(ICON_FA_FAST_BACKWARD);
+		if (Gui::IsItemActive()) { scrollDelta -= io->DeltaTime * 1000.0f; }
 
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
 		// TODO: jump to last / next target
-		ImGui::SameLine();
-		ImGui::Button(ICON_FA_BACKWARD);
-		if (ImGui::IsItemActive()) { scrollDelta -= io->DeltaTime * 400.0f; }
+		Gui::SameLine();
+		Gui::Button(ICON_FA_BACKWARD);
+		if (Gui::IsItemActive()) { scrollDelta -= io->DeltaTime * 400.0f; }
 
-		ImGui::SameLine();
+		Gui::SameLine();
 
 		if (GetIsPlayback())
 		{
-			if (ImGui::Button(ICON_FA_PAUSE))
+			if (Gui::Button(ICON_FA_PAUSE))
 				PausePlayback();
 		}
 		else
 		{
-			if (ImGui::Button(ICON_FA_PLAY))
+			if (Gui::Button(ICON_FA_PLAY))
 				ResumePlayback();
 		}
 
-		ImGui::SameLine();
-		if (ImGui::Button(ICON_FA_STOP) && GetIsPlayback())
+		Gui::SameLine();
+		if (Gui::Button(ICON_FA_STOP) && GetIsPlayback())
 			StopPlayback();
 
-		ImGui::SameLine();
-		ImGui::Button(ICON_FA_FORWARD);
-		if (ImGui::IsItemActive()) { scrollDelta += io->DeltaTime * 400.0f; }
+		Gui::SameLine();
+		Gui::Button(ICON_FA_FORWARD);
+		if (Gui::IsItemActive()) { scrollDelta += io->DeltaTime * 400.0f; }
 
-		ImGui::SameLine();
-		ImGui::Button(ICON_FA_FAST_FORWARD);
-		if (ImGui::IsItemActive()) { scrollDelta += io->DeltaTime * 1000.0f; }
+		Gui::SameLine();
+		Gui::Button(ICON_FA_FAST_FORWARD);
+		if (Gui::IsItemActive()) { scrollDelta += io->DeltaTime * 1000.0f; }
 
-		ImGui::PopStyleVar(2);
+		Gui::PopStyleVar(2);
 
-		ImGui::SameLine();
-		ImGui::PushItemWidth(280);
-		ImGui::SliderFloat(ICON_FA_SEARCH, &zoomLevel, ZOOM_MIN, ZOOM_MAX);
-		ImGui::PopItemWidth();
+		Gui::SameLine();
+		Gui::PushItemWidth(280);
+		Gui::SliderFloat(ICON_FA_SEARCH, &zoomLevel, ZOOM_MIN, ZOOM_MAX);
+		Gui::PopItemWidth();
 
-		ImGui::PopStyleVar(1);
+		Gui::PopStyleVar(1);
 
-		ImGui::SameLine();
-		ImGui::PushItemWidth(80);
+		Gui::SameLine();
+		Gui::PushItemWidth(80);
 		{
 			if (gridDivisions[gridDivisionIndex] != gridDivision)
 				gridDivisionIndex = GetGridDivisionIndex();
 
-			if (ImGui::Combo("Grid Precision", &gridDivisionIndex, gridDivisionStrings.data(), static_cast<int>(gridDivisionStrings.size())))
+			if (Gui::Combo("Grid Precision", &gridDivisionIndex, gridDivisionStrings.data(), static_cast<int>(gridDivisionStrings.size())))
 				gridDivision = gridDivisions[gridDivisionIndex];
 		}
-		ImGui::PopItemWidth();
+		Gui::PopItemWidth();
 	}
 
 	void TargetTimeline::OnDrawTimelineInfoColumnHeader()
@@ -349,7 +349,7 @@ namespace Editor
 	{
 		TimelineBase::OnDrawTimelineInfoColumn();
 
-		auto drawList = ImGui::GetWindowDrawList();
+		auto drawList = Gui::GetWindowDrawList();
 		for (int i = 0; i < TargetType_Max; i++)
 		{
 			float y = i * ROW_HEIGHT;
@@ -510,57 +510,57 @@ namespace Editor
 				sprintf_s(tempoStr, sizeof(tempoStr), "%.2f BPM", tempoChange.Tempo.BeatsPerMinute);
 
 				auto buttonPosition = tempoMapRegion.GetTL() + ImVec2(screenX + 1, 0);
-				auto buttonSize = ImVec2(ImGui::CalcTextSize(tempoStr).x, tempoMapHeight);
+				auto buttonSize = ImVec2(Gui::CalcTextSize(tempoStr).x, tempoMapHeight);
 
-				ImGui::SetCursorScreenPos(buttonPosition);
+				Gui::SetCursorScreenPos(buttonPosition);
 
-				ImGui::PushID(&tempoChange);
-				ImGui::InvisibleButton("##InvisibleTempoButton", buttonSize);
-				ImGui::PopID();
+				Gui::PushID(&tempoChange);
+				Gui::InvisibleButton("##InvisibleTempoButton", buttonSize);
+				Gui::PopID();
 
 				// prevent overlapping tempo changes
 				//windowDrawList->AddRectFilled(buttonPosition, buttonPosition + buttonSize, TEMPO_MAP_BAR_COLOR);
-				if (ImGui::IsItemHovered() && ImGui::IsWindowHovered())
+				if (Gui::IsItemHovered() && Gui::IsWindowHovered())
 				{
-					ImGui::WideSetTooltip("TIME: %s", GetTimelineTime(tempoChange.Tick).FormatTime().c_str());
+					Gui::WideSetTooltip("TIME: %s", GetTimelineTime(tempoChange.Tick).FormatTime().c_str());
 
 					baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, GetColor(EditorColor_TimelineBg));
-					if (ImGui::IsMouseDoubleClicked(0))
+					if (Gui::IsMouseDoubleClicked(0))
 					{
 						SetScrollX(screenX + GetScrollX());
 						//SetScrollX(screenX - timelineContentRegion.GetTL().x - (windowWidth * .5f));
 					}
 
-					if (ImGui::IsMouseClicked(1))
+					if (Gui::IsMouseClicked(1))
 					{
-						ImGui::OpenPopup("##ChangeTempoPopup");
+						Gui::OpenPopup("##ChangeTempoPopup");
 						tempoPopupIndex = static_cast<int>(i);
 					}
 				}
 
 				baseDrawList->AddLine(buttonPosition + ImVec2(-1, -1), buttonPosition + ImVec2(-1, buttonSize.y - 1), tempoFgColor);
-				baseDrawList->AddText(ImGui::GetFont(), tempoMapHeight, buttonPosition, tempoFgColor, tempoStr);
+				baseDrawList->AddText(Gui::GetFont(), tempoMapHeight, buttonPosition, tempoFgColor, tempoStr);
 			}
 
 			// Test Popup
 			// ----------
-			if (ImGui::WideBeginPopup("##ChangeTempoPopup"))
+			if (Gui::WideBeginPopup("##ChangeTempoPopup"))
 			{
-				ImGui::Text("Change Tempo:");
+				Gui::Text("Change Tempo:");
 
 				if (tempoPopupIndex >= 0)
 				{
 					TempoChange& tempoChange = chart->GetTempoMap().GetTempoChangeAt(tempoPopupIndex);
 					float bpm = tempoChange.Tempo.BeatsPerMinute;
 
-					if (ImGui::DragFloat("##TempoDragFloat", &bpm, 1.0f, MIN_BPM, MAX_BPM, "%.2f BPM"))
+					if (Gui::DragFloat("##TempoDragFloat", &bpm, 1.0f, MIN_BPM, MAX_BPM, "%.2f BPM"))
 					{
 						tempoChange.Tempo = bpm;
 						UpdateTimelineMap();
 					}
 				}
 
-				ImGui::EndPopup();
+				Gui::EndPopup();
 			}
 			// ----------
 		}
@@ -568,7 +568,7 @@ namespace Editor
 
 	void TargetTimeline::DrawTimelineTargets()
 	{
-		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		ImGuiWindow* window = Gui::GetCurrentWindow();
 		ImDrawList* windowDrawList = window->DrawList;
 
 		for (const auto& target : chart->GetTargets())
@@ -637,14 +637,14 @@ namespace Editor
 			constexpr int selectionBoxButton = 1;
 			static ImRect dragRect;
 
-			if (ImGui::IsMouseClicked(selectionBoxButton) && ImGui::IsWindowFocused() && !ImGui::IsAnyItemHovered())
-				dragRect.Min = ImGui::GetMousePos();
-			if (ImGui::IsMouseReleased(selectionBoxButton))
+			if (Gui::IsMouseClicked(selectionBoxButton) && Gui::IsWindowFocused() && !Gui::IsAnyItemHovered())
+				dragRect.Min = Gui::GetMousePos();
+			if (Gui::IsMouseReleased(selectionBoxButton))
 				dragRect.Min = dragRect.Max = ImVec2();
 
-			if (!ImGui::IsAnyItemHovered() && ImGui::IsMouseDragging(selectionBoxButton) && dragRect.Min.x != 0)
+			if (!Gui::IsAnyItemHovered() && Gui::IsMouseDragging(selectionBoxButton) && dragRect.Min.x != 0)
 			{
-				dragRect.Max = ImGui::GetMousePos();
+				dragRect.Max = Gui::GetMousePos();
 				baseDrawList->AddRectFilled(dragRect.GetTL(), dragRect.GetBR(), GetColor(EditorColor_Selection));
 			}
 		}
@@ -661,7 +661,7 @@ namespace Editor
 		ImVec2 end = timelineContentRegion.GetBL() + ImVec2(endScreenX, 0);
 
 		baseDrawList->AddRectFilled(start, end, GetColor(EditorColor_Selection));
-		//ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+		//Gui::SetMouseCursor(ImGuiMouseCursor_Hand);
 	}
 
 	void TargetTimeline::OnUpdateInput()
@@ -678,12 +678,12 @@ namespace Editor
 
 	void TargetTimeline::UpdateInputCursorClick()
 	{
-		if (!ImGui::IsWindowFocused() || !timelineContentRegion.Contains(ImGui::GetMousePos()))
+		if (!Gui::IsWindowFocused() || !timelineContentRegion.Contains(Gui::GetMousePos()))
 			return;
 
 		// Cursor Mouse Click:
 		// -------------------
-		if (ImGui::IsMouseClicked(0) && !io->KeyShift) // ImGui::IsMouseReleased(0)
+		if (Gui::IsMouseClicked(0) && !io->KeyShift) // Gui::IsMouseReleased(0)
 		{
 			const bool wasPlaying = GetIsPlayback();
 			if (wasPlaying)
@@ -722,7 +722,7 @@ namespace Editor
 		// ------------------
 		if (!GetIsPlayback() && false)
 		{
-			if (ImGui::IsMouseClicked(0))
+			if (Gui::IsMouseClicked(0))
 			{
 				if (io->KeyShift) // && timeSelectionActive)
 				{
@@ -734,7 +734,7 @@ namespace Editor
 					timeSelectionStart = GetCursorMouseXTick();
 				}
 			}
-			if (ImGui::IsMouseDragging(0))
+			if (Gui::IsMouseDragging(0))
 			{
 				if (abs(timeSelectionStart.TotalTicks() - timeSelectionEnd.TotalTicks()) > (GetGridTick().TotalTicks() * 2))
 					timeSelectionActive = true;
@@ -748,8 +748,8 @@ namespace Editor
 	void TargetTimeline::UpdateInputTargetPlacement()
 	{
 		// Mouse X buttons, increase / decrease grid division
-		if (ImGui::IsMouseClicked(3)) SelectNextGridDivision(-1);
-		if (ImGui::IsMouseClicked(4)) SelectNextGridDivision(+1);
+		if (Gui::IsMouseClicked(3)) SelectNextGridDivision(-1);
+		if (Gui::IsMouseClicked(4)) SelectNextGridDivision(+1);
 
 		for (int type = 0; type < TargetType_Max; type++)
 			buttonAnimations[type].ElapsedTime += io->DeltaTime;
@@ -757,7 +757,7 @@ namespace Editor
 		TimelineTick cursorTick = RoundToGrid(GetCursorTick());
 		for (size_t i = 0; i < IM_ARRAYSIZE(buttonPlacementMapping); i++)
 		{
-			if (ImGui::IsKeyPressed(buttonPlacementMapping[i].Key, false))
+			if (Gui::IsKeyPressed(buttonPlacementMapping[i].Key, false))
 			{
 				if (!checkHitsoundsInCallback)
 				{

@@ -1,5 +1,5 @@
 #include "CameraController2D.h"
-#include "ImGui/imgui.h"
+#include "ImGui/Gui.h"
 #include "Input/KeyCode.h"
 #include <algorithm>
 
@@ -9,11 +9,11 @@ namespace Editor
 	{
 		for (int i = 0; i < IM_ARRAYSIZE(windowHoveredOnClick); i++)
 		{
-			if (ImGui::IsMouseClicked(i))
-				windowHoveredOnClick[i] = ImGui::IsWindowHovered();
+			if (Gui::IsMouseClicked(i))
+				windowHoveredOnClick[i] = Gui::IsWindowHovered();
 		}
 
-		if (ImGui::IsWindowFocused())
+		if (Gui::IsWindowFocused())
 		{
 			UpdateKeyboardInput(camera);
 			UpdateMouseInput(camera, relativeMouse);
@@ -35,16 +35,16 @@ namespace Editor
 	void CameraController2D::UpdateKeyboardInput(Graphics::OrthographicCamera& camera)
 	{
 		constexpr float step = 10.0f;
-		if (ImGui::IsKeyPressed(KeyCode_W, true))
+		if (Gui::IsKeyPressed(KeyCode_W, true))
 			camera.Position.y -= step;
-		if (ImGui::IsKeyPressed(KeyCode_S, true))
+		if (Gui::IsKeyPressed(KeyCode_S, true))
 			camera.Position.y += step;
-		if (ImGui::IsKeyPressed(KeyCode_A, true))
+		if (Gui::IsKeyPressed(KeyCode_A, true))
 			camera.Position.x -= step;
-		if (ImGui::IsKeyPressed(KeyCode_D, true))
+		if (Gui::IsKeyPressed(KeyCode_D, true))
 			camera.Position.x += step;
 
-		if (ImGui::IsKeyPressed(KeyCode_Escape, true))
+		if (Gui::IsKeyPressed(KeyCode_Escape, true))
 		{
 			camera.Position = vec2(0.0f);
 			camera.Zoom = 1.0f;
@@ -53,12 +53,12 @@ namespace Editor
 
 	void CameraController2D::UpdateMouseInput(Graphics::OrthographicCamera& camera, vec2 relativeMouse)
 	{
-		ImGuiIO& io = ImGui::GetIO();
+		ImGuiIO& io = Gui::GetIO();
 
-		if (windowHoveredOnClick[1] && ImGui::IsMouseDown(1))
+		if (windowHoveredOnClick[1] && Gui::IsMouseDown(1))
 		{
 			camera.Position -= vec2(io.MouseDelta.x, io.MouseDelta.y);
-			ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+			Gui::SetMouseCursor(ImGuiMouseCursor_Hand);
 		}
 
 		if (io.KeyAlt && io.MouseWheel != 0.0f)

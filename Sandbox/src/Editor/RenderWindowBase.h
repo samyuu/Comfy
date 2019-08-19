@@ -1,8 +1,6 @@
 #pragma once
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "ImGui/imgui.h"
-#include "ImGui/imgui_internal.h"
-#include "ImGui/imgui_extensions.h"
+#include "ImGui/Gui.h"
 #include "Graphics/RenderTarget.h"
 #include "Graphics/RenderCommand.h"
 
@@ -28,8 +26,8 @@ namespace Editor
 		inline float GetTargetAspectRatio() { return targetAspectRatio; };
 		inline void SetTargetAspectRatio(float value) { targetAspectRatio = value; };
 
-		static inline void PushWindowPadding() { ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2)); };
-		static inline void PopWindowPadding() { ImGui::PopStyleVar(); };
+		static inline void PushWindowPadding() { Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2)); };
+		static inline void PopWindowPadding() { Gui::PopStyleVar(); };
 
 	protected:
 		Graphics::RenderTarget renderTarget;

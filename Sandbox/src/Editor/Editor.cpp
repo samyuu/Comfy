@@ -22,10 +22,10 @@ namespace Editor
 
 	ImU32 GetColor(EditorColor color, float alpha)
 	{
-		ImVec4 colorVector = ImGui::ColorConvertU32ToFloat4(GetColor(color));
+		ImVec4 colorVector = Gui::ColorConvertU32ToFloat4(GetColor(color));
 		colorVector.w *= alpha;
 
-		return ImGui::ColorConvertFloat4ToU32(colorVector);
+		return Gui::ColorConvertFloat4ToU32(colorVector);
 	}
 
 	inline void SetColor(EditorColor color, ImU32 value)
@@ -35,18 +35,18 @@ namespace Editor
 
 	void UpdateEditorColors()
 	{
-		SetColor(EditorColor_BaseClear, ImGui::GetColorU32(ImGuiCol_TabUnfocused));
-		SetColor(EditorColor_DarkClear, ImGui::GetColorU32(ImGuiCol_WindowBg));
-		SetColor(EditorColor_Grid, ImGui::GetColorU32(ImGuiCol_Separator, .75f));
-		SetColor(EditorColor_GridAlt, ImGui::GetColorU32(ImGuiCol_Separator, .5f));
-		SetColor(EditorColor_InfoColumn, ImGui::GetColorU32(ImGuiCol_ScrollbarBg));
-		SetColor(EditorColor_TempoMapBg, ImGui::GetColorU32(ImGuiCol_MenuBarBg));
-		SetColor(EditorColor_Selection, ImGui::GetColorU32(ImGuiCol_TextSelectedBg));
-		SetColor(EditorColor_TimelineBg, ImGui::GetColorU32(ImGuiCol_ChildBg));
-		SetColor(EditorColor_TimelineRowSeparator, ImGui::GetColorU32(ImGuiCol_Separator));
+		SetColor(EditorColor_BaseClear, Gui::GetColorU32(ImGuiCol_TabUnfocused));
+		SetColor(EditorColor_DarkClear, Gui::GetColorU32(ImGuiCol_WindowBg));
+		SetColor(EditorColor_Grid, Gui::GetColorU32(ImGuiCol_Separator, .75f));
+		SetColor(EditorColor_GridAlt, Gui::GetColorU32(ImGuiCol_Separator, .5f));
+		SetColor(EditorColor_InfoColumn, Gui::GetColorU32(ImGuiCol_ScrollbarBg));
+		SetColor(EditorColor_TempoMapBg, Gui::GetColorU32(ImGuiCol_MenuBarBg));
+		SetColor(EditorColor_Selection, Gui::GetColorU32(ImGuiCol_TextSelectedBg));
+		SetColor(EditorColor_TimelineBg, Gui::GetColorU32(ImGuiCol_ChildBg));
+		SetColor(EditorColor_TimelineRowSeparator, Gui::GetColorU32(ImGuiCol_Separator));
 		SetColor(EditorColor_TimelineSelection, 0x20D0D0D0);
 		SetColor(EditorColor_TimelineSelectionBorder, 0x60E0E0E0);
-		SetColor(EditorColor_Bar, ImGui::GetColorU32(ImGuiCol_PlotLines));
+		SetColor(EditorColor_Bar, Gui::GetColorU32(ImGuiCol_PlotLines));
 		SetColor(EditorColor_Cursor, 0xFFE0E0E0);
 		SetColor(EditorColor_CursorInner, GetColor(EditorColor_Cursor, 0.75f));
 		SetColor(EditorColor_TextHighlight, ImColor(0.87f, 0.77f, 0.02f));
@@ -70,12 +70,12 @@ namespace Editor
 
 	void EditorManager::DrawGuiMenuItems()
 	{
-		if (ImGui::BeginMenu("Editor"))
+		if (Gui::BeginMenu("Editor"))
 		{
 			for (const auto &component : editorComponents)
-				ImGui::MenuItem(component->GetGuiName(), nullptr, component->GetIsGuiOpenPtr());
+				Gui::MenuItem(component->GetGuiName(), nullptr, component->GetIsGuiOpenPtr());
 
-			ImGui::EndMenu();
+			Gui::EndMenu();
 		}
 	}
 
@@ -112,11 +112,11 @@ namespace Editor
 			{
 				component->OnWindowBegin();
 				{
-					if (ImGui::Begin(component->GetGuiName(), component->GetIsGuiOpenPtr(), component->GetWindowFlags()))
+					if (Gui::Begin(component->GetGuiName(), component->GetIsGuiOpenPtr(), component->GetWindowFlags()))
 						component->DrawGui();
 				}
 				component->OnWindowEnd();
-				ImGui::End();
+				Gui::End();
 			}
 		}
 	}

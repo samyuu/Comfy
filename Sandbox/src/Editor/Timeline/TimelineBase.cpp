@@ -76,12 +76,12 @@ namespace Editor
 
 	void TimelineBase::InitializeTimelineGuiState()
 	{
-		io = &ImGui::GetIO();
+		io = &Gui::GetIO();
 	}
 
 	void TimelineBase::UpdateTimelineBaseState()
 	{
-		baseWindow = ImGui::GetCurrentWindow();
+		baseWindow = Gui::GetCurrentWindow();
 		baseDrawList = baseWindow->DrawList;
 
 		zoomLevelChanged = lastZoomLevel != zoomLevel;
@@ -90,8 +90,8 @@ namespace Editor
 
 	void TimelineBase::UpdateTimelineRegions()
 	{
-		ImVec2 timelinePosition = ImGui::GetCursorScreenPos();
-		ImVec2 timelineSize = ImGui::GetWindowSize() - ImGui::GetCursorPos() - ImGui::GetStyle().WindowPadding;
+		ImVec2 timelinePosition = Gui::GetCursorScreenPos();
+		ImVec2 timelineSize = Gui::GetWindowSize() - Gui::GetCursorPos() - Gui::GetStyle().WindowPadding;
 		timelineRegion = ImRect(timelinePosition, timelinePosition + timelineSize);
 
 		ImVec2 headerPosition = timelineRegion.GetTL();
@@ -115,13 +115,13 @@ namespace Editor
 		timelineHeaderRegion = ImRect(timelineHeaderPosition, timelineHeaderPosition + timelineHeaderSize);
 
 		ImVec2 timelineTargetPosition = timelineHeaderRegion.GetBL();
-		ImVec2 timelineTargetSize = ImVec2(timelineBaseRegion.GetWidth(), timelineBaseRegion.GetHeight() - timelineHeaderSize.y - tempoMapSize.y - ImGui::GetStyle().ScrollbarSize);
+		ImVec2 timelineTargetSize = ImVec2(timelineBaseRegion.GetWidth(), timelineBaseRegion.GetHeight() - timelineHeaderSize.y - tempoMapSize.y - Gui::GetStyle().ScrollbarSize);
 		timelineContentRegion = ImRect(timelineTargetPosition, timelineTargetPosition + timelineTargetSize);
 	}
 
 	void TimelineBase::UpdateInputTimelineScroll()
 	{
-		if (!ImGui::IsWindowFocused())
+		if (!Gui::IsWindowFocused())
 			return;
 
 		// Grab Control
@@ -129,17 +129,17 @@ namespace Editor
 		{
 			constexpr int timelineGrabButton = 2;
 
-			if (ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive() && ImGui::IsMouseDown(timelineGrabButton))
+			if (Gui::IsWindowHovered() && !Gui::IsAnyItemActive() && Gui::IsMouseDown(timelineGrabButton))
 			{
 				SetScrollX(GetScrollX() - io->MouseDelta.x);
-				ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+				Gui::SetMouseCursor(ImGuiMouseCursor_Hand);
 			}
 		}
 
 		// Focus Control
 		// -------------
 		{
-			if (ImGui::IsKeyPressed(KeyCode_Escape))
+			if (Gui::IsKeyPressed(KeyCode_Escape))
 				CenterCursor();
 		}
 		// -------------
@@ -147,7 +147,7 @@ namespace Editor
 		// Scroll Control
 		// --------------
 		{
-			if (ImGui::IsWindowHovered() && io->MouseWheel != 0.0f)
+			if (Gui::IsWindowHovered() && io->MouseWheel != 0.0f)
 			{
 				if (io->KeyAlt) // Zoom Timeline
 				{
@@ -172,10 +172,10 @@ namespace Editor
 
 	void TimelineBase::UpdateInputPlaybackToggle()
 	{
-		if (!ImGui::IsWindowFocused())
+		if (!Gui::IsWindowFocused())
 			return;
 
-		if (ImGui::IsKeyPressed(KeyCode_Space))
+		if (Gui::IsKeyPressed(KeyCode_Space))
 		{
 			if (GetIsPlayback())
 				PausePlayback();
@@ -183,7 +183,7 @@ namespace Editor
 				ResumePlayback();
 		}
 
-		if (ImGui::IsKeyPressed(KeyCode_Escape) && GetIsPlayback())
+		if (Gui::IsKeyPressed(KeyCode_Escape) && GetIsPlayback())
 		{
 			if (GetIsPlayback())
 				StopPlayback();
@@ -222,7 +222,7 @@ namespace Editor
 
 	void TimelineBase::UpdateAllInput()
 	{
-		updateInput = ImGui::IsWindowFocused();
+		updateInput = Gui::IsWindowFocused();
 
 		UpdateInputTimelineScroll();
 		UpdateInputPlaybackToggle();
@@ -243,7 +243,7 @@ namespace Editor
 
 	void TimelineBase::UpdateTimelineSize()
 	{
-		ImGui::ItemSize(ImVec2(GetTimelineSize(), 0));
+		Gui::ItemSize(ImVec2(GetTimelineSize(), 0));
 	}
 
 	void TimelineBase::OnTimelineBaseScroll()
@@ -257,22 +257,22 @@ namespace Editor
 
 	void TimelineBase::DrawTimelineGui()
 	{
-		ImGui::BeginGroup();
+		Gui::BeginGroup();
 		OnDrawTimelineHeaderWidgets();
-		ImGui::EndGroup();
+		Gui::EndGroup();
 
 		UpdateTimelineRegions();
 
-		ImGui::BeginChild("##InfoColumnChild::TimelineBase", ImVec2(0, -ImGui::GetStyle().ScrollbarSize));
+		Gui::BeginChild("##InfoColumnChild::TimelineBase", ImVec2(0, -Gui::GetStyle().ScrollbarSize));
 		OnDrawTimelineInfoColumnHeader();
 		OnDrawTimelineInfoColumn();
-		ImGui::EndChild();
+		Gui::EndChild();
 
-		ImGui::SetCursorScreenPos(infoColumnHeaderRegion.GetTR());
-		ImGui::BeginChild("##BaseChild::TimelineBase", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+		Gui::SetCursorScreenPos(infoColumnHeaderRegion.GetTR());
+		Gui::BeginChild("##BaseChild::TimelineBase", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 		UpdateTimelineBaseState();
 		DrawTimelineBase();
-		ImGui::EndChild();
+		Gui::EndChild();
 	}
 
 	void TimelineBase::DrawTimelineBase()
@@ -308,21 +308,21 @@ namespace Editor
 
 	void TimelineBase::OnDrawTimelineInfoColumnHeader()
 	{
-		auto drawList = ImGui::GetWindowDrawList();
+		auto drawList = Gui::GetWindowDrawList();
 
 		drawList->AddRectFilled(infoColumnHeaderRegion.GetTL(), infoColumnHeaderRegion.GetBR(), GetColor(EditorColor_InfoColumn), 8.0f, ImDrawCornerFlags_TopLeft);
 	}
 
 	void TimelineBase::OnDrawTimelineInfoColumn()
 	{
-		auto drawList = ImGui::GetWindowDrawList();
+		auto drawList = Gui::GetWindowDrawList();
 
 		// top part
 		drawList->AddRectFilled(infoColumnRegion.GetTL(), infoColumnRegion.GetBR(), GetColor(EditorColor_InfoColumn));
 
 		// bottom part
-		ImDrawList* parentDrawList = ImGui::GetCurrentWindow()->ParentWindow->DrawList;
-		parentDrawList->AddRectFilled(infoColumnRegion.GetBL(), infoColumnRegion.GetBL() + ImVec2(infoColumnRegion.GetWidth(), -ImGui::GetStyle().ScrollbarSize), GetColor(EditorColor_InfoColumn));
+		ImDrawList* parentDrawList = Gui::GetCurrentWindow()->ParentWindow->DrawList;
+		parentDrawList->AddRectFilled(infoColumnRegion.GetBL(), infoColumnRegion.GetBL() + ImVec2(infoColumnRegion.GetWidth(), -Gui::GetStyle().ScrollbarSize), GetColor(EditorColor_InfoColumn));
 	}
 
 	void TimelineBase::OnDrawTimlineTempoMap()

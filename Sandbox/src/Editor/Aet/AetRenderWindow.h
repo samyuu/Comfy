@@ -49,6 +49,7 @@ namespace Editor
 	protected:
 		void RenderObjCache(const AetMgr::ObjCache& obj);
 		void RenderObjCache(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj);
+		void RenderObjCache(const std::vector<AetMgr::ObjCache>& objectCache);
 
 	private:
 		CheckerboardGrid checkerboardGrid;

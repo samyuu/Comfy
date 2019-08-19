@@ -1,5 +1,5 @@
 #include "TestTasks.h"
-#include "ImGui/imgui_extensions.h"
+#include "ImGui/Gui.h"
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
 #include "Input/KeyCode.h"
@@ -114,7 +114,7 @@ namespace App
 
 	bool TaskPs4Menu::Update()
 	{
-		elapsedTime += ImGui::GetIO().DeltaTime;
+		elapsedTime += Gui::GetIO().DeltaTime;
 
 		if (aetSet == nullptr || sprSet == nullptr)
 		{
@@ -162,7 +162,7 @@ namespace App
 
 		aetRenderer->SetSpriteGetterFunction(&spriteGetterFunction);
 
-		float deltaFrame = TimespanToFrame(ImGui::GetIO().DeltaTime);
+		float deltaFrame = TimespanToFrame(Gui::GetIO().DeltaTime);
 		elapsedFrames += deltaFrame;
 
 		if (IsWindowFocused())
@@ -260,7 +260,7 @@ namespace App
 		if (isLoading)
 		{
 			static int loadingFrameCount = 0;
-			ImGui::Text("Loading... %d", loadingFrameCount++);
+			Gui::Text("Loading... %d", loadingFrameCount++);
 		}
 
 		return true;

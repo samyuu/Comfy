@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "ImGui/imgui_extensions.h"
+#include "ImGui/Gui.h"
 #include "FileSystem/Format/AetSet.h"
 
 namespace Editor
