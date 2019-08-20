@@ -72,6 +72,10 @@
       <AdditionalDependencies>opengl32.lib;glfw3-debug.lib;dxguid.lib;dinput8.lib;shlwapi.lib;rtaudio-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)lib\glfw\lib;$(ProjectDir)lib\libsndfile\lib;$(ProjectDir)lib\rtaudio\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PreBuildEvent>
+      <Command>$(SolutionDir)VersionControl\bin\x64-Release\ComfyVersionControl.exe $(ProjectDir)src\System\BuildVersion.h</Command>
+      <Message>Generating BuildVersion header file</Message>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -102,6 +106,10 @@
       <AdditionalLibraryDirectories>$(ProjectDir)lib\glfw\lib;$(ProjectDir)lib\libsndfile\lib;$(ProjectDir)lib\rtaudio\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
     </Link>
+    <PreBuildEvent>
+      <Command>$(SolutionDir)VersionControl\bin\x64-Release\ComfyVersionControl.exe $(ProjectDir)src\System\BuildVersion.h</Command>
+      <Message>Generating BuildVersion header file</Message>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Editor\Aet\Command\AetCommand.cpp" />
@@ -229,6 +237,7 @@
     <ClInclude Include="src\ImGui\Extensions\Theme.h" />
     <ClInclude Include="src\ImGui\Widgets\ComfyWidgets.h" />
     <ClInclude Include="src\ImGui\Extensions\InternalExtensions.h" />
+    <ClInclude Include="src\System\BuildVersion.h" />
     <ClInclude Include="src\System\LibraryLoader.h" />
     <ClInclude Include="res\resource.h" />
     <ClInclude Include="src\App\Engine.h" />

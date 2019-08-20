@@ -689,6 +689,9 @@
     <ClInclude Include="src\Editor\Aet\Core\AetTreeView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\System\BuildVersion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="rom\shader\line_frag.glsl" />
