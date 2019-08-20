@@ -51,8 +51,8 @@ dlldata.c
 dev_ram/
 dev_rom/
 
-# AudioTest files
-AudioTest/rom
+# Version Control files
+Sandbox/src/System/BuildVersion.h
 
 # Benchmark Results
 BenchmarkDotNet.Artifacts/
