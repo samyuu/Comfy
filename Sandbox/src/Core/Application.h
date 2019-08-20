@@ -152,6 +152,7 @@ private:
 	bool exclusiveAppEngineWindow = false;
 	bool showMainMenuBar = true;
 	const char* dockSpaceID = "MainDockSpace##Application";
+	const char* aboutWindowID = "About##Application";
 
 	LicenseWindow licenseWindow;
 	bool showStyleEditor = false;

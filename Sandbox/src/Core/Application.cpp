@@ -7,6 +7,7 @@
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
 #include "FileSystem/FileHelper.h"
+#include "System/BuildVersion.h"
 #include "ImGui/Gui.h"
 #include "ImGui/Implementation/Imgui_Impl.h"
 
@@ -203,7 +204,7 @@ bool Application::BaseInitialize()
 	glfwGetWindowPos(window, &windowXPosition, &windowYPosition);
 	glfwMakeContextCurrent(window);
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-
+	
 	BaseRegister();
 
 	InitializeDirectInput(GlobalModuleHandle);
@@ -531,10 +532,14 @@ void Application::DrawGui()
 			}
 
 			bool openLicensePopup = false;
+			bool openAboutPopup = false;
+
 			if (Gui::BeginMenu("Help"))
 			{
 				if (Gui::MenuItem("License"))
 					openLicensePopup = true;
+				if (Gui::MenuItem("About"))
+					openAboutPopup = true;
 				Gui::EndMenu();
 			}
 
@@ -543,6 +548,9 @@ void Application::DrawGui()
 				*licenseWindow.GetIsWindowOpen() = true;
 				Gui::OpenPopup(licenseWindow.GetWindowName());
 			}
+
+			if (openAboutPopup)
+				Gui::OpenPopup(aboutWindowID);
 
 			if (Gui::BeginPopupModal(licenseWindow.GetWindowName(), licenseWindow.GetIsWindowOpen(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 			{
@@ -559,26 +567,44 @@ void Application::DrawGui()
 				Gui::EndPopup();
 			}
 
-			if (false && Gui::MenuItem("Open Popup", nullptr))
-				Gui::OpenPopup("Test Popup");
-
-			if (Gui::BeginPopupModal("Test Popup", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			bool aboutWindowOpen = true;
+			if (Gui::BeginPopupModal(aboutWindowID, &aboutWindowOpen, ImGuiWindowFlags_AlwaysAutoResize))
 			{
-				Gui::Text("Test!\n\n");
-				if (Gui::Button("OK", ImVec2(120, 0))) { Gui::CloseCurrentPopup(); }
-				Gui::SameLine();
-				if (Gui::Button("Cancel", ImVec2(120, 0))) { Gui::CloseCurrentPopup(); }
-				Gui::EndPopup();
-			}
+				const vec2 viewportSize = Gui::GetMainViewport()->Size;
+				const vec2 sizeFactor = vec2(0.45f, 0.35f);
 
-			if (focusLostFrame && false)
-				Gui::OpenPopup("PeepoSleep zzzZZZ");
+				Gui::BeginChild("AboutWindowChild", viewportSize * sizeFactor, true);
+				Gui::Columns(2);
+				{
+					Gui::TextUnformatted("Property"); Gui::NextColumn();
+					Gui::TextUnformatted("Value"); Gui::NextColumn();
+					Gui::Separator();
 
-			if (Gui::BeginPopupModal("PeepoSleep zzzZZZ", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-			{
-				Gui::Text("Window focus has been lost");
-				if (focusGainedFrame)
-					Gui::CloseCurrentPopup();
+					Gui::TextUnformatted("BuildVersion::Author"); 
+					Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::Author);
+					Gui::NextColumn();
+					Gui::TextUnformatted("BuildVersion::CommitHash"); 
+					Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitHash);
+					Gui::NextColumn();
+					Gui::TextUnformatted("BuildVersion::CommitTime");
+					Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitTime);
+					Gui::NextColumn();
+					Gui::TextUnformatted("BuildVersion::CommitCount");
+					Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitCount);
+					Gui::NextColumn();
+					Gui::TextUnformatted("BuildVersion::Branch");
+					Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::Branch);
+					Gui::NextColumn();
+					Gui::TextUnformatted("BuildVersion::CompileTime");
+					Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CompileTime);
+					Gui::NextColumn();
+				}
+				Gui::Columns(1);
+				Gui::EndChild();
+
+				if (Gui::Button("Close", ImVec2(Gui::GetContentRegionAvailWidth(), 0)))
+					Gui::CloseCurrentPopup(); 
+
 				Gui::EndPopup();
 			}
 
