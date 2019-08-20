@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/Logger.h"
-#include <glad/glad.h>
+#include "OpenGL/OpenGL.h"
 
 #if defined(COMFY_DEBUG)
 

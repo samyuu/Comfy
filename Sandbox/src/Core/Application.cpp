@@ -8,6 +8,7 @@
 #include "Input/Keyboard.h"
 #include "FileSystem/FileHelper.h"
 #include "System/BuildVersion.h"
+#include "Graphics/OpenGL/OpenGLLoader.h"
 #include "ImGui/Gui.h"
 #include "ImGui/Implementation/Imgui_Impl.h"
 
@@ -203,7 +204,7 @@ bool Application::BaseInitialize()
 
 	glfwGetWindowPos(window, &windowXPosition, &windowYPosition);
 	glfwMakeContextCurrent(window);
-	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+	Graphics::OpenGLLoader::LoadFunctions(reinterpret_cast<OpenGLFunctionLoader*>(glfwGetProcAddress));
 	
 	BaseRegister();
 

@@ -4,8 +4,6 @@
 //  Only override if your GL version doesn't handle this GLSL version. See GLSL version table at the top of imgui_impl_opengl3.cpp.
 
 #pragma once
-#define IMGUI_IMPL_OPENGL_LOADER_GLAD
-
 IMGUI_IMPL_API bool ImGui_ImplOpenGL3_Init(const char* glsl_version = nullptr);
 IMGUI_IMPL_API void ImGui_ImplOpenGL3_Shutdown();
 IMGUI_IMPL_API void ImGui_ImplOpenGL3_NewFrame();

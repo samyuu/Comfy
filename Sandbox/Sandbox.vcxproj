@@ -56,7 +56,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glad\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\libsndfile\include;$(ProjectDir)lib\rtaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\libsndfile\include;$(ProjectDir)lib\rtaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -85,7 +85,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glad\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\libsndfile\include;$(ProjectDir)lib\rtaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\libsndfile\include;$(ProjectDir)lib\rtaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -118,6 +118,8 @@
     <ClCompile Include="src\Editor\Aet\Timeline\KeyFrameRenderer.cpp" />
     <ClCompile Include="src\Editor\Aet\Timeline\AetTimelineController.cpp" />
     <ClCompile Include="src\FileSystem\Format\AetSetFile.cpp" />
+    <ClCompile Include="src\Graphics\OpenGL\OpenGL.cpp" />
+    <ClCompile Include="src\Graphics\OpenGL\OpenGLLoader.cpp" />
     <ClCompile Include="src\Graphics\Texture\Texture2D.cpp" />
     <ClCompile Include="src\ImGui\Extensions\Theme.cpp" />
     <ClCompile Include="src\ImGui\Widgets\ComfyWidgets.cpp" />
@@ -125,7 +127,6 @@
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_wav.cpp" />
-    <ClCompile Include="lib\glad\src\glad.c" />
     <ClCompile Include="src\App\Engine.cpp" />
     <ClCompile Include="src\App\TestTasks.cpp" />
     <ClCompile Include="src\DataTest\IconTestWindow.cpp" />
@@ -232,6 +233,8 @@
     <ClInclude Include="src\Core\SmartPointers.h" />
     <ClInclude Include="src\Editor\Aet\Command\AetCommandManager.h" />
     <ClInclude Include="src\Editor\Command\CommandManager.h" />
+    <ClInclude Include="src\Graphics\OpenGL\OpenGL.h" />
+    <ClInclude Include="src\Graphics\OpenGL\OpenGLLoader.h" />
     <ClInclude Include="src\Graphics\Texture\Texture2D.h" />
     <ClInclude Include="src\ImGui\Gui.h" />
     <ClInclude Include="src\ImGui\Extensions\Theme.h" />

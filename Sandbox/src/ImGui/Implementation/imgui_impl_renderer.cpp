@@ -6,7 +6,7 @@
 #include "ImGui/Implementation/Imgui_Impl_Renderer.h"
 #include "Graphics/Graphics.h"
 #include "Graphics/RenderCommand.h"
-#include <glad/glad.h>
+#include "Graphics/OpenGL/OpenGL.h"
 
 // OpenGL Data
 static char         g_GlslVersionString[32] = "";

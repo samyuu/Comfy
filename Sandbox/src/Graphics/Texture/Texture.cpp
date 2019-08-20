@@ -1,13 +1,6 @@
 #include "Texture.h"
 #include "Graphics/RenderCommand.h"
 
-#define GL_COMPRESSED_RGB_S3TC_DXT1_EXT   0x83F0
-#define GL_COMPRESSED_RGBA_S3TC_DXT1_EXT  0x83F1
-#define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT  0x83F2
-#define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT  0x83F3
-#define GL_COMPRESSED_RED_RGTC1			  0x8DBB
-#define GL_COMPRESSED_RG_RGTC2			  0x8DBD
-
 namespace Graphics
 {
 	Texture::Texture()
