@@ -114,7 +114,6 @@ namespace Graphics
 		LoadGLFunction(glGenRenderbuffers);
 		LoadGLFunction(glRenderbufferStorage);
 		LoadGLFunction(glGetRenderbufferParameteriv);
-		LoadGLFunction(glIsFramebuffer);
 		LoadGLFunction(glBindFramebuffer);
 		LoadGLFunction(glDeleteFramebuffers);
 		LoadGLFunction(glGenFramebuffers);
@@ -141,7 +140,6 @@ namespace Graphics
 		LoadGLFunction(glBindBuffer);
 		LoadGLFunction(glDeleteBuffers);
 		LoadGLFunction(glGenBuffers);
-		LoadGLFunction(glIsBuffer);
 		LoadGLFunction(glBufferData);
 		LoadGLFunction(glBufferSubData);
 		LoadGLFunction(glGetBufferSubData);
@@ -154,7 +152,6 @@ namespace Graphics
 		LoadGLFunction(glGetBufferPointerv);
 		LoadGLFunction(glGenSamplers);
 		LoadGLFunction(glDeleteSamplers);
-		LoadGLFunction(glIsSampler);
 		LoadGLFunction(glBindSampler);
 		LoadGLFunction(glSamplerParameteri);
 		LoadGLFunction(glSamplerParameteriv);

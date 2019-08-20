@@ -234,6 +234,7 @@
     <ClInclude Include="src\Editor\Aet\Command\AetCommandManager.h" />
     <ClInclude Include="src\Editor\Command\CommandManager.h" />
     <ClInclude Include="src\Graphics\OpenGL\OpenGL.h" />
+    <ClInclude Include="src\Graphics\OpenGL\OpenGLBaseDefines.h" />
     <ClInclude Include="src\Graphics\OpenGL\OpenGLLoader.h" />
     <ClInclude Include="src\Graphics\Texture\Texture2D.h" />
     <ClInclude Include="src\ImGui\Gui.h" />

@@ -701,6 +701,9 @@
     <ClInclude Include="src\Graphics\OpenGL\OpenGL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\OpenGL\OpenGLBaseDefines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="rom\shader\line_frag.glsl" />
