@@ -7,6 +7,6 @@ int main()
 {
 	//MainTest(); return 0;
 
-	Application application;
-	application.Run();
+	UniquePtr<Application> application = MakeUnique<Application>();
+	application->Run();
 }
