@@ -41,7 +41,9 @@ namespace Graphics::Auth2D
 		void SetPositions(const vec2& position, const vec2& size);
 		void SetPositions(const vec2& position, const vec2& size, const vec2& origin, float rotation);
 		void SetTexCoords(const vec2& topLeft, const vec2& bottomRight);
-		void SetTexMaskCoords(const Texture2D* texture, const vec2& position, const vec2& scale, const vec2& origin, float rotation, const vec2& maskPosition, const vec2& maskScale, const vec2& maskOrigin, float maskRotation, const vec4& maskSourceRegion);
+		void SetTexMaskCoords(
+			const Texture2D* texture, const vec2& position, const vec2& scale, const vec2& origin, float rotation, 
+			const vec2& maskPosition, const vec2& maskScale, const vec2& maskOrigin, float maskRotation, const vec4& maskSourceRegion);
 		void SetColors(const vec4& color);
 		void SetColorArray(const vec4 colors[4]);
 	};

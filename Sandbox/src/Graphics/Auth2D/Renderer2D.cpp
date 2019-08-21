@@ -133,7 +133,9 @@ namespace Graphics::Auth2D
 		BottomRight.TextureCoordinates.y = bottomRight.y;
 	}
 
-	void SpriteVertices::SetTexMaskCoords(const Texture2D* texture, const vec2& position, const vec2& scale, const vec2& origin, float rotation, const vec2& maskPosition, const vec2& maskScale, const vec2& maskOrigin, float maskRotation, const vec4& maskSourceRegion)
+	void SpriteVertices::SetTexMaskCoords(
+		const Texture2D* texture, const vec2& position, const vec2& scale, const vec2& origin, float rotation, 
+		const vec2& maskPosition, const vec2& maskScale, const vec2& maskOrigin, float maskRotation, const vec4& maskSourceRegion)
 	{
 		const vec2 maskOffset = maskPosition - (maskOrigin * maskScale);
 		const vec2 maskRectSize = vec2(maskScale.x * maskSourceRegion.z, maskScale.y * maskSourceRegion.w);
