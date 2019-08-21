@@ -185,20 +185,20 @@ namespace FileSystem
 		void SetName(const char* value);
 		void SetName(const std::string& value);
 
-		AetRegion* GetReferencedRegion();
+		const RefPtr<AetRegion>& GetReferencedRegion();
 		const AetRegion* GetReferencedRegion() const;
 		void SetReferencedRegion(const RefPtr<AetRegion>& value);
 
-		AetSoundEffect* GetReferencedSoundEffect();
+		const RefPtr<AetSoundEffect>& GetReferencedSoundEffect();
 		const AetSoundEffect* GetReferencedSoundEffect() const;
 		void SetReferencedSoundEffect(const RefPtr<AetSoundEffect>& value);
 
-		AetLayer* GetReferencedLayer();
+		const RefPtr<AetLayer>& GetReferencedLayer();
 		const AetLayer* GetReferencedLayer() const;
 		void SetReferencedLayer(const RefPtr<AetLayer>& value);
 
-		AetObj* GetReferebcedParentObj();
-		const AetObj* GetReferebcedParentObj() const;
+		const RefPtr<AetObj>& GetReferencedParentObj();
+		const AetObj* GetReferencedParentObj() const;
 		void SetParentObj(const RefPtr<AetObj>& value);
 
 	public:
@@ -213,6 +213,7 @@ namespace FileSystem
 
 		AetLayer* parentLayer;
 
+	public:
 		struct AetObjReferenceData
 		{
 			RefPtr<AetRegion> Region;
@@ -269,8 +270,8 @@ namespace FileSystem
 		inline AetObj* GetObjAt(int index) { return objects.at(index).get(); };
 		inline const AetObj* GetObjAt(int index) const { return objects[index].get(); };
 
-		AetObj* GetObj(const std::string& name);
-		const AetObj* GetObj(const std::string& name) const;
+		RefPtr<AetObj> FindObj(const std::string& name);
+		RefPtr<const AetObj> FindObj(const std::string& name) const;
 
 		const std::vector<std::string>& GetGivenNames() const;
 		const char* GetCommaSeparatedNames() const;
@@ -343,13 +344,14 @@ namespace FileSystem
 	public:
 		AetLayer* GetRootLayer();
 
-		AetObj* GetObj(const std::string& name);
-		const AetObj* GetObj(const std::string& name) const;
-		int32_t GetObjIndex(AetLayer& layer, const std::string& name) const;
+		RefPtr<AetObj> FindObj(const std::string& name);
+		RefPtr<const AetObj> FindObj(const std::string& name) const;
+
+		int32_t FindObjIndex(AetLayer& layer, const std::string& name) const;
 
 	public:
 		//void AddNewLayer();
-		void DeleteLayer(AetLayer* value);
+		void DeleteLayer(const RefPtr<AetLayer>& value);
 
 	public:
 		void UpdateParentPointers();

@@ -334,11 +334,11 @@ namespace FileSystem
 										writer.WritePtr(nullptr); // Data offset
 									}
 
-									if (obj->GetReferebcedParentObj() != nullptr)
+									if (obj->GetReferencedParentObj() != nullptr)
 									{
 										writer.WriteDelayedPtr([&obj](BinaryWriter& writer)
 										{
-											writer.WritePtr(obj->GetReferebcedParentObj()->filePosition);
+											writer.WritePtr(obj->GetReferencedParentObj()->filePosition);
 										});
 									}
 									else

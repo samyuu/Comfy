@@ -143,9 +143,9 @@ namespace FileSystem
 		SetName(value.c_str());
 	}
 
-	AetRegion* AetObj::GetReferencedRegion()
+	const RefPtr<AetRegion>& AetObj::GetReferencedRegion()
 	{
-		return references.Region.get();
+		return references.Region;
 	}
 
 	const AetRegion* AetObj::GetReferencedRegion() const
@@ -158,9 +158,9 @@ namespace FileSystem
 		references.Region = value;
 	}
 
-	AetSoundEffect* AetObj::GetReferencedSoundEffect()
+	const RefPtr<AetSoundEffect>& AetObj::GetReferencedSoundEffect()
 	{
-		return references.SoundEffect.get();
+		return references.SoundEffect;
 	}
 
 	const AetSoundEffect* AetObj::GetReferencedSoundEffect() const
@@ -173,9 +173,9 @@ namespace FileSystem
 		references.SoundEffect = value;
 	}
 
-	AetLayer* AetObj::GetReferencedLayer()
+	const RefPtr<AetLayer>& AetObj::GetReferencedLayer()
 	{
-		return references.Layer.get();
+		return references.Layer;
 	}
 
 	const AetLayer* AetObj::GetReferencedLayer() const
@@ -188,12 +188,12 @@ namespace FileSystem
 		references.Layer = value;
 	}
 
-	AetObj* AetObj::GetReferebcedParentObj()
+	const RefPtr<AetObj>& AetObj::GetReferencedParentObj()
 	{
-		return references.ParentObj.get();
+		return references.ParentObj;
 	}
 
-	const AetObj* AetObj::GetReferebcedParentObj() const
+	const AetObj* AetObj::GetReferencedParentObj() const
 	{
 		return references.ParentObj.get();
 	}
@@ -225,20 +225,20 @@ namespace FileSystem
 		return parentLayer;
 	}
 
-	AetObj* AetLayer::GetObj(const std::string& name)
+	RefPtr<AetObj> AetLayer::FindObj(const std::string& name)
 	{
 		for (int32_t i = 0; i < size(); i++)
 		{
 			if (objects[i]->GetName() == name)
-				return objects[i].get();
+				return objects[i];
 		}
 
 		return nullptr;
 	}
 
-	const AetObj* AetLayer::GetObj(const std::string& name) const
+	RefPtr<const AetObj> AetLayer::FindObj(const std::string& name) const
 	{
-		return const_cast<AetLayer*>(this)->GetObj(name);
+		return const_cast<AetLayer*>(this)->FindObj(name);
 	}
 
 	const std::vector<std::string>& AetLayer::GetGivenNames() const
@@ -278,11 +278,11 @@ namespace FileSystem
 		return AetLayers.size() > 0 ? AetLayers.back().get() : nullptr;
 	}
 
-	AetObj* Aet::GetObj(const std::string& name)
+	RefPtr<AetObj> Aet::FindObj(const std::string& name)
 	{
 		for (int32_t i = static_cast<int32_t>(AetLayers.size()) - 1; i >= 0; i--)
 		{
-			AetObj* obj = AetLayers[i]->GetObj(name);
+			const RefPtr<AetObj>& obj = AetLayers[i]->FindObj(name);
 			if (obj != nullptr)
 				return obj;
 		}
@@ -290,12 +290,12 @@ namespace FileSystem
 		return nullptr;
 	}
 
-	const AetObj* Aet::GetObj(const std::string& name) const
+	RefPtr<const AetObj> Aet::FindObj(const std::string& name) const
 	{
-		return const_cast<AetObj*>(const_cast<Aet*>(this)->GetObj(name));
+		return const_cast<Aet*>(this)->FindObj(name);
 	}
 
-	int32_t Aet::GetObjIndex(AetLayer& layer, const std::string& name) const
+	int32_t Aet::FindObjIndex(AetLayer& layer, const std::string& name) const
 	{
 		for (int32_t i = static_cast<int32_t>(layer.size()) - 1; i >= 0; i--)
 		{
@@ -306,12 +306,12 @@ namespace FileSystem
 		return -1;
 	}
 
-	void Aet::DeleteLayer(AetLayer* value)
+	void Aet::DeleteLayer(const RefPtr<AetLayer>& value)
 	{
 		int index = 0;
 		for (RefPtr<AetLayer>& layer : AetLayers)
 		{
-			if (layer.get() == value)
+			if (layer == value)
 			{
 				AetLayers.erase(AetLayers.begin() + index);
 				break;
@@ -361,7 +361,7 @@ namespace FileSystem
 			{
 				const AetLayer* referencedLayer;
 
-				if (aetObj->Type == AetObjType::Eff && (referencedLayer = aetObj->GetReferencedLayer()) != nullptr)
+				if (aetObj->Type == AetObjType::Eff && (referencedLayer = aetObj->GetReferencedLayer().get()) != nullptr)
 				{
 					bool nameExists = false;
 					for (auto& layerNames : referencedLayer->givenNames)
