@@ -5,8 +5,9 @@ namespace ImGui
 {
 	bool ComfyCheckbox(const char* label, bool* value);
 	bool ComfyTextWidget(const char* label, char* buffer, size_t bufferSize, ImGuiInputTextFlags flags = 0);
-	bool ComfyIntWidget(const char* label, int* value, int step, int stepFast);
-	bool ComfyFloatWidget(const char* label, float* value, float step, float stepFast, const char* format = "%.2f");
+	bool ComfyIntWidget(const char* label, int* value, int step, int stepFast, ImGuiInputTextFlags flags = 0);
+	bool ComfyInt2Widget(const char* label, int value[2], ImGuiInputTextFlags flags = 0);
+	bool ComfyFloatWidget(const char* label, float* value, float step, float stepFast, const char* format = "%.2f", ImGuiInputTextFlags flags = 0);
 	bool ComfyColorEdit3(const char* label, float color[3], ImGuiColorEditFlags flags = 0);
 
 	bool ComfySmallButton(const char* label, const ImVec2& size);

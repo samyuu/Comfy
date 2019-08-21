@@ -64,7 +64,7 @@ namespace ImGui
 		return valueChanged;
 	}
 
-	bool ComfyIntWidget(const char* label, int* value, int step, int stepFast)
+	bool ComfyIntWidget(const char* label, int* value, int step, int stepFast, ImGuiInputTextFlags flags)
 	{
 		RAII_ColumnsCount raiiColumns(2, nullptr, false);
 		SetColumnWidth(0, GetWindowWidth() * ColumnWidthFactor);
@@ -76,7 +76,7 @@ namespace ImGui
 
 		PushItemWidth(GetContentRegionAvailWidth());
 		PushID(value);
-		bool valueChanged = InputInt("##InputInt", value, step, stepFast);
+		bool valueChanged = InputInt("##InputInt", value, step, stepFast, flags);
 		PopID();
 		PopItemWidth();
 		NextColumn();
@@ -84,7 +84,7 @@ namespace ImGui
 		return valueChanged;
 	}
 
-	bool ComfyFloatWidget(const char* label, float* value, float step, float stepFast, const char* format)
+	bool ComfyInt2Widget(const char* label, int value[2], ImGuiInputTextFlags flags)
 	{
 		RAII_ColumnsCount raiiColumns(2, nullptr, false);
 		SetColumnWidth(0, GetWindowWidth() * ColumnWidthFactor);
@@ -96,7 +96,27 @@ namespace ImGui
 
 		PushItemWidth(GetContentRegionAvailWidth());
 		PushID(value);
-		bool valueChanged = InputFloat("##InputFloat", value, step, stepFast, format);
+		bool valueChanged = InputInt2("##InputInt2", value, flags);
+		PopID();
+		PopItemWidth();
+		NextColumn();
+
+		return valueChanged;
+	}
+
+	bool ComfyFloatWidget(const char* label, float* value, float step, float stepFast, const char* format, ImGuiInputTextFlags flags)
+	{
+		RAII_ColumnsCount raiiColumns(2, nullptr, false);
+		SetColumnWidth(0, GetWindowWidth() * ColumnWidthFactor);
+
+		// TODO: drag text
+		AlignTextToFramePadding();
+		Text(label);
+		NextColumn();
+
+		PushItemWidth(GetContentRegionAvailWidth());
+		PushID(value);
+		bool valueChanged = InputFloat("##InputFloat", value, step, stepFast, format, flags);
 		PopID();
 		PopItemWidth();
 		NextColumn();
