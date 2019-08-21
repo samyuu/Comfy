@@ -1,8 +1,8 @@
 #pragma once
 #include "Stream/Stream.h"
 #include "BinaryMode.h"
+#include "Misc/EndianHelper.h"
 #include <functional>
-#include <intrin.h>
 
 namespace FileSystem
 {
@@ -108,14 +108,14 @@ namespace FileSystem
 		static float LE_ReadFloat(BinaryReader* reader) { return reader->Read<float>(); };
 		static double LE_ReadDouble(BinaryReader* reader) { return reader->Read<double>(); };
 
-		static int16_t BE_ReadInt16(BinaryReader* reader) { return _byteswap_ushort(reader->Read<int16_t>()); };
-		static uint16_t BE_ReadUInt16(BinaryReader* reader) { return _byteswap_ushort(reader->Read<uint16_t>()); };
-		static int32_t BE_ReadInt32(BinaryReader* reader) { return _byteswap_ulong(reader->Read<int32_t>()); };
-		static uint32_t BE_ReadUInt32(BinaryReader* reader) { return _byteswap_ulong(reader->Read<uint32_t>()); };
-		static int64_t BE_ReadInt64(BinaryReader* reader) { return _byteswap_uint64(reader->Read<int64_t>()); };
-		static uint64_t BE_ReadUInt64(BinaryReader* reader) { return _byteswap_uint64(reader->Read<uint64_t>()); };
-		static float BE_ReadFloat(BinaryReader* reader) { uint32_t value = _byteswap_ulong(reader->Read<uint32_t>()); return *(float*)&value; };
-		static double BE_ReadDouble(BinaryReader* reader) { uint64_t value = _byteswap_uint64(reader->Read<uint64_t>()); return *(double*)&value; };
+		static int16_t BE_ReadInt16(BinaryReader* reader) { return ByteswapInt16(reader->Read<int16_t>()); };
+		static uint16_t BE_ReadUInt16(BinaryReader* reader) { return ByteswapUInt16(reader->Read<uint16_t>()); };
+		static int32_t BE_ReadInt32(BinaryReader* reader) { return ByteswapInt32(reader->Read<int32_t>()); };
+		static uint32_t BE_ReadUInt32(BinaryReader* reader) { return ByteswapUInt32(reader->Read<uint32_t>()); };
+		static int64_t BE_ReadInt64(BinaryReader* reader) { return ByteswapInt64(reader->Read<int64_t>()); };
+		static uint64_t BE_ReadUInt64(BinaryReader* reader) { return ByteswapUInt64(reader->Read<uint64_t>()); };
+		static float BE_ReadFloat(BinaryReader* reader) { return ByteswapFloat(reader->Read<float>()); };
+		static double BE_ReadDouble(BinaryReader* reader) { return ByteswapDouble(reader->Read<double>()); };
 	};
 
 	template <typename T>
