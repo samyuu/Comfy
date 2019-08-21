@@ -16,7 +16,7 @@ namespace Editor
 
 		treeView = MakeUnique<AetTreeView>();
 		layerView = MakeUnique<AetLayerView>();
-		inspector = MakeUnique<AetInspector>();
+		inspector = MakeUnique<AetInspector>(commandManager.get());
 		timeline = MakeUnique<AetTimeline>();
 		renderWindow = MakeUnique<AetRenderWindow>(&spriteGetterFunction);
 		historyWindow = MakeUnique<AetHistoryWindow>(commandManager.get());
@@ -63,7 +63,7 @@ namespace Editor
 		if (Gui::Begin(ICON_TREEVIEW "  Aet Tree View##AetEditor", nullptr, windowFlags))
 		{
 			Gui::BeginChild("AetTreeViewChild##AetEditor", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
-			treeView->DrawGui(aetSet.get());
+			treeView->DrawGui(editorAetSet);
 			Gui::EndChild();
 		}
 		Gui::End();
@@ -163,9 +163,9 @@ namespace Editor
 		if (!FileExists(widePath))
 			return false;
 
-		aetSet = MakeUnique<AetSet>();
-		aetSet->Name = GetFileName(filePath, false);
-		aetSet->Load(widePath);
+		editorAetSet = MakeRefPtr<AetSet>();
+		editorAetSet->Name = GetFileName(filePath, false);
+		editorAetSet->Load(widePath);
 
 		OnAetSetLoaded();
 		return true;
@@ -192,8 +192,8 @@ namespace Editor
 
 	void AetEditor::OnSprSetLoaded()
 	{
-		if (aetSet != nullptr)
-			aetSet->ClearSpriteCache();
+		if (editorAetSet != nullptr)
+			editorAetSet->ClearSpriteCache();
 	
 		spriteGetterFunction = [this](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite) { return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite); };
 	}

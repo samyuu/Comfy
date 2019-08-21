@@ -11,11 +11,6 @@ namespace Editor
 	{
 		AetCommandManager* commandManager = GetCommandManager();
 
-		if (Gui::MenuItem("EnqueCommand<TestCommand>()")) commandManager->EnqueCommand<TestCommand>();
-		if (Gui::MenuItem("EnqueCommand<NameTestCommand>()")) commandManager->EnqueCommand<NameTestCommand>();
-		if (Gui::MenuItem("EnqueCommand<NumberTestCommand>()")) commandManager->EnqueCommand<NumberTestCommand>(rand());
-		Gui::Separator();
-
 		Gui::Columns(2, nullptr, false);
 
 		if (Gui::MenuItem("AetCommandManager::Undo()", nullptr, nullptr, commandManager->GetCanUndo()))

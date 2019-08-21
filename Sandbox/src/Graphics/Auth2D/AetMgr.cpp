@@ -127,7 +127,7 @@ namespace Graphics::Auth2D
 
 		objects.emplace_back();
 		ObjCache& objCache = objects.back();
-		
+
 		objCache.AetObj = aetObj;
 		objCache.Region = aetObj->GetReferencedRegion();
 		objCache.BlendMode = aetObj->AnimationData->BlendMode;
@@ -146,7 +146,7 @@ namespace Graphics::Auth2D
 
 		Interpolate(aetObj->AnimationData.get(), &objCache.Properties, frame);
 
-		const AetObj* parent = aetObj->GetReferebcedParentObj();
+		const AetObj* parent = aetObj->GetReferencedParentObj();
 		if (parent != nullptr)
 		{
 			// TODO:

@@ -1,5 +1,5 @@
 #pragma once
-#include "Selection.h"
+#include "AetSelection.h"
 #include "Core/AetTreeView.h"
 #include "Core/AetLayerView.h"
 #include "Core/AetInspector.h"
@@ -29,7 +29,7 @@ namespace Editor
 		virtual const char* GetGuiName() const override;
 		virtual ImGuiWindowFlags GetWindowFlags() const override;
 
-		inline AetSet* GetAetSet() { return aetSet.get(); };
+		inline AetSet* GetAetSet() { return editorAetSet.get(); };
 		inline SprSet* GetSprSet() { return sprSet.get(); };
 
 	private:
@@ -50,7 +50,7 @@ namespace Editor
 
 		struct
 		{
-			UniquePtr<AetSet> aetSet;
+			RefPtr<AetSet> editorAetSet;
 			UniquePtr<SprSet> sprSet;
 		};
 

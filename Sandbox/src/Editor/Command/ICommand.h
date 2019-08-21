@@ -5,7 +5,7 @@ namespace Editor
 	class INamedCommand
 	{
 	public:
-		virtual const char* GetName() const = 0;
+		virtual const char* GetName() = 0;
 	};
 
 	class ICommand : public INamedCommand

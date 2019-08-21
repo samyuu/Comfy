@@ -1,10 +1,16 @@
 #include "AetInspector.h"
+#include "Editor/Aet/Command/Commands.h"
 #include "Editor/Aet/AetIcons.h"
 #include "ImGui/Gui.h"
 
 namespace Editor
 {
-	AetInspector::AetInspector()
+	namespace Command
+	{
+		class ChangeAetName;
+	}
+
+	AetInspector::AetInspector(AetCommandManager* commandManager) : IMutableAetEditorComponent(commandManager)
 	{
 	}
 
@@ -18,30 +24,30 @@ namespace Editor
 
 	bool AetInspector::DrawGui(Aet* aet, const AetItemTypePtr& selected)
 	{
-		if (lastSelectedItem.VoidPointer != selected.VoidPointer)
+		if (lastSelectedItem.Ptrs.VoidPointer != selected.Ptrs.VoidPointer)
 			newParentObjLayerIndex = -1;
 
 		lastSelectedItem = selected;
 
-		if (selected.VoidPointer == nullptr)
+		if (selected.Ptrs.VoidPointer == nullptr)
 			return false;
 
 		switch (selected.Type())
 		{
 		case AetSelectionType::AetSet:
-			DrawInspectorAetSet(selected.AetSet);
+			DrawInspectorAetSet(selected.GetAetSetRef());
 			break;
 		case AetSelectionType::Aet:
-			DrawInspectorAet(selected.Aet);
+			DrawInspectorAet(selected.GetAetRef());
 			break;
 		case AetSelectionType::AetLayer:
-			DrawInspectorAetLayer(aet, selected.AetLayer);
+			DrawInspectorAetLayer(aet, selected.GetAetLayerRef());
 			break;
 		case AetSelectionType::AetObj:
-			DrawInspectorAetObj(aet, selected.AetObj);
+			DrawInspectorAetObj(aet, selected.GetAetObjRef());
 			break;
 		case AetSelectionType::AetRegion:
-			DrawInspectorAetRegion(aet, selected.AetRegion);
+			DrawInspectorAetRegion(aet, selected.GetAetRegionRef());
 			break;
 		default:
 			break;
@@ -50,7 +56,7 @@ namespace Editor
 		return true;
 	}
 
-	void AetInspector::DrawInspectorAetSet(AetSet* aetSet)
+	void AetInspector::DrawInspectorAetSet(const RefPtr<AetSet>& aetSet)
 	{
 		if (Gui::WideTreeNodeEx(ICON_NAMES "  Aets:", ImGuiTreeNodeFlags_DefaultOpen))
 		{
@@ -61,33 +67,41 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAet(Aet* aet)
+	void AetInspector::DrawInspectorAet(const RefPtr<Aet>& aet)
 	{
 		if (Gui::WideTreeNodeEx("Aet", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			strcpy_s(aetNameBuffer, aet->Name.c_str());
 
 			if (Gui::ComfyTextWidget("Name", aetNameBuffer, sizeof(aetNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
-				aet->Name = std::string(aetNameBuffer);
+				GetCommandManager()->EnqueueCommand<Command::Aet::ChangeName>(aet, aetNameBuffer);
 
-			Gui::ComfyFloatWidget("Start Frame", &aet->FrameStart, 1.0f, 10.0f);
-			Gui::ComfyFloatWidget("Duration", &aet->FrameDuration, 1.0f, 10.0f);
-			if (Gui::ComfyFloatWidget("Frame Rate", &aet->FrameRate, 1.0f, 10.0f))
-				aet->FrameRate = glm::clamp(aet->FrameRate, 1.0f, 1000.0f);
+			float frameStart = aet->FrameStart;
+			if (Gui::ComfyFloatWidget("Start Frame", &frameStart, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
+				GetCommandManager()->EnqueueCommand<Command::Aet::ChangeStartFrame>(aet, frameStart);
 
-			Gui::ComfyIntWidget("Resolution Width", &aet->Width, 64, 256);
-			Gui::ComfyIntWidget("Resolution Height", &aet->Height, 64, 256);
+			float frameDuration = aet->FrameDuration;
+			if (Gui::ComfyFloatWidget("Duration", &frameDuration, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
+				GetCommandManager()->EnqueueCommand<Command::Aet::ChangeFrameDuration>(aet, frameDuration);
+			
+			float frameRate = aet->FrameRate;
+			if (Gui::ComfyFloatWidget("Frame Rate", &frameRate, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
+				GetCommandManager()->EnqueueCommand<Command::Aet::ChangeFrameRate>(aet, glm::clamp(frameRate, 1.0f, 1000.0f));
 
-			ImVec4 color = Gui::ColorConvertU32ToFloat4(aet->BackgroundColor);
-			if (Gui::ComfyColorEdit3("Background", (float*)&color, ImGuiColorEditFlags_DisplayHex))
-				aet->BackgroundColor = Gui::ColorConvertFloat4ToU32(color);
+			int resolution[2] = { aet->Width, aet->Height };
+			if (Gui::ComfyInt2Widget("Resolution", resolution, ImGuiInputTextFlags_EnterReturnsTrue))
+				GetCommandManager()->EnqueueCommand<Command::Aet::ChangeResolution>(aet, resolution[0], resolution[1]);
+
+			vec4 color = Gui::ColorConvertU32ToFloat4(aet->BackgroundColor);
+			if (Gui::ComfyColorEdit3("Background", glm::value_ptr(color), ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_DisplayHex))
+				GetCommandManager()->EnqueueCommand<Command::Aet::ChangeBackgroundColor>(aet, Gui::ColorConvertFloat4ToU32(color));
 
 			Gui::TreePop();
 		}
 		Gui::Separator();
 	}
 
-	void AetInspector::DrawInspectorAetLayer(Aet* aet, AetLayer* aetLayer)
+	void AetInspector::DrawInspectorAetLayer(Aet* aet, const RefPtr<AetLayer>& aetLayer)
 	{
 		if (Gui::WideTreeNodeEx(ICON_NAMES "  Given Names:", ImGuiTreeNodeFlags_DefaultOpen))
 		{
@@ -106,7 +120,7 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorLayerData(Aet* aet, AetObj* aetObj, AetLayer* aetLayer)
+	void AetInspector::DrawInspectorLayerData(Aet* aet, const RefPtr<AetObj>& aetObj, const RefPtr<AetLayer>& aetLayer)
 	{
 		if (Gui::WideTreeNodeEx(ICON_AETLAYERS "  Layer Data", ImGuiTreeNodeFlags_DefaultOpen))
 		{
@@ -126,7 +140,7 @@ namespace Editor
 
 					Gui::PushID(&layer);
 
-					bool isSelected = (aetLayer == layer.get());
+					bool isSelected = (aetLayer == layer);
 					sprintf_s(layerDataNameBuffer, "Layer %d (%s)", layerIndex++, layer->GetCommaSeparatedNames());
 
 					if (Gui::Selectable(layerDataNameBuffer, isSelected))
@@ -143,27 +157,33 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAetObj(Aet* aet, AetObj* aetObj)
+	void AetInspector::DrawInspectorAetObj(Aet* aet, const RefPtr<AetObj>& aetObj)
 	{
-		if (Gui::WideTreeNodeEx(aetObj, ImGuiTreeNodeFlags_DefaultOpen, "%s  Object", GetObjTypeIcon(aetObj->Type)))
+		if (Gui::WideTreeNodeEx(aetObj.get(), ImGuiTreeNodeFlags_DefaultOpen, "%s  Object", GetObjTypeIcon(aetObj->Type)))
 		{
 			strcpy_s(aetObjNameBuffer, aetObj->GetName().c_str());
-			if (Gui::ComfyTextWidget("Name", aetObjNameBuffer, sizeof(aetObjNameBuffer), ImGuiInputTextFlags_None)) // ImGuiInputTextFlags_EnterReturnsTrue
-			{
-				aetObj->SetName(aetObjNameBuffer);
-			}
+			if (Gui::ComfyTextWidget("Name", aetObjNameBuffer, sizeof(aetObjNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+				GetCommandManager()->EnqueueCommand<Command::AetObj::ChangeName>(aetObj, aetObjNameBuffer);
 
-			Gui::ComfyFloatWidget("Loop Start", &aetObj->LoopStart, 1.0f, 10.0f);
-			Gui::ComfyFloatWidget("Loop End", &aetObj->LoopEnd, 1.0f, 10.0f);
-			Gui::ComfyFloatWidget("Start Frame", &aetObj->StartFrame, 1.0f, 10.0f);
+			float loopStart = aetObj->LoopStart;
+			if (Gui::ComfyFloatWidget("Loop Start", &loopStart, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
+				GetCommandManager()->EnqueueCommand<Command::AetObj::ChangeLoopStart>(aetObj, loopStart);
+
+			float loopEnd = aetObj->LoopEnd;
+			if (Gui::ComfyFloatWidget("Loop End", &loopEnd, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
+				GetCommandManager()->EnqueueCommand<Command::AetObj::ChangeLoopEnd>(aetObj, loopEnd);
+
+			float startFrame = aetObj->StartFrame;
+			if (Gui::ComfyFloatWidget("Start Frame", &startFrame, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
+				GetCommandManager()->EnqueueCommand<Command::AetObj::ChangeStartFrame>(aetObj, startFrame);
 
 			if (aetObj->Type != AetObjType::Aif)
 			{
 				constexpr float percentageFactor = 100.0f;
 				float playbackPercentage = aetObj->PlaybackSpeed * percentageFactor;
-			
-				if (Gui::ComfyFloatWidget("Playback Speed", &playbackPercentage, 10.0f, 100.0f, "%.2f %%"))
-					aetObj->PlaybackSpeed = playbackPercentage / percentageFactor;
+
+				if (Gui::ComfyFloatWidget("Playback Speed", &playbackPercentage, 10.0f, 100.0f, "%.2f %%", ImGuiInputTextFlags_EnterReturnsTrue))
+					GetCommandManager()->EnqueueCommand<Command::AetObj::ChangePlaybackSpeed>(aetObj, playbackPercentage / percentageFactor);
 			}
 
 			Gui::TreePop();
@@ -202,7 +222,7 @@ namespace Editor
 		Gui::Separator();
 	}
 
-	void AetInspector::DrawInspectorRegionData(Aet* aet, AetObj* aetObj, AetRegion* aetRegion)
+	void AetInspector::DrawInspectorRegionData(Aet* aet, const RefPtr<AetObj>& aetObj, const RefPtr<AetRegion>& aetRegion)
 	{
 		if (Gui::WideTreeNodeEx(ICON_AETREGIONS "  Region Data", ImGuiTreeNodeFlags_DefaultOpen))
 		{
@@ -216,9 +236,11 @@ namespace Editor
 					strcpy_s(regionDataNameBuffer, frontSprite->Name.c_str());
 			}
 
-			if (Gui::ComfyBeginCombo("Sprite", aetRegion == nullptr ? "None (Sprite)" : regionDataNameBuffer, ImGuiComboFlags_HeightLarge))
+			const char* noSpriteString = "None (Sprite)";
+
+			if (Gui::ComfyBeginCombo("Sprite", aetRegion == nullptr ? noSpriteString : regionDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
-				if (Gui::Selectable("None (Sprite)", aetRegion == nullptr))
+				if (Gui::Selectable(noSpriteString, aetRegion == nullptr))
 					aetObj->SetReferencedRegion(nullptr);
 
 				int32_t regionIndex = 0;
@@ -226,7 +248,7 @@ namespace Editor
 				{
 					Gui::PushID(&region);
 
-					bool isSelected = (aetRegion == region.get());
+					bool isSelected = (aetRegion == region);
 
 					AetSprite* frontSprite = region->GetFrontSprite();
 					if (frontSprite == nullptr)
@@ -394,15 +416,18 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAetObjParent(Aet* aet, AetObj* aetObj)
+	void AetInspector::DrawInspectorAetObjParent(Aet* aet, const RefPtr<AetObj>& aetObj)
 	{
 		if (Gui::WideTreeNodeEx(ICON_PARENT "  Parent", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			AetObj* parentObj = aetObj->GetReferebcedParentObj();
+			AetObj* parentObj = aetObj->GetReferencedParentObj().get();
 			AetLayer* parentObjLayer = parentObj != nullptr ? parentObj->GetParentLayer() : nullptr;
 
 			if (parentObj != nullptr)
 				newParentObjLayerIndex = parentObjLayer->GetThisIndex();
+
+			const char* noParentLayerString = "None (Parent Layer)";
+			const char* noParentObjString = "None (Parent Object)";
 
 			if (newParentObjLayerIndex >= 0)
 			{
@@ -411,12 +436,12 @@ namespace Editor
 			}
 			else
 			{
-				strcpy_s(parentObjDataNameBuffer, "None (Parent Layer)");
+				strcpy_s(parentObjDataNameBuffer, noParentLayerString);
 			}
 
 			if (Gui::ComfyBeginCombo("Parent Layer", parentObjDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
-				if (Gui::Selectable("None (Parent Layer)", parentObjLayer == nullptr))
+				if (Gui::Selectable(noParentLayerString, parentObjLayer == nullptr))
 				{
 					aetObj->SetParentObj(nullptr);
 					newParentObjLayerIndex = -1;
@@ -444,9 +469,9 @@ namespace Editor
 				Gui::ComfyEndCombo();
 			}
 
-			if (Gui::ComfyBeginCombo("Parent Object", parentObj == nullptr ? "None (Parent Object)" : parentObj->GetName().c_str(), ImGuiComboFlags_HeightLarge))
+			if (Gui::ComfyBeginCombo("Parent Object", parentObj == nullptr ? noParentObjString : parentObj->GetName().c_str(), ImGuiComboFlags_HeightLarge))
 			{
-				if (Gui::Selectable("None (Parent Object)", parentObj == nullptr))
+				if (Gui::Selectable(noParentObjString, parentObj == nullptr))
 					aetObj->SetParentObj(nullptr);
 
 				if (parentObjLayer != nullptr)
@@ -472,7 +497,7 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAetRegion(Aet* aet, AetRegion* aetRegion)
+	void AetInspector::DrawInspectorAetRegion(Aet* aet, const RefPtr<AetRegion>& aetRegion)
 	{
 		Gui::InputScalarN("Dimensions", ImGuiDataType_S16, &aetRegion->Width, 2);
 

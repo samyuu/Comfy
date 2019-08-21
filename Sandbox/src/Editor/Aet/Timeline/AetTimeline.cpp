@@ -43,10 +43,10 @@ namespace Editor
 
 	void AetTimeline::DrawTimelineContentKeyFrames()
 	{
-		if (active.AetObj->AnimationData == nullptr)
+		if (active.Ptrs.AetObj->AnimationData == nullptr)
 			return;
 
-		keyFrameRenderer.DrawKeyFrames(this, active.AetObj->AnimationData->Properties);
+		keyFrameRenderer.DrawKeyFrames(this, active.Ptrs.AetObj->AnimationData->Properties);
 	}
 
 	void AetTimeline::OnDrawTimelineHeaderWidgets()
@@ -156,7 +156,7 @@ namespace Editor
 
 	void AetTimeline::OnUpdate()
 	{
-		if (active.VoidPointer != nullptr)
+		if (!active.IsNull())
 		{
 			switch (active.Type())
 			{
@@ -169,7 +169,7 @@ namespace Editor
 				loopStartFrame = aet->FrameStart;
 				loopEndFrame = 0.0f;
 
-				for (RefPtr<AetObj>& obj : *active.AetLayer)
+				for (RefPtr<AetObj>& obj : *active.Ptrs.AetLayer)
 				{
 					if (obj->LoopEnd > loopEndFrame.Frames())
 						loopEndFrame = obj->LoopEnd;
@@ -178,13 +178,13 @@ namespace Editor
 				break;
 
 			case AetSelectionType::AetObj:
-				loopStartFrame = active.AetObj->LoopStart;
-				loopEndFrame = active.AetObj->LoopEnd;
+				loopStartFrame = active.Ptrs.AetObj->LoopStart;
+				loopEndFrame = active.Ptrs.AetObj->LoopEnd;
 				break;
 
 			case AetSelectionType::AetRegion:
 				loopStartFrame = 0;
-				loopEndFrame = glm::max(0.0f, active.AetRegion->Frames - 1.0f);
+				loopEndFrame = glm::max(0.0f, active.Ptrs.AetRegion->Frames - 1.0f);
 				break;
 
 			default:
@@ -222,7 +222,7 @@ namespace Editor
 
 	void AetTimeline::OnDrawTimelineContents()
 	{
-		if (active.Type() == AetSelectionType::None || active.VoidPointer == nullptr)
+		if (active.Type() == AetSelectionType::None || active.IsNull())
 		{
 			DrawTimelineContentNone();
 		}

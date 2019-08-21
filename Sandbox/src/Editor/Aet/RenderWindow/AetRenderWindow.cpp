@@ -67,11 +67,11 @@ namespace Editor
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 1.0f));
 		Gui::PushItemWidth(itemWidth);
 		{
-			if (active.Type() == AetSelectionType::AetObj && active.VoidPointer != nullptr && active.AetObj->AnimationData != nullptr)
+			if (active.Type() == AetSelectionType::AetObj && !active.IsNull() && active.Ptrs.AetObj->AnimationData != nullptr)
 			{
 				static Properties properties;
 
-				AetMgr::Interpolate(active.AetObj->AnimationData.get(), &properties, currentFrame);
+				AetMgr::Interpolate(active.Ptrs.AetObj->AnimationData.get(), &properties, currentFrame);
 
 				float roundedCurrentFrame = glm::round(currentFrame);
 				AetKeyFrame* currentKeyFrames[PropertyType_Count];
@@ -96,7 +96,7 @@ namespace Editor
 				*/
 
 				for (int i = 0; i < PropertyType_Count; i++)
-					currentKeyFrames[i] = isPlayback ? nullptr : GetKeyFrame(active.AetObj, i, roundedCurrentFrame);
+					currentKeyFrames[i] = isPlayback ? nullptr : GetKeyFrame(active.Ptrs.AetObj, i, roundedCurrentFrame);
 
 				if (Gui::ComfyInputFloat("##PositionXDragFloat::AetRenderWindow", &properties.Position.x, 1.0f, 0.0f, 0.0f, "X: %.f", !currentKeyFrames[PropertyType_PositionX]))
 				{
@@ -280,24 +280,24 @@ namespace Editor
 			{
 				RenderGrid();
 
-				if (active.VoidPointer != nullptr)
+				if (!active.IsNull())
 				{
 					switch (active.Type())
 					{
 					case AetSelectionType::AetSet:
-						RenderAetSet(active.AetSet);
+						RenderAetSet(active.Ptrs.AetSet);
 						break;
 					case AetSelectionType::Aet:
-						RenderAet(active.Aet);
+						RenderAet(active.Ptrs.Aet);
 						break;
 					case AetSelectionType::AetLayer:
-						RenderAetLayer(active.AetLayer);
+						RenderAetLayer(active.Ptrs.AetLayer);
 						break;
 					case AetSelectionType::AetObj:
-						RenderAetObj(active.AetObj);
+						RenderAetObj(active.Ptrs.AetObj);
 						break;
 					case AetSelectionType::AetRegion:
-						RenderAetRegion(active.AetRegion);
+						RenderAetRegion(active.Ptrs.AetRegion);
 						break;
 
 					case AetSelectionType::None:

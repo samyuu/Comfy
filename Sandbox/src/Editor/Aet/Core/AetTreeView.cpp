@@ -23,7 +23,7 @@ namespace Editor
 	{
 	}
 
-	bool AetTreeView::DrawGui(AetSet* aetSet)
+	bool AetTreeView::DrawGui(const RefPtr<AetSet>& aetSet)
 	{
 		if (aetSet == nullptr)
 			return false;
@@ -31,16 +31,16 @@ namespace Editor
 		lastHovered = hovered;
 		hovered.Reset();
 
-		if (selected.VoidPointer == nullptr && GetDebugObjectName() != nullptr)
+		if (selected.IsNull() && GetDebugObjectName() != nullptr)
 		{
 			activeAet = aetSet->front().get();
-			selected.SetItem(activeAet->GetObj(GetDebugObjectName()));
+			selected.SetItem(activeAet->FindObj(GetDebugObjectName()));
 		}
 
 		DrawTreeViewBackground();
 
-		bool aetSetNodeOpen = Gui::WideTreeNodeEx((void*)aetSet, HeaderTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str());
-		Gui::ItemContextMenu("AetSettAetContextMenu##AetTreeView", [this, aetSet]() 
+		bool aetSetNodeOpen = Gui::WideTreeNodeEx(aetSet.get(), HeaderTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str());
+		Gui::ItemContextMenu("AetSettAetContextMenu##AetTreeView", [this, &aetSet]() 
 		{
 			Gui::Text("AetSet: %s", aetSet->Name.c_str());
 			Gui::Separator();
@@ -64,31 +64,13 @@ namespace Editor
 				SetSelectedItem(aetSet);
 
 			for (RefPtr<Aet>& aet : *aetSet)
-				DrawTreeViewAet(*aet);
+				DrawTreeViewAet(aet);
 
 			Gui::TreePop();
 		}
 		else
 		{
 			ResetSelectedItem();
-		}
-
-		if (layerToDelete.Aet != nullptr && layerToDelete.Layer != nullptr)
-		{
-			if (selected.AetLayer == layerToDelete.Layer)
-				selected.AetLayer = nullptr;
-
-			layerToDelete.Aet->DeleteLayer(layerToDelete.Layer);
-			layerToDelete = { nullptr, nullptr };
-		}
-
-		if (objToDelete.Layer != nullptr && objToDelete.Obj != nullptr)
-		{
-			if (selected.AetObj == objToDelete.Obj)
-				selected.AetObj = nullptr;
-
-			objToDelete.Layer->DeleteObject(objToDelete.Obj);
-			objToDelete = { nullptr, nullptr };
 		}
 
 		return true;
@@ -126,16 +108,16 @@ namespace Editor
 		}
 	}
 
-	void AetTreeView::DrawTreeViewAet(Aet& aet)
+	void AetTreeView::DrawTreeViewAet(const RefPtr<Aet>& aet)
 	{
 		ImGuiTreeNodeFlags aetNodeFlags = HeaderTreeNodeFlags;
-		if (&aet == selected.Aet || &aet == lastHovered.Aet)
+		if (aet.get() == selected.Ptrs.Aet || aet.get() == lastHovered.Ptrs.Aet)
 			aetNodeFlags |= ImGuiTreeNodeFlags_Selected;
 
-		bool aetNodeOpen = Gui::WideTreeNodeEx((void*)&aet, aetNodeFlags, "Aet: %s", aet.Name.c_str());
+		bool aetNodeOpen = Gui::WideTreeNodeEx(aet.get(), aetNodeFlags, "Aet: %s", aet->Name.c_str());
 
 		if (Gui::IsItemClicked())
-			SetSelectedItem(&aet, &aet);
+			SetSelectedItem(aet.get(), aet);
 
 		if (aetNodeOpen)
 		{
@@ -146,8 +128,8 @@ namespace Editor
 				if (Gui::IsItemClicked())
 					ResetSelectedItem();
 
-				for (RefPtr<AetLayer>& aetLayer : aet.AetLayers)
-					DrawTreeViewLayer(aet, *aetLayer);
+				for (RefPtr<AetLayer>& aetLayer : aet->AetLayers)
+					DrawTreeViewLayer(aet, aetLayer);
 
 				Gui::TreePop();
 			}
@@ -157,9 +139,9 @@ namespace Editor
 				if (Gui::IsItemClicked())
 					ResetSelectedItem();
 
-				for (int32_t i = 0; i < aet.AetRegions.size(); i++)
+				for (int32_t i = 0; i < aet->AetRegions.size(); i++)
 				{
-					DrawTreeViewRegion(aet, *aet.AetRegions[i], i);
+					DrawTreeViewRegion(aet, aet->AetRegions[i], i);
 				}
 				Gui::TreePop();
 			}
@@ -169,14 +151,14 @@ namespace Editor
 		}
 	}
 
-	void AetTreeView::DrawTreeViewLayer(Aet& aet, AetLayer& aetLayer)
+	void AetTreeView::DrawTreeViewLayer(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer)
 	{
 		Gui::PushID(&aetLayer);
 
 		ImGuiTreeNodeFlags layerNodeFlags = SelectableTreeNodeFlags;
-		if (&aetLayer == selected.AetLayer)
+		if (aetLayer.get() == selected.Ptrs.AetLayer)
 			layerNodeFlags |= ImGuiTreeNodeFlags_Selected;
-		if (aetLayer.size() < 1)
+		if (aetLayer->size() < 1)
 			layerNodeFlags |= ImGuiTreeNodeFlags_Leaf;
 
 		ImVec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
@@ -190,19 +172,20 @@ namespace Editor
 
 		// TODO: should check for mouse released
 		if (Gui::IsItemClicked())
-			SetSelectedItem(&aet, &aetLayer);
+			SetSelectedItem(aet.get(), aetLayer);
 
-		if (&aetLayer == lastHovered.AetLayer)
+		bool lastHoveredLayer = aetLayer.get() == lastHovered.Ptrs.AetLayer;
+		if (lastHoveredLayer)
 			Gui::PushStyleColor(ImGuiCol_Text, GetColor(EditorColor_TextHighlight));
 
 		Gui::SetCursorScreenPos(treeNodeCursorPos + ImVec2(GImGui->FontSize + GImGui->Style.FramePadding.x, 0));
 		Gui::Text(
 			"%s  Layer %d (%s)",
 			aetLayerNodeOpen ? ICON_AETLAYER_OPEN : ICON_AETLAYER,
-			aetLayer.GetThisIndex(),
-			aetLayer.GetCommaSeparatedNames());
+			aetLayer->GetThisIndex(),
+			aetLayer->GetCommaSeparatedNames());
 
-		if (&aetLayer == lastHovered.AetLayer)
+		if (lastHoveredLayer)
 			Gui::PopStyleColor();
 
 		if (openAddAetObjPopup)
@@ -221,14 +204,14 @@ namespace Editor
 			if (Gui::IsKeyPressed(KeyCode_Escape))
 				Gui::CloseCurrentPopup();
 
-			addAetObjDialog.DrawGui(&aet, &aetLayer);
+			//addAetObjDialog.DrawGui(&aet, &aetLayer);
 			Gui::EndPopup();
 		}
 
 		if (aetLayerNodeOpen)
 		{
-			for (RefPtr<AetObj>& aetObj : aetLayer)
-				DrawTreeViewObj(aet, aetLayer, *aetObj);
+			for (RefPtr<AetObj>& aetObj : *aetLayer)
+				DrawTreeViewObj(aet, aetLayer, aetObj);
 
 			Gui::TreePop();
 		}
@@ -236,42 +219,42 @@ namespace Editor
 		Gui::PopID();
 	}
 
-	void AetTreeView::DrawTreeViewObj(Aet& aet, AetLayer& aetLayer, AetObj& aetObj)
+	void AetTreeView::DrawTreeViewObj(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj)
 	{
-		Gui::PushID((void*)&aetObj);
+		Gui::PushID(aetObj.get());
 		{
-			bool isSelected = &aetObj == selected.AetObj || &aetObj == hovered.AetObj;
+			bool isSelected = aetObj.get() == selected.Ptrs.AetObj || aetObj.get() == hovered.Ptrs.AetObj;
 
 			bool drawActiveButton = true;
 			if (drawActiveButton)
 			{
 				const ImVec2 smallButtonSize = ImVec2(26.0f, 0.0f);
-				if (aetObj.Type == AetObjType::Aif)
+				if (aetObj->Type == AetObjType::Aif)
 				{
-					if (Gui::ComfySmallButton(aetObj.Flags.Audible ? ICON_AUDIBLE : ICON_INAUDIBLE, smallButtonSize))
-						aetObj.Flags.Audible ^= true;
+					if (Gui::ComfySmallButton(aetObj->Flags.Audible ? ICON_AUDIBLE : ICON_INAUDIBLE, smallButtonSize))
+						aetObj->Flags.Audible ^= true;
 				}
 				else
 				{
-					if (Gui::ComfySmallButton(aetObj.Flags.Visible ? ICON_VISIBLE : ICON_INVISIBLE, smallButtonSize))
-						aetObj.Flags.Visible ^= true;
+					if (Gui::ComfySmallButton(aetObj->Flags.Visible ? ICON_VISIBLE : ICON_INVISIBLE, smallButtonSize))
+						aetObj->Flags.Visible ^= true;
 				}
 				Gui::SameLine();
 			}
 
-			sprintf_s(objNameBuffer, "%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.GetName().c_str());
+			sprintf_s(objNameBuffer, "%s  %s", GetObjTypeIcon(aetObj->Type), aetObj->GetName().c_str());
 
 			if (drawActiveButton)
 			{
 				if (Gui::Selectable(objNameBuffer, isSelected))
-					SetSelectedItem(&aet, &aetObj);
+					SetSelectedItem(aet.get(), aetObj);
 			}
 			else
 			{
 				Gui::WideTreeNodeEx(objNameBuffer, TreeNodeLeafFlags | (isSelected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None));
 
 				if (Gui::IsItemClicked())
-					SetSelectedItem(&aet, &aetObj);
+					SetSelectedItem(aet.get(), aetObj);
 			}
 
 			Gui::ItemContextMenu("AetObjContextMenu##AetInspector", [this, &aetLayer, &aetObj]()
@@ -279,75 +262,76 @@ namespace Editor
 				DrawAetObjContextMenu(aetLayer, aetObj);
 			});
 
-			if (aetObj.Type == AetObjType::Eff && (Gui::IsItemHovered() || &aetObj == selected.AetObj))
-				hovered.SetItem(aetObj.GetReferencedLayer());
+			if (aetObj->Type == AetObjType::Eff && (Gui::IsItemHovered() || aetObj.get() == selected.Ptrs.AetObj))
+				hovered.SetItem(aetObj->GetReferencedLayer());
 		}
 		Gui::PopID();
 	}
 
-	void AetTreeView::DrawTreeViewRegion(Aet& aet, AetRegion& region, int32_t index)
+	void AetTreeView::DrawTreeViewRegion(const RefPtr<Aet>& aet, const RefPtr<AetRegion>& region, int32_t index)
 	{
 		Gui::PushID(&region);
 
-		if (region.SpriteSize() >= 1)
+		if (region->SpriteSize() >= 1)
 		{
-			if (region.SpriteSize() > 1)
+			if (region->SpriteSize() > 1)
 			{
 				sprintf_s(regionNameBuffer, ICON_AETREGION "  Region %d (%s - %s)", index,
-					region.GetFrontSprite()->Name.c_str(),
-					region.GetBackSprite()->Name.c_str());
+					region->GetFrontSprite()->Name.c_str(),
+					region->GetBackSprite()->Name.c_str());
 			}
 			else
 			{
 				sprintf_s(regionNameBuffer, ICON_AETREGION "  Region %d (%s)", index,
-					region.GetFrontSprite()->Name.c_str());
+					region->GetFrontSprite()->Name.c_str());
 			}
 		}
 		else
 		{
-			sprintf_s(regionNameBuffer, ICON_AETREGIONNOSPR "  Region %d (%dx%d)", index, region.Width, region.Height);
+			sprintf_s(regionNameBuffer, ICON_AETREGIONNOSPR "  Region %d (%dx%d)", index, region->Width, region->Height);
 		}
 
-		bool isSelected = &region == selected.AetRegion;
+		bool isSelected = region.get() == selected.Ptrs.AetRegion;
 
 		if (Gui::WideTreeNodeEx(regionNameBuffer, TreeNodeLeafFlags | (isSelected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None)))
 		{
 			if (Gui::IsItemClicked())
-				SetSelectedItem(&aet, &region);
+				SetSelectedItem(aet.get(), region);
 		}
 
 		Gui::PopID();
 	}
 
-	bool AetTreeView::DrawAetLayerContextMenu(Aet& aet, AetLayer& aetLayer)
+	bool AetTreeView::DrawAetLayerContextMenu(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer)
 	{
-		Gui::Text(ICON_AETLAYER "  %s", aetLayer.GetCommaSeparatedNames());
+		Gui::Text(ICON_AETLAYER "  %s", aetLayer->GetCommaSeparatedNames());
 		Gui::Separator();
 
 		if (Gui::BeginMenu(ICON_ADD "  Add new AetObj..."))
 		{
-			if (Gui::MenuItem(ICON_AETOBJPIC "  Image")) { aetLayer.AddNewObject(AetObjType::Pic, "null.pic"); }
-			if (Gui::MenuItem(ICON_AETOBJEFF "  Layer")) { aetLayer.AddNewObject(AetObjType::Eff, "null_eff"); }
-			if (Gui::MenuItem(ICON_AETOBJAIF "  Sound Effect")) { aetLayer.AddNewObject(AetObjType::Aif, "null.aif"); }
+			// TODO: loop through layer objects to search for previous null_%d objects and increment index
+			if (Gui::MenuItem(ICON_AETOBJPIC "  Image")) { aetLayer->AddNewObject(AetObjType::Pic, "null_00"); }
+			if (Gui::MenuItem(ICON_AETOBJEFF "  Layer")) { aetLayer->AddNewObject(AetObjType::Eff, "null_eff"); }
+			if (Gui::MenuItem(ICON_AETOBJAIF "  Sound Effect")) { aetLayer->AddNewObject(AetObjType::Aif, "null.aif"); }
 			Gui::EndMenu();
 		}
 
 		if (Gui::MenuItem(ICON_MOVEUP "  Move Up")) {}
 		if (Gui::MenuItem(ICON_MOVEDOWN "  Move Down")) {}
-		if (Gui::MenuItem(ICON_DELETE "  Delete Layer")) { layerToDelete = { &aet, &aetLayer}; }
+		if (Gui::MenuItem(ICON_DELETE "  Delete Layer")) {} // TODO: layerToDelete = { &aet, &aetLayer};
 
 		return false;
 	}
 
-	bool AetTreeView::DrawAetObjContextMenu(AetLayer& aetLayer, AetObj& aetObj)
+	bool AetTreeView::DrawAetObjContextMenu(const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj)
 	{
-		Gui::Text("%s  %s", GetObjTypeIcon(aetObj.Type), aetObj.GetName().c_str());
+		Gui::Text("%s  %s", GetObjTypeIcon(aetObj->Type), aetObj->GetName().c_str());
 		Gui::Separator();
 
 		// TODO:
 		if (Gui::MenuItem(ICON_MOVEUP "  Move Up")) {}
 		if (Gui::MenuItem(ICON_MOVEDOWN "  Move Down")) {}
-		if (Gui::MenuItem(ICON_DELETE "  Delete Object")) { objToDelete = { &aetLayer, &aetObj }; }
+		if (Gui::MenuItem(ICON_DELETE "  Delete Object")) {} // TODO: { objToDelete = { &aetLayer, &aetObj }; }
 
 		return false;
 	}

@@ -20,7 +20,7 @@ namespace Editor
 
 	public:
 		template<class TNewCommand, class... _Types>
-		void EnqueCommand(_Types&&... _Args);
+		void EnqueueCommand(_Types&&... _Args);
 		
 		void ExecuteClearCommandQueue();
 
@@ -48,7 +48,7 @@ namespace Editor
 
 	template<class TCommand>
 	template<class TNewCommand, class ..._Types>
-	inline void CommandManager<TCommand>::EnqueCommand(_Types&& ..._Args)
+	inline void CommandManager<TCommand>::EnqueueCommand(_Types&& ..._Args)
 	{
 		static_assert(std::is_base_of<TCommand, TNewCommand>::value, "TNewCommand must inherit from TCommand");
 		commandQueue.push(MakeRefPtr<TNewCommand>(std::forward<_Types>(_Args)...));

@@ -1,15 +1,16 @@
 #pragma once
-#include "Editor/Aet/Selection.h"
+#include "Editor/Aet/AetSelection.h"
+#include "Editor/Aet/IMutableAetEditorComponent.h"
 #include "FileSystem/Format/AetSet.h"
 
 namespace Editor
 {
 	using namespace FileSystem;
 
-	class AetInspector
+	class AetInspector : public IMutableAetEditorComponent
 	{
 	public:
-		AetInspector();
+		AetInspector(AetCommandManager* commandManager);
 		~AetInspector();
 
 		void Initialize();
@@ -27,20 +28,20 @@ namespace Editor
 		char regionDataNameBuffer[255];
 		char parentObjDataNameBuffer[255];
 
-		void DrawInspectorAetSet(AetSet* aetSet);
-		void DrawInspectorAet(Aet* aet);
+		void DrawInspectorAetSet(const RefPtr<AetSet>& aetSet);
+		void DrawInspectorAet(const RefPtr<Aet>& aet);
 		
-		void DrawInspectorAetLayer(Aet* aet, AetLayer* aetLayer);
-		void DrawInspectorLayerData(Aet* aet, AetObj* aetObj, AetLayer* aetLayer);
+		void DrawInspectorAetLayer(Aet* aet, const RefPtr<AetLayer>& aetLayer);
+		void DrawInspectorLayerData(Aet* aet, const RefPtr<AetObj>& aetObj, const RefPtr<AetLayer>& aetLayer);
 		
-		void DrawInspectorAetObj(Aet* aet, AetObj* aetObj);
-		void DrawInspectorRegionData(Aet* aet, AetObj* aetObj, AetRegion* spriteEntry);
+		void DrawInspectorAetObj(Aet* aet, const RefPtr<AetObj>& aetObj);
+		void DrawInspectorRegionData(Aet* aet, const RefPtr<AetObj>& aetObj, const RefPtr<AetRegion>& spriteEntry);
 		void DrawInspectorAnimationData(AnimationData* animationData, AetObjType objType);
 		void DrawInspectorKeyFrameProperties(KeyFrameProperties* properties);
 		void DrawInspectorKeyFrames(const char* name, std::vector<AetKeyFrame>* keyFrames);
 		void DrawInspectorAetObjMarkers(std::vector<AetMarker>* markers);
-		void DrawInspectorAetObjParent(Aet* aet, AetObj* aetObj);
+		void DrawInspectorAetObjParent(Aet* aet, const RefPtr<AetObj>& aetObj);
 		
-		void DrawInspectorAetRegion(Aet* aet, AetRegion* aetRegion);
+		void DrawInspectorAetRegion(Aet* aet, const RefPtr<AetRegion>& aetRegion);
 	};
 }
