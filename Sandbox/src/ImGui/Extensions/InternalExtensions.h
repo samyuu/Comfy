@@ -3,6 +3,19 @@
 
 namespace ImGui
 {
+	static bool IsItemActiveLastFrame()
+	{
+		ImGuiContext& g = *GImGui;
+		if (g.ActiveIdPreviousFrame)
+			return g.ActiveIdPreviousFrame == g.CurrentWindow->DC.LastItemId;
+		return false;
+	}
+
+	static bool IsItemJustMadeInactive()
+	{
+		return IsItemActiveLastFrame() && !IsItemActive();
+	}
+
 	static float CalcMaxPopupHeightFromItemCount(int items_count)
 	{
 		ImGuiContext& g = *GImGui;
