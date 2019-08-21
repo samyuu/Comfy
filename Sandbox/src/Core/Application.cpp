@@ -7,6 +7,7 @@
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
 #include "FileSystem/FileHelper.h"
+#include "System/BuildConfiguration.h"
 #include "System/BuildVersion.h"
 #include "Graphics/OpenGL/OpenGLLoader.h"
 #include "ImGui/Gui.h"
@@ -148,7 +149,7 @@ void Application::LoadComfyWindowIcon()
 void Application::SetComfyWindowIcon(GLFWwindow* window)
 {
 	assert(GlobalIconHandle != NULL);
-	
+
 	HWND windowHandle = glfwGetWin32Window(window);
 	::SendMessageA(windowHandle, WM_SETICON, ICON_SMALL, (LPARAM)GlobalIconHandle);
 	::SendMessageA(windowHandle, WM_SETICON, ICON_BIG, (LPARAM)GlobalIconHandle);
@@ -197,18 +198,18 @@ bool Application::BaseInitialize()
 	if (glfwInitResult == GLFW_FALSE)
 		return false;
 
-	GlobalModuleHandle = ::GetModuleHandleA(nullptr);
-
 	if (!InitializeWindow())
 		return false;
 
 	glfwGetWindowPos(window, &windowXPosition, &windowYPosition);
 	glfwMakeContextCurrent(window);
 	Graphics::OpenGLLoader::LoadFunctions(reinterpret_cast<OpenGLFunctionLoader*>(glfwGetProcAddress));
-	
+
 	BaseRegister();
 
+	GlobalModuleHandle = ::GetModuleHandleA(nullptr);
 	InitializeDirectInput(GlobalModuleHandle);
+
 	CheckConnectedDevices();
 
 	AudioEngine::CreateInstance();
@@ -386,7 +387,7 @@ bool Application::InitializeGui()
 	Gui::StyleComfy();
 
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init("#version 420");
+	ImGui_ImplOpenGL3_Init();
 
 	return true;
 }
@@ -581,10 +582,13 @@ void Application::DrawGui()
 					Gui::TextUnformatted("Value"); Gui::NextColumn();
 					Gui::Separator();
 
-					Gui::TextUnformatted("BuildVersion::Author"); 
+					Gui::TextUnformatted("BuildConfiguration");
+					Gui::NextColumn(); Gui::TextUnformatted(BuildConfiguration::Debug ? "Debug" : BuildConfiguration::Release ? "Release" : "Unknown");
+					Gui::NextColumn();
+					Gui::TextUnformatted("BuildVersion::Author");
 					Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::Author);
 					Gui::NextColumn();
-					Gui::TextUnformatted("BuildVersion::CommitHash"); 
+					Gui::TextUnformatted("BuildVersion::CommitHash");
 					Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitHash);
 					Gui::NextColumn();
 					Gui::TextUnformatted("BuildVersion::CommitTime");
@@ -604,7 +608,7 @@ void Application::DrawGui()
 				Gui::EndChild();
 
 				if (Gui::Button("Close", ImVec2(Gui::GetContentRegionAvailWidth(), 0)))
-					Gui::CloseCurrentPopup(); 
+					Gui::CloseCurrentPopup();
 
 				Gui::EndPopup();
 			}
@@ -741,8 +745,8 @@ void Application::DrawGuiBaseWindowMenus(const char* header, std::vector<RefPtr<
 {
 	if (Gui::BeginMenu(header))
 	{
-		DEBUG_ONLY(Gui::MenuItem("Style Editor", nullptr, &showStyleEditor));
-		DEBUG_ONLY(Gui::MenuItem("Demo Window", nullptr, &showDemoWindow));
+		Gui::MenuItem("Style Editor", nullptr, &showStyleEditor, BuildConfiguration::Debug);
+		Gui::MenuItem("Demo Window", nullptr, &showDemoWindow, BuildConfiguration::Debug);
 
 		for (const auto& component : components)
 			Gui::MenuItem(component->GetGuiName(), nullptr, component->GetIsGuiOpenPtr());
