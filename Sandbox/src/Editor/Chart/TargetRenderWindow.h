@@ -44,6 +44,16 @@ namespace Editor
 		UniquePtr<AetSet> aetSet;
 		UniquePtr<SprSet> sprSet;
 
+		struct /* AetObjCache */
+		{
+			RefPtr<AetObj> FrameUp, FrameBottom;
+			RefPtr<AetObj> LifeGauge;
+			RefPtr<AetObj> SongEnergyBase;
+			RefPtr<AetObj> SongIconLoop;
+			RefPtr<AetObj> LevelInfoEasy;
+			RefPtr<AetObj> SongInfoLoop;
+		} aetObjCache;
+
 		void RenderBackground();
 
 	private:

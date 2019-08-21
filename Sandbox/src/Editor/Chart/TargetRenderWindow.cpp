@@ -30,6 +30,14 @@ namespace Editor
 		aetSetLoader.LoadSync();
 		aetSetLoader.Read(aetSet.get());
 		aetSetLoader.FreeData();
+
+		aetObjCache.FrameUp = aetSet->front()->FindObj("frame_up_f");
+		aetObjCache.FrameBottom = aetSet->front()->FindObj("frame_bottom_f");
+		aetObjCache.LifeGauge = aetSet->front()->FindObj("life_gauge");
+		aetObjCache.SongEnergyBase = aetSet->front()->FindObj("song_energy_base_f");
+		aetObjCache.SongIconLoop = aetSet->front()->FindObj("song_icon_loop");
+		aetObjCache.LevelInfoEasy = aetSet->front()->FindObj("level_info_easy");
+		aetObjCache.SongInfoLoop = aetSet->front()->FindObj("song_icon_loop");
 	}
 
 	void TargetRenderWindow::OnDrawGui()
@@ -63,13 +71,13 @@ namespace Editor
 			{
 				RenderBackground();
 
-				aetRenderer->RenderAetObj(aetSet->front()->GetObj("frame_up_f"), 0.0f);
-				aetRenderer->RenderAetObj(aetSet->front()->GetObj("frame_bottom_f"), 0.0f);
-				aetRenderer->RenderAetObj(aetSet->front()->GetObj("life_gauge"), 0.0f);
-				aetRenderer->RenderAetObj(aetSet->front()->GetObj("song_energy_base_f"), 100.0f);
-				aetRenderer->RenderAetObj(aetSet->front()->GetObj("song_icon_loop"), 0.0f);
-				aetRenderer->RenderAetObj(aetSet->front()->GetObj("level_info_easy"), 0.0f);
-				aetRenderer->RenderAetObj(aetSet->front()->GetObj("song_icon_loop"), 0.0f);
+				aetRenderer->RenderAetObj(aetObjCache.FrameUp.get(), 0.0f);
+				aetRenderer->RenderAetObj(aetObjCache.FrameBottom.get(), 0.0f);
+				aetRenderer->RenderAetObj(aetObjCache.LifeGauge.get(), 0.0f);
+				aetRenderer->RenderAetObj(aetObjCache.SongEnergyBase.get(), 100.0f);
+				aetRenderer->RenderAetObj(aetObjCache.SongIconLoop.get(), 0.0f);
+				aetRenderer->RenderAetObj(aetObjCache.LevelInfoEasy.get(), 0.0f);
+				aetRenderer->RenderAetObj(aetObjCache.SongIconLoop.get(), 0.0f);
 			}
 			renderer->End();
 		}
@@ -89,6 +97,11 @@ namespace Editor
 	{
 		checkerboardGrid.Size = renderSize;
 		checkerboardGrid.Render(renderer.get());
+
+		renderer->Draw(
+			vec2(0.0f),
+			renderSize,
+			vec4(0.0f, 0.0f, 0.0f, .25f));
 	}
 
 	void TargetRenderWindow::UpdateContentLoading()
