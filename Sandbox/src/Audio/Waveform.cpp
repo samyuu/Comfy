@@ -1,5 +1,6 @@
 #include "Waveform.h"
 #include "Core/TimeSpan.h"
+#include "System/BuildConfiguration.h"
 
 Waveform::Waveform()
 {
@@ -34,20 +35,19 @@ void Waveform::Calculate(MemoryAudioStream* audioStream, TimeSpan timePerPixel)
 		for (int64_t i = 0; i < samplesPerPixel; i += channelCount)
 		{
 			int16_t shortPcm = sampleData[(pixel * samplesPerPixel) + i];
-			totalPcm += abs(shortPcm);
+			totalPcm += glm::abs(shortPcm);
 		}
 
 		int64_t averagePcm = totalPcm / samplesPerChannelPixel;
 
-		float floatPcm = averagePcm / (float)SHRT_MAX;
+		float floatPcm = averagePcm / static_cast<float>(std::numeric_limits<int16_t>::max());
 		pixelPCMs.push_back(floatPcm);
 	}
 }
 
 float Waveform::GetPcmForPixel(int64_t pixel)
 {
-	DEBUG_ONLY(return pixelPCMs.at(pixel));
-	return pixelPCMs[pixel];
+	return DEBUG_RELEASE_SWITCH(pixelPCMs.at(pixel), pixelPCMs[pixel]);
 }
 
 size_t Waveform::GetPixelCount()
