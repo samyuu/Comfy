@@ -15,7 +15,7 @@ bool LicenseWindow::DrawGui()
 	Gui::BulletText("License:");
 	Gui::Separator();
 
-	Gui::BeginChild("##LicenseWindowListChild", ImVec2(Gui::GetWindowWidth() * listWidth, 0), true, scrollBarWindowFlags);
+	Gui::BeginChild("ListChild##LicenseWindow", ImVec2(Gui::GetWindowWidth() * listWidth, 0), true, scrollBarWindowFlags);
 	{
 		for (int i = 0; i < licenseData.size(); i++)
 			if (Gui::Selectable(licenseData[i].Name.c_str(), i == selectedIndex))
@@ -23,7 +23,7 @@ bool LicenseWindow::DrawGui()
 	}
 	Gui::EndChild();
 	Gui::SameLine();
-	Gui::BeginChild("##LicenseWindowInfoChild", ImVec2(0, 0), true);
+	Gui::BeginChild("InfoChild##LicenseWindow", ImVec2(0, 0), true);
 	{
 		if (selectedIndex >= 0 && selectedIndex < licenseData.size())
 		{
@@ -32,13 +32,22 @@ bool LicenseWindow::DrawGui()
 			Gui::BulletText("%s / %s:", data->Name.c_str(), data->LicenseName.c_str());
 			Gui::Separator();
 
-			Gui::BeginChild("##LicenseWindowInfoChildInner", ImVec2(0, 0), true);
+			Gui::BeginChild("InfoChildInner##LicenseWindow", ImVec2(0, 0), true);
 			{
-				Gui::Text("%s", data->Description.c_str());
+				Gui::TextUnformatted(data->Description.c_str());
 
-				Gui::BeginChild("##LicenseWindowInfoChildLicense", ImVec2(0, 0), true, scrollBarWindowFlags);
+				Gui::BeginChild("InfoChildLicense##LicenseWindow", ImVec2(0, 0), true, scrollBarWindowFlags);
 				{
-					Gui::Text("%s", data->License.c_str());
+					Gui::TextUnformatted(data->License.c_str());
+
+					if (!data->Remark.empty())
+					{
+						Gui::TextUnformatted("\n");
+						Gui::Separator();
+						Gui::PushStyleColor(ImGuiCol_Text, remarkTextColor);
+						Gui::TextUnformatted(data->Remark.c_str());
+						Gui::PopStyleColor();
+					}
 				}
 				Gui::EndChild();
 			}
@@ -62,6 +71,7 @@ const char* LicenseWindow::GetWindowName() const
 void LicenseWindow::LoadLicenseData()
 {
 	auto licenseFilePaths = FileSystem::GetFiles("rom/license");
+	licenseData.reserve(licenseFilePaths.size());
 
 	for (const auto& filePath : licenseFilePaths)
 	{
@@ -71,7 +81,7 @@ void LicenseWindow::LoadLicenseData()
 		licenseData.emplace_back();
 		auto info = &licenseData.back();
 
-		enum { name, description, license_name, license } type = {};
+		enum { name, description, license_name, license, remark } type = {};
 
 		for (size_t i = 0; i < lines.size(); i++)
 		{
@@ -87,14 +97,16 @@ void LicenseWindow::LoadLicenseData()
 					type = license_name;
 				else if (line == "#license")
 					type = license;
+				else if (line == "#remark")
+					type = remark;
 				continue;
 			}
 
-			std::string* stringToAppend = &(&info->Name)[type];
+			std::string& stringToAppend = info->Strings[type];
 
-			stringToAppend->reserve(stringToAppend->size() + line.size() + 1);
-			stringToAppend->append(line);
-			stringToAppend->append("\n");
+			stringToAppend.reserve(stringToAppend.size() + line.size() + 1);
+			stringToAppend.append(line);
+			stringToAppend.append("\n");
 		}
 	}
 

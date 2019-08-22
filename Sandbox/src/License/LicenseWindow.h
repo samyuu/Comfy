@@ -1,28 +1,47 @@
 #pragma once
+#include "Types.h"
 #include "Misc/StringHelper.h"
 #include <vector>
 
 struct LicenseInfo
 {
-	std::string Name;
-	std::string Description;
-	std::string LicenseName;
-	std::string License;
 
-	LicenseInfo()
+	union
 	{
+		struct
+		{
+			std::string Name;
+			std::string Description;
+			std::string LicenseName;
+			std::string License;
+			std::string Remark;
+		};
+		std::string Strings[5];
 	};
 
-	LicenseInfo(const char* name, const char* description, const char* licenseName, const char* license)
-		: Name(name), Description(description), LicenseName(licenseName), License(license)
+	LicenseInfo() : LicenseInfo("", "", "", "", "")
+	{
+	}
+
+	LicenseInfo(const char* name, const char* description, const char* licenseName, const char* license, const char* remark)
+		: Name(name), Description(description), LicenseName(licenseName), License(license), Remark(remark)
 	{
 		TrimAllEnds();
-	};
+	}
+
+	LicenseInfo(const LicenseInfo& other)
+	{
+		*Strings = *other.Strings;
+	}
+
+	~LicenseInfo()
+	{
+	}
 
 	void TrimAllEnds()
 	{
-		for (std::string* stringPtr = &Name; stringPtr <= &License; stringPtr++)
-			Trim(*stringPtr);
+		for (auto& string : Strings)
+			Trim(string);
 	}
 };
 
@@ -40,6 +59,7 @@ private:
 	const float listWidth = .2f;
 
 	std::vector<LicenseInfo> licenseData;
+	const vec4 remarkTextColor = { 0.85f, 0.86f, 0.15f, 1.0f };
 
 	void LoadLicenseData();
 };
