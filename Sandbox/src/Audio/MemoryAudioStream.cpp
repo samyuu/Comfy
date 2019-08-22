@@ -1,6 +1,8 @@
 #include "MemoryAudioStream.h"
 #include "ChannelMixer.h"
 #include "AudioEngine.h"
+#include "Misc/StringHelper.h"
+#include "Misc/EndianHelper.h"
 #include <dr_wav.h>
 #include <dr_flac.h>
 #include <dr_mp3.h>
@@ -24,12 +26,11 @@ void MemoryAudioStream::LoadFromFile(const std::string& filePath)
 {
 	assert(!GetIsInitialized());
 
-	wchar_t widePath[MAX_PATH];
-	int wideBytes = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, filePath.c_str(), -1, widePath, sizeof(widePath));
-
-	uint32_t fileMagic = GetFileMagic(widePath);
-	uint32_t swappedMagic = ((fileMagic >> 24) & 0xff) | ((fileMagic << 8) & 0xff0000) | ((fileMagic >> 8) & 0xff00) | ((fileMagic << 24) & 0xff000000);
-
+	std::wstring widePath = Utf8ToUtf16(filePath);
+	
+	uint32_t fileMagic = GetFileMagic(widePath.c_str());
+	uint32_t swappedMagic = ByteswapUInt32(fileMagic);
+	
 	switch (swappedMagic)
 	{
 	case 'RIFF':
@@ -45,13 +46,13 @@ void MemoryAudioStream::LoadFromFile(const std::string& filePath)
 		LoadOgg(widePath);
 		break;
 
-		case 'ID3' + (0x3 >> 24) :
-			LoadMp3(widePath);
-			break;
+	case ('ID3' + (0x3 >> 24)):
+		LoadMp3(widePath);
+		break;
 
-		default:
-			assert(false);
-			return;
+	default:
+		assert(false);
+		return;
 	}
 
 	uint32_t channelTargetCount = AudioEngine::GetInstance()->GetChannelCount();
@@ -84,7 +85,7 @@ int64_t MemoryAudioStream::ReadSamples(int16_t* bufferToFill, int64_t sampleOffs
 		// fill the buffer with silence
 		return samplesToRead;
 	}
-		
+
 	if (sampleOffset < 0 && sampleOffset + samplesToRead > 0)
 	{
 		int64_t nonSilentSamples = (samplesToRead + sampleOffset);
