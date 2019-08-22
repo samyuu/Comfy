@@ -54,6 +54,9 @@ dev_rom/
 # Version Control files
 Sandbox/src/System/BuildVersion.h
 
+# Comfy test files
+Sandbox/src/main_test.cpp
+
 # Benchmark Results
 BenchmarkDotNet.Artifacts/
 
