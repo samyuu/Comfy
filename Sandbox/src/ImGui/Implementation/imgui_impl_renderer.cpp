@@ -21,7 +21,7 @@ static void ImGui_ImplOpenGL3_InitPlatformInterface();
 static void ImGui_ImplOpenGL3_ShutdownPlatformInterface();
 
 // Functions
-bool ImGui_ImplOpenGL3_Init(const char* glsl_version)
+bool ImGui_ImplOpenGL3_Init()
 {
 	// Setup back-end capabilities flags
 	ImGuiIO& io = ImGui::GetIO();
@@ -29,10 +29,8 @@ bool ImGui_ImplOpenGL3_Init(const char* glsl_version)
 	io.BackendRendererName = "ComfyGL3";
 
 	// Store GLSL version string so we can refer to it later in case we recreate shaders. Note: GLSL version is NOT the same as GL version. Leave this to NULL if unsure.
-	if (glsl_version == nullptr)
-		glsl_version = "#version 410";
+	const char* glsl_version = "#version 420";
 
-	IM_ASSERT((int)strlen(glsl_version) + 2 < IM_ARRAYSIZE(g_GlslVersionString));
 	strcpy(g_GlslVersionString, glsl_version);
 	strcat(g_GlslVersionString, "\n");
 
@@ -437,8 +435,8 @@ static void ImGui_ImplOpenGL3_RenderWindow(ImGuiViewport* viewport, void*)
 {
 	if (!(viewport->Flags & ImGuiViewportFlags_NoRendererClear))
 	{
-		GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-		GLCall(glClear(GL_COLOR_BUFFER_BIT));
+		Graphics::RenderCommand::SetClearColor(vec4(0.0f, 0.0f, 0.0f, 1.0f));
+		Graphics::RenderCommand::Clear(Graphics::ClearTarget_ColorBuffer);
 	}
 	ImGui_ImplOpenGL3_RenderDrawData(viewport->DrawData);
 }
