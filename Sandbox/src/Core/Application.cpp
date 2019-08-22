@@ -143,7 +143,7 @@ const std::vector<std::string>& Application::GetDroppedFiles() const
 void Application::LoadComfyWindowIcon()
 {
 	assert(GlobalIconHandle == NULL);
-	GlobalIconHandle = ::LoadIconA(GlobalModuleHandle, MAKEINTRESOURCE(COMFY_ICON));
+	GlobalIconHandle = ::LoadIconA(GlobalModuleHandle, MAKEINTRESOURCEA(COMFY_ICON));
 }
 
 void Application::SetComfyWindowIcon(GLFWwindow* window)
@@ -191,6 +191,7 @@ bool Application::BaseInitialize()
 		return false;
 
 	hasBeenInitialized = true;
+	GlobalModuleHandle = ::GetModuleHandleA(nullptr);
 
 	glfwSetErrorCallback(&GlfwErrorCallback);
 
@@ -201,15 +202,12 @@ bool Application::BaseInitialize()
 	if (!InitializeWindow())
 		return false;
 
-	glfwGetWindowPos(window, &windowXPosition, &windowYPosition);
 	glfwMakeContextCurrent(window);
 	Graphics::OpenGLLoader::LoadFunctions(reinterpret_cast<OpenGLFunctionLoader*>(glfwGetProcAddress));
 
 	BaseRegister();
 
-	GlobalModuleHandle = ::GetModuleHandleA(nullptr);
 	InitializeDirectInput(GlobalModuleHandle);
-
 	CheckConnectedDevices();
 
 	AudioEngine::CreateInstance();
@@ -338,6 +336,7 @@ bool Application::InitializeWindow()
 		return false;
 
 	glfwSetWindowSizeLimits(window, WindowWidthMin, WindowHeightMin, GLFW_DONT_CARE, GLFW_DONT_CARE);
+	glfwGetWindowPos(window, &windowXPosition, &windowYPosition);
 
 	Application::LoadComfyWindowIcon();
 	Application::SetComfyWindowIcon(window);
@@ -347,7 +346,6 @@ bool Application::InitializeWindow()
 
 bool Application::InitializeGui()
 {
-	IMGUI_CHECKVERSION();
 	Gui::CreateContext();
 
 	ImGuiIO& io = Gui::GetIO();
@@ -569,6 +567,7 @@ void Application::DrawGui()
 				Gui::EndPopup();
 			}
 
+			// TODO: make window class and use undockable window instead of popup window since it doesn't need to block input
 			bool aboutWindowOpen = true;
 			if (Gui::BeginPopupModal(aboutWindowID, &aboutWindowOpen, ImGuiWindowFlags_AlwaysAutoResize))
 			{
@@ -617,7 +616,7 @@ void Application::DrawGui()
 			sprintf_s(infoBuffer, sizeof(infoBuffer), "%.3f ms (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 
 			Gui::SetCursorPosX(Gui::GetWindowWidth() - Gui::CalcTextSize(infoBuffer).x - Gui::GetStyle().WindowPadding.x);
-			Gui::Text(infoBuffer);
+			Gui::TextUnformatted(infoBuffer);
 
 			Gui::EndMainMenuBar();
 		}
