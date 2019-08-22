@@ -7,8 +7,10 @@ namespace System
 {
 	constexpr HMODULE InvalidModuleHandle = NULL;
 
-	LibraryLoader::LibraryLoader(const char* libraryName) : libraryName(libraryName), moduleHandle(InvalidModuleHandle)
+	LibraryLoader::LibraryLoader(const char* libraryName, bool loadOnInit) : libraryName(libraryName), moduleHandle(InvalidModuleHandle)
 	{
+		if (loadOnInit)
+			Load(nullptr);
 	}
 
 	LibraryLoader::~LibraryLoader()
