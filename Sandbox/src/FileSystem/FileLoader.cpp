@@ -19,8 +19,8 @@ namespace FileSystem
 
 	FileLoader::~FileLoader()
 	{
-		if (threadStarted && loaderThread.joinable())
-			loaderThread.join();
+		if (loaderThread != nullptr && loaderThread->joinable())
+			loaderThread->join();
 	}
 
 	const std::string& FileLoader::GetFilePath() const
@@ -31,7 +31,7 @@ namespace FileSystem
 	void FileLoader::SetFilePath(const std::string& value)
 	{
 		assert(!isLoaded);
-		assert(!threadRunning && !threadStarted);
+		assert(!threadRunning && loaderThread == nullptr);
 	
 		filePath = value;
 	}
@@ -61,8 +61,7 @@ namespace FileSystem
 		if (!GetFileFound())
 			return;
 
-		threadStarted = true;
-		loaderThread = std::thread([this]()
+		loaderThread = MakeUnique<std::thread>([this]()
 		{
 			threadRunning = true;
 			if (ReadAllBytes(Utf8ToUtf16(filePath), &fileContent))
@@ -75,7 +74,7 @@ namespace FileSystem
 
 	void FileLoader::CheckStartLoadAsync()
 	{
-		if (!isLoaded && !threadStarted && !threadRunning)
+		if (!isLoaded && loaderThread == nullptr && !threadRunning)
 			LoadAsync();
 	}
 
@@ -132,7 +131,7 @@ namespace FileSystem
 
 		if (!GetFileFound())
 		{
-			Logger::LogErrorLine(__FUNCTION__ "(): %s not found", filePath.c_str());
+			Logger::LogErrorLine(__FUNCTION__"(): %s not found", filePath.c_str());
 		}
 	}
 

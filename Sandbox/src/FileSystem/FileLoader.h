@@ -2,6 +2,7 @@
 #include "Types.h"
 #include "FileInterface.h"
 #include <vector>
+#include <atomic>
 #include <thread>
 
 namespace FileSystem
@@ -68,9 +69,8 @@ namespace FileSystem
 		bool fileFound = false;
 		std::vector<uint8_t> fileContent;
 	
-		bool threadStarted = false;
-		bool threadRunning = false;
-		std::thread loaderThread;
+		std::atomic_bool threadRunning = false;
+		UniquePtr<std::thread> loaderThread = nullptr;
 
 		void CheckFileLocation();
 
