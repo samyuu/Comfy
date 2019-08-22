@@ -69,7 +69,7 @@
       <OmitFramePointers>false</OmitFramePointers>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>glfw3-debug.lib;dxguid.lib;dinput8.lib;shlwapi.lib;rtaudio-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dinput8.lib;shlwapi.lib;rtaudio-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)lib\glfw\lib;$(ProjectDir)lib\libsndfile\lib;$(ProjectDir)lib\rtaudio\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
@@ -102,7 +102,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>glfw3.lib;dxguid.lib;dinput8.lib;shlwapi.lib;rtaudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dinput8.lib;shlwapi.lib;rtaudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)lib\glfw\lib;$(ProjectDir)lib\libsndfile\lib;$(ProjectDir)lib\rtaudio\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -112,6 +112,18 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lib\glfw\src\context.cpp" />
+    <ClCompile Include="lib\glfw\src\egl_context.cpp" />
+    <ClCompile Include="lib\glfw\src\init.cpp" />
+    <ClCompile Include="lib\glfw\src\input.cpp" />
+    <ClCompile Include="lib\glfw\src\monitor.cpp" />
+    <ClCompile Include="lib\glfw\src\wgl_context.cpp" />
+    <ClCompile Include="lib\glfw\src\win32_init.cpp" />
+    <ClCompile Include="lib\glfw\src\win32_monitor.cpp" />
+    <ClCompile Include="lib\glfw\src\win32_thread.cpp" />
+    <ClCompile Include="lib\glfw\src\win32_time.cpp" />
+    <ClCompile Include="lib\glfw\src\win32_window.cpp" />
+    <ClCompile Include="lib\glfw\src\window.cpp" />
     <ClCompile Include="src\Editor\Aet\Command\AetCommand.cpp" />
     <ClCompile Include="src\Editor\Aet\Command\AetHistoryWindow.cpp" />
     <ClCompile Include="src\Editor\Aet\Command\Commands.cpp" />
@@ -221,6 +233,12 @@
     <ClCompile Include="src\FileSystem\Stream\Stream.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lib\glfw\src\egl_context.h" />
+    <ClInclude Include="lib\glfw\include\glfw\glfw3.h" />
+    <ClInclude Include="lib\glfw\include\glfw\glfw3native.h" />
+    <ClInclude Include="lib\glfw\src\internal.h" />
+    <ClInclude Include="lib\glfw\src\wgl_context.h" />
+    <ClInclude Include="lib\glfw\src\win32_platform.h" />
     <ClInclude Include="src\Core\DebugStopwatch.h" />
     <ClInclude Include="src\Editor\Aet\Command\Commands.h" />
     <ClInclude Include="src\Editor\Aet\IMutableAetEditorComponent.h" />
