@@ -251,7 +251,7 @@ namespace FileSystem
 
 	std::string GetFileName(const std::string& filePath, bool extension)
 	{
-		FileSystemPath path(filePath);
+		FileSystemPath path = std::filesystem::u8path(filePath);
 		return extension ? path.filename().string() : (path.has_stem() ? path.stem().string() : "");
 	}
 
@@ -273,11 +273,11 @@ namespace FileSystem
 
 	std::string GetFileExtension(const std::string& filePath)
 	{
-		FileSystemPath path(filePath);
+		FileSystemPath path = std::filesystem::u8path(filePath);
 		return path.extension().string();
 	}
 
-	std::wstring GetFileExtension(const std::wstring & filePath)
+	std::wstring GetFileExtension(const std::wstring& filePath)
 	{
 		FileSystemPath path(filePath);
 		return path.extension().wstring();
