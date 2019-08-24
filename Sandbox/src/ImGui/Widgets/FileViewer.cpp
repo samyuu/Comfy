@@ -267,7 +267,11 @@ namespace ImGui
 	void FileViewer::OpenContextItemDefaultProgram()
 	{
 		if (contextMenuFilePathInfo != nullptr)
-			FileSystem::OpenWithDefaultProgram(Utf8ToUtf16(contextMenuFilePathInfo->FullPath));
+		{
+			std::string filePath = contextMenuFilePathInfo->FullPath;
+			FileSystem::FuckUpWindowsPath(filePath);
+			FileSystem::OpenWithDefaultProgram(Utf8ToUtf16(filePath));
+		}
 	}
 
 	void FileViewer::OpenContextItemProperties()
