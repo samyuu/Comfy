@@ -65,7 +65,7 @@ namespace Graphics::Auth2D
 			return last.Value;
 
 		const AetKeyFrame* start = &keyFrames[0];
-		const AetKeyFrame* end = nullptr;
+		const AetKeyFrame* end = start;
 
 		for (int i = 1; i < keyFrames.size(); i++)
 		{
