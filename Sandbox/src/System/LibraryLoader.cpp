@@ -28,7 +28,7 @@ namespace System
 		wchar_t previousWorkingDirectory[MAX_PATH];
 		if (directory != nullptr)
 		{
-			::GetCurrentDirectoryW(sizeof(previousWorkingDirectory), previousWorkingDirectory);
+			::GetCurrentDirectoryW(MAX_PATH, previousWorkingDirectory);
 			::SetCurrentDirectoryW(Utf8ToUtf16(directory).c_str());
 		}
 
