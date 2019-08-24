@@ -137,12 +137,11 @@ namespace FileSystem
 		if (length == 1)
 			return "";
 
-		char* buffer = (char*)alloca(length * sizeof(char));
-		Read(buffer, length * sizeof(char));
+		std::string value; 
+		value.resize(length - 1);
+		
+		Read(value.data(), length * sizeof(char) - 1);
 
-		buffer[length - 1] = '\0';
-
-		auto value = std::string(buffer);
 		return value;
 	}
 
