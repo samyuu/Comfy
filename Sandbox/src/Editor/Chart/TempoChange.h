@@ -39,7 +39,7 @@ namespace Editor
 
 		// Operators:
 		// ----------
-		inline bool operator== (const TempoChange &other) const { return (Tick == other.Tick) && (Tick == other.Tick); };
+		inline bool operator== (const TempoChange &other) const { return (Tick == other.Tick); };
 		inline bool operator< (const TempoChange &other) const { return Tick < other.Tick; };
 		inline bool operator> (const TempoChange &other) const { return Tick > other.Tick; };
 		// ----------
