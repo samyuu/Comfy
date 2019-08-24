@@ -1,4 +1,5 @@
 #include "FileHelper.h"
+#include "FileReader.h"
 #include "Misc/StringHelper.h"
 #include <filesystem>
 #include <shlwapi.h>
@@ -309,21 +310,6 @@ namespace FileSystem
 		return ::CreateFileW(filePath.c_str(), read ? GENERIC_READ : GENERIC_WRITE, NULL, NULL, read ? OPEN_EXISTING : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	}
 
-	static bool ReadAllBytesInternal(HANDLE fileHandle, std::vector<uint8_t>* buffer)
-	{
-		LARGE_INTEGER fileSizeLarge = {};
-		::GetFileSizeEx(fileHandle, &fileSizeLarge);
-
-		DWORD fileSize = static_cast<DWORD>(fileSizeLarge.QuadPart);
-		buffer->resize(fileSize);
-
-		DWORD bytesRead = {};
-		::ReadFile(fileHandle, buffer->data(), fileSize, &bytesRead, nullptr);
-		int error = ::GetLastError();
-
-		return !FAILED(error) && (bytesRead == fileSize);
-	}
-
 	static bool WriteAllBytesInternal(HANDLE fileHandle, const std::vector<uint8_t>& buffer)
 	{
 		DWORD bytesToWrite = static_cast<DWORD>(buffer.size());
@@ -335,31 +321,9 @@ namespace FileSystem
 		return !FAILED(error) && (bytesWritten == bytesToWrite);
 	}
 
-	bool ReadAllBytes(const std::string& filePath, std::vector<uint8_t>* buffer)
-	{
-		HANDLE fileHandle = CreateFileHandleInternal(filePath.c_str(), true);
-		int error = ::GetLastError();
-
-		bool result = ReadAllBytesInternal(fileHandle, buffer);
-		::CloseHandle(fileHandle);
-
-		return result;
-	}
-
-	bool ReadAllBytes(const std::wstring& filePath, std::vector<uint8_t>* buffer)
-	{
-		HANDLE fileHandle = CreateFileHandleInternal(filePath.c_str(), true);
-		int error = ::GetLastError();
-
-		bool result = ReadAllBytesInternal(fileHandle, buffer);
-		::CloseHandle(fileHandle);
-
-		return result;
-	}
-
 	bool WriteAllBytes(const std::string& filePath, const std::vector<uint8_t>& buffer)
 	{
-		HANDLE fileHandle = CreateFileHandleInternal(filePath.c_str(), false);
+		HANDLE fileHandle = CreateFileHandleInternal(filePath, false);
 		int error = ::GetLastError();
 
 		bool result = WriteAllBytesInternal(fileHandle, buffer);
@@ -370,7 +334,7 @@ namespace FileSystem
 
 	bool WriteAllBytes(const std::wstring& filePath, const std::vector<uint8_t>& buffer)
 	{
-		HANDLE fileHandle = CreateFileHandleInternal(filePath.c_str(), false);
+		HANDLE fileHandle = CreateFileHandleInternal(filePath, false);
 		int error = ::GetLastError();
 
 		bool result = WriteAllBytesInternal(fileHandle, buffer);

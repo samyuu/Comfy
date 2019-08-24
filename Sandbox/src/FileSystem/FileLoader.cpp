@@ -45,7 +45,7 @@ namespace FileSystem
 		if (!GetFileFound())
 			return;
 
-		if (ReadAllBytes(filePath, &fileContent))
+		if (FileReader::ReadEntireFile(Utf8ToUtf16(filePath), &fileContent))
 		{
 			SetIsLoaded(true);
 		}
@@ -64,7 +64,7 @@ namespace FileSystem
 		loaderThread = MakeUnique<std::thread>([this]()
 		{
 			threadRunning = true;
-			if (ReadAllBytes(Utf8ToUtf16(filePath), &fileContent))
+			if (FileReader::ReadEntireFile(Utf8ToUtf16(filePath), &fileContent))
 			{
 				SetIsLoaded(true);
 			}

@@ -1,4 +1,5 @@
 #pragma once
+#include "FileSystem/FileReader.h"
 #include <string>
 #include <vector>
 
@@ -56,9 +57,6 @@ namespace FileSystem
 
 	std::vector<std::string> GetFiles(const std::string& directory);
 	std::vector<std::wstring> GetFiles(const std::wstring& directory);
-
-	bool ReadAllBytes(const std::string& filePath, std::vector<uint8_t>* buffer);
-	bool ReadAllBytes(const std::wstring& filePath, std::vector<uint8_t>* buffer);
 
 	bool WriteAllBytes(const std::string& filePath, const std::vector<uint8_t>& buffer);
 	bool WriteAllBytes(const std::wstring& filePath, const std::vector<uint8_t>& buffer);
