@@ -156,8 +156,8 @@ namespace Graphics
 
 	void ShaderProgram::LoadShaderSources()
 	{
-		FileSystem::ReadAllBytes(GetVertexShaderPath(), &vertexSource);
-		FileSystem::ReadAllBytes(GetFragmentShaderPath(), &fragmentSource);
+		FileSystem::FileReader::ReadEntireFile(std::string(GetVertexShaderPath()), &vertexSource);
+		FileSystem::FileReader::ReadEntireFile(std::string(GetFragmentShaderPath()), &fragmentSource);
 	}
 
 	int ShaderProgram::CompileShader(ShaderType shaderType, ShaderID_t* shaderID, const std::vector<uint8_t>& shaderSource)
