@@ -24,7 +24,7 @@ namespace App
 
 		template <class T> void StartTask() 
 		{
-			static_assert(std::is_convertible<T*, Task*>::value);
+			static_assert(std::is_base_of<Task, T>::value, "T must inherit from Task");
 
 			tasks.push_back(MakeRefPtr<T>());
 			tasks.back()->Initialize();
