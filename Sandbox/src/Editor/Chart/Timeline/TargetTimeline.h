@@ -13,7 +13,7 @@ namespace Editor
 	enum EditorColor;
 	class ChartEditor;
 
-	class TargetTimeline : public TimelineBase, public ICallbackReceiver
+	class TargetTimeline : public TimelineBase, public Audio::ICallbackReceiver
 	{
 	public:
 		TargetTimeline(ChartEditor* parentChartEditor);
@@ -61,7 +61,7 @@ namespace Editor
 		AudioController audioController;
 
 		bool updateWaveform;
-		Waveform songWaveform;
+		Audio::Waveform songWaveform;
 		// ----------------------
 
 		// Timeline:

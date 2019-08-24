@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/TimeSpan.h"
-#include "Audio/AudioInstance.h"
-#include "Audio/MemoryAudioStream.h"
+#include "Audio/Core/AudioInstance.h"
+#include "Audio/SampleProvider/MemorySampleProvider.h"
 #include <array>
 
 namespace Editor
@@ -17,7 +17,7 @@ namespace Editor
 		void Initialize();
 		void PlayButtonSound();
 
-		MemoryAudioStream* GetButtonSoundSource(int index);
+		const RefPtr<Audio::MemorySampleProvider>& GetButtonSoundSource(int index);
 
 	private:
 		const char* buttonSoundPath = u8"rom/sound/button/01_button1.wav";
@@ -26,9 +26,9 @@ namespace Editor
 		float buttonSoundVolume = 0.75f;
 		
 		int buttonSoundIndex = -1;
-		std::vector<MemoryAudioStream> buttonSoundSources;
-		std::array<RefPtr<AudioInstance>, 16> buttonSoundInstancePool;
+		std::vector<RefPtr<Audio::MemorySampleProvider>> buttonSoundSources;
+		std::array<RefPtr<Audio::AudioInstance>, 16> buttonSoundInstancePool;
 
-		void PlayButtonSound(AudioInstance* audioInstance);
+		void PlayButtonSound(Audio::AudioInstance* audioInstance);
 	};
 }

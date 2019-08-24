@@ -210,8 +210,8 @@ bool Application::BaseInitialize()
 	InitializeDirectInput(GlobalModuleHandle);
 	CheckConnectedDevices();
 
-	AudioEngine::CreateInstance();
-	AudioEngine::InitializeInstance();
+	Audio::AudioEngine::CreateInstance();
+	Audio::AudioEngine::InitializeInstance();
 
 	InitializeGui();
 	InitializeApp();
@@ -310,8 +310,8 @@ void Application::BaseDispose()
 	// Force delete before the OpenGL context is destroyed
 	pvEditor.reset();
 
-	AudioEngine::DisposeInstance();
-	AudioEngine::DeleteInstance();
+	Audio::AudioEngine::DisposeInstance();
+	Audio::AudioEngine::DeleteInstance();
 
 	Keyboard::DeleteInstance();
 	DualShock4::DeleteInstance();
@@ -810,7 +810,7 @@ void Application::WindowFocusCallback(bool focused)
 
 void Application::WindowClosingCallback()
 {
-	AudioEngine* audioEngine = AudioEngine::GetInstance();
+	Audio::AudioEngine* audioEngine = Audio::AudioEngine::GetInstance();
 
 	if (audioEngine != nullptr)
 		audioEngine->StopStream();

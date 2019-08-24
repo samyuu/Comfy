@@ -1,20 +1,22 @@
 #pragma once
-#include "MemoryAudioStream.h"
-#include <vector>
+#include "SampleProvider/MemorySampleProvider.h"
 
 struct TimeSpan;
 
-class Waveform
+namespace Audio
 {
-public:
-	Waveform();
-	~Waveform();
+	class Waveform
+	{
+	public:
+		Waveform();
+		~Waveform();
 
-	void Calculate(MemoryAudioStream* audioStream, TimeSpan timePerPixel);
-	float GetPcmForPixel(int64_t pixel);
-	size_t GetPixelCount();
+		void Calculate(MemorySampleProvider* audioStream, TimeSpan timePerPixel);
+		float GetPcmForPixel(int64_t pixel);
+		size_t GetPixelCount();
 
-protected:
-	// Mapping of pixel <-> averaged PCM
-	std::vector<float> pixelPCMs;
-};
+	protected:
+		// Mapping of pixel <-> averaged PCM
+		std::vector<float> pixelPCMs;
+	};
+}

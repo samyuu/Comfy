@@ -1,6 +1,6 @@
 #include "AudioTestWindow.h"
 #include "Core/Application.h"
-#include "Audio/AudioInstance.h"
+#include "Audio/Core/AudioInstance.h"
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
 #include <sstream>
@@ -18,7 +18,7 @@ namespace DataTest
 
 	void AudioTestWindow::DrawGui()
 	{
-		AudioEngine* engine = AudioEngine::GetInstance();
+		Audio::AudioEngine* engine = Audio::AudioEngine::GetInstance();
 
 		auto checkStartStream = [&engine]()
 		{
@@ -33,20 +33,17 @@ namespace DataTest
 			}
 		};
 
-		if (false)
-			Gui::ShowDemoWindow(nullptr);
-
-		Gui::Text("Audio Test:");
+		Gui::TextUnformatted("Audio Test:");
 		Gui::Separator();
 
 		float masterVolume = engine->GetMasterVolume();
-		if (Gui::SliderFloat("Master Volume", &masterVolume, MIN_VOLUME, MAX_VOLUME))
+		if (Gui::SliderFloat("Master Volume", &masterVolume, Audio::AudioEngine::MinVolume, Audio::AudioEngine::MaxVolume))
 			engine->SetMasterVolume(masterVolume);
 		Gui::Separator();
 
 		if (Gui::CollapsingHeader("Device List"))
 		{
-			Gui::Text("Device(s): %d", deviceInfoList.size());
+			Gui::Text("Device(s): %d", static_cast<int>(deviceInfoList.size()));
 
 			float halfWindowWidth = Gui::GetWindowWidth() / 2.0f;
 
@@ -85,7 +82,7 @@ namespace DataTest
 				Gui::SameLine();
 				Gui::Text("engine->GetIsStreamOpen():");
 				Gui::SameLine();
-				Gui::TextColored(isStreamOpen ? onColor : offColor, isStreamOpen ? "open" : "closed");
+				Gui::TextColored(isStreamOpen ? onColor : offColor, isStreamOpen ? "Open" : "Closed");
 			}
 
 			{
@@ -100,7 +97,7 @@ namespace DataTest
 				Gui::SameLine();
 				Gui::Text("engine->GetIsStreamRunning():");
 				Gui::SameLine();
-				Gui::TextColored(isStreamRunning ? onColor : offColor, isStreamRunning ? "running" : "stopped");
+				Gui::TextColored(isStreamRunning ? onColor : offColor, isStreamRunning ? "Running" : "Stopped");
 			}
 			Gui::PopItemWidth();
 
@@ -114,10 +111,10 @@ namespace DataTest
 		{
 			Gui::TextDisabled("(engine->GetActiveAudioApi(): %s)", audioApiNames[static_cast<int>(engine->GetActiveAudioApi())]);
 
-			if (selectedAudioApi == AudioApi::Invalid)
+			if (selectedAudioApi == Audio::AudioApi::Invalid)
 				selectedAudioApi = engine->GetActiveAudioApi();
 
-			Gui::Combo("Audio API##combo", reinterpret_cast<int*>(&selectedAudioApi), audioApiNames.data(), static_cast<int>(audioApiNames.size()));
+			Gui::Combo("Audio API##Combo", reinterpret_cast<int*>(&selectedAudioApi), audioApiNames.data(), static_cast<int>(audioApiNames.size()));
 			Gui::Separator();
 
 			if (Gui::Button("engine->SetAudioApi()", ImVec2(Gui::CalcItemWidth(), 0)))
@@ -138,11 +135,21 @@ namespace DataTest
 			const uint32_t slowStep = 8, fastStep = 64;
 			Gui::InputScalar("Buffer Size", ImGuiDataType_U32, &newBufferSize, &slowStep, &fastStep, "%u");
 
-			if (newBufferSize > MAX_BUFFER_SIZE)
-				newBufferSize = MAX_BUFFER_SIZE;
+			if (newBufferSize > Audio::AudioEngine::MAX_BUFFER_SIZE)
+				newBufferSize = Audio::AudioEngine::MAX_BUFFER_SIZE;
 
 			if (Gui::Button("engine->SetBufferSize()", ImVec2(Gui::CalcItemWidth(), 0)))
 				engine->SetBufferSize(newBufferSize);
+		}
+		Gui::Separator();
+
+		if (Gui::CollapsingHeader("Audio Mixing"))
+		{
+			if (static_cast<int>(selectedMixingBehavior) < 0)
+				selectedMixingBehavior = engine->channelMixer.GetMixingBehavior();
+
+			if (Gui::Combo("Mixing Behavior##Combo", reinterpret_cast<int*>(&selectedMixingBehavior), mixingBehaviorNames.data(), static_cast<int>(mixingBehaviorNames.size())))
+				engine->channelMixer.SetMixingBehavior(selectedMixingBehavior);
 		}
 		Gui::Separator();
 
@@ -164,26 +171,30 @@ namespace DataTest
 
 		if (Gui::CollapsingHeader("Audio Instances"))
 		{
-			Gui::BeginChild("##audio_instances_child", ImVec2(0, audioInstancesChildHeight), true);
-			if (!engine->callbackRunning)
+			Gui::BeginChild("##AudioInstanceChilds", ImVec2(0, audioInstancesChildHeight), true);
 			{
+				engine->audioInstancesMutex.lock();
 				for (auto &instance : engine->audioInstances)
 				{
-					if (instance == nullptr || instance->GetSampleProvider() == nullptr)
+					if (instance == nullptr)
 					{
-						Gui::TextDisabled("nullptr");
-						continue;
+						Gui::TextDisabled("Null (Instance)");
 					}
-
-					auto playingString = instance->GetIsPlaying() ? "PLAY" : "PAUSE";
-
-					Gui::TextDisabled("%s | (%s / %s) | (%d%%) | %s",
-						instance->GetName(),
-						instance->GetPosition().FormatTime().c_str(),
-						instance->GetDuration().FormatTime().c_str(),
-						(int)(instance->GetVolume() * 100.0f),
-						playingString);
+					else if (instance->GetSampleProvider() == nullptr)
+					{
+						Gui::TextDisabled("%s (Null Sample Provider)", instance->GetName());
+					}
+					else
+					{
+						Gui::TextDisabled("%s | (%s / %s) | (%d%%) | %s",
+							instance->GetName(),
+							instance->GetPosition().FormatTime().c_str(),
+							instance->GetDuration().FormatTime().c_str(),
+							static_cast<int>(instance->GetVolume() * 100.0f),
+							instance->GetIsPlaying() ? "Play" : "Pause");
+					}
 				}
+				engine->audioInstancesMutex.unlock();
 			}
 			Gui::EndChild();
 		}
@@ -193,15 +204,15 @@ namespace DataTest
 		{
 			checkStartStream();
 
-			if (!songTestStream.GetIsInitialized())
-				songTestStream.LoadFromFile(testSongPath);
+			if (songTestStream == nullptr)
+				songTestStream = engine->LoadAudioFile(testSongPath);
 
 			if (Gui::Button("engine->AddAudioInstance()"))
 			{
 				if (songAudioInstance != nullptr)
 					songAudioInstance->SetAppendRemove(true);
 
-				songAudioInstance = MakeRefPtr<AudioInstance>(&songTestStream, true, "AudioTestWindow::TestSongInstance");
+				songAudioInstance = MakeRefPtr<Audio::AudioInstance>(songTestStream, true, "AudioTestWindow::TestSongInstance");
 				engine->AddAudioInstance(songAudioInstance);
 			}
 
@@ -210,17 +221,17 @@ namespace DataTest
 				if (songAudioInstance->GetHasBeenRemoved())
 					return;
 
-				AudioInstance* audioInstance = songAudioInstance.get();
+				Audio::AudioInstance* audioInstance = songAudioInstance.get();
 
 				Gui::Separator();
-				Gui::Text("audioInstance->GetChannelCount(): %u", songTestStream.GetChannelCount());
-				Gui::Text("audioInstance->GetSampleCount(): %u", songTestStream.GetSampleCount());
-				Gui::Text("audioInstance->GetSampleRate(): %u", songTestStream.GetSampleRate());
+				Gui::Text("audioInstance->GetChannelCount(): %u", audioInstance->GetChannelCount());
+				Gui::Text("audioInstance->GetFrameCount(): %u", audioInstance->GetFrameCount());
+				Gui::Text("audioInstance->GetSampleRate(): %u", audioInstance->GetSampleRate());
 
-				int samplePosition = static_cast<int>(audioInstance->GetSamplePosition());
-				int sampleCount = static_cast<int>(audioInstance->GetSampleCount());
-				if (Gui::SliderInt("audioInstance->SamplePosition", &samplePosition, 0, sampleCount))
-					audioInstance->SetSamplePosition(samplePosition);
+				int framePosition = static_cast<int>(audioInstance->GetFramePosition());
+				int frameCount = static_cast<int>(audioInstance->GetFrameCount());
+				if (Gui::SliderInt("audioInstance->FramePosition", &framePosition, 0, frameCount))
+					audioInstance->SetFramePosition(framePosition);
 
 				float position = static_cast<float>(audioInstance->GetPosition().TotalSeconds());
 				float duration = static_cast<float>(audioInstance->GetDuration().TotalSeconds());
@@ -234,7 +245,7 @@ namespace DataTest
 				Gui::Separator();
 
 				float volume = audioInstance->GetVolume();
-				if (Gui::SliderFloat("volume", &volume, MIN_VOLUME, MAX_VOLUME))
+				if (Gui::SliderFloat("volume", &volume, Audio::AudioEngine::MinVolume, Audio::AudioEngine::MaxVolume))
 					audioInstance->SetVolume(volume);
 
 				auto boolColorText = [&onColor, &offColor](const char* label, bool value)
@@ -262,13 +273,13 @@ namespace DataTest
 		{
 			checkStartStream();
 
-			if (!testButtonSound.GetIsInitialized())
-				testButtonSound.LoadFromFile("rom/sound/button/01_button1.wav");
+			if (buttonTestStream == nullptr)
+				buttonTestStream = engine->LoadAudioFile(testButtonSoundPath);
 
 			Gui::Button("PlaySound(TestButtonSound)");
 			bool addButtonSound = Gui::IsItemHovered() && Gui::IsMouseClicked(0);
 
-			Gui::SliderFloat("Button Volume", &testButtonVolume, MIN_VOLUME, MAX_VOLUME);
+			Gui::SliderFloat("Button Volume", &testButtonVolume, Audio::AudioEngine::MinVolume, Audio::AudioEngine::MaxVolume);
 
 			if (Gui::IsWindowFocused())
 			{
@@ -304,7 +315,7 @@ namespace DataTest
 			}
 
 			if (addButtonSound)
-				engine->PlaySound(&testButtonSound, testButtonVolume, "AudioTestWindow::TestButtonSound");
+				engine->PlaySound(buttonTestStream, testButtonVolume, "AudioTestWindow::TestButtonSound");
 		}
 		Gui::Separator();
 	}
@@ -321,7 +332,7 @@ namespace DataTest
 
 	void AudioTestWindow::RefreshDeviceInfoList()
 	{
-		AudioEngine* engine = AudioEngine::GetInstance();
+		Audio::AudioEngine* engine = Audio::AudioEngine::GetInstance();
 		size_t deviceCount = engine->GetDeviceCount();
 
 		deviceInfoList.clear();
@@ -409,8 +420,8 @@ namespace DataTest
 				case 1: Gui::InputInt(identifierLabel, (int*)&deviceInfo.Info.outputChannels, 1, 4, ImGuiInputTextFlags_ReadOnly); break;
 				case 2: Gui::InputInt(identifierLabel, (int*)&deviceInfo.Info.inputChannels, 1, 4, ImGuiInputTextFlags_ReadOnly); break;
 				case 3: Gui::InputInt(identifierLabel, (int*)&deviceInfo.Info.duplexChannels, 1, 4, ImGuiInputTextFlags_ReadOnly); break;
-				case 4: Gui::Text(deviceInfo.Info.isDefaultOutput ? "true" : "false"); break;
-				case 5: Gui::Text(deviceInfo.Info.isDefaultInput ? "true" : "false"); break;
+				case 4: Gui::Text(deviceInfo.Info.isDefaultOutput ? "True" : "False"); break;
+				case 5: Gui::Text(deviceInfo.Info.isDefaultInput ? "True" : "False"); break;
 				case 6: Gui::TextWrapped(deviceInfo.SampleRatesString.c_str()); break;
 				case 7: Gui::TextWrapped(deviceInfo.NativeFormatsString.c_str()); break;
 				}

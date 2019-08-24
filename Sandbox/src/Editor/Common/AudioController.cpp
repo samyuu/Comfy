@@ -1,5 +1,6 @@
 #include "AudioController.h"
-#include "Audio/AudioEngine.h"
+#include "Audio/Core/AudioEngine.h"
+#include "Audio/Decoder/AudioDecoderFactory.h"
 #include <assert.h>
 
 namespace Editor
@@ -22,16 +23,16 @@ namespace Editor
 
 	void AudioController::Initialize()
 	{
-		auto audioEngine = AudioEngine::GetInstance();
+		auto audioEngine = Audio::AudioEngine::GetInstance();
 
-		for (auto &instance : buttonSoundInstancePool)
+		for (auto& instance : buttonSoundInstancePool)
 		{
-			instance = MakeRefPtr<AudioInstance>(nullptr, "AudioController::ButtonSoundInstance");
+			instance = MakeRefPtr<Audio::AudioInstance>(nullptr, false, "AudioController::ButtonSoundInstance");
 			audioEngine->AddAudioInstance(instance);
 		}
 
 		// only load the default button sound for now
-		buttonSoundSources.emplace_back(buttonSoundPath);
+		buttonSoundSources.push_back(audioEngine->LoadAudioFile(buttonSoundPath));
 		buttonSoundIndex = 0;
 	}
 
@@ -44,7 +45,7 @@ namespace Editor
 		buttonSoundTime = TimeSpan::GetTimeNow();
 		timeSinceLastButtonSound = buttonSoundTime - lastButtonSoundTime;
 
-		AudioInstance* longestRunningInstance = nullptr;
+		Audio::AudioInstance* longestRunningInstance = nullptr;
 		for (const auto &instance : buttonSoundInstancePool)
 		{
 			if (instance == nullptr)
@@ -64,12 +65,12 @@ namespace Editor
 			PlayButtonSound(longestRunningInstance);
 	}
 
-	MemoryAudioStream* AudioController::GetButtonSoundSource(int index)
+	const RefPtr<Audio::MemorySampleProvider>& AudioController::GetButtonSoundSource(int index)
 	{
-		return &buttonSoundSources[buttonSoundIndex];
+		return buttonSoundSources[buttonSoundIndex];
 	}
 
-	void AudioController::PlayButtonSound(AudioInstance* audioInstance)
+	void AudioController::PlayButtonSound(Audio::AudioInstance* audioInstance)
 	{
 		float volume = buttonSoundVolume;
 

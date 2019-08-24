@@ -2,7 +2,7 @@
 #include "Editor/Chart/ChartEditor.h"
 #include "Editor/Chart/TempoMap.h"
 #include "Editor/Core/Editor.h"
-#include "Audio/AudioEngine.h"
+#include "Audio/Core/AudioEngine.h"
 #include "FileSystem/FileHelper.h"
 #include "Core/TimeSpan.h"
 #include <FontIcons.h>
@@ -11,7 +11,7 @@ namespace Editor
 {
 	static void EnsureStreamOpenAndRunning()
 	{
-		auto audioEngine = AudioEngine::GetInstance();
+		auto audioEngine = Audio::AudioEngine::GetInstance();
 
 		if (!audioEngine->GetIsStreamOpen())
 			audioEngine->OpenStream();
@@ -30,7 +30,7 @@ namespace Editor
 
 	TargetTimeline::~TargetTimeline()
 	{
-		AudioEngine::GetInstance()->RemoveCallbackReceiver(this);
+		Audio::AudioEngine::GetInstance()->RemoveCallbackReceiver(this);
 	}
 
 	TimelineTick TargetTimeline::GetGridTick() const
@@ -156,7 +156,7 @@ namespace Editor
 	{
 		InitializeTimelineGuiState();
 
-		AudioEngine::GetInstance()->AddCallbackReceiver(this);
+		Audio::AudioEngine::GetInstance()->AddCallbackReceiver(this);
 		audioController.Initialize();
 
 		InitializeButtonIcons();
@@ -212,7 +212,7 @@ namespace Editor
 		// sankaku_sync | shikaku_sync  | batsu_sync | maru_sync | slide_l_sync | slide_r_sync | slide_chain_l_sync | slide_chain_r_sync
 		{
 			std::vector<uint8_t> sprFileBuffer;
-			FileSystem::ReadAllBytes("rom/spr/spr_comfy_editor.bin", &sprFileBuffer);
+			FileSystem::FileReader::ReadEntireFile(std::string("rom/spr/spr_comfy_editor.bin"), &sprFileBuffer);
 
 			sprSet.Parse(sprFileBuffer.data());
 			sprSet.TxpSet->UploadAll();

@@ -1,8 +1,5 @@
 #pragma once
 #include "IEditorComponent.h"
-#include "Audio/DummySampleProvider.h"
-#include "Audio/MemoryAudioStream.h"
-#include "Audio/AudioInstance.h"
 #include <vector>
 #include <string>
 

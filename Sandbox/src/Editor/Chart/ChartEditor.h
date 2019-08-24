@@ -4,7 +4,7 @@
 #include "SyncWindow.h"
 #include "Timeline/TargetTimeline.h"
 #include "TargetRenderWindow.h"
-#include "Audio/DummySampleProvider.h"
+#include "Audio/SampleProvider/SilenceSampleProvider.h"
 #include "ImGui/Widgets/FileViewer.h"
 
 namespace Editor
@@ -31,8 +31,8 @@ namespace Editor
 
 		bool GetIsPlayback() const;
 
-		MemoryAudioStream* GetSongStream();
-		AudioInstance* GetSongInstance();
+		Audio::MemorySampleProvider* GetSongStream();
+		Audio::AudioInstance* GetSongInstance();
 
 		TimeSpan GetPlaybackTime() const;
 		void SetPlaybackTime(TimeSpan value);
@@ -50,9 +50,9 @@ namespace Editor
 		UniquePtr<SyncWindow> syncWindow;
 		UniquePtr<TargetRenderWindow> renderWindow;
 
-		DummySampleProvider dummySampleProvider;
-		RefPtr<MemoryAudioStream> songStream;
-		RefPtr<AudioInstance> songInstance;
+		RefPtr<Audio::SilenceSampleProvider> dummySampleProvider;
+		RefPtr<Audio::MemorySampleProvider> songStream;
+		RefPtr<Audio::AudioInstance> songInstance;
 		
 		bool isPlaying = false;
 		TimeSpan playbackTimeOnPlaybackStart;

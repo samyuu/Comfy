@@ -19,11 +19,13 @@ namespace Editor
 
 	void ChartEditor::Initialize()
 	{
-		songInstance = MakeRefPtr<AudioInstance>(&dummySampleProvider, "ChartEditor::SongInstance");
+		dummySampleProvider = MakeRefPtr<Audio::SilenceSampleProvider>();
+
+		songInstance = MakeRefPtr<Audio::AudioInstance>(dummySampleProvider, true, "ChartEditor::SongInstance");
 		songInstance->SetPlayPastEnd(true);
 		songInstance->SetVolume(0.75f);
 
-		AudioEngine* audioEngine = AudioEngine::GetInstance();
+		Audio::AudioEngine* audioEngine = Audio::AudioEngine::GetInstance();
 		audioEngine->AddAudioInstance(songInstance);
 
 		timeline->Initialize();
@@ -101,22 +103,29 @@ namespace Editor
 
 	bool ChartEditor::LoadSong(const std::string& filePath)
 	{
+		bool success;
+
 		TimeSpan playbackTime = GetPlaybackTime();
 		{
-			RefPtr<MemoryAudioStream> newSongStream = MakeRefPtr<MemoryAudioStream>(filePath);
+			RefPtr<Audio::MemorySampleProvider> newSongStream = Audio::AudioEngine::GetInstance()->LoadAudioFile(filePath);
+			success = newSongStream != nullptr;
 
-			songInstance->SetSampleProvider(newSongStream.get());
-			chart->SetDuration(songInstance->GetDuration());
-
-			if (songStream != nullptr)
-				songStream->Dispose();
-
-			songStream = newSongStream;
+			if (success)
+			{
+				songInstance->SetSampleProvider(newSongStream);
+				songStream = newSongStream;
+				chart->SetDuration(songInstance->GetDuration());
+			}
+			else
+			{
+				songInstance->SetSampleProvider(dummySampleProvider);
+			}
 
 			timeline->OnSongLoaded();
 		}
 		SetPlaybackTime(playbackTime);
-		return true;
+
+		return success;
 	}
 
 	TimeSpan ChartEditor::GetPlaybackTime() const
@@ -170,12 +179,12 @@ namespace Editor
 		timeline->OnPlaybackStopped();
 	}
 
-	MemoryAudioStream* ChartEditor::GetSongStream()
+	Audio::MemorySampleProvider* ChartEditor::GetSongStream()
 	{
 		return songStream.get();
 	}
 
-	AudioInstance* ChartEditor::GetSongInstance()
+	Audio::AudioInstance* ChartEditor::GetSongInstance()
 	{
 		return songInstance.get();
 	}

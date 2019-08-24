@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/BaseWindow.h"
-#include "Audio/AudioEngine.h"
-#include "Audio/MemoryAudioStream.h"
+#include "Audio/Core/AudioEngine.h"
+#include "Audio/SampleProvider/MemorySampleProvider.h"
 #include <vector>
 #include <array>
 
@@ -18,14 +18,15 @@ namespace DataTest
 		virtual ImGuiWindowFlags GetWindowFlags() const override;
 
 	private:
-		const float audioInstancesChildHeight = 0; // 128;
-		const char* testSongPath = "rom/sound/sngtst.flac";
+		const float audioInstancesChildHeight = 240;
+		const char* testSongPath = "dev_ram/sound/song/sngtst.flac";
+		const char* testButtonSoundPath = "rom/sound/button/01_button1.wav";
 
-		MemoryAudioStream songTestStream;
-		RefPtr<AudioInstance> songAudioInstance = nullptr;
+		RefPtr<Audio::MemorySampleProvider> songTestStream = nullptr;
+		RefPtr<Audio::MemorySampleProvider> buttonTestStream = nullptr;
+		RefPtr<Audio::AudioInstance> songAudioInstance = nullptr;
 
-		MemoryAudioStream testButtonSound;
-		float testButtonVolume = MAX_VOLUME;
+		float testButtonVolume = Audio::AudioEngine::MaxVolume;
 
 		struct ExtendedDeviceInfo
 		{
@@ -35,13 +36,20 @@ namespace DataTest
 		};
 
 		std::vector<ExtendedDeviceInfo> deviceInfoList;
-		AudioApi selectedAudioApi = AudioApi::Invalid;
+		Audio::AudioApi selectedAudioApi = Audio::AudioApi::Invalid;
+		Audio::ChannelMixer::MixingBehavior selectedMixingBehavior = static_cast<Audio::ChannelMixer::MixingBehavior>(-1);
 		int newBufferSize = -1;
 
-		std::array<const char*, static_cast<size_t>(AudioApi::Count)> audioApiNames =
+		std::array<const char*, static_cast<size_t>(Audio::AudioApi::Count)> audioApiNames =
 		{
 			"AudioApi::ASIO",
 			"AudioApi::WASAPI",
+		};
+
+		std::array<const char*, static_cast<size_t>(Audio::ChannelMixer::MixingBehavior::Count)> mixingBehaviorNames =
+		{
+			"ChannelMixer::MixingBehavior::Ignore",
+			"ChannelMixer::MixingBehavior::Mix",
 		};
 
 		std::array<const char*, 8> deviceInfoFieldNames =

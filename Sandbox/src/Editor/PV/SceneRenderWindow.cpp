@@ -27,7 +27,7 @@ namespace Editor
 		// -------------
 		{
 			std::vector<uint8_t> sprFileBuffer;
-			FileSystem::ReadAllBytes("rom/spr/spr_comfy_scene.bin", &sprFileBuffer);
+			FileSystem::FileReader::ReadEntireFile(std::string("rom/spr/spr_comfy_scene.bin"), &sprFileBuffer);
 
 			sprSet.Parse(sprFileBuffer.data());
 
