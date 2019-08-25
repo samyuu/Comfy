@@ -532,14 +532,14 @@ void Application::DrawGui()
 			}
 
 			bool openLicensePopup = false;
-			bool openAboutPopup = false;
 
 			if (Gui::BeginMenu("Help"))
 			{
+				Gui::TextUnformatted("Copyright (C) 2019 Samyuu");
 				if (Gui::MenuItem("License"))
 					openLicensePopup = true;
-				if (Gui::MenuItem("About"))
-					openAboutPopup = true;
+				if (Gui::MenuItem("Version"))
+					versionWindowOpen = true;
 				Gui::EndMenu();
 			}
 
@@ -548,9 +548,6 @@ void Application::DrawGui()
 				*licenseWindow.GetIsWindowOpen() = true;
 				Gui::OpenPopup(licenseWindow.GetWindowName());
 			}
-
-			if (openAboutPopup)
-				Gui::OpenPopup(aboutWindowID);
 
 			if (Gui::BeginPopupModal(licenseWindow.GetWindowName(), licenseWindow.GetIsWindowOpen(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 			{
@@ -568,48 +565,49 @@ void Application::DrawGui()
 			}
 
 			// TODO: make window class and use undockable window instead of popup window since it doesn't need to block input
-			bool aboutWindowOpen = true;
-			if (Gui::BeginPopupModal(aboutWindowID, &aboutWindowOpen, ImGuiWindowFlags_AlwaysAutoResize))
+			if (versionWindowOpen)
 			{
-				const vec2 viewportSize = Gui::GetMainViewport()->Size;
-				const vec2 sizeFactor = vec2(0.45f, 0.35f);
-
-				Gui::BeginChild("AboutWindowChild", viewportSize * sizeFactor, true);
-				Gui::Columns(2);
+				if (Gui::Begin("About - Version##Application", &versionWindowOpen, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking))
 				{
-					Gui::TextUnformatted("Property"); Gui::NextColumn();
-					Gui::TextUnformatted("Value"); Gui::NextColumn();
-					Gui::Separator();
+					const vec2 windowSize = vec2(520, 200);
 
-					Gui::TextUnformatted("BuildConfiguration");
-					Gui::NextColumn(); Gui::TextUnformatted(BuildConfiguration::Debug ? "Debug" : BuildConfiguration::Release ? "Release" : "Unknown");
-					Gui::NextColumn();
-					Gui::TextUnformatted("BuildVersion::Author");
-					Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::Author);
-					Gui::NextColumn();
-					Gui::TextUnformatted("BuildVersion::CommitHash");
-					Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitHash);
-					Gui::NextColumn();
-					Gui::TextUnformatted("BuildVersion::CommitTime");
-					Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitTime);
-					Gui::NextColumn();
-					Gui::TextUnformatted("BuildVersion::CommitCount");
-					Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitCount);
-					Gui::NextColumn();
-					Gui::TextUnformatted("BuildVersion::Branch");
-					Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::Branch);
-					Gui::NextColumn();
-					Gui::TextUnformatted("BuildVersion::CompileTime");
-					Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CompileTime);
-					Gui::NextColumn();
+					Gui::BeginChild("AboutWindowChild", windowSize, true);
+					Gui::Columns(2);
+					{
+						Gui::TextUnformatted("Property"); Gui::NextColumn();
+						Gui::TextUnformatted("Value"); Gui::NextColumn();
+						Gui::Separator();
+
+						const char* buildVersionClassName = "BuildVersion";
+						const char* buildVersionFormatStrin = "%s::%s";
+
+						Gui::TextUnformatted("BuildConfiguration");
+						Gui::NextColumn(); Gui::TextUnformatted(BuildConfiguration::Debug ? "Debug" : BuildConfiguration::Release ? "Release" : "Unknown");
+						Gui::NextColumn();
+						Gui::Text(buildVersionFormatStrin, buildVersionClassName, "Author");
+						Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::Author);
+						Gui::NextColumn();
+						Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CommitHash");
+						Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitHash);
+						Gui::NextColumn();
+						Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CommitTime");
+						Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitTime);
+						Gui::NextColumn();
+						Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CommitCount");
+						Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitCount);
+						Gui::NextColumn();
+						Gui::Text(buildVersionFormatStrin, buildVersionClassName, "Branch");
+						Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::Branch);
+						Gui::NextColumn();
+						Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CompileTime");
+						Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CompileTime);
+						Gui::NextColumn();
+					}
+					Gui::Columns(1);
+					Gui::EndChild();
+
 				}
-				Gui::Columns(1);
-				Gui::EndChild();
-
-				if (Gui::Button("Close", ImVec2(Gui::GetContentRegionAvailWidth(), 0)))
-					Gui::CloseCurrentPopup();
-
-				Gui::EndPopup();
+				Gui::End();
 			}
 
 			char infoBuffer[32];
