@@ -1,6 +1,7 @@
 #include "AetInspector.h"
 #include "Editor/Aet/Command/Commands.h"
 #include "Editor/Aet/AetIcons.h"
+#include "Graphics/Auth2D/AetMgr.h"
 #include "ImGui/Gui.h"
 
 namespace Editor
@@ -74,27 +75,27 @@ namespace Editor
 			strcpy_s(aetNameBuffer, aet->Name.c_str());
 
 			if (Gui::ComfyTextWidget("Name", aetNameBuffer, sizeof(aetNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::Aet::ChangeName>(aet, aetNameBuffer);
+				GetCommandManager()->EnqueueCommand<Command::AetChangeName>(aet, aetNameBuffer);
 
 			float frameStart = aet->FrameStart;
 			if (Gui::ComfyFloatWidget("Start Frame", &frameStart, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::Aet::ChangeStartFrame>(aet, frameStart);
+				GetCommandManager()->EnqueueCommand<Command::AetChangeStartFrame>(aet, frameStart);
 
 			float frameDuration = aet->FrameDuration;
 			if (Gui::ComfyFloatWidget("Duration", &frameDuration, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::Aet::ChangeFrameDuration>(aet, frameDuration);
-			
+				GetCommandManager()->EnqueueCommand<Command::AetChangeFrameDuration>(aet, frameDuration);
+
 			float frameRate = aet->FrameRate;
 			if (Gui::ComfyFloatWidget("Frame Rate", &frameRate, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::Aet::ChangeFrameRate>(aet, glm::clamp(frameRate, 1.0f, 1000.0f));
+				GetCommandManager()->EnqueueCommand<Command::AetChangeFrameRate>(aet, glm::clamp(frameRate, 1.0f, 1000.0f));
 
-			int resolution[2] = { aet->Width, aet->Height };
-			if (Gui::ComfyInt2Widget("Resolution", resolution, ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::Aet::ChangeResolution>(aet, resolution[0], resolution[1]);
+			ivec2 resolution = aet->Resolution;
+			if (Gui::ComfyInt2Widget("Resolution", glm::value_ptr(resolution), ImGuiInputTextFlags_EnterReturnsTrue))
+				GetCommandManager()->EnqueueCommand<Command::AetChangeResolution>(aet, resolution);
 
 			vec4 color = Gui::ColorConvertU32ToFloat4(aet->BackgroundColor);
 			if (Gui::ComfyColorEdit3("Background", glm::value_ptr(color), ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_DisplayHex))
-				GetCommandManager()->EnqueueCommand<Command::Aet::ChangeBackgroundColor>(aet, Gui::ColorConvertFloat4ToU32(color));
+				GetCommandManager()->EnqueueCommand<Command::AetChangeBackgroundColor>(aet, Gui::ColorConvertFloat4ToU32(color));
 
 			Gui::TreePop();
 		}
@@ -130,7 +131,7 @@ namespace Editor
 			if (Gui::ComfyBeginCombo("Layer", aetLayer == nullptr ? "None (Layer)" : layerDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
 				if (Gui::Selectable("None (Layer)", aetLayer == nullptr))
-					aetObj->SetReferencedLayer(nullptr);
+					GetCommandManager()->EnqueueCommand<Command::AetObjChangeReferenceLayer>(aetObj, nullptr);
 
 				int layerIndex = 0;
 				for (RefPtr<AetLayer>& layer : aet->AetLayers)
@@ -144,7 +145,7 @@ namespace Editor
 					sprintf_s(layerDataNameBuffer, "Layer %d (%s)", layerIndex++, layer->GetCommaSeparatedNames());
 
 					if (Gui::Selectable(layerDataNameBuffer, isSelected))
-						aetObj->SetReferencedLayer(layer);
+						GetCommandManager()->EnqueueCommand<Command::AetObjChangeReferenceLayer>(aetObj, layer);
 
 					if (isSelected)
 						Gui::SetItemDefaultFocus();
@@ -163,19 +164,19 @@ namespace Editor
 		{
 			strcpy_s(aetObjNameBuffer, aetObj->GetName().c_str());
 			if (Gui::ComfyTextWidget("Name", aetObjNameBuffer, sizeof(aetObjNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::AetObj::ChangeName>(aetObj, aetObjNameBuffer);
+				GetCommandManager()->EnqueueCommand<Command::AetObjChangeName>(aetObj, aetObjNameBuffer);
 
 			float loopStart = aetObj->LoopStart;
 			if (Gui::ComfyFloatWidget("Loop Start", &loopStart, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::AetObj::ChangeLoopStart>(aetObj, loopStart);
+				GetCommandManager()->EnqueueCommand<Command::AetObjChangeLoopStart>(aetObj, loopStart);
 
 			float loopEnd = aetObj->LoopEnd;
 			if (Gui::ComfyFloatWidget("Loop End", &loopEnd, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::AetObj::ChangeLoopEnd>(aetObj, loopEnd);
+				GetCommandManager()->EnqueueCommand<Command::AetObjChangeLoopEnd>(aetObj, loopEnd);
 
 			float startFrame = aetObj->StartFrame;
 			if (Gui::ComfyFloatWidget("Start Frame", &startFrame, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::AetObj::ChangeStartFrame>(aetObj, startFrame);
+				GetCommandManager()->EnqueueCommand<Command::AetObjChangeStartFrame>(aetObj, startFrame);
 
 			if (aetObj->Type != AetObjType::Aif)
 			{
@@ -183,7 +184,7 @@ namespace Editor
 				float playbackPercentage = aetObj->PlaybackSpeed * percentageFactor;
 
 				if (Gui::ComfyFloatWidget("Playback Speed", &playbackPercentage, 10.0f, 100.0f, "%.2f %%", ImGuiInputTextFlags_EnterReturnsTrue))
-					GetCommandManager()->EnqueueCommand<Command::AetObj::ChangePlaybackSpeed>(aetObj, playbackPercentage / percentageFactor);
+					GetCommandManager()->EnqueueCommand<Command::AetObjChangePlaybackSpeed>(aetObj, playbackPercentage / percentageFactor);
 			}
 
 			Gui::TreePop();
@@ -207,11 +208,11 @@ namespace Editor
 		if ((aetObj->Type == AetObjType::Pic || aetObj->Type == AetObjType::Eff))
 		{
 			Gui::Separator();
-			DrawInspectorAnimationData(aetObj->AnimationData.get(), aetObj->Type);
+			DrawInspectorAnimationData(aetObj->AnimationData, aetObj->Type);
 		}
 
 		Gui::Separator();
-		DrawInspectorAetObjMarkers(&aetObj->Markers);
+		DrawInspectorAetObjMarkers(aetObj, &aetObj->Markers);
 
 		if ((aetObj->Type == AetObjType::Pic || aetObj->Type == AetObjType::Eff))
 		{
@@ -241,7 +242,7 @@ namespace Editor
 			if (Gui::ComfyBeginCombo("Sprite", aetRegion == nullptr ? noSpriteString : regionDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
 				if (Gui::Selectable(noSpriteString, aetRegion == nullptr))
-					aetObj->SetReferencedRegion(nullptr);
+					GetCommandManager()->EnqueueCommand<Command::AetObjChangeReferenceRegion>(aetObj, nullptr);
 
 				int32_t regionIndex = 0;
 				for (RefPtr<AetRegion>& region : aet->AetRegions)
@@ -255,7 +256,7 @@ namespace Editor
 						sprintf_s(regionDataNameBuffer, "Region %d (%dx%d)", regionIndex, region->Width, region->Height);
 
 					if (Gui::Selectable(frontSprite == nullptr ? regionDataNameBuffer : frontSprite->Name.c_str(), isSelected))
-						aetObj->SetReferencedRegion(region);
+						GetCommandManager()->EnqueueCommand<Command::AetObjChangeReferenceRegion>(aetObj, region);
 
 					if (isSelected)
 						Gui::SetItemDefaultFocus();
@@ -270,32 +271,46 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAnimationData(AnimationData* animationData, AetObjType objType)
+	void AetInspector::DrawInspectorAnimationData(const RefPtr<AnimationData>& animationData, AetObjType objType)
 	{
 		if (Gui::WideTreeNodeEx(ICON_ANIMATIONDATA "  Animation Data", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			if (Gui::WideTreeNode("Properties"))
 			{
-				if (animationData != nullptr)
-				{
-					DrawInspectorKeyFrameProperties(&animationData->Properties);
-				}
-				else
-				{
-					Gui::BulletText("None");
-				}
-				Gui::TreePop();
+				// TODO:
+				static Graphics::Auth2D::Properties properties;
+				if (Gui::ComfyFloat2Widget("Origin", glm::value_ptr(properties.Origin))) {}
+				if (Gui::ComfyFloat2Widget("Position", glm::value_ptr(properties.Position))) {}
+				if (Gui::ComfyFloatWidget("Rotation", &properties.Rotation, 0.0f, 0.0f)) {}
+				if (Gui::ComfyFloat2Widget("Scale", glm::value_ptr(properties.Scale))) {}
+				if (Gui::ComfyFloatWidget("Opacity", &properties.Opacity, 0.0f, 0.0f)) {}
 			}
 
-			if (Gui::WideTreeNode("Perspective Properties"))
+			if (false && Gui::WideTreeNode("Raw View"))
 			{
-				if (animationData->PerspectiveProperties != nullptr)
+				if (Gui::WideTreeNode("Properties"))
 				{
-					DrawInspectorKeyFrameProperties(animationData->PerspectiveProperties.get());
+					if (animationData != nullptr)
+					{
+						DrawInspectorKeyFrameProperties(&animationData->Properties);
+					}
+					else
+					{
+						Gui::BulletText("None");
+					}
+					Gui::TreePop();
 				}
-				else
+
+				if (Gui::WideTreeNode("Perspective Properties"))
 				{
-					Gui::BulletText("None");
+					if (animationData->PerspectiveProperties != nullptr)
+					{
+						DrawInspectorKeyFrameProperties(animationData->PerspectiveProperties.get());
+					}
+					else
+					{
+						Gui::BulletText("None");
+					}
+					Gui::TreePop();
 				}
 				Gui::TreePop();
 			}
@@ -311,7 +326,7 @@ namespace Editor
 							continue;
 
 						if (Gui::Selectable(AnimationData::BlendModeNames[blendModeIndex], blendModeIndex == blendMode))
-							animationData->BlendMode = static_cast<AetBlendMode>(blendModeIndex);
+							GetCommandManager()->EnqueueCommand<Command::AnimationDataChangeBlendMode>(animationData, static_cast<AetBlendMode>(blendModeIndex));
 
 						if (blendModeIndex == blendMode)
 							Gui::SetItemDefaultFocus();
@@ -320,7 +335,9 @@ namespace Editor
 					Gui::ComfyEndCombo();
 				}
 
-				Gui::ComfyCheckbox("Use Texture Mask", &animationData->UseTextureMask);
+				bool useTextureMask = animationData->UseTextureMask;
+				if (Gui::ComfyCheckbox("Use Texture Mask", &useTextureMask))
+					GetCommandManager()->EnqueueCommand<Command::AnimationDataChangeUseTextureMask>(animationData, useTextureMask);
 			}
 
 			Gui::TreePop();
@@ -356,47 +373,47 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAetObjMarkers(std::vector<AetMarker>* markers)
+	void AetInspector::DrawInspectorAetObjMarkers(const RefPtr<AetObj>& aetObj, std::vector<RefPtr<AetMarker>>* markers)
 	{
 		if (Gui::WideTreeNodeEx(ICON_MARKERS "  Markers", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			for (int i = 0; i < markers->size(); i++)
 			{
-				AetMarker& marker = markers->at(i);
+				const RefPtr<AetMarker>& marker = markers->at(i);
 
-				Gui::PushID((void*)&marker);
+				Gui::PushID(marker.get());
 
 				ImVec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
 				bool open = Gui::WideTreeNode("##AetInspectorMarker");
 
-				Gui::ItemContextMenu("AddMarkerContextMenu##AetInspector", [&markers, &i]()
+				Gui::ItemContextMenu("AddMarkerContextMenu##AetInspector", [this, &aetObj, &markers, i]()
 				{
 					if (Gui::MenuItem(ICON_MOVEUP "  Move Up", nullptr, nullptr, i > 0))
-						std::iter_swap(markers->begin() + i, markers->begin() + i - 1);
+						GetCommandManager()->EnqueueCommand<Command::AetObjMoveMarker>(aetObj, std::tuple<int, int>(i, i - 1));
 
 					if (Gui::MenuItem(ICON_MOVEDOWN "  Move Down", nullptr, nullptr, i < markers->size() - 1))
-						std::iter_swap(markers->begin() + i, markers->begin() + i + 1);
+						GetCommandManager()->EnqueueCommand<Command::AetObjMoveMarker>(aetObj, std::tuple<int, int>(i, i + 1));
 
 					if (Gui::MenuItem(ICON_DELETE "  Delete"))
-					{
-						markers->erase(markers->begin() + i);
-						i--;
-					}
+						GetCommandManager()->EnqueueCommand<Command::AetObjDeleteMarker>(aetObj, i);
 				});
 
 				treeNodeCursorPos.x += GImGui->FontSize + GImGui->Style.FramePadding.x;
 				Gui::SetCursorScreenPos(treeNodeCursorPos);
-				Gui::Text("Frame: %.2f", marker.Frame);
+				Gui::Text("Frame: %.2f", marker->Frame);
+
 				Gui::SetCursorScreenPos(treeNodeCursorPos + ImVec2(Gui::GetWindowWidth() * 0.35f, 0.0f));
-				Gui::Text("%s", marker.Name.c_str());
+				Gui::Text("%s", marker->Name.c_str());
 
 				if (open)
 				{
-					Gui::ComfyFloatWidget("Frame", &marker.Frame, 1.0f, 10.0f);
-					strcpy_s(markerNameBuffer, marker.Name.c_str());
+					float frame = marker->Frame;
+					if (Gui::ComfyFloatWidget("Frame", &frame, 1.0f, 10.0f))
+						GetCommandManager()->EnqueueCommand<Command::AetObjChangeMarkerFrame>(marker, frame);
 
-					if (Gui::ComfyTextWidget("Name", markerNameBuffer, sizeof(markerNameBuffer)))
-						marker.Name = std::string(markerNameBuffer);
+					strcpy_s(markerNameBuffer, marker->Name.c_str());
+					if (Gui::ComfyTextWidget("Name", markerNameBuffer, sizeof(markerNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+						GetCommandManager()->EnqueueCommand<Command::AetObjChangeMarkerName>(marker, markerNameBuffer);
 
 					Gui::TreePop();
 				}
@@ -410,7 +427,7 @@ namespace Editor
 			{
 				char newMarkerBuffer[32];
 				sprintf_s(newMarkerBuffer, "marker_%02zd", markers->size());
-				markers->emplace_back(0.0f, newMarkerBuffer);
+				GetCommandManager()->EnqueueCommand<Command::AetObjAddMarker>(aetObj, MakeRefPtr<AetMarker>(0.0f, newMarkerBuffer));
 			}
 			Gui::TreePop();
 		}
@@ -443,7 +460,7 @@ namespace Editor
 			{
 				if (Gui::Selectable(noParentLayerString, parentObjLayer == nullptr))
 				{
-					aetObj->SetParentObj(nullptr);
+					aetObj->SetReferencedParentObj(nullptr);
 					newParentObjLayerIndex = -1;
 				}
 
@@ -457,7 +474,7 @@ namespace Editor
 					Gui::PushID(&layer);
 					if (Gui::Selectable(parentObjDataNameBuffer, isSelected))
 					{
-						aetObj->SetParentObj(nullptr);
+						aetObj->SetReferencedParentObj(nullptr);
 						newParentObjLayerIndex = layerIndex;
 					}
 
@@ -472,18 +489,18 @@ namespace Editor
 			if (Gui::ComfyBeginCombo("Parent Object", parentObj == nullptr ? noParentObjString : parentObj->GetName().c_str(), ImGuiComboFlags_HeightLarge))
 			{
 				if (Gui::Selectable(noParentObjString, parentObj == nullptr))
-					aetObj->SetParentObj(nullptr);
+					GetCommandManager()->EnqueueCommand<Command::AetObjChangeObjReferenceParent>(aetObj, nullptr);
 
 				if (parentObjLayer != nullptr)
 				{
 					for (int32_t objIndex = 0; objIndex < parentObjLayer->size(); objIndex++)
 					{
-						auto& obj = parentObjLayer->at(objIndex);
+						const RefPtr<AetObj>& obj = parentObjLayer->at(objIndex);
 						bool isSelected = (obj.get() == parentObj);
 
 						Gui::PushID(&obj);
 						if (Gui::Selectable(obj->GetName().c_str(), isSelected))
-							aetObj->SetParentObj(obj);
+							GetCommandManager()->EnqueueCommand<Command::AetObjChangeObjReferenceParent>(aetObj, obj);
 
 						if (isSelected)
 							Gui::SetItemDefaultFocus();
