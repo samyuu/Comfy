@@ -178,7 +178,7 @@ namespace FileSystem
 		unk8_t TypePaddingByte;
 		AetObjType Type;
 
-		std::vector<AetMarker> Markers;
+		std::vector<RefPtr<AetMarker>> Markers;
 		RefPtr<AnimationData> AnimationData;
 
 		const std::string& GetName() const;
@@ -199,7 +199,7 @@ namespace FileSystem
 
 		const RefPtr<AetObj>& GetReferencedParentObj();
 		const AetObj* GetReferencedParentObj() const;
-		void SetParentObj(const RefPtr<AetObj>& value);
+		void SetReferencedParentObj(const RefPtr<AetObj>& value);
 
 	public:
 		Aet* GetParentAet();
@@ -333,8 +333,7 @@ namespace FileSystem
 		frame_t FrameRate;
 		uint32_t BackgroundColor;
 
-		int32_t Width;
-		int32_t Height;
+		ivec2 Resolution;
 		RefPtr<PositionOffset> PositionOffset;
 
 		std::vector<RefPtr<AetLayer>> AetLayers;

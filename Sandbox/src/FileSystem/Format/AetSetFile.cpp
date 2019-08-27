@@ -129,13 +129,16 @@ namespace FileSystem
 
 		if (markerCount > 0 && markersPointer != nullptr)
 		{
-			Markers.resize(markerCount);
+			Markers.reserve(markerCount);
+			for (size_t i = 0; i < markerCount; i++)
+				Markers.push_back(MakeRefPtr<AetMarker>());
+
 			reader.ReadAt(markersPointer, [this](BinaryReader& reader)
 			{
-				for (AetMarker& marker : Markers)
+				for (RefPtr<AetMarker>& marker : Markers)
 				{
-					marker.Frame = reader.ReadFloat();
-					marker.Name = reader.ReadStrPtr();
+					marker->Frame = reader.ReadFloat();
+					marker->Name = reader.ReadStrPtr();
 				}
 			});
 		}
@@ -161,8 +164,8 @@ namespace FileSystem
 		FrameRate = reader.ReadFloat();
 		BackgroundColor = ReadColor(reader);
 
-		Width = reader.ReadInt32();
-		Height = reader.ReadInt32();
+		Resolution.x = reader.ReadInt32();
+		Resolution.y = reader.ReadInt32();
 
 		void* positionOffsetPtr = reader.ReadPtr();
 		if (positionOffsetPtr != nullptr)
@@ -271,8 +274,8 @@ namespace FileSystem
 			writer.WriteFloat(FrameDuration);
 			writer.WriteFloat(FrameRate);
 			writer.WriteUInt32(BackgroundColor);
-			writer.WriteInt32(Width);
-			writer.WriteInt32(Height);
+			writer.WriteInt32(Resolution.x);
+			writer.WriteInt32(Resolution.y);
 
 			if (this->PositionOffset != nullptr)
 			{
@@ -351,10 +354,10 @@ namespace FileSystem
 										writer.WriteUInt32(static_cast<uint32_t>(obj->Markers.size()));
 										writer.WritePtr([&obj](BinaryWriter& writer)
 										{
-											for (AetMarker& marker : obj->Markers)
+											for (RefPtr<AetMarker>& marker : obj->Markers)
 											{
-												writer.WriteFloat(marker.Frame);
-												writer.WriteStrPtr(&marker.Name);
+												writer.WriteFloat(marker->Frame);
+												writer.WriteStrPtr(&marker->Name);
 											}
 										});
 									}

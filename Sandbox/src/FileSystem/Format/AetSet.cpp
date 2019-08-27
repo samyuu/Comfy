@@ -198,7 +198,7 @@ namespace FileSystem
 		return references.ParentObj.get();
 	}
 
-	void AetObj::SetParentObj(const RefPtr<AetObj>& value)
+	void AetObj::SetReferencedParentObj(const RefPtr<AetObj>& value)
 	{
 		references.ParentObj = value;
 	}
