@@ -124,6 +124,26 @@ namespace ImGui
 		return valueChanged;
 	}
 
+	bool ComfyFloat2Widget(const char* label, float value[2], const char* format, ImGuiInputTextFlags flags)
+	{
+		RAII_ColumnsCount raiiColumns(2, nullptr, false);
+		SetColumnWidth(0, GetWindowWidth() * ColumnWidthFactor);
+
+		// TODO: drag text
+		AlignTextToFramePadding();
+		Text(label);
+		NextColumn();
+
+		PushItemWidth(GetContentRegionAvailWidth());
+		PushID(value);
+		bool valueChanged = InputFloat2("##InputFloat2", value, format, flags);
+		PopID();
+		PopItemWidth();
+		NextColumn();
+
+		return valueChanged;
+
+	}
 	bool ComfyColorEdit3(const char* label, float color[3], ImGuiColorEditFlags flags)
 	{
 		RAII_ColumnsCount raiiColumns(2, nullptr, false);
