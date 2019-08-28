@@ -122,6 +122,12 @@ namespace FileSystem
 		SetPosition(prePos);
 	}
 
+	void BinaryReader::ReadAt(void* position, void* baseAddress, const std::function<void(BinaryReader&)>& func)
+	{
+		void* finalPosition = (void*)((int64_t)position + (int64_t)baseAddress);
+		ReadAt(finalPosition, func);
+	}
+
 	std::string BinaryReader::ReadStr()
 	{
 		// Account for the ending zero byte
@@ -154,6 +160,16 @@ namespace FileSystem
 		{
 			return ReadStr();
 		});
+	}
+
+	std::string BinaryReader::ReadStr(size_t size)
+	{
+		std::string value;
+		value.resize(size);
+
+		Read(value.data(), size * sizeof(char));
+
+		return value;
 	}
 
 	std::string BinaryReader::ReadStrPtr()

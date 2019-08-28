@@ -20,10 +20,10 @@ namespace FileSystem
 		bool GetLeaveOpen();
 
 		inline int64_t GetPosition() const { return stream->GetPosition(); }
-		inline void* GetPositionPtr() const { return (void*)stream->GetPosition(); }
+		inline void* GetPositionPtr() const { return (void*)GetPosition(); }
 
 		inline void SetPosition(int64_t position) { return stream->Seek(position); }
-		inline void SetPosition(void* position) { return stream->Seek((int64_t)position); }
+		inline void SetPosition(void* position) { return SetPosition((int64_t)position); }
 
 		inline int64_t GetLength() const { return stream->GetLength(); }
 		inline bool EndOfFile() const { return stream->EndOfFile(); }
@@ -37,6 +37,7 @@ namespace FileSystem
 		inline int64_t Read(void* buffer, size_t size);
 
 		void ReadAt(void* position, const std::function<void(BinaryReader&)>& func);
+		void ReadAt(void* position, void* baseAddress, const std::function<void(BinaryReader&)>& func);
 
 		template <typename T> T ReadAt(void* position, const std::function<T(BinaryReader&)>& func);
 
@@ -44,6 +45,7 @@ namespace FileSystem
 
 		std::string ReadStr();
 		std::string ReadStr(void* position);
+		std::string ReadStr(size_t size);
 		std::string ReadStrPtr();
 
 		inline bool ReadBool() { return Read<bool>(); };
