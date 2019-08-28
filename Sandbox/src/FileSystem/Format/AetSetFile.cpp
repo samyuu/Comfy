@@ -513,7 +513,7 @@ namespace FileSystem
 			for (int i = 0; i < aetCount; i++)
 			{
 				aets.push_back(MakeRefPtr<Aet>());
-				Aet* aet = aets.back().get();
+				const RefPtr<Aet>& aet = aets.back();
 
 				reader.ReadAt(reader.ReadPtr(), [&aet](BinaryReader& reader)
 				{
