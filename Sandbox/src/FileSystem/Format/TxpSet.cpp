@@ -14,7 +14,7 @@ namespace FileSystem
 	void TxpSet::Read(BinaryReader& reader)
 	{
 		TxpSet* txpSet = this;
-		int64_t baseAddress = reader.GetPosition();
+		void* baseAddress = reader.GetPositionPtr();
 
 		txpSet->Signature = ReadTxpSig(reader);
 		assert(txpSet->Signature.Type == TxpType_TxpSet);
@@ -28,8 +28,7 @@ namespace FileSystem
 			Textures.push_back(MakeUnique<Texture>());
 			Texture* texture = Textures.back().get();
 
-			void* textureAddress = (void*)((int64_t)reader.ReadPtr() + baseAddress);
-			reader.ReadAt(textureAddress, [&texture](BinaryReader& reader)
+			reader.ReadAt(reader.ReadPtr(), baseAddress, [&texture](BinaryReader& reader)
 			{
 				int64_t textureBaseAddress = reader.GetPosition();
 
@@ -126,13 +125,5 @@ namespace FileSystem
 			texture->GraphicsTexture = MakeRefPtr<Graphics::Texture2D>();
 			texture->GraphicsTexture->Upload(texture);
 		}
-	}
-
-	void Texture::UploadTexture2D()
-	{
-		assert(GraphicsTexture == nullptr);
-
-		GraphicsTexture = MakeRefPtr<Graphics::Texture2D>();
-		GraphicsTexture->Upload(this);
 	}
 }

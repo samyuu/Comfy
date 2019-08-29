@@ -80,7 +80,6 @@ namespace FileSystem
 		std::string Name;
 
 		RefPtr<Graphics::Texture2D> GraphicsTexture;
-		void UploadTexture2D();
 	};
 
 	class TxpSet : public IBinaryReadable, public IBufferParsable
