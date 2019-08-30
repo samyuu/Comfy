@@ -52,6 +52,7 @@ namespace Editor
 		void RenderObjCache(const std::vector<AetMgr::ObjCache>& objectCache);
 
 	private:
+		CheckerboardGrid checkerboardBaseGrid;
 		CheckerboardGrid checkerboardGrid;
 
 		bool isPlayback = false;

@@ -17,6 +17,9 @@ namespace Editor
 	{
 		assert(spriteGetter != nullptr);
 
+		checkerboardBaseGrid.Color = checkerboardGrid.Color * .5f;
+		checkerboardBaseGrid.ColorAlt = checkerboardGrid.ColorAlt * .5f;
+
 		renderer = MakeUnique<Renderer2D>();
 		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
 		aetRenderer->SetSpriteGetterFunction(spriteGetter);
@@ -250,7 +253,6 @@ namespace Editor
 		}
 
 		verticesPointers.clear();
-
 	}
 
 	void AetRenderWindow::OnUpdateInput()
@@ -336,7 +338,12 @@ namespace Editor
 
 	void AetRenderWindow::RenderGrid()
 	{
-		checkerboardGrid.Size = (aet == nullptr) ? vec2(1280.0f, 720.0f) : vec2(aet->Width, aet->Height);
+		checkerboardBaseGrid.Position = camera.Position / camera.Zoom;
+		checkerboardBaseGrid.Size = renderTarget.GetSize() / camera.Zoom;
+		checkerboardBaseGrid.Render(renderer.get());
+
+		constexpr vec2 defaultGridSize = vec2(1280.0f, 720.0f);
+		checkerboardGrid.Size = (aet == nullptr) ? defaultGridSize : vec2(aet->Resolution);
 		checkerboardGrid.Render(renderer.get());
 	}
 
