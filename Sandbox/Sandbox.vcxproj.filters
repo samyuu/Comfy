@@ -378,6 +378,15 @@
     <ClCompile Include="src\Audio\Core\Detail\Resampler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\FileSystem\Format\ObjSetFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileSystem\Format\ObjSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Auth3D\Renderer3D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\pch.h">
@@ -804,6 +813,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Audio\Core\Detail\SampleMixer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FileSystem\Format\ObjSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Auth3D\Renderer3D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

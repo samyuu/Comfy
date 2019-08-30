@@ -143,6 +143,9 @@
     <ClCompile Include="src\Editor\Aet\Timeline\AetTimelineController.cpp" />
     <ClCompile Include="src\FileSystem\FileReader.cpp" />
     <ClCompile Include="src\FileSystem\Format\AetSetFile.cpp" />
+    <ClCompile Include="src\FileSystem\Format\ObjSet.cpp" />
+    <ClCompile Include="src\FileSystem\Format\ObjSetFile.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\Renderer3D.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\OpenGL.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\OpenGLLoader.cpp" />
     <ClCompile Include="src\Graphics\Texture\Texture2D.cpp" />
@@ -265,6 +268,8 @@
     <ClInclude Include="src\Editor\Aet\Command\AetCommandManager.h" />
     <ClInclude Include="src\Editor\Command\CommandManager.h" />
     <ClInclude Include="src\FileSystem\FileReader.h" />
+    <ClInclude Include="src\FileSystem\Format\ObjSet.h" />
+    <ClInclude Include="src\Graphics\Auth3D\Renderer3D.h" />
     <ClInclude Include="src\Graphics\OpenGL\OpenGL.h" />
     <ClInclude Include="src\Graphics\OpenGL\OpenGLBaseDefines.h" />
     <ClInclude Include="src\Graphics\OpenGL\OpenGLLoader.h" />

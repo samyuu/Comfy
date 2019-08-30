@@ -8,6 +8,7 @@ namespace Editor
 {
 	SceneRenderWindow::SceneRenderWindow(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
+		renderer = MakeUnique<Graphics::Auth3D::Renderer3D>();
 	}
 
 	SceneRenderWindow::~SceneRenderWindow()
@@ -23,6 +24,15 @@ namespace Editor
 	{
 		RenderWindowBase::Initialize();
 
+		renderer->Initialize();
+
+		// OBJSET TEST
+		{
+			testObjSet = MakeUnique<ObjSet>();
+			testObjSet->Load("dev_ram/objset/dbg/dbg_obj.bin");
+			testObjSet->UploadAll();
+		}
+
 		// Load Textures
 		// -------------
 		{
@@ -30,12 +40,10 @@ namespace Editor
 			FileSystem::FileReader::ReadEntireFile(std::string("rom/spr/spr_comfy_scene.bin"), &sprFileBuffer);
 
 			sprSet.Parse(sprFileBuffer.data());
+			sprSet.TxpSet->UploadAll();
 
 			for (size_t i = 0; i < sprSet.TxpSet->Textures.size(); i++)
-			{
 				allTextures[i] = sprSet.TxpSet->Textures[i].get();
-				allTextures[i]->UploadTexture2D();
-			}
 		}
 
 		// Cube Vertex Data
@@ -127,7 +135,7 @@ namespace Editor
 			Gui::DragFloat("Far Plane", &camera.FarPlane);
 			Gui::DragFloat3("Position", glm::value_ptr(camera.Position), 0.01f);
 			Gui::DragFloat3("Target", glm::value_ptr(camera.Target), 0.01f);
-			Gui::DragFloat("Smoothness", &cameraSmoothness, 1.0f, 1.0f, 250.0f);
+			Gui::DragFloat("Smoothness", &cameraSmoothness, 1.0f, 0.0f, 250.0f);
 
 			Gui::Text("Camera Rotation");
 			Gui::DragFloat("Pitch", &targetCameraPitch, 1.0f);
@@ -253,8 +261,16 @@ namespace Editor
 
 		camera.Target = camera.Position + glm::normalize(front);
 
-		cameraYaw = ImLerp(cameraYaw, targetCameraYaw, io.DeltaTime * cameraSmoothness);
-		cameraPitch = ImLerp(cameraPitch, targetCameraPitch, io.DeltaTime * cameraSmoothness);
+		if (cameraSmoothness > 0.0f)
+		{
+			cameraYaw = ImLerp(cameraYaw, targetCameraYaw, io.DeltaTime * cameraSmoothness);
+			cameraPitch = ImLerp(cameraPitch, targetCameraPitch, io.DeltaTime * cameraSmoothness);
+		}
+		else
+		{
+			cameraYaw = targetCameraYaw;
+			cameraPitch = targetCameraPitch;
+		}
 
 		camera.UpdateMatrices();
 	}
@@ -278,6 +294,7 @@ namespace Editor
 				comfyShader.SetUniform(comfyShader.View, camera.GetViewMatrix());
 				comfyShader.SetUniform(comfyShader.Projection, camera.GetProjectionMatrix());
 
+				/*
 				cubeVao.Bind();
 
 				// Stage:
@@ -285,21 +302,21 @@ namespace Editor
 					mat4 skyModelMatrix = glm::scale(mat4(1.0f), vec3(1000.0f, 1000.0f, 1000.0f));
 					mat4 groundModelMatrix = glm::scale(glm::translate(mat4(1.0f), vec3(0, -5.0f, 0)), vec3(999.9f, 1.0f, 999.9));
 					mat4 tileModelMatrix = glm::scale(glm::translate(mat4(1.0f), vec3(0, -4.0f, 0)), vec3(39.0f, 1.0f, 39.0f));
-					
+
 					skyTexture->GraphicsTexture->Bind(1);
 					skyTexture->GraphicsTexture->Bind(0);
 					comfyShader.SetUniform(comfyShader.Model, skyModelMatrix);
-					Graphics::RenderCommand::DrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
+					Graphics::RenderCommand::DrawArrays(Graphics::PrimitiveType::Triangles, 0, _countof(cubeVertices));
 
 					groundTexture->GraphicsTexture->Bind(1);
 					groundTexture->GraphicsTexture->Bind(0);
 					comfyShader.SetUniform(comfyShader.Model, groundModelMatrix);
-					Graphics::RenderCommand::DrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
+					Graphics::RenderCommand::DrawArrays(Graphics::PrimitiveType::Triangles, 0, _countof(cubeVertices));
 
 					tileTexture->GraphicsTexture->Bind(1);
 					tileTexture->GraphicsTexture->Bind(0);
 					comfyShader.SetUniform(comfyShader.Model, tileModelMatrix);
-					Graphics::RenderCommand::DrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
+					Graphics::RenderCommand::DrawArrays(Graphics::PrimitiveType::Triangles, 0, _countof(cubeVertices));
 				}
 
 				mat4 cubeModelMatrices[_countof(cubePositions)];
@@ -316,7 +333,7 @@ namespace Editor
 					for (size_t i = 0; i < _countof(cubePositions); i++)
 					{
 						lineShader.SetUniform(lineShader.Model, cubeModelMatrices[i]);
-						Graphics::RenderCommand::DrawArrays(GL_LINES, 0, _countof(axisVertices));
+						Graphics::RenderCommand::DrawArrays(Graphics::PrimitiveType::Lines, 0, _countof(axisVertices));
 					}
 				}
 
@@ -325,7 +342,7 @@ namespace Editor
 					comfyShader.Bind();
 					comfyShader.SetUniform(comfyShader.Texture0, 0);
 					comfyShader.SetUniform(comfyShader.Texture1, 1);
-					
+
 					goodNiceTexture->GraphicsTexture->Bind(1);
 					feelsBadManTexture->GraphicsTexture->Bind(0);
 
@@ -333,8 +350,31 @@ namespace Editor
 					for (size_t i = 0; i < _countof(cubePositions); i++)
 					{
 						comfyShader.SetUniform(comfyShader.Model, cubeModelMatrices[i]);
-						Graphics::RenderCommand::DrawArrays(GL_TRIANGLES, 0, _countof(cubeVertices));
+						Graphics::RenderCommand::DrawArrays(Graphics::PrimitiveType::Triangles, 0, _countof(cubeVertices));
 					}
+				}
+				*/
+
+				// OBJSET TEST
+				{
+					static int objectIndex = 0;
+					if (Gui::IsKeyPressed(KeyCode_Up)) objectIndex = glm::clamp(objectIndex - 1, 0, static_cast<int>(testObjSet->size() - 1));
+					if (Gui::IsKeyPressed(KeyCode_Down)) objectIndex = glm::clamp(objectIndex + 1, 0, static_cast<int>(testObjSet->size() - 1));
+
+					RefPtr<Obj>& obj = testObjSet->at(objectIndex);
+
+					renderer->Begin(camera);
+					{
+						//const float gridSize = 10.0f;
+						//for (float x = 0; x < gridSize; x++)
+						//{
+						//	for (float z = 0; z < gridSize; z++)
+						//		renderer->Draw(obj.get(), vec3(x, 0.0f, z));
+						//}
+
+						renderer->Draw(obj.get(), vec3(0.0f, 0.0f, 0.0f));
+					}
+					renderer->End();
 				}
 			}
 		}
@@ -349,7 +389,7 @@ namespace Editor
 			screenShader.SetUniform(screenShader.Brightness, postProcessData.Brightness);
 
 			postProcessingRenderTarget.GetTexture().Bind();
-			Graphics::RenderCommand::DrawArrays(GL_TRIANGLES, 0, 6);
+			Graphics::RenderCommand::DrawArrays(Graphics::PrimitiveType::Triangles, 0, 6);
 		}
 		renderTarget.UnBind();
 	}

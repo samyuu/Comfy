@@ -6,8 +6,10 @@
 #include "Graphics/ComfyVertex.h"
 #include "Graphics/Shader/Shader.h"
 #include "Graphics/Texture/Texture2D.h"
+#include "Graphics/Auth3D/Renderer3D.h"
 #include "Graphics/Camera.h"
 #include "FileSystem/Format/SprSet.h"
+#include "FileSystem/Format/ObjSet.h"
 
 namespace Editor
 {
@@ -43,6 +45,9 @@ namespace Editor
 			float Saturation = 2.2f;
 			float Brightness = 0.45455f;
 		} postProcessData;
+
+		UniquePtr<ObjSet> testObjSet;
+		UniquePtr<Graphics::Auth3D::Renderer3D> renderer;
 
 		// Vertex Storage
 		// --------------
