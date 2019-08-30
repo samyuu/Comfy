@@ -1,12 +1,28 @@
 ﻿#include "pch.h"
 #include "Core/Application.h"
+#include "System/CommandLine/CommandLine.h"
 
-void MainTest();
+#define RUN_MAIN_TEST 0
+int MainTest();
 
-int main()
+static Application* GlobalApplication;
+
+int main(int argc, const char* argv[])
 {
-	//MainTest(); return 0;
+#if (RUN_MAIN_TEST)
+	return MainTest();
+#endif
 
-	UniquePtr<Application> application = MakeUnique<Application>();
-	application->Run();
+	System::CommandLineResult commandLineResult = System::CommandLine::Parse(argc, argv);
+
+	if (commandLineResult == System::CommandLineResult::Exit)
+		return EXIT_SUCCESS;
+
+	GlobalApplication = new Application();
+	GlobalApplication->Run();
+
+	delete GlobalApplication;
+	GlobalApplication = nullptr;
+
+	return EXIT_SUCCESS;
 }
