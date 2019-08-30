@@ -19,7 +19,7 @@ namespace Graphics
 		void Bind() const override;
 		void UnBind() const override;
 
-		void SetLayout(const BufferLayout& layout);
+		void SetLayout(const BufferLayout& layout, bool interleaved = true);
 
 	protected:
 		VertexArrayID_t vertexArrayID = NULL;

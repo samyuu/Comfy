@@ -120,13 +120,16 @@ namespace Graphics
 		uint16_t Size;
 		uint16_t Offset;
 		bool Normalized;
+		const VertexBuffer* Buffer;
 
 		BufferElement(ShaderDataType type, const char* name, bool normalized = false);
+		BufferElement(ShaderDataType type, const char* name, bool normalized, const VertexBuffer* buffer);
 
 		int GetElementCount() const;
 		GLenum GetDataType() const;
 		bool GetIsNormalized() const;
 		inline void* GetOffset() const { return (void*)Offset; };
+		inline const VertexBuffer* GetBuffer() const { return Buffer; };
 	};
 
 	// ------------------------------------------------------------------------------------------------

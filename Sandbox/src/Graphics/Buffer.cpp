@@ -132,7 +132,11 @@ namespace Graphics
 	// --- BufferElement:
 	// ------------------------------------------------------------------------------------------------
 
-	BufferElement::BufferElement(ShaderDataType type, const char* name, bool normalized) : Name(name), Type(type), Size(0), Offset(0), Normalized(normalized)
+	BufferElement::BufferElement(ShaderDataType type, const char* name, bool normalized) : BufferElement(type, name, normalized, nullptr)
+	{
+	}
+
+	BufferElement::BufferElement(ShaderDataType type, const char* name, bool normalized, const VertexBuffer* buffer) : Name(name), Type(type), Size(0), Offset(0), Normalized(normalized), Buffer(buffer)
 	{
 	}
 
@@ -210,7 +214,7 @@ namespace Graphics
 		for (BufferElement& element : elements)
 		{
 			element.Size = GetElementSize(element.Type);
-			element.Offset = stride;
+			element.Offset = element.GetBuffer() != nullptr ? 0 : stride;
 
 			stride += element.Size;
 		}

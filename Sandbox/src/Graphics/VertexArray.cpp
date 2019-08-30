@@ -27,16 +27,20 @@ namespace Graphics
 		GLCall(glBindVertexArray(NULL));
 	}
 
-	void VertexArray::SetLayout(const BufferLayout& layout)
+	void VertexArray::SetLayout(const BufferLayout& layout, bool interleaved)
 	{
 		const auto& elements = layout.GetElemenets();
 
 		for (GLuint i = 0; i < static_cast<GLuint>(elements.size()); i++)
 		{
 			const BufferElement& element = elements[i];
+			const VertexBuffer* buffer = element.GetBuffer();
+
+			if (!interleaved && buffer != nullptr)
+				buffer->Bind();
 
 			GLCall(glEnableVertexAttribArray(i));
-			GLCall(glVertexAttribPointer(i, element.GetElementCount(), element.GetDataType(), element.GetIsNormalized(), layout.GetStride(), element.GetOffset()));
+			GLCall(glVertexAttribPointer(i, element.GetElementCount(), element.GetDataType(), element.GetIsNormalized(), interleaved ? layout.GetStride() : element.Size, element.GetOffset()));
 		}
 	}
 
