@@ -22,16 +22,16 @@ namespace App
 
 		for (AetObjSourceData* objSource = objSourcesBegin; objSource < objSourcesEnd; objSource++)
 		{
-			objSource->Obj = mainAet->GetObj(objSource->Name);
+			objSource->Obj = mainAet->FindObj(objSource->Name).get();
 			assert(objSource->Obj != nullptr);
 		}
 
-		p_MenuList01_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->GetObj(p_MenuList01_c.Name);
-		p_MenuList02_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->GetObj(p_MenuList02_c.Name);
-		p_MenuList03_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->GetObj(p_MenuList03_c.Name);
-		p_MenuList04_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->GetObj(p_MenuList04_c.Name);
-		p_MenuList05_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->GetObj(p_MenuList05_c.Name);
-		p_MenuList06_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->GetObj(p_MenuList06_c.Name);
+		p_MenuList01_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->FindObj(p_MenuList01_c.Name).get();
+		p_MenuList02_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->FindObj(p_MenuList02_c.Name).get();
+		p_MenuList03_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->FindObj(p_MenuList03_c.Name).get();
+		p_MenuList04_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->FindObj(p_MenuList04_c.Name).get();
+		p_MenuList05_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->FindObj(p_MenuList05_c.Name).get();
+		p_MenuList06_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->FindObj(p_MenuList06_c.Name).get();
 	}
 
 	void TaskPs4Menu::RenderMenuBackground(AetRenderer* aetRenderer, float frame)
@@ -73,7 +73,7 @@ namespace App
 
 		static std::vector<AetMgr::ObjCache> objects; objects.clear();
 		AetMgr::GetAddObjects(objects, aetData.MenuListIn02, menuListFrame);
-		
+
 		for (auto& obj : objects)
 		{
 			for (MainMenuItem i = 0; i < MainMenuItem_Count; i++)
@@ -255,8 +255,136 @@ namespace App
 		return true;
 	}
 
+	static void DwGuiTest()
+	{
+		using namespace Gui;
+
+		Gui::WindowContextMenu("dw_gui##ContextMenu", []()
+		{
+			if (BeginMenu("Data Test"))
+			{
+				if (MenuItem("OSAGE TEST", nullptr, false, false)) {}
+				if (MenuItem("CHAR PERFORMANCE", nullptr, false, false)) {}
+				if (MenuItem("CHARA TEST", nullptr, false, false)) {}
+				if (MenuItem("MOTION FLAGS", nullptr, false, false)) {}
+				if (MenuItem("NODE FLAGS", nullptr, false, false)) {}
+				if (MenuItem("CNS/EXP NODE", nullptr, false, false)) {}
+				if (MenuItem("TEXTURE TEST", nullptr, false, false)) {}
+				if (MenuItem("SPRITE TEST", nullptr, false, false)) {}
+				if (MenuItem("ITEM EQUIP TEST", nullptr, false, false)) {}
+				if (MenuItem("SAVE & LOAD ITEM EQUIP", nullptr, false, false)) {}
+				if (MenuItem("MESH", nullptr, false, false)) {}
+				if (MenuItem("SOUND", nullptr, false, false)) {}
+				if (MenuItem("MOVIE", nullptr, false, false)) {}
+				if (MenuItem("ITEM DISP", nullptr, false, false)) {}
+				if (MenuItem("ROB COLLISION", nullptr, false, false)) {}
+				if (MenuItem("ROB SLEEVE", nullptr, false, false)) {}
+				if (MenuItem("ROB SCALE", nullptr, false, false)) {}
+				if (MenuItem("ROB EFFECTOR SCALE", nullptr, false, false)) {}
+				if (MenuItem("ROB LOOK", nullptr, false, false)) {}
+				if (MenuItem("HAND ITEM", nullptr, false, false)) {}
+				if (MenuItem("CMN ITEM", nullptr, false, false)) {}
+				Gui::EndMenu();
+			}
+			if (BeginMenu("Graphics"))
+			{
+				if (MenuItem("NPPerfKit", nullptr, false, false)) {}
+				if (MenuItem("Light", nullptr, false, false)) {}
+				if (MenuItem("Face Light", nullptr, false, false)) {}
+				if (MenuItem("Fog", nullptr, false, false)) {}
+				if (MenuItem("Post process", nullptr, false, false)) {}
+				if (MenuItem("Color Change", nullptr, false, false)) {}
+				if (MenuItem("Shadow", nullptr, false, false)) {}
+				if (MenuItem("Rendering", nullptr, false, false)) {}
+				if (MenuItem("Performance", nullptr, false, false)) {}
+				if (MenuItem("Global Material", nullptr, false, false)) {}
+				if (MenuItem("Material", nullptr, false, false)) {}
+				if (MenuItem("Ripple Effect", nullptr, false, false)) {}
+				if (MenuItem("Rain Effect", nullptr, false, false)) {}
+				if (MenuItem("Snow Effect", nullptr, false, false)) {}
+				if (MenuItem("Reflect/Refract", nullptr, false, false)) {}
+				if (MenuItem("Wind", nullptr, false, false)) {}
+				if (MenuItem("Show Vector", nullptr, false, false)) {}
+				if (MenuItem("Show MIPMAP level", nullptr, false, false)) {}
+				if (MenuItem("Splash", nullptr, false, false)) {}
+				if (MenuItem("Fog Ring", nullptr, false, false)) {}
+				if (MenuItem("Star Effect", nullptr, false, false)) {}
+				if (MenuItem("Glitter", nullptr, false, false)) {}
+				if (MenuItem("Capture", nullptr, false, false)) {}
+				if (MenuItem("NPR Cloth", nullptr, false, false)) {}
+				Gui::EndMenu();
+			}
+			if (BeginMenu("Information"))
+			{
+				if (MenuItem("System", nullptr, false, false)) {}
+				if (MenuItem("Console", nullptr, false, false)) {}
+				if (MenuItem("Task", nullptr, false, false)) {}
+				if (MenuItem("FrameSpeed", nullptr, false, false)) {}
+				if (MenuItem("a3d", nullptr, false, false)) {}
+				if (MenuItem("Rob Motion Info", nullptr, false, false)) {}
+				Gui::EndMenu();
+			}
+			if (BeginMenu("Rob"))
+			{
+				if (MenuItem("Motkind flag", nullptr, false, false)) {}
+				if (MenuItem("Kaesare flag", nullptr, false, false)) {}
+				if (MenuItem("Attack Sub", nullptr, false, false)) {}
+				if (MenuItem("Offensive Move", nullptr, false, false)) {}
+				if (MenuItem("Yarare Test", nullptr, false, false)) {}
+				Gui::EndMenu();
+			}
+			if (BeginMenu("DEBUG CAMERA"))
+			{
+				if (MenuItem("DEBUG_CAMERA", nullptr, false, false)) {}
+				if (MenuItem("DEBUG_CAMERA_PSP", nullptr, false, false)) {}
+				if (MenuItem("SET_DEBUG_CAMERA", nullptr, false, false)) {}
+				Gui::EndMenu();
+			}
+			if (MenuItem("PlayerData", nullptr, false, false)) {}
+			if (MenuItem("Contest", nullptr, false, false)) {}
+			if (MenuItem("Noblesse", nullptr, false, false)) {}
+			if (MenuItem("Quest", nullptr, false, false)) {}
+			if (MenuItem("Campaign", nullptr, false, false)) {}
+			if (MenuItem("PV_SELECTOR", nullptr, false, false)) {}
+			if (MenuItem("Slider", nullptr, false, false)) {}
+			if (MenuItem("CommFailure", nullptr, false, false)) {}
+			if (MenuItem("Closing Mode", nullptr, false, false)) {}
+			Separator();
+			if (BeginMenu("GuiInternal"))
+			{
+				if (MenuItem("InfoWindow...", nullptr, false, false)) {}
+				if (MenuItem("DebugConsole...", nullptr, false, false)) {}
+				if (MenuItem("FileViewer...", nullptr, false, false)) {}
+				if (MenuItem("WindowDemo...", nullptr, false, false)) {}
+				if (MenuItem("GraphDemo...", nullptr, false, false)) {}
+				if (MenuItem("RegionDemo...", nullptr, false, false)) {}
+				if (BeginMenu("MenuDemo"))
+				{
+					if (MenuItem("check 0", nullptr, false, false)) {}
+					if (MenuItem("check 1", nullptr, false, false)) {}
+					if (MenuItem("radio 0", nullptr, false, false)) {}
+					if (MenuItem("radio 1", nullptr, false, false)) {}
+					if (MenuItem("radio 2", nullptr, false, false)) {}
+					Gui::EndMenu();
+				}
+				Gui::EndMenu();
+			}
+			if (BeginMenu("Options"))
+			{
+				if (MenuItem("ColorListWindow...", nullptr, false, false)) {}
+				if (MenuItem("FontListWindow...", nullptr, false, false)) {}
+				if (MenuItem("config save", nullptr, false, false)) {}
+				if (MenuItem("config load", nullptr, false, false)) {}
+				Gui::EndMenu();
+			}
+		});
+	}
+
 	bool TaskPs4Menu::PostDrawGui()
 	{
+		if (true)
+			DwGuiTest();
+
 		if (isLoading)
 		{
 			static int loadingFrameCount = 0;
