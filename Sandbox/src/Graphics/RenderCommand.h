@@ -13,6 +13,14 @@ namespace Graphics
 		ClearTarget_StencilBuffer = 1 << 3,
 	};
 
+	enum class PrimitiveType : uint32_t
+	{
+		Points,
+		Lines,
+		Triangles = 4,
+		TriangleStrip = 5,
+	};
+
 	class RenderCommand
 	{
 	private:
@@ -49,8 +57,8 @@ namespace Graphics
 		static void SetTextureSlot(int32_t textureSlot);
 		static void BindTexture(uint32_t textureTargetEnum, uint32_t textureID);
 
-		static void DrawArrays(uint32_t primitiveEnum, int32_t first, int32_t count);
-		static void DrawElements(uint32_t primitiveEnum, int32_t count, uint32_t typeEnum, const void* indices);
+		static void DrawArrays(PrimitiveType primitiveType, int32_t first, int32_t count);
+		static void DrawElements(PrimitiveType primitiveType, int32_t count, uint32_t typeEnum, const void* indices);
 
 	private:
 		static State state;

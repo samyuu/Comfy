@@ -3,6 +3,24 @@
 
 namespace Graphics
 {
+	static inline GLenum GetGLPrimitiveEnum(PrimitiveType primitiveType)
+	{
+		switch (primitiveType)
+		{
+		case PrimitiveType::Points:
+			return GL_POINTS;
+		case PrimitiveType::Lines:
+			return GL_LINES;
+		case PrimitiveType::Triangles:
+			return GL_TRIANGLES;
+		case PrimitiveType::TriangleStrip:
+			return GL_TRIANGLE_STRIP;
+		default:
+			assert(false);
+			return GL_INVALID_ENUM;
+		}
+	}
+
 	RenderCommand::State::State()
 	{
 		memset(this, 0, sizeof(RenderCommand::state));
@@ -83,15 +101,15 @@ namespace Graphics
 		lastBoundTextureID = textureID;
 	}
 
-	void RenderCommand::DrawArrays(uint32_t primitiveEnum, int32_t first, int32_t count)
+	void RenderCommand::DrawArrays(PrimitiveType primitiveType, int32_t first, int32_t count)
 	{
 		// TODO: count vertices
-		GLCall(glDrawArrays(primitiveEnum, first, count));
+		GLCall(glDrawArrays(GetGLPrimitiveEnum(primitiveType), first, count));
 	}
 
-	void RenderCommand::DrawElements(uint32_t primitiveEnum, int32_t count, uint32_t typeEnum, const void* indices)
+	void RenderCommand::DrawElements(PrimitiveType primitiveType, int32_t count, uint32_t typeEnum, const void* indices)
 	{
 		// TODO: count vertices
-		GLCall(glDrawElements(primitiveEnum, count, typeEnum, indices));
+		GLCall(glDrawElements(GetGLPrimitiveEnum(primitiveType), count, typeEnum, indices));
 	}
 }
