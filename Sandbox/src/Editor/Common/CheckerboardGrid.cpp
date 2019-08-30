@@ -5,12 +5,12 @@ namespace Editor
 	void CheckerboardGrid::Render(Graphics::Auth2D::Renderer2D* renderer) const
 	{
 		renderer->Draw(
-			vec2(0.0f),
+			Position,
 			Size,
 			Color);
 
 		renderer->DrawCheckerboardRectangle(
-			vec2(0.0f),
+			Position,
 			vec2(1.0f),
 			vec2(0.0f),
 			0.0f,
