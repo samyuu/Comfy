@@ -83,7 +83,7 @@ namespace Graphics::Auth2D
 	class Renderer2D : public IRenderer
 	{
 	public:
-		void Initialize();
+		void Initialize() override;
 		void Begin(const OrthographicCamera& camera);
 		void Draw(const vec2& position, const vec2& size, const vec4& color);
 		void Draw(const vec2& position, const vec2& size, const vec4 colors[4]);
@@ -106,12 +106,11 @@ namespace Graphics::Auth2D
 		void DrawRectangle(const vec2& topLeft, const vec2& topRight, const vec2& bottomLeft, const vec2& bottomRight, const vec4& color, float thickness = 1.0f);
 		void DrawCheckerboardRectangle(const vec2& position, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4& color, float precision = 1.0f);
 
+		void End();
+
 		const SpriteVertices& GetLastVertices() const;
 
-		void End();
-		void Flush();
-
-		inline SpriteShader* GetShader() { return shader.get(); };
+		inline SpriteShader* GetSpriteShader() { return spriteShader.get(); };
 		inline const OrthographicCamera* GetCamera() const { return camera; };
 
 		inline bool GetEnableAlphaTest() const { return enableAlphaTest; };
@@ -129,7 +128,7 @@ namespace Graphics::Auth2D
 		bool enableAlphaTest = true;
 		bool useTextShadow = false;
 
-		UniquePtr<SpriteShader> shader;
+		UniquePtr<SpriteShader> spriteShader;
 
 		VertexArray vertexArray;
 		VertexBuffer vertexBuffer = { BufferUsage::StreamDraw };
@@ -147,6 +146,7 @@ namespace Graphics::Auth2D
 		void GenerateUploadSpriteIndexBuffer(uint16_t elementCount);
 		void CreateBatches();
 		
+		void Flush();
 		inline void CheckFlushItems();
 		inline BatchPair CheckFlushAddItem();
 		inline BatchPair AddItem();

@@ -134,7 +134,7 @@ namespace Graphics::Auth2D
 	}
 
 	void SpriteVertices::SetTexMaskCoords(
-		const Texture2D* texture, const vec2& position, const vec2& scale, const vec2& origin, float rotation, 
+		const Texture2D* texture, const vec2& position, const vec2& scale, const vec2& origin, float rotation,
 		const vec2& maskPosition, const vec2& maskScale, const vec2& maskOrigin, float maskRotation, const vec4& maskSourceRegion)
 	{
 		const vec2 maskOffset = maskPosition - (maskOrigin * maskScale);
@@ -226,8 +226,8 @@ namespace Graphics::Auth2D
 		vertexBuffer.InitializeID();
 		vertexBuffer.Bind();
 
-		shader = MakeUnique<SpriteShader>();
-		shader->Initialize();
+		spriteShader = MakeUnique<SpriteShader>();
+		spriteShader->Initialize();
 
 		vertexArray.InitializeID();
 		vertexArray.Bind();
@@ -242,8 +242,6 @@ namespace Graphics::Auth2D
 	{
 		this->drawCallCount = 0;
 		this->camera = &camera;
-
-		assert(this->camera != nullptr);
 	}
 
 	void Renderer2D::Draw(const vec2& position, const vec2& size, const vec4& color)
@@ -386,11 +384,11 @@ namespace Graphics::Auth2D
 
 		enum { TextureSlot = 0, TextureMaskSlot = 1 };
 
-		shader->Bind();
-		shader->SetUniform(shader->Texture, TextureSlot);
-		shader->SetUniform(shader->TextureMask, TextureMaskSlot);
-		shader->SetUniform(shader->UseTextShadow, GetUseTextShadow());
-		shader->SetUniform(shader->ProjectionView, camera->GetProjectionMatrix() * camera->GetViewMatrix());
+		spriteShader->Bind();
+		spriteShader->SetUniform(spriteShader->Texture, TextureSlot);
+		spriteShader->SetUniform(spriteShader->TextureMask, TextureMaskSlot);
+		spriteShader->SetUniform(spriteShader->UseTextShadow, GetUseTextShadow());
+		spriteShader->SetUniform(spriteShader->ProjectionView, camera->GetProjectionMatrix() * camera->GetViewMatrix());
 
 		vertexArray.Bind();
 		vertexBuffer.Bind();
@@ -411,7 +409,7 @@ namespace Graphics::Auth2D
 				SetBlendFunction(lastBlendMode);
 			}
 
-			shader->SetUniform(shader->TextureMaskFormat, item.MaskTexture != nullptr ? static_cast<int>(item.MaskTexture->GetTextureFormat()) : -1);
+			spriteShader->SetUniform(spriteShader->TextureMaskFormat, item.MaskTexture != nullptr ? static_cast<int>(item.MaskTexture->GetTextureFormat()) : -1);
 			if (item.MaskTexture != nullptr)
 			{
 				item.MaskTexture->Bind(TextureMaskSlot);
@@ -420,17 +418,17 @@ namespace Graphics::Auth2D
 			if (item.Texture != nullptr)
 			{
 				item.Texture->Bind(TextureSlot);
-				shader->SetUniform(shader->TextureFormat, static_cast<int>(item.Texture->GetTextureFormat()));
+				spriteShader->SetUniform(spriteShader->TextureFormat, static_cast<int>(item.Texture->GetTextureFormat()));
 			}
 
-			shader->SetUniform(shader->UseSolidColor, item.Texture == nullptr);
+			spriteShader->SetUniform(spriteShader->UseSolidColor, item.Texture == nullptr);
 
 			bool useCheckerboard = item.CheckerboardSize != vec2(0.0f);
-			shader->SetUniform(shader->UseCheckerboard, useCheckerboard);
+			spriteShader->SetUniform(spriteShader->UseCheckerboard, useCheckerboard);
 			if (useCheckerboard)
-				shader->SetUniform(shader->CheckerboardSize, item.CheckerboardSize);
+				spriteShader->SetUniform(spriteShader->CheckerboardSize, item.CheckerboardSize);
 
-			RenderCommand::DrawElements(GL_TRIANGLES, 
+			RenderCommand::DrawElements(PrimitiveType::Triangles,
 				batch.Count * SpriteIndices::GetIndexCount(),
 				indexBuffer.GetGLIndexType(),
 				reinterpret_cast<void*>(batch.Index * sizeof(SpriteIndices)));
