@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
 	outputFile << "	static constexpr const char* Author			= \"" << authorBuffer << "\";\n";
 	outputFile << "	static constexpr const char* CommitHash		= \"" << hashBuffer << "\";\n";
 	outputFile << "	static constexpr const char* CommitTime		= \"" << FormatUnixTime(strtoll(timeBuffer, nullptr, 10)) << "\";\n";
-	outputFile << "	static constexpr const char* CommitCount	= \"" << strtoll(commitCountString.c_str(), nullptr, 10) << "\";\n";
+	outputFile << "	static constexpr const char* CommitNumber	= \"" << strtoll(commitCountString.c_str(), nullptr, 10) << "\";\n";
 	outputFile << "	static constexpr const char* Branch			= \"" << branchBuffer << "\";\n";
 	outputFile << "	static constexpr const char* CompileTime	= \"" << compileTime << "\";\n";
 	outputFile << "};\n";

@@ -734,9 +734,6 @@
     <ClInclude Include="src\Editor\Aet\Core\AetTreeView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\System\BuildVersion.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Graphics\OpenGL\OpenGLLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -747,9 +744,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Aet\AetSelection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\System\BuildConfiguration.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Misc\EndianHelper.h">
@@ -819,6 +813,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Auth3D\Renderer3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\System\Version\BuildConfiguration.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\System\Version\BuildVersion.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

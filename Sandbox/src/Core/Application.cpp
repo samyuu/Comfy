@@ -7,8 +7,8 @@
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
 #include "FileSystem/FileHelper.h"
-#include "System/BuildConfiguration.h"
-#include "System/BuildVersion.h"
+#include "System/Version/BuildConfiguration.h"
+#include "System/Version/BuildVersion.h"
 #include "Graphics/OpenGL/OpenGLLoader.h"
 #include "ImGui/Gui.h"
 #include "ImGui/Implementation/Imgui_Impl.h"
@@ -593,8 +593,8 @@ void Application::DrawGui()
 						Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CommitTime");
 						Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitTime);
 						Gui::NextColumn();
-						Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CommitCount");
-						Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitCount);
+						Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CommitNumber");
+						Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitNumber);
 						Gui::NextColumn();
 						Gui::Text(buildVersionFormatStrin, buildVersionClassName, "Branch");
 						Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::Branch);
