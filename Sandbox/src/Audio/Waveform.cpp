@@ -1,6 +1,6 @@
 #include "Waveform.h"
 #include "Core/TimeSpan.h"
-#include "System/BuildConfiguration.h"
+#include "System/Version/BuildConfiguration.h"
 
 namespace Audio
 {
