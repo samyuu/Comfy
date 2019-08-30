@@ -52,7 +52,7 @@ dev_ram/
 dev_rom/
 
 # Version Control files
-Sandbox/src/System/BuildVersion.h
+Sandbox/src/System/Version/BuildVersion.h
 
 # Comfy test files
 Sandbox/src/main_test.cpp
