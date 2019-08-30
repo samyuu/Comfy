@@ -108,4 +108,28 @@ namespace Graphics
 	};
 
 	// ------------------------------------------------------------------------------------------------
+	// --- SimpleShader:
+	// ------------------------------------------------------------------------------------------------
+
+	class SimpleShader : public ShaderProgram
+	{
+	public:
+		SimpleShader();
+		SimpleShader(const SimpleShader&) = delete;
+		~SimpleShader();
+
+		Uniform Model = { UniformType::Mat4, "u_Model" };
+		Uniform View = { UniformType::Mat4, "u_View" };
+		Uniform Projection = { UniformType::Mat4, "u_Projection" };
+
+	public:
+		virtual Uniform* GetFirstUniform() override;
+		virtual Uniform* GetLastUniform() override;
+
+		virtual const char* GetShaderName() override;
+		virtual const char* GetVertexShaderPath() override;
+		virtual const char* GetFragmentShaderPath() override;
+	};
+
+	// ------------------------------------------------------------------------------------------------
 }

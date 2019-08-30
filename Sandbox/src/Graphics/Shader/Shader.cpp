@@ -151,4 +151,41 @@ namespace Graphics
 	}
 
 	// ------------------------------------------------------------------------------------------------
+	// --- SimpleShader:
+	// ------------------------------------------------------------------------------------------------
+
+	SimpleShader::SimpleShader()
+	{
+	}
+
+	SimpleShader::~SimpleShader()
+	{
+	}
+
+	Uniform* SimpleShader::GetFirstUniform()
+	{
+		return &Model;
+	}
+
+	Uniform* SimpleShader::GetLastUniform()
+	{
+		return &Projection;
+	}
+
+	const char* SimpleShader::GetShaderName()
+	{
+		return "SimpleShader";
+	}
+
+	const char* SimpleShader::GetVertexShaderPath()
+	{
+		return "rom/shader/simple_vert.glsl";
+	}
+
+	const char* SimpleShader::GetFragmentShaderPath()
+	{
+		return "rom/shader/simple_frag.glsl";
+	}
+
+	// ------------------------------------------------------------------------------------------------
 }
