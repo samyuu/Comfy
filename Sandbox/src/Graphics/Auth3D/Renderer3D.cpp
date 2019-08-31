@@ -36,7 +36,7 @@ namespace Graphics::Auth3D
 
 				RenderCommand::DrawElements(
 					subMesh->Primitive,
-					subMesh->Indices.size(),
+					static_cast<int32_t>(subMesh->Indices.size()),
 					subMesh->GraphicsIndexBuffer->GetGLIndexType(),
 					nullptr);
 			}
