@@ -1,6 +1,7 @@
 #include "CommandLineOption.h"
 #include "Core/Logger.h"
-#include <cstring>
+#include "System/Version/BuildVersion.h"
+#include "System/Version/BuildConfiguration.h"
 
 namespace System
 {
@@ -25,10 +26,11 @@ namespace System
 	{
 		options =
 		{
-			{ "-t", "--test", "Test Message", false, 0, [](int index, const char* arguments[]) { Logger::LogLine(">> Test Response"); } },
-			{ "-p", "--print", "Print next Message", false, 1, [](int index, const char* arguments[]) { Logger::LogLine(">> Print(%s)", arguments[index]); } },
-			{ "-v", "--version", "Print version Message", false, 0, [](int index, const char* arguments[]) { Logger::LogLine(">> Test Version 1.0"); } },
-			{ "-e", "--exit", "Exit Application", true, 0, [](int index, const char* arguments[]) {} },
+			{ "-v",		"--version",		"Print comfy version info",			true,	0, [](int index, const char* arguments[]) { Logger::LogLine("Comfy - Sandbox; Version: %s (%s) - %s", BuildVersion::CommitHash, BuildVersion::CommitNumber, BuildVersion::CommitTime); } },
+			{ "-cfg",	"--build_config",	"Print comfy build configuration",	true,	0, [](int index, const char* arguments[]) { Logger::LogLine("Comfy Build Config: %s", BuildConfiguration::Debug ? "Debug" : BuildConfiguration::Release ? "Release" : "Unknown"); } },
+			{ "-t",		"--test",			"Print a test message",				true,	0, [](int index, const char* arguments[]) { Logger::LogLine(">> Test Message"); } },
+			{ "-te",	"--test_echo",		"Echo the following argument",		false,	1, [](int index, const char* arguments[]) { Logger::LogLine(">> echo '%s'", arguments[index]); } },
+			{ "-e",		"--exit",			"Exit the application",				true,	0, [](int index, const char* arguments[]) {} },
 		};
 	}
 
