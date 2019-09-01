@@ -58,9 +58,9 @@ namespace Editor
 	EditorManager::EditorManager(Application* parent) : parent(parent)
 	{
 		editorComponents.reserve(3);
-		editorComponents.push_back(std::move(MakeUnique<ChartEditor>(parent, this)));
-		editorComponents.push_back(std::move(MakeUnique<AetEditor>(parent, this)));
-		editorComponents.push_back(std::move(MakeUnique<SceneRenderWindow>(parent, this)));
+		AddEditorComponent<ChartEditor>();
+		AddEditorComponent<AetEditor>();
+		AddEditorComponent<SceneRenderWindow>();
 	}
 
 	EditorManager::~EditorManager()
@@ -89,6 +89,12 @@ namespace Editor
 
 		Update();
 		DrawGui();
+	}
+
+	template<class T> void EditorManager::AddEditorComponent()
+	{
+		static_assert(std::is_base_of<IEditorComponent, T>::value, "T must inherit from IEditorComponent");
+		editorComponents.push_back(std::move(MakeUnique<T>(parent, this)));
 	}
 
 	void EditorManager::Initialize()

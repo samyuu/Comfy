@@ -33,6 +33,8 @@ namespace Editor
 
 		// Base Methods:
 		// -------------
+		template <class T> void AddEditorComponent();
+
 		void Initialize();
 		void Update();
 		void DrawGui();
