@@ -27,7 +27,7 @@ namespace Editor
 
 		for (auto& instance : buttonSoundInstancePool)
 		{
-			instance = MakeRefPtr<Audio::AudioInstance>(nullptr, false, "AudioController::ButtonSoundInstance");
+			instance = MakeRef<Audio::AudioInstance>(nullptr, false, "AudioController::ButtonSoundInstance");
 			audioEngine->AddAudioInstance(instance);
 		}
 

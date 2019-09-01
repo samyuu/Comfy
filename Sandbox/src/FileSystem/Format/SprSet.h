@@ -1,7 +1,6 @@
 #pragma once
 #include "Types.h"
 #include "TxpSet.h"
-#include <string>
 
 namespace FileSystem
 {
@@ -27,7 +26,7 @@ namespace FileSystem
 		float Unknown;
 		vec4 TexelRegion;
 		vec4 PixelRegion;
-		std::string Name;
+		String Name;
 		unk32_t GraphicsReserved;
 		GraphicsMode GraphicsMode;
 	};
@@ -35,10 +34,10 @@ namespace FileSystem
 	class SprSet : public IBinaryReadable, public IBufferParsable
 	{
 	public:
-		std::string Name;
+		String Name;
 		uint32_t Signature;
 		UniquePtr<TxpSet> TxpSet;
-		std::vector<Sprite> Sprites;
+		Vector<Sprite> Sprites;
 
 		virtual void Read(BinaryReader& reader) override;
 		virtual void Parse(const uint8_t* buffer) override;

@@ -207,7 +207,7 @@ namespace Editor
 		const AetMgr::ObjCache* ObjCache;
 	};
 
-	static std::vector<TempVertexStruct> verticesPointers(0);
+	static Vector<TempVertexStruct> verticesPointers(0);
 	static const AetMgr::ObjCache* selectedAetObj = nullptr;
 
 	void AetRenderWindow::PostDrawGui()
@@ -492,7 +492,7 @@ namespace Editor
 		}
 	}
 
-	void AetRenderWindow::RenderObjCache(const std::vector<AetMgr::ObjCache>& objectCache)
+	void AetRenderWindow::RenderObjCache(const Vector<AetMgr::ObjCache>& objectCache)
 	{
 		bool singleObject = objectCache.size() == 1;
 

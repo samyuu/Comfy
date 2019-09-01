@@ -1,66 +1,65 @@
 #pragma once
+#include "Core/CoreTypes.h"
 #include "FileSystem/FileReader.h"
-#include <string>
-#include <vector>
 
 namespace FileSystem
 {
-	const std::vector<std::string> AllFilesFilter = { "All Files (*.*)", "*.*" };
+	const Vector<String> AllFilesFilter = { "All Files (*.*)", "*.*" };
 
-	bool CreateDirectory(const std::wstring& filePath);
+	bool CreateDirectory(const WideString& filePath);
 
-	bool IsFilePath(const std::string& filePath);
-	bool IsFilePath(const std::wstring& filePath);
+	bool IsFilePath(const String& filePath);
+	bool IsFilePath(const WideString& filePath);
 
-	bool IsDirectoryPath(const std::string& directory);
-	bool IsDirectoryPath(const std::wstring& directory);
+	bool IsDirectoryPath(const String& directory);
+	bool IsDirectoryPath(const WideString& directory);
 
-	bool IsPathRelative(const std::string& path);
-	bool IsPathRelative(const std::wstring& path);
+	bool IsPathRelative(const String& path);
+	bool IsPathRelative(const WideString& path);
 
-	bool FileExists(const std::string& filePath);
-	bool FileExists(const std::wstring& filePath);
+	bool FileExists(const String& filePath);
+	bool FileExists(const WideString& filePath);
 
-	bool DirectoryExists(const std::string& directory);
-	bool DirectoryExists(const std::wstring& directory);
+	bool DirectoryExists(const String& directory);
+	bool DirectoryExists(const WideString& directory);
 
-	bool CreateOpenFileDialog(std::wstring& outFilePath, const char* title = nullptr, const char* directory = nullptr, const std::vector<std::string>& filter = AllFilesFilter);
-	bool CreateSaveFileDialog(std::wstring& outFilePath, const char* title = nullptr, const char* directory = nullptr, const std::vector<std::string>& filter = AllFilesFilter);
+	bool CreateOpenFileDialog(WideString& outFilePath, const char* title = nullptr, const char* directory = nullptr, const Vector<String>& filter = AllFilesFilter);
+	bool CreateSaveFileDialog(WideString& outFilePath, const char* title = nullptr, const char* directory = nullptr, const Vector<String>& filter = AllFilesFilter);
 
-	void OpenWithDefaultProgram(const std::wstring& filePath);
-	void OpenInExplorer(const std::wstring& filePath);
-	void OpenExplorerProperties(const std::wstring& filePath);
+	void OpenWithDefaultProgram(const WideString& filePath);
+	void OpenInExplorer(const WideString& filePath);
+	void OpenExplorerProperties(const WideString& filePath);
 
-	void FuckUpWindowsPath(std::string& path);
-	void FuckUpWindowsPath(std::wstring& path);
+	void FuckUpWindowsPath(String& path);
+	void FuckUpWindowsPath(WideString& path);
 
-	void SanitizePath(std::string& path);
-	void SanitizePath(std::wstring& path);
+	void SanitizePath(String& path);
+	void SanitizePath(WideString& path);
 
-	std::string GetWorkingDirectory();
-	std::wstring GetWorkingDirectoryW();
+	String GetWorkingDirectory();
+	WideString GetWorkingDirectoryW();
 
-	void SetWorkingDirectory(const std::string& value);
-	void SetWorkingDirectoryW(const std::wstring& value);
+	void SetWorkingDirectory(const String& value);
+	void SetWorkingDirectoryW(const WideString& value);
 
-	std::string Combine(const std::string& pathA, const std::string& pathB);
-	std::wstring Combine(const std::wstring& pathA, const std::wstring& pathB);
+	String Combine(const String& pathA, const String& pathB);
+	WideString Combine(const WideString& pathA, const WideString& pathB);
 
-	std::string GetFileName(const std::string& filePath, bool extension = true);
-	std::wstring GetFileName(const std::wstring& filePath, bool extension = true);
+	String GetFileName(const String& filePath, bool extension = true);
+	WideString GetFileName(const WideString& filePath, bool extension = true);
 
-	std::string GetDirectory(const std::string& filePath);
-	std::wstring GetDirectory(const std::wstring& filePath);
+	String GetDirectory(const String& filePath);
+	WideString GetDirectory(const WideString& filePath);
 
-	std::string GetFileExtension(const std::string& filePath);
-	std::wstring GetFileExtension(const std::wstring& filePath);
+	String GetFileExtension(const String& filePath);
+	WideString GetFileExtension(const WideString& filePath);
 
-	std::vector<std::string> GetFiles(const std::string& directory);
-	std::vector<std::wstring> GetFiles(const std::wstring& directory);
+	Vector<String> GetFiles(const String& directory);
+	Vector<WideString> GetFiles(const WideString& directory);
 
-	bool WriteAllBytes(const std::string& filePath, const std::vector<uint8_t>& buffer);
-	bool WriteAllBytes(const std::wstring& filePath, const std::vector<uint8_t>& buffer);
+	bool WriteAllBytes(const String& filePath, const Vector<uint8_t>& buffer);
+	bool WriteAllBytes(const WideString& filePath, const Vector<uint8_t>& buffer);
 
-	bool ReadAllLines(const std::string& filePath, std::vector<std::string>* buffer);
-	bool ReadAllLines(const std::wstring& filePath, std::vector<std::wstring>* buffer);
+	bool ReadAllLines(const String& filePath, Vector<String>* buffer);
+	bool ReadAllLines(const WideString& filePath, Vector<WideString>* buffer);
 }

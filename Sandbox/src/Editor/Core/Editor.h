@@ -1,7 +1,6 @@
 #pragma once
 #include "IEditorComponent.h"
-#include <vector>
-#include <string>
+#include "Core/CoreTypes.h"
 
 class Application;
 
@@ -27,7 +26,7 @@ namespace Editor
 		// -------------
 		Application* parent;
 
-		std::vector<UniquePtr<IEditorComponent>> editorComponents;
+		Vector<UniquePtr<IEditorComponent>> editorComponents;
 		bool initialized = false;
 		// -------------
 

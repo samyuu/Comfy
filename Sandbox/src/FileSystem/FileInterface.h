@@ -1,5 +1,5 @@
 #pragma once
-#include <string>
+#include "Core/CoreTypes.h"
 
 namespace FileSystem
 {
@@ -9,15 +9,15 @@ namespace FileSystem
 	class IReadable
 	{
 	public:
-		virtual void Load(const std::string& filePath) = 0;
-		virtual void Load(const std::wstring& filePath) = 0;
+		virtual void Load(const String& filePath) = 0;
+		virtual void Load(const WideString& filePath) = 0;
 	};
 
 	class IWritable
 	{
 	public:
-		virtual void Save(const std::string& filePath) = 0;
-		virtual void Save(const std::wstring& filePath) = 0;
+		virtual void Save(const String& filePath) = 0;
+		virtual void Save(const WideString& filePath) = 0;
 	};
 
 	class IBinaryReadable : public IReadable
@@ -25,8 +25,8 @@ namespace FileSystem
 	public:
 		virtual void Read(BinaryReader& reader) = 0;
 
-		void Load(const std::string& filePath) override;
-		void Load(const std::wstring& filePath) override;
+		void Load(const String& filePath) override;
+		void Load(const WideString& filePath) override;
 	};
 
 	class IBinaryWritable : public IWritable
@@ -34,8 +34,8 @@ namespace FileSystem
 	public:
 		virtual void Write(BinaryWriter& writer) = 0;
 
-		virtual void Save(const std::string& filePath) override;
-		virtual void Save(const std::wstring& filePath) override;
+		virtual void Save(const String& filePath) override;
+		virtual void Save(const WideString& filePath) override;
 	};
 
 	class IBinaryFile : public IBinaryReadable, public IBinaryWritable

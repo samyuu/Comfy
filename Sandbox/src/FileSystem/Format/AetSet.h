@@ -1,8 +1,7 @@
 #pragma once
 #include "Types.h"
+#include "Core/CoreTypes.h"
 #include "FileSystem/FileInterface.h"
-#include <vector>
-#include <array>
 
 namespace FileSystem
 {
@@ -37,12 +36,12 @@ namespace FileSystem
 
 	struct AetSprite
 	{
-		std::string Name;
+		String Name;
 		uint32_t ID;
 		mutable const Sprite* SpriteCache;
 	};
 
-	using SpriteCollection = std::vector<AetSprite>;
+	using SpriteCollection = Vector<AetSprite>;
 	using SpriteCollectionIterator = SpriteCollection::iterator;
 	using ConstSpriteCollectionIterator = SpriteCollection::const_iterator;
 
@@ -80,10 +79,10 @@ namespace FileSystem
 	struct AetMarker
 	{
 		AetMarker();
-		AetMarker(frame_t frame, const std::string& name);
+		AetMarker(frame_t frame, const String& name);
 
 		frame_t Frame;
-		std::string Name;
+		String Name;
 	};
 
 	struct AetKeyFrame
@@ -100,14 +99,14 @@ namespace FileSystem
 		float Interpolation;
 	};
 
-	using KeyFrameCollection = std::vector<AetKeyFrame>;
-	using KeyFrameCollectionArray = std::array<KeyFrameCollection, 8>;
+	using KeyFrameCollection = Vector<AetKeyFrame>;
+	using KeyFrameCollectionArray = Array<KeyFrameCollection, 8>;
 	using KeyFrameCollectionArrayIterator = KeyFrameCollectionArray::iterator;
 	using ConstKeyFrameCollectionArrayIterator = KeyFrameCollectionArray::const_iterator;
 
 	struct KeyFrameProperties
 	{
-		static std::array<const char*, 8> PropertyNames;
+		static Array<const char*, 8> PropertyNames;
 
 		KeyFrameCollectionArray KeyFrames;
 
@@ -135,7 +134,7 @@ namespace FileSystem
 
 	struct AnimationData
 	{
-		static std::array<const char*, 9> BlendModeNames;
+		static Array<const char*, 9> BlendModeNames;
 
 		AetBlendMode BlendMode;
 		bool UseTextureMask;
@@ -160,11 +159,11 @@ namespace FileSystem
 		friend class AetLayer;
 
 	public:
-		static std::array<const char*, 4> TypeNames;
+		static Array<const char*, 4> TypeNames;
 
 	public:
 		AetObj();
-		AetObj(AetObjType type, const std::string& name, AetLayer* parentLayer);
+		AetObj(AetObjType type, const String& name, AetLayer* parentLayer);
 		AetObj(AetObj& other) = delete;
 		AetObj& operator= (AetObj& other) = delete;
 		~AetObj() = default;
@@ -178,12 +177,12 @@ namespace FileSystem
 		unk8_t TypePaddingByte;
 		AetObjType Type;
 
-		std::vector<RefPtr<AetMarker>> Markers;
+		Vector<RefPtr<AetMarker>> Markers;
 		RefPtr<AnimationData> AnimationData;
 
-		const std::string& GetName() const;
+		const String& GetName() const;
 		void SetName(const char* value);
-		void SetName(const std::string& value);
+		void SetName(const String& value);
 
 		const RefPtr<AetRegion>& GetReferencedRegion();
 		const AetRegion* GetReferencedRegion() const;
@@ -209,7 +208,7 @@ namespace FileSystem
 		const AetLayer* GetParentLayer() const;
 
 	private:
-		std::string name;
+		String name;
 
 		AetLayer* parentLayer;
 
@@ -229,7 +228,7 @@ namespace FileSystem
 		void Read(BinaryReader& reader);
 	};
 
-	using AetObjCollection = std::vector<RefPtr<AetObj>>;
+	using AetObjCollection = Vector<RefPtr<AetObj>>;
 	using AetObjIterator = AetObjCollection::iterator;
 	using ConstAetObjIterator = AetObjCollection::const_iterator;
 
@@ -270,19 +269,19 @@ namespace FileSystem
 		inline AetObj* GetObjAt(int index) { return objects.at(index).get(); };
 		inline const AetObj* GetObjAt(int index) const { return objects[index].get(); };
 
-		RefPtr<AetObj> FindObj(const std::string& name);
-		RefPtr<const AetObj> FindObj(const std::string& name) const;
+		RefPtr<AetObj> FindObj(const String& name);
+		RefPtr<const AetObj> FindObj(const String& name) const;
 
-		const std::vector<std::string>& GetGivenNames() const;
+		const Vector<String>& GetGivenNames() const;
 		const char* GetCommaSeparatedNames() const;
 
 	public:
-		void AddNewObject(AetObjType type, const std::string& name);
+		void AddNewObject(AetObjType type, const String& name);
 		void DeleteObject(AetObj* value);
 
 	private:
-		std::vector<std::string> givenNames;
-		std::string commaSeparatedNames;
+		Vector<String> givenNames;
+		String commaSeparatedNames;
 
 		Aet* parentAet;
 		int32_t thisIndex;
@@ -327,7 +326,7 @@ namespace FileSystem
 		~Aet() = default;
 
 	public:
-		std::string Name;
+		String Name;
 		frame_t FrameStart;
 		frame_t FrameDuration;
 		frame_t FrameRate;
@@ -336,17 +335,17 @@ namespace FileSystem
 		ivec2 Resolution;
 		RefPtr<PositionOffset> PositionOffset;
 
-		std::vector<RefPtr<AetLayer>> AetLayers;
-		std::vector<RefPtr<AetRegion>> AetRegions;
-		std::vector<RefPtr<AetSoundEffect>> AetSoundEffects;
+		Vector<RefPtr<AetLayer>> AetLayers;
+		Vector<RefPtr<AetRegion>> AetRegions;
+		Vector<RefPtr<AetSoundEffect>> AetSoundEffects;
 
 	public:
 		AetLayer* GetRootLayer();
 
-		RefPtr<AetObj> FindObj(const std::string& name);
-		RefPtr<const AetObj> FindObj(const std::string& name) const;
+		RefPtr<AetObj> FindObj(const String& name);
+		RefPtr<const AetObj> FindObj(const String& name) const;
 
-		int32_t FindObjIndex(AetLayer& layer, const std::string& name) const;
+		int32_t FindObjIndex(AetLayer& layer, const String& name) const;
 
 	public:
 		//void AddNewLayer();
@@ -368,7 +367,7 @@ namespace FileSystem
 		void InternalFindObjReferencedParent(AetObj* aetObj);
 	};
 
-	using AetCollection = std::vector<RefPtr<Aet>>;
+	using AetCollection = Vector<RefPtr<Aet>>;
 	using AetIterator = AetCollection::iterator;
 	using ConstAetIterator = AetCollection::const_iterator;
 
@@ -381,7 +380,7 @@ namespace FileSystem
 		~AetSet() = default;
 
 	public:
-		std::string Name;
+		String Name;
 
 		AetIterator begin() { return aets.begin(); }
 		AetIterator end() { return aets.end(); }

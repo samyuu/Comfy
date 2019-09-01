@@ -24,7 +24,7 @@ template <class T>
 using RefPtr = _STD shared_ptr<T>;
 
 template<class _Ty, class... _Types> 
-_NODISCARD inline RefPtr<_Ty> MakeRefPtr(_Types&&... _Args)
+_NODISCARD inline RefPtr<_Ty> MakeRef(_Types&&... _Args)
 {
 	return (_STD shared_ptr<_Ty>(new _Ty(_STD forward<_Types>(_Args)...)));
 }

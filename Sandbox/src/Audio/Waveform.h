@@ -17,6 +17,6 @@ namespace Audio
 
 	protected:
 		// Mapping of pixel <-> averaged PCM
-		std::vector<float> pixelPCMs;
+		Vector<float> pixelPCMs;
 	};
 }

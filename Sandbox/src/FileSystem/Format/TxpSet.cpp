@@ -44,7 +44,7 @@ namespace FileSystem
 					texture->MipMaps.reserve(mipMapCount);
 					for (uint32_t i = 0; i < mipMapCount; i++)
 					{
-						texture->MipMaps.push_back(MakeRefPtr<MipMap>());
+						texture->MipMaps.push_back(MakeRef<MipMap>());
 						MipMap* mipMap = texture->MipMaps.back().get();
 
 						mipMap->Signature = ReadTxpSig(reader);
@@ -81,7 +81,7 @@ namespace FileSystem
 		texture->MipMaps.reserve(mipMapCount);
 		for (uint32_t i = 0; i < mipMapCount; i++)
 		{
-			texture->MipMaps.push_back(MakeRefPtr<MipMap>());
+			texture->MipMaps.push_back(MakeRef<MipMap>());
 			MipMap* mipMap = texture->MipMaps.back().get();
 
 			mipMap->Signature = *(TxpSig*)(mipMapBuffer + 0);
@@ -122,7 +122,7 @@ namespace FileSystem
 		for (int i = 0; i < Textures.size(); i++)
 		{
 			Texture* texture = Textures[i].get();
-			texture->GraphicsTexture = MakeRefPtr<Graphics::Texture2D>();
+			texture->GraphicsTexture = MakeRef<Graphics::Texture2D>();
 			texture->GraphicsTexture->Upload(texture);
 		}
 	}

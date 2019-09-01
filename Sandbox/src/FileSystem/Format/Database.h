@@ -1,8 +1,6 @@
 #pragma once
 #include "FileSystem/FileInterface.h"
 #include "Types.h"
-#include <string>
-#include <vector>
 
 namespace FileSystem
 {
@@ -21,29 +19,29 @@ namespace FileSystem
 	struct AetEntry : DatabaseEntry
 	{
 		uint32_t ID;
-		std::string Name;
+		String Name;
 		int32_t Index;
 	};
 
 	struct AetSetEntry : DatabaseEntry, DatabaseFileEntry
 	{
 		uint32_t ID;
-		std::string Name;
+		String Name;
 		uint32_t SprSetID;
-		std::vector<AetEntry> AetEntries;
-		std::string FileName;
+		Vector<AetEntry> AetEntries;
+		String FileName;
 
-		AetEntry* GetAetEntry(const std::string& name);
+		AetEntry* GetAetEntry(const String& name);
 	};
 
 	class AetDB : public Database
 	{
 	public:
-		std::vector<AetSetEntry> Entries;
+		Vector<AetSetEntry> Entries;
 
 		virtual void Read(BinaryReader& reader) override;
 		virtual void Write(BinaryWriter& writer) override;
-		AetSetEntry* GetAetSetEntry(const std::string& name);
+		AetSetEntry* GetAetSetEntry(const String& name);
 
 	private:
 	};
@@ -51,32 +49,32 @@ namespace FileSystem
 	struct SprEntry : DatabaseEntry
 	{
 		uint32_t ID;
-		std::string Name;
+		String Name;
 		int16_t Index;
 	};
 
 	struct SprSetEntry : DatabaseEntry, DatabaseFileEntry
 	{
 		uint32_t ID;
-		std::string Name;
-		std::string FileName;
+		String Name;
+		String FileName;
 
-		std::vector<SprEntry> SprEntries;
-		std::vector<SprEntry> SprTexEntries;
+		Vector<SprEntry> SprEntries;
+		Vector<SprEntry> SprTexEntries;
 
 		SprEntry* GetSprEntry(uint32_t id);
-		SprEntry* GetSprEntry(const std::string& name);
-		SprEntry* GetSprTexEntry(const std::string& name);
+		SprEntry* GetSprEntry(const String& name);
+		SprEntry* GetSprTexEntry(const String& name);
 	};
 
 	class SprDB : public Database
 	{
 	public:
-		std::vector<SprSetEntry> Entries;
+		Vector<SprSetEntry> Entries;
 
 		virtual void Read(BinaryReader& reader) override;
 		virtual void Write(BinaryWriter& writer) override;
-		SprSetEntry* GetSprSetEntry(const std::string& name);
+		SprSetEntry* GetSprSetEntry(const String& name);
 
 		uint32_t GetSprSetEntryCount();
 		uint32_t GetSprEntryCount();

@@ -1,7 +1,7 @@
 #include "LibraryLoader.h"
-#include "LibraryLoader.h"
 #include "Misc/StringHelper.h"
 #include "Core/Logger.h"
+#include <Windows.h>
 
 namespace System
 {
@@ -54,7 +54,7 @@ namespace System
 		if (!GetLibraryLoaded())
 			return;
 
-		::FreeLibrary(moduleHandle);
+		::FreeLibrary(reinterpret_cast<HMODULE>(moduleHandle));
 		moduleHandle = InvalidModuleHandle;
 	}
 
@@ -68,7 +68,7 @@ namespace System
 		if (!GetLibraryLoaded())
 			return nullptr;
 
-		void* functionAddress = ::GetProcAddress(moduleHandle, functionName);
+		void* functionAddress = ::GetProcAddress(reinterpret_cast<HMODULE>(moduleHandle), functionName);
 		return functionAddress;
 	}
 }

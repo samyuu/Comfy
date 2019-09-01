@@ -8,7 +8,7 @@ namespace Editor
 	{
 	}
 
-	TimelineMap::TimelineMap(std::vector<TimeSpan>& times, Tempo firstTempo, Tempo lastTempo) : tickTimes(times), firstTempo(firstTempo), lastTempo(lastTempo)
+	TimelineMap::TimelineMap(Vector<TimeSpan>& times, Tempo firstTempo, Tempo lastTempo) : tickTimes(times), firstTempo(firstTempo), lastTempo(lastTempo)
 	{
 	}
 

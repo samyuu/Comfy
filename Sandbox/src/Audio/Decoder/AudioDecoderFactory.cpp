@@ -72,16 +72,16 @@ namespace Audio
 		return instance.get();
 	}
 
-	RefPtr<MemorySampleProvider> AudioDecoderFactory::DecodeFile(const std::string& filePath)
+	RefPtr<MemorySampleProvider> AudioDecoderFactory::DecodeFile(const String& filePath)
 	{
-		std::wstring widePath = Utf8ToUtf16(filePath);
+		WideString widePath = Utf8ToUtf16(filePath);
 		if (!FileSystem::FileExists(widePath))
 		{
 			Logger::LogErrorLine(__FUNCTION__"(): Input file %s not found", filePath.c_str());
 			return nullptr;
 		}
 
-		std::string extension = FileSystem::GetFileExtension(filePath);
+		String extension = FileSystem::GetFileExtension(filePath);
 
 		for (auto& decoder : availableDecoders)
 		{
@@ -90,7 +90,7 @@ namespace Audio
 			if (!FileExtensionHelper::DoesAnyExtensionMatch(extension.c_str(), decoderExtensions))
 				continue;
 
-			std::vector<uint8_t> fileContent;
+			Vector<uint8_t> fileContent;
 
 			if (!FileSystem::FileReader::ReadEntireFile(widePath, &fileContent))
 			{
@@ -98,7 +98,7 @@ namespace Audio
 				return nullptr;
 			}
 
-			RefPtr<MemorySampleProvider> sampleProvider = MakeRefPtr<MemorySampleProvider>();
+			RefPtr<MemorySampleProvider> sampleProvider = MakeRef<MemorySampleProvider>();
 
 			AudioDecoderOutputData outputData;
 			outputData.ChannelCount = &sampleProvider->channelCount;

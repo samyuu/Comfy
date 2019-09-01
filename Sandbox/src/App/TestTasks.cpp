@@ -71,7 +71,7 @@ namespace App
 			{ aetData.p_MenuList06_c, aetData.MenuPlateOption, aetData.MenuPlateOptionSel },
 		};
 
-		static std::vector<AetMgr::ObjCache> objects; objects.clear();
+		static Vector<AetMgr::ObjCache> objects; objects.clear();
 		AetMgr::GetAddObjects(objects, aetData.MenuListIn02, menuListFrame);
 
 		for (auto& obj : objects)

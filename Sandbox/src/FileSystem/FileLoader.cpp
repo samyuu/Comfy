@@ -12,7 +12,7 @@ namespace FileSystem
 	{
 	}
 
-	FileLoader::FileLoader(const std::string& filePath)
+	FileLoader::FileLoader(const String& filePath)
 	{
 		SetFilePath(filePath);
 	}
@@ -23,12 +23,12 @@ namespace FileSystem
 			loaderThread->join();
 	}
 
-	const std::string& FileLoader::GetFilePath() const
+	const String& FileLoader::GetFilePath() const
 	{
 		return filePath;
 	}
 
-	void FileLoader::SetFilePath(const std::string& value)
+	void FileLoader::SetFilePath(const String& value)
 	{
 		assert(!isLoaded);
 		assert(!threadRunning && loaderThread == nullptr);
@@ -93,7 +93,7 @@ namespace FileSystem
 		return fileFound && threadRunning && !isLoaded;
 	}
 
-	const std::vector<uint8_t>& FileLoader::GetFileContent() const
+	const Vector<uint8_t>& FileLoader::GetFileContent() const
 	{
 		assert(fileFound && isLoaded);
 		return fileContent;
@@ -104,7 +104,7 @@ namespace FileSystem
 		assert(readable != nullptr);
 		assert(fileFound && isLoaded);
 
-		MemoryStream stream(const_cast<std::vector<uint8_t>*>(&fileContent));
+		MemoryStream stream(const_cast<Vector<uint8_t>*>(&fileContent));
 		BinaryReader reader(&stream);
 		
 		readable->Read(reader);

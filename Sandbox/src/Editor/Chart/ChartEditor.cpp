@@ -19,9 +19,9 @@ namespace Editor
 
 	void ChartEditor::Initialize()
 	{
-		dummySampleProvider = MakeRefPtr<Audio::SilenceSampleProvider>();
+		dummySampleProvider = MakeRef<Audio::SilenceSampleProvider>();
 
-		songInstance = MakeRefPtr<Audio::AudioInstance>(dummySampleProvider, true, "ChartEditor::SongInstance");
+		songInstance = MakeRef<Audio::AudioInstance>(dummySampleProvider, true, "ChartEditor::SongInstance");
 		songInstance->SetPlayPastEnd(true);
 		songInstance->SetVolume(0.75f);
 
@@ -85,7 +85,7 @@ namespace Editor
 		return BaseWindow::GetNoWindowFlags();
 	}
 
-	bool ChartEditor::IsAudioFile(const std::string& filePath)
+	bool ChartEditor::IsAudioFile(const String& filePath)
 	{
 		for (auto& fileExtension : audioFileExtensions)
 		{
@@ -96,12 +96,12 @@ namespace Editor
 		return false;
 	}
 
-	bool ChartEditor::OnFileDropped(const std::string& filePath)
+	bool ChartEditor::OnFileDropped(const String& filePath)
 	{
 		return (IsAudioFile(filePath) && LoadSong(filePath));
 	}
 
-	bool ChartEditor::LoadSong(const std::string& filePath)
+	bool ChartEditor::LoadSong(const String& filePath)
 	{
 		bool success;
 

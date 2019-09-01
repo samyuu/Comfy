@@ -1,6 +1,6 @@
 #pragma once
 #include "Stream.h"
-#include <string>
+#include "Core/CoreTypes.h"
 
 namespace FileSystem
 {
@@ -8,7 +8,7 @@ namespace FileSystem
 	{
 	public:
 		FileStream();
-		FileStream(const std::wstring& filePath);
+		FileStream(const WideString& filePath);
 		~FileStream();
 
 		virtual void Seek(int64_t position) override;
@@ -22,11 +22,11 @@ namespace FileSystem
 		virtual int64_t Read(void* buffer, size_t size) override;
 		virtual int64_t Write(const void* buffer, size_t size) override;
 
-		void OpenRead(const std::wstring& filePath);
-		void OpenWrite(const std::wstring& filePath);
-		void OpenReadWrite(const std::wstring& filePath);
-		void CreateWrite(const std::wstring& filePath);
-		void CreateReadWrite(const std::wstring& filePath);
+		void OpenRead(const WideString& filePath);
+		void OpenWrite(const WideString& filePath);
+		void OpenReadWrite(const WideString& filePath);
+		void CreateWrite(const WideString& filePath);
+		void CreateReadWrite(const WideString& filePath);
 		virtual void Close() override;
 
 	protected:

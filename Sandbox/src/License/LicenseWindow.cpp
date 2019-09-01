@@ -75,7 +75,7 @@ void LicenseWindow::LoadLicenseData()
 
 	for (const auto& filePath : licenseFilePaths)
 	{
-		std::vector<std::string> lines;
+		Vector<String> lines;
 		FileSystem::ReadAllLines(filePath, &lines);
 
 		licenseData.emplace_back();
@@ -85,7 +85,7 @@ void LicenseWindow::LoadLicenseData()
 
 		for (size_t i = 0; i < lines.size(); i++)
 		{
-			std::string& line = lines[i];
+			String& line = lines[i];
 
 			if (line.size() > 0 && line.front() == '#')
 			{
@@ -102,7 +102,7 @@ void LicenseWindow::LoadLicenseData()
 				continue;
 			}
 
-			std::string& stringToAppend = info->Strings[type];
+			String& stringToAppend = info->Strings[type];
 
 			stringToAppend.reserve(stringToAppend.size() + line.size() + 1);
 			stringToAppend.append(line);

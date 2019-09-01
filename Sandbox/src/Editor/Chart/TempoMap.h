@@ -1,6 +1,6 @@
 #pragma once
 #include "TempoChange.h"
-#include <vector>
+#include "Core/CoreTypes.h"
 
 namespace Editor
 {
@@ -18,6 +18,6 @@ namespace Editor
 		size_t TempoChangeCount();
 
 	private:
-		std::vector<TempoChange> tempoChanges;
+		Vector<TempoChange> tempoChanges;
 	};
 }

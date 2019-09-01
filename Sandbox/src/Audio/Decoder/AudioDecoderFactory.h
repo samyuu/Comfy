@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "IAudioDecoder.h"
 #include "Audio/SampleProvider/MemorySampleProvider.h"
-#include <vector>
+#include "Core/CoreTypes.h"
 
 namespace Audio
 {
@@ -14,14 +14,14 @@ namespace Audio
 		AudioDecoderFactory(const AudioDecoderFactory& other) = delete;
 		~AudioDecoderFactory();
 
-		RefPtr<MemorySampleProvider> DecodeFile(const std::string& filePath);
+		RefPtr<MemorySampleProvider> DecodeFile(const String& filePath);
 		static AudioDecoderFactory* GetInstance();
 
 	private:
 		AudioDecoderFactory();
 
 	protected:
-		std::vector<UniquePtr<IAudioDecoder>> availableDecoders;
+		Vector<UniquePtr<IAudioDecoder>> availableDecoders;
 	
 		template <class T>
 		inline void RegisterDecoder()

@@ -133,7 +133,7 @@ namespace Graphics
 		}
 	}
 
-	const std::vector<ShaderProgram*>& ShaderProgram::GetAllShaderPrograms()
+	const Vector<ShaderProgram*>& ShaderProgram::GetAllShaderPrograms()
 	{
 		return allShaderPrograms;
 	}
@@ -156,11 +156,11 @@ namespace Graphics
 
 	void ShaderProgram::LoadShaderSources()
 	{
-		FileSystem::FileReader::ReadEntireFile(std::string(GetVertexShaderPath()), &vertexSource);
-		FileSystem::FileReader::ReadEntireFile(std::string(GetFragmentShaderPath()), &fragmentSource);
+		FileSystem::FileReader::ReadEntireFile(String(GetVertexShaderPath()), &vertexSource);
+		FileSystem::FileReader::ReadEntireFile(String(GetFragmentShaderPath()), &fragmentSource);
 	}
 
-	int ShaderProgram::CompileShader(ShaderType shaderType, ShaderID_t* shaderID, const std::vector<uint8_t>& shaderSource)
+	int ShaderProgram::CompileShader(ShaderType shaderType, ShaderID_t* shaderID, const Vector<uint8_t>& shaderSource)
 	{
 		GLuint glShaderType = NULL;
 
@@ -188,7 +188,7 @@ namespace Graphics
 
 		if (!compileSuccess)
 		{
-			std::string infoLog;
+			String infoLog;
 			ReserveShaderInfoLogLength(*shaderID, infoLog);
 			GLCall(glGetShaderInfoLog(*shaderID, static_cast<int>(infoLog.capacity()), NULL, infoLog.data()));
 
@@ -210,7 +210,7 @@ namespace Graphics
 
 		if (!linkSuccess)
 		{
-			std::string infoLog;
+			String infoLog;
 			ReserveProgramInfoLogLength(programID, infoLog);
 			GLCall(glGetProgramInfoLog(programID, static_cast<int>(infoLog.capacity()), NULL, infoLog.data()));
 
@@ -235,7 +235,7 @@ namespace Graphics
 		}
 	}
 
-	void ShaderProgram::ReserveShaderInfoLogLength(const ShaderID_t& shaderID, std::string& infoLog)
+	void ShaderProgram::ReserveShaderInfoLogLength(const ShaderID_t& shaderID, String& infoLog)
 	{
 		int logLength;
 		GLCall(glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &logLength));
@@ -244,7 +244,7 @@ namespace Graphics
 			infoLog.reserve(logLength);
 	}
 
-	void ShaderProgram::ReserveProgramInfoLogLength(const ProgramID_t& programID, std::string & infoLog)
+	void ShaderProgram::ReserveProgramInfoLogLength(const ProgramID_t& programID, String & infoLog)
 	{
 		int logLength;
 		GLCall(glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &logLength));
@@ -253,7 +253,7 @@ namespace Graphics
 			infoLog.reserve(logLength);
 	}
 
-	std::vector<ShaderProgram*> ShaderProgram::allShaderPrograms;
+	Vector<ShaderProgram*> ShaderProgram::allShaderPrograms;
 
 	void ShaderProgram::RegisterProgram(ShaderProgram* program)
 	{

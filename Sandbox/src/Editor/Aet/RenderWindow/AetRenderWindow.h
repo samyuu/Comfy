@@ -49,7 +49,7 @@ namespace Editor
 	protected:
 		void RenderObjCache(const AetMgr::ObjCache& obj);
 		void RenderObjCache(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj);
-		void RenderObjCache(const std::vector<AetMgr::ObjCache>& objectCache);
+		void RenderObjCache(const Vector<AetMgr::ObjCache>& objectCache);
 
 	private:
 		CheckerboardGrid checkerboardBaseGrid;
@@ -66,7 +66,7 @@ namespace Editor
 		
 		const vec4 dummyColor = vec4(0.79f, 0.90f, 0.57f, 0.50f);
 
-		std::vector<AetMgr::ObjCache> objectCache;
+		Vector<AetMgr::ObjCache> objectCache;
 
 		Graphics::OrthographicCamera camera;
 		CameraController2D cameraController;

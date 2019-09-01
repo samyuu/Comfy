@@ -39,6 +39,6 @@ namespace Graphics::Auth2D
 		Renderer2D* renderer2D = nullptr;
 		SpriteGetterFunction* spriteGetter = nullptr;
 
-		std::vector<AetMgr::ObjCache> objectsCache;
+		Vector<AetMgr::ObjCache> objectsCache;
 	};
 }

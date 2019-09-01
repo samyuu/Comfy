@@ -7,8 +7,6 @@
 #include "Audio/SampleProvider/MemorySampleProvider.h"
 #include <RtAudio.h>
 #include <algorithm>
-#include <vector>
-#include <array>
 #include <mutex>
 
 namespace DataTest { class AudioTestWindow; }
@@ -71,7 +69,7 @@ namespace Audio
 		void AddCallbackReceiver(ICallbackReceiver* callbackReceiver);
 		void RemoveCallbackReceiver(ICallbackReceiver* callbackReceiver);
 
-		RefPtr<MemorySampleProvider> LoadAudioFile(const std::string& filePath);
+		RefPtr<MemorySampleProvider> LoadAudioFile(const String& filePath);
 
 		inline RtAudio* GetRtAudio() { return rtAudio.get(); };
 		inline uint32_t GetChannelCount() { return 2; };
@@ -105,10 +103,10 @@ namespace Audio
 
 		std::mutex audioInstancesMutex;
 
-		std::vector<RefPtr<AudioInstance>> audioInstances;
-		std::vector<ICallbackReceiver*> callbackReceivers;
+		Vector<RefPtr<AudioInstance>> audioInstances;
+		Vector<ICallbackReceiver*> callbackReceivers;
 
-		std::vector<int16_t> tempOutputBuffer;
+		Vector<int16_t> tempOutputBuffer;
 		uint32_t bufferSize = DEFAULT_BUFFER_SIZE;
 
 		bool isStreamOpen = false, isStreamRunning = false;
@@ -125,7 +123,7 @@ namespace Audio
 
 		RtAudio::Api GetRtAudioApi(AudioApi audioApi);
 
-		std::array<RtAudio::Api, static_cast<size_t>(AudioApi::Count)> audioApis =
+		Array<RtAudio::Api, static_cast<size_t>(AudioApi::Count)> audioApis =
 		{
 			RtAudio::WINDOWS_ASIO,		// AudioApi::ASIO
 			RtAudio::WINDOWS_WASAPI,	// AudioApi::WASAPI

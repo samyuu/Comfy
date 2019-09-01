@@ -19,7 +19,7 @@ namespace FileSystem
 	}
 
 	template <class T>
-	static inline void CheckReadVertexData(BinaryReader& reader, bool attributeFlag, std::vector<T>& vector, uint32_t vertexCount, void* pointer, void* baseAddress)
+	static inline void CheckReadVertexData(BinaryReader& reader, bool attributeFlag, Vector<T>& vector, uint32_t vertexCount, void* pointer, void* baseAddress)
 	{
 		if (!attributeFlag || pointer == nullptr)
 			return;
@@ -48,7 +48,7 @@ namespace FileSystem
 			{
 				for (uint32_t i = 0; i < meshCount; i++)
 				{
-					Meshes.push_back(MakeRefPtr<Mesh>());
+					Meshes.push_back(MakeRef<Mesh>());
 					const RefPtr<Mesh>& mesh = Meshes.back();
 
 					uint32_t unknown0 = reader.ReadUInt32();
@@ -63,7 +63,7 @@ namespace FileSystem
 						{
 							for (uint32_t i = 0; i < subMeshCount; i++)
 							{
-								mesh->SubMeshes.push_back(MakeRefPtr<SubMesh>());
+								mesh->SubMeshes.push_back(MakeRef<SubMesh>());
 								const RefPtr<SubMesh>& subMesh = mesh->SubMeshes.back();
 
 								uint32_t unknown0 = reader.ReadUInt32();
@@ -140,7 +140,7 @@ namespace FileSystem
 			{
 				for (uint32_t i = 0; i < materialCount; i++)
 				{
-					Materials.push_back(MakeRefPtr<Material>());
+					Materials.push_back(MakeRef<Material>());
 					const RefPtr<Material>& material = Materials.back();
 
 					// TODO:
@@ -164,7 +164,7 @@ namespace FileSystem
 			{
 				for (uint32_t i = 0; i < objectCount; i++)
 				{
-					objects.push_back(MakeRefPtr<Obj>());
+					objects.push_back(MakeRef<Obj>());
 					const RefPtr<Obj>& obj = objects.back();
 
 					reader.ReadAt(reader.ReadPtr(), [&obj](BinaryReader& reader)

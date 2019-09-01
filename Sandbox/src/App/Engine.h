@@ -26,7 +26,7 @@ namespace App
 		{
 			static_assert(std::is_base_of<Task, T>::value, "T must inherit from Task");
 
-			tasks.push_back(MakeRefPtr<T>());
+			tasks.push_back(MakeRef<T>());
 			tasks.back()->Initialize();
 		};
 
@@ -40,7 +40,7 @@ namespace App
 		Graphics::OrthographicCamera camera;
 		Editor::CameraController2D cameraController;
 
-		std::vector<RefPtr<Task>> tasks;
+		Vector<RefPtr<Task>> tasks;
 
 		ImGuiWindow* guiWindow;
 	};

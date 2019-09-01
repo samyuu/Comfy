@@ -57,7 +57,7 @@ namespace Editor
 		ChartEditor* chartEditor;
 
 		// ----------------------
-		std::vector<TimeSpan> buttonSoundTimesList;
+		Vector<TimeSpan> buttonSoundTimesList;
 		AudioController audioController;
 
 		bool updateWaveform;
@@ -66,20 +66,20 @@ namespace Editor
 
 		// Timeline:
 		// ---------
-		const std::array<const char*, 10> gridDivisionStrings = { "1/1", "1/2", "1/4", "1/8", "1/12", "1/16", "1/24", "1/32", "1/48", "1/64" };
-		const std::array<int, 10> gridDivisions = { 1, 2, 4, 8, 12, 16, 24, 32, 48, 64 };
+		const Array<const char*, 10> gridDivisionStrings = { "1/1", "1/2", "1/4", "1/8", "1/12", "1/16", "1/24", "1/32", "1/48", "1/64" };
+		const Array<int, 10> gridDivisions = { 1, 2, 4, 8, 12, 16, 24, 32, 48, 64 };
 
 		int gridDivisionIndex = 0;
 		int gridDivision = 16;
 		// ----------------------
 
-		std::array<float, TargetType_Max> targetYPositions;
+		Array<float, TargetType_Max> targetYPositions;
 
 		// sankaku | shikaku | batsu | maru | slide_l | slide_r | slide_chain_l | slide_chain_r
 		static constexpr int buttonIconsTypeCount = 8;
 		static constexpr int buttonIconWidth = 52;
 
-		std::array<ImRect, buttonIconsTypeCount * 2> buttonIconsTextureCoordinates;
+		Array<ImRect, buttonIconsTypeCount * 2> buttonIconsTextureCoordinates;
 		FileSystem::SprSet sprSet;
 		Graphics::Texture2D* buttonIconsTexture;
 

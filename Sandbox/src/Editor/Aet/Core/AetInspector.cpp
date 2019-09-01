@@ -350,7 +350,7 @@ namespace Editor
 			DrawInspectorKeyFrames(KeyFrameProperties::PropertyNames[i], &properties->at(i));
 	}
 
-	void AetInspector::DrawInspectorKeyFrames(const char* name, std::vector<AetKeyFrame>* keyFrames)
+	void AetInspector::DrawInspectorKeyFrames(const char* name, Vector<AetKeyFrame>* keyFrames)
 	{
 		if (Gui::WideTreeNode(name))
 		{
@@ -373,7 +373,7 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAetObjMarkers(const RefPtr<AetObj>& aetObj, std::vector<RefPtr<AetMarker>>* markers)
+	void AetInspector::DrawInspectorAetObjMarkers(const RefPtr<AetObj>& aetObj, Vector<RefPtr<AetMarker>>* markers)
 	{
 		if (Gui::WideTreeNodeEx(ICON_MARKERS "  Markers", ImGuiTreeNodeFlags_DefaultOpen))
 		{
@@ -427,7 +427,7 @@ namespace Editor
 			{
 				char newMarkerBuffer[32];
 				sprintf_s(newMarkerBuffer, "marker_%02zd", markers->size());
-				GetCommandManager()->EnqueueCommand<Command::AetObjAddMarker>(aetObj, MakeRefPtr<AetMarker>(0.0f, newMarkerBuffer));
+				GetCommandManager()->EnqueueCommand<Command::AetObjAddMarker>(aetObj, MakeRef<AetMarker>(0.0f, newMarkerBuffer));
 			}
 			Gui::TreePop();
 		}

@@ -89,7 +89,7 @@ namespace FileSystem
 
 	static void ReadAnimationData(RefPtr<AnimationData>& animationData, BinaryReader& reader)
 	{
-		animationData = MakeRefPtr<FileSystem::AnimationData>();
+		animationData = MakeRef<FileSystem::AnimationData>();
 		animationData->BlendMode = static_cast<AetBlendMode>(reader.ReadUInt8());
 		reader.ReadUInt8();
 		animationData->UseTextureMask = reader.ReadBool();
@@ -102,7 +102,7 @@ namespace FileSystem
 		{
 			reader.ReadAt(perspectivePropertiesPointer, [animationData](BinaryReader& reader)
 			{
-				animationData->PerspectiveProperties = MakeRefPtr<KeyFrameProperties>();
+				animationData->PerspectiveProperties = MakeRef<KeyFrameProperties>();
 				ReadKeyFrameProperties(animationData->PerspectiveProperties.get(), reader);
 			});
 		}
@@ -131,7 +131,7 @@ namespace FileSystem
 		{
 			Markers.reserve(markerCount);
 			for (size_t i = 0; i < markerCount; i++)
-				Markers.push_back(MakeRefPtr<AetMarker>());
+				Markers.push_back(MakeRef<AetMarker>());
 
 			reader.ReadAt(markersPointer, [this](BinaryReader& reader)
 			{
@@ -170,7 +170,7 @@ namespace FileSystem
 		void* positionOffsetPtr = reader.ReadPtr();
 		if (positionOffsetPtr != nullptr)
 		{
-			this->PositionOffset = MakeRefPtr<FileSystem::PositionOffset>();
+			this->PositionOffset = MakeRef<FileSystem::PositionOffset>();
 			reader.ReadAt(positionOffsetPtr, [this](BinaryReader& reader)
 			{
 				ReadKeyFramesPointer(this->PositionOffset->PositionX, reader);
@@ -187,7 +187,7 @@ namespace FileSystem
 			{
 				for (RefPtr<AetLayer>& layer : AetLayers)
 				{
-					layer = MakeRefPtr<AetLayer>();
+					layer = MakeRef<AetLayer>();
 					layer->filePosition = reader.GetPositionPtr();
 
 					uint32_t objectCount = reader.ReadUInt32();
@@ -200,7 +200,7 @@ namespace FileSystem
 						{
 							for (RefPtr<AetObj>& object : *layer)
 							{
-								object = MakeRefPtr<AetObj>();
+								object = MakeRef<AetObj>();
 								object->Read(reader);
 							}
 						});
@@ -218,7 +218,7 @@ namespace FileSystem
 			{
 				for (RefPtr<AetRegion>& region : AetRegions)
 				{
-					region = MakeRefPtr<AetRegion>();
+					region = MakeRef<AetRegion>();
 					region->filePosition = reader.GetPositionPtr();
 					region->Color = ReadColor(reader);
 					region->Width = reader.ReadUInt16();
@@ -253,7 +253,7 @@ namespace FileSystem
 			{
 				for (RefPtr<AetSoundEffect>& soundEffect : AetSoundEffects)
 				{
-					soundEffect = MakeRefPtr<AetSoundEffect>();
+					soundEffect = MakeRef<AetSoundEffect>();
 					soundEffect->filePosition = reader.GetPositionPtr();
 					soundEffect->Data[0] = reader.ReadUInt32();
 					soundEffect->Data[1] = reader.ReadUInt32();
@@ -512,7 +512,7 @@ namespace FileSystem
 		{
 			for (int i = 0; i < aetCount; i++)
 			{
-				aets.push_back(MakeRefPtr<Aet>());
+				aets.push_back(MakeRef<Aet>());
 				const RefPtr<Aet>& aet = aets.back();
 
 				reader.ReadAt(reader.ReadPtr(), [&aet](BinaryReader& reader)

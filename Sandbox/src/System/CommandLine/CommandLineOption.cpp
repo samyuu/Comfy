@@ -20,7 +20,7 @@ namespace System
 		return strcmp(input, shortCommand) == 0 || strcmp(input, longCommand) == 0;
 	}
 
-	std::vector<CommandLineOption> CommandLineOptions::options;
+	Vector<CommandLineOption> CommandLineOptions::options;
 
 	void CommandLineOptions::Initialize()
 	{
@@ -34,7 +34,7 @@ namespace System
 		};
 	}
 
-	const std::vector<CommandLineOption>& CommandLineOptions::GetOptions()
+	const Vector<CommandLineOption>& CommandLineOptions::GetOptions()
 	{
 		return options;
 	}

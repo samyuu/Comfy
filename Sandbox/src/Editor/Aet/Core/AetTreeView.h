@@ -2,8 +2,8 @@
 #include "Editor/Aet/AetSelection.h"
 #include "AetDialogs.h"
 #include "FileSystem/Format/AetSet.h"
+#include "Core/CoreTypes.h"
 #include "ImGui/Gui.h"
-#include <vector>
 
 namespace Editor
 {

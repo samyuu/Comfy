@@ -3,7 +3,7 @@
 
 namespace FileSystem
 {
-	std::array<const char*, 8> KeyFrameProperties::PropertyNames =
+	Array<const char*, 8> KeyFrameProperties::PropertyNames =
 	{
 		"Origin X",
 		"Origin Y",
@@ -15,7 +15,7 @@ namespace FileSystem
 		"Opactiy",
 	};
 
-	std::array<const char*, 9> AnimationData::BlendModeNames =
+	Array<const char*, 9> AnimationData::BlendModeNames =
 	{
 		nullptr,
 		nullptr,
@@ -28,7 +28,7 @@ namespace FileSystem
 		"Transparent",
 	};
 
-	std::array<const char*, 4> AetObj::TypeNames =
+	Array<const char*, 4> AetObj::TypeNames =
 	{
 		"nop",
 		"pic",
@@ -75,7 +75,7 @@ namespace FileSystem
 	{
 	}
 
-	AetMarker::AetMarker(frame_t frame, const std::string& name) : Frame(frame), Name(name)
+	AetMarker::AetMarker(frame_t frame, const String& name) : Frame(frame), Name(name)
 	{
 	}
 
@@ -95,7 +95,7 @@ namespace FileSystem
 	{
 	}
 
-	AetObj::AetObj(AetObjType type, const std::string& name, AetLayer* parentLayer)
+	AetObj::AetObj(AetObjType type, const String& name, AetLayer* parentLayer)
 	{
 		LoopStart = 0.0f;
 		LoopEnd = 60.0f;
@@ -108,7 +108,7 @@ namespace FileSystem
 
 		if (type != AetObjType::Aif)
 		{
-			AnimationData = MakeRefPtr<FileSystem::AnimationData>();
+			AnimationData = MakeRef<FileSystem::AnimationData>();
 			AnimationData->BlendMode = AetBlendMode::Alpha;
 			AnimationData->UseTextureMask = false;
 			AnimationData->Properties.OriginX().emplace_back(0.0f);
@@ -126,7 +126,7 @@ namespace FileSystem
 		SetName(name);
 	}
 
-	const std::string& AetObj::GetName() const
+	const String& AetObj::GetName() const
 	{
 		return name;
 	}
@@ -138,7 +138,7 @@ namespace FileSystem
 		GetParentAet()->InternalUpdateLayerNames();
 	}
 
-	void AetObj::SetName(const std::string& value)
+	void AetObj::SetName(const String& value)
 	{
 		SetName(value.c_str());
 	}
@@ -225,7 +225,7 @@ namespace FileSystem
 		return parentLayer;
 	}
 
-	RefPtr<AetObj> AetLayer::FindObj(const std::string& name)
+	RefPtr<AetObj> AetLayer::FindObj(const String& name)
 	{
 		for (int32_t i = 0; i < size(); i++)
 		{
@@ -236,12 +236,12 @@ namespace FileSystem
 		return nullptr;
 	}
 
-	RefPtr<const AetObj> AetLayer::FindObj(const std::string& name) const
+	RefPtr<const AetObj> AetLayer::FindObj(const String& name) const
 	{
 		return const_cast<AetLayer*>(this)->FindObj(name);
 	}
 
-	const std::vector<std::string>& AetLayer::GetGivenNames() const
+	const Vector<String>& AetLayer::GetGivenNames() const
 	{
 		return givenNames;
 	}
@@ -251,9 +251,9 @@ namespace FileSystem
 		return commaSeparatedNames.c_str();
 	}
 
-	void AetLayer::AddNewObject(AetObjType type, const std::string& name)
+	void AetLayer::AddNewObject(AetObjType type, const String& name)
 	{
-		objects.push_back(MakeRefPtr<AetObj>(type, name, this));
+		objects.push_back(MakeRef<AetObj>(type, name, this));
 	}
 
 	void AetLayer::DeleteObject(AetObj* value)
@@ -278,7 +278,7 @@ namespace FileSystem
 		return AetLayers.size() > 0 ? AetLayers.back().get() : nullptr;
 	}
 
-	RefPtr<AetObj> Aet::FindObj(const std::string& name)
+	RefPtr<AetObj> Aet::FindObj(const String& name)
 	{
 		for (int32_t i = static_cast<int32_t>(AetLayers.size()) - 1; i >= 0; i--)
 		{
@@ -290,12 +290,12 @@ namespace FileSystem
 		return nullptr;
 	}
 
-	RefPtr<const AetObj> Aet::FindObj(const std::string& name) const
+	RefPtr<const AetObj> Aet::FindObj(const String& name) const
 	{
 		return const_cast<Aet*>(this)->FindObj(name);
 	}
 
-	int32_t Aet::FindObjIndex(AetLayer& layer, const std::string& name) const
+	int32_t Aet::FindObjIndex(AetLayer& layer, const String& name) const
 	{
 		for (int32_t i = static_cast<int32_t>(layer.size()) - 1; i >= 0; i--)
 		{

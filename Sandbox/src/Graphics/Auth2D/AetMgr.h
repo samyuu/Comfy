@@ -42,17 +42,17 @@ namespace Graphics::Auth2D
 			bool Visible;
 		};
 
-		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, const AetLayer* aetLayer, float frame);
-		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, const AetObj* aetObj, float frame);
+		static void GetAddObjects(Vector<AetMgr::ObjCache>& objects, const AetLayer* aetLayer, float frame);
+		static void GetAddObjects(Vector<AetMgr::ObjCache>& objects, const AetObj* aetObj, float frame);
 
-		static float Interpolate(const std::vector<AetKeyFrame>& keyFrames, float frame);
+		static float Interpolate(const Vector<AetKeyFrame>& keyFrames, float frame);
 		static void Interpolate(const AnimationData* animationData, Properties* properties, float frame);
 
 		static AetKeyFrame* GetKeyFrameAt(KeyFrameCollection& keyFrames, float frame);
 
 	private:
-		static void InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame);
-		static void InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame);
-		static void InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame);
+		static void InternalAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame);
+		static void InternalPicAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame);
+		static void InternalEffAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame);
 	};
 }

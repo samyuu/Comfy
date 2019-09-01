@@ -1,9 +1,8 @@
 #pragma once
 #include "Core/BaseWindow.h"
+#include "Core/CoreTypes.h"
 #include "Audio/Core/AudioEngine.h"
 #include "Audio/SampleProvider/MemorySampleProvider.h"
-#include <vector>
-#include <array>
 
 namespace DataTest
 {
@@ -31,28 +30,28 @@ namespace DataTest
 		struct ExtendedDeviceInfo
 		{
 			RtAudio::DeviceInfo Info;
-			std::string SampleRatesString;
-			std::string NativeFormatsString;
+			String SampleRatesString;
+			String NativeFormatsString;
 		};
 
-		std::vector<ExtendedDeviceInfo> deviceInfoList;
+		Vector<ExtendedDeviceInfo> deviceInfoList;
 		Audio::AudioApi selectedAudioApi = Audio::AudioApi::Invalid;
 		Audio::ChannelMixer::MixingBehavior selectedMixingBehavior = static_cast<Audio::ChannelMixer::MixingBehavior>(-1);
 		int newBufferSize = -1;
 
-		std::array<const char*, static_cast<size_t>(Audio::AudioApi::Count)> audioApiNames =
+		Array<const char*, static_cast<size_t>(Audio::AudioApi::Count)> audioApiNames =
 		{
 			"AudioApi::ASIO",
 			"AudioApi::WASAPI",
 		};
 
-		std::array<const char*, static_cast<size_t>(Audio::ChannelMixer::MixingBehavior::Count)> mixingBehaviorNames =
+		Array<const char*, static_cast<size_t>(Audio::ChannelMixer::MixingBehavior::Count)> mixingBehaviorNames =
 		{
 			"ChannelMixer::MixingBehavior::Ignore",
 			"ChannelMixer::MixingBehavior::Mix",
 		};
 
-		std::array<const char*, 8> deviceInfoFieldNames =
+		Array<const char*, 8> deviceInfoFieldNames =
 		{
 			"Name",
 			"Output Channels",

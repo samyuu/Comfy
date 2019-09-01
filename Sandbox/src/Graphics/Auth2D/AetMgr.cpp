@@ -38,19 +38,19 @@ namespace Graphics::Auth2D
 		output.Opacity *= input.Opacity;
 	}
 
-	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetLayer* aetLayer, float frame)
+	void AetMgr::GetAddObjects(Vector<ObjCache>& objects, const AetLayer* aetLayer, float frame)
 	{
 		for (int i = static_cast<int>(aetLayer->size()) - 1; i >= 0; i--)
 			GetAddObjects(objects, aetLayer->GetObjAt(i), frame);
 	}
 
-	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetObj* aetObj, float frame)
+	void AetMgr::GetAddObjects(Vector<ObjCache>& objects, const AetObj* aetObj, float frame)
 	{
 		Properties propreties = DefaultProperites;
 		InternalAddObjects(objects, &propreties, aetObj, frame);
 	}
 
-	float AetMgr::Interpolate(const std::vector<AetKeyFrame>& keyFrames, float frame)
+	float AetMgr::Interpolate(const Vector<AetKeyFrame>& keyFrames, float frame)
 	{
 		if (keyFrames.size() <= 0)
 			return 0.0f;
@@ -106,7 +106,7 @@ namespace Graphics::Auth2D
 		return nullptr;
 	}
 
-	void AetMgr::InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame)
+	void AetMgr::InternalAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame)
 	{
 		if (aetObj->Type == AetObjType::Pic)
 		{
@@ -118,7 +118,7 @@ namespace Graphics::Auth2D
 		}
 	}
 
-	void AetMgr::InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame)
+	void AetMgr::InternalPicAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame)
 	{
 		assert(aetObj->Type == AetObjType::Pic);
 
@@ -165,7 +165,7 @@ namespace Graphics::Auth2D
 		TransformProperties(*parentProperties, objCache.Properties);
 	}
 
-	void AetMgr::InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame)
+	void AetMgr::InternalEffAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame)
 	{
 		assert(aetObj->Type == AetObjType::Eff);
 

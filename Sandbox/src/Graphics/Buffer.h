@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "Graphics.h"
 #include "GraphicsInterface.h"
-#include <vector>
+#include "Core/CoreTypes.h"
 
 namespace Graphics
 {
@@ -142,11 +142,11 @@ namespace Graphics
 		BufferLayout(std::initializer_list<BufferElement> elements);
 
 		inline uint16_t GetStride() const { return stride; };
-		inline const std::vector<BufferElement>& GetElemenets() const { return elements; };
+		inline const Vector<BufferElement>& GetElemenets() const { return elements; };
 
 	private:
 		uint16_t stride;
-		std::vector<BufferElement> elements;
+		Vector<BufferElement> elements;
 
 		void UpdateElements();
 		static uint16_t GetElementSize(ShaderDataType type);

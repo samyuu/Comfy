@@ -4,7 +4,7 @@
 #include "Graphics/RenderCommand.h"
 #include "Graphics/Buffer.h"
 #include "Graphics/VertexArray.h"
-#include <vector>
+#include "Core/CoreTypes.h"
 
 namespace FileSystem
 {
@@ -27,7 +27,7 @@ namespace FileSystem
 		uint32_t MaterialIndex;
 		uint32_t MaterialUVIndices[2];
 		Graphics::PrimitiveType Primitive;
-		std::vector<uint16_t> Indices;
+		Vector<uint16_t> Indices;
 		Box BoundingBox;
 
 		RefPtr<Graphics::IndexBuffer> GraphicsIndexBuffer;
@@ -52,9 +52,9 @@ namespace FileSystem
 	struct VertexData
 	{
 		uint32_t Stride;
-		std::vector<vec3> Positions;
-		std::vector<vec3> Normals;
-		std::vector<vec4> Tangents;
+		Vector<vec3> Positions;
+		Vector<vec3> Normals;
+		Vector<vec4> Tangents;
 	};
 
 	struct GraphicsVertexBuffers
@@ -68,8 +68,8 @@ namespace FileSystem
 	{
 	public:
 		Sphere BoundingSphere;
-		std::vector<RefPtr<SubMesh>> SubMeshes;
-		std::string Name;
+		Vector<RefPtr<SubMesh>> SubMeshes;
+		String Name;
 		VertexAttributeTypes VertexAttributes;
 		VertexData VertexData;
 
@@ -79,7 +79,7 @@ namespace FileSystem
 	class Material
 	{
 	public:
-		std::string Name;
+		String Name;
 	};
 
 	class Obj
@@ -93,18 +93,18 @@ namespace FileSystem
 		~Obj() = default;
 
 	public:
-		std::string Name;
+		String Name;
 		uint32_t ID;
 
 		Sphere BoundingSphere;
-		std::vector<RefPtr<Mesh>> Meshes;
-		std::vector<RefPtr<Material>> Materials;
+		Vector<RefPtr<Mesh>> Meshes;
+		Vector<RefPtr<Material>> Materials;
 
 	private:
 		void Read(BinaryReader& reader);
 	};
 
-	using ObjCollection = std::vector<RefPtr<Obj>>;
+	using ObjCollection = Vector<RefPtr<Obj>>;
 	using ObjIterator = ObjCollection::iterator;
 	using ConstObjIterator = ObjCollection::const_iterator;
 
@@ -117,7 +117,7 @@ namespace FileSystem
 		~ObjSet() = default;
 
 	public:
-		std::string Name;
+		String Name;
 
 		ObjIterator begin() { return objects.begin(); }
 		ObjIterator end() { return objects.end(); }

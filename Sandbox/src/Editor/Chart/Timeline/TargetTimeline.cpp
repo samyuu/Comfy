@@ -211,8 +211,8 @@ namespace Editor
 		// sankaku		| shikaku		| batsu		 | maru		 | slide_l		| slide_r	   | slide_chain_l		| slide_chain_r
 		// sankaku_sync | shikaku_sync  | batsu_sync | maru_sync | slide_l_sync | slide_r_sync | slide_chain_l_sync | slide_chain_r_sync
 		{
-			std::vector<uint8_t> sprFileBuffer;
-			FileSystem::FileReader::ReadEntireFile(std::string("rom/spr/spr_comfy_editor.bin"), &sprFileBuffer);
+			Vector<uint8_t> sprFileBuffer;
+			FileSystem::FileReader::ReadEntireFile(String("rom/spr/spr_comfy_editor.bin"), &sprFileBuffer);
 
 			sprSet.Parse(sprFileBuffer.data());
 			sprSet.TxpSet->UploadAll();

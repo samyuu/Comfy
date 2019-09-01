@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/CoreTypes.h"
 #include <functional>
 
 namespace System
@@ -24,9 +25,9 @@ namespace System
 	
 	public:
 		static void Initialize();
-		static const std::vector<CommandLineOption>& GetOptions();
+		static const Vector<CommandLineOption>& GetOptions();
 	
 	private:
-		static std::vector<CommandLineOption> options;
+		static Vector<CommandLineOption> options;
 	};
 }

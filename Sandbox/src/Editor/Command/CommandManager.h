@@ -1,8 +1,8 @@
 #pragma once
 #include "Types.h"
 #include "ICommand.h"
+#include "Core/CoreTypes.h"
 #include <queue>
-#include <vector>
 
 namespace Editor
 {
@@ -12,7 +12,7 @@ namespace Editor
 		static_assert(std::is_base_of<ICommand, TCommand>::value, "TCommand must inherit from ICommand");
 		
 		using CommandQueue = std::queue<RefPtr<TCommand>>;
-		using CommandStack = std::vector<RefPtr<TCommand>>;
+		using CommandStack = Vector<RefPtr<TCommand>>;
 
 	public:
 		CommandManager() {};
@@ -51,7 +51,7 @@ namespace Editor
 	inline void CommandManager<TCommand>::EnqueueCommand(_Types&& ..._Args)
 	{
 		static_assert(std::is_base_of<TCommand, TNewCommand>::value, "TNewCommand must inherit from TCommand");
-		commandQueue.push(MakeRefPtr<TNewCommand>(std::forward<_Types>(_Args)...));
+		commandQueue.push(MakeRef<TNewCommand>(std::forward<_Types>(_Args)...));
 	}
 
 	template<class TCommand>

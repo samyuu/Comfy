@@ -1,8 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "FileSystem/FileInterface.h"
-#include <string>
-#include <vector>
+#include "Core/CoreTypes.h"
 
 namespace Graphics
 {
@@ -65,7 +64,7 @@ namespace FileSystem
 		int32_t Height;
 		TextureFormat Format;
 		int32_t Index;
-		std::vector<uint8_t> Data;
+		Vector<uint8_t> Data;
 		struct
 		{
 			const uint8_t* DataPointer;
@@ -76,8 +75,8 @@ namespace FileSystem
 	struct Texture
 	{
 		TxpSig Signature;
-		std::vector<RefPtr<MipMap>> MipMaps;
-		std::string Name;
+		Vector<RefPtr<MipMap>> MipMaps;
+		String Name;
 
 		RefPtr<Graphics::Texture2D> GraphicsTexture;
 	};
@@ -86,7 +85,7 @@ namespace FileSystem
 	{
 	public:
 		TxpSig Signature;
-		std::vector<RefPtr<Texture>> Textures;
+		Vector<RefPtr<Texture>> Textures;
 
 		virtual void Read(BinaryReader& reader) override;
 		virtual void Parse(const uint8_t* buffer) override;

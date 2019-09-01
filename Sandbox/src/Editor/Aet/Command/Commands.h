@@ -36,14 +36,14 @@ namespace Editor::Command
 {
 	using namespace FileSystem;
 
-	DeclarePropertyCommandClass(AetChangeName, "Change Aet Name", Aet, std::string, Name);
+	DeclarePropertyCommandClass(AetChangeName, "Change Aet Name", Aet, String, Name);
 	DeclarePropertyCommandClass(AetChangeResolution, "Change Resolution", Aet, ivec2, Resolution);
 	DeclarePropertyCommandClass(AetChangeStartFrame, "Change Aet Start Frame", Aet, float, FrameStart);
 	DeclarePropertyCommandClass(AetChangeFrameDuration, "Change Aet Frame Duration", Aet, float, FrameDuration);
 	DeclarePropertyCommandClass(AetChangeFrameRate, "Change Aet Frame Rate", Aet, float, FrameRate);
 	DeclarePropertyCommandClass(AetChangeBackgroundColor, "Change Aet Background Color", Aet, uint32_t, BackgroundColor);
 
-	DeclareAccessorCommandClass(AetObjChangeName, "Change Object Name", AetObj, std::string, GetName, SetName);
+	DeclareAccessorCommandClass(AetObjChangeName, "Change Object Name", AetObj, String, GetName, SetName);
 	DeclarePropertyCommandClass(AetObjChangeLoopStart, "Change Object Loop Start", AetObj, float, LoopStart);
 	DeclarePropertyCommandClass(AetObjChangeLoopEnd, "Change Object Loop End", AetObj, float, LoopEnd);
 	DeclarePropertyCommandClass(AetObjChangeStartFrame, "Change Object Start Frame", AetObj, float, StartFrame);
@@ -55,7 +55,7 @@ namespace Editor::Command
 	DeclarePropertyCommandClass(AnimationDataChangeBlendMode, "Change Blend Mode", AnimationData, AetBlendMode, BlendMode);
 	DeclarePropertyCommandClass(AnimationDataChangeUseTextureMask, "Change Use Texture Mask", AnimationData, bool, UseTextureMask);
 
-	DeclarePropertyCommandClass(AetObjChangeMarkerName, "Change Object Marker Name", AetMarker, std::string, Name);
+	DeclarePropertyCommandClass(AetObjChangeMarkerName, "Change Object Marker Name", AetMarker, String, Name);
 	DeclarePropertyCommandClass(AetObjChangeMarkerFrame, "Change Object Marker Frame", AetMarker, float, Frame);
 
 	class AetObjAddMarker : public AetCommand

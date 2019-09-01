@@ -1,5 +1,5 @@
 #pragma once
-#include <string>
+#include "Core/CoreTypes.h"
 
 // Time struct storing the underlying Time as a double in Seconds
 // --------------------------------------------------------------
@@ -41,7 +41,7 @@ struct TimeSpan
 		return TimeSpan(value / 1000.0);
 	}
 
-	std::string FormatTime() const
+	String FormatTime() const
 	{
 		double absoluteTime = abs(time);
 
@@ -53,7 +53,7 @@ struct TimeSpan
 		const char* sign = time < 0 ? "-" : "";
 		sprintf_s(buffer, sizeof(buffer), "%s%02d:%02d.%03d", sign, (int)minutes, (int)seconds, (int)milliseconds);
 	
-		return std::string(buffer);
+		return String(buffer);
 	}
 
 	// Operators:

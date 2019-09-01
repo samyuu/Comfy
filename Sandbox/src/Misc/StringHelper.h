@@ -1,24 +1,24 @@
 #pragma once
-#include <string>
+#include "Core/CoreTypes.h"
 
-void TrimLeft(std::string &string);
-void TrimRight(std::string &string);
-void Trim(std::string &string);
+void TrimLeft(String &string);
+void TrimRight(String &string);
+void Trim(String &string);
 
-bool StartsWith(const std::string& string, const std::string& prefix);
-bool StartsWith(const std::wstring& string, const std::wstring& prefix);
+bool StartsWith(const String& string, const String& prefix);
+bool StartsWith(const WideString& string, const WideString& prefix);
 
-bool StartsWithInsensitive(const std::string& string, const std::string& prefix);
-bool StartsWithInsensitive(const std::wstring& string, const std::wstring& prefix);
+bool StartsWithInsensitive(const String& string, const String& prefix);
+bool StartsWithInsensitive(const WideString& string, const WideString& prefix);
 
-bool EndsWith(const std::string& string, char suffix);
-bool EndsWith(const std::wstring& string, wchar_t suffix);
+bool EndsWith(const String& string, char suffix);
+bool EndsWith(const WideString& string, wchar_t suffix);
 
-bool EndsWith(const std::string& string, const std::string& suffix);
-bool EndsWith(const std::wstring& string, const std::wstring& suffix);
+bool EndsWith(const String& string, const String& suffix);
+bool EndsWith(const WideString& string, const WideString& suffix);
 
-bool EndsWithInsensitive(const std::string& string, const std::string& suffix);
-bool EndsWithInsensitive(const std::wstring& string, const std::wstring& suffix);
+bool EndsWithInsensitive(const String& string, const String& suffix);
+bool EndsWithInsensitive(const WideString& string, const WideString& suffix);
 
-std::wstring Utf8ToUtf16(const std::string& string);
-std::string Utf16ToUtf8(const std::wstring& string);
+WideString Utf8ToUtf16(const String& string);
+String Utf16ToUtf8(const WideString& string);

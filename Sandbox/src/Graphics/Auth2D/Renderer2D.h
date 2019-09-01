@@ -135,9 +135,9 @@ namespace Graphics::Auth2D
 		IndexBuffer indexBuffer = { BufferUsage::StreamDraw, IndexType::UnsignedShort };
 
 		bool batchSprites = true;
-		std::vector<Batch> batches;
-		std::vector<BatchItem> batchItems;
-		std::vector<SpriteVertices> vertices;
+		Vector<Batch> batches;
+		Vector<BatchItem> batchItems;
+		Vector<SpriteVertices> vertices;
 
 		const OrthographicCamera* camera;
 

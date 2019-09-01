@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "Misc/StringHelper.h"
-#include <vector>
+#include "Core/CoreTypes.h"
 
 struct LicenseInfo
 {
@@ -10,13 +10,13 @@ struct LicenseInfo
 	{
 		struct
 		{
-			std::string Name;
-			std::string Description;
-			std::string LicenseName;
-			std::string License;
-			std::string Remark;
+			String Name;
+			String Description;
+			String LicenseName;
+			String License;
+			String Remark;
 		};
-		std::string Strings[5];
+		String Strings[5];
 	};
 
 	LicenseInfo() : LicenseInfo("", "", "", "", "")
@@ -58,7 +58,7 @@ private:
 	int selectedIndex = 0;
 	const float listWidth = .2f;
 
-	std::vector<LicenseInfo> licenseData;
+	Vector<LicenseInfo> licenseData;
 	const vec4 remarkTextColor = { 0.85f, 0.86f, 0.15f, 1.0f };
 
 	void LoadLicenseData();

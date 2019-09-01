@@ -21,31 +21,31 @@ namespace FileSystem
 		writer.Close();
 	}
 
-	void IBinaryReadable::Load(const std::string& filePath)
+	void IBinaryReadable::Load(const String& filePath)
 	{
 		MemoryStream stream(filePath);
 		IBinaryReadableLoadBase(this, &stream);
 		stream.Close();
 	}
 
-	void IBinaryReadable::Load(const std::wstring& filePath)
+	void IBinaryReadable::Load(const WideString& filePath)
 	{
 		MemoryStream stream(filePath);
 		IBinaryReadableLoadBase(this, &stream);
 		stream.Close();
 	}
 
-	void IBinaryWritable::Save(const std::string& filePath)
+	void IBinaryWritable::Save(const String& filePath)
 	{
 		FileStream stream;
 		
-		std::wstring widePath = Utf8ToUtf16(filePath);
+		WideString widePath = Utf8ToUtf16(filePath);
 		stream.CreateReadWrite(widePath);
 		IBinaryWritableSaveBase(this, &stream);
 		stream.Close();
 	}
 
-	void IBinaryWritable::Save(const std::wstring& filePath)
+	void IBinaryWritable::Save(const WideString& filePath)
 	{
 		FileStream stream;
 		stream.CreateReadWrite(filePath);

@@ -2,6 +2,7 @@
 #include "Stream/Stream.h"
 #include "BinaryMode.h"
 #include "Misc/EndianHelper.h"
+#include "Core/CoreTypes.h"
 #include <functional>
 
 namespace FileSystem
@@ -43,10 +44,10 @@ namespace FileSystem
 
 		inline void* ReadPtr() { return readPtrFunction(this); };
 
-		std::string ReadStr();
-		std::string ReadStr(void* position);
-		std::string ReadStr(size_t size);
-		std::string ReadStrPtr();
+		String ReadStr();
+		String ReadStr(void* position);
+		String ReadStr(size_t size);
+		String ReadStrPtr();
 
 		inline bool ReadBool() { return Read<bool>(); };
 		inline char ReadChar() { return Read<char>(); };

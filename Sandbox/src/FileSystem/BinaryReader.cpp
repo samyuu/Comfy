@@ -128,7 +128,7 @@ namespace FileSystem
 		ReadAt(finalPosition, func);
 	}
 
-	std::string BinaryReader::ReadStr()
+	String BinaryReader::ReadStr()
 	{
 		// Account for the ending zero byte
 		size_t length = 1;
@@ -143,7 +143,7 @@ namespace FileSystem
 		if (length == 1)
 			return "";
 
-		std::string value; 
+		String value; 
 		value.resize(length - 1);
 		
 		Read(value.data(), length * sizeof(char) - 1);
@@ -151,20 +151,20 @@ namespace FileSystem
 		return value;
 	}
 
-	std::string BinaryReader::ReadStr(void* position)
+	String BinaryReader::ReadStr(void* position)
 	{
 		if (position == nullptr)
 			return "";
 
-		return ReadAt<std::string>(position, [this](BinaryReader&)
+		return ReadAt<String>(position, [this](BinaryReader&)
 		{
 			return ReadStr();
 		});
 	}
 
-	std::string BinaryReader::ReadStr(size_t size)
+	String BinaryReader::ReadStr(size_t size)
 	{
-		std::string value;
+		String value;
 		value.resize(size);
 
 		Read(value.data(), size * sizeof(char));
@@ -172,7 +172,7 @@ namespace FileSystem
 		return value;
 	}
 
-	std::string BinaryReader::ReadStrPtr()
+	String BinaryReader::ReadStrPtr()
 	{
 		void* stringPointer = ReadPtr();
 		return ReadStr(stringPointer);

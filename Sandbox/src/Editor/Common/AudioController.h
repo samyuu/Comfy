@@ -26,8 +26,8 @@ namespace Editor
 		float buttonSoundVolume = 0.75f;
 		
 		int buttonSoundIndex = -1;
-		std::vector<RefPtr<Audio::MemorySampleProvider>> buttonSoundSources;
-		std::array<RefPtr<Audio::AudioInstance>, 16> buttonSoundInstancePool;
+		Vector<RefPtr<Audio::MemorySampleProvider>> buttonSoundSources;
+		Array<RefPtr<Audio::AudioInstance>, 16> buttonSoundInstancePool;
 
 		void PlayButtonSound(Audio::AudioInstance* audioInstance);
 	};

@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include <array>
+#include "Core/CoreTypes.h"
 
 typedef unsigned int ImU32;
 
@@ -29,7 +29,7 @@ namespace Editor
 		EditorColor_Count,
 	};
 
-	extern std::array<ImU32, EditorColor_Count> EditorColors;
+	extern Array<ImU32, EditorColor_Count> EditorColors;
 
 	ImU32 GetColor(EditorColor color);
 	vec4 GetColorVec4(EditorColor color);

@@ -1,7 +1,7 @@
 #pragma once
 #include "Timeline/TimelineTick.h"
 #include "Types.h"
-#include <vector>
+#include "Core/CoreTypes.h"
 
 namespace Editor
 {
@@ -63,7 +63,7 @@ namespace Editor
 		// ----------
 	};
 
-	using TargetCollection = std::vector<TimelineTarget>;
+	using TargetCollection = Vector<TimelineTarget>;
 	using TargetIterator = TargetCollection::iterator;
 	using ConstTargetIterator = TargetCollection::const_iterator;
 

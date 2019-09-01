@@ -74,12 +74,12 @@ namespace FileSystem
 		return stream->Write(buffer, size);
 	}
 
-	void BinaryWriter::WriteStr(const std::string& value)
+	void BinaryWriter::WriteStr(const String& value)
 	{
 		Write(reinterpret_cast<const void*>(value.data()), value.size() + 1);
 	}
 
-	void BinaryWriter::WriteStrPtr(const std::string* value, int32_t alignment)
+	void BinaryWriter::WriteStrPtr(const String* value, int32_t alignment)
 	{
 		stringPointerPool.push_back({ GetPositionPtr(), value, alignment });
 		WritePtr(nullptr);

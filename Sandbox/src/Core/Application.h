@@ -52,7 +52,7 @@ public:
 
 	bool GetDispatchFileDrop();
 	void SetFileDropDispatched(bool value = true);
-	const std::vector<std::string>& GetDroppedFiles() const;
+	const Vector<String>& GetDroppedFiles() const;
 
 private:
 	static void LoadComfyWindowIcon();
@@ -98,8 +98,8 @@ private:
 	void DrawAppEngineWindow();
 	void DrawAppEngineMenus(const char* header);
 
-	void DrawGuiBaseWindowMenus(const char* header, std::vector<RefPtr<BaseWindow>>& components);
-	void DrawGuiBaseWindowWindows(std::vector<RefPtr<BaseWindow>>& components);
+	void DrawGuiBaseWindowMenus(const char* header, Vector<RefPtr<BaseWindow>>& components);
+	void DrawGuiBaseWindowWindows(Vector<RefPtr<BaseWindow>>& components);
 
 	// Callbacks
 	// ---------
@@ -130,7 +130,7 @@ private:
 
 	// Window Management
 	// -----------------
-	std::vector<std::string> droppedFiles;
+	Vector<String> droppedFiles;
 	bool filesDroppedThisFrame, filesDropped, filesLastDropped, fileDropDispatched;
 	bool windowFocused = true, lastWindowFocused, focusLostFrame = false, focusGainedFrame = false;
 
@@ -172,7 +172,7 @@ private:
 
 	// Data Test Components
 	// -----------------
-	std::vector<RefPtr<BaseWindow>> dataTestComponents;
+	Vector<RefPtr<BaseWindow>> dataTestComponents;
 	// -----------------
 
 	static Application* globalCallbackApplication;

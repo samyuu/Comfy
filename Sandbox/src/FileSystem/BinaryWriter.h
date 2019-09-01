@@ -1,7 +1,7 @@
 #pragma once
 #include "Stream/Stream.h"
 #include "BinaryMode.h"
-#include <vector>
+#include "Core/CoreTypes.h"
 #include <list>
 #include <map>
 #include <functional>
@@ -41,8 +41,8 @@ namespace FileSystem
 
 		template <typename T> void Write(T value) { Write(&value, sizeof(value)); };
 
-		void WriteStr(const std::string& value);
-		void WriteStrPtr(const std::string* value, int32_t alignment = 0);
+		void WriteStr(const String& value);
+		void WriteStrPtr(const String* value, int32_t alignment = 0);
 
 		inline void WritePtr(void* value) { writePtrFunction(this, value); };
 
@@ -81,7 +81,7 @@ namespace FileSystem
 		struct StringPointerEntry
 		{
 			void* ReturnAddress;
-			const std::string* String;
+			const String* String;
 			int32_t Alignment;
 		};
 
@@ -97,10 +97,10 @@ namespace FileSystem
 			const std::function<void(BinaryWriter&)> Function;
 		};
 
-		std::unordered_map<std::string, void*> writtenStringPool;
-		std::vector<StringPointerEntry> stringPointerPool;
+		std::unordered_map<String, void*> writtenStringPool;
+		Vector<StringPointerEntry> stringPointerPool;
 		std::list<FunctionPointerEntry> pointerPool;
-		std::vector<DelayedWriteEntry> delayedWritePool;
+		Vector<DelayedWriteEntry> delayedWritePool;
 
 	private:
 		static void Write32BitPtr(BinaryWriter* writer, void* value) { writer->WriteInt32(static_cast<int32_t>((ptrdiff_t)value)); };

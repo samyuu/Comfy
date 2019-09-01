@@ -127,7 +127,7 @@ namespace FileSystem
 			{
 				uint32_t nameOffset = ((uint32_t*)textureNamesOffsetBuffer)[i];
 				char* name = (char*)(buffer + nameOffset);
-				sprSet->TxpSet->Textures[i]->Name = std::string(name);
+				sprSet->TxpSet->Textures[i]->Name = String(name);
 			}
 		}
 
@@ -139,7 +139,7 @@ namespace FileSystem
 			{
 				uint32_t nameOffset = ((uint32_t*)spriteNamesOffsetBuffer)[i];
 				char* name = (char*)(buffer + nameOffset);
-				sprSet->Sprites[i].Name = std::string(name);
+				sprSet->Sprites[i].Name = String(name);
 			}
 		}
 

@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/BaseWindow.h"
+#include "Core/CoreTypes.h"
 #include "Input/DirectInput/DualShock4.h"
-#include <array>
 
 namespace DataTest
 {
@@ -16,7 +16,7 @@ namespace DataTest
 		virtual ImGuiWindowFlags GetWindowFlags() const override;
 
 	private:
-		std::array<const char*, static_cast<size_t>(Ds4Button::Count)> ds4ButtonNames =
+		Array<const char*, static_cast<size_t>(Ds4Button::Count)> ds4ButtonNames =
 		{
 			"Square",
 			"Cross",

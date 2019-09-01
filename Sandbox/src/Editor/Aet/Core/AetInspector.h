@@ -38,8 +38,8 @@ namespace Editor
 		void DrawInspectorRegionData(Aet* aet, const RefPtr<AetObj>& aetObj, const RefPtr<AetRegion>& spriteEntry);
 		void DrawInspectorAnimationData(const RefPtr<AnimationData>& animationData, AetObjType objType);
 		void DrawInspectorKeyFrameProperties(KeyFrameProperties* properties);
-		void DrawInspectorKeyFrames(const char* name, std::vector<AetKeyFrame>* keyFrames);
-		void DrawInspectorAetObjMarkers(const RefPtr<AetObj>& aetObj, std::vector<RefPtr<AetMarker>>* markers);
+		void DrawInspectorKeyFrames(const char* name, Vector<AetKeyFrame>* keyFrames);
+		void DrawInspectorAetObjMarkers(const RefPtr<AetObj>& aetObj, Vector<RefPtr<AetMarker>>* markers);
 		void DrawInspectorAetObjParent(Aet* aet, const RefPtr<AetObj>& aetObj);
 		
 		void DrawInspectorAetRegion(Aet* aet, const RefPtr<AetRegion>& aetRegion);

@@ -290,7 +290,7 @@ namespace Audio
 
 	void AudioEngine::PlaySound(const RefPtr<ISampleProvider>& sampleProvider, float volume, const char* name)
 	{
-		AddAudioInstance(MakeRefPtr<AudioInstance>(sampleProvider, true, AudioFinishedAction::Remove, volume, name));
+		AddAudioInstance(MakeRef<AudioInstance>(sampleProvider, true, AudioFinishedAction::Remove, volume, name));
 	}
 
 	void AudioEngine::ShowControlPanel()
@@ -318,7 +318,7 @@ namespace Audio
 		}
 	}
 
-	RefPtr<MemorySampleProvider> AudioEngine::LoadAudioFile(const std::string& filePath)
+	RefPtr<MemorySampleProvider> AudioEngine::LoadAudioFile(const String& filePath)
 	{
 		return AudioDecoderFactory::GetInstance()->DecodeFile(filePath);
 	}

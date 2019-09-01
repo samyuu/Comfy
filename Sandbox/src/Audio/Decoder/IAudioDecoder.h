@@ -1,5 +1,5 @@
 #pragma once
-#include <vector>
+#include "Core/CoreTypes.h"
 
 namespace Audio
 {
@@ -13,7 +13,7 @@ namespace Audio
 	{
 		uint32_t* ChannelCount;
 		uint32_t* SampleRate;
-		std::vector<int16_t>* SampleData;
+		Vector<int16_t>* SampleData;
 	};
 
 	class IAudioDecoder

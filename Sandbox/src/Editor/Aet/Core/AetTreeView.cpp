@@ -52,7 +52,7 @@ namespace Editor
 
 			if (Gui::MenuItem("Save As..."))
 			{
-				std::wstring filePath;
+				WideString filePath;
 				if (FileSystem::CreateSaveFileDialog(filePath, "Save AetSet file", "dev_ram/aetset", { "AetSet (*.bin)", "*.bin", "All Files (*.*)", "*", }))
 					aetSet->Save(filePath);
 			}

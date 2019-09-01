@@ -135,7 +135,7 @@ void Application::SetFileDropDispatched(bool value)
 	fileDropDispatched = value;
 }
 
-const std::vector<std::string>& Application::GetDroppedFiles() const
+const Vector<String>& Application::GetDroppedFiles() const
 {
 	return droppedFiles;
 }
@@ -407,10 +407,10 @@ bool Application::InitializeApp()
 	// --------------------
 	{
 		dataTestComponents.reserve(4);
-		dataTestComponents.push_back(MakeRefPtr<DataTest::InputTestWindow>(this));
-		dataTestComponents.push_back(MakeRefPtr<DataTest::AudioTestWindow>(this));
-		dataTestComponents.push_back(MakeRefPtr<DataTest::IconTestWindow>(this));
-		dataTestComponents.push_back(MakeRefPtr<DataTest::ShaderTestWindow>(this));
+		dataTestComponents.push_back(MakeRef<DataTest::InputTestWindow>(this));
+		dataTestComponents.push_back(MakeRef<DataTest::AudioTestWindow>(this));
+		dataTestComponents.push_back(MakeRef<DataTest::IconTestWindow>(this));
+		dataTestComponents.push_back(MakeRef<DataTest::ShaderTestWindow>(this));
 	}
 
 	return true;
@@ -738,7 +738,7 @@ void Application::DrawAppEngineMenus(const char* header)
 	}
 }
 
-void Application::DrawGuiBaseWindowMenus(const char* header, std::vector<RefPtr<BaseWindow>>& components)
+void Application::DrawGuiBaseWindowMenus(const char* header, Vector<RefPtr<BaseWindow>>& components)
 {
 	if (Gui::BeginMenu(header))
 	{
@@ -752,7 +752,7 @@ void Application::DrawGuiBaseWindowMenus(const char* header, std::vector<RefPtr<
 	}
 }
 
-void Application::DrawGuiBaseWindowWindows(std::vector<RefPtr<BaseWindow>>& components)
+void Application::DrawGuiBaseWindowWindows(Vector<RefPtr<BaseWindow>>& components)
 {
 	for (const auto& component : components)
 	{

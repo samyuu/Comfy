@@ -64,8 +64,8 @@ namespace Editor
 		void DrawAetSetLoader();
 		void DrawSprSetLoader();
 
-		bool LoadAetSet(const std::string& filePath);
-		bool LoadSprSet(const std::string& filePath);
+		bool LoadAetSet(const String& filePath);
+		bool LoadSprSet(const String& filePath);
 		void OnAetSetLoaded();
 		void OnSprSetLoaded();
 	};

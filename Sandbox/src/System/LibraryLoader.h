@@ -1,6 +1,5 @@
 #pragma once
-#include <string>
-#include <Windows.h>
+#include "Core/CoreTypes.h"
 
 namespace System
 {
@@ -24,7 +23,7 @@ namespace System
 		}
 
 	private:
-		std::string libraryName;
-		HMODULE moduleHandle;
+		String libraryName;
+		void* moduleHandle;
 	};
 }

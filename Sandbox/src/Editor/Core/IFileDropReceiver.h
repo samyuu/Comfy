@@ -1,11 +1,11 @@
 #pragma once
-#include <string>
+#include "Core/CoreTypes.h"
 
 namespace Editor
 {
 	class IFileDropReceiver
 	{
 	public:
-		virtual bool OnFileDropped(const std::string& filePath) { return false; };
+		virtual bool OnFileDropped(const String& filePath) { return false; };
 	};
 }

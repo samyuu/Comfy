@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "Audio/SampleProvider/ISampleProvider.h"
-#include <vector>
+#include "Core/CoreTypes.h"
 
 namespace Audio
 {
@@ -27,7 +27,7 @@ namespace Audio
 
 	protected:
 		MixingBehavior mixingBehavior = MixingBehavior::Ignore;
-		std::vector<int16_t> sampleSwapBuffer;
+		Vector<int16_t> sampleSwapBuffer;
 		
 		uint32_t sourceChannels = 0;
 		uint32_t targetChannels = 0;

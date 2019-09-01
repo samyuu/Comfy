@@ -1,7 +1,6 @@
 #pragma once
 #include "ISampleProvider.h"
-#include <string>
-#include <vector>
+#include "Core/CoreTypes.h"
 
 namespace Audio
 {
@@ -26,6 +25,6 @@ namespace Audio
 		uint32_t channelCount;
 		uint32_t sampleRate;
 
-		std::vector<int16_t> sampleData;
+		Vector<int16_t> sampleData;
 	};
 }

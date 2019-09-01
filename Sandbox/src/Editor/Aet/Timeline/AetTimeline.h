@@ -79,9 +79,9 @@ namespace Editor
 		void UpdateInputCursorClick();
 		
 	private:
-		std::vector<KeyFrameIndex> selectedKeyFrames;
+		Vector<KeyFrameIndex> selectedKeyFrames;
 
-		std::array<const char*, static_cast<size_t>(PropertyType_Count)> timelinePropertyNames =
+		Array<const char*, static_cast<size_t>(PropertyType_Count)> timelinePropertyNames =
 		{
 			"Transform  :  Origin.X",
 			"Transform  :  Origin.Y",

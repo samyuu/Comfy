@@ -245,6 +245,7 @@
     <ClCompile Include="src\FileSystem\Stream\Stream.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Core\CoreTypes.h" />
     <ClInclude Include="src\System\CommandLine\CommandLine.h" />
     <ClInclude Include="lib\glfw\src\egl_context.h" />
     <ClInclude Include="lib\glfw\include\glfw\glfw3.h" />

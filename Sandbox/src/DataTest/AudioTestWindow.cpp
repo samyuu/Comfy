@@ -212,7 +212,7 @@ namespace DataTest
 				if (songAudioInstance != nullptr)
 					songAudioInstance->SetAppendRemove(true);
 
-				songAudioInstance = MakeRefPtr<Audio::AudioInstance>(songTestStream, true, "AudioTestWindow::TestSongInstance");
+				songAudioInstance = MakeRef<Audio::AudioInstance>(songTestStream, true, "AudioTestWindow::TestSongInstance");
 				engine->AddAudioInstance(songAudioInstance);
 			}
 
