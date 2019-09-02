@@ -40,7 +40,7 @@ namespace Editor
 		DrawTreeViewBackground();
 
 		bool aetSetNodeOpen = Gui::WideTreeNodeEx(aetSet.get(), HeaderTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str());
-		Gui::ItemContextMenu("AetSettAetContextMenu##AetTreeView", [this, &aetSet]() 
+		Gui::ItemContextMenu("AetSettAetContextMenu##AetTreeView", [this, &aetSet]()
 		{
 			Gui::Text("AetSet: %s", aetSet->Name.c_str());
 			Gui::Separator();
@@ -128,8 +128,10 @@ namespace Editor
 				if (Gui::IsItemClicked())
 					ResetSelectedItem();
 
-				for (RefPtr<AetLayer>& aetLayer : aet->AetLayers)
-					DrawTreeViewLayer(aet, aetLayer);
+				for (int32_t i = aet->AetLayers.size() - 1; i >= 0; i--)
+				{
+					DrawTreeViewLayer(aet, aet->AetLayers[i]);
+				}
 
 				Gui::TreePop();
 			}
