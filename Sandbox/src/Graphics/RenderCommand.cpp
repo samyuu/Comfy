@@ -3,7 +3,7 @@
 
 namespace Graphics
 {
-	static inline GLenum GetGLPrimitiveEnum(PrimitiveType primitiveType)
+	static constexpr inline GLenum GetGLPrimitiveEnum(PrimitiveType primitiveType)
 	{
 		switch (primitiveType)
 		{

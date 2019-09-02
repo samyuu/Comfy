@@ -30,6 +30,12 @@ namespace Editor
 		{
 			testObjSet = MakeUnique<ObjSet>();
 			testObjSet->Load("dev_ram/objset/dbg/dbg_obj.bin");
+			//testObjSet->Load("dev_ram/objset/stgtst007/stgtst007_obj.bin");
+			//testObjSet->Load("dev_ram/objset/cmnitm1001/cmnitm1001_obj.bin");
+			//testObjSet->Load("dev_ram/objset/rinitm000/rinitm000_obj.bin");
+			//testObjSet->Load("dev_ram/objset/rinitm001/rinitm001_obj.bin");
+			//testObjSet->Load("dev_ram/objset/rinitm301/rinitm301_obj.bin");
+			//testObjSet->Load("dev_ram/objset/rinitm532/rinitm532_obj.bin");
 			testObjSet->UploadAll();
 		}
 

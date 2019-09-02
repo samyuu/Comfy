@@ -8,6 +8,13 @@
 #include "Graphics/RenderCommand.h"
 #include "Graphics/OpenGL/OpenGL.h"
 
+static struct ImGuiComfyGLRendererContext
+{
+	// TODO:
+	// Graphics::Texture2D
+	// Graphics::VertexBuffer
+} RendererContext;
+
 // OpenGL Data
 static char         g_GlslVersionString[32] = "";
 static GLuint       g_FontTexture = 0;
