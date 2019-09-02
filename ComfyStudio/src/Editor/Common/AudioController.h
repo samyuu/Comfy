@@ -19,8 +19,7 @@ namespace Editor
 		const RefPtr<Audio::MemorySampleProvider>& GetButtonSoundSource(int index);
 
 	private:
-		const char* buttonSoundPath = u8"rom/sound/button/01_button1.wav";
-		//const char* buttonSoundPath = "dev_rom/sound/button/02_button2.vag";
+		const char* buttonSoundPath = u8"dev_ram/sound/button/01_button1.wav";
 
 		TimeSpan buttonSoundTime, lastButtonSoundTime, timeSinceLastButtonSound;
 		float buttonSoundVolume = 0.75f;
