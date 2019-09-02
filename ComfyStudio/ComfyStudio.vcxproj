@@ -13,8 +13,9 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{7225CA33-8C76-4169-B50E-537DE61175F2}</ProjectGuid>
-    <RootNamespace>Sandbox</RootNamespace>
+    <RootNamespace>ComfyStudio</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <ProjectName>ComfyStudio</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -404,7 +405,7 @@
     <None Include="rom\shader\sprite_vert.glsl" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="res\Sandbox.rc" />
+    <ResourceCompile Include="res\ComfyStudio.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\ComfyIcon.ico" />

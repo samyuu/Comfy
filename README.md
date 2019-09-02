@@ -1,1 +1,2 @@
-# Comfy Sandbox
+# Comfy Studio
+Currently in development.

@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by Sandbox.rc
+// Used by ComfyStudio.rc
 //
 #define COMFY_ICON                      101
 

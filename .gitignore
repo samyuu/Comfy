@@ -47,15 +47,15 @@ TestResult.xml
 [Rr]eleasePS/
 dlldata.c
 
-# Sandbox development files
+# Comfy Studio development files
 dev_ram/
 dev_rom/
 
 # Version Control files
-Sandbox/src/System/Version/BuildVersion.h
+ComfyStudio/src/System/Version/BuildVersion.h
 
 # Comfy test files
-Sandbox/src/main_test.cpp
+ComfyStudio/src/main_test.cpp
 
 # Benchmark Results
 BenchmarkDotNet.Artifacts/

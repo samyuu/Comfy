@@ -330,7 +330,7 @@ bool Application::InitializeWindow()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	window = glfwCreateWindow(static_cast<int>(windowWidth), static_cast<int>(windowHeight), DefaultWindowTitle, nullptr, nullptr);
+	window = glfwCreateWindow(static_cast<int>(windowWidth), static_cast<int>(windowHeight), ComfyStudioWindowTitle, nullptr, nullptr);
 
 	if (window == nullptr)
 		return false;

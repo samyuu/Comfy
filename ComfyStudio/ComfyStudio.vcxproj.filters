@@ -848,7 +848,7 @@
     <None Include="rom\shader\comfy_frag.glsl" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="res\Sandbox.rc">
+    <ResourceCompile Include="res\ComfyStudio.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
