@@ -128,7 +128,7 @@ namespace Editor
 				if (Gui::IsItemClicked())
 					ResetSelectedItem();
 
-				for (int32_t i = aet->AetLayers.size() - 1; i >= 0; i--)
+				for (int32_t i = static_cast<int32_t>(aet->AetLayers.size()) - 1; i >= 0; i--)
 				{
 					DrawTreeViewLayer(aet, aet->AetLayers[i]);
 				}
@@ -141,7 +141,7 @@ namespace Editor
 				if (Gui::IsItemClicked())
 					ResetSelectedItem();
 
-				for (int32_t i = 0; i < aet->AetRegions.size(); i++)
+				for (int32_t i = 0; i < static_cast<int32_t>(aet->AetRegions.size()); i++)
 				{
 					DrawTreeViewRegion(aet, aet->AetRegions[i], i);
 				}
