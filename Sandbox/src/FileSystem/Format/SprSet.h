@@ -29,6 +29,8 @@ namespace FileSystem
 		String Name;
 		unk32_t GraphicsReserved;
 		GraphicsMode GraphicsMode;
+
+		inline vec2 GetSize() const { return vec2(PixelRegion.z, PixelRegion.w); };
 	};
 
 	class SprSet : public IBinaryReadable, public IBufferParsable
