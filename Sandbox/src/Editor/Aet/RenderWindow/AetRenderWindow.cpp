@@ -210,17 +210,36 @@ namespace Editor
 	static Vector<TempVertexStruct> verticesPointers(0);
 	static const AetMgr::ObjCache* selectedAetObj = nullptr;
 
+	static const Texture* testTexture;
+	static const Sprite* testSprite;
+	static BoxTransformControl testTransformControl;
+	static vec2 testSize = vec2(100.0f, 100.0f);
+	static Properties testProperties = { vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), 1.0f };
+
 	void AetRenderWindow::PostDrawGui()
 	{
-		static BoxTransformControl testTransformControl;
-		static Properties testProperties{};
+		constexpr float step = 25.0f;
+		if (Gui::IsKeyPressed(KeyCode_Up)) testProperties.Origin.y -= step;
+		if (Gui::IsKeyPressed(KeyCode_Down)) testProperties.Origin.y += step;
+		if (Gui::IsKeyPressed(KeyCode_Left)) testProperties.Origin.x -= step;
+		if (Gui::IsKeyPressed(KeyCode_Right)) testProperties.Origin.x += step;
 
-		auto worldToScreen = [this](vec2& value) { value = camera.WorldToScreenSpace(value) + GetRenderRegion().GetTL(); };
-		auto screenToWorld = [this](vec2& value) { value = camera.ScreenToWorldSpace(value) - GetRenderRegion().GetTL(); };
+		auto worldToScreen = [this](vec2 value) { return (camera.WorldToScreenSpace(value) + GetRenderRegion().GetTL()); };
+		auto screenToWorld = [this](vec2 value) { return (camera.ScreenToWorldSpace(value - GetRenderRegion().GetTL())); };
 
+		AetSprite aetSprite = { "BUTTON_MARU", 0 };
+		if ((*aetRenderer->GetSpriteGetterFunction())(&aetSprite, &testTexture, &testSprite))
+			testSize = testSprite->GetSize();
+
+		Gui::DragFloat("testProperties.Rotation", &testProperties.Rotation);
 		//testProperties.Rotation = 45.0f;
-		testProperties.Scale = vec2(2.0f);
-		//testTransformControl.Draw(&testProperties, vec2(200.0f, 200.0f), worldToScreen, screenToWorld, camera.Zoom);
+		//testProperties.Scale = vec2(2.0f);
+		testTransformControl.Draw(&testProperties, testSize, worldToScreen, screenToWorld, camera.Zoom);
+
+		{
+			Gui::Text("pos: %.1f %.1f", testProperties.Position.x, testProperties.Position.y);
+			Gui::Text("ori: %.1f %.1f", testProperties.Origin.x, testProperties.Origin.y);
+		}
 
 		ImDrawList* drawList = Gui::GetWindowDrawList();
 		auto renderRegion = GetRenderRegion();
@@ -318,6 +337,14 @@ namespace Editor
 				}
 			}
 			renderer->End();
+
+			{
+				renderer->Begin(camera);
+				//renderer->DrawCheckerboardRectangle(testProperties.Position, testSize, testProperties.Origin, testProperties.Rotation, testProperties.Scale, vec4(.15f, .75f, .15f, .5f));
+				if (testTexture && testTexture->GraphicsTexture && testSprite)
+					renderer->Draw(testTexture->GraphicsTexture.get(), testSprite->PixelRegion, testProperties.Position, testProperties.Origin, testProperties.Rotation, testProperties.Scale, vec4(1.0f));
+				renderer->End();
+			}
 		}
 		renderTarget.UnBind();
 
@@ -377,12 +404,12 @@ namespace Editor
 	void AetRenderWindow::RenderAetRegion(AetRegion* aetRegion)
 	{
 		int32_t spriteIndex = glm::clamp(0, static_cast<int32_t>(currentFrame), aetRegion->SpriteSize() - 1);
-		AetSprite* spriteRegion = aetRegion->GetSprite(spriteIndex);
+		AetSprite* aetSprite = aetRegion->GetSprite(spriteIndex);
 
 		const Texture* texture;
 		const Sprite* sprite;
 
-		if (aetRegion->SpriteSize() < 1 || !(*aetRenderer->GetSpriteGetterFunction())(spriteRegion, &texture, &sprite))
+		if (aetRegion->SpriteSize() < 1 || !(*aetRenderer->GetSpriteGetterFunction())(aetSprite, &texture, &sprite))
 		{
 			renderer->Draw(nullptr, vec4(0, 0, aetRegion->Width, aetRegion->Height), vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), dummyColor, static_cast<AetBlendMode>(currentBlendItem));
 		}
