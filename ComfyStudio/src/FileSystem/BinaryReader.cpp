@@ -130,8 +130,8 @@ namespace FileSystem
 
 	String BinaryReader::ReadStr()
 	{
-		// Account for the ending zero byte
-		size_t length = 1;
+		// Account for the ending null byte
+		size_t length = sizeof(char);
 
 		int64_t prePos = GetPosition();
 		{
@@ -140,13 +140,14 @@ namespace FileSystem
 		}
 		SetPosition(prePos);
 
-		if (length == 1)
+		if (length == sizeof(char))
 			return "";
 
 		String value; 
-		value.resize(length - 1);
+		value.resize(length - sizeof(char));
 		
 		Read(value.data(), length * sizeof(char) - 1);
+		SetPosition(GetPosition() + sizeof(char));
 
 		return value;
 	}
