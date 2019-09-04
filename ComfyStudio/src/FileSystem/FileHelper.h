@@ -6,7 +6,7 @@ namespace FileSystem
 {
 	const Vector<String> AllFilesFilter = { "All Files (*.*)", "*.*" };
 
-	bool CreateDirectory(const WideString& filePath);
+	bool CreateDirectoryFile(const WideString& filePath);
 
 	bool IsFilePath(const String& filePath);
 	bool IsFilePath(const WideString& filePath);

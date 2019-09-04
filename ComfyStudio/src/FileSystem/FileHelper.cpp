@@ -12,7 +12,7 @@ namespace FileSystem
 	using FileSystemPath = std::filesystem::path;
 	using DirectoryIterator = std::filesystem::directory_iterator;
 
-	bool CreateDirectory(const WideString& filePath)
+	bool CreateDirectoryFile(const WideString& filePath)
 	{
 		return ::CreateDirectoryW(filePath.c_str(), NULL);
 	}
