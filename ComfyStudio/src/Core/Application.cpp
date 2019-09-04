@@ -7,6 +7,7 @@
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
 #include "FileSystem/FileHelper.h"
+#include "FileSystem/Archive/Farc.h"
 #include "System/Version/BuildConfiguration.h"
 #include "System/Version/BuildVersion.h"
 #include "Graphics/OpenGL/OpenGLLoader.h"
@@ -214,8 +215,14 @@ bool Application::BaseInitialize()
 	Audio::AudioEngine::CreateInstance();
 	Audio::AudioEngine::InitializeInstance();
 
-	InitializeGui();
-	InitializeApp();
+	if (!InitializeCheckRom())
+		return false;
+
+	if (!InitializeGui())
+		return false;
+
+	if (!InitializeApp())
+		return false;
 
 	return true;
 }
@@ -345,8 +352,21 @@ bool Application::InitializeWindow()
 	return true;
 }
 
+bool Application::InitializeCheckRom()
+{
+	if (!FileSystem::DirectoryExists("rom"))
+	{
+		Logger::LogErrorLine(__FUNCTION__"(): Unable to locate rom directory");
+		return false;
+	}
+
+	return true;
+}
+
 bool Application::InitializeGui()
 {
+	using namespace FileSystem;
+
 	Gui::CreateContext();
 
 	ImGuiIO& io = Gui::GetIO();
@@ -366,22 +386,36 @@ bool Application::InitializeGui()
 	ImFontAtlas* fonts = io.Fonts;
 	constexpr float fontSize = 16.0f;
 
-	// Load Text Font
-	// --------------
+	// Load Fonts
+	// ----------
+	RefPtr<Farc> fontFarc = Farc::Open("rom/font.farc");
+	if (fontFarc)
 	{
-		fonts->AddFontFromFileTTF("rom/font/NotoSansCJKjp-Regular.otf", fontSize, nullptr, fonts->GetGlyphRangesJapanese());
-	}
-	// Load Icon Font
-	// --------------
-	{
-		static const ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+		const ArchiveEntry* textFontEntry = fontFarc->GetFile("NotoSansCJKjp-Regular.otf");
+		if (textFontEntry)
+		{
+			void* fileContent = IM_ALLOC(textFontEntry->FileSize);
+			textFontEntry->Read(fileContent);
 
-		ImFontConfig config;
-		config.MergeMode = true;
-		config.GlyphMinAdvanceX = 13.0f;
+			fonts->AddFontFromMemoryTTF(fileContent, static_cast<int>(textFontEntry->FileSize), fontSize, nullptr, fonts->GetGlyphRangesJapanese());
+		}
 
-		fonts->AddFontFromFileTTF("rom/font/" FONT_ICON_FILE_NAME_FAS, fontSize - 2.0f, &config, icon_ranges);
+		const ArchiveEntry* iconFontEntry = fontFarc->GetFile(FONT_ICON_FILE_NAME_FAS);
+		if (iconFontEntry)
+		{
+			static const ImWchar iconFontGlyphRange[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+
+			ImFontConfig config = {};
+			config.GlyphMinAdvanceX = 13.0f;
+			config.MergeMode = true;
+
+			void* fileContent = IM_ALLOC(iconFontEntry->FileSize);
+			iconFontEntry->Read(fileContent);
+
+			fonts->AddFontFromMemoryTTF(fileContent, static_cast<int>(iconFontEntry->FileSize), fontSize - 2.0f, &config, iconFontGlyphRange);
+		}
 	}
+	fontFarc = nullptr;
 
 	Gui::StyleComfy();
 
@@ -393,12 +427,6 @@ bool Application::InitializeGui()
 
 bool Application::InitializeApp()
 {
-	if (!FileSystem::DirectoryExists("rom"))
-	{
-		Logger::LogErrorLine(__FUNCTION__"(): Unable to locate rom directory");
-		return false;
-	}
-
 	// Base PV Editor
 	// --------------
 	{

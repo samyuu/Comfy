@@ -82,6 +82,7 @@ private:
 	// Initialization
 	// --------------
 	bool InitializeWindow();
+	bool InitializeCheckRom();
 	bool InitializeGui();
 	bool InitializeApp();
 
