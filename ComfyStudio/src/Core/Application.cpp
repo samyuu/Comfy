@@ -17,7 +17,8 @@
 #include "../res/resource.h"
 #include <glfw/glfw3native.h>
 
-Application* Application::globalCallbackApplication;
+const char* Application::mainDockSpaceID = "MainDockSpace##Application";
+Application* Application::globalCallbackApplication = nullptr;
 
 static HMODULE GlobalModuleHandle = NULL;
 static HICON GlobalIconHandle = NULL;
@@ -492,10 +493,10 @@ void Application::DrawGui()
 
 				if (Gui::BeginMenu("Swap Interval", &showSwapInterval))
 				{
-					if (Gui::MenuItem("glfwSwapInterval(0)", nullptr))
+					if (Gui::MenuItem("SwapInterval(0)", nullptr))
 						glfwSwapInterval(0);
 
-					if (Gui::MenuItem("glfwSwapInterval(1)", nullptr))
+					if (Gui::MenuItem("SwapInterval(1)", nullptr))
 						glfwSwapInterval(1);
 
 					Gui::EndMenu();
@@ -638,8 +639,8 @@ void Application::DrawGui()
 			if (showMainMenuBar)
 				dockspaceWindowFlags |= ImGuiWindowFlags_MenuBar;
 
-			Gui::Begin(dockSpaceID, nullptr, dockspaceWindowFlags);
-			ImGuiID dockspaceID = Gui::GetID(dockSpaceID);
+			Gui::Begin(mainDockSpaceID, nullptr, dockspaceWindowFlags);
+			ImGuiID dockspaceID = Gui::GetID(mainDockSpaceID);
 			Gui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 			Gui::End();
 

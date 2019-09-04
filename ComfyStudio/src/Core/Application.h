@@ -151,7 +151,6 @@ private:
 	bool showMainAppEngineWindow = false;
 	bool exclusiveAppEngineWindow = false;
 	bool showMainMenuBar = true;
-	const char* dockSpaceID = "MainDockSpace##Application";
 
 	LicenseWindow licenseWindow;
 	bool showStyleEditor = false;
@@ -175,6 +174,7 @@ private:
 	Vector<RefPtr<BaseWindow>> dataTestComponents;
 	// -----------------
 
+	static const char* mainDockSpaceID;
 	static Application* globalCallbackApplication;
 	static Application* GetApplicationPointer(GLFWwindow* window);
 };
