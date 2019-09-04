@@ -70,8 +70,8 @@
       <OmitFramePointers>false</OmitFramePointers>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>dxguid.lib;dinput8.lib;shlwapi.lib;rtaudio-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)lib\rtaudio\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>dxguid.lib;dinput8.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
       <Command>$(SolutionDir)VersionControl\bin\x64-Release\ComfyVersionControl.exe $(ProjectDir)src\System\Version\BuildVersion.h</Command>
@@ -103,8 +103,8 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>dxguid.lib;dinput8.lib;shlwapi.lib;rtaudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)lib\rtaudio\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>dxguid.lib;dinput8.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PreBuildEvent>
@@ -113,6 +113,11 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lib\rtaudio\src\asio.cpp" />
+    <ClCompile Include="lib\rtaudio\src\asiodrivers.cpp" />
+    <ClCompile Include="lib\rtaudio\src\asiolist.cpp" />
+    <ClCompile Include="lib\rtaudio\src\iasiothiscallresolver.cpp" />
+    <ClCompile Include="lib\rtaudio\src\RtAudio.cpp" />
     <ClCompile Include="lib\stb\src\stb_image.cpp" />
     <ClCompile Include="lib\stb\src\stb_image_write.cpp" />
     <ClCompile Include="lib\zlib\src\adler32.c" />
@@ -258,6 +263,14 @@
     <ClCompile Include="src\FileSystem\Stream\Stream.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lib\rtaudio\src\asio.h" />
+    <ClInclude Include="lib\rtaudio\src\asiodrivers.h" />
+    <ClInclude Include="lib\rtaudio\src\asiodrvr.h" />
+    <ClInclude Include="lib\rtaudio\src\asiolist.h" />
+    <ClInclude Include="lib\rtaudio\src\asiosys.h" />
+    <ClInclude Include="lib\rtaudio\src\ginclude.h" />
+    <ClInclude Include="lib\rtaudio\src\iasiodrv.h" />
+    <ClInclude Include="lib\rtaudio\src\iasiothiscallresolver.h" />
     <ClInclude Include="lib\zlib\include\zconf.h" />
     <ClInclude Include="lib\zlib\include\zlib.h" />
     <ClInclude Include="lib\zlib\src\crc32.h" />

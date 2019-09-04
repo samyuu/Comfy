@@ -429,6 +429,21 @@
     <ClCompile Include="lib\zlib\src\crc32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="lib\rtaudio\src\RtAudio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\rtaudio\src\asio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\rtaudio\src\asiodrivers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\rtaudio\src\asiolist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\rtaudio\src\iasiothiscallresolver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\pch.h">
@@ -906,6 +921,30 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="lib\zlib\src\gzguts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\rtaudio\src\iasiothiscallresolver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\rtaudio\src\asio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\rtaudio\src\asiodrivers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\rtaudio\src\asiodrvr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\rtaudio\src\asiolist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\rtaudio\src\asiosys.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\rtaudio\src\ginclude.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\rtaudio\src\iasiodrv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -531,7 +531,7 @@ class RTAUDIO_DLL_PUBLIC RtAudio
   */
   void openStream( RtAudio::StreamParameters *outputParameters,
                    RtAudio::StreamParameters *inputParameters,
-                   RtAudioFormat format, unsigned int SampleRate,
+                   RtAudioFormat format, unsigned int sampleRate,
                    unsigned int *bufferFrames, RtAudioCallback callback,
                    void *userData = NULL, RtAudio::StreamOptions *options = NULL, RtAudioErrorCallback errorCallback = NULL );
 
@@ -724,7 +724,7 @@ public:
   virtual unsigned int getDefaultOutputDevice( void );
   void openStream( RtAudio::StreamParameters *outputParameters,
                    RtAudio::StreamParameters *inputParameters,
-                   RtAudioFormat format, unsigned int SampleRate,
+                   RtAudioFormat format, unsigned int sampleRate,
                    unsigned int *bufferFrames, RtAudioCallback callback,
                    void *userData, RtAudio::StreamOptions *options,
                    RtAudioErrorCallback errorCallback );
@@ -764,7 +764,7 @@ protected:
 
   // A protected structure used for buffer conversion.
   struct ConvertInfo {
-    int Channels;
+    int channels;
     int inJump, outJump;
     RtAudioFormat inFormat, outFormat;
     std::vector<int> inOffset;
@@ -783,7 +783,7 @@ protected:
     bool userInterleaved;
     bool deviceInterleaved[2]; // Playback and record, respectively.
     bool doByteSwap[2];        // Playback and record, respectively.
-    unsigned int SampleRate;
+    unsigned int sampleRate;
     unsigned int bufferSize;
     unsigned int nBuffers;
     unsigned int nUserChannels[2];    // Playback and record, respectively.
@@ -824,8 +824,8 @@ protected:
     "warning" message is reported and FAILURE is returned. A
     successful probe is indicated by a return value of SUCCESS.
   */
-  virtual bool probeDeviceOpen( unsigned int device, StreamMode mode, unsigned int Channels, 
-                                unsigned int firstChannel, unsigned int SampleRate,
+  virtual bool probeDeviceOpen( unsigned int device, StreamMode mode, unsigned int channels, 
+                                unsigned int firstChannel, unsigned int sampleRate,
                                 RtAudioFormat format, unsigned int *bufferSize,
                                 RtAudio::StreamOptions *options );
 
