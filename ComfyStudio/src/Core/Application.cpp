@@ -553,13 +553,6 @@ void Application::DrawGui()
 			// ---------------
 			DrawGuiBaseWindowMenus("Data Test", dataTestComponents);
 
-			if (Gui::BeginMenu(u8"UTF8 Test"))
-			{
-				if (Gui::MenuItem(u8"test - ƒeƒXƒg", nullptr)) { ; }
-				if (Gui::MenuItem(u8"shinitai - Ž€‚É‚½‚¢", nullptr)) { ; }
-				Gui::EndMenu();
-			}
-
 			bool openLicensePopup = false;
 
 			if (Gui::BeginMenu("Help"))
@@ -580,10 +573,10 @@ void Application::DrawGui()
 
 			if (Gui::BeginPopupModal(licenseWindow.GetWindowName(), licenseWindow.GetIsWindowOpen(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 			{
-				ImGuiViewport* viewPort = Gui::GetMainViewport();
+				ImGuiViewport* viewport = Gui::GetMainViewport();
 				ImGuiWindow* window = Gui::FindWindowByName(licenseWindow.GetWindowName());
-				Gui::SetWindowPos(window, viewPort->Pos + viewPort->Size / 8, ImGuiCond_Always);
-				Gui::SetWindowSize(window, viewPort->Size * .75f, ImGuiCond_Always);
+				Gui::SetWindowPos(window, viewport->Pos + viewport->Size / 8, ImGuiCond_Always);
+				Gui::SetWindowSize(window, viewport->Size * .75f, ImGuiCond_Always);
 
 				licenseWindow.DrawGui();
 
@@ -593,12 +586,15 @@ void Application::DrawGui()
 				Gui::EndPopup();
 			}
 
-			// TODO: make window class and use undockable window instead of popup window since it doesn't need to block input
+			// TODO: Make window class and use undockable window instead of popup window since it doesn't need to block input
 			if (versionWindowOpen)
 			{
+				ImGuiViewport* viewport = ImGui::GetMainViewport();
+				Gui::SetNextWindowPos(viewport->Pos + viewport->Size * 0.5f, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
 				if (Gui::Begin("About - Version##Application", &versionWindowOpen, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking))
 				{
-					const vec2 windowSize = vec2(520, 200);
+					const vec2 windowSize = vec2(640, 320);
 
 					Gui::BeginChild("AboutWindowChild", windowSize, true);
 					Gui::Columns(2);
