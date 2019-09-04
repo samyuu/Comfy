@@ -53,14 +53,14 @@ static LONG findDrvPath (char *clsidstr,char *dllpath,int dllpathsize)
 		RegCloseKey(hkEnum);
 	}
 #else
-	CharLowerBuff(clsidstr,strlen(clsidstr));
+	CharLowerBuff(clsidstr,(DWORD)strlen(clsidstr));
 	if ((cr = RegOpenKey(HKEY_CLASSES_ROOT,COM_CLSID,&hkEnum)) == ERROR_SUCCESS) {
 
 		index = 0;
 		while (cr == ERROR_SUCCESS && !found) {
 			cr = RegEnumKey(hkEnum,index++,databuf,512);
 			if (cr == ERROR_SUCCESS) {
-				CharLowerBuff(databuf,strlen(databuf));
+				CharLowerBuff(databuf,(DWORD)strlen(databuf));
 				if (!(strcmp(databuf,clsidstr))) {
 					if ((cr = RegOpenKeyEx(hkEnum,databuf,0,KEY_READ,&hksub)) == ERROR_SUCCESS) {
 						if ((cr = RegOpenKeyEx(hksub,INPROC_SERVER,0,KEY_READ,&hkpath)) == ERROR_SUCCESS) {
