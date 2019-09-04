@@ -117,7 +117,6 @@
     <ClCompile Include="lib\stb\src\stb_image_write.cpp" />
     <ClCompile Include="src\FileSystem\Archive\Farc.cpp" />
     <ClCompile Include="src\FileSystem\Archive\FileArchive.cpp" />
-    <ClCompile Include="src\main_test.cpp" />
     <ClCompile Include="src\System\CommandLine\CommandLine.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp" />

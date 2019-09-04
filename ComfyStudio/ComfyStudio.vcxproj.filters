@@ -393,9 +393,6 @@
     <ClCompile Include="lib\stb\src\stb_image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\main_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\FileSystem\Archive\Farc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
