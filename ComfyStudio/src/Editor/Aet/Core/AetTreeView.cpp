@@ -274,9 +274,9 @@ namespace Editor
 	{
 		Gui::PushID(&region);
 
-		if (region->SpriteSize() >= 1)
+		if (region->SpriteCount() >= 1)
 		{
-			if (region->SpriteSize() > 1)
+			if (region->SpriteCount() > 1)
 			{
 				sprintf_s(regionNameBuffer, ICON_AETREGION "  Region %d (%s - %s)", index,
 					region->GetFrontSprite()->Name.c_str(),

@@ -38,7 +38,7 @@ namespace FileSystem
 
 	AetSprite* AetRegion::GetSprite(int32_t index)
 	{
-		return (SpriteSize() > 0 && index < SpriteSize()) ? &sprites.at(index) : nullptr;
+		return (SpriteCount() > 0 && index < SpriteCount()) ? &sprites.at(index) : nullptr;
 	}
 
 	const AetSprite* AetRegion::GetSprite(int32_t index) const
@@ -48,15 +48,15 @@ namespace FileSystem
 
 	AetSprite* AetRegion::GetFrontSprite()
 	{
-		return (SpriteSize() > 0) ? &sprites.front() : nullptr;
+		return (SpriteCount() > 0) ? &sprites.front() : nullptr;
 	}
 
 	AetSprite* AetRegion::GetBackSprite()
 	{
-		return SpriteSize() > 0 ? &sprites.back() : nullptr;
+		return SpriteCount() > 0 ? &sprites.back() : nullptr;
 	}
 
-	int32_t AetRegion::SpriteSize() const
+	int32_t AetRegion::SpriteCount() const
 	{
 		return static_cast<int32_t>(sprites.size());
 	}

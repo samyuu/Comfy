@@ -67,7 +67,7 @@ namespace FileSystem
 		AetSprite* GetFrontSprite();
 		AetSprite* GetBackSprite();
 
-		int32_t SpriteSize() const;
+		int32_t SpriteCount() const;
 		SpriteCollection& GetSprites();
 		const SpriteCollection& GetSprites() const;
 

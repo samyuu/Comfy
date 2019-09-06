@@ -44,11 +44,11 @@ namespace Editor
 						Text("Region: %dx%d", region->Width, region->Height);
 
 						NextColumn();
-						if (region->SpriteSize() > 0)
+						if (region->SpriteCount() > 0)
 						{
 							Text(ICON_AETREGION "  %s", region->GetFrontSprite()->Name.c_str());
 
-							if (region->SpriteSize() > 1)
+							if (region->SpriteCount() > 1)
 							{
 								SameLine();
 								Text("...");

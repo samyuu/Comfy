@@ -434,9 +434,9 @@ namespace FileSystem
 						writer.WriteInt16(region->Width);
 						writer.WriteInt16(region->Height);
 						writer.WriteFloat(region->Frames);
-						if (region->SpriteSize() > 0)
+						if (region->SpriteCount() > 0)
 						{
-							writer.WriteUInt32(static_cast<uint32_t>(region->SpriteSize()));
+							writer.WriteUInt32(static_cast<uint32_t>(region->SpriteCount()));
 							writer.WritePtr([&region](BinaryWriter& writer)
 							{
 								for (AetSprite& sprite : region->GetSprites())
