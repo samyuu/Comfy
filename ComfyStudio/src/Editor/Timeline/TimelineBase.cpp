@@ -327,6 +327,9 @@ namespace Editor
 
 	void TimelineBase::OnDrawTimlineTempoMap()
 	{
-		baseDrawList->AddRectFilled(tempoMapRegion.GetTL(), tempoMapRegion.GetBR(), GetColor(EditorColor_TempoMapBg));
+		ImU32 bottomColor = GetColor(EditorColor_TempoMapBg, 0.85f);
+		ImU32 topColor = GetColor(EditorColor_TempoMapBg);
+
+		baseDrawList->AddRectFilledMultiColor(tempoMapRegion.GetTL(), tempoMapRegion.GetBR(), bottomColor, bottomColor, topColor, topColor);
 	}
 }
