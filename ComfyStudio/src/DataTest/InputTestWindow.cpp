@@ -45,7 +45,7 @@ namespace DataTest
 				{
 					if (keyboard->IsDown(key))
 					{
-						const char* keyName = glfwGetKeyName(key, glfwGetKeyScancode(key));
+						const char* keyName = GetKeyCodeName(key);
 						if (keyName != nullptr)
 							Gui::BulletText(keyName);
 					}

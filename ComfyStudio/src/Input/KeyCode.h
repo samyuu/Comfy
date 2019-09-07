@@ -140,3 +140,5 @@ enum KeyCode_Enum : KeyCode
 	KeyCode_Menu               = 348,
 	KeyCode_Count,
 };
+
+const char* GetKeyCodeName(KeyCode keyCode);
