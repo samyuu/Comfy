@@ -27,9 +27,8 @@ namespace FileSystem
 		static size_t ReadFile(void* fileHandle, void* outputData, size_t dataSize);
 	};
 
-
 	template<class TPath, class TData>
-	inline bool FileReader::ReadEntireFile(const TPath & filePath, Vector<TData>* buffer)
+	inline bool FileReader::ReadEntireFile(const TPath& filePath, Vector<TData>* buffer)
 	{
 		void* fileHandle = CreateFileHandle(filePath, true);
 		bool validHandle = reinterpret_cast<int64_t>(fileHandle) > 0;
