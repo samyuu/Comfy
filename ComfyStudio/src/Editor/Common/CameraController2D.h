@@ -13,7 +13,7 @@ namespace Editor
 
 	public:
 		void Update(Graphics::OrthographicCamera& camera, vec2 relativeMouse);
-		void SetUpdateCameraZoom(Graphics::OrthographicCamera& camera, float newZoom, vec2 origin) const;
+		void SetUpdateCameraZoom(Graphics::OrthographicCamera& camera, float newZoom, vec2 origin);
 
 	private:
 		bool windowHoveredOnClick[5];

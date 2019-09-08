@@ -20,21 +20,24 @@ namespace Editor
 		}
 	}
 
-	void CameraController2D::SetUpdateCameraZoom(Graphics::OrthographicCamera& camera, float newZoom, vec2 origin) const
+	void CameraController2D::SetUpdateCameraZoom(Graphics::OrthographicCamera& camera, float newZoom, vec2 origin)
 	{
 		vec2 worldSpace = camera.ScreenToWorldSpace(origin);
-		
+
 		camera.Zoom = std::clamp(newZoom, ZoomMin, ZoomMax);
 		camera.UpdateMatrices();
-		
+
 		vec2 postWorldSpace = camera.ScreenToWorldSpace(origin);
 
 		camera.Position -= (postWorldSpace - worldSpace) * vec2(camera.Zoom);
+		camera.Position = glm::round(camera.Position);
 	}
 
 	void CameraController2D::UpdateKeyboardInput(Graphics::OrthographicCamera& camera)
 	{
-		constexpr float step = 10.0f;
+		// TODO: Either remove or add as an optional bool field
+
+		constexpr float step = 25.0f;
 		if (Gui::IsKeyPressed(KeyCode_W, true))
 			camera.Position.y -= step;
 		if (Gui::IsKeyPressed(KeyCode_S, true))
