@@ -5,7 +5,7 @@ namespace Editor
 {
 	void RenderWindowBase::Initialize()
 	{
-		renderTarget.Initialize(RENDER_TARGET_DEFAULT_WIDTH, RENDER_TARGET_DEFAULT_WIDTH);
+		renderTarget.Initialize(RenderTargetDefaultSize.x, RenderTargetDefaultSize.y);
 		renderRegion = lastRenderRegion = ImRect(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight());
 
 		OnInitialize();
@@ -29,13 +29,13 @@ namespace Editor
 		if (GetKeepAspectRatio())
 		{
 			ImVec2 renderRegionSize = renderRegion.GetSize();
-			const float outputAspect = renderRegionSize.x / renderRegionSize.y;
+			const float renderRegionAspectRatio = renderRegionSize.x / renderRegionSize.y;
 
-			if (outputAspect <= targetAspectRatio)
+			if (renderRegionAspectRatio <= targetAspectRatio)
 			{
-				// output is taller than it is wider, bars on top/bottom
+				// NOTE: Output is taller than it is wider, bars on top / bottom
 				float presentHeight = glm::round((renderRegionSize.x / targetAspectRatio) + 0.5f);
-				float barHeight = glm::round((renderRegionSize.y - presentHeight) / 2);
+				float barHeight = glm::round((renderRegionSize.y - presentHeight) / 2.0f);
 
 				renderRegion.Min.y += barHeight;
 				renderRegion.Max.y += barHeight;
@@ -43,7 +43,7 @@ namespace Editor
 			}
 			else
 			{
-				// output is wider than it is tall, bars left/right
+				// NOTE: Output is wider than it is tall, bars left / right
 				int presentWidth = static_cast<int>((renderRegionSize.y * targetAspectRatio) + 0.5f);
 				int barWidth = static_cast<int>((renderRegionSize.x - presentWidth) / 2.0f);
 

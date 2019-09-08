@@ -36,6 +36,8 @@ namespace Editor
 			//testObjSet->Load("dev_ram/objset/rinitm001/rinitm001_obj.bin");
 			//testObjSet->Load("dev_ram/objset/rinitm301/rinitm301_obj.bin");
 			//testObjSet->Load("dev_ram/objset/rinitm532/rinitm532_obj.bin");
+			//testObjSet->Load("dev_ram/objset/stgns006/stgns006_obj.bin");
+			//testObjSet->Load("dev_ram/objset/stgns008/stgns008_obj.bin");
 			testObjSet->UploadAll();
 		}
 
@@ -103,7 +105,7 @@ namespace Editor
 		// --------------
 		{
 			// arbitrary initial size, gets changed by OnReSize() later
-			postProcessingRenderTarget.Initialize(RENDER_TARGET_DEFAULT_WIDTH, RENDER_TARGET_DEFAULT_WIDTH);
+			postProcessingRenderTarget.Initialize(RenderTargetDefaultSize.x, RenderTargetDefaultSize.y);
 		}
 	}
 
@@ -119,6 +121,12 @@ namespace Editor
 			Gui::End();
 		}
 		OnWindowBegin();
+	}
+
+	void SceneRenderWindow::PostDrawGui()
+	{
+		RefPtr<Obj>& obj = testObjSet->at(testObjectIndex);
+		Gui::Text("%s (%d/%d)", obj->Name.c_str(), testObjectIndex, testObjSet->size());
 	}
 
 	void SceneRenderWindow::OnWindowBegin()
@@ -363,11 +371,10 @@ namespace Editor
 
 				// OBJSET TEST
 				{
-					static int objectIndex = 0;
-					if (Gui::IsKeyPressed(KeyCode_Up)) objectIndex = glm::clamp(objectIndex - 1, 0, static_cast<int>(testObjSet->size() - 1));
-					if (Gui::IsKeyPressed(KeyCode_Down)) objectIndex = glm::clamp(objectIndex + 1, 0, static_cast<int>(testObjSet->size() - 1));
+					if (Gui::IsKeyPressed(KeyCode_Up)) testObjectIndex = glm::clamp(testObjectIndex - 1, 0, static_cast<int>(testObjSet->size() - 1));
+					if (Gui::IsKeyPressed(KeyCode_Down)) testObjectIndex = glm::clamp(testObjectIndex + 1, 0, static_cast<int>(testObjSet->size() - 1));
 
-					RefPtr<Obj>& obj = testObjSet->at(objectIndex);
+					RefPtr<Obj>& obj = testObjSet->at(testObjectIndex);
 
 					renderer->Begin(camera);
 					{

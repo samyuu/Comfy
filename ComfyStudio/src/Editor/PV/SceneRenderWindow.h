@@ -24,6 +24,7 @@ namespace Editor
 		const char* GetGuiName() const override;
 		void Initialize() override;
 		void DrawGui() override;
+		void PostDrawGui() override;
 
 		void OnWindowBegin() override;
 		void OnWindowEnd() override;
@@ -46,6 +47,7 @@ namespace Editor
 			float Brightness = 0.45455f;
 		} postProcessData;
 
+		int testObjectIndex = 0;
 		UniquePtr<ObjSet> testObjSet;
 		UniquePtr<Graphics::Auth3D::Renderer3D> renderer;
 

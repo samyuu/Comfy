@@ -5,12 +5,11 @@
 
 namespace Editor
 {
-	constexpr int RENDER_TARGET_DEFAULT_WIDTH = 1;
-	constexpr int RENDER_TARGET_DEFAULT_HEIGHT = 1;
-
 	class RenderWindowBase
 	{
 	public:
+		static constexpr ivec2 RenderTargetDefaultSize = ivec2(1, 1);
+
 		RenderWindowBase() {};
 		virtual ~RenderWindowBase() {};
 
