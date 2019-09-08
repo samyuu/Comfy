@@ -122,12 +122,14 @@ namespace Editor
 		TimelineBase::OnDrawTimelineInfoColumn();
 
 		ImDrawList* drawList = Gui::GetWindowDrawList();
+		ImU32 textColor = Gui::GetColorU32(active.IsNull() || (active.Type() != AetSelectionType::AetObj) ? ImGuiCol_TextDisabled : ImGuiCol_Text);
+
 		for (int i = 0; i < PropertyType_Count; i++)
 		{
 			float y = i * rowHeight + 2;
 			auto start = ImVec2(2, y) + infoColumnRegion.GetTL();
 
-			drawList->AddText(start, Gui::GetColorU32(ImGuiCol_Text), timelinePropertyNames[i]);
+			drawList->AddText(start, textColor, timelinePropertyNames[i]);
 		}
 	}
 
