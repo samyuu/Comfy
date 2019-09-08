@@ -78,7 +78,7 @@ namespace Editor
 
 	void AetTreeView::DrawTreeViewBackground()
 	{
-		const ImU32 color = 0xFF363636;
+		const ImU32 alternativeRowColow = GetColor(EditorColor_AltRow);
 
 		float itemSpacing = Gui::GetStyle().ItemSpacing.y;
 		float lineHeight = Gui::GetTextLineHeight() + itemSpacing;
@@ -104,7 +104,7 @@ namespace Editor
 				y -= itemSpacing * 0.5f;
 
 			if (isOdd ^= true)
-				window->DrawList->AddRectFilled({ xMin, y }, { xMax, y + lineHeight }, color);
+				window->DrawList->AddRectFilled({ xMin, y }, { xMax, y + lineHeight }, alternativeRowColow);
 		}
 	}
 
@@ -244,7 +244,12 @@ namespace Editor
 				Gui::SameLine();
 			}
 
-			sprintf_s(objNameBuffer, "%s  %s", GetObjTypeIcon(aetObj->Type), aetObj->GetName().c_str());
+			// TODO: Come up with a better indicator
+			// useTextureMask ? ICON_FA_CHEVRON_UP "  " : ""; (?)
+
+			bool useTextureMask = aetObj->AnimationData != nullptr && aetObj->AnimationData->UseTextureMask;
+			const char* textureMaskIndicator = useTextureMask ? "  ( " ICON_FA_LINK " )  " : "";
+			sprintf_s(objNameBuffer, "%s  %s%s", GetObjTypeIcon(aetObj->Type), aetObj->GetName().c_str(), textureMaskIndicator);
 
 			if (drawActiveButton)
 			{

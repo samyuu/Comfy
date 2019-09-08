@@ -8,21 +8,21 @@
 
 namespace Editor
 {
-	class AetObjMousePicker
-	{
-		// TODO:
-	};
-
 	AetRenderWindow::AetRenderWindow(SpriteGetterFunction* spriteGetter)
 	{
 		assert(spriteGetter != nullptr);
 
-		checkerboardBaseGrid.Color = checkerboardGrid.Color * .5f;
-		checkerboardBaseGrid.ColorAlt = checkerboardGrid.ColorAlt * .5f;
+		checkerboardBaseGrid.Color = checkerboardGrid.Color * 0.5f;
+		checkerboardBaseGrid.ColorAlt = checkerboardGrid.ColorAlt * 0.5f;
 
 		renderer = MakeUnique<Renderer2D>();
 		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
 		aetRenderer->SetSpriteGetterFunction(spriteGetter);
+
+		tools[AetToolType_Picker] = MakeUnique<PickerTool>();
+		tools[AetToolType_Hand] = MakeUnique<HandTool>();
+		tools[AetToolType_Transform] = MakeUnique<TransformTool>();
+		tools[AetToolType_Rotate] = MakeUnique<RotationTool>();
 	}
 
 	AetRenderWindow::~AetRenderWindow()
@@ -56,7 +56,6 @@ namespace Editor
 	ImGuiWindowFlags AetRenderWindow::GetChildWinodwFlags() const
 	{
 		return ImGuiWindowFlags_None;
-		return ImGuiWindowFlags_AlwaysHorizontalScrollbar | ImGuiWindowFlags_AlwaysVerticalScrollbar;
 	}
 
 	void AetRenderWindow::OnDrawGui()
@@ -66,103 +65,13 @@ namespace Editor
 		constexpr float itemWidth = 74.0f;
 		constexpr float rulerSize = 18.0f;
 
+		DrawToolGui();
+
 		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2.0f, 3.0f));
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 1.0f));
 		Gui::PushItemWidth(itemWidth);
 		{
-			if (active.Type() == AetSelectionType::AetObj && !active.IsNull() && active.Ptrs.AetObj->AnimationData != nullptr)
-			{
-				static Properties properties;
-
-				AetMgr::Interpolate(active.Ptrs.AetObj->AnimationData.get(), &properties, currentFrame);
-
-				float roundedCurrentFrame = glm::round(currentFrame);
-				AetKeyFrame* currentKeyFrames[PropertyType_Count];
-
-				// TEMP TEST:
-				/*
-				if (!isPlayback && Gui::IsKeyPressed(KeyCode_F1, false))
-				{
-					for (int i = 0; i < PropertyType_Count; i++)
-					{
-						AetKeyFrame* existingKeyFrame = GetKeyFrame(active.AetObj, i, roundedCurrentFrame);
-						if (existingKeyFrame == nullptr)
-						{
-							auto& keyFrames = active.AetObj->AnimationData->Properties.KeyFrames[i];
-							keyFrames.push_back(AetKeyFrame(roundedCurrentFrame, ((float*)&properties)[i], 0.0f));
-
-							struct ComparisonStruct { inline bool operator() (const AetKeyFrame& keyFrameA, const AetKeyFrame& keyFrameB) { return (keyFrameA.Frame < keyFrameB.Frame); } };
-							std::sort(keyFrames.begin(), keyFrames.end(), ComparisonStruct());
-						}
-					}
-				}
-				*/
-
-				for (int i = 0; i < PropertyType_Count; i++)
-					currentKeyFrames[i] = isPlayback ? nullptr : GetKeyFrame(active.Ptrs.AetObj, i, roundedCurrentFrame);
-
-				if (Gui::ComfyInputFloat("##PositionXDragFloat::AetRenderWindow", &properties.Position.x, 1.0f, 0.0f, 0.0f, "X: %.f", !currentKeyFrames[PropertyType_PositionX]))
-				{
-					currentKeyFrames[PropertyType_PositionX]->Value = properties.Position.x;
-				}
-				Gui::SameLine();
-
-				if (Gui::ComfyInputFloat("##PositionYDragFloat::AetRenderWindow", &properties.Position.y, 1.0f, 0.0f, 0.0f, "Y: %.f", !currentKeyFrames[PropertyType_PositionY]))
-				{
-					currentKeyFrames[PropertyType_PositionY]->Value = properties.Position.y;
-				}
-				Gui::SameLine();
-				Gui::ExtendedVerticalSeparator();
-
-				if (Gui::ComfyInputFloat("##OriginXDragFloat::AetRenderWindow", &properties.Origin.x, 1.0f, 0.0f, 0.0f, "X: %.f", !currentKeyFrames[PropertyType_OriginX]))
-				{
-					currentKeyFrames[PropertyType_OriginX]->Value = properties.Origin.x;
-				}
-				Gui::SameLine();
-
-				if (Gui::ComfyInputFloat("##OriginYDragFloat::AetRenderWindow", &properties.Origin.y, 1.0f, 0.0f, 0.0f, "Y: %.f", !currentKeyFrames[PropertyType_OriginY]))
-				{
-					currentKeyFrames[PropertyType_OriginY]->Value = properties.Origin.y;
-				}
-				Gui::SameLine();
-				Gui::ExtendedVerticalSeparator();
-
-				if (Gui::ComfyInputFloat("##RotationDragFloat::AetRenderWindow", &properties.Rotation, 1.0f, 0.0f, 0.0f, "R: %.2f", !currentKeyFrames[PropertyType_Rotation]))
-				{
-					currentKeyFrames[PropertyType_Rotation]->Value = properties.Rotation;
-				}
-				Gui::SameLine();
-				Gui::ExtendedVerticalSeparator();
-
-				float scaleXBuffer = properties.Scale.x * percentFactor;
-				if (Gui::ComfyInputFloat("##ScaleXDragFloat::AetRenderWindow", &scaleXBuffer, 1.0f, 0.0f, 0.0f, "W: %.2f %%", !currentKeyFrames[PropertyType_ScaleX]))
-				{
-					properties.Scale.x = scaleXBuffer * (1.0f / percentFactor);
-					currentKeyFrames[PropertyType_ScaleX]->Value = properties.Scale.x;
-				}
-				Gui::SameLine();
-
-				float scaleYBuffer = properties.Scale.y * percentFactor;
-				if (Gui::ComfyInputFloat("##ScaleYDragFloat::AetRenderWindow", &scaleYBuffer, 1.0f, 0.0f, 0.0f, "H: %.2f %%", !currentKeyFrames[PropertyType_ScaleY]))
-				{
-					properties.Scale.y = scaleYBuffer * (1.0f / percentFactor);
-					currentKeyFrames[PropertyType_ScaleY]->Value = properties.Scale.y;
-				}
-				Gui::SameLine();
-				Gui::ExtendedVerticalSeparator();
-
-				float opacityBuffer = properties.Opacity * percentFactor;
-				if (Gui::ComfyInputFloat("##OpacityDragFloat::AetRenderWindow", &opacityBuffer, 1.0f, 0.00000001f, 100.0f, "O: %.2f %%", !currentKeyFrames[PropertyType_Opacity]))
-				{
-					properties.Opacity = glm::max(0.0f, opacityBuffer * (1.0f / percentFactor));
-					currentKeyFrames[PropertyType_Opacity]->Value = properties.Opacity;
-				}
-			}
-			else
-			{
-				Gui::Text("	<none>");
-			}
-			Gui::SameLine();
+			DrawAnimationPropertiesGui();
 
 			Gui::SetCursorPosX(Gui::GetWindowWidth() - itemWidth - 2);
 
@@ -201,83 +110,64 @@ namespace Editor
 		}
 	}
 
-	struct TempVertexStruct
-	{
-		const SpriteVertices* Vertices;
-		const AetMgr::ObjCache* ObjCache;
-	};
-
-	static Vector<TempVertexStruct> verticesPointers(0);
-	static const AetMgr::ObjCache* selectedAetObj = nullptr;
-
 	static const Texture* testTexture;
 	static const Sprite* testSprite;
-	static BoxTransformControl testTransformControl;
 	static vec2 testSize = vec2(100.0f, 100.0f);
 	static Properties testProperties = { vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), 1.0f };
 
 	void AetRenderWindow::PostDrawGui()
 	{
 		constexpr float step = 25.0f;
-		if (Gui::IsKeyPressed(KeyCode_Up)) testProperties.Origin.y -= step;
-		if (Gui::IsKeyPressed(KeyCode_Down)) testProperties.Origin.y += step;
-		if (Gui::IsKeyPressed(KeyCode_Left)) testProperties.Origin.x -= step;
-		if (Gui::IsKeyPressed(KeyCode_Right)) testProperties.Origin.x += step;
-
-		auto worldToScreen = [this](vec2 value) { return (camera.WorldToScreenSpace(value) + GetRenderRegion().GetTL()); };
-		auto screenToWorld = [this](vec2 value) { return (camera.ScreenToWorldSpace(value - GetRenderRegion().GetTL())); };
-
-		AetSprite aetSprite = { "BUTTON_MARU", 0 };
-		if ((*aetRenderer->GetSpriteGetterFunction())(&aetSprite, &testTexture, &testSprite))
-			testSize = testSprite->GetSize();
-
-		Gui::DragFloat("testProperties.Rotation", &testProperties.Rotation);
-		//testProperties.Rotation = 45.0f;
-		//testProperties.Scale = vec2(2.0f);
-		testTransformControl.Draw(&testProperties, testSize, worldToScreen, screenToWorld, camera.Zoom);
-
+		if (Gui::IsWindowFocused())
 		{
-			Gui::Text("pos: %.1f %.1f", testProperties.Position.x, testProperties.Position.y);
-			Gui::Text("ori: %.1f %.1f", testProperties.Origin.x, testProperties.Origin.y);
+			if (Gui::IsKeyPressed(KeyCode_Up)) testProperties.Origin.y -= step;
+			if (Gui::IsKeyPressed(KeyCode_Down)) testProperties.Origin.y += step;
+			if (Gui::IsKeyPressed(KeyCode_Left)) testProperties.Origin.x -= step;
+			if (Gui::IsKeyPressed(KeyCode_Right)) testProperties.Origin.x += step;
 		}
 
-		ImDrawList* drawList = Gui::GetWindowDrawList();
-		auto renderRegion = GetRenderRegion();
-
-		ImU32 outlineColor = ImColor(vec4(1.0f));
-		ImU32 originColor = ImColor(vec4(1.0f, 0.0f, 0.0f, 1.0f));
-		for (const auto& vertices : verticesPointers)
+		AetTool* tool = GetCurrentTool();
+		if (tool != nullptr)
 		{
-			vec2 tl = camera.WorldToScreenSpace(vertices.Vertices->TopLeft.Position) + renderRegion.GetTL();
-			vec2 tr = camera.WorldToScreenSpace(vertices.Vertices->TopRight.Position) + renderRegion.GetTL();
-			vec2 bl = camera.WorldToScreenSpace(vertices.Vertices->BottomLeft.Position) + renderRegion.GetTL();
-			vec2 br = camera.WorldToScreenSpace(vertices.Vertices->BottomRight.Position) + renderRegion.GetTL();
+			auto worldToScreen = [this](vec2 value) { return (camera.WorldToScreenSpace(value) + GetRenderRegion().GetTL()); };
+			auto screenToWorld = [this](vec2 value) { return (camera.ScreenToWorldSpace(value - GetRenderRegion().GetTL())); };
 
-			drawList->AddLine(tl, tr, outlineColor);
-			drawList->AddLine(tr, br, outlineColor);
-			drawList->AddLine(br, bl, outlineColor);
-			drawList->AddLine(bl, tl, outlineColor);
-
-			// drawList->AddLine(tl, br, outlineColor);
-			// drawList->AddLine(tr, bl , outlineColor);
-
-			drawList->AddCircleFilled(tl, 3.5f, outlineColor);
-			drawList->AddCircleFilled(tr, 3.5f, outlineColor);
-			drawList->AddCircleFilled(bl, 3.5f, outlineColor);
-			drawList->AddCircleFilled(br, 3.5f, outlineColor);
-
-			//vec2 origin = vertices.ObjCache->Properties.Origin + vertices.ObjCache->Properties.Position;
-			//vec2 originScreenSpace = WorldToScreenSpace(camera.ViewMatrix, origin) + renderRegion.GetTL();
-			//drawList->AddCircle(originScreenSpace, 3.5f, originColor);
+			tool->SetSpaceConversionFunctions(worldToScreen, screenToWorld);
+			tool->UpdatePostDrawGui(&testProperties, testSize);
 		}
 
-		verticesPointers.clear();
+		Gui::WindowContextMenu("AetRenderWindowContextMenu", [this, tool]()
+		{
+			if (tool != nullptr)
+			{
+				Gui::TextDisabled("%s  %s", tool->GetIcon(), tool->GetName());
+				tool->DrawContextMenu();
+			}
+
+			Gui::Separator();
+
+			float cameraZoom = camera.Zoom;
+			vec2 zoomMouseOrigin = GetRelativeMouse();
+
+			if (Gui::MenuItem("50% Zoom", nullptr, nullptr, cameraZoom != 0.5f))
+				cameraController.SetUpdateCameraZoom(camera, 0.5f, zoomMouseOrigin);
+			if (Gui::MenuItem("100% Zoom", nullptr, nullptr, cameraZoom != 1.0f))
+				cameraController.SetUpdateCameraZoom(camera, 1.0f, zoomMouseOrigin);
+			if (Gui::MenuItem("200% Zoom", nullptr, nullptr, cameraZoom != 2.0f))
+				cameraController.SetUpdateCameraZoom(camera, 2.0f, zoomMouseOrigin);
+			if (Gui::MenuItem("Fit to Screen", nullptr, nullptr, true))
+				CenterFitCamera();
+		});
+
 	}
 
 	void AetRenderWindow::OnUpdateInput()
 	{
-		//if (Gui::IsMouseClicked(0))
-		selectedAetObj = nullptr;
+		for (int i = 0; i < AetToolType_Count; i++)
+		{
+			if (tools[i] != nullptr && Gui::IsKeyPressed(tools[i]->GetShortcutKey(), false))
+				currentToolType = static_cast<AetToolType>(i);
+		}
 	}
 
 	void AetRenderWindow::OnUpdate()
@@ -286,6 +176,9 @@ namespace Editor
 
 	void AetRenderWindow::OnRender()
 	{
+		if (aet != nullptr)
+			aetRegionSize = aet->Resolution;
+
 		cameraController.Update(camera, GetRelativeMouse());
 
 		renderTarget.Bind();
@@ -295,8 +188,6 @@ namespace Editor
 			Graphics::RenderCommand::Clear(Graphics::ClearTarget_ColorBuffer);
 
 			camera.UpdateMatrices();
-
-			renderer->SetUseTextShadow(useTextShadow);
 			renderer->Begin(camera);
 			{
 				RenderGrid();
@@ -338,24 +229,167 @@ namespace Editor
 			}
 			renderer->End();
 
+			// TEMP:
 			{
-				renderer->Begin(camera);
-				//renderer->DrawCheckerboardRectangle(testProperties.Position, testSize, testProperties.Origin, testProperties.Rotation, testProperties.Scale, vec4(.15f, .75f, .15f, .5f));
+				AetSprite aetSprite = { "BUTTON_MARU", 0 };
+				if ((*aetRenderer->GetSpriteGetterFunction())(&aetSprite, &testTexture, &testSprite))
+				{
+					testSize = testSprite->GetSize();
+				}
+				else
+				{
+					testTexture = nullptr;
+					testSprite = nullptr;
+				}
+
 				if (testTexture && testTexture->GraphicsTexture && testSprite)
+				{
+					renderer->Begin(camera);
 					renderer->Draw(testTexture->GraphicsTexture.get(), testSprite->PixelRegion, testProperties.Position, testProperties.Origin, testProperties.Rotation, testProperties.Scale, vec4(1.0f));
-				renderer->End();
+					renderer->End();
+				}
 			}
 		}
 		renderTarget.UnBind();
-
-		// TODO:
-		//Gui::ItemSize(GetRenderRegion().GetSize() - vec2(Gui::GetStyle) + camera.Position);
 	}
 
 	void AetRenderWindow::OnResize(int width, int height)
 	{
 		RenderWindowBase::OnResize(width, height);
-		camera.ProjectionSize = vec2(width, height);
+
+		vec2 newProjectionSize(width, height);
+		camera.Position += (camera.ProjectionSize - newProjectionSize) * 0.5f;;
+		camera.ProjectionSize = newProjectionSize;
+
+		// NOTE: Hacky solution to center the camera on the first frame
+		if (Gui::GetFrameCount() <= 2)
+			CenterFitCamera();
+	}
+
+	void AetRenderWindow::DrawToolGui()
+	{
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 1.0f));
+
+		AetTool* currentTool = GetCurrentTool();
+
+		for (int i = 0; i < AetToolType_Count; i++)
+		{
+			AetTool* tool = tools[i].get();
+			bool isSelected = tool == currentTool;
+
+			if (tool == nullptr)
+				continue;
+
+			Gui::PushStyleColor(ImGuiCol_Button, Gui::GetStyleColorVec4(isSelected ? ImGuiCol_Button : ImGuiCol_DockingEmptyBg));
+
+			if (Gui::Button(tool->GetIcon()))
+				currentToolType = static_cast<AetToolType>(i);
+
+			if (Gui::IsItemHoveredDelayed())
+			{
+				const char* shortcutString = GetKeyCodeName(tool->GetShortcutKey());
+				char shortcutChar = shortcutString ? toupper(shortcutString[0]) : '?';
+
+				Gui::WideSetTooltip("%s (%c)", tool->GetName(), shortcutChar);
+			}
+
+			Gui::PopStyleColor();
+			Gui::SameLine();
+		}
+
+		Gui::PopStyleVar(2);
+	}
+
+	void AetRenderWindow::DrawAnimationPropertiesGui()
+	{
+		constexpr float percentFactor = 100.0f;
+
+		if (active.Type() == AetSelectionType::AetObj && !active.IsNull() && active.Ptrs.AetObj->AnimationData != nullptr)
+		{
+			static Properties properties;
+			AetMgr::Interpolate(active.Ptrs.AetObj->AnimationData.get(), &properties, currentFrame);
+
+			// TEMP TEST:
+			/*
+			if (!isPlayback && Gui::IsKeyPressed(KeyCode_F1, false))
+			{
+				for (int i = 0; i < PropertyType_Count; i++)
+				{
+					AetKeyFrame* existingKeyFrame = GetKeyFrame(active.AetObj, i, roundedCurrentFrame);
+					if (existingKeyFrame == nullptr)
+					{
+						auto& keyFrames = active.AetObj->AnimationData->Properties.KeyFrames[i];
+						keyFrames.push_back(AetKeyFrame(roundedCurrentFrame, ((float*)&properties)[i], 0.0f));
+
+						struct ComparisonStruct { inline bool operator() (const AetKeyFrame& keyFrameA, const AetKeyFrame& keyFrameB) { return (keyFrameA.Frame < keyFrameB.Frame); } };
+						std::sort(keyFrames.begin(), keyFrames.end(), ComparisonStruct());
+					}
+				}
+			}
+			*/
+
+			AetKeyFrame* currentKeyFrames[PropertyType_Count];
+			for (int i = 0; i < PropertyType_Count; i++)
+				currentKeyFrames[i] = isPlayback ? nullptr : GetKeyFrame(active.Ptrs.AetObj, i, glm::round(currentFrame));
+
+			Gui::ExtendedVerticalSeparator();
+
+			Gui::ComfyInputFloat("##PositionXDragFloat::AetRenderWindow", &properties.Position.x, 1.0f, 0.0f, 0.0f, "X: %.f", !currentKeyFrames[PropertyType_PositionX]);
+			Gui::SameLine();
+			Gui::ComfyInputFloat("##PositionYDragFloat::AetRenderWindow", &properties.Position.y, 1.0f, 0.0f, 0.0f, "Y: %.f", !currentKeyFrames[PropertyType_PositionY]);
+			Gui::SameLine();
+			Gui::ExtendedVerticalSeparator();
+			Gui::ComfyInputFloat("##OriginXDragFloat::AetRenderWindow", &properties.Origin.x, 1.0f, 0.0f, 0.0f, "X: %.f", !currentKeyFrames[PropertyType_OriginX]);
+			Gui::SameLine();
+			Gui::ComfyInputFloat("##OriginYDragFloat::AetRenderWindow", &properties.Origin.y, 1.0f, 0.0f, 0.0f, "Y: %.f", !currentKeyFrames[PropertyType_OriginY]);
+			Gui::SameLine();
+			Gui::ExtendedVerticalSeparator();
+			Gui::ComfyInputFloat("##RotationDragFloat::AetRenderWindow", &properties.Rotation, 1.0f, 0.0f, 0.0f, "R: %.2f", !currentKeyFrames[PropertyType_Rotation]);
+			Gui::SameLine();
+			Gui::ExtendedVerticalSeparator();
+			Gui::ComfyInputFloat("##ScaleXDragFloat::AetRenderWindow", &properties.Scale.x, 1.0f, 0.0f, 0.0f, "W: %.2f %%", !currentKeyFrames[PropertyType_ScaleX]);
+			Gui::SameLine();
+			Gui::ComfyInputFloat("##ScaleYDragFloat::AetRenderWindow", &properties.Scale.y, 1.0f, 0.0f, 0.0f, "H: %.2f %%", !currentKeyFrames[PropertyType_ScaleY]);
+			Gui::SameLine();
+			Gui::ExtendedVerticalSeparator();
+			Gui::ComfyInputFloat("##OpacityDragFloat::AetRenderWindow", &properties.Opacity, 1.0f, 0.00000001f, 100.0f, "O: %.2f %%", !currentKeyFrames[PropertyType_Opacity]);
+			Gui::SameLine();
+		}
+		else
+		{
+			Gui::Text("	<none> ");
+			Gui::SameLine();
+		}
+	}
+
+	AetTool* AetRenderWindow::GetCurrentTool()
+	{
+		return tools.at(static_cast<size_t>(currentToolType)).get();
+	}
+
+	void AetRenderWindow::CenterFitCamera()
+	{
+		vec2 viewportSize = GetRenderRegion().GetSize();
+
+		const float aetAspectRatio = aetRegionSize.x / aetRegionSize.y;
+		const float viewportAspectRatio = viewportSize.x / viewportSize.y;
+
+		if (aetAspectRatio < viewportAspectRatio)
+		{
+			camera.Zoom = viewportSize.y / aetRegionSize.y;
+			camera.Position = vec2((aetRegionSize.x * camera.Zoom - viewportSize.x) / 2.0f, 0.0f);
+		}
+		else
+		{
+			camera.Zoom = viewportSize.x / aetRegionSize.x;
+			camera.Position = vec2(0.0f, (aetRegionSize.y * camera.Zoom - viewportSize.y) / 2.0f);
+		}
+
+		constexpr float cameraFitZoomMargin = 1.025f;
+
+		camera.UpdateMatrices();
+		cameraController.SetUpdateCameraZoom(camera, camera.Zoom / cameraFitZoomMargin, camera.GetProjectionCenter());
 	}
 
 	void AetRenderWindow::OnInitialize()
@@ -369,8 +403,14 @@ namespace Editor
 		checkerboardBaseGrid.Size = renderTarget.GetSize() / camera.Zoom;
 		checkerboardBaseGrid.Render(renderer.get());
 
-		constexpr vec2 defaultGridSize = vec2(1280.0f, 720.0f);
-		checkerboardGrid.Size = (aet == nullptr) ? defaultGridSize : vec2(aet->Resolution);
+		const vec2 shadowOffset = vec2(3.5f, 2.5f) / camera.Zoom * 0.5f;
+		const vec2 shadowMargin = vec2(2.5f) / camera.Zoom;
+		const vec2 shadowPosition = checkerboardGrid.Position + shadowOffset;
+		const vec2 shadowSize = aetRegionSize + shadowMargin;
+		constexpr vec4 shadowColor(0.0f, 0.0f, 0.0f, 0.15f);
+		renderer->Draw(shadowPosition, shadowSize, shadowColor);
+
+		checkerboardGrid.Size = aetRegionSize;
 		checkerboardGrid.Render(renderer.get());
 	}
 
@@ -386,8 +426,7 @@ namespace Editor
 	{
 		objectCache.clear();
 		AetMgr::GetAddObjects(objectCache, aetLayer, currentFrame);
-
-		RenderObjCache(objectCache);
+		aetRenderer->RenderObjCacheVector(objectCache);
 	}
 
 	void AetRenderWindow::RenderAetObj(AetObj* aetObj)
@@ -397,145 +436,13 @@ namespace Editor
 
 		objectCache.clear();
 		AetMgr::GetAddObjects(objectCache, aetObj, currentFrame);
-
-		RenderObjCache(objectCache);
+		aetRenderer->RenderObjCacheVector(objectCache);
 	}
 
 	void AetRenderWindow::RenderAetRegion(AetRegion* aetRegion)
 	{
-		int32_t spriteIndex = glm::clamp(0, static_cast<int32_t>(currentFrame), aetRegion->SpriteSize() - 1);
+		int32_t spriteIndex = glm::clamp(0, static_cast<int32_t>(currentFrame), aetRegion->SpriteCount() - 1);
 		AetSprite* aetSprite = aetRegion->GetSprite(spriteIndex);
-
-		const Texture* texture;
-		const Sprite* sprite;
-
-		if (aetRegion->SpriteSize() < 1 || !(*aetRenderer->GetSpriteGetterFunction())(aetSprite, &texture, &sprite))
-		{
-			renderer->Draw(nullptr, vec4(0, 0, aetRegion->Width, aetRegion->Height), vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), dummyColor, static_cast<AetBlendMode>(currentBlendItem));
-		}
-		else
-		{
-			renderer->Draw(texture->GraphicsTexture.get(), sprite->PixelRegion, vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), vec4(1.0f), static_cast<AetBlendMode>(currentBlendItem));
-		}
-	}
-
-	static bool Contains(const vec2& tl, const vec2& tr, const vec2& bl, const vec2& br, const vec2& point)
-	{
-		vec2 e = vec2(tr.x - tl.x, tr.y - tl.y);
-		vec2 f = vec2(bl.x - tl.x, bl.y - tl.y);
-
-		return !(
-			((point.x - tl.x) * e.x + (point.y - tl.y) * e.y < 0.0) ||
-			((point.x - tr.x) * e.x + (point.y - tr.y) * e.y > 0.0) ||
-			((point.x - tl.x) * f.x + (point.y - tl.y) * f.y < 0.0) ||
-			((point.x - bl.x) * f.x + (point.y - bl.y) * f.y > 0.0));
-	}
-
-	void AetRenderWindow::RenderObjCache(const AetMgr::ObjCache& obj)
-	{
-		if (obj.Region == nullptr || !obj.Visible)
-			return;
-
-		const Texture* texture;
-		const Sprite* sprite;
-		bool validSprite = (*aetRenderer->GetSpriteGetterFunction())(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
-
-		if (validSprite)
-		{
-			renderer->Draw(
-				texture->GraphicsTexture.get(),
-				sprite->PixelRegion,
-				obj.Properties.Position,
-				obj.Properties.Origin,
-				obj.Properties.Rotation,
-				obj.Properties.Scale,
-				vec4(1.0f, 1.0f, 1.0f, obj.Properties.Opacity),
-				obj.BlendMode);
-		}
-		else
-		{
-			renderer->Draw(
-				nullptr,
-				vec4(0, 0, obj.Region->Width, obj.Region->Height),
-				obj.Properties.Position,
-				obj.Properties.Origin,
-				obj.Properties.Rotation,
-				obj.Properties.Scale,
-				vec4(dummyColor.r, dummyColor.g, dummyColor.b, dummyColor.a * obj.Properties.Opacity),
-				obj.BlendMode);
-		}
-
-		if (Gui::IsWindowFocused() && Gui::IsWindowHovered())
-		{
-			const SpriteVertices& objVertices = renderer->GetLastVertices();
-
-			vec2 value = camera.ScreenToWorldSpace(GetRelativeMouse());
-
-			bool contains = Contains(
-				objVertices.TopLeft.Position,
-				objVertices.TopRight.Position,
-				objVertices.BottomLeft.Position,
-				objVertices.BottomRight.Position,
-				value);
-
-			if (contains)
-			{
-				selectedAetObj = &obj;
-				verticesPointers.push_back(TempVertexStruct{ &objVertices, &obj });
-			}
-		}
-	}
-
-	void AetRenderWindow::RenderObjCache(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj)
-	{
-		if (maskObj.Region == nullptr || obj.Region == nullptr)
-			return;
-
-		const Texture* maskTexture;
-		const Sprite* maskSprite;
-		bool validMaskSprite = (*aetRenderer->GetSpriteGetterFunction())(maskObj.Region->GetSprite(maskObj.SpriteIndex), &maskTexture, &maskSprite);
-
-		const Texture* texture;
-		const Sprite* sprite;
-		bool validSprite = (*aetRenderer->GetSpriteGetterFunction())(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
-
-		if (validMaskSprite && validSprite)
-		{
-			renderer->Draw(
-				maskTexture->GraphicsTexture.get(),
-				maskSprite->PixelRegion,
-				maskObj.Properties.Position,
-				maskObj.Properties.Origin,
-				maskObj.Properties.Rotation,
-				maskObj.Properties.Scale,
-				texture->GraphicsTexture.get(),
-				sprite->PixelRegion,
-				obj.Properties.Position,
-				obj.Properties.Origin,
-				obj.Properties.Rotation,
-				obj.Properties.Scale,
-				vec4(1.0f, 1.0f, 1.0f, obj.Properties.Opacity),
-				obj.BlendMode);
-		}
-	}
-
-	void AetRenderWindow::RenderObjCache(const Vector<AetMgr::ObjCache>& objectCache)
-	{
-		bool singleObject = objectCache.size() == 1;
-
-		for (size_t i = 0; i < objectCache.size(); i++)
-		{
-			auto& obj = objectCache[i];
-
-			if (obj.UseTextureMask && !singleObject && (i + 1 < objectCache.size()))
-			{
-				RenderObjCache(objectCache[i + 1], obj);
-				i++;
-			}
-			else
-			{
-				RenderObjCache(obj);
-			}
-		}
+		aetRenderer->RenderAetSprite(aetRegion, aetSprite, vec2(0.0f, 0.0f));
 	}
 }

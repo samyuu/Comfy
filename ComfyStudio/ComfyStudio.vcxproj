@@ -131,8 +131,14 @@
     <ClCompile Include="lib\zlib\src\inftrees.c" />
     <ClCompile Include="lib\zlib\src\trees.c" />
     <ClCompile Include="lib\zlib\src\zutil.c" />
+    <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\AetTool.cpp" />
+    <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\HandTool.cpp" />
+    <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\PickerTool.cpp" />
+    <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\RotationTool.cpp" />
+    <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\TransformBox.cpp" />
     <ClCompile Include="src\FileSystem\Archive\Farc.cpp" />
     <ClCompile Include="src\FileSystem\Archive\FileArchive.cpp" />
+    <ClCompile Include="src\Input\KeyCode.cpp" />
     <ClCompile Include="src\System\CommandLine\CommandLine.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp" />
@@ -185,7 +191,7 @@
     <ClCompile Include="src\Editor\Aet\RenderWindow\AetRenderWindow.cpp" />
     <ClCompile Include="src\Editor\Aet\Timeline\AetTimeline.cpp" />
     <ClCompile Include="src\Editor\Aet\Core\AetTreeView.cpp" />
-    <ClCompile Include="src\Editor\Aet\RenderWindow\BoxTransformControl.cpp" />
+    <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\TransformTool.cpp" />
     <ClCompile Include="src\Editor\Common\CameraController2D.cpp" />
     <ClCompile Include="src\Editor\Chart\Chart.cpp" />
     <ClCompile Include="src\Editor\Chart\ChartEditor.cpp" />
@@ -283,6 +289,11 @@
     <ClInclude Include="lib\zlib\src\inftrees.h" />
     <ClInclude Include="lib\zlib\src\trees.h" />
     <ClInclude Include="src\Core\CoreTypes.h" />
+    <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\AetTool.h" />
+    <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\HandTool.h" />
+    <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\PickerTool.h" />
+    <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\RotationTool.h" />
+    <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\TransformBox.h" />
     <ClInclude Include="src\FileSystem\Archive\Farc.h" />
     <ClInclude Include="src\FileSystem\Archive\FileArchive.h" />
     <ClInclude Include="src\System\CommandLine\CommandLine.h" />
@@ -338,7 +349,7 @@
     <ClInclude Include="src\Editor\Aet\RenderWindow\AetRenderWindow.h" />
     <ClInclude Include="src\Editor\Aet\Timeline\AetTimeline.h" />
     <ClInclude Include="src\Editor\Aet\Core\AetTreeView.h" />
-    <ClInclude Include="src\Editor\Aet\RenderWindow\BoxTransformControl.h" />
+    <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\TransformTool.h" />
     <ClInclude Include="src\Editor\Aet\AetSelection.h" />
     <ClInclude Include="src\Editor\Aet\Core\AetDialogs.h" />
     <ClInclude Include="src\Editor\Common\CameraController2D.h" />

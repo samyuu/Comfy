@@ -261,9 +261,6 @@
     <ClCompile Include="src\Editor\Aet\IMutableAetEditorComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Editor\Aet\RenderWindow\BoxTransformControl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Editor\Aet\RenderWindow\AetRenderWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -442,6 +439,27 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="lib\rtaudio\src\iasiothiscallresolver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\AetTool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\TransformBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\TransformTool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\HandTool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\PickerTool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\RotationTool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input\KeyCode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -773,9 +791,6 @@
     <ClInclude Include="src\Editor\Aet\IMutableAetEditorComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Editor\Aet\RenderWindow\BoxTransformControl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\Aet\RenderWindow\AetRenderWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -945,6 +960,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="lib\rtaudio\src\iasiodrv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\AetTool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\TransformBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\TransformTool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\PickerTool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\HandTool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\RotationTool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

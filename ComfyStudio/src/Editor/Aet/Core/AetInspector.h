@@ -16,6 +16,9 @@ namespace Editor
 		void Initialize();
 		bool DrawGui(Aet* aet, const AetItemTypePtr& selected);
 
+		void SetIsPlayback(bool value);
+		float SetCurrentFrame(float value);
+
 	private:
 		AetItemTypePtr lastSelectedItem;
 		int newParentObjLayerIndex = -1;
@@ -28,6 +31,13 @@ namespace Editor
 		char regionDataNameBuffer[255];
 		char parentObjDataNameBuffer[255];
 
+		vec4 animatedPropertyColor, keyFramePropertyColor, staticPropertyColor;
+
+	private:
+		bool isPlayback = false;
+		float currentFrame = 0.0f;
+
+	private:
 		void DrawInspectorAetSet(const RefPtr<AetSet>& aetSet);
 		void DrawInspectorAet(const RefPtr<Aet>& aet);
 		
@@ -36,9 +46,13 @@ namespace Editor
 		
 		void DrawInspectorAetObj(Aet* aet, const RefPtr<AetObj>& aetObj);
 		void DrawInspectorRegionData(Aet* aet, const RefPtr<AetObj>& aetObj, const RefPtr<AetRegion>& spriteEntry);
-		void DrawInspectorAnimationData(const RefPtr<AnimationData>& animationData, AetObjType objType);
-		void DrawInspectorKeyFrameProperties(KeyFrameProperties* properties);
-		void DrawInspectorKeyFrames(const char* name, Vector<AetKeyFrame>* keyFrames);
+		
+		std::pair<AetKeyFrame*, int> GetKeyFrameAndIndex(const RefPtr<AetObj>& aetObj, int propertyIndex, float inputFrame) const;
+
+		void DrawInspectorAnimationData(const RefPtr<AnimationData>& animationData, const RefPtr<AetObj>& aetObj);
+		void DrawInspectorAnimationDataProperty(const RefPtr<AnimationData>& animationData, const char* label, float& value, int propertyType, AetKeyFrame* keyFrames[], int keyFrameIndices[]);
+		void DrawInspectorAnimationDataPropertyVec2(const RefPtr<AnimationData>& animationData, const char* label, vec2& value, int propertyTypeX, int propertyTypeY, AetKeyFrame* keyFrames[], int keyFrameIndices[]);
+
 		void DrawInspectorAetObjMarkers(const RefPtr<AetObj>& aetObj, Vector<RefPtr<AetMarker>>* markers);
 		void DrawInspectorAetObjParent(Aet* aet, const RefPtr<AetObj>& aetObj);
 		

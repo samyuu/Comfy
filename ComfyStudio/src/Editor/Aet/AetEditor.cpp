@@ -90,6 +90,8 @@ namespace Editor
 		if (Gui::Begin(ICON_INSPECTOR "  Aet Inspector##AetEditor", nullptr, windowFlags))
 		{
 			Gui::BeginChild("AetInspectorChild##AetEditor");
+			inspector->SetIsPlayback(timeline->GetIsPlayback());
+			inspector->SetCurrentFrame(timeline->GetCursorFrame().Frames());
 			inspector->DrawGui(treeView->GetActiveAet(), treeView->GetSelected());
 			Gui::EndChild();
 		}

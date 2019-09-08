@@ -6,11 +6,6 @@
 
 namespace Editor
 {
-	namespace Command
-	{
-		class ChangeAetName;
-	}
-
 	AetInspector::AetInspector(AetCommandManager* commandManager) : IMutableAetEditorComponent(commandManager)
 	{
 	}
@@ -55,6 +50,16 @@ namespace Editor
 		}
 
 		return true;
+	}
+
+	void AetInspector::SetIsPlayback(bool value)
+	{
+		isPlayback = value;
+	}
+
+	float AetInspector::SetCurrentFrame(float value)
+	{
+		return currentFrame = value;
 	}
 
 	void AetInspector::DrawInspectorAetSet(const RefPtr<AetSet>& aetSet)
@@ -183,7 +188,7 @@ namespace Editor
 				constexpr float percentageFactor = 100.0f;
 				float playbackPercentage = aetObj->PlaybackSpeed * percentageFactor;
 
-				if (Gui::ComfyFloatWidget("Playback Speed", &playbackPercentage, 10.0f, 100.0f, "%.2f %%", ImGuiInputTextFlags_EnterReturnsTrue))
+				if (Gui::ComfyFloatWidget("Playback Speed", &playbackPercentage, 10.0f, 100.0f, "%.0f%%", ImGuiInputTextFlags_EnterReturnsTrue))
 					GetCommandManager()->EnqueueCommand<Command::AetObjChangePlaybackSpeed>(aetObj, playbackPercentage / percentageFactor);
 			}
 
@@ -208,7 +213,7 @@ namespace Editor
 		if ((aetObj->Type == AetObjType::Pic || aetObj->Type == AetObjType::Eff))
 		{
 			Gui::Separator();
-			DrawInspectorAnimationData(aetObj->AnimationData, aetObj->Type);
+			DrawInspectorAnimationData(aetObj->AnimationData, aetObj);
 		}
 
 		Gui::Separator();
@@ -271,51 +276,73 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAnimationData(const RefPtr<AnimationData>& animationData, AetObjType objType)
+	std::pair<AetKeyFrame*, int> AetInspector::GetKeyFrameAndIndex(const RefPtr<AetObj>& aetObj, int propertyIndex, float inputFrame) const
+	{
+		KeyFrameCollection& keyFrames = aetObj->AnimationData->Properties[propertyIndex];
+		bool firstFrame = inputFrame == aetObj->LoopStart;
+
+		if (firstFrame && keyFrames.size() == 1)
+			inputFrame = keyFrames.front().Frame;
+
+		AetKeyFrame* foundKeyFrame = nullptr;
+		int index = 0;
+
+		for (auto& keyFrame : keyFrames)
+		{
+			if (glm::round(keyFrame.Frame) == inputFrame)
+			{
+				foundKeyFrame = &keyFrame;
+				break;
+			}
+			index++;
+		}
+
+		return { foundKeyFrame, index };
+	}
+
+	void AetInspector::DrawInspectorAnimationData(const RefPtr<AnimationData>& animationData, const RefPtr<AetObj>& aetObj)
 	{
 		if (Gui::WideTreeNodeEx(ICON_ANIMATIONDATA "  Animation Data", ImGuiTreeNodeFlags_DefaultOpen))
 		{
+			if (animationData != nullptr)
 			{
-				// TODO:
-				static Graphics::Auth2D::Properties properties;
-				if (Gui::ComfyFloat2Widget("Origin", glm::value_ptr(properties.Origin))) {}
-				if (Gui::ComfyFloat2Widget("Position", glm::value_ptr(properties.Position))) {}
-				if (Gui::ComfyFloatWidget("Rotation", &properties.Rotation, 0.0f, 0.0f)) {}
-				if (Gui::ComfyFloat2Widget("Scale", glm::value_ptr(properties.Scale))) {}
-				if (Gui::ComfyFloatWidget("Opacity", &properties.Opacity, 0.0f, 0.0f)) {}
-			}
+				using namespace Graphics::Auth2D;
 
-			if (false && Gui::WideTreeNode("Raw View"))
-			{
-				if (Gui::WideTreeNode("Properties"))
+				static Properties currentProperties;
+				AetMgr::Interpolate(animationData.get(), &currentProperties, currentFrame);
+
+				AetKeyFrame* currentKeyFrames[PropertyType_Count];
+				int currentKeyFrameIndices[PropertyType_Count];
+
+				for (int i = 0; i < PropertyType_Count; i++)
 				{
-					if (animationData != nullptr)
+					if (isPlayback)
 					{
-						DrawInspectorKeyFrameProperties(&animationData->Properties);
+						currentKeyFrames[i] = nullptr;
 					}
 					else
 					{
-						Gui::BulletText("None");
+						auto[keyFrame, index] = GetKeyFrameAndIndex(aetObj, i, glm::round(currentFrame));
+
+						currentKeyFrames[i] = keyFrame;
+						currentKeyFrameIndices[i] = index;
 					}
-					Gui::TreePop();
 				}
 
-				if (Gui::WideTreeNode("Perspective Properties"))
-				{
-					if (animationData->PerspectiveProperties != nullptr)
-					{
-						DrawInspectorKeyFrameProperties(animationData->PerspectiveProperties.get());
-					}
-					else
-					{
-						Gui::BulletText("None");
-					}
-					Gui::TreePop();
-				}
-				Gui::TreePop();
+				animatedPropertyColor = GetColorVec4(EditorColor_AnimatedProperty);
+				keyFramePropertyColor = GetColorVec4(EditorColor_KeyFrameProperty);
+				staticPropertyColor = Gui::GetStyleColorVec4(ImGuiCol_FrameBg);
+
+				// TODO: Auto insert keyframe mode
+
+				DrawInspectorAnimationDataPropertyVec2(animationData, "Origin", currentProperties.Origin, PropertyType_OriginX, PropertyType_OriginY, currentKeyFrames, currentKeyFrameIndices);
+				DrawInspectorAnimationDataPropertyVec2(animationData, "Position", currentProperties.Position, PropertyType_PositionX, PropertyType_PositionY, currentKeyFrames, currentKeyFrameIndices);
+				DrawInspectorAnimationDataProperty(animationData, "Rotation", currentProperties.Rotation, PropertyType_Rotation, currentKeyFrames, currentKeyFrameIndices);
+				DrawInspectorAnimationDataPropertyVec2(animationData, "Scale", currentProperties.Scale, PropertyType_ScaleX, PropertyType_ScaleY, currentKeyFrames, currentKeyFrameIndices);
+				DrawInspectorAnimationDataProperty(animationData, "Opacity", currentProperties.Opacity, PropertyType_Opacity, currentKeyFrames, currentKeyFrameIndices);
 			}
 
-			if (objType == AetObjType::Pic)
+			if (aetObj->Type == AetObjType::Pic)
 			{
 				int32_t blendMode = static_cast<int32_t>(animationData->BlendMode);
 				if (Gui::ComfyBeginCombo("Blend Mode", AnimationData::BlendModeNames[blendMode], ImGuiComboFlags_HeightLarge))
@@ -344,33 +371,77 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorKeyFrameProperties(KeyFrameProperties* properties)
+	static bool GetIsAnimationPropertyDisabled(AetKeyFrame* currentKeyFrames[], int propetyType, int propetyTypeAlt = -1)
 	{
-		for (size_t i = 0; i < properties->size(); i++)
-			DrawInspectorKeyFrames(KeyFrameProperties::PropertyNames[i], &properties->at(i));
+		return !(currentKeyFrames[propetyType] || (propetyTypeAlt >= 0 && currentKeyFrames[propetyTypeAlt]));
 	}
 
-	void AetInspector::DrawInspectorKeyFrames(const char* name, Vector<AetKeyFrame>* keyFrames)
+	void AetInspector::DrawInspectorAnimationDataProperty(const RefPtr<AnimationData>& animationData, const char* label, float& value, int propertyType, AetKeyFrame* keyFrames[], int keyFrameIndices[])
 	{
-		if (Gui::WideTreeNode(name))
+		using namespace Graphics::Auth2D;
+		constexpr float percentFactor = 100.0f;
+
+		Gui::PushStyleColor(ImGuiCol_FrameBg, ((animationData->Properties[propertyType].size() > 1))
+			? (keyFrames[propertyType])
+			? keyFramePropertyColor
+			: animatedPropertyColor
+			: staticPropertyColor);
+		
+		bool rotation = (propertyType == PropertyType_Rotation);
+		bool opacity = (propertyType == PropertyType_Opacity);
+
+		const char* formatString = rotation ? u8"%.2f ‹" : opacity ? "%.0f%%" : "%.2f";
+
+		float previousValue = value;
+
+		if (opacity)
+			value *= percentFactor;
+
+		// TODO: Remove step and stepFast to avoid filling undo history with meaningless items
+		if (Gui::ComfyFloatWidget(label, &value, 1.0f, 10.0f, formatString, ImGuiInputTextFlags_EnterReturnsTrue, GetIsAnimationPropertyDisabled(keyFrames, propertyType, propertyType)))
 		{
-			if (keyFrames->size() == 1)
-			{
-				Gui::PushID((void*)keyFrames);
-				Gui::ComfyFloatWidget("Value", &keyFrames->front().Value, 0.1f, 1.0f);
-				Gui::PopID();
-			}
-			else
-			{
-				for (AetKeyFrame& keyFrame : *keyFrames)
-				{
-					Gui::PushID((void*)&keyFrame.Frame);
-					Gui::DragFloat3("F-V-I", &keyFrame.Frame);
-					Gui::PopID();
-				}
-			}
-			Gui::TreePop();
+			if (opacity)
+				value = glm::clamp(value * (1.0f / percentFactor), 0.0f, 1.0f);
+
+			if (keyFrames[propertyType] && value != previousValue)
+				GetCommandManager()->EnqueueCommand<Command::AnimationDataChangeKeyFrameValue>(animationData, std::make_tuple(static_cast<PropertyType_Enum>(propertyType), keyFrameIndices[propertyType], value));
 		}
+
+		Gui::PopStyleColor();
+	}
+
+	void AetInspector::DrawInspectorAnimationDataPropertyVec2(const RefPtr<AnimationData>& animationData, const char* label, vec2& value, int propertyTypeX, int propertyTypeY, AetKeyFrame* keyFrames[], int keyFrameIndices[])
+	{
+		using namespace Graphics::Auth2D;
+		constexpr float percentFactor = 100.0f;
+
+		Gui::PushStyleColor(ImGuiCol_FrameBg, ((animationData->Properties[propertyTypeX].size() > 1) || (animationData->Properties[propertyTypeY].size() > 1))
+			? (keyFrames[propertyTypeX] || keyFrames[propertyTypeY])
+			? keyFramePropertyColor
+			: animatedPropertyColor
+			: staticPropertyColor);
+
+		bool scale = (propertyTypeX == PropertyType_ScaleX) && (propertyTypeY == PropertyType_ScaleY);
+		const char* formatString = scale ? "%.2f%%" : "%.2f";
+		
+		vec2 previousValue = value;
+
+		if (scale)
+			value *= percentFactor;
+
+		if (Gui::ComfyFloat2Widget(label, glm::value_ptr(value), formatString, ImGuiInputTextFlags_EnterReturnsTrue, GetIsAnimationPropertyDisabled(keyFrames, propertyTypeX, propertyTypeY)))
+		{
+			if (scale)
+				value *= (1.0f / percentFactor);
+
+			if (keyFrames[propertyTypeX] && value.x != previousValue.x)
+				GetCommandManager()->EnqueueCommand<Command::AnimationDataChangeKeyFrameValue>(animationData, std::make_tuple(static_cast<PropertyType_Enum>(propertyTypeX), keyFrameIndices[propertyTypeX], value.x));
+
+			if (keyFrames[propertyTypeY] && value.y != previousValue.y)
+				GetCommandManager()->EnqueueCommand<Command::AnimationDataChangeKeyFrameValue>(animationData, std::make_tuple(static_cast<PropertyType_Enum>(propertyTypeY), keyFrameIndices[propertyTypeY], value.y));
+		}
+
+		Gui::PopStyleColor();
 	}
 
 	void AetInspector::DrawInspectorAetObjMarkers(const RefPtr<AetObj>& aetObj, Vector<RefPtr<AetMarker>>* markers)
@@ -408,7 +479,7 @@ namespace Editor
 				if (open)
 				{
 					float frame = marker->Frame;
-					if (Gui::ComfyFloatWidget("Frame", &frame, 1.0f, 10.0f))
+					if (Gui::ComfyFloatWidget("Frame", &frame, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
 						GetCommandManager()->EnqueueCommand<Command::AetObjChangeMarkerFrame>(marker, frame);
 
 					strcpy_s(markerNameBuffer, marker->Name.c_str());

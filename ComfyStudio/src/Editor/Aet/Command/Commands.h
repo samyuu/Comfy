@@ -1,6 +1,7 @@
 #pragma once
 #include "AetCommand.h"
 #include "FileSystem/Format/AetSet.h"
+#include "Graphics/Auth2D/AetMgr.h"
 
 #define DeclarePropertyCommandClass(commandName, commandString, refType, valueType, propertyName)					\
 		class commandName : public AetCommand																		\
@@ -35,6 +36,7 @@
 namespace Editor::Command
 {
 	using namespace FileSystem;
+	using namespace Graphics::Auth2D;
 
 	DeclarePropertyCommandClass(AetChangeName, "Change Aet Name", Aet, String, Name);
 	DeclarePropertyCommandClass(AetChangeResolution, "Change Resolution", Aet, ivec2, Resolution);
@@ -62,7 +64,7 @@ namespace Editor::Command
 	{
 		RefPtr<AetObj> ref;
 		RefPtr<AetMarker> newValue;
-	
+
 	public:
 		AetObjAddMarker(const RefPtr<AetObj>& ref, const RefPtr<AetMarker>& value) : ref(ref), newValue(value) {}
 		void Do()	override { ref->Markers.push_back(newValue); }
@@ -96,6 +98,21 @@ namespace Editor::Command
 		void Undo() override { std::iter_swap(ref->Markers.begin() + std::get<1>(newValue), ref->Markers.begin() + std::get<0>(newValue)); }
 		void Redo() override { Do(); }
 		const char* GetName() override { return "Move Object Marker"; }
+	};
+
+	// TODO: Consider using float KeyFrame::Frame instead of int index (?)
+	class AnimationDataChangeKeyFrameValue : public AetCommand
+	{
+		RefPtr<AnimationData> ref;
+		std::tuple<PropertyType_Enum, int, float> newValue;
+		float oldValue;
+
+	public:
+		AnimationDataChangeKeyFrameValue(const RefPtr<AnimationData>& ref, std::tuple<PropertyType_Enum, int, float> value) : ref(ref), newValue(value) {}
+		void Do()	override { oldValue = ref->Properties[std::get<0>(newValue)].at(std::get<1>(newValue)).Value; Redo(); }
+		void Undo() override { ref->Properties[std::get<0>(newValue)].at(std::get<1>(newValue)).Value = oldValue; }
+		void Redo() override { ref->Properties[std::get<0>(newValue)].at(std::get<1>(newValue)).Value = std::get<2>(newValue); }
+		const char* GetName() override { return "Change Key Frame Value"; }
 	};
 }
 

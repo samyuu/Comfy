@@ -1,6 +1,9 @@
 #pragma once
+#include "Tools/PickerTool.h"
+#include "Tools/HandTool.h"
+#include "Tools/TransformTool.h"
+#include "Tools/RotationTool.h"
 #include "Editor/Aet/AetSelection.h"
-#include "BoxTransformControl.h"
 #include "Editor/Core/RenderWindowBase.h"
 #include "Editor/Common/CameraController2D.h"
 #include "Editor/Common/CheckerboardGrid.h"
@@ -37,6 +40,13 @@ namespace Editor
 		void OnResize(int width, int height) override;
 
 	protected:
+		void DrawToolGui();
+		void DrawAnimationPropertiesGui();
+
+		AetTool* GetCurrentTool();
+		void CenterFitCamera();
+
+	protected:
 		void OnInitialize() override;
 
 		void RenderGrid();
@@ -46,14 +56,10 @@ namespace Editor
 		void RenderAetObj(AetObj* aetObj);
 		void RenderAetRegion(AetRegion* aetRegion);
 
-	protected:
-		void RenderObjCache(const AetMgr::ObjCache& obj);
-		void RenderObjCache(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj);
-		void RenderObjCache(const Vector<AetMgr::ObjCache>& objectCache);
-
 	private:
 		CheckerboardGrid checkerboardBaseGrid;
 		CheckerboardGrid checkerboardGrid;
+		vec2 aetRegionSize = vec2(1920.0f, 1080.0f);
 
 		bool isPlayback = false;
 		float currentFrame = 0.0f;
@@ -63,15 +69,13 @@ namespace Editor
 
 		UniquePtr<Renderer2D> renderer;
 		UniquePtr<AetRenderer> aetRenderer;
-		
-		const vec4 dummyColor = vec4(0.79f, 0.90f, 0.57f, 0.50f);
+
+		Array<UniquePtr<AetTool>, AetToolType_Count> tools;
+		AetToolType currentToolType;
 
 		Vector<AetMgr::ObjCache> objectCache;
 
 		Graphics::OrthographicCamera camera;
 		CameraController2D cameraController;
-
-		bool useTextShadow = false;
-		int currentBlendItem = static_cast<int>(AetBlendMode::Alpha);
 	};
 }
