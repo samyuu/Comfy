@@ -68,7 +68,7 @@ namespace Graphics::Auth2D
 
 	void AetRenderer::RenderObjCacheMask(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& position, float opacity)
 	{
-		if (maskObj.Region == nullptr || obj.Region == nullptr)
+		if (maskObj.Region == nullptr || obj.Region == nullptr || !obj.Visible)
 			return;
 
 		const FileSystem::Texture* maskTexture;
