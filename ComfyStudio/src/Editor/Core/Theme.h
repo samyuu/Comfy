@@ -10,6 +10,7 @@ namespace Editor
 	{
 		EditorColor_BaseClear,
 		EditorColor_DarkClear,
+		EditorColor_AltRow,
 		EditorColor_Bar,
 		EditorColor_Grid,
 		EditorColor_GridAlt,
@@ -23,6 +24,8 @@ namespace Editor
 		EditorColor_Cursor,
 		EditorColor_CursorInner,
 		EditorColor_TextHighlight,
+		EditorColor_AnimatedProperty,
+		EditorColor_KeyFrameProperty,
 		EditorColor_KeyFrame,
 		EditorColor_KeyFrameSelected,
 		EditorColor_KeyFrameBorder,
@@ -31,8 +34,8 @@ namespace Editor
 
 	extern Array<ImU32, EditorColor_Count> EditorColors;
 
-	ImU32 GetColor(EditorColor color);
 	vec4 GetColorVec4(EditorColor color);
+	ImU32 GetColor(EditorColor color);
 	ImU32 GetColor(EditorColor color, float alpha);
 	void SetColor(EditorColor color, ImU32 value);
 

@@ -9,15 +9,15 @@ namespace Editor
 {
 	Array<ImU32, EditorColor_Count> EditorColors;
 
+	vec4 GetColorVec4(EditorColor color)
+	{
+		return ImColor(GetColor(color)).Value;
+	}
+
 	ImU32 GetColor(EditorColor color)
 	{
 		assert(color >= 0 && color < EditorColor_Count);
 		return EditorColors[color];
-	}
-
-	vec4 GetColorVec4(EditorColor color)
-	{
-		return ImColor(GetColor(color)).Value;
 	}
 
 	ImU32 GetColor(EditorColor color, float alpha)
@@ -37,6 +37,7 @@ namespace Editor
 	{
 		SetColor(EditorColor_BaseClear, Gui::GetColorU32(ImGuiCol_TabUnfocused));
 		SetColor(EditorColor_DarkClear, Gui::GetColorU32(ImGuiCol_WindowBg));
+		SetColor(EditorColor_AltRow, 0xFF363636);
 		SetColor(EditorColor_Grid, Gui::GetColorU32(ImGuiCol_Separator, .75f));
 		SetColor(EditorColor_GridAlt, Gui::GetColorU32(ImGuiCol_Separator, .5f));
 		SetColor(EditorColor_InfoColumn, Gui::GetColorU32(ImGuiCol_ScrollbarBg));
@@ -50,6 +51,8 @@ namespace Editor
 		SetColor(EditorColor_Cursor, 0xFFE0E0E0);
 		SetColor(EditorColor_CursorInner, GetColor(EditorColor_Cursor, 0.75f));
 		SetColor(EditorColor_TextHighlight, ImColor(0.87f, 0.77f, 0.02f));
+		SetColor(EditorColor_AnimatedProperty, 0xFF392A24);
+		SetColor(EditorColor_KeyFrameProperty, 0xFF212132);
 		SetColor(EditorColor_KeyFrame, 0xFF999999);
 		SetColor(EditorColor_KeyFrameSelected, 0xFF5785D9);
 		SetColor(EditorColor_KeyFrameBorder, 0xFF05070B);
