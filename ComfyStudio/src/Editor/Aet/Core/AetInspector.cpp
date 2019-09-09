@@ -386,7 +386,7 @@ namespace Editor
 			? keyFramePropertyColor
 			: animatedPropertyColor
 			: staticPropertyColor);
-		
+
 		bool rotation = (propertyType == PropertyType_Rotation);
 		bool opacity = (propertyType == PropertyType_Opacity);
 
@@ -423,7 +423,7 @@ namespace Editor
 
 		bool scale = (propertyTypeX == PropertyType_ScaleX) && (propertyTypeY == PropertyType_ScaleY);
 		const char* formatString = scale ? "%.2f%%" : "%.2f";
-		
+
 		vec2 previousValue = value;
 
 		if (scale)
@@ -531,7 +531,8 @@ namespace Editor
 			{
 				if (Gui::Selectable(noParentLayerString, parentObjLayer == nullptr))
 				{
-					aetObj->SetReferencedParentObj(nullptr);
+					if (aetObj->GetReferencedParentObj() != nullptr)
+						GetCommandManager()->EnqueueCommand<Command::AetObjChangeObjReferenceParent>(aetObj, nullptr);
 					newParentObjLayerIndex = -1;
 				}
 
@@ -545,7 +546,8 @@ namespace Editor
 					Gui::PushID(&layer);
 					if (Gui::Selectable(parentObjDataNameBuffer, isSelected))
 					{
-						aetObj->SetReferencedParentObj(nullptr);
+						if (aetObj->GetReferencedParentObj() != nullptr)
+							GetCommandManager()->EnqueueCommand<Command::AetObjChangeObjReferenceParent>(aetObj, nullptr);
 						newParentObjLayerIndex = layerIndex;
 					}
 
