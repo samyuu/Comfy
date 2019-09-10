@@ -38,7 +38,11 @@ namespace FileSystem
 
 	AetSprite* AetRegion::GetSprite(int32_t index)
 	{
-		return (SpriteCount() > 0 && index < SpriteCount()) ? &sprites.at(index) : nullptr;
+		if (SpriteCount() < 1)
+			return nullptr;
+
+		assert(index >= 0 && index < SpriteCount());
+		return &sprites[index];
 	}
 
 	const AetSprite* AetRegion::GetSprite(int32_t index) const
