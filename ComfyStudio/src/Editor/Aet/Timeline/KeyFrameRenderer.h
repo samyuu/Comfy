@@ -20,5 +20,7 @@ namespace Editor
 		const float keyFrameSize = 5.5f;
 
 		void DrawSingleKeyFrame(ImDrawList* drawList, const vec2& position) const;
+		void DrawSingleKeyFrame(ImDrawList* drawList, const vec2& position, float opacity) const;
+		void DrawSingleKeyFrame(ImDrawList* drawList, const vec2& position, ImU32 fillColor, ImU32 borderColor) const;
 	};
 }
