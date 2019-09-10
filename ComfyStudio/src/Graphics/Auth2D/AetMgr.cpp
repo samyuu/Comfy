@@ -134,16 +134,11 @@ namespace Graphics::Auth2D
 		objCache.UseTextureMask = aetObj->AnimationData->UseTextureMask;
 		objCache.Visible = aetObj->Flags.Visible;
 
-		if (objCache.Region != nullptr)
+		if (objCache.Region != nullptr && objCache.Region->SpriteCount() > 0)
 		{
-			objCache.SpriteIndex = static_cast<int32_t>(frame - 1.0f);
-
-			if (objCache.SpriteIndex >= objCache.Region->Frames)
-				objCache.SpriteIndex = static_cast<int32_t>(objCache.Region->Frames - 1.0f);
-			if (objCache.SpriteIndex < 0)
-				objCache.SpriteIndex = 0;
+			// NOTE: Is it correct to modulo the index here? Seems to make more sense than just clamping
+			objCache.SpriteIndex = static_cast<int>(glm::round(frame)) % objCache.Region->SpriteCount();
 		}
-
 		Interpolate(aetObj->AnimationData.get(), &objCache.Properties, frame);
 
 		const AetObj* parent = aetObj->GetReferencedParentObj();
