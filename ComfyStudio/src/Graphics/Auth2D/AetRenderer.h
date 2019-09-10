@@ -39,7 +39,7 @@ namespace Graphics::Auth2D
 
 		static bool SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const AetSprite* inSprite, const FileSystem::Texture** outTexture, const Sprite** outSprite);
 
-	protected:
+	public:
 		bool GetSprite(const AetSprite* inSprite, const FileSystem::Texture** outTexture, const Sprite** outSprite);
 
 	private:
