@@ -1,8 +1,5 @@
 #pragma once
-#include "Tools/PickerTool.h"
-#include "Tools/HandTool.h"
-#include "Tools/TransformTool.h"
-#include "Tools/RotationTool.h"
+#include "Tools/AetTool.h"
 #include "Editor/Aet/AetSelection.h"
 #include "Editor/Core/RenderWindowBase.h"
 #include "Editor/Common/CameraController2D.h"
@@ -56,6 +53,9 @@ namespace Editor
 		void RenderAetObj(AetObj* aetObj);
 		void RenderAetRegion(AetRegion* aetRegion);
 
+	protected:
+		vec2 GetAetObjBoundingSize(const RefPtr<AetObj>& aetObj) const;
+
 	private:
 		CheckerboardGrid checkerboardBaseGrid;
 		CheckerboardGrid checkerboardGrid;
@@ -69,6 +69,9 @@ namespace Editor
 
 		UniquePtr<Renderer2D> renderer;
 		UniquePtr<AetRenderer> aetRenderer;
+
+		vec2 toolSize = vec2(100.0f, 100.0f);
+		Properties toolProperties = { vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), 1.0f };
 
 		Array<UniquePtr<AetTool>, AetToolType_Count> tools;
 		AetToolType currentToolType;

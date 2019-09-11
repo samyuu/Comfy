@@ -453,13 +453,16 @@
     <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\HandTool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\PickerTool.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\RotationTool.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Input\KeyCode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\MoveTool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\RotateTool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\ScaleTool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -971,13 +974,16 @@
     <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\TransformTool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\PickerTool.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\HandTool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\RotationTool.h">
+    <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\MoveTool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\RotateTool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\ScaleTool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -2,6 +2,32 @@
 
 namespace Editor
 {
+	BoxNode TransformBox::GetOpositeNode(BoxNode node)
+	{
+		switch (node)
+		{
+		case BoxNode_TL:
+			return BoxNode_BR;
+		case BoxNode_TR:
+			return BoxNode_BL;
+		case BoxNode_BL:
+			return BoxNode_TR;
+		case BoxNode_BR:
+			return BoxNode_TL;
+		case BoxNode_Top:
+			return BoxNode_Bottom;
+		case BoxNode_Right:
+			return BoxNode_Left;
+		case BoxNode_Bottom:
+			return BoxNode_Top;
+		case BoxNode_Left:
+			return BoxNode_Right;
+		}
+
+		assert(false);
+		return {};
+	}
+
 	TransformBox::TransformBox()
 	{
 	}
@@ -52,7 +78,7 @@ namespace Editor
 		return (TL + BL) / 2.0f;
 	}
 
-	vec2 TransformBox::GetNodePosition(int node)
+	vec2 TransformBox::GetNodePosition(BoxNode node) const
 	{
 		switch (node)
 		{
@@ -64,9 +90,9 @@ namespace Editor
 		case BoxNode_Right: return Right();
 		case BoxNode_Bottom: return Bottom();
 		case BoxNode_Left: return Left();
-		default: assert(false);
 		}
-		
+
+		assert(false);
 		return vec2(-1.0f);
 	}
 

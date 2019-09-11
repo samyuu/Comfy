@@ -3,7 +3,7 @@
 
 namespace Editor
 {
-	class PickerTool : public AetTool
+	class RotateTool : public AetTool
 	{
 	public:
 		virtual const char* GetIcon() const override;

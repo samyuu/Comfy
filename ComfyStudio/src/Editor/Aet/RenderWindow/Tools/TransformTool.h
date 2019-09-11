@@ -21,15 +21,21 @@ namespace Editor
 			None, Move, Scale, Rotate
 		};
 
+		const int actionMouseButton = 0;
+
 		vec2 scaleNodeWorldPositionOnMouseDown;
 		vec2 mouseWorldPositionOnMouseDown;
 		TransformBox screenSpaceBox, worldSpaceBox;
 		Graphics::Auth2D::Properties propertiesOnMouseDown;
 
 		GrabMode mode = GrabMode::None;
-		int scalingNode, hoveringNode;
+		BoxNode scalingNode, hoveringNode;
 
-		void MoveBoxCorner(TransformBox& box, vec2 position, float rotation);
+		// NOTE: To prevent accidental resizing when clicking on a node
+		const float mouseDragThreshold = 2.0f;
+		bool allowAction = false;
+
+		void MoveBoxCorner(BoxNode scalingNode, TransformBox& box, vec2 position, float rotation) const;
 
 	private:
 		void DragPositionTooltip(const vec2& position);

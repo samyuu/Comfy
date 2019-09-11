@@ -1,4 +1,9 @@
 #include "AetRenderWindow.h"
+#include "Tools/HandTool.h"
+#include "Tools/MoveTool.h"
+#include "Tools/RotateTool.h"
+#include "Tools/ScaleTool.h"
+#include "Tools/TransformTool.h"
 #include "Editor/Aet/AetIcons.h"
 #include "Editor/Core/Theme.h"
 #include "FileSystem/FileHelper.h"
@@ -19,10 +24,11 @@ namespace Editor
 		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
 		aetRenderer->SetSpriteGetterFunction(spriteGetter);
 
-		tools[AetToolType_Picker] = MakeUnique<PickerTool>();
 		tools[AetToolType_Hand] = MakeUnique<HandTool>();
+		tools[AetToolType_Move] = MakeUnique<MoveTool>();
+		tools[AetToolType_Rotate] = MakeUnique<RotateTool>();
+		tools[AetToolType_Scale] = MakeUnique<ScaleTool>();
 		tools[AetToolType_Transform] = MakeUnique<TransformTool>();
-		tools[AetToolType_Rotate] = MakeUnique<RotationTool>();
 	}
 
 	AetRenderWindow::~AetRenderWindow()
@@ -45,10 +51,13 @@ namespace Editor
 		return currentFrame = value;
 	}
 
-	static AetKeyFrame* GetKeyFrame(AetObj* aetObj, int propertyIndex, float inputFrame)
+	static AetKeyFrame* GetKeyFrameOrFirst(AetObj* aetObj, int propertyIndex, float inputFrame)
 	{
 		KeyFrameCollection& keyFrames = aetObj->AnimationData->Properties[propertyIndex];
 		bool firstFrame = inputFrame == aetObj->LoopStart;
+
+		if (keyFrames.size() == 1)
+			return &keyFrames.front();
 
 		return AetMgr::GetKeyFrameAt(keyFrames, (firstFrame && keyFrames.size() == 1 ? keyFrames.front().Frame : inputFrame));
 	}
@@ -71,6 +80,12 @@ namespace Editor
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 1.0f));
 		Gui::PushItemWidth(itemWidth);
 		{
+			if (!active.IsNull() && active.Type() == AetSelectionType::AetObj && active.GetAetObjRef()->AnimationData != nullptr)
+			{
+				AetMgr::Interpolate(active.Ptrs.AetObj->AnimationData.get(), &toolProperties, currentFrame);
+				toolSize = GetAetObjBoundingSize(active.GetAetObjRef());
+			}
+
 			DrawAnimationPropertiesGui();
 
 			Gui::SetCursorPosX(Gui::GetWindowWidth() - itemWidth - 2);
@@ -110,39 +125,57 @@ namespace Editor
 		}
 	}
 
-	static const Texture* testTexture;
-	static const Sprite* testSprite;
-	static vec2 testSize = vec2(100.0f, 100.0f);
-	static Properties testProperties = { vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), 1.0f };
-
 	void AetRenderWindow::PostDrawGui()
 	{
-		constexpr float step = 25.0f;
-		if (Gui::IsWindowFocused())
+		// TODO: Delete temp
+		if (false)
 		{
-			if (Gui::IsKeyPressed(KeyCode_Up)) testProperties.Origin.y -= step;
-			if (Gui::IsKeyPressed(KeyCode_Down)) testProperties.Origin.y += step;
-			if (Gui::IsKeyPressed(KeyCode_Left)) testProperties.Origin.x -= step;
-			if (Gui::IsKeyPressed(KeyCode_Right)) testProperties.Origin.x += step;
+			constexpr float step = 25.0f;
+			constexpr float rotationStep = 45.0f;
+			if (Gui::IsWindowFocused())
+			{
+				if (Gui::IsKeyPressed(KeyCode_Up)) toolProperties.Origin.y -= step;
+				if (Gui::IsKeyPressed(KeyCode_Down)) toolProperties.Origin.y += step;
+				if (Gui::IsKeyPressed(KeyCode_Left)) toolProperties.Origin.x -= step;
+				if (Gui::IsKeyPressed(KeyCode_Right)) toolProperties.Origin.x += step;
+				if (Gui::IsKeyPressed(KeyCode_1)) toolProperties.Rotation += rotationStep;
+				if (Gui::IsKeyPressed(KeyCode_2)) toolProperties.Rotation = 0.0f;
+				if (Gui::IsKeyPressed(KeyCode_3)) toolProperties.Rotation -= rotationStep;
+			}
 		}
 
 		AetTool* tool = GetCurrentTool();
-		if (tool != nullptr)
+		if (!active.IsNull() && active.Type() == AetSelectionType::AetObj)
 		{
 			auto worldToScreen = [this](vec2 value) { return (camera.WorldToScreenSpace(value) + GetRenderRegion().GetTL()); };
 			auto screenToWorld = [this](vec2 value) { return (camera.ScreenToWorldSpace(value - GetRenderRegion().GetTL())); };
 
+			Properties previousProperties = toolProperties;
+
 			tool->SetSpaceConversionFunctions(worldToScreen, screenToWorld);
-			tool->UpdatePostDrawGui(&testProperties, testSize);
+			tool->UpdatePostDrawGui(&toolProperties, toolSize);
+
+			if (active.GetAetObjRef()->Type == AetObjType::Pic || active.GetAetObjRef()->Type == AetObjType::Eff)
+			{
+				AetKeyFrame* currentKeyFrames[PropertyType_Count];
+				for (int i = 0; i < PropertyType_Count; i++)
+					currentKeyFrames[i] = isPlayback ? nullptr : GetKeyFrameOrFirst(active.Ptrs.AetObj, i, glm::round(currentFrame));
+
+				// TODO: if keyframe is nullptr add keyframe (how to handle adding keyframe commands?)
+				// NOTE: if the keyframe for the scale for example doesn't exist at the current timeline frame, then modify the value of the 0th keyframe instead (?)
+
+				if (currentKeyFrames[PropertyType_PositionX]) currentKeyFrames[PropertyType_PositionX]->Value = toolProperties.Position.x;
+				if (currentKeyFrames[PropertyType_PositionY]) currentKeyFrames[PropertyType_PositionY]->Value = toolProperties.Position.y;
+
+				if (currentKeyFrames[PropertyType_ScaleX]) currentKeyFrames[PropertyType_ScaleX]->Value = toolProperties.Scale.x;
+				if (currentKeyFrames[PropertyType_ScaleY]) currentKeyFrames[PropertyType_ScaleY]->Value = toolProperties.Scale.y;
+			}
 		}
 
 		Gui::WindowContextMenu("AetRenderWindowContextMenu", [this, tool]()
 		{
-			if (tool != nullptr)
-			{
-				Gui::TextDisabled("%s  %s", tool->GetIcon(), tool->GetName());
-				tool->DrawContextMenu();
-			}
+			Gui::TextDisabled("%s  %s", tool->GetIcon(), tool->GetName());
+			tool->DrawContextMenu();
 
 			Gui::Separator();
 
@@ -158,14 +191,13 @@ namespace Editor
 			if (Gui::MenuItem("Fit to Screen", nullptr, nullptr, true))
 				CenterFitCamera();
 		});
-
 	}
 
 	void AetRenderWindow::OnUpdateInput()
 	{
 		for (int i = 0; i < AetToolType_Count; i++)
 		{
-			if (tools[i] != nullptr && Gui::IsKeyPressed(tools[i]->GetShortcutKey(), false))
+			if (Gui::IsKeyPressed(tools[i]->GetShortcutKey(), false))
 				currentToolType = static_cast<AetToolType>(i);
 		}
 	}
@@ -179,7 +211,9 @@ namespace Editor
 		if (aet != nullptr)
 			aetRegionSize = aet->Resolution;
 
-		cameraController.Update(camera, GetRelativeMouse());
+		vec2 relativeMouse = GetRelativeMouse();
+		cameraController.Update(camera, relativeMouse);
+		GetCurrentTool()->UpdateCamera(camera, relativeMouse);
 
 		renderTarget.Bind();
 		{
@@ -228,27 +262,6 @@ namespace Editor
 				}
 			}
 			renderer->End();
-
-			// TEMP:
-			{
-				AetSprite aetSprite = { "BUTTON_MARU", 0 };
-				if ((*aetRenderer->GetSpriteGetterFunction())(&aetSprite, &testTexture, &testSprite))
-				{
-					testSize = testSprite->GetSize();
-				}
-				else
-				{
-					testTexture = nullptr;
-					testSprite = nullptr;
-				}
-
-				if (testTexture && testTexture->GraphicsTexture && testSprite)
-				{
-					renderer->Begin(camera);
-					renderer->Draw(testTexture->GraphicsTexture.get(), testSprite->PixelRegion, testProperties.Position, testProperties.Origin, testProperties.Rotation, testProperties.Scale, vec4(1.0f));
-					renderer->End();
-				}
-			}
 		}
 		renderTarget.UnBind();
 	}
@@ -261,7 +274,7 @@ namespace Editor
 		camera.Position += (camera.ProjectionSize - newProjectionSize) * 0.5f;;
 		camera.ProjectionSize = newProjectionSize;
 
-		// NOTE: Hacky solution to center the camera on the first frame
+		// NOTE: Hacky solution to center the camera on the first frame, might wanna center on AetSet load instead
 		if (Gui::GetFrameCount() <= 2)
 			CenterFitCamera();
 	}
@@ -271,15 +284,10 @@ namespace Editor
 		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 1.0f));
 
-		AetTool* currentTool = GetCurrentTool();
-
 		for (int i = 0; i < AetToolType_Count; i++)
 		{
 			AetTool* tool = tools[i].get();
-			bool isSelected = tool == currentTool;
-
-			if (tool == nullptr)
-				continue;
+			bool isSelected = (tool == GetCurrentTool());
 
 			Gui::PushStyleColor(ImGuiCol_Button, Gui::GetStyleColorVec4(isSelected ? ImGuiCol_Button : ImGuiCol_DockingEmptyBg));
 
@@ -303,57 +311,32 @@ namespace Editor
 
 	void AetRenderWindow::DrawAnimationPropertiesGui()
 	{
-		constexpr float percentFactor = 100.0f;
-
-		if (active.Type() == AetSelectionType::AetObj && !active.IsNull() && active.Ptrs.AetObj->AnimationData != nullptr)
+		if (!active.IsNull() && active.Type() == AetSelectionType::AetObj && active.GetAetObjRef()->AnimationData != nullptr)
 		{
-			static Properties properties;
-			AetMgr::Interpolate(active.Ptrs.AetObj->AnimationData.get(), &properties, currentFrame);
-
-			// TEMP TEST:
-			/*
-			if (!isPlayback && Gui::IsKeyPressed(KeyCode_F1, false))
-			{
-				for (int i = 0; i < PropertyType_Count; i++)
-				{
-					AetKeyFrame* existingKeyFrame = GetKeyFrame(active.AetObj, i, roundedCurrentFrame);
-					if (existingKeyFrame == nullptr)
-					{
-						auto& keyFrames = active.AetObj->AnimationData->Properties.KeyFrames[i];
-						keyFrames.push_back(AetKeyFrame(roundedCurrentFrame, ((float*)&properties)[i], 0.0f));
-
-						struct ComparisonStruct { inline bool operator() (const AetKeyFrame& keyFrameA, const AetKeyFrame& keyFrameB) { return (keyFrameA.Frame < keyFrameB.Frame); } };
-						std::sort(keyFrames.begin(), keyFrames.end(), ComparisonStruct());
-					}
-				}
-			}
-			*/
-
-			AetKeyFrame* currentKeyFrames[PropertyType_Count];
+			Array<AetKeyFrame*, PropertyType_Count> currentKeyFrames;
 			for (int i = 0; i < PropertyType_Count; i++)
-				currentKeyFrames[i] = isPlayback ? nullptr : GetKeyFrame(active.Ptrs.AetObj, i, glm::round(currentFrame));
+				currentKeyFrames[i] = isPlayback ? nullptr : GetKeyFrameOrFirst(active.Ptrs.AetObj, i, glm::round(currentFrame));
 
 			Gui::ExtendedVerticalSeparator();
-
-			Gui::ComfyInputFloat("##PositionXDragFloat::AetRenderWindow", &properties.Position.x, 1.0f, 0.0f, 0.0f, "X: %.f", !currentKeyFrames[PropertyType_PositionX]);
+			Gui::ComfyInputFloat("##PositionXDragFloat::AetRenderWindow", &toolProperties.Position.x, 1.0f, 0.0f, 0.0f, "X: %.f", !currentKeyFrames[PropertyType_PositionX]);
 			Gui::SameLine();
-			Gui::ComfyInputFloat("##PositionYDragFloat::AetRenderWindow", &properties.Position.y, 1.0f, 0.0f, 0.0f, "Y: %.f", !currentKeyFrames[PropertyType_PositionY]);
-			Gui::SameLine();
-			Gui::ExtendedVerticalSeparator();
-			Gui::ComfyInputFloat("##OriginXDragFloat::AetRenderWindow", &properties.Origin.x, 1.0f, 0.0f, 0.0f, "X: %.f", !currentKeyFrames[PropertyType_OriginX]);
-			Gui::SameLine();
-			Gui::ComfyInputFloat("##OriginYDragFloat::AetRenderWindow", &properties.Origin.y, 1.0f, 0.0f, 0.0f, "Y: %.f", !currentKeyFrames[PropertyType_OriginY]);
+			Gui::ComfyInputFloat("##PositionYDragFloat::AetRenderWindow", &toolProperties.Position.y, 1.0f, 0.0f, 0.0f, "Y: %.f", !currentKeyFrames[PropertyType_PositionY]);
 			Gui::SameLine();
 			Gui::ExtendedVerticalSeparator();
-			Gui::ComfyInputFloat("##RotationDragFloat::AetRenderWindow", &properties.Rotation, 1.0f, 0.0f, 0.0f, "R: %.2f", !currentKeyFrames[PropertyType_Rotation]);
+			Gui::ComfyInputFloat("##OriginXDragFloat::AetRenderWindow", &toolProperties.Origin.x, 1.0f, 0.0f, 0.0f, "X: %.f", !currentKeyFrames[PropertyType_OriginX]);
+			Gui::SameLine();
+			Gui::ComfyInputFloat("##OriginYDragFloat::AetRenderWindow", &toolProperties.Origin.y, 1.0f, 0.0f, 0.0f, "Y: %.f", !currentKeyFrames[PropertyType_OriginY]);
 			Gui::SameLine();
 			Gui::ExtendedVerticalSeparator();
-			Gui::ComfyInputFloat("##ScaleXDragFloat::AetRenderWindow", &properties.Scale.x, 1.0f, 0.0f, 0.0f, "W: %.2f %%", !currentKeyFrames[PropertyType_ScaleX]);
-			Gui::SameLine();
-			Gui::ComfyInputFloat("##ScaleYDragFloat::AetRenderWindow", &properties.Scale.y, 1.0f, 0.0f, 0.0f, "H: %.2f %%", !currentKeyFrames[PropertyType_ScaleY]);
+			Gui::ComfyInputFloat("##RotationDragFloat::AetRenderWindow", &toolProperties.Rotation, 1.0f, 0.0f, 0.0f, "R: %.2f", !currentKeyFrames[PropertyType_Rotation]);
 			Gui::SameLine();
 			Gui::ExtendedVerticalSeparator();
-			Gui::ComfyInputFloat("##OpacityDragFloat::AetRenderWindow", &properties.Opacity, 1.0f, 0.00000001f, 100.0f, "O: %.2f %%", !currentKeyFrames[PropertyType_Opacity]);
+			Gui::ComfyInputFloat("##ScaleXDragFloat::AetRenderWindow", &toolProperties.Scale.x, 1.0f, 0.0f, 0.0f, "W: %.2f %%", !currentKeyFrames[PropertyType_ScaleX]);
+			Gui::SameLine();
+			Gui::ComfyInputFloat("##ScaleYDragFloat::AetRenderWindow", &toolProperties.Scale.y, 1.0f, 0.0f, 0.0f, "H: %.2f %%", !currentKeyFrames[PropertyType_ScaleY]);
+			Gui::SameLine();
+			Gui::ExtendedVerticalSeparator();
+			Gui::ComfyInputFloat("##OpacityDragFloat::AetRenderWindow", &toolProperties.Opacity, 1.0f, 0.00000001f, 100.0f, "O: %.2f %%", !currentKeyFrames[PropertyType_Opacity]);
 			Gui::SameLine();
 		}
 		else
@@ -444,5 +427,17 @@ namespace Editor
 		int32_t spriteIndex = glm::clamp(0, static_cast<int32_t>(currentFrame), aetRegion->SpriteCount() - 1);
 		AetSprite* aetSprite = aetRegion->GetSprite(spriteIndex);
 		aetRenderer->RenderAetSprite(aetRegion, aetSprite, vec2(0.0f, 0.0f));
+	}
+
+	vec2 AetRenderWindow::GetAetObjBoundingSize(const RefPtr<AetObj>& aetObj) const
+	{
+		const auto& aetRegion = aetObj->GetReferencedRegion();
+
+		if (aetRegion != nullptr)
+			return vec2(aetRegion->Width, aetRegion->Height);
+
+		// TODO: Find bounding box (?), or maybe just disallow using the transform tool (?)
+		// NOTE: Maybe this is sufficient already (?)
+		return aetRegionSize;
 	}
 }

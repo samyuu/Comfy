@@ -8,8 +8,10 @@ namespace Editor
 		point = vec2(point.x * cos - point.y * sin, point.x * sin + point.y * cos);
 	}
 
-	enum BoxNode
+	enum BoxNode : int32_t
 	{
+		BoxNode_Invalid = -1,
+
 		BoxNode_TL = 0,
 		BoxNode_TR = 1,
 		BoxNode_BL = 2,
@@ -25,7 +27,12 @@ namespace Editor
 
 	struct TransformBox
 	{
-		static constexpr float NodeRadius = 4.0f;
+		// NOTE: Radius of the drawn node
+		static constexpr float NodeRadius = 3.0f;
+		// NOTE: Slightly larger hitbox node for better user experience
+		static constexpr float NodeHitboxRadius = 4.0f;
+
+		static BoxNode GetOpositeNode(BoxNode node);
 
 		TransformBox();
 		TransformBox(const Graphics::Auth2D::Properties& properties, const vec2& dimensions);
@@ -41,7 +48,7 @@ namespace Editor
 		vec2 Bottom() const;
 		vec2 Left() const;
 
-		vec2 GetNodePosition(int node);
+		vec2 GetNodePosition(BoxNode node) const;
 		Graphics::Auth2D::Properties GetProperties(vec2 dimensions, vec2 origin, float rotation, float opacity) const;
 
 		bool Contains(const vec2& point) const;

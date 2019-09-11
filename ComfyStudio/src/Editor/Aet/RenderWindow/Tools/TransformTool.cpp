@@ -3,6 +3,18 @@
 
 namespace Editor
 {
+	static void DrawBoxNode(ImDrawList* drawList, const vec2& position, ImU32 color, bool filled)
+	{
+		if (filled)
+		{
+			drawList->AddCircleFilled(position, TransformBox::NodeRadius, color);
+		}
+		else
+		{
+			drawList->AddCircle(position, TransformBox::NodeRadius, color);
+		}
+	}
+
 	static void DrawBox(ImDrawList* drawList, const TransformBox& box, bool cross, const vec4& color)
 	{
 		ImU32 colorU32 = ImColor(color);
@@ -17,18 +29,19 @@ namespace Editor
 			drawList->AddLine(box.TR, box.BL, colorU32);
 		}
 
-		drawList->AddCircleFilled(box.TL, TransformBox::NodeRadius, colorU32);
-		drawList->AddCircleFilled(box.TR, TransformBox::NodeRadius, colorU32);
-		drawList->AddCircleFilled(box.BL, TransformBox::NodeRadius, colorU32);
-		drawList->AddCircleFilled(box.BR, TransformBox::NodeRadius, colorU32);
+		const bool filled = true;
+		DrawBoxNode(drawList, box.TL, colorU32, filled);
+		DrawBoxNode(drawList, box.TR, colorU32, filled);
+		DrawBoxNode(drawList, box.BL, colorU32, filled);
+		DrawBoxNode(drawList, box.BR, colorU32, filled);
 
-		drawList->AddCircleFilled(box.Top(), TransformBox::NodeRadius, colorU32);
-		drawList->AddCircleFilled(box.Right(), TransformBox::NodeRadius, colorU32);
-		drawList->AddCircleFilled(box.Bottom(), TransformBox::NodeRadius, colorU32);
-		drawList->AddCircleFilled(box.Left(), TransformBox::NodeRadius, colorU32);
+		DrawBoxNode(drawList, box.Top(), colorU32, filled);
+		DrawBoxNode(drawList, box.Right(), colorU32, filled);
+		DrawBoxNode(drawList, box.Bottom(), colorU32, filled);
+		DrawBoxNode(drawList, box.Left(), colorU32, filled);
 	}
 
-	static ImGuiMouseCursor GetCursorForBoxNode(int boxNode)
+	static ImGuiMouseCursor GetCursorForBoxNode(BoxNode boxNode)
 	{
 		// TODO: Factor in rotation
 
@@ -53,9 +66,9 @@ namespace Editor
 
 	const char* TransformTool::GetIcon() const
 	{
-		return ICON_FA_EXPAND_ARROWS_ALT;
+		return ICON_FA_EXPAND;
 	}
-	
+
 	const char* TransformTool::GetName() const
 	{
 		return "Transform Tool";
@@ -75,6 +88,7 @@ namespace Editor
 	{
 		Gui::Text("pos: %.1f %.1f", properties->Position.x, properties->Position.y);
 		Gui::Text("ori: %.1f %.1f", properties->Origin.x, properties->Origin.y);
+		Gui::Text("rot: %.1f", properties->Rotation);
 
 		constexpr vec4 redColor = vec4(1.0f, .25f, .25f, 0.85f);
 		constexpr vec4 yellowColor = vec4(.75f, .75f, .25f, 0.85f);
@@ -93,26 +107,27 @@ namespace Editor
 		if (windowFocused || windowHovered)
 			screenSpaceBox = BoxWorldToScreenSpace(worldSpaceBox);
 
-		if (windowFocused && Gui::IsMouseClicked(0))
+		if (windowFocused && Gui::IsMouseClicked(actionMouseButton))
 		{
 			for (int i = 0; i < BoxNode_Count; i++)
 			{
-				if (glm::distance(screenSpaceBox.GetNodePosition(i), mousePos) < TransformBox::NodeRadius)
-					scalingNode = i;
+				if (glm::distance(screenSpaceBox.GetNodePosition(static_cast<BoxNode>(i)), mousePos) < TransformBox::NodeHitboxRadius)
+					scalingNode = static_cast<BoxNode>(i);
 			}
 		}
 
-		hoveringNode = -1;
+		hoveringNode = BoxNode_Invalid;
 		if (windowHovered)
 		{
 			for (int i = 0; i < BoxNode_Count; i++)
 			{
-				if (glm::distance(screenSpaceBox.GetNodePosition(i), mousePos) < TransformBox::NodeRadius)
-					hoveringNode = i;
+				if (glm::distance(screenSpaceBox.GetNodePosition(static_cast<BoxNode>(i)), mousePos) < TransformBox::NodeHitboxRadius)
+					hoveringNode = static_cast<BoxNode>(i);
 			}
 		}
 
-		if (windowFocused && Gui::IsMouseClicked(0))
+		// TODO: Allow clicking if not focused but hovered and "about to be" focused
+		if (windowFocused && Gui::IsMouseClicked(actionMouseButton))
 		{
 			mouseWorldPositionOnMouseDown = mouseWorldPos;
 			propertiesOnMouseDown = *properties;
@@ -130,21 +145,30 @@ namespace Editor
 				}
 			}
 		}
-		if (!windowFocused || Gui::IsMouseReleased(0))
+
+		// NOTE: Make sure clicking on a node won't resize immediately until the mouse has been moved a bit
+		if (mode != GrabMode::None && !allowAction && Gui::IsMouseDragging(actionMouseButton, mouseDragThreshold))
+			allowAction = true;
+
+		if (!windowFocused || Gui::IsMouseReleased(actionMouseButton))
 		{
 			mode = GrabMode::None;
-			scalingNode = -1;
+			scalingNode = BoxNode_Invalid;
+			allowAction = false;
 		}
 
 		if (mode == GrabMode::Move)
 		{
 			Gui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
 
-			// TODO: round to "grid"
-			vec2 grabOffset = mouseWorldPositionOnMouseDown - propertiesOnMouseDown.Position;
-			properties->Position = glm::round(mouseWorldPos - grabOffset);
+			if (allowAction)
+			{
+				// TODO: Round to "grid" (?)
+				vec2 grabOffset = mouseWorldPositionOnMouseDown - propertiesOnMouseDown.Position;
+				properties->Position = glm::round(mouseWorldPos - grabOffset);
 
-			worldSpaceBox = TransformBox(*properties, dimensions);
+				worldSpaceBox = TransformBox(*properties, dimensions);
+			}
 
 			DragPositionTooltip(properties->Position);
 		}
@@ -152,10 +176,13 @@ namespace Editor
 		{
 			Gui::SetMouseCursor(GetCursorForBoxNode(scalingNode));
 
-			MoveBoxCorner(worldSpaceBox, glm::round(mouseWorldPos), propertiesOnMouseDown.Rotation);
+			if (allowAction)
+			{
+				MoveBoxCorner(scalingNode, worldSpaceBox, glm::round(mouseWorldPos), propertiesOnMouseDown.Rotation);
+				*properties = worldSpaceBox.GetProperties(dimensions, properties->Origin, properties->Rotation, properties->Opacity);
+			}
+			
 			DragScaleTooltip(properties->Scale, dimensions);
-
-			*properties = worldSpaceBox.GetProperties(dimensions, properties->Origin, properties->Rotation, properties->Opacity);
 		}
 		else if (mode == GrabMode::None)
 		{
@@ -188,11 +215,13 @@ namespace Editor
 
 	void TransformTool::DrawContextMenu()
 	{
-		Gui::MenuItem("TODO: Origin picker (center, corners etc.)");
+		// TODO: Origin picker (center, corners etc.)
 	}
 
-	void TransformTool::MoveBoxCorner(TransformBox& box, vec2 position, float rotation)
+	void TransformTool::MoveBoxCorner(BoxNode scalingNode, TransformBox& box, vec2 position, float rotation) const
 	{
+		const TransformBox originalBox = box;
+
 		if (rotation != 0.0f)
 		{
 			float radians = glm::radians(-rotation), sin = glm::sin(radians), cos = glm::cos(radians);
@@ -211,7 +240,7 @@ namespace Editor
 			for (int i = 0; i < 2; i++)
 				box.Corners[cornerNodes[i][scalingNode]][i] = position[i];
 		}
-		else
+		else if (scalingNode >= BoxNode_Top && scalingNode <= BoxNode_Left)
 		{
 			int edgeNodes[2][4] = { { BoxNode_TL, BoxNode_TR, BoxNode_BL, BoxNode_TL }, { BoxNode_TR, BoxNode_BR, BoxNode_BR, BoxNode_BL } };
 
