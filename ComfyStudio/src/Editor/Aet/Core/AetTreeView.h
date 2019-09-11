@@ -4,6 +4,7 @@
 #include "FileSystem/Format/AetSet.h"
 #include "Core/CoreTypes.h"
 #include "ImGui/Gui.h"
+#include <stack>
 
 namespace Editor
 {
@@ -29,15 +30,22 @@ namespace Editor
 		inline void ResetSelectedItem()											{ activeAet = nullptr; selected.Reset(); };
 
 	private:
-		const char* addAetObjPopupID = "Add new AetObj";
+		static constexpr const char* AddAetObjPopupID = "Add new AetObj";
 
 		char objNameBuffer[255];
 		char regionNameBuffer[255];
 
+		float scrollTargetCenterRatio = 0.15f;
 		AddAetObjDialog addAetObjDialog;
+
+		std::stack<float> scrollPositionStack;
 
 		Aet* activeAet;
 		AetItemTypePtr selected, lastHovered, hovered;
+
+		ImGuiWindow* treeViewWindow = nullptr;
+
+		void UpdateScrollInput();
 
 		void DrawTreeViewBackground();
 		void DrawTreeViewAet(const RefPtr<Aet>& aet);
@@ -47,6 +55,9 @@ namespace Editor
 	
 		bool DrawAetLayerContextMenu(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer);
 		bool DrawAetObjContextMenu(const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj);
+
+	private:
+		void ScrollToGuiData(GuiTempData& guiData);
 
 	private:
 		const char* GetDebugObjectName();

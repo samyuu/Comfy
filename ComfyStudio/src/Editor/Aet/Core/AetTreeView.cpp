@@ -25,11 +25,20 @@ namespace Editor
 
 	bool AetTreeView::DrawGui(const RefPtr<AetSet>& aetSet)
 	{
+		treeViewWindow = Gui::GetCurrentWindow();
+
 		if (aetSet == nullptr)
+		{
+			if (!scrollPositionStack.empty())
+				scrollPositionStack = {};
+
 			return false;
+		}
 
 		lastHovered = hovered;
 		hovered.Reset();
+
+		UpdateScrollInput();
 
 		if (selected.IsNull() && GetDebugObjectName() != nullptr)
 		{
@@ -47,7 +56,7 @@ namespace Editor
 
 			if (Gui::MenuItem("Save", nullptr, nullptr, false))
 			{
-				// don't wanna overwrite files during early development stage
+				// NOTE: Don't wanna overwrite files during early development stage
 			}
 
 			if (Gui::MenuItem("Save As..."))
@@ -74,6 +83,39 @@ namespace Editor
 		}
 
 		return true;
+	}
+
+	void AetTreeView::UpdateScrollInput()
+	{
+		if (!Gui::IsWindowFocused())
+			return;
+
+		if (Gui::IsKeyPressed(KeyCode_Escape))
+		{
+			if (!selected.IsNull())
+			{
+				switch (selected.Type())
+				{
+				case AetSelectionType::AetLayer: 
+					ScrollToGuiData(selected.GetAetLayerRef()->GuiTempData);
+					break;
+				case AetSelectionType::AetObj:
+					ScrollToGuiData(selected.GetAetObjRef()->GuiTempData);
+					break;
+				default: 
+					break;
+				}
+			}
+		}
+
+		if (Gui::IsMouseClicked(3))
+		{
+			if (!scrollPositionStack.empty())
+			{
+				Gui::SetScrollY(scrollPositionStack.top());
+				scrollPositionStack.pop();
+			}
+		}
 	}
 
 	void AetTreeView::DrawTreeViewBackground()
@@ -163,8 +205,16 @@ namespace Editor
 		if (aetLayer->size() < 1)
 			layerNodeFlags |= ImGuiTreeNodeFlags_Leaf;
 
+		if (aetLayer->GuiTempData.AppendOpenNode)
+		{
+			Gui::SetNextTreeNodeOpen(true);
+			aetLayer->GuiTempData.AppendOpenNode = false;
+		}
+
 		ImVec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
 		bool aetLayerNodeOpen = Gui::WideTreeNodeEx("##AetLayerTreeNode", layerNodeFlags);
+
+		aetLayer->GuiTempData.TreeViewScrollY = Gui::GetCursorPos().y;
 
 		bool openAddAetObjPopup = false;
 		Gui::ItemContextMenu("AetLayerContextMenu##AetTreeView", [this, &aet, &aetLayer, &openAddAetObjPopup]()
@@ -192,14 +242,14 @@ namespace Editor
 
 		if (openAddAetObjPopup)
 		{
-			Gui::OpenPopup(addAetObjPopupID);
+			Gui::OpenPopup(AddAetObjPopupID);
 			*addAetObjDialog.GetIsGuiOpenPtr() = true;
 		}
 
-		if (Gui::BeginPopupModal(addAetObjPopupID, addAetObjDialog.GetIsGuiOpenPtr(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+		if (Gui::BeginPopupModal(AddAetObjPopupID, addAetObjDialog.GetIsGuiOpenPtr(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 		{
 			ImGuiViewport* viewPort = Gui::GetMainViewport();
-			ImGuiWindow* window = Gui::FindWindowByName(addAetObjPopupID);
+			ImGuiWindow* window = Gui::FindWindowByName(AddAetObjPopupID);
 			Gui::SetWindowPos(window, viewPort->Pos + viewPort->Size / 8, ImGuiCond_Always);
 			Gui::SetWindowSize(window, viewPort->Size * .75f, ImGuiCond_Always);
 
@@ -260,9 +310,32 @@ namespace Editor
 			{
 				Gui::WideTreeNodeEx(objNameBuffer, TreeNodeLeafFlags | (isSelected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None));
 
+				/*
+				bool eff = aetObj->Type == AetObjType::Eff;
+
+				ImGuiTreeNodeFlags flags = isSelected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None;
+				if (!eff) flags |= TreeNodeLeafFlags;
+
+				bool treeNodeOpen = Gui::WideTreeNodeEx(objNameBuffer, flags);
+
 				if (Gui::IsItemClicked())
 					SetSelectedItem(aet.get(), aetObj);
+
+				if (eff && treeNodeOpen)
+				{
+					const auto& referencedLayer = aetObj->GetReferencedLayer();
+					if (referencedLayer != nullptr)
+					{
+						for (RefPtr<AetObj>& aetObj : *referencedLayer)
+							DrawTreeViewObj(aet, referencedLayer, aetObj);
+					}
+
+					Gui::TreePop();
+				}
+				*/
 			}
+
+			aetObj->GuiTempData.TreeViewScrollY = Gui::GetCursorPos().y;
 
 			Gui::ItemContextMenu("AetObjContextMenu##AetInspector", [this, &aetLayer, &aetObj]()
 			{
@@ -317,9 +390,9 @@ namespace Editor
 		if (Gui::BeginMenu(ICON_ADD "  Add new AetObj..."))
 		{
 			// TODO: loop through layer objects to search for previous null_%d objects and increment index
-			if (Gui::MenuItem(ICON_AETOBJPIC "  Image")) { aetLayer->AddNewObject(AetObjType::Pic, "null_00"); }
-			if (Gui::MenuItem(ICON_AETOBJEFF "  Layer")) { aetLayer->AddNewObject(AetObjType::Eff, "null_eff"); }
-			if (Gui::MenuItem(ICON_AETOBJAIF "  Sound Effect")) { aetLayer->AddNewObject(AetObjType::Aif, "null.aif"); }
+			if (Gui::MenuItem(ICON_AETOBJPIC "  Image")) {} // { aetLayer->AddNewObject(AetObjType::Pic, "null_00"); }
+			if (Gui::MenuItem(ICON_AETOBJEFF "  Layer")) {} // { aetLayer->AddNewObject(AetObjType::Eff, "null_eff"); }
+			if (Gui::MenuItem(ICON_AETOBJAIF "  Sound Effect")) {} // { aetLayer->AddNewObject(AetObjType::Aif, "null.aif"); }
 			Gui::EndMenu();
 		}
 
@@ -333,6 +406,13 @@ namespace Editor
 	bool AetTreeView::DrawAetObjContextMenu(const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj)
 	{
 		Gui::Text("%s  %s", GetObjTypeIcon(aetObj->Type), aetObj->GetName().c_str());
+
+		if (aetObj->Type == AetObjType::Eff && aetObj->GetReferencedLayer())
+		{
+			if (Gui::MenuItem(ICON_FA_ARROW_RIGHT "  Jump to Layer"))
+				ScrollToGuiData(aetObj->GetReferencedLayer()->GuiTempData);
+		}
+
 		Gui::Separator();
 
 		// TODO:
@@ -341,6 +421,17 @@ namespace Editor
 		if (Gui::MenuItem(ICON_DELETE "  Delete Object")) {} // TODO: { objToDelete = { &aetLayer, &aetObj }; }
 
 		return false;
+	}
+
+	void AetTreeView::ScrollToGuiData(GuiTempData& guiData)
+	{
+		scrollPositionStack.push(treeViewWindow->Scroll.y);
+
+		// TODO: Store last position stack (?) undoable with mouse button 
+		treeViewWindow->ScrollTarget.y = guiData.TreeViewScrollY;
+		treeViewWindow->ScrollTargetCenterRatio.y = scrollTargetCenterRatio;
+
+		guiData.AppendOpenNode = true;
 	}
 
 	const char* AetTreeView::GetDebugObjectName()

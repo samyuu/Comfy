@@ -5,6 +5,15 @@
 
 namespace FileSystem
 {
+	// NOTE: Extra data used by Editor Components to avoid additional allocations and reduce complexity
+	struct GuiTempData
+	{
+		// NOTE: Used for scrolling juming to a destination
+		float TreeViewScrollY;
+		// NOTE: Set after double clicking on a layer reference node to open it
+		bool AppendOpenNode;
+	};
+
 	class Aet;
 	class AetLayer;
 	class AetSoundEffect;
@@ -162,6 +171,9 @@ namespace FileSystem
 		static Array<const char*, 4> TypeNames;
 
 	public:
+		mutable GuiTempData GuiTempData;
+
+	public:
 		AetObj();
 		AetObj(AetObjType type, const String& name, AetLayer* parentLayer);
 		AetObj(AetObj& other) = delete;
@@ -209,7 +221,6 @@ namespace FileSystem
 
 	private:
 		String name;
-
 		AetLayer* parentLayer;
 
 	public:
@@ -241,6 +252,9 @@ namespace FileSystem
 		AetLayer(AetLayer& other) = delete;
 		AetLayer& operator= (AetLayer& other) = delete;
 		~AetLayer() = default;
+
+	public:
+		mutable GuiTempData GuiTempData;
 
 	public:
 		inline int32_t GetThisIndex() const { return thisIndex; };
