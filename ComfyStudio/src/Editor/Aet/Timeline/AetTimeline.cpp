@@ -56,7 +56,6 @@ namespace Editor
 		ImGuiStyle& style = Gui::GetStyle();
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, style.FramePadding.y));
 
-		TimeSpan cursorTime = GetCursorTime();
 		sprintf_s(timeInputBuffer, "%s (%.f/%.f)", cursorTime.FormatTime().c_str(), GetTimelineFrame(cursorTime).Frames(), loopEndFrame.Frames());
 
 		Gui::PushItemWidth(140);
@@ -88,8 +87,11 @@ namespace Editor
 		}
 
 		Gui::SameLine();
-		if (Gui::Button(ICON_FA_STOP) && GetIsPlayback())
+		if (Gui::Button(ICON_FA_STOP))
+		{
 			StopPlayback();
+			scrollDelta = -GetTimelineSize();
+		}
 
 		Gui::SameLine();
 		Gui::Button(ICON_FA_FORWARD);
@@ -122,15 +124,55 @@ namespace Editor
 		TimelineBase::OnDrawTimelineInfoColumn();
 
 		ImDrawList* drawList = Gui::GetWindowDrawList();
-		ImU32 textColor = Gui::GetColorU32(active.IsNull() || (active.Type() != AetSelectionType::AetObj) ? ImGuiCol_TextDisabled : ImGuiCol_Text);
+		
+		ImGuiCol imGuiColor = ImGuiCol_Text;
+		
+		bool isAetObj = active.Type() == AetSelectionType::AetObj;
+		if (active.IsNull() || !isAetObj || (isAetObj && active.GetAetObjRef()->Type == AetObjType::Aif))
+			imGuiColor = ImGuiCol_TextDisabled;
+		
+		ImU32 textColor = Gui::GetColorU32(imGuiColor);
 
-		for (int i = 0; i < PropertyType_Count; i++)
+		//for (int i = 0; i < PropertyType_Count; i++)
+		//{
+		//	float y = i * rowHeight + 2;
+		//	auto start = ImVec2(2, y) + infoColumnRegion.GetTL();
+
+		//	drawList->AddText(start, textColor, timelinePropertyNames[i]);
+		//}
+
+		/*
+		if (active.IsNull())
+			return;
+
+		ImU32 textColor = Gui::GetColorU32(ImGuiCol_Text);
+		*/
+
+		if (active.Type() == AetSelectionType::AetObj || true)
 		{
-			float y = i * rowHeight + 2;
-			auto start = ImVec2(2, y) + infoColumnRegion.GetTL();
+			for (int i = 0; i < PropertyType_Count; i++)
+			{
+				float y = i * rowHeight + 2;
+				auto start = ImVec2(2, y) + infoColumnRegion.GetTL();
 
-			drawList->AddText(start, textColor, timelinePropertyNames[i]);
+				drawList->AddText(start, textColor, timelinePropertyNames[i]);
+			}
 		}
+
+		// TEST:
+		/*
+		if (active.Type() == AetSelectionType::AetLayer)
+		{
+			AetLayer* layer = active.GetAetLayerRef().get();
+			for (int i = 0; i < static_cast<int>(layer->size()); i++)
+			{
+				float y = i * rowHeight + 2;
+				auto start = ImVec2(2, y) + infoColumnRegion.GetTL();
+
+				drawList->AddText(start, textColor, layer->at(i)->GetName().c_str());
+			}
+		}
+		*/
 	}
 
 	void AetTimeline::OnDrawTimlineRows()
@@ -186,7 +228,7 @@ namespace Editor
 
 			case AetSelectionType::AetRegion:
 				loopStartFrame = 0;
-				loopEndFrame = glm::max(0.0f, active.Ptrs.AetRegion->Frames - 1.0f);
+				loopEndFrame = glm::max(0.0f, active.Ptrs.AetRegion->SpriteCount() - 1.0f);
 				break;
 
 			default:
@@ -208,7 +250,7 @@ namespace Editor
 			if (loopPlayback)
 			{
 				cursorTime = startTime;
-				SetScrollX(0);
+				SetScrollX(0.0f);
 			}
 			else
 			{
@@ -285,7 +327,10 @@ namespace Editor
 
 	void AetTimeline::StopPlayback()
 	{
-		PausePlayback();
+		if (GetIsPlayback())
+			PausePlayback();
+
+		cursorTime = GetTimelineTime(loopStartFrame);
 	}
 
 	void AetTimeline::UpdateInputCursorClick()
