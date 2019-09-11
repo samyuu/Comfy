@@ -11,11 +11,16 @@ namespace Editor
 		float ZoomMin = 0.1f;
 		float ZoomMax = 12.8f;
 
+		int MouseDragButton = 1;
+		bool AltZoomControl = true;
+
 	public:
 		void Update(Graphics::OrthographicCamera& camera, vec2 relativeMouse);
 		void SetUpdateCameraZoom(Graphics::OrthographicCamera& camera, float newZoom, vec2 origin);
 
 	private:
+		bool updateKeyboardControls = false;
+		bool updateMouseControls = true;
 		bool windowHoveredOnClick[5];
 
 		void UpdateKeyboardInput(Graphics::OrthographicCamera& camera);

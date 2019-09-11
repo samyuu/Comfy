@@ -15,8 +15,11 @@ namespace Editor
 
 		if (Gui::IsWindowFocused())
 		{
-			UpdateKeyboardInput(camera);
-			UpdateMouseInput(camera, relativeMouse);
+			if (updateKeyboardControls)
+				UpdateKeyboardInput(camera);
+
+			if (updateMouseControls)
+				UpdateMouseInput(camera, relativeMouse);
 		}
 	}
 
@@ -58,13 +61,13 @@ namespace Editor
 	{
 		ImGuiIO& io = Gui::GetIO();
 
-		if (windowHoveredOnClick[1] && Gui::IsMouseDown(1))
+		if (windowHoveredOnClick[MouseDragButton] && Gui::IsMouseDown(MouseDragButton))
 		{
 			camera.Position -= vec2(io.MouseDelta.x, io.MouseDelta.y);
 			Gui::SetMouseCursor(ImGuiMouseCursor_Hand);
 		}
 
-		if (io.KeyAlt && io.MouseWheel != 0.0f)
+		if (AltZoomControl && io.KeyAlt && io.MouseWheel != 0.0f)
 		{
 			float newZoom = camera.Zoom * ((io.MouseWheel > 0) ? ZoomStep : (1.0f / ZoomStep));
 			SetUpdateCameraZoom(camera, newZoom, relativeMouse);
