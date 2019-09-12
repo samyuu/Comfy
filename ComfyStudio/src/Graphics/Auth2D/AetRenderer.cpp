@@ -81,6 +81,8 @@ namespace Graphics::Auth2D
 
 		if (validMaskSprite && validSprite)
 		{
+			assert(maskTexture != texture);
+
 			renderer2D->Draw(
 				maskTexture->GraphicsTexture.get(),
 				maskSprite->PixelRegion,
@@ -94,7 +96,7 @@ namespace Graphics::Auth2D
 				obj.Properties.Origin,
 				obj.Properties.Rotation,
 				obj.Properties.Scale,
-				vec4(1.0f, 1.0f, 1.0f, obj.Properties.Opacity),
+				vec4(1.0f, 1.0f, 1.0f, maskObj.Properties.Opacity * obj.Properties.Opacity),
 				obj.BlendMode);
 		}
 		else
@@ -106,7 +108,7 @@ namespace Graphics::Auth2D
 				obj.Properties.Origin,
 				obj.Properties.Rotation,
 				obj.Properties.Scale,
-				vec4(DummyColor.r, DummyColor.g, DummyColor.b, DummyColor.a * obj.Properties.Opacity * opacity),
+				vec4(DummyColor.r, DummyColor.g, DummyColor.b, DummyColor.a * maskObj.Properties.Opacity * obj.Properties.Opacity * opacity),
 				obj.BlendMode);
 		}
 	}
