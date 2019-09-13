@@ -96,13 +96,13 @@ namespace Editor
 			{
 				switch (selected.Type())
 				{
-				case AetSelectionType::AetLayer: 
+				case AetSelectionType::AetLayer:
 					ScrollToGuiData(selected.GetAetLayerRef()->GuiTempData);
 					break;
 				case AetSelectionType::AetObj:
 					ScrollToGuiData(selected.GetAetObjRef()->GuiTempData);
 					break;
-				default: 
+				default:
 					break;
 				}
 			}
@@ -280,6 +280,13 @@ namespace Editor
 			bool drawActiveButton = true;
 			if (drawActiveButton)
 			{
+				Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(3.0f, 0.0f));
+
+				ImU32 activeButtonBackgroundColor = Gui::GetColorU32(ImGuiCol_ChildBg, 0.0f);
+				Gui::PushStyleColor(ImGuiCol_Button, activeButtonBackgroundColor);
+				Gui::PushStyleColor(ImGuiCol_ButtonHovered, activeButtonBackgroundColor);
+				Gui::PushStyleColor(ImGuiCol_ButtonActive, activeButtonBackgroundColor);
+
 				const ImVec2 smallButtonSize = ImVec2(26.0f, 0.0f);
 				if (aetObj->Type == AetObjType::Aif)
 				{
@@ -292,6 +299,9 @@ namespace Editor
 						aetObj->Flags.Visible ^= true;
 				}
 				Gui::SameLine();
+
+				Gui::PopStyleColor(3);
+				Gui::PopStyleVar(1);
 			}
 
 			// TODO: Come up with a better indicator
