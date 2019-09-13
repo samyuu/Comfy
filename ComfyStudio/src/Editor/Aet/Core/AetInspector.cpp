@@ -79,28 +79,28 @@ namespace Editor
 		{
 			strcpy_s(aetNameBuffer, aet->Name.c_str());
 
-			if (Gui::ComfyTextWidget("Name", aetNameBuffer, sizeof(aetNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::AetChangeName>(aet, aetNameBuffer);
+			if (Gui::ComfyTextWidget("Name", aetNameBuffer, sizeof(aetNameBuffer)))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeName, aet, aetNameBuffer);
 
 			float frameStart = aet->FrameStart;
-			if (Gui::ComfyFloatWidget("Start Frame", &frameStart, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::AetChangeStartFrame>(aet, frameStart);
+			if (Gui::ComfyFloatWidget("Start Frame", &frameStart, 1.0f, 10.0f, "%.2f"))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeStartFrame, aet, frameStart);
 
 			float frameDuration = aet->FrameDuration;
-			if (Gui::ComfyFloatWidget("Duration", &frameDuration, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::AetChangeFrameDuration>(aet, frameDuration);
+			if (Gui::ComfyFloatWidget("Duration", &frameDuration, 1.0f, 10.0f, "%.2f"))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeFrameDuration, aet, frameDuration);
 
 			float frameRate = aet->FrameRate;
-			if (Gui::ComfyFloatWidget("Frame Rate", &frameRate, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::AetChangeFrameRate>(aet, glm::clamp(frameRate, 1.0f, 1000.0f));
+			if (Gui::ComfyFloatWidget("Frame Rate", &frameRate, 1.0f, 10.0f, "%.2f"))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeFrameRate, aet, glm::clamp(frameRate, 1.0f, 1000.0f));
 
 			ivec2 resolution = aet->Resolution;
-			if (Gui::ComfyInt2Widget("Resolution", glm::value_ptr(resolution), ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::AetChangeResolution>(aet, resolution);
+			if (Gui::ComfyInt2Widget("Resolution", glm::value_ptr(resolution)))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeResolution, aet, resolution);
 
 			vec4 color = Gui::ColorConvertU32ToFloat4(aet->BackgroundColor);
-			if (Gui::ComfyColorEdit3("Background", glm::value_ptr(color), ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_DisplayHex))
-				GetCommandManager()->EnqueueCommand<Command::AetChangeBackgroundColor>(aet, Gui::ColorConvertFloat4ToU32(color));
+			if (Gui::ComfyColorEdit3("Background", glm::value_ptr(color), ImGuiColorEditFlags_DisplayHex))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeBackgroundColor, aet, Gui::ColorConvertFloat4ToU32(color));
 
 			Gui::TreePop();
 		}
@@ -128,6 +128,8 @@ namespace Editor
 
 	void AetInspector::DrawInspectorLayerData(Aet* aet, const RefPtr<AetObj>& aetObj, const RefPtr<AetLayer>& aetLayer)
 	{
+		// TODO: In the future you should not be able to change the layer after creating it because it would leave the previous layer "nameless" (?)
+
 		if (Gui::WideTreeNodeEx(ICON_AETLAYERS "  Layer Data", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			if (aetLayer != nullptr)
@@ -136,7 +138,7 @@ namespace Editor
 			if (Gui::ComfyBeginCombo("Layer", aetLayer == nullptr ? "None (Layer)" : layerDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
 				if (Gui::Selectable("None (Layer)", aetLayer == nullptr))
-					GetCommandManager()->EnqueueCommand<Command::AetObjChangeReferenceLayer>(aetObj, nullptr);
+					ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceLayer, aetObj, nullptr);
 
 				int layerIndex = 0;
 				for (RefPtr<AetLayer>& layer : aet->AetLayers)
@@ -150,7 +152,7 @@ namespace Editor
 					sprintf_s(layerDataNameBuffer, "Layer %d (%s)", layerIndex++, layer->GetCommaSeparatedNames());
 
 					if (Gui::Selectable(layerDataNameBuffer, isSelected))
-						GetCommandManager()->EnqueueCommand<Command::AetObjChangeReferenceLayer>(aetObj, layer);
+						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceLayer, aetObj, layer);
 
 					if (isSelected)
 						Gui::SetItemDefaultFocus();
@@ -168,28 +170,28 @@ namespace Editor
 		if (Gui::WideTreeNodeEx(aetObj.get(), ImGuiTreeNodeFlags_DefaultOpen, "%s  Object", GetObjTypeIcon(aetObj->Type)))
 		{
 			strcpy_s(aetObjNameBuffer, aetObj->GetName().c_str());
-			if (Gui::ComfyTextWidget("Name", aetObjNameBuffer, sizeof(aetObjNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::AetObjChangeName>(aetObj, aetObjNameBuffer);
+			if (Gui::ComfyTextWidget("Name", aetObjNameBuffer, sizeof(aetObjNameBuffer)))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeName, aetObj, aetObjNameBuffer);
 
 			float loopStart = aetObj->LoopStart;
-			if (Gui::ComfyFloatWidget("Loop Start", &loopStart, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::AetObjChangeLoopStart>(aetObj, loopStart);
+			if (Gui::ComfyFloatWidget("Loop Start", &loopStart, 1.0f, 10.0f, "%.2f"))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeLoopStart, aetObj, loopStart);
 
 			float loopEnd = aetObj->LoopEnd;
-			if (Gui::ComfyFloatWidget("Loop End", &loopEnd, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::AetObjChangeLoopEnd>(aetObj, loopEnd);
+			if (Gui::ComfyFloatWidget("Loop End", &loopEnd, 1.0f, 10.0f, "%.2f"))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeLoopEnd, aetObj, loopEnd);
 
 			float startFrame = aetObj->StartFrame;
-			if (Gui::ComfyFloatWidget("Start Frame", &startFrame, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
-				GetCommandManager()->EnqueueCommand<Command::AetObjChangeStartFrame>(aetObj, startFrame);
+			if (Gui::ComfyFloatWidget("Start Frame", &startFrame, 1.0f, 10.0f, "%.2f"))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeStartFrame, aetObj, startFrame);
 
 			if (aetObj->Type != AetObjType::Aif)
 			{
 				constexpr float percentageFactor = 100.0f;
 				float playbackPercentage = aetObj->PlaybackSpeed * percentageFactor;
 
-				if (Gui::ComfyFloatWidget("Playback Speed", &playbackPercentage, 10.0f, 100.0f, "%.0f%%", ImGuiInputTextFlags_EnterReturnsTrue))
-					GetCommandManager()->EnqueueCommand<Command::AetObjChangePlaybackSpeed>(aetObj, playbackPercentage / percentageFactor);
+				if (Gui::ComfyFloatWidget("Playback Speed", &playbackPercentage, 10.0f, 100.0f, "%.0f%%"))
+					ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangePlaybackSpeed, aetObj, playbackPercentage / percentageFactor);
 			}
 
 			Gui::TreePop();
@@ -247,7 +249,7 @@ namespace Editor
 			if (Gui::ComfyBeginCombo("Sprite", aetRegion == nullptr ? noSpriteString : regionDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
 				if (Gui::Selectable(noSpriteString, aetRegion == nullptr))
-					GetCommandManager()->EnqueueCommand<Command::AetObjChangeReferenceRegion>(aetObj, nullptr);
+					ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceRegion, aetObj, nullptr);
 
 				int32_t regionIndex = 0;
 				for (RefPtr<AetRegion>& region : aet->AetRegions)
@@ -261,7 +263,7 @@ namespace Editor
 						sprintf_s(regionDataNameBuffer, "Region %d (%dx%d)", regionIndex, region->Width, region->Height);
 
 					if (Gui::Selectable(frontSprite == nullptr ? regionDataNameBuffer : frontSprite->Name.c_str(), isSelected))
-						GetCommandManager()->EnqueueCommand<Command::AetObjChangeReferenceRegion>(aetObj, region);
+						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceRegion, aetObj, region);
 
 					if (isSelected)
 						Gui::SetItemDefaultFocus();
@@ -353,7 +355,7 @@ namespace Editor
 							continue;
 
 						if (Gui::Selectable(AnimationData::BlendModeNames[blendModeIndex], blendModeIndex == blendMode))
-							GetCommandManager()->EnqueueCommand<Command::AnimationDataChangeBlendMode>(animationData, static_cast<AetBlendMode>(blendModeIndex));
+							ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeBlendMode, animationData, static_cast<AetBlendMode>(blendModeIndex));
 
 						if (blendModeIndex == blendMode)
 							Gui::SetItemDefaultFocus();
@@ -364,7 +366,7 @@ namespace Editor
 
 				bool useTextureMask = animationData->UseTextureMask;
 				if (Gui::ComfyCheckbox("Use Texture Mask", &useTextureMask))
-					GetCommandManager()->EnqueueCommand<Command::AnimationDataChangeUseTextureMask>(animationData, useTextureMask);
+					ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeUseTextureMask, animationData, useTextureMask);
 			}
 
 			Gui::TreePop();
@@ -397,14 +399,16 @@ namespace Editor
 		if (opacity)
 			value *= percentFactor;
 
-		// TODO: Remove step and stepFast to avoid filling undo history with meaningless items
-		if (Gui::ComfyFloatWidget(label, &value, 1.0f, 10.0f, formatString, ImGuiInputTextFlags_EnterReturnsTrue, GetIsAnimationPropertyDisabled(keyFrames, propertyType, propertyType)))
+		if (Gui::ComfyFloatWidget(label, &value, 1.0f, 10.0f, formatString, ImGuiInputTextFlags_None, GetIsAnimationPropertyDisabled(keyFrames, propertyType, propertyType)))
 		{
 			if (opacity)
 				value = glm::clamp(value * (1.0f / percentFactor), 0.0f, 1.0f);
 
 			if (keyFrames[propertyType] && value != previousValue)
-				GetCommandManager()->EnqueueCommand<Command::AnimationDataChangeKeyFrameValue>(animationData, std::make_tuple(static_cast<PropertyType_Enum>(propertyType), keyFrameIndices[propertyType], value));
+			{
+				auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(propertyType), keyFrameIndices[propertyType], value);
+				ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, animationData, tuple);
+			}
 		}
 
 		Gui::PopStyleColor();
@@ -429,16 +433,22 @@ namespace Editor
 		if (scale)
 			value *= percentFactor;
 
-		if (Gui::ComfyFloat2Widget(label, glm::value_ptr(value), formatString, ImGuiInputTextFlags_EnterReturnsTrue, GetIsAnimationPropertyDisabled(keyFrames, propertyTypeX, propertyTypeY)))
+		if (Gui::ComfyFloat2Widget(label, glm::value_ptr(value), formatString, ImGuiInputTextFlags_None, GetIsAnimationPropertyDisabled(keyFrames, propertyTypeX, propertyTypeY)))
 		{
 			if (scale)
 				value *= (1.0f / percentFactor);
 
 			if (keyFrames[propertyTypeX] && value.x != previousValue.x)
-				GetCommandManager()->EnqueueCommand<Command::AnimationDataChangeKeyFrameValue>(animationData, std::make_tuple(static_cast<PropertyType_Enum>(propertyTypeX), keyFrameIndices[propertyTypeX], value.x));
+			{
+				auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(propertyTypeX), keyFrameIndices[propertyTypeX], value.x);
+				ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, animationData, tuple);
+			}
 
 			if (keyFrames[propertyTypeY] && value.y != previousValue.y)
-				GetCommandManager()->EnqueueCommand<Command::AnimationDataChangeKeyFrameValue>(animationData, std::make_tuple(static_cast<PropertyType_Enum>(propertyTypeY), keyFrameIndices[propertyTypeY], value.y));
+			{
+				auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(propertyTypeY), keyFrameIndices[propertyTypeY], value.y);
+				ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, animationData, tuple);
+			}
 		}
 
 		Gui::PopStyleColor();
@@ -460,13 +470,21 @@ namespace Editor
 				Gui::ItemContextMenu("AddMarkerContextMenu##AetInspector", [this, &aetObj, &markers, i]()
 				{
 					if (Gui::MenuItem(ICON_MOVEUP "  Move Up", nullptr, nullptr, i > 0))
-						GetCommandManager()->EnqueueCommand<Command::AetObjMoveMarker>(aetObj, std::tuple<int, int>(i, i - 1));
+					{
+						auto tuple = std::tuple<int, int>(i, i - 1);
+						ProcessAetCommand(GetCommandManager(), AetObjMoveMarker, aetObj, tuple);
+					}
 
 					if (Gui::MenuItem(ICON_MOVEDOWN "  Move Down", nullptr, nullptr, i < markers->size() - 1))
-						GetCommandManager()->EnqueueCommand<Command::AetObjMoveMarker>(aetObj, std::tuple<int, int>(i, i + 1));
+					{
+						auto tuple = std::tuple<int, int>(i, i + 1);
+						ProcessAetCommand(GetCommandManager(), AetObjMoveMarker, aetObj, tuple);
+					}
 
 					if (Gui::MenuItem(ICON_DELETE "  Delete"))
-						GetCommandManager()->EnqueueCommand<Command::AetObjDeleteMarker>(aetObj, i);
+					{
+						ProcessAetCommand(GetCommandManager(), AetObjDeleteMarker, aetObj, i);
+					}
 				});
 
 				treeNodeCursorPos.x += GImGui->FontSize + GImGui->Style.FramePadding.x;
@@ -479,12 +497,12 @@ namespace Editor
 				if (open)
 				{
 					float frame = marker->Frame;
-					if (Gui::ComfyFloatWidget("Frame", &frame, 1.0f, 10.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue))
-						GetCommandManager()->EnqueueCommand<Command::AetObjChangeMarkerFrame>(marker, frame);
+					if (Gui::ComfyFloatWidget("Frame", &frame, 1.0f, 10.0f, "%.2f"))
+						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeMarkerFrame, marker, frame);
 
 					strcpy_s(markerNameBuffer, marker->Name.c_str());
-					if (Gui::ComfyTextWidget("Name", markerNameBuffer, sizeof(markerNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
-						GetCommandManager()->EnqueueCommand<Command::AetObjChangeMarkerName>(marker, markerNameBuffer);
+					if (Gui::ComfyTextWidget("Name", markerNameBuffer, sizeof(markerNameBuffer)))
+						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeMarkerName, marker, markerNameBuffer);
 
 					Gui::TreePop();
 				}
@@ -498,7 +516,8 @@ namespace Editor
 			{
 				char newMarkerBuffer[32];
 				sprintf_s(newMarkerBuffer, "marker_%02zd", markers->size());
-				GetCommandManager()->EnqueueCommand<Command::AetObjAddMarker>(aetObj, MakeRef<AetMarker>(0.0f, newMarkerBuffer));
+				auto newMarker = MakeRef<AetMarker>(0.0f, newMarkerBuffer);
+				ProcessAetCommand(GetCommandManager(), AetObjAddMarker, aetObj, newMarker);
 			}
 			Gui::TreePop();
 		}
@@ -532,7 +551,7 @@ namespace Editor
 				if (Gui::Selectable(noParentLayerString, parentObjLayer == nullptr))
 				{
 					if (aetObj->GetReferencedParentObj() != nullptr)
-						GetCommandManager()->EnqueueCommand<Command::AetObjChangeObjReferenceParent>(aetObj, nullptr);
+						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeObjReferenceParent, aetObj, nullptr);
 					newParentObjLayerIndex = -1;
 				}
 
@@ -547,7 +566,8 @@ namespace Editor
 					if (Gui::Selectable(parentObjDataNameBuffer, isSelected))
 					{
 						if (aetObj->GetReferencedParentObj() != nullptr)
-							GetCommandManager()->EnqueueCommand<Command::AetObjChangeObjReferenceParent>(aetObj, nullptr);
+							ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeObjReferenceParent, aetObj, nullptr);
+
 						newParentObjLayerIndex = layerIndex;
 					}
 
@@ -562,7 +582,7 @@ namespace Editor
 			if (Gui::ComfyBeginCombo("Parent Object", parentObj == nullptr ? noParentObjString : parentObj->GetName().c_str(), ImGuiComboFlags_HeightLarge))
 			{
 				if (Gui::Selectable(noParentObjString, parentObj == nullptr))
-					GetCommandManager()->EnqueueCommand<Command::AetObjChangeObjReferenceParent>(aetObj, nullptr);
+					ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeObjReferenceParent, aetObj, nullptr);
 
 				if (parentObjLayer != nullptr)
 				{
@@ -573,7 +593,7 @@ namespace Editor
 
 						Gui::PushID(&obj);
 						if (Gui::Selectable(obj->GetName().c_str(), isSelected))
-							GetCommandManager()->EnqueueCommand<Command::AetObjChangeObjReferenceParent>(aetObj, obj);
+							ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeObjReferenceParent, aetObj, obj);
 
 						if (isSelected)
 							Gui::SetItemDefaultFocus();

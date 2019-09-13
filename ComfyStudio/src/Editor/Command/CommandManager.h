@@ -47,11 +47,11 @@ namespace Editor
 	};
 
 	template<class TCommand>
-	template<class TNewCommand, class ..._Types>
-	inline void CommandManager<TCommand>::EnqueueCommand(_Types&& ..._Args)
+	template<class TNewCommand, class... _Types>
+	inline void CommandManager<TCommand>::EnqueueCommand(_Types&&... args)
 	{
 		static_assert(std::is_base_of<TCommand, TNewCommand>::value, "TNewCommand must inherit from TCommand");
-		commandQueue.push(MakeRef<TNewCommand>(std::forward<_Types>(_Args)...));
+		commandQueue.push(MakeRef<TNewCommand>(std::forward<_Types>(args)...));
 	}
 
 	template<class TCommand>
