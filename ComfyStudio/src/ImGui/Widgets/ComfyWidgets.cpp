@@ -218,8 +218,16 @@ namespace ImGui
 		AlignTextToFramePadding();
 		Text(label);
 
+		bool disabled = GetCurrentWindow()->DC.ItemFlags & ImGuiItemFlags_Disabled;
+		if (disabled)
+			PushStyleColor(ImGuiCol_Text, GetStyleColorVec4(ImGuiCol_TextDisabled));
+
 		SetCursorScreenPos(comboPosition);
 		bool open = InternalVariableWidthBeginCombo(label, previewValue, flags, GetContentRegionAvailWidth());
+		
+		if (disabled)
+			PopStyleColor();
+		
 		return open;
 	}
 
