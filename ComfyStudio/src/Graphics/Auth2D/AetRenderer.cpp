@@ -97,7 +97,7 @@ namespace Graphics::Auth2D
 				obj.Properties.Rotation,
 				obj.Properties.Scale,
 				vec4(1.0f, 1.0f, 1.0f, maskObj.Properties.Opacity * obj.Properties.Opacity),
-				obj.BlendMode);
+				maskObj.BlendMode);
 		}
 		else
 		{
@@ -109,7 +109,7 @@ namespace Graphics::Auth2D
 				obj.Properties.Rotation,
 				obj.Properties.Scale,
 				vec4(DummyColor.r, DummyColor.g, DummyColor.b, DummyColor.a * maskObj.Properties.Opacity * obj.Properties.Opacity * opacity),
-				obj.BlendMode);
+				maskObj.BlendMode);
 		}
 	}
 
