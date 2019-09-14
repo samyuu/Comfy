@@ -346,6 +346,9 @@ namespace Editor
 
 			if (aetObj->Type == AetObjType::Pic)
 			{
+				if (animationData->UseTextureMask)
+					Gui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+
 				int32_t blendMode = static_cast<int32_t>(animationData->BlendMode);
 				if (Gui::ComfyBeginCombo("Blend Mode", AnimationData::BlendModeNames[blendMode], ImGuiComboFlags_HeightLarge))
 				{
@@ -363,6 +366,9 @@ namespace Editor
 
 					Gui::ComfyEndCombo();
 				}
+
+				if (animationData->UseTextureMask)
+					Gui::PopItemFlag();
 
 				bool useTextureMask = animationData->UseTextureMask;
 				if (Gui::ComfyCheckbox("Use Texture Mask", &useTextureMask))
