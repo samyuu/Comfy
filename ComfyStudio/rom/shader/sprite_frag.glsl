@@ -112,7 +112,13 @@ void main()
 	}
 	else if (u_TextureMaskFormat >= 0)
 	{
-		FragColor = GetTextureColor(u_TextureSampler, Input.TexMaskCoord, u_TextureFormat) * Input.Color;
+		// NOTE: Special case for when the texture mask shares the same texture
+		if (u_TextureFormat < 0)
+			FragColor = GetTextureColor(u_TextureMaskSampler, Input.TexMaskCoord, u_TextureMaskFormat);
+		else
+			FragColor = GetTextureColor(u_TextureSampler, Input.TexMaskCoord, u_TextureFormat);
+
+		FragColor *= Input.Color;
 		FragColor.a *= GetTextureColor(u_TextureMaskSampler, Input.TexCoord, u_TextureMaskFormat).a;
 	}
 	else

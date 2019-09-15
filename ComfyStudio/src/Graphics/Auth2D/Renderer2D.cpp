@@ -150,6 +150,8 @@ namespace Graphics::Auth2D
 
 		if (rotationDifference != 0.0f)
 		{
+			// TODO: maskRotation isn't handled correctly when the position changes
+
 			const float radians = glm::radians(rotationDifference);
 			const float sin = glm::sin(radians);
 			const float cos = glm::cos(radians);
@@ -418,7 +420,16 @@ namespace Graphics::Auth2D
 			if (item.Texture != nullptr)
 			{
 				item.Texture->Bind(TextureSlot);
-				spriteShader->SetUniform(spriteShader->TextureFormat, static_cast<int>(item.Texture->GetTextureFormat()));
+
+				if (item.Texture == item.MaskTexture)
+				{
+					// NOTE: Special case for when the texture mask shares the same texture
+					spriteShader->SetUniform(spriteShader->TextureFormat, -1);
+				}
+				else
+				{
+					spriteShader->SetUniform(spriteShader->TextureFormat, static_cast<int>(item.Texture->GetTextureFormat()));
+				}
 			}
 
 			spriteShader->SetUniform(spriteShader->UseSolidColor, item.Texture == nullptr);

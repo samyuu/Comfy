@@ -81,8 +81,6 @@ namespace Graphics::Auth2D
 
 		if (validMaskSprite && validSprite)
 		{
-			assert(maskTexture != texture);
-
 			renderer2D->Draw(
 				maskTexture->GraphicsTexture.get(),
 				maskSprite->PixelRegion,
