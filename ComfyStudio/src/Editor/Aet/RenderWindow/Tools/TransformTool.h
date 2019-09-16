@@ -16,7 +16,12 @@ namespace Editor
 		virtual void DrawContextMenu() override;
 
 	private:
-		enum GrabMode
+		static constexpr vec4 redColor = vec4(0.91f, 0.17f, 0.05f, 0.85f);
+		static constexpr vec4 redPreColor = vec4(0.99f, 0.29f, 0.12f, 0.85f);
+		static constexpr vec4 yellowColor = vec4(.83f, .76f, .29f, 0.85f);
+		static constexpr vec4 whiteColor = vec4(1.0f, 1.0f, 1.0f, 0.85f);
+
+		enum class GrabMode
 		{
 			None, Move, Scale, Rotate
 		};
@@ -31,8 +36,6 @@ namespace Editor
 		GrabMode mode = GrabMode::None;
 		BoxNode scalingNode, hoveringNode;
 
-		// NOTE: To prevent accidental resizing when clicking on a node
-		const float mouseDragThreshold = 2.0f;
 		bool allowAction = false;
 
 		void MoveBoxCorner(BoxNode scalingNode, TransformBox& box, vec2 position, float rotation) const;

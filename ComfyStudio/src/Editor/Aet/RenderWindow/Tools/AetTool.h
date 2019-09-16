@@ -20,6 +20,11 @@ namespace Editor
 	class AetTool
 	{
 	public:
+		// TODO: Should be implement by all components
+		static constexpr KeyCode GridSnapModifierKey = KeyCode_Left_Control;
+		static constexpr vec2 PositionSnapPrecision = vec2(16.0f);
+		static constexpr float RotationSnapPrecision = 15.0f;
+
 		virtual const char* GetIcon() const = 0;
 		virtual const char* GetName() const = 0;
 		virtual AetToolType GetType() const = 0;
@@ -35,6 +40,10 @@ namespace Editor
 	protected:
 		vec2 ToScreenSpace(vec2 worldSpace) const;
 		vec2 ToWorldSpace(vec2 screenSpace) const;
+
+	protected:
+		// NOTE: To prevent accidental resizing when clicking on a node
+		const float mouseDragThreshold = 2.0f;
 
 	private:
 		std::function<vec2(vec2)> worldToScreenSpaceFunction;

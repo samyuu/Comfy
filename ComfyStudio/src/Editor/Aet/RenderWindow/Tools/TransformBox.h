@@ -47,6 +47,7 @@ namespace Editor
 		vec2 Right() const;
 		vec2 Bottom() const;
 		vec2 Left() const;
+		float Rotation() const;
 
 		vec2 GetNodePosition(BoxNode node) const;
 		Graphics::Auth2D::Properties GetProperties(vec2 dimensions, vec2 origin, float rotation, float opacity) const;

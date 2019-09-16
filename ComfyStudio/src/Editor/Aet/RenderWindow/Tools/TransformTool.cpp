@@ -3,42 +3,38 @@
 
 namespace Editor
 {
-	static void DrawBoxNode(ImDrawList* drawList, const vec2& position, ImU32 color, bool filled)
+	static void DrawBoxNode(ImDrawList* drawList, const vec2& position, ImU32 color, float rotation)
 	{
-		if (filled)
-		{
-			drawList->AddCircleFilled(position, TransformBox::NodeRadius, color);
-		}
-		else
-		{
-			drawList->AddCircle(position, TransformBox::NodeRadius, color);
-		}
+		Gui::AddQuadFilled(drawList, position, vec2(TransformBox::NodeRadius), vec2(TransformBox::NodeRadius * 0.5f), rotation, vec2(2.0f), color);
 	}
 
 	static void DrawBox(ImDrawList* drawList, const TransformBox& box, bool cross, const vec4& color)
 	{
-		ImU32 colorU32 = ImColor(color);
-		drawList->AddLine(box.TL, box.TR, colorU32);
-		drawList->AddLine(box.TR, box.BR, colorU32);
-		drawList->AddLine(box.BR, box.BL, colorU32);
-		drawList->AddLine(box.BL, box.TL, colorU32);
+		ImU32 lineColor = ImColor(vec4(color.r, color.g, color.b, color.a * 0.75f));
+
+		Gui::AddLine(drawList, box.TL, box.TR, lineColor);
+		Gui::AddLine(drawList, box.TR, box.BR, lineColor);
+		Gui::AddLine(drawList, box.BR, box.BL, lineColor);
+		Gui::AddLine(drawList, box.BL, box.TL, lineColor);
 
 		if (cross)
 		{
-			drawList->AddLine(box.TL, box.BR, colorU32);
-			drawList->AddLine(box.TR, box.BL, colorU32);
+			Gui::AddLine(drawList, box.TL, box.BR, lineColor);
+			Gui::AddLine(drawList, box.TR, box.BL, lineColor);
 		}
 
-		const bool filled = true;
-		DrawBoxNode(drawList, box.TL, colorU32, filled);
-		DrawBoxNode(drawList, box.TR, colorU32, filled);
-		DrawBoxNode(drawList, box.BL, colorU32, filled);
-		DrawBoxNode(drawList, box.BR, colorU32, filled);
+		ImU32 nodeColor = ImColor(color);
+		float rotation = box.Rotation();
+		
+		DrawBoxNode(drawList, box.TL, nodeColor, rotation);
+		DrawBoxNode(drawList, box.TR, nodeColor, rotation);
+		DrawBoxNode(drawList, box.BL, nodeColor, rotation);
+		DrawBoxNode(drawList, box.BR, nodeColor, rotation);
 
-		DrawBoxNode(drawList, box.Top(), colorU32, filled);
-		DrawBoxNode(drawList, box.Right(), colorU32, filled);
-		DrawBoxNode(drawList, box.Bottom(), colorU32, filled);
-		DrawBoxNode(drawList, box.Left(), colorU32, filled);
+		DrawBoxNode(drawList, box.Top(), nodeColor, rotation);
+		DrawBoxNode(drawList, box.Right(), nodeColor, rotation);
+		DrawBoxNode(drawList, box.Bottom(), nodeColor, rotation);
+		DrawBoxNode(drawList, box.Left(), nodeColor, rotation);
 	}
 
 	static ImGuiMouseCursor GetCursorForBoxNode(BoxNode boxNode)
@@ -86,17 +82,19 @@ namespace Editor
 
 	void TransformTool::UpdatePostDrawGui(Graphics::Auth2D::Properties* properties, vec2 dimensions)
 	{
-		Gui::Text("pos: %.1f %.1f", properties->Position.x, properties->Position.y);
-		Gui::Text("ori: %.1f %.1f", properties->Origin.x, properties->Origin.y);
-		Gui::Text("rot: %.1f", properties->Rotation);
-
-		constexpr vec4 redColor = vec4(1.0f, .25f, .25f, 0.85f);
-		constexpr vec4 yellowColor = vec4(.75f, .75f, .25f, 0.85f);
-		constexpr vec4 whiteColor = vec4(1.0f, 1.0f, 1.0f, 0.85f);
+		// TEMP:
+		{
+			Gui::Text("pos: %.1f %.1f", properties->Position.x, properties->Position.y);
+			Gui::Text("ori: %.1f %.1f", properties->Origin.x, properties->Origin.y);
+			Gui::Text("rot: %.1f", properties->Rotation);
+		}
 
 		ImGuiIO& io = Gui::GetIO();
 		bool windowFocused = Gui::IsWindowFocused();
 		bool windowHovered = Gui::IsWindowHovered();
+
+		if (windowHovered && Gui::IsMouseClicked(0))
+			windowFocused = true;
 
 		vec2 mousePos = io.MousePos;
 		vec2 mouseWorldPos = ToWorldSpace(mousePos);
@@ -126,8 +124,7 @@ namespace Editor
 			}
 		}
 
-		// TODO: Allow clicking if not focused but hovered and "about to be" focused
-		if (windowFocused && Gui::IsMouseClicked(actionMouseButton))
+		if (windowFocused  && Gui::IsMouseClicked(actionMouseButton))
 		{
 			mouseWorldPositionOnMouseDown = mouseWorldPos;
 			propertiesOnMouseDown = *properties;
@@ -181,7 +178,7 @@ namespace Editor
 				MoveBoxCorner(scalingNode, worldSpaceBox, glm::round(mouseWorldPos), propertiesOnMouseDown.Rotation);
 				*properties = worldSpaceBox.GetProperties(dimensions, properties->Origin, properties->Rotation, properties->Opacity);
 			}
-			
+
 			DragScaleTooltip(properties->Scale, dimensions);
 		}
 		else if (mode == GrabMode::None)
@@ -203,14 +200,16 @@ namespace Editor
 		screenSpaceBox = BoxWorldToScreenSpace(worldSpaceBox);
 
 		// base box
-		DrawBox(drawList, screenSpaceBox, (mode == GrabMode::Scale), mode == GrabMode::Move ? redColor : whiteColor);
+		DrawBox(drawList, screenSpaceBox, (mode == GrabMode::Scale), (mode == GrabMode::Move) ? allowAction ? redColor : redPreColor : whiteColor);
 
 		// origin center
 		drawList->AddCircleFilled(ToScreenSpace(properties->Position), TransformBox::NodeRadius, ImColor(yellowColor));
 
 		// grab node
 		if (mode == GrabMode::Scale)
-			drawList->AddCircle(screenSpaceBox.GetNodePosition(scalingNode), TransformBox::NodeRadius, ImColor(redColor));
+		{ 
+			DrawBoxNode(drawList, screenSpaceBox.GetNodePosition(scalingNode), ImColor(allowAction ? redColor : redPreColor), screenSpaceBox.Rotation());
+		}
 	}
 
 	void TransformTool::DrawContextMenu()
