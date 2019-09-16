@@ -22,25 +22,28 @@ namespace Editor
 	class AetTimelineController
 	{
 	public:
-		AetTimelineController();
+		AetTimelineController(AetTimeline* timeline);
 		~AetTimelineController();
 
 	public:
-		// TODO: pass in list of keyframes, check collision (?)
-		void UpdateInput(const AetTimeline* timeline);
+		// TODO: Pass in list of keyframes, check collision (?)
+		void UpdateInput();
 
-		inline bool GetIsCursorDragging() const { return isCursorDragging; };
+		inline bool GetIsCursorDragging() const { return isCursorScrubbing; };
 		inline const MouseSelectionData& GetSelectionData() const { return selectionData; };
 
 		inline bool GetUpdateCursorTime() const { return updateCursorTime; };
 		inline TimeSpan GetNewCursorTime() const { return newCursorTime; };
 
 	private:
-		// set when mouse clicked while inside timelineHeaderRegion, timeline cursor set to mouse cursor
-		bool isCursorDragging;
+		// NOTE: Set when mouse clicked while inside timelineHeaderRegion, timeline cursor set to mouse cursor
+		bool isCursorScrubbing;
 		MouseSelectionData selectionData;
 
 		bool updateCursorTime;
 		TimeSpan newCursorTime;
+
+	private:
+		AetTimeline* timeline;
 	};
 }

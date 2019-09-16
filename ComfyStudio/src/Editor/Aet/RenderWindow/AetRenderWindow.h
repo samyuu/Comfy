@@ -19,10 +19,9 @@ namespace Editor
 	class AetRenderWindow : public RenderWindowBase
 	{
 	public:
-		AetRenderWindow(SpriteGetterFunction* spriteGetter);
+		AetRenderWindow(SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
 		~AetRenderWindow();
 
-		void SetActive(Aet* parent, AetItemTypePtr value);
 		void SetIsPlayback(bool value);
 		float SetCurrentFrame(float value);
 
@@ -64,8 +63,11 @@ namespace Editor
 		bool isPlayback = false;
 		float currentFrame = 0.0f;
 
-		Aet* aet = nullptr;
-		AetItemTypePtr active;
+		struct
+		{
+			AetItemTypePtr* selectedAetItem;
+			AetItemTypePtr* cameraSelectedAetItem;
+		};
 
 		UniquePtr<Renderer2D> renderer;
 		UniquePtr<AetRenderer> aetRenderer;

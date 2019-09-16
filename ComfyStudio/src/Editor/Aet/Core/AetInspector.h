@@ -14,7 +14,7 @@ namespace Editor
 		~AetInspector();
 
 		void Initialize();
-		bool DrawGui(Aet* aet, const AetItemTypePtr& selected);
+		bool DrawGui(const AetItemTypePtr& selected);
 
 		void SetIsPlayback(bool value);
 		float SetCurrentFrame(float value);

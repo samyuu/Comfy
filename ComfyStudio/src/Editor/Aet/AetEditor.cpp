@@ -12,13 +12,13 @@ namespace Editor
 	{
 		commandManager = MakeUnique<AetCommandManager>();
 
-		spriteGetterFunction = [this](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite) { return false; };
+		spriteGetterFunction = [](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite) { return false; };
 
-		treeView = MakeUnique<AetTreeView>();
+		treeView = MakeUnique<AetTreeView>(&selectedAetItem, &cameraSelectedAetItem);
 		layerView = MakeUnique<AetLayerView>();
 		inspector = MakeUnique<AetInspector>(commandManager.get());
 		timeline = MakeUnique<AetTimeline>();
-		renderWindow = MakeUnique<AetRenderWindow>(&spriteGetterFunction);
+		renderWindow = MakeUnique<AetRenderWindow>(&spriteGetterFunction, &selectedAetItem, &cameraSelectedAetItem);
 		historyWindow = MakeUnique<AetHistoryWindow>(commandManager.get());
 	}
 
@@ -42,9 +42,8 @@ namespace Editor
 	void AetEditor::DrawGui()
 	{
 		Gui::GetCurrentWindow()->Hidden = true;
-		constexpr ImGuiWindowFlags windowFlags = ImGuiWindowFlags_None; // ImGuiWindowFlags_NoBackground;
 
-		if (Gui::Begin(ICON_SETLOADER "  AetSet Loader##AetEditor", nullptr, ImGuiWindowFlags_None))
+		if (Gui::Begin(ICON_SETLOADER "  AetSet Loader##AetEditor"))
 		{
 			Gui::BeginChild("AetSetLoaderChild##AetEditor");
 			DrawAetSetLoader();
@@ -52,7 +51,7 @@ namespace Editor
 		}
 		Gui::End();
 
-		if (Gui::Begin(ICON_SETLOADER "  SprSet Loader##AetEditor", nullptr, ImGuiWindowFlags_None))
+		if (Gui::Begin(ICON_SETLOADER "  SprSet Loader##AetEditor"))
 		{
 			Gui::BeginChild("SprSetLoaderChild##AetEditor");
 			DrawSprSetLoader();
@@ -60,7 +59,7 @@ namespace Editor
 		}
 		Gui::End();
 
-		if (Gui::Begin(ICON_TREEVIEW "  Aet Tree View##AetEditor", nullptr, windowFlags))
+		if (Gui::Begin(ICON_TREEVIEW "  Aet Tree View##AetEditor"))
 		{
 			Gui::BeginChild("AetTreeViewChild##AetEditor", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 			treeView->DrawGui(editorAetSet);
@@ -68,7 +67,7 @@ namespace Editor
 		}
 		Gui::End();
 
-		if (Gui::Begin(ICON_AETLAYERS "  Aet Layers##AetEditor", nullptr, windowFlags))
+		if (Gui::Begin(ICON_AETLAYERS "  Aet Layers##AetEditor"))
 		{
 			Gui::BeginChild("AetLayerViewChild##AetEditor", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
 			layerView->DrawGui();
@@ -77,9 +76,8 @@ namespace Editor
 		Gui::End();
 
 		RenderWindowBase::PushWindowPadding();
-		if (Gui::Begin(ICON_RENDERWINDOW "  Aet Window##AetEditor", nullptr, windowFlags))
+		if (Gui::Begin(ICON_RENDERWINDOW "  Aet Window##AetEditor"))
 		{
-			renderWindow->SetActive(treeView->GetActiveAet(), treeView->GetSelected());
 			renderWindow->SetIsPlayback(timeline->GetIsPlayback());
 			renderWindow->SetCurrentFrame(timeline->GetCursorFrame().Frames());
 			renderWindow->DrawGui();
@@ -87,25 +85,24 @@ namespace Editor
 		Gui::End();
 		RenderWindowBase::PopWindowPadding();
 
-		if (Gui::Begin(ICON_INSPECTOR "  Aet Inspector##AetEditor", nullptr, windowFlags))
+		if (Gui::Begin(ICON_INSPECTOR "  Aet Inspector##AetEditor"))
 		{
 			Gui::BeginChild("AetInspectorChild##AetEditor");
 			inspector->SetIsPlayback(timeline->GetIsPlayback());
 			inspector->SetCurrentFrame(timeline->GetCursorFrame().Frames());
-			inspector->DrawGui(treeView->GetActiveAet(), treeView->GetSelected());
+			inspector->DrawGui(selectedAetItem);
 			Gui::EndChild();
 		}
 		Gui::End();
 
-		if (Gui::Begin(ICON_TIMELINE "  Aet Timeline##AetEditor", nullptr))
+		if (Gui::Begin(ICON_TIMELINE "  Aet Timeline##AetEditor"))
 		{
-			AetItemTypePtr selected = treeView->GetSelected();
-			timeline->SetActive(treeView->GetActiveAet(), treeView->GetSelected());
+			timeline->SetActive(selectedAetItem);
 			timeline->DrawTimelineGui();
 		}
 		Gui::End();
 
-		if (Gui::Begin(ICON_HISTORY "  Aet Editor History##AetEditor", nullptr))
+		if (Gui::Begin(ICON_HISTORY "  Aet Editor History##AetEditor"))
 		{
 			historyWindow->DrawGui();
 		}
@@ -189,7 +186,7 @@ namespace Editor
 
 	void AetEditor::OnAetSetLoaded()
 	{
-		treeView->ResetSelectedItem();
+		treeView->ResetSelectedItems();
 	}
 
 	void AetEditor::OnSprSetLoaded()
@@ -197,6 +194,9 @@ namespace Editor
 		if (editorAetSet != nullptr)
 			editorAetSet->ClearSpriteCache();
 	
-		spriteGetterFunction = [this](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite) { return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite); };
+		spriteGetterFunction = [this](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite) 
+		{ 
+			return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite); 
+		};
 	}
 }

@@ -31,7 +31,7 @@ namespace Editor
 		AetTimeline();
 		~AetTimeline();
 
-		void SetActive(Aet* parent, AetItemTypePtr value);
+		void SetActive(AetItemTypePtr value);
 		bool GetIsPlayback() const override;
 
 	public:
@@ -44,8 +44,7 @@ namespace Editor
 		inline float GetRowHeight() const { return rowHeight; };
 
 	private:
-		Aet* aet = nullptr;
-		AetItemTypePtr active;
+		AetItemTypePtr cameraSelectedAetItem;
 
 		float rowHeight;
 		bool isPlayback = false;
@@ -55,7 +54,7 @@ namespace Editor
 
 	private:
 		KeyFrameRenderer keyFrameRenderer;
-		AetTimelineController timelineController;
+		AetTimelineController timelineController = { this };
 
 	private:
 		float GetTimelineSize() const override;

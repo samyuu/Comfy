@@ -14,7 +14,7 @@ namespace Editor
 		return RowStartIndex >= 0 && RowEndIndex >= 0; 
 	};
 
-	AetTimelineController::AetTimelineController()
+	AetTimelineController::AetTimelineController(AetTimeline* timeline) : timeline(timeline)
 	{
 	}
 	
@@ -22,22 +22,37 @@ namespace Editor
 	{
 	}
 
-	void AetTimelineController::UpdateInput(const AetTimeline* timeline)
+	void AetTimelineController::UpdateInput()
 	{
 		updateCursorTime = false;
 
 		if (!Gui::IsWindowFocused() || Gui::IsMouseReleased(0))
-			isCursorDragging = false;
+			isCursorScrubbing = false;
 
 		vec2 mousePos = Gui::GetMousePos();
 		if (Gui::IsMouseClicked(0))
 		{
-			// allow cursor dragging
+			// NOTE: Allow cursor scrubbing
 			if (timeline->GetTimelineHeaderRegion().Contains(mousePos))
 			{
-				isCursorDragging = true;
+				isCursorScrubbing = true;
 			}
-			// check for selection start
+			// NOTE: Check for keyframe collision
+			else if (false)
+			{
+				// TODO: 
+
+				/*
+				if (mouseClicked)
+				{
+					check all keyframes to test for collisions(use circle intersection test)
+						then add to selected keyframe vector(maybe add gui temp data variable to keyframe struct itself ie isSelected(? ))
+
+						draw all selected keyframes on a second pass
+				}
+				*/
+			}
+			// NOTE: Check for selection start
 			else if (timeline->GetTimelineContentRegion().Contains(mousePos))
 			{
 				selectionData.RowInitialStartIndex = selectionData.RowStartIndex = timeline->GetRowIndexFromScreenY(mousePos.y);
@@ -48,15 +63,15 @@ namespace Editor
 		if (!Gui::IsWindowFocused())
 			return;
 
-		// dragging has started, don't set RowStartIndex if the mouse is initially hovering over a keyframe
-		if (!isCursorDragging && selectionData.RowStartIndex >= 0)
+		// NOTE: Scrubbing has started, don't set RowStartIndex if the mouse is initially hovering over a keyframe
+		if (!isCursorScrubbing && selectionData.RowStartIndex >= 0)
 		{
 			if (Gui::IsMouseDown(0))
 			{
 				selectionData.RowEndIndex = timeline->GetRowIndexFromScreenY(mousePos.y);
 				selectionData.EndX = timeline->GetTimelineFrameAtMouseX();
 
-				// clamp selection "height" to be at least one row
+				// NOTE: Clamp selection "height" to be at least one row
 				if ((selectionData.RowEndIndex == selectionData.RowStartIndex || selectionData.RowEndIndex == selectionData.RowStartIndex + 1) ||
 					(selectionData.RowEndIndex > selectionData.RowStartIndex - 1))
 				{
@@ -74,9 +89,9 @@ namespace Editor
 			}
 		}
 
-		if (isCursorDragging)
+		if (isCursorScrubbing)
 		{
-			// sync timeline cursor to mouse cursor
+			// NOTE: Sync timeline cursor to mouse cursor
 
 			const TimelineFrame cursorMouseFrame = timeline->GetTimelineFrameAtMouseX();
 			TimeSpan previousTime = timeline->GetCursorTime();

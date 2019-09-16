@@ -18,7 +18,7 @@ namespace Editor
 	{
 	}
 
-	bool AetInspector::DrawGui(Aet* aet, const AetItemTypePtr& selected)
+	bool AetInspector::DrawGui(const AetItemTypePtr& selected)
 	{
 		if (lastSelectedItem.Ptrs.VoidPointer != selected.Ptrs.VoidPointer)
 			newParentObjLayerIndex = -1;
@@ -27,6 +27,8 @@ namespace Editor
 
 		if (selected.Ptrs.VoidPointer == nullptr)
 			return false;
+
+		Aet* parentAet = selected.GetItemParentAet();
 
 		switch (selected.Type())
 		{
@@ -37,13 +39,13 @@ namespace Editor
 			DrawInspectorAet(selected.GetAetRef());
 			break;
 		case AetSelectionType::AetLayer:
-			DrawInspectorAetLayer(aet, selected.GetAetLayerRef());
+			DrawInspectorAetLayer(parentAet, selected.GetAetLayerRef());
 			break;
 		case AetSelectionType::AetObj:
-			DrawInspectorAetObj(aet, selected.GetAetObjRef());
+			DrawInspectorAetObj(parentAet, selected.GetAetObjRef());
 			break;
 		case AetSelectionType::AetRegion:
-			DrawInspectorAetRegion(aet, selected.GetAetRegionRef());
+			DrawInspectorAetRegion(parentAet, selected.GetAetRegionRef());
 			break;
 		default:
 			break;

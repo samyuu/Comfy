@@ -11,8 +11,11 @@ namespace Editor
 	constexpr ImGuiTreeNodeFlags HeaderTreeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | SelectableTreeNodeFlags;
 	constexpr ImGuiTreeNodeFlags TreeNodeLeafFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
 
-	AetTreeView::AetTreeView()
+	AetTreeView::AetTreeView(AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem)
+		: selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem)
 	{
+		assert(selectedAetItem);
+		assert(cameraSelectedAetItem);
 	}
 
 	AetTreeView::~AetTreeView()
@@ -35,16 +38,14 @@ namespace Editor
 			return false;
 		}
 
-		lastHovered = hovered;
-		hovered.Reset();
+		lastHoveredAetItem = hoveredAetItem;
+		hoveredAetItem.Reset();
 
 		UpdateScrollInput();
 
-		if (selected.IsNull() && GetDebugObjectName() != nullptr)
-		{
-			activeAet = aetSet->front().get();
-			selected.SetItem(activeAet->FindObj(GetDebugObjectName()));
-		}
+		// NOTE: For developement only
+		if (selectedAetItem->IsNull() && GetDebugObjectName() != nullptr)
+			SetSelectedItems(aetSet->front()->FindObj(GetDebugObjectName()));
 
 		DrawTreeViewBackground();
 
@@ -70,7 +71,7 @@ namespace Editor
 		if (aetSetNodeOpen)
 		{
 			if (Gui::IsItemClicked())
-				SetSelectedItem(aetSet);
+				SetSelectedItems(aetSet);
 
 			for (RefPtr<Aet>& aet : *aetSet)
 				DrawTreeViewAet(aet);
@@ -79,7 +80,7 @@ namespace Editor
 		}
 		else
 		{
-			ResetSelectedItem();
+			ResetSelectedItems();
 		}
 
 		return true;
@@ -92,15 +93,15 @@ namespace Editor
 
 		if (Gui::IsKeyPressed(KeyCode_Escape))
 		{
-			if (!selected.IsNull())
+			if (!selectedAetItem->IsNull())
 			{
-				switch (selected.Type())
+				switch (selectedAetItem->Type())
 				{
 				case AetSelectionType::AetLayer:
-					ScrollToGuiData(selected.GetAetLayerRef()->GuiTempData);
+					ScrollToGuiData(selectedAetItem->GetAetLayerRef()->GuiTempData);
 					break;
 				case AetSelectionType::AetObj:
-					ScrollToGuiData(selected.GetAetObjRef()->GuiTempData);
+					ScrollToGuiData(selectedAetItem->GetAetObjRef()->GuiTempData);
 					break;
 				default:
 					break;
@@ -108,6 +109,7 @@ namespace Editor
 			}
 		}
 
+		// NOTE: Mouse side button to jump to last scroll position
 		if (Gui::IsMouseClicked(3))
 		{
 			if (!scrollPositionStack.empty())
@@ -153,22 +155,20 @@ namespace Editor
 	void AetTreeView::DrawTreeViewAet(const RefPtr<Aet>& aet)
 	{
 		ImGuiTreeNodeFlags aetNodeFlags = HeaderTreeNodeFlags;
-		if (aet.get() == selected.Ptrs.Aet || aet.get() == lastHovered.Ptrs.Aet)
+		if (aet.get() == selectedAetItem->Ptrs.Aet || aet.get() == lastHoveredAetItem.Ptrs.Aet)
 			aetNodeFlags |= ImGuiTreeNodeFlags_Selected;
 
-		bool aetNodeOpen = Gui::WideTreeNodeEx(aet.get(), aetNodeFlags, "Aet: %s", aet->Name.c_str());
+		bool aetNodeOpen = Gui::WideTreeNodeEx(FormatAetNodeName(aet), aetNodeFlags);
 
 		if (Gui::IsItemClicked())
-			SetSelectedItem(aet.get(), aet);
+			SetSelectedItems(aet);
 
 		if (aetNodeOpen)
 		{
-			//Gui::PushStyleVar(ImGuiStyleVar_IndentSpacing, Gui::GetFontSize() * 1.5f);
-
 			if (Gui::WideTreeNodeEx(ICON_AETLAYERS "  Layers", SelectableTreeNodeFlags | ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				if (Gui::IsItemClicked())
-					ResetSelectedItem();
+					ResetSelectedItems();
 
 				for (int32_t i = static_cast<int32_t>(aet->AetLayers.size()) - 1; i >= 0; i--)
 				{
@@ -181,7 +181,7 @@ namespace Editor
 			if (Gui::WideTreeNodeEx(ICON_AETREGIONS "  Regions", SelectableTreeNodeFlags))
 			{
 				if (Gui::IsItemClicked())
-					ResetSelectedItem();
+					ResetSelectedItems();
 
 				for (int32_t i = 0; i < static_cast<int32_t>(aet->AetRegions.size()); i++)
 				{
@@ -190,7 +190,6 @@ namespace Editor
 				Gui::TreePop();
 			}
 
-			//Gui::PopStyleVar();
 			Gui::TreePop();
 		}
 	}
@@ -200,7 +199,7 @@ namespace Editor
 		Gui::PushID(&aetLayer);
 
 		ImGuiTreeNodeFlags layerNodeFlags = SelectableTreeNodeFlags;
-		if (aetLayer.get() == selected.Ptrs.AetLayer)
+		if (aetLayer.get() == selectedAetItem->Ptrs.AetLayer)
 			layerNodeFlags |= ImGuiTreeNodeFlags_Selected;
 		if (aetLayer->size() < 1)
 			layerNodeFlags |= ImGuiTreeNodeFlags_Leaf;
@@ -222,23 +221,23 @@ namespace Editor
 			openAddAetObjPopup = DrawAetLayerContextMenu(aet, aetLayer);
 		});
 
-		// TODO: should check for mouse released
+		// TODO: Might want to check for mouse released instead (becomes more relevant once TreeNode drag and dropping is implemented)
 		if (Gui::IsItemClicked())
-			SetSelectedItem(aet.get(), aetLayer);
+			SetSelectedItems(aetLayer);
 
-		bool lastHoveredLayer = aetLayer.get() == lastHovered.Ptrs.AetLayer;
+		bool lastHoveredLayer = aetLayer.get() == lastHoveredAetItem.Ptrs.AetLayer;
 		if (lastHoveredLayer)
 			Gui::PushStyleColor(ImGuiCol_Text, GetColor(EditorColor_TextHighlight));
 
 		Gui::SetCursorScreenPos(treeNodeCursorPos + ImVec2(GImGui->FontSize + GImGui->Style.FramePadding.x, 0));
-		Gui::Text(
-			"%s  Layer %d (%s)",
-			aetLayerNodeOpen ? ICON_AETLAYER_OPEN : ICON_AETLAYER,
-			aetLayer->GetThisIndex(),
-			aetLayer->GetCommaSeparatedNames());
+		Gui::TextUnformatted(FormatLayerNodeName(aetLayer, aetLayerNodeOpen));
 
 		if (lastHoveredLayer)
 			Gui::PopStyleColor();
+
+		// TODO: Have a separate "selected" and "cameraSelected" (double click AetObj to camera select)
+		if (cameraSelectedAetItem->Ptrs.AetLayer == aetLayer.get())
+			DrawTreeNodeCameraIcon(treeNodeCursorPos);
 
 		if (openAddAetObjPopup)
 		{
@@ -256,7 +255,8 @@ namespace Editor
 			if (Gui::IsKeyPressed(KeyCode_Escape))
 				Gui::CloseCurrentPopup();
 
-			//addAetObjDialog.DrawGui(&aet, &aetLayer);
+			// NOTE: Should be replaced by drag and dropping sprites into the viewport or linking layers into eff objects
+			// addAetObjDialog.DrawGui(&aet, &aetLayer);
 			Gui::EndPopup();
 		}
 
@@ -275,75 +275,24 @@ namespace Editor
 	{
 		Gui::PushID(aetObj.get());
 		{
-			bool isSelected = aetObj.get() == selected.Ptrs.AetObj || aetObj.get() == hovered.Ptrs.AetObj;
+			bool isSelected = aetObj.get() == selectedAetItem->Ptrs.AetObj || aetObj.get() == hoveredAetItem.Ptrs.AetObj;
+			bool isCameraSelected = aetObj.get() == cameraSelectedAetItem->Ptrs.AetObj;
 
-			bool drawActiveButton = true;
-			if (drawActiveButton)
-			{
-				Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(3.0f, 0.0f));
+			if (!isCameraSelected)
+				DrawTreeViewObjCameraSelectableButton(aetObj);
 
-				ImU32 activeButtonBackgroundColor = Gui::GetColorU32(ImGuiCol_ChildBg, 0.0f);
-				Gui::PushStyleColor(ImGuiCol_Button, activeButtonBackgroundColor);
-				Gui::PushStyleColor(ImGuiCol_ButtonHovered, activeButtonBackgroundColor);
-				Gui::PushStyleColor(ImGuiCol_ButtonActive, activeButtonBackgroundColor);
+			DrawTreeViewObjActivityButton(aetObj);
 
-				const ImVec2 smallButtonSize = ImVec2(26.0f, 0.0f);
-				if (aetObj->Type == AetObjType::Aif)
-				{
-					if (Gui::ComfySmallButton(aetObj->Flags.Audible ? ICON_AUDIBLE : ICON_INAUDIBLE, smallButtonSize))
-						aetObj->Flags.Audible ^= true;
-				}
-				else
-				{
-					if (Gui::ComfySmallButton(aetObj->Flags.Visible ? ICON_VISIBLE : ICON_INVISIBLE, smallButtonSize))
-						aetObj->Flags.Visible ^= true;
-				}
-				Gui::SameLine();
+			vec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
 
-				Gui::PopStyleColor(3);
-				Gui::PopStyleVar(1);
-			}
+			if (Gui::Selectable(FormatObjNodeName(aetObj), isSelected) && !isCameraSelected)
+				SetSelectedItems(aetObj, aetLayer);
 
-			// TODO: Come up with a better indicator
-			// useTextureMask ? ICON_FA_CHEVRON_UP "  " : ""; (?)
+			if (cameraSelectedAetItem->Ptrs.AetObj == aetObj.get())
+				DrawTreeNodeCameraIcon(treeNodeCursorPos);
 
-			bool useTextureMask = aetObj->AnimationData != nullptr && aetObj->AnimationData->UseTextureMask;
-			const char* textureMaskIndicator = useTextureMask ? "  ( " ICON_FA_LINK " )  " : "";
-			sprintf_s(objNameBuffer, "%s  %s%s", GetObjTypeIcon(aetObj->Type), aetObj->GetName().c_str(), textureMaskIndicator);
-
-			if (drawActiveButton)
-			{
-				if (Gui::Selectable(objNameBuffer, isSelected))
-					SetSelectedItem(aet.get(), aetObj);
-			}
-			else
-			{
-				Gui::WideTreeNodeEx(objNameBuffer, TreeNodeLeafFlags | (isSelected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None));
-
-				/*
-				bool eff = aetObj->Type == AetObjType::Eff;
-
-				ImGuiTreeNodeFlags flags = isSelected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None;
-				if (!eff) flags |= TreeNodeLeafFlags;
-
-				bool treeNodeOpen = Gui::WideTreeNodeEx(objNameBuffer, flags);
-
-				if (Gui::IsItemClicked())
-					SetSelectedItem(aet.get(), aetObj);
-
-				if (eff && treeNodeOpen)
-				{
-					const auto& referencedLayer = aetObj->GetReferencedLayer();
-					if (referencedLayer != nullptr)
-					{
-						for (RefPtr<AetObj>& aetObj : *referencedLayer)
-							DrawTreeViewObj(aet, referencedLayer, aetObj);
-					}
-
-					Gui::TreePop();
-				}
-				*/
-			}
+			if (aetObj->Type == AetObjType::Eff && Gui::IsItemHoveredDelayed(ImGuiHoveredFlags_None, LayerPreviewTooltipHoverDelay) && aetObj->GetReferencedLayer())
+				DrawAetLayerPreviewTooltip(aetObj->GetReferencedLayer());
 
 			aetObj->GuiTempData.TreeViewScrollY = Gui::GetCursorPos().y;
 
@@ -352,41 +301,66 @@ namespace Editor
 				DrawAetObjContextMenu(aetLayer, aetObj);
 			});
 
-			if (aetObj->Type == AetObjType::Eff && (Gui::IsItemHovered() || aetObj.get() == selected.Ptrs.AetObj))
-				hovered.SetItem(aetObj->GetReferencedLayer());
+			if (aetObj->Type == AetObjType::Eff && (Gui::IsItemHovered() || aetObj.get() == selectedAetItem->Ptrs.AetObj))
+				hoveredAetItem.SetItem(aetObj->GetReferencedLayer());
 		}
 		Gui::PopID();
+	}
+
+	void AetTreeView::DrawTreeViewObjCameraSelectableButton(const RefPtr<AetObj>& aetObj)
+	{
+		const vec2 cursorPos = Gui::GetCursorScreenPos();
+		Gui::SetCursorScreenPos(vec2(GImGui->CurrentWindow->Pos.x + GImGui->Style.FramePadding.x - GImGui->CurrentWindow->Scroll.x, cursorPos.y));
+		{
+			const vec2 smallButtonPosition = Gui::GetCursorScreenPos();
+			const vec2 smallButtonSize = vec2(cursorPos.x - smallButtonPosition.x, GImGui->FontSize);
+
+			if (Gui::InvisibleButton(ICON_CAMERA, smallButtonSize))
+				SetSelectedItems(aetObj);
+
+			// TODO: It'd be nice to have some visual feedback for the hovered item inside the render window
+			if (Gui::IsItemHovered())
+				Gui::GetWindowDrawList()->AddText(smallButtonPosition, Gui::GetColorU32(ImGuiCol_TextDisabled), ICON_CAMERA);
+		}
+		Gui::SetCursorScreenPos(cursorPos);
+	}
+
+	void AetTreeView::DrawTreeViewObjActivityButton(const RefPtr<AetObj>& aetObj)
+	{
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(3.0f, 0.0f));
+
+		ImU32 activeButtonBackgroundColor = Gui::GetColorU32(ImGuiCol_ChildBg, 0.0f);
+		Gui::PushStyleColor(ImGuiCol_Button, activeButtonBackgroundColor);
+		Gui::PushStyleColor(ImGuiCol_ButtonHovered, activeButtonBackgroundColor);
+		Gui::PushStyleColor(ImGuiCol_ButtonActive, activeButtonBackgroundColor);
+
+		const vec2 smallButtonSize = vec2(26.0f, 0.0f);
+		if (aetObj->Type == AetObjType::Aif)
+		{
+			if (Gui::ComfySmallButton(aetObj->Flags.Audible ? ICON_AUDIBLE : ICON_INAUDIBLE, smallButtonSize))
+				aetObj->Flags.Audible ^= true;
+		}
+		else
+		{
+			if (Gui::ComfySmallButton(aetObj->Flags.Visible ? ICON_VISIBLE : ICON_INVISIBLE, smallButtonSize))
+				aetObj->Flags.Visible ^= true;
+		}
+		Gui::SameLine();
+
+		Gui::PopStyleColor(3);
+		Gui::PopStyleVar(1);
 	}
 
 	void AetTreeView::DrawTreeViewRegion(const RefPtr<Aet>& aet, const RefPtr<AetRegion>& region, int32_t index)
 	{
 		Gui::PushID(&region);
 
-		if (region->SpriteCount() >= 1)
-		{
-			if (region->SpriteCount() > 1)
-			{
-				sprintf_s(regionNameBuffer, ICON_AETREGION "  Region %d (%s - %s)", index,
-					region->GetFrontSprite()->Name.c_str(),
-					region->GetBackSprite()->Name.c_str());
-			}
-			else
-			{
-				sprintf_s(regionNameBuffer, ICON_AETREGION "  Region %d (%s)", index,
-					region->GetFrontSprite()->Name.c_str());
-			}
-		}
-		else
-		{
-			sprintf_s(regionNameBuffer, ICON_AETREGIONNOSPR "  Region %d (%dx%d)", index, region->Width, region->Height);
-		}
+		bool isSelected = region.get() == selectedAetItem->Ptrs.AetRegion;
 
-		bool isSelected = region.get() == selected.Ptrs.AetRegion;
-
-		if (Gui::WideTreeNodeEx(regionNameBuffer, TreeNodeLeafFlags | (isSelected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None)))
+		if (Gui::WideTreeNodeEx(FormatRegionNodeName(region, index), TreeNodeLeafFlags | (isSelected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None)))
 		{
 			if (Gui::IsItemClicked())
-				SetSelectedItem(aet.get(), region);
+				SetSelectedItems(region);
 		}
 
 		Gui::PopID();
@@ -433,11 +407,96 @@ namespace Editor
 		return false;
 	}
 
+	void AetTreeView::DrawAetLayerPreviewTooltip(const RefPtr<AetLayer>& aetLayer) const
+	{
+		Gui::WideTooltip([&aetLayer]()
+		{
+			Gui::Text("Layer %d (%s)", aetLayer->GetThisIndex(), aetLayer->GetCommaSeparatedNames());
+			Gui::Separator();
+
+			for (auto& obj : *aetLayer)
+				Gui::Text("%s  %s", GetObjTypeIcon(obj->Type), obj->GetName().c_str());
+		});
+	}
+
+	void AetTreeView::DrawTreeNodeCameraIcon(const vec2& treeNodeCursorPos) const
+	{
+		GImGui->CurrentWindow->DrawList->AddText(
+			vec2(GImGui->CurrentWindow->Pos.x + GImGui->Style.FramePadding.x - GImGui->CurrentWindow->Scroll.x, treeNodeCursorPos.y),
+			Gui::GetColorU32(ImGuiCol_Text),
+			ICON_CAMERA);
+	}
+
+	const char* AetTreeView::FormatAetNodeName(const RefPtr<Aet>& aet)
+	{
+		const int nameLength = sizeof(nodeNameFormatBuffer) - 12;
+
+		sprintf_s(nodeNameFormatBuffer,
+			"Aet: %s",
+			aet->Name.c_str());
+
+		return nodeNameFormatBuffer;
+	}
+
+	const char* AetTreeView::FormatLayerNodeName(const RefPtr<AetLayer>& aetLayer, bool nodeOpen)
+	{
+		const int nameLength = sizeof(nodeNameFormatBuffer) - 32;
+
+		sprintf_s(nodeNameFormatBuffer,
+			"%s  Layer %d (%.*s)",
+			nodeOpen ? ICON_AETLAYER_OPEN : ICON_AETLAYER,
+			aetLayer->GetThisIndex(),
+			nameLength,
+			aetLayer->GetCommaSeparatedNames());
+
+		return nodeNameFormatBuffer;
+	}
+
+	const char* AetTreeView::FormatObjNodeName(const RefPtr<AetObj>& aetObj)
+	{
+		const int nameLength = sizeof(nodeNameFormatBuffer) - 22;
+
+		const bool useTextureMask = aetObj->AnimationData != nullptr && aetObj->AnimationData->UseTextureMask;
+		const char* textureMaskIndicator = useTextureMask ? "  ( " ICON_FA_LINK " )  " : "";
+
+		sprintf_s(nodeNameFormatBuffer,
+			"%s  %.*s%s",
+			GetObjTypeIcon(aetObj->Type),
+			nameLength,
+			aetObj->GetName().c_str(),
+			textureMaskIndicator);
+
+		return nodeNameFormatBuffer;
+	}
+
+	const char* AetTreeView::FormatRegionNodeName(const RefPtr<AetRegion>& region, int32_t index)
+	{
+		if (region->SpriteCount() >= 1)
+		{
+			if (region->SpriteCount() > 1)
+			{
+				sprintf_s(nodeNameFormatBuffer, ICON_AETREGION "  Region %d (%s - %s)", index,
+					region->GetFrontSprite()->Name.c_str(),
+					region->GetBackSprite()->Name.c_str());
+			}
+			else
+			{
+				sprintf_s(nodeNameFormatBuffer, ICON_AETREGION "  Region %d (%s)", index,
+					region->GetFrontSprite()->Name.c_str());
+			}
+		}
+		else
+		{
+			sprintf_s(nodeNameFormatBuffer, ICON_AETREGIONNOSPR "  Region %d (%dx%d)", index, region->Width, region->Height);
+		}
+
+		return nodeNameFormatBuffer;
+	}
+
 	void AetTreeView::ScrollToGuiData(GuiTempData& guiData)
 	{
 		scrollPositionStack.push(treeViewWindow->Scroll.y);
 
-		// TODO: Store last position stack (?) undoable with mouse button 
 		treeViewWindow->ScrollTarget.y = guiData.TreeViewScrollY;
 		treeViewWindow->ScrollTargetCenterRatio.y = scrollTargetCenterRatio;
 

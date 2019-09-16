@@ -13,9 +13,12 @@
 
 namespace Editor
 {
-	AetRenderWindow::AetRenderWindow(SpriteGetterFunction* spriteGetter)
+	AetRenderWindow::AetRenderWindow(SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem)
+		: selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem)
 	{
 		assert(spriteGetter != nullptr);
+		assert(selectedAetItem != nullptr);
+		assert(cameraSelectedAetItem != nullptr);
 
 		checkerboardBaseGrid.Color = checkerboardGrid.Color * 0.5f;
 		checkerboardBaseGrid.ColorAlt = checkerboardGrid.ColorAlt * 0.5f;
@@ -33,12 +36,6 @@ namespace Editor
 
 	AetRenderWindow::~AetRenderWindow()
 	{
-	}
-
-	void AetRenderWindow::SetActive(Aet* parent, AetItemTypePtr value)
-	{
-		aet = parent;
-		active = value;
 	}
 
 	void AetRenderWindow::SetIsPlayback(bool value)
@@ -80,10 +77,10 @@ namespace Editor
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 1.0f));
 		Gui::PushItemWidth(itemWidth);
 		{
-			if (!active.IsNull() && active.Type() == AetSelectionType::AetObj && active.GetAetObjRef()->AnimationData != nullptr)
+			if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetSelectionType::AetObj && selectedAetItem->GetAetObjRef()->AnimationData != nullptr)
 			{
-				AetMgr::Interpolate(active.Ptrs.AetObj->AnimationData.get(), &toolProperties, currentFrame);
-				toolSize = GetAetObjBoundingSize(active.GetAetObjRef());
+				AetMgr::Interpolate(selectedAetItem->GetAetObjRef()->AnimationData.get(), &toolProperties, currentFrame);
+				toolSize = GetAetObjBoundingSize(selectedAetItem->GetAetObjRef());
 			}
 
 			DrawAnimationPropertiesGui();
@@ -145,7 +142,7 @@ namespace Editor
 		}
 
 		AetTool* tool = GetCurrentTool();
-		if (!active.IsNull() && active.Type() == AetSelectionType::AetObj)
+		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetSelectionType::AetObj)
 		{
 			auto worldToScreen = [this](vec2 value) { return (camera.WorldToScreenSpace(value) + GetRenderRegion().GetTL()); };
 			auto screenToWorld = [this](vec2 value) { return (camera.ScreenToWorldSpace(value - GetRenderRegion().GetTL())); };
@@ -155,11 +152,11 @@ namespace Editor
 			tool->SetSpaceConversionFunctions(worldToScreen, screenToWorld);
 			tool->UpdatePostDrawGui(&toolProperties, toolSize);
 
-			if (active.GetAetObjRef()->Type == AetObjType::Pic || active.GetAetObjRef()->Type == AetObjType::Eff)
+			if (selectedAetItem->GetAetObjRef()->Type == AetObjType::Pic || selectedAetItem->GetAetObjRef()->Type == AetObjType::Eff)
 			{
 				AetKeyFrame* currentKeyFrames[PropertyType_Count];
 				for (int i = 0; i < PropertyType_Count; i++)
-					currentKeyFrames[i] = isPlayback ? nullptr : GetKeyFrameOrFirst(active.Ptrs.AetObj, i, glm::round(currentFrame));
+					currentKeyFrames[i] = isPlayback ? nullptr : GetKeyFrameOrFirst(selectedAetItem->Ptrs.AetObj, i, glm::round(currentFrame));
 
 				// TODO: if keyframe is nullptr add keyframe (how to handle adding keyframe commands?)
 				// NOTE: if the keyframe for the scale for example doesn't exist at the current timeline frame, then modify the value of the 0th keyframe instead (?)
@@ -208,8 +205,8 @@ namespace Editor
 
 	void AetRenderWindow::OnRender()
 	{
-		if (aet != nullptr)
-			aetRegionSize = aet->Resolution;
+		if (!selectedAetItem->IsNull() && selectedAetItem->GetItemParentAet() != nullptr)
+			aetRegionSize = selectedAetItem->GetItemParentAet()->Resolution;
 
 		vec2 relativeMouse = GetRelativeMouse();
 		cameraController.Update(camera, relativeMouse);
@@ -226,24 +223,24 @@ namespace Editor
 			{
 				RenderGrid();
 
-				if (!active.IsNull())
+				if (!cameraSelectedAetItem->IsNull())
 				{
-					switch (active.Type())
+					switch (cameraSelectedAetItem->Type())
 					{
 					case AetSelectionType::AetSet:
-						RenderAetSet(active.Ptrs.AetSet);
+						RenderAetSet(cameraSelectedAetItem->Ptrs.AetSet);
 						break;
 					case AetSelectionType::Aet:
-						RenderAet(active.Ptrs.Aet);
+						RenderAet(cameraSelectedAetItem->Ptrs.Aet);
 						break;
 					case AetSelectionType::AetLayer:
-						RenderAetLayer(active.Ptrs.AetLayer);
+						RenderAetLayer(cameraSelectedAetItem->Ptrs.AetLayer);
 						break;
 					case AetSelectionType::AetObj:
-						RenderAetObj(active.Ptrs.AetObj);
+						RenderAetObj(cameraSelectedAetItem->Ptrs.AetObj);
 						break;
 					case AetSelectionType::AetRegion:
-						RenderAetRegion(active.Ptrs.AetRegion);
+						RenderAetRegion(cameraSelectedAetItem->Ptrs.AetRegion);
 						break;
 
 					case AetSelectionType::None:
@@ -252,8 +249,8 @@ namespace Editor
 					}
 				}
 
-				// Screen - WorldSpace Test
-				if (Gui::IsWindowFocused())
+				// TEMP: Screen - WorldSpace Test
+				if (false && Gui::IsWindowFocused())
 				{
 					constexpr float cursorSize = 4.0f;
 
@@ -311,12 +308,13 @@ namespace Editor
 
 	void AetRenderWindow::DrawAnimationPropertiesGui()
 	{
-		if (!active.IsNull() && active.Type() == AetSelectionType::AetObj && active.GetAetObjRef()->AnimationData != nullptr)
+		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetSelectionType::AetObj && selectedAetItem->GetAetObjRef()->AnimationData != nullptr)
 		{
 			Array<AetKeyFrame*, PropertyType_Count> currentKeyFrames;
 			for (int i = 0; i < PropertyType_Count; i++)
-				currentKeyFrames[i] = isPlayback ? nullptr : GetKeyFrameOrFirst(active.Ptrs.AetObj, i, glm::round(currentFrame));
+				currentKeyFrames[i] = isPlayback ? nullptr : GetKeyFrameOrFirst(selectedAetItem->Ptrs.AetObj, i, glm::round(currentFrame));
 
+			// TODO: Remove
 			Gui::ExtendedVerticalSeparator();
 			Gui::ComfyInputFloat("##PositionXDragFloat::AetRenderWindow", &toolProperties.Position.x, 1.0f, 0.0f, 0.0f, "X: %.f", !currentKeyFrames[PropertyType_PositionX]);
 			Gui::SameLine();
@@ -437,7 +435,7 @@ namespace Editor
 			return vec2(aetRegion->Width, aetRegion->Height);
 
 		// TODO: Find bounding box (?), or maybe just disallow using the transform tool (?)
-		// NOTE: Maybe this is sufficient already (?)
+		// NOTE: ~~Maybe this is sufficient already (?)~~
 		return aetRegionSize;
 	}
 }

@@ -13,48 +13,77 @@ namespace Editor
 	class AetTreeView
 	{
 	public:
-		AetTreeView();
+		AetTreeView(AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
 		~AetTreeView();
 
 		void Initialize();
 		bool DrawGui(const RefPtr<AetSet>& aetSet);
 
-		inline Aet* GetActiveAet() const { return activeAet; };
-		inline AetItemTypePtr GetSelected() const { return selected; };
+		template <class T>
+		inline void SetSelectedItems(const RefPtr<T>& value) 
+		{ 
+			selectedAetItem->SetItem(value);
+			cameraSelectedAetItem->SetItem(value);
+		};
 
-		inline void SetSelectedItem(const RefPtr<AetSet>& value)				{ activeAet = nullptr; selected.SetItem(value); };
-		inline void SetSelectedItem(Aet* aet, const RefPtr<Aet>& value)			{ activeAet = aet; selected.SetItem(value); };
-		inline void SetSelectedItem(Aet* aet, const RefPtr<AetObj>& value)		{ activeAet = aet; selected.SetItem(value); };
-		inline void SetSelectedItem(Aet* aet, const RefPtr<AetLayer>& value)	{ activeAet = aet; selected.SetItem(value); };
-		inline void SetSelectedItem(Aet* aet, const RefPtr<AetRegion>& value)	{ activeAet = aet; selected.SetItem(value); };
-		inline void ResetSelectedItem()											{ activeAet = nullptr; selected.Reset(); };
+		inline void SetSelectedItems(const RefPtr<AetObj>& selectedObj, const RefPtr<AetLayer>& visibleLayer)
+		{
+			selectedAetItem->SetItem(selectedObj);
+			cameraSelectedAetItem->SetItem(visibleLayer);
+		};
+
+		inline void ResetSelectedItems() 
+		{ 
+			selectedAetItem->Reset();
+			cameraSelectedAetItem->Reset();
+		};
 
 	private:
 		static constexpr const char* AddAetObjPopupID = "Add new AetObj";
+		static constexpr float LayerPreviewTooltipHoverDelay = 0.8f;
 
-		char objNameBuffer[255];
-		char regionNameBuffer[255];
+		char nodeNameFormatBuffer[512];
 
 		float scrollTargetCenterRatio = 0.15f;
 		AddAetObjDialog addAetObjDialog;
 
 		std::stack<float> scrollPositionStack;
 
-		Aet* activeAet;
-		AetItemTypePtr selected, lastHovered, hovered;
+		// TODO: Implement cameraSelectedAetItem logic
+		struct
+		{
+			AetItemTypePtr* selectedAetItem;
+			AetItemTypePtr* cameraSelectedAetItem;
+			AetItemTypePtr hoveredAetItem, lastHoveredAetItem;
+		};
 
 		ImGuiWindow* treeViewWindow = nullptr;
 
 		void UpdateScrollInput();
 
 		void DrawTreeViewBackground();
+		
+		// TODO: These should probably be called DrawTreeNode{Name}
 		void DrawTreeViewAet(const RefPtr<Aet>& aet);
 		void DrawTreeViewLayer(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer);
+
 		void DrawTreeViewObj(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj);
+		void DrawTreeViewObjCameraSelectableButton(const RefPtr<AetObj>& aetObj);
+		void DrawTreeViewObjActivityButton(const RefPtr<AetObj>& aetObj);
+
 		void DrawTreeViewRegion(const RefPtr<Aet>& aet, const RefPtr<AetRegion>& region, int32_t index);
-	
+
 		bool DrawAetLayerContextMenu(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer);
 		bool DrawAetObjContextMenu(const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj);
+
+		void DrawAetLayerPreviewTooltip(const RefPtr<AetLayer>& aetLayer) const;
+		void DrawTreeNodeCameraIcon(const vec2& treeNodeCursorPos) const;
+
+	private:
+		const char* FormatAetNodeName(const RefPtr<Aet>& aet);
+		const char* FormatLayerNodeName(const RefPtr<AetLayer>& aetLayer, bool nodeOpen);
+		const char* FormatObjNodeName(const RefPtr<AetObj>& aetObj);
+		const char* FormatRegionNodeName(const RefPtr<AetRegion>& region, int32_t index);
 
 	private:
 		void ScrollToGuiData(GuiTempData& guiData);
