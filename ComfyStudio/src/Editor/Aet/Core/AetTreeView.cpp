@@ -196,7 +196,7 @@ namespace Editor
 
 	void AetTreeView::DrawTreeViewLayer(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer)
 	{
-		Gui::PushID(&aetLayer);
+		Gui::PushID(aetLayer.get());
 
 		ImGuiTreeNodeFlags layerNodeFlags = SelectableTreeNodeFlags;
 		if (aetLayer.get() == selectedAetItem->Ptrs.AetLayer)
@@ -225,14 +225,17 @@ namespace Editor
 		if (Gui::IsItemClicked())
 			SetSelectedItems(aetLayer);
 
-		bool lastHoveredLayer = aetLayer.get() == lastHoveredAetItem.Ptrs.AetLayer;
-		if (lastHoveredLayer)
+		bool textHightlighted = false;
+		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetSelectionType::AetObj)
+			textHightlighted = aetLayer.get() == selectedAetItem->GetAetObjRef()->GetReferencedLayer().get();
+
+		if (textHightlighted)
 			Gui::PushStyleColor(ImGuiCol_Text, GetColor(EditorColor_TextHighlight));
 
 		Gui::SetCursorScreenPos(treeNodeCursorPos + ImVec2(GImGui->FontSize + GImGui->Style.FramePadding.x, 0));
 		Gui::TextUnformatted(FormatLayerNodeName(aetLayer, aetLayerNodeOpen));
 
-		if (lastHoveredLayer)
+		if (textHightlighted)
 			Gui::PopStyleColor();
 
 		// TODO: Have a separate "selected" and "cameraSelected" (double click AetObj to camera select)
@@ -275,15 +278,13 @@ namespace Editor
 	{
 		Gui::PushID(aetObj.get());
 		{
-			bool isSelected = aetObj.get() == selectedAetItem->Ptrs.AetObj || aetObj.get() == hoveredAetItem.Ptrs.AetObj;
-			bool isCameraSelected = aetObj.get() == cameraSelectedAetItem->Ptrs.AetObj;
-
-			if (!isCameraSelected)
-				DrawTreeViewObjCameraSelectableButton(aetObj);
-
+			DrawTreeViewObjCameraSelectableButton(aetLayer, aetObj);
 			DrawTreeViewObjActivityButton(aetObj);
 
-			vec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
+			const bool isSelected = aetObj.get() == selectedAetItem->Ptrs.AetObj || aetObj.get() == hoveredAetItem.Ptrs.AetObj;
+			const bool isCameraSelected = aetObj.get() == cameraSelectedAetItem->Ptrs.AetObj;
+
+			const vec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
 
 			if (Gui::Selectable(FormatObjNodeName(aetObj), isSelected) && !isCameraSelected)
 				SetSelectedItems(aetObj, aetLayer);
@@ -307,20 +308,29 @@ namespace Editor
 		Gui::PopID();
 	}
 
-	void AetTreeView::DrawTreeViewObjCameraSelectableButton(const RefPtr<AetObj>& aetObj)
+	void AetTreeView::DrawTreeViewObjCameraSelectableButton(const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj)
 	{
+		// TODO: Does not work 100% correctly with all style settings but should be fine for now
+
 		const vec2 cursorPos = Gui::GetCursorScreenPos();
-		Gui::SetCursorScreenPos(vec2(GImGui->CurrentWindow->Pos.x + GImGui->Style.FramePadding.x - GImGui->CurrentWindow->Scroll.x, cursorPos.y));
+		Gui::SetCursorScreenPos(vec2(GImGui->CurrentWindow->Pos.x + GImGui->Style.FramePadding.x - GImGui->CurrentWindow->Scroll.x, cursorPos.y - 1));
 		{
+			bool isCameraSelected = aetObj.get() == cameraSelectedAetItem->Ptrs.AetObj;
+
 			const vec2 smallButtonPosition = Gui::GetCursorScreenPos();
-			const vec2 smallButtonSize = vec2(cursorPos.x - smallButtonPosition.x, GImGui->FontSize);
+			const vec2 smallButtonSize = vec2(cursorPos.x - smallButtonPosition.x, GImGui->FontSize + GImGui->Style.ItemSpacing.y);
 
 			if (Gui::InvisibleButton(ICON_CAMERA, smallButtonSize))
-				SetSelectedItems(aetObj);
+			{
+				if (isCameraSelected)
+					SetSelectedItems(aetObj, aetLayer);
+				else
+					SetSelectedItems(aetObj);
+			}
 
 			// TODO: It'd be nice to have some visual feedback for the hovered item inside the render window
 			if (Gui::IsItemHovered())
-				Gui::GetWindowDrawList()->AddText(smallButtonPosition, Gui::GetColorU32(ImGuiCol_TextDisabled), ICON_CAMERA);
+				Gui::GetWindowDrawList()->AddText(smallButtonPosition + vec2(0.0f, 1), Gui::GetColorU32(ImGuiCol_TextDisabled), ICON_CAMERA);
 		}
 		Gui::SetCursorScreenPos(cursorPos);
 	}
@@ -353,7 +363,7 @@ namespace Editor
 
 	void AetTreeView::DrawTreeViewRegion(const RefPtr<Aet>& aet, const RefPtr<AetRegion>& region, int32_t index)
 	{
-		Gui::PushID(&region);
+		Gui::PushID(region.get());
 
 		bool isSelected = region.get() == selectedAetItem->Ptrs.AetRegion;
 
@@ -394,7 +404,11 @@ namespace Editor
 		if (aetObj->Type == AetObjType::Eff && aetObj->GetReferencedLayer())
 		{
 			if (Gui::MenuItem(ICON_FA_ARROW_RIGHT "  Jump to Layer"))
+			{
 				ScrollToGuiData(aetObj->GetReferencedLayer()->GuiTempData);
+				// NOTE: Make it clear which layer was the jump target
+				SetSelectedItems(aetObj);
+			}
 		}
 
 		Gui::Separator();

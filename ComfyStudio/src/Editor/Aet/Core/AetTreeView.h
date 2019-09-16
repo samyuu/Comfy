@@ -68,7 +68,7 @@ namespace Editor
 		void DrawTreeViewLayer(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer);
 
 		void DrawTreeViewObj(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj);
-		void DrawTreeViewObjCameraSelectableButton(const RefPtr<AetObj>& aetObj);
+		void DrawTreeViewObjCameraSelectableButton(const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj);
 		void DrawTreeViewObjActivityButton(const RefPtr<AetObj>& aetObj);
 
 		void DrawTreeViewRegion(const RefPtr<Aet>& aet, const RefPtr<AetRegion>& region, int32_t index);
