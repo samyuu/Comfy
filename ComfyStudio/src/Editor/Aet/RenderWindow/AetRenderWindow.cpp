@@ -176,6 +176,20 @@ namespace Editor
 
 			Gui::Separator();
 
+			bool allowSelection = !cameraSelectedAetItem->IsNull() && cameraSelectedAetItem->Type() == AetSelectionType::AetLayer;
+			if (Gui::BeginMenu("Select", allowSelection))
+			{
+				for (const RefPtr<AetObj>& obj : *cameraSelectedAetItem->GetAetLayerRef())
+				{
+					Gui::PushID(obj.get());
+					if (Gui::MenuItem(obj->GetName().c_str()))
+						selectedAetItem->SetItem(obj);
+					Gui::PopID();
+				}
+				Gui::EndMenu();
+			}
+			Gui::Separator();
+
 			float cameraZoom = camera.Zoom;
 			vec2 zoomMouseOrigin = GetRelativeMouse();
 
