@@ -60,7 +60,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\plusaes\include;$(ProjectDir)lib\rtaudio\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\zlib\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>
@@ -90,7 +90,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\plusaes\include;$(ProjectDir)lib\rtaudio\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\zlib\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>
