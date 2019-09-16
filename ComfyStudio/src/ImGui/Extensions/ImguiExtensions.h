@@ -49,6 +49,9 @@ namespace ImGui
 		drawList->AddRectFilled(rect.GetTL(), rect.GetBR(), color);
 	}
 
+	void AddLine(ImDrawList* drawList, vec2 start, vec2 end, ImU32 color, float thickness = 1.0f);
+	void AddQuadFilled(ImDrawList* drawList, vec2 position, vec2 size, vec2 origin, float rotation, const vec2& scale, ImU32 color);
+	
 	bool IsItemHoveredDelayed(ImGuiHoveredFlags flags = ImGuiHoveredFlags_None, float threshold = .5f);
 
 	bool WideTreeNode(const char* label);
@@ -70,6 +73,7 @@ namespace ImGui
 	bool WideCombo(const char* label, int* current_item, bool(*items_getter)(void* data, int idx, const char** out_text), void* data, int items_count, int popup_max_height_in_items = -1);
 
 	void WideSetTooltip(const char* fmt, ...);
+	void WideTooltip(const std::function<void(void)>& func);
 
 	void WindowContextMenu(const char* str_id, const std::function<void(void)>& func);
 	void ItemContextMenu(const char* str_id, const std::function<void(void)>& func);

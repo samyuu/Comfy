@@ -65,6 +65,49 @@ namespace ImGui
 		drawList->AddImage(texture->GetVoidTexture(), center, bottomRight, uv0, uv1);
 	}
 
+	void AddLine(ImDrawList* drawList, vec2 start, vec2 end, ImU32 color, float thickness)
+	{
+		drawList->AddLine(glm::round(start), glm::round(end), color, thickness);
+	}
+
+	void AddQuadFilled(ImDrawList * drawList, vec2 position, vec2 size, vec2 origin, float rotation, const vec2 & scale, ImU32 color)
+	{
+		size *= scale;
+		origin *= -scale;
+
+		vec2 topLeft, topRight, bottomLeft, bottomRight;
+
+		if (rotation == 0.0f)
+		{
+			position += origin;
+
+			topLeft = position;
+			topRight = position + vec2(size.x, 0.0f);
+			bottomLeft = position + vec2(0.0f, size.y);
+			bottomRight = position + size;
+		}
+		else
+		{
+			const float radians = glm::radians(rotation);
+			const float sin = glm::sin(radians);
+			const float cos = glm::cos(radians);
+
+			topLeft.x = position.x + origin.x * cos - origin.y * sin;
+			topLeft.y = position.y + origin.x * sin + origin.y * cos;
+
+			topRight.x = position.x + (origin.x + size.x) * cos - origin.y * sin;
+			topRight.y = position.y + (origin.x + size.x) * sin + origin.y * cos;
+
+			bottomLeft.x = position.x + origin.x * cos - (origin.y + size.y) * sin;
+			bottomLeft.y = position.y + origin.x * sin + (origin.y + size.y) * cos;
+
+			bottomRight.x = position.x + (origin.x + size.x) * cos - (origin.y + size.y) * sin;
+			bottomRight.y = position.y + (origin.x + size.x) * sin + (origin.y + size.y) * cos;
+		}
+
+		drawList->AddQuadFilled(glm::round(topLeft), glm::round(topRight), glm::round(bottomRight), glm::round(bottomLeft), color);
+	}
+
 	bool IsItemHoveredDelayed(ImGuiHoveredFlags flags, float threshold)
 	{
 		return IsItemHovered(flags) && GImGui->HoveredIdTimer > threshold;
@@ -361,6 +404,14 @@ namespace ImGui
 		va_start(args, fmt);
 		SetTooltipV(fmt, args);
 		va_end(args);
+	}
+
+	void WideTooltip(const std::function<void(void)>& func)
+	{
+		RAII_POPUP_WINDOW_PADDING();
+		BeginTooltip();
+		func();
+		EndTooltip();
 	}
 
 	constexpr int ContextMenuMouseButton_button = 1;
