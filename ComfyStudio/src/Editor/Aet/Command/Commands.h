@@ -70,30 +70,30 @@ namespace Editor::Command
 
 	// NOTE: These don't really need to be private because they are only accessed through the AetCommand interface
 
-	Define_PropertyCommand(AetChangeName, "Change Aet Name", Aet, String, Name);
-	Define_PropertyCommand(AetChangeResolution, "Change Resolution", Aet, ivec2, Resolution);
-	Define_PropertyCommand(AetChangeStartFrame, "Change Aet Start Frame", Aet, float, FrameStart);
-	Define_PropertyCommand(AetChangeFrameDuration, "Change Aet Frame Duration", Aet, float, FrameDuration);
-	Define_PropertyCommand(AetChangeFrameRate, "Change Aet Frame Rate", Aet, float, FrameRate);
-	Define_PropertyCommand(AetChangeBackgroundColor, "Change Aet Background Color", Aet, uint32_t, BackgroundColor);
+	Define_PropertyCommand(AetChangeName, "Aet Name Change", Aet, String, Name);
+	Define_PropertyCommand(AetChangeResolution, "Resolution Change", Aet, ivec2, Resolution);
+	Define_PropertyCommand(AetChangeStartFrame, "Aet Start Frame Change", Aet, float, FrameStart);
+	Define_PropertyCommand(AetChangeFrameDuration, "Aet Frame Duration Change", Aet, float, FrameDuration);
+	Define_PropertyCommand(AetChangeFrameRate, "Aet Frame Rate Change", Aet, float, FrameRate);
+	Define_PropertyCommand(AetChangeBackgroundColor, "Aet Background Color Change", Aet, uint32_t, BackgroundColor);
 
-	Define_AccessorCommand(AetObjChangeName, "Change Object Name", AetObj, String, GetName, SetName);
-	Define_PropertyCommand(AetObjChangeLoopStart, "Change Object Loop Start", AetObj, float, LoopStart);
-	Define_PropertyCommand(AetObjChangeLoopEnd, "Change Object Loop End", AetObj, float, LoopEnd);
-	Define_PropertyCommand(AetObjChangeStartFrame, "Change Object Start Frame", AetObj, float, StartFrame);
-	Define_PropertyCommand(AetObjChangePlaybackSpeed, "Change Object Playback Speed", AetObj, float, PlaybackSpeed);
-	Define_AccessorCommand(AetObjChangeReferenceRegion, "Change Object Region Reference", AetObj, RefPtr<AetRegion>, GetReferencedRegion, SetReferencedRegion);
-	Define_AccessorCommand(AetObjChangeReferenceLayer, "Change Object Layer Reference", AetObj, RefPtr<AetLayer>, GetReferencedLayer, SetReferencedLayer);
-	Define_AccessorCommand(AetObjChangeObjReferenceParent, "Change Object Reference Parent", AetObj, RefPtr<AetObj>, GetReferencedParentObj, SetReferencedParentObj);
+	Define_AccessorCommand(AetObjChangeName, "Object Name Change", AetObj, String, GetName, SetName);
+	Define_PropertyCommand(AetObjChangeLoopStart, "Object Loop Start Change", AetObj, float, LoopStart);
+	Define_PropertyCommand(AetObjChangeLoopEnd, "Object Loop End Change", AetObj, float, LoopEnd);
+	Define_PropertyCommand(AetObjChangeStartFrame, "Object Start Frame Change", AetObj, float, StartFrame);
+	Define_PropertyCommand(AetObjChangePlaybackSpeed, "Object Playback Speed Change", AetObj, float, PlaybackSpeed);
+	Define_AccessorCommand(AetObjChangeReferenceRegion, "Object Region Reference Change", AetObj, RefPtr<AetRegion>, GetReferencedRegion, SetReferencedRegion);
+	Define_AccessorCommand(AetObjChangeReferenceLayer, "Object Layer Reference Change", AetObj, RefPtr<AetLayer>, GetReferencedLayer, SetReferencedLayer);
+	Define_AccessorCommand(AetObjChangeObjReferenceParent, "Object Reference Parent Change", AetObj, RefPtr<AetObj>, GetReferencedParentObj, SetReferencedParentObj);
 
-	Define_PropertyCommand(AnimationDataChangeBlendMode, "Change Blend Mode", AnimationData, AetBlendMode, BlendMode);
-	Define_PropertyCommand(AnimationDataChangeUseTextureMask, "Change Use Texture Mask", AnimationData, bool, UseTextureMask);
+	Define_PropertyCommand(AnimationDataChangeBlendMode, "Blend Mode Change", AnimationData, AetBlendMode, BlendMode);
+	Define_PropertyCommand(AnimationDataChangeUseTextureMask, "Use Texture Mask Change", AnimationData, bool, UseTextureMask);
 
-	Define_PropertyCommand(AetObjChangeMarkerName, "Change Object Marker Name", AetMarker, String, Name);
-	Define_PropertyCommand(AetObjChangeMarkerFrame, "Change Object Marker Frame", AetMarker, float, Frame);
+	Define_PropertyCommand(AetObjChangeMarkerName, "Object Marker Name Change", AetMarker, String, Name);
+	Define_PropertyCommand(AetObjChangeMarkerFrame, "Object Marker Frame Change", AetMarker, float, Frame);
 
 
-	Define_AetCommandStart(AetObjAddMarker, "Add Object Marker");
+	Define_AetCommandStart(AetObjAddMarker, "New Object Marker");
 private:
 	RefPtr<AetObj> ref;
 	RefPtr<AetMarker> newValue;
@@ -134,7 +134,7 @@ public:
 
 
 	// TODO: Consider using float KeyFrame::Frame instead of int index (?)
-	Define_AetCommandStart(AnimationDataChangeKeyFrameValue, "Change Key Frame Value");
+	Define_AetCommandStart(AnimationDataChangeKeyFrameValue, "Key Frame Value Change");
 private:
 	RefPtr<AnimationData> ref;
 	std::tuple<PropertyType_Enum, int, float> newValue;
