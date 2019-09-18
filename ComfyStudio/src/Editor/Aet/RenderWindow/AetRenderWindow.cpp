@@ -172,8 +172,8 @@ namespace Editor
 		Gui::WindowContextMenu("AetRenderWindowContextMenu", [this, tool]()
 		{
 			Gui::TextDisabled("%s  %s", tool->GetIcon(), tool->GetName());
-			tool->DrawContextMenu();
 
+			tool->DrawContextMenu();
 			Gui::Separator();
 
 			bool allowSelection = !cameraSelectedAetItem->IsNull() && cameraSelectedAetItem->Type() == AetSelectionType::AetLayer;
@@ -181,8 +181,10 @@ namespace Editor
 			{
 				for (const RefPtr<AetObj>& obj : *cameraSelectedAetItem->GetAetLayerRef())
 				{
+					bool alreadySelected = obj.get() == selectedAetItem->Ptrs.AetObj;
+
 					Gui::PushID(obj.get());
-					if (Gui::MenuItem(obj->GetName().c_str()))
+					if (Gui::MenuItem(obj->GetName().c_str(), nullptr, nullptr, !alreadySelected))
 						selectedAetItem->SetItem(obj);
 					Gui::PopID();
 				}
