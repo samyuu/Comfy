@@ -406,6 +406,7 @@ namespace Editor
 			if (Gui::MenuItem(ICON_FA_ARROW_RIGHT "  Jump to Layer"))
 			{
 				ScrollToGuiData(aetObj->GetReferencedLayer()->GuiTempData);
+
 				// NOTE: Make it clear which layer was the jump target
 				SetSelectedItems(aetObj);
 			}
@@ -428,8 +429,19 @@ namespace Editor
 			Gui::Text("Layer %d (%s)", aetLayer->GetThisIndex(), aetLayer->GetCommaSeparatedNames());
 			Gui::Separator();
 
+			int layerIndex = 0;
+
 			for (auto& obj : *aetLayer)
+			{
+				if (layerIndex++ > LayerPreviewMaxConunt)
+				{
+					Gui::Text(ICON_FA_ELLIPSIS_H);
+					break;
+				}
+				
 				Gui::Text("%s  %s", GetObjTypeIcon(obj->Type), obj->GetName().c_str());
+
+			}
 		});
 	}
 

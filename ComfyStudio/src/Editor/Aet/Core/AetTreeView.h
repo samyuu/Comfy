@@ -41,6 +41,7 @@ namespace Editor
 	private:
 		static constexpr const char* AddAetObjPopupID = "Add new AetObj";
 		static constexpr float LayerPreviewTooltipHoverDelay = 0.8f;
+		static constexpr int LayerPreviewMaxConunt = 10;
 
 		char nodeNameFormatBuffer[512];
 
@@ -49,7 +50,6 @@ namespace Editor
 
 		std::stack<float> scrollPositionStack;
 
-		// TODO: Implement cameraSelectedAetItem logic
 		struct
 		{
 			AetItemTypePtr* selectedAetItem;
