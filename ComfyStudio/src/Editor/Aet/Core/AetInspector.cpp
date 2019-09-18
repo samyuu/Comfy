@@ -351,18 +351,25 @@ namespace Editor
 				if (animationData->UseTextureMask)
 					Gui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 
-				int32_t blendMode = static_cast<int32_t>(animationData->BlendMode);
-				if (Gui::ComfyBeginCombo("Blend Mode", AnimationData::BlendModeNames[blendMode], ImGuiComboFlags_HeightLarge))
+				if (Gui::ComfyBeginCombo("Blend Mode", AnimationData::GetBlendModeName(animationData->BlendMode), ImGuiComboFlags_HeightLarge))
 				{
-					for (int32_t blendModeIndex = 0; blendModeIndex < AnimationData::BlendModeNames.size(); blendModeIndex++)
+					// NOTE: Increase the count in case of invalid blend modes
+					size_t blendModeCount = glm::max(static_cast<size_t>(animationData->BlendMode), AnimationData::BlendModeNames.size());
+
+					for (int32_t blendModeIndex = 0; blendModeIndex < blendModeCount; blendModeIndex++)
 					{
-						if (AnimationData::BlendModeNames[blendModeIndex] == nullptr)
+						bool isBlendMode = (static_cast<AetBlendMode>(blendModeIndex) == animationData->BlendMode);
+						bool outOfBounds = blendModeIndex >= AnimationData::BlendModeNames.size();
+
+						if (!isBlendMode && (outOfBounds || AnimationData::BlendModeNames[blendModeIndex] == nullptr))
 							continue;
 
-						if (Gui::Selectable(AnimationData::BlendModeNames[blendModeIndex], blendModeIndex == blendMode))
+						const char* blendModeName = AnimationData::GetBlendModeName(static_cast<AetBlendMode>(blendModeIndex));
+
+						if (Gui::Selectable(blendModeName, isBlendMode))
 							ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeBlendMode, animationData, static_cast<AetBlendMode>(blendModeIndex));
 
-						if (blendModeIndex == blendMode)
+						if (isBlendMode)
 							Gui::SetItemDefaultFocus();
 					};
 

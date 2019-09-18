@@ -15,7 +15,7 @@ namespace FileSystem
 		"Opactiy",
 	};
 
-	Array<const char*, 9> AnimationData::BlendModeNames =
+	Array<const char*, 13> AnimationData::BlendModeNames =
 	{
 		nullptr,
 		nullptr,
@@ -26,6 +26,10 @@ namespace FileSystem
 		"Destination Color Zero",
 		"Source Alpha One Minus Source Color",
 		"Transparent",
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr, // "What The Fuck?"
 	};
 
 	Array<const char*, 4> AetObj::TypeNames =
@@ -35,6 +39,18 @@ namespace FileSystem
 		"aif",
 		"eff",
 	};
+
+	const char* AnimationData::GetBlendModeName(AetBlendMode blendMode)
+	{
+		size_t blendModeIndex = static_cast<size_t>(blendMode);
+
+		// NOTE: This should never happen
+		if (blendModeIndex >= BlendModeNames.size())
+			return "Invalid Blend Mode";
+
+		const char* name = BlendModeNames[blendModeIndex];
+		return (name == nullptr) ? "Undefined Blend Mode" : name;
+	}
 
 	AetSprite* AetRegion::GetSprite(int32_t index)
 	{

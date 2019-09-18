@@ -41,6 +41,8 @@ namespace FileSystem
 		SrcAlphaOneMinusSrcColor = 7,
 		// ??
 		Transparent = 8,
+		// Used once by "eff_mosaic01__n.pic"
+		WhatTheFuck = 12,
 	};
 
 	struct AetSprite
@@ -143,7 +145,8 @@ namespace FileSystem
 
 	struct AnimationData
 	{
-		static Array<const char*, 9> BlendModeNames;
+		static Array<const char*, 13> BlendModeNames;
+		static const char* GetBlendModeName(AetBlendMode blendMode);
 
 		AetBlendMode BlendMode;
 		bool UseTextureMask;
