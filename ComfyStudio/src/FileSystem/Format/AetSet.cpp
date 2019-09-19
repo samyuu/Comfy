@@ -163,6 +163,26 @@ namespace FileSystem
 		SetName(value.c_str());
 	}
 
+	bool AetObj::GetIsVisible() const
+	{
+		return Flags.Visible;
+	}
+
+	void AetObj::SetIsVisible(bool value)
+	{
+		Flags.Visible = value;
+	}
+
+	bool AetObj::GetIsAudible() const
+	{
+		return Flags.Audible;
+	}
+
+	void AetObj::SetIsAudible(bool value)
+	{
+		Flags.Audible = value;
+	}
+
 	const RefPtr<AetRegion>& AetObj::GetReferencedRegion()
 	{
 		return references.Region;

@@ -1,4 +1,5 @@
 #pragma once
+#include "Editor/Aet/IMutatingEditorComponent.h"
 #include "Editor/Aet/AetSelection.h"
 #include "AetDialogs.h"
 #include "FileSystem/Format/AetSet.h"
@@ -10,10 +11,10 @@ namespace Editor
 {
 	using namespace FileSystem;
 
-	class AetTreeView
+	class AetTreeView : public IMutatingEditorComponent
 	{
 	public:
-		AetTreeView(AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
+		AetTreeView(AetCommandManager* commandManager, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
 		~AetTreeView();
 
 		void Initialize();

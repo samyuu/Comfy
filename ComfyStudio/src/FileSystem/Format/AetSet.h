@@ -199,6 +199,12 @@ namespace FileSystem
 		void SetName(const char* value);
 		void SetName(const String& value);
 
+		bool GetIsVisible() const;
+		void SetIsVisible(bool value);
+
+		bool GetIsAudible() const;
+		void SetIsAudible(bool value);
+
 		const RefPtr<AetRegion>& GetReferencedRegion();
 		const AetRegion* GetReferencedRegion() const;
 		void SetReferencedRegion(const RefPtr<AetRegion>& value);

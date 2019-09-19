@@ -14,7 +14,7 @@ namespace Editor
 
 		spriteGetterFunction = [](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite) { return false; };
 
-		treeView = MakeUnique<AetTreeView>(&selectedAetItem, &cameraSelectedAetItem);
+		treeView = MakeUnique<AetTreeView>(commandManager.get(), &selectedAetItem, &cameraSelectedAetItem);
 		layerView = MakeUnique<AetLayerView>();
 		inspector = MakeUnique<AetInspector>(commandManager.get());
 		timeline = MakeUnique<AetTimeline>();

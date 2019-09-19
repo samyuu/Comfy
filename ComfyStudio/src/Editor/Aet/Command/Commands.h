@@ -52,6 +52,8 @@ namespace Editor::Command
 		AetObjChangeLoopEnd,
 		AetObjChangeStartFrame,
 		AetObjChangePlaybackSpeed,
+		AetObjChangeFlagsVisible,
+		AetObjChangeFlagsAudible,
 		AetObjChangeReferenceRegion,
 		AetObjChangeReferenceLayer,
 		AetObjChangeObjReferenceParent,
@@ -82,6 +84,8 @@ namespace Editor::Command
 	Define_PropertyCommand(AetObjChangeLoopEnd, "Object Loop End Change", AetObj, float, LoopEnd);
 	Define_PropertyCommand(AetObjChangeStartFrame, "Object Start Frame Change", AetObj, float, StartFrame);
 	Define_PropertyCommand(AetObjChangePlaybackSpeed, "Object Playback Speed Change", AetObj, float, PlaybackSpeed);
+	Define_AccessorCommand(AetObjChangeFlagsVisible, "Object Visbility Change", AetObj, bool, GetIsVisible, SetIsVisible);
+	Define_AccessorCommand(AetObjChangeFlagsAudible, "Object Audibility Change", AetObj, bool, GetIsAudible, SetIsAudible);
 	Define_AccessorCommand(AetObjChangeReferenceRegion, "Object Region Reference Change", AetObj, RefPtr<AetRegion>, GetReferencedRegion, SetReferencedRegion);
 	Define_AccessorCommand(AetObjChangeReferenceLayer, "Object Layer Reference Change", AetObj, RefPtr<AetLayer>, GetReferencedLayer, SetReferencedLayer);
 	Define_AccessorCommand(AetObjChangeObjReferenceParent, "Object Reference Parent Change", AetObj, RefPtr<AetObj>, GetReferencedParentObj, SetReferencedParentObj);

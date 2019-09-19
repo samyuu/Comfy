@@ -1,4 +1,5 @@
 #include "AetTreeView.h"
+#include "Editor/Aet/Command/Commands.h"
 #include "Editor/Aet/AetIcons.h"
 #include "Input/KeyCode.h"
 #include "FileSystem/FileHelper.h"
@@ -11,8 +12,8 @@ namespace Editor
 	constexpr ImGuiTreeNodeFlags HeaderTreeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | SelectableTreeNodeFlags;
 	constexpr ImGuiTreeNodeFlags TreeNodeLeafFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
 
-	AetTreeView::AetTreeView(AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem)
-		: selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem)
+	AetTreeView::AetTreeView(AetCommandManager* commandManager, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem)
+		: IMutatingEditorComponent(commandManager), selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem)
 	{
 		assert(selectedAetItem);
 		assert(cameraSelectedAetItem);
@@ -347,13 +348,13 @@ namespace Editor
 		const vec2 smallButtonSize = vec2(26.0f, 0.0f);
 		if (aetObj->Type == AetObjType::Aif)
 		{
-			if (Gui::ComfySmallButton(aetObj->Flags.Audible ? ICON_AUDIBLE : ICON_INAUDIBLE, smallButtonSize))
-				aetObj->Flags.Audible ^= true;
+			if (Gui::ComfySmallButton(aetObj->GetIsAudible() ? ICON_AUDIBLE : ICON_INAUDIBLE, smallButtonSize))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeFlagsAudible, aetObj, !aetObj->GetIsAudible());
 		}
 		else
 		{
-			if (Gui::ComfySmallButton(aetObj->Flags.Visible ? ICON_VISIBLE : ICON_INVISIBLE, smallButtonSize))
-				aetObj->Flags.Visible ^= true;
+			if (Gui::ComfySmallButton(aetObj->GetIsVisible() ? ICON_VISIBLE : ICON_INVISIBLE, smallButtonSize))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeFlagsVisible, aetObj, !aetObj->GetIsVisible());
 		}
 		Gui::SameLine();
 
@@ -438,7 +439,7 @@ namespace Editor
 					Gui::Text(ICON_FA_ELLIPSIS_H);
 					break;
 				}
-				
+
 				Gui::Text("%s  %s", GetObjTypeIcon(obj->Type), obj->GetName().c_str());
 
 			}
