@@ -3,10 +3,10 @@
 
 namespace Editor
 {
-	class IMutableAetEditorComponent
+	class IMutatingEditorComponent
 	{
 	public:
-		IMutableAetEditorComponent(AetCommandManager* commandManager);
+		IMutatingEditorComponent(AetCommandManager* commandManager);
 
 	protected:
 		AetCommandManager* GetCommandManager();

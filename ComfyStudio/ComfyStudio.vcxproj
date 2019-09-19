@@ -165,7 +165,7 @@
     <ClCompile Include="src\Editor\Aet\Command\AetCommand.cpp" />
     <ClCompile Include="src\Editor\Aet\Command\AetHistoryWindow.cpp" />
     <ClCompile Include="src\Editor\Aet\Command\Commands.cpp" />
-    <ClCompile Include="src\Editor\Aet\IMutableAetEditorComponent.cpp" />
+    <ClCompile Include="src\Editor\Aet\IMutatingEditorComponent.cpp" />
     <ClCompile Include="src\Editor\Aet\Timeline\KeyFrameRenderer.cpp" />
     <ClCompile Include="src\Editor\Aet\Timeline\AetTimelineController.cpp" />
     <ClCompile Include="src\FileSystem\FileReader.cpp" />
@@ -311,7 +311,7 @@
     <ClInclude Include="src\Audio\Decoder\IAudioDecoder.h" />
     <ClInclude Include="src\Core\DebugStopwatch.h" />
     <ClInclude Include="src\Editor\Aet\Command\Commands.h" />
-    <ClInclude Include="src\Editor\Aet\IMutableAetEditorComponent.h" />
+    <ClInclude Include="src\Editor\Aet\IMutatingEditorComponent.h" />
     <ClInclude Include="src\Editor\Aet\Command\AetCommand.h" />
     <ClInclude Include="src\Editor\Aet\Command\AetHistoryWindow.h" />
     <ClInclude Include="src\Editor\Aet\Timeline\KeyFrameRenderer.h" />

@@ -1,9 +1,9 @@
 #pragma once
-#include "Editor/Aet/IMutableAetEditorComponent.h"
+#include "Editor/Aet/IMutatingEditorComponent.h"
 
 namespace Editor
 {
-	class AetHistoryWindow : public IMutableAetEditorComponent
+	class AetHistoryWindow : public IMutatingEditorComponent
 	{
 	public:
 		AetHistoryWindow(AetCommandManager* commandManager);

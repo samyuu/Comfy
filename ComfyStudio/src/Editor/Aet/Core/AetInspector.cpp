@@ -6,7 +6,7 @@
 
 namespace Editor
 {
-	AetInspector::AetInspector(AetCommandManager* commandManager) : IMutableAetEditorComponent(commandManager)
+	AetInspector::AetInspector(AetCommandManager* commandManager) : IMutatingEditorComponent(commandManager)
 	{
 	}
 

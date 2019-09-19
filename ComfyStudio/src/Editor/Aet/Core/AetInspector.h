@@ -1,13 +1,13 @@
 #pragma once
 #include "Editor/Aet/AetSelection.h"
-#include "Editor/Aet/IMutableAetEditorComponent.h"
+#include "Editor/Aet/IMutatingEditorComponent.h"
 #include "FileSystem/Format/AetSet.h"
 
 namespace Editor
 {
 	using namespace FileSystem;
 
-	class AetInspector : public IMutableAetEditorComponent
+	class AetInspector : public IMutatingEditorComponent
 	{
 	public:
 		AetInspector(AetCommandManager* commandManager);

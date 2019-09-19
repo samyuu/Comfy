@@ -3,7 +3,7 @@
 
 namespace Editor
 {
-	AetHistoryWindow::AetHistoryWindow(AetCommandManager* commandManager) : IMutableAetEditorComponent(commandManager)
+	AetHistoryWindow::AetHistoryWindow(AetCommandManager* commandManager) : IMutatingEditorComponent(commandManager)
 	{
 	}
 

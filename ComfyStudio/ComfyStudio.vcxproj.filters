@@ -258,9 +258,6 @@
     <ClCompile Include="src\Editor\Aet\Command\AetHistoryWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Editor\Aet\IMutableAetEditorComponent.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Editor\Aet\RenderWindow\AetRenderWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -463,6 +460,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\ScaleTool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Aet\IMutatingEditorComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -791,9 +791,6 @@
     <ClInclude Include="src\Editor\Aet\Command\AetHistoryWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Editor\Aet\IMutableAetEditorComponent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\Aet\RenderWindow\AetRenderWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -984,6 +981,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\ScaleTool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Aet\IMutatingEditorComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
