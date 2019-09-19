@@ -218,6 +218,9 @@ namespace Editor
 		{
 			Gui::Separator();
 			DrawInspectorAnimationData(aetObj->AnimationData, aetObj);
+			
+			// TODO: Temp remove
+			DrawInspectorDebugAnimationData(aetObj->AnimationData, aetObj);
 		}
 
 		Gui::Separator();
@@ -382,6 +385,29 @@ namespace Editor
 				bool useTextureMask = animationData->UseTextureMask;
 				if (Gui::ComfyCheckbox("Use Texture Mask", &useTextureMask))
 					ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeUseTextureMask, animationData, useTextureMask);
+			}
+
+			Gui::TreePop();
+		}
+	}
+
+	void AetInspector::DrawInspectorDebugAnimationData(const RefPtr<AnimationData>& animationData, const RefPtr<AetObj>& aetObj)
+	{
+		if (Gui::WideTreeNodeEx(ICON_ANIMATIONDATA "  DEBUG Data", ImGuiTreeNodeFlags_Selected))
+		{
+			if (animationData != nullptr)
+			{
+				int i = 0;
+				for (auto& property : animationData->Properties)
+				{
+					if (Gui::WideTreeNode(KeyFrameProperties::PropertyNames.at(i++)))
+					{
+						for (auto& keyFrame : property)
+							Gui::Text("Frame: %.2f; Value: %.2f; Curve: %.2f", keyFrame.Frame, keyFrame.Value, keyFrame.Interpolation);
+
+						Gui::TreePop();
+					}
+				}
 			}
 
 			Gui::TreePop();

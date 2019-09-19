@@ -50,6 +50,7 @@ namespace Editor
 		std::pair<AetKeyFrame*, int> GetKeyFrameAndIndex(const RefPtr<AetObj>& aetObj, int propertyIndex, float inputFrame) const;
 
 		void DrawInspectorAnimationData(const RefPtr<AnimationData>& animationData, const RefPtr<AetObj>& aetObj);
+		void DrawInspectorDebugAnimationData(const RefPtr<AnimationData>& animationData, const RefPtr<AetObj>& aetObj);
 		void DrawInspectorAnimationDataProperty(const RefPtr<AnimationData>& animationData, const char* label, float& value, int propertyType, AetKeyFrame* keyFrames[], int keyFrameIndices[]);
 		void DrawInspectorAnimationDataPropertyVec2(const RefPtr<AnimationData>& animationData, const char* label, vec2& value, int propertyTypeX, int propertyTypeY, AetKeyFrame* keyFrames[], int keyFrameIndices[]);
 
