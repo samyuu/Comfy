@@ -269,6 +269,7 @@
     <ClCompile Include="src\Audio\Waveform.cpp" />
     <ClCompile Include="src\Core\TimeSpan.cpp" />
     <ClCompile Include="src\FileSystem\Stream\Stream.cpp" />
+    <ClCompile Include="src\System\Profiling\Profiler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lib\rtaudio\src\asio.h" />
@@ -336,6 +337,7 @@
     <ClInclude Include="src\ImGui\Extensions\InternalExtensions.h" />
     <ClInclude Include="src\Misc\EndianHelper.h" />
     <ClInclude Include="src\System\CommandLine\CommandLineOption.h" />
+    <ClInclude Include="src\System\Profiling\Profiler.h" />
     <ClInclude Include="src\System\Version\BuildConfiguration.h" />
     <ClInclude Include="src\System\Version\BuildVersion.h" />
     <ClInclude Include="src\System\LibraryLoader.h" />

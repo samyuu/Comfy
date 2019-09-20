@@ -8,6 +8,7 @@
 #include "Input/Keyboard.h"
 #include "FileSystem/FileHelper.h"
 #include "FileSystem/Archive/Farc.h"
+#include "System/Profiling/Profiler.h"
 #include "System/Version/BuildConfiguration.h"
 #include "System/Version/BuildVersion.h"
 #include "Graphics/OpenGL/OpenGLLoader.h"
@@ -162,11 +163,14 @@ void Application::Run()
 	if (!BaseInitialize())
 		return;
 
-	// glfwSwapInterval(0);
+	System::Profiler& profiler = System::Profiler::Get();
+
 	while (!glfwWindowShouldClose(window))
 	{
+		profiler.StartFrame();
 		BaseUpdate();
 		BaseDraw();
+		profiler.EndFrame();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -297,11 +301,10 @@ void Application::BaseUpdate()
 void Application::BaseDraw()
 {
 	const ImVec4 baseClearColor = ImColor(Editor::GetColor(Editor::EditorColor_BaseClear));
-
 	Graphics::RenderCommand::SetClearColor(baseClearColor);
 	Graphics::RenderCommand::Clear(Graphics::ClearTarget_ColorBuffer);
-
 	Graphics::RenderCommand::SetViewport(vec2(windowWidth, windowHeight));
+
 	DrawGui();
 }
 
