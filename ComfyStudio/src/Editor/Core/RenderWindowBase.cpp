@@ -16,7 +16,7 @@ namespace Editor
 		RenderWindowBase::PopWindowPadding();
 		OnDrawGui();
 
-		Gui::PushID((void*)this);
+		Gui::PushID(this);
 		Gui::BeginChild("BaseChild##RenderWindowBase", ImVec2(0, 0), false, GetChildWinodwFlags());
 
 		lastRenderRegion = renderRegion;

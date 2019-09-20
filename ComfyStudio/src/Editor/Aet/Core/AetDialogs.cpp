@@ -36,7 +36,7 @@ namespace Editor
 					{
 						RefPtr<AetRegion>& region = aet->AetRegions[i];
 
-						PushID(&region);
+						PushID(region.get());
 						if (Selectable("##AetRegion", i == newRegionIndex, ImGuiSelectableFlags_SpanAllColumns))
 							newRegionIndex = i;
 

@@ -68,7 +68,7 @@ namespace Editor
 	{
 		if (Gui::WideTreeNodeEx(ICON_NAMES "  Aets:", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			for (RefPtr<Aet>& aet : *aetSet)
+			for (const RefPtr<Aet>& aet : *aetSet)
 				Gui::BulletText(aet->Name.c_str());
 
 			Gui::TreePop();
@@ -121,7 +121,7 @@ namespace Editor
 
 		if (Gui::WideTreeNodeEx(ICON_AETLAYER "  Objects:", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			for (RefPtr<AetObj>& aetObj : *aetLayer)
+			for (const RefPtr<AetObj>& aetObj : *aetLayer)
 				Gui::BulletText("%s  %s", GetObjTypeIcon(aetObj->Type), aetObj->GetName().c_str());
 
 			Gui::TreePop();
@@ -143,12 +143,12 @@ namespace Editor
 					ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceLayer, aetObj, nullptr);
 
 				int layerIndex = 0;
-				for (RefPtr<AetLayer>& layer : aet->AetLayers)
+				for (const RefPtr<AetLayer>& layer : aet->AetLayers)
 				{
-					if (&aet->AetLayers.back() == &layer)
+					if (aet->AetLayers.back() == layer)
 						break;
 
-					Gui::PushID(&layer);
+					Gui::PushID(layer.get());
 
 					bool isSelected = (aetLayer == layer);
 					sprintf_s(layerDataNameBuffer, "Layer %d (%s)", layerIndex++, layer->GetCommaSeparatedNames());
@@ -257,9 +257,9 @@ namespace Editor
 					ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceRegion, aetObj, nullptr);
 
 				int32_t regionIndex = 0;
-				for (RefPtr<AetRegion>& region : aet->AetRegions)
+				for (const RefPtr<AetRegion>& region : aet->AetRegions)
 				{
-					Gui::PushID(&region);
+					Gui::PushID(region.get());
 
 					bool isSelected = (aetRegion == region);
 
@@ -603,7 +603,7 @@ namespace Editor
 					bool isSelected = (layerIndex == newParentObjLayerIndex);
 					sprintf_s(parentObjDataNameBuffer, "Layer %d (%s)", layerIndex, layer->GetCommaSeparatedNames());
 
-					Gui::PushID(&layer);
+					Gui::PushID(layer.get());
 					if (Gui::Selectable(parentObjDataNameBuffer, isSelected))
 					{
 						if (aetObj->GetReferencedParentObj() != nullptr)
@@ -632,7 +632,7 @@ namespace Editor
 						const RefPtr<AetObj>& obj = parentObjLayer->at(objIndex);
 						bool isSelected = (obj.get() == parentObj);
 
-						Gui::PushID(&obj);
+						Gui::PushID(obj.get());
 						if (Gui::Selectable(obj->GetName().c_str(), isSelected))
 							ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeObjReferenceParent, aetObj, obj);
 
