@@ -279,7 +279,8 @@ namespace Editor
 
 		strcpy_s(timeInputBuffer, GetCursorTime().FormatTime().c_str());
 
-		Gui::PushItemWidth(140);
+		constexpr float timeWidgetWidth = 138;
+		Gui::PushItemWidth(timeWidgetWidth);
 		Gui::InputTextWithHint("##TargetTimeline::TimeInput", "00:00.000", timeInputBuffer, sizeof(timeInputBuffer));
 		Gui::PopItemWidth();
 

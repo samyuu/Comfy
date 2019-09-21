@@ -59,7 +59,8 @@ namespace Editor
 
 		sprintf_s(timeInputBuffer, "%s (%.f/%.f)", cursorTime.FormatTime().c_str(), GetTimelineFrame(cursorTime).Frames(), loopEndFrame.Frames());
 
-		Gui::PushItemWidth(140);
+		constexpr float timeWidgetWidth = 138;
+		Gui::PushItemWidth(timeWidgetWidth);
 		Gui::InputTextWithHint("##AetTimeline::TimeInput", "00:00.000", timeInputBuffer, sizeof(timeInputBuffer));
 		Gui::PopItemWidth();
 
