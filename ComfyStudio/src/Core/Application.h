@@ -118,6 +118,7 @@ private:
 	bool hasBeenDisposed = false;
 	bool mainLoopLowPowerSleep = false;
 	bool skipApplicationCleanup = true;
+	TimeSpan powerSleepDuration = TimeSpan::FromMilliseconds(10.0);
 
 	GLFWwindow *window = nullptr;
 

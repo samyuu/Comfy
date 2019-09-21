@@ -172,15 +172,19 @@ void Application::Run()
 		BaseDraw();
 		profiler.EndFrame();
 
+		if (!windowFocused || mainLoopLowPowerSleep)
+		{
+			// NOTE: Arbitrary sleep to drastically reduce power usage
+			// TODO: This could really use a better solution for final release builds
+			Sleep(static_cast<uint32_t>(powerSleepDuration.TotalMilliseconds()));
+		}
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 
 		lastTime = currentTime;
 		currentTime = TimeSpan::GetTimeNow();
 		elapsedTime = (currentTime - lastTime);
-
-		if (mainLoopLowPowerSleep)
-			Sleep(1);
 	}
 
 	BaseDispose();
