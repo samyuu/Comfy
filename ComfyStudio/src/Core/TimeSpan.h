@@ -41,20 +41,8 @@ struct TimeSpan
 		return TimeSpan(value / 1000.0);
 	}
 
-	String FormatTime() const
-	{
-		double absoluteTime = abs(time);
-
-		double minutes = floor(fmod(absoluteTime, 3600.0) / 60.0);
-		double seconds = fmod(absoluteTime, 60.0);
-		double milliseconds = (seconds - floor(seconds)) * 1000.0;
-
-		char buffer[12]; // 00:00.000
-		const char* sign = time < 0 ? "-" : "";
-		sprintf_s(buffer, sizeof(buffer), "%s%02d:%02d.%03d", sign, (int)minutes, (int)seconds, (int)milliseconds);
-	
-		return String(buffer);
-	}
+	void FormatTime(char* buffer, size_t bufferSize) const;
+	String FormatTime() const;
 
 	// Operators:
 	// ----------

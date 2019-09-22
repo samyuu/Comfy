@@ -57,7 +57,9 @@ namespace Editor
 		ImGuiStyle& style = Gui::GetStyle();
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, style.FramePadding.y));
 
-		sprintf_s(timeInputBuffer, "%s (%.f/%.f)", cursorTime.FormatTime().c_str(), GetTimelineFrame(cursorTime).Frames(), loopEndFrame.Frames());
+		cursorTime.FormatTime(timeInputBuffer, sizeof(timeInputBuffer));
+		size_t timeLength = strlen(timeInputBuffer);
+		sprintf_s(&timeInputBuffer[timeLength], sizeof(timeInputBuffer) - timeLength, " (%.f/%.f)", GetTimelineFrame(cursorTime).Frames(), loopEndFrame.Frames());
 
 		constexpr float timeWidgetWidth = 138;
 		Gui::PushItemWidth(timeWidgetWidth);

@@ -277,7 +277,7 @@ namespace Editor
 		ImGuiStyle& style = Gui::GetStyle();
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, style.FramePadding.y));
 
-		strcpy_s(timeInputBuffer, GetCursorTime().FormatTime().c_str());
+		cursorTime.FormatTime(timeInputBuffer, sizeof(timeInputBuffer));
 
 		constexpr float timeWidgetWidth = 138;
 		Gui::PushItemWidth(timeWidgetWidth);
