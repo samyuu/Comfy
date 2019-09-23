@@ -45,6 +45,9 @@ namespace Editor
 		static constexpr int LayerPreviewMaxConunt = 10;
 
 		char nodeNameFormatBuffer[512];
+		
+		static constexpr uint32_t nodeBufferCookieValue = 0xCCCCCCCC;
+		uint32_t nodeBufferCookie = nodeBufferCookieValue;
 
 		float scrollTargetCenterRatio = 0.15f;
 		AddAetObjDialog addAetObjDialog;
@@ -77,7 +80,7 @@ namespace Editor
 		bool DrawAetLayerContextMenu(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer);
 		bool DrawAetObjContextMenu(const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj);
 
-		void DrawAetLayerPreviewTooltip(const RefPtr<AetLayer>& aetLayer) const;
+		void DrawAetLayerPreviewTooltip(const RefPtr<AetLayer>& aetLayer);
 		void DrawTreeNodeCameraIcon(const vec2& treeNodeCursorPos) const;
 
 	private:

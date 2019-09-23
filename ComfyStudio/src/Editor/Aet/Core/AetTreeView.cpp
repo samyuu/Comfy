@@ -99,10 +99,10 @@ namespace Editor
 				switch (selectedAetItem->Type())
 				{
 				case AetSelectionType::AetLayer:
-					ScrollToGuiData(selectedAetItem->GetAetLayerRef()->GuiTempData);
+					ScrollToGuiData(selectedAetItem->GetAetLayerRef()->GuiData);
 					break;
 				case AetSelectionType::AetObj:
-					ScrollToGuiData(selectedAetItem->GetAetObjRef()->GuiTempData);
+					ScrollToGuiData(selectedAetItem->GetAetObjRef()->GuiData);
 					break;
 				default:
 					break;
@@ -173,7 +173,10 @@ namespace Editor
 
 				for (int32_t i = static_cast<int32_t>(aet->AetLayers.size()) - 1; i >= 0; i--)
 				{
-					DrawTreeViewLayer(aet, aet->AetLayers[i]);
+					const auto& layer = aet->AetLayers[i];
+					
+					layer->GuiData.ThisIndex = i;
+					DrawTreeViewLayer(aet, layer);
 				}
 
 				Gui::TreePop();
@@ -205,16 +208,16 @@ namespace Editor
 		if (aetLayer->size() < 1)
 			layerNodeFlags |= ImGuiTreeNodeFlags_Leaf;
 
-		if (aetLayer->GuiTempData.AppendOpenNode)
+		if (aetLayer->GuiData.AppendOpenNode)
 		{
 			Gui::SetNextTreeNodeOpen(true);
-			aetLayer->GuiTempData.AppendOpenNode = false;
+			aetLayer->GuiData.AppendOpenNode = false;
 		}
 
 		ImVec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
 		bool aetLayerNodeOpen = Gui::WideTreeNodeEx("##AetLayerTreeNode", layerNodeFlags);
 
-		aetLayer->GuiTempData.TreeViewScrollY = Gui::GetCursorPos().y;
+		aetLayer->GuiData.TreeViewScrollY = Gui::GetCursorPos().y;
 
 		bool openAddAetObjPopup = false;
 		Gui::ItemContextMenu("AetLayerContextMenu##AetTreeView", [this, &aet, &aetLayer, &openAddAetObjPopup]()
@@ -287,7 +290,8 @@ namespace Editor
 
 			const vec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
 
-			if (Gui::Selectable(FormatObjNodeName(aetObj), isSelected) && !isCameraSelected)
+			const char* objNodeName = FormatObjNodeName(aetObj);
+			if (Gui::Selectable(objNodeName, isSelected) && !isCameraSelected)
 				SetSelectedItems(aetObj, aetLayer);
 
 			if (cameraSelectedAetItem->Ptrs.AetObj == aetObj.get())
@@ -296,7 +300,7 @@ namespace Editor
 			if (aetObj->Type == AetObjType::Eff && Gui::IsItemHoveredDelayed(ImGuiHoveredFlags_None, LayerPreviewTooltipHoverDelay) && aetObj->GetReferencedLayer())
 				DrawAetLayerPreviewTooltip(aetObj->GetReferencedLayer());
 
-			aetObj->GuiTempData.TreeViewScrollY = Gui::GetCursorPos().y;
+			aetObj->GuiData.TreeViewScrollY = Gui::GetCursorPos().y;
 
 			Gui::ItemContextMenu("AetObjContextMenu##AetInspector", [this, &aetLayer, &aetObj]()
 			{
@@ -379,7 +383,7 @@ namespace Editor
 
 	bool AetTreeView::DrawAetLayerContextMenu(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer)
 	{
-		Gui::Text(ICON_AETLAYER "  %s", aetLayer->GetCommaSeparatedNames());
+		Gui::Text(ICON_AETLAYER "  %s", aetLayer->GetCommaSeparatedNames().c_str());
 		Gui::Separator();
 
 		if (Gui::BeginMenu(ICON_ADD "  Add new AetObj..."))
@@ -406,7 +410,7 @@ namespace Editor
 		{
 			if (Gui::MenuItem(ICON_FA_ARROW_RIGHT "  Jump to Layer"))
 			{
-				ScrollToGuiData(aetObj->GetReferencedLayer()->GuiTempData);
+				ScrollToGuiData(aetObj->GetReferencedLayer()->GuiData);
 
 				// NOTE: Make it clear which layer was the jump target
 				SetSelectedItems(aetObj);
@@ -423,11 +427,11 @@ namespace Editor
 		return false;
 	}
 
-	void AetTreeView::DrawAetLayerPreviewTooltip(const RefPtr<AetLayer>& aetLayer) const
+	void AetTreeView::DrawAetLayerPreviewTooltip(const RefPtr<AetLayer>& aetLayer)
 	{
-		Gui::WideTooltip([&aetLayer]()
+		Gui::WideTooltip([this, &aetLayer]()
 		{
-			Gui::Text("Layer %d (%s)", aetLayer->GetThisIndex(), aetLayer->GetCommaSeparatedNames());
+			Gui::TextUnformatted(FormatLayerNodeName(aetLayer, false));
 			Gui::Separator();
 
 			int layerIndex = 0;
@@ -467,31 +471,130 @@ namespace Editor
 
 	const char* AetTreeView::FormatLayerNodeName(const RefPtr<AetLayer>& aetLayer, bool nodeOpen)
 	{
-		const int nameLength = sizeof(nodeNameFormatBuffer) - 32;
+		// NOTE: Hand optimized to prevent high cpu usage ( (12.0 %) -> (< 2.0 %) )
 
-		sprintf_s(nodeNameFormatBuffer,
-			"%s  Layer %d (%.*s)",
-			nodeOpen ? ICON_AETLAYER_OPEN : ICON_AETLAYER,
-			aetLayer->GetThisIndex(),
-			nameLength,
-			aetLayer->GetCommaSeparatedNames());
+		char* buffer = nodeNameFormatBuffer;
+		char* endOfBuffer = nodeNameFormatBuffer + sizeof(nodeNameFormatBuffer);
+
+		// NOTE: Append the layer icon
+		{
+			const char* layerIcon = nodeOpen ? ICON_AETLAYER_OPEN : ICON_AETLAYER;
+			const size_t layerIconLength = std::strlen(layerIcon);
+
+			std::memcpy(buffer, layerIcon, layerIconLength);
+			buffer += layerIconLength;
+		}
+
+		// NOTE: Append the layer string
+		{
+			const char* layerString = "  Layer ";
+			const size_t layerStringLength = std::strlen(layerString);
+
+			std::memcpy(buffer, layerString, layerStringLength);
+			buffer += layerStringLength;
+		}
+
+		// NOTE: Append layer index
+		{
+			ptrdiff_t remainingSize = endOfBuffer - buffer;
+			_itoa_s(aetLayer->GuiData.ThisIndex, buffer, (endOfBuffer - buffer), 10);
+			buffer += std::strlen(buffer);
+		}
+
+		// NOTE: Append given names
+		{
+			ptrdiff_t remainingSize = endOfBuffer - buffer;
+			strcat_s(buffer, remainingSize, " (");
+			buffer += 2;
+
+			const auto& givenNames = aetLayer->GetCommaSeparatedNames();
+			remainingSize = endOfBuffer - buffer;
+			if (static_cast<ptrdiff_t>(givenNames.size()) > (remainingSize - 3))
+			{
+				strncat_s(buffer, remainingSize, givenNames.c_str(), remainingSize - 3);
+				buffer += std::strlen(buffer);
+			}
+			else
+			{
+				strcat_s(buffer, remainingSize, givenNames.c_str());
+				buffer += givenNames.size();
+			}
+		}
+
+		*(buffer + 0) = ')';
+		*(buffer + 1) = '\0';
+
+		if (nodeBufferCookie != nodeBufferCookieValue)
+			assert(false);
 
 		return nodeNameFormatBuffer;
 	}
 
 	const char* AetTreeView::FormatObjNodeName(const RefPtr<AetObj>& aetObj)
 	{
-		const int nameLength = sizeof(nodeNameFormatBuffer) - 22;
+		// NOTE: Hand optimized to prevent high cpu usage
 
-		const bool useTextureMask = aetObj->AnimationData != nullptr && aetObj->AnimationData->UseTextureMask;
-		const char* textureMaskIndicator = useTextureMask ? "  ( " ICON_FA_LINK " )  " : "";
+		char* buffer = nodeNameFormatBuffer;
+		char* endOfBuffer = nodeNameFormatBuffer + sizeof(nodeNameFormatBuffer);
 
-		sprintf_s(nodeNameFormatBuffer,
-			"%s  %.*s%s",
-			GetObjTypeIcon(aetObj->Type),
-			nameLength,
-			aetObj->GetName().c_str(),
-			textureMaskIndicator);
+		// NOTE: Append the object icon
+		{
+			const char* typeIcon = GetObjTypeIcon(aetObj->Type);
+			const size_t typeIconLength = std::strlen(typeIcon);
+
+			std::memcpy(buffer, typeIcon, typeIconLength);
+			buffer += typeIconLength;
+			for (int i = 0; i < 2; i++)
+				*(buffer++) = ' ';
+		}
+
+		// NOTE: Copy as much of the name as possible
+		{
+			const auto& name = aetObj->GetName();
+			ptrdiff_t remainingSize = endOfBuffer - buffer;
+			ptrdiff_t nameLength = std::min(remainingSize, static_cast<ptrdiff_t>(name.size()));
+
+			std::memcpy(buffer, name.data(), nameLength);
+			buffer += nameLength;
+		}
+
+		ptrdiff_t remainingSize = endOfBuffer - buffer;
+
+		// NOTE: Check for texture mask
+		{
+			const char* textureMaskIndicator = "  ( " ICON_FA_LINK " )";
+			const ptrdiff_t textureMaskIndicatorLength = std::strlen(textureMaskIndicator);
+
+			if (aetObj->AnimationData && aetObj->AnimationData->UseTextureMask)
+			{
+				if (remainingSize > textureMaskIndicatorLength)
+				{
+					// NOTE: Append the texture mask indicator
+					std::memcpy(buffer, textureMaskIndicator, textureMaskIndicatorLength);
+
+					buffer += textureMaskIndicatorLength;
+					remainingSize = endOfBuffer - buffer;
+				}
+			}
+		}
+
+		if (remainingSize >= 1)
+		{
+			// NOTE: Add a null byte
+			*buffer = '\0';
+		}
+		else
+		{
+			// NOTE: Overwrite the last 3 characters with "..." then add a null byte
+			char* lastCharacter = endOfBuffer - 1;
+
+			for (int i = 1; i < 4; i++)
+				*(lastCharacter - i) = '.';
+			*(lastCharacter) = '\0';
+		}
+
+		if (nodeBufferCookie != nodeBufferCookieValue)
+			assert(false);
 
 		return nodeNameFormatBuffer;
 	}
