@@ -32,19 +32,19 @@ namespace Editor
 
 		switch (selected.Type())
 		{
-		case AetSelectionType::AetSet:
+		case AetItemType::AetSet:
 			DrawInspectorAetSet(selected.GetAetSetRef());
 			break;
-		case AetSelectionType::Aet:
+		case AetItemType::Aet:
 			DrawInspectorAet(selected.GetAetRef());
 			break;
-		case AetSelectionType::AetLayer:
+		case AetItemType::AetLayer:
 			DrawInspectorAetLayer(parentAet, selected.GetAetLayerRef());
 			break;
-		case AetSelectionType::AetObj:
+		case AetItemType::AetObj:
 			DrawInspectorAetObj(parentAet, selected.GetAetObjRef());
 			break;
-		case AetSelectionType::AetRegion:
+		case AetItemType::AetRegion:
 			DrawInspectorAetRegion(parentAet, selected.GetAetRegionRef());
 			break;
 		default:

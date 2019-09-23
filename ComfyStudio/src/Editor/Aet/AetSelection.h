@@ -6,7 +6,7 @@ namespace Editor
 {
 	using namespace FileSystem;
 
-	enum class AetSelectionType
+	enum class AetItemType
 	{
 		None,
 		AetSet,
@@ -43,8 +43,8 @@ namespace Editor
 		template <class T>
 		inline void SetItem(const RefPtr<T>& value);
 
-		inline AetSelectionType Type() const { return type; };
-		inline void Reset() { type = AetSelectionType::None; Ptrs.VoidPointer = nullptr; refPtrs.VoidReference = nullptr; };
+		inline AetItemType Type() const { return type; };
+		inline void Reset() { type = AetItemType::None; Ptrs.VoidPointer = nullptr; refPtrs.VoidReference = nullptr; };
 
 	public:
 		inline const RefPtr<AetSet>& GetAetSetRef() const { return *refPtrs.AetSetRef; };
@@ -60,7 +60,7 @@ namespace Editor
 		AetItemPtrUnion Ptrs;
 
 	private:
-		AetSelectionType type;
+		AetItemType type;
 		AetItemReferencePtrUnion refPtrs;
 	};
 
@@ -69,31 +69,31 @@ namespace Editor
 	{
 		if constexpr (std::is_same<T, AetSet>::value)
 		{
-			type = AetSelectionType::AetSet;
+			type = AetItemType::AetSet;
 			Ptrs.AetSet = value.get();
 			refPtrs.AetSetRef = &value;
 		}
 		else if constexpr (std::is_same<T, Aet>::value)
 		{
-			type = AetSelectionType::Aet;
+			type = AetItemType::Aet;
 			Ptrs.Aet = value.get();
 			refPtrs.AetRef = &value;
 		}
 		else if constexpr (std::is_same<T, AetLayer>::value)
 		{
-			type = AetSelectionType::AetLayer;
+			type = AetItemType::AetLayer;
 			Ptrs.AetLayer = value.get();
 			refPtrs.AetLayerRef = &value;
 		}
 		else if constexpr (std::is_same<T, AetObj>::value)
 		{
-			type = AetSelectionType::AetObj;
+			type = AetItemType::AetObj;
 			Ptrs.AetObj = value.get();
 			refPtrs.AetObjRef = &value;
 		}
 		else if constexpr (std::is_same<T, AetRegion>::value)
 		{
-			type = AetSelectionType::AetRegion;
+			type = AetItemType::AetRegion;
 			Ptrs.AetRegion = value.get();
 			refPtrs.AetRegionRef = &value;
 		}
@@ -110,19 +110,19 @@ namespace Editor
 
 		switch (type)
 		{
-		case AetSelectionType::None:
+		case AetItemType::None:
 			return nullptr;
-		case AetSelectionType::AetSet:
+		case AetItemType::AetSet:
 			return nullptr;
-		case AetSelectionType::Aet:
+		case AetItemType::Aet:
 			return Ptrs.Aet;
-		case AetSelectionType::AetLayer:
+		case AetItemType::AetLayer:
 			assert(Ptrs.AetLayer->GetParentAet() != nullptr);
 			return Ptrs.AetLayer->GetParentAet();
-		case AetSelectionType::AetObj:
+		case AetItemType::AetObj:
 			assert(Ptrs.AetObj->GetParentAet() != nullptr);
 			return Ptrs.AetObj->GetParentAet();
-		case AetSelectionType::AetRegion:
+		case AetItemType::AetRegion:
 			return nullptr;
 		}
 		return nullptr;

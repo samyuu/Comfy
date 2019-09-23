@@ -44,7 +44,7 @@ namespace Editor
 		inline float GetRowHeight() const { return rowHeight; };
 
 	private:
-		AetItemTypePtr cameraSelectedAetItem;
+		AetItemTypePtr selectedAetItem;
 
 		float rowHeight;
 		bool isPlayback = false;

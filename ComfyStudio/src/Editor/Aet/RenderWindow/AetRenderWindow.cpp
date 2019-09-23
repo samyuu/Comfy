@@ -66,7 +66,7 @@ namespace Editor
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 1.0f));
 		Gui::PushItemWidth(itemWidth);
 		{
-			if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetSelectionType::AetObj && selectedAetItem->GetAetObjRef()->AnimationData != nullptr)
+			if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::AetObj && selectedAetItem->GetAetObjRef()->AnimationData != nullptr)
 			{
 				AetMgr::Interpolate(selectedAetItem->GetAetObjRef()->AnimationData.get(), &toolProperties, currentFrame);
 				toolSize = GetAetObjBoundingSize(selectedAetItem->GetAetObjRef());
@@ -131,7 +131,7 @@ namespace Editor
 		}
 
 		AetTool* tool = GetCurrentTool();
-		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetSelectionType::AetObj)
+		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::AetObj)
 		{
 			auto worldToScreen = [this](vec2 value) { return (camera.WorldToScreenSpace(value) + GetRenderRegion().GetTL()); };
 			auto screenToWorld = [this](vec2 value) { return (camera.ScreenToWorldSpace(value - GetRenderRegion().GetTL())); };
@@ -218,7 +218,7 @@ namespace Editor
 			tool->DrawContextMenu();
 			Gui::Separator();
 
-			bool allowSelection = !cameraSelectedAetItem->IsNull() && cameraSelectedAetItem->Type() == AetSelectionType::AetLayer;
+			bool allowSelection = !cameraSelectedAetItem->IsNull() && cameraSelectedAetItem->Type() == AetItemType::AetLayer;
 			if (Gui::BeginMenu("Select", allowSelection))
 			{
 				for (const RefPtr<AetObj>& obj : *cameraSelectedAetItem->GetAetLayerRef())
@@ -285,23 +285,23 @@ namespace Editor
 				{
 					switch (cameraSelectedAetItem->Type())
 					{
-					case AetSelectionType::AetSet:
+					case AetItemType::AetSet:
 						RenderAetSet(cameraSelectedAetItem->Ptrs.AetSet);
 						break;
-					case AetSelectionType::Aet:
+					case AetItemType::Aet:
 						RenderAet(cameraSelectedAetItem->Ptrs.Aet);
 						break;
-					case AetSelectionType::AetLayer:
+					case AetItemType::AetLayer:
 						RenderAetLayer(cameraSelectedAetItem->Ptrs.AetLayer);
 						break;
-					case AetSelectionType::AetObj:
+					case AetItemType::AetObj:
 						RenderAetObj(cameraSelectedAetItem->Ptrs.AetObj);
 						break;
-					case AetSelectionType::AetRegion:
+					case AetItemType::AetRegion:
 						RenderAetRegion(cameraSelectedAetItem->Ptrs.AetRegion);
 						break;
 
-					case AetSelectionType::None:
+					case AetItemType::None:
 					default:
 						break;
 					}
@@ -366,7 +366,7 @@ namespace Editor
 
 	void AetRenderWindow::DrawTooltipHeaderGui()
 	{
-		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetSelectionType::AetObj && selectedAetItem->GetAetObjRef()->AnimationData != nullptr)
+		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::AetObj && selectedAetItem->GetAetObjRef()->AnimationData != nullptr)
 		{
 			// TODO: Tool specific widgets
 			// TODO: TransformTool could have a origin / position preset selection box here

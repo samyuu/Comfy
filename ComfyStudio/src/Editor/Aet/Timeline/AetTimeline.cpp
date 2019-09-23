@@ -18,11 +18,11 @@ namespace Editor
 
 	void AetTimeline::SetActive(AetItemTypePtr value)
 	{
-		cameraSelectedAetItem = value;
+		selectedAetItem = value;
 
 		constexpr float defaultFrameRate = 60.0f;
 		const Aet* parentAet = value.GetItemParentAet();
-		
+
 		frameRate = (parentAet != nullptr) ? parentAet->FrameRate : defaultFrameRate;
 	}
 
@@ -44,10 +44,10 @@ namespace Editor
 
 	void AetTimeline::DrawTimelineContentKeyFrames()
 	{
-		if (cameraSelectedAetItem.Ptrs.AetObj->AnimationData == nullptr)
+		if (selectedAetItem.Ptrs.AetObj->AnimationData == nullptr)
 			return;
 
-		keyFrameRenderer.DrawKeyFrames(this, cameraSelectedAetItem.Ptrs.AetObj->AnimationData->Properties);
+		keyFrameRenderer.DrawKeyFrames(this, selectedAetItem.Ptrs.AetObj->AnimationData->Properties);
 	}
 
 	void AetTimeline::OnDrawTimelineHeaderWidgets()
@@ -128,32 +128,18 @@ namespace Editor
 		TimelineBase::OnDrawTimelineInfoColumn();
 
 		ImDrawList* drawList = Gui::GetWindowDrawList();
-		
-		ImGuiCol imGuiColor = ImGuiCol_Text;
-		
-		bool isAetObj = cameraSelectedAetItem.Type() == AetSelectionType::AetObj;
-		if (cameraSelectedAetItem.IsNull() || !isAetObj || (isAetObj && cameraSelectedAetItem.GetAetObjRef()->Type == AetObjType::Aif))
-			imGuiColor = ImGuiCol_TextDisabled;
-		
-		ImU32 textColor = Gui::GetColorU32(imGuiColor);
-
-		//for (int i = 0; i < PropertyType_Count; i++)
-		//{
-		//	float y = i * rowHeight + 2;
-		//	auto start = ImVec2(2, y) + infoColumnRegion.GetTL();
-
-		//	drawList->AddText(start, textColor, timelinePropertyNames[i]);
-		//}
-
-		/*
-		if (active.IsNull())
-			return;
-
 		ImU32 textColor = Gui::GetColorU32(ImGuiCol_Text);
-		*/
 
-		if (cameraSelectedAetItem.Type() == AetSelectionType::AetObj || true)
+		if (selectedAetItem.IsNull() || selectedAetItem.Type() == AetItemType::Aet)
 		{
+			// textColor = Gui::GetColorU32(ImGuiCol_TextDisabled);
+			// drawList->AddText(infoColumnRegion.GetTL() + vec2(8, 2), textColor, "Select an Object...");
+		}
+		else if (selectedAetItem.Type() == AetItemType::AetObj)
+		{
+			if (selectedAetItem.GetAetObjRef()->Type == AetObjType::Aif)
+				textColor = Gui::GetColorU32(ImGuiCol_TextDisabled);
+
 			for (int i = 0; i < PropertyType_Count; i++)
 			{
 				float y = i * rowHeight + 2;
@@ -162,12 +148,10 @@ namespace Editor
 				drawList->AddText(start, textColor, timelinePropertyNames[i]);
 			}
 		}
-
-		// TEST:
-		/*
-		if (active.Type() == AetSelectionType::AetLayer)
+		else if (selectedAetItem.Type() == AetItemType::AetLayer)
 		{
-			AetLayer* layer = active.GetAetLayerRef().get();
+			// TODO: Quick test
+			AetLayer* layer = selectedAetItem.GetAetLayerRef().get();
 			for (int i = 0; i < static_cast<int>(layer->size()); i++)
 			{
 				float y = i * rowHeight + 2;
@@ -176,7 +160,6 @@ namespace Editor
 				drawList->AddText(start, textColor, layer->at(i)->GetName().c_str());
 			}
 		}
-		*/
 	}
 
 	void AetTimeline::OnDrawTimlineRows()
@@ -204,22 +187,22 @@ namespace Editor
 
 	void AetTimeline::OnUpdate()
 	{
-		if (!cameraSelectedAetItem.IsNull())
+		if (!selectedAetItem.IsNull())
 		{
-			const auto* parentAet = cameraSelectedAetItem.GetItemParentAet();
+			const auto* parentAet = selectedAetItem.GetItemParentAet();
 
-			switch (cameraSelectedAetItem.Type())
+			switch (selectedAetItem.Type())
 			{
-			case AetSelectionType::Aet:
+			case AetItemType::Aet:
 				loopStartFrame = parentAet->FrameStart;
 				loopEndFrame = parentAet->FrameDuration;
 				break;
 
-			case AetSelectionType::AetLayer:
+			case AetItemType::AetLayer:
 				loopStartFrame = parentAet->FrameStart;
 				loopEndFrame = 0.0f;
 
-				for (RefPtr<AetObj>& obj : *cameraSelectedAetItem.Ptrs.AetLayer)
+				for (RefPtr<AetObj>& obj : *selectedAetItem.Ptrs.AetLayer)
 				{
 					if (obj->LoopEnd > loopEndFrame.Frames())
 						loopEndFrame = obj->LoopEnd;
@@ -227,14 +210,14 @@ namespace Editor
 
 				break;
 
-			case AetSelectionType::AetObj:
-				loopStartFrame = cameraSelectedAetItem.Ptrs.AetObj->LoopStart;
-				loopEndFrame = cameraSelectedAetItem.Ptrs.AetObj->LoopEnd;
+			case AetItemType::AetObj:
+				loopStartFrame = selectedAetItem.Ptrs.AetObj->LoopStart;
+				loopEndFrame = selectedAetItem.Ptrs.AetObj->LoopEnd;
 				break;
 
-			case AetSelectionType::AetRegion:
+			case AetItemType::AetRegion:
 				loopStartFrame = 0;
-				loopEndFrame = glm::max(0.0f, cameraSelectedAetItem.Ptrs.AetRegion->SpriteCount() - 1.0f);
+				loopEndFrame = glm::max(0.0f, selectedAetItem.Ptrs.AetRegion->SpriteCount() - 1.0f);
 				break;
 
 			default:
@@ -272,24 +255,24 @@ namespace Editor
 
 	void AetTimeline::OnDrawTimelineContents()
 	{
-		if (cameraSelectedAetItem.Type() == AetSelectionType::None || cameraSelectedAetItem.IsNull())
+		if (selectedAetItem.Type() == AetItemType::None || selectedAetItem.IsNull())
 		{
 			DrawTimelineContentNone();
 		}
 		else
 		{
-			switch (cameraSelectedAetItem.Type())
+			switch (selectedAetItem.Type())
 			{
-			case AetSelectionType::AetSet:
-			case AetSelectionType::Aet:
+			case AetItemType::AetSet:
+			case AetItemType::Aet:
 				DrawTimelineContentNone();
 				break;
-			case AetSelectionType::AetLayer:
+			case AetItemType::AetLayer:
 				break;
-			case AetSelectionType::AetObj:
+			case AetItemType::AetObj:
 				DrawTimelineContentKeyFrames();
 				break;
-			case AetSelectionType::AetRegion:
+			case AetItemType::AetRegion:
 				break;
 			default:
 				break;

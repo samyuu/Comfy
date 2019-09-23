@@ -98,10 +98,10 @@ namespace Editor
 			{
 				switch (selectedAetItem->Type())
 				{
-				case AetSelectionType::AetLayer:
+				case AetItemType::AetLayer:
 					ScrollToGuiData(selectedAetItem->GetAetLayerRef()->GuiData);
 					break;
-				case AetSelectionType::AetObj:
+				case AetItemType::AetObj:
 					ScrollToGuiData(selectedAetItem->GetAetObjRef()->GuiData);
 					break;
 				default:
@@ -230,7 +230,7 @@ namespace Editor
 			SetSelectedItems(aetLayer);
 
 		bool textHightlighted = false;
-		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetSelectionType::AetObj)
+		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::AetObj)
 			textHightlighted = aetLayer.get() == selectedAetItem->GetAetObjRef()->GetReferencedLayer().get();
 
 		if (textHightlighted)
