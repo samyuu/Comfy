@@ -323,7 +323,7 @@ void Application::BaseDispose()
 		return;
 
 	// Force delete before the OpenGL context is destroyed
-	pvEditor.reset();
+	editorManager.reset();
 
 	Audio::AudioEngine::DisposeInstance();
 	Audio::AudioEngine::DeleteInstance();
@@ -437,7 +437,7 @@ bool Application::InitializeApp()
 	// Base PV Editor
 	// --------------
 	{
-		pvEditor = MakeUnique<Editor::EditorManager>(this);
+		editorManager = MakeUnique<Editor::EditorManager>(this);
 	}
 	// Data Test Components
 	// --------------------
@@ -550,7 +550,7 @@ void Application::DrawGui()
 
 			// Editor Menus Items
 			// ------------------
-			pvEditor->DrawGuiMenuItems();
+			editorManager->DrawGuiMenuItems();
 
 			// App Engine Menu Items
 			// ---------------------
@@ -733,7 +733,7 @@ void Application::DrawGui()
 
 			// Editor Windows
 			// --------------
-			pvEditor->DrawGuiWindows();
+			editorManager->DrawGuiWindows();
 
 			// Data Test Windows
 			// -----------------

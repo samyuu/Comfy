@@ -168,7 +168,7 @@ private:
 
 	// Main Editor
 	// -----------
-	UniquePtr<Editor::EditorManager> pvEditor = nullptr;
+	UniquePtr<Editor::EditorManager> editorManager = nullptr;
 	// -----------------
 
 	// Data Test Components
