@@ -13,6 +13,8 @@ namespace Editor
 		virtual KeyCode GetShortcutKey() const override;
 
 		virtual void UpdatePostDrawGui(Graphics::Auth2D::Properties* properties, vec2 dimensions) override;
+		virtual void ProcessCommands(AetCommandManager* commandManager, const RefPtr<AetObj>& aetObj, float frame, const Graphics::Auth2D::Properties& properties, const Graphics::Auth2D::Properties& previousProperties) override;
+
 		virtual void DrawContextMenu() override;
 
 	private:

@@ -1,5 +1,6 @@
 #include "TransformTool.h"
 #include "Editor/Aet/AetIcons.h"
+#include "Editor/Aet/Command/Commands.h"
 
 namespace Editor
 {
@@ -25,7 +26,7 @@ namespace Editor
 
 		ImU32 nodeColor = ImColor(color);
 		float rotation = box.Rotation();
-		
+
 		DrawBoxNode(drawList, box.TL, nodeColor, rotation);
 		DrawBoxNode(drawList, box.TR, nodeColor, rotation);
 		DrawBoxNode(drawList, box.BL, nodeColor, rotation);
@@ -37,10 +38,13 @@ namespace Editor
 		DrawBoxNode(drawList, box.Left(), nodeColor, rotation);
 	}
 
-	static ImGuiMouseCursor GetCursorForBoxNode(BoxNode boxNode)
+	static inline float AngleBetween(const vec2& pointA, const vec2& pointB)
 	{
-		// TODO: Factor in rotation
+		return glm::degrees(glm::atan(pointA.y - pointB.y, pointA.x - pointB.x));
+	}
 
+	static ImGuiMouseCursor GetBoxNodeCursor(const TransformBox& box, BoxNode boxNode)
+	{
 		switch (boxNode)
 		{
 		case BoxNode_TL:
@@ -56,8 +60,41 @@ namespace Editor
 		case BoxNode_Left:
 			return ImGuiMouseCursor_ResizeEW;
 		default:
-			return 0;
+			return ImGuiMouseCursor_None;
 		}
+
+		// TODO:
+		float angle = AngleBetween(box.Center(), box.GetNodePosition(boxNode));
+		angle = fmod(angle + 270.0f, 360.0f);
+
+		constexpr float threshold = 45.0f * 0.5f;
+
+		// "|"
+		if (angle >= (360 - threshold) || angle <= (0 + threshold))
+			return ImGuiMouseCursor_ResizeNS;
+		if (angle >= (180 - threshold) && angle <= (180 + threshold))
+			return ImGuiMouseCursor_ResizeNS;
+
+		// "-"
+		if (angle >= (90 - threshold) && angle <= (90 + threshold))
+			return ImGuiMouseCursor_ResizeEW;
+		if (angle >= (270 - threshold) && angle <= (270 + threshold))
+			return ImGuiMouseCursor_ResizeEW;
+
+		// "\"
+		if (angle >= (315 - threshold) && angle <= (315 + threshold))
+			return ImGuiMouseCursor_ResizeNWSE;
+		if (angle >= (135 - threshold) && angle <= (135 + threshold))
+			return ImGuiMouseCursor_ResizeNWSE;
+
+		// "/"
+		if (angle >= (45 - threshold) && angle <= (45 + threshold))
+			return ImGuiMouseCursor_ResizeNESW;
+		if (angle >= (225 - threshold) && angle <= (225 + threshold))
+			return ImGuiMouseCursor_ResizeNESW;
+
+		assert(false);
+		return ImGuiMouseCursor_None;
 	}
 
 	const char* TransformTool::GetIcon() const
@@ -97,7 +134,7 @@ namespace Editor
 			windowFocused = true;
 
 		vec2 mousePos = io.MousePos;
-		vec2 mouseWorldPos = ToWorldSpace(mousePos);
+		vec2 mouseWorldPos = glm::round(ToWorldSpace(mousePos));
 
 		if (mode == GrabMode::None)
 			worldSpaceBox = TransformBox(*properties, dimensions);
@@ -160,9 +197,11 @@ namespace Editor
 
 			if (allowAction)
 			{
-				// TODO: Round to "grid" (?)
 				vec2 grabOffset = mouseWorldPositionOnMouseDown - propertiesOnMouseDown.Position;
 				properties->Position = glm::round(mouseWorldPos - grabOffset);
+
+				if (Gui::IsKeyDown(GridSnapModifierKey))
+					properties->Position = Snap(properties->Position, PositionSnapPrecision);
 
 				worldSpaceBox = TransformBox(*properties, dimensions);
 			}
@@ -171,11 +210,16 @@ namespace Editor
 		}
 		else if (mode == GrabMode::Scale)
 		{
-			Gui::SetMouseCursor(GetCursorForBoxNode(scalingNode));
+			Gui::SetMouseCursor(GetBoxNodeCursor(worldSpaceBox, scalingNode));
 
 			if (allowAction)
 			{
-				MoveBoxCorner(scalingNode, worldSpaceBox, glm::round(mouseWorldPos), propertiesOnMouseDown.Rotation);
+				vec2 newNodePosition = mouseWorldPos;
+
+				if (Gui::IsKeyDown(GridSnapModifierKey))
+					newNodePosition = Snap(newNodePosition, ScaleSnapPrecision);
+
+				MoveBoxCorner(scalingNode, worldSpaceBox, newNodePosition, propertiesOnMouseDown.Rotation);
 				*properties = worldSpaceBox.GetProperties(dimensions, properties->Origin, properties->Rotation, properties->Opacity);
 			}
 
@@ -183,13 +227,13 @@ namespace Editor
 		}
 		else if (mode == GrabMode::None)
 		{
-			if (hoveringNode >= 0)
-				Gui::SetMouseCursor(GetCursorForBoxNode(hoveringNode));
+			if (hoveringNode != BoxNode_Invalid)
+				Gui::SetMouseCursor(GetBoxNodeCursor(worldSpaceBox, hoveringNode));
 		}
 
 		ImDrawList* drawList = Gui::GetWindowDrawList();
 
-		// box pre grab
+		// NOTE: Draw box pre grab
 		if (mode != GrabMode::None)
 		{
 			TransformBox worldBoxOnMouseDown = TransformBox(propertiesOnMouseDown, dimensions);
@@ -199,17 +243,40 @@ namespace Editor
 
 		screenSpaceBox = BoxWorldToScreenSpace(worldSpaceBox);
 
-		// base box
+		// NOTE: Draw base box
 		DrawBox(drawList, screenSpaceBox, (mode == GrabMode::Scale), (mode == GrabMode::Move) ? allowAction ? redColor : redPreColor : whiteColor);
 
-		// origin center
+		// NOTE: Draw origin point
 		drawList->AddCircleFilled(ToScreenSpace(properties->Position), TransformBox::NodeRadius, ImColor(yellowColor));
 
-		// grab node
+		// NOTE: Draw grabbing node
 		if (mode == GrabMode::Scale)
-		{ 
 			DrawBoxNode(drawList, screenSpaceBox.GetNodePosition(scalingNode), ImColor(allowAction ? redColor : redPreColor), screenSpaceBox.Rotation());
-		}
+	}
+
+	void TransformTool::ProcessCommands(AetCommandManager* commandManager, const RefPtr<AetObj>& aetObj, float frame, const Graphics::Auth2D::Properties& properties, const Graphics::Auth2D::Properties& previousProperties)
+	{
+		using namespace Graphics::Auth2D;
+
+		// TODO: if keyframe is nullptr add keyframe (how to handle adding keyframe commands?)
+		// NOTE: ~~if the keyframe for the scale for example doesn't exist at the current timeline frame, then modify the value of the 0th keyframe instead (?)~~
+
+		if (properties == previousProperties)
+			return;
+
+		auto& animationProperties = aetObj->AnimationData->Properties;
+
+		PropertyTypeFlags flags = {};
+		flags.PositionX = AetMgr::GetKeyFrameAt(animationProperties[PropertyType_PositionX], frame) != nullptr;
+		flags.PositionY = AetMgr::GetKeyFrameAt(animationProperties[PropertyType_PositionY], frame) != nullptr;
+		flags.ScaleX = AetMgr::GetKeyFrameAt(animationProperties[PropertyType_ScaleX], frame) != nullptr;
+		flags.ScaleY = AetMgr::GetKeyFrameAt(animationProperties[PropertyType_ScaleY], frame) != nullptr;
+
+		vec4 packedValue = vec4(properties.Position, properties.Scale);
+		const auto tuple = std::make_tuple(frame, packedValue, flags);
+
+		// TODO: Might want to force a new command after the mouse has been released (although that might not play too nicely with scaling)
+		ProcessUpdatingAetCommand(commandManager, AnimationDataChangeTransform, aetObj->AnimationData, tuple);
 	}
 
 	void TransformTool::DrawContextMenu()

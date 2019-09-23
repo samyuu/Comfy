@@ -38,6 +38,9 @@ namespace Editor::Command
 	using namespace FileSystem;
 	using namespace Graphics::Auth2D;
 
+	constexpr float FloatInfinity = std::numeric_limits<float>::infinity();
+
+	// ----------------------------------------------------------------------------------------------------------------------------
 	enum class AetCommandType
 	{
 		AetChangeName,
@@ -68,10 +71,15 @@ namespace Editor::Command
 		AetObjDeleteMarker,
 		AetObjMoveMarker,
 		AnimationDataChangeKeyFrameValue,
+		AnimationDataChangeTransform,
+		AnimationDataChangePosition,
+		AnimationDataChangeScale,
 	};
+	// ----------------------------------------------------------------------------------------------------------------------------
 
 	// NOTE: These don't really need to be private because they are only accessed through the AetCommand interface
 
+	// ----------------------------------------------------------------------------------------------------------------------------
 	Define_PropertyCommand(AetChangeName, "Aet Name Change", Aet, String, Name);
 	Define_PropertyCommand(AetChangeResolution, "Resolution Change", Aet, ivec2, Resolution);
 	Define_PropertyCommand(AetChangeStartFrame, "Aet Start Frame Change", Aet, float, FrameStart);
@@ -91,12 +99,13 @@ namespace Editor::Command
 	Define_AccessorCommand(AetObjChangeObjReferenceParent, "Object Reference Parent Change", AetObj, RefPtr<AetObj>, GetReferencedParentObj, SetReferencedParentObj);
 
 	Define_PropertyCommand(AnimationDataChangeBlendMode, "Blend Mode Change", AnimationData, AetBlendMode, BlendMode);
-	Define_PropertyCommand(AnimationDataChangeUseTextureMask, "Use Texture Mask Change", AnimationData, bool, UseTextureMask);
+	Define_PropertyCommand(AnimationDataChangeUseTextureMask, "Texture Mask Change", AnimationData, bool, UseTextureMask);
 
 	Define_PropertyCommand(AetObjChangeMarkerName, "Object Marker Name Change", AetMarker, String, Name);
 	Define_PropertyCommand(AetObjChangeMarkerFrame, "Object Marker Frame Change", AetMarker, float, Frame);
+	// ----------------------------------------------------------------------------------------------------------------------------
 
-
+	// ----------------------------------------------------------------------------------------------------------------------------
 	Define_AetCommandStart(AetObjAddMarker, "New Object Marker");
 private:
 	RefPtr<AetObj> ref;
@@ -108,8 +117,10 @@ public:
 	void Redo() override { Do(); }
 	void Update(const RefPtr<AetMarker>& value) { newValue = value; Redo(); };
 	Define_AetCommandEnd();
+	// ----------------------------------------------------------------------------------------------------------------------------
 
 
+	// ----------------------------------------------------------------------------------------------------------------------------
 	Define_AetCommandStart(AetObjDeleteMarker, "Delete Object Marker");
 private:
 	RefPtr<AetObj> ref;
@@ -122,12 +133,14 @@ public:
 	void Redo() override { ref->Markers.erase(ref->Markers.begin() + index); }
 	void Update(const int& value) { index = value; Redo(); };
 	Define_AetCommandEnd();
+	// ----------------------------------------------------------------------------------------------------------------------------
 
 
+	// ----------------------------------------------------------------------------------------------------------------------------
 	Define_AetCommandStart(AetObjMoveMarker, "Move Object Marker");
 private:
 	RefPtr<AetObj> ref;
-	std::tuple<int, int> newValue;
+	std::tuple<int /* SourceIndex */, int /* DestinationIndex */> newValue;
 public:
 	AetObjMoveMarker(const RefPtr<AetObj>& ref, std::tuple<int, int> value) : ref(ref), newValue(value) {}
 	void Do()	override { std::iter_swap(ref->Markers.begin() + std::get<0>(newValue), ref->Markers.begin() + std::get<1>(newValue)); }
@@ -135,22 +148,218 @@ public:
 	void Redo() override { Do(); }
 	void Update(const std::tuple<int, int>& value) { newValue = value; Redo(); };
 	Define_AetCommandEnd();
+	// ----------------------------------------------------------------------------------------------------------------------------
 
 
+	// ----------------------------------------------------------------------------------------------------------------------------
 	// TODO: Consider using float KeyFrame::Frame instead of int index (?)
+	// NOTE: Generic change KeyFrame value command to be used by the AetInspector
 	Define_AetCommandStart(AnimationDataChangeKeyFrameValue, "Key Frame Value Change");
 private:
 	RefPtr<AnimationData> ref;
-	std::tuple<PropertyType_Enum, int, float> newValue;
+	std::tuple<PropertyType_Enum /* Property */, frame_t /* Frame */, float /* Value */> newValue;
 	float oldValue;
+
+	inline KeyFrameCollection& GetKeyFrames() { return ref->Properties[std::get<0>(newValue)]; };
+	inline frame_t GetFrame() { return std::get<1>(newValue); };
+	inline float GetValue() { return std::get<2>(newValue); };
+	inline AetKeyFrame* GetKeyFrame() { return AetMgr::GetKeyFrameAt(GetKeyFrames(), GetFrame()); };
+
 public:
-	AnimationDataChangeKeyFrameValue(const RefPtr<AnimationData>& ref, std::tuple<PropertyType_Enum, int, float> value) : ref(ref), newValue(value) {}
-	void Do()	override { oldValue = ref->Properties[std::get<0>(newValue)].at(std::get<1>(newValue)).Value; Redo(); }
-	void Undo() override { ref->Properties[std::get<0>(newValue)].at(std::get<1>(newValue)).Value = oldValue; }
-	void Redo() override { ref->Properties[std::get<0>(newValue)].at(std::get<1>(newValue)).Value = std::get<2>(newValue); }
-	void Update(const std::tuple<PropertyType_Enum, int, float>& value) { newValue = value; Redo(); };
-	const void* GetDataIdentifier() override { return &ref->Properties[std::get<0>(newValue)]; };
+	AnimationDataChangeKeyFrameValue(const RefPtr<AnimationData>& ref, std::tuple<PropertyType_Enum, frame_t, float> value) : ref(ref), newValue(value) {}
+
+	void Do() override 
+	{ 
+		oldValue = GetKeyFrame()->Value; Redo();
+	}
+	void Undo() override 
+	{ 
+		GetKeyFrame()->Value = oldValue;
+	}
+	void Redo() override 
+	{ 
+		GetKeyFrame()->Value = GetValue();
+	}
+	void Update(const std::tuple<PropertyType_Enum, frame_t, float>& value) 
+	{ 
+		newValue = value; Redo(); 
+	};
+	const void* GetDataIdentifier() override 
+	{
+		return &GetKeyFrames(); 
+	};
 	Define_AetCommandEnd();
+	// ----------------------------------------------------------------------------------------------------------------------------
+
+	
+	// ----------------------------------------------------------------------------------------------------------------------------
+	// NOTE: Should only be used by the TransformTool
+	Define_AetCommandStart(AnimationDataChangeTransform, "Transform");
+private:
+	RefPtr<AnimationData> ref;
+	std::tuple<frame_t /* Frame */, vec4 /* Position and Scale */, PropertyTypeFlags /* Properties */> newValue;
+	vec2 oldPosition, oldScale;
+
+	inline frame_t GetFrame() { return std::get<0>(newValue); };
+	inline vec2 GetPosition() { return vec2(std::get<1>(newValue).x, std::get<1>(newValue).y); };
+	inline vec2 GetScale() { return vec2(std::get<1>(newValue).z, std::get<1>(newValue).w); };
+	inline PropertyTypeFlags GetTypeFlags() { return std::get<2>(newValue); };
+
+	inline KeyFrameCollection& GetXPositionKeyFrames() { return ref->Properties.PositionX(); };
+	inline KeyFrameCollection& GetYPositionKeyFrames() { return ref->Properties.PositionY(); };
+	inline KeyFrameCollection& GetXScaleKeyFrames() { return ref->Properties.ScaleX(); };
+	inline KeyFrameCollection& GetYScaleKeyFrames() { return ref->Properties.ScaleY(); };
+
+	inline AetKeyFrame* GetXPositionKeyFrame() { return !GetTypeFlags().PositionX ? nullptr : AetMgr::GetKeyFrameAt(GetXPositionKeyFrames(), GetFrame()); };
+	inline AetKeyFrame* GetYPositionKeyFrame() { return !GetTypeFlags().PositionY ? nullptr : AetMgr::GetKeyFrameAt(GetYPositionKeyFrames(), GetFrame()); };
+	inline AetKeyFrame* GetXScaleKeyFrame() { return !GetTypeFlags().ScaleX ? nullptr : AetMgr::GetKeyFrameAt(GetXScaleKeyFrames(), GetFrame()); };
+	inline AetKeyFrame* GetYScaleKeyFrame() { return !GetTypeFlags().ScaleY ? nullptr : AetMgr::GetKeyFrameAt(GetYScaleKeyFrames(), GetFrame()); };
+
+public:
+	AnimationDataChangeTransform(const RefPtr<AnimationData>& ref, std::tuple<frame_t, vec4, PropertyTypeFlags> value) : ref(ref), newValue(value) {}
+
+	void Do() override
+	{
+		auto flags = GetTypeFlags();
+		oldPosition.x = flags.PositionX ? GetXPositionKeyFrame()->Value : FloatInfinity;
+		oldPosition.y = flags.PositionY ? GetYPositionKeyFrame()->Value : FloatInfinity;
+		oldScale.x = flags.ScaleX ? GetXScaleKeyFrame()->Value : FloatInfinity;
+		oldScale.y = flags.ScaleY ? GetYScaleKeyFrame()->Value : FloatInfinity;
+		Redo();
+	}
+	void Undo() override
+	{
+		auto flags = GetTypeFlags();
+		if (flags.PositionX) GetXPositionKeyFrame()->Value = oldPosition.x;
+		if (flags.PositionY) GetYPositionKeyFrame()->Value = oldPosition.y;
+		if (flags.ScaleX) GetXScaleKeyFrame()->Value = oldScale.x;
+		if (flags.ScaleY) GetYScaleKeyFrame()->Value = oldScale.y;
+	}
+	void Redo() override
+	{
+		AetKeyFrame* keyFrames[4] = { GetXPositionKeyFrame(), GetYPositionKeyFrame(), GetXScaleKeyFrame(), GetYScaleKeyFrame() };
+		if (keyFrames[0]) keyFrames[0]->Value = GetPosition().x;
+		if (keyFrames[1]) keyFrames[1]->Value = GetPosition().y;
+		if (keyFrames[2]) keyFrames[2]->Value = GetScale().x;
+		if (keyFrames[3]) keyFrames[3]->Value = GetScale().y;
+	}
+	void Update(const std::tuple<float, vec4, PropertyTypeFlags>& value)
+	{
+		newValue = value;
+		Redo();
+	};
+	const void* GetDataIdentifier() override
+	{
+		return ref.get();
+	};
+	Define_AetCommandEnd();
+	// ----------------------------------------------------------------------------------------------------------------------------
+
+
+	// ----------------------------------------------------------------------------------------------------------------------------
+	// NOTE: Should only be used by the MoveTool
+	Define_AetCommandStart(AnimationDataChangePosition, "Move");
+private:
+	RefPtr<AnimationData> ref;
+	std::tuple<frame_t /* Frame */, vec2 /* Position */, PropertyTypeFlags /* Properties */> newValue;
+	vec2 oldValue;
+
+	inline frame_t GetFrame() { return std::get<0>(newValue); };
+	inline vec2 GetValue() { return std::get<1>(newValue); };
+	inline PropertyTypeFlags GetTypeFlags() { return std::get<2>(newValue); };
+
+	inline KeyFrameCollection& GetXKeyFrames() { return ref->Properties.PositionX(); };
+	inline KeyFrameCollection& GetYKeyFrames() { return ref->Properties.PositionY(); };
+
+	inline AetKeyFrame* GetXKeyFrame() { return !GetTypeFlags().PositionX ? nullptr : AetMgr::GetKeyFrameAt(GetXKeyFrames(), GetFrame()); };
+	inline AetKeyFrame* GetYKeyFrame() { return !GetTypeFlags().PositionY ? nullptr : AetMgr::GetKeyFrameAt(GetYKeyFrames(), GetFrame()); };
+
+public:
+	AnimationDataChangePosition(const RefPtr<AnimationData>& ref, std::tuple<frame_t, vec2, PropertyTypeFlags> value) : ref(ref), newValue(value) {}
+
+	void Do() override 
+	{ 
+		AetKeyFrame* keyFrames[2] = { GetXKeyFrame(), GetYKeyFrame() };
+		oldValue.x = keyFrames[0] ? keyFrames[0]->Value : FloatInfinity;
+		oldValue.y = keyFrames[1] ? keyFrames[1]->Value : FloatInfinity;
+		Redo(); 
+	}
+	void Undo() override 
+	{
+		AetKeyFrame* keyFrames[2] = { GetXKeyFrame(), GetYKeyFrame() };
+		if (keyFrames[0]) keyFrames[0]->Value = oldValue.x;
+		if (keyFrames[1]) keyFrames[1]->Value = oldValue.y;
+	}
+	void Redo() override 
+	{
+		AetKeyFrame* keyFrames[2] = { GetXKeyFrame(), GetYKeyFrame() };
+		if (keyFrames[0]) keyFrames[0]->Value = GetValue().x;
+		if (keyFrames[1]) keyFrames[1]->Value = GetValue().y;
+	}
+	void Update(const std::tuple<float, vec2, PropertyTypeFlags>& value)
+	{ 
+		newValue = value; 
+		Redo(); 
+	};
+	const void* GetDataIdentifier() override 
+	{
+		return ref.get();
+	};
+	Define_AetCommandEnd();
+	// ----------------------------------------------------------------------------------------------------------------------------
+
+
+	// ----------------------------------------------------------------------------------------------------------------------------
+	// NOTE: Should only be used by the ScaleTool
+	Define_AetCommandStart(AnimationDataChangeScale, "Scale");
+private:
+	RefPtr<AnimationData> ref;
+	std::tuple<frame_t /* Frame */, vec2 /* Scale */, PropertyTypeFlags /* Properties */> newValue;
+	vec2 oldValue;
+
+	inline frame_t GetFrame() { return std::get<0>(newValue); };
+	inline vec2 GetValue() { return std::get<1>(newValue); };
+	inline PropertyTypeFlags GetTypeFlags() { return std::get<2>(newValue); };
+
+	inline KeyFrameCollection& GetXKeyFrames() { return ref->Properties.ScaleX(); };
+	inline KeyFrameCollection& GetYKeyFrames() { return ref->Properties.ScaleY(); };
+
+	inline AetKeyFrame* GetXKeyFrame() { return !GetTypeFlags().ScaleX ? nullptr : AetMgr::GetKeyFrameAt(GetXKeyFrames(), GetFrame()); };
+	inline AetKeyFrame* GetYKeyFrame() { return !GetTypeFlags().ScaleY ? nullptr : AetMgr::GetKeyFrameAt(GetYKeyFrames(), GetFrame()); };
+
+public:
+	AnimationDataChangeScale(const RefPtr<AnimationData>& ref, std::tuple<frame_t, vec2, PropertyTypeFlags> value) : ref(ref), newValue(value) {}
+
+	void Do() override
+	{
+		AetKeyFrame* keyFrames[2] = { GetXKeyFrame(), GetYKeyFrame() };
+		oldValue.x = keyFrames[0] ? keyFrames[0]->Value : FloatInfinity;
+		oldValue.y = keyFrames[1] ? keyFrames[1]->Value : FloatInfinity;
+		Redo();
+	}
+	void Undo() override
+	{
+		AetKeyFrame* keyFrames[2] = { GetXKeyFrame(), GetYKeyFrame() };
+		if (keyFrames[0]) keyFrames[0]->Value = oldValue.x;
+		if (keyFrames[1]) keyFrames[1]->Value = oldValue.y;
+	}
+	void Redo() override
+	{
+		AetKeyFrame* keyFrames[2] = { GetXKeyFrame(), GetYKeyFrame() };
+		if (keyFrames[0]) keyFrames[0]->Value = GetValue().x;
+		if (keyFrames[1]) keyFrames[1]->Value = GetValue().y;
+	}
+	void Update(const std::tuple<float, vec2, PropertyTypeFlags>& value)
+	{
+		newValue = value;
+		Redo();
+	};
+	const void* GetDataIdentifier() override
+	{
+		return ref.get();
+	};
+	Define_AetCommandEnd();
+	// ----------------------------------------------------------------------------------------------------------------------------
 }
 
 #undef Define_PropertyCommand

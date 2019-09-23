@@ -78,9 +78,16 @@ namespace Editor
 		return (TL + BL) / 2.0f;
 	}
 
+	vec2 TransformBox::Center() const
+	{
+		return (TL + BR) / 2.0f;
+	}
+
 	float TransformBox::Rotation() const
 	{
-		return glm::degrees(glm::atan(TL.y - TR.y, TL.x - TR.x));
+		const vec2 pointA = Center();
+		const vec2 pointB = Left();
+		return glm::degrees(glm::atan(pointA.y - pointB.y, pointA.x - pointB.x));
 	}
 
 	vec2 TransformBox::GetNodePosition(BoxNode node) const

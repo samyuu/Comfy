@@ -47,6 +47,7 @@ namespace Editor
 		vec2 Right() const;
 		vec2 Bottom() const;
 		vec2 Left() const;
+		vec2 Center() const;
 		float Rotation() const;
 
 		vec2 GetNodePosition(BoxNode node) const;
