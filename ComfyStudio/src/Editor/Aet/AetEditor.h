@@ -36,6 +36,8 @@ namespace Editor
 		UniquePtr<AetCommandManager> commandManager;
 
 		SpriteGetterFunction spriteGetterFunction;
+		
+		const bool asyncFileLoading = false;
 		UniquePtr<FileLoader> sprSetFileLoader;
 
 		Gui::FileViewer aetFileViewer = { "dev_ram/aetset/" };
@@ -59,8 +61,6 @@ namespace Editor
 			RefPtr<AetSet> editorAetSet;
 			UniquePtr<SprSet> sprSet;
 		};
-
-		Properties currentProperties;
 
 		const char* debugAetPath = "dev_ram/aetset/aet_gam/aet_gam_cmn.bin";
 		const char* debugSprPath = "dev_ram/sprset/spr_gam/spr_gam_cmn.bin";

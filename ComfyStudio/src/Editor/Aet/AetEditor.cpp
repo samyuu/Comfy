@@ -158,6 +158,8 @@ namespace Editor
 
 	bool AetEditor::LoadAetSet(const String& filePath)
 	{
+		// TODO: Clear AetCommandManager
+
 		const WideString widePath = Utf8ToUtf16(filePath);
 		if (!FileExists(widePath))
 			return false;
@@ -179,7 +181,14 @@ namespace Editor
 			return false;
 
 		sprSetFileLoader = MakeUnique<FileLoader>(filePath);
-		sprSetFileLoader->LoadAsync();
+		if (asyncFileLoading)
+		{
+			sprSetFileLoader->LoadAsync();
+		}
+		else
+		{
+			sprSetFileLoader->LoadSync();
+		}
 
 		return true;
 	}
@@ -193,10 +202,10 @@ namespace Editor
 	{
 		if (editorAetSet != nullptr)
 			editorAetSet->ClearSpriteCache();
-	
-		spriteGetterFunction = [this](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite) 
-		{ 
-			return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite); 
+
+		spriteGetterFunction = [this](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite)
+		{
+			return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite);
 		};
 	}
 }
