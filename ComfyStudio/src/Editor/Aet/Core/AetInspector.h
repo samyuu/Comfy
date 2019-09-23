@@ -47,12 +47,12 @@ namespace Editor
 		void DrawInspectorAetObj(Aet* aet, const RefPtr<AetObj>& aetObj);
 		void DrawInspectorRegionData(Aet* aet, const RefPtr<AetObj>& aetObj, const RefPtr<AetRegion>& spriteEntry);
 		
-		std::pair<AetKeyFrame*, int> GetKeyFrameAndIndex(const RefPtr<AetObj>& aetObj, int propertyIndex, float inputFrame) const;
+		AetKeyFrame* GetKeyFrameIfExact(const RefPtr<AetObj>& aetObj, int propertyIndex, float inputFrame) const;
 
 		void DrawInspectorAnimationData(const RefPtr<AnimationData>& animationData, const RefPtr<AetObj>& aetObj);
 		void DrawInspectorDebugAnimationData(const RefPtr<AnimationData>& animationData, const RefPtr<AetObj>& aetObj);
-		void DrawInspectorAnimationDataProperty(const RefPtr<AnimationData>& animationData, const char* label, float& value, int propertyType, AetKeyFrame* keyFrames[], int keyFrameIndices[]);
-		void DrawInspectorAnimationDataPropertyVec2(const RefPtr<AnimationData>& animationData, const char* label, vec2& value, int propertyTypeX, int propertyTypeY, AetKeyFrame* keyFrames[], int keyFrameIndices[]);
+		void DrawInspectorAnimationDataProperty(const RefPtr<AnimationData>& animationData, const char* label, float& value, int propertyType, AetKeyFrame* keyFrames[]);
+		void DrawInspectorAnimationDataPropertyVec2(const RefPtr<AnimationData>& animationData, const char* label, vec2& value, int propertyTypeX, int propertyTypeY, AetKeyFrame* keyFrames[]);
 
 		void DrawInspectorAetObjMarkers(const RefPtr<AetObj>& aetObj, Vector<RefPtr<AetMarker>>* markers);
 		void DrawInspectorAetObjParent(Aet* aet, const RefPtr<AetObj>& aetObj);

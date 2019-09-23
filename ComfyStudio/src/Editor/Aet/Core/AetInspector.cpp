@@ -135,7 +135,7 @@ namespace Editor
 		if (Gui::WideTreeNodeEx(ICON_AETLAYERS "  Layer Data", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			if (aetLayer != nullptr)
-				sprintf_s(layerDataNameBuffer, "Layer %d (%s)", aetLayer->GetThisIndex(), aetLayer->GetCommaSeparatedNames());
+				sprintf_s(layerDataNameBuffer, "Layer %d (%s)", aetLayer->GuiData.ThisIndex, aetLayer->GetCommaSeparatedNames().c_str());
 
 			if (Gui::ComfyBeginCombo("Layer", aetLayer == nullptr ? "None (Layer)" : layerDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
@@ -151,7 +151,7 @@ namespace Editor
 					Gui::PushID(layer.get());
 
 					bool isSelected = (aetLayer == layer);
-					sprintf_s(layerDataNameBuffer, "Layer %d (%s)", layerIndex++, layer->GetCommaSeparatedNames());
+					sprintf_s(layerDataNameBuffer, "Layer %d (%s)", layerIndex++, layer->GetCommaSeparatedNames().c_str());
 
 					if (Gui::Selectable(layerDataNameBuffer, isSelected))
 						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceLayer, aetObj, layer);
@@ -218,7 +218,7 @@ namespace Editor
 		{
 			Gui::Separator();
 			DrawInspectorAnimationData(aetObj->AnimationData, aetObj);
-			
+
 			// TODO: Temp remove
 			DrawInspectorDebugAnimationData(aetObj->AnimationData, aetObj);
 		}
@@ -283,28 +283,21 @@ namespace Editor
 		}
 	}
 
-	std::pair<AetKeyFrame*, int> AetInspector::GetKeyFrameAndIndex(const RefPtr<AetObj>& aetObj, int propertyIndex, float inputFrame) const
+	AetKeyFrame* AetInspector::GetKeyFrameIfExact(const RefPtr<AetObj>& aetObj, int propertyIndex, float inputFrame) const
 	{
 		KeyFrameCollection& keyFrames = aetObj->AnimationData->Properties[propertyIndex];
-		bool firstFrame = inputFrame == aetObj->LoopStart;
+		bool isFirstFrame = (inputFrame == aetObj->LoopStart);
 
-		if (firstFrame && keyFrames.size() == 1)
+		if (isFirstFrame && keyFrames.size() == 1)
 			inputFrame = keyFrames.front().Frame;
-
-		AetKeyFrame* foundKeyFrame = nullptr;
-		int index = 0;
 
 		for (auto& keyFrame : keyFrames)
 		{
-			if (glm::round(keyFrame.Frame) == inputFrame)
-			{
-				foundKeyFrame = &keyFrame;
-				break;
-			}
-			index++;
+			if (keyFrame.Frame == inputFrame)
+				return &keyFrame;
 		}
 
-		return { foundKeyFrame, index };
+		return nullptr;
 	}
 
 	void AetInspector::DrawInspectorAnimationData(const RefPtr<AnimationData>& animationData, const RefPtr<AetObj>& aetObj)
@@ -319,22 +312,8 @@ namespace Editor
 				AetMgr::Interpolate(animationData.get(), &currentProperties, currentFrame);
 
 				AetKeyFrame* currentKeyFrames[PropertyType_Count];
-				int currentKeyFrameIndices[PropertyType_Count];
-
 				for (int i = 0; i < PropertyType_Count; i++)
-				{
-					if (isPlayback)
-					{
-						currentKeyFrames[i] = nullptr;
-					}
-					else
-					{
-						auto[keyFrame, index] = GetKeyFrameAndIndex(aetObj, i, glm::round(currentFrame));
-
-						currentKeyFrames[i] = keyFrame;
-						currentKeyFrameIndices[i] = index;
-					}
-				}
+					currentKeyFrames[i] = !isPlayback ? nullptr : GetKeyFrameIfExact(aetObj, i, glm::round(currentFrame));
 
 				animatedPropertyColor = GetColorVec4(EditorColor_AnimatedProperty);
 				keyFramePropertyColor = GetColorVec4(EditorColor_KeyFrameProperty);
@@ -342,11 +321,11 @@ namespace Editor
 
 				// TODO: Auto insert keyframe mode
 
-				DrawInspectorAnimationDataPropertyVec2(animationData, "Origin", currentProperties.Origin, PropertyType_OriginX, PropertyType_OriginY, currentKeyFrames, currentKeyFrameIndices);
-				DrawInspectorAnimationDataPropertyVec2(animationData, "Position", currentProperties.Position, PropertyType_PositionX, PropertyType_PositionY, currentKeyFrames, currentKeyFrameIndices);
-				DrawInspectorAnimationDataProperty(animationData, "Rotation", currentProperties.Rotation, PropertyType_Rotation, currentKeyFrames, currentKeyFrameIndices);
-				DrawInspectorAnimationDataPropertyVec2(animationData, "Scale", currentProperties.Scale, PropertyType_ScaleX, PropertyType_ScaleY, currentKeyFrames, currentKeyFrameIndices);
-				DrawInspectorAnimationDataProperty(animationData, "Opacity", currentProperties.Opacity, PropertyType_Opacity, currentKeyFrames, currentKeyFrameIndices);
+				DrawInspectorAnimationDataPropertyVec2(animationData, "Origin", currentProperties.Origin, PropertyType_OriginX, PropertyType_OriginY, currentKeyFrames);
+				DrawInspectorAnimationDataPropertyVec2(animationData, "Position", currentProperties.Position, PropertyType_PositionX, PropertyType_PositionY, currentKeyFrames);
+				DrawInspectorAnimationDataProperty(animationData, "Rotation", currentProperties.Rotation, PropertyType_Rotation, currentKeyFrames);
+				DrawInspectorAnimationDataPropertyVec2(animationData, "Scale", currentProperties.Scale, PropertyType_ScaleX, PropertyType_ScaleY, currentKeyFrames);
+				DrawInspectorAnimationDataProperty(animationData, "Opacity", currentProperties.Opacity, PropertyType_Opacity, currentKeyFrames);
 			}
 
 			if (aetObj->Type == AetObjType::Pic)
@@ -419,7 +398,7 @@ namespace Editor
 		return !(currentKeyFrames[propetyType] || (propetyTypeAlt >= 0 && currentKeyFrames[propetyTypeAlt]));
 	}
 
-	void AetInspector::DrawInspectorAnimationDataProperty(const RefPtr<AnimationData>& animationData, const char* label, float& value, int propertyType, AetKeyFrame* keyFrames[], int keyFrameIndices[])
+	void AetInspector::DrawInspectorAnimationDataProperty(const RefPtr<AnimationData>& animationData, const char* label, float& value, int propertyType, AetKeyFrame* keyFrames[])
 	{
 		using namespace Graphics::Auth2D;
 		constexpr float percentFactor = 100.0f;
@@ -447,7 +426,7 @@ namespace Editor
 
 			if (keyFrames[propertyType] && value != previousValue)
 			{
-				auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(propertyType), keyFrameIndices[propertyType], value);
+				auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(propertyType), keyFrames[propertyType]->Frame, value);
 				ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, animationData, tuple);
 			}
 		}
@@ -455,7 +434,7 @@ namespace Editor
 		Gui::PopStyleColor();
 	}
 
-	void AetInspector::DrawInspectorAnimationDataPropertyVec2(const RefPtr<AnimationData>& animationData, const char* label, vec2& value, int propertyTypeX, int propertyTypeY, AetKeyFrame* keyFrames[], int keyFrameIndices[])
+	void AetInspector::DrawInspectorAnimationDataPropertyVec2(const RefPtr<AnimationData>& animationData, const char* label, vec2& value, int propertyTypeX, int propertyTypeY, AetKeyFrame* keyFrames[])
 	{
 		using namespace Graphics::Auth2D;
 		constexpr float percentFactor = 100.0f;
@@ -481,13 +460,13 @@ namespace Editor
 
 			if (keyFrames[propertyTypeX] && value.x != previousValue.x)
 			{
-				auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(propertyTypeX), keyFrameIndices[propertyTypeX], value.x);
+				auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(propertyTypeX), keyFrames[propertyTypeX]->Frame, value.x);
 				ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, animationData, tuple);
 			}
 
 			if (keyFrames[propertyTypeY] && value.y != previousValue.y)
 			{
-				auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(propertyTypeY), keyFrameIndices[propertyTypeY], value.y);
+				auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(propertyTypeY), keyFrames[propertyTypeY]->Frame, value.y);
 				ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, animationData, tuple);
 			}
 		}
@@ -572,7 +551,7 @@ namespace Editor
 			AetLayer* parentObjLayer = parentObj != nullptr ? parentObj->GetParentLayer() : nullptr;
 
 			if (parentObj != nullptr)
-				newParentObjLayerIndex = parentObjLayer->GetThisIndex();
+				newParentObjLayerIndex = parentObjLayer->GuiData.ThisIndex;
 
 			const char* noParentLayerString = "None (Parent Layer)";
 			const char* noParentObjString = "None (Parent Object)";
@@ -580,7 +559,7 @@ namespace Editor
 			if (newParentObjLayerIndex >= 0)
 			{
 				parentObjLayer = aet->AetLayers[newParentObjLayerIndex].get();
-				sprintf_s(parentObjDataNameBuffer, "Layer %d (%s)", parentObjLayer->GetThisIndex(), parentObjLayer->GetCommaSeparatedNames());
+				sprintf_s(parentObjDataNameBuffer, "Layer %d (%s)", parentObjLayer->GuiData.ThisIndex, parentObjLayer->GetCommaSeparatedNames().c_str());
 			}
 			else
 			{
@@ -601,7 +580,7 @@ namespace Editor
 					auto& layer = aet->AetLayers[layerIndex];
 
 					bool isSelected = (layerIndex == newParentObjLayerIndex);
-					sprintf_s(parentObjDataNameBuffer, "Layer %d (%s)", layerIndex, layer->GetCommaSeparatedNames());
+					sprintf_s(parentObjDataNameBuffer, "Layer %d (%s)", layerIndex, layer->GetCommaSeparatedNames().c_str());
 
 					Gui::PushID(layer.get());
 					if (Gui::Selectable(parentObjDataNameBuffer, isSelected))
