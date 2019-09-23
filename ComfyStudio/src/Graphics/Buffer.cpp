@@ -204,7 +204,7 @@ namespace Graphics
 	// --- BufferLayout:
 	// ------------------------------------------------------------------------------------------------
 
-	BufferLayout::BufferLayout(std::initializer_list<BufferElement> elements) : elements(elements)
+	BufferLayout::BufferLayout(std::initializer_list<BufferElement> elements) : stride(0), elements(elements)
 	{
 		UpdateElements();
 	}
