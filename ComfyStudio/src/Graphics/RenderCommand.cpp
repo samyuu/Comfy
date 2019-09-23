@@ -64,9 +64,9 @@ namespace Graphics
 		GLCall(glViewport(0, 0, static_cast<GLint>(width), static_cast<GLint>(height)));
 	}
 
-	void RenderCommand::SetViewport(const vec2& size)
+	void RenderCommand::SetViewport(ivec2 size)
 	{
-		RenderCommand::SetViewport(static_cast<GLint>(size.x), static_cast<GLint>(size.y));
+		RenderCommand::SetViewport(size.x, size.y);
 	}
 
 	void RenderCommand::BindShaderProgram(uint32_t programID)

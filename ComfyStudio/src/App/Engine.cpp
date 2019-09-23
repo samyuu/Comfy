@@ -60,10 +60,10 @@ namespace App
 			task->PostDrawGui();
 	}
 
-	void EngineRenderWindow::OnResize(int width, int height)
+	void EngineRenderWindow::OnResize(ivec2 size)
 	{
-		RenderWindowBase::OnResize(width, height);
-		camera.ProjectionSize = vec2(width, height);
+		RenderWindowBase::OnResize(size);
+		camera.ProjectionSize = vec2(size);
 	}
 
 	Engine::Engine()

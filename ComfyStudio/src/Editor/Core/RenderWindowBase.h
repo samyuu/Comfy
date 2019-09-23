@@ -38,7 +38,7 @@ namespace Editor
 		virtual void OnUpdateInput() = 0;
 		virtual void OnUpdate() = 0;
 		virtual void OnRender() = 0;
-		virtual void OnResize(int width, int height);
+		virtual void OnResize(ivec2 size);
 
 		inline bool GetWasResized() { return wasResized; };
 		const ImRect& GetRenderRegion() const;
@@ -46,6 +46,7 @@ namespace Editor
 	private:
 		ImRect renderRegion, lastRenderRegion;
 		bool wasResized = false;
+		bool needsResizing = true;
 		bool keepAspectRatio = false;
 		float targetAspectRatio = 16.0f / 9.0f;
 	};

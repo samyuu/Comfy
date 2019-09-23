@@ -84,13 +84,13 @@ namespace Editor
 		renderTarget.UnBind();
 	}
 
-	void TargetRenderWindow::OnResize(int width, int height)
+	void TargetRenderWindow::OnResize(ivec2 size)
 	{
-		RenderWindowBase::OnResize(width, height);
+		RenderWindowBase::OnResize(size);
 
-		camera.ProjectionSize = vec2(width, height);
+		camera.ProjectionSize = vec2(size);
 		camera.Position = vec2(0.0f, 0.0f);
-		camera.Zoom = width / renderSize.x;
+		camera.Zoom = camera.ProjectionSize.x / renderSize.x;
 	}
 
 	void TargetRenderWindow::RenderBackground()

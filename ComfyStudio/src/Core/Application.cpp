@@ -307,7 +307,7 @@ void Application::BaseDraw()
 	const ImVec4 baseClearColor = ImColor(Editor::GetColor(Editor::EditorColor_BaseClear));
 	Graphics::RenderCommand::SetClearColor(baseClearColor);
 	Graphics::RenderCommand::Clear(Graphics::ClearTarget_ColorBuffer);
-	Graphics::RenderCommand::SetViewport(vec2(windowWidth, windowHeight));
+	Graphics::RenderCommand::SetViewport(ivec2(windowWidth, windowHeight));
 
 	DrawGui();
 }

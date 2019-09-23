@@ -31,7 +31,7 @@ namespace App
 		};
 
 	protected:
-		void OnResize(int width, int height) override;
+		void OnResize(ivec2 size) override;
 
 	protected:
 		UniquePtr<Graphics::Auth2D::Renderer2D> renderer;

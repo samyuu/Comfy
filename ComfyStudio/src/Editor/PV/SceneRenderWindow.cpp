@@ -105,7 +105,7 @@ namespace Editor
 		// --------------
 		{
 			// arbitrary initial size, gets changed by OnReSize() later
-			postProcessingRenderTarget.Initialize(RenderTargetDefaultSize.x, RenderTargetDefaultSize.y);
+			postProcessingRenderTarget.Initialize(RenderTargetDefaultSize);
 		}
 	}
 
@@ -407,13 +407,13 @@ namespace Editor
 		renderTarget.UnBind();
 	}
 
-	void SceneRenderWindow::OnResize(int width, int height)
+	void SceneRenderWindow::OnResize(ivec2 size)
 	{
-		RenderWindowBase::OnResize(width, height);
+		RenderWindowBase::OnResize(size);
 
 		ImVec2 renderRegionSize = GetRenderRegion().GetSize();
 		camera.AspectRatio = renderRegionSize.x / renderRegionSize.y;
 
-		postProcessingRenderTarget.Resize(width, height);
+		postProcessingRenderTarget.Resize(size);
 	}
 }

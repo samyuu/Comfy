@@ -23,7 +23,7 @@ namespace Graphics
 		void InitializeID() override;
 		void Bind() const override;
 		void UnBind() const override;
-		void RenderbufferStorage(int width, int height, InternalFormat_t internalFormat);
+		void RenderbufferStorage(ivec2 size, InternalFormat_t internalFormat);
 
 		inline RenderbufferID_t GetRenderbufferID() const { return renderbufferID; };
 		inline RenderTarget_t GetRenderTarget() const { return GL_RENDERBUFFER; };
@@ -77,11 +77,11 @@ namespace Graphics
 		~RenderTarget();
 		RenderTarget(const RenderTarget&) = delete;
 
-		void Initialize(int width, int height);
+		void Initialize(ivec2 size);
 		void Bind();
 		void UnBind();
 
-		void Resize(int width, int height);
+		void Resize(ivec2 size);
 
 		inline Texture2D& GetTexture() { return colorTexture; };
 		inline void* GetVoidTexture() { return GetTexture().GetVoidTexture(); };

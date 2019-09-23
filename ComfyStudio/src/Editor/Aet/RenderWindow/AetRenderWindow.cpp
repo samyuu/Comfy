@@ -113,23 +113,6 @@ namespace Editor
 
 	void AetRenderWindow::PostDrawGui()
 	{
-		// TODO: Delete temp
-		if (false)
-		{
-			constexpr float step = 25.0f;
-			constexpr float rotationStep = 45.0f;
-			if (Gui::IsWindowFocused())
-			{
-				if (Gui::IsKeyPressed(KeyCode_Up)) toolProperties.Origin.y -= step;
-				if (Gui::IsKeyPressed(KeyCode_Down)) toolProperties.Origin.y += step;
-				if (Gui::IsKeyPressed(KeyCode_Left)) toolProperties.Origin.x -= step;
-				if (Gui::IsKeyPressed(KeyCode_Right)) toolProperties.Origin.x += step;
-				if (Gui::IsKeyPressed(KeyCode_1)) toolProperties.Rotation += rotationStep;
-				if (Gui::IsKeyPressed(KeyCode_2)) toolProperties.Rotation = 0.0f;
-				if (Gui::IsKeyPressed(KeyCode_3)) toolProperties.Rotation -= rotationStep;
-			}
-		}
-
 		AetTool* tool = GetCurrentTool();
 		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::AetObj)
 		{
@@ -150,65 +133,6 @@ namespace Editor
 
 				tool->ProcessCommands(GetCommandManager(), aetObj, frame, toolProperties, previousProperties);
 			}
-
-			//if (!isPlayback && selectedAetItem->GetAetObjRef()->Type == AetObjType::Pic || selectedAetItem->GetAetObjRef()->Type == AetObjType::Eff)
-			//{
-			//	//bool positionXChanged = previousProperties.Position.x != toolProperties.Position.x;
-			//	//bool positionYChanged = previousProperties.Position.y != toolProperties.Position.y;
-			//	//
-			//	//if (positionXChanged || positionYChanged)
-			//	//{
-			//	//	float frame = 0;
-			//	//	AetKeyFrame* xKeyFrame = currentKeyFrames[PropertyType_PositionX];
-			//	//	AetKeyFrame* yKeyFrame = currentKeyFrames[PropertyType_PositionY];
-			//	//	if (xKeyFrame != nullptr) frame = xKeyFrame->Frame;
-			//	//	if (yKeyFrame != nullptr) frame = yKeyFrame->Frame;
-			//	//	// TODO: Implement special logic just for this command (?) constexpr if on type to check "if" a command requires special logic first
-			//	//	auto tuple = std::make_tuple(frame, toolProperties.Position, xKeyFrame != nullptr, yKeyFrame != nullptr);
-			//	//	ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangePosition, selectedAetItem->Ptrs.AetObj->AnimationData, tuple);
-			//	//}
-
-			//	///*
-			//	//if (previousProperties.Position.x != toolProperties.Position.x)
-			//	//{
-			//	//	if (currentKeyFrames[PropertyType_PositionX] != nullptr)
-			//	//	{
-			//	//		auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(PropertyType_PositionX), 0, toolProperties.Position.x);
-			//	//		ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, selectedAetItem->Ptrs.AetObj->AnimationData, tuple);
-			//	//	}
-			//	//}
-
-			//	//if (previousProperties.Position.y != toolProperties.Position.y)
-			//	//{
-			//	//	if (currentKeyFrames[PropertyType_PositionY] != nullptr)
-			//	//	{
-			//	//		auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(PropertyType_PositionY), 0, toolProperties.Position.y);
-			//	//		ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, selectedAetItem->Ptrs.AetObj->AnimationData, tuple);
-			//	//	}
-			//	//}
-			//	//*/
-
-			//	////if (currentKeyFrames[PropertyType_PositionX]) currentKeyFrames[PropertyType_PositionX]->Value = toolProperties.Position.x;
-			//	////if (currentKeyFrames[PropertyType_PositionY]) currentKeyFrames[PropertyType_PositionY]->Value = toolProperties.Position.y;
-
-			//	////if (currentKeyFrames[PropertyType_ScaleX]) currentKeyFrames[PropertyType_ScaleX]->Value = toolProperties.Scale.x;
-			//	////if (currentKeyFrames[PropertyType_ScaleY]) currentKeyFrames[PropertyType_ScaleY]->Value = toolProperties.Scale.y;
-
-			//	//// TODO: This doesn't work because scaling the corner might also move, so this requries a generic "Free Transform" control instead
-			//	//bool scaleXChanged = previousProperties.Scale.x != toolProperties.Scale.x;
-			//	//bool scaleYChanged = previousProperties.Scale.y != toolProperties.Scale.y;
-
-			//	//if (scaleXChanged || scaleYChanged)
-			//	//{
-			//	//	float frame = 0;
-			//	//	AetKeyFrame* xKeyFrame = currentKeyFrames[PropertyType_ScaleX];
-			//	//	AetKeyFrame* yKeyFrame = currentKeyFrames[PropertyType_ScaleY];
-			//	//	if (xKeyFrame != nullptr) frame = xKeyFrame->Frame;
-			//	//	if (yKeyFrame != nullptr) frame = yKeyFrame->Frame;
-			//	//	auto tuple = std::make_tuple(frame, toolProperties.Scale, xKeyFrame != nullptr, yKeyFrame != nullptr);
-			//	//	ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeScale, selectedAetItem->Ptrs.AetObj->AnimationData, tuple);
-			//	//}
-			//}
 		}
 
 		Gui::WindowContextMenu("AetRenderWindowContextMenu", [this, tool]()
@@ -321,11 +245,11 @@ namespace Editor
 		renderTarget.UnBind();
 	}
 
-	void AetRenderWindow::OnResize(int width, int height)
+	void AetRenderWindow::OnResize(ivec2 size)
 	{
-		RenderWindowBase::OnResize(width, height);
+		RenderWindowBase::OnResize(size);
 
-		vec2 newProjectionSize(width, height);
+		vec2 newProjectionSize(size);
 		camera.Position += (camera.ProjectionSize - newProjectionSize) * 0.5f;;
 		camera.ProjectionSize = newProjectionSize;
 

@@ -15,13 +15,13 @@ namespace Graphics
 		Dispose();
 	}
 
-	void Texture2D::UploadEmpty(int width, int height)
+	void Texture2D::UploadEmpty(ivec2 size)
 	{
-		imageSize.x = static_cast<float>(width);
-		imageSize.y = static_cast<float>(height);
+		constexpr ivec2 minimumSize = ivec2(1.0, 1.0);
+		imageSize = glm::max(minimumSize, size);
 		textureFormat = TextureFormat::RGBA8;
 
-		GLCall(glTexImage2D(GetTextureTarget(), 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+		GLCall(glTexImage2D(GetTextureTarget(), 0, GL_RGBA8, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
 
 		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR));

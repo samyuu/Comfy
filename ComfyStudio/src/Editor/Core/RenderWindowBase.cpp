@@ -5,7 +5,7 @@ namespace Editor
 {
 	void RenderWindowBase::Initialize()
 	{
-		renderTarget.Initialize(RenderTargetDefaultSize.x, RenderTargetDefaultSize.y);
+		renderTarget.Initialize(RenderTargetDefaultSize);
 		renderRegion = lastRenderRegion = ImRect(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight());
 
 		OnInitialize();
@@ -55,14 +55,16 @@ namespace Editor
 
 		const ImVec2 renderSize = renderRegion.GetSize(), lastRenderSize = lastRenderRegion.GetSize();
 		wasResized = (renderSize.x != lastRenderSize.x) || (renderSize.y != lastRenderSize.y);
-
-		if (GetWasResized() && Gui::GetFrameCount() >= 2)
-			OnResize(static_cast<int>(renderSize.x), static_cast<int>(renderSize.y));
+		if (wasResized)
+			needsResizing = true;
 
 		ImGuiWindow* currentWindow = Gui::GetCurrentWindow();
 
 		if (!currentWindow->Hidden)
 		{
+			if (needsResizing && Gui::GetFrameCount() >= 2)
+				OnResize(ivec2(renderSize.x, renderSize.y));
+
 			OnUpdate();
 			if (Gui::IsWindowFocused())
 				OnUpdateInput();
@@ -101,8 +103,9 @@ namespace Editor
 		return renderRegion;
 	}
 
-	void RenderWindowBase::OnResize(int width, int height)
+	void RenderWindowBase::OnResize(ivec2 size)
 	{
-		renderTarget.Resize(width, height);
+		renderTarget.Resize(size);
+		needsResizing = false;
 	}
 }

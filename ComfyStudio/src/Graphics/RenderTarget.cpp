@@ -31,9 +31,9 @@ namespace Graphics
 		GLCall(glBindRenderbuffer(GetRenderTarget(), NULL));
 	}
 
-	void Renderbuffer::RenderbufferStorage(int width, int height, InternalFormat_t internalFormat)
+	void Renderbuffer::RenderbufferStorage(ivec2 size, InternalFormat_t internalFormat)
 	{
-		GLCall(glRenderbufferStorage(GetRenderTarget(), internalFormat, width, height));
+		GLCall(glRenderbufferStorage(GetRenderTarget(), internalFormat, size.x, size.y));
 	}
 
 	void Renderbuffer::Dispose()
@@ -112,14 +112,16 @@ namespace Graphics
 		Dispose();
 	}
 
-	void RenderTarget::Initialize(int width, int height)
+	void RenderTarget::Initialize(ivec2 size)
 	{
+		assert(size.x > 0 && size.y > 0);
+
 		framebuffer.Initialize();
 		framebuffer.Bind();
 
 		colorTexture.InitializeID();
 		depthRenderbuffer.InitializeID();
-		Resize(width, height);
+		Resize(size);
 
 		framebuffer.AttachRenderbuffer(depthRenderbuffer, GL_DEPTH_STENCIL_ATTACHMENT);
 		assert(framebuffer.CheckStatus() == GL_FRAMEBUFFER_COMPLETE);
@@ -136,19 +138,20 @@ namespace Graphics
 		framebuffer.UnBind();
 	}
 
-	void RenderTarget::Resize(int width, int height)
+	void RenderTarget::Resize(ivec2 size)
 	{
-		dimensions = vec2(width, height);
+		constexpr ivec2 minimumSize = ivec2(1.0, 1.0);
+		dimensions = glm::max(minimumSize, size);
 
 		colorTexture.Bind();
-		colorTexture.UploadEmpty(width, height);
+		colorTexture.UploadEmpty(size);
 		colorTexture.UnBind();
 
 		framebuffer.Bind();
 		framebuffer.AttachTexture(colorTexture, GL_COLOR_ATTACHMENT0);
 
 		depthRenderbuffer.Bind();
-		depthRenderbuffer.RenderbufferStorage(width, height, GL_DEPTH24_STENCIL8);
+		depthRenderbuffer.RenderbufferStorage(size, GL_DEPTH24_STENCIL8);
 		depthRenderbuffer.UnBind();
 	}
 

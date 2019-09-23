@@ -25,7 +25,7 @@ namespace Editor
 		void OnUpdateInput() override;
 		void OnUpdate() override;
 		void OnRender() override;
-		void OnResize(int width, int height) override;
+		void OnResize(ivec2 size) override;
 
 	protected:
 		CheckerboardGrid checkerboardGrid;

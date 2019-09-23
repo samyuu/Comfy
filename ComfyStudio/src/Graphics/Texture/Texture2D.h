@@ -10,7 +10,7 @@ namespace Graphics
 		Texture2D(Texture2D&) = delete;
 		~Texture2D();
 
-		void UploadEmpty(int width, int height);
+		void UploadEmpty(ivec2 size);
 		bool Upload(const FileSystem::Texture* texture);
 		bool UploadFromFile(const char* path);
 

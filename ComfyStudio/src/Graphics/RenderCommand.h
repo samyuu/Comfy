@@ -50,7 +50,7 @@ namespace Graphics
 		static void Clear(ClearTarget target);
 
 		static void SetViewport(int32_t width, int32_t height);
-		static void SetViewport(const vec2& size);
+		static void SetViewport(ivec2 size);
 
 		static void BindShaderProgram(uint32_t programID);
 
