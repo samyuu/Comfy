@@ -286,9 +286,9 @@ namespace FileSystem
 		return givenNames;
 	}
 
-	const char* AetLayer::GetCommaSeparatedNames() const
+	const String& AetLayer::GetCommaSeparatedNames() const
 	{
-		return commaSeparatedNames.c_str();
+		return commaSeparatedNames;
 	}
 
 	void AetLayer::AddNewObject(AetObjType type, const String& name)
@@ -372,9 +372,6 @@ namespace FileSystem
 			}
 		}
 
-		for (int32_t index = 0; index < AetLayers.size(); index++)
-			AetLayers[index]->thisIndex = index;
-
 		InternalUpdateLayerNames();
 	}
 
@@ -440,8 +437,6 @@ namespace FileSystem
 		int32_t layerIndex = 0;
 		for (RefPtr<AetLayer>& aetLayer : AetLayers)
 		{
-			aetLayer->thisIndex = layerIndex++;
-
 			for (RefPtr<AetObj>& aetObj : *aetLayer)
 			{
 				if (aetObj->dataFilePtr != nullptr)

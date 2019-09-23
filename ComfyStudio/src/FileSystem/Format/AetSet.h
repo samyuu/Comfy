@@ -12,6 +12,8 @@ namespace FileSystem
 		float TreeViewScrollY;
 		// NOTE: Set after double clicking on a layer reference node to open it
 		bool AppendOpenNode;
+		// NOTE: Used to try and prevent layer name ambiguity
+		int ThisIndex;
 	};
 
 	class Aet;
@@ -174,7 +176,7 @@ namespace FileSystem
 		static Array<const char*, 4> TypeNames;
 
 	public:
-		mutable GuiTempData GuiTempData;
+		mutable GuiTempData GuiData;
 
 	public:
 		AetObj();
@@ -263,10 +265,9 @@ namespace FileSystem
 		~AetLayer() = default;
 
 	public:
-		mutable GuiTempData GuiTempData;
+		mutable GuiTempData GuiData;
 
 	public:
-		inline int32_t GetThisIndex() const { return thisIndex; };
 		inline Aet* GetParentAet() { return parentAet; };
 
 		AetObjIterator begin() { return objects.begin(); }
@@ -296,7 +297,7 @@ namespace FileSystem
 		RefPtr<const AetObj> FindObj(const String& name) const;
 
 		const Vector<String>& GetGivenNames() const;
-		const char* GetCommaSeparatedNames() const;
+		const String& GetCommaSeparatedNames() const;
 
 	public:
 		void AddNewObject(AetObjType type, const String& name);
@@ -307,7 +308,6 @@ namespace FileSystem
 		String commaSeparatedNames;
 
 		Aet* parentAet;
-		int32_t thisIndex;
 		fileptr_t filePosition;
 
 		AetObjCollection objects;
