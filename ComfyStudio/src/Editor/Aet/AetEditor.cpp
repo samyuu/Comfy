@@ -18,7 +18,7 @@ namespace Editor
 		layerView = MakeUnique<AetLayerView>();
 		inspector = MakeUnique<AetInspector>(commandManager.get());
 		timeline = MakeUnique<AetTimeline>();
-		renderWindow = MakeUnique<AetRenderWindow>(&spriteGetterFunction, &selectedAetItem, &cameraSelectedAetItem);
+		renderWindow = MakeUnique<AetRenderWindow>(commandManager.get(), &spriteGetterFunction, &selectedAetItem, &cameraSelectedAetItem);
 		historyWindow = MakeUnique<AetHistoryWindow>(commandManager.get());
 	}
 

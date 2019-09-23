@@ -1,5 +1,6 @@
 #pragma once
 #include "Tools/AetTool.h"
+#include "Editor/Aet/IMutatingEditorComponent.h"
 #include "Editor/Aet/AetSelection.h"
 #include "Editor/Core/RenderWindowBase.h"
 #include "Editor/Common/CameraController2D.h"
@@ -16,10 +17,10 @@ namespace Editor
 	using namespace FileSystem;
 	using namespace Graphics::Auth2D;
 
-	class AetRenderWindow : public RenderWindowBase
+	class AetRenderWindow : public RenderWindowBase, IMutatingEditorComponent
 	{
 	public:
-		AetRenderWindow(SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
+		AetRenderWindow(AetCommandManager* commandManager, SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
 		~AetRenderWindow();
 
 		void SetIsPlayback(bool value);
@@ -37,7 +38,7 @@ namespace Editor
 
 	protected:
 		void DrawToolGui();
-		void DrawAnimationPropertiesGui();
+		void DrawTooltipHeaderGui();
 
 		AetTool* GetCurrentTool();
 		void CenterFitCamera();
@@ -76,7 +77,7 @@ namespace Editor
 		Properties toolProperties = { vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), 1.0f };
 
 		Array<UniquePtr<AetTool>, AetToolType_Count> tools;
-		AetToolType currentToolType;
+		AetToolType currentToolType = AetToolType_Hand;
 
 		Vector<AetMgr::ObjCache> objectCache;
 

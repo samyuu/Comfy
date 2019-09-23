@@ -13,8 +13,8 @@
 
 namespace Editor
 {
-	AetRenderWindow::AetRenderWindow(SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem)
-		: selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem)
+	AetRenderWindow::AetRenderWindow(AetCommandManager* commandManager, SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem)
+		: IMutatingEditorComponent(commandManager), selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem)
 	{
 		assert(spriteGetter != nullptr);
 		assert(selectedAetItem != nullptr);
@@ -48,17 +48,6 @@ namespace Editor
 		return currentFrame = value;
 	}
 
-	static AetKeyFrame* GetKeyFrameOrFirst(AetObj* aetObj, int propertyIndex, float inputFrame)
-	{
-		KeyFrameCollection& keyFrames = aetObj->AnimationData->Properties[propertyIndex];
-		bool firstFrame = inputFrame == aetObj->LoopStart;
-
-		if (keyFrames.size() == 1)
-			return &keyFrames.front();
-
-		return AetMgr::GetKeyFrameAt(keyFrames, (firstFrame && keyFrames.size() == 1 ? keyFrames.front().Frame : inputFrame));
-	}
-
 	ImGuiWindowFlags AetRenderWindow::GetChildWinodwFlags() const
 	{
 		return ImGuiWindowFlags_None;
@@ -83,7 +72,7 @@ namespace Editor
 				toolSize = GetAetObjBoundingSize(selectedAetItem->GetAetObjRef());
 			}
 
-			DrawAnimationPropertiesGui();
+			DrawTooltipHeaderGui();
 
 			Gui::SetCursorPosX(Gui::GetWindowWidth() - itemWidth - 2);
 
@@ -147,26 +136,79 @@ namespace Editor
 			auto worldToScreen = [this](vec2 value) { return (camera.WorldToScreenSpace(value) + GetRenderRegion().GetTL()); };
 			auto screenToWorld = [this](vec2 value) { return (camera.ScreenToWorldSpace(value - GetRenderRegion().GetTL())); };
 
-			Properties previousProperties = toolProperties;
+			const Properties previousProperties = toolProperties;
 
 			tool->SetSpaceConversionFunctions(worldToScreen, screenToWorld);
 			tool->UpdatePostDrawGui(&toolProperties, toolSize);
 
-			if (selectedAetItem->GetAetObjRef()->Type == AetObjType::Pic || selectedAetItem->GetAetObjRef()->Type == AetObjType::Eff)
+			if (!isPlayback && selectedAetItem->GetAetObjRef()->Type != AetObjType::Aif)
 			{
-				AetKeyFrame* currentKeyFrames[PropertyType_Count];
-				for (int i = 0; i < PropertyType_Count; i++)
-					currentKeyFrames[i] = isPlayback ? nullptr : GetKeyFrameOrFirst(selectedAetItem->Ptrs.AetObj, i, glm::round(currentFrame));
+				// TODO: The currentFrame should probably be rounded automatically upon stopping playback
 
-				// TODO: if keyframe is nullptr add keyframe (how to handle adding keyframe commands?)
-				// NOTE: if the keyframe for the scale for example doesn't exist at the current timeline frame, then modify the value of the 0th keyframe instead (?)
+				const RefPtr<AetObj>& aetObj = selectedAetItem->GetAetObjRef();
+				const float frame = glm::round(currentFrame);
 
-				if (currentKeyFrames[PropertyType_PositionX]) currentKeyFrames[PropertyType_PositionX]->Value = toolProperties.Position.x;
-				if (currentKeyFrames[PropertyType_PositionY]) currentKeyFrames[PropertyType_PositionY]->Value = toolProperties.Position.y;
-
-				if (currentKeyFrames[PropertyType_ScaleX]) currentKeyFrames[PropertyType_ScaleX]->Value = toolProperties.Scale.x;
-				if (currentKeyFrames[PropertyType_ScaleY]) currentKeyFrames[PropertyType_ScaleY]->Value = toolProperties.Scale.y;
+				tool->ProcessCommands(GetCommandManager(), aetObj, frame, toolProperties, previousProperties);
 			}
+
+			//if (!isPlayback && selectedAetItem->GetAetObjRef()->Type == AetObjType::Pic || selectedAetItem->GetAetObjRef()->Type == AetObjType::Eff)
+			//{
+			//	//bool positionXChanged = previousProperties.Position.x != toolProperties.Position.x;
+			//	//bool positionYChanged = previousProperties.Position.y != toolProperties.Position.y;
+			//	//
+			//	//if (positionXChanged || positionYChanged)
+			//	//{
+			//	//	float frame = 0;
+			//	//	AetKeyFrame* xKeyFrame = currentKeyFrames[PropertyType_PositionX];
+			//	//	AetKeyFrame* yKeyFrame = currentKeyFrames[PropertyType_PositionY];
+			//	//	if (xKeyFrame != nullptr) frame = xKeyFrame->Frame;
+			//	//	if (yKeyFrame != nullptr) frame = yKeyFrame->Frame;
+			//	//	// TODO: Implement special logic just for this command (?) constexpr if on type to check "if" a command requires special logic first
+			//	//	auto tuple = std::make_tuple(frame, toolProperties.Position, xKeyFrame != nullptr, yKeyFrame != nullptr);
+			//	//	ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangePosition, selectedAetItem->Ptrs.AetObj->AnimationData, tuple);
+			//	//}
+
+			//	///*
+			//	//if (previousProperties.Position.x != toolProperties.Position.x)
+			//	//{
+			//	//	if (currentKeyFrames[PropertyType_PositionX] != nullptr)
+			//	//	{
+			//	//		auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(PropertyType_PositionX), 0, toolProperties.Position.x);
+			//	//		ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, selectedAetItem->Ptrs.AetObj->AnimationData, tuple);
+			//	//	}
+			//	//}
+
+			//	//if (previousProperties.Position.y != toolProperties.Position.y)
+			//	//{
+			//	//	if (currentKeyFrames[PropertyType_PositionY] != nullptr)
+			//	//	{
+			//	//		auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(PropertyType_PositionY), 0, toolProperties.Position.y);
+			//	//		ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, selectedAetItem->Ptrs.AetObj->AnimationData, tuple);
+			//	//	}
+			//	//}
+			//	//*/
+
+			//	////if (currentKeyFrames[PropertyType_PositionX]) currentKeyFrames[PropertyType_PositionX]->Value = toolProperties.Position.x;
+			//	////if (currentKeyFrames[PropertyType_PositionY]) currentKeyFrames[PropertyType_PositionY]->Value = toolProperties.Position.y;
+
+			//	////if (currentKeyFrames[PropertyType_ScaleX]) currentKeyFrames[PropertyType_ScaleX]->Value = toolProperties.Scale.x;
+			//	////if (currentKeyFrames[PropertyType_ScaleY]) currentKeyFrames[PropertyType_ScaleY]->Value = toolProperties.Scale.y;
+
+			//	//// TODO: This doesn't work because scaling the corner might also move, so this requries a generic "Free Transform" control instead
+			//	//bool scaleXChanged = previousProperties.Scale.x != toolProperties.Scale.x;
+			//	//bool scaleYChanged = previousProperties.Scale.y != toolProperties.Scale.y;
+
+			//	//if (scaleXChanged || scaleYChanged)
+			//	//{
+			//	//	float frame = 0;
+			//	//	AetKeyFrame* xKeyFrame = currentKeyFrames[PropertyType_ScaleX];
+			//	//	AetKeyFrame* yKeyFrame = currentKeyFrames[PropertyType_ScaleY];
+			//	//	if (xKeyFrame != nullptr) frame = xKeyFrame->Frame;
+			//	//	if (yKeyFrame != nullptr) frame = yKeyFrame->Frame;
+			//	//	auto tuple = std::make_tuple(frame, toolProperties.Scale, xKeyFrame != nullptr, yKeyFrame != nullptr);
+			//	//	ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeScale, selectedAetItem->Ptrs.AetObj->AnimationData, tuple);
+			//	//}
+			//}
 		}
 
 		Gui::WindowContextMenu("AetRenderWindowContextMenu", [this, tool]()
@@ -322,40 +364,24 @@ namespace Editor
 		Gui::PopStyleVar(2);
 	}
 
-	void AetRenderWindow::DrawAnimationPropertiesGui()
+	void AetRenderWindow::DrawTooltipHeaderGui()
 	{
 		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetSelectionType::AetObj && selectedAetItem->GetAetObjRef()->AnimationData != nullptr)
 		{
-			Array<AetKeyFrame*, PropertyType_Count> currentKeyFrames;
-			for (int i = 0; i < PropertyType_Count; i++)
-				currentKeyFrames[i] = isPlayback ? nullptr : GetKeyFrameOrFirst(selectedAetItem->Ptrs.AetObj, i, glm::round(currentFrame));
+			// TODO: Tool specific widgets
+			// TODO: TransformTool could have a origin / position preset selection box here
+			// tool->DrawTooltipHeader();
 
-			// TODO: Remove
+			/*
 			Gui::ExtendedVerticalSeparator();
-			Gui::ComfyInputFloat("##PositionXDragFloat::AetRenderWindow", &toolProperties.Position.x, 1.0f, 0.0f, 0.0f, "X: %.f", !currentKeyFrames[PropertyType_PositionX]);
+			Gui::Text("  <%s> ", selectedAetItem->GetAetObjRef()->GetName().c_str());
 			Gui::SameLine();
-			Gui::ComfyInputFloat("##PositionYDragFloat::AetRenderWindow", &toolProperties.Position.y, 1.0f, 0.0f, 0.0f, "Y: %.f", !currentKeyFrames[PropertyType_PositionY]);
-			Gui::SameLine();
-			Gui::ExtendedVerticalSeparator();
-			Gui::ComfyInputFloat("##OriginXDragFloat::AetRenderWindow", &toolProperties.Origin.x, 1.0f, 0.0f, 0.0f, "X: %.f", !currentKeyFrames[PropertyType_OriginX]);
-			Gui::SameLine();
-			Gui::ComfyInputFloat("##OriginYDragFloat::AetRenderWindow", &toolProperties.Origin.y, 1.0f, 0.0f, 0.0f, "Y: %.f", !currentKeyFrames[PropertyType_OriginY]);
-			Gui::SameLine();
-			Gui::ExtendedVerticalSeparator();
-			Gui::ComfyInputFloat("##RotationDragFloat::AetRenderWindow", &toolProperties.Rotation, 1.0f, 0.0f, 0.0f, "R: %.2f", !currentKeyFrames[PropertyType_Rotation]);
-			Gui::SameLine();
-			Gui::ExtendedVerticalSeparator();
-			Gui::ComfyInputFloat("##ScaleXDragFloat::AetRenderWindow", &toolProperties.Scale.x, 1.0f, 0.0f, 0.0f, "W: %.2f %%", !currentKeyFrames[PropertyType_ScaleX]);
-			Gui::SameLine();
-			Gui::ComfyInputFloat("##ScaleYDragFloat::AetRenderWindow", &toolProperties.Scale.y, 1.0f, 0.0f, 0.0f, "H: %.2f %%", !currentKeyFrames[PropertyType_ScaleY]);
-			Gui::SameLine();
-			Gui::ExtendedVerticalSeparator();
-			Gui::ComfyInputFloat("##OpacityDragFloat::AetRenderWindow", &toolProperties.Opacity, 1.0f, 0.00000001f, 100.0f, "O: %.2f %%", !currentKeyFrames[PropertyType_Opacity]);
-			Gui::SameLine();
+			*/
 		}
 		else
 		{
-			Gui::Text("	<none> ");
+			Gui::ExtendedVerticalSeparator();
+			Gui::TextUnformatted("	<none>  ");
 			Gui::SameLine();
 		}
 	}
