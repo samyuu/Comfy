@@ -7,7 +7,17 @@ namespace Graphics::Auth2D
 
 	static_assert(sizeof(KeyFrameCollectionArray) / sizeof(KeyFrameCollection) == PropertyType_Count);
 
-	static Properties DefaultProperites =
+	bool Properties::operator== (const Properties& other) const
+	{
+		return (Origin == other.Origin) && (Position == other.Position) && (Rotation == other.Rotation) && (Scale == other.Scale) && (Opacity == other.Opacity);
+	}
+
+	bool Properties::operator!= (const Properties& other) const
+	{
+		return !(*this == other);
+	}
+
+	static const Properties DefaultProperites =
 	{
 		vec2(0.0f),	// Origin
 		vec2(0.0f),	// Position
@@ -38,19 +48,19 @@ namespace Graphics::Auth2D
 		output.Opacity *= input.Opacity;
 	}
 
-	void AetMgr::GetAddObjects(Vector<ObjCache>& objects, const AetLayer* aetLayer, float frame)
+	void AetMgr::GetAddObjects(Vector<ObjCache>& objects, const AetLayer* aetLayer, frame_t frame)
 	{
 		for (int i = static_cast<int>(aetLayer->size()) - 1; i >= 0; i--)
 			GetAddObjects(objects, aetLayer->GetObjAt(i), frame);
 	}
 
-	void AetMgr::GetAddObjects(Vector<ObjCache>& objects, const AetObj* aetObj, float frame)
+	void AetMgr::GetAddObjects(Vector<ObjCache>& objects, const AetObj* aetObj, frame_t frame)
 	{
 		Properties propreties = DefaultProperites;
 		InternalAddObjects(objects, &propreties, aetObj, frame);
 	}
 
-	float AetMgr::Interpolate(const Vector<AetKeyFrame>& keyFrames, float frame)
+	float AetMgr::Interpolate(const Vector<AetKeyFrame>& keyFrames, frame_t frame)
 	{
 		if (keyFrames.size() <= 0)
 			return 0.0f;
@@ -84,7 +94,7 @@ namespace Graphics::Auth2D
 				+ ((((((t * t) * t) * 2.0f) - ((t * t) * 3.0f)) + 1.0f) * start->Value));
 	}
 
-	void AetMgr::Interpolate(const AnimationData* animationData, Properties* properties, float frame)
+	void AetMgr::Interpolate(const AnimationData* animationData, Properties* properties, frame_t frame)
 	{
 		float* results = reinterpret_cast<float*>(properties);
 
@@ -95,18 +105,28 @@ namespace Graphics::Auth2D
 		}
 	}
 
-	AetKeyFrame* AetMgr::GetKeyFrameAt(KeyFrameCollection& keyFrames, float frame)
+	AetKeyFrame* AetMgr::GetKeyFrameAt(KeyFrameCollection& keyFrames, frame_t frame)
 	{
+		size_t keyFrameCount = keyFrames.size();
+
+		// NOTE: The aet editor should make sure there is always at least one KeyFrame
+		assert(keyFrameCount > 0);
+
+		// TODO: Is this the desired behavior?
+		if (keyFrameCount == 1)
+			return &keyFrames.front();
+
 		for (auto& keyFrame : keyFrames)
 		{
-			if (glm::round(keyFrame.Frame) == frame)
+			if (keyFrame.Frame == frame)
 				return &keyFrame;
 		}
 
+		// NOTE: Did the the command list get corrupted somehow?
 		return nullptr;
 	}
 
-	void AetMgr::InternalAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame)
+	void AetMgr::InternalAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)
 	{
 		if (aetObj->Type == AetObjType::Pic)
 		{
@@ -118,7 +138,7 @@ namespace Graphics::Auth2D
 		}
 	}
 
-	void AetMgr::InternalPicAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame)
+	void AetMgr::InternalPicAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)
 	{
 		assert(aetObj->Type == AetObjType::Pic);
 
@@ -160,7 +180,7 @@ namespace Graphics::Auth2D
 		TransformProperties(*parentProperties, objCache.Properties);
 	}
 
-	void AetMgr::InternalEffAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, float frame)
+	void AetMgr::InternalEffAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)
 	{
 		assert(aetObj->Type == AetObjType::Eff);
 
@@ -176,7 +196,7 @@ namespace Graphics::Auth2D
 		if (aetLayer == nullptr)
 			return;
 
-		float adjustedFrame = ((frame - aetObj->LoopStart) * aetObj->PlaybackSpeed) + aetObj->StartFrame;
+		frame_t adjustedFrame = ((frame - aetObj->LoopStart) * aetObj->PlaybackSpeed) + aetObj->StartFrame;
 
 		for (int i = static_cast<int>(aetLayer->size()) - 1; i >= 0; i--)
 			InternalAddObjects(objects, &effProperties, aetLayer->GetObjAt(i), adjustedFrame);
