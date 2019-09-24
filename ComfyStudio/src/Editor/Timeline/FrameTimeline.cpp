@@ -36,7 +36,7 @@ namespace Editor
 
 	TimelineFrame FrameTimeline::GetTimelineFrame(TimeSpan time) const
 	{
-		return TimelineFrame(static_cast<float>(time.TotalSeconds() / (1.0f / frameRate)));
+		return TimelineFrame(static_cast<float>(time.TotalSeconds() / (1.0 / frameRate)));
 	}
 
 	TimelineFrame FrameTimeline::GetTimelineFrame(float position) const
