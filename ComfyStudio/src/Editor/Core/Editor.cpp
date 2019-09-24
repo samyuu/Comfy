@@ -110,7 +110,16 @@ namespace Editor
 	{
 		UpdateFileDrop();
 
+#if defined(COMFY_DEBUG)
+		// NOTE: Only support live updating during debug builds
 		UpdateEditorColors();
+#else
+		// NOTE: In case the theme is being changed dynamically on startup
+		constexpr int frameCountThreshold = 3;
+
+		if (Gui::GetFrameCount() <= frameCountThreshold)
+			UpdateEditorColors();
+#endif
 	}
 
 	void EditorManager::DrawGui()
