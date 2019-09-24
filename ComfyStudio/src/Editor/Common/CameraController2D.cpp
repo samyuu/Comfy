@@ -69,8 +69,11 @@ namespace Editor
 
 		if (AltZoomControl && io.KeyAlt && io.MouseWheel != 0.0f)
 		{
-			float newZoom = camera.Zoom * ((io.MouseWheel > 0) ? ZoomStep : (1.0f / ZoomStep));
-			SetUpdateCameraZoom(camera, newZoom, relativeMouse);
+			if (Gui::IsWindowHovered())
+			{
+				float newZoom = camera.Zoom * ((io.MouseWheel > 0) ? ZoomStep : (1.0f / ZoomStep));
+				SetUpdateCameraZoom(camera, newZoom, relativeMouse);
+			}
 		}
 	}
 }
