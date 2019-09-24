@@ -132,10 +132,12 @@ namespace Editor
 	{
 		// TODO: In the future you should not be able to change the layer after creating it because it would leave the previous layer "nameless" (?)
 
+		constexpr size_t availableLayerNameBufferSize = sizeof(layerDataNameBuffer) - 32;
+
 		if (Gui::WideTreeNodeEx(ICON_AETLAYERS "  Layer Data", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			if (aetLayer != nullptr)
-				sprintf_s(layerDataNameBuffer, "Layer %d (%s)", aetLayer->GuiData.ThisIndex, aetLayer->GetCommaSeparatedNames().c_str());
+				sprintf_s(layerDataNameBuffer, "Layer %d (%.*s)", aetLayer->GuiData.ThisIndex, availableLayerNameBufferSize, aetLayer->GetCommaSeparatedNames().c_str());
 
 			if (Gui::ComfyBeginCombo("Layer", aetLayer == nullptr ? "None (Layer)" : layerDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
@@ -151,7 +153,7 @@ namespace Editor
 					Gui::PushID(layer.get());
 
 					bool isSelected = (aetLayer == layer);
-					sprintf_s(layerDataNameBuffer, "Layer %d (%s)", layerIndex++, layer->GetCommaSeparatedNames().c_str());
+					sprintf_s(layerDataNameBuffer, "Layer %d (%.*s)", layerIndex++, availableLayerNameBufferSize, layer->GetCommaSeparatedNames().c_str());
 
 					if (Gui::Selectable(layerDataNameBuffer, isSelected))
 						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceLayer, aetObj, layer);
