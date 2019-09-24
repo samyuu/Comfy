@@ -121,9 +121,6 @@ namespace Editor
 
 	void TimelineBase::UpdateInputTimelineScroll()
 	{
-		if (!Gui::IsWindowFocused())
-			return;
-
 		// Grab Control
 		// ------------
 		{
@@ -139,7 +136,7 @@ namespace Editor
 		// Focus Control
 		// -------------
 		{
-			if (Gui::IsKeyPressed(KeyCode_Escape))
+			if (Gui::IsWindowFocused() && Gui::IsKeyPressed(KeyCode_Escape))
 				CenterCursor();
 		}
 		// -------------
