@@ -315,7 +315,7 @@ namespace Editor
 
 				AetKeyFrame* currentKeyFrames[PropertyType_Count];
 				for (int i = 0; i < PropertyType_Count; i++)
-					currentKeyFrames[i] = !isPlayback ? nullptr : GetKeyFrameIfExact(aetObj, i, glm::round(currentFrame));
+					currentKeyFrames[i] = isPlayback ? nullptr : GetKeyFrameIfExact(aetObj, i, glm::round(currentFrame));
 
 				animatedPropertyColor = GetColorVec4(EditorColor_AnimatedProperty);
 				keyFramePropertyColor = GetColorVec4(EditorColor_KeyFrameProperty);
