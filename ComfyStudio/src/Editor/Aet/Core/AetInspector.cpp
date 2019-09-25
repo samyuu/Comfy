@@ -132,7 +132,7 @@ namespace Editor
 	{
 		// TODO: In the future you should not be able to change the layer after creating it because it would leave the previous layer "nameless" (?)
 
-		constexpr size_t availableLayerNameBufferSize = sizeof(layerDataNameBuffer) - 32;
+		constexpr int availableLayerNameBufferSize = static_cast<int>(sizeof(layerDataNameBuffer) - 32);
 
 		if (Gui::WideTreeNodeEx(ICON_AETLAYERS "  Layer Data", ImGuiTreeNodeFlags_DefaultOpen))
 		{
