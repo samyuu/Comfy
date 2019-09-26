@@ -341,6 +341,9 @@ namespace Editor
 
 	void AetRenderWindow::OnInitialize()
 	{
+		renderTarget.GetFramebuffer().SetObjectLabel("AetRenderWindow::RenderTarget::Framebuffer");
+		renderTarget.GetColorTexture().SetObjectLabel("AetRenderWindow::RenderTarget::ColorTexture");
+		renderTarget.GetDepthBuffer().SetObjectLabel("AetRenderWindow::RenderTarget::DepthBuffer");
 		renderer->Initialize();
 	}
 

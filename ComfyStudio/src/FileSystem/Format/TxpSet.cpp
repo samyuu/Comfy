@@ -123,7 +123,7 @@ namespace FileSystem
 		{
 			Texture* texture = Textures[i].get();
 			texture->GraphicsTexture = MakeRef<Graphics::Texture2D>();
-			texture->GraphicsTexture->Upload(texture);
+			texture->GraphicsTexture->Create(texture);
 		}
 	}
 }

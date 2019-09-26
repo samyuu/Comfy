@@ -44,6 +44,11 @@ namespace Graphics
 		}
 	}
 
+	void VertexArray::SetObjectLabel(const char* label)
+	{
+		GLCall(glObjectLabel(GL_VERTEX_ARRAY, vertexArrayID, -1, label));
+	}
+
 	void VertexArray::Dispose()
 	{
 		if (vertexArrayID != NULL)

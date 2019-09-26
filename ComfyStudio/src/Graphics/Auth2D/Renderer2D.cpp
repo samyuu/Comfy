@@ -223,10 +223,12 @@ namespace Graphics::Auth2D
 
 		indexBuffer.InitializeID();
 		indexBuffer.Bind();
+		indexBuffer.SetObjectLabel("Renderer2D::IndexBuffer");
 		GenerateUploadSpriteIndexBuffer(Renderer2DMaxItemSize);
 
 		vertexBuffer.InitializeID();
 		vertexBuffer.Bind();
+		vertexBuffer.SetObjectLabel("Renderer2D::VertexBuffer");
 
 		spriteShader = MakeUnique<SpriteShader>();
 		spriteShader->Initialize();
@@ -234,6 +236,7 @@ namespace Graphics::Auth2D
 		vertexArray.InitializeID();
 		vertexArray.Bind();
 		vertexArray.SetLayout(layout);
+		vertexArray.SetObjectLabel("Renderer2D::VertexArray");
 
 		batches.reserve(Renderer2DMaxItemSize);
 		batchItems.reserve(Renderer2DMaxItemSize);
@@ -384,10 +387,10 @@ namespace Graphics::Auth2D
 			GLCall(glDisable(GL_BLEND));
 		}
 
-		enum { TextureSlot = 0, TextureMaskSlot = 1 };
+		enum SpriteShaderTextureSlot { TextureSpriteSlot = 0, TextureMaskSlot = 1 };
 
 		spriteShader->Bind();
-		spriteShader->SetUniform(spriteShader->Texture, TextureSlot);
+		spriteShader->SetUniform(spriteShader->Texture, TextureSpriteSlot);
 		spriteShader->SetUniform(spriteShader->TextureMask, TextureMaskSlot);
 		spriteShader->SetUniform(spriteShader->UseTextShadow, GetUseTextShadow());
 		spriteShader->SetUniform(spriteShader->ProjectionView, camera->GetProjectionMatrix() * camera->GetViewMatrix());
@@ -414,12 +417,12 @@ namespace Graphics::Auth2D
 			spriteShader->SetUniform(spriteShader->TextureMaskFormat, item.MaskTexture != nullptr ? static_cast<int>(item.MaskTexture->GetTextureFormat()) : -1);
 			if (item.MaskTexture != nullptr)
 			{
-				item.MaskTexture->Bind(TextureMaskSlot);
+				item.MaskTexture->Bind(static_cast<TextureSlot>(TextureMaskSlot));
 			}
 
 			if (item.Texture != nullptr)
 			{
-				item.Texture->Bind(TextureSlot);
+				item.Texture->Bind(static_cast<TextureSlot>(TextureSpriteSlot));
 
 				if (item.Texture == item.MaskTexture)
 				{

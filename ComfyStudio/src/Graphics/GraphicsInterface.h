@@ -15,7 +15,13 @@ namespace Graphics
 		virtual void UnBind() const = 0;
 	};
 
-	class IGraphicsObject : public IInitializable, IBindable
+	class ILabeledObject
+	{
+	public:
+		virtual void SetObjectLabel(const char* label) = 0;
+	};
+
+	class IGraphicsObject : public IInitializable, IBindable, ILabeledObject
 	{
 	public:
 	};

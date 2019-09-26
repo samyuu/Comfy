@@ -38,6 +38,7 @@ namespace Graphics
 
 		void Bind() const override;
 		void UnBind() const override;
+		void SetObjectLabel(const char* label) override;
 
 	protected:
 		BufferID_t bufferID = NULL;

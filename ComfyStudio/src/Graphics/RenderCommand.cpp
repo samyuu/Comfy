@@ -79,7 +79,7 @@ namespace Graphics
 		state.LastBoundShaderProgram = programID;
 	}
 
-	void RenderCommand::SetTextureSlot(int32_t textureSlot)
+	void RenderCommand::SetTextureSlot(TextureSlot textureSlot)
 	{
 		if (!OptimizeRedundantCommands || textureSlot != state.LastTextureSlot)
 		{

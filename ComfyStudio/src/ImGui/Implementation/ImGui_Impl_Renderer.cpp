@@ -73,7 +73,7 @@ void ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
 	const Graphics::RenderCommand::State& renderCommandState = Graphics::RenderCommand::GetState();
 
 	// Backup GL state
-	int32_t lastTextureSlot = renderCommandState.LastTextureSlot;
+	Graphics::TextureSlot lastTextureSlot = renderCommandState.LastTextureSlot;
 	uint32_t lastProgramID = renderCommandState.LastBoundShaderProgram;
 	uint32_t lastTextureID = renderCommandState.GetLastBoundTextureID();
 	
@@ -113,7 +113,7 @@ void ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
 	GLenum last_blend_equation_alpha; 
 	GLCall(glGetIntegerv(GL_BLEND_EQUATION_ALPHA, (GLint*)&last_blend_equation_alpha));
 	
-	Graphics::RenderCommand::SetTextureSlot(0);
+	Graphics::RenderCommand::SetTextureSlot(Graphics::TextureSlot_0);
 
 	GLboolean last_enable_blend; 
 	GLCall(last_enable_blend = glIsEnabled(GL_BLEND));
@@ -168,6 +168,7 @@ void ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
 	GLuint vertex_array_object = 0;
 	GLCall(glGenVertexArrays(1, &vertex_array_object));
 	GLCall(glBindVertexArray(vertex_array_object));
+	GLCall(glObjectLabel(GL_VERTEX_ARRAY, vertex_array_object, -1, "GuiVertexArray"));
 
 	// Bind vertex/index buffers and setup attributes for ImDrawVert
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle));
@@ -270,6 +271,7 @@ bool ImGui_ImplOpenGL3_CreateFontsTexture()
 
 	GLCall(glGenTextures(1, &g_FontTexture));
 	Graphics::RenderCommand::BindTexture(GL_TEXTURE_2D, g_FontTexture);
+	GLCall(glObjectLabel(GL_TEXTURE, g_FontTexture, -1, "FontTexture"));
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 	GLCall(glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
@@ -381,19 +383,22 @@ bool ImGui_ImplOpenGL3_CreateDeviceObjects()
 	GLCall(g_VertHandle = glCreateShader(GL_VERTEX_SHADER));
 	GLCall(glShaderSource(g_VertHandle, 2, vertex_shader_with_version, NULL));
 	GLCall(glCompileShader(g_VertHandle));
-	CheckShader(g_VertHandle, "vertex shader");
+	GLCall(glObjectLabel(GL_SHADER, g_VertHandle, -1, "GuiVertexShader"));
+	CheckShader(g_VertHandle, "Vertex Shader");
 
 	const GLchar* fragment_shader_with_version[2] = { g_GlslVersionString, fragment_shader };
 	GLCall(g_FragHandle = glCreateShader(GL_FRAGMENT_SHADER));
 	GLCall(glShaderSource(g_FragHandle, 2, fragment_shader_with_version, NULL));
 	GLCall(glCompileShader(g_FragHandle));
-	CheckShader(g_FragHandle, "fragment shader");
+	GLCall(glObjectLabel(GL_SHADER, g_FragHandle, -1, "GuiFragmentShader"));
+	CheckShader(g_FragHandle, "Fragment Shader");
 
 	GLCall(g_ShaderHandle = glCreateProgram());
 	GLCall(glAttachShader(g_ShaderHandle, g_VertHandle));
 	GLCall(glAttachShader(g_ShaderHandle, g_FragHandle));
 	GLCall(glLinkProgram(g_ShaderHandle));
-	CheckProgram(g_ShaderHandle, "shader program");
+	GLCall(glObjectLabel(GL_PROGRAM, g_ShaderHandle, -1, "GuiShader"));
+	CheckProgram(g_ShaderHandle, "Shader Program");
 
 	GLCall(g_AttribLocationTex = glGetUniformLocation(g_ShaderHandle, "u_Texture"));
 	GLCall(g_AttribLocationProjMtx = glGetUniformLocation(g_ShaderHandle, "u_ProjectionMatrix"));
@@ -403,7 +408,12 @@ bool ImGui_ImplOpenGL3_CreateDeviceObjects()
 
 	// Create buffers
 	GLCall(glGenBuffers(1, &g_VboHandle));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle));
+	GLCall(glObjectLabel(GL_BUFFER, g_VboHandle, -1, "GuiArrayBuffer"));
+
 	GLCall(glGenBuffers(1, &g_ElementsHandle));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle));
+	GLCall(glObjectLabel(GL_BUFFER, g_ElementsHandle, -1, "GuiElementArrayBuffer"));
 
 	ImGui_ImplOpenGL3_CreateFontsTexture();
 

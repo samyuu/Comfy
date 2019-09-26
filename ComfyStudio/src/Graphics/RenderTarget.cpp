@@ -36,6 +36,11 @@ namespace Graphics
 		GLCall(glRenderbufferStorage(GetRenderTarget(), internalFormat, size.x, size.y));
 	}
 
+	void Renderbuffer::SetObjectLabel(const char* label)
+	{
+		GLCall(glObjectLabel(GL_RENDERBUFFER, renderbufferID, -1, label));
+	}
+
 	void Renderbuffer::Dispose()
 	{
 		if (renderbufferID != NULL)
@@ -58,17 +63,17 @@ namespace Graphics
 		Dispose();
 	}
 
-	void Framebuffer::Initialize()
+	void Framebuffer::InitializeID()
 	{
 		GLCall(glGenFramebuffers(1, &framebufferID));
 	}
 
-	void Framebuffer::Bind()
+	void Framebuffer::Bind() const
 	{
 		GLCall(glBindFramebuffer(GetBufferTarget(), framebufferID));
 	}
 
-	void Framebuffer::UnBind()
+	void Framebuffer::UnBind() const
 	{
 		GLCall(glBindFramebuffer(GetBufferTarget(), NULL));
 	}
@@ -88,6 +93,11 @@ namespace Graphics
 	void Framebuffer::AttachRenderbuffer(Renderbuffer& renderbuffer, Attachment_t attachment)
 	{
 		GLCall(glFramebufferRenderbuffer(GetBufferTarget(), attachment, renderbuffer.GetRenderTarget(), renderbuffer.GetRenderbufferID()));
+	}
+
+	void Framebuffer::SetObjectLabel(const char* label)
+	{
+		GLCall(glObjectLabel(GL_FRAMEBUFFER, framebufferID, -1, label));
 	}
 
 	void Framebuffer::Dispose()
@@ -116,7 +126,7 @@ namespace Graphics
 	{
 		assert(size.x > 0 && size.y > 0);
 
-		framebuffer.Initialize();
+		framebuffer.InitializeID();
 		framebuffer.Bind();
 
 		colorTexture.InitializeID();

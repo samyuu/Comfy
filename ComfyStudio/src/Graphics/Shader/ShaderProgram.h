@@ -38,7 +38,7 @@ namespace Graphics
 		const char* name;
 	};
 
-	class ShaderProgram : public IBindable
+	class ShaderProgram : public IBindable, ILabeledObject
 	{
 	public:
 		ShaderProgram();
@@ -57,6 +57,8 @@ namespace Graphics
 		void Initialize();
 		inline bool GetIsInitialized() const { return initialized; };
 		inline ProgramID_t GetProgramID() const { return programID; };
+		
+		void SetObjectLabel(const char* label) override;
 
 	public:
 		void Recompile();

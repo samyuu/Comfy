@@ -110,8 +110,15 @@ namespace Graphics
 
 		AttachLinkShaders(vertexShader, fragmentShader);
 
+		SetObjectLabel(GetShaderName());
 		GetAllUniformLocations();
+		
 		initialized = true;
+	}
+
+	void ShaderProgram::SetObjectLabel(const char* label)
+	{
+		GLCall(glObjectLabel(GL_PROGRAM, programID, -1, label));
 	}
 
 	void ShaderProgram::Recompile()
@@ -202,7 +209,11 @@ namespace Graphics
 	int ShaderProgram::AttachLinkShaders(ShaderID_t vertexShader, ShaderID_t fragmentShader)
 	{
 		GLCall(glAttachShader(programID, vertexShader));
+		GLCall(glObjectLabel(GL_SHADER, vertexShader, -1, "ShaderProgram::VertexShader"));
+
 		GLCall(glAttachShader(programID, fragmentShader));
+		GLCall(glObjectLabel(GL_SHADER, fragmentShader, -1, "ShaderProgram::FragmentShader"));
+		
 		GLCall(glLinkProgram(programID));
 
 		int linkSuccess = NULL;

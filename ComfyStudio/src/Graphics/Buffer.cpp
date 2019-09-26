@@ -41,6 +41,11 @@ namespace Graphics
 		GLCall(glBindBuffer(GetGLBufferTarget(), NULL));
 	}
 
+	void Buffer::SetObjectLabel(const char* label)
+	{
+		GLCall(glObjectLabel(GL_BUFFER, bufferID, -1, label));
+	}
+
 	GLenum Buffer::GetGLUsage() const
 	{
 		switch (bufferUsage)

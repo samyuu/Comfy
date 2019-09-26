@@ -13,10 +13,10 @@ namespace Graphics
 
 	void Texture::Bind() const
 	{
-		Bind(0);
+		Bind(TextureSlot_0);
 	}
 
-	void Texture::Bind(int32_t textureSlot) const
+	void Texture::Bind(TextureSlot textureSlot) const
 	{
 		RenderCommand::SetTextureSlot(textureSlot);
 		RenderCommand::BindTexture(GetTextureTarget(), textureID);
@@ -24,10 +24,10 @@ namespace Graphics
 
 	void Texture::UnBind() const
 	{
-		UnBind(0);
+		UnBind(TextureSlot_0);
 	}
 
-	void Texture::UnBind(int32_t textureSlot) const
+	void Texture::UnBind(TextureSlot textureSlot) const
 	{
 		RenderCommand::SetTextureSlot(textureSlot);
 		RenderCommand::BindTexture(GetTextureTarget(), NULL);

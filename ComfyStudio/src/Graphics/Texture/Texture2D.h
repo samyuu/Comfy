@@ -11,8 +11,9 @@ namespace Graphics
 		~Texture2D();
 
 		void UploadEmpty(ivec2 size);
-		bool Upload(const FileSystem::Texture* texture);
-		bool UploadFromFile(const char* path);
+		bool Create(const FileSystem::Texture* texture);
+		bool CreateFromFile(const char* path);
+		bool CreateFromRgbaBuffer(ivec2 size, const Vector<uint32_t>& pixels);
 
 		float GetWidth() const;
 		float GetHeight() const;
@@ -20,6 +21,8 @@ namespace Graphics
 
 		TextureID_t GetTextureID() const;
 		void* GetVoidTexture() const;
+
+		void SetObjectLabel(const char* label) override;
 
 	protected:
 		vec2 imageSize;

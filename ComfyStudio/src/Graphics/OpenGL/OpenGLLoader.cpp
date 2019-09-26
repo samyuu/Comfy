@@ -163,5 +163,6 @@ namespace Graphics
 		LoadGLFunction(glGetSamplerParameterIiv);
 		LoadGLFunction(glGetSamplerParameterfv);
 		LoadGLFunction(glGetSamplerParameterIuiv);
+		LoadGLFunction(glObjectLabel);
 	}
 }

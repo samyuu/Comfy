@@ -27,7 +27,7 @@ namespace Graphics
 		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 	}
 
-	bool Texture2D::Upload(const FileSystem::Texture* texture)
+	bool Texture2D::Create(const FileSystem::Texture* texture)
 	{
 		GLint mipMapCount = static_cast<GLint>(texture->MipMaps.size());
 		assert(mipMapCount >= 1);
@@ -40,6 +40,8 @@ namespace Graphics
 
 		InitializeID();
 		Bind();
+
+		SetObjectLabel(texture->Name.c_str());
 
 		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER));
 		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER));
@@ -87,7 +89,7 @@ namespace Graphics
 		return true;
 	}
 
-	bool Texture2D::UploadFromFile(const char* path)
+	bool Texture2D::CreateFromFile(const char* path)
 	{
 		stbi_set_flip_vertically_on_load(true);
 
@@ -119,6 +121,24 @@ namespace Graphics
 		return true;
 	}
 
+	bool Texture2D::CreateFromRgbaBuffer(ivec2 size, const Vector<uint32_t>& pixels)
+	{
+		assert(size.x > 0 && size.y > 0);
+
+		imageSize = size;
+		textureFormat = TextureFormat::RGBA8;
+
+		InitializeID();
+		Bind();
+
+		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+
+		GLCall(glTexImage2D(GetTextureTarget(), 0, GL_RGBA8, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data()));
+
+		return true;
+	}
+
 	float Texture2D::GetWidth() const
 	{
 		return imageSize.x;
@@ -146,6 +166,11 @@ namespace Graphics
 		return reinterpret_cast<void*>(GetTextureID());
 	}
 #pragma warning(pop)
+
+	void Texture2D::SetObjectLabel(const char* label)
+	{
+		GLCall(glObjectLabel(GL_TEXTURE, textureID, -1, label));
+	}
 
 	void Texture2D::Dispose()
 	{
