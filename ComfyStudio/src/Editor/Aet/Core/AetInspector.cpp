@@ -145,11 +145,8 @@ namespace Editor
 					ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceLayer, aetObj, nullptr);
 
 				int layerIndex = 0;
-				for (const RefPtr<AetLayer>& layer : aet->AetLayers)
+				for (const RefPtr<AetLayer>& layer : aet->Layers)
 				{
-					if (aet->AetLayers.back() == layer)
-						break;
-
 					Gui::PushID(layer.get());
 
 					bool isSelected = (aetLayer == layer);
@@ -259,7 +256,7 @@ namespace Editor
 					ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceRegion, aetObj, nullptr);
 
 				int32_t regionIndex = 0;
-				for (const RefPtr<AetRegion>& region : aet->AetRegions)
+				for (const RefPtr<AetRegion>& region : aet->Regions)
 				{
 					Gui::PushID(region.get());
 
@@ -560,7 +557,7 @@ namespace Editor
 
 			if (newParentObjLayerIndex >= 0)
 			{
-				parentObjLayer = aet->AetLayers[newParentObjLayerIndex].get();
+				parentObjLayer = aet->Layers[newParentObjLayerIndex].get();
 				sprintf_s(parentObjDataNameBuffer, "Layer %d (%s)", parentObjLayer->GuiData.ThisIndex, parentObjLayer->GetCommaSeparatedNames().c_str());
 			}
 			else
@@ -577,9 +574,9 @@ namespace Editor
 					newParentObjLayerIndex = -1;
 				}
 
-				for (int32_t layerIndex = 0; layerIndex < aet->AetLayers.size(); layerIndex++)
+				for (int32_t layerIndex = 0; layerIndex < aet->Layers.size(); layerIndex++)
 				{
-					auto& layer = aet->AetLayers[layerIndex];
+					auto& layer = aet->Layers[layerIndex];
 
 					bool isSelected = (layerIndex == newParentObjLayerIndex);
 					sprintf_s(parentObjDataNameBuffer, "Layer %d (%s)", layerIndex, layer->GetCommaSeparatedNames().c_str());

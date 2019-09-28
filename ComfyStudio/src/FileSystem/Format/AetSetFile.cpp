@@ -167,14 +167,14 @@ namespace FileSystem
 		Resolution.x = reader.ReadInt32();
 		Resolution.y = reader.ReadInt32();
 
-		void* positionOffsetPtr = reader.ReadPtr();
-		if (positionOffsetPtr != nullptr)
+		void* cameraOffsetPtr = reader.ReadPtr();
+		if (cameraOffsetPtr != nullptr)
 		{
-			this->PositionOffset = MakeRef<FileSystem::PositionOffset>();
-			reader.ReadAt(positionOffsetPtr, [this](BinaryReader& reader)
+			Camera = MakeRef<AetCamera>();
+			reader.ReadAt(cameraOffsetPtr, [this](BinaryReader& reader)
 			{
-				ReadKeyFramesPointer(this->PositionOffset->PositionX, reader);
-				ReadKeyFramesPointer(this->PositionOffset->PositionY, reader);
+				ReadKeyFramesPointer(Camera->PositionX, reader);
+				ReadKeyFramesPointer(Camera->PositionY, reader);
 			});
 		}
 
@@ -182,10 +182,10 @@ namespace FileSystem
 		void* layersPtr = reader.ReadPtr();
 		if (layersCount > 0 && layersPtr != nullptr)
 		{
-			AetLayers.resize(layersCount);
+			Layers.resize(layersCount - 1);
 			reader.ReadAt(layersPtr, [this](BinaryReader& reader)
 			{
-				for (RefPtr<AetLayer>& layer : AetLayers)
+				const auto readLayerFunction = [](BinaryReader& reader, RefPtr<AetLayer>& layer)
 				{
 					layer = MakeRef<AetLayer>();
 					layer->filePosition = reader.GetPositionPtr();
@@ -196,7 +196,7 @@ namespace FileSystem
 					if (objectCount > 0 && objectsPointer != nullptr)
 					{
 						layer->resize(objectCount);
-						reader.ReadAt(objectsPointer, [this, &layer](BinaryReader& reader)
+						reader.ReadAt(objectsPointer, [&layer](BinaryReader& reader)
 						{
 							for (RefPtr<AetObj>& object : *layer)
 							{
@@ -205,7 +205,12 @@ namespace FileSystem
 							}
 						});
 					}
-				}
+				};
+
+				for (RefPtr<AetLayer>& layer : Layers)
+					readLayerFunction(reader, layer);
+
+				readLayerFunction(reader, RootLayer);
 			});
 		}
 
@@ -213,10 +218,10 @@ namespace FileSystem
 		void* regionsPtr = reader.ReadPtr();
 		if (regionCount > 0 && regionsPtr != nullptr)
 		{
-			AetRegions.resize(regionCount);
+			Regions.resize(regionCount);
 			reader.ReadAt(regionsPtr, [this](BinaryReader& reader)
 			{
-				for (RefPtr<AetRegion>& region : AetRegions)
+				for (RefPtr<AetRegion>& region : Regions)
 				{
 					region = MakeRef<AetRegion>();
 					region->filePosition = reader.GetPositionPtr();
@@ -248,10 +253,10 @@ namespace FileSystem
 		void* soundEffectsPtr = reader.ReadPtr();
 		if (soundEffectCount > 0 && soundEffectsPtr != nullptr)
 		{
-			AetSoundEffects.resize(soundEffectCount);
+			SoundEffects.resize(soundEffectCount);
 			reader.ReadAt(soundEffectsPtr, [this](BinaryReader& reader)
 			{
-				for (RefPtr<AetSoundEffect>& soundEffect : AetSoundEffects)
+				for (RefPtr<AetSoundEffect>& soundEffect : SoundEffects)
 				{
 					soundEffect = MakeRef<AetSoundEffect>();
 					soundEffect->filePosition = reader.GetPositionPtr();
@@ -277,25 +282,26 @@ namespace FileSystem
 			writer.WriteInt32(Resolution.x);
 			writer.WriteInt32(Resolution.y);
 
-			if (this->PositionOffset != nullptr)
+			if (Camera != nullptr)
 			{
 				writer.WritePtr([this](BinaryWriter& writer)
 				{
-					WriteKeyFramesPointer(this->PositionOffset->PositionX, writer);
-					WriteKeyFramesPointer(this->PositionOffset->PositionY, writer);
+					WriteKeyFramesPointer(this->Camera->PositionX, writer);
+					WriteKeyFramesPointer(this->Camera->PositionY, writer);
 				});
 			}
 			else
 			{
-				writer.WritePtr(nullptr); // PositionOffset offset
+				writer.WritePtr(nullptr); // AetCamera offset
 			}
 
-			if (AetLayers.size() > 0)
+			assert(RootLayer != nullptr);
+			if (Layers.size() > 0)
 			{
-				writer.WriteUInt32(static_cast<uint32_t>(AetLayers.size()));
+				writer.WriteUInt32(static_cast<uint32_t>(Layers.size()) + 1);
 				writer.WritePtr([this](BinaryWriter& writer)
 				{
-					for (RefPtr<AetLayer>& layer : AetLayers)
+					const auto writeLayerFunction = [](BinaryWriter& writer, const RefPtr<AetLayer>& layer) 
 					{
 						layer->filePosition = writer.GetPositionPtr();
 						if (layer->size() > 0)
@@ -412,7 +418,12 @@ namespace FileSystem
 							writer.WriteUInt32(0x00000000); // AetLayer size
 							writer.WritePtr(nullptr);		// AetLayer offset
 						}
-					}
+					};
+
+					for (RefPtr<AetLayer>& layer : Layers)
+						writeLayerFunction(writer, layer);
+					writeLayerFunction(writer, RootLayer);
+
 					writer.WriteAlignmentPadding(16);
 				});
 			}
@@ -422,12 +433,12 @@ namespace FileSystem
 				writer.WritePtr(nullptr);		// AetLayers offset
 			}
 
-			if (AetRegions.size() > 0)
+			if (Regions.size() > 0)
 			{
-				writer.WriteUInt32(static_cast<uint32_t>(AetRegions.size()));
+				writer.WriteUInt32(static_cast<uint32_t>(Regions.size()));
 				writer.WritePtr([this](BinaryWriter& writer)
 				{
-					for (RefPtr<AetRegion>& region : AetRegions)
+					for (RefPtr<AetRegion>& region : Regions)
 					{
 						region->filePosition = writer.GetPositionPtr();
 						writer.WriteUInt32(region->Color);
@@ -461,12 +472,12 @@ namespace FileSystem
 				writer.WritePtr(nullptr);		// AetRegions offset
 			}
 
-			if (AetSoundEffects.size() > 0)
+			if (SoundEffects.size() > 0)
 			{
-				writer.WriteUInt32(static_cast<uint32_t>(AetSoundEffects.size()));
+				writer.WriteUInt32(static_cast<uint32_t>(SoundEffects.size()));
 				writer.WritePtr([this](BinaryWriter& writer)
 				{
-					for (RefPtr<AetSoundEffect>& soundEffect : AetSoundEffects)
+					for (RefPtr<AetSoundEffect>& soundEffect : SoundEffects)
 					{
 						soundEffect->filePosition = writer.GetPositionPtr();
 						writer.WriteUInt32(soundEffect->Data[0]);

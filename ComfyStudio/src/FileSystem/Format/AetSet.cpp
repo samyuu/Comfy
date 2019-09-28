@@ -81,12 +81,12 @@ namespace FileSystem
 		return static_cast<int32_t>(sprites.size());
 	}
 
-	SpriteCollection& AetRegion::GetSprites()
+	Vector<AetSprite>& AetRegion::GetSprites()
 	{
 		return sprites;
 	}
 
-	const SpriteCollection& AetRegion::GetSprites() const
+	const Vector<AetSprite>& AetRegion::GetSprites() const
 	{
 		return sprites;
 	}
@@ -286,8 +286,13 @@ namespace FileSystem
 		return givenNames;
 	}
 
+	const String AetLayer::unusedLayerName = "Unused";
+
 	const String& AetLayer::GetCommaSeparatedNames() const
 	{
+		if (commaSeparatedNames.empty())
+			return unusedLayerName;
+
 		return commaSeparatedNames;
 	}
 
@@ -315,14 +320,18 @@ namespace FileSystem
 
 	AetLayer* Aet::GetRootLayer()
 	{
-		return AetLayers.size() > 0 ? AetLayers.back().get() : nullptr;
+		return RootLayer.get();
 	}
 
 	RefPtr<AetObj> Aet::FindObj(const String& name)
 	{
-		for (int32_t i = static_cast<int32_t>(AetLayers.size()) - 1; i >= 0; i--)
+		const RefPtr<AetObj>& rootFoundObj = RootLayer->FindObj(name);
+		if (rootFoundObj != nullptr)
+			return rootFoundObj;
+
+		for (int32_t i = static_cast<int32_t>(Layers.size()) - 1; i >= 0; i--)
 		{
-			const RefPtr<AetObj>& obj = AetLayers[i]->FindObj(name);
+			const RefPtr<AetObj>& obj = Layers[i]->FindObj(name);
 			if (obj != nullptr)
 				return obj;
 		}
@@ -346,21 +355,23 @@ namespace FileSystem
 		return -1;
 	}
 
+	// TODO:
+	/*
 	void Aet::DeleteLayer(const RefPtr<AetLayer>& value)
 	{
 		int index = 0;
-		for (RefPtr<AetLayer>& layer : AetLayers)
+		for (RefPtr<AetLayer>& layer : Layers)
 		{
 			if (layer == value)
 			{
-				AetLayers.erase(AetLayers.begin() + index);
+				Layers.erase(Layers.begin() + index);
 				break;
 			}
 
 			index++;
 		}
 
-		for (RefPtr<AetLayer>& layer : AetLayers)
+		for (RefPtr<AetLayer>& layer : Layers)
 		{
 			for (RefPtr<AetObj>& obj : *layer)
 			{
@@ -374,91 +385,109 @@ namespace FileSystem
 
 		InternalUpdateLayerNames();
 	}
+	*/
 
 	void Aet::UpdateParentPointers()
 	{
-		for (RefPtr<AetLayer>& layer : AetLayers)
+		const auto updateParentPointers = [this](RefPtr<AetLayer>& layer)
 		{
 			layer->parentAet = this;
 
 			for (RefPtr<AetObj>& obj : *layer)
 				obj->parentLayer = layer.get();
-		}
+		};
+
+		for (RefPtr<AetLayer>& layer : Layers)
+			updateParentPointers(layer);
+
+		updateParentPointers(RootLayer);
 	}
 
 	void Aet::InternalUpdateLayerNames()
 	{
-		AetLayer* rootLayer = GetRootLayer();
+		for (RefPtr<AetLayer>& aetLayer : Layers)
+			InternalUpdateLayerNamesVector(aetLayer);
+		
+		InternalUpdateLayerNamesVector(RootLayer);
+		RootLayer->givenNames = { "Root Layer" };
 
-		for (RefPtr<AetLayer>& aetLayer : AetLayers)
+		for (RefPtr<AetLayer>& aetLayer : Layers)
+			InternalUpdateLayerNamesCommaSeparated(aetLayer);
+
+		InternalUpdateLayerNamesCommaSeparated(RootLayer);
+	}
+
+	void Aet::InternalUpdateLayerNamesVector(RefPtr<AetLayer>& aetLayer)
+	{
+		aetLayer->givenNames.clear();
+
+		for (RefPtr<AetObj>& aetObj : *aetLayer)
 		{
-			aetLayer->givenNames.clear();
+			AetLayer* referencedLayer;
 
-			for (RefPtr<AetObj>& aetObj : *aetLayer)
+			if (aetObj->Type == AetObjType::Eff && (referencedLayer = aetObj->GetReferencedLayer().get()) != nullptr)
 			{
-				const AetLayer* referencedLayer;
-
-				if (aetObj->Type == AetObjType::Eff && (referencedLayer = aetObj->GetReferencedLayer().get()) != nullptr)
+				bool nameExists = false;
+				for (auto& layerNames : referencedLayer->givenNames)
 				{
-					bool nameExists = false;
-					for (auto& layerNames : referencedLayer->givenNames)
+					if (layerNames == aetObj->GetName())
 					{
-						if (layerNames == aetObj->GetName())
-						{
-							nameExists = true;
-							break;
-						}
+						nameExists = true;
+						break;
 					}
-
-					if (!nameExists)
-						const_cast<AetLayer*>(referencedLayer)->givenNames.emplace_back(aetObj->GetName());
 				}
-			}
 
-			if (aetLayer.get() == rootLayer)
-				aetLayer->givenNames.emplace_back("Root");
+				if (!nameExists)
+					referencedLayer->givenNames.emplace_back(aetObj->GetName());
+			}
 		}
+	}
 
-		for (RefPtr<AetLayer>& aetLayer : AetLayers)
+	void Aet::InternalUpdateLayerNamesCommaSeparated(RefPtr<AetLayer>& aetLayer)
+	{
+		aetLayer->commaSeparatedNames.clear();
+
+		for (size_t i = 0; i < aetLayer->givenNames.size(); i++)
 		{
-			aetLayer->commaSeparatedNames.clear();
-
-			for (size_t i = 0; i < aetLayer->givenNames.size(); i++)
-			{
-				aetLayer->commaSeparatedNames.append(aetLayer->givenNames[i]);
-				if (i < aetLayer->givenNames.size() - 1)
-					aetLayer->commaSeparatedNames.append(", ");
-			}
+			aetLayer->commaSeparatedNames.append(aetLayer->givenNames[i]);
+			if (i < aetLayer->givenNames.size() - 1)
+				aetLayer->commaSeparatedNames.append(", ");
 		}
 	}
 
 	void Aet::InternalLinkPostRead()
 	{
-		int32_t layerIndex = 0;
-		for (RefPtr<AetLayer>& aetLayer : AetLayers)
+		assert(RootLayer != nullptr);
+
+		for (RefPtr<AetLayer>& aetLayer : Layers)
+			InternalLinkeLayerContent(aetLayer);
+
+		InternalLinkeLayerContent(RootLayer);
+	}
+
+	void Aet::InternalLinkeLayerContent(RefPtr<AetLayer>& aetLayer)
+	{
+		for (RefPtr<AetObj>& aetObj : *aetLayer)
 		{
-			for (RefPtr<AetObj>& aetObj : *aetLayer)
+			if (aetObj->dataFilePtr != nullptr)
 			{
-				if (aetObj->dataFilePtr != nullptr)
-				{
-					if (aetObj->Type == AetObjType::Pic)
-						InternalFindObjReferencedRegion(aetObj.get());
-					else if (aetObj->Type == AetObjType::Aif)
-						InternalFindObjReferencedSoundEffect(aetObj.get());
-					else if (aetObj->Type == AetObjType::Eff)
-						InternalFindObjReferencedLayer(aetObj.get());
-				}
-				if (aetObj->parentFilePtr != nullptr)
-				{
-					InternalFindObjReferencedParent(aetObj.get());
-				}
+				if (aetObj->Type == AetObjType::Pic)
+					InternalFindObjReferencedRegion(aetObj.get());
+				else if (aetObj->Type == AetObjType::Aif)
+					InternalFindObjReferencedSoundEffect(aetObj.get());
+				else if (aetObj->Type == AetObjType::Eff)
+					InternalFindObjReferencedLayer(aetObj.get());
+			}
+			if (aetObj->parentFilePtr != nullptr)
+			{
+				InternalFindObjReferencedParent(aetObj.get());
 			}
 		}
 	}
 
 	void Aet::InternalFindObjReferencedRegion(AetObj* aetObj)
 	{
-		for (RefPtr<AetRegion>& otherRegion : AetRegions)
+		for (RefPtr<AetRegion>& otherRegion : Regions)
 		{
 			if (otherRegion->filePosition == aetObj->dataFilePtr)
 			{
@@ -470,7 +499,7 @@ namespace FileSystem
 
 	void Aet::InternalFindObjReferencedSoundEffect(AetObj* aetObj)
 	{
-		for (RefPtr<AetSoundEffect>& otherSoundEffect : AetSoundEffects)
+		for (RefPtr<AetSoundEffect>& otherSoundEffect : SoundEffects)
 		{
 			if (otherSoundEffect->filePosition == aetObj->dataFilePtr)
 			{
@@ -482,7 +511,7 @@ namespace FileSystem
 
 	void Aet::InternalFindObjReferencedLayer(AetObj* aetObj)
 	{
-		for (RefPtr<AetLayer>& otherLayer : AetLayers)
+		for (RefPtr<AetLayer>& otherLayer : Layers)
 		{
 			if (otherLayer->filePosition == aetObj->dataFilePtr)
 			{
@@ -494,12 +523,15 @@ namespace FileSystem
 
 	void Aet::InternalFindObjReferencedParent(AetObj* aetObj)
 	{
-		for (RefPtr<AetLayer>& otherLayer : AetLayers) for (RefPtr<AetObj>& otherObj : *otherLayer)
+		for (RefPtr<AetLayer>& otherLayer : Layers)
 		{
-			if (otherObj->filePosition == aetObj->parentFilePtr)
+			for (RefPtr<AetObj>& otherObj : *otherLayer)
 			{
-				aetObj->references.ParentObj = otherObj;
-				return;
+				if (otherObj->filePosition == aetObj->parentFilePtr)
+				{
+					aetObj->references.ParentObj = otherObj;
+					return;
+				}
 			}
 		}
 	}
@@ -508,7 +540,7 @@ namespace FileSystem
 	{
 		for (RefPtr<Aet>& aet : aets)
 		{
-			for (RefPtr<AetRegion>& region : aet->AetRegions)
+			for (RefPtr<AetRegion>& region : aet->Regions)
 			{
 				for (AetSprite& sprite : region->GetSprites())
 					sprite.SpriteCache = nullptr;

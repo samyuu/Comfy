@@ -54,9 +54,8 @@ namespace FileSystem
 		mutable const Sprite* SpriteCache;
 	};
 
-	using SpriteCollection = Vector<AetSprite>;
-	using SpriteCollectionIterator = SpriteCollection::iterator;
-	using ConstSpriteCollectionIterator = SpriteCollection::const_iterator;
+	using SpriteCollectionIterator = Vector<AetSprite>::iterator;
+	using ConstSpriteCollectionIterator = Vector<AetSprite>::const_iterator;
 
 	class AetRegion
 	{
@@ -81,11 +80,11 @@ namespace FileSystem
 		AetSprite* GetBackSprite();
 
 		int32_t SpriteCount() const;
-		SpriteCollection& GetSprites();
-		const SpriteCollection& GetSprites() const;
+		Vector<AetSprite>& GetSprites();
+		const Vector<AetSprite>& GetSprites() const;
 
 	private:
-		SpriteCollection sprites;
+		Vector<AetSprite> sprites;
 		fileptr_t filePosition;
 	};
 
@@ -250,9 +249,8 @@ namespace FileSystem
 		void Read(BinaryReader& reader);
 	};
 
-	using AetObjCollection = Vector<RefPtr<AetObj>>;
-	using AetObjIterator = AetObjCollection::iterator;
-	using ConstAetObjIterator = AetObjCollection::const_iterator;
+	using AetObjIterator = Vector<RefPtr<AetObj>>::iterator;
+	using ConstAetObjIterator = Vector<RefPtr<AetObj>>::const_iterator;
 
 	class AetLayer
 	{
@@ -304,16 +302,18 @@ namespace FileSystem
 		void DeleteObject(AetObj* value);
 
 	private:
+		static const String unusedLayerName;
+
 		Vector<String> givenNames;
 		String commaSeparatedNames;
 
 		Aet* parentAet;
 		fileptr_t filePosition;
 
-		AetObjCollection objects;
+		Vector<RefPtr<AetObj>> objects;
 	};
 
-	struct PositionOffset
+	struct AetCamera
 	{
 		KeyFrameCollection PositionX;
 		KeyFrameCollection PositionY;
@@ -356,11 +356,16 @@ namespace FileSystem
 		uint32_t BackgroundColor;
 
 		ivec2 Resolution;
-		RefPtr<PositionOffset> PositionOffset;
 
-		Vector<RefPtr<AetLayer>> AetLayers;
-		Vector<RefPtr<AetRegion>> AetRegions;
-		Vector<RefPtr<AetSoundEffect>> AetSoundEffects;
+		// TODO: Rename to AetCamera
+		RefPtr<AetCamera> Camera;
+
+		// TODO: Separate RootLayer field
+		Vector<RefPtr<AetLayer>> Layers;
+		RefPtr<AetLayer> RootLayer;
+
+		Vector<RefPtr<AetRegion>> Regions;
+		Vector<RefPtr<AetSoundEffect>> SoundEffects;
 
 	public:
 		AetLayer* GetRootLayer();
@@ -372,7 +377,7 @@ namespace FileSystem
 
 	public:
 		//void AddNewLayer();
-		void DeleteLayer(const RefPtr<AetLayer>& value);
+		//void DeleteLayer(const RefPtr<AetLayer>& value);
 
 	public:
 		void UpdateParentPointers();
@@ -383,16 +388,18 @@ namespace FileSystem
 
 	private:
 		void InternalUpdateLayerNames();
+		void InternalUpdateLayerNamesVector(RefPtr<AetLayer>& aetLayer);
+		void InternalUpdateLayerNamesCommaSeparated(RefPtr<AetLayer>& aetLayer);
 		void InternalLinkPostRead();
+		void InternalLinkeLayerContent(RefPtr<AetLayer>& aetLayer);
 		void InternalFindObjReferencedRegion(AetObj* aetObj);
 		void InternalFindObjReferencedSoundEffect(AetObj* aetObj);
 		void InternalFindObjReferencedLayer(AetObj* aetObj);
 		void InternalFindObjReferencedParent(AetObj* aetObj);
 	};
 
-	using AetCollection = Vector<RefPtr<Aet>>;
-	using AetIterator = AetCollection::iterator;
-	using ConstAetIterator = AetCollection::const_iterator;
+	using AetIterator = Vector<RefPtr<Aet>>::iterator;
+	using ConstAetIterator = Vector<RefPtr<Aet>>::const_iterator;
 
 	class AetSet : public IBinaryFile
 	{
@@ -435,6 +442,6 @@ namespace FileSystem
 		virtual void Write(BinaryWriter& writer) override;
 
 	private:
-		AetCollection aets;
+		Vector<RefPtr<Aet>> aets;
 	};
 }

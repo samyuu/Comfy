@@ -69,7 +69,7 @@ namespace Editor
 		
 		// TODO: These should probably be called DrawTreeNode{Name}
 		void DrawTreeViewAet(const RefPtr<Aet>& aet);
-		void DrawTreeViewLayer(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer);
+		void DrawTreeViewLayer(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, bool isRoot);
 
 		void DrawTreeViewObj(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj);
 		void DrawTreeViewObjCameraSelectableButton(const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj);
@@ -77,7 +77,7 @@ namespace Editor
 
 		void DrawTreeViewRegion(const RefPtr<Aet>& aet, const RefPtr<AetRegion>& region, int32_t index);
 
-		bool DrawAetLayerContextMenu(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer);
+		bool DrawAetLayerContextMenu(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, bool isRoot);
 		bool DrawAetObjContextMenu(const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj);
 
 		void DrawAetLayerPreviewTooltip(const RefPtr<AetLayer>& aetLayer);
@@ -85,7 +85,7 @@ namespace Editor
 
 	private:
 		const char* FormatAetNodeName(const RefPtr<Aet>& aet);
-		const char* FormatLayerNodeName(const RefPtr<AetLayer>& aetLayer, bool nodeOpen);
+		const char* FormatLayerNodeName(const RefPtr<AetLayer>& aetLayer, bool nodeOpen, bool isRoot = false);
 		const char* FormatObjNodeName(const RefPtr<AetObj>& aetObj);
 		const char* FormatRegionNodeName(const RefPtr<AetRegion>& region, int32_t index);
 

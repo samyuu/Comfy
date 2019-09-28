@@ -171,12 +171,15 @@ namespace Editor
 				if (Gui::IsItemClicked())
 					ResetSelectedItems();
 
-				for (int32_t i = static_cast<int32_t>(aet->AetLayers.size()) - 1; i >= 0; i--)
+				aet->RootLayer->GuiData.ThisIndex = -1;
+				DrawTreeViewLayer(aet, aet->RootLayer, true);
+
+				for (int32_t i = static_cast<int32_t>(aet->Layers.size()) - 1; i >= 0; i--)
 				{
-					const auto& layer = aet->AetLayers[i];
-					
+					const auto& layer = aet->Layers[i];
+
 					layer->GuiData.ThisIndex = i;
-					DrawTreeViewLayer(aet, layer);
+					DrawTreeViewLayer(aet, layer, false);
 				}
 
 				Gui::TreePop();
@@ -187,9 +190,9 @@ namespace Editor
 				if (Gui::IsItemClicked())
 					ResetSelectedItems();
 
-				for (int32_t i = 0; i < static_cast<int32_t>(aet->AetRegions.size()); i++)
+				for (int32_t i = 0; i < static_cast<int32_t>(aet->Regions.size()); i++)
 				{
-					DrawTreeViewRegion(aet, aet->AetRegions[i], i);
+					DrawTreeViewRegion(aet, aet->Regions[i], i);
 				}
 				Gui::TreePop();
 			}
@@ -198,7 +201,7 @@ namespace Editor
 		}
 	}
 
-	void AetTreeView::DrawTreeViewLayer(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer)
+	void AetTreeView::DrawTreeViewLayer(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, bool isRoot)
 	{
 		Gui::PushID(aetLayer.get());
 
@@ -220,9 +223,9 @@ namespace Editor
 		aetLayer->GuiData.TreeViewScrollY = Gui::GetCursorPos().y;
 
 		bool openAddAetObjPopup = false;
-		Gui::ItemContextMenu("AetLayerContextMenu##AetTreeView", [this, &aet, &aetLayer, &openAddAetObjPopup]()
+		Gui::ItemContextMenu("AetLayerContextMenu##AetTreeView", [this, &aet, &aetLayer, &openAddAetObjPopup, isRoot]()
 		{
-			openAddAetObjPopup = DrawAetLayerContextMenu(aet, aetLayer);
+			openAddAetObjPopup = DrawAetLayerContextMenu(aet, aetLayer, isRoot);
 		});
 
 		// TODO: Might want to check for mouse released instead (becomes more relevant once TreeNode drag and dropping is implemented)
@@ -237,12 +240,11 @@ namespace Editor
 			Gui::PushStyleColor(ImGuiCol_Text, GetColor(EditorColor_TextHighlight));
 
 		Gui::SetCursorScreenPos(treeNodeCursorPos + ImVec2(GImGui->FontSize + GImGui->Style.FramePadding.x, 0));
-		Gui::TextUnformatted(FormatLayerNodeName(aetLayer, aetLayerNodeOpen));
+		Gui::TextUnformatted(FormatLayerNodeName(aetLayer, aetLayerNodeOpen, isRoot));
 
 		if (textHightlighted)
 			Gui::PopStyleColor();
 
-		// TODO: Have a separate "selected" and "cameraSelected" (double click AetObj to camera select)
 		if (cameraSelectedAetItem->Ptrs.AetLayer == aetLayer.get())
 			DrawTreeNodeCameraIcon(treeNodeCursorPos);
 
@@ -262,7 +264,7 @@ namespace Editor
 			if (Gui::IsKeyPressed(KeyCode_Escape))
 				Gui::CloseCurrentPopup();
 
-			// NOTE: Should be replaced by drag and dropping sprites into the viewport or linking layers into eff objects
+			// NOTE: Should be replaced by drag and dropping sprites into the viewport or linking layers into eff objects (auto center origin)
 			// addAetObjDialog.DrawGui(&aet, &aetLayer);
 			Gui::EndPopup();
 		}
@@ -381,7 +383,7 @@ namespace Editor
 		Gui::PopID();
 	}
 
-	bool AetTreeView::DrawAetLayerContextMenu(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer)
+	bool AetTreeView::DrawAetLayerContextMenu(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, bool isRoot)
 	{
 		Gui::Text(ICON_AETLAYER "  %s", aetLayer->GetCommaSeparatedNames().c_str());
 		Gui::Separator();
@@ -395,9 +397,12 @@ namespace Editor
 			Gui::EndMenu();
 		}
 
-		if (Gui::MenuItem(ICON_MOVEUP "  Move Up")) {}
-		if (Gui::MenuItem(ICON_MOVEDOWN "  Move Down")) {}
-		if (Gui::MenuItem(ICON_DELETE "  Delete Layer")) {} // TODO: layerToDelete = { &aet, &aetLayer};
+		if (!isRoot)
+		{
+			if (Gui::MenuItem(ICON_MOVEUP "  Move Up")) {}
+			if (Gui::MenuItem(ICON_MOVEDOWN "  Move Down")) {}
+			if (Gui::MenuItem(ICON_DELETE "  Delete Layer")) {} // TODO: layerToDelete = { &aet, &aetLayer};
+		}
 
 		return false;
 	}
@@ -469,10 +474,13 @@ namespace Editor
 		return nodeNameFormatBuffer;
 	}
 
-	const char* AetTreeView::FormatLayerNodeName(const RefPtr<AetLayer>& aetLayer, bool nodeOpen)
+	const char* AetTreeView::FormatLayerNodeName(const RefPtr<AetLayer>& aetLayer, bool nodeOpen, bool isRoot)
 	{
-		// NOTE: Hand optimized to prevent high cpu usage ( (12.0 %) -> (< 2.0 %) )
+		// NOTE: Special logic for root layer
+		if (isRoot)
+			return nodeOpen ? (ICON_AETLAYER_OPEN "  Root Layer") : (ICON_AETLAYER "  Root Layer");
 
+		// NOTE: Hand optimized to prevent high cpu usage ( (12.0 %) -> (< 2.0 %) )
 		char* buffer = nodeNameFormatBuffer;
 		char* endOfBuffer = nodeNameFormatBuffer + sizeof(nodeNameFormatBuffer);
 
@@ -533,7 +541,6 @@ namespace Editor
 	const char* AetTreeView::FormatObjNodeName(const RefPtr<AetObj>& aetObj)
 	{
 		// NOTE: Hand optimized to prevent high cpu usage
-
 		char* buffer = nodeNameFormatBuffer;
 		char* endOfBuffer = nodeNameFormatBuffer + sizeof(nodeNameFormatBuffer);
 

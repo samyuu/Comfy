@@ -32,9 +32,9 @@ namespace Editor
 					NextColumn();
 					Separator();
 
-					for (int32_t i = 0; i < aet->AetRegions.size(); i++)
+					for (int32_t i = 0; i < aet->Regions.size(); i++)
 					{
-						RefPtr<AetRegion>& region = aet->AetRegions[i];
+						RefPtr<AetRegion>& region = aet->Regions[i];
 
 						PushID(region.get());
 						if (Selectable("##AetRegion", i == newRegionIndex, ImGuiSelectableFlags_SpanAllColumns))
