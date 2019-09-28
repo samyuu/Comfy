@@ -14,11 +14,13 @@ namespace Editor
 		KeyFrameRenderer();
 		~KeyFrameRenderer();
 
+		void DrawLayerObjects(const AetTimeline* timeline, const RefPtr<AetLayer>& layer, frame_t frame);
 		void DrawKeyFrames(const AetTimeline* timeline, const KeyFrameProperties& keyFrames);
 
 	private:
-		const float keyFrameSize = 5.5f;
+		static constexpr float keyFrameSize = 5.5f;
 
+		void DrawKeyFrameConnection(ImDrawList* drawList, const vec2& start, const vec2& end, bool active) const;
 		void DrawSingleKeyFrame(ImDrawList* drawList, const vec2& position) const;
 		void DrawSingleKeyFrame(ImDrawList* drawList, const vec2& position, float opacity) const;
 		void DrawSingleKeyFrame(ImDrawList* drawList, const vec2& position, ImU32 fillColor, ImU32 borderColor) const;

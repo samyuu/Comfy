@@ -53,9 +53,11 @@ namespace Editor
 		SetColor(EditorColor_TextHighlight, ImColor(0.87f, 0.77f, 0.02f));
 		SetColor(EditorColor_AnimatedProperty, 0xFF392A24);
 		SetColor(EditorColor_KeyFrameProperty, 0xFF212132);
-		SetColor(EditorColor_KeyFrame, 0xFF999999);
+		SetColor(EditorColor_KeyFrame, 0xFFBCBCBC);
+		SetColor(EditorColor_KeyFrameConnection, 0xFF626262);
+		SetColor(EditorColor_KeyFrameConnectionAlt, 0xFF4E4E4E);
 		SetColor(EditorColor_KeyFrameSelected, 0xFF5785D9);
-		SetColor(EditorColor_KeyFrameBorder, 0xFF05070B);
+		SetColor(EditorColor_KeyFrameBorder, 0xFF1A1B1B);
 	}
 
 	EditorManager::EditorManager(Application* parent) : parent(parent)

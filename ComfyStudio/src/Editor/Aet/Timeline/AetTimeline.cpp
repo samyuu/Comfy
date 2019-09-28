@@ -1,5 +1,6 @@
 #include "AetTimeline.h"
 #include "Editor/Aet/AetEditor.h"
+#include "Editor/Aet/AetIcons.h"
 
 namespace Editor
 {
@@ -8,7 +9,7 @@ namespace Editor
 	AetTimeline::AetTimeline()
 	{
 		infoColumnWidth = 140.0f;
-		rowHeight = 16.0f;
+		rowHeight = 18.0f;
 		zoomLevel = 5.0f;
 	}
 
@@ -42,20 +43,28 @@ namespace Editor
 		Gui::GetWindowDrawList()->AddRectFilled(timelineBaseRegion.GetTL(), timelineBaseRegion.GetBR(), dimColor);
 	}
 
-	void AetTimeline::DrawTimelineContentKeyFrames()
+	void AetTimeline::DrawTimelineContentLayer()
 	{
-		if (selectedAetItem.Ptrs.AetObj->AnimationData == nullptr)
+		keyFrameRenderer.DrawLayerObjects(this, selectedAetItem.GetAetLayerRef(), GetCursorFrame().Frames());
+	}
+
+	void AetTimeline::DrawTimelineContentObject()
+	{
+		const auto& aetObj = selectedAetItem.GetAetObjRef();
+		if (aetObj->AnimationData == nullptr)
 			return;
 
-		keyFrameRenderer.DrawKeyFrames(this, selectedAetItem.Ptrs.AetObj->AnimationData->Properties);
+		keyFrameRenderer.DrawKeyFrames(this, aetObj->AnimationData->Properties);
 	}
 
 	void AetTimeline::OnDrawTimelineHeaderWidgets()
 	{
-		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
+		constexpr float percentageFactor = 100.0f;
+
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(2.0f, 0.0f));
 
 		ImGuiStyle& style = Gui::GetStyle();
-		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, style.FramePadding.y));
+		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(8.0f, style.FramePadding.y));
 
 		cursorTime.FormatTime(timeInputBuffer, sizeof(timeInputBuffer));
 		size_t timeLength = strlen(timeInputBuffer);
@@ -70,7 +79,7 @@ namespace Editor
 		Gui::Button(ICON_FA_FAST_BACKWARD);
 		if (Gui::IsItemActive()) { scrollDelta -= io->DeltaTime * 1000.0f; }
 
-		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f, 0.0f));
 
 		// TODO: jump to last / next keyframe
 		Gui::SameLine();
@@ -108,8 +117,29 @@ namespace Editor
 		Gui::PopStyleVar(2);
 
 		Gui::SameLine();
-		Gui::PushItemWidth(280);
-		Gui::SliderFloat(ICON_FA_SEARCH, &zoomLevel, ZOOM_MIN, ZOOM_MAX);
+		Gui::PushItemWidth(120.0f);
+		{
+			float zoomPercentage = zoomLevel * percentageFactor;
+
+			if (Gui::SliderFloat(ICON_FA_SEARCH, &zoomPercentage, ZOOM_MIN * percentageFactor, ZOOM_MAX * percentageFactor, "%.2f %%"))
+				zoomLevel = zoomPercentage * (1.0f / percentageFactor);
+
+			if (Gui::IsItemHoveredDelayed())
+				Gui::WideSetTooltip("Zoom Level");
+		}
+		Gui::PopItemWidth();
+
+		Gui::SameLine();
+		Gui::PushItemWidth(120.0f);
+		{
+			float playbackSpeedPercentage = playbackSpeedFactor * percentageFactor;
+
+			if (Gui::SliderFloat(ICON_FA_CLOCK, &playbackSpeedPercentage, 1.0f, 400.0f, "%.2f %%"))
+				playbackSpeedFactor = playbackSpeedPercentage * (1.0f / percentageFactor);
+
+			if (Gui::IsItemHoveredDelayed())
+				Gui::WideSetTooltip("Playback Speed");
+		}
 		Gui::PopItemWidth();
 
 		Gui::PopStyleVar(1);
@@ -127,6 +157,9 @@ namespace Editor
 	{
 		TimelineBase::OnDrawTimelineInfoColumn();
 
+		constexpr float textPadding = 1.0f;
+		constexpr float startPadding = 4.0f;
+
 		ImDrawList* drawList = Gui::GetWindowDrawList();
 		ImU32 textColor = Gui::GetColorU32(ImGuiCol_Text);
 
@@ -140,39 +173,81 @@ namespace Editor
 			if (selectedAetItem.GetAetObjRef()->Type == AetObjType::Aif)
 				textColor = Gui::GetColorU32(ImGuiCol_TextDisabled);
 
+			// NOTE: Results in a 5 pixel spacing
+			constexpr float nameTypeDistance = 58.0f;
+			constexpr float nameTypeSeparatorSpacing = 8.0f;
+
+			// NOTE: Draw Text
 			for (int i = 0; i < PropertyType_Count; i++)
 			{
-				float y = i * rowHeight + 2;
-				auto start = ImVec2(2, y) + infoColumnRegion.GetTL();
+				const float y = i * rowHeight;
+				vec2 start = vec2(startPadding, y + textPadding) + infoColumnRegion.GetTL();
 
+				drawList->AddText(start, textColor, timelinePropertyNameTypes[i]);
+				start.x += nameTypeDistance;
+				drawList->AddText(start, textColor, timelinePropertyNameTypeSeparator);
+				start.x += nameTypeSeparatorSpacing;
 				drawList->AddText(start, textColor, timelinePropertyNames[i]);
+			}
+
+			// NOTE: Draw Separators
+			for (int i = 0; i <= PropertyType_Count; i++)
+			{
+				const float y = i * rowHeight;
+				const vec2 topLeftSeparator = infoColumnRegion.GetTL() + vec2(0.0f, y);
+				const vec2 topRightSeparator = infoColumnRegion.GetTR() + vec2(0.0f, y);
+				drawList->AddLine(topLeftSeparator, topRightSeparator, GetColor(EditorColor_TempoMapBg));
 			}
 		}
 		else if (selectedAetItem.Type() == AetItemType::AetLayer)
 		{
+			constexpr float typeIconDistance = 19.0f;
+
 			// TODO: Quick test
 			AetLayer* layer = selectedAetItem.GetAetLayerRef().get();
 			for (int i = 0; i < static_cast<int>(layer->size()); i++)
 			{
-				float y = i * rowHeight + 2;
-				auto start = ImVec2(2, y) + infoColumnRegion.GetTL();
+				float y = i * rowHeight;
+				vec2 start = vec2(startPadding, y + textPadding) + infoColumnRegion.GetTL();
 
-				drawList->AddText(start, textColor, layer->at(i)->GetName().c_str());
+				const auto& object = layer->at(i);
+
+				drawList->AddText(start, textColor, GetObjTypeIcon(object->Type));
+				start.x += typeIconDistance;
+				drawList->AddText(start, textColor, object->GetName().c_str());
+			}
+
+			// NOTE: Draw Separators
+			for (int i = 0; i <= static_cast<int>(layer->size()); i++)
+			{
+				const float y = i * rowHeight;
+				const vec2 topLeftSeparator = infoColumnRegion.GetTL() + vec2(0.0f, y);
+				const vec2 topRightSeparator = infoColumnRegion.GetTR() + vec2(0.0f, y);
+				drawList->AddLine(topLeftSeparator, topRightSeparator, GetColor(EditorColor_TempoMapBg));
 			}
 		}
 	}
 
 	void AetTimeline::OnDrawTimlineRows()
 	{
-		// Key Frame Property Rows
-		// -----------------------
-		for (int i = 0; i <= PropertyType_Count; i++)
-		{
-			float y = i * rowHeight;
-			ImVec2 start = timelineContentRegion.GetTL() + ImVec2(0, y);
-			ImVec2 end = start + ImVec2(timelineContentRegion.GetWidth(), 0);
+		if (selectedAetItem.IsNull())
+			return;
 
-			baseDrawList->AddLine(start, end, GetColor(EditorColor_TimelineRowSeparator));
+		int rowCount = (selectedAetItem.Type() == AetItemType::AetLayer) ?
+			static_cast<int>(selectedAetItem.GetAetLayerRef()->size()) :
+			static_cast<int>(PropertyType_Count);
+
+		// TODO: Scroll offset and scrollbar, use Gui::Scrollbar (?) might have to make a completely custom one and don't forget to push clipping rects
+
+		ImU32 rowColor = GetColor(EditorColor_TimelineRowSeparator);
+
+		for (int i = 0; i <= rowCount; i++)
+		{
+			const float y = i * rowHeight;
+			vec2 start = timelineContentRegion.GetTL() + vec2(0.0f, y);
+			vec2 end = start + vec2(timelineContentRegion.GetWidth(), 0.0f);
+
+			baseDrawList->AddLine(start, end, rowColor);
 		}
 	}
 
@@ -202,7 +277,7 @@ namespace Editor
 				loopStartFrame = parentAet->FrameStart;
 				loopEndFrame = 0.0f;
 
-				for (RefPtr<AetObj>& obj : *selectedAetItem.Ptrs.AetLayer)
+				for (const RefPtr<AetObj>& obj : *selectedAetItem.Ptrs.AetLayer)
 				{
 					if (obj->LoopEnd > loopEndFrame.Frames())
 						loopEndFrame = obj->LoopEnd;
@@ -216,7 +291,7 @@ namespace Editor
 				break;
 
 			case AetItemType::AetRegion:
-				loopStartFrame = 0;
+				loopStartFrame = 0.0f;
 				loopEndFrame = glm::max(0.0f, selectedAetItem.Ptrs.AetRegion->SpriteCount() - 1.0f);
 				break;
 
@@ -226,7 +301,9 @@ namespace Editor
 		}
 
 		if (GetIsPlayback())
-			cursorTime += io->DeltaTime;
+		{
+			UpdateCursorPlaybackTime();
+		}
 
 		TimeSpan startTime = GetTimelineTime(loopStartFrame);
 		TimeSpan endTime = GetTimelineTime(loopEndFrame);
@@ -268,9 +345,10 @@ namespace Editor
 				DrawTimelineContentNone();
 				break;
 			case AetItemType::AetLayer:
+				DrawTimelineContentLayer();
 				break;
 			case AetItemType::AetObj:
-				DrawTimelineContentKeyFrames();
+				DrawTimelineContentObject();
 				break;
 			case AetItemType::AetRegion:
 				break;
@@ -280,28 +358,9 @@ namespace Editor
 		}
 
 		// draw selection region
-		const MouseSelectionData& selectonData = timelineController.GetSelectionData();
-		if (selectonData.IsSelected())
-		{
-			bool horizontalSelection = glm::abs((selectonData.StartX - selectonData.EndX).Frames()) > 1.0f;
-			bool verticalSelection = glm::abs(selectonData.RowStartIndex - selectonData.RowEndIndex) > 1;
-
-			if (horizontalSelection || verticalSelection)
-			{
-				const float offset = timelineContentRegion.Min.x - GetScrollX();
-
-				float direction = selectonData.StartX < selectonData.EndX ? +1.0f : -1.0f;
-				float padding = 5.0f * direction;
-
-				ImRect selectionRegion = ImRect(
-					vec2(glm::round(offset + GetTimelinePosition(selectonData.StartX) - padding), GetRowScreenY(selectonData.RowStartIndex)),
-					vec2(glm::round(offset + GetTimelinePosition(selectonData.EndX) + padding), GetRowScreenY(selectonData.RowEndIndex)));
-
-				ImDrawList* windowDrawList = Gui::GetWindowDrawList();
-				windowDrawList->AddRectFilled(selectionRegion.Min, selectionRegion.Max, GetColor(EditorColor_TimelineSelection));
-				windowDrawList->AddRect(selectionRegion.Min, selectionRegion.Max, GetColor(EditorColor_TimelineSelectionBorder));
-			}
-		}
+		const MouseSelectionData& selectionData = timelineController.GetSelectionData();
+		if (selectionData.IsSelected())
+			DrawMouseSelection(selectionData);
 	}
 
 	void AetTimeline::PausePlayback()
@@ -328,6 +387,33 @@ namespace Editor
 
 		if (timelineController.GetUpdateCursorTime())
 			cursorTime = timelineController.GetNewCursorTime();
+	}
+
+	void AetTimeline::DrawMouseSelection(const MouseSelectionData& selectionData)
+	{
+		bool horizontalSelection = glm::abs((selectionData.StartX - selectionData.EndX).Frames()) > 1.0f;
+		bool verticalSelection = glm::abs(selectionData.RowStartIndex - selectionData.RowEndIndex) > 1;
+
+		if (horizontalSelection || verticalSelection)
+		{
+			const float offset = timelineContentRegion.Min.x - GetScrollX();
+
+			float direction = selectionData.StartX < selectionData.EndX ? +1.0f : -1.0f;
+			float padding = 5.0f * direction;
+
+			ImRect selectionRegion = ImRect(
+				vec2(glm::round(offset + GetTimelinePosition(selectionData.StartX) - padding), GetRowScreenY(selectionData.RowStartIndex)),
+				vec2(glm::round(offset + GetTimelinePosition(selectionData.EndX) + padding), GetRowScreenY(selectionData.RowEndIndex)));
+
+			ImDrawList* windowDrawList = Gui::GetWindowDrawList();
+			windowDrawList->AddRectFilled(selectionRegion.Min, selectionRegion.Max, GetColor(EditorColor_TimelineSelection));
+			windowDrawList->AddRect(selectionRegion.Min, selectionRegion.Max, GetColor(EditorColor_TimelineSelectionBorder));
+		}
+	}
+
+	void AetTimeline::UpdateCursorPlaybackTime()
+	{
+		cursorTime += io->DeltaTime * playbackSpeedFactor;
 	}
 
 	float AetTimeline::GetRowScreenY(int index) const

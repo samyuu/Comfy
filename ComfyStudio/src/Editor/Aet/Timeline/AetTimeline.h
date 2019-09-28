@@ -35,10 +35,10 @@ namespace Editor
 		bool GetIsPlayback() const override;
 
 	public:
-		// screen position of row index
+		// NOTE: Screen position of row index
 		float GetRowScreenY(int index) const;
 
-		// row index at input height
+		// NOTE: Row index at input height
 		int GetRowIndexFromScreenY(float screenY) const;
 
 		inline float GetRowHeight() const { return rowHeight; };
@@ -52,6 +52,9 @@ namespace Editor
 
 		char timeInputBuffer[32];
 
+		// NOTE: Speed at factor at which the playback time is incremented without editing any AetObj state
+		float playbackSpeedFactor = 1.0f;
+
 	private:
 		KeyFrameRenderer keyFrameRenderer;
 		AetTimelineController timelineController = { this };
@@ -60,7 +63,8 @@ namespace Editor
 		float GetTimelineSize() const override;
 
 		void DrawTimelineContentNone();
-		void DrawTimelineContentKeyFrames();
+		void DrawTimelineContentLayer();
+		void DrawTimelineContentObject();
 
 		void OnDrawTimelineHeaderWidgets() override;
 		void OnDrawTimelineInfoColumnHeader() override;
@@ -76,20 +80,37 @@ namespace Editor
 		void StopPlayback() override;
 
 		void UpdateInputCursorClick();
-		
+		void DrawMouseSelection(const MouseSelectionData& selectionData);
+
+		void UpdateCursorPlaybackTime();
+
 	private:
 		Vector<KeyFrameIndex> selectedKeyFrames;
 
-		Array<const char*, static_cast<size_t>(PropertyType_Count)> timelinePropertyNames =
+		static constexpr const char* timelinePropertyNameTypeSeparator = ":";
+
+		const Array<const char*, static_cast<size_t>(PropertyType_Count)> timelinePropertyNameTypes =
 		{
-			"Transform  :  Origin.X",
-			"Transform  :  Origin.Y",
-			"Transform  :  Position.X",
-			"Transform  :  Position.Y",
-			"Transform  :  Rotation",
-			"Transform  :  Scale.X",
-			"Transform  :  Scale.Y",
-			"Color               Opacity",
+			"Transform",
+			"Transform",
+			"Transform",
+			"Transform",
+			"Transform",
+			"Transform",
+			"Transform",
+			"Color",
+		};
+
+		const Array<const char*, static_cast<size_t>(PropertyType_Count)> timelinePropertyNames =
+		{
+			"Origin.X",
+			"Origin.Y",
+			"Position.X",
+			"Position.Y",
+			"Rotation",
+			"Scale.X",
+			"Scale.Y",
+			"Opacity",
 		};
 	};
 }

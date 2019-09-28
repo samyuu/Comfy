@@ -27,6 +27,8 @@ namespace Editor
 		EditorColor_AnimatedProperty,
 		EditorColor_KeyFrameProperty,
 		EditorColor_KeyFrame,
+		EditorColor_KeyFrameConnection,
+		EditorColor_KeyFrameConnectionAlt,
 		EditorColor_KeyFrameSelected,
 		EditorColor_KeyFrameBorder,
 		EditorColor_Count,
