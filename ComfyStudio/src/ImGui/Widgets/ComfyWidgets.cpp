@@ -104,7 +104,7 @@ namespace ImGui
 		return valueChanged;
 	}
 
-	bool ComfyFloatWidget(const char* label, float* value, float step, float stepFast, const char* format, ImGuiInputTextFlags flags, bool disabled)
+	bool ComfyFloatWidget(const char* label, float* value, float step, float stepFast, const char* format, ImGuiInputTextFlags flags, bool disabledText)
 	{
 		RAII_ColumnsCount raiiColumns(2, nullptr, false);
 		SetColumnWidth(0, GetWindowWidth() * ColumnWidthFactor);
@@ -117,15 +117,12 @@ namespace ImGui
 		PushItemWidth(GetContentRegionAvailWidth());
 		PushID(value);
 
-		if (disabled)
-		{
-			flags |= ImGuiInputTextFlags_ReadOnly;
+		if (disabledText)
 			PushStyleColor(ImGuiCol_Text, GImGui->Style.Colors[ImGuiCol_TextDisabled]);
-		}
 
 		bool valueChanged = InputFloat("##InputFloat", value, step, stepFast, format, flags);
 
-		if (disabled)
+		if (disabledText)
 			PopStyleColor();
 
 		PopID();
@@ -135,7 +132,7 @@ namespace ImGui
 		return valueChanged;
 	}
 
-	bool ComfyFloat2Widget(const char* label, float value[2], const char* format, ImGuiInputTextFlags flags, bool disabled)
+	bool ComfyFloat2Widget(const char* label, float value[2], const char* format, ImGuiInputTextFlags flags, bool disabledText)
 	{
 		RAII_ColumnsCount raiiColumns(2, nullptr, false);
 		SetColumnWidth(0, GetWindowWidth() * ColumnWidthFactor);
@@ -148,15 +145,12 @@ namespace ImGui
 		PushItemWidth(GetContentRegionAvailWidth());
 		PushID(value);
 
-		if (disabled)
-		{
-			flags |= ImGuiInputTextFlags_ReadOnly;
+		if (disabledText)
 			PushStyleColor(ImGuiCol_Text, GImGui->Style.Colors[ImGuiCol_TextDisabled]);
-		}
 
 		bool valueChanged = InputFloat2("##InputFloat2", value, format, flags);
 
-		if (disabled)
+		if (disabledText)
 			PopStyleColor();
 
 		PopID();

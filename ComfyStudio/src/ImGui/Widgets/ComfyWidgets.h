@@ -8,8 +8,8 @@ namespace ImGui
 	bool ComfyIntWidget(const char* label, int* value, int step, int stepFast, ImGuiInputTextFlags flags = 0);
 	bool ComfyInt2Widget(const char* label, int value[2], ImGuiInputTextFlags flags = 0);
 	
-	bool ComfyFloatWidget(const char* label, float* value, float step, float stepFast, const char* format = "%.2f", ImGuiInputTextFlags flags = 0, bool disabled = false);
-	bool ComfyFloat2Widget(const char* label, float value[2], const char* format = "%.2f", ImGuiInputTextFlags flags = 0, bool disabled = false);
+	bool ComfyFloatWidget(const char* label, float* value, float step, float stepFast, const char* format = "%.2f", ImGuiInputTextFlags flags = 0, bool disabledText = false);
+	bool ComfyFloat2Widget(const char* label, float value[2], const char* format = "%.2f", ImGuiInputTextFlags flags = 0, bool disabledText = false);
 	
 	bool ComfyColorEdit3(const char* label, float color[3], ImGuiColorEditFlags flags = 0);
 
