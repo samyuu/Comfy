@@ -20,7 +20,7 @@ namespace Editor
 			if (lastCommand != nullptr && lastCommand->ref == ref)
 			{
 				const RefPtr<TCommand> newCommand = MakeRef<TCommand>(ref, value);
-				if (lastCommand->GetDataIdentifier() == newCommand->GetDataIdentifier())
+				if (lastCommand->CanUpdate(newCommand.get()))
 				{
 					lastCommand->Update(value);
 				}

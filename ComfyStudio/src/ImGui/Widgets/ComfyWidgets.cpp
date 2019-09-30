@@ -40,7 +40,7 @@ namespace ImGui
 		NextColumn();
 
 		PushID(value);
-		bool valueChanged = Checkbox("##Checkbox", value);
+		bool valueChanged = Checkbox("##ComfyCheckbox", value);
 		PopID();
 		NextColumn();
 
@@ -57,14 +57,14 @@ namespace ImGui
 		NextColumn();
 
 		PushItemWidth(GetContentRegionAvailWidth());
-		bool valueChanged = InputText("##InputText", buffer, bufferSize, flags);
+		bool valueChanged = InputText("##ComfyInputText", buffer, bufferSize, flags);
 		PopItemWidth();
 		NextColumn();
 
 		return valueChanged;
 	}
 
-	bool ComfyIntWidget(const char* label, int* value, int step, int stepFast, ImGuiInputTextFlags flags)
+	bool ComfyIntTextWidget(const char* label, int* value, int step, int stepFast, ImGuiInputTextFlags flags)
 	{
 		RAII_ColumnsCount raiiColumns(2, nullptr, false);
 		SetColumnWidth(0, GetWindowWidth() * ColumnWidthFactor);
@@ -76,7 +76,7 @@ namespace ImGui
 
 		PushItemWidth(GetContentRegionAvailWidth());
 		PushID(value);
-		bool valueChanged = InputInt("##InputInt", value, step, stepFast, flags);
+		bool valueChanged = InputInt("##ComfyInputInt", value, step, stepFast, flags);
 		PopID();
 		PopItemWidth();
 		NextColumn();
@@ -84,7 +84,7 @@ namespace ImGui
 		return valueChanged;
 	}
 
-	bool ComfyInt2Widget(const char* label, int value[2], ImGuiInputTextFlags flags)
+	bool ComfyInt2TextWidget(const char* label, int value[2], ImGuiInputTextFlags flags)
 	{
 		RAII_ColumnsCount raiiColumns(2, nullptr, false);
 		SetColumnWidth(0, GetWindowWidth() * ColumnWidthFactor);
@@ -96,7 +96,7 @@ namespace ImGui
 
 		PushItemWidth(GetContentRegionAvailWidth());
 		PushID(value);
-		bool valueChanged = InputInt2("##InputInt2", value, flags);
+		bool valueChanged = InputInt2("##ComfyInputInt2", value, flags);
 		PopID();
 		PopItemWidth();
 		NextColumn();
@@ -104,7 +104,7 @@ namespace ImGui
 		return valueChanged;
 	}
 
-	bool ComfyFloatWidget(const char* label, float* value, float step, float stepFast, const char* format, ImGuiInputTextFlags flags, bool disabledText)
+	bool ComfyFloatDragWidget(const char* label, float* value, float speed, float minValue, float maxValue, const char* format, bool disabledText)
 	{
 		RAII_ColumnsCount raiiColumns(2, nullptr, false);
 		SetColumnWidth(0, GetWindowWidth() * ColumnWidthFactor);
@@ -120,7 +120,7 @@ namespace ImGui
 		if (disabledText)
 			PushStyleColor(ImGuiCol_Text, GImGui->Style.Colors[ImGuiCol_TextDisabled]);
 
-		bool valueChanged = InputFloat("##InputFloat", value, step, stepFast, format, flags);
+		bool valueChanged = DragFloat("##ComfyDragFloat", value, speed, minValue, maxValue, format);
 
 		if (disabledText)
 			PopStyleColor();
@@ -132,7 +132,7 @@ namespace ImGui
 		return valueChanged;
 	}
 
-	bool ComfyFloat2Widget(const char* label, float value[2], const char* format, ImGuiInputTextFlags flags, bool disabledText)
+	bool ComfyFloatTextWidget(const char* label, float* value, float step, float stepFast, const char* format, ImGuiInputTextFlags flags, bool disabledText)
 	{
 		RAII_ColumnsCount raiiColumns(2, nullptr, false);
 		SetColumnWidth(0, GetWindowWidth() * ColumnWidthFactor);
@@ -148,7 +148,35 @@ namespace ImGui
 		if (disabledText)
 			PushStyleColor(ImGuiCol_Text, GImGui->Style.Colors[ImGuiCol_TextDisabled]);
 
-		bool valueChanged = InputFloat2("##InputFloat2", value, format, flags);
+		bool valueChanged = InputFloat("##ComfyInputFloat", value, step, stepFast, format, flags);
+
+		if (disabledText)
+			PopStyleColor();
+
+		PopID();
+		PopItemWidth();
+		NextColumn();
+
+		return valueChanged;
+	}
+
+	bool ComfyFloat2TextWidget(const char* label, float value[2], const char* format, ImGuiInputTextFlags flags, bool disabledText)
+	{
+		RAII_ColumnsCount raiiColumns(2, nullptr, false);
+		SetColumnWidth(0, GetWindowWidth() * ColumnWidthFactor);
+
+		// TODO: drag text
+		AlignTextToFramePadding();
+		Text(label);
+		NextColumn();
+
+		PushItemWidth(GetContentRegionAvailWidth());
+		PushID(value);
+
+		if (disabledText)
+			PushStyleColor(ImGuiCol_Text, GImGui->Style.Colors[ImGuiCol_TextDisabled]);
+
+		bool valueChanged = InputFloat2("##ComfyInputFloat2", value, format, flags);
 
 		if (disabledText)
 			PopStyleColor();
@@ -171,7 +199,7 @@ namespace ImGui
 
 		PushItemWidth(GetContentRegionAvailWidth());
 		PushID(color);
-		bool valueChanged = ColorEdit3("##ColorEdit3", color, flags);
+		bool valueChanged = ColorEdit3("##ComfyColorEdit3", color, flags);
 		PopID();
 		PopItemWidth();
 		NextColumn();

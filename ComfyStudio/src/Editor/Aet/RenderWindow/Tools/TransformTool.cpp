@@ -256,27 +256,20 @@ namespace Editor
 
 	void TransformTool::ProcessCommands(AetCommandManager* commandManager, const RefPtr<AetObj>& aetObj, float frame, const Graphics::Auth2D::Properties& properties, const Graphics::Auth2D::Properties& previousProperties)
 	{
-		using namespace Graphics::Auth2D;
-
-		// TODO: if keyframe is nullptr add keyframe (how to handle adding keyframe commands?)
-		// NOTE: ~~if the keyframe for the scale for example doesn't exist at the current timeline frame, then modify the value of the 0th keyframe instead (?)~~
-
 		if (properties == previousProperties)
 			return;
 
-		auto& animationProperties = aetObj->AnimationData->Properties;
-
-		PropertyTypeFlags flags = {};
-		flags.PositionX = AetMgr::GetKeyFrameAt(animationProperties[PropertyType_PositionX], frame) != nullptr;
-		flags.PositionY = AetMgr::GetKeyFrameAt(animationProperties[PropertyType_PositionY], frame) != nullptr;
-		flags.ScaleX = AetMgr::GetKeyFrameAt(animationProperties[PropertyType_ScaleX], frame) != nullptr;
-		flags.ScaleY = AetMgr::GetKeyFrameAt(animationProperties[PropertyType_ScaleY], frame) != nullptr;
-
-		vec4 packedValue = vec4(properties.Position, properties.Scale);
-		const auto tuple = std::make_tuple(frame, packedValue, flags);
-
-		// TODO: Might want to force a new command after the mouse has been released (although that might not play too nicely with scaling)
-		ProcessUpdatingAetCommand(commandManager, AnimationDataChangeTransform, aetObj->AnimationData, tuple);
+		// NOTE: Is this the desired behavior (?)
+		if (properties.Scale == previousProperties.Scale)
+		{
+			const auto tuple = std::make_tuple(frame, properties.Position);
+			ProcessUpdatingAetCommand(commandManager, AnimationDataChangePosition, aetObj, tuple);
+		}
+		else
+		{
+			const auto tuple = std::make_tuple(frame, properties.Position, properties.Scale);
+			ProcessUpdatingAetCommand(commandManager, AnimationDataChangeTransform, aetObj, tuple);
+		}
 	}
 
 	void TransformTool::DrawContextMenu()

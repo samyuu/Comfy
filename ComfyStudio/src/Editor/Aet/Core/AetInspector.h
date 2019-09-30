@@ -51,8 +51,9 @@ namespace Editor
 
 		void DrawInspectorAnimationData(const RefPtr<AnimationData>& animationData, const RefPtr<AetObj>& aetObj);
 		void DrawInspectorDebugAnimationData(const RefPtr<AnimationData>& animationData, const RefPtr<AetObj>& aetObj);
-		void DrawInspectorAnimationDataProperty(const RefPtr<AnimationData>& animationData, const char* label, float& value, int propertyType, AetKeyFrame* keyFrames[]);
-		void DrawInspectorAnimationDataPropertyVec2(const RefPtr<AnimationData>& animationData, const char* label, vec2& value, int propertyTypeX, int propertyTypeY, AetKeyFrame* keyFrames[]);
+
+		void DrawInspectorAnimationDataProperty(const RefPtr<AetObj>& aetObj, const char* label, frame_t frame, float& value, int propertyType);
+		void DrawInspectorAnimationDataPropertyVec2(const RefPtr<AetObj>& aetObj, const char* label, frame_t frame, vec2& value, int propertyTypeX, int propertyTypeY);
 
 		void DrawInspectorAetObjMarkers(const RefPtr<AetObj>& aetObj, Vector<RefPtr<AetMarker>>* markers);
 		void DrawInspectorAetObjParent(Aet* aet, const RefPtr<AetObj>& aetObj);

@@ -5,11 +5,13 @@ namespace ImGui
 {
 	bool ComfyCheckbox(const char* label, bool* value);
 	bool ComfyTextWidget(const char* label, char* buffer, size_t bufferSize, ImGuiInputTextFlags flags = 0);
-	bool ComfyIntWidget(const char* label, int* value, int step, int stepFast, ImGuiInputTextFlags flags = 0);
-	bool ComfyInt2Widget(const char* label, int value[2], ImGuiInputTextFlags flags = 0);
 	
-	bool ComfyFloatWidget(const char* label, float* value, float step, float stepFast, const char* format = "%.2f", ImGuiInputTextFlags flags = 0, bool disabledText = false);
-	bool ComfyFloat2Widget(const char* label, float value[2], const char* format = "%.2f", ImGuiInputTextFlags flags = 0, bool disabledText = false);
+	bool ComfyIntTextWidget(const char* label, int* value, int step, int stepFast, ImGuiInputTextFlags flags = 0);
+	bool ComfyInt2TextWidget(const char* label, int value[2], ImGuiInputTextFlags flags = 0);
+	
+	bool ComfyFloatDragWidget(const char* label, float* value, float speed, float minValue, float maxValue, const char* format = "%.2f", bool disabledText = false);
+	bool ComfyFloatTextWidget(const char* label, float* value, float step, float stepFast, const char* format = "%.2f", ImGuiInputTextFlags flags = 0, bool disabledText = false);
+	bool ComfyFloat2TextWidget(const char* label, float value[2], const char* format = "%.2f", ImGuiInputTextFlags flags = 0, bool disabledText = false);
 	
 	bool ComfyColorEdit3(const char* label, float color[3], ImGuiColorEditFlags flags = 0);
 
