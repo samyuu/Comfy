@@ -107,6 +107,10 @@ namespace FileSystem
 	{
 	}
 
+	AetKeyFrame::AetKeyFrame(frame_t frame, float value) : AetKeyFrame(frame, value, 0.0f)
+	{
+	}
+
 	AetKeyFrame::AetKeyFrame(frame_t frame, float value, float interpolation) : Frame(frame), Value(value), Interpolation(interpolation)
 	{
 	}

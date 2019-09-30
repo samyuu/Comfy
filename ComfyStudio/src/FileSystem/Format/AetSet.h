@@ -101,6 +101,7 @@ namespace FileSystem
 	{
 		AetKeyFrame();
 		AetKeyFrame(float value);
+		AetKeyFrame(frame_t frame, float value);
 		AetKeyFrame(frame_t frame, float value, float interpolation);
 		AetKeyFrame(const AetKeyFrame& other) = default;
 		AetKeyFrame& operator= (const AetKeyFrame& other) = default;
