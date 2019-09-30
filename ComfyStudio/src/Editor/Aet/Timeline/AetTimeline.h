@@ -83,6 +83,7 @@ namespace Editor
 		void DrawMouseSelection(const MouseSelectionData& selectionData);
 
 		void UpdateCursorPlaybackTime();
+		void RoundCursorTimeToNearestFrame();
 
 	private:
 		Vector<KeyFrameIndex> selectedKeyFrames;

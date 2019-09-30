@@ -366,6 +366,7 @@ namespace Editor
 	void AetTimeline::PausePlayback()
 	{
 		isPlayback = false;
+		RoundCursorTimeToNearestFrame();
 	}
 
 	void AetTimeline::ResumePlayback()
@@ -414,6 +415,13 @@ namespace Editor
 	void AetTimeline::UpdateCursorPlaybackTime()
 	{
 		cursorTime += io->DeltaTime * playbackSpeedFactor;
+	}
+
+	void AetTimeline::RoundCursorTimeToNearestFrame()
+	{
+		frame_t cursorFrames = GetCursorFrame().Frames();
+		frame_t roundedCursorFrames = glm::round(cursorFrames);
+		cursorTime = GetTimelineTime(TimelineFrame(roundedCursorFrames));
 	}
 
 	float AetTimeline::GetRowScreenY(int index) const

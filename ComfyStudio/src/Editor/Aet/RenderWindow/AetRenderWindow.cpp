@@ -126,12 +126,8 @@ namespace Editor
 
 			if (!isPlayback && selectedAetItem->GetAetObjRef()->Type != AetObjType::Aif)
 			{
-				// TODO: The currentFrame should probably be rounded automatically upon stopping playback
-
 				const RefPtr<AetObj>& aetObj = selectedAetItem->GetAetObjRef();
-				const float frame = glm::round(currentFrame);
-
-				tool->ProcessCommands(GetCommandManager(), aetObj, frame, toolProperties, previousProperties);
+				tool->ProcessCommands(GetCommandManager(), aetObj, currentFrame, toolProperties, previousProperties);
 			}
 		}
 
