@@ -107,23 +107,60 @@ namespace Graphics::Auth2D
 
 	AetKeyFrame* AetMgr::GetKeyFrameAt(KeyFrameCollection& keyFrames, frame_t frame)
 	{
-		size_t keyFrameCount = keyFrames.size();
+		// NOTE: The aet editor should always try to prevent this itself
+		assert(keyFrames.size() > 0);
 
-		// NOTE: The aet editor should make sure there is always at least one KeyFrame
-		assert(keyFrameCount > 0);
-
-		// TODO: Is this the desired behavior?
-		if (keyFrameCount == 1)
-			return &keyFrames.front();
-
+		// TODO: This could implement a binary search although the usually small number keyframes might not warrant it
 		for (auto& keyFrame : keyFrames)
 		{
 			if (keyFrame.Frame == frame)
 				return &keyFrame;
 		}
 
-		// NOTE: Did the the command list get corrupted somehow?
 		return nullptr;
+	}
+
+	void AetMgr::InsertKeyFrameAt(KeyFrameCollection& keyFrames, frame_t frame, float value)
+	{
+		keyFrames.emplace_back(frame, value);
+		AetMgr::SortKeyFrames(keyFrames);
+	}
+
+	void AetMgr::DeleteKeyFrameAt(KeyFrameCollection& keyFrames, frame_t frame)
+	{
+		auto existing = std::find_if(keyFrames.begin(), keyFrames.end(), [frame](const AetKeyFrame& keyFrame)
+		{
+			return keyFrame.Frame == frame;
+		});
+
+		if (existing != keyFrames.end())
+		{
+			keyFrames.erase(existing);
+		}
+		else
+		{
+			assert(false);
+		}
+	}
+
+	void AetMgr::SortKeyFrames(KeyFrameCollection& keyFrames)
+	{
+		std::sort(keyFrames.begin(), keyFrames.end(), [](const AetKeyFrame& keyFrameA, const AetKeyFrame& keyFrameB)
+		{
+			return keyFrameA.Frame < keyFrameB.Frame;
+		});
+	}
+
+	void AetMgr::SetStartFrameZeroIfSingle(KeyFrameCollection& keyFrames)
+	{
+		if (keyFrames.size() == 1)
+			keyFrames.front().Frame = 0;
+	}
+
+	void AetMgr::SetStartFrameStartIfSingle(KeyFrameCollection& keyFrames, frame_t startFrame)
+	{
+		if (keyFrames.size() == 1)
+			keyFrames.front().Frame = startFrame;
 	}
 
 	void AetMgr::InternalAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)

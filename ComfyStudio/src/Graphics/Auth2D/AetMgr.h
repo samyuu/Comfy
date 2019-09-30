@@ -64,6 +64,16 @@ namespace Graphics::Auth2D
 		static void Interpolate(const AnimationData* animationData, Properties* properties, frame_t frame);
 
 		static AetKeyFrame* GetKeyFrameAt(KeyFrameCollection& keyFrames, frame_t frame);
+		
+		static void InsertKeyFrameAt(KeyFrameCollection& keyFrames, frame_t frame, float value);
+		static void DeleteKeyFrameAt(KeyFrameCollection& keyFrames, frame_t frame);
+		
+		// NOTE: Because a KeyFrameCollection is expected to always be sorted
+		static void SortKeyFrames(KeyFrameCollection& keyFrames);
+
+		// NOTE: Helper functions to ensure the 0th KeyFrame has the correct start frame
+		static void SetStartFrameZeroIfSingle(KeyFrameCollection& keyFrames);
+		static void SetStartFrameStartIfSingle(KeyFrameCollection& keyFrames, frame_t startFrame);
 
 	private:
 		static void InternalAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);
