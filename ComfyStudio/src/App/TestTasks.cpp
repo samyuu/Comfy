@@ -382,8 +382,9 @@ namespace App
 
 	bool TaskPs4Menu::PostDrawGui()
 	{
-		if (true)
-			DwGuiTest();
+#if defined(COMFY_DEBUG)
+		DwGuiTest();
+#endif
 
 		if (isLoading)
 		{
