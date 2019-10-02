@@ -355,7 +355,7 @@ namespace Graphics::Auth2D
 
 	void Renderer2D::DrawCheckerboardRectangle(const vec2& position, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4& color, float precision)
 	{
-		vec4 source = vec4(0.0f, 0.0f, size.x, size.y);
+		vec4 source = vec4(0.0f, 0.0f, size);
 		DrawInternal(nullptr, &source, &position, &origin, rotation, &scale, &color);
 
 		batchItems.back().CheckerboardSize = size * scale * precision;

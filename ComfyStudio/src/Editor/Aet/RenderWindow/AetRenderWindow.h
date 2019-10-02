@@ -48,16 +48,17 @@ namespace Editor
 	protected:
 		void OnInitialize() override;
 
-		void RenderGrid();
-		void RenderAetSet(AetSet* aetSet);
-		void RenderAet(Aet* aet);
-		void RenderAetLayer(AetLayer* aetLayer);
-		void RenderAetObj(AetObj* aetObj);
-		void RenderAetRegion(AetRegion* aetRegion);
+		void RenderBackground();
+		void RenderAetSet(const AetSet* aetSet);
+		void RenderAet(const Aet* aet);
+		void RenderAetLayer(const AetLayer* aetLayer);
+		void RenderAetObj(const AetObj* aetObj);
+		void RenderAetRegion(const AetRegion* aetRegion);
 
 	protected:
 		vec2 GetAetObjBoundingSize(const RefPtr<AetObj>& aetObj) const;
 		void TrySelectObjectAtPosition(vec2 worldSpace);
+		const RefPtr<AetObj>* FindObjectAtPosition(vec2 worldSpace);
 
 	private:
 		CheckerboardGrid checkerboardBaseGrid;
@@ -66,6 +67,10 @@ namespace Editor
 
 		// NOTE: To make sure objects won't accidentally be mouse picked / unselected
 		bool windowHoveredOnMouseClick = false;
+
+		// NOTE: To compare with the object on mouse release before selecting the object and prevent accidental selection.
+		//		 This object is not guaranteed to stay alive and should only be used for a pointer comparison so don't try to dereference it
+		const AetObj* mousePickedObjectOnMouseClick = nullptr;
 
 		bool isPlayback = false;
 		float currentFrame = 0.0f;

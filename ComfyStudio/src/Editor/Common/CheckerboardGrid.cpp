@@ -16,6 +16,6 @@ namespace Editor
 			0.0f,
 			Size,
 			ColorAlt,
-			renderer->GetCamera()->Zoom * GridSize);
+			renderer->GetCamera()->Zoom / GridSize);
 	}
 }

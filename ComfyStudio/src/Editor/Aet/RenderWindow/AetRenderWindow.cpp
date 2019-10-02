@@ -62,8 +62,8 @@ namespace Editor
 
 		DrawToolSelectionHeaderGui();
 
-		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2.0f, 3.0f));
-		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 1.0f));
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(2.0f, 3.0f));
+		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(4.0f, 1.0f));
 		Gui::PushItemWidth(itemWidth);
 		{
 			if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::AetObj && selectedAetItem->GetAetObjRef()->AnimationData != nullptr)
@@ -154,7 +154,7 @@ namespace Editor
 					bool alreadySelected = obj.get() == selectedAetItem->Ptrs.AetObj;
 
 					Gui::PushID(obj.get());
-					if (Gui::MenuItem(obj->GetName().c_str(), nullptr, nullptr, !alreadySelected))
+						if (Gui::MenuItem(obj->GetName().c_str(), nullptr, nullptr, !alreadySelected))
 						selectedAetItem->SetItem(obj);
 					Gui::PopID();
 				}
@@ -207,26 +207,27 @@ namespace Editor
 			camera.UpdateMatrices();
 			renderer->Begin(camera);
 			{
-				RenderGrid();
+				RenderBackground();
 
-				if (!cameraSelectedAetItem->IsNull())
+				const AetItemTypePtr* visibleItem = cameraSelectedAetItem;
+				if (!visibleItem->IsNull())
 				{
-					switch (cameraSelectedAetItem->Type())
+					switch (visibleItem->Type())
 					{
 					case AetItemType::AetSet:
-						RenderAetSet(cameraSelectedAetItem->Ptrs.AetSet);
+						RenderAetSet(visibleItem->Ptrs.AetSet);
 						break;
 					case AetItemType::Aet:
-						RenderAet(cameraSelectedAetItem->Ptrs.Aet);
+						RenderAet(visibleItem->Ptrs.Aet);
 						break;
 					case AetItemType::AetLayer:
-						RenderAetLayer(cameraSelectedAetItem->Ptrs.AetLayer);
+						RenderAetLayer(visibleItem->Ptrs.AetLayer);
 						break;
 					case AetItemType::AetObj:
-						RenderAetObj(cameraSelectedAetItem->Ptrs.AetObj);
+						RenderAetObj(visibleItem->Ptrs.AetObj);
 						break;
 					case AetItemType::AetRegion:
-						RenderAetRegion(cameraSelectedAetItem->Ptrs.AetRegion);
+						RenderAetRegion(visibleItem->Ptrs.AetRegion);
 						break;
 					case AetItemType::None:
 					default:
@@ -247,15 +248,15 @@ namespace Editor
 		camera.Position += (camera.ProjectionSize - newProjectionSize) * 0.5f;;
 		camera.ProjectionSize = newProjectionSize;
 
-		// NOTE: Hacky solution to center the camera on the first frame, might wanna center on AetSet load instead
+		// HACK: Hacky solution to center the camera on the first frame, might wanna center on AetSet load instead
 		if (Gui::GetFrameCount() <= 2)
 			CenterFitCamera();
 	}
 
 	void AetRenderWindow::DrawToolSelectionHeaderGui()
 	{
-		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
-		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 1.0f));
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f, 0.0f));
+		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(6.0f, 1.0f));
 
 		for (int i = 0; i < AetToolType_Count; i++)
 		{
@@ -338,12 +339,18 @@ namespace Editor
 		if (cameraSelectedAetItem->IsNull() || cameraSelectedAetItem->Type() != AetItemType::AetLayer)
 			return;
 
-		// TODO: Check for object on MouseClick then compare with object OnMouseReleased
-		if (Gui::IsWindowHovered() && windowHoveredOnMouseClick && Gui::IsMouseReleased(0))
+		if (Gui::IsWindowHovered())
 		{
-			if (!GetCurrentTool()->MouseFocusCaptured())
+			vec2 mouseWorldSpace = camera.ScreenToWorldSpace(GetRelativeMouse());
+
+			if (Gui::IsMouseClicked(0) && !GetCurrentTool()->MouseFocusCaptured())
 			{
-				vec2 mouseWorldSpace = camera.ScreenToWorldSpace(GetRelativeMouse());
+				const RefPtr<AetObj>* foundObject = FindObjectAtPosition(mouseWorldSpace);
+				mousePickedObjectOnMouseClick = (foundObject == nullptr) ? nullptr : foundObject->get();
+			}
+
+			if (windowHoveredOnMouseClick && Gui::IsMouseReleased(0) && !GetCurrentTool()->MouseFocusCaptured())
+			{
 				TrySelectObjectAtPosition(mouseWorldSpace);
 			}
 		}
@@ -357,8 +364,9 @@ namespace Editor
 		renderer->Initialize();
 	}
 
-	void AetRenderWindow::RenderGrid()
+	void AetRenderWindow::RenderBackground()
 	{
+		checkerboardBaseGrid.GridSize = CheckerboardGrid::DefaultGridSize * 1.2f;
 		checkerboardBaseGrid.Position = camera.Position / camera.Zoom;
 		checkerboardBaseGrid.Size = renderTarget.GetSize() / camera.Zoom;
 		checkerboardBaseGrid.Render(renderer.get());
@@ -370,26 +378,27 @@ namespace Editor
 		constexpr vec4 shadowColor(0.0f, 0.0f, 0.0f, 0.15f);
 		renderer->Draw(shadowPosition, shadowSize, shadowColor);
 
+		checkerboardGrid.GridSize = CheckerboardGrid::DefaultGridSize;
 		checkerboardGrid.Size = aetRegionSize;
 		checkerboardGrid.Render(renderer.get());
 	}
 
-	void AetRenderWindow::RenderAetSet(AetSet* aetSet)
+	void AetRenderWindow::RenderAetSet(const AetSet* aetSet)
 	{
 	}
 
-	void AetRenderWindow::RenderAet(Aet* aet)
+	void AetRenderWindow::RenderAet(const Aet* aet)
 	{
 	}
 
-	void AetRenderWindow::RenderAetLayer(AetLayer* aetLayer)
+	void AetRenderWindow::RenderAetLayer(const AetLayer* aetLayer)
 	{
 		objectCache.clear();
 		AetMgr::GetAddObjects(objectCache, aetLayer, currentFrame);
 		aetRenderer->RenderObjCacheVector(objectCache);
 	}
 
-	void AetRenderWindow::RenderAetObj(AetObj* aetObj)
+	void AetRenderWindow::RenderAetObj(const AetObj* aetObj)
 	{
 		if (aetObj->Type != AetObjType::Pic && aetObj->Type != AetObjType::Eff)
 			return;
@@ -399,10 +408,10 @@ namespace Editor
 		aetRenderer->RenderObjCacheVector(objectCache);
 	}
 
-	void AetRenderWindow::RenderAetRegion(AetRegion* aetRegion)
+	void AetRenderWindow::RenderAetRegion(const AetRegion* aetRegion)
 	{
 		int32_t spriteIndex = glm::clamp(0, static_cast<int32_t>(currentFrame), aetRegion->SpriteCount() - 1);
-		AetSprite* aetSprite = aetRegion->GetSprite(spriteIndex);
+		const AetSprite* aetSprite = aetRegion->GetSprite(spriteIndex);
 		aetRenderer->RenderAetSprite(aetRegion, aetSprite, vec2(0.0f, 0.0f));
 	}
 
@@ -427,9 +436,23 @@ namespace Editor
 
 	void AetRenderWindow::TrySelectObjectAtPosition(vec2 worldSpace)
 	{
-		auto& selectedLayer = cameraSelectedAetItem->GetAetLayerRef();
+		const RefPtr<AetObj>* foundObject = FindObjectAtPosition(worldSpace);
 
-		RefPtr<AetObj>* foundReference = nullptr;
+		if (foundObject != nullptr && mousePickedObjectOnMouseClick == foundObject->get())
+		{
+			selectedAetItem->SetItem(*foundObject);
+		}
+		else
+		{
+			auto& selectedLayer = cameraSelectedAetItem->GetAetLayerRef();
+			selectedAetItem->SetItem(selectedLayer);
+		}
+	}
+
+	const RefPtr<AetObj>* AetRenderWindow::FindObjectAtPosition(vec2 worldSpace)
+	{
+		auto& selectedLayer = cameraSelectedAetItem->GetAetLayerRef();
+		RefPtr<AetObj>* foundObject = nullptr;
 
 		for (auto& obj : objectCache)
 		{
@@ -443,27 +466,20 @@ namespace Editor
 					{
 						if (availableObj.get() == obj.AetObj)
 						{
-							foundReference = &availableObj;
+							foundObject = &availableObj;
 						}
 					}
 					else if (availableObj->Type == AetObjType::Eff)
 					{
 						if (IntersectsAnyChild(availableObj.get()))
 						{
-							foundReference = &availableObj;
+							foundObject = &availableObj;
 						}
 					}
 				}
 			}
 		}
 
-		if (foundReference != nullptr)
-		{
-			selectedAetItem->SetItem(*foundReference);
-		}
-		else
-		{
-			selectedAetItem->SetItem(selectedLayer);
-		}
+		return foundObject;
 	}
 }
