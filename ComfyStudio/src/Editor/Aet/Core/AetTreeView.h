@@ -63,11 +63,13 @@ namespace Editor
 
 		ImGuiWindow* treeViewWindow = nullptr;
 
-		void UpdateScrollInput();
+		void UpdateScrollButtonInput();
 
 		void DrawTreeViewBackground();
 		
 		// TODO: These should probably be called DrawTreeNode{Name}
+		void DrawTreeViewAetSet(const RefPtr<AetSet>& aetSet);
+		
 		void DrawTreeViewAet(const RefPtr<Aet>& aet);
 		void DrawTreeViewLayer(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, bool isRoot);
 

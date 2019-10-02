@@ -42,52 +42,25 @@ namespace Editor
 		lastHoveredAetItem = hoveredAetItem;
 		hoveredAetItem.Reset();
 
-		UpdateScrollInput();
-
-		// NOTE: For developement only
+		// DEBUG: For developement only
 		if (selectedAetItem->IsNull() && GetDebugObjectName() != nullptr)
 			SetSelectedItems(aetSet->front()->FindObj(GetDebugObjectName()));
 
-		DrawTreeViewBackground();
+		UpdateScrollButtonInput();
 
-		bool aetSetNodeOpen = Gui::WideTreeNodeEx(aetSet.get(), HeaderTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str());
-		Gui::ItemContextMenu("AetSettAetContextMenu##AetTreeView", [this, &aetSet]()
+		Gui::PushStyleColor(ImGuiCol_Header, GetColor(EditorColor_TreeViewSelected));
+		Gui::PushStyleColor(ImGuiCol_HeaderHovered, GetColor(EditorColor_TreeViewHovered));
+		Gui::PushStyleColor(ImGuiCol_HeaderActive, GetColor(EditorColor_TreeViewActive));
 		{
-			Gui::Text("AetSet: %s", aetSet->Name.c_str());
-			Gui::Separator();
-
-			if (Gui::MenuItem("Save", nullptr, nullptr, false))
-			{
-				// NOTE: Don't wanna overwrite files during early development stage
-			}
-
-			if (Gui::MenuItem("Save As..."))
-			{
-				WideString filePath;
-				if (FileSystem::CreateSaveFileDialog(filePath, "Save AetSet file", "dev_ram/aetset", { "AetSet (*.bin)", "*.bin", "All Files (*.*)", "*", }))
-					aetSet->Save(filePath);
-			}
-		});
-
-		if (aetSetNodeOpen)
-		{
-			if (Gui::IsItemClicked())
-				SetSelectedItems(aetSet);
-
-			for (RefPtr<Aet>& aet : *aetSet)
-				DrawTreeViewAet(aet);
-
-			Gui::TreePop();
+			DrawTreeViewBackground();
+			DrawTreeViewAetSet(aetSet);
 		}
-		else
-		{
-			ResetSelectedItems();
-		}
+		Gui::PopStyleColor(3);
 
 		return true;
 	}
 
-	void AetTreeView::UpdateScrollInput()
+	void AetTreeView::UpdateScrollButtonInput()
 	{
 		if (!Gui::IsWindowFocused())
 			return;
@@ -118,6 +91,44 @@ namespace Editor
 				Gui::SetScrollY(scrollPositionStack.top());
 				scrollPositionStack.pop();
 			}
+		}
+	}
+
+	void AetTreeView::DrawTreeViewAetSet(const RefPtr<AetSet>& aetSet)
+	{
+		bool aetSetNodeOpen = Gui::WideTreeNodeEx(aetSet.get(), HeaderTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str());
+		Gui::ItemContextMenu("AetSettAetContextMenu##AetTreeView", [this, &aetSet]()
+		{
+			Gui::Text("AetSet: %s", aetSet->Name.c_str());
+			Gui::Separator();
+
+			if (Gui::MenuItem("Save", nullptr, nullptr, false))
+			{
+				// TEMP: Don't wanna overwrite files during early development stage
+				// aetSet->Save(sourceFilePath);
+			}
+
+			if (Gui::MenuItem("Save As..."))
+			{
+				WideString filePath;
+				if (FileSystem::CreateSaveFileDialog(filePath, "Save AetSet file", "dev_ram/aetset", { "AetSet (*.bin)", "*.bin", "All Files (*.*)", "*", }))
+					aetSet->Save(filePath);
+			}
+		});
+
+		if (aetSetNodeOpen)
+		{
+			if (Gui::IsItemClicked())
+				SetSelectedItems(aetSet);
+
+			for (RefPtr<Aet>& aet : *aetSet)
+				DrawTreeViewAet(aet);
+
+			Gui::TreePop();
+		}
+		else
+		{
+			ResetSelectedItems();
 		}
 	}
 
