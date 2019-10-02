@@ -37,11 +37,13 @@ namespace Editor
 		void OnResize(ivec2 size) override;
 
 	protected:
-		void DrawToolGui();
+		void DrawToolSelectionHeaderGui();
 		void DrawTooltipHeaderGui();
 
 		AetTool* GetCurrentTool();
 		void CenterFitCamera();
+
+		void UpdateMousePickControls();
 
 	protected:
 		void OnInitialize() override;
@@ -55,11 +57,15 @@ namespace Editor
 
 	protected:
 		vec2 GetAetObjBoundingSize(const RefPtr<AetObj>& aetObj) const;
+		void TrySelectObjectAtPosition(vec2 worldSpace);
 
 	private:
 		CheckerboardGrid checkerboardBaseGrid;
 		CheckerboardGrid checkerboardGrid;
 		vec2 aetRegionSize = vec2(1920.0f, 1080.0f);
+
+		// NOTE: To make sure objects won't accidentally be mouse picked / unselected
+		bool windowHoveredOnMouseClick = false;
 
 		bool isPlayback = false;
 		float currentFrame = 0.0f;

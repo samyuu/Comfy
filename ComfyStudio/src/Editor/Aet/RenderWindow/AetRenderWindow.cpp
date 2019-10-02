@@ -60,7 +60,7 @@ namespace Editor
 		constexpr float itemWidth = 74.0f;
 		constexpr float rulerSize = 18.0f;
 
-		DrawToolGui();
+		DrawToolSelectionHeaderGui();
 
 		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2.0f, 3.0f));
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 1.0f));
@@ -130,6 +130,14 @@ namespace Editor
 				tool->ProcessCommands(GetCommandManager(), aetObj, currentFrame, toolProperties, previousProperties);
 			}
 		}
+
+		if (currentToolType != AetToolType_Hand)
+			UpdateMousePickControls();
+
+		if (Gui::IsMouseClicked(0))
+			windowHoveredOnMouseClick = Gui::IsWindowHovered();
+		else if (Gui::IsMouseReleased(0))
+			windowHoveredOnMouseClick = false;
 
 		Gui::WindowContextMenu("AetRenderWindowContextMenu", [this, tool]()
 		{
@@ -220,20 +228,10 @@ namespace Editor
 					case AetItemType::AetRegion:
 						RenderAetRegion(cameraSelectedAetItem->Ptrs.AetRegion);
 						break;
-
 					case AetItemType::None:
 					default:
 						break;
 					}
-				}
-
-				// TEMP: Screen - WorldSpace Test
-				if (false && Gui::IsWindowFocused())
-				{
-					constexpr float cursorSize = 4.0f;
-
-					vec2 mouseWorldSpace = camera.ScreenToWorldSpace(GetRelativeMouse());
-					renderer->Draw(mouseWorldSpace - vec2(cursorSize * 0.5f), vec2(cursorSize), GetColorVec4(EditorColor_CursorInner));
 				}
 			}
 			renderer->End();
@@ -254,7 +252,7 @@ namespace Editor
 			CenterFitCamera();
 	}
 
-	void AetRenderWindow::DrawToolGui()
+	void AetRenderWindow::DrawToolSelectionHeaderGui()
 	{
 		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 1.0f));
@@ -335,6 +333,22 @@ namespace Editor
 		cameraController.SetUpdateCameraZoom(camera, camera.Zoom / cameraFitZoomMargin, camera.GetProjectionCenter());
 	}
 
+	void AetRenderWindow::UpdateMousePickControls()
+	{
+		if (cameraSelectedAetItem->IsNull() || cameraSelectedAetItem->Type() != AetItemType::AetLayer)
+			return;
+
+		// TODO: Check for object on MouseClick then compare with object OnMouseReleased
+		if (Gui::IsWindowHovered() && windowHoveredOnMouseClick && Gui::IsMouseReleased(0))
+		{
+			if (!GetCurrentTool()->MouseFocusCaptured())
+			{
+				vec2 mouseWorldSpace = camera.ScreenToWorldSpace(GetRelativeMouse());
+				TrySelectObjectAtPosition(mouseWorldSpace);
+			}
+		}
+	}
+
 	void AetRenderWindow::OnInitialize()
 	{
 		renderTarget.GetFramebuffer().SetObjectLabel("AetRenderWindow::RenderTarget::Framebuffer");
@@ -402,5 +416,54 @@ namespace Editor
 		// TODO: Find bounding box (?), or maybe just disallow using the transform tool (?)
 		// NOTE: ~~Maybe this is sufficient already (?)~~
 		return aetRegionSize;
+	}
+
+	static bool IntersectsAnyChild(const AetObj* effObj)
+	{
+		//assert(effObj->Type == AetObjType::Eff);
+		//availableObj.get() == obj.AetObj
+		return false;
+	}
+
+	void AetRenderWindow::TrySelectObjectAtPosition(vec2 worldSpace)
+	{
+		auto& selectedLayer = cameraSelectedAetItem->GetAetLayerRef();
+
+		RefPtr<AetObj>* foundReference = nullptr;
+
+		for (auto& obj : objectCache)
+		{
+			TransformBox box(obj.Properties, vec2(obj.Region->Width, obj.Region->Height));
+
+			if ((obj.Visible /*^ obj.UseTextureMask*/) && box.Contains(worldSpace))
+			{
+				for (auto& availableObj : *selectedLayer)
+				{
+					if (availableObj->Type == AetObjType::Pic)
+					{
+						if (availableObj.get() == obj.AetObj)
+						{
+							foundReference = &availableObj;
+						}
+					}
+					else if (availableObj->Type == AetObjType::Eff)
+					{
+						if (IntersectsAnyChild(availableObj.get()))
+						{
+							foundReference = &availableObj;
+						}
+					}
+				}
+			}
+		}
+
+		if (foundReference != nullptr)
+		{
+			selectedAetItem->SetItem(*foundReference);
+		}
+		else
+		{
+			selectedAetItem->SetItem(selectedLayer);
+		}
 	}
 }
