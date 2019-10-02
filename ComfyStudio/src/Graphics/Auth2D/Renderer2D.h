@@ -128,9 +128,9 @@ namespace Graphics::Auth2D
 		bool enableAlphaTest = true;
 		bool useTextShadow = false;
 
-		UniquePtr<SpriteShader> spriteShader;
+		UniquePtr<SpriteShader> spriteShader = nullptr;
 
-		VertexArray vertexArray;
+		VertexArray vertexArray = {};
 		VertexBuffer vertexBuffer = { BufferUsage::StreamDraw };
 		IndexBuffer indexBuffer = { BufferUsage::StreamDraw, IndexType::UnsignedShort };
 
@@ -139,9 +139,9 @@ namespace Graphics::Auth2D
 		Vector<BatchItem> batchItems;
 		Vector<SpriteVertices> vertices;
 
-		const OrthographicCamera* camera;
+		const OrthographicCamera* camera = {};
 
-		uint16_t drawCallCount;
+		uint16_t drawCallCount = 0;
 
 		void GenerateUploadSpriteIndexBuffer(uint16_t elementCount);
 		void CreateBatches();

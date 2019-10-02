@@ -150,7 +150,7 @@ namespace Graphics::Auth2D
 
 		if (rotationDifference != 0.0f)
 		{
-			// TODO: maskRotation isn't handled correctly when the position changes
+			// BUG: maskRotation isn't handled correctly when the position changes
 
 			const float radians = glm::radians(rotationDifference);
 			const float sin = glm::sin(radians);
@@ -315,7 +315,7 @@ namespace Graphics::Auth2D
 			texture,
 			position,
 			scale,
-			origin,
+			origin + vec2(sourceRegion.x, sourceRegion.y),
 			rotation,
 			maskPosition,
 			maskScale,
