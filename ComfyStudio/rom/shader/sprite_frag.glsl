@@ -59,7 +59,7 @@ vec4 GetTextureColor(sampler2D sampler, vec2 texCoord, int textureFormat)
 			dot(grayscale.rgb, BLU_COEF),
 			grayscale.a);
 	}
-		
+	
 	return texture(sampler, texCoord);
 }
 
@@ -67,8 +67,8 @@ float GetTextureAlpha(float xOffset, float yOffset)
 {
 	vec2 texCoord = Input.TexCoord + vec2(xOffset, yOffset);
 
-	return (u_TextureFormat == TextureFormat_RGTC2) ? 
-		textureLod(u_TextureSampler, texCoord, GRAYSCALE_MIPMAP).g : 
+	return (u_TextureFormat == TextureFormat_RGTC2) ?
+		textureLod(u_TextureSampler, texCoord, GRAYSCALE_MIPMAP).g :
 		texture(u_TextureSampler, texCoord).a;
 }
 
@@ -117,7 +117,7 @@ void main()
 		FragColor = Input.Color;
 	}
 	else if (u_TextShadow)
-	{ 
+	{
 		FragColor = GetFontTextureColor();
 	}
 	else if (u_TextureMaskFormat >= 0)
