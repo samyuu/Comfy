@@ -83,28 +83,85 @@ namespace Editor::Command
 	// ----------------------------------------------------------------------------------------------------------------------------
 	Define_PropertyCommand(AetChangeName, "Aet Name Change", Aet, String, Name);
 	Define_PropertyCommand(AetChangeResolution, "Resolution Change", Aet, ivec2, Resolution);
-	Define_PropertyCommand(AetChangeStartFrame, "Aet Start Frame Change", Aet, float, FrameStart);
-	Define_PropertyCommand(AetChangeFrameDuration, "Aet Frame Duration Change", Aet, float, FrameDuration);
-	Define_PropertyCommand(AetChangeFrameRate, "Aet Frame Rate Change", Aet, float, FrameRate);
+	Define_PropertyCommand(AetChangeStartFrame, "Aet Start Frame Change", Aet, frame_t, FrameStart);
+	Define_PropertyCommand(AetChangeFrameDuration, "Aet Frame Duration Change", Aet, frame_t, FrameDuration);
+	Define_PropertyCommand(AetChangeFrameRate, "Aet Frame Rate Change", Aet, frame_t, FrameRate);
 	Define_PropertyCommand(AetChangeBackgroundColor, "Aet Background Color Change", Aet, uint32_t, BackgroundColor);
 
 	Define_AccessorCommand(AetObjChangeName, "Object Name Change", AetObj, String, GetName, SetName);
-	Define_PropertyCommand(AetObjChangeLoopStart, "Object Loop Start Change", AetObj, float, LoopStart);
-	Define_PropertyCommand(AetObjChangeLoopEnd, "Object Loop End Change", AetObj, float, LoopEnd);
-	Define_PropertyCommand(AetObjChangeStartFrame, "Object Start Frame Change", AetObj, float, StartFrame);
+	Define_PropertyCommand(AetObjChangeStartFrame, "Object Start Frame Change", AetObj, frame_t, StartFrame);
 	Define_PropertyCommand(AetObjChangePlaybackSpeed, "Object Playback Speed Change", AetObj, float, PlaybackSpeed);
-	Define_AccessorCommand(AetObjChangeFlagsVisible, "Object Visbility Change", AetObj, bool, GetIsVisible, SetIsVisible);
-	Define_AccessorCommand(AetObjChangeFlagsAudible, "Object Audibility Change", AetObj, bool, GetIsAudible, SetIsAudible);
-	Define_AccessorCommand(AetObjChangeReferenceRegion, "Object Region Reference Change", AetObj, RefPtr<AetRegion>, GetReferencedRegion, SetReferencedRegion);
-	Define_AccessorCommand(AetObjChangeReferenceLayer, "Object Layer Reference Change", AetObj, RefPtr<AetLayer>, GetReferencedLayer, SetReferencedLayer);
-	Define_AccessorCommand(AetObjChangeObjReferenceParent, "Object Reference Parent Change", AetObj, RefPtr<AetObj>, GetReferencedParentObj, SetReferencedParentObj);
+	Define_AccessorCommand(AetObjChangeFlagsVisible, "Visbility Change", AetObj, bool, GetIsVisible, SetIsVisible);
+	Define_AccessorCommand(AetObjChangeFlagsAudible, "Audibility Change", AetObj, bool, GetIsAudible, SetIsAudible);
+	Define_AccessorCommand(AetObjChangeReferenceRegion, "Region Reference Change", AetObj, RefPtr<AetRegion>, GetReferencedRegion, SetReferencedRegion);
+	Define_AccessorCommand(AetObjChangeReferenceLayer, "Layer Reference Change", AetObj, RefPtr<AetLayer>, GetReferencedLayer, SetReferencedLayer);
+	Define_AccessorCommand(AetObjChangeObjReferenceParent, "Reference Parent Change", AetObj, RefPtr<AetObj>, GetReferencedParentObj, SetReferencedParentObj);
 
 	Define_PropertyCommand(AnimationDataChangeBlendMode, "Blend Mode Change", AnimationData, AetBlendMode, BlendMode);
 	Define_PropertyCommand(AnimationDataChangeUseTextureMask, "Texture Mask Change", AnimationData, bool, UseTextureMask);
 
-	Define_PropertyCommand(AetObjChangeMarkerName, "Object Marker Name Change", AetMarker, String, Name);
-	Define_PropertyCommand(AetObjChangeMarkerFrame, "Object Marker Frame Change", AetMarker, float, Frame);
+	Define_PropertyCommand(AetObjChangeMarkerName, "Marker Name Change", AetMarker, String, Name);
+	Define_PropertyCommand(AetObjChangeMarkerFrame, "Marker Frame Change", AetMarker, frame_t, Frame);
 	// ----------------------------------------------------------------------------------------------------------------------------
+
+
+	// ----------------------------------------------------------------------------------------------------------------------------
+	Define_AetCommandStart(AetObjChangeLoopStart, "Object Loop Start Change");
+private:
+	RefPtr<AetObj> ref;
+	frame_t newValue, oldValue;
+	inline void OffsetKeyFrames(frame_t increment) { AetMgr::OffsetAllKeyFrames(ref->AnimationData->Properties, increment); }
+	inline frame_t ClampValue(frame_t value) { return glm::min(value, ref->LoopEnd - 1.0f); };
+
+public:
+	AetObjChangeLoopStart(const RefPtr<AetObj>& ref, const frame_t& value) : ref(ref), newValue(ClampValue(value)) {}
+	void Do() override 
+	{ 
+		oldValue = ref->LoopStart; 
+		ref->LoopStart = newValue;
+		OffsetKeyFrames(newValue - oldValue);
+	}
+	void Undo() override 
+	{ 
+		ref->LoopStart = oldValue; 
+		OffsetKeyFrames(oldValue - newValue);
+	}
+	void Redo() override 
+	{ 
+		ref->LoopStart = newValue; 
+		OffsetKeyFrames(newValue - oldValue);
+	}
+	void Update(frame_t value)
+	{ 
+		value = ClampValue(value);
+		OffsetKeyFrames(value - newValue);
+		newValue = value; 
+		ref->LoopStart = newValue; 
+	}
+	bool CanUpdate(AetObjChangeLoopStart* newCommand) 
+	{ 
+		return (&newCommand->ref->LoopStart == &ref->LoopStart); 
+	}
+	Define_AetCommandEnd();
+	// ----------------------------------------------------------------------------------------------------------------------------
+
+
+	// ----------------------------------------------------------------------------------------------------------------------------
+	Define_AetCommandStart(AetObjChangeLoopEnd, "Object Loop End Change");
+private:
+	RefPtr<AetObj> ref;
+	float newValue, oldValue;
+	inline frame_t ClampValue(frame_t value) { return glm::max(value, ref->LoopStart + 1.0f); };
+public:
+	AetObjChangeLoopEnd(const RefPtr<AetObj>& ref, const frame_t& value) : ref(ref), newValue(ClampValue(value)) {}
+	void Do() override { oldValue = ref->LoopEnd; ref->LoopEnd = newValue; }
+	void Undo() override { ref->LoopEnd = oldValue; }
+	void Redo() override { ref->LoopEnd = newValue; }
+	void Update(frame_t value) { newValue = ClampValue(value); ref->LoopEnd = newValue; }
+	bool CanUpdate(AetObjChangeLoopEnd* newCommand) { return (&newCommand->ref->LoopEnd == &ref->LoopEnd); }
+	Define_AetCommandEnd();
+	// ----------------------------------------------------------------------------------------------------------------------------
+
 
 	// ----------------------------------------------------------------------------------------------------------------------------
 	Define_AetCommandStart(AetObjAddMarker, "New Object Marker");
@@ -165,10 +222,12 @@ private:
 	inline KeyFrameCollection& GetKeyFrames() { return ref->AnimationData->Properties[std::get<0>(newValue)]; }
 	inline frame_t GetFrame() { return std::get<1>(newValue); }
 	inline float GetNewValue() { return std::get<2>(newValue); }
-
+	inline AetKeyFrame* FindExistingKeyFrame() { return AetMgr::GetKeyFrameAt(GetKeyFrames(), GetFrame()); }
+	
 	inline void DoRedoInternal(bool writeOldValue)
 	{
-		AetKeyFrame* existingKeyFrame = AetMgr::GetKeyFrameAt(GetKeyFrames(), GetFrame());
+		AetKeyFrame* existingKeyFrame = FindExistingKeyFrame();
+
 		keyFrameExisted = (existingKeyFrame != nullptr);
 
 		if (keyFrameExisted)
@@ -183,7 +242,6 @@ private:
 				oldValue = GetNewValue();
 
 			KeyFrameCollection& keyFrames = GetKeyFrames();
-			AetMgr::SetStartFrameStartIfSingle(keyFrames, ref->LoopStart);
 			AetMgr::InsertKeyFrameAt(keyFrames, GetFrame(), GetNewValue());
 		}
 	}
@@ -197,7 +255,7 @@ public:
 	}
 	void Undo() override
 	{
-		AetKeyFrame* existingKeyFrame = AetMgr::GetKeyFrameAt(GetKeyFrames(), GetFrame());
+		AetKeyFrame* existingKeyFrame = FindExistingKeyFrame();
 
 		if (keyFrameExisted)
 		{
@@ -207,7 +265,6 @@ public:
 		{
 			KeyFrameCollection& keyFrames = GetKeyFrames();
 			AetMgr::DeleteKeyFrameAt(keyFrames, GetFrame());
-			AetMgr::SetStartFrameZeroIfSingle(keyFrames);
 		}
 	}
 	void Redo() override
@@ -217,7 +274,7 @@ public:
 	void Update(const std::tuple<PropertyType_Enum, frame_t, float>& value)
 	{
 		newValue = value;
-		AetMgr::GetKeyFrameAt(GetKeyFrames(), GetFrame())->Value = GetNewValue();
+		FindExistingKeyFrame()->Value = GetNewValue();
 	}
 	bool CanUpdate(AnimationDataChangeKeyFrameValue* newCommand)
 	{
