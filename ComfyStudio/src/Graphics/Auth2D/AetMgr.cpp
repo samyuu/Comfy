@@ -151,16 +151,13 @@ namespace Graphics::Auth2D
 		});
 	}
 
-	void AetMgr::SetStartFrameZeroIfSingle(KeyFrameCollection& keyFrames)
+	void AetMgr::OffsetAllKeyFrames(KeyFrameProperties& properties, frame_t frameIncrement)
 	{
-		if (keyFrames.size() == 1)
-			keyFrames.front().Frame = 0;
-	}
-
-	void AetMgr::SetStartFrameStartIfSingle(KeyFrameCollection& keyFrames, frame_t startFrame)
-	{
-		if (keyFrames.size() == 1)
-			keyFrames.front().Frame = startFrame;
+		for (auto& keyFrames : properties)
+		{
+			for (auto& keyFrame : keyFrames)
+				keyFrame.Frame += frameIncrement;
+		}
 	}
 
 	void AetMgr::InternalAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)

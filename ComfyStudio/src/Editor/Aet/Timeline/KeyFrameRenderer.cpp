@@ -15,8 +15,8 @@ namespace Editor
 	{
 		ImDrawList* windowDrawList = Gui::GetWindowDrawList();
 
-		float scrollX = timeline->GetScrollX();
-		vec2 timelineTL = glm::round(vec2(timeline->GetTimelineContentRegion().GetTL() - vec2(scrollX, 0.0f)));
+		const float scrollX = timeline->GetScrollX();
+		const vec2 timelineTL = glm::round(vec2(timeline->GetTimelineContentRegion().GetTL() - vec2(scrollX, 0.0f)));
 
 		const float rowHeight = timeline->GetRowHeight();
 		float y = (rowHeight / 2.0f) + 0.5f;
@@ -26,13 +26,13 @@ namespace Editor
 			// TODO: Add Y scroll offset
 			const auto& object = layer->at(i);
 
-			float timelineStartX = glm::round(timeline->GetTimelinePosition(TimelineFrame(object->LoopStart)));
-			float timelineEndX = glm::round(timeline->GetTimelinePosition(TimelineFrame(object->LoopEnd)));
+			const float timelineStartX = glm::round(timeline->GetTimelinePosition(TimelineFrame(object->LoopStart)));
+			const float timelineEndX = glm::round(timeline->GetTimelinePosition(TimelineFrame(object->LoopEnd)));
 
-			vec2 startPosition = vec2(timelineTL.x + timelineStartX, timelineTL.y + y);
-			vec2 endPosition = vec2(timelineTL.x + timelineEndX, startPosition.y);
+			const vec2 startPosition = vec2(timelineTL.x + timelineStartX, timelineTL.y + y);
+			const vec2 endPosition = vec2(timelineTL.x + timelineEndX, startPosition.y);
 
-			bool isActive = (frame >= object->LoopStart) && (frame <= object->LoopEnd);
+			const bool isActive = (frame >= object->LoopStart) && (frame <= object->LoopEnd);
 
 			// TODO: Implement culling
 			DrawKeyFrameConnection(windowDrawList, startPosition, endPosition, isActive);
@@ -47,20 +47,19 @@ namespace Editor
 	{
 		ImDrawList* windowDrawList = Gui::GetWindowDrawList();
 
-		float scrollX = timeline->GetScrollX();
-		vec2 timelineTL = glm::round(vec2(timeline->GetTimelineContentRegion().GetTL() - vec2(scrollX, 0.0f)));
+		const float scrollX = timeline->GetScrollX();
+		const vec2 timelineTL = glm::round(vec2(timeline->GetTimelineContentRegion().GetTL() - vec2(scrollX, 0.0f)));
 
 		const float rowHeight = timeline->GetRowHeight();
 		float y = (rowHeight / 2.0f) + 0.5f;
 
 		for (const auto& keyFrames : keyFramesProperties)
 		{
-			bool opacityKeyFrames = &keyFrames == &keyFramesProperties.KeyFrames[7];
+			const bool opacityKeyFrames = &keyFrames == &keyFramesProperties.KeyFrames[7];
 
 			for (const auto& keyFrame : keyFrames)
 			{
-				TimelineFrame keyFrameFrame = keyFrames.size() == 1 ? timeline->GetLoopStartFrame() : keyFrame.Frame;
-				float timelineX = glm::round(timeline->GetTimelinePosition(keyFrameFrame)) + 1.0f;
+				const float timelineX = glm::round(timeline->GetTimelinePosition(TimelineFrame(keyFrame.Frame))) + 1.0f;
 
 				TimelineVisibility visiblity = timeline->GetTimelineVisibility(timelineX - scrollX);
 				if (visiblity == TimelineVisibility::Left)
@@ -68,7 +67,7 @@ namespace Editor
 				if (visiblity == TimelineVisibility::Right)
 					break;
 
-				vec2 position = vec2(timelineTL.x + timelineX, timelineTL.y + y);
+				const vec2 position = vec2(timelineTL.x + timelineX, timelineTL.y + y);
 				if (opacityKeyFrames)
 					DrawSingleKeyFrame(windowDrawList, position, keyFrame.Value);
 				else

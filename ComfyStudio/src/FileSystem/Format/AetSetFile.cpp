@@ -149,6 +149,12 @@ namespace FileSystem
 			reader.ReadAt(animationDataPointer, [this](BinaryReader& reader)
 			{
 				ReadAnimationData(this->AnimationData, reader);
+
+				for (auto& keyFrames : this->AnimationData->Properties)
+				{
+					if (keyFrames.size() == 1)
+						keyFrames.front().Frame = LoopStart;
+				}
 			});
 		}
 
