@@ -159,6 +159,12 @@ namespace Editor
 				if (glm::distance(screenSpaceBox.GetNodePosition(static_cast<BoxNode>(i)), mousePos) < TransformBox::NodeHitboxRadius)
 					hoveringNode = static_cast<BoxNode>(i);
 			}
+
+			boxHovered = screenSpaceBox.Contains(mousePos);
+		}
+		else
+		{
+			boxHovered = false;
 		}
 
 		if (windowFocused  && Gui::IsMouseClicked(actionMouseButton))
@@ -173,7 +179,7 @@ namespace Editor
 					mode = GrabMode::Scale;
 					scaleNodeWorldPositionOnMouseDown = mouseWorldPos;
 				}
-				else if (screenSpaceBox.Contains(mousePos))
+				else if (boxHovered)
 				{
 					mode = GrabMode::Move;
 				}
@@ -275,6 +281,11 @@ namespace Editor
 	void TransformTool::DrawContextMenu()
 	{
 		// TODO: Origin picker (center, corners etc.)
+	}
+
+	bool TransformTool::MouseFocusCaptured() const
+	{
+		return (hoveringNode != BoxNode_Invalid) || (scalingNode != BoxNode_Invalid) || (boxHovered) || (allowAction);
 	}
 
 	void TransformTool::MoveBoxCorner(BoxNode scalingNode, TransformBox& box, vec2 position, float rotation) const

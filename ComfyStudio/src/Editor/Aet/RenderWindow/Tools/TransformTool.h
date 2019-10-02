@@ -16,6 +16,7 @@ namespace Editor
 		virtual void ProcessCommands(AetCommandManager* commandManager, const RefPtr<AetObj>& aetObj, float frame, const Graphics::Auth2D::Properties& properties, const Graphics::Auth2D::Properties& previousProperties) override;
 
 		virtual void DrawContextMenu() override;
+		virtual bool MouseFocusCaptured() const override;
 
 	private:
 		static constexpr vec4 redColor = vec4(0.91f, 0.17f, 0.05f, 0.85f);
@@ -28,7 +29,7 @@ namespace Editor
 			None, Move, Scale, Rotate
 		};
 
-		const int actionMouseButton = 0;
+		static constexpr int actionMouseButton = 0;
 
 		vec2 scaleNodeWorldPositionOnMouseDown;
 		vec2 mouseWorldPositionOnMouseDown;
@@ -36,8 +37,9 @@ namespace Editor
 		Graphics::Auth2D::Properties propertiesOnMouseDown;
 
 		GrabMode mode = GrabMode::None;
-		BoxNode scalingNode, hoveringNode;
+		BoxNode scalingNode = BoxNode_Invalid, hoveringNode = BoxNode_Invalid;
 
+		bool boxHovered = false;
 		bool allowAction = false;
 
 		void MoveBoxCorner(BoxNode scalingNode, TransformBox& box, vec2 position, float rotation) const;

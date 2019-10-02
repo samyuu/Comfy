@@ -62,6 +62,11 @@ namespace Editor
 		// NOTE: Special case for the HandTool
 		virtual void UpdateCamera(Graphics::OrthographicCamera& camera, vec2 relativeMouse) {};
 
+		// NOTE: So we know if we can mouse pick an object of the current layer without interfering with the tool
+		// TODO: Default return false for now but should be abstract in the future
+		// virtual bool MouseFocusCaptured() const = 0;
+		virtual bool MouseFocusCaptured() const { return false; };
+
 	public:
 		void SetSpaceConversionFunctions(const std::function<vec2(vec2)>& worldToScreenSpace, const std::function<vec2(vec2)>& screenToWorldSpace);
 

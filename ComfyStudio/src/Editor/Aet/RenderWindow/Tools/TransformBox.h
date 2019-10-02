@@ -28,7 +28,7 @@ namespace Editor
 	struct TransformBox
 	{
 		// NOTE: Radius of the drawn node
-		static constexpr float NodeRadius = 3.0f;
+		static constexpr float NodeRadius = 2.0f;
 		// NOTE: Slightly larger hitbox node for better user experience
 		static constexpr float NodeHitboxRadius = 4.0f;
 

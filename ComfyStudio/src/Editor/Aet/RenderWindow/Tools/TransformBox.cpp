@@ -137,8 +137,11 @@ namespace Editor
 
 	bool TransformBox::Contains(const vec2& point) const
 	{
-		vec2 e = vec2(TR.x - TL.x, TR.y - TL.y);
-		vec2 f = vec2(BL.x - TL.x, BL.y - TL.y);
+		vec2 e = TR - TL;
+		vec2 f = BL - TL;
+
+		if (e.x == 0.0f || f.y == 0.0f)
+			return false;
 
 		return !(
 			((point.x - TL.x) * e.x + (point.y - TL.y) * e.y < 0.0) ||
