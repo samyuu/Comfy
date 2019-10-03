@@ -468,6 +468,9 @@
     <ClCompile Include="src\System\Profiling\Profiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Editor\Aet\RenderWindow\ObjectMousePicker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\pch.h">
@@ -990,6 +993,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\System\Profiling\Profiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Aet\RenderWindow\ObjectMousePicker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

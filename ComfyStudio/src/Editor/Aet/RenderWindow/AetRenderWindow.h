@@ -1,5 +1,6 @@
 #pragma once
 #include "Tools/AetTool.h"
+#include "ObjectMousePicker.h"
 #include "Editor/Aet/IMutatingEditorComponent.h"
 #include "Editor/Aet/AetSelection.h"
 #include "Editor/Core/RenderWindowBase.h"
@@ -14,7 +15,6 @@
 
 namespace Editor
 {
-	using namespace FileSystem;
 	using namespace Graphics::Auth2D;
 
 	class AetRenderWindow : public RenderWindowBase, IMutatingEditorComponent
@@ -57,8 +57,6 @@ namespace Editor
 
 	protected:
 		vec2 GetAetObjBoundingSize(const RefPtr<AetObj>& aetObj) const;
-		void TrySelectObjectAtPosition(vec2 worldSpace);
-		const RefPtr<AetObj>* FindObjectAtPosition(vec2 worldSpace);
 
 	private:
 		CheckerboardGrid checkerboardBaseGrid;
@@ -68,29 +66,32 @@ namespace Editor
 		// NOTE: To make sure objects won't accidentally be mouse picked / unselected
 		bool windowHoveredOnMouseClick = false;
 
-		// NOTE: To compare with the object on mouse release before selecting the object and prevent accidental selection.
-		//		 This object is not guaranteed to stay alive and should only be used for a pointer comparison so don't try to dereference it
-		const AetObj* mousePickedObjectOnMouseClick = nullptr;
-
 		bool isPlayback = false;
 		float currentFrame = 0.0f;
 
+		// NOTE: Pointers to the AetEditor owned selection
 		struct
 		{
-			AetItemTypePtr* selectedAetItem;
-			AetItemTypePtr* cameraSelectedAetItem;
+			AetItemTypePtr* selectedAetItem = nullptr;
+			AetItemTypePtr* cameraSelectedAetItem = nullptr;
 		};
 
-		UniquePtr<Renderer2D> renderer;
-		UniquePtr<AetRenderer> aetRenderer;
+		// NOTE: General rendering
+		UniquePtr<Renderer2D> renderer = nullptr;
+		UniquePtr<AetRenderer> aetRenderer = nullptr;
 
+		// NOTE: To handle mouse inputs when no tool is active
+		UniquePtr<ObjectMousePicker> mousePicker = nullptr;;
+
+		// NOTE: To be filled during rendering and then used for mouse interactions
+		Vector<AetMgr::ObjCache> objectCache;
+
+		// NOTE: The variables that will be edited by the current tool before being turned into commands
 		vec2 toolSize = vec2(100.0f, 100.0f);
 		Properties toolProperties = { vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), 1.0f };
 
 		Array<UniquePtr<AetTool>, AetToolType_Count> tools;
 		AetToolType currentToolType = AetToolType_Hand;
-
-		Vector<AetMgr::ObjCache> objectCache;
 
 		Graphics::OrthographicCamera camera;
 		CameraController2D cameraController;

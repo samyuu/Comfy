@@ -27,6 +27,8 @@ namespace Editor
 		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
 		aetRenderer->SetSpriteGetterFunction(spriteGetter);
 
+		mousePicker = MakeUnique<ObjectMousePicker>(objectCache, windowHoveredOnMouseClick, selectedAetItem, cameraSelectedAetItem);
+
 		tools[AetToolType_Hand] = MakeUnique<HandTool>();
 		tools[AetToolType_Move] = MakeUnique<MoveTool>();
 		tools[AetToolType_Rotate] = MakeUnique<RotateTool>();
@@ -55,7 +57,6 @@ namespace Editor
 
 	void AetRenderWindow::OnDrawGui()
 	{
-		constexpr bool showRuler = false;
 		constexpr float percentFactor = 100.0f;
 		constexpr float itemWidth = 74.0f;
 		constexpr float rulerSize = 18.0f;
@@ -83,6 +84,8 @@ namespace Editor
 		Gui::PopItemWidth();
 		Gui::PopStyleVar(2);
 
+		// TODO: This needs major work, should be toggable and render lines between edges and mouse cursor (?)
+		constexpr bool showRuler = false;
 		if (showRuler)
 		{
 			ImU32 rulerColor = Gui::GetColorU32(ImGuiCol_ScrollbarBg);
@@ -154,7 +157,7 @@ namespace Editor
 					bool alreadySelected = obj.get() == selectedAetItem->Ptrs.AetObj;
 
 					Gui::PushID(obj.get());
-						if (Gui::MenuItem(obj->GetName().c_str(), nullptr, nullptr, !alreadySelected))
+					if (Gui::MenuItem(obj->GetName().c_str(), nullptr, nullptr, !alreadySelected))
 						selectedAetItem->SetItem(obj);
 					Gui::PopID();
 				}
@@ -339,20 +342,10 @@ namespace Editor
 		if (cameraSelectedAetItem->IsNull() || cameraSelectedAetItem->Type() != AetItemType::AetLayer)
 			return;
 
-		if (Gui::IsWindowHovered())
+		if (Gui::IsWindowHovered() && !GetCurrentTool()->MouseFocusCaptured())
 		{
 			vec2 mouseWorldSpace = camera.ScreenToWorldSpace(GetRelativeMouse());
-
-			if (Gui::IsMouseClicked(0) && !GetCurrentTool()->MouseFocusCaptured())
-			{
-				const RefPtr<AetObj>* foundObject = FindObjectAtPosition(mouseWorldSpace);
-				mousePickedObjectOnMouseClick = (foundObject == nullptr) ? nullptr : foundObject->get();
-			}
-
-			if (windowHoveredOnMouseClick && Gui::IsMouseReleased(0) && !GetCurrentTool()->MouseFocusCaptured())
-			{
-				TrySelectObjectAtPosition(mouseWorldSpace);
-			}
+			mousePicker->UpdateMouseInput(mouseWorldSpace);
 		}
 	}
 
@@ -425,61 +418,5 @@ namespace Editor
 		// TODO: Find bounding box (?), or maybe just disallow using the transform tool (?)
 		// NOTE: ~~Maybe this is sufficient already (?)~~
 		return aetRegionSize;
-	}
-
-	static bool IntersectsAnyChild(const AetObj* effObj)
-	{
-		//assert(effObj->Type == AetObjType::Eff);
-		//availableObj.get() == obj.AetObj
-		return false;
-	}
-
-	void AetRenderWindow::TrySelectObjectAtPosition(vec2 worldSpace)
-	{
-		const RefPtr<AetObj>* foundObject = FindObjectAtPosition(worldSpace);
-
-		if (foundObject != nullptr && mousePickedObjectOnMouseClick == foundObject->get())
-		{
-			selectedAetItem->SetItem(*foundObject);
-		}
-		else
-		{
-			auto& selectedLayer = cameraSelectedAetItem->GetAetLayerRef();
-			selectedAetItem->SetItem(selectedLayer);
-		}
-	}
-
-	const RefPtr<AetObj>* AetRenderWindow::FindObjectAtPosition(vec2 worldSpace)
-	{
-		auto& selectedLayer = cameraSelectedAetItem->GetAetLayerRef();
-		RefPtr<AetObj>* foundObject = nullptr;
-
-		for (auto& obj : objectCache)
-		{
-			TransformBox box(obj.Properties, vec2(obj.Region->Width, obj.Region->Height));
-
-			if ((obj.Visible /*^ obj.UseTextureMask*/) && box.Contains(worldSpace))
-			{
-				for (auto& availableObj : *selectedLayer)
-				{
-					if (availableObj->Type == AetObjType::Pic)
-					{
-						if (availableObj.get() == obj.AetObj)
-						{
-							foundObject = &availableObj;
-						}
-					}
-					else if (availableObj->Type == AetObjType::Eff)
-					{
-						if (IntersectsAnyChild(availableObj.get()))
-						{
-							foundObject = &availableObj;
-						}
-					}
-				}
-			}
-		}
-
-		return foundObject;
 	}
 }
