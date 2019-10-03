@@ -38,6 +38,12 @@ namespace Editor
 		SetColor(EditorColor_BaseClear, Gui::GetColorU32(ImGuiCol_TabUnfocused));
 		SetColor(EditorColor_DarkClear, Gui::GetColorU32(ImGuiCol_WindowBg));
 		SetColor(EditorColor_AltRow, 0xFF363636);
+
+		// TODO: These brighter highlight colors improve readability but somewhat conflict with the darker highlights of other ui elements
+		SetColor(EditorColor_TreeViewSelected, ImColor(0.29f, 0.29f, 0.29f, 1.0f));
+		SetColor(EditorColor_TreeViewHovered, ImColor(0.24f, 0.24f, 0.24f, 1.0f));
+		SetColor(EditorColor_TreeViewActive, ImColor(0.29f, 0.29f, 0.29f, 0.8f));
+
 		SetColor(EditorColor_Grid, Gui::GetColorU32(ImGuiCol_Separator, .75f));
 		SetColor(EditorColor_GridAlt, Gui::GetColorU32(ImGuiCol_Separator, .5f));
 		SetColor(EditorColor_InfoColumn, Gui::GetColorU32(ImGuiCol_ScrollbarBg));
@@ -138,8 +144,8 @@ namespace Editor
 				component->OnWindowEnd();
 				Gui::End();
 			}
-		}
 	}
+}
 
 	void EditorManager::UpdateFileDrop()
 	{
