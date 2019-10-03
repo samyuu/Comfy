@@ -13,10 +13,15 @@ out VS_OUT
 
 uniform mat4 u_ProjectionView;
 
+vec2 FlipTextureCoordinates(vec2 texCoord)
+{
+	return vec2(texCoord.x, 1.0 - texCoord.y);
+}
+
 void main()
 {
 	gl_Position = u_ProjectionView * vec4(in_Position, 0.0, 1.0);
 	Output.Color = in_Color;
-	Output.TexCoord = vec2(in_TextureCoords.x, 1.0 - in_TextureCoords.y);
-	Output.TexMaskCoord = vec2(in_TextureMaskCoords.x, 1.0 - in_TextureMaskCoords.y);
+	Output.TexCoord = FlipTextureCoordinates(in_TextureCoords);
+	Output.TexMaskCoord = FlipTextureCoordinates(in_TextureMaskCoords);
 }

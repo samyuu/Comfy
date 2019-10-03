@@ -63,6 +63,11 @@ vec4 GetTextureColor(sampler2D sampler, vec2 texCoord, int textureFormat)
 	return texture(sampler, texCoord);
 }
 
+vec4 GetTextureColor()
+{
+	return GetTextureColor(u_TextureSampler, Input.TexCoord, u_TextureFormat);
+}
+
 float GetTextureAlpha(float xOffset, float yOffset)
 {
 	vec2 texCoord = Input.TexCoord + vec2(xOffset, yOffset);
@@ -72,7 +77,7 @@ float GetTextureAlpha(float xOffset, float yOffset)
 		texture(u_TextureSampler, texCoord).a;
 }
 
-vec4 GetFontTextureColor()
+vec4 GetTextureFontColor()
 {
 	vec2 texelSize = 1.0 / textureSize(u_TextureSampler, 0);
 	vec2 texelSizeDouble = texelSize * 2.0;
@@ -110,6 +115,24 @@ float GetCheckerboardFactor()
 	return mod(result.x + result.y, 2.0);
 }
 
+vec4 GetTextureMaskColor()
+{
+	// NOTE: Special case for when the texture mask shares the same texture
+	if (u_TextureFormat < 0)
+		return GetTextureColor(u_TextureMaskSampler, Input.TexMaskCoord, u_TextureMaskFormat);
+	
+	return GetTextureColor(u_TextureSampler, Input.TexMaskCoord, u_TextureFormat);
+}
+
+float GetTextureMaskAlpha()
+{
+	// NOTE: Because in this case we only need to sample the grayscale mipmap
+	if (u_TextureMaskFormat == TextureFormat_RGTC2)
+		return textureLod(u_TextureMaskSampler, Input.TexCoord, GRAYSCALE_MIPMAP).g;
+	
+	return texture(u_TextureMaskSampler, Input.TexCoord).a;
+}
+
 void main()
 {
 	if (u_SolidColor)
@@ -118,22 +141,16 @@ void main()
 	}
 	else if (u_TextShadow)
 	{
-		FragColor = GetFontTextureColor();
+		FragColor = GetTextureFontColor();
 	}
 	else if (u_TextureMaskFormat >= 0)
 	{
-		// NOTE: Special case for when the texture mask shares the same texture
-		if (u_TextureFormat < 0)
-			FragColor = GetTextureColor(u_TextureMaskSampler, Input.TexMaskCoord, u_TextureMaskFormat);
-		else
-			FragColor = GetTextureColor(u_TextureSampler, Input.TexMaskCoord, u_TextureFormat);
-
-		FragColor *= Input.Color;
-		FragColor.a *= GetTextureColor(u_TextureMaskSampler, Input.TexCoord, u_TextureMaskFormat).a;
+		FragColor = GetTextureMaskColor() * Input.Color;
+		FragColor.a *= GetTextureMaskAlpha();
 	}
 	else
 	{
-		FragColor = GetTextureColor(u_TextureSampler, Input.TexCoord, u_TextureFormat) * Input.Color;
+		FragColor = GetTextureColor() * Input.Color;
 	}
 
 	if (u_Checkerboard)
