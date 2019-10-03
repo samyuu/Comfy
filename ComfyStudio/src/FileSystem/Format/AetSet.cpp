@@ -52,6 +52,11 @@ namespace FileSystem
 		return (name == nullptr) ? "Undefined Blend Mode" : name;
 	}
 
+	vec2 AetRegion::GetSize() const
+	{
+		return vec2(Width, Height);
+	}
+
 	AetSprite* AetRegion::GetSprite(int32_t index)
 	{
 		if (SpriteCount() < 1)

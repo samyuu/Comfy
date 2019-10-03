@@ -56,7 +56,7 @@ namespace Graphics::Auth2D
 		{
 			renderer2D->Draw(
 				nullptr,
-				vec4(0, 0, obj.Region->Width, obj.Region->Height),
+				vec4(0, 0, obj.Region->GetSize()),
 				obj.Properties.Position + position,
 				obj.Properties.Origin,
 				obj.Properties.Rotation,
@@ -101,7 +101,7 @@ namespace Graphics::Auth2D
 		{
 			renderer2D->Draw(
 				nullptr,
-				vec4(0, 0, obj.Region->Width, obj.Region->Height),
+				vec4(0, 0, obj.Region->GetSize()),
 				obj.Properties.Position + position,
 				obj.Properties.Origin,
 				obj.Properties.Rotation,
@@ -156,7 +156,7 @@ namespace Graphics::Auth2D
 
 		if (aetRegion->SpriteCount() < 1 || !GetSprite(aetSprite, &texture, &sprite))
 		{
-			renderer2D->Draw(nullptr, vec4(0, 0, aetRegion->Width, aetRegion->Height), vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), AetRenderer::DummyColor);
+			renderer2D->Draw(nullptr, vec4(0, 0, aetRegion->GetSize()), vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), AetRenderer::DummyColor);
 		}
 		else
 		{

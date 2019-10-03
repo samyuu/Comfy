@@ -73,6 +73,8 @@ namespace FileSystem
 		int16_t Height;
 		frame_t Frames;
 
+		vec2 GetSize() const;
+
 		AetSprite* GetSprite(int32_t index);
 		const AetSprite* GetSprite(int32_t index) const;
 

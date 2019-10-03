@@ -420,7 +420,7 @@ namespace Editor
 		const auto& aetRegion = aetObj->GetReferencedRegion();
 
 		if (aetRegion != nullptr)
-			return vec2(aetRegion->Width, aetRegion->Height);
+			return aetRegion->GetSize();
 
 		// TODO: Find bounding box (?), or maybe just disallow using the transform tool (?)
 		// NOTE: ~~Maybe this is sufficient already (?)~~
