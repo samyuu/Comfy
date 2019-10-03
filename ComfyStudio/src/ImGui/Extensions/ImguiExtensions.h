@@ -14,8 +14,8 @@ namespace Graphics
 
 namespace ImGui
 {
-	const ImVec2 UV0 = ImVec2(0, 0), UV1 = ImVec2(1, 1);
-	const ImVec2 UV0_GL = ImVec2(0, 1), UV1_GL = ImVec2(1, 0);
+	const ImVec2 UV0 = ImVec2(0.0f, 0.0f), UV1 = ImVec2(1.0f, 1.0f);
+	const ImVec2 UV0_GL = ImVec2(0.0f, 1.0f), UV1_GL = ImVec2(1.0f, 0.0f);
 
 	void UpdateExtendedState();
 
@@ -52,7 +52,7 @@ namespace ImGui
 	void AddLine(ImDrawList* drawList, vec2 start, vec2 end, ImU32 color, float thickness = 1.0f);
 	void AddQuadFilled(ImDrawList* drawList, vec2 position, vec2 size, vec2 origin, float rotation, const vec2& scale, ImU32 color);
 	
-	bool IsItemHoveredDelayed(ImGuiHoveredFlags flags = ImGuiHoveredFlags_None, float threshold = .5f);
+	bool IsItemHoveredDelayed(ImGuiHoveredFlags flags = ImGuiHoveredFlags_None, float threshold = 0.5f);
 
 	bool WideTreeNode(const char* label);
 	bool WideTreeNode(const char* str_id, const char* fmt, ...);
@@ -96,6 +96,14 @@ namespace ImGui
 
 	inline void DRAW_DEBUG_REGION(ImRect& rect)
 	{
-		ImGui::AddRectFilled(ImGui::GetForegroundDrawList(), rect, static_cast<ImU32>(IM_COL32_BLACK * .5f));
+		AddRectFilled(GetForegroundDrawList(), rect, static_cast<ImU32>(IM_COL32_BLACK * 0.5f));
 	};
+
+	inline void DEBUG_NOSAVE_WINDOW(const char* windowName, const std::function<void(void)>& function, ImGuiWindowFlags flags = 0)
+	{
+		constexpr ImGuiWindowFlags defaultFlags = (ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking);
+		if (Begin(windowName, nullptr, flags | defaultFlags))
+			function();
+		End();
+	}
 }
