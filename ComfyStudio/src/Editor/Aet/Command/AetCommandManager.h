@@ -3,7 +3,6 @@
 #include "Editor/Command/CommandManager.h"
 
 // NOTE: Use messy macros to automatically handle the command type enum
-#define ProcessAetCommand(commandManager, type, ref, value) commandManager->EnqueueCommand<Editor::Command::type>(ref, value)
 #define ProcessUpdatingAetCommand(commandManager, type, ref, value) commandManager->AddOrUpdateCommand<Editor::Command::type>(Editor::Command::AetCommandType::type, ref, value)
 
 namespace Editor

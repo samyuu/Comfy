@@ -174,6 +174,7 @@ public:
 	void Undo() override { ref->Markers.erase(std::find(ref->Markers.begin(), ref->Markers.end(), newValue)); }
 	void Redo() override { Do(); }
 	void Update(const RefPtr<AetMarker>& value) { newValue = value; Redo(); }
+	bool CanUpdate(AetObjAddMarker* newCommand) { return false; }
 	Define_AetCommandEnd();
 	// ----------------------------------------------------------------------------------------------------------------------------
 
@@ -190,6 +191,7 @@ public:
 	void Undo() override { ref->Markers.insert(ref->Markers.begin() + index, newValue); }
 	void Redo() override { ref->Markers.erase(ref->Markers.begin() + index); }
 	void Update(const int& value) { index = value; Redo(); }
+	bool CanUpdate(AetObjDeleteMarker* newCommand) { return false; }
 	Define_AetCommandEnd();
 	// ----------------------------------------------------------------------------------------------------------------------------
 
@@ -205,6 +207,7 @@ public:
 	void Undo() override { std::iter_swap(ref->Markers.begin() + std::get<1>(newValue), ref->Markers.begin() + std::get<0>(newValue)); }
 	void Redo() override { Do(); }
 	void Update(const std::tuple<int, int>& value) { newValue = value; Redo(); }
+	bool CanUpdate(AetObjMoveMarker* newCommand) { return false; }
 	Define_AetCommandEnd();
 	// ----------------------------------------------------------------------------------------------------------------------------
 

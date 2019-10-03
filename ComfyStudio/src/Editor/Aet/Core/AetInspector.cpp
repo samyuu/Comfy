@@ -282,23 +282,6 @@ namespace Editor
 		}
 	}
 
-	AetKeyFrame* AetInspector::GetKeyFrameIfExact(const RefPtr<AetObj>& aetObj, int propertyIndex, float inputFrame) const
-	{
-		KeyFrameCollection& keyFrames = aetObj->AnimationData->Properties[propertyIndex];
-		bool isFirstFrame = (inputFrame == aetObj->LoopStart);
-
-		if (isFirstFrame && keyFrames.size() == 1)
-			inputFrame = keyFrames.front().Frame;
-
-		for (auto& keyFrame : keyFrames)
-		{
-			if (keyFrame.Frame == inputFrame)
-				return &keyFrame;
-		}
-
-		return nullptr;
-	}
-
 	void AetInspector::DrawInspectorAnimationData(const RefPtr<AnimationData>& animationData, const RefPtr<AetObj>& aetObj)
 	{
 		if (Gui::WideTreeNodeEx(ICON_ANIMATIONDATA "  Animation Data", ImGuiTreeNodeFlags_DefaultOpen))
@@ -314,14 +297,11 @@ namespace Editor
 				keyFramePropertyColor = GetColorVec4(EditorColor_KeyFrameProperty);
 				staticPropertyColor = Gui::GetStyleColorVec4(ImGuiCol_FrameBg);
 
-				// TODO: Auto insert keyframe mode
-				float frame = glm::round(currentFrame);
-
-				DrawInspectorAnimationDataPropertyVec2(aetObj, "Origin", frame, currentProperties.Origin, PropertyType_OriginX, PropertyType_OriginY);
-				DrawInspectorAnimationDataPropertyVec2(aetObj, "Position", frame, currentProperties.Position, PropertyType_PositionX, PropertyType_PositionY);
-				DrawInspectorAnimationDataProperty(aetObj, "Rotation", frame, currentProperties.Rotation, PropertyType_Rotation);
-				DrawInspectorAnimationDataPropertyVec2(aetObj, "Scale", frame, currentProperties.Scale, PropertyType_ScaleX, PropertyType_ScaleY);
-				DrawInspectorAnimationDataProperty(aetObj, "Opacity", frame, currentProperties.Opacity, PropertyType_Opacity);
+				DrawInspectorAnimationDataPropertyVec2(aetObj, "Origin", currentFrame, currentProperties.Origin, PropertyType_OriginX, PropertyType_OriginY);
+				DrawInspectorAnimationDataPropertyVec2(aetObj, "Position", currentFrame, currentProperties.Position, PropertyType_PositionX, PropertyType_PositionY);
+				DrawInspectorAnimationDataProperty(aetObj, "Rotation", currentFrame, currentProperties.Rotation, PropertyType_Rotation);
+				DrawInspectorAnimationDataPropertyVec2(aetObj, "Scale", currentFrame, currentProperties.Scale, PropertyType_ScaleX, PropertyType_ScaleY);
+				DrawInspectorAnimationDataProperty(aetObj, "Opacity", currentFrame, currentProperties.Opacity, PropertyType_Opacity);
 			}
 
 			if (aetObj->Type == AetObjType::Pic)
@@ -417,6 +397,7 @@ namespace Editor
 		//		 This should be implemented a draggable text widget instead
 		// if (Gui::ComfyFloatDragWidget(label, &value, 1.0f, (opacity ? 0.1f : -1.0f), (opacity ? 1.0f : -1.0f), formatString, (keyFrame == nullptr)))
 
+		// TODO: Implement "drag label" control (how should this work for multi component (?) - maybe write own vec2 controls
 		if (Gui::ComfyFloatTextWidget(label, &value, 1.0f, 10.0f, formatString, ImGuiInputTextFlags_None, (keyFrame == nullptr)))
 		{
 			if (opacity)
@@ -494,18 +475,18 @@ namespace Editor
 					if (Gui::MenuItem(ICON_MOVEUP "  Move Up", nullptr, nullptr, i > 0))
 					{
 						auto tuple = std::tuple<int, int>(i, i - 1);
-						ProcessAetCommand(GetCommandManager(), AetObjMoveMarker, aetObj, tuple);
+						ProcessUpdatingAetCommand(GetCommandManager(), AetObjMoveMarker, aetObj, tuple);
 					}
 
 					if (Gui::MenuItem(ICON_MOVEDOWN "  Move Down", nullptr, nullptr, i < markers->size() - 1))
 					{
 						auto tuple = std::tuple<int, int>(i, i + 1);
-						ProcessAetCommand(GetCommandManager(), AetObjMoveMarker, aetObj, tuple);
+						ProcessUpdatingAetCommand(GetCommandManager(), AetObjMoveMarker, aetObj, tuple);
 					}
 
 					if (Gui::MenuItem(ICON_DELETE "  Delete"))
 					{
-						ProcessAetCommand(GetCommandManager(), AetObjDeleteMarker, aetObj, i);
+						ProcessUpdatingAetCommand(GetCommandManager(), AetObjDeleteMarker, aetObj, i);
 					}
 				});
 
@@ -539,7 +520,7 @@ namespace Editor
 				char newMarkerBuffer[32];
 				sprintf_s(newMarkerBuffer, "marker_%02zd", markers->size());
 				auto newMarker = MakeRef<AetMarker>(0.0f, newMarkerBuffer);
-				ProcessAetCommand(GetCommandManager(), AetObjAddMarker, aetObj, newMarker);
+				ProcessUpdatingAetCommand(GetCommandManager(), AetObjAddMarker, aetObj, newMarker);
 			}
 			Gui::TreePop();
 		}
