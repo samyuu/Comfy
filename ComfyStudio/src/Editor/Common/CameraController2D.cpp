@@ -13,14 +13,11 @@ namespace Editor
 				windowHoveredOnClick[i] = Gui::IsWindowHovered();
 		}
 
-		if (Gui::IsWindowFocused())
-		{
-			if (updateKeyboardControls)
-				UpdateKeyboardInput(camera);
+		if (updateKeyboardControls)
+			UpdateKeyboardInput(camera);
 
-			if (updateMouseControls)
-				UpdateMouseInput(camera, relativeMouse);
-		}
+		if (updateMouseControls)
+			UpdateMouseInput(camera, relativeMouse);
 	}
 
 	void CameraController2D::SetUpdateCameraZoom(Graphics::OrthographicCamera& camera, float newZoom, vec2 origin)
@@ -38,7 +35,8 @@ namespace Editor
 
 	void CameraController2D::UpdateKeyboardInput(Graphics::OrthographicCamera& camera)
 	{
-		// TODO: Either remove or add as an optional bool field
+		if (!Gui::IsWindowFocused())
+			return;
 
 		constexpr float step = 25.0f;
 		if (Gui::IsKeyPressed(KeyCode_W, true))
