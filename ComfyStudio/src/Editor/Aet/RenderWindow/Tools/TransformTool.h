@@ -12,6 +12,7 @@ namespace Editor
 		virtual AetToolType GetType() const override;
 		virtual KeyCode GetShortcutKey() const override;
 
+		// TODO: Rename to 'UpdateProperties' (?)
 		virtual void UpdatePostDrawGui(Graphics::Auth2D::Properties* properties, vec2 dimensions) override;
 		virtual void ProcessCommands(AetCommandManager* commandManager, const RefPtr<AetObj>& aetObj, float frame, const Graphics::Auth2D::Properties& properties, const Graphics::Auth2D::Properties& previousProperties) override;
 
@@ -42,6 +43,7 @@ namespace Editor
 		bool boxHovered = false;
 		bool allowAction = false;
 
+		void UpdateKeyboardMoveInput(Graphics::Auth2D::Properties* properties);
 		void MoveBoxCorner(BoxNode scalingNode, TransformBox& box, vec2 position, float rotation) const;
 
 	private:

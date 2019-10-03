@@ -119,13 +119,6 @@ namespace Editor
 
 	void TransformTool::UpdatePostDrawGui(Graphics::Auth2D::Properties* properties, vec2 dimensions)
 	{
-		// TEMP:
-		{
-			Gui::Text("pos: %.1f %.1f", properties->Position.x, properties->Position.y);
-			Gui::Text("ori: %.1f %.1f", properties->Origin.x, properties->Origin.y);
-			Gui::Text("rot: %.1f", properties->Rotation);
-		}
-
 		ImGuiIO& io = Gui::GetIO();
 		bool windowFocused = Gui::IsWindowFocused();
 		bool windowHovered = Gui::IsWindowHovered();
@@ -141,6 +134,9 @@ namespace Editor
 
 		if (windowFocused || windowHovered)
 			screenSpaceBox = BoxWorldToScreenSpace(worldSpaceBox);
+
+		if (windowFocused)
+			UpdateKeyboardMoveInput(properties);
 
 		if (windowFocused && Gui::IsMouseClicked(actionMouseButton))
 		{
@@ -286,6 +282,39 @@ namespace Editor
 	bool TransformTool::MouseFocusCaptured() const
 	{
 		return (hoveringNode != BoxNode_Invalid) || (scalingNode != BoxNode_Invalid) || (boxHovered) || (allowAction);
+	}
+
+	void TransformTool::UpdateKeyboardMoveInput(Graphics::Auth2D::Properties* properties)
+	{
+		// TODO: This should probably be moved into a common method so the MoveTool can also use it
+
+		struct NudgeBinding
+		{
+			int16_t Key;
+			enum Component : uint8_t { X, Y } Component;
+			enum Direction : uint8_t { Increment, Decrement } Direction;
+		};
+
+		const NudgeBinding bindings[] =
+		{
+			{ KeyCode_Up,	 NudgeBinding::Y, NudgeBinding::Decrement },
+			{ KeyCode_Down,	 NudgeBinding::Y, NudgeBinding::Increment },
+			{ KeyCode_Left,	 NudgeBinding::X, NudgeBinding::Decrement },
+			{ KeyCode_Right, NudgeBinding::X, NudgeBinding::Increment },
+		};
+
+		for (auto& binding : bindings)
+		{
+			if (Gui::IsKeyPressed(binding.Key))
+			{
+				float step = Gui::IsKeyDown(FastNudgeModifierKey) ? NudgeFastStepDistance : NudgeStepDistance;
+
+				if (binding.Direction == NudgeBinding::Decrement)
+					step *= -1.0f;
+
+				properties->Position[binding.Component] += step;
+			}
+		}
 	}
 
 	void TransformTool::MoveBoxCorner(BoxNode scalingNode, TransformBox& box, vec2 position, float rotation) const

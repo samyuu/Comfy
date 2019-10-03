@@ -31,9 +31,15 @@ namespace Editor
 		static constexpr KeyCode AxesLinkModifierKey = KeyCode_Left_Shift;
 
 		// TODO: These should probably be set by the parent component (maybe inside the context menu (?))
-		static constexpr vec2 PositionSnapPrecision = vec2(16.0f);
+		static constexpr vec2 PositionSnapPrecision = vec2(10.0f);
 		static constexpr vec2 ScaleSnapPrecision = vec2(10.0f);
 		static constexpr float RotationSnapPrecision = 15.0f;
+
+		// NOTE: For keyboard based movement
+		static constexpr KeyCode FastNudgeModifierKey = KeyCode_Left_Shift;
+
+		static constexpr float NudgeStepDistance = 1.0f;
+		static constexpr float NudgeFastStepDistance = 10.0f;
 
 		// NOTE: Little helper function
 		template <typename T>
