@@ -37,6 +37,7 @@ namespace Editor
 
 		SpriteGetterFunction spriteGetterFunction;
 		
+		// DEBUG: Disabled for now to remove one possible case of failure
 		const bool asyncFileLoading = false;
 		UniquePtr<FileLoader> sprSetFileLoader;
 

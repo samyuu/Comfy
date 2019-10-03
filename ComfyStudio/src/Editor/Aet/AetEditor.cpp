@@ -33,6 +33,7 @@ namespace Editor
 		timeline->InitializeTimelineGuiState();
 		renderWindow->Initialize();
 
+		// DEBUG: Auto load specified files
 		if (debugAetPath != nullptr)
 			LoadAetSet(debugAetPath);
 		if (debugSprPath != nullptr)
@@ -67,6 +68,8 @@ namespace Editor
 		}
 		Gui::End();
 
+		// TODO: Either remove this entirely and have the AetTreeView do all the work or update and get it to a usable state
+#if 0
 		if (Gui::Begin(ICON_AETLAYERS "  Aet Layers##AetEditor"))
 		{
 			Gui::BeginChild("AetLayerViewChild##AetEditor", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
@@ -74,7 +77,9 @@ namespace Editor
 			Gui::EndChild();
 		}
 		Gui::End();
+#endif
 
+		// HACK: The way the window padding works here is far from optimal
 		RenderWindowBase::PushWindowPadding();
 		if (Gui::Begin(ICON_RENDERWINDOW "  Aet Window##AetEditor"))
 		{
@@ -87,6 +92,7 @@ namespace Editor
 
 		if (Gui::Begin(ICON_INSPECTOR "  Aet Inspector##AetEditor"))
 		{
+			// TODO: The selected item pointers should be passed in as pointers in their constructor
 			Gui::BeginChild("AetInspectorChild##AetEditor");
 			inspector->SetIsPlayback(timeline->GetIsPlayback());
 			inspector->SetCurrentFrame(timeline->GetCursorFrame().Frames());
@@ -97,6 +103,7 @@ namespace Editor
 
 		if (Gui::Begin(ICON_TIMELINE "  Aet Timeline##AetEditor"))
 		{
+			// TODO: The selected item pointers should be passed in as pointers in their constructor
 			timeline->SetActive(selectedAetItem);
 			timeline->DrawTimelineGui();
 		}
@@ -158,8 +165,6 @@ namespace Editor
 
 	bool AetEditor::LoadAetSet(const String& filePath)
 	{
-		// TODO: Clear AetCommandManager
-
 		const WideString widePath = Utf8ToUtf16(filePath);
 		if (!FileExists(widePath))
 			return false;
@@ -195,6 +200,7 @@ namespace Editor
 
 	void AetEditor::OnAetSetLoaded()
 	{
+		commandManager->Clear();
 		treeView->ResetSelectedItems();
 	}
 

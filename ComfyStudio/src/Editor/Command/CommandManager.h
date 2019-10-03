@@ -10,7 +10,7 @@ namespace Editor
 	class CommandManager
 	{
 		static_assert(std::is_base_of<ICommand, TCommand>::value, "TCommand must inherit from ICommand");
-		
+
 		using CommandQueue = std::queue<RefPtr<TCommand>>;
 		using CommandStack = Vector<RefPtr<TCommand>>;
 
@@ -21,7 +21,7 @@ namespace Editor
 	public:
 		template<class TNewCommand, class... _Types>
 		void EnqueueCommand(_Types&&... _Args);
-		
+
 		void ExecuteClearCommandQueue();
 
 	protected:
@@ -30,6 +30,7 @@ namespace Editor
 	public:
 		void Undo();
 		void Redo();
+		void Clear();
 
 		inline bool GetCanUndo() const { return !undoStack.empty(); };
 		inline bool GetCanRedo() const { return !redoStack.empty(); };
@@ -97,5 +98,18 @@ namespace Editor
 
 		redoCommand->Redo();
 		undoStack.push_back(redoCommand);
+	}
+
+	template<class TCommand>
+	inline void CommandManager<TCommand>::Clear()
+	{
+		if (!commandQueue.empty())
+			commandQueue = {};
+
+		if (!undoStack.empty())
+			undoStack.clear();
+		
+		if (!redoStack.empty())
+			redoStack.clear();
 	}
 }
