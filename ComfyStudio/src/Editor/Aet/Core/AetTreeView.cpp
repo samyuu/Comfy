@@ -94,6 +94,38 @@ namespace Editor
 		}
 	}
 
+	void AetTreeView::DrawTreeViewBackground()
+	{
+		const ImU32 alternativeRowColow = GetColor(EditorColor_AltRow);
+
+		float itemSpacing = Gui::GetStyle().ItemSpacing.y;
+		float lineHeight = Gui::GetTextLineHeight() + itemSpacing;
+
+		ImGuiWindow* window = Gui::GetCurrentWindowRead();
+
+		float scrollY = window->Scroll.y;
+		float scrolledOutLines = floorf(scrollY / lineHeight);
+		scrollY -= lineHeight * scrolledOutLines;
+
+		ImVec2 clipRectMin(Gui::GetWindowPos().x, Gui::GetWindowPos().y);
+		ImVec2 clipRectMax(clipRectMin.x + Gui::GetWindowWidth(), clipRectMin.y + Gui::GetWindowHeight());
+
+		float yMin = clipRectMin.y - scrollY + Gui::GetCursorPosY();
+		float yMax = clipRectMax.y - scrollY + lineHeight;
+		float xMin = clipRectMin.x + window->Scroll.x + window->ContentsRegionRect.Min.x - window->Pos.x;
+		float xMax = clipRectMin.x + window->Scroll.x + window->ContentsRegionRect.Max.x - window->Pos.x;
+
+		bool isOdd = fmod(scrolledOutLines, 2.0f) == 0.0f;
+		for (float y = yMin; y < yMax; y += lineHeight)
+		{
+			if (y == yMin)
+				y -= itemSpacing * 0.5f;
+
+			if (isOdd ^= true)
+				window->DrawList->AddRectFilled({ xMin, y }, { xMax, y + lineHeight }, alternativeRowColow);
+		}
+	}
+
 	void AetTreeView::DrawTreeViewAetSet(const RefPtr<AetSet>& aetSet)
 	{
 		bool aetSetNodeOpen = Gui::WideTreeNodeEx(aetSet.get(), HeaderTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str());
@@ -129,38 +161,6 @@ namespace Editor
 		else
 		{
 			ResetSelectedItems();
-		}
-	}
-
-	void AetTreeView::DrawTreeViewBackground()
-	{
-		const ImU32 alternativeRowColow = GetColor(EditorColor_AltRow);
-
-		float itemSpacing = Gui::GetStyle().ItemSpacing.y;
-		float lineHeight = Gui::GetTextLineHeight() + itemSpacing;
-
-		ImGuiWindow* window = Gui::GetCurrentWindowRead();
-
-		float scrollY = window->Scroll.y;
-		float scrolledOutLines = floorf(scrollY / lineHeight);
-		scrollY -= lineHeight * scrolledOutLines;
-
-		ImVec2 clipRectMin(Gui::GetWindowPos().x, Gui::GetWindowPos().y);
-		ImVec2 clipRectMax(clipRectMin.x + Gui::GetWindowWidth(), clipRectMin.y + Gui::GetWindowHeight());
-
-		float yMin = clipRectMin.y - scrollY + Gui::GetCursorPosY();
-		float yMax = clipRectMax.y - scrollY + lineHeight;
-		float xMin = clipRectMin.x + window->Scroll.x + window->ContentsRegionRect.Min.x - window->Pos.x;
-		float xMax = clipRectMin.x + window->Scroll.x + window->ContentsRegionRect.Max.x - window->Pos.x;
-
-		bool isOdd = fmod(scrolledOutLines, 2.0f) == 0.0f;
-		for (float y = yMin; y < yMax; y += lineHeight)
-		{
-			if (y == yMin)
-				y -= itemSpacing * 0.5f;
-
-			if (isOdd ^= true)
-				window->DrawList->AddRectFilled({ xMin, y }, { xMax, y + lineHeight }, alternativeRowColow);
 		}
 	}
 
