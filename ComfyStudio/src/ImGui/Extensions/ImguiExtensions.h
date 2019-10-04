@@ -101,7 +101,7 @@ namespace ImGui
 
 	inline void DEBUG_NOSAVE_WINDOW(const char* windowName, const std::function<void(void)>& function, ImGuiWindowFlags flags = 0)
 	{
-		constexpr ImGuiWindowFlags defaultFlags = (ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking);
+		constexpr ImGuiWindowFlags defaultFlags = (ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking);
 		if (Begin(windowName, nullptr, flags | defaultFlags))
 			function();
 		End();
