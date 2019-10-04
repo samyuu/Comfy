@@ -28,8 +28,6 @@ namespace Editor
 		if (selected.Ptrs.VoidPointer == nullptr)
 			return false;
 
-		Aet* parentAet = selected.GetItemParentAet();
-
 		switch (selected.Type())
 		{
 		case AetItemType::AetSet:
@@ -39,13 +37,13 @@ namespace Editor
 			DrawInspectorAet(selected.GetAetRef());
 			break;
 		case AetItemType::AetLayer:
-			DrawInspectorAetLayer(parentAet, selected.GetAetLayerRef());
+			DrawInspectorAetLayer(selected.GetItemParentAet(), selected.GetAetLayerRef());
 			break;
 		case AetItemType::AetObj:
-			DrawInspectorAetObj(parentAet, selected.GetAetObjRef());
+			DrawInspectorAetObj(selected.GetItemParentAet(), selected.GetAetObjRef());
 			break;
 		case AetItemType::AetRegion:
-			DrawInspectorAetRegion(parentAet, selected.GetAetRegionRef());
+			DrawInspectorAetRegion(selected.GetItemParentAet(), selected.GetAetRegionRef());
 			break;
 		default:
 			break;
@@ -79,21 +77,22 @@ namespace Editor
 	{
 		if (Gui::WideTreeNodeEx("Aet", ImGuiTreeNodeFlags_DefaultOpen))
 		{
+			PushDisableItemFlagIfPlayback();
 			strcpy_s(aetNameBuffer, aet->Name.c_str());
 
 			if (Gui::ComfyTextWidget("Name", aetNameBuffer, sizeof(aetNameBuffer)))
 				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeName, aet, aetNameBuffer);
 
 			float frameStart = aet->FrameStart;
-			if (Gui::ComfyFloatTextWidget("Start Frame", &frameStart, 1.0f, 10.0f, "%.2f"))
+			if (Gui::ComfyFloatTextWidget("Start Frame", &frameStart, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
 				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeStartFrame, aet, frameStart);
 
 			float frameDuration = aet->FrameDuration;
-			if (Gui::ComfyFloatTextWidget("Duration", &frameDuration, 1.0f, 10.0f, "%.2f"))
+			if (Gui::ComfyFloatTextWidget("Duration", &frameDuration, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
 				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeFrameDuration, aet, frameDuration);
 
 			float frameRate = aet->FrameRate;
-			if (Gui::ComfyFloatTextWidget("Frame Rate", &frameRate, 1.0f, 10.0f, "%.2f"))
+			if (Gui::ComfyFloatTextWidget("Frame Rate", &frameRate, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
 				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeFrameRate, aet, glm::clamp(frameRate, 1.0f, 1000.0f));
 
 			ivec2 resolution = aet->Resolution;
@@ -104,6 +103,7 @@ namespace Editor
 			if (Gui::ComfyColorEdit3("Background", glm::value_ptr(color), ImGuiColorEditFlags_DisplayHex))
 				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeBackgroundColor, aet, Gui::ColorConvertFloat4ToU32(color));
 
+			PopDisableItemFlagIfPlayback();
 			Gui::TreePop();
 		}
 		Gui::Separator();
@@ -139,6 +139,7 @@ namespace Editor
 			if (aetLayer != nullptr)
 				sprintf_s(layerDataNameBuffer, "Layer %d (%.*s)", aetLayer->GuiData.ThisIndex, availableLayerNameBufferSize, aetLayer->GetCommaSeparatedNames().c_str());
 
+			PushDisableItemFlagIfPlayback();
 			if (Gui::ComfyBeginCombo("Layer", aetLayer == nullptr ? "None (Layer)" : layerDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
 				if (Gui::Selectable("None (Layer)", aetLayer == nullptr))
@@ -162,6 +163,8 @@ namespace Editor
 
 				Gui::ComfyEndCombo();
 			}
+			
+			PopDisableItemFlagIfPlayback();
 			Gui::TreePop();
 		}
 	}
@@ -170,20 +173,21 @@ namespace Editor
 	{
 		if (Gui::WideTreeNodeEx(aetObj.get(), ImGuiTreeNodeFlags_DefaultOpen, "%s  Object", GetObjTypeIcon(aetObj->Type)))
 		{
+			PushDisableItemFlagIfPlayback();
 			strcpy_s(aetObjNameBuffer, aetObj->GetName().c_str());
 			if (Gui::ComfyTextWidget("Name", aetObjNameBuffer, sizeof(aetObjNameBuffer)))
 				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeName, aetObj, aetObjNameBuffer);
 
 			float loopStart = aetObj->LoopStart;
-			if (Gui::ComfyFloatTextWidget("Loop Start", &loopStart, 1.0f, 10.0f, "%.2f"))
+			if (Gui::ComfyFloatTextWidget("Loop Start", &loopStart, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
 				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeLoopStart, aetObj, loopStart);
 
 			float loopEnd = aetObj->LoopEnd;
-			if (Gui::ComfyFloatTextWidget("Loop End", &loopEnd, 1.0f, 10.0f, "%.2f"))
+			if (Gui::ComfyFloatTextWidget("Loop End", &loopEnd, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
 				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeLoopEnd, aetObj, loopEnd);
 
 			float startFrame = aetObj->StartFrame;
-			if (Gui::ComfyFloatTextWidget("Start Frame", &startFrame, 1.0f, 10.0f, "%.2f"))
+			if (Gui::ComfyFloatTextWidget("Start Frame", &startFrame, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
 				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeStartFrame, aetObj, startFrame);
 
 			if (aetObj->Type != AetObjType::Aif)
@@ -191,10 +195,11 @@ namespace Editor
 				constexpr float percentageFactor = 100.0f;
 				float playbackPercentage = aetObj->PlaybackSpeed * percentageFactor;
 
-				if (Gui::ComfyFloatTextWidget("Playback Speed", &playbackPercentage, 10.0f, 100.0f, "%.0f%%"))
+				if (Gui::ComfyFloatTextWidget("Playback Speed", &playbackPercentage, 10.0f, 100.0f, 0.0f, 0.0f, "%.0f%%"))
 					ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangePlaybackSpeed, aetObj, playbackPercentage / percentageFactor);
 			}
 
+			PopDisableItemFlagIfPlayback();
 			Gui::TreePop();
 		}
 
@@ -218,7 +223,7 @@ namespace Editor
 			Gui::Separator();
 			DrawInspectorAnimationData(aetObj->AnimationData, aetObj);
 
-			// TODO: Temp remove
+			// DEBUG: Quick debug view to inspect individual keyframes
 			DrawInspectorDebugAnimationData(aetObj->AnimationData, aetObj);
 		}
 
@@ -250,6 +255,7 @@ namespace Editor
 
 			const char* noSpriteString = "None (Sprite)";
 
+			PushDisableItemFlagIfPlayback();
 			if (Gui::ComfyBeginCombo("Sprite", aetRegion == nullptr ? noSpriteString : regionDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
 				if (Gui::Selectable(noSpriteString, aetRegion == nullptr))
@@ -278,6 +284,7 @@ namespace Editor
 				Gui::ComfyEndCombo();
 			}
 
+			PopDisableItemFlagIfPlayback();
 			Gui::TreePop();
 		}
 	}
@@ -286,6 +293,8 @@ namespace Editor
 	{
 		if (Gui::WideTreeNodeEx(ICON_ANIMATIONDATA "  Animation Data", ImGuiTreeNodeFlags_DefaultOpen))
 		{
+			PushDisableItemFlagIfPlayback();
+
 			if (animationData != nullptr)
 			{
 				using namespace Graphics::Auth2D;
@@ -342,6 +351,7 @@ namespace Editor
 					ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeUseTextureMask, animationData, useTextureMask);
 			}
 
+			PopDisableItemFlagIfPlayback();
 			Gui::TreePop();
 		}
 	}
@@ -380,7 +390,7 @@ namespace Editor
 		AetKeyFrame* keyFrame = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Properties[propertyType], frame);
 
 		Gui::PushStyleColor(ImGuiCol_FrameBg, ((animationData->Properties[propertyType].size() > 1))
-			? (keyFrame)
+			? (keyFrame != nullptr)
 			? keyFramePropertyColor
 			: animatedPropertyColor
 			: staticPropertyColor);
@@ -388,17 +398,19 @@ namespace Editor
 		bool rotation = (propertyType == PropertyType_Rotation);
 		bool opacity = (propertyType == PropertyType_Opacity);
 
-		const char* formatString = rotation ? u8"%.2f ‹" : opacity ? "%.0f%%" : "%.2f";
+		const char* formatString = rotation ? u8"%.2f ‹" : opacity ? "%.2f%%" : "%.2f";
+		float min = 0.0f, max = 0.0f;
 
 		if (opacity)
+		{
 			value *= percentFactor;
+			max = 1.0f * percentFactor;
+		}
 
 		// TODO: ~~Theses should probably use drag floats or sliders instead, only problem~~
 		//		 This should be implemented a draggable text widget instead
-		// if (Gui::ComfyFloatDragWidget(label, &value, 1.0f, (opacity ? 0.1f : -1.0f), (opacity ? 1.0f : -1.0f), formatString, (keyFrame == nullptr)))
 
-		// TODO: Implement "drag label" control (how should this work for multi component (?) - maybe write own vec2 controls
-		if (Gui::ComfyFloatTextWidget(label, &value, 1.0f, 10.0f, formatString, ImGuiInputTextFlags_None, (keyFrame == nullptr)))
+		if (Gui::ComfyFloatTextWidget(label, &value, 1.0f, 10.0f, min, max, formatString, ImGuiInputTextFlags_None, (keyFrame == nullptr)))
 		{
 			if (opacity)
 				value = glm::clamp(value * (1.0f / percentFactor), 0.0f, 1.0f);
@@ -422,7 +434,7 @@ namespace Editor
 		AetKeyFrame* keyFrameY = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Properties[propertyTypeY], frame);
 
 		Gui::PushStyleColor(ImGuiCol_FrameBg, ((animationData->Properties[propertyTypeX].size() > 1) || (animationData->Properties[propertyTypeY].size() > 1))
-			? (keyFrameX || keyFrameY)
+			? (keyFrameX != nullptr || keyFrameY != nullptr)
 			? keyFramePropertyColor
 			: animatedPropertyColor
 			: staticPropertyColor);
@@ -434,7 +446,13 @@ namespace Editor
 		if (scale)
 			value *= percentFactor;
 
-		if (Gui::ComfyFloat2TextWidget(label, glm::value_ptr(value), formatString, ImGuiInputTextFlags_None, (keyFrameX == nullptr || keyFrameY == nullptr)))
+		bool disabledText[2] = 
+		{
+			keyFrameX == nullptr,
+			keyFrameY == nullptr,
+		};
+
+		if (Gui::ComfyFloat2TextWidget(label, glm::value_ptr(value), 1.0f, 0.0f, 0.0f, formatString, ImGuiInputTextFlags_None, disabledText))
 		{
 			if (scale)
 				value *= (1.0f / percentFactor);
@@ -499,14 +517,16 @@ namespace Editor
 
 				if (open)
 				{
+					PushDisableItemFlagIfPlayback();
 					float frame = marker->Frame;
-					if (Gui::ComfyFloatTextWidget("Frame", &frame, 1.0f, 10.0f, "%.2f"))
+					if (Gui::ComfyFloatTextWidget("Frame", &frame, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
 						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeMarkerFrame, marker, frame);
 
 					strcpy_s(markerNameBuffer, marker->Name.c_str());
 					if (Gui::ComfyTextWidget("Name", markerNameBuffer, sizeof(markerNameBuffer)))
 						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeMarkerName, marker, markerNameBuffer);
 
+					PopDisableItemFlagIfPlayback();
 					Gui::TreePop();
 				}
 				Gui::PopID();
@@ -515,6 +535,7 @@ namespace Editor
 			if (markers->size() > 0)
 				Gui::Separator();
 
+			PushDisableItemFlagIfPlayback();
 			if (Gui::ComfyCenteredButton("Add Marker"))
 			{
 				char newMarkerBuffer[32];
@@ -522,6 +543,8 @@ namespace Editor
 				auto newMarker = MakeRef<AetMarker>(0.0f, newMarkerBuffer);
 				ProcessUpdatingAetCommand(GetCommandManager(), AetObjAddMarker, aetObj, newMarker);
 			}
+			PopDisableItemFlagIfPlayback();
+
 			Gui::TreePop();
 		}
 	}
@@ -549,6 +572,7 @@ namespace Editor
 				strcpy_s(parentObjDataNameBuffer, noParentLayerString);
 			}
 
+			PushDisableItemFlagIfPlayback();
 			if (Gui::ComfyBeginCombo("Parent Layer", parentObjDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
 				if (Gui::Selectable(noParentLayerString, parentObjLayer == nullptr))
@@ -606,6 +630,8 @@ namespace Editor
 				Gui::ComfyEndCombo();
 
 			}
+			
+			PopDisableItemFlagIfPlayback();
 			Gui::TreePop();
 		}
 	}
@@ -627,5 +653,17 @@ namespace Editor
 			}
 			Gui::TreePop();
 		}
+	}
+
+	void AetInspector::PushDisableItemFlagIfPlayback()
+	{
+		if (isPlayback)
+			Gui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+	}
+
+	void AetInspector::PopDisableItemFlagIfPlayback()
+	{
+		if (isPlayback)
+			Gui::PopItemFlag();
 	}
 }

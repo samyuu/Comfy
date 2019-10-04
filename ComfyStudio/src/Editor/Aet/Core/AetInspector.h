@@ -47,8 +47,6 @@ namespace Editor
 		void DrawInspectorAetObj(Aet* aet, const RefPtr<AetObj>& aetObj);
 		void DrawInspectorRegionData(Aet* aet, const RefPtr<AetObj>& aetObj, const RefPtr<AetRegion>& spriteEntry);
 		
-		AetKeyFrame* GetKeyFrameIfExact(const RefPtr<AetObj>& aetObj, int propertyIndex, float inputFrame) const;
-
 		void DrawInspectorAnimationData(const RefPtr<AnimationData>& animationData, const RefPtr<AetObj>& aetObj);
 		void DrawInspectorDebugAnimationData(const RefPtr<AnimationData>& animationData, const RefPtr<AetObj>& aetObj);
 
@@ -59,5 +57,9 @@ namespace Editor
 		void DrawInspectorAetObjParent(Aet* aet, const RefPtr<AetObj>& aetObj);
 		
 		void DrawInspectorAetRegion(Aet* aet, const RefPtr<AetRegion>& aetRegion);
+
+	private:
+		void PushDisableItemFlagIfPlayback();
+		void PopDisableItemFlagIfPlayback();
 	};
 }
