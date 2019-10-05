@@ -514,141 +514,145 @@ void Application::DrawGui()
 
 		// Main Menu Bar
 		// -------------
-		if (showMainMenuBar && !exclusiveAppEngineWindow && Gui::BeginMainMenuBar())
+		if (showMainMenuBar && !exclusiveAppEngineWindow)
 		{
-			if (Gui::BeginMenu("Debug"))
+			Gui::PushStyleColor(ImGuiCol_MenuBarBg, Gui::GetStyleColorVec4(ImGuiCol_TitleBg));
+			if (Gui::BeginMainMenuBar())
 			{
-				Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(ImGuiCol_PlotHistogramHovered));
-				if (Gui::MenuItem("Recompile Shaders", nullptr))
-					Graphics::ShaderProgram::RecompileAllShaders();
-				Gui::PopStyleColor();
-
-				if (Gui::MenuItem("Toggle Fullscreen", nullptr))
-					ToggleFullscreen();
-
-				if (Gui::BeginMenu("Swap Interval", &showSwapInterval))
+				if (Gui::BeginMenu("Debug"))
 				{
-					if (Gui::MenuItem("SwapInterval(0)", nullptr))
-						glfwSwapInterval(0);
+					Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(ImGuiCol_PlotHistogramHovered));
+					if (Gui::MenuItem("Recompile Shaders", nullptr))
+						Graphics::ShaderProgram::RecompileAllShaders();
+					Gui::PopStyleColor();
 
-					if (Gui::MenuItem("SwapInterval(1)", nullptr))
-						glfwSwapInterval(1);
+					if (Gui::MenuItem("Toggle Fullscreen", nullptr))
+						ToggleFullscreen();
+
+					if (Gui::BeginMenu("Swap Interval", &showSwapInterval))
+					{
+						if (Gui::MenuItem("SwapInterval(0)", nullptr))
+							glfwSwapInterval(0);
+
+						if (Gui::MenuItem("SwapInterval(1)", nullptr))
+							glfwSwapInterval(1);
+
+						Gui::EndMenu();
+					}
+
+					if (Gui::MenuItem("Test Print", nullptr))
+						Logger::LogLine(__FUNCTION__"(): Test");
+
+					Gui::Separator();
+
+					if (Gui::MenuItem("Exit...", nullptr))
+						Exit();
 
 					Gui::EndMenu();
 				}
 
-				if (Gui::MenuItem("Test Print", nullptr))
-					Logger::LogLine(__FUNCTION__"(): Test");
+				// Editor Menus Items
+				// ------------------
+				editorManager->DrawGuiMenuItems();
 
-				Gui::Separator();
+				// App Engine Menu Items
+				// ---------------------
+				DrawAppEngineMenus("Engine");
 
-				if (Gui::MenuItem("Exit...", nullptr))
-					Exit();
+				// Data Test Menus
+				// ---------------
+				DrawGuiBaseWindowMenus("Data Test", dataTestComponents);
 
-				Gui::EndMenu();
-			}
-
-			// Editor Menus Items
-			// ------------------
-			editorManager->DrawGuiMenuItems();
-
-			// App Engine Menu Items
-			// ---------------------
-			DrawAppEngineMenus("Engine");
-
-			// Data Test Menus
-			// ---------------
-			DrawGuiBaseWindowMenus("Data Test", dataTestComponents);
-
-			bool openLicensePopup = false;
-
-			if (Gui::BeginMenu("Help"))
-			{
-				Gui::TextUnformatted("Copyright (C) 2019 Samyuu");
-				if (Gui::MenuItem("License"))
-					openLicensePopup = true;
-				if (Gui::MenuItem("Version"))
-					versionWindowOpen = true;
-				Gui::EndMenu();
-			}
-
-			if (openLicensePopup)
-			{
-				*licenseWindow.GetIsWindowOpen() = true;
-				Gui::OpenPopup(licenseWindow.GetWindowName());
-			}
-
-			if (Gui::BeginPopupModal(licenseWindow.GetWindowName(), licenseWindow.GetIsWindowOpen(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
-			{
-				ImGuiViewport* viewport = Gui::GetMainViewport();
-				ImGuiWindow* window = Gui::FindWindowByName(licenseWindow.GetWindowName());
-				Gui::SetWindowPos(window, viewport->Pos + viewport->Size / 8, ImGuiCond_Always);
-				Gui::SetWindowSize(window, viewport->Size * .75f, ImGuiCond_Always);
-
-				licenseWindow.DrawGui();
-
-				if (Gui::IsKeyPressed(KeyCode_Escape))
-					Gui::CloseCurrentPopup();
-
-				Gui::EndPopup();
-			}
-
-			// TODO: Make window class and use undockable window instead of popup window since it doesn't need to block input
-			if (versionWindowOpen)
-			{
-				ImGuiViewport* viewport = ImGui::GetMainViewport();
-				Gui::SetNextWindowPos(viewport->Pos + viewport->Size * 0.5f, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-
-				if (Gui::Begin("About - Version##Application", &versionWindowOpen, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking))
+				bool openLicensePopup = false;
+				if (Gui::BeginMenu("Help"))
 				{
-					const vec2 windowSize = vec2(640, 320);
-
-					Gui::BeginChild("AboutWindowChild", windowSize, true);
-					Gui::Columns(2);
-					{
-						Gui::TextUnformatted("Property"); Gui::NextColumn();
-						Gui::TextUnformatted("Value"); Gui::NextColumn();
-						Gui::Separator();
-
-						const char* buildVersionClassName = "BuildVersion";
-						const char* buildVersionFormatStrin = "%s::%s";
-
-						Gui::TextUnformatted("BuildConfiguration");
-						Gui::NextColumn(); Gui::TextUnformatted(BuildConfiguration::Debug ? "Debug" : BuildConfiguration::Release ? "Release" : "Unknown");
-						Gui::NextColumn();
-						Gui::Text(buildVersionFormatStrin, buildVersionClassName, "Author");
-						Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::Author);
-						Gui::NextColumn();
-						Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CommitHash");
-						Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitHash);
-						Gui::NextColumn();
-						Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CommitTime");
-						Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitTime);
-						Gui::NextColumn();
-						Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CommitNumber");
-						Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitNumber);
-						Gui::NextColumn();
-						Gui::Text(buildVersionFormatStrin, buildVersionClassName, "Branch");
-						Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::Branch);
-						Gui::NextColumn();
-						Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CompileTime");
-						Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CompileTime);
-						Gui::NextColumn();
-					}
-					Gui::Columns(1);
-					Gui::EndChild();
-
+					Gui::TextUnformatted("Copyright (C) 2019 Samyuu");
+					if (Gui::MenuItem("License"))
+						openLicensePopup = true;
+					if (Gui::MenuItem("Version"))
+						versionWindowOpen = true;
+					Gui::EndMenu();
 				}
-				Gui::End();
+
+				if (openLicensePopup)
+				{
+					*licenseWindow.GetIsWindowOpen() = true;
+					Gui::OpenPopup(licenseWindow.GetWindowName());
+				}
+
+				if (Gui::BeginPopupModal(licenseWindow.GetWindowName(), licenseWindow.GetIsWindowOpen(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+				{
+					ImGuiViewport* viewport = Gui::GetMainViewport();
+					ImGuiWindow* window = Gui::FindWindowByName(licenseWindow.GetWindowName());
+					Gui::SetWindowPos(window, viewport->Pos + viewport->Size / 8, ImGuiCond_Always);
+					Gui::SetWindowSize(window, viewport->Size * .75f, ImGuiCond_Always);
+
+					licenseWindow.DrawGui();
+
+					if (Gui::IsKeyPressed(KeyCode_Escape))
+						Gui::CloseCurrentPopup();
+
+					Gui::EndPopup();
+				}
+
+				// TODO: Make window class and use undockable window instead of popup window since it doesn't need to block input
+				if (versionWindowOpen)
+				{
+					ImGuiViewport* viewport = ImGui::GetMainViewport();
+					Gui::SetNextWindowPos(viewport->Pos + viewport->Size * 0.5f, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+					if (Gui::Begin("About - Version##Application", &versionWindowOpen, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking))
+					{
+						const vec2 windowSize = vec2(640, 320);
+
+						Gui::BeginChild("AboutWindowChild", windowSize, true);
+						Gui::Columns(2);
+						{
+							Gui::TextUnformatted("Property"); Gui::NextColumn();
+							Gui::TextUnformatted("Value"); Gui::NextColumn();
+							Gui::Separator();
+
+							const char* buildVersionClassName = "BuildVersion";
+							const char* buildVersionFormatStrin = "%s::%s";
+
+							Gui::TextUnformatted("BuildConfiguration");
+							Gui::NextColumn(); Gui::TextUnformatted(BuildConfiguration::Debug ? "Debug" : BuildConfiguration::Release ? "Release" : "Unknown");
+							Gui::NextColumn();
+							Gui::Text(buildVersionFormatStrin, buildVersionClassName, "Author");
+							Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::Author);
+							Gui::NextColumn();
+							Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CommitHash");
+							Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitHash);
+							Gui::NextColumn();
+							Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CommitTime");
+							Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitTime);
+							Gui::NextColumn();
+							Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CommitNumber");
+							Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitNumber);
+							Gui::NextColumn();
+							Gui::Text(buildVersionFormatStrin, buildVersionClassName, "Branch");
+							Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::Branch);
+							Gui::NextColumn();
+							Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CompileTime");
+							Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CompileTime);
+							Gui::NextColumn();
+						}
+						Gui::Columns(1);
+						Gui::EndChild();
+
+					}
+					Gui::End();
+				}
+
+				char infoBuffer[32];
+				sprintf_s(infoBuffer, sizeof(infoBuffer), "%.3f ms (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+
+				Gui::SetCursorPosX(Gui::GetWindowWidth() - Gui::CalcTextSize(infoBuffer).x - Gui::GetStyle().WindowPadding.x);
+				Gui::TextUnformatted(infoBuffer);
+
+				Gui::EndMainMenuBar();
 			}
-
-			char infoBuffer[32];
-			sprintf_s(infoBuffer, sizeof(infoBuffer), "%.3f ms (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-
-			Gui::SetCursorPosX(Gui::GetWindowWidth() - Gui::CalcTextSize(infoBuffer).x - Gui::GetStyle().WindowPadding.x);
-			Gui::TextUnformatted(infoBuffer);
-
-			Gui::EndMainMenuBar();
+			Gui::PopStyleColor(1);
 		}
 
 		// Window Dockspace
