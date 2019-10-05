@@ -46,6 +46,15 @@ namespace Graphics::Auth2D
 	class AetMgr
 	{
 	public:
+		static constexpr Properties DefaultProperites =
+		{
+			vec2(0.0f),	// Origin
+			vec2(0.0f),	// Position
+			0.0f,		// Rotation
+			vec2(1.0f),	// Scale
+			1.0f,		// Opacity
+		};
+
 		struct ObjCache
 		{
 			Properties Properties;

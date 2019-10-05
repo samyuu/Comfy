@@ -88,7 +88,7 @@ namespace Editor
 
 		// NOTE: The variables that will be edited by the current tool before being turned into commands
 		vec2 toolSize = vec2(100.0f, 100.0f);
-		Properties toolProperties = { vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), 1.0f };
+		Properties toolProperties = AetMgr::DefaultProperites;
 
 		Array<UniquePtr<AetTool>, AetToolType_Count> tools;
 		AetToolType currentToolType = AetToolType_Hand;

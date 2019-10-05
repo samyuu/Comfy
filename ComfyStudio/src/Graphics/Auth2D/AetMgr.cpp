@@ -17,15 +17,6 @@ namespace Graphics::Auth2D
 		return !(*this == other);
 	}
 
-	static const Properties DefaultProperites =
-	{
-		vec2(0.0f),	// Origin
-		vec2(0.0f),	// Position
-		0.0f,		// Rotation
-		vec2(1.0f),	// Scale
-		1.0f,		// Opacity
-	};
-
 	static void TransformProperties(const Properties& input, Properties& output)
 	{
 		output.Position -= input.Origin;
