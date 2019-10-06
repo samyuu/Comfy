@@ -13,7 +13,7 @@ namespace Graphics
 		void UploadEmpty(ivec2 size);
 		bool Create(const FileSystem::Texture* texture);
 		bool CreateFromFile(const char* path);
-		bool CreateFromRgbaBuffer(ivec2 size, const Vector<uint32_t>& pixels);
+		bool CreateFromRgbaBuffer(ivec2 size, const uint32_t* pixels);
 
 		float GetWidth() const;
 		float GetHeight() const;

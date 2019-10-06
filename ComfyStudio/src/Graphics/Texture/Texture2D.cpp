@@ -121,7 +121,7 @@ namespace Graphics
 		return true;
 	}
 
-	bool Texture2D::CreateFromRgbaBuffer(ivec2 size, const Vector<uint32_t>& pixels)
+	bool Texture2D::CreateFromRgbaBuffer(ivec2 size, const uint32_t* pixels)
 	{
 		assert(size.x > 0 && size.y > 0);
 
@@ -134,7 +134,7 @@ namespace Graphics
 		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
-		GLCall(glTexImage2D(GetTextureTarget(), 0, GL_RGBA8, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data()));
+		GLCall(glTexImage2D(GetTextureTarget(), 0, GL_RGBA8, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
 
 		return true;
 	}
