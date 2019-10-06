@@ -195,7 +195,7 @@ namespace Editor
 				constexpr float percentageFactor = 100.0f;
 				float playbackPercentage = aetObj->PlaybackSpeed * percentageFactor;
 
-				if (Gui::ComfyFloatTextWidget("Playback Speed", &playbackPercentage, 10.0f, 100.0f, 0.0f, 0.0f, "%.0f%%"))
+				if (Gui::ComfyFloatTextWidget("Playback Speed", &playbackPercentage, 1.0f, 10.0f, 0.0f, 0.0f, "%.0f%%"))
 					ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangePlaybackSpeed, aetObj, playbackPercentage / percentageFactor);
 			}
 
