@@ -20,6 +20,12 @@ namespace Graphics
 		LoadGLFunction(glTexParameteriv);
 		LoadGLFunction(glTexImage1D);
 		LoadGLFunction(glTexImage2D);
+		LoadGLFunction(glPixelMapfv);
+		LoadGLFunction(glPixelMapuiv);
+		LoadGLFunction(glPixelMapusv);
+		LoadGLFunction(glCopyPixels);
+		LoadGLFunction(glPixelTransferf);
+		LoadGLFunction(glPixelTransferi);
 		LoadGLFunction(glDrawBuffer);
 		LoadGLFunction(glClear);
 		LoadGLFunction(glClearColor);

@@ -8,6 +8,12 @@ namespace Graphics
 	glTexParameteriv_t*							OpenGL::GLTexParameteriv;
 	glTexImage1D_t*								OpenGL::GLTexImage1D;
 	glTexImage2D_t*								OpenGL::GLTexImage2D;
+	glPixelMapfv_t*								OpenGL::GLPixelMapfv;
+	glPixelMapuiv_t*							OpenGL::GLPixelMapuiv;
+	glPixelMapusv_t*							OpenGL::GLPixelMapusv;
+	glCopyPixels_t*								OpenGL::GLCopyPixels;
+	glPixelTransferf_t*							OpenGL::GLPixelTransferf;
+	glPixelTransferi_t*							OpenGL::GLPixelTransferi;
 	glDrawBuffer_t*								OpenGL::GLDrawBuffer;
 	glClear_t*									OpenGL::GLClear;
 	glClearColor_t*								OpenGL::GLClearColor;

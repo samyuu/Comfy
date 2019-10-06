@@ -8,6 +8,12 @@ typedef void glTexParameteri_t(GLenum target, GLenum pname, GLint param);
 typedef void glTexParameteriv_t(GLenum target, GLenum pname, const GLint* params);
 typedef void glTexImage1D_t(GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void* pixels);
 typedef void glTexImage2D_t(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void* pixels);
+typedef void (glPixelMapfv_t)(GLenum map, GLsizei mapsize, const GLfloat* values);
+typedef void (glPixelMapuiv_t)(GLenum map, GLsizei mapsize, const GLuint* values);
+typedef void (glPixelMapusv_t)(GLenum map, GLsizei mapsize, const GLushort* values);
+typedef void (glCopyPixels_t)(GLint x, GLint y, GLsizei width, GLsizei height, GLenum type);
+typedef void (glPixelTransferf_t)(GLenum pname, GLfloat param);
+typedef void (glPixelTransferi_t)(GLenum pname, GLint param);
 typedef void glDrawBuffer_t(GLenum buf);
 typedef void glClear_t(GLbitfield mask);
 typedef void glClearColor_t(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
@@ -161,6 +167,12 @@ typedef void glObjectLabel_t(GLenum identifier, GLuint name, GLsizei length, con
 #define glTexParameteriv						Graphics::OpenGL::GLTexParameteriv
 #define glTexImage1D							Graphics::OpenGL::GLTexImage1D
 #define glTexImage2D							Graphics::OpenGL::GLTexImage2D
+#define glPixelMapfv							Graphics::OpenGL::GLPixelMapfv
+#define glPixelMapuiv							Graphics::OpenGL::GLPixelMapuiv
+#define glPixelMapusv							Graphics::OpenGL::GLPixelMapusv
+#define glCopyPixels							Graphics::OpenGL::GLCopyPixels
+#define glPixelTransferf						Graphics::OpenGL::GLPixelTransferf
+#define glPixelTransferi						Graphics::OpenGL::GLPixelTransferi
 #define glDrawBuffer							Graphics::OpenGL::GLDrawBuffer
 #define glClear									Graphics::OpenGL::GLClear
 #define glClearColor							Graphics::OpenGL::GLClearColor
@@ -318,6 +330,12 @@ namespace Graphics
 		static glTexParameteriv_t*							GLTexParameteriv;
 		static glTexImage1D_t*								GLTexImage1D;
 		static glTexImage2D_t*								GLTexImage2D;
+		static glPixelMapfv_t*								GLPixelMapfv;
+		static glPixelMapuiv_t*								GLPixelMapuiv;
+		static glPixelMapusv_t*								GLPixelMapusv;
+		static glCopyPixels_t*								GLCopyPixels;
+		static glPixelTransferf_t*							GLPixelTransferf;
+		static glPixelTransferi_t*							GLPixelTransferi;
 		static glDrawBuffer_t*								GLDrawBuffer;
 		static glClear_t*									GLClear;
 		static glClearColor_t*								GLClearColor;
