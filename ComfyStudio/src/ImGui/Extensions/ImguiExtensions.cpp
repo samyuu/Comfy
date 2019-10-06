@@ -53,7 +53,7 @@ namespace ImGui
 		return GImGui->HoveredWindow == hoveredWindowsOnMouseClicks[button];
 	}
 
-	void AddTexture(ImDrawList* drawList, Graphics::Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0, const ImVec2& uv1)
+	void AddTexture(ImDrawList* drawList, const Graphics::Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0, const ImVec2& uv1)
 	{
 		float width = texture->GetWidth() * scale.x;
 		float height = texture->GetHeight() * scale.y;
@@ -63,6 +63,20 @@ namespace ImGui
 		ImVec2 bottomRight(center.x + width, center.y + height);
 
 		drawList->AddImage(texture->GetVoidTexture(), center, bottomRight, uv0, uv1);
+	}
+
+	void AddSprite(ImDrawList* drawList, const Graphics::Texture2D* texture, const vec2& position, const vec4& sourceRegion, ImU32 color)
+	{
+		const vec2 textureSize = texture->GetSize();
+
+		vec2 uv0, uv1;
+		uv0.x = (sourceRegion.x / textureSize.x);
+		uv1.x = uv0.x + (sourceRegion.z / textureSize.x);
+
+		uv0.y = 1.0f - (sourceRegion.y / textureSize.y);
+		uv1.y = uv0.y + (sourceRegion.w / textureSize.y);
+
+		drawList->AddImage(texture->GetVoidTexture(), position, position + vec2(sourceRegion.z, sourceRegion.w), uv0, uv1, color);
 	}
 
 	void AddLine(ImDrawList* drawList, vec2 start, vec2 end, ImU32 color, float thickness)

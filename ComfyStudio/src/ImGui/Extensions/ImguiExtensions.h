@@ -25,14 +25,15 @@ namespace ImGui
 	bool WasHoveredWindowFocusedOnMouseClicked(int button);
 	bool WasHoveredWindowHoveredOnMouseClicked(int button);
 
-	void AddTexture(ImDrawList* drawList, Graphics::Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0 = UV0_GL, const ImVec2& uv1 = UV1_GL);
+	void AddTexture(ImDrawList* drawList, const Graphics::Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0 = UV0_GL, const ImVec2& uv1 = UV1_GL);
+	void AddSprite(ImDrawList* drawList, const Graphics::Texture2D* texture, const vec2& position, const vec4& sourceRegion, ImU32 color = IM_COL32_WHITE);
 
-	inline void AddTexture(ImDrawList* drawList, Graphics::Texture2D* texture, ImVec2 center, float scale, const ImVec2& uv0, const ImVec2& uv1)
+	inline void AddTexture(ImDrawList* drawList, const Graphics::Texture2D* texture, ImVec2 center, float scale, const ImVec2& uv0, const ImVec2& uv1)
 	{
 		AddTexture(drawList, texture, center, ImVec2(scale, scale), uv0, uv1);
 	};
 
-	inline void AddTexture(ImDrawList* drawList, Graphics::Texture2D* texture, ImVec2 center, float scale)
+	inline void AddTexture(ImDrawList* drawList, const Graphics::Texture2D* texture, ImVec2 center, float scale)
 	{
 		AddTexture(drawList, texture, center, ImVec2(scale, scale));
 	};
