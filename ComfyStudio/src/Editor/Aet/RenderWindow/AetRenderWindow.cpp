@@ -20,8 +20,10 @@ namespace Editor
 		assert(selectedAetItem != nullptr);
 		assert(cameraSelectedAetItem != nullptr);
 
-		checkerboardBaseGrid.Color = checkerboardGrid.Color * 0.5f;
-		checkerboardBaseGrid.ColorAlt = checkerboardGrid.ColorAlt * 0.5f;
+		// NOTE: The checkerboard pattern is still visible because of the framebuffer clear color blend
+		const vec4 baseColor = checkerboardGrid.ColorAlt * 0.5f;
+		checkerboardBaseGrid.Color = baseColor;
+		checkerboardBaseGrid.ColorAlt = baseColor;
 
 		renderer = MakeUnique<Renderer2D>();
 		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
