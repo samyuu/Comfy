@@ -5,8 +5,6 @@
 #define RUN_MAIN_TEST 0
 int MainTest();
 
-static Application* GlobalApplication;
-
 int main(int argc, const char* argv[])
 {
 #if (RUN_MAIN_TEST)
@@ -18,11 +16,11 @@ int main(int argc, const char* argv[])
 	if (commandLineResult == System::CommandLineResult::Exit)
 		return EXIT_SUCCESS;
 
-	GlobalApplication = new Application();
-	GlobalApplication->Run();
+	Application* application = new Application();
+	application->Run();
 
-	delete GlobalApplication;
-	GlobalApplication = nullptr;
+	delete application;
+	application = nullptr;
 
 	return EXIT_SUCCESS;
 }
