@@ -213,8 +213,9 @@ public:
 
 
 	// ----------------------------------------------------------------------------------------------------------------------------
+	// TODO: Add dynamic name based on the PropertyType_Enum (?)
 	// NOTE: Generic change KeyFrame value command to be used by the AetInspector and other commands internally
-	Define_AetCommandStart(AnimationDataChangeKeyFrameValue, "Key Frame Value Change");
+	Define_AetCommandStart(AnimationDataChangeKeyFrameValue, "Key Frame Change");
 private:
 	// NOTE: Use AetObj instead of AnimationData because we need to know about the StartFrame
 	RefPtr<AetObj> ref;
