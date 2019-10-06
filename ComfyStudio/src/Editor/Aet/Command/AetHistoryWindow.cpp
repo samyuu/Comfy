@@ -11,6 +11,7 @@ namespace Editor
 	{
 		AetCommandManager* commandManager = GetCommandManager();
 
+		// TODO: Implement single column, clickable, grayed out if undone, PS-like history window
 		Gui::Columns(2, nullptr, false);
 
 		if (Gui::MenuItem("AetCommandManager::Undo()", nullptr, nullptr, commandManager->GetCanUndo()))

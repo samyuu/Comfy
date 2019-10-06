@@ -109,6 +109,7 @@ namespace ImGui
 		RAII_ColumnsCount raiiColumns(2, nullptr, false);
 		SetColumnWidth(0, GetWindowWidth() * ColumnWidthFactor);
 
+		// TODO: Clickable text
 		AlignTextToFramePadding();
 		Text(label);
 		NextColumn();
