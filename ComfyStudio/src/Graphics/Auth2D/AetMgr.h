@@ -69,6 +69,7 @@ namespace Graphics::Auth2D
 		static void GetAddObjects(Vector<AetMgr::ObjCache>& objects, const AetLayer* aetLayer, frame_t frame);
 		static void GetAddObjects(Vector<AetMgr::ObjCache>& objects, const AetObj* aetObj, frame_t frame);
 
+		static float Interpolate(const AetKeyFrame* start, const AetKeyFrame* end, frame_t frame);
 		static float Interpolate(const Vector<AetKeyFrame>& keyFrames, frame_t frame);
 		static void Interpolate(const AnimationData* animationData, Properties* properties, frame_t frame);
 

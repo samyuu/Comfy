@@ -51,6 +51,17 @@ namespace Graphics::Auth2D
 		InternalAddObjects(objects, &propreties, aetObj, frame);
 	}
 
+	float AetMgr::Interpolate(const AetKeyFrame* start, const AetKeyFrame* end, frame_t frame)
+	{
+		float range = end->Frame - start->Frame;
+		float t = (frame - start->Frame) / range;
+
+		return (((((((t * t) * t) - ((t * t) * 2.0f)) + t) * start->Interpolation)
+			+ ((((t * t) * t) - (t * t)) * end->Interpolation)) * range)
+			+ (((((t * t) * 3.0f) - (((t * t) * t) * 2.0f)) * end->Value)
+				+ ((((((t * t) * t) * 2.0f) - ((t * t) * 3.0f)) + 1.0f) * start->Value));
+	}
+
 	float AetMgr::Interpolate(const Vector<AetKeyFrame>& keyFrames, frame_t frame)
 	{
 		if (keyFrames.size() <= 0)
@@ -76,13 +87,7 @@ namespace Graphics::Auth2D
 			start = end;
 		}
 
-		float range = end->Frame - start->Frame;
-		float t = (frame - start->Frame) / range;
-
-		return (((((((t * t) * t) - ((t * t) * 2.0f)) + t) * start->Interpolation)
-			+ ((((t * t) * t) - (t * t)) * end->Interpolation)) * range)
-			+ (((((t * t) * 3.0f) - (((t * t) * t) * 2.0f)) * end->Value)
-				+ ((((((t * t) * t) * 2.0f) - ((t * t) * 3.0f)) + 1.0f) * start->Value));
+		return Interpolate(start, end, frame);
 	}
 
 	void AetMgr::Interpolate(const AnimationData* animationData, Properties* properties, frame_t frame)
