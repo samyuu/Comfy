@@ -110,37 +110,37 @@ namespace Editor::Command
 private:
 	RefPtr<AetObj> ref;
 	frame_t newValue, oldValue;
-	inline void OffsetKeyFrames(frame_t increment) { AetMgr::OffsetAllKeyFrames(ref->AnimationData->Properties, increment); }
+	inline void OffsetKeyFrames(frame_t increment) { if (ref->AnimationData != nullptr) AetMgr::OffsetAllKeyFrames(ref->AnimationData->Properties, increment); }
 	inline frame_t ClampValue(frame_t value) { return glm::min(value, ref->LoopEnd - 1.0f); };
 
 public:
 	AetObjChangeLoopStart(const RefPtr<AetObj>& ref, const frame_t& value) : ref(ref), newValue(ClampValue(value)) {}
-	void Do() override 
-	{ 
-		oldValue = ref->LoopStart; 
+	void Do() override
+	{
+		oldValue = ref->LoopStart;
 		ref->LoopStart = newValue;
 		OffsetKeyFrames(newValue - oldValue);
 	}
-	void Undo() override 
-	{ 
-		ref->LoopStart = oldValue; 
+	void Undo() override
+	{
+		ref->LoopStart = oldValue;
 		OffsetKeyFrames(oldValue - newValue);
 	}
-	void Redo() override 
-	{ 
-		ref->LoopStart = newValue; 
+	void Redo() override
+	{
+		ref->LoopStart = newValue;
 		OffsetKeyFrames(newValue - oldValue);
 	}
 	void Update(frame_t value)
-	{ 
+	{
 		value = ClampValue(value);
 		OffsetKeyFrames(value - newValue);
-		newValue = value; 
-		ref->LoopStart = newValue; 
+		newValue = value;
+		ref->LoopStart = newValue;
 	}
-	bool CanUpdate(AetObjChangeLoopStart* newCommand) 
-	{ 
-		return (&newCommand->ref->LoopStart == &ref->LoopStart); 
+	bool CanUpdate(AetObjChangeLoopStart* newCommand)
+	{
+		return (&newCommand->ref->LoopStart == &ref->LoopStart);
 	}
 	Define_AetCommandEnd();
 	// ----------------------------------------------------------------------------------------------------------------------------
@@ -227,7 +227,7 @@ private:
 	inline frame_t GetFrame() { return std::get<1>(newValue); }
 	inline float GetNewValue() { return std::get<2>(newValue); }
 	inline AetKeyFrame* FindExistingKeyFrame() { return AetMgr::GetKeyFrameAt(GetKeyFrames(), GetFrame()); }
-	
+
 	inline void DoRedoInternal(bool writeOldValue)
 	{
 		AetKeyFrame* existingKeyFrame = FindExistingKeyFrame();
@@ -310,17 +310,17 @@ public:
 	}
 	void Do() override
 	{
-		keyFrameCommandPositionX.Do(); keyFrameCommandPositionY.Do(); 
+		keyFrameCommandPositionX.Do(); keyFrameCommandPositionY.Do();
 		keyFrameCommandScaleX.Do(); keyFrameCommandScaleY.Do();
 	}
 	void Undo() override
 	{
-		keyFrameCommandPositionX.Undo(); keyFrameCommandPositionY.Undo(); 
+		keyFrameCommandPositionX.Undo(); keyFrameCommandPositionY.Undo();
 		keyFrameCommandScaleX.Undo(); keyFrameCommandScaleY.Undo();
 	}
 	void Redo() override
 	{
-		keyFrameCommandPositionX.Redo(); keyFrameCommandPositionY.Redo(); 
+		keyFrameCommandPositionX.Redo(); keyFrameCommandPositionY.Redo();
 		keyFrameCommandScaleX.Redo(); keyFrameCommandScaleY.Redo();
 	}
 	void Update(const std::tuple<float, vec2, vec2>& value)
