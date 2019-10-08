@@ -65,6 +65,9 @@ namespace Editor
 
 		// NOTE: To make sure objects won't accidentally be mouse picked / unselected
 		bool windowHoveredOnMouseClick = false;
+		
+		// NOTE: Store the state of the previous frame to avoid accidental mouse picking on mouse release while interacting with a tool
+		bool allowMousePickerInput = false, allowedMousePickerInputLastFrame = false;
 
 		bool isPlayback = false;
 		float currentFrame = 0.0f;

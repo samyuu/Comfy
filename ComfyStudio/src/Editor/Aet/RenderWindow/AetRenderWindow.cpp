@@ -347,9 +347,15 @@ namespace Editor
 	void AetRenderWindow::UpdateMousePickControls()
 	{
 		if (cameraSelectedAetItem->IsNull() || cameraSelectedAetItem->Type() != AetItemType::AetLayer)
+		{
+			allowedMousePickerInputLastFrame = allowMousePickerInput = false;
 			return;
+		}
 
-		if (Gui::IsWindowHovered() && !GetCurrentTool()->MouseFocusCaptured())
+		allowedMousePickerInputLastFrame = allowMousePickerInput;
+		allowMousePickerInput = Gui::IsWindowHovered() && !GetCurrentTool()->MouseFocusCaptured();
+
+		if (allowMousePickerInput && allowedMousePickerInputLastFrame)
 		{
 			vec2 mouseWorldSpace = camera.ScreenToWorldSpace(GetRelativeMouse());
 			mousePicker->UpdateMouseInput(mouseWorldSpace);
