@@ -71,8 +71,13 @@ namespace Editor
 		{
 			if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::AetObj && selectedAetItem->GetAetObjRef()->AnimationData != nullptr)
 			{
-				AetMgr::Interpolate(selectedAetItem->GetAetObjRef()->AnimationData.get(), &toolProperties, currentFrame);
-				toolSize = GetAetObjBoundingSize(selectedAetItem->GetAetObjRef());
+				const auto& selctedAetObj = selectedAetItem->GetAetObjRef();
+				AetMgr::Interpolate(selctedAetObj->AnimationData.get(), &toolProperties, currentFrame);
+
+				// BUG: This is problematic because the tool ignores this offset when moving
+				AetMgr::OffsetByParentProperties(toolProperties, selctedAetObj->GetReferencedParentObj().get(), currentFrame);
+
+				toolSize = GetAetObjBoundingSize(selctedAetObj);
 			}
 
 			DrawTooltipHeaderGui();

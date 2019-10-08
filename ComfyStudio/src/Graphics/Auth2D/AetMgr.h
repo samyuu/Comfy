@@ -85,6 +85,8 @@ namespace Graphics::Auth2D
 		// NOTE: To be used after changing the LoopStart frame of an AetObj
 		static void OffsetAllKeyFrames(KeyFrameProperties& properties, frame_t frameIncrement);
 
+		static void OffsetByParentProperties(Properties& properties, const AetObj* parent, frame_t frame);
+
 	private:
 		static void InternalAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);
 		static void InternalPicAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);

@@ -19,7 +19,10 @@ namespace Graphics::Auth2D
 
 	static void TransformProperties(const Properties& input, Properties& output)
 	{
+		// BUG: This is still not 100% accurate (?)
+
 		output.Position -= input.Origin;
+		output.Position *= input.Scale;
 
 		if (input.Rotation != 0.0f)
 		{
@@ -27,14 +30,16 @@ namespace Graphics::Auth2D
 			float sin = glm::sin(radians);
 			float cos = glm::cos(radians);
 
-			output.Position.x = output.Position.x * cos - output.Position.y * sin;
-			output.Position.y = output.Position.x * sin + output.Position.y * cos;
+			output.Position = vec2(output.Position.x * cos - output.Position.y * sin, output.Position.x * sin + output.Position.y * cos);
 		}
 
-		output.Position *= input.Scale;
 		output.Position += input.Position;
 
+		if ((input.Scale.x < 0.0f) ^ (input.Scale.y < 0.0f))
+			output.Rotation *= -1.0f;
+
 		output.Rotation += input.Rotation;
+
 		output.Scale *= input.Scale;
 		output.Opacity *= input.Opacity;
 	}
@@ -165,6 +170,20 @@ namespace Graphics::Auth2D
 		}
 	}
 
+	void AetMgr::OffsetByParentProperties(Properties& properties, const AetObj* parent, frame_t frame)
+	{
+		if (parent == nullptr)
+			return;
+
+		// BUG: This should probably be recursive
+		Properties parentProperties;
+		Interpolate(parent->AnimationData.get(), &parentProperties, frame);
+
+		properties.Position += parentProperties.Position - parentProperties.Origin;
+		properties.Rotation += parentProperties.Rotation;
+		properties.Scale *= parentProperties.Scale;
+	}
+
 	void AetMgr::InternalAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)
 	{
 		if (aetObj->Type == AetObjType::Pic)
@@ -201,22 +220,7 @@ namespace Graphics::Auth2D
 		}
 		Interpolate(aetObj->AnimationData.get(), &objCache.Properties, frame);
 
-		const AetObj* parent = aetObj->GetReferencedParentObj();
-		if (parent != nullptr)
-		{
-			// TODO:
-			Properties objParentProperties;
-			Interpolate(parent->AnimationData.get(), &objParentProperties, frame);
-
-			objCache.Properties.Origin += objParentProperties.Origin;
-			objCache.Properties.Position += objParentProperties.Position;
-			//objCache.Properties.Position -= objParentProperties.Origin;
-			objCache.Properties.Rotation += objParentProperties.Rotation;
-			objCache.Properties.Scale *= objParentProperties.Scale;
-			objCache.Properties.Opacity *= objParentProperties.Opacity;
-			//TransformProperties(objParentProperties, objCache.Properties);
-		}
-
+		OffsetByParentProperties(objCache.Properties, aetObj->GetReferencedParentObj(), frame);
 		TransformProperties(*parentProperties, objCache.Properties);
 	}
 
@@ -227,14 +231,15 @@ namespace Graphics::Auth2D
 		if (frame < aetObj->LoopStart || frame >= aetObj->LoopEnd || !aetObj->Flags.Visible)
 			return;
 
-		Properties effProperties = {};
-		Interpolate(aetObj->AnimationData.get(), &effProperties, frame);
-		TransformProperties(*parentProperties, effProperties);
-
 		const AetLayer* aetLayer = aetObj->GetReferencedLayer();
-
 		if (aetLayer == nullptr)
 			return;
+
+		Properties effProperties;
+		Interpolate(aetObj->AnimationData.get(), &effProperties, frame);
+
+		OffsetByParentProperties(effProperties, aetObj->GetReferencedParentObj(), frame);
+		TransformProperties(*parentProperties, effProperties);
 
 		frame_t adjustedFrame = ((frame - aetObj->LoopStart) * aetObj->PlaybackSpeed) + aetObj->StartFrame;
 
