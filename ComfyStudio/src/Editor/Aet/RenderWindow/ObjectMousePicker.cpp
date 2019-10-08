@@ -23,15 +23,6 @@ namespace Editor
 		}
 	}
 
-	static bool IntersectsAnyChild(const AetObj* effObj)
-	{
-		// TODO: Implement
-
-		//assert(effObj->Type == AetObjType::Eff);
-		//availableObj.get() == obj.AetObj
-		return false;
-	}
-
 	const RefPtr<AetObj>* ObjectMousePicker::FindObjectAtPosition(vec2 worldSpace)
 	{
 		const auto& selectedLayer = cameraSelectedAetItem->GetAetLayerRef();
@@ -45,20 +36,8 @@ namespace Editor
 			{
 				for (auto& availableObj : *selectedLayer)
 				{
-					if (availableObj->Type == AetObjType::Pic)
-					{
-						if (availableObj.get() == obj.AetObj)
-						{
-							foundObject = &availableObj;
-						}
-					}
-					else if (availableObj->Type == AetObjType::Eff)
-					{
-						if (IntersectsAnyChild(availableObj.get()))
-						{
-							foundObject = &availableObj;
-						}
-					}
+					if (availableObj.get() == obj.Source || availableObj.get() == obj.FirstParent)
+						foundObject = &availableObj;
 				}
 			}
 		}

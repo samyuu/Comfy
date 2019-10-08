@@ -79,7 +79,7 @@ namespace App
 			for (MainMenuItem i = 0; i < MainMenuItem_Count; i++)
 			{
 				auto& data = listObjData[i];
-				if (obj.AetObj == data.PointObj)
+				if (obj.Source == data.PointObj)
 				{
 					if (selectedLayer)
 					{

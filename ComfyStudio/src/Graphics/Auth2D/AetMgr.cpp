@@ -49,6 +49,15 @@ namespace Graphics::Auth2D
 	{
 		Properties propreties = DefaultProperites;
 		InternalAddObjects(objects, &propreties, aetObj, frame);
+
+		if (aetObj->Type == AetObjType::Eff)
+		{
+			for (auto& object : objects)
+			{
+				if (object.FirstParent == nullptr)
+					object.FirstParent = aetObj;
+			}
+		}
 	}
 
 	float AetMgr::Interpolate(const AetKeyFrame* start, const AetKeyFrame* end, frame_t frame)
@@ -178,7 +187,8 @@ namespace Graphics::Auth2D
 		objects.emplace_back();
 		ObjCache& objCache = objects.back();
 
-		objCache.AetObj = aetObj;
+		objCache.FirstParent = nullptr;
+		objCache.Source = aetObj;
 		objCache.Region = aetObj->GetReferencedRegion();
 		objCache.BlendMode = aetObj->AnimationData->BlendMode;
 		objCache.UseTextureMask = aetObj->AnimationData->UseTextureMask;

@@ -61,7 +61,8 @@ namespace Graphics::Auth2D
 			int32_t SpriteIndex;
 			const AetRegion* Region;
 			AetBlendMode BlendMode;
-			const AetObj* AetObj;
+			const AetObj* FirstParent;
+			const AetObj* Source;
 			bool UseTextureMask;
 			bool Visible;
 		};
