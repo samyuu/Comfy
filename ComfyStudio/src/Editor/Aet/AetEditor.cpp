@@ -30,7 +30,7 @@ namespace Editor
 	{
 		treeView->Initialize();
 		inspector->Initialize();
-		timeline->InitializeTimelineGuiState();
+		timeline->Initialize();
 		renderWindow->Initialize();
 
 		// DEBUG: Auto load specified files

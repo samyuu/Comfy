@@ -30,7 +30,7 @@ namespace Editor
 		TimelineVisibility GetTimelineVisibility(float screenX) const;
 
 		void DrawTimelineGui();
-		void InitializeTimelineGuiState();
+		void Initialize();
 
 	public:
 		virtual inline float GetMaxScrollX() const { return Gui::GetScrollMaxX(); };
@@ -84,7 +84,9 @@ namespace Editor
 			float scrollDelta = 0.0f;
 			float scrollSpeed = 2.0f, scrollSpeedFast = 4.5f;
 		};
-
+		
+		// ----------------------
+		virtual void OnInitialize() {};
 		// ----------------------
 		void DrawTimelineBase();
 		// ----------------------

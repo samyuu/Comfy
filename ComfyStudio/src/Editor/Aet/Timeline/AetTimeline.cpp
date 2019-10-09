@@ -8,7 +8,8 @@ namespace Editor
 
 	AetTimeline::AetTimeline()
 	{
-		infoColumnWidth = 140.0f;
+		// TODO: Around 240.0f seems to be the standard for many programs
+		infoColumnWidth = 240.0f;
 		rowHeight = 18.0f;
 		zoomLevel = 5.0f;
 	}
@@ -55,6 +56,11 @@ namespace Editor
 			return;
 
 		keyFrameRenderer.DrawKeyFrames(this, aetObj->AnimationData->Properties);
+	}
+
+	void AetTimeline::OnInitialize()
+	{
+		keyFrameRenderer.Initialize();
 	}
 
 	void AetTimeline::OnDrawTimelineHeaderWidgets()
@@ -183,11 +189,12 @@ namespace Editor
 				const float y = i * rowHeight;
 				vec2 start = vec2(startPadding, y + textPadding) + infoColumnRegion.GetTL();
 
-				drawList->AddText(start, textColor, timelinePropertyNameTypes[i]);
+				const auto[type, name] = timelinePropertyTypeNames[i];
+				drawList->AddText(start, textColor, type);
 				start.x += nameTypeDistance;
 				drawList->AddText(start, textColor, timelinePropertyNameTypeSeparator);
 				start.x += nameTypeSeparatorSpacing;
-				drawList->AddText(start, textColor, timelinePropertyNames[i]);
+				drawList->AddText(start, textColor, name);
 			}
 
 			// NOTE: Draw Separators
@@ -260,6 +267,17 @@ namespace Editor
 	{
 	}
 
+	static frame_t GetAetLayerLastFrame(const AetLayer* aetLayer)
+	{
+		frame_t lastFrame = 0;
+		for (auto& object : *aetLayer)
+		{
+			if (object->LoopEnd > lastFrame)
+				lastFrame = object->LoopEnd;
+		}
+		return lastFrame;
+	}
+
 	void AetTimeline::OnUpdate()
 	{
 		if (!selectedAetItem.IsNull())
@@ -274,20 +292,30 @@ namespace Editor
 				break;
 
 			case AetItemType::AetLayer:
-				loopStartFrame = parentAet->FrameStart;
-				loopEndFrame = 0.0f;
+				//loopStartFrame = parentAet->FrameStart;
+				//loopEndFrame = 0.0f;
 
-				for (const RefPtr<AetObj>& obj : *selectedAetItem.Ptrs.AetLayer)
-				{
-					if (obj->LoopEnd > loopEndFrame.Frames())
-						loopEndFrame = obj->LoopEnd;
-				}
+				//for (const RefPtr<AetObj>& obj : *selectedAetItem.Ptrs.AetLayer)
+				//{
+				//	if (obj->LoopEnd > loopEndFrame.Frames())
+				//		loopEndFrame = obj->LoopEnd;
+				//}
+
+				loopStartFrame = 0.0f;
+				loopEndFrame = GetAetLayerLastFrame(selectedAetItem.Ptrs.AetLayer);
 
 				break;
 
 			case AetItemType::AetObj:
-				loopStartFrame = selectedAetItem.Ptrs.AetObj->LoopStart;
-				loopEndFrame = selectedAetItem.Ptrs.AetObj->LoopEnd;
+				
+				//loopStartFrame = parentAet->FrameStart;
+
+				//loopStartFrame = selectedAetItem.Ptrs.AetObj->LoopStart;
+				//loopEndFrame = selectedAetItem.Ptrs.AetObj->LoopEnd;
+				
+				loopStartFrame = 0.0f;
+				loopEndFrame = GetAetLayerLastFrame(selectedAetItem.Ptrs.AetObj->GetParentLayer());
+
 				break;
 
 			case AetItemType::AetRegion:
@@ -297,6 +325,14 @@ namespace Editor
 
 			default:
 				break;
+			}
+
+			// TODO: Is this how it should work? Hence the reason to edit these values in the first place PeepoShrug
+			// TODO: Maybe this should be an option inside an options context menu button like loop playback and playback speed (?)
+			if (selectedAetItem.Type() != AetItemType::AetRegion && false)
+			{
+				loopStartFrame = parentAet->FrameStart;
+				loopEndFrame = parentAet->FrameDuration;
 			}
 		}
 

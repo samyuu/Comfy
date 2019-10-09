@@ -74,9 +74,10 @@ namespace Editor
 		baseDrawList->AddTriangle(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], outterColor);
 	}
 
-	void TimelineBase::InitializeTimelineGuiState()
+	void TimelineBase::Initialize()
 	{
 		io = &Gui::GetIO();
+		OnInitialize();
 	}
 
 	void TimelineBase::UpdateTimelineBaseState()
@@ -316,6 +317,9 @@ namespace Editor
 
 		// top part
 		drawList->AddRectFilled(infoColumnRegion.GetTL(), infoColumnRegion.GetBR(), GetColor(EditorColor_InfoColumn));
+
+		// separator
+		drawList->AddLine(infoColumnRegion.GetTR() + vec2(-1.0f, 0.0f), infoColumnRegion.GetBR() + vec2(-1.0f, 0.0f), Gui::GetColorU32(ImGuiCol_Border));
 
 		// bottom part
 		ImDrawList* parentDrawList = Gui::GetCurrentWindow()->ParentWindow->DrawList;

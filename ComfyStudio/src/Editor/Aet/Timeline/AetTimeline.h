@@ -8,7 +8,6 @@
 
 namespace Editor
 {
-	using namespace FileSystem;
 	using namespace Graphics::Auth2D;
 	class AetEditor;
 
@@ -66,6 +65,7 @@ namespace Editor
 		void DrawTimelineContentLayer();
 		void DrawTimelineContentObject();
 
+		void OnInitialize() override;
 		void OnDrawTimelineHeaderWidgets() override;
 		void OnDrawTimelineInfoColumnHeader() override;
 		void OnDrawTimelineInfoColumn() override;
@@ -90,28 +90,16 @@ namespace Editor
 
 		static constexpr const char* timelinePropertyNameTypeSeparator = ":";
 
-		const Array<const char*, static_cast<size_t>(PropertyType_Count)> timelinePropertyNameTypes =
+		const Array<std::pair<const char*, const char*>, static_cast<size_t>(PropertyType_Count)> timelinePropertyTypeNames =
 		{
-			"Transform",
-			"Transform",
-			"Transform",
-			"Transform",
-			"Transform",
-			"Transform",
-			"Transform",
-			"Color",
-		};
-
-		const Array<const char*, static_cast<size_t>(PropertyType_Count)> timelinePropertyNames =
-		{
-			"Origin.X",
-			"Origin.Y",
-			"Position.X",
-			"Position.Y",
-			"Rotation",
-			"Scale.X",
-			"Scale.Y",
-			"Opacity",
+			std::make_pair("Transform", "Origin.X"),
+			std::make_pair("Transform", "Origin.Y"),
+			std::make_pair("Transform", "Position.X"),
+			std::make_pair("Transform", "Position.Y"),
+			std::make_pair("Transform", "Rotation"),
+			std::make_pair("Transform", "Scale.X"),
+			std::make_pair("Transform", "Scale.Y"),
+			std::make_pair("Color",	    "Opacity"),
 		};
 	};
 }

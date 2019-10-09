@@ -19,8 +19,6 @@ namespace Editor
 		TargetTimeline(ChartEditor* parentChartEditor);
 		~TargetTimeline();
 
-		void Initialize();
-
 		void OnSongLoaded();
 		void OnPlaybackResumed();
 		void OnPlaybackPaused();
@@ -128,6 +126,7 @@ namespace Editor
 		// ----------------------
 
 	protected:
+		void OnInitialize() override;
 		void InitializeButtonIcons();
 
 		// ----------------

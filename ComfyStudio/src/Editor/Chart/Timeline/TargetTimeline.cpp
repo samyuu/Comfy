@@ -152,10 +152,8 @@ namespace Editor
 		}
 	}
 
-	void TargetTimeline::Initialize()
+	void TargetTimeline::OnInitialize()
 	{
-		InitializeTimelineGuiState();
-
 		Audio::AudioEngine::GetInstance()->AddCallbackReceiver(this);
 		audioController.Initialize();
 
