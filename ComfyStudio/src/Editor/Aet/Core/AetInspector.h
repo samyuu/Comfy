@@ -21,7 +21,6 @@ namespace Editor
 
 	private:
 		AetItemTypePtr lastSelectedItem;
-		int newParentObjLayerIndex = -1;
 
 		char aetNameBuffer[255];
 		char aetObjNameBuffer[255];
@@ -29,7 +28,6 @@ namespace Editor
 		char spriteNameBuffer[255];
 		char layerDataNameBuffer[255];
 		char regionDataNameBuffer[255];
-		char parentObjDataNameBuffer[255];
 
 		vec4 animatedPropertyColor, keyFramePropertyColor, staticPropertyColor;
 
