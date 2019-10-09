@@ -175,13 +175,18 @@ namespace Graphics::Auth2D
 		if (parent == nullptr)
 			return;
 
-		// BUG: This should probably be recursive
+		const AetObj* parentParent = parent->GetReferencedParentObj();
+		assert(parentParent != parent);
+
 		Properties parentProperties;
 		Interpolate(parent->AnimationData.get(), &parentProperties, frame);
 
 		properties.Position += parentProperties.Position - parentProperties.Origin;
 		properties.Rotation += parentProperties.Rotation;
 		properties.Scale *= parentProperties.Scale;
+
+		if (parentParent != nullptr && parentParent != parent)
+			OffsetByParentProperties(properties, parentParent, frame);
 	}
 
 	void AetMgr::InternalAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)
