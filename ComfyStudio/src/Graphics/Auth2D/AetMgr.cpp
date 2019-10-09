@@ -170,10 +170,13 @@ namespace Graphics::Auth2D
 		}
 	}
 
-	void AetMgr::OffsetByParentProperties(Properties& properties, const AetObj* parent, frame_t frame)
+	void AetMgr::OffsetByParentProperties(Properties& properties, const AetObj* parent, frame_t frame, int32_t& recursionCount)
 	{
-		if (parent == nullptr)
+		assert(recursionCount < ParentRecursionLimit);
+		if (parent == nullptr || recursionCount > ParentRecursionLimit)
 			return;
+
+		recursionCount++;
 
 		const AetObj* parentParent = parent->GetReferencedParentObj();
 		assert(parentParent != parent);
@@ -186,7 +189,7 @@ namespace Graphics::Auth2D
 		properties.Scale *= parentProperties.Scale;
 
 		if (parentParent != nullptr && parentParent != parent)
-			OffsetByParentProperties(properties, parentParent, frame);
+			OffsetByParentProperties(properties, parentParent, frame, recursionCount);
 	}
 
 	void AetMgr::InternalAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)
@@ -220,12 +223,14 @@ namespace Graphics::Auth2D
 
 		if (objCache.Region != nullptr && objCache.Region->SpriteCount() > 0)
 		{
+			// BUG: This should factor in the aetObj->LoopStart (?)
 			// NOTE: Is it correct to modulo the index here? Seems to make more sense than just clamping
 			objCache.SpriteIndex = static_cast<int>(glm::round(frame)) % objCache.Region->SpriteCount();
 		}
 		Interpolate(aetObj->AnimationData.get(), &objCache.Properties, frame);
 
-		OffsetByParentProperties(objCache.Properties, aetObj->GetReferencedParentObj(), frame);
+		int32_t recursionCount = 0;
+		OffsetByParentProperties(objCache.Properties, aetObj->GetReferencedParentObj(), frame, recursionCount);
 		TransformProperties(*parentProperties, objCache.Properties);
 	}
 
@@ -243,7 +248,8 @@ namespace Graphics::Auth2D
 		Properties effProperties;
 		Interpolate(aetObj->AnimationData.get(), &effProperties, frame);
 
-		OffsetByParentProperties(effProperties, aetObj->GetReferencedParentObj(), frame);
+		int32_t recursionCount = 0;
+		OffsetByParentProperties(effProperties, aetObj->GetReferencedParentObj(), frame, recursionCount);
 		TransformProperties(*parentProperties, effProperties);
 
 		frame_t adjustedFrame = ((frame - aetObj->LoopStart) * aetObj->PlaybackSpeed) + aetObj->StartFrame;

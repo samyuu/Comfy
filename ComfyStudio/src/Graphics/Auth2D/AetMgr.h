@@ -46,6 +46,9 @@ namespace Graphics::Auth2D
 	class AetMgr
 	{
 	public:
+		// NOTE: Arbitrary safety limit, prevent stack overflows no matter the input
+		static constexpr int32_t ParentRecursionLimit = 0x100;
+
 		static constexpr Properties DefaultProperites =
 		{
 			vec2(0.0f),	// Origin
@@ -85,7 +88,7 @@ namespace Graphics::Auth2D
 		// NOTE: To be used after changing the LoopStart frame of an AetObj
 		static void OffsetAllKeyFrames(KeyFrameProperties& properties, frame_t frameIncrement);
 
-		static void OffsetByParentProperties(Properties& properties, const AetObj* parent, frame_t frame);
+		static void OffsetByParentProperties(Properties& properties, const AetObj* parent, frame_t frame, int32_t& recursionCount);
 
 	private:
 		static void InternalAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);

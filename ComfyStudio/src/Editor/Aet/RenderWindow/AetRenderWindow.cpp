@@ -75,7 +75,8 @@ namespace Editor
 				AetMgr::Interpolate(selctedAetObj->AnimationData.get(), &toolProperties, currentFrame);
 
 				// BUG: This is problematic because the tool ignores this offset when moving
-				AetMgr::OffsetByParentProperties(toolProperties, selctedAetObj->GetReferencedParentObj().get(), currentFrame);
+				int32_t recursionCount = 0;
+				AetMgr::OffsetByParentProperties(toolProperties, selctedAetObj->GetReferencedParentObj().get(), currentFrame, recursionCount);
 
 				toolSize = GetAetObjBoundingSize(selctedAetObj);
 			}
