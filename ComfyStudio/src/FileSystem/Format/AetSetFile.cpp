@@ -114,7 +114,7 @@ namespace FileSystem
 		name = reader.ReadStrPtr();
 		LoopStart = reader.ReadFloat();
 		LoopEnd = reader.ReadFloat();
-		StartFrame = reader.ReadFloat();
+		StartOffset = reader.ReadFloat();
 		PlaybackSpeed = reader.ReadFloat();
 
 		Flags.AllBits = reader.ReadUInt16();
@@ -321,7 +321,7 @@ namespace FileSystem
 									writer.WriteStrPtr(&obj->name);
 									writer.WriteFloat(obj->LoopStart);
 									writer.WriteFloat(obj->LoopEnd);
-									writer.WriteFloat(obj->StartFrame);
+									writer.WriteFloat(obj->StartOffset);
 									writer.WriteFloat(obj->PlaybackSpeed);
 									writer.Write<AetObjFlags>(obj->Flags);
 									writer.WriteUInt8(obj->TypePaddingByte);

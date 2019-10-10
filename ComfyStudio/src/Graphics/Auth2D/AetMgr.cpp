@@ -252,7 +252,7 @@ namespace Graphics::Auth2D
 		OffsetByParentProperties(effProperties, aetObj->GetReferencedParentObj(), frame, recursionCount);
 		TransformProperties(*parentProperties, effProperties);
 
-		frame_t adjustedFrame = ((frame - aetObj->LoopStart) * aetObj->PlaybackSpeed) + aetObj->StartFrame;
+		frame_t adjustedFrame = ((frame - aetObj->LoopStart) * aetObj->PlaybackSpeed) + aetObj->StartOffset;
 
 		for (int i = static_cast<int>(aetLayer->size()) - 1; i >= 0; i--)
 			InternalAddObjects(objects, &effProperties, aetLayer->GetObjAt(i), adjustedFrame);

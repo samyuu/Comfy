@@ -185,9 +185,9 @@ namespace Editor
 			if (Gui::ComfyFloatTextWidget("Loop End", &loopEnd, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
 				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeLoopEnd, aetObj, loopEnd);
 
-			float startFrame = aetObj->StartFrame;
-			if (Gui::ComfyFloatTextWidget("Start Frame", &startFrame, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
-				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeStartFrame, aetObj, startFrame);
+			float startOffset = aetObj->StartOffset;
+			if (Gui::ComfyFloatTextWidget("Start Offset", &startOffset, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeStartOffset, aetObj, startOffset);
 
 			if (aetObj->Type != AetObjType::Aif)
 			{
@@ -415,9 +415,6 @@ namespace Editor
 			value *= percentFactor;
 			max = 1.0f * percentFactor;
 		}
-
-		// TODO: ~~Theses should probably use drag floats or sliders instead, only problem~~
-		//		 This should be implemented a draggable text widget instead
 
 		if (Gui::ComfyFloatTextWidget(label, &value, 1.0f, 10.0f, min, max, formatString, ImGuiInputTextFlags_None, (keyFrame == nullptr)))
 		{

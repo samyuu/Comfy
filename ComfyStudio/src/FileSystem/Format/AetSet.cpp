@@ -128,7 +128,7 @@ namespace FileSystem
 	{
 		LoopStart = 0.0f;
 		LoopEnd = 60.0f;
-		StartFrame = 0.0f;
+		StartOffset = 0.0f;
 		PlaybackSpeed = 1.0f;
 		Flags.Visible = true;
 		Flags.Audible = true;

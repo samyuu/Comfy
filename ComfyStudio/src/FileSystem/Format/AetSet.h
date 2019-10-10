@@ -187,9 +187,11 @@ namespace FileSystem
 		AetObj& operator= (AetObj& other) = delete;
 		~AetObj() = default;
 
+		// NOTE: The name 'Loop' is not entirely accurate and should perhaps be renamed
+		//		 but for now it helps with differentiating it from 'StartOffset'
 		frame_t LoopStart;
 		frame_t LoopEnd;
-		frame_t StartFrame;
+		frame_t StartOffset;
 		float PlaybackSpeed;
 
 		AetObjFlags Flags;

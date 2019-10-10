@@ -54,7 +54,7 @@ namespace Editor::Command
 		AetObjChangeName,
 		AetObjChangeLoopStart,
 		AetObjChangeLoopEnd,
-		AetObjChangeStartFrame,
+		AetObjChangeStartOffset,
 		AetObjChangePlaybackSpeed,
 		AetObjChangeFlagsVisible,
 		AetObjChangeFlagsAudible,
@@ -89,7 +89,7 @@ namespace Editor::Command
 	Define_PropertyCommand(AetChangeBackgroundColor, "Aet Background Color Change", Aet, uint32_t, BackgroundColor);
 
 	Define_AccessorCommand(AetObjChangeName, "Object Name Change", AetObj, String, GetName, SetName);
-	Define_PropertyCommand(AetObjChangeStartFrame, "Object Start Frame Change", AetObj, frame_t, StartFrame);
+	Define_PropertyCommand(AetObjChangeStartOffset, "Object Start Offset Change", AetObj, frame_t, StartOffset);
 	Define_PropertyCommand(AetObjChangePlaybackSpeed, "Object Playback Speed Change", AetObj, float, PlaybackSpeed);
 	Define_AccessorCommand(AetObjChangeFlagsVisible, "Visbility Change", AetObj, bool, GetIsVisible, SetIsVisible);
 	Define_AccessorCommand(AetObjChangeFlagsAudible, "Audibility Change", AetObj, bool, GetIsAudible, SetIsAudible);
