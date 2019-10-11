@@ -122,7 +122,8 @@ namespace Editor
 			PushDisableItemFlagIfPlayback();
 			CopyStringIntoBuffer(aetLayer->GetName(), layerNameBuffer, sizeof(layerNameBuffer));
 
-			if (Gui::ComfyTextWidget("Name", layerNameBuffer, sizeof(layerNameBuffer)))
+			const bool isRoot = aetLayer.get() == aet->GetRootLayer();
+			if (Gui::ComfyTextWidget("Name", layerNameBuffer, sizeof(layerNameBuffer), isRoot ? ImGuiInputTextFlags_ReadOnly : ImGuiInputTextFlags_None))
 				ProcessUpdatingAetCommand(GetCommandManager(), AetLayerChangeName, aetLayer, layerNameBuffer);
 
 			//Gui::Separator();
