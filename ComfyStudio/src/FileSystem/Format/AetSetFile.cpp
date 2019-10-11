@@ -539,7 +539,7 @@ namespace FileSystem
 
 				aet->UpdateParentPointers();
 				aet->InternalLinkPostRead();
-				aet->InternalUpdateLayerNames();
+				aet->InternalUpdateLayerNamesAfteObjectReferences();
 			}
 		});
 	}

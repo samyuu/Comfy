@@ -160,16 +160,9 @@ namespace FileSystem
 		return name;
 	}
 
-	void AetObj::SetName(const char* value)
-	{
-		name = value;
-		assert(parentLayer != nullptr && parentLayer->GetParentAet() != nullptr);
-		GetParentAet()->InternalUpdateLayerNames();
-	}
-
 	void AetObj::SetName(const String& value)
 	{
-		SetName(value.c_str());
+		name = value;
 	}
 
 	bool AetObj::GetIsVisible() const
@@ -274,6 +267,16 @@ namespace FileSystem
 		return parentLayer;
 	}
 
+	const String& AetLayer::GetName() const
+	{
+		return name;
+	}
+
+	void AetLayer::SetName(const String& value)
+	{
+		name = value;
+	}
+
 	RefPtr<AetObj> AetLayer::FindObj(const String& name)
 	{
 		for (int32_t i = 0; i < size(); i++)
@@ -290,20 +293,8 @@ namespace FileSystem
 		return const_cast<AetLayer*>(this)->FindObj(name);
 	}
 
-	const Vector<String>& AetLayer::GetGivenNames() const
-	{
-		return givenNames;
-	}
-
-	const String AetLayer::unusedLayerName = "Unused";
-
-	const String& AetLayer::GetCommaSeparatedNames() const
-	{
-		if (commaSeparatedNames.empty())
-			return unusedLayerName;
-
-		return commaSeparatedNames;
-	}
+	const String AetLayer::rootLayerName = "Root Layer";
+	const String AetLayer::unusedLayerName = "Unused Layer";
 
 	void AetLayer::AddNewObject(AetObjType type, const String& name)
 	{
@@ -323,8 +314,6 @@ namespace FileSystem
 
 			index++;
 		}
-
-		parentAet->InternalUpdateLayerNames();
 	}
 
 	AetLayer* Aet::GetRootLayer()
@@ -412,55 +401,26 @@ namespace FileSystem
 		updateParentPointers(RootLayer);
 	}
 
-	void Aet::InternalUpdateLayerNames()
+	void Aet::InternalUpdateLayerNamesAfteObjectReferences()
 	{
-		for (RefPtr<AetLayer>& aetLayer : Layers)
-			InternalUpdateLayerNamesVector(aetLayer);
+		RootLayer->SetName(AetLayer::rootLayerName);
+		InternalUpdateLayerNamesAfteObjectReferences(RootLayer);
 		
-		InternalUpdateLayerNamesVector(RootLayer);
-		RootLayer->givenNames = { "Root Layer" };
-
 		for (RefPtr<AetLayer>& aetLayer : Layers)
-			InternalUpdateLayerNamesCommaSeparated(aetLayer);
-
-		InternalUpdateLayerNamesCommaSeparated(RootLayer);
+			InternalUpdateLayerNamesAfteObjectReferences(aetLayer);
 	}
 
-	void Aet::InternalUpdateLayerNamesVector(RefPtr<AetLayer>& aetLayer)
+	void Aet::InternalUpdateLayerNamesAfteObjectReferences(RefPtr<AetLayer>& aetLayer)
 	{
-		aetLayer->givenNames.clear();
-
 		for (RefPtr<AetObj>& aetObj : *aetLayer)
 		{
-			AetLayer* referencedLayer;
-
-			if (aetObj->Type == AetObjType::Eff && (referencedLayer = aetObj->GetReferencedLayer().get()) != nullptr)
+			if (aetObj->Type == AetObjType::Eff)
 			{
-				bool nameExists = false;
-				for (auto& layerNames : referencedLayer->givenNames)
-				{
-					if (layerNames == aetObj->GetName())
-					{
-						nameExists = true;
-						break;
-					}
-				}
+				AetLayer* referencedLayer = aetObj->GetReferencedLayer().get();
 
-				if (!nameExists)
-					referencedLayer->givenNames.emplace_back(aetObj->GetName());
+				if (referencedLayer != nullptr)
+					referencedLayer->SetName(aetObj->GetName());
 			}
-		}
-	}
-
-	void Aet::InternalUpdateLayerNamesCommaSeparated(RefPtr<AetLayer>& aetLayer)
-	{
-		aetLayer->commaSeparatedNames.clear();
-
-		for (size_t i = 0; i < aetLayer->givenNames.size(); i++)
-		{
-			aetLayer->commaSeparatedNames.append(aetLayer->givenNames[i]);
-			if (i < aetLayer->givenNames.size() - 1)
-				aetLayer->commaSeparatedNames.append(", ");
 		}
 	}
 

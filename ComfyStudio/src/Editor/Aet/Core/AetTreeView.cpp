@@ -396,7 +396,7 @@ namespace Editor
 
 	bool AetTreeView::DrawAetLayerContextMenu(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, bool isRoot)
 	{
-		Gui::Text(ICON_AETLAYER "  %s", aetLayer->GetCommaSeparatedNames().c_str());
+		Gui::Text(ICON_AETLAYER "  %s", aetLayer->GetName().c_str());
 		Gui::Separator();
 
 		if (Gui::BeginMenu(ICON_ADD "  Add new AetObj..."))
@@ -526,7 +526,7 @@ namespace Editor
 			strcat_s(buffer, remainingSize, " (");
 			buffer += 2;
 
-			const auto& givenNames = aetLayer->GetCommaSeparatedNames();
+			const auto& givenNames = aetLayer->GetName();
 			remainingSize = endOfBuffer - buffer;
 			if (static_cast<ptrdiff_t>(givenNames.size()) > (remainingSize - 3))
 			{

@@ -51,6 +51,8 @@ namespace Editor::Command
 		AetChangeFrameRate,
 		AetChangeBackgroundColor,
 
+		AetLayerChangeName,
+
 		AetObjChangeName,
 		AetObjChangeLoopStart,
 		AetObjChangeLoopEnd,
@@ -87,6 +89,8 @@ namespace Editor::Command
 	Define_PropertyCommand(AetChangeFrameDuration, "Aet Frame Duration Change", Aet, frame_t, FrameDuration);
 	Define_PropertyCommand(AetChangeFrameRate, "Aet Frame Rate Change", Aet, frame_t, FrameRate);
 	Define_PropertyCommand(AetChangeBackgroundColor, "Aet Background Color Change", Aet, uint32_t, BackgroundColor);
+
+	Define_AccessorCommand(AetLayerChangeName, "Layer Name Change", AetLayer, String, GetName, SetName);
 
 	Define_AccessorCommand(AetObjChangeName, "Object Name Change", AetObj, String, GetName, SetName);
 	Define_PropertyCommand(AetObjChangeStartOffset, "Object Start Offset Change", AetObj, frame_t, StartOffset);

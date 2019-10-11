@@ -8,6 +8,13 @@ namespace Editor
 {
 	constexpr ImGuiTreeNodeFlags DefaultOpenPropertiesNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow;
 
+	static void CopyStringIntoBuffer(const String& string, char* buffer, size_t bufferSize)
+	{
+		size_t copySize = std::min(string.size(), bufferSize - 1);
+		string.copy(buffer, copySize);
+		buffer[copySize] = '\0';
+	}
+
 	AetInspector::AetInspector(AetCommandManager* commandManager) : IMutatingEditorComponent(commandManager)
 	{
 	}
@@ -77,8 +84,8 @@ namespace Editor
 		if (Gui::WideTreeNodeEx("Aet", DefaultOpenPropertiesNodeFlags))
 		{
 			PushDisableItemFlagIfPlayback();
-			strcpy_s(aetNameBuffer, aet->Name.c_str());
-
+			CopyStringIntoBuffer(aet->Name, aetNameBuffer, sizeof(aetNameBuffer));
+			
 			if (Gui::ComfyTextWidget("Name", aetNameBuffer, sizeof(aetNameBuffer)))
 				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeName, aet, aetNameBuffer);
 
@@ -110,19 +117,20 @@ namespace Editor
 
 	void AetInspector::DrawInspectorAetLayer(Aet* aet, const RefPtr<AetLayer>& aetLayer)
 	{
-		if (Gui::WideTreeNodeEx(ICON_NAMES "  Given Names:", DefaultOpenPropertiesNodeFlags))
+		if (Gui::WideTreeNodeEx(ICON_AETLAYER "  Layer", DefaultOpenPropertiesNodeFlags))
 		{
-			for (auto& name : aetLayer->GetGivenNames())
-				Gui::BulletText(name.c_str());
+			PushDisableItemFlagIfPlayback();
+			CopyStringIntoBuffer(aetLayer->GetName(), layerNameBuffer, sizeof(layerNameBuffer));
 
-			Gui::TreePop();
-		}
+			if (Gui::ComfyTextWidget("Name", layerNameBuffer, sizeof(layerNameBuffer)))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetLayerChangeName, aetLayer, layerNameBuffer);
 
-		if (Gui::WideTreeNodeEx(ICON_AETLAYER "  Objects:", DefaultOpenPropertiesNodeFlags))
-		{
-			for (const RefPtr<AetObj>& aetObj : *aetLayer)
-				Gui::BulletText("%s  %s", GetObjTypeIcon(aetObj->Type), aetObj->GetName().c_str());
+			//Gui::Separator();
+			//for (const RefPtr<AetObj>& aetObj : *aetLayer)
+			//	Gui::Text("%s  %s", GetObjTypeIcon(aetObj->Type), aetObj->GetName().c_str());
+			Gui::Separator();
 
+			PopDisableItemFlagIfPlayback();
 			Gui::TreePop();
 		}
 	}
@@ -136,7 +144,7 @@ namespace Editor
 		if (Gui::WideTreeNodeEx(ICON_AETLAYERS "  Layer Data", DefaultOpenPropertiesNodeFlags))
 		{
 			if (aetLayer != nullptr)
-				sprintf_s(layerDataNameBuffer, "Layer %d (%.*s)", aetLayer->GuiData.ThisIndex, availableLayerNameBufferSize, aetLayer->GetCommaSeparatedNames().c_str());
+				sprintf_s(layerDataNameBuffer, "Layer %d (%.*s)", aetLayer->GuiData.ThisIndex, availableLayerNameBufferSize, aetLayer->GetName().c_str());
 
 			PushDisableItemFlagIfPlayback();
 			if (Gui::ComfyBeginCombo("Layer", aetLayer == nullptr ? "None (Layer)" : layerDataNameBuffer, ImGuiComboFlags_HeightLarge))
@@ -150,7 +158,7 @@ namespace Editor
 					Gui::PushID(layer.get());
 
 					bool isSelected = (aetLayer == layer);
-					sprintf_s(layerDataNameBuffer, "Layer %d (%.*s)", layerIndex++, availableLayerNameBufferSize, layer->GetCommaSeparatedNames().c_str());
+					sprintf_s(layerDataNameBuffer, "Layer %d (%.*s)", layerIndex++, availableLayerNameBufferSize, layer->GetName().c_str());
 
 					if (Gui::Selectable(layerDataNameBuffer, isSelected))
 						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceLayer, aetObj, layer);
@@ -173,7 +181,7 @@ namespace Editor
 		if (Gui::WideTreeNodeEx(aetObj.get(), DefaultOpenPropertiesNodeFlags, "%s  Object", GetObjTypeIcon(aetObj->Type)))
 		{
 			PushDisableItemFlagIfPlayback();
-			strcpy_s(aetObjNameBuffer, aetObj->GetName().c_str());
+			CopyStringIntoBuffer(aetObj->GetName(), aetObjNameBuffer, sizeof(aetObjNameBuffer));
 			if (Gui::ComfyTextWidget("Name", aetObjNameBuffer, sizeof(aetObjNameBuffer)))
 				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeName, aetObj, aetObjNameBuffer);
 
@@ -249,7 +257,7 @@ namespace Editor
 				if (frontSprite == nullptr)
 					sprintf_s(regionDataNameBuffer, "Null (%dx%d)", aetRegion->Width, aetRegion->Height);
 				else
-					strcpy_s(regionDataNameBuffer, frontSprite->Name.c_str());
+					CopyStringIntoBuffer(frontSprite->Name, regionDataNameBuffer, sizeof(regionDataNameBuffer));
 			}
 
 			const char* noSpriteString = "None (Sprite)";
@@ -528,7 +536,7 @@ namespace Editor
 					if (Gui::ComfyFloatTextWidget("Frame", &frame, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
 						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeMarkerFrame, marker, frame);
 
-					strcpy_s(markerNameBuffer, marker->Name.c_str());
+					CopyStringIntoBuffer(marker->Name, markerNameBuffer, sizeof(markerNameBuffer));
 					if (Gui::ComfyTextWidget("Name", markerNameBuffer, sizeof(markerNameBuffer)))
 						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeMarkerName, marker, markerNameBuffer);
 
@@ -544,9 +552,9 @@ namespace Editor
 			PushDisableItemFlagIfPlayback();
 			if (Gui::ComfyCenteredButton("Add Marker"))
 			{
-				char newMarkerBuffer[32];
-				sprintf_s(newMarkerBuffer, "marker_%02zd", markers->size());
-				auto newMarker = MakeRef<AetMarker>(0.0f, newMarkerBuffer);
+				char newMarkerNameBuffer[32];
+				sprintf_s(newMarkerNameBuffer, "marker_%02zd", markers->size());
+				auto newMarker = MakeRef<AetMarker>(0.0f, newMarkerNameBuffer);
 				ProcessUpdatingAetCommand(GetCommandManager(), AetObjAddMarker, aetObj, newMarker);
 			}
 			PopDisableItemFlagIfPlayback();

@@ -23,6 +23,7 @@ namespace Editor
 		AetItemTypePtr lastSelectedItem;
 
 		char aetNameBuffer[255];
+		char layerNameBuffer[255];
 		char aetObjNameBuffer[255];
 		char markerNameBuffer[255];
 		char spriteNameBuffer[255];

@@ -202,7 +202,6 @@ namespace FileSystem
 		RefPtr<AnimationData> AnimationData;
 
 		const String& GetName() const;
-		void SetName(const char* value);
 		void SetName(const String& value);
 
 		bool GetIsVisible() const;
@@ -293,28 +292,28 @@ namespace FileSystem
 		inline RefPtr<AetObj>& operator[] (size_t index) { return objects[index]; };
 
 	public:
+		const String& GetName() const;
+		void SetName(const String& value);
+
 		inline AetObj* GetObjAt(int index) { return objects.at(index).get(); };
 		inline const AetObj* GetObjAt(int index) const { return objects[index].get(); };
 
 		RefPtr<AetObj> FindObj(const String& name);
 		RefPtr<const AetObj> FindObj(const String& name) const;
-
-		const Vector<String>& GetGivenNames() const;
-		const String& GetCommaSeparatedNames() const;
-
+		
 	public:
 		void AddNewObject(AetObjType type, const String& name);
 		void DeleteObject(AetObj* value);
 
 	private:
+		static const String rootLayerName;
 		static const String unusedLayerName;
-
-		Vector<String> givenNames;
-		String commaSeparatedNames;
 
 		Aet* parentAet;
 		fileptr_t filePosition;
 
+		// NOTE: The Name given to any new eff object referencing this layer. Assigned on AetSet load to the last object's name using it (= not saved if unused)
+		String name;
 		Vector<RefPtr<AetObj>> objects;
 	};
 
@@ -392,9 +391,8 @@ namespace FileSystem
 		void Write(BinaryWriter& writer);
 
 	private:
-		void InternalUpdateLayerNames();
-		void InternalUpdateLayerNamesVector(RefPtr<AetLayer>& aetLayer);
-		void InternalUpdateLayerNamesCommaSeparated(RefPtr<AetLayer>& aetLayer);
+		void InternalUpdateLayerNamesAfteObjectReferences();
+		void InternalUpdateLayerNamesAfteObjectReferences(RefPtr<AetLayer>& aetLayer);
 		void InternalLinkPostRead();
 		void InternalLinkeLayerContent(RefPtr<AetLayer>& aetLayer);
 		void InternalFindObjReferencedRegion(AetObj* aetObj);
