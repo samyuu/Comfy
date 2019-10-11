@@ -1,6 +1,7 @@
 #pragma once
 #include "Editor/Aet/IMutatingEditorComponent.h"
 #include "Editor/Aet/AetSelection.h"
+#include "Editor/Aet/AetIcons.h"
 #include "AetDialogs.h"
 #include "FileSystem/Format/AetSet.h"
 #include "Core/CoreTypes.h"
@@ -40,15 +41,13 @@ namespace Editor
 		};
 
 	private:
-		static constexpr const char* AddAetObjPopupID = "Add new AetObj";
-		static constexpr float LayerPreviewTooltipHoverDelay = 0.8f;
-		static constexpr int LayerPreviewMaxConunt = 10;
+		static constexpr const char* textureMaskIndicator = "  ( " ICON_FA_LINK " )";
+		static constexpr const char* addAetObjPopupID = "Add new AetObj";
+		static constexpr float layerPreviewTooltipHoverDelay = 0.8f;
+		static constexpr int layerPreviewMaxConunt = 10;
 
 		char nodeNameFormatBuffer[512];
 		
-		static constexpr uint32_t nodeBufferCookieValue = 0xCCCCCCCC;
-		uint32_t nodeBufferCookie = nodeBufferCookieValue;
-
 		float scrollTargetCenterRatio = 0.15f;
 		AddAetObjDialog addAetObjDialog;
 
@@ -86,9 +85,6 @@ namespace Editor
 		void DrawTreeNodeCameraIcon(const vec2& treeNodeCursorPos) const;
 
 	private:
-		const char* FormatAetNodeName(const RefPtr<Aet>& aet);
-		const char* FormatLayerNodeName(const RefPtr<AetLayer>& aetLayer, bool nodeOpen, bool isRoot = false);
-		const char* FormatObjNodeName(const RefPtr<AetObj>& aetObj);
 		const char* FormatRegionNodeName(const RefPtr<AetRegion>& region, int32_t index);
 
 	private:

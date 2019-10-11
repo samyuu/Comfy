@@ -1,6 +1,5 @@
 #include "AetTreeView.h"
 #include "Editor/Aet/Command/Commands.h"
-#include "Editor/Aet/AetIcons.h"
 #include "Input/KeyCode.h"
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
@@ -98,22 +97,22 @@ namespace Editor
 	{
 		const ImU32 alternativeRowColow = GetColor(EditorColor_AltRow);
 
-		float itemSpacing = Gui::GetStyle().ItemSpacing.y;
-		float lineHeight = Gui::GetTextLineHeight() + itemSpacing;
+		const float itemSpacing = Gui::GetStyle().ItemSpacing.y;
+		const float lineHeight = Gui::GetTextLineHeight() + itemSpacing;
 
-		ImGuiWindow* window = Gui::GetCurrentWindowRead();
+		const ImGuiWindow* window = Gui::GetCurrentWindowRead();
 
 		float scrollY = window->Scroll.y;
-		float scrolledOutLines = floorf(scrollY / lineHeight);
+		const float scrolledOutLines = floorf(scrollY / lineHeight);
 		scrollY -= lineHeight * scrolledOutLines;
 
-		ImVec2 clipRectMin(Gui::GetWindowPos().x, Gui::GetWindowPos().y);
-		ImVec2 clipRectMax(clipRectMin.x + Gui::GetWindowWidth(), clipRectMin.y + Gui::GetWindowHeight());
+		const vec2 clipRectMin = vec2(Gui::GetWindowPos().x, Gui::GetWindowPos().y);
+		const vec2 clipRectMax = vec2(clipRectMin.x + Gui::GetWindowWidth(), clipRectMin.y + Gui::GetWindowHeight());
 
-		float yMin = clipRectMin.y - scrollY + Gui::GetCursorPosY();
-		float yMax = clipRectMax.y - scrollY + lineHeight;
-		float xMin = clipRectMin.x + window->Scroll.x + window->ContentsRegionRect.Min.x - window->Pos.x;
-		float xMax = clipRectMin.x + window->Scroll.x + window->ContentsRegionRect.Max.x - window->Pos.x;
+		const float yMin = clipRectMin.y - scrollY + Gui::GetCursorPosY();
+		const float yMax = clipRectMax.y - scrollY + lineHeight;
+		const float xMin = clipRectMin.x + window->Scroll.x + window->ContentsRegionRect.Min.x - window->Pos.x;
+		const float xMax = clipRectMin.x + window->Scroll.x + window->ContentsRegionRect.Max.x - window->Pos.x;
 
 		bool isOdd = fmod(scrolledOutLines, 2.0f) == 0.0f;
 		for (float y = yMin; y < yMax; y += lineHeight)
@@ -128,7 +127,7 @@ namespace Editor
 
 	void AetTreeView::DrawTreeViewAetSet(const RefPtr<AetSet>& aetSet)
 	{
-		bool aetSetNodeOpen = Gui::WideTreeNodeEx(aetSet.get(), HeaderTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str());
+		const bool aetSetNodeOpen = Gui::WideTreeNodeEx(aetSet.get(), HeaderTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str());
 		Gui::ItemContextMenu("AetSettAetContextMenu##AetTreeView", [this, &aetSet]()
 		{
 			Gui::Text("AetSet: %s", aetSet->Name.c_str());
@@ -170,7 +169,7 @@ namespace Editor
 		if (aet.get() == selectedAetItem->Ptrs.Aet || aet.get() == lastHoveredAetItem.Ptrs.Aet)
 			aetNodeFlags |= ImGuiTreeNodeFlags_Selected;
 
-		bool aetNodeOpen = Gui::WideTreeNodeEx(FormatAetNodeName(aet), aetNodeFlags);
+		const bool aetNodeOpen = Gui::WideTreeNodeEx(aet.get(), aetNodeFlags, "Aet: %s", aet->Name.c_str());
 
 		if (Gui::IsItemClicked())
 			SetSelectedItems(aet);
@@ -222,16 +221,15 @@ namespace Editor
 		if (aetLayer->size() < 1)
 			layerNodeFlags |= ImGuiTreeNodeFlags_Leaf;
 
+		aetLayer->GuiData.TreeViewScrollY = Gui::GetCursorPos().y;
 		if (aetLayer->GuiData.AppendOpenNode)
 		{
 			Gui::SetNextTreeNodeOpen(true);
 			aetLayer->GuiData.AppendOpenNode = false;
 		}
 
-		ImVec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
-		bool aetLayerNodeOpen = Gui::WideTreeNodeEx("##AetLayerTreeNode", layerNodeFlags);
-
-		aetLayer->GuiData.TreeViewScrollY = Gui::GetCursorPos().y;
+		const vec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
+		const bool aetLayerNodeOpen = Gui::WideTreeNodeEx("##AetLayerTreeNode", layerNodeFlags);
 
 		bool openAddAetObjPopup = false;
 		Gui::ItemContextMenu("AetLayerContextMenu##AetTreeView", [this, &aet, &aetLayer, &openAddAetObjPopup, isRoot]()
@@ -245,13 +243,27 @@ namespace Editor
 
 		bool textHightlighted = false;
 		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::AetObj)
-			textHightlighted = aetLayer.get() == selectedAetItem->GetAetObjRef()->GetReferencedLayer().get();
+			textHightlighted = (aetLayer.get() == selectedAetItem->GetAetObjRef()->GetReferencedLayer().get());
 
 		if (textHightlighted)
 			Gui::PushStyleColor(ImGuiCol_Text, GetColor(EditorColor_TextHighlight));
 
-		Gui::SetCursorScreenPos(treeNodeCursorPos + ImVec2(GImGui->FontSize + GImGui->Style.FramePadding.x, 0));
-		Gui::TextUnformatted(FormatLayerNodeName(aetLayer, aetLayerNodeOpen, isRoot));
+		// NOTE: Node label
+		{
+			const vec2 nodeLabelCursorPos = treeNodeCursorPos + vec2(GImGui->FontSize + GImGui->Style.FramePadding.x, 0.0f);
+			constexpr vec2 iconLabelOffset = vec2(20.0f, 0.0f);
+
+			const char* layerNameStart = aetLayer->GetName().c_str();
+			const char* layerNameEnd = layerNameStart + aetLayer->GetName().size();
+
+			// NOTE: Layer icon
+			Gui::SetCursorScreenPos(nodeLabelCursorPos);
+			Gui::TextUnformatted(aetLayerNodeOpen ? ICON_AETLAYER_OPEN : ICON_AETLAYER);
+
+			// NOTE: Layer name
+			Gui::SetCursorScreenPos(nodeLabelCursorPos + iconLabelOffset);
+			Gui::TextUnformatted(layerNameStart, layerNameEnd);
+		}
 
 		if (textHightlighted)
 			Gui::PopStyleColor();
@@ -261,14 +273,14 @@ namespace Editor
 
 		if (openAddAetObjPopup)
 		{
-			Gui::OpenPopup(AddAetObjPopupID);
+			Gui::OpenPopup(addAetObjPopupID);
 			*addAetObjDialog.GetIsGuiOpenPtr() = true;
 		}
 
-		if (Gui::BeginPopupModal(AddAetObjPopupID, addAetObjDialog.GetIsGuiOpenPtr(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+		if (Gui::BeginPopupModal(addAetObjPopupID, addAetObjDialog.GetIsGuiOpenPtr(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 		{
 			ImGuiViewport* viewPort = Gui::GetMainViewport();
-			ImGuiWindow* window = Gui::FindWindowByName(AddAetObjPopupID);
+			ImGuiWindow* window = Gui::FindWindowByName(addAetObjPopupID);
 			Gui::SetWindowPos(window, viewPort->Pos + viewPort->Size / 8, ImGuiCond_Always);
 			Gui::SetWindowSize(window, viewPort->Size * .75f, ImGuiCond_Always);
 
@@ -303,14 +315,36 @@ namespace Editor
 
 			const vec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
 
-			const char* objNodeName = FormatObjNodeName(aetObj);
-			if (Gui::Selectable(objNodeName, isSelected) && !isCameraSelected)
+			if (Gui::Selectable("##AetObjNode", isSelected) && !isCameraSelected)
 				SetSelectedItems(aetObj, aetLayer);
+
+			// NOTE: Node label
+			{
+				constexpr vec2 iconLabelOffset = vec2(20.0f, 0.0f);
+
+				const char* objNameStart = aetObj->GetName().c_str();
+				const char* objNameEnd = objNameStart + aetObj->GetName().size();
+
+				// NOTE: Layer icon
+				Gui::SetCursorScreenPos(treeNodeCursorPos);
+				Gui::TextUnformatted(GetObjTypeIcon(aetObj->Type));
+
+				// NOTE: Layer name
+				Gui::SetCursorScreenPos(treeNodeCursorPos + iconLabelOffset);
+				Gui::TextUnformatted(objNameStart, objNameEnd);
+
+				// NOTE: Use texture mask indicator
+				if (aetObj->AnimationData != nullptr && aetObj->AnimationData->UseTextureMask)
+				{
+					Gui::SetCursorScreenPos(treeNodeCursorPos + iconLabelOffset + vec2(Gui::CalcTextSize(objNameStart, objNameEnd).x, 0.0f));
+					Gui::TextUnformatted(textureMaskIndicator);
+				}
+			}
 
 			if (cameraSelectedAetItem->Ptrs.AetObj == aetObj.get())
 				DrawTreeNodeCameraIcon(treeNodeCursorPos);
 
-			if (aetObj->Type == AetObjType::Eff && Gui::IsItemHoveredDelayed(ImGuiHoveredFlags_None, LayerPreviewTooltipHoverDelay) && aetObj->GetReferencedLayer())
+			if (aetObj->Type == AetObjType::Eff && Gui::IsItemHoveredDelayed(ImGuiHoveredFlags_None, layerPreviewTooltipHoverDelay) && aetObj->GetReferencedLayer())
 				DrawAetLayerPreviewTooltip(aetObj->GetReferencedLayer());
 
 			aetObj->GuiData.TreeViewScrollY = Gui::GetCursorPos().y;
@@ -331,7 +365,7 @@ namespace Editor
 		// TODO: Does not work 100% correctly with all style settings but should be fine for now
 
 		const vec2 cursorPos = Gui::GetCursorScreenPos();
-		Gui::SetCursorScreenPos(vec2(GImGui->CurrentWindow->Pos.x + GImGui->Style.FramePadding.x - GImGui->CurrentWindow->Scroll.x, cursorPos.y - 1));
+		Gui::SetCursorScreenPos(vec2(GImGui->CurrentWindow->Pos.x + GImGui->Style.FramePadding.x - GImGui->CurrentWindow->Scroll.x, cursorPos.y - 1.0f));
 		{
 			bool isCameraSelected = aetObj.get() == cameraSelectedAetItem->Ptrs.AetObj;
 
@@ -348,7 +382,7 @@ namespace Editor
 
 			// TODO: It'd be nice to have some visual feedback for the hovered item inside the render window
 			if (Gui::IsItemHovered())
-				Gui::GetWindowDrawList()->AddText(smallButtonPosition + vec2(0.0f, 1), Gui::GetColorU32(ImGuiCol_TextDisabled), ICON_CAMERA);
+				Gui::GetWindowDrawList()->AddText(smallButtonPosition + vec2(0.0f, 1.0f), Gui::GetColorU32(ImGuiCol_TextDisabled), ICON_CAMERA);
 		}
 		Gui::SetCursorScreenPos(cursorPos);
 	}
@@ -447,14 +481,14 @@ namespace Editor
 	{
 		Gui::WideTooltip([this, &aetLayer]()
 		{
-			Gui::TextUnformatted(FormatLayerNodeName(aetLayer, false));
+			Gui::Text(ICON_AETLAYER "  %s (Layer %d)", aetLayer->GetName().c_str(), aetLayer->GuiData.ThisIndex);
 			Gui::Separator();
 
 			int layerIndex = 0;
 
 			for (auto& obj : *aetLayer)
 			{
-				if (layerIndex++ > LayerPreviewMaxConunt)
+				if (layerIndex++ > layerPreviewMaxConunt)
 				{
 					Gui::Text(ICON_FA_ELLIPSIS_H);
 					break;
@@ -468,153 +502,8 @@ namespace Editor
 
 	void AetTreeView::DrawTreeNodeCameraIcon(const vec2& treeNodeCursorPos) const
 	{
-		GImGui->CurrentWindow->DrawList->AddText(
-			vec2(GImGui->CurrentWindow->Pos.x + GImGui->Style.FramePadding.x - GImGui->CurrentWindow->Scroll.x, treeNodeCursorPos.y),
-			Gui::GetColorU32(ImGuiCol_Text),
-			ICON_CAMERA);
-	}
-
-	const char* AetTreeView::FormatAetNodeName(const RefPtr<Aet>& aet)
-	{
-		const int nameLength = sizeof(nodeNameFormatBuffer) - 12;
-
-		sprintf_s(nodeNameFormatBuffer,
-			"Aet: %s",
-			aet->Name.c_str());
-
-		return nodeNameFormatBuffer;
-	}
-
-	const char* AetTreeView::FormatLayerNodeName(const RefPtr<AetLayer>& aetLayer, bool nodeOpen, bool isRoot)
-	{
-		// NOTE: Special logic for root layer
-		if (isRoot)
-			return nodeOpen ? (ICON_AETLAYER_OPEN "  Root Layer") : (ICON_AETLAYER "  Root Layer");
-
-		// NOTE: Hand optimized to prevent high cpu usage ( (12.0 %) -> (< 2.0 %) )
-		char* buffer = nodeNameFormatBuffer;
-		char* endOfBuffer = nodeNameFormatBuffer + sizeof(nodeNameFormatBuffer);
-
-		// NOTE: Append the layer icon
-		{
-			const char* layerIcon = nodeOpen ? ICON_AETLAYER_OPEN : ICON_AETLAYER;
-			const size_t layerIconLength = std::strlen(layerIcon);
-
-			std::memcpy(buffer, layerIcon, layerIconLength);
-			buffer += layerIconLength;
-		}
-
-		// NOTE: Append the layer string
-		{
-			const char* layerString = "  Layer ";
-			const size_t layerStringLength = std::strlen(layerString);
-
-			std::memcpy(buffer, layerString, layerStringLength);
-			buffer += layerStringLength;
-		}
-
-		// NOTE: Append layer index
-		{
-			ptrdiff_t remainingSize = endOfBuffer - buffer;
-			_itoa_s(aetLayer->GuiData.ThisIndex, buffer, (endOfBuffer - buffer), 10);
-			buffer += std::strlen(buffer);
-		}
-
-		// NOTE: Append given names
-		{
-			ptrdiff_t remainingSize = endOfBuffer - buffer;
-			strcat_s(buffer, remainingSize, " (");
-			buffer += 2;
-
-			const auto& givenNames = aetLayer->GetName();
-			remainingSize = endOfBuffer - buffer;
-			if (static_cast<ptrdiff_t>(givenNames.size()) > (remainingSize - 3))
-			{
-				strncat_s(buffer, remainingSize, givenNames.c_str(), remainingSize - 3);
-				buffer += std::strlen(buffer);
-			}
-			else
-			{
-				strcat_s(buffer, remainingSize, givenNames.c_str());
-				buffer += givenNames.size();
-			}
-		}
-
-		*(buffer + 0) = ')';
-		*(buffer + 1) = '\0';
-
-		if (nodeBufferCookie != nodeBufferCookieValue)
-			assert(false);
-
-		return nodeNameFormatBuffer;
-	}
-
-	const char* AetTreeView::FormatObjNodeName(const RefPtr<AetObj>& aetObj)
-	{
-		// NOTE: Hand optimized to prevent high cpu usage
-		char* buffer = nodeNameFormatBuffer;
-		char* endOfBuffer = nodeNameFormatBuffer + sizeof(nodeNameFormatBuffer);
-
-		// NOTE: Append the object icon
-		{
-			const char* typeIcon = GetObjTypeIcon(aetObj->Type);
-			const size_t typeIconLength = std::strlen(typeIcon);
-
-			std::memcpy(buffer, typeIcon, typeIconLength);
-			buffer += typeIconLength;
-			for (int i = 0; i < 2; i++)
-				*(buffer++) = ' ';
-		}
-
-		// NOTE: Copy as much of the name as possible
-		{
-			const auto& name = aetObj->GetName();
-			ptrdiff_t remainingSize = endOfBuffer - buffer;
-			ptrdiff_t nameLength = std::min(remainingSize, static_cast<ptrdiff_t>(name.size()));
-
-			std::memcpy(buffer, name.data(), nameLength);
-			buffer += nameLength;
-		}
-
-		ptrdiff_t remainingSize = endOfBuffer - buffer;
-
-		// NOTE: Check for texture mask
-		{
-			const char* textureMaskIndicator = "  ( " ICON_FA_LINK " )";
-			const ptrdiff_t textureMaskIndicatorLength = std::strlen(textureMaskIndicator);
-
-			if (aetObj->AnimationData && aetObj->AnimationData->UseTextureMask)
-			{
-				if (remainingSize > textureMaskIndicatorLength)
-				{
-					// NOTE: Append the texture mask indicator
-					std::memcpy(buffer, textureMaskIndicator, textureMaskIndicatorLength);
-
-					buffer += textureMaskIndicatorLength;
-					remainingSize = endOfBuffer - buffer;
-				}
-			}
-		}
-
-		if (remainingSize >= 1)
-		{
-			// NOTE: Add a null byte
-			*buffer = '\0';
-		}
-		else
-		{
-			// NOTE: Overwrite the last 3 characters with "..." then add a null byte
-			char* lastCharacter = endOfBuffer - 1;
-
-			for (int i = 1; i < 4; i++)
-				*(lastCharacter - i) = '.';
-			*(lastCharacter) = '\0';
-		}
-
-		if (nodeBufferCookie != nodeBufferCookieValue)
-			assert(false);
-
-		return nodeNameFormatBuffer;
+		const vec2 textPosition = vec2(GImGui->CurrentWindow->Pos.x + GImGui->Style.FramePadding.x - GImGui->CurrentWindow->Scroll.x, treeNodeCursorPos.y);
+		GImGui->CurrentWindow->DrawList->AddText(textPosition, Gui::GetColorU32(ImGuiCol_Text), ICON_CAMERA);
 	}
 
 	const char* AetTreeView::FormatRegionNodeName(const RefPtr<AetRegion>& region, int32_t index)
