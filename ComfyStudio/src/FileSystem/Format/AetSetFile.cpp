@@ -302,142 +302,134 @@ namespace FileSystem
 			}
 
 			assert(RootLayer != nullptr);
-			if (Layers.size() > 0)
+			writer.WriteUInt32(static_cast<uint32_t>(Layers.size()) + 1);
+			writer.WritePtr([this](BinaryWriter& writer)
 			{
-				writer.WriteUInt32(static_cast<uint32_t>(Layers.size()) + 1);
-				writer.WritePtr([this](BinaryWriter& writer)
+				const auto writeLayerFunction = [](BinaryWriter& writer, const RefPtr<AetLayer>& layer)
 				{
-					const auto writeLayerFunction = [](BinaryWriter& writer, const RefPtr<AetLayer>& layer) 
+					layer->filePosition = writer.GetPositionPtr();
+					if (layer->size() > 0)
 					{
-						layer->filePosition = writer.GetPositionPtr();
-						if (layer->size() > 0)
+						writer.WriteUInt32(static_cast<uint32_t>(layer->size()));
+						writer.WritePtr([&layer](BinaryWriter& writer)
 						{
-							writer.WriteUInt32(static_cast<uint32_t>(layer->size()));
-							writer.WritePtr([&layer](BinaryWriter& writer)
+							for (RefPtr<AetObj>& obj : *layer)
 							{
-								for (RefPtr<AetObj>& obj : *layer)
+								obj->filePosition = writer.GetPositionPtr();
+								writer.WriteStrPtr(&obj->name);
+								writer.WriteFloat(obj->LoopStart);
+								writer.WriteFloat(obj->LoopEnd);
+								writer.WriteFloat(obj->StartOffset);
+								writer.WriteFloat(obj->PlaybackSpeed);
+								writer.Write<AetObjFlags>(obj->Flags);
+								writer.WriteUInt8(obj->TypePaddingByte);
+								writer.Write<AetObjType>(obj->Type);
+
+								bool hasData =
+									(obj->Type == AetObjType::Pic && obj->GetReferencedRegion() != nullptr) ||
+									(obj->Type == AetObjType::Aif && obj->GetReferencedSoundEffect() != nullptr) ||
+									(obj->Type == AetObjType::Eff && obj->GetReferencedLayer() != nullptr);
+
+								if (hasData)
 								{
-									obj->filePosition = writer.GetPositionPtr();
-									writer.WriteStrPtr(&obj->name);
-									writer.WriteFloat(obj->LoopStart);
-									writer.WriteFloat(obj->LoopEnd);
-									writer.WriteFloat(obj->StartOffset);
-									writer.WriteFloat(obj->PlaybackSpeed);
-									writer.Write<AetObjFlags>(obj->Flags);
-									writer.WriteUInt8(obj->TypePaddingByte);
-									writer.Write<AetObjType>(obj->Type);
-
-									bool hasData =
-										(obj->Type == AetObjType::Pic && obj->GetReferencedRegion() != nullptr) ||
-										(obj->Type == AetObjType::Aif && obj->GetReferencedSoundEffect() != nullptr) ||
-										(obj->Type == AetObjType::Eff && obj->GetReferencedLayer() != nullptr);
-
-									if (hasData)
+									writer.WriteDelayedPtr([&obj](BinaryWriter& writer)
 									{
-										writer.WriteDelayedPtr([&obj](BinaryWriter& writer)
-										{
-											void* filePosition =
-												(obj->Type == AetObjType::Pic) ? obj->GetReferencedRegion()->filePosition :
-												(obj->Type == AetObjType::Aif) ? obj->GetReferencedSoundEffect()->filePosition :
-												obj->GetReferencedLayer()->filePosition;
+										void* filePosition =
+											(obj->Type == AetObjType::Pic) ? obj->GetReferencedRegion()->filePosition :
+											(obj->Type == AetObjType::Aif) ? obj->GetReferencedSoundEffect()->filePosition :
+											obj->GetReferencedLayer()->filePosition;
 
-											writer.WritePtr(filePosition);
-										});
-									}
-									else
-									{
-										writer.WritePtr(nullptr); // Data offset
-									}
-
-									if (obj->GetReferencedParentObj() != nullptr)
-									{
-										writer.WriteDelayedPtr([&obj](BinaryWriter& writer)
-										{
-											writer.WritePtr(obj->GetReferencedParentObj()->filePosition);
-										});
-									}
-									else
-									{
-										writer.WritePtr(nullptr); // Parent offset
-									}
-
-									if (obj->Markers.size() > 0)
-									{
-										writer.WriteUInt32(static_cast<uint32_t>(obj->Markers.size()));
-										writer.WritePtr([&obj](BinaryWriter& writer)
-										{
-											for (RefPtr<AetMarker>& marker : obj->Markers)
-											{
-												writer.WriteFloat(marker->Frame);
-												writer.WriteStrPtr(&marker->Name);
-											}
-										});
-									}
-									else
-									{
-										writer.WriteUInt32(0x00000000); // Markers size
-										writer.WritePtr(nullptr);		// Markers offset
-									}
-
-									if (obj->AnimationData != nullptr)
-									{
-										AnimationData& animationData = *obj->AnimationData.get();
-										writer.WritePtr([&animationData](BinaryWriter& writer)
-										{
-											writer.Write<AetBlendMode>(animationData.BlendMode);
-											writer.WriteUInt8(0x00);
-											writer.WriteBool(animationData.UseTextureMask);
-											writer.WriteUInt8(0x00);
-
-											WriteKeyFrameProperties(&animationData.Properties, writer);
-
-											if (animationData.PerspectiveProperties != nullptr)
-											{
-												writer.WritePtr([&animationData](BinaryWriter& writer)
-												{
-													WriteKeyFrameProperties(animationData.PerspectiveProperties.get(), writer);
-													writer.WriteAlignmentPadding(16);
-												});
-											}
-											else
-											{
-												writer.WritePtr(nullptr); // PerspectiveProperties offset
-											}
-
-											writer.WriteAlignmentPadding(16);
-										});
-									}
-									else
-									{
-										writer.WritePtr(nullptr); // AnimationData offset
-									}
-
-									// TODO: unknownFilePtr
-									writer.WritePtr(nullptr); // extra data offset
+										writer.WritePtr(filePosition);
+									});
+								}
+								else
+								{
+									writer.WritePtr(nullptr); // Data offset
 								}
 
-								writer.WriteAlignmentPadding(16);
-							});
-						}
-						else
-						{
-							writer.WriteUInt32(0x00000000); // AetLayer size
-							writer.WritePtr(nullptr);		// AetLayer offset
-						}
-					};
+								if (obj->GetReferencedParentObj() != nullptr)
+								{
+									writer.WriteDelayedPtr([&obj](BinaryWriter& writer)
+									{
+										writer.WritePtr(obj->GetReferencedParentObj()->filePosition);
+									});
+								}
+								else
+								{
+									writer.WritePtr(nullptr); // Parent offset
+								}
 
-					for (RefPtr<AetLayer>& layer : Layers)
-						writeLayerFunction(writer, layer);
-					writeLayerFunction(writer, RootLayer);
+								if (obj->Markers.size() > 0)
+								{
+									writer.WriteUInt32(static_cast<uint32_t>(obj->Markers.size()));
+									writer.WritePtr([&obj](BinaryWriter& writer)
+									{
+										for (RefPtr<AetMarker>& marker : obj->Markers)
+										{
+											writer.WriteFloat(marker->Frame);
+											writer.WriteStrPtr(&marker->Name);
+										}
+									});
+								}
+								else
+								{
+									writer.WriteUInt32(0x00000000); // Markers size
+									writer.WritePtr(nullptr);		// Markers offset
+								}
 
-					writer.WriteAlignmentPadding(16);
-				});
-			}
-			else
-			{
-				writer.WriteUInt32(0x00000000); // AetLayers size
-				writer.WritePtr(nullptr);		// AetLayers offset
-			}
+								if (obj->AnimationData != nullptr)
+								{
+									AnimationData& animationData = *obj->AnimationData.get();
+									writer.WritePtr([&animationData](BinaryWriter& writer)
+									{
+										writer.Write<AetBlendMode>(animationData.BlendMode);
+										writer.WriteUInt8(0x00);
+										writer.WriteBool(animationData.UseTextureMask);
+										writer.WriteUInt8(0x00);
+
+										WriteKeyFrameProperties(&animationData.Properties, writer);
+
+										if (animationData.PerspectiveProperties != nullptr)
+										{
+											writer.WritePtr([&animationData](BinaryWriter& writer)
+											{
+												WriteKeyFrameProperties(animationData.PerspectiveProperties.get(), writer);
+												writer.WriteAlignmentPadding(16);
+											});
+										}
+										else
+										{
+											writer.WritePtr(nullptr); // PerspectiveProperties offset
+										}
+
+										writer.WriteAlignmentPadding(16);
+									});
+								}
+								else
+								{
+									writer.WritePtr(nullptr); // AnimationData offset
+								}
+
+								// TODO: unknownFilePtr
+								writer.WritePtr(nullptr); // extra data offset
+							}
+
+							writer.WriteAlignmentPadding(16);
+						});
+					}
+					else
+					{
+						writer.WriteUInt32(0x00000000); // AetLayer size
+						writer.WritePtr(nullptr);		// AetLayer offset
+					}
+				};
+
+				for (RefPtr<AetLayer>& layer : Layers)
+					writeLayerFunction(writer, layer);
+				writeLayerFunction(writer, RootLayer);
+
+				writer.WriteAlignmentPadding(16);
+			});
 
 			if (Regions.size() > 0)
 			{
