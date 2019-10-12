@@ -229,7 +229,7 @@ namespace Editor
 		}
 
 		const vec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
-		const bool aetLayerNodeOpen = Gui::WideTreeNodeEx("##AetLayerTreeNode", layerNodeFlags);
+		const bool aetLayerNodeOpen = Gui::WideTreeNodeEx("##AetLayerNode", layerNodeFlags);
 
 		bool openAddAetObjPopup = false;
 		Gui::ItemContextMenu("AetLayerContextMenu##AetTreeView", [this, &aet, &aetLayer, &openAddAetObjPopup, isRoot]()
@@ -318,6 +318,11 @@ namespace Editor
 			if (Gui::Selectable("##AetObjNode", isSelected) && !isCameraSelected)
 				SetSelectedItems(aetObj, aetLayer);
 
+			Gui::ItemContextMenu("AetObjContextMenu##AetInspector", [this, &aetLayer, &aetObj]()
+			{
+				DrawAetObjContextMenu(aetLayer, aetObj);
+			});
+
 			// NOTE: Node label
 			{
 				constexpr vec2 iconLabelOffset = vec2(20.0f, 0.0f);
@@ -333,7 +338,7 @@ namespace Editor
 				Gui::SetCursorScreenPos(treeNodeCursorPos + iconLabelOffset);
 				Gui::TextUnformatted(objNameStart, objNameEnd);
 
-				// NOTE: Use texture mask indicator
+				// NOTE: Texture mask indicator
 				if (aetObj->AnimationData != nullptr && aetObj->AnimationData->UseTextureMask)
 				{
 					Gui::SetCursorScreenPos(treeNodeCursorPos + iconLabelOffset + vec2(Gui::CalcTextSize(objNameStart, objNameEnd).x, 0.0f));
@@ -348,11 +353,6 @@ namespace Editor
 				DrawAetLayerPreviewTooltip(aetObj->GetReferencedLayer());
 
 			aetObj->GuiData.TreeViewScrollY = Gui::GetCursorPos().y;
-
-			Gui::ItemContextMenu("AetObjContextMenu##AetInspector", [this, &aetLayer, &aetObj]()
-			{
-				DrawAetObjContextMenu(aetLayer, aetObj);
-			});
 
 			if (aetObj->Type == AetObjType::Eff && (Gui::IsItemHovered() || aetObj.get() == selectedAetItem->Ptrs.AetObj))
 				hoveredAetItem.SetItem(aetObj->GetReferencedLayer());
@@ -430,24 +430,57 @@ namespace Editor
 
 	bool AetTreeView::DrawAetLayerContextMenu(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, bool isRoot)
 	{
-		Gui::Text(ICON_AETLAYER "  %s", aetLayer->GetName().c_str());
+		if (isRoot)
+			Gui::Text(ICON_AETLAYER "  %s", aetLayer->GetName().c_str());
+		else
+			Gui::Text(ICON_AETLAYER "  %s (Layer %d)", aetLayer->GetName().c_str(), aetLayer->GuiData.ThisIndex);
 		Gui::Separator();
 
-		if (Gui::BeginMenu(ICON_ADD "  Add new AetObj..."))
+		constexpr bool todoImplemented = false;
+		if (todoImplemented && Gui::BeginMenu(ICON_ADD "  Add new AetObj..."))
 		{
-			// TODO: loop through layer objects to search for previous null_%d objects and increment index
-			if (Gui::MenuItem(ICON_AETOBJPIC "  Image")) {} // { aetLayer->AddNewObject(AetObjType::Pic, "null_00"); }
-			if (Gui::MenuItem(ICON_AETOBJEFF "  Layer")) {} // { aetLayer->AddNewObject(AetObjType::Eff, "null_eff"); }
-			if (Gui::MenuItem(ICON_AETOBJAIF "  Sound Effect")) {} // { aetLayer->AddNewObject(AetObjType::Aif, "null.aif"); }
+			// TODO: Or maybe this should only be doable inside the timeline itself (?)
+			if (Gui::MenuItem(ICON_AETOBJPIC "  Image")) {}
+			if (Gui::MenuItem(ICON_AETOBJEFF "  Layer")) {}
+			if (Gui::MenuItem(ICON_AETOBJAIF "  Sound Effect")) {}
 			Gui::EndMenu();
 		}
 
-		if (!isRoot)
+		if (Gui::BeginMenu(ICON_FA_EXTERNAL_LINK_ALT "  Used by...", !isRoot))
 		{
-			if (Gui::MenuItem(ICON_MOVEUP "  Move Up")) {}
-			if (Gui::MenuItem(ICON_MOVEDOWN "  Move Down")) {}
-			if (Gui::MenuItem(ICON_DELETE "  Delete Layer")) {} // TODO: layerToDelete = { &aet, &aetLayer};
+			layerUsagesBuffer.clear();
+			Graphics::Auth2D::AetMgr::FindAddLayerUsages(aet, aetLayer, layerUsagesBuffer);
+
+			// NOTE: Count menu item
+			Gui::Text("Usage Count: %zu", layerUsagesBuffer.size());
+
+			// NOTE: Usage menu items
+			for (const auto& layerUsingObjectPointer : layerUsagesBuffer)
+			{
+				const RefPtr<AetObj>& layerUsingObject = *layerUsingObjectPointer;
+
+				sprintf_s(nodeNameFormatBuffer,
+					ICON_AETLAYER "  %s,   %s  %s",
+					layerUsingObject->GetParentLayer()->GetName().c_str(),
+					GetObjTypeIcon(layerUsingObject->Type),
+					layerUsingObject->GetName().c_str());
+
+				if (Gui::MenuItem(nodeNameFormatBuffer))
+				{
+					SetSelectedItems(layerUsingObject);
+					// NOTE: Scroll to parent first to open the node
+					ScrollToGuiData(layerUsingObject->GetParentLayer()->GuiData);
+					// BUG: The scroll y position won't yet have been set if the layer node was previously closed
+					ScrollToGuiData(layerUsingObject->GuiData);
+				}
+			}
+
+			Gui::EndMenu();
 		}
+
+		if (Gui::MenuItem(ICON_MOVEUP "  Move Up", nullptr, nullptr, !isRoot && todoImplemented)) {}
+		if (Gui::MenuItem(ICON_MOVEDOWN "  Move Down", nullptr, nullptr, !isRoot && todoImplemented)) {}
+		if (Gui::MenuItem(ICON_DELETE "  Delete Layer", nullptr, nullptr, !isRoot && todoImplemented)) {} 
 
 		return false;
 	}
@@ -461,7 +494,6 @@ namespace Editor
 			if (Gui::MenuItem(ICON_FA_ARROW_RIGHT "  Jump to Layer"))
 			{
 				ScrollToGuiData(aetObj->GetReferencedLayer()->GuiData);
-
 				// NOTE: Make it clear which layer was the jump target
 				SetSelectedItems(aetObj);
 			}
@@ -470,9 +502,10 @@ namespace Editor
 		Gui::Separator();
 
 		// TODO:
-		if (Gui::MenuItem(ICON_MOVEUP "  Move Up")) {}
-		if (Gui::MenuItem(ICON_MOVEDOWN "  Move Down")) {}
-		if (Gui::MenuItem(ICON_DELETE "  Delete Object")) {} // TODO: { objToDelete = { &aetLayer, &aetObj }; }
+		constexpr bool todoImplemented = false;
+		if (Gui::MenuItem(ICON_MOVEUP "  Move Up", nullptr, nullptr, todoImplemented)) {}
+		if (Gui::MenuItem(ICON_MOVEDOWN "  Move Down", nullptr, nullptr, todoImplemented)) {}
+		if (Gui::MenuItem(ICON_DELETE "  Delete Object", nullptr, nullptr, todoImplemented)) {}
 
 		return false;
 	}
@@ -495,7 +528,6 @@ namespace Editor
 				}
 
 				Gui::Text("%s  %s", GetObjTypeIcon(obj->Type), obj->GetName().c_str());
-
 			}
 		});
 	}
@@ -512,13 +544,13 @@ namespace Editor
 		{
 			if (region->SpriteCount() > 1)
 			{
-				sprintf_s(nodeNameFormatBuffer, ICON_AETREGION "  Region %d (%s - %s)", index,
+				sprintf_s(nodeNameFormatBuffer, ICON_AETREGION "  %s - %s",
 					region->GetFrontSprite()->Name.c_str(),
 					region->GetBackSprite()->Name.c_str());
 			}
 			else
 			{
-				sprintf_s(nodeNameFormatBuffer, ICON_AETREGION "  Region %d (%s)", index,
+				sprintf_s(nodeNameFormatBuffer, ICON_AETREGION "  %s",
 					region->GetFrontSprite()->Name.c_str());
 			}
 		}
