@@ -261,7 +261,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\Graphics\Shader\ShaderProgram.cpp" />
-    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\EntryPoint.cpp" />
     <ClCompile Include="src\Graphics\Texture\Texture.cpp" />
     <ClCompile Include="src\Graphics\VertexArray.cpp" />
     <ClCompile Include="src\Graphics\Buffer.cpp" />

@@ -55,7 +55,7 @@ dev_rom/
 ComfyStudio/src/System/Version/BuildVersion.h
 
 # Comfy test files
-ComfyStudio/src/main_test.cpp
+ComfyStudio/src/MainTest.cpp
 
 # Benchmark Results
 BenchmarkDotNet.Artifacts/
