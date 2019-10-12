@@ -254,12 +254,6 @@
     <ClCompile Include="src\ImGui\Implementation\ImGui_Impl_Renderer.cpp" />
     <ClCompile Include="src\ImGui\Core\imgui_widgets.cpp" />
     <ClCompile Include="src\Misc\StringHelper.cpp" />
-    <ClCompile Include="src\pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</PrecompiledHeaderFile>
-    </ClCompile>
     <ClCompile Include="src\Graphics\Shader\ShaderProgram.cpp" />
     <ClCompile Include="src\EntryPoint.cpp" />
     <ClCompile Include="src\Graphics\Texture\Texture.cpp" />
@@ -437,7 +431,6 @@
     <ClInclude Include="src\ImGui\Core\imstb_textedit.h" />
     <ClInclude Include="src\ImGui\Core\imstb_truetype.h" />
     <ClInclude Include="src\Misc\StringHelper.h" />
-    <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\Graphics\Shader\ShaderProgram.h" />
     <ClInclude Include="src\Graphics\Texture\Texture.h" />
     <ClInclude Include="src\Graphics\VertexArray.h" />

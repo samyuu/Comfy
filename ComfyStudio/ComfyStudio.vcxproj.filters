@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\pch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\DataTest\AudioTestWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -470,9 +467,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\pch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>

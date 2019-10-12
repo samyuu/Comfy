@@ -1,5 +1,4 @@
-﻿#include "pch.h"
-#include "Core/Application.h"
+﻿#include "Core/Application.h"
 #include "System/CommandLine/CommandLine.h"
 
 #define RUN_MAIN_TEST 0
