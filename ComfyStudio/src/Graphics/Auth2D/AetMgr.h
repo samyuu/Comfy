@@ -88,9 +88,14 @@ namespace Graphics::Auth2D
 		// NOTE: To be used after changing the LoopStart frame of an AetObj
 		static void OffsetAllKeyFrames(KeyFrameProperties& properties, frame_t frameIncrement);
 
+		// NOTE: Recursively add the properties of the parent obj to the input properties if there is one
 		static void OffsetByParentProperties(Properties& properties, const AetObj* parent, frame_t frame, int32_t& recursionCount);
 
+		// NOTE: To easily navigate between layer references in the tree view
+		static void FindAddLayerUsages(const RefPtr<Aet>& aetToSearch, const RefPtr<AetLayer>& layerToFind, Vector<RefPtr<AetObj>*>& outObjects);
+
 	private:
+
 		static void InternalAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);
 		static void InternalPicAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);
 		static void InternalEffAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);

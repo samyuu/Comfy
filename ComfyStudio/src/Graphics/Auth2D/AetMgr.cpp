@@ -192,6 +192,23 @@ namespace Graphics::Auth2D
 			OffsetByParentProperties(properties, parentParent, frame, recursionCount);
 	}
 
+	void AetMgr::FindAddLayerUsages(const RefPtr<Aet>& aetToSearch, const RefPtr<AetLayer>& layerToFind, Vector<RefPtr<AetObj>*>& outObjects)
+	{
+		const auto layerSearchFunction = [&layerToFind, &outObjects](const RefPtr<AetLayer>& layerToSearch)
+		{
+			for (RefPtr<AetObj>& object : *layerToSearch)
+			{
+				if (object->GetReferencedLayer() == layerToFind)
+					outObjects.push_back(&object);
+			}
+		};
+
+		layerSearchFunction(aetToSearch->RootLayer);
+
+		for (auto& layerToTest : aetToSearch->Layers)
+			layerSearchFunction(layerToTest);
+	}
+
 	void AetMgr::InternalAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)
 	{
 		if (aetObj->Type == AetObjType::Pic)
