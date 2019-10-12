@@ -176,7 +176,6 @@
     <ClCompile Include="src\FileSystem\Format\ObjSet.cpp" />
     <ClCompile Include="src\FileSystem\Format\ObjSetFile.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\Renderer3D.cpp" />
-    <ClCompile Include="src\Graphics\OpenGL\OpenGL.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\OpenGLLoader.cpp" />
     <ClCompile Include="src\Graphics\Texture\Texture2D.cpp" />
     <ClCompile Include="src\ImGui\Extensions\Theme.cpp" />

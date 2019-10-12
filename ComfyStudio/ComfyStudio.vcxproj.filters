@@ -276,9 +276,6 @@
     <ClCompile Include="src\Graphics\OpenGL\OpenGLLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\OpenGL\OpenGL.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Editor\Aet\Command\Commands.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
