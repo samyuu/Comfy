@@ -134,11 +134,13 @@ namespace ImGui
 		Text(label);
 		NextColumn();
 
+		PushDisabledTextColorIfDisabled();
 		PushItemWidth(GetContentRegionAvailWidth());
 		PushID(value);
 		bool valueChanged = InputInt("##ComfyInputInt", value, step, stepFast, flags);
 		PopID();
 		PopItemWidth();
+		PopDisabledTextColorIfDisabled();
 		NextColumn();
 
 		return valueChanged;

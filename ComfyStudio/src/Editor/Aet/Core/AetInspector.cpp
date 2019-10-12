@@ -126,9 +126,17 @@ namespace Editor
 			if (Gui::ComfyTextWidget("Name", layerNameBuffer, sizeof(layerNameBuffer), isRoot ? ImGuiInputTextFlags_ReadOnly : ImGuiInputTextFlags_None))
 				ProcessUpdatingAetCommand(GetCommandManager(), AetLayerChangeName, aetLayer, layerNameBuffer);
 
-			//Gui::Separator();
-			//for (const RefPtr<AetObj>& aetObj : *aetLayer)
-			//	Gui::Text("%s  %s", GetObjTypeIcon(aetObj->Type), aetObj->GetName().c_str());
+			// NOTE: Readonly properties
+			Gui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			{
+				int thisIndex = aetLayer->GuiData.ThisIndex;
+				Gui::ComfyIntTextWidget("Index", &thisIndex, 0, 0, ImGuiInputTextFlags_ReadOnly);
+
+				int objectCount = static_cast<int>(aetLayer->size());
+				Gui::ComfyIntTextWidget("Object Count", &objectCount, 0, 0, ImGuiInputTextFlags_ReadOnly);
+			}
+			Gui::PopItemFlag();
+
 			Gui::Separator();
 
 			PopDisableItemFlagIfPlayback();
