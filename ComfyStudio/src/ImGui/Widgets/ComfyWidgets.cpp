@@ -42,7 +42,7 @@ namespace ImGui
 			PopStyleColor();
 	}
 
-	bool ComfyDragText(const char* label, float* value, float speed, float min, float max, float width)
+	bool ComfyDragText(const char* stringID, const char* label, float* value, float speed, float min, float max, float width)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
 		if (window->SkipItems)
@@ -50,7 +50,7 @@ namespace ImGui
 
 		ImGuiContext& g = *GImGui;
 		const ImGuiStyle& style = g.Style;
-		const ImGuiID id = window->GetID(label);
+		const ImGuiID id = window->GetID(stringID);
 
 		ImVec2 labelSize = CalcTextSize(label, nullptr, true);
 		if (width > 0.0f)
@@ -198,7 +198,7 @@ namespace ImGui
 		RAII_ColumnsCount raiiColumns(2, nullptr, false);
 		SetColumnWidth(0, GetWindowWidth() * ColumnWidthFactor);
 
-		bool valueChanged = ComfyDragText(label, value, step, min, max);
+		bool valueChanged = ComfyDragText(label, label, value, step, min, max);
 		NextColumn();
 
 		PushItemWidth(GetContentRegionAvailWidth());
@@ -240,7 +240,7 @@ namespace ImGui
 			if (textDisabled)
 				PushStyleColor(ImGuiCol_Text, GImGui->Style.Colors[ImGuiCol_TextDisabled]);
 
-			valueChanged |= ComfyDragText(componentLabels[i], component, step, min, max, componentLabelWidth);
+			valueChanged |= ComfyDragText(componentLabels[i], componentLabels[i], component, step, min, max, componentLabelWidth);
 			SameLine(0.0f, 0.0f);
 
 			PushItemWidth(inputFloatWidth);

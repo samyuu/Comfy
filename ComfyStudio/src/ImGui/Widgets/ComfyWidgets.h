@@ -3,7 +3,7 @@
 
 namespace ImGui
 {
-	bool ComfyDragText(const char* label, float* value, float speed = 1.0f, float min = 0.0f, float max = 0.0f, const float width = 0.0f);
+	bool ComfyDragText(const char* stringID, const char* label, float* value, float speed = 1.0f, float min = 0.0f, float max = 0.0f, const float width = 0.0f);
 
 	bool ComfyCheckbox(const char* label, bool* value);
 	bool ComfyTextWidget(const char* label, char* buffer, size_t bufferSize, ImGuiInputTextFlags flags = 0);
