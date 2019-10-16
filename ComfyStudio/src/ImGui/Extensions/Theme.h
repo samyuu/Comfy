@@ -4,7 +4,7 @@
 
 namespace ImGui
 {
-	constexpr vec2 PopupWindowPadding = vec2(6.0f, 4.0f);
+	constexpr vec2 PopupWindowPadding = vec2(4.0f, 2.0f);
 
 	void StyleComfy(ImGuiStyle* dst = nullptr);
 }

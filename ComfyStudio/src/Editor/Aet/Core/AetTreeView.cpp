@@ -246,7 +246,7 @@ namespace Editor
 			textHightlighted = (aetLayer.get() == selectedAetItem->GetAetObjRef()->GetReferencedLayer().get());
 
 		if (textHightlighted)
-			Gui::PushStyleColor(ImGuiCol_Text, GetColor(EditorColor_TextHighlight));
+			Gui::PushStyleColor(ImGuiCol_Text, GetColor(EditorColor_TreeViewTextHighlight));
 
 		// NOTE: Node label
 		{
@@ -282,7 +282,7 @@ namespace Editor
 			ImGuiViewport* viewPort = Gui::GetMainViewport();
 			ImGuiWindow* window = Gui::FindWindowByName(addAetObjPopupID);
 			Gui::SetWindowPos(window, viewPort->Pos + viewPort->Size / 8, ImGuiCond_Always);
-			Gui::SetWindowSize(window, viewPort->Size * .75f, ImGuiCond_Always);
+			Gui::SetWindowSize(window, viewPort->Size * 0.75f, ImGuiCond_Always);
 
 			if (Gui::IsKeyPressed(KeyCode_Escape))
 				Gui::CloseCurrentPopup();
