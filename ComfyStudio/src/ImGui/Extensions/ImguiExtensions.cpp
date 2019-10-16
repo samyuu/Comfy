@@ -438,9 +438,11 @@ namespace ImGui
 	{
 		if (IsItemHoveredDelayed())
 		{
+			RAII_POPUP_WINDOW_PADDING();
+
 			va_list args;
 			va_start(args, fmt);
-			WideSetTooltip(fmt, args);
+			SetTooltipV(fmt, args);
 			va_end(args);
 		}
 	}
