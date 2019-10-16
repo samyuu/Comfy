@@ -53,6 +53,30 @@ namespace ImGui
 		return GImGui->HoveredWindow == hoveredWindowsOnMouseClicks[button];
 	}
 
+	void PushItemDisabledAndTextColorIf(bool condition)
+	{
+		if (condition)
+			PushItemDisabledAndTextColor();
+	}
+
+	void PopItemDisabledAndTextColorIf(bool condition)
+	{
+		if (condition)
+			PopItemDisabledAndTextColor();
+	}
+
+	void PushItemDisabledAndTextColor()
+	{
+		PushItemFlag(ImGuiItemFlags_Disabled, true);
+		PushStyleColor(ImGuiCol_Text, GetStyleColorVec4(ImGuiCol_TextDisabled));
+	}
+
+	void PopItemDisabledAndTextColor()
+	{
+		PopStyleColor();
+		PopItemFlag();
+	}
+
 	void AddTexture(ImDrawList* drawList, const Graphics::Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0, const ImVec2& uv1)
 	{
 		float width = texture->GetWidth() * scale.x;
@@ -408,6 +432,17 @@ namespace ImGui
 	{
 		RAII_POPUP_WINDOW_PADDING();
 		return Combo(label, current_item, items_getter, data, items_count, popup_max_height_in_items);
+	}
+
+	void SetWideItemTooltip(const char* fmt, ...)
+	{
+		if (IsItemHoveredDelayed())
+		{
+			va_list args;
+			va_start(args, fmt);
+			WideSetTooltip(fmt, args);
+			va_end(args);
+		}
 	}
 
 	void WideSetTooltip(const char* fmt, ...)

@@ -25,6 +25,12 @@ namespace ImGui
 	bool WasHoveredWindowFocusedOnMouseClicked(int button);
 	bool WasHoveredWindowHoveredOnMouseClicked(int button);
 
+	void PushItemDisabledAndTextColorIf(bool condition);
+	void PopItemDisabledAndTextColorIf(bool condition);
+
+	void PushItemDisabledAndTextColor();
+	void PopItemDisabledAndTextColor();
+
 	void AddTexture(ImDrawList* drawList, const Graphics::Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0 = UV0_GL, const ImVec2& uv1 = UV1_GL);
 	void AddSprite(ImDrawList* drawList, const Graphics::Texture2D* texture, const vec2& position, const vec4& sourceRegion, ImU32 color = IM_COL32_WHITE);
 
@@ -73,6 +79,7 @@ namespace ImGui
 	bool WideCombo(const char* label, int* current_item, const char* items_separated_by_zeros, int popup_max_height_in_items = -1);
 	bool WideCombo(const char* label, int* current_item, bool(*items_getter)(void* data, int idx, const char** out_text), void* data, int items_count, int popup_max_height_in_items = -1);
 
+	void SetWideItemTooltip(const char* fmt, ...);
 	void WideSetTooltip(const char* fmt, ...);
 	void WideTooltip(const std::function<void(void)>& func);
 
