@@ -45,30 +45,30 @@ namespace Editor
 
 	void TimelineBase::DrawTimelineCursor()
 	{
-		ImU32 outterColor = GetColor(EditorColor_Cursor);
-		ImU32 innerColor = GetColor(EditorColor_CursorInner);
+		const ImU32 outterColor = GetColor(EditorColor_Cursor);
+		const ImU32 innerColor = GetColor(EditorColor_CursorInner);
 
 		const float scrollX = GetScrollX();
 		const float cursorX = GetCursorTimelinePosition();
 		float cursorScreenX = cursorX - scrollX;
 
-		// ensure smooth cursor scrolling
+		// NOTE: Ensure smooth cursor scrolling
 		if (autoScrollCursor)
 			cursorScreenX = timelineContentRegion.GetWidth() - (timelineContentRegion.GetWidth() / autoScrollOffsetFraction);
 
 		cursorScreenX = glm::round(cursorScreenX);
 
-		ImVec2 start = timelineHeaderRegion.GetTL() + ImVec2(cursorScreenX, 0);
-		ImVec2 end = timelineContentRegion.GetBL() + ImVec2(cursorScreenX, 0);
+		const vec2 start = timelineHeaderRegion.GetTL() + vec2(cursorScreenX, 0.0f);
+		const vec2 end = timelineContentRegion.GetBL() + vec2(cursorScreenX, 0.0f);
 
-		baseDrawList->AddLine(start + ImVec2(0, CURSOR_HEAD_HEIGHT - 1), end, outterColor);
+		baseDrawList->AddLine(start + vec2(0.0f, CURSOR_HEAD_HEIGHT - 1.0f), end, outterColor);
 
-		float centerX = start.x + .5f;
-		ImVec2 cursorTriangle[3] =
+		const float centerX = start.x + 0.5f;
+		const vec2 cursorTriangle[3] =
 		{
-			ImVec2(centerX - CURSOR_HEAD_WIDTH * .5f, start.y),
-			ImVec2(centerX + CURSOR_HEAD_WIDTH * .5f, start.y),
-			ImVec2(centerX, start.y + CURSOR_HEAD_HEIGHT),
+			vec2(centerX - CURSOR_HEAD_WIDTH * 0.5f, start.y),
+			vec2(centerX + CURSOR_HEAD_WIDTH * 0.5f, start.y),
+			vec2(centerX, start.y + CURSOR_HEAD_HEIGHT),
 		};
 		baseDrawList->AddTriangleFilled(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], innerColor);
 		baseDrawList->AddTriangle(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], outterColor);
@@ -76,7 +76,6 @@ namespace Editor
 
 	void TimelineBase::Initialize()
 	{
-		io = &Gui::GetIO();
 		OnInitialize();
 	}
 
@@ -91,68 +90,68 @@ namespace Editor
 
 	void TimelineBase::UpdateTimelineRegions()
 	{
-		ImVec2 timelinePosition = Gui::GetCursorScreenPos();
-		ImVec2 timelineSize = Gui::GetWindowSize() - Gui::GetCursorPos() - Gui::GetStyle().WindowPadding;
+		const auto& style = Gui::GetStyle();
+
+		vec2 timelinePosition = Gui::GetCursorScreenPos();
+		vec2 timelineSize = Gui::GetWindowSize() - Gui::GetCursorPos() - style.WindowPadding;
 		timelineRegion = ImRect(timelinePosition, timelinePosition + timelineSize);
 
-		ImVec2 headerPosition = timelineRegion.GetTL();
-		ImVec2 headerSize = ImVec2(infoColumnWidth, timelineHeaderHeight + tempoMapHeight);
+		vec2 headerPosition = timelineRegion.GetTL();
+		vec2 headerSize = vec2(infoColumnWidth, timelineHeaderHeight + tempoMapHeight);
 		infoColumnHeaderRegion = ImRect(headerPosition, headerPosition + headerSize);
 
-		ImVec2 infoPosition = infoColumnHeaderRegion.GetBL();
-		ImVec2 infoSize = ImVec2(infoColumnWidth, timelineRegion.GetHeight() - infoColumnHeaderRegion.GetHeight());
+		vec2 infoPosition = infoColumnHeaderRegion.GetBL();
+		vec2 infoSize = vec2(infoColumnWidth, timelineRegion.GetHeight() - infoColumnHeaderRegion.GetHeight() - timelineScrollbarSize.y);
 		infoColumnRegion = ImRect(infoPosition, infoPosition + infoSize);
 
-		ImVec2 timelineBasePosition = infoColumnHeaderRegion.GetTR();
-		ImVec2 timelineBaseSize = ImVec2(timelineRegion.GetWidth() - infoColumnRegion.GetWidth(), timelineRegion.GetHeight());
+		vec2 timelineBasePosition = infoColumnHeaderRegion.GetTR();
+		vec2 timelineBaseSize = vec2(timelineRegion.GetWidth() - infoColumnRegion.GetWidth() - timelineScrollbarSize.x, timelineRegion.GetHeight() - timelineScrollbarSize.y);
 		timelineBaseRegion = ImRect(timelineBasePosition, timelineBasePosition + timelineBaseSize);
 
-		ImVec2 tempoMapPosition = timelineBaseRegion.GetTL();
-		ImVec2 tempoMapSize = ImVec2(timelineBaseRegion.GetWidth(), tempoMapHeight);
+		vec2 tempoMapPosition = timelineBaseRegion.GetTL();
+		vec2 tempoMapSize = vec2(timelineBaseRegion.GetWidth(), tempoMapHeight);
 		tempoMapRegion = ImRect(tempoMapPosition, tempoMapPosition + tempoMapSize);
 
-		ImVec2 timelineHeaderPosition = tempoMapRegion.GetBL();
-		ImVec2 timelineHeaderSize = ImVec2(timelineBaseRegion.GetWidth(), timelineHeaderHeight);
+		vec2 timelineHeaderPosition = tempoMapRegion.GetBL();
+		vec2 timelineHeaderSize = vec2(timelineBaseRegion.GetWidth(), timelineHeaderHeight);
 		timelineHeaderRegion = ImRect(timelineHeaderPosition, timelineHeaderPosition + timelineHeaderSize);
 
-		ImVec2 timelineTargetPosition = timelineHeaderRegion.GetBL();
-		ImVec2 timelineTargetSize = ImVec2(timelineBaseRegion.GetWidth(), timelineBaseRegion.GetHeight() - timelineHeaderSize.y - tempoMapSize.y - Gui::GetStyle().ScrollbarSize);
+		vec2 timelineTargetPosition = timelineHeaderRegion.GetBL();
+		vec2 timelineTargetSize = vec2(timelineBaseRegion.GetWidth(), timelineBaseRegion.GetHeight() - timelineHeaderSize.y - tempoMapSize.y);
 		timelineContentRegion = ImRect(timelineTargetPosition, timelineTargetPosition + timelineTargetSize);
 	}
 
 	void TimelineBase::UpdateInputTimelineScroll()
 	{
-		// Grab Control
-		// ------------
+		const auto& io = Gui::GetIO();
+
+		// NOTE: Grab control
 		{
 			constexpr int timelineGrabButton = 2;
 
 			if (Gui::IsWindowHovered() && !Gui::IsAnyItemActive() && Gui::IsMouseDown(timelineGrabButton))
 			{
-				SetScrollX(GetScrollX() - io->MouseDelta.x);
+				SetScrollX(GetScrollX() - io.MouseDelta.x);
 				Gui::SetMouseCursor(ImGuiMouseCursor_Hand);
 			}
 		}
 
-		// Focus Control
-		// -------------
+		// NOTE: Focus control
 		{
 			if (Gui::IsWindowFocused() && Gui::IsKeyPressed(KeyCode_Escape))
 				CenterCursor();
 		}
-		// -------------
 
-		// Scroll Control
-		// --------------
+		// NOTE: Scroll control
 		{
-			if (Gui::IsWindowHovered() && io->MouseWheel != 0.0f)
+			if (Gui::IsWindowHovered() && io.MouseWheel != 0.0f)
 			{
-				if (io->KeyAlt) // Zoom Timeline
+				if (io.KeyAlt) // NOTE: Zoom timeline
 				{
-					float prePosition = GetCursorTimelinePosition();
+					const float prePosition = GetCursorTimelinePosition();
 
-					float amount = .5f;
-					zoomLevel = zoomLevel + amount * io->MouseWheel;
+					constexpr float amount = 0.5f;
+					zoomLevel = zoomLevel + amount * io.MouseWheel;
 
 					if (zoomLevel <= 0)
 						zoomLevel = amount;
@@ -160,7 +159,7 @@ namespace Editor
 					float postPosition = GetCursorTimelinePosition();
 					SetScrollX(GetScrollX() + postPosition - prePosition);
 				}
-				else if (!io->KeyCtrl) // Scroll Timeline
+				else if (!io.KeyCtrl) // NOTE: Scroll timeline
 				{
 					OnTimelineBaseScroll();
 				}
@@ -190,7 +189,6 @@ namespace Editor
 
 	void TimelineBase::UpdateCursorAutoScroll()
 	{
-		// Scroll Cursor
 		float cursorPos = (GetCursorTimelinePosition());
 		float endPos = (ScreenToTimelinePosition(timelineContentRegion.GetBR().x));
 
@@ -200,7 +198,7 @@ namespace Editor
 			float increment = cursorPos - endPos + autoScrollOffset;
 			SetScrollX(GetScrollX() + increment);
 
-			// allow the cursor to go offscreen
+			// Allow the cursor to go offscreen
 			if (GetMaxScrollX() - GetScrollX() > autoScrollOffset)
 				autoScrollCursor = true;
 		}
@@ -208,13 +206,13 @@ namespace Editor
 
 	void TimelineBase::CenterCursor()
 	{
-		float center = GetCursorTimelinePosition() - (timelineContentRegion.GetWidth() / 2.0f);
+		const float center = GetCursorTimelinePosition() - (timelineContentRegion.GetWidth() / 2.0f);
 		SetScrollX(center);
 	}
 
 	bool TimelineBase::IsCursorOnScreen() const
 	{
-		float cursorPosition = GetCursorTimelinePosition() - GetScrollX();
+		const float cursorPosition = GetCursorTimelinePosition() - GetScrollX();
 		return cursorPosition >= 0.0f && cursorPosition <= timelineContentRegion.GetWidth();
 	}
 
@@ -229,7 +227,6 @@ namespace Editor
 
 	void TimelineBase::UpdateTimelineBase()
 	{
-		// make sure the cursor time is the same through the entire draw tick
 		cursorTime = GetCursorTime();
 		autoScrollCursor = false;
 
@@ -241,16 +238,17 @@ namespace Editor
 
 	void TimelineBase::UpdateTimelineSize()
 	{
-		Gui::ItemSize(ImVec2(GetTimelineSize(), 0));
+		Gui::ItemSize(vec2(GetTimelineSize(), 0.0f));
 	}
 
 	void TimelineBase::OnTimelineBaseScroll()
 	{
-		ImVec2 maxStep = (baseWindow->ContentsRegionRect.GetSize() + baseWindow->WindowPadding * 2.0f) * 0.67f;
+		const auto& io = Gui::GetIO();
+		const vec2 maxStep = (baseWindow->ContentsRegionRect.GetSize() + baseWindow->WindowPadding * 2.0f) * 0.67f;
 
-		float speed = io->KeyShift ? scrollSpeedFast : scrollSpeed;
-		float scrollStep = ImFloor(ImMin(2 * baseWindow->CalcFontSize(), maxStep.x)) * speed;
-		SetScrollX(baseWindow->Scroll.x + io->MouseWheel * scrollStep);
+		const float speed = io.KeyShift ? scrollSpeedFast : scrollSpeed;
+		const float scrollStep = ImFloor(ImMin(2 * baseWindow->CalcFontSize(), maxStep.x)) * speed;
+		SetScrollX(baseWindow->Scroll.x + io.MouseWheel * scrollStep);
 	}
 
 	void TimelineBase::DrawTimelineGui()
@@ -261,16 +259,51 @@ namespace Editor
 
 		UpdateTimelineRegions();
 
-		Gui::BeginChild("##InfoColumnChild::TimelineBase", ImVec2(0, -Gui::GetStyle().ScrollbarSize));
+		Gui::BeginChild("##InfoColumnChild::TimelineBase", vec2(0.0f, -timelineScrollbarSize.y));
 		OnDrawTimelineInfoColumnHeader();
 		OnDrawTimelineInfoColumn();
 		Gui::EndChild();
+		
+#if 0 // TEMP:
+		Gui::DEBUG_NOSAVE_WINDOW("timeline base regions", [this]()
+		{
+			auto drawRegionIfHighlighted = [](const char* name, const ImRect& region)
+			{
+				Gui::Selectable(name);
+				if (Gui::IsItemHovered())
+					Gui::GetForegroundDrawList()->AddRectFilled(region.Min, region.Max, 0x60196690);
+			};
+
+			drawRegionIfHighlighted("timelineRegion", timelineRegion);
+			drawRegionIfHighlighted("infoColumnHeaderRegion", infoColumnHeaderRegion);
+			drawRegionIfHighlighted("infoColumnRegion", infoColumnRegion);
+			drawRegionIfHighlighted("timelineBaseRegion", timelineBaseRegion);
+			drawRegionIfHighlighted("tempoMapRegion", tempoMapRegion);
+			drawRegionIfHighlighted("timelineHeaderRegion", timelineHeaderRegion);
+			drawRegionIfHighlighted("timelineContentRegion", timelineContentRegion);
+		});
+#endif
 
 		Gui::SetCursorScreenPos(infoColumnHeaderRegion.GetTR());
-		Gui::BeginChild("##BaseChild::TimelineBase", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+		Gui::BeginChild("##BaseChild::TimelineBase", vec2(-timelineScrollbarSize.x, 0.0f), false, ImGuiWindowFlags_NoScrollbar);
 		UpdateTimelineBaseState();
 		DrawTimelineBase();
 		Gui::EndChild();
+
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f, 0.0f));
+
+		Gui::SameLine();
+		Gui::BeginChild("VerticalScrollChild::TimelineBase", vec2(0.0f, 0.0f), false, ImGuiWindowFlags_NoScrollbar);
+		Gui::GetWindowDrawList()->AddRectFilled(Gui::GetWindowPos(), Gui::GetWindowPos() + Gui::GetWindowSize() - vec2(0.0f, timelineScrollbarSize.y), Gui::GetColorU32(ImGuiCol_ScrollbarBg));
+		Gui::EndChild();
+
+		Gui::SetCursorScreenPos(infoColumnRegion.GetBL());
+		Gui::BeginChild("HorizontalScrollChild::TimelineBase", vec2(-timelineScrollbarSize.x, timelineScrollbarSize.y), false, ImGuiWindowFlags_NoScrollbar);
+		Gui::GetWindowDrawList()->AddRectFilled(Gui::GetWindowPos(), Gui::GetWindowPos() + Gui::GetWindowSize(), Gui::GetColorU32(ImGuiCol_ScrollbarBg));
+		OnDrawTimelineScrollBarRegion();
+		Gui::EndChild();
+
+		Gui::PopStyleVar();
 	}
 
 	void TimelineBase::DrawTimelineBase()
@@ -284,13 +317,9 @@ namespace Editor
 		UpdateTimelineSize();
 		OnUpdate();
 
-		// Timeline Header Region BG
-		// -------------------------
-		baseDrawList->AddRectFilled(timelineHeaderRegion.GetTL(), timelineHeaderRegion.GetBR(), GetColor(EditorColor_InfoColumn));
-
-		// Timeline Target Region BG
-		// -------------------------
-		baseDrawList->AddRectFilled(timelineContentRegion.GetTL(), timelineContentRegion.GetBR(), GetColor(EditorColor_TimelineBg));
+		// NOTE: To give the content region a bit more contrast
+		const ImU32 dimColor = Gui::GetColorU32(ImGuiCol_PopupBg, 0.15f);
+		Gui::GetWindowDrawList()->AddRectFilled(timelineContentRegion.GetTL(), timelineContentRegion.GetBR(), dimColor);
 
 		OnDrawTimlineTempoMap();
 		OnDrawTimlineRows();
@@ -308,28 +337,24 @@ namespace Editor
 	{
 		auto drawList = Gui::GetWindowDrawList();
 
-		drawList->AddRectFilled(infoColumnHeaderRegion.GetTL(), infoColumnHeaderRegion.GetBR(), GetColor(EditorColor_InfoColumn), 8.0f, ImDrawCornerFlags_TopLeft);
+		// NOTE: Offset to hide the bottom border line
+		constexpr vec2 yOffset = vec2(0.0f, 1.0f);
+		drawList->AddRect(infoColumnHeaderRegion.GetTL(), infoColumnHeaderRegion.GetBR() + yOffset, Gui::GetColorU32(ImGuiCol_Border));
 	}
 
 	void TimelineBase::OnDrawTimelineInfoColumn()
 	{
 		auto drawList = Gui::GetWindowDrawList();
 
-		// top part
-		drawList->AddRectFilled(infoColumnRegion.GetTL(), infoColumnRegion.GetBR(), GetColor(EditorColor_InfoColumn));
-
-		// separator
-		drawList->AddLine(infoColumnRegion.GetTR() + vec2(-1.0f, 0.0f), infoColumnRegion.GetBR() + vec2(-1.0f, 0.0f), Gui::GetColorU32(ImGuiCol_Border));
-
-		// bottom part
-		ImDrawList* parentDrawList = Gui::GetCurrentWindow()->ParentWindow->DrawList;
-		parentDrawList->AddRectFilled(infoColumnRegion.GetBL(), infoColumnRegion.GetBL() + ImVec2(infoColumnRegion.GetWidth(), -Gui::GetStyle().ScrollbarSize), GetColor(EditorColor_InfoColumn));
+		// NOTE: Offset to hide the bottom border line
+		constexpr vec2 yOffset = vec2(0.0f, 1.0f);
+		drawList->AddRect(infoColumnRegion.GetTL(), infoColumnRegion.GetBR() + yOffset, Gui::GetColorU32(ImGuiCol_Border));
 	}
 
 	void TimelineBase::OnDrawTimlineTempoMap()
 	{
-		ImU32 bottomColor = GetColor(EditorColor_TempoMapBg, 0.85f);
-		ImU32 topColor = GetColor(EditorColor_TempoMapBg);
+		const ImU32 bottomColor = Gui::GetColorU32(ImGuiCol_MenuBarBg, 0.85f);
+		const ImU32 topColor = Gui::GetColorU32(ImGuiCol_MenuBarBg);
 
 		baseDrawList->AddRectFilledMultiColor(tempoMapRegion.GetTL(), tempoMapRegion.GetBR(), bottomColor, bottomColor, topColor, topColor);
 	}

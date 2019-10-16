@@ -270,6 +270,8 @@ namespace Editor
 
 	void TargetTimeline::OnDrawTimelineHeaderWidgets()
 	{
+		const auto& io = Gui::GetIO();
+
 		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
 
 		ImGuiStyle& style = Gui::GetStyle();
@@ -284,14 +286,14 @@ namespace Editor
 
 		Gui::SameLine();
 		Gui::Button(ICON_FA_FAST_BACKWARD);
-		if (Gui::IsItemActive()) { scrollDelta -= io->DeltaTime * 1000.0f; }
+		if (Gui::IsItemActive()) { scrollDelta -= io.DeltaTime * 1000.0f; }
 
 		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
 		// TODO: jump to last / next target
 		Gui::SameLine();
 		Gui::Button(ICON_FA_BACKWARD);
-		if (Gui::IsItemActive()) { scrollDelta -= io->DeltaTime * 400.0f; }
+		if (Gui::IsItemActive()) { scrollDelta -= io.DeltaTime * 400.0f; }
 
 		Gui::SameLine();
 
@@ -312,11 +314,11 @@ namespace Editor
 
 		Gui::SameLine();
 		Gui::Button(ICON_FA_FORWARD);
-		if (Gui::IsItemActive()) { scrollDelta += io->DeltaTime * 400.0f; }
+		if (Gui::IsItemActive()) { scrollDelta += io.DeltaTime * 400.0f; }
 
 		Gui::SameLine();
 		Gui::Button(ICON_FA_FAST_FORWARD);
-		if (Gui::IsItemActive()) { scrollDelta += io->DeltaTime * 1000.0f; }
+		if (Gui::IsItemActive()) { scrollDelta += io.DeltaTime * 1000.0f; }
 
 		Gui::PopStyleVar(2);
 
@@ -517,13 +519,13 @@ namespace Editor
 				Gui::InvisibleButton("##InvisibleTempoButton", buttonSize);
 				Gui::PopID();
 
-				// prevent overlapping tempo changes
+				// TODO: Prevent overlapping tempo changes
 				//windowDrawList->AddRectFilled(buttonPosition, buttonPosition + buttonSize, TEMPO_MAP_BAR_COLOR);
 				if (Gui::IsItemHovered() && Gui::IsWindowHovered())
 				{
 					Gui::WideSetTooltip("TIME: %s", GetTimelineTime(tempoChange.Tick).FormatTime().c_str());
 
-					baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, GetColor(EditorColor_TimelineBg));
+					baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, Gui::GetColorU32(ImGuiCol_ChildBg));
 					if (Gui::IsMouseDoubleClicked(0))
 					{
 						SetScrollX(screenX + GetScrollX());
@@ -680,9 +682,11 @@ namespace Editor
 		if (!Gui::IsWindowFocused() || !timelineContentRegion.Contains(Gui::GetMousePos()))
 			return;
 
+		const auto& io = Gui::GetIO();
+
 		// Cursor Mouse Click:
 		// -------------------
-		if (Gui::IsMouseClicked(0) && !io->KeyShift) // Gui::IsMouseReleased(0)
+		if (Gui::IsMouseClicked(0) && !io.KeyShift) // Gui::IsMouseReleased(0)
 		{
 			const bool wasPlaying = GetIsPlayback();
 			if (wasPlaying)
@@ -723,7 +727,7 @@ namespace Editor
 		{
 			if (Gui::IsMouseClicked(0))
 			{
-				if (io->KeyShift) // && timeSelectionActive)
+				if (io.KeyShift) // && timeSelectionActive)
 				{
 					timeSelectionEnd = GetCursorMouseXTick();
 				}
@@ -746,12 +750,14 @@ namespace Editor
 
 	void TargetTimeline::UpdateInputTargetPlacement()
 	{
+		const auto& io = Gui::GetIO();
+
 		// Mouse X buttons, increase / decrease grid division
 		if (Gui::IsMouseClicked(3)) SelectNextGridDivision(-1);
 		if (Gui::IsMouseClicked(4)) SelectNextGridDivision(+1);
 
 		for (int type = 0; type < TargetType_Max; type++)
-			buttonAnimations[type].ElapsedTime += io->DeltaTime;
+			buttonAnimations[type].ElapsedTime += io.DeltaTime;
 
 		TimelineTick cursorTick = RoundToGrid(GetCursorTick());
 		for (size_t i = 0; i < IM_ARRAYSIZE(buttonPlacementMapping); i++)
@@ -824,9 +830,11 @@ namespace Editor
 
 	void TargetTimeline::OnTimelineBaseScroll()
 	{
+		const auto& io = Gui::GetIO();
+
 		if (GetIsPlayback()) // seek through song
 		{
-			const TimeSpan increment = TimeSpan((io->KeyShift ? 1.0 : 0.5) * io->MouseWheel);
+			const TimeSpan increment = TimeSpan((io.KeyShift ? 1.0 : 0.5) * io.MouseWheel);
 
 			chartEditor->PausePlayback();
 			chartEditor->SetPlaybackTime(chartEditor->GetPlaybackTime() + increment);

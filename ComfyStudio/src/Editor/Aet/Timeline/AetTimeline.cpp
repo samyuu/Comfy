@@ -8,9 +8,8 @@ namespace Editor
 
 	AetTimeline::AetTimeline()
 	{
-		// TODO: Around 240.0f seems to be the standard for many programs
+		// NOTE: Around 240.0f seems to be the standard for many programs
 		infoColumnWidth = 240.0f;
-		rowHeight = 18.0f;
 		zoomLevel = 5.0f;
 	}
 
@@ -40,8 +39,7 @@ namespace Editor
 
 	void AetTimeline::DrawTimelineContentNone()
 	{
-		ImU32 dimColor = Gui::GetColorU32(ImGuiCol_PopupBg, 0.25f);
-		Gui::GetWindowDrawList()->AddRectFilled(timelineBaseRegion.GetTL(), timelineBaseRegion.GetBR(), dimColor);
+		return;
 	}
 
 	void AetTimeline::DrawTimelineContentLayer()
@@ -65,98 +63,143 @@ namespace Editor
 
 	void AetTimeline::OnDrawTimelineHeaderWidgets()
 	{
-		constexpr float percentageFactor = 100.0f;
-
-		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(2.0f, 0.0f));
-
-		ImGuiStyle& style = Gui::GetStyle();
-		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(8.0f, style.FramePadding.y));
-
-		cursorTime.FormatTime(timeInputBuffer, sizeof(timeInputBuffer));
-		size_t timeLength = strlen(timeInputBuffer);
-		sprintf_s(&timeInputBuffer[timeLength], sizeof(timeInputBuffer) - timeLength, " (%.f/%.f)", GetTimelineFrame(cursorTime).Frames(), loopEndFrame.Frames());
-
-		constexpr float timeWidgetWidth = 138;
-		Gui::PushItemWidth(timeWidgetWidth);
-		Gui::InputTextWithHint("##AetTimeline::TimeInput", "00:00.000", timeInputBuffer, sizeof(timeInputBuffer));
-		Gui::PopItemWidth();
-
-		Gui::SameLine();
-		Gui::Button(ICON_FA_FAST_BACKWARD);
-		if (Gui::IsItemActive()) { scrollDelta -= io->DeltaTime * 1000.0f; }
-
-		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f, 0.0f));
-
-		// TODO: jump to last / next keyframe
-		Gui::SameLine();
-		Gui::Button(ICON_FA_BACKWARD);
-		if (Gui::IsItemActive()) { scrollDelta -= io->DeltaTime * 400.0f; }
-
-		Gui::SameLine();
-
-		if (GetIsPlayback())
-		{
-			if (Gui::Button(ICON_FA_PAUSE))
-				PausePlayback();
-		}
-		else
-		{
-			if (Gui::Button(ICON_FA_PLAY))
-				ResumePlayback();
-		}
-
-		Gui::SameLine();
-		if (Gui::Button(ICON_FA_STOP))
-		{
-			StopPlayback();
-			scrollDelta = -GetTimelineSize();
-		}
-
-		Gui::SameLine();
-		Gui::Button(ICON_FA_FORWARD);
-		if (Gui::IsItemActive()) { scrollDelta += io->DeltaTime * 400.0f; }
-
-		Gui::SameLine();
-		Gui::Button(ICON_FA_FAST_FORWARD);
-		if (Gui::IsItemActive()) { scrollDelta += io->DeltaTime * 1000.0f; }
-
-		Gui::PopStyleVar(2);
-
-		Gui::SameLine();
-		Gui::PushItemWidth(120.0f);
-		{
-			float zoomPercentage = zoomLevel * percentageFactor;
-
-			if (Gui::SliderFloat(ICON_FA_SEARCH, &zoomPercentage, ZOOM_MIN * percentageFactor, ZOOM_MAX * percentageFactor, "%.2f %%"))
-				zoomLevel = zoomPercentage * (1.0f / percentageFactor);
-
-			if (Gui::IsItemHoveredDelayed())
-				Gui::WideSetTooltip("Zoom Level");
-		}
-		Gui::PopItemWidth();
-
-		Gui::SameLine();
-		Gui::PushItemWidth(120.0f);
-		{
-			float playbackSpeedPercentage = playbackSpeedFactor * percentageFactor;
-
-			if (Gui::SliderFloat(ICON_FA_CLOCK, &playbackSpeedPercentage, 1.0f, 400.0f, "%.2f %%"))
-				playbackSpeedFactor = playbackSpeedPercentage * (1.0f / percentageFactor);
-
-			if (Gui::IsItemHoveredDelayed())
-				Gui::WideSetTooltip("Playback Speed");
-		}
-		Gui::PopItemWidth();
-
-		Gui::PopStyleVar(1);
-
-		Gui::SameLine();
-		Gui::Checkbox("Loop Animation", &loopPlayback);
+		return;
 	}
 
 	void AetTimeline::OnDrawTimelineInfoColumnHeader()
 	{
 		TimelineBase::OnDrawTimelineInfoColumnHeader();
+
+		// TODO: Does not work with all style configurations
+		assert(infoColumnWidth == 240.0f);
+
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f, 0.0f));
+		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(8.0f, 8.0f));
+
+		constexpr vec4 transparent = vec4(0.0f);
+		Gui::PushStyleColor(ImGuiCol_Button, transparent);
+		{
+			const bool isFirstFrame = (cursorTime <= GetTimelineTime(loopStartFrame));
+			const bool isLastFrame = (cursorTime >= GetTimelineTime(loopEndFrame));
+			const bool isPlayback = GetIsPlayback();
+
+			constexpr float borderSize = 1.0f;
+			Gui::SetCursorPosX(Gui::GetCursorPosX() + borderSize);
+
+			// NOTE: First frame button
+			{
+				Gui::PushItemDisabledAndTextColorIf(isFirstFrame);
+				if (Gui::Button(ICON_FA_FAST_BACKWARD))
+				{
+					cursorTime = GetTimelineTime(loopStartFrame);
+					RoundCursorTimeToNearestFrame();
+					scrollDelta = -GetTimelineSize();
+				}
+				Gui::PopItemDisabledAndTextColorIf(isFirstFrame);
+				Gui::SetWideItemTooltip("Go to first frame");
+			}
+
+			// NOTE: Previous frame button
+			{
+				Gui::SameLine();
+				Gui::PushItemDisabledAndTextColorIf(isFirstFrame);
+				if (Gui::Button(ICON_FA_BACKWARD))
+				{
+					cursorTime = GetTimelineTime(GetCursorFrame() - 1.0f);
+					RoundCursorTimeToNearestFrame();
+				}
+				Gui::PopItemDisabledAndTextColorIf(isFirstFrame);
+				Gui::SetWideItemTooltip("Go to previous frame");
+			}
+
+			// NOTE: Playback toggle button
+			{
+				Gui::SameLine();
+				if (Gui::Button(isPlayback ? ICON_FA_PAUSE : ICON_FA_PLAY))
+				{
+					isPlayback ? PausePlayback() : ResumePlayback();
+				}
+				Gui::SetWideItemTooltip("Toggle playback");
+			}
+
+			// NOTE: Playback stop button
+			{
+				Gui::SameLine();
+				Gui::PushItemDisabledAndTextColorIf(!isPlayback);
+				if (Gui::Button(ICON_FA_STOP))
+				{
+					StopPlayback();
+					scrollDelta = -GetTimelineSize();
+				}
+				Gui::PopItemDisabledAndTextColorIf(!isPlayback);
+				Gui::SetWideItemTooltip("Stop playback");
+			}
+
+			// NOTE: Next frame button
+			{
+				Gui::SameLine();
+				Gui::PushItemDisabledAndTextColorIf(isLastFrame);
+				if (Gui::Button(ICON_FA_FORWARD))
+				{
+					cursorTime = GetTimelineTime(GetCursorFrame() + 1);
+					RoundCursorTimeToNearestFrame();
+				}
+				Gui::PopItemDisabledAndTextColorIf(isLastFrame);
+				Gui::SetWideItemTooltip("Go to next frame");
+			}
+
+			// NOTE: Last frame button
+			{
+				Gui::SameLine();
+				Gui::PushItemDisabledAndTextColorIf(isLastFrame);
+				if (Gui::Button(ICON_FA_FAST_FORWARD))
+				{
+					cursorTime = GetTimelineTime(loopEndFrame - 1.0f);
+					RoundCursorTimeToNearestFrame();
+					scrollDelta = +GetTimelineSize();
+				}
+				Gui::PopItemDisabledAndTextColorIf(isLastFrame);
+				Gui::SetWideItemTooltip("Go to last frame");
+			}
+
+			// TODO:
+			{
+				Gui::SameLine();
+				Gui::Button(ICON_FA_ADJUST);
+				Gui::SetWideItemTooltip("???");
+			}
+
+			// NOTE: Settings button
+			{
+				Gui::SameLine();
+				if (Gui::Button(ICON_FA_COG))
+					Gui::OpenPopup(settingsPopupName);
+				Gui::SetWideItemTooltip("Timeline settings");
+			}
+		}
+		Gui::PopStyleColor(1);
+		Gui::PopStyleVar(2);
+
+		// NOTE: Settings popup
+		if (Gui::WideBeginPopup(settingsPopupName))
+		{
+			constexpr float percentageFactor = 100.0f;
+
+			// TODO: Come up with a neat comfy layout
+			Gui::Text("TODO:");
+
+			float zoomPercentage = zoomLevel * percentageFactor;
+			if (Gui::SliderFloat("Zoom Level", &zoomPercentage, ZOOM_MIN * percentageFactor, ZOOM_MAX * percentageFactor, "%.2f %%"))
+				zoomLevel = zoomPercentage * (1.0f / percentageFactor);
+
+			float playbackSpeedPercentage = playbackSpeedFactor * percentageFactor;
+			if (Gui::SliderFloat("Playback Speed", &playbackSpeedPercentage, 1.0f, 400.0f, "%.2f %%"))
+				playbackSpeedFactor = playbackSpeedPercentage * (1.0f / percentageFactor);
+
+			Gui::Checkbox("Loop Animation", &loopPlayback);
+
+			Gui::EndPopup();
+		}
 	}
 
 	void AetTimeline::OnDrawTimelineInfoColumn()
@@ -186,7 +229,7 @@ namespace Editor
 			// NOTE: Draw Text
 			for (int i = 0; i < PropertyType_Count; i++)
 			{
-				const float y = i * rowHeight;
+				const float y = i * rowItemHeight;
 				vec2 start = vec2(startPadding, y + textPadding) + infoColumnRegion.GetTL();
 
 				const auto[type, name] = timelinePropertyTypeNames[i];
@@ -200,10 +243,10 @@ namespace Editor
 			// NOTE: Draw Separators
 			for (int i = 0; i <= PropertyType_Count; i++)
 			{
-				const float y = i * rowHeight;
+				const float y = i * rowItemHeight;
 				const vec2 topLeftSeparator = infoColumnRegion.GetTL() + vec2(0.0f, y);
 				const vec2 topRightSeparator = infoColumnRegion.GetTR() + vec2(0.0f, y);
-				drawList->AddLine(topLeftSeparator, topRightSeparator, GetColor(EditorColor_TempoMapBg));
+				drawList->AddLine(topLeftSeparator, topRightSeparator, Gui::GetColorU32(ImGuiCol_Border));
 			}
 		}
 		else if (selectedAetItem.Type() == AetItemType::AetLayer)
@@ -214,7 +257,7 @@ namespace Editor
 			AetLayer* layer = selectedAetItem.GetAetLayerRef().get();
 			for (int i = 0; i < static_cast<int>(layer->size()); i++)
 			{
-				float y = i * rowHeight;
+				float y = i * rowItemHeight;
 				vec2 start = vec2(startPadding, y + textPadding) + infoColumnRegion.GetTL();
 
 				const auto& object = layer->at(i);
@@ -227,10 +270,10 @@ namespace Editor
 			// NOTE: Draw Separators
 			for (int i = 0; i <= static_cast<int>(layer->size()); i++)
 			{
-				const float y = i * rowHeight;
+				const float y = i * rowItemHeight;
 				const vec2 topLeftSeparator = infoColumnRegion.GetTL() + vec2(0.0f, y);
 				const vec2 topRightSeparator = infoColumnRegion.GetTR() + vec2(0.0f, y);
-				drawList->AddLine(topLeftSeparator, topRightSeparator, GetColor(EditorColor_TempoMapBg));
+				drawList->AddLine(topLeftSeparator, topRightSeparator, Gui::GetColorU32(ImGuiCol_Border));
 			}
 		}
 	}
@@ -240,19 +283,21 @@ namespace Editor
 		if (selectedAetItem.IsNull())
 			return;
 
-		int rowCount = (selectedAetItem.Type() == AetItemType::AetLayer) ?
+		if (currentTimelineMode != TimelineMode::DopeSheet)
+			return;
+
+		const int rowCount = (selectedAetItem.Type() == AetItemType::AetLayer) ?
 			static_cast<int>(selectedAetItem.GetAetLayerRef()->size()) :
 			static_cast<int>(PropertyType_Count);
 
 		// TODO: Scroll offset and scrollbar, use Gui::Scrollbar (?) might have to make a completely custom one and don't forget to push clipping rects
-
-		ImU32 rowColor = GetColor(EditorColor_TimelineRowSeparator);
+		const ImU32 rowColor = GetColor(EditorColor_TimelineRowSeparator);
 
 		for (int i = 0; i <= rowCount; i++)
 		{
-			const float y = i * rowHeight;
-			vec2 start = timelineContentRegion.GetTL() + vec2(0.0f, y);
-			vec2 end = start + vec2(timelineContentRegion.GetWidth(), 0.0f);
+			const float y = i * rowItemHeight;
+			const vec2 start = timelineContentRegion.GetTL() + vec2(0.0f, y);
+			const vec2 end = start + vec2(timelineContentRegion.GetWidth(), 0.0f);
 
 			baseDrawList->AddLine(start, end, rowColor);
 		}
@@ -265,6 +310,50 @@ namespace Editor
 
 	void AetTimeline::OnDrawTimlineBackground()
 	{
+	}
+
+	void AetTimeline::OnDrawTimelineScrollBarRegion()
+	{
+		constexpr float timeDragTextOffset = 10.0f;
+		constexpr float timeDragTextWidth = 60.0f + 26.0f;
+		Gui::SetCursorPosX(Gui::GetCursorPosX() + timeDragTextOffset);
+
+		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(Gui::GetStyle().FramePadding.x, 0.0f));
+
+		// NOTE: Time drag text
+		{
+			char cursorTimeBuffer[64];
+			cursorTime.FormatTime(cursorTimeBuffer, sizeof(cursorTimeBuffer));
+
+			float cursorFrame = GetCursorFrame().Frames();
+
+			if (Gui::ComfyDragText("TimeDragText::AetTimeline", cursorTimeBuffer, &cursorFrame, 1.0f, 0.0f, 0.0f, timeDragTextWidth))
+			{
+				cursorTime = GetTimelineTime(std::clamp(TimelineFrame(cursorFrame), loopStartFrame, loopEndFrame));
+				RoundCursorTimeToNearestFrame();
+			}
+		}
+
+		// NOTE: Mode buttons (Dopesheet / Curves)
+		{
+			const auto modeButton = [this](const char* label, const TimelineMode mode)
+			{
+				Gui::PushStyleColor(ImGuiCol_Button, Gui::GetStyleColorVec4(currentTimelineMode == mode ? ImGuiCol_ButtonHovered : ImGuiCol_Button));
+				{
+					constexpr float modeButtonWidth = 72.0f;
+					if (Gui::Button(label, vec2(modeButtonWidth, timelineScrollbarSize.y)))
+						currentTimelineMode = mode;
+				}
+				Gui::PopStyleColor(1);
+			};
+
+			Gui::SameLine();
+			modeButton("Dope Sheet", TimelineMode::DopeSheet);
+			Gui::SameLine();
+			modeButton("Curves", TimelineMode::Curves);
+		}
+
+		Gui::PopStyleVar(1);
 	}
 
 	static frame_t GetAetLayerLastFrame(const AetLayer* aetLayer)
@@ -307,14 +396,17 @@ namespace Editor
 				break;
 
 			case AetItemType::AetObj:
-				
+
 				//loopStartFrame = parentAet->FrameStart;
 
 				//loopStartFrame = selectedAetItem.Ptrs.AetObj->LoopStart;
 				//loopEndFrame = selectedAetItem.Ptrs.AetObj->LoopEnd;
-				
-				loopStartFrame = 0.0f;
-				loopEndFrame = GetAetLayerLastFrame(selectedAetItem.Ptrs.AetObj->GetParentLayer());
+
+				loopStartFrame = parentAet->FrameStart;
+				loopEndFrame = selectedAetItem.Ptrs.AetObj->LoopEnd;
+
+				//loopStartFrame = 0.0f;
+				//loopEndFrame = GetAetLayerLastFrame(selectedAetItem.Ptrs.AetObj->GetParentLayer());
 
 				break;
 
@@ -335,14 +427,19 @@ namespace Editor
 				loopEndFrame = parentAet->FrameDuration;
 			}
 		}
+		else
+		{
+			loopStartFrame = 0.0f;
+			loopEndFrame = 0.0f;
+		}
 
 		if (GetIsPlayback())
 		{
 			UpdateCursorPlaybackTime();
 		}
 
-		TimeSpan startTime = GetTimelineTime(loopStartFrame);
-		TimeSpan endTime = GetTimelineTime(loopEndFrame);
+		const TimeSpan startTime = GetTimelineTime(loopStartFrame);
+		const TimeSpan endTime = GetTimelineTime(loopEndFrame);
 
 		if (cursorTime < startTime)
 			cursorTime = startTime;
@@ -368,6 +465,9 @@ namespace Editor
 
 	void AetTimeline::OnDrawTimelineContents()
 	{
+		if (currentTimelineMode != TimelineMode::DopeSheet)
+			return;
+
 		if (selectedAetItem.Type() == AetItemType::None || selectedAetItem.IsNull())
 		{
 			DrawTimelineContentNone();
@@ -428,15 +528,15 @@ namespace Editor
 
 	void AetTimeline::DrawMouseSelection(const MouseSelectionData& selectionData)
 	{
-		bool horizontalSelection = glm::abs((selectionData.StartX - selectionData.EndX).Frames()) > 1.0f;
-		bool verticalSelection = glm::abs(selectionData.RowStartIndex - selectionData.RowEndIndex) > 1;
+		const bool horizontalSelection = glm::abs((selectionData.StartX - selectionData.EndX).Frames()) > 1.0f;
+		const bool verticalSelection = glm::abs(selectionData.RowStartIndex - selectionData.RowEndIndex) > 1;
 
 		if (horizontalSelection || verticalSelection)
 		{
 			const float offset = timelineContentRegion.Min.x - GetScrollX();
 
-			float direction = selectionData.StartX < selectionData.EndX ? +1.0f : -1.0f;
-			float padding = 5.0f * direction;
+			const float direction = selectionData.StartX < selectionData.EndX ? +1.0f : -1.0f;
+			const float padding = 5.0f * direction;
 
 			ImRect selectionRegion = ImRect(
 				vec2(glm::round(offset + GetTimelinePosition(selectionData.StartX) - padding), GetRowScreenY(selectionData.RowStartIndex)),
@@ -450,23 +550,24 @@ namespace Editor
 
 	void AetTimeline::UpdateCursorPlaybackTime()
 	{
-		cursorTime += io->DeltaTime * playbackSpeedFactor;
+		const auto& io = Gui::GetIO();
+		cursorTime += io.DeltaTime * playbackSpeedFactor;
 	}
 
 	void AetTimeline::RoundCursorTimeToNearestFrame()
 	{
-		frame_t cursorFrames = GetCursorFrame().Frames();
-		frame_t roundedCursorFrames = glm::round(cursorFrames);
+		const frame_t cursorFrames = GetCursorFrame().Frames();
+		const frame_t roundedCursorFrames = glm::round(cursorFrames);
 		cursorTime = GetTimelineTime(TimelineFrame(roundedCursorFrames));
 	}
 
 	float AetTimeline::GetRowScreenY(int index) const
 	{
-		return (timelineContentRegion.Min.y + static_cast<float>(rowHeight * index));
+		return (timelineContentRegion.Min.y + static_cast<float>(rowItemHeight * index));
 	}
 
 	int AetTimeline::GetRowIndexFromScreenY(float screenY) const
 	{
-		return glm::max(0, static_cast<int>(glm::floor((screenY - timelineContentRegion.Min.y) / rowHeight)));
+		return glm::max(0, static_cast<int>(glm::floor((screenY - timelineContentRegion.Min.y) / rowItemHeight)));
 	}
 }

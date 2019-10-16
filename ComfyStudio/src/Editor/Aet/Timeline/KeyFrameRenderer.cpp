@@ -56,7 +56,7 @@ namespace Editor
 		const float scrollX = timeline->GetScrollX();
 		const vec2 timelineTL = glm::round(vec2(timeline->GetTimelineContentRegion().GetTL() - vec2(scrollX, 0.0f)));
 
-		const float rowHeight = timeline->GetRowHeight();
+		const float rowHeight = timeline->GetRowItemHeight();
 		float y = (rowHeight / 2.0f) + 0.5f;
 
 		for (size_t i = 0; i < layer->size(); i++)
@@ -89,7 +89,7 @@ namespace Editor
 		const float scrollX = timeline->GetScrollX();
 		const vec2 timelineTL = glm::round(vec2(timeline->GetTimelineContentRegion().GetTL() - vec2(scrollX, 0.0f)));
 
-		const float rowHeight = timeline->GetRowHeight();
+		const float rowHeight = timeline->GetRowItemHeight();
 		float y = (rowHeight / 2.0f) + 0.5f;
 
 		for (const auto& keyFrames : keyFramesProperties)

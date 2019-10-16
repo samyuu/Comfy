@@ -63,9 +63,9 @@ namespace Editor
 
 	void FrameTimeline::OnDrawTimlineDivisors()
 	{
-		const int framesPerBar = 10;
+		constexpr int framesPerBar = 10;
 
-		char barStrBuffer[16];
+		char barStringBuffer[16];
 		
 		const int startFrame = static_cast<int>(loopStartFrame.Frames());
 		const int endFrame = static_cast<int>(loopEndFrame.Frames());
@@ -74,9 +74,9 @@ namespace Editor
 		int divisions = 0;
 		for (int frame = startFrame; frame <= endFrame; frame += frameStep)
 		{
-			bool isBar = (frame == startFrame) || (frame == endFrame) || (frame % framesPerBar == 0);
+			const bool isBar = (frame == startFrame) || (frame == endFrame) || (frame % framesPerBar == 0);
 
-			float screenX = glm::round(GetTimelinePosition(TimelineFrame(static_cast<float>(frame))) - GetScrollX());
+			const float screenX = glm::round(GetTimelinePosition(TimelineFrame(static_cast<float>(frame))) - GetScrollX());
 			TimelineVisibility visiblity = GetTimelineVisibility(screenX);
 
 			if (visiblity == TimelineVisibility::Left)
@@ -85,18 +85,18 @@ namespace Editor
 				break;
 
 			const float startYOffset = timelineHeaderHeight * (isBar ? .85f : .35f);
-			ImVec2 start = timelineContentRegion.GetTL() + ImVec2(screenX, -startYOffset);
-			ImVec2 end = timelineContentRegion.GetBL() + ImVec2(screenX, 0);
+			vec2 start = timelineContentRegion.GetTL() + vec2(screenX, -startYOffset);
+			vec2 end = timelineContentRegion.GetBL() + vec2(screenX, 0);
 
 			const ImU32 color = GetColor(isBar ? EditorColor_Bar : (divisions++ % 2 == 0 ? EditorColor_Grid : EditorColor_GridAlt));
 			baseDrawList->AddLine(start, end, color);
 
 			if (isBar)
 			{
-				sprintf_s(barStrBuffer, sizeof(barStrBuffer), "%d", frame);
+				sprintf_s(barStringBuffer, sizeof(barStringBuffer), "%d", frame);
 
-				start += ImVec2(3, -1);
-				baseDrawList->AddText(start, color, barStrBuffer);
+				start += vec2(3.0f, -1.0f);
+				baseDrawList->AddText(start, color, barStringBuffer);
 			}
 		}
 	}

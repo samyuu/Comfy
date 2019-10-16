@@ -40,22 +40,30 @@ namespace Editor
 		// NOTE: Row index at input height
 		int GetRowIndexFromScreenY(float screenY) const;
 
-		inline float GetRowHeight() const { return rowHeight; };
+		// NOTE: Height per item
+		inline float GetRowItemHeight() const { return rowItemHeight; };
 
 	private:
-		AetItemTypePtr selectedAetItem;
+		enum class TimelineMode
+		{
+			DopeSheet,
+			Curves
+		};
 
-		float rowHeight;
+		TimelineMode currentTimelineMode = TimelineMode::DopeSheet;
+		
+		// TODO: Should be replaced with a pointer like with the other components
+		AetItemTypePtr selectedAetItem = {};
+
+		const float rowItemHeight = 18.0f;
 		bool isPlayback = false;
 		bool loopPlayback = true;
-
-		char timeInputBuffer[32];
 
 		// NOTE: Speed at factor at which the playback time is incremented without editing any AetObj state
 		float playbackSpeedFactor = 1.0f;
 
 	private:
-		KeyFrameRenderer keyFrameRenderer;
+		KeyFrameRenderer keyFrameRenderer = {};
 		AetTimelineController timelineController = { this };
 
 	private:
@@ -72,6 +80,7 @@ namespace Editor
 		void OnDrawTimlineRows() override;
 		void OnDrawTimlineDivisors() override;
 		void OnDrawTimlineBackground() override;
+		void OnDrawTimelineScrollBarRegion() override;
 		void OnUpdate() override;
 		void OnUpdateInput() override;
 		void OnDrawTimelineContents() override;
@@ -86,7 +95,10 @@ namespace Editor
 		void RoundCursorTimeToNearestFrame();
 
 	private:
-		Vector<KeyFrameIndex> selectedKeyFrames;
+		// TODO: Implement
+		// Vector<KeyFrameIndex> selectedKeyFrames;
+
+		static constexpr const char* settingsPopupName = "TimelineSettingsPopup::AetTimeline";
 
 		static constexpr const char* timelinePropertyNameTypeSeparator = ":";
 

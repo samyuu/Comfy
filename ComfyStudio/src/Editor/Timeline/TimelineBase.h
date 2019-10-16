@@ -33,25 +33,27 @@ namespace Editor
 		void Initialize();
 
 	public:
-		virtual inline float GetMaxScrollX() const { return Gui::GetScrollMaxX(); };
-		virtual inline float GetScrollX() const { return Gui::GetScrollX(); };
+		inline float GetMaxScrollX() const { return Gui::GetWindowScrollMaxX(baseWindow); };
+		inline float GetScrollX() const { return baseWindow->Scroll.x; };
 
 	protected:
-		virtual inline void SetScrollX(float value) { Gui::SetScrollX(value); };
+		inline void SetScrollX(float value) { baseWindow->ScrollTarget.x = value; baseWindow->ScrollTargetCenterRatio.x = 0.0f; };
+
+		// TODO: Implement, probably don't wanna use the scroll y field of the window itself (?)
+		// inline void SetScrollY(float value) { Gui::SetScrollY(value); };
 
 	protected:
-		// TODO: initialize by derived class, each derived class then exposes its own casted getter
+		// TODO: Initialize in derived class, each derived class then exposes its own casted getter (?)
 		// UniquePtr<ITimelineUnitConverter> unitConverter;
 
 		TimeSpan cursorTime;
 
 		struct /* TimelineImGuiData */
 		{
-			ImGuiWindow* baseWindow;
-			ImDrawList* baseDrawList;
-			ImGuiIO* io;
+			ImGuiWindow* baseWindow = nullptr;
+			ImDrawList* baseDrawList = nullptr;
 
-			bool updateInput;
+			bool updateInput = false;
 		};
 
 		struct
@@ -60,16 +62,18 @@ namespace Editor
 			float infoColumnWidth = 46.0f;
 			float timelineHeaderHeight = 32.0f - 13.0f;
 			float tempoMapHeight = 13.0f;
+			const vec2 timelineScrollbarSize = vec2(14.0f, 16.0f);
 		};
+
+		static constexpr float ZOOM_BASE = 150.0f;
+		static constexpr float ZOOM_MIN = 1.0f;
+		static constexpr float ZOOM_MAX = 10.0f;
 
 		struct /* TimelineZoomData */
 		{
-			const float ZOOM_BASE = 150.0f;
-			const float ZOOM_MIN = 1.0f;
-			const float ZOOM_MAX = 10.0f;
 
 			bool zoomLevelChanged = false;
-			float zoomLevel = 2.0f, lastZoomLevel;
+			float zoomLevel = 2.0f, lastZoomLevel = zoomLevel;
 		};
 
 		struct /* TimelineScrollData */
@@ -78,13 +82,14 @@ namespace Editor
 			const float autoScrollOffsetFraction = 4.0f;
 
 			bool autoScrollCursor = false;
-			const float CURSOR_HEAD_WIDTH = 17.0f;
-			const float CURSOR_HEAD_HEIGHT = 8.0f;
 
 			float scrollDelta = 0.0f;
 			float scrollSpeed = 2.0f, scrollSpeedFast = 4.5f;
 		};
-		
+
+		static constexpr float CURSOR_HEAD_WIDTH = 17.0f;
+		static constexpr float CURSOR_HEAD_HEIGHT = 8.0f;
+
 		// ----------------------
 		virtual void OnInitialize() {};
 		// ----------------------
@@ -99,6 +104,8 @@ namespace Editor
 		virtual void OnDrawTimlineDivisors() = 0;
 		virtual void OnDrawTimlineBackground() = 0;
 		virtual void DrawTimelineCursor();
+		// ----------------------
+		virtual void OnDrawTimelineScrollBarRegion() {};
 		// ----------------------
 
 		void UpdateTimelineBaseState();
