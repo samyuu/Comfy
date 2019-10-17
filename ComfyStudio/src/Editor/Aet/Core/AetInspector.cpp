@@ -153,7 +153,7 @@ namespace Editor
 		if (Gui::WideTreeNodeEx(ICON_AETLAYERS "  Layer Data", DefaultOpenPropertiesNodeFlags))
 		{
 			if (aetLayer != nullptr)
-				sprintf_s(layerDataNameBuffer, "Layer %d (%.*s)", aetLayer->GuiData.ThisIndex, availableLayerNameBufferSize, aetLayer->GetName().c_str());
+				sprintf_s(layerDataNameBuffer, "%.*s (Layer %d)", availableLayerNameBufferSize, aetLayer->GetName().c_str(), aetLayer->GuiData.ThisIndex);
 
 			PushDisableItemFlagIfPlayback();
 			if (Gui::ComfyBeginCombo("Layer", aetLayer == nullptr ? "None (Layer)" : layerDataNameBuffer, ImGuiComboFlags_HeightLarge))
@@ -161,13 +161,12 @@ namespace Editor
 				if (Gui::Selectable("None (Layer)", aetLayer == nullptr))
 					ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceLayer, aetObj, nullptr);
 
-				int layerIndex = 0;
 				for (const RefPtr<AetLayer>& layer : aet->Layers)
 				{
 					Gui::PushID(layer.get());
 
 					bool isSelected = (aetLayer == layer);
-					sprintf_s(layerDataNameBuffer, "Layer %d (%.*s)", layerIndex++, availableLayerNameBufferSize, layer->GetName().c_str());
+					sprintf_s(layerDataNameBuffer, "%.*s (Layer %d)", availableLayerNameBufferSize, layer->GetName().c_str(), layer->GuiData.ThisIndex);
 
 					if (Gui::Selectable(layerDataNameBuffer, isSelected))
 						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceLayer, aetObj, layer);
