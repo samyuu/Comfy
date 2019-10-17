@@ -88,27 +88,27 @@ namespace Editor
 
 			// NOTE: First frame button
 			{
-				Gui::PushItemDisabledAndTextColorIf(isFirstFrame);
+				Gui::PushItemDisabledAndTextColorIf(isFirstFrame || isPlayback);
 				if (Gui::Button(ICON_FA_FAST_BACKWARD))
 				{
 					cursorTime = GetTimelineTime(loopStartFrame);
 					RoundCursorTimeToNearestFrame();
 					scrollDelta = -GetTimelineSize();
 				}
-				Gui::PopItemDisabledAndTextColorIf(isFirstFrame);
+				Gui::PopItemDisabledAndTextColorIf(isFirstFrame || isPlayback);
 				Gui::SetWideItemTooltip("Go to first frame");
 			}
 
 			// NOTE: Previous frame button
 			{
 				Gui::SameLine();
-				Gui::PushItemDisabledAndTextColorIf(isFirstFrame);
+				Gui::PushItemDisabledAndTextColorIf(isFirstFrame || isPlayback);
 				if (Gui::Button(ICON_FA_BACKWARD))
 				{
 					cursorTime = GetTimelineTime(GetCursorFrame() - 1.0f);
 					RoundCursorTimeToNearestFrame();
 				}
-				Gui::PopItemDisabledAndTextColorIf(isFirstFrame);
+				Gui::PopItemDisabledAndTextColorIf(isFirstFrame || isPlayback);
 				Gui::SetWideItemTooltip("Go to previous frame");
 			}
 
@@ -125,40 +125,40 @@ namespace Editor
 			// NOTE: Playback stop button
 			{
 				Gui::SameLine();
-				Gui::PushItemDisabledAndTextColorIf(!isPlayback);
+				Gui::PushItemDisabledAndTextColorIf(!isPlayback && isFirstFrame);
 				if (Gui::Button(ICON_FA_STOP))
 				{
 					StopPlayback();
 					scrollDelta = -GetTimelineSize();
 				}
-				Gui::PopItemDisabledAndTextColorIf(!isPlayback);
+				Gui::PopItemDisabledAndTextColorIf(!isPlayback && isFirstFrame);
 				Gui::SetWideItemTooltip("Stop playback");
 			}
 
 			// NOTE: Next frame button
 			{
 				Gui::SameLine();
-				Gui::PushItemDisabledAndTextColorIf(isLastFrame);
+				Gui::PushItemDisabledAndTextColorIf(isLastFrame || isPlayback);
 				if (Gui::Button(ICON_FA_FORWARD))
 				{
 					cursorTime = GetTimelineTime(GetCursorFrame() + 1);
 					RoundCursorTimeToNearestFrame();
 				}
-				Gui::PopItemDisabledAndTextColorIf(isLastFrame);
+				Gui::PopItemDisabledAndTextColorIf(isLastFrame || isPlayback);
 				Gui::SetWideItemTooltip("Go to next frame");
 			}
 
 			// NOTE: Last frame button
 			{
 				Gui::SameLine();
-				Gui::PushItemDisabledAndTextColorIf(isLastFrame);
+				Gui::PushItemDisabledAndTextColorIf(isLastFrame || isPlayback);
 				if (Gui::Button(ICON_FA_FAST_FORWARD))
 				{
 					cursorTime = GetTimelineTime(loopEndFrame - 1.0f);
 					RoundCursorTimeToNearestFrame();
 					scrollDelta = +GetTimelineSize();
 				}
-				Gui::PopItemDisabledAndTextColorIf(isLastFrame);
+				Gui::PopItemDisabledAndTextColorIf(isLastFrame || isPlayback);
 				Gui::SetWideItemTooltip("Go to last frame");
 			}
 
@@ -187,10 +187,6 @@ namespace Editor
 
 			// TODO: Come up with a neat comfy layout
 			Gui::Text("TODO:");
-
-			float zoomPercentage = zoomLevel * percentageFactor;
-			if (Gui::SliderFloat("Zoom Level", &zoomPercentage, ZOOM_MIN * percentageFactor, ZOOM_MAX * percentageFactor, "%.2f %%"))
-				zoomLevel = zoomPercentage * (1.0f / percentageFactor);
 
 			float playbackSpeedPercentage = playbackSpeedFactor * percentageFactor;
 			if (Gui::SliderFloat("Playback Speed", &playbackSpeedPercentage, 1.0f, 400.0f, "%.2f %%"))
@@ -322,7 +318,7 @@ namespace Editor
 
 		// NOTE: Time drag text
 		{
-			char cursorTimeBuffer[64];
+			char cursorTimeBuffer[32];
 			cursorTime.FormatTime(cursorTimeBuffer, sizeof(cursorTimeBuffer));
 
 			float cursorFrame = GetCursorFrame().Frames();
@@ -332,6 +328,8 @@ namespace Editor
 				cursorTime = GetTimelineTime(std::clamp(TimelineFrame(cursorFrame), loopStartFrame, loopEndFrame));
 				RoundCursorTimeToNearestFrame();
 			}
+
+			Gui::SetWideItemTooltip("Frame: %.2f (%.2f fps)", GetCursorFrame().Frames(), frameRate);
 		}
 
 		// NOTE: Mode buttons (Dopesheet / Curves)
