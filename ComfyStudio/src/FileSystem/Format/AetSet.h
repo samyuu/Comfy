@@ -6,7 +6,7 @@
 namespace FileSystem
 {
 	// NOTE: Extra data used by Editor Components to avoid additional allocations and reduce complexity
-	struct GuiTempData
+	struct GuiExtraData
 	{
 		// NOTE: Used for scrolling juming to a destination
 		float TreeViewScrollY;
@@ -178,7 +178,7 @@ namespace FileSystem
 		static Array<const char*, 4> TypeNames;
 
 	public:
-		mutable GuiTempData GuiData;
+		mutable GuiExtraData GuiData;
 
 	public:
 		AetObj();
@@ -267,7 +267,7 @@ namespace FileSystem
 		~AetLayer() = default;
 
 	public:
-		mutable GuiTempData GuiData;
+		mutable GuiExtraData GuiData;
 
 	public:
 		inline Aet* GetParentAet() { return parentAet; };

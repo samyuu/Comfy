@@ -562,7 +562,7 @@ namespace Editor
 		return nodeNameFormatBuffer;
 	}
 
-	void AetTreeView::ScrollToGuiData(GuiTempData& guiData)
+	void AetTreeView::ScrollToGuiData(GuiExtraData& guiData)
 	{
 		scrollPositionStack.push(treeViewWindow->Scroll.y);
 

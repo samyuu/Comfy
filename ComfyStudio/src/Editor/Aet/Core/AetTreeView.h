@@ -91,7 +91,7 @@ namespace Editor
 		const char* FormatRegionNodeName(const RefPtr<AetRegion>& region, int32_t index);
 
 	private:
-		void ScrollToGuiData(GuiTempData& guiData);
+		void ScrollToGuiData(GuiExtraData& guiData);
 
 	private:
 		const char* GetDebugObjectName();
