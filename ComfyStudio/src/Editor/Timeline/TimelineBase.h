@@ -3,6 +3,7 @@
 #include "TimelineBaseRegions.h"
 #include "ITimelinePlaybackControllable.h"
 #include "ITimelineUnitConverter.h"
+#include "TimelineScrollbar.h"
 #include "ImGui/Gui.h"
 
 namespace Editor
@@ -36,11 +37,16 @@ namespace Editor
 		inline float GetMaxScrollX() const { return Gui::GetWindowScrollMaxX(baseWindow); };
 		inline float GetScrollX() const { return baseWindow->Scroll.x; };
 
+		inline float GetMaxScrollY() const { return maxScrollY; };
+		inline float GetScrollY() const { return scrollY; };
+
 	protected:
+		void SetCurorAwareZoom(float newZoom);
+
 		inline void SetScrollX(float value) { baseWindow->ScrollTarget.x = value; baseWindow->ScrollTargetCenterRatio.x = 0.0f; };
 
-		// TODO: Implement, probably don't wanna use the scroll y field of the window itself (?)
-		// inline void SetScrollY(float value) { Gui::SetScrollY(value); };
+		inline void SetMaxScrollY(float value) { maxScrollY = value; };
+		inline void SetScrollY(float value) { scrollY = value; };
 
 	protected:
 		// TODO: Initialize in derived class, each derived class then exposes its own casted getter (?)
@@ -62,8 +68,12 @@ namespace Editor
 			float infoColumnWidth = 46.0f;
 			float timelineHeaderHeight = 32.0f - 13.0f;
 			float tempoMapHeight = 13.0f;
-			const vec2 timelineScrollbarSize = vec2(14.0f, 16.0f);
+			
+			// NOTE: Part of the slider width
+			const float zoomButtonWidth = 24.0f;
+			const float zoomSliderWidth = 160.0f;
 		};
+		static constexpr vec2 timelineScrollbarSize = vec2(14.0f, 16.0f);
 
 		static constexpr float ZOOM_BASE = 150.0f;
 		static constexpr float ZOOM_MIN = 1.0f;
@@ -85,6 +95,9 @@ namespace Editor
 
 			float scrollDelta = 0.0f;
 			float scrollSpeed = 2.0f, scrollSpeedFast = 4.5f;
+
+			TimelineScrollbar horizontalScrollbar = { ImGuiAxis_X, timelineScrollbarSize };
+			TimelineScrollbar verticalScrollbar = { ImGuiAxis_Y, timelineScrollbarSize };
 		};
 
 		static constexpr float CURSOR_HEAD_WIDTH = 17.0f;
@@ -94,6 +107,7 @@ namespace Editor
 		virtual void OnInitialize() {};
 		// ----------------------
 		void DrawTimelineBase();
+		void DrawTimelineZoomSlider();
 		// ----------------------
 		virtual void OnDrawTimelineHeaderWidgets() = 0;
 		virtual void OnDrawTimelineInfoColumnHeader();
@@ -108,6 +122,7 @@ namespace Editor
 		virtual void OnDrawTimelineScrollBarRegion() {};
 		// ----------------------
 
+		void UpdateInfoColumnInput();
 		void UpdateTimelineBaseState();
 
 		// ----------------------
@@ -121,6 +136,8 @@ namespace Editor
 
 		virtual void UpdateInputTimelineScroll();
 		virtual void UpdateInputPlaybackToggle();
+
+		virtual void OnInfoColumnScroll();
 		virtual void OnTimelineBaseScroll();
 
 		virtual void UpdateCursorAutoScroll();
@@ -130,6 +147,9 @@ namespace Editor
 		virtual bool IsCursorOnScreen() const;
 
 	private:
+		float scrollY = 0.0f;
+		float maxScrollY = 0.0f;
+
 		void UpdateAllInput();
 	};
 }

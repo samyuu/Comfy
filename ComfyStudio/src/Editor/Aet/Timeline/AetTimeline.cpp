@@ -208,6 +208,17 @@ namespace Editor
 		ImDrawList* drawList = Gui::GetWindowDrawList();
 		ImU32 textColor = Gui::GetColorU32(ImGuiCol_Text);
 
+		const float scrollY = GetScrollY();
+
+		// TODO: Should be moved into TimelineBase as GetTimelineHeight
+		if (selectedAetItem.Type() == AetItemType::AetLayer)
+		{
+			const float horizontalSize = selectedAetItem.GetAetLayerRef()->size() * rowItemHeight - infoColumnRegion.GetHeight() + 1.0f;
+			SetMaxScrollY(horizontalSize < 0.0f ? 0.0f : horizontalSize);
+		}
+		
+		Gui::PushClipRect(infoColumnRegion.GetTL(), infoColumnRegion.GetBR(), true);
+
 		if (selectedAetItem.IsNull() || selectedAetItem.Type() == AetItemType::Aet)
 		{
 			// textColor = Gui::GetColorU32(ImGuiCol_TextDisabled);
@@ -225,7 +236,7 @@ namespace Editor
 			// NOTE: Draw Text
 			for (int i = 0; i < PropertyType_Count; i++)
 			{
-				const float y = i * rowItemHeight;
+				const float y = i * rowItemHeight - scrollY;
 				vec2 start = vec2(startPadding, y + textPadding) + infoColumnRegion.GetTL();
 
 				const auto[type, name] = timelinePropertyTypeNames[i];
@@ -239,7 +250,7 @@ namespace Editor
 			// NOTE: Draw Separators
 			for (int i = 0; i <= PropertyType_Count; i++)
 			{
-				const float y = i * rowItemHeight;
+				const float y = i * rowItemHeight - scrollY;
 				const vec2 topLeftSeparator = infoColumnRegion.GetTL() + vec2(0.0f, y);
 				const vec2 topRightSeparator = infoColumnRegion.GetTR() + vec2(0.0f, y);
 				drawList->AddLine(topLeftSeparator, topRightSeparator, Gui::GetColorU32(ImGuiCol_Border));
@@ -253,7 +264,7 @@ namespace Editor
 			AetLayer* layer = selectedAetItem.GetAetLayerRef().get();
 			for (int i = 0; i < static_cast<int>(layer->size()); i++)
 			{
-				float y = i * rowItemHeight;
+				float y = i * rowItemHeight - scrollY;
 				vec2 start = vec2(startPadding, y + textPadding) + infoColumnRegion.GetTL();
 
 				const auto& object = layer->at(i);
@@ -266,12 +277,14 @@ namespace Editor
 			// NOTE: Draw Separators
 			for (int i = 0; i <= static_cast<int>(layer->size()); i++)
 			{
-				const float y = i * rowItemHeight;
+				const float y = i * rowItemHeight - scrollY;
 				const vec2 topLeftSeparator = infoColumnRegion.GetTL() + vec2(0.0f, y);
 				const vec2 topRightSeparator = infoColumnRegion.GetTR() + vec2(0.0f, y);
 				drawList->AddLine(topLeftSeparator, topRightSeparator, Gui::GetColorU32(ImGuiCol_Border));
 			}
 		}
+
+		Gui::PopClipRect();
 	}
 
 	void AetTimeline::OnDrawTimlineRows()
@@ -282,21 +295,26 @@ namespace Editor
 		if (currentTimelineMode != TimelineMode::DopeSheet)
 			return;
 
+		// TODO:
 		const int rowCount = (selectedAetItem.Type() == AetItemType::AetLayer) ?
 			static_cast<int>(selectedAetItem.GetAetLayerRef()->size()) :
 			static_cast<int>(PropertyType_Count);
 
-		// TODO: Scroll offset and scrollbar, use Gui::Scrollbar (?) might have to make a completely custom one and don't forget to push clipping rects
 		const ImU32 rowColor = GetColor(EditorColor_TimelineRowSeparator);
+		const float scrollY = GetScrollY();
+
+		Gui::PushClipRect(timelineContentRegion.GetTL(), timelineContentRegion.GetBR(), true);
 
 		for (int i = 0; i <= rowCount; i++)
 		{
-			const float y = i * rowItemHeight;
+			const float y = i * rowItemHeight - scrollY;
 			const vec2 start = timelineContentRegion.GetTL() + vec2(0.0f, y);
 			const vec2 end = start + vec2(timelineContentRegion.GetWidth(), 0.0f);
 
 			baseDrawList->AddLine(start, end, rowColor);
 		}
+
+		Gui::PopClipRect();
 	}
 
 	void AetTimeline::OnDrawTimlineDivisors()
@@ -472,6 +490,8 @@ namespace Editor
 		}
 		else
 		{
+			Gui::PushClipRect(timelineContentRegion.GetTL(), timelineContentRegion.GetBR(), true);
+
 			switch (selectedAetItem.Type())
 			{
 			case AetItemType::AetSet:
@@ -489,9 +509,11 @@ namespace Editor
 			default:
 				break;
 			}
+
+			Gui::PopClipRect();
 		}
 
-		// draw selection region
+		// NOTE: Draw selection region
 		const MouseSelectionData& selectionData = timelineController.GetSelectionData();
 		if (selectionData.IsSelected())
 			DrawMouseSelection(selectionData);

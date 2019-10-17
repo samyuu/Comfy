@@ -140,6 +140,7 @@
     <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\RotateTool.cpp" />
     <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\ScaleTool.cpp" />
     <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\TransformBox.cpp" />
+    <ClCompile Include="src\Editor\Timeline\TimelineScrollbar.cpp" />
     <ClCompile Include="src\FileSystem\Archive\Farc.cpp" />
     <ClCompile Include="src\FileSystem\Archive\FileArchive.cpp" />
     <ClCompile Include="src\Input\KeyCode.cpp" />
@@ -294,6 +295,7 @@
     <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\RotateTool.h" />
     <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\ScaleTool.h" />
     <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\TransformBox.h" />
+    <ClInclude Include="src\Editor\Timeline\TimelineScrollbar.h" />
     <ClInclude Include="src\FileSystem\Archive\Farc.h" />
     <ClInclude Include="src\FileSystem\Archive\FileArchive.h" />
     <ClInclude Include="src\System\CommandLine\CommandLine.h" />

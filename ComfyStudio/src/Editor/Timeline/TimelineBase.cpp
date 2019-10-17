@@ -1,6 +1,7 @@
 #include "TimelineBase.h"
 #include "Editor/Core/Theme.h"
 #include "Input/KeyCode.h"
+#include <FontIcons.h>
 
 namespace Editor
 {
@@ -79,6 +80,27 @@ namespace Editor
 		OnInitialize();
 	}
 
+	void TimelineBase::SetCurorAwareZoom(float newZoom)
+	{
+		const float prePosition = GetCursorTimelinePosition();
+
+		if (newZoom > 0.0f)
+			zoomLevel = newZoom;
+
+		const float postPosition = GetCursorTimelinePosition();
+		SetScrollX(GetScrollX() + postPosition - prePosition);
+	}
+
+	void TimelineBase::UpdateInfoColumnInput()
+	{
+		const auto& io = Gui::GetIO();
+
+		if (Gui::IsWindowHovered() && infoColumnRegion.Contains(io.MousePos) && io.MouseWheel != 0.0f)
+		{
+			OnInfoColumnScroll();
+		}
+	}
+
 	void TimelineBase::UpdateTimelineBaseState()
 	{
 		baseWindow = Gui::GetCurrentWindow();
@@ -148,16 +170,8 @@ namespace Editor
 			{
 				if (io.KeyAlt) // NOTE: Zoom timeline
 				{
-					const float prePosition = GetCursorTimelinePosition();
-
 					constexpr float amount = 0.5f;
-					zoomLevel = zoomLevel + amount * io.MouseWheel;
-
-					if (zoomLevel <= 0)
-						zoomLevel = amount;
-
-					float postPosition = GetCursorTimelinePosition();
-					SetScrollX(GetScrollX() + postPosition - prePosition);
+					SetCurorAwareZoom(zoomLevel + amount * io.MouseWheel);
 				}
 				else if (!io.KeyCtrl) // NOTE: Scroll timeline
 				{
@@ -241,29 +255,34 @@ namespace Editor
 		Gui::ItemSize(vec2(GetTimelineSize(), 0.0f));
 	}
 
+	void TimelineBase::OnInfoColumnScroll()
+	{
+		const auto& io = Gui::GetIO();
+
+		// TODO: Set inside AetTimeline: iterate over all objects in current layer (combine current layer with obj view and render duration above properties) then accumilate total height
+		//SetMaxScrollY(120.0f);
+
+		constexpr float scrollAmount = 32.0f;
+		const float newScrollY = GetScrollY() - (io.MouseWheel * scrollAmount);
+
+		//SetScrollY(glm::clamp(scrollY, 0.0f, GetMaxScrollY()));
+		//SetScrollY(std::max(newScrollY, 0.0f));
+
+		SetScrollY(std::clamp(newScrollY, 0.0f, maxScrollY));
+	}
+
 	void TimelineBase::OnTimelineBaseScroll()
 	{
 		const auto& io = Gui::GetIO();
 		const vec2 maxStep = (baseWindow->ContentsRegionRect.GetSize() + baseWindow->WindowPadding * 2.0f) * 0.67f;
 
 		const float speed = io.KeyShift ? scrollSpeedFast : scrollSpeed;
-		const float scrollStep = ImFloor(ImMin(2 * baseWindow->CalcFontSize(), maxStep.x)) * speed;
+		const float scrollStep = ImFloor(ImMin(2.0f * baseWindow->CalcFontSize(), maxStep.x)) * speed;
 		SetScrollX(baseWindow->Scroll.x + io.MouseWheel * scrollStep);
 	}
 
 	void TimelineBase::DrawTimelineGui()
 	{
-		Gui::BeginGroup();
-		OnDrawTimelineHeaderWidgets();
-		Gui::EndGroup();
-
-		UpdateTimelineRegions();
-
-		Gui::BeginChild("##InfoColumnChild::TimelineBase", vec2(0.0f, -timelineScrollbarSize.y));
-		OnDrawTimelineInfoColumnHeader();
-		OnDrawTimelineInfoColumn();
-		Gui::EndChild();
-		
 #if 0 // TEMP:
 		Gui::DEBUG_NOSAVE_WINDOW("timeline base regions", [this]()
 		{
@@ -284,23 +303,75 @@ namespace Editor
 		});
 #endif
 
+		Gui::BeginGroup();
+		{
+			OnDrawTimelineHeaderWidgets();
+		}
+		Gui::EndGroup();
+
+		UpdateTimelineRegions();
+
+		Gui::BeginChild("##InfoColumnChild::TimelineBase", vec2(0.0f, -timelineScrollbarSize.y));
+		{
+			OnDrawTimelineInfoColumnHeader();
+			OnDrawTimelineInfoColumn();
+			UpdateInfoColumnInput();
+
+#if 0 // TEMP:
+			Gui::DEBUG_NOSAVE_WINDOW("scroll", [this]()
+			{
+				Gui::ComfyFloatTextWidget("maxScrollY", &maxScrollY, 1.0f, 10.0f, 0.0f, 0.0f);
+				Gui::ComfyFloatTextWidget("scrollY", &scrollY, 1.0f, 10.0f, 0.0f, 0.0f);
+			});
+#endif
+		}
+		Gui::EndChild();
+
 		Gui::SetCursorScreenPos(infoColumnHeaderRegion.GetTR());
 		Gui::BeginChild("##BaseChild::TimelineBase", vec2(-timelineScrollbarSize.x, 0.0f), false, ImGuiWindowFlags_NoScrollbar);
-		UpdateTimelineBaseState();
-		DrawTimelineBase();
+		{
+			UpdateTimelineBaseState();
+			DrawTimelineBase();
+		}
 		Gui::EndChild();
 
 		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f, 0.0f));
 
 		Gui::SameLine();
 		Gui::BeginChild("VerticalScrollChild::TimelineBase", vec2(0.0f, 0.0f), false, ImGuiWindowFlags_NoScrollbar);
-		Gui::GetWindowDrawList()->AddRectFilled(Gui::GetWindowPos(), Gui::GetWindowPos() + Gui::GetWindowSize() - vec2(0.0f, timelineScrollbarSize.y), Gui::GetColorU32(ImGuiCol_ScrollbarBg));
+		{
+			Gui::GetWindowDrawList()->AddRectFilled(
+				GImGui->CurrentWindow->Pos,
+				GImGui->CurrentWindow->Pos + GImGui->CurrentWindow->Size - vec2(0.0f, timelineScrollbarSize.y),
+				Gui::GetColorU32(ImGuiCol_ScrollbarBg));
+
+			const vec2 positionOffset = vec2(0.0f, infoColumnHeaderRegion.GetHeight());
+			const vec2 sizeOffset = vec2(0.0f, -timelineScrollbarSize.y);
+
+			const ImRect scrollbarRegion = ImRect(timelineContentRegion.GetTR(), timelineContentRegion.GetBR() + vec2(timelineScrollbarSize.x, 0.0f));
+
+			verticalScrollbar.DrawGui(GetScrollY(), GetMaxScrollY(), scrollbarRegion);
+		}
 		Gui::EndChild();
 
 		Gui::SetCursorScreenPos(infoColumnRegion.GetBL());
 		Gui::BeginChild("HorizontalScrollChild::TimelineBase", vec2(-timelineScrollbarSize.x, timelineScrollbarSize.y), false, ImGuiWindowFlags_NoScrollbar);
-		Gui::GetWindowDrawList()->AddRectFilled(Gui::GetWindowPos(), Gui::GetWindowPos() + Gui::GetWindowSize(), Gui::GetColorU32(ImGuiCol_ScrollbarBg));
-		OnDrawTimelineScrollBarRegion();
+		{
+			Gui::GetWindowDrawList()->AddRectFilled(
+				GImGui->CurrentWindow->Pos,
+				GImGui->CurrentWindow->Pos + GImGui->CurrentWindow->Size,
+				Gui::GetColorU32(ImGuiCol_ScrollbarBg));
+
+			OnDrawTimelineScrollBarRegion();
+			DrawTimelineZoomSlider();
+
+			const vec2 positionOffset = vec2(infoColumnWidth + zoomSliderWidth, 0.0f);
+			const ImRect scrollbarRegion = ImRect(
+				GImGui->CurrentWindow->Pos + positionOffset,
+				GImGui->CurrentWindow->Pos + GImGui->CurrentWindow->Size);
+
+			horizontalScrollbar.DrawGui(GetScrollX(), GetMaxScrollX(), scrollbarRegion);
+		}
 		Gui::EndChild();
 
 		Gui::PopStyleVar();
@@ -331,6 +402,40 @@ namespace Editor
 
 		OnDrawTimelineContents();
 		DrawTimelineCursor();
+	}
+
+	void TimelineBase::DrawTimelineZoomSlider()
+	{
+		constexpr float percentageFactor = 100.0f;
+		constexpr float buttonZoomFactor = 1.1f;
+		const vec2 buttonSize = vec2(zoomButtonWidth, timelineScrollbarSize.y);
+
+		Gui::SetCursorScreenPos(Gui::GetWindowPos() + vec2(infoColumnWidth, 0.0f));
+
+		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(Gui::GetStyle().FramePadding.x, 0.0f));
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f, 0.0f));
+
+		Gui::PushItemWidth(zoomSliderWidth - zoomButtonWidth * 2.0f);
+		{
+			Gui::PushButtonRepeat(/*true*/false);
+			if (Gui::ComfySmallButton(ICON_FA_SEARCH_MINUS, buttonSize))
+				SetCurorAwareZoom(std::clamp(zoomLevel * (1.0f / buttonZoomFactor), ZOOM_MIN, ZOOM_MAX));
+
+			Gui::SameLine();
+
+			float zoomPercentage = (zoomLevel * percentageFactor);
+			if (Gui::SliderFloat("##ZoomSlider", &zoomPercentage, ZOOM_MIN * percentageFactor, ZOOM_MAX * percentageFactor, "%.2f %%"))
+				SetCurorAwareZoom(zoomPercentage * (1.0f / percentageFactor));
+
+			Gui::SameLine();
+
+			if (Gui::ComfySmallButton(ICON_FA_SEARCH_PLUS, buttonSize))
+				SetCurorAwareZoom(std::clamp(zoomLevel * buttonZoomFactor, ZOOM_MIN, ZOOM_MAX));
+			Gui::PopButtonRepeat();
+		}
+		Gui::PopItemWidth();
+
+		Gui::PopStyleVar(2);
 	}
 
 	void TimelineBase::OnDrawTimelineInfoColumnHeader()
