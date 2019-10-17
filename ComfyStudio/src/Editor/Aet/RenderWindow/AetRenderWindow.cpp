@@ -104,7 +104,7 @@ namespace Editor
 			vec2 rulerTopRight = rulerTopLeft + vec2(Gui::GetContentRegionAvail().x, 0.0);
 			vec2 rulerBotLeft = rulerTopLeft + vec2(0.0f, Gui::GetContentRegionAvail().y);
 
-			auto* drawList = Gui::GetWindowDrawList();
+			auto drawList = Gui::GetWindowDrawList();
 
 			vec2 size(Gui::GetContentRegionAvail().x, rulerSize);
 			drawList->AddRectFilled(rulerTopLeft, rulerTopLeft + size, rulerColor);
@@ -127,8 +127,8 @@ namespace Editor
 		AetTool* tool = GetCurrentTool();
 		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::AetObj)
 		{
-			auto worldToScreen = [this](vec2 value) { return (camera.WorldToScreenSpace(value) + GetRenderRegion().GetTL()); };
-			auto screenToWorld = [this](vec2 value) { return (camera.ScreenToWorldSpace(value - GetRenderRegion().GetTL())); };
+			const auto worldToScreen = [this](vec2 value) { return (camera.WorldToScreenSpace(value) + GetRenderRegion().GetTL()); };
+			const auto screenToWorld = [this](vec2 value) { return (camera.ScreenToWorldSpace(value - GetRenderRegion().GetTL())); };
 
 			const Properties previousProperties = toolProperties;
 
@@ -173,8 +173,8 @@ namespace Editor
 			}
 			Gui::Separator();
 
-			float cameraZoom = camera.Zoom;
-			vec2 zoomMouseOrigin = GetRelativeMouse();
+			const float cameraZoom = camera.Zoom;
+			const vec2 zoomMouseOrigin = GetRelativeMouse();
 
 			if (Gui::MenuItem("50% Zoom", nullptr, nullptr, cameraZoom != 0.5f))
 				cameraController.SetUpdateCameraZoom(camera, 0.5f, zoomMouseOrigin);
@@ -205,7 +205,7 @@ namespace Editor
 		if (!selectedAetItem->IsNull() && selectedAetItem->GetItemParentAet() != nullptr)
 			aetRegionSize = selectedAetItem->GetItemParentAet()->Resolution;
 
-		vec2 relativeMouse = GetRelativeMouse();
+		const vec2 relativeMouse = GetRelativeMouse();
 		cameraController.Update(camera, relativeMouse);
 		GetCurrentTool()->UpdateCamera(camera, relativeMouse);
 
@@ -255,7 +255,7 @@ namespace Editor
 	{
 		RenderWindowBase::OnResize(size);
 
-		vec2 newProjectionSize(size);
+		const vec2 newProjectionSize(size);
 		camera.Position += (camera.ProjectionSize - newProjectionSize) * 0.5f;;
 		camera.ProjectionSize = newProjectionSize;
 
@@ -271,8 +271,8 @@ namespace Editor
 
 		for (int i = 0; i < AetToolType_Count; i++)
 		{
-			AetTool* tool = tools[i].get();
-			bool isSelected = (tool == GetCurrentTool());
+			const AetTool* tool = tools[i].get();
+			const bool isSelected = (tool == GetCurrentTool());
 
 			Gui::PushStyleColor(ImGuiCol_Button, Gui::GetStyleColorVec4(isSelected ? ImGuiCol_Button : ImGuiCol_DockingEmptyBg));
 
@@ -358,7 +358,7 @@ namespace Editor
 
 		if (allowMousePickerInput && allowedMousePickerInputLastFrame)
 		{
-			vec2 mouseWorldSpace = camera.ScreenToWorldSpace(GetRelativeMouse());
+			const vec2 mouseWorldSpace = camera.ScreenToWorldSpace(GetRelativeMouse());
 			mousePicker->UpdateMouseInput(mouseWorldSpace);
 		}
 	}
