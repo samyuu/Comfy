@@ -8,11 +8,13 @@ namespace FileSystem
 	// NOTE: Extra data used by Editor Components to avoid additional allocations and reduce complexity
 	struct GuiExtraData
 	{
-		// NOTE: Used for scrolling juming to a destination
+		// NOTE: For scroll jumping to a destination
 		float TreeViewScrollY;
-		// NOTE: Set after double clicking on a layer reference node to open it
-		bool AppendOpenNode;
-		// NOTE: Used to try and prevent layer name ambiguity
+		// NOTE: Stored separately so we can expand nodes when jumping to a layer reference for example
+		bool TreeViewNodeOpen;
+		// NOTE: Stored to be used by the timeline
+		// bool TimelineNodeOpen;
+		// NOTE: To try and prevent layer name ambiguity
 		int ThisIndex;
 	};
 

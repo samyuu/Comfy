@@ -417,7 +417,6 @@ namespace Editor
 
 		Gui::PushItemWidth(zoomSliderWidth - zoomButtonWidth * 2.0f);
 		{
-			Gui::PushButtonRepeat(/*true*/false);
 			if (Gui::ComfySmallButton(ICON_FA_SEARCH_MINUS, buttonSize))
 				SetCurorAwareZoom(std::clamp(zoomLevel * (1.0f / buttonZoomFactor), ZOOM_MIN, ZOOM_MAX));
 
@@ -431,7 +430,6 @@ namespace Editor
 
 			if (Gui::ComfySmallButton(ICON_FA_SEARCH_PLUS, buttonSize))
 				SetCurorAwareZoom(std::clamp(zoomLevel * buttonZoomFactor, ZOOM_MIN, ZOOM_MAX));
-			Gui::PopButtonRepeat();
 		}
 		Gui::PopItemWidth();
 

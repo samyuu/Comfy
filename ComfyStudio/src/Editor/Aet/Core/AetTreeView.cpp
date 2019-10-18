@@ -222,14 +222,11 @@ namespace Editor
 			layerNodeFlags |= ImGuiTreeNodeFlags_Leaf;
 
 		aetLayer->GuiData.TreeViewScrollY = Gui::GetCursorPos().y;
-		if (aetLayer->GuiData.AppendOpenNode)
-		{
-			Gui::SetNextTreeNodeOpen(true);
-			aetLayer->GuiData.AppendOpenNode = false;
-		}
 
 		const vec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
-		const bool aetLayerNodeOpen = Gui::WideTreeNodeEx("##AetLayerNode", layerNodeFlags);
+
+		Gui::SetNextTreeNodeOpen(aetLayer->GuiData.TreeViewNodeOpen);
+		aetLayer->GuiData.TreeViewNodeOpen = Gui::WideTreeNodeEx("##AetLayerNode", layerNodeFlags);
 
 		bool openAddAetObjPopup = false;
 		Gui::ItemContextMenu("AetLayerContextMenu##AetTreeView", [this, &aet, &aetLayer, &openAddAetObjPopup, isRoot]()
@@ -258,7 +255,7 @@ namespace Editor
 
 			// NOTE: Layer icon
 			Gui::SetCursorScreenPos(nodeLabelCursorPos);
-			Gui::TextUnformatted(aetLayerNodeOpen ? ICON_AETLAYER_OPEN : ICON_AETLAYER);
+			Gui::TextUnformatted(aetLayer->GuiData.TreeViewNodeOpen ? ICON_AETLAYER_OPEN : ICON_AETLAYER);
 
 			// NOTE: Layer name
 			Gui::SetCursorScreenPos(nodeLabelCursorPos + iconLabelOffset);
@@ -292,7 +289,7 @@ namespace Editor
 			Gui::EndPopup();
 		}
 
-		if (aetLayerNodeOpen)
+		if (aetLayer->GuiData.TreeViewNodeOpen)
 		{
 			for (RefPtr<AetObj>& aetObj : *aetLayer)
 				DrawTreeViewObj(aet, aetLayer, aetObj);
@@ -569,7 +566,7 @@ namespace Editor
 		treeViewWindow->ScrollTarget.y = guiData.TreeViewScrollY;
 		treeViewWindow->ScrollTargetCenterRatio.y = scrollTargetCenterRatio;
 
-		guiData.AppendOpenNode = true;
+		guiData.TreeViewNodeOpen = true;
 	}
 
 	const char* AetTreeView::GetDebugObjectName()

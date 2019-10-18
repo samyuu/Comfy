@@ -52,7 +52,7 @@ namespace Editor
 		if (foundObject != nullptr && mousePickedObjectOnMouseClick == foundObject->get())
 		{
 			selectedAetItem->SetItem(*foundObject);
-			(*foundObject)->GetParentLayer()->GuiData.AppendOpenNode = true;
+			(*foundObject)->GetParentLayer()->GuiData.TreeViewNodeOpen = true;
 		}
 		else
 		{
