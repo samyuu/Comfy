@@ -3,7 +3,7 @@
 
 namespace FileSystem
 {
-	Array<const char*, 8> KeyFrameProperties::PropertyNames =
+	const Array<const char*, 8> KeyFrameProperties::PropertyNames =
 	{
 		"Origin X",
 		"Origin Y",
@@ -15,7 +15,7 @@ namespace FileSystem
 		"Opactiy",
 	};
 
-	Array<const char*, 13> AnimationData::BlendModeNames =
+	const Array<const char*, 13> AnimationData::BlendModeNames =
 	{
 		nullptr,
 		nullptr,
@@ -32,7 +32,7 @@ namespace FileSystem
 		nullptr, // "What The Fuck?"
 	};
 
-	Array<const char*, 4> AetObj::TypeNames =
+	const Array<const char*, 4> AetObj::TypeNames =
 	{
 		"nop",
 		"pic",
@@ -50,11 +50,6 @@ namespace FileSystem
 
 		const char* name = BlendModeNames[blendModeIndex];
 		return (name == nullptr) ? "Undefined Blend Mode" : name;
-	}
-
-	vec2 AetRegion::GetSize() const
-	{
-		return vec2(Width, Height);
 	}
 
 	AetSprite* AetRegion::GetSprite(int32_t index)
@@ -116,7 +111,7 @@ namespace FileSystem
 	{
 	}
 
-	AetKeyFrame::AetKeyFrame(frame_t frame, float value, float interpolation) : Frame(frame), Value(value), Interpolation(interpolation)
+	AetKeyFrame::AetKeyFrame(frame_t frame, float value, float curve) : Frame(frame), Value(value), Curve(curve)
 	{
 	}
 
@@ -153,6 +148,10 @@ namespace FileSystem
 		this->parentLayer = parentLayer;
 
 		SetName(name);
+	}
+
+	AetObj::~AetObj()
+	{
 	}
 
 	const String& AetObj::GetName() const

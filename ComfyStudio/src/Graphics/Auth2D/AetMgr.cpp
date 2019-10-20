@@ -70,8 +70,8 @@ namespace Graphics::Auth2D
 		float range = end->Frame - start->Frame;
 		float t = (frame - start->Frame) / range;
 
-		return (((((((t * t) * t) - ((t * t) * 2.0f)) + t) * start->Interpolation)
-			+ ((((t * t) * t) - (t * t)) * end->Interpolation)) * range)
+		return (((((((t * t) * t) - ((t * t) * 2.0f)) + t) * start->Curve)
+			+ ((((t * t) * t) - (t * t)) * end->Curve)) * range)
 			+ (((((t * t) * 3.0f) - (((t * t) * t) * 2.0f)) * end->Value)
 				+ ((((((t * t) * t) * 2.0f) - ((t * t) * 3.0f)) + 1.0f) * start->Value));
 	}

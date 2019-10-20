@@ -41,7 +41,7 @@ namespace Editor
 							newRegionIndex = i;
 
 						SameLine();
-						Text("Region: %dx%d", region->Width, region->Height);
+						Text("Region: %dx%d", region->Size.x, region->Size.y);
 
 						NextColumn();
 						if (region->SpriteCount() > 0)

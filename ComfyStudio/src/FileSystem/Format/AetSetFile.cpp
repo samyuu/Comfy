@@ -37,7 +37,7 @@ namespace FileSystem
 					for (uint32_t i = 0; i < keyFrameCount; i++)
 					{
 						keyFrames[i].Value = reader.ReadFloat();
-						keyFrames[i].Interpolation = reader.ReadFloat();
+						keyFrames[i].Curve = reader.ReadFloat();
 					}
 				}
 			});
@@ -69,7 +69,7 @@ namespace FileSystem
 					for (AetKeyFrame& keyFrame : keyFrames)
 					{
 						writer.WriteFloat(keyFrame.Value);
-						writer.WriteFloat(keyFrame.Interpolation);
+						writer.WriteFloat(keyFrame.Curve);
 					}
 				}
 			});
@@ -232,8 +232,8 @@ namespace FileSystem
 					region = MakeRef<AetRegion>();
 					region->filePosition = reader.GetPositionPtr();
 					region->Color = ReadColor(reader);
-					region->Width = reader.ReadUInt16();
-					region->Height = reader.ReadUInt16();
+					region->Size.x = reader.ReadUInt16();
+					region->Size.y = reader.ReadUInt16();
 					region->Frames = reader.ReadFloat();
 
 					uint32_t spriteCount = reader.ReadUInt32();
@@ -440,8 +440,8 @@ namespace FileSystem
 					{
 						region->filePosition = writer.GetPositionPtr();
 						writer.WriteUInt32(region->Color);
-						writer.WriteInt16(region->Width);
-						writer.WriteInt16(region->Height);
+						writer.WriteInt16(region->Size.x);
+						writer.WriteInt16(region->Size.y);
 						writer.WriteFloat(region->Frames);
 						if (region->SpriteCount() > 0)
 						{

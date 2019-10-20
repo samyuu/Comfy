@@ -30,7 +30,7 @@ namespace Editor
 
 		for (auto& obj : objectCache)
 		{
-			TransformBox box(obj.Properties, obj.Region->GetSize());
+			TransformBox box(obj.Properties, obj.Region->Size);
 
 			if (obj.Visible && box.Contains(worldSpace))
 			{

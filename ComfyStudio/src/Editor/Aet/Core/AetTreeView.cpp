@@ -553,7 +553,7 @@ namespace Editor
 		}
 		else
 		{
-			sprintf_s(nodeNameFormatBuffer, ICON_AETREGIONNOSPR "  Region %d (%dx%d)", index, region->Width, region->Height);
+			sprintf_s(nodeNameFormatBuffer, ICON_AETREGIONNOSPR "  Region %d (%dx%d)", index, region->Size.x, region->Size.y);
 		}
 
 		return nodeNameFormatBuffer;

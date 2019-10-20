@@ -21,62 +21,72 @@ namespace FileSystem
 	class Aet;
 	class AetLayer;
 	class AetSoundEffect;
-	struct Sprite;
 
+	// NOTE: Internal temporary file position for file parsing and writing
 	typedef void* fileptr_t;
 
 	enum class AetObjType : uint8_t
 	{
-		Nop = 0, // none
-		Pic = 1, // image
-		Aif = 2, // sound
-		Eff = 3, // layer
+		// NOTE: None
+		Nop = 0,
+		// NOTE: Image (-sequence) / position template
+		Pic = 1,
+		// NOTE: Sound effect
+		Aif = 2,
+		// NOTE: Layer
+		Eff = 3,
 	};
 
 	enum class AetBlendMode : uint8_t
 	{
-		// Normal
+		// NOTE: Normal
 		Alpha = 3,
-		// Screen
+		// NOTE: Screen
 		Additive = 5,
-		// Multiply
+		// NOTE: Multiply
 		DstColorZero = 6,
-		// Screen / Linear Dodge (Add)
+		// NOTE: Screen / Linear Dodge (Add)
 		SrcAlphaOneMinusSrcColor = 7,
-		// ??
+		// NOTE: ??
 		Transparent = 8,
-		// Used once by "eff_mosaic01__n.pic"
+		// NOTE: Used once by "eff_mosaic01__n.pic"
 		WhatTheFuck = 12,
 	};
 
 	struct AetSprite
 	{
+		// NOTE: Sprite name
 		String Name;
+		// NOTE: Database ID
 		uint32_t ID;
-		mutable const Sprite* SpriteCache;
+
+		// NOTE: Editor internal cache to avoid expensive string comparisons
+		mutable const struct Sprite* SpriteCache;
 	};
 
 	using SpriteCollectionIterator = Vector<AetSprite>::iterator;
 	using ConstSpriteCollectionIterator = Vector<AetSprite>::const_iterator;
 
+	// TODO: Rename to reflect sprite / position templates, sprites and image sequences
 	class AetRegion
 	{
 		friend class Aet;
 
 	public:
 		AetRegion() = default;
-		AetRegion(AetRegion& other) = delete;
-		AetRegion& operator= (AetRegion& other) = delete;
+		AetRegion(const AetRegion& other) = delete;
+		AetRegion& operator= (const AetRegion& other) = delete;
 		~AetRegion() = default;
 
 	public:
+		// NOTE: Editor internal color
 		uint32_t Color;
-		int16_t Width;
-		int16_t Height;
+		// NOTE: Only really used for sprite and position templates
+		ivec2 Size;
+		// TODO: Should be the frame count of the image sequence, should look into this further in the future
 		frame_t Frames;
 
-		vec2 GetSize() const;
-
+	public:
 		AetSprite* GetSprite(int32_t index);
 		const AetSprite* GetSprite(int32_t index) const;
 
@@ -97,7 +107,9 @@ namespace FileSystem
 		AetMarker();
 		AetMarker(frame_t frame, const String& name);
 
+		// NOTE: Start frame
 		frame_t Frame;
+		// NOTE: Identifier
 		String Name;
 	};
 
@@ -106,14 +118,11 @@ namespace FileSystem
 		AetKeyFrame();
 		AetKeyFrame(float value);
 		AetKeyFrame(frame_t frame, float value);
-		AetKeyFrame(frame_t frame, float value, float interpolation);
-		AetKeyFrame(const AetKeyFrame& other) = default;
-		AetKeyFrame& operator= (const AetKeyFrame& other) = default;
-		~AetKeyFrame() = default;
+		AetKeyFrame(frame_t frame, float value, float curve);
 
 		frame_t Frame;
 		float Value;
-		float Interpolation;
+		float Curve;
 	};
 
 	using KeyFrameCollection = Vector<AetKeyFrame>;
@@ -123,7 +132,7 @@ namespace FileSystem
 
 	struct KeyFrameProperties
 	{
-		static Array<const char*, 8> PropertyNames;
+		static const Array<const char*, 8> PropertyNames;
 
 		KeyFrameCollectionArray KeyFrames;
 
@@ -151,23 +160,31 @@ namespace FileSystem
 
 	struct AnimationData
 	{
-		static Array<const char*, 13> BlendModeNames;
+		static const Array<const char*, 13> BlendModeNames;
 		static const char* GetBlendModeName(AetBlendMode blendMode);
 
+		// NOTE: Pic only sprite blend mode enum
 		AetBlendMode BlendMode;
+		// NOTE: Pic only texture mask bool, if true this sprite will be masked by the upper object
 		bool UseTextureMask;
 
+		// NOTE: Key frame animation data
 		KeyFrameProperties Properties;
+		// TODO: Perspective animation transform, not yet implemented by the editor
 		RefPtr<KeyFrameProperties> PerspectiveProperties;
 	};
 
 	union AetObjFlags
 	{
+		// TODO: This struct is not complete, most notable there seem to be ones related to image sequences
 		struct
 		{
+			// NOTE: Is the object visible at all? Most commonly used for masks
 			uint16_t Visible : 1;
+			// NOTE: Is the aif object audible? Seems to be falsely ignored ingame
 			uint16_t Audible : 1;
 		};
+		// NOTE: Convenient field for resetting all flagss
 		uint16_t AllBits;
 	};
 
@@ -177,32 +194,49 @@ namespace FileSystem
 		friend class AetLayer;
 
 	public:
-		static Array<const char*, 4> TypeNames;
-
-	public:
-		mutable GuiExtraData GuiData;
+		static const Array<const char*, 4> TypeNames;
 
 	public:
 		AetObj();
 		AetObj(AetObjType type, const String& name, AetLayer* parentLayer);
-		AetObj(AetObj& other) = delete;
-		AetObj& operator= (AetObj& other) = delete;
-		~AetObj() = default;
+		AetObj(const AetObj& other) = delete;
+		AetObj& operator= (const AetObj& other) = delete;
+		~AetObj();
 
-		// NOTE: The name 'Loop' is not entirely accurate and should perhaps be renamed
+	public:
+		mutable GuiExtraData GuiData;
+
+		// NOTE: The first frame the object starts becoming visible.
+		//		 The name 'Loop' is not entirely accurate and should perhaps be renamed
 		//		 but for now it helps with differentiating it from 'StartOffset'
 		frame_t LoopStart;
+
+		// NOTE: The last frame the object is visible on
 		frame_t LoopEnd;
+
+		// NOTE: The offset the underlying referenced layer (or image sequence (?)) is offset by relative to the LoopStart. Also known as "time remapping".
+		//		 Strangely some pic objects sometimes use a non-zero value
 		frame_t StartOffset;
+
+		// NOTE: The factor the underlying referenced layer (or image sequence (?)) is sped up by. Also known as "time stretching"
 		float PlaybackSpeed;
 
+		// NOTE: General flags
 		AetObjFlags Flags;
+
+		// NOTE: Unknown and doesn't seem to be used anywhere. Not always 0x00 however so might be some internal editor state such as a color enum
 		unk8_t TypePaddingByte;
+
+		// NOTE: Type of the reference data
 		AetObjType Type;
 
+		// NOTE: A list of named frame markers used for game internals
 		Vector<RefPtr<AetMarker>> Markers;
+		
+		// NOTE: Everything render and animation related. Optional field not used by audio objects
 		RefPtr<AnimationData> AnimationData;
 
+	public:
 		const String& GetName() const;
 		void SetName(const String& value);
 
@@ -239,7 +273,6 @@ namespace FileSystem
 		String name;
 		AetLayer* parentLayer;
 
-	public:
 		struct AetObjReferenceData
 		{
 			RefPtr<AetRegion> Region;
@@ -264,8 +297,8 @@ namespace FileSystem
 
 	public:
 		AetLayer() = default;
-		AetLayer(AetLayer& other) = delete;
-		AetLayer& operator= (AetLayer& other) = delete;
+		AetLayer(const AetLayer& other) = delete;
+		AetLayer& operator= (const AetLayer& other) = delete;
 		~AetLayer() = default;
 
 	public:
@@ -331,8 +364,8 @@ namespace FileSystem
 
 	public:
 		AetSoundEffect() = default;
-		AetSoundEffect(AetSoundEffect& other) = delete;
-		AetSoundEffect& operator= (AetSoundEffect& other) = delete;
+		AetSoundEffect(const AetSoundEffect& other) = delete;
+		AetSoundEffect& operator= (const AetSoundEffect& other) = delete;
 		~AetSoundEffect() = default;
 
 	public:
@@ -350,27 +383,37 @@ namespace FileSystem
 
 	public:
 		Aet() = default;
-		Aet(Aet& other) = delete;
-		Aet& operator= (Aet& other) = delete;
+		Aet(const Aet& other) = delete;
+		Aet& operator= (const Aet& other) = delete;
 		~Aet() = default;
 
 	public:
+		// NOTE: Typically "MAIN", "TOUCH" or named after the graphics mode
 		String Name;
-		frame_t FrameStart;
-		frame_t FrameDuration;
-		frame_t FrameRate;
-		uint32_t BackgroundColor;
 
+		// NOTE: Start frame of the root layer
+		frame_t FrameStart;
+		// NOTE: End frame of the root layer
+		frame_t FrameDuration;
+		// NOTE: Base framerate of the entire aet
+		frame_t FrameRate;
+
+		// NOTE: Editor internal background color
+		uint32_t BackgroundColor;
+		// NOTE: Editor internal base resolution
 		ivec2 Resolution;
 
-		// TODO: Rename to AetCamera
+		// NOTE: Unused 2D camera for all layers
 		RefPtr<AetCamera> Camera;
 
-		// TODO: Separate RootLayer field
+		// NOTE: Sub layers referenced by eff objects
 		Vector<RefPtr<AetLayer>> Layers;
+		// NOTE: The root layer from which all other layers will be referenced
 		RefPtr<AetLayer> RootLayer;
 
+		// NOTE: Referenced by pic objects
 		Vector<RefPtr<AetRegion>> Regions;
+		// NOTE: Referenced by pic objects
 		Vector<RefPtr<AetSoundEffect>> SoundEffects;
 
 	public:
@@ -410,13 +453,15 @@ namespace FileSystem
 	{
 	public:
 		AetSet() = default;
-		AetSet(AetSet& other) = delete;
-		AetSet& operator= (AetSet& other) = delete;
+		AetSet(const AetSet& other) = delete;
+		AetSet& operator= (const AetSet& other) = delete;
 		~AetSet() = default;
 
 	public:
+		// TODO: File name, should probably be moved into the IReadable interface and be set OnLoad (?)
 		String Name;
 
+	public:
 		AetIterator begin() { return aets.begin(); }
 		AetIterator end() { return aets.end(); }
 		ConstAetIterator begin() const { return aets.begin(); }

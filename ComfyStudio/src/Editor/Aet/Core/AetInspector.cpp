@@ -263,7 +263,7 @@ namespace Editor
 				AetSprite* frontSprite = aetRegion->GetFrontSprite();
 
 				if (frontSprite == nullptr)
-					sprintf_s(regionDataNameBuffer, "Null (%dx%d)", aetRegion->Width, aetRegion->Height);
+					sprintf_s(regionDataNameBuffer, "Null (%dx%d)", aetRegion->Size.x, aetRegion->Size.y);
 				else
 					CopyStringIntoBuffer(frontSprite->Name, regionDataNameBuffer, sizeof(regionDataNameBuffer));
 			}
@@ -285,7 +285,7 @@ namespace Editor
 
 					AetSprite* frontSprite = region->GetFrontSprite();
 					if (frontSprite == nullptr)
-						sprintf_s(regionDataNameBuffer, "Region %d (%dx%d)", regionIndex, region->Width, region->Height);
+						sprintf_s(regionDataNameBuffer, "Region %d (%dx%d)", regionIndex, region->Size.x, region->Size.y);
 
 					if (Gui::Selectable(frontSprite == nullptr ? regionDataNameBuffer : frontSprite->Name.c_str(), isSelected))
 						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceRegion, aetObj, region);
@@ -393,7 +393,7 @@ namespace Editor
 					if (Gui::WideTreeNode(KeyFrameProperties::PropertyNames.at(i++)))
 					{
 						for (auto& keyFrame : property)
-							Gui::Text("Frame: %f; Value: %f; Curve: %f", keyFrame.Frame, keyFrame.Value, keyFrame.Interpolation);
+							Gui::Text("Frame: %f; Value: %f; Curve: %f", keyFrame.Frame, keyFrame.Value, keyFrame.Curve);
 
 						Gui::TreePop();
 					}
@@ -618,7 +618,7 @@ namespace Editor
 
 	void AetInspector::DrawInspectorAetRegion(Aet* aet, const RefPtr<AetRegion>& aetRegion)
 	{
-		Gui::InputScalarN("Dimensions", ImGuiDataType_S16, &aetRegion->Width, 2);
+		Gui::InputInt2("Dimensions", glm::value_ptr(aetRegion->Size));
 
 		ImVec4 color = Gui::ColorConvertU32ToFloat4(aetRegion->Color);
 		if (Gui::ColorEdit3("Background##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
