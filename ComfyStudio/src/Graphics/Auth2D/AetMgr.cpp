@@ -115,6 +115,14 @@ namespace Graphics::Auth2D
 		}
 	}
 
+	bool AetMgr::AreFramesTheSame(frame_t frameA, frame_t frameB)
+	{
+		// NOTE: Completely arbitrary threshold, in practice even a frame round or an int cast would probably suffice
+		constexpr frame_t frameComparisonThreshold = 0.001f;
+		
+		return std::abs(frameA - frameB) < frameComparisonThreshold;
+	}
+
 	AetKeyFrame* AetMgr::GetKeyFrameAt(KeyFrameCollection& keyFrames, frame_t frame)
 	{
 		// NOTE: The aet editor should always try to prevent this itself
@@ -123,7 +131,7 @@ namespace Graphics::Auth2D
 		// TODO: This could implement a binary search although the usually small number keyframes might not warrant it
 		for (auto& keyFrame : keyFrames)
 		{
-			if (keyFrame.Frame == frame)
+			if (AreFramesTheSame(keyFrame.Frame, frame))
 				return &keyFrame;
 		}
 
@@ -140,7 +148,7 @@ namespace Graphics::Auth2D
 	{
 		auto existing = std::find_if(keyFrames.begin(), keyFrames.end(), [frame](const AetKeyFrame& keyFrame)
 		{
-			return keyFrame.Frame == frame;
+			return AreFramesTheSame(keyFrame.Frame, frame);
 		});
 
 		if (existing != keyFrames.end())

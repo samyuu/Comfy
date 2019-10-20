@@ -77,6 +77,9 @@ namespace Graphics::Auth2D
 		static float Interpolate(const Vector<AetKeyFrame>& keyFrames, frame_t frame);
 		static void Interpolate(const AnimationData* animationData, Properties* properties, frame_t frame);
 
+		// NOTE: Threshold frame foat comparison
+		static bool AreFramesTheSame(frame_t frameA, frame_t frameB);
+
 		static AetKeyFrame* GetKeyFrameAt(KeyFrameCollection& keyFrames, frame_t frame);
 		
 		static void InsertKeyFrameAt(KeyFrameCollection& keyFrames, frame_t frame, float value);
