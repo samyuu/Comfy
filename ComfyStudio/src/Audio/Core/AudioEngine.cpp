@@ -318,7 +318,7 @@ namespace Audio
 		}
 	}
 
-	RefPtr<MemorySampleProvider> AudioEngine::LoadAudioFile(const String& filePath)
+	RefPtr<MemorySampleProvider> AudioEngine::LoadAudioFile(const std::string& filePath)
 	{
 		return AudioDecoderFactory::GetInstance()->DecodeFile(filePath);
 	}

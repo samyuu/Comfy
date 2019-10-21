@@ -27,9 +27,9 @@ namespace FileSystem
 		stream.Close();
 	}
 
-	RefPtr<Farc> Farc::Open(const String& filePath)
+	RefPtr<Farc> Farc::Open(const std::string& filePath)
 	{
-		const WideString widePath = Utf8ToUtf16(filePath);
+		const std::wstring widePath = Utf8ToUtf16(filePath);
 
 		RefPtr<Farc> farc = MakeRef<Farc>();
 		if (!farc->OpenStream(widePath))
@@ -47,7 +47,7 @@ namespace FileSystem
 		return farc;
 	}
 
-	bool Farc::OpenStream(const WideString& filePath)
+	bool Farc::OpenStream(const std::wstring& filePath)
 	{
 		stream.OpenRead(filePath);
 
@@ -265,7 +265,7 @@ namespace FileSystem
 	{
 		ArchiveEntry entry(this);
 
-		entry.Name = String(reinterpret_cast<const char*>(headerDataPointer));
+		entry.Name = std::string(reinterpret_cast<const char*>(headerDataPointer));
 		headerDataPointer += entry.Name.size() + sizeof(char);
 
 		entry.FileOffset = ByteswapUInt32(*reinterpret_cast<const uint32_t*>(headerDataPointer));

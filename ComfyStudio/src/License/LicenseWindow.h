@@ -10,13 +10,13 @@ struct LicenseInfo
 	{
 		struct
 		{
-			String Name;
-			String Description;
-			String LicenseName;
-			String License;
-			String Remark;
+			std::string Name;
+			std::string Description;
+			std::string LicenseName;
+			std::string License;
+			std::string Remark;
 		};
-		String Strings[5];
+		std::string Strings[5];
 	};
 
 	LicenseInfo() : LicenseInfo("", "", "", "", "")
@@ -56,9 +56,9 @@ private:
 	bool dataLoaded = false;
 	bool isWindowOpen = true;
 	int selectedIndex = 0;
-	const float listWidth = .2f;
+	const float listWidth = 0.2f;
 
-	Vector<LicenseInfo> licenseData;
+	std::vector<LicenseInfo> licenseData;
 	const vec4 remarkTextColor = { 0.85f, 0.86f, 0.15f, 1.0f };
 
 	void LoadLicenseData();

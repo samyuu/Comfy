@@ -26,7 +26,7 @@ namespace FileSystem
 		float Unknown;
 		vec4 TexelRegion;
 		vec4 PixelRegion;
-		String Name;
+		std::string Name;
 		unk32_t GraphicsReserved;
 		GraphicsMode GraphicsMode;
 
@@ -36,10 +36,10 @@ namespace FileSystem
 	class SprSet : public IBinaryReadable, public IBufferParsable
 	{
 	public:
-		String Name;
+		std::string Name;
 		uint32_t Signature;
 		UniquePtr<TxpSet> TxpSet;
-		Vector<Sprite> Sprites;
+		std::vector<Sprite> Sprites;
 
 		virtual void Read(BinaryReader& reader) override;
 		virtual void Parse(const uint8_t* buffer) override;

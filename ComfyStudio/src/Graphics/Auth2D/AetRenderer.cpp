@@ -112,7 +112,7 @@ namespace Graphics::Auth2D
 		}
 	}
 
-	void AetRenderer::RenderObjCacheVector(const Vector<AetMgr::ObjCache>& objectCache, const vec2& position, float opacity)
+	void AetRenderer::RenderObjCacheVector(const std::vector<AetMgr::ObjCache>& objectCache, const vec2& position, float opacity)
 	{
 		bool singleObject = objectCache.size() == 1;
 

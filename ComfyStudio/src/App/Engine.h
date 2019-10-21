@@ -40,7 +40,7 @@ namespace App
 		Graphics::OrthographicCamera camera;
 		Editor::CameraController2D cameraController;
 
-		Vector<RefPtr<Task>> tasks;
+		std::vector<RefPtr<Task>> tasks;
 
 		ImGuiWindow* guiWindow;
 	};
@@ -49,7 +49,8 @@ namespace App
 	{
 	public:
 		Engine();
-		Engine(const Engine& other) = delete;
+		Engine(const Engine&) = delete;
+		Engine& operator= (const Engine&) = delete;
 		~Engine();
 
 		void Tick();

@@ -44,8 +44,8 @@ namespace Editor
 		// Load Textures
 		// -------------
 		{
-			Vector<uint8_t> sprFileBuffer;
-			FileSystem::FileReader::ReadEntireFile(String("rom/spr/spr_comfy_scene.bin"), &sprFileBuffer);
+			std::vector<uint8_t> sprFileBuffer;
+			FileSystem::FileReader::ReadEntireFile(std::string("rom/spr/spr_comfy_scene.bin"), &sprFileBuffer);
 
 			sprSet.Parse(sprFileBuffer.data());
 			sprSet.TxpSet->UploadAll();

@@ -138,7 +138,7 @@ void Application::SetFileDropDispatched(bool value)
 	fileDropDispatched = value;
 }
 
-const Vector<String>& Application::GetDroppedFiles() const
+const std::vector<std::string>& Application::GetDroppedFiles() const
 {
 	return droppedFiles;
 }
@@ -774,7 +774,7 @@ void Application::DrawAppEngineMenus(const char* header)
 	}
 }
 
-void Application::DrawGuiBaseWindowMenus(const char* header, Vector<RefPtr<BaseWindow>>& components)
+void Application::DrawGuiBaseWindowMenus(const char* header, std::vector<RefPtr<BaseWindow>>& components)
 {
 	if (Gui::BeginMenu(header))
 	{
@@ -788,7 +788,7 @@ void Application::DrawGuiBaseWindowMenus(const char* header, Vector<RefPtr<BaseW
 	}
 }
 
-void Application::DrawGuiBaseWindowWindows(Vector<RefPtr<BaseWindow>>& components)
+void Application::DrawGuiBaseWindowWindows(std::vector<RefPtr<BaseWindow>>& components)
 {
 	for (const auto& component : components)
 	{

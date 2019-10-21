@@ -147,7 +147,7 @@ namespace Editor
 	{
 		if (aetFileViewer.DrawGui())
 		{
-			const String& aetPath = aetFileViewer.GetFileToOpen();
+			const std::string& aetPath = aetFileViewer.GetFileToOpen();
 			if (StartsWithInsensitive(GetFileName(aetPath), "aet_") && (EndsWithInsensitive(aetPath, ".bin") || EndsWithInsensitive(aetPath, ".aec")))
 				LoadAetSet(aetPath);
 		}
@@ -157,15 +157,15 @@ namespace Editor
 	{
 		if (sprFileViewer.DrawGui())
 		{
-			const String& sprPath = sprFileViewer.GetFileToOpen();
+			const std::string& sprPath = sprFileViewer.GetFileToOpen();
 			if (StartsWithInsensitive(GetFileName(sprPath), "spr_") && EndsWithInsensitive(sprPath, ".bin"))
 				LoadSprSet(sprPath);
 		}
 	}
 
-	bool AetEditor::LoadAetSet(const String& filePath)
+	bool AetEditor::LoadAetSet(const std::string& filePath)
 	{
-		const WideString widePath = Utf8ToUtf16(filePath);
+		const std::wstring widePath = Utf8ToUtf16(filePath);
 		if (!FileExists(widePath))
 			return false;
 
@@ -177,7 +177,7 @@ namespace Editor
 		return true;
 	}
 
-	bool AetEditor::LoadSprSet(const String& filePath)
+	bool AetEditor::LoadSprSet(const std::string& filePath)
 	{
 		if (!FileExists(Utf8ToUtf16(filePath)))
 			return false;

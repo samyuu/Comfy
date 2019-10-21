@@ -3,12 +3,12 @@
 
 namespace FileSystem
 {
-	void* FileReader::CreateFileHandle(const String& filePath, bool read)
+	void* FileReader::CreateFileHandle(const std::string& filePath, bool read)
 	{
 		return ::CreateFileA(filePath.c_str(), read ? GENERIC_READ : GENERIC_WRITE, read ? FILE_SHARE_READ : NULL, NULL, read ? OPEN_EXISTING : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	}
 
-	void* FileReader::CreateFileHandle(const WideString& filePath, bool read)
+	void* FileReader::CreateFileHandle(const std::wstring& filePath, bool read)
 	{
 		return ::CreateFileW(filePath.c_str(), read ? GENERIC_READ : GENERIC_WRITE, read ? FILE_SHARE_READ : NULL, NULL, read ? OPEN_EXISTING : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	}

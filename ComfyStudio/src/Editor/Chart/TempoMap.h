@@ -15,9 +15,9 @@ namespace Editor
 		void SetTempoChange(TimelineTick tick, Tempo tempo);
 		void RemoveTempoChange(TimelineTick tick);
 		TempoChange& GetTempoChangeAt(size_t index);
-		size_t TempoChangeCount();
+		size_t TempoChangeCount() const;
 
 	private:
-		Vector<TempoChange> tempoChanges;
+		std::vector<TempoChange> tempoChanges;
 	};
 }

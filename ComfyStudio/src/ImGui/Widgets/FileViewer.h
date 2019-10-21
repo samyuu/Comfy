@@ -13,31 +13,31 @@ namespace ImGui
 	struct FileTypeDefinition
 	{
 		FileType Type;
-		Vector<String> Extensions;
-		FileTypeDefinition(FileType type, Vector<String> extensions) : Type(type), Extensions(extensions) {};
+		std::vector<std::string> Extensions;
+		FileTypeDefinition(FileType type, std::vector<std::string> extensions) : Type(type), Extensions(extensions) {};
 	};
 
 	class FileViewer
 	{
 	public:
-		FileViewer(const String& directory);
+		FileViewer(const std::string& directory);
 		~FileViewer();
 
 		bool DrawGui();
-		void SetDirectory(String directory);
-		const String& GetDirectory() const;
-		const String& GetFileToOpen() const;
+		void SetDirectory(std::string directory);
+		const std::string& GetDirectory() const;
+		const std::string& GetFileToOpen() const;
 
 	private:
 		struct FilePathInfo 
 		{ 
-			String FullPath;
-			String ChildName;
+			std::string FullPath;
+			std::string ChildName;
 			bool IsDirectory;
 			bool IsHovered;
 			FileType FileType;
 			uint64_t FileSize;
-			String ReadableFileSize;
+			std::string ReadableFileSize;
 		};
 
 		const FilePathInfo* contextMenuFilePathInfo = nullptr;
@@ -48,24 +48,24 @@ namespace ImGui
 		bool useFileTypeIcons = true;
 		char currentDirectoryBuffer[_MAX_PATH];
 
-		Vector<FilePathInfo> directoryInfo;
-		String directory, previousDirectory;
-		String fileToOpen;
+		std::vector<FilePathInfo> directoryInfo;
+		std::string directory, previousDirectory;
+		std::string fileToOpen;
 
 		FilePathInfo* DrawFileListGui();
 
 		void UpdateDirectoryInformation();
-		void SetDirectoryInternal(const String& newDirectory);
-		void SetParentDirectory(const String& directory);
+		void SetDirectoryInternal(const std::string& newDirectory);
+		void SetParentDirectory(const std::string& directory);
 		void OpenDirectoryInExplorer();
 		void OpenContextItemDefaultProgram();
 		void OpenContextItemProperties();
 
-		static FileType GetFileType(const String& fileName);
+		static FileType GetFileType(const std::string& fileName);
 		static const char* GetFileInfoFormatString(const FilePathInfo& info);
 		static const char* FormatFileType(FileType type);
-		static void FormatReadableFileSize(String& value, uint64_t fileSize);
+		static void FormatReadableFileSize(std::string& value, uint64_t fileSize);
 		
-		static Array<FileTypeDefinition, static_cast<size_t>(FileType::Count)> fileTypeDictionary;
+		static const std::array<FileTypeDefinition, static_cast<size_t>(FileType::Count)> fileTypeDictionary;
 	};
 }

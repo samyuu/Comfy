@@ -27,7 +27,7 @@ namespace FileSystem
 		virtual bool GetFileFound() const = 0;
 		virtual bool GetIsLoading() const = 0;
 
-		virtual const Vector<uint8_t>& GetFileContent() const = 0;
+		virtual const std::vector<uint8_t>& GetFileContent() const = 0;
 		virtual void Read(IBinaryReadable* readable) const = 0;
 		virtual void Parse(IBufferParsable* parsable) const = 0;
 
@@ -42,11 +42,11 @@ namespace FileSystem
 	{
 	public:
 		FileLoader();
-		FileLoader(const String& filePath);
+		FileLoader(const std::string& filePath);
 		~FileLoader();
 
-		const String& GetFilePath() const;
-		void SetFilePath(const String& value);
+		const std::string& GetFilePath() const;
+		void SetFilePath(const std::string& value);
 
 		virtual void LoadSync() override;
 		virtual void LoadAsync() override;
@@ -56,18 +56,18 @@ namespace FileSystem
 		virtual bool GetFileFound() const override;
 		virtual bool GetIsLoading() const override;
 		
-		virtual const Vector<uint8_t>& GetFileContent() const override;
+		virtual const std::vector<uint8_t>& GetFileContent() const override;
 		virtual void Read(IBinaryReadable* readable) const override;
 		virtual void Parse(IBufferParsable* parsable) const override;
 
 		virtual void FreeData() override;
 
 	protected:
-		String filePath;
+		std::string filePath;
 
 		bool isLoaded = false;
 		bool fileFound = false;
-		Vector<uint8_t> fileContent;
+		std::vector<uint8_t> fileContent;
 	
 		std::atomic_bool threadRunning = false;
 		UniquePtr<std::thread> loaderThread = nullptr;

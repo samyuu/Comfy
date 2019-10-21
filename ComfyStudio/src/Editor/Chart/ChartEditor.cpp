@@ -85,7 +85,7 @@ namespace Editor
 		return BaseWindow::GetNoWindowFlags();
 	}
 
-	bool ChartEditor::IsAudioFile(const String& filePath)
+	bool ChartEditor::IsAudioFile(const std::string& filePath)
 	{
 		for (auto& fileExtension : audioFileExtensions)
 		{
@@ -96,12 +96,12 @@ namespace Editor
 		return false;
 	}
 
-	bool ChartEditor::OnFileDropped(const String& filePath)
+	bool ChartEditor::OnFileDropped(const std::string& filePath)
 	{
 		return (IsAudioFile(filePath) && LoadSong(filePath));
 	}
 
-	bool ChartEditor::LoadSong(const String& filePath)
+	bool ChartEditor::LoadSong(const std::string& filePath)
 	{
 		bool success;
 

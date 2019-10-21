@@ -34,7 +34,7 @@ namespace Editor
 		EditorColor_Count,
 	};
 
-	extern Array<ImU32, EditorColor_Count> EditorColors;
+	extern std::array<ImU32, EditorColor_Count> EditorColors;
 
 	vec4 GetColorVec4(EditorColor color);
 	ImU32 GetColor(EditorColor color);

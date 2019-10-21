@@ -8,10 +8,10 @@ namespace FileSystem
 	{
 	public:
 		MemoryStream();
-		MemoryStream(const String& filePath);
-		MemoryStream(const WideString& filePath);
+		MemoryStream(const std::string& filePath);
+		MemoryStream(const std::wstring& filePath);
 		MemoryStream(Stream* stream);
-		MemoryStream(Vector<uint8_t>* source);
+		MemoryStream(std::vector<uint8_t>* source);
 		~MemoryStream();
 
 		virtual void Seek(int64_t position) override;
@@ -25,9 +25,9 @@ namespace FileSystem
 		virtual int64_t Read(void* buffer, size_t size) override;
 		virtual int64_t Write(const void* buffer, size_t size) override;
 
-		void FromStreamSource(Vector<uint8_t>* source);
-		void FromFile(const String& filePath);
-		void FromFile(const WideString& filePath);
+		void FromStreamSource(std::vector<uint8_t>* source);
+		void FromFile(const std::string& filePath);
+		void FromFile(const std::wstring& filePath);
 		void FromStream(Stream* stream);
 		virtual void Close() override;
 
@@ -37,7 +37,7 @@ namespace FileSystem
 		int64_t position = 0L;
 		int64_t dataSize = 0L;
 
-		Vector<uint8_t>* dataSource;
-		Vector<uint8_t> dataVector;
+		std::vector<uint8_t>* dataSource;
+		std::vector<uint8_t> dataVector;
 	};
 }

@@ -44,10 +44,10 @@ namespace FileSystem
 
 		inline void* ReadPtr() { return readPtrFunction(this); };
 
-		String ReadStr();
-		String ReadStr(void* position);
-		String ReadStr(size_t size);
-		String ReadStrPtr();
+		std::string ReadStr();
+		std::string ReadStr(void* position);
+		std::string ReadStr(size_t size);
+		std::string ReadStrPtr();
 
 		inline bool ReadBool() { return Read<bool>(); };
 		inline char ReadChar() { return Read<char>(); };

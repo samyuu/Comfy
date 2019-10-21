@@ -19,7 +19,7 @@ namespace Editor
 		Data(const char* name) : Visible(true), Name(name) {};
 	};
 
-	static void ShiftVector(Vector<Data>& vector, int sourceIndex, int destinationIndex)
+	static void ShiftVector(std::vector<Data>& vector, int sourceIndex, int destinationIndex)
 	{
 		if (sourceIndex == destinationIndex)
 			return;
@@ -40,7 +40,7 @@ namespace Editor
 	{
 		using namespace Gui;
 
-		static Vector<Data> testData = { "0. test_eff", "1. gam_cmn_block.pic", "2. gam_cmn_blimp.pic", "3. kirai" };
+		static std::vector<Data> testData = { "0. test_eff", "1. gam_cmn_block.pic", "2. gam_cmn_blimp.pic", "3. kirai" };
 
 		BeginChild("Test Child", GetContentRegionAvail() - ImVec2(0, 26), false, ImGuiWindowFlags_None);
 		{

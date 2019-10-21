@@ -96,7 +96,7 @@ namespace Editor
 			// aetLayer.Objects.emplace(aetLayer.begin());
 			// AetObj* newObj = &aetLayer.Objects.front();
 			// 
-			// newObj->Name = String(newObjNameBuffer);
+			// newObj->Name = std::string(newObjNameBuffer);
 			// newObj->Type = (AetObjType)newObjTypeIndex;
 			// newObj->PlaybackSpeed = 1.0f;
 

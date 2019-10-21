@@ -59,7 +59,7 @@ namespace Editor
 		return tempoChanges.at(index);
 	}
 
-	size_t TempoMap::TempoChangeCount()
+	size_t TempoMap::TempoChangeCount() const
 	{
 		return tempoChanges.size();
 	}

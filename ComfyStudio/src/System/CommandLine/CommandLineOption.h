@@ -25,9 +25,9 @@ namespace System
 	
 	public:
 		static void Initialize();
-		static const Vector<CommandLineOption>& GetOptions();
+		static const std::vector<CommandLineOption>& GetOptions();
 	
 	private:
-		static Vector<CommandLineOption> options;
+		static std::vector<CommandLineOption> options;
 	};
 }

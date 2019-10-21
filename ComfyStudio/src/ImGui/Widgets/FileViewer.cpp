@@ -11,7 +11,7 @@ using DirectoryIterator = std::filesystem::directory_iterator;
 
 namespace ImGui
 {
-	Array<FileTypeDefinition, static_cast<size_t>(FileType::Count)> FileViewer::fileTypeDictionary =
+	const std::array<FileTypeDefinition, static_cast<size_t>(FileType::Count)> FileViewer::fileTypeDictionary =
 	{
 		FileTypeDefinition(FileType::Default, { "." }),
 		FileTypeDefinition(FileType::Text, { ".txt" }),
@@ -25,7 +25,7 @@ namespace ImGui
 		FileTypeDefinition(FileType::Application, { ".exe", ".dll" }),
 	};
 
-	FileViewer::FileViewer(const String& directory)
+	FileViewer::FileViewer(const std::string& directory)
 	{
 		SetDirectory(directory);
 	}
@@ -80,7 +80,7 @@ namespace ImGui
 				}
 				else
 				{
-					fileToOpen = String(clickedInfo->FullPath);
+					fileToOpen = std::string(clickedInfo->FullPath);
 					filedClicked = true;
 				}
 			}
@@ -112,7 +112,7 @@ namespace ImGui
 		return filedClicked;
 	}
 
-	void FileViewer::SetDirectory(String directory)
+	void FileViewer::SetDirectory(std::string directory)
 	{
 		FileSystem::SanitizePath(directory);
 
@@ -130,12 +130,12 @@ namespace ImGui
 		SetDirectoryInternal(adjustedDirectory);
 	}
 
-	const String& FileViewer::GetDirectory() const
+	const std::string& FileViewer::GetDirectory() const
 	{
 		return directory;
 	}
 
-	const String& FileViewer::GetFileToOpen() const
+	const std::string& FileViewer::GetFileToOpen() const
 	{
 		return fileToOpen;
 	}
@@ -194,13 +194,13 @@ namespace ImGui
 
 	void FileViewer::UpdateDirectoryInformation()
 	{
-		WideString widePath = Utf8ToUtf16(directory);
+		std::wstring widePath = Utf8ToUtf16(directory);
 		if (!FileSystem::DirectoryExists(widePath))
 			return;
 
 		fileFilter.Clear();
 
-		Vector<FilePathInfo> newDirectoryInfo;
+		std::vector<FilePathInfo> newDirectoryInfo;
 		newDirectoryInfo.reserve(8);
 
 		for (const auto& file : DirectoryIterator(widePath))
@@ -243,7 +243,7 @@ namespace ImGui
 				directoryInfo.push_back(info);
 	}
 
-	void FileViewer::SetDirectoryInternal(const String& newDirectory)
+	void FileViewer::SetDirectoryInternal(const std::string& newDirectory)
 	{
 		previousDirectory = directory;
 		directory = newDirectory;
@@ -251,7 +251,7 @@ namespace ImGui
 		UpdateDirectoryInformation();
 	}
 
-	void FileViewer::SetParentDirectory(const String& directory)
+	void FileViewer::SetParentDirectory(const std::string& directory)
 	{
 		bool endingSlash = EndsWith(directory, '/') || EndsWith(directory, '\\');
 		auto parentDirectory = FileSystem::GetDirectory(endingSlash ? directory.substr(0, directory.length() - 1) : directory);
@@ -268,7 +268,7 @@ namespace ImGui
 	{
 		if (contextMenuFilePathInfo != nullptr)
 		{
-			String filePath = contextMenuFilePathInfo->FullPath;
+			std::string filePath = contextMenuFilePathInfo->FullPath;
 			FileSystem::FuckUpWindowsPath(filePath);
 			FileSystem::OpenWithDefaultProgram(Utf8ToUtf16(filePath));
 		}
@@ -276,12 +276,12 @@ namespace ImGui
 
 	void FileViewer::OpenContextItemProperties()
 	{
-		String filePath = contextMenuFilePathInfo != nullptr ? contextMenuFilePathInfo->FullPath : directory;
+		std::string filePath = contextMenuFilePathInfo != nullptr ? contextMenuFilePathInfo->FullPath : directory;
 		FileSystem::FuckUpWindowsPath(filePath);
 		FileSystem::OpenExplorerProperties(Utf8ToUtf16(filePath));
 	}
 
-	FileType FileViewer::GetFileType(const String& fileName)
+	FileType FileViewer::GetFileType(const std::string& fileName)
 	{
 		for (const auto& definition : fileTypeDictionary)
 		{
@@ -349,7 +349,7 @@ namespace ImGui
 		}
 	}
 
-	void FileViewer::FormatReadableFileSize(String& value, uint64_t fileSize)
+	void FileViewer::FormatReadableFileSize(std::string& value, uint64_t fileSize)
 	{
 		if (fileSize <= 0)
 			return;

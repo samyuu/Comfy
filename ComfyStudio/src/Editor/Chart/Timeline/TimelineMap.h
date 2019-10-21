@@ -8,7 +8,7 @@ namespace Editor
 	{
 	public:
 		TimelineMap();
-		TimelineMap(Vector<TimeSpan>& times, Tempo firstTempo, Tempo lastTempo);
+		TimelineMap(std::vector<TimeSpan>& times, Tempo firstTempo, Tempo lastTempo);
 
 		TimeSpan GetTimeAt(TimelineTick tick) const;
 		TimeSpan GetLastCalculatedTime() const;
@@ -17,8 +17,8 @@ namespace Editor
 		void CalculateMapTimes(TempoMap& tempoMap);
 
 	private:
-		// pre calculated tick times up to the last tempo change
-		Vector<TimeSpan> tickTimes;
+		// NOTE: Pre calculated tick times up to the last tempo change
+		std::vector<TimeSpan> tickTimes;
 		Tempo firstTempo, lastTempo;
 	};
 }

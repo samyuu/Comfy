@@ -16,12 +16,12 @@ void TimeSpan::FormatTime(char* buffer, size_t bufferSize) const
 	sprintf_s(buffer, bufferSize, "%s%02d:%02d.%03d", sign, static_cast<int>(minutes), static_cast<int>(seconds), static_cast<int>(milliseconds));
 }
 
-String TimeSpan::FormatTime() const
+std::string TimeSpan::FormatTime() const
 {
 	char buffer[16];
 	FormatTime(buffer, sizeof(buffer));
 
-	return String(buffer);
+	return std::string(buffer);
 }
 
 TimeSpan TimeSpan::GetTimeNow()

@@ -12,12 +12,12 @@ namespace FileSystem
 	using FileSystemPath = std::filesystem::path;
 	using DirectoryIterator = std::filesystem::directory_iterator;
 
-	bool CreateDirectoryFile(const WideString& filePath)
+	bool CreateDirectoryFile(const std::wstring& filePath)
 	{
 		return ::CreateDirectoryW(filePath.c_str(), NULL);
 	}
 
-	bool IsFilePath(const String& filePath)
+	bool IsFilePath(const std::string& filePath)
 	{
 		for (int i = static_cast<int>(filePath.size()) - 1; i >= 0; i--)
 		{
@@ -27,7 +27,7 @@ namespace FileSystem
 		return false;
 	}
 
-	bool IsFilePath(const WideString& filePath)
+	bool IsFilePath(const std::wstring& filePath)
 	{
 		for (int i = static_cast<int>(filePath.size()) - 1; i >= 0; i--)
 		{
@@ -37,53 +37,53 @@ namespace FileSystem
 		return false;
 	}
 
-	bool IsDirectoryPath(const String& directory)
+	bool IsDirectoryPath(const std::string& directory)
 	{
 		return ::PathIsDirectoryA(directory.c_str());
 	}
 
-	bool IsDirectoryPath(const WideString& directory)
+	bool IsDirectoryPath(const std::wstring& directory)
 	{
 		return ::PathIsDirectoryW(directory.c_str());
 	}
 
-	bool IsPathRelative(const String& path)
+	bool IsPathRelative(const std::string& path)
 	{
 		return ::PathIsRelativeA(path.c_str());
 	}
 
-	bool IsPathRelative(const WideString& path)
+	bool IsPathRelative(const std::wstring& path)
 	{
 		return ::PathIsRelativeW(path.c_str());
 	}
 
-	bool FileExists(const String& filePath)
+	bool FileExists(const std::string& filePath)
 	{
 		return ::PathFileExistsA(filePath.c_str()) && IsFilePath(filePath);
 	}
 
-	bool FileExists(const WideString& filePath)
+	bool FileExists(const std::wstring& filePath)
 	{
 		return ::PathFileExistsW(filePath.c_str()) && IsFilePath(filePath);
 	}
 
-	bool DirectoryExists(const String& directory)
+	bool DirectoryExists(const std::string& directory)
 	{
 		return ::PathFileExistsA(directory.c_str()) && IsDirectoryPath(directory);
 	}
 
-	bool DirectoryExists(const WideString& directory)
+	bool DirectoryExists(const std::wstring& directory)
 	{
 		return ::PathFileExistsW(directory.c_str()) && IsDirectoryPath(directory);
 	}
 
-	static WideString InternalFilterVectorToString(const Vector<String>& filterVector)
+	static std::wstring InternalFilterVectorToString(const std::vector<std::string>& filterVector)
 	{
 		assert(filterVector.size() % 2 == 0);
 
 		static const std::regex whitespace("  *");
 
-		WideString filterString;
+		std::wstring filterString;
 		for (size_t i = 0; i + 1 < filterVector.size(); i += 2)
 		{
 			filterString += Utf8ToUtf16(filterVector[i]);
@@ -96,15 +96,15 @@ namespace FileSystem
 		return filterString;
 	}
 
-	bool CreateOpenFileDialog(WideString& outFilePath, const char* title, const char* directory, const Vector<String>& filter)
+	bool CreateOpenFileDialog(std::wstring& outFilePath, const char* title, const char* directory, const std::vector<std::string>& filter)
 	{
-		WideString currentDirectory = GetWorkingDirectoryW();
+		std::wstring currentDirectory = GetWorkingDirectoryW();
 		wchar_t filePathBuffer[MAX_PATH]; filePathBuffer[0] = '\0';
 
 		assert(!filter.empty());
-		WideString filterString = InternalFilterVectorToString(filter);
-		WideString directoryString = (directory != nullptr) ? Utf8ToUtf16(directory) : L"";
-		WideString titleString = (title != nullptr) ? Utf8ToUtf16(title) : L"";
+		std::wstring filterString = InternalFilterVectorToString(filter);
+		std::wstring directoryString = (directory != nullptr) ? Utf8ToUtf16(directory) : L"";
+		std::wstring titleString = (title != nullptr) ? Utf8ToUtf16(title) : L"";
 
 		OPENFILENAMEW openFileName = {};
 		openFileName.lStructSize = sizeof(OPENFILENAMEW);
@@ -119,21 +119,21 @@ namespace FileSystem
 
 		bool fileSelected = ::GetOpenFileNameW(&openFileName);
 		if (fileSelected)
-			outFilePath = WideString(filePathBuffer);
+			outFilePath = std::wstring(filePathBuffer);
 
 		SetWorkingDirectoryW(currentDirectory);
 		return fileSelected;
 	}
 
-	bool CreateSaveFileDialog(WideString& outFilePath, const char* title, const char* directory, const Vector<String>& filter)
+	bool CreateSaveFileDialog(std::wstring& outFilePath, const char* title, const char* directory, const std::vector<std::string>& filter)
 	{
-		WideString currentDirectory = GetWorkingDirectoryW();
+		std::wstring currentDirectory = GetWorkingDirectoryW();
 		wchar_t filePathBuffer[MAX_PATH] = {};
 
 		assert(!filter.empty());
-		WideString filterString = InternalFilterVectorToString(filter);
-		WideString directoryString = (directory != nullptr) ? Utf8ToUtf16(directory) : L"";
-		WideString titleString = (title != nullptr) ? Utf8ToUtf16(title) : L"";
+		std::wstring filterString = InternalFilterVectorToString(filter);
+		std::wstring directoryString = (directory != nullptr) ? Utf8ToUtf16(directory) : L"";
+		std::wstring titleString = (title != nullptr) ? Utf8ToUtf16(title) : L"";
 
 		OPENFILENAMEW openFileName = {};
 		openFileName.lStructSize = sizeof(OPENFILENAMEW);
@@ -147,22 +147,22 @@ namespace FileSystem
 
 		bool fileSelected = ::GetSaveFileNameW(&openFileName);
 		if (fileSelected)
-			outFilePath = WideString(filePathBuffer);
+			outFilePath = std::wstring(filePathBuffer);
 
 		SetWorkingDirectoryW(currentDirectory);
 		return fileSelected;
 	}
 
-	void OpenWithDefaultProgram(const WideString& filePath)
+	void OpenWithDefaultProgram(const std::wstring& filePath)
 	{
 		::ShellExecuteW(NULL, L"open", filePath.c_str(), NULL, NULL, SW_SHOW);
 	}
 
-	void OpenInExplorer(const WideString& filePath)
+	void OpenInExplorer(const std::wstring& filePath)
 	{
 		if (IsPathRelative(filePath))
 		{
-			WideString currentDirectory = GetWorkingDirectoryW();
+			std::wstring currentDirectory = GetWorkingDirectoryW();
 			currentDirectory.reserve(currentDirectory.size() + filePath.size() + 2);
 			currentDirectory += L"/";
 			currentDirectory += filePath;
@@ -175,7 +175,7 @@ namespace FileSystem
 		}
 	}
 
-	void OpenExplorerProperties(const WideString& filePath)
+	void OpenExplorerProperties(const std::wstring& filePath)
 	{
 		SHELLEXECUTEINFOW info = { };
 
@@ -188,53 +188,53 @@ namespace FileSystem
 		::ShellExecuteExW(&info);
 	}
 
-	void FuckUpWindowsPath(String& path)
+	void FuckUpWindowsPath(std::string& path)
 	{
 		std::replace(path.begin(), path.end(), '/', '\\');
 	}
 
-	void FuckUpWindowsPath(WideString& path)
+	void FuckUpWindowsPath(std::wstring& path)
 	{
 		std::replace(path.begin(), path.end(), L'/', L'\\');
 	}
 
-	void SanitizePath(String& path)
+	void SanitizePath(std::string& path)
 	{
 		std::replace(path.begin(), path.end(), '\\', '/');
 	}
 
-	void SanitizePath(WideString& path)
+	void SanitizePath(std::wstring& path)
 	{
 		std::replace(path.begin(), path.end(), L'\\', L'/');
 	}
 
-	String GetWorkingDirectory()
+	std::string GetWorkingDirectory()
 	{
 		char buffer[MAX_PATH];
 		GetCurrentDirectory(sizeof(buffer), buffer);
 
-		return String(buffer);
+		return std::string(buffer);
 	}
 
-	WideString GetWorkingDirectoryW()
+	std::wstring GetWorkingDirectoryW()
 	{
 		wchar_t buffer[MAX_PATH];
 		::GetCurrentDirectoryW(sizeof(buffer), buffer);
 
-		return WideString(buffer);
+		return std::wstring(buffer);
 	}
 
-	void SetWorkingDirectory(const String& value)
+	void SetWorkingDirectory(const std::string& value)
 	{
 		::SetCurrentDirectoryA(value.c_str());
 	}
 
-	void SetWorkingDirectoryW(const WideString& value)
+	void SetWorkingDirectoryW(const std::wstring& value)
 	{
 		::SetCurrentDirectoryW(value.c_str());
 	}
 
-	String Combine(const String& pathA, const String & pathB)
+	std::string Combine(const std::string& pathA, const std::string & pathB)
 	{
 		if (pathA.size() > 0 && pathA.back() == '/')
 			return pathA.substr(0, pathA.length() - 1) + "/" + pathB;
@@ -242,7 +242,7 @@ namespace FileSystem
 		return pathA + "/" + pathB;
 	}
 
-	WideString Combine(const WideString& pathA, const WideString& pathB)
+	std::wstring Combine(const std::wstring& pathA, const std::wstring& pathB)
 	{
 		if (pathA.size() > 0 && pathA.back() == L'/')
 			return pathA.substr(0, pathA.length() - 1) + L"/" + pathB;
@@ -250,67 +250,67 @@ namespace FileSystem
 		return pathA + L"/" + pathB;
 	}
 
-	String GetFileName(const String& filePath, bool extension)
+	std::string GetFileName(const std::string& filePath, bool extension)
 	{
 		FileSystemPath path = std::filesystem::u8path(filePath);
 		return extension ? path.filename().string() : (path.has_stem() ? path.stem().string() : "");
 	}
 
-	WideString GetFileName(const WideString& filePath, bool extension)
+	std::wstring GetFileName(const std::wstring& filePath, bool extension)
 	{
 		FileSystemPath path(filePath);
 		return extension ? path.filename().wstring() : (path.has_stem() ? path.stem().wstring() : L"");
 	}
 
-	String GetDirectory(const String& filePath)
+	std::string GetDirectory(const std::string& filePath)
 	{
 		return filePath.substr(0, filePath.find_last_of("/\\"));
 	}
 
-	WideString GetDirectory(const WideString& filePath)
+	std::wstring GetDirectory(const std::wstring& filePath)
 	{
 		return filePath.substr(0, filePath.find_last_of(L"/\\"));
 	}
 
-	String GetFileExtension(const String& filePath)
+	std::string GetFileExtension(const std::string& filePath)
 	{
 		FileSystemPath path = std::filesystem::u8path(filePath);
 		return path.extension().string();
 	}
 
-	WideString GetFileExtension(const WideString& filePath)
+	std::wstring GetFileExtension(const std::wstring& filePath)
 	{
 		FileSystemPath path(filePath);
 		return path.extension().wstring();
 	}
 
-	Vector<String> GetFiles(const String& directory)
+	std::vector<std::string> GetFiles(const std::string& directory)
 	{
-		Vector<String> files;
+		std::vector<std::string> files;
 		for (const auto& file : DirectoryIterator(directory))
 			files.push_back(file.path().u8string());
 		return files;
 	}
 
-	Vector<WideString> GetFiles(const WideString& directory)
+	std::vector<std::wstring> GetFiles(const std::wstring& directory)
 	{
-		Vector<WideString> files;
+		std::vector<std::wstring> files;
 		for (const auto& file : DirectoryIterator(directory))
 			files.push_back(file.path().wstring());
 		return files;
 	}
 
-	static HANDLE CreateFileHandleInternal(const String& filePath, bool read)
+	static HANDLE CreateFileHandleInternal(const std::string& filePath, bool read)
 	{
 		return ::CreateFileA(filePath.c_str(), read ? GENERIC_READ : GENERIC_WRITE, NULL, NULL, read ? OPEN_EXISTING : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	}
 
-	static HANDLE CreateFileHandleInternal(const WideString& filePath, bool read)
+	static HANDLE CreateFileHandleInternal(const std::wstring& filePath, bool read)
 	{
 		return ::CreateFileW(filePath.c_str(), read ? GENERIC_READ : GENERIC_WRITE, NULL, NULL, read ? OPEN_EXISTING : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	}
 
-	static bool WriteAllBytesInternal(HANDLE fileHandle, const Vector<uint8_t>& buffer)
+	static bool WriteAllBytesInternal(HANDLE fileHandle, const std::vector<uint8_t>& buffer)
 	{
 		DWORD bytesToWrite = static_cast<DWORD>(buffer.size());
 		DWORD bytesWritten = {};
@@ -321,7 +321,7 @@ namespace FileSystem
 		return !FAILED(error) && (bytesWritten == bytesToWrite);
 	}
 
-	bool WriteAllBytes(const String& filePath, const Vector<uint8_t>& buffer)
+	bool WriteAllBytes(const std::string& filePath, const std::vector<uint8_t>& buffer)
 	{
 		HANDLE fileHandle = CreateFileHandleInternal(filePath, false);
 		int error = ::GetLastError();
@@ -332,7 +332,7 @@ namespace FileSystem
 		return result;
 	}
 
-	bool WriteAllBytes(const WideString& filePath, const Vector<uint8_t>& buffer)
+	bool WriteAllBytes(const std::wstring& filePath, const std::vector<uint8_t>& buffer)
 	{
 		HANDLE fileHandle = CreateFileHandleInternal(filePath, false);
 		int error = ::GetLastError();
@@ -343,7 +343,7 @@ namespace FileSystem
 		return result;
 	}
 
-	bool ReadAllLines(const String& filePath, Vector<String>* buffer)
+	bool ReadAllLines(const std::string& filePath, std::vector<std::string>* buffer)
 	{
 		std::ifstream file(filePath);
 		while (true)
@@ -355,7 +355,7 @@ namespace FileSystem
 		return true;
 	}
 
-	bool ReadAllLines(const WideString& filePath, Vector<WideString>* buffer)
+	bool ReadAllLines(const std::wstring& filePath, std::vector<std::wstring>* buffer)
 	{
 		std::wfstream file(filePath);
 		while (true)

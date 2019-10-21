@@ -70,11 +70,11 @@ namespace Graphics::Auth2D
 			bool Visible;
 		};
 
-		static void GetAddObjects(Vector<AetMgr::ObjCache>& objects, const AetLayer* aetLayer, frame_t frame);
-		static void GetAddObjects(Vector<AetMgr::ObjCache>& objects, const AetObj* aetObj, frame_t frame);
+		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, const AetLayer* aetLayer, frame_t frame);
+		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, const AetObj* aetObj, frame_t frame);
 
 		static float Interpolate(const AetKeyFrame* start, const AetKeyFrame* end, frame_t frame);
-		static float Interpolate(const Vector<AetKeyFrame>& keyFrames, frame_t frame);
+		static float Interpolate(const std::vector<AetKeyFrame>& keyFrames, frame_t frame);
 		static void Interpolate(const AnimationData* animationData, Properties* properties, frame_t frame);
 
 		// NOTE: Threshold frame foat comparison
@@ -95,12 +95,12 @@ namespace Graphics::Auth2D
 		static void OffsetByParentProperties(Properties& properties, const AetObj* parent, frame_t frame, int32_t& recursionCount);
 
 		// NOTE: To easily navigate between layer references in the tree view
-		static void FindAddLayerUsages(const RefPtr<Aet>& aetToSearch, const RefPtr<AetLayer>& layerToFind, Vector<RefPtr<AetObj>*>& outObjects);
+		static void FindAddLayerUsages(const RefPtr<Aet>& aetToSearch, const RefPtr<AetLayer>& layerToFind, std::vector<RefPtr<AetObj>*>& outObjects);
 
 	private:
 
-		static void InternalAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);
-		static void InternalPicAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);
-		static void InternalEffAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);
+		static void InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);
+		static void InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);
+		static void InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);
 	};
 }

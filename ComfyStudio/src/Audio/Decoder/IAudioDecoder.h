@@ -13,7 +13,7 @@ namespace Audio
 	{
 		uint32_t* ChannelCount;
 		uint32_t* SampleRate;
-		Vector<int16_t>* SampleData;
+		std::vector<int16_t>* SampleData;
 	};
 
 	class IAudioDecoder

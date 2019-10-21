@@ -59,13 +59,16 @@ namespace Editor
 		vec2 GetAetObjBoundingSize(const RefPtr<AetObj>& aetObj) const;
 
 	private:
+		// NOTE: Fill the rest of the background
 		CheckerboardGrid checkerboardBaseGrid;
+		// NOTE: Representing the working aet size
 		CheckerboardGrid checkerboardGrid;
+		// NOTE: Working aet size
 		vec2 aetRegionSize = vec2(1920.0f, 1080.0f);
 
 		// NOTE: To make sure objects won't accidentally be mouse picked / unselected
 		bool windowHoveredOnMouseClick = false;
-		
+
 		// NOTE: Store the state of the previous frame to avoid accidental mouse picking on mouse release while interacting with a tool
 		bool allowMousePickerInput = false, allowedMousePickerInputLastFrame = false;
 
@@ -87,13 +90,13 @@ namespace Editor
 		UniquePtr<ObjectMousePicker> mousePicker = nullptr;;
 
 		// NOTE: To be filled during rendering and then used for mouse interactions
-		Vector<AetMgr::ObjCache> objectCache;
+		std::vector<AetMgr::ObjCache> objectCache;
 
 		// NOTE: The variables that will be edited by the current tool before being turned into commands
 		vec2 toolSize = vec2(100.0f, 100.0f);
 		Properties toolProperties = AetMgr::DefaultProperites;
 
-		Array<UniquePtr<AetTool>, AetToolType_Count> tools;
+		std::array<UniquePtr<AetTool>, AetToolType_Count> tools;
 		AetToolType currentToolType = AetToolType_Hand;
 
 		Graphics::OrthographicCamera camera;

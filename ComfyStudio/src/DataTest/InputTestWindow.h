@@ -16,7 +16,7 @@ namespace DataTest
 		virtual ImGuiWindowFlags GetWindowFlags() const override;
 
 	private:
-		Array<const char*, static_cast<size_t>(Ds4Button::Count)> ds4ButtonNames =
+		static constexpr std::array<const char*, static_cast<size_t>(Ds4Button::Count)> ds4ButtonNames =
 		{
 			"Square",
 			"Cross",

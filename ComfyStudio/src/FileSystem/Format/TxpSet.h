@@ -64,7 +64,7 @@ namespace FileSystem
 		int32_t Height;
 		TextureFormat Format;
 		int32_t Index;
-		Vector<uint8_t> Data;
+		std::vector<uint8_t> Data;
 		struct
 		{
 			const uint8_t* DataPointer;
@@ -75,8 +75,8 @@ namespace FileSystem
 	struct Texture
 	{
 		TxpSig Signature;
-		Vector<RefPtr<MipMap>> MipMaps;
-		String Name;
+		std::vector<RefPtr<MipMap>> MipMaps;
+		std::string Name;
 
 		RefPtr<Graphics::Texture2D> GraphicsTexture;
 	};
@@ -85,7 +85,7 @@ namespace FileSystem
 	{
 	public:
 		TxpSig Signature;
-		Vector<RefPtr<Texture>> Textures;
+		std::vector<RefPtr<Texture>> Textures;
 
 		virtual void Read(BinaryReader& reader) override;
 		virtual void Parse(const uint8_t* buffer) override;

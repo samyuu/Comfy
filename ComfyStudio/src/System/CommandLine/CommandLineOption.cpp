@@ -12,18 +12,18 @@ namespace System
 	{
 		using namespace FileSystem;
 
-		const String filePath = arguments[index];
+		const std::string filePath = arguments[index];
 		RefPtr<Farc> farc = Farc::Open(filePath);
 		if (farc)
 		{
-			const String baseDirectory = GetDirectory(filePath);
-			const String directory = baseDirectory + "\\" + GetFileName(filePath, false);
+			const std::string baseDirectory = GetDirectory(filePath);
+			const std::string directory = baseDirectory + "\\" + GetFileName(filePath, false);
 			CreateDirectoryFile(Utf8ToUtf16(directory));
 
 			for (const ArchiveEntry& entry : *farc)
 			{
-				Vector<uint8_t> data = entry.ReadVector();
-				WriteAllBytes(directory + String("\\") + entry.Name, data);
+				std::vector<uint8_t> data = entry.ReadVector();
+				WriteAllBytes(directory + std::string("\\") + entry.Name, data);
 			}
 		}
 	}
@@ -43,7 +43,7 @@ namespace System
 		return strcmp(input, shortCommand) == 0 || strcmp(input, longCommand) == 0;
 	}
 
-	Vector<CommandLineOption> CommandLineOptions::options;
+	std::vector<CommandLineOption> CommandLineOptions::options;
 
 	void CommandLineOptions::Initialize()
 	{
@@ -58,7 +58,7 @@ namespace System
 		};
 	}
 
-	const Vector<CommandLineOption>& CommandLineOptions::GetOptions()
+	const std::vector<CommandLineOption>& CommandLineOptions::GetOptions()
 	{
 		return options;
 	}

@@ -39,7 +39,7 @@ namespace FileSystem
 		Farc();
 		~Farc();
 
-		static RefPtr<Farc> Open(const String& filePath);
+		static RefPtr<Farc> Open(const std::string& filePath);
 
 	protected:
 		FileStream stream;
@@ -50,7 +50,7 @@ namespace FileSystem
 		uint8_t aesIV[IVSize];
 
 	protected:
-		bool OpenStream(const WideString& filePath);
+		bool OpenStream(const std::wstring& filePath);
 		bool ParseEntries();
 
 		virtual void ReadArchiveEntry(const ArchiveEntry& entry, void* fileContentOut) override;

@@ -12,36 +12,33 @@ namespace FileSystem
 		ArchiveEntry(FileArchive* parent);
 
 	public:
-		String Name;
+		std::string Name;
 		uint64_t FileOffset;
 		uint64_t CompressedSize;
 		uint64_t FileSize;
 
-		Vector<uint8_t> ReadVector() const;
+		std::vector<uint8_t> ReadVector() const;
 		void Read(void* fileContentOut) const;
 
 	private:
 		FileArchive* parent;
 	};
 
-	using ArchiveEntryIterator = Vector<ArchiveEntry>::iterator;
-	using ConstArchiveEntryIterator = Vector<ArchiveEntry>::const_iterator;
-
 	class FileArchive
 	{
 		friend class ArchiveEntry;
 	
 	public:
-		ConstArchiveEntryIterator begin() const;
-		ConstArchiveEntryIterator end() const;
+		inline auto begin() const { return archiveEntries.begin(); };
+		inline auto end() const { return archiveEntries.end(); };
 		size_t size() const;
 
-		const ArchiveEntry* GetFile(const String& name) const;
+		const ArchiveEntry* GetFile(const std::string& name) const;
 
 	protected:
-		Vector<ArchiveEntry> archiveEntries;
+		std::vector<ArchiveEntry> archiveEntries;
 
-		Vector<uint8_t> ReadArchiveEntryIntoVector(const ArchiveEntry& entry);
+		std::vector<uint8_t> ReadArchiveEntryIntoVector(const ArchiveEntry& entry);
 		virtual void ReadArchiveEntry(const ArchiveEntry& entry, void* fileContentOut) = 0;
 	};
 }

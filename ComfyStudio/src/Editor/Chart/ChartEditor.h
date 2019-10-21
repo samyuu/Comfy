@@ -20,10 +20,10 @@ namespace Editor
 		virtual const char* GetGuiName() const override;
 		virtual ImGuiWindowFlags GetWindowFlags() const override;
 
-		bool IsAudioFile(const String& filePath);
-		virtual bool OnFileDropped(const String& filePath) override;
+		bool IsAudioFile(const std::string& filePath);
+		virtual bool OnFileDropped(const std::string& filePath) override;
 
-		bool LoadSong(const String& filePath);
+		bool LoadSong(const std::string& filePath);
 
 		void ResumePlayback();
 		void PausePlayback();
@@ -41,7 +41,7 @@ namespace Editor
 		TimeSpan GetPlaybackTimeOnPlaybackStart() const;
 
 	private:
-		Array<const char*, 4> audioFileExtensions = { ".wav", ".flac", ".ogg", ".mp3" };
+		std::array<const char*, 4> audioFileExtensions = { ".wav", ".flac", ".ogg", ".mp3" };
 		Gui::FileViewer songFileViewer = { "dev_ram/sound/song" };
 
 		UniquePtr<Chart> chart;

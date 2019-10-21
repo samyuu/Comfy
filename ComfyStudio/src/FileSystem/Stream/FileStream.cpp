@@ -8,7 +8,7 @@ namespace FileSystem
 	{
 	}
 
-	FileStream::FileStream(const WideString& filePath)
+	FileStream::FileStream(const std::wstring& filePath)
 	{
 		OpenReadWrite(filePath);
 	}
@@ -76,7 +76,7 @@ namespace FileSystem
 		return bytesWritten;
 	}
 
-	void FileStream::OpenRead(const WideString& filePath)
+	void FileStream::OpenRead(const std::wstring& filePath)
 	{
 		assert(!IsOpen());
 		canRead = true;
@@ -85,7 +85,7 @@ namespace FileSystem
 		UpdateFileSize();
 	}
 
-	void FileStream::OpenWrite(const WideString& filePath)
+	void FileStream::OpenWrite(const std::wstring& filePath)
 	{
 		assert(!IsOpen());
 		canWrite = true;
@@ -94,7 +94,7 @@ namespace FileSystem
 		UpdateFileSize();
 	}
 
-	void FileStream::OpenReadWrite(const WideString& filePath)
+	void FileStream::OpenReadWrite(const std::wstring& filePath)
 	{
 		assert(!IsOpen());
 		canRead = canWrite = true;
@@ -103,7 +103,7 @@ namespace FileSystem
 		UpdateFileSize();
 	}
 
-	void FileStream::CreateWrite(const WideString& filePath)
+	void FileStream::CreateWrite(const std::wstring& filePath)
 	{
 		assert(!IsOpen());
 		canWrite = true;
@@ -112,7 +112,7 @@ namespace FileSystem
 		UpdateFileSize();
 	}
 
-	void FileStream::CreateReadWrite(const WideString& filePath)
+	void FileStream::CreateReadWrite(const std::wstring& filePath)
 	{
 		assert(!IsOpen());
 		canRead = canWrite = true;

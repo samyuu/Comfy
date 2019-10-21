@@ -42,7 +42,7 @@ struct TimeSpan
 	}
 
 	void FormatTime(char* buffer, size_t bufferSize) const;
-	String FormatTime() const;
+	std::string FormatTime() const;
 
 	// Operators:
 	// ----------

@@ -52,7 +52,7 @@ public:
 
 	bool GetDispatchFileDrop();
 	void SetFileDropDispatched(bool value = true);
-	const Vector<String>& GetDroppedFiles() const;
+	const std::vector<std::string>& GetDroppedFiles() const;
 
 private:
 	static void LoadComfyWindowIcon();
@@ -99,8 +99,8 @@ private:
 	void DrawAppEngineWindow();
 	void DrawAppEngineMenus(const char* header);
 
-	void DrawGuiBaseWindowMenus(const char* header, Vector<RefPtr<BaseWindow>>& components);
-	void DrawGuiBaseWindowWindows(Vector<RefPtr<BaseWindow>>& components);
+	void DrawGuiBaseWindowMenus(const char* header, std::vector<RefPtr<BaseWindow>>& components);
+	void DrawGuiBaseWindowWindows(std::vector<RefPtr<BaseWindow>>& components);
 
 	// Callbacks
 	// ---------
@@ -132,14 +132,14 @@ private:
 
 	// Window Management
 	// -----------------
-	Vector<String> droppedFiles;
+	std::vector<std::string> droppedFiles;
 	bool filesDroppedThisFrame, filesDropped, filesLastDropped, fileDropDispatched;
 	bool windowFocused = true, lastWindowFocused, focusLostFrame = false, focusGainedFrame = false;
 
 	int windowXPosition, windowYPosition;
 	float windowWidth = DefaultWindowWidth;
 	float windowHeight = DefaultWindowHeight;
-	vec2 preFullScreenWindowPosition = { 0, 0 };
+	vec2 preFullScreenWindowPosition = { 0.0f, 0.0f };
 	vec2 preFullScreenWindowSize = { DefaultWindowWidth, DefaultWindowHeight };
 
 	// Engine Timing
@@ -173,7 +173,7 @@ private:
 
 	// Data Test Components
 	// -----------------
-	Vector<RefPtr<BaseWindow>> dataTestComponents;
+	std::vector<RefPtr<BaseWindow>> dataTestComponents;
 	// -----------------
 
 	static const char* mainDockSpaceID;

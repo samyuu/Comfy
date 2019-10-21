@@ -71,10 +71,10 @@ namespace Graphics
 		virtual const char* GetVertexShaderPath() = 0;
 		virtual const char* GetFragmentShaderPath() = 0;
 
-		static const Vector<ShaderProgram*>& GetAllShaderPrograms();
+		static const std::vector<ShaderProgram*>& GetAllShaderPrograms();
 
 	protected:
-		Vector<uint8_t> vertexSource, fragmentSource;
+		std::vector<uint8_t> vertexSource, fragmentSource;
 		ProgramID_t programID = NULL;
 
 		void UpdateUniformLocation(Uniform& uniform) const;
@@ -86,15 +86,15 @@ namespace Graphics
 		bool initialized = false;
 
 		void LoadShaderSources();
-		int CompileShader(ShaderType, ShaderID_t*, const Vector<uint8_t>&);
+		int CompileShader(ShaderType, ShaderID_t*, const std::vector<uint8_t>&);
 		int AttachLinkShaders(ShaderID_t, ShaderID_t);
 		void Dispose();
 
-		static void ReserveShaderInfoLogLength(const ShaderID_t& shaderID, String& infoLog);
-		static void ReserveProgramInfoLogLength(const ProgramID_t& programID, String& infoLog);
+		static void ReserveShaderInfoLogLength(const ShaderID_t& shaderID, std::string& infoLog);
+		static void ReserveProgramInfoLogLength(const ProgramID_t& programID, std::string& infoLog);
 
 	private:
-		static Vector<ShaderProgram*> allShaderPrograms;
+		static std::vector<ShaderProgram*> allShaderPrograms;
 
 		static void RegisterProgram(ShaderProgram* program);
 		static void UnregisterProgram(ShaderProgram* program);

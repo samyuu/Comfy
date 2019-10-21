@@ -43,7 +43,8 @@ namespace Audio
 		static constexpr uint32_t MAX_BUFFER_SIZE = 0x2000;
 
 	public:
-		AudioEngine(const AudioEngine& other) = delete;
+		AudioEngine(const AudioEngine&) = delete;
+		const AudioEngine& operator= (const AudioEngine&) = delete;
 		~AudioEngine();
 
 		// ----------------------
@@ -69,7 +70,7 @@ namespace Audio
 		void AddCallbackReceiver(ICallbackReceiver* callbackReceiver);
 		void RemoveCallbackReceiver(ICallbackReceiver* callbackReceiver);
 
-		RefPtr<MemorySampleProvider> LoadAudioFile(const String& filePath);
+		RefPtr<MemorySampleProvider> LoadAudioFile(const std::string& filePath);
 
 		inline RtAudio* GetRtAudio() { return rtAudio.get(); };
 		inline uint32_t GetChannelCount() { return 2; };
@@ -103,10 +104,10 @@ namespace Audio
 
 		std::mutex audioInstancesMutex;
 
-		Vector<RefPtr<AudioInstance>> audioInstances;
-		Vector<ICallbackReceiver*> callbackReceivers;
+		std::vector<RefPtr<AudioInstance>> audioInstances;
+		std::vector<ICallbackReceiver*> callbackReceivers;
 
-		Vector<int16_t> tempOutputBuffer;
+		std::vector<int16_t> tempOutputBuffer;
 		uint32_t bufferSize = DEFAULT_BUFFER_SIZE;
 
 		bool isStreamOpen = false, isStreamRunning = false;
@@ -123,7 +124,7 @@ namespace Audio
 
 		RtAudio::Api GetRtAudioApi(AudioApi audioApi);
 
-		Array<RtAudio::Api, static_cast<size_t>(AudioApi::Count)> audioApis =
+		std::array<RtAudio::Api, static_cast<size_t>(AudioApi::Count)> audioApis =
 		{
 			RtAudio::WINDOWS_ASIO,		// AudioApi::ASIO
 			RtAudio::WINDOWS_WASAPI,	// AudioApi::WASAPI

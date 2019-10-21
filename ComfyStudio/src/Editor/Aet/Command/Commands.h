@@ -83,16 +83,16 @@ namespace Editor::Command
 	// NOTE: These don't really need to be private because they are only accessed through the AetCommand interface
 
 	// ----------------------------------------------------------------------------------------------------------------------------
-	Define_PropertyCommand(AetChangeName, "Aet Name Change", Aet, String, Name);
+	Define_PropertyCommand(AetChangeName, "Aet Name Change", Aet, std::string, Name);
 	Define_PropertyCommand(AetChangeResolution, "Resolution Change", Aet, ivec2, Resolution);
 	Define_PropertyCommand(AetChangeStartFrame, "Aet Start Frame Change", Aet, frame_t, FrameStart);
 	Define_PropertyCommand(AetChangeFrameDuration, "Aet Frame Duration Change", Aet, frame_t, FrameDuration);
 	Define_PropertyCommand(AetChangeFrameRate, "Aet Frame Rate Change", Aet, frame_t, FrameRate);
 	Define_PropertyCommand(AetChangeBackgroundColor, "Aet Background Color Change", Aet, uint32_t, BackgroundColor);
 
-	Define_AccessorCommand(AetLayerChangeName, "Layer Name Change", AetLayer, String, GetName, SetName);
+	Define_AccessorCommand(AetLayerChangeName, "Layer Name Change", AetLayer, std::string, GetName, SetName);
 
-	Define_AccessorCommand(AetObjChangeName, "Object Name Change", AetObj, String, GetName, SetName);
+	Define_AccessorCommand(AetObjChangeName, "Object Name Change", AetObj, std::string, GetName, SetName);
 	Define_PropertyCommand(AetObjChangeStartOffset, "Object Start Offset Change", AetObj, frame_t, StartOffset);
 	Define_PropertyCommand(AetObjChangePlaybackSpeed, "Object Playback Speed Change", AetObj, float, PlaybackSpeed);
 	Define_AccessorCommand(AetObjChangeFlagsVisible, "Visbility Change", AetObj, bool, GetIsVisible, SetIsVisible);
@@ -104,7 +104,7 @@ namespace Editor::Command
 	Define_PropertyCommand(AnimationDataChangeBlendMode, "Blend Mode Change", AnimationData, AetBlendMode, BlendMode);
 	Define_PropertyCommand(AnimationDataChangeUseTextureMask, "Texture Mask Change", AnimationData, bool, UseTextureMask);
 
-	Define_PropertyCommand(AetObjChangeMarkerName, "Marker Name Change", AetMarker, String, Name);
+	Define_PropertyCommand(AetObjChangeMarkerName, "Marker Name Change", AetMarker, std::string, Name);
 	Define_PropertyCommand(AetObjChangeMarkerFrame, "Marker Frame Change", AetMarker, frame_t, Frame);
 	// ----------------------------------------------------------------------------------------------------------------------------
 

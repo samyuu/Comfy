@@ -44,13 +44,13 @@ namespace Graphics::Auth2D
 		output.Opacity *= input.Opacity;
 	}
 
-	void AetMgr::GetAddObjects(Vector<ObjCache>& objects, const AetLayer* aetLayer, frame_t frame)
+	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetLayer* aetLayer, frame_t frame)
 	{
 		for (int i = static_cast<int>(aetLayer->size()) - 1; i >= 0; i--)
 			GetAddObjects(objects, aetLayer->GetObjAt(i), frame);
 	}
 
-	void AetMgr::GetAddObjects(Vector<ObjCache>& objects, const AetObj* aetObj, frame_t frame)
+	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetObj* aetObj, frame_t frame)
 	{
 		Properties propreties = DefaultProperites;
 		InternalAddObjects(objects, &propreties, aetObj, frame);
@@ -76,7 +76,7 @@ namespace Graphics::Auth2D
 				+ ((((((t * t) * t) * 2.0f) - ((t * t) * 3.0f)) + 1.0f) * start->Value));
 	}
 
-	float AetMgr::Interpolate(const Vector<AetKeyFrame>& keyFrames, frame_t frame)
+	float AetMgr::Interpolate(const std::vector<AetKeyFrame>& keyFrames, frame_t frame)
 	{
 		if (keyFrames.size() <= 0)
 			return 0.0f;
@@ -200,7 +200,7 @@ namespace Graphics::Auth2D
 			OffsetByParentProperties(properties, parentParent, frame, recursionCount);
 	}
 
-	void AetMgr::FindAddLayerUsages(const RefPtr<Aet>& aetToSearch, const RefPtr<AetLayer>& layerToFind, Vector<RefPtr<AetObj>*>& outObjects)
+	void AetMgr::FindAddLayerUsages(const RefPtr<Aet>& aetToSearch, const RefPtr<AetLayer>& layerToFind, std::vector<RefPtr<AetObj>*>& outObjects)
 	{
 		const auto layerSearchFunction = [&layerToFind, &outObjects](const RefPtr<AetLayer>& layerToSearch)
 		{
@@ -217,7 +217,7 @@ namespace Graphics::Auth2D
 			layerSearchFunction(layerToTest);
 	}
 
-	void AetMgr::InternalAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)
+	void AetMgr::InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)
 	{
 		if (aetObj->Type == AetObjType::Pic)
 		{
@@ -229,7 +229,7 @@ namespace Graphics::Auth2D
 		}
 	}
 
-	void AetMgr::InternalPicAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)
+	void AetMgr::InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)
 	{
 		assert(aetObj->Type == AetObjType::Pic);
 
@@ -259,7 +259,7 @@ namespace Graphics::Auth2D
 		TransformProperties(*parentProperties, objCache.Properties);
 	}
 
-	void AetMgr::InternalEffAddObjects(Vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)
+	void AetMgr::InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)
 	{
 		assert(aetObj->Type == AetObjType::Eff);
 

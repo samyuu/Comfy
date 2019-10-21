@@ -12,15 +12,15 @@ namespace Editor
 		static_assert(std::is_base_of<ICommand, TCommand>::value, "TCommand must inherit from ICommand");
 
 		using CommandQueue = std::queue<RefPtr<TCommand>>;
-		using CommandStack = Vector<RefPtr<TCommand>>;
+		using CommandStack = std::vector<RefPtr<TCommand>>;
 
 	public:
 		CommandManager() {};
 		virtual ~CommandManager() {};
 
 	public:
-		template<class TNewCommand, class... _Types>
-		void EnqueueCommand(_Types&&... _Args);
+		template<class TNewCommand, class... Types>
+		void EnqueueCommand(Types&&... _Args);
 
 		void ExecuteClearCommandQueue();
 
@@ -48,11 +48,11 @@ namespace Editor
 	};
 
 	template<class TCommand>
-	template<class TNewCommand, class... _Types>
-	inline void CommandManager<TCommand>::EnqueueCommand(_Types&&... args)
+	template<class TNewCommand, class... Types>
+	inline void CommandManager<TCommand>::EnqueueCommand(Types&&... args)
 	{
 		static_assert(std::is_base_of<TCommand, TNewCommand>::value, "TNewCommand must inherit from TCommand");
-		commandQueue.push(MakeRef<TNewCommand>(std::forward<_Types>(args)...));
+		commandQueue.push(MakeRef<TNewCommand>(std::forward<Types>(args)...));
 	}
 
 	template<class TCommand>

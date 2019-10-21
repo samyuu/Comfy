@@ -27,7 +27,7 @@ namespace FileSystem
 		uint32_t MaterialIndex;
 		uint32_t MaterialUVIndices[2];
 		Graphics::PrimitiveType Primitive;
-		Vector<uint16_t> Indices;
+		std::vector<uint16_t> Indices;
 		Box BoundingBox;
 
 		RefPtr<Graphics::IndexBuffer> GraphicsIndexBuffer;
@@ -52,9 +52,9 @@ namespace FileSystem
 	struct VertexData
 	{
 		uint32_t Stride;
-		Vector<vec3> Positions;
-		Vector<vec3> Normals;
-		Vector<vec4> Tangents;
+		std::vector<vec3> Positions;
+		std::vector<vec3> Normals;
+		std::vector<vec4> Tangents;
 	};
 
 	struct GraphicsVertexBuffers
@@ -68,8 +68,8 @@ namespace FileSystem
 	{
 	public:
 		Sphere BoundingSphere;
-		Vector<RefPtr<SubMesh>> SubMeshes;
-		String Name;
+		std::vector<RefPtr<SubMesh>> SubMeshes;
+		std::string Name;
 		VertexAttributeTypes VertexAttributes;
 		VertexData VertexData;
 
@@ -79,7 +79,7 @@ namespace FileSystem
 	class Material
 	{
 	public:
-		String Name;
+		std::string Name;
 	};
 
 	class Obj
@@ -93,20 +93,16 @@ namespace FileSystem
 		~Obj() = default;
 
 	public:
-		String Name;
+		std::string Name;
 		uint32_t ID;
 
 		Sphere BoundingSphere;
-		Vector<RefPtr<Mesh>> Meshes;
-		Vector<RefPtr<Material>> Materials;
+		std::vector<RefPtr<Mesh>> Meshes;
+		std::vector<RefPtr<Material>> Materials;
 
 	private:
 		void Read(BinaryReader& reader);
 	};
-
-	using ObjCollection = Vector<RefPtr<Obj>>;
-	using ObjIterator = ObjCollection::iterator;
-	using ConstObjIterator = ObjCollection::const_iterator;
 
 	class ObjSet : public IBinaryReadable
 	{
@@ -117,14 +113,14 @@ namespace FileSystem
 		~ObjSet() = default;
 
 	public:
-		String Name;
+		std::string Name;
 
-		ObjIterator begin() { return objects.begin(); }
-		ObjIterator end() { return objects.end(); }
-		ConstObjIterator begin() const { return objects.begin(); }
-		ConstObjIterator end() const { return objects.end(); }
-		ConstObjIterator cbegin() const { return objects.cbegin(); }
-		ConstObjIterator cend() const { return objects.cend(); }
+		auto begin() { return objects.begin(); }
+		auto end() { return objects.end(); }
+		auto begin() const { return objects.begin(); }
+		auto end() const { return objects.end(); }
+		auto cbegin() const { return objects.cbegin(); }
+		auto cend() const { return objects.cend(); }
 
 		RefPtr<Obj>& front() { return objects.front(); }
 		RefPtr<Obj>& back() { return objects.back(); }
@@ -144,6 +140,6 @@ namespace FileSystem
 		void UploadAll();
 
 	private:
-		ObjCollection objects;
+		std::vector<RefPtr<Obj>> objects;
 	};
 }

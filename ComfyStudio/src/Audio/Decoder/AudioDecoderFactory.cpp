@@ -72,16 +72,16 @@ namespace Audio
 		return instance.get();
 	}
 
-	RefPtr<MemorySampleProvider> AudioDecoderFactory::DecodeFile(const String& filePath)
+	RefPtr<MemorySampleProvider> AudioDecoderFactory::DecodeFile(const std::string& filePath)
 	{
-		WideString widePath = Utf8ToUtf16(filePath);
+		std::wstring widePath = Utf8ToUtf16(filePath);
 		if (!FileSystem::FileExists(widePath))
 		{
 			Logger::LogErrorLine(__FUNCTION__"(): Input file %s not found", filePath.c_str());
 			return nullptr;
 		}
 
-		String extension = FileSystem::GetFileExtension(filePath);
+		std::string extension = FileSystem::GetFileExtension(filePath);
 
 		for (auto& decoder : availableDecoders)
 		{
@@ -90,7 +90,7 @@ namespace Audio
 			if (!FileExtensionHelper::DoesAnyExtensionMatch(extension.c_str(), decoderExtensions))
 				continue;
 
-			Vector<uint8_t> fileContent;
+			std::vector<uint8_t> fileContent;
 
 			if (!FileSystem::FileReader::ReadEntireFile(widePath, &fileContent))
 			{

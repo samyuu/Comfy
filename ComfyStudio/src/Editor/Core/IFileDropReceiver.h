@@ -6,6 +6,6 @@ namespace Editor
 	class IFileDropReceiver
 	{
 	public:
-		virtual bool OnFileDropped(const String& filePath) { return false; };
+		virtual bool OnFileDropped(const std::string& filePath) { return false; };
 	};
 }

@@ -48,7 +48,7 @@ namespace System
 		TimeSpan frameStartTime, frameEndTime;
 
 		// NOTE: Always keep track of the entries from the previous entries for visualization
-		Vector<Entry> entries, previousEntries;
+		std::vector<Entry> entries, previousEntries;
 
 	private:
 		// NOTE: The profiler should only ever be accessed from the main thread and stores minimal state sso this shouldn't cause any problems

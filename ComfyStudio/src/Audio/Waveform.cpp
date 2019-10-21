@@ -47,12 +47,12 @@ namespace Audio
 		}
 	}
 
-	float Waveform::GetPcmForPixel(int64_t pixel)
+	float Waveform::GetPcmForPixel(int64_t pixel) const
 	{
 		return DEBUG_RELEASE_SWITCH(pixelPCMs.at(pixel), pixelPCMs[pixel]);
 	}
 
-	size_t Waveform::GetPixelCount()
+	size_t Waveform::GetPixelCount() const
 	{
 		return pixelPCMs.size();
 	}

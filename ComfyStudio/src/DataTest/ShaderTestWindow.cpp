@@ -20,7 +20,7 @@ namespace DataTest
 
 		Text("Shader Test:");
 
-		BeginChild("##ShaderTestWindowListChild", ImVec2(GetWindowWidth() * listWidth, 0), true, scrollBarWindowFlags);
+		BeginChild("##ShaderTestWindowListChild", vec2(GetWindowWidth() * listWidth, 0.0f), true, scrollBarWindowFlags);
 		{
 			int i = 0;
 			for (auto& shader : Graphics::ShaderProgram::GetAllShaderPrograms())
@@ -34,14 +34,14 @@ namespace DataTest
 		}
 		EndChild();
 		SameLine();
-		BeginChild("##ShaderTestWindowInfoChild", ImVec2(0, 0), true);
+		BeginChild("##ShaderTestWindowInfoChild", vec2(0.0f, 0.0f), true);
 		{
 			if (selectedIndex >= 0 && selectedIndex < Graphics::ShaderProgram::GetAllShaderPrograms().size())
 			{
 				Graphics::ShaderProgram* shader = Graphics::ShaderProgram::GetAllShaderPrograms()[selectedIndex];
 
 				BulletText("%s	[ OpenGL ID: %d ]", shader->GetShaderName(), shader->GetProgramID());
-				BeginChild("##ShaderTestWindowSourceChild", ImVec2(0, 82), true);
+				BeginChild("##ShaderTestWindowSourceChild", vec2(0.0f, 82.0f), true);
 				{
 					Columns(2);
 
@@ -121,6 +121,6 @@ namespace DataTest
 
 	ImGuiWindowFlags ShaderTestWindow::GetWindowFlags() const
 	{
-		return ImGuiWindowFlags();
+		return ImGuiWindowFlags_None;
 	}
 }

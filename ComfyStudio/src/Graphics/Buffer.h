@@ -143,11 +143,11 @@ namespace Graphics
 		BufferLayout(std::initializer_list<BufferElement> elements);
 
 		inline uint16_t GetStride() const { return stride; };
-		inline const Vector<BufferElement>& GetElemenets() const { return elements; };
+		inline const std::vector<BufferElement>& GetElemenets() const { return elements; };
 
 	private:
 		uint16_t stride;
-		Vector<BufferElement> elements;
+		std::vector<BufferElement> elements;
 
 		void UpdateElements();
 		static uint16_t GetElementSize(ShaderDataType type);

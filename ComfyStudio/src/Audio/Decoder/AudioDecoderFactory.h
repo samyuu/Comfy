@@ -14,14 +14,14 @@ namespace Audio
 		AudioDecoderFactory(const AudioDecoderFactory& other) = delete;
 		~AudioDecoderFactory();
 
-		RefPtr<MemorySampleProvider> DecodeFile(const String& filePath);
+		RefPtr<MemorySampleProvider> DecodeFile(const std::string& filePath);
 		static AudioDecoderFactory* GetInstance();
 
 	private:
 		AudioDecoderFactory();
 
 	protected:
-		Vector<UniquePtr<IAudioDecoder>> availableDecoders;
+		std::vector<UniquePtr<IAudioDecoder>> availableDecoders;
 	
 		template <class T>
 		inline void RegisterDecoder()

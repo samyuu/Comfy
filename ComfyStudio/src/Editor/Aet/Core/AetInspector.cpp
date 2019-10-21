@@ -8,7 +8,7 @@ namespace Editor
 {
 	constexpr ImGuiTreeNodeFlags DefaultOpenPropertiesNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow;
 
-	static void CopyStringIntoBuffer(const String& string, char* buffer, size_t bufferSize)
+	static void CopyStringIntoBuffer(const std::string& string, char* buffer, size_t bufferSize)
 	{
 		size_t copySize = std::min(string.size(), bufferSize - 1);
 		string.copy(buffer, copySize);
@@ -497,7 +497,7 @@ namespace Editor
 		Gui::PopStyleColor();
 	}
 
-	void AetInspector::DrawInspectorAetObjMarkers(const RefPtr<AetObj>& aetObj, Vector<RefPtr<AetMarker>>* markers)
+	void AetInspector::DrawInspectorAetObjMarkers(const RefPtr<AetObj>& aetObj, std::vector<RefPtr<AetMarker>>* markers)
 	{
 		if (Gui::WideTreeNodeEx(ICON_MARKERS "  Markers", DefaultOpenPropertiesNodeFlags))
 		{

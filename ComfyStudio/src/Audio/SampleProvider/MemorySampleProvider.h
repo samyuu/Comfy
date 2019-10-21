@@ -25,6 +25,6 @@ namespace Audio
 		uint32_t channelCount;
 		uint32_t sampleRate;
 
-		Vector<int16_t> sampleData;
+		std::vector<int16_t> sampleData;
 	};
 }

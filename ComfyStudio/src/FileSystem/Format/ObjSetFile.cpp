@@ -19,7 +19,7 @@ namespace FileSystem
 	}
 
 	template <class T>
-	static inline void CheckReadVertexData(BinaryReader& reader, bool attributeFlag, Vector<T>& vector, uint32_t vertexCount, void* pointer, void* baseAddress)
+	static inline void CheckReadVertexData(BinaryReader& reader, bool attributeFlag, std::vector<T>& vector, uint32_t vertexCount, void* pointer, void* baseAddress)
 	{
 		if (!attributeFlag || pointer == nullptr)
 			return;

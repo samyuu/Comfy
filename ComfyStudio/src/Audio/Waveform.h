@@ -12,11 +12,11 @@ namespace Audio
 		~Waveform();
 
 		void Calculate(MemorySampleProvider* audioStream, TimeSpan timePerPixel);
-		float GetPcmForPixel(int64_t pixel);
-		size_t GetPixelCount();
+		float GetPcmForPixel(int64_t pixel) const;
+		size_t GetPixelCount() const;
 
 	protected:
-		// Mapping of pixel <-> averaged PCM
-		Vector<float> pixelPCMs;
+		// NOTE: Mapping of pixel <-> averaged PCM
+		std::vector<float> pixelPCMs;
 	};
 }

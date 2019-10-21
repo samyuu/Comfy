@@ -20,7 +20,7 @@ namespace Editor
 	typedef int16_t TargetFlags;
 	enum TargetFlags_Enum : TargetFlags
 	{
-		// Subject to change
+		// NOTE: Subject to change
 		TargetFlags_None = 0,
 		TargetFlags_Hold = 1 << 0,
 		TargetFlags_Sync = 1 << 1,
@@ -31,7 +31,7 @@ namespace Editor
 
 	struct TargetProperties
 	{
-		glm::vec2 Position;
+		vec2 Position;
 		float Angle;
 		short Frequency;
 		short Amplitude;
@@ -63,10 +63,6 @@ namespace Editor
 		// ----------
 	};
 
-	using TargetCollection = Vector<TimelineTarget>;
-	using TargetIterator = TargetCollection::iterator;
-	using ConstTargetIterator = TargetCollection::const_iterator;
-
 	class TargetList
 	{
 	public:
@@ -85,16 +81,16 @@ namespace Editor
 
 		// Iterators:
 		// ----------
-		TargetIterator begin() { return collection.begin(); }
-		TargetIterator end() { return collection.end(); }
-		ConstTargetIterator begin() const { return collection.begin(); }
-		ConstTargetIterator end() const { return collection.end(); }
-		ConstTargetIterator cbegin() const { return collection.cbegin(); }
-		ConstTargetIterator cend() const { return collection.cend(); }
+		auto begin() { return collection.begin(); }
+		auto end() { return collection.end(); }
+		auto begin() const { return collection.begin(); }
+		auto end() const { return collection.end(); }
+		auto cbegin() const { return collection.cbegin(); }
+		auto cend() const { return collection.cend(); }
 		// ----------
 
 	private:
-		TargetCollection collection;
+		std::vector<TimelineTarget> collection;
 
 		void SetTargetSyncFlagsAround(int64_t index);
 		void SetTargetSyncFlags(int64_t start = -1, int64_t end = -1);

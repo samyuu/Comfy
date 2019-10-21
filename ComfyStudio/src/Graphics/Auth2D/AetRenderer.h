@@ -29,7 +29,7 @@ namespace Graphics::Auth2D
 
 		void RenderObjCache(const AetMgr::ObjCache& obj, const vec2& position, float opacity = 1.0f);
 		void RenderObjCacheMask(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& position, float opacity = 1.0f);
-		void RenderObjCacheVector(const Vector<AetMgr::ObjCache>& objectCache, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
+		void RenderObjCacheVector(const std::vector<AetMgr::ObjCache>& objectCache, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
 
 		void RenderAetObj(const AetObj* aetObj, float frame, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
 		void RenderAetObjLooped(const AetObj* aetObj, float frame, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
@@ -46,6 +46,6 @@ namespace Graphics::Auth2D
 		Renderer2D* renderer2D = nullptr;
 		SpriteGetterFunction* spriteGetter = nullptr;
 
-		Vector<AetMgr::ObjCache> objectCache;
+		std::vector<AetMgr::ObjCache> objectCache;
 	};
 }

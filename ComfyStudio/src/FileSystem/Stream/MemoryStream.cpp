@@ -11,12 +11,12 @@ namespace FileSystem
 		dataSource = &dataVector;
 	}
 
-	MemoryStream::MemoryStream(const String& filePath) : MemoryStream()
+	MemoryStream::MemoryStream(const std::string& filePath) : MemoryStream()
 	{
 		FromFile(filePath);
 	}
 
-	MemoryStream::MemoryStream(const WideString& filePath) : MemoryStream()
+	MemoryStream::MemoryStream(const std::wstring& filePath) : MemoryStream()
 	{
 		FromFile(filePath);
 	}
@@ -26,7 +26,7 @@ namespace FileSystem
 		FromStream(stream);
 	}
 
-	MemoryStream::MemoryStream(Vector<uint8_t>* source)
+	MemoryStream::MemoryStream(std::vector<uint8_t>* source)
 	{
 		FromStreamSource(source);
 	}
@@ -93,7 +93,7 @@ namespace FileSystem
 		return size;
 	}
 
-	void MemoryStream::FromStreamSource(Vector<uint8_t>* source)
+	void MemoryStream::FromStreamSource(std::vector<uint8_t>* source)
 	{
 		dataSource = source;
 
@@ -101,12 +101,12 @@ namespace FileSystem
 		dataSize = static_cast<int64_t>(source->size());
 	}
 
-	void MemoryStream::FromFile(const String& filePath)
+	void MemoryStream::FromFile(const std::string& filePath)
 	{
 		FromFile(Utf8ToUtf16(filePath));
 	}
 
-	void MemoryStream::FromFile(const WideString& filePath)
+	void MemoryStream::FromFile(const std::wstring& filePath)
 	{
 		FileStream fileStream(filePath);
 		FromStream(&fileStream);

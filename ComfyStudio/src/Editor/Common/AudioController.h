@@ -19,14 +19,14 @@ namespace Editor
 		const RefPtr<Audio::MemorySampleProvider>& GetButtonSoundSource(int index);
 
 	private:
-		const char* buttonSoundPath = u8"dev_ram/sound/button/01_button1.wav";
+		static constexpr const char* buttonSoundPath = u8"dev_ram/sound/button/01_button1.wav";
 
 		TimeSpan buttonSoundTime, lastButtonSoundTime, timeSinceLastButtonSound;
 		float buttonSoundVolume = 0.75f;
 		
 		int buttonSoundIndex = -1;
-		Vector<RefPtr<Audio::MemorySampleProvider>> buttonSoundSources;
-		Array<RefPtr<Audio::AudioInstance>, 16> buttonSoundInstancePool;
+		std::vector<RefPtr<Audio::MemorySampleProvider>> buttonSoundSources;
+		std::array<RefPtr<Audio::AudioInstance>, 16> buttonSoundInstancePool;
 
 		void PlayButtonSound(Audio::AudioInstance* audioInstance);
 	};

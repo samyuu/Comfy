@@ -54,7 +54,7 @@ namespace Editor
 		std::stack<float> scrollPositionStack;
 
 		// NOTE: To be used, filled and cleared by the layer usage context menu
-		Vector<RefPtr<AetObj>*> layerUsagesBuffer;
+		std::vector<RefPtr<AetObj>*> layerUsagesBuffer;
 
 		struct
 		{

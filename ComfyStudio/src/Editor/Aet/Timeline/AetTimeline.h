@@ -109,10 +109,9 @@ namespace Editor
 		// Vector<KeyFrameIndex> selectedKeyFrames;
 
 		static constexpr const char* settingsPopupName = "TimelineSettingsPopup::AetTimeline";
-
 		static constexpr const char* timelinePropertyNameTypeSeparator = ":";
 
-		const Array<std::pair<const char*, const char*>, static_cast<size_t>(PropertyType_Count)> timelinePropertyTypeNames =
+		static constexpr std::array<std::pair<const char*, const char*>, static_cast<size_t>(PropertyType_Count)> timelinePropertyTypeNames =
 		{
 			std::make_pair("Transform", "Origin.X"),
 			std::make_pair("Transform", "Origin.Y"),

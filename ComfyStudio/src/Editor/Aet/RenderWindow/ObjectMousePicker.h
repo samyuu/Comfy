@@ -9,7 +9,7 @@ namespace Editor
 	class ObjectMousePicker
 	{
 	public:
-		ObjectMousePicker(const Vector<AetMgr::ObjCache>& objectCache, const bool& windowHoveredOnMouseClick, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
+		ObjectMousePicker(const std::vector<AetMgr::ObjCache>& objectCache, const bool& windowHoveredOnMouseClick, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
 	
 		void UpdateMouseInput(const vec2& mousePosition);
 
@@ -28,7 +28,7 @@ namespace Editor
 		const bool& windowHoveredOnMouseClick;
 
 		// NOTE: The object cache from the current frame, expected to be kept up to date by its parent
-		const Vector<AetMgr::ObjCache>& objectCache;
+		const std::vector<AetMgr::ObjCache>& objectCache;
 
 		// NOTE: To compare with the object on mouse release before selecting the object and prevent accidental selection.
 		//		 This object is not guaranteed to stay alive and should only be used for a pointer comparison so don't try to dereference it

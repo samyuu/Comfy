@@ -7,7 +7,7 @@
 
 namespace Editor
 {
-	Array<ImU32, EditorColor_Count> EditorColors;
+	std::array<ImU32, EditorColor_Count> EditorColors;
 
 	vec4 GetColorVec4(EditorColor color)
 	{
@@ -153,11 +153,11 @@ namespace Editor
 	{
 		if (parent->GetDispatchFileDrop())
 		{
-			const Vector<String>& droppedFiles = parent->GetDroppedFiles();
+			const std::vector<std::string>& droppedFiles = parent->GetDroppedFiles();
 
 			for (const auto &component : editorComponents)
 			{
-				for (const String& filePath : droppedFiles)
+				for (const std::string& filePath : droppedFiles)
 				{
 					if (component->OnFileDropped(filePath))
 					{

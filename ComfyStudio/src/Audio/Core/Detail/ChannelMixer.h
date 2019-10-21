@@ -27,7 +27,7 @@ namespace Audio
 
 	protected:
 		MixingBehavior mixingBehavior = MixingBehavior::Ignore;
-		Vector<int16_t> sampleSwapBuffer;
+		std::vector<int16_t> sampleSwapBuffer;
 		
 		uint32_t sourceChannels = 0;
 		uint32_t targetChannels = 0;

@@ -5,7 +5,7 @@ namespace FileSystem
 	using namespace Graphics;
 
 	template <class T>
-	static inline void UploadInitializeBufferIfAttribute(bool hasAttribute, RefPtr<VertexBuffer>& vertexBuffer, Vector<T>& vertexData)
+	static inline void UploadInitializeBufferIfAttribute(bool hasAttribute, RefPtr<VertexBuffer>& vertexBuffer, std::vector<T>& vertexData)
 	{
 		if (!hasAttribute)
 			return;

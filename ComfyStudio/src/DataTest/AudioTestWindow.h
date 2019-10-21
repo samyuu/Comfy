@@ -30,28 +30,28 @@ namespace DataTest
 		struct ExtendedDeviceInfo
 		{
 			RtAudio::DeviceInfo Info;
-			String SampleRatesString;
-			String NativeFormatsString;
+			std::string SampleRatesString;
+			std::string NativeFormatsString;
 		};
 
-		Vector<ExtendedDeviceInfo> deviceInfoList;
+		std::vector<ExtendedDeviceInfo> deviceInfoList;
 		Audio::AudioApi selectedAudioApi = Audio::AudioApi::Invalid;
 		Audio::ChannelMixer::MixingBehavior selectedMixingBehavior = static_cast<Audio::ChannelMixer::MixingBehavior>(-1);
 		int newBufferSize = -1;
 
-		Array<const char*, static_cast<size_t>(Audio::AudioApi::Count)> audioApiNames =
+		static constexpr std::array<const char*, static_cast<size_t>(Audio::AudioApi::Count)> audioApiNames =
 		{
 			"AudioApi::ASIO",
 			"AudioApi::WASAPI",
 		};
 
-		Array<const char*, static_cast<size_t>(Audio::ChannelMixer::MixingBehavior::Count)> mixingBehaviorNames =
+		static constexpr std::array<const char*, static_cast<size_t>(Audio::ChannelMixer::MixingBehavior::Count)> mixingBehaviorNames =
 		{
 			"ChannelMixer::MixingBehavior::Ignore",
 			"ChannelMixer::MixingBehavior::Mix",
 		};
 
-		Array<const char*, 8> deviceInfoFieldNames =
+		static constexpr std::array<const char*, 8> deviceInfoFieldNames =
 		{
 			"Name",
 			"Output Channels",
@@ -63,7 +63,7 @@ namespace DataTest
 			"Native Formats",
 		};
 
-		struct { RtAudioFormat Format; const char* Name; } audioFormatDescriptions[6] =
+		static constexpr struct { RtAudioFormat Format; const char* Name; } audioFormatDescriptions[6] =
 		{
 			{ RTAUDIO_SINT8,	"SINT8"   },
 			{ RTAUDIO_SINT16,	"SINT16"  },

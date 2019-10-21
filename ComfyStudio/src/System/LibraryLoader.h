@@ -23,7 +23,7 @@ namespace System
 		}
 
 	private:
-		String libraryName;
+		std::string libraryName;
 		void* moduleHandle;
 	};
 }

@@ -4,7 +4,7 @@
 
 namespace FileSystem
 {
-	AetEntry* AetSetEntry::GetAetEntry(const String& name)
+	AetEntry* AetSetEntry::GetAetEntry(const std::string& name)
 	{
 		return nullptr;
 	}
@@ -56,7 +56,7 @@ namespace FileSystem
 		}
 	}
 
-	AetSetEntry* AetDB::GetAetSetEntry(const String& name)
+	AetSetEntry* AetDB::GetAetSetEntry(const std::string& name)
 	{
 		for (auto& entry : Entries)
 			if (entry.Name == name)
@@ -72,7 +72,7 @@ namespace FileSystem
 		return nullptr;
 	}
 
-	SprEntry* SprSetEntry::GetSprEntry(const String& name)
+	SprEntry* SprSetEntry::GetSprEntry(const std::string& name)
 	{
 		for (auto& entry : SprEntries)
 			if (entry.Name == name)
@@ -80,7 +80,7 @@ namespace FileSystem
 		return nullptr;
 	}
 
-	SprEntry* SprSetEntry::GetSprTexEntry(const String& name)
+	SprEntry* SprSetEntry::GetSprTexEntry(const std::string& name)
 	{
 		for (auto& entry : SprTexEntries)
 			if (entry.Name == name)
@@ -127,7 +127,7 @@ namespace FileSystem
 					int32_t sprSetEntryIndex = (packedData & ~packedDataMask);
 					SprSetEntry& sprSetEntry = Entries[sprSetEntryIndex];
 
-					Vector<SprEntry>& sprEntries = (packedData & packedDataMask) ? sprSetEntry.SprTexEntries : sprSetEntry.SprEntries;
+					std::vector<SprEntry>& sprEntries = (packedData & packedDataMask) ? sprSetEntry.SprTexEntries : sprSetEntry.SprEntries;
 					sprEntries.emplace_back();
 					SprEntry& sprEntry = sprEntries.back();
 
@@ -204,7 +204,7 @@ namespace FileSystem
 		writer.WriteAlignmentPadding(16);
 	}
 
-	SprSetEntry* SprDB::GetSprSetEntry(const String& name)
+	SprSetEntry* SprDB::GetSprSetEntry(const std::string& name)
 	{
 		for (auto& entry : Entries)
 			if (entry.Name == name)

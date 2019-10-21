@@ -26,7 +26,7 @@ namespace Editor
 		// -------------
 		Application* parent;
 
-		Vector<UniquePtr<IEditorComponent>> editorComponents;
+		std::vector<UniquePtr<IEditorComponent>> editorComponents;
 		bool initialized = false;
 		// -------------
 

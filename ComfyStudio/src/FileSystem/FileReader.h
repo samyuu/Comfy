@@ -9,18 +9,18 @@ namespace FileSystem
 		FileReader() = delete;
 
 		template <class TPath, class TData>
-		static bool ReadEntireFile(const TPath& filePath, Vector<TData>* buffer);
+		static bool ReadEntireFile(const TPath& filePath, std::vector<TData>* buffer);
 
 	public:
 		template <class T>
-		static inline bool ReadEntireFile(const String& filePath, Vector<T>* buffer);
+		static inline bool ReadEntireFile(const std::string& filePath, std::vector<T>* buffer);
 
 		template <class T>
-		static inline bool ReadEntireFile(const WideString& filePath, Vector<T>* buffer);
+		static inline bool ReadEntireFile(const std::wstring& filePath, std::vector<T>* buffer);
 
 	private:
-		static void* CreateFileHandle(const String& filePath, bool read);
-		static void* CreateFileHandle(const WideString& filePath, bool read);
+		static void* CreateFileHandle(const std::string& filePath, bool read);
+		static void* CreateFileHandle(const std::wstring& filePath, bool read);
 		static void CloseFileHandle(void* fileHandle);
 
 		static size_t GetFileSize(void* fileHandle);
@@ -28,7 +28,7 @@ namespace FileSystem
 	};
 
 	template<class TPath, class TData>
-	inline bool FileReader::ReadEntireFile(const TPath& filePath, Vector<TData>* buffer)
+	inline bool FileReader::ReadEntireFile(const TPath& filePath, std::vector<TData>* buffer)
 	{
 		void* fileHandle = CreateFileHandle(filePath, true);
 		bool validHandle = reinterpret_cast<int64_t>(fileHandle) > 0;
@@ -45,14 +45,14 @@ namespace FileSystem
 	}
 
 	template<class T>
-	inline bool FileReader::ReadEntireFile(const String& filePath, Vector<T>* buffer)
+	inline bool FileReader::ReadEntireFile(const std::string& filePath, std::vector<T>* buffer)
 	{
-		return ReadEntireFile<String, T>(filePath, buffer);
+		return ReadEntireFile<std::string, T>(filePath, buffer);
 	}
 
 	template<class T>
-	inline bool FileReader::ReadEntireFile(const WideString& filePath, Vector<T>* buffer)
+	inline bool FileReader::ReadEntireFile(const std::wstring& filePath, std::vector<T>* buffer)
 	{
-		return ReadEntireFile<WideString, T>(filePath, buffer);
+		return ReadEntireFile<std::wstring, T>(filePath, buffer);
 	}
 }
