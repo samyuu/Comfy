@@ -7,7 +7,7 @@ namespace Editor
 
 	TargetRenderWindow::TargetRenderWindow()
 	{
-		spriteGetterFunction = [this](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite) { return false; };
+		spriteGetterFunction = [this](const AetSpriteIdentifier* inSprite, const Texture** outTexture, const Sprite** outSprite) { return false; };
 
 		renderer = MakeUnique<Graphics::Auth2D::Renderer2D>();
 		aetRenderer = MakeUnique<Graphics::Auth2D::AetRenderer>(renderer.get());
@@ -116,7 +116,7 @@ namespace Editor
 			sprSet->TxpSet->UploadAll();
 			sprSetLoader.FreeData();
 
-			spriteGetterFunction = [this](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite) { return Graphics::Auth2D::AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite); };
+			spriteGetterFunction = [this](const AetSpriteIdentifier* inSprite, const Texture** outTexture, const Sprite** outSprite) { return Graphics::Auth2D::AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite); };
 			aetRenderer->SetSpriteGetterFunction(&spriteGetterFunction);
 		}
 	}

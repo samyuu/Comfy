@@ -53,7 +53,7 @@ namespace FileSystem
 		WhatTheFuck = 12,
 	};
 
-	struct AetSprite
+	struct AetSpriteIdentifier
 	{
 		// NOTE: Sprite name
 		String Name;
@@ -64,8 +64,8 @@ namespace FileSystem
 		mutable const struct Sprite* SpriteCache;
 	};
 
-	using SpriteCollectionIterator = Vector<AetSprite>::iterator;
-	using ConstSpriteCollectionIterator = Vector<AetSprite>::const_iterator;
+	using SpriteCollectionIterator = Vector<AetSpriteIdentifier>::iterator;
+	using ConstSpriteCollectionIterator = Vector<AetSpriteIdentifier>::const_iterator;
 
 	// TODO: Rename to reflect sprite / position templates, sprites and image sequences
 	class AetRegion
@@ -87,18 +87,18 @@ namespace FileSystem
 		frame_t Frames;
 
 	public:
-		AetSprite* GetSprite(int32_t index);
-		const AetSprite* GetSprite(int32_t index) const;
+		AetSpriteIdentifier* GetSprite(int32_t index);
+		const AetSpriteIdentifier* GetSprite(int32_t index) const;
 
-		AetSprite* GetFrontSprite();
-		AetSprite* GetBackSprite();
+		AetSpriteIdentifier* GetFrontSprite();
+		AetSpriteIdentifier* GetBackSprite();
 
 		int32_t SpriteCount() const;
-		Vector<AetSprite>& GetSprites();
-		const Vector<AetSprite>& GetSprites() const;
+		Vector<AetSpriteIdentifier>& GetSprites();
+		const Vector<AetSpriteIdentifier>& GetSprites() const;
 
 	private:
-		Vector<AetSprite> sprites;
+		Vector<AetSpriteIdentifier> sprites;
 		fileptr_t filePosition;
 	};
 

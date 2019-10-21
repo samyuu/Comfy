@@ -418,7 +418,7 @@ namespace Editor
 	void AetRenderWindow::RenderAetRegion(const AetRegion* aetRegion)
 	{
 		int32_t spriteIndex = glm::clamp(0, static_cast<int32_t>(currentFrame), aetRegion->SpriteCount() - 1);
-		const AetSprite* aetSprite = aetRegion->GetSprite(spriteIndex);
+		const AetSpriteIdentifier* aetSprite = aetRegion->GetSprite(spriteIndex);
 		aetRenderer->RenderAetSprite(aetRegion, aetSprite, vec2(0.0f, 0.0f));
 	}
 

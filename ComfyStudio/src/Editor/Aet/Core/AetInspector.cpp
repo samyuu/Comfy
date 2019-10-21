@@ -260,7 +260,7 @@ namespace Editor
 		{
 			if (aetRegion != nullptr)
 			{
-				AetSprite* frontSprite = aetRegion->GetFrontSprite();
+				AetSpriteIdentifier* frontSprite = aetRegion->GetFrontSprite();
 
 				if (frontSprite == nullptr)
 					sprintf_s(regionDataNameBuffer, "Null (%dx%d)", aetRegion->Size.x, aetRegion->Size.y);
@@ -283,7 +283,7 @@ namespace Editor
 
 					bool isSelected = (aetRegion == region);
 
-					AetSprite* frontSprite = region->GetFrontSprite();
+					AetSpriteIdentifier* frontSprite = region->GetFrontSprite();
 					if (frontSprite == nullptr)
 						sprintf_s(regionDataNameBuffer, "Region %d (%dx%d)", regionIndex, region->Size.x, region->Size.y);
 

@@ -12,7 +12,7 @@ namespace Editor
 	{
 		commandManager = MakeUnique<AetCommandManager>();
 
-		spriteGetterFunction = [](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite) { return false; };
+		spriteGetterFunction = [](const AetSpriteIdentifier* inSprite, const Texture** outTexture, const Sprite** outSprite) { return false; };
 
 		treeView = MakeUnique<AetTreeView>(commandManager.get(), &selectedAetItem, &cameraSelectedAetItem);
 		layerView = MakeUnique<AetLayerView>();
@@ -209,7 +209,7 @@ namespace Editor
 		if (editorAetSet != nullptr)
 			editorAetSet->ClearSpriteCache();
 
-		spriteGetterFunction = [this](const AetSprite* inSprite, const Texture** outTexture, const Sprite** outSprite)
+		spriteGetterFunction = [this](const AetSpriteIdentifier* inSprite, const Texture** outTexture, const Sprite** outSprite)
 		{
 			return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite);
 		};

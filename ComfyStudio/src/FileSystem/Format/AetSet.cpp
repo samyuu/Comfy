@@ -52,7 +52,7 @@ namespace FileSystem
 		return (name == nullptr) ? "Undefined Blend Mode" : name;
 	}
 
-	AetSprite* AetRegion::GetSprite(int32_t index)
+	AetSpriteIdentifier* AetRegion::GetSprite(int32_t index)
 	{
 		if (SpriteCount() < 1)
 			return nullptr;
@@ -61,17 +61,17 @@ namespace FileSystem
 		return &sprites[index];
 	}
 
-	const AetSprite* AetRegion::GetSprite(int32_t index) const
+	const AetSpriteIdentifier* AetRegion::GetSprite(int32_t index) const
 	{
 		return const_cast<AetRegion*>(this)->GetSprite(index);
 	}
 
-	AetSprite* AetRegion::GetFrontSprite()
+	AetSpriteIdentifier* AetRegion::GetFrontSprite()
 	{
 		return (SpriteCount() > 0) ? &sprites.front() : nullptr;
 	}
 
-	AetSprite* AetRegion::GetBackSprite()
+	AetSpriteIdentifier* AetRegion::GetBackSprite()
 	{
 		return SpriteCount() > 0 ? &sprites.back() : nullptr;
 	}
@@ -81,12 +81,12 @@ namespace FileSystem
 		return static_cast<int32_t>(sprites.size());
 	}
 
-	Vector<AetSprite>& AetRegion::GetSprites()
+	Vector<AetSpriteIdentifier>& AetRegion::GetSprites()
 	{
 		return sprites;
 	}
 
-	const Vector<AetSprite>& AetRegion::GetSprites() const
+	const Vector<AetSpriteIdentifier>& AetRegion::GetSprites() const
 	{
 		return sprites;
 	}
@@ -525,7 +525,7 @@ namespace FileSystem
 		{
 			for (RefPtr<AetRegion>& region : aet->Regions)
 			{
-				for (AetSprite& sprite : region->GetSprites())
+				for (AetSpriteIdentifier& sprite : region->GetSprites())
 					sprite.SpriteCache = nullptr;
 			}
 		}

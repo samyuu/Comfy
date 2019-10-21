@@ -150,7 +150,7 @@ namespace Graphics::Auth2D
 		RenderAetObj(aetObj, (frame >= aetObj->LoopEnd ? aetObj->LoopEnd : frame), position, opacity);
 	}
 
-	void AetRenderer::RenderAetSprite(const AetRegion* aetRegion, const AetSprite* aetSprite, const vec2& position)
+	void AetRenderer::RenderAetSprite(const AetRegion* aetRegion, const AetSpriteIdentifier* aetSprite, const vec2& position)
 	{
 		const FileSystem::Texture* texture;
 		const FileSystem::Sprite* sprite;
@@ -165,7 +165,7 @@ namespace Graphics::Auth2D
 		}
 	}
 
-	bool AetRenderer::SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const AetSprite* inSprite, const FileSystem::Texture** outTexture, const Sprite** outSprite)
+	bool AetRenderer::SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const AetSpriteIdentifier* inSprite, const FileSystem::Texture** outTexture, const Sprite** outSprite)
 	{
 		if (inSprite == nullptr)
 			return false;
@@ -191,7 +191,7 @@ namespace Graphics::Auth2D
 		return false;
 	}
 
-	bool AetRenderer::GetSprite(const AetSprite* inSprite, const FileSystem::Texture** outTexture, const Sprite** outSprite)
+	bool AetRenderer::GetSprite(const AetSpriteIdentifier* inSprite, const FileSystem::Texture** outTexture, const Sprite** outSprite)
 	{
 		assert(spriteGetter != nullptr);
 		return (*spriteGetter)(inSprite, outTexture, outSprite);

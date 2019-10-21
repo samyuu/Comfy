@@ -244,7 +244,7 @@ namespace FileSystem
 						region->sprites.resize(spriteCount);
 						reader.ReadAt(spritesPointer, [&region](BinaryReader& reader)
 						{
-							for (AetSprite& sprite : region->sprites)
+							for (AetSpriteIdentifier& sprite : region->sprites)
 							{
 								sprite.Name = reader.ReadStrPtr();
 								sprite.ID = reader.ReadUInt32();
@@ -448,7 +448,7 @@ namespace FileSystem
 							writer.WriteUInt32(static_cast<uint32_t>(region->SpriteCount()));
 							writer.WritePtr([&region](BinaryWriter& writer)
 							{
-								for (AetSprite& sprite : region->GetSprites())
+								for (AetSpriteIdentifier& sprite : region->GetSprites())
 								{
 									writer.WriteStrPtr(&sprite.Name);
 									writer.WriteUInt32(sprite.ID);
