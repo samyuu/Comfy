@@ -177,7 +177,7 @@ namespace Editor
 				Gui::SetWideItemTooltip("Go to last frame");
 			}
 
-			// TODO:
+			// TODO: Filler button for now, what functionality should go here?
 			{
 				Gui::SameLine();
 				Gui::Button(ICON_FA_ADJUST);
@@ -265,8 +265,11 @@ namespace Editor
 		for (const auto& obj : *workingLayer)
 		{
 			constexpr float typeIconDistance = 19.0f;
+
+			// TODO: Adjust spacing and implement tree node expansion arrow
 			drawRowText(rowIndex, GetObjTypeIcon(obj->Type), 0.0f);
 			drawRowText(rowIndex, obj->GetName().c_str(), typeIconDistance);
+
 			drawRowSeparator(++rowIndex);
 
 			if (!obj->GuiData.TimelineNodeOpen)
