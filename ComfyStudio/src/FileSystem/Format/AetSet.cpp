@@ -266,6 +266,16 @@ namespace FileSystem
 		return parentLayer;
 	}
 
+	Aet* AetLayer::GetParentAet() const
+	{
+		return parentAet;
+	}
+
+	bool AetLayer::IsRootLayer() const
+	{
+		return this == parentAet->RootLayer.get();
+	}
+
 	const String& AetLayer::GetName() const
 	{
 		return name;
@@ -316,6 +326,11 @@ namespace FileSystem
 	}
 
 	AetLayer* Aet::GetRootLayer()
+	{
+		return RootLayer.get();
+	}
+
+	const AetLayer* Aet::GetRootLayer() const
 	{
 		return RootLayer.get();
 	}

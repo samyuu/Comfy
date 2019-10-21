@@ -305,8 +305,9 @@ namespace FileSystem
 		mutable GuiExtraData GuiData;
 
 	public:
-		inline Aet* GetParentAet() { return parentAet; };
-
+		Aet* GetParentAet() const;
+		bool IsRootLayer() const;
+		
 		AetObjIterator begin() { return objects.begin(); }
 		AetObjIterator end() { return objects.end(); }
 		ConstAetObjIterator begin() const { return objects.begin(); }
@@ -418,6 +419,7 @@ namespace FileSystem
 
 	public:
 		AetLayer* GetRootLayer();
+		const AetLayer* GetRootLayer() const;
 
 		RefPtr<AetObj> FindObj(const String& name);
 		RefPtr<const AetObj> FindObj(const String& name) const;
