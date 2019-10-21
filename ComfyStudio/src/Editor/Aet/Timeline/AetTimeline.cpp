@@ -9,8 +9,11 @@ namespace Editor
 	AetTimeline::AetTimeline()
 	{
 		// NOTE: Around 240.0f seems to be the standard for many programs
-		infoColumnWidth = 240.0f;
-		zoomLevel = 5.0f;
+		constexpr float fixedInfoColumnWidth = 240.0f;
+		infoColumnWidth = fixedInfoColumnWidth;
+
+		constexpr float defaultZoomLevel = 5.0f;
+		zoomLevel = defaultZoomLevel;
 	}
 
 	AetTimeline::~AetTimeline()
@@ -37,23 +40,35 @@ namespace Editor
 		return GetTimelinePosition(loopEndFrame) + timelineContentMarginWidth;
 	}
 
+	float AetTimeline::GetTimelineHeight() const
+	{
+		const AetLayer* workingLayer = GetWorkingLayer();
+		if (workingLayer == nullptr)
+			return 0.0f;
+
+		int rowCount = static_cast<int>(workingLayer->size());
+		for (const auto& object : *workingLayer)
+		{
+			if (object->GuiData.TimelineNodeOpen)
+				rowCount += PropertyType_Count;
+		}
+
+		constexpr float borderSize = 1.0f;
+		const float horizontalSize = rowCount * rowItemHeight - infoColumnRegion.GetHeight() + borderSize;
+
+		return (horizontalSize < 0.0f) ? 0.0f : horizontalSize;
+	}
+
 	void AetTimeline::DrawTimelineContentNone()
 	{
 		return;
 	}
 
-	void AetTimeline::DrawTimelineContentLayer()
+	void AetTimeline::DrawTimelineContent()
 	{
-		keyFrameRenderer.DrawLayerObjects(this, selectedAetItem.GetAetLayerRef(), GetCursorFrame().Frames());
-	}
-
-	void AetTimeline::DrawTimelineContentObject()
-	{
-		const auto& aetObj = selectedAetItem.GetAetObjRef();
-		if (aetObj->AnimationData == nullptr)
-			return;
-
-		keyFrameRenderer.DrawKeyFrames(this, aetObj->AnimationData->Properties);
+		Gui::PushClipRect(timelineContentRegion.GetTL(), timelineContentRegion.GetBR(), true);
+		keyFrameRenderer.DrawContent(this, GetWorkingLayer());
+		Gui::PopClipRect();
 	}
 
 	void AetTimeline::OnInitialize()
@@ -70,7 +85,7 @@ namespace Editor
 	{
 		TimelineBase::OnDrawTimelineInfoColumnHeader();
 
-		// TODO: Does not work with all style configurations
+		// TODO: This does not work with all style configurations
 		assert(infoColumnWidth == 240.0f);
 
 		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f, 0.0f));
@@ -189,7 +204,7 @@ namespace Editor
 			Gui::Text("TODO:");
 
 			float playbackSpeedPercentage = playbackSpeedFactor * percentageFactor;
-			if (Gui::SliderFloat("Playback Speed", &playbackSpeedPercentage, 1.0f, 400.0f, "%.2f %%"))
+			if (Gui::SliderFloat("Playback Speed", &playbackSpeedPercentage, (playbackSpeedMin * percentageFactor), (playbackSpeedMax * percentageFactor), "%.2f %%"))
 				playbackSpeedFactor = playbackSpeedPercentage * (1.0f / percentageFactor);
 
 			Gui::Checkbox("Loop Animation", &loopPlayback);
@@ -202,109 +217,127 @@ namespace Editor
 	{
 		TimelineBase::OnDrawTimelineInfoColumn();
 
-		constexpr float textPadding = 1.0f;
-		constexpr float startPadding = 4.0f;
+		if (selectedAetItem.Type() != AetItemType::AetObj && selectedAetItem.Type() != AetItemType::AetLayer)
+			return;
 
-		ImDrawList* drawList = Gui::GetWindowDrawList();
-		ImU32 textColor = Gui::GetColorU32(ImGuiCol_Text);
+		const AetLayer* workingLayer = GetWorkingLayer();
+		const AetObj* selectedObject = (selectedAetItem.Type() == AetItemType::AetObj) ? selectedAetItem.Ptrs.AetObj : nullptr;
 
-		const float scrollY = GetScrollY();
-
-		// TODO: Should be moved into TimelineBase as GetTimelineHeight
-		if (selectedAetItem.Type() == AetItemType::AetLayer)
-		{
-			const float horizontalSize = selectedAetItem.GetAetLayerRef()->size() * rowItemHeight - infoColumnRegion.GetHeight() + 1.0f;
-			SetMaxScrollY(horizontalSize < 0.0f ? 0.0f : horizontalSize);
-		}
-		
 		Gui::PushClipRect(infoColumnRegion.GetTL(), infoColumnRegion.GetBR(), true);
+		DrawTimelineInfoColumnLayer(workingLayer, selectedObject);
+		Gui::PopClipRect();
+	}
 
-		if (selectedAetItem.IsNull() || selectedAetItem.Type() == AetItemType::Aet)
+	void AetTimeline::DrawTimelineInfoColumnLayer(const AetLayer* workingLayer, const AetObj* selectedObject) const
+	{
+		if (workingLayer == nullptr)
+			return;
+
+#if 1 // DEBUG: Should be controlled by tree node expansion arrows
+		for (auto& obj : *workingLayer)
+			obj->GuiData.TimelineNodeOpen = (obj.get() == selectedObject);
+#endif
+
+		// TODO: Same behavior for AetObj and AetLayer
+		//		 Each object should have a name row with the LoopStart and LoopEnd
+		//		 as well as a collapsable tree node for the transform properties
+		//		 the "tree nodes" on on info column should be clickable (draggable to reorder in the future)
+		//		 and reflect the selected aetobj state
+
+		auto drawRowSeparator = [this](int index)
 		{
-			// textColor = Gui::GetColorU32(ImGuiCol_TextDisabled);
-			// drawList->AddText(infoColumnRegion.GetTL() + vec2(8, 2), textColor, "Select an Object...");
-		}
-		else if (selectedAetItem.Type() == AetItemType::AetObj)
+			const vec2 yOffset = vec2(0.0f, index * rowItemHeight - GetScrollY());
+			Gui::GetWindowDrawList()->AddLine(infoColumnRegion.GetTL() + yOffset, infoColumnRegion.GetTR() + yOffset, Gui::GetColorU32(ImGuiCol_Border));
+		};
+
+		auto drawRowText = [this](int index, const char* text, float xTextOffset = 0.0f)
 		{
-			if (selectedAetItem.GetAetObjRef()->Type == AetObjType::Aif)
-				textColor = Gui::GetColorU32(ImGuiCol_TextDisabled);
+			constexpr float startPadding = 4.0f;
+			constexpr float textPadding = 1.0f;
 
-			// NOTE: Results in a 5 pixel spacing
-			constexpr float nameTypeDistance = 58.0f;
-			constexpr float nameTypeSeparatorSpacing = 8.0f;
+			const float y = index * rowItemHeight - GetScrollY();
+			const vec2 position = vec2(startPadding + xTextOffset, y + textPadding) + infoColumnRegion.GetTL();
 
-			// NOTE: Draw Text
-			for (int i = 0; i < PropertyType_Count; i++)
-			{
-				const float y = i * rowItemHeight - scrollY;
-				vec2 start = vec2(startPadding, y + textPadding) + infoColumnRegion.GetTL();
+			Gui::GetWindowDrawList()->AddText(position, Gui::GetColorU32(ImGuiCol_Text), text);
+		};
 
-				const auto[type, name] = timelinePropertyTypeNames[i];
-				drawList->AddText(start, textColor, type);
-				start.x += nameTypeDistance;
-				drawList->AddText(start, textColor, timelinePropertyNameTypeSeparator);
-				start.x += nameTypeSeparatorSpacing;
-				drawList->AddText(start, textColor, name);
-			}
-
-			// NOTE: Draw Separators
-			for (int i = 0; i <= PropertyType_Count; i++)
-			{
-				const float y = i * rowItemHeight - scrollY;
-				const vec2 topLeftSeparator = infoColumnRegion.GetTL() + vec2(0.0f, y);
-				const vec2 topRightSeparator = infoColumnRegion.GetTR() + vec2(0.0f, y);
-				drawList->AddLine(topLeftSeparator, topRightSeparator, Gui::GetColorU32(ImGuiCol_Border));
-			}
-		}
-		else if (selectedAetItem.Type() == AetItemType::AetLayer)
+		int rowIndex = 0;
+		for (const auto& obj : *workingLayer)
 		{
 			constexpr float typeIconDistance = 19.0f;
+			drawRowText(rowIndex, GetObjTypeIcon(obj->Type), 0.0f);
+			drawRowText(rowIndex, obj->GetName().c_str(), typeIconDistance);
+			drawRowSeparator(++rowIndex);
 
-			// TODO: Quick test
-			AetLayer* layer = selectedAetItem.GetAetLayerRef().get();
-			for (int i = 0; i < static_cast<int>(layer->size()); i++)
+			if (!obj->GuiData.TimelineNodeOpen)
+				continue;
+
+			for (int i = 0; i < PropertyType_Count; i++)
 			{
-				float y = i * rowItemHeight - scrollY;
-				vec2 start = vec2(startPadding, y + textPadding) + infoColumnRegion.GetTL();
+				const auto[type, name] = timelinePropertyTypeNames[i];
 
-				const auto& object = layer->at(i);
+				// NOTE: Results in a 5 pixel spacing
+				constexpr float nameTypeDistance = 58.0f;
+				constexpr float nameTypeSeparatorSpacing = 8.0f;
 
-				drawList->AddText(start, textColor, GetObjTypeIcon(object->Type));
-				start.x += typeIconDistance;
-				drawList->AddText(start, textColor, object->GetName().c_str());
-			}
+				float x = Gui::GetStyle().IndentSpacing * 2.0f;
+				drawRowText(rowIndex, type, x);
 
-			// NOTE: Draw Separators
-			for (int i = 0; i <= static_cast<int>(layer->size()); i++)
-			{
-				const float y = i * rowItemHeight - scrollY;
-				const vec2 topLeftSeparator = infoColumnRegion.GetTL() + vec2(0.0f, y);
-				const vec2 topRightSeparator = infoColumnRegion.GetTR() + vec2(0.0f, y);
-				drawList->AddLine(topLeftSeparator, topRightSeparator, Gui::GetColorU32(ImGuiCol_Border));
+				x += nameTypeDistance;
+				drawRowText(rowIndex, timelinePropertyNameTypeSeparator, x);
+
+				x += nameTypeSeparatorSpacing;
+				drawRowText(rowIndex, name, x);
+
+				drawRowSeparator(++rowIndex);
 			}
 		}
+	}
 
-		Gui::PopClipRect();
+	const AetLayer* AetTimeline::GetWorkingLayer() const
+	{
+		switch (selectedAetItem.Type())
+		{
+		case AetItemType::AetObj:
+			return selectedAetItem.Ptrs.AetObj->GetParentLayer();
+
+		case AetItemType::AetLayer:
+			return selectedAetItem.Ptrs.AetLayer;
+
+		default:
+			return nullptr;
+		}
+	}
+
+	int AetTimeline::GetTimelineRowCount() const
+	{
+		const AetLayer* workingLayer = GetWorkingLayer();
+
+		if (workingLayer == nullptr)
+			return 1;
+
+		int rowCount = static_cast<int>(workingLayer->size());
+		{
+			for (const auto& obj : *workingLayer)
+			{
+				if (obj->GuiData.TimelineNodeOpen)
+					rowCount += static_cast<int>(PropertyType_Count);
+			}
+		}
+		return rowCount;
 	}
 
 	void AetTimeline::OnDrawTimlineRows()
 	{
-		if (selectedAetItem.IsNull())
+		if (selectedAetItem.IsNull() || currentTimelineMode != TimelineMode::DopeSheet)
 			return;
-
-		if (currentTimelineMode != TimelineMode::DopeSheet)
-			return;
-
-		// TODO:
-		const int rowCount = (selectedAetItem.Type() == AetItemType::AetLayer) ?
-			static_cast<int>(selectedAetItem.GetAetLayerRef()->size()) :
-			static_cast<int>(PropertyType_Count);
 
 		const ImU32 rowColor = GetColor(EditorColor_TimelineRowSeparator);
 		const float scrollY = GetScrollY();
 
 		Gui::PushClipRect(timelineContentRegion.GetTL(), timelineContentRegion.GetBR(), true);
 
+		const int rowCount = GetTimelineRowCount();
 		for (int i = 0; i <= rowCount; i++)
 		{
 			const float y = i * rowItemHeight - scrollY;
@@ -387,60 +420,28 @@ namespace Editor
 	{
 		if (!selectedAetItem.IsNull())
 		{
-			const auto* parentAet = selectedAetItem.GetItemParentAet();
+			const auto parentAet = selectedAetItem.GetItemParentAet();
+			const auto itemType = selectedAetItem.Type();
 
-			switch (selectedAetItem.Type())
+			if (itemType == AetItemType::Aet || (itemType == AetItemType::AetLayer && selectedAetItem.GetAetLayerRef()->IsRootLayer()))
 			{
-			case AetItemType::Aet:
 				loopStartFrame = parentAet->FrameStart;
 				loopEndFrame = parentAet->FrameDuration;
-				break;
-
-			case AetItemType::AetLayer:
-				//loopStartFrame = parentAet->FrameStart;
-				//loopEndFrame = 0.0f;
-
-				//for (const RefPtr<AetObj>& obj : *selectedAetItem.Ptrs.AetLayer)
-				//{
-				//	if (obj->LoopEnd > loopEndFrame.Frames())
-				//		loopEndFrame = obj->LoopEnd;
-				//}
-
-				loopStartFrame = 0.0f;
-				loopEndFrame = GetAetLayerLastFrame(selectedAetItem.Ptrs.AetLayer);
-
-				break;
-
-			case AetItemType::AetObj:
-
-				//loopStartFrame = parentAet->FrameStart;
-
-				//loopStartFrame = selectedAetItem.Ptrs.AetObj->LoopStart;
-				//loopEndFrame = selectedAetItem.Ptrs.AetObj->LoopEnd;
-
-				loopStartFrame = parentAet->FrameStart;
-				loopEndFrame = selectedAetItem.Ptrs.AetObj->LoopEnd;
-
-				//loopStartFrame = 0.0f;
-				//loopEndFrame = GetAetLayerLastFrame(selectedAetItem.Ptrs.AetObj->GetParentLayer());
-
-				break;
-
-			case AetItemType::AetRegion:
+			}
+			else if (itemType == AetItemType::AetRegion)
+			{
 				loopStartFrame = 0.0f;
 				loopEndFrame = glm::max(0.0f, selectedAetItem.Ptrs.AetRegion->SpriteCount() - 1.0f);
-				break;
-
-			default:
-				break;
 			}
-
-			// TODO: Is this how it should work? Hence the reason to edit these values in the first place PeepoShrug
-			// TODO: Maybe this should be an option inside an options context menu button like loop playback and playback speed (?)
-			if (selectedAetItem.Type() != AetItemType::AetRegion && false)
+			else if (const AetLayer* workingLayer = GetWorkingLayer(); itemType == AetItemType::AetLayer || itemType == AetItemType::AetObj && workingLayer != nullptr)
 			{
-				loopStartFrame = parentAet->FrameStart;
-				loopEndFrame = parentAet->FrameDuration;
+				loopStartFrame = 0.0f;
+				loopEndFrame = GetAetLayerLastFrame(workingLayer);
+			}
+			else
+			{
+				loopStartFrame = 0.0f;
+				loopEndFrame = 0.0f;
 			}
 		}
 		else
@@ -490,32 +491,26 @@ namespace Editor
 		}
 		else
 		{
-			Gui::PushClipRect(timelineContentRegion.GetTL(), timelineContentRegion.GetBR(), true);
-
 			switch (selectedAetItem.Type())
 			{
 			case AetItemType::AetSet:
 			case AetItemType::Aet:
+			case AetItemType::AetRegion:
 				DrawTimelineContentNone();
 				break;
-			case AetItemType::AetLayer:
-				DrawTimelineContentLayer();
-				break;
+			
 			case AetItemType::AetObj:
-				DrawTimelineContentObject();
+			case AetItemType::AetLayer:
+				DrawTimelineContent();
 				break;
-			case AetItemType::AetRegion:
-				break;
+
 			default:
 				break;
 			}
-
-			Gui::PopClipRect();
 		}
 
 		// NOTE: Draw selection region
-		const MouseSelectionData& selectionData = timelineController.GetSelectionData();
-		if (selectionData.IsSelected())
+		if (const auto& selectionData = timelineController.GetSelectionData(); selectionData.IsSelected())
 			DrawMouseSelection(selectionData);
 	}
 
@@ -562,9 +557,11 @@ namespace Editor
 				vec2(glm::round(offset + GetTimelinePosition(selectionData.StartX) - padding), GetRowScreenY(selectionData.RowStartIndex)),
 				vec2(glm::round(offset + GetTimelinePosition(selectionData.EndX) + padding), GetRowScreenY(selectionData.RowEndIndex)));
 
+			Gui::PushClipRect(timelineContentRegion.GetTL(), timelineContentRegion.GetBR(), true);
 			ImDrawList* windowDrawList = Gui::GetWindowDrawList();
 			windowDrawList->AddRectFilled(selectionRegion.Min, selectionRegion.Max, GetColor(EditorColor_TimelineSelection));
 			windowDrawList->AddRect(selectionRegion.Min, selectionRegion.Max, GetColor(EditorColor_TimelineSelectionBorder));
+			Gui::PopClipRect();
 		}
 	}
 
@@ -583,11 +580,11 @@ namespace Editor
 
 	float AetTimeline::GetRowScreenY(int index) const
 	{
-		return (timelineContentRegion.Min.y + static_cast<float>(rowItemHeight * index));
+		return (timelineContentRegion.Min.y + static_cast<float>(index * rowItemHeight)) - GetScrollY();
 	}
 
 	int AetTimeline::GetRowIndexFromScreenY(float screenY) const
 	{
-		return glm::max(0, static_cast<int>(glm::floor((screenY - timelineContentRegion.Min.y) / rowItemHeight)));
+		return glm::max(0, static_cast<int>(glm::floor((screenY - timelineContentRegion.Min.y + GetScrollY()) / rowItemHeight)));
 	}
 }

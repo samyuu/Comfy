@@ -61,6 +61,8 @@ namespace Editor
 
 		// NOTE: Speed at factor at which the playback time is incremented without editing any AetObj state
 		float playbackSpeedFactor = 1.0f;
+		static constexpr float playbackSpeedMin = 0.01f;
+		static constexpr float playbackSpeedMax = 4.00f;
 
 	private:
 		KeyFrameRenderer keyFrameRenderer = {};
@@ -68,21 +70,29 @@ namespace Editor
 
 	private:
 		float GetTimelineSize() const override;
+		float GetTimelineHeight() const override;
 
 		void DrawTimelineContentNone();
-		void DrawTimelineContentLayer();
-		void DrawTimelineContentObject();
+		void DrawTimelineContent();
 
 		void OnInitialize() override;
 		void OnDrawTimelineHeaderWidgets() override;
+		
 		void OnDrawTimelineInfoColumnHeader() override;
 		void OnDrawTimelineInfoColumn() override;
+		void DrawTimelineInfoColumnLayer(const AetLayer* workingLayer, const AetObj* selectedObject) const;
+
+		const AetLayer* GetWorkingLayer() const;
+		int GetTimelineRowCount() const;
+
 		void OnDrawTimlineRows() override;
 		void OnDrawTimlineDivisors() override;
 		void OnDrawTimlineBackground() override;
 		void OnDrawTimelineScrollBarRegion() override;
+		
 		void OnUpdate() override;
 		void OnUpdateInput() override;
+		
 		void OnDrawTimelineContents() override;
 		void PausePlayback() override;
 		void ResumePlayback() override;

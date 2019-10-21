@@ -13,7 +13,7 @@ namespace FileSystem
 		// NOTE: Stored separately so we can expand nodes when jumping to a layer reference for example
 		bool TreeViewNodeOpen;
 		// NOTE: Stored to be used by the timeline
-		// bool TimelineNodeOpen;
+		bool TimelineNodeOpen;
 		// NOTE: To try and prevent layer name ambiguity
 		int ThisIndex;
 	};

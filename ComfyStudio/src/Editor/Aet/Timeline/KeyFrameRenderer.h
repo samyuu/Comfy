@@ -16,8 +16,9 @@ namespace Editor
 		~KeyFrameRenderer();
 
 		void Initialize();
-		void DrawLayerObjects(const AetTimeline* timeline, const RefPtr<AetLayer>& layer, frame_t frame);
-		void DrawKeyFrames(const AetTimeline* timeline, const KeyFrameProperties& keyFrames);
+
+		void DrawContent(const AetTimeline* timeline, const AetLayer* workingLayer);
+		vec2 GetCenteredTimelineRowScreenPosition(const AetTimeline* timeline, frame_t frame, int row);
 
 	private:
 		static constexpr float keyFrameSize = 5.5f;
@@ -44,5 +45,6 @@ namespace Editor
 		void DrawSingleKeyFrame(ImDrawList* drawList, const vec2& position, KeyFrameType type, float opacity = 1.0f) const;
 
 		static KeyFrameType GetKeyFrameType(const AetKeyFrame& keyFrame, const KeyFrameCollection& keyFrames);
+		static float GetKeyFrameOpacity(const AetKeyFrame& keyFrame, bool opactiyKeyFrames);
 	};
 }

@@ -44,6 +44,22 @@ namespace Editor
 		return TimelineVisibility::Visible;
 	}
 
+	TimelineVisibility TimelineBase::GetTimelineVisibilityForScreenSpace(float screenX) const
+	{
+		const float timelineX = screenX - timelineContentRegion.Min.x;
+		
+		const float visibleMin = -timelineVisibleThreshold;
+		const float visibleMax = baseWindow->Size.x + timelineVisibleThreshold;
+		
+		if (timelineX < visibleMin)
+			return TimelineVisibility::Left;
+
+		if (timelineX > visibleMax)
+			return TimelineVisibility::Right;
+
+		return TimelineVisibility::Visible;
+	}
+
 	void TimelineBase::DrawTimelineCursor()
 	{
 		const ImU32 outterColor = GetColor(EditorColor_Cursor);
@@ -96,9 +112,10 @@ namespace Editor
 		const auto& io = Gui::GetIO();
 
 		if (Gui::IsWindowHovered() && infoColumnRegion.Contains(io.MousePos) && io.MouseWheel != 0.0f)
-		{
 			OnInfoColumnScroll();
-		}
+
+		// NOTE: Always clamp in case the window has been resized
+		SetScrollY(std::clamp(scrollY, 0.0f, maxScrollY));
 	}
 
 	void TimelineBase::UpdateTimelineBaseState()
@@ -253,22 +270,16 @@ namespace Editor
 	void TimelineBase::UpdateTimelineSize()
 	{
 		Gui::ItemSize(vec2(GetTimelineSize(), 0.0f));
+		SetMaxScrollY(GetTimelineHeight());
 	}
 
 	void TimelineBase::OnInfoColumnScroll()
 	{
 		const auto& io = Gui::GetIO();
 
-		// TODO: Set inside AetTimeline: iterate over all objects in current layer (combine current layer with obj view and render duration above properties) then accumilate total height
-		//SetMaxScrollY(120.0f);
-
 		constexpr float scrollAmount = 32.0f;
 		const float newScrollY = GetScrollY() - (io.MouseWheel * scrollAmount);
-
-		//SetScrollY(glm::clamp(scrollY, 0.0f, GetMaxScrollY()));
-		//SetScrollY(std::max(newScrollY, 0.0f));
-
-		SetScrollY(std::clamp(newScrollY, 0.0f, maxScrollY));
+		SetScrollY(newScrollY);
 	}
 
 	void TimelineBase::OnTimelineBaseScroll()

@@ -5,7 +5,7 @@ namespace Editor
 {
 #define _ 0x00000000
 #define X 0xFFFFFFFF
-	const uint32_t KeyFrameRenderer::keyFrameTexturePixels[keyFrameTextureSize.x * keyFrameTextureSize.y] = 
+	const uint32_t KeyFrameRenderer::keyFrameTexturePixels[keyFrameTextureSize.x * keyFrameTextureSize.y] =
 	{
 		////////////////////////////////////////////////////////
 		/**/_,_,_,_,_,X,_,_,_,_,_,/**/_,_,_,_,_,_,_,_,_,_,_,/**/
@@ -49,74 +49,66 @@ namespace Editor
 		CreateKeyFrameTexture();
 	}
 
-	void KeyFrameRenderer::DrawLayerObjects(const AetTimeline* timeline, const RefPtr<AetLayer>& layer, frame_t frame)
+	void KeyFrameRenderer::DrawContent(const AetTimeline* timeline, const AetLayer* workingLayer)
 	{
-		ImDrawList* windowDrawList = Gui::GetWindowDrawList();
+		assert(workingLayer != nullptr);
 
-		const float scrollX = timeline->GetScrollX();
-		const float scrollY = timeline->GetScrollY();
-		const vec2 timelineTL = glm::round(vec2(timeline->GetTimelineContentRegion().GetTL() - vec2(scrollX, 0.0f)));
+		ImDrawList* drawList = Gui::GetWindowDrawList();
+		const frame_t cursorFrame = timeline->GetCursorFrame().Frames();
 
-		const float rowHeight = timeline->GetRowItemHeight();
-		float y = (rowHeight / 2.0f) + 0.5f - scrollY;
-
-		for (size_t i = 0; i < layer->size(); i++)
+		int currentRow = 0;
+		for (auto& object : *workingLayer)
 		{
-			// TODO: Add Y scroll offset
-			const auto& object = layer->at(i);
+			const vec2 startPosition = GetCenteredTimelineRowScreenPosition(timeline, object->LoopStart, currentRow);
+			const vec2 endPosition = GetCenteredTimelineRowScreenPosition(timeline, object->LoopEnd, currentRow);
+			++currentRow;
 
-			const float timelineStartX = glm::round(timeline->GetTimelinePosition(TimelineFrame(object->LoopStart)));
-			const float timelineEndX = glm::round(timeline->GetTimelinePosition(TimelineFrame(object->LoopEnd)));
+			const bool isActive = (cursorFrame >= object->LoopStart) && (cursorFrame <= object->LoopEnd);
+			DrawKeyFrameConnection(drawList, startPosition, endPosition, isActive);
 
-			const vec2 startPosition = vec2(timelineTL.x + timelineStartX, timelineTL.y + y);
-			const vec2 endPosition = vec2(timelineTL.x + timelineEndX, startPosition.y);
+			DrawSingleKeyFrame(drawList, startPosition, KeyFrameType::InBetween);
+			DrawSingleKeyFrame(drawList, endPosition, KeyFrameType::InBetween);
 
-			const bool isActive = (frame >= object->LoopStart) && (frame <= object->LoopEnd);
+			if (!object->GuiData.TimelineNodeOpen)
+				continue;
 
-			// TODO: Make sure to draw all connection lines before drawing any keyframes so they can be batched together correctly
-			// TODO: Implement culling
-			DrawKeyFrameConnection(windowDrawList, startPosition, endPosition, isActive);
-			DrawSingleKeyFrame(windowDrawList, startPosition, KeyFrameType::InBetween); // KeyFrameType::First
-			DrawSingleKeyFrame(windowDrawList, endPosition, KeyFrameType::InBetween); // KeyFrameType::Last
+			// TODO: The same should happen for the info column
+			if (object->AnimationData == nullptr)
+				continue;
 
-			y += rowHeight;
+			auto& properties = object->AnimationData->Properties;
+			for (const auto& keyFrames : properties)
+			{
+				for (const auto& keyFrame : keyFrames)
+				{
+					const vec2 keyFramePosition = GetCenteredTimelineRowScreenPosition(timeline, keyFrame.Frame, currentRow);
+					const TimelineVisibility visiblity = timeline->GetTimelineVisibilityForScreenSpace(keyFramePosition.x);
+
+					if (visiblity == TimelineVisibility::Visible)
+					{
+						const bool opacityKeyFrames = (&keyFrames == &properties.Opacity());
+						DrawSingleKeyFrame(drawList, keyFramePosition, GetKeyFrameType(keyFrame, keyFrames), GetKeyFrameOpacity(keyFrame, opacityKeyFrames));
+					}
+				}
+				++currentRow;
+			}
 		}
 	}
 
-	void KeyFrameRenderer::DrawKeyFrames(const AetTimeline* timeline, const KeyFrameProperties& keyFramesProperties)
+	vec2 KeyFrameRenderer::GetCenteredTimelineRowScreenPosition(const AetTimeline* timeline, frame_t frame, int row)
 	{
-		ImDrawList* windowDrawList = Gui::GetWindowDrawList();
-
-		const float scrollX = timeline->GetScrollX();
-		const float scrollY = timeline->GetScrollY();
-		const vec2 timelineTL = glm::round(vec2(timeline->GetTimelineContentRegion().GetTL() - vec2(scrollX, 0.0f)));
+		constexpr float pixelPerfectOffset = 0.5f;
 
 		const float rowHeight = timeline->GetRowItemHeight();
-		float y = (rowHeight / 2.0f) + 0.5f - scrollY;
+		const float halfRowHeight = rowHeight / 2.0f;
 
-		for (const auto& keyFrames : keyFramesProperties)
-		{
-			const bool opacityKeyFrames = &keyFrames == &keyFramesProperties.KeyFrames[7];
+		const float xWorldSpace = glm::round(timeline->GetTimelinePosition(TimelineFrame(frame)));
+		const float yWorldSpace = (rowHeight * row) + halfRowHeight + pixelPerfectOffset;
 
-			for (const auto& keyFrame : keyFrames)
-			{
-				const float timelineX = glm::round(timeline->GetTimelinePosition(TimelineFrame(keyFrame.Frame)));
+		const vec2 scrollOffset = vec2(timeline->GetScrollX(), timeline->GetScrollY());
+		const vec2 timelineTL = glm::round(vec2(timeline->GetTimelineContentRegion().GetTL() - scrollOffset));
 
-				TimelineVisibility visiblity = timeline->GetTimelineVisibility(timelineX - scrollX);
-				if (visiblity == TimelineVisibility::Left)
-					continue;
-				if (visiblity == TimelineVisibility::Right)
-					break;
-
-				const vec2 position = vec2(timelineTL.x + timelineX, timelineTL.y + y);
-				const KeyFrameType type = GetKeyFrameType(keyFrame, keyFrames);
-				const float opacity = opacityKeyFrames ? keyFrame.Value : 1.0f;
-
-				DrawSingleKeyFrame(windowDrawList, position, type, opacity);
-			}
-
-			y += rowHeight;
-		}
+		return vec2(timelineTL.x + xWorldSpace, timelineTL.y + yWorldSpace);
 	}
 
 	void KeyFrameRenderer::CreateKeyFrameTexture()
@@ -226,5 +218,10 @@ namespace Editor
 		{
 			return KeyFrameType::InBetween;
 		}
+	}
+
+	float KeyFrameRenderer::GetKeyFrameOpacity(const AetKeyFrame& keyFrame, bool opactiyKeyFrames)
+	{
+		return opactiyKeyFrames ? keyFrame.Value : 1.0f;
 	}
 }

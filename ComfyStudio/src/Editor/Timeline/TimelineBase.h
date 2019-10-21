@@ -28,7 +28,9 @@ namespace Editor
 		float GetCursorTimelinePosition() const;
 
 		virtual TimeSpan GetCursorTime() const;
+
 		TimelineVisibility GetTimelineVisibility(float screenX) const;
+		TimelineVisibility GetTimelineVisibilityForScreenSpace(float screenX) const;
 
 		void DrawTimelineGui();
 		void Initialize();
@@ -68,7 +70,7 @@ namespace Editor
 			float infoColumnWidth = 46.0f;
 			float timelineHeaderHeight = 32.0f - 13.0f;
 			float tempoMapHeight = 13.0f;
-			
+
 			// NOTE: Part of the slider width
 			const float zoomButtonWidth = 24.0f;
 			const float zoomSliderWidth = 160.0f;
@@ -143,6 +145,8 @@ namespace Editor
 		virtual void UpdateCursorAutoScroll();
 
 		virtual float GetTimelineSize() const = 0;
+		virtual float GetTimelineHeight() const { return 0.0f; };
+
 		virtual void CenterCursor();
 		virtual bool IsCursorOnScreen() const;
 
