@@ -1,7 +1,7 @@
 #include "LibraryLoader.h"
 #include "Misc/StringHelper.h"
 #include "Core/Logger.h"
-#include <Windows.h>
+#include "Core/Win32/ComfyWindows.h"
 
 namespace System
 {

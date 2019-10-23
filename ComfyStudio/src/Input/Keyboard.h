@@ -2,12 +2,10 @@
 #include "IInputDevice.h"
 #include "KeyCode.h"
 
-struct GLFWwindow;
-
 class Keyboard : public IInputDevice
 {
 public:
-	static bool TryInitializeInstance(GLFWwindow* window);
+	static bool TryInitializeInstance(struct GLFWwindow* window);
 
 	virtual bool PollInput() override;
 
@@ -34,7 +32,7 @@ private:
 	~Keyboard();
 
 	static Keyboard* instance;
-	GLFWwindow* window;
+	struct GLFWwindow* window;
 
 	bool lastState[KeyCode_Count];
 	bool currentState[KeyCode_Count];

@@ -1,6 +1,6 @@
 #include "StringHelper.h"
+#include "Core/Win32/ComfyWindows.h"
 #include <algorithm>
-#include <windows.h>
 
 static bool IsWhiteSpace(char character)
 {

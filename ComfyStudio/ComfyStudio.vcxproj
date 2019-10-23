@@ -143,6 +143,7 @@
     <ClCompile Include="src\Editor\Timeline\TimelineScrollbar.cpp" />
     <ClCompile Include="src\FileSystem\Archive\Farc.cpp" />
     <ClCompile Include="src\FileSystem\Archive\FileArchive.cpp" />
+    <ClCompile Include="src\Input\Keyboard.cpp" />
     <ClCompile Include="src\Input\KeyCode.cpp" />
     <ClCompile Include="src\System\CommandLine\CommandLine.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
@@ -243,7 +244,6 @@
     <ClCompile Include="src\Input\DirectInput\DirectInputDevice.cpp" />
     <ClCompile Include="src\Input\DirectInput\Ds4State.cpp" />
     <ClCompile Include="src\Input\DirectInput\DualShock4.cpp" />
-    <ClCompile Include="src\Input\Keyboard.cpp" />
     <ClCompile Include="src\FileSystem\Format\AetSet.cpp" />
     <ClCompile Include="src\Graphics\RenderTarget.cpp" />
     <ClCompile Include="src\Core\Application.cpp" />
@@ -298,6 +298,7 @@
     <ClInclude Include="src\Editor\Timeline\TimelineScrollbar.h" />
     <ClInclude Include="src\FileSystem\Archive\Farc.h" />
     <ClInclude Include="src\FileSystem\Archive\FileArchive.h" />
+    <ClInclude Include="src\Core\Win32\ComfyWindows.h" />
     <ClInclude Include="src\System\CommandLine\CommandLine.h" />
     <ClInclude Include="lib\glfw\src\egl_context.h" />
     <ClInclude Include="lib\glfw\include\glfw\glfw3.h" />

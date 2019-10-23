@@ -1,5 +1,5 @@
 #pragma once
-#include "../IInputDevice.h"
+#include "Input/IInputDevice.h"
 #include "DirectInputDevice.h"
 #include "Ds4State.h"
 

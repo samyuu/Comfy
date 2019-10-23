@@ -6,9 +6,7 @@
 #endif
 #define __gl_h_
 
-#define WIN32_LEAN_AND_MEAN 1
-#define NOMINMAX 1
-#include <Windows.h>
+#include "Core/Win32/ComfyWindows.h"
 
 #pragma region OpenGL Type Defines
 typedef unsigned int	GLenum;

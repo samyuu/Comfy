@@ -1,5 +1,6 @@
 #pragma once
 #define DIRECTINPUT_VERSION 0x0800
+#include "Core/Win32/ComfyWindows.h"
 #include <dinput.h>
 
 extern IDirectInput8 *IDirectInputInstance;
