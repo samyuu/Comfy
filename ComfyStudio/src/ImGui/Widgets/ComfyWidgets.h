@@ -17,7 +17,7 @@ namespace ImGui
 	
 	bool ComfyColorEdit3(const char* label, float color[3], ImGuiColorEditFlags flags = 0);
 
-	bool ComfySmallButton(const char* label, const ImVec2& size);
+	bool ComfySmallButton(const char* label, const vec2& size);
 	bool ComfyCenteredButton(const char* label);
 
 	bool ComfyBeginCombo(const char* label, const char* previewValue, ImGuiComboFlags flags = 0);

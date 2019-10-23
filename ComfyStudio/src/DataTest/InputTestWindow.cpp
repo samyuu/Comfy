@@ -28,7 +28,7 @@ namespace DataTest
 		Gui::Text("Input Test:");
 		Gui::Separator();
 
-		if (Gui::Button("Refresh Devices", ImVec2(Gui::GetWindowWidth(), 0)))
+		if (Gui::Button("Refresh Devices", vec2(Gui::GetWindowWidth(), 0.0f)))
 			RefreshDevices();
 		Gui::Separator();
 

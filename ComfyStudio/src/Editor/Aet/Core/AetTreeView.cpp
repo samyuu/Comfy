@@ -121,7 +121,7 @@ namespace Editor
 				y -= itemSpacing * 0.5f;
 
 			if (isOdd ^= true)
-				window->DrawList->AddRectFilled({ xMin, y }, { xMax, y + lineHeight }, alternativeRowColow);
+				window->DrawList->AddRectFilled(vec2(xMin, y), vec2(xMax, y + lineHeight), alternativeRowColow);
 		}
 	}
 

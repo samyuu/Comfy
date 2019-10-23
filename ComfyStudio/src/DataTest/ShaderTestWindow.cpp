@@ -73,13 +73,13 @@ namespace DataTest
 
 					Columns(1);
 
-					if (Button("Reload", ImVec2(GetWindowWidth(), 0.0f)))
+					if (Button("Reload", vec2(GetWindowWidth(), 0.0f)))
 						shader->Recompile();
 				}
 				EndChild();
 
 				BulletText("Uniforms");
-				BeginChild("##ShaderTestWindowUniformChild", ImVec2(0, 0), true);
+				BeginChild("##ShaderTestWindowUniformChild", vec2(0.0f, 0.0f), true);
 				{
 					Columns(3);
 					Text("Data Type");

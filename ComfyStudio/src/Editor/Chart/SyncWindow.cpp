@@ -35,7 +35,7 @@ namespace Editor
 
 		const float width = Gui::CalcItemWidth();
 
-		if (Gui::Button("Set Tempo Change", ImVec2(width, 0)))
+		if (Gui::Button("Set Tempo Change", vec2(width, 0.0f)))
 		{
 			TimelineTick cursorTick = timeline->RoundToGrid(timeline->GetCursorTick());
 
@@ -43,7 +43,7 @@ namespace Editor
 			timeline->UpdateTimelineMap();
 		}
 
-		if (Gui::Button("Remove Tempo Change", ImVec2(width, 0)))
+		if (Gui::Button("Remove Tempo Change", vec2(width, 0.0f)))
 		{
 			TimelineTick cursorTick = timeline->RoundToGrid(timeline->GetCursorTick());
 

@@ -507,7 +507,7 @@ namespace Editor
 
 				Gui::PushID(marker.get());
 
-				ImVec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
+				vec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
 				bool open = Gui::WideTreeNode("##AetInspectorMarker");
 
 				Gui::ItemContextMenu("AddMarkerContextMenu##AetInspector", [this, &aetObj, &markers, i]()
@@ -534,7 +534,7 @@ namespace Editor
 				Gui::SetCursorScreenPos(treeNodeCursorPos);
 				Gui::Text("Frame: %.2f", marker->Frame);
 
-				Gui::SetCursorScreenPos(treeNodeCursorPos + ImVec2(Gui::GetWindowWidth() * 0.35f, 0.0f));
+				Gui::SetCursorScreenPos(treeNodeCursorPos + vec2(Gui::GetWindowWidth() * 0.35f, 0.0f));
 				Gui::Text("%s", marker->Name.c_str());
 
 				if (open)

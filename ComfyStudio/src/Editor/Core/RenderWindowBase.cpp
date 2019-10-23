@@ -17,7 +17,7 @@ namespace Editor
 		OnDrawGui();
 
 		Gui::PushID(this);
-		Gui::BeginChild("BaseChild##RenderWindowBase", ImVec2(0, 0), false, GetChildWinodwFlags());
+		Gui::BeginChild("BaseChild##RenderWindowBase", vec2(0.0f, 0.0f), false, GetChildWinodwFlags());
 
 		lastRenderRegion = renderRegion;
 
@@ -28,7 +28,7 @@ namespace Editor
 
 		if (GetKeepAspectRatio())
 		{
-			ImVec2 renderRegionSize = renderRegion.GetSize();
+			vec2 renderRegionSize = renderRegion.GetSize();
 			const float renderRegionAspectRatio = renderRegionSize.x / renderRegionSize.y;
 
 			if (renderRegionAspectRatio <= targetAspectRatio)
@@ -53,7 +53,7 @@ namespace Editor
 			}
 		}
 
-		const ImVec2 renderSize = renderRegion.GetSize(), lastRenderSize = lastRenderRegion.GetSize();
+		const vec2 renderSize = renderRegion.GetSize(), lastRenderSize = lastRenderRegion.GetSize();
 		wasResized = (renderSize.x != lastRenderSize.x) || (renderSize.y != lastRenderSize.y);
 		if (wasResized)
 			needsResizing = true;

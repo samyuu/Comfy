@@ -48,10 +48,10 @@ namespace DataTest
 			float halfWindowWidth = Gui::GetWindowWidth() / 2.0f;
 
 			Gui::SameLine(halfWindowWidth);
-			if (Gui::Button("Refresh Device List", ImVec2(halfWindowWidth, 0)))
+			if (Gui::Button("Refresh Device List", vec2(halfWindowWidth, 0.0f)))
 				RefreshDeviceInfoList();
 
-			Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(2.0f, 2.0f));
 			Gui::Columns(2);
 
 			for (size_t i = 0; i < deviceInfoList.size(); i++)
@@ -67,7 +67,7 @@ namespace DataTest
 
 		if (Gui::CollapsingHeader("Stream Control"))
 		{
-			const ImVec2 buttonSize(Gui::GetWindowWidth() / 4.f, 0);
+			const vec2 buttonSize(Gui::GetWindowWidth() / 4.0f, 0.0);
 
 			Gui::PushItemWidth(buttonSize.x);
 			{
@@ -117,10 +117,10 @@ namespace DataTest
 			Gui::Combo("Audio API##Combo", reinterpret_cast<int*>(&selectedAudioApi), audioApiNames.data(), static_cast<int>(audioApiNames.size()));
 			Gui::Separator();
 
-			if (Gui::Button("engine->SetAudioApi()", ImVec2(Gui::CalcItemWidth(), 0)))
+			if (Gui::Button("engine->SetAudioApi()", vec2(Gui::CalcItemWidth(), 0.0f)))
 				engine->SetAudioApi(selectedAudioApi);
 
-			if (Gui::Button("engine->ShowControlPanel()", ImVec2(Gui::CalcItemWidth(), 0)))
+			if (Gui::Button("engine->ShowControlPanel()", vec2(Gui::CalcItemWidth(), 0.0f)))
 				engine->ShowControlPanel();
 		}
 		Gui::Separator();
@@ -138,7 +138,7 @@ namespace DataTest
 			if (newBufferSize > Audio::AudioEngine::MAX_BUFFER_SIZE)
 				newBufferSize = Audio::AudioEngine::MAX_BUFFER_SIZE;
 
-			if (Gui::Button("engine->SetBufferSize()", ImVec2(Gui::CalcItemWidth(), 0)))
+			if (Gui::Button("engine->SetBufferSize()", vec2(Gui::CalcItemWidth(), 0.0f)))
 				engine->SetBufferSize(newBufferSize);
 		}
 		Gui::Separator();
@@ -171,7 +171,7 @@ namespace DataTest
 
 		if (Gui::CollapsingHeader("Audio Instances"))
 		{
-			Gui::BeginChild("##AudioInstanceChilds", ImVec2(0, audioInstancesChildHeight), true);
+			Gui::BeginChild("##AudioInstanceChilds", vec2(0.0f, audioInstancesChildHeight), true);
 			{
 				engine->audioInstancesMutex.lock();
 				for (auto &instance : engine->audioInstances)

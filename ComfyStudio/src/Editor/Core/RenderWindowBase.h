@@ -24,7 +24,7 @@ namespace Editor
 		inline float GetTargetAspectRatio() { return targetAspectRatio; };
 		inline void SetTargetAspectRatio(float value) { targetAspectRatio = value; };
 
-		static inline void PushWindowPadding() { Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2)); };
+		static inline void PushWindowPadding() { Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(2.0f, 2.0f)); };
 		static inline void PopWindowPadding() { Gui::PopStyleVar(); };
 
 	protected:

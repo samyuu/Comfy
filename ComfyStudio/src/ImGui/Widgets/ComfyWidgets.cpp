@@ -52,12 +52,12 @@ namespace ImGui
 		const ImGuiStyle& style = g.Style;
 		const ImGuiID id = window->GetID(stringID);
 
-		ImVec2 labelSize = CalcTextSize(label, nullptr, true);
+		vec2 labelSize = CalcTextSize(label, nullptr, true);
 		if (width > 0.0f)
 			labelSize.x = 0.0f;
 
-		const ImRect frameBB(window->DC.CursorPos, window->DC.CursorPos + ImVec2(width > 0.0f ? width : GetContentRegionAvailWidth(), labelSize.y + style.FramePadding.y * 2.0f));
-		const ImRect totalBB(frameBB.Min, frameBB.Max + ImVec2(labelSize.x > 0.0f ? style.ItemInnerSpacing.x + labelSize.x : 0.0f, 0.0f));
+		const ImRect frameBB(window->DC.CursorPos, window->DC.CursorPos + vec2(width > 0.0f ? width : GetContentRegionAvailWidth(), labelSize.y + style.FramePadding.y * 2.0f));
+		const ImRect totalBB(frameBB.Min, frameBB.Max + vec2(labelSize.x > 0.0f ? style.ItemInnerSpacing.x + labelSize.x : 0.0f, 0.0f));
 
 		ItemSize(totalBB, style.FramePadding.y);
 		if (!ItemAdd(totalBB, id))
@@ -83,7 +83,7 @@ namespace ImGui
 		// DEBUG:
 		// if (isDragging) RenderFrame(frameBB.Min, frameBB.Max, GetColorU32(ImGuiCol_TextSelectedBg, 0.5f), true, style.FrameRounding);
 
-		RenderTextClipped(frameBB.Min, frameBB.Max, label, nullptr, nullptr, ImVec2(0.0f, 0.5f));
+		RenderTextClipped(frameBB.Min, frameBB.Max, label, nullptr, nullptr, vec2(0.0f, 0.5f));
 		return valueChanged;
 	}
 
@@ -298,7 +298,7 @@ namespace ImGui
 		return valueChanged;
 	}
 
-	bool ComfySmallButton(const char* label, const ImVec2& size)
+	bool ComfySmallButton(const char* label, const vec2& size)
 	{
 		ImGuiContext& g = *GImGui;
 		float backup_padding_y = g.Style.FramePadding.y;
@@ -314,7 +314,7 @@ namespace ImGui
 
 		PushDisabledTextColorIfDisabled();
 		SetCursorPosX(GetWindowWidth() * centerFactor * centerFactor);
-		bool clicked = Button(label, ImVec2(GetWindowWidth() * centerFactor, 0.0f));
+		bool clicked = Button(label, vec2(GetWindowWidth() * centerFactor, 0.0f));
 		PopDisabledTextColorIfDisabled();
 
 		return clicked;
@@ -325,9 +325,9 @@ namespace ImGui
 		// because columns don't function correctly with combo boxes
 		Columns(2, nullptr, false);
 		SetColumnWidth(0, GetWindowWidth() * ColumnWidthFactor);
-		ImVec2 labelPosition = GetCursorScreenPos();
+		vec2 labelPosition = GetCursorScreenPos();
 		NextColumn();
-		ImVec2 comboPosition = GetCursorScreenPos();
+		vec2 comboPosition = GetCursorScreenPos();
 		Columns(1);
 
 		SetCursorScreenPos(labelPosition);

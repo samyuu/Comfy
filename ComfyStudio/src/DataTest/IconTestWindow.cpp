@@ -18,7 +18,7 @@ namespace DataTest
 		Gui::Text("Icon Name Filter:");
 		iconFilter.Draw();
 
-		Gui::BeginChild("IconTestColumnsChild##IconTestWindow", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysHorizontalScrollbar);
+		Gui::BeginChild("IconTestColumnsChild##IconTestWindow", vec2(0.0f, 0.0f), false, ImGuiWindowFlags_AlwaysHorizontalScrollbar);
 		Gui::Columns(2, "IconTestColumns");
 		{
 			Gui::Separator();

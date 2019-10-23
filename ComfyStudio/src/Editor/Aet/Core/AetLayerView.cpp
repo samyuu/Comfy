@@ -42,7 +42,7 @@ namespace Editor
 
 		static std::vector<Data> testData = { "0. test_eff", "1. gam_cmn_block.pic", "2. gam_cmn_blimp.pic", "3. kirai" };
 
-		BeginChild("Test Child", GetContentRegionAvail() - ImVec2(0, 26), false, ImGuiWindowFlags_None);
+		BeginChild("Test Child", GetContentRegionAvail() - vec2(0.0f, 26.0f), false, ImGuiWindowFlags_None);
 		{
 			Text("sel: %d", selectedIndex);
 			Text("src: %d", dragSourceIndex);
@@ -58,7 +58,7 @@ namespace Editor
 			{
 				Data& data = testData[i];
 
-				//if (SmallButton(data.Visible ? ICON_VISIBLE : ICON_INVISIBLE, ImVec2(26, 0)))
+				//if (SmallButton(data.Visible ? ICON_VISIBLE : ICON_INVISIBLE, vec2(26.0f, 0.0f)))
 				//	data.Visible ^= true;
 
 				//NextColumn();
@@ -74,7 +74,7 @@ namespace Editor
 
 					if (dragDestinationIndex == i)
 					{
-						GetForegroundDrawList()->AddRect(GetItemRectMin(), GetItemRectMin() + ImVec2(GetItemRectSize().x, 3), GetColorU32(ImGuiCol_NavWindowingHighlight, .75f));
+						GetForegroundDrawList()->AddRect(GetItemRectMin(), GetItemRectMin() + vec2(GetItemRectSize().x, 3.0f), GetColorU32(ImGuiCol_NavWindowingHighlight, 0.75f));
 					}
 
 					if (WasActiveWindowFocusedOnMouseClicked(0) && IsMouseReleased(0) && IsItemHovered(ImGuiHoveredFlags_None))
@@ -98,8 +98,8 @@ namespace Editor
 			{
 				if (IsMouseDown(0) && GetMousePos().y > GetCursorScreenPos().y)
 				{
-					ImVec2 bottomLeft = ImVec2(GetItemRectMin().x, GetItemRectMax().y);
-					GetForegroundDrawList()->AddRect(bottomLeft, bottomLeft + ImVec2(GetItemRectSize().x, 3), GetColorU32(ImGuiCol_NavWindowingHighlight, .75f));
+					vec2 bottomLeft = vec2(GetItemRectMin().x, GetItemRectMax().y);
+					GetForegroundDrawList()->AddRect(bottomLeft, bottomLeft + vec2(GetItemRectSize().x, 3.0f), GetColorU32(ImGuiCol_NavWindowingHighlight, 0.75f));
 			
 					dragDestinationIndex = static_cast<int32_t>(testData.size());
 				}
@@ -126,11 +126,11 @@ namespace Editor
 
 		Separator();
 		{
-			SetCursorPosX(GetWindowWidth() - 22 * 2);
-			ComfySmallButton(ICON_ADD, ImVec2(22, 22));
+			SetCursorPosX(GetWindowWidth() - 22.0f * 2.0f);
+			ComfySmallButton(ICON_ADD, vec2(22.0f, 22.0f));
 			SameLine();
-			SetCursorPosX(GetWindowWidth() - 22 * 1);
-			ComfySmallButton(ICON_DELETE, ImVec2(22, 22));
+			SetCursorPosX(GetWindowWidth() - 22.0f * 1.0f);
+			ComfySmallButton(ICON_DELETE, vec2(22.0f, 22.0f));
 		}
 		PopStyleVar(2);
 

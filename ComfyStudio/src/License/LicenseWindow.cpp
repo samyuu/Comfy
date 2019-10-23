@@ -15,7 +15,7 @@ bool LicenseWindow::DrawGui()
 	Gui::BulletText("License:");
 	Gui::Separator();
 
-	Gui::BeginChild("ListChild##LicenseWindow", ImVec2(Gui::GetWindowWidth() * listWidth, 0), true, scrollBarWindowFlags);
+	Gui::BeginChild("ListChild##LicenseWindow", vec2(Gui::GetWindowWidth() * listWidth, 0.0f), true, scrollBarWindowFlags);
 	{
 		for (int i = 0; i < licenseData.size(); i++)
 			if (Gui::Selectable(licenseData[i].Name.c_str(), i == selectedIndex))
@@ -23,7 +23,7 @@ bool LicenseWindow::DrawGui()
 	}
 	Gui::EndChild();
 	Gui::SameLine();
-	Gui::BeginChild("InfoChild##LicenseWindow", ImVec2(0, 0), true);
+	Gui::BeginChild("InfoChild##LicenseWindow", vec2(0.0f, 0.0f), true);
 	{
 		if (selectedIndex >= 0 && selectedIndex < licenseData.size())
 		{
@@ -32,11 +32,11 @@ bool LicenseWindow::DrawGui()
 			Gui::BulletText("%s / %s:", data->Name.c_str(), data->LicenseName.c_str());
 			Gui::Separator();
 
-			Gui::BeginChild("InfoChildInner##LicenseWindow", ImVec2(0, 0), true);
+			Gui::BeginChild("InfoChildInner##LicenseWindow", vec2(0.0f, 0.0f), true);
 			{
 				Gui::TextUnformatted(data->Description.c_str());
 
-				Gui::BeginChild("InfoChildLicense##LicenseWindow", ImVec2(0, 0), true, scrollBarWindowFlags);
+				Gui::BeginChild("InfoChildLicense##LicenseWindow", vec2(0.0f, 0.0f), true, scrollBarWindowFlags);
 				{
 					Gui::TextUnformatted(data->License.c_str());
 

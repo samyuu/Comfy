@@ -263,7 +263,7 @@ void Application::DrawGui()
 				if (versionWindowOpen)
 				{
 					ImGuiViewport* viewport = ImGui::GetMainViewport();
-					Gui::SetNextWindowPos(viewport->Pos + viewport->Size * 0.5f, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+					Gui::SetNextWindowPos(viewport->Pos + viewport->Size * 0.5f, ImGuiCond_Appearing, vec2(0.5f, 0.5f));
 
 					if (Gui::Begin("About - Version##Application", &versionWindowOpen, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking))
 					{
@@ -322,7 +322,7 @@ void Application::DrawGui()
 		// Window Dockspace
 		// ----------------
 		{
-			Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+			Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(0.0f, 0.0f));
 			Gui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 			Gui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
@@ -340,7 +340,7 @@ void Application::DrawGui()
 
 			Gui::Begin(mainDockSpaceID, nullptr, dockspaceWindowFlags);
 			ImGuiID dockspaceID = Gui::GetID(mainDockSpaceID);
-			Gui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+			Gui::DockSpace(dockspaceID, vec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 			Gui::End();
 
 			Gui::PopStyleVar(3);

@@ -22,7 +22,7 @@ namespace Editor
 				float height = (GetWindowHeight() - GetCursorPosY() - 200) * 0.5f;
 				if (height <= 0.0f) height = 0.0001f;
 
-				BeginChild("AetObjPopupAetRegionChild::AddAetObjDialog", ImVec2(0.0f, height), true);
+				BeginChild("AetObjPopupAetRegionChild::AddAetObjDialog", vec2(0.0f, height), true);
 				{
 					Columns(2);
 
@@ -90,7 +90,7 @@ namespace Editor
 
 		InputText("AetObj Name", newObjNameBuffer, sizeof(newObjNameBuffer));
 
-		if (Button(ICON_FA_PLUS "  Add", ImVec2(GetWindowWidth(), 0)))
+		if (Button(ICON_FA_PLUS "  Add", vec2(GetWindowWidth(), 0.0f)))
 		{
 			// TODO:
 			// aetLayer.Objects.emplace(aetLayer.begin());

@@ -57,7 +57,7 @@ namespace Editor
 
 		if (Gui::Begin(ICON_FA_SYNC "  Sync Window##ChartEditor", nullptr, ImGuiWindowFlags_None))
 		{
-			Gui::BeginChild("SyncWindowChild##ChartEditor", ImVec2(0, 0), true);
+			Gui::BeginChild("SyncWindowChild##ChartEditor", vec2(0.0f, 0.0f), true);
 			syncWindow->DrawGui(chart.get(), timeline.get());
 			Gui::EndChild();
 		}

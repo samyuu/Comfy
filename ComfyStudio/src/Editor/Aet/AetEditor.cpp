@@ -62,7 +62,7 @@ namespace Editor
 
 		if (Gui::Begin(ICON_TREEVIEW "  Aet Tree View##AetEditor"))
 		{
-			Gui::BeginChild("AetTreeViewChild##AetEditor", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+			Gui::BeginChild("AetTreeViewChild##AetEditor", vec2(0.0f, 0.0f), false, ImGuiWindowFlags_HorizontalScrollbar);
 			treeView->DrawGui(editorAetSet);
 			Gui::EndChild();
 		}
@@ -72,7 +72,7 @@ namespace Editor
 #if 0
 		if (Gui::Begin(ICON_AETLAYERS "  Aet Layers##AetEditor"))
 		{
-			Gui::BeginChild("AetLayerViewChild##AetEditor", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
+			Gui::BeginChild("AetLayerViewChild##AetEditor", vec2(0.0f, 0.0f), true, ImGuiWindowFlags_HorizontalScrollbar);
 			layerView->DrawGui();
 			Gui::EndChild();
 		}

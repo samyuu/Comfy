@@ -411,7 +411,7 @@ namespace Editor
 	{
 		RenderWindowBase::OnResize(size);
 
-		ImVec2 renderRegionSize = GetRenderRegion().GetSize();
+		vec2 renderRegionSize = GetRenderRegion().GetSize();
 		camera.AspectRatio = renderRegionSize.x / renderRegionSize.y;
 
 		postProcessingRenderTarget.Resize(size);

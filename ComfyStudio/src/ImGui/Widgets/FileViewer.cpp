@@ -37,14 +37,14 @@ namespace ImGui
 	bool FileViewer::DrawGui()
 	{
 		bool parentFocused = IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && IsWindowHovered(ImGuiFocusedFlags_RootAndChildWindows);
-		ImVec2 windowSize(GetWindowWidth(), 0);
+		vec2 windowSize = vec2(GetWindowWidth(), 0.0f);
 
 		PushID(this);
-		PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f, 0.5f));
+		PushStyleVar(ImGuiStyleVar_ButtonTextAlign, vec2(0.0f, 0.5f));
 
-		BeginChild("FileDirectoryChild##FileViewer", ImVec2(windowSize.x, 24));
+		BeginChild("FileDirectoryChild##FileViewer", vec2(windowSize.x, 24.0f));
 		{
-			PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+			PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f, 0.0f));
 			{
 				bool backClicked = parentFocused && IsMouseReleased(3);
 				if (ArrowButton("PreviousDirectoryButton::FileViewer", ImGuiDir_Up) || backClicked)
@@ -52,14 +52,14 @@ namespace ImGui
 
 				SameLine();
 
-				constexpr float searchBarWidth = .25f;
+				constexpr float searchBarWidth = 0.25f;
 
 				PushItemWidth(windowSize.x * (1.0f - searchBarWidth));
 				if (InputText("##DirectoryInputText::FileViewer", currentDirectoryBuffer, sizeof(currentDirectoryBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
 					SetDirectory(currentDirectoryBuffer);
 				PopItemWidth();
 
-				PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1, 0));
+				PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(1.0f, 0.0f));
 				SameLine();
 				fileFilter.Draw("##FileFilter::FileViewer", ICON_FA_SEARCH, windowSize.x * searchBarWidth);
 			}

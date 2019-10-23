@@ -272,10 +272,10 @@ namespace Editor
 	{
 		const auto& io = Gui::GetIO();
 
-		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(2.0f, 0.0f));
 
 		ImGuiStyle& style = Gui::GetStyle();
-		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, style.FramePadding.y));
+		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(8.0f, style.FramePadding.y));
 
 		cursorTime.FormatTime(timeInputBuffer, sizeof(timeInputBuffer));
 
@@ -288,7 +288,7 @@ namespace Editor
 		Gui::Button(ICON_FA_FAST_BACKWARD);
 		if (Gui::IsItemActive()) { scrollDelta -= io.DeltaTime * 1000.0f; }
 
-		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f, 0.0f));
 
 		// TODO: jump to last / next target
 		Gui::SameLine();
@@ -354,10 +354,10 @@ namespace Editor
 		for (int i = 0; i < TargetType_Max; i++)
 		{
 			float y = i * ROW_HEIGHT;
-			auto start = ImVec2(0, y) + infoColumnRegion.GetTL();
-			auto end = ImVec2(infoColumnWidth, y + ROW_HEIGHT) + infoColumnRegion.GetTL();
+			auto start = vec2(0.0f, y) + infoColumnRegion.GetTL();
+			auto end = vec2(infoColumnWidth, y + ROW_HEIGHT) + infoColumnRegion.GetTL();
 
-			auto center = ImVec2((start.x + end.x) / 2.0f, (start.y + end.y) / 2.0f);
+			auto center = vec2((start.x + end.x) / 2.0f, (start.y + end.y) / 2.0f);
 			targetYPositions[i] = center.y;
 
 			TimelineTarget target(0, static_cast<TargetType>(i));
@@ -367,8 +367,8 @@ namespace Editor
 
 	void TargetTimeline::OnDrawTimlineRows()
 	{
-		ImVec2 timelineTL = timelineContentRegion.GetTL();
-		ImVec2 timelineWidth = ImVec2(timelineContentRegion.GetWidth(), 0);
+		vec2 timelineTL = timelineContentRegion.GetTL();
+		vec2 timelineWidth = vec2(timelineContentRegion.GetWidth(), 0.0f);
 
 		ImU32 rowColor = GetColor(EditorColor_TimelineRowSeparator);
 
@@ -376,8 +376,8 @@ namespace Editor
 		// ---------------------------
 		for (int t = 0; t <= TargetType_Max; t++)
 		{
-			ImVec2 start = timelineTL + ImVec2(0, t * ROW_HEIGHT);
-			ImVec2 end = start + timelineWidth;
+			vec2 start = timelineTL + vec2(0.0f, t * ROW_HEIGHT);
+			vec2 end = start + timelineWidth;
 
 			baseDrawList->AddLine(start, end, rowColor);
 		}
@@ -414,9 +414,9 @@ namespace Editor
 				if (visiblity == TimelineVisibility::Right)
 					break;
 
-				const float startYOffset = timelineHeaderHeight * (isBar ? .85f : .35f);
-				ImVec2 start = timelineContentRegion.GetTL() + ImVec2(screenX, -startYOffset);
-				ImVec2 end = timelineContentRegion.GetBL() + ImVec2(screenX, 0);
+				const float startYOffset = timelineHeaderHeight * (isBar ? 0.85f : 0.35f);
+				vec2 start = timelineContentRegion.GetTL() + vec2(screenX, -startYOffset);
+				vec2 end = timelineContentRegion.GetBL() + vec2(screenX, 0.0f);
 
 				const ImU32 color = isBar ? barColor : (divisions++ % 2 == 0 ? gridColor : gridAltColor);
 				baseDrawList->AddLine(start, end, color);
@@ -425,7 +425,7 @@ namespace Editor
 				{
 					sprintf_s(barStrBuffer, sizeof(barStrBuffer), "%d", barCount);
 
-					start += ImVec2(3, -1);
+					start += vec2(3.0f, -1.0f);
 					baseDrawList->AddText(start, color, barStrBuffer);
 				}
 			}
@@ -478,8 +478,8 @@ namespace Editor
 			float x = screenPixel + timelineX;
 			float halfAmplitude = amplitude * 0.5f;
 
-			ImVec2 start = ImVec2(x, timelineCenterY - halfAmplitude);
-			ImVec2 end = ImVec2(x, timelineCenterY + halfAmplitude);
+			vec2 start = vec2(x, timelineCenterY - halfAmplitude);
+			vec2 end = vec2(x, timelineCenterY + halfAmplitude);
 
 			baseDrawList->AddLine(start, end, waveformColor);
 			waveformPixelsDrawn++;
@@ -506,12 +506,12 @@ namespace Editor
 				if (visiblity == TimelineVisibility::Right)
 					break;
 
-				auto tempoFgColor = IM_COL32(139, 56, 51, 255);
+				ImU32 tempoFgColor = IM_COL32(139, 56, 51, 255);
 
 				sprintf_s(tempoStr, sizeof(tempoStr), "%.2f BPM", tempoChange.Tempo.BeatsPerMinute);
 
-				auto buttonPosition = tempoMapRegion.GetTL() + ImVec2(screenX + 1, 0);
-				auto buttonSize = ImVec2(Gui::CalcTextSize(tempoStr).x, tempoMapHeight);
+				vec2 buttonPosition = tempoMapRegion.GetTL() + vec2(screenX + 1.0f, 0.0f);
+				vec2 buttonSize = vec2(Gui::CalcTextSize(tempoStr).x, tempoMapHeight);
 
 				Gui::SetCursorScreenPos(buttonPosition);
 
@@ -539,7 +539,7 @@ namespace Editor
 					}
 				}
 
-				baseDrawList->AddLine(buttonPosition + ImVec2(-1, -1), buttonPosition + ImVec2(-1, buttonSize.y - 1), tempoFgColor);
+				baseDrawList->AddLine(buttonPosition + vec2(-1.0f, -1.0f), buttonPosition + vec2(-1.0f, buttonSize.y - 1.0f), tempoFgColor);
 				baseDrawList->AddText(Gui::GetFont(), tempoMapHeight, buttonPosition, tempoFgColor, tempoStr);
 			}
 
@@ -583,7 +583,7 @@ namespace Editor
 			if (visiblity == TimelineVisibility::Right)
 				break;
 
-			ImVec2 center = ImVec2(screenX + timelineContentRegion.GetTL().x, targetYPositions[target.Type]);
+			vec2 center = vec2(screenX + timelineContentRegion.GetTL().x, targetYPositions[target.Type]);
 
 			float scale = ICON_SCALE;
 
@@ -621,8 +621,8 @@ namespace Editor
 		{
 			float prePlaybackX = glm::round(GetTimelinePosition(chartEditor->GetPlaybackTimeOnPlaybackStart()) - GetScrollX());
 
-			ImVec2 start = timelineHeaderRegion.GetTL() + ImVec2(prePlaybackX, 0);
-			ImVec2 end = timelineContentRegion.GetBL() + ImVec2(prePlaybackX, 0);
+			vec2 start = timelineHeaderRegion.GetTL() + vec2(prePlaybackX, 0.0f);
+			vec2 end = timelineContentRegion.GetBL() + vec2(prePlaybackX, 0.0f);
 
 			baseDrawList->AddLine(start, end, GetColor(EditorColor_CursorInner));
 		}
@@ -641,7 +641,7 @@ namespace Editor
 			if (Gui::IsMouseClicked(selectionBoxButton) && Gui::IsWindowFocused() && !Gui::IsAnyItemHovered())
 				dragRect.Min = Gui::GetMousePos();
 			if (Gui::IsMouseReleased(selectionBoxButton))
-				dragRect.Min = dragRect.Max = ImVec2();
+				dragRect.Min = dragRect.Max = vec2(0.0f, 0.0f);
 
 			if (!Gui::IsAnyItemHovered() && Gui::IsMouseDragging(selectionBoxButton) && dragRect.Min.x != 0)
 			{
@@ -658,8 +658,8 @@ namespace Editor
 		float startScreenX = GetTimelinePosition(timeSelectionStart) - scrollX;
 		float endScreenX = GetTimelinePosition(timeSelectionEnd) - scrollX;
 
-		ImVec2 start = timelineContentRegion.GetTL() + ImVec2(startScreenX, 0);
-		ImVec2 end = timelineContentRegion.GetBL() + ImVec2(endScreenX, 0);
+		vec2 start = timelineContentRegion.GetTL() + vec2(startScreenX, 0.0f);
+		vec2 end = timelineContentRegion.GetBL() + vec2(endScreenX, 0.0f);
 
 		baseDrawList->AddRectFilled(start, end, GetColor(EditorColor_Selection));
 		//Gui::SetMouseCursor(ImGuiMouseCursor_Hand);
