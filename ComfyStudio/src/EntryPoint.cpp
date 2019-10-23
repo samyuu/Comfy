@@ -18,11 +18,8 @@ int main(int argc, const char* argv[])
 	if (commandLineResult == System::CommandLineResult::Exit)
 		return EXIT_SUCCESS;
 
-	Application* application = new Application();
-	application->Run();
-
-	delete application;
-	application = nullptr;
+	Application application;
+	application.Run();
 
 	return EXIT_SUCCESS;
 }
