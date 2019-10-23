@@ -1,34 +1,13 @@
 #include "Application.h"
-#include "Editor/Core/Theme.h"
+#include "FileSystem/FileHelper.h"
 #include "DataTest/AudioTestWindow.h"
 #include "DataTest/IconTestWindow.h"
 #include "DataTest/InputTestWindow.h"
 #include "DataTest/ShaderTestWindow.h"
-#include "Input/DirectInput/DualShock4.h"
-#include "Input/Keyboard.h"
-#include "FileSystem/FileHelper.h"
-#include "FileSystem/Archive/Farc.h"
 #include "System/Profiling/Profiler.h"
 #include "System/Version/BuildConfiguration.h"
 #include "System/Version/BuildVersion.h"
-#include "Graphics/OpenGL/OpenGLLoader.h"
-#include "ImGui/Gui.h"
-#include "ImGui/Implementation/Imgui_Impl.h"
-
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include "../res/resource.h"
-#include <glfw/glfw3native.h>
-
-const char* Application::mainDockSpaceID = "MainDockSpace##Application";
-Application* Application::globalCallbackApplication = nullptr;
-
-static HMODULE GlobalModuleHandle = NULL;
-static HICON GlobalIconHandle = NULL;
-
-static void GlfwErrorCallback(int error, const char* description)
-{
-	Logger::LogErrorLine(__FUNCTION__"(): [GLFW Error: 0x%X] %s", error, description);
-}
+#include "Input/KeyCode.h"
 
 Application::Application()
 {
@@ -39,125 +18,6 @@ Application::~Application()
 	BaseDispose();
 }
 
-bool Application::IsFullscreen() const
-{
-	return glfwGetWindowMonitor(window) != nullptr;
-}
-
-void Application::SetFullscreen(bool value)
-{
-	if (IsFullscreen() == value)
-		return;
-
-	if (value)
-	{
-		preFullScreenWindowPosition = vec2(windowXPosition, windowYPosition);
-		preFullScreenWindowSize = vec2(windowWidth, windowHeight);
-
-		GLFWmonitor* monitor = GetActiveMonitor();
-		const GLFWvidmode* videoMode = glfwGetVideoMode(monitor);
-
-		glfwSetWindowMonitor(window, monitor, 0, 0, videoMode->width, videoMode->height, videoMode->refreshRate);
-	}
-	else
-	{
-		// restore last window size and position
-		glfwSetWindowMonitor(window, nullptr,
-			static_cast<int>(preFullScreenWindowPosition.x),
-			static_cast<int>(preFullScreenWindowPosition.y),
-			static_cast<int>(preFullScreenWindowSize.x),
-			static_cast<int>(preFullScreenWindowSize.y),
-			GLFW_DONT_CARE);
-	}
-}
-
-void Application::ToggleFullscreen()
-{
-	SetFullscreen(!IsFullscreen());
-}
-
-GLFWmonitor* Application::GetActiveMonitor() const
-{
-	GLFWmonitor* monitor = glfwGetWindowMonitor(window);
-
-	if (monitor != nullptr)
-		return monitor;
-
-	int monitorCount;
-	GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
-
-	int bestoverlap = 0;
-
-	for (int i = 0; i < monitorCount; i++)
-	{
-		const GLFWvidmode* videoMode = glfwGetVideoMode(monitors[i]);
-
-		int monitorX, monitorY;
-		glfwGetMonitorPos(monitors[i], &monitorX, &monitorY);
-
-		int overlap =
-			glm::max(0, glm::min(static_cast<int>(windowXPosition + windowWidth), monitorX + videoMode->width) - glm::max(windowXPosition, monitorX)) *
-			glm::max(0, glm::min(static_cast<int>(windowYPosition + windowHeight), monitorY + videoMode->height) - glm::max(windowYPosition, monitorY));
-
-		if (bestoverlap < overlap)
-		{
-			bestoverlap = overlap;
-			monitor = monitors[i];
-		}
-	}
-
-	return monitor;
-}
-
-void Application::CheckConnectedDevices()
-{
-	if (!Keyboard::GetInstanceInitialized())
-	{
-		if (Keyboard::TryInitializeInstance(GetWindow()))
-		{
-			// Logger::LogLine(__FUNCTION__"(): Keyboard connected and initialized");
-		}
-	}
-
-	if (!DualShock4::GetInstanceInitialized())
-	{
-		if (DualShock4::TryInitializeInstance())
-		{
-			// Logger::LogLine(__FUNCTION__"(): DualShock4 connected and initialized");
-		}
-	}
-}
-
-bool Application::GetDispatchFileDrop()
-{
-	return filesDroppedThisFrame && !fileDropDispatched;
-}
-
-void Application::SetFileDropDispatched(bool value)
-{
-	fileDropDispatched = value;
-}
-
-const std::vector<std::string>& Application::GetDroppedFiles() const
-{
-	return droppedFiles;
-}
-
-void Application::LoadComfyWindowIcon()
-{
-	assert(GlobalIconHandle == NULL);
-	GlobalIconHandle = ::LoadIconA(GlobalModuleHandle, MAKEINTRESOURCEA(COMFY_ICON));
-}
-
-void Application::SetComfyWindowIcon(GLFWwindow* window)
-{
-	assert(GlobalIconHandle != NULL);
-
-	HWND windowHandle = glfwGetWin32Window(window);
-	::SendMessageA(windowHandle, WM_SETICON, ICON_SMALL, (LPARAM)GlobalIconHandle);
-	::SendMessageA(windowHandle, WM_SETICON, ICON_BIG, (LPARAM)GlobalIconHandle);
-}
-
 void Application::Run()
 {
 	if (!BaseInitialize())
@@ -165,34 +25,25 @@ void Application::Run()
 
 	System::Profiler& profiler = System::Profiler::Get();
 
-	while (!glfwWindowShouldClose(window))
+	host.EnterProgramLoop([&]()
 	{
 		profiler.StartFrame();
 		BaseUpdate();
 		BaseDraw();
 		profiler.EndFrame();
-
-		if (!windowFocused || mainLoopLowPowerSleep)
-		{
-			// NOTE: Arbitrary sleep to drastically reduce power usage
-			// TODO: This could really use a better solution for final release builds
-			Sleep(static_cast<uint32_t>(powerSleepDuration.TotalMilliseconds()));
-		}
-
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-
-		lastTime = currentTime;
-		currentTime = TimeSpan::GetTimeNow();
-		elapsedTime = (currentTime - lastTime);
-	}
+	});
 
 	BaseDispose();
 }
 
 void Application::Exit()
 {
-	glfwSetWindowShouldClose(window, GLFW_TRUE);
+	host.Exit();
+}
+
+ApplicationHost& Application::GetHost()
+{
+	return host;
 }
 
 bool Application::BaseInitialize()
@@ -201,24 +52,22 @@ bool Application::BaseInitialize()
 		return false;
 
 	hasBeenInitialized = true;
-	GlobalModuleHandle = ::GetModuleHandleA(nullptr);
 
-	glfwSetErrorCallback(&GlfwErrorCallback);
-
-	int glfwInitResult = glfwInit();
-	if (glfwInitResult == GLFW_FALSE)
+	if (!host.Initialize())
 		return false;
 
-	if (!InitializeWindow())
-		return false;
+	host.RegisterWindowResizeCallback([](ivec2 size) 
+	{
+		Graphics::RenderCommand::SetViewport(size);
+	});
 
-	glfwMakeContextCurrent(window);
-	Graphics::OpenGLLoader::LoadFunctions(reinterpret_cast<OpenGLFunctionLoader*>(glfwGetProcAddress));
+	host.RegisterWindowClosingCallback([]() 
+	{
+		Audio::AudioEngine* audioEngine = Audio::AudioEngine::GetInstance();
 
-	BaseRegister();
-
-	InitializeDirectInput(GlobalModuleHandle);
-	CheckConnectedDevices();
+		if (audioEngine != nullptr)
+			audioEngine->StopStream();
+	});
 
 	Audio::AudioEngine::CreateInstance();
 	Audio::AudioEngine::InitializeInstance();
@@ -226,88 +75,27 @@ bool Application::BaseInitialize()
 	if (!InitializeCheckRom())
 		return false;
 
-	if (!InitializeGui())
+	if (!InitializeGuiRenderer())
 		return false;
 
-	if (!InitializeApp())
+	if (!InitializeEditorComponents())
 		return false;
 
 	return true;
 }
 
-void Application::BaseRegister()
-{
-	globalCallbackApplication = this;
-	glfwSetWindowUserPointer(window, this);
-
-	glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int width, int height)
-	{
-		GetApplicationPointer(window)->WindowResizeCallback(width, height);
-	});
-
-	glfwSetWindowPosCallback(window, [](GLFWwindow* window, int xPosition, int yPosition)
-	{
-		GetApplicationPointer(window)->WindowMoveCallback(xPosition, yPosition);
-	});
-
-	glfwSetCursorPosCallback(window, [](GLFWwindow* window, double x, double y)
-	{
-		GetApplicationPointer(window)->MouseMoveCallback((int)x, (int)y);
-	});
-
-	glfwSetScrollCallback(window, [](GLFWwindow* window, double xOffset, double yOffset)
-	{
-		GetApplicationPointer(window)->MouseScrollCallback((float)yOffset);
-	});
-
-	glfwSetDropCallback(window, [](GLFWwindow* window, int count, const char* paths[])
-	{
-		GetApplicationPointer(window)->WindowDropCallback(count, paths);
-	});
-
-	glfwSetWindowFocusCallback(window, [](GLFWwindow* window, int focused)
-	{
-		GetApplicationPointer(window)->WindowFocusCallback(focused);
-	});
-
-	glfwSetWindowCloseCallback(window, [](GLFWwindow* window)
-	{
-		GetApplicationPointer(window)->WindowClosingCallback();
-	});
-
-	glfwSetJoystickCallback([](int id, int event)
-	{
-		if (event == GLFW_CONNECTED || event == GLFW_DISCONNECTED)
-			globalCallbackApplication->CheckConnectedDevices();
-	});
-}
-
 void Application::BaseUpdate()
 {
-	filesDroppedThisFrame = filesDropped && !filesLastDropped;
-	filesLastDropped = filesDropped;
-	filesDropped = false;
-
-	if (elapsedFrames > 2)
-	{
-		focusLostFrame = lastWindowFocused && !windowFocused;
-		focusGainedFrame = !lastWindowFocused && windowFocused;
-	}
-	lastWindowFocused = windowFocused;
-
-	UpdatePollInput();
-	UpdateInput();
-	UpdateTasks();
-
-	elapsedFrames++;
+	ProcessInput();
+	ProcessTasks();
 }
 
 void Application::BaseDraw()
 {
-	const ImVec4 baseClearColor = ImColor(Editor::GetColor(Editor::EditorColor_BaseClear));
+	const vec4 baseClearColor = Editor::GetColorVec4(Editor::EditorColor_BaseClear);
 	Graphics::RenderCommand::SetClearColor(baseClearColor);
 	Graphics::RenderCommand::Clear(Graphics::ClearTarget_ColorBuffer);
-	Graphics::RenderCommand::SetViewport(ivec2(windowWidth, windowHeight));
+	Graphics::RenderCommand::SetViewport(host.GetWindowSize());
 
 	DrawGui();
 }
@@ -322,41 +110,14 @@ void Application::BaseDispose()
 	if (skipApplicationCleanup)
 		return;
 
-	// Force delete before the OpenGL context is destroyed
-	editorManager.reset();
-
 	Audio::AudioEngine::DisposeInstance();
 	Audio::AudioEngine::DeleteInstance();
 
-	Keyboard::DeleteInstance();
-	DualShock4::DeleteInstance();
+	// NOTE: Force deletion before the OpenGL context is destroyed
+	editorManager.reset();
 
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	Gui::DestroyContext();
-
-	glfwDestroyWindow(window);
-	glfwTerminate();
-}
-
-bool Application::InitializeWindow()
-{
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	window = glfwCreateWindow(static_cast<int>(windowWidth), static_cast<int>(windowHeight), ComfyStudioWindowTitle, nullptr, nullptr);
-
-	if (window == nullptr)
-		return false;
-
-	glfwSetWindowSizeLimits(window, WindowWidthMin, WindowHeightMin, GLFW_DONT_CARE, GLFW_DONT_CARE);
-	glfwGetWindowPos(window, &windowXPosition, &windowYPosition);
-
-	Application::LoadComfyWindowIcon();
-	Application::SetComfyWindowIcon(window);
-
-	return true;
+	guiRenderer.Dispose();
+	host.Dispose();
 }
 
 bool Application::InitializeCheckRom()
@@ -370,138 +131,41 @@ bool Application::InitializeCheckRom()
 	return true;
 }
 
-bool Application::InitializeGui()
+bool Application::InitializeGuiRenderer()
 {
-	using namespace FileSystem;
+	return guiRenderer.Initialize();
+}
 
-	Gui::CreateContext();
+bool Application::InitializeEditorComponents()
+{
+	editorManager = MakeUnique<Editor::EditorManager>(this);
 
-	ImGuiIO& io = Gui::GetIO();
-	io.IniFilename = "ram/imgui.ini";
-	io.LogFilename = "ram/imgui_log.txt";
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	// io.ConfigFlags |= ImGuiConfigFlags_NavNoCaptureKeyboard;
-	io.ConfigDockingWithShift = false;
-	io.ConfigViewportsNoDecoration = true;
-	io.KeyRepeatDelay = 0.250f;
-	io.KeyRepeatRate = 0.050f;
-	io.ConfigWindowsMoveFromTitleBarOnly = true;
-	io.ConfigDockingTabBarOnSingleWindows = true;
-
-	ImFontAtlas* fonts = io.Fonts;
-	constexpr float fontSize = 16.0f;
-
-	// Load Fonts
-	// ----------
-	RefPtr<Farc> fontFarc = Farc::Open("rom/font.farc");
-	if (fontFarc)
-	{
-		const ArchiveEntry* textFontEntry = fontFarc->GetFile("NotoSansCJKjp-Regular.otf");
-		if (textFontEntry)
-		{
-			void* fileContent = IM_ALLOC(textFontEntry->FileSize);
-			textFontEntry->Read(fileContent);
-
-			fonts->AddFontFromMemoryTTF(fileContent, static_cast<int>(textFontEntry->FileSize), fontSize, nullptr, fonts->GetGlyphRangesJapanese());
-		}
-
-		const ArchiveEntry* iconFontEntry = fontFarc->GetFile(FONT_ICON_FILE_NAME_FAS);
-		if (iconFontEntry)
-		{
-			static const ImWchar iconFontGlyphRange[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
-
-			ImFontConfig config = {};
-			config.GlyphMinAdvanceX = 13.0f;
-			config.MergeMode = true;
-
-			void* fileContent = IM_ALLOC(iconFontEntry->FileSize);
-			iconFontEntry->Read(fileContent);
-
-			fonts->AddFontFromMemoryTTF(fileContent, static_cast<int>(iconFontEntry->FileSize), fontSize - 2.0f, &config, iconFontGlyphRange);
-		}
-	}
-	fontFarc = nullptr;
-
-	Gui::StyleComfy();
-
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init();
+	dataTestComponents.reserve(4);
+	dataTestComponents.push_back(MakeRef<DataTest::InputTestWindow>(this));
+	dataTestComponents.push_back(MakeRef<DataTest::AudioTestWindow>(this));
+	dataTestComponents.push_back(MakeRef<DataTest::IconTestWindow>(this));
+	dataTestComponents.push_back(MakeRef<DataTest::ShaderTestWindow>(this));
 
 	return true;
 }
 
-bool Application::InitializeApp()
+void Application::ProcessInput()
 {
-	// Base PV Editor
-	// --------------
-	{
-		editorManager = MakeUnique<Editor::EditorManager>(this);
-	}
-	// Data Test Components
-	// --------------------
-	{
-		dataTestComponents.reserve(4);
-		dataTestComponents.push_back(MakeRef<DataTest::InputTestWindow>(this));
-		dataTestComponents.push_back(MakeRef<DataTest::AudioTestWindow>(this));
-		dataTestComponents.push_back(MakeRef<DataTest::IconTestWindow>(this));
-		dataTestComponents.push_back(MakeRef<DataTest::ShaderTestWindow>(this));
-	}
-
-	return true;
-}
-
-void Application::UpdatePollInput()
-{
-	double doubleX, doubleY;
-	glfwGetCursorPos(window, &doubleX, &doubleY);
-
-	lastMouseX = mouseX;
-	lastMouseY = mouseY;
-	mouseX = static_cast<int>(doubleX);
-	mouseY = static_cast<int>(doubleY);
-
-	mouseDeltaX = mouseX - lastMouseX;
-	mouseDeltaY = lastMouseY - mouseY;
-
-	mouseScrolledUp = lastMouseWheel < mouseWheel;
-	mouseScrolledDown = lastMouseWheel > mouseWheel;
-	lastMouseWheel = mouseWheel;
-
-	if (Keyboard::GetInstanceInitialized())
-		Keyboard::GetInstance()->PollInput();
-
-	if (DualShock4::GetInstanceInitialized())
-	{
-		if (!DualShock4::GetInstance()->PollInput())
-		{
-			DualShock4::DeleteInstance();
-			Logger::LogLine(__FUNCTION__"(): DualShock4 connection lost");
-		}
-	}
-}
-
-void Application::UpdateInput()
-{
-	ImGuiIO& io = Gui::GetIO();
+	const auto& io = Gui::GetIO();
 
 	if (Gui::IsKeyPressed(KeyCode_F11) || (io.KeyAlt && Gui::IsKeyPressed(KeyCode_Enter)))
-		ToggleFullscreen();
+		host.ToggleFullscreen();
 }
 
-void Application::UpdateTasks()
+void Application::ProcessTasks()
 {
 }
 
 void Application::DrawGui()
 {
-	ImGuiIO& io = Gui::GetIO();
+	const auto& io = Gui::GetIO();
 
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	Gui::NewFrame();
-	Gui::UpdateExtendedState();
+	guiRenderer.BeginFrame();
 	{
 		//if (Gui::IsKeyPressed(KeyCode_F9))
 		//	showMainMenuBar ^= true;
@@ -527,15 +191,15 @@ void Application::DrawGui()
 					Gui::PopStyleColor();
 
 					if (Gui::MenuItem("Toggle Fullscreen", nullptr))
-						ToggleFullscreen();
+						host.ToggleFullscreen();
 
 					if (Gui::BeginMenu("Swap Interval", &showSwapInterval))
 					{
 						if (Gui::MenuItem("SwapInterval(0)", nullptr))
-							glfwSwapInterval(0);
+							host.SetSwapInterval(0);
 
 						if (Gui::MenuItem("SwapInterval(1)", nullptr))
-							glfwSwapInterval(1);
+							host.SetSwapInterval(1);
 
 						Gui::EndMenu();
 					}
@@ -744,17 +408,7 @@ void Application::DrawGui()
 			DrawGuiBaseWindowWindows(dataTestComponents);
 		}
 	}
-	Gui::Render();
-
-	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-	{
-		GLFWwindow* context = glfwGetCurrentContext();
-		Gui::UpdatePlatformWindows();
-		Gui::RenderPlatformWindowsDefault();
-		glfwMakeContextCurrent(context);
-	}
-
-	ImGui_ImplOpenGL3_RenderDrawData(Gui::GetDrawData());
+	guiRenderer.EndFrame();
 }
 
 void Application::DrawAppEngineWindow()
@@ -774,7 +428,7 @@ void Application::DrawAppEngineMenus(const char* header)
 	}
 }
 
-void Application::DrawGuiBaseWindowMenus(const char* header, std::vector<RefPtr<BaseWindow>>& components)
+void Application::DrawGuiBaseWindowMenus(const char* header, const std::vector<RefPtr<BaseWindow>>& components)
 {
 	if (Gui::BeginMenu(header))
 	{
@@ -788,7 +442,7 @@ void Application::DrawGuiBaseWindowMenus(const char* header, std::vector<RefPtr<
 	}
 }
 
-void Application::DrawGuiBaseWindowWindows(std::vector<RefPtr<BaseWindow>>& components)
+void Application::DrawGuiBaseWindowWindows(const std::vector<RefPtr<BaseWindow>>& components)
 {
 	for (const auto& component : components)
 	{
@@ -799,58 +453,4 @@ void Application::DrawGuiBaseWindowWindows(std::vector<RefPtr<BaseWindow>>& comp
 			Gui::End();
 		}
 	}
-}
-
-void Application::MouseMoveCallback(int x, int y)
-{
-
-}
-
-void Application::MouseScrollCallback(float offset)
-{
-	mouseWheel += offset;
-}
-
-void Application::WindowMoveCallback(int xPosition, int yPosition)
-{
-	windowXPosition = xPosition;
-	windowYPosition = yPosition;
-}
-
-void Application::WindowResizeCallback(int width, int height)
-{
-	windowWidth = static_cast<float>(width);
-	windowHeight = static_cast<float>(height);
-
-	Graphics::RenderCommand::SetViewport(width, height);
-}
-
-void Application::WindowDropCallback(size_t count, const char* paths[])
-{
-	fileDropDispatched = false;
-	filesDropped = true;
-
-	droppedFiles.clear();
-	droppedFiles.reserve(count);
-
-	for (size_t i = 0; i < count; i++)
-		droppedFiles.emplace_back(paths[i]);
-}
-
-void Application::WindowFocusCallback(bool focused)
-{
-	windowFocused = focused;
-}
-
-void Application::WindowClosingCallback()
-{
-	Audio::AudioEngine* audioEngine = Audio::AudioEngine::GetInstance();
-
-	if (audioEngine != nullptr)
-		audioEngine->StopStream();
-}
-
-Application* Application::GetApplicationPointer(GLFWwindow* window)
-{
-	return static_cast<Application*>(glfwGetWindowUserPointer(window));
 }

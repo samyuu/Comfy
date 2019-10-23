@@ -133,6 +133,7 @@
     <ClCompile Include="lib\zlib\src\inftrees.c" />
     <ClCompile Include="lib\zlib\src\trees.c" />
     <ClCompile Include="lib\zlib\src\zutil.c" />
+    <ClCompile Include="src\Core\ApplicationHost.cpp" />
     <ClCompile Include="src\Editor\Aet\RenderWindow\ObjectMousePicker.cpp" />
     <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\AetTool.cpp" />
     <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\HandTool.cpp" />
@@ -143,6 +144,7 @@
     <ClCompile Include="src\Editor\Timeline\TimelineScrollbar.cpp" />
     <ClCompile Include="src\FileSystem\Archive\Farc.cpp" />
     <ClCompile Include="src\FileSystem\Archive\FileArchive.cpp" />
+    <ClCompile Include="src\ImGui\GuiRenderer.cpp" />
     <ClCompile Include="src\Input\Keyboard.cpp" />
     <ClCompile Include="src\Input\KeyCode.cpp" />
     <ClCompile Include="src\System\CommandLine\CommandLine.cpp" />
@@ -287,6 +289,7 @@
     <ClInclude Include="lib\zlib\src\inflate.h" />
     <ClInclude Include="lib\zlib\src\inftrees.h" />
     <ClInclude Include="lib\zlib\src\trees.h" />
+    <ClInclude Include="src\Core\ApplicationHost.h" />
     <ClInclude Include="src\Core\CoreTypes.h" />
     <ClInclude Include="src\Editor\Aet\RenderWindow\ObjectMousePicker.h" />
     <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\AetTool.h" />
@@ -299,6 +302,7 @@
     <ClInclude Include="src\FileSystem\Archive\Farc.h" />
     <ClInclude Include="src\FileSystem\Archive\FileArchive.h" />
     <ClInclude Include="src\Core\Win32\ComfyWindows.h" />
+    <ClInclude Include="src\ImGui\GuiRenderer.h" />
     <ClInclude Include="src\System\CommandLine\CommandLine.h" />
     <ClInclude Include="lib\glfw\src\egl_context.h" />
     <ClInclude Include="lib\glfw\include\glfw\glfw3.h" />

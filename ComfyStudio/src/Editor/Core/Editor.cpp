@@ -151,9 +151,9 @@ namespace Editor
 
 	void EditorManager::UpdateFileDrop()
 	{
-		if (parent->GetDispatchFileDrop())
+		if (parent->GetHost().GetDispatchFileDrop())
 		{
-			const std::vector<std::string>& droppedFiles = parent->GetDroppedFiles();
+			const std::vector<std::string>& droppedFiles = parent->GetHost().GetDroppedFiles();
 
 			for (const auto &component : editorComponents)
 			{
@@ -161,7 +161,7 @@ namespace Editor
 				{
 					if (component->OnFileDropped(filePath))
 					{
-						parent->SetFileDropDispatched();
+						parent->GetHost().SetFileDropDispatched();
 						break;
 					}
 				}

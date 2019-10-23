@@ -1,8 +1,8 @@
 #include "Core/Application.h"
 #include "Input/KeyCode.h"
 #include "ImGui/Core/imgui.h"
-#include <glfw/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
+#include <glfw/glfw3.h>
 #include <glfw/glfw3native.h>
 
 static GLFWwindow*          g_Window = NULL;    // Main window
@@ -314,7 +314,7 @@ static void ImGui_ImplGlfw_CreateWindow(ImGuiViewport* viewport)
 	data->WindowOwned = true;
 	viewport->PlatformHandle = (void*)data->window;
 	glfwSetWindowPos(data->window, (int)viewport->Pos.x, (int)viewport->Pos.y);
-	Application::SetComfyWindowIcon(data->window);
+	ApplicationHost::SetComfyWindowIcon(data->window);
 
 	// Install callbacks for secondary viewports
 	glfwSetMouseButtonCallback(data->window, ImGui_ImplGlfw_MouseButtonCallback);

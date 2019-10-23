@@ -4,7 +4,7 @@ namespace ImGui
 {
 	void StyleComfy(ImGuiStyle* dst)
 	{
-		ImGuiStyle* style = dst ? dst : &ImGui::GetStyle();
+		ImGuiStyle* style = dst ? dst : &GetStyle();
 		style->WindowPadding = ImVec2(2.0f, 2.0f);
 		style->WindowRounding = 0.0f;
 		style->FrameBorderSize = 0.0f;

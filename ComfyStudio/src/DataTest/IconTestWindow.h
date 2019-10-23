@@ -24,7 +24,7 @@ namespace DataTest
 		};
 
 #if defined(COMFY_DEBUG)
-		NamedFontIcon namedFontIcons[957] =
+		static constexpr NamedFontIcon namedFontIcons[957] =
 		{
 			{ "ICON_FA_CLOUD_SHOWERS_HEAVY", ICON_FA_CLOUD_SHOWERS_HEAVY },
 			{ "ICON_FA_CHEVRON_CIRCLE_RIGHT", ICON_FA_CHEVRON_CIRCLE_RIGHT },
@@ -985,7 +985,7 @@ namespace DataTest
 			{ "ICON_FA_HAND_POINT_UP", ICON_FA_HAND_POINT_UP },
 		};
 #else
-		NamedFontIcon namedFontIcons[1] = { { "ICON_DUMMY", "X" } };
+		static constexpr NamedFontIcon namedFontIcons[1] = { { "ICON_DUMMY", "X" } };
 #endif
 	};
 }

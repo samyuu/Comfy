@@ -27,17 +27,17 @@ namespace DataTest
 			Gui::Separator();
 			for (size_t i = 0; i < IM_ARRAYSIZE(namedFontIcons); i++)
 			{
-				NamedFontIcon& fontIcon = namedFontIcons[i];
+				const NamedFontIcon& fontIcon = namedFontIcons[i];
 
 				if (!iconFilter.PassFilter(fontIcon.Name))
 					continue;
 
 				if (Gui::Selectable(fontIcon.Name, false, ImGuiSelectableFlags_AllowDoubleClick))
-					glfwSetClipboardString(GetParent()->GetWindow(), fontIcon.Name);
+					GetParent()->GetHost().SetClipboardString(fontIcon.Name);
 				Gui::NextColumn();
 
 				if (Gui::Selectable(fontIcon.Value, false, ImGuiSelectableFlags_AllowDoubleClick))
-					glfwSetClipboardString(GetParent()->GetWindow(), fontIcon.Value);
+					GetParent()->GetHost().SetClipboardString(fontIcon.Value);
 				Gui::NextColumn();
 			}
 		}

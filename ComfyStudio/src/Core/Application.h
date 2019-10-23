@@ -1,155 +1,73 @@
 #pragma once
 #include "Types.h"
+#include "ApplicationHost.h"
 #include "BaseWindow.h"
 #include "Editor/Core/Editor.h"
 #include "Audio/Core/AudioEngine.h"
 #include "Graphics/Graphics.h"
 #include "App/Engine.h"
 #include "License/LicenseWindow.h"
-#include "TimeSpan.h"
-#include "Logger.h"
-#include <glfw/glfw3.h>
-
-constexpr float DefaultWindowWidth = 1280.0f;
-constexpr float DefaultWindowHeight = 720.0f;
-
-constexpr int WindowWidthMin = static_cast<int>(640);
-constexpr int WindowHeightMin = static_cast<int>(WindowWidthMin * (9.0f / 16.0f));
-
-constexpr const char* ComfyStudioWindowTitle = "Comfy Studio";
+#include "ImGui/GuiRenderer.h"
 
 class Application
 {
 public:
 	Application();
+	Application(const Application&) = delete;
+	Application& operator= (const Application&) = delete;
 	~Application();
 
-	// Initialize and enter the main loop.
+	// NOTE: Initialize and enter the main loop.
 	void Run();
 
-	// Break out of the main loop
+	// NOTE: Break out of the main loop
 	void Exit();
 
-	inline GLFWwindow* GetWindow() { return window; };
-
-	inline TimeSpan GetElapsed() { return elapsedTime; };
-	inline float GetWidth() { return windowWidth; };
-	inline float GetHeight() { return windowHeight; };
-
 public:
-	// Window Utilities
-	// ----------------
-	bool IsFullscreen() const;
-	void SetFullscreen(bool value);
-	void ToggleFullscreen();
-
-	inline bool HasFocusBeenGained() const { return focusGainedFrame; };
-	inline bool HasFocusBeenLost() const { return focusLostFrame; };
-	// ----------------
-
-	GLFWmonitor* GetActiveMonitor() const;
-	void CheckConnectedDevices();
-
-	bool GetDispatchFileDrop();
-	void SetFileDropDispatched(bool value = true);
-	const std::vector<std::string>& GetDroppedFiles() const;
+	ApplicationHost& GetHost();
 
 private:
-	static void LoadComfyWindowIcon();
-
-public:
-	static void SetComfyWindowIcon(GLFWwindow* window);
-
-private:
-	// Base Methods
-	// --------------
-
-	// Initialize the application.
+	// NOTE: Initialize the application
 	bool BaseInitialize();
 
-	// Register window callbacks.
-	void BaseRegister();
-
-	// Call update methods.
+	// NOTE: Call update methods.
 	void BaseUpdate();
 
-	// Call draw methods.
+	// NOTE: Call draw methods.
 	void BaseDraw();
 
-	// Dispose the application.
+	// NOTE: Dispose the application
 	void BaseDispose();
 
-	// Initialization
-	// --------------
-	bool InitializeWindow();
+	// NOTE: Initialization
 	bool InitializeCheckRom();
-	bool InitializeGui();
-	bool InitializeApp();
+	bool InitializeGuiRenderer();
+	bool InitializeEditorComponents();
 
-	// Update Methods
-	// --------------
-	void UpdatePollInput();
-	void UpdateInput();
-	void UpdateTasks();
+	// NOTE: Update methods
+	void ProcessInput();
+	void ProcessTasks();
 
-	// Draw Methods
-	// ------------
-
+	// NOTE: Draw methods
 	void DrawGui();
 	void DrawAppEngineWindow();
 	void DrawAppEngineMenus(const char* header);
 
-	void DrawGuiBaseWindowMenus(const char* header, std::vector<RefPtr<BaseWindow>>& components);
-	void DrawGuiBaseWindowWindows(std::vector<RefPtr<BaseWindow>>& components);
+	void DrawGuiBaseWindowMenus(const char* header, const std::vector<RefPtr<BaseWindow>>& components);
+	void DrawGuiBaseWindowWindows(const std::vector<RefPtr<BaseWindow>>& components);
 
-	// Callbacks
-	// ---------
-	void MouseMoveCallback(int x, int y);
-	void MouseScrollCallback(float offset);
-	void WindowMoveCallback(int xPosition, int yPosition);
-	void WindowResizeCallback(int width, int height);
-	void WindowDropCallback(size_t count, const char* paths[]);
-	void WindowFocusCallback(bool focused);
-	void WindowClosingCallback();
+private:
+	// NOTE: Core
+	ApplicationHost host;
+	Gui::GuiRenderer guiRenderer = { host };
 
-	// Member variables
-	// -----------------
 	bool hasBeenInitialized = false;
 	bool hasBeenDisposed = false;
-	bool mainLoopLowPowerSleep = false;
-	bool skipApplicationCleanup = true;
-	TimeSpan powerSleepDuration = TimeSpan::FromMilliseconds(10.0);
 
-	GLFWwindow *window = nullptr;
+	// NOTE: Should probably be disabled for final release builds but needlessly adds a lot of closing latency
+	const bool skipApplicationCleanup = true;
 
-	// Input / UI variables
-	// --------------------
-	int mouseX, mouseY;
-	int mouseDeltaX, mouseDeltaY;
-	int lastMouseX, lastMouseY;
-	float mouseWheel, lastMouseWheel;
-	bool mouseScrolledUp, mouseScrolledDown;
-
-	// Window Management
-	// -----------------
-	std::vector<std::string> droppedFiles;
-	bool filesDroppedThisFrame, filesDropped, filesLastDropped, fileDropDispatched;
-	bool windowFocused = true, lastWindowFocused, focusLostFrame = false, focusGainedFrame = false;
-
-	int windowXPosition, windowYPosition;
-	float windowWidth = DefaultWindowWidth;
-	float windowHeight = DefaultWindowHeight;
-	vec2 preFullScreenWindowPosition = { 0.0f, 0.0f };
-	vec2 preFullScreenWindowSize = { DefaultWindowWidth, DefaultWindowHeight };
-
-	// Engine Timing
-	// -------------
-	TimeSpan elapsedTime = 0.0f;
-	TimeSpan currentTime, lastTime;
-	uint64_t elapsedFrames = 0;
-
-	// ImGui Variables
-	// ---------------
+	// NOTE: Gui
 	bool showMainAppEngineWindow = false;
 	bool exclusiveAppEngineWindow = false;
 	bool showMainMenuBar = true;
@@ -157,26 +75,12 @@ private:
 	LicenseWindow licenseWindow;
 	bool showStyleEditor = false;
 	bool showDemoWindow = false;
-	bool showSwapInterval = true;
+	bool showSwapInterval = false;
 	bool versionWindowOpen = false;
-	// ---------------
 
-	// App Engine
-	// -----------
 	UniquePtr<App::Engine> appEngine = nullptr;
-	// -----------------
-
-	// Main Editor
-	// -----------
 	UniquePtr<Editor::EditorManager> editorManager = nullptr;
-	// -----------------
-
-	// Data Test Components
-	// -----------------
 	std::vector<RefPtr<BaseWindow>> dataTestComponents;
-	// -----------------
 
-	static const char* mainDockSpaceID;
-	static Application* globalCallbackApplication;
-	static Application* GetApplicationPointer(GLFWwindow* window);
+	static constexpr const char* mainDockSpaceID = "MainDockSpace##Application";
 };

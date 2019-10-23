@@ -86,7 +86,7 @@ namespace DataTest
 	void InputTestWindow::RefreshDevices()
 	{
 		if (!Keyboard::GetInstanceInitialized())
-			Keyboard::TryInitializeInstance(GetParent()->GetWindow());
+			Keyboard::TryInitializeInstance(GetParent()->GetHost().GetWindow());
 
 		if (!DualShock4::GetInstanceInitialized())
 			DualShock4::TryInitializeInstance();

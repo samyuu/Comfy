@@ -10,7 +10,7 @@
 // NOTE: WM_*, EM_*, LB_*, CB_*
 // #define NOWINMESSAGES
 // NOTE: WS_*, CS_*, ES_*, LBS_*, SBS_*, CBS_*
-#define NOWINSTYLES
+// #define NOWINSTYLES
 // NOTE: SM_*
 #define NOSYSMETRICS
 // NOTE: MF_*
@@ -24,7 +24,7 @@
 // NOTE: Binary and Tertiary raster ops
 #define NORASTEROPS
 // NOTE: SW_*
-#define NOSHOWWINDOW
+// #define NOSHOWWINDOW
 // NOTE: OEM Resource values
 #define OEMRESOURCE
 // NOTE: Atom Manager routines
@@ -44,7 +44,7 @@
 // NOTE: All USER defines and routines
 // #define NOUSER
 // NOTE: All NLS defines and routines
-#define NONLS
+// #define NONLS
 // NOTE: MB_* and MessageBox()
 #define NOMB
 // NOTE: GMEM_*, LMEM_*, GHND, LHND, associated routines
@@ -54,9 +54,9 @@
 // NOTE: Macros min(a,b) and max(a,b)
 #define NOMINMAX
 // NOTE: typedef MSG and associated routines
-#define NOMSG
+// #define NOMSG
 // NOTE: OpenFile(), OemToAnsi, AnsiToOem, and OF_*
-#define NOOPENFILE
+// #define NOOPENFILE
 // NOTE: SB_* and scrolling routines
 #define NOSCROLL
 // NOTE: All Service Controller routines, SERVICE_ equates, etc.
@@ -68,7 +68,7 @@
 // NOTE: SetWindowsHook and WH_*
 #define NOWH
 // NOTE: GWL_*, GCL_*, associated routines
-#define NOWINOFFSETS
+// #define NOWINOFFSETS
 // NOTE: COMM driver routines
 #define NOCOMM
 // NOTE: Kanji support stuff.
@@ -78,7 +78,7 @@
 // NOTE: Profiler interface.
 #define NOPROFILER
 // NOTE: DeferWindowPos routines
-#define NODEFERWINDOWPOS
+// #define NODEFERWINDOWPOS
 // NOTE: Modem Configuration Extensions
 #define NOMCX
 // NOTE: Exclude APIs such as Cryptography, DDE, RPC, Shell, and Windows Sockets
