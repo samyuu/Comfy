@@ -7,7 +7,7 @@ namespace Editor
 {
 	void CameraController2D::Update(Graphics::OrthographicCamera& camera, vec2 relativeMouse)
 	{
-		for (int i = 0; i < IM_ARRAYSIZE(windowHoveredOnClick); i++)
+		for (int i = 0; i < static_cast<int>(windowHoveredOnClick.size()); i++)
 		{
 			if (Gui::IsMouseClicked(i))
 				windowHoveredOnClick[i] = Gui::IsWindowHovered();
@@ -22,12 +22,12 @@ namespace Editor
 
 	void CameraController2D::SetUpdateCameraZoom(Graphics::OrthographicCamera& camera, float newZoom, vec2 origin)
 	{
-		vec2 worldSpace = camera.ScreenToWorldSpace(origin);
+		const vec2 worldSpace = camera.ScreenToWorldSpace(origin);
 
 		camera.Zoom = std::clamp(newZoom, ZoomMin, ZoomMax);
 		camera.UpdateMatrices();
 
-		vec2 postWorldSpace = camera.ScreenToWorldSpace(origin);
+		const vec2 postWorldSpace = camera.ScreenToWorldSpace(origin);
 
 		camera.Position -= (postWorldSpace - worldSpace) * vec2(camera.Zoom);
 		camera.Position = glm::round(camera.Position);
@@ -57,7 +57,7 @@ namespace Editor
 
 	void CameraController2D::UpdateMouseInput(Graphics::OrthographicCamera& camera, vec2 relativeMouse)
 	{
-		ImGuiIO& io = Gui::GetIO();
+		const auto& io = Gui::GetIO();
 
 		if (windowHoveredOnClick[MouseDragButton] && Gui::IsMouseDown(MouseDragButton))
 		{
@@ -69,7 +69,7 @@ namespace Editor
 		{
 			if (Gui::IsWindowHovered())
 			{
-				float newZoom = camera.Zoom * ((io.MouseWheel > 0) ? ZoomStep : (1.0f / ZoomStep));
+				const float newZoom = camera.Zoom * ((io.MouseWheel > 0) ? ZoomStep : (1.0f / ZoomStep));
 				SetUpdateCameraZoom(camera, newZoom, relativeMouse);
 			}
 		}

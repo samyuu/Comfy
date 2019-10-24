@@ -1,5 +1,6 @@
 #pragma once
 #include "Types.h"
+#include "Core/CoreTypes.h"
 #include "Graphics/Camera.h"
 
 namespace Editor
@@ -21,7 +22,7 @@ namespace Editor
 	private:
 		bool updateKeyboardControls = false;
 		bool updateMouseControls = true;
-		bool windowHoveredOnClick[5];
+		std::array<bool, 5> windowHoveredOnClick;
 
 		void UpdateKeyboardInput(Graphics::OrthographicCamera& camera);
 		void UpdateMouseInput(Graphics::OrthographicCamera& camera, vec2 relativeMouse);

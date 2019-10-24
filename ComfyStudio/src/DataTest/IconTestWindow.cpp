@@ -25,7 +25,7 @@ namespace DataTest
 			Gui::Text("Name"); Gui::NextColumn();
 			Gui::Text("Icon"); Gui::NextColumn();
 			Gui::Separator();
-			for (size_t i = 0; i < IM_ARRAYSIZE(namedFontIcons); i++)
+			for (size_t i = 0; i < std::size(namedFontIcons); i++)
 			{
 				const NamedFontIcon& fontIcon = namedFontIcons[i];
 

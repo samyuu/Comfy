@@ -17,16 +17,11 @@ namespace DataTest
 		virtual ImGuiWindowFlags GetWindowFlags() const override;
 
 	private:
-		const float audioInstancesChildHeight = 240;
-		const char* testSongPath = "dev_ram/sound/song/sngtst.flac";
-		const char* testButtonSoundPath = "rom/sound/button/01_button1.wav";
+		static constexpr const float audioInstancesChildHeight = 240;
+		static constexpr const char* testSongPath = "dev_ram/sound/song/sngtst.flac";
+		static constexpr const char* testButtonSoundPath = "dev_ram/sound/button/01_button1.wav";
 
-		RefPtr<Audio::MemorySampleProvider> songTestStream = nullptr;
-		RefPtr<Audio::MemorySampleProvider> buttonTestStream = nullptr;
-		RefPtr<Audio::AudioInstance> songAudioInstance = nullptr;
-
-		float testButtonVolume = Audio::AudioEngine::MaxVolume;
-
+	private:
 		struct ExtendedDeviceInfo
 		{
 			RtAudio::DeviceInfo Info;
@@ -35,8 +30,16 @@ namespace DataTest
 		};
 
 		std::vector<ExtendedDeviceInfo> deviceInfoList;
+
+		RefPtr<Audio::MemorySampleProvider> songTestStream = nullptr;
+		RefPtr<Audio::MemorySampleProvider> buttonTestStream = nullptr;
+		RefPtr<Audio::AudioInstance> songAudioInstance = nullptr;
+
+		float testButtonVolume = Audio::AudioEngine::MaxVolume;
+
 		Audio::AudioApi selectedAudioApi = Audio::AudioApi::Invalid;
 		Audio::ChannelMixer::MixingBehavior selectedMixingBehavior = static_cast<Audio::ChannelMixer::MixingBehavior>(-1);
+
 		int newBufferSize = -1;
 
 		static constexpr std::array<const char*, static_cast<size_t>(Audio::AudioApi::Count)> audioApiNames =
@@ -63,17 +66,17 @@ namespace DataTest
 			"Native Formats",
 		};
 
-		static constexpr struct { RtAudioFormat Format; const char* Name; } audioFormatDescriptions[6] =
+		static constexpr std::array<std::pair<RtAudioFormat, const char*>, 6> audioFormatDescriptions =
 		{
-			{ RTAUDIO_SINT8,	"SINT8"   },
-			{ RTAUDIO_SINT16,	"SINT16"  },
-			{ RTAUDIO_SINT24,	"SINT24"  },
-			{ RTAUDIO_SINT32,	"SINT32"  },
-			{ RTAUDIO_FLOAT32,	"FLOAT32" },
-			{ RTAUDIO_FLOAT64,	"FLOAT64" },
+			std::make_pair(RTAUDIO_SINT8,	"SINT8"),
+			std::make_pair(RTAUDIO_SINT16,	"SINT16"),
+			std::make_pair(RTAUDIO_SINT24,	"SINT24"),
+			std::make_pair(RTAUDIO_SINT32,	"SINT32"),
+			std::make_pair(RTAUDIO_FLOAT32,	"FLOAT32"),
+			std::make_pair(RTAUDIO_FLOAT64,	"FLOAT64"),
 		};
 
 		void RefreshDeviceInfoList();
-		void ShowDeviceInfoProperties(ExtendedDeviceInfo& deviceInfo, int uid);
+		void ShowDeviceInfoProperties(const ExtendedDeviceInfo& deviceInfo, int uid);
 	};
 }

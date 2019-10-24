@@ -83,7 +83,7 @@ namespace Editor
 
 		bool checkHitsoundsInCallback = false;
 		struct { bool Down, WasDown; } buttonPlacementKeyStates[12];
-		struct { TargetType Type; KeyCode Key; } buttonPlacementMapping[12]
+		static constexpr struct { TargetType Type; KeyCode Key; } buttonPlacementMapping[12]
 		{
 			{ TargetType_Sankaku, KeyCode_W },
 			{ TargetType_Shikaku, KeyCode_A },

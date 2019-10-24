@@ -283,21 +283,23 @@ namespace DataTest
 
 			if (Gui::IsWindowFocused())
 			{
-				static KeyCode keys[] =
+				static constexpr std::array keys =
 				{
-					'W',
-					'A',
-					'S',
-					'D',
-					'I',
-					'J',
-					'K',
-					'L'
+					KeyCode_W,
+					KeyCode_W,
+					KeyCode_A,
+					KeyCode_S,
+					KeyCode_D,
+					KeyCode_I,
+					KeyCode_J,
+					KeyCode_K,
+					KeyCode_L
 				};
-				for (size_t i = 0; i < IM_ARRAYSIZE(keys); i++)
-					addButtonSound |= Keyboard::IsTapped(keys[i]);
 
-				static Ds4Button buttons[] =
+				for (const auto& keyCode : keys)
+					addButtonSound |= Keyboard::IsTapped(keyCode);
+
+				static constexpr std::array buttons =
 				{
 					Ds4Button::DPad_Up,
 					Ds4Button::DPad_Down,
@@ -310,8 +312,9 @@ namespace DataTest
 					Ds4Button::L_Trigger,
 					Ds4Button::R_Trigger,
 				};
-				for (size_t i = 0; i < IM_ARRAYSIZE(buttons); i++)
-					addButtonSound |= DualShock4::IsTapped(buttons[i]);
+
+				for (const auto& button : buttons)
+					addButtonSound |= DualShock4::IsTapped(button);
 			}
 
 			if (addButtonSound)
@@ -360,19 +363,19 @@ namespace DataTest
 
 				size_t totalContainedFlags = 0;
 
-				for (size_t i = 0; i < IM_ARRAYSIZE(audioFormatDescriptions); i++)
+				for (const auto& [format, name] : audioFormatDescriptions)
 				{
-					if ((nativeFormats & audioFormatDescriptions[i].Format) != 0)
+					if ((nativeFormats & format) != 0)
 						totalContainedFlags++;
 				}
 
 				size_t flagStringsAdded = 0;
-				for (size_t i = 0; i < IM_ARRAYSIZE(audioFormatDescriptions); i++)
+				for (const auto&[format, name] : audioFormatDescriptions)
 				{
-					if ((nativeFormats & audioFormatDescriptions[i].Format) != 0)
+					if ((nativeFormats & format) != 0)
 					{
 						flagStringsAdded++;
-						stringStream << audioFormatDescriptions[i].Name;
+						stringStream << name;
 
 						if (flagStringsAdded != totalContainedFlags)
 							stringStream << ", ";
@@ -384,7 +387,7 @@ namespace DataTest
 		}
 	}
 
-	void AudioTestWindow::ShowDeviceInfoProperties(ExtendedDeviceInfo& deviceInfo, int uid)
+	void AudioTestWindow::ShowDeviceInfoProperties(const ExtendedDeviceInfo& deviceInfo, int uid)
 	{
 		Gui::PushID(uid);
 

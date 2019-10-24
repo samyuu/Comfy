@@ -191,7 +191,7 @@ namespace Editor
 
 	void TargetTimeline::UpdateOnCallbackPlacementSounds()
 	{
-		for (size_t i = 0; i < IM_ARRAYSIZE(buttonPlacementMapping); i++)
+		for (size_t i = 0; i < std::size(buttonPlacementMapping); i++)
 		{
 			buttonPlacementKeyStates[i].WasDown = buttonPlacementKeyStates[i].Down;
 			buttonPlacementKeyStates[i].Down = Gui::IsKeyDown(buttonPlacementMapping[i].Key);
@@ -752,7 +752,10 @@ namespace Editor
 	{
 		const auto& io = Gui::GetIO();
 
-		// Mouse X buttons, increase / decrease grid division
+		if (!Gui::IsWindowFocused())
+			return;
+		
+		// NOTE: Mouse X buttons, increase / decrease grid division
 		if (Gui::IsMouseClicked(3)) SelectNextGridDivision(-1);
 		if (Gui::IsMouseClicked(4)) SelectNextGridDivision(+1);
 
@@ -760,7 +763,7 @@ namespace Editor
 			buttonAnimations[type].ElapsedTime += io.DeltaTime;
 
 		TimelineTick cursorTick = RoundToGrid(GetCursorTick());
-		for (size_t i = 0; i < IM_ARRAYSIZE(buttonPlacementMapping); i++)
+		for (size_t i = 0; i < std::size(buttonPlacementMapping); i++)
 		{
 			if (Gui::IsKeyPressed(buttonPlacementMapping[i].Key, false))
 			{
