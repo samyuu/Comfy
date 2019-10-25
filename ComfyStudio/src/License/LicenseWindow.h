@@ -5,7 +5,6 @@
 
 struct LicenseInfo
 {
-
 	union
 	{
 		struct
@@ -56,10 +55,12 @@ private:
 	bool dataLoaded = false;
 	bool isWindowOpen = true;
 	int selectedIndex = 0;
-	const float listWidth = 0.2f;
-
 	std::vector<LicenseInfo> licenseData;
-	const vec4 remarkTextColor = { 0.85f, 0.86f, 0.15f, 1.0f };
+
+	static constexpr float listWidth = 0.2f;
+	static constexpr const vec4 remarkTextColor = vec4(0.85f, 0.86f, 0.15f, 1.0f);
+	
+	static constexpr const char* licenseDirectory = "rom/license";
 
 	void LoadLicenseData();
 };

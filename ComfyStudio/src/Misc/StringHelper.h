@@ -5,6 +5,9 @@ void TrimLeft(std::string& string);
 void TrimRight(std::string& string);
 void Trim(std::string& string);
 
+bool StartsWith(const std::string_view string, char suffix);
+bool StartsWith(const std::wstring_view string, wchar_t suffix);
+
 bool StartsWith(const std::string_view string, const std::string_view prefix);
 bool StartsWith(const std::wstring_view string, const std::wstring_view prefix);
 

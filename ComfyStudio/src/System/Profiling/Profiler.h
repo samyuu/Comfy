@@ -42,7 +42,7 @@ namespace System
 			inline TimeSpan Duration() const { return EndTime - StartTime; };
 		};
 
-		int32_t currentDepth;
+		int32_t currentDepth = 0;
 
 		// NOTE: Time set by StartFrame / EndFrame
 		TimeSpan frameStartTime, frameEndTime;

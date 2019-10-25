@@ -18,8 +18,10 @@ bool LicenseWindow::DrawGui()
 	Gui::BeginChild("ListChild##LicenseWindow", vec2(Gui::GetWindowWidth() * listWidth, 0.0f), true, scrollBarWindowFlags);
 	{
 		for (int i = 0; i < licenseData.size(); i++)
+		{
 			if (Gui::Selectable(licenseData[i].Name.c_str(), i == selectedIndex))
 				selectedIndex = i;
+		}
 	}
 	Gui::EndChild();
 	Gui::SameLine();
@@ -70,7 +72,7 @@ const char* LicenseWindow::GetWindowName() const
 
 void LicenseWindow::LoadLicenseData()
 {
-	auto licenseFilePaths = FileSystem::GetFiles("rom/license");
+	auto licenseFilePaths = FileSystem::GetFiles(licenseDirectory);
 	licenseData.reserve(licenseFilePaths.size());
 
 	for (const auto& filePath : licenseFilePaths)
@@ -85,9 +87,8 @@ void LicenseWindow::LoadLicenseData()
 
 		for (size_t i = 0; i < lines.size(); i++)
 		{
-			const std::string& line = lines[i];
-
-			if (line.size() > 0 && line.front() == '#')
+			const auto& line = lines[i];
+			if (StartsWith(line, '#'))
 			{
 				if (line == "#name")
 					type = name;

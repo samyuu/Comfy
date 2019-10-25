@@ -33,6 +33,16 @@ void Trim(std::string& string)
 	TrimRight(string);
 }
 
+bool StartsWith(const std::string_view string, char suffix)
+{
+	return !string.empty() && string.front() == suffix;
+}
+
+bool StartsWith(const std::wstring_view string, wchar_t suffix)
+{
+	return !string.empty() && string.front() == suffix;
+}
+
 bool StartsWith(const std::string_view string, const std::string_view prefix)
 {
 	return string.find(prefix) == 0;
@@ -48,19 +58,19 @@ bool StartsWithInsensitive(const std::string_view string, const std::string_view
 	return std::equal(prefix.begin(), prefix.end(), string.begin());
 }
 
-bool StartsWithInsensitive(const std::wstring_view string, const std::wstring& prefix)
+bool StartsWithInsensitive(const std::wstring_view string, const std::wstring_view prefix)
 {
 	return std::equal(prefix.begin(), prefix.end(), string.begin());
 }
 
 bool EndsWith(const std::string_view string, char suffix)
 {
-	return string.size() > 0 && string.back() == suffix;
+	return !string.empty() && string.back() == suffix;
 }
 
 bool EndsWith(const std::wstring_view string, wchar_t suffix)
 {
-	return string.size() > 0 && string.back() == suffix;
+	return !string.empty() && string.back() == suffix;
 }
 
 bool EndsWith(const std::string_view string, const std::string_view suffix)

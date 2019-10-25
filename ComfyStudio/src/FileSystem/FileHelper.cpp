@@ -9,9 +9,6 @@
 
 namespace FileSystem
 {
-	using FileSystemPath = std::filesystem::path;
-	using DirectoryIterator = std::filesystem::directory_iterator;
-
 	bool CreateDirectoryFile(const std::wstring& filePath)
 	{
 		return ::CreateDirectoryW(filePath.c_str(), NULL);
@@ -237,28 +234,28 @@ namespace FileSystem
 	std::string Combine(const std::string& pathA, const std::string & pathB)
 	{
 		if (pathA.size() > 0 && pathA.back() == '/')
-			return pathA.substr(0, pathA.length() - 1) + "/" + pathB;
+			return pathA.substr(0, pathA.length() - 1) + '/' + pathB;
 
-		return pathA + "/" + pathB;
+		return pathA + '/' + pathB;
 	}
 
 	std::wstring Combine(const std::wstring& pathA, const std::wstring& pathB)
 	{
 		if (pathA.size() > 0 && pathA.back() == L'/')
-			return pathA.substr(0, pathA.length() - 1) + L"/" + pathB;
+			return pathA.substr(0, pathA.length() - 1) + L'/' + pathB;
 
-		return pathA + L"/" + pathB;
+		return pathA + L'/' + pathB;
 	}
 
 	std::string GetFileName(const std::string& filePath, bool extension)
 	{
-		FileSystemPath path = std::filesystem::u8path(filePath);
+		const auto path = std::filesystem::u8path(filePath);
 		return extension ? path.filename().string() : (path.has_stem() ? path.stem().string() : "");
 	}
 
 	std::wstring GetFileName(const std::wstring& filePath, bool extension)
 	{
-		FileSystemPath path(filePath);
+		const std::filesystem::path path(filePath);
 		return extension ? path.filename().wstring() : (path.has_stem() ? path.stem().wstring() : L"");
 	}
 
@@ -274,20 +271,20 @@ namespace FileSystem
 
 	std::string GetFileExtension(const std::string& filePath)
 	{
-		FileSystemPath path = std::filesystem::u8path(filePath);
+		const auto path = std::filesystem::u8path(filePath);
 		return path.extension().string();
 	}
 
 	std::wstring GetFileExtension(const std::wstring& filePath)
 	{
-		FileSystemPath path(filePath);
+		const std::filesystem::path path(filePath);
 		return path.extension().wstring();
 	}
 
 	std::vector<std::string> GetFiles(const std::string& directory)
 	{
 		std::vector<std::string> files;
-		for (const auto& file : DirectoryIterator(directory))
+		for (const auto& file : std::filesystem::directory_iterator(directory))
 			files.push_back(file.path().u8string());
 		return files;
 	}
@@ -295,7 +292,7 @@ namespace FileSystem
 	std::vector<std::wstring> GetFiles(const std::wstring& directory)
 	{
 		std::vector<std::wstring> files;
-		for (const auto& file : DirectoryIterator(directory))
+		for (const auto& file : std::filesystem::directory_iterator(directory))
 			files.push_back(file.path().wstring());
 		return files;
 	}
