@@ -1,16 +1,7 @@
 #include "Keyboard.h"
 #include <glfw/glfw3.h>
 
-Keyboard* Keyboard::instance;
-
-bool Keyboard::TryInitializeInstance(GLFWwindow* window)
-{
-	if (GetInstanceInitialized())
-		return true;
-
-	instance = new Keyboard(window);
-	return true;
-}
+Keyboard* Keyboard::instance = nullptr;
 
 Keyboard::Keyboard(GLFWwindow* window) : window(window)
 {
@@ -31,32 +22,41 @@ bool Keyboard::PollInput()
 	return true;
 }
 
-bool Keyboard::_IsDown(KeyCode key)
+bool Keyboard::Instance_IsDown(KeyCode key) const
 {
 	return currentState[key];
 }
 
-bool Keyboard::_IsUp(KeyCode key)
+bool Keyboard::Instance_IsUp(KeyCode key) const
 {
-	return !_IsDown(key);
+	return !Instance_IsDown(key);
 }
 
-bool Keyboard::_IsTapped(KeyCode key)
+bool Keyboard::Instance_IsTapped(KeyCode key) const
 {
-	return _IsDown(key) && _WasUp(key);
+	return Instance_IsDown(key) && Instance_WasUp(key);
 }
 
-bool Keyboard::_IsReleased(KeyCode key)
+bool Keyboard::Instance_IsReleased(KeyCode key) const
 {
-	return _IsUp(key) && _WasDown(key);
+	return Instance_IsUp(key) && Instance_WasDown(key);
 }
 
-bool Keyboard::_WasDown(KeyCode key)
+bool Keyboard::Instance_WasDown(KeyCode key) const
 {
 	return lastState[key];
 }
 
-bool Keyboard::_WasUp(KeyCode key)
+bool Keyboard::Instance_WasUp(KeyCode key) const
 {
-	return !_WasDown(key);
+	return !Instance_WasDown(key);
+}
+
+bool Keyboard::TryInitializeInstance(GLFWwindow* window)
+{
+	if (GetInstanceInitialized())
+		return true;
+
+	instance = new Keyboard(window);
+	return true;
 }

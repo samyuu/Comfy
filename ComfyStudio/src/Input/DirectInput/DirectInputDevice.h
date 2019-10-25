@@ -4,7 +4,7 @@
 class DirectInputDevice
 {
 protected:
-	IDirectInputDevice8 *directInputdevice;
+	IDirectInputDevice8A* directInputdevice;
 
 	HRESULT DI_CreateDevice(const GUID& guid);
 	HRESULT DI_SetDataFormat(LPCDIDATAFORMAT dataFormat);

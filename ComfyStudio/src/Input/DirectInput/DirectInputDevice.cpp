@@ -1,53 +1,53 @@
 #include "DirectInputDevice.h"
 
-HRESULT DirectInputDevice::DI_CreateDevice(const GUID &guid)
+HRESULT DirectInputDevice::DI_CreateDevice(const GUID& guid)
 {
 	if (!DirectInputInitialized())
 		return DIERR_NOTINITIALIZED;
 
-	HRESULT result = IDirectInputInstance->CreateDevice(guid, &directInputdevice, NULL);
+	const auto result = IDirectInputInstance->CreateDevice(guid, &directInputdevice, NULL);
 	return result;
 }
 
 HRESULT DirectInputDevice::DI_SetDataFormat(LPCDIDATAFORMAT dataFormat)
 {
-	HRESULT result = directInputdevice->SetDataFormat(dataFormat);
+	const auto result = directInputdevice->SetDataFormat(dataFormat);
 	return result;
 }
 
 HRESULT DirectInputDevice::DI_SetCooperativeLevel(HWND windowHandle, DWORD flags)
 {
-	HRESULT result = directInputdevice->SetCooperativeLevel(windowHandle, flags);
+	const auto result = directInputdevice->SetCooperativeLevel(windowHandle, flags);
 	return result;
 }
 
 HRESULT DirectInputDevice::DI_Acquire()
 {
-	HRESULT result = directInputdevice->Acquire();
+	const auto result = directInputdevice->Acquire();
 	return result;
 }
 
 HRESULT DirectInputDevice::DI_Unacquire()
 {
-	HRESULT result = directInputdevice->Unacquire();
+	const auto result = directInputdevice->Unacquire();
 	return result;
 }
 
 HRESULT DirectInputDevice::DI_Release()
 {
-	HRESULT result = directInputdevice->Release();
+	const auto result = directInputdevice->Release();
 	return result;
 }
 
 HRESULT DirectInputDevice::DI_Poll()
 {
-	HRESULT result = directInputdevice->Poll();
+	const auto result = directInputdevice->Poll();
 	return result;
 }
 
 HRESULT DirectInputDevice::DI_GetDeviceState(DWORD size, LPVOID data)
 {
-	HRESULT result = directInputdevice->GetDeviceState(size, data);
+	const auto result = directInputdevice->GetDeviceState(size, data);
 	return result;
 }
 
@@ -56,8 +56,7 @@ void DirectInputDevice::DI_Dispose()
 	if (directInputdevice == nullptr)
 		return;
 
-	HRESULT result = NULL;
-
+	HRESULT result;
 	result = DI_Unacquire();
 	result = DI_Release();
 }

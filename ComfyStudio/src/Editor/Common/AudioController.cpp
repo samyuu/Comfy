@@ -74,14 +74,13 @@ namespace Editor
 	{
 		float volume = buttonSoundVolume;
 
-		// subject to change
+		// NOTE: Subject to change
 		float threshold = 50.0f;
 		if (timeSinceLastButtonSound.TotalMilliseconds() < threshold)
 		{
-			float elapsed = static_cast<float>(timeSinceLastButtonSound.TotalMilliseconds() / threshold);
+			const float elapsed = static_cast<float>(timeSinceLastButtonSound.TotalMilliseconds() / threshold);
 			volume *= (0.0f + elapsed * (1.0f - 0.0f));
 		}
-		// -----------------
 
 		audioInstance->SetVolume(volume);
 		audioInstance->SetSampleProvider(GetButtonSoundSource(buttonSoundIndex));

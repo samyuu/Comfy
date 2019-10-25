@@ -1,11 +1,11 @@
 #pragma once
+#include "Types.h"
 #include "DirectInput.h"
 #include "Ds4Button.h"
-#include "Types.h"
 
-inline vec2 GetDirection(float degrees)
+inline constexpr vec2 GetDirection(const float degrees)
 {
-	float radians = glm::radians(degrees);
+	const float radians = glm::radians(degrees);
 	return vec2(cos(radians), sin(radians));
 }
 
@@ -32,7 +32,6 @@ struct Trigger
 struct Ds4State
 {
 	DIJOYSTATE2 DI_JoyState;
-
 	BYTE Buttons[static_cast<size_t>(Ds4Button::Count)];
 
 	Dpad Dpad;
