@@ -9,7 +9,7 @@ namespace Audio
 		return ".mp3";
 	}
 
-	AudioDecoderResult Mp3Decoder::DecodeParseAudio(void* fileData, size_t fileSize, AudioDecoderOutputData* outputData)
+	AudioDecoderResult Mp3Decoder::DecodeParseAudio(const void* fileData, size_t fileSize, AudioDecoderOutputData* outputData)
 	{
 		drmp3_config config;
 		config.outputChannels = AudioEngine::GetInstance()->GetChannelCount();

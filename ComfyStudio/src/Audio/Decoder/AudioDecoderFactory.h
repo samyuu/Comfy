@@ -1,8 +1,8 @@
 #pragma once
 #include "Types.h"
+#include "Core/CoreTypes.h"
 #include "IAudioDecoder.h"
 #include "Audio/SampleProvider/MemorySampleProvider.h"
-#include "Core/CoreTypes.h"
 
 namespace Audio
 {

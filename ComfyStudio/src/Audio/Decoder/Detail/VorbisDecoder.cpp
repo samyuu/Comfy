@@ -7,7 +7,7 @@ namespace Audio
 		return ".ogg";
 	}
 
-	AudioDecoderResult VorbisDecoder::DecodeParseAudio(void* fileData, size_t fileSize, AudioDecoderOutputData* outputData)
+	AudioDecoderResult VorbisDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, AudioDecoderOutputData* outputData)
 	{
 		return AudioDecoderResult::Failure;
 	}

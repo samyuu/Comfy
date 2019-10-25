@@ -8,7 +8,7 @@ namespace Audio
 		return ".wav";
 	}
 
-	AudioDecoderResult WavDecoder::DecodeParseAudio(void* fileData, size_t fileSize, AudioDecoderOutputData* outputData)
+	AudioDecoderResult WavDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, AudioDecoderOutputData* outputData)
 	{
 		uint32_t channels, sampleRate;
 		uint64_t totalSampleCount;

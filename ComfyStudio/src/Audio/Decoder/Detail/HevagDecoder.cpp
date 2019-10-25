@@ -8,7 +8,7 @@ namespace Audio
 		return ".vag";
 	}
 
-	AudioDecoderResult HevagDecoder::DecodeParseAudio(void* fileData, size_t fileSize, AudioDecoderOutputData* outputData)
+	AudioDecoderResult HevagDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, AudioDecoderOutputData* outputData)
 	{
 		return AudioDecoderResult::Failure;
 	}

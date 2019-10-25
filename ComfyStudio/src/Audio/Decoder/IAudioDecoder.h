@@ -20,6 +20,6 @@ namespace Audio
 	{
 	public:
 		virtual const char* GetFileExtensions() const = 0;
-		virtual AudioDecoderResult DecodeParseAudio(void* fileData, size_t fileSize, AudioDecoderOutputData* outputData) = 0;
+		virtual AudioDecoderResult DecodeParseAudio(const void* fileData, size_t fileSize, AudioDecoderOutputData* outputData) = 0;
 	};
 }

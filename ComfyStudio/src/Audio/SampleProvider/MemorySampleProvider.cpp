@@ -1,6 +1,5 @@
 #include "MemorySampleProvider.h"
 #include "Audio/Core/AudioEngine.h"
-#include <assert.h>
 
 namespace Audio
 {
@@ -18,26 +17,26 @@ namespace Audio
 
 		if ((frameOffset + framesToRead) <= 0 || frameOffset > GetFrameCount())
 		{
-			// fill the buffer with silence
+			// NOTE: Fill the buffer with silence
 			return framesToRead;
 		}
 
 		if (frameOffset < 0 && (frameOffset + framesToRead) > 0)
 		{
-			int64_t nonSilentSamples = (framesToRead + frameOffset) * channelsToFill;
+			const int64_t nonSilentSamples = (framesToRead + frameOffset) * channelsToFill;
 			int16_t* nonSilentBuffer = (bufferToFill - (frameOffset * channelsToFill));
 
-			// fill a portion of the buffer
+			// NOTE: Fill a portion of the buffer
 			std::copy(sampleData.data(), sampleData.data() + nonSilentSamples, nonSilentBuffer);
 
 			return framesToRead;
 		}
 
-		// fill the whole buffer
-		int16_t* sampleSource = &sampleData[frameOffset * channelsToFill];
-		int64_t framesRead = ((frameOffset + framesToRead) > GetFrameCount()) ? (GetFrameCount() - frameOffset) : framesToRead;
+		// NOTE: Fill the whole buffer
+		const int16_t* sampleSource = &sampleData[frameOffset * channelsToFill];
+		const int64_t framesRead = ((frameOffset + framesToRead) > GetFrameCount()) ? (GetFrameCount() - frameOffset) : framesToRead;
+		
 		std::copy(sampleSource, sampleSource + (framesRead * channelsToFill), bufferToFill);
-
 		return framesToRead;
 	}
 
