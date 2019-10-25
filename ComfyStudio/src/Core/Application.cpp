@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "App/Engine.h"
 #include "FileSystem/FileHelper.h"
 #include "DataTest/AudioTestWindow.h"
 #include "DataTest/IconTestWindow.h"

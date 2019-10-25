@@ -3,11 +3,11 @@
 #include "ApplicationHost.h"
 #include "BaseWindow.h"
 #include "Editor/Core/Editor.h"
-#include "Audio/Core/AudioEngine.h"
-#include "Graphics/Graphics.h"
-#include "App/Engine.h"
 #include "License/LicenseWindow.h"
 #include "ImGui/GuiRenderer.h"
+
+// NOTE: Forward declare to avoid include polution
+namespace App { class Engine; }
 
 class Application
 {
