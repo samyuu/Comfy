@@ -53,7 +53,8 @@ bool Application::BaseInitialize()
 		return false;
 
 	hasBeenInitialized = true;
-
+	TimeSpan::Initialize();
+	
 	if (!host.Initialize())
 		return false;
 

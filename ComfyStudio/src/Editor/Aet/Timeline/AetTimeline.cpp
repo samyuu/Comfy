@@ -372,7 +372,7 @@ namespace Editor
 
 		// NOTE: Time drag text
 		{
-			char cursorTimeBuffer[32];
+			char cursorTimeBuffer[TimeSpan::RequiredFormatBufferSize];
 			cursorTime.FormatTime(cursorTimeBuffer, sizeof(cursorTimeBuffer));
 
 			float cursorFrame = GetCursorFrame().Frames();

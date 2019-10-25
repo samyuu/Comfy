@@ -259,7 +259,7 @@ void ImGui_ImplGlfw_NewFrame()
 		ImGui_ImplGlfw_UpdateMonitors();
 
 	// Setup time step
-	double current_time = glfwGetTime();
+	double current_time = TimeSpan::GetTimeNow().TotalSeconds();
 	io.DeltaTime = g_Time > 0.0 ? (float)(current_time - g_Time) : (float)(1.0f / 60.0f);
 	g_Time = current_time;
 

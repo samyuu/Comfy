@@ -102,7 +102,7 @@ namespace Editor
 		// ----------------------
 
 		// --------------
-		char timeInputBuffer[32] = "00:00.000";
+		char timeInputBuffer[TimeSpan::RequiredFormatBufferSize] = "00:00.000";
 		// --------------
 		bool timeSelectionActive = false;
 		TimelineTick timeSelectionStart, timeSelectionEnd;
