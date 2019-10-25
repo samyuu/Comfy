@@ -33,37 +33,37 @@ void Trim(std::string& string)
 	TrimRight(string);
 }
 
-bool StartsWith(const std::string& string, const std::string& prefix)
+bool StartsWith(const std::string_view string, const std::string_view prefix)
 {
 	return string.find(prefix) == 0;
 }
 
-bool StartsWith(const std::wstring& string, const std::wstring& prefix)
+bool StartsWith(const std::wstring_view string, const std::wstring_view prefix)
 {
 	return string.find(prefix) == 0;
 }
 
-bool StartsWithInsensitive(const std::string& string, const std::string& prefix)
+bool StartsWithInsensitive(const std::string_view string, const std::string_view prefix)
 {
 	return std::equal(prefix.begin(), prefix.end(), string.begin());
 }
 
-bool StartsWithInsensitive(const std::wstring& string, const std::wstring& prefix)
+bool StartsWithInsensitive(const std::wstring_view string, const std::wstring& prefix)
 {
 	return std::equal(prefix.begin(), prefix.end(), string.begin());
 }
 
-bool EndsWith(const std::string& string, char suffix)
+bool EndsWith(const std::string_view string, char suffix)
 {
 	return string.size() > 0 && string.back() == suffix;
 }
 
-bool EndsWith(const std::wstring& string, wchar_t suffix)
+bool EndsWith(const std::wstring_view string, wchar_t suffix)
 {
 	return string.size() > 0 && string.back() == suffix;
 }
 
-bool EndsWith(const std::string& string, const std::string& suffix)
+bool EndsWith(const std::string_view string, const std::string_view suffix)
 {
 	if (suffix.size() > string.size())
 		return false;
@@ -71,7 +71,7 @@ bool EndsWith(const std::string& string, const std::string& suffix)
 	return std::equal(string.rbegin(), string.rbegin() + suffix.size(), suffix.rbegin(), suffix.rend());
 }
 
-bool EndsWith(const std::wstring& string, const std::wstring& suffix)
+bool EndsWith(const std::wstring_view string, const std::wstring_view suffix)
 {
 	if (suffix.size() > string.size())
 		return false;
@@ -79,7 +79,7 @@ bool EndsWith(const std::wstring& string, const std::wstring& suffix)
 	return std::equal(string.rbegin(), string.rbegin() + suffix.size(), suffix.rbegin(), suffix.rend());
 }
 
-bool EndsWithInsensitive(const std::string& string, const std::string& suffix)
+bool EndsWithInsensitive(const std::string_view string, const std::string_view suffix)
 {
 	if (suffix.size() > string.size())
 		return false;
@@ -87,7 +87,7 @@ bool EndsWithInsensitive(const std::string& string, const std::string& suffix)
 	return std::equal(string.rbegin(), string.rbegin() + suffix.size(), suffix.rbegin(), suffix.rend(), CaseInsenitiveComparison);
 }
 
-bool EndsWithInsensitive(const std::wstring& string, const std::wstring& suffix)
+bool EndsWithInsensitive(const std::wstring_view string, const std::wstring_view suffix)
 {
 	if (suffix.size() > string.size())
 		return false;
