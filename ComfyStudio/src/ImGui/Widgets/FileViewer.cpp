@@ -1,33 +1,14 @@
 #include "FileViewer.h"
 #include "FileSystem/FileHelper.h"
+#include "Misc/FileExtensionHelper.h"
 #include "Misc/StringHelper.h"
 #include <filesystem>
 
-#define FILE_ICON_FORMAT_STRING(iconName) ("  " iconName "  %s")
-#define CASE_FILE_ICON(caseValue, icon) case caseValue: return FILE_ICON_FORMAT_STRING(icon)
-
-using FileSystemPath = std::filesystem::path;
-using DirectoryIterator = std::filesystem::directory_iterator;
-
 namespace ImGui
 {
-	const std::array<FileTypeDefinition, static_cast<size_t>(FileType::Count)> FileViewer::fileTypeDictionary =
+	FileViewer::FileViewer(const std::string_view directory)
 	{
-		FileTypeDefinition(FileType::Default, { "." }),
-		FileTypeDefinition(FileType::Text, { ".txt" }),
-		FileTypeDefinition(FileType::Config, { ".ini", ".xml" }),
-		FileTypeDefinition(FileType::Binary, { ".bin" }),
-		FileTypeDefinition(FileType::Image, { ".png", ".jpg", ".jpeg", ".gif", ".dds", ".bmp", ".psd" }),
-		FileTypeDefinition(FileType::Code, { ".c", ".cpp", ".cs", ".h", ".glsl" }),
-		FileTypeDefinition(FileType::Archive, { ".farc", ".7z", ".zip" }),
-		FileTypeDefinition(FileType::Video, { ".mp4", ".wmv" }),
-		FileTypeDefinition(FileType::Audio, { ".wav", ".flac", ".ogg", ".mp3" }),
-		FileTypeDefinition(FileType::Application, { ".exe", ".dll" }),
-	};
-
-	FileViewer::FileViewer(const std::string& directory)
-	{
-		SetDirectory(directory);
+		SetDirectory(std::string(directory));
 	}
 
 	FileViewer::~FileViewer()
@@ -203,42 +184,42 @@ namespace ImGui
 		std::vector<FilePathInfo> newDirectoryInfo;
 		newDirectoryInfo.reserve(8);
 
-		for (const auto& file : DirectoryIterator(widePath))
+		for (const auto& file : std::filesystem::directory_iterator(widePath))
 		{
 			if (!file.is_regular_file() && !file.is_directory())
 				continue;
 
 			newDirectoryInfo.emplace_back();
-			FilePathInfo *info = &newDirectoryInfo.back();
+			FilePathInfo& info = newDirectoryInfo.back();
 
-			FileSystemPath path = file.path();
-			info->FullPath = path.u8string();
-			info->ChildName = path.filename().u8string();
-			info->IsDirectory = file.is_directory();
-			info->FileSize = file.file_size();
-			
-			FileSystem::SanitizePath(info->FullPath);
-			FormatReadableFileSize(info->ReadableFileSize, info->FileSize);
+			const auto path = file.path();
+			info.FullPath = path.u8string();
+			info.ChildName = path.filename().u8string();
+			info.IsDirectory = file.is_directory();
+			info.FileSize = file.file_size();
 
-			if (info->IsDirectory)
+			FileSystem::SanitizePath(info.FullPath);
+			FormatReadableFileSize(info.ReadableFileSize, info.FileSize);
+
+			if (info.IsDirectory)
 			{
 				if (appendDirectorySlash)
-					info->ChildName += "/";
+					info.ChildName += '/';
 			}
 			else
 			{
-				info->FileType = useFileTypeIcons ? GetFileType(info->ChildName) : FileType::Default;
+				info.FileType = useFileTypeIcons ? GetFileType(info.ChildName) : FileType::Default;
 			}
 		}
 
 		directoryInfo.clear();
 		directoryInfo.reserve(newDirectoryInfo.size());
 
-		for (auto& info : newDirectoryInfo)
+		for (const auto& info : newDirectoryInfo)
 			if (info.IsDirectory)
 				directoryInfo.push_back(info);
 
-		for (auto& info : newDirectoryInfo)
+		for (const auto& info : newDirectoryInfo)
 			if (!info.IsDirectory)
 				directoryInfo.push_back(info);
 	}
@@ -253,8 +234,8 @@ namespace ImGui
 
 	void FileViewer::SetParentDirectory(const std::string& directory)
 	{
-		bool endingSlash = EndsWith(directory, '/') || EndsWith(directory, '\\');
-		auto parentDirectory = FileSystem::GetDirectory(endingSlash ? directory.substr(0, directory.length() - 1) : directory);
+		const bool endingSlash = EndsWith(directory, '/') || EndsWith(directory, '\\');
+		const auto parentDirectory = FileSystem::GetDirectory(endingSlash ? directory.substr(0, directory.length() - 1) : directory);
 
 		SetDirectory(parentDirectory);
 	}
@@ -281,22 +262,25 @@ namespace ImGui
 		FileSystem::OpenExplorerProperties(Utf8ToUtf16(filePath));
 	}
 
-	FileType FileViewer::GetFileType(const std::string& fileName)
+	FileType FileViewer::GetFileType(const std::string_view fileName)
 	{
-		for (const auto& definition : fileTypeDictionary)
+		const auto inputExtension = FileExtensionHelper::GetExtensionSubstring(fileName);
+		if (!inputExtension.empty())
 		{
-			for (const auto& extension : definition.Extensions)
+			for (const auto&[fileType, packedExtensions] : fileTypeDictionary)
 			{
-				if (EndsWithInsensitive(fileName, extension))
-					return definition.Type;
+				if (FileExtensionHelper::DoesAnyExtensionMatch(inputExtension, packedExtensions))
+					return fileType;
 			}
 		}
-
 		return FileType::Default;
 	}
 
 	const char* FileViewer::GetFileInfoFormatString(const FilePathInfo& info)
 	{
+#define FILE_ICON_FORMAT_STRING(iconName) ("  " iconName "  %s")
+#define CASE_FILE_ICON(caseValue, icon) case caseValue: return FILE_ICON_FORMAT_STRING(icon)
+
 		constexpr const char* formatString = "  %s";
 
 		if (info.IsDirectory)
@@ -314,9 +298,13 @@ namespace ImGui
 			CASE_FILE_ICON(FileType::Video, ICON_FA_FILE_VIDEO);
 			CASE_FILE_ICON(FileType::Audio, ICON_FA_FILE_AUDIO);
 			CASE_FILE_ICON(FileType::Application, ICON_FA_FILE);
+
 		default:
 			return FILE_ICON_FORMAT_STRING(ICON_FA_FILE);
 		}
+
+#undef CASE_FILE_ICON
+#undef FILE_ICON_FORMAT_STRING
 	}
 
 	const char* FileViewer::FormatFileType(FileType type)
@@ -354,17 +342,19 @@ namespace ImGui
 		if (fileSize <= 0)
 			return;
 
+		constexpr uint64_t unitFactor = 1024;
+		constexpr const char* narrowUnitsString = "B  KB MB GB TB PB EB ZB YB";
+
 		int unitIndex = 0;
-		while (fileSize > 1024 && unitIndex < 8)
+		while (fileSize > unitFactor && unitIndex < 8)
 		{
-			fileSize /= 1024;
+			fileSize /= unitFactor;
 			unitIndex++;
 		}
 
-		const char* units = "B  KB MB GB TB PB EB ZB YB";
-		const char* unit = &units[unitIndex * 3];
+		const char* unitOffset = &narrowUnitsString[unitIndex * 3];
 
 		value.reserve(16);
-		snprintf(const_cast<char*>(value.c_str()), value.capacity(), "%llu %c%c", fileSize, *(unit + 0), *(unit + 1));
+		snprintf(const_cast<char*>(value.c_str()), value.capacity(), "%llu %c%c", fileSize, unitOffset[0], unitOffset[1]);
 	}
 }

@@ -10,17 +10,10 @@ namespace ImGui
 		Default, Text, Config, Binary, Image, Code, Archive, Video, Audio, Application, Count
 	};
 
-	struct FileTypeDefinition
-	{
-		FileType Type;
-		std::vector<std::string> Extensions;
-		FileTypeDefinition(FileType type, std::vector<std::string> extensions) : Type(type), Extensions(extensions) {};
-	};
-
 	class FileViewer
 	{
 	public:
-		FileViewer(const std::string& directory);
+		FileViewer(const std::string_view directory);
 		~FileViewer();
 
 		bool DrawGui();
@@ -29,8 +22,8 @@ namespace ImGui
 		const std::string& GetFileToOpen() const;
 
 	private:
-		struct FilePathInfo 
-		{ 
+		struct FilePathInfo
+		{
 			std::string FullPath;
 			std::string ChildName;
 			bool IsDirectory;
@@ -61,11 +54,24 @@ namespace ImGui
 		void OpenContextItemDefaultProgram();
 		void OpenContextItemProperties();
 
-		static FileType GetFileType(const std::string& fileName);
+		static FileType GetFileType(const std::string_view fileName);
 		static const char* GetFileInfoFormatString(const FilePathInfo& info);
 		static const char* FormatFileType(FileType type);
 		static void FormatReadableFileSize(std::string& value, uint64_t fileSize);
-		
-		static const std::array<FileTypeDefinition, static_cast<size_t>(FileType::Count)> fileTypeDictionary;
+
+		static constexpr std::array<std::pair<FileType, const char*>, static_cast<size_t>(FileType::Count)> fileTypeDictionary =
+		{
+			std::make_pair(FileType::Default, "."),
+			std::make_pair(FileType::Text, ".txt"),
+			std::make_pair(FileType::Config, ".ini;.xml"),
+			std::make_pair(FileType::Binary, ".bin"),
+			std::make_pair(FileType::Image, ".png;.jpg;.jpeg;.gif;.dds;.bmp;.psd"),
+			std::make_pair(FileType::Code, ".c;.cpp;.cs;.h;.hpp;.glsl;.hlsl"),
+			std::make_pair(FileType::Archive, ".farc;.7z;.zip"),
+			std::make_pair(FileType::Video, ".mp4;.wmv;.mkv"),
+			std::make_pair(FileType::Audio, ".wav;.flac;.ogg;.mp3"),
+			std::make_pair(FileType::Application, ".exe;.dll"),
+		};
+
 	};
 }
