@@ -65,25 +65,25 @@ namespace FileSystem
 		inline double ReadDouble() { return readDoubleFunction(this); };
 
 	protected:
-		typedef void* (*ReadPtr_t)(BinaryReader*);
-		typedef int16_t (*ReadInt16_t)(BinaryReader*);
-		typedef uint16_t (*ReadUInt16_t)(BinaryReader*);
-		typedef int32_t (*ReadInt32_t)(BinaryReader*);
-		typedef uint32_t (*ReadUInt32_t)(BinaryReader*);
-		typedef int64_t (*ReadInt64_t)(BinaryReader*);
-		typedef uint64_t (*ReadUInt64_t)(BinaryReader*);
-		typedef float (*ReadFloat_t)(BinaryReader*);
-		typedef double (*ReadDouble_t)(BinaryReader*);
+		typedef void* ReadPtr_t(BinaryReader*);
+		typedef int16_t ReadInt16_t(BinaryReader*);
+		typedef uint16_t ReadUInt16_t(BinaryReader*);
+		typedef int32_t ReadInt32_t(BinaryReader*);
+		typedef uint32_t ReadUInt32_t(BinaryReader*);
+		typedef int64_t ReadInt64_t(BinaryReader*);
+		typedef uint64_t ReadUInt64_t(BinaryReader*);
+		typedef float ReadFloat_t(BinaryReader*);
+		typedef double ReadDouble_t(BinaryReader*);
 
-		ReadPtr_t readPtrFunction = nullptr;
-		ReadInt16_t readInt16Function = nullptr;
-		ReadUInt16_t readUInt16Function = nullptr;
-		ReadInt32_t readInt32Function = nullptr;
-		ReadUInt32_t readUInt32Function = nullptr;
-		ReadInt64_t readInt64Function = nullptr;
-		ReadUInt64_t readUInt64Function = nullptr;
-		ReadFloat_t readFloatFunction = nullptr;
-		ReadDouble_t readDoubleFunction = nullptr;
+		ReadPtr_t* readPtrFunction = nullptr;
+		ReadInt16_t* readInt16Function = nullptr;
+		ReadUInt16_t* readUInt16Function = nullptr;
+		ReadInt32_t* readInt32Function = nullptr;
+		ReadUInt32_t* readUInt32Function = nullptr;
+		ReadInt64_t* readInt64Function = nullptr;
+		ReadUInt64_t* readUInt64Function = nullptr;
+		ReadFloat_t* readFloatFunction = nullptr;
+		ReadDouble_t* readDoubleFunction = nullptr;
 
 		PtrMode pointerMode;
 		Endianness endianness;
@@ -111,14 +111,14 @@ namespace FileSystem
 		static float LE_ReadFloat(BinaryReader* reader) { return reader->Read<float>(); };
 		static double LE_ReadDouble(BinaryReader* reader) { return reader->Read<double>(); };
 
-		static int16_t BE_ReadInt16(BinaryReader* reader) { return ByteswapInt16(reader->Read<int16_t>()); };
-		static uint16_t BE_ReadUInt16(BinaryReader* reader) { return ByteswapUInt16(reader->Read<uint16_t>()); };
-		static int32_t BE_ReadInt32(BinaryReader* reader) { return ByteswapInt32(reader->Read<int32_t>()); };
-		static uint32_t BE_ReadUInt32(BinaryReader* reader) { return ByteswapUInt32(reader->Read<uint32_t>()); };
-		static int64_t BE_ReadInt64(BinaryReader* reader) { return ByteswapInt64(reader->Read<int64_t>()); };
-		static uint64_t BE_ReadUInt64(BinaryReader* reader) { return ByteswapUInt64(reader->Read<uint64_t>()); };
-		static float BE_ReadFloat(BinaryReader* reader) { return ByteswapFloat(reader->Read<float>()); };
-		static double BE_ReadDouble(BinaryReader* reader) { return ByteswapDouble(reader->Read<double>()); };
+		static int16_t BE_ReadInt16(BinaryReader* reader) { return Utilities::ByteswapInt16(reader->Read<int16_t>()); };
+		static uint16_t BE_ReadUInt16(BinaryReader* reader) { return Utilities::ByteswapUInt16(reader->Read<uint16_t>()); };
+		static int32_t BE_ReadInt32(BinaryReader* reader) { return Utilities::ByteswapInt32(reader->Read<int32_t>()); };
+		static uint32_t BE_ReadUInt32(BinaryReader* reader) { return Utilities::ByteswapUInt32(reader->Read<uint32_t>()); };
+		static int64_t BE_ReadInt64(BinaryReader* reader) { return Utilities::ByteswapInt64(reader->Read<int64_t>()); };
+		static uint64_t BE_ReadUInt64(BinaryReader* reader) { return Utilities::ByteswapUInt64(reader->Read<uint64_t>()); };
+		static float BE_ReadFloat(BinaryReader* reader) { return Utilities::ByteswapFloat(reader->Read<float>()); };
+		static double BE_ReadDouble(BinaryReader* reader) { return Utilities::ByteswapDouble(reader->Read<double>()); };
 	};
 
 	template <typename T>
