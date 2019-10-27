@@ -20,7 +20,8 @@ namespace Editor
 
 	constexpr ImGuiTreeNodeFlags DefaultOpenPropertiesNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow;
 
-	AetInspector::AetInspector(AetCommandManager* commandManager) : IMutatingEditorComponent(commandManager)
+	AetInspector::AetInspector(AetCommandManager* commandManager, AetRenderPreviewData* previewData) 
+		: IMutatingEditorComponent(commandManager), previewData(previewData)
 	{
 	}
 
@@ -38,6 +39,10 @@ namespace Editor
 
 		if (selected.Ptrs.VoidPointer == nullptr)
 			return false;
+
+		// NOTE: Safety clear so no invalid state stays around when deselecting an object for example
+		previewData->AetRegion = nullptr;
+		previewData->BlendMode = AetBlendMode::Unknown;
 
 		switch (selected.Type())
 		{
@@ -295,6 +300,9 @@ namespace Editor
 					if (Gui::Selectable(frontSprite == nullptr ? regionDataNameBuffer : frontSprite->Name.c_str(), isSelected))
 						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceRegion, aetObj, region);
 
+					if (Gui::IsItemHovered())
+						previewData->AetRegion = region.get();
+
 					if (isSelected)
 						Gui::SetItemDefaultFocus();
 					Gui::PopID();
@@ -353,6 +361,9 @@ namespace Editor
 
 						if (Gui::Selectable(blendModeName, isBlendMode))
 							ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeBlendMode, animationData, static_cast<AetBlendMode>(blendModeIndex));
+
+						if (Gui::IsItemHovered())
+							previewData->BlendMode = static_cast<AetBlendMode>(blendModeIndex);
 
 						if (isBlendMode)
 							Gui::SetItemDefaultFocus();

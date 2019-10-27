@@ -30,6 +30,7 @@ namespace Graphics
 
 	enum class AetBlendMode : uint8_t
 	{
+		Unknown = 0,
 		// NOTE: Normal
 		Alpha = 3,
 		// NOTE: Screen

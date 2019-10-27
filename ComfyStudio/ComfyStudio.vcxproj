@@ -292,6 +292,7 @@
     <ClInclude Include="lib\zlib\src\trees.h" />
     <ClInclude Include="src\Core\ApplicationHost.h" />
     <ClInclude Include="src\Core\CoreTypes.h" />
+    <ClInclude Include="src\Editor\Aet\RenderWindow\AetRenderPreviewData.h" />
     <ClInclude Include="src\Editor\Aet\RenderWindow\ObjectMousePicker.h" />
     <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\AetTool.h" />
     <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\HandTool.h" />

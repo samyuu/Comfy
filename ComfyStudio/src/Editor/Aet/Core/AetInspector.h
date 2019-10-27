@@ -1,6 +1,7 @@
 #pragma once
 #include "Editor/Aet/AetSelection.h"
 #include "Editor/Aet/IMutatingEditorComponent.h"
+#include "Editor/Aet/RenderWindow/AetRenderPreviewData.h"
 #include "Graphics/Auth2D/AetSet.h"
 
 namespace Editor
@@ -8,7 +9,7 @@ namespace Editor
 	class AetInspector : public IMutatingEditorComponent
 	{
 	public:
-		AetInspector(AetCommandManager* commandManager);
+		AetInspector(AetCommandManager* commandManager, AetRenderPreviewData* previewData);
 		~AetInspector();
 
 		void Initialize();
@@ -33,6 +34,8 @@ namespace Editor
 	private:
 		bool isPlayback = false;
 		float currentFrame = 0.0f;
+
+		AetRenderPreviewData* previewData = nullptr;
 
 	private:
 		void DrawInspectorAetSet(const RefPtr<Graphics::AetSet>& aetSet);

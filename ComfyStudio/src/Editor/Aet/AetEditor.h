@@ -29,21 +29,25 @@ namespace Editor
 		inline Graphics::SprSet* GetSprSet() { return sprSet.get(); };
 
 	private:
-		UniquePtr<AetCommandManager> commandManager;
+		void UpdateFileLoading();
 
+		void DrawAetSetLoader();
+		void DrawSprSetLoader();
+
+		bool LoadAetSet(const std::string& filePath);
+		bool LoadSprSet(const std::string& filePath);
+		void OnAetSetLoaded();
+		void OnSprSetLoaded();
+
+	private:
+		UniquePtr<AetCommandManager> commandManager = {};
 		Graphics::SpriteGetterFunction spriteGetterFunction;
 		
-		// DEBUG: Disabled for now to remove one possible case of failure
-		const bool asyncFileLoading = false;
-		UniquePtr<FileSystem::FileLoader> sprSetFileLoader;
-
-		Gui::FileViewer aetFileViewer = { "dev_ram/aetset/" };
-		Gui::FileViewer sprFileViewer = { "dev_ram/sprset/" };
-
 		struct
 		{
-			AetItemTypePtr selectedAetItem;
-			AetItemTypePtr cameraSelectedAetItem;
+			AetItemTypePtr selectedAetItem = {};
+			AetItemTypePtr cameraSelectedAetItem = {};
+			AetRenderPreviewData previewData;
 		};
 
 		UniquePtr<AetTreeView> treeView;
@@ -55,21 +59,19 @@ namespace Editor
 
 		struct
 		{
-			RefPtr<Graphics::AetSet> editorAetSet;
-			UniquePtr<Graphics::SprSet> sprSet;
+			RefPtr<Graphics::AetSet> editorAetSet = nullptr;
+			UniquePtr<Graphics::SprSet> sprSet = nullptr;
 		};
+
+	private:
+		Gui::FileViewer aetFileViewer = { "dev_ram/aetset/" };
+		Gui::FileViewer sprFileViewer = { "dev_ram/sprset/" };
+
+		// DEBUG: Disabled for now to remove one possible case of failure
+		const bool asyncFileLoading = false;
+		UniquePtr<FileSystem::FileLoader> sprSetFileLoader;
 
 		static constexpr const char* debugAetPath = "dev_ram/aetset/aet_gam/aet_gam_cmn.bin";
 		static constexpr const char* debugSprPath = "dev_ram/sprset/spr_gam/spr_gam_cmn.bin";
-
-		void UpdateFileLoading();
-
-		void DrawAetSetLoader();
-		void DrawSprSetLoader();
-
-		bool LoadAetSet(const std::string& filePath);
-		bool LoadSprSet(const std::string& filePath);
-		void OnAetSetLoaded();
-		void OnSprSetLoaded();
 	};
 }

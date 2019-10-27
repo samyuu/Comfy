@@ -15,12 +15,13 @@ namespace Editor
 {
 	using namespace Graphics;
 
-	AetRenderWindow::AetRenderWindow(AetCommandManager* commandManager, SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem)
-		: IMutatingEditorComponent(commandManager), selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem)
+	AetRenderWindow::AetRenderWindow(AetCommandManager* commandManager, SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem, AetRenderPreviewData* previewData)
+		: IMutatingEditorComponent(commandManager), selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem), previewData(previewData)
 	{
 		assert(spriteGetter != nullptr);
 		assert(selectedAetItem != nullptr);
 		assert(cameraSelectedAetItem != nullptr);
+		assert(previewData != nullptr);
 
 		// NOTE: The checkerboard pattern is still visible because of the framebuffer clear color blend
 		const vec4 baseColor = checkerboardGrid.ColorAlt * 0.5f;
@@ -30,6 +31,8 @@ namespace Editor
 		renderer = MakeUnique<Renderer2D>();
 		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
 		aetRenderer->SetSpriteGetterFunction(spriteGetter);
+		aetRenderer->SetAetObjCallback([this](const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity) { return OnAetObjRender(obj, positionOffset, opacity); });
+		aetRenderer->SetAetObjMaskCallback([this](const AetMgr::ObjCache& objMask, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity) { return OnAetObjMaskRender(objMask, obj, positionOffset, opacity); });
 
 		mousePicker = MakeUnique<ObjectMousePicker>(objectCache, windowHoveredOnMouseClick, selectedAetItem, cameraSelectedAetItem);
 
@@ -434,5 +437,81 @@ namespace Editor
 		// TODO: Find bounding box (?), or maybe just disallow using the transform tool (?)
 		// NOTE: ~~Maybe this is sufficient already (?)~~
 		return aetRegionSize;
+	}
+
+	bool AetRenderWindow::OnAetObjRender(const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)
+	{
+		const bool visible = obj.Region != nullptr && obj.Visible;
+		const bool selected = selectedAetItem->Ptrs.AetObj == obj.Source;
+
+		if (!visible || !selected)
+			return false;
+
+		const AetRegion* region = (previewData->AetRegion != nullptr) ? previewData->AetRegion : obj.Region;
+
+		const Txp* texture;
+		const Spr* sprite;
+		const bool validSprite = aetRenderer->GetSprite(region->GetSprite(obj.SpriteIndex), &texture, &sprite);
+
+		if (!validSprite)
+			return false;
+
+		renderer->Draw(
+			texture->GraphicsTexture.get(),
+			sprite->PixelRegion,
+			obj.Properties.Position + positionOffset,
+			obj.Properties.Origin,
+			obj.Properties.Rotation,
+			obj.Properties.Scale,
+			vec4(1.0f, 1.0f, 1.0f, obj.Properties.Opacity * opacity),
+			(previewData->BlendMode != AetBlendMode::Unknown) ? previewData->BlendMode : obj.BlendMode);
+
+		return true;
+	}
+
+	bool AetRenderWindow::OnAetObjMaskRender(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)
+	{
+		const bool visible = maskObj.Region != nullptr && obj.Region != nullptr && obj.Visible;
+
+		if (!visible || selectedAetItem->IsNull())
+			return false;
+
+		const bool selected = obj.Source == selectedAetItem->Ptrs.AetObj;
+		const bool maskSelected = maskObj.Source == selectedAetItem->Ptrs.AetObj;
+
+		if (!selected && !maskSelected)
+			return false;
+
+		const AetRegion* region = (previewData->AetRegion != nullptr && selected) ? previewData->AetRegion : obj.Region;
+		const AetRegion* maskRegion = (previewData->AetRegion != nullptr && maskSelected) ? previewData->AetRegion : maskObj.Region;
+
+		const Txp* maskTexture;
+		const Spr* maskSprite;
+		const bool validMaskSprite = aetRenderer->GetSprite(maskRegion->GetSprite(maskObj.SpriteIndex), &maskTexture, &maskSprite);
+
+		const Txp* texture;
+		const Spr* sprite;
+		const bool validSprite = aetRenderer->GetSprite(region->GetSprite(obj.SpriteIndex), &texture, &sprite);
+
+		if (!validMaskSprite || !validSprite)
+			return false;
+
+		renderer->Draw(
+			maskTexture->GraphicsTexture.get(),
+			maskSprite->PixelRegion,
+			maskObj.Properties.Position,
+			maskObj.Properties.Origin,
+			maskObj.Properties.Rotation,
+			maskObj.Properties.Scale,
+			texture->GraphicsTexture.get(),
+			sprite->PixelRegion,
+			obj.Properties.Position + positionOffset,
+			obj.Properties.Origin,
+			obj.Properties.Rotation,
+			obj.Properties.Scale,
+			vec4(1.0f, 1.0f, 1.0f, maskObj.Properties.Opacity * obj.Properties.Opacity * opacity),
+			(maskSelected && previewData->BlendMode != AetBlendMode::Unknown) ? previewData->BlendMode : maskObj.BlendMode);
+
+		return true;
 	}
 }

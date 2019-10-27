@@ -1,5 +1,6 @@
 #pragma once
 #include "Tools/AetTool.h"
+#include "AetRenderPreviewData.h"
 #include "ObjectMousePicker.h"
 #include "Editor/Aet/IMutatingEditorComponent.h"
 #include "Editor/Aet/AetSelection.h"
@@ -17,7 +18,7 @@ namespace Editor
 	class AetRenderWindow : public RenderWindowBase, IMutatingEditorComponent
 	{
 	public:
-		AetRenderWindow(AetCommandManager* commandManager, Graphics::SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
+		AetRenderWindow(AetCommandManager* commandManager, Graphics::SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem, AetRenderPreviewData* previewData);
 		~AetRenderWindow();
 
 		void SetIsPlayback(bool value);
@@ -55,6 +56,10 @@ namespace Editor
 	protected:
 		vec2 GetAetObjBoundingSize(const RefPtr<Graphics::AetObj>& aetObj) const;
 
+	protected:
+		bool OnAetObjRender(const Graphics::AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity);
+		bool OnAetObjMaskRender(const Graphics::AetMgr::ObjCache& maskObj, const Graphics::AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity);
+
 	private:
 		// NOTE: Fill the rest of the background
 		CheckerboardGrid checkerboardBaseGrid;
@@ -83,6 +88,8 @@ namespace Editor
 		UniquePtr<Graphics::Renderer2D> renderer = nullptr;
 		UniquePtr<Graphics::AetRenderer> aetRenderer = nullptr;
 
+		AetRenderPreviewData* previewData = nullptr;
+		
 		// NOTE: To handle mouse inputs when no tool is active
 		UniquePtr<ObjectMousePicker> mousePicker = nullptr;;
 

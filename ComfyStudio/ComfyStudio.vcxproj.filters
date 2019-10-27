@@ -1019,6 +1019,9 @@
     <ClInclude Include="src\Graphics\VertexLayouts.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Editor\Aet\RenderWindow\AetRenderPreviewData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="res\ComfyStudio.rc">
