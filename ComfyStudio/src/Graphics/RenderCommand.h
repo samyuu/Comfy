@@ -1,5 +1,6 @@
 #pragma once
 #include "Types.h"
+#include "GraphicTypes.h"
 
 namespace Graphics
 {
@@ -11,14 +12,6 @@ namespace Graphics
 		ClearTarget_DepthBuffer = 1 << 1,
 		ClearTarget_AccumBuffer = 1 << 2,
 		ClearTarget_StencilBuffer = 1 << 3,
-	};
-
-	enum class PrimitiveType : uint32_t
-	{
-		Points,
-		Lines,
-		Triangles = 4,
-		TriangleStrip = 5,
 	};
 
 	enum TextureSlot : int32_t

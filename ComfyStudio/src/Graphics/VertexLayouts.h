@@ -5,7 +5,7 @@ namespace Graphics
 {
 	struct SpriteVertex
 	{
-		// TODO: consider using 16-bit texture coordinates
+		// TODO: Consider using 16-bit texture coordinates
 		vec2 Position;
 		vec2 TextureCoordinates;
 		vec2 TextureMaskCoordinates;

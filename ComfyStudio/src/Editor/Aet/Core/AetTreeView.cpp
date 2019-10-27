@@ -7,6 +7,8 @@
 
 namespace Editor
 {
+	using namespace Graphics;
+
 	constexpr ImGuiTreeNodeFlags SelectableTreeNodeFlags = ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow;
 	constexpr ImGuiTreeNodeFlags HeaderTreeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | SelectableTreeNodeFlags;
 	constexpr ImGuiTreeNodeFlags TreeNodeLeafFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
@@ -228,10 +230,9 @@ namespace Editor
 		Gui::SetNextTreeNodeOpen(aetLayer->GuiData.TreeViewNodeOpen);
 		aetLayer->GuiData.TreeViewNodeOpen = Gui::WideTreeNodeEx("##AetLayerNode", layerNodeFlags);
 
-		bool openAddAetObjPopup = false;
-		Gui::ItemContextMenu("AetLayerContextMenu##AetTreeView", [this, &aet, &aetLayer, &openAddAetObjPopup, isRoot]()
+		Gui::ItemContextMenu("AetLayerContextMenu##AetTreeView", [&]()
 		{
-			openAddAetObjPopup = DrawAetLayerContextMenu(aet, aetLayer, isRoot);
+			DrawAetLayerContextMenu(aet, aetLayer, isRoot);
 		});
 
 		// TODO: Might want to check for mouse released instead (becomes more relevant once TreeNode drag and dropping is implemented)
@@ -267,27 +268,6 @@ namespace Editor
 
 		if (cameraSelectedAetItem->Ptrs.AetLayer == aetLayer.get())
 			DrawTreeNodeCameraIcon(treeNodeCursorPos);
-
-		if (openAddAetObjPopup)
-		{
-			Gui::OpenPopup(addAetObjPopupID);
-			*addAetObjDialog.GetIsGuiOpenPtr() = true;
-		}
-
-		if (Gui::BeginPopupModal(addAetObjPopupID, addAetObjDialog.GetIsGuiOpenPtr(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
-		{
-			ImGuiViewport* viewPort = Gui::GetMainViewport();
-			ImGuiWindow* window = Gui::FindWindowByName(addAetObjPopupID);
-			Gui::SetWindowPos(window, viewPort->Pos + viewPort->Size / 8, ImGuiCond_Always);
-			Gui::SetWindowSize(window, viewPort->Size * 0.75f, ImGuiCond_Always);
-
-			if (Gui::IsKeyPressed(KeyCode_Escape))
-				Gui::CloseCurrentPopup();
-
-			// NOTE: Should be replaced by drag and dropping sprites into the viewport or linking layers into eff objects (auto center origin)
-			// addAetObjDialog.DrawGui(&aet, &aetLayer);
-			Gui::EndPopup();
-		}
 
 		if (aetLayer->GuiData.TreeViewNodeOpen)
 		{
@@ -446,7 +426,7 @@ namespace Editor
 		if (Gui::BeginMenu(ICON_FA_EXTERNAL_LINK_ALT "  Used by...", !isRoot))
 		{
 			layerUsagesBuffer.clear();
-			Graphics::Auth2D::AetMgr::FindAddLayerUsages(aet, aetLayer, layerUsagesBuffer);
+			AetMgr::FindAddLayerUsages(aet, aetLayer, layerUsagesBuffer);
 
 			// NOTE: Count menu item
 			Gui::Text("Usage Count: %zu", layerUsagesBuffer.size());

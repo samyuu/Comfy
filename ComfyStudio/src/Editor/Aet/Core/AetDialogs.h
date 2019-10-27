@@ -1,15 +1,13 @@
 #pragma once
 #include "Types.h"
-#include "FileSystem/Format/AetSet.h"
+#include "Graphics/Auth2D/AetSet.h"
 
 namespace Editor
 {
-	using namespace FileSystem;
-
 	class AddAetObjDialog
 	{
 	public:
-		bool DrawGui(Aet* aet, AetLayer* layer);
+		bool DrawGui(Graphics::Aet* aet, Graphics::AetLayer* layer);
 
 		bool* GetIsGuiOpenPtr();
 		const char* GetGuiName();
@@ -17,7 +15,7 @@ namespace Editor
 	private:
 		char newObjNameBuffer[255];
 
-		int32_t newTypeIndex = static_cast<int>(AetObjType::Pic);
+		int32_t newTypeIndex = static_cast<int>(Graphics::AetObjType::Pic);
 		int32_t newRegionIndex = -1;
 
 		bool isGuiOpen = true;

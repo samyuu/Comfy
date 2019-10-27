@@ -21,7 +21,7 @@ namespace Editor
 		// NOTE: Secondary color
 		vec4 ColorAlt = vec4(0.32f, 0.32f, 0.32f, 1.0f);
 
-		void Render(Graphics::Auth2D::Renderer2D* renderer) const;
+		void Render(Graphics::Renderer2D* renderer) const;
 
 	private:
 	};

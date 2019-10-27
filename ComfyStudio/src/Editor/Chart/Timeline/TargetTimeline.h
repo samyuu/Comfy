@@ -5,7 +5,7 @@
 #include "Editor/Chart/Chart.h"
 #include "Audio/Waveform.h"
 #include "Graphics/Texture/Texture2D.h"
-#include "FileSystem/Format/SprSet.h"
+#include "Graphics/SprSet.h"
 #include "Input/KeyCode.h"
 
 namespace Editor
@@ -78,7 +78,7 @@ namespace Editor
 		static constexpr int buttonIconWidth = 52;
 
 		std::array<ImRect, buttonIconsTypeCount * 2> buttonIconsTextureCoordinates;
-		FileSystem::SprSet sprSet;
+		Graphics::SprSet sprSet;
 		Graphics::Texture2D* buttonIconsTexture;
 
 		bool checkHitsoundsInCallback = false;

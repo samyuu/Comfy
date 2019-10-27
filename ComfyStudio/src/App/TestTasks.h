@@ -2,14 +2,13 @@
 #include "Task.h"
 #include "Types.h"
 #include "Graphics/Auth2D/AetMgr.h"
-#include "FileSystem/Format/AetSet.h"
-#include "FileSystem/Format/SprSet.h"
+#include "Graphics/Auth2D/AetSet.h"
+#include "Graphics/SprSet.h"
 #include "FileSystem/FileLoader.h"
 
 namespace App
 {
-	using namespace FileSystem;
-	using namespace Graphics::Auth2D;
+	using namespace Graphics;
 
 	struct AetObjSourceData
 	{
@@ -108,8 +107,8 @@ namespace App
 	protected:
 		SpriteGetterFunction spriteGetterFunction;
 
-		FileLoader aetSetLoader = { "dev_ram/aetset/aet_ps4/aet_ps4_menu.bin" };
-		FileLoader sprSetLoader = { "dev_ram/sprset/spr_ps4/spr_ps4_menu.bin" };
+		FileSystem::FileLoader aetSetLoader = { "dev_ram/aetset/aet_ps4/aet_ps4_menu.bin" };
+		FileSystem::FileLoader sprSetLoader = { "dev_ram/sprset/spr_ps4/spr_ps4_menu.bin" };
 
 		UniquePtr<AetSet> aetSet;
 		UniquePtr<SprSet> sprSet;

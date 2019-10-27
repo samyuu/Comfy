@@ -6,7 +6,7 @@
 #include "Graphics/VertexArray.h"
 #include "Core/CoreTypes.h"
 
-namespace FileSystem
+namespace Graphics
 {
 	struct Sphere
 	{
@@ -26,11 +26,11 @@ namespace FileSystem
 		Sphere BoundingSphere;
 		uint32_t MaterialIndex;
 		uint32_t MaterialUVIndices[2];
-		Graphics::PrimitiveType Primitive;
+		PrimitiveType Primitive;
 		std::vector<uint16_t> Indices;
 		Box BoundingBox;
 
-		RefPtr<Graphics::IndexBuffer> GraphicsIndexBuffer;
+		RefPtr<IndexBuffer> GraphicsIndexBuffer;
 	};
 
 	union VertexAttributeTypes
@@ -59,9 +59,9 @@ namespace FileSystem
 
 	struct GraphicsVertexBuffers
 	{
-		RefPtr<Graphics::VertexArray> VertexArray;
-		RefPtr<Graphics::VertexBuffer> PositionBuffer;
-		RefPtr<Graphics::VertexBuffer> NormalBuffer;
+		RefPtr<VertexArray> VertexArray;
+		RefPtr<VertexBuffer> PositionBuffer;
+		RefPtr<VertexBuffer> NormalBuffer;
 	};
 
 	class Mesh
@@ -88,8 +88,8 @@ namespace FileSystem
 
 	public:
 		Obj() = default;
-		Obj(Obj& other) = delete;
-		Obj& operator= (Obj& other) = delete;
+		Obj(const Obj&) = delete;
+		Obj& operator= (const Obj&) = delete;
 		~Obj() = default;
 
 	public:
@@ -101,15 +101,15 @@ namespace FileSystem
 		std::vector<RefPtr<Material>> Materials;
 
 	private:
-		void Read(BinaryReader& reader);
+		void Read(FileSystem::BinaryReader& reader);
 	};
 
-	class ObjSet : public IBinaryReadable
+	class ObjSet : public FileSystem::IBinaryReadable
 	{
 	public:
 		ObjSet() = default;
-		ObjSet(ObjSet& other) = delete;
-		ObjSet& operator= (ObjSet& other) = delete;
+		ObjSet(const ObjSet&) = delete;
+		ObjSet& operator= (const ObjSet&) = delete;
 		~ObjSet() = default;
 
 	public:
@@ -136,7 +136,7 @@ namespace FileSystem
 		inline const Obj* GetObjAt(int index) const { return objects[index].get(); };
 
 	public:
-		virtual void Read(BinaryReader& reader) override;
+		virtual void Read(FileSystem::BinaryReader& reader) override;
 		void UploadAll();
 
 	private:

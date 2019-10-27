@@ -4,11 +4,16 @@
 #include "Graphics/Texture/Texture2D.h"
 #include <assert.h>
 
-namespace FileSystem
+using namespace FileSystem;
+
+namespace Graphics
 {
-	static TxpSig ReadTxpSig(BinaryReader& reader)
+	namespace
 	{
-		return { reader.ReadChar(), reader.ReadChar(), reader.ReadChar(), static_cast<TxpType>(reader.ReadChar()) };
+		TxpSig ReadTxpSig(BinaryReader& reader)
+		{
+			return { reader.ReadChar(), reader.ReadChar(), reader.ReadChar(), static_cast<TxpSig::TxpType>(reader.ReadChar()) };
+		}
 	}
 
 	void TxpSet::Read(BinaryReader& reader)
@@ -17,7 +22,7 @@ namespace FileSystem
 		void* baseAddress = reader.GetPositionPtr();
 
 		txpSet->Signature = ReadTxpSig(reader);
-		assert(txpSet->Signature.Type == TxpType_TxpSet);
+		assert(txpSet->Signature.Type == TxpSig::TxpSet);
 
 		uint32_t textureCount = reader.ReadUInt32();
 		uint32_t packedCount = reader.ReadUInt32();
@@ -25,15 +30,15 @@ namespace FileSystem
 		Textures.reserve(textureCount);
 		for (uint32_t i = 0; i < textureCount; i++)
 		{
-			Textures.push_back(MakeUnique<Texture>());
-			Texture* texture = Textures.back().get();
+			Textures.push_back(MakeUnique<Txp>());
+			Txp* texture = Textures.back().get();
 
 			reader.ReadAt(reader.ReadPtr(), baseAddress, [&texture](BinaryReader& reader)
 			{
 				int64_t textureBaseAddress = reader.GetPosition();
 
 				texture->Signature = ReadTxpSig(reader);
-				assert(texture->Signature.Type == TxpType_Texture || texture->Signature.Type == TxpType_TextureAlt);
+				assert(texture->Signature.Type == TxpSig::Texture || texture->Signature.Type == TxpSig::TextureAlt);
 
 				uint32_t mipMapCount = reader.ReadUInt32();
 				uint32_t packedInfo = reader.ReadUInt32();
@@ -48,7 +53,7 @@ namespace FileSystem
 						MipMap* mipMap = texture->MipMaps.back().get();
 
 						mipMap->Signature = ReadTxpSig(reader);
-						assert(mipMap->Signature.Type == TxpType_MipMap);
+						assert(mipMap->Signature.Type == TxpSig::MipMap);
 
 						mipMap->Width = reader.ReadInt32();
 						mipMap->Height = reader.ReadInt32();
@@ -70,7 +75,7 @@ namespace FileSystem
 		}
 	}
 
-	static void ParseTexture(const uint8_t* buffer, Texture* texture)
+	static void ParseTexture(const uint8_t* buffer, Txp* texture)
 	{
 		texture->Signature = *(TxpSig*)(buffer + 0);
 		uint32_t mipMapCount = *(uint32_t*)(buffer + 4);
@@ -109,8 +114,8 @@ namespace FileSystem
 		Textures.reserve(textureCount);
 		for (uint32_t i = 0; i < textureCount; i++)
 		{
-			Textures.push_back(MakeUnique<Texture>());
-			Texture* texture = Textures.back().get();
+			Textures.push_back(MakeUnique<Txp>());
+			Txp* texture = Textures.back().get();
 
 			uint32_t offset = offsets[i];
 			ParseTexture(buffer + offset, texture);
@@ -121,8 +126,8 @@ namespace FileSystem
 	{
 		for (int i = 0; i < Textures.size(); i++)
 		{
-			Texture* texture = Textures[i].get();
-			texture->GraphicsTexture = MakeRef<Graphics::Texture2D>();
+			Txp* texture = Textures[i].get();
+			texture->GraphicsTexture = MakeRef<Texture2D>();
 			texture->GraphicsTexture->Create(texture);
 		}
 	}

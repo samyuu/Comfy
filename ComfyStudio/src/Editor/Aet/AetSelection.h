@@ -1,11 +1,9 @@
 #pragma once
 #include "Editor/Core/IEditorComponent.h"
-#include "FileSystem/Format/AetSet.h"
+#include "Graphics/Auth2D/AetSet.h"
 
 namespace Editor
 {
-	using namespace FileSystem;
-
 	enum class AetItemType
 	{
 		None,
@@ -20,21 +18,21 @@ namespace Editor
 	{
 		void* VoidPointer;
 
-		AetSet* AetSet;
-		Aet* Aet;
-		AetLayer* AetLayer;
-		AetObj* AetObj;
-		AetRegion* AetRegion;
+		Graphics::AetSet* AetSet;
+		Graphics::Aet* Aet;
+		Graphics::AetLayer* AetLayer;
+		Graphics::AetObj* AetObj;
+		Graphics::AetRegion* AetRegion;
 	};
 
 	union AetItemReferencePtrUnion
 	{
 		const RefPtr<void*>* VoidReference;
-		const RefPtr<AetSet>* AetSetRef;
-		const RefPtr<Aet>* AetRef;
-		const RefPtr<AetLayer>* AetLayerRef;
-		const RefPtr<AetObj>* AetObjRef;
-		const RefPtr<AetRegion>* AetRegionRef;
+		const RefPtr<Graphics::AetSet>* AetSetRef;
+		const RefPtr<Graphics::Aet>* AetRef;
+		const RefPtr<Graphics::AetLayer>* AetLayerRef;
+		const RefPtr<Graphics::AetObj>* AetObjRef;
+		const RefPtr<Graphics::AetRegion>* AetRegionRef;
 	};
 
 	struct AetItemTypePtr
@@ -47,14 +45,14 @@ namespace Editor
 		inline void Reset() { type = AetItemType::None; Ptrs.VoidPointer = nullptr; refPtrs.VoidReference = nullptr; };
 
 	public:
-		inline const RefPtr<AetSet>& GetAetSetRef() const { return *refPtrs.AetSetRef; };
-		inline const RefPtr<Aet>& GetAetRef() const { return *refPtrs.AetRef; };
-		inline const RefPtr<AetLayer>& GetAetLayerRef() const { return *refPtrs.AetLayerRef; };
-		inline const RefPtr<AetObj>& GetAetObjRef() const { return *refPtrs.AetObjRef; };
-		inline const RefPtr<AetRegion>& GetAetRegionRef() const { return *refPtrs.AetRegionRef; };
+		inline const RefPtr<Graphics::AetSet>& GetAetSetRef() const { return *refPtrs.AetSetRef; };
+		inline const RefPtr<Graphics::Aet>& GetAetRef() const { return *refPtrs.AetRef; };
+		inline const RefPtr<Graphics::AetLayer>& GetAetLayerRef() const { return *refPtrs.AetLayerRef; };
+		inline const RefPtr<Graphics::AetObj>& GetAetObjRef() const { return *refPtrs.AetObjRef; };
+		inline const RefPtr<Graphics::AetRegion>& GetAetRegionRef() const { return *refPtrs.AetRegionRef; };
 
 		inline bool IsNull() const { return Ptrs.VoidPointer == nullptr; };
-		inline Aet* GetItemParentAet() const;
+		inline Graphics::Aet* GetItemParentAet() const;
 
 	public:
 		AetItemPtrUnion Ptrs;
@@ -67,31 +65,31 @@ namespace Editor
 	template<class T>
 	inline void AetItemTypePtr::SetItem(const RefPtr<T>& value)
 	{
-		if constexpr (std::is_same<T, AetSet>::value)
+		if constexpr (std::is_same<T, Graphics::AetSet>::value)
 		{
 			type = AetItemType::AetSet;
 			Ptrs.AetSet = value.get();
 			refPtrs.AetSetRef = &value;
 		}
-		else if constexpr (std::is_same<T, Aet>::value)
+		else if constexpr (std::is_same<T, Graphics::Aet>::value)
 		{
 			type = AetItemType::Aet;
 			Ptrs.Aet = value.get();
 			refPtrs.AetRef = &value;
 		}
-		else if constexpr (std::is_same<T, AetLayer>::value)
+		else if constexpr (std::is_same<T, Graphics::AetLayer>::value)
 		{
 			type = AetItemType::AetLayer;
 			Ptrs.AetLayer = value.get();
 			refPtrs.AetLayerRef = &value;
 		}
-		else if constexpr (std::is_same<T, AetObj>::value)
+		else if constexpr (std::is_same<T, Graphics::AetObj>::value)
 		{
 			type = AetItemType::AetObj;
 			Ptrs.AetObj = value.get();
 			refPtrs.AetObjRef = &value;
 		}
-		else if constexpr (std::is_same<T, AetRegion>::value)
+		else if constexpr (std::is_same<T, Graphics::AetRegion>::value)
 		{
 			type = AetItemType::AetRegion;
 			Ptrs.AetRegion = value.get();
@@ -103,7 +101,7 @@ namespace Editor
 		}
 	}
 
-	inline Aet* AetItemTypePtr::GetItemParentAet() const
+	inline Graphics::Aet* AetItemTypePtr::GetItemParentAet() const
 	{
 		if (IsNull())
 			return nullptr;

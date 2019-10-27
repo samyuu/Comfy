@@ -8,16 +8,12 @@
 #include "Command/AetHistoryWindow.h"
 #include "Command/AetCommandManager.h"
 #include "Editor/Core/IEditorComponent.h"
-#include "Graphics/Auth2D/AetMgr.h"
 #include "Graphics/Auth2D/AetRenderer.h"
-#include "FileSystem/Format/AetSet.h"
 #include "FileSystem/FileLoader.h"
 #include "ImGui/Widgets/FileViewer.h"
 
 namespace Editor
 {
-	using namespace FileSystem;
-
 	class AetEditor : public IEditorComponent
 	{
 	public:
@@ -29,17 +25,17 @@ namespace Editor
 		virtual const char* GetGuiName() const override;
 		virtual ImGuiWindowFlags GetWindowFlags() const override;
 
-		inline AetSet* GetAetSet() { return editorAetSet.get(); };
-		inline SprSet* GetSprSet() { return sprSet.get(); };
+		inline Graphics::AetSet* GetAetSet() { return editorAetSet.get(); };
+		inline Graphics::SprSet* GetSprSet() { return sprSet.get(); };
 
 	private:
 		UniquePtr<AetCommandManager> commandManager;
 
-		SpriteGetterFunction spriteGetterFunction;
+		Graphics::SpriteGetterFunction spriteGetterFunction;
 		
 		// DEBUG: Disabled for now to remove one possible case of failure
 		const bool asyncFileLoading = false;
-		UniquePtr<FileLoader> sprSetFileLoader;
+		UniquePtr<FileSystem::FileLoader> sprSetFileLoader;
 
 		Gui::FileViewer aetFileViewer = { "dev_ram/aetset/" };
 		Gui::FileViewer sprFileViewer = { "dev_ram/sprset/" };
@@ -59,12 +55,12 @@ namespace Editor
 
 		struct
 		{
-			RefPtr<AetSet> editorAetSet;
-			UniquePtr<SprSet> sprSet;
+			RefPtr<Graphics::AetSet> editorAetSet;
+			UniquePtr<Graphics::SprSet> sprSet;
 		};
 
-		const char* debugAetPath = "dev_ram/aetset/aet_gam/aet_gam_cmn.bin";
-		const char* debugSprPath = "dev_ram/sprset/spr_gam/spr_gam_cmn.bin";
+		static constexpr const char* debugAetPath = "dev_ram/aetset/aet_gam/aet_gam_cmn.bin";
+		static constexpr const char* debugSprPath = "dev_ram/sprset/spr_gam/spr_gam_cmn.bin";
 
 		void UpdateFileLoading();
 

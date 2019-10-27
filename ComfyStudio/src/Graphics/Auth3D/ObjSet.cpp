@@ -1,9 +1,7 @@
 #include "ObjSet.h"
 
-namespace FileSystem
+namespace Graphics
 {
-	using namespace Graphics;
-
 	template <class T>
 	static inline void UploadInitializeBufferIfAttribute(bool hasAttribute, RefPtr<VertexBuffer>& vertexBuffer, std::vector<T>& vertexData)
 	{

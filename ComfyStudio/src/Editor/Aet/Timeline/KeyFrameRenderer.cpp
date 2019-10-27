@@ -3,6 +3,8 @@
 
 namespace Editor
 {
+	using namespace Graphics;
+
 #define _ 0x00000000
 #define X 0xFFFFFFFF
 	const uint32_t KeyFrameRenderer::keyFrameTexturePixels[keyFrameTextureSize.x * keyFrameTextureSize.y] =
@@ -113,7 +115,7 @@ namespace Editor
 
 	void KeyFrameRenderer::CreateKeyFrameTexture()
 	{
-		keyFrameTexture = MakeUnique<Graphics::Texture2D>();
+		keyFrameTexture = MakeUnique<Texture2D>();
 		keyFrameTexture->CreateFromRgbaBuffer(keyFrameTextureSize, keyFrameTexturePixels);
 	}
 

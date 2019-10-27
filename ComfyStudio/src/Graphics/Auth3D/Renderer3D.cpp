@@ -1,6 +1,6 @@
 #include "Renderer3D.h"
 
-namespace Graphics::Auth3D
+namespace Graphics
 {
 	void Renderer3D::Initialize()
 	{

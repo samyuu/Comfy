@@ -2,6 +2,8 @@
 
 namespace Editor
 {
+	using namespace Graphics;
+
 	const char* GetObjTypeIcon(AetObjType type)
 	{
 		switch (type)

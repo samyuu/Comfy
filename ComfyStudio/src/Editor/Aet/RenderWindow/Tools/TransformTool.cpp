@@ -4,97 +4,102 @@
 
 namespace Editor
 {
-	static void DrawBoxNode(ImDrawList* drawList, const vec2& position, ImU32 color, float rotation)
+	using namespace Graphics;
+
+	namespace
 	{
-		Gui::AddQuadFilled(drawList, position, vec2(TransformBox::NodeRadius), vec2(TransformBox::NodeRadius * 0.5f), rotation, vec2(2.0f), color);
-	}
-
-	static void DrawBox(ImDrawList* drawList, const TransformBox& box, bool cross, const vec4& color)
-	{
-		ImU32 lineColor = ImColor(vec4(color.r, color.g, color.b, color.a * 0.75f));
-
-		Gui::AddLine(drawList, box.TL, box.TR, lineColor);
-		Gui::AddLine(drawList, box.TR, box.BR, lineColor);
-		Gui::AddLine(drawList, box.BR, box.BL, lineColor);
-		Gui::AddLine(drawList, box.BL, box.TL, lineColor);
-
-		if (cross)
+		void DrawBoxNode(ImDrawList* drawList, const vec2& position, ImU32 color, float rotation)
 		{
-			Gui::AddLine(drawList, box.TL, box.BR, lineColor);
-			Gui::AddLine(drawList, box.TR, box.BL, lineColor);
+			Gui::AddQuadFilled(drawList, position, vec2(TransformBox::NodeRadius), vec2(TransformBox::NodeRadius * 0.5f), rotation, vec2(2.0f), color);
 		}
 
-		ImU32 nodeColor = ImColor(color);
-		float rotation = box.Rotation();
-
-		DrawBoxNode(drawList, box.TL, nodeColor, rotation);
-		DrawBoxNode(drawList, box.TR, nodeColor, rotation);
-		DrawBoxNode(drawList, box.BL, nodeColor, rotation);
-		DrawBoxNode(drawList, box.BR, nodeColor, rotation);
-
-		DrawBoxNode(drawList, box.Top(), nodeColor, rotation);
-		DrawBoxNode(drawList, box.Right(), nodeColor, rotation);
-		DrawBoxNode(drawList, box.Bottom(), nodeColor, rotation);
-		DrawBoxNode(drawList, box.Left(), nodeColor, rotation);
-	}
-
-	static inline float AngleBetween(const vec2& pointA, const vec2& pointB)
-	{
-		return glm::degrees(glm::atan(pointA.y - pointB.y, pointA.x - pointB.x));
-	}
-
-	static ImGuiMouseCursor GetBoxNodeCursor(const TransformBox& box, BoxNode boxNode)
-	{
-		switch (boxNode)
+		void DrawBox(ImDrawList* drawList, const TransformBox& box, bool cross, const vec4& color)
 		{
-		case BoxNode_TL:
-		case BoxNode_BR:
-			return ImGuiMouseCursor_ResizeNWSE;
-		case BoxNode_TR:
-		case BoxNode_BL:
-			return ImGuiMouseCursor_ResizeNESW;
-		case BoxNode_Top:
-		case BoxNode_Bottom:
-			return ImGuiMouseCursor_ResizeNS;
-		case BoxNode_Right:
-		case BoxNode_Left:
-			return ImGuiMouseCursor_ResizeEW;
-		default:
+			ImU32 lineColor = ImColor(vec4(color.r, color.g, color.b, color.a * 0.75f));
+
+			Gui::AddLine(drawList, box.TL, box.TR, lineColor);
+			Gui::AddLine(drawList, box.TR, box.BR, lineColor);
+			Gui::AddLine(drawList, box.BR, box.BL, lineColor);
+			Gui::AddLine(drawList, box.BL, box.TL, lineColor);
+
+			if (cross)
+			{
+				Gui::AddLine(drawList, box.TL, box.BR, lineColor);
+				Gui::AddLine(drawList, box.TR, box.BL, lineColor);
+			}
+
+			ImU32 nodeColor = ImColor(color);
+			float rotation = box.Rotation();
+
+			DrawBoxNode(drawList, box.TL, nodeColor, rotation);
+			DrawBoxNode(drawList, box.TR, nodeColor, rotation);
+			DrawBoxNode(drawList, box.BL, nodeColor, rotation);
+			DrawBoxNode(drawList, box.BR, nodeColor, rotation);
+
+			DrawBoxNode(drawList, box.Top(), nodeColor, rotation);
+			DrawBoxNode(drawList, box.Right(), nodeColor, rotation);
+			DrawBoxNode(drawList, box.Bottom(), nodeColor, rotation);
+			DrawBoxNode(drawList, box.Left(), nodeColor, rotation);
+		}
+
+		inline float AngleBetween(const vec2& pointA, const vec2& pointB)
+		{
+			return glm::degrees(glm::atan(pointA.y - pointB.y, pointA.x - pointB.x));
+		}
+
+		ImGuiMouseCursor GetBoxNodeCursor(const TransformBox& box, BoxNode boxNode)
+		{
+			switch (boxNode)
+			{
+			case BoxNode_TL:
+			case BoxNode_BR:
+				return ImGuiMouseCursor_ResizeNWSE;
+			case BoxNode_TR:
+			case BoxNode_BL:
+				return ImGuiMouseCursor_ResizeNESW;
+			case BoxNode_Top:
+			case BoxNode_Bottom:
+				return ImGuiMouseCursor_ResizeNS;
+			case BoxNode_Right:
+			case BoxNode_Left:
+				return ImGuiMouseCursor_ResizeEW;
+			default:
+				return ImGuiMouseCursor_None;
+			}
+
+			// TODO:
+			float angle = AngleBetween(box.Center(), box.GetNodePosition(boxNode));
+			angle = fmod(angle + 270.0f, 360.0f);
+
+			constexpr float threshold = 45.0f * 0.5f;
+
+			// "|"
+			if (angle >= (360 - threshold) || angle <= (0 + threshold))
+				return ImGuiMouseCursor_ResizeNS;
+			if (angle >= (180 - threshold) && angle <= (180 + threshold))
+				return ImGuiMouseCursor_ResizeNS;
+
+			// "-"
+			if (angle >= (90 - threshold) && angle <= (90 + threshold))
+				return ImGuiMouseCursor_ResizeEW;
+			if (angle >= (270 - threshold) && angle <= (270 + threshold))
+				return ImGuiMouseCursor_ResizeEW;
+
+			// "\"
+			if (angle >= (315 - threshold) && angle <= (315 + threshold))
+				return ImGuiMouseCursor_ResizeNWSE;
+			if (angle >= (135 - threshold) && angle <= (135 + threshold))
+				return ImGuiMouseCursor_ResizeNWSE;
+
+			// "/"
+			if (angle >= (45 - threshold) && angle <= (45 + threshold))
+				return ImGuiMouseCursor_ResizeNESW;
+			if (angle >= (225 - threshold) && angle <= (225 + threshold))
+				return ImGuiMouseCursor_ResizeNESW;
+
+			assert(false);
 			return ImGuiMouseCursor_None;
 		}
-
-		// TODO:
-		float angle = AngleBetween(box.Center(), box.GetNodePosition(boxNode));
-		angle = fmod(angle + 270.0f, 360.0f);
-
-		constexpr float threshold = 45.0f * 0.5f;
-
-		// "|"
-		if (angle >= (360 - threshold) || angle <= (0 + threshold))
-			return ImGuiMouseCursor_ResizeNS;
-		if (angle >= (180 - threshold) && angle <= (180 + threshold))
-			return ImGuiMouseCursor_ResizeNS;
-
-		// "-"
-		if (angle >= (90 - threshold) && angle <= (90 + threshold))
-			return ImGuiMouseCursor_ResizeEW;
-		if (angle >= (270 - threshold) && angle <= (270 + threshold))
-			return ImGuiMouseCursor_ResizeEW;
-
-		// "\"
-		if (angle >= (315 - threshold) && angle <= (315 + threshold))
-			return ImGuiMouseCursor_ResizeNWSE;
-		if (angle >= (135 - threshold) && angle <= (135 + threshold))
-			return ImGuiMouseCursor_ResizeNWSE;
-
-		// "/"
-		if (angle >= (45 - threshold) && angle <= (45 + threshold))
-			return ImGuiMouseCursor_ResizeNESW;
-		if (angle >= (225 - threshold) && angle <= (225 + threshold))
-			return ImGuiMouseCursor_ResizeNESW;
-
-		assert(false);
-		return ImGuiMouseCursor_None;
 	}
 
 	const char* TransformTool::GetIcon() const
@@ -117,7 +122,7 @@ namespace Editor
 		return KeyCode_T;
 	}
 
-	void TransformTool::UpdatePostDrawGui(Graphics::Auth2D::Properties* properties, vec2 dimensions)
+	void TransformTool::UpdatePostDrawGui(Properties* properties, vec2 dimensions)
 	{
 		ImGuiIO& io = Gui::GetIO();
 		bool windowFocused = Gui::IsWindowFocused();
@@ -256,7 +261,7 @@ namespace Editor
 			DrawBoxNode(drawList, screenSpaceBox.GetNodePosition(scalingNode), ImColor(allowAction ? redColor : redPreColor), screenSpaceBox.Rotation());
 	}
 
-	void TransformTool::ProcessCommands(AetCommandManager* commandManager, const RefPtr<AetObj>& aetObj, float frame, const Graphics::Auth2D::Properties& properties, const Graphics::Auth2D::Properties& previousProperties)
+	void TransformTool::ProcessCommands(AetCommandManager* commandManager, const RefPtr<AetObj>& aetObj, float frame, const Properties& properties, const Properties& previousProperties)
 	{
 		if (properties == previousProperties)
 			return;
@@ -284,7 +289,7 @@ namespace Editor
 		return (hoveringNode != BoxNode_Invalid) || (scalingNode != BoxNode_Invalid) || (boxHovered) || (allowAction);
 	}
 
-	void TransformTool::UpdateKeyboardMoveInput(Graphics::Auth2D::Properties* properties)
+	void TransformTool::UpdateKeyboardMoveInput(Properties* properties)
 	{
 		// TODO: This should probably be moved into a common method so the MoveTool can also use it
 

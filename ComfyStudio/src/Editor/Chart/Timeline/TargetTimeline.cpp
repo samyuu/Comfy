@@ -9,14 +9,17 @@
 
 namespace Editor
 {
-	static void EnsureStreamOpenAndRunning()
+	namespace
 	{
-		auto audioEngine = Audio::AudioEngine::GetInstance();
+		void EnsureStreamOpenAndRunning()
+		{
+			auto audioEngine = Audio::AudioEngine::GetInstance();
 
-		if (!audioEngine->GetIsStreamOpen())
-			audioEngine->OpenStream();
-		if (!audioEngine->GetIsStreamRunning())
-			audioEngine->StartStream();
+			if (!audioEngine->GetIsStreamOpen())
+				audioEngine->OpenStream();
+			if (!audioEngine->GetIsStreamRunning())
+				audioEngine->StartStream();
+		}
 	}
 
 	TargetTimeline::TargetTimeline(ChartEditor* parentChartEditor)
@@ -754,7 +757,7 @@ namespace Editor
 
 		if (!Gui::IsWindowFocused())
 			return;
-		
+
 		// NOTE: Mouse X buttons, increase / decrease grid division
 		if (Gui::IsMouseClicked(3)) SelectNextGridDivision(-1);
 		if (Gui::IsMouseClicked(4)) SelectNextGridDivision(+1);

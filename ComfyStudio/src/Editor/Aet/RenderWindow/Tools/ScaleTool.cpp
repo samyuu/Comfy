@@ -3,19 +3,22 @@
 
 namespace Editor
 {
-	static ImGuiMouseCursor GetCursorForScaleNode(ScaleNode scaleNode)
+	namespace
 	{
-		// TODO: Factor in rotation
-
-		switch (scaleNode)
+		ImGuiMouseCursor GetCursorForScaleNode(ScaleNode scaleNode)
 		{
-		case ScaleNode_AxisX:
-			return ImGuiMouseCursor_ResizeEW;
-		case ScaleNode_AxisY:
-			return ImGuiMouseCursor_ResizeNS;
-		case ScaleNode_AxisXY:
-		default:
-			return 0;
+			// TODO: Factor in rotation
+
+			switch (scaleNode)
+			{
+			case ScaleNode_AxisX:
+				return ImGuiMouseCursor_ResizeEW;
+			case ScaleNode_AxisY:
+				return ImGuiMouseCursor_ResizeNS;
+			case ScaleNode_AxisXY:
+			default:
+				return 0;
+			}
 		}
 	}
 
@@ -39,7 +42,7 @@ namespace Editor
 		return KeyCode_R;
 	}
 
-	void ScaleTool::UpdatePostDrawGui(Graphics::Auth2D::Properties* properties, vec2 dimensions)
+	void ScaleTool::UpdatePostDrawGui(Graphics::Properties* properties, vec2 dimensions)
 	{
 		// TEMP:
 		Gui::Text("scale: %.1f %.1f", properties->Scale.x, properties->Scale.y);
@@ -152,7 +155,7 @@ namespace Editor
 		// TODO: Scale to fixed values (?)
 	}
 
-	vec2 ScaleTool::GetAxisPoint(const Graphics::Auth2D::Properties& properties, ScaleNode node)
+	vec2 ScaleTool::GetAxisPoint(const Graphics::Properties& properties, ScaleNode node)
 	{
 		switch (node)
 		{

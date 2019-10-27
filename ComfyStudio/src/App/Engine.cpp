@@ -5,9 +5,9 @@ namespace App
 {
 	EngineRenderWindow::EngineRenderWindow()
 	{
-		renderer = MakeUnique<Graphics::Auth2D::Renderer2D>();
+		renderer = MakeUnique<Graphics::Renderer2D>();
 		renderer->Initialize();
-		aetRenderer = MakeUnique<Graphics::Auth2D::AetRenderer>(renderer.get());
+		aetRenderer = MakeUnique<Graphics::AetRenderer>(renderer.get());
 
 		StartTask<TaskPs4Menu>();
 	}
@@ -40,7 +40,7 @@ namespace App
 		{
 			Graphics::RenderCommand::SetViewport(renderTarget.GetSize());
 
-			vec4 backgroundColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+			const vec4 backgroundColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 			Graphics::RenderCommand::SetClearColor(backgroundColor);
 			Graphics::RenderCommand::Clear(Graphics::ClearTarget_ColorBuffer);
 

@@ -1,12 +1,10 @@
 #pragma once
 #include "Editor/Aet/AetSelection.h"
 #include "Editor/Aet/IMutatingEditorComponent.h"
-#include "FileSystem/Format/AetSet.h"
+#include "Graphics/Auth2D/AetSet.h"
 
 namespace Editor
 {
-	using namespace FileSystem;
-
 	class AetInspector : public IMutatingEditorComponent
 	{
 	public:
@@ -37,25 +35,25 @@ namespace Editor
 		float currentFrame = 0.0f;
 
 	private:
-		void DrawInspectorAetSet(const RefPtr<AetSet>& aetSet);
-		void DrawInspectorAet(const RefPtr<Aet>& aet);
+		void DrawInspectorAetSet(const RefPtr<Graphics::AetSet>& aetSet);
+		void DrawInspectorAet(const RefPtr<Graphics::Aet>& aet);
 		
-		void DrawInspectorAetLayer(Aet* aet, const RefPtr<AetLayer>& aetLayer);
-		void DrawInspectorLayerData(Aet* aet, const RefPtr<AetObj>& aetObj, const RefPtr<AetLayer>& aetLayer);
+		void DrawInspectorAetLayer(Graphics::Aet* aet, const RefPtr<Graphics::AetLayer>& aetLayer);
+		void DrawInspectorLayerData(Graphics::Aet* aet, const RefPtr<Graphics::AetObj>& aetObj, const RefPtr<Graphics::AetLayer>& aetLayer);
 		
-		void DrawInspectorAetObj(Aet* aet, const RefPtr<AetObj>& aetObj);
-		void DrawInspectorRegionData(Aet* aet, const RefPtr<AetObj>& aetObj, const RefPtr<AetRegion>& spriteEntry);
+		void DrawInspectorAetObj(Graphics::Aet* aet, const RefPtr<Graphics::AetObj>& aetObj);
+		void DrawInspectorRegionData(Graphics::Aet* aet, const RefPtr<Graphics::AetObj>& aetObj, const RefPtr<Graphics::AetRegion>& spriteEntry);
 		
-		void DrawInspectorAnimationData(const RefPtr<AnimationData>& animationData, const RefPtr<AetObj>& aetObj);
-		void DrawInspectorDebugAnimationData(const RefPtr<AnimationData>& animationData, const RefPtr<AetObj>& aetObj);
+		void DrawInspectorAnimationData(const RefPtr<Graphics::AnimationData>& animationData, const RefPtr<Graphics::AetObj>& aetObj);
+		void DrawInspectorDebugAnimationData(const RefPtr<Graphics::AnimationData>& animationData, const RefPtr<Graphics::AetObj>& aetObj);
 
-		void DrawInspectorAnimationDataProperty(const RefPtr<AetObj>& aetObj, const char* label, frame_t frame, float& value, int propertyType);
-		void DrawInspectorAnimationDataPropertyVec2(const RefPtr<AetObj>& aetObj, const char* label, frame_t frame, vec2& value, int propertyTypeX, int propertyTypeY);
+		void DrawInspectorAnimationDataProperty(const RefPtr<Graphics::AetObj>& aetObj, const char* label, frame_t frame, float& value, int propertyType);
+		void DrawInspectorAnimationDataPropertyVec2(const RefPtr<Graphics::AetObj>& aetObj, const char* label, frame_t frame, vec2& value, int propertyTypeX, int propertyTypeY);
 
-		void DrawInspectorAetObjMarkers(const RefPtr<AetObj>& aetObj, std::vector<RefPtr<AetMarker>>* markers);
-		void DrawInspectorAetObjParent(Aet* aet, const RefPtr<AetObj>& aetObj);
+		void DrawInspectorAetObjMarkers(const RefPtr<Graphics::AetObj>& aetObj, std::vector<RefPtr<Graphics::AetMarker>>* markers);
+		void DrawInspectorAetObjParent(Graphics::Aet* aet, const RefPtr<Graphics::AetObj>& aetObj);
 		
-		void DrawInspectorAetRegion(Aet* aet, const RefPtr<AetRegion>& aetRegion);
+		void DrawInspectorAetRegion(Graphics::Aet* aet, const RefPtr<Graphics::AetRegion>& aetRegion);
 
 	private:
 		void PushDisableItemFlagIfPlayback();

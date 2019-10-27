@@ -1,7 +1,7 @@
 #include "AetSet.h"
 #include <assert.h>
 
-namespace FileSystem
+namespace Graphics
 {
 	const std::array<const char*, 8> KeyFrameProperties::PropertyNames =
 	{
@@ -132,7 +132,7 @@ namespace FileSystem
 
 		if (type != AetObjType::Aif)
 		{
-			AnimationData = MakeRef<FileSystem::AnimationData>();
+			AnimationData = MakeRef<Graphics::AnimationData>();
 			AnimationData->BlendMode = AetBlendMode::Alpha;
 			AnimationData->UseTextureMask = false;
 			AnimationData->Properties.OriginX().emplace_back(0.0f);

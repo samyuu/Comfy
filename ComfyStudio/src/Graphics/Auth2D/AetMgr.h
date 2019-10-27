@@ -1,11 +1,9 @@
 #pragma once
 #include "Types.h"
-#include "FileSystem/Format/AetSet.h"
+#include "AetSet.h"
 
-namespace Graphics::Auth2D
+namespace Graphics
 {
-	using namespace FileSystem;
-
 	struct PropertyTypeFlags
 	{
 		bool OriginX : 1;
@@ -98,7 +96,6 @@ namespace Graphics::Auth2D
 		static void FindAddLayerUsages(const RefPtr<Aet>& aetToSearch, const RefPtr<AetLayer>& layerToFind, std::vector<RefPtr<AetObj>*>& outObjects);
 
 	private:
-
 		static void InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);
 		static void InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);
 		static void InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);

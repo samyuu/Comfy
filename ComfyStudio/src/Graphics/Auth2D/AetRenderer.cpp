@@ -1,7 +1,7 @@
 #include "AetRenderer.h"
 #include "Misc/StringHelper.h"
 
-namespace Graphics::Auth2D
+namespace Graphics
 {
 	AetRenderer::AetRenderer(Renderer2D* renderer) : renderer2D(renderer)
 	{
@@ -36,8 +36,8 @@ namespace Graphics::Auth2D
 		if (obj.Region == nullptr || !obj.Visible)
 			return;
 
-		const FileSystem::Texture* texture;
-		const FileSystem::Sprite* sprite;
+		const Txp* texture;
+		const Spr* sprite;
 		bool validSprite = GetSprite(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
 
 		if (validSprite)
@@ -72,12 +72,12 @@ namespace Graphics::Auth2D
 		if (maskObj.Region == nullptr || obj.Region == nullptr || !obj.Visible)
 			return;
 
-		const FileSystem::Texture* maskTexture;
-		const FileSystem::Sprite* maskSprite;
+		const Txp* maskTexture;
+		const Spr* maskSprite;
 		bool validMaskSprite = GetSprite(maskObj.Region->GetSprite(maskObj.SpriteIndex), &maskTexture, &maskSprite);
 
-		const FileSystem::Texture* texture;
-		const FileSystem::Sprite* sprite;
+		const Txp* texture;
+		const Spr* sprite;
 		bool validSprite = GetSprite(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
 
 		if (validMaskSprite && validSprite)
@@ -152,8 +152,8 @@ namespace Graphics::Auth2D
 
 	void AetRenderer::RenderAetSprite(const AetRegion* aetRegion, const AetSpriteIdentifier* aetSprite, const vec2& position)
 	{
-		const FileSystem::Texture* texture;
-		const FileSystem::Sprite* sprite;
+		const Txp* texture;
+		const Spr* sprite;
 
 		if (aetRegion->SpriteCount() < 1 || !GetSprite(aetSprite, &texture, &sprite))
 		{
@@ -165,25 +165,25 @@ namespace Graphics::Auth2D
 		}
 	}
 
-	bool AetRenderer::SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const AetSpriteIdentifier* inSprite, const FileSystem::Texture** outTexture, const Sprite** outSprite)
+	bool AetRenderer::SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr)
 	{
-		if (inSprite == nullptr)
+		if (identifier == nullptr)
 			return false;
 
-		if (inSprite->SpriteCache != nullptr)
+		if (identifier->SpriteCache != nullptr)
 		{
 		from_sprite_cache:
-			*outTexture = sprSet->TxpSet->Textures[inSprite->SpriteCache->TextureIndex].get();
-			*outSprite = inSprite->SpriteCache;
+			*outTxp = sprSet->TxpSet->Textures[identifier->SpriteCache->TextureIndex].get();
+			*outSpr = identifier->SpriteCache;
 			return true;
 		}
 
 		for (auto& sprite : sprSet->Sprites)
 		{
-			if (EndsWith(inSprite->Name, sprite.Name))
+			if (EndsWith(identifier->Name, sprite.Name))
 			{
-				// NOTE: Temporary solution, check for IDs in the future
-				inSprite->SpriteCache = &sprite;
+				// TEMP: Temporary solution, check for IDs in the future
+				identifier->SpriteCache = &sprite;
 				goto from_sprite_cache;
 			}
 		}
@@ -191,9 +191,9 @@ namespace Graphics::Auth2D
 		return false;
 	}
 
-	bool AetRenderer::GetSprite(const AetSpriteIdentifier* inSprite, const FileSystem::Texture** outTexture, const Sprite** outSprite)
+	bool AetRenderer::GetSprite(const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr)
 	{
 		assert(spriteGetter != nullptr);
-		return (*spriteGetter)(inSprite, outTexture, outSprite);
+		return (*spriteGetter)(identifier, outTxp, outSpr);
 	}
 }

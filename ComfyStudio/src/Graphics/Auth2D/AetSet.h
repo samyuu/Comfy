@@ -2,22 +2,23 @@
 #include "Types.h"
 #include "Core/CoreTypes.h"
 #include "FileSystem/FileInterface.h"
+#include "Graphics/GraphicTypes.h"
 
-namespace FileSystem
+// NOTE: Extra data used by Editor Components to avoid additional allocations and reduce complexity
+struct GuiExtraData
 {
-	// NOTE: Extra data used by Editor Components to avoid additional allocations and reduce complexity
-	struct GuiExtraData
-	{
-		// NOTE: For scroll jumping to a destination
-		float TreeViewScrollY;
-		// NOTE: Stored separately so we can expand nodes when jumping to a layer reference for example
-		bool TreeViewNodeOpen;
-		// NOTE: Stored to be used by the timeline
-		bool TimelineNodeOpen;
-		// NOTE: To try and prevent layer name ambiguity
-		int ThisIndex;
-	};
+	// NOTE: For scroll jumping to a destination
+	float TreeViewScrollY;
+	// NOTE: Stored separately so we can expand nodes when jumping to a layer reference for example
+	bool TreeViewNodeOpen;
+	// NOTE: Stored to be used by the timeline
+	bool TimelineNodeOpen;
+	// NOTE: To try and prevent layer name ambiguity
+	int ThisIndex;
+};
 
+namespace Graphics
+{
 	class Aet;
 	class AetLayer;
 	class AetSoundEffect;
@@ -37,22 +38,6 @@ namespace FileSystem
 		Eff = 3,
 	};
 
-	enum class AetBlendMode : uint8_t
-	{
-		// NOTE: Normal
-		Alpha = 3,
-		// NOTE: Screen
-		Additive = 5,
-		// NOTE: Multiply
-		DstColorZero = 6,
-		// NOTE: Screen / Linear Dodge (Add)
-		SrcAlphaOneMinusSrcColor = 7,
-		// NOTE: ??
-		Transparent = 8,
-		// NOTE: Used once by "eff_mosaic01__n.pic"
-		WhatTheFuck = 12,
-	};
-
 	struct AetSpriteIdentifier
 	{
 		// NOTE: Sprite name
@@ -60,8 +45,8 @@ namespace FileSystem
 		// NOTE: Database ID
 		uint32_t ID;
 
-		// NOTE: Editor internal cache to avoid expensive std::string comparisons
-		mutable const struct Sprite* SpriteCache;
+		// NOTE: Editor internal cache to avoid expensive string comparisons
+		mutable const struct Spr* SpriteCache;
 	};
 
 	// TODO: Rename to reflect sprite / position templates, sprites and image sequences
@@ -156,10 +141,10 @@ namespace FileSystem
 	struct AnimationData
 	{
 		static const std::array<const char*, 13> BlendModeNames;
-		static const char* GetBlendModeName(AetBlendMode blendMode);
+		static const char* GetBlendModeName(Graphics::AetBlendMode blendMode);
 
 		// NOTE: Pic only sprite blend mode enum
-		AetBlendMode BlendMode;
+		Graphics::AetBlendMode BlendMode;
 		// NOTE: Pic only texture mask bool, if true this sprite will be masked by the upper object
 		bool UseTextureMask;
 
@@ -280,7 +265,7 @@ namespace FileSystem
 		fileptr_t dataFilePtr;
 		fileptr_t parentFilePtr;
 
-		void Read(BinaryReader& reader);
+		void Read(FileSystem::BinaryReader& reader);
 	};
 
 	class AetLayer
@@ -426,8 +411,8 @@ namespace FileSystem
 		void UpdateParentPointers();
 
 	private:
-		void Read(BinaryReader& reader);
-		void Write(BinaryWriter& writer);
+		void Read(FileSystem::BinaryReader& reader);
+		void Write(FileSystem::BinaryWriter& writer);
 
 	private:
 		void InternalUpdateLayerNamesAfteObjectReferences();
@@ -440,7 +425,7 @@ namespace FileSystem
 		void InternalFindObjReferencedParent(AetObj* aetObj);
 	};
 
-	class AetSet : public IBinaryFile
+	class AetSet : public FileSystem::IBinaryFile
 	{
 	public:
 		AetSet() = default;
@@ -479,8 +464,8 @@ namespace FileSystem
 		void ClearSpriteCache();
 
 	public:
-		virtual void Read(BinaryReader& reader) override;
-		virtual void Write(BinaryWriter& writer) override;
+		virtual void Read(FileSystem::BinaryReader& reader) override;
+		virtual void Write(FileSystem::BinaryWriter& writer) override;
 
 	private:
 		std::vector<RefPtr<Aet>> aets;

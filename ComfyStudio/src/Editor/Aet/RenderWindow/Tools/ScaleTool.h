@@ -20,7 +20,7 @@ namespace Editor
 		virtual AetToolType GetType() const override;
 		virtual KeyCode GetShortcutKey() const override;
 
-		virtual void UpdatePostDrawGui(Graphics::Auth2D::Properties* properties, vec2 dimensions) override;
+		virtual void UpdatePostDrawGui(Graphics::Properties* properties, vec2 dimensions) override;
 		virtual void DrawContextMenu() override;
 
 	private:
@@ -47,9 +47,9 @@ namespace Editor
 
 		vec2 scaleNodeWorldPositionOnMouseDown;
 		vec2 mouseWorldPositionOnMouseDown;
-		Graphics::Auth2D::Properties propertiesOnMouseDown;
+		Graphics::Properties propertiesOnMouseDown;
 	
 	private:
-		vec2 GetAxisPoint(const Graphics::Auth2D::Properties& properties, ScaleNode node);
+		vec2 GetAxisPoint(const Graphics::Properties& properties, ScaleNode node);
 	};
 }

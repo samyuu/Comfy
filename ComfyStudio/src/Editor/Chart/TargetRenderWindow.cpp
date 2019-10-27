@@ -3,14 +3,14 @@
 
 namespace Editor
 {
-	using namespace FileSystem;
+	using namespace Graphics;
 
 	TargetRenderWindow::TargetRenderWindow()
 	{
-		spriteGetterFunction = [this](const AetSpriteIdentifier* inSprite, const Texture** outTexture, const Sprite** outSprite) { return false; };
+		spriteGetterFunction = [this](const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr) { return false; };
 
-		renderer = MakeUnique<Graphics::Auth2D::Renderer2D>();
-		aetRenderer = MakeUnique<Graphics::Auth2D::AetRenderer>(renderer.get());
+		renderer = MakeUnique<Renderer2D>();
+		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
 		aetRenderer->SetSpriteGetterFunction(&spriteGetterFunction);
 	}
 
@@ -62,9 +62,9 @@ namespace Editor
 	{
 		renderTarget.Bind();
 		{
-			Graphics::RenderCommand::SetViewport(renderTarget.GetSize());
-			Graphics::RenderCommand::SetClearColor(GetColorVec4(EditorColor_DarkClear));
-			Graphics::RenderCommand::Clear(Graphics::ClearTarget_ColorBuffer);
+			RenderCommand::SetViewport(renderTarget.GetSize());
+			RenderCommand::SetClearColor(GetColorVec4(EditorColor_DarkClear));
+			RenderCommand::Clear(ClearTarget_ColorBuffer);
 
 			camera.UpdateMatrices();
 			renderer->Begin(camera);
@@ -116,7 +116,7 @@ namespace Editor
 			sprSet->TxpSet->UploadAll();
 			sprSetLoader.FreeData();
 
-			spriteGetterFunction = [this](const AetSpriteIdentifier* inSprite, const Texture** outTexture, const Sprite** outSprite) { return Graphics::Auth2D::AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite); };
+			spriteGetterFunction = [this](const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr) { return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), identifier, outTxp, outSpr); };
 			aetRenderer->SetSpriteGetterFunction(&spriteGetterFunction);
 		}
 	}

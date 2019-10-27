@@ -2,109 +2,114 @@
 #include "FileSystem/BinaryReader.h"
 #include "FileSystem/BinaryWriter.h"
 
-namespace FileSystem
+using namespace FileSystem;
+
+namespace Graphics
 {
-	static uint32_t ReadColor(BinaryReader& reader)
+	namespace
 	{
-		uint32_t value = 0;
-		*((uint8_t*)&value + 0) = reader.ReadUInt8();
-		*((uint8_t*)&value + 1) = reader.ReadUInt8();
-		*((uint8_t*)&value + 2) = reader.ReadUInt8();
-		reader.SetPosition(reader.GetPosition() + 1);
-		return value;
-	}
-
-	static void ReadKeyFramesPointer(KeyFrameCollection& keyFrames, BinaryReader& reader)
-	{
-		uint32_t keyFrameCount = reader.ReadUInt32();
-		void* keyFramesPointer = reader.ReadPtr();
-
-		if (keyFrameCount > 0 && keyFramesPointer != nullptr)
+		uint32_t ReadColor(BinaryReader& reader)
 		{
-			reader.ReadAt(keyFramesPointer, [keyFrameCount, &keyFrames](BinaryReader& reader)
+			uint32_t value = 0;
+			*((uint8_t*)&value + 0) = reader.ReadUInt8();
+			*((uint8_t*)&value + 1) = reader.ReadUInt8();
+			*((uint8_t*)&value + 2) = reader.ReadUInt8();
+			reader.SetPosition(reader.GetPosition() + 1);
+			return value;
+		}
+
+		void ReadKeyFramesPointer(KeyFrameCollection& keyFrames, BinaryReader& reader)
+		{
+			uint32_t keyFrameCount = reader.ReadUInt32();
+			void* keyFramesPointer = reader.ReadPtr();
+
+			if (keyFrameCount > 0 && keyFramesPointer != nullptr)
 			{
-				keyFrames.resize(keyFrameCount);
-
-				if (keyFrameCount == 1)
+				reader.ReadAt(keyFramesPointer, [keyFrameCount, &keyFrames](BinaryReader& reader)
 				{
-					keyFrames.front().Value = reader.ReadFloat();
-				}
-				else
-				{
-					for (uint32_t i = 0; i < keyFrameCount; i++)
-						keyFrames[i].Frame = reader.ReadFloat();
+					keyFrames.resize(keyFrameCount);
 
-					for (uint32_t i = 0; i < keyFrameCount; i++)
+					if (keyFrameCount == 1)
 					{
-						keyFrames[i].Value = reader.ReadFloat();
-						keyFrames[i].Curve = reader.ReadFloat();
+						keyFrames.front().Value = reader.ReadFloat();
 					}
-				}
-			});
-		}
-	}
-
-	static void ReadKeyFrameProperties(KeyFrameProperties* properties, BinaryReader& reader)
-	{
-		for (KeyFrameCollection& keyFrames : *properties)
-			ReadKeyFramesPointer(keyFrames, reader);
-	}
-
-	static void WriteKeyFramesPointer(KeyFrameCollection& keyFrames, BinaryWriter& writer)
-	{
-		if (keyFrames.size() > 0)
-		{
-			writer.WriteUInt32(static_cast<uint32_t>(keyFrames.size()));
-			writer.WritePtr([&keyFrames](BinaryWriter& writer)
-			{
-				if (keyFrames.size() == 1)
-				{
-					writer.WriteFloat(keyFrames.front().Value);
-				}
-				else
-				{
-					for (AetKeyFrame& keyFrame : keyFrames)
-						writer.WriteFloat(keyFrame.Frame);
-
-					for (AetKeyFrame& keyFrame : keyFrames)
+					else
 					{
-						writer.WriteFloat(keyFrame.Value);
-						writer.WriteFloat(keyFrame.Curve);
+						for (uint32_t i = 0; i < keyFrameCount; i++)
+							keyFrames[i].Frame = reader.ReadFloat();
+
+						for (uint32_t i = 0; i < keyFrameCount; i++)
+						{
+							keyFrames[i].Value = reader.ReadFloat();
+							keyFrames[i].Curve = reader.ReadFloat();
+						}
 					}
-				}
-			});
+				});
+			}
 		}
-		else
+
+		void ReadKeyFrameProperties(KeyFrameProperties* properties, BinaryReader& reader)
 		{
-			writer.WriteUInt32(0x00000000); // key frames count
-			writer.WritePtr(nullptr);		// key frames offset
+			for (KeyFrameCollection& keyFrames : *properties)
+				ReadKeyFramesPointer(keyFrames, reader);
 		}
-	}
 
-	static void WriteKeyFrameProperties(KeyFrameProperties* properties, BinaryWriter& writer)
-	{
-		for (KeyFrameCollection& keyFrames : *properties)
-			WriteKeyFramesPointer(keyFrames, writer);
-	}
-
-	static void ReadAnimationData(RefPtr<AnimationData>& animationData, BinaryReader& reader)
-	{
-		animationData = MakeRef<FileSystem::AnimationData>();
-		animationData->BlendMode = static_cast<AetBlendMode>(reader.ReadUInt8());
-		reader.ReadUInt8();
-		animationData->UseTextureMask = reader.ReadBool();
-		reader.ReadUInt8();
-
-		ReadKeyFrameProperties(&animationData->Properties, reader);
-
-		void* perspectivePropertiesPointer = reader.ReadPtr();
-		if (perspectivePropertiesPointer != nullptr)
+		void WriteKeyFramesPointer(KeyFrameCollection& keyFrames, BinaryWriter& writer)
 		{
-			reader.ReadAt(perspectivePropertiesPointer, [animationData](BinaryReader& reader)
+			if (keyFrames.size() > 0)
 			{
-				animationData->PerspectiveProperties = MakeRef<KeyFrameProperties>();
-				ReadKeyFrameProperties(animationData->PerspectiveProperties.get(), reader);
-			});
+				writer.WriteUInt32(static_cast<uint32_t>(keyFrames.size()));
+				writer.WritePtr([&keyFrames](BinaryWriter& writer)
+				{
+					if (keyFrames.size() == 1)
+					{
+						writer.WriteFloat(keyFrames.front().Value);
+					}
+					else
+					{
+						for (AetKeyFrame& keyFrame : keyFrames)
+							writer.WriteFloat(keyFrame.Frame);
+
+						for (AetKeyFrame& keyFrame : keyFrames)
+						{
+							writer.WriteFloat(keyFrame.Value);
+							writer.WriteFloat(keyFrame.Curve);
+						}
+					}
+				});
+			}
+			else
+			{
+				writer.WriteUInt32(0x00000000); // key frames count
+				writer.WritePtr(nullptr);		// key frames offset
+			}
+		}
+
+		void WriteKeyFrameProperties(KeyFrameProperties* properties, BinaryWriter& writer)
+		{
+			for (KeyFrameCollection& keyFrames : *properties)
+				WriteKeyFramesPointer(keyFrames, writer);
+		}
+
+		void ReadAnimationData(RefPtr<AnimationData>& animationData, BinaryReader& reader)
+		{
+			animationData = MakeRef<AnimationData>();
+			animationData->BlendMode = static_cast<AetBlendMode>(reader.ReadUInt8());
+			reader.ReadUInt8();
+			animationData->UseTextureMask = reader.ReadBool();
+			reader.ReadUInt8();
+
+			ReadKeyFrameProperties(&animationData->Properties, reader);
+
+			void* perspectivePropertiesPointer = reader.ReadPtr();
+			if (perspectivePropertiesPointer != nullptr)
+			{
+				reader.ReadAt(perspectivePropertiesPointer, [animationData](BinaryReader& reader)
+				{
+					animationData->PerspectiveProperties = MakeRef<KeyFrameProperties>();
+					ReadKeyFrameProperties(animationData->PerspectiveProperties.get(), reader);
+				});
+			}
 		}
 	}
 

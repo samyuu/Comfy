@@ -6,9 +6,11 @@
 
 namespace Editor
 {
+	using namespace Graphics;
+
 	SceneRenderWindow::SceneRenderWindow(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
-		renderer = MakeUnique<Graphics::Auth3D::Renderer3D>();
+		renderer = MakeUnique<Renderer3D>();
 	}
 
 	SceneRenderWindow::~SceneRenderWindow()
@@ -63,11 +65,11 @@ namespace Editor
 			cubeVertexBuffer.Bind();
 			cubeVertexBuffer.Upload(sizeof(cubeVertices), cubeVertices);
 
-			Graphics::BufferLayout layout =
+			BufferLayout layout =
 			{
-				{ Graphics::ShaderDataType::Vec3, "in_Position" },
-				{ Graphics::ShaderDataType::Vec2, "in_TextureCoords" },
-				{ Graphics::ShaderDataType::Vec4, "in_Color" },
+				{ ShaderDataType::Vec3, "in_Position" },
+				{ ShaderDataType::Vec2, "in_TextureCoords" },
+				{ ShaderDataType::Vec4, "in_Color" },
 			};
 
 			cubeVao.InitializeID();
@@ -84,10 +86,10 @@ namespace Editor
 			lineVertexBuffer.Bind();
 			lineVertexBuffer.Upload(sizeof(axisVertices), axisVertices);
 
-			Graphics::BufferLayout layout =
+			BufferLayout layout =
 			{
-				{ Graphics::ShaderDataType::Vec3, "in_Position" },
-				{ Graphics::ShaderDataType::Vec4, "in_Color" },
+				{ ShaderDataType::Vec3, "in_Position" },
+				{ ShaderDataType::Vec4, "in_Color" },
 			};
 
 			lineVao.InitializeID();
@@ -299,10 +301,10 @@ namespace Editor
 			GLCall(glEnable(GL_BLEND));
 			GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-			Graphics::RenderCommand::SetClearColor(baseClearColor);
-			Graphics::RenderCommand::Clear(Graphics::ClearTarget_ColorBuffer | Graphics::ClearTarget_DepthBuffer);
+			RenderCommand::SetClearColor(baseClearColor);
+			RenderCommand::Clear(ClearTarget_ColorBuffer | ClearTarget_DepthBuffer);
 
-			Graphics::RenderCommand::SetViewport(renderTarget.GetSize());
+			RenderCommand::SetViewport(renderTarget.GetSize());
 			{
 				comfyShader.Bind();
 				comfyShader.SetUniform(comfyShader.View, camera.GetViewMatrix());
@@ -320,17 +322,17 @@ namespace Editor
 					skyTexture->GraphicsTexture->Bind(1);
 					skyTexture->GraphicsTexture->Bind(0);
 					comfyShader.SetUniform(comfyShader.Model, skyModelMatrix);
-					Graphics::RenderCommand::DrawArrays(Graphics::PrimitiveType::Triangles, 0, _countof(cubeVertices));
+					RenderCommand::DrawArrays(PrimitiveType::Triangles, 0, _countof(cubeVertices));
 
 					groundTexture->GraphicsTexture->Bind(1);
 					groundTexture->GraphicsTexture->Bind(0);
 					comfyShader.SetUniform(comfyShader.Model, groundModelMatrix);
-					Graphics::RenderCommand::DrawArrays(Graphics::PrimitiveType::Triangles, 0, _countof(cubeVertices));
+					RenderCommand::DrawArrays(PrimitiveType::Triangles, 0, _countof(cubeVertices));
 
 					tileTexture->GraphicsTexture->Bind(1);
 					tileTexture->GraphicsTexture->Bind(0);
 					comfyShader.SetUniform(comfyShader.Model, tileModelMatrix);
-					Graphics::RenderCommand::DrawArrays(Graphics::PrimitiveType::Triangles, 0, _countof(cubeVertices));
+					RenderCommand::DrawArrays(PrimitiveType::Triangles, 0, _countof(cubeVertices));
 				}
 
 				mat4 cubeModelMatrices[_countof(cubePositions)];
@@ -347,7 +349,7 @@ namespace Editor
 					for (size_t i = 0; i < _countof(cubePositions); i++)
 					{
 						lineShader.SetUniform(lineShader.Model, cubeModelMatrices[i]);
-						Graphics::RenderCommand::DrawArrays(Graphics::PrimitiveType::Lines, 0, _countof(axisVertices));
+						RenderCommand::DrawArrays(PrimitiveType::Lines, 0, _countof(axisVertices));
 					}
 				}
 
@@ -364,7 +366,7 @@ namespace Editor
 					for (size_t i = 0; i < _countof(cubePositions); i++)
 					{
 						comfyShader.SetUniform(comfyShader.Model, cubeModelMatrices[i]);
-						Graphics::RenderCommand::DrawArrays(Graphics::PrimitiveType::Triangles, 0, _countof(cubeVertices));
+						RenderCommand::DrawArrays(PrimitiveType::Triangles, 0, _countof(cubeVertices));
 					}
 				}
 				*/
@@ -402,7 +404,7 @@ namespace Editor
 			screenShader.SetUniform(screenShader.Brightness, postProcessData.Brightness);
 
 			postProcessingRenderTarget.GetTexture().Bind();
-			Graphics::RenderCommand::DrawArrays(Graphics::PrimitiveType::Triangles, 0, 6);
+			RenderCommand::DrawArrays(PrimitiveType::Triangles, 0, 6);
 		}
 		renderTarget.UnBind();
 	}

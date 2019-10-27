@@ -10,7 +10,7 @@ namespace App
 	public:
 		virtual bool Initialize() = 0;
 		virtual bool Update() = 0;
-		virtual bool Render(Graphics::Auth2D::Renderer2D* renderer, Graphics::Auth2D::AetRenderer* aetRenderer) = 0;
+		virtual bool Render(Graphics::Renderer2D* renderer, Graphics::AetRenderer* aetRenderer) = 0;
 		virtual bool PreDrawGui() = 0;
 		virtual bool PostDrawGui() = 0;
 	};

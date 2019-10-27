@@ -27,12 +27,12 @@ namespace Graphics
 		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 	}
 
-	bool Texture2D::Create(const FileSystem::Texture* texture)
+	bool Texture2D::Create(const Txp* txp)
 	{
-		GLint mipMapCount = static_cast<GLint>(texture->MipMaps.size());
+		GLint mipMapCount = static_cast<GLint>(txp->MipMaps.size());
 		assert(mipMapCount >= 1);
 
-		const FileSystem::MipMap* baseMipMap = texture->MipMaps.front().get();
+		const MipMap* baseMipMap = txp->MipMaps.front().get();
 
 		imageSize.x = static_cast<float>(baseMipMap->Width);
 		imageSize.y = static_cast<float>(baseMipMap->Height);
@@ -41,7 +41,7 @@ namespace Graphics
 		InitializeID();
 		Bind();
 
-		SetObjectLabel(texture->Name.c_str());
+		SetObjectLabel(txp->Name.c_str());
 
 		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER));
 		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER));
@@ -64,7 +64,7 @@ namespace Graphics
 
 		for (int i = 0; i < mipMapCount; i++)
 		{
-			FileSystem::MipMap* mipMap = texture->MipMaps[i].get();
+			const MipMap* mipMap = txp->MipMaps[i].get();
 			GLenum glFormat = GetGLTextureFormat(mipMap->Format);
 
 			const uint8_t* data = mipMap->DataPointer != nullptr ? mipMap->DataPointer : mipMap->Data.data();
@@ -79,7 +79,7 @@ namespace Graphics
 				GLCall(glTexImage2D(GetTextureTarget(), i, glFormat, mipMap->Width, mipMap->Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data));
 			}
 
-			// else textureLod(...) won't work for RTC2 textures
+			// NOTE: Else textureLod(...) won't work for RTC2 textures
 			if (i == 0 && mipMapCount <= 2)
 			{
 				GLCall(glGenerateMipmap(GetTextureTarget()));

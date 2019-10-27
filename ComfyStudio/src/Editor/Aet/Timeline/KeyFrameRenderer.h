@@ -1,12 +1,11 @@
 #pragma once
 #include "Types.h"
 #include "ImGui/Gui.h"
-#include "FileSystem/Format/AetSet.h"
+#include "Graphics/Auth2D/AetSet.h"
 #include "Graphics/Texture/Texture2D.h"
 
 namespace Editor
 {
-	using namespace FileSystem;
 	class AetTimeline;
 
 	class KeyFrameRenderer
@@ -17,7 +16,7 @@ namespace Editor
 
 		void Initialize();
 
-		void DrawContent(const AetTimeline* timeline, const AetLayer* workingLayer);
+		void DrawContent(const AetTimeline* timeline, const Graphics::AetLayer* workingLayer);
 		vec2 GetCenteredTimelineRowScreenPosition(const AetTimeline* timeline, frame_t frame, int row);
 
 	private:
@@ -44,7 +43,7 @@ namespace Editor
 		void DrawKeyFramePart(ImDrawList* drawList, vec2 position, KeyFramePart type, ImU32 color) const;
 		void DrawSingleKeyFrame(ImDrawList* drawList, const vec2& position, KeyFrameType type, float opacity = 1.0f) const;
 
-		static KeyFrameType GetKeyFrameType(const AetKeyFrame& keyFrame, const KeyFrameCollection& keyFrames);
-		static float GetKeyFrameOpacity(const AetKeyFrame& keyFrame, bool opactiyKeyFrames);
+		static KeyFrameType GetKeyFrameType(const Graphics::AetKeyFrame& keyFrame, const Graphics::KeyFrameCollection& keyFrames);
+		static float GetKeyFrameOpacity(const Graphics::AetKeyFrame& keyFrame, bool opactiyKeyFrames);
 	};
 }

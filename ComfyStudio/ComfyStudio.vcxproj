@@ -147,6 +147,7 @@
     <ClCompile Include="src\ImGui\GuiRenderer.cpp" />
     <ClCompile Include="src\Input\Keyboard.cpp" />
     <ClCompile Include="src\Input\KeyCode.cpp" />
+    <ClCompile Include="src\Misc\FileExtensionHelper.cpp" />
     <ClCompile Include="src\System\CommandLine\CommandLine.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp" />
@@ -176,9 +177,9 @@
     <ClCompile Include="src\Editor\Aet\Timeline\KeyFrameRenderer.cpp" />
     <ClCompile Include="src\Editor\Aet\Timeline\AetTimelineController.cpp" />
     <ClCompile Include="src\FileSystem\FileReader.cpp" />
-    <ClCompile Include="src\FileSystem\Format\AetSetFile.cpp" />
-    <ClCompile Include="src\FileSystem\Format\ObjSet.cpp" />
-    <ClCompile Include="src\FileSystem\Format\ObjSetFile.cpp" />
+    <ClCompile Include="src\Graphics\Auth2D\AetSetFile.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\ObjSet.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\ObjSetFile.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\Renderer3D.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\OpenGLLoader.cpp" />
     <ClCompile Include="src\Graphics\Texture\Texture2D.cpp" />
@@ -215,8 +216,8 @@
     <ClCompile Include="src\FileSystem\FileInterface.cpp" />
     <ClCompile Include="src\FileSystem\FileLoader.cpp" />
     <ClCompile Include="src\FileSystem\Format\Database.cpp" />
-    <ClCompile Include="src\FileSystem\Format\SprSet.cpp" />
-    <ClCompile Include="src\FileSystem\Format\TxpSet.cpp" />
+    <ClCompile Include="src\Graphics\SprSet.cpp" />
+    <ClCompile Include="src\Graphics\TxpSet.cpp" />
     <ClCompile Include="src\FileSystem\Stream\MemoryStream.cpp" />
     <ClCompile Include="src\FileSystem\Stream\FileStream.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\AetMgr.cpp" />
@@ -246,7 +247,7 @@
     <ClCompile Include="src\Input\DirectInput\DirectInputDevice.cpp" />
     <ClCompile Include="src\Input\DirectInput\Ds4State.cpp" />
     <ClCompile Include="src\Input\DirectInput\DualShock4.cpp" />
-    <ClCompile Include="src\FileSystem\Format\AetSet.cpp" />
+    <ClCompile Include="src\Graphics\Auth2D\AetSet.cpp" />
     <ClCompile Include="src\Graphics\RenderTarget.cpp" />
     <ClCompile Include="src\Core\Application.cpp" />
     <ClCompile Include="src\Graphics\Camera.cpp" />
@@ -302,7 +303,9 @@
     <ClInclude Include="src\FileSystem\Archive\Farc.h" />
     <ClInclude Include="src\FileSystem\Archive\FileArchive.h" />
     <ClInclude Include="src\Core\Win32\ComfyWindows.h" />
+    <ClInclude Include="src\Graphics\GraphicTypes.h" />
     <ClInclude Include="src\ImGui\GuiRenderer.h" />
+    <ClInclude Include="src\Misc\FileExtensionHelper.h" />
     <ClInclude Include="src\System\CommandLine\CommandLine.h" />
     <ClInclude Include="lib\glfw\src\egl_context.h" />
     <ClInclude Include="lib\glfw\include\glfw\glfw3.h" />
@@ -329,7 +332,7 @@
     <ClInclude Include="src\Editor\Aet\Command\AetCommandManager.h" />
     <ClInclude Include="src\Editor\Command\CommandManager.h" />
     <ClInclude Include="src\FileSystem\FileReader.h" />
-    <ClInclude Include="src\FileSystem\Format\ObjSet.h" />
+    <ClInclude Include="src\Graphics\Auth3D\ObjSet.h" />
     <ClInclude Include="src\Graphics\Auth3D\Renderer3D.h" />
     <ClInclude Include="src\Graphics\OpenGL\OpenGL.h" />
     <ClInclude Include="src\Graphics\OpenGL\OpenGLBaseDefines.h" />
@@ -381,8 +384,8 @@
     <ClInclude Include="src\FileSystem\FileInterface.h" />
     <ClInclude Include="src\FileSystem\FileLoader.h" />
     <ClInclude Include="src\FileSystem\Format\Database.h" />
-    <ClInclude Include="src\FileSystem\Format\SprSet.h" />
-    <ClInclude Include="src\FileSystem\Format\TxpSet.h" />
+    <ClInclude Include="src\Graphics\SprSet.h" />
+    <ClInclude Include="src\Graphics\TxpSet.h" />
     <ClInclude Include="src\FileSystem\Stream\MemoryStream.h" />
     <ClInclude Include="src\FileSystem\Stream\FileStream.h" />
     <ClInclude Include="src\FileSystem\BinaryMode.h" />
@@ -424,11 +427,11 @@
     <ClInclude Include="src\Input\DirectInput\DualShock4.h" />
     <ClInclude Include="src\Input\IInputDevice.h" />
     <ClInclude Include="src\Input\Keyboard.h" />
-    <ClInclude Include="src\FileSystem\Format\AetSet.h" />
+    <ClInclude Include="src\Graphics\Auth2D\AetSet.h" />
     <ClInclude Include="src\Graphics\RenderTarget.h" />
     <ClInclude Include="src\Core\Application.h" />
     <ClInclude Include="src\Graphics\Camera.h" />
-    <ClInclude Include="src\Graphics\ComfyVertex.h" />
+    <ClInclude Include="src\Graphics\VertexLayouts.h" />
     <ClInclude Include="src\ImGui\Core\imconfig.h" />
     <ClInclude Include="src\ImGui\Core\imgui.h" />
     <ClInclude Include="src\ImGui\Implementation\ImGui_Impl.h" />

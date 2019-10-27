@@ -4,7 +4,8 @@
 
 namespace Editor
 {
-	using namespace ImGui;
+	using namespace Gui;
+	using namespace Graphics;
 
 	bool AddAetObjDialog::DrawGui(Aet* aet, AetLayer* layer)
 	{

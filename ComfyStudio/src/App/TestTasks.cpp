@@ -108,7 +108,7 @@ namespace App
 
 	bool TaskPs4Menu::Initialize()
 	{
-		spriteGetterFunction = [this](const AetSpriteIdentifier* inSprite, const Texture** outTexture, const Sprite** outSprite) { return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite); };
+		spriteGetterFunction = [this](const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr) { return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), identifier, outTxp, outSpr); };
 
 		return true;
 	}

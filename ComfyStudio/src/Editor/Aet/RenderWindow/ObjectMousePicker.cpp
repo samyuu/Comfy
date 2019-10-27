@@ -4,6 +4,8 @@
 
 namespace Editor
 {
+	using namespace Graphics;
+
 	ObjectMousePicker::ObjectMousePicker(const std::vector<AetMgr::ObjCache>& objectCache, const bool& windowHoveredOnMouseClick, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem)
 		: objectCache(objectCache), windowHoveredOnMouseClick(windowHoveredOnMouseClick), selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem)
 	{

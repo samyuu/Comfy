@@ -1,14 +1,19 @@
 #include "SprSet.h"
 #include "FileSystem/BinaryReader.h"
 
-namespace FileSystem
+using namespace FileSystem;
+
+namespace Graphics
 {
-	static void ReadVec4(vec4& value, BinaryReader& reader)
+	namespace
 	{
-		value.x = reader.ReadFloat();
-		value.y = reader.ReadFloat();
-		value.z = reader.ReadFloat();
-		value.w = reader.ReadFloat();
+		void ReadVec4(vec4& value, BinaryReader& reader)
+		{
+			value.x = reader.ReadFloat();
+			value.y = reader.ReadFloat();
+			value.z = reader.ReadFloat();
+			value.w = reader.ReadFloat();
+		}
 	}
 
 	void SprSet::Read(BinaryReader& reader)
@@ -24,7 +29,7 @@ namespace FileSystem
 		{
 			reader.ReadAt(txpSetOffset, [&sprSet](BinaryReader& reader)
 			{
-				sprSet->TxpSet = MakeUnique<FileSystem::TxpSet>();
+				sprSet->TxpSet = MakeUnique<Graphics::TxpSet>();
 				sprSet->TxpSet->Read(reader);
 			});
 		}
@@ -39,7 +44,7 @@ namespace FileSystem
 				sprSet->Sprites.resize(spritesCount);
 				for (uint32_t i = 0; i < spritesCount; i++)
 				{
-					Sprite* sprite = &sprSet->Sprites[i];
+					Spr* sprite = &sprSet->Sprites[i];
 
 					sprite->TextureIndex = reader.ReadInt32();
 					sprite->Unknown = reader.ReadFloat();
@@ -64,7 +69,7 @@ namespace FileSystem
 		{
 			reader.ReadAt(spriteNamesOffset, [&sprSet](BinaryReader& reader)
 			{
-				for (Sprite &sprite : sprSet->Sprites)
+				for (Spr &sprite : sprSet->Sprites)
 					sprite.Name = reader.ReadStrPtr();
 			});
 		}
@@ -74,10 +79,10 @@ namespace FileSystem
 		{
 			reader.ReadAt(spriteExtraDataOffset, [&sprSet](BinaryReader& reader)
 			{
-				for (Sprite &sprite : sprSet->Sprites)
+				for (Spr &sprite : sprSet->Sprites)
 				{
 					sprite.GraphicsReserved = reader.ReadUInt32();
-					sprite.GraphicsMode = static_cast<GraphicsMode>(reader.ReadUInt32());
+					sprite.DisplayMode = static_cast<DisplayMode>(reader.ReadUInt32());
 				}
 			});
 		}
@@ -98,7 +103,7 @@ namespace FileSystem
 
 		if (txpSetOffset != 0)
 		{
-			sprSet->TxpSet = MakeUnique<FileSystem::TxpSet>();
+			sprSet->TxpSet = MakeUnique<Graphics::TxpSet>();
 			sprSet->TxpSet->Parse(buffer + txpSetOffset);
 		}
 
@@ -109,7 +114,7 @@ namespace FileSystem
 			sprSet->Sprites.resize(spritesCount);
 			for (uint32_t i = 0; i < spritesCount; i++)
 			{
-				Sprite* sprite = &sprSet->Sprites[i];
+				Spr* sprite = &sprSet->Sprites[i];
 
 				sprite->TextureIndex = *(uint32_t*)(spritesBuffer + 0);
 				sprite->Unknown = *(float*)(spritesBuffer + 4);
@@ -147,10 +152,10 @@ namespace FileSystem
 		{
 			const uint8_t* extraDataBuffer = buffer + spriteExtraDataOffset;
 
-			for (Sprite &sprite : sprSet->Sprites)
+			for (Spr &sprite : sprSet->Sprites)
 			{
 				sprite.GraphicsReserved = *((uint32_t*)extraDataBuffer + 0);
-				sprite.GraphicsMode = *((GraphicsMode*)extraDataBuffer + 4);
+				sprite.DisplayMode = *((DisplayMode*)extraDataBuffer + 4);
 				extraDataBuffer += 8;
 			}
 		}

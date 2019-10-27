@@ -13,6 +13,8 @@
 
 namespace Editor
 {
+	using namespace Graphics;
+
 	AetRenderWindow::AetRenderWindow(AetCommandManager* commandManager, SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem)
 		: IMutatingEditorComponent(commandManager), selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem)
 	{
@@ -211,9 +213,9 @@ namespace Editor
 
 		renderTarget.Bind();
 		{
-			Graphics::RenderCommand::SetViewport(renderTarget.GetSize());
-			Graphics::RenderCommand::SetClearColor(GetColorVec4(EditorColor_DarkClear));
-			Graphics::RenderCommand::Clear(Graphics::ClearTarget_ColorBuffer);
+			RenderCommand::SetViewport(renderTarget.GetSize());
+			RenderCommand::SetClearColor(GetColorVec4(EditorColor_DarkClear));
+			RenderCommand::Clear(ClearTarget_ColorBuffer);
 
 			camera.UpdateMatrices();
 			renderer->Begin(camera);

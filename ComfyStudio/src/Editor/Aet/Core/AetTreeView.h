@@ -3,23 +3,23 @@
 #include "Editor/Aet/AetSelection.h"
 #include "Editor/Aet/AetIcons.h"
 #include "AetDialogs.h"
-#include "FileSystem/Format/AetSet.h"
+#include "Graphics/Auth2D/AetSet.h"
 #include "Core/CoreTypes.h"
 #include "ImGui/Gui.h"
 #include <stack>
 
 namespace Editor
 {
-	using namespace FileSystem;
-
 	class AetTreeView : public IMutatingEditorComponent
 	{
 	public:
 		AetTreeView(AetCommandManager* commandManager, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
+		AetTreeView(const AetTreeView&) = delete;
+		AetTreeView& operator= (AetTreeView&) = delete;
 		~AetTreeView();
 
 		void Initialize();
-		bool DrawGui(const RefPtr<AetSet>& aetSet);
+		bool DrawGui(const RefPtr<Graphics::AetSet>& aetSet);
 
 		template <class T>
 		inline void SetSelectedItems(const RefPtr<T>& value) 
@@ -28,7 +28,7 @@ namespace Editor
 			cameraSelectedAetItem->SetItem(value);
 		};
 
-		inline void SetSelectedItems(const RefPtr<AetObj>& selectedObj, const RefPtr<AetLayer>& visibleLayer)
+		inline void SetSelectedItems(const RefPtr<Graphics::AetObj>& selectedObj, const RefPtr<Graphics::AetLayer>& visibleLayer)
 		{
 			selectedAetItem->SetItem(selectedObj);
 			cameraSelectedAetItem->SetItem(visibleLayer);
@@ -42,19 +42,20 @@ namespace Editor
 
 	private:
 		static constexpr const char* textureMaskIndicator = "  ( " ICON_FA_LINK " )";
-		static constexpr const char* addAetObjPopupID = "Add new AetObj";
 		static constexpr float layerPreviewTooltipHoverDelay = 0.8f;
 		static constexpr int layerPreviewMaxConunt = 10;
 
 		char nodeNameFormatBuffer[512];
 		
 		float scrollTargetCenterRatio = 0.15f;
-		AddAetObjDialog addAetObjDialog;
+
+		// TODO: Remove deprecated components
+		// AddAetObjDialog addAetObjDialog;
 
 		std::stack<float> scrollPositionStack;
 
 		// NOTE: To be used, filled and cleared by the layer usage context menu
-		std::vector<RefPtr<AetObj>*> layerUsagesBuffer;
+		std::vector<RefPtr<Graphics::AetObj>*> layerUsagesBuffer;
 
 		struct
 		{
@@ -69,26 +70,26 @@ namespace Editor
 
 		void DrawTreeViewBackground();
 		
-		// TODO: These should probably be called DrawTreeNode{Name}
-		void DrawTreeViewAetSet(const RefPtr<AetSet>& aetSet);
+		// TODO: These should probably be named DrawTreeNode{Name}
+		void DrawTreeViewAetSet(const RefPtr<Graphics::AetSet>& aetSet);
 		
-		void DrawTreeViewAet(const RefPtr<Aet>& aet);
-		void DrawTreeViewLayer(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, bool isRoot);
+		void DrawTreeViewAet(const RefPtr<Graphics::Aet>& aet);
+		void DrawTreeViewLayer(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetLayer>& aetLayer, bool isRoot);
 
-		void DrawTreeViewObj(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj);
-		void DrawTreeViewObjCameraSelectableButton(const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj);
-		void DrawTreeViewObjActivityButton(const RefPtr<AetObj>& aetObj);
+		void DrawTreeViewObj(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetLayer>& aetLayer, const RefPtr<Graphics::AetObj>& aetObj);
+		void DrawTreeViewObjCameraSelectableButton(const RefPtr<Graphics::AetLayer>& aetLayer, const RefPtr<Graphics::AetObj>& aetObj);
+		void DrawTreeViewObjActivityButton(const RefPtr<Graphics::AetObj>& aetObj);
 
-		void DrawTreeViewRegion(const RefPtr<Aet>& aet, const RefPtr<AetRegion>& region, int32_t index);
+		void DrawTreeViewRegion(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetRegion>& region, int32_t index);
 
-		bool DrawAetLayerContextMenu(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, bool isRoot);
-		bool DrawAetObjContextMenu(const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj);
+		bool DrawAetLayerContextMenu(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetLayer>& aetLayer, bool isRoot);
+		bool DrawAetObjContextMenu(const RefPtr<Graphics::AetLayer>& aetLayer, const RefPtr<Graphics::AetObj>& aetObj);
 
-		void DrawAetLayerPreviewTooltip(const RefPtr<AetLayer>& aetLayer);
+		void DrawAetLayerPreviewTooltip(const RefPtr<Graphics::AetLayer>& aetLayer);
 		void DrawTreeNodeCameraIcon(const vec2& treeNodeCursorPos) const;
 
 	private:
-		const char* FormatRegionNodeName(const RefPtr<AetRegion>& region, int32_t index);
+		const char* FormatRegionNodeName(const RefPtr<Graphics::AetRegion>& region, int32_t index);
 
 	private:
 		void ScrollToGuiData(GuiExtraData& guiData);

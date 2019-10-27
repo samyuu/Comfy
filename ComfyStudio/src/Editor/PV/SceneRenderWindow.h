@@ -3,18 +3,16 @@
 #include "Editor/Core/RenderWindowBase.h"
 #include "Graphics/VertexArray.h"
 #include "Graphics/Buffer.h"
-#include "Graphics/ComfyVertex.h"
+#include "Graphics/VertexLayouts.h"
 #include "Graphics/Shader/Shader.h"
 #include "Graphics/Texture/Texture2D.h"
 #include "Graphics/Auth3D/Renderer3D.h"
+#include "Graphics/Auth3D/ObjSet.h"
 #include "Graphics/Camera.h"
-#include "FileSystem/Format/SprSet.h"
-#include "FileSystem/Format/ObjSet.h"
+#include "Graphics/SprSet.h"
 
 namespace Editor
 {
-	using namespace FileSystem;
-
 	class SceneRenderWindow : public IEditorComponent, public RenderWindowBase
 	{
 	public:
@@ -48,8 +46,8 @@ namespace Editor
 		} postProcessData;
 
 		int testObjectIndex = 0;
-		UniquePtr<ObjSet> testObjSet;
-		UniquePtr<Graphics::Auth3D::Renderer3D> renderer;
+		UniquePtr<Graphics::ObjSet> testObjSet;
+		UniquePtr<Graphics::Renderer3D> renderer;
 
 		// Vertex Storage
 		// --------------
@@ -66,17 +64,17 @@ namespace Editor
 		// --------
 		struct
 		{
-			SprSet sprSet;
+			Graphics::SprSet sprSet;
 			union
 			{
-				Texture* allTextures[5];
+				Graphics::Txp* allTextures[5];
 				struct
 				{
-					Texture* feelsBadManTexture;
-					Texture* goodNiceTexture;
-					Texture* groundTexture;
-					Texture* skyTexture;
-					Texture* tileTexture;
+					Graphics::Txp* feelsBadManTexture;
+					Graphics::Txp* goodNiceTexture;
+					Graphics::Txp* groundTexture;
+					Graphics::Txp* skyTexture;
+					Graphics::Txp* tileTexture;
 				};
 			};
 		};

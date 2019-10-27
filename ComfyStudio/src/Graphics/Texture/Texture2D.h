@@ -1,5 +1,6 @@
 #pragma once
 #include "Texture.h"
+#include "Graphics/TxpSet.h"
 
 namespace Graphics
 {
@@ -11,7 +12,7 @@ namespace Graphics
 		~Texture2D();
 
 		void UploadEmpty(ivec2 size);
-		bool Create(const FileSystem::Texture* texture);
+		bool Create(const Txp* txp);
 		bool CreateFromFile(const char* path);
 		bool CreateFromRgbaBuffer(ivec2 size, const uint32_t* pixels);
 
@@ -25,7 +26,7 @@ namespace Graphics
 		void SetObjectLabel(const char* label) override;
 
 	protected:
-		vec2 imageSize;
+		vec2 imageSize = vec2(0.0, 0.0f);
 		int imageChannels = 0;
 
 		void Dispose();

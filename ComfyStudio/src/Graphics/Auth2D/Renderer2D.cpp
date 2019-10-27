@@ -2,7 +2,7 @@
 #include "Graphics/RenderCommand.h"
 #include <glm/trigonometric.hpp>
 
-namespace Graphics::Auth2D
+namespace Graphics
 {
 	static inline uint32_t FloatToUInt32Sat(float value)
 	{

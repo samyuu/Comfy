@@ -6,13 +6,15 @@
 
 namespace Editor
 {
+	using namespace Graphics;
+
 	constexpr ImGuiTreeNodeFlags LeafTreeNodeFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet;
 
 	AetEditor::AetEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
 		commandManager = MakeUnique<AetCommandManager>();
 
-		spriteGetterFunction = [](const AetSpriteIdentifier* inSprite, const Texture** outTexture, const Sprite** outSprite) { return false; };
+		spriteGetterFunction = [](const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr) { return false; };
 
 		treeView = MakeUnique<AetTreeView>(commandManager.get(), &selectedAetItem, &cameraSelectedAetItem);
 		layerView = MakeUnique<AetLayerView>();
@@ -135,7 +137,7 @@ namespace Editor
 		{
 			sprSet = MakeUnique<SprSet>();
 			sprSetFileLoader->Parse(sprSet.get());
-			sprSet->Name = GetFileName(sprSetFileLoader->GetFilePath(), false);
+			sprSet->Name = FileSystem::GetFileName(sprSetFileLoader->GetFilePath(), false);
 			sprSet->TxpSet->UploadAll();
 
 			OnSprSetLoaded();
@@ -148,7 +150,7 @@ namespace Editor
 		if (aetFileViewer.DrawGui())
 		{
 			const std::string& aetPath = aetFileViewer.GetFileToOpen();
-			if (StartsWithInsensitive(GetFileName(aetPath), "aet_") && (EndsWithInsensitive(aetPath, ".bin") || EndsWithInsensitive(aetPath, ".aec")))
+			if (StartsWithInsensitive(FileSystem::GetFileName(aetPath), "aet_") && (EndsWithInsensitive(aetPath, ".bin") || EndsWithInsensitive(aetPath, ".aec")))
 				LoadAetSet(aetPath);
 		}
 	}
@@ -158,7 +160,7 @@ namespace Editor
 		if (sprFileViewer.DrawGui())
 		{
 			const std::string& sprPath = sprFileViewer.GetFileToOpen();
-			if (StartsWithInsensitive(GetFileName(sprPath), "spr_") && EndsWithInsensitive(sprPath, ".bin"))
+			if (StartsWithInsensitive(FileSystem::GetFileName(sprPath), "spr_") && EndsWithInsensitive(sprPath, ".bin"))
 				LoadSprSet(sprPath);
 		}
 	}
@@ -166,11 +168,11 @@ namespace Editor
 	bool AetEditor::LoadAetSet(const std::string& filePath)
 	{
 		const std::wstring widePath = Utf8ToUtf16(filePath);
-		if (!FileExists(widePath))
+		if (!FileSystem::FileExists(widePath))
 			return false;
 
 		editorAetSet = MakeRef<AetSet>();
-		editorAetSet->Name = GetFileName(filePath, false);
+		editorAetSet->Name = FileSystem::GetFileName(filePath, false);
 		editorAetSet->Load(widePath);
 
 		OnAetSetLoaded();
@@ -179,13 +181,13 @@ namespace Editor
 
 	bool AetEditor::LoadSprSet(const std::string& filePath)
 	{
-		if (!FileExists(Utf8ToUtf16(filePath)))
+		if (!FileSystem::FileExists(Utf8ToUtf16(filePath)))
 			return false;
 
 		if (sprSetFileLoader != nullptr)
 			return false;
 
-		sprSetFileLoader = MakeUnique<FileLoader>(filePath);
+		sprSetFileLoader = MakeUnique<FileSystem::FileLoader>(filePath);
 		if (asyncFileLoading)
 		{
 			sprSetFileLoader->LoadAsync();
@@ -209,9 +211,9 @@ namespace Editor
 		if (editorAetSet != nullptr)
 			editorAetSet->ClearSpriteCache();
 
-		spriteGetterFunction = [this](const AetSpriteIdentifier* inSprite, const Texture** outTexture, const Sprite** outSprite)
+		spriteGetterFunction = [this](const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr)
 		{
-			return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), inSprite, outTexture, outSprite);
+			return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), identifier, outTxp, outSpr);
 		};
 	}
 }

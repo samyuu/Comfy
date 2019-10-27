@@ -13,8 +13,8 @@ namespace Editor
 		virtual KeyCode GetShortcutKey() const override;
 
 		// TODO: Rename to 'UpdateProperties' (?)
-		virtual void UpdatePostDrawGui(Graphics::Auth2D::Properties* properties, vec2 dimensions) override;
-		virtual void ProcessCommands(AetCommandManager* commandManager, const RefPtr<AetObj>& aetObj, float frame, const Graphics::Auth2D::Properties& properties, const Graphics::Auth2D::Properties& previousProperties) override;
+		virtual void UpdatePostDrawGui(Graphics::Properties* properties, vec2 dimensions) override;
+		virtual void ProcessCommands(AetCommandManager* commandManager, const RefPtr<Graphics::AetObj>& aetObj, float frame, const Graphics::Properties& properties, const Graphics::Properties& previousProperties) override;
 
 		virtual void DrawContextMenu() override;
 		virtual bool MouseFocusCaptured() const override;
@@ -35,7 +35,7 @@ namespace Editor
 		vec2 scaleNodeWorldPositionOnMouseDown;
 		vec2 mouseWorldPositionOnMouseDown;
 		TransformBox screenSpaceBox, worldSpaceBox;
-		Graphics::Auth2D::Properties propertiesOnMouseDown;
+		Graphics::Properties propertiesOnMouseDown;
 
 		GrabMode mode = GrabMode::None;
 		BoxNode scalingNode = BoxNode_Invalid, hoveringNode = BoxNode_Invalid;
@@ -43,7 +43,7 @@ namespace Editor
 		bool boxHovered = false;
 		bool allowAction = false;
 
-		void UpdateKeyboardMoveInput(Graphics::Auth2D::Properties* properties);
+		void UpdateKeyboardMoveInput(Graphics::Properties* properties);
 		void MoveBoxCorner(BoxNode scalingNode, TransformBox& box, vec2 position, float rotation) const;
 
 	private:

@@ -8,8 +8,6 @@
 
 namespace Editor
 {
-	using namespace FileSystem;
-
 	enum AetToolType
 	{
 		AetToolType_Hand,
@@ -57,10 +55,10 @@ namespace Editor
 		// TODO: virtual void OnDeselect() {};
 
 		// NOTE: Do the input handling and draw the tool widgets
-		virtual void UpdatePostDrawGui(Graphics::Auth2D::Properties* properties, vec2 dimensions) {};
+		virtual void UpdatePostDrawGui(Graphics::Properties* properties, vec2 dimensions) {};
 		
 		// NOTE: Turn the updated properties into a set of AetCommands
-		virtual void ProcessCommands(AetCommandManager* commandManager, const RefPtr<AetObj>& aetObj, float frame, const Graphics::Auth2D::Properties& properties, const Graphics::Auth2D::Properties& previousProperties) {};
+		virtual void ProcessCommands(AetCommandManager* commandManager, const RefPtr<Graphics::AetObj>& aetObj, float frame, const Graphics::Properties& properties, const Graphics::Properties& previousProperties) {};
 		
 		// NOTE: Tool specific context menu items
 		virtual void DrawContextMenu() = 0;

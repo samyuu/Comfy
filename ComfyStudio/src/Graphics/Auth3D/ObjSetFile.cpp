@@ -1,34 +1,40 @@
 #include "ObjSet.h"
 #include "FileSystem/BinaryReader.h"
 
-namespace FileSystem
+using namespace FileSystem;
+
+namespace Graphics
 {
-	static inline vec3 ReadVec3(BinaryReader& reader)
+	namespace
 	{
-		return vec3(reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat());
-	}
-
-	static inline Sphere ReadSphere(BinaryReader& reader)
-	{
-		return { ReadVec3(reader), reader.ReadFloat() };
-	}
-
-	static inline Box ReadBox(BinaryReader& reader)
-	{
-		return { ReadVec3(reader), ReadVec3(reader) };
-	}
-
-	template <class T>
-	static inline void CheckReadVertexData(BinaryReader& reader, bool attributeFlag, std::vector<T>& vector, uint32_t vertexCount, void* pointer, void* baseAddress)
-	{
-		if (!attributeFlag || pointer == nullptr)
-			return;
-		
-		reader.ReadAt(pointer, baseAddress, [&vector, vertexCount](BinaryReader& reader)
+		inline vec3 ReadVec3(BinaryReader& reader)
 		{
-			vector.resize(vertexCount);
-			reader.Read(vector.data(), vector.size() * sizeof(T));
-		});
+			return vec3(reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat());
+		}
+
+		inline Sphere ReadSphere(BinaryReader& reader)
+		{
+			return { ReadVec3(reader), reader.ReadFloat() };
+		}
+
+		inline Box ReadBox(BinaryReader& reader)
+		{
+			return { ReadVec3(reader), ReadVec3(reader) };
+		}
+
+		template <class T>
+		inline void CheckReadVertexData(BinaryReader& reader, bool attributeFlag, std::vector<T>& vector, uint32_t vertexCount, void* pointer, void* baseAddress)
+		{
+			if (!attributeFlag || pointer == nullptr)
+				return;
+
+			reader.ReadAt(pointer, baseAddress, [&vector, vertexCount](BinaryReader& reader)
+			{
+				vector.resize(vertexCount);
+				reader.Read(vector.data(), vector.size() * sizeof(T));
+			});
+		}
+
 	}
 
 	void Obj::Read(BinaryReader& reader)
@@ -80,7 +86,7 @@ namespace FileSystem
 								}
 
 								uint32_t unknown1 = reader.ReadUInt32();
-								subMesh->Primitive = static_cast<Graphics::PrimitiveType>(reader.ReadUInt32());
+								subMesh->Primitive = static_cast<PrimitiveType>(reader.ReadUInt32());
 								uint32_t unknown2 = reader.ReadUInt32();
 
 								uint32_t indexCount = reader.ReadUInt32();

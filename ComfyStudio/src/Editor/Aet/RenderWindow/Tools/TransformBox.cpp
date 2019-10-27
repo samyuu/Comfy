@@ -32,7 +32,7 @@ namespace Editor
 	{
 	}
 
-	TransformBox::TransformBox(const Graphics::Auth2D::Properties& properties, const vec2& dimensions)
+	TransformBox::TransformBox(const Graphics::Properties& properties, const vec2& dimensions)
 	{
 		vec2 size = dimensions * properties.Scale;
 
@@ -108,7 +108,7 @@ namespace Editor
 		return vec2(-1.0f);
 	}
 
-	Graphics::Auth2D::Properties TransformBox::GetProperties(vec2 dimensions, vec2 origin, float rotation, float opacity) const
+	Graphics::Properties TransformBox::GetProperties(vec2 dimensions, vec2 origin, float rotation, float opacity) const
 	{
 		vec2 corners[2] = { TL, BR };
 		vec2 rotationorigin = TL - origin;

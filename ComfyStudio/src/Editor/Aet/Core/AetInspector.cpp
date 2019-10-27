@@ -6,14 +6,19 @@
 
 namespace Editor
 {
-	constexpr ImGuiTreeNodeFlags DefaultOpenPropertiesNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow;
+	using namespace Graphics;
 
-	static void CopyStringIntoBuffer(const std::string& string, char* buffer, size_t bufferSize)
+	namespace
 	{
-		size_t copySize = std::min(string.size(), bufferSize - 1);
-		string.copy(buffer, copySize);
-		buffer[copySize] = '\0';
+		void CopyStringIntoBuffer(const std::string& string, char* buffer, size_t bufferSize)
+		{
+			size_t copySize = std::min(string.size(), bufferSize - 1);
+			string.copy(buffer, copySize);
+			buffer[copySize] = '\0';
+		}
 	}
+
+	constexpr ImGuiTreeNodeFlags DefaultOpenPropertiesNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow;
 
 	AetInspector::AetInspector(AetCommandManager* commandManager) : IMutatingEditorComponent(commandManager)
 	{
@@ -312,8 +317,6 @@ namespace Editor
 
 			if (animationData != nullptr)
 			{
-				using namespace Graphics::Auth2D;
-
 				static Properties currentProperties;
 				AetMgr::Interpolate(animationData.get(), &currentProperties, currentFrame);
 
@@ -406,7 +409,6 @@ namespace Editor
 
 	void AetInspector::DrawInspectorAnimationDataProperty(const RefPtr<AetObj>& aetObj, const char* label, frame_t frame, float& value, int propertyType)
 	{
-		using namespace Graphics::Auth2D;
 		constexpr float percentFactor = 100.0f;
 
 		assert(aetObj->AnimationData.get() != nullptr);
@@ -446,7 +448,6 @@ namespace Editor
 
 	void AetInspector::DrawInspectorAnimationDataPropertyVec2(const RefPtr<AetObj>& aetObj, const char* label, frame_t frame, vec2& value, int propertyTypeX, int propertyTypeY)
 	{
-		using namespace Graphics::Auth2D;
 		constexpr float percentFactor = 100.0f;
 
 		assert(aetObj->AnimationData.get() != nullptr);

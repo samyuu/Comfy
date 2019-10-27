@@ -1,15 +1,13 @@
 #pragma once
 #include "Renderer2D.h"
 #include "AetMgr.h"
-#include "FileSystem/Format/AetSet.h"
-#include "FileSystem/Format/SprSet.h"
+#include "AetSet.h"
+#include "Graphics/SprSet.h"
 #include <functional>
 
-namespace Graphics::Auth2D
+namespace Graphics
 {
-	typedef std::function<bool(const AetSpriteIdentifier* inSprite, const FileSystem::Texture** outTexture, const Sprite** outSprite)> SpriteGetterFunction;
-
-	using namespace FileSystem;
+	typedef std::function<bool(const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr)> SpriteGetterFunction;
 
 	class AetRenderer
 	{
@@ -37,10 +35,10 @@ namespace Graphics::Auth2D
 	
 		void RenderAetSprite(const AetRegion* aetRegion, const AetSpriteIdentifier* aetSprite, const vec2& position);
 
-		static bool SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const AetSpriteIdentifier* inSprite, const FileSystem::Texture** outTexture, const Sprite** outSprite);
+		static bool SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr);
 
 	public:
-		bool GetSprite(const AetSpriteIdentifier* inSprite, const FileSystem::Texture** outTexture, const Sprite** outSprite);
+		bool GetSprite(const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr);
 
 	private:
 		Renderer2D* renderer2D = nullptr;

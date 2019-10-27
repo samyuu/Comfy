@@ -3,7 +3,6 @@
 #include "Graphics/Graphics.h"
 #include "Graphics/GraphicsInterface.h"
 #include "Graphics/RenderCommand.h"
-#include "FileSystem/Format/TxpSet.h"
 
 namespace Graphics
 {

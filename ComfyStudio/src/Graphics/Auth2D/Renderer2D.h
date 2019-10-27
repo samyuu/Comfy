@@ -3,15 +3,13 @@
 #include "Graphics/Buffer.h"
 #include "Graphics/VertexArray.h"
 #include "Graphics/Shader/Shader.h"
-#include "Graphics/ComfyVertex.h"
+#include "Graphics/VertexLayouts.h"
 #include "Graphics/Texture/Texture2D.h"
 #include "Graphics/Camera.h"
-#include "FileSystem/Format/AetSet.h"
+#include "AetSet.h"
 
-namespace Graphics::Auth2D
+namespace Graphics
 {
-	using namespace FileSystem;
-
 	struct SpriteIndices
 	{
 		uint16_t TopLeft;

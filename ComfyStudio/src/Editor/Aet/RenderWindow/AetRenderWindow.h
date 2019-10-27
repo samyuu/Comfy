@@ -6,8 +6,7 @@
 #include "Editor/Core/RenderWindowBase.h"
 #include "Editor/Common/CameraController2D.h"
 #include "Editor/Common/CheckerboardGrid.h"
-#include "FileSystem/Format/AetSet.h"
-#include "FileSystem/Format/SprSet.h"
+#include "Graphics/SprSet.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Auth2D/Renderer2D.h"
 #include "Graphics/Auth2D/AetRenderer.h"
@@ -15,12 +14,10 @@
 
 namespace Editor
 {
-	using namespace Graphics::Auth2D;
-
 	class AetRenderWindow : public RenderWindowBase, IMutatingEditorComponent
 	{
 	public:
-		AetRenderWindow(AetCommandManager* commandManager, SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
+		AetRenderWindow(AetCommandManager* commandManager, Graphics::SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
 		~AetRenderWindow();
 
 		void SetIsPlayback(bool value);
@@ -49,14 +46,14 @@ namespace Editor
 		void OnInitialize() override;
 
 		void RenderBackground();
-		void RenderAetSet(const AetSet* aetSet);
-		void RenderAet(const Aet* aet);
-		void RenderAetLayer(const AetLayer* aetLayer);
-		void RenderAetObj(const AetObj* aetObj);
-		void RenderAetRegion(const AetRegion* aetRegion);
+		void RenderAetSet(const Graphics::AetSet* aetSet);
+		void RenderAet(const Graphics::Aet* aet);
+		void RenderAetLayer(const Graphics::AetLayer* aetLayer);
+		void RenderAetObj(const Graphics::AetObj* aetObj);
+		void RenderAetRegion(const Graphics::AetRegion* aetRegion);
 
 	protected:
-		vec2 GetAetObjBoundingSize(const RefPtr<AetObj>& aetObj) const;
+		vec2 GetAetObjBoundingSize(const RefPtr<Graphics::AetObj>& aetObj) const;
 
 	private:
 		// NOTE: Fill the rest of the background
@@ -83,18 +80,18 @@ namespace Editor
 		};
 
 		// NOTE: General rendering
-		UniquePtr<Renderer2D> renderer = nullptr;
-		UniquePtr<AetRenderer> aetRenderer = nullptr;
+		UniquePtr<Graphics::Renderer2D> renderer = nullptr;
+		UniquePtr<Graphics::AetRenderer> aetRenderer = nullptr;
 
 		// NOTE: To handle mouse inputs when no tool is active
 		UniquePtr<ObjectMousePicker> mousePicker = nullptr;;
 
 		// NOTE: To be filled during rendering and then used for mouse interactions
-		std::vector<AetMgr::ObjCache> objectCache;
+		std::vector<Graphics::AetMgr::ObjCache> objectCache;
 
 		// NOTE: The variables that will be edited by the current tool before being turned into commands
 		vec2 toolSize = vec2(100.0f, 100.0f);
-		Properties toolProperties = AetMgr::DefaultProperites;
+		Graphics::Properties toolProperties = Graphics::AetMgr::DefaultProperites;
 
 		std::array<UniquePtr<AetTool>, AetToolType_Count> tools;
 		AetToolType currentToolType = AetToolType_Hand;

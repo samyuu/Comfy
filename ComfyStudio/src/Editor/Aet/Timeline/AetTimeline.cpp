@@ -4,6 +4,8 @@
 
 namespace Editor
 {
+	using namespace Graphics;
+
 	static_assert(sizeof(PropertyType_Enum) == sizeof(int32_t) && sizeof(KeyFrameIndex::Pair) == sizeof(KeyFrameIndex::PackedValue));
 
 	AetTimeline::AetTimeline()

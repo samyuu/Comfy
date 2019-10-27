@@ -1,26 +1,11 @@
 #pragma once
 #include "Types.h"
 #include "TxpSet.h"
+#include "Graphics/GraphicTypes.h"
 
-namespace FileSystem
+namespace Graphics
 {
-	enum class GraphicsMode : uint32_t
-	{
-		QVGA = 0,
-		VGA = 1,
-		SVGA = 2,
-		XGA = 3,
-		UXGA = 6,
-		WVGA = 7,
-		WXGA = 9,
-		WUXGA = 11,
-		WQXGA = 12,
-		HDTV720 = 13,
-		HDTV1080 = 14,
-		Custom = 18,
-	};
-
-	struct Sprite
+	struct Spr
 	{
 		int32_t TextureIndex;
 		float Unknown;
@@ -28,20 +13,20 @@ namespace FileSystem
 		vec4 PixelRegion;
 		std::string Name;
 		unk32_t GraphicsReserved;
-		GraphicsMode GraphicsMode;
+		DisplayMode DisplayMode;
 
 		inline vec2 GetSize() const { return vec2(PixelRegion.z, PixelRegion.w); };
 	};
 
-	class SprSet : public IBinaryReadable, public IBufferParsable
+	class SprSet : public FileSystem::IBinaryReadable, public FileSystem::IBufferParsable
 	{
 	public:
 		std::string Name;
 		uint32_t Signature;
 		UniquePtr<TxpSet> TxpSet;
-		std::vector<Sprite> Sprites;
+		std::vector<Spr> Sprites;
 
-		virtual void Read(BinaryReader& reader) override;
+		virtual void Read(FileSystem::BinaryReader& reader) override;
 		virtual void Parse(const uint8_t* buffer) override;
 
 	private:

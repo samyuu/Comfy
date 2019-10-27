@@ -2,12 +2,10 @@
 #include "Graphics/IRenderer.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Shader/Shader.h"
-#include "FileSystem/Format/ObjSet.h"
+#include "Graphics/Auth3D/ObjSet.h"
 
-namespace Graphics::Auth3D
+namespace Graphics
 {
-	using namespace FileSystem;
-
 	class Renderer3D : public IRenderer
 	{
 	public:
@@ -20,6 +18,6 @@ namespace Graphics::Auth3D
 
 	private:
 		const PerspectiveCamera* camera;
-		UniquePtr<SimpleShader> simpleShader;
+		UniquePtr<SimpleShader> simpleShader = nullptr;
 	};
 }

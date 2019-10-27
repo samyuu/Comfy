@@ -4,11 +4,10 @@
 #include "AetTimelineController.h"
 #include "Editor/Timeline/FrameTimeline.h"
 #include "Graphics/Auth2D/AetMgr.h"
-#include "FileSystem/Format/AetSet.h"
+#include "Graphics/Auth2D/AetSet.h"
 
 namespace Editor
 {
-	using namespace Graphics::Auth2D;
 	class AetEditor;
 
 	struct KeyFrameIndex
@@ -17,7 +16,7 @@ namespace Editor
 		{
 			struct PropertyKeyFrameIndexPair
 			{
-				PropertyType_Enum Property;
+				Graphics::PropertyType_Enum Property;
 				int32_t KeyFrame;
 			} Pair;
 			int64_t PackedValue;
@@ -80,9 +79,9 @@ namespace Editor
 		
 		void OnDrawTimelineInfoColumnHeader() override;
 		void OnDrawTimelineInfoColumn() override;
-		void DrawTimelineInfoColumnLayer(const AetLayer* workingLayer, const AetObj* selectedObject) const;
+		void DrawTimelineInfoColumnLayer(const Graphics::AetLayer* workingLayer, const Graphics::AetObj* selectedObject) const;
 
-		const AetLayer* GetWorkingLayer() const;
+		const Graphics::AetLayer* GetWorkingLayer() const;
 		int GetTimelineRowCount() const;
 
 		void OnDrawTimlineRows() override;
@@ -111,7 +110,7 @@ namespace Editor
 		static constexpr const char* settingsPopupName = "TimelineSettingsPopup::AetTimeline";
 		static constexpr const char* timelinePropertyNameTypeSeparator = ":";
 
-		static constexpr std::array<std::pair<const char*, const char*>, static_cast<size_t>(PropertyType_Count)> timelinePropertyTypeNames =
+		static constexpr std::array<std::pair<const char*, const char*>, static_cast<size_t>(Graphics::PropertyType_Count)> timelinePropertyTypeNames =
 		{
 			std::make_pair("Transform", "Origin.X"),
 			std::make_pair("Transform", "Origin.Y"),

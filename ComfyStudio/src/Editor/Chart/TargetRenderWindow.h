@@ -1,17 +1,15 @@
 #pragma once
 #include "Editor/Core/RenderWindowBase.h"
 #include "Editor/Common/CheckerboardGrid.h"
+#include "FileSystem/FileLoader.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Auth2D/Renderer2D.h"
 #include "Graphics/Auth2D/AetRenderer.h"
-#include "FileSystem/FileLoader.h"
-#include "FileSystem/Format/AetSet.h"
-#include "FileSystem/Format/SprSet.h"
+#include "Graphics/Auth2D/AetSet.h"
+#include "Graphics/SprSet.h"
 
 namespace Editor
 {
-	using namespace FileSystem;
-
 	class TargetRenderWindow : public RenderWindowBase
 	{
 	public:
@@ -33,25 +31,25 @@ namespace Editor
 		const vec2 renderSize = vec2(1920.0f, 1080.0f);
 		Graphics::OrthographicCamera camera;
 
-		Graphics::Auth2D::SpriteGetterFunction spriteGetterFunction;
-		UniquePtr<Graphics::Auth2D::Renderer2D> renderer;
-		UniquePtr<Graphics::Auth2D::AetRenderer> aetRenderer;
+		Graphics::SpriteGetterFunction spriteGetterFunction;
+		UniquePtr<Graphics::Renderer2D> renderer;
+		UniquePtr<Graphics::AetRenderer> aetRenderer;
 
 		// TODO: ps4_gam
-		FileLoader aetSetLoader = { "dev_rom/2d/aet_gam_cmn.bin" };
-		FileLoader sprSetLoader = { "dev_rom/2d/spr_gam_cmn.bin" };
+		FileSystem::FileLoader aetSetLoader = { "dev_rom/2d/aet_gam_cmn.bin" };
+		FileSystem::FileLoader sprSetLoader = { "dev_rom/2d/spr_gam_cmn.bin" };
 
-		UniquePtr<AetSet> aetSet;
-		UniquePtr<SprSet> sprSet;
+		UniquePtr<Graphics::AetSet> aetSet;
+		UniquePtr<Graphics::SprSet> sprSet;
 
 		struct /* AetObjCache */
 		{
-			RefPtr<AetObj> FrameUp, FrameBottom;
-			RefPtr<AetObj> LifeGauge;
-			RefPtr<AetObj> SongEnergyBase;
-			RefPtr<AetObj> SongIconLoop;
-			RefPtr<AetObj> LevelInfoEasy;
-			RefPtr<AetObj> SongInfoLoop;
+			RefPtr<Graphics::AetObj> FrameUp, FrameBottom;
+			RefPtr<Graphics::AetObj> LifeGauge;
+			RefPtr<Graphics::AetObj> SongEnergyBase;
+			RefPtr<Graphics::AetObj> SongIconLoop;
+			RefPtr<Graphics::AetObj> LevelInfoEasy;
+			RefPtr<Graphics::AetObj> SongInfoLoop;
 		} aetObjCache;
 
 		void RenderBackground();
