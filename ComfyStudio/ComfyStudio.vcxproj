@@ -454,16 +454,6 @@
     <ClInclude Include="src\Types.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="rom\shader\comfy_frag.glsl" />
-    <None Include="rom\shader\comfy_vert.glsl" />
-    <None Include="rom\shader\line_frag.glsl" />
-    <None Include="rom\shader\line_vert.glsl" />
-    <None Include="rom\shader\screen_frag.glsl" />
-    <None Include="rom\shader\screen_vert.glsl" />
-    <None Include="rom\shader\sprite_frag.glsl" />
-    <None Include="rom\shader\sprite_vert.glsl" />
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="res\ComfyStudio.rc" />
   </ItemGroup>
   <ItemGroup>
