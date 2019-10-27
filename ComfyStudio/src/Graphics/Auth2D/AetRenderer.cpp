@@ -31,25 +31,41 @@ namespace Graphics
 		spriteGetter = value;
 	}
 
-	void AetRenderer::RenderObjCache(const AetMgr::ObjCache& obj, const vec2& position, float opacity)
+	void AetRenderer::SetAetObjCallback(const AetObjCallbackFunction& value)
+	{
+		aetObjCallback = value;
+	}
+
+	void AetRenderer::SetAetObjMaskCallback(const AetObjMaskCallbackFunction& value)
+	{
+		aetObjMaskCallback = value;
+	}
+
+	void AetRenderer::RenderObjCache(const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)
 	{
 		if (obj.Region == nullptr || !obj.Visible)
 			return;
 
+		if (aetObjCallback.has_value() && aetObjCallback.value()(obj, positionOffset, opacity))
+			return;
+
 		const Txp* texture;
 		const Spr* sprite;
-		bool validSprite = GetSprite(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
+		const bool validSprite = GetSprite(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
+
+		const vec2 finalPosition = obj.Properties.Position + positionOffset;
+		const float finalOpacity = obj.Properties.Opacity * opacity;
 
 		if (validSprite)
 		{
 			renderer2D->Draw(
 				texture->GraphicsTexture.get(),
 				sprite->PixelRegion,
-				obj.Properties.Position + position,
+				finalPosition,
 				obj.Properties.Origin,
 				obj.Properties.Rotation,
 				obj.Properties.Scale,
-				vec4(1.0f, 1.0f, 1.0f, obj.Properties.Opacity * opacity),
+				vec4(1.0f, 1.0f, 1.0f, finalOpacity),
 				obj.BlendMode);
 		}
 		else
@@ -58,27 +74,30 @@ namespace Graphics
 			renderer2D->Draw(
 				nullptr,
 				vec4(0.0f, 0.0f, obj.Region->Size),
-				obj.Properties.Position + position,
+				finalPosition,
 				obj.Properties.Origin,
 				obj.Properties.Rotation,
 				obj.Properties.Scale,
-				vec4(DummyColor.r, DummyColor.g, DummyColor.b, DummyColor.a * obj.Properties.Opacity * opacity),
+				vec4(DummyColor.r, DummyColor.g, DummyColor.b, DummyColor.a * finalOpacity),
 				obj.BlendMode);
 		}
 	}
 
-	void AetRenderer::RenderObjCacheMask(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& position, float opacity)
+	void AetRenderer::RenderObjCacheMask(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)
 	{
 		if (maskObj.Region == nullptr || obj.Region == nullptr || !obj.Visible)
 			return;
 
+		if (aetObjMaskCallback.has_value() && aetObjMaskCallback.value()(maskObj, obj, positionOffset, opacity))
+			return;
+
 		const Txp* maskTexture;
 		const Spr* maskSprite;
-		bool validMaskSprite = GetSprite(maskObj.Region->GetSprite(maskObj.SpriteIndex), &maskTexture, &maskSprite);
+		const bool validMaskSprite = GetSprite(maskObj.Region->GetSprite(maskObj.SpriteIndex), &maskTexture, &maskSprite);
 
 		const Txp* texture;
 		const Spr* sprite;
-		bool validSprite = GetSprite(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
+		const bool validSprite = GetSprite(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
 
 		if (validMaskSprite && validSprite)
 		{
@@ -91,11 +110,11 @@ namespace Graphics
 				maskObj.Properties.Scale,
 				texture->GraphicsTexture.get(),
 				sprite->PixelRegion,
-				obj.Properties.Position,
+				obj.Properties.Position + positionOffset,
 				obj.Properties.Origin,
 				obj.Properties.Rotation,
 				obj.Properties.Scale,
-				vec4(1.0f, 1.0f, 1.0f, maskObj.Properties.Opacity * obj.Properties.Opacity),
+				vec4(1.0f, 1.0f, 1.0f, maskObj.Properties.Opacity * obj.Properties.Opacity * opacity),
 				maskObj.BlendMode);
 		}
 		else
@@ -103,7 +122,7 @@ namespace Graphics
 			renderer2D->Draw(
 				nullptr,
 				vec4(0.0f, 0.0f, obj.Region->Size),
-				obj.Properties.Position + position,
+				obj.Properties.Position + positionOffset,
 				obj.Properties.Origin,
 				obj.Properties.Rotation,
 				obj.Properties.Scale,
