@@ -11,25 +11,20 @@ namespace Utilities
 			return character == ' ' || character == '\t' || character == '\n' || character == '\r';
 		}
 
-		bool CaseInsenitiveComparison(const char a, const char b)
+		bool CaseInsenitiveComparison(const int a, const int b)
 		{
 			return tolower(a) == tolower(b);
 		}
-
-		bool CaseInsenitiveWideComparison(const wchar_t a, const wchar_t b)
-		{
-			return tolower(a) == tolower(b);
-		};
 	}
 
 	void TrimLeft(std::string& string)
 	{
-		string.erase(string.begin(), std::find_if(string.begin(), string.end(), [](int ch) { return !IsWhiteSpace(ch); }));
+		string.erase(string.begin(), std::find_if(string.begin(), string.end(), [](const char character) { return !IsWhiteSpace(character); }));
 	}
 
 	void TrimRight(std::string& string)
 	{
-		string.erase(std::find_if(string.rbegin(), string.rend(), [](int ch) { return !IsWhiteSpace(ch); }).base(), string.end());
+		string.erase(std::find_if(string.rbegin(), string.rend(), [](const char character) { return !IsWhiteSpace(character); }).base(), string.end());
 	}
 
 	void Trim(std::string& string)
@@ -117,7 +112,7 @@ namespace Utilities
 		if (suffix.size() > string.size())
 			return false;
 
-		return std::equal(string.rbegin(), string.rbegin() + suffix.size(), suffix.rbegin(), suffix.rend(), CaseInsenitiveWideComparison);
+		return std::equal(string.rbegin(), string.rbegin() + suffix.size(), suffix.rbegin(), suffix.rend(), CaseInsenitiveComparison);
 	}
 
 	std::wstring Utf8ToUtf16(const std::string& string)
