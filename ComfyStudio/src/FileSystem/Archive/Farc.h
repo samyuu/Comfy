@@ -32,8 +32,11 @@ namespace FileSystem
 		static constexpr size_t IVSize = 16;
 		static constexpr size_t KeySize = 16;
 
-		static uint8_t ProjectDivaBinKey[KeySize];
-		static uint8_t OrbisFutureToneKey[KeySize];
+		// NOTE: project_diva.bin
+		static constexpr std::array<uint8_t, KeySize>  ProjectDivaBinKey = { 'p', 'r', 'o', 'j', 'e', 'c', 't', '_', 'd', 'i', 'v', 'a', '.', 'b', 'i', 'n' };
+
+		// NOTE: 1372D57B6E9E31EBA239B83C1557C6BB
+		static constexpr std::array<uint8_t, KeySize> OrbisFutureToneKey = { 0x13, 0x72, 0xD5, 0x7B, 0x6E, 0x9E, 0x31, 0xEB, 0xA2, 0x39, 0xB8, 0x3C, 0x15, 0x57, 0xC6, 0xBB };
 
 	public:
 		Farc();
@@ -47,7 +50,7 @@ namespace FileSystem
 		uint32_t alignment;
 		uint32_t flags;
 		FarcEncryptionFormat encryptionFormat;
-		uint8_t aesIV[IVSize];
+		std::array<uint8_t, IVSize> aesIV;
 
 	protected:
 		bool OpenStream(const std::wstring& filePath);

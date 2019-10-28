@@ -73,7 +73,7 @@
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>dxguid.lib;dinput8.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
@@ -106,7 +106,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>dxguid.lib;dinput8.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -144,6 +144,7 @@
     <ClCompile Include="src\Editor\Timeline\TimelineScrollbar.cpp" />
     <ClCompile Include="src\FileSystem\Archive\Farc.cpp" />
     <ClCompile Include="src\FileSystem\Archive\FileArchive.cpp" />
+    <ClCompile Include="src\FileSystem\Archive\Win32Crypto.cpp" />
     <ClCompile Include="src\ImGui\GuiRenderer.cpp" />
     <ClCompile Include="src\Input\Keyboard.cpp" />
     <ClCompile Include="src\Input\KeyCode.cpp" />
@@ -304,6 +305,7 @@
     <ClInclude Include="src\FileSystem\Archive\Farc.h" />
     <ClInclude Include="src\FileSystem\Archive\FileArchive.h" />
     <ClInclude Include="src\Core\Win32\ComfyWindows.h" />
+    <ClInclude Include="src\FileSystem\Archive\Win32Crypto.h" />
     <ClInclude Include="src\Graphics\GraphicTypes.h" />
     <ClInclude Include="src\ImGui\GuiRenderer.h" />
     <ClInclude Include="src\Misc\FileExtensionHelper.h" />

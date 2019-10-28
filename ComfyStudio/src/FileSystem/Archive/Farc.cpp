@@ -1,22 +1,20 @@
 #include "Farc.h"
 #include "Misc/StringHelper.h"
 #include "Core/Logger.h"
+#include "Win32Crypto.h"
 #include <zlib.h>
-#include <plusaes.hpp>
+#include <assert.h>
 
 namespace FileSystem
 {
-	static inline uint32_t GetAesDataAlignmentSize(uint64_t dataSize)
+	namespace
 	{
-		constexpr uint32_t aesAlignmentSize = 16;
-		return (static_cast<uint32_t>(dataSize) + (aesAlignmentSize - 1)) & ~(aesAlignmentSize - 1);
+		inline uint32_t GetAesDataAlignmentSize(const uint64_t dataSize)
+		{
+			constexpr uint32_t aesAlignmentSize = 16;
+			return (static_cast<uint32_t>(dataSize) + (aesAlignmentSize - 1)) & ~(aesAlignmentSize - 1);
+		}
 	}
-
-	// NOTE: project_diva.bin
-	uint8_t Farc::ProjectDivaBinKey[KeySize] = { 'p', 'r', 'o', 'j', 'e', 'c', 't', '_', 'd', 'i', 'v', 'a', '.', 'b', 'i', 'n' };
-
-	// NOTE: 1372D57B6E9E31EBA239B83C1557C6BB
-	uint8_t Farc::OrbisFutureToneKey[KeySize] = { 0x13, 0x72, 0xD5, 0x7B, 0x6E, 0x9E, 0x31, 0xEB, 0xA2, 0x39, 0xB8, 0x3C, 0x15, 0x57, 0xC6, 0xBB };
 
 	Farc::Farc()
 	{
@@ -113,7 +111,7 @@ namespace FileSystem
 			if (encryptedEntries)
 			{
 				encryptionFormat = FarcEncryptionFormat::OrbisFutureTone;
-				reader.Read(aesIV, sizeof(aesIV));
+				reader.Read(aesIV.data(), aesIV.size());
 
 				uint32_t paddedHeaderSize = GetAesDataAlignmentSize(headerSize);
 
@@ -186,7 +184,7 @@ namespace FileSystem
 		else if (flags & FarcFlags_Compressed)
 		{
 			// NOTE: Since the farc file size is only stored in a 32bit integer, decompressing it as a single block should be safe enough (?)
-			uint32_t paddedSize = GetAesDataAlignmentSize(entry.CompressedSize) + 16;
+			const uint32_t paddedSize = GetAesDataAlignmentSize(entry.CompressedSize) + 16;
 
 			uint8_t* encryptedData = nullptr;
 			uint8_t* compressedData = new uint8_t[paddedSize];
@@ -204,7 +202,7 @@ namespace FileSystem
 			}
 
 			// NOTE: Could this be related to the IV size?
-			uint32_t dataOffset = (encryptionFormat == FarcEncryptionFormat::OrbisFutureTone) ? 16 : 0;
+			const uint32_t dataOffset = (encryptionFormat == FarcEncryptionFormat::OrbisFutureTone) ? 16 : 0;
 
 			z_stream zStream;
 			zStream.zalloc = Z_NULL;
@@ -215,7 +213,7 @@ namespace FileSystem
 			zStream.avail_out = static_cast<uInt>(entry.FileSize);
 			zStream.next_out = reinterpret_cast<Bytef*>(fileContentOut);
 
-			int initResult = inflateInit2(&zStream, 31);
+			const int initResult = inflateInit2(&zStream, 31);
 			assert(initResult == Z_OK);
 
 			// NOTE: This will sometimes fail with Z_DATA_ERROR "incorrect data check" which I believe to be caused by alignment issues with the very last data block of the file
@@ -223,7 +221,7 @@ namespace FileSystem
 			int inflateResult = inflate(&zStream, Z_FINISH);
 			// assert(inflateResult == Z_STREAM_END && zStream.msg == nullptr);
 
-			int endResult = inflateEnd(&zStream);
+			const int endResult = inflateEnd(&zStream);
 			assert(endResult == Z_OK);
 
 			delete[] encryptedData;
@@ -231,7 +229,7 @@ namespace FileSystem
 		}
 		else if (flags & FarcFlags_Encrypted)
 		{
-			uint32_t paddedSize = GetAesDataAlignmentSize(entry.CompressedSize);
+			const uint32_t paddedSize = GetAesDataAlignmentSize(entry.CompressedSize);
 			uint8_t* encryptedData = new uint8_t[paddedSize];
 
 			reader.Read(encryptedData, entry.FileSize);
@@ -263,7 +261,7 @@ namespace FileSystem
 
 	bool Farc::ParseEntryInternal(const uint8_t*& headerDataPointer)
 	{
-		ArchiveEntry entry(this);
+		ArchiveEntry entry { this };
 
 		entry.Name = std::string(reinterpret_cast<const char*>(headerDataPointer));
 		headerDataPointer += entry.Name.size() + sizeof(char);
@@ -271,7 +269,7 @@ namespace FileSystem
 		entry.FileOffset = ByteswapUInt32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
 		headerDataPointer += sizeof(uint32_t);
 
-		uint32_t fileSize = ByteswapUInt32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
+		const uint32_t fileSize = ByteswapUInt32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
 		headerDataPointer += sizeof(uint32_t);
 
 		if (flags & FarcFlags_Compressed)
@@ -295,7 +293,7 @@ namespace FileSystem
 
 		if (encryptionFormat == FarcEncryptionFormat::OrbisFutureTone)
 		{
-			uint32_t unknown = ByteswapUInt32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
+			const uint32_t unknown = ByteswapUInt32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
 			headerDataPointer += sizeof(uint32_t);
 		}
 
@@ -330,20 +328,17 @@ namespace FileSystem
 	{
 		if (encryptionFormat == FarcEncryptionFormat::ProjectDivaBin)
 		{
-			auto result = plusaes::decrypt_ecb(encryptedData, dataSize, ProjectDivaBinKey, KeySize, decryptedData, dataSize, nullptr);
-			assert(result == plusaes::Error::kErrorOk);
+			return Crypto::Win32DecryptAesEcb(encryptedData, decryptedData, dataSize, ProjectDivaBinKey);
 		}
 		else if (encryptionFormat == FarcEncryptionFormat::OrbisFutureTone)
 		{
-			auto result = plusaes::decrypt_cbc(encryptedData, dataSize, OrbisFutureToneKey, KeySize, &aesIV, decryptedData, dataSize, nullptr);
-			assert(result == plusaes::Error::kErrorOk);
+			return Crypto::Win32DecryptAesCbc(encryptedData, decryptedData, dataSize, OrbisFutureToneKey, aesIV);
 		}
 		else
 		{
 			assert(false);
-			return false;
 		}
 
-		return true;
+		return false;
 	}
 }
