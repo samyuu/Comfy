@@ -86,7 +86,7 @@ namespace Graphics
 		// NOTE: Because a KeyFrameCollection is expected to always be sorted
 		static void SortKeyFrames(KeyFrameCollection& keyFrames);
 
-		// NOTE: To be used after changing the LoopStart frame of an AetObj
+		// NOTE: To be used after changing the StartFrame frame of an AetObj
 		static void OffsetAllKeyFrames(KeyFrameProperties& properties, frame_t frameIncrement);
 
 		// NOTE: Recursively add the properties of the parent obj to the input properties if there is one

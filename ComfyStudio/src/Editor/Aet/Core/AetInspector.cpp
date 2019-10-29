@@ -99,13 +99,13 @@ namespace Editor
 			if (Gui::ComfyTextWidget("Name", aetNameBuffer, sizeof(aetNameBuffer)))
 				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeName, aet, aetNameBuffer);
 
-			float frameStart = aet->FrameStart;
-			if (Gui::ComfyFloatTextWidget("Start Frame", &frameStart, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
-				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeStartFrame, aet, frameStart);
+			float startFrame = aet->StartFrame;
+			if (Gui::ComfyFloatTextWidget("Start Frame", &startFrame, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeStartFrame, aet, startFrame);
 
-			float frameDuration = aet->FrameDuration;
-			if (Gui::ComfyFloatTextWidget("Duration", &frameDuration, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
-				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeFrameDuration, aet, frameDuration);
+			float endFrame = aet->EndFrame;
+			if (Gui::ComfyFloatTextWidget("End Frame", &endFrame, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeEndFrame, aet, endFrame);
 
 			float frameRate = aet->FrameRate;
 			if (Gui::ComfyFloatTextWidget("Frame Rate", &frameRate, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
@@ -203,13 +203,13 @@ namespace Editor
 			if (Gui::ComfyTextWidget("Name", aetObjNameBuffer, sizeof(aetObjNameBuffer)))
 				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeName, aetObj, aetObjNameBuffer);
 
-			float loopStart = aetObj->LoopStart;
-			if (Gui::ComfyFloatTextWidget("Loop Start", &loopStart, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
-				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeLoopStart, aetObj, loopStart);
+			float startFrame = aetObj->StartFrame;
+			if (Gui::ComfyFloatTextWidget("Start Frame", &startFrame, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeStartFrame, aetObj, startFrame);
 
-			float loopEnd = aetObj->LoopEnd;
-			if (Gui::ComfyFloatTextWidget("Loop End", &loopEnd, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
-				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeLoopEnd, aetObj, loopEnd);
+			float endFrame = aetObj->EndFrame;
+			if (Gui::ComfyFloatTextWidget("End Frame", &endFrame, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
+				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeEndFrame, aetObj, endFrame);
 
 			float startOffset = aetObj->StartOffset;
 			if (Gui::ComfyFloatTextWidget("Start Offset", &startOffset, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))

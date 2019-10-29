@@ -186,15 +186,13 @@ namespace Graphics
 	public:
 		mutable GuiExtraData GuiData;
 
-		// NOTE: The first frame the object starts becoming visible.
-		//		 The name 'Loop' is not entirely accurate and should perhaps be renamed
-		//		 but for now it helps with differentiating it from 'StartOffset'
-		frame_t LoopStart;
+		// NOTE: The first frame the object starts becoming visible
+		frame_t StartFrame;
 
 		// NOTE: The last frame the object is visible on
-		frame_t LoopEnd;
+		frame_t EndFrame;
 
-		// NOTE: The offset the underlying referenced layer (or image sequence (?)) is offset by relative to the LoopStart. Also known as "time remapping".
+		// NOTE: The offset the underlying referenced content is offset by relative to the StartFrame. Also known as "time remapping".
 		//		 Strangely some pic objects sometimes use a non-zero value
 		frame_t StartOffset;
 
@@ -370,9 +368,9 @@ namespace Graphics
 		std::string Name;
 
 		// NOTE: Start frame of the root layer
-		frame_t FrameStart;
+		frame_t StartFrame;
 		// NOTE: End frame of the root layer
-		frame_t FrameDuration;
+		frame_t EndFrame;
 		// NOTE: Base framerate of the entire aet
 		frame_t FrameRate;
 

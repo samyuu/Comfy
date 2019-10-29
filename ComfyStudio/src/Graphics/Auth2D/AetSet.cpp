@@ -121,8 +121,8 @@ namespace Graphics
 
 	AetObj::AetObj(AetObjType type, const std::string& name, AetLayer* parentLayer)
 	{
-		LoopStart = 0.0f;
-		LoopEnd = 60.0f;
+		StartFrame = 0.0f;
+		EndFrame = 60.0f;
 		StartOffset = 0.0f;
 		PlaybackSpeed = 1.0f;
 		Flags.Visible = true;

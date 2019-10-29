@@ -193,9 +193,9 @@ namespace App
 		{
 			mainMenuState.Frames += deltaFrame;
 
-			if (mainMenuState.Frames >= aetData.MenuListIn02->LoopEnd)
+			if (mainMenuState.Frames >= aetData.MenuListIn02->EndFrame)
 			{
-				mainMenuState.Frames = aetData.MenuListIn02->LoopEnd - 1.0f;
+				mainMenuState.Frames = aetData.MenuListIn02->EndFrame - 1.0f;
 				mainMenuState.FramesSinceItemSwitch = mainMenuState.Frames;
 				stateType = TaskPs4MenuStateType::MainMenuLoop;
 			}

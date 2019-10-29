@@ -117,8 +117,8 @@ namespace Graphics
 	{
 		filePosition = reader.GetPositionPtr();
 		name = reader.ReadStrPtr();
-		LoopStart = reader.ReadFloat();
-		LoopEnd = reader.ReadFloat();
+		StartFrame = reader.ReadFloat();
+		EndFrame = reader.ReadFloat();
 		StartOffset = reader.ReadFloat();
 		PlaybackSpeed = reader.ReadFloat();
 
@@ -158,7 +158,7 @@ namespace Graphics
 				for (auto& keyFrames : this->AnimationData->Properties)
 				{
 					if (keyFrames.size() == 1)
-						keyFrames.front().Frame = LoopStart;
+						keyFrames.front().Frame = StartFrame;
 				}
 			});
 		}
@@ -170,8 +170,8 @@ namespace Graphics
 	void Aet::Read(BinaryReader& reader)
 	{
 		Name = reader.ReadStrPtr();
-		FrameStart = reader.ReadFloat();
-		FrameDuration = reader.ReadFloat();
+		StartFrame = reader.ReadFloat();
+		EndFrame = reader.ReadFloat();
 		FrameRate = reader.ReadFloat();
 		BackgroundColor = ReadColor(reader);
 
@@ -286,8 +286,8 @@ namespace Graphics
 		{
 			void* aetFilePosition = writer.GetPositionPtr();
 			writer.WriteStrPtr(&Name);
-			writer.WriteFloat(FrameStart);
-			writer.WriteFloat(FrameDuration);
+			writer.WriteFloat(StartFrame);
+			writer.WriteFloat(EndFrame);
 			writer.WriteFloat(FrameRate);
 			writer.WriteUInt32(BackgroundColor);
 			writer.WriteInt32(Resolution.x);
@@ -322,8 +322,8 @@ namespace Graphics
 							{
 								obj->filePosition = writer.GetPositionPtr();
 								writer.WriteStrPtr(&obj->name);
-								writer.WriteFloat(obj->LoopStart);
-								writer.WriteFloat(obj->LoopEnd);
+								writer.WriteFloat(obj->StartFrame);
+								writer.WriteFloat(obj->EndFrame);
 								writer.WriteFloat(obj->StartOffset);
 								writer.WriteFloat(obj->PlaybackSpeed);
 								writer.Write<AetObjFlags>(obj->Flags);

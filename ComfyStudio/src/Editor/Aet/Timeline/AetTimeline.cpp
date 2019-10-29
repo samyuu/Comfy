@@ -241,7 +241,7 @@ namespace Editor
 #endif
 
 		// TODO: Same behavior for AetObj and AetLayer
-		//		 Each object should have a name row with the LoopStart and LoopEnd
+		//		 Each object should have a name row with the StartFrame and EndFrame
 		//		 as well as a collapsable tree node for the transform properties
 		//		 the "tree nodes" on on info column should be clickable (draggable to reorder in the future)
 		//		 and reflect the selected aetobj state
@@ -441,8 +441,8 @@ namespace Editor
 		frame_t lastFrame = 0;
 		for (auto& object : *aetLayer)
 		{
-			if (object->LoopEnd > lastFrame)
-				lastFrame = object->LoopEnd;
+			if (object->EndFrame > lastFrame)
+				lastFrame = object->EndFrame;
 		}
 		return lastFrame;
 	}
@@ -456,8 +456,8 @@ namespace Editor
 
 			if (itemType == AetItemType::Aet || (itemType == AetItemType::AetLayer && selectedAetItem.GetAetLayerRef()->IsRootLayer()))
 			{
-				loopStartFrame = parentAet->FrameStart;
-				loopEndFrame = parentAet->FrameDuration;
+				loopStartFrame = parentAet->StartFrame;
+				loopEndFrame = parentAet->EndFrame;
 			}
 			else if (itemType == AetItemType::AetRegion)
 			{

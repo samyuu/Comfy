@@ -233,7 +233,7 @@ namespace Graphics
 	{
 		assert(aetObj->Type == AetObjType::Pic);
 
-		if (frame < aetObj->LoopStart || frame >= aetObj->LoopEnd)
+		if (frame < aetObj->StartFrame || frame >= aetObj->EndFrame)
 			return;
 
 		objects.emplace_back();
@@ -248,7 +248,7 @@ namespace Graphics
 
 		if (objCache.Region != nullptr && objCache.Region->SpriteCount() > 0)
 		{
-			// BUG: This should factor in the aetObj->LoopStart (?)
+			// BUG: This should factor in the aetObj->StartFrame (?)
 			// NOTE: Is it correct to modulo the index here? Seems to make more sense than just clamping
 			objCache.SpriteIndex = static_cast<int>(glm::round(frame)) % objCache.Region->SpriteCount();
 		}
@@ -263,7 +263,7 @@ namespace Graphics
 	{
 		assert(aetObj->Type == AetObjType::Eff);
 
-		if (frame < aetObj->LoopStart || frame >= aetObj->LoopEnd || !aetObj->Flags.Visible)
+		if (frame < aetObj->StartFrame || frame >= aetObj->EndFrame || !aetObj->Flags.Visible)
 			return;
 
 		const AetLayer* aetLayer = aetObj->GetReferencedLayer();
@@ -277,7 +277,7 @@ namespace Graphics
 		OffsetByParentProperties(effProperties, aetObj->GetReferencedParentObj(), frame, recursionCount);
 		TransformProperties(*parentProperties, effProperties);
 
-		frame_t adjustedFrame = ((frame - aetObj->LoopStart) * aetObj->PlaybackSpeed) + aetObj->StartOffset;
+		frame_t adjustedFrame = ((frame - aetObj->StartFrame) * aetObj->PlaybackSpeed) + aetObj->StartOffset;
 
 		for (int i = static_cast<int>(aetLayer->size()) - 1; i >= 0; i--)
 			InternalAddObjects(objects, &effProperties, aetLayer->GetObjAt(i), adjustedFrame);

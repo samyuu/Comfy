@@ -43,15 +43,15 @@ namespace Editor::Command
 		AetChangeName,
 		AetChangeResolution,
 		AetChangeStartFrame,
-		AetChangeFrameDuration,
+		AetChangeEndFrame,
 		AetChangeFrameRate,
 		AetChangeBackgroundColor,
 
 		AetLayerChangeName,
 
 		AetObjChangeName,
-		AetObjChangeLoopStart,
-		AetObjChangeLoopEnd,
+		AetObjChangeStartFrame,
+		AetObjChangeEndFrame,
 		AetObjChangeStartOffset,
 		AetObjChangePlaybackSpeed,
 		AetObjChangeFlagsVisible,
@@ -81,8 +81,8 @@ namespace Editor::Command
 	// ----------------------------------------------------------------------------------------------------------------------------
 	Define_PropertyCommand(AetChangeName, "Aet Name Change", Graphics::Aet, std::string, Name);
 	Define_PropertyCommand(AetChangeResolution, "Resolution Change", Graphics::Aet, ivec2, Resolution);
-	Define_PropertyCommand(AetChangeStartFrame, "Aet Start Frame Change", Graphics::Aet, frame_t, FrameStart);
-	Define_PropertyCommand(AetChangeFrameDuration, "Aet Frame Duration Change", Graphics::Aet, frame_t, FrameDuration);
+	Define_PropertyCommand(AetChangeStartFrame, "Aet Start Frame Change", Graphics::Aet, frame_t, StartFrame);
+	Define_PropertyCommand(AetChangeEndFrame, "Aet End Frame Change", Graphics::Aet, frame_t, EndFrame);
 	Define_PropertyCommand(AetChangeFrameRate, "Aet Frame Rate Change", Graphics::Aet, frame_t, FrameRate);
 	Define_PropertyCommand(AetChangeBackgroundColor, "Aet Background Color Change", Graphics::Aet, uint32_t, BackgroundColor);
 
@@ -106,29 +106,29 @@ namespace Editor::Command
 
 
 	// ----------------------------------------------------------------------------------------------------------------------------
-	Define_AetCommandStart(AetObjChangeLoopStart, "Object Loop Start Change");
+	Define_AetCommandStart(AetObjChangeStartFrame, "Object Start Frame Change");
 private:
 	RefPtr<Graphics::AetObj> ref;
 	frame_t newValue, oldValue;
 	inline void OffsetKeyFrames(frame_t increment) { if (ref->AnimationData != nullptr) Graphics::AetMgr::OffsetAllKeyFrames(ref->AnimationData->Properties, increment); }
-	inline frame_t ClampValue(frame_t value) { return glm::min(value, ref->LoopEnd - 1.0f); };
+	inline frame_t ClampValue(frame_t value) { return glm::min(value, ref->EndFrame - 1.0f); };
 
 public:
-	AetObjChangeLoopStart(const RefPtr<Graphics::AetObj>& ref, const frame_t& value) : ref(ref), newValue(ClampValue(value)) {}
+	AetObjChangeStartFrame(const RefPtr<Graphics::AetObj>& ref, const frame_t& value) : ref(ref), newValue(ClampValue(value)) {}
 	void Do() override
 	{
-		oldValue = ref->LoopStart;
-		ref->LoopStart = newValue;
+		oldValue = ref->StartFrame;
+		ref->StartFrame = newValue;
 		OffsetKeyFrames(newValue - oldValue);
 	}
 	void Undo() override
 	{
-		ref->LoopStart = oldValue;
+		ref->StartFrame = oldValue;
 		OffsetKeyFrames(oldValue - newValue);
 	}
 	void Redo() override
 	{
-		ref->LoopStart = newValue;
+		ref->StartFrame = newValue;
 		OffsetKeyFrames(newValue - oldValue);
 	}
 	void Update(frame_t value)
@@ -136,29 +136,29 @@ public:
 		value = ClampValue(value);
 		OffsetKeyFrames(value - newValue);
 		newValue = value;
-		ref->LoopStart = newValue;
+		ref->StartFrame = newValue;
 	}
-	bool CanUpdate(AetObjChangeLoopStart* newCommand)
+	bool CanUpdate(AetObjChangeStartFrame* newCommand)
 	{
-		return (&newCommand->ref->LoopStart == &ref->LoopStart);
+		return (&newCommand->ref->StartFrame == &ref->StartFrame);
 	}
 	Define_AetCommandEnd();
 	// ----------------------------------------------------------------------------------------------------------------------------
 
 
 	// ----------------------------------------------------------------------------------------------------------------------------
-	Define_AetCommandStart(AetObjChangeLoopEnd, "Object Loop End Change");
+	Define_AetCommandStart(AetObjChangeEndFrame, "Object End Frame Change");
 private:
 	RefPtr<Graphics::AetObj> ref;
 	float newValue, oldValue;
-	inline frame_t ClampValue(frame_t value) { return glm::max(value, ref->LoopStart + 1.0f); };
+	inline frame_t ClampValue(frame_t value) { return glm::max(value, ref->StartFrame + 1.0f); };
 public:
-	AetObjChangeLoopEnd(const RefPtr<Graphics::AetObj>& ref, const frame_t& value) : ref(ref), newValue(ClampValue(value)) {}
-	void Do() override { oldValue = ref->LoopEnd; ref->LoopEnd = newValue; }
-	void Undo() override { ref->LoopEnd = oldValue; }
-	void Redo() override { ref->LoopEnd = newValue; }
-	void Update(frame_t value) { newValue = ClampValue(value); ref->LoopEnd = newValue; }
-	bool CanUpdate(AetObjChangeLoopEnd* newCommand) { return (&newCommand->ref->LoopEnd == &ref->LoopEnd); }
+	AetObjChangeEndFrame(const RefPtr<Graphics::AetObj>& ref, const frame_t& value) : ref(ref), newValue(ClampValue(value)) {}
+	void Do() override { oldValue = ref->EndFrame; ref->EndFrame = newValue; }
+	void Undo() override { ref->EndFrame = oldValue; }
+	void Redo() override { ref->EndFrame = newValue; }
+	void Update(frame_t value) { newValue = ClampValue(value); ref->EndFrame = newValue; }
+	bool CanUpdate(AetObjChangeEndFrame* newCommand) { return (&newCommand->ref->EndFrame == &ref->EndFrame); }
 	Define_AetCommandEnd();
 	// ----------------------------------------------------------------------------------------------------------------------------
 

@@ -61,11 +61,11 @@ namespace Editor
 		int currentRow = 0;
 		for (auto& object : *workingLayer)
 		{
-			const vec2 startPosition = GetCenteredTimelineRowScreenPosition(timeline, object->LoopStart, currentRow);
-			const vec2 endPosition = GetCenteredTimelineRowScreenPosition(timeline, object->LoopEnd, currentRow);
+			const vec2 startPosition = GetCenteredTimelineRowScreenPosition(timeline, object->StartFrame, currentRow);
+			const vec2 endPosition = GetCenteredTimelineRowScreenPosition(timeline, object->EndFrame, currentRow);
 			++currentRow;
 
-			const bool isActive = (cursorFrame >= object->LoopStart) && (cursorFrame <= object->LoopEnd);
+			const bool isActive = (cursorFrame >= object->StartFrame) && (cursorFrame <= object->EndFrame);
 			DrawKeyFrameConnection(drawList, startPosition, endPosition, isActive);
 
 			DrawSingleKeyFrame(drawList, startPosition, KeyFrameType::InBetween);

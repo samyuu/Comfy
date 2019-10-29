@@ -161,12 +161,12 @@ namespace Graphics
 
 	void AetRenderer::RenderAetObjLooped(const AetObj* aetObj, float frame, const vec2& position, float opacity)
 	{
-		RenderAetObj(aetObj, fmod(frame, aetObj->LoopEnd - 1.0f), position, opacity);
+		RenderAetObj(aetObj, fmod(frame, aetObj->EndFrame - 1.0f), position, opacity);
 	}
 
 	void AetRenderer::RenderAetObjClamped(const AetObj* aetObj, float frame, const vec2& position, float opacity)
 	{
-		RenderAetObj(aetObj, (frame >= aetObj->LoopEnd ? aetObj->LoopEnd : frame), position, opacity);
+		RenderAetObj(aetObj, (frame >= aetObj->EndFrame ? aetObj->EndFrame : frame), position, opacity);
 	}
 
 	void AetRenderer::RenderAetSprite(const AetRegion* aetRegion, const AetSpriteIdentifier* aetSprite, const vec2& position)
