@@ -17,7 +17,6 @@ namespace Editor
 		spriteGetterFunction = [](const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr) { return false; };
 
 		treeView = MakeUnique<AetTreeView>(commandManager.get(), &selectedAetItem, &cameraSelectedAetItem);
-		layerView = MakeUnique<AetLayerView>();
 		inspector = MakeUnique<AetInspector>(commandManager.get(), &previewData);
 		timeline = MakeUnique<AetTimeline>();
 		renderWindow = MakeUnique<AetRenderWindow>(commandManager.get(), &spriteGetterFunction, &selectedAetItem, &cameraSelectedAetItem, &previewData);
@@ -69,17 +68,6 @@ namespace Editor
 			Gui::EndChild();
 		}
 		Gui::End();
-
-		// TODO: Either remove this entirely and have the AetTreeView do all the work or update and get it to a usable state
-#if 0
-		if (Gui::Begin(ICON_AETLAYERS "  Aet Layers##AetEditor"))
-		{
-			Gui::BeginChild("AetLayerViewChild##AetEditor", vec2(0.0f, 0.0f), true, ImGuiWindowFlags_HorizontalScrollbar);
-			layerView->DrawGui();
-			Gui::EndChild();
-		}
-		Gui::End();
-#endif
 
 		// HACK: The way the window padding works here is far from optimal
 		RenderWindowBase::PushWindowPadding();

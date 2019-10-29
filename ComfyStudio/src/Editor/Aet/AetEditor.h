@@ -1,7 +1,6 @@
 #pragma once
 #include "AetSelection.h"
 #include "Core/AetTreeView.h"
-#include "Core/AetLayerView.h"
 #include "Core/AetInspector.h"
 #include "Timeline/AetTimeline.h"
 #include "RenderWindow/AetRenderWindow.h"
@@ -51,7 +50,6 @@ namespace Editor
 		};
 
 		UniquePtr<AetTreeView> treeView;
-		UniquePtr<AetLayerView> layerView;
 		UniquePtr<AetInspector> inspector;
 		UniquePtr<AetTimeline> timeline;
 		UniquePtr<AetRenderWindow> renderWindow;

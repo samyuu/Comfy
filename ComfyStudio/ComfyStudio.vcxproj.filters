@@ -243,9 +243,6 @@
     <ClCompile Include="src\Editor\Aet\Core\AetInspector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Editor\Aet\Core\AetLayerView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Editor\Aet\Core\AetTreeView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -789,9 +786,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Aet\Core\AetInspector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\Aet\Core\AetLayerView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Aet\Core\AetTreeView.h">

@@ -195,7 +195,6 @@
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
     <ClCompile Include="src\Editor\Aet\AetIcons.cpp" />
     <ClCompile Include="src\Editor\Aet\Core\AetInspector.cpp" />
-    <ClCompile Include="src\Editor\Aet\Core\AetLayerView.cpp" />
     <ClCompile Include="src\Editor\Aet\RenderWindow\AetRenderWindow.cpp" />
     <ClCompile Include="src\Editor\Aet\Timeline\AetTimeline.cpp" />
     <ClCompile Include="src\Editor\Aet\Core\AetTreeView.cpp" />
@@ -358,7 +357,6 @@
     <ClInclude Include="src\Editor\Aet\AetEditor.h" />
     <ClInclude Include="src\Editor\Aet\AetIcons.h" />
     <ClInclude Include="src\Editor\Aet\Core\AetInspector.h" />
-    <ClInclude Include="src\Editor\Aet\Core\AetLayerView.h" />
     <ClInclude Include="src\Editor\Aet\RenderWindow\AetRenderWindow.h" />
     <ClInclude Include="src\Editor\Aet\Timeline\AetTimeline.h" />
     <ClInclude Include="src\Editor\Aet\Core\AetTreeView.h" />
