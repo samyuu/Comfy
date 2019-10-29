@@ -2,7 +2,6 @@
 #include "Editor/Aet/IMutatingEditorComponent.h"
 #include "Editor/Aet/AetSelection.h"
 #include "Editor/Aet/AetIcons.h"
-#include "AetDialogs.h"
 #include "Graphics/Auth2D/AetSet.h"
 #include "Core/CoreTypes.h"
 #include "ImGui/Gui.h"
@@ -48,9 +47,6 @@ namespace Editor
 		char nodeNameFormatBuffer[512];
 		
 		float scrollTargetCenterRatio = 0.15f;
-
-		// TODO: Remove deprecated components
-		// AddAetObjDialog addAetObjDialog;
 
 		std::stack<float> scrollPositionStack;
 

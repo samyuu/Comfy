@@ -192,7 +192,6 @@
     <ClCompile Include="src\App\TestTasks.cpp" />
     <ClCompile Include="src\DataTest\IconTestWindow.cpp" />
     <ClCompile Include="src\DataTest\ShaderTestWindow.cpp" />
-    <ClCompile Include="src\Editor\Aet\Core\AetDialogs.cpp" />
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
     <ClCompile Include="src\Editor\Aet\AetIcons.cpp" />
     <ClCompile Include="src\Editor\Aet\Core\AetInspector.cpp" />
@@ -365,7 +364,6 @@
     <ClInclude Include="src\Editor\Aet\Core\AetTreeView.h" />
     <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\TransformTool.h" />
     <ClInclude Include="src\Editor\Aet\AetSelection.h" />
-    <ClInclude Include="src\Editor\Aet\Core\AetDialogs.h" />
     <ClInclude Include="src\Editor\Common\CameraController2D.h" />
     <ClInclude Include="src\Editor\Chart\Chart.h" />
     <ClInclude Include="src\Editor\Chart\ChartEditor.h" />

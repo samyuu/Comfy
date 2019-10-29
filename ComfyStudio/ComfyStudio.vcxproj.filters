@@ -240,9 +240,6 @@
     <ClCompile Include="src\Editor\Aet\RenderWindow\AetRenderWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Editor\Aet\Core\AetDialogs.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Editor\Aet\Core\AetInspector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -789,9 +786,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Aet\RenderWindow\AetRenderWindow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\Aet\Core\AetDialogs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Aet\Core\AetInspector.h">
