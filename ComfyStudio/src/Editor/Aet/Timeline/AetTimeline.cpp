@@ -257,26 +257,39 @@ namespace Editor
 			constexpr float startPadding = 4.0f;
 			constexpr float textPadding = 1.0f;
 
-			const float y = index * rowItemHeight - GetScrollY();
-			const vec2 position = vec2(startPadding + xTextOffset, y + textPadding) + infoColumnRegion.GetTL();
+			const vec2 position = vec2(startPadding + xTextOffset, index * rowItemHeight - GetScrollY() + textPadding) + infoColumnRegion.GetTL();
 
 			Gui::GetWindowDrawList()->AddText(position, Gui::GetColorU32(ImGuiCol_Text), text);
 		};
 
-		int rowIndex = 0;
-		for (const auto& obj : *workingLayer)
+		// TODO: Theses should probably be member functions
+		auto drawObj = [&](int rowIndex, const RefPtr<AetObj>& obj)
 		{
-			constexpr float typeIconDistance = 19.0f;
-
 			// TODO: Adjust spacing and implement tree node expansion arrow
-			drawRowText(rowIndex, GetObjTypeIcon(obj->Type), 0.0f);
-			drawRowText(rowIndex, obj->GetName().c_str(), typeIconDistance);
+			constexpr float typeIconDistance = 20.0f;
 
-			drawRowSeparator(++rowIndex);
+			vec2 position = vec2(GImGui->Style.FramePadding.x, rowIndex * rowItemHeight - GetScrollY() + 1.0f) + infoColumnRegion.GetTL();
 
-			if (!obj->GuiData.TimelineNodeOpen)
-				continue;
+			if (obj.get() == selectedObject)
+			{
+				ImRect selectedRegion = ImRect(position - vec2(GImGui->Style.FramePadding.x, 0.0f), position + vec2(infoColumnWidth - GImGui->Style.FramePadding.x, rowItemHeight));
+				selectedRegion.Min += vec2(1.0f, 0.0f);
+				selectedRegion.Max -= vec2(1.0f, 1.0f);
 
+				Gui::GetWindowDrawList()->AddRectFilled(selectedRegion.Min, selectedRegion.Max, GetColor(EditorColor_TreeViewActive));
+			}
+
+			Gui::RenderArrow(position + vec2(0.0f, GImGui->FontSize * 0.15f), obj->GuiData.TimelineNodeOpen ? ImGuiDir_Down : ImGuiDir_Right, 0.70f);
+			position.x += GImGui->FontSize + GImGui->Style.ItemSpacing.x - 5.0f;
+
+			Gui::GetWindowDrawList()->AddText(position, Gui::GetColorU32(ImGuiCol_Text), GetObjTypeIcon(obj->Type));
+			position.x += typeIconDistance;
+			
+			Gui::GetWindowDrawList()->AddText(position, Gui::GetColorU32(ImGuiCol_Text), obj->GetName().c_str());
+		};
+
+		auto drawobjTransformProperties = [&](int& rowIndex, const RefPtr<AetObj>& obj)
+		{
 			for (int i = 0; i < PropertyType_Count; i++)
 			{
 				const auto[type, name] = timelinePropertyTypeNames[i];
@@ -284,8 +297,9 @@ namespace Editor
 				// NOTE: Results in a 5 pixel spacing
 				constexpr float nameTypeDistance = 58.0f;
 				constexpr float nameTypeSeparatorSpacing = 8.0f;
+				constexpr float textOffset = 39.0f - 20.0f;
 
-				float x = Gui::GetStyle().IndentSpacing * 2.0f;
+				float x = textOffset;
 				drawRowText(rowIndex, type, x);
 
 				x += nameTypeDistance;
@@ -296,6 +310,18 @@ namespace Editor
 
 				drawRowSeparator(++rowIndex);
 			}
+		};
+
+		int rowIndex = 0;
+		for (const auto& obj : *workingLayer)
+		{
+			drawObj(rowIndex, obj);
+			drawRowSeparator(++rowIndex);
+
+			if (!obj->GuiData.TimelineNodeOpen)
+				continue;
+
+			drawobjTransformProperties(rowIndex, obj);
 		}
 	}
 
@@ -503,7 +529,7 @@ namespace Editor
 			case AetItemType::AetRegion:
 				DrawTimelineContentNone();
 				break;
-			
+
 			case AetItemType::AetObj:
 			case AetItemType::AetLayer:
 				DrawTimelineContent();
