@@ -66,21 +66,19 @@ namespace Editor
 
 		ImGuiWindow* treeViewWindow = nullptr;
 
-		void UpdateScrollButtonInput();
-
+	private:
 		void DrawTreeViewBackground();
 		
-		// TODO: These should probably be named DrawTreeNode{Name}
-		void DrawTreeViewAetSet(const RefPtr<Graphics::AetSet>& aetSet);
+		void DrawTreeNodeAetSet(const RefPtr<Graphics::AetSet>& aetSet);
 		
-		void DrawTreeViewAet(const RefPtr<Graphics::Aet>& aet);
-		void DrawTreeViewLayer(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetLayer>& aetLayer, bool isRoot);
+		void DrawTreeNodeAet(const RefPtr<Graphics::Aet>& aet);
+		void DrawTreeNodeLayer(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetLayer>& aetLayer, bool isRoot);
 
-		void DrawTreeViewObj(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetLayer>& aetLayer, const RefPtr<Graphics::AetObj>& aetObj);
-		void DrawTreeViewObjCameraSelectableButton(const RefPtr<Graphics::AetLayer>& aetLayer, const RefPtr<Graphics::AetObj>& aetObj);
-		void DrawTreeViewObjActivityButton(const RefPtr<Graphics::AetObj>& aetObj);
+		void DrawTreeNodeObj(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetLayer>& aetLayer, const RefPtr<Graphics::AetObj>& aetObj);
+		void DrawTreeNodeObjCameraSelectableButton(const RefPtr<Graphics::AetLayer>& aetLayer, const RefPtr<Graphics::AetObj>& aetObj);
+		void DrawTreeNodeObjActivityButton(const RefPtr<Graphics::AetObj>& aetObj);
 
-		void DrawTreeViewRegion(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetRegion>& region, int32_t index);
+		void DrawTreeNodeRegion(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetRegion>& region, int32_t index);
 
 		bool DrawAetLayerContextMenu(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetLayer>& aetLayer, bool isRoot);
 		bool DrawAetObjContextMenu(const RefPtr<Graphics::AetLayer>& aetLayer, const RefPtr<Graphics::AetObj>& aetObj);
@@ -92,6 +90,7 @@ namespace Editor
 		const char* FormatRegionNodeName(const RefPtr<Graphics::AetRegion>& region, int32_t index);
 
 	private:
+		void UpdateScrollButtonInput();
 		void ScrollToGuiData(GuiExtraData& guiData);
 
 	private:

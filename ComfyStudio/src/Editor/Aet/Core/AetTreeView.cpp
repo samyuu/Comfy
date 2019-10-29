@@ -54,45 +54,11 @@ namespace Editor
 		Gui::PushStyleColor(ImGuiCol_HeaderActive, GetColor(EditorColor_TreeViewActive));
 		{
 			DrawTreeViewBackground();
-			DrawTreeViewAetSet(aetSet);
+			DrawTreeNodeAetSet(aetSet);
 		}
 		Gui::PopStyleColor(3);
 
 		return true;
-	}
-
-	void AetTreeView::UpdateScrollButtonInput()
-	{
-		if (!Gui::IsWindowFocused())
-			return;
-
-		if (Gui::IsKeyPressed(KeyCode_Escape))
-		{
-			if (!selectedAetItem->IsNull())
-			{
-				switch (selectedAetItem->Type())
-				{
-				case AetItemType::AetLayer:
-					ScrollToGuiData(selectedAetItem->GetAetLayerRef()->GuiData);
-					break;
-				case AetItemType::AetObj:
-					ScrollToGuiData(selectedAetItem->GetAetObjRef()->GuiData);
-					break;
-				default:
-					break;
-				}
-			}
-		}
-
-		// NOTE: Mouse side button to jump to last scroll position
-		if (Gui::IsMouseClicked(3))
-		{
-			if (!scrollPositionStack.empty())
-			{
-				Gui::SetScrollY(scrollPositionStack.top());
-				scrollPositionStack.pop();
-			}
-		}
 	}
 
 	void AetTreeView::DrawTreeViewBackground()
@@ -127,7 +93,7 @@ namespace Editor
 		}
 	}
 
-	void AetTreeView::DrawTreeViewAetSet(const RefPtr<AetSet>& aetSet)
+	void AetTreeView::DrawTreeNodeAetSet(const RefPtr<AetSet>& aetSet)
 	{
 		const bool aetSetNodeOpen = Gui::WideTreeNodeEx(aetSet.get(), HeaderTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str());
 		Gui::ItemContextMenu("AetSettAetContextMenu##AetTreeView", [this, &aetSet]()
@@ -155,7 +121,7 @@ namespace Editor
 				SetSelectedItems(aetSet);
 
 			for (RefPtr<Aet>& aet : *aetSet)
-				DrawTreeViewAet(aet);
+				DrawTreeNodeAet(aet);
 
 			Gui::TreePop();
 		}
@@ -165,7 +131,7 @@ namespace Editor
 		}
 	}
 
-	void AetTreeView::DrawTreeViewAet(const RefPtr<Aet>& aet)
+	void AetTreeView::DrawTreeNodeAet(const RefPtr<Aet>& aet)
 	{
 		ImGuiTreeNodeFlags aetNodeFlags = HeaderTreeNodeFlags;
 		if (aet.get() == selectedAetItem->Ptrs.Aet || aet.get() == lastHoveredAetItem.Ptrs.Aet)
@@ -184,14 +150,14 @@ namespace Editor
 					ResetSelectedItems();
 
 				aet->RootLayer->GuiData.ThisIndex = -1;
-				DrawTreeViewLayer(aet, aet->RootLayer, true);
+				DrawTreeNodeLayer(aet, aet->RootLayer, true);
 
 				for (int32_t i = static_cast<int32_t>(aet->Layers.size()) - 1; i >= 0; i--)
 				{
 					const auto& layer = aet->Layers[i];
 
 					layer->GuiData.ThisIndex = i;
-					DrawTreeViewLayer(aet, layer, false);
+					DrawTreeNodeLayer(aet, layer, false);
 				}
 
 				Gui::TreePop();
@@ -204,7 +170,7 @@ namespace Editor
 
 				for (int32_t i = 0; i < static_cast<int32_t>(aet->Regions.size()); i++)
 				{
-					DrawTreeViewRegion(aet, aet->Regions[i], i);
+					DrawTreeNodeRegion(aet, aet->Regions[i], i);
 				}
 				Gui::TreePop();
 			}
@@ -213,7 +179,7 @@ namespace Editor
 		}
 	}
 
-	void AetTreeView::DrawTreeViewLayer(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, bool isRoot)
+	void AetTreeView::DrawTreeNodeLayer(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, bool isRoot)
 	{
 		Gui::PushID(aetLayer.get());
 
@@ -272,7 +238,7 @@ namespace Editor
 		if (aetLayer->GuiData.TreeViewNodeOpen)
 		{
 			for (RefPtr<AetObj>& aetObj : *aetLayer)
-				DrawTreeViewObj(aet, aetLayer, aetObj);
+				DrawTreeNodeObj(aet, aetLayer, aetObj);
 
 			Gui::TreePop();
 		}
@@ -280,12 +246,12 @@ namespace Editor
 		Gui::PopID();
 	}
 
-	void AetTreeView::DrawTreeViewObj(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj)
+	void AetTreeView::DrawTreeNodeObj(const RefPtr<Aet>& aet, const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj)
 	{
 		Gui::PushID(aetObj.get());
 		{
-			DrawTreeViewObjCameraSelectableButton(aetLayer, aetObj);
-			DrawTreeViewObjActivityButton(aetObj);
+			DrawTreeNodeObjCameraSelectableButton(aetLayer, aetObj);
+			DrawTreeNodeObjActivityButton(aetObj);
 
 			const bool isSelected = aetObj.get() == selectedAetItem->Ptrs.AetObj || aetObj.get() == hoveredAetItem.Ptrs.AetObj;
 			const bool isCameraSelected = aetObj.get() == cameraSelectedAetItem->Ptrs.AetObj;
@@ -337,7 +303,7 @@ namespace Editor
 		Gui::PopID();
 	}
 
-	void AetTreeView::DrawTreeViewObjCameraSelectableButton(const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj)
+	void AetTreeView::DrawTreeNodeObjCameraSelectableButton(const RefPtr<AetLayer>& aetLayer, const RefPtr<AetObj>& aetObj)
 	{
 		// TODO: Does not work 100% correctly with all style settings but should be fine for now
 
@@ -364,7 +330,7 @@ namespace Editor
 		Gui::SetCursorScreenPos(cursorPos);
 	}
 
-	void AetTreeView::DrawTreeViewObjActivityButton(const RefPtr<AetObj>& aetObj)
+	void AetTreeView::DrawTreeNodeObjActivityButton(const RefPtr<AetObj>& aetObj)
 	{
 		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(3.0f, 0.0f));
 
@@ -390,7 +356,7 @@ namespace Editor
 		Gui::PopStyleVar(1);
 	}
 
-	void AetTreeView::DrawTreeViewRegion(const RefPtr<Aet>& aet, const RefPtr<AetRegion>& region, int32_t index)
+	void AetTreeView::DrawTreeNodeRegion(const RefPtr<Aet>& aet, const RefPtr<AetRegion>& region, int32_t index)
 	{
 		Gui::PushID(region.get());
 
@@ -537,6 +503,40 @@ namespace Editor
 		}
 
 		return nodeNameFormatBuffer;
+	}
+
+	void AetTreeView::UpdateScrollButtonInput()
+	{
+		if (!Gui::IsWindowFocused())
+			return;
+
+		if (Gui::IsKeyPressed(KeyCode_Escape))
+		{
+			if (!selectedAetItem->IsNull())
+			{
+				switch (selectedAetItem->Type())
+				{
+				case AetItemType::AetLayer:
+					ScrollToGuiData(selectedAetItem->GetAetLayerRef()->GuiData);
+					break;
+				case AetItemType::AetObj:
+					ScrollToGuiData(selectedAetItem->GetAetObjRef()->GuiData);
+					break;
+				default:
+					break;
+				}
+			}
+		}
+
+		// NOTE: Mouse side button to jump to last scroll position
+		if (Gui::IsMouseClicked(3))
+		{
+			if (!scrollPositionStack.empty())
+			{
+				Gui::SetScrollY(scrollPositionStack.top());
+				scrollPositionStack.pop();
+			}
+		}
 	}
 
 	void AetTreeView::ScrollToGuiData(GuiExtraData& guiData)
