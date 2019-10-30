@@ -32,13 +32,13 @@ namespace Graphics
 	{
 		Unknown = 0,
 		// NOTE: Normal
-		Alpha = 3,
-		// NOTE: Screen
+		Normal = 3,
+		// NOTE: Additive
 		Additive = 5,
 		// NOTE: Multiply
-		DstColorZero = 6,
+		Multiply = 6,
 		// NOTE: Screen / Linear Dodge (Add)
-		SrcAlphaOneMinusSrcColor = 7,
+		LinearDodge = 7,
 		// NOTE: ??
 		Transparent = 8,
 		// NOTE: Used once by "eff_mosaic01__n.pic"

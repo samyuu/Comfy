@@ -20,11 +20,11 @@ namespace Graphics
 		nullptr,
 		nullptr,
 		nullptr,
-		"Alpha",
+		"Normal",
 		nullptr,
 		"Additive",
-		"Destination Color Zero",
-		"Source Alpha One Minus Source Color",
+		"Multiply",
+		"Linear Dodge",
 		"Transparent",
 		nullptr,
 		nullptr,
@@ -133,7 +133,7 @@ namespace Graphics
 		if (type != AetObjType::Aif)
 		{
 			AnimationData = MakeRef<Graphics::AnimationData>();
-			AnimationData->BlendMode = AetBlendMode::Alpha;
+			AnimationData->BlendMode = AetBlendMode::Normal;
 			AnimationData->UseTextureMask = false;
 			AnimationData->Properties.OriginX().emplace_back(0.0f);
 			AnimationData->Properties.OriginY().emplace_back(0.0f);

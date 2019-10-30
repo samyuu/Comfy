@@ -141,10 +141,10 @@ namespace Graphics
 	struct AnimationData
 	{
 		static const std::array<const char*, 13> BlendModeNames;
-		static const char* GetBlendModeName(Graphics::AetBlendMode blendMode);
+		static const char* GetBlendModeName(AetBlendMode blendMode);
 
 		// NOTE: Pic only sprite blend mode enum
-		Graphics::AetBlendMode BlendMode;
+		AetBlendMode BlendMode;
 		// NOTE: Pic only texture mask bool, if true this sprite will be masked by the upper object
 		bool UseTextureMask;
 
@@ -368,7 +368,7 @@ namespace Graphics
 		~Aet() = default;
 
 	public:
-		// NOTE: Typically "MAIN", "TOUCH" or named after the graphics mode
+		// NOTE: Typically "MAIN", "TOUCH" or named after the display mode
 		std::string Name;
 
 		// NOTE: Start frame of the root layer

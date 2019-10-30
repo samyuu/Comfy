@@ -61,7 +61,7 @@ namespace Graphics
 		AetBlendMode BlendMode;
 		vec2 CheckerboardSize;
 
-		void SetValues(const Texture2D* texture, const Texture2D* alphaMask = nullptr, AetBlendMode blendMode = AetBlendMode::Alpha);
+		void SetValues(const Texture2D* texture, const Texture2D* alphaMask = nullptr, AetBlendMode blendMode = AetBlendMode::Normal);
 	};
 
 	struct BatchPair
@@ -91,7 +91,7 @@ namespace Graphics
 		void Draw(const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec4& color);
 
 		void Draw(const Texture2D* texture, const vec2& position, const vec2& origin, float rotation, const vec4& color);
-		void Draw(const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec2& origin, float rotation, const vec2& scale, const vec4& color, AetBlendMode blendMode = AetBlendMode::Alpha);
+		void Draw(const Texture2D* texture, const vec4& sourceRegion, const vec2& position, const vec2& origin, float rotation, const vec2& scale, const vec4& color, AetBlendMode blendMode = AetBlendMode::Normal);
 		
 		void Draw(
 			const Texture2D* maskTexture, const vec4& maskSourceRegion, const vec2& maskPosition, const vec2& maskOrigin, float maskRotation, const vec2& maskScale,
@@ -150,6 +150,6 @@ namespace Graphics
 		inline BatchPair AddItem();
 		void ClearItems();
 		
-		void DrawInternal(const Texture2D* texture, const vec4* sourceRegion, const vec2* position, const vec2* origin, float rotation, const vec2* scale, const vec4* color, AetBlendMode blendMode = AetBlendMode::Alpha);
+		void DrawInternal(const Texture2D* texture, const vec4* sourceRegion, const vec2* position, const vec2* origin, float rotation, const vec2* scale, const vec4* color, AetBlendMode blendMode = AetBlendMode::Normal);
 	};
 }

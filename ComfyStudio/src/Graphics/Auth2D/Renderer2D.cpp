@@ -470,13 +470,13 @@ namespace Graphics
 		switch (blendMode)
 		{
 		default:
-		case AetBlendMode::Alpha:
+		case AetBlendMode::Normal:
 			return { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE };
 		case AetBlendMode::Additive:
 			return { GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE };
-		case AetBlendMode::DstColorZero:
+		case AetBlendMode::Multiply:
 			return { GL_DST_COLOR, GL_ZERO, GL_ZERO, GL_ONE };
-		case AetBlendMode::SrcAlphaOneMinusSrcColor:
+		case AetBlendMode::LinearDodge:
 			return { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR, GL_ZERO, GL_ONE };
 		case AetBlendMode::Transparent:
 			return { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE };
