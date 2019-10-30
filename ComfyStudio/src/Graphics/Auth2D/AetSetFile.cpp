@@ -163,8 +163,7 @@ namespace Graphics
 			});
 		}
 
-		// TODO:
-		/*unknownFilePtr =*/ reader.ReadPtr();
+		audioDataFilePtr = reader.ReadPtr();
 	}
 
 	void Aet::Read(BinaryReader& reader)
@@ -415,8 +414,8 @@ namespace Graphics
 									writer.WritePtr(nullptr); // AnimationData offset
 								}
 
-								// TODO: unknownFilePtr
-								writer.WritePtr(nullptr); // extra data offset
+								// TODO: audioDataFilePtr
+								writer.WritePtr(nullptr); // AudioData offset
 							}
 
 							writer.WriteAlignmentPadding(16);

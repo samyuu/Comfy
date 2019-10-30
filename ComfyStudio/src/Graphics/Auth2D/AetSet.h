@@ -262,6 +262,7 @@ namespace Graphics
 		fileptr_t filePosition;
 		fileptr_t dataFilePtr;
 		fileptr_t parentFilePtr;
+		fileptr_t audioDataFilePtr;
 
 		void Read(FileSystem::BinaryReader& reader);
 	};
@@ -324,7 +325,7 @@ namespace Graphics
 		fileptr_t filePosition;
 
 		// NOTE: The Name given to any new eff object referencing this layer. Assigned on AetSet load to the last object's name using it (= not saved if unused)
-		std::string name;
+		std::string givenName;
 		std::vector<RefPtr<AetObj>> objects;
 	};
 
@@ -348,6 +349,9 @@ namespace Graphics
 		unk32_t Data[4];
 
 	private:
+		// TODO:
+		// std::string givenName;
+
 		fileptr_t filePosition;
 	};
 

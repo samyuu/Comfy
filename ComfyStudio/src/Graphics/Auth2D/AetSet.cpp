@@ -278,12 +278,12 @@ namespace Graphics
 
 	const std::string& AetLayer::GetName() const
 	{
-		return name;
+		return givenName;
 	}
 
 	void AetLayer::SetName(const std::string& value)
 	{
-		name = value;
+		givenName = value;
 	}
 
 	RefPtr<AetObj> AetLayer::FindObj(const std::string& name)
