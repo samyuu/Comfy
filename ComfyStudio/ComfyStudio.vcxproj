@@ -56,7 +56,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\plusaes\include;$(ProjectDir)lib\rtaudio\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\zlib\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\plusaes\include;$(ProjectDir)lib\rtaudio\include;$(ProjectDir)lib\zlib\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -88,7 +88,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\plusaes\include;$(ProjectDir)lib\rtaudio\include;$(ProjectDir)lib\stb\include;$(ProjectDir)lib\zlib\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\plusaes\include;$(ProjectDir)lib\rtaudio\include;$(ProjectDir)lib\zlib\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -121,8 +121,6 @@
     <ClCompile Include="lib\rtaudio\src\asiolist.cpp" />
     <ClCompile Include="lib\rtaudio\src\iasiothiscallresolver.cpp" />
     <ClCompile Include="lib\rtaudio\src\RtAudio.cpp" />
-    <ClCompile Include="lib\stb\src\stb_image.cpp" />
-    <ClCompile Include="lib\stb\src\stb_image_write.cpp" />
     <ClCompile Include="lib\zlib\src\adler32.c" />
     <ClCompile Include="lib\zlib\src\compress.c" />
     <ClCompile Include="lib\zlib\src\crc32.c" />

@@ -1,6 +1,5 @@
 #include "Texture2D.h"
 #include "Core/Logger.h"
-#include <stb/stb_image.h>
 #include <assert.h>
 
 namespace Graphics
@@ -85,38 +84,6 @@ namespace Graphics
 				GLCall(glGenerateMipmap(GetTextureTarget()));
 			}
 		}
-
-		return true;
-	}
-
-	bool Texture2D::CreateFromFile(const char* path)
-	{
-		stbi_set_flip_vertically_on_load(true);
-
-		int width, height;
-		uint8_t *pixelData = stbi_load(path, &width, &height, &imageChannels, 0);
-
-		if (pixelData == nullptr)
-			Logger::LogErrorLine(__FUNCTION__"(): failed to load texture %s", path);
-
-		assert(pixelData != nullptr);
-
-		imageSize.x = (float)width;
-		imageSize.y = (float)height;
-		textureFormat = imageChannels == 3 ? TextureFormat::RGB8 : TextureFormat::RGBA8;
-
-		InitializeID();
-		Bind();
-
-		GLCall(glTexImage2D(GetTextureTarget(), 0, GetGLTextureFormat(textureFormat), width, height, 0, imageChannels == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, pixelData));
-		GLCall(glGenerateMipmap(GetTextureTarget()));
-
-		stbi_image_free(pixelData);
-
-		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_WRAP_S, GL_REPEAT));
-		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_WRAP_T, GL_REPEAT));
-		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
 		return true;
 	}
