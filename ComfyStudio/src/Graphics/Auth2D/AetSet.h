@@ -9,32 +9,35 @@ struct GuiExtraData
 {
 	// NOTE: For scroll jumping to a destination
 	float TreeViewScrollY;
-	// NOTE: Stored separately so we can expand nodes when jumping to a layer reference for example
+	// NOTE: Stored separately so we can expand nodes when jumping to a composition reference for example
 	bool TreeViewNodeOpen;
 	// NOTE: Stored to be used by the timeline
 	bool TimelineNodeOpen;
-	// NOTE: To try and prevent layer name ambiguity
+	// NOTE: To try and prevent composition name ambiguity
 	int ThisIndex;
 };
 
 namespace Graphics
 {
+	// NOTE: Aet related types are prefixed with "Aet" but object instances of them should never use these prefixes as they are redundant.
+	//		 "Composition" should be abbreviated to "Comp" in parameters, locals temporaries but not in function names or important member fields
+
 	class Aet;
-	class AetLayer;
+	class AetComposition;
 	class AetSoundEffect;
 
 	// NOTE: Internal temporary file position for file parsing and writing
 	typedef void* fileptr_t;
 
-	enum class AetObjType : uint8_t
+	enum class AetLayerType : uint8_t
 	{
 		// NOTE: None
 		Nop = 0,
-		// NOTE: Image (-sequence) / position template
+		// NOTE: Image (-sequence) / position template / placeholder
 		Pic = 1,
 		// NOTE: Sound effect
 		Aif = 2,
-		// NOTE: Layer
+		// NOTE: Composition
 		Eff = 3,
 	};
 
@@ -50,15 +53,15 @@ namespace Graphics
 	};
 
 	// TODO: Rename to reflect sprite / position templates, sprites and image sequences
-	class AetRegion
+	class AetSurface
 	{
 		friend class Aet;
 
 	public:
-		AetRegion() = default;
-		AetRegion(const AetRegion&) = delete;
-		AetRegion& operator= (const AetRegion&) = delete;
-		~AetRegion() = default;
+		AetSurface() = default;
+		AetSurface(const AetSurface&) = delete;
+		AetSurface& operator= (const AetSurface&) = delete;
+		~AetSurface() = default;
 
 	public:
 		// NOTE: Editor internal color
@@ -110,7 +113,7 @@ namespace Graphics
 	using KeyFrameCollection = std::vector<AetKeyFrame>;
 	using KeyFrameCollectionArray = std::array<KeyFrameCollection, 8>;
 	
-	struct KeyFrameProperties
+	struct AetKeyFrameProperties
 	{
 		static const std::array<const char*, 8> PropertyNames;
 
@@ -138,81 +141,81 @@ namespace Graphics
 		inline auto& operator[] (size_t index) { return KeyFrames[index]; };
 	};
 
-	struct AnimationData
+	struct AetAnimationData
 	{
 		static const std::array<const char*, 13> BlendModeNames;
 		static const char* GetBlendModeName(AetBlendMode blendMode);
 
 		// NOTE: Pic only sprite blend mode enum
 		AetBlendMode BlendMode;
-		// NOTE: Pic only texture mask bool, if true this sprite will be masked by the upper object
+		// NOTE: Pic only texture mask bool, if true this sprite will be masked by the upper layer
 		bool UseTextureMask;
 
 		// NOTE: Key frame animation data
-		KeyFrameProperties Properties;
+		AetKeyFrameProperties Properties;
 		// TODO: Perspective animation transform, not yet implemented by the editor
-		RefPtr<KeyFrameProperties> PerspectiveProperties;
+		RefPtr<AetKeyFrameProperties> PerspectiveProperties;
 	};
 
-	union AetObjFlags
+	union AetLayerFlags
 	{
 		// TODO: This struct is not complete, most notable there seem to be ones related to image sequences
 		struct
 		{
-			// NOTE: Is the object visible at all? Most commonly used for masks
+			// NOTE: Is the layer visible at all? Most commonly used for masks
 			uint16_t Visible : 1;
-			// NOTE: Is the aif object audible? Seems to be falsely ignored ingame
+			// NOTE: Is the aif layer audible? Seems to be falsely ignored ingame
 			uint16_t Audible : 1;
 		};
 		// NOTE: Convenient field for resetting all flagss
 		uint16_t AllBits;
 	};
 
-	class AetObj
+	class AetLayer
 	{
 		friend class Aet;
-		friend class AetLayer;
+		friend class AetComposition;
 
 	public:
 		static const std::array<const char*, 4> TypeNames;
 
 	public:
-		AetObj();
-		AetObj(AetObjType type, const std::string& name, AetLayer* parentLayer);
-		AetObj(const AetObj&) = delete;
-		AetObj& operator= (const AetObj&) = delete;
-		~AetObj();
+		AetLayer();
+		AetLayer(AetLayerType type, const std::string& name, AetComposition* parentComp);
+		AetLayer(const AetLayer&) = delete;
+		AetLayer& operator= (const AetLayer&) = delete;
+		~AetLayer();
 
 	public:
 		mutable GuiExtraData GuiData;
 
-		// NOTE: The first frame the object starts becoming visible
+		// NOTE: The first frame the layer starts becoming visible
 		frame_t StartFrame;
 
-		// NOTE: The last frame the object is visible on
+		// NOTE: The last frame the layer is visible on
 		frame_t EndFrame;
 
 		// NOTE: The offset the underlying referenced content is offset by relative to the StartFrame. Also known as "time remapping".
-		//		 Strangely some pic objects sometimes use a non-zero value
+		//		 Strangely some pic layers sometimes use a non-zero value
 		frame_t StartOffset;
 
-		// NOTE: The factor the underlying referenced layer (or image sequence (?)) is sped up by. Also known as "time stretching"
+		// NOTE: The factor the underlying referenced composition or image sequence is sped up by. Also known as "time stretching"
 		float PlaybackSpeed;
 
 		// NOTE: General flags
-		AetObjFlags Flags;
+		AetLayerFlags Flags;
 
 		// NOTE: Unknown and doesn't seem to be used anywhere. Not always 0x00 however so might be some internal editor state such as a color enum
 		unk8_t TypePaddingByte;
 
 		// NOTE: Type of the reference data
-		AetObjType Type;
+		AetLayerType Type;
 
 		// NOTE: A list of named frame markers used for game internals
 		std::vector<RefPtr<AetMarker>> Markers;
 		
-		// NOTE: Everything render and animation related. Optional field not used by audio objects
-		RefPtr<AnimationData> AnimationData;
+		// NOTE: Everything render and animation related. Optional field not used by audio layers
+		RefPtr<AetAnimationData> AnimationData;
 
 	public:
 		const std::string& GetName() const;
@@ -224,39 +227,39 @@ namespace Graphics
 		bool GetIsAudible() const;
 		void SetIsAudible(bool value);
 
-		const RefPtr<AetRegion>& GetReferencedRegion();
-		const AetRegion* GetReferencedRegion() const;
-		void SetReferencedRegion(const RefPtr<AetRegion>& value);
+		const RefPtr<AetSurface>& GetReferencedSurface();
+		const AetSurface* GetReferencedSurface() const;
+		void SetReferencedSurface(const RefPtr<AetSurface>& value);
 
 		const RefPtr<AetSoundEffect>& GetReferencedSoundEffect();
 		const AetSoundEffect* GetReferencedSoundEffect() const;
 		void SetReferencedSoundEffect(const RefPtr<AetSoundEffect>& value);
 
-		const RefPtr<AetLayer>& GetReferencedLayer();
-		const AetLayer* GetReferencedLayer() const;
-		void SetReferencedLayer(const RefPtr<AetLayer>& value);
+		const RefPtr<AetComposition>& GetReferencedComposition();
+		const AetComposition* GetReferencedComposition() const;
+		void SetReferencedComposition(const RefPtr<AetComposition>& value);
 
-		const RefPtr<AetObj>& GetReferencedParentObj();
-		const AetObj* GetReferencedParentObj() const;
-		void SetReferencedParentObj(const RefPtr<AetObj>& value);
+		const RefPtr<AetLayer>& GetReferencedParentLayer();
+		const AetLayer* GetReferencedParentLayer() const;
+		void SetReferencedParentLayer(const RefPtr<AetLayer>& value);
 
 	public:
 		Aet* GetParentAet();
 		const Aet* GetParentAet() const;
 
-		AetLayer* GetParentLayer();
-		const AetLayer* GetParentLayer() const;
+		AetComposition* GetParentComposition();
+		const AetComposition* GetParentComposition() const;
 
 	private:
 		std::string name;
-		AetLayer* parentLayer;
+		AetComposition* parentComposition;
 
-		struct AetObjReferenceData
+		struct AetLayerReferenceData
 		{
-			RefPtr<AetRegion> Region;
+			RefPtr<AetSurface> Surface;
 			RefPtr<AetSoundEffect> SoundEffect;
-			RefPtr<AetLayer> Layer;
-			RefPtr<AetObj> ParentObj;
+			RefPtr<AetComposition> Composition;
+			RefPtr<AetLayer> ParentLayer;
 		} references;
 
 		fileptr_t filePosition;
@@ -267,66 +270,66 @@ namespace Graphics
 		void Read(FileSystem::BinaryReader& reader);
 	};
 
-	class AetLayer
+	class AetComposition
 	{
 		friend class Aet;
 
 	public:
-		AetLayer() = default;
-		AetLayer(const AetLayer&) = delete;
-		AetLayer& operator= (const AetLayer&) = delete;
-		~AetLayer() = default;
+		AetComposition() = default;
+		AetComposition(const AetComposition&) = delete;
+		AetComposition& operator= (const AetComposition&) = delete;
+		~AetComposition() = default;
 
 	public:
 		mutable GuiExtraData GuiData;
 
 	public:
 		Aet* GetParentAet() const;
-		bool IsRootLayer() const;
+		bool IsRootComposition() const;
 		
-		inline auto begin() { return objects.begin(); };
-		inline auto end() { return objects.end(); };
-		inline auto begin() const { return objects.begin(); };
-		inline auto end() const { return objects.end(); };
-		inline auto cbegin() const { return objects.cbegin(); };
-		inline auto cend() const { return objects.cend(); };
+		inline auto begin() { return layers.begin(); };
+		inline auto end() { return layers.end(); };
+		inline auto begin() const { return layers.begin(); };
+		inline auto end() const { return layers.end(); };
+		inline auto cbegin() const { return layers.cbegin(); };
+		inline auto cend() const { return layers.cend(); };
 
-		inline RefPtr<AetObj>& front() { return objects.front(); };
-		inline RefPtr<AetObj>& back() { return objects.back(); };
-		inline const RefPtr<AetObj>& front() const { return objects.front(); };
-		inline const RefPtr<AetObj>& back() const { return objects.back(); };
+		inline RefPtr<AetLayer>& front() { return layers.front(); };
+		inline RefPtr<AetLayer>& back() { return layers.back(); };
+		inline const RefPtr<AetLayer>& front() const { return layers.front(); };
+		inline const RefPtr<AetLayer>& back() const { return layers.back(); };
 
-		inline void resize(size_t newSize) { objects.resize(newSize); };
-		inline void reserve(size_t newCapacity) { objects.reserve(newCapacity); };
-		inline size_t size() const { return objects.size(); };
+		inline void resize(size_t newSize) { layers.resize(newSize); };
+		inline void reserve(size_t newCapacity) { layers.reserve(newCapacity); };
+		inline size_t size() const { return layers.size(); };
 
-		inline RefPtr<AetObj>& at(size_t index) { return objects.at(index); };
-		inline RefPtr<AetObj>& operator[] (size_t index) { return objects[index]; };
+		inline RefPtr<AetLayer>& at(size_t index) { return layers.at(index); };
+		inline RefPtr<AetLayer>& operator[] (size_t index) { return layers[index]; };
 
 	public:
 		const std::string& GetName() const;
 		void SetName(const std::string& value);
 
-		inline AetObj* GetObjAt(int index) { return objects.at(index).get(); };
-		inline const AetObj* GetObjAt(int index) const { return objects[index].get(); };
+		inline AetLayer* GetLayerAt(int index) { return layers.at(index).get(); };
+		inline const AetLayer* GetLayerAt(int index) const { return layers[index].get(); };
 
-		RefPtr<AetObj> FindObj(const std::string& name);
-		RefPtr<const AetObj> FindObj(const std::string& name) const;
+		RefPtr<AetLayer> FindLayer(const std::string& name);
+		RefPtr<const AetLayer> FindLayer(const std::string& name) const;
 		
 	public:
-		void AddNewObject(AetObjType type, const std::string& name);
-		void DeleteObject(AetObj* value);
+		void AddNewLayer(AetLayerType type, const std::string& name);
+		void DeleteLayer(AetLayer* value);
 
 	private:
-		static const std::string rootLayerName;
-		static const std::string unusedLayerName;
+		static const std::string rootCompositionName;
+		static const std::string unusedCompositionName;
 
 		Aet* parentAet;
 		fileptr_t filePosition;
 
-		// NOTE: The Name given to any new eff object referencing this layer. Assigned on AetSet load to the last object's name using it (= not saved if unused)
+		// NOTE: The Name given to any new eff layer referencing this composition. Assigned on AetSet load to the last layer's name using it (= not saved if unused)
 		std::string givenName;
-		std::vector<RefPtr<AetObj>> objects;
+		std::vector<RefPtr<AetLayer>> layers;
 	};
 
 	struct AetCamera
@@ -358,8 +361,8 @@ namespace Graphics
 	class Aet
 	{
 		friend class AetSet;
+		friend class AetComposition;
 		friend class AetLayer;
-		friend class AetObj;
 
 	public:
 		Aet() = default;
@@ -371,9 +374,9 @@ namespace Graphics
 		// NOTE: Typically "MAIN", "TOUCH" or named after the display mode
 		std::string Name;
 
-		// NOTE: Start frame of the root layer
+		// NOTE: Start frame of the root composition
 		frame_t StartFrame;
-		// NOTE: End frame of the root layer
+		// NOTE: End frame of the root composition
 		frame_t EndFrame;
 		// NOTE: Base framerate of the entire aet
 		frame_t FrameRate;
@@ -383,31 +386,31 @@ namespace Graphics
 		// NOTE: Editor internal base resolution
 		ivec2 Resolution;
 
-		// NOTE: Unused 2D camera for all layers
+		// NOTE: Unused 2D camera for all compositions
 		RefPtr<AetCamera> Camera;
 
-		// NOTE: Sub layers referenced by eff objects
-		std::vector<RefPtr<AetLayer>> Layers;
-		// NOTE: The root layer from which all other layers will be referenced
-		RefPtr<AetLayer> RootLayer;
+		// NOTE: Sub compositions referenced by eff layers
+		std::vector<RefPtr<AetComposition>> Compositions;
+		// NOTE: The root composition from which all other compositions will be referenced
+		RefPtr<AetComposition> RootComposition;
 
-		// NOTE: Referenced by pic objects
-		std::vector<RefPtr<AetRegion>> Regions;
-		// NOTE: Referenced by pic objects
+		// NOTE: Referenced by pic layers
+		std::vector<RefPtr<AetSurface>> Surfaces;
+		// NOTE: Referenced by pic layers
 		std::vector<RefPtr<AetSoundEffect>> SoundEffects;
 
 	public:
-		AetLayer* GetRootLayer();
-		const AetLayer* GetRootLayer() const;
+		AetComposition* GetRootComposition();
+		const AetComposition* GetRootComposition() const;
 
-		RefPtr<AetObj> FindObj(const std::string& name);
-		RefPtr<const AetObj> FindObj(const std::string& name) const;
+		RefPtr<AetLayer> FindLayer(const std::string& name);
+		RefPtr<const AetLayer> FindLayer(const std::string& name) const;
 
-		int32_t FindObjIndex(AetLayer& layer, const std::string& name) const;
+		int32_t FindLayerIndex(AetComposition& comp, const std::string& name) const;
 
 	public:
-		//void AddNewLayer();
-		//void DeleteLayer(const RefPtr<AetLayer>& value);
+		//void AddNewComposition();
+		//void DeleteComposition(const RefPtr<AetComposition>& value);
 
 	public:
 		void UpdateParentPointers();
@@ -417,14 +420,14 @@ namespace Graphics
 		void Write(FileSystem::BinaryWriter& writer);
 
 	private:
-		void InternalUpdateLayerNamesAfteObjectReferences();
-		void InternalUpdateLayerNamesAfteObjectReferences(RefPtr<AetLayer>& aetLayer);
+		void InternalUpdateCompositionNamesAfterLayerReferences();
+		void InternalUpdateCompositionNamesAfterLayerReferences(RefPtr<AetComposition>& comp);
 		void InternalLinkPostRead();
-		void InternalLinkeLayerContent(RefPtr<AetLayer>& aetLayer);
-		void InternalFindObjReferencedRegion(AetObj* aetObj);
-		void InternalFindObjReferencedSoundEffect(AetObj* aetObj);
-		void InternalFindObjReferencedLayer(AetObj* aetObj);
-		void InternalFindObjReferencedParent(AetObj* aetObj);
+		void InternalLinkeCompositionContent(RefPtr<AetComposition>& comp);
+		void InternalFindLayerReferencedSurface(AetLayer* layer);
+		void InternalFindLayerReferencedSoundEffect(AetLayer* layer);
+		void InternalFindLayerReferencedComposition(AetLayer* layer);
+		void InternalFindLayerReferencedParent(AetLayer* layer);
 	};
 
 	class AetSet : public FileSystem::IBinaryFile

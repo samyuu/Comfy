@@ -14,7 +14,7 @@ namespace Editor
 
 		// TODO: Rename to 'UpdateProperties' (?)
 		virtual void UpdatePostDrawGui(Graphics::Properties* properties, vec2 dimensions) override;
-		virtual void ProcessCommands(AetCommandManager* commandManager, const RefPtr<Graphics::AetObj>& aetObj, float frame, const Graphics::Properties& properties, const Graphics::Properties& previousProperties) override;
+		virtual void ProcessCommands(AetCommandManager* commandManager, const RefPtr<Graphics::AetLayer>& layer, float frame, const Graphics::Properties& properties, const Graphics::Properties& previousProperties) override;
 
 		virtual void DrawContextMenu() override;
 		virtual bool MouseFocusCaptured() const override;

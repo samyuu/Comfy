@@ -60,20 +60,20 @@ namespace Graphics
 		{
 			Properties Properties;
 			int32_t SpriteIndex;
-			const AetRegion* Region;
+			const AetSurface* Surface;
 			AetBlendMode BlendMode;
-			const AetObj* FirstParent;
-			const AetObj* Source;
+			const AetLayer* FirstParent;
+			const AetLayer* Source;
 			bool UseTextureMask;
 			bool Visible;
 		};
 
-		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, const AetLayer* aetLayer, frame_t frame);
-		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, const AetObj* aetObj, frame_t frame);
+		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, const AetComposition* comp, frame_t frame);
+		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, const AetLayer* layer, frame_t frame);
 
 		static float Interpolate(const AetKeyFrame* start, const AetKeyFrame* end, frame_t frame);
 		static float Interpolate(const std::vector<AetKeyFrame>& keyFrames, frame_t frame);
-		static void Interpolate(const AnimationData* animationData, Properties* properties, frame_t frame);
+		static void Interpolate(const AetAnimationData* animationData, Properties* properties, frame_t frame);
 
 		// NOTE: Threshold frame foat comparison
 		static bool AreFramesTheSame(frame_t frameA, frame_t frameB);
@@ -86,18 +86,18 @@ namespace Graphics
 		// NOTE: Because a KeyFrameCollection is expected to always be sorted
 		static void SortKeyFrames(KeyFrameCollection& keyFrames);
 
-		// NOTE: To be used after changing the StartFrame frame of an AetObj
-		static void OffsetAllKeyFrames(KeyFrameProperties& properties, frame_t frameIncrement);
+		// NOTE: To be used after changing the StartFrame frame of a layer
+		static void OffsetAllKeyFrames(AetKeyFrameProperties& properties, frame_t frameIncrement);
 
-		// NOTE: Recursively add the properties of the parent obj to the input properties if there is one
-		static void OffsetByParentProperties(Properties& properties, const AetObj* parent, frame_t frame, int32_t& recursionCount);
+		// NOTE: Recursively add the properties of the parent layer to the input properties if there is one
+		static void OffsetByParentProperties(Properties& properties, const AetLayer* parent, frame_t frame, int32_t& recursionCount);
 
-		// NOTE: To easily navigate between layer references in the tree view
-		static void FindAddLayerUsages(const RefPtr<Aet>& aetToSearch, const RefPtr<AetLayer>& layerToFind, std::vector<RefPtr<AetObj>*>& outObjects);
+		// NOTE: To easily navigate between composition references in the tree view
+		static void FindAddCompositionUsages(const RefPtr<Aet>& aetToSearch, const RefPtr<AetComposition>& compToFind, std::vector<RefPtr<AetLayer>*>& outObjects);
 
 	private:
-		static void InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);
-		static void InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);
-		static void InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame);
+		static void InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetLayer* layer, frame_t frame);
+		static void InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetLayer* layer, frame_t frame);
+		static void InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetLayer* layer, frame_t frame);
 	};
 }

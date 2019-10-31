@@ -6,7 +6,7 @@ namespace Editor
 	// NOTE: To communicate and provide visual feedback between different components
 	struct AetRenderPreviewData
 	{
-		const Graphics::AetRegion* AetRegion = nullptr;
+		const Graphics::AetSurface* Surface = nullptr;
 		Graphics::AetBlendMode BlendMode = Graphics::AetBlendMode::Unknown;
 	};
 }

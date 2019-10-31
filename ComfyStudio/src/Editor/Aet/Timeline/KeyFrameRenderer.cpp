@@ -51,34 +51,34 @@ namespace Editor
 		CreateKeyFrameTexture();
 	}
 
-	void KeyFrameRenderer::DrawContent(const AetTimeline* timeline, const AetLayer* workingLayer)
+	void KeyFrameRenderer::DrawContent(const AetTimeline* timeline, const AetComposition* workingComp)
 	{
-		assert(workingLayer != nullptr);
+		assert(workingComp != nullptr);
 
 		ImDrawList* drawList = Gui::GetWindowDrawList();
 		const frame_t cursorFrame = timeline->GetCursorFrame().Frames();
 
 		int currentRow = 0;
-		for (auto& object : *workingLayer)
+		for (auto& layer : *workingComp)
 		{
-			const vec2 startPosition = GetCenteredTimelineRowScreenPosition(timeline, object->StartFrame, currentRow);
-			const vec2 endPosition = GetCenteredTimelineRowScreenPosition(timeline, object->EndFrame, currentRow);
+			const vec2 startPosition = GetCenteredTimelineRowScreenPosition(timeline, layer->StartFrame, currentRow);
+			const vec2 endPosition = GetCenteredTimelineRowScreenPosition(timeline, layer->EndFrame, currentRow);
 			++currentRow;
 
-			const bool isActive = (cursorFrame >= object->StartFrame) && (cursorFrame <= object->EndFrame);
+			const bool isActive = (cursorFrame >= layer->StartFrame) && (cursorFrame <= layer->EndFrame);
 			DrawKeyFrameConnection(drawList, startPosition, endPosition, isActive);
 
 			DrawSingleKeyFrame(drawList, startPosition, KeyFrameType::InBetween);
 			DrawSingleKeyFrame(drawList, endPosition, KeyFrameType::InBetween);
 
-			if (!object->GuiData.TimelineNodeOpen)
+			if (!layer->GuiData.TimelineNodeOpen)
 				continue;
 
 			// TODO: The same should happen for the info column
-			if (object->AnimationData == nullptr)
+			if (layer->AnimationData == nullptr)
 				continue;
 
-			auto& properties = object->AnimationData->Properties;
+			auto& properties = layer->AnimationData->Properties;
 			for (const auto& keyFrames : properties)
 			{
 				for (const auto& keyFrame : keyFrames)

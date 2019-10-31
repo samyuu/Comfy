@@ -44,14 +44,14 @@ namespace Editor
 
 	float AetTimeline::GetTimelineHeight() const
 	{
-		const AetLayer* workingLayer = GetWorkingLayer();
-		if (workingLayer == nullptr)
+		const AetComposition* workingComp = GetWorkingComposition();
+		if (workingComp == nullptr)
 			return 0.0f;
 
-		int rowCount = static_cast<int>(workingLayer->size());
-		for (const auto& object : *workingLayer)
+		int rowCount = static_cast<int>(workingComp->size());
+		for (const auto& layer : *workingComp)
 		{
-			if (object->GuiData.TimelineNodeOpen)
+			if (layer->GuiData.TimelineNodeOpen)
 				rowCount += PropertyType_Count;
 		}
 
@@ -69,7 +69,7 @@ namespace Editor
 	void AetTimeline::DrawTimelineContent()
 	{
 		Gui::PushClipRect(timelineContentRegion.GetTL(), timelineContentRegion.GetBR(), true);
-		keyFrameRenderer.DrawContent(this, GetWorkingLayer());
+		keyFrameRenderer.DrawContent(this, GetWorkingComposition());
 		Gui::PopClipRect();
 	}
 
@@ -219,32 +219,32 @@ namespace Editor
 	{
 		TimelineBase::OnDrawTimelineInfoColumn();
 
-		if (selectedAetItem.Type() != AetItemType::AetObj && selectedAetItem.Type() != AetItemType::AetLayer)
+		if (selectedAetItem.Type() != AetItemType::Layer && selectedAetItem.Type() != AetItemType::Composition)
 			return;
 
-		const AetLayer* workingLayer = GetWorkingLayer();
-		const AetObj* selectedObject = (selectedAetItem.Type() == AetItemType::AetObj) ? selectedAetItem.Ptrs.AetObj : nullptr;
+		const AetComposition* workingComp = GetWorkingComposition();
+		const AetLayer* selectedLayer = (selectedAetItem.Type() == AetItemType::Layer) ? selectedAetItem.Ptrs.Layer : nullptr;
 
 		Gui::PushClipRect(infoColumnRegion.GetTL(), infoColumnRegion.GetBR(), true);
-		DrawTimelineInfoColumnLayer(workingLayer, selectedObject);
+		DrawTimelineInfoColumnComposition(workingComp, selectedLayer);
 		Gui::PopClipRect();
 	}
 
-	void AetTimeline::DrawTimelineInfoColumnLayer(const AetLayer* workingLayer, const AetObj* selectedObject) const
+	void AetTimeline::DrawTimelineInfoColumnComposition(const AetComposition* workingComp, const AetLayer* selectedLayer) const
 	{
-		if (workingLayer == nullptr)
+		if (workingComp == nullptr)
 			return;
 
 #if 1 // DEBUG: Should be controlled by tree node expansion arrows
-		for (auto& obj : *workingLayer)
-			obj->GuiData.TimelineNodeOpen = (obj.get() == selectedObject);
+		for (auto& layer : *workingComp)
+			layer->GuiData.TimelineNodeOpen = (layer.get() == selectedLayer);
 #endif
 
-		// TODO: Same behavior for AetObj and AetLayer
-		//		 Each object should have a name row with the StartFrame and EndFrame
+		// TODO: Same behavior for AetLayer and AetComposition.
+		//		 Each layer should have a name row with the StartFrame and EndFrame
 		//		 as well as a collapsable tree node for the transform properties
 		//		 the "tree nodes" on on info column should be clickable (draggable to reorder in the future)
-		//		 and reflect the selected aetobj state
+		//		 and reflect the selected layer state
 
 		auto drawRowSeparator = [this](int index)
 		{
@@ -263,14 +263,14 @@ namespace Editor
 		};
 
 		// TODO: Theses should probably be member functions
-		auto drawObj = [&](int rowIndex, const RefPtr<AetObj>& obj)
+		auto drawLayer = [&](int rowIndex, const RefPtr<AetLayer>& layer)
 		{
 			// TODO: Adjust spacing and implement tree node expansion arrow
 			constexpr float typeIconDistance = 20.0f;
 
 			vec2 position = vec2(GImGui->Style.FramePadding.x, rowIndex * rowItemHeight - GetScrollY() + 1.0f) + infoColumnRegion.GetTL();
 
-			if (obj.get() == selectedObject)
+			if (layer.get() == selectedLayer)
 			{
 				ImRect selectedRegion = ImRect(position - vec2(GImGui->Style.FramePadding.x, 0.0f), position + vec2(infoColumnWidth - GImGui->Style.FramePadding.x, rowItemHeight));
 				selectedRegion.Min += vec2(1.0f, 0.0f);
@@ -279,16 +279,16 @@ namespace Editor
 				Gui::GetWindowDrawList()->AddRectFilled(selectedRegion.Min, selectedRegion.Max, GetColor(EditorColor_TreeViewActive));
 			}
 
-			Gui::RenderArrow(position + vec2(0.0f, GImGui->FontSize * 0.15f), obj->GuiData.TimelineNodeOpen ? ImGuiDir_Down : ImGuiDir_Right, 0.70f);
+			Gui::RenderArrow(position + vec2(0.0f, GImGui->FontSize * 0.15f), layer->GuiData.TimelineNodeOpen ? ImGuiDir_Down : ImGuiDir_Right, 0.70f);
 			position.x += GImGui->FontSize + GImGui->Style.ItemSpacing.x - 5.0f;
 
-			Gui::GetWindowDrawList()->AddText(position, Gui::GetColorU32(ImGuiCol_Text), GetObjTypeIcon(obj->Type));
+			Gui::GetWindowDrawList()->AddText(position, Gui::GetColorU32(ImGuiCol_Text), GetLayerTypeIcon(layer->Type));
 			position.x += typeIconDistance;
 			
-			Gui::GetWindowDrawList()->AddText(position, Gui::GetColorU32(ImGuiCol_Text), obj->GetName().c_str());
+			Gui::GetWindowDrawList()->AddText(position, Gui::GetColorU32(ImGuiCol_Text), layer->GetName().c_str());
 		};
 
-		auto drawobjTransformProperties = [&](int& rowIndex, const RefPtr<AetObj>& obj)
+		auto drawLayerTransformProperties = [&](int& rowIndex, const RefPtr<AetLayer>& layer)
 		{
 			for (int i = 0; i < PropertyType_Count; i++)
 			{
@@ -313,27 +313,27 @@ namespace Editor
 		};
 
 		int rowIndex = 0;
-		for (const auto& obj : *workingLayer)
+		for (const auto& layer : *workingComp)
 		{
-			drawObj(rowIndex, obj);
+			drawLayer(rowIndex, layer);
 			drawRowSeparator(++rowIndex);
 
-			if (!obj->GuiData.TimelineNodeOpen)
+			if (!layer->GuiData.TimelineNodeOpen)
 				continue;
 
-			drawobjTransformProperties(rowIndex, obj);
+			drawLayerTransformProperties(rowIndex, layer);
 		}
 	}
 
-	const AetLayer* AetTimeline::GetWorkingLayer() const
+	const AetComposition* AetTimeline::GetWorkingComposition() const
 	{
 		switch (selectedAetItem.Type())
 		{
-		case AetItemType::AetObj:
-			return selectedAetItem.Ptrs.AetObj->GetParentLayer();
+		case AetItemType::Layer:
+			return selectedAetItem.Ptrs.Layer->GetParentComposition();
 
-		case AetItemType::AetLayer:
-			return selectedAetItem.Ptrs.AetLayer;
+		case AetItemType::Composition:
+			return selectedAetItem.Ptrs.Composition;
 
 		default:
 			return nullptr;
@@ -342,16 +342,16 @@ namespace Editor
 
 	int AetTimeline::GetTimelineRowCount() const
 	{
-		const AetLayer* workingLayer = GetWorkingLayer();
+		const AetComposition* workingComp = GetWorkingComposition();
 
-		if (workingLayer == nullptr)
+		if (workingComp == nullptr)
 			return 1;
 
-		int rowCount = static_cast<int>(workingLayer->size());
+		int rowCount = static_cast<int>(workingComp->size());
 		{
-			for (const auto& obj : *workingLayer)
+			for (const auto& layer : *workingComp)
 			{
-				if (obj->GuiData.TimelineNodeOpen)
+				if (layer->GuiData.TimelineNodeOpen)
 					rowCount += static_cast<int>(PropertyType_Count);
 			}
 		}
@@ -436,13 +436,13 @@ namespace Editor
 		Gui::PopStyleVar(1);
 	}
 
-	static frame_t GetAetLayerLastFrame(const AetLayer* aetLayer)
+	static frame_t GetCompositionLastFrame(const AetComposition* comp)
 	{
 		frame_t lastFrame = 0;
-		for (auto& object : *aetLayer)
+		for (auto& layer : *comp)
 		{
-			if (object->EndFrame > lastFrame)
-				lastFrame = object->EndFrame;
+			if (layer->EndFrame > lastFrame)
+				lastFrame = layer->EndFrame;
 		}
 		return lastFrame;
 	}
@@ -454,20 +454,20 @@ namespace Editor
 			const auto parentAet = selectedAetItem.GetItemParentAet();
 			const auto itemType = selectedAetItem.Type();
 
-			if (itemType == AetItemType::Aet || (itemType == AetItemType::AetLayer && selectedAetItem.GetAetLayerRef()->IsRootLayer()))
+			if (itemType == AetItemType::Aet || (itemType == AetItemType::Composition && selectedAetItem.GetAetCompositionRef()->IsRootComposition()))
 			{
 				loopStartFrame = parentAet->StartFrame;
 				loopEndFrame = parentAet->EndFrame;
 			}
-			else if (itemType == AetItemType::AetRegion)
+			else if (itemType == AetItemType::Surface)
 			{
 				loopStartFrame = 0.0f;
-				loopEndFrame = glm::max(0.0f, selectedAetItem.Ptrs.AetRegion->SpriteCount() - 1.0f);
+				loopEndFrame = glm::max(0.0f, selectedAetItem.Ptrs.Surface->SpriteCount() - 1.0f);
 			}
-			else if (const AetLayer* workingLayer = GetWorkingLayer(); itemType == AetItemType::AetLayer || itemType == AetItemType::AetObj && workingLayer != nullptr)
+			else if (const AetComposition* workingComp = GetWorkingComposition(); itemType == AetItemType::Composition || itemType == AetItemType::Layer && workingComp != nullptr)
 			{
 				loopStartFrame = 0.0f;
-				loopEndFrame = GetAetLayerLastFrame(workingLayer);
+				loopEndFrame = GetCompositionLastFrame(workingComp);
 			}
 			else
 			{
@@ -526,12 +526,12 @@ namespace Editor
 			{
 			case AetItemType::AetSet:
 			case AetItemType::Aet:
-			case AetItemType::AetRegion:
+			case AetItemType::Surface:
 				DrawTimelineContentNone();
 				break;
 
-			case AetItemType::AetObj:
-			case AetItemType::AetLayer:
+			case AetItemType::Layer:
+			case AetItemType::Composition:
 				DrawTimelineContent();
 				break;
 

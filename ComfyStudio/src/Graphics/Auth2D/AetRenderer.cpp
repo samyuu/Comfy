@@ -31,27 +31,27 @@ namespace Graphics
 		spriteGetter = value;
 	}
 
-	void AetRenderer::SetAetObjCallback(const AetObjCallbackFunction& value)
+	void AetRenderer::SetCallback(const AetObjCallbackFunction& value)
 	{
-		aetObjCallback = value;
+		objCallback = value;
 	}
 
-	void AetRenderer::SetAetObjMaskCallback(const AetObjMaskCallbackFunction& value)
+	void AetRenderer::SetMaskCallback(const AetObjMaskCallbackFunction& value)
 	{
-		aetObjMaskCallback = value;
+		objMaskCallback = value;
 	}
 
 	void AetRenderer::RenderObjCache(const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)
 	{
-		if (obj.Region == nullptr || !obj.Visible)
+		if (obj.Surface == nullptr || !obj.Visible)
 			return;
 
-		if (aetObjCallback.has_value() && aetObjCallback.value()(obj, positionOffset, opacity))
+		if (objCallback.has_value() && objCallback.value()(obj, positionOffset, opacity))
 			return;
 
 		const Txp* texture;
 		const Spr* sprite;
-		const bool validSprite = GetSprite(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
+		const bool validSprite = GetSprite(obj.Surface->GetSprite(obj.SpriteIndex), &texture, &sprite);
 
 		const vec2 finalPosition = obj.Properties.Position + positionOffset;
 		const float finalOpacity = obj.Properties.Opacity * opacity;
@@ -73,7 +73,7 @@ namespace Graphics
 			// TODO: Only render optionally
 			renderer2D->Draw(
 				nullptr,
-				vec4(0.0f, 0.0f, obj.Region->Size),
+				vec4(0.0f, 0.0f, obj.Surface->Size),
 				finalPosition,
 				obj.Properties.Origin,
 				obj.Properties.Rotation,
@@ -85,19 +85,19 @@ namespace Graphics
 
 	void AetRenderer::RenderObjCacheMask(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)
 	{
-		if (maskObj.Region == nullptr || obj.Region == nullptr || !obj.Visible)
+		if (maskObj.Surface == nullptr || obj.Surface == nullptr || !obj.Visible)
 			return;
 
-		if (aetObjMaskCallback.has_value() && aetObjMaskCallback.value()(maskObj, obj, positionOffset, opacity))
+		if (objMaskCallback.has_value() && objMaskCallback.value()(maskObj, obj, positionOffset, opacity))
 			return;
 
 		const Txp* maskTexture;
 		const Spr* maskSprite;
-		const bool validMaskSprite = GetSprite(maskObj.Region->GetSprite(maskObj.SpriteIndex), &maskTexture, &maskSprite);
+		const bool validMaskSprite = GetSprite(maskObj.Surface->GetSprite(maskObj.SpriteIndex), &maskTexture, &maskSprite);
 
 		const Txp* texture;
 		const Spr* sprite;
-		const bool validSprite = GetSprite(obj.Region->GetSprite(obj.SpriteIndex), &texture, &sprite);
+		const bool validSprite = GetSprite(obj.Surface->GetSprite(obj.SpriteIndex), &texture, &sprite);
 
 		if (validMaskSprite && validSprite)
 		{
@@ -121,7 +121,7 @@ namespace Graphics
 		{
 			renderer2D->Draw(
 				nullptr,
-				vec4(0.0f, 0.0f, obj.Region->Size),
+				vec4(0.0f, 0.0f, obj.Surface->Size),
 				obj.Properties.Position + positionOffset,
 				obj.Properties.Origin,
 				obj.Properties.Rotation,
@@ -151,32 +151,32 @@ namespace Graphics
 		}
 	}
 
-	void AetRenderer::RenderAetObj(const AetObj* aetObj, float frame, const vec2& position, float opacity)
+	void AetRenderer::RenderLayer(const AetLayer* layer, float frame, const vec2& position, float opacity)
 	{
 		objectCache.clear();
 
-		AetMgr::GetAddObjects(objectCache, aetObj, frame);
+		AetMgr::GetAddObjects(objectCache, layer, frame);
 		RenderObjCacheVector(objectCache, position, opacity);
 	}
 
-	void AetRenderer::RenderAetObjLooped(const AetObj* aetObj, float frame, const vec2& position, float opacity)
+	void AetRenderer::RenderLayerLooped(const AetLayer* layer, float frame, const vec2& position, float opacity)
 	{
-		RenderAetObj(aetObj, fmod(frame, aetObj->EndFrame - 1.0f), position, opacity);
+		RenderLayer(layer, fmod(frame, layer->EndFrame - 1.0f), position, opacity);
 	}
 
-	void AetRenderer::RenderAetObjClamped(const AetObj* aetObj, float frame, const vec2& position, float opacity)
+	void AetRenderer::RenderLayerClamped(const AetLayer* layer, float frame, const vec2& position, float opacity)
 	{
-		RenderAetObj(aetObj, (frame >= aetObj->EndFrame ? aetObj->EndFrame : frame), position, opacity);
+		RenderLayer(layer, (frame >= layer->EndFrame ? layer->EndFrame : frame), position, opacity);
 	}
 
-	void AetRenderer::RenderAetSprite(const AetRegion* aetRegion, const AetSpriteIdentifier* aetSprite, const vec2& position)
+	void AetRenderer::RenderAetSprite(const AetSurface* surface, const AetSpriteIdentifier* identifier, const vec2& position)
 	{
 		const Txp* texture;
 		const Spr* sprite;
 
-		if (aetRegion->SpriteCount() < 1 || !GetSprite(aetSprite, &texture, &sprite))
+		if (surface->SpriteCount() < 1 || !GetSprite(identifier, &texture, &sprite))
 		{
-			renderer2D->Draw(nullptr, vec4(0.0f, 0.0f, aetRegion->Size), vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), AetRenderer::DummyColor);
+			renderer2D->Draw(nullptr, vec4(0.0f, 0.0f, surface->Size), vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), AetRenderer::DummyColor);
 		}
 		else
 		{

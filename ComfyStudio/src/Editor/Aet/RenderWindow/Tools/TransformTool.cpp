@@ -261,7 +261,7 @@ namespace Editor
 			DrawBoxNode(drawList, screenSpaceBox.GetNodePosition(scalingNode), ImColor(allowAction ? redColor : redPreColor), screenSpaceBox.Rotation());
 	}
 
-	void TransformTool::ProcessCommands(AetCommandManager* commandManager, const RefPtr<AetObj>& aetObj, float frame, const Properties& properties, const Properties& previousProperties)
+	void TransformTool::ProcessCommands(AetCommandManager* commandManager, const RefPtr<AetLayer>& layer, float frame, const Properties& properties, const Properties& previousProperties)
 	{
 		if (properties == previousProperties)
 			return;
@@ -270,12 +270,12 @@ namespace Editor
 		if (properties.Scale == previousProperties.Scale)
 		{
 			const auto tuple = std::make_tuple(frame, properties.Position);
-			ProcessUpdatingAetCommand(commandManager, AnimationDataChangePosition, aetObj, tuple);
+			ProcessUpdatingAetCommand(commandManager, AnimationDataChangePosition, layer, tuple);
 		}
 		else
 		{
 			const auto tuple = std::make_tuple(frame, properties.Position, properties.Scale);
-			ProcessUpdatingAetCommand(commandManager, AnimationDataChangeTransform, aetObj, tuple);
+			ProcessUpdatingAetCommand(commandManager, AnimationDataChangeTransform, layer, tuple);
 		}
 	}
 

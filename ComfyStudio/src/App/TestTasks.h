@@ -10,18 +10,18 @@ namespace App
 {
 	using namespace Graphics;
 
-	struct AetObjSourceData
+	struct AetLayerSourceData
 	{
-		const AetObj* Obj;
+		const AetLayer* Layer;
 		const char* Name;
 
-		inline const AetObj *operator->() const { return Obj; };
-		inline operator const AetObj* () { return Obj; };
+		inline const AetLayer* operator->() const { return Layer; };
+		inline operator const AetLayer* () { return Layer; };
 	};
 
 	struct Ps4MenuAetData
 	{
-#define SourceDataField(fieldName, objName) AetObjSourceData fieldName = { nullptr, objName }
+#define SourceDataField(fieldName, layerName) AetLayerSourceData fieldName = { nullptr, layerName }
 		SourceDataField(CommonBackground, "cmn_bg01_f__f");
 		SourceDataField(MenuDeco, "menu_deco_f__f");
 		SourceDataField(MenuListIn02, "menu_list_in02");
@@ -123,6 +123,6 @@ namespace App
 
 		void RenderMenuBackground(AetRenderer* aetRenderer, float frame);
 		void RenderMainMenuChara(AetRenderer* aetRenderer, float frame);
-		void RenderMainMenuList(AetRenderer* aetRenderer, bool selectedLayer, float menuListFrame, float menuPlateFrame);
+		void RenderMainMenuList(AetRenderer* aetRenderer, bool selectedComp, float menuListFrame, float menuPlateFrame);
 	};
 }

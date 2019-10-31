@@ -49,16 +49,16 @@ namespace Editor
 		void RenderBackground();
 		void RenderAetSet(const Graphics::AetSet* aetSet);
 		void RenderAet(const Graphics::Aet* aet);
-		void RenderAetLayer(const Graphics::AetLayer* aetLayer);
-		void RenderAetObj(const Graphics::AetObj* aetObj);
-		void RenderAetRegion(const Graphics::AetRegion* aetRegion);
+		void RenderComposition(const Graphics::AetComposition* comp);
+		void RenderLayer(const Graphics::AetLayer* layer);
+		void RenderSurface(const Graphics::AetSurface* surface);
 
 	protected:
-		vec2 GetAetObjBoundingSize(const RefPtr<Graphics::AetObj>& aetObj) const;
+		vec2 GetLayerBoundingSize(const RefPtr<Graphics::AetLayer>& layer) const;
 
 	protected:
-		bool OnAetObjRender(const Graphics::AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity);
-		bool OnAetObjMaskRender(const Graphics::AetMgr::ObjCache& maskObj, const Graphics::AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity);
+		bool OnObjRender(const Graphics::AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity);
+		bool OnObjMaskRender(const Graphics::AetMgr::ObjCache& maskObj, const Graphics::AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity);
 
 	private:
 		// NOTE: Fill the rest of the background

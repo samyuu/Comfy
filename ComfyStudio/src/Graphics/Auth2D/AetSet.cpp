@@ -3,7 +3,7 @@
 
 namespace Graphics
 {
-	const std::array<const char*, 8> KeyFrameProperties::PropertyNames =
+	const std::array<const char*, 8> AetKeyFrameProperties::PropertyNames =
 	{
 		"Origin X",
 		"Origin Y",
@@ -15,7 +15,7 @@ namespace Graphics
 		"Opactiy",
 	};
 
-	const std::array<const char*, 13> AnimationData::BlendModeNames =
+	const std::array<const char*, 13> AetAnimationData::BlendModeNames =
 	{
 		nullptr,
 		nullptr,
@@ -32,7 +32,7 @@ namespace Graphics
 		nullptr, // "What The Fuck?"
 	};
 
-	const std::array<const char*, 4> AetObj::TypeNames =
+	const std::array<const char*, 4> AetLayer::TypeNames =
 	{
 		"nop",
 		"pic",
@@ -40,7 +40,7 @@ namespace Graphics
 		"eff",
 	};
 
-	const char* AnimationData::GetBlendModeName(AetBlendMode blendMode)
+	const char* AetAnimationData::GetBlendModeName(AetBlendMode blendMode)
 	{
 		size_t blendModeIndex = static_cast<size_t>(blendMode);
 
@@ -52,7 +52,7 @@ namespace Graphics
 		return (name == nullptr) ? "Undefined Blend Mode" : name;
 	}
 
-	AetSpriteIdentifier* AetRegion::GetSprite(int32_t index)
+	AetSpriteIdentifier* AetSurface::GetSprite(int32_t index)
 	{
 		if (SpriteCount() < 1)
 			return nullptr;
@@ -61,32 +61,32 @@ namespace Graphics
 		return &sprites[index];
 	}
 
-	const AetSpriteIdentifier* AetRegion::GetSprite(int32_t index) const
+	const AetSpriteIdentifier* AetSurface::GetSprite(int32_t index) const
 	{
-		return const_cast<AetRegion*>(this)->GetSprite(index);
+		return const_cast<AetSurface*>(this)->GetSprite(index);
 	}
 
-	AetSpriteIdentifier* AetRegion::GetFrontSprite()
+	AetSpriteIdentifier* AetSurface::GetFrontSprite()
 	{
 		return (SpriteCount() > 0) ? &sprites.front() : nullptr;
 	}
 
-	AetSpriteIdentifier* AetRegion::GetBackSprite()
+	AetSpriteIdentifier* AetSurface::GetBackSprite()
 	{
 		return SpriteCount() > 0 ? &sprites.back() : nullptr;
 	}
 
-	int32_t AetRegion::SpriteCount() const
+	int32_t AetSurface::SpriteCount() const
 	{
 		return static_cast<int32_t>(sprites.size());
 	}
 
-	std::vector<AetSpriteIdentifier>& AetRegion::GetSprites()
+	std::vector<AetSpriteIdentifier>& AetSurface::GetSprites()
 	{
 		return sprites;
 	}
 
-	const std::vector<AetSpriteIdentifier>& AetRegion::GetSprites() const
+	const std::vector<AetSpriteIdentifier>& AetSurface::GetSprites() const
 	{
 		return sprites;
 	}
@@ -115,11 +115,11 @@ namespace Graphics
 	{
 	}
 
-	AetObj::AetObj()
+	AetLayer::AetLayer()
 	{
 	}
 
-	AetObj::AetObj(AetObjType type, const std::string& name, AetLayer* parentLayer)
+	AetLayer::AetLayer(AetLayerType type, const std::string& name, AetComposition* parentComp)
 	{
 		StartFrame = 0.0f;
 		EndFrame = 60.0f;
@@ -130,9 +130,9 @@ namespace Graphics
 		TypePaddingByte = 0x3;
 		Type = type;
 
-		if (type != AetObjType::Aif)
+		if (type != AetLayerType::Aif)
 		{
-			AnimationData = MakeRef<Graphics::AnimationData>();
+			AnimationData = MakeRef<Graphics::AetAnimationData>();
 			AnimationData->BlendMode = AetBlendMode::Normal;
 			AnimationData->UseTextureMask = false;
 			AnimationData->Properties.OriginX().emplace_back(0.0f);
@@ -145,179 +145,179 @@ namespace Graphics
 			AnimationData->Properties.Opacity().emplace_back(1.0f);
 		}
 
-		this->parentLayer = parentLayer;
+		this->parentComposition = parentComp;
 
 		SetName(name);
 	}
 
-	AetObj::~AetObj()
+	AetLayer::~AetLayer()
 	{
-	}
-
-	const std::string& AetObj::GetName() const
-	{
-		return name;
-	}
-
-	void AetObj::SetName(const std::string& value)
-	{
-		name = value;
-	}
-
-	bool AetObj::GetIsVisible() const
-	{
-		return Flags.Visible;
-	}
-
-	void AetObj::SetIsVisible(bool value)
-	{
-		Flags.Visible = value;
-	}
-
-	bool AetObj::GetIsAudible() const
-	{
-		return Flags.Audible;
-	}
-
-	void AetObj::SetIsAudible(bool value)
-	{
-		Flags.Audible = value;
-	}
-
-	const RefPtr<AetRegion>& AetObj::GetReferencedRegion()
-	{
-		return references.Region;
-	}
-
-	const AetRegion* AetObj::GetReferencedRegion() const
-	{
-		return references.Region.get();
-	}
-
-	void AetObj::SetReferencedRegion(const RefPtr<AetRegion>& value)
-	{
-		references.Region = value;
-	}
-
-	const RefPtr<AetSoundEffect>& AetObj::GetReferencedSoundEffect()
-	{
-		return references.SoundEffect;
-	}
-
-	const AetSoundEffect* AetObj::GetReferencedSoundEffect() const
-	{
-		return references.SoundEffect.get();
-	}
-
-	void AetObj::SetReferencedSoundEffect(const RefPtr<AetSoundEffect>& value)
-	{
-		references.SoundEffect = value;
-	}
-
-	const RefPtr<AetLayer>& AetObj::GetReferencedLayer()
-	{
-		return references.Layer;
-	}
-
-	const AetLayer* AetObj::GetReferencedLayer() const
-	{
-		return references.Layer.get();
-	}
-
-	void AetObj::SetReferencedLayer(const RefPtr<AetLayer>& value)
-	{
-		references.Layer = value;
-	}
-
-	const RefPtr<AetObj>& AetObj::GetReferencedParentObj()
-	{
-		return references.ParentObj;
-	}
-
-	const AetObj* AetObj::GetReferencedParentObj() const
-	{
-		return references.ParentObj.get();
-	}
-
-	void AetObj::SetReferencedParentObj(const RefPtr<AetObj>& value)
-	{
-		references.ParentObj = value;
-	}
-
-	Aet* AetObj::GetParentAet()
-	{
-		assert(parentLayer != nullptr);
-		return parentLayer->GetParentAet();
-	}
-
-	const Aet* AetObj::GetParentAet() const
-	{
-		assert(parentLayer != nullptr);
-		return parentLayer->GetParentAet();
-	}
-
-	AetLayer* AetObj::GetParentLayer()
-	{
-		return parentLayer;
-	}
-
-	const AetLayer* AetObj::GetParentLayer() const
-	{
-		return parentLayer;
-	}
-
-	Aet* AetLayer::GetParentAet() const
-	{
-		return parentAet;
-	}
-
-	bool AetLayer::IsRootLayer() const
-	{
-		return this == parentAet->RootLayer.get();
 	}
 
 	const std::string& AetLayer::GetName() const
 	{
-		return givenName;
+		return name;
 	}
 
 	void AetLayer::SetName(const std::string& value)
 	{
+		name = value;
+	}
+
+	bool AetLayer::GetIsVisible() const
+	{
+		return Flags.Visible;
+	}
+
+	void AetLayer::SetIsVisible(bool value)
+	{
+		Flags.Visible = value;
+	}
+
+	bool AetLayer::GetIsAudible() const
+	{
+		return Flags.Audible;
+	}
+
+	void AetLayer::SetIsAudible(bool value)
+	{
+		Flags.Audible = value;
+	}
+
+	const RefPtr<AetSurface>& AetLayer::GetReferencedSurface()
+	{
+		return references.Surface;
+	}
+
+	const AetSurface* AetLayer::GetReferencedSurface() const
+	{
+		return references.Surface.get();
+	}
+
+	void AetLayer::SetReferencedSurface(const RefPtr<AetSurface>& value)
+	{
+		references.Surface = value;
+	}
+
+	const RefPtr<AetSoundEffect>& AetLayer::GetReferencedSoundEffect()
+	{
+		return references.SoundEffect;
+	}
+
+	const AetSoundEffect* AetLayer::GetReferencedSoundEffect() const
+	{
+		return references.SoundEffect.get();
+	}
+
+	void AetLayer::SetReferencedSoundEffect(const RefPtr<AetSoundEffect>& value)
+	{
+		references.SoundEffect = value;
+	}
+
+	const RefPtr<AetComposition>& AetLayer::GetReferencedComposition()
+	{
+		return references.Composition;
+	}
+
+	const AetComposition* AetLayer::GetReferencedComposition() const
+	{
+		return references.Composition.get();
+	}
+
+	void AetLayer::SetReferencedComposition(const RefPtr<AetComposition>& value)
+	{
+		references.Composition = value;
+	}
+
+	const RefPtr<AetLayer>& AetLayer::GetReferencedParentLayer()
+	{
+		return references.ParentLayer;
+	}
+
+	const AetLayer* AetLayer::GetReferencedParentLayer() const
+	{
+		return references.ParentLayer.get();
+	}
+
+	void AetLayer::SetReferencedParentLayer(const RefPtr<AetLayer>& value)
+	{
+		references.ParentLayer = value;
+	}
+
+	Aet* AetLayer::GetParentAet()
+	{
+		assert(parentComposition != nullptr);
+		return parentComposition->GetParentAet();
+	}
+
+	const Aet* AetLayer::GetParentAet() const
+	{
+		assert(parentComposition != nullptr);
+		return parentComposition->GetParentAet();
+	}
+
+	AetComposition* AetLayer::GetParentComposition()
+	{
+		return parentComposition;
+	}
+
+	const AetComposition* AetLayer::GetParentComposition() const
+	{
+		return parentComposition;
+	}
+
+	Aet* AetComposition::GetParentAet() const
+	{
+		return parentAet;
+	}
+
+	bool AetComposition::IsRootComposition() const
+	{
+		return this == parentAet->RootComposition.get();
+	}
+
+	const std::string& AetComposition::GetName() const
+	{
+		return givenName;
+	}
+
+	void AetComposition::SetName(const std::string& value)
+	{
 		givenName = value;
 	}
 
-	RefPtr<AetObj> AetLayer::FindObj(const std::string& name)
+	RefPtr<AetLayer> AetComposition::FindLayer(const std::string& name)
 	{
 		for (int32_t i = 0; i < size(); i++)
 		{
-			if (objects[i]->GetName() == name)
-				return objects[i];
+			if (layers[i]->GetName() == name)
+				return layers[i];
 		}
 
 		return nullptr;
 	}
 
-	RefPtr<const AetObj> AetLayer::FindObj(const std::string& name) const
+	RefPtr<const AetLayer> AetComposition::FindLayer(const std::string& name) const
 	{
-		return const_cast<AetLayer*>(this)->FindObj(name);
+		return const_cast<AetComposition*>(this)->FindLayer(name);
 	}
 
-	const std::string AetLayer::rootLayerName = "Root Layer";
-	const std::string AetLayer::unusedLayerName = "Unused Layer";
+	const std::string AetComposition::rootCompositionName = "Root";
+	const std::string AetComposition::unusedCompositionName = "Unused Comp";
 
-	void AetLayer::AddNewObject(AetObjType type, const std::string& name)
+	void AetComposition::AddNewLayer(AetLayerType type, const std::string& name)
 	{
-		objects.push_back(MakeRef<AetObj>(type, name, this));
+		layers.push_back(MakeRef<AetLayer>(type, name, this));
 	}
 
-	void AetLayer::DeleteObject(AetObj* value)
+	void AetComposition::DeleteLayer(AetLayer* value)
 	{
 		int index = 0;
-		for (RefPtr<AetObj>& obj : objects)
+		for (RefPtr<AetLayer>& layer : layers)
 		{
-			if (obj.get() == value)
+			if (layer.get() == value)
 			{
-				objects.erase(objects.begin() + index);
+				layers.erase(layers.begin() + index);
 				break;
 			}
 
@@ -325,42 +325,42 @@ namespace Graphics
 		}
 	}
 
-	AetLayer* Aet::GetRootLayer()
+	AetComposition* Aet::GetRootComposition()
 	{
-		return RootLayer.get();
+		return RootComposition.get();
 	}
 
-	const AetLayer* Aet::GetRootLayer() const
+	const AetComposition* Aet::GetRootComposition() const
 	{
-		return RootLayer.get();
+		return RootComposition.get();
 	}
 
-	RefPtr<AetObj> Aet::FindObj(const std::string& name)
+	RefPtr<AetLayer> Aet::FindLayer(const std::string& name)
 	{
-		const RefPtr<AetObj>& rootFoundObj = RootLayer->FindObj(name);
-		if (rootFoundObj != nullptr)
-			return rootFoundObj;
+		const RefPtr<AetLayer>& rootFoundLayer = RootComposition->FindLayer(name);
+		if (rootFoundLayer != nullptr)
+			return rootFoundLayer;
 
-		for (int32_t i = static_cast<int32_t>(Layers.size()) - 1; i >= 0; i--)
+		for (int32_t i = static_cast<int32_t>(Compositions.size()) - 1; i >= 0; i--)
 		{
-			const RefPtr<AetObj>& obj = Layers[i]->FindObj(name);
-			if (obj != nullptr)
-				return obj;
+			const RefPtr<AetLayer>& layer = Compositions[i]->FindLayer(name);
+			if (layer != nullptr)
+				return layer;
 		}
 
 		return nullptr;
 	}
 
-	RefPtr<const AetObj> Aet::FindObj(const std::string& name) const
+	RefPtr<const AetLayer> Aet::FindLayer(const std::string& name) const
 	{
-		return const_cast<Aet*>(this)->FindObj(name);
+		return const_cast<Aet*>(this)->FindLayer(name);
 	}
 
-	int32_t Aet::FindObjIndex(AetLayer& layer, const std::string& name) const
+	int32_t Aet::FindLayerIndex(AetComposition& comp, const std::string& name) const
 	{
-		for (int32_t i = static_cast<int32_t>(layer.size()) - 1; i >= 0; i--)
+		for (int32_t i = static_cast<int32_t>(comp.size()) - 1; i >= 0; i--)
 		{
-			if (layer[i]->GetName() == name)
+			if (comp[i]->GetName() == name)
 				return i;
 		}
 
@@ -369,150 +369,150 @@ namespace Graphics
 
 	// TODO:
 	/*
-	void Aet::DeleteLayer(const RefPtr<AetLayer>& value)
+	void Aet::DeleteComposition(const RefPtr<AetComposition>& value)
 	{
 		int index = 0;
-		for (RefPtr<AetLayer>& layer : Layers)
+		for (RefPtr<AetComposition>& comp : Compositions)
 		{
-			if (layer == value)
+			if (comp == value)
 			{
-				Layers.erase(Layers.begin() + index);
+				Compositionss.erase(Compositions.begin() + index);
 				break;
 			}
 
 			index++;
 		}
 
-		for (RefPtr<AetLayer>& layer : Layers)
+		for (RefPtr<AetComposition>& comp : Compositions)
 		{
-			for (RefPtr<AetObj>& obj : *layer)
+			for (RefPtr<AetLayer>& layer : *comp)
 			{
-				if (obj->GetReferencedLayer() == value)
+				if (layer->GetReferencedComposition() == value)
 				{
 					// TODO: maybe store them in a separate "lastDeleted" field to easily recover for undo
-					obj->SetReferencedLayer(nullptr);
+					layer->SetReferencedComposition(nullptr);
 				}
 			}
 		}
 
-		InternalUpdateLayerNames();
+		InternalUpdateCompositionNames();
 	}
 	*/
 
 	void Aet::UpdateParentPointers()
 	{
-		const auto updateParentPointers = [this](RefPtr<AetLayer>& layer)
+		const auto updateParentPointers = [this](RefPtr<AetComposition>& comp)
 		{
-			layer->parentAet = this;
+			comp->parentAet = this;
 
-			for (RefPtr<AetObj>& obj : *layer)
-				obj->parentLayer = layer.get();
+			for (RefPtr<AetLayer>& layer : *comp)
+				layer->parentComposition = comp.get();
 		};
 
-		for (RefPtr<AetLayer>& layer : Layers)
-			updateParentPointers(layer);
+		for (RefPtr<AetComposition>& comp : Compositions)
+			updateParentPointers(comp);
 
-		updateParentPointers(RootLayer);
+		updateParentPointers(RootComposition);
 	}
 
-	void Aet::InternalUpdateLayerNamesAfteObjectReferences()
+	void Aet::InternalUpdateCompositionNamesAfterLayerReferences()
 	{
-		RootLayer->SetName(AetLayer::rootLayerName);
-		InternalUpdateLayerNamesAfteObjectReferences(RootLayer);
+		RootComposition->SetName(AetComposition::rootCompositionName);
+		InternalUpdateCompositionNamesAfterLayerReferences(RootComposition);
 		
-		for (RefPtr<AetLayer>& aetLayer : Layers)
-			InternalUpdateLayerNamesAfteObjectReferences(aetLayer);
+		for (RefPtr<AetComposition>& comp : Compositions)
+			InternalUpdateCompositionNamesAfterLayerReferences(comp);
 	}
 
-	void Aet::InternalUpdateLayerNamesAfteObjectReferences(RefPtr<AetLayer>& aetLayer)
+	void Aet::InternalUpdateCompositionNamesAfterLayerReferences(RefPtr<AetComposition>& comp)
 	{
-		for (RefPtr<AetObj>& aetObj : *aetLayer)
+		for (RefPtr<AetLayer>& layer : *comp)
 		{
-			if (aetObj->Type == AetObjType::Eff)
+			if (layer->Type == AetLayerType::Eff)
 			{
-				AetLayer* referencedLayer = aetObj->GetReferencedLayer().get();
+				AetComposition* referencedComp = layer->GetReferencedComposition().get();
 
-				if (referencedLayer != nullptr)
-					referencedLayer->SetName(aetObj->GetName());
+				if (referencedComp != nullptr)
+					referencedComp->SetName(layer->GetName());
 			}
 		}
 	}
 
 	void Aet::InternalLinkPostRead()
 	{
-		assert(RootLayer != nullptr);
+		assert(RootComposition != nullptr);
 
-		for (RefPtr<AetLayer>& aetLayer : Layers)
-			InternalLinkeLayerContent(aetLayer);
+		for (RefPtr<AetComposition>& comp : Compositions)
+			InternalLinkeCompositionContent(comp);
 
-		InternalLinkeLayerContent(RootLayer);
+		InternalLinkeCompositionContent(RootComposition);
 	}
 
-	void Aet::InternalLinkeLayerContent(RefPtr<AetLayer>& aetLayer)
+	void Aet::InternalLinkeCompositionContent(RefPtr<AetComposition>& comp)
 	{
-		for (RefPtr<AetObj>& aetObj : *aetLayer)
+		for (RefPtr<AetLayer>& layer : *comp)
 		{
-			if (aetObj->dataFilePtr != nullptr)
+			if (layer->dataFilePtr != nullptr)
 			{
-				if (aetObj->Type == AetObjType::Pic)
-					InternalFindObjReferencedRegion(aetObj.get());
-				else if (aetObj->Type == AetObjType::Aif)
-					InternalFindObjReferencedSoundEffect(aetObj.get());
-				else if (aetObj->Type == AetObjType::Eff)
-					InternalFindObjReferencedLayer(aetObj.get());
+				if (layer->Type == AetLayerType::Pic)
+					InternalFindLayerReferencedSurface(layer.get());
+				else if (layer->Type == AetLayerType::Aif)
+					InternalFindLayerReferencedSoundEffect(layer.get());
+				else if (layer->Type == AetLayerType::Eff)
+					InternalFindLayerReferencedComposition(layer.get());
 			}
-			if (aetObj->parentFilePtr != nullptr)
+			if (layer->parentFilePtr != nullptr)
 			{
-				InternalFindObjReferencedParent(aetObj.get());
+				InternalFindLayerReferencedParent(layer.get());
 			}
 		}
 	}
 
-	void Aet::InternalFindObjReferencedRegion(AetObj* aetObj)
+	void Aet::InternalFindLayerReferencedSurface(AetLayer* layer)
 	{
-		for (RefPtr<AetRegion>& otherRegion : Regions)
+		for (RefPtr<AetSurface>& otherSurfaces : Surfaces)
 		{
-			if (otherRegion->filePosition == aetObj->dataFilePtr)
+			if (otherSurfaces->filePosition == layer->dataFilePtr)
 			{
-				aetObj->references.Region = otherRegion;
+				layer->references.Surface = otherSurfaces;
 				return;
 			}
 		}
 	}
 
-	void Aet::InternalFindObjReferencedSoundEffect(AetObj* aetObj)
+	void Aet::InternalFindLayerReferencedSoundEffect(AetLayer* layer)
 	{
 		for (RefPtr<AetSoundEffect>& otherSoundEffect : SoundEffects)
 		{
-			if (otherSoundEffect->filePosition == aetObj->dataFilePtr)
+			if (otherSoundEffect->filePosition == layer->dataFilePtr)
 			{
-				aetObj->references.SoundEffect = otherSoundEffect;
+				layer->references.SoundEffect = otherSoundEffect;
 				return;
 			}
 		}
 	}
 
-	void Aet::InternalFindObjReferencedLayer(AetObj* aetObj)
+	void Aet::InternalFindLayerReferencedComposition(AetLayer* layer)
 	{
-		for (RefPtr<AetLayer>& otherLayer : Layers)
+		for (RefPtr<AetComposition>& otherComp : Compositions)
 		{
-			if (otherLayer->filePosition == aetObj->dataFilePtr)
+			if (otherComp->filePosition == layer->dataFilePtr)
 			{
-				aetObj->references.Layer = otherLayer;
+				layer->references.Composition = otherComp;
 				return;
 			}
 		}
 	}
 
-	void Aet::InternalFindObjReferencedParent(AetObj* aetObj)
+	void Aet::InternalFindLayerReferencedParent(AetLayer* layer)
 	{
-		for (RefPtr<AetLayer>& otherLayer : Layers)
+		for (RefPtr<AetComposition>& otherComp : Compositions)
 		{
-			for (RefPtr<AetObj>& otherObj : *otherLayer)
+			for (RefPtr<AetLayer>& otherLayer : *otherComp)
 			{
-				if (otherObj->filePosition == aetObj->parentFilePtr)
+				if (otherLayer->filePosition == layer->parentFilePtr)
 				{
-					aetObj->references.ParentObj = otherObj;
+					layer->references.ParentLayer = otherLayer;
 					return;
 				}
 			}
@@ -523,9 +523,9 @@ namespace Graphics
 	{
 		for (RefPtr<Aet>& aet : aets)
 		{
-			for (RefPtr<AetRegion>& region : aet->Regions)
+			for (RefPtr<AetSurface>& surface : aet->Surfaces)
 			{
-				for (AetSpriteIdentifier& sprite : region->GetSprites())
+				for (AetSpriteIdentifier& sprite : surface->GetSprites())
 					sprite.SpriteCache = nullptr;
 			}
 		}

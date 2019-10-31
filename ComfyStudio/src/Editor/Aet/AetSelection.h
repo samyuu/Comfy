@@ -9,9 +9,9 @@ namespace Editor
 		None,
 		AetSet,
 		Aet,
-		AetLayer,
-		AetObj,
-		AetRegion,
+		Composition,
+		Layer,
+		Surface,
 	};
 
 	union AetItemPtrUnion
@@ -20,9 +20,9 @@ namespace Editor
 
 		Graphics::AetSet* AetSet;
 		Graphics::Aet* Aet;
-		Graphics::AetLayer* AetLayer;
-		Graphics::AetObj* AetObj;
-		Graphics::AetRegion* AetRegion;
+		Graphics::AetComposition* Composition;
+		Graphics::AetLayer* Layer;
+		Graphics::AetSurface* Surface;
 	};
 
 	union AetItemReferencePtrUnion
@@ -30,9 +30,9 @@ namespace Editor
 		const RefPtr<void*>* VoidReference;
 		const RefPtr<Graphics::AetSet>* AetSetRef;
 		const RefPtr<Graphics::Aet>* AetRef;
-		const RefPtr<Graphics::AetLayer>* AetLayerRef;
-		const RefPtr<Graphics::AetObj>* AetObjRef;
-		const RefPtr<Graphics::AetRegion>* AetRegionRef;
+		const RefPtr<Graphics::AetComposition>* CompositionRef;
+		const RefPtr<Graphics::AetLayer>* LayerRef;
+		const RefPtr<Graphics::AetSurface>* SurfaceRef;
 	};
 
 	struct AetItemTypePtr
@@ -47,9 +47,9 @@ namespace Editor
 	public:
 		inline const RefPtr<Graphics::AetSet>& GetAetSetRef() const { return *refPtrs.AetSetRef; };
 		inline const RefPtr<Graphics::Aet>& GetAetRef() const { return *refPtrs.AetRef; };
-		inline const RefPtr<Graphics::AetLayer>& GetAetLayerRef() const { return *refPtrs.AetLayerRef; };
-		inline const RefPtr<Graphics::AetObj>& GetAetObjRef() const { return *refPtrs.AetObjRef; };
-		inline const RefPtr<Graphics::AetRegion>& GetAetRegionRef() const { return *refPtrs.AetRegionRef; };
+		inline const RefPtr<Graphics::AetComposition>& GetAetCompositionRef() const { return *refPtrs.CompositionRef; };
+		inline const RefPtr<Graphics::AetLayer>& GetLayerRef() const { return *refPtrs.LayerRef; };
+		inline const RefPtr<Graphics::AetSurface>& GetSurfaceRef() const { return *refPtrs.SurfaceRef; };
 
 		inline bool IsNull() const { return Ptrs.VoidPointer == nullptr; };
 		inline Graphics::Aet* GetItemParentAet() const;
@@ -77,23 +77,23 @@ namespace Editor
 			Ptrs.Aet = value.get();
 			refPtrs.AetRef = &value;
 		}
+		else if constexpr (std::is_same<T, Graphics::AetComposition>::value)
+		{
+			type = AetItemType::Composition;
+			Ptrs.Composition = value.get();
+			refPtrs.CompositionRef = &value;
+		}
 		else if constexpr (std::is_same<T, Graphics::AetLayer>::value)
 		{
-			type = AetItemType::AetLayer;
-			Ptrs.AetLayer = value.get();
-			refPtrs.AetLayerRef = &value;
+			type = AetItemType::Layer;
+			Ptrs.Layer = value.get();
+			refPtrs.LayerRef = &value;
 		}
-		else if constexpr (std::is_same<T, Graphics::AetObj>::value)
+		else if constexpr (std::is_same<T, Graphics::AetSurface>::value)
 		{
-			type = AetItemType::AetObj;
-			Ptrs.AetObj = value.get();
-			refPtrs.AetObjRef = &value;
-		}
-		else if constexpr (std::is_same<T, Graphics::AetRegion>::value)
-		{
-			type = AetItemType::AetRegion;
-			Ptrs.AetRegion = value.get();
-			refPtrs.AetRegionRef = &value;
+			type = AetItemType::Surface;
+			Ptrs.Surface = value.get();
+			refPtrs.SurfaceRef = &value;
 		}
 		else
 		{
@@ -114,13 +114,13 @@ namespace Editor
 			return nullptr;
 		case AetItemType::Aet:
 			return Ptrs.Aet;
-		case AetItemType::AetLayer:
-			assert(Ptrs.AetLayer->GetParentAet() != nullptr);
-			return Ptrs.AetLayer->GetParentAet();
-		case AetItemType::AetObj:
-			assert(Ptrs.AetObj->GetParentAet() != nullptr);
-			return Ptrs.AetObj->GetParentAet();
-		case AetItemType::AetRegion:
+		case AetItemType::Composition:
+			assert(Ptrs.Composition->GetParentAet() != nullptr);
+			return Ptrs.Composition->GetParentAet();
+		case AetItemType::Layer:
+			assert(Ptrs.Layer->GetParentAet() != nullptr);
+			return Ptrs.Layer->GetParentAet();
+		case AetItemType::Surface:
 			return nullptr;
 		}
 		return nullptr;

@@ -4,19 +4,19 @@ namespace Editor
 {
 	using namespace Graphics;
 
-	const char* GetObjTypeIcon(AetObjType type)
+	const char* GetLayerTypeIcon(AetLayerType type)
 	{
 		switch (type)
 		{
-		case AetObjType::Pic:
-			return ICON_AETOBJPIC;
-		case AetObjType::Aif:
-			return ICON_AETOBJAIF;
-		case AetObjType::Eff:
-			return ICON_AETOBJEFF;
-		case AetObjType::Nop:
+		case AetLayerType::Pic:
+			return ICON_AETLAYERPIC;
+		case AetLayerType::Aif:
+			return ICON_AETLAYERAIF;
+		case AetLayerType::Eff:
+			return ICON_AETLAYEREFF;
+		case AetLayerType::Nop:
 		default:
-			return ICON_AETOBJNOP;
+			return ICON_AETLAYERNOP;
 		}
 	}
 }

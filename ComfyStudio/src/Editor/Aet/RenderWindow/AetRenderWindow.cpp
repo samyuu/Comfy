@@ -31,8 +31,8 @@ namespace Editor
 		renderer = MakeUnique<Renderer2D>();
 		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
 		aetRenderer->SetSpriteGetterFunction(spriteGetter);
-		aetRenderer->SetAetObjCallback([this](const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity) { return OnAetObjRender(obj, positionOffset, opacity); });
-		aetRenderer->SetAetObjMaskCallback([this](const AetMgr::ObjCache& objMask, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity) { return OnAetObjMaskRender(objMask, obj, positionOffset, opacity); });
+		aetRenderer->SetCallback([this](const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity) { return OnObjRender(obj, positionOffset, opacity); });
+		aetRenderer->SetMaskCallback([this](const AetMgr::ObjCache& objMask, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity) { return OnObjMaskRender(objMask, obj, positionOffset, opacity); });
 
 		mousePicker = MakeUnique<ObjectMousePicker>(objectCache, windowHoveredOnMouseClick, selectedAetItem, cameraSelectedAetItem);
 
@@ -74,16 +74,16 @@ namespace Editor
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(4.0f, 1.0f));
 		Gui::PushItemWidth(itemWidth);
 		{
-			if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::AetObj && selectedAetItem->GetAetObjRef()->AnimationData != nullptr)
+			if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::Layer && selectedAetItem->GetLayerRef()->AnimationData != nullptr)
 			{
-				const auto& selctedAetObj = selectedAetItem->GetAetObjRef();
-				AetMgr::Interpolate(selctedAetObj->AnimationData.get(), &toolProperties, currentFrame);
+				const auto& selctedLayer = selectedAetItem->GetLayerRef();
+				AetMgr::Interpolate(selctedLayer->AnimationData.get(), &toolProperties, currentFrame);
 
 				// BUG: This is problematic because the tool ignores this offset when moving
 				int32_t recursionCount = 0;
-				AetMgr::OffsetByParentProperties(toolProperties, selctedAetObj->GetReferencedParentObj().get(), currentFrame, recursionCount);
+				AetMgr::OffsetByParentProperties(toolProperties, selctedLayer->GetReferencedParentLayer().get(), currentFrame, recursionCount);
 
-				toolSize = GetAetObjBoundingSize(selctedAetObj);
+				toolSize = GetLayerBoundingSize(selctedLayer);
 			}
 
 			DrawTooltipHeaderGui();
@@ -130,7 +130,7 @@ namespace Editor
 	void AetRenderWindow::PostDrawGui()
 	{
 		AetTool* tool = GetCurrentTool();
-		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::AetObj)
+		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::Layer)
 		{
 			const auto worldToScreen = [this](vec2 value) { return (camera.WorldToScreenSpace(value) + GetRenderRegion().GetTL()); };
 			const auto screenToWorld = [this](vec2 value) { return (camera.ScreenToWorldSpace(value - GetRenderRegion().GetTL())); };
@@ -140,10 +140,10 @@ namespace Editor
 			tool->SetSpaceConversionFunctions(worldToScreen, screenToWorld);
 			tool->UpdatePostDrawGui(&toolProperties, toolSize);
 
-			if (!isPlayback && selectedAetItem->GetAetObjRef()->Type != AetObjType::Aif)
+			if (!isPlayback && selectedAetItem->GetLayerRef()->Type != AetLayerType::Aif)
 			{
-				const RefPtr<AetObj>& aetObj = selectedAetItem->GetAetObjRef();
-				tool->ProcessCommands(GetCommandManager(), aetObj, currentFrame, toolProperties, previousProperties);
+				const auto& layer = selectedAetItem->GetLayerRef();
+				tool->ProcessCommands(GetCommandManager(), layer, currentFrame, toolProperties, previousProperties);
 			}
 		}
 
@@ -162,16 +162,16 @@ namespace Editor
 			tool->DrawContextMenu();
 			Gui::Separator();
 
-			bool allowSelection = !cameraSelectedAetItem->IsNull() && cameraSelectedAetItem->Type() == AetItemType::AetLayer;
+			bool allowSelection = !cameraSelectedAetItem->IsNull() && cameraSelectedAetItem->Type() == AetItemType::Composition;
 			if (Gui::BeginMenu("Select", allowSelection))
 			{
-				for (const RefPtr<AetObj>& obj : *cameraSelectedAetItem->GetAetLayerRef())
+				for (const auto& layer : *cameraSelectedAetItem->GetAetCompositionRef())
 				{
-					bool alreadySelected = obj.get() == selectedAetItem->Ptrs.AetObj;
+					bool alreadySelected = layer.get() == selectedAetItem->Ptrs.Layer;
 
-					Gui::PushID(obj.get());
-					if (Gui::MenuItem(obj->GetName().c_str(), nullptr, nullptr, !alreadySelected))
-						selectedAetItem->SetItem(obj);
+					Gui::PushID(layer.get());
+					if (Gui::MenuItem(layer->GetName().c_str(), nullptr, nullptr, !alreadySelected))
+						selectedAetItem->SetItem(layer);
 					Gui::PopID();
 				}
 				Gui::EndMenu();
@@ -236,14 +236,14 @@ namespace Editor
 					case AetItemType::Aet:
 						RenderAet(visibleItem->Ptrs.Aet);
 						break;
-					case AetItemType::AetLayer:
-						RenderAetLayer(visibleItem->Ptrs.AetLayer);
+					case AetItemType::Composition:
+						RenderComposition(visibleItem->Ptrs.Composition);
 						break;
-					case AetItemType::AetObj:
-						RenderAetObj(visibleItem->Ptrs.AetObj);
+					case AetItemType::Layer:
+						RenderLayer(visibleItem->Ptrs.Layer);
 						break;
-					case AetItemType::AetRegion:
-						RenderAetRegion(visibleItem->Ptrs.AetRegion);
+					case AetItemType::Surface:
+						RenderSurface(visibleItem->Ptrs.Surface);
 						break;
 					case AetItemType::None:
 					default:
@@ -301,7 +301,7 @@ namespace Editor
 
 	void AetRenderWindow::DrawTooltipHeaderGui()
 	{
-		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::AetObj && selectedAetItem->GetAetObjRef()->AnimationData != nullptr)
+		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::Layer && selectedAetItem->GetLayerRef()->AnimationData != nullptr)
 		{
 			// TODO: Tool specific widgets
 			// TODO: TransformTool could have a origin / position preset selection box here
@@ -309,7 +309,7 @@ namespace Editor
 
 			/*
 			Gui::ExtendedVerticalSeparator();
-			Gui::Text("  <%s> ", selectedAetItem->GetAetObjRef()->GetName().c_str());
+			Gui::Text("  <%s> ", selectedAetItem->GetLayerRef()->GetName().c_str());
 			Gui::SameLine();
 			*/
 		}
@@ -352,7 +352,7 @@ namespace Editor
 
 	void AetRenderWindow::UpdateMousePickControls()
 	{
-		if (cameraSelectedAetItem->IsNull() || cameraSelectedAetItem->Type() != AetItemType::AetLayer)
+		if (cameraSelectedAetItem->IsNull() || cameraSelectedAetItem->Type() != AetItemType::Composition)
 		{
 			allowedMousePickerInputLastFrame = allowMousePickerInput = false;
 			return;
@@ -403,55 +403,55 @@ namespace Editor
 	{
 	}
 
-	void AetRenderWindow::RenderAetLayer(const AetLayer* aetLayer)
+	void AetRenderWindow::RenderComposition(const AetComposition* comp)
 	{
 		objectCache.clear();
-		AetMgr::GetAddObjects(objectCache, aetLayer, currentFrame);
+		AetMgr::GetAddObjects(objectCache, comp, currentFrame);
 		aetRenderer->RenderObjCacheVector(objectCache);
 	}
 
-	void AetRenderWindow::RenderAetObj(const AetObj* aetObj)
+	void AetRenderWindow::RenderLayer(const AetLayer* layer)
 	{
-		if (aetObj->Type != AetObjType::Pic && aetObj->Type != AetObjType::Eff)
+		if (layer->Type != AetLayerType::Pic && layer->Type != AetLayerType::Eff)
 			return;
 
 		objectCache.clear();
-		AetMgr::GetAddObjects(objectCache, aetObj, currentFrame);
+		AetMgr::GetAddObjects(objectCache, layer, currentFrame);
 		aetRenderer->RenderObjCacheVector(objectCache);
 	}
 
-	void AetRenderWindow::RenderAetRegion(const AetRegion* aetRegion)
+	void AetRenderWindow::RenderSurface(const AetSurface* surface)
 	{
-		int32_t spriteIndex = glm::clamp(0, static_cast<int32_t>(currentFrame), aetRegion->SpriteCount() - 1);
-		const AetSpriteIdentifier* aetSprite = aetRegion->GetSprite(spriteIndex);
-		aetRenderer->RenderAetSprite(aetRegion, aetSprite, vec2(0.0f, 0.0f));
+		int32_t spriteIndex = glm::clamp(0, static_cast<int32_t>(currentFrame), surface->SpriteCount() - 1);
+		const AetSpriteIdentifier* aetSprite = surface->GetSprite(spriteIndex);
+		aetRenderer->RenderAetSprite(surface, aetSprite, vec2(0.0f, 0.0f));
 	}
 
-	vec2 AetRenderWindow::GetAetObjBoundingSize(const RefPtr<AetObj>& aetObj) const
+	vec2 AetRenderWindow::GetLayerBoundingSize(const RefPtr<AetLayer>& layer) const
 	{
-		const auto& aetRegion = aetObj->GetReferencedRegion();
+		const auto& surface = layer->GetReferencedSurface();
 
-		if (aetRegion != nullptr)
-			return aetRegion->Size;
+		if (surface != nullptr)
+			return surface->Size;
 
 		// TODO: Find bounding box (?), or maybe just disallow using the transform tool (?)
 		// NOTE: ~~Maybe this is sufficient already (?)~~
 		return aetRegionSize;
 	}
 
-	bool AetRenderWindow::OnAetObjRender(const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)
+	bool AetRenderWindow::OnObjRender(const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)
 	{
-		const bool visible = obj.Region != nullptr && obj.Visible;
-		const bool selected = selectedAetItem->Ptrs.AetObj == obj.Source;
+		const bool visible = obj.Surface != nullptr && obj.Visible;
+		const bool selected = selectedAetItem->Ptrs.Layer == obj.Source;
 
 		if (!visible || !selected)
 			return false;
 
-		const AetRegion* region = (previewData->AetRegion != nullptr) ? previewData->AetRegion : obj.Region;
+		const AetSurface* surface = (previewData->Surface != nullptr) ? previewData->Surface : obj.Surface;
 
 		const Txp* texture;
 		const Spr* sprite;
-		const bool validSprite = aetRenderer->GetSprite(region->GetSprite(obj.SpriteIndex), &texture, &sprite);
+		const bool validSprite = aetRenderer->GetSprite(surface->GetSprite(obj.SpriteIndex), &texture, &sprite);
 
 		if (!validSprite)
 			return false;
@@ -469,29 +469,29 @@ namespace Editor
 		return true;
 	}
 
-	bool AetRenderWindow::OnAetObjMaskRender(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)
+	bool AetRenderWindow::OnObjMaskRender(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)
 	{
-		const bool visible = maskObj.Region != nullptr && obj.Region != nullptr && obj.Visible;
+		const bool visible = maskObj.Surface != nullptr && obj.Surface != nullptr && obj.Visible;
 
 		if (!visible || selectedAetItem->IsNull())
 			return false;
 
-		const bool selected = obj.Source == selectedAetItem->Ptrs.AetObj;
-		const bool maskSelected = maskObj.Source == selectedAetItem->Ptrs.AetObj;
+		const bool selected = obj.Source == selectedAetItem->Ptrs.Layer;
+		const bool maskSelected = maskObj.Source == selectedAetItem->Ptrs.Layer;
 
 		if (!selected && !maskSelected)
 			return false;
 
-		const AetRegion* region = (previewData->AetRegion != nullptr && selected) ? previewData->AetRegion : obj.Region;
-		const AetRegion* maskRegion = (previewData->AetRegion != nullptr && maskSelected) ? previewData->AetRegion : maskObj.Region;
+		const AetSurface* surface = (previewData->Surface != nullptr && selected) ? previewData->Surface : obj.Surface;
+		const AetSurface* maskSurface = (previewData->Surface != nullptr && maskSelected) ? previewData->Surface : maskObj.Surface;
 
 		const Txp* maskTexture;
 		const Spr* maskSprite;
-		const bool validMaskSprite = aetRenderer->GetSprite(maskRegion->GetSprite(maskObj.SpriteIndex), &maskTexture, &maskSprite);
+		const bool validMaskSprite = aetRenderer->GetSprite(maskSurface->GetSprite(maskObj.SpriteIndex), &maskTexture, &maskSprite);
 
 		const Txp* texture;
 		const Spr* sprite;
-		const bool validSprite = aetRenderer->GetSprite(region->GetSprite(obj.SpriteIndex), &texture, &sprite);
+		const bool validSprite = aetRenderer->GetSprite(surface->GetSprite(obj.SpriteIndex), &texture, &sprite);
 
 		if (!validMaskSprite || !validSprite)
 			return false;

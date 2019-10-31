@@ -15,7 +15,7 @@ namespace Editor
 	{
 		if (Gui::IsMouseClicked(mousePickButton))
 		{
-			const RefPtr<AetObj>* foundObject = FindObjectAtPosition(mousePosition);
+			const RefPtr<AetLayer>* foundObject = FindObjectAtPosition(mousePosition);
 			mousePickedObjectOnMouseClick = (foundObject == nullptr) ? nullptr : foundObject->get();
 		}
 
@@ -25,41 +25,41 @@ namespace Editor
 		}
 	}
 
-	const RefPtr<AetObj>* ObjectMousePicker::FindObjectAtPosition(vec2 worldSpace)
+	const RefPtr<AetLayer>* ObjectMousePicker::FindObjectAtPosition(vec2 worldSpace)
 	{
-		const auto& selectedLayer = cameraSelectedAetItem->GetAetLayerRef();
-		RefPtr<AetObj>* foundObject = nullptr;
+		const auto& selectedComp = cameraSelectedAetItem->GetAetCompositionRef();
+		RefPtr<AetLayer>* foundLayer = nullptr;
 
 		for (auto& obj : objectCache)
 		{
-			TransformBox box(obj.Properties, obj.Region->Size);
+			TransformBox box(obj.Properties, obj.Surface->Size);
 
 			if (obj.Visible && box.Contains(worldSpace))
 			{
-				for (auto& availableObj : *selectedLayer)
+				for (auto& availableLayer : *selectedComp)
 				{
-					if (availableObj.get() == obj.Source || availableObj.get() == obj.FirstParent)
-						foundObject = &availableObj;
+					if (availableLayer.get() == obj.Source || availableLayer.get() == obj.FirstParent)
+						foundLayer = &availableLayer;
 				}
 			}
 		}
 
-		return foundObject;
+		return foundLayer;
 	}
 
 	void ObjectMousePicker::TrySelectObjectAtPosition(vec2 worldSpace)
 	{
-		const RefPtr<AetObj>* foundObject = FindObjectAtPosition(worldSpace);
+		const RefPtr<AetLayer>* foundObject = FindObjectAtPosition(worldSpace);
 
 		if (foundObject != nullptr && mousePickedObjectOnMouseClick == foundObject->get())
 		{
 			selectedAetItem->SetItem(*foundObject);
-			(*foundObject)->GetParentLayer()->GuiData.TreeViewNodeOpen = true;
+			(*foundObject)->GetParentComposition()->GuiData.TreeViewNodeOpen = true;
 		}
 		else
 		{
-			const auto& selectedLayer = cameraSelectedAetItem->GetAetLayerRef();
-			selectedAetItem->SetItem(selectedLayer);
+			const auto& selectedComp = cameraSelectedAetItem->GetAetCompositionRef();
+			selectedAetItem->SetItem(selectedComp);
 		}
 	}
 }

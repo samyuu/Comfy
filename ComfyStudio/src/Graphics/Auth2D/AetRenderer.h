@@ -26,8 +26,8 @@ namespace Graphics
 		SpriteGetterFunction* GetSpriteGetterFunction();
 		void SetSpriteGetterFunction(SpriteGetterFunction* value);
 		
-		void SetAetObjCallback(const AetObjCallbackFunction& value);
-		void SetAetObjMaskCallback(const AetObjMaskCallbackFunction& value);
+		void SetCallback(const AetObjCallbackFunction& value);
+		void SetMaskCallback(const AetObjMaskCallbackFunction& value);
 
 	public:
 		static constexpr vec4 DummyColor = vec4(0.79f, 0.90f, 0.57f, 0.50f);
@@ -37,11 +37,11 @@ namespace Graphics
 		
 		void RenderObjCacheVector(const std::vector<AetMgr::ObjCache>& objectCache, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
 
-		void RenderAetObj(const AetObj* aetObj, float frame, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
-		void RenderAetObjLooped(const AetObj* aetObj, float frame, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
-		void RenderAetObjClamped(const AetObj* aetObj, float frame, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
+		void RenderLayer(const AetLayer* layer, float frame, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
+		void RenderLayerLooped(const AetLayer* layer, float frame, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
+		void RenderLayerClamped(const AetLayer* layer, float frame, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
 	
-		void RenderAetSprite(const AetRegion* aetRegion, const AetSpriteIdentifier* aetSprite, const vec2& position);
+		void RenderAetSprite(const AetSurface* surface, const AetSpriteIdentifier* identifier, const vec2& position);
 
 		static bool SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr);
 
@@ -52,8 +52,8 @@ namespace Graphics
 		Renderer2D* renderer2D = nullptr;
 		SpriteGetterFunction* spriteGetter = nullptr;
 
-		std::optional<AetObjCallbackFunction> aetObjCallback;
-		std::optional<AetObjMaskCallbackFunction> aetObjMaskCallback;
+		std::optional<AetObjCallbackFunction> objCallback;
+		std::optional<AetObjMaskCallbackFunction> objMaskCallback;
 
 		std::vector<AetMgr::ObjCache> objectCache;
 	};

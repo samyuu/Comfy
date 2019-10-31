@@ -17,32 +17,32 @@ namespace App
 	{
 		const Aet* mainAet = aetSet->front().get();
 
-		AetObjSourceData* objSourcesBegin = reinterpret_cast<AetObjSourceData*>(this);
-		AetObjSourceData* objSourcesEnd = reinterpret_cast<AetObjSourceData*>(this + 1);
+		AetLayerSourceData* layerSourcesBegin = reinterpret_cast<AetLayerSourceData*>(this);
+		AetLayerSourceData* layerSourcesEnd = reinterpret_cast<AetLayerSourceData*>(this + 1);
 
-		for (AetObjSourceData* objSource = objSourcesBegin; objSource < objSourcesEnd; objSource++)
+		for (AetLayerSourceData* layerSource = layerSourcesBegin; layerSource < layerSourcesEnd; layerSource++)
 		{
-			objSource->Obj = mainAet->FindObj(objSource->Name).get();
-			assert(objSource->Obj != nullptr);
+			layerSource->Layer = mainAet->FindLayer(layerSource->Name).get();
+			assert(layerSource->Layer != nullptr);
 		}
 
-		p_MenuList01_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->FindObj(p_MenuList01_c.Name).get();
-		p_MenuList02_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->FindObj(p_MenuList02_c.Name).get();
-		p_MenuList03_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->FindObj(p_MenuList03_c.Name).get();
-		p_MenuList04_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->FindObj(p_MenuList04_c.Name).get();
-		p_MenuList05_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->FindObj(p_MenuList05_c.Name).get();
-		p_MenuList06_c.Obj = MenuListIn02.Obj->GetReferencedLayer()->FindObj(p_MenuList06_c.Name).get();
+		p_MenuList01_c.Layer = MenuListIn02.Layer->GetReferencedComposition()->FindLayer(p_MenuList01_c.Name).get();
+		p_MenuList02_c.Layer = MenuListIn02.Layer->GetReferencedComposition()->FindLayer(p_MenuList02_c.Name).get();
+		p_MenuList03_c.Layer = MenuListIn02.Layer->GetReferencedComposition()->FindLayer(p_MenuList03_c.Name).get();
+		p_MenuList04_c.Layer = MenuListIn02.Layer->GetReferencedComposition()->FindLayer(p_MenuList04_c.Name).get();
+		p_MenuList05_c.Layer = MenuListIn02.Layer->GetReferencedComposition()->FindLayer(p_MenuList05_c.Name).get();
+		p_MenuList06_c.Layer = MenuListIn02.Layer->GetReferencedComposition()->FindLayer(p_MenuList06_c.Name).get();
 	}
 
 	void TaskPs4Menu::RenderMenuBackground(AetRenderer* aetRenderer, float frame)
 	{
-		aetRenderer->RenderAetObjLooped(aetData.CommonBackground, frame);
-		aetRenderer->RenderAetObjLooped(aetData.MenuDeco, frame);
+		aetRenderer->RenderLayerLooped(aetData.CommonBackground, frame);
+		aetRenderer->RenderLayerLooped(aetData.MenuDeco, frame);
 	}
 
 	void TaskPs4Menu::RenderMainMenuChara(AetRenderer* aetRenderer, float frame)
 	{
-		struct { const AetObj *MenuChara, *MenuText; } charaData[MainMenuItem_Count]
+		struct { const AetLayer *MenuChara, *MenuText; } charaData[MainMenuItem_Count]
 		{
 			{ aetData.MenuCharaGame, aetData.MenuTextGame },
 			{ aetData.MenuCharaCustom, aetData.MenuTextCustom },
@@ -55,13 +55,13 @@ namespace App
 		auto& data = charaData[mainMenuState.selectedItem];
 		float inputFrame = glm::clamp(frame, 0.0f, 21.0f);
 
-		aetRenderer->RenderAetObjClamped(data.MenuChara, inputFrame);
-		aetRenderer->RenderAetObjClamped(data.MenuText, inputFrame);
+		aetRenderer->RenderLayerClamped(data.MenuChara, inputFrame);
+		aetRenderer->RenderLayerClamped(data.MenuText, inputFrame);
 	}
 
-	void TaskPs4Menu::RenderMainMenuList(AetRenderer* aetRenderer, bool selectedLayer, float menuListFrame, float menuPlateFrame)
+	void TaskPs4Menu::RenderMainMenuList(AetRenderer* aetRenderer, bool selectedComp, float menuListFrame, float menuPlateFrame)
 	{
-		struct { const AetObj *PointObj, *MenuPlate, *MenuPlateSel; } listObjData[MainMenuItem_Count]
+		struct { const AetLayer *PointLayer, *MenuPlate, *MenuPlateSel; } listLayerData[MainMenuItem_Count]
 		{
 			{ aetData.p_MenuList01_c, aetData.MenuPlateGame, aetData.MenuPlateGameSel },
 			{ aetData.p_MenuList02_c, aetData.MenuPlateCustom, aetData.MenuPlateCustomSel },
@@ -79,14 +79,14 @@ namespace App
 		{
 			for (MainMenuItem i = 0; i < MainMenuItem_Count; i++)
 			{
-				auto& data = listObjData[i];
-				if (obj.Source == data.PointObj)
+				auto& data = listLayerData[i];
+				if (obj.Source == data.PointLayer)
 				{
-					if (selectedLayer)
+					if (selectedComp)
 					{
 						if (mainMenuState.selectedItem == i)
 						{
-							aetRenderer->RenderAetObjLooped(
+							aetRenderer->RenderLayerLooped(
 								data.MenuPlateSel,
 								menuPlateFrame,
 								obj.Properties.Position,
@@ -95,7 +95,7 @@ namespace App
 					}
 					else
 					{
-						aetRenderer->RenderAetObjLooped(
+						aetRenderer->RenderLayerLooped(
 							data.MenuPlate,
 							menuPlateFrame,
 							obj.Properties.Position,
@@ -183,8 +183,8 @@ namespace App
 			stateType = TaskPs4MenuStateType::MainMenuIn;
 
 			RenderMenuBackground(aetRenderer, elapsedFrames);
-			aetRenderer->RenderAetObjLooped(aetData.MenuFooter, elapsedFrames);
-			aetRenderer->RenderAetObjLooped(aetData.MenuHeader, elapsedFrames);
+			aetRenderer->RenderLayerLooped(aetData.MenuFooter, elapsedFrames);
+			aetRenderer->RenderLayerLooped(aetData.MenuHeader, elapsedFrames);
 
 			break;
 		}
@@ -203,8 +203,8 @@ namespace App
 			RenderMenuBackground(aetRenderer, elapsedFrames);
 			RenderMainMenuChara(aetRenderer, mainMenuState.Frames);
 			RenderMainMenuList(aetRenderer, false, mainMenuState.Frames, mainMenuState.FramesSinceItemSwitch);
-			aetRenderer->RenderAetObjLooped(aetData.MenuFooter, elapsedFrames);
-			aetRenderer->RenderAetObjLooped(aetData.MenuHeader, elapsedFrames);
+			aetRenderer->RenderLayerLooped(aetData.MenuFooter, elapsedFrames);
+			aetRenderer->RenderLayerLooped(aetData.MenuHeader, elapsedFrames);
 
 			break;
 		}
@@ -243,8 +243,8 @@ namespace App
 			RenderMainMenuChara(aetRenderer, mainMenuState.FramesSinceItemSwitch);
 			RenderMainMenuList(aetRenderer, false, mainMenuState.Frames, mainMenuState.FramesSinceItemSwitch);
 			RenderMainMenuList(aetRenderer, true, mainMenuState.Frames, mainMenuState.FramesSinceItemSwitch);
-			aetRenderer->RenderAetObjLooped(aetData.MenuFooter, elapsedFrames);
-			aetRenderer->RenderAetObjLooped(aetData.MenuHeader, elapsedFrames);
+			aetRenderer->RenderLayerLooped(aetData.MenuFooter, elapsedFrames);
+			aetRenderer->RenderLayerLooped(aetData.MenuHeader, elapsedFrames);
 
 			break;
 		}

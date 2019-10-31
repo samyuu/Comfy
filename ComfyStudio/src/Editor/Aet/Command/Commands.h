@@ -47,28 +47,28 @@ namespace Editor::Command
 		AetChangeFrameRate,
 		AetChangeBackgroundColor,
 
-		AetLayerChangeName,
+		CompositionChangeName,
 
-		AetObjChangeName,
-		AetObjChangeStartFrame,
-		AetObjChangeEndFrame,
-		AetObjChangeStartOffset,
-		AetObjChangePlaybackSpeed,
-		AetObjChangeFlagsVisible,
-		AetObjChangeFlagsAudible,
-		AetObjChangeReferenceRegion,
-		AetObjChangeReferenceLayer,
-		AetObjChangeObjReferenceParent,
+		LayerChangeName,
+		LayerChangeStartFrame,
+		LayerChangeEndFrame,
+		LayerChangeStartOffset,
+		LayerChangePlaybackSpeed,
+		LayerChangeFlagsVisible,
+		LayerChangeFlagsAudible,
+		LayerChangeReferenceSurface,
+		LayerChangeReferenceComposition,
+		LayerChangeReferencedParentLayer,
 
 		AnimationDataChangeBlendMode,
 		AnimationDataChangeUseTextureMask,
 
-		AetObjChangeMarkerName,
-		AetObjChangeMarkerFrame,
+		LayerChangeMarkerName,
+		LayerChangeMarkerFrame,
 
-		AetObjAddMarker,
-		AetObjDeleteMarker,
-		AetObjMoveMarker,
+		LayerAddMarker,
+		LayerDeleteMarker,
+		LayerMoveMarker,
 		AnimationDataChangeKeyFrameValue,
 		AnimationDataChangeTransform,
 		AnimationDataChangePosition,
@@ -86,35 +86,35 @@ namespace Editor::Command
 	Define_PropertyCommand(AetChangeFrameRate, "Aet Frame Rate Change", Graphics::Aet, frame_t, FrameRate);
 	Define_PropertyCommand(AetChangeBackgroundColor, "Aet Background Color Change", Graphics::Aet, uint32_t, BackgroundColor);
 
-	Define_AccessorCommand(AetLayerChangeName, "Layer Name Change", Graphics::AetLayer, std::string, GetName, SetName);
+	Define_AccessorCommand(CompositionChangeName, "Composition Name Change", Graphics::AetComposition, std::string, GetName, SetName);
 
-	Define_AccessorCommand(AetObjChangeName, "Object Name Change", Graphics::AetObj, std::string, GetName, SetName);
-	Define_PropertyCommand(AetObjChangeStartOffset, "Object Start Offset Change", Graphics::AetObj, frame_t, StartOffset);
-	Define_PropertyCommand(AetObjChangePlaybackSpeed, "Object Playback Speed Change", Graphics::AetObj, float, PlaybackSpeed);
-	Define_AccessorCommand(AetObjChangeFlagsVisible, "Visbility Change", Graphics::AetObj, bool, GetIsVisible, SetIsVisible);
-	Define_AccessorCommand(AetObjChangeFlagsAudible, "Audibility Change", Graphics::AetObj, bool, GetIsAudible, SetIsAudible);
-	Define_AccessorCommand(AetObjChangeReferenceRegion, "Region Reference Change", Graphics::AetObj, RefPtr<Graphics::AetRegion>, GetReferencedRegion, SetReferencedRegion);
-	Define_AccessorCommand(AetObjChangeReferenceLayer, "Layer Reference Change", Graphics::AetObj, RefPtr<Graphics::AetLayer>, GetReferencedLayer, SetReferencedLayer);
-	Define_AccessorCommand(AetObjChangeObjReferenceParent, "Reference Parent Change", Graphics::AetObj, RefPtr<Graphics::AetObj>, GetReferencedParentObj, SetReferencedParentObj);
+	Define_AccessorCommand(LayerChangeName, "Layer Name Change", Graphics::AetLayer, std::string, GetName, SetName);
+	Define_PropertyCommand(LayerChangeStartOffset, "Layer Start Offset Change", Graphics::AetLayer, frame_t, StartOffset);
+	Define_PropertyCommand(LayerChangePlaybackSpeed, "Layer Playback Speed Change", Graphics::AetLayer, float, PlaybackSpeed);
+	Define_AccessorCommand(LayerChangeFlagsVisible, "Visbility Change", Graphics::AetLayer, bool, GetIsVisible, SetIsVisible);
+	Define_AccessorCommand(LayerChangeFlagsAudible, "Audibility Change", Graphics::AetLayer, bool, GetIsAudible, SetIsAudible);
+	Define_AccessorCommand(LayerChangeReferenceSurface, "Surface Reference Change", Graphics::AetLayer, RefPtr<Graphics::AetSurface>, GetReferencedSurface, SetReferencedSurface);
+	Define_AccessorCommand(LayerChangeReferenceComposition, "Composition Reference Change", Graphics::AetLayer, RefPtr<Graphics::AetComposition>, GetReferencedComposition, SetReferencedComposition);
+	Define_AccessorCommand(LayerChangeReferencedParentLayer, "Reference Parent Change", Graphics::AetLayer, RefPtr<Graphics::AetLayer>, GetReferencedParentLayer, SetReferencedParentLayer);
 
-	Define_PropertyCommand(AnimationDataChangeBlendMode, "Blend Mode Change", Graphics::AnimationData, Graphics::AetBlendMode, BlendMode);
-	Define_PropertyCommand(AnimationDataChangeUseTextureMask, "Texture Mask Change", Graphics::AnimationData, bool, UseTextureMask);
+	Define_PropertyCommand(AnimationDataChangeBlendMode, "Blend Mode Change", Graphics::AetAnimationData, Graphics::AetBlendMode, BlendMode);
+	Define_PropertyCommand(AnimationDataChangeUseTextureMask, "Texture Mask Change", Graphics::AetAnimationData, bool, UseTextureMask);
 
-	Define_PropertyCommand(AetObjChangeMarkerName, "Marker Name Change", Graphics::AetMarker, std::string, Name);
-	Define_PropertyCommand(AetObjChangeMarkerFrame, "Marker Frame Change", Graphics::AetMarker, frame_t, Frame);
+	Define_PropertyCommand(LayerChangeMarkerName, "Marker Name Change", Graphics::AetMarker, std::string, Name);
+	Define_PropertyCommand(LayerChangeMarkerFrame, "Marker Frame Change", Graphics::AetMarker, frame_t, Frame);
 	// ----------------------------------------------------------------------------------------------------------------------------
 
 
 	// ----------------------------------------------------------------------------------------------------------------------------
-	Define_AetCommandStart(AetObjChangeStartFrame, "Object Start Frame Change");
+	Define_AetCommandStart(LayerChangeStartFrame, "Layer Start Frame Change");
 private:
-	RefPtr<Graphics::AetObj> ref;
+	RefPtr<Graphics::AetLayer> ref;
 	frame_t newValue, oldValue;
 	inline void OffsetKeyFrames(frame_t increment) { if (ref->AnimationData != nullptr) Graphics::AetMgr::OffsetAllKeyFrames(ref->AnimationData->Properties, increment); }
 	inline frame_t ClampValue(frame_t value) { return glm::min(value, ref->EndFrame - 1.0f); };
 
 public:
-	AetObjChangeStartFrame(const RefPtr<Graphics::AetObj>& ref, const frame_t& value) : ref(ref), newValue(ClampValue(value)) {}
+	LayerChangeStartFrame(const RefPtr<Graphics::AetLayer>& ref, const frame_t& value) : ref(ref), newValue(ClampValue(value)) {}
 	void Do() override
 	{
 		oldValue = ref->StartFrame;
@@ -138,7 +138,7 @@ public:
 		newValue = value;
 		ref->StartFrame = newValue;
 	}
-	bool CanUpdate(AetObjChangeStartFrame* newCommand)
+	bool CanUpdate(LayerChangeStartFrame* newCommand)
 	{
 		return (&newCommand->ref->StartFrame == &ref->StartFrame);
 	}
@@ -147,67 +147,67 @@ public:
 
 
 	// ----------------------------------------------------------------------------------------------------------------------------
-	Define_AetCommandStart(AetObjChangeEndFrame, "Object End Frame Change");
+	Define_AetCommandStart(LayerChangeEndFrame, "Layer End Frame Change");
 private:
-	RefPtr<Graphics::AetObj> ref;
+	RefPtr<Graphics::AetLayer> ref;
 	float newValue, oldValue;
 	inline frame_t ClampValue(frame_t value) { return glm::max(value, ref->StartFrame + 1.0f); };
 public:
-	AetObjChangeEndFrame(const RefPtr<Graphics::AetObj>& ref, const frame_t& value) : ref(ref), newValue(ClampValue(value)) {}
+	LayerChangeEndFrame(const RefPtr<Graphics::AetLayer>& ref, const frame_t& value) : ref(ref), newValue(ClampValue(value)) {}
 	void Do() override { oldValue = ref->EndFrame; ref->EndFrame = newValue; }
 	void Undo() override { ref->EndFrame = oldValue; }
 	void Redo() override { ref->EndFrame = newValue; }
 	void Update(frame_t value) { newValue = ClampValue(value); ref->EndFrame = newValue; }
-	bool CanUpdate(AetObjChangeEndFrame* newCommand) { return (&newCommand->ref->EndFrame == &ref->EndFrame); }
+	bool CanUpdate(LayerChangeEndFrame* newCommand) { return (&newCommand->ref->EndFrame == &ref->EndFrame); }
 	Define_AetCommandEnd();
 	// ----------------------------------------------------------------------------------------------------------------------------
 
 
 	// ----------------------------------------------------------------------------------------------------------------------------
-	Define_AetCommandStart(AetObjAddMarker, "New Object Marker");
+	Define_AetCommandStart(LayerAddMarker, "New Layer Marker");
 private:
-	RefPtr<Graphics::AetObj> ref;
+	RefPtr<Graphics::AetLayer> ref;
 	RefPtr<Graphics::AetMarker> newValue;
 public:
-	AetObjAddMarker(const RefPtr<Graphics::AetObj>& ref, const RefPtr<Graphics::AetMarker>& value) : ref(ref), newValue(value) {}
+	LayerAddMarker(const RefPtr<Graphics::AetLayer>& ref, const RefPtr<Graphics::AetMarker>& value) : ref(ref), newValue(value) {}
 	void Do()	override { ref->Markers.push_back(newValue); }
 	void Undo() override { ref->Markers.erase(std::find(ref->Markers.begin(), ref->Markers.end(), newValue)); }
 	void Redo() override { Do(); }
 	void Update(const RefPtr<Graphics::AetMarker>& value) { newValue = value; Redo(); }
-	bool CanUpdate(AetObjAddMarker* newCommand) { return false; }
+	bool CanUpdate(LayerAddMarker* newCommand) { return false; }
 	Define_AetCommandEnd();
 	// ----------------------------------------------------------------------------------------------------------------------------
 
 
 	// ----------------------------------------------------------------------------------------------------------------------------
-	Define_AetCommandStart(AetObjDeleteMarker, "Delete Object Marker");
+	Define_AetCommandStart(LayerDeleteMarker, "Delete Layer Marker");
 private:
-	RefPtr<Graphics::AetObj> ref;
+	RefPtr<Graphics::AetLayer> ref;
 	RefPtr<Graphics::AetMarker> newValue;
 	int index;
 public:
-	AetObjDeleteMarker(const RefPtr<Graphics::AetObj>& ref, int value) : ref(ref), index(value) {}
+	LayerDeleteMarker(const RefPtr<Graphics::AetLayer>& ref, int value) : ref(ref), index(value) {}
 	void Do()	override { newValue = ref->Markers.at(index); Redo(); }
 	void Undo() override { ref->Markers.insert(ref->Markers.begin() + index, newValue); }
 	void Redo() override { ref->Markers.erase(ref->Markers.begin() + index); }
 	void Update(const int& value) { index = value; Redo(); }
-	bool CanUpdate(AetObjDeleteMarker* newCommand) { return false; }
+	bool CanUpdate(LayerDeleteMarker* newCommand) { return false; }
 	Define_AetCommandEnd();
 	// ----------------------------------------------------------------------------------------------------------------------------
 
 
 	// ----------------------------------------------------------------------------------------------------------------------------
-	Define_AetCommandStart(AetObjMoveMarker, "Move Object Marker");
+	Define_AetCommandStart(LayerMoveMarker, "Move Layer Marker");
 private:
-	RefPtr<Graphics::AetObj> ref;
+	RefPtr<Graphics::AetLayer> ref;
 	std::tuple<int /* SourceIndex */, int /* DestinationIndex */> newValue;
 public:
-	AetObjMoveMarker(const RefPtr<Graphics::AetObj>& ref, std::tuple<int, int> value) : ref(ref), newValue(value) {}
+	LayerMoveMarker(const RefPtr<Graphics::AetLayer>& ref, std::tuple<int, int> value) : ref(ref), newValue(value) {}
 	void Do()	override { std::iter_swap(ref->Markers.begin() + std::get<0>(newValue), ref->Markers.begin() + std::get<1>(newValue)); }
 	void Undo() override { std::iter_swap(ref->Markers.begin() + std::get<1>(newValue), ref->Markers.begin() + std::get<0>(newValue)); }
 	void Redo() override { Do(); }
 	void Update(const std::tuple<int, int>& value) { newValue = value; Redo(); }
-	bool CanUpdate(AetObjMoveMarker* newCommand) { return false; }
+	bool CanUpdate(LayerMoveMarker* newCommand) { return false; }
 	Define_AetCommandEnd();
 	// ----------------------------------------------------------------------------------------------------------------------------
 
@@ -217,8 +217,8 @@ public:
 	// NOTE: Generic change KeyFrame value command to be used by the AetInspector and other commands internally
 	Define_AetCommandStart(AnimationDataChangeKeyFrameValue, "Key Frame Change");
 private:
-	// NOTE: Use AetObj instead of AnimationData because we need to know about the StartFrame
-	RefPtr<Graphics::AetObj> ref;
+	// NOTE: Use Layer instead of AnimationData because we need to know about the StartFrame
+	RefPtr<Graphics::AetLayer> ref;
 	std::tuple<Graphics::PropertyType_Enum /* Property */, frame_t /* Frame */, float /* Value */> newValue;
 	float oldValue;
 	bool keyFrameExisted;
@@ -251,7 +251,7 @@ private:
 	}
 
 public:
-	AnimationDataChangeKeyFrameValue(const RefPtr<Graphics::AetObj>& ref, std::tuple<Graphics::PropertyType_Enum, frame_t, float> value) : ref(ref), newValue(value) {}
+	AnimationDataChangeKeyFrameValue(const RefPtr<Graphics::AetLayer>& ref, std::tuple<Graphics::PropertyType_Enum, frame_t, float> value) : ref(ref), newValue(value) {}
 
 	void Do() override
 	{
@@ -292,7 +292,7 @@ public:
 	// ----------------------------------------------------------------------------------------------------------------------------
 	Define_AetCommandStart(AnimationDataChangeTransform, "Transform");
 private:
-	RefPtr<Graphics::AetObj> ref;
+	RefPtr<Graphics::AetLayer> ref;
 	std::tuple<frame_t /* Frame */, vec2 /* Position */, vec2 /* Scale */> newValue;
 	AnimationDataChangeKeyFrameValue keyFrameCommandPositionX, keyFrameCommandPositionY, keyFrameCommandScaleX, keyFrameCommandScaleY;
 
@@ -301,7 +301,7 @@ private:
 	inline vec2 GetScale() { return std::get<2>(newValue); }
 
 public:
-	AnimationDataChangeTransform(const RefPtr<Graphics::AetObj>& ref, std::tuple<frame_t, vec2, vec2> value) : ref(ref), newValue(value),
+	AnimationDataChangeTransform(const RefPtr<Graphics::AetLayer>& ref, std::tuple<frame_t, vec2, vec2> value) : ref(ref), newValue(value),
 		keyFrameCommandPositionX(ref, std::make_tuple(Graphics::PropertyType_PositionX, GetFrame(), GetPosition().x)),
 		keyFrameCommandPositionY(ref, std::make_tuple(Graphics::PropertyType_PositionY, GetFrame(), GetPosition().y)),
 		keyFrameCommandScaleX(ref, std::make_tuple(Graphics::PropertyType_ScaleX, GetFrame(), GetScale().x)),
@@ -342,7 +342,7 @@ public:
 	// ----------------------------------------------------------------------------------------------------------------------------
 	Define_AetCommandStart(AnimationDataChangePosition, "Move");
 private:
-	RefPtr<Graphics::AetObj> ref;
+	RefPtr<Graphics::AetLayer> ref;
 	std::tuple<frame_t /* Frame */, vec2 /* Position */> newValue;
 	AnimationDataChangeKeyFrameValue keyFrameCommandPositionX, keyFrameCommandPositionY;
 
@@ -350,7 +350,7 @@ private:
 	inline vec2 GetPosition() { return std::get<1>(newValue); }
 
 public:
-	AnimationDataChangePosition(const RefPtr<Graphics::AetObj>& ref, std::tuple<frame_t, vec2> value) : ref(ref), newValue(value),
+	AnimationDataChangePosition(const RefPtr<Graphics::AetLayer>& ref, std::tuple<frame_t, vec2> value) : ref(ref), newValue(value),
 		keyFrameCommandPositionX(ref, std::make_tuple(Graphics::PropertyType_PositionX, GetFrame(), GetPosition().x)),
 		keyFrameCommandPositionY(ref, std::make_tuple(Graphics::PropertyType_PositionY, GetFrame(), GetPosition().y))
 	{
@@ -384,7 +384,7 @@ public:
 	// ----------------------------------------------------------------------------------------------------------------------------
 	Define_AetCommandStart(AnimationDataChangeScale, "Scale");
 private:
-	RefPtr<Graphics::AetObj> ref;
+	RefPtr<Graphics::AetLayer> ref;
 	std::tuple<frame_t /* Frame */, vec2 /* Scale */> newValue;
 	AnimationDataChangeKeyFrameValue keyFrameCommandScaleX, keyFrameCommandScaleY;
 
@@ -392,7 +392,7 @@ private:
 	inline vec2 GetScale() { return std::get<1>(newValue); }
 
 public:
-	AnimationDataChangeScale(const RefPtr<Graphics::AetObj>& ref, std::tuple<frame_t, vec2> value) : ref(ref), newValue(value),
+	AnimationDataChangeScale(const RefPtr<Graphics::AetLayer>& ref, std::tuple<frame_t, vec2> value) : ref(ref), newValue(value),
 		keyFrameCommandScaleX(ref, std::make_tuple(Graphics::PropertyType_ScaleX, GetFrame(), GetScale().x)),
 		keyFrameCommandScaleY(ref, std::make_tuple(Graphics::PropertyType_ScaleY, GetFrame(), GetScale().y))
 	{

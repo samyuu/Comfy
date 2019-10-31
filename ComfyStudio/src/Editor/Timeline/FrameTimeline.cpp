@@ -84,7 +84,7 @@ namespace Editor
 			if (visiblity == TimelineVisibility::Right)
 				break;
 
-			const float startYOffset = timelineHeaderHeight * (isBar ? .85f : .35f);
+			const float startYOffset = timelineHeaderHeight * (isBar ? 0.85f : 0.35f);
 			vec2 start = timelineContentRegion.GetTL() + vec2(screenX, -startYOffset);
 			vec2 end = timelineContentRegion.GetBL() + vec2(screenX, 0);
 

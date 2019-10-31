@@ -48,7 +48,7 @@ namespace Graphics
 			}
 		}
 
-		void ReadKeyFrameProperties(KeyFrameProperties* properties, BinaryReader& reader)
+		void ReadKeyFrameProperties(AetKeyFrameProperties* properties, BinaryReader& reader)
 		{
 			for (KeyFrameCollection& keyFrames : *properties)
 				ReadKeyFramesPointer(keyFrames, reader);
@@ -85,15 +85,15 @@ namespace Graphics
 			}
 		}
 
-		void WriteKeyFrameProperties(KeyFrameProperties* properties, BinaryWriter& writer)
+		void WriteKeyFrameProperties(AetKeyFrameProperties* properties, BinaryWriter& writer)
 		{
 			for (KeyFrameCollection& keyFrames : *properties)
 				WriteKeyFramesPointer(keyFrames, writer);
 		}
 
-		void ReadAnimationData(RefPtr<AnimationData>& animationData, BinaryReader& reader)
+		void ReadAnimationData(RefPtr<AetAnimationData>& animationData, BinaryReader& reader)
 		{
-			animationData = MakeRef<AnimationData>();
+			animationData = MakeRef<AetAnimationData>();
 			animationData->BlendMode = static_cast<AetBlendMode>(reader.ReadUInt8());
 			reader.ReadUInt8();
 			animationData->UseTextureMask = reader.ReadBool();
@@ -106,14 +106,14 @@ namespace Graphics
 			{
 				reader.ReadAt(perspectivePropertiesPointer, [animationData](BinaryReader& reader)
 				{
-					animationData->PerspectiveProperties = MakeRef<KeyFrameProperties>();
+					animationData->PerspectiveProperties = MakeRef<AetKeyFrameProperties>();
 					ReadKeyFrameProperties(animationData->PerspectiveProperties.get(), reader);
 				});
 			}
 		}
 	}
 
-	void AetObj::Read(BinaryReader& reader)
+	void AetLayer::Read(BinaryReader& reader)
 	{
 		filePosition = reader.GetPositionPtr();
 		name = reader.ReadStrPtr();
@@ -124,7 +124,7 @@ namespace Graphics
 
 		Flags.AllBits = reader.ReadUInt16();
 		TypePaddingByte = reader.ReadUInt8();
-		Type = static_cast<AetObjType>(reader.ReadUInt8());
+		Type = static_cast<AetLayerType>(reader.ReadUInt8());
 
 		dataFilePtr = reader.ReadPtr();
 		parentFilePtr = reader.ReadPtr();
@@ -188,67 +188,67 @@ namespace Graphics
 			});
 		}
 
-		uint32_t layersCount = reader.ReadUInt32();
-		void* layersPtr = reader.ReadPtr();
-		if (layersCount > 0 && layersPtr != nullptr)
+		uint32_t compCount = reader.ReadUInt32();
+		void* compsPtr = reader.ReadPtr();
+		if (compCount > 0 && compsPtr != nullptr)
 		{
-			Layers.resize(layersCount - 1);
-			reader.ReadAt(layersPtr, [this](BinaryReader& reader)
+			Compositions.resize(compCount - 1);
+			reader.ReadAt(compsPtr, [this](BinaryReader& reader)
 			{
-				const auto readLayerFunction = [](BinaryReader& reader, RefPtr<AetLayer>& layer)
+				const auto readCompFunction = [](BinaryReader& reader, RefPtr<AetComposition>& comp)
 				{
-					layer = MakeRef<AetLayer>();
-					layer->filePosition = reader.GetPositionPtr();
+					comp = MakeRef<AetComposition>();
+					comp->filePosition = reader.GetPositionPtr();
 
-					uint32_t objectCount = reader.ReadUInt32();
-					void* objectsPointer = reader.ReadPtr();
+					uint32_t layerCount = reader.ReadUInt32();
+					void* layersPointer = reader.ReadPtr();
 
-					if (objectCount > 0 && objectsPointer != nullptr)
+					if (layerCount > 0 && layersPointer != nullptr)
 					{
-						layer->resize(objectCount);
-						reader.ReadAt(objectsPointer, [&layer](BinaryReader& reader)
+						comp->resize(layerCount);
+						reader.ReadAt(layersPointer, [&comp](BinaryReader& reader)
 						{
-							for (RefPtr<AetObj>& object : *layer)
+							for (RefPtr<AetLayer>& layer : *comp)
 							{
-								object = MakeRef<AetObj>();
-								object->Read(reader);
+								layer = MakeRef<AetLayer>();
+								layer->Read(reader);
 							}
 						});
 					}
 				};
 
-				for (RefPtr<AetLayer>& layer : Layers)
-					readLayerFunction(reader, layer);
+				for (RefPtr<AetComposition>& comp : Compositions)
+					readCompFunction(reader, comp);
 
-				readLayerFunction(reader, RootLayer);
+				readCompFunction(reader, RootComposition);
 			});
 		}
 
-		uint32_t regionCount = reader.ReadUInt32();
-		void* regionsPtr = reader.ReadPtr();
-		if (regionCount > 0 && regionsPtr != nullptr)
+		uint32_t surfaceCount = reader.ReadUInt32();
+		void* surfacesPtr = reader.ReadPtr();
+		if (surfaceCount > 0 && surfacesPtr != nullptr)
 		{
-			Regions.resize(regionCount);
-			reader.ReadAt(regionsPtr, [this](BinaryReader& reader)
+			Surfaces.resize(surfaceCount);
+			reader.ReadAt(surfacesPtr, [this](BinaryReader& reader)
 			{
-				for (RefPtr<AetRegion>& region : Regions)
+				for (RefPtr<AetSurface>& surface : Surfaces)
 				{
-					region = MakeRef<AetRegion>();
-					region->filePosition = reader.GetPositionPtr();
-					region->Color = ReadColor(reader);
-					region->Size.x = reader.ReadUInt16();
-					region->Size.y = reader.ReadUInt16();
-					region->Frames = reader.ReadFloat();
+					surface = MakeRef<AetSurface>();
+					surface->filePosition = reader.GetPositionPtr();
+					surface->Color = ReadColor(reader);
+					surface->Size.x = reader.ReadUInt16();
+					surface->Size.y = reader.ReadUInt16();
+					surface->Frames = reader.ReadFloat();
 
 					uint32_t spriteCount = reader.ReadUInt32();
 					void* spritesPointer = reader.ReadPtr();
 
 					if (spriteCount > 0 && spritesPointer != nullptr)
 					{
-						region->sprites.resize(spriteCount);
-						reader.ReadAt(spritesPointer, [&region](BinaryReader& reader)
+						surface->sprites.resize(spriteCount);
+						reader.ReadAt(spritesPointer, [&surface](BinaryReader& reader)
 						{
-							for (AetSpriteIdentifier& sprite : region->sprites)
+							for (AetSpriteIdentifier& sprite : surface->sprites)
 							{
 								sprite.Name = reader.ReadStrPtr();
 								sprite.ID = reader.ReadUInt32();
@@ -305,43 +305,43 @@ namespace Graphics
 				writer.WritePtr(nullptr); // AetCamera offset
 			}
 
-			assert(RootLayer != nullptr);
-			writer.WriteUInt32(static_cast<uint32_t>(Layers.size()) + 1);
+			assert(RootComposition != nullptr);
+			writer.WriteUInt32(static_cast<uint32_t>(Compositions.size()) + 1);
 			writer.WritePtr([this](BinaryWriter& writer)
 			{
-				const auto writeLayerFunction = [](BinaryWriter& writer, const RefPtr<AetLayer>& layer)
+				const auto writeCompFunction = [](BinaryWriter& writer, const RefPtr<AetComposition>& comp)
 				{
-					layer->filePosition = writer.GetPositionPtr();
-					if (layer->size() > 0)
+					comp->filePosition = writer.GetPositionPtr();
+					if (comp->size() > 0)
 					{
-						writer.WriteUInt32(static_cast<uint32_t>(layer->size()));
-						writer.WritePtr([&layer](BinaryWriter& writer)
+						writer.WriteUInt32(static_cast<uint32_t>(comp->size()));
+						writer.WritePtr([&comp](BinaryWriter& writer)
 						{
-							for (RefPtr<AetObj>& obj : *layer)
+							for (RefPtr<AetLayer>& layer : *comp)
 							{
-								obj->filePosition = writer.GetPositionPtr();
-								writer.WriteStrPtr(&obj->name);
-								writer.WriteFloat(obj->StartFrame);
-								writer.WriteFloat(obj->EndFrame);
-								writer.WriteFloat(obj->StartOffset);
-								writer.WriteFloat(obj->PlaybackSpeed);
-								writer.Write<AetObjFlags>(obj->Flags);
-								writer.WriteUInt8(obj->TypePaddingByte);
-								writer.Write<AetObjType>(obj->Type);
+								layer->filePosition = writer.GetPositionPtr();
+								writer.WriteStrPtr(&layer->name);
+								writer.WriteFloat(layer->StartFrame);
+								writer.WriteFloat(layer->EndFrame);
+								writer.WriteFloat(layer->StartOffset);
+								writer.WriteFloat(layer->PlaybackSpeed);
+								writer.Write<AetLayerFlags>(layer->Flags);
+								writer.WriteUInt8(layer->TypePaddingByte);
+								writer.Write<AetLayerType>(layer->Type);
 
 								bool hasData =
-									(obj->Type == AetObjType::Pic && obj->GetReferencedRegion() != nullptr) ||
-									(obj->Type == AetObjType::Aif && obj->GetReferencedSoundEffect() != nullptr) ||
-									(obj->Type == AetObjType::Eff && obj->GetReferencedLayer() != nullptr);
+									(layer->Type == AetLayerType::Pic && layer->GetReferencedSurface() != nullptr) ||
+									(layer->Type == AetLayerType::Aif && layer->GetReferencedSoundEffect() != nullptr) ||
+									(layer->Type == AetLayerType::Eff && layer->GetReferencedComposition() != nullptr);
 
 								if (hasData)
 								{
-									writer.WriteDelayedPtr([&obj](BinaryWriter& writer)
+									writer.WriteDelayedPtr([&layer](BinaryWriter& writer)
 									{
 										void* filePosition =
-											(obj->Type == AetObjType::Pic) ? obj->GetReferencedRegion()->filePosition :
-											(obj->Type == AetObjType::Aif) ? obj->GetReferencedSoundEffect()->filePosition :
-											obj->GetReferencedLayer()->filePosition;
+											(layer->Type == AetLayerType::Pic) ? layer->GetReferencedSurface()->filePosition :
+											(layer->Type == AetLayerType::Aif) ? layer->GetReferencedSoundEffect()->filePosition :
+											layer->GetReferencedComposition()->filePosition;
 
 										writer.WritePtr(filePosition);
 									});
@@ -351,11 +351,11 @@ namespace Graphics
 									writer.WritePtr(nullptr); // Data offset
 								}
 
-								if (obj->GetReferencedParentObj() != nullptr)
+								if (layer->GetReferencedParentLayer() != nullptr)
 								{
-									writer.WriteDelayedPtr([&obj](BinaryWriter& writer)
+									writer.WriteDelayedPtr([&layer](BinaryWriter& writer)
 									{
-										writer.WritePtr(obj->GetReferencedParentObj()->filePosition);
+										writer.WritePtr(layer->GetReferencedParentLayer()->filePosition);
 									});
 								}
 								else
@@ -363,12 +363,12 @@ namespace Graphics
 									writer.WritePtr(nullptr); // Parent offset
 								}
 
-								if (obj->Markers.size() > 0)
+								if (layer->Markers.size() > 0)
 								{
-									writer.WriteUInt32(static_cast<uint32_t>(obj->Markers.size()));
-									writer.WritePtr([&obj](BinaryWriter& writer)
+									writer.WriteUInt32(static_cast<uint32_t>(layer->Markers.size()));
+									writer.WritePtr([&layer](BinaryWriter& writer)
 									{
-										for (RefPtr<AetMarker>& marker : obj->Markers)
+										for (RefPtr<AetMarker>& marker : layer->Markers)
 										{
 											writer.WriteFloat(marker->Frame);
 											writer.WriteStrPtr(&marker->Name);
@@ -381,9 +381,9 @@ namespace Graphics
 									writer.WritePtr(nullptr);		// Markers offset
 								}
 
-								if (obj->AnimationData != nullptr)
+								if (layer->AnimationData != nullptr)
 								{
-									AnimationData& animationData = *obj->AnimationData.get();
+									AetAnimationData& animationData = *layer->AnimationData.get();
 									writer.WritePtr([&animationData](BinaryWriter& writer)
 									{
 										writer.Write<AetBlendMode>(animationData.BlendMode);
@@ -423,36 +423,36 @@ namespace Graphics
 					}
 					else
 					{
-						writer.WriteUInt32(0x00000000); // AetLayer size
-						writer.WritePtr(nullptr);		// AetLayer offset
+						writer.WriteUInt32(0x00000000); // AetComposition size
+						writer.WritePtr(nullptr);		// AetComposition offset
 					}
 				};
 
-				for (RefPtr<AetLayer>& layer : Layers)
-					writeLayerFunction(writer, layer);
-				writeLayerFunction(writer, RootLayer);
+				for (RefPtr<AetComposition>& comp : Compositions)
+					writeCompFunction(writer, comp);
+				writeCompFunction(writer, RootComposition);
 
 				writer.WriteAlignmentPadding(16);
 			});
 
-			if (Regions.size() > 0)
+			if (Surfaces.size() > 0)
 			{
-				writer.WriteUInt32(static_cast<uint32_t>(Regions.size()));
+				writer.WriteUInt32(static_cast<uint32_t>(Surfaces.size()));
 				writer.WritePtr([this](BinaryWriter& writer)
 				{
-					for (RefPtr<AetRegion>& region : Regions)
+					for (RefPtr<AetSurface>& surface : Surfaces)
 					{
-						region->filePosition = writer.GetPositionPtr();
-						writer.WriteUInt32(region->Color);
-						writer.WriteInt16(region->Size.x);
-						writer.WriteInt16(region->Size.y);
-						writer.WriteFloat(region->Frames);
-						if (region->SpriteCount() > 0)
+						surface->filePosition = writer.GetPositionPtr();
+						writer.WriteUInt32(surface->Color);
+						writer.WriteInt16(surface->Size.x);
+						writer.WriteInt16(surface->Size.y);
+						writer.WriteFloat(surface->Frames);
+						if (surface->SpriteCount() > 0)
 						{
-							writer.WriteUInt32(static_cast<uint32_t>(region->SpriteCount()));
-							writer.WritePtr([&region](BinaryWriter& writer)
+							writer.WriteUInt32(static_cast<uint32_t>(surface->SpriteCount()));
+							writer.WritePtr([&surface](BinaryWriter& writer)
 							{
-								for (AetSpriteIdentifier& sprite : region->GetSprites())
+								for (AetSpriteIdentifier& sprite : surface->GetSprites())
 								{
 									writer.WriteStrPtr(&sprite.Name);
 									writer.WriteUInt32(sprite.ID);
@@ -470,8 +470,8 @@ namespace Graphics
 			}
 			else
 			{
-				writer.WriteUInt32(0x00000000); // AetRegions size
-				writer.WritePtr(nullptr);		// AetRegions offset
+				writer.WriteUInt32(0x00000000); // AetSurfaces size
+				writer.WritePtr(nullptr);		// AetSurfaces offset
 			}
 
 			if (SoundEffects.size() > 0)
@@ -535,7 +535,7 @@ namespace Graphics
 
 				aet->UpdateParentPointers();
 				aet->InternalLinkPostRead();
-				aet->InternalUpdateLayerNamesAfteObjectReferences();
+				aet->InternalUpdateCompositionNamesAfterLayerReferences();
 			}
 		});
 	}

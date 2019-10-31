@@ -27,10 +27,10 @@ namespace Editor
 			cameraSelectedAetItem->SetItem(value);
 		};
 
-		inline void SetSelectedItems(const RefPtr<Graphics::AetObj>& selectedObj, const RefPtr<Graphics::AetLayer>& visibleLayer)
+		inline void SetSelectedItems(const RefPtr<Graphics::AetLayer>& selectedLayer, const RefPtr<Graphics::AetComposition>& visibleComp)
 		{
-			selectedAetItem->SetItem(selectedObj);
-			cameraSelectedAetItem->SetItem(visibleLayer);
+			selectedAetItem->SetItem(selectedLayer);
+			cameraSelectedAetItem->SetItem(visibleComp);
 		};
 
 		inline void ResetSelectedItems() 
@@ -41,8 +41,8 @@ namespace Editor
 
 	private:
 		static constexpr const char* textureMaskIndicator = "  ( " ICON_FA_LINK " )";
-		static constexpr float layerPreviewTooltipHoverDelay = 0.8f;
-		static constexpr int layerPreviewMaxConunt = 10;
+		static constexpr float compPreviewTooltipHoverDelay = 0.8f;
+		static constexpr int compPreviewMaxConunt = 10;
 
 		char nodeNameFormatBuffer[512];
 		
@@ -50,8 +50,8 @@ namespace Editor
 
 		std::stack<float> scrollPositionStack;
 
-		// NOTE: To be used, filled and cleared by the layer usage context menu
-		std::vector<RefPtr<Graphics::AetObj>*> layerUsagesBuffer;
+		// NOTE: To be used, filled and cleared by the composition usage context menu
+		std::vector<RefPtr<Graphics::AetLayer>*> compositionUsagesBuffer;
 
 		struct
 		{
@@ -68,28 +68,28 @@ namespace Editor
 		void DrawTreeNodeAetSet(const RefPtr<Graphics::AetSet>& aetSet);
 		
 		void DrawTreeNodeAet(const RefPtr<Graphics::Aet>& aet);
-		void DrawTreeNodeLayer(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetLayer>& aetLayer, bool isRoot);
+		void DrawTreeNodeComposition(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetComposition>& comp, bool isRoot);
 
-		void DrawTreeNodeObj(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetLayer>& aetLayer, const RefPtr<Graphics::AetObj>& aetObj);
-		void DrawTreeNodeObjCameraSelectableButton(const RefPtr<Graphics::AetLayer>& aetLayer, const RefPtr<Graphics::AetObj>& aetObj);
-		void DrawTreeNodeObjActivityButton(const RefPtr<Graphics::AetObj>& aetObj);
+		void DrawTreeNodeLayer(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetComposition>& comp, const RefPtr<Graphics::AetLayer>& layer);
+		void DrawTreeNodeLayerCameraSelectableButton(const RefPtr<Graphics::AetComposition>& comp, const RefPtr<Graphics::AetLayer>& layer);
+		void DrawTreeNodeLayerActivityButton(const RefPtr<Graphics::AetLayer>& layer);
 
-		void DrawTreeNodeRegion(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetRegion>& region, int32_t index);
+		void DrawTreeNodeSurface(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetSurface>& surface, int32_t index);
 
-		bool DrawAetLayerContextMenu(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetLayer>& aetLayer, bool isRoot);
-		bool DrawAetObjContextMenu(const RefPtr<Graphics::AetLayer>& aetLayer, const RefPtr<Graphics::AetObj>& aetObj);
+		bool DrawCompositionContextMenu(const RefPtr<Graphics::Aet>& aet, const RefPtr<Graphics::AetComposition>& comp, bool isRoot);
+		bool DrawLayerContextMenu(const RefPtr<Graphics::AetComposition>& comp, const RefPtr<Graphics::AetLayer>& layer);
 
-		void DrawAetLayerPreviewTooltip(const RefPtr<Graphics::AetLayer>& aetLayer);
+		void DrawCompositionPreviewTooltip(const RefPtr<Graphics::AetComposition>& comp);
 		void DrawTreeNodeCameraIcon(const vec2& treeNodeCursorPos) const;
 
 	private:
-		const char* FormatRegionNodeName(const RefPtr<Graphics::AetRegion>& region, int32_t index);
+		const char* FormatSurfaceNodeName(const RefPtr<Graphics::AetSurface>& surface, int32_t index);
 
 	private:
 		void UpdateScrollButtonInput();
 		void ScrollToGuiData(GuiExtraData& guiData);
 
 	private:
-		const char* GetDebugObjectName();
+		const char* GetDebugLayerName();
 	};
 }

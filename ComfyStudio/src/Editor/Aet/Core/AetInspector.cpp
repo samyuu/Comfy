@@ -40,8 +40,8 @@ namespace Editor
 		if (selected.Ptrs.VoidPointer == nullptr)
 			return false;
 
-		// NOTE: Safety clear so no invalid state stays around when deselecting an object for example
-		previewData->AetRegion = nullptr;
+		// NOTE: Safety clear so no invalid state stays around when deselecting a layer for example
+		previewData->Surface = nullptr;
 		previewData->BlendMode = AetBlendMode::Unknown;
 
 		switch (selected.Type())
@@ -52,14 +52,14 @@ namespace Editor
 		case AetItemType::Aet:
 			DrawInspectorAet(selected.GetAetRef());
 			break;
-		case AetItemType::AetLayer:
-			DrawInspectorAetLayer(selected.GetItemParentAet(), selected.GetAetLayerRef());
+		case AetItemType::Composition:
+			DrawInspectorComposition(selected.GetItemParentAet(), selected.GetAetCompositionRef());
 			break;
-		case AetItemType::AetObj:
-			DrawInspectorAetObj(selected.GetItemParentAet(), selected.GetAetObjRef());
+		case AetItemType::Layer:
+			DrawInspectorLayer(selected.GetItemParentAet(), selected.GetLayerRef());
 			break;
-		case AetItemType::AetRegion:
-			DrawInspectorAetRegion(selected.GetItemParentAet(), selected.GetAetRegionRef());
+		case AetItemType::Surface:
+			DrawInspectorSurface(selected.GetItemParentAet(), selected.GetSurfaceRef());
 			break;
 		default:
 			break;
@@ -125,25 +125,25 @@ namespace Editor
 		Gui::Separator();
 	}
 
-	void AetInspector::DrawInspectorAetLayer(Aet* aet, const RefPtr<AetLayer>& aetLayer)
+	void AetInspector::DrawInspectorComposition(Aet* aet, const RefPtr<AetComposition>& comp)
 	{
-		if (Gui::WideTreeNodeEx(ICON_AETLAYER "  Layer", DefaultOpenPropertiesNodeFlags))
+		if (Gui::WideTreeNodeEx(ICON_AETCOMP "  Composition", DefaultOpenPropertiesNodeFlags))
 		{
 			PushDisableItemFlagIfPlayback();
-			CopyStringIntoBuffer(aetLayer->GetName(), layerNameBuffer, sizeof(layerNameBuffer));
+			CopyStringIntoBuffer(comp->GetName(), compNameBuffer, sizeof(compNameBuffer));
 
-			const bool isRoot = aetLayer.get() == aet->GetRootLayer();
-			if (Gui::ComfyTextWidget("Name", layerNameBuffer, sizeof(layerNameBuffer), isRoot ? ImGuiInputTextFlags_ReadOnly : ImGuiInputTextFlags_None))
-				ProcessUpdatingAetCommand(GetCommandManager(), AetLayerChangeName, aetLayer, layerNameBuffer);
+			const bool isRoot = comp.get() == aet->GetRootComposition();
+			if (Gui::ComfyTextWidget("Name", compNameBuffer, sizeof(compNameBuffer), isRoot ? ImGuiInputTextFlags_ReadOnly : ImGuiInputTextFlags_None))
+				ProcessUpdatingAetCommand(GetCommandManager(), CompositionChangeName, comp, compNameBuffer);
 
 			// NOTE: Readonly properties
 			Gui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 			{
-				int thisIndex = aetLayer->GuiData.ThisIndex;
+				int thisIndex = comp->GuiData.ThisIndex;
 				Gui::ComfyIntTextWidget("Index", &thisIndex, 0, 0, ImGuiInputTextFlags_ReadOnly);
 
-				int objectCount = static_cast<int>(aetLayer->size());
-				Gui::ComfyIntTextWidget("Object Count", &objectCount, 0, 0, ImGuiInputTextFlags_ReadOnly);
+				int layerCount = static_cast<int>(comp->size());
+				Gui::ComfyIntTextWidget("Layer Count", &layerCount, 0, 0, ImGuiInputTextFlags_ReadOnly);
 			}
 			Gui::PopItemFlag();
 
@@ -154,32 +154,32 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorLayerData(Aet* aet, const RefPtr<AetObj>& aetObj, const RefPtr<AetLayer>& aetLayer)
+	void AetInspector::DrawInspectorCompositionData(Aet* aet, const RefPtr<AetLayer>& layer, const RefPtr<AetComposition>& comp)
 	{
-		// TODO: In the future you should not be able to change the layer after creating it because it would leave the previous layer "nameless" (?)
+		// TODO: In the future you should not be able to change the composition after creating it because it would leave the previous composition "nameless" (?)
 
-		constexpr int availableLayerNameBufferSize = static_cast<int>(sizeof(layerDataNameBuffer) - 32);
+		constexpr int availableCompNameBufferSize = static_cast<int>(sizeof(compDataNameBuffer) - 32);
 
-		if (Gui::WideTreeNodeEx(ICON_AETLAYERS "  Layer Data", DefaultOpenPropertiesNodeFlags))
+		if (Gui::WideTreeNodeEx(ICON_AETCOMPS "  Comp Data", DefaultOpenPropertiesNodeFlags))
 		{
-			if (aetLayer != nullptr)
-				sprintf_s(layerDataNameBuffer, "%.*s (Layer %d)", availableLayerNameBufferSize, aetLayer->GetName().c_str(), aetLayer->GuiData.ThisIndex);
+			if (comp != nullptr)
+				sprintf_s(compDataNameBuffer, "%.*s (Comp %d)", availableCompNameBufferSize, comp->GetName().c_str(), comp->GuiData.ThisIndex);
 
 			PushDisableItemFlagIfPlayback();
-			if (Gui::ComfyBeginCombo("Layer", aetLayer == nullptr ? "None (Layer)" : layerDataNameBuffer, ImGuiComboFlags_HeightLarge))
+			if (Gui::ComfyBeginCombo("Composition", comp == nullptr ? "None (Comp)" : compDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
-				if (Gui::Selectable("None (Layer)", aetLayer == nullptr))
-					ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceLayer, aetObj, nullptr);
+				if (Gui::Selectable("None (Composition)", comp == nullptr))
+					ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeReferenceComposition, layer, nullptr);
 
-				for (const RefPtr<AetLayer>& layer : aet->Layers)
+				for (const RefPtr<AetComposition>& comp : aet->Compositions)
 				{
-					Gui::PushID(layer.get());
+					Gui::PushID(comp.get());
 
-					bool isSelected = (aetLayer == layer);
-					sprintf_s(layerDataNameBuffer, "%.*s (Layer %d)", availableLayerNameBufferSize, layer->GetName().c_str(), layer->GuiData.ThisIndex);
+					bool isSelected = (comp == comp);
+					sprintf_s(compDataNameBuffer, "%.*s (Comp %d)", availableCompNameBufferSize, comp->GetName().c_str(), comp->GuiData.ThisIndex);
 
-					if (Gui::Selectable(layerDataNameBuffer, isSelected))
-						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceLayer, aetObj, layer);
+					if (Gui::Selectable(compDataNameBuffer, isSelected))
+						ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeReferenceComposition, layer, comp);
 
 					if (isSelected)
 						Gui::SetItemDefaultFocus();
@@ -194,119 +194,119 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAetObj(Aet* aet, const RefPtr<AetObj>& aetObj)
+	void AetInspector::DrawInspectorLayer(Aet* aet, const RefPtr<AetLayer>& layer)
 	{
-		if (Gui::WideTreeNodeEx(aetObj.get(), DefaultOpenPropertiesNodeFlags, "%s  Object", GetObjTypeIcon(aetObj->Type)))
+		if (Gui::WideTreeNodeEx(layer.get(), DefaultOpenPropertiesNodeFlags, "%s  Layer", GetLayerTypeIcon(layer->Type)))
 		{
 			PushDisableItemFlagIfPlayback();
-			CopyStringIntoBuffer(aetObj->GetName(), aetObjNameBuffer, sizeof(aetObjNameBuffer));
-			if (Gui::ComfyTextWidget("Name", aetObjNameBuffer, sizeof(aetObjNameBuffer)))
-				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeName, aetObj, aetObjNameBuffer);
+			CopyStringIntoBuffer(layer->GetName(), layerNameBuffer, sizeof(layerNameBuffer));
+			if (Gui::ComfyTextWidget("Name", layerNameBuffer, sizeof(layerNameBuffer)))
+				ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeName, layer, layerNameBuffer);
 
-			float startFrame = aetObj->StartFrame;
+			float startFrame = layer->StartFrame;
 			if (Gui::ComfyFloatTextWidget("Start Frame", &startFrame, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
-				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeStartFrame, aetObj, startFrame);
+				ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeStartFrame, layer, startFrame);
 
-			float endFrame = aetObj->EndFrame;
+			float endFrame = layer->EndFrame;
 			if (Gui::ComfyFloatTextWidget("End Frame", &endFrame, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
-				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeEndFrame, aetObj, endFrame);
+				ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeEndFrame, layer, endFrame);
 
-			float startOffset = aetObj->StartOffset;
+			float startOffset = layer->StartOffset;
 			if (Gui::ComfyFloatTextWidget("Start Offset", &startOffset, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
-				ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeStartOffset, aetObj, startOffset);
+				ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeStartOffset, layer, startOffset);
 
-			if (aetObj->Type != AetObjType::Aif)
+			if (layer->Type != AetLayerType::Aif)
 			{
 				constexpr float percentageFactor = 100.0f;
-				float playbackPercentage = aetObj->PlaybackSpeed * percentageFactor;
+				float playbackPercentage = layer->PlaybackSpeed * percentageFactor;
 
 				if (Gui::ComfyFloatTextWidget("Playback Speed", &playbackPercentage, 1.0f, 10.0f, 0.0f, 0.0f, "%.0f%%"))
-					ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangePlaybackSpeed, aetObj, playbackPercentage / percentageFactor);
+					ProcessUpdatingAetCommand(GetCommandManager(), LayerChangePlaybackSpeed, layer, playbackPercentage / percentageFactor);
 			}
 
 			PopDisableItemFlagIfPlayback();
 			Gui::TreePop();
 		}
 
-		if (aetObj->Type == AetObjType::Nop)
+		if (layer->Type == AetLayerType::Nop)
 			return;
 
-		if ((aetObj->Type == AetObjType::Pic))
+		if ((layer->Type == AetLayerType::Pic))
 		{
 			Gui::Separator();
-			DrawInspectorRegionData(aet, aetObj, aetObj->GetReferencedRegion());
+			DrawInspectorSurfaceData(aet, layer, layer->GetReferencedSurface());
 		}
 
-		if ((aetObj->Type == AetObjType::Eff))
+		if ((layer->Type == AetLayerType::Eff))
 		{
 			Gui::Separator();
-			DrawInspectorLayerData(aet, aetObj, aetObj->GetReferencedLayer());
+			DrawInspectorCompositionData(aet, layer, layer->GetReferencedComposition());
 		}
 
-		if ((aetObj->Type == AetObjType::Pic || aetObj->Type == AetObjType::Eff))
+		if ((layer->Type == AetLayerType::Pic || layer->Type == AetLayerType::Eff))
 		{
 			Gui::Separator();
-			DrawInspectorAnimationData(aetObj->AnimationData, aetObj);
+			DrawInspectorAnimationData(layer->AnimationData, layer);
 
 			// DEBUG: Quick debug view to inspect individual keyframes
-			DrawInspectorDebugAnimationData(aetObj->AnimationData, aetObj);
+			DrawInspectorDebugAnimationData(layer->AnimationData, layer);
 		}
 
 		Gui::Separator();
-		DrawInspectorAetObjMarkers(aetObj, &aetObj->Markers);
+		DrawInspectorLayerMarkers(layer, &layer->Markers);
 
-		if ((aetObj->Type == AetObjType::Pic || aetObj->Type == AetObjType::Eff))
+		if ((layer->Type == AetLayerType::Pic || layer->Type == AetLayerType::Eff))
 		{
 			Gui::Separator();
-			DrawInspectorAetObjParent(aet, aetObj);
+			DrawInspectorLayerParent(aet, layer);
 		}
 
 		Gui::Separator();
 	}
 
-	void AetInspector::DrawInspectorRegionData(Aet* aet, const RefPtr<AetObj>& aetObj, const RefPtr<AetRegion>& aetRegion)
+	void AetInspector::DrawInspectorSurfaceData(Aet* aet, const RefPtr<AetLayer>& layer, const RefPtr<AetSurface>& surface)
 	{
-		if (Gui::WideTreeNodeEx(ICON_AETREGIONS "  Region Data", DefaultOpenPropertiesNodeFlags))
+		if (Gui::WideTreeNodeEx(ICON_AETSURFACES "  Surface Data", DefaultOpenPropertiesNodeFlags))
 		{
-			if (aetRegion != nullptr)
+			if (surface != nullptr)
 			{
-				AetSpriteIdentifier* frontSprite = aetRegion->GetFrontSprite();
+				AetSpriteIdentifier* frontSprite = surface->GetFrontSprite();
 
 				if (frontSprite == nullptr)
-					sprintf_s(regionDataNameBuffer, "Null (%dx%d)", aetRegion->Size.x, aetRegion->Size.y);
+					sprintf_s(surfaceDataNameBuffer, "Null (%dx%d)", surface->Size.x, surface->Size.y);
 				else
-					CopyStringIntoBuffer(frontSprite->Name, regionDataNameBuffer, sizeof(regionDataNameBuffer));
+					CopyStringIntoBuffer(frontSprite->Name, surfaceDataNameBuffer, sizeof(surfaceDataNameBuffer));
 			}
 
 			const char* noSpriteString = "None (Sprite)";
 
 			PushDisableItemFlagIfPlayback();
-			if (Gui::ComfyBeginCombo("Sprite", aetRegion == nullptr ? noSpriteString : regionDataNameBuffer, ImGuiComboFlags_HeightLarge))
+			if (Gui::ComfyBeginCombo("Sprite", surface == nullptr ? noSpriteString : surfaceDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
-				if (Gui::Selectable(noSpriteString, aetRegion == nullptr))
-					ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceRegion, aetObj, nullptr);
+				if (Gui::Selectable(noSpriteString, surface == nullptr))
+					ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeReferenceSurface, layer, nullptr);
 
-				int32_t regionIndex = 0;
-				for (const RefPtr<AetRegion>& region : aet->Regions)
+				int32_t surfaceIndex = 0;
+				for (const RefPtr<AetSurface>& surface : aet->Surfaces)
 				{
-					Gui::PushID(region.get());
+					Gui::PushID(surface.get());
 
-					bool isSelected = (aetRegion == region);
+					bool isSelected = (surface == surface);
 
-					AetSpriteIdentifier* frontSprite = region->GetFrontSprite();
+					AetSpriteIdentifier* frontSprite = surface->GetFrontSprite();
 					if (frontSprite == nullptr)
-						sprintf_s(regionDataNameBuffer, "Region %d (%dx%d)", regionIndex, region->Size.x, region->Size.y);
+						sprintf_s(surfaceDataNameBuffer, "Surface %d (%dx%d)", surfaceIndex, surface->Size.x, surface->Size.y);
 
-					if (Gui::Selectable(frontSprite == nullptr ? regionDataNameBuffer : frontSprite->Name.c_str(), isSelected))
-						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeReferenceRegion, aetObj, region);
+					if (Gui::Selectable(frontSprite == nullptr ? surfaceDataNameBuffer : frontSprite->Name.c_str(), isSelected))
+						ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeReferenceSurface, layer, surface);
 
 					if (Gui::IsItemHovered())
-						previewData->AetRegion = region.get();
+						previewData->Surface = surface.get();
 
 					if (isSelected)
 						Gui::SetItemDefaultFocus();
 					Gui::PopID();
-					regionIndex++;
+					surfaceIndex++;
 				}
 
 				Gui::ComfyEndCombo();
@@ -317,7 +317,7 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAnimationData(const RefPtr<AnimationData>& animationData, const RefPtr<AetObj>& aetObj)
+	void AetInspector::DrawInspectorAnimationData(const RefPtr<AetAnimationData>& animationData, const RefPtr<AetLayer>& layer)
 	{
 		if (Gui::WideTreeNodeEx(ICON_ANIMATIONDATA "  Animation Data", DefaultOpenPropertiesNodeFlags))
 		{
@@ -332,32 +332,32 @@ namespace Editor
 				keyFramePropertyColor = GetColorVec4(EditorColor_KeyFrameProperty);
 				staticPropertyColor = Gui::GetStyleColorVec4(ImGuiCol_FrameBg);
 
-				DrawInspectorAnimationDataPropertyVec2(aetObj, "Origin", currentFrame, currentProperties.Origin, PropertyType_OriginX, PropertyType_OriginY);
-				DrawInspectorAnimationDataPropertyVec2(aetObj, "Position", currentFrame, currentProperties.Position, PropertyType_PositionX, PropertyType_PositionY);
-				DrawInspectorAnimationDataProperty(aetObj, "Rotation", currentFrame, currentProperties.Rotation, PropertyType_Rotation);
-				DrawInspectorAnimationDataPropertyVec2(aetObj, "Scale", currentFrame, currentProperties.Scale, PropertyType_ScaleX, PropertyType_ScaleY);
-				DrawInspectorAnimationDataProperty(aetObj, "Opacity", currentFrame, currentProperties.Opacity, PropertyType_Opacity);
+				DrawInspectorAnimationDataPropertyVec2(layer, "Origin", currentFrame, currentProperties.Origin, PropertyType_OriginX, PropertyType_OriginY);
+				DrawInspectorAnimationDataPropertyVec2(layer, "Position", currentFrame, currentProperties.Position, PropertyType_PositionX, PropertyType_PositionY);
+				DrawInspectorAnimationDataProperty(layer, "Rotation", currentFrame, currentProperties.Rotation, PropertyType_Rotation);
+				DrawInspectorAnimationDataPropertyVec2(layer, "Scale", currentFrame, currentProperties.Scale, PropertyType_ScaleX, PropertyType_ScaleY);
+				DrawInspectorAnimationDataProperty(layer, "Opacity", currentFrame, currentProperties.Opacity, PropertyType_Opacity);
 			}
 
-			if (aetObj->Type == AetObjType::Pic)
+			if (layer->Type == AetLayerType::Pic)
 			{
 				if (animationData->UseTextureMask)
 					Gui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 
-				if (Gui::ComfyBeginCombo("Blend Mode", AnimationData::GetBlendModeName(animationData->BlendMode), ImGuiComboFlags_HeightLarge))
+				if (Gui::ComfyBeginCombo("Blend Mode", AetAnimationData::GetBlendModeName(animationData->BlendMode), ImGuiComboFlags_HeightLarge))
 				{
 					// NOTE: Increase the count in case of invalid blend modes
-					size_t blendModeCount = glm::max(static_cast<size_t>(animationData->BlendMode), AnimationData::BlendModeNames.size());
+					size_t blendModeCount = glm::max(static_cast<size_t>(animationData->BlendMode), AetAnimationData::BlendModeNames.size());
 
 					for (int32_t blendModeIndex = 0; blendModeIndex < blendModeCount; blendModeIndex++)
 					{
 						bool isBlendMode = (static_cast<AetBlendMode>(blendModeIndex) == animationData->BlendMode);
-						bool outOfBounds = blendModeIndex >= AnimationData::BlendModeNames.size();
+						bool outOfBounds = blendModeIndex >= AetAnimationData::BlendModeNames.size();
 
-						if (!isBlendMode && (outOfBounds || AnimationData::BlendModeNames[blendModeIndex] == nullptr))
+						if (!isBlendMode && (outOfBounds || AetAnimationData::BlendModeNames[blendModeIndex] == nullptr))
 							continue;
 
-						const char* blendModeName = AnimationData::GetBlendModeName(static_cast<AetBlendMode>(blendModeIndex));
+						const char* blendModeName = AetAnimationData::GetBlendModeName(static_cast<AetBlendMode>(blendModeIndex));
 
 						if (Gui::Selectable(blendModeName, isBlendMode))
 							ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeBlendMode, animationData, static_cast<AetBlendMode>(blendModeIndex));
@@ -385,7 +385,7 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorDebugAnimationData(const RefPtr<AnimationData>& animationData, const RefPtr<AetObj>& aetObj)
+	void AetInspector::DrawInspectorDebugAnimationData(const RefPtr<AetAnimationData>& animationData, const RefPtr<AetLayer>& layer)
 	{
 		// DEBUG:
 		static bool showDebugView = false;
@@ -404,7 +404,7 @@ namespace Editor
 				int i = 0;
 				for (auto& property : animationData->Properties)
 				{
-					if (Gui::WideTreeNode(KeyFrameProperties::PropertyNames.at(i++)))
+					if (Gui::WideTreeNode(AetKeyFrameProperties::PropertyNames.at(i++)))
 					{
 						for (auto& keyFrame : property)
 							Gui::Text("Frame: %f; Value: %f; Curve: %f", keyFrame.Frame, keyFrame.Value, keyFrame.Curve);
@@ -418,12 +418,12 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAnimationDataProperty(const RefPtr<AetObj>& aetObj, const char* label, frame_t frame, float& value, int propertyType)
+	void AetInspector::DrawInspectorAnimationDataProperty(const RefPtr<AetLayer>& layer, const char* label, frame_t frame, float& value, int propertyType)
 	{
 		constexpr float percentFactor = 100.0f;
 
-		assert(aetObj->AnimationData.get() != nullptr);
-		const auto& animationData = aetObj->AnimationData;
+		assert(layer->AnimationData.get() != nullptr);
+		const auto& animationData = layer->AnimationData;
 
 		AetKeyFrame* keyFrame = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Properties[propertyType], frame);
 
@@ -451,21 +451,21 @@ namespace Editor
 				value = glm::clamp(value * (1.0f / percentFactor), 0.0f, 1.0f);
 
 			auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(propertyType), frame, value);
-			ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, aetObj, tuple);
+			ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, layer, tuple);
 		}
 
 		Gui::PopStyleColor();
 	}
 
-	void AetInspector::DrawInspectorAnimationDataPropertyVec2(const RefPtr<AetObj>& aetObj, const char* label, frame_t frame, vec2& value, int propertyTypeX, int propertyTypeY)
+	void AetInspector::DrawInspectorAnimationDataPropertyVec2(const RefPtr<AetLayer>& Layer, const char* label, frame_t frame, vec2& value, int propertyTypeX, int propertyTypeY)
 	{
 		constexpr float percentFactor = 100.0f;
 
-		assert(aetObj->AnimationData.get() != nullptr);
-		const auto& animationData = aetObj->AnimationData;
+		assert(Layer->AnimationData.get() != nullptr);
+		const auto& animationData = Layer->AnimationData;
 
-		AetKeyFrame* keyFrameX = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Properties[propertyTypeX], frame);
-		AetKeyFrame* keyFrameY = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Properties[propertyTypeY], frame);
+		const AetKeyFrame* keyFrameX = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Properties[propertyTypeX], frame);
+		const AetKeyFrame* keyFrameY = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Properties[propertyTypeY], frame);
 
 		Gui::PushStyleColor(ImGuiCol_FrameBg, ((animationData->Properties[propertyTypeX].size() > 1) || (animationData->Properties[propertyTypeY].size() > 1))
 			? (keyFrameX != nullptr || keyFrameY != nullptr)
@@ -473,7 +473,7 @@ namespace Editor
 			: animatedPropertyColor
 			: staticPropertyColor);
 
-		bool scale = (propertyTypeX == PropertyType_ScaleX) && (propertyTypeY == PropertyType_ScaleY);
+		const bool scale = (propertyTypeX == PropertyType_ScaleX) && (propertyTypeY == PropertyType_ScaleY);
 		const char* formatString = scale ? "%.2f%%" : "%.2f";
 
 		vec2 previousValue = value;
@@ -497,19 +497,19 @@ namespace Editor
 			if (value.x != previousValue.x)
 			{
 				auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(propertyTypeX), frame, value.x);
-				ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, aetObj, tuple);
+				ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, Layer, tuple);
 			}
 			if (value.y != previousValue.y)
 			{
 				auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(propertyTypeY), frame, value.y);
-				ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, aetObj, tuple);
+				ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, Layer, tuple);
 			}
 		}
 
 		Gui::PopStyleColor();
 	}
 
-	void AetInspector::DrawInspectorAetObjMarkers(const RefPtr<AetObj>& aetObj, std::vector<RefPtr<AetMarker>>* markers)
+	void AetInspector::DrawInspectorLayerMarkers(const RefPtr<AetLayer>& layer, std::vector<RefPtr<AetMarker>>* markers)
 	{
 		if (Gui::WideTreeNodeEx(ICON_MARKERS "  Markers", DefaultOpenPropertiesNodeFlags))
 		{
@@ -522,23 +522,23 @@ namespace Editor
 				vec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
 				bool open = Gui::WideTreeNode("##AetInspectorMarker");
 
-				Gui::ItemContextMenu("AddMarkerContextMenu##AetInspector", [this, &aetObj, &markers, i]()
+				Gui::ItemContextMenu("AddMarkerContextMenu##AetInspector", [this, &layer, &markers, i]()
 				{
 					if (Gui::MenuItem(ICON_MOVEUP "  Move Up", nullptr, nullptr, i > 0))
 					{
 						auto tuple = std::tuple<int, int>(i, i - 1);
-						ProcessUpdatingAetCommand(GetCommandManager(), AetObjMoveMarker, aetObj, tuple);
+						ProcessUpdatingAetCommand(GetCommandManager(), LayerMoveMarker, layer, tuple);
 					}
 
 					if (Gui::MenuItem(ICON_MOVEDOWN "  Move Down", nullptr, nullptr, i < markers->size() - 1))
 					{
 						auto tuple = std::tuple<int, int>(i, i + 1);
-						ProcessUpdatingAetCommand(GetCommandManager(), AetObjMoveMarker, aetObj, tuple);
+						ProcessUpdatingAetCommand(GetCommandManager(), LayerMoveMarker, layer, tuple);
 					}
 
 					if (Gui::MenuItem(ICON_DELETE "  Delete"))
 					{
-						ProcessUpdatingAetCommand(GetCommandManager(), AetObjDeleteMarker, aetObj, i);
+						ProcessUpdatingAetCommand(GetCommandManager(), LayerDeleteMarker, layer, i);
 					}
 				});
 
@@ -554,11 +554,11 @@ namespace Editor
 					PushDisableItemFlagIfPlayback();
 					float frame = marker->Frame;
 					if (Gui::ComfyFloatTextWidget("Frame", &frame, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
-						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeMarkerFrame, marker, frame);
+						ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeMarkerFrame, marker, frame);
 
 					CopyStringIntoBuffer(marker->Name, markerNameBuffer, sizeof(markerNameBuffer));
 					if (Gui::ComfyTextWidget("Name", markerNameBuffer, sizeof(markerNameBuffer)))
-						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeMarkerName, marker, markerNameBuffer);
+						ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeMarkerName, marker, markerNameBuffer);
 
 					PopDisableItemFlagIfPlayback();
 					Gui::TreePop();
@@ -575,7 +575,7 @@ namespace Editor
 				char newMarkerNameBuffer[32];
 				sprintf_s(newMarkerNameBuffer, "marker_%02zd", markers->size());
 				auto newMarker = MakeRef<AetMarker>(0.0f, newMarkerNameBuffer);
-				ProcessUpdatingAetCommand(GetCommandManager(), AetObjAddMarker, aetObj, newMarker);
+				ProcessUpdatingAetCommand(GetCommandManager(), LayerAddMarker, layer, newMarker);
 			}
 			PopDisableItemFlagIfPlayback();
 
@@ -583,38 +583,38 @@ namespace Editor
 		}
 	}
 
-	bool IsAnyParentRecursive(const AetObj* newObj, const AetObj* aetObj)
+	bool IsAnyParentRecursive(const AetLayer* newLayer, const AetLayer* layer)
 	{
 		// TODO: Recursively check parent and maybe move this function into the AetMgr
-		return (newObj->GetReferencedParentObj() != nullptr && newObj->GetReferencedParentObj() == aetObj);
+		return (newLayer->GetReferencedParentLayer() != nullptr && newLayer->GetReferencedParentLayer() == layer);
 	}
 
-	void AetInspector::DrawInspectorAetObjParent(Aet* aet, const RefPtr<AetObj>& aetObj)
+	void AetInspector::DrawInspectorLayerParent(Aet* aet, const RefPtr<AetLayer>& layer)
 	{
 		if (Gui::WideTreeNodeEx(ICON_PARENT "  Parent", DefaultOpenPropertiesNodeFlags))
 		{
-			AetObj* parentObj = aetObj->GetReferencedParentObj().get();
-			AetLayer* parentLayer = aetObj->GetParentLayer();
+			AetLayer* parentLayer = layer->GetReferencedParentLayer().get();
+			AetComposition* parentComp = layer->GetParentComposition();
 
-			constexpr const char* noParentObjString = "None (Parent)";
+			constexpr const char* noParentString = "None (Parent)";
 			PushDisableItemFlagIfPlayback();
 
-			if (Gui::ComfyBeginCombo("Parent Object", parentObj == nullptr ? noParentObjString : parentObj->GetName().c_str(), ImGuiComboFlags_HeightLarge))
+			if (Gui::ComfyBeginCombo("Parent Layer", parentLayer == nullptr ? noParentString : parentLayer->GetName().c_str(), ImGuiComboFlags_HeightLarge))
 			{
-				if (Gui::Selectable(noParentObjString, parentObj == nullptr))
-					ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeObjReferenceParent, aetObj, nullptr);
+				if (Gui::Selectable(noParentString, parentLayer == nullptr))
+					ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeReferencedParentLayer, layer, nullptr);
 
-				for (int32_t objIndex = 0; objIndex < parentLayer->size(); objIndex++)
+				for (int32_t layerIndex = 0; layerIndex < parentComp->size(); layerIndex++)
 				{
-					const RefPtr<AetObj>& obj = parentLayer->at(objIndex);
-					bool isSelected = (obj.get() == parentObj);
+					const RefPtr<AetLayer>& iteratorLayer = parentComp->at(layerIndex);
+					bool isSelected = (iteratorLayer.get() == parentLayer);
 
-					bool isSame = (aetObj.get() == obj.get());
-					bool isAnyRecursive = IsAnyParentRecursive(obj.get(), aetObj.get());
+					bool isSame = (layer.get() == iteratorLayer.get());
+					bool isAnyRecursive = IsAnyParentRecursive(iteratorLayer.get(), layer.get());
 					
-					Gui::PushID(obj.get());
-					if (Gui::Selectable(obj->GetName().c_str(), isSelected, (isSame || isAnyRecursive) ? ImGuiSelectableFlags_Disabled : ImGuiSelectableFlags_None))
-						ProcessUpdatingAetCommand(GetCommandManager(), AetObjChangeObjReferenceParent, aetObj, obj);
+					Gui::PushID(iteratorLayer.get());
+					if (Gui::Selectable(iteratorLayer->GetName().c_str(), isSelected, (isSame || isAnyRecursive) ? ImGuiSelectableFlags_Disabled : ImGuiSelectableFlags_None))
+						ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeReferencedParentLayer, layer, iteratorLayer);
 
 					if (isSelected)
 						Gui::SetItemDefaultFocus();
@@ -628,19 +628,19 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAetRegion(Aet* aet, const RefPtr<AetRegion>& aetRegion)
+	void AetInspector::DrawInspectorSurface(Aet* aet, const RefPtr<AetSurface>& surface)
 	{
-		Gui::InputInt2("Dimensions", glm::value_ptr(aetRegion->Size));
+		Gui::InputInt2("Dimensions", glm::value_ptr(surface->Size));
 
-		ImVec4 color = Gui::ColorConvertU32ToFloat4(aetRegion->Color);
-		if (Gui::ColorEdit3("Background##AetRegionColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
-			aetRegion->Color = Gui::ColorConvertFloat4ToU32(color);
+		ImVec4 color = Gui::ColorConvertU32ToFloat4(surface->Color);
+		if (Gui::ColorEdit3("Background##AetSurfaceColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
+			surface->Color = Gui::ColorConvertFloat4ToU32(color);
 
 		if (Gui::WideTreeNodeEx("Sprites:", DefaultOpenPropertiesNodeFlags))
 		{
-			for (auto& sprite : aetRegion->GetSprites())
+			for (auto& sprite : surface->GetSprites())
 			{
-				sprintf_s(spriteNameBuffer, ICON_AETREGION "  %s", sprite.Name.c_str());
+				sprintf_s(spriteNameBuffer, ICON_AETSURFACE "  %s", sprite.Name.c_str());
 				Gui::Selectable(spriteNameBuffer);
 			}
 			Gui::TreePop();

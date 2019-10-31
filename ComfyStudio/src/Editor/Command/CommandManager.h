@@ -40,7 +40,7 @@ namespace Editor
 
 	protected:
 		// Commands to be exectued at the end of the frame.
-		// This is to prevent deletion of objects mid-frame that are still being referenced by other objects.
+		// This is to prevent deletion of layers mid-frame that are still being referenced by other layers.
 		CommandQueue commandQueue;
 
 		CommandStack undoStack;

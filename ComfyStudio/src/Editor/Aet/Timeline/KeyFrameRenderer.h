@@ -16,7 +16,7 @@ namespace Editor
 
 		void Initialize();
 
-		void DrawContent(const AetTimeline* timeline, const Graphics::AetLayer* workingLayer);
+		void DrawContent(const AetTimeline* timeline, const Graphics::AetComposition* workingComp);
 		vec2 GetCenteredTimelineRowScreenPosition(const AetTimeline* timeline, frame_t frame, int row);
 
 	private:

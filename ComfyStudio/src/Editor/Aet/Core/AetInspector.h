@@ -22,12 +22,12 @@ namespace Editor
 		AetItemTypePtr lastSelectedItem;
 
 		char aetNameBuffer[255];
+		char compNameBuffer[255];
 		char layerNameBuffer[255];
-		char aetObjNameBuffer[255];
 		char markerNameBuffer[255];
 		char spriteNameBuffer[255];
-		char layerDataNameBuffer[255];
-		char regionDataNameBuffer[255];
+		char compDataNameBuffer[255];
+		char surfaceDataNameBuffer[255];
 
 		vec4 animatedPropertyColor, keyFramePropertyColor, staticPropertyColor;
 
@@ -41,22 +41,22 @@ namespace Editor
 		void DrawInspectorAetSet(const RefPtr<Graphics::AetSet>& aetSet);
 		void DrawInspectorAet(const RefPtr<Graphics::Aet>& aet);
 		
-		void DrawInspectorAetLayer(Graphics::Aet* aet, const RefPtr<Graphics::AetLayer>& aetLayer);
-		void DrawInspectorLayerData(Graphics::Aet* aet, const RefPtr<Graphics::AetObj>& aetObj, const RefPtr<Graphics::AetLayer>& aetLayer);
+		void DrawInspectorComposition(Graphics::Aet* aet, const RefPtr<Graphics::AetComposition>& comp);
+		void DrawInspectorCompositionData(Graphics::Aet* aet, const RefPtr<Graphics::AetLayer>& layer, const RefPtr<Graphics::AetComposition>& comp);
 		
-		void DrawInspectorAetObj(Graphics::Aet* aet, const RefPtr<Graphics::AetObj>& aetObj);
-		void DrawInspectorRegionData(Graphics::Aet* aet, const RefPtr<Graphics::AetObj>& aetObj, const RefPtr<Graphics::AetRegion>& spriteEntry);
+		void DrawInspectorLayer(Graphics::Aet* aet, const RefPtr<Graphics::AetLayer>& layer);
+		void DrawInspectorSurfaceData(Graphics::Aet* aet, const RefPtr<Graphics::AetLayer>& layer, const RefPtr<Graphics::AetSurface>& surface);
 		
-		void DrawInspectorAnimationData(const RefPtr<Graphics::AnimationData>& animationData, const RefPtr<Graphics::AetObj>& aetObj);
-		void DrawInspectorDebugAnimationData(const RefPtr<Graphics::AnimationData>& animationData, const RefPtr<Graphics::AetObj>& aetObj);
+		void DrawInspectorAnimationData(const RefPtr<Graphics::AetAnimationData>& animationData, const RefPtr<Graphics::AetLayer>& layer);
+		void DrawInspectorDebugAnimationData(const RefPtr<Graphics::AetAnimationData>& animationData, const RefPtr<Graphics::AetLayer>& layer);
 
-		void DrawInspectorAnimationDataProperty(const RefPtr<Graphics::AetObj>& aetObj, const char* label, frame_t frame, float& value, int propertyType);
-		void DrawInspectorAnimationDataPropertyVec2(const RefPtr<Graphics::AetObj>& aetObj, const char* label, frame_t frame, vec2& value, int propertyTypeX, int propertyTypeY);
+		void DrawInspectorAnimationDataProperty(const RefPtr<Graphics::AetLayer>& layer, const char* label, frame_t frame, float& value, int propertyType);
+		void DrawInspectorAnimationDataPropertyVec2(const RefPtr<Graphics::AetLayer>& layer, const char* label, frame_t frame, vec2& value, int propertyTypeX, int propertyTypeY);
 
-		void DrawInspectorAetObjMarkers(const RefPtr<Graphics::AetObj>& aetObj, std::vector<RefPtr<Graphics::AetMarker>>* markers);
-		void DrawInspectorAetObjParent(Graphics::Aet* aet, const RefPtr<Graphics::AetObj>& aetObj);
+		void DrawInspectorLayerMarkers(const RefPtr<Graphics::AetLayer>& layer, std::vector<RefPtr<Graphics::AetMarker>>* markers);
+		void DrawInspectorLayerParent(Graphics::Aet* aet, const RefPtr<Graphics::AetLayer>& layer);
 		
-		void DrawInspectorAetRegion(Graphics::Aet* aet, const RefPtr<Graphics::AetRegion>& aetRegion);
+		void DrawInspectorSurface(Graphics::Aet* aet, const RefPtr<Graphics::AetSurface>& surface);
 
 	private:
 		void PushDisableItemFlagIfPlayback();

@@ -44,23 +44,23 @@ namespace Graphics
 		output.Opacity *= input.Opacity;
 	}
 
-	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetLayer* aetLayer, frame_t frame)
+	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetComposition* comp, frame_t frame)
 	{
-		for (int i = static_cast<int>(aetLayer->size()) - 1; i >= 0; i--)
-			GetAddObjects(objects, aetLayer->GetObjAt(i), frame);
+		for (int i = static_cast<int>(comp->size()) - 1; i >= 0; i--)
+			GetAddObjects(objects, comp->GetLayerAt(i), frame);
 	}
 
-	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetObj* aetObj, frame_t frame)
+	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetLayer* layer, frame_t frame)
 	{
 		Properties propreties = DefaultProperites;
-		InternalAddObjects(objects, &propreties, aetObj, frame);
+		InternalAddObjects(objects, &propreties, layer, frame);
 
-		if (aetObj->Type == AetObjType::Eff)
+		if (layer->Type == AetLayerType::Eff)
 		{
 			for (auto& object : objects)
 			{
 				if (object.FirstParent == nullptr)
-					object.FirstParent = aetObj;
+					object.FirstParent = layer;
 			}
 		}
 	}
@@ -104,7 +104,7 @@ namespace Graphics
 		return Interpolate(start, end, frame);
 	}
 
-	void AetMgr::Interpolate(const AnimationData* animationData, Properties* properties, frame_t frame)
+	void AetMgr::Interpolate(const AetAnimationData* animationData, Properties* properties, frame_t frame)
 	{
 		float* results = reinterpret_cast<float*>(properties);
 
@@ -169,7 +169,7 @@ namespace Graphics
 		});
 	}
 
-	void AetMgr::OffsetAllKeyFrames(KeyFrameProperties& properties, frame_t frameIncrement)
+	void AetMgr::OffsetAllKeyFrames(AetKeyFrameProperties& properties, frame_t frameIncrement)
 	{
 		for (auto& keyFrames : properties)
 		{
@@ -178,7 +178,7 @@ namespace Graphics
 		}
 	}
 
-	void AetMgr::OffsetByParentProperties(Properties& properties, const AetObj* parent, frame_t frame, int32_t& recursionCount)
+	void AetMgr::OffsetByParentProperties(Properties& properties, const AetLayer* parent, frame_t frame, int32_t& recursionCount)
 	{
 		assert(recursionCount < ParentRecursionLimit);
 		if (parent == nullptr || recursionCount > ParentRecursionLimit)
@@ -186,7 +186,7 @@ namespace Graphics
 
 		recursionCount++;
 
-		const AetObj* parentParent = parent->GetReferencedParentObj();
+		const AetLayer* parentParent = parent->GetReferencedParentLayer();
 		assert(parentParent != parent);
 
 		Properties parentProperties;
@@ -200,86 +200,91 @@ namespace Graphics
 			OffsetByParentProperties(properties, parentParent, frame, recursionCount);
 	}
 
-	void AetMgr::FindAddLayerUsages(const RefPtr<Aet>& aetToSearch, const RefPtr<AetLayer>& layerToFind, std::vector<RefPtr<AetObj>*>& outObjects)
+	void AetMgr::FindAddCompositionUsages(const RefPtr<Aet>& aetToSearch, const RefPtr<AetComposition>& compToFind, std::vector<RefPtr<AetLayer>*>& outObjects)
 	{
-		const auto layerSearchFunction = [&layerToFind, &outObjects](const RefPtr<AetLayer>& layerToSearch)
+		const auto compSearchFunction = [&compToFind, &outObjects](const RefPtr<AetComposition>& compToSearch)
 		{
-			for (RefPtr<AetObj>& object : *layerToSearch)
+			for (RefPtr<AetLayer>& layer : *compToSearch)
 			{
-				if (object->GetReferencedLayer() == layerToFind)
-					outObjects.push_back(&object);
+				if (layer->GetReferencedComposition() == compToFind)
+					outObjects.push_back(&layer);
 			}
 		};
 
-		layerSearchFunction(aetToSearch->RootLayer);
+		compSearchFunction(aetToSearch->RootComposition);
 
-		for (auto& layerToTest : aetToSearch->Layers)
-			layerSearchFunction(layerToTest);
+		for (auto& compToTest : aetToSearch->Compositions)
+			compSearchFunction(compToTest);
 	}
 
-	void AetMgr::InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)
+	void AetMgr::InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetLayer* layer, frame_t frame)
 	{
-		if (aetObj->Type == AetObjType::Pic)
+		if (layer->Type == AetLayerType::Pic)
 		{
-			InternalPicAddObjects(objects, parentProperties, aetObj, frame);
+			InternalPicAddObjects(objects, parentProperties, layer, frame);
 		}
-		else if (aetObj->Type == AetObjType::Eff)
+		else if (layer->Type == AetLayerType::Eff)
 		{
-			InternalEffAddObjects(objects, parentProperties, aetObj, frame);
+			InternalEffAddObjects(objects, parentProperties, layer, frame);
 		}
 	}
 
-	void AetMgr::InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)
+	void AetMgr::InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetLayer* layer, frame_t frame)
 	{
-		assert(aetObj->Type == AetObjType::Pic);
+		assert(layer->Type == AetLayerType::Pic);
 
-		if (frame < aetObj->StartFrame || frame >= aetObj->EndFrame)
+		if (frame < layer->StartFrame || frame >= layer->EndFrame)
 			return;
 
 		objects.emplace_back();
 		ObjCache& objCache = objects.back();
 
 		objCache.FirstParent = nullptr;
-		objCache.Source = aetObj;
-		objCache.Region = aetObj->GetReferencedRegion();
-		objCache.BlendMode = aetObj->AnimationData->BlendMode;
-		objCache.UseTextureMask = aetObj->AnimationData->UseTextureMask;
-		objCache.Visible = aetObj->Flags.Visible;
+		objCache.Source = layer;
+		objCache.Surface = layer->GetReferencedSurface();
+		objCache.BlendMode = layer->AnimationData->BlendMode;
+		objCache.UseTextureMask = layer->AnimationData->UseTextureMask;
+		objCache.Visible = layer->Flags.Visible;
 
-		if (objCache.Region != nullptr && objCache.Region->SpriteCount() > 0)
+		if (objCache.Surface != nullptr && objCache.Surface->SpriteCount() > 1)
 		{
-			// BUG: This should factor in the aetObj->StartFrame (?)
-			// NOTE: Is it correct to modulo the index here? Seems to make more sense than just clamping
-			objCache.SpriteIndex = static_cast<int>(glm::round(frame)) % objCache.Region->SpriteCount();
+			// BUG: This should factor in the layer->StartFrame (?)
+			objCache.SpriteIndex = static_cast<int>(glm::round((frame + layer->StartOffset) * layer->PlaybackSpeed));
+			objCache.SpriteIndex = glm::clamp(objCache.SpriteIndex, 0, static_cast<int>(objCache.Surface->SpriteCount()) - 1);
 		}
-		Interpolate(aetObj->AnimationData.get(), &objCache.Properties, frame);
+		else
+		{
+			objCache.SpriteIndex = 0;
+		}
+
+		Interpolate(layer->AnimationData.get(), &objCache.Properties, frame);
 
 		int32_t recursionCount = 0;
-		OffsetByParentProperties(objCache.Properties, aetObj->GetReferencedParentObj(), frame, recursionCount);
+		OffsetByParentProperties(objCache.Properties, layer->GetReferencedParentLayer(), frame, recursionCount);
 		TransformProperties(*parentProperties, objCache.Properties);
 	}
 
-	void AetMgr::InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetObj* aetObj, frame_t frame)
+	void AetMgr::InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetLayer* layer, frame_t frame)
 	{
-		assert(aetObj->Type == AetObjType::Eff);
+		assert(layer->Type == AetLayerType::Eff);
 
-		if (frame < aetObj->StartFrame || frame >= aetObj->EndFrame || !aetObj->Flags.Visible)
+		if (frame < layer->StartFrame || frame >= layer->EndFrame || !layer->Flags.Visible)
 			return;
 
-		const AetLayer* aetLayer = aetObj->GetReferencedLayer();
-		if (aetLayer == nullptr)
+		const AetComposition* comp = layer->GetReferencedComposition();
+		if (comp == nullptr)
 			return;
 
 		Properties effProperties;
-		Interpolate(aetObj->AnimationData.get(), &effProperties, frame);
+		Interpolate(layer->AnimationData.get(), &effProperties, frame);
 
 		int32_t recursionCount = 0;
-		OffsetByParentProperties(effProperties, aetObj->GetReferencedParentObj(), frame, recursionCount);
+		OffsetByParentProperties(effProperties, layer->GetReferencedParentLayer(), frame, recursionCount);
 		TransformProperties(*parentProperties, effProperties);
 
-		frame_t adjustedFrame = ((frame - aetObj->StartFrame) * aetObj->PlaybackSpeed) + aetObj->StartOffset;
+		frame_t adjustedFrame = ((frame - layer->StartFrame) * layer->PlaybackSpeed) + layer->StartOffset;
 
-		for (int i = static_cast<int>(aetLayer->size()) - 1; i >= 0; i--)
-			InternalAddObjects(objects, &effProperties, aetLayer->GetObjAt(i), adjustedFrame);
+		for (int i = static_cast<int>(comp->size()) - 1; i >= 0; i--)
+			InternalAddObjects(objects, &effProperties, comp->GetLayerAt(i), adjustedFrame);
 	}
 }

@@ -58,7 +58,7 @@ namespace Editor
 		bool isPlayback = false;
 		bool loopPlayback = true;
 
-		// NOTE: Speed at factor at which the playback time is incremented without editing any AetObj state
+		// NOTE: Speed at factor at which the playback time is incremented without editing any layer object state
 		float playbackSpeedFactor = 1.0f;
 		static constexpr float playbackSpeedMin = 0.01f;
 		static constexpr float playbackSpeedMax = 4.00f;
@@ -79,9 +79,9 @@ namespace Editor
 		
 		void OnDrawTimelineInfoColumnHeader() override;
 		void OnDrawTimelineInfoColumn() override;
-		void DrawTimelineInfoColumnLayer(const Graphics::AetLayer* workingLayer, const Graphics::AetObj* selectedObject) const;
+		void DrawTimelineInfoColumnComposition(const Graphics::AetComposition* workingComp, const Graphics::AetLayer* selectedLayer) const;
 
-		const Graphics::AetLayer* GetWorkingLayer() const;
+		const Graphics::AetComposition* GetWorkingComposition() const;
 		int GetTimelineRowCount() const;
 
 		void OnDrawTimlineRows() override;

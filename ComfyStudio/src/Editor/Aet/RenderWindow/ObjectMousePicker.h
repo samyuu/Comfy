@@ -11,7 +11,7 @@ namespace Editor
 	
 		void UpdateMouseInput(const vec2& mousePosition);
 
-		const RefPtr<Graphics::AetObj>* FindObjectAtPosition(vec2 worldSpace);
+		const RefPtr<Graphics::AetLayer>* FindObjectAtPosition(vec2 worldSpace);
 		void TrySelectObjectAtPosition(vec2 worldSpace);
 
 	private:
@@ -30,6 +30,6 @@ namespace Editor
 
 		// NOTE: To compare with the object on mouse release before selecting the object and prevent accidental selection.
 		//		 This object is not guaranteed to stay alive and should only be used for a pointer comparison so don't try to dereference it
-		const Graphics::AetObj* mousePickedObjectOnMouseClick = nullptr;
+		const Graphics::AetLayer* mousePickedObjectOnMouseClick = nullptr;
 	};
 }

@@ -42,15 +42,15 @@ namespace Editor
 		UniquePtr<Graphics::AetSet> aetSet;
 		UniquePtr<Graphics::SprSet> sprSet;
 
-		struct /* AetObjCache */
+		struct /* InternalLayerCache */
 		{
-			RefPtr<Graphics::AetObj> FrameUp, FrameBottom;
-			RefPtr<Graphics::AetObj> LifeGauge;
-			RefPtr<Graphics::AetObj> SongEnergyBase;
-			RefPtr<Graphics::AetObj> SongIconLoop;
-			RefPtr<Graphics::AetObj> LevelInfoEasy;
-			RefPtr<Graphics::AetObj> SongInfoLoop;
-		} aetObjCache;
+			RefPtr<Graphics::AetLayer> FrameUp, FrameBottom;
+			RefPtr<Graphics::AetLayer> LifeGauge;
+			RefPtr<Graphics::AetLayer> SongEnergyBase;
+			RefPtr<Graphics::AetLayer> SongIconLoop;
+			RefPtr<Graphics::AetLayer> LevelInfoEasy;
+			RefPtr<Graphics::AetLayer> SongInfoLoop;
+		} layerCache;
 
 		void RenderBackground();
 
