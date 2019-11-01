@@ -1,5 +1,5 @@
 #include "RenderCommand.h"
-#include "Graphics.h"
+#include "OpenGL/OpenGL.h"
 
 namespace Graphics
 {

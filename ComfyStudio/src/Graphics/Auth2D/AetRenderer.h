@@ -1,5 +1,5 @@
 #pragma once
-#include "Renderer2D.h"
+#include "Graphics/OpenGL/GL_Renderer2D.h"
 #include "AetMgr.h"
 #include "AetSet.h"
 #include "Graphics/SprSet.h"
@@ -16,12 +16,12 @@ namespace Graphics
 	class AetRenderer
 	{
 	public:
-		AetRenderer(Renderer2D* renderer);
+		AetRenderer(GL_Renderer2D* renderer);
 		~AetRenderer();
 
 	public:
-		Renderer2D* GetRenderer2D();
-		void SetRenderer2D(Renderer2D* value);
+		GL_Renderer2D* GetRenderer2D();
+		void SetRenderer2D(GL_Renderer2D* value);
 		
 		SpriteGetterFunction* GetSpriteGetterFunction();
 		void SetSpriteGetterFunction(SpriteGetterFunction* value);
@@ -49,7 +49,7 @@ namespace Graphics
 		bool GetSprite(const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr);
 
 	private:
-		Renderer2D* renderer2D = nullptr;
+		GL_Renderer2D* renderer2D = nullptr;
 		SpriteGetterFunction* spriteGetter = nullptr;
 
 		std::optional<AetObjCallbackFunction> objCallback;

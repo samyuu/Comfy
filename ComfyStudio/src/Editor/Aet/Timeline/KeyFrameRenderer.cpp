@@ -115,7 +115,7 @@ namespace Editor
 
 	void KeyFrameRenderer::CreateKeyFrameTexture()
 	{
-		keyFrameTexture = MakeUnique<Texture2D>();
+		keyFrameTexture = MakeUnique<GL_Texture2D>();
 		keyFrameTexture->CreateFromRgbaBuffer(keyFrameTextureSize, keyFrameTexturePixels);
 	}
 

@@ -189,7 +189,7 @@ void Application::DrawGui()
 				{
 					Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(ImGuiCol_PlotHistogramHovered));
 					if (Gui::MenuItem("Recompile Shaders", nullptr))
-						Graphics::ShaderProgram::RecompileAllShaders();
+						Graphics::GL_ShaderProgram::RecompileAllShaders();
 					Gui::PopStyleColor();
 
 					if (Gui::MenuItem("Toggle Fullscreen", nullptr))

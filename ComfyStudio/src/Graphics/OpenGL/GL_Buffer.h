@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
-#include "Graphics.h"
-#include "GraphicsInterface.h"
+#include "OpenGL.h"
+#include "Graphics/GraphicsInterface.h"
 #include "Core/CoreTypes.h"
 
 namespace Graphics
@@ -25,12 +25,13 @@ namespace Graphics
 		DynamicCopy,
 	};
 
-	class Buffer : public IGraphicsObject
+	class GL_Buffer : public IGraphicsObject
 	{
 	public:
-		Buffer(BufferUsage usage);
-		Buffer(const Buffer&) = delete;
-		virtual ~Buffer();
+		GL_Buffer(BufferUsage usage);
+		GL_Buffer(const GL_Buffer&) = delete;
+		GL_Buffer& operator= (const GL_Buffer&) = delete;
+		virtual ~GL_Buffer();
 
 		void InitializeID() override;
 		void Upload(size_t dataSize, void* data);
@@ -54,12 +55,13 @@ namespace Graphics
 	// --- VertexBuffer:
 	// ------------------------------------------------------------------------------------------------
 
-	class VertexBuffer : public Buffer
+	class GL_VertexBuffer : public GL_Buffer
 	{
 	public:
-		VertexBuffer(BufferUsage usage);
-		VertexBuffer(const VertexBuffer&) = delete;
-		virtual ~VertexBuffer();
+		GL_VertexBuffer(BufferUsage usage);
+		GL_VertexBuffer(const GL_VertexBuffer&) = delete;
+		GL_VertexBuffer& operator= (const GL_VertexBuffer&) = delete;
+		virtual ~GL_VertexBuffer();
 
 	protected:
 		GLenum GetGLBufferTarget() const override;
@@ -76,12 +78,13 @@ namespace Graphics
 		UnsignedInt,
 	};
 
-	class IndexBuffer : public Buffer
+	class GL_IndexBuffer : public GL_Buffer
 	{
 	public:
-		IndexBuffer(BufferUsage usage, IndexType type);
-		IndexBuffer(const IndexBuffer&) = delete;
-		virtual ~IndexBuffer();
+		GL_IndexBuffer(BufferUsage usage, IndexType type);
+		GL_IndexBuffer(const GL_IndexBuffer&) = delete;
+		GL_IndexBuffer& operator= (const GL_IndexBuffer&) = delete;
+		virtual ~GL_IndexBuffer();
 
 		GLenum GetGLIndexType();
 
@@ -121,16 +124,16 @@ namespace Graphics
 		uint16_t Size;
 		uint16_t Offset;
 		bool Normalized;
-		const VertexBuffer* Buffer;
+		const GL_VertexBuffer* Buffer;
 
 		BufferElement(ShaderDataType type, const char* name, bool normalized = false);
-		BufferElement(ShaderDataType type, const char* name, bool normalized, const VertexBuffer* buffer);
+		BufferElement(ShaderDataType type, const char* name, bool normalized, const GL_VertexBuffer* buffer);
 
 		int GetElementCount() const;
 		GLenum GetDataType() const;
 		bool GetIsNormalized() const;
-		inline void* GetOffset() const { return (void*)Offset; };
-		inline const VertexBuffer* GetBuffer() const { return Buffer; };
+		inline void* GetOffset() const { return reinterpret_cast<void*>(Offset); };
+		inline const GL_VertexBuffer* GetBuffer() const { return Buffer; };
 	};
 
 	// ------------------------------------------------------------------------------------------------

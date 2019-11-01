@@ -1,6 +1,6 @@
 #pragma once
 #include "ImGui/Gui.h"
-#include "Graphics/RenderTarget.h"
+#include "Graphics/OpenGL/GL_RenderTarget.h"
 #include "Graphics/RenderCommand.h"
 
 namespace Editor

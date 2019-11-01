@@ -1,7 +1,7 @@
 #include "TxpSet.h"
 #include "FileSystem/FileInterface.h"
 #include "FileSystem/BinaryReader.h"
-#include "Graphics/Texture/Texture2D.h"
+#include "Graphics/OpenGL/GL_Texture2D.h"
 #include <assert.h>
 
 using namespace FileSystem;
@@ -127,7 +127,7 @@ namespace Graphics
 		for (int i = 0; i < Textures.size(); i++)
 		{
 			Txp* texture = Textures[i].get();
-			texture->GraphicsTexture = MakeRef<Texture2D>();
+			texture->GraphicsTexture = MakeRef<GL_Texture2D>();
 			texture->GraphicsTexture->Create(texture);
 		}
 	}

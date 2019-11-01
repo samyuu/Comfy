@@ -154,7 +154,7 @@ namespace App
 		return true;
 	}
 
-	bool TaskPs4Menu::Render(Renderer2D* renderer, AetRenderer* aetRenderer)
+	bool TaskPs4Menu::Render(GL_Renderer2D* renderer, AetRenderer* aetRenderer)
 	{
 		if (isLoading)
 			return true;

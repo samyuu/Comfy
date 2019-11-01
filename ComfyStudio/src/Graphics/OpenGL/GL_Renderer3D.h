@@ -1,15 +1,14 @@
 #pragma once
-#include "Graphics/IRenderer.h"
 #include "Graphics/Camera.h"
-#include "Graphics/Shader/Shader.h"
+#include "Graphics/OpenGL/GL_Shaders.h"
 #include "Graphics/Auth3D/ObjSet.h"
 
 namespace Graphics
 {
-	class Renderer3D : public IRenderer
+	class GL_Renderer3D /* : public IRenderer */
 	{
 	public:
-		void Initialize() override;
+		void Initialize();
 		void Begin(const PerspectiveCamera& camera);
 
 		void Draw(const Obj* object, const vec3& position);
@@ -18,6 +17,6 @@ namespace Graphics
 
 	private:
 		const PerspectiveCamera* camera;
-		UniquePtr<SimpleShader> simpleShader = nullptr;
+		UniquePtr<GL_SimpleShader> simpleShader = nullptr;
 	};
 }

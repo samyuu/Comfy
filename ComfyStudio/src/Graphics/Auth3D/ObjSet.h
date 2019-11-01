@@ -2,8 +2,8 @@
 #include "Types.h"
 #include "FileSystem/FileInterface.h"
 #include "Graphics/RenderCommand.h"
-#include "Graphics/Buffer.h"
-#include "Graphics/VertexArray.h"
+#include "Graphics/OpenGL/GL_Buffer.h"
+#include "Graphics/OpenGL/GL_VertexArray.h"
 #include "Core/CoreTypes.h"
 
 namespace Graphics
@@ -30,7 +30,7 @@ namespace Graphics
 		std::vector<uint16_t> Indices;
 		Box BoundingBox;
 
-		RefPtr<IndexBuffer> GraphicsIndexBuffer;
+		RefPtr<GL_IndexBuffer> GraphicsIndexBuffer;
 	};
 
 	union VertexAttributeTypes
@@ -59,9 +59,9 @@ namespace Graphics
 
 	struct GraphicsVertexBuffers
 	{
-		RefPtr<VertexArray> VertexArray;
-		RefPtr<VertexBuffer> PositionBuffer;
-		RefPtr<VertexBuffer> NormalBuffer;
+		RefPtr<GL_VertexArray> VertexArray;
+		RefPtr<GL_VertexBuffer> PositionBuffer;
+		RefPtr<GL_VertexBuffer> NormalBuffer;
 	};
 
 	class Mesh

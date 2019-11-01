@@ -3,7 +3,7 @@
 #include "Editor/Core/RenderWindowBase.h"
 #include "Editor/Common/CameraController2D.h"
 #include "Graphics/Camera.h"
-#include "Graphics/Auth2D/Renderer2D.h"
+#include "Graphics/OpenGL/GL_Renderer2D.h"
 #include "Graphics/Auth2D/AetRenderer.h"
 #include "ImGui/Gui.h"
 
@@ -34,7 +34,7 @@ namespace App
 		void OnResize(ivec2 size) override;
 
 	protected:
-		UniquePtr<Graphics::Renderer2D> renderer;
+		UniquePtr<Graphics::GL_Renderer2D> renderer;
 		UniquePtr<Graphics::AetRenderer> aetRenderer;
 
 		Graphics::OrthographicCamera camera;

@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "ImGui/Gui.h"
 #include "Graphics/Auth2D/AetSet.h"
-#include "Graphics/Texture/Texture2D.h"
+#include "Graphics/OpenGL/GL_Texture2D.h"
 
 namespace Editor
 {
@@ -25,7 +25,7 @@ namespace Editor
 		static constexpr ivec2 keyFrameTextureSize = ivec2(22, 22);
 		static const uint32_t keyFrameTexturePixels[keyFrameTextureSize.x * keyFrameTextureSize.y];
 
-		UniquePtr<Graphics::Texture2D> keyFrameTexture = nullptr;
+		UniquePtr<Graphics::GL_Texture2D> keyFrameTexture = nullptr;
 
 		enum class KeyFrameType
 		{

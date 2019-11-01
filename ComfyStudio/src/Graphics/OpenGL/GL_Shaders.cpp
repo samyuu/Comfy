@@ -1,4 +1,4 @@
-#include "Shader.h"
+#include "GL_Shaders.h"
 
 namespace Graphics
 {
@@ -6,35 +6,35 @@ namespace Graphics
 	// --- SpriteShader:
 	// ------------------------------------------------------------------------------------------------
 
-	SpriteShader::SpriteShader()
+	GL_SpriteShader::GL_SpriteShader()
 	{
 	}
 
-	SpriteShader::~SpriteShader()
+	GL_SpriteShader::~GL_SpriteShader()
 	{
 	}
 
-	Uniform* SpriteShader::GetFirstUniform()
+	GL_Uniform* GL_SpriteShader::GetFirstUniform()
 	{
 		return &ProjectionView;
 	}
 
-	Uniform* SpriteShader::GetLastUniform()
+	GL_Uniform* GL_SpriteShader::GetLastUniform()
 	{
 		return &TextureMask;
 	}
 
-	const char* SpriteShader::GetShaderName()
+	const char* GL_SpriteShader::GetShaderName()
 	{
 		return "SpriteShader";
 	}
 
-	const char* SpriteShader::GetVertexShaderPath()
+	const char* GL_SpriteShader::GetVertexShaderPath()
 	{
 		return "rom/shader/sprite_vert.glsl";
 	}
 
-	const char* SpriteShader::GetFragmentShaderPath()
+	const char* GL_SpriteShader::GetFragmentShaderPath()
 	{
 		return "rom/shader/sprite_frag.glsl";
 	}
@@ -43,35 +43,35 @@ namespace Graphics
 	// --- ComfyShader:
 	// ------------------------------------------------------------------------------------------------
 
-	ComfyShader::ComfyShader()
+	GL_ComfyShader::GL_ComfyShader()
 	{
 	}
 
-	ComfyShader::~ComfyShader()
+	GL_ComfyShader::~GL_ComfyShader()
 	{
 	}
 
-	Uniform* ComfyShader::GetFirstUniform()
+	GL_Uniform* GL_ComfyShader::GetFirstUniform()
 	{
 		return &Model;
 	}
 
-	Uniform* ComfyShader::GetLastUniform()
+	GL_Uniform* GL_ComfyShader::GetLastUniform()
 	{
 		return &Texture1;
 	}
 
-	const char* ComfyShader::GetShaderName()
+	const char* GL_ComfyShader::GetShaderName()
 	{
 		return "ComfyShader";
 	}
 
-	const char* ComfyShader::GetVertexShaderPath()
+	const char* GL_ComfyShader::GetVertexShaderPath()
 	{
 		return "rom/shader/comfy_vert.glsl";
 	}
 
-	const char* ComfyShader::GetFragmentShaderPath()
+	const char* GL_ComfyShader::GetFragmentShaderPath()
 	{
 		return "rom/shader/comfy_frag.glsl";
 	}
@@ -80,35 +80,35 @@ namespace Graphics
 	// --- ScreenShader:
 	// ------------------------------------------------------------------------------------------------
 
-	ScreenShader::ScreenShader()
+	GL_ScreenShader::GL_ScreenShader()
 	{
 	}
 
-	ScreenShader::~ScreenShader()
+	GL_ScreenShader::~GL_ScreenShader()
 	{
 	}
 
-	Uniform* ScreenShader::GetFirstUniform()
+	GL_Uniform* GL_ScreenShader::GetFirstUniform()
 	{
 		return &Saturation;
 	}
 
-	Uniform* ScreenShader::GetLastUniform()
+	GL_Uniform* GL_ScreenShader::GetLastUniform()
 	{
 		return &ScreenTexture;
 	}
 
-	const char* ScreenShader::GetShaderName()
+	const char* GL_ScreenShader::GetShaderName()
 	{
 		return "ScreenShader";
 	}
 
-	const char* ScreenShader::GetVertexShaderPath()
+	const char* GL_ScreenShader::GetVertexShaderPath()
 	{
 		return "rom/shader/screen_vert.glsl";
 	}
 
-	const char* ScreenShader::GetFragmentShaderPath()
+	const char* GL_ScreenShader::GetFragmentShaderPath()
 	{
 		return "rom/shader/screen_frag.glsl";
 	}
@@ -117,35 +117,35 @@ namespace Graphics
 	// --- LineShader:
 	// ------------------------------------------------------------------------------------------------
 
-	LineShader::LineShader()
+	GL_LineShader::GL_LineShader()
 	{
 	}
 
-	LineShader::~LineShader()
+	GL_LineShader::~GL_LineShader()
 	{
 	}
 
-	Uniform* LineShader::GetFirstUniform()
+	GL_Uniform* GL_LineShader::GetFirstUniform()
 	{
 		return &Model;
 	}
 
-	Uniform* LineShader::GetLastUniform()
+	GL_Uniform* GL_LineShader::GetLastUniform()
 	{
 		return &Projection;
 	}
 
-	const char* LineShader::GetShaderName()
+	const char* GL_LineShader::GetShaderName()
 	{
 		return "LineShader";
 	}
 
-	const char* LineShader::GetVertexShaderPath()
+	const char* GL_LineShader::GetVertexShaderPath()
 	{
 		return "rom/shader/line_vert.glsl";
 	}
 
-	const char* LineShader::GetFragmentShaderPath()
+	const char* GL_LineShader::GetFragmentShaderPath()
 	{
 		return "rom/shader/line_frag.glsl";
 	}
@@ -154,35 +154,35 @@ namespace Graphics
 	// --- SimpleShader:
 	// ------------------------------------------------------------------------------------------------
 
-	SimpleShader::SimpleShader()
+	GL_SimpleShader::GL_SimpleShader()
 	{
 	}
 
-	SimpleShader::~SimpleShader()
+	GL_SimpleShader::~GL_SimpleShader()
 	{
 	}
 
-	Uniform* SimpleShader::GetFirstUniform()
+	GL_Uniform* GL_SimpleShader::GetFirstUniform()
 	{
 		return &Model;
 	}
 
-	Uniform* SimpleShader::GetLastUniform()
+	GL_Uniform* GL_SimpleShader::GetLastUniform()
 	{
 		return &Projection;
 	}
 
-	const char* SimpleShader::GetShaderName()
+	const char* GL_SimpleShader::GetShaderName()
 	{
 		return "SimpleShader";
 	}
 
-	const char* SimpleShader::GetVertexShaderPath()
+	const char* GL_SimpleShader::GetVertexShaderPath()
 	{
 		return "rom/shader/simple_vert.glsl";
 	}
 
-	const char* SimpleShader::GetFragmentShaderPath()
+	const char* GL_SimpleShader::GetFragmentShaderPath()
 	{
 		return "rom/shader/simple_frag.glsl";
 	}

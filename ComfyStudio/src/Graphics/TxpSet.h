@@ -6,7 +6,7 @@
 
 namespace Graphics
 {
-	class Texture2D;
+	class GL_Texture2D;
 }
 
 namespace Graphics
@@ -46,7 +46,7 @@ namespace Graphics
 		std::vector<RefPtr<MipMap>> MipMaps;
 		std::string Name;
 
-		RefPtr<Texture2D> GraphicsTexture;
+		RefPtr<GL_Texture2D> GraphicsTexture;
 	};
 
 	class TxpSet : public FileSystem::IBinaryReadable, public FileSystem::IBufferParsable

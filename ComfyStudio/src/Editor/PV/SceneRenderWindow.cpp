@@ -10,7 +10,7 @@ namespace Editor
 
 	SceneRenderWindow::SceneRenderWindow(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
-		renderer = MakeUnique<Renderer3D>();
+		renderer = MakeUnique<GL_Renderer3D>();
 	}
 
 	SceneRenderWindow::~SceneRenderWindow()

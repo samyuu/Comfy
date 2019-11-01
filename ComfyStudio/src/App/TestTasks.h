@@ -101,7 +101,7 @@ namespace App
 	public:
 		bool Initialize() override;
 		bool Update() override;
-		bool Render(Renderer2D* renderer, AetRenderer* aetRenderer) override;
+		bool Render(GL_Renderer2D* renderer, AetRenderer* aetRenderer) override;
 		bool PostDrawGui() override;
 
 	protected:

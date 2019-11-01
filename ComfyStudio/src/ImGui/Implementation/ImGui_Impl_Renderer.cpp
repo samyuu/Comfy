@@ -4,7 +4,7 @@
 
 #include "ImGui/Core/imgui.h"
 #include "ImGui/Implementation/Imgui_Impl_Renderer.h"
-#include "Graphics/Graphics.h"
+#include "Graphics/OpenGL/OpenGL.h"
 #include "Graphics/RenderCommand.h"
 #include "Graphics/OpenGL/OpenGL.h"
 

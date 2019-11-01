@@ -6,8 +6,6 @@
 #endif
 #define __gl_h_
 
-#include "Core/Win32/ComfyWindows.h"
-
 #pragma region OpenGL Type Defines
 typedef unsigned int	GLenum;
 typedef unsigned char	GLboolean;

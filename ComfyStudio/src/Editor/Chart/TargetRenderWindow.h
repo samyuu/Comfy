@@ -3,7 +3,7 @@
 #include "Editor/Common/CheckerboardGrid.h"
 #include "FileSystem/FileLoader.h"
 #include "Graphics/Camera.h"
-#include "Graphics/Auth2D/Renderer2D.h"
+#include "Graphics/OpenGL/GL_Renderer2D.h"
 #include "Graphics/Auth2D/AetRenderer.h"
 #include "Graphics/Auth2D/AetSet.h"
 #include "Graphics/SprSet.h"
@@ -32,7 +32,7 @@ namespace Editor
 		Graphics::OrthographicCamera camera;
 
 		Graphics::SpriteGetterFunction spriteGetterFunction;
-		UniquePtr<Graphics::Renderer2D> renderer;
+		UniquePtr<Graphics::GL_Renderer2D> renderer;
 		UniquePtr<Graphics::AetRenderer> aetRenderer;
 
 		// TODO: ps4_gam

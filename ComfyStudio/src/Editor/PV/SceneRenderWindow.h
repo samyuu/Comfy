@@ -1,12 +1,12 @@
 #pragma once
 #include "Editor/Core/IEditorComponent.h"
 #include "Editor/Core/RenderWindowBase.h"
-#include "Graphics/VertexArray.h"
-#include "Graphics/Buffer.h"
+#include "Graphics/OpenGL/GL_VertexArray.h"
+#include "Graphics/OpenGL/GL_Buffer.h"
 #include "Graphics/VertexLayouts.h"
-#include "Graphics/Shader/Shader.h"
-#include "Graphics/Texture/Texture2D.h"
-#include "Graphics/Auth3D/Renderer3D.h"
+#include "Graphics/OpenGL/GL_Shaders.h"
+#include "Graphics/OpenGL/GL_Texture2D.h"
+#include "Graphics/OpenGL/GL_Renderer3D.h"
 #include "Graphics/Auth3D/ObjSet.h"
 #include "Graphics/Camera.h"
 #include "Graphics/SprSet.h"
@@ -47,17 +47,17 @@ namespace Editor
 
 		int testObjectIndex = 0;
 		UniquePtr<Graphics::ObjSet> testObjSet;
-		UniquePtr<Graphics::Renderer3D> renderer;
+		UniquePtr<Graphics::GL_Renderer3D> renderer;
 
 		// Vertex Storage
 		// --------------
 		struct
 		{
-			Graphics::VertexArray cubeVao;
-			Graphics::VertexArray lineVao;
+			Graphics::GL_VertexArray cubeVao;
+			Graphics::GL_VertexArray lineVao;
 
-			Graphics::VertexBuffer cubeVertexBuffer = { Graphics::BufferUsage::StaticDraw };
-			Graphics::VertexBuffer lineVertexBuffer = { Graphics::BufferUsage::StaticDraw };
+			Graphics::GL_VertexBuffer cubeVertexBuffer = { Graphics::BufferUsage::StaticDraw };
+			Graphics::GL_VertexBuffer lineVertexBuffer = { Graphics::BufferUsage::StaticDraw };
 		};
 
 		// Textures
@@ -83,9 +83,9 @@ namespace Editor
 		// -------
 		struct
 		{
-			Graphics::ComfyShader comfyShader;
-			Graphics::LineShader lineShader;
-			Graphics::ScreenShader screenShader;
+			Graphics::GL_ComfyShader comfyShader;
+			Graphics::GL_LineShader lineShader;
+			Graphics::GL_ScreenShader screenShader;
 		};
 
 		Graphics::RenderTarget postProcessingRenderTarget;

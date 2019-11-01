@@ -1,15 +1,16 @@
 #pragma once
-#include "Texture.h"
+#include "GL_Texture.h"
 #include "Graphics/TxpSet.h"
 
 namespace Graphics
 {
-	class Texture2D : public Texture
+	class GL_Texture2D : public GL_Texture
 	{
 	public:
-		Texture2D();
-		Texture2D(Texture2D&) = delete;
-		~Texture2D();
+		GL_Texture2D();
+		GL_Texture2D(const GL_Texture2D&) = delete;
+		GL_Texture2D& operator= (const GL_Texture2D&) = delete;
+		~GL_Texture2D();
 
 		void UploadEmpty(ivec2 size);
 		bool Create(const Txp* txp);

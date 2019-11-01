@@ -9,7 +9,7 @@ namespace Editor
 	{
 		spriteGetterFunction = [this](const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr) { return false; };
 
-		renderer = MakeUnique<Renderer2D>();
+		renderer = MakeUnique<GL_Renderer2D>();
 		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
 		aetRenderer->SetSpriteGetterFunction(&spriteGetterFunction);
 	}

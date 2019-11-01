@@ -1,7 +1,6 @@
 #pragma once
-#include "Texture/Texture2D.h"
-#include "Graphics.h"
-#include "GraphicsInterface.h"
+#include "GL_Texture2D.h"
+#include "Graphics/GraphicsInterface.h"
 
 namespace Graphics
 {
@@ -13,12 +12,13 @@ namespace Graphics
 	typedef GLenum RenderTarget_t;
 	typedef GLenum InternalFormat_t;
 
-	class Renderbuffer : public IGraphicsObject
+	class GL_Renderbuffer : public IGraphicsObject
 	{
 	public:
-		Renderbuffer();
-		Renderbuffer(const Renderbuffer&) = delete;
-		~Renderbuffer();
+		GL_Renderbuffer();
+		GL_Renderbuffer(const GL_Renderbuffer&) = delete;
+		GL_Renderbuffer& operator= (const GL_Renderbuffer&) = delete;
+		~GL_Renderbuffer();
 
 		void InitializeID() override;
 		void Bind() const override;
@@ -49,6 +49,7 @@ namespace Graphics
 	public:
 		Framebuffer();
 		Framebuffer(const Framebuffer&) = delete;
+		Framebuffer& operator= (const Framebuffer&) = delete;
 		~Framebuffer();
 
 		void InitializeID() override;
@@ -57,8 +58,8 @@ namespace Graphics
 		void UnBind() const override;
 
 		FramebufferStatus_t CheckStatus();
-		void AttachTexture(Texture2D& texture, Attachment_t attachment);
-		void AttachRenderbuffer(Renderbuffer& renderbuffer, Attachment_t attachment);
+		void AttachTexture(GL_Texture2D& texture, Attachment_t attachment);
+		void AttachRenderbuffer(GL_Renderbuffer& renderbuffer, Attachment_t attachment);
 		void SetObjectLabel(const char* label) override;
 
 	protected:
@@ -77,6 +78,7 @@ namespace Graphics
 	public:
 		RenderTarget();
 		RenderTarget(const RenderTarget&) = delete;
+		RenderTarget& operator= (const RenderTarget&) = delete;
 		~RenderTarget();
 
 		void Initialize(ivec2 size);
@@ -85,22 +87,22 @@ namespace Graphics
 
 		void Resize(ivec2 size);
 
-		inline Texture2D& GetTexture() { return colorTexture; };
+		inline GL_Texture2D& GetTexture() { return colorTexture; };
 		inline void* GetVoidTexture() { return GetTexture().GetVoidTexture(); };
 		inline float GetWidth() const { return dimensions.x; };
 		inline float GetHeight() const { return dimensions.y; };
 		inline const vec2& GetSize() const { return dimensions; };
 
 		inline Framebuffer& GetFramebuffer() { return framebuffer; };
-		inline Texture2D& GetColorTexture() { return colorTexture; };
-		inline Renderbuffer& GetDepthBuffer() { return depthRenderbuffer; };
+		inline GL_Texture2D& GetColorTexture() { return colorTexture; };
+		inline GL_Renderbuffer& GetDepthBuffer() { return depthRenderbuffer; };
 
 	protected:
 		vec2 dimensions;
 
 		Framebuffer framebuffer;
-		Texture2D colorTexture;
-		Renderbuffer depthRenderbuffer;
+		GL_Texture2D colorTexture;
+		GL_Renderbuffer depthRenderbuffer;
 
 		void Dispose();
 	};

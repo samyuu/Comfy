@@ -1,6 +1,6 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "ImguiExtensions.h"
-#include "Graphics/Texture/Texture2D.h"
+#include "Graphics/OpenGL/GL_Texture2D.h"
 #include "Core/DebugStopwatch.h"
 #include "FontIcons.h"
 
@@ -77,7 +77,7 @@ namespace ImGui
 		PopItemFlag();
 	}
 
-	void AddTexture(ImDrawList* drawList, const Graphics::Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0, const ImVec2& uv1)
+	void AddTexture(ImDrawList* drawList, const Graphics::GL_Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0, const ImVec2& uv1)
 	{
 		float width = texture->GetWidth() * scale.x;
 		float height = texture->GetHeight() * scale.y;
@@ -89,7 +89,7 @@ namespace ImGui
 		drawList->AddImage(texture->GetVoidTexture(), center, bottomRight, uv0, uv1);
 	}
 
-	void AddSprite(ImDrawList* drawList, const Graphics::Texture2D* texture, const vec2& position, const vec4& sourceRegion, ImU32 color)
+	void AddSprite(ImDrawList* drawList, const Graphics::GL_Texture2D* texture, const vec2& position, const vec4& sourceRegion, ImU32 color)
 	{
 		const vec2 textureSize = texture->GetSize();
 

@@ -1,14 +1,14 @@
-#include "Renderer3D.h"
+#include "GL_Renderer3D.h"
 
 namespace Graphics
 {
-	void Renderer3D::Initialize()
+	void GL_Renderer3D::Initialize()
 	{
-		simpleShader = MakeUnique<SimpleShader>();
+		simpleShader = MakeUnique<GL_SimpleShader>();
 		simpleShader->Initialize();
 	}
 
-	void Renderer3D::Begin(const PerspectiveCamera& camera)
+	void GL_Renderer3D::Begin(const PerspectiveCamera& camera)
 	{
 		this->camera = &camera;
 
@@ -19,7 +19,7 @@ namespace Graphics
 
 	}
 
-	void Renderer3D::Draw(const Obj* object, const vec3& position)
+	void GL_Renderer3D::Draw(const Obj* object, const vec3& position)
 	{
 		assert(object != nullptr);
 
@@ -43,7 +43,7 @@ namespace Graphics
 		}
 	}
 
-	void Renderer3D::End()
+	void GL_Renderer3D::End()
 	{
 	}
 }

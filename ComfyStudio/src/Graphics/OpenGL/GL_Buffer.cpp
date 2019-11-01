@@ -1,4 +1,4 @@
-#include "Buffer.h"
+#include "GL_Buffer.h"
 #include <assert.h>
 
 namespace Graphics
@@ -7,46 +7,46 @@ namespace Graphics
 	// --- Buffer:
 	// ------------------------------------------------------------------------------------------------
 
-	Buffer::Buffer(BufferUsage usage) : bufferUsage(usage)
+	GL_Buffer::GL_Buffer(BufferUsage usage) : bufferUsage(usage)
 	{
 	}
 
-	Buffer::~Buffer()
+	GL_Buffer::~GL_Buffer()
 	{
 		Dispose();
 	}
 
-	void Buffer::InitializeID()
+	void GL_Buffer::InitializeID()
 	{
 		GLCall(glGenBuffers(1, &bufferID));
 	}
 
-	void Buffer::Upload(size_t dataSize, void* data)
+	void GL_Buffer::Upload(size_t dataSize, void* data)
 	{
 		GLCall(glBufferData(GetGLBufferTarget(), dataSize, data, GetGLUsage()));
 	}
 
-	void Buffer::UploadSubData(size_t dataSize, size_t* offset, void* data)
+	void GL_Buffer::UploadSubData(size_t dataSize, size_t* offset, void* data)
 	{
 		GLCall(glBufferSubData(GetGLBufferTarget(), (GLintptr)offset, dataSize, data));
 	}
 
-	void Buffer::Bind() const
+	void GL_Buffer::Bind() const
 	{
 		GLCall(glBindBuffer(GetGLBufferTarget(), bufferID));
 	}
 
-	void Buffer::UnBind() const
+	void GL_Buffer::UnBind() const
 	{
 		GLCall(glBindBuffer(GetGLBufferTarget(), NULL));
 	}
 
-	void Buffer::SetObjectLabel(const char* label)
+	void GL_Buffer::SetObjectLabel(const char* label)
 	{
 		GLCall(glObjectLabel(GL_BUFFER, bufferID, -1, label));
 	}
 
-	GLenum Buffer::GetGLUsage() const
+	GLenum GL_Buffer::GetGLUsage() const
 	{
 		switch (bufferUsage)
 		{
@@ -74,7 +74,7 @@ namespace Graphics
 		}
 	}
 
-	void Buffer::Dispose()
+	void GL_Buffer::Dispose()
 	{
 		if (bufferID != NULL)
 		{
@@ -87,15 +87,15 @@ namespace Graphics
 	// --- VertexBuffer:
 	// ------------------------------------------------------------------------------------------------
 
-	VertexBuffer::VertexBuffer(BufferUsage usage) : Buffer(usage)
+	GL_VertexBuffer::GL_VertexBuffer(BufferUsage usage) : GL_Buffer(usage)
 	{
 	}
 
-	VertexBuffer::~VertexBuffer()
+	GL_VertexBuffer::~GL_VertexBuffer()
 	{
 	}
 
-	GLenum VertexBuffer::GetGLBufferTarget() const
+	GLenum GL_VertexBuffer::GetGLBufferTarget() const
 	{
 		return GL_ARRAY_BUFFER;
 	}
@@ -104,15 +104,15 @@ namespace Graphics
 	// --- IndexBuffer:
 	// ------------------------------------------------------------------------------------------------
 
-	IndexBuffer::IndexBuffer(BufferUsage usage, IndexType type) : Buffer(usage), indexType(type)
+	GL_IndexBuffer::GL_IndexBuffer(BufferUsage usage, IndexType type) : GL_Buffer(usage), indexType(type)
 	{
 	}
 
-	IndexBuffer::~IndexBuffer()
+	GL_IndexBuffer::~GL_IndexBuffer()
 	{
 	}
 
-	GLenum IndexBuffer::GetGLIndexType()
+	GLenum GL_IndexBuffer::GetGLIndexType()
 	{
 		switch (indexType)
 		{
@@ -128,7 +128,7 @@ namespace Graphics
 		}
 	}
 
-	GLenum IndexBuffer::GetGLBufferTarget() const
+	GLenum GL_IndexBuffer::GetGLBufferTarget() const
 	{
 		return GL_ELEMENT_ARRAY_BUFFER;
 	}
@@ -141,7 +141,7 @@ namespace Graphics
 	{
 	}
 
-	BufferElement::BufferElement(ShaderDataType type, const char* name, bool normalized, const VertexBuffer* buffer) : Name(name), Type(type), Size(0), Offset(0), Normalized(normalized), Buffer(buffer)
+	BufferElement::BufferElement(ShaderDataType type, const char* name, bool normalized, const GL_VertexBuffer* buffer) : Name(name), Type(type), Size(0), Offset(0), Normalized(normalized), Buffer(buffer)
 	{
 	}
 

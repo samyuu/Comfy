@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/BaseWindow.h"
-#include "Graphics/Shader/ShaderProgram.h"
+#include "Graphics/OpenGL/GL_ShaderProgram.h"
 
 namespace DataTest
 {

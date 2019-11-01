@@ -1,54 +1,54 @@
-#include "Texture.h"
+#include "GL_Texture.h"
 #include "Graphics/RenderCommand.h"
 
 namespace Graphics
 {
-	Texture::Texture()
+	GL_Texture::GL_Texture()
 	{
 	}
 	
-	Texture::~Texture()
+	GL_Texture::~GL_Texture()
 	{
 	}
 
-	void Texture::Bind() const
+	void GL_Texture::Bind() const
 	{
 		Bind(TextureSlot_0);
 	}
 
-	void Texture::Bind(TextureSlot textureSlot) const
+	void GL_Texture::Bind(TextureSlot textureSlot) const
 	{
 		RenderCommand::SetTextureSlot(textureSlot);
 		RenderCommand::BindTexture(GetTextureTarget(), textureID);
 	}
 
-	void Texture::UnBind() const
+	void GL_Texture::UnBind() const
 	{
 		UnBind(TextureSlot_0);
 	}
 
-	void Texture::UnBind(TextureSlot textureSlot) const
+	void GL_Texture::UnBind(TextureSlot textureSlot) const
 	{
 		RenderCommand::SetTextureSlot(textureSlot);
 		RenderCommand::BindTexture(GetTextureTarget(), NULL);
 	}
 
-	void Texture::InitializeID()
+	void GL_Texture::InitializeID()
 	{
 		GLCall(glGenTextures(1, &textureID));
 	}
 
-	TextureTarget_t Texture::GetTextureTarget() const
+	TextureTarget_t GL_Texture::GetTextureTarget() const
 	{
 		return textureTarget;
 	};
 
-	TextureFormat Texture::GetTextureFormat() const
+	TextureFormat GL_Texture::GetTextureFormat() const
 	{
 		return textureFormat;
 	};
 
-	bool Texture::GetIsCompressed(TextureFormat format)
+	bool GL_Texture::GetIsCompressed(TextureFormat format)
 	{
 		switch (format)
 		{
@@ -77,7 +77,7 @@ namespace Graphics
 		return false;
 	}
 
-	GLenum Texture::GetGLTextureFormat(TextureFormat format)
+	GLenum GL_Texture::GetGLTextureFormat(TextureFormat format)
 	{
 		switch (format)
 		{

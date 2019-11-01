@@ -23,7 +23,7 @@ namespace DataTest
 		BeginChild("##ShaderTestWindowListChild", vec2(GetWindowWidth() * listWidth, 0.0f), true, scrollBarWindowFlags);
 		{
 			int i = 0;
-			for (auto& shader : Graphics::ShaderProgram::GetAllShaderPrograms())
+			for (auto& shader : Graphics::GL_ShaderProgram::GetAllShaderPrograms())
 			{
 				PushID(shader);
 				if (Gui::Selectable(shader->GetShaderName(), i == selectedIndex))
@@ -36,9 +36,9 @@ namespace DataTest
 		SameLine();
 		BeginChild("##ShaderTestWindowInfoChild", vec2(0.0f, 0.0f), true);
 		{
-			if (selectedIndex >= 0 && selectedIndex < Graphics::ShaderProgram::GetAllShaderPrograms().size())
+			if (selectedIndex >= 0 && selectedIndex < Graphics::GL_ShaderProgram::GetAllShaderPrograms().size())
 			{
-				Graphics::ShaderProgram* shader = Graphics::ShaderProgram::GetAllShaderPrograms()[selectedIndex];
+				Graphics::GL_ShaderProgram* shader = Graphics::GL_ShaderProgram::GetAllShaderPrograms()[selectedIndex];
 
 				BulletText("%s	[ OpenGL ID: %d ]", shader->GetShaderName(), shader->GetProgramID());
 				BeginChild("##ShaderTestWindowSourceChild", vec2(0.0f, 82.0f), true);
@@ -90,7 +90,7 @@ namespace DataTest
 					NextColumn();
 					Separator();
 
-					for (Graphics::Uniform* uniform = shader->GetFirstUniform(); uniform <= shader->GetLastUniform(); uniform++)
+					for (Graphics::GL_Uniform* uniform = shader->GetFirstUniform(); uniform <= shader->GetLastUniform(); uniform++)
 					{
 						PushID(uniform);
 						Selectable("##UniformSelectable::ShaderTestWindow", false, ImGuiSelectableFlags_SpanAllColumns);

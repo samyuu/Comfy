@@ -1,4 +1,4 @@
-#include "ShaderProgram.h"
+#include "GL_ShaderProgram.h"
 #include "Graphics/RenderCommand.h"
 #include "FileSystem/FileHelper.h"
 #include <algorithm>
@@ -8,11 +8,11 @@ namespace Graphics
 {
 	constexpr int32_t UniformLocation_Uninitialized = 0xCCCCCCCC;
 
-	Uniform::Uniform(UniformType type, const char* name) : location(UniformLocation_Uninitialized), type(type), name(name)
+	GL_Uniform::GL_Uniform(UniformType type, const char* name) : location(UniformLocation_Uninitialized), type(type), name(name)
 	{
 	}
 
-	void Uniform::UpdateLocation(const ShaderProgram& shader)
+	void GL_Uniform::UpdateLocation(const GL_ShaderProgram& shader)
 	{
 		GLCall(location = glGetUniformLocation(shader.GetProgramID(), name));
 
@@ -20,85 +20,85 @@ namespace Graphics
 			Logger::LogLine(__FUNCTION__ "(): %s not found", GetName());
 	}
 
-	void Uniform::AssertLocationSetType(UniformType targetType) const
+	void GL_Uniform::AssertLocationSetType(UniformType targetType) const
 	{
 		assert(location != UniformLocation_Uninitialized);
 		assert(type == targetType);
 	}
 
-	int32_t Uniform::GetLocation() const
+	int32_t GL_Uniform::GetLocation() const
 	{
 		return location;
 	}
 
-	UniformType Uniform::GetType() const
+	UniformType GL_Uniform::GetType() const
 	{
 		return type;
 	}
 
-	const char* Uniform::GetName() const
+	const char* GL_Uniform::GetName() const
 	{
 		return name;
 	}
 
-	ShaderProgram::ShaderProgram()
+	GL_ShaderProgram::GL_ShaderProgram()
 	{
 		RegisterProgram(this);
 	}
 
-	ShaderProgram::~ShaderProgram()
+	GL_ShaderProgram::~GL_ShaderProgram()
 	{
 		UnregisterProgram(this);
 		Dispose();
 	}
 
-	void ShaderProgram::Bind() const
+	void GL_ShaderProgram::Bind() const
 	{
 		RenderCommand::BindShaderProgram(programID);
 	}
 
-	void ShaderProgram::UnBind() const
+	void GL_ShaderProgram::UnBind() const
 	{
 		RenderCommand::BindShaderProgram(0);
 	}
 
-	void ShaderProgram::SetUniform(const Uniform& uniform, int value)
+	void GL_ShaderProgram::SetUniform(const GL_Uniform& uniform, int value)
 	{
 		uniform.AssertLocationSetType(UniformType::Int);
 		GLCall(glUniform1i(uniform.GetLocation(), value));
 	}
 
-	void ShaderProgram::SetUniform(const Uniform& uniform, float value)
+	void GL_ShaderProgram::SetUniform(const GL_Uniform& uniform, float value)
 	{
 		uniform.AssertLocationSetType(UniformType::Float);
 		GLCall(glUniform1f(uniform.GetLocation(), value));
 	}
 
-	void ShaderProgram::SetUniform(const Uniform& uniform, const vec2& value)
+	void GL_ShaderProgram::SetUniform(const GL_Uniform& uniform, const vec2& value)
 	{
 		uniform.AssertLocationSetType(UniformType::Vec2);
 		GLCall(glUniform2f(uniform.GetLocation(), value.x, value.y));
 	}
 
-	void ShaderProgram::SetUniform(const Uniform& uniform, const vec3& value)
+	void GL_ShaderProgram::SetUniform(const GL_Uniform& uniform, const vec3& value)
 	{
 		uniform.AssertLocationSetType(UniformType::Vec3);
 		GLCall(glUniform3f(uniform.GetLocation(), value.x, value.y, value.z));
 	}
 
-	void ShaderProgram::SetUniform(const Uniform& uniform, const vec4& value)
+	void GL_ShaderProgram::SetUniform(const GL_Uniform& uniform, const vec4& value)
 	{
 		uniform.AssertLocationSetType(UniformType::Vec4);
 		GLCall(glUniform4f(uniform.GetLocation(), value.x, value.y, value.z, value.w));
 	}
 
-	void ShaderProgram::SetUniform(const Uniform& uniform, const glm::mat4& value)
+	void GL_ShaderProgram::SetUniform(const GL_Uniform& uniform, const glm::mat4& value)
 	{
 		uniform.AssertLocationSetType(UniformType::Mat4);
 		GLCall(glUniformMatrix4fv(uniform.GetLocation(), 1, GL_FALSE, glm::value_ptr(value)));
 	}
 
-	void ShaderProgram::Initialize()
+	void GL_ShaderProgram::Initialize()
 	{
 		LoadShaderSources();
 
@@ -116,12 +116,12 @@ namespace Graphics
 		initialized = true;
 	}
 
-	void ShaderProgram::SetObjectLabel(const char* label)
+	void GL_ShaderProgram::SetObjectLabel(const char* label)
 	{
 		GLCall(glObjectLabel(GL_PROGRAM, programID, -1, label));
 	}
 
-	void ShaderProgram::Recompile()
+	void GL_ShaderProgram::Recompile()
 	{
 		if (!GetIsInitialized())
 			return;
@@ -130,7 +130,7 @@ namespace Graphics
 		Initialize();
 	}
 
-	void ShaderProgram::RecompileAllShaders()
+	void GL_ShaderProgram::RecompileAllShaders()
 	{
 		Logger::LogLine(__FUNCTION__ "(): Recompiling Shaders...");
 
@@ -140,34 +140,34 @@ namespace Graphics
 		}
 	}
 
-	const std::vector<ShaderProgram*>& ShaderProgram::GetAllShaderPrograms()
+	const std::vector<GL_ShaderProgram*>& GL_ShaderProgram::GetAllShaderPrograms()
 	{
 		return allShaderPrograms;
 	}
 
-	void ShaderProgram::UpdateUniformLocation(Uniform& uniform) const
+	void GL_ShaderProgram::UpdateUniformLocation(GL_Uniform& uniform) const
 	{
 		uniform.UpdateLocation(*this);
 	}
 
-	void ShaderProgram::UpdateUniformArrayLocations(Uniform* firstUniform, Uniform* lastUniform) const
+	void GL_ShaderProgram::UpdateUniformArrayLocations(GL_Uniform* firstUniform, GL_Uniform* lastUniform) const
 	{
-		for (Uniform* uniform = firstUniform; uniform <= lastUniform; uniform++)
+		for (GL_Uniform* uniform = firstUniform; uniform <= lastUniform; uniform++)
 			uniform->UpdateLocation(*this);
 	}
 
-	void ShaderProgram::GetAllUniformLocations()
+	void GL_ShaderProgram::GetAllUniformLocations()
 	{
 		UpdateUniformArrayLocations(GetFirstUniform(), GetLastUniform());
 	}
 
-	void ShaderProgram::LoadShaderSources()
+	void GL_ShaderProgram::LoadShaderSources()
 	{
 		FileSystem::FileReader::ReadEntireFile(std::string(GetVertexShaderPath()), &vertexSource);
 		FileSystem::FileReader::ReadEntireFile(std::string(GetFragmentShaderPath()), &fragmentSource);
 	}
 
-	int ShaderProgram::CompileShader(ShaderType shaderType, ShaderID_t* shaderID, const std::vector<uint8_t>& shaderSource)
+	int GL_ShaderProgram::CompileShader(ShaderType shaderType, ShaderID_t* shaderID, const std::vector<uint8_t>& shaderSource)
 	{
 		GLuint glShaderType = NULL;
 
@@ -206,7 +206,7 @@ namespace Graphics
 		return 0;
 	}
 
-	int ShaderProgram::AttachLinkShaders(ShaderID_t vertexShader, ShaderID_t fragmentShader)
+	int GL_ShaderProgram::AttachLinkShaders(ShaderID_t vertexShader, ShaderID_t fragmentShader)
 	{
 		GLCall(glAttachShader(programID, vertexShader));
 		GLCall(glObjectLabel(GL_SHADER, vertexShader, -1, "ShaderProgram::VertexShader"));
@@ -237,7 +237,7 @@ namespace Graphics
 		return linkSuccess;
 	}
 
-	void ShaderProgram::Dispose()
+	void GL_ShaderProgram::Dispose()
 	{
 		if (programID != NULL)
 		{
@@ -246,7 +246,7 @@ namespace Graphics
 		}
 	}
 
-	void ShaderProgram::ReserveShaderInfoLogLength(const ShaderID_t& shaderID, std::string& infoLog)
+	void GL_ShaderProgram::ReserveShaderInfoLogLength(const ShaderID_t& shaderID, std::string& infoLog)
 	{
 		int logLength;
 		GLCall(glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &logLength));
@@ -255,7 +255,7 @@ namespace Graphics
 			infoLog.reserve(logLength);
 	}
 
-	void ShaderProgram::ReserveProgramInfoLogLength(const ProgramID_t& programID, std::string & infoLog)
+	void GL_ShaderProgram::ReserveProgramInfoLogLength(const ProgramID_t& programID, std::string & infoLog)
 	{
 		int logLength;
 		GLCall(glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &logLength));
@@ -264,14 +264,14 @@ namespace Graphics
 			infoLog.reserve(logLength);
 	}
 
-	std::vector<ShaderProgram*> ShaderProgram::allShaderPrograms;
+	std::vector<GL_ShaderProgram*> GL_ShaderProgram::allShaderPrograms;
 
-	void ShaderProgram::RegisterProgram(ShaderProgram* program)
+	void GL_ShaderProgram::RegisterProgram(GL_ShaderProgram* program)
 	{
 		allShaderPrograms.push_back(program);
 	}
 
-	void ShaderProgram::UnregisterProgram(ShaderProgram* program)
+	void GL_ShaderProgram::UnregisterProgram(GL_ShaderProgram* program)
 	{
 		allShaderPrograms.erase(std::remove(allShaderPrograms.begin(), allShaderPrograms.end(), program), allShaderPrograms.end());
 	}

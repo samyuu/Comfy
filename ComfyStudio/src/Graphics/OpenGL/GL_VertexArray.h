@@ -1,19 +1,20 @@
 #pragma once
-#include "Types.h"
-#include "GraphicsInterface.h"
+#include "OpenGL.h"
+#include "Graphics/GraphicsInterface.h"
 
 namespace Graphics
 {
 	class BufferLayout;
 
-	typedef uint32_t VertexArrayID_t;
+	typedef GLuint VertexArrayID_t;
 
-	class VertexArray : public IGraphicsObject
+	class GL_VertexArray : public IGraphicsObject
 	{
 	public:
-		VertexArray();
-		~VertexArray();
-		VertexArray(const VertexArray&) = delete;
+		GL_VertexArray();
+		GL_VertexArray(const GL_VertexArray&) = delete;
+		GL_VertexArray& operator= (const GL_VertexArray&) = delete;
+		~GL_VertexArray();
 
 		void InitializeID() override;
 		void Bind() const override;

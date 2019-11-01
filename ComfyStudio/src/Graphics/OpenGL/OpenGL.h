@@ -1,4 +1,5 @@
 #pragma once
+#include "OpenGLCall.h"
 #include "OpenGLBaseDefines.h"
 
 #pragma region OpenGL Function Type Defines
@@ -321,9 +322,8 @@ typedef void glObjectLabel_t(GLenum identifier, GLuint name, GLsizei length, con
 
 namespace Graphics
 {
-	class OpenGL
+	struct OpenGL
 	{
-	public:
 		static inline glTexParameterf_t*						GLTexParameterf;
 		static inline glTexParameterfv_t*						GLTexParameterfv;
 		static inline glTexParameteri_t*						GLTexParameteri;

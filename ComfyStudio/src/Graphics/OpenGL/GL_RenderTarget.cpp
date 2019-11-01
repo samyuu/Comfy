@@ -1,4 +1,4 @@
-#include "RenderTarget.h"
+#include "GL_RenderTarget.h"
 #include <assert.h>
 
 namespace Graphics
@@ -7,41 +7,41 @@ namespace Graphics
 	// --- Renderbuffer:
 	// ------------------------------------------------------------------------------------------------
 
-	Renderbuffer::Renderbuffer()
+	GL_Renderbuffer::GL_Renderbuffer()
 	{
 	}
 
-	Renderbuffer::~Renderbuffer()
+	GL_Renderbuffer::~GL_Renderbuffer()
 	{
 		Dispose();
 	}
 
-	void Renderbuffer::InitializeID()
+	void GL_Renderbuffer::InitializeID()
 	{
 		GLCall(glGenRenderbuffers(1, &renderbufferID));
 	}
 
-	void Renderbuffer::Bind() const
+	void GL_Renderbuffer::Bind() const
 	{
 		GLCall(glBindRenderbuffer(GetRenderTarget(), renderbufferID));
 	}
 
-	void Renderbuffer::UnBind() const
+	void GL_Renderbuffer::UnBind() const
 	{
 		GLCall(glBindRenderbuffer(GetRenderTarget(), NULL));
 	}
 
-	void Renderbuffer::RenderbufferStorage(ivec2 size, InternalFormat_t internalFormat)
+	void GL_Renderbuffer::RenderbufferStorage(ivec2 size, InternalFormat_t internalFormat)
 	{
 		GLCall(glRenderbufferStorage(GetRenderTarget(), internalFormat, size.x, size.y));
 	}
 
-	void Renderbuffer::SetObjectLabel(const char* label)
+	void GL_Renderbuffer::SetObjectLabel(const char* label)
 	{
 		GLCall(glObjectLabel(GL_RENDERBUFFER, renderbufferID, -1, label));
 	}
 
-	void Renderbuffer::Dispose()
+	void GL_Renderbuffer::Dispose()
 	{
 		if (renderbufferID != NULL)
 		{
@@ -85,12 +85,12 @@ namespace Graphics
 		return framebufferStatus;
 	}
 
-	void Framebuffer::AttachTexture(Texture2D& texture, Attachment_t attachment)
+	void Framebuffer::AttachTexture(GL_Texture2D& texture, Attachment_t attachment)
 	{
 		GLCall(glFramebufferTexture2D(GetBufferTarget(), attachment, texture.GetTextureTarget(), texture.GetTextureID(), 0));
 	}
 
-	void Framebuffer::AttachRenderbuffer(Renderbuffer& renderbuffer, Attachment_t attachment)
+	void Framebuffer::AttachRenderbuffer(GL_Renderbuffer& renderbuffer, Attachment_t attachment)
 	{
 		GLCall(glFramebufferRenderbuffer(GetBufferTarget(), attachment, renderbuffer.GetRenderTarget(), renderbuffer.GetRenderbufferID()));
 	}

@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/Auth2D/Renderer2D.h"
+#include "Graphics/OpenGL/GL_Renderer2D.h"
 
 namespace Editor
 {
@@ -21,7 +21,7 @@ namespace Editor
 		// NOTE: Secondary color
 		vec4 ColorAlt = vec4(0.32f, 0.32f, 0.32f, 1.0f);
 
-		void Render(Graphics::Renderer2D* renderer) const;
+		void Render(Graphics::GL_Renderer2D* renderer) const;
 
 	private:
 	};

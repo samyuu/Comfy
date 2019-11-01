@@ -3,7 +3,7 @@
 
 namespace Graphics
 {
-	AetRenderer::AetRenderer(Renderer2D* renderer) : renderer2D(renderer)
+	AetRenderer::AetRenderer(GL_Renderer2D* renderer) : renderer2D(renderer)
 	{
 	}
 
@@ -11,12 +11,12 @@ namespace Graphics
 	{
 	}
 
-	Renderer2D* AetRenderer::GetRenderer2D()
+	GL_Renderer2D* AetRenderer::GetRenderer2D()
 	{
 		return renderer2D;
 	}
 
-	void AetRenderer::SetRenderer2D(Renderer2D* value)
+	void AetRenderer::SetRenderer2D(GL_Renderer2D* value)
 	{
 		renderer2D = value;
 	}

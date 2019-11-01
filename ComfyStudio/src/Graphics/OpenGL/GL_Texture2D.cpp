@@ -1,20 +1,20 @@
-#include "Texture2D.h"
+#include "GL_Texture2D.h"
 #include "Core/Logger.h"
 #include <assert.h>
 
 namespace Graphics
 {
-	Texture2D::Texture2D()
+	GL_Texture2D::GL_Texture2D()
 	{
 		textureTarget = GL_TEXTURE_2D;
 	}
 
-	Texture2D::~Texture2D()
+	GL_Texture2D::~GL_Texture2D()
 	{
 		Dispose();
 	}
 
-	void Texture2D::UploadEmpty(ivec2 size)
+	void GL_Texture2D::UploadEmpty(ivec2 size)
 	{
 		constexpr ivec2 minimumSize = ivec2(1.0, 1.0);
 		imageSize = glm::max(minimumSize, size);
@@ -26,7 +26,7 @@ namespace Graphics
 		GLCall(glTexParameteri(GetTextureTarget(), GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 	}
 
-	bool Texture2D::Create(const Txp* txp)
+	bool GL_Texture2D::Create(const Txp* txp)
 	{
 		GLint mipMapCount = static_cast<GLint>(txp->MipMaps.size());
 		assert(mipMapCount >= 1);
@@ -88,7 +88,7 @@ namespace Graphics
 		return true;
 	}
 
-	bool Texture2D::CreateFromRgbaBuffer(ivec2 size, const uint32_t* pixels)
+	bool GL_Texture2D::CreateFromRgbaBuffer(ivec2 size, const uint32_t* pixels)
 	{
 		assert(size.x > 0 && size.y > 0);
 
@@ -106,40 +106,40 @@ namespace Graphics
 		return true;
 	}
 
-	float Texture2D::GetWidth() const
+	float GL_Texture2D::GetWidth() const
 	{
 		return imageSize.x;
 	};
 
-	float Texture2D::GetHeight() const
+	float GL_Texture2D::GetHeight() const
 	{
 		return imageSize.y;
 	};
 
-	const vec2& Texture2D::GetSize() const
+	const vec2& GL_Texture2D::GetSize() const
 	{
 		return imageSize;
 	};
 
-	TextureID_t Texture2D::GetTextureID() const
+	TextureID_t GL_Texture2D::GetTextureID() const
 	{
 		return textureID;
 	}
 
 #pragma warning(push)
 #pragma warning(disable : 4312) // 'operation' : conversion from 'type1' to 'type2' of greater size
-	void* Texture2D::GetVoidTexture() const
+	void* GL_Texture2D::GetVoidTexture() const
 	{
 		return reinterpret_cast<void*>(GetTextureID());
 	}
 #pragma warning(pop)
 
-	void Texture2D::SetObjectLabel(const char* label)
+	void GL_Texture2D::SetObjectLabel(const char* label)
 	{
 		GLCall(glObjectLabel(GL_TEXTURE, textureID, -1, label));
 	}
 
-	void Texture2D::Dispose()
+	void GL_Texture2D::Dispose()
 	{
 		if (textureID != NULL)
 		{

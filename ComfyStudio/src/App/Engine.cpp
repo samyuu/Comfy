@@ -5,7 +5,7 @@ namespace App
 {
 	EngineRenderWindow::EngineRenderWindow()
 	{
-		renderer = MakeUnique<Graphics::Renderer2D>();
+		renderer = MakeUnique<Graphics::GL_Renderer2D>();
 		renderer->Initialize();
 		aetRenderer = MakeUnique<Graphics::AetRenderer>(renderer.get());
 

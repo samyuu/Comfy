@@ -3,12 +3,12 @@
 namespace Graphics
 {
 	template <class T>
-	static inline void UploadInitializeBufferIfAttribute(bool hasAttribute, RefPtr<VertexBuffer>& vertexBuffer, std::vector<T>& vertexData)
+	static inline void UploadInitializeBufferIfAttribute(bool hasAttribute, RefPtr<GL_VertexBuffer>& vertexBuffer, std::vector<T>& vertexData)
 	{
 		if (!hasAttribute)
 			return;
 
-		vertexBuffer = MakeRef<VertexBuffer>(BufferUsage::StaticDraw);
+		vertexBuffer = MakeRef<GL_VertexBuffer>(BufferUsage::StaticDraw);
 		vertexBuffer->InitializeID();
 		vertexBuffer->Bind();
 		vertexBuffer->Upload(vertexData.size() * sizeof(T), vertexData.data());
@@ -23,7 +23,7 @@ namespace Graphics
 				UploadInitializeBufferIfAttribute(mesh->VertexAttributes.Position, mesh->GraphicsBuffers.PositionBuffer, mesh->VertexData.Positions);
 				UploadInitializeBufferIfAttribute(mesh->VertexAttributes.Normal, mesh->GraphicsBuffers.NormalBuffer, mesh->VertexData.Normals);
 
-				mesh->GraphicsBuffers.VertexArray = MakeRef<VertexArray>();
+				mesh->GraphicsBuffers.VertexArray = MakeRef<GL_VertexArray>();
 				mesh->GraphicsBuffers.VertexArray->InitializeID();
 				mesh->GraphicsBuffers.VertexArray->Bind();
 
@@ -36,7 +36,7 @@ namespace Graphics
 
 				for (RefPtr<SubMesh>& subMesh : mesh->SubMeshes)
 				{
-					subMesh->GraphicsIndexBuffer = MakeRef<IndexBuffer>(BufferUsage::StaticDraw, IndexType::UnsignedShort);
+					subMesh->GraphicsIndexBuffer = MakeRef<GL_IndexBuffer>(BufferUsage::StaticDraw, IndexType::UnsignedShort);
 					subMesh->GraphicsIndexBuffer->InitializeID();
 					subMesh->GraphicsIndexBuffer->Bind();
 					subMesh->GraphicsIndexBuffer->Upload(subMesh->Indices.size() * sizeof(uint16_t), subMesh->Indices.data());

@@ -1,40 +1,40 @@
-#include "VertexArray.h"
-#include "Buffer.h"
+#include "GL_VertexArray.h"
+#include "GL_Buffer.h"
 
 namespace Graphics
 {
-	VertexArray::VertexArray()
+	GL_VertexArray::GL_VertexArray()
 	{
 	}
 
-	VertexArray::~VertexArray()
+	GL_VertexArray::~GL_VertexArray()
 	{
 		Dispose();
 	}
 
-	void VertexArray::InitializeID()
+	void GL_VertexArray::InitializeID()
 	{
 		GLCall(glGenVertexArrays(1, &vertexArrayID));
 	}
 
-	void VertexArray::Bind() const
+	void GL_VertexArray::Bind() const
 	{
 		GLCall(glBindVertexArray(vertexArrayID));
 	}
 
-	void VertexArray::UnBind() const
+	void GL_VertexArray::UnBind() const
 	{
 		GLCall(glBindVertexArray(NULL));
 	}
 
-	void VertexArray::SetLayout(const BufferLayout& layout, bool interleaved)
+	void GL_VertexArray::SetLayout(const BufferLayout& layout, bool interleaved)
 	{
 		const auto& elements = layout.GetElemenets();
 
 		for (GLuint i = 0; i < static_cast<GLuint>(elements.size()); i++)
 		{
 			const BufferElement& element = elements[i];
-			const VertexBuffer* buffer = element.GetBuffer();
+			const GL_VertexBuffer* buffer = element.GetBuffer();
 
 			if (!interleaved && buffer != nullptr)
 				buffer->Bind();
@@ -44,12 +44,12 @@ namespace Graphics
 		}
 	}
 
-	void VertexArray::SetObjectLabel(const char* label)
+	void GL_VertexArray::SetObjectLabel(const char* label)
 	{
 		GLCall(glObjectLabel(GL_VERTEX_ARRAY, vertexArrayID, -1, label));
 	}
 
-	void VertexArray::Dispose()
+	void GL_VertexArray::Dispose()
 	{
 		if (vertexArrayID != NULL)
 		{

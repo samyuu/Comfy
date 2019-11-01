@@ -28,7 +28,7 @@ namespace Editor
 		checkerboardBaseGrid.Color = baseColor;
 		checkerboardBaseGrid.ColorAlt = baseColor;
 
-		renderer = MakeUnique<Renderer2D>();
+		renderer = MakeUnique<GL_Renderer2D>();
 		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
 		aetRenderer->SetSpriteGetterFunction(spriteGetter);
 		aetRenderer->SetCallback([this](const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity) { return OnObjRender(obj, positionOffset, opacity); });
@@ -111,7 +111,7 @@ namespace Editor
 
 			auto drawList = Gui::GetWindowDrawList();
 
-			vec2 size(Gui::GetContentRegionAvail().x, rulerSize);
+			vec2 size = vec2(Gui::GetContentRegionAvail().x, rulerSize);
 			drawList->AddRectFilled(rulerTopLeft, rulerTopLeft + size, rulerColor);
 			Gui::ItemSize(size);
 
