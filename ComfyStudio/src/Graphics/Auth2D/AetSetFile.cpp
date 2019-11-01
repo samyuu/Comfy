@@ -270,10 +270,7 @@ namespace Graphics
 				{
 					soundEffect = MakeRef<AetSoundEffect>();
 					soundEffect->filePosition = reader.GetPositionPtr();
-					soundEffect->Data[0] = reader.ReadUInt32();
-					soundEffect->Data[1] = reader.ReadUInt32();
-					soundEffect->Data[2] = reader.ReadUInt32();
-					soundEffect->Data[3] = reader.ReadUInt32();
+					soundEffect->Data = reader.ReadUInt32();
 				}
 			});
 		}
@@ -482,10 +479,7 @@ namespace Graphics
 					for (RefPtr<AetSoundEffect>& soundEffect : SoundEffects)
 					{
 						soundEffect->filePosition = writer.GetPositionPtr();
-						writer.WriteUInt32(soundEffect->Data[0]);
-						writer.WriteUInt32(soundEffect->Data[1]);
-						writer.WriteUInt32(soundEffect->Data[2]);
-						writer.WriteUInt32(soundEffect->Data[3]);
+						writer.WriteUInt32(soundEffect->Data);
 					}
 					writer.WriteAlignmentPadding(16);
 				});

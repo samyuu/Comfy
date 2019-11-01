@@ -349,7 +349,7 @@ namespace Graphics
 		~AetSoundEffect() = default;
 
 	public:
-		unk32_t Data[4];
+		unk32_t Data;
 
 	private:
 		// TODO:
