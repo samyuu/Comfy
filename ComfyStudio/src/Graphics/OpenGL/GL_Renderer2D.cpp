@@ -305,13 +305,13 @@ namespace Graphics
 		default:
 		case AetBlendMode::Normal:
 			return { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE };
-		case AetBlendMode::Additive:
+		case AetBlendMode::Add:
 			return { GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE };
 		case AetBlendMode::Multiply:
 			return { GL_DST_COLOR, GL_ZERO, GL_ZERO, GL_ONE };
 		case AetBlendMode::LinearDodge:
 			return { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR, GL_ZERO, GL_ONE };
-		case AetBlendMode::Transparent:
+		case AetBlendMode::Overlay:
 			return { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE };
 		}
 

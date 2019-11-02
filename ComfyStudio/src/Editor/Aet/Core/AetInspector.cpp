@@ -2,6 +2,7 @@
 #include "Editor/Aet/Command/Commands.h"
 #include "Editor/Aet/AetIcons.h"
 #include "Graphics/Auth2D/AetMgr.h"
+#include "Graphics/GraphicTypesNames.h"
 #include "ImGui/Gui.h"
 
 namespace Editor
@@ -16,11 +17,38 @@ namespace Editor
 			string.copy(buffer, copySize);
 			buffer[copySize] = '\0';
 		}
+
+		const char* GetBlendModeName(AetBlendMode blendMode)
+		{
+			size_t blendModeIndex = static_cast<size_t>(blendMode);
+
+			// NOTE: This should never happen
+			if (blendModeIndex >= AetBlendModeNames.size())
+				return "Invalid Blend Mode";
+
+			return AetBlendModeNames[blendModeIndex];
+		}
+
+		bool IsBlendModeSupported(AetBlendMode mode)
+		{
+			switch (mode)
+			{
+			case AetBlendMode::Normal:
+			case AetBlendMode::Add:
+			case AetBlendMode::Multiply:
+			case AetBlendMode::Screen:
+			case AetBlendMode::Overlay:
+				return true;
+
+			default:
+				return false;
+			}
+		}
 	}
 
 	constexpr ImGuiTreeNodeFlags DefaultOpenPropertiesNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow;
 
-	AetInspector::AetInspector(AetCommandManager* commandManager, AetRenderPreviewData* previewData) 
+	AetInspector::AetInspector(AetCommandManager* commandManager, AetRenderPreviewData* previewData)
 		: IMutatingEditorComponent(commandManager), previewData(previewData)
 	{
 	}
@@ -95,7 +123,7 @@ namespace Editor
 		{
 			PushDisableItemFlagIfPlayback();
 			CopyStringIntoBuffer(aet->Name, aetNameBuffer, sizeof(aetNameBuffer));
-			
+
 			if (Gui::ComfyTextWidget("Name", aetNameBuffer, sizeof(aetNameBuffer)))
 				ProcessUpdatingAetCommand(GetCommandManager(), AetChangeName, aet, aetNameBuffer);
 
@@ -344,20 +372,20 @@ namespace Editor
 				if (animationData->UseTextureMask)
 					Gui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 
-				if (Gui::ComfyBeginCombo("Blend Mode", AetAnimationData::GetBlendModeName(animationData->BlendMode), ImGuiComboFlags_HeightLarge))
+				if (Gui::ComfyBeginCombo("Blend Mode", GetBlendModeName(animationData->BlendMode), ImGuiComboFlags_HeightLarge))
 				{
 					// NOTE: Increase the count in case of invalid blend modes
-					size_t blendModeCount = glm::max(static_cast<size_t>(animationData->BlendMode), AetAnimationData::BlendModeNames.size());
+					size_t blendModeCount = glm::max(static_cast<size_t>(animationData->BlendMode), static_cast<size_t>(AetBlendMode::Count));
 
 					for (int32_t blendModeIndex = 0; blendModeIndex < blendModeCount; blendModeIndex++)
 					{
 						bool isBlendMode = (static_cast<AetBlendMode>(blendModeIndex) == animationData->BlendMode);
-						bool outOfBounds = blendModeIndex >= AetAnimationData::BlendModeNames.size();
+						bool outOfBounds = blendModeIndex >= static_cast<size_t>(AetBlendMode::Count);
 
-						if (!isBlendMode && (outOfBounds || AetAnimationData::BlendModeNames[blendModeIndex] == nullptr))
+						if (!isBlendMode && (outOfBounds || !IsBlendModeSupported(static_cast<AetBlendMode>(blendModeIndex))))
 							continue;
 
-						const char* blendModeName = AetAnimationData::GetBlendModeName(static_cast<AetBlendMode>(blendModeIndex));
+						const char* blendModeName = GetBlendModeName(static_cast<AetBlendMode>(blendModeIndex));
 
 						if (Gui::Selectable(blendModeName, isBlendMode))
 							ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeBlendMode, animationData, static_cast<AetBlendMode>(blendModeIndex));
@@ -389,7 +417,7 @@ namespace Editor
 	{
 		// DEBUG:
 		static bool showDebugView = false;
-		
+
 		if (Gui::GetIO().KeyCtrl && Gui::IsKeyPressedMap(ImGuiKey_Home, false))
 			showDebugView ^= true;
 
@@ -611,7 +639,7 @@ namespace Editor
 
 					bool isSame = (layer.get() == iteratorLayer.get());
 					bool isAnyRecursive = IsAnyParentRecursive(iteratorLayer.get(), layer.get());
-					
+
 					Gui::PushID(iteratorLayer.get());
 					if (Gui::Selectable(iteratorLayer->GetName().c_str(), isSelected, (isSame || isAnyRecursive) ? ImGuiSelectableFlags_Disabled : ImGuiSelectableFlags_None))
 						ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeReferencedParentLayer, layer, iteratorLayer);

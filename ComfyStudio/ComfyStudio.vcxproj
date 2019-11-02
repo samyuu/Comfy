@@ -304,7 +304,8 @@
     <ClInclude Include="src\Core\Win32\ComfyWindows.h" />
     <ClInclude Include="src\FileSystem\Archive\Win32Crypto.h" />
     <ClInclude Include="src\Graphics\Auth2D\SpriteBatchData.h" />
-    <ClInclude Include="src\Graphics\GraphicTypes.h" />
+    <ClInclude Include="src\Graphics\GraphicsTypes.h" />
+    <ClInclude Include="src\Graphics\GraphicTypesNames.h" />
     <ClInclude Include="src\ImGui\GuiRenderer.h" />
     <ClInclude Include="src\Misc\FileExtensionHelper.h" />
     <ClInclude Include="src\System\CommandLine\CommandLine.h" />

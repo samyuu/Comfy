@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "Core/CoreTypes.h"
 #include "FileSystem/FileInterface.h"
-#include "Graphics/GraphicTypes.h"
+#include "Graphics/GraphicsTypes.h"
 
 // NOTE: Extra data used by Editor Components to avoid additional allocations and reduce complexity
 struct GuiExtraData
@@ -143,9 +143,6 @@ namespace Graphics
 
 	struct AetAnimationData
 	{
-		static const std::array<const char*, 13> BlendModeNames;
-		static const char* GetBlendModeName(AetBlendMode blendMode);
-
 		// NOTE: Pic only sprite blend mode enum
 		AetBlendMode BlendMode;
 		// NOTE: Pic only texture mask bool, if true this sprite will be masked by the upper layer

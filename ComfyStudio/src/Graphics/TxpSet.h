@@ -2,12 +2,7 @@
 #include "Types.h"
 #include "Core/CoreTypes.h"
 #include "FileSystem/FileInterface.h"
-#include "Graphics/GraphicTypes.h"
-
-namespace Graphics
-{
-	class GL_Texture2D;
-}
+#include "Graphics/GraphicsTypes.h"
 
 namespace Graphics
 {
@@ -46,7 +41,7 @@ namespace Graphics
 		std::vector<RefPtr<MipMap>> MipMaps;
 		std::string Name;
 
-		RefPtr<GL_Texture2D> GraphicsTexture;
+		RefPtr<class GL_Texture2D> GraphicsTexture;
 	};
 
 	class TxpSet : public FileSystem::IBinaryReadable, public FileSystem::IBufferParsable

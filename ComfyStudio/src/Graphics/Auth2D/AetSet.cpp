@@ -15,23 +15,6 @@ namespace Graphics
 		"Opactiy",
 	};
 
-	const std::array<const char*, 13> AetAnimationData::BlendModeNames =
-	{
-		nullptr,
-		nullptr,
-		nullptr,
-		"Normal",
-		nullptr,
-		"Additive",
-		"Multiply",
-		"Linear Dodge",
-		"Transparent",
-		nullptr,
-		nullptr,
-		nullptr,
-		nullptr, // "What The Fuck?"
-	};
-
 	const std::array<const char*, 4> AetLayer::TypeNames =
 	{
 		"nop",
@@ -39,18 +22,6 @@ namespace Graphics
 		"aif",
 		"eff",
 	};
-
-	const char* AetAnimationData::GetBlendModeName(AetBlendMode blendMode)
-	{
-		size_t blendModeIndex = static_cast<size_t>(blendMode);
-
-		// NOTE: This should never happen
-		if (blendModeIndex >= BlendModeNames.size())
-			return "Invalid Blend Mode";
-
-		const char* name = BlendModeNames[blendModeIndex];
-		return (name == nullptr) ? "Undefined Blend Mode" : name;
-	}
 
 	AetSpriteIdentifier* AetSurface::GetSprite(int32_t index)
 	{

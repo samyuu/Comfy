@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "TxpSet.h"
-#include "Graphics/GraphicTypes.h"
+#include "Graphics/GraphicsTypes.h"
 
 namespace Graphics
 {

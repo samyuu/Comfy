@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "Graphics/GraphicTypes.h"
+#include "Graphics/GraphicsTypes.h"
 #include "Graphics/OpenGL/OpenGL.h"
 #include "Graphics/GraphicsInterface.h"
 #include "Core/CoreTypes.h"
