@@ -290,7 +290,7 @@ public:
 
 
 	// ----------------------------------------------------------------------------------------------------------------------------
-	Define_AetCommandStart(AnimationDataChangeTransform, "Transform");
+	Define_AetCommandStart(AnimationDataChangeTransform, "Transform Layer");
 private:
 	RefPtr<Graphics::AetLayer> ref;
 	std::tuple<frame_t /* Frame */, vec2 /* Position */, vec2 /* Scale */> newValue;
@@ -340,7 +340,7 @@ public:
 	// ----------------------------------------------------------------------------------------------------------------------------
 
 	// ----------------------------------------------------------------------------------------------------------------------------
-	Define_AetCommandStart(AnimationDataChangePosition, "Move");
+	Define_AetCommandStart(AnimationDataChangePosition, "Move Layer");
 private:
 	RefPtr<Graphics::AetLayer> ref;
 	std::tuple<frame_t /* Frame */, vec2 /* Position */> newValue;
@@ -382,7 +382,7 @@ public:
 	// ----------------------------------------------------------------------------------------------------------------------------
 
 	// ----------------------------------------------------------------------------------------------------------------------------
-	Define_AetCommandStart(AnimationDataChangeScale, "Scale");
+	Define_AetCommandStart(AnimationDataChangeScale, "Scale Layer");
 private:
 	RefPtr<Graphics::AetLayer> ref;
 	std::tuple<frame_t /* Frame */, vec2 /* Scale */> newValue;
