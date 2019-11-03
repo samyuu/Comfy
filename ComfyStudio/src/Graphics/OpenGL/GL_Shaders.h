@@ -20,6 +20,7 @@ namespace Graphics
 		GL_Uniform UseTextShadow = { UniformType::Int, "u_TextShadow" };
 		GL_Uniform UseCheckerboard = { UniformType::Int, "u_Checkerboard" };
 		GL_Uniform CheckerboardSize = { UniformType::Vec2, "u_CheckboardSize" };
+		GL_Uniform BlendMode = { UniformType::Int, "u_BlendMode" };
 		GL_Uniform TextureFormat = { UniformType::Int, "u_TextureFormat" };
 		GL_Uniform TextureMaskFormat = { UniformType::Int, "u_TextureMaskFormat" };
 		GL_Uniform Texture = { UniformType::Int, "u_TextureSampler" };

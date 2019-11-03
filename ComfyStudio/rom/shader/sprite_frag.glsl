@@ -12,6 +12,7 @@ uniform bool u_SolidColor;
 uniform bool u_TextShadow;
 uniform bool u_Checkerboard;
 uniform vec2 u_CheckboardSize;
+uniform int u_BlendMode;
 
 uniform int u_TextureFormat;
 uniform int u_TextureMaskFormat;
@@ -29,7 +30,9 @@ const float LUMINANCE_FACTOR = 1.003922;
 const float LUMINANCE_OFFSET = 0.503929;
 
 const vec3 TEXT_SHADOW_FACTOR = vec3(0.9, 0.6, 0.8);
+const vec4 COLOR_MASK = vec4(1.0, 1.0, 1.0, 0.0);
 
+// NOTE: TextureFormats
 const int TextureFormat_A8 = 0;
 const int TextureFormat_RGB8 = 1;
 const int TextureFormat_RGBA8 = 2;
@@ -44,6 +47,48 @@ const int TextureFormat_RGTC1 = 10;
 const int TextureFormat_RGTC2 = 11;
 const int TextureFormat_L8 = 12;
 const int TextureFormat_L8A8 = 13;
+
+// NOTE: BlendModes
+const int BlendMode_None = 0;
+const int BlendMode_Copy = 1;
+const int BlendMode_Behind = 2;
+const int BlendMode_Normal = 3;
+const int BlendMode_Dissolve = 4;
+const int BlendMode_Add = 5;
+const int BlendMode_Multiply = 6;
+const int BlendMode_Screen = 7;
+const int BlendMode_Overlay = 8;
+const int BlendMode_SoftLight = 9;
+const int BlendMode_HardLight = 10;
+const int BlendMode_Darken = 11;
+const int BlendMode_Lighten = 12;
+const int BlendMode_ClassicDifference = 13;
+const int BlendMode_Hue = 14;
+const int BlendMode_Saturation = 15;
+const int BlendMode_Color = 16;
+const int BlendMode_Luminosity = 17;
+const int BlendMode_StenciilAlpha = 18;
+const int BlendMode_StencilLuma = 19;
+const int BlendMode_SilhouetteAlpha = 20;
+const int BlendMode_SilhouetteLuma = 21;
+const int BlendMode_LuminescentPremul = 22;
+const int BlendMode_AlphaAdd = 23;
+const int BlendMode_ClassicColorDodge = 24;
+const int BlendMode_ClassicColorBurn = 25;
+const int BlendMode_Exclusion = 26;
+const int BlendMode_Difference = 27;
+const int BlendMode_ColorDodge = 28;
+const int BlendMode_ColorBurn = 29;
+const int BlendMode_LinearDodge = 30;
+const int BlendMode_LinearBurn = 31;
+const int BlendMode_LinearLight = 32;
+const int BlendMode_VividLight = 33;
+const int BlendMode_PinLight = 34;
+const int BlendMode_HardMix = 35;
+const int BlendMode_LighterColor = 36;
+const int BlendMode_DarkerColor = 37;
+const int BlendMode_Subtract = 38;
+const int BlendMode_Divide = 39;
 
 vec4 GetTextureColor(sampler2D sampler, vec2 texCoord, int textureFormat)
 {
@@ -138,6 +183,9 @@ void main()
 	if (u_SolidColor)
 	{
 		FragColor = Input.Color;
+		
+		if (u_Checkerboard)
+			FragColor *= mix(1.0, 0.0, GetCheckerboardFactor());
 	}
 	else if (u_TextShadow)
 	{
@@ -153,8 +201,6 @@ void main()
 		FragColor = GetTextureColor() * Input.Color;
 	}
 
-	if (u_Checkerboard)
-	{
-		FragColor *= mix(1.0, 0.0, GetCheckerboardFactor());
-	}
+	if (u_BlendMode == BlendMode_Multiply)
+		FragColor = ((FragColor - COLOR_MASK) * FragColor.aaaa) + COLOR_MASK;
 }

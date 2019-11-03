@@ -243,8 +243,10 @@ namespace Graphics
 			bool firstItem = i == 0;
 			if (firstItem || lastBlendMode != item.BlendMode)
 			{
+				SetBlendFunction(item.BlendMode);
+				spriteShader->SetUniform(spriteShader->BlendMode, static_cast<int>(item.BlendMode));
+				
 				lastBlendMode = item.BlendMode;
-				SetBlendFunction(lastBlendMode);
 			}
 
 			spriteShader->SetUniform(spriteShader->TextureMaskFormat, item.MaskTexture != nullptr ? static_cast<int>(item.MaskTexture->GetTextureFormat()) : -1);
