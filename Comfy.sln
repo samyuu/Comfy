@@ -9,10 +9,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfyVersion", "ComfyVersio
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfyFileSystem", "ComfyFileSystem\ComfyFileSystem.vcxitems", "{5CA21F77-37EA-47CA-B13D-650FAE2ECBDE}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfyData", "ComfyData\ComfyData.vcxitems", "{F9C19FAC-67A8-400C-AAD8-F5BE3767974C}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		ComfyFileSystem\ComfyFileSystem.vcxitems*{5ca21f77-37ea-47ca-b13d-650fae2ecbde}*SharedItemsImports = 9
 		ComfyFileSystem\ComfyFileSystem.vcxitems*{7225ca33-8c76-4169-b50e-537de61175f2}*SharedItemsImports = 4
+		ComfyData\ComfyData.vcxitems*{f9c19fac-67a8-400c-aad8-f5be3767974c}*SharedItemsImports = 9
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64

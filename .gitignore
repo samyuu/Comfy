@@ -48,8 +48,8 @@ TestResult.xml
 dlldata.c
 
 # Comfy Studio development files
-dev_ram/
-dev_rom/
+ComfyData/data/dev_ram/
+ComfyData/data/dev_rom/
 
 # Version Control files
 ComfyStudio/src/System/Version/BuildVersion.h

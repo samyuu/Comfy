@@ -32,8 +32,8 @@ namespace ImGui
 		const ImWchar iconFontGlyphRange[3];
 		
 	private:
-		static constexpr const char* configFileName = "ram/imgui.ini";
-		static constexpr const char* logFileName = "ram/imgui_log.txt";
+		static constexpr const char* configFileName = "imgui.ini";
+		static constexpr const char* logFileName = "imgui_log.txt";
 		static constexpr const char* fontFarcFileName = "rom/font.farc";
 		static constexpr const char* fontFileName = "NotoSansCJKjp-Regular.otf";
 
