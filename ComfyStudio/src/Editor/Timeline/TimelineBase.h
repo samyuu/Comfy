@@ -67,7 +67,10 @@ namespace Editor
 		struct
 		{
 			const float timelineVisibleThreshold = 46.0f;
+
 			float infoColumnWidth = 46.0f;
+			float infoColumnScrollStep = 42.0f;
+
 			float timelineHeaderHeight = 32.0f - 13.0f;
 			float tempoMapHeight = 13.0f;
 
@@ -75,6 +78,7 @@ namespace Editor
 			const float zoomButtonWidth = 24.0f;
 			const float zoomSliderWidth = 160.0f;
 		};
+
 		static constexpr vec2 timelineScrollbarSize = vec2(14.0f, 16.0f);
 
 		static constexpr float ZOOM_BASE = 150.0f;

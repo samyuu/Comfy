@@ -14,6 +14,8 @@ namespace Editor
 		constexpr float fixedInfoColumnWidth = 240.0f;
 		infoColumnWidth = fixedInfoColumnWidth;
 
+		infoColumnScrollStep = rowItemHeight * 3.0f;
+
 		constexpr float defaultZoomLevel = 5.0f;
 		zoomLevel = defaultZoomLevel;
 	}

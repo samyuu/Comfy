@@ -277,8 +277,7 @@ namespace Editor
 	{
 		const auto& io = Gui::GetIO();
 
-		constexpr float scrollAmount = 32.0f;
-		const float newScrollY = GetScrollY() - (io.MouseWheel * scrollAmount);
+		const float newScrollY = GetScrollY() - (io.MouseWheel * infoColumnScrollStep);
 		SetScrollY(newScrollY);
 	}
 
