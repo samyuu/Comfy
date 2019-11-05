@@ -267,7 +267,9 @@ RtAudio :: RtAudio( RtAudio::Api api )
   // API-specific definitions are passed to the compiler. But just in
   // case something weird happens, we'll thow an error.
   std::string errorText = "\nRtAudio: no compiled API support found ... critical error!!\n\n";
+#if 0
   throw( RtAudioError( errorText, RtAudioError::UNSPECIFIED ) );
+#endif
 }
 
 RtAudio :: ~RtAudio()
@@ -3170,6 +3172,7 @@ bool RtApiAsio :: probeDeviceOpen( unsigned int device, StreamMode mode, unsigne
   stream_.deviceInterleaved[mode] = false;
 
   // Allocate, if necessary, our AsioHandle structure for the stream.
+#if 0
   if ( handle == 0 ) {
     try {
       handle = new AsioHandle;
@@ -3178,6 +3181,11 @@ bool RtApiAsio :: probeDeviceOpen( unsigned int device, StreamMode mode, unsigne
       errorText_ = "RtApiAsio::probeDeviceOpen: error allocating AsioHandle memory.";
       goto error;
     }
+#else
+  if (handle == 0){
+	  handle = new AsioHandle;
+#endif
+
     handle->bufferInfos = 0;
 
     // Create a manual-reset event.
@@ -3643,6 +3651,7 @@ static void sampleRateChanged( ASIOSampleRate sRate )
   // audio device.
 
   RtApi *object = (RtApi *) asioCallbackInfo->object;
+#if 0
   try {
     object->stopStream();
   }
@@ -3650,6 +3659,9 @@ static void sampleRateChanged( ASIOSampleRate sRate )
     std::cerr << "\nRtApiAsio: sampleRateChanged() error (" << exception.getMessage() << ")!\n" << std::endl;
     return;
   }
+#else
+  object->stopStream();
+#endif
 
   std::cerr << "\nRtApiAsio: driver reports sample rate changed to " << sRate << " ... stream stopped!!!\n" << std::endl;
 }
@@ -9968,8 +9980,10 @@ void RtApi :: error( RtAudioError::Type type )
 
   if ( type == RtAudioError::WARNING && showWarnings_ == true )
     std::cerr << '\n' << errorText_ << "\n\n";
+#if 0
   else if ( type != RtAudioError::WARNING )
-    throw( RtAudioError( errorText_, type ) );
+	  throw( RtAudioError( errorText_, type ) );
+#endif
 }
 
 void RtApi :: verifyStream()

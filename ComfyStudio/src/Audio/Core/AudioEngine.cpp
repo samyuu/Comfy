@@ -68,6 +68,7 @@ namespace Audio
 		auto bufferSize = GetBufferSize();
 		void* extraData = nullptr;
 
+#if 0
 		try
 		{
 			GetRtAudio()->openStream(outputParameters, inputParameters, format, sampleRate, &bufferSize, &InternalStaticAudioCallback, extraData);
@@ -78,6 +79,10 @@ namespace Audio
 			Logger::LogErrorLine(__FUNCTION__"(): Failed: %s", exception.getMessage().c_str());
 			return;
 		}
+#else
+		GetRtAudio()->openStream(outputParameters, inputParameters, format, sampleRate, &bufferSize, &InternalStaticAudioCallback, extraData);
+		isStreamOpen = true;
+#endif
 	}
 
 	void AudioEngine::CloseStream()
