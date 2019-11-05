@@ -77,7 +77,7 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)VersionControl\bin\x64-Release\ComfyVersionControl.exe $(ProjectDir)src\System\Version\BuildVersion.h</Command>
+      <Command>$(SolutionDir)ComfyVersion\build\build.bat</Command>
       <Message>Generating BuildVersion header file</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
@@ -111,7 +111,7 @@
       <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)VersionControl\bin\x64-Release\ComfyVersionControl.exe $(ProjectDir)src\System\Version\BuildVersion.h</Command>
+      <Command>$(SolutionDir)ComfyVersion\build\build.bat</Command>
       <Message>Generating BuildVersion header file</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>

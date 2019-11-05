@@ -53,6 +53,7 @@ dev_rom/
 
 # Version Control files
 ComfyStudio/src/System/Version/BuildVersion.h
+ComfyVersion/test/BuildVersion.h
 
 # Comfy test files
 ComfyStudio/src/MainTest.cpp

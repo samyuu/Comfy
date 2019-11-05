@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.28307.572
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfyStudio", "ComfyStudio\ComfyStudio.vcxproj", "{7225CA33-8C76-4169-B50E-537DE61175F2}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VersionControl", "VersionControl\VersionControl.vcxproj", "{D85741DA-AF9C-41A3-A1A1-AB66860CF465}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfyVersion", "ComfyVersion\ComfyVersion.vcxproj", "{D85741DA-AF9C-41A3-A1A1-AB66860CF465}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
