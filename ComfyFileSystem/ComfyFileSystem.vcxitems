@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{5ca21f77-37ea-47ca-b13d-650fae2ecbde}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)lib\zlib\src\adler32.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)lib\zlib\src\compress.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)lib\zlib\src\crc32.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)lib\zlib\src\deflate.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)lib\zlib\src\gzlib.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)lib\zlib\src\inffast.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)lib\zlib\src\inflate.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)lib\zlib\src\inftrees.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)lib\zlib\src\trees.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)lib\zlib\src\zutil.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\Archive\Farc.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\Archive\FileArchive.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\Archive\Win32Crypto.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\BinaryReader.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\BinaryWriter.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\FileHelper.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\FileInterface.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\FileLoader.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\FileReader.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\Format\Database.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\Stream\FileStream.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\Stream\MemoryStream.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\Stream\Stream.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)lib\zlib\src\crc32.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)lib\zlib\src\deflate.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)lib\zlib\src\gzguts.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)lib\zlib\src\inffast.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)lib\zlib\src\inffixed.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)lib\zlib\src\inflate.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)lib\zlib\src\inftrees.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)lib\zlib\src\trees.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)lib\zlib\src\zutil.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\Archive\Farc.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\Archive\FileArchive.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\Archive\Win32Crypto.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\BinaryMode.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\BinaryReader.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\BinaryWriter.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\FileHelper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\FileInterface.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\FileLoader.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\FileReader.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\Format\Database.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\Stream\FileStream.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\Stream\MemoryStream.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\Stream\Stream.h" />
+  </ItemGroup>
+</Project>

@@ -35,6 +35,7 @@
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="Shared">
+    <Import Project="..\ComfyFileSystem\ComfyFileSystem.vcxitems" Label="Shared" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -56,7 +57,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\plusaes\include;$(ProjectDir)lib\rtaudio\include;$(ProjectDir)lib\zlib\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyFileSystem\src;$(SolutionDir)ComfyFileSystem\lib\zlib\include;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\plusaes\include;$(ProjectDir)lib\rtaudio\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -88,7 +89,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\plusaes\include;$(ProjectDir)lib\rtaudio\include;$(ProjectDir)lib\zlib\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyFileSystem\src;$(SolutionDir)ComfyFileSystem\lib\zlib\include;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\glm\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\plusaes\include;$(ProjectDir)lib\rtaudio\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -116,21 +117,14 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
+    <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp" />
+    <ClCompile Include="lib\dr_libs\src\dr_wav.cpp" />
     <ClCompile Include="lib\rtaudio\src\asio.cpp" />
     <ClCompile Include="lib\rtaudio\src\asiodrivers.cpp" />
     <ClCompile Include="lib\rtaudio\src\asiolist.cpp" />
     <ClCompile Include="lib\rtaudio\src\iasiothiscallresolver.cpp" />
     <ClCompile Include="lib\rtaudio\src\RtAudio.cpp" />
-    <ClCompile Include="lib\zlib\src\adler32.c" />
-    <ClCompile Include="lib\zlib\src\compress.c" />
-    <ClCompile Include="lib\zlib\src\crc32.c" />
-    <ClCompile Include="lib\zlib\src\deflate.c" />
-    <ClCompile Include="lib\zlib\src\gzlib.c" />
-    <ClCompile Include="lib\zlib\src\inffast.c" />
-    <ClCompile Include="lib\zlib\src\inflate.c" />
-    <ClCompile Include="lib\zlib\src\inftrees.c" />
-    <ClCompile Include="lib\zlib\src\trees.c" />
-    <ClCompile Include="lib\zlib\src\zutil.c" />
     <ClCompile Include="src\Core\ApplicationHost.cpp" />
     <ClCompile Include="src\Editor\Aet\RenderWindow\ObjectMousePicker.cpp" />
     <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\AetTool.cpp" />
@@ -140,18 +134,12 @@
     <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\ScaleTool.cpp" />
     <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\TransformBox.cpp" />
     <ClCompile Include="src\Editor\Timeline\TimelineScrollbar.cpp" />
-    <ClCompile Include="src\FileSystem\Archive\Farc.cpp" />
-    <ClCompile Include="src\FileSystem\Archive\FileArchive.cpp" />
-    <ClCompile Include="src\FileSystem\Archive\Win32Crypto.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\SpriteBatchData.cpp" />
     <ClCompile Include="src\ImGui\GuiRenderer.cpp" />
     <ClCompile Include="src\Input\Keyboard.cpp" />
     <ClCompile Include="src\Input\KeyCode.cpp" />
     <ClCompile Include="src\Misc\FileExtensionHelper.cpp" />
     <ClCompile Include="src\System\CommandLine\CommandLine.cpp" />
-    <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
-    <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp" />
-    <ClCompile Include="lib\dr_libs\src\dr_wav.cpp" />
     <ClCompile Include="lib\glfw\src\context.cpp" />
     <ClCompile Include="lib\glfw\src\egl_context.cpp" />
     <ClCompile Include="lib\glfw\src\init.cpp" />
@@ -176,7 +164,6 @@
     <ClCompile Include="src\Editor\Aet\IMutatingEditorComponent.cpp" />
     <ClCompile Include="src\Editor\Aet\Timeline\KeyFrameRenderer.cpp" />
     <ClCompile Include="src\Editor\Aet\Timeline\AetTimelineController.cpp" />
-    <ClCompile Include="src\FileSystem\FileReader.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\AetSetFile.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\ObjSet.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\ObjSetFile.cpp" />
@@ -208,16 +195,8 @@
     <ClCompile Include="src\Editor\PV\SceneRenderWindow.cpp" />
     <ClCompile Include="src\Editor\Core\RenderWindowBase.cpp" />
     <ClCompile Include="src\Editor\Timeline\TimelineBase.cpp" />
-    <ClCompile Include="src\FileSystem\BinaryReader.cpp" />
-    <ClCompile Include="src\FileSystem\BinaryWriter.cpp" />
-    <ClCompile Include="src\FileSystem\FileHelper.cpp" />
-    <ClCompile Include="src\FileSystem\FileInterface.cpp" />
-    <ClCompile Include="src\FileSystem\FileLoader.cpp" />
-    <ClCompile Include="src\FileSystem\Format\Database.cpp" />
     <ClCompile Include="src\Graphics\SprSet.cpp" />
     <ClCompile Include="src\Graphics\TxpSet.cpp" />
-    <ClCompile Include="src\FileSystem\Stream\MemoryStream.cpp" />
-    <ClCompile Include="src\FileSystem\Stream\FileStream.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\AetMgr.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\AetRenderer.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\GL_Renderer2D.cpp" />
@@ -266,7 +245,6 @@
     <ClCompile Include="src\Editor\Chart\Timeline\TimelineMap.cpp" />
     <ClCompile Include="src\Audio\Waveform.cpp" />
     <ClCompile Include="src\Core\TimeSpan.cpp" />
-    <ClCompile Include="src\FileSystem\Stream\Stream.cpp" />
     <ClCompile Include="src\System\Profiling\Profiler.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -278,16 +256,6 @@
     <ClInclude Include="lib\rtaudio\src\ginclude.h" />
     <ClInclude Include="lib\rtaudio\src\iasiodrv.h" />
     <ClInclude Include="lib\rtaudio\src\iasiothiscallresolver.h" />
-    <ClInclude Include="lib\zlib\include\zconf.h" />
-    <ClInclude Include="lib\zlib\include\zlib.h" />
-    <ClInclude Include="lib\zlib\src\crc32.h" />
-    <ClInclude Include="lib\zlib\src\deflate.h" />
-    <ClInclude Include="lib\zlib\src\gzguts.h" />
-    <ClInclude Include="lib\zlib\src\inffast.h" />
-    <ClInclude Include="lib\zlib\src\inffixed.h" />
-    <ClInclude Include="lib\zlib\src\inflate.h" />
-    <ClInclude Include="lib\zlib\src\inftrees.h" />
-    <ClInclude Include="lib\zlib\src\trees.h" />
     <ClInclude Include="src\Core\ApplicationHost.h" />
     <ClInclude Include="src\Core\CoreTypes.h" />
     <ClInclude Include="src\Editor\Aet\RenderWindow\AetRenderPreviewData.h" />
@@ -299,10 +267,7 @@
     <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\ScaleTool.h" />
     <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\TransformBox.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineScrollbar.h" />
-    <ClInclude Include="src\FileSystem\Archive\Farc.h" />
-    <ClInclude Include="src\FileSystem\Archive\FileArchive.h" />
     <ClInclude Include="src\Core\Win32\ComfyWindows.h" />
-    <ClInclude Include="src\FileSystem\Archive\Win32Crypto.h" />
     <ClInclude Include="src\Graphics\Auth2D\SpriteBatchData.h" />
     <ClInclude Include="src\Graphics\GraphicsTypes.h" />
     <ClInclude Include="src\Graphics\GraphicTypesNames.h" />
@@ -333,7 +298,6 @@
     <ClInclude Include="src\Core\SmartPointers.h" />
     <ClInclude Include="src\Editor\Aet\Command\AetCommandManager.h" />
     <ClInclude Include="src\Editor\Command\CommandManager.h" />
-    <ClInclude Include="src\FileSystem\FileReader.h" />
     <ClInclude Include="src\Graphics\Auth3D\ObjSet.h" />
     <ClInclude Include="src\Graphics\OpenGL\GL_Renderer3D.h" />
     <ClInclude Include="src\Graphics\OpenGL\OpenGL.h" />
@@ -378,17 +342,8 @@
     <ClInclude Include="src\Editor\Core\Theme.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineBase.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineFrame.h" />
-    <ClInclude Include="src\FileSystem\BinaryReader.h" />
-    <ClInclude Include="src\FileSystem\BinaryWriter.h" />
-    <ClInclude Include="src\FileSystem\FileHelper.h" />
-    <ClInclude Include="src\FileSystem\FileInterface.h" />
-    <ClInclude Include="src\FileSystem\FileLoader.h" />
-    <ClInclude Include="src\FileSystem\Format\Database.h" />
     <ClInclude Include="src\Graphics\SprSet.h" />
     <ClInclude Include="src\Graphics\TxpSet.h" />
-    <ClInclude Include="src\FileSystem\Stream\MemoryStream.h" />
-    <ClInclude Include="src\FileSystem\Stream\FileStream.h" />
-    <ClInclude Include="src\FileSystem\BinaryMode.h" />
     <ClInclude Include="src\App\Task.h" />
     <ClInclude Include="src\Graphics\Auth2D\AetMgr.h" />
     <ClInclude Include="src\Graphics\Auth2D\AetRenderer.h" />
@@ -449,7 +404,6 @@
     <ClInclude Include="src\Editor\Chart\TempoMap.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TimelineMap.h" />
     <ClInclude Include="src\Audio\Waveform.h" />
-    <ClInclude Include="src\FileSystem\Stream\Stream.h" />
     <ClInclude Include="src\Types.h" />
   </ItemGroup>
   <ItemGroup>
