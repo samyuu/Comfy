@@ -31,12 +31,12 @@ namespace Graphics
 
 	const char* GL_SpriteShader::GetVertexShaderPath()
 	{
-		return "rom/shader/sprite_vert.glsl";
+		return "shader/sprite_vert.glsl";
 	}
 
 	const char* GL_SpriteShader::GetFragmentShaderPath()
 	{
-		return "rom/shader/sprite_frag.glsl";
+		return "shader/sprite_frag.glsl";
 	}
 
 	// ------------------------------------------------------------------------------------------------
@@ -68,12 +68,12 @@ namespace Graphics
 
 	const char* GL_ComfyShader::GetVertexShaderPath()
 	{
-		return "rom/shader/comfy_vert.glsl";
+		return "shader/comfy_vert.glsl";
 	}
 
 	const char* GL_ComfyShader::GetFragmentShaderPath()
 	{
-		return "rom/shader/comfy_frag.glsl";
+		return "shader/comfy_frag.glsl";
 	}
 
 	// ------------------------------------------------------------------------------------------------
@@ -105,12 +105,12 @@ namespace Graphics
 
 	const char* GL_ScreenShader::GetVertexShaderPath()
 	{
-		return "rom/shader/screen_vert.glsl";
+		return "shader/screen_vert.glsl";
 	}
 
 	const char* GL_ScreenShader::GetFragmentShaderPath()
 	{
-		return "rom/shader/screen_frag.glsl";
+		return "shader/screen_frag.glsl";
 	}
 
 	// ------------------------------------------------------------------------------------------------
@@ -142,12 +142,12 @@ namespace Graphics
 
 	const char* GL_LineShader::GetVertexShaderPath()
 	{
-		return "rom/shader/line_vert.glsl";
+		return "shader/line_vert.glsl";
 	}
 
 	const char* GL_LineShader::GetFragmentShaderPath()
 	{
-		return "rom/shader/line_frag.glsl";
+		return "shader/line_frag.glsl";
 	}
 
 	// ------------------------------------------------------------------------------------------------
@@ -179,12 +179,12 @@ namespace Graphics
 
 	const char* GL_SimpleShader::GetVertexShaderPath()
 	{
-		return "rom/shader/simple_vert.glsl";
+		return "shader/simple_vert.glsl";
 	}
 
 	const char* GL_SimpleShader::GetFragmentShaderPath()
 	{
-		return "rom/shader/simple_frag.glsl";
+		return "shader/simple_frag.glsl";
 	}
 
 	// ------------------------------------------------------------------------------------------------

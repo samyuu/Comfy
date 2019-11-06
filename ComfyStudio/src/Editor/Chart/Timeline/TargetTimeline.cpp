@@ -4,6 +4,7 @@
 #include "Editor/Core/Editor.h"
 #include "Audio/Core/AudioEngine.h"
 #include "FileSystem/FileHelper.h"
+#include "Core/ComfyData.h"
 #include "Core/TimeSpan.h"
 #include <FontIcons.h>
 
@@ -212,10 +213,13 @@ namespace Editor
 		// sankaku		| shikaku		| batsu		 | maru		 | slide_l		| slide_r	   | slide_chain_l		| slide_chain_r
 		// sankaku_sync | shikaku_sync  | batsu_sync | maru_sync | slide_l_sync | slide_r_sync | slide_chain_l_sync | slide_chain_r_sync
 		{
-			std::vector<uint8_t> sprFileBuffer;
-			FileSystem::FileReader::ReadEntireFile(std::string("rom/spr/spr_comfy_editor.bin"), &sprFileBuffer);
+			const auto sprFileEntry = ComfyData->FindFile("spr/spr_comfy_editor.bin");
+			assert(sprFileEntry != nullptr);
 
-			sprSet.Parse(sprFileBuffer.data());
+			UniquePtr<uint8_t[]> sprFileBuffer = MakeUnique<uint8_t[]>(sprFileEntry->Size);
+			ComfyData->ReadEntryIntoBuffer(sprFileEntry, sprFileBuffer.get());
+
+			sprSet.Parse(sprFileBuffer.get());
 			sprSet.TxpSet->UploadAll();
 
 			buttonIconsTexture = sprSet.TxpSet->Textures.front()->GraphicsTexture.get();

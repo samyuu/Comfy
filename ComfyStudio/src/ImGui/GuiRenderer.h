@@ -34,7 +34,7 @@ namespace ImGui
 	private:
 		static constexpr const char* configFileName = "imgui.ini";
 		static constexpr const char* logFileName = "imgui_log.txt";
-		static constexpr const char* fontFarcFileName = "rom/font.farc";
+		static constexpr const char* fontDirectoryName = "font";
 		static constexpr const char* fontFileName = "NotoSansCJKjp-Regular.otf";
 
 		static constexpr float fontSize = 16.0f;

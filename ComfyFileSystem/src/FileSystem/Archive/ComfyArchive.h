@@ -102,12 +102,15 @@ namespace FileSystem
 		const ComfyDirectory& GetRootDirectory() const;
 
 		const ComfyEntry* FindFile(std::string_view filePath) const;
+		const ComfyEntry* FindFileInDirectory(const ComfyDirectory* directory, std::string_view fileName) const;
+
 		const ComfyDirectory* FindDirectory(std::string_view directoryPath) const;
 		
-		bool ReadEntryIntoBuffer(const ComfyEntry& entry, void* outputBuffer);
+		bool ReadFileIntoBuffer(std::string_view filePath, std::vector<uint8_t> &buffer);
+
+		bool ReadEntryIntoBuffer(const ComfyEntry* entry, void* outputBuffer);
 
 	private:
-		const ComfyEntry* FindRootFile(std::string_view fileName) const;
 		const ComfyDirectory* FindNestedDirectory(const ComfyDirectory* parent, std::string_view directory) const;
 		const ComfyDirectory* FindDirectory(const ComfyDirectory* parent, std::string_view directoryName) const;
 

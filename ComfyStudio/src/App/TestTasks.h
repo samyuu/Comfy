@@ -107,8 +107,8 @@ namespace App
 	protected:
 		SpriteGetterFunction spriteGetterFunction;
 
-		FileSystem::FileLoader aetSetLoader = { "dev_ram/aetset/aet_ps4/aet_ps4_menu.bin" };
-		FileSystem::FileLoader sprSetLoader = { "dev_ram/sprset/spr_ps4/spr_ps4_menu.bin" };
+		FileSystem::FileLoader aetSetLoader = { "dev_rom/2d/aet_ps4_menu.bin" };
+		FileSystem::FileLoader sprSetLoader = { "dev_rom/2d/spr_ps4_menu.bin" };
 
 		UniquePtr<AetSet> aetSet;
 		UniquePtr<SprSet> sprSet;

@@ -1,6 +1,7 @@
 #include "SceneRenderWindow.h"
 #include "FileSystem/FileHelper.h"
 #include "Input/KeyCode.h"
+#include "Core/ComfyData.h"
 #include "Core/TimeSpan.h"
 #include <FontIcons.h>
 
@@ -30,26 +31,34 @@ namespace Editor
 
 		// OBJSET TEST
 		{
-			testObjSet = MakeUnique<ObjSet>();
-			testObjSet->Load("dev_ram/objset/dbg/dbg_obj.bin");
-			//testObjSet->Load("dev_ram/objset/stgtst007/stgtst007_obj.bin");
-			//testObjSet->Load("dev_ram/objset/cmnitm1001/cmnitm1001_obj.bin");
-			//testObjSet->Load("dev_ram/objset/rinitm000/rinitm000_obj.bin");
-			//testObjSet->Load("dev_ram/objset/rinitm001/rinitm001_obj.bin");
-			//testObjSet->Load("dev_ram/objset/rinitm301/rinitm301_obj.bin");
-			//testObjSet->Load("dev_ram/objset/rinitm532/rinitm532_obj.bin");
-			//testObjSet->Load("dev_ram/objset/stgns006/stgns006_obj.bin");
-			//testObjSet->Load("dev_ram/objset/stgns008/stgns008_obj.bin");
-			testObjSet->UploadAll();
+			// "dev_rom/objset/stgtst007/stgtst007_obj.bin"	 
+			// "dev_rom/objset/cmnitm1001/cmnitm1001_obj.bin"
+			// "dev_rom/objset/rinitm000/rinitm000_obj.bin"	 
+			// "dev_rom/objset/rinitm001/rinitm001_obj.bin"	 
+			// "dev_rom/objset/rinitm301/rinitm301_obj.bin"	 
+			// "dev_rom/objset/rinitm532/rinitm532_obj.bin"	 
+			// "dev_rom/objset/stgns006/stgns006_obj.bin"	 
+			// "dev_rom/objset/stgns008/stgns008_obj.bin"	 
+			const char* filePath = "dev_rom/objset/dbg/dbg_obj.bin";
+
+			if (FileSystem::FileExists(filePath))
+			{
+				testObjSet = MakeUnique<ObjSet>();
+				testObjSet->Load(filePath);
+				testObjSet->UploadAll();
+			}
 		}
 
 		// Load Textures
 		// -------------
 		{
-			std::vector<uint8_t> sprFileBuffer;
-			FileSystem::FileReader::ReadEntireFile(std::string("rom/spr/spr_comfy_scene.bin"), &sprFileBuffer);
+			const auto sprFileEntry = ComfyData->FindFile("spr/spr_comfy_scene.bin");
+			assert(sprFileEntry != nullptr);
 
-			sprSet.Parse(sprFileBuffer.data());
+			UniquePtr<uint8_t[]> sprFileBuffer = MakeUnique<uint8_t[]>(sprFileEntry->Size);
+			ComfyData->ReadEntryIntoBuffer(sprFileEntry, sprFileBuffer.get());
+
+			sprSet.Parse(sprFileBuffer.get());
 			sprSet.TxpSet->UploadAll();
 
 			for (size_t i = 0; i < sprSet.TxpSet->Textures.size(); i++)

@@ -1,6 +1,6 @@
 #include "GL_ShaderProgram.h"
 #include "Graphics/RenderCommand.h"
-#include "FileSystem/FileHelper.h"
+#include "Core/ComfyData.h"
 #include <algorithm>
 #include <assert.h>
 
@@ -163,8 +163,14 @@ namespace Graphics
 
 	void GL_ShaderProgram::LoadShaderSources()
 	{
-		FileSystem::FileReader::ReadEntireFile(std::string(GetVertexShaderPath()), &vertexSource);
-		FileSystem::FileReader::ReadEntireFile(std::string(GetFragmentShaderPath()), &fragmentSource);
+		// TODO: Optionally read from file directly for debug builds (?)
+
+		bool success;
+		success = ComfyData->ReadFileIntoBuffer(GetVertexShaderPath(), vertexSource);
+		assert(success);
+
+		success = ComfyData->ReadFileIntoBuffer(GetFragmentShaderPath(), fragmentSource);
+		assert(success);
 	}
 
 	int GL_ShaderProgram::CompileShader(ShaderType shaderType, ShaderID_t* shaderID, const std::vector<uint8_t>& shaderSource)

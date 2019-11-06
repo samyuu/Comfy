@@ -60,7 +60,7 @@ private:
 	static constexpr float listWidth = 0.2f;
 	static constexpr const vec4 remarkTextColor = vec4(0.85f, 0.86f, 0.15f, 1.0f);
 	
-	static constexpr const char* licenseDirectory = "rom/license";
+	static constexpr const char* licenseDirectory = "license";
 
 	void LoadLicenseData();
 };

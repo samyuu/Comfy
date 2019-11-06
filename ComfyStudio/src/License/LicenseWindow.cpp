@@ -1,6 +1,7 @@
 #include "LicenseWindow.h"
 #include "ImGui/Gui.h"
 #include "FileSystem/FileHelper.h"
+#include "Core/ComfyData.h"
 
 bool LicenseWindow::DrawGui()
 {
@@ -72,13 +73,36 @@ const char* LicenseWindow::GetWindowName() const
 
 void LicenseWindow::LoadLicenseData()
 {
-	auto licenseFilePaths = FileSystem::GetFiles(licenseDirectory);
-	licenseData.reserve(licenseFilePaths.size());
+	const auto licenseDirectoryEntry = ComfyData->FindDirectory(licenseDirectory);
+	assert(licenseDirectoryEntry != nullptr);
 
-	for (const auto& filePath : licenseFilePaths)
+	licenseData.reserve(licenseDirectoryEntry->EntryCount);
+
+	for (size_t i = 0; i < licenseDirectoryEntry->EntryCount; i++)
 	{
-		std::vector<std::string> lines;
-		FileSystem::ReadAllLines(filePath, &lines);
+		const auto licenseFileEntry = licenseDirectoryEntry->Entries[i];
+
+		UniquePtr<char[]> fileContent = MakeUnique<char[]>(licenseFileEntry.Size + 1);
+		ComfyData->ReadEntryIntoBuffer(&licenseFileEntry, fileContent.get());
+
+		std::vector<std::string_view> lines;
+
+		size_t lastNewLine = 0;
+		for (size_t i = 0; i < licenseFileEntry.Size; i++)
+		{
+			if (fileContent[i] == '\n')
+			{
+				auto lastLine = std::string_view(&fileContent[lastNewLine == 0 ? lastNewLine : lastNewLine + 1], i - lastNewLine);
+
+				// NOTE: Trim end
+				while (lastLine.size() > 1 && lastLine.back() == '\r' || lastLine.back() == '\n')
+					lastLine = lastLine.substr(0, lastLine.size() - 1);
+
+				lines.push_back(lastLine);
+
+				lastNewLine = i;
+			}
+		}
 
 		licenseData.emplace_back();
 		auto info = &licenseData.back();

@@ -1,5 +1,6 @@
 #include "Application.h"
 #include "App/Engine.h"
+#include "Core/ComfyData.h"
 #include "FileSystem/FileHelper.h"
 #include "DataTest/AudioTestWindow.h"
 #include "DataTest/IconTestWindow.h"
@@ -74,7 +75,7 @@ bool Application::BaseInitialize()
 	Audio::AudioEngine::CreateInstance();
 	Audio::AudioEngine::InitializeInstance();
 
-	if (!InitializeCheckRom())
+	if (!InitializeMountRomData())
 		return false;
 
 	if (!InitializeGuiRenderer())
@@ -122,13 +123,21 @@ void Application::BaseDispose()
 	host.Dispose();
 }
 
-bool Application::InitializeCheckRom()
+bool Application::InitializeMountRomData()
 {
-	if (!FileSystem::DirectoryExists("rom"))
+	const std::string comfyDataFileName = ComfyDataFileName;
+
+	if (!FileSystem::FileExists(comfyDataFileName))
 	{
-		Logger::LogErrorLine(__FUNCTION__"(): Unable to locate rom directory");
+		Logger::LogErrorLine(__FUNCTION__"(): Unable to locate data file");
 		return false;
 	}
+
+	ComfyData = MakeUnique<ComfyArchive>();
+	if (ComfyData == nullptr)
+		return false;
+
+	ComfyData->Mount(comfyDataFileName);
 
 	return true;
 }

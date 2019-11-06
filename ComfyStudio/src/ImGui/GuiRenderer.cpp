@@ -1,6 +1,6 @@
 #include "GuiRenderer.h"
+#include "Core/ComfyData.h"
 #include "FileSystem/FileHelper.h"
-#include "FileSystem/Archive/Farc.h"
 #include "ImGui/Implementation/Imgui_Impl.h"
 #include "FontIcons.h"
 #include <glfw/glfw3.h>
@@ -101,17 +101,17 @@ namespace ImGui
 
 	bool GuiRenderer::InitializeLoadFontData()
 	{
-		const auto fontFarc = FileSystem::Farc::Open(fontFarcFileName);
-		if (!fontFarc)
+		const auto fontDirectory = ComfyData->FindDirectory(fontDirectoryName);
+		if (fontDirectory == nullptr)
 			return false;
 
 		const auto& io = GetIO();
-		if (const auto* textFontEntry = fontFarc->GetFile(fontFileName); textFontEntry)
+		if (const auto textFontEntry = ComfyData->FindFileInDirectory(fontDirectory, fontFileName); textFontEntry != nullptr)
 		{
-			void* fileContent = IM_ALLOC(textFontEntry->FileSize);
-			textFontEntry->Read(fileContent);
+			void* fileContent = IM_ALLOC(textFontEntry->Size);
+			ComfyData->ReadEntryIntoBuffer(textFontEntry, fileContent);
 
-			if (io.Fonts->AddFontFromMemoryTTF(fileContent, static_cast<int>(textFontEntry->FileSize), fontSize, nullptr, GetFontGlyphRange()) == nullptr)
+			if (io.Fonts->AddFontFromMemoryTTF(fileContent, static_cast<int>(textFontEntry->Size), fontSize, nullptr, GetFontGlyphRange()) == nullptr)
 				return false;
 		}
 		else
@@ -119,13 +119,13 @@ namespace ImGui
 			return false;
 		}
 
-		if (const auto* iconFontEntry = fontFarc->GetFile(FONT_ICON_FILE_NAME_FAS); iconFontEntry)
+		if (const auto iconFontEntry = ComfyData->FindFileInDirectory(fontDirectory, FONT_ICON_FILE_NAME_FAS); iconFontEntry != nullptr)
 		{
-			void* fileContent = IM_ALLOC(iconFontEntry->FileSize);
-			iconFontEntry->Read(fileContent);
+			void* fileContent = IM_ALLOC(iconFontEntry->Size);
+			ComfyData->ReadEntryIntoBuffer(iconFontEntry, fileContent);
 
 			const ImFontConfig config = GetIconFontConfig();
-			if (io.Fonts->AddFontFromMemoryTTF(fileContent, static_cast<int>(iconFontEntry->FileSize), iconFontSize, &config, GetIconGlyphRange()) == nullptr)
+			if (io.Fonts->AddFontFromMemoryTTF(fileContent, static_cast<int>(iconFontEntry->Size), iconFontSize, &config, GetIconGlyphRange()) == nullptr)
 				return false;
 		}
 		else

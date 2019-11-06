@@ -35,9 +35,9 @@ namespace Editor
 		renderWindow->Initialize();
 
 		// DEBUG: Auto load specified files
-		if (debugAetPath != nullptr)
+		if (debugAetPath != nullptr && FileSystem::FileExists(debugAetPath))
 			LoadAetSet(debugAetPath);
-		if (debugSprPath != nullptr)
+		if (debugSprPath != nullptr && FileSystem::FileExists(debugSprPath))
 			LoadSprSet(debugSprPath);
 	}
 

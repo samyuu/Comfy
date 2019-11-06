@@ -40,7 +40,7 @@ private:
 	void BaseDispose();
 
 	// NOTE: Initialization
-	bool InitializeCheckRom();
+	bool InitializeMountRomData();
 	bool InitializeGuiRenderer();
 	bool InitializeEditorComponents();
 

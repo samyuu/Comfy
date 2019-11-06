@@ -32,13 +32,13 @@ namespace FileSystem
 		RefPtr<Farc> farc = MakeRef<Farc>();
 		if (!farc->OpenStream(widePath))
 		{
-			Logger::LogLine(__FUNCTION__"(): Unable to open '%s'", filePath.c_str());
+			Logger::LogErrorLine(__FUNCTION__"(): Unable to open '%s'", filePath.c_str());
 			return nullptr;
 		}
 
 		if (!farc->ParseEntries())
 		{
-			Logger::LogLine(__FUNCTION__"(): Unable to parse '%s'", filePath.c_str());
+			Logger::LogErrorLine(__FUNCTION__"(): Unable to parse '%s'", filePath.c_str());
 			return nullptr;
 		}
 

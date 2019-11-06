@@ -77,7 +77,7 @@ namespace FileSystem
 		}
 
 		if (lastSeparatorIndex == filePath.size())
-			return FindRootFile(filePath);
+			return FindFileInDirectory(rootDirectory, filePath);
 
 		std::string_view directory = filePath.substr(0, lastSeparatorIndex);
 		const ComfyDirectory* parentDirectory = FindNestedDirectory(rootDirectory, directory);
@@ -99,34 +99,46 @@ namespace FileSystem
 		return nullptr;
 	}
 
-	const ComfyDirectory* ComfyArchive::FindDirectory(std::string_view directoryPath) const
+	const ComfyEntry* ComfyArchive::FindFileInDirectory(const ComfyDirectory* directory, std::string_view fileName) const
 	{
-		return FindNestedDirectory(rootDirectory, directoryPath);
-	}
-
-	bool ComfyArchive::ReadEntryIntoBuffer(const ComfyEntry& entry, void* outputBuffer)
-	{
-		assert(isMounted && dataStream != nullptr && dataStream->CanRead());
-		if (!isMounted || dataStream == nullptr || !dataStream->CanRead())
-			return false;
-		
-		dataStream->Seek(entry.Offset);
-		dataStream->Read(outputBuffer, entry.Size);
-
-		return true;
-	}
-
-	const ComfyEntry* ComfyArchive::FindRootFile(std::string_view fileName) const
-	{
-		for (size_t i = 0; i < rootDirectory->EntryCount; i++)
+		for (size_t i = 0; i < directory->EntryCount; i++)
 		{
-			auto& entry = rootDirectory->Entries[i];
-			
+			auto& entry = directory->Entries[i];
+
 			if (entry.Name == fileName)
 				return &entry;
 		}
 
 		return nullptr;
+	}
+
+	const ComfyDirectory* ComfyArchive::FindDirectory(std::string_view directoryPath) const
+	{
+		return FindNestedDirectory(rootDirectory, directoryPath);
+	}
+
+	bool ComfyArchive::ReadFileIntoBuffer(std::string_view filePath, std::vector<uint8_t>& buffer)
+	{
+		auto fileEntry = FindFile(filePath);
+		if (fileEntry == nullptr)
+			return false;
+
+		buffer.resize(fileEntry->Size);
+		ReadEntryIntoBuffer(fileEntry, buffer.data());
+
+		return true;
+	}
+
+	bool ComfyArchive::ReadEntryIntoBuffer(const ComfyEntry* entry, void* outputBuffer)
+	{
+		assert(entry != nullptr && isMounted && dataStream != nullptr && dataStream->CanRead());
+		if (entry == nullptr || !isMounted || dataStream == nullptr || !dataStream->CanRead())
+			return false;
+		
+		dataStream->Seek(entry->Offset);
+		dataStream->Read(outputBuffer, entry->Size);
+
+		return true;
 	}
 
 	const ComfyDirectory* ComfyArchive::FindNestedDirectory(const ComfyDirectory* parent, std::string_view directory) const

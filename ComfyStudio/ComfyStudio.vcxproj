@@ -143,6 +143,7 @@
     <ClCompile Include="lib\rtaudio\src\iasiothiscallresolver.cpp" />
     <ClCompile Include="lib\rtaudio\src\RtAudio.cpp" />
     <ClCompile Include="src\Core\ApplicationHost.cpp" />
+    <ClCompile Include="src\Core\ComfyData.cpp" />
     <ClCompile Include="src\Editor\Aet\RenderWindow\ObjectMousePicker.cpp" />
     <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\AetTool.cpp" />
     <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\HandTool.cpp" />
@@ -271,6 +272,7 @@
     <ClInclude Include="lib\rtaudio\src\iasiodrv.h" />
     <ClInclude Include="lib\rtaudio\src\iasiothiscallresolver.h" />
     <ClInclude Include="src\Core\ApplicationHost.h" />
+    <ClInclude Include="src\Core\ComfyData.h" />
     <ClInclude Include="src\Editor\Aet\RenderWindow\AetRenderPreviewData.h" />
     <ClInclude Include="src\Editor\Aet\RenderWindow\ObjectMousePicker.h" />
     <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\AetTool.h" />
