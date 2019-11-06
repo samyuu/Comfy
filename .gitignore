@@ -48,6 +48,7 @@ TestResult.xml
 dlldata.c
 
 # Comfy Studio development files
+ComfyData/data/
 ComfyData/data/dev_ram/
 ComfyData/data/dev_rom/
 

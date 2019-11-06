@@ -29,6 +29,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\Archive\Win32Crypto.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\BinaryReader.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\BinaryWriter.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\Archive\ComfyArchive.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\FileHelper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\FileInterface.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\FileLoader.cpp" />
@@ -54,6 +55,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\BinaryMode.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\BinaryReader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\BinaryWriter.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\Archive\ComfyArchive.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\FileHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\FileInterface.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\FileLoader.h" />
