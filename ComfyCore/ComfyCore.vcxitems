@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{4b56b297-6d2a-48a6-8914-b36b08c10f86}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\Core\CoreTypes.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\Core\Logger.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\Core\SmartPointers.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\Core\Win32\ComfyWindows.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\EndianHelper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\FileExtensionHelper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\StringHelper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\Types.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\Core\Logger.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\Misc\FileExtensionHelper.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\Misc\StringHelper.cpp" />
+  </ItemGroup>
+</Project>

@@ -2,8 +2,8 @@
 #include "Graphics/OpenGL/OpenGLLoader.h"
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
-#include "TimeSpan.h"
-#include "Logger.h"
+#include "Core/TimeSpan.h"
+#include "Core/Logger.h"
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include "Core/Win32/ComfyWindows.h"

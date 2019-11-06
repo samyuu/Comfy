@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
+#include "Core/CoreTypes.h"
 #include "TimeSpan.h"
 #include <functional>
 #include <optional>

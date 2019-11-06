@@ -1,8 +1,8 @@
 #include "Types.h"
 #include "TimeSpan.h"
 #include "DebugStopwatch.h"
-#include "Win32/ComfyWindows.h"
-#include "Logger.h"
+#include "Core/Win32/ComfyWindows.h"
+#include "Core/Logger.h"
 
 namespace
 {
