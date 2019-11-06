@@ -18,7 +18,9 @@ namespace FileSystem
 		void Close();
 
 		bool IsOpen();
-		bool GetLeaveOpen();
+		
+		void SetLeaveOpen(bool value);
+		bool GetLeaveOpen() const;
 
 		inline int64_t GetPosition() const { return stream->GetPosition(); }
 		inline void* GetPositionPtr() const { return (void*)GetPosition(); }

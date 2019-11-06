@@ -38,7 +38,12 @@ namespace FileSystem
 		return stream != nullptr;
 	}
 
-	bool BinaryReader::GetLeaveOpen()
+	void BinaryReader::SetLeaveOpen(bool value)
+	{
+		leaveOpen = value;
+	}
+
+	bool BinaryReader::GetLeaveOpen() const
 	{
 		return leaveOpen;
 	}
