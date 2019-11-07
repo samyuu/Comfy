@@ -9,35 +9,35 @@ namespace Editor
 	class EditorManager
 	{
 	public:
-		// Constructors / Destructors:
-		// ---------------------------
+		// NOTE: Constructors / Destructors:
 		EditorManager(Application* parent);
 		~EditorManager();
-		// ---------------------------
 
-		// Application Methods:
-		// --------------------
+		// NOTE: Application methods:
 		void DrawGuiMenuItems();
 		void DrawGuiWindows();
-		// --------------------
 
 	private:
-		// Base Members:
-		// -------------
-		Application* parent;
+		// NOTE: Base members
+		Application* parent = nullptr;
 
-		std::vector<UniquePtr<IEditorComponent>> editorComponents;
-		bool initialized = false;
-		// -------------
+		struct ComponentEntry
+		{
+			bool HasBeenInitialized;
+			UniquePtr<IEditorComponent> Component;
+		};
 
-		// Base Methods:
-		// -------------
-		template <class T> void AddEditorComponent();
+		std::vector<ComponentEntry> editorComponents;
+		bool hasBeenInitialized = false;
+
+	private:
+		// NOTE: Base methods
+		template <class T> 
+		void AddEditorComponent();
 
 		void Initialize();
 		void Update();
 		void DrawGui();
 		void UpdateFileDrop();
-		// -------------
 	};
 }

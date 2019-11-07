@@ -72,8 +72,8 @@ namespace Editor
 		AddEditorComponent<SceneRenderWindow>();
 
 		// DEBUG:
-		*editorComponents[0]->GetIsGuiOpenPtr() = false;
-		*editorComponents[2]->GetIsGuiOpenPtr() = false;
+		*editorComponents[0].Component->GetIsGuiOpenPtr() = false;
+		*editorComponents[2].Component->GetIsGuiOpenPtr() = false;
 	}
 
 	EditorManager::~EditorManager()
@@ -86,7 +86,7 @@ namespace Editor
 		if (Gui::BeginMenu("Editor"))
 		{
 			for (const auto &component : editorComponents)
-				Gui::MenuItem(component->GetGuiName(), nullptr, component->GetIsGuiOpenPtr());
+				Gui::MenuItem(component.Component->GetGuiName(), nullptr, component.Component->GetIsGuiOpenPtr());
 
 			Gui::EndMenu();
 		}
@@ -94,26 +94,26 @@ namespace Editor
 
 	void EditorManager::DrawGuiWindows()
 	{
-		if (!initialized)
+		if (!hasBeenInitialized)
 		{
 			Initialize();
-			initialized = true;
+			hasBeenInitialized = true;
 		}
 
 		Update();
 		DrawGui();
 	}
 
-	template<class T> void EditorManager::AddEditorComponent()
+	template<class T> 
+	void EditorManager::AddEditorComponent()
 	{
 		static_assert(std::is_base_of<IEditorComponent, T>::value, "T must inherit from IEditorComponent");
-		editorComponents.push_back(std::move(MakeUnique<T>(parent, this)));
+		editorComponents.push_back({ false, std::move(MakeUnique<T>(parent, this)) });
 	}
 
 	void EditorManager::Initialize()
 	{
-		for (const auto &component : editorComponents)
-			component->Initialize();
+		return;
 	}
 
 	void EditorManager::Update()
@@ -134,32 +134,38 @@ namespace Editor
 
 	void EditorManager::DrawGui()
 	{
-		for (const auto &component : editorComponents)
+		for (auto &component : editorComponents)
 		{
-			if (*component->GetIsGuiOpenPtr())
+			if (*component.Component->GetIsGuiOpenPtr())
 			{
-				component->OnWindowBegin();
+				if (!component.HasBeenInitialized)
 				{
-					if (Gui::Begin(component->GetGuiName(), component->GetIsGuiOpenPtr(), component->GetWindowFlags()))
-						component->DrawGui();
+					component.Component->Initialize();
+					component.HasBeenInitialized = true;
 				}
-				component->OnWindowEnd();
+
+				component.Component->OnWindowBegin();
+				{
+					if (Gui::Begin(component.Component->GetGuiName(), component.Component->GetIsGuiOpenPtr(), component.Component->GetWindowFlags()))
+						component.Component->DrawGui();
+				}
+				component.Component->OnWindowEnd();
 				Gui::End();
 			}
+		}
 	}
-}
 
 	void EditorManager::UpdateFileDrop()
 	{
 		if (parent->GetHost().GetDispatchFileDrop())
 		{
-			const std::vector<std::string>& droppedFiles = parent->GetHost().GetDroppedFiles();
+			const auto& droppedFiles = parent->GetHost().GetDroppedFiles();
 
 			for (const auto &component : editorComponents)
 			{
 				for (const std::string& filePath : droppedFiles)
 				{
-					if (component->OnFileDropped(filePath))
+					if (component.Component->OnFileDropped(filePath))
 					{
 						parent->GetHost().SetFileDropDispatched();
 						break;
