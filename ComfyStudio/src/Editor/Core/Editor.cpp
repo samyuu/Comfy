@@ -71,9 +71,10 @@ namespace Editor
 		AddEditorComponent<AetEditor>();
 		AddEditorComponent<SceneRenderWindow>();
 
-		// DEBUG:
-		*editorComponents[0].Component->GetIsGuiOpenPtr() = false;
-		*editorComponents[2].Component->GetIsGuiOpenPtr() = false;
+#if 1 // DEBUG:
+		editorComponents[0].Component->CloseWindow();
+		editorComponents[2].Component->CloseWindow();
+#endif
 	}
 
 	EditorManager::~EditorManager()
@@ -85,7 +86,7 @@ namespace Editor
 	{
 		if (Gui::BeginMenu("Editor"))
 		{
-			for (const auto &component : editorComponents)
+			for (auto& component : editorComponents)
 				Gui::MenuItem(component.Component->GetGuiName(), nullptr, component.Component->GetIsGuiOpenPtr());
 
 			Gui::EndMenu();
@@ -104,7 +105,7 @@ namespace Editor
 		DrawGui();
 	}
 
-	template<class T> 
+	template<class T>
 	void EditorManager::AddEditorComponent()
 	{
 		static_assert(std::is_base_of<IEditorComponent, T>::value, "T must inherit from IEditorComponent");
@@ -134,7 +135,7 @@ namespace Editor
 
 	void EditorManager::DrawGui()
 	{
-		for (auto &component : editorComponents)
+		for (auto& component : editorComponents)
 		{
 			if (*component.Component->GetIsGuiOpenPtr())
 			{
