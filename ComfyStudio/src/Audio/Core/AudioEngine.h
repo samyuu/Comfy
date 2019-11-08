@@ -122,9 +122,9 @@ namespace Audio
 		StreamParameters streamOutputParameter;
 		ChannelMixer channelMixer;
 
-		RtAudio::Api GetRtAudioApi(AudioApi audioApi);
+		static RtAudio::Api GetRtAudioApi(AudioApi audioApi);
 
-		std::array<RtAudio::Api, static_cast<size_t>(AudioApi::Count)> audioApis =
+		static constexpr std::array<RtAudio::Api, static_cast<size_t>(AudioApi::Count)> audioApis =
 		{
 			RtAudio::WINDOWS_ASIO,		// AudioApi::ASIO
 			RtAudio::WINDOWS_WASAPI,	// AudioApi::WASAPI

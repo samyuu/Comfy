@@ -233,7 +233,7 @@ namespace Graphics
 		vertexBuffer.Upload(vertices.size() * sizeof(SpriteVertices), vertices.data());
 		indexBuffer.Bind();
 
-		AetBlendMode lastBlendMode;
+		AetBlendMode lastBlendMode = AetBlendMode::Normal;
 
 		for (uint16_t i = 0; i < batches.size(); i++)
 		{
@@ -339,7 +339,7 @@ namespace Graphics
 				static_cast<uint16_t>(offset + 0), // [0] TopLeft;
 			};
 
-			offset += SpriteVertices::GetVertexCount();
+			offset += static_cast<uint16_t>(SpriteVertices::GetVertexCount());
 		}
 
 		indexBuffer.Upload(sizeof(SpriteIndices) * indexData.size(), indexData.data());
@@ -347,8 +347,6 @@ namespace Graphics
 
 	void GL_Renderer2D::CreateBatches()
 	{
-		const GL_Texture2D* lastTexture = nullptr;
-
 		for (uint16_t i = 0; i < batchItems.size(); i++)
 		{
 			bool first = i == 0;

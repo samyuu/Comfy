@@ -55,7 +55,7 @@ namespace FileSystem
 	{
 		assert(CanRead());
 
-		DWORD bytesRead = -1;
+		DWORD bytesRead = 0;
 		ReadFile(fileHandle, buffer, static_cast<DWORD>(size), &bytesRead, nullptr);
 
 		position += bytesRead;
@@ -66,7 +66,7 @@ namespace FileSystem
 	{
 		assert(CanWrite());
 
-		DWORD bytesWritten = -1;
+		DWORD bytesWritten = 0;
 		WriteFile(fileHandle, buffer, static_cast<DWORD>(size), &bytesWritten, nullptr);
 
 		if (position > (GetLength() - static_cast<int64_t>(bytesWritten)))

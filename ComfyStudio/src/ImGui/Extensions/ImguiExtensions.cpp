@@ -514,8 +514,6 @@ namespace ImGui
 		if (window->SkipItems)
 			return;
 
-		ImGuiContext& g = *GImGui;
-
 		float y1 = window->DC.CursorPos.y;
 		float y2 = window->DC.CursorPos.y + window->DC.CurrentLineSize.y;
 		const ImRect bb(ImVec2(window->DC.CursorPos.x, y1), ImVec2(window->DC.CursorPos.x + spacing + 1.0f, y2));

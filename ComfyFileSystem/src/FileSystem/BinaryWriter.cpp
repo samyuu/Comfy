@@ -200,6 +200,8 @@ namespace FileSystem
 
 			SetPosition(value.ReturnAddress);
 			value.Function(*this);
+			
+			SetPosition(offset);
 		}
 
 		delayedWritePool.clear();

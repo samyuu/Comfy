@@ -16,7 +16,7 @@ namespace Graphics
 		void End();
 
 	private:
-		const PerspectiveCamera* camera;
+		const PerspectiveCamera* perspectiveCamera;
 		UniquePtr<GL_SimpleShader> simpleShader = nullptr;
 	};
 }

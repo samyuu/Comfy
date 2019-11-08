@@ -19,7 +19,7 @@ namespace Editor
 	
 	void SyncWindow::DrawGui(Chart* chart, TargetTimeline* timeline)
 	{
-		ImGuiWindow* syncWindow = Gui::GetCurrentWindow();
+		// ImGuiWindow* syncWindow = Gui::GetCurrentWindow();
 
 		Gui::Text("Adjust Sync:");
 		Gui::Separator();

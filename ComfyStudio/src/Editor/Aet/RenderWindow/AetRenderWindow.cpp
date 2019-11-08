@@ -287,7 +287,7 @@ namespace Editor
 			if (Gui::IsItemHoveredDelayed())
 			{
 				const char* shortcutString = GetKeyCodeName(tool->GetShortcutKey());
-				char shortcutChar = shortcutString ? toupper(shortcutString[0]) : '?';
+				char shortcutChar = shortcutString ? static_cast<char>(toupper(shortcutString[0])) : '?';
 
 				Gui::WideSetTooltip("%s (%c)", tool->GetName(), shortcutChar);
 			}

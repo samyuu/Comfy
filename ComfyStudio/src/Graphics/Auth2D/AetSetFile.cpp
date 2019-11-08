@@ -441,8 +441,8 @@ namespace Graphics
 					{
 						surface->filePosition = writer.GetPositionPtr();
 						writer.WriteUInt32(surface->Color);
-						writer.WriteInt16(surface->Size.x);
-						writer.WriteInt16(surface->Size.y);
+						writer.WriteInt16(static_cast<int16_t>(surface->Size.x));
+						writer.WriteInt16(static_cast<int16_t>(surface->Size.y));
 						writer.WriteFloat(surface->Frames);
 						if (surface->SpriteCount() > 0)
 						{

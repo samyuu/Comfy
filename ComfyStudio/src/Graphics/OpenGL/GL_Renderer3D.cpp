@@ -10,13 +10,11 @@ namespace Graphics
 
 	void GL_Renderer3D::Begin(const PerspectiveCamera& camera)
 	{
-		this->camera = &camera;
-
+		perspectiveCamera = &camera;
 
 		simpleShader->Bind();
-		simpleShader->SetUniform(simpleShader->View, this->camera->GetViewMatrix());
-		simpleShader->SetUniform(simpleShader->Projection, this->camera->GetProjectionMatrix());
-
+		simpleShader->SetUniform(simpleShader->View, perspectiveCamera->GetViewMatrix());
+		simpleShader->SetUniform(simpleShader->Projection, perspectiveCamera->GetProjectionMatrix());
 	}
 
 	void GL_Renderer3D::Draw(const Obj* object, const vec3& position)

@@ -281,8 +281,6 @@ namespace ImGui
 #define FILE_ICON_FORMAT_STRING(iconName) ("  " iconName "  %s")
 #define CASE_FILE_ICON(caseValue, icon) case caseValue: return FILE_ICON_FORMAT_STRING(icon)
 
-		constexpr const char* formatString = "  %s";
-
 		if (info.IsDirectory)
 			return info.IsHovered ? FILE_ICON_FORMAT_STRING(ICON_FA_FOLDER_OPEN) : FILE_ICON_FORMAT_STRING(ICON_FA_FOLDER);
 

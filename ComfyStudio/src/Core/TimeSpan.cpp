@@ -15,7 +15,7 @@ namespace
 		{
 			LARGE_INTEGER time;
 			{
-				const int result = ::QueryPerformanceCounter(&time);
+				const BOOL result = ::QueryPerformanceCounter(&time);
 				assert(result != 0);
 			}
 			return time.QuadPart;
@@ -25,7 +25,7 @@ namespace
 		{
 			LARGE_INTEGER frequency;
 			{
-				const int result = ::QueryPerformanceFrequency(&frequency);
+				const BOOL result = ::QueryPerformanceFrequency(&frequency);
 				assert(result != 0);
 			}
 			return frequency.QuadPart;

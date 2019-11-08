@@ -363,10 +363,6 @@ namespace ImGui
 			"layout (location = 0) out vec4 FragColor;"
 			"void main() { FragColor = VertexColor * texture(u_Texture, VertexTexCoord.st); }";
 
-		// Select shaders matching our GLSL versions
-		const GLchar* vertex_shader = NULL;
-		const GLchar* fragment_shader = NULL;
-
 		// Create shaders
 		GLCall(g_VertHandle = glCreateShader(GL_VERTEX_SHADER));
 		GLCall(glShaderSource(g_VertHandle, 1, &vertex_shader_glsl_code, NULL));
