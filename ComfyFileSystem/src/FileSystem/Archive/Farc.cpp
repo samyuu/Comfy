@@ -96,7 +96,7 @@ namespace FileSystem
 		{
 			uint32_t formatData[2];
 			reader.Read(formatData, sizeof(formatData));
-			flags = ByteswapUInt32(formatData[0]);
+			flags = static_cast<FarcFlags>(ByteswapUInt32(formatData[0]));
 			alignment = ByteswapUInt32(formatData[1]);
 
 			// NOTE: Peek at the next 8 bytes which are either the alignment value followed by padding or the start of the AES IV

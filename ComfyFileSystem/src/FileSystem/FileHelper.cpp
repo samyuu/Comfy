@@ -208,7 +208,7 @@ namespace FileSystem
 	std::string GetWorkingDirectory()
 	{
 		char buffer[MAX_PATH];
-		GetCurrentDirectory(sizeof(buffer), buffer);
+		::GetCurrentDirectoryA(MAX_PATH, buffer);
 
 		return std::string(buffer);
 	}
@@ -216,7 +216,7 @@ namespace FileSystem
 	std::wstring GetWorkingDirectoryW()
 	{
 		wchar_t buffer[MAX_PATH];
-		::GetCurrentDirectoryW(sizeof(buffer), buffer);
+		::GetCurrentDirectoryW(MAX_PATH, buffer);
 
 		return std::wstring(buffer);
 	}

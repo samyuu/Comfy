@@ -48,7 +48,7 @@ namespace FileSystem
 		FileStream stream;
 		BinaryReader reader;
 		uint32_t alignment;
-		uint32_t flags;
+		FarcFlags flags;
 		FarcEncryptionFormat encryptionFormat;
 		std::array<uint8_t, IVSize> aesIV;
 

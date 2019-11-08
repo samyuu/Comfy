@@ -45,9 +45,9 @@ namespace Editor
 
 		bool allowAction = false;
 
-		vec2 scaleNodeWorldPositionOnMouseDown;
-		vec2 mouseWorldPositionOnMouseDown;
-		Graphics::Properties propertiesOnMouseDown;
+		vec2 scaleNodeWorldPositionOnMouseDown = vec2(0.0f, 0.0f);
+		vec2 mouseWorldPositionOnMouseDown = vec2(0.0f, 0.0f);
+		Graphics::Properties propertiesOnMouseDown = {};
 	
 	private:
 		vec2 GetAxisPoint(const Graphics::Properties& properties, ScaleNode node);

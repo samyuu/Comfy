@@ -37,10 +37,10 @@ namespace Editor
 
 	private:
 		// NOTE: Set when mouse clicked while inside timelineHeaderRegion, timeline cursor set to mouse cursor
-		bool isCursorScrubbing;
+		bool isCursorScrubbing = false;
 		MouseSelectionData selectionData;
 
-		bool updateCursorTime;
+		bool updateCursorTime = false;
 		TimeSpan newCursorTime;
 
 	private:
