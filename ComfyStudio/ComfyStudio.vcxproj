@@ -78,7 +78,7 @@
       <DisableSpecificWarnings>4201;4458;4100</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>dxguid.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;d3d11.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
@@ -120,7 +120,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>dxguid.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;d3d11.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -155,7 +155,10 @@
     <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\TransformBox.cpp" />
     <ClCompile Include="src\Editor\Timeline\TimelineScrollbar.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\SpriteBatchData.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\Direct3D.cpp" />
     <ClCompile Include="src\ImGui\GuiRenderer.cpp" />
+    <ClCompile Include="src\ImGui\Implementation\ImGui_Impl_Renderer.cpp" />
+    <ClCompile Include="src\ImGui\Implementation\ImGui_Impl.cpp" />
     <ClCompile Include="src\Input\Keyboard.cpp" />
     <ClCompile Include="src\Input\KeyCode.cpp" />
     <ClCompile Include="src\System\CommandLine\CommandLine.cpp" />
@@ -237,8 +240,6 @@
     <ClCompile Include="src\ImGui\Core\imgui.cpp" />
     <ClCompile Include="src\ImGui\Core\imgui_demo.cpp" />
     <ClCompile Include="src\ImGui\Core\imgui_draw.cpp" />
-    <ClCompile Include="src\ImGui\Implementation\ImGui_Impl.cpp" />
-    <ClCompile Include="src\ImGui\Implementation\ImGui_Impl_Renderer.cpp" />
     <ClCompile Include="src\ImGui\Core\imgui_widgets.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\GL_ShaderProgram.cpp" />
     <ClCompile Include="src\EntryPoint.cpp" />
@@ -273,9 +274,12 @@
     <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\TransformBox.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineScrollbar.h" />
     <ClInclude Include="src\Graphics\Auth2D\SpriteBatchData.h" />
+    <ClInclude Include="src\Graphics\Direct3D\Direct3D.h" />
     <ClInclude Include="src\Graphics\GraphicsTypes.h" />
     <ClInclude Include="src\Graphics\GraphicTypesNames.h" />
     <ClInclude Include="src\ImGui\GuiRenderer.h" />
+    <ClInclude Include="src\ImGui\Implementation\ImGui_Impl_Renderer.h" />
+    <ClInclude Include="src\ImGui\Implementation\ImGui_Impl.h" />
     <ClInclude Include="src\System\CommandLine\CommandLine.h" />
     <ClInclude Include="src\Audio\Core\Detail\SampleMixer.h" />
     <ClInclude Include="src\Audio\Decoder\AudioDecoderFactory.h" />
@@ -382,8 +386,6 @@
     <ClInclude Include="src\Graphics\VertexLayouts.h" />
     <ClInclude Include="src\ImGui\Core\imconfig.h" />
     <ClInclude Include="src\ImGui\Core\imgui.h" />
-    <ClInclude Include="src\ImGui\Implementation\ImGui_Impl.h" />
-    <ClInclude Include="src\ImGui\Implementation\ImGui_Impl_Renderer.h" />
     <ClInclude Include="src\ImGui\Core\imgui_internal.h" />
     <ClInclude Include="src\ImGui\Core\imstb_rectpack.h" />
     <ClInclude Include="src\ImGui\Core\imstb_textedit.h" />

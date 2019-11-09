@@ -69,12 +69,6 @@
     <ClCompile Include="src\Editor\Aet\AetIcons.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ImGui\Implementation\ImGui_Impl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ImGui\Implementation\ImGui_Impl_Renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\App\TestTasks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -360,6 +354,15 @@
     <ClCompile Include="src\Core\ComfyData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\Direct3D\Direct3D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ImGui\Implementation\ImGui_Impl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ImGui\Implementation\ImGui_Impl_Renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
@@ -429,12 +432,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Input\KeyCode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ImGui\Implementation\ImGui_Impl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ImGui\Implementation\ImGui_Impl_Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\App\Task.h">
@@ -792,6 +789,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\ComfyData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Direct3D\Direct3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ImGui\Implementation\ImGui_Impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ImGui\Implementation\ImGui_Impl_Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

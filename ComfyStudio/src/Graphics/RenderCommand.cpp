@@ -40,7 +40,7 @@ namespace Graphics
 
 	void RenderCommand::SetClearColor(const vec4& color)
 	{
-		GLCall(glClearColor(color.x, color.y, color.z, color.w));
+		// GLCall(glClearColor(color.x, color.y, color.z, color.w));
 	}
 
 	void RenderCommand::Clear(ClearTarget target)
@@ -56,12 +56,12 @@ namespace Graphics
 			mask |= GL_ACCUM_BUFFER_BIT;
 		if (target & ClearTarget_StencilBuffer)
 			mask |= GL_STENCIL_BUFFER_BIT;
-		GLCall(glClear(mask));
+		// GLCall(glClear(mask));
 	}
 
 	void RenderCommand::SetViewport(int32_t width, int32_t height)
 	{
-		GLCall(glViewport(0, 0, static_cast<GLint>(width), static_cast<GLint>(height)));
+		// GLCall(glViewport(0, 0, static_cast<GLint>(width), static_cast<GLint>(height)));
 	}
 
 	void RenderCommand::SetViewport(ivec2 size)

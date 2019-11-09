@@ -1,65 +1,16 @@
 #include "ApplicationHost.h"
-#include "Graphics/OpenGL/OpenGLLoader.h"
+#include "Graphics/Direct3D/Direct3D.h"
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
-#include "Core/TimeSpan.h"
 #include "Core/Logger.h"
-
-#define GLFW_EXPOSE_NATIVE_WIN32
 #include "Core/Win32/ComfyWindows.h"
+#include "Misc/StringHelper.h"
 #include "../res/resource.h"
-#include <glfw/glfw3.h>
-#include <glfw/glfw3native.h>
 
 namespace
 {
-	ApplicationHost* GlobalCallbackInstance;
-	
 	HMODULE GlobalModuleHandle = NULL;
 	HICON GlobalIconHandle = NULL;
-
-	void GlfwErrorCallback(int error, const char* description)
-	{
-		Logger::LogErrorLine(__FUNCTION__"(): [GLFW Error: 0x%X] %s", error, description);
-	}
-
-	GLFWmonitor* GetActiveOrCurrentMonitor(GLFWwindow* window)
-	{
-		GLFWmonitor* monitor = glfwGetWindowMonitor(window);
-
-		if (monitor != nullptr)
-			return monitor;
-
-		int windowXPosition, windowYPosition;
-		glfwGetWindowPos(window, &windowXPosition, &windowYPosition);
-
-		int windowWidth, windowHeight;
-		glfwGetWindowSize(window, &windowWidth, &windowHeight);
-
-		int monitorCount;
-		GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
-
-		int bestoverlap = 0;
-		for (int i = 0; i < monitorCount; i++)
-		{
-			const GLFWvidmode* videoMode = glfwGetVideoMode(monitors[i]);
-
-			int monitorX, monitorY;
-			glfwGetMonitorPos(monitors[i], &monitorX, &monitorY);
-
-			int overlap =
-				glm::max(0, glm::min(static_cast<int>(windowXPosition + windowWidth), monitorX + videoMode->width) - glm::max(windowXPosition, monitorX)) *
-				glm::max(0, glm::min(static_cast<int>(windowYPosition + windowHeight), monitorY + videoMode->height) - glm::max(windowYPosition, monitorY));
-
-			if (bestoverlap < overlap)
-			{
-				bestoverlap = overlap;
-				monitor = monitors[i];
-			}
-		}
-
-		return monitor;
-	}
 }
 
 ApplicationHost::ApplicationHost()
@@ -72,19 +23,9 @@ ApplicationHost::~ApplicationHost()
 
 bool ApplicationHost::Initialize()
 {
-	glfwSetErrorCallback(&GlfwErrorCallback);
-
-	if (const bool glfwInitResult = glfwInit(); !glfwInitResult)
-		return false;
-
 	GlobalModuleHandle = ::GetModuleHandleA(nullptr);
 	if (!InternalCreateWindow())
 		return false;
-
-	glfwMakeContextCurrent(window);
-	Graphics::OpenGLLoader::LoadFunctions(reinterpret_cast<OpenGLFunctionLoader*>(glfwGetProcAddress));
-
-	InternalWindowRegisterCallbacks();
 
 	InitializeDirectInput(GlobalModuleHandle);
 	InternalCheckConnectedDevices();
@@ -94,8 +35,18 @@ bool ApplicationHost::Initialize()
 
 void ApplicationHost::EnterProgramLoop(const std::function<void()> updateFunction)
 {
-	while (!glfwWindowShouldClose(window))
+	isRunning = true;
+
+	MSG message = {};
+	while (isRunning && message.message != WM_QUIT)
 	{
+		if (::PeekMessageA(&message, NULL, 0, 0, PM_REMOVE))
+		{
+			::TranslateMessage(&message);
+			::DispatchMessageA(&message);
+			continue;
+		}
+
 		InternalPreUpdateTick();
 		{
 			updateFunction();
@@ -103,11 +54,10 @@ void ApplicationHost::EnterProgramLoop(const std::function<void()> updateFunctio
 			if (!windowFocused)
 			{
 				// NOTE: Arbitrary sleep to drastically reduce power usage. This could really use a better solution for final release builds
-				Sleep(static_cast<uint32_t>(powerSleepDuration.TotalMilliseconds()));
+				::Sleep(static_cast<uint32_t>(powerSleepDuration.TotalMilliseconds()));
 			}
 
-			glfwSwapBuffers(window);
-			glfwPollEvents();
+			Graphics::D3D.SwapChain->Present(swapInterval, 0);
 		}
 		InternalPostUpdateTick();
 	}
@@ -115,7 +65,8 @@ void ApplicationHost::EnterProgramLoop(const std::function<void()> updateFunctio
 
 void ApplicationHost::Exit()
 {
-	glfwSetWindowShouldClose(window, GLFW_TRUE);
+	isRunning = false;
+	::PostQuitMessage(EXIT_SUCCESS);
 }
 
 void ApplicationHost::Dispose()
@@ -123,20 +74,21 @@ void ApplicationHost::Dispose()
 	Keyboard::DeleteInstance();
 	DualShock4::DeleteInstance();
 
-	glfwDestroyWindow(window);
-	glfwTerminate();
+	InternalDisposeWindow();
 }
 
-bool ApplicationHost::IsFullscreen() const
+bool ApplicationHost::GetIsFullscreen() const
 {
-	return glfwGetWindowMonitor(window) != nullptr;
+	return isFullscreen;
 }
 
-void ApplicationHost::SetFullscreen(bool value)
+void ApplicationHost::SetIsFullscreen(bool value)
 {
-	if (IsFullscreen() == value)
+	if (GetIsFullscreen() == value)
 		return;
 
+	// TODO:
+#if 0
 	if (value)
 	{
 		preFullScreenWindowPosition = windowPosition;
@@ -157,17 +109,18 @@ void ApplicationHost::SetFullscreen(bool value)
 			preFullScreenWindowSize.y,
 			GLFW_DONT_CARE);
 	}
+#endif
 }
 
 void ApplicationHost::ToggleFullscreen()
 {
-	const bool fullscreenInverse = !IsFullscreen();
-	SetFullscreen(fullscreenInverse);
+	const bool fullscreenInverse = !GetIsFullscreen();
+	SetIsFullscreen(fullscreenInverse);
 }
 
 void ApplicationHost::SetSwapInterval(int interval)
 {
-	glfwSwapInterval(interval);
+	swapInterval = interval;
 }
 
 bool ApplicationHost::HasFocusBeenGained() const
@@ -180,24 +133,50 @@ bool ApplicationHost::HasFocusBeenLost() const
 	return focusLostThisFrame;
 }
 
-ivec2 ApplicationHost::GetWindowPosition() const 
-{ 
-	return windowPosition; 
-}
-
-ivec2 ApplicationHost::GetWindowSize() const 
-{ 
-	return windowSize; 
-}
-
-void ApplicationHost::SetClipboardString(const char* value) const
+ivec2 ApplicationHost::GetWindowPosition() const
 {
-	glfwSetClipboardString(window, value);
+	return windowPosition;
+}
+
+ivec2 ApplicationHost::GetWindowSize() const
+{
+	return windowSize;
+}
+
+void ApplicationHost::SetClipboardString(const std::string_view value) const
+{
+	GetClipboardString();
+
+	const std::wstring_view wideString = Utf8ToUtf16(value);
+
+	::OpenClipboard(windowHandle);
+	{
+		HGLOBAL dataHandle = ::GlobalAlloc(GMEM_MOVEABLE, wideString.size());
+
+		memcpy(::GlobalLock(dataHandle), wideString.data(), wideString.size() * sizeof(wchar_t));
+		::GlobalUnlock(dataHandle);
+
+		::EmptyClipboard();
+		::SetClipboardData(CF_UNICODETEXT, dataHandle);
+	}
+	::CloseClipboard();
 }
 
 std::string ApplicationHost::GetClipboardString() const
 {
-	return glfwGetClipboardString(window);
+	::OpenClipboard(windowHandle);
+	HANDLE dataHandle = ::GetClipboardData(CF_UNICODETEXT);
+	const std::wstring wideString = std::wstring(reinterpret_cast<wchar_t*>(::GlobalLock(dataHandle)));
+
+	::GlobalUnlock(dataHandle);
+	::CloseClipboard();
+
+	return Utf16ToUtf8(wideString);
+}
+
+void ApplicationHost::RegisterWindowProcCallback(const std::function<bool(HWND, UINT, WPARAM, LPARAM)> onWindowProc)
+{
+	windowProcCallback = onWindowProc;
 }
 
 void ApplicationHost::RegisterWindowResizeCallback(const std::function<void(ivec2 size)> onWindowResize)
@@ -231,35 +210,66 @@ void ApplicationHost::LoadComfyWindowIcon()
 	GlobalIconHandle = ::LoadIconA(GlobalModuleHandle, MAKEINTRESOURCEA(COMFY_ICON));
 }
 
-void ApplicationHost::SetComfyWindowIcon(GLFWwindow* window)
+void ApplicationHost::SetComfyWindowIcon(HWND windowHandle)
 {
 	assert(GlobalIconHandle != NULL);
 
-	const HWND windowHandle = glfwGetWin32Window(window);
-	::SendMessageA(windowHandle, WM_SETICON, ICON_SMALL, (LPARAM)GlobalIconHandle);
-	::SendMessageA(windowHandle, WM_SETICON, ICON_BIG, (LPARAM)GlobalIconHandle);
+	const LPARAM iconArgument = reinterpret_cast<LPARAM>(GlobalIconHandle);
+	::SendMessageA(windowHandle, WM_SETICON, ICON_SMALL, iconArgument);
+	::SendMessageA(windowHandle, WM_SETICON, ICON_BIG, iconArgument);
 }
 
 bool ApplicationHost::InternalCreateWindow()
 {
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	ApplicationHost::LoadComfyWindowIcon();
 
-	window = glfwCreateWindow(windowSize.x, windowSize.y, ComfyStudioWindowTitle, nullptr, nullptr);
+	WNDCLASSEX windowClass = {};
+	windowClass.cbSize = sizeof(WNDCLASSEX);
+	windowClass.style = CS_HREDRAW | CS_VREDRAW;
+	windowClass.lpfnWndProc = &ProcessWindowMessage;
+	windowClass.cbClsExtra = 0;
+	windowClass.cbWndExtra = 0;
+	windowClass.hInstance = GlobalModuleHandle;
+	windowClass.hIcon = GlobalIconHandle;
+	windowClass.hCursor = ::LoadCursorA(NULL, IDC_ARROW);
+	windowClass.hbrBackground = NULL;
+	windowClass.lpszMenuName = NULL;
+	windowClass.lpszClassName = ComfyWindowClassName;
+	windowClass.hIconSm = GlobalIconHandle;
 
-	if (window == nullptr)
+	if (!::RegisterClassExA(&windowClass))
 		return false;
 
-	glfwSetWindowSizeLimits(window, WindowSizeRestraints.x, WindowSizeRestraints.y, GLFW_DONT_CARE, GLFW_DONT_CARE);
-	glfwGetWindowPos(window, &windowPosition.x, &windowPosition.y);
+	windowHandle = ::CreateWindowExA(
+		NULL,
+		ComfyWindowClassName,
+		ComfyStudioWindowTitle,
+		WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		StartupWindowSize.x,
+		StartupWindowSize.y,
+		NULL,
+		NULL,
+		GlobalModuleHandle,
+		this);
 
-	ApplicationHost::LoadComfyWindowIcon();
-	ApplicationHost::SetComfyWindowIcon(window);
+	if (windowHandle == NULL)
+		return false;
+
+	if (!Graphics::D3D.Initialize(windowHandle))
+	{
+		Graphics::D3D.Dispose();
+		return false;
+	}
+
+	::ShowWindow(windowHandle, SW_SHOWDEFAULT);
+	::UpdateWindow(windowHandle);
 
 	return true;
 }
 
+#if 0
 bool ApplicationHost::InternalWindowRegisterCallbacks()
 {
 	GlobalCallbackInstance = this;
@@ -308,6 +318,7 @@ bool ApplicationHost::InternalWindowRegisterCallbacks()
 
 	return true;
 }
+#endif
 
 void ApplicationHost::InternalMouseMoveCallback(ivec2 position)
 {
@@ -327,7 +338,7 @@ void ApplicationHost::InternalWindowMoveCallback(ivec2 position)
 void ApplicationHost::InternalWindowResizeCallback(ivec2 size)
 {
 	windowSize = size;
-	
+
 	if (windowResizeCallback.has_value())
 		windowResizeCallback.value()(windowSize);
 }
@@ -359,7 +370,7 @@ void ApplicationHost::InternalCheckConnectedDevices()
 {
 	if (!Keyboard::GetInstanceInitialized())
 	{
-		if (Keyboard::TryInitializeInstance(window))
+		if (Keyboard::TryInitializeInstance())
 		{
 			// Logger::LogLine(__FUNCTION__"(): Keyboard connected and initialized");
 		}
@@ -400,11 +411,12 @@ void ApplicationHost::InternalPostUpdateTick()
 
 void ApplicationHost::InternalPreUpdatePollInput()
 {
-	double mouseX, mouseY;
-	glfwGetCursorPos(window, &mouseX, &mouseY);
+	POINT cursorPosition;
+	::GetCursorPos(&cursorPosition);
+	::ScreenToClient(windowHandle, &cursorPosition);
 
 	lastMousePosition = mousePosition;
-	mousePosition = ivec2(static_cast<int>(mouseX), static_cast<int>(mouseY));
+	mousePosition = ivec2(cursorPosition.x, cursorPosition.y);
 
 	mouseDelta = mousePosition - lastMousePosition;
 
@@ -425,7 +437,124 @@ void ApplicationHost::InternalPreUpdatePollInput()
 	}
 }
 
-ApplicationHost* ApplicationHost::DecodeWindowUserDataPointer(GLFWwindow* window)
+void ApplicationHost::InternalDisposeWindow()
 {
-	return static_cast<ApplicationHost*>(glfwGetWindowUserPointer(window));
+	// TODO: Is this really necessary or should windows dispose of this itself?
+
+	Graphics::D3D.Dispose();
+
+	if (windowHandle != nullptr)
+	{
+		::DestroyWindow(windowHandle);
+		windowHandle = nullptr;
+	}
+
+	::UnregisterClassA(ComfyWindowClassName, GlobalModuleHandle);
+}
+
+LRESULT ApplicationHost::InternalProcessWindowMessage(const UINT message, const WPARAM parameter, const LPARAM userData)
+{
+	if (windowProcCallback.has_value() && windowProcCallback.value()(windowHandle, message, parameter, userData))
+		return 0;
+
+	switch (message)
+	{
+
+	case WM_SIZE:
+	{
+		const ivec2 size = { LOWORD(parameter), HIWORD(parameter) };
+		if (parameter != SIZE_MINIMIZED)
+			InternalWindowResizeCallback(size);
+		return 0;
+	}
+
+	case WM_MOVE:
+	{
+		const ivec2 position = { LOWORD(parameter), HIWORD(parameter) };
+		InternalWindowMoveCallback(position);
+		return 0;
+	}
+
+	case WM_MOUSEMOVE:
+	{
+		const ivec2 position = { LOWORD(parameter), HIWORD(parameter) };
+		InternalMouseMoveCallback(position);
+		return 0;
+	}
+
+	case WM_MOUSEWHEEL:
+	{
+		InternalMouseScrollCallback(static_cast<float>(GET_WHEEL_DELTA_WPARAM(parameter)) / static_cast<float>(WHEEL_DELTA));
+		return 0;
+	}
+
+	// TODO: case WM_DROPFILES:
+
+	case WM_DEVICECHANGE:
+	{
+		InternalCheckConnectedDevices();
+		return 0;
+	}
+
+	case WM_SYSCOMMAND:
+	{
+		// NOTE: Disable ALT application menu
+		if (auto lowOrderBits = (parameter & 0xFFF0); lowOrderBits == SC_KEYMENU)
+			return 0;
+
+		break;
+	}
+
+	case WM_SETFOCUS:
+	{
+		InternalWindowFocusCallback(true);
+		return 0;
+	}
+
+	case WM_KILLFOCUS:
+	{
+		InternalWindowFocusCallback(false);
+		return 0;
+	}
+
+	case WM_CLOSE:
+	{
+		InternalWindowClosingCallback();
+		break;
+	}
+
+	case WM_DESTROY:
+	{
+		Exit();
+		return 0;
+	}
+
+	default:
+		break;
+	}
+
+	return ::DefWindowProcA(windowHandle, message, parameter, userData);
+}
+
+LRESULT ApplicationHost::ProcessWindowMessage(HWND windowHandle, UINT message, WPARAM parameter, LPARAM userData)
+{
+	ApplicationHost* receiver = nullptr;
+
+	if (message == WM_NCCREATE)
+	{
+		LPCREATESTRUCT createStruct = reinterpret_cast<LPCREATESTRUCT>(userData);
+		receiver = reinterpret_cast<ApplicationHost*>(createStruct->lpCreateParams);
+
+		receiver->windowHandle = windowHandle;
+		::SetWindowLongPtrA(windowHandle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(receiver));
+	}
+	else
+	{
+		receiver = reinterpret_cast<ApplicationHost*>(::GetWindowLongPtrA(windowHandle, GWLP_USERDATA));
+	}
+
+	if (receiver != nullptr)
+		return receiver->InternalProcessWindowMessage(message, parameter, userData);
+
+	return ::DefWindowProcA(windowHandle, message, parameter, userData);
 }

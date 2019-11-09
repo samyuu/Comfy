@@ -66,6 +66,10 @@ namespace Editor
 
 	EditorManager::EditorManager(Application* parent) : parent(parent)
 	{
+#if 1 // TEMP:
+		return;
+#endif
+
 		editorComponents.reserve(3);
 		AddEditorComponent<ChartEditor>();
 		AddEditorComponent<AetEditor>();

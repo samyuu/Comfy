@@ -1,13 +1,14 @@
 #include "GuiRenderer.h"
 #include "Core/ComfyData.h"
 #include "FileSystem/FileHelper.h"
-#include "ImGui/Implementation/Imgui_Impl.h"
+#include "ImGui/Implementation/ImGui_Impl.h"
+#include "ImGui/Implementation/ImGui_Impl_Renderer.h"
+#include "Graphics/Direct3D/Direct3D.h"
 #include "FontIcons.h"
-#include <glfw/glfw3.h>
 
 namespace ImGui
 {
-	GuiRenderer::GuiRenderer(const ApplicationHost& host)
+	GuiRenderer::GuiRenderer(ApplicationHost& host)
 		: host(host), iconFontGlyphRange { ICON_MIN_FA, ICON_MAX_FA, 0 }
 	{
 	}
@@ -38,9 +39,8 @@ namespace ImGui
 
 	void GuiRenderer::BeginFrame()
 	{
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-
+		ImGui_ImplDX11_NewFrame();
+		ImGui_ImplWin32_NewFrame();
 		NewFrame();
 		UpdateExtendedState();
 	}
@@ -48,23 +48,20 @@ namespace ImGui
 	void GuiRenderer::EndFrame()
 	{
 		Render();
+		ImGui_ImplDX11_RenderDrawData(GetDrawData());
 
 		const auto& io = GetIO();
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
-			GLFWwindow* context = glfwGetCurrentContext();
 			UpdatePlatformWindows();
 			RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent(context);
 		}
-
-		ImGui_ImplOpenGL3_RenderDrawData(Gui::GetDrawData());
 	}
 
 	void GuiRenderer::Dispose()
 	{
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
+		ImGui_ImplDX11_Shutdown();
+		ImGui_ImplWin32_Shutdown();
 		DestroyContext();
 	}
 
@@ -144,11 +141,14 @@ namespace ImGui
 
 	bool GuiRenderer::InitializeBackend()
 	{
-		if (!ImGui_ImplGlfw_InitForOpenGL(host.GetWindow(), true))
+		if (!ImGui_ImplWin32_Init(host.GetWindow()))
 			return false;
 
-		if (!ImGui_ImplOpenGL3_Init())
+		if (!ImGui_ImplDX11_Init(Graphics::D3D.Device, Graphics::D3D.Context))
 			return false;
+
+		extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
+		host.RegisterWindowProcCallback(ImGui_ImplWin32_WndProcHandler);
 
 		return true;
 	}

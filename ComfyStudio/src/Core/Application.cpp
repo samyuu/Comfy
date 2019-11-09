@@ -1,6 +1,7 @@
 #include "Application.h"
 #include "App/Engine.h"
 #include "Core/ComfyData.h"
+#include "Graphics/Direct3D/Direct3D.h"
 #include "FileSystem/FileHelper.h"
 #include "DataTest/AudioTestWindow.h"
 #include "DataTest/IconTestWindow.h"
@@ -61,7 +62,8 @@ bool Application::BaseInitialize()
 
 	host.RegisterWindowResizeCallback([](ivec2 size) 
 	{
-		Graphics::RenderCommand::SetViewport(size);
+		Graphics::D3D.ResizeMainRenderTarget(size);
+		//Graphics::RenderCommand::SetViewport(size);
 	});
 
 	host.RegisterWindowClosingCallback([]() 
@@ -96,10 +98,12 @@ void Application::BaseUpdate()
 void Application::BaseDraw()
 {
 	const vec4 baseClearColor = Editor::GetColorVec4(Editor::EditorColor_BaseClear);
-	Graphics::RenderCommand::SetClearColor(baseClearColor);
-	Graphics::RenderCommand::Clear(Graphics::ClearTarget_ColorBuffer);
-	Graphics::RenderCommand::SetViewport(host.GetWindowSize());
+	//Graphics::RenderCommand::SetClearColor(baseClearColor);
+	//Graphics::RenderCommand::Clear(Graphics::ClearTarget_ColorBuffer);
+	//Graphics::RenderCommand::SetViewport(host.GetWindowSize());
 
+	Graphics::D3D.Context->OMSetRenderTargets(1, &Graphics::D3D.MainRenderTargetView, nullptr);
+	Graphics::D3D.Context->ClearRenderTargetView(Graphics::D3D.MainRenderTargetView, glm::value_ptr(baseClearColor));
 	DrawGui();
 }
 

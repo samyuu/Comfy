@@ -20,7 +20,7 @@
 // NOTE: MK_*
 #define NOKEYSTATES
 // NOTE: SC_*
-#define NOSYSCOMMANDS
+// #define NOSYSCOMMANDS
 // NOTE: Binary and Tertiary raster ops
 #define NORASTEROPS
 // NOTE: SW_*
@@ -30,7 +30,7 @@
 // NOTE: Atom Manager routines
 #define NOATOM
 // NOTE: Clipboard routines
-#define NOCLIPBOARD
+// #define NOCLIPBOARD
 // NOTE: Screen colors
 #define NOCOLOR
 // NOTE: Control and Dialog routines

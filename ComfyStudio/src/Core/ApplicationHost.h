@@ -1,7 +1,8 @@
 #pragma once
 #include "Types.h"
 #include "Core/CoreTypes.h"
-#include "TimeSpan.h"
+#include "Core/TimeSpan.h"
+#include "Core/Win32/ComfyWindows.h"
 #include <functional>
 #include <optional>
 
@@ -13,6 +14,7 @@ public:
 	static constexpr ivec2 StartupWindowSize = ivec2(1280, 720);
 	static constexpr ivec2 WindowSizeRestraints = ivec2(640, 360);
 
+	static constexpr const char* ComfyWindowClassName = "ComfyWindowClass";
 	static constexpr const char* ComfyStudioWindowTitle = "Comfy Studio";
 
 public:
@@ -25,8 +27,8 @@ public:
 	void Dispose();
 
 public:
-	bool IsFullscreen() const;
-	void SetFullscreen(bool value);
+	bool GetIsFullscreen() const;
+	void SetIsFullscreen(bool value);
 	void ToggleFullscreen();
 
 	void SetSwapInterval(int interval);
@@ -37,12 +39,13 @@ public:
 	ivec2 GetWindowPosition() const;
 	ivec2 GetWindowSize() const;
 
-	void SetClipboardString(const char* value) const;
+	void SetClipboardString(const std::string_view value) const;
 	std::string GetClipboardString() const;
 
-	inline struct GLFWwindow* GetWindow() const { return window; };
+	inline HWND GetWindow() const { return windowHandle; };
 
 public:
+	void RegisterWindowProcCallback(const std::function<bool(HWND, UINT, WPARAM, LPARAM)> onWindowProc);
 	void RegisterWindowResizeCallback(const std::function<void(ivec2 size)> onWindowResize);
 	void RegisterWindowClosingCallback(const std::function<void()> onClosing);
 
@@ -52,12 +55,11 @@ public:
 	const std::vector<std::string>& GetDroppedFiles() const;
 
 	static void LoadComfyWindowIcon();
-	static void SetComfyWindowIcon(struct GLFWwindow* window);
+	static void SetComfyWindowIcon(HWND windowHandle);
 
 private:
 	// NOTE: Initialization
 	bool InternalCreateWindow();
-	bool InternalWindowRegisterCallbacks();
 
 	// NOTE: Callbacks
 	void InternalMouseMoveCallback(ivec2 position);
@@ -71,12 +73,18 @@ private:
 
 	void InternalPreUpdateTick();
 	void InternalPostUpdateTick();
-
 	void InternalPreUpdatePollInput();
+
+	void InternalDisposeWindow();
+
+private:
+	LRESULT InternalProcessWindowMessage(const UINT message, const WPARAM parameter, const LPARAM userData);
 
 private:
 	// NOTE: Window management
-	struct GLFWwindow* window = nullptr;
+	HWND windowHandle = nullptr;
+	bool isRunning = false;
+	bool isFullscreen = false;
 
 	ivec2 windowPosition = StartupWindowPosition;
 	ivec2 windowSize = StartupWindowSize;
@@ -89,10 +97,12 @@ private:
 	bool focusLostThisFrame = false, focusGainedThisFrame = false;
 
 	// NOTE: Callbacks
-	std::optional <std::function<void(ivec2 size)>> windowResizeCallback = {};
-	std::optional <std::function<void()>> windowClosingCallback = {};
+	std::optional<std::function<bool(HWND, UINT, WPARAM, LPARAM)>> windowProcCallback = {};
+	std::optional<std::function<void(ivec2 size)>> windowResizeCallback = {};
+	std::optional<std::function<void()>> windowClosingCallback = {};
 
 	// NOTE: Program timing
+	int swapInterval = 1;
 	TimeSpan elapsedTime = 0.0f;
 	TimeSpan currentTime, lastTime;
 	uint64_t elapsedFrames = 0;
@@ -113,5 +123,5 @@ private:
 	bool mouseScrolledUp = false, mouseScrolledDown = false;
 
 private:
-	static ApplicationHost* DecodeWindowUserDataPointer(struct GLFWwindow* window);
+	static LRESULT ProcessWindowMessage(HWND windowHandle, UINT message, WPARAM parameter, LPARAM userData);
 };
