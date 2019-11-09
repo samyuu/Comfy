@@ -115,29 +115,29 @@ namespace Utilities
 		return std::equal(string.rbegin(), string.rbegin() + suffix.size(), suffix.rbegin(), suffix.rend(), CaseInsenitiveComparison);
 	}
 
-	std::wstring Utf8ToUtf16(const std::string& string)
+	std::wstring Utf8ToUtf16(const std::string_view string)
 	{
 		std::wstring utf16String;
 
-		const int utf16Length = ::MultiByteToWideChar(CP_UTF8, NULL, string.c_str(), -1, nullptr, 0) - 1;
+		const int utf16Length = ::MultiByteToWideChar(CP_UTF8, NULL, string.data(), static_cast<int>(string.size() + 1), nullptr, 0) - 1;
 		if (utf16Length > 0)
 		{
 			utf16String.resize(utf16Length);
-			::MultiByteToWideChar(CP_UTF8, NULL, string.c_str(), static_cast<int>(string.length()), utf16String.data(), utf16Length);
+			::MultiByteToWideChar(CP_UTF8, NULL, string.data(), static_cast<int>(string.size()), utf16String.data(), utf16Length);
 		}
 
 		return utf16String;
 	}
 
-	std::string Utf16ToUtf8(const std::wstring& string)
+	std::string Utf16ToUtf8(const std::wstring_view string)
 	{
 		std::string utf8String;
 
-		const int utf8Length = ::WideCharToMultiByte(CP_UTF8, NULL, string.c_str(), -1, nullptr, 0, nullptr, nullptr) - 1;
+		const int utf8Length = ::WideCharToMultiByte(CP_UTF8, NULL, string.data(), static_cast<int>(string.size() + 1), nullptr, 0, nullptr, nullptr) - 1;
 		if (utf8Length > 0)
 		{
 			utf8String.resize(utf8Length);
-			::WideCharToMultiByte(CP_UTF8, NULL, string.c_str(), static_cast<int>(string.length()), utf8String.data(), utf8Length, nullptr, nullptr);
+			::WideCharToMultiByte(CP_UTF8, NULL, string.data(), static_cast<int>(string.size()), utf8String.data(), utf8Length, nullptr, nullptr);
 		}
 
 		return utf8String;

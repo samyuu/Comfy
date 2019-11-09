@@ -28,8 +28,8 @@ namespace Utilities
 	bool EndsWithInsensitive(const std::string_view string, const std::string_view suffix);
 	bool EndsWithInsensitive(const std::wstring_view string, const std::wstring_view suffix);
 
-	std::wstring Utf8ToUtf16(const std::string& string);
-	std::string Utf16ToUtf8(const std::wstring& string);
+	std::wstring Utf8ToUtf16(const std::string_view string);
+	std::string Utf16ToUtf8(const std::wstring_view string);
 }
 
 using namespace Utilities;
