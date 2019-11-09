@@ -1,9 +1,9 @@
 #include "Keyboard.h"
-#include <glfw/glfw3.h>
+#include "Core/Win32/ComfyWindows.h"
 
 Keyboard* Keyboard::instance = nullptr;
 
-Keyboard::Keyboard(GLFWwindow* window) : window(window)
+Keyboard::Keyboard()
 {
 }
 
@@ -13,10 +13,10 @@ Keyboard::~Keyboard()
 
 bool Keyboard::PollInput()
 {
-	for (KeyCode i = KeyCode_Space; i < KeyCode_Count; i++)
+	for (KeyCode i = 0; i < KeyCode_Count; i++)
 	{
 		lastState[i] = currentState[i];
-		currentState[i] = glfwGetKey(window, i);
+		currentState[i] = GetAsyncKeyState(i);
 	}
 
 	return true;
@@ -52,11 +52,11 @@ bool Keyboard::Instance_WasUp(KeyCode key) const
 	return !Instance_WasDown(key);
 }
 
-bool Keyboard::TryInitializeInstance(GLFWwindow* window)
+bool Keyboard::TryInitializeInstance()
 {
 	if (GetInstanceInitialized())
 		return true;
 
-	instance = new Keyboard(window);
+	instance = new Keyboard();
 	return true;
 }

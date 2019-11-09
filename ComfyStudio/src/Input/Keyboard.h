@@ -22,17 +22,16 @@ public:
 	static inline bool WasUp(KeyCode key) { return GetInstanceInitialized() ? GetInstance()->Instance_WasUp(key) : true; }
 
 public:
-	static bool TryInitializeInstance(struct GLFWwindow* window);
+	static bool TryInitializeInstance();
 	static inline bool GetInstanceInitialized() { return instance != nullptr; };
 	static inline void DeleteInstance() { delete instance; instance = nullptr; };
 	static inline Keyboard* GetInstance() { return instance; };
 
 private:
-	Keyboard(GLFWwindow* window);
+	Keyboard();
 	~Keyboard();
 
 	static Keyboard* instance;
-	struct GLFWwindow* window;
 
 	bool lastState[KeyCode_Count] = {};
 	bool currentState[KeyCode_Count] = {};

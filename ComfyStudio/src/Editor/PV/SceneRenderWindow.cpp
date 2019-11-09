@@ -240,8 +240,8 @@ namespace Editor
 		front.y = sin(glm::radians(cameraPitch));
 		front.z = sin(glm::radians(cameraYaw)) * cos(glm::radians(cameraPitch));
 
-		const bool fastCamera = Gui::IsKeyDown(KeyCode_Left_Shift);
-		const bool slowCamera = Gui::IsKeyDown(KeyCode_Left_Alt);
+		const bool fastCamera = Gui::IsKeyDown(KeyCode_LeftShift);
+		const bool slowCamera = Gui::IsKeyDown(KeyCode_LeftAlt);
 
 		const float cameraSpeed = (slowCamera ? 0.25f : (fastCamera ? 5.5f : 2.25f)) * io.DeltaTime;
 
@@ -269,18 +269,18 @@ namespace Editor
 
 		if (Gui::IsWindowFocused())
 		{
-			if (Gui::IsKeyDown(KeyCode_W) == KeyState_Press)
+			if (Gui::IsKeyDown(KeyCode_W))
 				camera.Position += front * cameraSpeed;
-			if (Gui::IsKeyDown(KeyCode_S) == KeyState_Press)
+			if (Gui::IsKeyDown(KeyCode_S))
 				camera.Position -= front * cameraSpeed;
-			if (Gui::IsKeyDown(KeyCode_A) == KeyState_Press)
+			if (Gui::IsKeyDown(KeyCode_A))
 				camera.Position -= glm::normalize(glm::cross(front, camera.UpDirection)) * cameraSpeed;
-			if (Gui::IsKeyDown(KeyCode_D) == KeyState_Press)
+			if (Gui::IsKeyDown(KeyCode_D))
 				camera.Position += glm::normalize(glm::cross(front, camera.UpDirection)) * cameraSpeed;
 
 			if (Gui::IsKeyDown(KeyCode_Space))
 				camera.Position += camera.UpDirection * cameraSpeed;
-			if (Gui::IsKeyDown(KeyCode_Left_Control))
+			if (Gui::IsKeyDown(KeyCode_LeftControl))
 				camera.Position -= camera.UpDirection * cameraSpeed;
 		}
 
