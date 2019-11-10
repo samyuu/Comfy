@@ -75,7 +75,7 @@ private:
 	void InternalDisposeWindow();
 
 private:
-	LRESULT InternalProcessWindowMessage(const UINT message, const WPARAM parameter, const LPARAM userData);
+	LRESULT InternalProcessWindowMessage(const UINT message, const WPARAM wParam, const LPARAM lParam);
 
 private:
 	// NOTE: Window management
@@ -120,5 +120,5 @@ private:
 	bool mouseScrolledUp = false, mouseScrolledDown = false;
 
 private:
-	static LRESULT ProcessWindowMessage(HWND windowHandle, UINT message, WPARAM parameter, LPARAM userData);
+	static LRESULT ProcessWindowMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
 };

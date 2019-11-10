@@ -366,9 +366,9 @@ void ApplicationHost::InternalDisposeWindow()
 	::UnregisterClassA(ComfyWindowClassName, GlobalModuleHandle);
 }
 
-LRESULT ApplicationHost::InternalProcessWindowMessage(const UINT message, const WPARAM parameter, const LPARAM userData)
+LRESULT ApplicationHost::InternalProcessWindowMessage(const UINT message, const WPARAM wParam, const LPARAM lParam)
 {
-	if (windowProcCallback.has_value() && windowProcCallback.value()(windowHandle, message, parameter, userData))
+	if (windowProcCallback.has_value() && windowProcCallback.value()(windowHandle, message, wParam, lParam))
 		return 0;
 
 	switch (message)
@@ -376,29 +376,29 @@ LRESULT ApplicationHost::InternalProcessWindowMessage(const UINT message, const 
 
 	case WM_SIZE:
 	{
-		const ivec2 size = { LOWORD(parameter), HIWORD(parameter) };
-		if (parameter != SIZE_MINIMIZED)
+		const ivec2 size = { LOWORD(lParam), HIWORD(lParam) };
+		if (wParam != SIZE_MINIMIZED)
 			InternalWindowResizeCallback(size);
 		return 0;
 	}
 
 	case WM_MOVE:
 	{
-		const ivec2 position = { LOWORD(parameter), HIWORD(parameter) };
+		const ivec2 position = { LOWORD(lParam), HIWORD(lParam) };
 		InternalWindowMoveCallback(position);
 		return 0;
 	}
 
 	case WM_MOUSEMOVE:
 	{
-		const ivec2 position = { LOWORD(parameter), HIWORD(parameter) };
+		const ivec2 position = { LOWORD(lParam), HIWORD(lParam) };
 		InternalMouseMoveCallback(position);
 		return 0;
 	}
 
 	case WM_MOUSEWHEEL:
 	{
-		InternalMouseScrollCallback(static_cast<float>(GET_WHEEL_DELTA_WPARAM(parameter)) / static_cast<float>(WHEEL_DELTA));
+		InternalMouseScrollCallback(static_cast<float>(GET_WHEEL_DELTA_WPARAM(wParam)) / static_cast<float>(WHEEL_DELTA));
 		return 0;
 	}
 
@@ -413,7 +413,7 @@ LRESULT ApplicationHost::InternalProcessWindowMessage(const UINT message, const 
 	case WM_SYSCOMMAND:
 	{
 		// NOTE: Disable ALT application menu
-		if (auto lowOrderBits = (parameter & 0xFFF0); lowOrderBits == SC_KEYMENU)
+		if (auto lowOrderBits = (wParam & 0xFFF0); lowOrderBits == SC_KEYMENU)
 			return 0;
 
 		break;
@@ -447,16 +447,16 @@ LRESULT ApplicationHost::InternalProcessWindowMessage(const UINT message, const 
 		break;
 	}
 
-	return ::DefWindowProcA(windowHandle, message, parameter, userData);
+	return ::DefWindowProcA(windowHandle, message, wParam, lParam);
 }
 
-LRESULT ApplicationHost::ProcessWindowMessage(HWND windowHandle, UINT message, WPARAM parameter, LPARAM userData)
+LRESULT ApplicationHost::ProcessWindowMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	ApplicationHost* receiver = nullptr;
 
 	if (message == WM_NCCREATE)
 	{
-		LPCREATESTRUCT createStruct = reinterpret_cast<LPCREATESTRUCT>(userData);
+		LPCREATESTRUCT createStruct = reinterpret_cast<LPCREATESTRUCT>(lParam);
 		receiver = reinterpret_cast<ApplicationHost*>(createStruct->lpCreateParams);
 
 		receiver->windowHandle = windowHandle;
@@ -468,7 +468,7 @@ LRESULT ApplicationHost::ProcessWindowMessage(HWND windowHandle, UINT message, W
 	}
 
 	if (receiver != nullptr)
-		return receiver->InternalProcessWindowMessage(message, parameter, userData);
+		return receiver->InternalProcessWindowMessage(message, wParam, lParam);
 
-	return ::DefWindowProcA(windowHandle, message, parameter, userData);
+	return ::DefWindowProcA(windowHandle, message, wParam, lParam);
 }
