@@ -41,7 +41,8 @@ namespace DataTest
 
 			if (initialized)
 			{
-				for (KeyCode key = 0; key < KeyCode_Count; key++)
+				constexpr KeyCode firstKeyboardKey = KeyCode_Backspace;
+				for (KeyCode key = firstKeyboardKey; key < KeyCode_Count; key++)
 				{
 					if (keyboard->IsDown(key))
 					{
