@@ -55,7 +55,7 @@ namespace Graphics
 		vec2 Position = vec2(0.0f, 0.0f);
 		vec2 ProjectionSize = vec2(-1.0f);
 
-		const float NearPlane = -1.0f;
+		const float NearPlane = 0.0f;
 		const float FarPlane = 1.0f;
 
 	public:
