@@ -39,9 +39,6 @@ public:
 	ivec2 GetWindowPosition() const;
 	ivec2 GetWindowSize() const;
 
-	void SetClipboardString(const std::string_view value) const;
-	std::string GetClipboardString() const;
-
 	inline HWND GetWindow() const { return windowHandle; };
 
 public:

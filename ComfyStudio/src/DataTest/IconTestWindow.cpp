@@ -33,11 +33,11 @@ namespace DataTest
 					continue;
 
 				if (Gui::Selectable(fontIcon.Name, false, ImGuiSelectableFlags_AllowDoubleClick))
-					GetParent()->GetHost().SetClipboardString(fontIcon.Name);
+					Gui::SetClipboardText(fontIcon.Name);
 				Gui::NextColumn();
 
 				if (Gui::Selectable(fontIcon.Value, false, ImGuiSelectableFlags_AllowDoubleClick))
-					GetParent()->GetHost().SetClipboardString(fontIcon.Value);
+					Gui::SetClipboardText(fontIcon.Value);
 				Gui::NextColumn();
 			}
 		}

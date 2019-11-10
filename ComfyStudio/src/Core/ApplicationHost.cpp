@@ -143,37 +143,6 @@ ivec2 ApplicationHost::GetWindowSize() const
 	return windowSize;
 }
 
-void ApplicationHost::SetClipboardString(const std::string_view value) const
-{
-	GetClipboardString();
-
-	const std::wstring_view wideString = Utf8ToUtf16(value);
-
-	::OpenClipboard(windowHandle);
-	{
-		HGLOBAL dataHandle = ::GlobalAlloc(GMEM_MOVEABLE, wideString.size());
-
-		memcpy(::GlobalLock(dataHandle), wideString.data(), wideString.size() * sizeof(wchar_t));
-		::GlobalUnlock(dataHandle);
-
-		::EmptyClipboard();
-		::SetClipboardData(CF_UNICODETEXT, dataHandle);
-	}
-	::CloseClipboard();
-}
-
-std::string ApplicationHost::GetClipboardString() const
-{
-	::OpenClipboard(windowHandle);
-	HANDLE dataHandle = ::GetClipboardData(CF_UNICODETEXT);
-	const std::wstring wideString = std::wstring(reinterpret_cast<wchar_t*>(::GlobalLock(dataHandle)));
-
-	::GlobalUnlock(dataHandle);
-	::CloseClipboard();
-
-	return Utf16ToUtf8(wideString);
-}
-
 void ApplicationHost::RegisterWindowProcCallback(const std::function<bool(HWND, UINT, WPARAM, LPARAM)> onWindowProc)
 {
 	windowProcCallback = onWindowProc;
