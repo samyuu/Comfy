@@ -54,7 +54,7 @@ static int                      g_VertexBufferSize = 5000, g_IndexBufferSize = 1
 
 struct VERTEX_CONSTANT_BUFFER
 {
-	float   mvp[4][4];
+	float mvp[4][4];
 };
 
 // Forward Declarations
@@ -271,8 +271,7 @@ static void ImGui_ImplDX11_CreateFontsTexture()
 
 	// Upload texture to graphics system
 	{
-		D3D11_TEXTURE2D_DESC desc;
-		ZeroMemory(&desc, sizeof(desc));
+		D3D11_TEXTURE2D_DESC desc = {};
 		desc.Width = width;
 		desc.Height = height;
 		desc.MipLevels = 1;
@@ -291,8 +290,7 @@ static void ImGui_ImplDX11_CreateFontsTexture()
 		g_pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
 
 		// Create texture view
-		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-		ZeroMemory(&srvDesc, sizeof(srvDesc));
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MipLevels = desc.MipLevels;
@@ -306,8 +304,7 @@ static void ImGui_ImplDX11_CreateFontsTexture()
 
 	// Create texture sampler
 	{
-		D3D11_SAMPLER_DESC desc;
-		ZeroMemory(&desc, sizeof(desc));
+		D3D11_SAMPLER_DESC desc = {};
 		desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 		desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 		desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -320,7 +317,7 @@ static void ImGui_ImplDX11_CreateFontsTexture()
 	}
 }
 
-bool    ImGui_ImplDX11_CreateDeviceObjects()
+bool ImGui_ImplDX11_CreateDeviceObjects()
 {
 	if (!g_pd3dDevice)
 		return false;
@@ -418,8 +415,7 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
 
 	// Create the blending setup
 	{
-		D3D11_BLEND_DESC desc;
-		ZeroMemory(&desc, sizeof(desc));
+		D3D11_BLEND_DESC desc = {};
 		desc.AlphaToCoverageEnable = false;
 		desc.RenderTarget[0].BlendEnable = true;
 		desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
@@ -434,8 +430,7 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
 
 	// Create the rasterizer state
 	{
-		D3D11_RASTERIZER_DESC desc;
-		ZeroMemory(&desc, sizeof(desc));
+		D3D11_RASTERIZER_DESC desc = {};
 		desc.FillMode = D3D11_FILL_SOLID;
 		desc.CullMode = D3D11_CULL_NONE;
 		desc.ScissorEnable = true;
@@ -445,8 +440,7 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
 
 	// Create depth-stencil State
 	{
-		D3D11_DEPTH_STENCIL_DESC desc;
-		ZeroMemory(&desc, sizeof(desc));
+		D3D11_DEPTH_STENCIL_DESC desc = {};
 		desc.DepthEnable = false;
 		desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 		desc.DepthFunc = D3D11_COMPARISON_ALWAYS;
@@ -462,7 +456,7 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
 	return true;
 }
 
-void    ImGui_ImplDX11_InvalidateDeviceObjects()
+void ImGui_ImplDX11_InvalidateDeviceObjects()
 {
 	if (!g_pd3dDevice)
 		return;
@@ -483,7 +477,7 @@ void    ImGui_ImplDX11_InvalidateDeviceObjects()
 	if (g_pVertexShaderBlob) { g_pVertexShaderBlob->Release(); g_pVertexShaderBlob = NULL; }
 }
 
-bool    ImGui_ImplDX11_Init(ID3D11Device* device, ID3D11DeviceContext* device_context)
+bool ImGui_ImplDX11_Init(ID3D11Device* device, ID3D11DeviceContext* device_context)
 {
 	// Setup back-end capabilities flags
 	ImGuiIO& io = ImGui::GetIO();
@@ -551,8 +545,7 @@ static void ImGui_ImplDX11_CreateWindow(ImGuiViewport* viewport)
 	IM_ASSERT(hwnd != 0);
 
 	// Create swap chain
-	DXGI_SWAP_CHAIN_DESC sd;
-	ZeroMemory(&sd, sizeof(sd));
+	DXGI_SWAP_CHAIN_DESC sd = {};
 	sd.BufferDesc.Width = (UINT)viewport->Size.x;
 	sd.BufferDesc.Height = (UINT)viewport->Size.y;
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
