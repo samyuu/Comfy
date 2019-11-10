@@ -52,7 +52,7 @@ public:
 	const std::vector<std::string>& GetDroppedFiles() const;
 
 	static void LoadComfyWindowIcon();
-	static void SetComfyWindowIcon(HWND windowHandle);
+	static HICON GetComfyWindowIcon();
 
 private:
 	// NOTE: Initialization

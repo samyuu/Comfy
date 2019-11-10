@@ -179,13 +179,9 @@ void ApplicationHost::LoadComfyWindowIcon()
 	GlobalIconHandle = ::LoadIconA(GlobalModuleHandle, MAKEINTRESOURCEA(COMFY_ICON));
 }
 
-void ApplicationHost::SetComfyWindowIcon(HWND windowHandle)
+HICON ApplicationHost::GetComfyWindowIcon()
 {
-	assert(GlobalIconHandle != NULL);
-
-	const LPARAM iconArgument = reinterpret_cast<LPARAM>(GlobalIconHandle);
-	::SendMessageA(windowHandle, WM_SETICON, ICON_SMALL, iconArgument);
-	::SendMessageA(windowHandle, WM_SETICON, ICON_BIG, iconArgument);
+	return GlobalIconHandle;
 }
 
 bool ApplicationHost::InternalCreateWindow()
@@ -199,12 +195,12 @@ bool ApplicationHost::InternalCreateWindow()
 	windowClass.cbClsExtra = 0;
 	windowClass.cbWndExtra = 0;
 	windowClass.hInstance = GlobalModuleHandle;
-	windowClass.hIcon = GlobalIconHandle;
+	windowClass.hIcon = GetComfyWindowIcon();
 	windowClass.hCursor = ::LoadCursorA(NULL, IDC_ARROW);
 	windowClass.hbrBackground = NULL;
 	windowClass.lpszMenuName = NULL;
 	windowClass.lpszClassName = ComfyWindowClassName;
-	windowClass.hIconSm = GlobalIconHandle;
+	windowClass.hIconSm = GetComfyWindowIcon();
 
 	if (!::RegisterClassExA(&windowClass))
 		return false;
@@ -237,57 +233,6 @@ bool ApplicationHost::InternalCreateWindow()
 
 	return true;
 }
-
-#if 0
-bool ApplicationHost::InternalWindowRegisterCallbacks()
-{
-	GlobalCallbackInstance = this;
-	glfwSetWindowUserPointer(window, this);
-
-	glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int width, int height)
-	{
-		DecodeWindowUserDataPointer(window)->InternalWindowResizeCallback(ivec2(width, height));
-	});
-
-	glfwSetWindowPosCallback(window, [](GLFWwindow* window, int x, int y)
-	{
-		DecodeWindowUserDataPointer(window)->InternalWindowMoveCallback(ivec2(x, y));
-	});
-
-	glfwSetCursorPosCallback(window, [](GLFWwindow* window, double x, double y)
-	{
-		DecodeWindowUserDataPointer(window)->InternalMouseMoveCallback(ivec2(static_cast<int>(x), static_cast<int>(y)));
-	});
-
-	glfwSetScrollCallback(window, [](GLFWwindow* window, double xOffset, double yOffset)
-	{
-		DecodeWindowUserDataPointer(window)->InternalMouseScrollCallback(static_cast<float>(yOffset));
-	});
-
-	glfwSetDropCallback(window, [](GLFWwindow* window, int count, const char* paths[])
-	{
-		DecodeWindowUserDataPointer(window)->InternalWindowDropCallback(count, paths);
-	});
-
-	glfwSetWindowFocusCallback(window, [](GLFWwindow* window, int focused)
-	{
-		DecodeWindowUserDataPointer(window)->InternalWindowFocusCallback(focused);
-	});
-
-	glfwSetWindowCloseCallback(window, [](GLFWwindow* window)
-	{
-		DecodeWindowUserDataPointer(window)->InternalWindowClosingCallback();
-	});
-
-	glfwSetJoystickCallback([](int id, int event)
-	{
-		if (event == GLFW_CONNECTED || event == GLFW_DISCONNECTED)
-			GlobalCallbackInstance->InternalCheckConnectedDevices();
-	});
-
-	return true;
-}
-#endif
 
 void ApplicationHost::InternalMouseMoveCallback(ivec2 position)
 {
