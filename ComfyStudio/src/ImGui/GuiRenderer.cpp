@@ -3,7 +3,6 @@
 #include "FileSystem/FileHelper.h"
 #include "ImGui/Implementation/ImGui_Impl.h"
 #include "ImGui/Implementation/ImGui_Impl_Renderer.h"
-#include "Graphics/Direct3D/Direct3D.h"
 #include "FontIcons.h"
 
 namespace ImGui
@@ -144,7 +143,7 @@ namespace ImGui
 		if (!ImGui_ImplWin32_Init(host.GetWindow()))
 			return false;
 
-		if (!ImGui_ImplDX11_Init(Graphics::D3D.Device, Graphics::D3D.Context))
+		if (!ImGui_ImplDX11_Init())
 			return false;
 
 		extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);

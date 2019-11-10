@@ -48,6 +48,8 @@ static bool                 g_HasGamepad = false;
 static bool                 g_WantUpdateHasGamepad = true;
 static bool                 g_WantUpdateMonitors = true;
 
+static constexpr const char* ImGuiWindowClassName = "ImGuiWindowClass";
+
 // Forward Declarations
 static void ImGui_ImplWin32_InitPlatformInterface();
 static void ImGui_ImplWin32_ShutdownPlatformInterface();
@@ -67,7 +69,7 @@ bool ImGui_ImplWin32_Init(void* hwnd)
 	io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;          // We can honor io.WantSetMousePos requests (optional, rarely used)
 	io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;    // We can create multi-viewports on the Platform side (optional)
 	io.BackendFlags |= ImGuiBackendFlags_HasMouseHoveredViewport; // We can set io.MouseHoveredViewport correctly (optional, not easy)
-	io.BackendPlatformName = "imgui_impl_win32";
+	io.BackendPlatformName = "ComfyWin32";
 
 	// Our mouse update function expect PlatformHandle to be filled for the main viewport
 	g_hWnd = (HWND)hwnd;
@@ -488,7 +490,7 @@ static void ImGui_ImplWin32_CreateWindow(ImGuiViewport* viewport)
 	RECT rect = { (LONG)viewport->Pos.x, (LONG)viewport->Pos.y, (LONG)(viewport->Pos.x + viewport->Size.x), (LONG)(viewport->Pos.y + viewport->Size.y) };
 	::AdjustWindowRectEx(&rect, data->DwStyle, FALSE, data->DwExStyle);
 	data->Hwnd = ::CreateWindowEx(
-		data->DwExStyle, "ImGuiWindowClass", "Untitled", data->DwStyle,   // Style, class name, window name
+		data->DwExStyle, ImGuiWindowClassName, "Untitled", data->DwStyle,   // Style, class name, window name
 		rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top,    // Window area
 		parent_window, NULL, ::GetModuleHandle(NULL), NULL);                    // Parent window, Menu, Instance, Param
 	data->HwndOwned = true;
@@ -737,7 +739,7 @@ static void ImGui_ImplWin32_InitPlatformInterface()
 	wcex.hCursor = NULL;
 	wcex.hbrBackground = NULL;
 	wcex.lpszMenuName = NULL;
-	wcex.lpszClassName = "ImGuiWindowClass";
+	wcex.lpszClassName = ImGuiWindowClassName;
 	wcex.hIconSm = ApplicationHost::GetComfyWindowIcon();
 	::RegisterClassExA(&wcex);
 
@@ -775,5 +777,5 @@ static void ImGui_ImplWin32_InitPlatformInterface()
 
 static void ImGui_ImplWin32_ShutdownPlatformInterface()
 {
-	::UnregisterClassA("ImGuiWindowClass", ::GetModuleHandleA(NULL));
+	::UnregisterClassA(ImGuiWindowClassName, ::GetModuleHandleA(NULL));
 }
