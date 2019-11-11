@@ -69,7 +69,7 @@ namespace Graphics
 
 		GL_VertexArray vertexArray = {};
 		GL_VertexBuffer vertexBuffer = { BufferUsage::StreamDraw };
-		GL_IndexBuffer indexBuffer = { BufferUsage::StreamDraw, IndexType::UnsignedShort };
+		GL_IndexBuffer indexBuffer = { BufferUsage::StreamDraw, IndexType::UInt16 };
 
 		bool batchSprites = true;
 		std::vector<SpriteBatch> batches;

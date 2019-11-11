@@ -1,6 +1,6 @@
 #pragma once
 #include "GL_Texture2D.h"
-#include "Graphics/GraphicsInterface.h"
+//#include "Graphics/GraphicsInterface.h"
 
 namespace Graphics
 {
@@ -12,7 +12,7 @@ namespace Graphics
 	typedef GLenum RenderTarget_t;
 	typedef GLenum InternalFormat_t;
 
-	class GL_Renderbuffer : public IGraphicsObject
+	class GL_Renderbuffer /*: public IGraphicsObject*/
 	{
 	public:
 		GL_Renderbuffer();
@@ -20,11 +20,11 @@ namespace Graphics
 		GL_Renderbuffer& operator= (const GL_Renderbuffer&) = delete;
 		~GL_Renderbuffer();
 
-		void InitializeID() override;
-		void Bind() const override;
-		void UnBind() const override;
+		void InitializeID() /*override*/;
+		void Bind() const /*override*/;
+		void UnBind() const /*override*/;
 		void RenderbufferStorage(ivec2 size, InternalFormat_t internalFormat);
-		void SetObjectLabel(const char* label) override;
+		void SetObjectLabel(const char* label) /*override*/;
 
 		inline RenderbufferID_t GetRenderbufferID() const { return renderbufferID; };
 		inline RenderTarget_t GetRenderTarget() const { return GL_RENDERBUFFER; };
@@ -44,7 +44,7 @@ namespace Graphics
 	typedef GLenum FramebufferStatus_t;
 	typedef GLenum Attachment_t;
 
-	class Framebuffer : public IGraphicsObject
+	class Framebuffer /*: public IGraphicsObject*/
 	{
 	public:
 		Framebuffer();
@@ -52,15 +52,15 @@ namespace Graphics
 		Framebuffer& operator= (const Framebuffer&) = delete;
 		~Framebuffer();
 
-		void InitializeID() override;
+		void InitializeID() /*override*/;
 
-		void Bind() const override;
-		void UnBind() const override;
+		void Bind() const /*override*/;
+		void UnBind() const /*override*/;
 
 		FramebufferStatus_t CheckStatus();
 		void AttachTexture(GL_Texture2D& texture, Attachment_t attachment);
 		void AttachRenderbuffer(GL_Renderbuffer& renderbuffer, Attachment_t attachment);
-		void SetObjectLabel(const char* label) override;
+		void SetObjectLabel(const char* label) /*override*/;
 
 	protected:
 		FramebufferID_t framebufferID = NULL;

@@ -1,7 +1,6 @@
 #pragma once
 #include "Types.h"
 #include "Graphics/OpenGL/OpenGL.h"
-#include "Graphics/GraphicsInterface.h"
 #include "Graphics/RenderCommand.h"
 
 namespace Graphics
@@ -9,7 +8,7 @@ namespace Graphics
 	typedef GLuint TextureID_t;
 	typedef GLenum TextureTarget_t;
 
-	class GL_Texture : public IGraphicsObject
+	class GL_Texture /*: public IGraphicsObject*/
 	{
 	public:
 		GL_Texture();
@@ -17,12 +16,12 @@ namespace Graphics
 		GL_Texture& operator= (const GL_Texture&) = delete;
 		virtual ~GL_Texture();
 
-		void Bind() const override;
+		void Bind() const /*override*/;
 		void Bind(TextureSlot textureSlot) const;
-		void UnBind() const override;
+		void UnBind() const /*override*/;
 		void UnBind(TextureSlot  textureSlot) const;
 
-		void InitializeID() override;
+		void InitializeID() /*override*/;
 
 		TextureTarget_t GetTextureTarget() const;
 		TextureFormat GetTextureFormat() const;

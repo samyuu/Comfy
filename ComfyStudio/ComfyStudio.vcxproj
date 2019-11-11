@@ -348,7 +348,6 @@
     <ClInclude Include="src\Graphics\Auth2D\AetRenderer.h" />
     <ClInclude Include="src\Graphics\OpenGL\GL_Renderer2D.h" />
     <ClInclude Include="src\Graphics\OpenGL\OpenGLCall.h" />
-    <ClInclude Include="src\Graphics\GraphicsInterface.h" />
     <ClInclude Include="src\Graphics\RenderCommand.h" />
     <ClInclude Include="src\Graphics\OpenGL\GL_Shaders.h" />
     <ClInclude Include="src\ImGui\Widgets\FileViewer.h" />

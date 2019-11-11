@@ -23,7 +23,7 @@ namespace Graphics
 		TextureID_t GetTextureID() const;
 		void* GetVoidTexture() const;
 
-		void SetObjectLabel(const char* label) override;
+		void SetObjectLabel(const char* label) /*override*/;
 
 	protected:
 		vec2 imageSize = vec2(0.0, 0.0f);

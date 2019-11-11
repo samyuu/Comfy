@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "OpenGL.h"
-#include "Graphics/GraphicsInterface.h"
+#include "Graphics/GraphicsTypes.h"
 #include "Core/CoreTypes.h"
 
 namespace Graphics
@@ -25,7 +25,7 @@ namespace Graphics
 		DynamicCopy,
 	};
 
-	class GL_Buffer : public IGraphicsObject
+	class GL_Buffer /*: public IGraphicsObject*/
 	{
 	public:
 		GL_Buffer(BufferUsage usage);
@@ -33,13 +33,13 @@ namespace Graphics
 		GL_Buffer& operator= (const GL_Buffer&) = delete;
 		virtual ~GL_Buffer();
 
-		void InitializeID() override;
+		void InitializeID() /*override*/;
 		void Upload(size_t dataSize, void* data);
 		void UploadSubData(size_t dataSize, size_t* offset, void* data);
 
-		void Bind() const override;
-		void UnBind() const override;
-		void SetObjectLabel(const char* label) override;
+		void Bind() const /*override*/;
+		void UnBind() const /*override*/;
+		void SetObjectLabel(const char* label) /*override*/;
 
 	protected:
 		BufferID_t bufferID = NULL;
@@ -70,13 +70,6 @@ namespace Graphics
 	// ------------------------------------------------------------------------------------------------
 	// --- IndexBuffer:
 	// ------------------------------------------------------------------------------------------------
-
-	enum class IndexType
-	{
-		UnsignedByte,
-		UnsignedShort,
-		UnsignedInt,
-	};
 
 	class GL_IndexBuffer : public GL_Buffer
 	{

@@ -416,9 +416,6 @@
     <ClInclude Include="res\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\GraphicsInterface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\License\LicenseWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>

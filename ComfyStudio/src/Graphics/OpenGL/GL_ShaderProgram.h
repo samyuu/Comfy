@@ -2,7 +2,6 @@
 #include "Types.h"
 #include "Graphics/GraphicsTypes.h"
 #include "Graphics/OpenGL/OpenGL.h"
-#include "Graphics/GraphicsInterface.h"
 #include "Core/CoreTypes.h"
 
 namespace Graphics
@@ -39,7 +38,7 @@ namespace Graphics
 		const char* name;
 	};
 
-	class GL_ShaderProgram : public IBindable, ILabeledObject
+	class GL_ShaderProgram /*: public IBindable, ILabeledObject*/
 	{
 	public:
 		GL_ShaderProgram();
@@ -47,8 +46,8 @@ namespace Graphics
 		GL_ShaderProgram& operator= (const GL_ShaderProgram&) = delete;
 		virtual ~GL_ShaderProgram();
 
-		void Bind() const override;
-		void UnBind() const override;
+		void Bind() const /*override*/;
+		void UnBind() const /*override*/;
 		void SetUniform(const GL_Uniform&, int);
 		void SetUniform(const GL_Uniform&, float);
 		void SetUniform(const GL_Uniform&, const vec2&);
@@ -60,7 +59,7 @@ namespace Graphics
 		inline bool GetIsInitialized() const { return initialized; };
 		inline ProgramID_t GetProgramID() const { return programID; };
 		
-		void SetObjectLabel(const char* label) override;
+		void SetObjectLabel(const char* label) /*override*/;
 
 	public:
 		void Recompile();

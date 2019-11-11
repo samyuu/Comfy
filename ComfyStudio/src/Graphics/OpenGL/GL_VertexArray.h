@@ -1,6 +1,5 @@
 #pragma once
 #include "OpenGL.h"
-#include "Graphics/GraphicsInterface.h"
 
 namespace Graphics
 {
@@ -8,7 +7,7 @@ namespace Graphics
 
 	typedef GLuint VertexArrayID_t;
 
-	class GL_VertexArray : public IGraphicsObject
+	class GL_VertexArray /*: public IGraphicsObject*/
 	{
 	public:
 		GL_VertexArray();
@@ -16,12 +15,12 @@ namespace Graphics
 		GL_VertexArray& operator= (const GL_VertexArray&) = delete;
 		~GL_VertexArray();
 
-		void InitializeID() override;
-		void Bind() const override;
-		void UnBind() const override;
+		void InitializeID() /*override*/;
+		void Bind() const /*override*/;
+		void UnBind() const /*override*/;
 
 		void SetLayout(const BufferLayout& layout, bool interleaved = true);
-		void SetObjectLabel(const char* label) override;
+		void SetObjectLabel(const char* label) /*override*/;
 
 	protected:
 		VertexArrayID_t vertexArrayID = NULL;

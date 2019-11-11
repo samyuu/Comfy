@@ -116,11 +116,11 @@ namespace Graphics
 	{
 		switch (indexType)
 		{
-		case IndexType::UnsignedByte:
+		case IndexType::UInt8:
 			return GL_UNSIGNED_BYTE;
-		case IndexType::UnsignedShort:
+		case IndexType::UInt16:
 			return GL_UNSIGNED_SHORT;
-		case IndexType::UnsignedInt:
+		case IndexType::UInt32:
 			return GL_UNSIGNED_INT;
 		default:
 			assert(false);

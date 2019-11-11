@@ -36,7 +36,7 @@ namespace Graphics
 
 				for (RefPtr<SubMesh>& subMesh : mesh->SubMeshes)
 				{
-					subMesh->GraphicsIndexBuffer = MakeRef<GL_IndexBuffer>(BufferUsage::StaticDraw, IndexType::UnsignedShort);
+					subMesh->GraphicsIndexBuffer = MakeRef<GL_IndexBuffer>(BufferUsage::StaticDraw, IndexType::UInt16);
 					subMesh->GraphicsIndexBuffer->InitializeID();
 					subMesh->GraphicsIndexBuffer->Bind();
 					subMesh->GraphicsIndexBuffer->Upload(subMesh->Indices.size() * sizeof(uint16_t), subMesh->Indices.data());
