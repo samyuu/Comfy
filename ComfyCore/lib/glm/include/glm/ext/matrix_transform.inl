@@ -141,6 +141,9 @@ namespace glm
 		return Result;
 	}
 
+#pragma warning(push)
+#pragma warning(disable: 4305) // 'if': truncation from 'int' to 'bool'
+
 	template<typename T, qualifier Q>
 	GLM_FUNC_QUALIFIER mat<4, 4, T, Q> lookAt(vec<3, T, Q> const& eye, vec<3, T, Q> const& center, vec<3, T, Q> const& up)
 	{
@@ -149,4 +152,7 @@ namespace glm
 		else
 			return lookAtRH(eye, center, up);
 	}
+
+#pragma warning(pop)
+
 }//namespace glm
