@@ -56,17 +56,17 @@ bool Application::BaseInitialize()
 
 	hasBeenInitialized = true;
 	TimeSpan::Initialize();
-	
+
 	if (!host.Initialize())
 		return false;
 
-	host.RegisterWindowResizeCallback([](ivec2 size) 
+	host.RegisterWindowResizeCallback([](ivec2 size)
 	{
-		Graphics::D3D.ResizeMainRenderTarget(size);
+		Graphics::D3D.ResizeWindowRenderTarget(size);
 		//Graphics::RenderCommand::SetViewport(size);
 	});
 
-	host.RegisterWindowClosingCallback([]() 
+	host.RegisterWindowClosingCallback([]()
 	{
 		Audio::AudioEngine* audioEngine = Audio::AudioEngine::GetInstance();
 
@@ -97,14 +97,17 @@ void Application::BaseUpdate()
 
 void Application::BaseDraw()
 {
+#if 1
 	const vec4 baseClearColor = Editor::GetColorVec4(Editor::EditorColor_BaseClear);
 	//Graphics::RenderCommand::SetClearColor(baseClearColor);
 	//Graphics::RenderCommand::Clear(Graphics::ClearTarget_ColorBuffer);
 	//Graphics::RenderCommand::SetViewport(host.GetWindowSize());
 
-	Graphics::D3D.Context->OMSetRenderTargets(1, &Graphics::D3D.MainRenderTargetView, nullptr);
-	Graphics::D3D.Context->ClearRenderTargetView(Graphics::D3D.MainRenderTargetView, glm::value_ptr(baseClearColor));
+	Graphics::D3D.WindowRenderTarget->Bind();
+	Graphics::D3D.WindowRenderTarget->Clear(baseClearColor);
 	DrawGui();
+	return;
+#endif
 }
 
 void Application::BaseDispose()

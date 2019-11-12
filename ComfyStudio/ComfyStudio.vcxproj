@@ -156,8 +156,10 @@
     <ClCompile Include="src\Editor\Timeline\TimelineScrollbar.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\SpriteBatchData.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_ConstantBuffer.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\D3D_DepthBuffer.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_IndexBuffer.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_InputLayout.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\D3D_RenderTarget.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_Shader.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_VertexBuffer.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\Direct3D.cpp" />
@@ -280,8 +282,10 @@
     <ClInclude Include="src\Editor\Timeline\TimelineScrollbar.h" />
     <ClInclude Include="src\Graphics\Auth2D\SpriteBatchData.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_ConstantBuffer.h" />
+    <ClInclude Include="src\Graphics\Direct3D\D3D_DepthBuffer.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_IndexBuffer.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_InputLayout.h" />
+    <ClInclude Include="src\Graphics\Direct3D\D3D_RenderTarget.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_Shader.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_VertexBuffer.h" />
     <ClInclude Include="src\Graphics\Direct3D\Direct3D.h" />

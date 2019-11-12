@@ -18,13 +18,15 @@ namespace Graphics
 	{
 	public:
 		D3D_InputLayout(std::initializer_list<InputElement> elements, const D3D_VertexShader& vertexShader);
-		virtual ~D3D_InputLayout() = default;
+		~D3D_InputLayout() = default;
+
+		D3D_InputLayout& operator=(const D3D_InputLayout&) = delete;
 
 	public:
 		void Bind();
 		void UnBind();
 
-	protected:
+	private:
 		// NOTE: No need to dynamically allocate additional memory when there are only ever a small amount of elements
 		static constexpr size_t maxElementCount = 8;
 

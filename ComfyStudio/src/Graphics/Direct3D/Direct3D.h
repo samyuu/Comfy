@@ -7,13 +7,15 @@ using Microsoft::WRL::ComPtr;
 
 namespace Graphics
 {
+	class D3D_SwapChainRenderTarget;
+
 	class Direct3D
 	{
 	public:
 		bool Initialize(HWND window);
 		void Dispose();
 
-		bool ResizeMainRenderTarget(ivec2 newSize);
+		void ResizeWindowRenderTarget(ivec2 newSize);
 
 	public:
 		// NOTE: Raw pointers to optionally skip releasing them
@@ -25,11 +27,10 @@ namespace Graphics
 		ID3D11DeviceContext* Context = nullptr;
 		
 		IDXGISwapChain* SwapChain = nullptr;
-		ID3D11RenderTargetView* MainRenderTargetView = nullptr;
+		UniquePtr<D3D_SwapChainRenderTarget> WindowRenderTarget = nullptr;
 
 	private:
 		bool InternalCreateDeviceAndSwapchain(HWND window);
-		bool InternalCreateRenderTarget();
 	};
 
 	// NOTE: Global instance

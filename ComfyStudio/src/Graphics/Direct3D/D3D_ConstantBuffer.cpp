@@ -3,8 +3,11 @@
 
 namespace Graphics
 {
-	D3D_ConstantBuffer::D3D_ConstantBuffer(size_t dataSize, D3D11_USAGE usage)
+	D3D_ConstantBuffer::D3D_ConstantBuffer(uint32_t slot, size_t dataSize, D3D11_USAGE usage)
+		: slot(slot)
 	{
+		assert(slot < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
+
 		bufferDescription.ByteWidth = static_cast<UINT>(dataSize);
 		bufferDescription.Usage = usage;
 		bufferDescription.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -15,26 +18,40 @@ namespace Graphics
 		D3D.Device->CreateBuffer(&bufferDescription, nullptr, &buffer);
 	}
 
-	void D3D_ConstantBuffer::Bind()
+	void D3D_ConstantBuffer::BindVertexShader()
 	{
-		constexpr UINT startSlot = 0;
 		constexpr UINT bufferCount = 1;
 		std::array<ID3D11Buffer*, bufferCount> buffers = { buffer.Get() };
 
-		D3D.Context->VSSetConstantBuffers(startSlot, bufferCount, buffers.data());
+		D3D.Context->VSSetConstantBuffers(slot, bufferCount, buffers.data());
 	}
 
-	void D3D_ConstantBuffer::UnBind()
+	void D3D_ConstantBuffer::UnBindVertexShader()
 	{
-		constexpr UINT startSlot = 0;
 		constexpr UINT bufferCount = 1;
 		std::array<ID3D11Buffer*, bufferCount> buffers = { nullptr };
 
-		D3D.Context->VSSetConstantBuffers(startSlot, bufferCount, buffers.data());
+		D3D.Context->VSSetConstantBuffers(slot, bufferCount, buffers.data());
 	}
 
-	D3D_DynamicConstantBuffer::D3D_DynamicConstantBuffer(size_t dataSize)
-		: D3D_ConstantBuffer(dataSize, D3D11_USAGE_DEFAULT)
+	void D3D_ConstantBuffer::BindPixelShader()
+	{
+		constexpr UINT bufferCount = 1;
+		std::array<ID3D11Buffer*, bufferCount> buffers = { buffer.Get() };
+
+		D3D.Context->PSSetConstantBuffers(slot, bufferCount, buffers.data());
+	}
+
+	void D3D_ConstantBuffer::UnBindPixelShader()
+	{
+		constexpr UINT bufferCount = 1;
+		std::array<ID3D11Buffer*, bufferCount> buffers = { nullptr };
+
+		D3D.Context->PSSetConstantBuffers(slot, bufferCount, buffers.data());
+	}
+
+	D3D_DynamicConstantBuffer::D3D_DynamicConstantBuffer(uint32_t slot, size_t dataSize)
+		: D3D_ConstantBuffer(slot, dataSize, D3D11_USAGE_DEFAULT)
 	{
 	}
 

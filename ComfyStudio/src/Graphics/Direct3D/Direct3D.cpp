@@ -1,4 +1,5 @@
 #include "Direct3D.h"
+#include "D3D_RenderTarget.h"
 #include "Core/CoreTypes.h"
 #include "Core/Logger.h"
 
@@ -25,8 +26,7 @@ namespace Graphics
 		if (!InternalCreateDeviceAndSwapchain(window))
 			return false;
 
-		if (!InternalCreateRenderTarget())
-			return false;
+		WindowRenderTarget = MakeUnique<D3D_SwapChainRenderTarget>(SwapChain);
 
 		return true;
 	}
@@ -36,34 +36,30 @@ namespace Graphics
 		DisposeReleaseSetNullIfNotNull(Device);
 		DisposeReleaseSetNullIfNotNull(Context);
 		DisposeReleaseSetNullIfNotNull(SwapChain);
-		DisposeReleaseSetNullIfNotNull(MainRenderTargetView);
+		WindowRenderTarget = nullptr;
 	}
 
-	bool Direct3D::ResizeMainRenderTarget(ivec2 newSize)
+	void Direct3D::ResizeWindowRenderTarget(ivec2 newSize)
 	{
-		DisposeReleaseSetNullIfNotNull(MainRenderTargetView);
-		{
-			D3D.SwapChain->ResizeBuffers(0, newSize.x, newSize.y, DXGI_FORMAT_UNKNOWN, 0);
-		}
-		return InternalCreateRenderTarget();
+		WindowRenderTarget->Resize(newSize);
 	}
 
 	bool Direct3D::InternalCreateDeviceAndSwapchain(HWND window)
 	{
 		DXGI_SWAP_CHAIN_DESC swapChainDescription = {};
-		swapChainDescription.BufferCount = 1;
+		swapChainDescription.BufferCount = 2;
 		swapChainDescription.BufferDesc.Width = 0;
 		swapChainDescription.BufferDesc.Height = 0;
 		swapChainDescription.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		swapChainDescription.BufferDesc.RefreshRate.Numerator = 0;
 		swapChainDescription.BufferDesc.RefreshRate.Denominator = 0;
-		swapChainDescription.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+		swapChainDescription.Flags = 0;
 		swapChainDescription.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDescription.OutputWindow = window;
 		swapChainDescription.SampleDesc.Count = 1;
 		swapChainDescription.SampleDesc.Quality = 0;
 		swapChainDescription.Windowed = true;
-		swapChainDescription.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+		swapChainDescription.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
 		UINT deviceFlags = 0;
 #if COMFY_DEBUG
@@ -99,32 +95,6 @@ namespace Graphics
 		if (FAILED(deviceSwapChainResult))
 		{
 			Logger::LogErrorLine(__FUNCTION__"(): Unable to create device and swap chain. Error: 0x%X", deviceSwapChainResult);
-			return false;
-		}
-
-		return true;
-	}
-
-	bool Direct3D::InternalCreateRenderTarget()
-	{
-		ComPtr<ID3D11Texture2D> backBuffer;
-		
-		const HRESULT getBufferResult = SwapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
-		if (FAILED(getBufferResult))
-		{
-			Logger::LogErrorLine(__FUNCTION__"(): Unable to get backbuffer. Error: 0x%X", getBufferResult);
-			return false;
-		}
-
-		D3D11_RENDER_TARGET_VIEW_DESC* renderTargetViewDescription = nullptr;
-		const HRESULT renderTargetViewResult = Device->CreateRenderTargetView(
-			backBuffer.Get(),
-			renderTargetViewDescription,
-			&MainRenderTargetView);
-
-		if (FAILED(renderTargetViewResult))
-		{
-			Logger::LogErrorLine(__FUNCTION__"(): Unable to create render target view. Error: 0x%X", renderTargetViewResult);
 			return false;
 		}
 
