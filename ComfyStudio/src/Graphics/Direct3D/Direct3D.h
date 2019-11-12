@@ -17,8 +17,13 @@ namespace Graphics
 
 	public:
 		// NOTE: Raw pointers to optionally skip releasing them
+
+		// NOTE: Manages object creation
 		ID3D11Device* Device = nullptr;
+		
+		// NOTE: Manages render commands / set state
 		ID3D11DeviceContext* Context = nullptr;
+		
 		IDXGISwapChain* SwapChain = nullptr;
 		ID3D11RenderTargetView* MainRenderTargetView = nullptr;
 

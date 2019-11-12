@@ -155,6 +155,11 @@
     <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\TransformBox.cpp" />
     <ClCompile Include="src\Editor\Timeline\TimelineScrollbar.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\SpriteBatchData.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\D3D_ConstantBuffer.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\D3D_IndexBuffer.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\D3D_InputLayout.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\D3D_Shader.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\D3D_VertexBuffer.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\Direct3D.cpp" />
     <ClCompile Include="src\ImGui\GuiRenderer.cpp" />
     <ClCompile Include="src\ImGui\Implementation\ImGui_Impl_Renderer.cpp" />
@@ -274,6 +279,11 @@
     <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\TransformBox.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineScrollbar.h" />
     <ClInclude Include="src\Graphics\Auth2D\SpriteBatchData.h" />
+    <ClInclude Include="src\Graphics\Direct3D\D3D_ConstantBuffer.h" />
+    <ClInclude Include="src\Graphics\Direct3D\D3D_IndexBuffer.h" />
+    <ClInclude Include="src\Graphics\Direct3D\D3D_InputLayout.h" />
+    <ClInclude Include="src\Graphics\Direct3D\D3D_Shader.h" />
+    <ClInclude Include="src\Graphics\Direct3D\D3D_VertexBuffer.h" />
     <ClInclude Include="src\Graphics\Direct3D\Direct3D.h" />
     <ClInclude Include="src\Graphics\GraphicsTypes.h" />
     <ClInclude Include="src\Graphics\GraphicTypesNames.h" />
@@ -348,6 +358,7 @@
     <ClInclude Include="src\Graphics\Auth2D\AetRenderer.h" />
     <ClInclude Include="src\Graphics\OpenGL\GL_Renderer2D.h" />
     <ClInclude Include="src\Graphics\OpenGL\OpenGLCall.h" />
+    <ClInclude Include="src\Graphics\Direct3D\GraphicsInterfaces.h" />
     <ClInclude Include="src\Graphics\RenderCommand.h" />
     <ClInclude Include="src\Graphics\OpenGL\GL_Shaders.h" />
     <ClInclude Include="src\ImGui\Widgets\FileViewer.h" />

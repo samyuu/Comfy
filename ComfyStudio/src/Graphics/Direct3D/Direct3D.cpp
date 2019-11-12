@@ -51,7 +51,7 @@ namespace Graphics
 	bool Direct3D::InternalCreateDeviceAndSwapchain(HWND window)
 	{
 		DXGI_SWAP_CHAIN_DESC swapChainDescription = {};
-		swapChainDescription.BufferCount = 2;
+		swapChainDescription.BufferCount = 1;
 		swapChainDescription.BufferDesc.Width = 0;
 		swapChainDescription.BufferDesc.Height = 0;
 		swapChainDescription.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -65,16 +65,17 @@ namespace Graphics
 		swapChainDescription.Windowed = true;
 		swapChainDescription.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
-		UINT deviceFlags = NULL;
+		UINT deviceFlags = 0;
 #if COMFY_DEBUG
 		deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
 		D3D_FEATURE_LEVEL featureLevel;
 
-		std::array<D3D_FEATURE_LEVEL, 2> featureLevels =
+		std::array<D3D_FEATURE_LEVEL, 3> featureLevels =
 		{
 			D3D_FEATURE_LEVEL_11_0,
+			D3D_FEATURE_LEVEL_10_1,
 			D3D_FEATURE_LEVEL_10_0,
 		};
 
