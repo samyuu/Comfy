@@ -1,7 +1,6 @@
 #pragma once
 #include "Direct3D.h"
 #include "GraphicsInterfaces.h"
-#include "Core/CoreTypes.h"
 
 namespace Graphics
 {

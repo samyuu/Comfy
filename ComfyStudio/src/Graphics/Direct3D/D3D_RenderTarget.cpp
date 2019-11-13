@@ -1,5 +1,4 @@
 #include "D3D_RenderTarget.h"
-#include "Core/CoreTypes.h"
 
 namespace Graphics
 {

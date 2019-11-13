@@ -1,5 +1,6 @@
 #pragma once
 #include "Types.h"
+#include "Core/CoreTypes.h"
 #include <d3d11.h>
 #include <wrl.h>
 
@@ -35,4 +36,20 @@ namespace Graphics
 
 	// NOTE: Global instance
 	extern Direct3D D3D;
+
+#if COMFY_DEBUG
+	inline void D3D_SetObjectDebugName(ID3D11DeviceChild* deviceChild, const char* format, ...) 
+	{
+		char buffer[512];
+
+		va_list arguments;
+		va_start(arguments, format);
+		int result = vsprintf_s(buffer, std::size(buffer), format, arguments);
+		va_end(arguments);
+
+		deviceChild->SetPrivateData(WKPDID_D3DDebugObjectName, result, buffer);
+	}
+#else
+#define D3D_SetObjectDebugName(deviceChild, format, ...) do {} while(false);
+#endif
 }
