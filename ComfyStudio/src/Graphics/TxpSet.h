@@ -41,7 +41,7 @@ namespace Graphics
 		std::vector<RefPtr<MipMap>> MipMaps;
 		std::string Name;
 
-		RefPtr<class GL_Texture2D> GraphicsTexture;
+		UniquePtr<class D3D_ImmutableTexture2D> Texture;
 	};
 
 	class TxpSet : public FileSystem::IBinaryReadable, public FileSystem::IBufferParsable
@@ -53,7 +53,7 @@ namespace Graphics
 		virtual void Read(FileSystem::BinaryReader& reader) override;
 		virtual void Parse(const uint8_t* buffer) override;
 
-		void UploadAll();
+		void UploadAll(class SprSet* parentSprSet);
 
 	private:
 	};

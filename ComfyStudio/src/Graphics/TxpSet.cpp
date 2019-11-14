@@ -1,8 +1,8 @@
 #include "TxpSet.h"
+#include "SprSet.h"
 #include "FileSystem/FileInterface.h"
 #include "FileSystem/BinaryReader.h"
-#include "Graphics/OpenGL/GL_Texture2D.h"
-#include <assert.h>
+#include "Graphics/Direct3D/D3D_Texture2D.h"
 
 using namespace FileSystem;
 
@@ -122,13 +122,17 @@ namespace Graphics
 		}
 	}
 
-	void TxpSet::UploadAll()
+	void TxpSet::UploadAll(SprSet* parentSprSet)
 	{
 		for (int i = 0; i < Textures.size(); i++)
 		{
-			Txp* texture = Textures[i].get();
-			texture->GraphicsTexture = MakeRef<GL_Texture2D>();
-			texture->GraphicsTexture->Create(texture);
+			Txp* txp = Textures[i].get();
+			txp->Texture = MakeUnique<D3D_ImmutableTexture2D>(txp);
+	
+			if (parentSprSet != nullptr)
+				D3D_SetObjectDebugName(txp->Texture->GetTexture(), "%s: %s", parentSprSet->Name.c_str(), txp->Name.c_str());
+			else
+				D3D_SetObjectDebugName(txp->Texture->GetTexture(), "TxpSet: %s", txp->Name.c_str());
 		}
 	}
 }

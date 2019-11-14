@@ -175,6 +175,7 @@
     <ClCompile Include="src\Editor\Aet\RenderWindow\Tools\TransformBox.cpp" />
     <ClCompile Include="src\Editor\Timeline\TimelineScrollbar.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\SpriteBatchData.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\D3D_BlendState.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_ConstantBuffer.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_DepthBuffer.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_IndexBuffer.cpp" />
@@ -303,6 +304,7 @@
     <ClInclude Include="src\Editor\Aet\RenderWindow\Tools\TransformBox.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineScrollbar.h" />
     <ClInclude Include="src\Graphics\Auth2D\SpriteBatchData.h" />
+    <ClInclude Include="src\Graphics\Direct3D\D3D_BlendState.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_ConstantBuffer.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_DepthBuffer.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_IndexBuffer.h" />
