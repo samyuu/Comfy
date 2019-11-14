@@ -128,11 +128,8 @@ namespace Graphics
 		{
 			Txp* txp = Textures[i].get();
 			txp->Texture = MakeUnique<D3D_ImmutableTexture2D>(txp);
-	
-			if (parentSprSet != nullptr)
-				D3D_SetObjectDebugName(txp->Texture->GetTexture(), "%s: %s", parentSprSet->Name.c_str(), txp->Name.c_str());
-			else
-				D3D_SetObjectDebugName(txp->Texture->GetTexture(), "TxpSet: %s", txp->Name.c_str());
+
+			D3D_SetObjectDebugName(txp->Texture->GetTexture(), "%s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp->Name.c_str());
 		}
 	}
 }

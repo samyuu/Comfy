@@ -225,16 +225,16 @@ namespace Graphics
 			}
 		}
 
-		void PadTextureDimensions(UINT& dimension, const UINT alignment)
+		UINT PadTextureDimension(const UINT dimension, const UINT alignment)
 		{
 			const UINT padding = ((dimension + (alignment - 1)) & ~(alignment - 1)) - dimension;
-			dimension += padding;
+			return dimension + padding;
 		}
 
 		void PadTextureDimensions(UINT& width, UINT& height, const UINT alignment)
 		{
-			PadTextureDimensions(width, alignment);
-			PadTextureDimensions(height, alignment);
+			width = PadTextureDimension(width, alignment);
+			height = PadTextureDimension(height, alignment);
 		}
 	}
 
@@ -338,7 +338,10 @@ namespace Graphics
 			resource.pSysMem = mipMap->DataPointer != nullptr ? mipMap->DataPointer : mipMap->Data.data();
 
 			// TODO: Not sure if this is entirely accurate or reliable
-			resource.SysMemPitch = (usesBlockCompression) ? ((mipMap->Width * bitsPerPixel) / 2) : ((mipMap->Width * bitsPerPixel + 7) / 8);
+			resource.SysMemPitch = (usesBlockCompression) ? 
+				((PadTextureDimension(mipMap->Width, blockCompressionAlignment) * bitsPerPixel) / 2) :
+				((mipMap->Width * bitsPerPixel + 7) / 8);
+
 			resource.SysMemSlicePitch = 0;
 		}
 		
