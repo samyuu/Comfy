@@ -91,6 +91,16 @@
     <PostBuildEvent>
       <Message>Building comfy data archive...</Message>
     </PostBuildEvent>
+    <FxCompile>
+      <VariableName>%(Filename)_Bytecode</VariableName>
+    </FxCompile>
+    <FxCompile>
+      <HeaderFileOutput>$(ProjectDir)src\Graphics\Direct3D\ShaderBytecode\Debug\%(Filename).h</HeaderFileOutput>
+      <ShaderModel>4.0</ShaderModel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>COMFY_DEBUG=1</PreprocessorDefinitions>
+      <ObjectFileOutput />
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -134,6 +144,16 @@
     <PostBuildEvent>
       <Message>Building comfy data archive...</Message>
     </PostBuildEvent>
+    <FxCompile>
+      <VariableName>%(Filename)_Bytecode</VariableName>
+    </FxCompile>
+    <FxCompile>
+      <HeaderFileOutput>$(ProjectDir)src\Graphics\Direct3D\ShaderBytecode\Release\%(Filename).h</HeaderFileOutput>
+      <ShaderModel>4.0</ShaderModel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>COMFY_RELEASE=1</PreprocessorDefinitions>
+      <ObjectFileOutput />
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
@@ -164,6 +184,7 @@
     <ClCompile Include="src\Graphics\Direct3D\D3D_Texture2D.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_VertexBuffer.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\Direct3D.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\ShaderBytecode\ShaderBytecode.cpp" />
     <ClCompile Include="src\ImGui\GuiRenderer.cpp" />
     <ClCompile Include="src\ImGui\Implementation\ImGui_Impl_Renderer.cpp" />
     <ClCompile Include="src\ImGui\Implementation\ImGui_Impl.cpp" />
@@ -291,6 +312,7 @@
     <ClInclude Include="src\Graphics\Direct3D\D3D_Texture2D.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_VertexBuffer.h" />
     <ClInclude Include="src\Graphics\Direct3D\Direct3D.h" />
+    <ClInclude Include="src\Graphics\Direct3D\ShaderBytecode\ShaderBytecode.h" />
     <ClInclude Include="src\Graphics\GraphicsTypes.h" />
     <ClInclude Include="src\Graphics\GraphicTypesNames.h" />
     <ClInclude Include="src\ImGui\GuiRenderer.h" />
@@ -422,6 +444,46 @@
   <ItemGroup>
     <Image Include="res\ComfyIcon.ico" />
   </ItemGroup>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ImGui_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ImGui_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </DeploymentContent>
+    </FxCompile>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </DeploymentContent>
+    </FxCompile>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

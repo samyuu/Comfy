@@ -387,6 +387,9 @@
     <ClCompile Include="src\Graphics\Direct3D\D3D_Texture2D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\Direct3D\ShaderBytecode\ShaderBytecode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
@@ -848,6 +851,9 @@
     <ClInclude Include="src\Graphics\Direct3D\D3D_Texture2D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\Direct3D\ShaderBytecode\ShaderBytecode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="res\ComfyStudio.rc">
@@ -859,4 +865,8 @@
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ImGui_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ImGui_PS.hlsl" />
 </Project>
