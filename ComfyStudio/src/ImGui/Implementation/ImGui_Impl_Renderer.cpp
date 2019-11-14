@@ -26,7 +26,7 @@
 #include "ImGui/Implementation/ImGui_Impl_Renderer.h"
 
 #include "Graphics/Direct3D/Direct3D.h"
-#include <d3dcompiler.h>
+#include "Graphics/Direct3D/ShaderBytecode/ShaderBytecode.h"
 
 // DirectX data
 static ID3D11Device*            g_pd3dDevice = nullptr;
@@ -34,11 +34,9 @@ static ID3D11DeviceContext*     g_pd3dDeviceContext = nullptr;
 static IDXGIFactory*            g_pFactory = nullptr;
 static ID3D11Buffer*            g_pVB = nullptr;
 static ID3D11Buffer*            g_pIB = nullptr;
-static ID3D10Blob*              g_pVertexShaderBlob = nullptr;
 static ID3D11VertexShader*      g_pVertexShader = nullptr;
 static ID3D11InputLayout*       g_pInputLayout = nullptr;
 static ID3D11Buffer*            g_pVertexConstantBuffer = nullptr;
-static ID3D10Blob*              g_pPixelShaderBlob = nullptr;
 static ID3D11PixelShader*       g_pPixelShader = nullptr;
 static ID3D11SamplerState*      g_pFontSampler = nullptr;
 static ID3D11ShaderResourceView*g_pFontTextureView = nullptr;
@@ -336,39 +334,9 @@ bool ImGui_ImplDX11_CreateDeviceObjects()
 
 	// Create the vertex shader
 	{
-		static const char* vertexShader =
-			"cbuffer vertexBuffer : register(b0) \
-            {\
-            float4x4 ProjectionMatrix; \
-            };\
-            struct VS_INPUT\
-            {\
-            float2 pos : POSITION;\
-            float4 col : COLOR0;\
-            float2 uv  : TEXCOORD0;\
-            };\
-            \
-            struct PS_INPUT\
-            {\
-            float4 pos : SV_POSITION;\
-            float4 col : COLOR0;\
-            float2 uv  : TEXCOORD0;\
-            };\
-            \
-            PS_INPUT main(VS_INPUT input)\
-            {\
-            PS_INPUT output;\
-            output.pos = mul( ProjectionMatrix, float4(input.pos.xy, 0.f, 1.f));\
-            output.col = input.col;\
-            output.uv  = input.uv;\
-            return output;\
-            }";
+		auto[vertexShader, vertexShaderSize] = Graphics::ImGui_VS();
 
-		D3DCompile(vertexShader, strlen(vertexShader), nullptr, nullptr, nullptr, "main", "vs_4_0", 0, 0, &g_pVertexShaderBlob, nullptr);
-		if (g_pVertexShaderBlob == nullptr) // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-			return false;
-
-		if (g_pd3dDevice->CreateVertexShader(static_cast<DWORD*>(g_pVertexShaderBlob->GetBufferPointer()), g_pVertexShaderBlob->GetBufferSize(), nullptr, &g_pVertexShader) != S_OK)
+		if (g_pd3dDevice->CreateVertexShader(vertexShader, vertexShaderSize, nullptr, &g_pVertexShader) != S_OK)
 			return false;
 
 		// Create the input layout
@@ -379,7 +347,7 @@ bool ImGui_ImplDX11_CreateDeviceObjects()
 			{ "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, IM_OFFSETOF(ImDrawVert, col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		if (g_pd3dDevice->CreateInputLayout(local_layout, 3, g_pVertexShaderBlob->GetBufferPointer(), g_pVertexShaderBlob->GetBufferSize(), &g_pInputLayout) != S_OK)
+		if (g_pd3dDevice->CreateInputLayout(local_layout, 3, vertexShader, vertexShaderSize, &g_pInputLayout) != S_OK)
 			return false;
 
 		// Create the constant buffer
@@ -396,28 +364,9 @@ bool ImGui_ImplDX11_CreateDeviceObjects()
 
 	// Create the pixel shader
 	{
-		static const char* pixelShader =
-			"struct PS_INPUT\
-            {\
-            float4 pos : SV_POSITION;\
-            float4 col : COLOR0;\
-            float2 uv  : TEXCOORD0;\
-            };\
-            sampler sampler0;\
-            Texture2D texture0;\
-            \
-            float4 main(PS_INPUT input) : SV_Target\
-            {\
-            float4 out_col = input.col * texture0.Sample(sampler0, input.uv); \
-            return out_col; \
-            }";
+		auto[pixelShader, pixelShaderSize] = Graphics::ImGui_PS();
 
-		D3DCompile(pixelShader, strlen(pixelShader), nullptr, nullptr, nullptr, "main", "ps_4_0", 0, 0, &g_pPixelShaderBlob, nullptr);
-
-		if (g_pPixelShaderBlob == nullptr)  // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-			return false;
-
-		if (g_pd3dDevice->CreatePixelShader(static_cast<DWORD*>(g_pPixelShaderBlob->GetBufferPointer()), g_pPixelShaderBlob->GetBufferSize(), nullptr, &g_pPixelShader) != S_OK)
+		if (g_pd3dDevice->CreatePixelShader(pixelShader, pixelShaderSize, nullptr, &g_pPixelShader) != S_OK)
 			return false;
 	}
 
@@ -478,11 +427,9 @@ void ImGui_ImplDX11_InvalidateDeviceObjects()
 	if (g_pDepthStencilState) { g_pDepthStencilState->Release(); g_pDepthStencilState = nullptr; }
 	if (g_pRasterizerState) { g_pRasterizerState->Release(); g_pRasterizerState = nullptr; }
 	if (g_pPixelShader) { g_pPixelShader->Release(); g_pPixelShader = nullptr; }
-	if (g_pPixelShaderBlob) { g_pPixelShaderBlob->Release(); g_pPixelShaderBlob = nullptr; }
 	if (g_pVertexConstantBuffer) { g_pVertexConstantBuffer->Release(); g_pVertexConstantBuffer = nullptr; }
 	if (g_pInputLayout) { g_pInputLayout->Release(); g_pInputLayout = nullptr; }
 	if (g_pVertexShader) { g_pVertexShader->Release(); g_pVertexShader = nullptr; }
-	if (g_pVertexShaderBlob) { g_pVertexShaderBlob->Release(); g_pVertexShaderBlob = nullptr; }
 }
 
 bool ImGui_ImplDX11_Init()
@@ -500,8 +447,8 @@ bool ImGui_ImplDX11_Init()
 	IDXGIAdapter* pDXGIAdapter = nullptr;
 	IDXGIFactory* pFactory = nullptr;
 
-	if (device->QueryInterface(IID_PPV_ARGS(&pDXGIDevice)) == S_OK && 
-		pDXGIDevice->GetParent(IID_PPV_ARGS(&pDXGIAdapter)) == S_OK && 
+	if (device->QueryInterface(IID_PPV_ARGS(&pDXGIDevice)) == S_OK &&
+		pDXGIDevice->GetParent(IID_PPV_ARGS(&pDXGIAdapter)) == S_OK &&
 		pDXGIAdapter->GetParent(IID_PPV_ARGS(&pFactory)) == S_OK)
 	{
 		g_pd3dDevice = device;
@@ -509,10 +456,10 @@ bool ImGui_ImplDX11_Init()
 		g_pFactory = pFactory;
 	}
 
-	if (pDXGIDevice) 
+	if (pDXGIDevice)
 		pDXGIDevice->Release();
 
-	if (pDXGIAdapter) 
+	if (pDXGIAdapter)
 		pDXGIAdapter->Release();
 
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -526,10 +473,10 @@ void ImGui_ImplDX11_Shutdown()
 	ImGui_ImplDX11_ShutdownPlatformInterface();
 	ImGui_ImplDX11_InvalidateDeviceObjects();
 
-	if (g_pFactory) 
-	{ 
-		g_pFactory->Release(); 
-		g_pFactory = nullptr; 
+	if (g_pFactory)
+	{
+		g_pFactory->Release();
+		g_pFactory = nullptr;
 	}
 
 	g_pd3dDevice = nullptr;
