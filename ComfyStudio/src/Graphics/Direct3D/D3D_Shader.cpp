@@ -1,26 +1,26 @@
 #include "D3D_Shader.h"
-#include "Misc/StringHelper.h"
-#include <d3dcompiler.h>
 
 namespace Graphics
 {
-	D3D_Shader::D3D_Shader(std::string_view bytecodeFilePath)
+	D3D_Shader::D3D_Shader(const void* bytecode, size_t byteSize)
+		: bytecodeBlob(bytecode), bytecodeSize(byteSize)
 	{
-		std::wstring widePath = Utilities::Utf8ToUtf16(bytecodeFilePath);
-
-		HRESULT result = D3DReadFileToBlob(widePath.c_str(), &bytecodeBlob);
-		assert(!FAILED(result));
 	}
 
-	ID3DBlob* D3D_Shader::GetBytecode() const
+	const void* D3D_Shader::GetBytecode() const
 	{
-		return bytecodeBlob.Get();
+		return bytecodeBlob;
+	}
+
+	size_t D3D_Shader::GetBytecodeSize() const
+	{
+		return bytecodeSize;
 	}
 	
-	D3D_VertexShader::D3D_VertexShader(std::string_view bytecodeFilePath)
-		: D3D_Shader(bytecodeFilePath)
+	D3D_VertexShader::D3D_VertexShader(const void* bytecode, size_t byteSize)
+		: D3D_Shader(bytecode, byteSize)
 	{
-		D3D.Device->CreateVertexShader(bytecodeBlob->GetBufferPointer(), bytecodeBlob->GetBufferSize(), nullptr, &shader);
+		D3D.Device->CreateVertexShader(bytecode, byteSize, nullptr, &shader);
 	}
 
 	void D3D_VertexShader::Bind()
@@ -33,10 +33,10 @@ namespace Graphics
 		D3D.Context->VSSetShader(nullptr, nullptr, 0);
 	}
 	
-	D3D_PixelShader::D3D_PixelShader(std::string_view bytecodeFilePath)
-		: D3D_Shader(bytecodeFilePath)
+	D3D_PixelShader::D3D_PixelShader(const void* bytecode, size_t byteSize)
+		: D3D_Shader(bytecode, byteSize)
 	{
-		D3D.Device->CreatePixelShader(bytecodeBlob->GetBufferPointer(), bytecodeBlob->GetBufferSize(), nullptr, &shader);
+		D3D.Device->CreatePixelShader(bytecode, byteSize, nullptr, &shader);
 	}
 
 	void D3D_PixelShader::Bind()

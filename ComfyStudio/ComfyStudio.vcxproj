@@ -120,7 +120,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>dxguid.lib;d3d11.lib;d3dcompiler.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;d3d11.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -161,6 +161,7 @@
     <ClCompile Include="src\Graphics\Direct3D\D3D_InputLayout.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_RenderTarget.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_Shader.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\D3D_Texture2D.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_VertexBuffer.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\Direct3D.cpp" />
     <ClCompile Include="src\ImGui\GuiRenderer.cpp" />
@@ -287,6 +288,7 @@
     <ClInclude Include="src\Graphics\Direct3D\D3D_InputLayout.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_RenderTarget.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_Shader.h" />
+    <ClInclude Include="src\Graphics\Direct3D\D3D_Texture2D.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_VertexBuffer.h" />
     <ClInclude Include="src\Graphics\Direct3D\Direct3D.h" />
     <ClInclude Include="src\Graphics\GraphicsTypes.h" />
