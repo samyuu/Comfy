@@ -44,6 +44,12 @@ namespace Graphics
 
 	namespace
 	{
+		enum SpriteShaderTextureSlot 
+		{ 
+			TextureSpriteSlot = 0, 
+			TextureMaskSlot = 1 
+		};
+
 		struct MatrixConstantBuffer
 		{
 			mat4 ViewProjection;
@@ -54,7 +60,7 @@ namespace Graphics
 			TextureFormat Format;
 			TextureFormat MaskFormat;
 			AetBlendMode BlendMode;
-			int UseTextBorder;
+			int DrawTextBorder;
 		};
 	}
 
@@ -66,7 +72,7 @@ namespace Graphics
 	{
 		D3D_SetObjectDebugName(spriteVertexShader.GetShader(), "Renderer2D::SpriteVertexShader");
 		D3D_SetObjectDebugName(spritePixelShader.GetShader(), "Renderer2D::SpritePixelShader");
-		
+
 		D3D_SetObjectDebugName(matrixConstantBuffer.GetBuffer(), "Renderer2D::MatrixConstantBuffer");
 		D3D_SetObjectDebugName(spriteConstantBuffer.GetBuffer(), "Renderer2D::SpriteConstantBuffer");
 
@@ -99,7 +105,7 @@ namespace Graphics
 				static_cast<uint16_t>(offset + TopLeft),
 				static_cast<uint16_t>(offset + TopRight),
 				static_cast<uint16_t>(offset + BottomRight),
-				
+
 				static_cast<uint16_t>(offset + BottomRight),
 				static_cast<uint16_t>(offset + BottomLeft),
 				static_cast<uint16_t>(offset + TopLeft),
@@ -164,51 +170,57 @@ namespace Graphics
 
 	void D3D_Renderer2D::InternalFlush()
 	{
-		enum SpriteShaderTextureSlot { TextureSpriteSlot = 0, TextureMaskSlot = 1 };
-
-		InternalCreateBatches();
 		D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		spriteVertexShader.Bind();
 		spritePixelShader.Bind();
 
-		// spriteShader->SetUniform(spriteShader->Texture, TextureSpriteSlot);
-		// spriteShader->SetUniform(spriteShader->TextureMask, TextureMaskSlot);
-		// spriteShader->SetUniform(spriteShader->UseTextShadow, GetUseTextShadow());
-		// spriteShader->SetUniform(spriteShader->ProjectionView, orthographicCamera->GetProjectionMatrix() * orthographicCamera->GetViewMatrix());
-
-		inputLayout->Bind();
-		indexBuffer->Bind();
 		vertexBuffer->Bind();
 		vertexBuffer->UploadData(vertices.size() * sizeof(SpriteVertices), vertices.data());
 
-		MatrixConstantBuffer matrixConstantData { glm::transpose(orthographicCamera->GetProjectionMatrix() * orthographicCamera->GetViewMatrix()) };
+		inputLayout->Bind();
+		indexBuffer->Bind();
+
+		MatrixConstantBuffer matrixConstantData;
+		matrixConstantData.ViewProjection = glm::transpose(orthographicCamera->GetProjectionMatrix() * orthographicCamera->GetViewMatrix());
 		matrixConstantBuffer.BindVertexShader();
 		matrixConstantBuffer.UploadData(sizeof(matrixConstantData), &matrixConstantData);
 
+		SpriteConstantBuffer spriteConstantData;
+		spriteConstantData.Format = TextureFormat::Unknown;
+		spriteConstantData.MaskFormat = TextureFormat::Unknown;
+		spriteConstantData.BlendMode = AetBlendMode::Normal;
+		spriteConstantData.DrawTextBorder = drawTextBorder;
 		spriteConstantBuffer.BindPixelShader();
 
+		InternalCreateBatches();
 		AetBlendMode lastBlendMode = AetBlendMode::Normal;
-		SpriteConstantBuffer spriteConstantData = {};
 
 		for (uint16_t i = 0; i < batches.size(); i++)
 		{
 			SpriteBatch& batch = batches[i];
 			SpriteBatchItem& item = batchItems[batch.Index];
 
-			bool firstItem = i == 0;
+			const bool firstItem = i == 0;
 			if (firstItem || lastBlendMode != item.BlendMode)
 			{
 				InternalSetBlendMode(item.BlendMode);
-				// SetBlendFunction(item.BlendMode);
-				// spriteShader->SetUniform(spriteShader->BlendMode, static_cast<int>(item.BlendMode));
 
 				spriteConstantData.BlendMode = item.BlendMode;
 				lastBlendMode = item.BlendMode;
 			}
 
-			// spriteShader->SetUniform(spriteShader->TextureMaskFormat, item.MaskTexture != nullptr ? static_cast<int>(item.MaskTexture->GetTextureFormat()) : -1);
-			// spriteConstantData.MaskFormat = item.MaskTexture != nullptr ? item.MaskTexture->GetTextureFormat() : TextureFormat::Unknown;
+			if (item.Texture != nullptr)
+			{
+				item.Texture->Bind(TextureSpriteSlot);
+
+				// NOTE: Special case for when the texture mask shares the same texture
+				spriteConstantData.Format = (item.Texture == item.MaskTexture) ? TextureFormat::Unknown : item.Texture->GetTextureFormat();
+			}
+			else
+			{
+				spriteConstantData.Format = TextureFormat::Unknown;
+			}
 
 			if (item.MaskTexture != nullptr)
 			{
@@ -220,23 +232,6 @@ namespace Graphics
 				spriteConstantData.MaskFormat = TextureFormat::Unknown;
 			}
 
-			if (item.Texture != nullptr)
-			{
-				item.Texture->Bind(TextureSpriteSlot);
-
-				if (item.Texture == item.MaskTexture)
-				{
-					// NOTE: Special case for when the texture mask shares the same texture
-					// spriteShader->SetUniform(spriteShader->TextureFormat, -1);
-					spriteConstantData.Format = TextureFormat::Unknown;
-				}
-				else
-				{
-					// spriteShader->SetUniform(spriteShader->TextureFormat, static_cast<int>(item.Texture->GetTextureFormat()));
-					spriteConstantData.Format = item.Texture->GetTextureFormat();
-				}
-			}
-
 			// spriteShader->SetUniform(spriteShader->UseSolidColor, item.Texture == nullptr);
 
 			// bool useCheckerboard = item.CheckerboardSize != vec2(0.0f);
@@ -245,19 +240,12 @@ namespace Graphics
 			// if (useCheckerboard)
 			// 	spriteShader->SetUniform(spriteShader->CheckerboardSize, item.CheckerboardSize);
 
-			spriteConstantData.UseTextBorder = drawTextBorder;
-
 			spriteConstantBuffer.UploadData(sizeof(spriteConstantData), &spriteConstantData);
 
 			D3D.Context->DrawIndexed(
 				batch.Count * SpriteIndices::GetIndexCount(),
-				batch.Index * sizeof(SpriteIndices),
+				batch.Index * SpriteIndices::GetIndexCount(),
 				0);
-
-			//RenderCommand::DrawElements(PrimitiveType::Triangles,
-			//	batch.Count * SpriteIndices::GetIndexCount(),
-			//	indexBuffer.GetGLIndexType(),
-			//	reinterpret_cast<void*>(batch.Index * sizeof(SpriteIndices)));
 
 			drawCallCount++;
 		}
@@ -277,19 +265,19 @@ namespace Graphics
 		{
 		default:
 		case AetBlendMode::Normal:
-			aetBlendStates.Normal.Bind(); 
+			aetBlendStates.Normal.Bind();
 			break;
 		case AetBlendMode::Add:
-			aetBlendStates.Add.Bind(); 
+			aetBlendStates.Add.Bind();
 			break;
 		case AetBlendMode::Multiply:
-			aetBlendStates.Multiply.Bind(); 
+			aetBlendStates.Multiply.Bind();
 			break;
 		case AetBlendMode::LinearDodge:
-			aetBlendStates.LinearDodge.Bind(); 
+			aetBlendStates.LinearDodge.Bind();
 			break;
 		case AetBlendMode::Overlay:
-			aetBlendStates.Overlay.Bind(); 
+			aetBlendStates.Overlay.Bind();
 			break;
 		}
 	}

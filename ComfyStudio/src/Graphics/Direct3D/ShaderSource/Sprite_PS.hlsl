@@ -18,7 +18,7 @@ cbuffer SpriteConstantBuffer : register(b0)
     int CB_BlendMode;
 
     // TODO: This should be a general flags value (?)
-    bool CB_UseTextBorder;
+    bool CB_DrawTextBorder;
 }
 
 SamplerState SpriteSampler;
@@ -61,7 +61,7 @@ float4 PS_MAIN(VS_OUTPUT input) : SV_Target
         outputColor *= SampleTexture_RGBA(input.TexCoord);
     }
     
-    if (CB_UseTextBorder)
+    if (CB_DrawTextBorder)
         outputColor = SampleFontWithBorder(SpriteTexture, SpriteSampler, input.TexCoord, input.Color);
 
     if (CB_BlendMode == BlendMode_Multiply)
