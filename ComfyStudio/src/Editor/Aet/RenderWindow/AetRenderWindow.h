@@ -9,9 +9,7 @@
 #include "Editor/Common/CheckerboardGrid.h"
 #include "Graphics/SprSet.h"
 #include "Graphics/Camera.h"
-#include "Graphics/OpenGL/GL_Renderer2D.h"
 #include "Graphics/Auth2D/AetRenderer.h"
-#include "Graphics/Auth2D/AetMgr.h"
 
 namespace Editor
 {
@@ -85,7 +83,7 @@ namespace Editor
 		};
 
 		// NOTE: General rendering
-		UniquePtr<Graphics::GL_Renderer2D> renderer = nullptr;
+		UniquePtr<Graphics::D3D_Renderer2D> renderer = nullptr;
 		UniquePtr<Graphics::AetRenderer> aetRenderer = nullptr;
 
 		AetRenderPreviewData* previewData = nullptr;

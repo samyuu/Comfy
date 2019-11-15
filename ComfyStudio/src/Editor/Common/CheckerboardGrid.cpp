@@ -2,7 +2,7 @@
 
 namespace Editor
 {
-	void CheckerboardGrid::Render(Graphics::GL_Renderer2D* renderer) const
+	void CheckerboardGrid::Render(Graphics::D3D_Renderer2D* renderer) const
 	{
 		renderer->Draw(
 			Position,

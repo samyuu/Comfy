@@ -1,7 +1,6 @@
 #pragma once
 #include "ImGui/Gui.h"
-#include "Graphics/OpenGL/GL_RenderTarget.h"
-#include "Graphics/RenderCommand.h"
+#include "Graphics/Direct3D/D3D_RenderTarget.h"
 
 namespace Editor
 {
@@ -28,7 +27,7 @@ namespace Editor
 		static inline void PopWindowPadding() { Gui::PopStyleVar(); };
 
 	protected:
-		Graphics::RenderTarget renderTarget;
+		// Graphics::D3D_RenderTarget renderTarget;
 
 		virtual ImGuiWindowFlags GetChildWinodwFlags() const { return ImGuiWindowFlags_None; };
 

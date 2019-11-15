@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "ImGui/Gui.h"
 #include "Graphics/Auth2D/AetSet.h"
-#include "Graphics/OpenGL/GL_Texture2D.h"
+#include "Graphics/Direct3D/D3D_Texture2D.h"
 
 namespace Editor
 {
