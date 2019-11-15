@@ -98,6 +98,26 @@ namespace Graphics
 			return false;
 		}
 
+#if COMFY_DEBUG
+		Device->QueryInterface(IID_PPV_ARGS(&debugInterface));
+		debugInterface->QueryInterface(IID_PPV_ARGS(&infoQueue));
+
+		D3D11_MESSAGE_ID hide[] =
+		{
+			// NOTE: Because the Renderer2D is fine with using the default null value for unused textures / samplers
+			D3D11_MESSAGE_ID_DEVICE_DRAW_SAMPLER_NOT_SET,
+
+			// NOTE: Not sure about this one, multiple resources with the same debug name shouldn't be a problem (?)
+			// D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS,
+		};
+
+		D3D11_INFO_QUEUE_FILTER filter = {};
+		filter.DenyList.NumIDs = static_cast<UINT>(std::size(hide));
+		filter.DenyList.pIDList = hide;
+
+		infoQueue->AddStorageFilterEntries(&filter);
+#endif
+
 		return true;
 	}
 }

@@ -31,6 +31,12 @@ namespace Graphics
 		UniquePtr<D3D_SwapChainRenderTarget> WindowRenderTarget = nullptr;
 
 	private:
+#if COMFY_DEBUG
+		ComPtr<ID3D11Debug> debugInterface;
+		ComPtr<ID3D11InfoQueue> infoQueue;
+#endif
+
+	private:
 		bool InternalCreateDeviceAndSwapchain(HWND window);
 	};
 
