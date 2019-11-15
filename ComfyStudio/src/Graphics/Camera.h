@@ -24,7 +24,7 @@ namespace Graphics
 		static const mat4& GetIdentityMatrix();
 	};
 
-	class PerspectiveCamera : public ICamera
+	class PerspectiveCamera final : public ICamera
 	{
 	public:
 		vec3 Position = vec3(0.0f, 0.0f, 3.0f);
@@ -38,17 +38,17 @@ namespace Graphics
 		float FarPlane = 3939.0f;
 
 	public:
-		virtual void UpdateMatrices() override;
+		void UpdateMatrices() override;
 
-		virtual const mat4& GetViewMatrix() const override;
-		virtual const mat4& GetProjectionMatrix() const override;
+		const mat4& GetViewMatrix() const override;
+		const mat4& GetProjectionMatrix() const override;
 
-	protected:
+	private:
 		mat4 viewMatrix;
 		mat4 projectionMatrix;
 	};
 
-	class OrthographicCamera : public ICamera
+	class OrthographicCamera final : public ICamera
 	{
 	public:
 		float Zoom = 1.0f;
@@ -59,17 +59,17 @@ namespace Graphics
 		const float FarPlane = 1.0f;
 
 	public:
-		virtual void UpdateMatrices() override;
+		void UpdateMatrices() override;
 
-		virtual const mat4& GetViewMatrix() const override;
-		virtual const mat4& GetProjectionMatrix() const override;
+		const mat4& GetViewMatrix() const override;
+		const mat4& GetProjectionMatrix() const override;
 
 		vec2 GetProjectionCenter() const;
 
 		vec2 ScreenToWorldSpace(const vec2& screenSpace) const;
 		vec2 WorldToScreenSpace(const vec2& worldSpace) const;
 
-	protected:
+	private:
 		mat4 viewMatrix;
 		mat4 projectionMatrix;
 	};
