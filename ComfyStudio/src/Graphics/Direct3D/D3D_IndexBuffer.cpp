@@ -57,6 +57,11 @@ namespace Graphics
 		D3D.Context->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, offset);
 	}
 
+	ID3D11Buffer* D3D_IndexBuffer::GetBuffer()
+	{
+		return buffer.Get();
+	}
+
 	D3D_StaticIndexBuffer::D3D_StaticIndexBuffer(size_t dataSize, const void* data, IndexType indexType)
 		: D3D_IndexBuffer(dataSize, data, indexType, D3D11_USAGE_IMMUTABLE, 0)
 	{

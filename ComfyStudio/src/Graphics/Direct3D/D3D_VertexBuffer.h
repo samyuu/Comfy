@@ -14,6 +14,9 @@ namespace Graphics
 		virtual void Bind();
 		virtual void UnBind();
 
+	public:
+		ID3D11Buffer* GetBuffer();
+
 	protected:
 		D3D11_BUFFER_DESC bufferDescription;
 		ComPtr<ID3D11Buffer> buffer = nullptr;

@@ -32,6 +32,11 @@ namespace Graphics
 	{
 		D3D.Context->VSSetShader(nullptr, nullptr, 0);
 	}
+
+	ID3D11VertexShader* D3D_VertexShader::GetShader()
+	{
+		return shader.Get();
+	}
 	
 	D3D_PixelShader::D3D_PixelShader(const void* bytecode, size_t byteSize)
 		: D3D_Shader(bytecode, byteSize)
@@ -47,5 +52,10 @@ namespace Graphics
 	void D3D_PixelShader::UnBind()
 	{
 		D3D.Context->PSSetShader(nullptr, nullptr, 0);
+	}
+
+	ID3D11PixelShader* D3D_PixelShader::GetShader()
+	{
+		return shader.Get();
 	}
 }

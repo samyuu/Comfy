@@ -17,7 +17,7 @@ namespace Graphics
 	class D3D_InputLayout final : IGraphicsResource
 	{
 	public:
-		D3D_InputLayout(std::initializer_list<InputElement> elements, const D3D_VertexShader& vertexShader);
+		D3D_InputLayout(const InputElement* elements, size_t elementCount, const D3D_VertexShader& vertexShader);
 		D3D_InputLayout(const D3D_InputLayout&) = delete;
 		~D3D_InputLayout() = default;
 
@@ -26,6 +26,9 @@ namespace Graphics
 	public:
 		void Bind();
 		void UnBind();
+
+	public:
+		ID3D11InputLayout* GetLayout();
 
 	private:
 		// NOTE: No need to dynamically allocate additional memory when there are only ever a small amount of elements

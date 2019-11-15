@@ -376,6 +376,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Direct3D\D3D_InputLayout.cpp">
+    <ClCompile Include="src\Graphics\Direct3D\D3D_Renderer2D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Direct3D\D3D_DepthBuffer.cpp">
@@ -871,8 +872,16 @@
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\BlendModes.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Checkerboard.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Font.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Sprite_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Sprite_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\UncompressRGTC.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\TextureFormats.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ImGui_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ImGui_PS.hlsl" />
   </ItemGroup>

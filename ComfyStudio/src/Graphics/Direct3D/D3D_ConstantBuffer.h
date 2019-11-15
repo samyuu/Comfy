@@ -18,6 +18,9 @@ namespace Graphics
 		virtual void BindPixelShader();
 		virtual void UnBindPixelShader();
 
+	public:
+		ID3D11Buffer* GetBuffer();
+
 	protected:
 		uint32_t slot;
 

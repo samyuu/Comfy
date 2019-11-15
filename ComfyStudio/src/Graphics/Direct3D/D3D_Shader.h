@@ -32,6 +32,9 @@ namespace Graphics
 		void Bind();
 		void UnBind();
 
+	public:
+		ID3D11VertexShader* GetShader();
+
 	private:
 		ComPtr<ID3D11VertexShader> shader;
 	};
@@ -48,6 +51,9 @@ namespace Graphics
 	public:
 		void Bind();
 		void UnBind();
+
+	public:
+		ID3D11PixelShader* GetShader();
 
 	private:
 		ComPtr<ID3D11PixelShader> shader;

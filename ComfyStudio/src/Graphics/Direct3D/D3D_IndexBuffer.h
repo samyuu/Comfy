@@ -15,6 +15,9 @@ namespace Graphics
 		virtual void Bind();
 		virtual void UnBind();
 
+	public:
+		ID3D11Buffer* GetBuffer();
+
 	protected:
 		const DXGI_FORMAT indexFormat;
 		D3D11_BUFFER_DESC bufferDescription;

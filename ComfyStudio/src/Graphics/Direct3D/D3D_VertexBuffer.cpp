@@ -11,9 +11,8 @@ namespace Graphics
 		bufferDescription.MiscFlags = 0;
 		bufferDescription.StructureByteStride = static_cast<UINT>(stride);
 
-		// TODO: Should this be using "data == nullptr ? nullptr : &initialResourceData" instead (?)
 		D3D11_SUBRESOURCE_DATA initialResourceData = { data, 0, 0 };
-		D3D.Device->CreateBuffer(&bufferDescription, &initialResourceData, &buffer);
+		D3D.Device->CreateBuffer(&bufferDescription, (data == nullptr) ? nullptr : &initialResourceData, &buffer);
 	}
 
 	void D3D_VertexBuffer::Bind()
@@ -42,6 +41,11 @@ namespace Graphics
 		D3D.Context->IASetVertexBuffers(startSlot, bufferCount, buffers.data(), strides.data(), offsets.data());
 	}
 
+	ID3D11Buffer* D3D_VertexBuffer::GetBuffer()
+	{
+		return buffer.Get();
+	}
+
 	D3D_StaticVertexBuffer::D3D_StaticVertexBuffer(size_t dataSize, const void* data, size_t stride)
 		: D3D_VertexBuffer(dataSize, data, stride, D3D11_USAGE_IMMUTABLE, 0)
 	{
@@ -54,7 +58,7 @@ namespace Graphics
 
 	void D3D_DynamicVertexBuffer::UploadData(size_t dataSize, const void* data)
 	{
-		assert(dataSize == bufferDescription.ByteWidth);
+		assert(dataSize <= bufferDescription.ByteWidth);
 
 		D3D11_MAPPED_SUBRESOURCE mappedBuffer;
 		D3D.Context->Map(buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);

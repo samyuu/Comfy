@@ -12,15 +12,18 @@ namespace Graphics
 		virtual ~D3D_Texture2D() = default;
 
 	public:
-		virtual void Bind(uint32_t textureSlot);
-		virtual void UnBind();
+		virtual void Bind(uint32_t textureSlot) const;
+		virtual void UnBind() const;
 		
 	public:
 		ivec2 GetSize() const;
+
 		ID3D11Texture2D* GetTexture();
+		TextureFormat GetTextureFormat() const;
 
 	protected:
-		uint32_t lastBoundSlot;
+		mutable uint32_t lastBoundSlot;
+		TextureFormat textureFormat;
 
 		D3D11_SAMPLER_DESC samplerDescription;
 		D3D11_TEXTURE2D_DESC textureDescription;

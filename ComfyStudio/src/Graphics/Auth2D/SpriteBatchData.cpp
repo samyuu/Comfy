@@ -99,7 +99,7 @@ namespace Graphics
 	}
 
 	void SpriteVertices::SetTexMaskCoords(
-		const GL_Texture2D* texture, const vec2& position, const vec2& scale, const vec2& origin, float rotation,
+		const D3D_Texture2D* texture, const vec2& position, const vec2& scale, const vec2& origin, float rotation,
 		const vec2& maskPosition, const vec2& maskScale, const vec2& maskOrigin, float maskRotation, const vec4& maskSourceRegion)
 	{
 		const vec2 maskOffset = maskPosition - (maskOrigin * maskScale);
@@ -145,7 +145,7 @@ namespace Graphics
 			BottomRight.TextureMaskCoordinates -= positionOffset;
 		}
 
-		const vec2 scaledTextureSize = texture->GetSize() * scale;
+		const vec2 scaledTextureSize = vec2(texture->GetSize()) * scale;
 		TopLeft.TextureMaskCoordinates /= scaledTextureSize;
 		TopRight.TextureMaskCoordinates /= scaledTextureSize;
 		BottomLeft.TextureMaskCoordinates /= scaledTextureSize;
@@ -169,7 +169,7 @@ namespace Graphics
 		BottomRight.Color = Vec4ToUInt32(colors[3]);
 	}
 
-	void SpriteBatchItem::SetValues(const GL_Texture2D* texture, const GL_Texture2D* alphaMask, AetBlendMode blendMode)
+	void SpriteBatchItem::SetValues(const D3D_Texture2D* texture, const D3D_Texture2D* alphaMask, AetBlendMode blendMode)
 	{
 		Texture = texture;
 		MaskTexture = alphaMask;

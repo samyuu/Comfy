@@ -3,7 +3,7 @@
 
 namespace Graphics
 {
-	AetRenderer::AetRenderer(GL_Renderer2D* renderer) : renderer2D(renderer)
+	AetRenderer::AetRenderer(D3D_Renderer2D* renderer) : renderer2D(renderer)
 	{
 	}
 
@@ -11,12 +11,12 @@ namespace Graphics
 	{
 	}
 
-	GL_Renderer2D* AetRenderer::GetRenderer2D()
+	D3D_Renderer2D* AetRenderer::GetRenderer2D()
 	{
 		return renderer2D;
 	}
 
-	void AetRenderer::SetRenderer2D(GL_Renderer2D* value)
+	void AetRenderer::SetRenderer2D(D3D_Renderer2D* value)
 	{
 		renderer2D = value;
 	}
@@ -59,7 +59,7 @@ namespace Graphics
 		if (validSprite)
 		{
 			renderer2D->Draw(
-				texture->GraphicsTexture.get(),
+				texture->Texture.get(),
 				sprite->PixelRegion,
 				finalPosition,
 				obj.Properties.Origin,
@@ -102,13 +102,13 @@ namespace Graphics
 		if (validMaskSprite && validSprite)
 		{
 			renderer2D->Draw(
-				maskTexture->GraphicsTexture.get(),
+				maskTexture->Texture.get(),
 				maskSprite->PixelRegion,
 				maskObj.Properties.Position,
 				maskObj.Properties.Origin,
 				maskObj.Properties.Rotation,
 				maskObj.Properties.Scale,
-				texture->GraphicsTexture.get(),
+				texture->Texture.get(),
 				sprite->PixelRegion,
 				obj.Properties.Position + positionOffset,
 				obj.Properties.Origin,
@@ -180,7 +180,7 @@ namespace Graphics
 		}
 		else
 		{
-			renderer2D->Draw(texture->GraphicsTexture.get(), sprite->PixelRegion, vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), vec4(1.0f));
+			renderer2D->Draw(texture->Texture.get(), sprite->PixelRegion, vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), vec4(1.0f));
 		}
 	}
 

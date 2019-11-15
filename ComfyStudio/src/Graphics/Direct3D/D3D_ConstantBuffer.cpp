@@ -49,6 +49,11 @@ namespace Graphics
 		D3D.Context->PSSetConstantBuffers(slot, bufferCount, buffers.data());
 	}
 
+	ID3D11Buffer* D3D_ConstantBuffer::GetBuffer()
+	{
+		return buffer.Get();
+	}
+
 	D3D_DefaultConstantBuffer::D3D_DefaultConstantBuffer(uint32_t slot, size_t dataSize)
 		: D3D_ConstantBuffer(slot, dataSize, D3D11_USAGE_DEFAULT, 0)
 	{

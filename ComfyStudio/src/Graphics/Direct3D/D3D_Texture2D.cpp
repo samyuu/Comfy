@@ -239,7 +239,7 @@ namespace Graphics
 	}
 
 	D3D_Texture2D::D3D_Texture2D(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode)
-		: lastBoundSlot(UnboundTextureSlot)
+		: lastBoundSlot(UnboundTextureSlot), textureFormat(TextureFormat::Unknown)
 	{
 		constexpr vec4 debugTextureBorderColor = vec4(1.0f, 0.0f, 1.0f, 1.0f);
 
@@ -260,7 +260,7 @@ namespace Graphics
 		D3D.Device->CreateSamplerState(&samplerDescription, &samplerState);
 	}
 
-	void D3D_Texture2D::Bind(uint32_t textureSlot)
+	void D3D_Texture2D::Bind(uint32_t textureSlot) const
 	{
 		assert(textureSlot < D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
 		lastBoundSlot = textureSlot;
@@ -275,7 +275,7 @@ namespace Graphics
 		D3D.Context->PSSetShaderResources(startSlot, textureCount, resourceViews.data());
 	}
 	
-	void D3D_Texture2D::UnBind()
+	void D3D_Texture2D::UnBind() const
 	{
 		assert(lastBoundSlot < D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
 
@@ -300,12 +300,18 @@ namespace Graphics
 		return texture.Get();
 	}
 
+	TextureFormat D3D_Texture2D::GetTextureFormat() const
+	{
+		return textureFormat;
+	}
+
 	D3D_ImmutableTexture2D::D3D_ImmutableTexture2D(Txp* txp)
 		: D3D_Texture2D(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP)
 	{
 		assert(txp != nullptr && txp->MipMaps.size() > 0);
 		auto& baseMipMap = txp->MipMaps.front();
 
+		textureFormat = baseMipMap->Format;
 		textureDescription.Width = baseMipMap->Width;
 		textureDescription.Height = baseMipMap->Height;
 		textureDescription.MipLevels = static_cast<UINT>(txp->MipMaps.size());
@@ -359,6 +365,7 @@ namespace Graphics
 	D3D_ImmutableTexture2D::D3D_ImmutableTexture2D(ivec2 size, const void* rgbaBuffer)
 		: D3D_Texture2D(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP)
 	{
+		textureFormat = TextureFormat::RGBA8;
 		textureDescription.Width = size.x;
 		textureDescription.Height = size.y;
 		textureDescription.MipLevels = 1;
