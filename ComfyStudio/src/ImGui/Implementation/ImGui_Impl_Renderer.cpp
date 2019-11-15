@@ -131,7 +131,7 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
 		float right = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
 		float top = draw_data->DisplayPos.y;
 		float bottom = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
-		constant_buffer->MVP = glm::ortho(left, right, bottom, top, 0.0f, 1.0f);
+		constant_buffer->MVP = glm::transpose(glm::ortho(left, right, bottom, top, 0.0f, 1.0f));
 
 		ctx->Unmap(g_pVertexConstantBuffer, 0);
 	}
