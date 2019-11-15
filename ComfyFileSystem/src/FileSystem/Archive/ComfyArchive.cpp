@@ -13,7 +13,7 @@ namespace FileSystem
 		UnMount();
 	}
 
-	void ComfyArchive::Mount(const std::string& filePath)
+	void ComfyArchive::Mount(const std::string_view filePath)
 	{
 		if (isMounted)
 			return;

@@ -3,6 +3,6 @@
 
 using ComfyArchive = FileSystem::ComfyArchive;
 
-constexpr const char* ComfyDataFileName = "ComfyData.bin";
+constexpr std::string_view ComfyDataFileName = "ComfyData.bin";
 
 extern UniquePtr<ComfyArchive> ComfyData;

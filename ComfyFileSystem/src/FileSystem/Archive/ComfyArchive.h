@@ -95,7 +95,7 @@ namespace FileSystem
 		ComfyArchive& operator= (const ComfyArchive&) = delete;
 		~ComfyArchive();
 
-		void Mount(const std::string& filePath);
+		void Mount(const std::string_view filePath);
 		void UnMount();
 
 		const ComfyArchiveHeader& GetHeader() const;
