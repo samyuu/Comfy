@@ -18,30 +18,20 @@ namespace Editor
 		constexpr Tempo(float bpm) : BeatsPerMinute(bpm) {};
 	};
 
-	constexpr Tempo DEFAULT_TEMPO = Tempo(160.0f);
-
 	// TimelineTick + Tempo value struct
 	// ---------------------------------
 	struct TempoChange
 	{
-		// Timeline Tick
-		// -------------
-		TimelineTick Tick;
+		static constexpr Tempo DefaultTempo = Tempo(160.0f);
 
-		// Tempo
-		// -----
-		Tempo Tempo;
-
-		// Constructors / Deconstructors:
-		// ------------------------------
 		TempoChange();
 		TempoChange(TimelineTick tick, Editor::Tempo tempo);
 
-		// Operators:
-		// ----------
-		inline bool operator== (const TempoChange &other) const { return (Tick == other.Tick); };
-		inline bool operator< (const TempoChange &other) const { return Tick < other.Tick; };
-		inline bool operator> (const TempoChange &other) const { return Tick > other.Tick; };
-		// ----------
+		TimelineTick Tick;
+		Tempo Tempo;
+
+		inline bool operator==(const TempoChange &other) const { return (Tick == other.Tick); };
+		inline bool operator<(const TempoChange &other) const { return Tick < other.Tick; };
+		inline bool operator>(const TempoChange &other) const { return Tick > other.Tick; };
 	};
 }

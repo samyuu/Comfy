@@ -14,9 +14,11 @@ namespace Editor
 	public:
 		AetTreeView(AetCommandManager* commandManager, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
 		AetTreeView(const AetTreeView&) = delete;
-		AetTreeView& operator= (AetTreeView&) = delete;
 		~AetTreeView();
 
+		AetTreeView& operator=(AetTreeView&) = delete;
+
+	public:
 		void Initialize();
 		bool DrawGui(const RefPtr<Graphics::AetSet>& aetSet);
 

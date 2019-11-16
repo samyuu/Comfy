@@ -92,9 +92,11 @@ namespace FileSystem
 	public:
 		ComfyArchive();
 		ComfyArchive(const ComfyArchive&) = delete;
-		ComfyArchive& operator= (const ComfyArchive&) = delete;
 		~ComfyArchive();
 
+		ComfyArchive& operator=(const ComfyArchive&) = delete;
+
+	public:
 		void Mount(const std::string_view filePath);
 		void UnMount();
 

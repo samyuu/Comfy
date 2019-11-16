@@ -57,9 +57,9 @@ namespace Editor
 
 		// Operators:
 		// ----------
-		inline bool operator== (const TimelineTarget &other) const { return (Type == other.Type) && (Tick == other.Tick); };
-		inline bool operator< (const TimelineTarget &other) const { return Tick < other.Tick; };
-		inline bool operator> (const TimelineTarget &other) const { return Tick > other.Tick; };
+		inline bool operator==(const TimelineTarget &other) const { return (Type == other.Type) && (Tick == other.Tick); };
+		inline bool operator<(const TimelineTarget &other) const { return Tick < other.Tick; };
+		inline bool operator>(const TimelineTarget &other) const { return Tick > other.Tick; };
 		// ----------
 	};
 

@@ -39,7 +39,7 @@ namespace Editor
 
 	TimelineTick TargetTimeline::GetGridTick() const
 	{
-		return (TimelineTick::TICKS_PER_BEAT * 4) / gridDivision;
+		return (TimelineTick::TicksPerBeat * 4) / gridDivision;
 	}
 
 	TimelineTick TargetTimeline::FloorToGrid(TimelineTick tick) const
@@ -408,7 +408,7 @@ namespace Editor
 
 			for (int tick = 0, divisions = 0; tick < totalTicks; tick += tickStep)
 			{
-				bool isBar = tick % (TimelineTick::TICKS_PER_BEAT * 4) == 0;
+				bool isBar = tick % (TimelineTick::TicksPerBeat * 4) == 0;
 				if (isBar)
 					barCount++;
 

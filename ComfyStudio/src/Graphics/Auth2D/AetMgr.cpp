@@ -7,12 +7,12 @@ namespace Graphics
 
 	static_assert(sizeof(KeyFrameCollectionArray) / sizeof(KeyFrameCollection) == PropertyType_Count);
 
-	bool Properties::operator== (const Properties& other) const
+	bool Properties::operator==(const Properties& other) const
 	{
 		return (Origin == other.Origin) && (Position == other.Position) && (Rotation == other.Rotation) && (Scale == other.Scale) && (Opacity == other.Opacity);
 	}
 
-	bool Properties::operator!= (const Properties& other) const
+	bool Properties::operator!=(const Properties& other) const
 	{
 		return !(*this == other);
 	}

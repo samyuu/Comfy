@@ -14,6 +14,6 @@ namespace Editor
 		void DrawGui(Chart* chart, TargetTimeline* timeline);
 
 	private:
-		Tempo newTempo = DEFAULT_TEMPO;
+		Tempo newTempo = TempoChange::DefaultTempo;
 	};
 }

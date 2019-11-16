@@ -6,7 +6,7 @@ namespace Editor
 {
 	TempoMap::TempoMap()
 	{
-		SetTempoChange(TimelineTick(0), DEFAULT_TEMPO);
+		SetTempoChange(TimelineTick(0), TempoChange::DefaultTempo);
 	}
 
 	TempoMap::~TempoMap()
@@ -51,7 +51,7 @@ namespace Editor
 
 		// Always keep at least one TempoChange because the TimelineMap relies on it
 		if (TempoChangeCount() < 1)
-			SetTempoChange(TimelineTick(0), DEFAULT_TEMPO);
+			SetTempoChange(TimelineTick(0), TempoChange::DefaultTempo);
 	}
 
 	TempoChange& TempoMap::GetTempoChangeAt(size_t index)

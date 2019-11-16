@@ -60,8 +60,9 @@ namespace Graphics
 	public:
 		AetSurface() = default;
 		AetSurface(const AetSurface&) = delete;
-		AetSurface& operator= (const AetSurface&) = delete;
 		~AetSurface() = default;
+
+		AetSurface& operator=(const AetSurface&) = delete;
 
 	public:
 		// NOTE: Editor internal color
@@ -138,7 +139,7 @@ namespace Graphics
 		inline constexpr size_t size() const { return KeyFrames.size(); };
 		inline auto& at(size_t index) { return KeyFrames.at(index); };
 		inline auto& at(size_t index) const { return KeyFrames.at(index); };
-		inline auto& operator[] (size_t index) { return KeyFrames[index]; };
+		inline auto& operator[](size_t index) { return KeyFrames[index]; };
 	};
 
 	struct AetAnimationData
@@ -180,8 +181,9 @@ namespace Graphics
 		AetLayer();
 		AetLayer(AetLayerType type, const std::string& name, AetComposition* parentComp);
 		AetLayer(const AetLayer&) = delete;
-		AetLayer& operator= (const AetLayer&) = delete;
 		~AetLayer();
+
+		AetLayer& operator=(const AetLayer&) = delete;
 
 	public:
 		mutable GuiExtraData GuiData;
@@ -274,9 +276,10 @@ namespace Graphics
 	public:
 		AetComposition() = default;
 		AetComposition(const AetComposition&) = delete;
-		AetComposition& operator= (const AetComposition&) = delete;
 		~AetComposition() = default;
 
+		AetComposition& operator=(const AetComposition&) = delete;
+	
 	public:
 		mutable GuiExtraData GuiData;
 
@@ -301,7 +304,7 @@ namespace Graphics
 		inline size_t size() const { return layers.size(); };
 
 		inline RefPtr<AetLayer>& at(size_t index) { return layers.at(index); };
-		inline RefPtr<AetLayer>& operator[] (size_t index) { return layers[index]; };
+		inline RefPtr<AetLayer>& operator[](size_t index) { return layers[index]; };
 
 	public:
 		const std::string& GetName() const;
@@ -342,8 +345,9 @@ namespace Graphics
 	public:
 		AetSoundEffect() = default;
 		AetSoundEffect(const AetSoundEffect&) = delete;
-		AetSoundEffect& operator= (const AetSoundEffect&) = delete;
 		~AetSoundEffect() = default;
+
+		AetSoundEffect& operator=(const AetSoundEffect&) = delete;
 
 	public:
 		unk32_t Data;
@@ -364,8 +368,9 @@ namespace Graphics
 	public:
 		Aet() = default;
 		Aet(const Aet&) = delete;
-		Aet& operator= (const Aet&) = delete;
 		~Aet() = default;
+
+		Aet& operator= (const Aet&) = delete;
 
 	public:
 		// NOTE: Typically "MAIN", "TOUCH" or named after the display mode
@@ -432,8 +437,9 @@ namespace Graphics
 	public:
 		AetSet() = default;
 		AetSet(const AetSet&) = delete;
-		AetSet& operator= (const AetSet&) = delete;
 		~AetSet() = default;
+
+		AetSet& operator= (const AetSet&) = delete;
 
 	public:
 		// TODO: File name, should probably be moved into the IReadable interface and be set OnLoad (?)
@@ -457,7 +463,7 @@ namespace Graphics
 		inline size_t size() const { return aets.size(); };
 
 		inline RefPtr<Aet>& at(size_t index) { return aets.at(index); };
-		inline RefPtr<Aet>& operator[] (size_t index) { return aets[index]; };
+		inline RefPtr<Aet>& operator[](size_t index) { return aets[index]; };
 
 		inline Aet* GetAetAt(int index) { return aets.at(index).get(); };
 		inline const Aet* GetAetAt(int index) const { return aets[index].get(); };

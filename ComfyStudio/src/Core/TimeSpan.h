@@ -21,27 +21,27 @@ struct TimeSpan
 	static constexpr size_t RequiredFormatBufferSize = 12;
 
 	// NOTE: Operators
-	inline bool operator== (const TimeSpan& other) const { return timeInSeconds == other.timeInSeconds; };
-	inline bool operator!= (const TimeSpan& other) const { return timeInSeconds != other.timeInSeconds; };
-	inline bool operator<= (const TimeSpan& other) const { return timeInSeconds <= other.timeInSeconds; };
-	inline bool operator>= (const TimeSpan& other) const { return timeInSeconds >= other.timeInSeconds; };
-	inline bool operator< (const TimeSpan& other) const { return timeInSeconds < other.timeInSeconds; };
-	inline bool operator> (const TimeSpan& other) const { return timeInSeconds > other.timeInSeconds; };
+	inline bool operator==(const TimeSpan& other) const { return timeInSeconds == other.timeInSeconds; };
+	inline bool operator!=(const TimeSpan& other) const { return timeInSeconds != other.timeInSeconds; };
+	inline bool operator<=(const TimeSpan& other) const { return timeInSeconds <= other.timeInSeconds; };
+	inline bool operator>=(const TimeSpan& other) const { return timeInSeconds >= other.timeInSeconds; };
+	inline bool operator<(const TimeSpan& other) const { return timeInSeconds < other.timeInSeconds; };
+	inline bool operator>(const TimeSpan& other) const { return timeInSeconds > other.timeInSeconds; };
 
-	inline TimeSpan operator+ (const TimeSpan other) const { return FromSeconds(TotalSeconds() + other.TotalSeconds()); };
-	inline TimeSpan operator- (const TimeSpan other) const { return FromSeconds(TotalSeconds() - other.TotalSeconds()); };
+	inline TimeSpan operator+(const TimeSpan other) const { return FromSeconds(TotalSeconds() + other.TotalSeconds()); };
+	inline TimeSpan operator-(const TimeSpan other) const { return FromSeconds(TotalSeconds() - other.TotalSeconds()); };
 
-	inline TimeSpan& operator+= (const TimeSpan& other) { this->timeInSeconds += other.timeInSeconds; return *this; };
-	inline TimeSpan& operator-= (const TimeSpan& other) { this->timeInSeconds -= other.timeInSeconds; return *this; };
+	inline TimeSpan& operator+=(const TimeSpan& other) { this->timeInSeconds += other.timeInSeconds; return *this; };
+	inline TimeSpan& operator-=(const TimeSpan& other) { this->timeInSeconds -= other.timeInSeconds; return *this; };
 
-	inline TimeSpan operator* (double other) const { return FromSeconds(TotalSeconds() * other); };
-	inline TimeSpan operator* (int other) const { return FromSeconds(TotalSeconds() * other); };
+	inline TimeSpan operator*(double other) const { return FromSeconds(TotalSeconds() * other); };
+	inline TimeSpan operator*(int other) const { return FromSeconds(TotalSeconds() * other); };
 
-	inline double operator/ (TimeSpan other) const { return TotalSeconds() / other.TotalSeconds(); };
-	inline double operator/ (double other) const { return TotalSeconds() / other; };
-	inline double operator/ (int other) const { return TotalSeconds() / other; };
+	inline double operator/(TimeSpan other) const { return TotalSeconds() / other.TotalSeconds(); };
+	inline double operator/(double other) const { return TotalSeconds() / other; };
+	inline double operator/(int other) const { return TotalSeconds() / other; };
 
-	inline TimeSpan operator- () const { return -timeInSeconds; };
+	inline TimeSpan operator-() const { return -timeInSeconds; };
 
 	// NOTE: Factory helpers
 	static inline TimeSpan FromMinutes(double value) { return TimeSpan(value * 60.0); };

@@ -37,8 +37,8 @@ namespace Graphics
 		vec2 Scale;
 		float Opacity;
 
-		bool operator== (const Properties& other) const;
-		bool operator!= (const Properties& other) const;
+		bool operator==(const Properties& other) const;
+		bool operator!=(const Properties& other) const;
 	};
 
 	class AetMgr
