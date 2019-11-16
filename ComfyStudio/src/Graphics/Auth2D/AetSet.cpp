@@ -25,10 +25,9 @@ namespace Graphics
 
 	AetSpriteIdentifier* AetSurface::GetSprite(int32_t index)
 	{
-		if (SpriteCount() < 1)
+		if (SpriteCount() < 1 || index < 0 || index >= SpriteCount())
 			return nullptr;
 
-		assert(index >= 0 && index < SpriteCount());
 		return &sprites[index];
 	}
 

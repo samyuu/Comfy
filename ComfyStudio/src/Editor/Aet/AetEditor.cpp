@@ -126,7 +126,7 @@ namespace Editor
 			sprSet = MakeUnique<SprSet>();
 			sprSetFileLoader->Parse(sprSet.get());
 			sprSet->Name = FileSystem::GetFileName(sprSetFileLoader->GetFilePath(), false);
-			sprSet->TxpSet->UploadAll();
+			sprSet->TxpSet->UploadAll(sprSet.get());
 
 			OnSprSetLoaded();
 			sprSetFileLoader.reset();

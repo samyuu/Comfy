@@ -78,6 +78,7 @@ namespace FileSystem
 	{
 		assert(filterVector.size() % 2 == 0);
 
+		// TODO: Get rid of std::regex dependency
 		static const std::regex whitespace("  *");
 
 		std::wstring filterString;
