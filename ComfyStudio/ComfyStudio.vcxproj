@@ -164,6 +164,8 @@
     <ClCompile Include="lib\rtaudio\src\asiolist.cpp" />
     <ClCompile Include="lib\rtaudio\src\iasiothiscallresolver.cpp" />
     <ClCompile Include="lib\rtaudio\src\RtAudio.cpp" />
+    <ClCompile Include="src\App\Engine.cpp" />
+    <ClCompile Include="src\App\TestTasks.cpp" />
     <ClCompile Include="src\Core\ApplicationHost.cpp" />
     <ClCompile Include="src\Core\ComfyData.cpp" />
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
@@ -277,6 +279,9 @@
     <ClInclude Include="lib\rtaudio\src\ginclude.h" />
     <ClInclude Include="lib\rtaudio\src\iasiodrv.h" />
     <ClInclude Include="lib\rtaudio\src\iasiothiscallresolver.h" />
+    <ClInclude Include="src\App\Engine.h" />
+    <ClInclude Include="src\App\Task.h" />
+    <ClInclude Include="src\App\TestTasks.h" />
     <ClInclude Include="src\Core\ApplicationHost.h" />
     <ClInclude Include="src\Core\ComfyData.h" />
     <ClInclude Include="src\Editor\Aet\AetEditor.h" />

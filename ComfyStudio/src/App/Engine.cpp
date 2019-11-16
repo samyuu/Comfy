@@ -5,8 +5,7 @@ namespace App
 {
 	EngineRenderWindow::EngineRenderWindow()
 	{
-		renderer = MakeUnique<Graphics::GL_Renderer2D>();
-		renderer->Initialize();
+		renderer = MakeUnique<Graphics::D3D_Renderer2D>();
 		aetRenderer = MakeUnique<Graphics::AetRenderer>(renderer.get());
 
 		StartTask<TaskPs4Menu>();
@@ -23,7 +22,7 @@ namespace App
 	void EngineRenderWindow::OnUpdate()
 	{
 		cameraController.Update(camera, GetRelativeMouse());
-		
+
 		for (auto& task : tasks)
 			task->Update();
 	}
@@ -38,11 +37,9 @@ namespace App
 	{
 		renderTarget.Bind();
 		{
-			Graphics::RenderCommand::SetViewport(renderTarget.GetSize());
-
+			D3D.SetViewport(renderTarget.GetSize());
 			const vec4 backgroundColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-			Graphics::RenderCommand::SetClearColor(backgroundColor);
-			Graphics::RenderCommand::Clear(Graphics::ClearTarget_ColorBuffer);
+			renderTarget.Clear(backgroundColor);
 
 			camera.UpdateMatrices();
 

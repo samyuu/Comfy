@@ -64,7 +64,7 @@ namespace App
 		SourceDataField(p_MenuList05_c, "p_menu_list05_c");
 		SourceDataField(p_MenuList06_c, "p_menu_list06_c");
 
-		//SourceDataField(Dummy, "");
+		// SourceDataField(Dummy, "");
 #undef SourceDataField
 
 		void Initialize(const AetSet* aetSet);
@@ -101,7 +101,7 @@ namespace App
 	public:
 		bool Initialize() override;
 		bool Update() override;
-		bool Render(GL_Renderer2D* renderer, AetRenderer* aetRenderer) override;
+		bool Render(D3D_Renderer2D* renderer, AetRenderer* aetRenderer) override;
 		bool PostDrawGui() override;
 
 	protected:

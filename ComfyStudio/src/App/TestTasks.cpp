@@ -3,8 +3,6 @@
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
 #include "Input/KeyCode.h"
-#include <assert.h>
-#include <cmath>
 
 namespace App
 {
@@ -136,7 +134,7 @@ namespace App
 			{
 				sprSet = MakeUnique<SprSet>();
 				sprSetLoader.Parse(sprSet.get());
-				sprSet->TxpSet->UploadAll();
+				sprSet->TxpSet->UploadAll(sprSet.get());
 				sprSetLoader.FreeData();
 			}
 			else
@@ -154,7 +152,7 @@ namespace App
 		return true;
 	}
 
-	bool TaskPs4Menu::Render(GL_Renderer2D* renderer, AetRenderer* aetRenderer)
+	bool TaskPs4Menu::Render(D3D_Renderer2D* renderer, AetRenderer* aetRenderer)
 	{
 		if (isLoading)
 			return true;

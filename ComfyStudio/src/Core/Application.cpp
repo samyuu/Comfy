@@ -427,12 +427,10 @@ void Application::DrawGui()
 
 void Application::DrawAppEngineWindow()
 {
-#if 0 // TEMP:
 	if (appEngine == nullptr)
 		appEngine = MakeUnique<App::Engine>();
 
 	appEngine->Tick();
-#endif
 }
 
 void Application::DrawAppEngineMenus(const char* header)
