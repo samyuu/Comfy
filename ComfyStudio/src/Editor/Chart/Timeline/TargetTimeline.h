@@ -79,7 +79,7 @@ namespace Editor
 
 		std::array<ImRect, buttonIconsTypeCount * 2> buttonIconsTextureCoordinates;
 		Graphics::SprSet sprSet;
-		Graphics::GL_Texture2D* buttonIconsTexture;
+		Graphics::D3D_Texture2D* buttonIconsTexture;
 
 		bool checkHitsoundsInCallback = false;
 		struct { bool Down, WasDown; } buttonPlacementKeyStates[12];

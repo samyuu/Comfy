@@ -78,7 +78,9 @@ private:
 	bool showSwapInterval = false;
 	bool versionWindowOpen = false;
 
+#if 0 // TEMP:
 	UniquePtr<App::Engine> appEngine = nullptr;
+#endif
 	UniquePtr<Editor::EditorManager> editorManager = nullptr;
 	std::vector<RefPtr<BaseWindow>> dataTestComponents;
 

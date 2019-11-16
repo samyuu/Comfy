@@ -2,7 +2,7 @@
 #include "Core/Application.h"
 #include "Editor/Aet/AetEditor.h"
 #include "Editor/Chart/ChartEditor.h"
-#include "Editor/PV/SceneRenderWindow.h"
+//#include "Editor/PV/SceneRenderWindow.h"
 #include "Misc/StringHelper.h"
 
 namespace Editor
@@ -66,19 +66,10 @@ namespace Editor
 
 	EditorManager::EditorManager(Application* parent) : parent(parent)
 	{
-#if 1 // TEMP:
-		return;
-#endif
-
 		editorComponents.reserve(3);
-		AddEditorComponent<ChartEditor>();
-		AddEditorComponent<AetEditor>();
-		AddEditorComponent<SceneRenderWindow>();
-
-#if 1 // DEBUG:
-		editorComponents[0].Component->CloseWindow();
-		editorComponents[2].Component->CloseWindow();
-#endif
+		AddEditorComponent<ChartEditor>(false);
+		AddEditorComponent<AetEditor>(true);
+		//AddEditorComponent<SceneRenderWindow>(false);
 	}
 
 	EditorManager::~EditorManager()
@@ -110,10 +101,13 @@ namespace Editor
 	}
 
 	template<class T>
-	void EditorManager::AddEditorComponent()
+	void EditorManager::AddEditorComponent(bool opened)
 	{
 		static_assert(std::is_base_of<IEditorComponent, T>::value, "T must inherit from IEditorComponent");
 		editorComponents.push_back({ false, std::move(MakeUnique<T>(parent, this)) });
+	
+		if (!opened)
+			editorComponents.back().Component->CloseWindow();
 	}
 
 	void EditorManager::Initialize()

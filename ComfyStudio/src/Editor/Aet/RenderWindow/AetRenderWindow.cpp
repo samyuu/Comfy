@@ -28,7 +28,7 @@ namespace Editor
 		checkerboardBaseGrid.Color = baseColor;
 		checkerboardBaseGrid.ColorAlt = baseColor;
 
-		renderer = MakeUnique<GL_Renderer2D>();
+		renderer = MakeUnique<D3D_Renderer2D>();
 		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
 		aetRenderer->SetSpriteGetterFunction(spriteGetter);
 		aetRenderer->SetCallback([this](const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity) { return OnObjRender(obj, positionOffset, opacity); });
@@ -41,6 +41,8 @@ namespace Editor
 		tools[AetToolType_Rotate] = MakeUnique<RotateTool>();
 		tools[AetToolType_Scale] = MakeUnique<ScaleTool>();
 		tools[AetToolType_Transform] = MakeUnique<TransformTool>();
+
+		D3D_SetObjectDebugName(renderTarget.GetShaderResourceView(), "AetRenderWindow::RenderTarget");
 	}
 
 	AetRenderWindow::~AetRenderWindow()
@@ -216,9 +218,8 @@ namespace Editor
 
 		renderTarget.Bind();
 		{
-			RenderCommand::SetViewport(renderTarget.GetSize());
-			RenderCommand::SetClearColor(GetColorVec4(EditorColor_DarkClear));
-			RenderCommand::Clear(ClearTarget_ColorBuffer);
+			D3D.SetViewport(renderTarget.GetSize());
+			renderTarget.Clear(GetColorVec4(EditorColor_DarkClear));
 
 			camera.UpdateMatrices();
 			renderer->Begin(camera);
@@ -370,17 +371,13 @@ namespace Editor
 
 	void AetRenderWindow::OnInitialize()
 	{
-		renderTarget.GetFramebuffer().SetObjectLabel("AetRenderWindow::RenderTarget::Framebuffer");
-		renderTarget.GetColorTexture().SetObjectLabel("AetRenderWindow::RenderTarget::ColorTexture");
-		renderTarget.GetDepthBuffer().SetObjectLabel("AetRenderWindow::RenderTarget::DepthBuffer");
-		renderer->Initialize();
 	}
 
 	void AetRenderWindow::RenderBackground()
 	{
 		checkerboardBaseGrid.GridSize = CheckerboardGrid::DefaultGridSize * 1.2f;
 		checkerboardBaseGrid.Position = camera.Position / camera.Zoom;
-		checkerboardBaseGrid.Size = renderTarget.GetSize() / camera.Zoom;
+		checkerboardBaseGrid.Size = vec2(renderTarget.GetSize()) / camera.Zoom;
 		checkerboardBaseGrid.Render(renderer.get());
 
 		const vec2 shadowOffset = vec2(3.5f, 2.5f) / camera.Zoom * 0.5f;
@@ -457,7 +454,7 @@ namespace Editor
 			return false;
 
 		renderer->Draw(
-			texture->GraphicsTexture.get(),
+			texture->Texture.get(),
 			sprite->PixelRegion,
 			obj.Properties.Position + positionOffset,
 			obj.Properties.Origin,
@@ -497,13 +494,13 @@ namespace Editor
 			return false;
 
 		renderer->Draw(
-			maskTexture->GraphicsTexture.get(),
+			maskTexture->Texture.get(),
 			maskSprite->PixelRegion,
 			maskObj.Properties.Position,
 			maskObj.Properties.Origin,
 			maskObj.Properties.Rotation,
 			maskObj.Properties.Scale,
-			texture->GraphicsTexture.get(),
+			texture->Texture.get(),
 			sprite->PixelRegion,
 			obj.Properties.Position + positionOffset,
 			obj.Properties.Origin,

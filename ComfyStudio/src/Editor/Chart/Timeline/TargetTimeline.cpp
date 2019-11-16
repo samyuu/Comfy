@@ -141,8 +141,8 @@ namespace Editor
 		const float width = buttonIconWidth * scale;
 		const float height = buttonIconWidth * scale;
 
-		position.x = glm::round(position.x - (width * .5f));
-		position.y = glm::round(position.y - (height * .5f));
+		position.x = glm::round(position.x - (width * 0.5f));
+		position.y = glm::round(position.y - (height * 0.5f));
 
 		vec2 bottomRight = vec2(position.x + width, position.y + height);
 		ImRect textureCoordinates = buttonIconsTextureCoordinates[GetButtonIconIndex(target)];
@@ -220,21 +220,20 @@ namespace Editor
 			ComfyData->ReadEntryIntoBuffer(sprFileEntry, sprFileBuffer.get());
 
 			sprSet.Parse(sprFileBuffer.get());
-			sprSet.TxpSet->UploadAll();
+			sprSet.TxpSet->UploadAll(&sprSet);
 
-			buttonIconsTexture = sprSet.TxpSet->Textures.front()->GraphicsTexture.get();
+			buttonIconsTexture = sprSet.TxpSet->Textures.front()->Texture.get();
 		}
 
-		const float texelWidth = 1.0f / buttonIconsTexture->GetWidth();
-		const float texelHeight = 1.0f / buttonIconsTexture->GetHeight();
+		const vec2 texelSize = vec2(1.0f, 1.0f) / vec2(buttonIconsTexture->GetSize());
 
-		const float width = buttonIconWidth * texelWidth;
-		const float height = buttonIconWidth * texelHeight;
+		const float width = buttonIconWidth * texelSize.x;
+		const float height = buttonIconWidth * texelSize.y;
 
 		for (size_t i = 0; i < buttonIconsTextureCoordinates.size(); i++)
 		{
-			float x = (buttonIconWidth * (i % buttonIconsTypeCount)) * texelWidth;
-			float y = (buttonIconWidth * (i / buttonIconsTypeCount)) * texelHeight;
+			float x = (buttonIconWidth * (i % buttonIconsTypeCount)) * texelSize.x;
+			float y = (buttonIconWidth * (i / buttonIconsTypeCount)) * texelSize.y;
 
 			buttonIconsTextureCoordinates[i] = ImRect(x, y, x + width, y + height);
 		}

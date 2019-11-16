@@ -9,7 +9,7 @@ namespace Editor
 	{
 		spriteGetterFunction = [this](const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr) { return false; };
 
-		renderer = MakeUnique<GL_Renderer2D>();
+		renderer = MakeUnique<D3D_Renderer2D>();
 		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
 		aetRenderer->SetSpriteGetterFunction(&spriteGetterFunction);
 	}
@@ -20,7 +20,6 @@ namespace Editor
 
 	void TargetRenderWindow::OnInitialize()
 	{
-		renderer->Initialize();
 		SetKeepAspectRatio(true);
 		SetTargetAspectRatio(renderSize.x / renderSize.y);
 
@@ -62,9 +61,8 @@ namespace Editor
 	{
 		renderTarget.Bind();
 		{
-			RenderCommand::SetViewport(renderTarget.GetSize());
-			RenderCommand::SetClearColor(GetColorVec4(EditorColor_DarkClear));
-			RenderCommand::Clear(ClearTarget_ColorBuffer);
+			D3D.SetViewport(renderTarget.GetSize());
+			renderTarget.Clear(GetColorVec4(EditorColor_DarkClear));
 
 			camera.UpdateMatrices();
 			renderer->Begin(camera);
@@ -113,7 +111,7 @@ namespace Editor
 		{
 			sprSet = MakeUnique<SprSet>();
 			sprSetLoader.Parse(sprSet.get());
-			sprSet->TxpSet->UploadAll();
+			sprSet->TxpSet->UploadAll(sprSet.get());
 			sprSetLoader.FreeData();
 
 			spriteGetterFunction = [this](const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr) { return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), identifier, outTxp, outSpr); };

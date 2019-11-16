@@ -33,7 +33,7 @@ namespace Editor
 	private:
 		// NOTE: Base methods
 		template <class T> 
-		void AddEditorComponent();
+		void AddEditorComponent(bool opened);
 
 		void Initialize();
 		void Update();
