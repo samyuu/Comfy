@@ -7,27 +7,32 @@ namespace Editor
 	class RenderWindowBase
 	{
 	public:
-		static constexpr ivec2 RenderTargetDefaultSize = ivec2(1, 1);
+		// NOTE: Since the render target is stretched to the correct asspect ratio in the end it could easily be scaled down for weaker hardware
+		static constexpr ivec2 RenderTargetDefaultSize = ivec2(4, 4);
 
-		RenderWindowBase() {};
-		virtual ~RenderWindowBase() {};
+	public:
+		RenderWindowBase() = default;
+		RenderWindowBase(const RenderWindowBase&) = delete;
+		virtual ~RenderWindowBase() = default;
 
+	public:
 		void Initialize();
 		void DrawGui();
 
 		vec2 GetRelativeMouse() const;
 
-		inline bool GetKeepAspectRatio() { return keepAspectRatio; };
+		inline bool GetKeepAspectRatio() const { return keepAspectRatio; };
 		inline void SetKeepAspectRatio(bool value) { keepAspectRatio = value; };
 
-		inline float GetTargetAspectRatio() { return targetAspectRatio; };
+		inline float GetTargetAspectRatio() const { return targetAspectRatio; };
 		inline void SetTargetAspectRatio(float value) { targetAspectRatio = value; };
 
+	public:
 		static inline void PushWindowPadding() { Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(2.0f, 2.0f)); };
 		static inline void PopWindowPadding() { Gui::PopStyleVar(); };
 
 	protected:
-		// Graphics::D3D_RenderTarget renderTarget;
+		Graphics::D3D_RenderTarget renderTarget = { RenderTargetDefaultSize };
 
 		virtual ImGuiWindowFlags GetChildWinodwFlags() const { return ImGuiWindowFlags_None; };
 
@@ -39,7 +44,7 @@ namespace Editor
 		virtual void OnRender() = 0;
 		virtual void OnResize(ivec2 size);
 
-		inline bool GetWasResized() { return wasResized; };
+		inline bool GetWasResized() const { return wasResized; };
 		const ImRect& GetRenderRegion() const;
 
 	private:

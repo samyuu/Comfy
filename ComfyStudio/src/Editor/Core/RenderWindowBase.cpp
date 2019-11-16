@@ -5,10 +5,7 @@ namespace Editor
 {
 	void RenderWindowBase::Initialize()
 	{
-#if 0
-		renderTarget.Initialize(RenderTargetDefaultSize);
-		renderRegion = lastRenderRegion = ImRect(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight());
-#endif
+		renderRegion = lastRenderRegion = ImRect(vec2(0.0f, 0.0f), vec2(renderTarget.GetSize()));
 
 		OnInitialize();
 	}
@@ -81,13 +78,10 @@ namespace Editor
 				Gui::GetColorU32(ImGuiCol_WindowBg));
 		}
 
-#if 0
 		currentWindow->DrawList->AddImage(
-			renderTarget.GetTexture().GetVoidTexture(),
+			renderTarget.GetVoidTexture(),
 			renderRegion.GetTL(),
-			renderRegion.GetBR(),
-			Gui::UV0_GL, Gui::UV1_GL);
-#endif
+			renderRegion.GetBR());
 
 		PostDrawGui();
 
@@ -109,9 +103,7 @@ namespace Editor
 
 	void RenderWindowBase::OnResize(ivec2 size)
 	{
-#if 0
 		renderTarget.Resize(size);
 		needsResizing = false;
-#endif
 	}
 }
