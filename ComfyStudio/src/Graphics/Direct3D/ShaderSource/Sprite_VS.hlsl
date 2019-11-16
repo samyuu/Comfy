@@ -9,9 +9,9 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
     float4 Position     : SV_POSITION;
-    float4 Color        : COLOR;
     float2 TexCoord     : TEXCOORD0;
     float2 TexMaskCoord : TEXCOORD1;
+    float4 Color        : COLOR;
 };
 
 cbuffer MatrixConstantBuffer : register(b0)

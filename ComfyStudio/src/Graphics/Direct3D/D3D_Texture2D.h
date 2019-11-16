@@ -40,6 +40,7 @@ namespace Graphics
 	public:
 		D3D_ImmutableTexture2D(Txp* txp);
 		D3D_ImmutableTexture2D(ivec2 size, const void* rgbaBuffer);
+		D3D_ImmutableTexture2D(ivec2 size, const void* rgbaBuffer, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode);
 		D3D_ImmutableTexture2D(const D3D_ImmutableTexture2D&) = delete;
 		~D3D_ImmutableTexture2D() = default;
 

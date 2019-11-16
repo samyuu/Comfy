@@ -376,7 +376,12 @@ namespace Graphics
 	}
 	
 	D3D_ImmutableTexture2D::D3D_ImmutableTexture2D(ivec2 size, const void* rgbaBuffer)
-		: D3D_Texture2D(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER, 0.0f)
+		: D3D_ImmutableTexture2D(size, rgbaBuffer, D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER)
+	{
+	}
+
+	D3D_ImmutableTexture2D::D3D_ImmutableTexture2D(ivec2 size, const void* rgbaBuffer, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode)
+		: D3D_Texture2D(filter, addressMode, 0.0f)
 	{
 		textureFormat = TextureFormat::RGBA8;
 		textureDescription.Width = size.x;

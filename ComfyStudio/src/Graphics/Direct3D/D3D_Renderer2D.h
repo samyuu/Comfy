@@ -78,6 +78,17 @@ namespace Graphics
 		// NOTE: Disable backface culling for negatively scaled sprites
 		D3D_RasterizerState rasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_NONE };
 
+		/*
+		// TODO: Offload checkerboard rendering from shader
+		static constexpr std::array<uint32_t, 4> checkerboardTexturePixels = 
+		{
+			0xFFFFFFFF, 0x00000000, 
+			0x00000000, 0xFFFFFFFF,
+		};
+		
+		D3D_ImmutableTexture2D checkerboardTexture = { ivec2(2, 2), checkerboardTexturePixels.data(), D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_WRAP };
+		*/
+
 		struct AetBlendStates
 		{
 			D3D_BlendState Normal = { AetBlendMode::Normal };

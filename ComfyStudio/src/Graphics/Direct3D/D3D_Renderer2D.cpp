@@ -44,10 +44,10 @@ namespace Graphics
 
 	namespace
 	{
-		enum SpriteShaderTextureSlot 
-		{ 
-			TextureSpriteSlot = 0, 
-			TextureMaskSlot = 1 
+		enum SpriteShaderTextureSlot
+		{
+			TextureSpriteSlot = 0,
+			TextureMaskSlot = 1
 		};
 
 		struct MatrixConstantBuffer
@@ -59,11 +59,11 @@ namespace Graphics
 		{
 			TextureFormat Format;
 			TextureFormat MaskFormat;
-			
+
 			AetBlendMode BlendMode;
 			uint8_t Padding[3];
-			
-			int DrawSolidColor;
+
+			int Flags;
 			int DrawTextBorder;
 
 			int DrawCheckerboard;
@@ -82,6 +82,8 @@ namespace Graphics
 
 		D3D_SetObjectDebugName(matrixConstantBuffer.GetBuffer(), "Renderer2D::MatrixConstantBuffer");
 		D3D_SetObjectDebugName(spriteConstantBuffer.GetBuffer(), "Renderer2D::SpriteConstantBuffer");
+
+		D3D_SetObjectDebugName(rasterizerState.GetRasterizerState(), "Renderer2D::RasterizerState");
 
 		InternalCreateIndexBuffer();
 		InternalCreateVertexBuffer();
@@ -186,9 +188,6 @@ namespace Graphics
 		matrixConstantBuffer.UploadData(sizeof(matrixConstantData), &matrixConstantData);
 
 		SpriteConstantBuffer spriteConstantData = {};
-		spriteConstantData.Format = TextureFormat::Unknown;
-		spriteConstantData.MaskFormat = TextureFormat::Unknown;
-		spriteConstantData.BlendMode = AetBlendMode::Normal;
 		spriteConstantData.DrawTextBorder = drawTextBorder;
 		spriteConstantBuffer.BindPixelShader();
 
@@ -197,29 +196,26 @@ namespace Graphics
 
 		for (uint16_t i = 0; i < batches.size(); i++)
 		{
-			SpriteBatch& batch = batches[i];
-			SpriteBatchItem& item = batchItems[batch.Index];
+			const SpriteBatch& batch = batches[i];
+			const SpriteBatchItem& item = batchItems[batch.Index];
 
 			const bool firstItem = i == 0;
 			if (firstItem || lastBlendMode != item.BlendMode)
 			{
 				InternalSetBlendMode(item.BlendMode);
-
-				spriteConstantData.BlendMode = item.BlendMode;
 				lastBlendMode = item.BlendMode;
 			}
 
 			if (item.Texture != nullptr)
 				item.Texture->Bind(TextureSpriteSlot);
-			
+
 			if (item.MaskTexture != nullptr)
 				item.MaskTexture->Bind(TextureMaskSlot);
-			
+
 			spriteConstantData.Format = (item.Texture == nullptr) ? TextureFormat::Unknown : item.Texture->GetTextureFormat();
 			spriteConstantData.MaskFormat = (item.MaskTexture == nullptr) ? TextureFormat::Unknown : item.MaskTexture->GetTextureFormat();
-
-			//spriteConstantData.DrawSolidColor = (item.Texture == nullptr);
-			//spriteConstantData.DrawCheckerboard = item.CheckerboardSize != vec2(0.0f);
+			spriteConstantData.BlendMode = item.BlendMode;
+			spriteConstantData.DrawCheckerboard = item.CheckerboardSize != vec2(0.0f, 0.0f);
 			spriteConstantData.CheckerboardSize = item.CheckerboardSize;
 
 			spriteConstantBuffer.UploadData(sizeof(spriteConstantData), &spriteConstantData);
@@ -238,7 +234,8 @@ namespace Graphics
 
 	void D3D_Renderer2D::InternalCheckFlushItems()
 	{
-		if (batchItems.size() >= MaxBatchItemSize)
+		// TODO: Something isn't quite right here...
+		if (batchItems.size() >= MaxBatchItemSize / 12)
 			InternalFlush();
 	}
 
@@ -417,6 +414,7 @@ namespace Graphics
 
 	void D3D_Renderer2D::DrawCheckerboardRectangle(vec2 position, vec2 size, vec2 origin, float rotation, vec2 scale, vec4 color, float precision)
 	{
+		// TODO: Use checkerboardTexture instead
 		const vec4 source = vec4(0.0f, 0.0f, size);
 		InternalDraw(nullptr, &source, &position, &origin, rotation, &scale, &color);
 
