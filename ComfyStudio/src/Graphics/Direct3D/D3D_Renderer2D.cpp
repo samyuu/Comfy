@@ -11,32 +11,32 @@ namespace Graphics
 		constexpr vec4 DefaultColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 		constexpr float DefaultRotation = 0.0f;
 
-		inline const vec2& PositionOrDefault(const vec2* position)
+		inline vec2 PositionOrDefault(const vec2* position)
 		{
 			return position == nullptr ? DefaultPosition : *position;
 		}
 
-		inline const vec4 SourceOrDefault(const vec4* source, const D3D_Texture2D* texture)
+		inline vec4 SourceOrDefault(const vec4* source, const D3D_Texture2D* texture)
 		{
 			return source == nullptr ? vec4(0.0f, 0.0f, texture->GetSize()) : *source;
 		}
 
-		inline const vec2 SizeOrDefault(const D3D_Texture2D* texture, const vec4* source)
+		inline vec2 SizeOrDefault(const D3D_Texture2D* texture, const vec4* source)
 		{
 			return texture != nullptr ? vec2(texture->GetSize()) : vec2(source->w, source->z);
 		}
 
-		inline const vec2 OriginOrDefault(const vec2* origin)
+		inline vec2 OriginOrDefault(const vec2* origin)
 		{
 			return origin == nullptr ? DefaultOrigin : -*origin;
 		}
 
-		inline const vec2& ScaleOrDefault(const vec2* scale)
+		inline vec2 ScaleOrDefault(const vec2* scale)
 		{
 			return scale == nullptr ? DefaultScale : *scale;
 		}
 
-		inline const vec4& ColorOrDefault(const vec4* color)
+		inline vec4 ColorOrDefault(const vec4* color)
 		{
 			return color == nullptr ? DefaultColor : *color;
 		}
@@ -59,8 +59,15 @@ namespace Graphics
 		{
 			TextureFormat Format;
 			TextureFormat MaskFormat;
+			
 			AetBlendMode BlendMode;
+			uint8_t Padding[3];
+			
+			int DrawSolidColor;
 			int DrawTextBorder;
+
+			int DrawCheckerboard;
+			vec2 CheckerboardSize;
 		};
 	}
 
@@ -92,16 +99,7 @@ namespace Graphics
 
 			indexData[i] =
 			{
-				// NOTE: Used to be counter clockwise for OpenGL but D3D's winding order is clockwise by default.
-				//		 Might wanna revert back to avoid having to change the rasterize state midframe for the Renderer3D
-				// static_cast<uint16_t>(offset + TopLeft),
-				// static_cast<uint16_t>(offset + BottomLeft),
-				// static_cast<uint16_t>(offset + BottomRight),
-				// 
-				// static_cast<uint16_t>(offset + BottomRight),
-				// static_cast<uint16_t>(offset + TopRight),
-				// static_cast<uint16_t>(offset + TopLeft),
-
+				// NOTE: Used to be counter clockwise for OpenGL but D3D's winding order is clockwise by default
 				static_cast<uint16_t>(offset + TopLeft),
 				static_cast<uint16_t>(offset + TopRight),
 				static_cast<uint16_t>(offset + BottomRight),
@@ -170,6 +168,7 @@ namespace Graphics
 
 	void D3D_Renderer2D::InternalFlush()
 	{
+		rasterizerState.Bind();
 		D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		spriteVertexShader.Bind();
@@ -186,7 +185,7 @@ namespace Graphics
 		matrixConstantBuffer.BindVertexShader();
 		matrixConstantBuffer.UploadData(sizeof(matrixConstantData), &matrixConstantData);
 
-		SpriteConstantBuffer spriteConstantData;
+		SpriteConstantBuffer spriteConstantData = {};
 		spriteConstantData.Format = TextureFormat::Unknown;
 		spriteConstantData.MaskFormat = TextureFormat::Unknown;
 		spriteConstantData.BlendMode = AetBlendMode::Normal;
@@ -211,34 +210,17 @@ namespace Graphics
 			}
 
 			if (item.Texture != nullptr)
-			{
 				item.Texture->Bind(TextureSpriteSlot);
-
-				// NOTE: Special case for when the texture mask shares the same texture
-				spriteConstantData.Format = (item.Texture == item.MaskTexture) ? TextureFormat::Unknown : item.Texture->GetTextureFormat();
-			}
-			else
-			{
-				spriteConstantData.Format = TextureFormat::Unknown;
-			}
-
+			
 			if (item.MaskTexture != nullptr)
-			{
 				item.MaskTexture->Bind(TextureMaskSlot);
-				spriteConstantData.MaskFormat = item.MaskTexture->GetTextureFormat();
-			}
-			else
-			{
-				spriteConstantData.MaskFormat = TextureFormat::Unknown;
-			}
+			
+			spriteConstantData.Format = (item.Texture == nullptr) ? TextureFormat::Unknown : item.Texture->GetTextureFormat();
+			spriteConstantData.MaskFormat = (item.MaskTexture == nullptr) ? TextureFormat::Unknown : item.MaskTexture->GetTextureFormat();
 
-			// spriteShader->SetUniform(spriteShader->UseSolidColor, item.Texture == nullptr);
-
-			// bool useCheckerboard = item.CheckerboardSize != vec2(0.0f);
-			// spriteShader->SetUniform(spriteShader->UseCheckerboard, useCheckerboard);
-
-			// if (useCheckerboard)
-			// 	spriteShader->SetUniform(spriteShader->CheckerboardSize, item.CheckerboardSize);
+			//spriteConstantData.DrawSolidColor = (item.Texture == nullptr);
+			//spriteConstantData.DrawCheckerboard = item.CheckerboardSize != vec2(0.0f);
+			spriteConstantData.CheckerboardSize = item.CheckerboardSize;
 
 			spriteConstantBuffer.UploadData(sizeof(spriteConstantData), &spriteConstantData);
 
@@ -250,6 +232,7 @@ namespace Graphics
 			drawCallCount++;
 		}
 
+		rasterizerState.UnBind();
 		InternalClearItems();
 	}
 

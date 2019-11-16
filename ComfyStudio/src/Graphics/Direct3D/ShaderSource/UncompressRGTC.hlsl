@@ -32,7 +32,7 @@ float UncompressRGTC_Alpha(const Texture2D inputTexture, const SamplerState inpu
     return inputTexture.Sample(inputSampler, texCoord, GRAYSCALE_MIPMAP).g;
 }
 
-float4 FormatAwareSampleTexture_RGBA(const Texture2D inputTexture, const SamplerState inputSampler, const float2 texCoord, int format)
+float4 FormatAwareSampleTexture_RGBA(const Texture2D inputTexture, const SamplerState inputSampler, const float2 texCoord, TextureFormat format)
 {
     if (format == TextureFormat_RGTC2)
         return UncompressRGTC_RGBA(inputTexture, inputSampler, texCoord);
@@ -40,7 +40,7 @@ float4 FormatAwareSampleTexture_RGBA(const Texture2D inputTexture, const Sampler
         return inputTexture.Sample(inputSampler, texCoord);
 }
 
-float FormatAwareSampleTexture_Alpha(const Texture2D inputTexture, const SamplerState inputSampler, const float2 texCoord, int format)
+float FormatAwareSampleTexture_Alpha(const Texture2D inputTexture, const SamplerState inputSampler, const float2 texCoord, TextureFormat format)
 {
     if (format == TextureFormat_RGTC2)
         return UncompressRGTC_Alpha(inputTexture, inputSampler, texCoord);

@@ -5,8 +5,8 @@ struct VS_OUTPUT
     float2 TexCoord : TEXCOORD;
 };
 
-Texture2D Texture       : register(t0);
 SamplerState Sampler    : register(s0);
+Texture2D Texture       : register(t0);
 
 float4 PS_MAIN(VS_OUTPUT input) : SV_Target
 {

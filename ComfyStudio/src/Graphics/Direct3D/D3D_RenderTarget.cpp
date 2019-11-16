@@ -33,22 +33,58 @@ namespace Graphics
 
 	D3D_RenderTarget::D3D_RenderTarget(ivec2 size)
 	{
-		// TODO:
-		// renderTargetViewDescription.Buffer
-		// backBufferDescription.Width
+		backBufferDescription.Width = size.x;
+		backBufferDescription.Height = size.y;
+		backBufferDescription.MipLevels = 1;
+		backBufferDescription.ArraySize = 1;
+		backBufferDescription.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		backBufferDescription.SampleDesc.Count = 1;
+		backBufferDescription.SampleDesc.Quality = 0;
+		backBufferDescription.Usage = D3D11_USAGE_DEFAULT;
+		backBufferDescription.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+		backBufferDescription.CPUAccessFlags = 0;
+		backBufferDescription.MiscFlags = 0;
 
-		assert(false);
+		D3D.Device->CreateTexture2D(&backBufferDescription, nullptr, &backBuffer);
+
+		renderTargetViewDescription.Format = backBufferDescription.Format;
+		renderTargetViewDescription.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		renderTargetViewDescription.Texture2D.MipSlice = 0;
+
+		D3D.Device->CreateRenderTargetView(backBuffer.Get(), &renderTargetViewDescription, &renderTargetView);
+
+		shaderResourceViewDescription.Format = backBufferDescription.Format;
+		shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResourceViewDescription.Texture2D.MostDetailedMip = 0;
+		shaderResourceViewDescription.Texture2D.MipLevels = 1;
+
+		D3D.Device->CreateShaderResourceView(backBuffer.Get(), &shaderResourceViewDescription, &shaderResourceView);
 	}
 
 	void D3D_RenderTarget::Resize(ivec2 newSize)
 	{
-		// TODO:
-		assert(false);
+		backBufferDescription.Width = newSize.x;
+		backBufferDescription.Height = newSize.y;
+
+		// TODO: Do all of these need to be recreated? - Should the ComPtrs be explicitly reset before?
+		D3D.Device->CreateTexture2D(&backBufferDescription, nullptr, &backBuffer);
+		D3D.Device->CreateRenderTargetView(backBuffer.Get(), &renderTargetViewDescription, &renderTargetView);
+		D3D.Device->CreateShaderResourceView(backBuffer.Get(), &shaderResourceViewDescription, &shaderResourceView);
 	}
 
 	ivec2 D3D_RenderTarget::GetSize() const
 	{
 		return ivec2(backBufferDescription.Width, backBufferDescription.Height);
+	}
+
+	void* D3D_RenderTarget::GetVoidTexture() const
+	{
+		return shaderResourceView.Get();
+	}
+
+	ID3D11ShaderResourceView* D3D_RenderTarget::GetShaderResourceView()
+	{
+		return shaderResourceView.Get();
 	}
 
 	D3D_SwapChainRenderTarget::D3D_SwapChainRenderTarget(IDXGISwapChain* swapChain)

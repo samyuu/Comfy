@@ -36,10 +36,16 @@ namespace Graphics
 		void Resize(ivec2 newSize) override;
 
 		ivec2 GetSize() const;
+		void* GetVoidTexture() const;
+		
+		ID3D11ShaderResourceView* GetShaderResourceView();
 
 	private:
-		D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDescription;
 		D3D11_TEXTURE2D_DESC backBufferDescription;
+		D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDescription;
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDescription;
+
+		ComPtr<ID3D11ShaderResourceView> shaderResourceView;
 	};
 
 	class D3D_SwapChainRenderTarget final : public D3D_RenderTargetBase

@@ -4,6 +4,7 @@
 #include "D3D_ConstantBuffer.h"
 #include "D3D_IndexBuffer.h"
 #include "D3D_InputLayout.h"
+#include "D3D_RasterizerState.h"
 #include "D3D_Shader.h"
 #include "D3D_Texture2D.h"
 #include "D3D_VertexBuffer.h"
@@ -73,6 +74,9 @@ namespace Graphics
 		UniquePtr<D3D_StaticIndexBuffer> indexBuffer = nullptr;
 		UniquePtr<D3D_DynamicVertexBuffer> vertexBuffer = nullptr;
 		UniquePtr<D3D_InputLayout> inputLayout = nullptr;
+
+		// NOTE: Disable backface culling for negatively scaled sprites
+		D3D_RasterizerState rasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_NONE };
 
 		struct AetBlendStates
 		{

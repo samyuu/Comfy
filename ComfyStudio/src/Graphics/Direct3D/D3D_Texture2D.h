@@ -8,7 +8,7 @@ namespace Graphics
 	class D3D_Texture2D : IGraphicsResource
 	{
 	protected:
-		D3D_Texture2D(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode);
+		D3D_Texture2D(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode, float lodBias);
 		virtual ~D3D_Texture2D() = default;
 
 	public:
@@ -20,6 +20,8 @@ namespace Graphics
 
 		ID3D11Texture2D* GetTexture();
 		TextureFormat GetTextureFormat() const;
+
+		void* GetVoidTexture() const;
 
 	protected:
 		mutable uint32_t lastBoundSlot;

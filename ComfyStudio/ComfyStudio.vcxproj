@@ -179,6 +179,7 @@
     <ClCompile Include="src\Graphics\Direct3D\D3D_DepthBuffer.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_IndexBuffer.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_InputLayout.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\D3D_RasterizerState.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_Renderer2D.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_RenderTarget.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_Shader.cpp" />
@@ -257,6 +258,7 @@
     <ClInclude Include="src\Graphics\Direct3D\D3D_DepthBuffer.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_IndexBuffer.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_InputLayout.h" />
+    <ClInclude Include="src\Graphics\Direct3D\D3D_RasterizerState.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_Renderer2D.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_RenderTarget.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_Shader.h" />

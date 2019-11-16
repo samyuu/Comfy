@@ -18,8 +18,8 @@ namespace Graphics
 			case TextureFormat::RGBA4:		return DXGI_FORMAT_UNKNOWN;
 			case TextureFormat::DXT1:		return DXGI_FORMAT_BC1_UNORM;
 			case TextureFormat::DXT1a:		return DXGI_FORMAT_BC1_UNORM_SRGB;
-			case TextureFormat::DXT3:		return DXGI_FORMAT_BC2_UNORM_SRGB;
-			case TextureFormat::DXT5:		return DXGI_FORMAT_BC3_UNORM_SRGB;
+			case TextureFormat::DXT3:		return DXGI_FORMAT_BC2_UNORM;
+			case TextureFormat::DXT5:		return DXGI_FORMAT_BC3_UNORM;
 			case TextureFormat::RGTC1:		return DXGI_FORMAT_BC4_UNORM;
 			case TextureFormat::RGTC2:		return DXGI_FORMAT_BC5_UNORM;
 			case TextureFormat::L8:			return DXGI_FORMAT_A8_UNORM;
@@ -45,6 +45,15 @@ namespace Graphics
 			default:
 				return 0;
 			}
+		}
+
+		constexpr float GetTxpLodBias(Txp* txp)
+		{
+			if (txp == nullptr || txp->MipMaps.size() < 1)
+				return 0.0f;
+
+			// NOTE: Because somewhat surprisingly Texture2D::SampleLevel also factors in the LOD bias
+			return (txp->MipMaps.front()->Format != TextureFormat::RGTC2) ? -1.0f : 0.0f;
 		}
 
 		constexpr UINT GetBitsPerPixel(DXGI_FORMAT format)
@@ -238,23 +247,23 @@ namespace Graphics
 		}
 	}
 
-	D3D_Texture2D::D3D_Texture2D(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode)
+	D3D_Texture2D::D3D_Texture2D(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode, float lodBias)
 		: lastBoundSlot(UnboundTextureSlot), textureFormat(TextureFormat::Unknown)
 	{
-		constexpr vec4 debugTextureBorderColor = vec4(1.0f, 0.0f, 1.0f, 1.0f);
+		constexpr vec4 transparentBorderColor = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
 		samplerDescription.Filter = filter;
 		samplerDescription.AddressU = addressMode;
 		samplerDescription.AddressV = addressMode;
 		samplerDescription.AddressW = addressMode;
-		samplerDescription.MipLODBias = 0.0f;
+		samplerDescription.MipLODBias = lodBias;
 		samplerDescription.MaxAnisotropy = 0;
 		samplerDescription.ComparisonFunc = D3D11_COMPARISON_NEVER;
-		samplerDescription.BorderColor[0] = debugTextureBorderColor[0];
-		samplerDescription.BorderColor[1] = debugTextureBorderColor[1];
-		samplerDescription.BorderColor[2] = debugTextureBorderColor[2];
-		samplerDescription.BorderColor[3] = debugTextureBorderColor[3];
-		samplerDescription.MinLOD = 0;
+		samplerDescription.BorderColor[0] = transparentBorderColor[0];
+		samplerDescription.BorderColor[1] = transparentBorderColor[1];
+		samplerDescription.BorderColor[2] = transparentBorderColor[2];
+		samplerDescription.BorderColor[3] = transparentBorderColor[3];
+		samplerDescription.MinLOD = 0.0f;
 		samplerDescription.MaxLOD = D3D11_FLOAT32_MAX;
 
 		D3D.Device->CreateSamplerState(&samplerDescription, &samplerState);
@@ -265,14 +274,13 @@ namespace Graphics
 		assert(textureSlot < D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
 		lastBoundSlot = textureSlot;
 
-		constexpr UINT startSlot = 0;
 		constexpr UINT textureCount = 1;
 
 		std::array<ID3D11SamplerState*, textureCount> samplerStates = { samplerState.Get() };
 		std::array<ID3D11ShaderResourceView*, textureCount> resourceViews = { resourceView.Get() };
 
-		D3D.Context->PSSetSamplers(startSlot, textureCount, samplerStates.data());
-		D3D.Context->PSSetShaderResources(startSlot, textureCount, resourceViews.data());
+		D3D.Context->PSSetSamplers(textureSlot, textureCount, samplerStates.data());
+		D3D.Context->PSSetShaderResources(textureSlot, textureCount, resourceViews.data());
 	}
 	
 	void D3D_Texture2D::UnBind() const
@@ -305,8 +313,13 @@ namespace Graphics
 		return textureFormat;
 	}
 
+	void* D3D_Texture2D::GetVoidTexture() const
+	{
+		return resourceView.Get();
+	}
+
 	D3D_ImmutableTexture2D::D3D_ImmutableTexture2D(Txp* txp)
-		: D3D_Texture2D(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP)
+		: D3D_Texture2D(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER, GetTxpLodBias(txp))
 	{
 		assert(txp != nullptr && txp->MipMaps.size() > 0);
 		auto& baseMipMap = txp->MipMaps.front();
@@ -363,7 +376,7 @@ namespace Graphics
 	}
 	
 	D3D_ImmutableTexture2D::D3D_ImmutableTexture2D(ivec2 size, const void* rgbaBuffer)
-		: D3D_Texture2D(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP)
+		: D3D_Texture2D(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER, 0.0f)
 	{
 		textureFormat = TextureFormat::RGBA8;
 		textureDescription.Width = size.x;

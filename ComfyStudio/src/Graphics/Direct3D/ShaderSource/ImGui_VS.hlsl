@@ -20,7 +20,7 @@ cbuffer MatrixConstantBuffer : register(b0)
 VS_OUTPUT VS_MAIN(VS_INPUT input)
 {
     VS_OUTPUT output;
-	output.Position = mul(float4(input.Position, 0.0, 1.0), CB_ViewProjection);
+    output.Position = mul(float4(input.Position, 0.0, 1.0), CB_ViewProjection);
     output.Color = input.Color;
     output.TexCoord = input.TexCoord;
     return output;
