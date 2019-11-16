@@ -28,6 +28,8 @@
 #include "Graphics/Direct3D/Direct3D.h"
 #include "Graphics/Direct3D/ShaderBytecode/ShaderBytecode.h"
 
+using namespace Graphics;
+
 // DirectX data
 static ID3D11Device*            g_pd3dDevice = nullptr;
 static ID3D11DeviceContext*     g_pd3dDeviceContext = nullptr;
@@ -80,6 +82,8 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
 
 		if (g_pd3dDevice->CreateBuffer(&desc, nullptr, &g_pVB) < 0)
 			return;
+
+		D3D_SetObjectDebugName(g_pVB, "ImGui::VertexBuffer");
 	}
 
 	if (!g_pIB || g_IndexBufferSize < draw_data->TotalIdxCount)
@@ -96,6 +100,8 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
 
 		if (g_pd3dDevice->CreateBuffer(&desc, nullptr, &g_pIB) < 0)
 			return;
+
+		D3D_SetObjectDebugName(g_pIB, "ImGui::IndexBuffer");
 	}
 
 	// Upload vertex/index data into a single contiguous GPU buffer
@@ -210,6 +216,13 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
 	int vtx_offset = 0;
 	int idx_offset = 0;
 	ImVec2 clip_off = draw_data->DisplayPos;
+
+	const ImVec4 invalid_clip_rect = ImVec4(-1.0f, -1.0f, -1.0f, -1.0f);
+	ImVec4 last_clip_rect = invalid_clip_rect;
+
+	const ImTextureID invalid_texture_id = (ImTextureID)(-1);
+	ImTextureID last_texture_id = invalid_texture_id;
+
 	for (int n = 0; n < draw_data->CmdListsCount; n++)
 	{
 		const ImDrawList* cmd_list = draw_data->CmdLists[n];
@@ -223,19 +236,30 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
 			}
 			else
 			{
-				// Apply scissor/clipping rectangle
-				const D3D11_RECT r =
+				if (std::memcmp(&last_clip_rect, &pcmd->ClipRect, sizeof(ImVec4)) != 0)
 				{
-					static_cast<LONG>(pcmd->ClipRect.x - clip_off.x),
-					static_cast<LONG>(pcmd->ClipRect.y - clip_off.y),
-					static_cast<LONG>(pcmd->ClipRect.z - clip_off.x),
-					static_cast<LONG>(pcmd->ClipRect.w - clip_off.y)
-				};
-				ctx->RSSetScissorRects(1, &r);
+					// Apply scissor/clipping rectangle
+					const D3D11_RECT r =
+					{
+						static_cast<LONG>(pcmd->ClipRect.x - clip_off.x),
+						static_cast<LONG>(pcmd->ClipRect.y - clip_off.y),
+						static_cast<LONG>(pcmd->ClipRect.z - clip_off.x),
+						static_cast<LONG>(pcmd->ClipRect.w - clip_off.y)
+					};
+					ctx->RSSetScissorRects(1, &r);
 
-				// Bind texture, Draw
-				ID3D11ShaderResourceView* texture_srv = static_cast<ID3D11ShaderResourceView*>(pcmd->TextureId);
-				ctx->PSSetShaderResources(0, 1, &texture_srv);
+					last_clip_rect = pcmd->ClipRect;
+				}
+
+				if (last_texture_id != pcmd->TextureId)
+				{
+					// Bind texture, Draw
+					ID3D11ShaderResourceView* texture_srv = static_cast<ID3D11ShaderResourceView*>(pcmd->TextureId);
+					ctx->PSSetShaderResources(0, 1, &texture_srv);
+
+					last_texture_id = pcmd->TextureId;
+				}
+
 				ctx->DrawIndexed(pcmd->ElemCount, idx_offset, vtx_offset);
 			}
 			idx_offset += pcmd->ElemCount;
@@ -289,6 +313,7 @@ static void ImGui_ImplDX11_CreateFontsTexture()
 		subResource.SysMemPitch = desc.Width * 4;
 		subResource.SysMemSlicePitch = 0;
 		g_pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
+		D3D_SetObjectDebugName(pTexture, "ImGui::FontTexture");
 
 		// Create texture view
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -297,6 +322,8 @@ static void ImGui_ImplDX11_CreateFontsTexture()
 		srvDesc.Texture2D.MipLevels = desc.MipLevels;
 		srvDesc.Texture2D.MostDetailedMip = 0;
 		g_pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &g_pFontTextureView);
+		D3D_SetObjectDebugName(g_pFontTextureView, "ImGui::FontTextureView");
+
 		pTexture->Release();
 	}
 
@@ -315,6 +342,7 @@ static void ImGui_ImplDX11_CreateFontsTexture()
 		desc.MinLOD = 0.f;
 		desc.MaxLOD = 0.f;
 		g_pd3dDevice->CreateSamplerState(&desc, &g_pFontSampler);
+		D3D_SetObjectDebugName(g_pFontSampler, "ImGui::FontSampler");
 	}
 }
 
@@ -339,6 +367,8 @@ bool ImGui_ImplDX11_CreateDeviceObjects()
 		if (g_pd3dDevice->CreateVertexShader(vertexShader, vertexShaderSize, nullptr, &g_pVertexShader) != S_OK)
 			return false;
 
+		D3D_SetObjectDebugName(g_pVertexShader, "ImGui::VertexShader");
+
 		// Create the input layout
 		D3D11_INPUT_ELEMENT_DESC local_layout[] =
 		{
@@ -350,6 +380,8 @@ bool ImGui_ImplDX11_CreateDeviceObjects()
 		if (g_pd3dDevice->CreateInputLayout(local_layout, 3, vertexShader, vertexShaderSize, &g_pInputLayout) != S_OK)
 			return false;
 
+		D3D_SetObjectDebugName(g_pInputLayout, "ImGui::InputLayout");
+
 		// Create the constant buffer
 		{
 			D3D11_BUFFER_DESC desc = {};
@@ -359,6 +391,7 @@ bool ImGui_ImplDX11_CreateDeviceObjects()
 			desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 			desc.MiscFlags = 0;
 			g_pd3dDevice->CreateBuffer(&desc, nullptr, &g_pVertexConstantBuffer);
+			D3D_SetObjectDebugName(g_pFontSampler, "ImGui::VertexConstantBuffer");
 		}
 	}
 
@@ -368,6 +401,8 @@ bool ImGui_ImplDX11_CreateDeviceObjects()
 
 		if (g_pd3dDevice->CreatePixelShader(pixelShader, pixelShaderSize, nullptr, &g_pPixelShader) != S_OK)
 			return false;
+
+		D3D_SetObjectDebugName(g_pPixelShader, "ImGui::PixelShader");
 	}
 
 	// Create the blending setup
@@ -383,6 +418,7 @@ bool ImGui_ImplDX11_CreateDeviceObjects()
 		desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 		g_pd3dDevice->CreateBlendState(&desc, &g_pBlendState);
+		D3D_SetObjectDebugName(g_pBlendState, "ImGui::BlendState");
 	}
 
 	// Create the rasterizer state
@@ -393,6 +429,7 @@ bool ImGui_ImplDX11_CreateDeviceObjects()
 		desc.ScissorEnable = true;
 		desc.DepthClipEnable = true;
 		g_pd3dDevice->CreateRasterizerState(&desc, &g_pRasterizerState);
+		D3D_SetObjectDebugName(g_pRasterizerState, "ImGui::RasterizerState");
 	}
 
 	// Create depth-stencil State
@@ -406,6 +443,7 @@ bool ImGui_ImplDX11_CreateDeviceObjects()
 		desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 		desc.BackFace = desc.FrontFace;
 		g_pd3dDevice->CreateDepthStencilState(&desc, &g_pDepthStencilState);
+		D3D_SetObjectDebugName(g_pDepthStencilState, "ImGui::DepthStencilState");
 	}
 
 	ImGui_ImplDX11_CreateFontsTexture();
