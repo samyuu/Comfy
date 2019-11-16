@@ -44,6 +44,19 @@ namespace Graphics
 		WindowRenderTarget->Resize(newSize);
 	}
 
+	void Direct3D::SetViewport(ivec2 size)
+	{
+		D3D11_VIEWPORT viewport;
+		viewport.TopLeftX = 0.0f;
+		viewport.TopLeftY = 0.0f;
+		viewport.Width = static_cast<float>(size.x);
+		viewport.Height = static_cast<float>(size.y);
+		viewport.MinDepth = 0.0f;
+		viewport.MaxDepth = 1.0f;
+
+		D3D.Context->RSSetViewports(1, &viewport);
+	}
+
 	bool Direct3D::InternalCreateDeviceAndSwapchain(HWND window)
 	{
 		DXGI_SWAP_CHAIN_DESC swapChainDescription = {};
@@ -61,13 +74,19 @@ namespace Graphics
 		swapChainDescription.Windowed = true;
 		swapChainDescription.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
+		D3D_DRIVER_TYPE driverType = D3D_DRIVER_TYPE_HARDWARE;
+#if 0
+		// DEBUG: Sanity checks
+		// driverType = D3D_DRIVER_TYPE_REFERENCE;
+		driverType = D3D_DRIVER_TYPE_WARP;
+#endif
+
 		UINT deviceFlags = 0;
 #if COMFY_DEBUG
 		deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-		D3D_FEATURE_LEVEL featureLevel;
-
+		D3D_FEATURE_LEVEL outFeatureLevel;
 		std::array<D3D_FEATURE_LEVEL, 3> featureLevels =
 		{
 			D3D_FEATURE_LEVEL_11_0,
@@ -80,7 +99,7 @@ namespace Graphics
 
 		const HRESULT deviceSwapChainResult = D3D11CreateDeviceAndSwapChain(
 			adapter,
-			D3D_DRIVER_TYPE_HARDWARE,
+			driverType,
 			software,
 			deviceFlags,
 			featureLevels.data(),
@@ -89,7 +108,7 @@ namespace Graphics
 			&swapChainDescription,
 			&SwapChain,
 			&Device,
-			&featureLevel,
+			&outFeatureLevel,
 			&Context);
 
 		if (FAILED(deviceSwapChainResult))
@@ -98,6 +117,14 @@ namespace Graphics
 			return false;
 		}
 
+		if (!InternalSetUpDebugInterface())
+			return false;
+
+		return true;
+	}
+
+	bool Direct3D::InternalSetUpDebugInterface()
+	{
 #if COMFY_DEBUG
 		Device->QueryInterface(IID_PPV_ARGS(&debugInterface));
 		debugInterface->QueryInterface(IID_PPV_ARGS(&infoQueue));

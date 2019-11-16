@@ -1,6 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "Core/CoreTypes.h"
+#include "Core/Win32/ComfyWindows.h"
 #include <d3d11.h>
 #include <wrl.h>
 
@@ -17,6 +18,7 @@ namespace Graphics
 		void Dispose();
 
 		void ResizeWindowRenderTarget(ivec2 newSize);
+		void SetViewport(ivec2 size);
 
 	public:
 		// NOTE: Raw pointers to optionally skip releasing them
@@ -38,6 +40,7 @@ namespace Graphics
 
 	private:
 		bool InternalCreateDeviceAndSwapchain(HWND window);
+		bool InternalSetUpDebugInterface();
 	};
 
 	// NOTE: Global instance
