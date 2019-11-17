@@ -29,7 +29,7 @@ float4 UncompressRGTC_RGBA(const Texture2D inputTexture, const SamplerState inpu
 float UncompressRGTC_Alpha(const Texture2D inputTexture, const SamplerState inputSampler, const float2 texCoord)
 {
     // NOTE: Because in this case we only need to sample the grayscale mipmap
-    return inputTexture.Sample(inputSampler, texCoord, GRAYSCALE_MIPMAP).g;
+    return inputTexture.SampleLevel(inputSampler, texCoord, GRAYSCALE_MIPMAP).g;
 }
 
 float4 FormatAwareSampleTexture_RGBA(const Texture2D inputTexture, const SamplerState inputSampler, const float2 texCoord, TextureFormat format)
