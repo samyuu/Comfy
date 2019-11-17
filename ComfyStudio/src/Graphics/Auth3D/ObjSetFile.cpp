@@ -129,7 +129,7 @@ namespace Graphics
 					assert(reader.GetEndianness() == Endianness::Little);
 					CheckReadVertexData(reader, mesh->VertexAttributes.Position, mesh->VertexData.Positions, vertexCount, vertexAttributePtrs[0], objBaseAddress);
 					CheckReadVertexData(reader, mesh->VertexAttributes.Normal, mesh->VertexData.Normals, vertexCount, vertexAttributePtrs[1], objBaseAddress);
-					CheckReadVertexData(reader, mesh->VertexAttributes.Tangents, mesh->VertexData.Tangents, vertexCount, vertexAttributePtrs[2], objBaseAddress);
+					CheckReadVertexData(reader, mesh->VertexAttributes.Tangent, mesh->VertexData.Tangents, vertexCount, vertexAttributePtrs[2], objBaseAddress);
 
 					constexpr size_t nameSize = 64;
 					mesh->Name = reader.ReadStr(nameSize);

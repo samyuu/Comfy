@@ -1,10 +1,9 @@
 #pragma once
 #include "Types.h"
 #include "FileSystem/FileInterface.h"
-#include "Graphics/RenderCommand.h"
-#include "Graphics/OpenGL/GL_Buffer.h"
-#include "Graphics/OpenGL/GL_VertexArray.h"
-#include "Core/CoreTypes.h"
+#include "Graphics/Direct3D/D3D_IndexBuffer.h"
+#include "Graphics/Direct3D/D3D_VertexBuffer.h"
+#include "Graphics/Direct3D/D3D_InputLayout.h"
 
 namespace Graphics
 {
@@ -30,7 +29,7 @@ namespace Graphics
 		std::vector<uint16_t> Indices;
 		Box BoundingBox;
 
-		RefPtr<GL_IndexBuffer> GraphicsIndexBuffer;
+		UniquePtr<D3D_StaticIndexBuffer> GraphicsIndexBuffer;
 	};
 
 	union VertexAttributeTypes
@@ -39,9 +38,9 @@ namespace Graphics
 		{
 			uint32_t Position : 1;
 			uint32_t Normal : 1;
-			uint32_t Tangents : 1;
-			uint32_t UVChannel0 : 1;
-			uint32_t UVChannel1 : 1;
+			uint32_t Tangent : 1;
+			uint32_t TextureCoordinate0 : 1;
+			uint32_t TextureCoordinate1 : 1;
 			uint32_t Color : 1;
 			uint32_t BoneWeight : 1;
 			uint32_t BoneIndex : 1;
@@ -59,9 +58,9 @@ namespace Graphics
 
 	struct GraphicsVertexBuffers
 	{
-		RefPtr<GL_VertexArray> VertexArray;
-		RefPtr<GL_VertexBuffer> PositionBuffer;
-		RefPtr<GL_VertexBuffer> NormalBuffer;
+		UniquePtr<D3D_InputLayout> InputLayout;
+		UniquePtr<D3D_StaticVertexBuffer> PositionBuffer;
+		UniquePtr<D3D_StaticVertexBuffer> NormalBuffer;
 	};
 
 	class Mesh
@@ -89,8 +88,9 @@ namespace Graphics
 	public:
 		Obj() = default;
 		Obj(const Obj&) = delete;
-		Obj& operator= (const Obj&) = delete;
 		~Obj() = default;
+
+		Obj& operator=(const Obj&) = delete;
 
 	public:
 		std::string Name;
@@ -109,8 +109,9 @@ namespace Graphics
 	public:
 		ObjSet() = default;
 		ObjSet(const ObjSet&) = delete;
-		ObjSet& operator= (const ObjSet&) = delete;
 		~ObjSet() = default;
+
+		ObjSet& operator=(const ObjSet&) = delete;
 
 	public:
 		std::string Name;
@@ -138,6 +139,10 @@ namespace Graphics
 	public:
 		virtual void Read(FileSystem::BinaryReader& reader) override;
 		void UploadAll();
+
+	private:
+		template <class T>
+		void InitializeBufferIfAttribute(bool hasAttribute, UniquePtr<D3D_StaticVertexBuffer>& vertexBuffer, std::vector<T>& vertexData, Mesh* mesh, const char* name);
 
 	private:
 		std::vector<RefPtr<Obj>> objects;
