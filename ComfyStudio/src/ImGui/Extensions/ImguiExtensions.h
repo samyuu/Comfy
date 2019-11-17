@@ -15,7 +15,6 @@ namespace Graphics
 namespace ImGui
 {
 	const ImVec2 UV0 = ImVec2(0.0f, 0.0f), UV1 = ImVec2(1.0f, 1.0f);
-	const ImVec2 UV0_GL = ImVec2(0.0f, 1.0f), UV1_GL = ImVec2(1.0f, 0.0f);
 
 	void UpdateExtendedState();
 
@@ -31,18 +30,18 @@ namespace ImGui
 	void PushItemDisabledAndTextColor();
 	void PopItemDisabledAndTextColor();
 
-	void AddTexture(ImDrawList* drawList, const Graphics::D3D_Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0 = UV0_GL, const ImVec2& uv1 = UV1_GL);
+	void AddTexture(ImDrawList* drawList, const Graphics::D3D_Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0 = UV0, const ImVec2& uv1 = UV1);
 	void AddSprite(ImDrawList* drawList, const Graphics::D3D_Texture2D* texture, const vec2& position, const vec4& sourceRegion, ImU32 color = IM_COL32_WHITE);
 
 	inline void AddTexture(ImDrawList* drawList, const Graphics::D3D_Texture2D* texture, ImVec2 center, float scale, const ImVec2& uv0, const ImVec2& uv1)
 	{
 		AddTexture(drawList, texture, center, ImVec2(scale, scale), uv0, uv1);
-	};
+	}
 
 	inline void AddTexture(ImDrawList* drawList, const Graphics::D3D_Texture2D* texture, ImVec2 center, float scale)
 	{
 		AddTexture(drawList, texture, center, ImVec2(scale, scale));
-	};
+	}
 
 	inline void AddDot(ImDrawList* drawList, const ImVec2& position, ImU32 color)
 	{
@@ -105,7 +104,7 @@ namespace ImGui
 	inline void DRAW_DEBUG_REGION(ImRect& rect)
 	{
 		AddRectFilled(GetForegroundDrawList(), rect, static_cast<ImU32>(IM_COL32_BLACK * 0.5f));
-	};
+	}
 
 	inline void DEBUG_NOSAVE_WINDOW(const char* windowName, const std::function<void(void)>& function, ImGuiWindowFlags flags = 0)
 	{
