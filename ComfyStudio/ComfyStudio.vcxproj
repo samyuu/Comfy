@@ -200,7 +200,7 @@
     <ClCompile Include="src\Editor\Common\AudioController.cpp" />
     <ClCompile Include="src\Editor\Common\CameraController2D.cpp" />
     <ClCompile Include="src\Editor\Common\CheckerboardGrid.cpp" />
-    <ClCompile Include="src\Editor\Core\Editor.cpp" />
+    <ClCompile Include="src\Editor\Core\EditorManager.cpp" />
     <ClCompile Include="src\Editor\Core\IEditorComponent.cpp" />
     <ClCompile Include="src\Editor\Core\RenderWindowBase.cpp" />
     <ClCompile Include="src\Editor\Timeline\FrameTimeline.cpp" />
@@ -326,7 +326,7 @@
     <ClInclude Include="src\Editor\Common\AudioController.h" />
     <ClInclude Include="src\Editor\Common\CameraController2D.h" />
     <ClInclude Include="src\Editor\Common\CheckerboardGrid.h" />
-    <ClInclude Include="src\Editor\Core\Editor.h" />
+    <ClInclude Include="src\Editor\Core\EditorManager.h" />
     <ClInclude Include="src\Editor\Core\IEditorComponent.h" />
     <ClInclude Include="src\Editor\Core\IFileDropReceiver.h" />
     <ClInclude Include="src\Editor\Core\RenderWindowBase.h" />

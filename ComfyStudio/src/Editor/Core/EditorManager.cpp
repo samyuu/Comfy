@@ -1,8 +1,8 @@
-#include "Editor.h"
+#include "EditorManager.h"
 #include "Core/Application.h"
 #include "Editor/Aet/AetEditor.h"
 #include "Editor/Chart/ChartEditor.h"
-//#include "Editor/PV/SceneRenderWindow.h"
+#include "Editor/PV/SceneRenderWindow.h"
 #include "Misc/StringHelper.h"
 
 namespace Editor
@@ -28,7 +28,7 @@ namespace Editor
 		return Gui::ColorConvertFloat4ToU32(colorVector);
 	}
 
-	inline void SetColor(EditorColor color, ImU32 value)
+	void SetColor(EditorColor color, ImU32 value)
 	{
 		EditorColors[color] = value;
 	}
@@ -69,7 +69,7 @@ namespace Editor
 		editorComponents.reserve(3);
 		AddEditorComponent<ChartEditor>(false);
 		AddEditorComponent<AetEditor>(true);
-		//AddEditorComponent<SceneRenderWindow>(false);
+		AddEditorComponent<SceneRenderWindow>(false);
 	}
 
 	EditorManager::~EditorManager()

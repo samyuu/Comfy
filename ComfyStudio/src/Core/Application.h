@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "ApplicationHost.h"
 #include "BaseWindow.h"
-#include "Editor/Core/Editor.h"
+#include "Editor/Core/EditorManager.h"
 #include "License/LicenseWindow.h"
 #include "ImGui/GuiRenderer.h"
 
