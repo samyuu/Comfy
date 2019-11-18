@@ -1,4 +1,5 @@
 #pragma once
+#include "Graphics/Direct3D/D3D_Shader.h"
 
 #define DECLARE_BYTECODE_GETTER(shader)	BytecodeBlob shader();
 #define DEFINE_BYTECODE_GETTER(shader)	BytecodeBlob shader() { return { ::shader##_Bytecode, sizeof(::shader##_Bytecode) }; }
@@ -6,12 +7,6 @@
 // NOTE: Public interface
 namespace Graphics
 {
-	struct BytecodeBlob
-	{
-		const void* Bytecode;
-		size_t Size;
-	};
-
 	DECLARE_BYTECODE_GETTER(ImGui_VS);
 	DECLARE_BYTECODE_GETTER(ImGui_PS);
 

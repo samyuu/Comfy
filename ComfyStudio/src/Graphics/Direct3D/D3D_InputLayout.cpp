@@ -24,8 +24,8 @@ namespace Graphics
 		D3D.Device->CreateInputLayout(
 			elementDescriptions.data(),
 			static_cast<UINT>(usedElementCount),
-			vertexShader.GetBytecode(), 
-			vertexShader.GetBytecodeSize(), 
+			vertexShader.GetBytecodeBlob().Bytecode, 
+			vertexShader.GetBytecodeBlob().Size, 
 			&layout);
 	}
 

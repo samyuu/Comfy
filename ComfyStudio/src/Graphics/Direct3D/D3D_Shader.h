@@ -4,25 +4,29 @@
 
 namespace Graphics
 {
+	struct BytecodeBlob
+	{
+		const void* Bytecode;
+		const size_t Size;
+	};
+
 	class D3D_Shader : IGraphicsResource
 	{
 	protected:
-		D3D_Shader(const void* bytecodeBlob, size_t byteSize);
+		D3D_Shader(BytecodeBlob bytecodeBlob);
 		virtual ~D3D_Shader() = default;
 
 	public:
-		const void* GetBytecode() const;
-		size_t GetBytecodeSize() const;
+		BytecodeBlob GetBytecodeBlob() const;
 
 	private:
-		const void* bytecodeBlob;
-		const size_t bytecodeSize;
+		BytecodeBlob bytecodeBlob;
 	};
 
 	class D3D_VertexShader final : public D3D_Shader
 	{
 	public:
-		D3D_VertexShader(const void* bytecode, size_t byteSize);
+		D3D_VertexShader(BytecodeBlob bytecodeBlob);
 		D3D_VertexShader(const D3D_VertexShader&) = delete;
 		~D3D_VertexShader() = default;
 
@@ -42,7 +46,7 @@ namespace Graphics
 	class D3D_PixelShader final : public D3D_Shader
 	{
 	public:
-		D3D_PixelShader(const void* bytecode, size_t byteSize);
+		D3D_PixelShader(BytecodeBlob bytecodeBlob);
 		D3D_PixelShader(const D3D_PixelShader&) = delete;
 		~D3D_PixelShader() = default;
 

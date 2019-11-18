@@ -2,25 +2,20 @@
 
 namespace Graphics
 {
-	D3D_Shader::D3D_Shader(const void* bytecode, size_t byteSize)
-		: bytecodeBlob(bytecode), bytecodeSize(byteSize)
+	D3D_Shader::D3D_Shader(BytecodeBlob bytecodeBlob)
+		: bytecodeBlob(bytecodeBlob)
 	{
 	}
 
-	const void* D3D_Shader::GetBytecode() const
+	BytecodeBlob D3D_Shader::GetBytecodeBlob() const
 	{
 		return bytecodeBlob;
 	}
-
-	size_t D3D_Shader::GetBytecodeSize() const
-	{
-		return bytecodeSize;
-	}
 	
-	D3D_VertexShader::D3D_VertexShader(const void* bytecode, size_t byteSize)
-		: D3D_Shader(bytecode, byteSize)
+	D3D_VertexShader::D3D_VertexShader(BytecodeBlob bytecodeBlob)
+		: D3D_Shader(bytecodeBlob)
 	{
-		D3D.Device->CreateVertexShader(bytecode, byteSize, nullptr, &shader);
+		D3D.Device->CreateVertexShader(bytecodeBlob.Bytecode, bytecodeBlob.Size, nullptr, &shader);
 	}
 
 	void D3D_VertexShader::Bind()
@@ -38,10 +33,10 @@ namespace Graphics
 		return shader.Get();
 	}
 	
-	D3D_PixelShader::D3D_PixelShader(const void* bytecode, size_t byteSize)
-		: D3D_Shader(bytecode, byteSize)
+	D3D_PixelShader::D3D_PixelShader(BytecodeBlob bytecodeBlob)
+		: D3D_Shader(bytecodeBlob)
 	{
-		D3D.Device->CreatePixelShader(bytecode, byteSize, nullptr, &shader);
+		D3D.Device->CreatePixelShader(bytecodeBlob.Bytecode, bytecodeBlob.Size, nullptr, &shader);
 	}
 
 	void D3D_PixelShader::Bind()
