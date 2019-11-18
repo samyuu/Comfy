@@ -14,7 +14,7 @@ struct VS_OUTPUT
     float4 Color        : COLOR;
 };
 
-cbuffer MatrixConstantBuffer : register(b0)
+cbuffer CameraConstantData : register(b0)
 {
     matrix CB_ViewProjection;
 };

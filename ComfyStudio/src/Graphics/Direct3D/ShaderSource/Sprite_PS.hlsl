@@ -11,7 +11,7 @@ struct VS_OUTPUT
     float4 Color        : COLOR;
 };
 
-cbuffer SpriteConstantBuffer : register(b0)
+cbuffer SpriteConstantData : register(b0)
 {
     TextureFormat CB_TextureFormat;
     TextureFormat CB_TextureMaskFormat;

@@ -60,6 +60,27 @@ namespace Graphics
 		uint32_t GetDrawCallCount() const;
 
 	private:
+		struct CameraConstantData
+		{
+			mat4 ViewProjection;
+		};
+
+		struct SpriteConstantData
+		{
+			TextureFormat Format;
+			TextureFormat MaskFormat;
+
+			AetBlendMode BlendMode;
+			uint8_t Padding[3];
+
+			int Flags;
+			int DrawTextBorder;
+
+			int DrawCheckerboard;
+			vec2 CheckerboardSize;
+		};
+
+	private:
 		bool drawTextBorder = false;
 		bool batchSprites = true;
 
@@ -68,8 +89,8 @@ namespace Graphics
 		D3D_VertexShader spriteVertexShader;
 		D3D_PixelShader spritePixelShader;
 
-		D3D_DefaultConstantBuffer matrixConstantBuffer;
-		D3D_DynamicConstantBuffer spriteConstantBuffer;
+		D3D_DefaultConstantBufferTemplate<CameraConstantData> cameraConstantBuffer = { 0 };
+		D3D_DynamicConstantBufferTemplate<SpriteConstantData> spriteConstantBuffer = { 0 };
 
 		UniquePtr<D3D_StaticIndexBuffer> indexBuffer = nullptr;
 		UniquePtr<D3D_DynamicVertexBuffer> vertexBuffer = nullptr;

@@ -5,83 +5,60 @@ namespace Graphics
 {
 	namespace
 	{
-		constexpr vec2 DefaultPosition = { 0.0f, 0.0f };
-		constexpr vec2 DefaultOrigin = { 0.0f, 0.0f };
-		constexpr vec2 DefaultScale = { 1.0f, 1.0f };
-		constexpr vec4 DefaultColor = { 1.0f, 1.0f, 1.0f, 1.0f };
-		constexpr float DefaultRotation = 0.0f;
-
-		inline vec2 PositionOrDefault(const vec2* position)
+		struct DefaultProperties
 		{
-			return position == nullptr ? DefaultPosition : *position;
-		}
+			static constexpr vec2 Position = { 0.0f, 0.0f };
+			static constexpr vec2 Origin = { 0.0f, 0.0f };
+			static constexpr vec2 Scale = { 1.0f, 1.0f };
+			static constexpr vec4 Color = { 1.0f, 1.0f, 1.0f, 1.0f };
+			static constexpr float Rotation = 0.0f;
 
-		inline vec4 SourceOrDefault(const vec4* source, const D3D_Texture2D* texture)
-		{
-			return source == nullptr ? vec4(0.0f, 0.0f, texture->GetSize()) : *source;
-		}
+			static vec2 PositionOrDefault(const vec2* position)
+			{
+				return position == nullptr ? DefaultProperties::Position : *position;
+			}
 
-		inline vec2 SizeOrDefault(const D3D_Texture2D* texture, const vec4* source)
-		{
-			return texture != nullptr ? vec2(texture->GetSize()) : vec2(source->w, source->z);
-		}
+			static vec4 SourceOrDefault(const vec4* source, const D3D_Texture2D* texture)
+			{
+				return source == nullptr ? vec4(0.0f, 0.0f, texture->GetSize()) : *source;
+			}
 
-		inline vec2 OriginOrDefault(const vec2* origin)
-		{
-			return origin == nullptr ? DefaultOrigin : -*origin;
-		}
+			static vec2 SizeOrDefault(const D3D_Texture2D* texture, const vec4* source)
+			{
+				return texture != nullptr ? vec2(texture->GetSize()) : vec2(source->w, source->z);
+			}
 
-		inline vec2 ScaleOrDefault(const vec2* scale)
-		{
-			return scale == nullptr ? DefaultScale : *scale;
-		}
+			static vec2 OriginOrDefault(const vec2* origin)
+			{
+				return origin == nullptr ? DefaultProperties::Origin : -*origin;
+			}
 
-		inline vec4 ColorOrDefault(const vec4* color)
-		{
-			return color == nullptr ? DefaultColor : *color;
-		}
-	}
+			static vec2 ScaleOrDefault(const vec2* scale)
+			{
+				return scale == nullptr ? DefaultProperties::Scale : *scale;
+			}
 
-	namespace
-	{
+			static vec4 ColorOrDefault(const vec4* color)
+			{
+				return color == nullptr ? DefaultProperties::Color : *color;
+			}
+		};
+
 		enum SpriteShaderTextureSlot
 		{
 			TextureSpriteSlot = 0,
 			TextureMaskSlot = 1
 		};
-
-		struct MatrixConstantBuffer
-		{
-			mat4 ViewProjection;
-		};
-
-		struct SpriteConstantBuffer
-		{
-			TextureFormat Format;
-			TextureFormat MaskFormat;
-
-			AetBlendMode BlendMode;
-			uint8_t Padding[3];
-
-			int Flags;
-			int DrawTextBorder;
-
-			int DrawCheckerboard;
-			vec2 CheckerboardSize;
-		};
 	}
 
-	D3D_Renderer2D::D3D_Renderer2D() :
-		spriteVertexShader(Sprite_VS().Bytecode, Sprite_VS().Size),
-		spritePixelShader(Sprite_PS().Bytecode, Sprite_PS().Size),
-		matrixConstantBuffer(0, sizeof(MatrixConstantBuffer)),
-		spriteConstantBuffer(0, sizeof(SpriteConstantBuffer))
+	D3D_Renderer2D::D3D_Renderer2D()
+		: spriteVertexShader(Sprite_VS()), spritePixelShader(Sprite_PS())
 	{
 		D3D_SetObjectDebugName(spriteVertexShader.GetShader(), "Renderer2D::SpriteVertexShader");
 		D3D_SetObjectDebugName(spritePixelShader.GetShader(), "Renderer2D::SpritePixelShader");
 
-		D3D_SetObjectDebugName(matrixConstantBuffer.GetBuffer(), "Renderer2D::MatrixConstantBuffer");
-		D3D_SetObjectDebugName(spriteConstantBuffer.GetBuffer(), "Renderer2D::SpriteConstantBuffer");
+		D3D_SetObjectDebugName(cameraConstantBuffer.Buffer.GetBuffer(), "Renderer2D::CameraConstantBuffer");
+		D3D_SetObjectDebugName(spriteConstantBuffer.Buffer.GetBuffer(), "Renderer2D::SpriteConstantBuffer");
 
 		D3D_SetObjectDebugName(rasterizerState.GetRasterizerState(), "Renderer2D::RasterizerState");
 
@@ -182,13 +159,11 @@ namespace Graphics
 		inputLayout->Bind();
 		indexBuffer->Bind();
 
-		MatrixConstantBuffer matrixConstantData;
-		matrixConstantData.ViewProjection = glm::transpose(orthographicCamera->GetProjectionMatrix() * orthographicCamera->GetViewMatrix());
-		matrixConstantBuffer.BindVertexShader();
-		matrixConstantBuffer.UploadData(sizeof(matrixConstantData), &matrixConstantData);
+		cameraConstantBuffer.Data.ViewProjection = glm::transpose(orthographicCamera->GetProjectionMatrix() * orthographicCamera->GetViewMatrix());
+		cameraConstantBuffer.UploadData();
+		cameraConstantBuffer.BindVertexShader();
 
-		SpriteConstantBuffer spriteConstantData = {};
-		spriteConstantData.DrawTextBorder = drawTextBorder;
+		spriteConstantBuffer.Data.DrawTextBorder = drawTextBorder;
 		spriteConstantBuffer.BindPixelShader();
 
 		InternalCreateBatches();
@@ -212,13 +187,13 @@ namespace Graphics
 			if (item.MaskTexture != nullptr)
 				item.MaskTexture->Bind(TextureMaskSlot);
 
-			spriteConstantData.Format = (item.Texture == nullptr) ? TextureFormat::Unknown : item.Texture->GetTextureFormat();
-			spriteConstantData.MaskFormat = (item.MaskTexture == nullptr) ? TextureFormat::Unknown : item.MaskTexture->GetTextureFormat();
-			spriteConstantData.BlendMode = item.BlendMode;
-			spriteConstantData.DrawCheckerboard = item.CheckerboardSize != vec2(0.0f, 0.0f);
-			spriteConstantData.CheckerboardSize = item.CheckerboardSize;
+			spriteConstantBuffer.Data.Format = (item.Texture == nullptr) ? TextureFormat::Unknown : item.Texture->GetTextureFormat();
+			spriteConstantBuffer.Data.MaskFormat = (item.MaskTexture == nullptr) ? TextureFormat::Unknown : item.MaskTexture->GetTextureFormat();
+			spriteConstantBuffer.Data.BlendMode = item.BlendMode;
+			spriteConstantBuffer.Data.DrawCheckerboard = item.CheckerboardSize != vec2(0.0f, 0.0f);
+			spriteConstantBuffer.Data.CheckerboardSize = item.CheckerboardSize;
 
-			spriteConstantBuffer.UploadData(sizeof(spriteConstantData), &spriteConstantData);
+			spriteConstantBuffer.UploadData();
 
 			D3D.Context->DrawIndexed(
 				batch.Count * SpriteIndices::GetIndexCount(),
@@ -293,13 +268,13 @@ namespace Graphics
 			blendMode);
 
 		pair.Vertices->SetValues(
-			PositionOrDefault(position),
-			SourceOrDefault(sourceRegion, texture),
-			SizeOrDefault(texture, sourceRegion),
-			OriginOrDefault(origin),
+			DefaultProperties::PositionOrDefault(position),
+			DefaultProperties::SourceOrDefault(sourceRegion, texture),
+			DefaultProperties::SizeOrDefault(texture, sourceRegion),
+			DefaultProperties::OriginOrDefault(origin),
 			rotation,
-			ScaleOrDefault(scale),
-			ColorOrDefault(color));
+			DefaultProperties::ScaleOrDefault(scale),
+			DefaultProperties::ColorOrDefault(color));
 	}
 
 	void D3D_Renderer2D::Begin(const OrthographicCamera& camera)
@@ -311,7 +286,7 @@ namespace Graphics
 	void D3D_Renderer2D::Draw(vec2 position, vec2 size, vec4 color)
 	{
 		const vec4 source = vec4(0.0f, 0.0f, size.x, size.y);
-		InternalDraw(nullptr, &source, &position, nullptr, DefaultRotation, nullptr, &color);
+		InternalDraw(nullptr, &source, &position, nullptr, DefaultProperties::Rotation, nullptr, &color);
 	}
 
 	void D3D_Renderer2D::Draw(vec2 position, vec2 size, const vec4 colors[4])
@@ -320,7 +295,7 @@ namespace Graphics
 
 		SpriteBatchPair pair = InternalCheckFlushAddItem();
 		pair.Item->SetValues(nullptr, nullptr);
-		pair.Vertices->SetValues(position, source, size, DefaultOrigin, DefaultRotation, DefaultScale, colors);
+		pair.Vertices->SetValues(position, source, size, DefaultProperties::Origin, DefaultProperties::Rotation, DefaultProperties::Scale, colors);
 	}
 
 	void D3D_Renderer2D::Draw(vec2 position, vec2 size, vec2 origin, float rotation, vec2 scale, vec4 color)
@@ -331,7 +306,7 @@ namespace Graphics
 
 	void D3D_Renderer2D::Draw(const D3D_Texture2D* texture, vec2 position, vec4 color)
 	{
-		InternalDraw(texture, nullptr, &position, nullptr, DefaultRotation, nullptr, &color);
+		InternalDraw(texture, nullptr, &position, nullptr, DefaultProperties::Rotation, nullptr, &color);
 	}
 
 	void D3D_Renderer2D::Draw(const D3D_Texture2D* texture, vec4 sourceRegion, vec2 position, vec4 color)
@@ -429,7 +404,6 @@ namespace Graphics
 
 	const SpriteVertices& D3D_Renderer2D::GetLastVertices() const
 	{
-		assert(vertices.size() > 0);
 		return vertices.back();
 	}
 
