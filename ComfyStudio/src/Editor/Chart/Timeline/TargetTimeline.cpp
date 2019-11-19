@@ -221,7 +221,7 @@ namespace Editor
 			sprSet.Parse(sprFileBuffer.get());
 			sprSet.TxpSet->UploadAll(&sprSet);
 
-			buttonIconsTexture = sprSet.TxpSet->Textures.front()->Texture.get();
+			buttonIconsTexture = sprSet.TxpSet->Txps.front().Texture2D.get();
 		}
 
 		const vec2 texelSize = vec2(1.0f, 1.0f) / vec2(buttonIconsTexture->GetSize());

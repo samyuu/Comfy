@@ -8,98 +8,25 @@ using namespace FileSystem;
 
 namespace Graphics
 {
-	namespace
+	const std::vector<MipMap>& Txp::GetMipMaps(uint32_t arrayIndex) const
 	{
-		TxpSig ReadTxpSig(BinaryReader& reader)
-		{
-			return { reader.ReadChar(), reader.ReadChar(), reader.ReadChar(), static_cast<TxpSig::TxpType>(reader.ReadChar()) };
-		}
+		return MipMapsArray[arrayIndex];
 	}
 
-	void TxpSet::Read(BinaryReader& reader)
+	ivec2 Txp::GetSize() const
 	{
-		TxpSet* txpSet = this;
-		void* baseAddress = reader.GetPositionPtr();
+		if (MipMapsArray.size() < 1 || MipMapsArray.front().size() < 1)
+			return ivec2(0, 0);
 
-		txpSet->Signature = ReadTxpSig(reader);
-		assert(txpSet->Signature.Type == TxpSig::TxpSet);
-
-		uint32_t textureCount = reader.ReadUInt32();
-		uint32_t packedCount = reader.ReadUInt32();
-
-		Textures.reserve(textureCount);
-		for (uint32_t i = 0; i < textureCount; i++)
-		{
-			Textures.push_back(MakeUnique<Txp>());
-			Txp* texture = Textures.back().get();
-
-			reader.ReadAt(reader.ReadPtr(), baseAddress, [&texture](BinaryReader& reader)
-			{
-				int64_t textureBaseAddress = reader.GetPosition();
-
-				texture->Signature = ReadTxpSig(reader);
-				assert(texture->Signature.Type == TxpSig::Texture || texture->Signature.Type == TxpSig::TextureAlt);
-
-				uint32_t mipMapCount = reader.ReadUInt32();
-				uint32_t packedInfo = reader.ReadUInt32();
-
-				void* mipMapsAddress = (void*)((int64_t)reader.ReadPtr() + textureBaseAddress);
-				reader.ReadAt(mipMapsAddress, [mipMapCount, &texture](BinaryReader& reader)
-				{
-					texture->MipMaps.reserve(mipMapCount);
-					for (uint32_t i = 0; i < mipMapCount; i++)
-					{
-						texture->MipMaps.push_back(MakeRef<MipMap>());
-						MipMap* mipMap = texture->MipMaps.back().get();
-
-						mipMap->Signature = ReadTxpSig(reader);
-						assert(mipMap->Signature.Type == TxpSig::MipMap);
-
-						mipMap->Width = reader.ReadInt32();
-						mipMap->Height = reader.ReadInt32();
-						mipMap->Format = static_cast<TextureFormat>(reader.ReadInt32());
-						mipMap->Index = reader.ReadUInt32();
-
-						uint32_t dataSize = reader.ReadUInt32();
-						mipMap->Data.resize(dataSize);
-
-						// uint8_t* allocationTestBuffer = new uint8_t[dataSize];
-						// reader.Read(allocationTestBuffer, dataSize);
-						// //reader.SetPosition(reader.GetPosition() + dataSize);
-
-						reader.Read(mipMap->Data.data(), dataSize);
-					}
-				});
-
-			});
-		}
+		return MipMapsArray.front().front().Size;
 	}
 
-	static void ParseTexture(const uint8_t* buffer, Txp* texture)
+	TextureFormat Txp::GetFormat() const
 	{
-		texture->Signature = *(TxpSig*)(buffer + 0);
-		uint32_t mipMapCount = *(uint32_t*)(buffer + 4);
-		uint32_t packedInfo = *(uint32_t*)(buffer + 8);
-		uint32_t offset = *(uint32_t*)(buffer + 12);
-		const uint8_t* mipMapBuffer = buffer + offset;
+		if (MipMapsArray.size() < 1 || MipMapsArray.front().size() < 1)
+			return TextureFormat::Unknown;
 
-		texture->MipMaps.reserve(mipMapCount);
-		for (uint32_t i = 0; i < mipMapCount; i++)
-		{
-			texture->MipMaps.push_back(MakeRef<MipMap>());
-			MipMap* mipMap = texture->MipMaps.back().get();
-
-			mipMap->Signature = *(TxpSig*)(mipMapBuffer + 0);
-			mipMap->Width = *(uint32_t*)(mipMapBuffer + 4);
-			mipMap->Height = *(uint32_t*)(mipMapBuffer + 8);
-			mipMap->Format = *(TextureFormat*)(mipMapBuffer + 12);
-			uint32_t index = *(uint32_t*)(mipMapBuffer + 16);
-
-			mipMap->DataPointerSize = *(uint32_t*)(mipMapBuffer + 20);
-			mipMap->DataPointer = (mipMapBuffer + 24);
-
-			mipMapBuffer += 24 + mipMap->DataPointerSize;
-		}
+		return MipMapsArray.front().front().Format;
 	}
 
 	void TxpSet::Parse(const uint8_t* buffer)
@@ -111,25 +38,60 @@ namespace Graphics
 		uint32_t packedCount = *(uint32_t*)(buffer + 8);
 		uint32_t* offsets = (uint32_t*)(buffer + 12);
 
-		Textures.reserve(textureCount);
-		for (uint32_t i = 0; i < textureCount; i++)
-		{
-			Textures.push_back(MakeUnique<Txp>());
-			Txp* texture = Textures.back().get();
+		assert(txpSet->Signature.Type == TxpSig::TxpSet);
 
-			uint32_t offset = offsets[i];
-			ParseTexture(buffer + offset, texture);
-		}
+		Txps.resize(textureCount);
+		for (uint32_t i = 0; i < textureCount; i++)
+			ParseTxp(buffer + offsets[i], &Txps[i]);
 	}
 
 	void TxpSet::UploadAll(SprSet* parentSprSet)
 	{
-		for (int i = 0; i < Textures.size(); i++)
+		for (auto& txp : Txps)
 		{
-			Txp* txp = Textures[i].get();
-			txp->Texture = MakeUnique<D3D_ImmutableTexture2D>(txp);
+			if (txp.Signature.Type != TxpSig::Texture2D)
+				continue;
 
-			D3D_SetObjectDebugName(txp->Texture->GetTexture(), "%s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp->Name.c_str());
+			txp.Texture2D = MakeUnique<D3D_ImmutableTexture2D>(txp);
+			D3D_SetObjectDebugName(txp.Texture2D->GetTexture(), "%s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp.Name.empty() ? "???" : txp.Name.c_str());
+		}
+	}
+
+	void TxpSet::ParseTxp(const uint8_t* buffer, Txp* txp)
+	{
+		txp->Signature = *(TxpSig*)(buffer + 0);
+		uint32_t mipMapCount = *(uint32_t*)(buffer + 4);
+		txp->MipLevels = *(uint8_t*)(buffer + 8);
+		txp->ArraySize = *(uint8_t*)(buffer + 9);
+
+		uint32_t* offsets = (uint32_t*)(buffer + 12);
+		const uint8_t* mipMapBuffer = buffer + *offsets;
+		++offsets;
+
+		assert(txp->Signature.Type == TxpSig::Texture2D || txp->Signature.Type == TxpSig::CubeMap || txp->Signature.Type == TxpSig::Rectangle);
+		assert(mipMapCount == txp->MipLevels * txp->ArraySize);
+
+		txp->MipMapsArray.resize(txp->ArraySize);
+
+		for (auto& mipMaps : txp->MipMapsArray)
+		{
+			mipMaps.resize(txp->MipLevels);
+
+			for (auto& mipMap : mipMaps)
+			{
+				mipMap.Signature = *(TxpSig*)(mipMapBuffer + 0);
+				mipMap.Size = *(ivec2*)(mipMapBuffer + 4);
+				mipMap.Format = *(TextureFormat*)(mipMapBuffer + 12);
+
+				mipMap.MipIndex = *(uint8_t*)(mipMapBuffer + 16);
+				mipMap.ArrayIndex = *(uint8_t*)(mipMapBuffer + 17);
+
+				mipMap.DataPointerSize = *(uint32_t*)(mipMapBuffer + 20);
+				mipMap.DataPointer = (mipMapBuffer + 24);
+
+				mipMapBuffer = buffer + *offsets;
+				++offsets;
+			}
 		}
 	}
 }

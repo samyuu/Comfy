@@ -445,16 +445,16 @@ namespace Editor
 
 		const AetSurface* surface = (previewData->Surface != nullptr) ? previewData->Surface : obj.Surface;
 
-		const Txp* texture;
-		const Spr* sprite;
-		const bool validSprite = aetRenderer->GetSprite(surface->GetSprite(obj.SpriteIndex), &texture, &sprite);
+		const Txp* txp;
+		const Spr* spr;
+		const bool validSprite = aetRenderer->GetSprite(surface->GetSprite(obj.SpriteIndex), &txp, &spr);
 
 		if (!validSprite)
 			return false;
 
 		renderer->Draw(
-			texture->Texture.get(),
-			sprite->PixelRegion,
+			txp->Texture2D.get(),
+			spr->PixelRegion,
 			obj.Properties.Position + positionOffset,
 			obj.Properties.Origin,
 			obj.Properties.Rotation,
@@ -481,26 +481,26 @@ namespace Editor
 		const AetSurface* surface = (previewData->Surface != nullptr && selected) ? previewData->Surface : obj.Surface;
 		const AetSurface* maskSurface = (previewData->Surface != nullptr && maskSelected) ? previewData->Surface : maskObj.Surface;
 
-		const Txp* maskTexture;
-		const Spr* maskSprite;
-		const bool validMaskSprite = aetRenderer->GetSprite(maskSurface->GetSprite(maskObj.SpriteIndex), &maskTexture, &maskSprite);
+		const Txp* maskTxp;
+		const Spr* maskSpr;
+		const bool validMaskSprite = aetRenderer->GetSprite(maskSurface->GetSprite(maskObj.SpriteIndex), &maskTxp, &maskSpr);
 
-		const Txp* texture;
-		const Spr* sprite;
-		const bool validSprite = aetRenderer->GetSprite(surface->GetSprite(obj.SpriteIndex), &texture, &sprite);
+		const Txp* txp;
+		const Spr* spr;
+		const bool validSprite = aetRenderer->GetSprite(surface->GetSprite(obj.SpriteIndex), &txp, &spr);
 
 		if (!validMaskSprite || !validSprite)
 			return false;
 
 		renderer->Draw(
-			maskTexture->Texture.get(),
-			maskSprite->PixelRegion,
+			maskTxp->Texture2D.get(),
+			maskSpr->PixelRegion,
 			maskObj.Properties.Position,
 			maskObj.Properties.Origin,
 			maskObj.Properties.Rotation,
 			maskObj.Properties.Scale,
-			texture->Texture.get(),
-			sprite->PixelRegion,
+			txp->Texture2D.get(),
+			spr->PixelRegion,
 			obj.Properties.Position + positionOffset,
 			obj.Properties.Origin,
 			obj.Properties.Rotation,

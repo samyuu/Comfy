@@ -15,10 +15,10 @@ namespace Graphics
 		unk32_t GraphicsReserved;
 		DisplayMode DisplayMode;
 
-		inline vec2 GetSize() const { return vec2(PixelRegion.z, PixelRegion.w); };
+		vec2 GetSize() const;
 	};
 
-	class SprSet : public FileSystem::IBinaryReadable, public FileSystem::IBufferParsable
+	class SprSet : public FileSystem::IBufferParsable
 	{
 	public:
 		std::string Name;
@@ -26,8 +26,7 @@ namespace Graphics
 		UniquePtr<TxpSet> TxpSet;
 		std::vector<Spr> Sprites;
 
-		virtual void Read(FileSystem::BinaryReader& reader) override;
-		virtual void Parse(const uint8_t* buffer) override;
+		void Parse(const uint8_t* buffer) override;
 
 	private:
 	};

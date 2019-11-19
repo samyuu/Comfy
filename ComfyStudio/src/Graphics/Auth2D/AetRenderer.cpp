@@ -49,9 +49,9 @@ namespace Graphics
 		if (objCallback.has_value() && objCallback.value()(obj, positionOffset, opacity))
 			return;
 
-		const Txp* texture;
-		const Spr* sprite;
-		const bool validSprite = GetSprite(obj.Surface->GetSprite(obj.SpriteIndex), &texture, &sprite);
+		const Txp* txp;
+		const Spr* spr;
+		const bool validSprite = GetSprite(obj.Surface->GetSprite(obj.SpriteIndex), &txp, &spr);
 
 		const vec2 finalPosition = obj.Properties.Position + positionOffset;
 		const float finalOpacity = obj.Properties.Opacity * opacity;
@@ -59,8 +59,8 @@ namespace Graphics
 		if (validSprite)
 		{
 			renderer2D->Draw(
-				texture->Texture.get(),
-				sprite->PixelRegion,
+				txp->Texture2D.get(),
+				spr->PixelRegion,
 				finalPosition,
 				obj.Properties.Origin,
 				obj.Properties.Rotation,
@@ -91,25 +91,25 @@ namespace Graphics
 		if (objMaskCallback.has_value() && objMaskCallback.value()(maskObj, obj, positionOffset, opacity))
 			return;
 
-		const Txp* maskTexture;
-		const Spr* maskSprite;
-		const bool validMaskSprite = GetSprite(maskObj.Surface->GetSprite(maskObj.SpriteIndex), &maskTexture, &maskSprite);
+		const Txp* maskTxp;
+		const Spr* maskSpr;
+		const bool validMaskSprite = GetSprite(maskObj.Surface->GetSprite(maskObj.SpriteIndex), &maskTxp, &maskSpr);
 
-		const Txp* texture;
-		const Spr* sprite;
-		const bool validSprite = GetSprite(obj.Surface->GetSprite(obj.SpriteIndex), &texture, &sprite);
+		const Txp* txp;
+		const Spr* spr;
+		const bool validSprite = GetSprite(obj.Surface->GetSprite(obj.SpriteIndex), &txp, &spr);
 
 		if (validMaskSprite && validSprite)
 		{
 			renderer2D->Draw(
-				maskTexture->Texture.get(),
-				maskSprite->PixelRegion,
+				maskTxp->Texture2D.get(),
+				maskSpr->PixelRegion,
 				maskObj.Properties.Position,
 				maskObj.Properties.Origin,
 				maskObj.Properties.Rotation,
 				maskObj.Properties.Scale,
-				texture->Texture.get(),
-				sprite->PixelRegion,
+				txp->Texture2D.get(),
+				spr->PixelRegion,
 				obj.Properties.Position + positionOffset,
 				obj.Properties.Origin,
 				obj.Properties.Rotation,
@@ -180,7 +180,7 @@ namespace Graphics
 		}
 		else
 		{
-			renderer2D->Draw(texture->Texture.get(), sprite->PixelRegion, vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), vec4(1.0f));
+			renderer2D->Draw(texture->Texture2D.get(), sprite->PixelRegion, vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), vec4(1.0f));
 		}
 	}
 
@@ -192,7 +192,7 @@ namespace Graphics
 		if (identifier->SpriteCache != nullptr)
 		{
 		from_sprite_cache:
-			*outTxp = sprSet->TxpSet->Textures[identifier->SpriteCache->TextureIndex].get();
+			*outTxp = &sprSet->TxpSet->Txps[identifier->SpriteCache->TextureIndex];
 			*outSpr = identifier->SpriteCache;
 			return true;
 		}

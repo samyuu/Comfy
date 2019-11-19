@@ -1,14 +1,14 @@
 #pragma once
 #include "Direct3D.h"
 #include "GraphicsInterfaces.h"
-#include "Graphics/TxpSet.h"
+#include "Graphics/GraphicsTypes.h"
 
 namespace Graphics
 {
 	class D3D_Texture2D : IGraphicsResource
 	{
 	protected:
-		D3D_Texture2D(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode, float lodBias);
+		D3D_Texture2D(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode, float lodBias = 0.0f);
 		virtual ~D3D_Texture2D() = default;
 
 	public:
@@ -38,7 +38,7 @@ namespace Graphics
 	class D3D_ImmutableTexture2D final : public D3D_Texture2D
 	{
 	public:
-		D3D_ImmutableTexture2D(Txp* txp);
+		D3D_ImmutableTexture2D(const struct Txp& txp);
 		D3D_ImmutableTexture2D(ivec2 size, const void* rgbaBuffer);
 		D3D_ImmutableTexture2D(ivec2 size, const void* rgbaBuffer, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode);
 		D3D_ImmutableTexture2D(const D3D_ImmutableTexture2D&) = delete;

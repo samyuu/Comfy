@@ -5,87 +5,9 @@ using namespace FileSystem;
 
 namespace Graphics
 {
-	namespace
+	vec2 Spr::GetSize() const
 	{
-		void ReadVec4(vec4& value, BinaryReader& reader)
-		{
-			value.x = reader.ReadFloat();
-			value.y = reader.ReadFloat();
-			value.z = reader.ReadFloat();
-			value.w = reader.ReadFloat();
-		}
-	}
-
-	void SprSet::Read(BinaryReader& reader)
-	{
-		SprSet* sprSet = this;
-
-		sprSet->Signature = reader.ReadUInt32();
-
-		void* txpSetOffset = reader.ReadPtr();
-		uint32_t textureCount = reader.ReadUInt32();
-
-		if (txpSetOffset != nullptr)
-		{
-			reader.ReadAt(txpSetOffset, [&sprSet](BinaryReader& reader)
-			{
-				sprSet->TxpSet = MakeUnique<Graphics::TxpSet>();
-				sprSet->TxpSet->Read(reader);
-			});
-		}
-
-		uint32_t spritesCount = reader.ReadUInt32();
-		void* spritesOffset = reader.ReadPtr();
-
-		if (spritesOffset != nullptr)
-		{
-			reader.ReadAt(spritesOffset, [spritesCount, &sprSet](BinaryReader& reader)
-			{
-				sprSet->Sprites.resize(spritesCount);
-				for (uint32_t i = 0; i < spritesCount; i++)
-				{
-					Spr* sprite = &sprSet->Sprites[i];
-
-					sprite->TextureIndex = reader.ReadInt32();
-					sprite->Unknown = reader.ReadFloat();
-					ReadVec4(sprite->TexelRegion, reader);
-					ReadVec4(sprite->PixelRegion, reader);
-				}
-			});
-		}
-
-		void* textureNamesOffset = reader.ReadPtr();
-		if (textureNamesOffset != nullptr)
-		{
-			reader.ReadAt(textureNamesOffset, [&sprSet](BinaryReader& reader)
-			{
-				for (auto &texture : sprSet->TxpSet->Textures)
-					texture->Name = reader.ReadStrPtr();
-			});
-		}
-
-		void* spriteNamesOffset = reader.ReadPtr();
-		if (spriteNamesOffset != nullptr)
-		{
-			reader.ReadAt(spriteNamesOffset, [&sprSet](BinaryReader& reader)
-			{
-				for (Spr &sprite : sprSet->Sprites)
-					sprite.Name = reader.ReadStrPtr();
-			});
-		}
-
-		void* spriteExtraDataOffset = reader.ReadPtr();
-		if (spriteExtraDataOffset != nullptr)
-		{
-			reader.ReadAt(spriteExtraDataOffset, [&sprSet](BinaryReader& reader)
-			{
-				for (Spr &sprite : sprSet->Sprites)
-				{
-					sprite.GraphicsReserved = reader.ReadUInt32();
-					sprite.DisplayMode = static_cast<DisplayMode>(reader.ReadUInt32());
-				}
-			});
-		}
+		return vec2(PixelRegion.z, PixelRegion.w);
 	}
 
 	void SprSet::Parse(const uint8_t* buffer)
@@ -132,7 +54,7 @@ namespace Graphics
 			{
 				uint32_t nameOffset = ((uint32_t*)textureNamesOffsetBuffer)[i];
 				char* name = (char*)(buffer + nameOffset);
-				sprSet->TxpSet->Textures[i]->Name = std::string(name);
+				sprSet->TxpSet->Txps[i].Name = std::string(name);
 			}
 		}
 

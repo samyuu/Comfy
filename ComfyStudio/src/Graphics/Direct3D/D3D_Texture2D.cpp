@@ -1,4 +1,5 @@
 #include "D3D_Texture2D.h"
+#include "Graphics/TxpSet.h"
 
 namespace Graphics
 {
@@ -45,15 +46,6 @@ namespace Graphics
 			default:
 				return 0;
 			}
-		}
-
-		constexpr float GetTxpLodBias(Txp* txp)
-		{
-			if (txp == nullptr || txp->MipMaps.size() < 1)
-				return 0.0f;
-
-			// NOTE: Because somewhat surprisingly Texture2D::SampleLevel also factors in the LOD bias
-			return (txp->MipMaps.front()->Format != TextureFormat::RGTC2) ? -1.0f : 0.0f;
 		}
 
 		constexpr UINT GetBitsPerPixel(DXGI_FORMAT format)
@@ -318,18 +310,20 @@ namespace Graphics
 		return resourceView.Get();
 	}
 
-	D3D_ImmutableTexture2D::D3D_ImmutableTexture2D(Txp* txp)
-		: D3D_Texture2D(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER, GetTxpLodBias(txp))
+	D3D_ImmutableTexture2D::D3D_ImmutableTexture2D(const Txp& txp)
+		: D3D_Texture2D(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER)
 	{
-		assert(txp != nullptr && txp->MipMaps.size() > 0);
-		auto& baseMipMap = txp->MipMaps.front();
+		assert(txp.MipMapsArray.size() > 0 && txp.MipMapsArray.front().size() > 0 && txp.Signature.Type == TxpSig::Texture2D);
 
-		textureFormat = baseMipMap->Format;
-		textureDescription.Width = baseMipMap->Width;
-		textureDescription.Height = baseMipMap->Height;
-		textureDescription.MipLevels = static_cast<UINT>(txp->MipMaps.size());
+		auto& mipMaps = txp.MipMapsArray.front();
+		auto& baseMipMap = mipMaps.front();
+
+		textureFormat = baseMipMap.Format;
+		textureDescription.Width = baseMipMap.Size.x;
+		textureDescription.Height = baseMipMap.Size.y;
+		textureDescription.MipLevels = static_cast<UINT>(mipMaps.size());
 		textureDescription.ArraySize = 1;
-		textureDescription.Format = GetDxgiFormat(baseMipMap->Format);
+		textureDescription.Format = GetDxgiFormat(baseMipMap.Format);
 		textureDescription.SampleDesc.Count = 1;
 		textureDescription.SampleDesc.Quality = 0;
 		textureDescription.Usage = D3D11_USAGE_IMMUTABLE;
@@ -349,17 +343,17 @@ namespace Graphics
 		constexpr size_t maxMipMaps = 16;
 		D3D11_SUBRESOURCE_DATA initialResourceData[maxMipMaps];
 		
-		for (size_t i = 0; i < txp->MipMaps.size(); i++)
+		for (size_t i = 0; i < mipMaps.size(); i++)
 		{
-			const auto& mipMap = txp->MipMaps[i];
+			const auto& mipMap = mipMaps[i];
 			D3D11_SUBRESOURCE_DATA& resource = initialResourceData[i];
 
-			resource.pSysMem = mipMap->DataPointer != nullptr ? mipMap->DataPointer : mipMap->Data.data();
+			resource.pSysMem = mipMap.DataPointer;
 
 			// TODO: Not sure if this is entirely accurate or reliable
 			resource.SysMemPitch = (usesBlockCompression) ? 
-				((PadTextureDimension(mipMap->Width, blockCompressionAlignment) * bitsPerPixel) / 2) :
-				((mipMap->Width * bitsPerPixel + 7) / 8);
+				((PadTextureDimension(mipMap.Size.x, blockCompressionAlignment) * bitsPerPixel) / 2) :
+				((mipMap.Size.x * bitsPerPixel + 7) / 8);
 
 			resource.SysMemSlicePitch = 0;
 		}
@@ -381,7 +375,7 @@ namespace Graphics
 	}
 
 	D3D_ImmutableTexture2D::D3D_ImmutableTexture2D(ivec2 size, const void* rgbaBuffer, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode)
-		: D3D_Texture2D(filter, addressMode, 0.0f)
+		: D3D_Texture2D(filter, addressMode)
 	{
 		textureFormat = TextureFormat::RGBA8;
 		textureDescription.Width = size.x;
