@@ -22,11 +22,11 @@ namespace Editor
 	{
 	public:
 		// TODO: Should be implement by all components
-		static constexpr KeyCode GridSnapModifierKey = KeyCode_LeftControl;
+		static constexpr KeyCode GridSnapModifierKey = KeyCode_Control;
 		
 		// TODO: Implement by the RectangleTool
 		// NOTE: For scaling both axes at the same time
-		static constexpr KeyCode AxesLinkModifierKey = KeyCode_LeftShift;
+		static constexpr KeyCode AxesLinkModifierKey = KeyCode_Shift;
 
 		// TODO: These should probably be set by the parent component (maybe inside the context menu (?))
 		static constexpr vec2 PositionSnapPrecision = vec2(10.0f);
@@ -34,7 +34,7 @@ namespace Editor
 		static constexpr float RotationSnapPrecision = 15.0f;
 
 		// NOTE: For keyboard based movement
-		static constexpr KeyCode FastNudgeModifierKey = KeyCode_LeftShift;
+		static constexpr KeyCode FastNudgeModifierKey = KeyCode_Shift;
 
 		static constexpr float NudgeStepDistance = 1.0f;
 		static constexpr float NudgeFastStepDistance = 10.0f;
