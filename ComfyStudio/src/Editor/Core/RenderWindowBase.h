@@ -8,7 +8,7 @@ namespace Editor
 	{
 	public:
 		// NOTE: Since the render target is stretched to the correct asspect ratio in the end it could easily be scaled down for weaker hardware
-		static constexpr ivec2 RenderTargetDefaultSize = ivec2(4, 4);
+		static constexpr ivec2 RenderTargetDefaultSize = ivec2(1, 1);
 
 	public:
 		RenderWindowBase() = default;
@@ -32,9 +32,10 @@ namespace Editor
 		static inline void PopWindowPadding() { Gui::PopStyleVar(); };
 
 	protected:
-		Graphics::D3D_RenderTarget renderTarget = { RenderTargetDefaultSize };
+		UniquePtr<Graphics::D3D_RenderTarget> renderTarget;
 
 		virtual ImGuiWindowFlags GetChildWinodwFlags() const { return ImGuiWindowFlags_None; };
+		virtual bool GetShouldCreateDepthRenderTarget() const { return false; };
 
 		virtual void OnInitialize() {};
 		virtual void OnDrawGui() {};

@@ -6,29 +6,41 @@ namespace Graphics
 	{
 	}
 
-	void D3D_RenderTargetBase::Bind(D3D_DepthBuffer* depthBuffer)
+	void D3D_RenderTargetBase::Bind()
 	{
 		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { renderTargetView.Get() };
 
-		D3D.Context->OMSetRenderTargets(
-			static_cast<UINT>(renderTargetViews.size()), 
-			renderTargetViews.data(), 
-			(depthBuffer == nullptr) ? nullptr : depthBuffer->GetDepthStencilView());
+		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), nullptr);
 	}
 
 	void D3D_RenderTargetBase::UnBind()
 	{
 		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { nullptr };
 
-		D3D.Context->OMSetRenderTargets(
-			static_cast<UINT>(renderTargetViews.size()),
-			renderTargetViews.data(),
-			nullptr);
+		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), nullptr);
 	}
 
 	void D3D_RenderTargetBase::Clear(const vec4& color)
 	{
 		D3D.Context->ClearRenderTargetView(renderTargetView.Get(), glm::value_ptr(color));
+	}
+
+	D3D_SwapChainRenderTarget::D3D_SwapChainRenderTarget(IDXGISwapChain* swapChain)
+		: swapChain(swapChain)
+	{
+		swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
+		D3D.Device->CreateRenderTargetView(backBuffer.Get(), nullptr, &renderTargetView);
+	}
+
+	void D3D_SwapChainRenderTarget::Resize(ivec2 newSize)
+	{
+		backBuffer = nullptr;
+		renderTargetView = nullptr;
+
+		D3D.SwapChain->ResizeBuffers(0, newSize.x, newSize.y, DXGI_FORMAT_UNKNOWN, 0);
+
+		swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
+		D3D.Device->CreateRenderTargetView(backBuffer.Get(), nullptr, &renderTargetView);
 	}
 
 	D3D_RenderTarget::D3D_RenderTarget(ivec2 size)
@@ -87,21 +99,37 @@ namespace Graphics
 		return shaderResourceView.Get();
 	}
 
-	D3D_SwapChainRenderTarget::D3D_SwapChainRenderTarget(IDXGISwapChain* swapChain)
-		: swapChain(swapChain)
+	D3D_DepthRenderTarget::D3D_DepthRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat)
+		: D3D_RenderTarget(size), depthBuffer(size, depthBufferFormat)
 	{
-		swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
-		D3D.Device->CreateRenderTargetView(backBuffer.Get(), nullptr, &renderTargetView);
 	}
-
-	void D3D_SwapChainRenderTarget::Resize(ivec2 newSize)
+	
+	void D3D_DepthRenderTarget::Bind()
 	{
-		backBuffer = nullptr;
-		renderTargetView = nullptr;
+		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { renderTargetView.Get() };
 
-		D3D.SwapChain->ResizeBuffers(0, newSize.x, newSize.y, DXGI_FORMAT_UNKNOWN, 0);
-
-		swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
-		D3D.Device->CreateRenderTargetView(backBuffer.Get(), nullptr, &renderTargetView);
+		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), depthBuffer.GetDepthStencilView());
+	}
+	
+	void D3D_DepthRenderTarget::UnBind()
+	{
+		D3D_RenderTarget::UnBind();
+	}
+	
+	void D3D_DepthRenderTarget::Clear(const vec4& color)
+	{
+		D3D_RenderTarget::Clear(color);
+		depthBuffer.Clear();
+	}
+	
+	void D3D_DepthRenderTarget::Resize(ivec2 newSize)
+	{
+		D3D_RenderTarget::Resize(newSize);
+		depthBuffer.Resize(newSize);
+	}
+	
+	D3D_DepthBuffer* D3D_DepthRenderTarget::GetDepthBuffer()
+	{
+		return &depthBuffer;
 	}
 }

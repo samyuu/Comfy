@@ -59,10 +59,10 @@ namespace Editor
 
 	void TargetRenderWindow::OnRender()
 	{
-		renderTarget.Bind();
+		renderTarget->Bind();
 		{
-			D3D.SetViewport(renderTarget.GetSize());
-			renderTarget.Clear(GetColorVec4(EditorColor_DarkClear));
+			D3D.SetViewport(renderTarget->GetSize());
+			renderTarget->Clear(GetColorVec4(EditorColor_DarkClear));
 
 			camera.UpdateMatrices();
 			renderer->Begin(camera);
@@ -79,7 +79,7 @@ namespace Editor
 			}
 			renderer->End();
 		}
-		renderTarget.UnBind();
+		renderTarget->UnBind();
 	}
 
 	void TargetRenderWindow::OnResize(ivec2 size)

@@ -3,9 +3,15 @@
 
 namespace Editor
 {
+	using namespace Graphics;
+
 	void RenderWindowBase::Initialize()
 	{
-		renderRegion = lastRenderRegion = ImRect(vec2(0.0f, 0.0f), vec2(renderTarget.GetSize()));
+		renderTarget = GetShouldCreateDepthRenderTarget() ? 
+			MakeUnique<D3D_DepthRenderTarget>(RenderTargetDefaultSize, DXGI_FORMAT_D32_FLOAT) : 
+			MakeUnique<D3D_RenderTarget>(RenderTargetDefaultSize);
+
+		renderRegion = lastRenderRegion = ImRect(vec2(0.0f, 0.0f), vec2(renderTarget->GetSize()));
 
 		OnInitialize();
 	}
@@ -73,13 +79,13 @@ namespace Editor
 		if (GetKeepAspectRatio())
 		{
 			currentWindow->DrawList->AddRectFilled(
-				fullRenderRegion.Min, 
-				fullRenderRegion.Max, 
+				fullRenderRegion.Min,
+				fullRenderRegion.Max,
 				Gui::GetColorU32(ImGuiCol_WindowBg));
 		}
 
 		currentWindow->DrawList->AddImage(
-			renderTarget.GetVoidTexture(),
+			renderTarget->GetVoidTexture(),
 			renderRegion.GetTL(),
 			renderRegion.GetBR());
 
@@ -103,7 +109,7 @@ namespace Editor
 
 	void RenderWindowBase::OnResize(ivec2 size)
 	{
-		renderTarget.Resize(size);
+		renderTarget->Resize(size);
 		needsResizing = false;
 	}
 }
