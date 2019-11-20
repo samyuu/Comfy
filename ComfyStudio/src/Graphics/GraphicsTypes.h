@@ -39,6 +39,58 @@ namespace Graphics
 		Count
 	};
 
+	typedef uint32_t VertexAttribute;
+
+	// NOTE: Bit index of each attribute
+	enum VertexAttribute_Enum : VertexAttribute
+	{
+		// NOTE: Type = vec3; Usage = 100%
+		VertexAttribute_Position = 0,
+		// NOTE: Type = vec3; Usage = 100%
+		VertexAttribute_Normal = 1,
+		// NOTE: Type = vec4; Usage = 39%
+		VertexAttribute_Tangent = 2,
+		// NOTE: Type = ????; Usage = 0%
+		VertexAttribute_0x3 = 3,
+		// NOTE: Type = vec2; Usage = 98%
+		VertexAttribute_TextureCoordinate0 = 4,
+		// NOTE: Type = vec2; Usage = 23%
+		VertexAttribute_TextureCoordinate1 = 5,
+		// NOTE: Type = vec2; Usage = 0.1%
+		VertexAttribute_TextureCoordinate2 = 6,
+		// NOTE: Type = vec2; Usage = 0.01%
+		VertexAttribute_TextureCoordinate3 = 7,
+		// NOTE: Type = vec4; Usage = 45%
+		VertexAttribute_Color0 = 8,
+		// NOTE: Type = vec4; Usage = 0.3%
+		VertexAttribute_Color1 = 9,
+		// NOTE: Type = vec4; Usage = 12.6%
+		VertexAttribute_BoneWeight = 10,
+		// NOTE: Type = vec4; Usage = 12.6%
+		VertexAttribute_BoneIndex = 11,
+
+		VertexAttribute_Count,
+	};
+
+	typedef uint32_t VertexAttributeFlags;
+
+	// NOTE: Bit flag of each attribute
+	enum VertexAttributeFlags_Enum : VertexAttributeFlags
+	{
+		VertexAttributeFlags_Position = (1 << VertexAttribute_Position),
+		VertexAttributeFlags_Normal = (1 << VertexAttribute_Normal),
+		VertexAttributeFlags_Tangent = (1 << VertexAttribute_Tangent),
+		VertexAttributeFlags_0x3 = (1 << VertexAttribute_0x3),
+		VertexAttributeFlags_TextureCoordinate0 = (1 << VertexAttribute_TextureCoordinate0),
+		VertexAttributeFlags_TextureCoordinate1 = (1 << VertexAttribute_TextureCoordinate1),
+		VertexAttributeFlags_TextureCoordinate2 = (1 << VertexAttribute_TextureCoordinate2),
+		VertexAttributeFlags_TextureCoordinate3 = (1 << VertexAttribute_TextureCoordinate3),
+		VertexAttributeFlags_Color0 = (1 << VertexAttribute_Color0),
+		VertexAttributeFlags_Color1 = (1 << VertexAttribute_Color1),
+		VertexAttributeFlags_BoneWeight = (1 << VertexAttribute_BoneWeight),
+		VertexAttributeFlags_BoneIndex = (1 << VertexAttribute_BoneIndex),
+	};
+
 	enum class AetBlendMode : uint8_t
 	{
 		Unknown = 0,

@@ -7,34 +7,38 @@ namespace Graphics
 {
 	namespace
 	{
-		inline vec3 ReadVec3(BinaryReader& reader)
+		vec3 ReadVec3(BinaryReader& reader)
 		{
 			return vec3(reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat());
 		}
 
-		inline Sphere ReadSphere(BinaryReader& reader)
+		Sphere ReadSphere(BinaryReader& reader)
 		{
 			return { ReadVec3(reader), reader.ReadFloat() };
 		}
 
-		inline Box ReadBox(BinaryReader& reader)
+		Box ReadBox(BinaryReader& reader)
 		{
 			return { ReadVec3(reader), ReadVec3(reader) };
 		}
 
 		template <class T>
-		inline void CheckReadVertexData(BinaryReader& reader, bool attributeFlag, std::vector<T>& vector, uint32_t vertexCount, void* pointer, void* baseAddress)
+		void CheckReadVertexData(BinaryReader& reader, Mesh& mesh, VertexAttribute_Enum attribute, std::vector<T>& vector, void** attributePointers, void* baseAddress)
 		{
-			if (!attributeFlag || pointer == nullptr)
+			void* attributePointer = attributePointers[attribute];
+			if (attributePointer == nullptr)
 				return;
 
-			reader.ReadAt(pointer, baseAddress, [&vector, vertexCount](BinaryReader& reader)
+			VertexAttributeFlags attributeFlags = (1 << attribute);
+			if (!(mesh.AttributeFlags & attributeFlags))
+				return;
+
+			reader.ReadAt(attributePointer, baseAddress, [&vector, &mesh](BinaryReader& reader)
 			{
-				vector.resize(vertexCount);
+				vector.resize(mesh.VertexData.VertexCount);
 				reader.Read(vector.data(), vector.size() * sizeof(T));
 			});
 		}
-
 	}
 
 	void Obj::Read(BinaryReader& reader)
@@ -49,33 +53,27 @@ namespace Graphics
 		void* meshesPtr = reader.ReadPtr();
 		if (meshCount > 0 && meshesPtr != nullptr)
 		{
-			Meshes.reserve(meshCount);
-			reader.ReadAt(meshesPtr, objBaseAddress, [this, meshCount, objBaseAddress](BinaryReader& reader)
+			Meshes.resize(meshCount);
+			reader.ReadAt(meshesPtr, objBaseAddress, [this, objBaseAddress](BinaryReader& reader)
 			{
-				for (uint32_t i = 0; i < meshCount; i++)
+				for (auto& mesh : Meshes)
 				{
-					Meshes.push_back(MakeRef<Mesh>());
-					const RefPtr<Mesh>& mesh = Meshes.back();
-
 					uint32_t unknown0 = reader.ReadUInt32();
-					mesh->BoundingSphere = ReadSphere(reader);
+					mesh.BoundingSphere = ReadSphere(reader);
 
 					uint32_t subMeshCount = reader.ReadUInt32();
 					void* subMeshesPtr = reader.ReadPtr();
 					if (subMeshCount > 0 && subMeshesPtr != nullptr)
 					{
-						mesh->SubMeshes.reserve(subMeshCount);
-						reader.ReadAt(subMeshesPtr, objBaseAddress, [&mesh, subMeshCount, objBaseAddress](BinaryReader& reader)
+						mesh.SubMeshes.resize(subMeshCount);
+						reader.ReadAt(subMeshesPtr, objBaseAddress, [&mesh, objBaseAddress](BinaryReader& reader)
 						{
-							for (uint32_t i = 0; i < subMeshCount; i++)
+							for (auto& subMesh : mesh.SubMeshes)
 							{
-								mesh->SubMeshes.push_back(MakeRef<SubMesh>());
-								const RefPtr<SubMesh>& subMesh = mesh->SubMeshes.back();
-
 								uint32_t unknown0 = reader.ReadUInt32();
-								subMesh->BoundingSphere = ReadSphere(reader);
-								subMesh->MaterialIndex = reader.ReadUInt32();
-								for (auto& index : subMesh->MaterialUVIndices)
+								subMesh.BoundingSphere = ReadSphere(reader);
+								subMesh.MaterialIndex = reader.ReadUInt32();
+								for (auto& index : subMesh.MaterialUVIndices)
 									index = reader.ReadUInt32();
 
 								uint32_t boneIndicesCount = reader.ReadUInt32();
@@ -86,39 +84,32 @@ namespace Graphics
 								}
 
 								uint32_t unknown1 = reader.ReadUInt32();
-								subMesh->Primitive = static_cast<PrimitiveType>(reader.ReadUInt32());
+								subMesh.Primitive = static_cast<PrimitiveType>(reader.ReadUInt32());
 								uint32_t unknown2 = reader.ReadUInt32();
 
 								uint32_t indexCount = reader.ReadUInt32();
 								void* indicesPtr = reader.ReadPtr();
 								if (indexCount > 0 && indicesPtr != nullptr)
 								{
-									subMesh->Indices.resize(indexCount);
+									subMesh.Indices.resize(indexCount);
 
 									reader.ReadAt(indicesPtr, objBaseAddress, [&subMesh, indexCount](BinaryReader& reader)
 									{
-										if (reader.GetEndianness() == Endianness::Little)
-										{
-											reader.Read(subMesh->Indices.data(), indexCount * sizeof(uint16_t));
-										}
-										else
-										{
-											for (uint32_t i = 0; i < indexCount; i++)
-												subMesh->Indices[i] = reader.ReadUInt16();
-										}
+										assert(reader.GetEndianness() == Endianness::Little);
+										reader.Read(subMesh.Indices.data(), indexCount * sizeof(uint16_t));
 									});
 								}
 
-								subMesh->BoundingBox = ReadBox(reader);
+								subMesh.BoundingBox = ReadBox(reader);
 								uint32_t unknown3 = reader.ReadUInt32();
 								uint32_t unknown4 = reader.ReadUInt32();
 							}
 						});
 					}
 
-					mesh->VertexAttributes.AllBits = reader.ReadUInt32();
-					mesh->VertexData.Stride = reader.ReadUInt32();
-					uint32_t vertexCount = reader.ReadUInt32();
+					mesh.AttributeFlags = reader.ReadUInt32();
+					mesh.VertexData.Stride = reader.ReadUInt32();
+					mesh.VertexData.VertexCount = reader.ReadUInt32();
 
 					constexpr size_t attributeSize = 28;
 
@@ -127,12 +118,20 @@ namespace Graphics
 						attributePtr = reader.ReadPtr();
 
 					assert(reader.GetEndianness() == Endianness::Little);
-					CheckReadVertexData(reader, mesh->VertexAttributes.Position, mesh->VertexData.Positions, vertexCount, vertexAttributePtrs[0], objBaseAddress);
-					CheckReadVertexData(reader, mesh->VertexAttributes.Normal, mesh->VertexData.Normals, vertexCount, vertexAttributePtrs[1], objBaseAddress);
-					CheckReadVertexData(reader, mesh->VertexAttributes.Tangent, mesh->VertexData.Tangents, vertexCount, vertexAttributePtrs[2], objBaseAddress);
+					CheckReadVertexData(reader, mesh, VertexAttribute_Position, mesh.VertexData.Positions, vertexAttributePtrs, objBaseAddress);
+					CheckReadVertexData(reader, mesh, VertexAttribute_Normal, mesh.VertexData.Normals, vertexAttributePtrs, objBaseAddress);
+					CheckReadVertexData(reader, mesh, VertexAttribute_Tangent, mesh.VertexData.Tangents, vertexAttributePtrs, objBaseAddress);
+					CheckReadVertexData(reader, mesh, VertexAttribute_0x3, mesh.VertexData.Attribute_0x3, vertexAttributePtrs, objBaseAddress);
+					CheckReadVertexData(reader, mesh, VertexAttribute_TextureCoordinate0, mesh.VertexData.TextureCoordinates[0], vertexAttributePtrs, objBaseAddress);
+					CheckReadVertexData(reader, mesh, VertexAttribute_TextureCoordinate1, mesh.VertexData.TextureCoordinates[1], vertexAttributePtrs, objBaseAddress);
+					CheckReadVertexData(reader, mesh, VertexAttribute_TextureCoordinate2, mesh.VertexData.TextureCoordinates[2], vertexAttributePtrs, objBaseAddress);
+					CheckReadVertexData(reader, mesh, VertexAttribute_TextureCoordinate3, mesh.VertexData.TextureCoordinates[3], vertexAttributePtrs, objBaseAddress);
+					CheckReadVertexData(reader, mesh, VertexAttribute_Color0, mesh.VertexData.Colors[0], vertexAttributePtrs, objBaseAddress);
+					CheckReadVertexData(reader, mesh, VertexAttribute_Color1, mesh.VertexData.Colors[1], vertexAttributePtrs, objBaseAddress);
+					CheckReadVertexData(reader, mesh, VertexAttribute_BoneWeight, mesh.VertexData.BoneWeights, vertexAttributePtrs, objBaseAddress);
+					CheckReadVertexData(reader, mesh, VertexAttribute_BoneIndex, mesh.VertexData.BoneIndices, vertexAttributePtrs, objBaseAddress);
 
-					constexpr size_t nameSize = 64;
-					mesh->Name = reader.ReadStr(nameSize);
+					reader.Read(mesh.Name, sizeof(mesh.Name));
 				}
 			});
 		}
@@ -141,16 +140,13 @@ namespace Graphics
 		void* materialsPtr = reader.ReadPtr();
 		if (materialCount > 0 && materialsPtr != nullptr)
 		{
-			Materials.reserve(materialCount);
-			reader.ReadAt(materialsPtr, [this, materialCount](BinaryReader& reader)
+			Materials.resize(materialCount);
+			reader.ReadAt(materialsPtr, objBaseAddress, [this](BinaryReader& reader)
 			{
-				for (uint32_t i = 0; i < materialCount; i++)
+				for (auto& material : Materials)
 				{
-					Materials.push_back(MakeRef<Material>());
-					const RefPtr<Material>& material = Materials.back();
-
-					// TODO:
-					//material->
+					assert(reader.GetEndianness() == Endianness::Little);
+					reader.Read(&material, sizeof(Material));
 				}
 			});
 		}
@@ -165,17 +161,14 @@ namespace Graphics
 
 		if (objectCount > 0 && objectsPtr != nullptr)
 		{
-			objects.reserve(objectCount);
-			reader.ReadAt(objectsPtr, [this, objectCount](BinaryReader& reader)
+			objects.resize(objectCount);
+			reader.ReadAt(objectsPtr, [this](BinaryReader& reader)
 			{
-				for (uint32_t i = 0; i < objectCount; i++)
+				for (auto& obj : objects)
 				{
-					objects.push_back(MakeRef<Obj>());
-					const RefPtr<Obj>& obj = objects.back();
-
 					reader.ReadAt(reader.ReadPtr(), [&obj](BinaryReader& reader)
 					{
-						obj->Read(reader);
+						obj.Read(reader);
 					});
 				}
 			});
@@ -195,8 +188,8 @@ namespace Graphics
 		{
 			reader.ReadAt(objectNamesPtr, [this](BinaryReader& reader)
 			{
-				for (RefPtr<Obj>& obj : objects)
-					obj->Name = reader.ReadStrPtr();
+				for (auto& obj : objects)
+					obj.Name = reader.ReadStrPtr();
 			});
 		}
 
@@ -205,12 +198,22 @@ namespace Graphics
 		{
 			reader.ReadAt(objectIDsPtr, [this](BinaryReader& reader)
 			{
-				for (RefPtr<Obj>& obj : objects)
-					obj->ID = reader.ReadUInt32();
+				for (auto& obj : objects)
+					obj.ID = reader.ReadUInt32();
 			});
 		}
 
 		void* textureIDsPtr = reader.ReadPtr();
 		uint32_t textureCount = reader.ReadUInt32();
+
+		if (textureIDsPtr != nullptr && textureCount > 0)
+		{
+			TextureIDs.resize(textureCount);
+			reader.ReadAt(textureIDsPtr, [this](BinaryReader& reader)
+			{
+				for (auto& textureID : TextureIDs)
+					textureID = reader.ReadUInt32();
+			});
+		}
 	}
 }

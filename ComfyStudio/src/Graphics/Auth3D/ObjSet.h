@@ -1,9 +1,9 @@
 #pragma once
 #include "Types.h"
 #include "FileSystem/FileInterface.h"
+#include "Graphics/TxpSet.h"
 #include "Graphics/Direct3D/D3D_IndexBuffer.h"
 #include "Graphics/Direct3D/D3D_VertexBuffer.h"
-#include "Graphics/Direct3D/D3D_InputLayout.h"
 
 namespace Graphics
 {
@@ -19,9 +19,8 @@ namespace Graphics
 		vec3 Size;
 	};
 
-	class SubMesh
+	struct SubMesh
 	{
-	public:
 		Sphere BoundingSphere;
 		uint32_t MaterialIndex;
 		uint32_t MaterialUVIndices[2];
@@ -32,53 +31,112 @@ namespace Graphics
 		UniquePtr<D3D_StaticIndexBuffer> GraphicsIndexBuffer;
 	};
 
-	union VertexAttributeTypes
+	struct Mesh
 	{
-		struct
-		{
-			uint32_t Position : 1;
-			uint32_t Normal : 1;
-			uint32_t Tangent : 1;
-			uint32_t TextureCoordinate0 : 1;
-			uint32_t TextureCoordinate1 : 1;
-			uint32_t Color : 1;
-			uint32_t BoneWeight : 1;
-			uint32_t BoneIndex : 1;
-		};
-		uint32_t AllBits;
-	};
-
-	struct VertexData
-	{
-		uint32_t Stride;
-		std::vector<vec3> Positions;
-		std::vector<vec3> Normals;
-		std::vector<vec4> Tangents;
-	};
-
-	struct GraphicsVertexBuffers
-	{
-		UniquePtr<D3D_InputLayout> InputLayout;
-		UniquePtr<D3D_StaticVertexBuffer> PositionBuffer;
-		UniquePtr<D3D_StaticVertexBuffer> NormalBuffer;
-	};
-
-	class Mesh
-	{
-	public:
 		Sphere BoundingSphere;
-		std::vector<RefPtr<SubMesh>> SubMeshes;
-		std::string Name;
-		VertexAttributeTypes VertexAttributes;
-		VertexData VertexData;
+		std::vector<SubMesh> SubMeshes;
+		VertexAttributeFlags AttributeFlags;
+		char Name[64];
 
-		GraphicsVertexBuffers GraphicsBuffers;
+		struct VertexData
+		{
+			uint32_t Stride;
+			uint32_t VertexCount;
+
+			std::vector<vec3> Positions;
+			std::vector<vec3> Normals;
+			std::vector<vec4> Tangents;
+			std::vector<vec4> Attribute_0x3;
+			std::array<std::vector<vec2>, 4> TextureCoordinates;
+			std::array<std::vector<vec4>, 2> Colors;
+			std::vector<vec4> BoneWeights;
+			std::vector<vec4> BoneIndices;
+		} VertexData;
+
+		std::array<UniquePtr<D3D_StaticVertexBuffer>, VertexAttribute_Count> GraphicsAttributeBuffers;
 	};
 
-	class Material
+	struct MaterialTexture
 	{
-	public:
-		std::string Name;
+		int32_t Field00;
+		int32_t Field01;
+		uint32_t TextureID;
+		int32_t Field02;
+		float Field03;
+		float Field04;
+		float Field05;
+		float Field06;
+		float Field07;
+		float Field08;
+		float Field09;
+		float Field10;
+		float Field11;
+		float Field12;
+		float Field13;
+		float Field14;
+		float Field15;
+		float Field16;
+		float Field17;
+		float Field18;
+		float Field19;
+		float Field20;
+		float Field21;
+		float Field22;
+		float Field23;
+		float Field24;
+		float Field25;
+		float Field26;
+		float Field27;
+		float Field28;
+	};
+
+	struct Material
+	{
+		unk32_t Unknown[2];
+		char Shader[8];
+
+		MaterialTexture Diffuse;
+		MaterialTexture Ambient;
+		MaterialTexture Normal;
+		MaterialTexture Specular;
+		MaterialTexture ToonCurve;
+		MaterialTexture Reflection;
+		MaterialTexture Tangent;
+		MaterialTexture Texture08;
+
+		unk32_t Field01;
+		unk32_t Field02;
+
+		vec4 DiffuseColor;
+		vec4 AmbientColor;
+		vec4 SpecularColor;
+		vec4 Emissioncolor;
+
+		float Shininess;
+		float Field20;
+		float Field21;
+		float Field22;
+		float Field23;
+		float Field24;
+
+		char Name[64];
+
+		float Field25;
+		float Field26;
+		float Field27;
+		float Field28;
+		float Field29;
+		float Field30;
+		float Field31;
+		float Field32;
+		float Field33;
+		float Field34;
+		float Field35;
+		float Field36;
+		float Field37;
+		float Field38;
+		float Field39;
+		float Field40;
 	};
 
 	class Obj
@@ -86,19 +144,12 @@ namespace Graphics
 		friend class ObjSet;
 
 	public:
-		Obj() = default;
-		Obj(const Obj&) = delete;
-		~Obj() = default;
-
-		Obj& operator=(const Obj&) = delete;
-
-	public:
 		std::string Name;
 		uint32_t ID;
 
 		Sphere BoundingSphere;
-		std::vector<RefPtr<Mesh>> Meshes;
-		std::vector<RefPtr<Material>> Materials;
+		std::vector<Mesh> Meshes;
+		std::vector<Material> Materials;
 
 	private:
 		void Read(FileSystem::BinaryReader& reader);
@@ -115,6 +166,8 @@ namespace Graphics
 
 	public:
 		std::string Name;
+		std::vector<uint32_t> TextureIDs;
+		UniquePtr<TxpSet> TxpSet;
 
 		auto begin() { return objects.begin(); }
 		auto end() { return objects.end(); }
@@ -123,28 +176,24 @@ namespace Graphics
 		auto cbegin() const { return objects.cbegin(); }
 		auto cend() const { return objects.cend(); }
 
-		RefPtr<Obj>& front() { return objects.front(); }
-		RefPtr<Obj>& back() { return objects.back(); }
-		const RefPtr<Obj>& front() const { return objects.front(); }
-		const RefPtr<Obj>& back() const { return objects.back(); }
+		Obj& front() { return objects.front(); }
+		Obj& back() { return objects.back(); }
+		const Obj& front() const { return objects.front(); }
+		const Obj& back() const { return objects.back(); }
 
 		inline size_t size() const { return objects.size(); };
 
-		inline RefPtr<Obj>& at(size_t index) { return objects.at(index); };
-		inline RefPtr<Obj>& operator[] (size_t index) { return objects[index]; };
+		inline Obj& at(size_t index) { return objects.at(index); };
+		inline Obj& operator[] (size_t index) { return objects[index]; };
 
-		inline Obj* GetObjAt(int index) { return objects.at(index).get(); };
-		inline const Obj* GetObjAt(int index) const { return objects[index].get(); };
+		inline Obj* GetObjAt(int index) { return &objects.at(index); };
+		inline const Obj* GetObjAt(int index) const { return &objects[index]; };
 
 	public:
 		virtual void Read(FileSystem::BinaryReader& reader) override;
 		void UploadAll();
 
 	private:
-		template <class T>
-		void InitializeBufferIfAttribute(bool hasAttribute, UniquePtr<D3D_StaticVertexBuffer>& vertexBuffer, std::vector<T>& vertexData, Mesh* mesh, const char* name);
-
-	private:
-		std::vector<RefPtr<Obj>> objects;
+		std::vector<Obj> objects;
 	};
 }
