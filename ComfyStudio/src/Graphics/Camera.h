@@ -34,8 +34,8 @@ namespace Graphics
 
 		float FieldOfView = 90.0f;
 		float AspectRatio = 16.0f / 9.0f;
-		float NearPlane = 0.001f;
-		float FarPlane = 3939.0f;
+		float NearPlane = 0.1f;
+		float FarPlane = 6000.0f;
 
 	public:
 		void UpdateMatrices() override;
