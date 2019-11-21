@@ -1,15 +1,11 @@
 #pragma once
 #include "Editor/Core/IEditorComponent.h"
 #include "Editor/Core/RenderWindowBase.h"
-#include "Graphics/OpenGL/GL_VertexArray.h"
-#include "Graphics/OpenGL/GL_Buffer.h"
-#include "Graphics/VertexLayouts.h"
-#include "Graphics/OpenGL/GL_Shaders.h"
-#include "Graphics/OpenGL/GL_Texture2D.h"
-#include "Graphics/OpenGL/GL_Renderer3D.h"
+#include "Graphics/Direct3D/D3D_Renderer3D.h"
 #include "Graphics/Auth3D/ObjSet.h"
 #include "Graphics/Camera.h"
 #include "Graphics/SprSet.h"
+#include "ImGui/Widgets/FileViewer.h"
 
 namespace Editor
 {
@@ -19,6 +15,7 @@ namespace Editor
 		SceneRenderWindow(Application* parent, EditorManager* editor);
 		~SceneRenderWindow();
 
+	public:
 		const char* GetGuiName() const override;
 		void Initialize() override;
 		void DrawGui() override;
@@ -27,149 +24,8 @@ namespace Editor
 		void OnWindowBegin() override;
 		void OnWindowEnd() override;
 
-	protected:
-		// Scene Camera
-		// ------------
-		struct
-		{
-			float cameraSmoothness = 50.0f;
-			float cameraPitch, cameraYaw = -90.0f, cameraRoll;
-			float targetCameraPitch, targetCameraYaw = -90.0f;
-			float cameraSensitivity = 0.25f;
-			Graphics::PerspectiveCamera camera;
-		};
-
-		struct
-		{
-			float Saturation = 2.2f;
-			float Brightness = 0.45455f;
-		} postProcessData;
-
-		int testObjectIndex = 0;
-		UniquePtr<Graphics::ObjSet> testObjSet;
-		UniquePtr<Graphics::GL_Renderer3D> renderer;
-
-		// Vertex Storage
-		// --------------
-		struct
-		{
-			Graphics::GL_VertexArray cubeVao;
-			Graphics::GL_VertexArray lineVao;
-
-			Graphics::GL_VertexBuffer cubeVertexBuffer = { Graphics::BufferUsage::StaticDraw };
-			Graphics::GL_VertexBuffer lineVertexBuffer = { Graphics::BufferUsage::StaticDraw };
-		};
-
-		// Textures
-		// --------
-		struct
-		{
-			Graphics::SprSet sprSet;
-			union
-			{
-				Graphics::Txp* allTextures[5];
-				struct
-				{
-					Graphics::Txp* feelsBadManTexture;
-					Graphics::Txp* goodNiceTexture;
-					Graphics::Txp* groundTexture;
-					Graphics::Txp* skyTexture;
-					Graphics::Txp* tileTexture;
-				};
-			};
-		};
-
-		// Shaders
-		// -------
-		struct
-		{
-			Graphics::GL_ComfyShader comfyShader;
-			Graphics::GL_LineShader lineShader;
-			Graphics::GL_ScreenShader screenShader;
-		};
-
-		Graphics::RenderTarget postProcessingRenderTarget;
-
-		// Dynamic Scene Data
-		// ------------------
-		vec3 cubePositions[10] =
-		{
-			vec3(+0.0f, +0.0f, -10.0f),
-			vec3(+2.0f, +5.0f, -15.0f),
-			vec3(-1.5f, -2.2f, -02.5f),
-			vec3(-3.8f, -2.0f, -12.3f),
-			vec3(+2.4f, -0.4f, -03.5f),
-			vec3(-1.7f, +3.0f, -07.5f),
-			vec3(+1.3f, -2.0f, -02.5f),
-			vec3(+1.5f, +2.0f, -02.5f),
-			vec3(+1.5f, +0.2f, -01.5f),
-			vec3(-1.3f, +1.0f, -01.5f),
-		};
-		// ------------------
-
-		// Static Vertex Data
-		// ------------------
-		const vec4 cubeColor = vec4(0.9f, 0.8f, 0.01f, 1.00f);
-		Graphics::ComfyVertex cubeVertices[36]
-		{
-			{ vec3(-0.5f, -0.5f, -0.5f), vec2(0.0f, 0.0f), cubeColor },
-			{ vec3(+0.5f, -0.5f, -0.5f), vec2(1.0f, 0.0f), cubeColor },
-			{ vec3(+0.5f, +0.5f, -0.5f), vec2(1.0f, 1.0f), cubeColor },
-			{ vec3(+0.5f, +0.5f, -0.5f), vec2(1.0f, 1.0f), cubeColor },
-			{ vec3(-0.5f, +0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-			{ vec3(-0.5f, -0.5f, -0.5f), vec2(0.0f, 0.0f), cubeColor },
-
-			{ vec3(-0.5f, -0.5f, +0.5f), vec2(0.0f, 0.0f), cubeColor },
-			{ vec3(+0.5f, -0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-			{ vec3(+0.5f, +0.5f, +0.5f), vec2(1.0f, 1.0f), cubeColor },
-			{ vec3(+0.5f, +0.5f, +0.5f), vec2(1.0f, 1.0f), cubeColor },
-			{ vec3(-0.5f, +0.5f, +0.5f), vec2(0.0f, 1.0f), cubeColor },
-			{ vec3(-0.5f, -0.5f, +0.5f), vec2(0.0f, 0.0f), cubeColor },
-
-			{ vec3(-0.5f, +0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-			{ vec3(-0.5f, +0.5f, -0.5f), vec2(1.0f, 1.0f), cubeColor },
-			{ vec3(-0.5f, -0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-			{ vec3(-0.5f, -0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-			{ vec3(-0.5f, -0.5f, +0.5f), vec2(0.0f, 0.0f), cubeColor },
-			{ vec3(-0.5f, +0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-
-			{ vec3(+0.5f, +0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-			{ vec3(+0.5f, +0.5f, -0.5f), vec2(1.0f, 1.0f), cubeColor },
-			{ vec3(+0.5f, -0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-			{ vec3(+0.5f, -0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-			{ vec3(+0.5f, -0.5f, +0.5f), vec2(0.0f, 0.0f), cubeColor },
-			{ vec3(+0.5f, +0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-
-			{ vec3(-0.5f, -0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-			{ vec3(+0.5f, -0.5f, -0.5f), vec2(1.0f, 1.0f), cubeColor },
-			{ vec3(+0.5f, -0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-			{ vec3(+0.5f, -0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-			{ vec3(-0.5f, -0.5f, +0.5f), vec2(0.0f, 0.0f), cubeColor },
-			{ vec3(-0.5f, -0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-
-			{ vec3(-0.5f, +0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-			{ vec3(+0.5f, +0.5f, -0.5f), vec2(1.0f, 1.0f), cubeColor },
-			{ vec3(+0.5f, +0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-			{ vec3(+0.5f, +0.5f, +0.5f), vec2(1.0f, 0.0f), cubeColor },
-			{ vec3(-0.5f, +0.5f, +0.5f), vec2(0.0f, 0.0f), cubeColor },
-			{ vec3(-0.5f, +0.5f, -0.5f), vec2(0.0f, 1.0f), cubeColor },
-		};
-
-		Graphics::LineVertex axisVertices[6] =
-		{
-			// X-Axis
-			{ vec3(0.0f, 0.0f, 0.0f), vec4(1.0f, 0.1f, 0.3f, 1.0f) },
-			{ vec3(1.0f, 0.0f, 0.0f), vec4(1.0f, 0.1f, 0.3f, 1.0f) },
-
-			// Y-Axis										 
-			{ vec3(0.0f, 0.0f, 0.0f), vec4(0.2f, 1.0f, 0.1f, 1.0f) },
-			{ vec3(0.0f, 1.0f, 0.0f), vec4(0.2f, 1.0f, 0.1f, 1.0f) },
-
-			// Z-Axis										 
-			{ vec3(0.0f, 0.0f, 0.0f), vec4(0.1f, 0.7f, 1.0f, 1.0f) },
-			{ vec3(0.0f, 0.0f, 1.0f), vec4(0.1f, 0.7f, 1.0f, 1.0f) },
-		};
-		// ------------------
+	private:
+		bool GetShouldCreateDepthRenderTarget() const override { return true; };
 
 		void OnUpdateInput() override;
 		void OnUpdate() override;
@@ -179,5 +35,37 @@ namespace Editor
 	private:
 		void UpdateCamera();
 		void DrawComfyDebugGui();
+
+		void LoadObjSet(const std::string& objSetPath);
+
+	private:
+		struct SceneCameraData
+		{
+			float CameraSmoothness = 50.0f;
+			float CameraPitch = 0.0f;
+			float CameraYaw = -90.0f; 
+			float CameraRoll = 0.0f;
+
+			float TargetCameraPitch = 0.0f;
+			float TargetCameraYaw = -90.0f;
+
+			float CameraSensitivity = 0.25f;
+			
+			Graphics::PerspectiveCamera Camera;
+		} sceneData;
+
+		struct PostProcessData
+		{
+			float Saturation = 2.2f;
+			float Brightness = 0.45455f;
+			// Graphics::D3D_RenderTarget postProcessingRenderTarget = { RenderWindowBase::RenderTargetDefaultSize };
+		} postProcessData;
+
+		Gui::FileViewer objFileViewer = { "dev_rom/objset/" };
+
+		int objectIndex = -1;
+		UniquePtr<Graphics::ObjSet> objSet = nullptr;
+
+		UniquePtr<Graphics::D3D_Renderer3D> renderer3D;
 	};
 }

@@ -203,6 +203,7 @@
     <ClCompile Include="src\Editor\Core\EditorManager.cpp" />
     <ClCompile Include="src\Editor\Core\IEditorComponent.cpp" />
     <ClCompile Include="src\Editor\Core\RenderWindowBase.cpp" />
+    <ClCompile Include="src\Editor\PV\SceneRenderWindow.cpp" />
     <ClCompile Include="src\Editor\Timeline\FrameTimeline.cpp" />
     <ClCompile Include="src\Editor\Timeline\TimelineBase.cpp" />
     <ClCompile Include="src\Editor\Timeline\TimelineScrollbar.cpp" />
@@ -334,6 +335,7 @@
     <ClInclude Include="src\Editor\Core\IFileDropReceiver.h" />
     <ClInclude Include="src\Editor\Core\RenderWindowBase.h" />
     <ClInclude Include="src\Editor\Core\Theme.h" />
+    <ClInclude Include="src\Editor\PV\SceneRenderWindow.h" />
     <ClInclude Include="src\Editor\Timeline\FrameTimeline.h" />
     <ClInclude Include="src\Editor\Timeline\ITimelinePlaybackControllable.h" />
     <ClInclude Include="src\Editor\Timeline\ITimelineUnitConverter.h" />
