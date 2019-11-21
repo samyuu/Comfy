@@ -360,7 +360,13 @@
     <ClCompile Include="src\Editor\Core\EditorManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\Direct3D\D3D_Renderer3D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\Graphics\Direct3D\D3D_TextureSampler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Direct3D\D3D_DepthStencilState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -788,7 +794,13 @@
     <ClInclude Include="src\Editor\Core\EditorManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\Direct3D\D3D_Renderer3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\Graphics\Direct3D\D3D_TextureSampler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Direct3D\D3D_DepthStencilState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -808,11 +820,11 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Font.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Sprite_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Sprite_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\UncompressRGTC.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\TextureFormats.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ImGui_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ImGui_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_PS.hlsl" />
   </ItemGroup>
 </Project>

@@ -66,7 +66,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
-      <PreprocessorDefinitions>GLM_FORCE_DEPTH_ZERO_TO_ONE;GLM_FORCE_LEFT_HANDED;COMFY_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLM_FORCE_DEPTH_ZERO_TO_ONE;COMFY_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OmitFramePointers>false</OmitFramePointers>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -117,7 +117,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
-      <PreprocessorDefinitions>GLM_FORCE_DEPTH_ZERO_TO_ONE;GLM_FORCE_LEFT_HANDED;COMFY_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLM_FORCE_DEPTH_ZERO_TO_ONE;COMFY_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OmitFramePointers>true</OmitFramePointers>
@@ -216,10 +216,12 @@
     <ClCompile Include="src\Graphics\Direct3D\D3D_BlendState.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_ConstantBuffer.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_DepthBuffer.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\D3D_DepthStencilState.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_IndexBuffer.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_InputLayout.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_RasterizerState.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_Renderer2D.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\D3D_Renderer3D.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_RenderTarget.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_Shader.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_Texture2D.cpp" />
@@ -347,10 +349,12 @@
     <ClInclude Include="src\Graphics\Direct3D\D3D_BlendState.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_ConstantBuffer.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_DepthBuffer.h" />
+    <ClInclude Include="src\Graphics\Direct3D\D3D_DepthStencilState.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_IndexBuffer.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_InputLayout.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_RasterizerState.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_Renderer2D.h" />
+    <ClInclude Include="src\Graphics\Direct3D\D3D_Renderer3D.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_RenderTarget.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_TextureSampler.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_Shader.h" />
