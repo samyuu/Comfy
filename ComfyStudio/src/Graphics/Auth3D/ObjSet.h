@@ -56,45 +56,92 @@ namespace Graphics
 		std::array<UniquePtr<D3D_StaticVertexBuffer>, VertexAttribute_Count> GraphicsAttributeBuffers;
 	};
 
+	struct MaterialTextureFlags0
+	{
+		uint32_t Unknown0 : 10;
+		uint32_t Fresnel : 4;
+		uint32_t LineLight : 4;
+		uint32_t Unknown1 : 2;
+		uint32_t SpecularQuality : 1;
+		uint32_t AnisoDirection : 3;
+	};
+
+	struct MaterialTextureFlags1
+	{
+		uint32_t TextureAddressMode_U_Repeat : 1;
+		uint32_t TextureAddressMode_V_Repeat : 1;
+		uint32_t TextureAddressMode_U_Mirror : 1;
+		uint32_t TextureAddressMode_V_Mirror : 1;
+		uint32_t Unknown_U_Unk0 : 1;
+		uint32_t Unknown_V_Unk0 : 1;
+		uint32_t Unknown_U_Unk1 : 1;
+		uint32_t Unknown_V_Unk1 : 1;
+		uint32_t UnknownData0 : 8;
+		uint32_t UnknownData1 : 6;
+		uint32_t MipMapBias : 8;
+		uint32_t AnsiFilters : 2;
+	};
+
+	struct MaterialTextureFlags2
+	{
+		uint32_t ProbablyCubeMapRelated : 4;
+		uint32_t Unknown : 4;
+	};
+
 	struct MaterialTexture
 	{
-		int32_t Field00;
-		int32_t Field01;
-		uint32_t TextureID;
-		int32_t Field02;
-		float Field03;
-		float Field04;
-		float Field05;
-		float Field06;
-		float Field07;
-		float Field08;
-		float Field09;
-		float Field10;
-		float Field11;
-		float Field12;
-		float Field13;
-		float Field14;
-		float Field15;
-		float Field16;
-		float Field17;
-		float Field18;
-		float Field19;
-		float Field20;
-		float Field21;
-		float Field22;
-		float Field23;
-		float Field24;
-		float Field25;
-		float Field26;
-		float Field27;
-		float Field28;
+		MaterialTextureFlags0 Flags0;
+		MaterialTextureFlags1 Flags1;
+		int32_t TextureID;
+		MaterialTextureFlags2 Flags2;
+		vec3 Field03_05;
+		mat4 TextureCoordinateMatrix;
+		float Reserved[7];
+	};
+
+	struct MaterialFlags
+	{
+		uint32_t IsTransparent : 1;
+		uint32_t TransparentType : 2;
+		uint32_t Unknown0 : 5;
+		uint32_t Unknown1 : 7;
+		uint32_t UseCubeMapReflection : 1;
+		uint32_t Reserved : 16;
+	};
+
+	struct MaterialBlendFlags
+	{
+		enum BlendFactor : uint32_t
+		{
+			ZERO = 0,
+			ONE = 1,
+			SRC_COLOR = 2,
+			ISRC_COLOR = 3,
+			SRC_ALPHA = 4,
+			ISRC_ALPHA = 5,
+			DST_ALPHA = 6,
+			IDST_ALPHA = 7,
+			DST_COLOR = 8,
+			IDST_COLOR = 9,
+		};
+
+		uint32_t EnableAlphaTest : 1;
+		uint32_t EnableBlend : 1;
+		uint32_t OtherBlendingFlag : 1;
+		uint32_t DoubleSided : 2;
+		BlendFactor SrcBlendFactor : 4;
+		BlendFactor DstBlendFactor : 4;
+		uint32_t Unknown0 : 3;
+		uint32_t ZBias : 4;
+		uint32_t Unknown1 : 4;
+		uint32_t Unknown2 : 8;
 	};
 
 	struct Material
 	{
-		unk32_t Unknown[2];
+		unk32_t Unknown0;
+		MaterialFlags Flags;
 		char Shader[8];
-
 		MaterialTexture Diffuse;
 		MaterialTexture Ambient;
 		MaterialTexture Normal;
@@ -102,41 +149,21 @@ namespace Graphics
 		MaterialTexture ToonCurve;
 		MaterialTexture Reflection;
 		MaterialTexture Tangent;
-		MaterialTexture Texture08;
-
-		unk32_t Field01;
-		unk32_t Field02;
-
-		vec4 DiffuseColor;
+		MaterialTexture UnknownTexture;
+		int32_t Unknown1;
+		MaterialBlendFlags BlendFlags;
+		vec3 DiffuseColor;
+		float Transparency;
 		vec4 AmbientColor;
-		vec4 SpecularColor;
-		vec4 Emissioncolor;
-
+		vec3 SpecularColor;
+		float Reflectivity;
+		vec4 EmissionColor;
 		float Shininess;
-		float Field20;
-		float Field21;
-		float Field22;
-		float Field23;
-		float Field24;
-
+		float Intensity;
+		vec4 UnknownField21_24;
 		char Name[64];
-
-		float Field25;
-		float Field26;
-		float Field27;
-		float Field28;
-		float Field29;
-		float Field30;
-		float Field31;
-		float Field32;
-		float Field33;
-		float Field34;
-		float Field35;
-		float Field36;
-		float Field37;
-		float Field38;
-		float Field39;
-		float Field40;
+		float BumpDepth;
+		float Reserved[15];
 	};
 
 	class Obj
