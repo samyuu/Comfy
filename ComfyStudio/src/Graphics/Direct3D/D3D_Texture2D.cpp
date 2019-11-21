@@ -239,52 +239,29 @@ namespace Graphics
 		}
 	}
 
-	D3D_Texture2D::D3D_Texture2D(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode, float lodBias)
+	D3D_Texture2D::D3D_Texture2D()
 		: lastBoundSlot(UnboundTextureSlot), textureFormat(TextureFormat::Unknown)
 	{
-		constexpr vec4 transparentBorderColor = vec4(0.0f, 0.0f, 0.0f, 0.0f);
-
-		samplerDescription.Filter = filter;
-		samplerDescription.AddressU = addressMode;
-		samplerDescription.AddressV = addressMode;
-		samplerDescription.AddressW = addressMode;
-		samplerDescription.MipLODBias = lodBias;
-		samplerDescription.MaxAnisotropy = 0;
-		samplerDescription.ComparisonFunc = D3D11_COMPARISON_NEVER;
-		samplerDescription.BorderColor[0] = transparentBorderColor[0];
-		samplerDescription.BorderColor[1] = transparentBorderColor[1];
-		samplerDescription.BorderColor[2] = transparentBorderColor[2];
-		samplerDescription.BorderColor[3] = transparentBorderColor[3];
-		samplerDescription.MinLOD = 0.0f;
-		samplerDescription.MaxLOD = D3D11_FLOAT32_MAX;
-
-		D3D.Device->CreateSamplerState(&samplerDescription, &samplerState);
 	}
 
 	void D3D_Texture2D::Bind(uint32_t textureSlot) const
 	{
-		assert(textureSlot < D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
+		assert(textureSlot < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
 		lastBoundSlot = textureSlot;
 
 		constexpr UINT textureCount = 1;
-
-		std::array<ID3D11SamplerState*, textureCount> samplerStates = { samplerState.Get() };
 		std::array<ID3D11ShaderResourceView*, textureCount> resourceViews = { resourceView.Get() };
 
-		D3D.Context->PSSetSamplers(textureSlot, textureCount, samplerStates.data());
 		D3D.Context->PSSetShaderResources(textureSlot, textureCount, resourceViews.data());
 	}
 	
 	void D3D_Texture2D::UnBind() const
 	{
-		assert(lastBoundSlot < D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
+		assert(lastBoundSlot < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
 
 		constexpr UINT textureCount = 1;
-		
-		std::array<ID3D11SamplerState*, textureCount> samplerStates = { nullptr };
 		std::array<ID3D11ShaderResourceView*, textureCount> resourceViews = { nullptr };
 
-		D3D.Context->PSSetSamplers(lastBoundSlot, textureCount, samplerStates.data());
 		D3D.Context->PSSetShaderResources(lastBoundSlot, textureCount, resourceViews.data());
 
 		lastBoundSlot = UnboundTextureSlot;
@@ -311,7 +288,6 @@ namespace Graphics
 	}
 
 	D3D_ImmutableTexture2D::D3D_ImmutableTexture2D(const Txp& txp)
-		: D3D_Texture2D(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER)
 	{
 		assert(txp.MipMapsArray.size() > 0 && txp.MipMapsArray.front().size() > 0 && txp.Signature.Type == TxpSig::Texture2D);
 
@@ -370,12 +346,6 @@ namespace Graphics
 	}
 	
 	D3D_ImmutableTexture2D::D3D_ImmutableTexture2D(ivec2 size, const void* rgbaBuffer)
-		: D3D_ImmutableTexture2D(size, rgbaBuffer, D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER)
-	{
-	}
-
-	D3D_ImmutableTexture2D::D3D_ImmutableTexture2D(ivec2 size, const void* rgbaBuffer, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode)
-		: D3D_Texture2D(filter, addressMode)
 	{
 		textureFormat = TextureFormat::RGBA8;
 		textureDescription.Width = size.x;

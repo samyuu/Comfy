@@ -99,6 +99,9 @@ namespace Graphics
 		// NOTE: Disable backface culling for negatively scaled sprites
 		D3D_RasterizerState rasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_NONE };
 
+		// TODO: Once needed the Renderer2D should expose optional wrapped address modes
+		D3D_TextureSampler defaultTextureSampler = { D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER };
+
 		/*
 		// TODO: Offload checkerboard rendering from shader
 		static constexpr std::array<uint32_t, 4> checkerboardTexturePixels = 

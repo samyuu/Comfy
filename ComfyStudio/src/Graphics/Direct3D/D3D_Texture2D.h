@@ -1,6 +1,6 @@
 #pragma once
 #include "Direct3D.h"
-#include "GraphicsInterfaces.h"
+#include "D3D_TextureSampler.h"
 #include "Graphics/GraphicsTypes.h"
 
 namespace Graphics
@@ -8,7 +8,7 @@ namespace Graphics
 	class D3D_Texture2D : IGraphicsResource
 	{
 	protected:
-		D3D_Texture2D(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode, float lodBias = 0.0f);
+		D3D_Texture2D();
 		virtual ~D3D_Texture2D() = default;
 
 	public:
@@ -27,10 +27,8 @@ namespace Graphics
 		mutable uint32_t lastBoundSlot;
 		TextureFormat textureFormat;
 
-		D3D11_SAMPLER_DESC samplerDescription;
 		D3D11_TEXTURE2D_DESC textureDescription;
 
-		ComPtr<ID3D11SamplerState> samplerState;
 		ComPtr<ID3D11Texture2D> texture;
 		ComPtr<ID3D11ShaderResourceView> resourceView;
 	};
@@ -40,7 +38,6 @@ namespace Graphics
 	public:
 		D3D_ImmutableTexture2D(const struct Txp& txp);
 		D3D_ImmutableTexture2D(ivec2 size, const void* rgbaBuffer);
-		D3D_ImmutableTexture2D(ivec2 size, const void* rgbaBuffer, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode);
 		D3D_ImmutableTexture2D(const D3D_ImmutableTexture2D&) = delete;
 		~D3D_ImmutableTexture2D() = default;
 
@@ -49,9 +46,6 @@ namespace Graphics
 	private:
 	};
 
-	/*
-	class D3D_DynamicTexture2D final : public D3D_Texture2D
-	{
-	};
-	*/
+	// TODO: Implement once needed
+	// class D3D_DynamicTexture2D final : public D3D_Texture2D {};
 }
