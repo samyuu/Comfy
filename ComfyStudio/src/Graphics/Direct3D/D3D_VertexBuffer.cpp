@@ -46,6 +46,11 @@ namespace Graphics
 		return buffer.Get();
 	}
 
+	const D3D11_BUFFER_DESC& D3D_VertexBuffer::GetDescription()
+	{
+		return bufferDescription;
+	}
+
 	D3D_StaticVertexBuffer::D3D_StaticVertexBuffer(size_t dataSize, const void* data, size_t stride)
 		: D3D_VertexBuffer(dataSize, data, stride, D3D11_USAGE_IMMUTABLE, 0)
 	{

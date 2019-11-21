@@ -16,6 +16,7 @@ namespace Graphics
 
 	public:
 		ID3D11Buffer* GetBuffer();
+		const D3D11_BUFFER_DESC& GetDescription();
 
 	protected:
 		D3D11_BUFFER_DESC bufferDescription;

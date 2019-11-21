@@ -1,0 +1,36 @@
+#include "D3D_DepthStencilState.h"
+
+namespace Graphics
+{
+	D3D_DepthStencilState::D3D_DepthStencilState(bool depthEnabled, D3D11_DEPTH_WRITE_MASK depthWriteMask)
+	{
+		depthStencilDescription.DepthEnable = depthEnabled;
+		depthStencilDescription.DepthWriteMask = depthWriteMask;
+		depthStencilDescription.DepthFunc = D3D11_COMPARISON_LESS;
+		depthStencilDescription.StencilEnable = false;
+		depthStencilDescription.StencilReadMask = 0xFF;
+		depthStencilDescription.StencilWriteMask = 0xFF;
+		depthStencilDescription.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		depthStencilDescription.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+		depthStencilDescription.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		depthStencilDescription.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+		depthStencilDescription.BackFace = depthStencilDescription.FrontFace;
+
+		D3D.Device->CreateDepthStencilState(&depthStencilDescription, &depthStencilState);
+	}
+
+	void D3D_DepthStencilState::Bind()
+	{
+		D3D.Context->OMSetDepthStencilState(depthStencilState.Get(), 0);
+	}
+
+	void D3D_DepthStencilState::UnBind()
+	{
+		D3D.Context->OMSetDepthStencilState(nullptr, 0);
+	}
+	
+	ID3D11DepthStencilState* D3D_DepthStencilState::GetDepthStencilState()
+	{
+		return depthStencilState.Get();
+	}
+}

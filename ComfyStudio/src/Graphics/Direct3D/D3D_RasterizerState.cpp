@@ -6,7 +6,8 @@ namespace Graphics
 	{
 		rasterizerDescription.FillMode = fillMode;
 		rasterizerDescription.CullMode = cullMode;
-		rasterizerDescription.FrontCounterClockwise = false;
+		// NOTE: Default to true because ObjSet files were originally design to be used with OpenGL
+		rasterizerDescription.FrontCounterClockwise = true;
 		rasterizerDescription.DepthBias = D3D11_DEFAULT_DEPTH_BIAS;
 		rasterizerDescription.DepthBiasClamp = D3D11_DEFAULT_DEPTH_BIAS_CLAMP;
 		rasterizerDescription.SlopeScaledDepthBias = D3D11_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;

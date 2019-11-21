@@ -48,6 +48,11 @@ namespace Graphics
 		D3D_SetObjectDebugName(GetBlendState(), "AetBlendMode: %s", AetBlendModeNames[static_cast<size_t>(blendMode)]);
 	}
 
+	D3D_BlendState::D3D_BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend)
+		: D3D_BlendState(sourceBlend, destinationBlend, D3D11_BLEND_ZERO, D3D11_BLEND_ONE)
+	{
+	}
+
 	D3D_BlendState::D3D_BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend, D3D11_BLEND sourceAlpha, D3D11_BLEND destinationAlpha)
 		: D3D_BlendState(sourceBlend, destinationBlend, sourceAlpha, destinationAlpha, D3D11_BLEND_OP_ADD, D3D11_BLEND_OP_ADD)
 	{

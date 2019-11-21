@@ -5,12 +5,14 @@
 
 namespace Graphics
 {
+	// TODO: Use easier more limited custom format enum instead of the DXGI format type
 	struct InputElement
 	{
 		const char* SemanticName;
 		uint32_t SemanticIndex;
 		DXGI_FORMAT Format;
 		uint32_t ByteOffset;
+		uint32_t InputSlot = 0;
 	};
 
 	// TODO: Input layout class that supports multiple vertex buffers

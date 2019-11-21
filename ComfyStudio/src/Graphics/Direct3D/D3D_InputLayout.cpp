@@ -15,7 +15,7 @@ namespace Graphics
 			description.SemanticName = inputElement.SemanticName;
 			description.SemanticIndex = inputElement.SemanticIndex;
 			description.Format = inputElement.Format;
-			description.InputSlot = 0;
+			description.InputSlot = inputElement.InputSlot;
 			description.AlignedByteOffset = inputElement.ByteOffset;
 			description.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 			description.InstanceDataStepRate = 0;

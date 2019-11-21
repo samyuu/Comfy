@@ -9,6 +9,7 @@ namespace Graphics
 	{
 	public:
 		D3D_BlendState(AetBlendMode blendMode);
+		D3D_BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend);
 		D3D_BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend, D3D11_BLEND sourceAlpha, D3D11_BLEND destinationAlpha);
 		D3D_BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend, D3D11_BLEND sourceAlphaBlend, D3D11_BLEND destinationAlphaBlend, D3D11_BLEND_OP blendOp, D3D11_BLEND_OP blendAlphaOp);
 		D3D_BlendState(const D3D_BlendState&) = default;
