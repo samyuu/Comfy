@@ -83,7 +83,7 @@ namespace ImGui
 		center -= size * 0.5f;
 		vec2 bottomRight = center + size;
 
-		drawList->AddImage(texture->GetVoidTexture(), center, bottomRight, uv0, uv1);
+		drawList->AddImage(texture->GetResourceView(), center, bottomRight, uv0, uv1);
 	}
 
 	void AddSprite(ImDrawList* drawList, const Graphics::D3D_Texture2D* texture, const vec2& position, const vec4& sourceRegion, ImU32 color)
@@ -97,7 +97,7 @@ namespace ImGui
 		uv0.y = 1.0f - (sourceRegion.y / textureSize.y);
 		uv1.y = uv0.y + (sourceRegion.w / textureSize.y);
 
-		drawList->AddImage(texture->GetVoidTexture(), position, position + vec2(sourceRegion.z, sourceRegion.w), uv0, uv1, color);
+		drawList->AddImage(texture->GetResourceView(), position, position + vec2(sourceRegion.z, sourceRegion.w), uv0, uv1, color);
 	}
 
 	void AddLine(ImDrawList* drawList, vec2 start, vec2 end, ImU32 color, float thickness)

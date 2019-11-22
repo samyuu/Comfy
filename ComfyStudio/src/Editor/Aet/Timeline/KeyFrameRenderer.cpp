@@ -115,7 +115,7 @@ namespace Editor
 
 	void KeyFrameRenderer::CreateKeyFrameTexture()
 	{
-		keyFrameTexture = MakeUnique<D3D_ImmutableTexture2D>(keyFrameTextureSize, keyFrameTexturePixels);
+		keyFrameTexture = MakeUnique<D3D_Texture2D>(keyFrameTextureSize, keyFrameTexturePixels);
 		D3D_SetObjectDebugName(keyFrameTexture->GetTexture(), "KeyFrameRenderer::KeyFrameTexture");
 	}
 

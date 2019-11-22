@@ -239,12 +239,12 @@ namespace Graphics
 		}
 	}
 
-	D3D_Texture2D::D3D_Texture2D()
+	D3D_TextureResource::D3D_TextureResource()
 		: lastBoundSlot(UnboundTextureSlot), textureFormat(TextureFormat::Unknown)
 	{
 	}
 
-	void D3D_Texture2D::Bind(uint32_t textureSlot) const
+	void D3D_TextureResource::Bind(uint32_t textureSlot) const
 	{
 		assert(textureSlot < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
 		lastBoundSlot = textureSlot;
@@ -255,7 +255,7 @@ namespace Graphics
 		D3D.Context->PSSetShaderResources(textureSlot, textureCount, resourceViews.data());
 	}
 	
-	void D3D_Texture2D::UnBind() const
+	void D3D_TextureResource::UnBind() const
 	{
 		assert(lastBoundSlot < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
 
@@ -267,27 +267,27 @@ namespace Graphics
 		lastBoundSlot = UnboundTextureSlot;
 	}
 	
-	ivec2 D3D_Texture2D::GetSize() const
+	ivec2 D3D_TextureResource::GetSize() const
 	{
 		return ivec2(textureDescription.Width, textureDescription.Height);
 	}
 
-	ID3D11Texture2D* D3D_Texture2D::GetTexture()
+	ID3D11Texture2D* D3D_TextureResource::GetTexture()
 	{
 		return texture.Get();
 	}
 
-	TextureFormat D3D_Texture2D::GetTextureFormat() const
+	TextureFormat D3D_TextureResource::GetTextureFormat() const
 	{
 		return textureFormat;
 	}
 
-	void* D3D_Texture2D::GetVoidTexture() const
+	ID3D11ShaderResourceView* D3D_TextureResource::GetResourceView() const
 	{
 		return resourceView.Get();
 	}
 
-	D3D_ImmutableTexture2D::D3D_ImmutableTexture2D(const Txp& txp)
+	D3D_Texture2D::D3D_Texture2D(const Txp& txp)
 	{
 		assert(txp.MipMapsArray.size() > 0 && txp.MipMapsArray.front().size() > 0 && txp.Signature.Type == TxpSig::Texture2D);
 
@@ -336,7 +336,6 @@ namespace Graphics
 		
 		D3D.Device->CreateTexture2D(&textureDescription, initialResourceData, &texture);
 
-		D3D11_SHADER_RESOURCE_VIEW_DESC resourceViewDescription;
 		resourceViewDescription.Format = textureDescription.Format;
 		resourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		resourceViewDescription.Texture2D.MostDetailedMip = 0;
@@ -345,7 +344,7 @@ namespace Graphics
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 	
-	D3D_ImmutableTexture2D::D3D_ImmutableTexture2D(ivec2 size, const void* rgbaBuffer)
+	D3D_Texture2D::D3D_Texture2D(ivec2 size, const void* rgbaBuffer)
 	{
 		textureFormat = TextureFormat::RGBA8;
 		textureDescription.Width = size.x;
@@ -365,12 +364,16 @@ namespace Graphics
 		D3D11_SUBRESOURCE_DATA initialResourceData = { rgbaBuffer, textureDescription.Width * rgbaBytesPerPixel, 0 };
 		D3D.Device->CreateTexture2D(&textureDescription, &initialResourceData, &texture);
 
-		D3D11_SHADER_RESOURCE_VIEW_DESC resourceViewDescription;
 		resourceViewDescription.Format = textureDescription.Format;
 		resourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		resourceViewDescription.Texture2D.MostDetailedMip = 0;
 		resourceViewDescription.Texture2D.MipLevels = textureDescription.MipLevels;
 
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
+	}
+
+	uint32_t D3D_Texture2D::GetArraySize() const
+	{
+		return 1;
 	}
 }

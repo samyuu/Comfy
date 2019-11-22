@@ -147,7 +147,7 @@ namespace Editor
 		ImRect textureCoordinates = buttonIconsTextureCoordinates[GetButtonIconIndex(target)];
 
 		const ImU32 color = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF * transparency);
-		drawList->AddImage(buttonIconsTexture->GetVoidTexture(), position, bottomRight, textureCoordinates.GetBL(), textureCoordinates.GetTR(), color);
+		drawList->AddImage(buttonIconsTexture->GetResourceView(), position, bottomRight, textureCoordinates.GetBL(), textureCoordinates.GetTR(), color);
 
 		if ((target.Flags & TargetFlags_Hold))
 		{

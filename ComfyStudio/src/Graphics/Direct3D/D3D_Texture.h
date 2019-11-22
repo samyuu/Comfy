@@ -5,47 +5,52 @@
 
 namespace Graphics
 {
-	class D3D_Texture2D : IGraphicsResource
+	class D3D_TextureResource : IGraphicsResource
 	{
 	protected:
-		D3D_Texture2D();
-		virtual ~D3D_Texture2D() = default;
+		D3D_TextureResource();
+		virtual ~D3D_TextureResource() = default;
 
 	public:
-		virtual void Bind(uint32_t textureSlot) const;
-		virtual void UnBind() const;
-		
+		void Bind(uint32_t textureSlot) const;
+		void UnBind() const;
+
 	public:
+		virtual uint32_t GetArraySize() const = 0;
+
 		ivec2 GetSize() const;
-
-		ID3D11Texture2D* GetTexture();
 		TextureFormat GetTextureFormat() const;
 
-		void* GetVoidTexture() const;
+		ID3D11Texture2D* GetTexture();
+		ID3D11ShaderResourceView* GetResourceView() const;
 
 	protected:
 		mutable uint32_t lastBoundSlot;
 		TextureFormat textureFormat;
-
+		
 		D3D11_TEXTURE2D_DESC textureDescription;
+		D3D11_SHADER_RESOURCE_VIEW_DESC resourceViewDescription;
 
 		ComPtr<ID3D11Texture2D> texture;
 		ComPtr<ID3D11ShaderResourceView> resourceView;
 	};
 
-	class D3D_ImmutableTexture2D final : public D3D_Texture2D
+	class D3D_Texture2D final : public D3D_TextureResource
 	{
 	public:
-		D3D_ImmutableTexture2D(const struct Txp& txp);
-		D3D_ImmutableTexture2D(ivec2 size, const void* rgbaBuffer);
-		D3D_ImmutableTexture2D(const D3D_ImmutableTexture2D&) = delete;
-		~D3D_ImmutableTexture2D() = default;
+		D3D_Texture2D(const struct Txp& txp);
+		D3D_Texture2D(ivec2 size, const void* rgbaBuffer);
+		D3D_Texture2D(const D3D_Texture2D&) = delete;
+		~D3D_Texture2D() = default;
 
-		D3D_ImmutableTexture2D& operator=(const D3D_ImmutableTexture2D&) = delete;
-	
+		D3D_Texture2D& operator=(const D3D_Texture2D&) = delete;
+
+	public:
+		uint32_t GetArraySize() const override;
+
 	private:
 	};
 
-	// TODO: Implement once needed
-	// class D3D_DynamicTexture2D final : public D3D_Texture2D {};
+	// TODO:
+	// class D3D_CubeMap final : public D3D_TextureResource {};
 }

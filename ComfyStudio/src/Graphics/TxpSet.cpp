@@ -48,11 +48,16 @@ namespace Graphics
 	{
 		for (auto& txp : Txps)
 		{
-			if (txp.Signature.Type != TxpSig::Texture2D)
-				continue;
-
-			txp.Texture2D = MakeUnique<D3D_ImmutableTexture2D>(txp);
-			D3D_SetObjectDebugName(txp.Texture2D->GetTexture(), "%s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp.Name.empty() ? "???" : txp.Name.c_str());
+			if (txp.Signature.Type == TxpSig::Texture2D)
+			{
+				txp.Texture2D = MakeUnique<D3D_Texture2D>(txp);
+				D3D_SetObjectDebugName(txp.Texture2D->GetTexture(), "%s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp.Name.empty() ? "???" : txp.Name.c_str());
+			}
+			else if (txp.Signature.Type == TxpSig::CubeMap)
+			{
+				// TODO:
+				// txp.Texture2D = MakeUnique<D3D_CubeMap>(txp);
+			}
 		}
 	}
 
