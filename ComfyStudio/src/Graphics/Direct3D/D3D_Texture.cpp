@@ -5,8 +5,14 @@ namespace Graphics
 {
 	namespace
 	{
+		// NOTE: This doesn't seem to be defined anywhere but this should cover even the largest supported textures
+		constexpr size_t MaxMipMaps = 16;
+
+		constexpr size_t CubeFaceCount = 6;
+
+		constexpr uint32_t BlockCompressionAlignment = 4;
 		constexpr uint32_t UnboundTextureSlot = 0xFFFFFFFF;
-	
+
 		constexpr DXGI_FORMAT GetDxgiFormat(TextureFormat format)
 		{
 			switch (format)
@@ -237,6 +243,35 @@ namespace Graphics
 			width = PadTextureDimension(width, alignment);
 			height = PadTextureDimension(height, alignment);
 		}
+
+		UINT GetMemoryPitch(const MipMap& mipMap, bool usesBlockCompression, UINT bitsPerPixel)
+		{
+			// TODO: Not sure if this is entirely accurate or reliable
+			return (usesBlockCompression) ?
+				((PadTextureDimension(mipMap.Size.x, BlockCompressionAlignment) * bitsPerPixel) / 2) :
+				((mipMap.Size.x * bitsPerPixel + 7) / 8);
+		}
+
+		D3D11_SUBRESOURCE_DATA CreateMipMapSubresourceData(const MipMap& mipMap, bool usesBlockCompression, UINT bitsPerPixel)
+		{
+			D3D11_SUBRESOURCE_DATA resource;
+			resource.pSysMem = mipMap.DataPointer;
+			resource.SysMemPitch = GetMemoryPitch(mipMap, usesBlockCompression, bitsPerPixel);
+			resource.SysMemSlicePitch = 0;
+
+			return resource;
+		}
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC CreateTexture2DResourceViewDescription(const D3D11_TEXTURE2D_DESC& textureDescription)
+		{
+			D3D11_SHADER_RESOURCE_VIEW_DESC resourceViewDescription;
+			resourceViewDescription.Format = textureDescription.Format;
+			resourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+			resourceViewDescription.Texture2D.MostDetailedMip = 0;
+			resourceViewDescription.Texture2D.MipLevels = textureDescription.MipLevels;
+
+			return resourceViewDescription;
+		}
 	}
 
 	D3D_TextureResource::D3D_TextureResource()
@@ -289,7 +324,7 @@ namespace Graphics
 
 	D3D_Texture2D::D3D_Texture2D(const Txp& txp)
 	{
-		assert(txp.MipMapsArray.size() > 0 && txp.MipMapsArray.front().size() > 0 && txp.Signature.Type == TxpSig::Texture2D);
+		assert(txp.MipMapsArray.size() == GetArraySize() && txp.MipMapsArray.front().size() > 0 && txp.Signature.Type == TxpSig::Texture2D);
 
 		auto& mipMaps = txp.MipMapsArray.front();
 		auto& baseMipMap = mipMaps.front();
@@ -298,7 +333,7 @@ namespace Graphics
 		textureDescription.Width = baseMipMap.Size.x;
 		textureDescription.Height = baseMipMap.Size.y;
 		textureDescription.MipLevels = static_cast<UINT>(mipMaps.size());
-		textureDescription.ArraySize = 1;
+		textureDescription.ArraySize = static_cast<UINT>(txp.MipMapsArray.size());
 		textureDescription.Format = GetDxgiFormat(baseMipMap.Format);
 		textureDescription.SampleDesc.Count = 1;
 		textureDescription.SampleDesc.Quality = 0;
@@ -307,40 +342,20 @@ namespace Graphics
 		textureDescription.CPUAccessFlags = 0;
 		textureDescription.MiscFlags = 0;
 
-		constexpr UINT blockCompressionAlignment = 4;
 		const bool usesBlockCompression = UsesBlockCompression(textureDescription.Format);
+		const UINT bitsPerPixel = GetBitsPerPixel(textureDescription.Format);
 
 		if (usesBlockCompression)
-			PadTextureDimensions(textureDescription.Width, textureDescription.Height, blockCompressionAlignment);
-
-		const UINT bitsPerPixel = GetBitsPerPixel(textureDescription.Format);
+			PadTextureDimensions(textureDescription.Width, textureDescription.Height, BlockCompressionAlignment);
 		
-		// NOTE: This doesn't seem to be defined anywhere but this should cover even the largest supported textures
-		constexpr size_t maxMipMaps = 16;
-		D3D11_SUBRESOURCE_DATA initialResourceData[maxMipMaps];
+		std::array<D3D11_SUBRESOURCE_DATA, MaxMipMaps> initialResourceData;
 		
 		for (size_t i = 0; i < mipMaps.size(); i++)
-		{
-			const auto& mipMap = mipMaps[i];
-			D3D11_SUBRESOURCE_DATA& resource = initialResourceData[i];
-
-			resource.pSysMem = mipMap.DataPointer;
-
-			// TODO: Not sure if this is entirely accurate or reliable
-			resource.SysMemPitch = (usesBlockCompression) ? 
-				((PadTextureDimension(mipMap.Size.x, blockCompressionAlignment) * bitsPerPixel) / 2) :
-				((mipMap.Size.x * bitsPerPixel + 7) / 8);
-
-			resource.SysMemSlicePitch = 0;
-		}
+			initialResourceData[i] = CreateMipMapSubresourceData(mipMaps[i], usesBlockCompression, bitsPerPixel);
 		
-		D3D.Device->CreateTexture2D(&textureDescription, initialResourceData, &texture);
+		D3D.Device->CreateTexture2D(&textureDescription, initialResourceData.data(), &texture);
 
-		resourceViewDescription.Format = textureDescription.Format;
-		resourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		resourceViewDescription.Texture2D.MostDetailedMip = 0;
-		resourceViewDescription.Texture2D.MipLevels = textureDescription.MipLevels;
-
+		resourceViewDescription = CreateTexture2DResourceViewDescription(textureDescription);
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 	
@@ -364,16 +379,57 @@ namespace Graphics
 		D3D11_SUBRESOURCE_DATA initialResourceData = { rgbaBuffer, textureDescription.Width * rgbaBytesPerPixel, 0 };
 		D3D.Device->CreateTexture2D(&textureDescription, &initialResourceData, &texture);
 
-		resourceViewDescription.Format = textureDescription.Format;
-		resourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		resourceViewDescription.Texture2D.MostDetailedMip = 0;
-		resourceViewDescription.Texture2D.MipLevels = textureDescription.MipLevels;
-
+		resourceViewDescription = CreateTexture2DResourceViewDescription(textureDescription);
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 
 	uint32_t D3D_Texture2D::GetArraySize() const
 	{
 		return 1;
+	}
+	
+	D3D_CubeMap::D3D_CubeMap(const Txp& txp)
+	{
+		assert(txp.MipMapsArray.size() == GetArraySize() && txp.MipMapsArray.front().size() > 0 && txp.Signature.Type == TxpSig::CubeMap);
+
+		auto& mipMaps = txp.MipMapsArray.front();
+		auto& baseMipMap = mipMaps.front();
+
+		textureFormat = baseMipMap.Format;
+		textureDescription.Width = baseMipMap.Size.x;
+		textureDescription.Height = baseMipMap.Size.y;
+		textureDescription.MipLevels = static_cast<UINT>(mipMaps.size());
+		textureDescription.ArraySize = static_cast<UINT>(txp.MipMapsArray.size());
+		textureDescription.Format = GetDxgiFormat(baseMipMap.Format);
+		textureDescription.SampleDesc.Count = 1;
+		textureDescription.SampleDesc.Quality = 0;
+		textureDescription.Usage = D3D11_USAGE_IMMUTABLE;
+		textureDescription.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		textureDescription.CPUAccessFlags = 0;
+		textureDescription.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+		const bool usesBlockCompression = UsesBlockCompression(textureDescription.Format);
+		const UINT bitsPerPixel = GetBitsPerPixel(textureDescription.Format);
+
+		if (usesBlockCompression)
+			PadTextureDimensions(textureDescription.Width, textureDescription.Height, BlockCompressionAlignment);
+
+		std::array<D3D11_SUBRESOURCE_DATA, CubeFaceCount * MaxMipMaps> initialResourceData;
+
+		for (uint32_t faceIndex = 0; faceIndex < CubeFaceCount; faceIndex++)
+		{
+			for (uint32_t mipIndex = 0; mipIndex < textureDescription.MipLevels; mipIndex++)
+				initialResourceData[faceIndex * textureDescription.MipLevels + mipIndex] = CreateMipMapSubresourceData(txp.MipMapsArray[faceIndex][mipIndex], usesBlockCompression, bitsPerPixel);
+		}
+
+		D3D.Device->CreateTexture2D(&textureDescription, initialResourceData.data(), &texture);
+
+		resourceViewDescription = CreateTexture2DResourceViewDescription(textureDescription);
+		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
+	}
+
+	uint32_t D3D_CubeMap::GetArraySize() const
+	{
+		return CubeFaceCount;
 	}
 }

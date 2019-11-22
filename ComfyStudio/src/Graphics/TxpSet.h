@@ -46,7 +46,7 @@ namespace Graphics
 		std::vector<std::vector<MipMap>> MipMapsArray;
 
 		UniquePtr<D3D_Texture2D> Texture2D;
-		// TODO: UniquePtr<D3D_CubeMap> CubeMap;
+		UniquePtr<D3D_CubeMap> CubeMap;
 
 	public:
 		const std::vector<MipMap>& GetMipMaps(uint32_t arrayIndex = 0) const;

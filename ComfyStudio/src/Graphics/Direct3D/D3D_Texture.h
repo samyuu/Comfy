@@ -51,6 +51,18 @@ namespace Graphics
 	private:
 	};
 
-	// TODO:
-	// class D3D_CubeMap final : public D3D_TextureResource {};
+	class D3D_CubeMap final : public D3D_TextureResource 
+	{
+	public:
+		D3D_CubeMap(const struct Txp& txp);
+		D3D_CubeMap(const D3D_CubeMap&) = delete;
+		~D3D_CubeMap() = default;
+
+		D3D_CubeMap& operator=(const D3D_CubeMap&) = delete;
+
+	public:
+		uint32_t GetArraySize() const override;
+
+	private:
+	};
 }
