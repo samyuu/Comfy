@@ -3,7 +3,7 @@
 #include "Core/CoreTypes.h"
 #include "FileSystem/FileInterface.h"
 #include "Graphics/GraphicsTypes.h"
-#include "Graphics/Direct3D/D3D_Texture2D.h"
+#include "Graphics/Direct3D/D3D_Texture.h"
 
 namespace Graphics
 {

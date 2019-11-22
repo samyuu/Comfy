@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "Graphics/VertexLayouts.h"
-#include "Graphics/Direct3D/D3D_Texture2D.h"
+#include "Graphics/Direct3D/D3D_Texture.h"
 
 namespace Graphics
 {

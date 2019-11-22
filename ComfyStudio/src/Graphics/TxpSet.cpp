@@ -2,7 +2,6 @@
 #include "SprSet.h"
 #include "FileSystem/FileInterface.h"
 #include "FileSystem/BinaryReader.h"
-#include "Graphics/Direct3D/D3D_Texture2D.h"
 
 using namespace FileSystem;
 

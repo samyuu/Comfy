@@ -1,4 +1,4 @@
-#include "D3D_Texture2D.h"
+#include "D3D_Texture.h"
 #include "Graphics/TxpSet.h"
 
 namespace Graphics

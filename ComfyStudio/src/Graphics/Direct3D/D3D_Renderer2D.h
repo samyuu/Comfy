@@ -6,7 +6,7 @@
 #include "D3D_InputLayout.h"
 #include "D3D_RasterizerState.h"
 #include "D3D_Shader.h"
-#include "D3D_Texture2D.h"
+#include "D3D_Texture.h"
 #include "D3D_VertexBuffer.h"
 #include "Graphics/Auth2D/SpriteBatchData.h"
 #include "Graphics/Camera.h"

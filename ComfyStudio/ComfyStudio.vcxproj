@@ -227,7 +227,7 @@
     <ClCompile Include="src\Graphics\Direct3D\D3D_Renderer3D.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_RenderTarget.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_Shader.cpp" />
-    <ClCompile Include="src\Graphics\Direct3D\D3D_Texture2D.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\D3D_Texture.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_TextureSampler.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_VertexBuffer.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\Direct3D.cpp" />
@@ -362,7 +362,7 @@
     <ClInclude Include="src\Graphics\Direct3D\D3D_RenderTarget.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_TextureSampler.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_Shader.h" />
-    <ClInclude Include="src\Graphics\Direct3D\D3D_Texture2D.h" />
+    <ClInclude Include="src\Graphics\Direct3D\D3D_Texture.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_VertexBuffer.h" />
     <ClInclude Include="src\Graphics\Direct3D\Direct3D.h" />
     <ClInclude Include="src\Graphics\Direct3D\ShaderBytecode\ShaderBytecode.h" />
