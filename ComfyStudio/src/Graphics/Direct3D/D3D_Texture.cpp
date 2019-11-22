@@ -37,7 +37,7 @@ namespace Graphics
 			assert(false);
 			return DXGI_FORMAT_UNKNOWN;
 		}
-		
+
 		constexpr UINT GetFormatDimensionsAlignmentRestriction(TextureFormat format)
 		{
 			switch (format)
@@ -262,13 +262,23 @@ namespace Graphics
 			return resource;
 		}
 
-		D3D11_SHADER_RESOURCE_VIEW_DESC CreateTexture2DResourceViewDescription(const D3D11_TEXTURE2D_DESC& textureDescription)
+		D3D11_SHADER_RESOURCE_VIEW_DESC CreateTextureResourceViewDescription(const D3D11_TEXTURE2D_DESC& textureDescription)
 		{
 			D3D11_SHADER_RESOURCE_VIEW_DESC resourceViewDescription;
 			resourceViewDescription.Format = textureDescription.Format;
-			resourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-			resourceViewDescription.Texture2D.MostDetailedMip = 0;
-			resourceViewDescription.Texture2D.MipLevels = textureDescription.MipLevels;
+
+			if (textureDescription.ArraySize <= 1)
+			{
+				resourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+				resourceViewDescription.Texture2D.MostDetailedMip = 0;
+				resourceViewDescription.Texture2D.MipLevels = textureDescription.MipLevels;
+			}
+			else
+			{
+				resourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+				resourceViewDescription.TextureCube.MostDetailedMip = 0;
+				resourceViewDescription.TextureCube.MipLevels = textureDescription.MipLevels;
+			}
 
 			return resourceViewDescription;
 		}
@@ -289,7 +299,7 @@ namespace Graphics
 
 		D3D.Context->PSSetShaderResources(textureSlot, textureCount, resourceViews.data());
 	}
-	
+
 	void D3D_TextureResource::UnBind() const
 	{
 		assert(lastBoundSlot < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
@@ -301,7 +311,7 @@ namespace Graphics
 
 		lastBoundSlot = UnboundTextureSlot;
 	}
-	
+
 	ivec2 D3D_TextureResource::GetSize() const
 	{
 		return ivec2(textureDescription.Width, textureDescription.Height);
@@ -347,18 +357,18 @@ namespace Graphics
 
 		if (usesBlockCompression)
 			PadTextureDimensions(textureDescription.Width, textureDescription.Height, BlockCompressionAlignment);
-		
+
 		std::array<D3D11_SUBRESOURCE_DATA, MaxMipMaps> initialResourceData;
-		
+
 		for (size_t i = 0; i < mipMaps.size(); i++)
 			initialResourceData[i] = CreateMipMapSubresourceData(mipMaps[i], usesBlockCompression, bitsPerPixel);
-		
+
 		D3D.Device->CreateTexture2D(&textureDescription, initialResourceData.data(), &texture);
 
-		resourceViewDescription = CreateTexture2DResourceViewDescription(textureDescription);
+		resourceViewDescription = CreateTextureResourceViewDescription(textureDescription);
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
-	
+
 	D3D_Texture2D::D3D_Texture2D(ivec2 size, const void* rgbaBuffer)
 	{
 		textureFormat = TextureFormat::RGBA8;
@@ -379,7 +389,7 @@ namespace Graphics
 		D3D11_SUBRESOURCE_DATA initialResourceData = { rgbaBuffer, textureDescription.Width * rgbaBytesPerPixel, 0 };
 		D3D.Device->CreateTexture2D(&textureDescription, &initialResourceData, &texture);
 
-		resourceViewDescription = CreateTexture2DResourceViewDescription(textureDescription);
+		resourceViewDescription = CreateTextureResourceViewDescription(textureDescription);
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 
@@ -387,7 +397,7 @@ namespace Graphics
 	{
 		return 1;
 	}
-	
+
 	D3D_CubeMap::D3D_CubeMap(const Txp& txp)
 	{
 		assert(txp.MipMapsArray.size() == GetArraySize() && txp.MipMapsArray.front().size() > 0 && txp.Signature.Type == TxpSig::CubeMap);
@@ -424,7 +434,7 @@ namespace Graphics
 
 		D3D.Device->CreateTexture2D(&textureDescription, initialResourceData.data(), &texture);
 
-		resourceViewDescription = CreateTexture2DResourceViewDescription(textureDescription);
+		resourceViewDescription = CreateTextureResourceViewDescription(textureDescription);
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 
