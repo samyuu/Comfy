@@ -53,8 +53,7 @@ ComfyData/data/dev_ram/
 ComfyData/data/dev_rom/
 
 # Comfy Studio shader output files
-ComfyStudio/src/Graphics/Direct3D/ShaderBytecode/Debug
-ComfyStudio/src/Graphics/Direct3D/ShaderBytecode/Release
+ComfyStudio/src/Graphics/Direct3D/ShaderBytecode/Intermediate
 
 # Version Control files
 ComfyStudio/src/System/Version/BuildVersion.h
