@@ -2,6 +2,7 @@
 #include "Core/Logger.h"
 #include "System/Version/BuildVersion.h"
 #include "System/Version/BuildConfiguration.h"
+#include "Graphics/Auth2D/AetSet.h"
 #include "FileSystem/Archive/Farc.h"
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
@@ -26,6 +27,16 @@ namespace System
 				WriteAllBytes(directory + std::string("\\") + entry.Name, data);
 			}
 		}
+	}
+
+	static void AetSetFormatProcessor(int index, const char* arguments[])
+	{
+		std::string inputPath = arguments[index + 0];
+		std::string outputPath = arguments[index + 1];
+
+		Graphics::AetSet aetSet;
+		aetSet.Load(inputPath);
+		aetSet.Save(outputPath);
 	}
 
 	const char* CommandLineOption::GetDescription() const
@@ -55,6 +66,7 @@ namespace System
 			{ "-te",	"--test_echo",		"Echo the following argument",		false,	1, [](int index, const char* arguments[]) { Logger::LogLine(">> echo '%s'", arguments[index]); } },
 			{ "-e",		"--exit",			"Exit the application",				true,	0, [](int index, const char* arguments[]) {} },
 			{ "-f",		"--farc",			"Extract Farc",						true,	1, FarcProcessor },
+			{ "-aet",	"--aet_reformat",	"Reformat an AetSet",				true,	2, AetSetFormatProcessor },
 		};
 	}
 
