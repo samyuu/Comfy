@@ -499,9 +499,15 @@ namespace Graphics
 		uint32_t signature = reader.ReadUInt32();
 		if (signature == 'AETC' || signature == 'CTEA')
 		{
-			reader.ReadUInt32();
-			reader.SetPosition(reader.ReadPtr());
-			reader.SetEndianness(Endianness::Big);
+			reader.SetEndianness(Endianness::Little);
+			uint32_t dataSize = reader.ReadUInt32();
+			uint32_t dataOffset = reader.ReadUInt32();
+			uint32_t endianSignaure = reader.ReadUInt32();
+
+			enum { LittleEndian = 0x10000000, BigEndian = 0x18000000 };
+
+			reader.SetPosition(dataOffset);
+			reader.SetEndianness(endianSignaure == LittleEndian ? Endianness::Little : Endianness::Big);
 		}
 		else
 		{
