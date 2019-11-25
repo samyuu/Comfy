@@ -3,6 +3,8 @@
 
 struct Material
 {
+    matrix DiffuseTextureTransform;
+    matrix AmbientTextureTransform;
     float3 DiffuseColor;
     float1 Transparency;
     float4 AmbientColor;
@@ -12,8 +14,6 @@ struct Material
     float1 Shininess;
     float1 Intensity;
     float1 BumpDepth;
-    float1 AlphaTestThreshold;
-    matrix TextureTransform;
 };
 
 #endif /* MATERIAL_HLSL */

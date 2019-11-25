@@ -832,8 +832,15 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ImGui_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\VertexAttributes.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Material.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\InputLayouts.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Constant_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Constant_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\SceneData.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ShaderFlags.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ConstantInputs.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Lambert_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Lambert_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Common.hlsl" />
   </ItemGroup>
 </Project>

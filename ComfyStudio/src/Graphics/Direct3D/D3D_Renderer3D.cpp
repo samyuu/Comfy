@@ -41,10 +41,10 @@ namespace Graphics
 	}
 
 	D3D_Renderer3D::D3D_Renderer3D()
-		: testShader(Test_VS(), Test_PS())
+		: testShader(Test_VS(), Test_PS()), constantShader(Constant_VS(), Constant_PS()), lambertShader(Lambert_VS(), Lambert_PS())
 	{
 		// TODO: Give names to all graphics resources
-		D3D_SetObjectDebugName(cameraConstantBuffer.Buffer.GetBuffer(), "Renderer3D::CameraConstantBuffer");
+		// D3D_SetObjectDebugName(..., "Renderer3D::...");
 
 		InputElement elements[] =
 		{
@@ -60,9 +60,11 @@ namespace Graphics
 		inputLayout = MakeUnique<D3D_InputLayout>(elements, std::size(elements), testShader.VS);
 	}
 
-	void D3D_Renderer3D::Begin(const PerspectiveCamera& camera)
+	void D3D_Renderer3D::Begin(const PerspectiveCamera& camera, const vec4& diffuse, const ParallelLight& stageLight)
 	{
 		perspectiveCamera = &camera;
+		lightDiffuse = &diffuse;
+		parallelStageLight = &stageLight;
 	}
 
 	void D3D_Renderer3D::Draw(ObjSet* objSet, Obj* obj, vec3 position)
@@ -115,22 +117,18 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalRenderItems()
 	{
-		cameraConstantBuffer.Data.ViewProjection = glm::transpose(perspectiveCamera->GetProjectionMatrix() * perspectiveCamera->GetViewMatrix());
-		cameraConstantBuffer.Data.EyePosition = perspectiveCamera->Position;
-		cameraConstantBuffer.UploadData();
-		cameraConstantBuffer.BindVertexShader();
+		sceneConstantBuffer.Data.Scene.ViewProjection = glm::transpose(perspectiveCamera->GetProjectionMatrix() * perspectiveCamera->GetViewMatrix());
+		sceneConstantBuffer.Data.Scene.EyePosition = vec4(perspectiveCamera->Position, 0.0f);
+		sceneConstantBuffer.Data.LightDiffuse = *lightDiffuse;
+		sceneConstantBuffer.Data.StageLight = *parallelStageLight;
+		sceneConstantBuffer.Data.StageLight.Direction = glm::normalize(parallelStageLight->Position);
+		sceneConstantBuffer.UploadData();
 
-		dynamicConstantBuffer.BindPixelShader();
-
-		materialConstantBuffer.BindVertexShader();
-		materialConstantBuffer.BindPixelShader();
-		
-		solidBackfaceCullingRasterizerState.Bind();
+		sceneConstantBuffer.BindShaders();
+		objectConstantBuffer.BindShaders();
 
 		(DEBUG_RenderWireframe ? wireframeRasterizerState : solidBackfaceCullingRasterizerState).Bind();
-
 		inputLayout->Bind();
-		testShader.Bind();
 
 		if (DEBUG_RenderOpaque)
 		{
@@ -156,7 +154,6 @@ namespace Graphics
 		for (auto& mesh : command.Obj->Meshes)
 		{
 			BindMeshVertexBuffers(mesh);
-			UpdateMeshVertexAttributeConstantBuffer(mesh);
 
 			for (auto& subMesh : mesh.SubMeshes)
 			{
@@ -164,14 +161,9 @@ namespace Graphics
 				if (material.BlendFlags.EnableBlend)
 					continue;
 
-				UpdateMaterialConstantBuffer(material);
-
-				// DEBUG:
-				// dynamicConstantBuffer.Data.TextureFlags = (command.Obj->Materials[subMesh.MaterialIndex].Reflection.TypeFlags.ProbablyCubeMapRelated == 9) ? 1 : 0;
-				// dynamicConstantBuffer.UploadData();
-
-				BindSubMeshTextures(subMesh, material, command.ObjSet);
-				BindIndexBufferSubmitSubMeshDrawCall(subMesh);
+				UpdateSubMeshShaderState(subMesh, material, command.ObjSet);
+				UpdateObjectConstantBuffer(mesh, material, command.Transform);
+				SubmitSubMeshDrawCall(subMesh);
 			}
 		}
 	}
@@ -182,17 +174,14 @@ namespace Graphics
 		auto& mesh = *command.ParentMesh;
 
 		BindMeshVertexBuffers(mesh);
-		UpdateMeshVertexAttributeConstantBuffer(mesh);
-
 		auto& material = command.ObjCommand->Obj->Materials[subMesh.MaterialIndex];
 
 		auto blendState = CreateMaterialBlendState(material);
 		blendState.Bind();
 
-		UpdateMaterialConstantBuffer(material);
-
-		BindSubMeshTextures(subMesh, material, command.ObjCommand->ObjSet);
-		BindIndexBufferSubmitSubMeshDrawCall(subMesh);
+		UpdateObjectConstantBuffer(mesh, material, command.ObjCommand->Transform);
+		UpdateSubMeshShaderState(subMesh, material, command.ObjCommand->ObjSet);
+		SubmitSubMeshDrawCall(subMesh);
 	}
 
 	void D3D_Renderer3D::BindMeshVertexBuffers(Mesh& mesh)
@@ -209,45 +198,50 @@ namespace Graphics
 			{
 				buffers[i] = vertexBuffer->GetBuffer();
 				strides[i] = vertexBuffer->GetDescription().StructureByteStride;
+				offsets[i] = 0;
 			}
 			else
 			{
 				buffers[i] = nullptr;
 				strides[i] = 0;
+				offsets[i] = 0;
 			}
-
-			offsets[i] = 0;
 		}
 
 		D3D.Context->IASetVertexBuffers(0, VertexAttribute_Count, buffers.data(), strides.data(), offsets.data());
-
 	}
 
-	void D3D_Renderer3D::UpdateMeshVertexAttributeConstantBuffer(Mesh& mesh)
+	void D3D_Renderer3D::UpdateObjectConstantBuffer(Mesh& mesh, Material& material, const mat4& model)
 	{
-		dynamicConstantBuffer.Data.AttributeFlags = mesh.AttributeFlags;
-		dynamicConstantBuffer.Data.TextureFlags = 0;
-		dynamicConstantBuffer.UploadData();
-	}
+		objectConstantBuffer.Data.Material.DiffuseColor = material.DiffuseColor;
+		objectConstantBuffer.Data.Material.Transparency = material.Transparency;
+		objectConstantBuffer.Data.Material.AmbientColor = material.AmbientColor;
+		objectConstantBuffer.Data.Material.SpecularColor = material.SpecularColor;
+		objectConstantBuffer.Data.Material.Reflectivity = material.Reflectivity;
+		objectConstantBuffer.Data.Material.EmissionColor = material.EmissionColor;
+		objectConstantBuffer.Data.Material.Shininess = material.Shininess;
+		objectConstantBuffer.Data.Material.Intensity = material.Intensity;
+		objectConstantBuffer.Data.Material.BumpDepth = material.BumpDepth;
+		objectConstantBuffer.Data.Material.DiffuseTextureTransform = glm::transpose(material.Diffuse.TextureCoordinateMatrix);
+		objectConstantBuffer.Data.Material.AmbientTextureTransform = glm::transpose(material.Ambient.TextureCoordinateMatrix);
 
-	void D3D_Renderer3D::UpdateMaterialConstantBuffer(Material& material)
-	{
-		constexpr float noAlphaTesting = -1.0f, alphaTestThreshold = 0.5f;
+		objectConstantBuffer.Data.Model = glm::transpose(model);
+		objectConstantBuffer.Data.ShaderFlags = 0;
 
-		materialConstantBuffer.Data.DiffuseColor = material.DiffuseColor;
-		materialConstantBuffer.Data.Transparency = material.Transparency;
-		materialConstantBuffer.Data.AmbientColor = material.AmbientColor;
-		materialConstantBuffer.Data.SpecularColor = material.SpecularColor;
-		materialConstantBuffer.Data.Reflectivity = material.Reflectivity;
-		materialConstantBuffer.Data.EmissionColor = material.EmissionColor;
-		materialConstantBuffer.Data.Shininess = material.Shininess;
-		materialConstantBuffer.Data.Intensity = material.Intensity;
-		materialConstantBuffer.Data.BumpDepth = material.BumpDepth;
-		materialConstantBuffer.Data.TextureTransform = glm::transpose(material.Diffuse.TextureCoordinateMatrix);
+		if (mesh.AttributeFlags & VertexAttributeFlags_Color0)
+			objectConstantBuffer.Data.ShaderFlags |= ShaderFlags_VertexColor;
 
-		// This is almost certainly wrong but a decent bodge for now
-		materialConstantBuffer.Data.AlphaTestThreshold = material.BlendFlags.EnableAlphaTest && !material.BlendFlags.EnableBlend ? alphaTestThreshold : noAlphaTesting;
-		materialConstantBuffer.UploadData();
+		if (material.Flags.UseDiffuseTexture || material.Diffuse.TextureID != -1)
+			objectConstantBuffer.Data.ShaderFlags |= ShaderFlags_DiffuseTexture;
+
+		if (material.Flags.UseAmbientTexture || material.Ambient.TextureID != -1)
+			objectConstantBuffer.Data.ShaderFlags |= ShaderFlags_AmbientTexture;
+
+		// TODO: Is this correct (?)
+		if (material.BlendFlags.EnableAlphaTest)
+			objectConstantBuffer.Data.ShaderFlags |= ShaderFlags_AlphaTest;
+
+		objectConstantBuffer.UploadData();
 	}
 
 	D3D_BlendState D3D_Renderer3D::CreateMaterialBlendState(Material& material)
@@ -273,8 +267,28 @@ namespace Graphics
 		return { getD3DBlend(material.BlendFlags.SrcBlendFactor), getD3DBlend(material.BlendFlags.DstBlendFactor), D3D11_BLEND_INV_DEST_ALPHA, D3D11_BLEND_ONE };
 	}
 
-	void D3D_Renderer3D::BindSubMeshTextures(SubMesh& subMesh, Material& material, ObjSet* objSet)
+	D3D_ShaderPair& D3D_Renderer3D::GetMaterialShader(Material& material)
 	{
+		if (strcmp(material.Shader, "BLINN") == 0)
+		{
+			if (material.ShaderFlags.LightingModel_Lambert)
+				return lambertShader;
+			else if (material.ShaderFlags.LightingModel_Phong)
+				return lambertShader /*blinnPerVertex*/;
+			else
+				return constantShader;
+		}
+		else
+		{
+			return testShader;
+		}
+	}
+
+	void D3D_Renderer3D::UpdateSubMeshShaderState(SubMesh& subMesh, Material& material, ObjSet* objSet)
+	{
+		auto& materialShader = GetMaterialShader(material);
+		materialShader.Bind();
+
 		auto bindMaterialTexture = [](ObjSet* objSet, MaterialTexture& materialTexture, int slot)
 		{
 			if (materialTexture.TextureID == -1)
@@ -311,7 +325,7 @@ namespace Graphics
 					};
 					diffuseSampler.Bind(slot);
 
-					break;
+					return;
 				}
 			}
 		};
@@ -321,12 +335,10 @@ namespace Graphics
 		bindMaterialTexture(objSet, material.Reflection, 2);
 
 		if (!DEBUG_RenderWireframe)
-		{
 			((material.BlendFlags.DoubleSidedness != DoubleSidedness_Off) ? solidNoCullingRasterizerState : solidBackfaceCullingRasterizerState).Bind();
-		}
 	}
 
-	void D3D_Renderer3D::BindIndexBufferSubmitSubMeshDrawCall(SubMesh& subMesh)
+	void D3D_Renderer3D::SubmitSubMeshDrawCall(SubMesh& subMesh)
 	{
 		subMesh.GraphicsIndexBuffer->Bind();
 

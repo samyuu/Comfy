@@ -14,6 +14,56 @@
 
 namespace Graphics
 {
+	enum ShaderFlags : uint32_t
+	{
+		ShaderFlags_VertexColor = 1 << 0,
+		ShaderFlags_DiffuseTexture = 1 << 1,
+		ShaderFlags_AmbientTexture = 1 << 2,
+		ShaderFlags_AlphaTest = 1 << 3,
+	};
+
+	struct ParallelLight
+	{
+		vec4 Ambient;
+		vec4 Diffuse;
+		vec4 Specular;
+		vec4 Position;
+		vec4 Direction;
+	};
+
+	struct SceneConstantData
+	{
+		struct SceneData
+		{
+			mat4 ViewProjection;
+			vec4 EyePosition;
+		} Scene;
+		ParallelLight StageLight;
+		vec4 LightDiffuse;
+		float Padding[4];
+	};
+
+	struct ObjectConstantData
+	{
+		mat4 Model;
+		struct Material
+		{
+			mat4 DiffuseTextureTransform;
+			mat4 AmbientTextureTransform;
+			vec3 DiffuseColor;
+			float Transparency;
+			vec4 AmbientColor;
+			vec3 SpecularColor;
+			float Reflectivity;
+			vec4 EmissionColor;
+			float Shininess;
+			float Intensity;
+			float BumpDepth;
+		} Material;
+		uint32_t ShaderFlags;
+		float Padding[12];
+	};
+
 	class D3D_Renderer3D
 	{
 	public:
@@ -24,10 +74,11 @@ namespace Graphics
 		D3D_Renderer3D& operator=(const D3D_Renderer3D&) = delete;
 
 	public:
-		void Begin(const PerspectiveCamera& camera);
+		void Begin(const PerspectiveCamera& camera, const vec4& diffiuse, const ParallelLight& stageLight);
 		void Draw(ObjSet* objSet, Obj* obj, vec3 position);
 		void End();
 
+		// TODO: Add more debug checkboxes to for example only render meshes with an alpha threshold (add CheckSkipSubMesh(...) method which checks debug flags)
 		// DEBUG:
 		bool DEBUG_RenderWireframe = false;
 		bool DEBUG_AlphaSort = true;
@@ -38,41 +89,6 @@ namespace Graphics
 		const PerspectiveCamera* GetCamera() const;
 
 	private:
-		struct CameraConstantData
-		{
-			mat4 ViewProjection;
-			vec3 EyePosition;
-			float Padding[13];
-		};
-
-		struct DynamicConstantData
-		{
-			VertexAttributeFlags AttributeFlags;
-			uint32_t TextureFlags;
-			uint32_t Padding[2];
-		};
-
-		struct MaterialConstantData
-		{
-			vec3 DiffuseColor;
-			float Transparency;
-			vec4 AmbientColor;
-			vec3 SpecularColor;
-			float Reflectivity;
-			vec4 EmissionColor;
-			float Shininess;
-			float Intensity;
-			float BumpDepth;
-			float AlphaTestThreshold;
-			mat4 TextureTransform;
-		};
-
-		struct ViewPositionData
-		{
-			vec4 CB_EyePosition;
-			float Padding[12];
-		};
-
 		struct ObjRenderCommand
 		{
 			ObjSet* ObjSet;
@@ -84,10 +100,10 @@ namespace Graphics
 		struct SubMeshRenderCommand
 		{
 			ObjRenderCommand* ObjCommand;
-			
+
 			Mesh* ParentMesh;
 			SubMesh* SubMesh;
-			
+
 			float CameraDistance;
 		};
 
@@ -98,18 +114,22 @@ namespace Graphics
 		void InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command);
 
 		void BindMeshVertexBuffers(Mesh& mesh);
-		void UpdateMeshVertexAttributeConstantBuffer(Mesh& mesh);
-		void UpdateMaterialConstantBuffer(Material& material);
+		void UpdateObjectConstantBuffer(Mesh& mesh, Material& material, const mat4& model);
 		D3D_BlendState CreateMaterialBlendState(Material& material);
-		void BindSubMeshTextures(SubMesh& subMesh, Material& material, ObjSet* objSet);
-		void BindIndexBufferSubmitSubMeshDrawCall(SubMesh& subMesh);
+		D3D_ShaderPair& GetMaterialShader(Material& material);
+		void UpdateSubMeshShaderState(SubMesh& subMesh, Material& material, ObjSet* objSet);
+		void SubmitSubMeshDrawCall(SubMesh& subMesh);
 
 	private:
-		D3D_ShaderPair testShader;
+		struct
+		{
+			D3D_ShaderPair testShader;
+			D3D_ShaderPair constantShader;
+			D3D_ShaderPair lambertShader;
+		};
 
-		D3D_DefaultConstantBufferTemplate<CameraConstantData> cameraConstantBuffer = { 0 };
-		D3D_DynamicConstantBufferTemplate<DynamicConstantData> dynamicConstantBuffer = { 0 };
-		D3D_DynamicConstantBufferTemplate<MaterialConstantData> materialConstantBuffer = { 1 };
+		D3D_DynamicConstantBufferTemplate<SceneConstantData> sceneConstantBuffer = { 0 };
+		D3D_DynamicConstantBufferTemplate<ObjectConstantData> objectConstantBuffer = { 1 };
 
 		UniquePtr<D3D_InputLayout> inputLayout = nullptr;
 
@@ -123,5 +143,7 @@ namespace Graphics
 		std::vector<SubMeshRenderCommand> transparentSubMeshCommands;
 
 		const PerspectiveCamera* perspectiveCamera = nullptr;
+		const vec4* lightDiffuse = nullptr;
+		const ParallelLight* parallelStageLight = nullptr;
 	};
 }

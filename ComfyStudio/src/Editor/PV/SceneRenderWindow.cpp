@@ -13,6 +13,12 @@ namespace Editor
 	SceneRenderWindow::SceneRenderWindow(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
 		renderer3D = MakeUnique<D3D_Renderer3D>();
+
+		sceneData.StageLight.Ambient = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		sceneData.StageLight.Diffuse = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		sceneData.StageLight.Specular = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		sceneData.StageLight.Position = vec4(-0.595944f, 0.391381f, 0.701193f, 0.0f);
+		sceneData.LightDiffuse = vec4(1.183988f, 0.873082f, 0.22719f, 1.0f);
 	}
 
 	SceneRenderWindow::~SceneRenderWindow()
@@ -28,19 +34,22 @@ namespace Editor
 	{
 		RenderWindowBase::Initialize();
 
-//#define OBJ_FILE "stgtst007"
+		//#define OBJ_FILE "f_stgtst004"
+#define OBJ_FILE "stgtst007"
 //#define OBJ_FILE "cmnitm1001"
 //#define OBJ_FILE "rinitm000"
 //#define OBJ_FILE "rinitm001"
 //#define OBJ_FILE "rinitm047"
 //#define OBJ_FILE "rinitm301"
 //#define OBJ_FILE "rinitm532"
-#define OBJ_FILE "stgns006"
+//#define OBJ_FILE "stgns006"
 //#define OBJ_FILE "stgd2ns036"
 //#define OBJ_FILE "stgns008"
 //#define OBJ_FILE "dbg"
 
+#ifdef OBJ_FILE
 		LoadObjSet("dev_rom/objset/" OBJ_FILE "/" OBJ_FILE "_obj.bin");
+#endif
 	}
 
 	void SceneRenderWindow::DrawGui()
@@ -89,6 +98,7 @@ namespace Editor
 	{
 		if (Gui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
 		{
+			Gui::PushID(&sceneData.Camera);
 			Gui::Text("Camera");
 			Gui::DragFloat("Field Of View", &sceneData.Camera.FieldOfView, 1.0f, 1.0f, 180.0f);
 			Gui::DragFloat("Near Plane", &sceneData.Camera.NearPlane, 0.001f, 0.001f, 1.0f);
@@ -100,6 +110,18 @@ namespace Editor
 			Gui::Text("Camera Rotation");
 			Gui::DragFloat("Pitch", &sceneData.TargetCameraPitch, 1.0f);
 			Gui::DragFloat("Yaw", &sceneData.TargetCameraYaw, 1.0f);
+			Gui::PopID();
+		}
+
+		if (Gui::CollapsingHeader("Lighting", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			Gui::ColorEdit4("Light Diffuse", glm::value_ptr(sceneData.LightDiffuse));
+			Gui::PushID(&sceneData.StageLight);
+			Gui::ColorEdit4("Ambient", glm::value_ptr(sceneData.StageLight.Ambient));
+			Gui::ColorEdit4("Diffuse", glm::value_ptr(sceneData.StageLight.Diffuse));
+			Gui::ColorEdit4("Specular", glm::value_ptr(sceneData.StageLight.Specular));
+			Gui::DragFloat4("Position", glm::value_ptr(sceneData.StageLight.Position));
+			Gui::PopID();
 		}
 
 		if (Gui::CollapsingHeader("Object Test", ImGuiTreeNodeFlags_DefaultOpen))
@@ -109,7 +131,7 @@ namespace Editor
 			Gui::Checkbox("Render Opaque", &renderer3D->DEBUG_RenderOpaque);
 			Gui::Checkbox("Render Transparent", &renderer3D->DEBUG_RenderTransparent);
 
-			Gui::BeginChild("ObjSelectionChild", vec2(0, 220), true);
+			Gui::BeginChild("ObjSelectionChild", vec2(0, 140), true);
 
 			if (Gui::Selectable("All Objects", (objectIndex < 0)))
 				objectIndex = -1;
@@ -246,7 +268,7 @@ namespace Editor
 			D3D.SetViewport(renderTarget->GetSize());
 			renderTarget->Clear(GetColorVec4(EditorColor_BaseClear));
 
-			renderer3D->Begin(sceneData.Camera);
+			renderer3D->Begin(sceneData.Camera, sceneData.LightDiffuse, sceneData.StageLight);
 			{
 				if (objectIndex < 0)
 				{

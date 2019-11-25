@@ -39,19 +39,28 @@ namespace Editor
 		void LoadObjSet(const std::string& objSetPath);
 
 	private:
-		struct SceneCameraData
+		struct SceneData
 		{
-			float CameraSmoothness = 50.0f;
-			float CameraPitch = 0.0f;
-			float CameraYaw = -90.0f; 
-			float CameraRoll = 0.0f;
+			struct
+			{
+				float CameraSmoothness = 50.0f;
+				float CameraPitch = 0.0f;
+				float CameraYaw = 0.0f;
+				float CameraRoll = 0.0f;
 
-			float TargetCameraPitch = 0.0f;
-			float TargetCameraYaw = -90.0f;
+				float TargetCameraPitch = 0.0f;
+				float TargetCameraYaw = 0.0f;
 
-			float CameraSensitivity = 0.25f;
-			
-			Graphics::PerspectiveCamera Camera;
+				float CameraSensitivity = 0.25f;
+
+				Graphics::PerspectiveCamera Camera;
+			};
+
+			struct
+			{
+				Graphics::ParallelLight StageLight;
+				vec4 LightDiffuse;
+			};
 		} sceneData;
 
 		struct PostProcessData
