@@ -33,8 +33,8 @@ namespace Graphics
 		D3D_VertexShader& operator=(const D3D_VertexShader&) = delete;
 
 	public:
-		void Bind();
-		void UnBind();
+		void Bind() const;
+		void UnBind() const;
 
 	public:
 		ID3D11VertexShader* GetShader();
@@ -53,13 +53,27 @@ namespace Graphics
 		D3D_PixelShader& operator=(const D3D_PixelShader&) = delete;
 
 	public:
-		void Bind();
-		void UnBind();
+		void Bind() const;
+		void UnBind() const;
 
 	public:
 		ID3D11PixelShader* GetShader();
 
 	private:
 		ComPtr<ID3D11PixelShader> shader;
+	};
+
+	struct D3D_ShaderPair
+	{
+	public:
+		D3D_ShaderPair(BytecodeBlob vsBytecode, BytecodeBlob psBytecode);
+
+	public:
+		void Bind() const;
+		void UnBind() const;
+
+	public:
+		D3D_VertexShader VS;
+		D3D_PixelShader PS;
 	};
 }

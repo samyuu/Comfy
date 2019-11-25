@@ -41,7 +41,7 @@ namespace Graphics
 	}
 
 	D3D_Renderer3D::D3D_Renderer3D()
-		: testVertexShader(Test_VS()), testPixelShader(Test_PS())
+		: testShader(Test_VS(), Test_PS())
 	{
 		// TODO: Give names to all graphics resources
 		D3D_SetObjectDebugName(cameraConstantBuffer.Buffer.GetBuffer(), "Renderer3D::CameraConstantBuffer");
@@ -57,7 +57,7 @@ namespace Graphics
 			{ "COLOR",		1, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, VertexAttribute_Color1 },
 		};
 
-		inputLayout = MakeUnique<D3D_InputLayout>(elements, std::size(elements), testVertexShader);
+		inputLayout = MakeUnique<D3D_InputLayout>(elements, std::size(elements), testShader.VS);
 	}
 
 	void D3D_Renderer3D::Begin(const PerspectiveCamera& camera)
@@ -130,9 +130,7 @@ namespace Graphics
 		(DEBUG_RenderWireframe ? wireframeRasterizerState : solidBackfaceCullingRasterizerState).Bind();
 
 		inputLayout->Bind();
-
-		testVertexShader.Bind();
-		testPixelShader.Bind();
+		testShader.Bind();
 
 		if (DEBUG_RenderOpaque)
 		{

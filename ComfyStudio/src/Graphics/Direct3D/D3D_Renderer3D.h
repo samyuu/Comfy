@@ -105,8 +105,7 @@ namespace Graphics
 		void BindIndexBufferSubmitSubMeshDrawCall(SubMesh& subMesh);
 
 	private:
-		D3D_VertexShader testVertexShader;
-		D3D_PixelShader testPixelShader;
+		D3D_ShaderPair testShader;
 
 		D3D_DefaultConstantBufferTemplate<CameraConstantData> cameraConstantBuffer = { 0 };
 		D3D_DynamicConstantBufferTemplate<DynamicConstantData> dynamicConstantBuffer = { 0 };

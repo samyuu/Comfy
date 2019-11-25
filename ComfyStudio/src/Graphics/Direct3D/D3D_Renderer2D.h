@@ -86,8 +86,7 @@ namespace Graphics
 
 		uint32_t drawCallCount = 0;
 
-		D3D_VertexShader spriteVertexShader;
-		D3D_PixelShader spritePixelShader;
+		D3D_ShaderPair spriteShader;
 
 		D3D_DefaultConstantBufferTemplate<CameraConstantData> cameraConstantBuffer = { 0 };
 		D3D_DynamicConstantBufferTemplate<SpriteConstantData> spriteConstantBuffer = { 0 };

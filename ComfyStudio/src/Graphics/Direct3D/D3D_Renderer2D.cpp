@@ -52,10 +52,10 @@ namespace Graphics
 	}
 
 	D3D_Renderer2D::D3D_Renderer2D()
-		: spriteVertexShader(Sprite_VS()), spritePixelShader(Sprite_PS())
+		: spriteShader(Sprite_VS(), Sprite_PS())
 	{
-		D3D_SetObjectDebugName(spriteVertexShader.GetShader(), "Renderer2D::SpriteVertexShader");
-		D3D_SetObjectDebugName(spritePixelShader.GetShader(), "Renderer2D::SpritePixelShader");
+		D3D_SetObjectDebugName(spriteShader.VS.GetShader(), "Renderer2D::SpriteVertexShader");
+		D3D_SetObjectDebugName(spriteShader.PS.GetShader(), "Renderer2D::SpritePixelShader");
 
 		D3D_SetObjectDebugName(cameraConstantBuffer.Buffer.GetBuffer(), "Renderer2D::CameraConstantBuffer");
 		D3D_SetObjectDebugName(spriteConstantBuffer.Buffer.GetBuffer(), "Renderer2D::SpriteConstantBuffer");
@@ -111,7 +111,7 @@ namespace Graphics
 			{ "COLOR",		0, DXGI_FORMAT_R8G8B8A8_UNORM,	offsetof(SpriteVertex, Color)					},
 		};
 
-		inputLayout = MakeUnique<D3D_InputLayout>(elements, std::size(elements), spriteVertexShader);
+		inputLayout = MakeUnique<D3D_InputLayout>(elements, std::size(elements), spriteShader.VS);
 		D3D_SetObjectDebugName(inputLayout->GetLayout(), "Renderer2D::InputLayout");
 	}
 
@@ -159,8 +159,7 @@ namespace Graphics
 		};
 		D3D.Context->PSSetSamplers(0, static_cast<UINT>(samplerStates.size()), samplerStates.data());
 
-		spriteVertexShader.Bind();
-		spritePixelShader.Bind();
+		spriteShader.Bind();
 
 		vertexBuffer->Bind();
 		vertexBuffer->UploadData(vertices.size() * sizeof(SpriteVertices), vertices.data());

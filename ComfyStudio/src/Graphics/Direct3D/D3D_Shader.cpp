@@ -18,12 +18,12 @@ namespace Graphics
 		D3D.Device->CreateVertexShader(bytecodeBlob.Bytecode, bytecodeBlob.Size, nullptr, &shader);
 	}
 
-	void D3D_VertexShader::Bind()
+	void D3D_VertexShader::Bind() const
 	{
 		D3D.Context->VSSetShader(shader.Get(), nullptr, 0);
 	}
 
-	void D3D_VertexShader::UnBind()
+	void D3D_VertexShader::UnBind() const
 	{
 		D3D.Context->VSSetShader(nullptr, nullptr, 0);
 	}
@@ -39,12 +39,12 @@ namespace Graphics
 		D3D.Device->CreatePixelShader(bytecodeBlob.Bytecode, bytecodeBlob.Size, nullptr, &shader);
 	}
 
-	void D3D_PixelShader::Bind()
+	void D3D_PixelShader::Bind() const
 	{
 		D3D.Context->PSSetShader(shader.Get(), nullptr, 0);
 	}
 	
-	void D3D_PixelShader::UnBind()
+	void D3D_PixelShader::UnBind() const
 	{
 		D3D.Context->PSSetShader(nullptr, nullptr, 0);
 	}
@@ -52,5 +52,22 @@ namespace Graphics
 	ID3D11PixelShader* D3D_PixelShader::GetShader()
 	{
 		return shader.Get();
+	}
+
+	D3D_ShaderPair::D3D_ShaderPair(BytecodeBlob vsBytecode, BytecodeBlob psBytecode) 
+		: VS(vsBytecode), PS(psBytecode)
+	{
+	}
+	
+	void D3D_ShaderPair::Bind() const
+	{
+		VS.Bind();
+		PS.Bind();
+	}
+
+	void D3D_ShaderPair::UnBind() const
+	{
+		VS.UnBind();
+		PS.UnBind();
 	}
 }
