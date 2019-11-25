@@ -27,7 +27,7 @@ namespace Graphics
 	class PerspectiveCamera final : public ICamera
 	{
 	public:
-		vec3 Position = vec3(0.0f, 0.0f, 3.0f);
+		vec3 Position = vec3(3.45f, 1.0f, 0.0f);
 		vec3 Target;
 
 		vec3 UpDirection = Vec3_UpDirection;
