@@ -75,6 +75,9 @@ namespace Graphics
 		inline void BindPixelShader() { Buffer.BindPixelShader(); };
 		inline void UnBindPixelShader() { Buffer.UnBindPixelShader(); };
 
+		inline void BindShaders() { BindVertexShader(); BindPixelShader(); };
+		inline void UnBindShaders() { UnBindVertexShader(); UnBindPixelShader(); };
+
 		inline void UploadData() { Buffer.UploadData(sizeof(DataType), &Data); };
 
 	public:
