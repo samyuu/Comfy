@@ -5,7 +5,7 @@ namespace Graphics
 {
 	namespace
 	{
-		constexpr inline D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveTopolgy(PrimitiveType primitive)
+		constexpr D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveTopolgy(PrimitiveType primitive)
 		{
 			switch (primitive)
 			{
@@ -116,13 +116,15 @@ namespace Graphics
 	void D3D_Renderer3D::InternalRenderItems()
 	{
 		cameraConstantBuffer.Data.ViewProjection = glm::transpose(perspectiveCamera->GetProjectionMatrix() * perspectiveCamera->GetViewMatrix());
+		cameraConstantBuffer.Data.EyePosition = perspectiveCamera->Position;
 		cameraConstantBuffer.UploadData();
 		cameraConstantBuffer.BindVertexShader();
 
 		dynamicConstantBuffer.BindPixelShader();
-		materialConstantBuffer.BindPixelShader();
 
-		D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+		materialConstantBuffer.BindVertexShader();
+		materialConstantBuffer.BindPixelShader();
+		
 		solidBackfaceCullingRasterizerState.Bind();
 
 		(DEBUG_RenderWireframe ? wireframeRasterizerState : solidBackfaceCullingRasterizerState).Bind();
@@ -165,6 +167,10 @@ namespace Graphics
 					continue;
 
 				UpdateMaterialConstantBuffer(material);
+
+				// DEBUG:
+				// dynamicConstantBuffer.Data.TextureFlags = (command.Obj->Materials[subMesh.MaterialIndex].Reflection.TypeFlags.ProbablyCubeMapRelated == 9) ? 1 : 0;
+				// dynamicConstantBuffer.UploadData();
 
 				BindSubMeshTextures(subMesh, material, command.ObjSet);
 				BindIndexBufferSubmitSubMeshDrawCall(subMesh);
@@ -228,6 +234,8 @@ namespace Graphics
 
 	void D3D_Renderer3D::UpdateMaterialConstantBuffer(Material& material)
 	{
+		constexpr float noAlphaTesting = -1.0f, alphaTestThreshold = 0.5f;
+
 		materialConstantBuffer.Data.DiffuseColor = material.DiffuseColor;
 		materialConstantBuffer.Data.Transparency = material.Transparency;
 		materialConstantBuffer.Data.AmbientColor = material.AmbientColor;
@@ -237,26 +245,29 @@ namespace Graphics
 		materialConstantBuffer.Data.Shininess = material.Shininess;
 		materialConstantBuffer.Data.Intensity = material.Intensity;
 		materialConstantBuffer.Data.BumpDepth = material.BumpDepth;
-		materialConstantBuffer.Data.AlphaTestThreshold = material.BlendFlags.EnableAlphaTest ? 0.5f : -1.0f;
+		materialConstantBuffer.Data.TextureTransform = glm::transpose(material.Diffuse.TextureCoordinateMatrix);
+
+		// This is almost certainly wrong but a decent bodge for now
+		materialConstantBuffer.Data.AlphaTestThreshold = material.BlendFlags.EnableAlphaTest && !material.BlendFlags.EnableBlend ? alphaTestThreshold : noAlphaTesting;
 		materialConstantBuffer.UploadData();
 	}
 
 	D3D_BlendState D3D_Renderer3D::CreateMaterialBlendState(Material& material)
 	{
-		auto getD3DBlend = [](MaterialBlendFlags::BlendFactor materialBlendFactor)
+		auto getD3DBlend = [](BlendFactor materialBlendFactor)
 		{
 			switch (materialBlendFactor)
 			{
-			case MaterialBlendFlags::ZERO: return D3D11_BLEND_ZERO;
-			case MaterialBlendFlags::ONE: return D3D11_BLEND_ONE;
-			case MaterialBlendFlags::SRC_COLOR: return D3D11_BLEND_SRC_COLOR;
-			case MaterialBlendFlags::ISRC_COLOR: return D3D11_BLEND_INV_SRC_COLOR;
-			case MaterialBlendFlags::SRC_ALPHA:	return D3D11_BLEND_SRC_ALPHA;
-			case MaterialBlendFlags::ISRC_ALPHA: return D3D11_BLEND_INV_SRC_ALPHA;
-			case MaterialBlendFlags::DST_ALPHA: return D3D11_BLEND_DEST_ALPHA;
-			case MaterialBlendFlags::IDST_ALPHA: return D3D11_BLEND_INV_DEST_ALPHA;
-			case MaterialBlendFlags::DST_COLOR: return D3D11_BLEND_DEST_COLOR;
-			case MaterialBlendFlags::IDST_COLOR: return D3D11_BLEND_INV_DEST_COLOR;
+			case BlendFactor_ZERO: return D3D11_BLEND_ZERO;
+			case BlendFactor_ONE: return D3D11_BLEND_ONE;
+			case BlendFactor_SRC_COLOR: return D3D11_BLEND_SRC_COLOR;
+			case BlendFactor_ISRC_COLOR: return D3D11_BLEND_INV_SRC_COLOR;
+			case BlendFactor_SRC_ALPHA:	return D3D11_BLEND_SRC_ALPHA;
+			case BlendFactor_ISRC_ALPHA: return D3D11_BLEND_INV_SRC_ALPHA;
+			case BlendFactor_DST_ALPHA: return D3D11_BLEND_DEST_ALPHA;
+			case BlendFactor_IDST_ALPHA: return D3D11_BLEND_INV_DEST_ALPHA;
+			case BlendFactor_DST_COLOR: return D3D11_BLEND_DEST_COLOR;
+			case BlendFactor_IDST_COLOR: return D3D11_BLEND_INV_DEST_COLOR;
 			default: return D3D11_BLEND_ZERO;
 			}
 		};
@@ -266,23 +277,54 @@ namespace Graphics
 
 	void D3D_Renderer3D::BindSubMeshTextures(SubMesh& subMesh, Material& material, ObjSet* objSet)
 	{
-		for (uint32_t i = 0; i < objSet->TextureIDs.size(); i++)
+		auto bindMaterialTexture = [](ObjSet* objSet, MaterialTexture& materialTexture, int slot)
 		{
-			if (objSet->TextureIDs[i] == material.Diffuse.TextureID)
+			if (materialTexture.TextureID == -1)
 			{
-				objSet->TxpSet->Txps[i].Texture2D->Bind(0);
-
-				const auto flags = material.Diffuse.Flags1;
-				D3D_TextureSampler diffuseSampler =
-				{
-					D3D11_FILTER_MIN_MAG_MIP_LINEAR,
-					flags.TextureAddressMode_U_Mirror ? D3D11_TEXTURE_ADDRESS_MIRROR : flags.TextureAddressMode_U_Repeat ? D3D11_TEXTURE_ADDRESS_WRAP : D3D11_TEXTURE_ADDRESS_CLAMP,
-					flags.TextureAddressMode_V_Mirror ? D3D11_TEXTURE_ADDRESS_MIRROR : flags.TextureAddressMode_V_Repeat ? D3D11_TEXTURE_ADDRESS_WRAP : D3D11_TEXTURE_ADDRESS_CLAMP,
-				};
-				diffuseSampler.Bind(0);
-
-				break;
+				ID3D11ShaderResourceView* resourceView = nullptr;
+				D3D.Context->PSSetShaderResources(slot, 1, &resourceView);
+				return;
 			}
+
+			for (uint32_t i = 0; i < objSet->TextureIDs.size(); i++)
+			{
+				if (objSet->TextureIDs[i] == materialTexture.TextureID)
+				{
+					if (objSet->TxpSet->Txps[i].Texture2D != nullptr)
+					{
+						objSet->TxpSet->Txps[i].Texture2D->Bind(slot);
+					}
+					else if (objSet->TxpSet->Txps[i].CubeMap != nullptr)
+					{
+						objSet->TxpSet->Txps[i].CubeMap->Bind(slot);
+					}
+					else
+					{
+						ID3D11ShaderResourceView* resourceView = nullptr;
+						D3D.Context->PSSetShaderResources(slot, 1, &resourceView);
+					}
+
+					const auto flags = materialTexture.Flags;
+					D3D_TextureSampler diffuseSampler =
+					{
+						D3D11_FILTER_MIN_MAG_MIP_LINEAR,
+						flags.TextureAddressMode_U_Mirror ? D3D11_TEXTURE_ADDRESS_MIRROR : flags.TextureAddressMode_U_Repeat ? D3D11_TEXTURE_ADDRESS_WRAP : D3D11_TEXTURE_ADDRESS_CLAMP,
+						flags.TextureAddressMode_V_Mirror ? D3D11_TEXTURE_ADDRESS_MIRROR : flags.TextureAddressMode_V_Repeat ? D3D11_TEXTURE_ADDRESS_WRAP : D3D11_TEXTURE_ADDRESS_CLAMP,
+					};
+					diffuseSampler.Bind(slot);
+
+					break;
+				}
+			}
+		};
+
+		bindMaterialTexture(objSet, material.Diffuse, 0);
+		bindMaterialTexture(objSet, material.Ambient, 1);
+		bindMaterialTexture(objSet, material.Reflection, 2);
+
+		if (!DEBUG_RenderWireframe)
+		{
+			((material.BlendFlags.DoubleSidedness != DoubleSidedness_Off) ? solidNoCullingRasterizerState : solidBackfaceCullingRasterizerState).Bind();
 		}
 	}
 

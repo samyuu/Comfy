@@ -832,5 +832,8 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ImGui_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\VertexAttributes.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Material.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\InputLayouts.hlsl" />
   </ItemGroup>
 </Project>

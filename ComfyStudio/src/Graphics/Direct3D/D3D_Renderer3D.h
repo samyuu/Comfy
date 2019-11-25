@@ -41,6 +41,8 @@ namespace Graphics
 		struct CameraConstantData
 		{
 			mat4 ViewProjection;
+			vec3 EyePosition;
+			float Padding[13];
 		};
 
 		struct DynamicConstantData
@@ -61,8 +63,14 @@ namespace Graphics
 			float Shininess;
 			float Intensity;
 			float BumpDepth;
-
 			float AlphaTestThreshold;
+			mat4 TextureTransform;
+		};
+
+		struct ViewPositionData
+		{
+			vec4 CB_EyePosition;
+			float Padding[12];
 		};
 
 		struct ObjRenderCommand
