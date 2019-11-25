@@ -56,17 +56,7 @@ namespace Graphics
 		std::array<UniquePtr<D3D_StaticVertexBuffer>, VertexAttribute_Count> GraphicsAttributeBuffers;
 	};
 
-	struct MaterialTextureFlags0
-	{
-		uint32_t Unknown0 : 10;
-		uint32_t Fresnel : 4;
-		uint32_t LineLight : 4;
-		uint32_t Unknown1 : 2;
-		uint32_t SpecularQuality : 1;
-		uint32_t AnisoDirection : 3;
-	};
-
-	struct MaterialTextureFlags1
+	struct MaterialTextureFlags
 	{
 		uint32_t TextureAddressMode_U_Repeat : 1;
 		uint32_t TextureAddressMode_V_Repeat : 1;
@@ -82,59 +72,101 @@ namespace Graphics
 		uint32_t AnsiFilters : 2;
 	};
 
-	struct MaterialTextureFlags2
+	struct MaterialTextureTypeFlags
 	{
 		uint32_t ProbablyCubeMapRelated : 4;
-		uint32_t Unknown : 4;
+		uint32_t Unknown0 : 4;
+		uint32_t Unknown1 : 24;
 	};
 
 	struct MaterialTexture
 	{
-		MaterialTextureFlags0 Flags0;
-		MaterialTextureFlags1 Flags1;
+		MaterialTextureFlags Flags;
 		int32_t TextureID;
-		MaterialTextureFlags2 Flags2;
+		MaterialTextureTypeFlags TypeFlags;
 		vec3 Field03_05;
 		mat4 TextureCoordinateMatrix;
-		float Reserved[7];
+		float Reserved[8];
 	};
 
 	struct MaterialFlags
 	{
-		uint32_t IsTransparent : 1;
-		uint32_t TransparentType : 2;
-		uint32_t Unknown0 : 5;
-		uint32_t Unknown1 : 7;
+		uint32_t UseDiffuseTexture : 1;
+		uint32_t UseUnknown0 : 1;
+		uint32_t UseAmbientTexture : 1;
+		uint32_t UseUnknown1 : 1;
+		uint32_t ResultsInNoTexture : 1;
+		uint32_t UseUnknown3 : 1;
+		uint32_t UseUnknown4 : 1;
+		uint32_t Unknown2 : 7;
 		uint32_t UseCubeMapReflection : 1;
-		uint32_t Reserved : 16;
+		uint32_t CubeMapReflectionRelated : 16;
+	};
+
+	enum SpecularQuality : uint32_t
+	{
+		SpecularQuality_Low = 0,
+		SpecularQuality_High = 1,
+	};
+
+	enum AnisoDirection : uint32_t
+	{
+		AnisoDirection_Normal = 0,
+		AnisoDirection_U = 1,
+		AnisoDirection_V = 2,
+		AnisoDirection_Radial = 3,
+	};
+
+	struct MaterialShaderFlags
+	{
+		uint32_t Unknown0 : 4;
+		uint32_t LightingModel_Lambert : 1;
+		uint32_t LightingModel_Phong : 1;
+		uint32_t LightingModel_Unknown0 : 1;
+		uint32_t LightingModel_Unknown1 : 1;
+		uint32_t LightingModel_Unknown2 : 1;
+		uint32_t LightingModel_Unknown3 : 1;
+		uint32_t Fresnel : 4;
+		uint32_t LineLight : 4;
+		uint32_t Unknown2 : 2;
+		SpecularQuality SpecularQuality : 1;
+		AnisoDirection AnisoDirection : 3;
+		uint32_t Padding : 8;
+	};
+
+	enum BlendFactor : uint32_t
+	{
+		BlendFactor_ZERO = 0,
+		BlendFactor_ONE = 1,
+		BlendFactor_SRC_COLOR = 2,
+		BlendFactor_ISRC_COLOR = 3,
+		BlendFactor_SRC_ALPHA = 4,
+		BlendFactor_ISRC_ALPHA = 5,
+		BlendFactor_DST_ALPHA = 6,
+		BlendFactor_IDST_ALPHA = 7,
+		BlendFactor_DST_COLOR = 8,
+		BlendFactor_IDST_COLOR = 9,
+	};
+
+	enum DoubleSidedness : uint32_t
+	{
+		DoubleSidedness_Off = 0,
+		DoubleSidedness_1_FaceLight = 1,
+		DoubleSidedness_2_FaceLight = 3,
 	};
 
 	struct MaterialBlendFlags
 	{
-		enum BlendFactor : uint32_t
-		{
-			ZERO = 0,
-			ONE = 1,
-			SRC_COLOR = 2,
-			ISRC_COLOR = 3,
-			SRC_ALPHA = 4,
-			ISRC_ALPHA = 5,
-			DST_ALPHA = 6,
-			IDST_ALPHA = 7,
-			DST_COLOR = 8,
-			IDST_COLOR = 9,
-		};
-
 		uint32_t EnableAlphaTest : 1;
 		uint32_t EnableBlend : 1;
 		uint32_t OtherBlendingFlag : 1;
-		uint32_t DoubleSided : 2;
+		DoubleSidedness DoubleSidedness : 2;
 		BlendFactor SrcBlendFactor : 4;
 		BlendFactor DstBlendFactor : 4;
 		uint32_t Unknown0 : 3;
 		uint32_t ZBias : 4;
-		uint32_t Unknown1 : 4;
-		uint32_t Unknown2 : 8;
+		uint32_t AffectsShaderUsed0 : 4;
+		uint32_t AffectsShaderUsed1 : 8;
 	};
 
 	struct Material
@@ -142,6 +174,7 @@ namespace Graphics
 		unk32_t Unknown0;
 		MaterialFlags Flags;
 		char Shader[8];
+		MaterialShaderFlags ShaderFlags;
 		MaterialTexture Diffuse;
 		MaterialTexture Ambient;
 		MaterialTexture Normal;
@@ -150,7 +183,6 @@ namespace Graphics
 		MaterialTexture Reflection;
 		MaterialTexture Tangent;
 		MaterialTexture UnknownTexture;
-		int32_t Unknown1;
 		MaterialBlendFlags BlendFlags;
 		vec3 DiffuseColor;
 		float Transparency;
