@@ -22,14 +22,17 @@ namespace FileSystem
 		void SetLeaveOpen(bool value);
 		bool GetLeaveOpen() const;
 
-		inline int64_t GetPosition() const { return stream->GetPosition(); }
-		inline void* GetPositionPtr() const { return (void*)GetPosition(); }
+		inline int64_t GetPosition() const { return stream->GetPosition() - streamOffset; }
+		inline void* GetPositionPtr() const { return reinterpret_cast<void*>(GetPosition()); }
 
-		inline void SetPosition(int64_t position) { return stream->Seek(position); }
-		inline void SetPosition(void* position) { return SetPosition((int64_t)position); }
+		inline void SetPosition(int64_t position) { return stream->Seek(position + streamOffset); }
+		inline void SetPosition(void* position) { return SetPosition(reinterpret_cast<int64_t>(position)); }
 
 		inline int64_t GetLength() const { return stream->GetLength(); }
 		inline bool EndOfFile() const { return stream->EndOfFile(); }
+
+		inline int64_t GetStreamOffset() const { return streamOffset; };
+		inline void SetStreamOffset(int64_t value) { streamOffset = value; };
 
 		PtrMode GetPointerMode() const;
 		void SetPointerMode(PtrMode value);
@@ -45,6 +48,7 @@ namespace FileSystem
 		template <typename T> T ReadAt(void* position, const std::function<T(BinaryReader&)>& func);
 
 		inline void* ReadPtr() { return readPtrFunction(this); };
+		inline size_t ReadSize() { return readSizeFunction(this); };
 
 		std::string ReadStr();
 		std::string ReadStr(void* position);
@@ -68,6 +72,7 @@ namespace FileSystem
 
 	protected:
 		typedef void* ReadPtr_t(BinaryReader*);
+		typedef size_t ReadSize_t(BinaryReader*);
 		typedef int16_t ReadInt16_t(BinaryReader*);
 		typedef uint16_t ReadUInt16_t(BinaryReader*);
 		typedef int32_t ReadInt32_t(BinaryReader*);
@@ -78,6 +83,7 @@ namespace FileSystem
 		typedef double ReadDouble_t(BinaryReader*);
 
 		ReadPtr_t* readPtrFunction = nullptr;
+		ReadSize_t* readSizeFunction = nullptr;
 		ReadInt16_t* readInt16Function = nullptr;
 		ReadUInt16_t* readUInt16Function = nullptr;
 		ReadInt32_t* readInt32Function = nullptr;
@@ -91,6 +97,7 @@ namespace FileSystem
 		Endianness endianness;
 
 		bool leaveOpen = false;
+		int64_t streamOffset = 0;
 		Stream* stream = nullptr;
 
 	private:
@@ -103,6 +110,9 @@ namespace FileSystem
 
 		static void* Read32BitPtr(BinaryReader* reader) { return reinterpret_cast<void*>(static_cast<ptrdiff_t>(reader->ReadInt32())); };
 		static void* Read64BitPtr(BinaryReader* reader) { return reinterpret_cast<void*>(static_cast<ptrdiff_t>(reader->ReadInt64())); };
+
+		static size_t Read32BitSize(BinaryReader* reader) { return static_cast<size_t>(reader->ReadUInt32()); };
+		static size_t Read64BitSize(BinaryReader* reader) { return static_cast<size_t>(reader->ReadUInt64()); };
 
 		static int16_t LE_ReadInt16(BinaryReader* reader) { return reader->Read<int16_t>(); };
 		static uint16_t LE_ReadUInt16(BinaryReader* reader) { return reader->Read<uint16_t>(); };

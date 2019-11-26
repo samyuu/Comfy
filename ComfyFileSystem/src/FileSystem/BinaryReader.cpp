@@ -61,10 +61,12 @@ namespace FileSystem
 		{
 		case PtrMode::Mode32Bit:
 			readPtrFunction = Read32BitPtr; 
+			readSizeFunction = Read32BitSize;
 			return;
 
 		case PtrMode::Mode64Bit:
 			readPtrFunction = Read64BitPtr;
+			readSizeFunction = Read64BitSize;
 			return;
 
 		default:
