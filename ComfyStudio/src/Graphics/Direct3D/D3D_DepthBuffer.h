@@ -19,7 +19,7 @@ namespace Graphics
 
 	public:
 		ivec2 GetSize() const;
-		ID3D11DepthStencilView* GetDepthStencilView();
+		ID3D11DepthStencilView* GetDepthStencilView() const;
 
 	private:
 		D3D11_TEXTURE2D_DESC textureDescription;

@@ -46,7 +46,7 @@ namespace Graphics
 		return ivec2(textureDescription.Width, textureDescription.Height);
 	}
 
-	ID3D11DepthStencilView* D3D_DepthBuffer::GetDepthStencilView()
+	ID3D11DepthStencilView* D3D_DepthBuffer::GetDepthStencilView() const
 	{
 		return depthStencilView.Get();
 	}
