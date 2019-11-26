@@ -7,10 +7,6 @@ namespace Editor
 	class RenderWindowBase
 	{
 	public:
-		// NOTE: Since the render target is stretched to the correct asspect ratio in the end it could easily be scaled down for weaker hardware
-		static constexpr ivec2 RenderTargetDefaultSize = ivec2(1, 1);
-
-	public:
 		RenderWindowBase() = default;
 		RenderWindowBase(const RenderWindowBase&) = delete;
 		virtual ~RenderWindowBase() = default;

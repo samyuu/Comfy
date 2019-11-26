@@ -6,14 +6,14 @@ namespace Graphics
 	{
 	}
 
-	void D3D_RenderTargetBase::Bind()
+	void D3D_RenderTargetBase::Bind() const
 	{
 		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { renderTargetView.Get() };
 
 		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), nullptr);
 	}
 
-	void D3D_RenderTargetBase::UnBind()
+	void D3D_RenderTargetBase::UnBind() const
 	{
 		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { nullptr };
 
@@ -44,12 +44,17 @@ namespace Graphics
 	}
 
 	D3D_RenderTarget::D3D_RenderTarget(ivec2 size)
+		: D3D_RenderTarget(size, DXGI_FORMAT_R8G8B8A8_UNORM)
+	{
+	}
+
+	D3D_RenderTarget::D3D_RenderTarget(ivec2 size, DXGI_FORMAT format)
 	{
 		backBufferDescription.Width = size.x;
 		backBufferDescription.Height = size.y;
 		backBufferDescription.MipLevels = 1;
 		backBufferDescription.ArraySize = 1;
-		backBufferDescription.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		backBufferDescription.Format = format;
 		backBufferDescription.SampleDesc.Count = 1;
 		backBufferDescription.SampleDesc.Quality = 0;
 		backBufferDescription.Usage = D3D11_USAGE_DEFAULT;
@@ -104,14 +109,19 @@ namespace Graphics
 	{
 	}
 	
-	void D3D_DepthRenderTarget::Bind()
+	D3D_DepthRenderTarget::D3D_DepthRenderTarget(ivec2 size, DXGI_FORMAT format, DXGI_FORMAT depthBufferFormat)
+		: D3D_RenderTarget(size, format), depthBuffer(size, depthBufferFormat)
+	{
+	}
+
+	void D3D_DepthRenderTarget::Bind() const
 	{
 		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { renderTargetView.Get() };
 
 		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), depthBuffer.GetDepthStencilView());
 	}
 	
-	void D3D_DepthRenderTarget::UnBind()
+	void D3D_DepthRenderTarget::UnBind() const
 	{
 		D3D_RenderTarget::UnBind();
 	}

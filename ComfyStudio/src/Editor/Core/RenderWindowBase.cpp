@@ -68,7 +68,7 @@ namespace Editor
 		if (!currentWindow->Hidden)
 		{
 			if (needsResizing && Gui::GetFrameCount() >= 2)
-				OnResize(ivec2(renderSize.x, renderSize.y));
+				OnResize(renderSize);
 
 			OnUpdate();
 			if (Gui::IsWindowFocused())

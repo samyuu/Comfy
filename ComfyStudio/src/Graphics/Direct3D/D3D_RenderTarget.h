@@ -5,6 +5,9 @@
 
 namespace Graphics
 {
+	// NOTE: Since the render target is stretched to the correct asspect ratio in the end it could easily be scaled down to improve performance
+	constexpr ivec2 RenderTargetDefaultSize = ivec2(1, 1);
+
 	class D3D_RenderTargetBase : IGraphicsResource
 	{
 	protected:
@@ -12,8 +15,8 @@ namespace Graphics
 		virtual ~D3D_RenderTargetBase() = default;
 
 	public:
-		virtual void Bind();
-		virtual void UnBind();
+		virtual void Bind() const;
+		virtual void UnBind() const;
 
 		virtual void Clear(const vec4& color);
 		virtual void Resize(ivec2 newSize) = 0;
@@ -43,6 +46,7 @@ namespace Graphics
 	{
 	public:
 		D3D_RenderTarget(ivec2 size);
+		D3D_RenderTarget(ivec2 size, DXGI_FORMAT format);
 		D3D_RenderTarget(const D3D_RenderTarget&) = delete;
 		~D3D_RenderTarget() = default;
 
@@ -68,14 +72,15 @@ namespace Graphics
 	{
 	public:
 		D3D_DepthRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat);
+		D3D_DepthRenderTarget(ivec2 size, DXGI_FORMAT format, DXGI_FORMAT depthBufferFormat);
 		D3D_DepthRenderTarget(const D3D_DepthRenderTarget&) = delete;
 		~D3D_DepthRenderTarget() = default;
 
 		D3D_DepthRenderTarget& operator=(const D3D_DepthRenderTarget&) = delete;
 
 	public:
-		void Bind() override;
-		void UnBind() override;
+		void Bind() const override;
+		void UnBind() const override;
 
 		void Clear(const vec4& color) override;
 		void Resize(ivec2 newSize) override;
