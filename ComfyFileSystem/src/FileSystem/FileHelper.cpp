@@ -2,10 +2,9 @@
 #include "FileReader.h"
 #include "Misc/StringHelper.h"
 #include <filesystem>
+#include <fstream>
 #include <shlwapi.h>
 #include <assert.h>
-#include <fstream>
-#include <regex>
 
 namespace FileSystem
 {
@@ -78,15 +77,13 @@ namespace FileSystem
 	{
 		assert(filterVector.size() % 2 == 0);
 
-		// TODO: Get rid of std::regex dependency
-		static const std::regex whitespace("  *");
-
 		std::wstring filterString;
 		for (size_t i = 0; i + 1 < filterVector.size(); i += 2)
 		{
 			filterString += Utf8ToUtf16(filterVector[i]);
 			filterString += L'\0';
-			filterString += Utf8ToUtf16(std::regex_replace(filterVector[i + 1], whitespace, ";"));
+
+			filterString += Utf8ToUtf16(filterVector[i + 1]);
 			filterString += L'\0';
 		}
 		filterString += L'\0';
