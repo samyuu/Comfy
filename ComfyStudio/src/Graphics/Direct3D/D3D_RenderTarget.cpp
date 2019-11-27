@@ -99,7 +99,7 @@ namespace Graphics
 		return shaderResourceView.Get();
 	}
 
-	ID3D11ShaderResourceView* D3D_RenderTarget::GetShaderResourceView()
+	ID3D11ShaderResourceView* D3D_RenderTarget::GetResourceView()
 	{
 		return shaderResourceView.Get();
 	}

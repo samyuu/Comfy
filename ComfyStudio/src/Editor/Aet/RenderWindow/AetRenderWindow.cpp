@@ -369,7 +369,7 @@ namespace Editor
 
 	void AetRenderWindow::OnInitialize()
 	{
-		D3D_SetObjectDebugName(renderTarget->GetShaderResourceView(), "AetRenderWindow::RenderTarget");
+		D3D_SetObjectDebugName(renderTarget->GetResourceView(), "AetRenderWindow::RenderTarget");
 	}
 
 	void AetRenderWindow::RenderBackground()

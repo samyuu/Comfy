@@ -35,11 +35,34 @@ namespace Graphics
 		ComPtr<ID3D11ShaderResourceView> resourceView;
 	};
 
+	class D3D_Texture1D final
+	{
+	public:
+		D3D_Texture1D(int32_t width, const void* pixelData, DXGI_FORMAT format);
+		D3D_Texture1D(const D3D_Texture1D&) = delete;
+		~D3D_Texture1D() = default;
+
+		D3D_Texture1D& operator=(const D3D_Texture1D&) = delete;
+
+	public:
+		void UploadData(size_t dataSize, const void* pixelData);
+
+	public:
+		ID3D11ShaderResourceView* GetResourceView() const;
+
+	private:
+		D3D11_TEXTURE1D_DESC textureDescription;
+		D3D11_SHADER_RESOURCE_VIEW_DESC resourceViewDescription;
+
+		ComPtr<ID3D11Texture1D> texture;
+		ComPtr<ID3D11ShaderResourceView> resourceView;
+	};
+
 	class D3D_Texture2D final : public D3D_TextureResource
 	{
 	public:
 		D3D_Texture2D(const struct Txp& txp);
-		D3D_Texture2D(ivec2 size, const void* rgbaBuffer);
+		D3D_Texture2D(ivec2 size, const uint32_t* rgbaBuffer);
 		D3D_Texture2D(const D3D_Texture2D&) = delete;
 		~D3D_Texture2D() = default;
 

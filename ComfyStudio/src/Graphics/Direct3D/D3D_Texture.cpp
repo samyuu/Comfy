@@ -332,6 +332,43 @@ namespace Graphics
 		return resourceView.Get();
 	}
 
+	D3D_Texture1D::D3D_Texture1D(int32_t width, const void* pixelData, DXGI_FORMAT format)
+	{
+		textureDescription.Width = width;
+		textureDescription.MipLevels = 1;
+		textureDescription.ArraySize = 1;
+		textureDescription.Format = format;
+		textureDescription.Usage = D3D11_USAGE_DYNAMIC;
+		textureDescription.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		textureDescription.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		textureDescription.MiscFlags = 0;
+
+		D3D11_SUBRESOURCE_DATA initialResourceData = { pixelData, 0, 0 };
+		D3D.Device->CreateTexture1D(&textureDescription, (pixelData == nullptr) ? nullptr : &initialResourceData, &texture);
+
+		resourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1D;
+		resourceViewDescription.Texture1D.MostDetailedMip = 0;
+		resourceViewDescription.Texture1D.MipLevels = textureDescription.MipLevels;
+		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
+	}
+
+	void D3D_Texture1D::UploadData(size_t dataSize, const void* pixelData)
+	{
+		// assert(dataSize ...);
+
+		D3D11_MAPPED_SUBRESOURCE mappedTexture;
+		D3D.Context->Map(texture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedTexture);
+		{
+			std::memcpy(mappedTexture.pData, pixelData, dataSize);
+		}
+		D3D.Context->Unmap(texture.Get(), 0);
+	}
+
+	ID3D11ShaderResourceView* D3D_Texture1D::GetResourceView() const
+	{
+		return resourceView.Get();
+	}
+
 	D3D_Texture2D::D3D_Texture2D(const Txp& txp)
 	{
 		assert(txp.MipMapsArray.size() == GetArraySize() && txp.MipMapsArray.front().size() > 0 && txp.Signature.Type == TxpSig::Texture2D);
@@ -369,7 +406,7 @@ namespace Graphics
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 
-	D3D_Texture2D::D3D_Texture2D(ivec2 size, const void* rgbaBuffer)
+	D3D_Texture2D::D3D_Texture2D(ivec2 size, const uint32_t* rgbaBuffer)
 	{
 		textureFormat = TextureFormat::RGBA8;
 		textureDescription.Width = size.x;

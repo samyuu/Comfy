@@ -58,7 +58,7 @@ namespace Graphics
 		ivec2 GetSize() const;
 		void* GetVoidTexture() const;
 		
-		ID3D11ShaderResourceView* GetShaderResourceView();
+		ID3D11ShaderResourceView* GetResourceView();
 
 	protected:
 		D3D11_TEXTURE2D_DESC backBufferDescription;
