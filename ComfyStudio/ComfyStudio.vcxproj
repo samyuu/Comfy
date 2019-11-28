@@ -216,6 +216,7 @@
     <ClCompile Include="src\Graphics\Auth2D\SpriteBatchData.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\ObjSet.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\ObjSetFile.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\SceneContext.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_BlendState.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_ConstantBuffer.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_DepthBuffer.cpp" />
@@ -349,7 +350,11 @@
     <ClInclude Include="src\Graphics\Auth2D\AetRenderer.h" />
     <ClInclude Include="src\Graphics\Auth2D\AetSet.h" />
     <ClInclude Include="src\Graphics\Auth2D\SpriteBatchData.h" />
+    <ClInclude Include="src\Graphics\Auth3D\FogParameter.h" />
+    <ClInclude Include="src\Graphics\Auth3D\GlowParameter.h" />
+    <ClInclude Include="src\Graphics\Auth3D\LightParameters.h" />
     <ClInclude Include="src\Graphics\Auth3D\ObjSet.h" />
+    <ClInclude Include="src\Graphics\Auth3D\SceneContext.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_BlendState.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_ConstantBuffer.h" />
     <ClInclude Include="src\Graphics\Direct3D\D3D_DepthBuffer.h" />
