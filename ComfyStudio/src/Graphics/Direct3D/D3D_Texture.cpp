@@ -264,7 +264,7 @@ namespace Graphics
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC CreateTextureResourceViewDescription(const D3D11_TEXTURE2D_DESC& textureDescription)
 		{
-			D3D11_SHADER_RESOURCE_VIEW_DESC resourceViewDescription;
+			D3D11_SHADER_RESOURCE_VIEW_DESC resourceViewDescription = {};
 			resourceViewDescription.Format = textureDescription.Format;
 
 			if (textureDescription.ArraySize <= 1)
@@ -346,6 +346,7 @@ namespace Graphics
 		D3D11_SUBRESOURCE_DATA initialResourceData = { pixelData, 0, 0 };
 		D3D.Device->CreateTexture1D(&textureDescription, (pixelData == nullptr) ? nullptr : &initialResourceData, &texture);
 
+		resourceViewDescription = {};
 		resourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1D;
 		resourceViewDescription.Texture1D.MostDetailedMip = 0;
 		resourceViewDescription.Texture1D.MipLevels = textureDescription.MipLevels;
