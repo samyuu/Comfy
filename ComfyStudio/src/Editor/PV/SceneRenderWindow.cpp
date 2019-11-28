@@ -14,11 +14,16 @@ namespace Editor
 	{
 		renderer3D = MakeUnique<D3D_Renderer3D>();
 
-		sceneData.StageLight.Ambient = vec4(0.0f, 0.0f, 0.0f, 0.0f);
-		sceneData.StageLight.Diffuse = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-		sceneData.StageLight.Specular = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-		sceneData.StageLight.Position = vec4(-0.595944f, 0.391381f, 0.701193f, 0.0f);
-		sceneData.LightDiffuse = vec4(1.183988f, 0.873082f, 0.22719f, 1.0f);
+		context.Glow.Exposure = 2.0f;
+		context.Glow.Gamma = 1.0f;
+		context.Glow.SaturatePower = 1;
+		context.Glow.SaturateCoefficient = 1.0f;
+
+		context.Light.Stage.Ambient = vec3(0.0f, 0.0f, 0.0f);
+		context.Light.Stage.Diffuse = vec3(1.0f, 1.0f, 1.0f);
+		context.Light.Stage.Specular = vec3(1.0f, 1.0f, 1.0f);
+		context.Light.Stage.Position = vec3(-0.595944f, 0.391381f, 0.701193f);
+		context.Light.LightColor = vec3(1.183988f, 0.873082f, 0.227190f);
 	}
 
 	SceneRenderWindow::~SceneRenderWindow()
@@ -33,6 +38,7 @@ namespace Editor
 	void SceneRenderWindow::Initialize()
 	{
 		RenderWindowBase::Initialize();
+		context.OutputRenderTarget = renderTarget.get();
 
 		//#define OBJ_FILE "f_stgtst004"
 #define OBJ_FILE "stgtst007"
@@ -96,41 +102,57 @@ namespace Editor
 
 	void SceneRenderWindow::DrawComfyDebugGui()
 	{
-		if (Gui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
+		if (Gui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_None))
 		{
-			Gui::PushID(&sceneData.Camera);
-			Gui::Text("Camera");
-			Gui::DragFloat("Field Of View", &sceneData.Camera.FieldOfView, 1.0f, 1.0f, 180.0f);
-			Gui::DragFloat("Near Plane", &sceneData.Camera.NearPlane, 0.001f, 0.001f, 1.0f);
-			Gui::DragFloat("Far Plane", &sceneData.Camera.FarPlane);
-			Gui::DragFloat3("Position", glm::value_ptr(sceneData.Camera.Position), 0.01f);
-			Gui::DragFloat3("Target", glm::value_ptr(sceneData.Camera.Target), 0.01f);
-			Gui::DragFloat("Smoothness", &sceneData.CameraSmoothness, 1.0f, 0.0f, 250.0f);
+			auto& camera = context.Camera;
 
-			Gui::Text("Camera Rotation");
-			Gui::DragFloat("Pitch", &sceneData.TargetCameraPitch, 1.0f);
-			Gui::DragFloat("Yaw", &sceneData.TargetCameraYaw, 1.0f);
+			Gui::PushID(&camera);
+			Gui::DragFloat("Field Of View", &camera.FieldOfView, 1.0f, 1.0f, 180.0f);
+			Gui::DragFloat("Near Plane", &camera.NearPlane, 0.001f, 0.001f, 1.0f);
+			Gui::DragFloat("Far Plane", &camera.FarPlane);
+			Gui::DragFloat3("Position", glm::value_ptr(camera.Position), 0.01f);
+			Gui::DragFloat3("Target", glm::value_ptr(camera.Target), 0.01f);
+			Gui::DragFloat("Smoothness", &cameraController.CameraSmoothness, 1.0f, 0.0f, 250.0f);
+
+			Gui::DragFloat("Pitch", &cameraController.TargetCameraPitch, 1.0f);
+			Gui::DragFloat("Yaw", &cameraController.TargetCameraYaw, 1.0f);
+			Gui::PopID();
+		}
+
+		if (Gui::CollapsingHeader("Rendering", ImGuiTreeNodeFlags_None))
+		{
+			Gui::PushID(&context.RenderParameters);
+			Gui::Checkbox("Clear", &context.RenderParameters.Clear);
+			Gui::Checkbox("Wireframe", &context.RenderParameters.Wireframe);
+			Gui::Checkbox("Alpha Sort", &context.RenderParameters.AlphaSort);
+			Gui::Checkbox("Render Opaque", &context.RenderParameters.RenderOpaque);
+			Gui::Checkbox("Render Transparent", &context.RenderParameters.RenderTransparent);
+			Gui::PopID();
+		}
+
+		if (Gui::CollapsingHeader("Glow", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			Gui::PushID(&context.Glow);
+			Gui::SliderFloat("Exposure", &context.Glow.Exposure, 0.0f, 4.0f);
+			Gui::SliderFloat("Gamma", &context.Glow.Gamma, 0.2f, 2.2f);
+			Gui::SliderInt("Saturate Power", &context.Glow.SaturatePower, 1, 6);
+			Gui::SliderFloat("Saturate Coefficient", &context.Glow.SaturateCoefficient, 0.0f, 1.0f);
 			Gui::PopID();
 		}
 
 		if (Gui::CollapsingHeader("Lighting", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			Gui::ColorEdit4("Light Diffuse", glm::value_ptr(sceneData.LightDiffuse));
-			Gui::PushID(&sceneData.StageLight);
-			Gui::ColorEdit4("Ambient", glm::value_ptr(sceneData.StageLight.Ambient));
-			Gui::ColorEdit4("Diffuse", glm::value_ptr(sceneData.StageLight.Diffuse));
-			Gui::ColorEdit4("Specular", glm::value_ptr(sceneData.StageLight.Specular));
-			Gui::DragFloat4("Position", glm::value_ptr(sceneData.StageLight.Position));
+			Gui::PushID(&context.Light);
+			Gui::ColorEdit3("Light Color", glm::value_ptr(context.Light.LightColor), ImGuiColorEditFlags_Float);
+			Gui::ColorEdit3("Ambient", glm::value_ptr(context.Light.Stage.Ambient), ImGuiColorEditFlags_Float);
+			Gui::ColorEdit3("Diffuse", glm::value_ptr(context.Light.Stage.Diffuse), ImGuiColorEditFlags_Float);
+			Gui::ColorEdit3("Specular", glm::value_ptr(context.Light.Stage.Specular), ImGuiColorEditFlags_Float);
+			Gui::DragFloat3("Position", glm::value_ptr(context.Light.Stage.Position), 0.01f);
 			Gui::PopID();
 		}
 
-		if (Gui::CollapsingHeader("Object Test", ImGuiTreeNodeFlags_DefaultOpen))
+		if (Gui::CollapsingHeader("Object Test", ImGuiTreeNodeFlags_None))
 		{
-			Gui::Checkbox("Wireframe", &renderer3D->DEBUG_RenderWireframe);
-			Gui::Checkbox("Alpha Sort", &renderer3D->DEBUG_AlphaSort);
-			Gui::Checkbox("Render Opaque", &renderer3D->DEBUG_RenderOpaque);
-			Gui::Checkbox("Render Transparent", &renderer3D->DEBUG_RenderTransparent);
-
 			Gui::BeginChild("ObjSelectionChild", vec2(0, 140), true);
 
 			if (Gui::Selectable("All Objects", (objectIndex < 0)))
@@ -146,12 +168,6 @@ namespace Editor
 			}
 
 			Gui::EndChild();
-		}
-
-		if (Gui::CollapsingHeader("Post Processing"))
-		{
-			Gui::DragFloat("Saturation", &postProcessData.Saturation, 0.015f, 1.0f, 5.0f);
-			Gui::DragFloat("Brightness", &postProcessData.Brightness, 0.015f, 0.1f, 5.0f);
 		}
 	}
 
@@ -194,9 +210,9 @@ namespace Editor
 		ImGuiIO& io = Gui::GetIO();
 
 		vec3 front;
-		front.x = cos(glm::radians(sceneData.CameraYaw)) * cos(glm::radians(sceneData.CameraPitch));
-		front.y = sin(glm::radians(sceneData.CameraPitch));
-		front.z = sin(glm::radians(sceneData.CameraYaw)) * cos(glm::radians(sceneData.CameraPitch));
+		front.x = cos(glm::radians(cameraController.CameraYaw)) * cos(glm::radians(cameraController.CameraPitch));
+		front.y = sin(glm::radians(cameraController.CameraPitch));
+		front.z = sin(glm::radians(cameraController.CameraYaw)) * cos(glm::radians(cameraController.CameraPitch));
 
 		const bool fastCamera = Gui::IsKeyDown(KeyCode_Shift);
 		const bool slowCamera = Gui::IsKeyDown(KeyCode_Alt);
@@ -207,8 +223,8 @@ namespace Editor
 		{
 			if (Gui::IsMouseDown(0))
 			{
-				sceneData.TargetCameraYaw += io.MouseDelta.x * sceneData.CameraSensitivity;
-				sceneData.TargetCameraPitch -= io.MouseDelta.y * sceneData.CameraSensitivity;
+				cameraController.TargetCameraYaw += io.MouseDelta.x * cameraController.CameraSensitivity;
+				cameraController.TargetCameraPitch -= io.MouseDelta.y * cameraController.CameraSensitivity;
 			}
 
 			if (Gui::IsWindowHovered())
@@ -216,46 +232,46 @@ namespace Editor
 				const float scrollStep = slowCamera ? 0.5f : (fastCamera ? 12.5f : 1.5f);
 
 				if (io.MouseWheel > 0)
-					sceneData.Camera.Position += front * scrollStep;
+					context.Camera.Position += front * scrollStep;
 				if (io.MouseWheel < 0)
-					sceneData.Camera.Position -= front * scrollStep;
+					context.Camera.Position -= front * scrollStep;
 			}
 		}
 
-		if (sceneData.TargetCameraPitch > +89.0f) sceneData.TargetCameraPitch = +89.0f;
-		if (sceneData.TargetCameraPitch < -89.0f) sceneData.TargetCameraPitch = -89.0f;
+		if (cameraController.TargetCameraPitch > +89.0f) cameraController.TargetCameraPitch = +89.0f;
+		if (cameraController.TargetCameraPitch < -89.0f) cameraController.TargetCameraPitch = -89.0f;
 
 		if (Gui::IsWindowFocused())
 		{
 			if (Gui::IsKeyDown(KeyCode_W))
-				sceneData.Camera.Position += front * cameraSpeed;
+				context.Camera.Position += front * cameraSpeed;
 			if (Gui::IsKeyDown(KeyCode_S))
-				sceneData.Camera.Position -= front * cameraSpeed;
+				context.Camera.Position -= front * cameraSpeed;
 			if (Gui::IsKeyDown(KeyCode_A))
-				sceneData.Camera.Position -= glm::normalize(glm::cross(front, sceneData.Camera.UpDirection)) * cameraSpeed;
+				context.Camera.Position -= glm::normalize(glm::cross(front, context.Camera.UpDirection)) * cameraSpeed;
 			if (Gui::IsKeyDown(KeyCode_D))
-				sceneData.Camera.Position += glm::normalize(glm::cross(front, sceneData.Camera.UpDirection)) * cameraSpeed;
+				context.Camera.Position += glm::normalize(glm::cross(front, context.Camera.UpDirection)) * cameraSpeed;
 
 			if (Gui::IsKeyDown(KeyCode_Space))
-				sceneData.Camera.Position += sceneData.Camera.UpDirection * cameraSpeed;
+				context.Camera.Position += context.Camera.UpDirection * cameraSpeed;
 			if (Gui::IsKeyDown(KeyCode_Control))
-				sceneData.Camera.Position -= sceneData.Camera.UpDirection * cameraSpeed;
+				context.Camera.Position -= context.Camera.UpDirection * cameraSpeed;
 		}
 
-		sceneData.Camera.Target = sceneData.Camera.Position + glm::normalize(front);
+		context.Camera.Target = context.Camera.Position + glm::normalize(front);
 
-		if (sceneData.CameraSmoothness > 0.0f)
+		if (cameraController.CameraSmoothness > 0.0f)
 		{
-			sceneData.CameraYaw = ImLerp(sceneData.CameraYaw, sceneData.TargetCameraYaw, io.DeltaTime * sceneData.CameraSmoothness);
-			sceneData.CameraPitch = ImLerp(sceneData.CameraPitch, sceneData.TargetCameraPitch, io.DeltaTime * sceneData.CameraSmoothness);
+			cameraController.CameraYaw = ImLerp(cameraController.CameraYaw, cameraController.TargetCameraYaw, io.DeltaTime * cameraController.CameraSmoothness);
+			cameraController.CameraPitch = ImLerp(cameraController.CameraPitch, cameraController.TargetCameraPitch, io.DeltaTime * cameraController.CameraSmoothness);
 		}
 		else
 		{
-			sceneData.CameraYaw = sceneData.TargetCameraYaw;
-			sceneData.CameraPitch = sceneData.TargetCameraPitch;
+			cameraController.CameraYaw = cameraController.TargetCameraYaw;
+			cameraController.CameraPitch = cameraController.TargetCameraPitch;
 		}
 
-		sceneData.Camera.UpdateMatrices();
+		context.Camera.UpdateMatrices();
 	}
 
 	void SceneRenderWindow::OnRender()
@@ -266,9 +282,9 @@ namespace Editor
 		renderTarget->Bind();
 		{
 			D3D.SetViewport(renderTarget->GetSize());
-			renderTarget->Clear(GetColorVec4(EditorColor_BaseClear));
+			context.RenderParameters.ClearColor = GetColorVec4(EditorColor_BaseClear);
 
-			renderer3D->Begin(sceneData.Camera, sceneData.LightDiffuse, sceneData.StageLight);
+			renderer3D->Begin(context);
 			{
 				if (objectIndex < 0)
 				{
@@ -290,8 +306,8 @@ namespace Editor
 		RenderWindowBase::OnResize(size);
 
 		vec2 renderRegionSize = GetRenderRegion().GetSize();
-		sceneData.Camera.AspectRatio = renderRegionSize.x / renderRegionSize.y;
+		context.Camera.AspectRatio = renderRegionSize.x / renderRegionSize.y;
 
-		// postProcessingData.postProcessingRenderTarget.Resize(size);
+		context.Resize(size);
 	}
 }

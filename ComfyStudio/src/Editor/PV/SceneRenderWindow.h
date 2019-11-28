@@ -25,8 +25,6 @@ namespace Editor
 		void OnWindowEnd() override;
 
 	private:
-		bool GetShouldCreateDepthRenderTarget() const override { return true; };
-
 		void OnUpdateInput() override;
 		void OnUpdate() override;
 		void OnRender() override;
@@ -39,36 +37,20 @@ namespace Editor
 		void LoadObjSet(const std::string& objSetPath);
 
 	private:
-		struct SceneData
+		struct CameraController
 		{
-			struct
-			{
-				float CameraSmoothness = 50.0f;
-				float CameraPitch = 0.0f;
-				float CameraYaw = 0.0f;
-				float CameraRoll = 0.0f;
+			float CameraSmoothness = 50.0f;
+			float CameraPitch = 0.0f;
+			float CameraYaw = 0.0f;
+			float CameraRoll = 0.0f;
 
-				float TargetCameraPitch = 0.0f;
-				float TargetCameraYaw = 0.0f;
+			float TargetCameraPitch = 0.0f;
+			float TargetCameraYaw = 0.0f;
 
-				float CameraSensitivity = 0.25f;
+			float CameraSensitivity = 0.25f;
+		} cameraController;
 
-				Graphics::PerspectiveCamera Camera;
-			};
-
-			struct
-			{
-				Graphics::ParallelLight StageLight;
-				vec4 LightDiffuse;
-			};
-		} sceneData;
-
-		struct PostProcessData
-		{
-			float Saturation = 2.2f;
-			float Brightness = 0.45455f;
-			// Graphics::D3D_RenderTarget postProcessingRenderTarget = { RenderWindowBase::RenderTargetDefaultSize };
-		} postProcessData;
+		Graphics::SceneContext context;
 
 		Gui::FileViewer objFileViewer = { "dev_rom/objset/" };
 
