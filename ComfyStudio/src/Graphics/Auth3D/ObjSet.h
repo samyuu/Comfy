@@ -31,11 +31,20 @@ namespace Graphics
 		UniquePtr<D3D_StaticIndexBuffer> GraphicsIndexBuffer;
 	};
 
+	struct MeshFlags
+	{
+		uint32_t Unknown : 1;
+		uint32_t FaceCamera : 1;
+		uint32_t Transparent : 1;
+	};
+
 	struct Mesh
 	{
 		Sphere BoundingSphere;
 		std::vector<SubMesh> SubMeshes;
 		VertexAttributeFlags AttributeFlags;
+		
+		MeshFlags Flags;
 		char Name[64];
 
 		struct VertexData
@@ -146,6 +155,7 @@ namespace Graphics
 		BlendFactor_IDST_ALPHA = 7,
 		BlendFactor_DST_COLOR = 8,
 		BlendFactor_IDST_COLOR = 9,
+		BlendFactor_Count,
 	};
 
 	enum DoubleSidedness : uint32_t

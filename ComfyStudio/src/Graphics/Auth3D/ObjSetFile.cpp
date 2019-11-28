@@ -111,9 +111,9 @@ namespace Graphics
 					mesh.VertexData.Stride = reader.ReadUInt32();
 					mesh.VertexData.VertexCount = reader.ReadUInt32();
 
-					constexpr size_t attributeSize = 28;
+					constexpr size_t attributeCount = 20;
 
-					void* vertexAttributePtrs[attributeSize];
+					void* vertexAttributePtrs[attributeCount];
 					for (auto& attributePtr : vertexAttributePtrs)
 						attributePtr = reader.ReadPtr();
 
@@ -131,6 +131,10 @@ namespace Graphics
 					CheckReadVertexData(reader, mesh, VertexAttribute_BoneWeight, mesh.VertexData.BoneWeights, vertexAttributePtrs, objBaseAddress);
 					CheckReadVertexData(reader, mesh, VertexAttribute_BoneIndex, mesh.VertexData.BoneIndices, vertexAttributePtrs, objBaseAddress);
 
+					*reinterpret_cast<uint32_t*>(&mesh.Flags) = reader.ReadUInt32();
+					for (int i = 0; i < 7; i++)
+						reader.ReadUInt32();
+					
 					reader.Read(mesh.Name, sizeof(mesh.Name));
 				}
 			});
