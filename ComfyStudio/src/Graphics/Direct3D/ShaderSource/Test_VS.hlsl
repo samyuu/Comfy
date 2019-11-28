@@ -1,5 +1,5 @@
-#include "InputLayouts.hlsl"
-#include "ConstantInputs.hlsl"
+#include "Include/InputLayouts.hlsl"
+#include "Include/ConstantInputs.hlsl"
 
 VS_OUTPUT VS_main(VS_INPUT input)
 {

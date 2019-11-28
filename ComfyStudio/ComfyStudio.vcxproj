@@ -101,6 +101,8 @@
       <PreprocessorDefinitions>COMFY_DEBUG=1</PreprocessorDefinitions>
       <ObjectFileOutput />
       <EntryPointName>XX_main</EntryPointName>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -155,6 +157,8 @@
       <PreprocessorDefinitions>COMFY_RELEASE=1</PreprocessorDefinitions>
       <ObjectFileOutput />
       <EntryPointName>XX_main</EntryPointName>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -437,13 +441,11 @@
     <Image Include="res\ComfyIcon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\BlendModes.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\BlendModes.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">XX_main</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XX_main</EntryPointName>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
@@ -463,12 +465,10 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Checkerboard.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </EntryPointName>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Checkerboard.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">XX_main</EntryPointName>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XX_main</EntryPointName>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -489,21 +489,17 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Common.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Common.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">XX_main</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XX_main</EntryPointName>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ConstantInputs.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\ConstantInputs.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">XX_main</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XX_main</EntryPointName>
     </FxCompile>
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Constant_PS.hlsl">
       <SubType>
@@ -537,7 +533,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\InputLayouts.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\InputLayouts.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
@@ -557,17 +553,15 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Material.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Material.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\SceneData.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\SceneData.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">XX_main</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XX_main</EntryPointName>
     </FxCompile>
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -593,15 +587,15 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </DeploymentContent>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\TextureFormats.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\TextureFormats.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\UncompressRGTC.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\UncompressRGTC.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ShaderFlags.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\ShaderFlags.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
@@ -629,15 +623,13 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Font.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Font.hlsl">
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">XX_main</EntryPointName>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XX_main</EntryPointName>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
     </FxCompile>
   </ItemGroup>

@@ -1,6 +1,6 @@
-#include "InputLayouts.hlsl"
-#include "ConstantInputs.hlsl"
-#include "Common.hlsl"
+#include "Include/InputLayouts.hlsl"
+#include "Include/ConstantInputs.hlsl"
+#include "Include/Common.hlsl"
 
 SamplerState DiffuseSampler : register(s0);
 SamplerState AmbientSampler : register(s1);
@@ -23,7 +23,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     // TODO: Implement the rest
     if (CB_ShaderFlags & ShaderFlags_CubeMapReflection)
     {
-        float4 specular = ReflectionTexture.Sample(ReflectionSampler, input.Reflection.xyz);
+        float4 specular = ReflectionTexture.Sample(ReflectionSampler, input.Reflection);
         specular.a = CB_Material.Reflectivity * CB_Scene.StageLight.Specular.a;
         specular.rgb *= CB_Scene.StageLight.Specular.rgb * specular.a;
         outputColor = mad(input.Color, outputColor, specular);

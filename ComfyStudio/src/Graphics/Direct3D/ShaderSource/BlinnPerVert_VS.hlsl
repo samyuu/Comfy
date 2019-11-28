@@ -1,6 +1,6 @@
-#include "InputLayouts.hlsl"
-#include "ConstantInputs.hlsl"
-#include "Common.hlsl"
+#include "Include/InputLayouts.hlsl"
+#include "Include/ConstantInputs.hlsl"
+#include "Include/Common.hlsl"
 
 VS_OUTPUT VS_main(VS_INPUT input)
 {
@@ -29,8 +29,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     if (CB_ShaderFlags & ShaderFlags_CubeMapReflection)
     {
         float3 eyeDirection = normalize(input.Position.xyz - CB_Scene.EyePosition.xyz);
-        output.Reflection.xyz = reflect(eyeDirection, input.Normal);
-        output.Reflection.w = 1.0;
+        output.Reflection = reflect(eyeDirection, input.Normal);
     }
     
     return output;

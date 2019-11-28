@@ -1,6 +1,6 @@
-#include "InputLayouts.hlsl"
-#include "ConstantInputs.hlsl"
-#include "Common.hlsl"
+#include "Include/InputLayouts.hlsl"
+#include "Include/ConstantInputs.hlsl"
+#include "Include/Common.hlsl"
 
 VS_OUTPUT VS_main(VS_INPUT input)
 {

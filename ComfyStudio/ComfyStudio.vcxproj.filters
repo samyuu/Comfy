@@ -836,30 +836,30 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\BlendModes.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Checkerboard.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Font.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Sprite_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Sprite_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\UncompressRGTC.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\TextureFormats.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ImGui_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ImGui_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Material.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\InputLayouts.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Constant_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Constant_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\SceneData.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ShaderFlags.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ConstantInputs.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Lambert_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Lambert_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Common.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\BlinnPerVert_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\BlinnPerVert_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ToneMap_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ToneMap_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\BlendModes.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Checkerboard.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Common.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\ConstantInputs.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Font.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\InputLayouts.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Material.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\SceneData.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\ShaderFlags.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\TextureFormats.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\UncompressRGTC.hlsl" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-#include "Common.hlsl"
+#include "Include/Common.hlsl"
 
 struct VS_INPUT
 {

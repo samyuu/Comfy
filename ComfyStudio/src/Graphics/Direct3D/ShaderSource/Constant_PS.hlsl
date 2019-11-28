@@ -1,6 +1,6 @@
-#include "InputLayouts.hlsl"
-#include "ConstantInputs.hlsl"
-#include "Common.hlsl"
+#include "Include/InputLayouts.hlsl"
+#include "Include/ConstantInputs.hlsl"
+#include "Include/Common.hlsl"
 
 SamplerState DiffuseSampler : register(s0);
 SamplerState AmbientSampler : register(s1);

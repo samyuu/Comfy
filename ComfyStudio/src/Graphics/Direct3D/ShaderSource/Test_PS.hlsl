@@ -1,5 +1,5 @@
-#include "InputLayouts.hlsl"
-#include "ConstantInputs.hlsl"
+#include "Include/InputLayouts.hlsl"
+#include "Include/ConstantInputs.hlsl"
 
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {
