@@ -26,6 +26,10 @@ namespace Graphics
 
 	struct SceneConstantData
 	{
+		mat4 IrradianceRed;
+		mat4 IrradianceGreen;
+		mat4 IrradianceBlue;
+
 		struct SceneData
 		{
 			mat4 ViewProjection;

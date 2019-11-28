@@ -88,26 +88,8 @@ namespace Graphics
 				if (objSet->TextureIDs[i] == textureID)
 					return &objSet->TxpSet->Txps[i];
 			}
-		}
 
-		bool HasAlphaChannel(Txp* txp)
-		{
-			if (txp == nullptr)
-				return false;
-
-			switch (txp->GetFormat())
-			{
-			case TextureFormat::A8:
-			case TextureFormat::RGBA8:
-			case TextureFormat::RGB5_A1:
-			case TextureFormat::RGBA4:
-			case TextureFormat::DXT1a:
-			case TextureFormat::DXT5:
-				return true;
-
-			default:
-				return false;
-			}
+			return nullptr;
 		}
 
 		bool IsTransparent(ObjSet* objSet, Mesh& mesh, Material& material)
@@ -117,11 +99,6 @@ namespace Graphics
 
 			if (mesh.Flags.Transparent)
 				return true;
-
-#if 0
-			if (HasAlphaChannel(FindObjSetTxpFromID(objSet, material.Diffuse.TextureID)))
-				return true;
-#endif
 
 			return false;
 		}
@@ -213,6 +190,9 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalRenderItems()
 	{
+		sceneConstantBuffer.Data.IrradianceRed = glm::transpose(sceneContext->Light.Irradiance.Red);
+		sceneConstantBuffer.Data.IrradianceGreen = glm::transpose(sceneContext->Light.Irradiance.Green);
+		sceneConstantBuffer.Data.IrradianceBlue = glm::transpose(sceneContext->Light.Irradiance.Blue);
 		sceneConstantBuffer.Data.Scene.ViewProjection = glm::transpose(sceneContext->Camera.GetProjectionMatrix() * sceneContext->Camera.GetViewMatrix());
 		sceneConstantBuffer.Data.Scene.EyePosition = vec4(sceneContext->Camera.Position, 0.0f);
 		sceneConstantBuffer.Data.LightColor = vec4(sceneContext->Light.LightColor, 1.0f);

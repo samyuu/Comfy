@@ -11,8 +11,13 @@ struct ParallelLight
 
 struct SceneData
 {
+    matrix IrradianceRed;
+    matrix IrradianceGreen;
+    matrix IrradianceBlue;
+    
     matrix ViewProjection;
     float4 EyePosition;
+    
     ParallelLight StageLight;
     float4 LightColor;
 };

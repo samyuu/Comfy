@@ -24,6 +24,32 @@ namespace Editor
 		context.Light.Stage.Specular = vec3(1.0f, 1.0f, 1.0f);
 		context.Light.Stage.Position = vec3(-0.595944f, 0.391381f, 0.701193f);
 		context.Light.LightColor = vec3(1.183988f, 0.873082f, 0.227190f);
+	
+		constexpr mat4 stageTestIrradiance[3] =
+		{
+			{
+				+0.019668, +0.025554, +0.052443, +0.009977,
+				+0.025554, -0.019668, -0.011968, +0.015655,
+				+0.052443, -0.011968, +0.123443, -0.053661,
+				+0.009977, +0.015655, -0.053661, +0.658065,
+			},
+			{
+				+0.012581, +0.022988, +0.047943, +0.002154,
+				+0.022988, -0.012581, +0.008594, -0.016351,
+				+0.047943, +0.008594, +0.098553, -0.062610,
+				+0.002154, -0.016351, -0.062610, +0.558507,
+			},
+			{
+				-0.000910, +0.020892, +0.043903, -0.004738,
+				+0.020892, +0.000910, +0.027703, -0.052166,
+				+0.043903, +0.027703, +0.067878, -0.070613,
+				-0.004738, -0.052166, -0.070613, +0.444547,
+			},
+		};
+
+		context.Light.Irradiance.Red = stageTestIrradiance[0];
+		context.Light.Irradiance.Green = stageTestIrradiance[1];
+		context.Light.Irradiance.Blue = stageTestIrradiance[2];
 	}
 
 	SceneRenderWindow::~SceneRenderWindow()

@@ -48,5 +48,10 @@ namespace Graphics
 
 		// TODO: Stage IBL
 		vec3 LightColor;
+
+		struct IrradianceRGB
+		{
+			mat4 Red, Green, Blue;
+		} Irradiance;
 	};
 }
