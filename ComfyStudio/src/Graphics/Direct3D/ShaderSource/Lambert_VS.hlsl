@@ -17,8 +17,8 @@ VS_OUTPUT VS_main(VS_INPUT input)
     if (CB_ShaderFlags & ShaderFlags_AmbientTexture)
         output.TexCoordAmbient = TransformTextureCoordinates(input.TexCoordAmbient, CB_Material.AmbientTextureTransform);
     
-    float3 diffuse = saturate(dot(output.Normal, CB_Scene.StageLight.Direction.xyz));
-    output.Color.rgb = mad(diffuse, CB_Scene.LightDiffuse.rgb, Irradiance * CB_Scene.StageLight.Diffuse.rgb);
+    float3 diffuse = saturate(dot(input.Normal, CB_Scene.StageLight.Direction.xyz));
+    output.Color.rgb = mad(diffuse, CB_Scene.LightColor.rgb, Irradiance * CB_Scene.StageLight.Diffuse.rgb);
     output.Color.a = 1.0;
 
     if (CB_ShaderFlags & ShaderFlags_VertexColor)

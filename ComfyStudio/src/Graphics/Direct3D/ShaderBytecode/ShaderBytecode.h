@@ -21,6 +21,12 @@ namespace Graphics
 
 	DECLARE_BYTECODE_GETTER(Lambert_VS);
 	DECLARE_BYTECODE_GETTER(Lambert_PS);
+
+	DECLARE_BYTECODE_GETTER(BlinnPerVert_VS);
+	DECLARE_BYTECODE_GETTER(BlinnPerVert_PS);
+
+	DECLARE_BYTECODE_GETTER(ToneMap_VS);
+	DECLARE_BYTECODE_GETTER(ToneMap_PS);
 }
 
 // NOTE: Implementation included in the cpp file
@@ -41,6 +47,12 @@ namespace Graphics
 #include SHADER_BYTECODE_FILE(Lambert_VS.h)
 #include SHADER_BYTECODE_FILE(Lambert_PS.h)
 
+#include SHADER_BYTECODE_FILE(BlinnPerVert_VS.h)
+#include SHADER_BYTECODE_FILE(BlinnPerVert_PS.h)
+
+#include SHADER_BYTECODE_FILE(ToneMap_VS.h)
+#include SHADER_BYTECODE_FILE(ToneMap_PS.h)
+
 namespace Graphics
 {
 	DEFINE_BYTECODE_GETTER(ImGui_VS);
@@ -57,6 +69,12 @@ namespace Graphics
 
 	DEFINE_BYTECODE_GETTER(Lambert_VS);
 	DEFINE_BYTECODE_GETTER(Lambert_PS);
+
+	DEFINE_BYTECODE_GETTER(BlinnPerVert_VS);
+	DEFINE_BYTECODE_GETTER(BlinnPerVert_PS);
+
+	DEFINE_BYTECODE_GETTER(ToneMap_VS);
+	DEFINE_BYTECODE_GETTER(ToneMap_PS);
 }
 
 #endif /* SHADER_BYTECODE_IMPLEMENTATION */

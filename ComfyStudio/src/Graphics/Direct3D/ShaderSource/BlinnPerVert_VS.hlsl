@@ -9,17 +9,27 @@ VS_OUTPUT VS_main(VS_INPUT input)
     output.Position = mul(input.Position, CB_Model);
     output.Position = mul(output.Position, CB_Scene.ViewProjection);
     
+    output.Normal = mul(float4(input.Normal, 1.0), CB_Model).xyz;
+
     if (CB_ShaderFlags & ShaderFlags_DiffuseTexture)
         output.TexCoord = TransformTextureCoordinates(input.TexCoord, CB_Material.DiffuseTextureTransform);
     
     if (CB_ShaderFlags & ShaderFlags_AmbientTexture)
         output.TexCoordAmbient = TransformTextureCoordinates(input.TexCoordAmbient, CB_Material.AmbientTextureTransform);
     
-    output.Color.rgb = CB_Material.DiffuseColor * BlendColor * CB_Material.EmissionColor.rgb;
+    float3 diffuse = saturate(dot(input.Normal, CB_Scene.StageLight.Direction.xyz));
+    output.Color.rgb = mad(diffuse, CB_Scene.LightColor.rgb, Irradiance * CB_Scene.StageLight.Diffuse.rgb);
     output.Color.a = 1.0;
-    
+
     if (CB_ShaderFlags & ShaderFlags_VertexColor)
         output.Color *= input.Color;
+    
+    if (CB_ShaderFlags & ShaderFlags_CubeMapReflection)
+    {
+        float3 eyeDirection = normalize(input.Position.xyz - CB_Scene.EyePosition.xyz);
+        output.Reflection.xyz = reflect(eyeDirection, input.Normal);
+        output.Reflection.w = 1.0;
+    }
     
     return output;
 }

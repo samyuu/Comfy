@@ -9,8 +9,9 @@
 #include "D3D_Shader.h"
 #include "D3D_Texture.h"
 #include "D3D_VertexBuffer.h"
+#include "ShaderBytecode/ShaderBytecode.h"
 #include "Graphics/Auth3D/ObjSet.h"
-#include "Graphics/Camera.h"
+#include "Graphics/Auth3D/SceneContext.h"
 
 namespace Graphics
 {
@@ -20,15 +21,7 @@ namespace Graphics
 		ShaderFlags_DiffuseTexture = 1 << 1,
 		ShaderFlags_AmbientTexture = 1 << 2,
 		ShaderFlags_AlphaTest = 1 << 3,
-	};
-
-	struct ParallelLight
-	{
-		vec4 Ambient;
-		vec4 Diffuse;
-		vec4 Specular;
-		vec4 Position;
-		vec4 Direction;
+		ShaderFlags_CubeMapReflection = 1 << 4,
 	};
 
 	struct SceneConstantData
@@ -38,9 +31,17 @@ namespace Graphics
 			mat4 ViewProjection;
 			vec4 EyePosition;
 		} Scene;
-		ParallelLight StageLight;
-		vec4 LightDiffuse;
-		float Padding[4];
+
+		struct ParallelLight
+		{
+			vec4 Ambient;
+			vec4 Diffuse;
+			vec4 Specular;
+			vec4 Direction;
+		} StageLight;
+
+		vec4 LightColor;
+		float Padding[8];
 	};
 
 	struct ObjectConstantData
@@ -64,6 +65,15 @@ namespace Graphics
 		float Padding[12];
 	};
 
+	struct GlowConstantData
+	{
+		float Exposure;
+		float Gamma;
+		int SaturatePower;
+		float SaturateCoefficient;
+		float Padding[12];
+	};
+
 	class D3D_Renderer3D
 	{
 	public:
@@ -74,19 +84,12 @@ namespace Graphics
 		D3D_Renderer3D& operator=(const D3D_Renderer3D&) = delete;
 
 	public:
-		void Begin(const PerspectiveCamera& camera, const vec4& diffiuse, const ParallelLight& stageLight);
+		void Begin(SceneContext& scene);
 		void Draw(ObjSet* objSet, Obj* obj, vec3 position);
 		void End();
 
-		// TODO: Add more debug checkboxes to for example only render meshes with an alpha threshold (add CheckSkipSubMesh(...) method which checks debug flags)
-		// DEBUG:
-		bool DEBUG_RenderWireframe = false;
-		bool DEBUG_AlphaSort = true;
-		bool DEBUG_RenderOpaque = true;
-		bool DEBUG_RenderTransparent = true;
-
 	public:
-		const PerspectiveCamera* GetCamera() const;
+		const SceneContext* GetSceneContext() const;
 
 	private:
 		struct ObjRenderCommand
@@ -100,36 +103,39 @@ namespace Graphics
 		struct SubMeshRenderCommand
 		{
 			ObjRenderCommand* ObjCommand;
-
 			Mesh* ParentMesh;
 			SubMesh* SubMesh;
-
 			float CameraDistance;
 		};
 
 		void InternalFlush();
 
+		void InternalPrepareRenderCommands();
 		void InternalRenderItems();
 		void InternalRenderOpaqueObjCommand(ObjRenderCommand& command);
 		void InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command);
+		void InternalRenderPostProcessing();
 
 		void BindMeshVertexBuffers(Mesh& mesh);
-		void UpdateObjectConstantBuffer(Mesh& mesh, Material& material, const mat4& model);
+		void UpdateObjectConstantBuffer(ObjRenderCommand& command, Mesh& mesh, Material& material, const mat4& model);
 		D3D_BlendState CreateMaterialBlendState(Material& material);
 		D3D_ShaderPair& GetMaterialShader(Material& material);
 		void UpdateSubMeshShaderState(SubMesh& subMesh, Material& material, ObjSet* objSet);
 		void SubmitSubMeshDrawCall(SubMesh& subMesh);
 
 	private:
-		struct
+		struct ShaderPairs
 		{
-			D3D_ShaderPair testShader;
-			D3D_ShaderPair constantShader;
-			D3D_ShaderPair lambertShader;
-		};
+			D3D_ShaderPair Test = { Test_VS(), Test_PS() };
+			D3D_ShaderPair Constant = { Constant_VS(), Constant_PS() };
+			D3D_ShaderPair Lambert = { Lambert_VS(), Lambert_PS() };
+			D3D_ShaderPair BlinnPerVertex = { BlinnPerVert_VS(), BlinnPerVert_PS() };
+			D3D_ShaderPair ToneMap = { ToneMap_VS(), ToneMap_PS() };
+		} shaders;
 
 		D3D_DynamicConstantBufferTemplate<SceneConstantData> sceneConstantBuffer = { 0 };
 		D3D_DynamicConstantBufferTemplate<ObjectConstantData> objectConstantBuffer = { 1 };
+		D3D_DynamicConstantBufferTemplate<GlowConstantData> glowConstantBuffer = { 0 };
 
 		UniquePtr<D3D_InputLayout> inputLayout = nullptr;
 
@@ -142,8 +148,21 @@ namespace Graphics
 		std::vector<ObjRenderCommand> renderCommandList;
 		std::vector<SubMeshRenderCommand> transparentSubMeshCommands;
 
-		const PerspectiveCamera* perspectiveCamera = nullptr;
-		const vec4* lightDiffuse = nullptr;
-		const ParallelLight* parallelStageLight = nullptr;
+		struct ToneMapData
+		{
+			static constexpr int ToneMapLookupTextureSize = 512;
+
+			GlowParameter Glow;
+
+			std::array<vec2, ToneMapLookupTextureSize> TextureData;
+			UniquePtr<D3D_Texture1D> LookupTexture = nullptr;
+
+			bool NeedsUpdate(const SceneContext* sceneContext);
+			void GenerateLookupData();
+			void UpdateTexture();
+
+		} toneMapData;
+
+		SceneContext* sceneContext = nullptr;
 	};
 }

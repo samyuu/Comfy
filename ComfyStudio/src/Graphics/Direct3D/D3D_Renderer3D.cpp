@@ -1,11 +1,10 @@
 #include "D3D_Renderer3D.h"
-#include "ShaderBytecode/ShaderBytecode.h"
 
 namespace Graphics
 {
 	namespace
 	{
-		constexpr D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveTopolgy(PrimitiveType primitive)
+		constexpr D3D11_PRIMITIVE_TOPOLOGY GetD3DPrimitiveTopolgy(PrimitiveType primitive)
 		{
 			switch (primitive)
 			{
@@ -38,10 +37,97 @@ namespace Graphics
 				return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
 			}
 		}
+
+		constexpr D3D11_BLEND GetD3DBlend(BlendFactor materialBlendFactor)
+		{
+			switch (materialBlendFactor)
+			{
+			case BlendFactor_ZERO:
+				return D3D11_BLEND_ZERO;
+
+			case BlendFactor_ONE:
+				return D3D11_BLEND_ONE;
+
+			case BlendFactor_SRC_COLOR:
+				return D3D11_BLEND_SRC_COLOR;
+
+			case BlendFactor_ISRC_COLOR:
+				return D3D11_BLEND_INV_SRC_COLOR;
+
+			case BlendFactor_SRC_ALPHA:
+				return D3D11_BLEND_SRC_ALPHA;
+
+			case BlendFactor_ISRC_ALPHA:
+				return D3D11_BLEND_INV_SRC_ALPHA;
+
+			case BlendFactor_DST_ALPHA:
+				return D3D11_BLEND_DEST_ALPHA;
+
+			case BlendFactor_IDST_ALPHA:
+				return D3D11_BLEND_INV_DEST_ALPHA;
+
+			case BlendFactor_DST_COLOR:
+				return D3D11_BLEND_DEST_COLOR;
+
+			case BlendFactor_IDST_COLOR:
+				return D3D11_BLEND_INV_DEST_COLOR;
+
+			default:
+				assert(false);
+				return D3D11_BLEND_ZERO;
+			}
+		}
+
+		Txp* FindObjSetTxpFromID(ObjSet* objSet, uint32_t textureID)
+		{
+			if (textureID == -1)
+				return nullptr;
+
+			for (uint32_t i = 0; i < objSet->TextureIDs.size(); i++)
+			{
+				if (objSet->TextureIDs[i] == textureID)
+					return &objSet->TxpSet->Txps[i];
+			}
+		}
+
+		bool HasAlphaChannel(Txp* txp)
+		{
+			if (txp == nullptr)
+				return false;
+
+			switch (txp->GetFormat())
+			{
+			case TextureFormat::A8:
+			case TextureFormat::RGBA8:
+			case TextureFormat::RGB5_A1:
+			case TextureFormat::RGBA4:
+			case TextureFormat::DXT1a:
+			case TextureFormat::DXT5:
+				return true;
+
+			default:
+				return false;
+			}
+		}
+
+		bool IsTransparent(ObjSet* objSet, Mesh& mesh, Material& material)
+		{
+			if (material.BlendFlags.EnableBlend)
+				return true;
+
+			if (mesh.Flags.Transparent)
+				return true;
+
+#if 0
+			if (HasAlphaChannel(FindObjSetTxpFromID(objSet, material.Diffuse.TextureID)))
+				return true;
+#endif
+
+			return false;
+		}
 	}
 
 	D3D_Renderer3D::D3D_Renderer3D()
-		: testShader(Test_VS(), Test_PS()), constantShader(Constant_VS(), Constant_PS()), lambertShader(Lambert_VS(), Lambert_PS())
 	{
 		// TODO: Give names to all graphics resources
 		// D3D_SetObjectDebugName(..., "Renderer3D::...");
@@ -57,14 +143,12 @@ namespace Graphics
 			{ "COLOR",		1, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, VertexAttribute_Color1 },
 		};
 
-		inputLayout = MakeUnique<D3D_InputLayout>(elements, std::size(elements), testShader.VS);
+		inputLayout = MakeUnique<D3D_InputLayout>(elements, std::size(elements), shaders.Test.VS);
 	}
 
-	void D3D_Renderer3D::Begin(const PerspectiveCamera& camera, const vec4& diffuse, const ParallelLight& stageLight)
+	void D3D_Renderer3D::Begin(SceneContext& scene)
 	{
-		perspectiveCamera = &camera;
-		lightDiffuse = &diffuse;
-		parallelStageLight = &stageLight;
+		sceneContext = &scene;
 	}
 
 	void D3D_Renderer3D::Draw(ObjSet* objSet, Obj* obj, vec3 position)
@@ -81,15 +165,25 @@ namespace Graphics
 	void D3D_Renderer3D::End()
 	{
 		InternalFlush();
-		perspectiveCamera = nullptr;
+		sceneContext = nullptr;
 	}
 
-	const PerspectiveCamera* D3D_Renderer3D::GetCamera() const
+	const SceneContext* D3D_Renderer3D::GetSceneContext() const
 	{
-		return perspectiveCamera;
+		return sceneContext;
 	}
 
 	void D3D_Renderer3D::InternalFlush()
+	{
+		InternalPrepareRenderCommands();
+		InternalRenderItems();
+		InternalRenderPostProcessing();
+
+		transparentSubMeshCommands.clear();
+		renderCommandList.clear();
+	}
+
+	void D3D_Renderer3D::InternalPrepareRenderCommands()
 	{
 		for (auto& command : renderCommandList)
 		{
@@ -97,40 +191,54 @@ namespace Graphics
 			{
 				for (auto& subMesh : mesh.SubMeshes)
 				{
-					if (command.Obj->Materials[subMesh.MaterialIndex].BlendFlags.EnableBlend)
+					auto& material = command.Obj->Materials[subMesh.MaterialIndex];
+
+					if (IsTransparent(command.ObjSet, mesh, material))
 					{
-						float cameraDistance = glm::distance(/*command.Position +*/ subMesh.BoundingSphere.Center, perspectiveCamera->Position);
+						float cameraDistance = glm::distance(command.Position + subMesh.BoundingSphere.Center, sceneContext->Camera.Position);
 						transparentSubMeshCommands.push_back({ &command, &mesh, &subMesh, cameraDistance });
 					}
 				}
 			}
 		}
 
-		if (DEBUG_AlphaSort)
-			std::sort(transparentSubMeshCommands.begin(), transparentSubMeshCommands.end(), [](SubMeshRenderCommand& a, SubMeshRenderCommand& b) { return a.CameraDistance > b.CameraDistance; });
-
-		InternalRenderItems();
-
-		transparentSubMeshCommands.clear();
-		renderCommandList.clear();
+		if (sceneContext->RenderParameters.AlphaSort)
+		{
+			std::sort(transparentSubMeshCommands.begin(), transparentSubMeshCommands.end(), [](SubMeshRenderCommand& a, SubMeshRenderCommand& b)
+			{
+				return a.CameraDistance > b.CameraDistance;
+			});
+		}
 	}
 
 	void D3D_Renderer3D::InternalRenderItems()
 	{
-		sceneConstantBuffer.Data.Scene.ViewProjection = glm::transpose(perspectiveCamera->GetProjectionMatrix() * perspectiveCamera->GetViewMatrix());
-		sceneConstantBuffer.Data.Scene.EyePosition = vec4(perspectiveCamera->Position, 0.0f);
-		sceneConstantBuffer.Data.LightDiffuse = *lightDiffuse;
-		sceneConstantBuffer.Data.StageLight = *parallelStageLight;
-		sceneConstantBuffer.Data.StageLight.Direction = glm::normalize(parallelStageLight->Position);
+		sceneConstantBuffer.Data.Scene.ViewProjection = glm::transpose(sceneContext->Camera.GetProjectionMatrix() * sceneContext->Camera.GetViewMatrix());
+		sceneConstantBuffer.Data.Scene.EyePosition = vec4(sceneContext->Camera.Position, 0.0f);
+		sceneConstantBuffer.Data.LightColor = vec4(sceneContext->Light.LightColor, 1.0f);
+		sceneConstantBuffer.Data.StageLight.Ambient = vec4(sceneContext->Light.Stage.Ambient, 1.0f);
+		sceneConstantBuffer.Data.StageLight.Diffuse = vec4(sceneContext->Light.Stage.Diffuse, 1.0f);
+		sceneConstantBuffer.Data.StageLight.Specular = vec4(sceneContext->Light.Stage.Specular, 1.0f);
+		sceneConstantBuffer.Data.StageLight.Direction = vec4(glm::normalize(sceneContext->Light.Stage.Position), 1.0f);
 		sceneConstantBuffer.UploadData();
 
 		sceneConstantBuffer.BindShaders();
 		objectConstantBuffer.BindShaders();
 
-		(DEBUG_RenderWireframe ? wireframeRasterizerState : solidBackfaceCullingRasterizerState).Bind();
+		if (sceneContext->RenderParameters.Wireframe)
+			wireframeRasterizerState.Bind();
+
 		inputLayout->Bind();
 
-		if (DEBUG_RenderOpaque)
+		sceneContext->RenderTarget.Bind();
+		D3D.SetViewport(sceneContext->RenderTarget.GetSize());
+
+		if (sceneContext->RenderParameters.Clear)
+			sceneContext->RenderTarget.Clear(sceneContext->RenderParameters.ClearColor);
+		else
+			sceneContext->RenderTarget.GetDepthBuffer()->Clear();
+
+		if (sceneContext->RenderParameters.RenderOpaque)
 		{
 			D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
@@ -138,7 +246,7 @@ namespace Graphics
 				InternalRenderOpaqueObjCommand(command);
 		}
 
-		if (DEBUG_RenderTransparent)
+		if (sceneContext->RenderParameters.RenderTransparent)
 		{
 			transparencyPassDepthStencilState.Bind();
 
@@ -147,6 +255,8 @@ namespace Graphics
 
 			transparencyPassDepthStencilState.UnBind();
 		}
+
+		sceneContext->RenderTarget.UnBind();
 	}
 
 	void D3D_Renderer3D::InternalRenderOpaqueObjCommand(ObjRenderCommand& command)
@@ -158,11 +268,11 @@ namespace Graphics
 			for (auto& subMesh : mesh.SubMeshes)
 			{
 				auto& material = command.Obj->Materials[subMesh.MaterialIndex];
-				if (material.BlendFlags.EnableBlend)
+				if (IsTransparent(command.ObjSet, mesh, material))
 					continue;
 
 				UpdateSubMeshShaderState(subMesh, material, command.ObjSet);
-				UpdateObjectConstantBuffer(mesh, material, command.Transform);
+				UpdateObjectConstantBuffer(command, mesh, material, command.Transform);
 				SubmitSubMeshDrawCall(subMesh);
 			}
 		}
@@ -179,9 +289,46 @@ namespace Graphics
 		auto blendState = CreateMaterialBlendState(material);
 		blendState.Bind();
 
-		UpdateObjectConstantBuffer(mesh, material, command.ObjCommand->Transform);
+		UpdateObjectConstantBuffer(*command.ObjCommand, mesh, material, command.ObjCommand->Transform);
 		UpdateSubMeshShaderState(subMesh, material, command.ObjCommand->ObjSet);
 		SubmitSubMeshDrawCall(subMesh);
+	}
+
+	void D3D_Renderer3D::InternalRenderPostProcessing()
+	{
+		if (toneMapData.NeedsUpdate(sceneContext))
+		{
+			toneMapData.Glow = sceneContext->Glow;
+			toneMapData.GenerateLookupData();
+			toneMapData.UpdateTexture();
+		}
+
+		glowConstantBuffer.Data.Exposure = sceneContext->Glow.Exposure;
+		glowConstantBuffer.Data.Gamma = sceneContext->Glow.Gamma;
+		glowConstantBuffer.Data.SaturatePower = sceneContext->Glow.SaturatePower;
+		glowConstantBuffer.Data.SaturateCoefficient = sceneContext->Glow.SaturateCoefficient;
+		glowConstantBuffer.UploadData();
+		glowConstantBuffer.BindVertexShader();
+
+		solidNoCullingRasterizerState.Bind();
+		D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+
+		sceneContext->OutputRenderTarget->Bind();
+		D3D.SetViewport(sceneContext->OutputRenderTarget->GetSize());
+
+		D3D_TextureSampler sampler = { D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_MIRROR };
+		sampler.Bind(0);
+
+		shaders.ToneMap.Bind();
+
+		std::array renderTargetResourceViews = { sceneContext->RenderTarget.GetResourceView(), toneMapData.LookupTexture->GetResourceView() };
+		D3D.Context->PSSetShaderResources(0, static_cast<UINT>(renderTargetResourceViews.size()), renderTargetResourceViews.data());
+
+		constexpr UINT rectangleVertexCount = 6;
+		D3D.Context->Draw(rectangleVertexCount, 0);
+
+		renderTargetResourceViews = { nullptr, nullptr };
+		D3D.Context->PSSetShaderResources(0, static_cast<UINT>(renderTargetResourceViews.size()), renderTargetResourceViews.data());
 	}
 
 	void D3D_Renderer3D::BindMeshVertexBuffers(Mesh& mesh)
@@ -211,7 +358,7 @@ namespace Graphics
 		D3D.Context->IASetVertexBuffers(0, VertexAttribute_Count, buffers.data(), strides.data(), offsets.data());
 	}
 
-	void D3D_Renderer3D::UpdateObjectConstantBuffer(Mesh& mesh, Material& material, const mat4& model)
+	void D3D_Renderer3D::UpdateObjectConstantBuffer(ObjRenderCommand& command, Mesh& mesh, Material& material, const mat4& model)
 	{
 		objectConstantBuffer.Data.Material.DiffuseColor = material.DiffuseColor;
 		objectConstantBuffer.Data.Material.Transparency = material.Transparency;
@@ -225,7 +372,18 @@ namespace Graphics
 		objectConstantBuffer.Data.Material.DiffuseTextureTransform = glm::transpose(material.Diffuse.TextureCoordinateMatrix);
 		objectConstantBuffer.Data.Material.AmbientTextureTransform = glm::transpose(material.Ambient.TextureCoordinateMatrix);
 
-		objectConstantBuffer.Data.Model = glm::transpose(model);
+		if (mesh.Flags.FaceCamera)
+		{
+			const float cameraAngle = glm::atan(command.Position.x - sceneContext->Camera.Position.x, command.Position.z - sceneContext->Camera.Position.z);
+			const mat4 billboardModel = glm::rotate(glm::translate(glm::mat4(1.0f), command.Position), cameraAngle - glm::pi<float>(), vec3(0.0f, 1.0f, 0.0f));
+
+			objectConstantBuffer.Data.Model = glm::transpose(billboardModel);
+		}
+		else
+		{
+			objectConstantBuffer.Data.Model = glm::transpose(model);
+		}
+
 		objectConstantBuffer.Data.ShaderFlags = 0;
 
 		if (mesh.AttributeFlags & VertexAttributeFlags_Color0)
@@ -237,50 +395,34 @@ namespace Graphics
 		if (material.Flags.UseAmbientTexture || material.Ambient.TextureID != -1)
 			objectConstantBuffer.Data.ShaderFlags |= ShaderFlags_AmbientTexture;
 
-		// TODO: Is this correct (?)
 		if (material.BlendFlags.EnableAlphaTest)
 			objectConstantBuffer.Data.ShaderFlags |= ShaderFlags_AlphaTest;
+
+		if (material.Flags.UseCubeMapReflection || material.Reflection.TextureID != -1)
+			objectConstantBuffer.Data.ShaderFlags |= ShaderFlags_CubeMapReflection;
 
 		objectConstantBuffer.UploadData();
 	}
 
 	D3D_BlendState D3D_Renderer3D::CreateMaterialBlendState(Material& material)
 	{
-		auto getD3DBlend = [](BlendFactor materialBlendFactor)
-		{
-			switch (materialBlendFactor)
-			{
-			case BlendFactor_ZERO: return D3D11_BLEND_ZERO;
-			case BlendFactor_ONE: return D3D11_BLEND_ONE;
-			case BlendFactor_SRC_COLOR: return D3D11_BLEND_SRC_COLOR;
-			case BlendFactor_ISRC_COLOR: return D3D11_BLEND_INV_SRC_COLOR;
-			case BlendFactor_SRC_ALPHA:	return D3D11_BLEND_SRC_ALPHA;
-			case BlendFactor_ISRC_ALPHA: return D3D11_BLEND_INV_SRC_ALPHA;
-			case BlendFactor_DST_ALPHA: return D3D11_BLEND_DEST_ALPHA;
-			case BlendFactor_IDST_ALPHA: return D3D11_BLEND_INV_DEST_ALPHA;
-			case BlendFactor_DST_COLOR: return D3D11_BLEND_DEST_COLOR;
-			case BlendFactor_IDST_COLOR: return D3D11_BLEND_INV_DEST_COLOR;
-			default: return D3D11_BLEND_ZERO;
-			}
-		};
-
-		return { getD3DBlend(material.BlendFlags.SrcBlendFactor), getD3DBlend(material.BlendFlags.DstBlendFactor), D3D11_BLEND_INV_DEST_ALPHA, D3D11_BLEND_ONE };
+		return { GetD3DBlend(material.BlendFlags.SrcBlendFactor), GetD3DBlend(material.BlendFlags.DstBlendFactor), D3D11_BLEND_INV_DEST_ALPHA, D3D11_BLEND_ONE };
 	}
 
 	D3D_ShaderPair& D3D_Renderer3D::GetMaterialShader(Material& material)
 	{
 		if (strcmp(material.Shader, "BLINN") == 0)
 		{
-			if (material.ShaderFlags.LightingModel_Lambert)
-				return lambertShader;
-			else if (material.ShaderFlags.LightingModel_Phong)
-				return lambertShader /*blinnPerVertex*/;
+			if (material.ShaderFlags.LightingModel_Phong)
+				return shaders.BlinnPerVertex;
+			else if (material.ShaderFlags.LightingModel_Lambert)
+				return shaders.Lambert;
 			else
-				return constantShader;
+				return shaders.Constant;
 		}
 		else
 		{
-			return testShader;
+			return shaders.Test;
 		}
 	}
 
@@ -291,58 +433,96 @@ namespace Graphics
 
 		auto bindMaterialTexture = [](ObjSet* objSet, MaterialTexture& materialTexture, int slot)
 		{
-			if (materialTexture.TextureID == -1)
+			Txp* txp = FindObjSetTxpFromID(objSet, materialTexture.TextureID);
+
+			if (txp == nullptr || (txp->Texture2D == nullptr && txp->CubeMap == nullptr))
 			{
 				ID3D11ShaderResourceView* resourceView = nullptr;
 				D3D.Context->PSSetShaderResources(slot, 1, &resourceView);
 				return;
 			}
 
-			for (uint32_t i = 0; i < objSet->TextureIDs.size(); i++)
+			if (txp->Texture2D != nullptr)
+				txp->Texture2D->Bind(slot);
+			else if (txp->CubeMap != nullptr)
+				txp->CubeMap->Bind(slot);
+
+			const auto flags = materialTexture.Flags;
+			D3D_TextureSampler diffuseSampler =
 			{
-				if (objSet->TextureIDs[i] == materialTexture.TextureID)
-				{
-					if (objSet->TxpSet->Txps[i].Texture2D != nullptr)
-					{
-						objSet->TxpSet->Txps[i].Texture2D->Bind(slot);
-					}
-					else if (objSet->TxpSet->Txps[i].CubeMap != nullptr)
-					{
-						objSet->TxpSet->Txps[i].CubeMap->Bind(slot);
-					}
-					else
-					{
-						ID3D11ShaderResourceView* resourceView = nullptr;
-						D3D.Context->PSSetShaderResources(slot, 1, &resourceView);
-					}
-
-					const auto flags = materialTexture.Flags;
-					D3D_TextureSampler diffuseSampler =
-					{
-						D3D11_FILTER_MIN_MAG_MIP_LINEAR,
-						flags.TextureAddressMode_U_Mirror ? D3D11_TEXTURE_ADDRESS_MIRROR : flags.TextureAddressMode_U_Repeat ? D3D11_TEXTURE_ADDRESS_WRAP : D3D11_TEXTURE_ADDRESS_CLAMP,
-						flags.TextureAddressMode_V_Mirror ? D3D11_TEXTURE_ADDRESS_MIRROR : flags.TextureAddressMode_V_Repeat ? D3D11_TEXTURE_ADDRESS_WRAP : D3D11_TEXTURE_ADDRESS_CLAMP,
-					};
-					diffuseSampler.Bind(slot);
-
-					return;
-				}
-			}
+				D3D11_FILTER_MIN_MAG_MIP_LINEAR,
+				flags.TextureAddressMode_U_Mirror ? D3D11_TEXTURE_ADDRESS_MIRROR : flags.TextureAddressMode_U_Repeat ? D3D11_TEXTURE_ADDRESS_WRAP : D3D11_TEXTURE_ADDRESS_CLAMP,
+				flags.TextureAddressMode_V_Mirror ? D3D11_TEXTURE_ADDRESS_MIRROR : flags.TextureAddressMode_V_Repeat ? D3D11_TEXTURE_ADDRESS_WRAP : D3D11_TEXTURE_ADDRESS_CLAMP,
+				// TODO: This might need to be scaled first
+				// static_cast<float>(materialTexture.Flags.MipMapBias),
+			};
+			diffuseSampler.Bind(slot);
 		};
 
 		bindMaterialTexture(objSet, material.Diffuse, 0);
 		bindMaterialTexture(objSet, material.Ambient, 1);
 		bindMaterialTexture(objSet, material.Reflection, 2);
 
-		if (!DEBUG_RenderWireframe)
+		if (!sceneContext->RenderParameters.Wireframe)
+		{
 			((material.BlendFlags.DoubleSidedness != DoubleSidedness_Off) ? solidNoCullingRasterizerState : solidBackfaceCullingRasterizerState).Bind();
+		}
 	}
 
 	void D3D_Renderer3D::SubmitSubMeshDrawCall(SubMesh& subMesh)
 	{
 		subMesh.GraphicsIndexBuffer->Bind();
 
-		D3D.Context->IASetPrimitiveTopology(GetPrimitiveTopolgy(subMesh.Primitive));
+		D3D.Context->IASetPrimitiveTopology(GetD3DPrimitiveTopolgy(subMesh.Primitive));
 		D3D.Context->DrawIndexed(static_cast<UINT>(subMesh.Indices.size()), 0, 0);
+	}
+
+	bool D3D_Renderer3D::ToneMapData::NeedsUpdate(const SceneContext* sceneContext)
+	{
+		if (LookupTexture == nullptr)
+			return true;
+
+		if (Glow.Gamma != sceneContext->Glow.Gamma)
+			return true;
+
+		if (Glow.SaturatePower != sceneContext->Glow.SaturatePower)
+			return true;
+
+		if (Glow.SaturateCoefficient != sceneContext->Glow.SaturateCoefficient)
+			return true;
+
+		return false;
+	}
+
+	void D3D_Renderer3D::ToneMapData::GenerateLookupData()
+	{
+		const float gammaPower = 1.0f * Glow.Gamma * 1.5f;
+		const int saturatePowerCount = Glow.SaturatePower * 4;
+
+		TextureData[0] = vec2(0.0f, 0.0f);
+		for (int i = 1; i < TextureData.size(); i++)
+		{
+			const float step = (static_cast<float>(i) * 16.0f) * (1.0f / 512.0f);
+			const float gamma = glm::pow((1.0f - glm::exp(-step)), gammaPower);
+
+			float saturation = (gamma * 2.0f) - 1.0f;
+			for (int j = 0; j < saturatePowerCount; j++)
+				saturation *= saturation;
+
+			TextureData[i].x = gamma;
+			TextureData[i].y = ((gamma * Glow.SaturateCoefficient) / step) * (1.0f - saturation);
+		}
+	}
+
+	void D3D_Renderer3D::ToneMapData::UpdateTexture()
+	{
+		if (LookupTexture == nullptr)
+		{
+			LookupTexture = MakeUnique<D3D_Texture1D>(ToneMapLookupTextureSize, TextureData.data(), DXGI_FORMAT_R32G32_FLOAT);
+		}
+		else
+		{
+			LookupTexture->UploadData(sizeof(toneMapData.TextureData), TextureData.data());
+		}
 	}
 }

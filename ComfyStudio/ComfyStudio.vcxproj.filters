@@ -857,5 +857,9 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Lambert_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Lambert_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Common.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\BlinnPerVert_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\BlinnPerVert_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ToneMap_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ToneMap_PS.hlsl" />
   </ItemGroup>
 </Project>

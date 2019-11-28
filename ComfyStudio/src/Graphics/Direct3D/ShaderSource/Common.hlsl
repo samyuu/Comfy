@@ -26,4 +26,14 @@ float4 SampleAmbientTexture(Texture2D inputTexture, SamplerState inputSampler, c
     return ambientTextureColor;
 }
 
+float2 ScreenTexCoordFromVertexID(const uint vertexID)
+{
+    return float2(vertexID % 2, vertexID % 4 / 2);
+}
+
+float4 ScreenPositionFromTexCoord(const float2 texCoord)
+{
+    return float4((texCoord.x - 0.5) * 2.0, -(texCoord.y - 0.5) * 2.0, 0.0, 1.0);
+}
+
 #endif /* COMMON_HLSL */
