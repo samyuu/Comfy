@@ -1,5 +1,6 @@
 #include "D3D_Texture.h"
 #include "Graphics/TxpSet.h"
+#include "Graphics/Auth3D/LightDataIbl.h"
 
 namespace Graphics
 {
@@ -32,6 +33,19 @@ namespace Graphics
 			case TextureFormat::L8:			return DXGI_FORMAT_A8_UNORM;
 			case TextureFormat::L8A8:		return DXGI_FORMAT_A8P8;
 			case TextureFormat::Unknown:	return DXGI_FORMAT_UNKNOWN;
+			}
+
+			assert(false);
+			return DXGI_FORMAT_UNKNOWN;
+		}
+
+		constexpr DXGI_FORMAT GetDxgiFormat(LightMapFormat format)
+		{
+			switch (format)
+			{
+			case LightMapFormat::RGBA8_CUBE:	return DXGI_FORMAT_R8G8B8A8_UNORM;
+			case LightMapFormat::RGBA16F_CUBE:	return DXGI_FORMAT_R16G16B16A16_FLOAT;
+			case LightMapFormat::RGBA32F_CUBE:	return DXGI_FORMAT_R32G32B32A32_FLOAT;
 			}
 
 			assert(false);
@@ -232,33 +246,37 @@ namespace Graphics
 			}
 		}
 
-		UINT PadTextureDimension(const UINT dimension, const UINT alignment)
+		constexpr UINT PadTextureDimension(const UINT dimension, const UINT alignment)
 		{
 			const UINT padding = ((dimension + (alignment - 1)) & ~(alignment - 1)) - dimension;
 			return dimension + padding;
 		}
 
-		void PadTextureDimensions(UINT& width, UINT& height, const UINT alignment)
+		constexpr void PadTextureDimensions(UINT& width, UINT& height, const UINT alignment)
 		{
 			width = PadTextureDimension(width, alignment);
 			height = PadTextureDimension(height, alignment);
 		}
 
-		UINT GetMemoryPitch(const MipMap& mipMap, bool usesBlockCompression, UINT bitsPerPixel)
+		constexpr UINT GetMemoryPitch(const ivec2& size, UINT bitsPerPixel, bool usesBlockCompression = false)
 		{
-			// TODO: Not sure if this is entirely accurate or reliable
-			return (usesBlockCompression) ?
-				((PadTextureDimension(mipMap.Size.x, BlockCompressionAlignment) * bitsPerPixel) / 2) :
-				((mipMap.Size.x * bitsPerPixel + 7) / 8);
+			if (usesBlockCompression)
+			{
+				// TODO: Not sure if this is entirely accurate or reliable
+				return ((PadTextureDimension(size.x, BlockCompressionAlignment) * bitsPerPixel) / 2);
+			}
+			else
+			{
+				return ((size.x * bitsPerPixel + 7) / 8);
+			}
 		}
 
 		D3D11_SUBRESOURCE_DATA CreateMipMapSubresourceData(const MipMap& mipMap, bool usesBlockCompression, UINT bitsPerPixel)
 		{
 			D3D11_SUBRESOURCE_DATA resource;
 			resource.pSysMem = mipMap.DataPointer;
-			resource.SysMemPitch = GetMemoryPitch(mipMap, usesBlockCompression, bitsPerPixel);
+			resource.SysMemPitch = GetMemoryPitch(mipMap.Size, bitsPerPixel, usesBlockCompression);
 			resource.SysMemSlicePitch = 0;
-
 			return resource;
 		}
 
@@ -282,6 +300,16 @@ namespace Graphics
 
 			return resourceViewDescription;
 		}
+
+		constexpr std::array<D3D11_TEXTURECUBE_FACE, CubeFaceCount> CubeFaceIndices =
+		{
+			D3D11_TEXTURECUBE_FACE_POSITIVE_X,
+			D3D11_TEXTURECUBE_FACE_NEGATIVE_X,
+			D3D11_TEXTURECUBE_FACE_POSITIVE_Y,
+			D3D11_TEXTURECUBE_FACE_NEGATIVE_Y,
+			D3D11_TEXTURECUBE_FACE_NEGATIVE_Z,
+			D3D11_TEXTURECUBE_FACE_POSITIVE_Z,
+		};
 	}
 
 	D3D_TextureResource::D3D_TextureResource()
@@ -422,9 +450,7 @@ namespace Graphics
 		textureDescription.CPUAccessFlags = 0;
 		textureDescription.MiscFlags = 0;
 
-		constexpr UINT rgbaBytesPerPixel = 4;
-
-		D3D11_SUBRESOURCE_DATA initialResourceData = { rgbaBuffer, textureDescription.Width * rgbaBytesPerPixel, 0 };
+		D3D11_SUBRESOURCE_DATA initialResourceData = { rgbaBuffer, GetMemoryPitch(size, GetBitsPerPixel(textureDescription.Format)), 0 };
 		D3D.Device->CreateTexture2D(&textureDescription, &initialResourceData, &texture);
 
 		resourceViewDescription = CreateTextureResourceViewDescription(textureDescription);
@@ -467,7 +493,38 @@ namespace Graphics
 		for (uint32_t faceIndex = 0; faceIndex < CubeFaceCount; faceIndex++)
 		{
 			for (uint32_t mipIndex = 0; mipIndex < textureDescription.MipLevels; mipIndex++)
-				initialResourceData[faceIndex * textureDescription.MipLevels + mipIndex] = CreateMipMapSubresourceData(txp.MipMapsArray[faceIndex][mipIndex], usesBlockCompression, bitsPerPixel);
+				initialResourceData[CubeFaceIndices[faceIndex] * textureDescription.MipLevels + mipIndex] = CreateMipMapSubresourceData(txp.MipMapsArray[faceIndex][mipIndex], usesBlockCompression, bitsPerPixel);
+		}
+
+		D3D.Device->CreateTexture2D(&textureDescription, initialResourceData.data(), &texture);
+
+		resourceViewDescription = CreateTextureResourceViewDescription(textureDescription);
+		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
+	}
+
+	D3D_CubeMap::D3D_CubeMap(const LightMap& lightMap)
+	{
+		textureFormat = TextureFormat::Unknown;
+		textureDescription.Width = lightMap.Size.x;
+		textureDescription.Height = lightMap.Size.y;
+		textureDescription.MipLevels = 1;
+		textureDescription.ArraySize = CubeFaceCount;
+		textureDescription.Format = GetDxgiFormat(lightMap.Format);
+		textureDescription.SampleDesc.Count = 1;
+		textureDescription.SampleDesc.Quality = 0;
+		textureDescription.Usage = D3D11_USAGE_IMMUTABLE;
+		textureDescription.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		textureDescription.CPUAccessFlags = 0;
+		textureDescription.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+		const UINT bitsPerPixel = GetBitsPerPixel(textureDescription.Format);
+
+		std::array<D3D11_SUBRESOURCE_DATA, CubeFaceCount * MaxMipMaps> initialResourceData;
+
+		for (uint32_t faceIndex = 0; faceIndex < CubeFaceCount; faceIndex++)
+		{
+			for (uint32_t mipIndex = 0; mipIndex < textureDescription.MipLevels; mipIndex++)
+				initialResourceData[CubeFaceIndices[faceIndex] * textureDescription.MipLevels + mipIndex] = { lightMap.DataPointers[faceIndex], GetMemoryPitch(lightMap.Size, bitsPerPixel), 0 };
 		}
 
 		D3D.Device->CreateTexture2D(&textureDescription, initialResourceData.data(), &texture);

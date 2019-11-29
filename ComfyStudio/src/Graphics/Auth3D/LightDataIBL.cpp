@@ -260,12 +260,27 @@ namespace Graphics
 
 	void LightDataIBL::UploadAll()
 	{
+		constexpr std::array<const char*, 8> lightTargetTypeNames = 
+		{
+			"Character",
+			"Stage",
+			"Sun",
+			"Reflect",
+			"Shadow",
+			"Character Color",
+			"Character F",
+			"Projection",
+		};
+
 		for (size_t i = 0; i <= LightTargetType::Projection; i++)
 		{
 			auto& lightMap = GetLightData(this, static_cast<LightTargetType>(i))->LightMap;
 
 			if (lightMap.Size.x >= 1 && lightMap.Size.y >= 1)
+			{
 				lightMap.CubeMap = MakeUnique<D3D_CubeMap>(lightMap);
+				D3D_SetObjectDebugName(lightMap.CubeMap->GetTexture(), "LightMap IBL: %s", lightTargetTypeNames[i]);
+			}
 		}
 	}
 }

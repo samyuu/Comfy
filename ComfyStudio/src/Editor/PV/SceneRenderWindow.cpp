@@ -57,11 +57,8 @@ namespace Editor
 			std::vector<uint8_t> fileContent;
 			FileSystem::FileReader::ReadEntireFile({ iblFilePath }, &fileContent);
 
-			static LightDataIBL ibl;
-			ibl.Parse(fileContent.data());
-
-			context.Light.IBL.Stage.LightColor = ibl.Stage.LightColor;
-			context.Light.IBL.Stage.IrradianceRGB = ibl.Stage.IrradianceRGB;
+			context.Light.IBL.Parse(fileContent.data());
+			context.Light.IBL.UploadAll();
 		}
 	}
 

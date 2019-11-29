@@ -78,6 +78,7 @@ namespace Graphics
 	{
 	public:
 		D3D_CubeMap(const struct Txp& txp);
+		D3D_CubeMap(const struct LightMap& lightMap);
 		D3D_CubeMap(const D3D_CubeMap&) = delete;
 		~D3D_CubeMap() = default;
 
