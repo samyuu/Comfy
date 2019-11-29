@@ -1,5 +1,6 @@
 #pragma once
 #include "Types.h"
+#include "LightDataIBL.h"
 
 namespace Graphics
 {
@@ -35,6 +36,18 @@ namespace Graphics
 		float AttenuationQuadratic;
 	};
 
+	enum LightTargetType
+	{
+		Character = 0,
+		Stage = 1,
+		Sun = 2,
+		Reflect = 3,
+		Shadow = 4,
+		CharacterColor = 5,
+		CharacterF = 6,
+		Projection = 7,
+	};
+
 	struct LightParameter
 	{
 		Light Character;
@@ -46,12 +59,6 @@ namespace Graphics
 		Light CharacterF;
 		Light Projection;
 
-		// TODO: Stage IBL
-		vec3 LightColor;
-
-		struct IrradianceRGB
-		{
-			mat4 Red, Green, Blue;
-		} Irradiance;
+		LightDataIBL IBL;
 	};
 }

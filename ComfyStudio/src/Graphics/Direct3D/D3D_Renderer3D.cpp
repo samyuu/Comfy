@@ -190,12 +190,12 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalRenderItems()
 	{
-		sceneConstantBuffer.Data.IrradianceRed = glm::transpose(sceneContext->Light.Irradiance.Red);
-		sceneConstantBuffer.Data.IrradianceGreen = glm::transpose(sceneContext->Light.Irradiance.Green);
-		sceneConstantBuffer.Data.IrradianceBlue = glm::transpose(sceneContext->Light.Irradiance.Blue);
+		sceneConstantBuffer.Data.IrradianceRed = glm::transpose(sceneContext->Light.IBL.Stage.IrradianceRGB[0]);
+		sceneConstantBuffer.Data.IrradianceGreen = glm::transpose(sceneContext->Light.IBL.Stage.IrradianceRGB[1]);
+		sceneConstantBuffer.Data.IrradianceBlue = glm::transpose(sceneContext->Light.IBL.Stage.IrradianceRGB[2]);
 		sceneConstantBuffer.Data.Scene.ViewProjection = glm::transpose(sceneContext->Camera.GetProjectionMatrix() * sceneContext->Camera.GetViewMatrix());
 		sceneConstantBuffer.Data.Scene.EyePosition = vec4(sceneContext->Camera.Position, 0.0f);
-		sceneConstantBuffer.Data.LightColor = vec4(sceneContext->Light.LightColor, 1.0f);
+		sceneConstantBuffer.Data.LightColor = vec4(sceneContext->Light.IBL.Stage.LightColor, 1.0f);
 		sceneConstantBuffer.Data.StageLight.Ambient = vec4(sceneContext->Light.Stage.Ambient, 1.0f);
 		sceneConstantBuffer.Data.StageLight.Diffuse = vec4(sceneContext->Light.Stage.Diffuse, 1.0f);
 		sceneConstantBuffer.Data.StageLight.Specular = vec4(sceneContext->Light.Stage.Specular, 1.0f);

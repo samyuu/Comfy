@@ -23,10 +23,10 @@ namespace Editor
 		context.Light.Stage.Diffuse = vec3(1.0f, 1.0f, 1.0f);
 		context.Light.Stage.Specular = vec3(1.0f, 1.0f, 1.0f);
 		context.Light.Stage.Position = vec3(-0.595944f, 0.391381f, 0.701193f);
-		context.Light.LightColor = vec3(1.183988f, 0.873082f, 0.227190f);
-	
-		constexpr mat4 stageTestIrradiance[3] =
+
+		constexpr std::array<mat4, 3> stageTestIrradiance =
 		{
+			mat4
 			{
 				+0.019668, +0.025554, +0.052443, +0.009977,
 				+0.025554, -0.019668, -0.011968, +0.015655,
@@ -47,9 +47,22 @@ namespace Editor
 			},
 		};
 
-		context.Light.Irradiance.Red = stageTestIrradiance[0];
-		context.Light.Irradiance.Green = stageTestIrradiance[1];
-		context.Light.Irradiance.Blue = stageTestIrradiance[2];
+		context.Light.IBL.Stage.LightColor = vec3(1.183988f, 0.873082f, 0.227190f);
+		context.Light.IBL.Stage.IrradianceRGB = stageTestIrradiance;
+
+		constexpr const char* iblFilePath = "dev_rom/ibl/tst007.ibl";
+
+		if (FileSystem::FileExists(iblFilePath))
+		{
+			std::vector<uint8_t> fileContent;
+			FileSystem::FileReader::ReadEntireFile({ iblFilePath }, &fileContent);
+
+			static LightDataIBL ibl;
+			ibl.Parse(fileContent.data());
+
+			context.Light.IBL.Stage.LightColor = ibl.Stage.LightColor;
+			context.Light.IBL.Stage.IrradianceRGB = ibl.Stage.IrradianceRGB;
+		}
 	}
 
 	SceneRenderWindow::~SceneRenderWindow()
@@ -169,7 +182,7 @@ namespace Editor
 		if (Gui::CollapsingHeader("Lighting", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			Gui::PushID(&context.Light);
-			Gui::ColorEdit3("Light Color", glm::value_ptr(context.Light.LightColor), ImGuiColorEditFlags_Float);
+			Gui::ColorEdit3("Light Color", glm::value_ptr(context.Light.IBL.Stage.LightColor), ImGuiColorEditFlags_Float);
 			Gui::ColorEdit3("Ambient", glm::value_ptr(context.Light.Stage.Ambient), ImGuiColorEditFlags_Float);
 			Gui::ColorEdit3("Diffuse", glm::value_ptr(context.Light.Stage.Diffuse), ImGuiColorEditFlags_Float);
 			Gui::ColorEdit3("Specular", glm::value_ptr(context.Light.Stage.Specular), ImGuiColorEditFlags_Float);
