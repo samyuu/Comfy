@@ -301,7 +301,7 @@ namespace Graphics
 			return resourceViewDescription;
 		}
 
-		constexpr std::array<D3D11_TEXTURECUBE_FACE, CubeFaceCount> CubeFaceIndices =
+		constexpr std::array<D3D11_TEXTURECUBE_FACE, CubeFaceCount> TxpCubeFaceIndices =
 		{
 			D3D11_TEXTURECUBE_FACE_POSITIVE_X,
 			D3D11_TEXTURECUBE_FACE_NEGATIVE_X,
@@ -309,6 +309,16 @@ namespace Graphics
 			D3D11_TEXTURECUBE_FACE_NEGATIVE_Y,
 			D3D11_TEXTURECUBE_FACE_NEGATIVE_Z,
 			D3D11_TEXTURECUBE_FACE_POSITIVE_Z,
+		};
+
+		constexpr std::array<D3D11_TEXTURECUBE_FACE, CubeFaceCount> LightMapCubeFaceIndices =
+		{
+			D3D11_TEXTURECUBE_FACE_POSITIVE_X,
+			D3D11_TEXTURECUBE_FACE_NEGATIVE_X,
+			D3D11_TEXTURECUBE_FACE_POSITIVE_Y,
+			D3D11_TEXTURECUBE_FACE_NEGATIVE_Y,
+			D3D11_TEXTURECUBE_FACE_POSITIVE_Z,
+			D3D11_TEXTURECUBE_FACE_NEGATIVE_Z,
 		};
 	}
 
@@ -493,7 +503,7 @@ namespace Graphics
 		for (uint32_t faceIndex = 0; faceIndex < CubeFaceCount; faceIndex++)
 		{
 			for (uint32_t mipIndex = 0; mipIndex < textureDescription.MipLevels; mipIndex++)
-				initialResourceData[CubeFaceIndices[faceIndex] * textureDescription.MipLevels + mipIndex] = CreateMipMapSubresourceData(txp.MipMapsArray[faceIndex][mipIndex], usesBlockCompression, bitsPerPixel);
+				initialResourceData[TxpCubeFaceIndices[faceIndex] * textureDescription.MipLevels + mipIndex] = CreateMipMapSubresourceData(txp.MipMapsArray[faceIndex][mipIndex], usesBlockCompression, bitsPerPixel);
 		}
 
 		D3D.Device->CreateTexture2D(&textureDescription, initialResourceData.data(), &texture);
@@ -524,7 +534,7 @@ namespace Graphics
 		for (uint32_t faceIndex = 0; faceIndex < CubeFaceCount; faceIndex++)
 		{
 			for (uint32_t mipIndex = 0; mipIndex < textureDescription.MipLevels; mipIndex++)
-				initialResourceData[CubeFaceIndices[faceIndex] * textureDescription.MipLevels + mipIndex] = { lightMap.DataPointers[faceIndex], GetMemoryPitch(lightMap.Size, bitsPerPixel), 0 };
+				initialResourceData[LightMapCubeFaceIndices[faceIndex] * textureDescription.MipLevels + mipIndex] = { lightMap.DataPointers[faceIndex], GetMemoryPitch(lightMap.Size, bitsPerPixel), 0 };
 		}
 
 		D3D.Device->CreateTexture2D(&textureDescription, initialResourceData.data(), &texture);
