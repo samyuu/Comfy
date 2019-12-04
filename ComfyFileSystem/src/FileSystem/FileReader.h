@@ -36,8 +36,8 @@ namespace FileSystem
 		if (validHandle)
 		{
 			size_t fileSize = GetFileSize(fileHandle);
-			buffer->resize(fileSize);
-			ReadFile(fileHandle, buffer->data(), buffer->size());
+			buffer->resize((fileSize + sizeof(TData) - 1) / sizeof(TData));
+			ReadFile(fileHandle, buffer->data(), fileSize);
 			CloseFileHandle(fileHandle);
 		}
 
