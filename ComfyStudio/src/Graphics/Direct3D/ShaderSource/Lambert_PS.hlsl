@@ -10,7 +10,7 @@ Texture2D AmbientTexture : register(t1);
 
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {
-    float4 outputColor = float4(CB_Material.DiffuseColor, 1.0);
+    float4 outputColor = float4(CB_Material.Diffuse, 1.0);
     
     if (CB_ShaderFlags & ShaderFlags_DiffuseTexture)
         outputColor = DiffuseTexture.Sample(DiffuseSampler, input.TexCoord);

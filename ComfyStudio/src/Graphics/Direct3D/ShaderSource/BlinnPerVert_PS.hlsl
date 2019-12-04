@@ -4,11 +4,11 @@
 
 SamplerState DiffuseSampler : register(s0);
 SamplerState AmbientSampler : register(s1);
-SamplerState ReflectionSampler : register(s2);
+SamplerState ReflectionSampler : register(s5);
 
 Texture2D DiffuseTexture : register(t0);
 Texture2D AmbientTexture : register(t1);
-TextureCube ReflectionTexture : register(t2);
+TextureCube ReflectionCubeMap : register(t5);
 
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {

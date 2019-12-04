@@ -193,6 +193,7 @@ namespace Graphics
 		sceneConstantBuffer.Data.IrradianceRed = glm::transpose(sceneContext->Light.IBL.Stage.IrradianceRGB[0]);
 		sceneConstantBuffer.Data.IrradianceGreen = glm::transpose(sceneContext->Light.IBL.Stage.IrradianceRGB[1]);
 		sceneConstantBuffer.Data.IrradianceBlue = glm::transpose(sceneContext->Light.IBL.Stage.IrradianceRGB[2]);
+		sceneConstantBuffer.Data.Scene.View = glm::transpose(sceneContext->Camera.GetViewMatrix());
 		sceneConstantBuffer.Data.Scene.ViewProjection = glm::transpose(sceneContext->Camera.GetProjectionMatrix() * sceneContext->Camera.GetViewMatrix());
 		sceneConstantBuffer.Data.Scene.EyePosition = vec4(sceneContext->Camera.Position, 0.0f);
 		sceneConstantBuffer.Data.LightColor = vec4(sceneContext->Light.IBL.Stage.LightColor, 1.0f);
@@ -340,12 +341,12 @@ namespace Graphics
 
 	void D3D_Renderer3D::UpdateObjectConstantBuffer(ObjRenderCommand& command, Mesh& mesh, Material& material, const mat4& model)
 	{
-		objectConstantBuffer.Data.Material.DiffuseColor = material.DiffuseColor;
+		objectConstantBuffer.Data.Material.Diffuse = material.DiffuseColor;
 		objectConstantBuffer.Data.Material.Transparency = material.Transparency;
-		objectConstantBuffer.Data.Material.AmbientColor = material.AmbientColor;
-		objectConstantBuffer.Data.Material.SpecularColor = material.SpecularColor;
+		objectConstantBuffer.Data.Material.Ambient = material.AmbientColor;
+		objectConstantBuffer.Data.Material.Specular = material.SpecularColor;
 		objectConstantBuffer.Data.Material.Reflectivity = material.Reflectivity;
-		objectConstantBuffer.Data.Material.EmissionColor = material.EmissionColor;
+		objectConstantBuffer.Data.Material.Emission = material.EmissionColor;
 		objectConstantBuffer.Data.Material.Shininess = material.Shininess;
 		objectConstantBuffer.Data.Material.Intensity = material.Intensity;
 		objectConstantBuffer.Data.Material.BumpDepth = material.BumpDepth;
@@ -441,7 +442,8 @@ namespace Graphics
 
 		bindMaterialTexture(objSet, material.Diffuse, 0);
 		bindMaterialTexture(objSet, material.Ambient, 1);
-		bindMaterialTexture(objSet, material.Reflection, 2);
+
+		bindMaterialTexture(objSet, material.Reflection, 5);
 
 		if (!sceneContext->RenderParameters.Wireframe)
 		{

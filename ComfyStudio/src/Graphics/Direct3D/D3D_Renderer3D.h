@@ -32,6 +32,7 @@ namespace Graphics
 
 		struct SceneData
 		{
+			mat4 View;
 			mat4 ViewProjection;
 			vec4 EyePosition;
 		} Scene;
@@ -55,12 +56,12 @@ namespace Graphics
 		{
 			mat4 DiffuseTextureTransform;
 			mat4 AmbientTextureTransform;
-			vec3 DiffuseColor;
+			vec3 Diffuse;
 			float Transparency;
-			vec4 AmbientColor;
-			vec3 SpecularColor;
+			vec4 Ambient;
+			vec3 Specular;
 			float Reflectivity;
-			vec4 EmissionColor;
+			vec4 Emission;
 			float Shininess;
 			float Intensity;
 			float BumpDepth;

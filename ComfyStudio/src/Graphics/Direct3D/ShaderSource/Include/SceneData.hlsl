@@ -15,6 +15,7 @@ struct SceneData
     matrix IrradianceGreen;
     matrix IrradianceBlue;
     
+    matrix View;
     matrix ViewProjection;
     float4 EyePosition;
     
