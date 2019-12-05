@@ -5,7 +5,12 @@ struct VS_OUTPUT
     float2 Exposure : EXPOSURE;
 };
 
-SamplerState TextureSampler : register(s0);
+SamplerState TextureSampler
+{
+    Filter = MIN_MAG_MIP_LINEAR;
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+};
 
 Texture2D ScreenTexture : register(t0);
 Texture1D ToneMapLookupTexture : register(t1);

@@ -1,5 +1,6 @@
 #ifndef COMMON_HLSL
 #define COMMON_HLSL
+#include "SceneData.hlsl"
 
 static const float AlphaTestThreshold = 0.5;
 
@@ -24,6 +25,16 @@ float4 SampleAmbientTexture(Texture2D inputTexture, SamplerState inputSampler, c
         ambientTextureColor = 1.0 / (ambientTextureColor + 0.004);
     
     return ambientTextureColor;
+}
+
+float3 GetIrradience(const SceneData scene, const float4 normal)
+{
+    return float3(dot(mul(normal, scene.IrradianceRed), normal), dot(mul(normal, scene.IrradianceGreen), normal), dot(mul(normal, scene.IrradianceBlue), normal));
+}
+
+float3 GetDiffuseLight(const ParallelLight light, const float3 normal)
+{
+    return saturate(dot(normal, light.Direction.xyz));
 }
 
 float2 ScreenTexCoordFromVertexID(const uint vertexID)

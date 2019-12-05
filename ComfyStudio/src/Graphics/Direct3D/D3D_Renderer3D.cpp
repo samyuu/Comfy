@@ -120,7 +120,7 @@ namespace Graphics
 			{ "COLOR",		1, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, VertexAttribute_Color1 },
 		};
 
-		inputLayout = MakeUnique<D3D_InputLayout>(elements, std::size(elements), shaders.Test.VS);
+		genericInputLayout = MakeUnique<D3D_InputLayout>(elements, std::size(elements), shaders.Test.VS);
 	}
 
 	void D3D_Renderer3D::Begin(SceneContext& scene)
@@ -209,7 +209,7 @@ namespace Graphics
 		if (sceneContext->RenderParameters.Wireframe)
 			wireframeRasterizerState.Bind();
 
-		inputLayout->Bind();
+		genericInputLayout->Bind();
 
 		sceneContext->RenderTarget.Bind();
 		D3D.SetViewport(sceneContext->RenderTarget.GetSize());
@@ -277,19 +277,24 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalRenderPostProcessing()
 	{
-		if (toneMapData.NeedsUpdate(sceneContext))
+		if (toneMapData.NeedsUpdating(sceneContext))
 		{
 			toneMapData.Glow = sceneContext->Glow;
-			toneMapData.GenerateLookupData();
-			toneMapData.UpdateTexture();
+			toneMapData.Update();
 		}
 
-		glowConstantBuffer.Data.Exposure = sceneContext->Glow.Exposure;
-		glowConstantBuffer.Data.Gamma = sceneContext->Glow.Gamma;
-		glowConstantBuffer.Data.SaturatePower = sceneContext->Glow.SaturatePower;
-		glowConstantBuffer.Data.SaturateCoefficient = sceneContext->Glow.SaturateCoefficient;
-		glowConstantBuffer.UploadData();
-		glowConstantBuffer.BindVertexShader();
+		postProcessConstantBuffer.Data.Exposure = sceneContext->Glow.Exposure;
+		postProcessConstantBuffer.Data.Gamma = sceneContext->Glow.Gamma;
+		postProcessConstantBuffer.Data.SaturatePower = sceneContext->Glow.SaturatePower;
+		postProcessConstantBuffer.Data.SaturateCoefficient = sceneContext->Glow.SaturateCoefficient;
+		postProcessConstantBuffer.UploadData();
+		postProcessConstantBuffer.BindVertexShader();
+
+		postProcessInputLayout.Bind();
+
+		std::array<ID3D11Buffer*, VertexAttribute_Count> buffers = {};
+		std::array<UINT, VertexAttribute_Count> strides = {}, offsets = {};
+		D3D.Context->IASetVertexBuffers(0, VertexAttribute_Count, buffers.data(), strides.data(), offsets.data());
 
 		solidNoCullingRasterizerState.Bind();
 		D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
@@ -297,13 +302,13 @@ namespace Graphics
 		sceneContext->OutputRenderTarget->Bind();
 		D3D.SetViewport(sceneContext->OutputRenderTarget->GetSize());
 
-		D3D_TextureSampler sampler = { D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_MIRROR };
-		sampler.Bind(0);
-
-		shaders.ToneMap.Bind();
+		std::array<ID3D11SamplerState*, 1> samplers = { nullptr };
+		D3D.Context->PSSetSamplers(0, static_cast<UINT>(samplers.size()), samplers.data());
 
 		std::array renderTargetResourceViews = { sceneContext->RenderTarget.GetResourceView(), toneMapData.LookupTexture->GetResourceView() };
 		D3D.Context->PSSetShaderResources(0, static_cast<UINT>(renderTargetResourceViews.size()), renderTargetResourceViews.data());
+
+		shaders.ToneMap.Bind();
 
 		constexpr UINT rectangleVertexCount = 6;
 		D3D.Context->Draw(rectangleVertexCount, 0);
@@ -392,14 +397,20 @@ namespace Graphics
 
 	D3D_ShaderPair& D3D_Renderer3D::GetMaterialShader(Material& material)
 	{
-		if (strcmp(material.Shader, "BLINN") == 0)
+		if (std::strcmp(material.Shader, "BLINN") == 0)
 		{
 			if (material.ShaderFlags.LightingModel_Phong)
+			{
 				return shaders.BlinnPerVertex;
+			}
 			else if (material.ShaderFlags.LightingModel_Lambert)
+			{
 				return shaders.Lambert;
+			}
 			else
+			{
 				return shaders.Constant;
+			}
 		}
 		else
 		{
@@ -407,43 +418,48 @@ namespace Graphics
 		}
 	}
 
+	D3D_TextureSampler D3D_Renderer3D::CreateTextureSampler(MaterialTexture& materialTexture)
+	{
+		const auto flags = materialTexture.Flags;
+		return
+		{
+			D3D11_FILTER_MIN_MAG_MIP_LINEAR,
+			flags.TextureAddressMode_U_Mirror ? D3D11_TEXTURE_ADDRESS_MIRROR : flags.TextureAddressMode_U_Repeat ? D3D11_TEXTURE_ADDRESS_WRAP : D3D11_TEXTURE_ADDRESS_CLAMP,
+			flags.TextureAddressMode_V_Mirror ? D3D11_TEXTURE_ADDRESS_MIRROR : flags.TextureAddressMode_V_Repeat ? D3D11_TEXTURE_ADDRESS_WRAP : D3D11_TEXTURE_ADDRESS_CLAMP,
+			// TODO: This might need to be scaled first
+			// static_cast<float>(materialTexture.Flags.MipMapBias),
+		};
+	}
+
+	void D3D_Renderer3D::CheckBindMaterialTexture(ObjSet* objSet, MaterialTexture& materialTexture, int slot)
+	{
+		const Txp* txp = FindObjSetTxpFromID(objSet, materialTexture.TextureID);
+
+		if (txp == nullptr || (txp->Texture2D == nullptr && txp->CubeMap == nullptr))
+		{
+			ID3D11ShaderResourceView* resourceView = nullptr;
+			D3D.Context->PSSetShaderResources(slot, 1, &resourceView);
+			return;
+		}
+
+		if (txp->Texture2D != nullptr)
+			txp->Texture2D->Bind(slot);
+		else if (txp->CubeMap != nullptr)
+			txp->CubeMap->Bind(slot);
+
+		auto sampler = CreateTextureSampler(materialTexture);
+		sampler.Bind(slot);
+	}
+
 	void D3D_Renderer3D::UpdateSubMeshShaderState(SubMesh& subMesh, Material& material, ObjSet* objSet)
 	{
 		auto& materialShader = GetMaterialShader(material);
 		materialShader.Bind();
 
-		auto bindMaterialTexture = [](ObjSet* objSet, MaterialTexture& materialTexture, int slot)
-		{
-			Txp* txp = FindObjSetTxpFromID(objSet, materialTexture.TextureID);
-
-			if (txp == nullptr || (txp->Texture2D == nullptr && txp->CubeMap == nullptr))
-			{
-				ID3D11ShaderResourceView* resourceView = nullptr;
-				D3D.Context->PSSetShaderResources(slot, 1, &resourceView);
-				return;
-			}
-
-			if (txp->Texture2D != nullptr)
-				txp->Texture2D->Bind(slot);
-			else if (txp->CubeMap != nullptr)
-				txp->CubeMap->Bind(slot);
-
-			const auto flags = materialTexture.Flags;
-			D3D_TextureSampler diffuseSampler =
-			{
-				D3D11_FILTER_MIN_MAG_MIP_LINEAR,
-				flags.TextureAddressMode_U_Mirror ? D3D11_TEXTURE_ADDRESS_MIRROR : flags.TextureAddressMode_U_Repeat ? D3D11_TEXTURE_ADDRESS_WRAP : D3D11_TEXTURE_ADDRESS_CLAMP,
-				flags.TextureAddressMode_V_Mirror ? D3D11_TEXTURE_ADDRESS_MIRROR : flags.TextureAddressMode_V_Repeat ? D3D11_TEXTURE_ADDRESS_WRAP : D3D11_TEXTURE_ADDRESS_CLAMP,
-				// TODO: This might need to be scaled first
-				// static_cast<float>(materialTexture.Flags.MipMapBias),
-			};
-			diffuseSampler.Bind(slot);
-		};
-
-		bindMaterialTexture(objSet, material.Diffuse, 0);
-		bindMaterialTexture(objSet, material.Ambient, 1);
-
-		bindMaterialTexture(objSet, material.Reflection, 5);
+		CheckBindMaterialTexture(objSet, material.Diffuse, 0);
+		CheckBindMaterialTexture(objSet, material.Ambient, 1);
+		CheckBindMaterialTexture(objSet, material.Normal, 2);
+		CheckBindMaterialTexture(objSet, material.Reflection, 5);
 
 		if (!sceneContext->RenderParameters.Wireframe)
 		{
@@ -459,7 +475,7 @@ namespace Graphics
 		D3D.Context->DrawIndexed(static_cast<UINT>(subMesh.Indices.size()), 0, 0);
 	}
 
-	bool D3D_Renderer3D::ToneMapData::NeedsUpdate(const SceneContext* sceneContext)
+	bool D3D_Renderer3D::ToneMapData::NeedsUpdating(const SceneContext* sceneContext)
 	{
 		if (LookupTexture == nullptr)
 			return true;
@@ -476,13 +492,19 @@ namespace Graphics
 		return false;
 	}
 
+	void D3D_Renderer3D::ToneMapData::Update()
+	{
+		GenerateLookupData();
+		UpdateTexture();
+	}
+
 	void D3D_Renderer3D::ToneMapData::GenerateLookupData()
 	{
 		const float gammaPower = 1.0f * Glow.Gamma * 1.5f;
 		const int saturatePowerCount = Glow.SaturatePower * 4;
 
 		TextureData[0] = vec2(0.0f, 0.0f);
-		for (int i = 1; i < TextureData.size(); i++)
+		for (int i = 1; i < static_cast<int>(TextureData.size()); i++)
 		{
 			const float step = (static_cast<float>(i) * 16.0f) * (1.0f / 512.0f);
 			const float gamma = glm::pow((1.0f - glm::exp(-step)), gammaPower);
@@ -500,7 +522,7 @@ namespace Graphics
 	{
 		if (LookupTexture == nullptr)
 		{
-			LookupTexture = MakeUnique<D3D_Texture1D>(ToneMapLookupTextureSize, TextureData.data(), DXGI_FORMAT_R32G32_FLOAT);
+			LookupTexture = MakeUnique<D3D_Texture1D>(static_cast<int32_t>(TextureData.size()), TextureData.data(), DXGI_FORMAT_R32G32_FLOAT);
 		}
 		else
 		{

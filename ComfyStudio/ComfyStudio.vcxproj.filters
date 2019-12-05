@@ -867,5 +867,6 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\ShaderFlags.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\TextureFormats.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\UncompressRGTC.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\TextureInputs.hlsl" />
   </ItemGroup>
 </Project>

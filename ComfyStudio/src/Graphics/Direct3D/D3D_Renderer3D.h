@@ -70,7 +70,7 @@ namespace Graphics
 		float Padding[12];
 	};
 
-	struct GlowConstantData
+	struct PostProcessConstantData
 	{
 		float Exposure;
 		float Gamma;
@@ -125,6 +125,8 @@ namespace Graphics
 		void UpdateObjectConstantBuffer(ObjRenderCommand& command, Mesh& mesh, Material& material, const mat4& model);
 		D3D_BlendState CreateMaterialBlendState(Material& material);
 		D3D_ShaderPair& GetMaterialShader(Material& material);
+		D3D_TextureSampler CreateTextureSampler(MaterialTexture& materialTexture);
+		void CheckBindMaterialTexture(ObjSet* objSet, MaterialTexture& materialTexture, int slot);
 		void UpdateSubMeshShaderState(SubMesh& subMesh, Material& material, ObjSet* objSet);
 		void SubmitSubMeshDrawCall(SubMesh& subMesh);
 
@@ -140,9 +142,10 @@ namespace Graphics
 
 		D3D_DynamicConstantBufferTemplate<SceneConstantData> sceneConstantBuffer = { 0 };
 		D3D_DynamicConstantBufferTemplate<ObjectConstantData> objectConstantBuffer = { 1 };
-		D3D_DynamicConstantBufferTemplate<GlowConstantData> glowConstantBuffer = { 0 };
+		D3D_DynamicConstantBufferTemplate<PostProcessConstantData> postProcessConstantBuffer = { 0 };
 
-		UniquePtr<D3D_InputLayout> inputLayout = nullptr;
+		UniquePtr<D3D_InputLayout> genericInputLayout = nullptr;
+		D3D_InputLayout postProcessInputLayout = { nullptr, 0, shaders.ToneMap.VS };
 
 		D3D_RasterizerState solidBackfaceCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_BACK };
 		D3D_RasterizerState solidNoCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_NONE };
@@ -155,14 +158,16 @@ namespace Graphics
 
 		struct ToneMapData
 		{
-			static constexpr int ToneMapLookupTextureSize = 512;
-
 			GlowParameter Glow;
 
-			std::array<vec2, ToneMapLookupTextureSize> TextureData;
+			std::array<vec2, 512> TextureData;
 			UniquePtr<D3D_Texture1D> LookupTexture = nullptr;
+			
+		public:
+			bool NeedsUpdating(const SceneContext* sceneContext);
+			void Update();
 
-			bool NeedsUpdate(const SceneContext* sceneContext);
+		private:
 			void GenerateLookupData();
 			void UpdateTexture();
 

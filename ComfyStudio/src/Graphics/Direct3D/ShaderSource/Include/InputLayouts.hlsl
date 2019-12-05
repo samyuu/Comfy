@@ -16,5 +16,6 @@ struct VS_OUTPUT
     float2 TexCoord         : TEXCOORD0;
     float2 TexCoordAmbient  : TEXCOORD1;
     float4 Color            : COLOR0;
-    float3 Reflection       : REFLECT;
+    float4 ColorSecondary   : COLOR1;
+    float4 Reflection       : REFLECT;
 };

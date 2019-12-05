@@ -105,9 +105,15 @@ namespace Graphics
 		uint32_t UseAmbientTexture : 1;
 		uint32_t UseUnknown1 : 1;
 		uint32_t ResultsInNoTexture : 1;
+		uint32_t UseUnknown2 : 1;
 		uint32_t UseUnknown3 : 1;
+		uint32_t UseSpecularTexture : 1;
+		uint32_t UseNormalTexture : 1;
 		uint32_t UseUnknown4 : 1;
-		uint32_t Unknown2 : 7;
+		uint32_t UseUnknown5 : 1;
+		uint32_t UseUnknown6 : 1;
+		uint32_t UseUnknown7 : 1;
+		uint32_t UseTangentTexture : 1;
 		uint32_t UseCubeMapReflection : 1;
 		uint32_t CubeMapReflectionRelated : 16;
 	};
@@ -181,7 +187,7 @@ namespace Graphics
 
 	struct Material
 	{
-		unk32_t Unknown0;
+		uint32_t TextureCount;
 		MaterialFlags Flags;
 		char Shader[8];
 		MaterialShaderFlags ShaderFlags;
@@ -192,7 +198,7 @@ namespace Graphics
 		MaterialTexture ToonCurve;
 		MaterialTexture Reflection;
 		MaterialTexture Tangent;
-		MaterialTexture UnknownTexture;
+		MaterialTexture ReservedTexture;
 		MaterialBlendFlags BlendFlags;
 		vec3 DiffuseColor;
 		float Transparency;
