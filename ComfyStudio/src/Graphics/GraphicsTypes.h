@@ -258,4 +258,28 @@ namespace Graphics
 		// NOTE: ____ x ____
 		Custom = 18,
 	};
+
+	enum class LightSourceType
+	{
+		None = 0,
+		Parallel = 1,
+		Point = 2,
+		Spot = 3,
+
+		Count
+	};
+
+	enum class LightTargetType
+	{
+		Character = 0,
+		Stage = 1,
+		Sun = 2,
+		Reflect = 3,
+		Shadow = 4,
+		CharacterColor = 5,
+		CharacterF = 6,
+		Projection = 7,
+
+		Count
+	};
 }

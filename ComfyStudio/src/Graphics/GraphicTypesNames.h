@@ -100,4 +100,24 @@ namespace Graphics
 		"HVGA",
 		"qHD",
 	};
+
+	constexpr std::array<const char*, static_cast<size_t>(LightSourceType::Count)> LightSourceTypeNames =
+	{
+		"None",
+		"Parallel",
+		"Point",
+		"Spot",
+	};
+
+	constexpr std::array<const char*, static_cast<size_t>(LightTargetType::Count)> LightTargetTypeNames =
+	{
+		"Character",
+		"Stage",
+		"Sun",
+		"Reflect",
+		"Shadow",
+		"Character Color",
+		"Character F",
+		"Projection",
+	};
 }

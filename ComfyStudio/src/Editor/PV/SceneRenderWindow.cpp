@@ -19,36 +19,15 @@ namespace Editor
 		context.Glow.SaturatePower = 1;
 		context.Glow.SaturateCoefficient = 1.0f;
 
-		context.Light.Stage.Ambient = vec3(0.0f, 0.0f, 0.0f);
-		context.Light.Stage.Diffuse = vec3(1.0f, 1.0f, 1.0f);
-		context.Light.Stage.Specular = vec3(1.0f, 1.0f, 1.0f);
-		context.Light.Stage.Position = vec3(-0.595944f, 0.391381f, 0.701193f);
+		constexpr const char* lightFilePath = "dev_rom/light_param/light_tst.txt";
 
-		constexpr std::array<mat4, 3> stageTestIrradiance =
+		if (FileSystem::FileExists(lightFilePath))
 		{
-			mat4
-			{
-				+0.019668, +0.025554, +0.052443, +0.009977,
-				+0.025554, -0.019668, -0.011968, +0.015655,
-				+0.052443, -0.011968, +0.123443, -0.053661,
-				+0.009977, +0.015655, -0.053661, +0.658065,
-			},
-			{
-				+0.012581, +0.022988, +0.047943, +0.002154,
-				+0.022988, -0.012581, +0.008594, -0.016351,
-				+0.047943, +0.008594, +0.098553, -0.062610,
-				+0.002154, -0.016351, -0.062610, +0.558507,
-			},
-			{
-				-0.000910, +0.020892, +0.043903, -0.004738,
-				+0.020892, +0.000910, +0.027703, -0.052166,
-				+0.043903, +0.027703, +0.067878, -0.070613,
-				-0.004738, -0.052166, -0.070613, +0.444547,
-			},
-		};
+			std::vector<uint8_t> fileContent;
+			FileSystem::FileReader::ReadEntireFile({ lightFilePath }, &fileContent);
 
-		context.Light.IBL.Stage.LightColor = vec3(1.183988f, 0.873082f, 0.227190f);
-		context.Light.IBL.Stage.IrradianceRGB = stageTestIrradiance;
+			context.Light.Parse(fileContent.data());
+		}
 
 		constexpr const char* iblFilePath = "dev_rom/ibl/tst007.ibl";
 
@@ -57,8 +36,8 @@ namespace Editor
 			std::vector<uint8_t> fileContent;
 			FileSystem::FileReader::ReadEntireFile({ iblFilePath }, &fileContent);
 
-			context.Light.IBL.Parse(fileContent.data());
-			context.Light.IBL.UploadAll();
+			context.IBL.Parse(fileContent.data());
+			context.IBL.UploadAll();
 		}
 	}
 
@@ -179,7 +158,7 @@ namespace Editor
 		if (Gui::CollapsingHeader("Lighting", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			Gui::PushID(&context.Light);
-			Gui::ColorEdit3("Light Color", glm::value_ptr(context.Light.IBL.Stage.LightColor), ImGuiColorEditFlags_Float);
+			Gui::ColorEdit3("Light Color", glm::value_ptr(context.IBL.Stage.LightColor), ImGuiColorEditFlags_Float);
 			Gui::ColorEdit3("Ambient", glm::value_ptr(context.Light.Stage.Ambient), ImGuiColorEditFlags_Float);
 			Gui::ColorEdit3("Diffuse", glm::value_ptr(context.Light.Stage.Diffuse), ImGuiColorEditFlags_Float);
 			Gui::ColorEdit3("Specular", glm::value_ptr(context.Light.Stage.Specular), ImGuiColorEditFlags_Float);

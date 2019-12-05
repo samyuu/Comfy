@@ -1,20 +1,13 @@
 #pragma once
 #include "Types.h"
-#include "LightDataIBL.h"
+#include "Graphics/GraphicsTypes.h"
+#include "FileSystem/FileInterface.h"
 
 namespace Graphics
 {
-	enum class LightType
-	{
-		None = 0,
-		Parallel = 1,
-		Point = 2,
-		Spot = 3,
-	};
-
 	struct Light
 	{
-		LightType Type;
+		LightSourceType Type;
 
 		// NOTE: All light types
 		vec3 Ambient;
@@ -36,20 +29,13 @@ namespace Graphics
 		float AttenuationQuadratic;
 	};
 
-	enum LightTargetType
+	class LightParameter final : public FileSystem::IBufferParsable
 	{
-		Character = 0,
-		Stage = 1,
-		Sun = 2,
-		Reflect = 3,
-		Shadow = 4,
-		CharacterColor = 5,
-		CharacterF = 6,
-		Projection = 7,
-	};
+	public:
+		LightParameter();
+		~LightParameter() = default;
 
-	struct LightParameter
-	{
+	public:
 		Light Character;
 		Light Stage;
 		Light Sun;
@@ -59,6 +45,9 @@ namespace Graphics
 		Light CharacterF;
 		Light Projection;
 
-		LightDataIBL IBL;
+		Light* GetLight(LightTargetType type);
+
+	public:
+		void Parse(const uint8_t* buffer) override;
 	};
 }

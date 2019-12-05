@@ -1,6 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "Core/CoreTypes.h"
+#include "Graphics/GraphicsTypes.h"
 #include "Graphics/Direct3D/D3D_Texture.h"
 #include "FileSystem/FileInterface.h"
 
@@ -47,6 +48,8 @@ namespace Graphics
 		LightData CharacterColor;
 		LightData CharacterF;
 		LightData Projection;
+
+		LightData* GetLightData(LightTargetType type);
 
 	public:
 		void Parse(const uint8_t* buffer) override;

@@ -1,5 +1,5 @@
 #include "LightDataIBL.h"
-#include "LightParameters.h"
+#include "Graphics/GraphicTypesNames.h"
 #include "Misc/StringParseHelper.h"
 
 namespace Graphics
@@ -23,14 +23,13 @@ namespace Graphics
 
 		std::string_view GetLineAdvanceToNonCommentLine(const char*& textBuffer)
 		{
-			auto line = StringParsing::GetLine(textBuffer);
-			StringParsing::AdvanceToNextLine(textBuffer);
+			std::string_view line;
 
-			while (IsComment(line))
+			do
 			{
-				line = StringParsing::GetLine(textBuffer);
-				StringParsing::AdvanceToNextLine(textBuffer);
+				line = StringParsing::GetLineAdvanceToNextLine(textBuffer);
 			}
+			while (IsComment(line));
 
 			return line;
 		}
@@ -46,33 +45,6 @@ namespace Graphics
 
 			assert(false);
 			return {};
-		}
-
-		constexpr LightData* GetLightData(LightDataIBL* ibl, LightTargetType lightType)
-		{
-			switch (lightType)
-			{
-			case Character:
-				return &ibl->Character;
-			case Stage:
-				return &ibl->Stage;
-			case Sun:
-				return &ibl->Sun;
-			case Reflect:
-				return &ibl->Reflect;
-			case Shadow:
-				return &ibl->Shadow;
-			case CharacterColor:
-				return &ibl->CharacterColor;
-			case CharacterF:
-				return &ibl->CharacterF;
-			case Projection:
-				return &ibl->Projection;
-
-			default:
-				assert(false);
-				return nullptr;
-			}
 		}
 
 		constexpr size_t GetLightMapByteSize(LightMap& lightMap)
@@ -103,6 +75,33 @@ namespace Graphics
 
 	}
 
+	LightData* LightDataIBL::GetLightData(LightTargetType type)
+	{
+		switch (type)
+		{
+		case LightTargetType::Character:
+			return &Character;
+		case LightTargetType::Stage:
+			return &Stage;
+		case LightTargetType::Sun:
+			return &Sun;
+		case LightTargetType::Reflect:
+			return &Reflect;
+		case LightTargetType::Shadow:
+			return &Shadow;
+		case LightTargetType::CharacterColor:
+			return &CharacterColor;
+		case LightTargetType::CharacterF:
+			return &CharacterF;
+		case LightTargetType::Projection:
+			return &Projection;
+
+		default:
+			assert(false);
+			return nullptr;
+		}
+	}
+
 	void LightDataIBL::Parse(const uint8_t* buffer)
 	{
 		const char* textBuffer = reinterpret_cast<const char*>(buffer);
@@ -129,7 +128,7 @@ namespace Graphics
 				break;
 
 			auto targetType = static_cast<LightTargetType>(StringParsing::ParseType<uint32_t>(GetLineAdvanceToNonCommentLine(textBuffer)));
-			LightData* lightData = GetLightData(this, targetType);
+			LightData* lightData = GetLightData(targetType);
 
 			if (tag == LightDirectionTag)
 			{
@@ -174,9 +173,9 @@ namespace Graphics
 
 		const uint8_t* binaryBuffer = reinterpret_cast<const uint8_t*>(textBuffer);
 
-		for (size_t i = 0; i <= LightTargetType::Projection; i++)
+		for (size_t i = 0; i < static_cast<size_t>(LightTargetType::Count); i++)
 		{
-			auto& lightMap = GetLightData(this, static_cast<LightTargetType>(i))->LightMap;
+			auto& lightMap = GetLightData(static_cast<LightTargetType>(i))->LightMap;
 
 			bool valid = (lightMap.Size.x >= 1 && lightMap.Size.y >= 1);
 			for (size_t i = 0; i < lightMap.DataPointers.size(); i++)
@@ -189,26 +188,14 @@ namespace Graphics
 
 	void LightDataIBL::UploadAll()
 	{
-		constexpr std::array<const char*, 8> lightTargetTypeNames = 
+		for (size_t i = 0; i < static_cast<size_t>(LightTargetType::Count); i++)
 		{
-			"Character",
-			"Stage",
-			"Sun",
-			"Reflect",
-			"Shadow",
-			"Character Color",
-			"Character F",
-			"Projection",
-		};
-
-		for (size_t i = 0; i <= LightTargetType::Projection; i++)
-		{
-			auto& lightMap = GetLightData(this, static_cast<LightTargetType>(i))->LightMap;
+			auto& lightMap = GetLightData(static_cast<LightTargetType>(i))->LightMap;
 
 			if (lightMap.Size.x >= 1 && lightMap.Size.y >= 1)
 			{
 				lightMap.CubeMap = MakeUnique<D3D_CubeMap>(lightMap);
-				D3D_SetObjectDebugName(lightMap.CubeMap->GetTexture(), "LightMap IBL: %s", lightTargetTypeNames[i]);
+				D3D_SetObjectDebugName(lightMap.CubeMap->GetTexture(), "LightMap IBL: %s", LightTargetTypeNames[i]);
 			}
 		}
 	}

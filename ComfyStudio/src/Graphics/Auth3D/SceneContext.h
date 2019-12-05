@@ -2,6 +2,7 @@
 #include "FogParameter.h"
 #include "GlowParameter.h"
 #include "LightParameters.h"
+#include "LightDataIBL.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Direct3D/D3D_RenderTarget.h"
 
@@ -34,11 +35,13 @@ namespace Graphics
 		FogParameter Fog;
 		GlowParameter Glow;
 		LightParameter Light;
+		LightDataIBL IBL;
 
 		PerspectiveCamera Camera;
 
 		// NOTE: Where the scene gets rendered to
 		D3D_DepthRenderTarget RenderTarget = { RenderTargetDefaultSize, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_D32_FLOAT };
+
 		// NOTE: Where the post processed final image gets rendered to
 		D3D_RenderTarget* OutputRenderTarget = nullptr;
 

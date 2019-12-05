@@ -9,6 +9,7 @@ namespace Utilities::StringParsing
 	std::string_view GetWord(const char* textBuffer);
 	
 	void AdvanceToNextLine(const char*& textBuffer);
+	std::string_view GetLineAdvanceToNextLine(const char*& textBuffer);
 
 	template <typename T>
 	T ParseType(std::string_view string)

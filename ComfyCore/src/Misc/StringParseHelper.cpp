@@ -49,4 +49,11 @@ namespace Utilities::StringParsing
 			textBuffer++;
 		}
 	}
+
+	std::string_view GetLineAdvanceToNextLine(const char*& textBuffer)
+	{
+		const auto line = GetLine(textBuffer);
+		AdvanceToNextLine(textBuffer);
+		return line;
+	}
 }
