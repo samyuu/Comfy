@@ -1,9 +1,11 @@
 #include "LightDataIBL.h"
 #include "LightParameters.h"
-#include <charconv>
+#include "Misc/StringParseHelper.h"
 
 namespace Graphics
 {
+	using namespace Utilities;
+
 	namespace
 	{
 		constexpr std::string_view IblFileTag = "VF5_IBL";
@@ -14,79 +16,23 @@ namespace Graphics
 		constexpr std::string_view LightMapTag = "LIGHT_MAP";
 		constexpr std::string_view BinaryDataTag = "BINARY";
 
-		std::string_view GetLine(const char* textBuffer)
-		{
-			const char* startOfLine = textBuffer;
-			const char* endOfLine = textBuffer;
-
-			while (*endOfLine != '\0' && *endOfLine != '\r' && *endOfLine != '\n')
-				endOfLine++;
-
-			const size_t lineLength = endOfLine - startOfLine;
-			return std::string_view(textBuffer, lineLength);
-		}
-
-		std::string_view GetWord(const char* textBuffer)
-		{
-			const char* startOfWord = textBuffer;
-			const char* endOfWord = textBuffer;
-
-			while (*endOfWord != '\0' && *endOfWord != ' ' && *endOfWord != '\r' && *endOfWord != '\n')
-				endOfWord++;
-
-			const size_t lineLength = endOfWord - startOfWord;
-			return std::string_view(textBuffer, lineLength);
-		}
-
 		bool IsComment(std::string_view line)
 		{
 			return !line.empty() && line.front() == '#';
 		}
 
-		void AdvanceToNextLine(const char*& textBuffer)
-		{
-			while (*textBuffer != '\0')
-			{
-				if (*textBuffer == '\r')
-				{
-					textBuffer++;
-
-					if (*textBuffer == '\n')
-						textBuffer++;
-
-					return;
-				}
-
-				if (*textBuffer == '\n')
-				{
-					textBuffer++;
-					return;
-				}
-
-				textBuffer++;
-			}
-		}
-
 		std::string_view GetLineAdvanceToNonCommentLine(const char*& textBuffer)
 		{
-			auto line = GetLine(textBuffer);
-			AdvanceToNextLine(textBuffer);
+			auto line = StringParsing::GetLine(textBuffer);
+			StringParsing::AdvanceToNextLine(textBuffer);
 
 			while (IsComment(line))
 			{
-				line = GetLine(textBuffer);
-				AdvanceToNextLine(textBuffer);
+				line = StringParsing::GetLine(textBuffer);
+				StringParsing::AdvanceToNextLine(textBuffer);
 			}
 
 			return line;
-		}
-
-		template <typename T>
-		T ParseType(std::string_view string)
-		{
-			T value = {};
-			auto result = std::from_chars(string.data(), string.data() + string.size(), value);
-			return value;
 		}
 
 		LightMapFormat ParseLightMapFormat(std::string_view string)
@@ -100,23 +46,6 @@ namespace Graphics
 
 			assert(false);
 			return {};
-		}
-
-		template <typename T, size_t Size>
-		std::array<T, Size> ParseTypeArray(std::string_view string)
-		{
-			std::array<T, Size> value = {};
-
-			for (size_t i = 0; i < Size; i++)
-			{
-				auto word = GetWord(string.data());
-				value[i] = ParseType<T>(word);
-
-				if (i + 1 < Size)
-					string = string.substr(word.size() + 1);
-			}
-
-			return value;
 		}
 
 		constexpr LightData* GetLightData(LightDataIBL* ibl, LightTargetType lightType)
@@ -189,7 +118,7 @@ namespace Graphics
 		if (versionTag == VersionTag)
 		{
 			auto versionLine = GetLineAdvanceToNonCommentLine(textBuffer);
-			Version = ParseType<uint32_t>(versionLine);
+			Version = StringParsing::ParseType<uint32_t>(versionLine);
 		}
 
 		while (true)
@@ -199,19 +128,19 @@ namespace Graphics
 			if (tag == BinaryDataTag || tag.empty())
 				break;
 
-			auto targetType = static_cast<LightTargetType>(ParseType<uint32_t>(GetLineAdvanceToNonCommentLine(textBuffer)));
+			auto targetType = static_cast<LightTargetType>(StringParsing::ParseType<uint32_t>(GetLineAdvanceToNonCommentLine(textBuffer)));
 			LightData* lightData = GetLightData(this, targetType);
 
 			if (tag == LightDirectionTag)
 			{
-				auto direction = ParseTypeArray<float, 3>(GetLineAdvanceToNonCommentLine(textBuffer));
+				auto direction = StringParsing::ParseTypeArray<float, 3>(GetLineAdvanceToNonCommentLine(textBuffer));
 
 				if (lightData != nullptr)
 					lightData->LightDirection = { direction[0], direction[1], direction[2] };
 			}
 			else if (tag == LightColorTag)
 			{
-				auto color = ParseTypeArray<float, 3>(GetLineAdvanceToNonCommentLine(textBuffer));
+				auto color = StringParsing::ParseTypeArray<float, 3>(GetLineAdvanceToNonCommentLine(textBuffer));
 
 				if (lightData != nullptr)
 					lightData->LightColor = { color[0], color[1], color[2] };
@@ -224,7 +153,7 @@ namespace Graphics
 				{
 					for (int r = 0; r < mat4::length(); r++)
 					{
-						auto row = ParseTypeArray<float, mat4::length()>(GetLineAdvanceToNonCommentLine(textBuffer));
+						auto row = StringParsing::ParseTypeArray<float, mat4::length()>(GetLineAdvanceToNonCommentLine(textBuffer));
 						if (lightData != nullptr)
 							lightData->IrradianceRGB[i][r] = { row[0], row[1], row[2], row[3] };
 					}
@@ -233,7 +162,7 @@ namespace Graphics
 			else if (tag == LightMapTag)
 			{
 				auto lightMapFormat = ParseLightMapFormat(GetLineAdvanceToNonCommentLine(textBuffer));
-				auto size = ParseTypeArray<int32_t, 2>(GetLineAdvanceToNonCommentLine(textBuffer));
+				auto size = StringParsing::ParseTypeArray<int32_t, 2>(GetLineAdvanceToNonCommentLine(textBuffer));
 
 				if (lightData != nullptr)
 				{

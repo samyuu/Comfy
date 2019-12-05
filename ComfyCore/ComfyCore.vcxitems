@@ -21,11 +21,13 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\EndianHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\FileExtensionHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\StringHelper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\StringParseHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\Core\Logger.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\Misc\FileExtensionHelper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\Misc\StringHelper.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\Misc\StringParseHelper.cpp" />
   </ItemGroup>
 </Project>
