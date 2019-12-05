@@ -101,6 +101,13 @@ namespace Graphics
 		"qHD",
 	};
 
+	constexpr std::array<const char*, static_cast<size_t>(ToneMapMethod::Count)> ToneMapMethodNames =
+	{
+		"YCC Exponent",
+		"RGB Linear",
+		"RGB Linear 2",
+	};
+
 	constexpr std::array<const char*, static_cast<size_t>(LightSourceType::Count)> LightSourceTypeNames =
 	{
 		"None",

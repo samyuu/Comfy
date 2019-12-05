@@ -259,7 +259,16 @@ namespace Graphics
 		Custom = 18,
 	};
 
-	enum class LightSourceType
+	enum class ToneMapMethod : uint32_t
+	{
+		YCC_Exponent = 0,
+		RGB_Linear = 1,
+		RGB_Linear2 = 2,
+
+		Count
+	};
+
+	enum class LightSourceType : uint32_t
 	{
 		None = 0,
 		Parallel = 1,
@@ -269,7 +278,7 @@ namespace Graphics
 		Count
 	};
 
-	enum class LightTargetType
+	enum class LightTargetType : uint32_t
 	{
 		Character = 0,
 		Stage = 1,

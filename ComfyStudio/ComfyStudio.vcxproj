@@ -218,6 +218,7 @@
     <ClCompile Include="src\Graphics\Auth2D\AetSet.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\AetSetFile.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\SpriteBatchData.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\GlowParameter.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\LightDataIBL.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\LightParameters.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\ObjSet.cpp" />

@@ -14,27 +14,26 @@ namespace Editor
 	{
 		renderer3D = MakeUnique<D3D_Renderer3D>();
 
-		context.Glow.Exposure = 2.0f;
-		context.Glow.Gamma = 1.0f;
-		context.Glow.SaturatePower = 1;
-		context.Glow.SaturateCoefficient = 1.0f;
-
-		constexpr const char* lightFilePath = "dev_rom/light_param/light_tst.txt";
-		constexpr const char* iblFilePath = "dev_rom/ibl/tst007.ibl";
-
-		if (FileSystem::FileExists(lightFilePath))
+		struct LightDataPaths
 		{
-			std::vector<uint8_t> fileContent;
-			FileSystem::FileReader::ReadEntireFile(lightFilePath, &fileContent);
+			std::string_view Glow, Light, IBL;
+		} paths = { "dev_rom/light_param/glow_tst.txt", "dev_rom/light_param/light_tst.txt", "dev_rom/ibl/tst007.ibl" };
 
+		if (FileSystem::FileExists(paths.Glow))
+		{
+			std::vector<uint8_t> fileContent; FileSystem::FileReader::ReadEntireFile(paths.Glow, &fileContent);
+			context.Glow.Parse(fileContent.data());
+		}
+
+		if (FileSystem::FileExists(paths.Light))
+		{
+			std::vector<uint8_t> fileContent; FileSystem::FileReader::ReadEntireFile(paths.Light, &fileContent);
 			context.Light.Parse(fileContent.data());
 		}
 
-		if (FileSystem::FileExists(iblFilePath))
+		if (FileSystem::FileExists(paths.IBL))
 		{
-			std::vector<uint8_t> fileContent;
-			FileSystem::FileReader::ReadEntireFile(iblFilePath, &fileContent);
-
+			std::vector<uint8_t> fileContent; FileSystem::FileReader::ReadEntireFile(paths.IBL, &fileContent);
 			context.IBL.Parse(fileContent.data());
 			context.IBL.UploadAll();
 		}
@@ -54,7 +53,7 @@ namespace Editor
 		RenderWindowBase::Initialize();
 		context.OutputRenderTarget = renderTarget.get();
 
-		//#define OBJ_FILE "f_stgtst004"
+//#define OBJ_FILE "f_stgtst004"
 #define OBJ_FILE "stgtst007"
 //#define OBJ_FILE "cmnitm1001"
 //#define OBJ_FILE "rinitm000"

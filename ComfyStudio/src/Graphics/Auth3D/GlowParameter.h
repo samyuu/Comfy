@@ -1,27 +1,32 @@
 #pragma once
 #include "Types.h"
+#include "Graphics/GraphicsTypes.h"
+#include "FileSystem/FileInterface.h"
 
 namespace Graphics
 {
-	enum class ToneMapMethod
+	class GlowParameter final : public FileSystem::IBufferParsable
 	{
-		YCC_Exponent = 0,
-		RGB_Linear = 1,
-		RGB_Liear2 = 2,
-	};
+	public:
+		GlowParameter();
+		~GlowParameter() = default;
 
-	struct GlowParameter
-	{
+	public:
 		float Exposure;
 		float Gamma;
 		int32_t SaturatePower;
 		float SaturateCoefficient;
-		vec3 Flare;
+		float FlareA;
+		float ShaftA;
+		float GhostA;
 		vec3 Sigma;
 		vec3 Intensity;
 		bool AutoExposure;
 		ToneMapMethod ToneMapMethod;
-		vec3 FadeColor;
+		vec4 FadeColor;
 		vec4 ToneTransform;
+
+	public:
+		void Parse(const uint8_t* buffer) override;
 	};
 }

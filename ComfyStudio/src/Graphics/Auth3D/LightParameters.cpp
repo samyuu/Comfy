@@ -23,10 +23,57 @@ namespace Graphics
 		constexpr std::string_view SpotCutoffTag = "spot_cutoff";
 		constexpr std::string_view AttenuationTag = "attenuation";
 		constexpr std::string_view ClipPlaneTag = "clipplane";
+	
+		constexpr Light DefaultLight =
+		{
+			LightSourceType::Parallel,
+			vec3(0.0f, 0.0f, 0.0f),
+			vec3(1.0f, 1.0f, 1.0f),
+			vec3(1.0f, 1.0f, 1.0f),
+			vec3(-0.594598f, 0.392729f, 0.701582f),
+
+			0.0f,
+			0.0f,
+			0.0f,
+
+			vec3(0.0f, 0.0f, 0.0f),
+			0.0f,
+			0.0f,
+			0.0f,
+			0.0f,
+			0.0f,
+		};
+
+		constexpr Light DefaultDisabledLight =
+		{
+			LightSourceType::None,
+			vec3(0.0f, 0.0f, 0.0f),
+			vec3(1.0f, 1.0f, 1.0f),
+			vec3(1.0f, 1.0f, 1.0f),
+			vec3(0.0f, 0.0f, 0.0f),
+
+			0.0f,
+			0.0f,
+			0.0f,
+
+			vec3(0.0f, 0.0f, 0.0f),
+			0.0f,
+			0.0f,
+			0.0f,
+			0.0f,
+			0.0f,
+		};
 	}
 
-	LightParameter::LightParameter()
-		: Character(), Stage(), Sun(), Reflect(), Shadow(), CharacterColor(), CharacterF(), Projection()
+	LightParameter::LightParameter() : 
+		Character(DefaultLight),
+		Stage(DefaultLight),
+		Sun(DefaultDisabledLight),
+		Reflect(DefaultDisabledLight),
+		Shadow(DefaultDisabledLight),
+		CharacterColor(DefaultDisabledLight),
+		CharacterF(DefaultDisabledLight),
+		Projection(DefaultDisabledLight)
 	{
 	}
 
@@ -60,7 +107,6 @@ namespace Graphics
 	void LightParameter::Parse(const uint8_t* buffer)
 	{
 		const char* textBuffer = reinterpret_cast<const char*>(buffer);
-
 		Light* currentLight = nullptr;
 
 		while (true)
@@ -97,35 +143,35 @@ namespace Graphics
 			}
 			else if (tag == AmbientTag)
 			{
-				auto vec4Data = StringParsing::ParseTypeArray<float, 4>(tagData);
-				currentLight->Ambient = { vec4Data[0], vec4Data[1], vec4Data[2] };
+				auto data = StringParsing::ParseTypeArray<float, 4>(tagData);
+				currentLight->Ambient = { data[0], data[1], data[2] };
 			}
 			else if (tag == DiffuseTag)
 			{
-				auto vec4Data = StringParsing::ParseTypeArray<float, 4>(tagData);
-				currentLight->Diffuse = { vec4Data[0], vec4Data[1], vec4Data[2] };
+				auto data = StringParsing::ParseTypeArray<float, 4>(tagData);
+				currentLight->Diffuse = { data[0], data[1], data[2] };
 			}
 			else if (tag == SpecularTag)
 			{
-				auto vec4Data = StringParsing::ParseTypeArray<float, 4>(tagData);
-				currentLight->Specular = { vec4Data[0], vec4Data[1], vec4Data[2] };
+				auto data = StringParsing::ParseTypeArray<float, 4>(tagData);
+				currentLight->Specular = { data[0], data[1], data[2] };
 			}
 			else if (tag == PositionTag)
 			{
-				auto vec4Data = StringParsing::ParseTypeArray<float, 4>(tagData);
-				currentLight->Position = { vec4Data[0], vec4Data[1], vec4Data[2] };
+				auto data = StringParsing::ParseTypeArray<float, 4>(tagData);
+				currentLight->Position = { data[0], data[1], data[2] };
 			}
 			else if (tag == ToneCurveTag)
 			{
-				auto vec3Data = StringParsing::ParseTypeArray<float, 3>(tagData);
-				currentLight->ToneCurveBegin = vec3Data[0];
-				currentLight->ToneCurveEnd = vec3Data[1];
-				currentLight->ToneCurveBlendRate = vec3Data[2];
+				auto data = StringParsing::ParseTypeArray<float, 3>(tagData);
+				currentLight->ToneCurveBegin = data[0];
+				currentLight->ToneCurveEnd = data[1];
+				currentLight->ToneCurveBlendRate = data[2];
 			}
 			else if (tag == SpotDirectionTag)
 			{
-				auto vec3Data = StringParsing::ParseTypeArray<float, 3>(tagData);
-				currentLight->SpotDirection = { vec3Data[0], vec3Data[1], vec3Data[2] };
+				auto data = StringParsing::ParseTypeArray<float, 3>(tagData);
+				currentLight->SpotDirection = { data[0], data[1], data[2] };
 			}
 			else if (tag == SpotExponentTag)
 			{
@@ -137,15 +183,15 @@ namespace Graphics
 			}
 			else if (tag == AttenuationTag)
 			{
-				auto vec3Data = StringParsing::ParseTypeArray<float, 3>(tagData);
-				currentLight->AttenuationConstant = vec3Data[0];
-				currentLight->AttenuationLinear = vec3Data[1];
-				currentLight->AttenuationQuadratic = vec3Data[2];
+				auto data = StringParsing::ParseTypeArray<float, 3>(tagData);
+				currentLight->AttenuationConstant = data[0];
+				currentLight->AttenuationLinear = data[1];
+				currentLight->AttenuationQuadratic = data[2];
 			}
 			else if (tag == ClipPlaneTag)
 			{
 				// TODO: ... (?)
-				auto vec4Data = StringParsing::ParseTypeArray<int, 4>(tagData);
+				auto data = StringParsing::ParseTypeArray<int, 4>(tagData);
 			}
 		}
 	}
