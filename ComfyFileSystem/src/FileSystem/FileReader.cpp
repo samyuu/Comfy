@@ -1,21 +1,21 @@
 #include "FileReader.h"
-#include "Core/Win32/ComfyWindows.h"
+#include "FileHelperInternal.h"
 
 namespace FileSystem
 {
-	void* FileReader::CreateFileHandle(const std::string& filePath, bool read)
+	void* FileReader::CreateFileHandle(std::string_view filePath, bool read)
 	{
-		return ::CreateFileA(filePath.c_str(), read ? GENERIC_READ : GENERIC_WRITE, read ? FILE_SHARE_READ : NULL, NULL, read ? OPEN_EXISTING : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		return CreateFileHandleInternal(filePath, read);
 	}
 
-	void* FileReader::CreateFileHandle(const std::wstring& filePath, bool read)
+	void* FileReader::CreateFileHandle(std::wstring_view filePath, bool read)
 	{
-		return ::CreateFileW(filePath.c_str(), read ? GENERIC_READ : GENERIC_WRITE, read ? FILE_SHARE_READ : NULL, NULL, read ? OPEN_EXISTING : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		return CreateFileHandleInternal(filePath, read);
 	}
 
 	void FileReader::CloseFileHandle(void* fileHandle)
 	{
-		bool success = ::CloseHandle(fileHandle);
+		CloseFileHandleInternal(fileHandle);
 	}
 
 	size_t FileReader::GetFileSize(void* fileHandle)

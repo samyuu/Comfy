@@ -14,7 +14,7 @@ namespace Audio
 		AudioDecoderFactory(const AudioDecoderFactory& other) = delete;
 		~AudioDecoderFactory();
 
-		RefPtr<MemorySampleProvider> DecodeFile(const std::string& filePath);
+		RefPtr<MemorySampleProvider> DecodeFile(std::string_view filePath);
 		static AudioDecoderFactory* GetInstance();
 
 	private:

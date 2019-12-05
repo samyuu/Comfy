@@ -234,10 +234,10 @@ namespace ImGui
 
 	void FileViewer::SetParentDirectory(const std::string& directory)
 	{
-		const bool endingSlash = EndsWith(directory, '/') || EndsWith(directory, '\\');
-		const auto parentDirectory = FileSystem::GetDirectory(endingSlash ? directory.substr(0, directory.length() - 1) : directory);
-
-		SetDirectory(parentDirectory);
+		if (EndsWith(directory, '/') || EndsWith(directory, '\\'))
+			SetDirectory(std::string(FileSystem::GetDirectory(directory.substr(0, directory.length() - 1))));
+		else
+			SetDirectory(std::string(FileSystem::GetDirectory(directory)));
 	}
 
 	void FileViewer::OpenDirectoryInExplorer()

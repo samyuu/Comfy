@@ -17,8 +17,11 @@ namespace System
 		RefPtr<Farc> farc = Farc::Open(filePath);
 		if (farc)
 		{
-			const std::string baseDirectory = GetDirectory(filePath);
-			const std::string directory = baseDirectory + "\\" + GetFileName(filePath, false);
+			std::string directory;
+			directory.append(GetDirectory(filePath));
+			directory.append("\\");
+			directory.append(GetFileName(filePath, false));
+
 			CreateDirectoryFile(Utf8ToUtf16(directory));
 
 			for (const ArchiveEntry& entry : *farc)

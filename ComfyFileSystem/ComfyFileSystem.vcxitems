@@ -57,6 +57,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\BinaryWriter.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\Archive\ComfyArchive.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\FileHelper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\FileHelperInternal.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\FileInterface.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\FileLoader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\FileReader.h" />

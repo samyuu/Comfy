@@ -8,51 +8,42 @@ namespace FileSystem
 	private:
 		FileReader() = delete;
 
-		template <class TPath, class TData>
-		static bool ReadEntireFile(const TPath& filePath, std::vector<TData>* buffer);
+		template<typename TPath, typename TData>
+		static inline bool ReadEntireFileInternal(TPath filePath, std::vector<TData>* buffer)
+		{
+			auto fileHandle = CreateFileHandle(filePath, true);
+			bool validHandle = reinterpret_cast<int64_t>(fileHandle) > 0;
+
+			if (validHandle)
+			{
+				size_t fileSize = GetFileSize(fileHandle);
+				buffer->resize((fileSize + sizeof(TData) - 1) / sizeof(TData));
+				ReadFile(fileHandle, buffer->data(), fileSize);
+				CloseFileHandle(fileHandle);
+			}
+
+			return validHandle;
+		}
 
 	public:
-		template <class T>
-		static inline bool ReadEntireFile(const std::string& filePath, std::vector<T>* buffer);
+		template<typename T>
+		static inline bool ReadEntireFile(std::string_view filePath, std::vector<T>* buffer)
+		{
+			return ReadEntireFileInternal<std::string_view, T>(filePath, buffer);
+		}
 
-		template <class T>
-		static inline bool ReadEntireFile(const std::wstring& filePath, std::vector<T>* buffer);
+		template<typename T>
+		static inline bool ReadEntireFile(std::wstring_view filePath, std::vector<T>* buffer)
+		{
+			return ReadEntireFileInternal<std::wstring_view, T>(filePath, buffer);
+		}
 
 	private:
-		static void* CreateFileHandle(const std::string& filePath, bool read);
-		static void* CreateFileHandle(const std::wstring& filePath, bool read);
+		static void* CreateFileHandle(std::string_view filePath, bool read);
+		static void* CreateFileHandle(std::wstring_view filePath, bool read);
 		static void CloseFileHandle(void* fileHandle);
 
 		static size_t GetFileSize(void* fileHandle);
 		static size_t ReadFile(void* fileHandle, void* outputData, size_t dataSize);
 	};
-
-	template<class TPath, class TData>
-	inline bool FileReader::ReadEntireFile(const TPath& filePath, std::vector<TData>* buffer)
-	{
-		void* fileHandle = CreateFileHandle(filePath, true);
-		bool validHandle = reinterpret_cast<int64_t>(fileHandle) > 0;
-
-		if (validHandle)
-		{
-			size_t fileSize = GetFileSize(fileHandle);
-			buffer->resize((fileSize + sizeof(TData) - 1) / sizeof(TData));
-			ReadFile(fileHandle, buffer->data(), fileSize);
-			CloseFileHandle(fileHandle);
-		}
-
-		return validHandle;
-	}
-
-	template<class T>
-	inline bool FileReader::ReadEntireFile(const std::string& filePath, std::vector<T>* buffer)
-	{
-		return ReadEntireFile<std::string, T>(filePath, buffer);
-	}
-
-	template<class T>
-	inline bool FileReader::ReadEntireFile(const std::wstring& filePath, std::vector<T>* buffer)
-	{
-		return ReadEntireFile<std::wstring, T>(filePath, buffer);
-	}
 }

@@ -1,6 +1,5 @@
 #pragma once
-#include "Core/CoreTypes.h"
-#include "FileSystem/FileReader.h"
+#include "FileReader.h"
 
 namespace FileSystem
 {
@@ -8,20 +7,20 @@ namespace FileSystem
 
 	bool CreateDirectoryFile(const std::wstring& filePath);
 
-	bool IsFilePath(const std::string& filePath);
-	bool IsFilePath(const std::wstring& filePath);
+	bool IsFilePath(std::string_view filePath);
+	bool IsFilePath(std::wstring_view filePath);
 
-	bool IsDirectoryPath(const std::string& directory);
-	bool IsDirectoryPath(const std::wstring& directory);
+	bool IsDirectoryPath(std::string_view directory);
+	bool IsDirectoryPath(std::wstring_view directory);
 
 	bool IsPathRelative(const std::string& path);
 	bool IsPathRelative(const std::wstring& path);
 
-	bool FileExists(const std::string& filePath);
-	bool FileExists(const std::wstring& filePath);
+	bool FileExists(std::string_view filePath);
+	bool FileExists(std::wstring_view filePath);
 
-	bool DirectoryExists(const std::string& directory);
-	bool DirectoryExists(const std::wstring& directory);
+	bool DirectoryExists(std::string_view direction);
+	bool DirectoryExists(std::wstring_view direction);
 
 	bool CreateOpenFileDialog(std::wstring& outFilePath, const char* title = nullptr, const char* directory = nullptr, const std::vector<std::string>& filter = AllFilesFilter);
 	bool CreateSaveFileDialog(std::wstring& outFilePath, const char* title = nullptr, const char* directory = nullptr, const std::vector<std::string>& filter = AllFilesFilter);
@@ -39,27 +38,27 @@ namespace FileSystem
 	std::string GetWorkingDirectory();
 	std::wstring GetWorkingDirectoryW();
 
-	void SetWorkingDirectory(const std::string& value);
-	void SetWorkingDirectoryW(const std::wstring& value);
+	void SetWorkingDirectory(std::string_view path);
+	void SetWorkingDirectoryW(std::wstring_view path);
 
 	std::string Combine(const std::string& pathA, const std::string& pathB);
 	std::wstring Combine(const std::wstring& pathA, const std::wstring& pathB);
 
-	std::string GetFileName(const std::string& filePath, bool extension = true);
-	std::wstring GetFileName(const std::wstring& filePath, bool extension = true);
+	std::string_view GetFileName(std::string_view filePath, bool extension = true);
+	std::wstring_view GetFileName(std::wstring_view filePath, bool extension = true);
 
-	std::string GetDirectory(const std::string& filePath);
-	std::wstring GetDirectory(const std::wstring& filePath);
+	std::string_view GetDirectory(std::string_view filePath);
+	std::wstring_view GetDirectory(std::wstring_view filePath);
 
-	std::string GetFileExtension(const std::string& filePath);
-	std::wstring GetFileExtension(const std::wstring& filePath);
+	std::string_view GetFileExtension(std::string_view filePath);
+	std::wstring_view GetFileExtension(std::wstring_view filePath);
 
-	std::vector<std::string> GetFiles(const std::string& directory);
-	std::vector<std::wstring> GetFiles(const std::wstring& directory);
+	std::vector<std::string> GetFiles(std::string_view directory);
+	std::vector<std::wstring> GetFiles(std::wstring_view directory);
 
-	bool WriteAllBytes(const std::string& filePath, const std::vector<uint8_t>& buffer);
-	bool WriteAllBytes(const std::wstring& filePath, const std::vector<uint8_t>& buffer);
+	bool WriteAllBytes(std::string_view filePath, const std::vector<uint8_t>& buffer);
+	bool WriteAllBytes(std::wstring_view filePath, const std::vector<uint8_t>& buffer);
 
-	bool ReadAllLines(const std::string& filePath, std::vector<std::string>* buffer);
-	bool ReadAllLines(const std::wstring& filePath, std::vector<std::wstring>* buffer);
+	bool ReadAllLines(std::string_view filePath, std::vector<std::string>* buffer);
+	bool ReadAllLines(std::wstring_view filePath, std::vector<std::wstring>* buffer);
 }

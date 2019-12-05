@@ -20,21 +20,20 @@ namespace Editor
 		context.Glow.SaturateCoefficient = 1.0f;
 
 		constexpr const char* lightFilePath = "dev_rom/light_param/light_tst.txt";
+		constexpr const char* iblFilePath = "dev_rom/ibl/tst007.ibl";
 
 		if (FileSystem::FileExists(lightFilePath))
 		{
 			std::vector<uint8_t> fileContent;
-			FileSystem::FileReader::ReadEntireFile({ lightFilePath }, &fileContent);
+			FileSystem::FileReader::ReadEntireFile(lightFilePath, &fileContent);
 
 			context.Light.Parse(fileContent.data());
 		}
 
-		constexpr const char* iblFilePath = "dev_rom/ibl/tst007.ibl";
-
 		if (FileSystem::FileExists(iblFilePath))
 		{
 			std::vector<uint8_t> fileContent;
-			FileSystem::FileReader::ReadEntireFile({ iblFilePath }, &fileContent);
+			FileSystem::FileReader::ReadEntireFile(iblFilePath, &fileContent);
 
 			context.IBL.Parse(fileContent.data());
 			context.IBL.UploadAll();
@@ -193,7 +192,12 @@ namespace Editor
 
 		auto directory = FileSystem::GetDirectory(filePath);
 		auto fileName = FileSystem::GetFileName(filePath, false);
-		std::string txpPath = directory + "/" + fileName.substr(0, fileName.size() - strlen("_obj")) + "_tex.bin";
+
+		std::string txpPath;
+		txpPath.append(directory);
+		txpPath.append("/");
+		txpPath.append(fileName.substr(0, fileName.size() - strlen("_obj")));
+		txpPath.append("_tex.bin");
 
 		if (!FileSystem::FileExists(txpPath))
 			return;

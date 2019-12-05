@@ -17,27 +17,27 @@ namespace Audio
 		return instance.get();
 	}
 
-	RefPtr<MemorySampleProvider> AudioDecoderFactory::DecodeFile(const std::string& filePath)
+	RefPtr<MemorySampleProvider> AudioDecoderFactory::DecodeFile(std::string_view filePath)
 	{
 		const std::wstring widePath = Utf8ToUtf16(filePath);
 		if (!FileSystem::FileExists(widePath))
 		{
-			Logger::LogErrorLine(__FUNCTION__"(): Input file %s not found", filePath.c_str());
+			Logger::LogErrorLine(__FUNCTION__"(): Input file %.*s not found", filePath.size(), filePath.data());
 			return nullptr;
 		}
 
-		const std::string extension = FileSystem::GetFileExtension(filePath);
+		auto extension = FileSystem::GetFileExtension(filePath);
 
 		for (auto& decoder : availableDecoders)
 		{
 			const char* decoderExtensions = decoder->GetFileExtensions();
-			if (!FileExtensionHelper::DoesAnyExtensionMatch(extension.c_str(), decoderExtensions))
+			if (!FileExtensionHelper::DoesAnyExtensionMatch(extension, decoderExtensions))
 				continue;
 
 			std::vector<uint8_t> fileContent;
 			if (!FileSystem::FileReader::ReadEntireFile(widePath, &fileContent))
 			{
-				Logger::LogErrorLine(__FUNCTION__"(): Unable to read input file %s", filePath.c_str());
+				Logger::LogErrorLine(__FUNCTION__"(): Unable to read input file %.*s", filePath.size(), filePath.data());
 				return nullptr;
 			}
 
@@ -54,7 +54,7 @@ namespace Audio
 			return sampleProvider;
 		}
 
-		Logger::LogErrorLine(__FUNCTION__"(): No compatible IAudioDecoder found for the input file %s", filePath.c_str());
+		Logger::LogErrorLine(__FUNCTION__"(): No compatible IAudioDecoder found for the input file %.*s", filePath.size(), filePath.data());
 		return nullptr;
 	}
 
