@@ -4,6 +4,12 @@ namespace Graphics
 {
 	namespace
 	{
+		void TryBindLightMap(LightMap& lightMap, int slot)
+		{
+			if (lightMap.CubeMap != nullptr)
+				lightMap.CubeMap->Bind(slot);
+		}
+
 		constexpr D3D11_PRIMITIVE_TOPOLOGY GetD3DPrimitiveTopolgy(PrimitiveType primitive)
 		{
 			switch (primitive)
@@ -206,6 +212,12 @@ namespace Graphics
 		sceneConstantBuffer.BindShaders();
 		objectConstantBuffer.BindShaders();
 
+		TryBindLightMap(sceneContext->IBL.Character.LightMap, 9);
+		TryBindLightMap(sceneContext->IBL.Sun.LightMap, 10);
+		TryBindLightMap(sceneContext->IBL.Reflect.LightMap, 11);
+		TryBindLightMap(sceneContext->IBL.Shadow.LightMap, 12);
+		TryBindLightMap(sceneContext->IBL.CharacterColor.LightMap, 13);
+
 		if (sceneContext->RenderParameters.Wireframe)
 			wireframeRasterizerState.Bind();
 
@@ -374,7 +386,7 @@ namespace Graphics
 		objectConstantBuffer.Data.Material.Specular = material.SpecularColor;
 		objectConstantBuffer.Data.Material.Reflectivity = material.Reflectivity;
 		objectConstantBuffer.Data.Material.Emission = material.EmissionColor;
-		objectConstantBuffer.Data.Material.Shininess = material.Shininess;
+		objectConstantBuffer.Data.Material.Shininess = (material.Shininess - 16.0f) / 112.0f;
 		objectConstantBuffer.Data.Material.Intensity = material.Intensity;
 		objectConstantBuffer.Data.Material.BumpDepth = material.BumpDepth;
 		objectConstantBuffer.Data.Material.DiffuseTextureTransform = glm::transpose(material.Diffuse.TextureCoordinateMatrix);
@@ -402,6 +414,12 @@ namespace Graphics
 
 		if (material.Flags.UseAmbientTexture || material.Ambient.TextureID != -1)
 			objectConstantBuffer.Data.ShaderFlags |= ShaderFlags_AmbientTexture;
+
+		if (material.Flags.UseNormalTexture || material.Normal.TextureID != -1)
+			objectConstantBuffer.Data.ShaderFlags |= ShaderFlags_NormalTexture;
+
+		if (material.Flags.UseSpecularTexture || material.Specular.TextureID != -1)
+			objectConstantBuffer.Data.ShaderFlags |= ShaderFlags_SpecularTexture;
 
 		if (material.BlendFlags.EnableAlphaTest)
 			objectConstantBuffer.Data.ShaderFlags |= ShaderFlags_AlphaTest;
@@ -481,6 +499,7 @@ namespace Graphics
 		CheckBindMaterialTexture(objSet, material.Diffuse, 0);
 		CheckBindMaterialTexture(objSet, material.Ambient, 1);
 		CheckBindMaterialTexture(objSet, material.Normal, 2);
+		CheckBindMaterialTexture(objSet, material.Specular, 3);
 		CheckBindMaterialTexture(objSet, material.Reflection, 5);
 
 		if (!sceneContext->RenderParameters.Wireframe)

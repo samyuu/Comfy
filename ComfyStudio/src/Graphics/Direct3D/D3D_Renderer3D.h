@@ -20,8 +20,10 @@ namespace Graphics
 		ShaderFlags_VertexColor = 1 << 0,
 		ShaderFlags_DiffuseTexture = 1 << 1,
 		ShaderFlags_AmbientTexture = 1 << 2,
-		ShaderFlags_AlphaTest = 1 << 3,
-		ShaderFlags_CubeMapReflection = 1 << 4,
+		ShaderFlags_NormalTexture = 1 << 3,
+		ShaderFlags_SpecularTexture = 1 << 4,
+		ShaderFlags_AlphaTest = 1 << 5,
+		ShaderFlags_CubeMapReflection = 1 << 6,
 	};
 
 	struct SceneConstantData

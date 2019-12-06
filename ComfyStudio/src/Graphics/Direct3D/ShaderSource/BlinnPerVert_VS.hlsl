@@ -43,17 +43,17 @@ VS_OUTPUT VS_main(VS_INPUT input)
 	float3 diff = mad(lc.y, CB_Scene.LightColor.rgb, diffuse.rgb);
 	float3 spec = lc.z * CB_Scene.StageLight.Specular.rgb;
 
-    output.ColorSecondary = float4(spec * CB_Material.Specular.rgb, 1.0);
+    const float3 lit_spec = float3(24.190920, 17.838573, 4.641884); // (???)
+    output.ColorSecondary = float4(spec * lit_spec * CB_Scene.LightColor.rgb, 1.0);
     
     if (CB_ShaderFlags & ShaderFlags_VertexColor)
         output.Color *= input.Color;
     
-    if (CB_ShaderFlags & ShaderFlags_CubeMapReflection)
-    {
-        float3 eyeDirection = normalize(input.Position.xyz - CB_Scene.EyePosition.xyz);
-        output.Reflection.xyz = reflect(eyeDirection, output.Normal);
-        output.Reflection.w = 1.0 - CB_Material.Shininess;
-    }
+    //output.Color.rgb *= spec;
+    
+    float3 eyeDirection = normalize(input.Position.xyz - CB_Scene.EyePosition.xyz);
+    output.Reflection.xyz = reflect(eyeDirection, output.Normal);
+    output.Reflection.w = 1.0 - CB_Material.Shininess;
     
     return output;
 }
