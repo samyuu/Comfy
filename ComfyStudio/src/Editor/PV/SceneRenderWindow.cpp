@@ -1,8 +1,6 @@
 #include "SceneRenderWindow.h"
 #include "FileSystem/FileHelper.h"
 #include "Input/KeyCode.h"
-#include "Core/ComfyData.h"
-#include "Core/TimeSpan.h"
 #include "Misc/StringHelper.h"
 #include <FontIcons.h>
 
@@ -10,33 +8,41 @@ namespace Editor
 {
 	using namespace Graphics;
 
+	template <typename T>
+	void LoadParseUploadLightParamFile(std::string_view filePath, T& param)
+	{
+		if (!FileSystem::FileExists(filePath))
+			return;
+
+		std::vector<uint8_t> fileContent;
+		FileSystem::FileReader::ReadEntireFile(filePath, &fileContent);
+
+		param.Parse(fileContent.data());
+
+		if constexpr (std::is_same<T, LightDataIBL>::value)
+			param.UploadAll();
+	}
+
 	SceneRenderWindow::SceneRenderWindow(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
 		renderer3D = MakeUnique<D3D_Renderer3D>();
 
-		struct LightDataPaths
+		struct LightParamPaths
 		{
 			std::string_view Glow, Light, IBL;
 		} paths = { "dev_rom/light_param/glow_tst.txt", "dev_rom/light_param/light_tst.txt", "dev_rom/ibl/tst007.ibl" };
 
-		if (FileSystem::FileExists(paths.Glow))
-		{
-			std::vector<uint8_t> fileContent; FileSystem::FileReader::ReadEntireFile(paths.Glow, &fileContent);
-			context.Glow.Parse(fileContent.data());
-		}
+		LoadParseUploadLightParamFile(paths.Glow, context.Glow);
+		LoadParseUploadLightParamFile(paths.Light, context.Light);
+		LoadParseUploadLightParamFile(paths.IBL, context.IBL);
 
-		if (FileSystem::FileExists(paths.Light))
-		{
-			std::vector<uint8_t> fileContent; FileSystem::FileReader::ReadEntireFile(paths.Light, &fileContent);
-			context.Light.Parse(fileContent.data());
-		}
 
-		if (FileSystem::FileExists(paths.IBL))
-		{
-			std::vector<uint8_t> fileContent; FileSystem::FileReader::ReadEntireFile(paths.IBL, &fileContent);
-			context.IBL.Parse(fileContent.data());
-			context.IBL.UploadAll();
-		}
+#if 0 // DEBUG:
+		context.Camera.FieldOfView = 70.0f;
+		context.Camera.Position = vec3(-1.0f, 0.5f, 1.5f);
+		cameraController.TargetCameraPitch = -5.0f;
+		cameraController.TargetCameraYaw = -50.0f;
+#endif
 	}
 
 	SceneRenderWindow::~SceneRenderWindow()
@@ -141,6 +147,27 @@ namespace Editor
 			Gui::Checkbox("Alpha Sort", &context.RenderParameters.AlphaSort);
 			Gui::Checkbox("Render Opaque", &context.RenderParameters.RenderOpaque);
 			Gui::Checkbox("Render Transparent", &context.RenderParameters.RenderTransparent);
+
+			if (Gui::CollapsingHeader("Resolution"))
+			{
+				auto clampSize = [](ivec2 size) { return glm::clamp(size, ivec2(1, 1), ivec2(16384, 16384)); };
+
+				static ivec2 customResolution = { 1, 1 };
+
+				if (Gui::InputInt2("Custom Resolution", glm::value_ptr(customResolution)))
+					customResolution = clampSize(customResolution);
+
+				if (Gui::Button("Render Region x1")) customResolution = (clampSize(vec2(GetRenderRegion().GetSize()) * 1.0f));
+				if (Gui::Button("Render Region x2")) customResolution = (clampSize(vec2(GetRenderRegion().GetSize()) * 2.0f));
+				if (Gui::Button("Render Region x4")) customResolution = (clampSize(vec2(GetRenderRegion().GetSize()) * 4.0f));
+				if (Gui::Button("Render Region x8")) customResolution = (clampSize(vec2(GetRenderRegion().GetSize()) * 8.0f));
+				if (Gui::Button("Render Region x16")) customResolution = (clampSize(vec2(GetRenderRegion().GetSize()) * 16.0f));
+				if (Gui::Button("Render Region x32")) customResolution = (clampSize(vec2(GetRenderRegion().GetSize()) * 32.0f));
+
+				if (Gui::Button("Resize Custom"))
+					context.Resize(customResolution);
+			}
+
 			Gui::PopID();
 		}
 
@@ -182,6 +209,64 @@ namespace Editor
 			}
 
 			Gui::EndChild();
+		}
+
+		if (Gui::CollapsingHeader("Material Test", ImGuiTreeNodeFlags_None))
+		{
+			if (objSet != nullptr)
+			{
+				Gui::PushID(objSet.get());
+
+				auto getMaterialObjName = [&](int index) { return (index < 0 || index > objSet->size()) ? "None" : objSet->GetObjAt(index)->Name.c_str(); };
+				auto getMaterialName = [](Obj* obj, int index) { return (obj == nullptr || index < 0 || index > obj->Materials.size()) ? "None" : obj->Materials[index].Name; };
+
+				if (Gui::ComfyBeginCombo("Object", getMaterialObjName(materialObjIndex), ImGuiComboFlags_HeightLarge))
+				{
+					for (int objIndex = 0; objIndex < static_cast<int>(objSet->size()); objIndex++)
+					{
+						if (Gui::Selectable(getMaterialObjName(objIndex), (objIndex == materialObjIndex)))
+							materialObjIndex = objIndex;
+
+						if (objIndex == materialObjIndex)
+							Gui::SetItemDefaultFocus();
+					}
+
+					Gui::ComfyEndCombo();
+				}
+
+				Obj* matObj = (materialObjIndex >= 0 && materialObjIndex < objSet->size()) ? objSet->GetObjAt(materialObjIndex) : nullptr;
+				if (Gui::ComfyBeginCombo("Material", getMaterialName(matObj, materialIndex), ImGuiComboFlags_HeightLarge))
+				{
+					if (matObj != nullptr)
+					{
+						for (int matIndex = 0; matIndex < static_cast<int>(matObj->Materials.size()); matIndex++)
+						{
+							if (Gui::Selectable(getMaterialName(matObj, matIndex), (matIndex == materialIndex)))
+								materialIndex = matIndex;
+
+							if (matIndex == materialIndex)
+								Gui::SetItemDefaultFocus();
+						}
+					}
+
+					Gui::ComfyEndCombo();
+				}
+
+				Material* material = (matObj != nullptr&& materialIndex >= 0 && materialIndex < matObj->Materials.size()) ? &matObj->Materials[materialIndex] : nullptr;
+
+				if (material != nullptr)
+				{
+					Gui::ColorEdit3("Diffuse", glm::value_ptr(material->DiffuseColor), ImGuiColorEditFlags_Float);
+					Gui::DragFloat("Transparency", &material->Transparency);
+					Gui::ColorEdit3("Specular", glm::value_ptr(material->SpecularColor), ImGuiColorEditFlags_Float);
+					Gui::DragFloat("Reflectivity", &material->Reflectivity);
+					Gui::DragFloat("Shininess", &material->Shininess);
+					Gui::ColorEdit3("Ambient", glm::value_ptr(material->AmbientColor), ImGuiColorEditFlags_Float);
+					Gui::ColorEdit3("Emission", glm::value_ptr(material->EmissionColor), ImGuiColorEditFlags_Float);
+				}
+
+				Gui::PopID();
+			}
 		}
 	}
 

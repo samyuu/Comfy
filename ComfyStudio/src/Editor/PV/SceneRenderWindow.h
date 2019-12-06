@@ -55,6 +55,7 @@ namespace Editor
 		Gui::FileViewer objFileViewer = { "dev_rom/objset/" };
 
 		int objectIndex = -1;
+		int materialObjIndex = 0, materialIndex = 0;
 		UniquePtr<Graphics::ObjSet> objSet = nullptr;
 
 		UniquePtr<Graphics::D3D_Renderer3D> renderer3D;
