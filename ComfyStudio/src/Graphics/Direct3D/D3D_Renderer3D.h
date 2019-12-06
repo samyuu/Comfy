@@ -119,6 +119,7 @@ namespace Graphics
 		void InternalRenderItems();
 		void InternalRenderOpaqueObjCommand(ObjRenderCommand& command);
 		void InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command);
+		void InternalRenderWireframeOverlay();
 		void InternalRenderPostProcessing();
 
 		void BindMeshVertexBuffers(Mesh& mesh);

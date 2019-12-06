@@ -227,6 +227,9 @@ namespace Graphics
 				InternalRenderOpaqueObjCommand(command);
 		}
 
+		if (sceneContext->RenderParameters.WireframeOverlay)
+			InternalRenderWireframeOverlay();
+
 		if (sceneContext->RenderParameters.RenderTransparent)
 		{
 			transparencyPassDepthStencilState.Bind();
@@ -273,6 +276,25 @@ namespace Graphics
 		UpdateObjectConstantBuffer(*command.ObjCommand, mesh, material, command.ObjCommand->Transform);
 		UpdateSubMeshShaderState(subMesh, material, command.ObjCommand->ObjSet);
 		SubmitSubMeshDrawCall(subMesh);
+	}
+
+	void D3D_Renderer3D::InternalRenderWireframeOverlay()
+	{
+		wireframeRasterizerState.Bind();
+		shaders.Test.Bind();
+
+		for (auto& command : renderCommandList)
+		{
+			for (auto& mesh : command.Obj->Meshes)
+			{
+				BindMeshVertexBuffers(mesh);
+				for (auto& subMesh : mesh.SubMeshes)
+				{
+					UpdateObjectConstantBuffer(command, mesh, command.Obj->Materials[subMesh.MaterialIndex], command.Transform);
+					SubmitSubMeshDrawCall(subMesh);
+				}
+			}
+		}
 	}
 
 	void D3D_Renderer3D::InternalRenderPostProcessing()

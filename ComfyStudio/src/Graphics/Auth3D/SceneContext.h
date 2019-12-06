@@ -11,6 +11,7 @@ namespace Graphics
 	struct RenderParameters
 	{
 		bool Wireframe = false;
+		bool WireframeOverlay = false;
 		bool AlphaSort = true;
 		bool RenderOpaque = true;
 		bool RenderTransparent = true;

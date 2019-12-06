@@ -137,6 +137,7 @@ namespace Editor
 			Gui::PushID(&context.RenderParameters);
 			Gui::Checkbox("Clear", &context.RenderParameters.Clear);
 			Gui::Checkbox("Wireframe", &context.RenderParameters.Wireframe);
+			Gui::Checkbox("Wireframe Overlay", &context.RenderParameters.WireframeOverlay);
 			Gui::Checkbox("Alpha Sort", &context.RenderParameters.AlphaSort);
 			Gui::Checkbox("Render Opaque", &context.RenderParameters.RenderOpaque);
 			Gui::Checkbox("Render Transparent", &context.RenderParameters.RenderTransparent);
