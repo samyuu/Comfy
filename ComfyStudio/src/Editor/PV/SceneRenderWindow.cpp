@@ -220,7 +220,7 @@ namespace Editor
 				auto getMaterialObjName = [&](int index) { return (index < 0 || index > objSet->size()) ? "None" : objSet->GetObjAt(index)->Name.c_str(); };
 				auto getMaterialName = [](Obj* obj, int index) { return (obj == nullptr || index < 0 || index > obj->Materials.size()) ? "None" : obj->Materials[index].Name; };
 
-				if (Gui::ComfyBeginCombo("Object", getMaterialObjName(materialObjIndex), ImGuiComboFlags_HeightLarge))
+				if (Gui::BeginCombo("Object", getMaterialObjName(materialObjIndex), ImGuiComboFlags_HeightLarge))
 				{
 					for (int objIndex = 0; objIndex < static_cast<int>(objSet->size()); objIndex++)
 					{
@@ -235,7 +235,7 @@ namespace Editor
 				}
 
 				Obj* matObj = (materialObjIndex >= 0 && materialObjIndex < objSet->size()) ? objSet->GetObjAt(materialObjIndex) : nullptr;
-				if (Gui::ComfyBeginCombo("Material", getMaterialName(matObj, materialIndex), ImGuiComboFlags_HeightLarge))
+				if (Gui::BeginCombo("Material", getMaterialName(matObj, materialIndex), ImGuiComboFlags_HeightLarge))
 				{
 					if (matObj != nullptr)
 					{
@@ -249,7 +249,7 @@ namespace Editor
 						}
 					}
 
-					Gui::ComfyEndCombo();
+					Gui::EndCombo();
 				}
 
 				Material* material = (matObj != nullptr&& materialIndex >= 0 && materialIndex < matObj->Materials.size()) ? &matObj->Materials[materialIndex] : nullptr;
@@ -263,6 +263,7 @@ namespace Editor
 					Gui::DragFloat("Shininess", &material->Shininess);
 					Gui::ColorEdit3("Ambient", glm::value_ptr(material->AmbientColor), ImGuiColorEditFlags_Float);
 					Gui::ColorEdit3("Emission", glm::value_ptr(material->EmissionColor), ImGuiColorEditFlags_Float);
+					Gui::InputText("Shader", material->Shader, sizeof(material->Shader), ImGuiInputTextFlags_ReadOnly);
 				}
 
 				Gui::PopID();
