@@ -852,8 +852,6 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Sprite_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ImGui_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ImGui_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Constant_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Constant_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Lambert_PS.hlsl" />
@@ -874,5 +872,17 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\TextureFormats.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\UncompressRGTC.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\TextureInputs.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Water_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Water_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\BlinnPerFrag_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\BlinnPerFrag_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Debug_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Debug_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\StageBlinn_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ItemBlinn_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ItemBlinn_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\StageBlinn_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\SkyDefault_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\SkyDefault_PS.hlsl" />
   </ItemGroup>
 </Project>

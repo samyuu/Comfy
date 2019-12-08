@@ -17,6 +17,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     
     float3 spec;
     
+    // TODO: Cube map + specular texture (?)
     if (CB_ShaderFlags & ShaderFlags_CubeMapReflection)
     {
         const float4 reflectionTexColor = ReflectionCubeMap.Sample(ReflectionSampler, input.Reflection.xyz);
@@ -44,5 +45,9 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     float4 outputColor;
     outputColor.rgb = mad(input.Color.rgb, (diffuseTexColor.rgb * ambientTexColor.rgb), spec.rgb);
     outputColor.a = diffuseTexColor.a;
+    
+    if (CB_ShaderFlags & ShaderFlags_AlphaTest)
+        ClipAlphaThreshold(outputColor.a);
+        
     return outputColor;
 }

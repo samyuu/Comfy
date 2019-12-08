@@ -136,10 +136,16 @@ namespace Graphics
 	private:
 		struct ShaderPairs
 		{
-			D3D_ShaderPair Test = { Test_VS(), Test_PS() };
+			D3D_ShaderPair Debug = { Debug_VS(), Debug_PS() };
 			D3D_ShaderPair Constant = { Constant_VS(), Constant_PS() };
 			D3D_ShaderPair Lambert = { Lambert_VS(), Lambert_PS() };
-			D3D_ShaderPair BlinnPerVertex = { BlinnPerVert_VS(), BlinnPerVert_PS() };
+			D3D_ShaderPair BlinnPerVert = { BlinnPerVert_VS(), BlinnPerVert_PS() };
+			D3D_ShaderPair BlinnPerFrag = { BlinnPerFrag_VS(), BlinnPerFrag_PS() };
+			D3D_ShaderPair StageBlinn = { StageBlinn_VS(), StageBlinn_PS() };
+			D3D_ShaderPair ItemBlinn = { ItemBlinn_VS(), ItemBlinn_PS() };
+			D3D_ShaderPair SkyDefault = { SkyDefault_VS(), SkyDefault_PS() };
+			D3D_ShaderPair Water = { Water_VS(), Water_PS() };
+
 			D3D_ShaderPair ToneMap = { ToneMap_VS(), ToneMap_PS() };
 		} shaders;
 

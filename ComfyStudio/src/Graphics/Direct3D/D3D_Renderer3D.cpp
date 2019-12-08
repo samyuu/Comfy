@@ -126,7 +126,7 @@ namespace Graphics
 			{ "COLOR",		1, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, VertexAttribute_Color1 },
 		};
 
-		genericInputLayout = MakeUnique<D3D_InputLayout>(elements, std::size(elements), shaders.Test.VS);
+		genericInputLayout = MakeUnique<D3D_InputLayout>(elements, std::size(elements), shaders.Debug.VS);
 	}
 
 	void D3D_Renderer3D::Begin(SceneContext& scene)
@@ -293,7 +293,7 @@ namespace Graphics
 	void D3D_Renderer3D::InternalRenderWireframeOverlay()
 	{
 		wireframeRasterizerState.Bind();
-		shaders.Test.Bind();
+		shaders.Debug.Bind();
 
 		for (auto& command : renderCommandList)
 		{
@@ -441,7 +441,7 @@ namespace Graphics
 		{
 			if (material.ShaderFlags.LightingModel_Phong)
 			{
-				return shaders.BlinnPerVertex;
+				return (material.Flags.UseNormalTexture) ? shaders.BlinnPerFrag : shaders.BlinnPerVert;
 			}
 			else if (material.ShaderFlags.LightingModel_Lambert)
 			{
@@ -452,9 +452,25 @@ namespace Graphics
 				return shaders.Constant;
 			}
 		}
+		else if (std::strcmp(material.Shader, "STAGE") == 0)
+		{
+			return shaders.StageBlinn;
+		}
+		else if (std::strcmp(material.Shader, "ITEM") == 0)
+		{
+			return shaders.ItemBlinn;
+		}
+		else if (std::strcmp(material.Shader, "SKY") == 0)
+		{
+			return shaders.SkyDefault;
+		}
+		else if (std::strcmp(material.Shader, "WATER01") == 0 || std::strcmp(material.Shader, "WATER02") == 0)
+		{
+			return shaders.Water;
+		}
 		else
 		{
-			return shaders.Test;
+			return shaders.Debug;
 		}
 	}
 
@@ -541,13 +557,14 @@ namespace Graphics
 
 	void D3D_Renderer3D::ToneMapData::GenerateLookupData()
 	{
+		const float pixelCount = static_cast<float>(TextureData.size());
 		const float gammaPower = 1.0f * Glow.Gamma * 1.5f;
 		const int saturatePowerCount = Glow.SaturatePower * 4;
 
 		TextureData[0] = vec2(0.0f, 0.0f);
 		for (int i = 1; i < static_cast<int>(TextureData.size()); i++)
 		{
-			const float step = (static_cast<float>(i) * 16.0f) * (1.0f / 512.0f);
+			const float step = (static_cast<float>(i) * 16.0f) / pixelCount;
 			const float gamma = glm::pow((1.0f - glm::exp(-step)), gammaPower);
 
 			float saturation = (gamma * 2.0f) - 1.0f;

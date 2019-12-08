@@ -6,9 +6,9 @@
 static const float GRAYSCALE_MIPMAP = 0.0;
 static const float LUMINANCE_MIPMAP = 1.0;
 
-static const float3 RED_COEF = { +1.5748, 1.0, +0.0000 };
-static const float3 GRN_COEF = { -0.4681, 1.0, -0.1873 };
-static const float3 BLU_COEF = { +0.0000, 1.0, +1.8556 };
+static const float3 RED_COEF = { +1.5748, +1.0, +0.0000 };
+static const float3 GRN_COEF = { -0.4681, +1.0, -0.1873 };
+static const float3 BLU_COEF = { +0.0000, +1.0, +1.8556 };
 
 static const float LUMINANCE_FACTOR = 1.003922;
 static const float LUMINANCE_OFFSET = 0.503929;

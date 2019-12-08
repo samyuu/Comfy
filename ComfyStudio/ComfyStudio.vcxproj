@@ -445,6 +445,22 @@
     <Image Include="res\ComfyIcon.ico" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\BlinnPerFrag_PS.hlsl">
+      <SubType>
+      </SubType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\BlinnPerFrag_VS.hlsl">
+      <SubType>
+      </SubType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\BlendModes.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
@@ -482,6 +498,54 @@
       </SubType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ItemBlinn_PS.hlsl">
+      <SubType>
+      </SubType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ItemBlinn_VS.hlsl">
+      <SubType>
+      </SubType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\SkyDefault_PS.hlsl">
+      <SubType>
+      </SubType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\SkyDefault_VS.hlsl">
+      <SubType>
+      </SubType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\StageBlinn_PS.hlsl">
+      <SubType>
+      </SubType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\StageBlinn_VS.hlsl">
+      <SubType>
+      </SubType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ToneMap_PS.hlsl">
       <SubType>
@@ -573,7 +637,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">XX_main</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XX_main</EntryPointName>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Debug_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -585,7 +649,7 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </DeploymentContent>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Test_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Debug_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -608,6 +672,22 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\ShaderFlags.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Water_PS.hlsl">
+      <SubType>
+      </SubType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Water_VS.hlsl">
+      <SubType>
+      </SubType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

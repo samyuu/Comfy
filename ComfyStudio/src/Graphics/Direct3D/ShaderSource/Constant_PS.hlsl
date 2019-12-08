@@ -13,5 +13,8 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     if (CB_ShaderFlags & ShaderFlags_AmbientTexture)
         outputColor *= SampleAmbientTexture(AmbientTexture, AmbientSampler, input.TexCoordAmbient, AmbientTextureType);
     
+    if (CB_ShaderFlags & ShaderFlags_AlphaTest)
+        ClipAlphaThreshold(outputColor.a);
+        
     return outputColor * input.Color;
 }
