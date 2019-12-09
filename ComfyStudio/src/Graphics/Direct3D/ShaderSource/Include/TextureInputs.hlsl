@@ -19,7 +19,7 @@ Texture2D SpecularTexture       : register(t3);
 
 TextureCube ReflectionCubeMap   : register(t5);
 
-TextureCube CharacterLightMap   : register(t9);  // Unused
+TextureCube CharacterLightMap   : register(t9);
 TextureCube SunLightMap         : register(t10);
 TextureCube ReflectLightMap     : register(t11);
 TextureCube ShadowLightMap      : register(t12); // Unused

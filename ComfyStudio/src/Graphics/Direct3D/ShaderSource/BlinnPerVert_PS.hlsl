@@ -44,7 +44,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     
     float4 outputColor;
     outputColor.rgb = mad(input.Color.rgb, (diffuseTexColor.rgb * ambientTexColor.rgb), spec.rgb);
-    outputColor.a = diffuseTexColor.a;
+    outputColor.a = diffuseTexColor.a * input.Color.a;
     
     if (CB_ShaderFlags & ShaderFlags_AlphaTest)
         ClipAlphaThreshold(outputColor.a);

@@ -23,7 +23,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     
     output.Color = float4(mad(diffuse, CB_Scene.LightColor.rgb, irradiance * CB_Scene.StageLight.Diffuse.rgb), 1.0);
  
-	float3 pos_v = mul(transpose(CB_Scene.View), input.Position).xyz;
+    float3 pos_v = mul(input.Position, CB_Scene.View).xyz;
    
 	float3 eye_w = mul((float3x3)CB_Scene.View, -(rsqrt(dot(pos_v, pos_v)) * pos_v)).xyz;
 
@@ -48,8 +48,6 @@ VS_OUTPUT VS_main(VS_INPUT input)
     
     if (CB_ShaderFlags & ShaderFlags_VertexColor)
         output.Color *= input.Color;
-    
-    //output.Color.rgb *= spec;
     
     float3 eyeDirection = normalize(input.Position.xyz - CB_Scene.EyePosition.xyz);
     output.Reflection.xyz = reflect(eyeDirection, output.Normal);
