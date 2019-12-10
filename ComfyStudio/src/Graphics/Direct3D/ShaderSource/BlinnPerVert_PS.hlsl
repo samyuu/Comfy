@@ -15,22 +15,13 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     const float4 ambientTexColor = (CB_ShaderFlags & ShaderFlags_AmbientTexture) ?
         SampleAmbientTexture(AmbientTexture, AmbientSampler, input.TexCoordAmbient, AmbientTextureType) : float4(1.0, 1.0, 1.0, 1.0);
     
-    float3 spec;
+    const float4 texColor = (diffuseTexColor * ambientTexColor);
     
-    // TODO: Cube map + specular texture (?)
+    float3 spec = float3(1.0, 1.0, 1.0);
+    
     if (CB_ShaderFlags & ShaderFlags_CubeMapReflection)
     {
-        const float4 reflectionTexColor = ReflectionCubeMap.Sample(ReflectionSampler, input.Reflection.xyz);
-        
-        spec = reflectionTexColor.rgb * CB_Material.Reflectivity * CB_Scene.StageLight.Specular.w;
-    }
-    else if (CB_ShaderFlags & ShaderFlags_SpecularTexture)
-    {
-        const float4 specTexColor = SpecularTexture.Sample(SpecularSampler, input.TexCoord);
-        
-        spec = mad(specTexColor.rgb, input.Color.rgb, input.ColorSecondary.rgb * specTexColor.rgb);
-        
-        return float4(spec, 1.0);
+        spec = ReflectionCubeMap.Sample(ReflectionSampler, input.Reflection.xyz).rgb;
     }
     else
     {
@@ -40,11 +31,15 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
         spec = lerp(sunLightMapColor.rgb, reflectLightMapColor.rgb, input.Reflection.w);
     }
     
-    spec *= CB_Material.Specular * CB_Scene.StageLight.Specular.rgb;
+    if (CB_ShaderFlags & ShaderFlags_SpecularTexture)
+        spec *= SpecularTexture.Sample(SpecularSampler, input.TexCoord).rgb;
+        
+    spec *= CB_Material.Reflectivity * CB_Scene.StageLight.Specular.w;
+    spec *= CB_Material.Specular.rgb * CB_Scene.StageLight.Specular.rgb;
     
     float4 outputColor;
-    outputColor.rgb = mad(input.Color.rgb, (diffuseTexColor.rgb * ambientTexColor.rgb), spec.rgb);
-    outputColor.a = diffuseTexColor.a * input.Color.a;
+    outputColor.rgb = mad(input.Color.rgb, texColor.rgb, spec.rgb);
+    outputColor.a = texColor.a; // * input.Color.a
     
     if (CB_ShaderFlags & ShaderFlags_AlphaTest)
         ClipAlphaThreshold(outputColor.a);

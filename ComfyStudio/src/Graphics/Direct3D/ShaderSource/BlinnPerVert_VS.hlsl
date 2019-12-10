@@ -43,7 +43,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
 	float3 diff = mad(lc.y, CB_Scene.LightColor.rgb, diffuse.rgb);
 	float3 spec = lc.z * CB_Scene.StageLight.Specular.rgb;
 
-    const float3 lit_spec = float3(24.190920, 17.838573, 4.641884); // (???)
+    const float3 lit_spec = (CB_Scene.StageLight.Specular.rgb * CB_Scene.LightColor.rgb) * (1.0 / (1.0 - cos(PI / 10.0)));
     output.ColorSecondary = float4(spec * lit_spec * CB_Scene.LightColor.rgb, 1.0);
     
     if (CB_ShaderFlags & ShaderFlags_VertexColor)
