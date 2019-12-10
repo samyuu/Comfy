@@ -267,9 +267,7 @@ namespace Graphics
 				if (IsTransparent(command.ObjSet, mesh, material))
 					continue;
 
-				UpdateSubMeshShaderState(subMesh, material, command.ObjSet);
-				UpdateObjectConstantBuffer(command, mesh, material, command.Transform);
-				SubmitSubMeshDrawCall(subMesh);
+				PrepareAndRenderSubMesh(command, mesh, subMesh, material, command.Transform);
 			}
 		}
 	}
@@ -285,9 +283,7 @@ namespace Graphics
 		auto blendState = CreateMaterialBlendState(material);
 		blendState.Bind();
 
-		UpdateObjectConstantBuffer(*command.ObjCommand, mesh, material, command.ObjCommand->Transform);
-		UpdateSubMeshShaderState(subMesh, material, command.ObjCommand->ObjSet);
-		SubmitSubMeshDrawCall(subMesh);
+		PrepareAndRenderSubMesh(*command.ObjCommand, mesh, subMesh, material, command.ObjCommand->Transform);
 	}
 
 	void D3D_Renderer3D::InternalRenderWireframeOverlay()
@@ -301,10 +297,7 @@ namespace Graphics
 			{
 				BindMeshVertexBuffers(mesh);
 				for (auto& subMesh : mesh.SubMeshes)
-				{
-					UpdateObjectConstantBuffer(command, mesh, command.Obj->Materials[subMesh.MaterialIndex], command.Transform);
-					SubmitSubMeshDrawCall(subMesh);
-				}
+					PrepareAndRenderSubMesh(command, mesh, subMesh, command.Obj->Materials[subMesh.MaterialIndex], command.Transform);
 			}
 		}
 	}
@@ -378,8 +371,21 @@ namespace Graphics
 		D3D.Context->IASetVertexBuffers(0, VertexAttribute_Count, buffers.data(), strides.data(), offsets.data());
 	}
 
-	void D3D_Renderer3D::UpdateObjectConstantBuffer(ObjRenderCommand& command, Mesh& mesh, Material& material, const mat4& model)
+	void D3D_Renderer3D::PrepareAndRenderSubMesh(ObjRenderCommand& command, Mesh& mesh, SubMesh& subMesh, Material& material, const mat4& model)
 	{
+		auto& materialShader = GetMaterialShader(material);
+		materialShader.Bind();
+
+		ObjSet* objSet = command.ObjSet;
+		CheckBindMaterialTexture(objSet, material.Diffuse, 0, objectConstantBuffer.Data.TextureFormats.Diffuse);
+		CheckBindMaterialTexture(objSet, material.Ambient, 1, objectConstantBuffer.Data.TextureFormats.Ambient);
+		CheckBindMaterialTexture(objSet, material.Normal, 2, objectConstantBuffer.Data.TextureFormats.Normal);
+		CheckBindMaterialTexture(objSet, material.Specular, 3, objectConstantBuffer.Data.TextureFormats.Specular);
+		CheckBindMaterialTexture(objSet, material.Reflection, 5, objectConstantBuffer.Data.TextureFormats.Reflection);
+
+		if (!sceneContext->RenderParameters.Wireframe)
+			((material.BlendFlags.DoubleSidedness != DoubleSidedness_Off) ? solidNoCullingRasterizerState : solidBackfaceCullingRasterizerState).Bind();
+
 		objectConstantBuffer.Data.Material.Diffuse = material.DiffuseColor;
 		objectConstantBuffer.Data.Material.Transparency = material.Transparency;
 		objectConstantBuffer.Data.Material.Ambient = material.AmbientColor;
@@ -421,13 +427,15 @@ namespace Graphics
 		if (material.Flags.UseSpecularTexture || material.Specular.TextureID != -1)
 			objectConstantBuffer.Data.ShaderFlags |= ShaderFlags_SpecularTexture;
 
-		if (material.BlendFlags.EnableAlphaTest)
+		if (material.BlendFlags.EnableAlphaTest && !(material.BlendFlags.EnableBlend || mesh.Flags.Transparent))
 			objectConstantBuffer.Data.ShaderFlags |= ShaderFlags_AlphaTest;
 
 		if (material.Flags.UseCubeMapReflection || material.Reflection.TextureID != -1)
 			objectConstantBuffer.Data.ShaderFlags |= ShaderFlags_CubeMapReflection;
 
 		objectConstantBuffer.UploadData();
+
+		SubmitSubMeshDrawCall(subMesh);
 	}
 
 	D3D_BlendState D3D_Renderer3D::CreateMaterialBlendState(Material& material)
@@ -487,7 +495,7 @@ namespace Graphics
 		};
 	}
 
-	void D3D_Renderer3D::CheckBindMaterialTexture(ObjSet* objSet, MaterialTexture& materialTexture, int slot)
+	void D3D_Renderer3D::CheckBindMaterialTexture(ObjSet* objSet, MaterialTexture& materialTexture, int slot, TextureFormat& constantBufferTextureFormat)
 	{
 		const Txp* txp = FindObjSetTxpFromID(objSet, materialTexture.TextureID);
 
@@ -495,33 +503,24 @@ namespace Graphics
 		{
 			ID3D11ShaderResourceView* resourceView = nullptr;
 			D3D.Context->PSSetShaderResources(slot, 1, &resourceView);
+
+			constantBufferTextureFormat = TextureFormat::Unknown;
 			return;
 		}
 
 		if (txp->Texture2D != nullptr)
+		{
+			constantBufferTextureFormat = txp->Texture2D->GetTextureFormat();
 			txp->Texture2D->Bind(slot);
+		}
 		else if (txp->CubeMap != nullptr)
+		{
+			constantBufferTextureFormat = txp->CubeMap->GetTextureFormat();
 			txp->CubeMap->Bind(slot);
+		}
 
 		auto sampler = CreateTextureSampler(materialTexture);
 		sampler.Bind(slot);
-	}
-
-	void D3D_Renderer3D::UpdateSubMeshShaderState(SubMesh& subMesh, Material& material, ObjSet* objSet)
-	{
-		auto& materialShader = GetMaterialShader(material);
-		materialShader.Bind();
-
-		CheckBindMaterialTexture(objSet, material.Diffuse, 0);
-		CheckBindMaterialTexture(objSet, material.Ambient, 1);
-		CheckBindMaterialTexture(objSet, material.Normal, 2);
-		CheckBindMaterialTexture(objSet, material.Specular, 3);
-		CheckBindMaterialTexture(objSet, material.Reflection, 5);
-
-		if (!sceneContext->RenderParameters.Wireframe)
-		{
-			((material.BlendFlags.DoubleSidedness != DoubleSidedness_Off) ? solidNoCullingRasterizerState : solidBackfaceCullingRasterizerState).Bind();
-		}
 	}
 
 	void D3D_Renderer3D::SubmitSubMeshDrawCall(SubMesh& subMesh)

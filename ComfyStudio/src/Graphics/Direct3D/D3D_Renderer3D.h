@@ -69,7 +69,18 @@ namespace Graphics
 			float BumpDepth;
 		} Material;
 		uint32_t ShaderFlags;
-		float Padding[12];
+		struct TextureFormats
+		{
+			TextureFormat Diffuse;
+			TextureFormat Ambient;
+			TextureFormat Normal;
+			TextureFormat Specular;
+			TextureFormat ToonCurve;
+			TextureFormat Reflection;
+			TextureFormat Tangent;
+			TextureFormat Reserved;
+		} TextureFormats;
+		float Padding[4];
 	};
 
 	struct PostProcessConstantData
@@ -125,12 +136,11 @@ namespace Graphics
 		void InternalRenderPostProcessing();
 
 		void BindMeshVertexBuffers(Mesh& mesh);
-		void UpdateObjectConstantBuffer(ObjRenderCommand& command, Mesh& mesh, Material& material, const mat4& model);
+		void PrepareAndRenderSubMesh(ObjRenderCommand& command, Mesh& mesh, SubMesh& subMesh, Material& material, const mat4& model);
 		D3D_BlendState CreateMaterialBlendState(Material& material);
 		D3D_ShaderPair& GetMaterialShader(Material& material);
 		D3D_TextureSampler CreateTextureSampler(MaterialTexture& materialTexture);
-		void CheckBindMaterialTexture(ObjSet* objSet, MaterialTexture& materialTexture, int slot);
-		void UpdateSubMeshShaderState(SubMesh& subMesh, Material& material, ObjSet* objSet);
+		void CheckBindMaterialTexture(ObjSet* objSet, MaterialTexture& materialTexture, int slot, TextureFormat& constantBufferTextureFormat);
 		void SubmitSubMeshDrawCall(SubMesh& subMesh);
 
 	private:

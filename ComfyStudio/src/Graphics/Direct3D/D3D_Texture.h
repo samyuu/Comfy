@@ -74,7 +74,7 @@ namespace Graphics
 	private:
 	};
 
-	class D3D_CubeMap final : public D3D_TextureResource 
+	class D3D_CubeMap final : public D3D_TextureResource
 	{
 	public:
 		D3D_CubeMap(const struct Txp& txp);
