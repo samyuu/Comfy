@@ -48,4 +48,19 @@ float FormatAwareSampleTexture_Alpha(const Texture2D inputTexture, const Sampler
         return inputTexture.Sample(inputSampler, texCoord).a;
 }
 
+float4 UncompressRGTC1_RGBA(const Texture2D inputTexture, const SamplerState inputSampler, const float2 texCoord)
+{
+    float3 texColor;
+    texColor.y = inputTexture.SampleLevel(inputSampler, texCoord, 0).r;
+    texColor.x = inputTexture.SampleLevel(inputSampler, texCoord, 1).r;
+    texColor.z = inputTexture.SampleLevel(inputSampler, texCoord, 2).r;
+    texColor.xz = mad(texColor.xz, LUMINANCE_FACTOR, -LUMINANCE_OFFSET);
+    
+    return float4(
+        dot(texColor, RED_COEF),
+        dot(texColor, GRN_COEF),
+        dot(texColor, BLU_COEF),
+        1.0);
+}
+
 #endif /* UNCOMPRESSRGTC_HLSL */

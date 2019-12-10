@@ -1,6 +1,7 @@
 #include "SceneData.hlsl"
 #include "Material.hlsl"
 #include "ShaderFlags.hlsl"
+#include "TextureFormats.hlsl"
 
 // TODO: program.env[24].x
 static const uint AmbientTextureType = 1;
@@ -14,10 +15,23 @@ cbuffer SceneConstantData : register(b0)
     float1 SceneCB_Padding[8];
 };
 
+struct TextureFormats
+{
+    TextureFormat Diffuse;
+    TextureFormat Ambient;
+    TextureFormat Normal;
+    TextureFormat Specular;
+    TextureFormat ToonCurve;
+    TextureFormat Reflection;
+    TextureFormat Tangent;
+    TextureFormat Reserved;
+};
+
 cbuffer ObjectConstantData : register(b1)
 {
     matrix CB_Model;
     Material CB_Material;
     uint CB_ShaderFlags;
-    float ObjectCB_Padding[12];
+    TextureFormats CB_TextureFormats;
+    float ObjectCB_Padding[4];
 };

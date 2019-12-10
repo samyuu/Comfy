@@ -2,6 +2,7 @@
 #define COMMON_HLSL
 #include "SceneData.hlsl"
 
+static const float PI = 3.14159265;
 static const float AlphaTestThreshold = 0.5;
 
 void ClipAlphaThreshold(const float alpha)
