@@ -884,5 +884,6 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\StageBlinn_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\SkyDefault_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\SkyDefault_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\DebugInterface.hlsl" />
   </ItemGroup>
 </Project>
