@@ -141,18 +141,22 @@ namespace Editor
 		if (Gui::CollapsingHeader("Rendering", ImGuiTreeNodeFlags_None))
 		{
 			Gui::PushID(&context.RenderParameters);
+			Gui::CheckboxFlags("DebugFlags_0", &context.RenderParameters.DebugFlags, (1 << 0));
+			Gui::CheckboxFlags("DebugFlags_1", &context.RenderParameters.DebugFlags, (1 << 1));
+			Gui::CheckboxFlags("DebugFlags_2", &context.RenderParameters.DebugFlags, (1 << 2));
 			Gui::Checkbox("Clear", &context.RenderParameters.Clear);
 			Gui::Checkbox("Wireframe", &context.RenderParameters.Wireframe);
 			Gui::Checkbox("Wireframe Overlay", &context.RenderParameters.WireframeOverlay);
 			Gui::Checkbox("Alpha Sort", &context.RenderParameters.AlphaSort);
 			Gui::Checkbox("Render Opaque", &context.RenderParameters.RenderOpaque);
 			Gui::Checkbox("Render Transparent", &context.RenderParameters.RenderTransparent);
+			Gui::SliderInt("Anistropic Filtering", &context.RenderParameters.AnistropicFiltering, D3D11_MIN_MAXANISOTROPY, D3D11_MAX_MAXANISOTROPY);
 
 			if (Gui::CollapsingHeader("Resolution"))
 			{
 				auto clampSize = [](ivec2 size) { return glm::clamp(size, ivec2(1, 1), ivec2(16384, 16384)); };
 
-				static ivec2 customResolution = { 1, 1 };
+				static ivec2 customResolution = { 1280, 720 };
 
 				if (Gui::InputInt2("Custom Resolution", glm::value_ptr(customResolution)))
 					customResolution = clampSize(customResolution);

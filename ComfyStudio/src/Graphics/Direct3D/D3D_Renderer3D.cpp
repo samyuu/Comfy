@@ -290,6 +290,7 @@ namespace Graphics
 	{
 		wireframeRasterizerState.Bind();
 		shaders.Debug.Bind();
+		currentlyRenderingWireframeOverlay = true;
 
 		for (auto& command : renderCommandList)
 		{
@@ -300,6 +301,8 @@ namespace Graphics
 					PrepareAndRenderSubMesh(command, mesh, subMesh, command.Obj->Materials[subMesh.MaterialIndex], command.Transform);
 			}
 		}
+
+		currentlyRenderingWireframeOverlay = false;
 	}
 
 	void D3D_Renderer3D::InternalRenderPostProcessing()
@@ -383,7 +386,7 @@ namespace Graphics
 		CheckBindMaterialTexture(objSet, material.Specular, 3, objectConstantBuffer.Data.TextureFormats.Specular);
 		CheckBindMaterialTexture(objSet, material.Reflection, 5, objectConstantBuffer.Data.TextureFormats.Reflection);
 
-		if (!sceneContext->RenderParameters.Wireframe)
+		if (!currentlyRenderingWireframeOverlay && !sceneContext->RenderParameters.Wireframe)
 			((material.BlendFlags.DoubleSidedness != DoubleSidedness_Off) ? solidNoCullingRasterizerState : solidBackfaceCullingRasterizerState).Bind();
 
 		objectConstantBuffer.Data.Material.Diffuse = material.DiffuseColor;
@@ -462,6 +465,9 @@ namespace Graphics
 		}
 		else if (std::strcmp(material.Shader, "STAGE") == 0)
 		{
+			if (sceneContext->RenderParameters.DebugFlags & (1 << 0))
+				return shaders.BlinnPerFrag;
+
 			return shaders.StageBlinn;
 		}
 		else if (std::strcmp(material.Shader, "ITEM") == 0)
@@ -482,16 +488,18 @@ namespace Graphics
 		}
 	}
 
-	D3D_TextureSampler D3D_Renderer3D::CreateTextureSampler(MaterialTexture& materialTexture)
+	D3D_TextureSampler D3D_Renderer3D::CreateTextureSampler(MaterialTexture& materialTexture, TextureFormat format)
 	{
 		const auto flags = materialTexture.Flags;
 		return
 		{
-			D3D11_FILTER_MIN_MAG_MIP_LINEAR,
+			(sceneContext->RenderParameters.AnistropicFiltering > D3D11_MIN_MAXANISOTROPY) ? D3D11_FILTER_ANISOTROPIC : D3D11_FILTER_MIN_MAG_MIP_LINEAR,
 			flags.TextureAddressMode_U_Mirror ? D3D11_TEXTURE_ADDRESS_MIRROR : flags.TextureAddressMode_U_Repeat ? D3D11_TEXTURE_ADDRESS_WRAP : D3D11_TEXTURE_ADDRESS_CLAMP,
 			flags.TextureAddressMode_V_Mirror ? D3D11_TEXTURE_ADDRESS_MIRROR : flags.TextureAddressMode_V_Repeat ? D3D11_TEXTURE_ADDRESS_WRAP : D3D11_TEXTURE_ADDRESS_CLAMP,
-			// TODO: This might need to be scaled first
+			// TODO: This might need to be scaled first, or is this even used (?)
 			// static_cast<float>(materialTexture.Flags.MipMapBias),
+			((sceneContext->RenderParameters.DebugFlags & (1 << 1)) && format != TextureFormat::RGTC1 && format != TextureFormat::RGTC2) ? -1.0f : 0.0f,
+			sceneContext->RenderParameters.AnistropicFiltering
 		};
 	}
 
@@ -519,7 +527,7 @@ namespace Graphics
 			txp->CubeMap->Bind(slot);
 		}
 
-		auto sampler = CreateTextureSampler(materialTexture);
+		auto sampler = CreateTextureSampler(materialTexture, constantBufferTextureFormat);
 		sampler.Bind(slot);
 	}
 

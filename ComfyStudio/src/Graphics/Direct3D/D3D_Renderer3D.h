@@ -139,7 +139,7 @@ namespace Graphics
 		void PrepareAndRenderSubMesh(ObjRenderCommand& command, Mesh& mesh, SubMesh& subMesh, Material& material, const mat4& model);
 		D3D_BlendState CreateMaterialBlendState(Material& material);
 		D3D_ShaderPair& GetMaterialShader(Material& material);
-		D3D_TextureSampler CreateTextureSampler(MaterialTexture& materialTexture);
+		D3D_TextureSampler CreateTextureSampler(MaterialTexture& materialTexture, TextureFormat format);
 		void CheckBindMaterialTexture(ObjSet* objSet, MaterialTexture& materialTexture, int slot, TextureFormat& constantBufferTextureFormat);
 		void SubmitSubMeshDrawCall(SubMesh& subMesh);
 
@@ -174,6 +174,8 @@ namespace Graphics
 
 		std::vector<ObjRenderCommand> renderCommandList;
 		std::vector<SubMeshRenderCommand> transparentSubMeshCommands;
+
+		bool currentlyRenderingWireframeOverlay = false;
 
 		struct ToneMapData
 		{

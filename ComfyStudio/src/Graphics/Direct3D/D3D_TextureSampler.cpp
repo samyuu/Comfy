@@ -8,16 +8,16 @@ namespace Graphics
 	}
 
 	D3D_TextureSampler::D3D_TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeUV)
-		: D3D_TextureSampler(filter, addressModeUV, addressModeUV, 0.0f)
+		: D3D_TextureSampler(filter, addressModeUV, addressModeUV, 0.0f, D3D11_MIN_MAXANISOTROPY)
 	{
 	}
 	
 	D3D_TextureSampler::D3D_TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeU, D3D11_TEXTURE_ADDRESS_MODE addressModeV)
-		: D3D_TextureSampler(filter, addressModeU, addressModeV, 0.0f)
+		: D3D_TextureSampler(filter, addressModeU, addressModeV, 0.0f, D3D11_MIN_MAXANISOTROPY)
 	{
 	}
 
-	D3D_TextureSampler::D3D_TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeU, D3D11_TEXTURE_ADDRESS_MODE addressModeV, float mipMapBias)
+	D3D_TextureSampler::D3D_TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeU, D3D11_TEXTURE_ADDRESS_MODE addressModeV, float mipMapBias, int anisotropicFiltering)
 		: lastBoundSlot(UnboundSamplerSlot)
 	{
 		constexpr vec4 transparentBorderColor = vec4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -27,7 +27,7 @@ namespace Graphics
 		samplerDescription.AddressV = addressModeV;
 		samplerDescription.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 		samplerDescription.MipLODBias = glm::clamp(mipMapBias, D3D11_MIP_LOD_BIAS_MIN, D3D11_MIP_LOD_BIAS_MAX);
-		samplerDescription.MaxAnisotropy = 0;
+		samplerDescription.MaxAnisotropy = anisotropicFiltering;
 		samplerDescription.ComparisonFunc = D3D11_COMPARISON_NEVER;
 		samplerDescription.BorderColor[0] = transparentBorderColor[0];
 		samplerDescription.BorderColor[1] = transparentBorderColor[1];

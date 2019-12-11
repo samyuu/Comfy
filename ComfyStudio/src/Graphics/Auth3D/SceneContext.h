@@ -10,6 +10,9 @@ namespace Graphics
 {
 	struct RenderParameters
 	{
+		uint32_t DebugFlags = 0;
+		int32_t AnistropicFiltering = D3D11_DEFAULT_MAX_ANISOTROPY;
+
 		bool Wireframe = false;
 		bool WireframeOverlay = false;
 		bool AlphaSort = true;
