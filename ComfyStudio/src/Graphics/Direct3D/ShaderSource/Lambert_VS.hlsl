@@ -10,7 +10,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     output.Position = mul(output.Position, CB_Scene.ViewProjection);
     
     const float4 normal = float4(input.Normal, 1.0);
-    output.Normal = mul(normal, CB_Model).xyz;
+    output.Normal = mul(normal, CB_Model);
 
     if (CB_ShaderFlags & ShaderFlags_DiffuseTexture)
         output.TexCoord = TransformTextureCoordinates(input.TexCoord, CB_Material.DiffuseTextureTransform);

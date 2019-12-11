@@ -33,5 +33,4 @@ cbuffer ObjectConstantData : register(b1)
     Material CB_Material;
     uint CB_ShaderFlags;
     TextureFormats CB_TextureFormats;
-    float ObjectCB_Padding[4];
 };

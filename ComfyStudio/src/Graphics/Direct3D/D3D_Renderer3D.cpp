@@ -389,6 +389,9 @@ namespace Graphics
 		if (!currentlyRenderingWireframeOverlay && !sceneContext->RenderParameters.Wireframe)
 			((material.BlendFlags.DoubleSidedness != DoubleSidedness_Off) ? solidNoCullingRasterizerState : solidBackfaceCullingRasterizerState).Bind();
 
+		const float fresnel = (((material.ShaderFlags.Fresnel == 0) ? 7.0 : static_cast<float>(material.ShaderFlags.Fresnel) - 1.0f) * 0.12f) * 0.82f;
+		const float lineLight = material.ShaderFlags.LineLight * 0.111f;
+		objectConstantBuffer.Data.Material.FresnelCoefficient = vec4(fresnel, 0.18f, lineLight, 0.0f);
 		objectConstantBuffer.Data.Material.Diffuse = material.DiffuseColor;
 		objectConstantBuffer.Data.Material.Transparency = material.Transparency;
 		objectConstantBuffer.Data.Material.Ambient = material.AmbientColor;

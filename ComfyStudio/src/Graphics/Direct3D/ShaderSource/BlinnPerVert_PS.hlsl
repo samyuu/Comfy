@@ -5,13 +5,9 @@
 
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {
-    // NOTE: state.lightprod[1] = CB_Material * CB_Scene.StageLight
-    
-    // NOTE: Diffuse texture else Diffuse material color
     const float4 diffuseTexColor = (CB_ShaderFlags & ShaderFlags_DiffuseTexture) ? 
         DiffuseTexture.Sample(DiffuseSampler, input.TexCoord) : float4(CB_Material.Diffuse.rgb, 1.0);
     
-    // NOTE: Ambient texture else white
     const float4 ambientTexColor = (CB_ShaderFlags & ShaderFlags_AmbientTexture) ?
         SampleAmbientTexture(AmbientTexture, AmbientSampler, input.TexCoordAmbient, AmbientTextureType) : float4(1.0, 1.0, 1.0, 1.0);
     
@@ -34,7 +30,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     if (CB_ShaderFlags & ShaderFlags_SpecularTexture)
         spec *= SpecularTexture.Sample(SpecularSampler, input.TexCoord).rgb;
         
-    spec *= CB_Material.Reflectivity * CB_Scene.StageLight.Specular.w;
+    spec *= CB_Material.Specular.a * CB_Scene.StageLight.Specular.a;
     spec *= CB_Material.Specular.rgb * CB_Scene.StageLight.Specular.rgb;
     
     float4 outputColor;

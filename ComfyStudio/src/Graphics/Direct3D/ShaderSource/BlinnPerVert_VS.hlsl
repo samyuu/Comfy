@@ -10,7 +10,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     output.Position = mul(output.Position, CB_Scene.ViewProjection);
     
     const float4 normal = float4(input.Normal, 1.0);
-    output.Normal = mul(normal, CB_Model).xyz;
+    output.Normal = mul(normal, CB_Model);
 
     if (CB_ShaderFlags & ShaderFlags_DiffuseTexture)
         output.TexCoord = TransformTextureCoordinates(input.TexCoord, CB_Material.DiffuseTextureTransform);
@@ -34,8 +34,8 @@ VS_OUTPUT VS_main(VS_INPUT input)
 	half_w.xyz *= half_w.w;
 
 	float4 lc;
-	lc.y = saturate(dot(output.Normal, lit_dir_w));
-	lc.z = saturate(dot(output.Normal, half_w.xyz));
+	lc.y = saturate(dot(output.Normal.xyz, lit_dir_w));
+	lc.z = saturate(dot(output.Normal.xyz, half_w.xyz));
 	lc.w = mad(CB_Material.Shininess.x, 120.0, 16.0);
 	lc.z = pow(lc.z, lc.w);
 	lc.xw = 1.0;
@@ -50,7 +50,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
         output.Color *= input.Color;
     
     float3 eyeDirection = normalize(input.Position.xyz - CB_Scene.EyePosition.xyz);
-    output.Reflection.xyz = reflect(eyeDirection, output.Normal);
+    output.Reflection.xyz = reflect(eyeDirection, output.Normal.xyz);
     output.Reflection.w = 1.0 - CB_Material.Shininess;
     
     return output;

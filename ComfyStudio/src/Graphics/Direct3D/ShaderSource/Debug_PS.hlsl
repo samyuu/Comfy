@@ -3,5 +3,5 @@
 
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {
-    return float4(input.Normal, 1.0);
+    return float4(input.Normal.xyz, 1.0);
 }

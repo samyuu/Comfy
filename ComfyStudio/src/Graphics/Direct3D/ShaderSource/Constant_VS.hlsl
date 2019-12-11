@@ -15,7 +15,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     if (CB_ShaderFlags & ShaderFlags_AmbientTexture)
         output.TexCoordAmbient = TransformTextureCoordinates(input.TexCoordAmbient, CB_Material.AmbientTextureTransform);
     
-    output.Color.rgb = CB_Material.Diffuse * BlendColor * CB_Material.Emission.rgb;
+    output.Color.rgb = CB_Material.Diffuse.rgb * BlendColor * CB_Material.Emission.rgb;
     output.Color.a = 1.0;
     
     if (CB_ShaderFlags & ShaderFlags_VertexColor)

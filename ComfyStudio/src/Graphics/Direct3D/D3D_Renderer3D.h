@@ -58,6 +58,7 @@ namespace Graphics
 		{
 			mat4 DiffuseTextureTransform;
 			mat4 AmbientTextureTransform;
+			vec4 FresnelCoefficient;
 			vec3 Diffuse;
 			float Transparency;
 			vec4 Ambient;
@@ -80,7 +81,6 @@ namespace Graphics
 			TextureFormat Tangent;
 			TextureFormat Reserved;
 		} TextureFormats;
-		float Padding[4];
 	};
 
 	struct PostProcessConstantData

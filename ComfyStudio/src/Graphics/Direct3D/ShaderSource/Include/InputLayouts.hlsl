@@ -13,7 +13,7 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
     float4 Position         : SV_POSITION;
-    float3 Normal           : NORMAL;
+    float4 Normal           : NORMAL;
     float4 Tangent          : TANGENT;
     float4 Binormal         : BINORMAL;
     float4 EyeDirection     : EYE_DIRECTION;

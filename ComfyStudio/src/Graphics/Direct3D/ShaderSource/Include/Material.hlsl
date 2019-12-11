@@ -5,11 +5,10 @@ struct Material
 {
     matrix DiffuseTextureTransform;
     matrix AmbientTextureTransform;
-    float3 Diffuse;
-    float1 Transparency;
+    float4 FresnelCoefficient;
+    float4 Diffuse;
     float4 Ambient;
-    float3 Specular;
-    float1 Reflectivity;
+    float4 Specular;
     float4 Emission;
     float1 Shininess;
     float1 Intensity;
