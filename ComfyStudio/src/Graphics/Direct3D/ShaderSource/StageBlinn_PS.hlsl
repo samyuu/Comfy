@@ -13,7 +13,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
 
 #if ARB_PROGRAM_ACCURATE
 
-    float4 tmp;
+    TEMP tmp, _tmp0, _tmp1, _tmp2;
     TEX2D_02(tmp, a_tex_normal0);
     MAD(tmp.xy, tmp.wy, 2.0, -1.0);
   
@@ -22,7 +22,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MUL(tmp, tmp, float4(1.5, 1.5, 2.0, 2.0));
     ADD(tmp.xy, tmp.xy, tmp.zw);
     
-    float4 normal = float4(0.0, 0.0, 0.0, 0.0);
+    TEMP normal = float4(0.0, 0.0, 0.0, 0.0);
     if (FLAGS_NORMAL_TEX2D)
     {
         MUL(normal.xyz, a_tangent.xyz, tmp.x);
@@ -35,15 +35,15 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
         NRMH(normal, a_normal);
     }
     
-    float4 eye;
+    TEMP eye;
     NRM(eye, a_eye);
     
-    float4 reflect;
+    TEMP reflect;
     DP3(reflect.x, eye, normal);
     MUL(reflect.x, reflect.x, 2.0);
     MAD(reflect.xyz, reflect.x, normal.xyz, -eye.xyz);
     
-    float4 half_;
+    TEMP half_;
     ADD(half_, lit_dir, eye);
     NRM(half_, half_);
     DP3_SAT(tmp.y, normal, lit_dir);
@@ -53,9 +53,9 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     POW(tmp.z, tmp.z, tmp.w);
     MOV(tmp.xw, 1.0);
     
-    float4 lc = float4(tmp.y, 1.0, 1.0, tmp.z);
+    TEMP lc = float4(tmp.y, 1.0, 1.0, tmp.z);
     
-    float4 diff;
+    TEMP diff;
     MOV(normal.w, 1);
     DP4(tmp.x, irrad_r[0], normal); DP4(tmp.y, irrad_r[1], normal); DP4(tmp.z, irrad_r[2], normal); DP4(tmp.w, irrad_r[3], normal);
     DP4(diff.x, normal, tmp);
@@ -67,44 +67,37 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MAD(diff.xyz, lc.x, lit_diff.xyz, diff.xyz);
     MAD(diff.xyz, diff.xyz, a_color0.xyz, state_material_emission.xyz);
     
-    float4 col0;
-    TEX2D_00(col0, a_tex_color0);
-    
-    if (FLAGS_AMBIENT_TEX2D)
+    TEMP col0;
+    if (FLAGS_DIFFUSE_TEX2D)
     {
-        // TEX _tmp0, a_tex_color1, texture[1], 2D;
-        // SUBC _tmp2, program.env[24].x, { 0, 1, 2, 3 };
-        // IF NE.w;
-        //  LRP col0.xyz (EQ.x), _tmp0.w, _tmp0, col0;
-        //  MUL col0 (EQ.y), _tmp0, col0;
-        //  ADD col0.xyz (EQ.z), _tmp0, col0;
-        //  MUL col0.w (EQ.z), _tmp0.w, col0.w;
-        // ELSE;
-        //  ADD _tmp2.w, _tmp0.w, 0.004;
-        //  RCP _tmp2.w, _tmp2.w;
-        //  MUL _tmp2.xyz, _tmp0, _tmp2.w;
-        //  MUL col0.xyz, _tmp2, col0;
-        // ENDIF;
-        float4 ambientTexColor;
-        TEX2D_01(ambientTexColor, a_tex_color1);
-        diff *= ambientTexColor;
+        TEX2D_00(col0, a_tex_color0);
+        
+        if (FLAGS_AMBIENT_TEX2D)
+        {
+            TEX2D_01(_tmp0, a_tex_color1);
+            diff *= _tmp0;
+        }
+    }
+    else
+    {
+        MOV(col0, state_material_diffuse);
     }
     
     MUL(diff.xyz, diff.xyz, col0.xyz);
     MUL(diff.xyz, diff.xyz, lc.y);
     
-    float4 spec;
+    TEMP spec;
     MUL(spec.xyz, lc.w, lit_spec.xyz);
     MUL(spec.xyz, lc.z, spec.xyz);
     MUL(spec.xyz, spec.xyz, state_light1_specular.xyz);
 
-    float4 spec_ratio;
+    TEMP spec_ratio;
     TEX2D_03(spec_ratio, a_tex_specular);
     MUL(spec_ratio, spec_ratio, a_color1);
     MUL(diff.xyz, diff.xyz, 0.96);
     MAD(diff.xyz, spec_ratio.xyz, spec.xyz, diff.xyz);
     
-    float4 env;
+    TEMP env;
     TEXCUBE_05(env, reflect);
     MUL(env.w, lc.z, state_light1_specular.w);
     MUL(env.xyz, env.xyz, env.w);
@@ -113,6 +106,8 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MOV(o_color.rgb, tmp.xyz);
     MUL(diff.w, col0.w, a_color0.w);
     MAX(o_color.w, diff.w, p_max_alpha.w);
+    
+    CHECK_CLIP_ALPHA_TEST;
     
 #endif
     

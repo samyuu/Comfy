@@ -54,6 +54,8 @@ namespace Graphics
 	struct ObjectConstantData
 	{
 		mat4 Model;
+		mat4 ModelView;
+		mat4 ModelViewProjection;
 		struct Material
 		{
 			mat4 DiffuseTextureTransform;

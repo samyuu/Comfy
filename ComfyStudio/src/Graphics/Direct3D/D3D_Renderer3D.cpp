@@ -389,7 +389,7 @@ namespace Graphics
 		if (!currentlyRenderingWireframeOverlay && !sceneContext->RenderParameters.Wireframe)
 			((material.BlendFlags.DoubleSidedness != DoubleSidedness_Off) ? solidNoCullingRasterizerState : solidBackfaceCullingRasterizerState).Bind();
 
-		const float fresnel = (((material.ShaderFlags.Fresnel == 0) ? 7.0 : static_cast<float>(material.ShaderFlags.Fresnel) - 1.0f) * 0.12f) * 0.82f;
+		const float fresnel = (((material.ShaderFlags.Fresnel == 0) ? 7.0f : static_cast<float>(material.ShaderFlags.Fresnel) - 1.0f) * 0.12f) * 0.82f;
 		const float lineLight = material.ShaderFlags.LineLight * 0.111f;
 		objectConstantBuffer.Data.Material.FresnelCoefficient = vec4(fresnel, 0.18f, lineLight, 0.0f);
 		objectConstantBuffer.Data.Material.Diffuse = material.DiffuseColor;
@@ -404,17 +404,20 @@ namespace Graphics
 		objectConstantBuffer.Data.Material.DiffuseTextureTransform = glm::transpose(material.Diffuse.TextureCoordinateMatrix);
 		objectConstantBuffer.Data.Material.AmbientTextureTransform = glm::transpose(material.Ambient.TextureCoordinateMatrix);
 
+		mat4 modelMatrix;
 		if (mesh.Flags.FaceCamera)
 		{
 			const float cameraAngle = glm::atan(command.Position.x - sceneContext->Camera.Position.x, command.Position.z - sceneContext->Camera.Position.z);
-			const mat4 billboardModel = glm::rotate(glm::translate(glm::mat4(1.0f), command.Position), cameraAngle - glm::pi<float>(), vec3(0.0f, 1.0f, 0.0f));
-
-			objectConstantBuffer.Data.Model = glm::transpose(billboardModel);
+			modelMatrix = glm::rotate(glm::translate(glm::mat4(1.0f), command.Position), cameraAngle - glm::pi<float>(), vec3(0.0f, 1.0f, 0.0f));
 		}
 		else
 		{
-			objectConstantBuffer.Data.Model = glm::transpose(model);
+			modelMatrix = model;
 		}
+
+		objectConstantBuffer.Data.Model = glm::transpose(modelMatrix);
+		objectConstantBuffer.Data.ModelView = glm::transpose(sceneContext->Camera.GetViewMatrix() * modelMatrix);
+		objectConstantBuffer.Data.ModelViewProjection = glm::transpose(sceneContext->Camera.GetProjectionMatrix() * sceneContext->Camera.GetViewMatrix() * modelMatrix);
 
 		objectConstantBuffer.Data.ShaderFlags = 0;
 

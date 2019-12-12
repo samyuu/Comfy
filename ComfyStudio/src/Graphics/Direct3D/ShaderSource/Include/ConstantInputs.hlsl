@@ -30,6 +30,8 @@ struct TextureFormats
 cbuffer ObjectConstantData : register(b1)
 {
     matrix CB_Model;
+    matrix CB_ModelView;
+    matrix CB_ModelViewProjection;
     Material CB_Material;
     uint CB_ShaderFlags;
     TextureFormats CB_TextureFormats;

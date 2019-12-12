@@ -3,42 +3,73 @@
 #include "Include/Common.hlsl"
 #include "Include/TextureInputs.hlsl"
 
+#define COMFY_PS
+#define ARB_PROGRAM_ACCURATE 1
+#include "Include/DebugInterface.hlsl"
+
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {
-    const float4 diffuseTexColor = (CB_ShaderFlags & ShaderFlags_DiffuseTexture) ? 
-        DiffuseTexture.Sample(DiffuseSampler, input.TexCoord) : float4(CB_Material.Diffuse.rgb, 1.0);
+    float4 outputColor;
     
-    const float4 ambientTexColor = (CB_ShaderFlags & ShaderFlags_AmbientTexture) ?
-        SampleAmbientTexture(AmbientTexture, AmbientSampler, input.TexCoordAmbient, AmbientTextureType) : float4(1.0, 1.0, 1.0, 1.0);
+#if ARB_PROGRAM_ACCURATE
     
-    const float4 texColor = (diffuseTexColor * ambientTexColor);
+    TEMP _tmp0, _tmp1, _tmp2, diff, spec, tex_col;
     
-    float3 spec = float3(1.0, 1.0, 1.0);
-    
-    if (CB_ShaderFlags & ShaderFlags_CubeMapReflection)
+    if (FLAGS_DIFFUSE_TEX2D)
     {
-        spec = ReflectionCubeMap.Sample(ReflectionSampler, input.Reflection.xyz).rgb;
+        TEX2D_00(tex_col, a_tex_color0);
+        
+        if (FLAGS_AMBIENT_TEX2D)
+        {
+            TEX2D_01(_tmp0, a_tex_color1);
+            tex_col *= _tmp0;
+        }
     }
     else
     {
-        const float4 sunLightMapColor = SunLightMap.Sample(LightMapSampler, input.Reflection.xyz);
-        const float4 reflectLightMapColor = ReflectLightMap.Sample(LightMapSampler, input.Reflection.xyz);
-    
-        spec = lerp(sunLightMapColor.rgb, reflectLightMapColor.rgb, input.Reflection.w);
+        MOV(tex_col, state_material_diffuse);
     }
     
-    if (CB_ShaderFlags & ShaderFlags_SpecularTexture)
-        spec *= SpecularTexture.Sample(SpecularSampler, input.TexCoord).rgb;
-        
-    spec *= CB_Material.Specular.a * CB_Scene.StageLight.Specular.a;
-    spec *= CB_Material.Specular.rgb * CB_Scene.StageLight.Specular.rgb;
+    if (FLAGS_SPECULAR_TEX2D)
+    {
+        if (FLAGS_REFLECTION_CUBE)
+        {
+            TEXCUBE_05(spec, a_reflect);
+            TEX2D_03(_tmp0, a_tex_specular);
+            MUL(spec.w, state_material_specular.w, state_light1_specular.w);
+            MUL(spec.xyz, spec.xyz, spec.w);
+            MUL(spec.xyz, spec.xyz, _tmp0.xyz);
+            MUL(spec.xyz, spec.xyz, state_lightprod1_specular.xyz);
+        }
+        else
+        {
+            TEX2D_03(_tmp0, a_tex_specular);
+            MUL(spec.xyz, a_color1.xyz, _tmp0.xyz);
+        }
+    }
+    else
+    {
+        if (FLAGS_REFLECTION_CUBE)
+        {
+            TEXCUBE_05(spec, a_reflect);
+            MUL(spec.w, state_material_specular.w, state_light1_specular.w);
+            MUL(spec.xyz, spec.xyz, spec.w);
+        }
+        else
+        {
+            TEXCUBE_10(spec, a_reflect);
+            TEXCUBE_11(_tmp2, a_reflect);
+            LRP(spec.xyz, a_reflect.w, spec.xyz, _tmp2.xyz);
+        }
+        MUL(spec.xyz, spec.xyz, state_lightprod1_specular.xyz);
+    }
+
+    MAD(o_color.xyz, a_color0.xyz, tex_col.xyz, spec.xyz);
+    MUL(o_color.w, a_color0.w, tex_col.w);
     
-    float4 outputColor;
-    outputColor.rgb = mad(input.Color.rgb, texColor.rgb, spec.rgb);
-    outputColor.a = texColor.a; // * input.Color.a
+    CHECK_CLIP_ALPHA_TEST;
     
-    if (CB_ShaderFlags & ShaderFlags_AlphaTest)
-        ClipAlphaThreshold(outputColor.a);
-        
+#endif
+
     return outputColor;
 }
