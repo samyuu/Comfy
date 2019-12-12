@@ -19,6 +19,7 @@ struct SceneData
     matrix ViewProjection;
     float4 EyePosition;
     
+    ParallelLight CharacterLight;
     ParallelLight StageLight;
     float4 LightColor;
 };

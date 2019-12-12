@@ -215,6 +215,10 @@ namespace Graphics
 		sceneConstantBuffer.Data.Scene.ViewProjection = glm::transpose(sceneContext->Camera.GetProjectionMatrix() * sceneContext->Camera.GetViewMatrix());
 		sceneConstantBuffer.Data.Scene.EyePosition = vec4(sceneContext->Camera.Position, 0.0f);
 		sceneConstantBuffer.Data.LightColor = vec4(sceneContext->IBL.Stage.LightColor, 1.0f);
+		sceneConstantBuffer.Data.CharacterLight.Ambient = vec4(sceneContext->Light.Character.Ambient, 1.0f);
+		sceneConstantBuffer.Data.CharacterLight.Diffuse = vec4(sceneContext->Light.Character.Diffuse, 1.0f);
+		sceneConstantBuffer.Data.CharacterLight.Specular = vec4(sceneContext->Light.Character.Specular, 1.0f);
+		sceneConstantBuffer.Data.CharacterLight.Direction = vec4(glm::normalize(sceneContext->Light.Character.Position), 1.0f);
 		sceneConstantBuffer.Data.StageLight.Ambient = vec4(sceneContext->Light.Stage.Ambient, 1.0f);
 		sceneConstantBuffer.Data.StageLight.Diffuse = vec4(sceneContext->Light.Stage.Diffuse, 1.0f);
 		sceneConstantBuffer.Data.StageLight.Specular = vec4(sceneContext->Light.Stage.Specular, 1.0f);

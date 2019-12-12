@@ -45,7 +45,7 @@ namespace Graphics
 			vec4 Diffuse;
 			vec4 Specular;
 			vec4 Direction;
-		} StageLight;
+		} CharacterLight, StageLight;
 
 		vec4 LightColor;
 		float Padding[8];

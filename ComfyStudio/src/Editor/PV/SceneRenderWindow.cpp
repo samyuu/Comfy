@@ -73,7 +73,8 @@ namespace Editor
 //#define OBJ_FILE "dbg"
 
 #ifdef OBJ_FILE
-		LoadObjSet("dev_rom/objset/" OBJ_FILE "/" OBJ_FILE "_obj.bin");
+		if (objSet == nullptr)
+			LoadObjSet("dev_rom/objset/" OBJ_FILE "/" OBJ_FILE "_obj.bin");
 #endif
 	}
 
@@ -187,18 +188,28 @@ namespace Editor
 
 		if (Gui::CollapsingHeader("Lighting", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			Gui::PushID(&context.Light);
-			Gui::ColorEdit3("Light Color", glm::value_ptr(context.IBL.Stage.LightColor), ImGuiColorEditFlags_Float);
-			Gui::ColorEdit3("Ambient", glm::value_ptr(context.Light.Stage.Ambient), ImGuiColorEditFlags_Float);
-			Gui::ColorEdit3("Diffuse", glm::value_ptr(context.Light.Stage.Diffuse), ImGuiColorEditFlags_Float);
-			Gui::ColorEdit3("Specular", glm::value_ptr(context.Light.Stage.Specular), ImGuiColorEditFlags_Float);
-			Gui::DragFloat3("Position", glm::value_ptr(context.Light.Stage.Position), 0.01f);
-			Gui::PopID();
+			auto lightGui = [](Light& light)
+			{
+				Gui::ColorEdit3("Ambient", glm::value_ptr(light.Ambient), ImGuiColorEditFlags_Float);
+				Gui::ColorEdit3("Diffuse", glm::value_ptr(light.Diffuse), ImGuiColorEditFlags_Float);
+				Gui::ColorEdit3("Specular", glm::value_ptr(light.Specular), ImGuiColorEditFlags_Float);
+				Gui::DragFloat3("Position", glm::value_ptr(light.Position), 0.01f);
+				Gui::PopID();
+			};
+			
+			if (Gui::CollapsingHeader("IBL Light"))
+			{
+				Gui::PushID(&context.IBL);
+				Gui::ColorEdit3("Chara Light Color", glm::value_ptr(context.IBL.Character.LightColor), ImGuiColorEditFlags_Float);
+				Gui::ColorEdit3("Stage Light Color", glm::value_ptr(context.IBL.Stage.LightColor), ImGuiColorEditFlags_Float);
+				Gui::PopID();
+			}
+
 		}
 
 		if (Gui::CollapsingHeader("Object Test", ImGuiTreeNodeFlags_None))
 		{
-			Gui::BeginChild("ObjSelectionChild", vec2(0, 140), true);
+			Gui::BeginChild("ObjSelectionChild", vec2(0.0f, 140.0f), true);
 
 			if (Gui::Selectable("All Objects", (objectIndex < 0)))
 				objectIndex = -1;
@@ -267,7 +278,7 @@ namespace Editor
 					Gui::DragFloat("Shininess", &material->Shininess);
 					Gui::ColorEdit3("Ambient", glm::value_ptr(material->AmbientColor), ImGuiColorEditFlags_Float);
 					Gui::ColorEdit3("Emission", glm::value_ptr(material->EmissionColor), ImGuiColorEditFlags_Float);
-					Gui::InputText("Shader", material->Shader, sizeof(material->Shader), ImGuiInputTextFlags_ReadOnly);
+					Gui::InputText("Shader", material->Shader.data(), material->Shader.size(), ImGuiInputTextFlags_ReadOnly);
 				}
 
 				Gui::PopID();
