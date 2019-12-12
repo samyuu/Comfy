@@ -58,6 +58,13 @@ namespace Graphics
 		: VS(vsBytecode), PS(psBytecode)
 	{
 	}
+
+	D3D_ShaderPair::D3D_ShaderPair(BytecodeBlob vsBytecode, BytecodeBlob psBytecode, const char* debugName)
+		: VS(vsBytecode), PS(psBytecode)
+	{
+		D3D_SetObjectDebugName(VS.GetShader(), "%s%s", debugName, "_VS");
+		D3D_SetObjectDebugName(PS.GetShader(), "%s%s", debugName, "_PS");
+	}
 	
 	void D3D_ShaderPair::Bind() const
 	{

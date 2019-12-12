@@ -189,7 +189,7 @@ namespace Graphics
 	{
 		uint32_t TextureCount;
 		MaterialFlags Flags;
-		char Shader[8];
+		std::array<char, 8> Shader;
 		MaterialShaderFlags ShaderFlags;
 		MaterialTexture Diffuse;
 		MaterialTexture Ambient;

@@ -148,17 +148,17 @@ namespace Graphics
 	private:
 		struct ShaderPairs
 		{
-			D3D_ShaderPair Debug = { Debug_VS(), Debug_PS() };
-			D3D_ShaderPair Constant = { Constant_VS(), Constant_PS() };
-			D3D_ShaderPair Lambert = { Lambert_VS(), Lambert_PS() };
-			D3D_ShaderPair BlinnPerVert = { BlinnPerVert_VS(), BlinnPerVert_PS() };
-			D3D_ShaderPair BlinnPerFrag = { BlinnPerFrag_VS(), BlinnPerFrag_PS() };
-			D3D_ShaderPair StageBlinn = { StageBlinn_VS(), StageBlinn_PS() };
-			D3D_ShaderPair ItemBlinn = { ItemBlinn_VS(), ItemBlinn_PS() };
-			D3D_ShaderPair SkyDefault = { SkyDefault_VS(), SkyDefault_PS() };
-			D3D_ShaderPair Water = { Water_VS(), Water_PS() };
+			D3D_ShaderPair Debug = { Debug_VS(), Debug_PS(), "Renderer3D::Debug" };
 
-			D3D_ShaderPair ToneMap = { ToneMap_VS(), ToneMap_PS() };
+			D3D_ShaderPair BlinnPerFrag = { BlinnPerFrag_VS(), BlinnPerFrag_PS(), "Renderer3D::BlinnPerFrag" };
+			D3D_ShaderPair BlinnPerVert = { BlinnPerVert_VS(), BlinnPerVert_PS(), "Renderer3D::BlinnPerVert" };
+			D3D_ShaderPair Constant = { Constant_VS(), Constant_PS(), "Renderer3D::Constant" };
+			D3D_ShaderPair ItemBlinn = { ItemBlinn_VS(), ItemBlinn_PS(), "Renderer3D::ItemBlinn" };
+			D3D_ShaderPair Lambert = { Lambert_VS(), Lambert_PS(), "Renderer3D::Lambert" };
+			D3D_ShaderPair SkyDefault = { SkyDefault_VS(), SkyDefault_PS(), "Renderer3D::SkyDefault" };
+			D3D_ShaderPair StageBlinn = { StageBlinn_VS(), StageBlinn_PS(), "Renderer3D::StageBlinn" };
+			D3D_ShaderPair ToneMap = { ToneMap_VS(), ToneMap_PS(), "Renderer3D::ToneMap" };
+			D3D_ShaderPair Water = { Water_VS(), Water_PS(), "Renderer3D::Water" };
 		} shaders;
 
 		D3D_DynamicConstantBufferTemplate<SceneConstantData> sceneConstantBuffer = { 0 };

@@ -67,6 +67,7 @@ namespace Graphics
 	{
 	public:
 		D3D_ShaderPair(BytecodeBlob vsBytecode, BytecodeBlob psBytecode);
+		D3D_ShaderPair(BytecodeBlob vsBytecode, BytecodeBlob psBytecode, const char* debugName);
 
 	public:
 		void Bind() const;

@@ -108,6 +108,18 @@ namespace Graphics
 
 			return false;
 		}
+
+		const struct ShaderIdentifiers
+		{
+			std::array<char, 8> BLINN { "BLINN" };
+			std::array<char, 8> STAGE { "STAGE" };
+			std::array<char, 8> FLOOR { "FLOOR" };
+			std::array<char, 8> CLOTH { "CLOTH" };
+			std::array<char, 8> ITEM { "ITEM" };
+			std::array<char, 8> SKY { "SKY" };
+			std::array<char, 8> WATER01 { "WATER01" };
+			std::array<char, 8> WATER02 { "WATER02" };
+		} ShaderIdentifiers;
 	}
 
 	D3D_Renderer3D::D3D_Renderer3D()
@@ -454,7 +466,7 @@ namespace Graphics
 
 	D3D_ShaderPair& D3D_Renderer3D::GetMaterialShader(Material& material)
 	{
-		if (std::strcmp(material.Shader, "BLINN") == 0)
+		if (material.Shader == ShaderIdentifiers.BLINN)
 		{
 			if (material.ShaderFlags.LightingModel_Phong)
 			{
@@ -469,22 +481,22 @@ namespace Graphics
 				return shaders.Constant;
 			}
 		}
-		else if (std::strcmp(material.Shader, "STAGE") == 0)
+		else if (material.Shader == ShaderIdentifiers.STAGE)
 		{
 			if (sceneContext->RenderParameters.DebugFlags & (1 << 0))
 				return shaders.BlinnPerFrag;
 
 			return shaders.StageBlinn;
 		}
-		else if (std::strcmp(material.Shader, "ITEM") == 0)
+		else if (material.Shader == ShaderIdentifiers.ITEM)
 		{
 			return shaders.ItemBlinn;
 		}
-		else if (std::strcmp(material.Shader, "SKY") == 0)
+		else if (material.Shader == ShaderIdentifiers.SKY)
 		{
 			return shaders.SkyDefault;
 		}
-		else if (std::strcmp(material.Shader, "WATER01") == 0 || std::strcmp(material.Shader, "WATER02") == 0)
+		else if (material.Shader == ShaderIdentifiers.WATER01 || material.Shader == ShaderIdentifiers.WATER02)
 		{
 			return shaders.Water;
 		}

@@ -52,11 +52,8 @@ namespace Graphics
 	}
 
 	D3D_Renderer2D::D3D_Renderer2D()
-		: spriteShader(Sprite_VS(), Sprite_PS())
+		: spriteShader(Sprite_VS(), Sprite_PS(), "Renderer2D::Sprite")
 	{
-		D3D_SetObjectDebugName(spriteShader.VS.GetShader(), "Renderer2D::SpriteVertexShader");
-		D3D_SetObjectDebugName(spriteShader.PS.GetShader(), "Renderer2D::SpritePixelShader");
-
 		D3D_SetObjectDebugName(cameraConstantBuffer.Buffer.GetBuffer(), "Renderer2D::CameraConstantBuffer");
 		D3D_SetObjectDebugName(spriteConstantBuffer.Buffer.GetBuffer(), "Renderer2D::SpriteConstantBuffer");
 
