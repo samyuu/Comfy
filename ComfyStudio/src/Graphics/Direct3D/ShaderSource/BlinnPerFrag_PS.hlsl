@@ -3,53 +3,103 @@
 #include "Include/Common.hlsl"
 #include "Include/TextureInputs.hlsl"
 
+#define COMFY_PS
+#define ARB_PROGRAM_ACCURATE 1
+#include "Include/DebugInterface.hlsl"
+
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {
-    const float4 diffuseTexColor = (CB_ShaderFlags & ShaderFlags_DiffuseTexture) ?
-        DiffuseTexture.Sample(DiffuseSampler, input.TexCoord) : float4(CB_Material.Diffuse.rgb, 1.0);
+    float4 outputColor;
     
-    const float4 ambientTexColor = (CB_ShaderFlags & ShaderFlags_AmbientTexture) ?
-        SampleAmbientTexture(AmbientTexture, AmbientSampler, input.TexCoordAmbient, AmbientTextureType) : float4(1.0, 1.0, 1.0, 1.0);
+#if ARB_PROGRAM_ACCURATE
+
+    TEMP _tmp0, _tmp1, _tmp2, diff, spec, tex_col;
     
-    const float4 texColor = (diffuseTexColor * ambientTexColor);
-    const float4 normalTexColor = NormalTexture.Sample(NormalSampler, input.TexCoord);
-    
-    float3 normal = float3(mad(normalTexColor.xy, 2.0, -1.0), 0.8);
-    normal *= mad(input.Color.w, 2.0, -1.0);
-    
-    float3x3 tangentToWorldSpace = float3x3(input.Tangent.xyz, input.Binormal.xyz, input.Normal.xyz);
-    float3 worldSpaceNormal = mul(normal, tangentToWorldSpace);
-    
-    float3 diff = CharacterLightMap.Sample(LightMapSampler, worldSpaceNormal).rgb;
-    diff = mad(diff, CB_Scene.StageLight.Diffuse.rgb, input.Color.rgb);
-    
-    const float3 reflection = reflect(-input.EyeDirection.xyz, worldSpaceNormal);
-    float3 spec = float3(1.0, 1.0, 1.0);
-    
-    if (CB_ShaderFlags & ShaderFlags_CubeMapReflection)
+    if (FLAGS_DIFFUSE_TEX2D)
     {
-        spec = ReflectionCubeMap.Sample(ReflectionSampler, reflection).rgb;
+        TEX2D_00(tex_col, a_tex_color0);
+        
+        if (FLAGS_AMBIENT_TEX2D)
+        {
+            TEX2D_01(_tmp0, a_tex_color1);
+            tex_col *= _tmp0;
+        }
     }
     else
     {
-        const float4 sunLightMapColor = SunLightMap.Sample(LightMapSampler, reflection);
-        const float4 reflectLightMapColor = ReflectLightMap.Sample(LightMapSampler, reflection);
-    
-        spec = lerp(sunLightMapColor.rgb, reflectLightMapColor.rgb, 1.0 - CB_Material.Shininess);
+        MOV(tex_col, state_material_diffuse);
     }
     
-    if (CB_ShaderFlags & ShaderFlags_SpecularTexture)
-        spec *= SpecularTexture.Sample(SpecularSampler, input.TexCoord).rgb;
-        
-    spec *= CB_Material.Specular.a * CB_Scene.StageLight.Specular.a;
-    spec *= CB_Material.Specular.rgb * CB_Scene.StageLight.Specular.rgb;
+    if (FLAGS_NORMAL_TEX2D)
+    {
+        TEX2D_02(_tmp2, a_tex_normal0);
+        MAD(_tmp2.xy, _tmp2.wy, 2.0, -1.0);
+        MOV(_tmp2.z, 0.8);
+    }
+    else
+    {
+        MOV(_tmp2, float4(0.0, 0.0, 1.0, 0.0));
+    }
     
-    float4 outputColor;
-    outputColor.rgb = mad(diff, texColor.rgb, spec);
-    outputColor.a = texColor.a; // * input.Color.a
+    MAD(_tmp0, a_color0.w, 2.0, -1.0);
+    MUL(_tmp0, _tmp0, _tmp2);
+    DP3(_tmp2.x, a_tangent, _tmp0);
+    DP3(_tmp2.y, a_binormal, _tmp0);
+    DP3(_tmp2.z, a_normal, _tmp0);
+    MOV(_tmp2.w, 0.0);
+    TEXCUBE_09(diff, _tmp2);
+    DP3(_tmp1.x, a_eye, _tmp2);
+    MUL(_tmp1.x, _tmp1.x, 2.0);
+    MAD(_tmp1.xyz, _tmp1.x, _tmp2.xyz, -a_eye.xyz);
     
-    if (CB_ShaderFlags & ShaderFlags_AlphaTest)
-        ClipAlphaThreshold(outputColor.a);
-        
+    if (FLAGS_SPECULAR_TEX2D)
+    {
+        if (FLAGS_REFLECTION_CUBE)
+        {
+            TEXCUBE_05(spec, _tmp1);
+            TEX2D_03(_tmp0, a_tex_specular);
+            MUL(spec.w, state_material_specular.w, state_light1_specular.w);
+            MUL(spec.xyz, spec.xyz, spec.w);
+            MUL(spec.xyz, spec.xyz, _tmp0.xyz);
+        }
+        else
+        {
+            MOV(_tmp0.xyz, _tmp1.xyz);
+            SUB(_tmp0.w, 1.0, state_material_shininess);
+            TEXCUBE_10(spec, _tmp0);
+            TEXCUBE_11(_tmp2, _tmp0);
+            LRP(spec.xyz, _tmp0.w, spec.xyz, _tmp2.xyz);
+            TEX2D_03(_tmp0, a_tex_specular);
+            MUL(spec.xyz, spec.xyz, _tmp0.xyz);
+        }
+    }
+    else
+    {
+        if (FLAGS_REFLECTION_CUBE)
+        {
+            TEXCUBE_05(spec, _tmp1);
+            MUL(spec.w, state_material_specular.w, state_light1_specular.w);
+            MUL(spec.xyz, spec.xyz, spec.w);
+        }
+        else
+        {
+            MOV(_tmp0.xyz, _tmp1.xyz);
+            SUB(_tmp0.w, 1.0, state_material_shininess);
+            TEXCUBE_10(spec, _tmp0);
+            TEXCUBE_11(_tmp2, _tmp0);
+            LRP(spec.xyz, _tmp0.w, spec.xyz, _tmp2.xyz);
+        }
+    }
+    
+    MUL(spec.xyz, spec.xyz, state_lightprod1_specular.xyz);
+    MAD(diff, diff, state_light1_diffuse, a_color0);
+    
+    MAD(o_color.xyz, diff.xyz, tex_col.xyz, spec.xyz);
+    MUL(o_color.w, diff.w, tex_col.w);
+    
+    CHECK_CLIP_ALPHA_TEST;
+    
+#endif
+
     return outputColor;
 }
