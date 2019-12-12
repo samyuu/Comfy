@@ -15,6 +15,6 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     
     if (CB_ShaderFlags & ShaderFlags_AlphaTest)
         ClipAlphaThreshold(outputColor.a);
-        
+
     return outputColor * input.Color;
 }

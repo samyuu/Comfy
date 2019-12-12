@@ -4,9 +4,7 @@
 
 #define COMFY_VS
 #define ARB_PROGRAM_ACCURATE 1
-#if ARB_PROGRAM_ACCURATE
 #include "Include/DebugInterface.hlsl"
-#endif
 
 VS_OUTPUT VS_main(VS_INPUT input)
 {
@@ -16,6 +14,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
 
     TEMP _tmp0, _tmp1, _tmp2;
     TEMP diff = float4(0.0, 0.0, 0.0, 0.0), tmp, pos_v, pos_w, pos_c, pos_m, normal_w = float4(0.0, 0.0, 0.0, 0.0), normal_m, tangent_w = float4(0.0, 0.0, 0.0, 0.0), tangent_m, binormal_w = float4(0.0, 0.0, 0.0, 0.0);
+    
     MOV(tangent_m, a_tangent);
     MOV(normal_m, float4(a_normal, 1.0));
     MOV(pos_m, a_position);
