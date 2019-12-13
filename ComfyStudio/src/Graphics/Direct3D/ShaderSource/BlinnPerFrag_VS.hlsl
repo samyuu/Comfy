@@ -13,7 +13,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
 #if ARB_PROGRAM_ACCURATE
 
     TEMP _tmp0, _tmp1, _tmp2;
-    TEMP diff = float4(0.0, 0.0, 0.0, 0.0), tmp, pos_v, pos_w, pos_c, pos_m, normal_w = float4(0.0, 0.0, 0.0, 0.0), normal_m, tangent_w = float4(0.0, 0.0, 0.0, 0.0), tangent_m, binormal_w = float4(0.0, 0.0, 0.0, 0.0);
+    TEMP diff = (TEMP)0, tmp, pos_v, pos_w, pos_c, pos_m, normal_w = (TEMP)0, normal_m, tangent_w = (TEMP)0, tangent_m, binormal_w = (TEMP)0;
     
     MOV(tangent_m, a_tangent);
     MOV(normal_m, float4(a_normal, 1.0));

@@ -98,13 +98,19 @@ namespace Graphics
 		const struct ShaderIdentifiers
 		{
 			std::array<char, 8> BLINN { "BLINN" };
-			std::array<char, 8> STAGE { "STAGE" };
-			std::array<char, 8> FLOOR { "FLOOR" };
-			std::array<char, 8> CLOTH { "CLOTH" };
 			std::array<char, 8> ITEM { "ITEM" };
+			std::array<char, 8> STAGE { "STAGE" };
+			std::array<char, 8> SKIN { "SKIN" };
+			std::array<char, 8> HAIR { "HAIR" };
+			std::array<char, 8> CLOTH { "CLOTH" };
+			std::array<char, 8> TIGHTS { "TIGHTS" };
 			std::array<char, 8> SKY { "SKY" };
+			std::array<char, 8> EYEBALL { "EYEBALL" };
+			std::array<char, 8> EYELENS { "EYELENS" };
+			std::array<char, 8> GLASEYE { "GLASEYE" };
 			std::array<char, 8> WATER01 { "WATER01" };
 			std::array<char, 8> WATER02 { "WATER02" };
+			std::array<char, 8> FLOOR { "FLOOR" };
 		} ShaderIdentifiers;
 	}
 
@@ -137,7 +143,6 @@ namespace Graphics
 		renderCommandList.emplace_back();
 		auto& back = renderCommandList.back();
 
-		back.ObjSet = objSet;
 		back.Obj = obj;
 		back.Transform = glm::translate(mat4(1.0f), position);
 		back.Position = position;
@@ -507,24 +512,53 @@ namespace Graphics
 				return shaders.Constant;
 			}
 		}
-		else if (material.Shader == ShaderIdentifiers.STAGE)
-		{
-			if (sceneContext->RenderParameters.DebugFlags & (1 << 0))
-				return shaders.BlinnPerFrag;
-
-			return shaders.StageBlinn;
-		}
 		else if (material.Shader == ShaderIdentifiers.ITEM)
 		{
 			return shaders.ItemBlinn;
+		}
+		else if (material.Shader == ShaderIdentifiers.STAGE)
+		{
+			return shaders.StageBlinn;
+		}
+		else if (material.Shader == ShaderIdentifiers.SKIN)
+		{
+			return shaders.SkinDefault;
+		}
+		else if (material.Shader == ShaderIdentifiers.HAIR)
+		{
+			return (false) ? shaders.HairAniso : shaders.HairDefault;
+		}
+		else if (material.Shader == ShaderIdentifiers.CLOTH)
+		{
+			return (false) ? shaders.ClothAniso : shaders.ClothDefault;
+		}
+		else if (material.Shader == ShaderIdentifiers.TIGHTS)
+		{
+			return shaders.Tights;
 		}
 		else if (material.Shader == ShaderIdentifiers.SKY)
 		{
 			return shaders.SkyDefault;
 		}
+		else if (material.Shader == ShaderIdentifiers.EYEBALL)
+		{
+			return shaders.EyeBall;
+		}
+		else if (material.Shader == ShaderIdentifiers.EYELENS)
+		{
+			return shaders.EyeLens;
+		}
+		else if (material.Shader == ShaderIdentifiers.GLASEYE)
+		{
+			return shaders.GlassEye;
+		}
 		else if (material.Shader == ShaderIdentifiers.WATER01 || material.Shader == ShaderIdentifiers.WATER02)
 		{
 			return shaders.Water;
+		}
+		else if (material.Shader == ShaderIdentifiers.FLOOR)
+		{
+			return shaders.Floor;
 		}
 		else
 		{
