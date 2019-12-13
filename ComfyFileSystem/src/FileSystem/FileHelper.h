@@ -29,6 +29,8 @@ namespace FileSystem
 	void OpenInExplorer(const std::wstring& filePath);
 	void OpenExplorerProperties(const std::wstring& filePath);
 
+	std::wstring ResolveFileLink(const std::wstring& filePath);
+
 	void FuckUpWindowsPath(std::string& path);
 	void FuckUpWindowsPath(std::wstring& path);
 

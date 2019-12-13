@@ -7,7 +7,7 @@ namespace ImGui
 {
 	enum class FileType : uint16_t
 	{
-		Default, Text, Config, Binary, Image, Code, Archive, Video, Audio, Application, Count
+		Default, Link, Text, Config, Binary, Image, Code, Archive, Video, Audio, Application, Count
 	};
 
 	class FileViewer
@@ -50,6 +50,7 @@ namespace ImGui
 		void UpdateDirectoryInformation();
 		void SetDirectoryInternal(const std::string& newDirectory);
 		void SetParentDirectory(const std::string& directory);
+		void SetResolveFileLinke(const FilePathInfo& info);
 		void OpenDirectoryInExplorer();
 		void OpenContextItemDefaultProgram();
 		void OpenContextItemProperties();
@@ -62,6 +63,7 @@ namespace ImGui
 		static constexpr std::array<std::pair<FileType, const char*>, static_cast<size_t>(FileType::Count)> fileTypeDictionary =
 		{
 			std::make_pair(FileType::Default, "."),
+			std::make_pair(FileType::Link, ".lnk"),
 			std::make_pair(FileType::Text, ".txt"),
 			std::make_pair(FileType::Config, ".ini;.xml"),
 			std::make_pair(FileType::Binary, ".bin"),

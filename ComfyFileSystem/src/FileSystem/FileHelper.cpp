@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <shlwapi.h>
+#include <shobjidl.h>
 #include <assert.h>
 
 #include "FileHelperInternal.h"
@@ -208,6 +209,43 @@ namespace FileSystem
 		::ShellExecuteExW(&info);
 	}
 
+	std::wstring ResolveFileLink(const std::wstring& filePath)
+	{
+#if 0
+		const struct RAII_CoInitialize
+		{
+			RAII_CoInitialize() { ::CoInitialize(NULL); };
+			~RAII_CoInitialize() { ::CoUninitialize(); };
+		} coInitialize;
+#endif
+
+		std::wstring resolvedPath;
+
+		IShellLinkW* shellLink;
+		if (SUCCEEDED(::CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (LPVOID*)&shellLink)))
+		{
+			IPersistFile* persistFile;
+			if (SUCCEEDED(shellLink->QueryInterface(IID_IPersistFile, (void**)&persistFile)))
+			{
+				if (SUCCEEDED(persistFile->Load(filePath.c_str(), STGM_READ)))
+				{
+					if (SUCCEEDED(shellLink->Resolve(NULL, 0)))
+					{
+						WCHAR pathBuffer[MAX_PATH];
+						WIN32_FIND_DATAW findData;
+
+						if (SUCCEEDED(shellLink->GetPath(pathBuffer, MAX_PATH, &findData, SLGP_SHORTPATH)))
+							resolvedPath = pathBuffer;
+					}
+				}
+				persistFile->Release();
+			}
+			shellLink->Release();
+		}
+
+		return resolvedPath;
+	}
+
 	void FuckUpWindowsPath(std::string& path)
 	{
 		std::replace(path.begin(), path.end(), '/', '\\');
@@ -338,7 +376,7 @@ namespace FileSystem
 
 		bool result = WriteAllBytesInternal(fileHandle, buffer);
 		CloseFileHandleInternal(fileHandle);
-		
+
 		return result;
 	}
 

@@ -61,8 +61,15 @@ namespace ImGui
 				}
 				else
 				{
-					fileToOpen = std::string(clickedInfo->FullPath);
-					filedClicked = true;
+					if (clickedInfo->FileType == FileType::Link)
+					{
+						SetResolveFileLinke(*clickedInfo);
+					}
+					else
+					{
+						fileToOpen = std::string(clickedInfo->FullPath);
+						filedClicked = true;
+					}
 				}
 			}
 
@@ -240,6 +247,16 @@ namespace ImGui
 			SetDirectory(std::string(FileSystem::GetDirectory(directory)));
 	}
 
+	void FileViewer::SetResolveFileLinke(const FilePathInfo& info)
+	{
+		std::wstring wideLinkPath = Utf8ToUtf16(info.FullPath);
+		
+		std::wstring wideResolvedPath = FileSystem::ResolveFileLink(wideLinkPath);
+		std::string resolvedPath = Utf16ToUtf8(wideResolvedPath);
+
+		SetDirectory(resolvedPath);
+	}
+
 	void FileViewer::OpenDirectoryInExplorer()
 	{
 		FileSystem::OpenInExplorer(Utf8ToUtf16(directory));
@@ -287,6 +304,7 @@ namespace ImGui
 		switch (info.FileType)
 		{
 			CASE_FILE_ICON(FileType::Default, ICON_FA_FILE);
+			CASE_FILE_ICON(FileType::Link, ICON_FA_EXTERNAL_LINK_ALT);
 			CASE_FILE_ICON(FileType::Text, ICON_FA_FILE_ALT);
 			CASE_FILE_ICON(FileType::Config, ICON_FA_FILE_ALT);
 			CASE_FILE_ICON(FileType::Binary, ICON_FA_FILE);
@@ -313,6 +331,8 @@ namespace ImGui
 			return "File";
 		case FileType::Text:
 			return "Text";
+		case FileType::Link:
+			return "Link";
 		case FileType::Config:
 			return "Config";
 		case FileType::Binary:
