@@ -190,6 +190,7 @@ namespace Editor
 		{
 			auto lightGui = [](Light& light)
 			{
+				Gui::PushID(&light);
 				Gui::ColorEdit3("Ambient", glm::value_ptr(light.Ambient), ImGuiColorEditFlags_Float);
 				Gui::ColorEdit3("Diffuse", glm::value_ptr(light.Diffuse), ImGuiColorEditFlags_Float);
 				Gui::ColorEdit3("Specular", glm::value_ptr(light.Specular), ImGuiColorEditFlags_Float);
@@ -205,6 +206,10 @@ namespace Editor
 				Gui::PopID();
 			}
 
+			if (Gui::CollapsingHeader("Character Light"))
+				lightGui(context.Light.Character);
+			if (Gui::CollapsingHeader("Stage Light"))
+				lightGui(context.Light.Stage);
 		}
 
 		if (Gui::CollapsingHeader("Object Test", ImGuiTreeNodeFlags_None))
@@ -303,16 +308,9 @@ namespace Editor
 		if (!FileSystem::FileExists(txpPath))
 			return;
 
-		objSet = MakeUnique<ObjSet>();
-		objSet->Load(filePath);
-		objSet->UploadAll();
+		objSet = ObjSet::MakeUniqueReadParseUpload(filePath);
+		objSet->TxpSet = TxpSet::MakeUniqueReadParseUpload(txpPath, objSet.get());
 
-		std::vector<uint8_t> txpFileContent;
-		FileSystem::FileReader::ReadEntireFile(txpPath, &txpFileContent);
-
-		objSet->TxpSet = MakeUnique<TxpSet>();
-		objSet->TxpSet->Parse(txpFileContent.data());
-		objSet->TxpSet->UploadAll(nullptr);
 	}
 
 	void SceneRenderWindow::OnUpdateInput()

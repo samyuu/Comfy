@@ -212,6 +212,13 @@ namespace Graphics
 		char Name[64];
 		float BumpDepth;
 		float Reserved[15];
+
+		template <typename T>
+		void IterateMaterialTextures(T func) const
+		{
+			for (auto* texture = &Diffuse; texture <= &ReservedTexture; texture++)
+				func(texture);
+		}
 	};
 
 	class Obj
@@ -267,6 +274,9 @@ namespace Graphics
 	public:
 		virtual void Read(FileSystem::BinaryReader& reader) override;
 		void UploadAll();
+
+	public:
+		static UniquePtr<ObjSet> MakeUniqueReadParseUpload(std::string_view filePath);
 
 	private:
 		std::vector<Obj> objects;

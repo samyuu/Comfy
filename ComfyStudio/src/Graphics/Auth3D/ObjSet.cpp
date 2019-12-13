@@ -51,4 +51,12 @@ namespace Graphics
 			}
 		}
 	}
+
+	UniquePtr<ObjSet> ObjSet::MakeUniqueReadParseUpload(std::string_view filePath)
+	{
+		auto objSet = MakeUnique<ObjSet>();
+		objSet->Load(std::string(filePath));
+		objSet->UploadAll();
+		return objSet;
+	}
 }

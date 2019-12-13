@@ -1,7 +1,9 @@
 #include "TxpSet.h"
 #include "SprSet.h"
+#include "Auth3D/ObjSet.h"
 #include "FileSystem/FileInterface.h"
 #include "FileSystem/BinaryReader.h"
+#include "FileSystem/FileReader.h"
 
 using namespace FileSystem;
 
@@ -59,6 +61,34 @@ namespace Graphics
 				D3D_SetObjectDebugName(txp.CubeMap->GetTexture(), "CubeMap %s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp.Name.empty() ? "???" : txp.Name.c_str());
 			}
 		}
+	}
+
+	void TxpSet::SetTextureIDs(const ObjSet& objSet)
+	{
+		const auto& textureIDs = objSet.TextureIDs;
+		assert(textureIDs.size() <= Txps.size());
+
+		for (size_t i = 0; i < textureIDs.size(); i++)
+			Txps[i].TextureID = textureIDs[i];
+	}
+
+	UniquePtr<TxpSet> TxpSet::MakeUniqueReadParseUpload(std::string_view filePath, const ObjSet* objSet)
+	{
+		std::vector<uint8_t> fileContent;
+		FileSystem::FileReader::ReadEntireFile(filePath, &fileContent);
+
+		if (fileContent.empty())
+			return nullptr;
+
+		auto txpSet = MakeUnique<TxpSet>();;
+		{
+			txpSet->Parse(fileContent.data());
+			txpSet->UploadAll(nullptr);
+
+			if (objSet != nullptr)
+				txpSet->SetTextureIDs(*objSet);
+		}
+		return txpSet;
 	}
 
 	void TxpSet::ParseTxp(const uint8_t* buffer, Txp* txp)

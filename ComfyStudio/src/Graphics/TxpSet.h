@@ -45,6 +45,8 @@ namespace Graphics
 		// NOTE: Two dimensional array [CubeFace][MipMap]
 		std::vector<std::vector<MipMap>> MipMapsArray;
 
+		uint32_t TextureID = -1;
+
 		UniquePtr<D3D_Texture2D> Texture2D;
 		UniquePtr<D3D_CubeMap> CubeMap;
 
@@ -65,6 +67,11 @@ namespace Graphics
 
 		void Parse(const uint8_t* buffer) override;
 		void UploadAll(class SprSet* parentSprSet);
+
+		void SetTextureIDs(const class ObjSet& objSet);
+
+	public:
+		static UniquePtr<TxpSet> MakeUniqueReadParseUpload(std::string_view filePath, const class ObjSet* objSet);
 
 	private:
 		void ParseTxp(const uint8_t* buffer, Txp* txp);
