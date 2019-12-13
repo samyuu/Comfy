@@ -84,21 +84,7 @@ namespace Graphics
 			}
 		}
 
-		Txp* FindObjSetTxpFromID(ObjSet* objSet, uint32_t textureID)
-		{
-			if (textureID == -1)
-				return nullptr;
-
-			for (uint32_t i = 0; i < objSet->TextureIDs.size(); i++)
-			{
-				if (objSet->TextureIDs[i] == textureID)
-					return &objSet->TxpSet->Txps[i];
-			}
-
-			return nullptr;
-		}
-
-		bool IsTransparent(ObjSet* objSet, Mesh& mesh, Material& material)
+		bool IsTransparent(Mesh& mesh, Material& material)
 		{
 			if (material.BlendFlags.EnableBlend)
 				return true;
@@ -146,7 +132,7 @@ namespace Graphics
 		sceneContext = &scene;
 	}
 
-	void D3D_Renderer3D::Draw(ObjSet* objSet, Obj* obj, vec3 position)
+	void D3D_Renderer3D::Draw(Obj* obj, vec3 position)
 	{
 		renderCommandList.emplace_back();
 		auto& back = renderCommandList.back();
@@ -163,9 +149,40 @@ namespace Graphics
 		sceneContext = nullptr;
 	}
 
+	void D3D_Renderer3D::ClearTextureIDs()
+	{
+		textureIDTxpMap.clear();
+	}
+
+	void D3D_Renderer3D::RegisterTextureIDs(const TxpSet& txpSet)
+	{
+		for (auto& txp : txpSet.Txps)
+		{
+			if (txp.TextureID != -1)
+				textureIDTxpMap[txp.TextureID] = &txp;
+		}
+	}
+
 	const SceneContext* D3D_Renderer3D::GetSceneContext() const
 	{
 		return sceneContext;
+	}
+
+	std::unordered_map<uint32_t, const Txp*>& D3D_Renderer3D::GetTextureIDTxpMap()
+	{
+		return textureIDTxpMap;
+	}
+
+	const Txp* D3D_Renderer3D::GetTxpFromTextureID(uint32_t textureID) const
+	{
+		if (textureID == -1)
+			return nullptr;
+
+		auto found = textureIDTxpMap.find(textureID);
+		if (found != textureIDTxpMap.end())
+			return found->second;
+
+		return nullptr;
 	}
 
 	void D3D_Renderer3D::InternalFlush()
@@ -188,9 +205,9 @@ namespace Graphics
 				{
 					auto& material = command.Obj->Materials[subMesh.MaterialIndex];
 
-					if (IsTransparent(command.ObjSet, mesh, material))
+					if (IsTransparent(mesh, material))
 					{
-						float cameraDistance = glm::distance(command.Position + subMesh.BoundingSphere.Center, sceneContext->Camera.Position);
+						const float cameraDistance = glm::distance(command.Position + subMesh.BoundingSphere.Center, sceneContext->Camera.Position);
 						transparentSubMeshCommands.push_back({ &command, &mesh, &subMesh, cameraDistance });
 					}
 				}
@@ -201,7 +218,13 @@ namespace Graphics
 		{
 			std::sort(transparentSubMeshCommands.begin(), transparentSubMeshCommands.end(), [](SubMeshRenderCommand& a, SubMeshRenderCommand& b)
 			{
-				return a.CameraDistance > b.CameraDistance;
+				constexpr float comparisonThreshold = 0.001f;
+				const bool sameDistance = std::abs(a.CameraDistance - b.CameraDistance) < comparisonThreshold;
+
+				if (sameDistance)
+					return a.SubMesh->BoundingSphere.Radius > b.SubMesh->BoundingSphere.Radius;
+
+				return (a.CameraDistance > b.CameraDistance);
 			});
 		}
 	}
@@ -280,7 +303,7 @@ namespace Graphics
 			for (auto& subMesh : mesh.SubMeshes)
 			{
 				auto& material = command.Obj->Materials[subMesh.MaterialIndex];
-				if (IsTransparent(command.ObjSet, mesh, material))
+				if (IsTransparent(mesh, material))
 					continue;
 
 				PrepareAndRenderSubMesh(command, mesh, subMesh, material, command.Transform);
@@ -395,12 +418,11 @@ namespace Graphics
 		auto& materialShader = GetMaterialShader(material);
 		materialShader.Bind();
 
-		ObjSet* objSet = command.ObjSet;
-		CheckBindMaterialTexture(objSet, material.Diffuse, 0, objectConstantBuffer.Data.TextureFormats.Diffuse);
-		CheckBindMaterialTexture(objSet, material.Ambient, 1, objectConstantBuffer.Data.TextureFormats.Ambient);
-		CheckBindMaterialTexture(objSet, material.Normal, 2, objectConstantBuffer.Data.TextureFormats.Normal);
-		CheckBindMaterialTexture(objSet, material.Specular, 3, objectConstantBuffer.Data.TextureFormats.Specular);
-		CheckBindMaterialTexture(objSet, material.Reflection, 5, objectConstantBuffer.Data.TextureFormats.Reflection);
+		CheckBindMaterialTexture(material.Diffuse, 0, objectConstantBuffer.Data.TextureFormats.Diffuse);
+		CheckBindMaterialTexture(material.Ambient, 1, objectConstantBuffer.Data.TextureFormats.Ambient);
+		CheckBindMaterialTexture(material.Normal, 2, objectConstantBuffer.Data.TextureFormats.Normal);
+		CheckBindMaterialTexture(material.Specular, 3, objectConstantBuffer.Data.TextureFormats.Specular);
+		CheckBindMaterialTexture(material.Reflection, 5, objectConstantBuffer.Data.TextureFormats.Reflection);
 
 		if (!currentlyRenderingWireframeOverlay && !sceneContext->RenderParameters.Wireframe)
 			((material.BlendFlags.DoubleSidedness != DoubleSidedness_Off) ? solidNoCullingRasterizerState : solidBackfaceCullingRasterizerState).Bind();
@@ -525,9 +547,9 @@ namespace Graphics
 		};
 	}
 
-	void D3D_Renderer3D::CheckBindMaterialTexture(ObjSet* objSet, MaterialTexture& materialTexture, int slot, TextureFormat& constantBufferTextureFormat)
+	void D3D_Renderer3D::CheckBindMaterialTexture(MaterialTexture& materialTexture, int slot, TextureFormat& constantBufferTextureFormat)
 	{
-		const Txp* txp = FindObjSetTxpFromID(objSet, materialTexture.TextureID);
+		const Txp* txp = GetTxpFromTextureID(materialTexture.TextureID);
 
 		if (txp == nullptr || (txp->Texture2D == nullptr && txp->CubeMap == nullptr))
 		{

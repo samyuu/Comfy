@@ -12,6 +12,7 @@
 #include "ShaderBytecode/ShaderBytecode.h"
 #include "Graphics/Auth3D/ObjSet.h"
 #include "Graphics/Auth3D/SceneContext.h"
+#include <unordered_map>
 
 namespace Graphics
 {
@@ -105,16 +106,23 @@ namespace Graphics
 
 	public:
 		void Begin(SceneContext& scene);
-		void Draw(ObjSet* objSet, Obj* obj, vec3 position);
+		void Draw(Obj* obj, vec3 position);
 		void End();
 
 	public:
+		void ClearTextureIDs();
+		void RegisterTextureIDs(const TxpSet& txpSet);
+
+	public:
 		const SceneContext* GetSceneContext() const;
+		std::unordered_map<uint32_t, const Txp*>& GetTextureIDTxpMap();
+
+	protected:
+		const Txp* GetTxpFromTextureID(uint32_t textureID) const;
 
 	private:
 		struct ObjRenderCommand
 		{
-			ObjSet* ObjSet;
 			Obj* Obj;
 			mat4 Transform;
 			vec3 Position;
@@ -142,7 +150,7 @@ namespace Graphics
 		D3D_BlendState CreateMaterialBlendState(Material& material);
 		D3D_ShaderPair& GetMaterialShader(Material& material);
 		D3D_TextureSampler CreateTextureSampler(MaterialTexture& materialTexture, TextureFormat format);
-		void CheckBindMaterialTexture(ObjSet* objSet, MaterialTexture& materialTexture, int slot, TextureFormat& constantBufferTextureFormat);
+		void CheckBindMaterialTexture(MaterialTexture& materialTexture, int slot, TextureFormat& constantBufferTextureFormat);
 		void SubmitSubMeshDrawCall(SubMesh& subMesh);
 
 	private:
@@ -197,5 +205,6 @@ namespace Graphics
 		} toneMapData;
 
 		SceneContext* sceneContext = nullptr;
+		std::unordered_map<uint32_t, const Txp*> textureIDTxpMap;
 	};
 }

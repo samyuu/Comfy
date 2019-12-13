@@ -311,6 +311,8 @@ namespace Editor
 		objSet = ObjSet::MakeUniqueReadParseUpload(filePath);
 		objSet->TxpSet = TxpSet::MakeUniqueReadParseUpload(txpPath, objSet.get());
 
+		renderer3D->ClearTextureIDs();
+		renderer3D->RegisterTextureIDs(*objSet->TxpSet);
 	}
 
 	void SceneRenderWindow::OnUpdateInput()
@@ -407,11 +409,11 @@ namespace Editor
 				if (objectIndex < 0)
 				{
 					for (auto& obj : *objSet)
-						renderer3D->Draw(objSet.get(), &obj, vec3(0.0f, 0.0f, 0.0f));
+						renderer3D->Draw(&obj, vec3(0.0f, 0.0f, 0.0f));
 				}
 				else if (objectIndex < objSet->size() && objSet->size() != 0)
 				{
-					renderer3D->Draw(objSet.get(), objSet->GetObjAt(objectIndex), vec3(0.0f, 0.0f, 0.0f));
+					renderer3D->Draw(objSet->GetObjAt(objectIndex), vec3(0.0f, 0.0f, 0.0f));
 				}
 			}
 			renderer3D->End();
