@@ -1,4 +1,5 @@
 #include "LightParameters.h"
+#include "Misc/StringHelper.h"
 #include "Misc/StringParseHelper.h"
 
 namespace Graphics
@@ -113,7 +114,7 @@ namespace Graphics
 		{
 			auto line = StringParsing::GetLineAdvanceToNextLine(textBuffer);
 
-			if (line == EndOfFileTag || line.empty())
+			if (StartsWith(line, EndOfFileTag) || line.empty())
 				break;
 
 			auto tag = StringParsing::GetWord(line.data());

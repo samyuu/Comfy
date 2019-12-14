@@ -1,4 +1,5 @@
 #include "GlowParameter.h"
+#include "Misc/StringHelper.h"
 #include "Misc/StringParseHelper.h"
 
 namespace Graphics
@@ -38,7 +39,7 @@ namespace Graphics
 	{
 	}
 
-	void GlowParameter::Parse(const uint8_t * buffer)
+	void GlowParameter::Parse(const uint8_t* buffer)
 	{
 		const char* textBuffer = reinterpret_cast<const char*>(buffer);
 
@@ -46,7 +47,7 @@ namespace Graphics
 		{
 			auto line = StringParsing::GetLineAdvanceToNextLine(textBuffer);
 
-			if (line == EndOfFileTag || line.empty())
+			if (StartsWith(line, EndOfFileTag) || line.empty())
 				break;
 
 			auto tag = StringParsing::GetWord(line.data());
