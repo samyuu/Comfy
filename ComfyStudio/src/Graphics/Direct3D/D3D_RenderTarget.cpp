@@ -137,6 +137,12 @@ namespace Graphics
 		D3D_RenderTarget::Resize(newSize);
 		depthBuffer.Resize(newSize);
 	}
+
+	void D3D_DepthRenderTarget::ResizeIfDifferent(ivec2 newSize)
+	{
+		if (newSize != GetSize())
+			Resize(newSize);
+	}
 	
 	D3D_DepthBuffer* D3D_DepthRenderTarget::GetDepthBuffer()
 	{

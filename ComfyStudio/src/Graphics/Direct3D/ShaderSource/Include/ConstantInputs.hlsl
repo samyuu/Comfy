@@ -12,7 +12,7 @@ static const float3 BlendColor = float3(1.0, 1.0, 1.0);
 cbuffer SceneConstantData : register(b0)
 {
     SceneData CB_Scene;
-    float1 SceneCB_Padding[8];
+    float1 SceneCB_Padding[6];
 };
 
 struct TextureFormats

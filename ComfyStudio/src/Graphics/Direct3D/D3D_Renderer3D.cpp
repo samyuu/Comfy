@@ -141,8 +141,18 @@ namespace Graphics
 	void D3D_Renderer3D::Draw(Obj* obj, vec3 position)
 	{
 		renderCommandList.emplace_back();
-		auto& back = renderCommandList.back();
 
+		auto& back = renderCommandList.back();
+		back.Obj = obj;
+		back.Transform = glm::translate(mat4(1.0f), position);
+		back.Position = position;
+	}
+
+	void D3D_Renderer3D::DrawReflection(Obj* obj, vec3 position)
+	{
+		reflectionCommandList.emplace_back();
+
+		auto& back = reflectionCommandList.back();
 		back.Obj = obj;
 		back.Transform = glm::translate(mat4(1.0f), position);
 		back.Position = position;
@@ -198,6 +208,7 @@ namespace Graphics
 
 		transparentSubMeshCommands.clear();
 		renderCommandList.clear();
+		reflectionCommandList.clear();
 	}
 
 	void D3D_Renderer3D::InternalPrepareRenderCommands()
@@ -208,9 +219,7 @@ namespace Graphics
 			{
 				for (auto& subMesh : mesh.SubMeshes)
 				{
-					auto& material = command.Obj->Materials[subMesh.MaterialIndex];
-
-					if (IsTransparent(mesh, material))
+					if (IsTransparent(mesh, subMesh.GetMaterial(*command.Obj)))
 					{
 						const float cameraDistance = glm::distance(command.Position + subMesh.BoundingSphere.Center, sceneContext->Camera.Position);
 						transparentSubMeshCommands.push_back({ &command, &mesh, &subMesh, cameraDistance });
@@ -236,6 +245,7 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalRenderItems()
 	{
+		sceneConstantBuffer.Data.RenderResolution = sceneContext->RenderTarget.GetSize();
 		sceneConstantBuffer.Data.IrradianceRed = glm::transpose(sceneContext->IBL.Stage.IrradianceRGB[0]);
 		sceneConstantBuffer.Data.IrradianceGreen = glm::transpose(sceneContext->IBL.Stage.IrradianceRGB[1]);
 		sceneConstantBuffer.Data.IrradianceBlue = glm::transpose(sceneContext->IBL.Stage.IrradianceRGB[2]);
@@ -266,6 +276,29 @@ namespace Graphics
 			wireframeRasterizerState.Bind();
 
 		genericInputLayout->Bind();
+		D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+
+		if (sceneContext->RenderParameters.RenderReflection)
+		{
+			if (!reflectionCommandList.empty())
+			{
+				sceneContext->ReflectionRenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.ReflectionResolution);
+				sceneContext->ReflectionRenderTarget.Bind();
+				
+				D3D.SetViewport(sceneContext->ReflectionRenderTarget.GetSize());
+
+				sceneContext->ReflectionRenderTarget.Clear(sceneContext->RenderParameters.ClearColor);
+
+				// TODO: Render using reflection shader
+				for (auto& command : reflectionCommandList)
+					InternalRenderOpaqueObjCommand(command);
+				
+				sceneContext->ReflectionRenderTarget.UnBind();
+				
+				std::array renderTargetResourceViews = { sceneContext->ReflectionRenderTarget.GetResourceView() };
+				D3D.Context->PSSetShaderResources(15, static_cast<UINT>(renderTargetResourceViews.size()), renderTargetResourceViews.data());
+			}
+		}
 
 		sceneContext->RenderTarget.Bind();
 		D3D.SetViewport(sceneContext->RenderTarget.GetSize());
@@ -277,8 +310,6 @@ namespace Graphics
 
 		if (sceneContext->RenderParameters.RenderOpaque)
 		{
-			D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
-
 			for (auto& command : renderCommandList)
 				InternalRenderOpaqueObjCommand(command);
 		}
@@ -307,7 +338,7 @@ namespace Graphics
 
 			for (auto& subMesh : mesh.SubMeshes)
 			{
-				auto& material = command.Obj->Materials[subMesh.MaterialIndex];
+				auto& material = subMesh.GetMaterial(*command.Obj);
 				if (IsTransparent(mesh, material))
 					continue;
 
@@ -322,7 +353,7 @@ namespace Graphics
 		auto& mesh = *command.ParentMesh;
 
 		BindMeshVertexBuffers(mesh);
-		auto& material = command.ObjCommand->Obj->Materials[subMesh.MaterialIndex];
+		auto& material = subMesh.GetMaterial(*command.ObjCommand->Obj);
 
 		auto blendState = CreateMaterialBlendState(material);
 		blendState.Bind();
@@ -342,7 +373,7 @@ namespace Graphics
 			{
 				BindMeshVertexBuffers(mesh);
 				for (auto& subMesh : mesh.SubMeshes)
-					PrepareAndRenderSubMesh(command, mesh, subMesh, command.Obj->Materials[subMesh.MaterialIndex], command.Transform);
+					PrepareAndRenderSubMesh(command, mesh, subMesh, subMesh.GetMaterial(*command.Obj), command.Transform);
 			}
 		}
 

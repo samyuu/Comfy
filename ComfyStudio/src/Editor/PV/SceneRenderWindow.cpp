@@ -149,6 +149,7 @@ namespace Editor
 			Gui::Checkbox("Wireframe", &context.RenderParameters.Wireframe);
 			Gui::Checkbox("Wireframe Overlay", &context.RenderParameters.WireframeOverlay);
 			Gui::Checkbox("Alpha Sort", &context.RenderParameters.AlphaSort);
+			Gui::Checkbox("Render Reflection", &context.RenderParameters.RenderReflection);
 			Gui::Checkbox("Render Opaque", &context.RenderParameters.RenderOpaque);
 			Gui::Checkbox("Render Transparent", &context.RenderParameters.RenderTransparent);
 			Gui::SliderInt("Anistropic Filtering", &context.RenderParameters.AnistropicFiltering, D3D11_MIN_MAXANISOTROPY, D3D11_MAX_MAXANISOTROPY);
@@ -157,20 +158,43 @@ namespace Editor
 			{
 				auto clampSize = [](ivec2 size) { return glm::clamp(size, ivec2(1, 1), ivec2(16384, 16384)); };
 
-				static ivec2 customResolution = { 1280, 720 };
+				constexpr std::array namedFactors =
+				{
+					std::make_pair("Render Region x1", 1.0f),
+					std::make_pair("Render Region x2", 2.0f),
+					std::make_pair("Render Region x4", 4.0f),
+					std::make_pair("Render Region x8", 8.0f),
+					std::make_pair("Render Region x16", 16.0f),
+				};
 
-				if (Gui::InputInt2("Custom Resolution", glm::value_ptr(customResolution)))
-					customResolution = clampSize(customResolution);
+				ivec2 renderResolution = context.RenderTarget.GetSize();
+				Gui::InputInt2("Render Resolution", glm::value_ptr(renderResolution));
+				Gui::ItemContextMenu("RenderResolutionContextMenu", [&]()
+				{
+					Gui::Text("Set Render Resolution:");
+					Gui::Separator();
+					for (auto[name, factor] : namedFactors)
+						if (Gui::MenuItem(name)) renderResolution = ivec2(vec2(GetRenderRegion().GetSize()) * factor);
+				});
 
-				if (Gui::Button("Render Region x1")) customResolution = (clampSize(vec2(GetRenderRegion().GetSize()) * 1.0f));
-				if (Gui::Button("Render Region x2")) customResolution = (clampSize(vec2(GetRenderRegion().GetSize()) * 2.0f));
-				if (Gui::Button("Render Region x4")) customResolution = (clampSize(vec2(GetRenderRegion().GetSize()) * 4.0f));
-				if (Gui::Button("Render Region x8")) customResolution = (clampSize(vec2(GetRenderRegion().GetSize()) * 8.0f));
-				if (Gui::Button("Render Region x16")) customResolution = (clampSize(vec2(GetRenderRegion().GetSize()) * 16.0f));
-				if (Gui::Button("Render Region x32")) customResolution = (clampSize(vec2(GetRenderRegion().GetSize()) * 32.0f));
+				if (renderResolution != context.RenderTarget.GetSize())
+					context.Resize(clampSize(renderResolution));
 
-				if (Gui::Button("Resize Custom"))
-					context.Resize(customResolution);
+				ivec2 reflectionResolution = context.RenderParameters.ReflectionResolution;
+				Gui::InputInt2("Reflection Resolution", glm::value_ptr(reflectionResolution));
+				Gui::ItemContextMenu("ReflectionResolutionContextMenu", [&]()
+				{
+					Gui::Text("Set Reflection Resolution:");
+					Gui::Separator();
+					if (Gui::MenuItem("256x256")) reflectionResolution = ivec2(256, 256);
+					if (Gui::MenuItem("512x512")) reflectionResolution = ivec2(512, 512);
+
+					for (auto[name, factor] : namedFactors)
+						if (Gui::MenuItem(name)) reflectionResolution = (vec2(GetRenderRegion().GetSize()) * factor);
+				});
+
+				if (reflectionResolution != context.RenderParameters.ReflectionResolution)
+					context.RenderParameters.ReflectionResolution = clampSize(reflectionResolution);
 			}
 
 			Gui::PopID();
@@ -197,7 +221,7 @@ namespace Editor
 				Gui::DragFloat3("Position", glm::value_ptr(light.Position), 0.01f);
 				Gui::PopID();
 			};
-			
+
 			if (Gui::CollapsingHeader("IBL Light"))
 			{
 				Gui::PushID(&context.IBL);
@@ -414,6 +438,13 @@ namespace Editor
 				else if (objectIndex < objSet->size() && objSet->size() != 0)
 				{
 					renderer3D->Draw(objSet->GetObjAt(objectIndex), vec3(0.0f, 0.0f, 0.0f));
+				}
+
+				// DEBUG:
+				for (auto& obj : *objSet)
+				{
+					if (EndsWithInsensitive(obj.Name, "_reflect"))
+						renderer3D->DrawReflection(&obj, vec3(0.0f, 0.0f, 0.0f));
 				}
 			}
 			renderer3D->End();

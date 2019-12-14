@@ -84,6 +84,7 @@ namespace Graphics
 
 		void Clear(const vec4& color) override;
 		void Resize(ivec2 newSize) override;
+		void ResizeIfDifferent(ivec2 newSize);
 
 		D3D_DepthBuffer* GetDepthBuffer();
 

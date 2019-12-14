@@ -59,4 +59,10 @@ namespace Graphics
 		objSet->UploadAll();
 		return objSet;
 	}
+
+	Material& SubMesh::GetMaterial(Obj& obj)
+	{
+		assert(MaterialIndex < obj.Materials.size());
+		return obj.Materials[MaterialIndex];
+	}
 }

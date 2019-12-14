@@ -44,11 +44,6 @@
 #endif /* COMFY_PS */
 
 // NOTE: Program environment:
-//#define mvp                         { state.matrix.mvp }
-//#define mv                          { state.matrix.modelview }
-//#define camera_mvi                  { state.matrix.program[5].inverse }
-//#define model_mtx                   { state.matrix.program[6] }
-//#define model_mtx_it                { state.matrix.program[6].invtrans }
 #define mvp                         (transpose(CB_ModelViewProjection))
 #define mv                          (transpose(CB_ModelView))
 #define camera_mvi                  (CB_Scene.View)
@@ -65,10 +60,9 @@
 #define p_max_alpha                 (float4(1.0, 1.0, 1.0, 1.0))
 #define p_fres_coef                 (CB_Material.FresnelCoefficient)
 #define p_bump_depth                (CB_Material.BumpDepth)
-// TODO:
+// TODO: Should this be the same as p_fres_coef (?)
 #define fres_coef                   (CB_Material.FresnelCoefficient)
-// TODO:
-#define p_fb_isize                  (float2(512.0, 256.0))
+#define p_fb_isize                  (1.0 / CB_Scene.RenderResolution)
 // TODO:
 #define program_env_00              (float4(42.00, 42.00, 75.00, 1.0))
 // TODO:
@@ -134,7 +128,7 @@
 #define TEX2D_02(result, texCoord)  result = NormalTexture.Sample(NormalSampler, (texCoord).xy).xyzx
 #define TEX2D_03(result, texCoord)  result = SpecularTexture.Sample(SpecularSampler, (texCoord).xy)
 // TODO: simple_reflect...
-#define TEX2D_15(result, texCoord)  result = float4(0.0, 0.0, 0.0, 0.0)
+#define TEX2D_15(result, texCoord)  result = ScreenReflectionTexture.Sample(ScreenReflectionSampler, (texCoord).xy)
 // TODO: ...
 #define TEX2D_16(result, texCoord)  result = float4(0.0, 0.0, 0.0, 0.0)
 

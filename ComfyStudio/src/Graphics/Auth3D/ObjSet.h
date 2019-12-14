@@ -29,6 +29,8 @@ namespace Graphics
 		Box BoundingBox;
 
 		UniquePtr<D3D_StaticIndexBuffer> GraphicsIndexBuffer;
+
+		struct Material& GetMaterial(class Obj& obj);
 	};
 
 	struct MeshFlags

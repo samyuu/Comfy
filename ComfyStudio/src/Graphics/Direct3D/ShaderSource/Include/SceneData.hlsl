@@ -22,6 +22,8 @@ struct SceneData
     ParallelLight CharacterLight;
     ParallelLight StageLight;
     float4 LightColor;
+    
+    float2 RenderResolution;
 };
 
 #endif /* SCENEDATA_HLSL */

@@ -49,7 +49,9 @@ namespace Graphics
 		} CharacterLight, StageLight;
 
 		vec4 LightColor;
-		float Padding[8];
+		vec2 RenderResolution;
+
+		float Padding[6];
 	};
 
 	struct ObjectConstantData
@@ -107,6 +109,7 @@ namespace Graphics
 	public:
 		void Begin(SceneContext& scene);
 		void Draw(Obj* obj, vec3 position);
+		void DrawReflection(Obj* obj, vec3 position);
 		void End();
 
 	public:
@@ -192,7 +195,7 @@ namespace Graphics
 
 		D3D_DepthStencilState transparencyPassDepthStencilState = { true, D3D11_DEPTH_WRITE_MASK_ZERO };
 
-		std::vector<ObjRenderCommand> renderCommandList;
+		std::vector<ObjRenderCommand> renderCommandList, reflectionCommandList;
 		std::vector<SubMeshRenderCommand> transparentSubMeshCommands;
 
 		bool currentlyRenderingWireframeOverlay = false;
