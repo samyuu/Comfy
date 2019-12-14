@@ -18,7 +18,7 @@ namespace System
 		{
 			if (remainingArgumentCount == 2)
 			{
-				// Printing help for next command
+				// NOTE: Print help for next command
 				for (const CommandLineOption& option : CommandLineOptions::GetOptions())
 				{
 					if (option.MatchesCommand(arguments[currentArgumentIndex + 1]))
@@ -27,7 +27,7 @@ namespace System
 			}
 			else
 			{
-				// Printing help for all available commands
+				// NOTE: Print help for all available commands
 				for (const CommandLineOption& option : CommandLineOptions::GetOptions())
 					Logger::LogLine("%s, %s : %s", option.ShortCommand, option.LongCommand, option.GetDescription());
 			}
