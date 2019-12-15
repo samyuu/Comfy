@@ -13,6 +13,12 @@ namespace Graphics
 		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), nullptr);
 	}
 
+	void D3D_RenderTargetBase::BindSetViewport() const
+	{
+		Bind();
+		D3D.SetViewport(GetSize());
+	}
+
 	void D3D_RenderTargetBase::UnBind() const
 	{
 		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { nullptr };
@@ -94,6 +100,12 @@ namespace Graphics
 		shaderResourceViewDescription.Texture2D.MipLevels = 1;
 
 		D3D.Device->CreateShaderResourceView(backBuffer.Get(), &shaderResourceViewDescription, &shaderResourceView);
+	}
+
+	void D3D_RenderTarget::BindResource(uint32_t textureSlot)
+	{
+		std::array<ID3D11ShaderResourceView*, 1> resourceViews = { GetResourceView() };
+		D3D.Context->PSSetShaderResources(textureSlot, static_cast<UINT>(resourceViews.size()), resourceViews.data());
 	}
 
 	ivec2 D3D_RenderTarget::GetSize() const

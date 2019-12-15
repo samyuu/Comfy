@@ -35,9 +35,8 @@ namespace App
 
 	void EngineRenderWindow::OnRender()
 	{
-		renderTarget->Bind();
+		renderTarget->BindSetViewport();
 		{
-			D3D.SetViewport(renderTarget->GetSize());
 			const vec4 backgroundColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 			renderTarget->Clear(backgroundColor);
 

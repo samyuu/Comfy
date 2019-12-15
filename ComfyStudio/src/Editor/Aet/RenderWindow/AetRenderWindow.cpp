@@ -214,9 +214,8 @@ namespace Editor
 		cameraController.Update(camera, relativeMouse);
 		GetCurrentTool()->UpdateCamera(camera, relativeMouse);
 
-		renderTarget->Bind();
+		renderTarget->BindSetViewport();
 		{
-			D3D.SetViewport(renderTarget->GetSize());
 			renderTarget->Clear(GetColorVec4(EditorColor_DarkClear));
 
 			camera.UpdateMatrices();

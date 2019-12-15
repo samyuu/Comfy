@@ -423,9 +423,8 @@ namespace Editor
 		if (objSet == nullptr)
 			return;
 
-		renderTarget->Bind();
+		renderTarget->BindSetViewport();
 		{
-			D3D.SetViewport(renderTarget->GetSize());
 			context.RenderParameters.ClearColor = GetColorVec4(EditorColor_BaseClear);
 
 			renderer3D->Begin(context);

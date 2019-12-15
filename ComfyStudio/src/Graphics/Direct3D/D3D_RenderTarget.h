@@ -19,6 +19,8 @@ namespace Graphics
 
 	public:
 		virtual void Bind() const;
+		void BindSetViewport() const;
+		
 		virtual void UnBind() const;
 
 		virtual void Clear(const vec4& color);
@@ -61,6 +63,8 @@ namespace Graphics
 		D3D_RenderTarget& operator=(const D3D_RenderTarget&) = delete;
 
 	public:
+		void BindResource(uint32_t textureSlot);
+
 		ivec2 GetSize() const override;
 		void Resize(ivec2 newSize) override;
 
