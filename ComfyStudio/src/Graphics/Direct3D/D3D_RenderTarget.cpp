@@ -25,11 +25,23 @@ namespace Graphics
 		D3D.Context->ClearRenderTargetView(renderTargetView.Get(), glm::value_ptr(color));
 	}
 
+	void D3D_RenderTargetBase::ResizeIfDifferent(ivec2 newSize)
+	{
+		if (newSize != GetSize())
+			Resize(newSize);
+	}
+
 	D3D_SwapChainRenderTarget::D3D_SwapChainRenderTarget(IDXGISwapChain* swapChain)
 		: swapChain(swapChain)
 	{
 		swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
 		D3D.Device->CreateRenderTargetView(backBuffer.Get(), nullptr, &renderTargetView);
+
+		D3D11_TEXTURE2D_DESC backBufferDescription;
+		backBuffer->GetDesc(&backBufferDescription);
+
+		size.x = backBufferDescription.Width;
+		size.y = backBufferDescription.Height;
 	}
 
 	void D3D_SwapChainRenderTarget::Resize(ivec2 newSize)
@@ -38,13 +50,19 @@ namespace Graphics
 		renderTargetView = nullptr;
 
 		D3D.SwapChain->ResizeBuffers(0, newSize.x, newSize.y, DXGI_FORMAT_UNKNOWN, 0);
+		size = newSize;
 
 		swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
 		D3D.Device->CreateRenderTargetView(backBuffer.Get(), nullptr, &renderTargetView);
 	}
 
+	ivec2 D3D_SwapChainRenderTarget::GetSize() const
+	{
+		return size;
+	}
+
 	D3D_RenderTarget::D3D_RenderTarget(ivec2 size)
-		: D3D_RenderTarget(size, DXGI_FORMAT_R8G8B8A8_UNORM)
+		: D3D_RenderTarget(size, RenderTargetLDRFormatRGBA)
 	{
 	}
 
@@ -78,6 +96,11 @@ namespace Graphics
 		D3D.Device->CreateShaderResourceView(backBuffer.Get(), &shaderResourceViewDescription, &shaderResourceView);
 	}
 
+	ivec2 D3D_RenderTarget::GetSize() const
+	{
+		return ivec2(backBufferDescription.Width, backBufferDescription.Height);
+	}
+
 	void D3D_RenderTarget::Resize(ivec2 newSize)
 	{
 		backBufferDescription.Width = newSize.x;
@@ -87,11 +110,6 @@ namespace Graphics
 		D3D.Device->CreateTexture2D(&backBufferDescription, nullptr, &backBuffer);
 		D3D.Device->CreateRenderTargetView(backBuffer.Get(), &renderTargetViewDescription, &renderTargetView);
 		D3D.Device->CreateShaderResourceView(backBuffer.Get(), &shaderResourceViewDescription, &shaderResourceView);
-	}
-
-	ivec2 D3D_RenderTarget::GetSize() const
-	{
-		return ivec2(backBufferDescription.Width, backBufferDescription.Height);
 	}
 
 	void* D3D_RenderTarget::GetVoidTexture() const
@@ -138,12 +156,6 @@ namespace Graphics
 		depthBuffer.Resize(newSize);
 	}
 
-	void D3D_DepthRenderTarget::ResizeIfDifferent(ivec2 newSize)
-	{
-		if (newSize != GetSize())
-			Resize(newSize);
-	}
-	
 	D3D_DepthBuffer* D3D_DepthRenderTarget::GetDepthBuffer()
 	{
 		return &depthBuffer;

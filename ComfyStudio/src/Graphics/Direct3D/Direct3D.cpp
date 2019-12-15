@@ -63,7 +63,7 @@ namespace Graphics
 		swapChainDescription.BufferCount = 2;
 		swapChainDescription.BufferDesc.Width = 0;
 		swapChainDescription.BufferDesc.Height = 0;
-		swapChainDescription.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		swapChainDescription.BufferDesc.Format = RenderTargetLDRFormatRGBA;
 		swapChainDescription.BufferDesc.RefreshRate.Numerator = 0;
 		swapChainDescription.BufferDesc.RefreshRate.Denominator = 0;
 		swapChainDescription.Flags = 0;
