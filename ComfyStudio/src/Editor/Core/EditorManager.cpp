@@ -36,7 +36,7 @@ namespace Editor
 	void UpdateEditorColors()
 	{
 		using namespace Gui;
-		SetColor(EditorColor_BaseClear, GetColorU32(ImGuiCol_TabUnfocused));
+		SetColor(EditorColor_BaseClear, ImColor(0.16f, 0.16f, 0.16f, 0.0f));
 		SetColor(EditorColor_DarkClear, GetColorU32(ImGuiCol_WindowBg));
 		SetColor(EditorColor_AltRow, 0xFF363636);
 
