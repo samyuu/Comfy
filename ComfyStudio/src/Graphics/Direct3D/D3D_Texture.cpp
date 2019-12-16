@@ -262,12 +262,29 @@ namespace Graphics
 		{
 			if (usesBlockCompression)
 			{
-				// TODO: Not sure if this is entirely accurate or reliable
+				// TODO: Not sure if this is entirely accurate and or reliable
 				return ((PadTextureDimension(size.x, BlockCompressionAlignment) * bitsPerPixel) / 2);
 			}
 			else
 			{
 				return ((size.x * bitsPerPixel + 7) / 8);
+			}
+		}
+
+		void PadRGBToRGBA(const ivec2 size, const uint8_t* inputRGB, uint32_t* outputRGBA)
+		{
+			const uint8_t* currentRGBPixel = inputRGB;
+
+			for (int32_t i = 0; i < (size.x * size.y); i++)
+			{
+				const uint8_t r = currentRGBPixel[0];
+				const uint8_t g = currentRGBPixel[1];
+				const uint8_t b = currentRGBPixel[2];
+				const uint8_t a = std::numeric_limits<uint8_t>::max();
+				currentRGBPixel += 3;
+
+				const uint32_t rgba = (r << 0) | (g << 8) | (b << 16) | (a << 24);
+				outputRGBA[i] = rgba;
 			}
 		}
 
@@ -428,18 +445,45 @@ namespace Graphics
 		textureDescription.CPUAccessFlags = 0;
 		textureDescription.MiscFlags = 0;
 
-		const bool usesBlockCompression = UsesBlockCompression(textureDescription.Format);
-		const UINT bitsPerPixel = GetBitsPerPixel(textureDescription.Format);
-
-		if (usesBlockCompression)
-			PadTextureDimensions(textureDescription.Width, textureDescription.Height, BlockCompressionAlignment);
-
 		std::array<D3D11_SUBRESOURCE_DATA, MaxMipMaps> initialResourceData;
 
-		for (size_t i = 0; i < mipMaps.size(); i++)
-			initialResourceData[i] = CreateMipMapSubresourceData(mipMaps[i], usesBlockCompression, bitsPerPixel);
+		// NOTE: Natively unsupported 24-bit format so it needs to be padded first
+		if (baseMipMap.Format == TextureFormat::RGB8)
+		{
+			textureDescription.Format = GetDxgiFormat(TextureFormat::RGBA8);
+			std::array<uint32_t*, MaxMipMaps> rgbaBuffers;
 
-		D3D.Device->CreateTexture2D(&textureDescription, initialResourceData.data(), &texture);
+			for (size_t i = 0; i < mipMaps.size(); i++)
+			{
+				auto& resource = initialResourceData[i];
+				auto& mipMap = mipMaps[i];
+
+				rgbaBuffers[i] = new uint32_t[mipMap.Size.x * mipMap.Size.y];
+				PadRGBToRGBA(mipMap.Size, mipMap.DataPointer, rgbaBuffers[i]);
+
+				resource.pSysMem = rgbaBuffers[i];
+				resource.SysMemPitch = GetMemoryPitch(mipMap.Size, GetBitsPerPixel(textureDescription.Format), false);
+				resource.SysMemSlicePitch = 0;
+			}
+
+			D3D.Device->CreateTexture2D(&textureDescription, initialResourceData.data(), &texture);
+
+			for (size_t i = 0; i < mipMaps.size(); i++)
+				delete[] rgbaBuffers[i];
+		}
+		else
+		{
+			const bool usesBlockCompression = UsesBlockCompression(textureDescription.Format);
+			const UINT bitsPerPixel = GetBitsPerPixel(textureDescription.Format);
+
+			if (usesBlockCompression)
+				PadTextureDimensions(textureDescription.Width, textureDescription.Height, BlockCompressionAlignment);
+
+			for (size_t i = 0; i < mipMaps.size(); i++)
+				initialResourceData[i] = CreateMipMapSubresourceData(mipMaps[i], usesBlockCompression, bitsPerPixel);
+
+			D3D.Device->CreateTexture2D(&textureDescription, initialResourceData.data(), &texture);
+		}
 
 		resourceViewDescription = CreateTextureResourceViewDescription(textureDescription);
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
