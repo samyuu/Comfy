@@ -56,7 +56,7 @@ namespace Graphics
 	{
 	public:
 		D3D_RenderTarget(ivec2 size);
-		D3D_RenderTarget(ivec2 size, DXGI_FORMAT format);
+		D3D_RenderTarget(ivec2 size, DXGI_FORMAT format, uint32_t multiSampleCount = 1);
 		D3D_RenderTarget(const D3D_RenderTarget&) = delete;
 		~D3D_RenderTarget() = default;
 
@@ -68,6 +68,7 @@ namespace Graphics
 		ivec2 GetSize() const override;
 		void Resize(ivec2 newSize) override;
 
+		uint32_t GetMultiSampleCount() const;
 		void* GetVoidTexture() const;
 		
 		ID3D11ShaderResourceView* GetResourceView();
@@ -84,7 +85,7 @@ namespace Graphics
 	{
 	public:
 		D3D_DepthRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat);
-		D3D_DepthRenderTarget(ivec2 size, DXGI_FORMAT format, DXGI_FORMAT depthBufferFormat);
+		D3D_DepthRenderTarget(ivec2 size, DXGI_FORMAT format, DXGI_FORMAT depthBufferFormat, uint32_t multiSampleCount = 1);
 		D3D_DepthRenderTarget(const D3D_DepthRenderTarget&) = delete;
 		~D3D_DepthRenderTarget() = default;
 
@@ -96,6 +97,9 @@ namespace Graphics
 
 		void Clear(const vec4& color) override;
 		void Resize(ivec2 newSize) override;
+
+		void SetMultiSampleCount(uint32_t multiSampleCount);
+		void SetMultiSampleCountIfDifferent(uint32_t multiSampleCount);
 
 		D3D_DepthBuffer* GetDepthBuffer();
 

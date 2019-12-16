@@ -7,7 +7,7 @@ namespace Graphics
 	class D3D_DepthBuffer final : IGraphicsResource
 	{
 	public:
-		D3D_DepthBuffer(ivec2 size, DXGI_FORMAT format);
+		D3D_DepthBuffer(ivec2 size, DXGI_FORMAT format, uint32_t multiSampleCount = 1);
 		D3D_DepthBuffer(const D3D_DepthBuffer&) = delete;
 		~D3D_DepthBuffer() = default;
 
@@ -17,8 +17,12 @@ namespace Graphics
 		void Clear(float value = 1.0f);
 		void Resize(ivec2 newSize);
 
+		void SetMultiSampleCount(uint32_t multiSampleCount);
+
 	public:
+		uint32_t GetMultiSampleCount() const;
 		ivec2 GetSize() const;
+
 		ID3D11DepthStencilView* GetDepthStencilView() const;
 
 	private:

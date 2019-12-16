@@ -72,14 +72,14 @@ namespace Graphics
 	{
 	}
 
-	D3D_RenderTarget::D3D_RenderTarget(ivec2 size, DXGI_FORMAT format)
+	D3D_RenderTarget::D3D_RenderTarget(ivec2 size, DXGI_FORMAT format, uint32_t multiSampleCount)
 	{
 		backBufferDescription.Width = size.x;
 		backBufferDescription.Height = size.y;
 		backBufferDescription.MipLevels = 1;
 		backBufferDescription.ArraySize = 1;
 		backBufferDescription.Format = format;
-		backBufferDescription.SampleDesc.Count = 1;
+		backBufferDescription.SampleDesc.Count = multiSampleCount;
 		backBufferDescription.SampleDesc.Quality = 0;
 		backBufferDescription.Usage = D3D11_USAGE_DEFAULT;
 		backBufferDescription.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
@@ -89,13 +89,13 @@ namespace Graphics
 		D3D.Device->CreateTexture2D(&backBufferDescription, nullptr, &backBuffer);
 
 		renderTargetViewDescription.Format = backBufferDescription.Format;
-		renderTargetViewDescription.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		renderTargetViewDescription.ViewDimension = (multiSampleCount == 1) ? D3D11_RTV_DIMENSION_TEXTURE2D : D3D11_RTV_DIMENSION_TEXTURE2DMS;
 		renderTargetViewDescription.Texture2D.MipSlice = 0;
 
 		D3D.Device->CreateRenderTargetView(backBuffer.Get(), &renderTargetViewDescription, &renderTargetView);
 
 		shaderResourceViewDescription.Format = backBufferDescription.Format;
-		shaderResourceViewDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResourceViewDescription.ViewDimension = (multiSampleCount == 1) ? D3D11_SRV_DIMENSION_TEXTURE2D : D3D11_SRV_DIMENSION_TEXTURE2DMS;
 		shaderResourceViewDescription.Texture2D.MostDetailedMip = 0;
 		shaderResourceViewDescription.Texture2D.MipLevels = 1;
 
@@ -124,6 +124,11 @@ namespace Graphics
 		D3D.Device->CreateShaderResourceView(backBuffer.Get(), &shaderResourceViewDescription, &shaderResourceView);
 	}
 
+	uint32_t D3D_RenderTarget::GetMultiSampleCount() const
+	{
+		return backBufferDescription.SampleDesc.Count;
+	}
+
 	void* D3D_RenderTarget::GetVoidTexture() const
 	{
 		return shaderResourceView.Get();
@@ -139,8 +144,8 @@ namespace Graphics
 	{
 	}
 	
-	D3D_DepthRenderTarget::D3D_DepthRenderTarget(ivec2 size, DXGI_FORMAT format, DXGI_FORMAT depthBufferFormat)
-		: D3D_RenderTarget(size, format), depthBuffer(size, depthBufferFormat)
+	D3D_DepthRenderTarget::D3D_DepthRenderTarget(ivec2 size, DXGI_FORMAT format, DXGI_FORMAT depthBufferFormat, uint32_t multiSampleCount)
+		: D3D_RenderTarget(size, format, multiSampleCount), depthBuffer(size, depthBufferFormat, multiSampleCount)
 	{
 	}
 
@@ -166,6 +171,27 @@ namespace Graphics
 	{
 		D3D_RenderTarget::Resize(newSize);
 		depthBuffer.Resize(newSize);
+	}
+
+	void D3D_DepthRenderTarget::SetMultiSampleCount(uint32_t multiSampleCount)
+	{
+		backBufferDescription.SampleDesc.Count = multiSampleCount;
+		backBufferDescription.SampleDesc.Quality = 0;
+		D3D.Device->CreateTexture2D(&backBufferDescription, nullptr, &backBuffer);
+
+		renderTargetViewDescription.ViewDimension = (multiSampleCount == 1) ? D3D11_RTV_DIMENSION_TEXTURE2D : D3D11_RTV_DIMENSION_TEXTURE2DMS;
+		D3D.Device->CreateRenderTargetView(backBuffer.Get(), &renderTargetViewDescription, &renderTargetView);
+
+		shaderResourceViewDescription.ViewDimension = (multiSampleCount == 1) ? D3D11_SRV_DIMENSION_TEXTURE2D : D3D11_SRV_DIMENSION_TEXTURE2DMS;
+		D3D.Device->CreateShaderResourceView(backBuffer.Get(), &shaderResourceViewDescription, &shaderResourceView);
+
+		depthBuffer.SetMultiSampleCount(multiSampleCount);
+	}
+
+	void D3D_DepthRenderTarget::SetMultiSampleCountIfDifferent(uint32_t multiSampleCount)
+	{
+		if (multiSampleCount != GetMultiSampleCount())
+			SetMultiSampleCount(multiSampleCount);
 	}
 
 	D3D_DepthBuffer* D3D_DepthRenderTarget::GetDepthBuffer()
