@@ -28,6 +28,7 @@
 // NOTE: Fragment inputs:
 #define a_color0            input.Color
 #define a_color1            input.ColorSecondary
+#define a_tex0              input.TexCoord
 #define a_tex_color0        input.TexCoord
 #define a_tex_color1        input.TexCoordAmbient
 #define a_tex_normal0       input.TexCoord
@@ -42,6 +43,16 @@
 // NOTE: Fragment output:
 #define o_color         outputColor
 #endif /* COMFY_PS */
+
+// NOTE: General
+#define FLOAT1_ZERO                 ((float1)0)
+#define FLOAT2_ZERO                 ((float2)0)
+#define FLOAT3_ZERO                 ((float3)0)
+#define FLOAT4_ZERO                 ((float4)0)
+#define FLOAT1_ONE                  ((float1)1)
+#define FLOAT2_ONE                  ((float2)1)
+#define FLOAT3_ONE                  ((float3)1)
+#define FLOAT4_ONE                  ((float4)1)
 
 // NOTE: Program environment:
 #define mvp                         (transpose(CB_ModelViewProjection))
@@ -67,6 +78,10 @@
 #define program_env_00              (float4(42.00, 42.00, 75.00, 1.0))
 // TODO:
 #define program_env_17              (float4(0.06, 0.05, 0.88, 1.0))
+// TODO:
+#define program_env_19              (float4(0.0, 0.0, 0.0, 0.0))
+// TODO:
+#define p_reflect_refract_uv_scale  (float4(0.0, 0.0, 0.0, 0.0))
 #define irrad_r                     (CB_Scene.IrradianceRed)
 #define irrad_g                     (CB_Scene.IrradianceGreen)
 #define irrad_b                     (CB_Scene.IrradianceBlue)
@@ -99,7 +114,7 @@
 #define state_material_shininess    (CB_Material.Shininess)
 
 // NOTE: Instructions:
-#define TEMP float4
+#define TEMP                        float4
 
 #define MOV(result, a)              result      =         ( (a) )
 #define ADD(result, a, b)           result      =         ( (a) + (b) )
