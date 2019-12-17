@@ -1,6 +1,7 @@
 #include "LicenseWindow.h"
 #include "ImGui/Gui.h"
 #include "FileSystem/FileHelper.h"
+#include "Misc/StringParseHelper.h"
 #include "Core/ComfyData.h"
 
 bool LicenseWindow::DrawGui()
@@ -84,34 +85,22 @@ void LicenseWindow::LoadLicenseData()
 
 		UniquePtr<char[]> fileContent = MakeUnique<char[]>(licenseFileEntry.Size + 1);
 		ComfyData->ReadEntryIntoBuffer(&licenseFileEntry, fileContent.get());
-
-		std::vector<std::string_view> lines;
-
-		size_t lastNewLine = 0;
-		for (size_t i = 0; i < licenseFileEntry.Size; i++)
-		{
-			if (fileContent[i] == '\n')
-			{
-				auto lastLine = std::string_view(&fileContent[lastNewLine == 0 ? lastNewLine : lastNewLine + 1], i - lastNewLine);
-
-				// NOTE: Trim end
-				while (lastLine.size() > 1 && lastLine.back() == '\r' || lastLine.back() == '\n')
-					lastLine = lastLine.substr(0, lastLine.size() - 1);
-
-				lines.push_back(lastLine);
-
-				lastNewLine = i;
-			}
-		}
+		
+		const char* textBuffer = fileContent.get();
+		const char* textBufferEnd = textBuffer + licenseFileEntry.Size;
 
 		licenseData.emplace_back();
 		auto info = &licenseData.back();
 
 		enum { name, description, license_name, license, remark } type = {};
-
-		for (size_t i = 0; i < lines.size(); i++)
+		
+		while (true)
 		{
-			const auto& line = lines[i];
+			if (textBuffer >= textBufferEnd || textBuffer[0] == '\0')
+				break;
+
+			auto line = StringParsing::GetLineAdvanceToNextLine(textBuffer);
+
 			if (StartsWith(line, '#'))
 			{
 				if (line == "#name")
