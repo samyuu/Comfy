@@ -135,7 +135,7 @@ namespace Graphics
 			D3D11_MESSAGE_ID_DEVICE_DRAW_SAMPLER_NOT_SET,
 
 			// NOTE: Not sure about this one, multiple resources with the same debug name shouldn't be a problem (?)
-			// D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS,
+			D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS,
 		};
 
 		D3D11_INFO_QUEUE_FILTER filter = {};
