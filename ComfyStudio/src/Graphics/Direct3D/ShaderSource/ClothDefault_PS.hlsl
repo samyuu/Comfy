@@ -113,7 +113,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MOV(o_color.xyz, diff.xyz);
     
     CHECK_CLIP_ALPHA_TEST;
-    
+
 #endif
 
     return outputColor;

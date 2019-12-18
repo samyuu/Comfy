@@ -9,7 +9,7 @@
 
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {
-    float4 outputColor = CB_Material.Diffuse;
+    float4 outputColor;
  
 #if ARB_PROGRAM_ACCURATE
 
