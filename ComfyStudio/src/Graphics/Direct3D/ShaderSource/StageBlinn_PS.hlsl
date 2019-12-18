@@ -105,7 +105,10 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     
     MOV(o_color.rgb, tmp.xyz);
     MUL(diff.w, col0.w, a_color0.w);
-    MAX(o_color.w, diff.w, p_max_alpha.w);
+    
+    // TODO:
+    // MAX(o_color.w, diff.w, p_max_alpha.w);
+    MOV(o_color.w, diff.w);
     
     CHECK_CLIP_ALPHA_TEST;
     
