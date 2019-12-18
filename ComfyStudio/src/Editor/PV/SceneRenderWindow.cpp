@@ -8,33 +8,95 @@ namespace Editor
 {
 	using namespace Graphics;
 
-	template <typename T>
-	void LoadParseUploadLightParamFile(std::string_view filePath, T& param)
+	namespace
 	{
-		if (!FileSystem::FileExists(filePath))
-			return;
+		template <typename T>
+		bool LoadParseUploadLightParamFile(std::string_view filePath, T& param)
+		{
+			if (!FileSystem::FileExists(filePath))
+				return false;
 
-		std::vector<uint8_t> fileContent;
-		FileSystem::FileReader::ReadEntireFile(filePath, &fileContent);
+			std::vector<uint8_t> fileContent;
+			FileSystem::FileReader::ReadEntireFile(filePath, &fileContent);
 
-		param.Parse(fileContent.data());
+			param.Parse(fileContent.data());
 
-		if constexpr (std::is_same<T, LightDataIBL>::value)
-			param.UploadAll();
+			if constexpr (std::is_same<T, LightDataIBL>::value)
+				param.UploadAll();
+
+			return true;
+		}
+
+		enum StageType { STGTST, STGNS, STGD2NS, STGPV };
+
+		void LoadStageLightParamFiles(SceneContext& context, StageType stageType, int stageID)
+		{
+			constexpr std::array formatStrings = { "tst%03d", "ns%03d", "d2ns%03d", "pv%03ds01" };
+			const char* formatString = (stageID == 0 && stageType == StageType::STGTST) ? "tst" : formatStrings[static_cast<size_t>(stageType)];
+
+			std::array<char, MAX_PATH> fileName;
+			sprintf_s(fileName.data(), fileName.size(), formatString, stageID);
+			const char* romDirectory = "dev_rom";
+			std::array<char, MAX_PATH> pathBuffer;
+
+			sprintf_s(pathBuffer.data(), pathBuffer.size(), "%s/light_param/glow_%s.txt", romDirectory, fileName.data());
+				LoadParseUploadLightParamFile("dev_rom/light_param/glow_tst.txt", context.Glow);
+
+			sprintf_s(pathBuffer.data(), pathBuffer.size(), "%s/light_param/light_%s.txt", romDirectory, fileName.data());
+			if (!LoadParseUploadLightParamFile(pathBuffer.data(), context.Light))
+
+			sprintf_s(pathBuffer.data(), pathBuffer.size(), "%s/ibl/%s.ibl", romDirectory, fileName.data());
+			if (!LoadParseUploadLightParamFile(pathBuffer.data(), context.IBL))
+				LoadParseUploadLightParamFile("dev_rom/ibl/tst.ibl", context.IBL);
+		}
+
+		template <typename T>
+		bool LoadStage(SceneContext& context, StageType stageType, int stageID, UniquePtr<ObjSet>& textureObjSet, T objSetLoaderFunc, D3D_Renderer3D& renderer)
+		{
+			LoadStageLightParamFiles(context, stageType, stageID);
+
+			if (stageType == StageType::STGPV)
+			{
+				constexpr const char* directory = "dev_rom/objset/stgpv";
+				char pathBuffer[MAX_PATH];
+
+				sprintf_s(pathBuffer, "%s/stgpv%03ds01/stgpv%03ds01_obj.bin", directory, stageID, stageID);
+				if (!FileSystem::FileExists(pathBuffer))
+					return false;
+
+				objSetLoaderFunc(pathBuffer);
+
+				sprintf_s(pathBuffer, "%s/stgpv%03d/stgpv%03d_obj.bin", directory, stageID, stageID);
+				textureObjSet = ObjSet::MakeUniqueReadParseUpload(pathBuffer);
+
+				sprintf_s(pathBuffer, "%s/stgpv%03d/stgpv%03d_tex.bin", directory, stageID, stageID);
+				textureObjSet->TxpSet = TxpSet::MakeUniqueReadParseUpload(pathBuffer, textureObjSet.get());
+			}
+			else
+			{
+				// TODO: ...
+			}
+
+			if (textureObjSet->TxpSet != nullptr)
+				renderer.RegisterTextureIDs(*textureObjSet->TxpSet);
+
+			return true;
+		}
+
+		int FindGroundObj(ObjSet* objSet)
+		{
+			if (objSet == nullptr)
+				return -1;
+
+			auto result = std::find_if(objSet->begin(), objSet->end(), [](auto& obj) { return EndsWithInsensitive(obj.Name, "_gnd"); });
+			return (result == objSet->end()) ? -1 : static_cast<int>(std::distance(objSet->begin(), result));
+		}
 	}
 
 	SceneRenderWindow::SceneRenderWindow(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
 		renderer3D = MakeUnique<D3D_Renderer3D>();
 
-		struct LightParamPaths
-		{
-			std::string_view Glow, Light, IBL;
-		} paths = { "dev_rom/light_param/glow_tst.txt", "dev_rom/light_param/light_tst.txt", "dev_rom/ibl/tst007.ibl" };
-
-		LoadParseUploadLightParamFile(paths.Glow, context.Glow);
-		LoadParseUploadLightParamFile(paths.Light, context.Light);
-		LoadParseUploadLightParamFile(paths.IBL, context.IBL);
 
 
 #if 0 // DEBUG:
@@ -58,23 +120,14 @@ namespace Editor
 	{
 		RenderWindowBase::Initialize();
 		context.OutputRenderTarget = renderTarget.get();
-
-//#define OBJ_FILE "f_stgtst004"
-#define OBJ_FILE "stgtst007"
-//#define OBJ_FILE "cmnitm1001"
-//#define OBJ_FILE "rinitm000"
-//#define OBJ_FILE "rinitm001"
-//#define OBJ_FILE "rinitm047"
-//#define OBJ_FILE "rinitm301"
-//#define OBJ_FILE "rinitm532"
-//#define OBJ_FILE "stgns006"
-//#define OBJ_FILE "stgd2ns036"
-//#define OBJ_FILE "stgns008"
-//#define OBJ_FILE "dbg"
+#define OBJ_FILE "stgns006"
 
 #ifdef OBJ_FILE
 		if (objSet == nullptr)
+		{
 			LoadObjSet("dev_rom/objset/" OBJ_FILE "/" OBJ_FILE "_obj.bin");
+			LoadStageLightParamFiles(context, StageType::STGNS, 6);
+		}
 #endif
 	}
 
@@ -108,6 +161,17 @@ namespace Editor
 
 		// auto& obj = objSet->at(objectIndex);
 		// Gui::Text("%s (%d/%d)", obj.Name.c_str(), objectIndex, objSet->size());
+
+		Gui::DEBUG_NOSAVE_WINDOW("STGPV", [&]()
+		{
+			static int stgID = 0;
+
+			if (Gui::SliderInt("STGPV_ID", &stgID, 1, 999, "STGPV_%03d"))
+			{
+				LoadStage(context, StageType::STGPV, stgID, textureObjSet, [&](auto path) { LoadObjSet(path); }, *renderer3D);
+				objectIndex = FindGroundObj(objSet.get());
+			}
+		});
 	}
 
 	void SceneRenderWindow::OnWindowBegin()
