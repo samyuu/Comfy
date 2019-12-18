@@ -36,14 +36,17 @@ namespace Editor
 
 			std::array<char, MAX_PATH> fileName;
 			sprintf_s(fileName.data(), fileName.size(), formatString, stageID);
+
 			const char* romDirectory = "dev_rom";
 			std::array<char, MAX_PATH> pathBuffer;
 
 			sprintf_s(pathBuffer.data(), pathBuffer.size(), "%s/light_param/glow_%s.txt", romDirectory, fileName.data());
+			if (!LoadParseUploadLightParamFile(pathBuffer.data(), context.Glow))
 				LoadParseUploadLightParamFile("dev_rom/light_param/glow_tst.txt", context.Glow);
 
 			sprintf_s(pathBuffer.data(), pathBuffer.size(), "%s/light_param/light_%s.txt", romDirectory, fileName.data());
 			if (!LoadParseUploadLightParamFile(pathBuffer.data(), context.Light))
+				LoadParseUploadLightParamFile("dev_rom/light_param/light_tst.txt", context.Light);
 
 			sprintf_s(pathBuffer.data(), pathBuffer.size(), "%s/ibl/%s.ibl", romDirectory, fileName.data());
 			if (!LoadParseUploadLightParamFile(pathBuffer.data(), context.IBL))
