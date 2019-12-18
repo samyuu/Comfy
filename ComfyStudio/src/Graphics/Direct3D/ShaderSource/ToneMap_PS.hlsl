@@ -5,7 +5,7 @@ struct VS_OUTPUT
     float2 Exposure : EXPOSURE;
 };
 
-SamplerState TextureSampler
+SamplerState LinearTextureSampler
 {
     Filter = MIN_MAG_MIP_LINEAR;
     AddressU = CLAMP;
@@ -13,20 +13,25 @@ SamplerState TextureSampler
 };
 
 Texture2D ScreenTexture : register(t0);
-Texture1D ToneMapLookupTexture : register(t1);
+Texture2D BloomTexture : register(t1);
+Texture1D ToneMapLookupTexture : register(t2);
 
 static const float3 YBR_COEF = { 0.30, 0.59, 0.11 };
 static const float3 RGB_COEF = { -0.508475, 1.0, -0.186441 };
 
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {
-    float4 screenColor = ScreenTexture.Sample(TextureSampler, input.TexCoord);
+    float4 screenColor = ScreenTexture.Sample(LinearTextureSampler, input.TexCoord);
+    
+    if (true)
+        screenColor.rgb += BloomTexture.Sample(LinearTextureSampler, input.TexCoord).rgb;
+    
     float3 ybr = dot(screenColor.rgb, YBR_COEF);
     
     ybr.xz = (screenColor.rgb - ybr.yyy).xz;
     ybr.y *= input.Exposure.y;
     
-    float2 lookup = ToneMapLookupTexture.Sample(TextureSampler, ybr.y).rg;
+    float2 lookup = ToneMapLookupTexture.Sample(LinearTextureSampler, ybr.y).rg;
     
     float3 color = float3(0.0, lookup.r, 0.0);
     color.xz = (lookup.g * input.Exposure.x * ybr.xyz).xz;

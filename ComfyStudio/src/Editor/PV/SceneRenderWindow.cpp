@@ -502,18 +502,18 @@ namespace Editor
 				if (objectIndex < 0)
 				{
 					for (auto& obj : *objSet)
-						renderer3D->Draw(&obj, vec3(0.0f, 0.0f, 0.0f));
+						renderer3D->Draw(RenderCommand::ObjPos(obj, vec3(0.0f)));
 				}
-				else if (objectIndex < objSet->size() && objSet->size() != 0)
+				else if (objectIndex < objSet->size() && !objSet->empty())
 				{
-					renderer3D->Draw(objSet->GetObjAt(objectIndex), vec3(0.0f, 0.0f, 0.0f));
+					renderer3D->Draw(RenderCommand::ObjPos(*objSet->GetObjAt(objectIndex), vec3(0.0f)));
 				}
 
 				// DEBUG:
 				for (auto& obj : *objSet)
 				{
 					if (EndsWithInsensitive(obj.Name, "_reflect"))
-						renderer3D->DrawReflection(&obj, vec3(0.0f, 0.0f, 0.0f));
+						renderer3D->Draw(RenderCommand::ObjPosReflect(obj, vec3(0.0f)));
 				}
 			}
 			renderer3D->End();

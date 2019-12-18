@@ -89,12 +89,45 @@ namespace Graphics
 	};
 
 	struct PostProcessConstantData
+	struct ToneMapConstantData
 	{
 		float Exposure;
 		float Gamma;
 		int SaturatePower;
 		float SaturateCoefficient;
 		float Padding[12];
+	};
+
+	struct RenderCommand
+	{
+	public:
+		const Obj* SourceObj;
+		vec3 Position;
+		struct Flags
+		{
+			uint32_t IsReflection : 1;
+
+			// TODO: (?)
+			// uint32_t CastsShadow : 1;
+			// uint32_t ReceivesShadow : 1;
+		} Flags;
+
+	public:
+		// NOTE: Static factory methods
+		static inline RenderCommand ObjPos(const Obj& obj, vec3 pos)
+		{
+			RenderCommand command = {};
+			command.SourceObj = &obj;
+			command.Position = pos;
+			return command;
+		}
+
+		static inline RenderCommand ObjPosReflect(const Obj& obj, vec3 pos)
+		{
+			RenderCommand command = ObjPos(obj, pos);
+			command.Flags.IsReflection = true;
+			return command;
+		}
 	};
 
 	class D3D_Renderer3D
@@ -108,8 +141,7 @@ namespace Graphics
 
 	public:
 		void Begin(SceneContext& scene);
-		void Draw(Obj* obj, vec3 position);
-		void DrawReflection(Obj* obj, vec3 position);
+		void Draw(const RenderCommand& command);
 		void End();
 
 	public:
@@ -126,7 +158,7 @@ namespace Graphics
 	private:
 		struct ObjRenderCommand
 		{
-			Obj* Obj;
+			const Obj* Obj;
 			mat4 Transform;
 			vec3 Position;
 		};
@@ -134,8 +166,8 @@ namespace Graphics
 		struct SubMeshRenderCommand
 		{
 			ObjRenderCommand* ObjCommand;
-			Mesh* ParentMesh;
-			SubMesh* SubMesh;
+			const Mesh* ParentMesh;
+			const SubMesh* SubMesh;
 			float CameraDistance;
 		};
 
@@ -148,13 +180,13 @@ namespace Graphics
 		void InternalRenderWireframeOverlay();
 		void InternalRenderPostProcessing();
 
-		void BindMeshVertexBuffers(Mesh& mesh);
-		void PrepareAndRenderSubMesh(ObjRenderCommand& command, Mesh& mesh, SubMesh& subMesh, Material& material, const mat4& model);
-		D3D_BlendState CreateMaterialBlendState(Material& material);
-		D3D_ShaderPair& GetMaterialShader(Material& material);
-		D3D_TextureSampler CreateTextureSampler(MaterialTexture& materialTexture, TextureFormat format);
-		void CheckBindMaterialTexture(MaterialTexture& materialTexture, int slot, TextureFormat& constantBufferTextureFormat);
-		void SubmitSubMeshDrawCall(SubMesh& subMesh);
+		void BindMeshVertexBuffers(const Mesh& mesh);
+		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, const mat4& model);
+		D3D_BlendState CreateMaterialBlendState(const Material& material);
+		D3D_ShaderPair& GetMaterialShader(const Material& material);
+		D3D_TextureSampler CreateTextureSampler(const MaterialTexture& materialTexture, TextureFormat format);
+		TextureFormat CheckBindMaterialTexture(const MaterialTexture& materialTexture, int slot);
+		void SubmitSubMeshDrawCall(const SubMesh& subMesh);
 
 	private:
 		struct ShaderPairs
@@ -182,9 +214,11 @@ namespace Graphics
 			D3D_ShaderPair Water = { Water_VS(), Water_PS(), "Renderer3D::Water" };
 		} shaders;
 
-		D3D_DynamicConstantBufferTemplate<SceneConstantData> sceneConstantBuffer = { 0 };
-		D3D_DynamicConstantBufferTemplate<ObjectConstantData> objectConstantBuffer = { 1 };
-		D3D_DynamicConstantBufferTemplate<PostProcessConstantData> postProcessConstantBuffer = { 0 };
+		D3D_DynamicConstantBufferTemplate<SceneConstantData> sceneCB = { 0 };
+		D3D_DynamicConstantBufferTemplate<ObjectConstantData> objectCB = { 1 };
+		D3D_DynamicConstantBufferTemplate<ReduceTexConstantData> reduceTexCB = { 0 };
+		D3D_DynamicConstantBufferTemplate<PPGaussConstantData> ppGaussCB = { 0 };
+		D3D_DynamicConstantBufferTemplate<ToneMapConstantData> toneMapCB = { 0 };
 
 		UniquePtr<D3D_InputLayout> genericInputLayout = nullptr;
 		D3D_InputLayout postProcessInputLayout = { nullptr, 0, shaders.ToneMap.VS };
@@ -206,7 +240,7 @@ namespace Graphics
 
 			std::array<vec2, 512> TextureData;
 			UniquePtr<D3D_Texture1D> LookupTexture = nullptr;
-			
+
 		public:
 			bool NeedsUpdating(const SceneContext* sceneContext);
 			void Update();
@@ -218,6 +252,6 @@ namespace Graphics
 		} toneMapData;
 
 		SceneContext* sceneContext = nullptr;
-		std::unordered_map<uint32_t, const Txp*> textureIDTxpMap;
+		std::unordered_map<uint32_t, const Txp*> textureIDTxpMap = {};
 	};
 }
