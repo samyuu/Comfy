@@ -8,6 +8,7 @@
 
 namespace Graphics
 {
+	// NOTE: Different user controlable render graphics settings
 	struct RenderParameters
 	{
 		// DEBUG: Non specific debug flags for quick testing
@@ -22,13 +23,35 @@ namespace Graphics
 		bool RenderOpaque = true;
 		bool RenderTransparent = true;
 
-		static constexpr ivec2 ReflectionDefaultResolution = ivec2(512, 512);
+		ivec2 RenderResolution = RenderTargetDefaultSize;
+		uint32_t MultiSampleCount = 1;
 
+		static constexpr ivec2 ReflectionDefaultResolution = ivec2(512, 512);
 		bool RenderReflection = true;
-		ivec2 ReflectionResolution = ReflectionDefaultResolution;
+		ivec2 ReflectionRenderResolution = ReflectionDefaultResolution;
 
 		bool Clear = true;
 		vec4 ClearColor = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+
+		/*
+		struct PostProcessParameters
+		{
+			float Saturation = 2.2f;
+			float Brightness = 0.45455f;
+		} PostProcess;
+		*/
+	};
+
+	struct RenderData
+	{
+		// NOTE: Main scene HRD render target
+		D3D_DepthRenderTarget RenderTarget = { RenderTargetDefaultSize, RenderTargetHDRFormatRGBA, DXGI_FORMAT_D32_FLOAT, 1 };
+
+		// NOTE: Stage reflection render target primarily used by floor materials
+		D3D_DepthRenderTarget ReflectionRenderTarget = { RenderParameters::ReflectionDefaultResolution, RenderTargetLDRFormatRGBA, DXGI_FORMAT_D32_FLOAT };
+
+		// NOTE: Where the post processed final image gets rendered to
+		D3D_RenderTarget* OutputRenderTarget = nullptr;
 	};
 
 	/*
@@ -37,7 +60,6 @@ namespace Graphics
 		float Saturation = 2.2f;
 		float Brightness = 0.45455f;
 	};
-	*/
 
 	class SceneContext
 	{
@@ -51,15 +73,6 @@ namespace Graphics
 
 		PerspectiveCamera Camera;
 
-		// NOTE: Main scene HRD render target
-		D3D_DepthRenderTarget RenderTarget = { RenderTargetDefaultSize, DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_D32_FLOAT };
-		// NOTE: Stage reflection render target primarily used by floor materials
-		D3D_DepthRenderTarget ReflectionRenderTarget = { RenderParameters::ReflectionDefaultResolution, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_D32_FLOAT };
-
-		// NOTE: Where the post processed final image gets rendered to
-		D3D_RenderTarget* OutputRenderTarget = nullptr;
-
-	public:
-		void Resize(ivec2 size);
+		RenderData RenderData;
 	};
 }

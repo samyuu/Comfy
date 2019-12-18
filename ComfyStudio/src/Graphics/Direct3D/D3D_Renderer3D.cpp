@@ -282,12 +282,10 @@ namespace Graphics
 		{
 			if (!reflectionCommandList.empty())
 			{
-				sceneContext->ReflectionRenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.ReflectionResolution);
-				sceneContext->ReflectionRenderTarget.Bind();
-				
-				D3D.SetViewport(sceneContext->ReflectionRenderTarget.GetSize());
+				sceneContext->RenderData.ReflectionRenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.ReflectionRenderResolution);
+				sceneContext->RenderData.ReflectionRenderTarget.BindSetViewport();
 
-				sceneContext->ReflectionRenderTarget.Clear(sceneContext->RenderParameters.ClearColor);
+				sceneContext->RenderData.ReflectionRenderTarget.Clear(sceneContext->RenderParameters.ClearColor);
 
 				// TODO: Render using reflection shader
 				for (auto& command : reflectionCommandList)
@@ -300,13 +298,14 @@ namespace Graphics
 			}
 		}
 
-		sceneContext->RenderTarget.Bind();
-		D3D.SetViewport(sceneContext->RenderTarget.GetSize());
+		sceneContext->RenderData.RenderTarget.SetMultiSampleCountIfDifferent(sceneContext->RenderParameters.MultiSampleCount);
+		sceneContext->RenderData.RenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.RenderResolution);
+		sceneContext->RenderData.RenderTarget.BindSetViewport();
 
 		if (sceneContext->RenderParameters.Clear)
-			sceneContext->RenderTarget.Clear(sceneContext->RenderParameters.ClearColor);
+			sceneContext->RenderData.RenderTarget.Clear(sceneContext->RenderParameters.ClearColor);
 		else
-			sceneContext->RenderTarget.GetDepthBuffer()->Clear();
+			sceneContext->RenderData.RenderTarget.GetDepthBuffer()->Clear();
 
 		if (sceneContext->RenderParameters.RenderOpaque)
 		{

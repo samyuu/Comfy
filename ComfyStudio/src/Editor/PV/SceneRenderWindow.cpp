@@ -122,7 +122,7 @@ namespace Editor
 	void SceneRenderWindow::Initialize()
 	{
 		RenderWindowBase::Initialize();
-		context.OutputRenderTarget = renderTarget.get();
+		context.RenderData.OutputRenderTarget = renderTarget.get();
 #define OBJ_FILE "stgns006"
 
 #ifdef OBJ_FILE
@@ -234,7 +234,7 @@ namespace Editor
 					std::make_pair("Render Region x16", 16.0f),
 				};
 
-				ivec2 renderResolution = context.RenderTarget.GetSize();
+				ivec2 renderResolution = context.RenderParameters.RenderResolution;
 				Gui::InputInt2("Render Resolution", glm::value_ptr(renderResolution));
 				Gui::ItemContextMenu("RenderResolutionContextMenu", [&]()
 				{
@@ -244,10 +244,10 @@ namespace Editor
 						if (Gui::MenuItem(name)) renderResolution = ivec2(vec2(GetRenderRegion().GetSize()) * factor);
 				});
 
-				if (renderResolution != context.RenderTarget.GetSize())
-					context.Resize(clampSize(renderResolution));
+				if (renderResolution != context.RenderData.RenderTarget.GetSize())
+					context.RenderParameters.RenderResolution = (clampSize(renderResolution));
 
-				ivec2 reflectionResolution = context.RenderParameters.ReflectionResolution;
+				ivec2 reflectionResolution = context.RenderParameters.ReflectionRenderResolution;
 				Gui::InputInt2("Reflection Resolution", glm::value_ptr(reflectionResolution));
 				Gui::ItemContextMenu("ReflectionResolutionContextMenu", [&]()
 				{
@@ -260,8 +260,11 @@ namespace Editor
 						if (Gui::MenuItem(name)) reflectionResolution = (vec2(GetRenderRegion().GetSize()) * factor);
 				});
 
-				if (reflectionResolution != context.RenderParameters.ReflectionResolution)
-					context.RenderParameters.ReflectionResolution = clampSize(reflectionResolution);
+				if (reflectionResolution != context.RenderParameters.ReflectionRenderResolution)
+					context.RenderParameters.ReflectionRenderResolution = clampSize(reflectionResolution);
+
+				if (Gui::InputScalar("Multi Sample Count", ImGuiDataType_U32, &context.RenderParameters.MultiSampleCount))
+					context.RenderParameters.MultiSampleCount = std::clamp(context.RenderParameters.MultiSampleCount, 1u, 16u);
 			}
 
 			Gui::PopID();
@@ -525,6 +528,6 @@ namespace Editor
 		vec2 renderRegionSize = GetRenderRegion().GetSize();
 		context.Camera.AspectRatio = renderRegionSize.x / renderRegionSize.y;
 
-		context.Resize(size);
+		context.RenderParameters.RenderResolution = renderRegionSize;
 	}
 }
