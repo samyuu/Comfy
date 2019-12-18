@@ -19,6 +19,9 @@ namespace Graphics
 		vec3 Size;
 	};
 
+	struct Material;
+	class Obj;
+
 	struct SubMesh
 	{
 		Sphere BoundingSphere;
@@ -30,7 +33,8 @@ namespace Graphics
 
 		UniquePtr<D3D_StaticIndexBuffer> GraphicsIndexBuffer;
 
-		struct Material& GetMaterial(class Obj& obj);
+		Material& GetMaterial(Obj& obj);
+		const Material& GetMaterial(const Obj& obj) const;
 	};
 
 	struct MeshFlags
@@ -266,6 +270,7 @@ namespace Graphics
 		const Obj& back() const { return objects.back(); }
 
 		inline size_t size() const { return objects.size(); };
+		inline bool empty() const { return objects.empty(); };
 
 		inline Obj& at(size_t index) { return objects.at(index); };
 		inline Obj& operator[] (size_t index) { return objects[index]; };
