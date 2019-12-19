@@ -377,7 +377,7 @@ namespace Editor
 					Gui::DragFloat("Shininess", &material->Shininess);
 					Gui::ColorEdit3("Ambient", glm::value_ptr(material->AmbientColor), ImGuiColorEditFlags_Float);
 					Gui::ColorEdit3("Emission", glm::value_ptr(material->EmissionColor), ImGuiColorEditFlags_Float);
-					Gui::InputText("Shader", material->Shader.data(), material->Shader.size(), ImGuiInputTextFlags_ReadOnly);
+					Gui::InputText("Material Type", material->MaterialType.data(), material->MaterialType.size(), ImGuiInputTextFlags_ReadOnly);
 				}
 
 				Gui::PopID();

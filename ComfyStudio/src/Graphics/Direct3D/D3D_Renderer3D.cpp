@@ -113,7 +113,7 @@ namespace Graphics
 			std::array<char, 8> WATER01 { "WATER01" };
 			std::array<char, 8> WATER02 { "WATER02" };
 			std::array<char, 8> FLOOR { "FLOOR" };
-		} ShaderIdentifiers;
+		} MaterialIdentifiers;
 
 		enum Renderer3DTextureSlot : int32_t
 		{
@@ -400,7 +400,6 @@ namespace Graphics
 		solidNoCullingRasterizerState.Bind();
 		D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
-
 		std::array<ID3D11SamplerState*, 1> samplers = { nullptr };
 		D3D.Context->PSSetSamplers(0, static_cast<UINT>(samplers.size()), samplers.data());
 
@@ -430,7 +429,6 @@ namespace Graphics
 		D3D.Context->PSSetShaderResources(0, static_cast<UINT>(renderTargetResourceViews.size()), renderTargetResourceViews.data());
 	}
 
-	void D3D_Renderer3D::BindMeshVertexBuffers(Mesh& mesh)
 	void D3D_Renderer3D::BindMeshVertexBuffers(const Mesh& mesh)
 	{
 		std::array<ID3D11Buffer*, VertexAttribute_Count> buffers;
@@ -537,7 +535,7 @@ namespace Graphics
 
 	D3D_ShaderPair& D3D_Renderer3D::GetMaterialShader(const Material& material)
 	{
-		if (material.Shader == ShaderIdentifiers.BLINN)
+		if (material.MaterialType == MaterialIdentifiers.BLINN)
 		{
 			if (material.ShaderFlags.LightingModel_Phong)
 			{
@@ -552,51 +550,51 @@ namespace Graphics
 				return shaders.Constant;
 			}
 		}
-		else if (material.Shader == ShaderIdentifiers.ITEM)
+		else if (material.MaterialType == MaterialIdentifiers.ITEM)
 		{
 			return shaders.ItemBlinn;
 		}
-		else if (material.Shader == ShaderIdentifiers.STAGE)
+		else if (material.MaterialType == MaterialIdentifiers.STAGE)
 		{
 			return shaders.StageBlinn;
 		}
-		else if (material.Shader == ShaderIdentifiers.SKIN)
+		else if (material.MaterialType == MaterialIdentifiers.SKIN)
 		{
 			return shaders.SkinDefault;
 		}
-		else if (material.Shader == ShaderIdentifiers.HAIR)
+		else if (material.MaterialType == MaterialIdentifiers.HAIR)
 		{
 			return (false) ? shaders.HairAniso : shaders.HairDefault;
 		}
-		else if (material.Shader == ShaderIdentifiers.CLOTH)
+		else if (material.MaterialType == MaterialIdentifiers.CLOTH)
 		{
 			return (false) ? shaders.ClothAniso : shaders.ClothDefault;
 		}
-		else if (material.Shader == ShaderIdentifiers.TIGHTS)
+		else if (material.MaterialType == MaterialIdentifiers.TIGHTS)
 		{
 			return shaders.Tights;
 		}
-		else if (material.Shader == ShaderIdentifiers.SKY)
+		else if (material.MaterialType == MaterialIdentifiers.SKY)
 		{
 			return shaders.SkyDefault;
 		}
-		else if (material.Shader == ShaderIdentifiers.EYEBALL)
+		else if (material.MaterialType == MaterialIdentifiers.EYEBALL)
 		{
 			return shaders.EyeBall;
 		}
-		else if (material.Shader == ShaderIdentifiers.EYELENS)
+		else if (material.MaterialType == MaterialIdentifiers.EYELENS)
 		{
 			return shaders.EyeLens;
 		}
-		else if (material.Shader == ShaderIdentifiers.GLASEYE)
+		else if (material.MaterialType == MaterialIdentifiers.GLASEYE)
 		{
 			return shaders.GlassEye;
 		}
-		else if (material.Shader == ShaderIdentifiers.WATER01 || material.Shader == ShaderIdentifiers.WATER02)
+		else if (material.MaterialType == MaterialIdentifiers.WATER01 || material.MaterialType == MaterialIdentifiers.WATER02)
 		{
 			return shaders.Water;
 		}
-		else if (material.Shader == ShaderIdentifiers.FLOOR)
+		else if (material.MaterialType == MaterialIdentifiers.FLOOR)
 		{
 			return shaders.Floor;
 		}
