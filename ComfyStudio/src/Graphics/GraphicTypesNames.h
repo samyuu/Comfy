@@ -108,6 +108,14 @@ namespace Graphics
 		"RGB Linear 2",
 	};
 
+	constexpr std::array<const char*, static_cast<size_t>(FogType::Count)> FogTypeNames =
+	{
+		"None",
+		"Linear",
+		"Exp",
+		"Exp2",
+	};
+
 	constexpr std::array<const char*, static_cast<size_t>(LightSourceType::Count)> LightSourceTypeNames =
 	{
 		"None",

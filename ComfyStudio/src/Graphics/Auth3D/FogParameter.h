@@ -1,16 +1,10 @@
 #pragma once
 #include "Types.h"
+#include "Graphics/GraphicsTypes.h"
+#include "FileSystem/FileInterface.h"
 
 namespace Graphics
 {
-	enum class FogType
-	{
-		None = 0,
-		Linear = 1,
-		Exp = 2,
-		Exp2 = 3,
-	};
-
 	struct Fog
 	{
 		FogType Type;
@@ -20,10 +14,18 @@ namespace Graphics
 		vec3 Color;
 	};
 
-	struct FogParameter
+	class FogParameter final : public FileSystem::IBufferParsable
 	{
+	public:
+		FogParameter();
+		~FogParameter() = default;
+
+	public:
 		Fog Depth;
 		Fog Height;
 		Fog Bump;
+
+	public:
+		void Parse(const uint8_t* buffer) override;
 	};
 }

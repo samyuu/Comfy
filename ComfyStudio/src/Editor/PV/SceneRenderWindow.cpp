@@ -40,6 +40,10 @@ namespace Editor
 			const char* romDirectory = "dev_rom";
 			std::array<char, MAX_PATH> pathBuffer;
 
+			sprintf_s(pathBuffer.data(), pathBuffer.size(), "%s/light_param/fog_%s.txt", romDirectory, fileName.data());
+			if (!LoadParseUploadLightParamFile(pathBuffer.data(), context.Fog))
+				LoadParseUploadLightParamFile("dev_rom/light_param/fog_tst.txt", context.Fog);
+
 			sprintf_s(pathBuffer.data(), pathBuffer.size(), "%s/light_param/glow_%s.txt", romDirectory, fileName.data());
 			if (!LoadParseUploadLightParamFile(pathBuffer.data(), context.Glow))
 				LoadParseUploadLightParamFile("dev_rom/light_param/glow_tst.txt", context.Glow);

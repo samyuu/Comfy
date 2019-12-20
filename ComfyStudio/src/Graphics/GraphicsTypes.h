@@ -268,6 +268,16 @@ namespace Graphics
 		Count
 	};
 
+	enum class FogType : uint32_t
+	{
+		None = 0,
+		Linear = 1,
+		Exp = 2,
+		Exp2 = 3,
+
+		Count
+	};
+
 	enum class LightSourceType : uint32_t
 	{
 		None = 0,
