@@ -20,7 +20,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     TEMP fresnel, reflectivity;
     MOV(color_map, a_color0);
     TEX2D_02(normal_t, a_tex_normal0);
-    MAD(normal_t.xy, normal_t.wyyy, 2.0, -1.0);
+    MAD(normal_t.xy, normal_t.wy, 2.0, -1.0);
     MUL(normal_t.z, 0.15, a_color1.w);
     NRMH(normal_t, normal_t);
     MAD(normal_w, a_tangent, normal_t.x, a_normal);
@@ -40,8 +40,8 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MUL(reflectivity.a, state_material_specular.a, fresnel.w);
     MUL(reflect_map, reflect_map, reflectivity.a);
     MOV(refract_map, color_map);
-    ADD(color.rgb, reflect_map, refract_map);
-    MOV(color.a, color_map);
+    ADD(color.rgb, reflect_map.xyz, refract_map.xyz);
+    MOV(color.a, color_map.a);
     // LRP(o_color, a_fogcoord.xxxy, p_fog_color, color);
     MOV(o_color, color);
     

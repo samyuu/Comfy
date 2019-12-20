@@ -95,10 +95,12 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MUL(diff.xyz, diff.xyz, col0.xyz);
     TEXCUBE_10(spec, reflect);
     TEXCUBE_11(_tmp2, reflect);
-    LRP(spec.xyz, state_material_shininess, spec.xyz, _tmp2.xyz);
+    // LRP(spec.xyz, state_material_shininess, spec.xyz, _tmp2.xyz);
+    LRP(spec.xyz, state_material_shininess.xxx, spec.xyz, _tmp2.xyz);
     TEXCUBE_12(tmp, reflect);
     TEXCUBE_13(_tmp2, reflect);
-    LRP(tmp.xyz, state_material_shininess, tmp.xyz, _tmp2.xyz);
+    // LRP(tmp.xyz, state_material_shininess, tmp.xyz, _tmp2.xyz);
+    LRP(tmp.xyz, state_material_shininess.xxx, tmp.xyz, _tmp2.xyz);
     LRP(spec.xyz, lc.z, spec.xyz, tmp.xyz);
     MUL(spec.xyz, spec.xyz, state_light0_specular.xyz);
     MUL(diff.xyz, diff.xyz, 0.96);
