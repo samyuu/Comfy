@@ -12,6 +12,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     
 #if ARB_PROGRAM_ACCURATE
     
+    TEMP _tmp0;
     TEMP diff, tmp, pos_w, pos_c, pos_m, normal_w, normal_m;
     
     MOV(normal_m, float4(a_normal, 1.0));
@@ -28,9 +29,9 @@ VS_OUTPUT VS_main(VS_INPUT input)
     DP4(pos_c.z, mvp[2], pos_m);
     DP4(pos_c.w, mvp[3], pos_m);
     MOV(o_position, pos_c);
-    // SUB(_tmp0.w, pos_c.z, state.fog.params.y);
-    // MUL_SAT(_tmp0.w, _tmp0.w, state.fog.params.w);
-    // MUL(o_fog.x, _tmp0.w, state.fog.params.x);
+    SUB(_tmp0.w, pos_c.z, state_fog_params.y);
+    MUL_SAT(_tmp0.w, _tmp0.w, state_fog_params.w);
+    MUL(o_fog.x, _tmp0.w, state_fog_params.x);
     DP4(o_tex0.x, state_matrix_texture0[0], float4(a_tex0, 0.0, 0.0));
     DP4(o_tex0.y, state_matrix_texture0[1], float4(a_tex0, 0.0, 0.0));
     DP4(o_tex1.x, state_matrix_texture1[0], float4(a_tex1, 0.0, 0.0));

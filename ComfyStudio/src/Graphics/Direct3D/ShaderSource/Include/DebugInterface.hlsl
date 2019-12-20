@@ -16,6 +16,7 @@
 #define o_color_f1          output.ColorSecondary
 #define o_tex0              output.TexCoord
 #define o_tex1              output.TexCoordAmbient
+#define o_fog               output.FogFactor
 #define o_tex_shadow0       output.TexCoordShadow
 #define o_normal            output.Normal
 #define o_tangent           output.Tangent
@@ -33,6 +34,7 @@
 #define a_tex_color1        input.TexCoordAmbient
 #define a_tex_normal0       input.TexCoord
 #define a_tex_specular      input.TexCoord
+#define a_fogcoord          float2(input.FogFactor, 0.0)
 #define a_eye               input.EyeDirection
 #define a_normal            input.Normal
 #define a_tangent           input.Tangent
@@ -73,7 +75,7 @@
 #define p_bump_depth                (CB_Material.BumpDepth)
 // TODO: Should this be the same as p_fres_coef (?)
 #define fres_coef                   (CB_Material.FresnelCoefficient)
-#define p_fb_isize                  (1.0 / CB_Scene.RenderResolution)
+#define p_fb_isize                  (CB_Scene.TexelRenderResolution)
 // TODO:
 #define program_env_00              (float4(42.00, 42.00, 75.00, 1.0))
 // TODO:
@@ -90,6 +92,10 @@
 #define lit_diff                    (CB_Scene.LightColor)
 #define lit_spec                    ((CB_Scene.StageLight.Specular.rgb * CB_Scene.LightColor.rgb) * (1.0 / (1.0 - cos(PI / 10.0))))
 #define p_lit_dir                   (CB_Scene.CharacterLight.Direction)
+
+// NOTE: State fog:
+#define state_fog_params            (CB_Scene.DepthFog.Parameters)
+#define p_fog_color                 (CB_Scene.DepthFog.Color)
 
 // NOTE: State light:
 #define state_light0_ambient        (CB_Scene.CharacterLight.Ambient)

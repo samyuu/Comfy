@@ -9,6 +9,13 @@ struct ParallelLight
     float4 Direction;
 };
 
+struct LinearFog
+{
+    // NOTE: x: Density, y: Start, z: End, w: 1.0 / (End - Start)
+    float4 Parameters;
+    float4 Color;
+};
+
 struct SceneData
 {
     matrix IrradianceRed;
@@ -21,9 +28,13 @@ struct SceneData
     
     ParallelLight CharacterLight;
     ParallelLight StageLight;
+    
     float4 LightColor;
     
+    float2 TexelRenderResolution;
     float2 RenderResolution;
+    
+    LinearFog DepthFog;
 };
 
 #endif /* SCENEDATA_HLSL */

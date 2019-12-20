@@ -25,6 +25,7 @@ namespace Graphics
 		ShaderFlags_SpecularTexture = 1 << 4,
 		ShaderFlags_AlphaTest = 1 << 5,
 		ShaderFlags_CubeMapReflection = 1 << 6,
+		ShaderFlags_LinearFog = 1 << 7,
 	};
 
 	struct SceneConstantData
@@ -49,9 +50,13 @@ namespace Graphics
 		} CharacterLight, StageLight;
 
 		vec4 LightColor;
-		vec2 RenderResolution;
+		vec4 RenderResolution;
 
-		float Padding[6];
+		struct LinearFog
+		{
+			vec4 Parameters;
+			vec4 Color;
+		} DepthFog;
 	};
 
 	struct ObjectConstantData

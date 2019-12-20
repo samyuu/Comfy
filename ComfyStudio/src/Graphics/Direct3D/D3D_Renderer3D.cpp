@@ -97,6 +97,12 @@ namespace Graphics
 			return false;
 		}
 
+		vec4 GetPackedTextureSize(const D3D_RenderTarget& renderTarget)
+		{
+			vec2 renderTargetSize = renderTarget.GetSize();
+			return vec4(1.0f / renderTargetSize, renderTargetSize);
+		};
+
 		void CalculateGaussianBlurKernel(const GlowParameter& glow, PPGaussCoefConstantData* outData)
 		{
 			constexpr float powStart = 1.0f, powIncrement = 1.0f;
@@ -287,7 +293,7 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalRenderItems()
 	{
-		sceneCB.Data.RenderResolution = sceneContext->RenderData.RenderTarget.GetSize();
+		sceneCB.Data.RenderResolution = GetPackedTextureSize(sceneContext->RenderData.RenderTarget);
 		sceneCB.Data.IrradianceRed = glm::transpose(sceneContext->IBL.Stage.IrradianceRGB[0]);
 		sceneCB.Data.IrradianceGreen = glm::transpose(sceneContext->IBL.Stage.IrradianceRGB[1]);
 		sceneCB.Data.IrradianceBlue = glm::transpose(sceneContext->IBL.Stage.IrradianceRGB[2]);
@@ -303,6 +309,8 @@ namespace Graphics
 		sceneCB.Data.StageLight.Diffuse = vec4(sceneContext->Light.Stage.Diffuse, 1.0f);
 		sceneCB.Data.StageLight.Specular = vec4(sceneContext->Light.Stage.Specular, 1.0f);
 		sceneCB.Data.StageLight.Direction = vec4(glm::normalize(sceneContext->Light.Stage.Position), 1.0f);
+		sceneCB.Data.DepthFog.Parameters = vec4(sceneContext->RenderParameters.RenderFog ? sceneContext->Fog.Depth.Density : 0.0f, sceneContext->Fog.Depth.Start, sceneContext->Fog.Depth.End, 1.0f / (sceneContext->Fog.Depth.End - sceneContext->Fog.Depth.Start));
+		sceneCB.Data.DepthFog.Color = vec4(sceneContext->Fog.Depth.Color, 1.0f);
 		sceneCB.UploadData();
 
 		sceneCB.BindShaders();
@@ -475,12 +483,6 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalRenderBloom()
 	{
-		auto getPackedTextureSize = [](auto& renderTarget)
-		{
-			vec2 renderTargetSize = renderTarget.GetSize();
-			return vec4(1.0f / renderTargetSize, renderTargetSize);
-		};
-
 		auto& bloom = sceneContext->BloomRenderData;
 
 		bloom.BaseRenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.RenderResolution / 2);
@@ -494,7 +496,7 @@ namespace Graphics
 			auto& renderTarget = (i < 0) ? bloom.BaseRenderTarget : bloom.ReduceRenderTargets[i];
 			auto& lastRenderTarget = (i < 0) ? sceneContext->RenderData.RenderTarget : (i == 0) ? bloom.BaseRenderTarget : bloom.ReduceRenderTargets[i - 1];
 
-			reduceTexCB.Data.TextureSize = getPackedTextureSize(lastRenderTarget);
+			reduceTexCB.Data.TextureSize = GetPackedTextureSize(lastRenderTarget);
 			reduceTexCB.Data.ExtractBrightness = (i == 0);
 			reduceTexCB.UploadData();
 
@@ -518,7 +520,7 @@ namespace Graphics
 			auto* sourceTarget = &bloom.ReduceRenderTargets[i];
 			auto* destinationTarget = &bloom.BlurRenderTargets[i];
 
-			ppGaussTexCB.Data.TextureSize = getPackedTextureSize(*sourceTarget);
+			ppGaussTexCB.Data.TextureSize = GetPackedTextureSize(*sourceTarget);
 			ppGaussTexCB.UploadData();
 
 			for (int j = 0; j < 2; j++)
@@ -533,7 +535,7 @@ namespace Graphics
 			}
 		}
 
-		ppGaussTexCB.Data.TextureSize = getPackedTextureSize(bloom.ReduceRenderTargets[0]);
+		ppGaussTexCB.Data.TextureSize = GetPackedTextureSize(bloom.ReduceRenderTargets[0]);
 		ppGaussTexCB.Data.FinalPass = true;
 		ppGaussTexCB.UploadData();
 
@@ -664,6 +666,9 @@ namespace Graphics
 
 		if (material.Flags.UseCubeMapReflection || material.Reflection.TextureID != -1)
 			objectCB.Data.ShaderFlags |= ShaderFlags_CubeMapReflection;
+
+		if (sceneContext->RenderParameters.RenderFog)
+			objectCB.Data.ShaderFlags |= ShaderFlags_LinearFog;
 
 		objectCB.UploadData();
 

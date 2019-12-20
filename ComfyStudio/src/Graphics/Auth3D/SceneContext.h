@@ -23,6 +23,7 @@ namespace Graphics
 		bool RenderOpaque = true;
 		bool RenderTransparent = true;
 		bool RenderBloom = true;
+		bool RenderFog = true;
 
 		ivec2 RenderResolution = RenderTargetDefaultSize;
 		uint32_t MultiSampleCount = 1;

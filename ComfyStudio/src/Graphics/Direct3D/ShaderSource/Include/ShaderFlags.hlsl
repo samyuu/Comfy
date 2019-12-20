@@ -8,6 +8,7 @@ static const uint ShaderFlags_NormalTexture = 1 << 3;
 static const uint ShaderFlags_SpecularTexture = 1 << 4;
 static const uint ShaderFlags_AlphaTest = 1 << 5;
 static const uint ShaderFlags_CubeMapReflection = 1 << 6;
+static const uint ShaderFlags_LinearFog = 1 << 7;
 
 #define FLAGS_VERTEX_COLOR (CB_ShaderFlags & ShaderFlags_VertexColor)
 #define FLAGS_DIFFUSE_TEX2D (CB_ShaderFlags & ShaderFlags_DiffuseTexture)
@@ -16,5 +17,6 @@ static const uint ShaderFlags_CubeMapReflection = 1 << 6;
 #define FLAGS_SPECULAR_TEX2D (CB_ShaderFlags & ShaderFlags_SpecularTexture)
 #define FLAGS_ALPHA_TEST (CB_ShaderFlags & ShaderFlags_AlphaTest)
 #define FLAGS_REFLECTION_CUBE (CB_ShaderFlags & ShaderFlags_CubeMapReflection)
+#define FLAGS_LINEAR_FOG (CB_ShaderFlags & ShaderFlags_LinearFog)
 
 #endif /* SHADERFLAGS_HLSL */

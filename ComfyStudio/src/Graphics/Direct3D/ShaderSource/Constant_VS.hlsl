@@ -9,6 +9,8 @@ VS_OUTPUT VS_main(VS_INPUT input)
     output.Position = mul(input.Position, CB_Model);
     output.Position = mul(output.Position, CB_Scene.ViewProjection);
     
+    output.FogFactor = 0.0;
+    
     if (CB_ShaderFlags & ShaderFlags_DiffuseTexture)
         output.TexCoord = TransformTextureCoordinates(input.TexCoord, CB_Material.DiffuseTextureTransform);
     

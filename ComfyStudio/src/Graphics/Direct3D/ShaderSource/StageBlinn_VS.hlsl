@@ -12,6 +12,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     
 #if ARB_PROGRAM_ACCURATE
     
+    TEMP _tmp0;
     TEMP pos_m, pos_v, pos_c, pos_w;
     SET_VERTEX_POSITIONS;
     
@@ -78,6 +79,10 @@ VS_OUTPUT VS_main(VS_INPUT input)
     if (FLAGS_VERTEX_COLOR)
         MUL(diff, diff, a_color);
     MOV(o_color_f0, diff);
+    
+    SUB(_tmp0.w, pos_c.z, state_fog_params.y);
+    MUL_SAT(_tmp0.w, _tmp0.w, state_fog_params.w);
+    MUL(o_fog.x, _tmp0.w, state_fog_params.x);
     
 #endif
     

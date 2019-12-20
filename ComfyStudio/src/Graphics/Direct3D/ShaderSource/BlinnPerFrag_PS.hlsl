@@ -94,7 +94,10 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MUL(spec.xyz, spec.xyz, state_lightprod1_specular.xyz);
     MAD(diff, diff, state_light1_diffuse, a_color0);
     
-    MAD(o_color.xyz, diff.xyz, tex_col.xyz, spec.xyz);
+    // MAD(o_color.xyz, diff.xyz, tex_col.xyz, spec.xyz);
+    // MUL(o_color.w, diff.w, tex_col.w);
+    MAD(_tmp0, diff, tex_col, spec);
+    LRP(o_color.xyz, a_fogcoord.x, p_fog_color.xyz, _tmp0.xyz);
     MUL(o_color.w, diff.w, tex_col.w);
     
     CHECK_CLIP_ALPHA_TEST;

@@ -103,7 +103,8 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MUL(env.xyz, env.xyz, env.w);
     MAD(tmp.xyz, env.xyz, spec_ratio.w, diff.xyz);
     
-    MOV(o_color.rgb, tmp.xyz);
+    // MOV(o_color.rgb, tmp.xyz);
+    LRP(o_color.rgb, a_fogcoord.x, p_fog_color.xyz, tmp.xyz);
     MUL(diff.w, col0.w, a_color0.w);
     
     // TODO:

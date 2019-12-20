@@ -23,4 +23,5 @@ struct VS_OUTPUT
     float4 Color            : COLOR0;
     float4 ColorSecondary   : COLOR1;
     float4 Reflection       : REFLECT;
+    float1 FogFactor        : FOG;
 };

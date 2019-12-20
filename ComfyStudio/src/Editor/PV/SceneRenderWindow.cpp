@@ -224,6 +224,7 @@ namespace Editor
 			Gui::Checkbox("Render Opaque", &context.RenderParameters.RenderOpaque);
 			Gui::Checkbox("Render Transparent", &context.RenderParameters.RenderTransparent);
 			Gui::Checkbox("Render Bloom", &context.RenderParameters.RenderBloom);
+			Gui::Checkbox("Render Fog", &context.RenderParameters.RenderFog);
 			Gui::SliderInt("Anistropic Filtering", &context.RenderParameters.AnistropicFiltering, D3D11_MIN_MAXANISOTROPY, D3D11_MAX_MAXANISOTROPY);
 
 			if (Gui::CollapsingHeader("Resolution"))
@@ -272,6 +273,16 @@ namespace Editor
 					context.RenderParameters.MultiSampleCount = std::clamp(context.RenderParameters.MultiSampleCount, 1u, 16u);
 			}
 
+			Gui::PopID();
+		}
+
+		if (Gui::CollapsingHeader("Fog", ImGuiTreeNodeFlags_None))
+		{
+			Gui::PushID(&context.Fog);
+			Gui::SliderFloat("Density", &context.Fog.Depth.Density, 0.0f, 1.0f);
+			Gui::SliderFloat("Start", &context.Fog.Depth.Start, -100.0f, 1000.0f);
+			Gui::SliderFloat("End", &context.Fog.Depth.End, -100.0f, 1000.0f);
+			Gui::ColorEdit3("Color", glm::value_ptr(context.Fog.Depth.Color), ImGuiColorEditFlags_Float);
 			Gui::PopID();
 		}
 
