@@ -27,8 +27,6 @@ namespace Editor
 			return true;
 		}
 
-		enum StageType { STGTST, STGNS, STGD2NS, STGPV, Count };
-
 		void LoadStageLightParamFiles(SceneContext& context, StageType stageType, int stageID)
 		{
 			constexpr std::array formatStrings = { "tst%03d", "ns%03d", "d2ns%03d", "pv%03ds01" };
@@ -170,56 +168,17 @@ namespace Editor
 				Gui::EndChild();
 			}
 			Gui::End();
+
+			if (Gui::Begin("Stage Test"))
+				DrawStageTestGui();
+			Gui::End();
 		}
 		OnWindowBegin();
 	}
 
 	void SceneRenderWindow::PostDrawGui()
 	{
-		Gui::DEBUG_NOSAVE_WINDOW("Stage Test", [&]()
-		{
-			static int stgTST = 0, stgNS = 10, stgD2NS = 35, stgPV = 1;
-			static bool selectGround = false, loadLightParam = true, loadStage = true;
-
-			auto stageTypeGui = [&](StageType type, const char* name, int& id, int min, int max)
-			{
-				auto load = [&]()
-				{
-					id = std::clamp(id, min, max);
-
-					if (loadLightParam)
-						LoadStageLightParamFiles(context, type, id);
-
-					if (loadStage)
-					{
-						if (!LoadStageObj(context, type, id, textureObjSet, [&](auto path) { LoadObjSet(path); }, *renderer3D))
-							objSet = nullptr;
-
-						objectIndex = selectGround ? FindGroundObj(objSet.get()) : -1;
-					}
-				};
-
-				Gui::PushID(name);
-
-				if (Gui::Button("Reload"))
-					load();
-
-				Gui::SameLine();
-
-				if (Gui::InputInt(name, &id, 1, 100))
-					load();
-
-				Gui::PopID();
-			};
-
-			stageTypeGui(StageType::STGTST, "STGTST", stgTST, 0, 10);
-			stageTypeGui(StageType::STGNS, "STGNS", stgNS, 1, 292);
-			stageTypeGui(StageType::STGD2NS, "STGD2NS", stgD2NS, 35, 82);
-			stageTypeGui(StageType::STGPV, "STGPV", stgPV, 1, 999);
-			Gui::Checkbox("Select Ground", &selectGround);
-			Gui::Checkbox("Load Light Param", &loadLightParam);
-			Gui::Checkbox("Load Stage", &loadStage);
-		});
+		return;
 	}
 
 	void SceneRenderWindow::OnWindowBegin()
@@ -426,12 +385,55 @@ namespace Editor
 					Gui::DragFloat("Shininess", &material->Shininess);
 					Gui::ColorEdit3("Ambient", glm::value_ptr(material->AmbientColor), ImGuiColorEditFlags_Float);
 					Gui::ColorEdit3("Emission", glm::value_ptr(material->EmissionColor), ImGuiColorEditFlags_Float);
-					Gui::InputText("Material Type", material->MaterialType.data(), material->MaterialType.size(), ImGuiInputTextFlags_ReadOnly);
+					Gui::InputText("Material Type", material->MaterialType.data(), material->MaterialType.size(), /*ImGuiInputTextFlags_ReadOnly*/ImGuiInputTextFlags_None);
 				}
 
 				Gui::PopID();
 			}
 		}
+	}
+
+	void SceneRenderWindow::DrawStageTestGui()
+	{
+		auto stageTypeGui = [&](auto& stageTypeData)
+		{
+			auto load = [&]()
+			{
+				stageTypeData.ID = std::clamp(stageTypeData.ID, stageTypeData.MinID, stageTypeData.MaxID);
+
+				if (stageTestData.Settings.LoadLightParam)
+					LoadStageLightParamFiles(context, stageTypeData.Type, stageTypeData.ID);
+
+				if (stageTestData.Settings.LoadObj)
+				{
+					if (!LoadStageObj(context, stageTypeData.Type, stageTypeData.ID, textureObjSet, [&](auto path) { LoadObjSet(path); }, *renderer3D))
+						objSet = nullptr;
+
+					objectIndex = stageTestData.Settings.SelectGround ? FindGroundObj(objSet.get()) : -1;
+				}
+			};
+
+			Gui::PushID(&stageTypeData);
+			{
+				if (Gui::Button("Reload"))
+					load();
+
+				Gui::SameLine();
+				if (stageTypeData.ID <= -1)
+					stageTypeData.ID = stageTypeData.MinID;
+
+				if (Gui::InputInt(stageTypeData.Name, &stageTypeData.ID, 1, 100))
+					load();
+			}
+			Gui::PopID();
+		};
+
+		for (auto& stageTypeData : stageTestData.TypeData)
+			stageTypeGui(stageTypeData);
+
+		Gui::Checkbox("Select Ground", &stageTestData.Settings.SelectGround);
+		Gui::Checkbox("Load Light Param", &stageTestData.Settings.LoadLightParam);
+		Gui::Checkbox("Load Stage", &stageTestData.Settings.LoadObj);
 	}
 
 	void SceneRenderWindow::LoadObjSet(const std::string& filePath)

@@ -9,6 +9,8 @@
 
 namespace Editor
 {
+	enum StageType { STGTST, STGNS, STGD2NS, STGPV, Count };
+
 	class SceneRenderWindow : public IEditorComponent, public RenderWindowBase
 	{
 	public:
@@ -33,6 +35,7 @@ namespace Editor
 	private:
 		void UpdateCamera();
 		void DrawComfyDebugGui();
+		void DrawStageTestGui();
 
 		void LoadObjSet(const std::string& objSetPath);
 
@@ -53,6 +56,33 @@ namespace Editor
 		Graphics::SceneContext context;
 
 		Gui::FileViewer objFileViewer = { "dev_rom/objset/" };
+
+		struct StageTestData
+		{
+			struct StageTypeData
+			{
+				const StageType Type;
+				const char* Name;
+				const int MinID, MaxID;
+				int ID;
+			};
+
+			std::array<StageTypeData, 4> TypeData =
+			{
+				StageTypeData { StageType::STGTST, "STGTST", 0, 10, -1 },
+				StageTypeData { StageType::STGNS, "STGNS", 1, 292, -1 },
+				StageTypeData { StageType::STGD2NS, "STGD2NS", 35, 82, -1 },
+				StageTypeData { StageType::STGPV, "STGPV", 1, 999, -1 },
+			};
+
+			struct Settings
+			{
+				bool SelectGround = false;
+				bool LoadLightParam = true;
+				bool LoadObj = true;
+			} Settings;
+
+		} stageTestData;
 
 		int objectIndex = -1;
 		int materialObjIndex = 0, materialIndex = 0;
