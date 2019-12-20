@@ -27,7 +27,7 @@ namespace Editor
 			return true;
 		}
 
-		enum StageType { STGTST, STGNS, STGD2NS, STGPV };
+		enum StageType { STGTST, STGNS, STGD2NS, STGPV, Count };
 
 		void LoadStageLightParamFiles(SceneContext& context, StageType stageType, int stageID)
 		{
@@ -54,36 +54,56 @@ namespace Editor
 		}
 
 		template <typename T>
-		bool LoadStage(SceneContext& context, StageType stageType, int stageID, UniquePtr<ObjSet>& textureObjSet, T objSetLoaderFunc, D3D_Renderer3D& renderer)
+		bool LoadStageObj(SceneContext& context, StageType stageType, int stageID, UniquePtr<ObjSet>& textureObjSet, T objSetLoaderFunc, D3D_Renderer3D& renderer)
 		{
-			LoadStageLightParamFiles(context, stageType, stageID);
+			constexpr const char* objSetDirectory = "dev_rom/objset";
+			std::array<char, MAX_PATH> pathBuffer;
+
+			textureObjSet = nullptr;
+
+			constexpr std::array formatStrings =
+			{
+				"%s/stgtst/stgtst%03d/stgtst%03d_obj.bin",
+				"%s/stgns/stgns%03d/stgns%03d_obj.bin",
+				"%s/stgd2ns/stgd2ns%03d/stgd2ns%03d_obj.bin",
+				"%s/stgpv/stgpv%03ds01/stgpv%03ds01_obj.bin",
+				"%s/stgtst/stgtst/stgtst_obj.bin",
+			};
+
+			if (stageType == StageType::STGTST && stageID == 0)
+				sprintf_s(pathBuffer.data(), pathBuffer.size(), formatStrings.back(), objSetDirectory);
+			else
+				sprintf_s(pathBuffer.data(), pathBuffer.size(), formatStrings[static_cast<int>(stageType)], objSetDirectory, stageID, stageID);
+
+			if (!FileSystem::FileExists(pathBuffer.data()))
+				return false;
+
+			objSetLoaderFunc(pathBuffer.data());
 
 			if (stageType == StageType::STGPV)
 			{
-				constexpr const char* directory = "dev_rom/objset/stgpv";
-				char pathBuffer[MAX_PATH];
+				sprintf_s(pathBuffer.data(), pathBuffer.size(), "%s/stgpv/stgpv%03d/stgpv%03d_obj.bin", objSetDirectory, stageID, stageID);
+				if (FileSystem::FileExists(pathBuffer.data()))
+				{
+					textureObjSet = ObjSet::MakeUniqueReadParseUpload(pathBuffer.data());
 
-				sprintf_s(pathBuffer, "%s/stgpv%03ds01/stgpv%03ds01_obj.bin", directory, stageID, stageID);
-				if (!FileSystem::FileExists(pathBuffer))
-					return false;
-
-				objSetLoaderFunc(pathBuffer);
-
-				sprintf_s(pathBuffer, "%s/stgpv%03d/stgpv%03d_obj.bin", directory, stageID, stageID);
-				textureObjSet = ObjSet::MakeUniqueReadParseUpload(pathBuffer);
-
-				sprintf_s(pathBuffer, "%s/stgpv%03d/stgpv%03d_tex.bin", directory, stageID, stageID);
-				textureObjSet->TxpSet = TxpSet::MakeUniqueReadParseUpload(pathBuffer, textureObjSet.get());
+					sprintf_s(pathBuffer.data(), pathBuffer.size(), "%s/stgpv/stgpv%03d/stgpv%03d_tex.bin", objSetDirectory, stageID, stageID);
+					if (FileSystem::FileExists(pathBuffer.data()))
+					{
+						textureObjSet->TxpSet = TxpSet::MakeUniqueReadParseUpload(pathBuffer.data(), textureObjSet.get());
+						renderer.RegisterTextureIDs(*textureObjSet->TxpSet);
+					}
+				}
 			}
-			else
-			{
-				// TODO: ...
-			}
-
-			if (textureObjSet->TxpSet != nullptr)
-				renderer.RegisterTextureIDs(*textureObjSet->TxpSet);
 
 			return true;
+		}
+
+		template <typename T>
+		bool LoadStage(SceneContext& context, StageType stageType, int stageID, UniquePtr<ObjSet>& textureObjSet, T objSetLoaderFunc, D3D_Renderer3D& renderer)
+		{
+			LoadStageLightParamFiles(context, stageType, stageID);
+			return LoadStageObj(context, stageType, stageID, textureObjSet, objSetLoaderFunc, renderer);
 		}
 
 		int FindGroundObj(ObjSet* objSet)
@@ -100,13 +120,11 @@ namespace Editor
 	{
 		renderer3D = MakeUnique<D3D_Renderer3D>();
 
-
-
-#if 0 // DEBUG:
+#if 1 // DEBUG:
 		context.Camera.FieldOfView = 70.0f;
-		context.Camera.Position = vec3(-1.0f, 0.5f, 1.5f);
-		cameraController.TargetCameraPitch = -5.0f;
-		cameraController.TargetCameraYaw = -50.0f;
+		context.Camera.Position = vec3(0.0f, 1.1f, 1.5f);
+		cameraController.TargetCameraPitch = -11.0f;
+		cameraController.TargetCameraYaw = -90.000f;
 #endif
 	}
 
@@ -122,16 +140,11 @@ namespace Editor
 	void SceneRenderWindow::Initialize()
 	{
 		RenderWindowBase::Initialize();
-		context.RenderData.OutputRenderTarget = renderTarget.get();
-#define OBJ_FILE "stgns006"
 
-#ifdef OBJ_FILE
 		if (objSet == nullptr)
 		{
-			LoadObjSet("dev_rom/objset/" OBJ_FILE "/" OBJ_FILE "_obj.bin");
-			LoadStageLightParamFiles(context, StageType::STGNS, 6);
+			LoadStage(context, StageType::STGNS, 6, textureObjSet, [&](auto path) { LoadObjSet(path); }, *renderer3D);
 		}
-#endif
 	}
 
 	void SceneRenderWindow::DrawGui()
@@ -159,21 +172,49 @@ namespace Editor
 
 	void SceneRenderWindow::PostDrawGui()
 	{
-		if (objSet == nullptr)
-			return;
-
-		// auto& obj = objSet->at(objectIndex);
-		// Gui::Text("%s (%d/%d)", obj.Name.c_str(), objectIndex, objSet->size());
-
-		Gui::DEBUG_NOSAVE_WINDOW("STGPV", [&]()
+		Gui::DEBUG_NOSAVE_WINDOW("Stage Test", [&]()
 		{
-			static int stgID = 0;
+			static int stgTST = 0, stgNS = 10, stgD2NS = 35, stgPV = 1;
+			static bool selectGround = false, loadLightParam = true, loadStage = true;
 
-			if (Gui::SliderInt("STGPV_ID", &stgID, 1, 999, "STGPV_%03d"))
+			auto stageTypeGui = [&](StageType type, const char* name, int& id, int min, int max)
 			{
-				LoadStage(context, StageType::STGPV, stgID, textureObjSet, [&](auto path) { LoadObjSet(path); }, *renderer3D);
-				objectIndex = FindGroundObj(objSet.get());
-			}
+				auto load = [&]()
+				{
+					id = std::clamp(id, min, max);
+
+					if (loadLightParam)
+						LoadStageLightParamFiles(context, type, id);
+
+					if (loadStage)
+					{
+						if (!LoadStageObj(context, type, id, textureObjSet, [&](auto path) { LoadObjSet(path); }, *renderer3D))
+							objSet = nullptr;
+
+						objectIndex = selectGround ? FindGroundObj(objSet.get()) : -1;
+					}
+				};
+
+				Gui::PushID(name);
+
+				if (Gui::Button("Reload"))
+					load();
+
+				Gui::SameLine();
+
+				if (Gui::InputInt(name, &id, 1, 100))
+					load();
+
+				Gui::PopID();
+			};
+
+			stageTypeGui(StageType::STGTST, "STGTST", stgTST, 0, 10);
+			stageTypeGui(StageType::STGNS, "STGNS", stgNS, 1, 292);
+			stageTypeGui(StageType::STGD2NS, "STGD2NS", stgD2NS, 35, 82);
+			stageTypeGui(StageType::STGPV, "STGPV", stgPV, 1, 999);
+			Gui::Checkbox("Select Ground", &selectGround);
+			Gui::Checkbox("Load Light Param", &loadLightParam);
+			Gui::Checkbox("Load Stage", &loadStage);
 		});
 	}
 
@@ -494,14 +535,12 @@ namespace Editor
 
 	void SceneRenderWindow::OnRender()
 	{
-		if (objSet == nullptr)
-			return;
+		context.RenderData.OutputRenderTarget = renderTarget.get();
+		context.RenderParameters.ClearColor = GetColorVec4(EditorColor_BaseClear);
 
-		renderTarget->BindSetViewport();
+		renderer3D->Begin(context);
 		{
-			context.RenderParameters.ClearColor = GetColorVec4(EditorColor_BaseClear);
-
-			renderer3D->Begin(context);
+			if (objSet != nullptr)
 			{
 				if (objectIndex < 0)
 				{
@@ -520,9 +559,8 @@ namespace Editor
 						renderer3D->Draw(RenderCommand::ObjPosReflect(obj, vec3(0.0f)));
 				}
 			}
-			renderer3D->End();
 		}
-		renderTarget->UnBind();
+		renderer3D->End();
 	}
 
 	void SceneRenderWindow::OnResize(ivec2 size)
