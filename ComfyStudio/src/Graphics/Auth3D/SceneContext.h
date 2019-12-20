@@ -28,7 +28,9 @@ namespace Graphics
 		uint32_t MultiSampleCount = 1;
 
 		static constexpr ivec2 ReflectionDefaultResolution = ivec2(512, 512);
+
 		bool RenderReflection = true;
+		bool ClearReflection = true;
 		ivec2 ReflectionRenderResolution = ReflectionDefaultResolution;
 
 		bool Clear = true;

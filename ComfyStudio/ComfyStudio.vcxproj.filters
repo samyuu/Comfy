@@ -372,9 +372,6 @@
     <ClCompile Include="src\Graphics\Direct3D\D3D_Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Auth3D\SceneContext.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\Auth3D\LightDataIBL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

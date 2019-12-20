@@ -224,7 +224,6 @@
     <ClCompile Include="src\Graphics\Auth3D\LightParameters.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\ObjSet.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\ObjSetFile.cpp" />
-    <ClCompile Include="src\Graphics\Auth3D\SceneContext.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_BlendState.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_ConstantBuffer.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\D3D_DepthBuffer.cpp" />

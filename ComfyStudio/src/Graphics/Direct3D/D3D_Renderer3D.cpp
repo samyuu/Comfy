@@ -97,10 +97,8 @@ namespace Graphics
 			return false;
 		}
 
-		PPGaussCoefConstantData CalculateGaussianBlurKernel(const GlowParameter& glow)
+		void CalculateGaussianBlurKernel(const GlowParameter& glow, PPGaussCoefConstantData* outData)
 		{
-			PPGaussCoefConstantData data;
-
 			constexpr float powStart = 1.0f, powIncrement = 1.0f;
 			constexpr float sigmaFactor = 0.8f, intensityFactor = 1.0f;
 
@@ -126,14 +124,12 @@ namespace Graphics
 
 				const float channelIntensity = glow.Intensity[channel] * (intensityFactor * 0.5f);
 
-				for (int i = 0; i < data.Coefficient.size(); i++)
-					data.Coefficient[i][channel] = (results[i] / accumilatedExpResult) * channelIntensity;
+				for (int i = 0; i < outData->Coefficient.size(); i++)
+					outData->Coefficient[i][channel] = (results[i] / accumilatedExpResult) * channelIntensity;
 			}
-
-			return data;
 		}
 
-		const struct ShaderIdentifiers
+		const struct MaterialIdentifiers
 		{
 			std::array<char, 8> BLINN { "BLINN" };
 			std::array<char, 8> ITEM { "ITEM" };
@@ -334,7 +330,10 @@ namespace Graphics
 				sceneContext->RenderData.ReflectionRenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.ReflectionRenderResolution);
 				sceneContext->RenderData.ReflectionRenderTarget.BindSetViewport();
 
-				sceneContext->RenderData.ReflectionRenderTarget.Clear(sceneContext->RenderParameters.ClearColor);
+				if (sceneContext->RenderParameters.ClearReflection)
+					sceneContext->RenderData.ReflectionRenderTarget.Clear(sceneContext->RenderParameters.ClearColor);
+				else
+					sceneContext->RenderData.ReflectionRenderTarget.GetDepthBuffer()->Clear();
 
 				// TODO: Render using reflection shader
 				for (auto& command : reflectionCommandList)
@@ -505,7 +504,7 @@ namespace Graphics
 			D3D.Context->Draw(RectangleVertexCount, 0);
 		}
 
-		ppGaussCoefCB.Data = CalculateGaussianBlurKernel(sceneContext->Glow);
+		CalculateGaussianBlurKernel(sceneContext->Glow, &ppGaussCoefCB.Data);
 		ppGaussCoefCB.UploadData();
 		ppGaussCoefCB.BindPixelShader();
 
