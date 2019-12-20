@@ -19,6 +19,12 @@ namespace Graphics
 		D3D.Device->CreateRasterizerState(&rasterizerDescription, &rasterizerState);
 	}
 
+	D3D_RasterizerState::D3D_RasterizerState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode, const char* debugName)
+		: D3D_RasterizerState(fillMode, cullMode)
+	{
+		D3D_SetObjectDebugName(rasterizerState.Get(), debugName);
+	}
+
 	void D3D_RasterizerState::Bind()
 	{
 		D3D.Context->RSSetState(rasterizerState.Get());

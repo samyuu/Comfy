@@ -85,7 +85,7 @@ namespace Editor
 		}
 
 		currentWindow->DrawList->AddImage(
-			renderTarget->GetVoidTexture(),
+			renderTarget->GetResourceView(),
 			renderRegion.GetTL(),
 			renderRegion.GetBR());
 

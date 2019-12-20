@@ -67,6 +67,7 @@ namespace Graphics
 
 	public:
 		D3D_ConstantBufferTemplate(uint32_t slot) : Data(), Buffer(slot, sizeof(DataType)) {};
+		D3D_ConstantBufferTemplate(uint32_t slot, const char* debugName) : Data(), Buffer(slot, sizeof(DataType)) { D3D_SetObjectDebugName(Buffer.GetBuffer(), debugName); };
 
 	public:
 		inline void BindVertexShader() { Buffer.BindVertexShader(); };

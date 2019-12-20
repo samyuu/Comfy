@@ -20,6 +20,10 @@ namespace Graphics
 		virtual void UnBind() const;
 
 	public:
+		template <size_t Size>
+		static void BindArray(uint32_t startSlot, const std::array<D3D_TextureSampler*, Size>& samplers);
+
+	public:
 		ID3D11SamplerState* GetSampler();
 		const D3D11_SAMPLER_DESC& GetDescription() const;
 
@@ -29,4 +33,15 @@ namespace Graphics
 
 		ComPtr<ID3D11SamplerState> samplerState;
 	};
+
+	template<size_t Size>
+	inline void D3D_TextureSampler::BindArray(uint32_t startSlot, const std::array<D3D_TextureSampler*, Size>& samplers)
+	{
+		std::array<ID3D11SamplerState*, Size> samplerStates;
+
+		for (size_t i = 0; i < Size; i++)
+			samplerStates[i] = (samplers[i] != nullptr) ? samplers[i]->GetSampler() : nullptr;
+
+		D3D.Context->PSSetSamplers(startSlot, static_cast<UINT>(samplerStates.size()), samplerStates.data());
+	}
 }

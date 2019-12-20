@@ -5,7 +5,17 @@
 
 namespace Graphics
 {
-	class D3D_TextureResource : IGraphicsResource
+	class D3D_ShaderResourceView
+	{
+	public:
+		virtual ID3D11ShaderResourceView* GetResourceView() const = 0;
+
+	public:
+		template <size_t Size>
+		static void BindArray(uint32_t startSlot, const std::array<D3D_ShaderResourceView*, Size>& resources);
+	};
+
+	class D3D_TextureResource : public D3D_ShaderResourceView, IGraphicsResource
 	{
 	protected:
 		D3D_TextureResource();
@@ -22,12 +32,13 @@ namespace Graphics
 		TextureFormat GetTextureFormat() const;
 
 		ID3D11Texture2D* GetTexture();
-		ID3D11ShaderResourceView* GetResourceView() const;
+
+		ID3D11ShaderResourceView* GetResourceView() const override;
 
 	protected:
 		mutable uint32_t lastBoundSlot;
 		TextureFormat textureFormat;
-		
+
 		D3D11_TEXTURE2D_DESC textureDescription;
 		D3D11_SHADER_RESOURCE_VIEW_DESC resourceViewDescription;
 
@@ -35,7 +46,7 @@ namespace Graphics
 		ComPtr<ID3D11ShaderResourceView> resourceView;
 	};
 
-	class D3D_Texture1D final
+	class D3D_Texture1D final : public D3D_ShaderResourceView
 	{
 	public:
 		D3D_Texture1D(int32_t width, const void* pixelData, DXGI_FORMAT format);
@@ -48,7 +59,7 @@ namespace Graphics
 		void UploadData(size_t dataSize, const void* pixelData);
 
 	public:
-		ID3D11ShaderResourceView* GetResourceView() const;
+		ID3D11ShaderResourceView* GetResourceView() const override;
 
 	private:
 		D3D11_TEXTURE1D_DESC textureDescription;
@@ -89,4 +100,15 @@ namespace Graphics
 
 	private:
 	};
+
+	template<size_t Size>
+	inline void D3D_ShaderResourceView::BindArray(uint32_t startSlot, const std::array<D3D_ShaderResourceView*, Size>& resources)
+	{
+		std::array<ID3D11ShaderResourceView*, Size> resourceViews;
+
+		for (size_t i = 0; i < Size; i++)
+			resourceViews[i] = (resources[i] != nullptr) ? resources[i]->GetResourceView() : nullptr;
+
+		D3D.Context->PSSetShaderResources(startSlot, static_cast<UINT>(resourceViews.size()), resourceViews.data());
+	}
 }

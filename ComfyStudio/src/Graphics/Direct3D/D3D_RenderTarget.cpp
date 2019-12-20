@@ -107,7 +107,7 @@ namespace Graphics
 		std::array<ID3D11ShaderResourceView*, 1> resourceViews = { GetResourceView() };
 		D3D.Context->PSSetShaderResources(textureSlot, static_cast<UINT>(resourceViews.size()), resourceViews.data());
 	}
-
+	
 	ivec2 D3D_RenderTarget::GetSize() const
 	{
 		return ivec2(backBufferDescription.Width, backBufferDescription.Height);
@@ -129,12 +129,7 @@ namespace Graphics
 		return backBufferDescription.SampleDesc.Count;
 	}
 
-	void* D3D_RenderTarget::GetVoidTexture() const
-	{
-		return shaderResourceView.Get();
-	}
-
-	ID3D11ShaderResourceView* D3D_RenderTarget::GetResourceView()
+	ID3D11ShaderResourceView* D3D_RenderTarget::GetResourceView() const
 	{
 		return shaderResourceView.Get();
 	}

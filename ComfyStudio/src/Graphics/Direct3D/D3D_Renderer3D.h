@@ -209,8 +209,6 @@ namespace Graphics
 		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, const mat4& model);
 		D3D_BlendState CreateMaterialBlendState(const Material& material);
 		D3D_ShaderPair& GetMaterialShader(const Material& material);
-		D3D_TextureSampler CreateTextureSampler(const MaterialTexture& materialTexture, TextureFormat format);
-		TextureFormat CheckBindMaterialTexture(const MaterialTexture& materialTexture, int slot);
 		void SubmitSubMeshDrawCall(const SubMesh& subMesh);
 
 	private:
@@ -241,20 +239,34 @@ namespace Graphics
 			D3D_ShaderPair Water = { Water_VS(), Water_PS(), "Renderer3D::Water" };
 		} shaders;
 
-		D3D_DefaultConstantBufferTemplate<SceneConstantData> sceneCB = { 0 };
-		D3D_DynamicConstantBufferTemplate<ObjectConstantData> objectCB = { 1 };
-		D3D_DynamicConstantBufferTemplate<ReduceTexConstantData> reduceTexCB = { 0 };
-		D3D_DynamicConstantBufferTemplate<PPGaussTexConstantData> ppGaussTexCB = { 0 };
-		D3D_DefaultConstantBufferTemplate<PPGaussCoefConstantData> ppGaussCoefCB = { 1 };
-		D3D_DefaultConstantBufferTemplate<ToneMapConstantData> toneMapCB = { 0 };
+		D3D_DefaultConstantBufferTemplate<SceneConstantData> sceneCB = { 0, "Renderer3D::SceneCB" };
+		D3D_DynamicConstantBufferTemplate<ObjectConstantData> objectCB = { 1, "Renderer3D::ObjectCB" };
+		D3D_DynamicConstantBufferTemplate<ReduceTexConstantData> reduceTexCB = { 0, "Renderer3D::ReduceTexCB" };
+		D3D_DynamicConstantBufferTemplate<PPGaussTexConstantData> ppGaussTexCB = { 0, "Renderer3D::PPGaussTexCB" };
+		D3D_DefaultConstantBufferTemplate<PPGaussCoefConstantData> ppGaussCoefCB = { 1, "Renderer3D::PPGaussCoefCB" };
+		D3D_DefaultConstantBufferTemplate<ToneMapConstantData> toneMapCB = { 0, "Renderer3D::ToneMapCB" };
 
 		UniquePtr<D3D_InputLayout> genericInputLayout = nullptr;
 
-		D3D_RasterizerState solidBackfaceCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_BACK };
-		D3D_RasterizerState solidNoCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_NONE };
-		D3D_RasterizerState wireframeRasterizerState = { D3D11_FILL_WIREFRAME, D3D11_CULL_NONE };
+		D3D_RasterizerState solidBackfaceCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_BACK, "Renderer3D::SolidBackfaceCulling" };
+		D3D_RasterizerState solidNoCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_NONE, "Renderer3D::SolidNoCulling" };
+		D3D_RasterizerState wireframeRasterizerState = { D3D11_FILL_WIREFRAME, D3D11_CULL_NONE, "Renderer3D::Wireframe" };
 
-		D3D_DepthStencilState transparencyPassDepthStencilState = { true, D3D11_DEPTH_WRITE_MASK_ZERO };
+		D3D_DepthStencilState transparencyPassDepthStencilState = { true, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::Transparency" };
+
+		struct TextureSamplers
+		{
+		public:
+			void CreateIfNeeded(const RenderParameters& renderParameters);
+			D3D_TextureSampler* GetSampler(MaterialTextureFlags flags);
+
+		private:
+			enum AddressMode { Mirror, Repeat, Clamp, AddressMode_Count };
+
+			int32_t lastAnistropicFiltering = -1;
+			std::array<std::array<UniquePtr<D3D_TextureSampler>, AddressMode_Count>, AddressMode_Count> samplers;
+
+		} cachedTextureSamplers;
 
 		std::vector<ObjRenderCommand> renderCommandList, reflectionCommandList;
 		std::vector<SubMeshRenderCommand> transparentSubMeshCommands;

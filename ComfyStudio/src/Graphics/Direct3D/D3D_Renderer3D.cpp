@@ -80,12 +80,6 @@ namespace Graphics
 			}
 		}
 
-		void TryBindLightMap(LightMap& lightMap, int slot)
-		{
-			std::array<ID3D11ShaderResourceView*, 1> resourceViews = { (lightMap.CubeMap != nullptr) ? lightMap.CubeMap->GetResourceView() : nullptr };
-			D3D.Context->PSSetShaderResources(slot, static_cast<UINT>(resourceViews.size()), resourceViews.data());
-		}
-
 		bool IsMeshTransparent(const Mesh& mesh, const Material& material)
 		{
 			if (material.BlendFlags.EnableBlend)
@@ -159,7 +153,10 @@ namespace Graphics
 			TextureSlot_Ambient = 1,
 			TextureSlot_Normal = 2,
 			TextureSlot_Specular = 3,
+			TextureSlot_ToonCurve = 4,
 			TextureSlot_Reflection = 5,
+			TextureSlot_Tangent = 6,
+			TextureSlot_Reserved = 7,
 
 			TextureSlot_CharacterLightMap = 9,
 			TextureSlot_SunLightMap = 10,
@@ -173,9 +170,6 @@ namespace Graphics
 
 	D3D_Renderer3D::D3D_Renderer3D()
 	{
-		// TODO: Give names to all graphics resources
-		// D3D_SetObjectDebugName(..., "Renderer3D::...");
-
 		InputElement elements[] =
 		{
 			{ "POSITION",	0, DXGI_FORMAT_R32G32B32_FLOAT,		0, VertexAttribute_Position },
@@ -188,6 +182,7 @@ namespace Graphics
 		};
 
 		genericInputLayout = MakeUnique<D3D_InputLayout>(elements, std::size(elements), shaders.Debug.VS);
+		D3D_SetObjectDebugName(genericInputLayout->GetLayout(), "Renderer3D::GenericInputLayout");
 	}
 
 	void D3D_Renderer3D::Begin(SceneContext& scene)
@@ -316,20 +311,24 @@ namespace Graphics
 		sceneCB.BindShaders();
 		objectCB.BindShaders();
 
-		TryBindLightMap(sceneContext->IBL.Character.LightMap, TextureSlot_CharacterLightMap);
-		TryBindLightMap(sceneContext->IBL.Sun.LightMap, TextureSlot_SunLightMap);
-		TryBindLightMap(sceneContext->IBL.Reflect.LightMap, TextureSlot_ReflectLightMap);
-		TryBindLightMap(sceneContext->IBL.Shadow.LightMap, TextureSlot_ShadowLightMap);
-		TryBindLightMap(sceneContext->IBL.CharacterColor.LightMap, TextureSlot_CharacterColorLightMap);
+		D3D_ShaderResourceView::BindArray<7>(TextureSlot_CharacterLightMap,
+			{
+				sceneContext->IBL.Character.LightMap.CubeMap.get(),
+				sceneContext->IBL.Sun.LightMap.CubeMap.get(),
+				sceneContext->IBL.Reflect.LightMap.CubeMap.get(),
+				sceneContext->IBL.Shadow.LightMap.CubeMap.get(),
+				sceneContext->IBL.CharacterColor.LightMap.CubeMap.get(),
+				
+				// NOTE: Also unbind screen reflection render target
+				nullptr,
+				nullptr,
+			});
 
 		if (sceneContext->RenderParameters.Wireframe)
 			wireframeRasterizerState.Bind();
 
 		genericInputLayout->Bind();
 		D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
-
-		std::array<ID3D11ShaderResourceView*, 1> resourceViews = { nullptr };
-		D3D.Context->PSSetShaderResources(TextureSlot_ScreenReflection, static_cast<UINT>(resourceViews.size()), resourceViews.data());
 
 		if (sceneContext->RenderParameters.RenderReflection)
 		{
@@ -351,6 +350,8 @@ namespace Graphics
 				sceneContext->RenderData.ReflectionRenderTarget.BindResource(TextureSlot_ScreenReflection);
 			}
 		}
+
+		cachedTextureSamplers.CreateIfNeeded(sceneContext->RenderParameters);
 
 		sceneContext->RenderData.RenderTarget.SetMultiSampleCountIfDifferent(sceneContext->RenderParameters.MultiSampleCount);
 		sceneContext->RenderData.RenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.RenderResolution);
@@ -445,8 +446,7 @@ namespace Graphics
 		solidNoCullingRasterizerState.Bind();
 		D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
-		std::array<ID3D11SamplerState*, 1> samplers = { nullptr };
-		D3D.Context->PSSetSamplers(0, static_cast<UINT>(samplers.size()), samplers.data());
+		D3D_TextureSampler::BindArray<1>(0, { nullptr });
 
 		if (sceneContext->RenderParameters.RenderBloom)
 			InternalRenderBloom();
@@ -459,12 +459,7 @@ namespace Graphics
 			toneMapData.Update();
 		}
 
-		auto bloomResourceView = (sceneContext->RenderParameters.RenderBloom) ?
-			sceneContext->BloomRenderData.CombinedBlurRenderTarget.GetResourceView()
-			: nullptr;
-
-		std::array renderTargetResourceViews = { sceneContext->RenderData.RenderTarget.GetResourceView(), bloomResourceView, toneMapData.LookupTexture->GetResourceView() };
-		D3D.Context->PSSetShaderResources(0, static_cast<UINT>(renderTargetResourceViews.size()), renderTargetResourceViews.data());
+		D3D_ShaderResourceView::BindArray<3>(0, { &sceneContext->RenderData.RenderTarget, (sceneContext->RenderParameters.RenderBloom) ? &sceneContext->BloomRenderData.CombinedBlurRenderTarget : nullptr, toneMapData.LookupTexture.get() });
 
 		toneMapCB.Data.Exposure = sceneContext->Glow.Exposure;
 		toneMapCB.Data.Gamma = sceneContext->Glow.Gamma;
@@ -477,8 +472,7 @@ namespace Graphics
 
 		D3D.Context->Draw(RectangleVertexCount, 0);
 
-		renderTargetResourceViews = { nullptr, nullptr, nullptr };
-		D3D.Context->PSSetShaderResources(0, static_cast<UINT>(renderTargetResourceViews.size()), renderTargetResourceViews.data());
+		D3D_ShaderResourceView::BindArray<3>(0, { nullptr, nullptr, nullptr });
 	}
 
 	void D3D_Renderer3D::InternalRenderBloom()
@@ -539,11 +533,11 @@ namespace Graphics
 		ppGaussTexCB.Data.FinalPass = true;
 		ppGaussTexCB.UploadData();
 
-		bloom.ReduceRenderTargets[0].BindResource(0);
 		bloom.BlurRenderTargets[0].BindSetViewport();
+		bloom.ReduceRenderTargets[0].BindResource(0);
 		D3D.Context->Draw(RectangleVertexCount, 0);
-
-		std::array<D3D_RenderTarget*, 4> combinedBlurInputTargets =
+		
+		std::array<D3D_ShaderResourceView*, 4> combinedBlurInputTargets =
 		{
 			&bloom.BlurRenderTargets[0],
 			// NOTE: Use the reduce targets because of the ping pong blur rendering
@@ -552,18 +546,10 @@ namespace Graphics
 			&bloom.ReduceRenderTargets[3],
 		};
 
-		std::array<ID3D11ShaderResourceView*, 4> combinedBlurInputTargetViews =
-		{
-			combinedBlurInputTargets[0]->GetResourceView(),
-			combinedBlurInputTargets[1]->GetResourceView(),
-			combinedBlurInputTargets[2]->GetResourceView(),
-			combinedBlurInputTargets[3]->GetResourceView(),
-		};
-
 		bloom.CombinedBlurRenderTarget.BindSetViewport();
-		D3D.Context->PSSetShaderResources(0, static_cast<UINT>(combinedBlurInputTargetViews.size()), combinedBlurInputTargetViews.data());
+		D3D_ShaderResourceView::BindArray(0, combinedBlurInputTargets);
 
-		reduceTexCB.Data.TextureSize = vec4(1.0f / vec2(combinedBlurInputTargets.back()->GetSize()), vec2(combinedBlurInputTargets.back()->GetSize()));
+		reduceTexCB.Data.TextureSize = GetPackedTextureSize(bloom.ReduceRenderTargets[3]);
 		reduceTexCB.Data.ExtractBrightness = false;
 		reduceTexCB.Data.CombineBlurred = true;
 		reduceTexCB.UploadData();
@@ -605,11 +591,31 @@ namespace Graphics
 		auto& materialShader = GetMaterialShader(material);
 		materialShader.Bind();
 
-		objectCB.Data.TextureFormats.Diffuse = CheckBindMaterialTexture(material.Diffuse, TextureSlot_Diffuse);
-		objectCB.Data.TextureFormats.Ambient = CheckBindMaterialTexture(material.Ambient, TextureSlot_Ambient);
-		objectCB.Data.TextureFormats.Normal = CheckBindMaterialTexture(material.Normal, TextureSlot_Normal);
-		objectCB.Data.TextureFormats.Specular = CheckBindMaterialTexture(material.Specular, TextureSlot_Specular);
-		objectCB.Data.TextureFormats.Reflection = CheckBindMaterialTexture(material.Reflection, TextureSlot_Reflection);
+		std::array<D3D_ShaderResourceView*, 8> textureResources;
+		std::array<D3D_TextureSampler*, 8> textureSamplers;
+
+		for (size_t i = 0; i < 8; i++)
+		{
+			auto& materialTexture = (&material.Diffuse)[i];
+			auto& textureFormat = (&objectCB.Data.TextureFormats.Diffuse)[i];
+			auto txp = GetTxpFromTextureID(materialTexture.TextureID);
+
+			if (txp != nullptr)
+			{
+				textureFormat = txp->GetFormat();
+				textureResources[i] = (txp->Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->Texture2D.get()) : (txp->CubeMap != nullptr) ? (txp->CubeMap.get()) : nullptr;
+				textureSamplers[i] = cachedTextureSamplers.GetSampler(materialTexture.Flags);
+			}
+			else
+			{
+				textureFormat = TextureFormat::Unknown;
+				textureResources[i] = nullptr;
+				textureSamplers[i] = nullptr;
+			}
+		}
+
+		D3D_ShaderResourceView::BindArray<8>(TextureSlot_Diffuse, textureResources);
+		D3D_TextureSampler::BindArray<8>(TextureSlot_Diffuse, textureSamplers);
 
 		if (!currentlyRenderingWireframeOverlay && !sceneContext->RenderParameters.Wireframe)
 			((material.BlendFlags.DoubleSidedness != DoubleSidedness_Off) ? solidNoCullingRasterizerState : solidBackfaceCullingRasterizerState).Bind();
@@ -751,54 +757,41 @@ namespace Graphics
 		}
 	}
 
-	D3D_TextureSampler D3D_Renderer3D::CreateTextureSampler(const MaterialTexture& materialTexture, TextureFormat format)
-	{
-		const auto flags = materialTexture.Flags;
-		return
-		{
-			(sceneContext->RenderParameters.AnistropicFiltering > D3D11_MIN_MAXANISOTROPY) ? D3D11_FILTER_ANISOTROPIC : D3D11_FILTER_MIN_MAG_MIP_LINEAR,
-			flags.TextureAddressMode_U_Mirror ? D3D11_TEXTURE_ADDRESS_MIRROR : flags.TextureAddressMode_U_Repeat ? D3D11_TEXTURE_ADDRESS_WRAP : D3D11_TEXTURE_ADDRESS_CLAMP,
-			flags.TextureAddressMode_V_Mirror ? D3D11_TEXTURE_ADDRESS_MIRROR : flags.TextureAddressMode_V_Repeat ? D3D11_TEXTURE_ADDRESS_WRAP : D3D11_TEXTURE_ADDRESS_CLAMP,
-			// TODO: This might need to be scaled first, or is this even used (?)
-			// static_cast<float>(materialTexture.Flags.MipMapBias),
-			((sceneContext->RenderParameters.DebugFlags & (1 << 1)) && format != TextureFormat::RGTC1 && format != TextureFormat::RGTC2) ? -1.0f : 0.0f,
-			sceneContext->RenderParameters.AnistropicFiltering
-		};
-	}
-
-	TextureFormat D3D_Renderer3D::CheckBindMaterialTexture(const MaterialTexture& materialTexture, int slot)
-	{
-		auto* txp = GetTxpFromTextureID(materialTexture.TextureID);
-
-		auto* textureResource =
-			(txp == nullptr) ? nullptr :
-			(txp->Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->Texture2D.get()) :
-			(txp->CubeMap != nullptr) ? static_cast<D3D_TextureResource*>(txp->CubeMap.get()) :
-			nullptr;
-
-		if (textureResource == nullptr)
-		{
-			ID3D11ShaderResourceView* nullResourceView = nullptr;
-			D3D.Context->PSSetShaderResources(slot, 1, &nullResourceView);
-
-			return TextureFormat::Unknown;
-		}
-
-		auto textureFormat = textureResource->GetTextureFormat();
-		textureResource->Bind(slot);
-
-		auto sampler = CreateTextureSampler(materialTexture, textureFormat);
-		sampler.Bind(slot);
-
-		return textureFormat;
-	}
-
 	void D3D_Renderer3D::SubmitSubMeshDrawCall(const SubMesh& subMesh)
 	{
 		subMesh.GraphicsIndexBuffer->Bind();
 
 		D3D.Context->IASetPrimitiveTopology(GetD3DPrimitiveTopolgy(subMesh.Primitive));
 		D3D.Context->DrawIndexed(static_cast<UINT>(subMesh.Indices.size()), 0, 0);
+	}
+
+	void D3D_Renderer3D::TextureSamplers::CreateIfNeeded(const RenderParameters& renderParameters)
+	{
+		if (samplers[0][0] == nullptr || lastAnistropicFiltering != renderParameters.AnistropicFiltering)
+		{
+			const auto filter = (renderParameters.AnistropicFiltering > D3D11_MIN_MAXANISOTROPY) ? D3D11_FILTER_ANISOTROPIC : D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+
+			constexpr std::array d3dAddressModes = { D3D11_TEXTURE_ADDRESS_MIRROR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_CLAMP };
+			constexpr std::array addressModeNames =  { "Mirror", "Repeat", "Clamp" };
+
+			for (int u = 0; u < AddressMode_Count; u++)
+			{
+				for (int v = 0; v < AddressMode_Count; v++)
+				{
+					samplers[u][v] = MakeUnique<D3D_TextureSampler>(filter, d3dAddressModes[u], d3dAddressModes[v], 0.0f, renderParameters.AnistropicFiltering);
+					D3D_SetObjectDebugName(samplers[u][v]->GetSampler(), "Renderer3D::Sampler::%s%s", addressModeNames[u], addressModeNames[v]);
+				}
+			}
+
+			lastAnistropicFiltering = renderParameters.AnistropicFiltering;
+		}
+	}
+
+	D3D_TextureSampler* D3D_Renderer3D::TextureSamplers::GetSampler(MaterialTextureFlags flags)
+	{
+		auto u = flags.TextureAddressMode_U_Mirror ? Mirror : flags.TextureAddressMode_U_Repeat ? Repeat : Clamp;
+		auto v = flags.TextureAddressMode_V_Mirror ? Mirror : flags.TextureAddressMode_V_Repeat ? Repeat : Clamp;
+		return samplers[u][v].get();
 	}
 
 	bool D3D_Renderer3D::ToneMapData::NeedsUpdating(const SceneContext* sceneContext)

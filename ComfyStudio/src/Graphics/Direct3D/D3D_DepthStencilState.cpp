@@ -19,6 +19,12 @@ namespace Graphics
 		D3D.Device->CreateDepthStencilState(&depthStencilDescription, &depthStencilState);
 	}
 
+	D3D_DepthStencilState::D3D_DepthStencilState(bool depthEnabled, D3D11_DEPTH_WRITE_MASK depthWriteMask, const char* debugName)
+		: D3D_DepthStencilState(depthEnabled, depthWriteMask)
+	{
+		D3D_SetObjectDebugName(depthStencilState.Get(), debugName);
+	}
+
 	void D3D_DepthStencilState::Bind()
 	{
 		D3D.Context->OMSetDepthStencilState(depthStencilState.Get(), 0);

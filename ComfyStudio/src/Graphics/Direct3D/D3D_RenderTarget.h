@@ -1,6 +1,7 @@
 #pragma once
 #include "Direct3D.h"
 #include "GraphicsInterfaces.h"
+#include "D3D_Texture.h"
 #include "D3D_DepthBuffer.h"
 
 namespace Graphics
@@ -52,7 +53,7 @@ namespace Graphics
 		IDXGISwapChain* swapChain;
 	};
 
-	class D3D_RenderTarget : public D3D_RenderTargetBase
+	class D3D_RenderTarget : public D3D_RenderTargetBase, public D3D_ShaderResourceView
 	{
 	public:
 		D3D_RenderTarget(ivec2 size);
@@ -69,9 +70,8 @@ namespace Graphics
 		void Resize(ivec2 newSize) override;
 
 		uint32_t GetMultiSampleCount() const;
-		void* GetVoidTexture() const;
 		
-		ID3D11ShaderResourceView* GetResourceView();
+		ID3D11ShaderResourceView* GetResourceView() const override;
 
 	protected:
 		D3D11_TEXTURE2D_DESC backBufferDescription;
