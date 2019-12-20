@@ -219,6 +219,7 @@ namespace Editor
 			Gui::Checkbox("Render Reflection", &context.RenderParameters.RenderReflection);
 			Gui::Checkbox("Render Opaque", &context.RenderParameters.RenderOpaque);
 			Gui::Checkbox("Render Transparent", &context.RenderParameters.RenderTransparent);
+			Gui::Checkbox("Render Bloom", &context.RenderParameters.RenderBloom);
 			Gui::SliderInt("Anistropic Filtering", &context.RenderParameters.AnistropicFiltering, D3D11_MIN_MAXANISOTROPY, D3D11_MAX_MAXANISOTROPY);
 
 			if (Gui::CollapsingHeader("Resolution"))
@@ -277,6 +278,9 @@ namespace Editor
 			Gui::SliderFloat("Gamma", &context.Glow.Gamma, 0.2f, 2.2f);
 			Gui::SliderInt("Saturate Power", &context.Glow.SaturatePower, 1, 6);
 			Gui::SliderFloat("Saturate Coefficient", &context.Glow.SaturateCoefficient, 0.0f, 1.0f);
+
+			Gui::DragFloat3("Bloom Sigma", glm::value_ptr(context.Glow.Sigma), 0.005f, 0.0f, 3.0f);
+			Gui::DragFloat3("Bloom Intensity", glm::value_ptr(context.Glow.Intensity), 0.005f, 0.0f, 2.0f);
 			Gui::PopID();
 		}
 

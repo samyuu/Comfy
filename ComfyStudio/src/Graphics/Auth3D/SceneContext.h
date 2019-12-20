@@ -22,6 +22,7 @@ namespace Graphics
 		bool AlphaSort = true;
 		bool RenderOpaque = true;
 		bool RenderTransparent = true;
+		bool RenderBloom = true;
 
 		ivec2 RenderResolution = RenderTargetDefaultSize;
 		uint32_t MultiSampleCount = 1;
@@ -54,11 +55,30 @@ namespace Graphics
 		D3D_RenderTarget* OutputRenderTarget = nullptr;
 	};
 
-	/*
-	struct PostProcessParameters
+	struct BloomRenderData
 	{
-		float Saturation = 2.2f;
-		float Brightness = 0.45455f;
+		// NOTE: Base half reduction of the main scene render target
+		D3D_RenderTarget BaseRenderTarget = { RenderTargetDefaultSize, RenderTargetHDRFormatRGBA };
+
+		// NOTE: Final blurred render target, combination of ReduceRenderTargets / BlurRenderTargets
+		D3D_RenderTarget CombinedBlurRenderTarget = { ivec2(256, 144), RenderTargetHDRFormatRGBA };
+
+		// NOTE: BaseRenderTarget -> 256x144 -> ... -> 32x18
+		std::array<D3D_RenderTarget, 4> ReduceRenderTargets =
+		{
+			D3D_RenderTarget { ivec2(256, 144), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2(128,  72), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2( 64,  36), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2( 32,  18), RenderTargetHDRFormatRGBA },
+		};
+
+		std::array<D3D_RenderTarget, 4> BlurRenderTargets =
+		{
+			D3D_RenderTarget { ivec2(256, 144), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2(128,  72), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2( 64,  36), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2( 32,  18), RenderTargetHDRFormatRGBA },
+		};
 	};
 
 	class SceneContext
@@ -74,5 +94,6 @@ namespace Graphics
 		PerspectiveCamera Camera;
 
 		RenderData RenderData;
+		BloomRenderData BloomRenderData;
 	};
 }

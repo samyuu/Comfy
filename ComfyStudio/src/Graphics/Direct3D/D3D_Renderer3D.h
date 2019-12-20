@@ -88,7 +88,26 @@ namespace Graphics
 		} TextureFormats;
 	};
 
-	struct PostProcessConstantData
+	struct ReduceTexConstantData
+	{
+		vec4 TextureSize;
+		int ExtractBrightness;
+		int CombineBlurred;
+		float Padding[2];
+	};
+
+	struct PPGaussTexConstantData
+	{
+		vec4 TextureSize;
+		int FinalPass;
+		int Padding[3];
+	};
+
+	struct PPGaussCoefConstantData
+	{
+		std::array<vec4, 8> Coefficient;
+	};
+
 	struct ToneMapConstantData
 	{
 		float Exposure;
@@ -179,6 +198,7 @@ namespace Graphics
 		void InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command);
 		void InternalRenderWireframeOverlay();
 		void InternalRenderPostProcessing();
+		void InternalRenderBloom();
 
 		void BindMeshVertexBuffers(const Mesh& mesh);
 		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, const mat4& model);
@@ -206,6 +226,8 @@ namespace Graphics
 			D3D_ShaderPair HairDefault = { HairDefault_VS(), HairDefault_PS(), "Renderer3D::HairDefault" };
 			D3D_ShaderPair ItemBlinn = { ItemBlinn_VS(), ItemBlinn_PS(), "Renderer3D::ItemBlinn" };
 			D3D_ShaderPair Lambert = { Lambert_VS(), Lambert_PS(), "Renderer3D::Lambert" };
+			D3D_ShaderPair PPGauss = { PPGauss_VS(), PPGauss_PS(), "Renderer3D::PPGauss" };
+			D3D_ShaderPair ReduceTex = { ReduceTex_VS(), ReduceTex_PS(), "Renderer3D::ReduceTex" };
 			D3D_ShaderPair SkinDefault = { SkinDefault_VS(), SkinDefault_PS(), "Renderer3D::SkinDefault" };
 			D3D_ShaderPair SkyDefault = { SkyDefault_VS(), SkyDefault_PS(), "Renderer3D::SkyDefault" };
 			D3D_ShaderPair StageBlinn = { StageBlinn_VS(), StageBlinn_PS(), "Renderer3D::StageBlinn" };
@@ -214,14 +236,14 @@ namespace Graphics
 			D3D_ShaderPair Water = { Water_VS(), Water_PS(), "Renderer3D::Water" };
 		} shaders;
 
-		D3D_DynamicConstantBufferTemplate<SceneConstantData> sceneCB = { 0 };
+		D3D_DefaultConstantBufferTemplate<SceneConstantData> sceneCB = { 0 };
 		D3D_DynamicConstantBufferTemplate<ObjectConstantData> objectCB = { 1 };
 		D3D_DynamicConstantBufferTemplate<ReduceTexConstantData> reduceTexCB = { 0 };
-		D3D_DynamicConstantBufferTemplate<PPGaussConstantData> ppGaussCB = { 0 };
-		D3D_DynamicConstantBufferTemplate<ToneMapConstantData> toneMapCB = { 0 };
+		D3D_DynamicConstantBufferTemplate<PPGaussTexConstantData> ppGaussTexCB = { 0 };
+		D3D_DefaultConstantBufferTemplate<PPGaussCoefConstantData> ppGaussCoefCB = { 1 };
+		D3D_DefaultConstantBufferTemplate<ToneMapConstantData> toneMapCB = { 0 };
 
 		UniquePtr<D3D_InputLayout> genericInputLayout = nullptr;
-		D3D_InputLayout postProcessInputLayout = { nullptr, 0, shaders.ToneMap.VS };
 
 		D3D_RasterizerState solidBackfaceCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_BACK };
 		D3D_RasterizerState solidNoCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_NONE };

@@ -97,6 +97,42 @@ namespace Graphics
 			return false;
 		}
 
+		PPGaussCoefConstantData CalculateGaussianBlurKernel(const GlowParameter& glow)
+		{
+			PPGaussCoefConstantData data;
+
+			constexpr float powStart = 1.0f, powIncrement = 1.0f;
+			constexpr float sigmaFactor = 0.8f, intensityFactor = 1.0f;
+
+			const float firstCoef = (powStart - (powIncrement * 0.5f)) * 2.0f;
+
+			for (int channel = 0; channel < 3; channel++)
+			{
+				const float channelSigma = glow.Sigma[channel] * sigmaFactor;
+				const float reciprocalSigma = 1.0f / ((channelSigma * 2.0f) * channelSigma);
+
+				float accumilatedExpResult = firstCoef;
+				float accumilatingPow = powStart;
+
+				std::array<float, 8> results = { firstCoef };
+				for (int i = 1; i < 7; i++)
+				{
+					const float result = glm::exp(-((accumilatingPow * accumilatingPow) * reciprocalSigma)) * powIncrement;
+					accumilatingPow += powIncrement;
+
+					results[i] = result;
+					accumilatedExpResult += result;
+				}
+
+				const float channelIntensity = glow.Intensity[channel] * (intensityFactor * 0.5f);
+
+				for (int i = 0; i < data.Coefficient.size(); i++)
+					data.Coefficient[i][channel] = (results[i] / accumilatedExpResult) * channelIntensity;
+			}
+
+			return data;
+		}
+
 		const struct ShaderIdentifiers
 		{
 			std::array<char, 8> BLINN { "BLINN" };
@@ -393,6 +429,8 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalRenderPostProcessing()
 	{
+		D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
 		std::array<ID3D11Buffer*, VertexAttribute_Count> buffers = {};
 		std::array<UINT, VertexAttribute_Count> strides = {}, offsets = {};
 		D3D.Context->IASetVertexBuffers(0, VertexAttribute_Count, buffers.data(), strides.data(), offsets.data());
@@ -403,7 +441,9 @@ namespace Graphics
 		std::array<ID3D11SamplerState*, 1> samplers = { nullptr };
 		D3D.Context->PSSetSamplers(0, static_cast<UINT>(samplers.size()), samplers.data());
 
-		std::array renderTargetResourceViews = { sceneContext->RenderTarget.GetResourceView(), toneMapData.LookupTexture->GetResourceView() };
+		if (sceneContext->RenderParameters.RenderBloom)
+			InternalRenderBloom();
+
 		sceneContext->RenderData.OutputRenderTarget->BindSetViewport();
 
 		if (toneMapData.NeedsUpdating(sceneContext))
@@ -412,6 +452,11 @@ namespace Graphics
 			toneMapData.Update();
 		}
 
+		auto bloomResourceView = (sceneContext->RenderParameters.RenderBloom) ?
+			sceneContext->BloomRenderData.CombinedBlurRenderTarget.GetResourceView()
+			: nullptr;
+
+		std::array renderTargetResourceViews = { sceneContext->RenderData.RenderTarget.GetResourceView(), bloomResourceView, toneMapData.LookupTexture->GetResourceView() };
 		D3D.Context->PSSetShaderResources(0, static_cast<UINT>(renderTargetResourceViews.size()), renderTargetResourceViews.data());
 
 		toneMapCB.Data.Exposure = sceneContext->Glow.Exposure;
@@ -427,6 +472,104 @@ namespace Graphics
 
 		renderTargetResourceViews = { nullptr, nullptr, nullptr };
 		D3D.Context->PSSetShaderResources(0, static_cast<UINT>(renderTargetResourceViews.size()), renderTargetResourceViews.data());
+	}
+
+	void D3D_Renderer3D::InternalRenderBloom()
+	{
+		auto getPackedTextureSize = [](auto& renderTarget)
+		{
+			vec2 renderTargetSize = renderTarget.GetSize();
+			return vec4(1.0f / renderTargetSize, renderTargetSize);
+		};
+
+		auto& bloom = sceneContext->BloomRenderData;
+
+		bloom.BaseRenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.RenderResolution / 2);
+
+		reduceTexCB.Data.CombineBlurred = false;
+		reduceTexCB.BindShaders();
+		shaders.ReduceTex.Bind();
+
+		for (int i = -1; i < static_cast<int>(bloom.ReduceRenderTargets.size()); i++)
+		{
+			auto& renderTarget = (i < 0) ? bloom.BaseRenderTarget : bloom.ReduceRenderTargets[i];
+			auto& lastRenderTarget = (i < 0) ? sceneContext->RenderData.RenderTarget : (i == 0) ? bloom.BaseRenderTarget : bloom.ReduceRenderTargets[i - 1];
+
+			reduceTexCB.Data.TextureSize = getPackedTextureSize(lastRenderTarget);
+			reduceTexCB.Data.ExtractBrightness = (i == 0);
+			reduceTexCB.UploadData();
+
+			renderTarget.BindSetViewport();
+			lastRenderTarget.BindResource(0);
+
+			D3D.Context->Draw(RectangleVertexCount, 0);
+		}
+
+		ppGaussCoefCB.Data = CalculateGaussianBlurKernel(sceneContext->Glow);
+		ppGaussCoefCB.UploadData();
+		ppGaussCoefCB.BindPixelShader();
+
+		ppGaussTexCB.Data.FinalPass = false;
+		ppGaussTexCB.BindPixelShader();
+
+		shaders.PPGauss.Bind();
+
+		for (int i = 1; i < 4; i++)
+		{
+			auto* sourceTarget = &bloom.ReduceRenderTargets[i];
+			auto* destinationTarget = &bloom.BlurRenderTargets[i];
+
+			ppGaussTexCB.Data.TextureSize = getPackedTextureSize(*sourceTarget);
+			ppGaussTexCB.UploadData();
+
+			for (int j = 0; j < 2; j++)
+			{
+				sourceTarget->BindResource(0);
+				destinationTarget->BindSetViewport();
+				D3D.Context->Draw(RectangleVertexCount, 0);
+				destinationTarget->UnBind();
+
+				// NOTE: Ping pong between them to avoid having to use additional render targets
+				std::swap(sourceTarget, destinationTarget);
+			}
+		}
+
+		ppGaussTexCB.Data.TextureSize = getPackedTextureSize(bloom.ReduceRenderTargets[0]);
+		ppGaussTexCB.Data.FinalPass = true;
+		ppGaussTexCB.UploadData();
+
+		bloom.ReduceRenderTargets[0].BindResource(0);
+		bloom.BlurRenderTargets[0].BindSetViewport();
+		D3D.Context->Draw(RectangleVertexCount, 0);
+
+		std::array<D3D_RenderTarget*, 4> combinedBlurInputTargets =
+		{
+			&bloom.BlurRenderTargets[0],
+			// NOTE: Use the reduce targets because of the ping pong blur rendering
+			&bloom.ReduceRenderTargets[1],
+			&bloom.ReduceRenderTargets[2],
+			&bloom.ReduceRenderTargets[3],
+		};
+
+		std::array<ID3D11ShaderResourceView*, 4> combinedBlurInputTargetViews =
+		{
+			combinedBlurInputTargets[0]->GetResourceView(),
+			combinedBlurInputTargets[1]->GetResourceView(),
+			combinedBlurInputTargets[2]->GetResourceView(),
+			combinedBlurInputTargets[3]->GetResourceView(),
+		};
+
+		bloom.CombinedBlurRenderTarget.BindSetViewport();
+		D3D.Context->PSSetShaderResources(0, static_cast<UINT>(combinedBlurInputTargetViews.size()), combinedBlurInputTargetViews.data());
+
+		reduceTexCB.Data.TextureSize = vec4(1.0f / vec2(combinedBlurInputTargets.back()->GetSize()), vec2(combinedBlurInputTargets.back()->GetSize()));
+		reduceTexCB.Data.ExtractBrightness = false;
+		reduceTexCB.Data.CombineBlurred = true;
+		reduceTexCB.UploadData();
+		reduceTexCB.BindShaders();
+		shaders.ReduceTex.Bind();
+
+		D3D.Context->Draw(RectangleVertexCount, 0);
 	}
 
 	void D3D_Renderer3D::BindMeshVertexBuffers(const Mesh& mesh)

@@ -905,5 +905,9 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\SkinDefault_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Tights_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Tights_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ReduceTex_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ReduceTex_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PPGauss_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PPGauss_PS.hlsl" />
   </ItemGroup>
 </Project>
