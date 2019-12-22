@@ -134,6 +134,7 @@ namespace Graphics
 			// TODO: (?)
 			// uint32_t CastsShadow : 1;
 			// uint32_t ReceivesShadow : 1;
+			// uint32_t SubsurfaceScattering : 1;
 		} Flags;
 
 	public:
@@ -185,6 +186,8 @@ namespace Graphics
 			const Obj* Obj;
 			mat4 Transform;
 			vec3 Position;
+			// NOTE: To avoid needlessly binding buffers during the opaque render pass
+			bool AreAllMeshesTransparent;
 		};
 
 		struct SubMeshRenderCommand
@@ -210,6 +213,8 @@ namespace Graphics
 		D3D_BlendState CreateMaterialBlendState(const Material& material);
 		D3D_ShaderPair& GetMaterialShader(const Material& material);
 		void SubmitSubMeshDrawCall(const SubMesh& subMesh);
+
+		bool IsDebugRenderFlagSet(int bitIndex) const;
 
 	private:
 		struct ShaderPairs

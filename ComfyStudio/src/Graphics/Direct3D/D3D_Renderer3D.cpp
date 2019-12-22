@@ -196,6 +196,7 @@ namespace Graphics
 		renderCommand.Obj = command.SourceObj;
 		renderCommand.Transform = glm::translate(mat4(1.0f), command.Position);
 		renderCommand.Position = command.Position;
+		renderCommand.AreAllMeshesTransparent = false;
 
 		auto& commandList = (command.Flags.IsReflection) ? reflectionCommandList : renderCommandList;
 		commandList.push_back(renderCommand);
@@ -258,6 +259,8 @@ namespace Graphics
 	{
 		for (auto& command : renderCommandList)
 		{
+			command.AreAllMeshesTransparent = true;
+
 			for (auto& mesh : command.Obj->Meshes)
 			{
 				for (auto& subMesh : mesh.SubMeshes)
@@ -266,6 +269,10 @@ namespace Graphics
 					{
 						const float cameraDistance = glm::distance(command.Position + subMesh.BoundingSphere.Center, sceneContext->Camera.Position);
 						transparentSubMeshCommands.push_back({ &command, &mesh, &subMesh, cameraDistance });
+					}
+					else
+					{
+						command.AreAllMeshesTransparent = false;
 					}
 				}
 			}
@@ -318,7 +325,7 @@ namespace Graphics
 				sceneContext->IBL.Reflect.LightMap.CubeMap.get(),
 				sceneContext->IBL.Shadow.LightMap.CubeMap.get(),
 				sceneContext->IBL.CharacterColor.LightMap.CubeMap.get(),
-				
+
 				// NOTE: Also unbind screen reflection render target
 				nullptr,
 				nullptr,
@@ -387,6 +394,9 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalRenderOpaqueObjCommand(ObjRenderCommand& command)
 	{
+		if (command.AreAllMeshesTransparent)
+			return;
+
 		for (auto& mesh : command.Obj->Meshes)
 		{
 			BindMeshVertexBuffers(mesh);
@@ -536,7 +546,7 @@ namespace Graphics
 		bloom.BlurRenderTargets[0].BindSetViewport();
 		bloom.ReduceRenderTargets[0].BindResource(0);
 		D3D.Context->Draw(RectangleVertexCount, 0);
-		
+
 		std::array<D3D_ShaderResourceView*, 4> combinedBlurInputTargets =
 		{
 			&bloom.BlurRenderTargets[0],
@@ -765,6 +775,11 @@ namespace Graphics
 		D3D.Context->DrawIndexed(static_cast<UINT>(subMesh.Indices.size()), 0, 0);
 	}
 
+	bool D3D_Renderer3D::IsDebugRenderFlagSet(int bitIndex) const
+	{
+		return sceneContext->RenderParameters.DebugFlags & (1 << bitIndex);
+	}
+
 	void D3D_Renderer3D::TextureSamplers::CreateIfNeeded(const RenderParameters& renderParameters)
 	{
 		if (samplers[0][0] == nullptr || lastAnistropicFiltering != renderParameters.AnistropicFiltering)
@@ -772,7 +787,7 @@ namespace Graphics
 			const auto filter = (renderParameters.AnistropicFiltering > D3D11_MIN_MAXANISOTROPY) ? D3D11_FILTER_ANISOTROPIC : D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 
 			constexpr std::array d3dAddressModes = { D3D11_TEXTURE_ADDRESS_MIRROR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_CLAMP };
-			constexpr std::array addressModeNames =  { "Mirror", "Repeat", "Clamp" };
+			constexpr std::array addressModeNames = { "Mirror", "Repeat", "Clamp" };
 
 			for (int u = 0; u < AddressMode_Count; u++)
 			{
