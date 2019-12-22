@@ -159,7 +159,7 @@ namespace ImGui
 
 	const ImWchar* GuiRenderer::GetIconGlyphRange() const
 	{
-		return iconFontGlyphRange;
+		return iconFontGlyphRange.data();
 	}
 
 	ImFontConfig GuiRenderer::GetIconFontConfig() const
