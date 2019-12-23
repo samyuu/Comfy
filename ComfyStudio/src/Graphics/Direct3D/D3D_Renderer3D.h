@@ -210,7 +210,6 @@ namespace Graphics
 
 		void BindMeshVertexBuffers(const Mesh& mesh);
 		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, const mat4& model);
-		D3D_BlendState CreateMaterialBlendState(const Material& material);
 		D3D_ShaderPair& GetMaterialShader(const Material& material);
 		void SubmitSubMeshDrawCall(const SubMesh& subMesh);
 
@@ -259,11 +258,11 @@ namespace Graphics
 
 		D3D_DepthStencilState transparencyPassDepthStencilState = { true, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::Transparency" };
 
-		struct TextureSamplers
+		struct TextureSamplerCache
 		{
 		public:
 			void CreateIfNeeded(const RenderParameters& renderParameters);
-			D3D_TextureSampler* GetSampler(MaterialTextureFlags flags);
+			D3D_TextureSampler& GetSampler(MaterialTextureFlags flags);
 
 		private:
 			enum AddressMode { Mirror, Repeat, Clamp, AddressMode_Count };
@@ -272,6 +271,17 @@ namespace Graphics
 			std::array<std::array<UniquePtr<D3D_TextureSampler>, AddressMode_Count>, AddressMode_Count> samplers;
 
 		} cachedTextureSamplers;
+
+		struct BlendStateCache
+		{
+		public:
+			BlendStateCache();
+			D3D_BlendState& GetState(BlendFactor source, BlendFactor destination);
+
+		private:
+			std::array<std::array<UniquePtr<D3D_BlendState>, BlendFactor_Count>, BlendFactor_Count> states;
+
+		} cachedBlendStates;
 
 		std::vector<ObjRenderCommand> renderCommandList, reflectionCommandList;
 		std::vector<SubMeshRenderCommand> transparentSubMeshCommands;

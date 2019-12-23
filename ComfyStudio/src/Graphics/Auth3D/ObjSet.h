@@ -141,12 +141,12 @@ namespace Graphics
 	struct MaterialShaderFlags
 	{
 		uint32_t Unknown0 : 4;
-		uint32_t LightingModel_Lambert : 1;
-		uint32_t LightingModel_Phong : 1;
-		uint32_t LightingModel_Unknown0 : 1;
-		uint32_t LightingModel_Unknown1 : 1;
-		uint32_t LightingModel_Unknown2 : 1;
-		uint32_t LightingModel_Unknown3 : 1;
+		uint32_t LambertShading : 1;
+		uint32_t PhongShading : 1;
+		uint32_t UnknownShadingMode0 : 1;
+		uint32_t UnknownShadingMode1 : 1;
+		uint32_t UnknownShadingMode2 : 1;
+		uint32_t UnknownShadingMode3 : 1;
 		uint32_t Fresnel : 4;
 		uint32_t LineLight : 4;
 		uint32_t Unknown2 : 2;
@@ -181,7 +181,7 @@ namespace Graphics
 	{
 		uint32_t EnableAlphaTest : 1;
 		uint32_t EnableBlend : 1;
-		uint32_t OtherBlendingFlag : 1;
+		uint32_t IgnoreBlendFactors : 1;
 		DoubleSidedness DoubleSidedness : 2;
 		BlendFactor SrcBlendFactor : 4;
 		BlendFactor DstBlendFactor : 4;

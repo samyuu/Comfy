@@ -40,46 +40,6 @@ namespace Graphics
 			}
 		}
 
-		constexpr D3D11_BLEND GetD3DBlend(BlendFactor materialBlendFactor)
-		{
-			switch (materialBlendFactor)
-			{
-			case BlendFactor_ZERO:
-				return D3D11_BLEND_ZERO;
-
-			case BlendFactor_ONE:
-				return D3D11_BLEND_ONE;
-
-			case BlendFactor_SRC_COLOR:
-				return D3D11_BLEND_SRC_COLOR;
-
-			case BlendFactor_ISRC_COLOR:
-				return D3D11_BLEND_INV_SRC_COLOR;
-
-			case BlendFactor_SRC_ALPHA:
-				return D3D11_BLEND_SRC_ALPHA;
-
-			case BlendFactor_ISRC_ALPHA:
-				return D3D11_BLEND_INV_SRC_ALPHA;
-
-			case BlendFactor_DST_ALPHA:
-				return D3D11_BLEND_DEST_ALPHA;
-
-			case BlendFactor_IDST_ALPHA:
-				return D3D11_BLEND_INV_DEST_ALPHA;
-
-			case BlendFactor_DST_COLOR:
-				return D3D11_BLEND_DEST_COLOR;
-
-			case BlendFactor_IDST_COLOR:
-				return D3D11_BLEND_INV_DEST_COLOR;
-
-			default:
-				assert(false);
-				return D3D11_BLEND_ZERO;
-			}
-		}
-
 		bool IsMeshTransparent(const Mesh& mesh, const Material& material)
 		{
 			if (material.BlendFlags.EnableBlend)
@@ -420,9 +380,9 @@ namespace Graphics
 		BindMeshVertexBuffers(mesh);
 		auto& material = subMesh.GetMaterial(*command.ObjCommand->Obj);
 
-		auto blendState = CreateMaterialBlendState(material);
-		blendState.Bind();
-
+		if (!material.BlendFlags.IgnoreBlendFactors)
+			cachedBlendStates.GetState(material.BlendFlags.SrcBlendFactor, material.BlendFlags.DstBlendFactor).Bind();
+		
 		PrepareAndRenderSubMesh(*command.ObjCommand, mesh, subMesh, material, command.ObjCommand->Transform);
 	}
 
@@ -614,7 +574,7 @@ namespace Graphics
 			{
 				textureFormat = txp->GetFormat();
 				textureResources[i] = (txp->Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->Texture2D.get()) : (txp->CubeMap != nullptr) ? (txp->CubeMap.get()) : nullptr;
-				textureSamplers[i] = cachedTextureSamplers.GetSampler(materialTexture.Flags);
+				textureSamplers[i] = &cachedTextureSamplers.GetSampler(materialTexture.Flags);
 			}
 			else
 			{
@@ -691,20 +651,15 @@ namespace Graphics
 		SubmitSubMeshDrawCall(subMesh);
 	}
 
-	D3D_BlendState D3D_Renderer3D::CreateMaterialBlendState(const Material& material)
-	{
-		return { GetD3DBlend(material.BlendFlags.SrcBlendFactor), GetD3DBlend(material.BlendFlags.DstBlendFactor), D3D11_BLEND_INV_DEST_ALPHA, D3D11_BLEND_ONE };
-	}
-
 	D3D_ShaderPair& D3D_Renderer3D::GetMaterialShader(const Material& material)
 	{
 		if (material.MaterialType == MaterialIdentifiers.BLINN)
 		{
-			if (material.ShaderFlags.LightingModel_Phong)
+			if (material.ShaderFlags.PhongShading)
 			{
 				return (material.Flags.UseNormalTexture) ? shaders.BlinnPerFrag : shaders.BlinnPerVert;
 			}
-			else if (material.ShaderFlags.LightingModel_Lambert)
+			else if (material.ShaderFlags.LambertShading)
 			{
 				return shaders.Lambert;
 			}
@@ -780,7 +735,7 @@ namespace Graphics
 		return sceneContext->RenderParameters.DebugFlags & (1 << bitIndex);
 	}
 
-	void D3D_Renderer3D::TextureSamplers::CreateIfNeeded(const RenderParameters& renderParameters)
+	void D3D_Renderer3D::TextureSamplerCache::CreateIfNeeded(const RenderParameters& renderParameters)
 	{
 		if (samplers[0][0] == nullptr || lastAnistropicFiltering != renderParameters.AnistropicFiltering)
 		{
@@ -794,7 +749,7 @@ namespace Graphics
 				for (int v = 0; v < AddressMode_Count; v++)
 				{
 					samplers[u][v] = MakeUnique<D3D_TextureSampler>(filter, d3dAddressModes[u], d3dAddressModes[v], 0.0f, renderParameters.AnistropicFiltering);
-					D3D_SetObjectDebugName(samplers[u][v]->GetSampler(), "Renderer3D::Sampler::%s%s", addressModeNames[u], addressModeNames[v]);
+					D3D_SetObjectDebugName(samplers[u][v]->GetSampler(), "Renderer3D::Sampler::%s-%s", addressModeNames[u], addressModeNames[v]);
 				}
 			}
 
@@ -802,11 +757,31 @@ namespace Graphics
 		}
 	}
 
-	D3D_TextureSampler* D3D_Renderer3D::TextureSamplers::GetSampler(MaterialTextureFlags flags)
+	D3D_TextureSampler& D3D_Renderer3D::TextureSamplerCache::GetSampler(MaterialTextureFlags flags)
 	{
 		auto u = flags.TextureAddressMode_U_Mirror ? Mirror : flags.TextureAddressMode_U_Repeat ? Repeat : Clamp;
 		auto v = flags.TextureAddressMode_V_Mirror ? Mirror : flags.TextureAddressMode_V_Repeat ? Repeat : Clamp;
-		return samplers[u][v].get();
+		return *samplers[u][v];
+	}
+
+	D3D_Renderer3D::BlendStateCache::BlendStateCache()
+	{
+		constexpr std::array d3dBlendFactors = { D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_SRC_COLOR, D3D11_BLEND_INV_SRC_COLOR, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_DEST_ALPHA, D3D11_BLEND_INV_DEST_ALPHA, D3D11_BLEND_DEST_COLOR, D3D11_BLEND_INV_DEST_COLOR, };
+		constexpr std::array blendFactorNames =  { "Zero", "One", "SrcColor", "ISrcColor", "SrcAlpha", "ISrcAlpha", "DstAlpha", "IDstAlpha", "DstColor", "IDstColor", };
+
+		for (int src = 0; src < BlendFactor_Count; src++)
+		{
+			for (int dst = 0; dst < BlendFactor_Count; dst++)
+			{
+				states[src][dst] = MakeUnique<D3D_BlendState>(d3dBlendFactors[src], d3dBlendFactors[dst], D3D11_BLEND_INV_DEST_ALPHA, D3D11_BLEND_ONE);
+				D3D_SetObjectDebugName(states[src][dst]->GetBlendState(), "Renderer3D::BlendState::%s-%s", blendFactorNames[src], blendFactorNames[dst]);
+			}
+		}
+	}
+
+	D3D_BlendState& D3D_Renderer3D::BlendStateCache::GetState(BlendFactor source, BlendFactor destination)
+	{
+		return *states[source][destination];
 	}
 
 	bool D3D_Renderer3D::ToneMapData::NeedsUpdating(const SceneContext* sceneContext)
