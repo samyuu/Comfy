@@ -4,46 +4,32 @@
 
 namespace Graphics
 {
-	vec3 ICamera::ScreenToWorldSpace(const mat4& matrix, const vec3& screenSpace)
+	namespace
 	{
-		return (glm::inverse(matrix) * vec4(screenSpace, 1.0f)).xyz;
-	}
-
-	vec3 ICamera::WorldToScreenSpace(const mat4& matrix, const vec3& worldSpace)
-	{
-		return (matrix * vec4(worldSpace, 1.0f)).xyz;
-	}
-
-	vec2 ICamera::ScreenToWorldSpace(const mat4& matrix, const vec2& screenSpace)
-	{
-		return (glm::inverse(matrix) * vec4(screenSpace, 0.0f, 1.0f)).xy;
-	}
-
-	vec2 ICamera::WorldToScreenSpace(const mat4& matrix, const vec2& worldSpace)
-	{
-		return (matrix * vec4(worldSpace, 0.0f, 1.0f)).xy;
-	}
-
-	const mat4& ICamera::GetIdentityMatrix()
-	{
-		static const mat4 identityMatrix = mat4(1.0f);
-		return identityMatrix;
+		static const mat4 IdentityMatrix = mat4(1.0f);
 	}
 
 	void PerspectiveCamera::UpdateMatrices()
 	{
-		viewMatrix = glm::lookAt(Position, Target, UpDirection);
-		projectionMatrix = glm::perspective(glm::radians(FieldOfView), AspectRatio, NearPlane, FarPlane);
+		view = glm::lookAt(Position, Target, UpDirection);
+		projection = glm::perspective(glm::radians(FieldOfView), AspectRatio, NearPlane, FarPlane);
+
+		viewProjection = projection * view;
 	}
 
-	const mat4& PerspectiveCamera::GetViewMatrix() const
+	const mat4& PerspectiveCamera::GetView() const
 	{
-		return viewMatrix;
+		return view;
 	}
 
-	const mat4& PerspectiveCamera::GetProjectionMatrix() const
+	const mat4& PerspectiveCamera::GetProjection() const
 	{
-		return projectionMatrix;
+		return projection;
+	}
+
+	const mat4& PerspectiveCamera::GetViewProjection() const
+	{
+		return viewProjection;
 	}
 
 	void OrthographicCamera::UpdateMatrices()
@@ -51,32 +37,59 @@ namespace Graphics
 		constexpr float projectionLeft = 0.0f;
 		constexpr float projectionTop = 0.0f;
 
-		viewMatrix = glm::translate(ICamera::GetIdentityMatrix(), vec3(-Position.x, -Position.y, 0.0f)) * glm::scale(ICamera::GetIdentityMatrix(), vec3(Zoom, Zoom, 1.0f));
-		projectionMatrix = glm::ortho(projectionLeft, ProjectionSize.x, ProjectionSize.y, projectionTop, NearPlane, FarPlane);
+		view = glm::translate(IdentityMatrix, vec3(-Position.x, -Position.y, 0.0f)) * glm::scale(IdentityMatrix, vec3(Zoom, Zoom, 1.0f));
+		projection = glm::ortho(projectionLeft, ProjectionSize.x, ProjectionSize.y, projectionTop, NearPlane, FarPlane);
+
+		viewProjection = projection * view;
 	}
 
-	const mat4& OrthographicCamera::GetViewMatrix() const
+	const mat4& OrthographicCamera::GetView() const
 	{
-		return viewMatrix;
+		return view;
 	}
 
-	const mat4& OrthographicCamera::GetProjectionMatrix() const
+	const mat4& OrthographicCamera::GetProjection() const
 	{
-		return projectionMatrix;
+		return projection;
+	}
+
+	const mat4& OrthographicCamera::GetViewProjection() const
+	{
+		return viewProjection;
+	}
+
+	vec3 PerspectiveCamera::ScreenToWorldSpace(const mat4& matrix, const vec3& screenSpace)
+	{
+		return (glm::inverse(matrix) * vec4(screenSpace, 1.0f)).xyz;
+	}
+
+	vec3 PerspectiveCamera::WorldToScreenSpace(const mat4& matrix, const vec3& worldSpace)
+	{
+		return (matrix * vec4(worldSpace, 1.0f)).xyz;
 	}
 
 	vec2 OrthographicCamera::GetProjectionCenter() const
 	{
-		return vec2(ProjectionSize.x, ProjectionSize.y) * 0.5f;
+		return ProjectionSize * 0.5f;
 	}
 
 	vec2 OrthographicCamera::ScreenToWorldSpace(const vec2& screenSpace) const
 	{
-		return ICamera::ScreenToWorldSpace(viewMatrix, screenSpace);
+		return OrthographicCamera::ScreenToWorldSpace(view, screenSpace);
 	}
 
 	vec2 OrthographicCamera::WorldToScreenSpace(const vec2& worldSpace) const
 	{
-		return ICamera::WorldToScreenSpace(viewMatrix, worldSpace);
+		return OrthographicCamera::WorldToScreenSpace(view, worldSpace);
+	}
+
+	vec2 OrthographicCamera::ScreenToWorldSpace(const mat4& matrix, const vec2& screenSpace)
+	{
+		return (glm::inverse(matrix) * vec4(screenSpace, 0.0f, 1.0f)).xy;
+	}
+
+	vec2 OrthographicCamera::WorldToScreenSpace(const mat4& matrix, const vec2& worldSpace)
+	{
+		return (matrix * vec4(worldSpace, 0.0f, 1.0f)).xy;
 	}
 }

@@ -259,8 +259,8 @@ namespace Graphics
 		sceneCB.Data.IrradianceRed = glm::transpose(sceneContext->IBL.Stage.IrradianceRGB[0]);
 		sceneCB.Data.IrradianceGreen = glm::transpose(sceneContext->IBL.Stage.IrradianceRGB[1]);
 		sceneCB.Data.IrradianceBlue = glm::transpose(sceneContext->IBL.Stage.IrradianceRGB[2]);
-		sceneCB.Data.Scene.View = glm::transpose(sceneContext->Camera.GetViewMatrix());
-		sceneCB.Data.Scene.ViewProjection = glm::transpose(sceneContext->Camera.GetProjectionMatrix() * sceneContext->Camera.GetViewMatrix());
+		sceneCB.Data.Scene.View = glm::transpose(sceneContext->Camera.GetView());
+		sceneCB.Data.Scene.ViewProjection = glm::transpose(sceneContext->Camera.GetViewProjection());
 		sceneCB.Data.Scene.EyePosition = vec4(sceneContext->Camera.Position, 0.0f);
 		sceneCB.Data.LightColor = vec4(sceneContext->IBL.Stage.LightColor, 1.0f);
 		sceneCB.Data.CharacterLight.Ambient = vec4(sceneContext->Light.Character.Ambient, 1.0f);
@@ -617,8 +617,8 @@ namespace Graphics
 		}
 
 		objectCB.Data.Model = glm::transpose(modelMatrix);
-		objectCB.Data.ModelView = glm::transpose(sceneContext->Camera.GetViewMatrix() * modelMatrix);
-		objectCB.Data.ModelViewProjection = glm::transpose(sceneContext->Camera.GetProjectionMatrix() * sceneContext->Camera.GetViewMatrix() * modelMatrix);
+		objectCB.Data.ModelView = glm::transpose(sceneContext->Camera.GetView() * modelMatrix);
+		objectCB.Data.ModelViewProjection = glm::transpose(sceneContext->Camera.GetViewProjection() * modelMatrix);
 
 		objectCB.Data.ShaderFlags = 0;
 

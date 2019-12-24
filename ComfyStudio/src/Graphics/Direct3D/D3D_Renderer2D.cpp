@@ -164,7 +164,7 @@ namespace Graphics
 		inputLayout->Bind();
 		indexBuffer->Bind();
 
-		cameraConstantBuffer.Data.ViewProjection = glm::transpose(orthographicCamera->GetProjectionMatrix() * orthographicCamera->GetViewMatrix());
+		cameraConstantBuffer.Data.ViewProjection = glm::transpose(orthographicCamera->GetViewProjection());
 		cameraConstantBuffer.UploadData();
 		cameraConstantBuffer.BindVertexShader();
 
