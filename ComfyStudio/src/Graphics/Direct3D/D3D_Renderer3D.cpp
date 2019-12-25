@@ -261,7 +261,7 @@ namespace Graphics
 		sceneCB.Data.IrradianceBlue = glm::transpose(sceneContext->IBL.Stage.IrradianceRGB[2]);
 		sceneCB.Data.Scene.View = glm::transpose(sceneContext->Camera.GetView());
 		sceneCB.Data.Scene.ViewProjection = glm::transpose(sceneContext->Camera.GetViewProjection());
-		sceneCB.Data.Scene.EyePosition = vec4(sceneContext->Camera.Position, 0.0f);
+		sceneCB.Data.Scene.EyePosition = vec4(sceneContext->Camera.Position, 1.0f);
 		sceneCB.Data.LightColor = vec4(sceneContext->IBL.Stage.LightColor, 1.0f);
 		sceneCB.Data.CharacterLight.Ambient = vec4(sceneContext->Light.Character.Ambient, 1.0f);
 		sceneCB.Data.CharacterLight.Diffuse = vec4(sceneContext->Light.Character.Diffuse, 1.0f);
@@ -485,10 +485,15 @@ namespace Graphics
 			auto* destinationTarget = &bloom.BlurRenderTargets[i];
 
 			ppGaussTexCB.Data.TextureSize = GetPackedTextureSize(*sourceTarget);
-			ppGaussTexCB.UploadData();
 
 			for (int j = 0; j < 2; j++)
 			{
+				constexpr vec4 horizontalOffsets = vec4(1.0f, 0.0f, 1.0f, 0.0f);
+				constexpr vec4 verticalOffsets = vec4(0.0f, 1.0f, 0.0f, 1.0f);
+
+				ppGaussTexCB.Data.TextureOffsets = (j % 2 == 0) ? horizontalOffsets : verticalOffsets;
+				ppGaussTexCB.UploadData();
+
 				sourceTarget->BindResource(0);
 				destinationTarget->BindSetViewport();
 				D3D.Context->Draw(RectangleVertexCount, 0);

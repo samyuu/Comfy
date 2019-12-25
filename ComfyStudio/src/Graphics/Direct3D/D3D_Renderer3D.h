@@ -104,6 +104,7 @@ namespace Graphics
 	struct PPGaussTexConstantData
 	{
 		vec4 TextureSize;
+		vec4 TextureOffsets;
 		int FinalPass;
 		int Padding[3];
 	};

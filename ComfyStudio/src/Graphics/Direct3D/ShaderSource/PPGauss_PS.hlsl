@@ -11,6 +11,7 @@ cbuffer PPGaussTexConstantData : register(b0)
 {
     float2 CB_TexelTextureSize;
     float2 CB_TextureSize;
+    float4 CB_TextureOffsets;
     int CB_FinalPass;
 };
 
@@ -33,7 +34,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     float4 outputColor;
 
     #define tex_wh CB_TexelTextureSize
-    #define tex_ofs float4(1.0, 0.0, 1.0, 0.0)
+    #define tex_ofs CB_TextureOffsets
     #define TEX2D_XX(result, texCoord) result = ScreenTexture.Sample(LinearTextureSampler, (texCoord).xy)
     #define coef CB_Coefficient
     
