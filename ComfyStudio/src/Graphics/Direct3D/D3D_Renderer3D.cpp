@@ -687,11 +687,11 @@ namespace Graphics
 		}
 		else if (material.MaterialType == MaterialIdentifiers.HAIR)
 		{
-			return (false) ? shaders.HairAniso : shaders.HairDefault;
+			return (material.ShaderFlags.AnisoDirection != AnisoDirection_Normal) ? shaders.HairAniso : shaders.HairDefault;
 		}
 		else if (material.MaterialType == MaterialIdentifiers.CLOTH)
 		{
-			return (false) ? shaders.ClothAniso : shaders.ClothDefault;
+			return (material.ShaderFlags.AnisoDirection != AnisoDirection_Normal) ? shaders.ClothAniso : shaders.ClothDefault;
 		}
 		else if (material.MaterialType == MaterialIdentifiers.TIGHTS)
 		{

@@ -22,7 +22,6 @@ namespace Graphics
 	DECLARE_BYTECODE_GETTER(BlinnPerVert_VS);
 	DECLARE_BYTECODE_GETTER(BlinnPerVert_PS);
 
-	DECLARE_BYTECODE_GETTER(ClothAniso_VS);
 	DECLARE_BYTECODE_GETTER(ClothAniso_PS);
 
 	DECLARE_BYTECODE_GETTER(ClothDefault_VS);
@@ -43,7 +42,6 @@ namespace Graphics
 	DECLARE_BYTECODE_GETTER(GlassEye_VS);
 	DECLARE_BYTECODE_GETTER(GlassEye_PS);
 
-	DECLARE_BYTECODE_GETTER(HairAniso_VS);
 	DECLARE_BYTECODE_GETTER(HairAniso_PS);
 
 	DECLARE_BYTECODE_GETTER(HairDefault_VS);
@@ -98,7 +96,6 @@ namespace Graphics
 #include SHADER_BYTECODE_FILE(BlinnPerVert_VS.h)
 #include SHADER_BYTECODE_FILE(BlinnPerVert_PS.h)
 
-#include SHADER_BYTECODE_FILE(ClothAniso_VS.h)
 #include SHADER_BYTECODE_FILE(ClothAniso_PS.h)
 
 #include SHADER_BYTECODE_FILE(ClothDefault_VS.h)
@@ -119,7 +116,6 @@ namespace Graphics
 #include SHADER_BYTECODE_FILE(GlassEye_VS.h)
 #include SHADER_BYTECODE_FILE(GlassEye_PS.h)
 
-#include SHADER_BYTECODE_FILE(HairAniso_VS.h)
 #include SHADER_BYTECODE_FILE(HairAniso_PS.h)
 
 #include SHADER_BYTECODE_FILE(HairDefault_VS.h)
@@ -172,7 +168,6 @@ namespace Graphics
 	DEFINE_BYTECODE_GETTER(BlinnPerVert_VS);
 	DEFINE_BYTECODE_GETTER(BlinnPerVert_PS);
 
-	DEFINE_BYTECODE_GETTER(ClothAniso_VS);
 	DEFINE_BYTECODE_GETTER(ClothAniso_PS);
 
 	DEFINE_BYTECODE_GETTER(ClothDefault_VS);
@@ -193,7 +188,6 @@ namespace Graphics
 	DEFINE_BYTECODE_GETTER(GlassEye_VS);
 	DEFINE_BYTECODE_GETTER(GlassEye_PS);
 
-	DEFINE_BYTECODE_GETTER(HairAniso_VS);
 	DEFINE_BYTECODE_GETTER(HairAniso_PS);
 
 	DEFINE_BYTECODE_GETTER(HairDefault_VS);

@@ -23,6 +23,7 @@
 #define o_binormal          output.Binormal
 #define o_eye               output.EyeDirection
 #define o_reflect           output.Reflection
+#define o_aniso_tangent     output.AnisoTangent
 #endif /* COMFY_VS */
 
 #ifdef COMFY_PS
@@ -34,12 +35,14 @@
 #define a_tex_color1        input.TexCoordAmbient
 #define a_tex_normal0       input.TexCoord
 #define a_tex_specular      input.TexCoord
+#define a_tex_lucency       input.TexCoordAmbient
 #define a_fogcoord          float2(input.FogFactor, 0.0)
 #define a_eye               input.EyeDirection
 #define a_normal            input.Normal
 #define a_tangent           input.Tangent
 #define a_binormal          input.Binormal
 #define a_reflect           input.Reflection
+#define a_aniso_tangent     input.AnisoTangent
 #define fragment_position   input.Position
 
 // NOTE: Fragment output:
@@ -66,6 +69,12 @@
 #define nt_mtx                      (float3x3(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
 // TODO:
 #define p_lit_luce                  (CB_Scene.LightColor)
+// TODO: program.local[3] (CB_Material.Shininess) (?) 
+#define p_shininess                 (float4(20.0, 0.0, 0.0, 0.0))
+// TODO: program.env[7]
+#define p_lit_spec                  (float4(24.190920, 17.838573, 4.641884, 0.0))
+// TODO: program.env[9]
+#define p_lit_back                  (float4(18.160395, 18.160395, 18.160395, 0.0))
 // TODO:
 #define p_texcol_coef               (float4(0.9, 0.0, 0.0, 0.0))
 #define p_blend_color               (float4(1.0, 1.0, 1.0, 1.0))
@@ -148,6 +157,7 @@
 #define TEX2D_01(result, texCoord)  result = AmbientTexture.Sample(AmbientSampler, (texCoord).xy)
 #define TEX2D_02(result, texCoord)  result = NormalTexture.Sample(NormalSampler, (texCoord).xy).xyzx
 #define TEX2D_03(result, texCoord)  result = SpecularTexture.Sample(SpecularSampler, (texCoord).xy)
+#define TEX2D_06(result, texCoord)  result = TangentTexture.Sample(TangentSampler, (texCoord).xy)
 // TODO: simple_reflect...
 #define TEX2D_15(result, texCoord)  result = ScreenReflectionTexture.Sample(ScreenReflectionSampler, (texCoord).xy)
 // TODO: ...

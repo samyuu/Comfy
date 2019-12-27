@@ -889,7 +889,6 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Floor_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ClothDefault_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ClothDefault_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ClothAniso_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ClothAniso_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\EyeBall_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\EyeBall_PS.hlsl" />
@@ -897,9 +896,7 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\EyeLens_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\GlassEye_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\GlassEye_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\HairAniso_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\HairAniso_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\HairDefault_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\HairDefault_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\SkinDefault_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\SkinDefault_PS.hlsl" />
@@ -909,5 +906,6 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ReduceTex_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PPGauss_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PPGauss_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\HairDefault_VS.hlsl" />
   </ItemGroup>
 </Project>

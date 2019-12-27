@@ -4,7 +4,7 @@ struct VS_INPUT
 {
     float4 Position         : POSITION;
     float3 Normal           : NORMAL;
-    float4 Tangent          : TANGENT;
+    float4 Tangent          : TANGENT0;
     float2 TexCoord         : TEXCOORD0;
     float2 TexCoordAmbient  : TEXCOORD1;
     float4 Color            : COLOR;
@@ -14,7 +14,8 @@ struct VS_OUTPUT
 {
     float4 Position         : SV_POSITION;
     float4 Normal           : NORMAL;
-    float4 Tangent          : TANGENT;
+    float4 Tangent          : TANGENT0;
+    float4 AnisoTangent     : TANGENT1;
     float4 Binormal         : BINORMAL;
     float4 EyeDirection     : EYE_DIRECTION;
     float2 TexCoord         : TEXCOORD0;
