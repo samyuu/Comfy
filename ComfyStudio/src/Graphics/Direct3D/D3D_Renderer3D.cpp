@@ -167,6 +167,15 @@ namespace Graphics
 		}
 	}
 
+	void D3D_Renderer3D::UnRegisterTextureIDs(const TxpSet& txpSet)
+	{
+		for (auto& txp : txpSet.Txps)
+		{
+			if (txp.TextureID != -1)
+				textureIDTxpMap.erase(txp.TextureID);
+		}
+	}
+
 	const SceneContext* D3D_Renderer3D::GetSceneContext() const
 	{
 		return sceneContext;

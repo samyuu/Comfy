@@ -173,6 +173,7 @@ namespace Graphics
 	public:
 		void ClearTextureIDs();
 		void RegisterTextureIDs(const TxpSet& txpSet);
+		void UnRegisterTextureIDs(const TxpSet& txpSet);
 
 	public:
 		const SceneContext* GetSceneContext() const;

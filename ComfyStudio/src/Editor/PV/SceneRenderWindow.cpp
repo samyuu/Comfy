@@ -27,13 +27,13 @@ namespace Editor
 			return true;
 		}
 
-		void LoadStageLightParamFiles(SceneContext& context, StageType stageType, int stageID)
+		void LoadStageLightParamFiles(SceneContext& context, StageType stageType, int stageID, int stageSubID = 0)
 		{
-			constexpr std::array formatStrings = { "tst%03d", "ns%03d", "d2ns%03d", "pv%03ds01" };
+			constexpr std::array formatStrings = { "tst%03d", "ns%03d", "d2ns%03d", "pv%03ds%02d" };
 			const char* formatString = (stageID == 0 && stageType == StageType::STGTST) ? "tst" : formatStrings[static_cast<size_t>(stageType)];
 
 			std::array<char, MAX_PATH> fileName;
-			sprintf_s(fileName.data(), fileName.size(), formatString, stageID);
+			sprintf_s(fileName.data(), fileName.size(), formatString, stageID, stageSubID);
 
 			const char* romDirectory = "dev_rom";
 			std::array<char, MAX_PATH> pathBuffer;
@@ -56,26 +56,26 @@ namespace Editor
 		}
 
 		template <typename T>
-		bool LoadStageObj(SceneContext& context, StageType stageType, int stageID, UniquePtr<ObjSet>& textureObjSet, T objSetLoaderFunc, D3D_Renderer3D& renderer)
+		bool LoadStageObj(SceneContext& context, StageType stageType, int stageID, int stageSubID, UniquePtr<ObjSet>& textureObjSet, T objSetLoaderFunc, D3D_Renderer3D& renderer)
 		{
 			constexpr const char* objSetDirectory = "dev_rom/objset";
 			std::array<char, MAX_PATH> pathBuffer;
 
+			if (textureObjSet != nullptr && textureObjSet->TxpSet != nullptr)
+				renderer.UnRegisterTextureIDs(*textureObjSet->TxpSet);
+
 			textureObjSet = nullptr;
 
-			constexpr std::array formatStrings =
-			{
-				"%s/stgtst/stgtst%03d/stgtst%03d_obj.bin",
-				"%s/stgns/stgns%03d/stgns%03d_obj.bin",
-				"%s/stgd2ns/stgd2ns%03d/stgd2ns%03d_obj.bin",
-				"%s/stgpv/stgpv%03ds01/stgpv%03ds01_obj.bin",
-				"%s/stgtst/stgtst/stgtst_obj.bin",
-			};
+			constexpr std::array formatStrings = { "stgtst%03d", "stgns%03d", "stgd2ns%03d", "stgpv%03ds%02d" };
+			const char* formatString = (stageID == 0 && stageType == StageType::STGTST) ? "tst" : formatStrings[static_cast<size_t>(stageType)];
 
-			if (stageType == StageType::STGTST && stageID == 0)
-				sprintf_s(pathBuffer.data(), pathBuffer.size(), formatStrings.back(), objSetDirectory);
-			else
-				sprintf_s(pathBuffer.data(), pathBuffer.size(), formatStrings[static_cast<int>(stageType)], objSetDirectory, stageID, stageID);
+			std::array<char, MAX_PATH> fileName;
+			sprintf_s(fileName.data(), fileName.size(), formatString, stageID, stageSubID);
+
+			constexpr std::array stgTypeFormatStrings = { "stgtst", "stgns", "stgd2ns", "stgpv" };
+			const char* stgTypeFormatString = stgTypeFormatStrings[static_cast<size_t>(stageType)];
+
+			sprintf_s(pathBuffer.data(), pathBuffer.size(), "%s/%s/%s/%s_obj.bin", objSetDirectory, stgTypeFormatString, fileName.data(), fileName.data());
 
 			if (!FileSystem::FileExists(pathBuffer.data()))
 				return false;
@@ -102,10 +102,10 @@ namespace Editor
 		}
 
 		template <typename T>
-		bool LoadStage(SceneContext& context, StageType stageType, int stageID, UniquePtr<ObjSet>& textureObjSet, T objSetLoaderFunc, D3D_Renderer3D& renderer)
+		bool LoadStage(SceneContext& context, StageType stageType, int stageID, int stageSubID, UniquePtr<ObjSet>& textureObjSet, T objSetLoaderFunc, D3D_Renderer3D& renderer)
 		{
-			LoadStageLightParamFiles(context, stageType, stageID);
-			return LoadStageObj(context, stageType, stageID, textureObjSet, objSetLoaderFunc, renderer);
+			LoadStageLightParamFiles(context, stageType, stageID, stageSubID);
+			return LoadStageObj(context, stageType, stageID, stageSubID, textureObjSet, objSetLoaderFunc, renderer);
 		}
 
 		int FindGroundObj(ObjSet* objSet)
@@ -145,7 +145,7 @@ namespace Editor
 
 		if (objSet == nullptr)
 		{
-			LoadStage(context, StageType::STGNS, 6, textureObjSet, [&](auto path) { LoadObjSet(path); }, *renderer3D);
+			LoadStage(context, StageType::STGTST, 7, 0, textureObjSet, [&](auto path) { LoadObjSet(path); }, *renderer3D);
 		}
 	}
 
@@ -420,13 +420,14 @@ namespace Editor
 			auto load = [&]()
 			{
 				stageTypeData.ID = std::clamp(stageTypeData.ID, stageTypeData.MinID, stageTypeData.MaxID);
+				stageTypeData.SubID = std::clamp(stageTypeData.SubID, 1, 39);
 
 				if (stageTestData.Settings.LoadLightParam)
-					LoadStageLightParamFiles(context, stageTypeData.Type, stageTypeData.ID);
+					LoadStageLightParamFiles(context, stageTypeData.Type, stageTypeData.ID, stageTypeData.SubID);
 
 				if (stageTestData.Settings.LoadObj)
 				{
-					if (!LoadStageObj(context, stageTypeData.Type, stageTypeData.ID, textureObjSet, [&](auto path) { LoadObjSet(path); }, *renderer3D))
+					if (!LoadStageObj(context, stageTypeData.Type, stageTypeData.ID, stageTypeData.SubID, textureObjSet, [&](auto path) { LoadObjSet(path); }, *renderer3D))
 						objSet = nullptr;
 
 					objectIndex = stageTestData.Settings.SelectGround ? FindGroundObj(objSet.get()) : -1;
@@ -439,11 +440,23 @@ namespace Editor
 					load();
 
 				Gui::SameLine();
-				if (stageTypeData.ID <= -1)
-					stageTypeData.ID = stageTypeData.MinID;
 
 				if (Gui::InputInt(stageTypeData.Name, &stageTypeData.ID, 1, 100))
+				{
+					stageTypeData.SubID = 1;
 					load();
+				}
+
+				if (stageTypeData.Type == StageType::STGPV)
+				{
+					if (Gui::Button("Reload"))
+						load();
+
+					Gui::SameLine();
+
+					if (Gui::InputInt("SUB ID", &stageTypeData.SubID))
+						load();
+				}
 			}
 			Gui::PopID();
 		};
@@ -458,6 +471,11 @@ namespace Editor
 
 	void SceneRenderWindow::LoadObjSet(const std::string& filePath)
 	{
+		if (objSet != nullptr && objSet->TxpSet != nullptr)
+			renderer3D->UnRegisterTextureIDs(*objSet->TxpSet);
+
+		objSet = nullptr;
+
 		if (!EndsWith(filePath, "_obj.bin"))
 			return;
 
@@ -476,7 +494,6 @@ namespace Editor
 		objSet = ObjSet::MakeUniqueReadParseUpload(filePath);
 		objSet->TxpSet = TxpSet::MakeUniqueReadParseUpload(txpPath, objSet.get());
 
-		renderer3D->ClearTextureIDs();
 		renderer3D->RegisterTextureIDs(*objSet->TxpSet);
 	}
 

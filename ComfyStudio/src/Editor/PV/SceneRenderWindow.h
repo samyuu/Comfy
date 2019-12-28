@@ -65,14 +65,15 @@ namespace Editor
 				const char* Name;
 				const int MinID, MaxID;
 				int ID;
+				int SubID;
 			};
 
 			std::array<StageTypeData, 4> TypeData =
 			{
-				StageTypeData { StageType::STGTST, "STGTST", 0, 10, -1 },
-				StageTypeData { StageType::STGNS, "STGNS", 1, 292, -1 },
-				StageTypeData { StageType::STGD2NS, "STGD2NS", 35, 82, -1 },
-				StageTypeData { StageType::STGPV, "STGPV", 1, 999, -1 },
+				StageTypeData { StageType::STGTST, "STGTST", 0, 10, 7, -1 },
+				StageTypeData { StageType::STGNS, "STGNS", 1, 292, 1, -1 },
+				StageTypeData { StageType::STGD2NS, "STGD2NS", 35, 82, 35, -1 },
+				StageTypeData { StageType::STGPV, "STGPV", 1, 999, 1, 1 },
 			};
 
 			struct Settings
