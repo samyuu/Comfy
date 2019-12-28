@@ -129,6 +129,9 @@ namespace Graphics
 
 	void D3D_Renderer3D::Begin(SceneContext& scene)
 	{
+		verticesRenderedLastFrame = verticesRenderedThisFrame;
+		verticesRenderedThisFrame = 0;
+
 		sceneContext = &scene;
 	}
 
@@ -260,16 +263,43 @@ namespace Graphics
 		sceneCB.BindShaders();
 		objectCB.BindShaders();
 
-		D3D_ShaderResourceView::BindArray<7>(TextureSlot_CharacterLightMap,
+		D3D_ShaderResourceView::BindArray<TextureSlot_ScreenReflection + 1>(TextureSlot_Diffuse,
 			{
+				// NOTE: Diffuse = 0
+				nullptr,
+				// NOTE: Ambient = 1
+				nullptr,
+				// NOTE: Normal = 2
+				nullptr,
+				// NOTE: Specular = 3
+				nullptr,
+				// NOTE: ToonCurve = 4
+				nullptr,
+				// NOTE: Reflection = 5
+				nullptr,
+				// NOTE: Lucency = 6
+				nullptr,
+				// NOTE: Reserved = 7
+				nullptr,
+
+				// NOTE: ---
+				nullptr,
+
+				// NOTE: CharacterLightMap = 9
 				sceneContext->IBL.Character.LightMap.CubeMap.get(),
+				// NOTE: SunLightMap = 10
 				sceneContext->IBL.Sun.LightMap.CubeMap.get(),
+				// NOTE: ReflectLightMap = 11
 				sceneContext->IBL.Reflect.LightMap.CubeMap.get(),
+				// NOTE: ShadowLightMap = 12
 				sceneContext->IBL.Shadow.LightMap.CubeMap.get(),
+				// NOTE: CharacterColorLightMap = 13
 				sceneContext->IBL.CharacterColor.LightMap.CubeMap.get(),
 
-				// NOTE: Also unbind screen reflection render target
+				// NOTE: ---
 				nullptr,
+
+				// NOTE: ScreenReflection = 15
 				nullptr,
 			});
 
@@ -339,14 +369,23 @@ namespace Graphics
 		if (command.AreAllMeshesTransparent)
 			return;
 
+		if (!IntersectsCameraFrustum(command.Obj->BoundingSphere, command.Position))
+			return;
+
 		for (auto& mesh : command.Obj->Meshes)
 		{
+			if (!IntersectsCameraFrustum(mesh.BoundingSphere, command.Position))
+				continue;
+
 			BindMeshVertexBuffers(mesh);
 
 			for (auto& subMesh : mesh.SubMeshes)
 			{
 				auto& material = subMesh.GetMaterial(*command.Obj);
 				if (IsMeshTransparent(mesh, material))
+					continue;
+
+				if (!IntersectsCameraFrustum(subMesh.BoundingSphere, command.Position))
 					continue;
 
 				PrepareAndRenderSubMesh(command, mesh, subMesh, material, command.Transform);
@@ -356,8 +395,13 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command)
 	{
-		auto& subMesh = *command.SubMesh;
+		auto& position = command.ObjCommand->Position;
+		auto& obj = *command.ObjCommand->Obj;
 		auto& mesh = *command.ParentMesh;
+		auto& subMesh = *command.SubMesh;
+
+		if (!IntersectsCameraFrustum(obj.BoundingSphere, position) || !IntersectsCameraFrustum(mesh.BoundingSphere, position) || !IntersectsCameraFrustum(subMesh.BoundingSphere, position))
+			return;
 
 		BindMeshVertexBuffers(mesh);
 		auto& material = subMesh.GetMaterial(*command.ObjCommand->Obj);
@@ -683,7 +727,7 @@ namespace Graphics
 		{
 			return shaders.SkyDefault;
 		}
-		else if (material.MaterialType == MaterialIdentifiers.EYEBALL)
+		else if (material.MaterialType == Material::Identifiers.EYEBALL)
 		{
 			return shaders.EyeBall;
 		}
@@ -715,6 +759,16 @@ namespace Graphics
 
 		D3D.Context->IASetPrimitiveTopology(GetD3DPrimitiveTopolgy(subMesh.Primitive));
 		D3D.Context->DrawIndexed(static_cast<UINT>(subMesh.Indices.size()), 0, 0);
+
+		verticesRenderedThisFrame += subMesh.Indices.size();
+	}
+
+	bool D3D_Renderer3D::IntersectsCameraFrustum(const Sphere& boundingSphere, const vec3& position) const
+	{
+		if (!sceneContext->RenderParameters.FrustumCulling)
+			return true;
+
+		return sceneContext->Camera.IntersectsViewFrustum({ boundingSphere.Center + position, boundingSphere.Radius });
 	}
 
 	bool D3D_Renderer3D::IsDebugRenderFlagSet(int bitIndex) const

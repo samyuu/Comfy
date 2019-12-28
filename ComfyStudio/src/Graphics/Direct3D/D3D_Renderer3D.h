@@ -214,6 +214,7 @@ namespace Graphics
 		D3D_ShaderPair& GetMaterialShader(const Material& material);
 		void SubmitSubMeshDrawCall(const SubMesh& subMesh);
 
+		bool IntersectsCameraFrustum(const Sphere& boundingSphere, const vec3& position) const;
 		bool IsDebugRenderFlagSet(int bitIndex) const;
 
 	private:
@@ -287,6 +288,7 @@ namespace Graphics
 		std::vector<ObjRenderCommand> renderCommandList, reflectionCommandList;
 		std::vector<SubMeshRenderCommand> transparentSubMeshCommands;
 
+		size_t verticesRenderedThisFrame = 0, verticesRenderedLastFrame = 0;
 		bool currentlyRenderingWireframeOverlay = false;
 
 		struct ToneMapData

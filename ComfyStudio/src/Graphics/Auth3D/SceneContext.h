@@ -17,6 +17,7 @@ namespace Graphics
 		// NOTE: Used by all newly created texture samplers
 		int32_t AnistropicFiltering = D3D11_DEFAULT_MAX_ANISOTROPY;
 
+		bool FrustumCulling = true;
 		bool Wireframe = false;
 		bool WireframeOverlay = false;
 		bool AlphaSort = true;

@@ -217,6 +217,7 @@ namespace Editor
 			Gui::CheckboxFlags("DebugFlags_1", &context.RenderParameters.DebugFlags, (1 << 1));
 			Gui::CheckboxFlags("DebugFlags_2", &context.RenderParameters.DebugFlags, (1 << 2));
 			Gui::Checkbox("Clear", &context.RenderParameters.Clear);
+			Gui::Checkbox("Frustum Culling", &context.RenderParameters.FrustumCulling);
 			Gui::Checkbox("Wireframe", &context.RenderParameters.Wireframe);
 			Gui::Checkbox("Wireframe Overlay", &context.RenderParameters.WireframeOverlay);
 			Gui::Checkbox("Alpha Sort", &context.RenderParameters.AlphaSort);
@@ -554,8 +555,6 @@ namespace Editor
 			cameraController.CameraYaw = cameraController.TargetCameraYaw;
 			cameraController.CameraPitch = cameraController.TargetCameraPitch;
 		}
-
-		context.Camera.UpdateMatrices();
 	}
 
 	void SceneRenderWindow::OnRender()
@@ -563,6 +562,7 @@ namespace Editor
 		context.RenderData.OutputRenderTarget = renderTarget.get();
 		context.RenderParameters.ClearColor = GetColorVec4(EditorColor_BaseClear);
 
+		context.Camera.UpdateMatrices();
 		renderer3D->Begin(context);
 		{
 			if (objSet != nullptr)

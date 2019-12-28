@@ -6,7 +6,7 @@ namespace Graphics
 {
 	namespace
 	{
-		static const mat4 IdentityMatrix = mat4(1.0f);
+		static constexpr mat4 IdentityMatrix = glm::identity<mat4>();
 	}
 
 	void PerspectiveCamera::UpdateMatrices()
@@ -15,6 +15,14 @@ namespace Graphics
 		projection = glm::perspective(glm::radians(FieldOfView), AspectRatio, NearPlane, FarPlane);
 
 		viewProjection = projection * view;
+
+		const mat4 viewProjectionRows = glm::transpose(viewProjection);
+		frustum.Planes[0] = glm::normalize(viewProjectionRows[3] + viewProjectionRows[0]);
+		frustum.Planes[1] = glm::normalize(viewProjectionRows[3] - viewProjectionRows[0]);
+		frustum.Planes[2] = glm::normalize(viewProjectionRows[3] + viewProjectionRows[1]);
+		frustum.Planes[3] = glm::normalize(viewProjectionRows[3] - viewProjectionRows[1]);
+		frustum.Planes[4] = glm::normalize(viewProjectionRows[3] + viewProjectionRows[2]);
+		frustum.Planes[5] = glm::normalize(viewProjectionRows[3] - viewProjectionRows[2]);
 	}
 
 	const mat4& PerspectiveCamera::GetView() const
@@ -30,6 +38,38 @@ namespace Graphics
 	const mat4& PerspectiveCamera::GetViewProjection() const
 	{
 		return viewProjection;
+	}
+
+	vec2 PerspectiveCamera::ProjectPointNormalizedScreen(vec3 worldPosition) const
+	{
+		const vec4 projectedPosition = viewProjection * vec4(worldPosition, 1.0f);
+
+		// NOTE: Near plane culling
+		if (projectedPosition.w <= 0.0f)
+			return vec2(std::numeric_limits<float>::infinity());
+
+		// NOTE: Perspective division
+		const vec3 perspectivePosition = vec3(projectedPosition.xyz) / projectedPosition.w;
+
+		// NOTE: Center around top left origin like all other window coordinates are
+		const vec2 normalizedScreenPosition =
+		{
+			(perspectivePosition.x + 1.0f) / 2.0f,
+			(1.0f - perspectivePosition.y) / 2.0f,
+		};
+
+		return normalizedScreenPosition;
+	}
+
+	bool PerspectiveCamera::IntersectsViewFrustum(const Sphere& worldSpaceSphere) const
+	{
+		for (const auto& plane : frustum.Planes)
+		{
+			if (glm::dot(plane, vec4(worldSpaceSphere.Center, 1.0f)) <= -worldSpaceSphere.Radius)
+				return false;
+		}
+
+		return true;
 	}
 
 	void OrthographicCamera::UpdateMatrices()

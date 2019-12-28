@@ -1,5 +1,7 @@
 #pragma once
 #include "Types.h"
+#include "Core/CoreTypes.h"
+#include "Auth3D/BoundingTypes.h"
 
 namespace Graphics
 {
@@ -36,10 +38,19 @@ namespace Graphics
 		const mat4& GetViewProjection() const override;
 
 	public:
+		vec2 ProjectPointNormalizedScreen(vec3 worldPosition) const;
+		bool IntersectsViewFrustum(const Sphere& worldSpaceSphere) const;
+
+	public:
 		static vec3 ScreenToWorldSpace(const mat4& matrix, const vec3& screenSpace);
 		static vec3 WorldToScreenSpace(const mat4& matrix, const vec3& worldSpace);
 
 	private:
+		struct Frustum
+		{
+			std::array<vec4, 6> Planes;
+		} frustum;
+
 		mat4 view, projection, viewProjection;
 	};
 
@@ -61,6 +72,7 @@ namespace Graphics
 		const mat4& GetProjection() const override;
 		const mat4& GetViewProjection() const override;
 
+	public:
 		vec2 GetProjectionCenter() const;
 
 		vec2 ScreenToWorldSpace(const vec2& screenSpace) const;
