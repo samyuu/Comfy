@@ -7,19 +7,30 @@ namespace Graphics
 {
 	namespace
 	{
+		constexpr vec3 TranposeVec3(const vec3& value)
+		{
+			return { value[2], value[1], value[0] };
+		}
+
 		vec3 ReadVec3(BinaryReader& reader)
 		{
 			return vec3(reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat());
 		}
 
+		// NOTE: Not sure why these are stored differently from the way the vertex positions are
+		vec3 ReadTranposeVec3(BinaryReader& reader)
+		{
+			return TranposeVec3(ReadVec3(reader));
+		}
+
 		Sphere ReadSphere(BinaryReader& reader)
 		{
-			return { ReadVec3(reader), reader.ReadFloat() };
+			return { ReadTranposeVec3(reader), reader.ReadFloat() };
 		}
 
 		Box ReadBox(BinaryReader& reader)
 		{
-			return { ReadVec3(reader), ReadVec3(reader) };
+			return { ReadTranposeVec3(reader), ReadTranposeVec3(reader) };
 		}
 
 		template <class T>
@@ -135,7 +146,7 @@ namespace Graphics
 					for (int i = 0; i < 7; i++)
 						reader.ReadUInt32();
 					
-					reader.Read(mesh.Name, sizeof(mesh.Name));
+					reader.Read(mesh.Name.data(), sizeof(mesh.Name));
 				}
 			});
 		}

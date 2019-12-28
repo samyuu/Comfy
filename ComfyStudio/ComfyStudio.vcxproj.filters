@@ -836,6 +836,9 @@
     <ClInclude Include="src\Graphics\Auth3D\LightDataIBL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\Auth3D\BoundingTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="res\ComfyStudio.rc">

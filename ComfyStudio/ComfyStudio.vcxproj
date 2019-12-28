@@ -357,6 +357,7 @@
     <ClInclude Include="src\Graphics\Auth2D\AetRenderer.h" />
     <ClInclude Include="src\Graphics\Auth2D\AetSet.h" />
     <ClInclude Include="src\Graphics\Auth2D\SpriteBatchData.h" />
+    <ClInclude Include="src\Graphics\Auth3D\BoundingTypes.h" />
     <ClInclude Include="src\Graphics\Auth3D\FogParameter.h" />
     <ClInclude Include="src\Graphics\Auth3D\GlowParameter.h" />
     <ClInclude Include="src\Graphics\Auth3D\LightDataIBL.h" />

@@ -157,7 +157,7 @@
 #define TEX2D_01(result, texCoord)  result = AmbientTexture.Sample(AmbientSampler, (texCoord).xy)
 #define TEX2D_02(result, texCoord)  result = NormalTexture.Sample(NormalSampler, (texCoord).xy).xyzx
 #define TEX2D_03(result, texCoord)  result = SpecularTexture.Sample(SpecularSampler, (texCoord).xy)
-#define TEX2D_06(result, texCoord)  result = TangentTexture.Sample(TangentSampler, (texCoord).xy)
+#define TEX2D_06(result, texCoord)  result = LucencyTexture.Sample(LucencySampler, (texCoord).xy)
 // TODO: simple_reflect...
 #define TEX2D_15(result, texCoord)  result = ScreenReflectionTexture.Sample(ScreenReflectionSampler, (texCoord).xy)
 // TODO: ...

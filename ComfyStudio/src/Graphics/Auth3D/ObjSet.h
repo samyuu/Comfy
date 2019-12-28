@@ -1,5 +1,6 @@
 #pragma once
 #include "Types.h"
+#include "BoundingTypes.h"
 #include "FileSystem/FileInterface.h"
 #include "Graphics/TxpSet.h"
 #include "Graphics/Direct3D/D3D_IndexBuffer.h"
@@ -7,18 +8,6 @@
 
 namespace Graphics
 {
-	struct Sphere
-	{
-		vec3 Center;
-		float Radius;
-	};
-
-	struct Box
-	{
-		vec3 Center;
-		vec3 Size;
-	};
-
 	struct Material;
 	class Obj;
 
@@ -51,7 +40,7 @@ namespace Graphics
 		VertexAttributeFlags AttributeFlags;
 		
 		MeshFlags Flags;
-		char Name[64];
+		std::array<char, 64> Name;
 
 		struct VertexData
 		{
@@ -119,7 +108,7 @@ namespace Graphics
 		uint32_t UseUnknown5 : 1;
 		uint32_t UseUnknown6 : 1;
 		uint32_t UseUnknown7 : 1;
-		uint32_t UseTangentTexture : 1;
+		uint32_t UseLucencyTexture : 1;
 		uint32_t UseCubeMapReflection : 1;
 		uint32_t CubeMapReflectionRelated : 16;
 	};
@@ -203,7 +192,7 @@ namespace Graphics
 		MaterialTexture Specular;
 		MaterialTexture ToonCurve;
 		MaterialTexture Reflection;
-		MaterialTexture Tangent;
+		MaterialTexture Lucency;
 		MaterialTexture ReservedTexture;
 		MaterialBlendFlags BlendFlags;
 		vec3 DiffuseColor;
@@ -215,16 +204,41 @@ namespace Graphics
 		float Shininess;
 		float Intensity;
 		vec4 UnknownField21_24;
-		char Name[64];
+		std::array<char, 64> Name;
 		float BumpDepth;
 		float Reserved[15];
 
 		template <typename T>
-		void IterateMaterialTextures(T func) const
+		void IterateTextures(T func)
 		{
 			for (auto* texture = &Diffuse; texture <= &ReservedTexture; texture++)
 				func(texture);
 		}
+		
+		template <typename T>
+		void IterateTextures(T func) const
+		{
+			for (auto* texture = &Diffuse; texture <= &ReservedTexture; texture++)
+				func(texture);
+		}
+
+		static inline const struct Identifiers
+		{
+			std::array<char, 8> BLINN { "BLINN" };
+			std::array<char, 8> ITEM { "ITEM" };
+			std::array<char, 8> STAGE { "STAGE" };
+			std::array<char, 8> SKIN { "SKIN" };
+			std::array<char, 8> HAIR { "HAIR" };
+			std::array<char, 8> CLOTH { "CLOTH" };
+			std::array<char, 8> TIGHTS { "TIGHTS" };
+			std::array<char, 8> SKY { "SKY" };
+			std::array<char, 8> EYEBALL { "EYEBALL" };
+			std::array<char, 8> EYELENS { "EYELENS" };
+			std::array<char, 8> GLASEYE { "GLASEYE" };
+			std::array<char, 8> WATER01 { "WATER01" };
+			std::array<char, 8> WATER02 { "WATER02" };
+			std::array<char, 8> FLOOR { "FLOOR" };
+		} Identifiers;
 	};
 
 	class Obj
@@ -238,6 +252,9 @@ namespace Graphics
 		Sphere BoundingSphere;
 		std::vector<Mesh> Meshes;
 		std::vector<Material> Materials;
+
+	public:
+		void Upload();
 
 	private:
 		void Read(FileSystem::BinaryReader& reader);

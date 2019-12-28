@@ -89,24 +89,6 @@ namespace Graphics
 			}
 		}
 
-		const struct MaterialIdentifiers
-		{
-			std::array<char, 8> BLINN { "BLINN" };
-			std::array<char, 8> ITEM { "ITEM" };
-			std::array<char, 8> STAGE { "STAGE" };
-			std::array<char, 8> SKIN { "SKIN" };
-			std::array<char, 8> HAIR { "HAIR" };
-			std::array<char, 8> CLOTH { "CLOTH" };
-			std::array<char, 8> TIGHTS { "TIGHTS" };
-			std::array<char, 8> SKY { "SKY" };
-			std::array<char, 8> EYEBALL { "EYEBALL" };
-			std::array<char, 8> EYELENS { "EYELENS" };
-			std::array<char, 8> GLASEYE { "GLASEYE" };
-			std::array<char, 8> WATER01 { "WATER01" };
-			std::array<char, 8> WATER02 { "WATER02" };
-			std::array<char, 8> FLOOR { "FLOOR" };
-		} MaterialIdentifiers;
-
 		enum Renderer3DTextureSlot : int32_t
 		{
 			TextureSlot_Diffuse = 0,
@@ -115,7 +97,7 @@ namespace Graphics
 			TextureSlot_Specular = 3,
 			TextureSlot_ToonCurve = 4,
 			TextureSlot_Reflection = 5,
-			TextureSlot_Tangent = 6,
+			TextureSlot_Lucency = 6,
 			TextureSlot_Reserved = 7,
 
 			TextureSlot_CharacterLightMap = 9,
@@ -658,7 +640,7 @@ namespace Graphics
 
 	D3D_ShaderPair& D3D_Renderer3D::GetMaterialShader(const Material& material)
 	{
-		if (material.MaterialType == MaterialIdentifiers.BLINN)
+		if (material.MaterialType == Material::Identifiers.BLINN)
 		{
 			if (material.ShaderFlags.PhongShading)
 			{
@@ -673,31 +655,31 @@ namespace Graphics
 				return shaders.Constant;
 			}
 		}
-		else if (material.MaterialType == MaterialIdentifiers.ITEM)
+		else if (material.MaterialType == Material::Identifiers.ITEM)
 		{
 			return shaders.ItemBlinn;
 		}
-		else if (material.MaterialType == MaterialIdentifiers.STAGE)
+		else if (material.MaterialType == Material::Identifiers.STAGE)
 		{
 			return shaders.StageBlinn;
 		}
-		else if (material.MaterialType == MaterialIdentifiers.SKIN)
+		else if (material.MaterialType == Material::Identifiers.SKIN)
 		{
 			return shaders.SkinDefault;
 		}
-		else if (material.MaterialType == MaterialIdentifiers.HAIR)
+		else if (material.MaterialType == Material::Identifiers.HAIR)
 		{
 			return (material.ShaderFlags.AnisoDirection != AnisoDirection_Normal) ? shaders.HairAniso : shaders.HairDefault;
 		}
-		else if (material.MaterialType == MaterialIdentifiers.CLOTH)
+		else if (material.MaterialType == Material::Identifiers.CLOTH)
 		{
 			return (material.ShaderFlags.AnisoDirection != AnisoDirection_Normal) ? shaders.ClothAniso : shaders.ClothDefault;
 		}
-		else if (material.MaterialType == MaterialIdentifiers.TIGHTS)
+		else if (material.MaterialType == Material::Identifiers.TIGHTS)
 		{
 			return shaders.Tights;
 		}
-		else if (material.MaterialType == MaterialIdentifiers.SKY)
+		else if (material.MaterialType == Material::Identifiers.SKY)
 		{
 			return shaders.SkyDefault;
 		}
@@ -705,19 +687,19 @@ namespace Graphics
 		{
 			return shaders.EyeBall;
 		}
-		else if (material.MaterialType == MaterialIdentifiers.EYELENS)
+		else if (material.MaterialType == Material::Identifiers.EYELENS)
 		{
 			return shaders.EyeLens;
 		}
-		else if (material.MaterialType == MaterialIdentifiers.GLASEYE)
+		else if (material.MaterialType == Material::Identifiers.GLASEYE)
 		{
 			return shaders.GlassEye;
 		}
-		else if (material.MaterialType == MaterialIdentifiers.WATER01 || material.MaterialType == MaterialIdentifiers.WATER02)
+		else if (material.MaterialType == Material::Identifiers.WATER01 || material.MaterialType == Material::Identifiers.WATER02)
 		{
 			return shaders.Water;
 		}
-		else if (material.MaterialType == MaterialIdentifiers.FLOOR)
+		else if (material.MaterialType == Material::Identifiers.FLOOR)
 		{
 			return shaders.Floor;
 		}

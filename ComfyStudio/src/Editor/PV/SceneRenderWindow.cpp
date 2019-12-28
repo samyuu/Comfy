@@ -351,7 +351,7 @@ namespace Editor
 				Gui::PushID(objSet.get());
 
 				auto getMaterialObjName = [&](int index) { return (index < 0 || index > objSet->size()) ? "None" : objSet->GetObjAt(index)->Name.c_str(); };
-				auto getMaterialName = [](Obj* obj, int index) { return (obj == nullptr || index < 0 || index > obj->Materials.size()) ? "None" : obj->Materials[index].Name; };
+				auto getMaterialName = [](Obj* obj, int index) { return (obj == nullptr || index < 0 || index > obj->Materials.size()) ? "None" : obj->Materials[index].Name.data(); };
 
 				if (Gui::BeginCombo("Object", getMaterialObjName(materialObjIndex), ImGuiComboFlags_HeightLarge))
 				{
@@ -390,13 +390,21 @@ namespace Editor
 				if (material != nullptr)
 				{
 					Gui::ColorEdit3("Diffuse", glm::value_ptr(material->DiffuseColor), ImGuiColorEditFlags_Float);
-					Gui::DragFloat("Transparency", &material->Transparency);
+					Gui::DragFloat("Transparency", &material->Transparency, 0.01f);
 					Gui::ColorEdit3("Specular", glm::value_ptr(material->SpecularColor), ImGuiColorEditFlags_Float);
-					Gui::DragFloat("Reflectivity", &material->Reflectivity);
-					Gui::DragFloat("Shininess", &material->Shininess);
+					Gui::DragFloat("Reflectivity", &material->Reflectivity, 0.01f);
+					Gui::DragFloat("Shininess", &material->Shininess, 0.05f);
 					Gui::ColorEdit3("Ambient", glm::value_ptr(material->AmbientColor), ImGuiColorEditFlags_Float);
 					Gui::ColorEdit3("Emission", glm::value_ptr(material->EmissionColor), ImGuiColorEditFlags_Float);
-					Gui::InputText("Material Type", material->MaterialType.data(), material->MaterialType.size(), /*ImGuiInputTextFlags_ReadOnly*/ImGuiInputTextFlags_None);
+					Gui::InputText("Material Type", material->MaterialType.data(), material->MaterialType.size(), ImGuiInputTextFlags_None);
+
+					bool lambertShading = material->ShaderFlags.LambertShading;
+					if (Gui::Checkbox("Lambert Shading", &lambertShading))
+						material->ShaderFlags.LambertShading = lambertShading;
+
+					bool phongShading = material->ShaderFlags.PhongShading;
+					if (Gui::Checkbox("Phong Shading", &phongShading))
+						material->ShaderFlags.PhongShading = phongShading;
 				}
 
 				Gui::PopID();
