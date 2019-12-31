@@ -58,9 +58,19 @@ namespace FileSystem
 	std::vector<std::string> GetFiles(std::string_view directory);
 	std::vector<std::wstring> GetFiles(std::wstring_view directory);
 
+	bool ReadAllBytes(std::string_view filePath, void* buffer, size_t bufferSize);
+
+	template <typename T>
+	inline bool ReadAllBytes(std::string_view filePath, T* buffer) { return ReadAllBytes(filePath, buffer, sizeof(T)); };
+
+	bool WriteAllBytes(std::string_view filePath, const void* buffer, size_t bufferSize);
+
+	template <typename T>
+	inline bool WriteAllBytes(std::string_view filePath, const T& buffer) { return WriteAllBytes(filePath, &buffer, sizeof(T)); };
+
 	bool WriteAllBytes(std::string_view filePath, const std::vector<uint8_t>& buffer);
 	bool WriteAllBytes(std::wstring_view filePath, const std::vector<uint8_t>& buffer);
-
+	
 	bool ReadAllLines(std::string_view filePath, std::vector<std::string>* buffer);
 	bool ReadAllLines(std::wstring_view filePath, std::vector<std::wstring>* buffer);
 }

@@ -32,12 +32,12 @@ namespace FileSystem
 		::CloseHandle(fileHandle);
 	}
 
-	inline bool WriteAllBytesInternal(HANDLE fileHandle, const std::vector<uint8_t>& buffer)
+	inline bool WriteAllBytesInternal(HANDLE fileHandle, const void* buffer, size_t bufferSize)
 	{
-		DWORD bytesToWrite = static_cast<DWORD>(buffer.size());
+		DWORD bytesToWrite = static_cast<DWORD>(bufferSize);
 		DWORD bytesWritten = {};
 
-		::WriteFile(fileHandle, buffer.data(), bytesToWrite, &bytesWritten, nullptr);
+		::WriteFile(fileHandle, buffer, bytesToWrite, &bytesWritten, nullptr);
 		int error = ::GetLastError();
 
 		return !FAILED(error) && (bytesWritten == bytesToWrite);

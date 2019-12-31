@@ -358,12 +358,42 @@ namespace FileSystem
 		return files;
 	}
 
+	bool ReadAllBytes(std::string_view filePath, void* buffer, size_t bufferSize)
+	{
+		HANDLE fileHandle = CreateFileHandleInternal(filePath, true);
+		int error = ::GetLastError();
+
+		if (fileHandle == nullptr)
+			return false;
+
+		DWORD fileSize = ::GetFileSize(fileHandle, nullptr);
+		DWORD bytesRead;
+
+		DWORD bytesToRead = min(fileSize, static_cast<DWORD>(bufferSize));
+
+		::ReadFile(fileHandle, buffer, bytesToRead, &bytesRead, nullptr);
+		CloseFileHandleInternal(fileHandle);
+		
+		return (bytesRead == bytesToRead);
+	}
+
+	bool WriteAllBytes(std::string_view filePath, const void* buffer, size_t bufferSize)
+	{
+		HANDLE fileHandle = CreateFileHandleInternal(filePath, false);
+		int error = ::GetLastError();
+
+		bool result = WriteAllBytesInternal(fileHandle, buffer, bufferSize);
+		CloseFileHandleInternal(fileHandle);
+
+		return result;
+	}
+
 	bool WriteAllBytes(std::string_view filePath, const std::vector<uint8_t>& buffer)
 	{
 		HANDLE fileHandle = CreateFileHandleInternal(filePath, false);
 		int error = ::GetLastError();
 
-		bool result = WriteAllBytesInternal(fileHandle, buffer);
+		bool result = WriteAllBytesInternal(fileHandle, buffer.data(), buffer.size());
 		CloseFileHandleInternal(fileHandle);
 
 		return result;
@@ -374,7 +404,7 @@ namespace FileSystem
 		HANDLE fileHandle = CreateFileHandleInternal(filePath, false);
 		int error = ::GetLastError();
 
-		bool result = WriteAllBytesInternal(fileHandle, buffer);
+		bool result = WriteAllBytesInternal(fileHandle, buffer.data(), buffer.size());
 		CloseFileHandleInternal(fileHandle);
 
 		return result;
