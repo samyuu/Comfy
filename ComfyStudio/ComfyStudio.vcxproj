@@ -173,7 +173,6 @@
     <ClCompile Include="src\App\Engine.cpp" />
     <ClCompile Include="src\App\TestTasks.cpp" />
     <ClCompile Include="src\Core\ApplicationHost.cpp" />
-    <ClCompile Include="src\Core\ComfyData.cpp" />
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
     <ClCompile Include="src\Editor\Aet\AetIcons.cpp" />
     <ClCompile Include="src\Editor\Aet\Command\AetCommand.cpp" />
@@ -300,6 +299,7 @@
     <ClInclude Include="src\App\Task.h" />
     <ClInclude Include="src\App\TestTasks.h" />
     <ClInclude Include="src\Core\ApplicationHost.h" />
+    <ClInclude Include="src\Core\ComfyConfig.h" />
     <ClInclude Include="src\Core\ComfyData.h" />
     <ClInclude Include="src\Editor\Aet\AetEditor.h" />
     <ClInclude Include="src\Editor\Aet\AetIcons.h" />

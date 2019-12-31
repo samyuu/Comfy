@@ -5,4 +5,4 @@ using ComfyArchive = FileSystem::ComfyArchive;
 
 constexpr std::string_view ComfyDataFileName = "ComfyData.bin";
 
-extern UniquePtr<ComfyArchive> ComfyData;
+inline UniquePtr<ComfyArchive> ComfyData = nullptr;

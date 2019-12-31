@@ -33,16 +33,17 @@ private:
 	// NOTE: Initialize the application
 	bool BaseInitialize();
 
-	// NOTE: Call update methods.
+	// NOTE: Call update methods
 	void BaseUpdate();
 
-	// NOTE: Call draw methods.
+	// NOTE: Call draw methods
 	void BaseDraw();
 
 	// NOTE: Dispose the application
 	void BaseDispose();
 
 	// NOTE: Initialization
+	bool InitializeLoadConfig();
 	bool InitializeMountRomData();
 	bool InitializeGuiRenderer();
 	bool InitializeEditorComponents();
@@ -58,6 +59,10 @@ private:
 
 	void DrawGuiBaseWindowMenus(const char* header, const std::vector<RefPtr<BaseWindow>>& components);
 	void DrawGuiBaseWindowWindows(const std::vector<RefPtr<BaseWindow>>& components);
+
+	// NOTE: Dispose methods
+	void DisposeSaveConfig();
+	void DisposeShutdownAudioEngine();
 
 private:
 	// NOTE: Core

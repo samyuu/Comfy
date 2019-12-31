@@ -118,6 +118,19 @@ void ApplicationHost::ToggleFullscreen()
 	SetIsFullscreen(fullscreenInverse);
 }
 
+bool ApplicationHost::GetIsMaximized() const
+{
+	return isMaximized;
+}
+
+void ApplicationHost::SetIsMaximized(bool value)
+{
+	isMaximized = value;
+
+	if (windowHandle != nullptr)
+		::ShowWindow(windowHandle, isMaximized ? SW_MAXIMIZE : SW_RESTORE);
+}
+
 void ApplicationHost::SetSwapInterval(int interval)
 {
 	swapInterval = interval;
@@ -159,6 +172,27 @@ void ApplicationHost::SetWindowSize(ivec2 value)
 
 	windowSize = value;
 	InternalSnycMoveWindow();
+}
+
+ivec4 ApplicationHost::GetWindowRestoreRegion()
+{
+	return windowRestoreRegion;
+}
+
+void ApplicationHost::SetWindowRestoreRegion(ivec4 value)
+{
+	assert(windowHandle == nullptr);
+	windowRestoreRegion = value;
+}
+
+void ApplicationHost::SetDefaultPositionWindow(bool value)
+{
+	defaultPositionWindow = value;
+}
+
+void ApplicationHost::SetDefaultResizeWindow(bool value)
+{
+	defaultResizeWindow = value;
 }
 
 void ApplicationHost::RegisterWindowProcCallback(const std::function<bool(HWND, UINT, WPARAM, LPARAM)> onWindowProc)
@@ -228,10 +262,10 @@ bool ApplicationHost::InternalCreateWindow()
 		ComfyWindowClassName,
 		ComfyStudioWindowTitle,
 		WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT,
-		CW_USEDEFAULT,
-		StartupWindowSize.x,
-		StartupWindowSize.y,
+		defaultPositionWindow ? CW_USEDEFAULT : windowPosition.x,
+		defaultPositionWindow ? CW_USEDEFAULT : windowPosition.y,
+		defaultResizeWindow ? CW_USEDEFAULT : windowSize.x,
+		defaultResizeWindow ? CW_USEDEFAULT : windowSize.y,
 		NULL,
 		NULL,
 		GlobalModuleHandle,
@@ -240,13 +274,34 @@ bool ApplicationHost::InternalCreateWindow()
 	if (windowHandle == NULL)
 		return false;
 
+	bool maximizedOnStartup = isMaximized;
+
+	// NOTE: Set window placement first to retrieve the maximized window size and set the restore position
+	if (maximizedOnStartup)
+	{
+		WINDOWPLACEMENT windowPlacement;
+		windowPlacement.length = sizeof(WINDOWPLACEMENT);
+		windowPlacement.flags = 0;
+		windowPlacement.showCmd = SW_MAXIMIZE;
+		windowPlacement.ptMinPosition = { windowPosition.x, windowPosition.y };
+		windowPlacement.ptMaxPosition = { windowPosition.x, windowPosition.y };
+		windowPlacement.rcNormalPosition = { windowRestoreRegion.x, windowRestoreRegion.y, windowRestoreRegion.x + windowRestoreRegion.z, windowRestoreRegion.y + windowRestoreRegion.w };
+
+		::SetWindowPlacement(windowHandle, &windowPlacement);
+	}
+
 	if (!Graphics::D3D.Initialize(windowHandle))
 	{
 		Graphics::D3D.Dispose();
 		return false;
 	}
 
-	::ShowWindow(windowHandle, SW_SHOWDEFAULT);
+	if (!maximizedOnStartup)
+	{
+		windowRestoreRegion = ivec4(windowPosition, windowSize);
+		::ShowWindow(windowHandle, SW_SHOWDEFAULT);
+	}
+
 	::UpdateWindow(windowHandle);
 
 	return true;
@@ -254,7 +309,10 @@ bool ApplicationHost::InternalCreateWindow()
 
 void ApplicationHost::InternalSnycMoveWindow()
 {
-	::MoveWindow(windowHandle, windowPosition.x, windowPosition.y, windowSize.x, windowSize.y, true);
+	if (windowHandle != nullptr)
+	{
+		::MoveWindow(windowHandle, windowPosition.x, windowPosition.y, windowSize.x, windowSize.y, true);
+	}
 }
 
 void ApplicationHost::InternalMouseMoveCallback(ivec2 position)
@@ -272,12 +330,20 @@ void ApplicationHost::InternalWindowMoveCallback(ivec2 position)
 	windowPosition = position;
 }
 
-void ApplicationHost::InternalWindowResizeCallback(ivec2 size)
+void ApplicationHost::InternalWindowResizeCallback(bool minimized, bool maximized, ivec2 size)
 {
+	isMaximized = maximized;
 	windowSize = size;
 
-	if (windowResizeCallback.has_value())
-		windowResizeCallback.value()(windowSize);
+	if (minimized)
+	{
+		windowRestoreRegion = ivec4(windowPosition, windowSize);
+	}
+	else
+	{
+		if (windowResizeCallback.has_value())
+			windowResizeCallback.value()(windowSize);
+	}
 }
 
 void ApplicationHost::InternalWindowDropCallback(size_t count, const char* paths[])
@@ -410,22 +476,30 @@ LRESULT ApplicationHost::InternalProcessWindowMessage(const UINT message, const 
 
 	case WM_SIZE:
 	{
-		const ivec2 size = { LOWORD(lParam), HIWORD(lParam) };
-		if (wParam != SIZE_MINIMIZED)
-			InternalWindowResizeCallback(size);
+		auto shortParams = reinterpret_cast<const short*>(&lParam);
+		const ivec2 size = { shortParams[0], shortParams[1] };
+		
+		const bool minimized = (wParam == SIZE_MINIMIZED);
+		const bool maximized = (wParam == SIZE_MAXIMIZED);
+
+		InternalWindowResizeCallback(minimized, maximized, size);
 		return 0;
 	}
 
 	case WM_MOVE:
 	{
-		const ivec2 position = { LOWORD(lParam), HIWORD(lParam) };
+		auto shortParams = reinterpret_cast<const short*>(&lParam);
+		const ivec2 position = { shortParams[0], shortParams[1] };
+		
 		InternalWindowMoveCallback(position);
 		return 0;
 	}
 
 	case WM_MOUSEMOVE:
 	{
-		const ivec2 position = { LOWORD(lParam), HIWORD(lParam) };
+		auto shortParams = reinterpret_cast<const short*>(&lParam);
+		const ivec2 position = { shortParams[0], shortParams[1] };
+
 		InternalMouseMoveCallback(position);
 		return 0;
 	}
@@ -437,6 +511,16 @@ LRESULT ApplicationHost::InternalProcessWindowMessage(const UINT message, const 
 	}
 
 	// TODO: case WM_DROPFILES:
+
+	case WM_GETMINMAXINFO:
+	{
+		MINMAXINFO* minMaxInfo = reinterpret_cast<MINMAXINFO*>(lParam);
+		if (WindowSizeRestraints.x > 0)
+			minMaxInfo->ptMinTrackSize.x = WindowSizeRestraints.x;
+		if (WindowSizeRestraints.y > 0)
+			minMaxInfo->ptMinTrackSize.y = WindowSizeRestraints.y;
+		return 0;
+	}
 
 	case WM_DEVICECHANGE:
 	{

@@ -32,8 +32,8 @@ namespace ImGui
 		const std::array<ImWchar, 3> iconFontGlyphRange;
 		
 	private:
-		static constexpr bool preLoadImGuiConfig = true;
-		static constexpr bool restoreConfigWindowSize = true;
+		static constexpr bool preLoadImGuiConfig = false;
+		static constexpr bool restoreConfigWindowSize = false;
 
 		static constexpr const char* configFileName = "imgui.ini";
 		static constexpr const char* logFileName = "imgui_log.txt";

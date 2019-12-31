@@ -9,6 +9,7 @@
 #include "System/Version/BuildConfiguration.h"
 #include "System/Version/BuildVersion.h"
 #include "Input/KeyCode.h"
+#include "Core/ComfyConfig.h"
 #include "Core/ComfyData.h"
 #include "Core/Logger.h"
 
@@ -57,6 +58,9 @@ bool Application::BaseInitialize()
 	hasBeenInitialized = true;
 	TimeSpan::Initialize();
 
+	if (!InitializeLoadConfig())
+		return false;
+
 	if (!host.Initialize())
 		return false;
 
@@ -65,12 +69,10 @@ bool Application::BaseInitialize()
 		Graphics::D3D.ResizeWindowRenderTarget(size);
 	});
 
-	host.RegisterWindowClosingCallback([]()
+	host.RegisterWindowClosingCallback([&]()
 	{
-		Audio::AudioEngine* audioEngine = Audio::AudioEngine::GetInstance();
-
-		if (audioEngine != nullptr)
-			audioEngine->StopStream();
+		DisposeSaveConfig();
+		DisposeShutdownAudioEngine();
 	});
 
 	Audio::AudioEngine::CreateInstance();
@@ -127,11 +129,41 @@ void Application::BaseDispose()
 	host.Dispose();
 }
 
+bool Application::InitializeLoadConfig()
+{
+	if (!LoadComfyConfig)
+		return true;
+
+	bool fileExists = FileSystem::FileExists(ComfyConfigFileName);
+	bool fileRead = !fileExists ? false : FileSystem::ReadAllBytes(ComfyConfigFileName, &ComfyConfig);
+
+	if (!fileExists)
+		Logger::LogErrorLine(__FUNCTION__"(): Unable to locate config file");
+	else if (!fileRead)
+		Logger::LogErrorLine(__FUNCTION__"(): Unable to read config file");
+
+	if (!fileExists || !fileRead)
+	{
+		ComfyConfig = {};
+		host.SetDefaultPositionWindow(true);
+		host.SetDefaultResizeWindow(true);
+		
+		// NOTE: Don't need to terminate the application
+		return true;
+	}
+
+	host.SetWindowRestoreRegion(ComfyConfig.Data.Window.RestoreRegion);
+	host.SetWindowPosition(ComfyConfig.Data.Window.Position);
+	host.SetWindowSize(ComfyConfig.Data.Window.Size);
+	host.SetIsFullscreen(ComfyConfig.Data.Window.Fullscreen);
+	host.SetIsMaximized(ComfyConfig.Data.Window.Maximized);
+
+	return true;
+}
+
 bool Application::InitializeMountRomData()
 {
-	const std::string comfyDataFileName(ComfyDataFileName);
-
-	if (!FileSystem::FileExists(comfyDataFileName))
+	if (!FileSystem::FileExists(ComfyDataFileName))
 	{
 		Logger::LogErrorLine(__FUNCTION__"(): Unable to locate data file");
 		return false;
@@ -141,7 +173,7 @@ bool Application::InitializeMountRomData()
 	if (ComfyData == nullptr)
 		return false;
 
-	ComfyData->Mount(comfyDataFileName);
+	ComfyData->Mount(ComfyDataFileName);
 
 	return true;
 }
@@ -239,7 +271,7 @@ void Application::DrawGui()
 					Exit();
 
 				Gui::EndMenu();
-		}
+			}
 
 			// Editor Menus Items
 			// ------------------
@@ -341,9 +373,9 @@ void Application::DrawGui()
 			Gui::TextUnformatted(infoBuffer);
 
 			Gui::EndMainMenuBar();
-	}
+		}
 		Gui::PopStyleColor(1);
-}
+	}
 
 	// Window Dockspace
 	// ----------------
@@ -478,4 +510,29 @@ void Application::DrawGuiBaseWindowWindows(const std::vector<RefPtr<BaseWindow>>
 			Gui::End();
 		}
 	}
+}
+
+void Application::DisposeSaveConfig()
+{
+	if (!SaveComfyConfig)
+		return;
+
+	ComfyConfig.Data.Window.RestoreRegion = host.GetWindowRestoreRegion();
+	ComfyConfig.Data.Window.Position = host.GetWindowPosition();
+	ComfyConfig.Data.Window.Size = host.GetWindowSize();
+	ComfyConfig.Data.Window.Fullscreen = host.GetIsFullscreen();
+	ComfyConfig.Data.Window.Maximized = host.GetIsMaximized();
+
+	bool success = FileSystem::WriteAllBytes(ComfyConfigFileName, ComfyConfig);
+
+	if (!success)
+		Logger::LogErrorLine(__FUNCTION__"(): Unable to write config file");
+}
+
+void Application::DisposeShutdownAudioEngine()
+{
+	Audio::AudioEngine* audioEngine = Audio::AudioEngine::GetInstance();
+
+	if (audioEngine != nullptr)
+		audioEngine->StopStream();
 }

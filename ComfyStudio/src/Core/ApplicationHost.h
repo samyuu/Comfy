@@ -31,6 +31,9 @@ public:
 	void SetIsFullscreen(bool value);
 	void ToggleFullscreen();
 
+	bool GetIsMaximized() const;
+	void SetIsMaximized(bool value);
+
 	void SetSwapInterval(int interval);
 
 	bool HasFocusBeenGained() const;
@@ -38,9 +41,15 @@ public:
 
 	ivec2 GetWindowPosition() const;
 	void SetWindowPosition(ivec2 value);
-
+	
 	ivec2 GetWindowSize() const;
 	void SetWindowSize(ivec2 value);
+
+	ivec4 GetWindowRestoreRegion();
+	void SetWindowRestoreRegion(ivec4 value);
+
+	void SetDefaultPositionWindow(bool value);
+	void SetDefaultResizeWindow(bool value);
 
 	inline HWND GetWindow() const { return windowHandle; };
 
@@ -68,7 +77,7 @@ private:
 	void InternalMouseMoveCallback(ivec2 position);
 	void InternalMouseScrollCallback(float offset);
 	void InternalWindowMoveCallback(ivec2 position);
-	void InternalWindowResizeCallback(ivec2 size);
+	void InternalWindowResizeCallback(bool minimized, bool maximized, ivec2 size);
 	void InternalWindowDropCallback(size_t count, const char* paths[]);
 	void InternalWindowPaintCallback();
 	void InternalWindowFocusCallback(bool focused);
@@ -89,9 +98,15 @@ private:
 	HWND windowHandle = nullptr;
 	bool isRunning = false;
 	bool isFullscreen = false;
+	bool isMaximized = false;
 
 	ivec2 windowPosition = StartupWindowPosition;
 	ivec2 windowSize = StartupWindowSize;
+	
+	ivec4 windowRestoreRegion = { StartupWindowPosition, StartupWindowSize };
+
+	bool defaultPositionWindow = false;
+	bool defaultResizeWindow = false;
 
 	ivec2 preFullScreenWindowPosition = StartupWindowPosition;
 	ivec2 preFullScreenWindowSize = StartupWindowSize;

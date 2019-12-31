@@ -50,6 +50,7 @@ namespace FileSystem
 	{
 		uint8_t Major;
 		uint8_t Minor;
+		uint16_t Reserved;
 	};
 
 	struct ComfyArchiveFlags
@@ -67,7 +68,6 @@ namespace FileSystem
 		std::array<uint8_t, 4> Magic;
 
 		ComfyVersion Version;
-		uint16_t ReservedVersion;
 
 		std::array<uint8_t, 4> CreatorID;
 		std::array<uint8_t, 4> ReservedID;
