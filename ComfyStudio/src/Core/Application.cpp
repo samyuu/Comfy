@@ -187,11 +187,10 @@ bool Application::InitializeEditorComponents()
 {
 	editorManager = MakeUnique<Editor::EditorManager>(this);
 
-	dataTestComponents.reserve(4);
-	dataTestComponents.push_back(MakeRef<DataTest::InputTestWindow>(this));
-	dataTestComponents.push_back(MakeRef<DataTest::AudioTestWindow>(this));
-	dataTestComponents.push_back(MakeRef<DataTest::IconTestWindow>(this));
-	// dataTestComponents.push_back(MakeRef<DataTest::ShaderTestWindow>(this));
+	dataTestComponents.reserve(3);
+	dataTestComponents.push_back(std::move(MakeUnique<DataTest::InputTestWindow>(this)));
+	dataTestComponents.push_back(std::move(MakeUnique<DataTest::AudioTestWindow>(this)));
+	dataTestComponents.push_back(std::move(MakeUnique<DataTest::IconTestWindow>(this)));
 
 	return true;
 }
@@ -485,7 +484,7 @@ void Application::DrawAppEngineMenus(const char* header)
 	}
 }
 
-void Application::DrawGuiBaseWindowMenus(const char* header, const std::vector<RefPtr<BaseWindow>>& components)
+void Application::DrawGuiBaseWindowMenus(const char* header, const std::vector<UniquePtr<BaseWindow>>& components)
 {
 	if (Gui::BeginMenu(header))
 	{
@@ -499,7 +498,7 @@ void Application::DrawGuiBaseWindowMenus(const char* header, const std::vector<R
 	}
 }
 
-void Application::DrawGuiBaseWindowWindows(const std::vector<RefPtr<BaseWindow>>& components)
+void Application::DrawGuiBaseWindowWindows(const std::vector<UniquePtr<BaseWindow>>& components)
 {
 	for (const auto& component : components)
 	{

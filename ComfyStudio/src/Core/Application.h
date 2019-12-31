@@ -17,7 +17,7 @@ public:
 	Application& operator= (const Application&) = delete;
 	~Application();
 
-	// NOTE: Initialize and enter the main loop.
+	// NOTE: Initialize and enter the main loop
 	void Run();
 
 	// NOTE: Break out of the main loop
@@ -57,8 +57,8 @@ private:
 	void DrawAppEngineWindow();
 	void DrawAppEngineMenus(const char* header);
 
-	void DrawGuiBaseWindowMenus(const char* header, const std::vector<RefPtr<BaseWindow>>& components);
-	void DrawGuiBaseWindowWindows(const std::vector<RefPtr<BaseWindow>>& components);
+	void DrawGuiBaseWindowMenus(const char* header, const std::vector<UniquePtr<BaseWindow>>& components);
+	void DrawGuiBaseWindowWindows(const std::vector<UniquePtr<BaseWindow>>& components);
 
 	// NOTE: Dispose methods
 	void DisposeSaveConfig();
@@ -87,5 +87,5 @@ private:
 
 	UniquePtr<App::Engine> appEngine = nullptr;
 	UniquePtr<Editor::EditorManager> editorManager = nullptr;
-	std::vector<RefPtr<BaseWindow>> dataTestComponents;
+	std::vector<UniquePtr<BaseWindow>> dataTestComponents;
 };
