@@ -138,9 +138,27 @@ ivec2 ApplicationHost::GetWindowPosition() const
 	return windowPosition;
 }
 
+void ApplicationHost::SetWindowPosition(ivec2 value)
+{
+	if (windowPosition == value)
+		return;
+
+	windowPosition = value;
+	InternalSnycMoveWindow();
+}
+
 ivec2 ApplicationHost::GetWindowSize() const
 {
 	return windowSize;
+}
+
+void ApplicationHost::SetWindowSize(ivec2 value)
+{
+	if (windowSize == value)
+		return;
+
+	windowSize = value;
+	InternalSnycMoveWindow();
 }
 
 void ApplicationHost::RegisterWindowProcCallback(const std::function<bool(HWND, UINT, WPARAM, LPARAM)> onWindowProc)
@@ -234,6 +252,11 @@ bool ApplicationHost::InternalCreateWindow()
 	return true;
 }
 
+void ApplicationHost::InternalSnycMoveWindow()
+{
+	::MoveWindow(windowHandle, windowPosition.x, windowPosition.y, windowSize.x, windowSize.y, true);
+}
+
 void ApplicationHost::InternalMouseMoveCallback(ivec2 position)
 {
 
@@ -267,6 +290,17 @@ void ApplicationHost::InternalWindowDropCallback(size_t count, const char* paths
 
 	for (size_t i = 0; i < count; i++)
 		droppedFiles.emplace_back(paths[i]);
+}
+
+void ApplicationHost::InternalWindowPaintCallback()
+{
+	PAINTSTRUCT paint;
+	HDC hdc = ::BeginPaint(windowHandle, &paint);
+	{
+		auto windowFrameBrush = reinterpret_cast<HBRUSH>(/*COLOR_WINDOWFRAME*/6);
+		::FillRect(hdc, &paint.rcPaint, windowFrameBrush);
+	}
+	::EndPaint(windowHandle, &paint);
 }
 
 void ApplicationHost::InternalWindowFocusCallback(bool focused)
@@ -417,6 +451,12 @@ LRESULT ApplicationHost::InternalProcessWindowMessage(const UINT message, const 
 			return 0;
 
 		break;
+	}
+
+	case WM_PAINT:
+	{
+		InternalWindowPaintCallback();
+		return 0;
 	}
 
 	case WM_SETFOCUS:

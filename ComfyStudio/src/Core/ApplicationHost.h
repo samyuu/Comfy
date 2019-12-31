@@ -37,7 +37,10 @@ public:
 	bool HasFocusBeenLost() const;
 
 	ivec2 GetWindowPosition() const;
+	void SetWindowPosition(ivec2 value);
+
 	ivec2 GetWindowSize() const;
+	void SetWindowSize(ivec2 value);
 
 	inline HWND GetWindow() const { return windowHandle; };
 
@@ -58,12 +61,16 @@ private:
 	// NOTE: Initialization
 	bool InternalCreateWindow();
 
+	// NOTE: Helpers
+	void InternalSnycMoveWindow();
+
 	// NOTE: Callbacks
 	void InternalMouseMoveCallback(ivec2 position);
 	void InternalMouseScrollCallback(float offset);
 	void InternalWindowMoveCallback(ivec2 position);
 	void InternalWindowResizeCallback(ivec2 size);
 	void InternalWindowDropCallback(size_t count, const char* paths[]);
+	void InternalWindowPaintCallback();
 	void InternalWindowFocusCallback(bool focused);
 	void InternalWindowClosingCallback();
 	void InternalCheckConnectedDevices();
