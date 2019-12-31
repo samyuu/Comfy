@@ -1,4 +1,5 @@
 #include "GuiRenderer.h"
+#include "Core/Application.h"
 #include "Core/ComfyData.h"
 #include "FileSystem/FileHelper.h"
 #include "ImGui/Implementation/ImGui_Impl.h"
@@ -91,6 +92,23 @@ namespace ImGui
 		io.KeyRepeatRate = 0.050f;
 		io.ConfigWindowsMoveFromTitleBarOnly = true;
 		io.ConfigDockingTabBarOnSingleWindows = true;
+
+		if (preLoadImGuiConfig)
+		{
+			LoadIniSettingsFromDisk(configFileName);
+
+			if (restoreConfigWindowSize)
+			{
+				const ImGuiID mainDockspaceID = ImHashStr(Application::MainDockSpaceID, 0);
+				const ImGuiWindowSettings* settings = FindWindowSettings(mainDockspaceID);
+
+				if (settings != nullptr)
+				{
+					host.SetWindowPosition(vec2(settings->Pos));
+					host.SetWindowSize(vec2(settings->Size));
+				}
+			}
+		}
 
 		return true;
 	}

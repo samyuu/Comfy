@@ -26,6 +26,9 @@ public:
 public:
 	ApplicationHost& GetHost();
 
+public:
+	static constexpr const char* MainDockSpaceID = "MainDockSpace##Application";
+
 private:
 	// NOTE: Initialize the application
 	bool BaseInitialize();
@@ -75,12 +78,9 @@ private:
 	LicenseWindow licenseWindow;
 	bool showStyleEditor = false;
 	bool showDemoWindow = false;
-	bool showSwapInterval = false;
 	bool versionWindowOpen = false;
 
 	UniquePtr<App::Engine> appEngine = nullptr;
 	UniquePtr<Editor::EditorManager> editorManager = nullptr;
 	std::vector<RefPtr<BaseWindow>> dataTestComponents;
-
-	static constexpr const char* mainDockSpaceID = "MainDockSpace##Application";
 };

@@ -208,13 +208,24 @@ void Application::DrawGui()
 				if (Gui::MenuItem("Toggle Fullscreen", nullptr))
 					host.ToggleFullscreen();
 
-				if (Gui::BeginMenu("Swap Interval", &showSwapInterval))
+				if (Gui::BeginMenu("Swap Interval"))
 				{
 					if (Gui::MenuItem("SwapInterval(0)", nullptr))
 						host.SetSwapInterval(0);
 
 					if (Gui::MenuItem("SwapInterval(1)", nullptr))
 						host.SetSwapInterval(1);
+
+					Gui::EndMenu();
+				}
+
+				if (Gui::BeginMenu("ImGui Config"))
+				{
+					if (Gui::MenuItem("Refresh", nullptr))
+						Gui::SaveIniSettingsToMemory();
+
+					if (Gui::MenuItem("Save To Disk", nullptr))
+						Gui::SaveIniSettingsToDisk(io.IniFilename);
 
 					Gui::EndMenu();
 				}
@@ -353,8 +364,8 @@ void Application::DrawGui()
 		if (showMainMenuBar)
 			dockspaceWindowFlags |= ImGuiWindowFlags_MenuBar;
 
-		Gui::Begin(mainDockSpaceID, nullptr, dockspaceWindowFlags);
-		ImGuiID dockspaceID = Gui::GetID(mainDockSpaceID);
+		Gui::Begin(MainDockSpaceID, nullptr, dockspaceWindowFlags);
+		ImGuiID dockspaceID = Gui::GetID(MainDockSpaceID);
 		Gui::DockSpace(dockspaceID, vec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 		Gui::End();
 
