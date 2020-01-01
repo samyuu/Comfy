@@ -362,7 +362,7 @@ bool ImGui_ImplDX11_CreateDeviceObjects()
 
 	// Create the vertex shader
 	{
-		auto[vertexShader, vertexShaderSize] = Graphics::ImGui_VS();
+		auto[vertexShader, vertexShaderSize] = Graphics::ImGuiDefault_VS();
 
 		if (g_pd3dDevice->CreateVertexShader(vertexShader, vertexShaderSize, nullptr, &g_pVertexShader) != S_OK)
 			return false;
@@ -397,7 +397,7 @@ bool ImGui_ImplDX11_CreateDeviceObjects()
 
 	// Create the pixel shader
 	{
-		auto[pixelShader, pixelShaderSize] = Graphics::ImGui_PS();
+		auto[pixelShader, pixelShaderSize] = Graphics::ImGuiDefault_PS();
 
 		if (g_pd3dDevice->CreatePixelShader(pixelShader, pixelShaderSize, nullptr, &g_pPixelShader) != S_OK)
 			return false;

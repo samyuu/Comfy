@@ -448,7 +448,7 @@
     <Image Include="res\ComfyIcon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\BlinnPerFrag_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\BlinnPerFrag_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -456,7 +456,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\BlinnPerFrag_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\BlinnPerFrag_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -464,7 +464,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ClothAniso_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\ClothAniso_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -472,7 +472,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ClothDefault_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\ClothDefault_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -480,7 +480,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ClothDefault_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\ClothDefault_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -488,7 +488,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\EyeBall_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\EyeBall_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -496,7 +496,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\EyeBall_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\EyeBall_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -504,7 +504,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\EyeLens_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\EyeLens_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -512,7 +512,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\EyeLens_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\EyeLens_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -520,7 +520,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Floor_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Floor_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -528,7 +528,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Floor_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Floor_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -536,7 +536,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\GlassEye_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\GlassEye_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -544,7 +544,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\GlassEye_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\GlassEye_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -552,7 +552,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\HairAniso_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\HairAniso_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -560,7 +560,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\HairDefault_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\HairDefault_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -568,7 +568,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\HairDefault_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\HairDefault_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -584,7 +584,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\BlinnPerVert_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\BlinnPerVert_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -592,7 +592,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\BlinnPerVert_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\BlinnPerVert_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -624,7 +624,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ItemBlinn_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\ItemBlinn_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -632,7 +632,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ItemBlinn_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\ItemBlinn_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -640,7 +640,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PPGauss_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\PPGauss_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -648,7 +648,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PPGauss_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\PPGauss_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -656,7 +656,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ReduceTex_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\ReduceTex_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -664,7 +664,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ReduceTex_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\ReduceTex_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -672,7 +672,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\SkinDefault_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\SkinDefault_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -680,7 +680,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\SkinDefault_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\SkinDefault_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -688,7 +688,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\SkyDefault_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\SkyDefault_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -696,7 +696,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\SkyDefault_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\SkyDefault_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -704,7 +704,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\StageBlinn_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\StageBlinn_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -712,7 +712,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\StageBlinn_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\StageBlinn_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -720,7 +720,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Tights_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Tights_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -728,7 +728,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Tights_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Tights_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -736,7 +736,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ToneMap_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\ToneMap_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -744,7 +744,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ToneMap_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\ToneMap_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -764,7 +764,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">XX_main</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XX_main</EntryPointName>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Constant_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Constant_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -772,7 +772,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Constant_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Constant_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -780,7 +780,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ImGui_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Comfy\ImGuiDefault_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -788,7 +788,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\ImGui_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Comfy\ImGuiDefault_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -800,7 +800,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Lambert_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Lambert_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -808,7 +808,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Lambert_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Lambert_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -826,7 +826,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">XX_main</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XX_main</EntryPointName>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Debug_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Comfy\Debug_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -838,7 +838,7 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </DeploymentContent>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Debug_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Comfy\Debug_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -862,7 +862,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Water_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Water_PS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -870,7 +870,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Water_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Water_VS.hlsl">
       <SubType>
       </SubType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
@@ -880,7 +880,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Sprite_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Comfy\Sprite_PS.hlsl">
       <FileType>Document</FileType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
@@ -891,7 +891,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Sprite_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Comfy\Sprite_VS.hlsl">
       <FileType>Document</FileType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>

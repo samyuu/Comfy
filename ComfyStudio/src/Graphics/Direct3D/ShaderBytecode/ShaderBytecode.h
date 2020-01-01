@@ -7,8 +7,8 @@
 // NOTE: Public interface
 namespace Graphics
 {
-	DECLARE_BYTECODE_GETTER(ImGui_VS);
-	DECLARE_BYTECODE_GETTER(ImGui_PS);
+	DECLARE_BYTECODE_GETTER(ImGuiDefault_VS);
+	DECLARE_BYTECODE_GETTER(ImGuiDefault_PS);
 
 	DECLARE_BYTECODE_GETTER(Sprite_VS);
 	DECLARE_BYTECODE_GETTER(Sprite_PS);
@@ -81,8 +81,8 @@ namespace Graphics
 // NOTE: Implementation included in the cpp file
 #ifdef SHADER_BYTECODE_IMPLEMENTATION
 
-#include SHADER_BYTECODE_FILE(ImGui_VS.h)
-#include SHADER_BYTECODE_FILE(ImGui_PS.h)
+#include SHADER_BYTECODE_FILE(ImGuiDefault_VS.h)
+#include SHADER_BYTECODE_FILE(ImGuiDefault_PS.h)
 
 #include SHADER_BYTECODE_FILE(Sprite_VS.h)
 #include SHADER_BYTECODE_FILE(Sprite_PS.h)
@@ -153,8 +153,8 @@ namespace Graphics
 
 namespace Graphics
 {
-	DEFINE_BYTECODE_GETTER(ImGui_VS);
-	DEFINE_BYTECODE_GETTER(ImGui_PS);
+	DEFINE_BYTECODE_GETTER(ImGuiDefault_VS);
+	DEFINE_BYTECODE_GETTER(ImGuiDefault_PS);
 
 	DEFINE_BYTECODE_GETTER(Sprite_VS);
 	DEFINE_BYTECODE_GETTER(Sprite_PS);
