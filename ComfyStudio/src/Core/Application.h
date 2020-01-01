@@ -61,6 +61,7 @@ private:
 	void DrawGuiBaseWindowWindows(const std::vector<UniquePtr<BaseWindow>>& components);
 
 	// NOTE: Dispose methods
+	void DisposeUnmountRomData();
 	void DisposeSaveConfig();
 	void DisposeShutdownAudioEngine();
 

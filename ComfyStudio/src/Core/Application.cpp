@@ -71,6 +71,7 @@ bool Application::BaseInitialize()
 
 	host.RegisterWindowClosingCallback([&]()
 	{
+		DisposeUnmountRomData();
 		DisposeSaveConfig();
 		DisposeShutdownAudioEngine();
 	});
@@ -147,7 +148,7 @@ bool Application::InitializeLoadConfig()
 		ComfyConfig = {};
 		host.SetDefaultPositionWindow(true);
 		host.SetDefaultResizeWindow(true);
-		
+
 		// NOTE: Don't need to terminate the application
 		return true;
 	}
@@ -509,6 +510,15 @@ void Application::DrawGuiBaseWindowWindows(const std::vector<UniquePtr<BaseWindo
 			Gui::End();
 		}
 	}
+}
+
+void Application::DisposeUnmountRomData()
+{
+	if (ComfyData == nullptr)
+		return;
+
+	ComfyData->UnMount();
+	ComfyData = nullptr;
 }
 
 void Application::DisposeSaveConfig()
