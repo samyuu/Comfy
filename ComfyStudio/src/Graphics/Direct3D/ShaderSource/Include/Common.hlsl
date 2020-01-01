@@ -2,12 +2,24 @@
 #define COMMON_HLSL
 #include "SceneData.hlsl"
 
-static const float PI = 3.14159265;
+static const float PI = 3.14159265358979323846;
+static const float PI_HALF = 1.57079632679489661923;
+
 static const float AlphaTestThreshold = 0.5;
 
 void ClipAlphaThreshold(const float alpha)
 {
     clip(alpha < AlphaTestThreshold ? -1.0 : 1.0);
+}
+
+bool IsInRange(const float input, const float rangeMin, const float rangeMax)
+{
+	return input >= rangeMin && input <= rangeMax;
+}
+
+bool IsInRangeSize(const float input, const float rangeMin, const float rangeSize)
+{
+	return input >= rangeMin && input <= (rangeMin + rangeSize);
 }
 
 float2 TransformTextureCoordinates(const float2 texCoord, const matrix transform)

@@ -916,5 +916,6 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PPGauss_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PPGauss_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\HairDefault_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\CubeMapCommon.hlsl" />
   </ItemGroup>
 </Project>
