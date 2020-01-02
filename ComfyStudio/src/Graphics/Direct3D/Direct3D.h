@@ -17,8 +17,13 @@ namespace Graphics
 		bool Initialize(HWND window);
 		void Dispose();
 
+	public:
 		void ResizeWindowRenderTarget(ivec2 newSize);
+		
 		void SetViewport(ivec2 size);
+		void SetViewport(ivec2 position, ivec2 size);
+
+		void SetScissorRect(ivec4 rectangle);
 
 	public:
 		// NOTE: Raw pointers to optionally skip releasing them
@@ -33,14 +38,14 @@ namespace Graphics
 		UniquePtr<D3D_SwapChainRenderTarget> WindowRenderTarget = nullptr;
 
 	private:
-#if COMFY_DEBUG
-		ComPtr<ID3D11Debug> debugInterface;
-		ComPtr<ID3D11InfoQueue> infoQueue;
-#endif
-
-	private:
 		bool InternalCreateDeviceAndSwapchain(HWND window);
 		bool InternalSetUpDebugInterface();
+	
+	private:
+#if COMFY_DEBUG
+		ComPtr<ID3D11Debug> debugInterface = nullptr;
+		ComPtr<ID3D11InfoQueue> infoQueue = nullptr;
+#endif
 	};
 
 	// NOTE: Global instance

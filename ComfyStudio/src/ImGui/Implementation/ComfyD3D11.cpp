@@ -216,6 +216,7 @@ namespace ImGui
 				Data.DeviceObjects->MatrixCB.UploadData();
 			}
 
+			// TODO: Most of these are redundant
 			struct D3D_StateBackup
 			{
 				UINT ScissorRectsCount, ViewportsCount;
@@ -288,8 +289,6 @@ namespace ImGui
 			Data.DeviceObjects->VertexBuffer->Bind();
 			Data.DeviceObjects->IndexBuffer->Bind();
 
-			Data.DeviceObjects->DefaultShader.Bind();
-
 			Data.DeviceObjects->MatrixCB.BindVertexShader();
 			Data.DeviceObjects->DynamicCB.BindPixelShader();
 
@@ -299,66 +298,79 @@ namespace ImGui
 			Data.DeviceObjects->RasterizerState.Bind();
 			Data.DeviceObjects->DepthStencilState.Bind();
 
-			const ImTextureID invalidTextureID = ImTextureID(nullptr);
-			ImTextureID lastBoundTextureID = invalidTextureID;
+			struct StateCache
+			{
+				const D3D_ShaderPair* Shader = nullptr;
+
+				const vec4 InvalidScissorRect = vec4(0.0f);
+				vec4 ScissorRect = InvalidScissorRect;
+
+				const ImTextureID InvalidTextureID = ImTextureID(nullptr);
+				ImTextureID TextureID = InvalidTextureID;
+			} cache;
 
 			int vertexOffset = 0, indexOffset = 0;
 			for (int commandListIndex = 0; commandListIndex < drawData->CmdListsCount; commandListIndex++)
 			{
-				const ImDrawList* commandList = drawData->CmdLists[commandListIndex];
-				for (int commandIndex = 0; commandIndex < commandList->CmdBuffer.Size; commandIndex++)
+				const ImDrawList& commandList = *drawData->CmdLists[commandListIndex];
+				for (int commandIndex = 0; commandIndex < commandList.CmdBuffer.Size; commandIndex++)
 				{
-					const ImDrawCmd* command = &commandList->CmdBuffer[commandIndex];
+					const ImDrawCmd& command = commandList.CmdBuffer[commandIndex];
 
-					if (command->UserCallback)
+					if (command.UserCallback)
 					{
-						command->UserCallback(commandList, command);
+						command.UserCallback(&commandList, &command);
 					}
 					else
 					{
-						const D3D11_RECT scissorRect =
+						const vec4 commandScissorRect = vec4(command.ClipRect) - vec4(vec2(drawData->DisplayPos), vec2(drawData->DisplayPos));
+						if (commandScissorRect != cache.ScissorRect)
 						{
-							static_cast<LONG>(command->ClipRect.x - drawData->DisplayPos.x),
-							static_cast<LONG>(command->ClipRect.y - drawData->DisplayPos.y),
-							static_cast<LONG>(command->ClipRect.z - drawData->DisplayPos.x),
-							static_cast<LONG>(command->ClipRect.w - drawData->DisplayPos.y)
-						};
+							D3D.SetScissorRect(commandScissorRect);
+							cache.ScissorRect = commandScissorRect;
+						}
+						
+						const D3D_ShaderPair* commandShader = &Data.DeviceObjects->DefaultShader;
+						const ImTextureID& commandTexture = command.TextureId;
 
-						D3D.Context->RSSetScissorRects(1, &scissorRect);
-
-						if (lastBoundTextureID != command->TextureId)
+						if (commandTexture != cache.TextureID)
 						{
-							auto& texture = command->TextureId;
-							lastBoundTextureID = command->TextureId;
+							cache.TextureID = commandTexture;
 
-							std::array<ID3D11ShaderResourceView*, 2> resourceViews = { nullptr, nullptr };
-							resourceViews[texture.IsCubeMap] = texture;
-
-							if (texture.IsCubeMap || texture.IsRGTC)
+							if (commandTexture.IsCubeMap || commandTexture.IsRGTC)
 							{
-								Data.DeviceObjects->DynamicCB.Data.RenderCubeMap = texture.IsCubeMap;
+								commandShader = &Data.DeviceObjects->CustomShader;
+
+								Data.DeviceObjects->DynamicCB.Data.RenderCubeMap = commandTexture.IsCubeMap;
 								Data.DeviceObjects->DynamicCB.Data.CubeMapFace = -1;
 								Data.DeviceObjects->DynamicCB.Data.CubeMapUnwrapNet = true;
-								Data.DeviceObjects->DynamicCB.Data.DecompressRGTC = texture.IsRGTC;
+								Data.DeviceObjects->DynamicCB.Data.DecompressRGTC = commandTexture.IsRGTC;
 								Data.DeviceObjects->DynamicCB.UploadData();
 
-								Data.DeviceObjects->CustomShader.Bind();
+								std::array<ID3D11ShaderResourceView*, 2> resourceViews = { nullptr, nullptr };
+								resourceViews[commandTexture.IsCubeMap] = commandTexture;
+
+								D3D.Context->PSSetShaderResources(0, static_cast<UINT>(resourceViews.size()), resourceViews.data());
 							}
 							else
 							{
-								Data.DeviceObjects->DefaultShader.Bind();
+								D3D.Context->PSSetShaderResources(0, 1, &commandTexture.ResourceView);
 							}
-
-							D3D.Context->PSSetShaderResources(0, static_cast<UINT>(resourceViews.size()), resourceViews.data());
 						}
 
-						D3D.Context->DrawIndexed(command->ElemCount, indexOffset, vertexOffset);
+						if (commandShader != cache.Shader)
+						{
+							commandShader->Bind();
+							cache.Shader = commandShader;
+						}
+
+						D3D.Context->DrawIndexed(command.ElemCount, indexOffset, vertexOffset);
 					}
 
-					indexOffset += command->ElemCount;
+					indexOffset += command.ElemCount;
 				}
 
-				vertexOffset += commandList->VtxBuffer.Size;
+				vertexOffset += commandList.VtxBuffer.Size;
 			}
 		}
 	}
@@ -417,7 +429,7 @@ namespace ImGui
 			auto userData = static_cast<ViewportUserData*>(viewport->RendererUserData);
 
 			userData->RenderTargetView = nullptr;
-			
+
 			if (userData->SwapChain == nullptr)
 				return;
 

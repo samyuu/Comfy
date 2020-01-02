@@ -46,15 +46,26 @@ namespace Graphics
 
 	void Direct3D::SetViewport(ivec2 size)
 	{
+		SetViewport(ivec2(0, 0), size);
+	}
+
+	void Direct3D::SetViewport(ivec2 position, ivec2 size)
+	{
 		D3D11_VIEWPORT viewport;
-		viewport.TopLeftX = 0.0f;
-		viewport.TopLeftY = 0.0f;
+		viewport.TopLeftX = static_cast<float>(position.x);
+		viewport.TopLeftY = static_cast<float>(position.y);
 		viewport.Width = static_cast<float>(size.x);
 		viewport.Height = static_cast<float>(size.y);
 		viewport.MinDepth = 0.0f;
 		viewport.MaxDepth = 1.0f;
 
 		D3D.Context->RSSetViewports(1, &viewport);
+	}
+
+	void Direct3D::SetScissorRect(ivec4 rectangle)
+	{
+		D3D11_RECT scissorRect = { rectangle.x, rectangle.y, rectangle.z, rectangle.w };
+		D3D.Context->RSSetScissorRects(1, &scissorRect);
 	}
 
 	bool Direct3D::InternalCreateDeviceAndSwapchain(HWND window)
