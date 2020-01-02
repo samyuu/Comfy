@@ -13,7 +13,9 @@ namespace Graphics
 struct ComfyTextureID
 {
 	ID3D11ShaderResourceView* ResourceView;
-	bool IsCubeMap, IsRGTC, Reserved0, Reserved1;
+	bool IsCubeMap;
+	bool DecompressRGTC;
+	bool Reserved[2];
 
 	ComfyTextureID(const nullptr_t dummy = nullptr);
 	ComfyTextureID(const Graphics::D3D_TextureResource& texture);
@@ -26,5 +28,4 @@ struct ComfyTextureID
 	inline operator intptr_t() const { return reinterpret_cast<intptr_t>(ResourceView); };
 
 	inline operator ID3D11ShaderResourceView*() const { return ResourceView; };
-
 };

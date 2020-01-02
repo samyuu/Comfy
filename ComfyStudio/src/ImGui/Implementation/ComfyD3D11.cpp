@@ -337,14 +337,14 @@ namespace ImGui
 						{
 							cache.TextureID = commandTexture;
 
-							if (commandTexture.IsCubeMap || commandTexture.IsRGTC)
+							if (commandTexture.IsCubeMap || commandTexture.DecompressRGTC)
 							{
 								commandShader = &Data.DeviceObjects->CustomShader;
 
 								Data.DeviceObjects->DynamicCB.Data.RenderCubeMap = commandTexture.IsCubeMap;
 								Data.DeviceObjects->DynamicCB.Data.CubeMapFace = -1;
 								Data.DeviceObjects->DynamicCB.Data.CubeMapUnwrapNet = true;
-								Data.DeviceObjects->DynamicCB.Data.DecompressRGTC = commandTexture.IsRGTC;
+								Data.DeviceObjects->DynamicCB.Data.DecompressRGTC = commandTexture.DecompressRGTC;
 								Data.DeviceObjects->DynamicCB.UploadData();
 
 								std::array<ID3D11ShaderResourceView*, 2> resourceViews = { nullptr, nullptr };

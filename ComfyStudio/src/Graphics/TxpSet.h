@@ -47,8 +47,8 @@ namespace Graphics
 
 		uint32_t TextureID = -1;
 
-		UniquePtr<D3D_Texture2D> Texture2D;
-		UniquePtr<D3D_CubeMap> CubeMap;
+		UniquePtr<D3D_Texture2D> Texture2D = nullptr;
+		UniquePtr<D3D_CubeMap> CubeMap = nullptr;
 
 	public:
 		const std::vector<MipMap>& GetMipMaps(uint32_t arrayIndex = 0) const;

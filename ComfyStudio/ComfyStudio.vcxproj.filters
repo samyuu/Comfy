@@ -387,6 +387,9 @@
     <ClCompile Include="src\ImGui\ComfyTextureID.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\ImGui\Extensions\TxpExtensions.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
@@ -852,6 +855,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\ComfyTextureID.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ImGui\Extensions\TxpExtensions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

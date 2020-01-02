@@ -386,7 +386,9 @@
     <ClInclude Include="src\Graphics\Direct3D\ShaderBytecode\ShaderBytecode.h" />
     <ClInclude Include="src\Graphics\GraphicsTypes.h" />
     <ClInclude Include="src\Graphics\GraphicTypesNames.h" />
+    <ClCompile Include="src\ImGui\Extensions\TxpExtensions.cpp" />
     <ClInclude Include="src\ImGui\Core\imgui_user.h" />
+    <ClInclude Include="src\ImGui\Extensions\TxpExtensions.h" />
     <ClInclude Include="src\ImGui\GuiRenderer.h" />
     <ClInclude Include="src\ImGui\Implementation\ComfyD3D11.h" />
     <ClInclude Include="src\ImGui\Implementation\ComfyWin32.h" />
