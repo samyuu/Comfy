@@ -68,6 +68,26 @@ namespace Graphics
 		D3D.Context->RSSetScissorRects(1, &scissorRect);
 	}
 
+	void Direct3D::EnsureDeviceObjectLifetimeUntilRendering(ID3D11DeviceChild * object)
+	{
+		if (object == nullptr)
+			return;
+
+		object->AddRef();
+		objectsToBeReleased.push_back(object);
+	}
+
+	void Direct3D::EndOfFrameClearStaleDeviceObjects()
+	{
+		if (objectsToBeReleased.empty())
+			return;
+
+		for (auto object : objectsToBeReleased)
+			object->Release();
+
+		objectsToBeReleased.clear();
+	}
+
 	bool Direct3D::InternalCreateDeviceAndSwapchain(HWND window)
 	{
 		DXGI_SWAP_CHAIN_DESC swapChainDescription = {};

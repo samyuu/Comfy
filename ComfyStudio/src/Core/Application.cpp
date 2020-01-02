@@ -108,6 +108,8 @@ void Application::BaseDraw()
 		Graphics::D3D.WindowRenderTarget->Clear(Editor::GetColorVec4(Editor::EditorColor_BaseClear));
 	}
 	guiRenderer.EndFrame();
+
+	Graphics::D3D.EndOfFrameClearStaleDeviceObjects();
 }
 
 void Application::BaseDispose()

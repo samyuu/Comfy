@@ -344,6 +344,11 @@ namespace Graphics
 	{
 	}
 
+	D3D_TextureResource::~D3D_TextureResource()
+	{
+		D3D.EnsureDeviceObjectLifetimeUntilRendering(resourceView.Get());
+	}
+
 	void D3D_TextureResource::Bind(uint32_t textureSlot) const
 	{
 		assert(textureSlot < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);

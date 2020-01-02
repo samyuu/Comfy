@@ -25,6 +25,10 @@ namespace Graphics
 
 		void SetScissorRect(ivec4 rectangle);
 
+		// NOTE: To avoid stale refereces and invalid memory accesses during rendering
+		void EnsureDeviceObjectLifetimeUntilRendering(ID3D11DeviceChild* object);
+		void EndOfFrameClearStaleDeviceObjects();
+
 	public:
 		// NOTE: Raw pointers to optionally skip releasing them
 
@@ -41,6 +45,9 @@ namespace Graphics
 		bool InternalCreateDeviceAndSwapchain(HWND window);
 		bool InternalSetUpDebugInterface();
 	
+	private:
+		std::vector<ID3D11DeviceChild*> objectsToBeReleased;
+
 	private:
 #if COMFY_DEBUG
 		ComPtr<ID3D11Debug> debugInterface = nullptr;

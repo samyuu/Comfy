@@ -19,7 +19,7 @@ namespace Graphics
 	{
 	protected:
 		D3D_TextureResource();
-		virtual ~D3D_TextureResource() = default;
+		virtual ~D3D_TextureResource();
 
 	public:
 		void Bind(uint32_t textureSlot) const;
