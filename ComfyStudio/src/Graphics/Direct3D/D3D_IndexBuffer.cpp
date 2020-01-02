@@ -42,7 +42,7 @@ namespace Graphics
 		bufferDescription.StructureByteStride = static_cast<UINT>(GetIndexTypeSize(indexType));
 
 		D3D11_SUBRESOURCE_DATA initialResourceData = { data, 0, 0 };
-		D3D.Device->CreateBuffer(&bufferDescription, &initialResourceData, &buffer);
+		D3D.Device->CreateBuffer(&bufferDescription, (data == nullptr) ? nullptr : &initialResourceData, &buffer);
 	}
 
 	void D3D_IndexBuffer::Bind()

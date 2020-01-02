@@ -2,9 +2,14 @@
 #include "Core/Application.h"
 #include "Core/ComfyData.h"
 #include "FileSystem/FileHelper.h"
-#include "ImGui/Implementation/ImGui_Impl.h"
-#include "ImGui/Implementation/ImGui_Impl_Renderer.h"
+#include "ImGui/Implementation/ComfyWin32.h"
+#include "ImGui/Implementation/ComfyD3D11.h"
 #include "FontIcons.h"
+
+namespace ImGui
+{
+	LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+}
 
 namespace ImGui
 {
@@ -39,7 +44,7 @@ namespace ImGui
 
 	void GuiRenderer::BeginFrame()
 	{
-		ImGui_ImplDX11_NewFrame();
+		ComfyD3D11::NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		NewFrame();
 		UpdateExtendedState();
@@ -48,7 +53,7 @@ namespace ImGui
 	void GuiRenderer::EndFrame()
 	{
 		Render();
-		ImGui_ImplDX11_RenderDrawData(GetDrawData());
+		ComfyD3D11::RenderDrawData(GetDrawData());
 
 		const auto& io = GetIO();
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -60,7 +65,7 @@ namespace ImGui
 
 	void GuiRenderer::Dispose()
 	{
-		ImGui_ImplDX11_Shutdown();
+		ComfyD3D11::Shutdown();
 		ImGui_ImplWin32_Shutdown();
 		DestroyContext();
 	}
@@ -161,10 +166,15 @@ namespace ImGui
 		if (!ImGui_ImplWin32_Init(host.GetWindow()))
 			return false;
 
-		if (!ImGui_ImplDX11_Init())
-			return false;
+		//if (!ImGui_ImplDX11_Init())
+		//	return false;
 
-		extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
+		//if (!ComfyWin32::Initialize(host.GetWindow()))
+		//	return false;
+
+		if (!ComfyD3D11::Initialize())
+			return false;
+		
 		host.RegisterWindowProcCallback(ImGui_ImplWin32_WndProcHandler);
 
 		return true;

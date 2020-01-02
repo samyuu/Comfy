@@ -28,7 +28,7 @@ namespace Graphics
 		samplerDescription.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 		samplerDescription.MipLODBias = glm::clamp(mipMapBias, D3D11_MIP_LOD_BIAS_MIN, D3D11_MIP_LOD_BIAS_MAX);
 		samplerDescription.MaxAnisotropy = anisotropicFiltering;
-		samplerDescription.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		samplerDescription.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 		samplerDescription.BorderColor[0] = transparentBorderColor[0];
 		samplerDescription.BorderColor[1] = transparentBorderColor[1];
 		samplerDescription.BorderColor[2] = transparentBorderColor[2];

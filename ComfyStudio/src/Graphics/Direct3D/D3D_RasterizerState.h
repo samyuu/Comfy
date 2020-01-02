@@ -7,7 +7,8 @@ namespace Graphics
 	class D3D_RasterizerState final : IGraphicsResource
 	{
 	public:
-		D3D_RasterizerState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode);
+		D3D_RasterizerState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode, bool scissorEnabled = false);
+		D3D_RasterizerState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode, bool scissorEnabled, const char* debugName);
 		D3D_RasterizerState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode, const char* debugName);
 		D3D_RasterizerState(const D3D_RasterizerState&) = default;
 		~D3D_RasterizerState() = default;

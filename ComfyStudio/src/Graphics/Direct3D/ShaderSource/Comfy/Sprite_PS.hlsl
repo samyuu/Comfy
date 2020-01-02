@@ -30,7 +30,7 @@ SamplerState SpriteMaskSampler  : register(s1);
 Texture2D SpriteTexture         : register(t0);
 Texture2D SpriteMaskTexture     : register(t1);
 
-float4 PS_MAIN(VS_OUTPUT input) : SV_Target
+float4 PS_main(VS_OUTPUT input) : SV_Target
 {
     float4 outputColor = input.Color;
 

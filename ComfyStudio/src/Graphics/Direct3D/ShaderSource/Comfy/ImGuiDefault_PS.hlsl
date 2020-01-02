@@ -8,7 +8,7 @@ struct VS_OUTPUT
 SamplerState Sampler    : register(s0);
 Texture2D Texture       : register(t0);
 
-float4 PS_MAIN(VS_OUTPUT input) : SV_Target
+float4 PS_main(VS_OUTPUT input) : SV_Target
 {
     return input.Color * Texture.Sample(Sampler, input.TexCoord);
 }

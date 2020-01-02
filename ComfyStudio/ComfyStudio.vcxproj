@@ -162,6 +162,7 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ImGui\ComfyTextureID.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_wav.cpp" />
@@ -241,8 +242,8 @@
     <ClCompile Include="src\Graphics\Direct3D\Direct3D.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\ShaderBytecode\ShaderBytecode.cpp" />
     <ClCompile Include="src\ImGui\GuiRenderer.cpp" />
-    <ClCompile Include="src\ImGui\Implementation\ImGui_Impl_Renderer.cpp" />
-    <ClCompile Include="src\ImGui\Implementation\ImGui_Impl.cpp" />
+    <ClCompile Include="src\ImGui\Implementation\ComfyD3D11.cpp" />
+    <ClCompile Include="src\ImGui\Implementation\ComfyWin32.cpp" />
     <ClCompile Include="src\Input\Keyboard.cpp" />
     <ClCompile Include="src\Input\KeyCode.cpp" />
     <ClCompile Include="src\System\CommandLine\CommandLine.cpp" />
@@ -287,6 +288,7 @@
     <ClCompile Include="src\System\Profiling\Profiler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\ImGui\ComfyTextureID.h" />
     <ClInclude Include="lib\rtaudio\src\asio.h" />
     <ClInclude Include="lib\rtaudio\src\asiodrivers.h" />
     <ClInclude Include="lib\rtaudio\src\asiodrvr.h" />
@@ -384,9 +386,10 @@
     <ClInclude Include="src\Graphics\Direct3D\ShaderBytecode\ShaderBytecode.h" />
     <ClInclude Include="src\Graphics\GraphicsTypes.h" />
     <ClInclude Include="src\Graphics\GraphicTypesNames.h" />
+    <ClInclude Include="src\ImGui\Core\imgui_user.h" />
     <ClInclude Include="src\ImGui\GuiRenderer.h" />
-    <ClInclude Include="src\ImGui\Implementation\ImGui_Impl_Renderer.h" />
-    <ClInclude Include="src\ImGui\Implementation\ImGui_Impl.h" />
+    <ClInclude Include="src\ImGui\Implementation\ComfyD3D11.h" />
+    <ClInclude Include="src\ImGui\Implementation\ComfyWin32.h" />
     <ClInclude Include="src\System\CommandLine\CommandLine.h" />
     <ClInclude Include="src\Audio\Core\Detail\SampleMixer.h" />
     <ClInclude Include="src\Audio\Decoder\AudioDecoderFactory.h" />
@@ -448,6 +451,14 @@
     <Image Include="res\ComfyIcon.ico" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Comfy\ImGuiCustom_PS.hlsl">
+      <SubType>
+      </SubType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\BlinnPerFrag_PS.hlsl">
       <SubType>
       </SubType>
@@ -785,8 +796,8 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
     </FxCompile>
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Comfy\ImGuiDefault_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
@@ -884,8 +895,8 @@
       <FileType>Document</FileType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
     </FxCompile>

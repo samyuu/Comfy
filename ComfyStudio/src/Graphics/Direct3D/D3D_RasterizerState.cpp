@@ -2,7 +2,7 @@
 
 namespace Graphics
 {
-	D3D_RasterizerState::D3D_RasterizerState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode)
+	D3D_RasterizerState::D3D_RasterizerState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode, bool scissorEnabled)
 	{
 		rasterizerDescription.FillMode = fillMode;
 		rasterizerDescription.CullMode = cullMode;
@@ -12,7 +12,7 @@ namespace Graphics
 		rasterizerDescription.DepthBiasClamp = D3D11_DEFAULT_DEPTH_BIAS_CLAMP;
 		rasterizerDescription.SlopeScaledDepthBias = D3D11_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
 		rasterizerDescription.DepthClipEnable = true;
-		rasterizerDescription.ScissorEnable = false;
+		rasterizerDescription.ScissorEnable = scissorEnabled;
 		rasterizerDescription.MultisampleEnable = false;
 		rasterizerDescription.AntialiasedLineEnable = false;
 
@@ -20,7 +20,12 @@ namespace Graphics
 	}
 
 	D3D_RasterizerState::D3D_RasterizerState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode, const char* debugName)
-		: D3D_RasterizerState(fillMode, cullMode)
+		: D3D_RasterizerState(fillMode, cullMode, false, debugName)
+	{
+	}
+
+	D3D_RasterizerState::D3D_RasterizerState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode, bool scissorEnabled, const char* debugName)
+		: D3D_RasterizerState(fillMode, cullMode, scissorEnabled)
 	{
 		D3D_SetObjectDebugName(rasterizerState.Get(), debugName);
 	}

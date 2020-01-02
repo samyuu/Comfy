@@ -6,7 +6,7 @@ namespace Graphics
 	{
 		depthStencilDescription.DepthEnable = depthEnabled;
 		depthStencilDescription.DepthWriteMask = depthWriteMask;
-		depthStencilDescription.DepthFunc = D3D11_COMPARISON_LESS;
+		depthStencilDescription.DepthFunc = depthEnabled ? D3D11_COMPARISON_LESS_EQUAL : D3D11_COMPARISON_ALWAYS;
 		depthStencilDescription.StencilEnable = false;
 		depthStencilDescription.StencilReadMask = 0xFF;
 		depthStencilDescription.StencilWriteMask = 0xFF;
