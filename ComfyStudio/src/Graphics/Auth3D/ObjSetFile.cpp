@@ -201,15 +201,15 @@ namespace Graphics
 			});
 		}
 
-		if (void* skinsPtr = reader.ReadPtr(); objectCount > 0 && skinsPtr != nullptr)
+		if (void* skeletonsPtr = reader.ReadPtr(); objectCount > 0 && skeletonsPtr != nullptr)
 		{
-			reader.ReadAt(skinsPtr, [this](BinaryReader& reader)
+			reader.ReadAt(skeletonsPtr, [this](BinaryReader& reader)
 			{
 				for (auto& obj : objects)
 				{
-					if (void* skinPtr = reader.ReadPtr(); skinPtr != nullptr)
+					if (void* skeletonPtr = reader.ReadPtr(); skeletonPtr != nullptr)
 					{
-						reader.ReadAt(skinPtr, [&obj](BinaryReader& reader)
+						reader.ReadAt(skeletonPtr, [&obj](BinaryReader& reader)
 						{
 							void* idsPtr = reader.ReadPtr();
 							void* transformsPtr = reader.ReadPtr();
@@ -221,7 +221,7 @@ namespace Graphics
 							if (count < 1)
 								return;
 
-							auto& bones = obj.Skin.Bones;
+							auto& bones = obj.Skeleton.Bones;
 							bones.resize(count);
 
 							reader.ReadAt(idsPtr, [&bones](BinaryReader& reader)

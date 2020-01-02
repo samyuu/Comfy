@@ -252,7 +252,7 @@ namespace Graphics
 		uint32_t ParentID;
 	};
 
-	struct Skin
+	struct Skeleton
 	{
 		std::vector<Bone> Bones;
 	};
@@ -268,7 +268,7 @@ namespace Graphics
 		Sphere BoundingSphere;
 		std::vector<Mesh> Meshes;
 		std::vector<Material> Materials;
-		Skin Skin;
+		Skeleton Skeleton;
 
 	public:
 		void Upload();
