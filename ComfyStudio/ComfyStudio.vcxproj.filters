@@ -390,6 +390,12 @@
     <ClCompile Include="src\ImGui\Extensions\TxpExtensions.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Database\SprDB.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Database\AetDB.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
@@ -858,6 +864,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\Extensions\TxpExtensions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Database\Database.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Database\SprDB.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Database\AetDB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

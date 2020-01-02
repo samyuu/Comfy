@@ -162,6 +162,8 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Database\AetDB.cpp" />
+    <ClCompile Include="src\Database\SprDB.cpp" />
     <ClCompile Include="src\ImGui\ComfyTextureID.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp" />
@@ -288,6 +290,9 @@
     <ClCompile Include="src\System\Profiling\Profiler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Database\AetDB.h" />
+    <ClInclude Include="src\Database\Database.h" />
+    <ClInclude Include="src\Database\SprDB.h" />
     <ClInclude Include="src\ImGui\ComfyTextureID.h" />
     <ClInclude Include="lib\rtaudio\src\asio.h" />
     <ClInclude Include="lib\rtaudio\src\asiodrivers.h" />

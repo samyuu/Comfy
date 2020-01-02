@@ -34,7 +34,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\FileInterface.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\FileLoader.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\FileReader.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\Format\Database.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\Stream\FileStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\Stream\MemoryStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\FileSystem\Stream\Stream.cpp" />
@@ -61,7 +60,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\FileInterface.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\FileLoader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\FileReader.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\Format\Database.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\Stream\FileStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\Stream\MemoryStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\FileSystem\Stream\Stream.h" />
