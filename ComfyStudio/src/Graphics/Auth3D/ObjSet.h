@@ -16,7 +16,10 @@ namespace Graphics
 		Sphere BoundingSphere;
 		uint32_t MaterialIndex;
 		uint32_t MaterialUVIndices[2];
+		std::vector<uint16_t> BoneIndices;
+		uint32_t UnknownPrePrimitive;
 		PrimitiveType Primitive;
+		uint32_t UnknownIndex;
 		std::vector<uint16_t> Indices;
 		Box BoundingBox;
 
@@ -241,6 +244,19 @@ namespace Graphics
 		} Identifiers;
 	};
 
+	struct Bone
+	{
+		uint32_t ID;
+		mat4 Transform;
+		std::string Name;
+		uint32_t ParentID;
+	};
+
+	struct Skin
+	{
+		std::vector<Bone> Bones;
+	};
+
 	class Obj
 	{
 		friend class ObjSet;
@@ -252,6 +268,7 @@ namespace Graphics
 		Sphere BoundingSphere;
 		std::vector<Mesh> Meshes;
 		std::vector<Material> Materials;
+		Skin Skin;
 
 	public:
 		void Upload();

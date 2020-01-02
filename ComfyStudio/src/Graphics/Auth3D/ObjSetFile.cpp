@@ -14,13 +14,19 @@ namespace Graphics
 
 		vec3 ReadVec3(BinaryReader& reader)
 		{
-			return vec3(reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat());
+			return { reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat() };
 		}
 
 		// NOTE: Not sure why these are stored differently from the way the vertex positions are
 		vec3 ReadTranposeVec3(BinaryReader& reader)
 		{
 			return TranposeVec3(ReadVec3(reader));
+		}
+
+		void ReadMat4(BinaryReader& reader, mat4& output)
+		{
+			assert(reader.GetEndianness() == Endianness::Little);
+			reader.Read(&output, sizeof(output));
 		}
 
 		Sphere ReadSphere(BinaryReader& reader)
@@ -87,16 +93,22 @@ namespace Graphics
 								for (auto& index : subMesh.MaterialUVIndices)
 									index = reader.ReadUInt32();
 
-								uint32_t boneIndicesCount = reader.ReadUInt32();
+								uint32_t boneIndexCount = reader.ReadUInt32();
 								void* boneIndicesPtr = reader.ReadPtr();
-								if (boneIndicesCount > 0 && boneIndicesPtr != nullptr)
+								if (boneIndexCount > 0 && boneIndicesPtr != nullptr)
 								{
-									// TODO:
+									subMesh.BoneIndices.resize(boneIndexCount);
+
+									reader.ReadAt(boneIndicesPtr, objBaseAddress, [&subMesh, boneIndexCount](BinaryReader& reader)
+									{
+										assert(reader.GetEndianness() == Endianness::Little);
+										reader.Read(subMesh.BoneIndices.data(), boneIndexCount * sizeof(uint16_t));
+									});
 								}
 
-								uint32_t unknown1 = reader.ReadUInt32();
+								subMesh.UnknownPrePrimitive = reader.ReadUInt32();
 								subMesh.Primitive = static_cast<PrimitiveType>(reader.ReadUInt32());
-								uint32_t unknown2 = reader.ReadUInt32();
+								subMesh.UnknownIndex = reader.ReadUInt32();
 
 								uint32_t indexCount = reader.ReadUInt32();
 								void* indicesPtr = reader.ReadPtr();
@@ -145,7 +157,7 @@ namespace Graphics
 					*reinterpret_cast<uint32_t*>(&mesh.Flags) = reader.ReadUInt32();
 					for (int i = 0; i < 7; i++)
 						reader.ReadUInt32();
-					
+
 					reader.Read(mesh.Name.data(), sizeof(mesh.Name));
 				}
 			});
@@ -189,17 +201,64 @@ namespace Graphics
 			});
 		}
 
-		void* objectSkinningsPtr = reader.ReadPtr();
-		if (objectCount > 0 && objectSkinningsPtr != nullptr)
+		if (void* skinsPtr = reader.ReadPtr(); objectCount > 0 && skinsPtr != nullptr)
 		{
-			reader.ReadAt(objectSkinningsPtr, [this](BinaryReader& reader)
+			reader.ReadAt(skinsPtr, [this](BinaryReader& reader)
 			{
-				// TODO:
+				for (auto& obj : objects)
+				{
+					if (void* skinPtr = reader.ReadPtr(); skinPtr != nullptr)
+					{
+						reader.ReadAt(skinPtr, [&obj](BinaryReader& reader)
+						{
+							void* idsPtr = reader.ReadPtr();
+							void* transformsPtr = reader.ReadPtr();
+							void* namesPtr = reader.ReadPtr();
+							void* expressionBlocksPtr = reader.ReadPtr();
+							uint32_t count = reader.ReadUInt32();
+							void* parentIDsPtr = reader.ReadPtr();
+
+							if (count < 1)
+								return;
+
+							auto& bones = obj.Skin.Bones;
+							bones.resize(count);
+
+							reader.ReadAt(idsPtr, [&bones](BinaryReader& reader)
+							{
+								for (auto& bone : bones)
+									bone.ID = reader.ReadUInt32();
+							});
+
+							reader.ReadAt(transformsPtr, [&bones](BinaryReader& reader)
+							{
+								for (auto& bone : bones)
+									ReadMat4(reader, bone.Transform);
+							});
+
+							reader.ReadAt(namesPtr, [&bones](BinaryReader& reader)
+							{
+								for (auto& bone : bones)
+									bone.Name = reader.ReadStrPtr();
+							});
+
+							reader.ReadAt(expressionBlocksPtr, [&bones](BinaryReader& reader)
+							{
+								// TODO:
+							});
+
+							reader.ReadAt(parentIDsPtr, [&bones](BinaryReader& reader)
+							{
+								for (auto& bone : bones)
+									bone.ParentID = reader.ReadUInt32();
+							});
+						});
+					}
+				}
 			});
 		}
 
-		void* objectNamesPtr = reader.ReadPtr();
-		if (objectCount > 0 && objectNamesPtr != nullptr)
+		if (void* objectNamesPtr = reader.ReadPtr(); objectCount > 0 && objectNamesPtr != nullptr)
 		{
 			reader.ReadAt(objectNamesPtr, [this](BinaryReader& reader)
 			{
@@ -208,8 +267,7 @@ namespace Graphics
 			});
 		}
 
-		void* objectIDsPtr = reader.ReadPtr();
-		if (objectCount > 0 && objectIDsPtr != nullptr)
+		if (void* objectIDsPtr = reader.ReadPtr(); objectCount > 0 && objectIDsPtr != nullptr)
 		{
 			reader.ReadAt(objectIDsPtr, [this](BinaryReader& reader)
 			{
