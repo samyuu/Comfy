@@ -3,14 +3,14 @@
 
 namespace Database
 {
-	struct AetEntry : DatabaseEntry
+	struct AetEntry : BinaryDatabase::Entry
 	{
 		uint32_t ID;
 		std::string Name;
 		int32_t Index;
 	};
 
-	struct AetSetEntry : DatabaseEntry, DatabaseFileEntry
+	struct AetSetEntry : BinaryDatabase::Entry, BinaryDatabase::FileEntry
 	{
 		uint32_t ID;
 		std::string Name;
@@ -21,7 +21,7 @@ namespace Database
 		AetEntry* GetAetEntry(const std::string& name);
 	};
 
-	class AetDB final : public Database
+	class AetDB final : public BinaryDatabase
 	{
 	public:
 		std::vector<AetSetEntry> Entries;

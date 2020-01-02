@@ -3,14 +3,14 @@
 
 namespace Database
 {
-	struct SprEntry : DatabaseEntry
+	struct SprEntry : BinaryDatabase::Entry
 	{
 		uint32_t ID;
 		std::string Name;
 		int16_t Index;
 	};
 
-	struct SprSetEntry : DatabaseEntry, DatabaseFileEntry
+	struct SprSetEntry : BinaryDatabase::Entry, BinaryDatabase::FileEntry
 	{
 		uint32_t ID;
 		std::string Name;
@@ -24,7 +24,7 @@ namespace Database
 		SprEntry* GetSprTexEntry(const std::string& name);
 	};
 
-	class SprDB final : public Database
+	class SprDB final : public BinaryDatabase
 	{
 	public:
 		std::vector<SprSetEntry> Entries;

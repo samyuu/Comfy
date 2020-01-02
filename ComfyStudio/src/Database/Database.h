@@ -4,15 +4,15 @@
 
 namespace Database
 {
-	class Database : public FileSystem::IBinaryReadable, public FileSystem::IBinaryWritable
+	class BinaryDatabase : public FileSystem::IBinaryReadable, public FileSystem::IBinaryWritable
 	{
-	};
-	
-	struct DatabaseEntry
-	{
-	};
+	public:
+		struct Entry
+		{
+		};
 
-	struct DatabaseFileEntry
-	{
+		struct FileEntry
+		{
+		};
 	};
 }
