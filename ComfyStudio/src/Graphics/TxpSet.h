@@ -65,7 +65,7 @@ namespace Graphics
 		
 		std::vector<uint8_t> FileContent;
 
-		void Parse(const uint8_t* buffer) override;
+		void Parse(const uint8_t* buffer, size_t bufferSize) override;
 		void UploadAll(class SprSet* parentSprSet);
 
 		void SetTextureIDs(const class ObjSet& objSet);

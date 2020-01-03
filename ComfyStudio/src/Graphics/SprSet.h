@@ -26,7 +26,7 @@ namespace Graphics
 		UniquePtr<TxpSet> TxpSet;
 		std::vector<Spr> Sprites;
 
-		void Parse(const uint8_t* buffer) override;
+		void Parse(const uint8_t* buffer, size_t bufferSize) override;
 
 	private:
 	};

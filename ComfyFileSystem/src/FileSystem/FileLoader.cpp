@@ -115,7 +115,7 @@ namespace FileSystem
 		assert(parsable != nullptr);
 		assert(fileFound && isLoaded);
 
-		parsable->Parse(fileContent.data());
+		parsable->Parse(fileContent.data(), fileContent.size());
 	}
 
 	void FileLoader::FreeData()

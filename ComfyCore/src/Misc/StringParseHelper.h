@@ -7,10 +7,18 @@ namespace Utilities::StringParsing
 {
 	std::string_view GetLine(const char* textBuffer);
 	std::string_view GetWord(const char* textBuffer);
+	std::string_view GetProperty(const char* textBuffer);
+	std::string_view GetValue(const char* textBuffer);
 	
 	void AdvanceToNextLine(const char*& textBuffer);
+	void AdvanceToNextProperty(const char*& textBuffer);
+	
 	std::string_view GetLineAdvanceToNextLine(const char*& textBuffer);
+	std::string_view GetPropertyAdvanceToNextProperty(const char*& textBuffer);
 
+	bool IsComment(std::string_view line);
+	std::string_view GetLineAdvanceToNonCommentLine(const char*& textBuffer);
+	
 	template <typename T>
 	T ParseType(std::string_view string)
 	{

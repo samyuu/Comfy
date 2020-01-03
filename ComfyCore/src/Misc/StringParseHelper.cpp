@@ -10,8 +10,8 @@ namespace Utilities::StringParsing
 		while (*endOfLine != '\0' && *endOfLine != '\r' && *endOfLine != '\n')
 			endOfLine++;
 
-		const size_t lineLength = endOfLine - startOfLine;
-		return std::string_view(textBuffer, lineLength);
+		const size_t length = endOfLine - startOfLine;
+		return std::string_view(startOfLine, length);
 	}
 
 	std::string_view GetWord(const char* textBuffer)
@@ -22,8 +22,37 @@ namespace Utilities::StringParsing
 		while (*endOfWord != '\0' && *endOfWord != ' ' && *endOfWord != '\r' && *endOfWord != '\n')
 			endOfWord++;
 
-		const size_t lineLength = endOfWord - startOfWord;
-		return std::string_view(textBuffer, lineLength);
+		const size_t length = endOfWord - startOfWord;
+		return std::string_view(startOfWord, length);
+	}
+
+	std::string_view GetProperty(const char* textBuffer)
+	{
+		const char* startOfProperty = textBuffer;
+		const char* endOfProperty = textBuffer;
+
+		while (*endOfProperty != '\0' && *endOfProperty != '.' && *endOfProperty != '=')
+			endOfProperty++;
+
+		const size_t lineLength = endOfProperty - startOfProperty;
+		return std::string_view(startOfProperty, lineLength);
+	}
+
+	std::string_view GetValue(const char* textBuffer)
+	{
+		const char* startOfValue = textBuffer;
+		while (*startOfValue != '\0' && *startOfValue != '=')
+			startOfValue++;
+
+		if (*startOfValue == '=')
+			startOfValue++;
+
+		const char* endOfValue = startOfValue;
+		while (*endOfValue != '\0' && *endOfValue != '\r' && *endOfValue != '\n')
+			endOfValue++;
+
+		const size_t length = endOfValue - startOfValue;
+		return std::string_view(startOfValue, length);
 	}
 
 	void AdvanceToNextLine(const char*& textBuffer)
@@ -50,10 +79,50 @@ namespace Utilities::StringParsing
 		}
 	}
 
+	void AdvanceToNextProperty(const char*& textBuffer)
+	{
+		while (*textBuffer != '\0' && *textBuffer != '=')
+		{
+			if (*textBuffer == '.')
+			{
+				textBuffer++;
+				return;
+			}
+
+			textBuffer++;
+		}
+	}
+
 	std::string_view GetLineAdvanceToNextLine(const char*& textBuffer)
 	{
 		const auto line = GetLine(textBuffer);
 		AdvanceToNextLine(textBuffer);
+		return line;
+	}
+
+	std::string_view GetPropertyAdvanceToNextProperty(const char*& textBuffer)
+	{
+		const auto property = GetProperty(textBuffer);
+		AdvanceToNextProperty(textBuffer);
+		return property;
+	}
+
+
+	bool IsComment(std::string_view line)
+	{
+		return !line.empty() && line.front() == '#';
+	}
+
+	std::string_view GetLineAdvanceToNonCommentLine(const char*& textBuffer)
+	{
+		std::string_view line;
+
+		do
+		{
+			line = StringParsing::GetLineAdvanceToNextLine(textBuffer);
+		}
+		while (IsComment(line));
+
 		return line;
 	}
 }

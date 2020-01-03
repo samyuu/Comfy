@@ -10,7 +10,7 @@ namespace Graphics
 		return vec2(PixelRegion.z, PixelRegion.w);
 	}
 
-	void SprSet::Parse(const uint8_t* buffer)
+	void SprSet::Parse(const uint8_t* buffer, size_t bufferSize)
 	{
 		SprSet* sprSet = this;
 
@@ -26,7 +26,7 @@ namespace Graphics
 		if (txpSetOffset != 0)
 		{
 			sprSet->TxpSet = MakeUnique<Graphics::TxpSet>();
-			sprSet->TxpSet->Parse(buffer + txpSetOffset);
+			sprSet->TxpSet->Parse(buffer + txpSetOffset, bufferSize - txpSetOffset);
 		}
 
 		if (spritesOffset != 0)

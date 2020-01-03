@@ -30,7 +30,7 @@ namespace Graphics
 		return MipMapsArray.front().front().Format;
 	}
 
-	void TxpSet::Parse(const uint8_t* buffer)
+	void TxpSet::Parse(const uint8_t* buffer, size_t bufferSize)
 	{
 		TxpSet* txpSet = this;
 
@@ -84,7 +84,7 @@ namespace Graphics
 
 		auto txpSet = MakeUnique<TxpSet>();;
 		{
-			txpSet->Parse(fileContent.data());
+			txpSet->Parse(fileContent.data(), fileContent.size());
 			txpSet->UploadAll(nullptr);
 
 			if (objSet != nullptr)
@@ -105,7 +105,7 @@ namespace Graphics
 		++offsets;
 
 		assert(txp->Signature.Type == TxpSig::Texture2D || txp->Signature.Type == TxpSig::CubeMap || txp->Signature.Type == TxpSig::Rectangle);
-		assert(mipMapCount == txp->MipLevels * txp->ArraySize);
+		// assert(mipMapCount == txp->MipLevels * txp->ArraySize);
 
 		txp->MipMapsArray.resize(txp->ArraySize);
 

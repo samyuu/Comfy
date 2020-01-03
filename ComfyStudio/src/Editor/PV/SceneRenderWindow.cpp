@@ -19,7 +19,7 @@ namespace Editor
 			std::vector<uint8_t> fileContent;
 			FileSystem::FileReader::ReadEntireFile(filePath, &fileContent);
 
-			param.Parse(fileContent.data());
+			param.Parse(fileContent.data(), fileContent.size());
 
 			if constexpr (std::is_same<T, LightDataIBL>::value)
 				param.UploadAll();

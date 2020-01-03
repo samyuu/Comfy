@@ -52,7 +52,7 @@ namespace Graphics
 		LightData* GetLightData(LightTargetType type);
 
 	public:
-		void Parse(const uint8_t* buffer) override;
+		void Parse(const uint8_t* buffer, size_t bufferSize) override;
 		void UploadAll();
 	};
 }

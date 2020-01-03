@@ -218,7 +218,7 @@ namespace Editor
 			UniquePtr<uint8_t[]> sprFileBuffer = MakeUnique<uint8_t[]>(sprFileEntry->Size);
 			ComfyData->ReadEntryIntoBuffer(sprFileEntry, sprFileBuffer.get());
 
-			sprSet.Parse(sprFileBuffer.get());
+			sprSet.Parse(sprFileBuffer.get(), sprFileEntry->Size);
 			sprSet.TxpSet->UploadAll(&sprSet);
 
 			buttonIconsTexture = sprSet.TxpSet->Txps.front().Texture2D.get();

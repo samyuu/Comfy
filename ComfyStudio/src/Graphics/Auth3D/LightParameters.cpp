@@ -105,16 +105,18 @@ namespace Graphics
 		}
 	}
 
-	void LightParameter::Parse(const uint8_t* buffer)
+	void LightParameter::Parse(const uint8_t* buffer, size_t bufferSize)
 	{
 		const char* textBuffer = reinterpret_cast<const char*>(buffer);
+		const char* endOfTextBuffer = reinterpret_cast<const char*>(buffer + bufferSize);
+		
 		Light* currentLight = nullptr;
 
 		while (true)
 		{
 			auto line = StringParsing::GetLineAdvanceToNextLine(textBuffer);
 
-			if (StartsWith(line, EndOfFileTag) || line.empty())
+			if (StartsWith(line, EndOfFileTag) || line.empty() || textBuffer >= endOfTextBuffer)
 				break;
 
 			auto tag = StringParsing::GetWord(line.data());

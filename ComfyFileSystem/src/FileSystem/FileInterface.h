@@ -46,6 +46,6 @@ namespace FileSystem
 	class IBufferParsable
 	{
 	public:
-		virtual void Parse(const uint8_t* buffer) = 0;
+		virtual void Parse(const uint8_t* buffer, size_t bufferSize) = 0;
 	};
 }
