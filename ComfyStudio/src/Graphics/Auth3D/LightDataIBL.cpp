@@ -103,11 +103,11 @@ namespace Graphics
 			Version = StringParsing::ParseType<uint32_t>(versionLine);
 		}
 
-		while (true)
+		while (textBuffer < endOfTextBuffer)
 		{
 			auto tag = StringParsing::GetLineAdvanceToNonCommentLine(textBuffer);
 
-			if (tag == BinaryDataTag || tag.empty() || textBuffer >= endOfTextBuffer)
+			if (tag == BinaryDataTag || tag.empty())
 				break;
 
 			auto targetType = static_cast<LightTargetType>(StringParsing::ParseType<uint32_t>(StringParsing::GetLineAdvanceToNonCommentLine(textBuffer)));

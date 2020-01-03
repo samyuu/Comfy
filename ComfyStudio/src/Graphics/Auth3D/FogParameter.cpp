@@ -53,11 +53,11 @@ namespace Graphics
 
 		Fog* currentFog = nullptr;
 
-		while (true)
+		while (textBuffer < endOfTextBuffer)
 		{
 			auto line = StringParsing::GetLineAdvanceToNextLine(textBuffer);
 
-			if (StartsWith(line, EndOfFileTag) || line.empty() || textBuffer >= endOfTextBuffer)
+			if (StartsWith(line, EndOfFileTag) || line.empty())
 				break;
 
 			auto tag = StringParsing::GetWord(line.data());

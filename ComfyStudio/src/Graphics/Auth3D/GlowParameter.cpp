@@ -44,11 +44,11 @@ namespace Graphics
 		const char* textBuffer = reinterpret_cast<const char*>(buffer);
 		const char* endOfTextBuffer = reinterpret_cast<const char*>(buffer + bufferSize);
 
-		while (true)
+		while (textBuffer < endOfTextBuffer)
 		{
 			auto line = StringParsing::GetLineAdvanceToNextLine(textBuffer);
 
-			if (StartsWith(line, EndOfFileTag) || line.empty() || textBuffer >= endOfTextBuffer)
+			if (StartsWith(line, EndOfFileTag) || line.empty())
 				break;
 
 			auto tag = StringParsing::GetWord(line.data());
