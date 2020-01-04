@@ -1,4 +1,5 @@
 #include "StringParseHelper.h"
+#include "StringHelper.h"
 
 namespace Utilities::StringParsing
 {
@@ -79,6 +80,33 @@ namespace Utilities::StringParsing
 		}
 	}
 
+	void AdvanceToStartOfLine(const char*& textBuffer, const char* bufferStart)
+	{
+		// NOTE: Check for buffer start because we can't rely on null termination
+		while (textBuffer > bufferStart)
+		{
+			if (*textBuffer == '\n')
+			{
+				*textBuffer++;
+				return;
+			}
+
+			textBuffer--;
+		}
+	}
+
+	void AdvanceToStartOfPreviousLine(const char*& textBuffer, const char* bufferStart)
+	{
+		if (textBuffer > bufferStart)
+			textBuffer--;
+		if (textBuffer > bufferStart && *textBuffer == '\n')
+			textBuffer--;
+		if (textBuffer > bufferStart && *textBuffer == '\r')
+			textBuffer--;
+
+		AdvanceToStartOfLine(textBuffer, bufferStart);
+	}
+
 	void AdvanceToNextProperty(const char*& textBuffer)
 	{
 		while (*textBuffer != '\0' && *textBuffer != '=')
@@ -100,6 +128,13 @@ namespace Utilities::StringParsing
 		return line;
 	}
 
+	std::string_view AdvanceToStartOfPreviousLineGetLine(const char*& textBuffer, const char* bufferStart)
+	{
+		AdvanceToStartOfPreviousLine(textBuffer, bufferStart);
+		const auto line = GetLine(textBuffer);
+		return line;
+	}
+
 	std::string_view GetPropertyAdvanceToNextProperty(const char*& textBuffer)
 	{
 		const auto property = GetProperty(textBuffer);
@@ -108,9 +143,9 @@ namespace Utilities::StringParsing
 	}
 
 
-	bool IsComment(std::string_view line)
+	bool IsComment(std::string_view line, char identifier)
 	{
-		return !line.empty() && line.front() == '#';
+		return !line.empty() && line.front() == identifier;
 	}
 
 	std::string_view GetLineAdvanceToNonCommentLine(const char*& textBuffer)
@@ -118,11 +153,29 @@ namespace Utilities::StringParsing
 		std::string_view line;
 
 		do
-		{
 			line = StringParsing::GetLineAdvanceToNextLine(textBuffer);
-		}
 		while (IsComment(line));
 
 		return line;
+	}
+
+	std::string_view AdvanceToStartOfPreviousLineGetNonCommentLine(const char*& textBuffer, const char* bufferStart)
+	{
+		std::string_view line;
+
+		do
+			line = StringParsing::AdvanceToStartOfPreviousLineGetLine(textBuffer, bufferStart);
+		while (IsComment(line) && textBuffer > bufferStart);
+
+		return line;
+	}
+
+	bool ParseBool(std::string_view string)
+	{
+		if (MatchesInsensitive(string, "true"))
+			return true;
+		else if (MatchesInsensitive(string, "false"))
+			return false;
+		return false;
 	}
 }

@@ -1,0 +1,357 @@
+#include "A3D.h"
+#include "Misc/StringHelper.h"
+#include "Misc/StringParseHelper.h"
+#include "Misc/TextDatabaseParser.h"
+
+namespace Graphics
+{
+	using namespace Utilities;
+
+	namespace
+	{
+		struct A3DParser final : public StringParsing::TextDatabaseParser
+		{
+		private:
+			std::string currentLine;
+
+		private:
+			bool TryParseProperty1D(A3DProperty1D& output)
+			{
+				if (CompareProperty("value"))
+				{
+					output.StaticValue = ParseValueString<float>();
+					return true;
+				}
+				else if (CompareProperty("type"))
+				{
+					output.Type = ParseEnumValueString<A3DKeyFramesPropertyType>();
+					return true;
+				}
+				else if (CompareProperty("max"))
+				{
+					output.Max = ParseValueString<float>();
+					return true;
+				}
+				else if (CompareProperty("key"))
+				{
+					if (!TryParseLength(output.Keys))
+					{
+						auto& key = output.Keys[ParseAdvanceIndexProperty()];
+
+						if (CompareProperty("type"))
+							key.Type = ParseEnumValueString<A3DKeyFrameType>();
+						else if (CompareProperty("data"))
+						{
+							auto rawData = ParseCommaSeparatedArray<float, 4>();
+							key.Frame = rawData[0];
+							key.Value = rawData[1];
+							key.Curve = rawData[2];
+
+							switch (key.Type)
+							{
+							case A3DKeyFrameType::None:
+								break;
+
+							case A3DKeyFrameType::Static:
+								break;
+
+							case A3DKeyFrameType::Linear:
+								break;
+
+							case A3DKeyFrameType::Hermit:
+								break;
+
+							case A3DKeyFrameType::Hold:
+								break;
+							}
+						}
+					}
+
+					return true;
+				}
+				else if (IsLastProperty())
+					output.Enabled = ParseValueString<bool>();
+
+				return false;
+			}
+
+			bool TryParseProperty3D(A3DProperty3D& output)
+			{
+				if (CompareProperty("z"))
+					return TryParseProperty1D(output.X);
+				else if (CompareProperty("y"))
+					return TryParseProperty1D(output.X);
+				else if (CompareProperty("x"))
+					return TryParseProperty1D(output.X);
+
+				return false;
+			}
+
+			bool TryParsePropertyRGB(A3DPropertyRGB& output)
+			{
+				if (CompareProperty("b"))
+					return TryParseProperty1D(output.B);
+				else if (CompareProperty("g"))
+					return TryParseProperty1D(output.G);
+				else if (CompareProperty("r"))
+					return TryParseProperty1D(output.R);
+
+				return false;
+			}
+
+			bool TryParseLightProperties(A3DLightProperties& output)
+			{
+				if (CompareProperty("Specular"))
+					return TryParsePropertyRGB(output.Specular);
+				else if (CompareProperty("Incandescence"))
+					return TryParsePropertyRGB(output.Incandescence);
+				else if (CompareProperty("Diffuse"))
+					return TryParsePropertyRGB(output.Diffuse);
+				else if (CompareProperty("Ambient"))
+					return TryParsePropertyRGB(output.Ambient);
+
+				return false;
+			}
+
+			bool TryParseTransformProperties(A3DTransform& output)
+			{
+				if (CompareProperty("visibility"))
+					return TryParseProperty1D(output.Visibility);
+				else if (CompareProperty("trans"))
+					return TryParseProperty3D(output.Translation);
+				else if (CompareProperty("scale"))
+					return TryParseProperty3D(output.Scale);
+				else if (CompareProperty("rot"))
+					return TryParseProperty3D(output.Rotation);
+
+				return false;
+			}
+
+			void ParseA3DProperties(A3D& a3d)
+			{
+				if (CompareProperty("_"))
+				{
+					if (CompareProperty("property"))
+					{
+						if (CompareProperty("version"))
+							a3d.Property.Version = ParseValueString<uint32_t>();
+					}
+					else if (CompareProperty("file_name"))
+					{
+						a3d.FileName = ParseValueString();
+					}
+					else if (CompareProperty("converter"))
+					{
+						if (CompareProperty("version"))
+							a3d.Converter.Version = ParseValueString<uint32_t>();
+					}
+				}
+				else if (CompareProperty("curve"))
+				{
+					if (!TryParseLength(a3d.Curves))
+					{
+						auto& curve = a3d.Curves[ParseAdvanceIndexProperty()];
+
+						if (CompareProperty("name"))
+							curve.Name = ParseValueString();
+						else if (CompareProperty("cv"))
+							TryParseProperty1D(curve.CV);
+					}
+				}
+				else if (CompareProperty("object"))
+				{
+					if (!TryParseLength(a3d.Objects))
+					{
+						auto& object = a3d.Objects[ParseAdvanceIndexProperty()];
+
+						if (!TryParseTransformProperties(object))
+						{
+							if (CompareProperty("uid_name"))
+								object.UIDName = ParseValueString();
+							else if (CompareProperty("name"))
+								object.Name = ParseValueString();
+							else if (CompareProperty("tex_transform"))
+							{
+								if (!TryParseLength(object.TextureTransforms))
+								{
+									auto& textureTransform = object.TextureTransforms[ParseAdvanceIndexProperty()];
+
+									if (CompareProperty("translateFrameV"))
+										TryParseProperty1D(textureTransform.TranslateFrameV);
+									else if (CompareProperty("translateFrameU"))
+										TryParseProperty1D(textureTransform.TranslateFrameU);
+									else if (CompareProperty("name"))
+										textureTransform.Name = ParseValueString();
+								}
+							}
+							else if (CompareProperty("morph_offset"))
+								object.MorphOffset = ParseValueString<uint32_t>();
+							else if (CompareProperty("morph"))
+								object.Morph = ParseValueString();
+						}
+					}
+				}
+				else if (CompareProperty("object_list"))
+				{
+					if (!TryParseLength(a3d.ObjectList))
+						a3d.ObjectList[ParseAdvanceIndexProperty()] = ParseValueString();
+				}
+				else if (CompareProperty("objhrc"))
+				{
+					if (!TryParseLength(a3d.ObjectsHRC))
+					{
+						auto& objectHRC = a3d.ObjectsHRC[ParseAdvanceIndexProperty()];
+
+						if (CompareProperty("uid_name"))
+							objectHRC.UIDName = ParseValueString();
+						else if (CompareProperty("shadow"))
+							objectHRC.Shadow = ParseValueString<int>();
+						else if (CompareProperty("node"))
+						{
+							if (!TryParseLength(objectHRC.Nodes))
+							{
+								auto& node = objectHRC.Nodes[ParseAdvanceIndexProperty()];
+
+								if (!TryParseTransformProperties(node))
+								{
+									if (CompareProperty("parent"))
+										node.Parent = ParseValueString<uint32_t>();
+									else if (CompareProperty("name"))
+										node.Name = ParseValueString();
+								}
+							}
+						}
+						else if (CompareProperty("name"))
+							objectHRC.Name = ParseValueString();
+					}
+				}
+				else if (CompareProperty("objhrc_list"))
+				{
+					if (!TryParseLength(a3d.ObjectHRCList))
+						a3d.ObjectHRCList[ParseAdvanceIndexProperty()] = ParseValueString();
+				}
+				else if (CompareProperty("camera_root"))
+				{
+					if (!TryParseLength(a3d.CameraRoot))
+					{
+						auto& camera = a3d.CameraRoot[ParseAdvanceIndexProperty()];
+
+						if (!TryParseTransformProperties(camera))
+						{
+							if (CompareProperty("view_point"))
+							{
+								if (!TryParseTransformProperties(camera.ViewPoint))
+								{
+									if (CompareProperty("roll"))
+										TryParseProperty3D(camera.ViewPoint.Roll);
+									else if (CompareProperty("fov_is_horizontal"))
+										camera.ViewPoint.HorizontalFieldOfView = ParseValueString<int>();
+									else if (CompareProperty("fov"))
+										TryParseProperty1D(camera.ViewPoint.FieldOfView);
+									else if (CompareProperty("aspect"))
+										camera.ViewPoint.AspectRatio = ParseValueString<float>();
+								}
+							}
+							else if (CompareProperty("interest"))
+								TryParseTransformProperties(camera.Interest);
+						}
+					}
+				}
+				else if (CompareProperty("light"))
+				{
+					if (!TryParseLength(a3d.Lights))
+					{
+						auto& light = a3d.Lights[ParseAdvanceIndexProperty()];
+
+						if (!TryParseLightProperties(light))
+						{
+							if (CompareProperty("type"))
+								light.Type = ParseValueString();
+							else if (CompareProperty("spot_direction"))
+								TryParseTransformProperties(light.SpotDirection);
+							else if (CompareProperty("position"))
+								TryParseTransformProperties(light.Position);
+							else if (CompareProperty("name"))
+								light.Name = ParseValueString();
+							else if (CompareProperty("id"))
+								light.ID = ParseValueString<uint32_t>();
+						}
+					}
+				}
+				else if (CompareProperty("play_control"))
+				{
+					if (CompareProperty("size"))
+						a3d.PlayControl.Duration = ParseValueString<frame_t>();
+					else if (CompareProperty("fps"))
+						a3d.PlayControl.FrameRate = ParseValueString<frame_t>();
+					else if (CompareProperty("begin"))
+						a3d.PlayControl.Begin = ParseValueString<frame_t>();
+				}
+				else if (CompareProperty("post_process"))
+				{
+					if (!TryParseLightProperties(a3d.PostProcess))
+					{
+						if (CompareProperty("lens_shaft"))
+							TryParseProperty1D(a3d.PostProcess.LensShaft);
+						else if (CompareProperty("lens_ghost"))
+							TryParseProperty1D(a3d.PostProcess.LensGhost);
+						else if (CompareProperty("lens_flare"))
+							TryParseProperty1D(a3d.PostProcess.LensFlare);
+					}
+				}
+			}
+
+		public:
+			bool Parse(A3D& a3d, const char* startOfTextBuffer, const char* endOfTextBuffer)
+			{
+				const char* textBuffer = reinterpret_cast<const char*>(startOfTextBuffer);
+
+				auto formatLine = StringParsing::GetLineAdvanceToNextLine(textBuffer);
+				auto formatIdentifier = formatLine.substr(1, 4);
+
+				if (StartsWith(formatIdentifier, "A3DA"))
+					a3d.Format = A3DFormat::Text;
+				else if (StartsWith(formatIdentifier, "A3DC"))
+					a3d.Format = A3DFormat::Binary;
+				else if (StartsWith(formatIdentifier, "A3DJ"))
+					a3d.Format = A3DFormat::Json;
+				else if (StartsWith(formatIdentifier, "A3DM"))
+					a3d.Format = A3DFormat::MessagePack;
+
+				if (a3d.Format != A3DFormat::Text)
+					return false;
+
+				// NOTE: Update text buffer start beacuse the format line has already been processed
+				startOfTextBuffer = textBuffer;
+
+				// NOTE: Parse lines backwards to parse length properties before their array data
+				textBuffer = endOfTextBuffer;
+
+				while (textBuffer >= startOfTextBuffer)
+				{
+					currentLine = StringParsing::AdvanceToStartOfPreviousLineGetNonCommentLine(textBuffer, startOfTextBuffer);
+					if (textBuffer <= startOfTextBuffer)
+						break;
+
+					StateParseNewLinePropertiesAndValue(currentLine);
+					ParseA3DProperties(a3d);
+				}
+
+				return true;
+			}
+		};
+	}
+
+	A3D::A3D() : Format(A3DFormat::Unknown), Compressed16BitFloats(false), Converter(), Property(), PlayControl()
+	{
+	}
+
+	void A3D::Parse(const uint8_t* buffer, size_t bufferSize)
+	{
+		const char* startOfTextBuffer = reinterpret_cast<const char*>(buffer);
+		const char* endOfTextBuffer = reinterpret_cast<const char*>(buffer + bufferSize);
+
+		A3DParser parser;
+		parser.Parse(*this, startOfTextBuffer, endOfTextBuffer);
+	}
+}

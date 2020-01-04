@@ -22,6 +22,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\FileExtensionHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\StringHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\StringParseHelper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\TextDatabaseParser.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Types.h" />
   </ItemGroup>
   <ItemGroup>
