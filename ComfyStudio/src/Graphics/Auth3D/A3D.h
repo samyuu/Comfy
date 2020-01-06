@@ -48,11 +48,24 @@ namespace Graphics
 		MultipleKeyFrames = 3,
 	};
 
+	enum class A3DValueType : uint32_t
+	{
+		Unknown, Float,
+	};
+
+	struct A3DRawData
+	{
+		A3DKeyFrameType KeyType;
+		A3DValueType ValueType;
+		std::vector<float> Values;
+	};
+
 	struct A3DProperty1D
 	{
 		bool Enabled;
 		std::vector<A3DKeyFrame> Keys;
-		
+		A3DRawData RawData;
+
 		// TODO: ep_type_pre / ep_type_post
 		float StaticValue;
 		float Max;
@@ -98,6 +111,7 @@ namespace Graphics
 
 		std::vector<A3DTextureTransform> TextureTransforms;
 		std::string Name;
+		std::string ParentName;
 		std::string UIDName;
 	};
 

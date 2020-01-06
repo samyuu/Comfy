@@ -27,6 +27,26 @@ namespace Graphics
 					output.Type = ParseEnumValueString<A3DKeyFramesPropertyType>();
 					return true;
 				}
+				else if (CompareProperty("raw_data_key_type"))
+				{
+					output.RawData.KeyType = ParseEnumValueString<A3DKeyFrameType>();
+				}
+				else if (CompareProperty("raw_data"))
+				{
+					if (CompareProperty("value_type"))
+					{
+						if (ParseValueString() == "float")
+							output.RawData.ValueType = A3DValueType::Float;
+					}
+					else if (CompareProperty("value_list_size"))
+					{
+						output.RawData.Values.resize(ParseValueString<uint32_t>());
+					}
+					else if (CompareProperty("value_list"))
+					{
+						ParseCommaSeparatedArray<float>(output.RawData.Values.data(), output.RawData.Values.size());
+					}
+				}
 				else if (CompareProperty("max"))
 				{
 					output.Max = ParseValueString<float>();
@@ -46,6 +66,9 @@ namespace Graphics
 							key.Frame = rawData[0];
 							key.Value = rawData[1];
 							key.Curve = rawData[2];
+
+							if (key.Type != A3DKeyFrameType::Hermit)
+								key.Curve = 0.0f;
 
 							switch (key.Type)
 							{
@@ -78,9 +101,9 @@ namespace Graphics
 			bool TryParseProperty3D(A3DProperty3D& output)
 			{
 				if (CompareProperty("z"))
-					return TryParseProperty1D(output.X);
+					return TryParseProperty1D(output.Z);
 				else if (CompareProperty("y"))
-					return TryParseProperty1D(output.X);
+					return TryParseProperty1D(output.Y);
 				else if (CompareProperty("x"))
 					return TryParseProperty1D(output.X);
 
@@ -168,6 +191,8 @@ namespace Graphics
 						{
 							if (CompareProperty("uid_name"))
 								object.UIDName = ParseValueString();
+							else if (CompareProperty("parent_name"))
+								object.ParentName = ParseValueString();
 							else if (CompareProperty("name"))
 								object.Name = ParseValueString();
 							else if (CompareProperty("tex_transform"))
