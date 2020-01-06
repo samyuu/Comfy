@@ -9,12 +9,12 @@ namespace Graphics
 	{
 		constexpr vec3 TranposeVec3(const vec3& value)
 		{
-			return { value[2], value[1], value[0] };
+			return vec3(value[2], value[1], value[0]);
 		}
 
 		vec3 ReadVec3(BinaryReader& reader)
 		{
-			return { reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat() };
+			return vec3(reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat());
 		}
 
 		// NOTE: Not sure why these are stored differently from the way the vertex positions are
