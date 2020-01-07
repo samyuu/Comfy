@@ -94,16 +94,10 @@ namespace Utilities::StringParsing
 			return index;
 		}
 
-		template <typename T, size_t TSize, bool TParentheses = true>
-		inline std::array<T, TSize> ParseCommaSeparatedArray()
+		template <typename T>
+		inline void ParseCommaSeparatedArray(std::string_view commaSeparatedData, T* outputValues, size_t valueCount)
 		{
-			// NOTE: Optionally remove surrounding parentheses
-			std::string_view commaSeparatedData = TParentheses ? (state.CurrentValueString.substr(1, state.CurrentValueString.size() - 2)) : state.CurrentValueString;
-
-			int dataIndex = 0;
-			std::array<T, TSize> rawData = {};
-
-			int lastCommaIndex = 0;
+			size_t dataIndex = 0, lastCommaIndex = 0;
 			for (int i = 0; i < commaSeparatedData.size(); i++)
 			{
 				if (commaSeparatedData[i] == ',')
@@ -111,11 +105,27 @@ namespace Utilities::StringParsing
 					std::string_view dataString = commaSeparatedData.substr(lastCommaIndex, i - lastCommaIndex);
 					lastCommaIndex = i + 1;
 
-					rawData[dataIndex++] = StringParsing::ParseType<float>(dataString);
+					outputValues[dataIndex++] = StringParsing::ParseType<T>(dataString);
 				}
 			}
 
-			rawData[dataIndex] = StringParsing::ParseType<float>(commaSeparatedData.substr(lastCommaIndex));
+			outputValues[dataIndex] = StringParsing::ParseType<T>(commaSeparatedData.substr(lastCommaIndex));
+		}
+
+		template <typename T>
+		inline void ParseCommaSeparatedArray(T* outputValues, size_t valueCount)
+		{
+			return ParseCommaSeparatedArray<T>(state.CurrentValueString, outputValues, valueCount);
+		}
+
+		template <typename T, size_t TSize, bool TParentheses = true>
+		inline std::array<T, TSize> ParseCommaSeparatedArray()
+		{
+			// NOTE: Optionally remove surrounding parentheses
+			std::string_view commaSeparatedData = TParentheses ? (state.CurrentValueString.substr(1, state.CurrentValueString.size() - 2)) : state.CurrentValueString;
+
+			std::array<T, TSize> rawData = {};
+			ParseCommaSeparatedArray<T>(commaSeparatedData, rawData.data(), TSize);
 			return rawData;
 		}
 	};
