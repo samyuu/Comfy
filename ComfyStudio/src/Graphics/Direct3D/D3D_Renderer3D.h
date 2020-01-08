@@ -10,6 +10,7 @@
 #include "D3D_Texture.h"
 #include "D3D_VertexBuffer.h"
 #include "ShaderBytecode/ShaderBytecode.h"
+#include "Graphics/Auth3D/Transform.h"
 #include "Graphics/Auth3D/ObjSet.h"
 #include "Graphics/Auth3D/SceneContext.h"
 #include <unordered_map>
@@ -127,7 +128,7 @@ namespace Graphics
 	{
 	public:
 		const Obj* SourceObj;
-		vec3 Position;
+		Transform Transform;
 		struct Flags
 		{
 			uint32_t IsReflection : 1;
@@ -139,21 +140,9 @@ namespace Graphics
 		} Flags;
 
 	public:
-		// NOTE: Static factory methods
-		static inline RenderCommand ObjPos(const Obj& obj, vec3 pos)
-		{
-			RenderCommand command = {};
-			command.SourceObj = &obj;
-			command.Position = pos;
-			return command;
-		}
-
-		static inline RenderCommand ObjPosReflect(const Obj& obj, vec3 pos)
-		{
-			RenderCommand command = ObjPos(obj, pos);
-			command.Flags.IsReflection = true;
-			return command;
-		}
+		RenderCommand() = default;
+		RenderCommand(const Obj& obj) : RenderCommand(obj, vec3(0.0f)) {}
+		RenderCommand(const Obj& obj, const vec3& position) : SourceObj(&obj), Transform(position), Flags() {}
 	};
 
 	class D3D_Renderer3D
@@ -179,15 +168,16 @@ namespace Graphics
 		const SceneContext* GetSceneContext() const;
 		std::unordered_map<uint32_t, const Txp*>& GetTextureIDTxpMap();
 
-	protected:
 		const Txp* GetTxpFromTextureID(uint32_t textureID) const;
 
 	private:
 		struct ObjRenderCommand
 		{
-			const Obj* Obj;
-			mat4 Transform;
-			vec3 Position;
+			RenderCommand Command;
+			
+			// NOTE: To avoid calculating it multiple times
+			mat4 ModelMatrix;
+			
 			// NOTE: To avoid needlessly binding buffers during the opaque render pass
 			bool AreAllMeshesTransparent;
 		};
@@ -211,11 +201,11 @@ namespace Graphics
 		void InternalRenderBloom();
 
 		void BindMeshVertexBuffers(const Mesh& mesh);
-		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, const mat4& model);
+		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material);
 		D3D_ShaderPair& GetMaterialShader(const Material& material);
 		void SubmitSubMeshDrawCall(const SubMesh& subMesh);
 
-		bool IntersectsCameraFrustum(const Sphere& boundingSphere, const vec3& position) const;
+		bool IntersectsCameraFrustum(const Sphere& boundingSphere, const Transform& transform) const;
 		bool IsDebugRenderFlagSet(int bitIndex) const;
 
 	private:

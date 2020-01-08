@@ -40,7 +40,7 @@ namespace Graphics
 			}
 		}
 
-		bool IsMeshTransparent(const Mesh& mesh, const Material& material)
+		constexpr bool IsMeshTransparent(const Mesh& mesh, const SubMesh& subMesh, const Material& material)
 		{
 			if (material.BlendFlags.EnableBlend)
 				return true;
@@ -112,7 +112,7 @@ namespace Graphics
 
 	D3D_Renderer3D::D3D_Renderer3D()
 	{
-		InputElement elements[] =
+		static constexpr InputElement elements[] =
 		{
 			{ "POSITION",	0, DXGI_FORMAT_R32G32B32_FLOAT,		0, VertexAttribute_Position },
 			{ "NORMAL",		0, DXGI_FORMAT_R32G32B32_FLOAT,		0, VertexAttribute_Normal },
@@ -137,10 +137,18 @@ namespace Graphics
 
 	void D3D_Renderer3D::Draw(const RenderCommand& command)
 	{
+		const mat4 translation = glm::translate(mat4(1.0f), command.Transform.Translation);
+		
+		const vec3 radiansRotation = glm::radians(command.Transform.Rotation);
+		const mat4 rotationX = glm::rotate(mat4(1.0f), radiansRotation.x, vec3(1.0f, 0.0f, 0.0f));
+		const mat4 rotationY = glm::rotate(mat4(1.0f), radiansRotation.y, vec3(0.0f, 1.0f, 0.0f));
+		const mat4 rotationZ = glm::rotate(mat4(1.0f), radiansRotation.z, vec3(0.0f, 0.0f, 1.0f));
+		
+		const mat4 scale = glm::scale(mat4(1.0f), command.Transform.Scale);
+
 		ObjRenderCommand renderCommand;
-		renderCommand.Obj = command.SourceObj;
-		renderCommand.Transform = glm::translate(mat4(1.0f), command.Position);
-		renderCommand.Position = command.Position;
+		renderCommand.Command = command;
+		renderCommand.ModelMatrix = translation * rotationX * rotationY * rotationZ * scale;
 		renderCommand.AreAllMeshesTransparent = false;
 
 		auto& commandList = (command.Flags.IsReflection) ? reflectionCommandList : renderCommandList;
@@ -215,13 +223,13 @@ namespace Graphics
 		{
 			command.AreAllMeshesTransparent = true;
 
-			for (auto& mesh : command.Obj->Meshes)
+			for (auto& mesh : command.Command.SourceObj->Meshes)
 			{
 				for (auto& subMesh : mesh.SubMeshes)
 				{
-					if (IsMeshTransparent(mesh, subMesh.GetMaterial(*command.Obj)))
+					if (IsMeshTransparent(mesh, subMesh, subMesh.GetMaterial(*command.Command.SourceObj)))
 					{
-						const float cameraDistance = glm::distance(command.Position + subMesh.BoundingSphere.Center, sceneContext->Camera.Position);
+						const float cameraDistance = glm::distance(command.Command.Transform.Translation + subMesh.BoundingSphere.Center, sceneContext->Camera.ViewPoint);
 						transparentSubMeshCommands.push_back({ &command, &mesh, &subMesh, cameraDistance });
 					}
 					else
@@ -255,7 +263,7 @@ namespace Graphics
 		sceneCB.Data.IrradianceBlue = glm::transpose(sceneContext->IBL.Stage.IrradianceRGB[2]);
 		sceneCB.Data.Scene.View = glm::transpose(sceneContext->Camera.GetView());
 		sceneCB.Data.Scene.ViewProjection = glm::transpose(sceneContext->Camera.GetViewProjection());
-		sceneCB.Data.Scene.EyePosition = vec4(sceneContext->Camera.Position, 1.0f);
+		sceneCB.Data.Scene.EyePosition = vec4(sceneContext->Camera.ViewPoint, 1.0f);
 		sceneCB.Data.LightColor = vec4(sceneContext->IBL.Stage.LightColor, 1.0f);
 		sceneCB.Data.CharacterLight.Ambient = vec4(sceneContext->Light.Character.Ambient, 1.0f);
 		sceneCB.Data.CharacterLight.Diffuse = vec4(sceneContext->Light.Character.Diffuse, 1.0f);
@@ -378,47 +386,52 @@ namespace Graphics
 		if (command.AreAllMeshesTransparent)
 			return;
 
-		if (!IntersectsCameraFrustum(command.Obj->BoundingSphere, command.Position))
+		auto& transform = command.Command.Transform;
+		auto& obj = *command.Command.SourceObj;
+
+		if (!IntersectsCameraFrustum(obj.BoundingSphere, transform))
 			return;
 
-		for (auto& mesh : command.Obj->Meshes)
+		for (auto& mesh : obj.Meshes)
 		{
-			if (!IntersectsCameraFrustum(mesh.BoundingSphere, command.Position))
+			if (!IntersectsCameraFrustum(mesh.BoundingSphere, transform))
 				continue;
 
 			BindMeshVertexBuffers(mesh);
 
 			for (auto& subMesh : mesh.SubMeshes)
 			{
-				auto& material = subMesh.GetMaterial(*command.Obj);
-				if (IsMeshTransparent(mesh, material))
+				auto& material = subMesh.GetMaterial(obj);
+				if (IsMeshTransparent(mesh, subMesh, material))
 					continue;
 
-				if (!IntersectsCameraFrustum(subMesh.BoundingSphere, command.Position))
+				if (!IntersectsCameraFrustum(subMesh.BoundingSphere, command.Command.Transform))
 					continue;
 
-				PrepareAndRenderSubMesh(command, mesh, subMesh, material, command.Transform);
+				PrepareAndRenderSubMesh(command, mesh, subMesh, material);
 			}
 		}
 	}
 
 	void D3D_Renderer3D::InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command)
 	{
-		auto& position = command.ObjCommand->Position;
-		auto& obj = *command.ObjCommand->Obj;
+		auto& transform = command.ObjCommand->Command.Transform;
+		auto& obj = *command.ObjCommand->Command.SourceObj;
 		auto& mesh = *command.ParentMesh;
 		auto& subMesh = *command.SubMesh;
 
-		if (!IntersectsCameraFrustum(obj.BoundingSphere, position) || !IntersectsCameraFrustum(mesh.BoundingSphere, position) || !IntersectsCameraFrustum(subMesh.BoundingSphere, position))
+		if (!IntersectsCameraFrustum(obj.BoundingSphere, transform) 
+			|| !IntersectsCameraFrustum(mesh.BoundingSphere, transform)
+			|| !IntersectsCameraFrustum(subMesh.BoundingSphere, transform))
 			return;
 
 		BindMeshVertexBuffers(mesh);
-		auto& material = subMesh.GetMaterial(*command.ObjCommand->Obj);
+		auto& material = subMesh.GetMaterial(obj);
 
 		if (!material.BlendFlags.IgnoreBlendFactors)
 			cachedBlendStates.GetState(material.BlendFlags.SrcBlendFactor, material.BlendFlags.DstBlendFactor).Bind();
 		
-		PrepareAndRenderSubMesh(*command.ObjCommand, mesh, subMesh, material, command.ObjCommand->Transform);
+		PrepareAndRenderSubMesh(*command.ObjCommand, mesh, subMesh, material);
 	}
 
 	void D3D_Renderer3D::InternalRenderWireframeOverlay()
@@ -429,11 +442,13 @@ namespace Graphics
 
 		for (auto& command : renderCommandList)
 		{
-			for (auto& mesh : command.Obj->Meshes)
+			auto& obj = *command.Command.SourceObj;
+
+			for (auto& mesh : obj.Meshes)
 			{
 				BindMeshVertexBuffers(mesh);
 				for (auto& subMesh : mesh.SubMeshes)
-					PrepareAndRenderSubMesh(command, mesh, subMesh, subMesh.GetMaterial(*command.Obj), command.Transform);
+					PrepareAndRenderSubMesh(command, mesh, subMesh, subMesh.GetMaterial(obj));
 			}
 		}
 
@@ -596,7 +611,7 @@ namespace Graphics
 		D3D.Context->IASetVertexBuffers(0, VertexAttribute_Count, buffers.data(), strides.data(), offsets.data());
 	}
 
-	void D3D_Renderer3D::PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, const mat4& model)
+	void D3D_Renderer3D::PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material)
 	{
 		auto& materialShader = GetMaterialShader(material);
 		materialShader.Bind();
@@ -648,12 +663,19 @@ namespace Graphics
 		mat4 modelMatrix;
 		if (mesh.Flags.FaceCamera)
 		{
-			const float cameraAngle = glm::atan(command.Position.x - sceneContext->Camera.Position.x, command.Position.z - sceneContext->Camera.Position.z);
-			modelMatrix = glm::rotate(glm::translate(glm::mat4(1.0f), command.Position), cameraAngle - glm::pi<float>(), vec3(0.0f, 1.0f, 0.0f));
+			
+			vec3 camPos = sceneContext->Camera.ViewPoint;
+			vec3 objPos = command.Command.Transform.Translation;
+
+			const float cameraAngle = glm::atan(objPos.x - camPos.x, objPos.z - camPos.z);
+
+			//modelMatrix = glm::rotate(glm::translate(glm::mat4(1.0f), command.Position), cameraAngle - glm::pi<float>(), vec3(0.0f, 1.0f, 0.0f));
+			// TODO: Recalculate whole matrix (?)
+			modelMatrix = glm::rotate(command.ModelMatrix, cameraAngle - glm::pi<float>(), vec3(0.0f, 1.0f, 0.0f));
 		}
 		else
 		{
-			modelMatrix = model;
+			modelMatrix = command.ModelMatrix;
 		}
 
 		objectCB.Data.Model = glm::transpose(modelMatrix);
@@ -772,12 +794,14 @@ namespace Graphics
 		verticesRenderedThisFrame += subMesh.Indices.size();
 	}
 
-	bool D3D_Renderer3D::IntersectsCameraFrustum(const Sphere& boundingSphere, const vec3& position) const
+	bool D3D_Renderer3D::IntersectsCameraFrustum(const Sphere& boundingSphere, const Transform& transform) const
 	{
 		if (!sceneContext->RenderParameters.FrustumCulling)
 			return true;
 
-		return sceneContext->Camera.IntersectsViewFrustum({ boundingSphere.Center + position, boundingSphere.Radius });
+		// TODO: Factor in rotated position
+		float largestScale = glm::max(glm::max(transform.Scale.x, transform.Scale.y), transform.Scale.z);
+		return sceneContext->Camera.IntersectsViewFrustum({ boundingSphere.Center + transform.Translation, boundingSphere.Radius * largestScale });
 	}
 
 	bool D3D_Renderer3D::IsDebugRenderFlagSet(int bitIndex) const
