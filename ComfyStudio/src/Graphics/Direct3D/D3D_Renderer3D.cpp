@@ -663,15 +663,10 @@ namespace Graphics
 		mat4 modelMatrix;
 		if (mesh.Flags.FaceCamera)
 		{
-			
-			vec3 camPos = sceneContext->Camera.ViewPoint;
-			vec3 objPos = command.Command.Transform.Translation;
+			const auto& transform = command.Command.Transform;
+			const float cameraAngle = glm::atan(transform.Translation.x - sceneContext->Camera.ViewPoint.x, transform.Translation.z - sceneContext->Camera.ViewPoint.z);
 
-			const float cameraAngle = glm::atan(objPos.x - camPos.x, objPos.z - camPos.z);
-
-			//modelMatrix = glm::rotate(glm::translate(glm::mat4(1.0f), command.Position), cameraAngle - glm::pi<float>(), vec3(0.0f, 1.0f, 0.0f));
-			// TODO: Recalculate whole matrix (?)
-			modelMatrix = glm::rotate(command.ModelMatrix, cameraAngle - glm::pi<float>(), vec3(0.0f, 1.0f, 0.0f));
+			modelMatrix = glm::rotate(command.ModelMatrix, cameraAngle - glm::pi<float>() - glm::radians(transform.Rotation.y), vec3(0.0f, 1.0f, 0.0f));
 		}
 		else
 		{
