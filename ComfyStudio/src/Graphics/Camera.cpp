@@ -11,7 +11,7 @@ namespace Graphics
 
 	void PerspectiveCamera::UpdateMatrices()
 	{
-		view = glm::lookAt(Position, Target, UpDirection);
+		view = glm::lookAt(ViewPoint, Interest, UpDirection);
 		projection = glm::perspective(glm::radians(FieldOfView), AspectRatio, NearPlane, FarPlane);
 
 		viewProjection = projection * view;

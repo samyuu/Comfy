@@ -21,8 +21,8 @@ namespace Graphics
 	class PerspectiveCamera final : public ICamera
 	{
 	public:
-		vec3 Position = vec3(3.45f, 1.0f, 0.0f);
-		vec3 Target = vec3(0.0f, 0.0f, 0.0f);
+		vec3 ViewPoint = vec3(3.45f, 1.0f, 0.0f);
+		vec3 Interest = vec3(0.0f, 0.0f, 0.0f);
 
 		float FieldOfView = 90.0f;
 		float AspectRatio = 16.0f / 9.0f;
