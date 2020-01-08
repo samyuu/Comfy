@@ -164,6 +164,7 @@
   <ItemGroup>
     <ClCompile Include="src\Database\AetDB.cpp" />
     <ClCompile Include="src\Database\SprDB.cpp" />
+    <ClCompile Include="src\Editor\Common\CameraController3D.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\A3D.cpp" />
     <ClCompile Include="src\ImGui\ComfyTextureID.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
@@ -294,6 +295,7 @@
     <ClInclude Include="src\Database\AetDB.h" />
     <ClInclude Include="src\Database\Database.h" />
     <ClInclude Include="src\Database\SprDB.h" />
+    <ClInclude Include="src\Editor\Common\CameraController3D.h" />
     <ClInclude Include="src\Graphics\Auth3D\A3D.h" />
     <ClInclude Include="src\ImGui\ComfyTextureID.h" />
     <ClInclude Include="lib\rtaudio\src\asio.h" />

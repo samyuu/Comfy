@@ -399,6 +399,9 @@
     <ClCompile Include="src\Graphics\Auth3D\A3D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Editor\Common\CameraController3D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
@@ -879,6 +882,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Auth3D\A3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Common\CameraController3D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
