@@ -23,6 +23,9 @@ namespace Editor
 		inline float GetTargetAspectRatio() const { return targetAspectRatio; };
 		inline void SetTargetAspectRatio(float value) { targetAspectRatio = value; };
 
+		inline bool GetWasResized() const { return wasResized; };
+		inline const ImRect& GetRenderRegion() const { return renderRegion; };
+
 	public:
 		static inline void PushWindowPadding() { Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(2.0f, 2.0f)); };
 		static inline void PopWindowPadding() { Gui::PopStyleVar(); };
@@ -40,9 +43,6 @@ namespace Editor
 		virtual void OnUpdate() = 0;
 		virtual void OnRender() = 0;
 		virtual void OnResize(ivec2 size);
-
-		inline bool GetWasResized() const { return wasResized; };
-		const ImRect& GetRenderRegion() const;
 
 	private:
 		ImRect renderRegion, lastRenderRegion;

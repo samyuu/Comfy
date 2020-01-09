@@ -2,7 +2,7 @@
 #include "Core/Application.h"
 #include "Editor/Aet/AetEditor.h"
 #include "Editor/Chart/ChartEditor.h"
-#include "Editor/PV/SceneRenderWindow.h"
+#include "Editor/PV/SceneEditor.h"
 #include "Misc/StringHelper.h"
 
 namespace Editor
@@ -74,7 +74,7 @@ namespace Editor
 #else
 		AddEditorComponent<ChartEditor>(false);
 		AddEditorComponent<AetEditor>(false);
-		AddEditorComponent<SceneRenderWindow>(true);
+		AddEditorComponent<SceneEditor>(true);
 #endif
 	}
 

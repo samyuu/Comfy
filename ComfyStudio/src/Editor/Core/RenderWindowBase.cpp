@@ -102,11 +102,6 @@ namespace Editor
 		return Gui::GetMousePos() - renderRegion.Min;
 	}
 
-	const ImRect& RenderWindowBase::GetRenderRegion() const
-	{
-		return renderRegion;
-	}
-
 	void RenderWindowBase::OnResize(ivec2 size)
 	{
 		renderTarget->Resize(size);

@@ -38,6 +38,11 @@ namespace Graphics
 
 	struct Mesh
 	{
+		struct DebugData
+		{
+			bool RenderBoundingSphere;
+		} Debug {};
+
 		Sphere BoundingSphere;
 		std::vector<SubMesh> SubMeshes;
 		VertexAttributeFlags AttributeFlags;
