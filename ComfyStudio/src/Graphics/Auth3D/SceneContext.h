@@ -27,7 +27,7 @@ namespace Graphics
 		bool RenderFog = true;
 
 		ivec2 RenderResolution = RenderTargetDefaultSize;
-		uint32_t MultiSampleCount = 1;
+		uint32_t MultiSampleCount = 4;
 
 		static constexpr ivec2 ReflectionDefaultResolution = ivec2(512, 512);
 
@@ -36,7 +36,7 @@ namespace Graphics
 		ivec2 ReflectionRenderResolution = ReflectionDefaultResolution;
 
 		bool Clear = true;
-		vec4 ClearColor = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		vec4 ClearColor = vec4(0.16f, 0.16f, 0.16f, 1.0f);
 
 		/*
 		struct PostProcessParameters
