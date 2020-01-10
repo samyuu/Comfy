@@ -11,8 +11,10 @@ namespace Editor
 
 	enum SceneEntityTag : EntityTag
 	{
+		NullTag = 0,
 		StageTag = 'stg',
 		CharacterTag = 'chr',
+		ObjectTag = 'obj',
 	};
 
 	SceneEditor::SceneEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
@@ -61,7 +63,16 @@ namespace Editor
 		{
 			Gui::BeginChild("ObjSetLoaderChild");
 			if (objFileViewer.DrawGui())
-				LoadRegisterObjSet(objFileViewer.GetFileToOpen(), Debug::GetTxpSetPathForObjSet(objFileViewer.GetFileToOpen()));
+			{
+				EraseByTag(ObjectTag, static_cast<EraseFlags>(EraseFlags_Entities | EraseFlags_ObjSets));
+
+				if (LoadRegisterObjSet(objFileViewer.GetFileToOpen(), Debug::GetTxpSetPathForObjSet(objFileViewer.GetFileToOpen()), ObjectTag))
+				{
+					auto& newlyAddedStageObjSet = loadedObjSets.back();
+					for (auto& obj : *newlyAddedStageObjSet.ObjSet)
+						auto& entity = sceneGraph.AddFromObj(obj, ObjectTag);
+				}
+			}
 			Gui::EndChild();
 		}
 		Gui::End();
@@ -176,19 +187,29 @@ namespace Editor
 
 	bool SceneEditor::UnLoadStageObjects()
 	{
-		sceneGraph.Entities.erase(
-			std::remove_if(sceneGraph.Entities.begin(),
-				sceneGraph.Entities.end(),
-				[](auto& entity) { return entity.Tag == StageTag; }),
-			sceneGraph.Entities.end());
-
-		loadedObjSets.erase(
-			std::remove_if(loadedObjSets.begin(),
-				loadedObjSets.end(),
-				[](auto& objSetResource) { return objSetResource.Tag == StageTag; }),
-			loadedObjSets.end());
-
+		EraseByTag(StageTag, static_cast<EraseFlags>(EraseFlags_Entities | EraseFlags_ObjSets));
 		return true;
+	}
+
+	void SceneEditor::EraseByTag(EntityTag tag, EraseFlags flags)
+	{
+		if (flags & EraseFlags_Entities)
+		{
+			sceneGraph.Entities.erase(
+				std::remove_if(sceneGraph.Entities.begin(),
+					sceneGraph.Entities.end(),
+					[tag](auto& entity) { return entity.Tag == tag; }),
+				sceneGraph.Entities.end());
+		}
+
+		if (flags & EraseFlags_ObjSets)
+		{
+			loadedObjSets.erase(
+				std::remove_if(loadedObjSets.begin(),
+					loadedObjSets.end(),
+					[tag](auto& objSetResource) { return objSetResource.Tag == tag; }),
+				loadedObjSets.end());
+		}
 	}
 
 	void SceneEditor::DrawCameraGui()
@@ -203,7 +224,7 @@ namespace Editor
 		Gui::DragFloat3("Interest", glm::value_ptr(camera.Interest), 0.01f);
 		Gui::DragFloat("Smoothness", &cameraController.Settings.InterpolationSmoothness, 1.0f, 0.0f, 250.0f);
 
-		Gui::Combo("Control Mode", reinterpret_cast<int*>(&cameraController.Mode), "None\0First Person\0Orbit");
+		Gui::Combo("Control Mode", reinterpret_cast<int*>(&cameraController.Mode), "None\0First Person\0Orbit\0");
 		if (cameraController.Mode == CameraController3D::ControlMode::FirstPerson)
 		{
 			Gui::DragFloat("Camera Pitch", &cameraController.FirstPersonData.TargetPitch, 1.0f);
@@ -684,20 +705,7 @@ namespace Editor
 
 	void SceneEditor::DrawCharaTestGui()
 	{
-		auto unloadCharaItems = [&]() 
-		{
-			sceneGraph.Entities.erase(
-				std::remove_if(sceneGraph.Entities.begin(),
-					sceneGraph.Entities.end(),
-					[](auto& entity) { return entity.Tag == CharacterTag; }),
-				sceneGraph.Entities.end());
-
-			loadedObjSets.erase(
-				std::remove_if(loadedObjSets.begin(),
-					loadedObjSets.end(),
-					[](auto& objSetResource) { return objSetResource.Tag == CharacterTag; }),
-				loadedObjSets.end());
-		};
+		auto unloadCharaItems = [&] { EraseByTag(CharacterTag, static_cast<EraseFlags>(EraseFlags_Entities | EraseFlags_ObjSets)); };
 
 		auto loadCharaItems = [&]()
 		{

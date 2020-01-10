@@ -23,11 +23,19 @@ namespace Editor
 		ImGuiWindowFlags GetWindowFlags() const override;
 
 	private:
-		bool LoadRegisterObjSet(std::string_view objSetPath, std::string_view txpSetPath, EntityTag tag = 0);
+		bool LoadRegisterObjSet(std::string_view objSetPath, std::string_view txpSetPath, EntityTag tag);
 		bool UnLoadUnRegisterObjSet(const Graphics::ObjSet* objSetToRemove);
 		
 		bool LoadStageObjects(StageType type, int id, int subID);
 		bool UnLoadStageObjects();
+
+		enum EraseFlags
+		{
+			EraseFlags_Entities = (1 << 0),
+			EraseFlags_ObjSets = (1 << 1),
+		};
+
+		void EraseByTag(EntityTag tag, EraseFlags flags);
 
 	private:
 		void DrawCameraGui();
