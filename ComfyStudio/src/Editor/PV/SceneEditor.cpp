@@ -68,9 +68,9 @@ namespace Editor
 
 				if (LoadRegisterObjSet(objFileViewer.GetFileToOpen(), Debug::GetTxpSetPathForObjSet(objFileViewer.GetFileToOpen()), ObjectTag))
 				{
-					auto& newlyAddedStageObjSet = loadedObjSets.back();
+					auto& newlyAddedStageObjSet = sceneGraph.LoadedObjSets.back();
 					for (auto& obj : *newlyAddedStageObjSet.ObjSet)
-						auto& entity = sceneGraph.AddFromObj(obj, ObjectTag);
+						auto& entity = sceneGraph.AddEntityFromObj(obj, ObjectTag);
 				}
 			}
 			Gui::EndChild();
@@ -136,7 +136,7 @@ namespace Editor
 		RefPtr<ObjSet> objSet = ObjSet::MakeUniqueReadParseUpload(objSetPath);
 		objSet->Name = FileSystem::GetFileName(objSetPath, false);
 		objSet->TxpSet = TxpSet::MakeUniqueReadParseUpload(txpSetPath, objSet.get());
-		loadedObjSets.push_back(ObjSetResource { objSet, tag });
+		sceneGraph.LoadObjSet(objSet, tag);
 
 		renderer3D->RegisterTextureIDs(*objSet->TxpSet);
 		return true;
@@ -149,11 +149,11 @@ namespace Editor
 
 		renderer3D->UnRegisterTextureIDs(*objSetToRemove->TxpSet);
 
-		loadedObjSets.erase(
-			std::remove_if(loadedObjSets.begin(),
-				loadedObjSets.end(),
+		sceneGraph.LoadedObjSets.erase(
+			std::remove_if(sceneGraph.LoadedObjSets.begin(),
+				sceneGraph.LoadedObjSets.end(),
 				[&](auto& objSet) { return objSet.ObjSet.get() == objSetToRemove; }),
-			loadedObjSets.end());
+			sceneGraph.LoadedObjSets.end());
 
 		return true;
 	}
@@ -167,10 +167,10 @@ namespace Editor
 		if (!LoadRegisterObjSet(objPath.data(), txpPath.data(), StageTag))
 			return false;
 
-		auto& newlyAddedStageObjSet = loadedObjSets.back();
+		auto& newlyAddedStageObjSet = sceneGraph.LoadedObjSets.back();
 		for (auto& obj : *newlyAddedStageObjSet.ObjSet)
 		{
-			auto& entity = sceneGraph.AddFromObj(obj, StageTag);
+			auto& entity = sceneGraph.AddEntityFromObj(obj, StageTag);
 			entity.IsReflection = Debug::IsReflectionObj(obj);
 		}
 
@@ -204,11 +204,11 @@ namespace Editor
 
 		if (flags & EraseFlags_ObjSets)
 		{
-			loadedObjSets.erase(
-				std::remove_if(loadedObjSets.begin(),
-					loadedObjSets.end(),
+			sceneGraph.LoadedObjSets.erase(
+				std::remove_if(sceneGraph.LoadedObjSets.begin(),
+					sceneGraph.LoadedObjSets.end(),
 					[tag](auto& objSetResource) { return objSetResource.Tag == tag; }),
-				loadedObjSets.end());
+				sceneGraph.LoadedObjSets.end());
 		}
 	}
 
@@ -495,21 +495,21 @@ namespace Editor
 
 	void SceneEditor::DrawObjectTestGui()
 	{
-		if (objTestData.ObjSetIndex < 0 || objTestData.ObjSetIndex >= loadedObjSets.size())
+		if (objTestData.ObjSetIndex < 0 || objTestData.ObjSetIndex >= sceneGraph.LoadedObjSets.size())
 		{
 			objTestData.ObjSetIndex = 0;
 			return;
 		}
 
 		if (Gui::InputInt("ObjSet Index", &objTestData.ObjSetIndex, 1, 10))
-			objTestData.ObjSetIndex = std::clamp(objTestData.ObjSetIndex, 0, static_cast<int>(loadedObjSets.size()) - 1);
+			objTestData.ObjSetIndex = std::clamp(objTestData.ObjSetIndex, 0, static_cast<int>(sceneGraph.LoadedObjSets.size()) - 1);
 
-		auto getObjSetName = [&](int index) { return (index < 0 || index >= loadedObjSets.size()) ? "None" : loadedObjSets[index].ObjSet->Name.c_str(); };
+		auto getObjSetName = [&](int index) { return (index < 0 || index >= sceneGraph.LoadedObjSets.size()) ? "None" : sceneGraph.LoadedObjSets[index].ObjSet->Name.c_str(); };
 
 		// TODO: Refactor combo box vector + index into helper function
 		if (Gui::BeginCombo("ObjSet", getObjSetName(objTestData.ObjSetIndex), ImGuiComboFlags_HeightLarge))
 		{
-			for (int setIndex = 0; setIndex < static_cast<int>(loadedObjSets.size()); setIndex++)
+			for (int setIndex = 0; setIndex < static_cast<int>(sceneGraph.LoadedObjSets.size()); setIndex++)
 			{
 				if (Gui::Selectable(getObjSetName(setIndex), (setIndex == objTestData.ObjSetIndex)))
 					objTestData.ObjSetIndex = setIndex;
@@ -521,10 +521,10 @@ namespace Editor
 			Gui::ComfyEndCombo();
 		}
 
-		if (objTestData.ObjSetIndex < 0 || objTestData.ObjSetIndex >= loadedObjSets.size())
+		if (objTestData.ObjSetIndex < 0 || objTestData.ObjSetIndex >= sceneGraph.LoadedObjSets.size())
 			return;
 
-		ObjSet& objSet = *loadedObjSets[objTestData.ObjSetIndex].ObjSet;
+		ObjSet& objSet = *sceneGraph.LoadedObjSets[objTestData.ObjSetIndex].ObjSet;
 
 		auto getObjName = [&](int index) { return (index < 0 || index >= objSet.size()) ? "None" : objSet.GetObjAt(index)->Name.c_str(); };
 
@@ -715,8 +715,8 @@ namespace Editor
 				auto txpSetPath = Debug::GetDebugFilePath(Debug::PathType::CharaItemTxp, StageType::STGTST, id, 0, charaTestData.IDs.Character.data());
 
 				if (LoadRegisterObjSet(objSetPath.data(), txpSetPath.data(), CharacterTag))
-					for (auto& obj : *loadedObjSets.back().ObjSet)
-						sceneGraph.AddFromObj(obj, CharacterTag);
+					for (auto& obj : *sceneGraph.LoadedObjSets.back().ObjSet)
+						sceneGraph.AddEntityFromObj(obj, CharacterTag);
 			};
 
 			unloadCharaItems();

@@ -77,13 +77,5 @@ namespace Editor
 			int MaterialIndex = 0;
 			int MeshIndex = 0;
 		} objTestData;
-
-		struct ObjSetResource
-		{
-			RefPtr<Graphics::ObjSet> ObjSet;
-			EntityTag Tag;
-		};
-
-		std::vector<ObjSetResource> loadedObjSets;
 	};
 }

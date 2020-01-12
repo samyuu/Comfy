@@ -23,12 +23,26 @@ namespace Editor
 		bool IsReflection;
 	};
 
+	struct ObjSetResource
+	{
+		RefPtr<Graphics::ObjSet> ObjSet;
+		EntityTag Tag;
+	};
+
 	struct SceneGraph
 	{
+		std::vector<ObjSetResource> LoadedObjSets;
+
 		// TODO: Store UniquePtr / RefPtr so other objects can hold references
 		std::vector<ObjectEntity> Entities;
 
-		inline ObjectEntity& AddFromObj(const Graphics::Obj& obj, EntityTag tag = {})
+		inline ObjSetResource& LoadObjSet(const RefPtr<Graphics::ObjSet>& objSet, EntityTag tag)
+		{
+			LoadedObjSets.emplace_back(ObjSetResource { objSet, tag });
+			return LoadedObjSets.back();
+		}
+
+		inline ObjectEntity& AddEntityFromObj(const Graphics::Obj& obj, EntityTag tag)
 		{
 			ObjectEntity entity = {};
 			entity.Name = obj.Name;
