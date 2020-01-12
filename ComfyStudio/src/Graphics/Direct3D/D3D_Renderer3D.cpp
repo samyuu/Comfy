@@ -169,7 +169,7 @@ namespace Graphics
 		const mat4 scale = glm::scale(mat4(1.0f), command.Transform.Scale);
 
 		ObjRenderCommand renderCommand;
-		renderCommand.Command = command;
+		renderCommand.SourceCommand = command;
 		renderCommand.ModelMatrix = translation * rotationX * rotationY * rotationZ * scale;
 		renderCommand.AreAllMeshesTransparent = false;
 
@@ -245,13 +245,13 @@ namespace Graphics
 		{
 			command.AreAllMeshesTransparent = true;
 
-			for (auto& mesh : command.Command.SourceObj->Meshes)
+			for (auto& mesh : command.SourceCommand.SourceObj->Meshes)
 			{
 				for (auto& subMesh : mesh.SubMeshes)
 				{
-					if (IsMeshTransparent(mesh, subMesh, subMesh.GetMaterial(*command.Command.SourceObj)))
+					if (IsMeshTransparent(mesh, subMesh, subMesh.GetMaterial(*command.SourceCommand.SourceObj)))
 					{
-						const float cameraDistance = glm::distance(command.Command.Transform.Translation + subMesh.BoundingSphere.Center, sceneContext->Camera.ViewPoint);
+						const float cameraDistance = glm::distance(command.SourceCommand.Transform.Translation + subMesh.BoundingSphere.Center, sceneContext->Camera.ViewPoint);
 						transparentSubMeshCommands.push_back({ &command, &mesh, &subMesh, cameraDistance });
 					}
 					else
@@ -408,18 +408,20 @@ namespace Graphics
 		if (command.AreAllMeshesTransparent)
 			return;
 
-		auto& transform = command.Command.Transform;
-		auto& obj = *command.Command.SourceObj;
+		auto& transform = command.SourceCommand.Transform;
+		auto& obj = *command.SourceCommand.SourceObj;
 
 		if (!IntersectsCameraFrustum(obj.BoundingSphere, transform))
 			return;
 
-		for (auto& mesh : obj.Meshes)
+		for (size_t meshIndex = 0; meshIndex < obj.Meshes.size(); meshIndex++)
 		{
+			auto& mesh = obj.Meshes[meshIndex];
 			if (!IntersectsCameraFrustum(mesh.BoundingSphere, transform))
 				continue;
 
-			BindMeshVertexBuffers(mesh, nullptr);
+			auto* morphMesh = (command.SourceCommand.SourceMorphObj != nullptr) ? &command.SourceCommand.SourceMorphObj->Meshes[meshIndex] : nullptr;
+			BindMeshVertexBuffers(mesh, morphMesh);
 
 			for (auto& subMesh : mesh.SubMeshes)
 			{
@@ -427,7 +429,7 @@ namespace Graphics
 				if (IsMeshTransparent(mesh, subMesh, material))
 					continue;
 
-				if (!IntersectsCameraFrustum(subMesh.BoundingSphere, command.Command.Transform))
+				if (!IntersectsCameraFrustum(subMesh.BoundingSphere, command.SourceCommand.Transform))
 					continue;
 
 				PrepareAndRenderSubMesh(command, mesh, subMesh, material);
@@ -437,8 +439,8 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command)
 	{
-		auto& transform = command.ObjCommand->Command.Transform;
-		auto& obj = *command.ObjCommand->Command.SourceObj;
+		auto& transform = command.ObjCommand->SourceCommand.Transform;
+		auto& obj = *command.ObjCommand->SourceCommand.SourceObj;
 		auto& mesh = *command.ParentMesh;
 		auto& subMesh = *command.SubMesh;
 
@@ -464,7 +466,7 @@ namespace Graphics
 
 		for (auto& command : renderCommandList)
 		{
-			auto& obj = *command.Command.SourceObj;
+			auto& obj = *command.SourceCommand.SourceObj;
 
 			for (auto& mesh : obj.Meshes)
 			{
@@ -694,7 +696,7 @@ namespace Graphics
 		mat4 modelMatrix;
 		if (mesh.Flags.FaceCamera)
 		{
-			const auto& transform = command.Command.Transform;
+			const auto& transform = command.SourceCommand.Transform;
 			const float cameraAngle = glm::atan(transform.Translation.x - sceneContext->Camera.ViewPoint.x, transform.Translation.z - sceneContext->Camera.ViewPoint.z);
 
 			modelMatrix = glm::rotate(command.ModelMatrix, cameraAngle - glm::pi<float>() - glm::radians(transform.Rotation.y), vec3(0.0f, 1.0f, 0.0f));
@@ -733,6 +735,11 @@ namespace Graphics
 
 		if (sceneContext->RenderParameters.RenderFog)
 			objectCB.Data.ShaderFlags |= ShaderFlags_LinearFog;
+
+		if (command.SourceCommand.SourceMorphObj != nullptr)
+			objectCB.Data.ShaderFlags |= ShaderFlags_Morph;
+		
+		objectCB.Data.MorphWeight = vec2(command.SourceCommand.MorphWeight, 1.0f - command.SourceCommand.MorphWeight);
 
 		objectCB.UploadData();
 

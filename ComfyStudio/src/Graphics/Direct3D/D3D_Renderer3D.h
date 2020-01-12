@@ -27,6 +27,7 @@ namespace Graphics
 		ShaderFlags_AlphaTest = 1 << 5,
 		ShaderFlags_CubeMapReflection = 1 << 6,
 		ShaderFlags_LinearFog = 1 << 7,
+		ShaderFlags_Morph = 1 << 8,
 	};
 
 	struct SceneConstantData
@@ -92,6 +93,8 @@ namespace Graphics
 			TextureFormat Tangent;
 			TextureFormat Reserved;
 		} TextureFormats;
+		vec2 MorphWeight;
+		vec2 MorphPadding;
 	};
 
 	struct ReduceTexConstantData
@@ -135,7 +138,6 @@ namespace Graphics
 		struct Flags
 		{
 			bool IsReflection = false;
-			bool Morph = false;
 
 			// TODO:
 			// bool CastsShadow = false;
@@ -149,6 +151,7 @@ namespace Graphics
 		RenderCommand() = default;
 		RenderCommand(const Obj& obj) : SourceObj(&obj) {}
 		RenderCommand(const Obj& obj, const vec3& position) : SourceObj(&obj), Transform(position) {}
+		RenderCommand(const Obj& obj, const Obj& morphObj, float morphWeight) : SourceObj(&obj), SourceMorphObj(&morphObj), MorphWeight(morphWeight) {}
 	};
 
 	class D3D_Renderer3D
@@ -179,7 +182,7 @@ namespace Graphics
 	private:
 		struct ObjRenderCommand
 		{
-			RenderCommand Command;
+			RenderCommand SourceCommand;
 			
 			// NOTE: To avoid calculating it multiple times
 			mat4 ModelMatrix;

@@ -16,7 +16,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     TEMP pos_m, pos_v, pos_c, pos_w;
     SET_VERTEX_POSITIONS;
     
-    TEMP normal_m = float4(a_normal, 1.0);
+    TEMP normal_m = a_normal;
     TEMP tangent_m = a_tangent;
     
     MOV(o_position, pos_c);
@@ -47,10 +47,10 @@ VS_OUTPUT VS_main(VS_INPUT input)
     MOV(o_binormal, binormal_w);
     MOV(o_normal, normal_w);
     
-    DP4(o_tex0.x, state_matrix_texture0[0], float4(a_tex0, 0.0, 0.0));
-	DP4(o_tex0.y, state_matrix_texture0[1], float4(a_tex0, 0.0, 0.0));
-    DP4(o_tex1.x, state_matrix_texture1[0], float4(a_tex1, 0.0, 0.0));
-	DP4(o_tex1.y, state_matrix_texture1[1], float4(a_tex1, 0.0, 0.0));
+    DP4(o_tex0.x, state_matrix_texture0[0], a_tex0);
+	DP4(o_tex0.y, state_matrix_texture0[1], a_tex0);
+    DP4(o_tex1.x, state_matrix_texture1[0], a_tex1);
+	DP4(o_tex1.y, state_matrix_texture1[1], a_tex1);
     
 	TEMP tmp = float4(0.0, 0.0, 0.0, 0.0);
     DP3(tmp.x, camera_mvi[0], -pos_v);

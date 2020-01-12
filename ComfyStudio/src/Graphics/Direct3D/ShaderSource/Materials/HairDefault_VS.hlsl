@@ -50,10 +50,10 @@ VS_OUTPUT VS_main(VS_INPUT input)
     MOV(o_tangent, tangent_w);
     MOV(o_binormal, binormal_w);
     MOV(o_normal, normal_w);
-    DP4(o_tex0.x, state_matrix_texture0[0], float4(a_tex0, 0.0, 0.0));
-    DP4(o_tex0.y, state_matrix_texture0[1], float4(a_tex0, 0.0, 0.0));
-    DP4(o_tex1.x, state_matrix_texture1[0], float4(a_tex1, 0.0, 0.0));
-    DP4(o_tex1.y, state_matrix_texture1[1], float4(a_tex1, 0.0, 0.0));
+    DP4(o_tex0.x, state_matrix_texture0[0], a_tex0);
+    DP4(o_tex0.y, state_matrix_texture0[1], a_tex0);
+    DP4(o_tex1.x, state_matrix_texture1[0], a_tex1);
+    DP4(o_tex1.y, state_matrix_texture1[1], a_tex1);
     DP4(o_tex_shadow0.x, state_matrix_texture6[0], pos_w);
     DP4(o_tex_shadow0.y, state_matrix_texture6[1], pos_w);
     DP4(o_tex_shadow0.z, state_matrix_texture6[2], pos_w);

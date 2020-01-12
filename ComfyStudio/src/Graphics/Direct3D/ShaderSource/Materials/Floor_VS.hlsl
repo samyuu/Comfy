@@ -15,7 +15,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     TEMP _tmp0;
     TEMP eye_w, diff, spec, spec_ratio, lc, half_w, tmp, pos_v, pos_w, pos_c, pos_m, normal_w = (TEMP)0, normal_m;
     
-    MOV(normal_m, float4(a_normal, 1.0));
+    MOV(normal_m, a_normal);
     MOV(pos_m, a_position);
     DP4(pos_w.x, model_mtx[0], pos_m);
     DP4(pos_w.y, model_mtx[1], pos_m);
@@ -33,10 +33,10 @@ VS_OUTPUT VS_main(VS_INPUT input)
     SUB(_tmp0.w, pos_c.z, state_fog_params.y);
     MUL_SAT(_tmp0.w, _tmp0.w, state_fog_params.w);
     MUL(o_fog.x, _tmp0.w, state_fog_params.x);
-    DP4(o_tex0.x, state_matrix_texture0[0], float4(a_tex0, 0.0, 0.0));
-    DP4(o_tex0.y, state_matrix_texture0[1], float4(a_tex0, 0.0, 0.0));
-    DP4(o_tex1.x, state_matrix_texture1[0], float4(a_tex1, 0.0, 0.0));
-    DP4(o_tex1.y, state_matrix_texture1[1], float4(a_tex1, 0.0, 0.0));
+    DP4(o_tex0.x, state_matrix_texture0[0], a_tex0);
+    DP4(o_tex0.y, state_matrix_texture0[1], a_tex0);
+    DP4(o_tex1.x, state_matrix_texture1[0], a_tex1);
+    DP4(o_tex1.y, state_matrix_texture1[1], a_tex1);
     DP4(pos_v.x, mv[0], a_position);
     DP4(pos_v.y, mv[1], a_position);
     DP4(pos_v.z, mv[2], a_position);

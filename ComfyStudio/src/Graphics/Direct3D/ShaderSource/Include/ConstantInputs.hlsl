@@ -34,4 +34,5 @@ cbuffer ObjectConstantData : register(b1)
     Material CB_Material;
     uint CB_ShaderFlags;
     TextureFormats CB_TextureFormats;
+    float4 CB_MorphWeight;
 };

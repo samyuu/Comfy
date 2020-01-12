@@ -15,8 +15,19 @@ VS_OUTPUT VS_main(VS_INPUT input)
     TEMP _tmp0;
     TEMP eye_w, diff, spec, lc, half_w, tmp, pos_v, pos_w, pos_c, pos_m, normal_w, normal_m;
     
-    MOV(normal_m.xyz, a_normal);
-    MOV(pos_m, a_position);
+    if (FLAGS_MORPH)
+    {
+        MUL(_tmp0, a_morph_normal, p_morph_weight.x);
+        MAD(normal_m, a_normal, p_morph_weight.y, _tmp0);
+        MUL(_tmp0, a_morph_position, p_morph_weight.x);
+        MAD(pos_m, a_position, p_morph_weight.y, _tmp0);
+    }
+    else
+    {
+        MOV(normal_m, a_normal);
+        MOV(pos_m, a_position);
+    }
+    
     DP3(normal_w.x, model_mtx[0], normal_m);
     DP3(normal_w.y, model_mtx[1], normal_m);
     DP3(normal_w.z, model_mtx[2], normal_m);
@@ -36,10 +47,10 @@ VS_OUTPUT VS_main(VS_INPUT input)
     SUB(_tmp0.w, pos_c.z, state_fog_params.y);
     MUL_SAT(_tmp0.w, _tmp0.w, state_fog_params.w);
     MUL(o_fog.x, _tmp0.w, state_fog_params.x);
-    DP4(o_tex0.x, state_matrix_texture0[0], float4(a_tex0, 0.0, 0.0));
-    DP4(o_tex0.y, state_matrix_texture0[1], float4(a_tex0, 0.0, 0.0));
-    DP4(o_tex1.x, state_matrix_texture1[0], float4(a_tex1, 0.0, 0.0));
-    DP4(o_tex1.y, state_matrix_texture1[1], float4(a_tex1, 0.0, 0.0));
+    DP4(o_tex0.x, state_matrix_texture0[0], a_tex0);
+    DP4(o_tex0.y, state_matrix_texture0[1], a_tex0);
+    DP4(o_tex1.x, state_matrix_texture1[0], a_tex1);
+    DP4(o_tex1.y, state_matrix_texture1[1], a_tex1);
     DP3(tmp.w, pos_v, pos_v);
     RSQ(tmp.w, tmp.w);
     MUL(tmp, pos_v, tmp.w);
@@ -81,8 +92,21 @@ VS_OUTPUT VS_main(VS_INPUT input)
     MUL(spec, lc.z, float4(lit_spec, 0.0));
     MUL(o_color_f1, spec, state_material_specular);
     MOV(diff.w, 1.0);
+    
     if (FLAGS_VERTEX_COLOR)
-        MUL(diff, diff, a_color);
+    {
+        if (FLAGS_MORPH)
+        {
+            MUL(_tmp0, a_morph_color, p_morph_weight.x);
+            MAD(tmp, a_color, p_morph_weight.y, _tmp0);
+            MUL(diff, diff, tmp);
+        }
+        else
+        {
+            MUL(diff, diff, a_color);
+        }
+    }
+    
     MUL(o_color_f0, diff, p_blend_color);
     
 #endif
