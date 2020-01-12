@@ -33,8 +33,8 @@ namespace Graphics
 		ID3D11InputLayout* GetLayout();
 
 	private:
-		// NOTE: No need to dynamically allocate additional memory when there are only ever a small amount of elements
-		static constexpr size_t maxElementCount = 8;
+		// NOTE: No need to dynamically allocate additional memory when there are only ever a small fixed amount of elements
+		static constexpr size_t maxElementCount = D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT;
 
 		const size_t usedElementCount;
 		std::array<D3D11_INPUT_ELEMENT_DESC, maxElementCount> elementDescriptions;

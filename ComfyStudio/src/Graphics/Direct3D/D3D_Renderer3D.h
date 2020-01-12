@@ -126,23 +126,29 @@ namespace Graphics
 
 	struct RenderCommand
 	{
-	public:
-		const Obj* SourceObj;
-		Transform Transform;
+		const Obj* SourceObj = nullptr;
+		const Obj* SourceMorphObj = nullptr;
+
+		Transform Transform = Graphics::Transform(vec3(0.0f));
+		float MorphWeight = 1.0f;
+
 		struct Flags
 		{
-			uint32_t IsReflection : 1;
+			bool IsReflection = false;
+			bool Morph = false;
 
-			// TODO: (?)
-			// uint32_t CastsShadow : 1;
-			// uint32_t ReceivesShadow : 1;
-			// uint32_t SubsurfaceScattering : 1;
+			// TODO:
+			// bool CastsShadow = false;
+			// bool ReceivesShadow = false;
+			// bool SubsurfaceScattering = false;
+			// bool Skeleton = false;
+
 		} Flags;
 
 	public:
 		RenderCommand() = default;
-		RenderCommand(const Obj& obj) : RenderCommand(obj, vec3(0.0f)) {}
-		RenderCommand(const Obj& obj, const vec3& position) : SourceObj(&obj), Transform(position), Flags() {}
+		RenderCommand(const Obj& obj) : SourceObj(&obj) {}
+		RenderCommand(const Obj& obj, const vec3& position) : SourceObj(&obj), Transform(position) {}
 	};
 
 	class D3D_Renderer3D
@@ -200,7 +206,7 @@ namespace Graphics
 		void InternalRenderPostProcessing();
 		void InternalRenderBloom();
 
-		void BindMeshVertexBuffers(const Mesh& mesh);
+		void BindMeshVertexBuffers(const Mesh& primaryMesh, const Mesh* morphMesh);
 		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material);
 		D3D_ShaderPair& GetMaterialShader(const Material& material);
 		void SubmitSubMeshDrawCall(const SubMesh& subMesh);

@@ -6,6 +6,8 @@ namespace Graphics
 	{
 		constexpr UINT RectangleVertexCount = 6;
 
+		constexpr uint32_t MorphVertexAttributeOffset = VertexAttribute_Count;
+
 		constexpr D3D11_PRIMITIVE_TOPOLOGY GetD3DPrimitiveTopolgy(PrimitiveType primitive)
 		{
 			switch (primitive)
@@ -47,6 +49,12 @@ namespace Graphics
 
 			if (mesh.Flags.Transparent)
 				return true;
+
+			//if (subMesh.UnknownIndex > 0)
+			//	return true;
+
+			//if (mesh.AttributeFlags & VertexAttributeFlags_Color0)
+			//	return true;
 
 			return false;
 		}
@@ -114,13 +122,27 @@ namespace Graphics
 	{
 		static constexpr InputElement elements[] =
 		{
-			{ "POSITION",	0, DXGI_FORMAT_R32G32B32_FLOAT,		0, VertexAttribute_Position },
-			{ "NORMAL",		0, DXGI_FORMAT_R32G32B32_FLOAT,		0, VertexAttribute_Normal },
-			{ "TANGENT",	0, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, VertexAttribute_Tangent },
-			{ "TEXCOORD",	0, DXGI_FORMAT_R32G32_FLOAT,		0, VertexAttribute_TextureCoordinate0 },
-			{ "TEXCOORD",	1, DXGI_FORMAT_R32G32_FLOAT,		0, VertexAttribute_TextureCoordinate1 },
-			{ "COLOR",		0, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, VertexAttribute_Color0 },
-			{ "COLOR",		1, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, VertexAttribute_Color1 },
+			{ "POSITION",		0, DXGI_FORMAT_R32G32B32_FLOAT,		0, VertexAttribute_Position },
+			{ "NORMAL",			0, DXGI_FORMAT_R32G32B32_FLOAT,		0, VertexAttribute_Normal },
+			{ "TANGENT",		0, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, VertexAttribute_Tangent },
+			{ "TEXCOORD",		0, DXGI_FORMAT_R32G32_FLOAT,		0, VertexAttribute_TextureCoordinate0 },
+			{ "TEXCOORD",		1, DXGI_FORMAT_R32G32_FLOAT,		0, VertexAttribute_TextureCoordinate1 },
+			{ "TEXCOORD",		2, DXGI_FORMAT_R32G32_FLOAT,		0, VertexAttribute_TextureCoordinate2 },
+			{ "TEXCOORD",		3, DXGI_FORMAT_R32G32_FLOAT,		0, VertexAttribute_TextureCoordinate3 },
+			{ "COLOR",			0, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, VertexAttribute_Color0 },
+			{ "COLOR",			1, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, VertexAttribute_Color1 },
+			{ "BONE_WEIGHT",	0, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, VertexAttribute_BoneWeight },
+			{ "BONE_INDEX",		0, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, VertexAttribute_BoneIndex },
+
+			{ "POSITION",		1, DXGI_FORMAT_R32G32B32_FLOAT,		0, MorphVertexAttributeOffset + VertexAttribute_Position },
+			{ "NORMAL",			1, DXGI_FORMAT_R32G32B32_FLOAT,		0, MorphVertexAttributeOffset + VertexAttribute_Normal },
+			{ "TANGENT",		1, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, MorphVertexAttributeOffset + VertexAttribute_Tangent },
+			{ "TEXCOORD",		4, DXGI_FORMAT_R32G32_FLOAT,		0, MorphVertexAttributeOffset + VertexAttribute_TextureCoordinate0 },
+			{ "TEXCOORD",		5, DXGI_FORMAT_R32G32_FLOAT,		0, MorphVertexAttributeOffset + VertexAttribute_TextureCoordinate1 },
+			{ "TEXCOORD",		6, DXGI_FORMAT_R32G32_FLOAT,		0, MorphVertexAttributeOffset + VertexAttribute_TextureCoordinate2 },
+			{ "TEXCOORD",		7, DXGI_FORMAT_R32G32_FLOAT,		0, MorphVertexAttributeOffset + VertexAttribute_TextureCoordinate3 },
+			{ "COLOR",			2, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, MorphVertexAttributeOffset + VertexAttribute_Color0 },
+			{ "COLOR",			3, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, MorphVertexAttributeOffset + VertexAttribute_Color1 },
 		};
 
 		genericInputLayout = MakeUnique<D3D_InputLayout>(elements, std::size(elements), shaders.Debug.VS);
@@ -397,7 +419,7 @@ namespace Graphics
 			if (!IntersectsCameraFrustum(mesh.BoundingSphere, transform))
 				continue;
 
-			BindMeshVertexBuffers(mesh);
+			BindMeshVertexBuffers(mesh, nullptr);
 
 			for (auto& subMesh : mesh.SubMeshes)
 			{
@@ -425,7 +447,7 @@ namespace Graphics
 			|| !IntersectsCameraFrustum(subMesh.BoundingSphere, transform))
 			return;
 
-		BindMeshVertexBuffers(mesh);
+		BindMeshVertexBuffers(mesh, nullptr);
 		auto& material = subMesh.GetMaterial(obj);
 
 		if (!material.BlendFlags.IgnoreBlendFactors)
@@ -446,7 +468,7 @@ namespace Graphics
 
 			for (auto& mesh : obj.Meshes)
 			{
-				BindMeshVertexBuffers(mesh);
+				BindMeshVertexBuffers(mesh, nullptr);
 				for (auto& subMesh : mesh.SubMeshes)
 					PrepareAndRenderSubMesh(command, mesh, subMesh, subMesh.GetMaterial(obj));
 			}
@@ -459,9 +481,11 @@ namespace Graphics
 	{
 		D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-		std::array<ID3D11Buffer*, VertexAttribute_Count> buffers = {};
-		std::array<UINT, VertexAttribute_Count> strides = {}, offsets = {};
-		D3D.Context->IASetVertexBuffers(0, VertexAttribute_Count, buffers.data(), strides.data(), offsets.data());
+		constexpr uint32_t attributesToReset = (VertexAttribute_Count * 2);
+		
+		std::array<ID3D11Buffer*, attributesToReset> buffers = {};
+		std::array<UINT, attributesToReset> strides = {}, offsets = {};
+		D3D.Context->IASetVertexBuffers(0, attributesToReset, buffers.data(), strides.data(), offsets.data());
 
 		solidNoCullingRasterizerState.Bind();
 		D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
@@ -584,31 +608,37 @@ namespace Graphics
 		D3D.Context->Draw(RectangleVertexCount, 0);
 	}
 
-	void D3D_Renderer3D::BindMeshVertexBuffers(const Mesh& mesh)
+	void D3D_Renderer3D::BindMeshVertexBuffers(const Mesh& primaryMesh, const Mesh* morphMesh)
 	{
 		std::array<ID3D11Buffer*, VertexAttribute_Count> buffers;
 		std::array<UINT, VertexAttribute_Count> strides;
 		std::array<UINT, VertexAttribute_Count> offsets;
 
-		for (VertexAttribute i = 0; i < VertexAttribute_Count; i++)
+		const int meshCount = (morphMesh == nullptr) ? 1 : 2;
+		for (int meshIndex = 0; meshIndex < meshCount; meshIndex++)
 		{
-			D3D_StaticVertexBuffer* vertexBuffer = mesh.GraphicsAttributeBuffers[i].get();
+			const Mesh& mesh = (meshIndex == 0) ? primaryMesh : *morphMesh;;
+			for (VertexAttribute i = 0; i < VertexAttribute_Count; i++)
+			{
+				D3D_StaticVertexBuffer* vertexBuffer = mesh.GraphicsAttributeBuffers[i].get();
 
-			if (vertexBuffer != nullptr)
-			{
-				buffers[i] = vertexBuffer->GetBuffer();
-				strides[i] = vertexBuffer->GetDescription().StructureByteStride;
-				offsets[i] = 0;
+				if (vertexBuffer != nullptr)
+				{
+					buffers[i] = vertexBuffer->GetBuffer();
+					strides[i] = vertexBuffer->GetDescription().StructureByteStride;
+					offsets[i] = 0;
+				}
+				else
+				{
+					buffers[i] = nullptr;
+					strides[i] = 0;
+					offsets[i] = 0;
+				}
 			}
-			else
-			{
-				buffers[i] = nullptr;
-				strides[i] = 0;
-				offsets[i] = 0;
-			}
+
+			const UINT startSlot = MorphVertexAttributeOffset * meshIndex;
+			D3D.Context->IASetVertexBuffers(startSlot, VertexAttribute_Count, buffers.data(), strides.data(), offsets.data());
 		}
-
-		D3D.Context->IASetVertexBuffers(0, VertexAttribute_Count, buffers.data(), strides.data(), offsets.data());
 	}
 
 	void D3D_Renderer3D::PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material)
@@ -616,10 +646,11 @@ namespace Graphics
 		auto& materialShader = GetMaterialShader(material);
 		materialShader.Bind();
 
-		std::array<D3D_ShaderResourceView*, 8> textureResources;
-		std::array<D3D_TextureSampler*, 8> textureSamplers;
+		constexpr size_t textureTypeCount = 8;
+		std::array<D3D_ShaderResourceView*, textureTypeCount> textureResources;
+		std::array<D3D_TextureSampler*, textureTypeCount> textureSamplers;
 
-		for (size_t i = 0; i < 8; i++)
+		for (size_t i = 0; i < textureTypeCount; i++)
 		{
 			auto& materialTexture = (&material.Diffuse)[i];
 			auto& textureFormat = (&objectCB.Data.TextureFormats.Diffuse)[i];
