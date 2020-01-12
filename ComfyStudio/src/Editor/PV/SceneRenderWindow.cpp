@@ -92,17 +92,17 @@ namespace Editor
 		{
 			for (auto& entity : sceneGraph->Entities)
 			{
-				if (entity.IsVisible)
+				if (entity->IsVisible)
 				{
 					RenderCommand renderCommand;
-					renderCommand.SourceObj = entity.Obj;
-					renderCommand.Transform = entity.Transform;
-					renderCommand.Flags.IsReflection = entity.IsReflection;
+					renderCommand.SourceObj = entity->Obj;
+					renderCommand.Transform = entity->Transform;
+					renderCommand.Flags.IsReflection = entity->IsReflection;
 
 					renderer3D->Draw(renderCommand);
 
 					if (true)
-						RenderDebugBoundingSpheres(renderer3D, entity);
+						RenderDebugBoundingSpheres(renderer3D, *entity);
 				}
 			}
 

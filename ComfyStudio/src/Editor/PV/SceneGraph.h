@@ -32,9 +32,7 @@ namespace Editor
 	struct SceneGraph
 	{
 		std::vector<ObjSetResource> LoadedObjSets;
-
-		// TODO: Store UniquePtr / RefPtr so other objects can hold references
-		std::vector<ObjectEntity> Entities;
+		std::vector<UniquePtr<ObjectEntity>> Entities;
 
 		inline ObjSetResource& LoadObjSet(const RefPtr<Graphics::ObjSet>& objSet, EntityTag tag)
 		{
@@ -44,15 +42,16 @@ namespace Editor
 
 		inline ObjectEntity& AddEntityFromObj(const Graphics::Obj& obj, EntityTag tag)
 		{
-			ObjectEntity entity = {};
-			entity.Name = obj.Name;
-			entity.Tag = tag;
-			entity.Obj = &obj;
-			entity.IsVisible = true;
-			entity.Transform = Graphics::Transform(vec3(0.0f));
+			auto entity = MakeUnique<ObjectEntity>();
+			entity->Name = obj.Name;
+			entity->Tag = tag;
+			entity->IsVisible = true;
+			entity->Transform = Graphics::Transform(vec3(0.0f));
+			entity->Obj = &obj;
+			entity->IsReflection = false;
 			
-			Entities.push_back(entity);
-			return Entities.back();
+			Entities.push_back(std::move(entity));
+			return *Entities.back();
 		}
 	};
 }

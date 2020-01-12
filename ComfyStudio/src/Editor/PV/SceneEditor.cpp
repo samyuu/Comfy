@@ -198,7 +198,7 @@ namespace Editor
 			sceneGraph.Entities.erase(
 				std::remove_if(sceneGraph.Entities.begin(),
 					sceneGraph.Entities.end(),
-					[tag](auto& entity) { return entity.Tag == tag; }),
+					[tag](auto& entity) { return entity->Tag == tag; }),
 				sceneGraph.Entities.end());
 		}
 
@@ -433,14 +433,14 @@ namespace Editor
 
 		for (auto& entity : sceneGraph.Entities)
 		{
-			const bool objectNodeOpen = Gui::WideTreeNodeEx(entity.Name.c_str(), ImGuiTreeNodeFlags_None);
+			const bool objectNodeOpen = Gui::WideTreeNodeEx(entity->Name.c_str(), ImGuiTreeNodeFlags_None);
 
 			if (Gui::IsItemClicked(1))
-				setCamera(entity.Obj->BoundingSphere);
+				setCamera(entity->Obj->BoundingSphere);
 
 			if (objectNodeOpen)
 			{
-				for (auto& mesh : entity.Obj->Meshes)
+				for (auto& mesh : entity->Obj->Meshes)
 				{
 					Gui::WideTreeNodeEx(mesh.Name.data(), ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Leaf);
 
@@ -460,7 +460,7 @@ namespace Editor
 		if (Gui::InputInt("Entity Index", &inspector.EntityIndex, 1, 10))
 			inspector.EntityIndex = std::clamp(inspector.EntityIndex, -1, static_cast<int>(sceneGraph.Entities.size() - 1));
 
-		auto getName = [&](int index) { return (index < 0 || index >= sceneGraph.Entities.size()) ? "None" : sceneGraph.Entities[index].Name.c_str(); };
+		auto getName = [&](int index) { return (index < 0 || index >= sceneGraph.Entities.size()) ? "None" : sceneGraph.Entities[index]->Name.c_str(); };
 
 		if (Gui::BeginCombo("Obj", getName(inspector.EntityIndex), ImGuiComboFlags_HeightLarge))
 		{
@@ -482,13 +482,13 @@ namespace Editor
 		auto& entity = sceneGraph.Entities[inspector.EntityIndex];
 		Gui::PushID(&entity);
 
-		Gui::InputScalar("Tag", ImGuiDataType_S64, &entity.Tag, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
-		Gui::Checkbox("Visible", &entity.IsVisible);
+		Gui::InputScalar("Tag", ImGuiDataType_S64, &entity->Tag, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
+		Gui::Checkbox("Visible", &entity->IsVisible);
 
 		// TODO: Gui::ComfyFloat3TextWidget();
-		Gui::DragFloat3("Translation", glm::value_ptr(entity.Transform.Translation), 0.1f);
-		Gui::DragFloat3("Rotation", glm::value_ptr(entity.Transform.Rotation), 0.1f);
-		Gui::DragFloat3("Scale", glm::value_ptr(entity.Transform.Scale), 0.01f);
+		Gui::DragFloat3("Translation", glm::value_ptr(entity->Transform.Translation), 0.1f);
+		Gui::DragFloat3("Rotation", glm::value_ptr(entity->Transform.Rotation), 0.1f);
+		Gui::DragFloat3("Scale", glm::value_ptr(entity->Transform.Scale), 0.01f);
 
 		Gui::PopID();
 	}
@@ -745,8 +745,8 @@ namespace Editor
 		{
 			for (auto& entity : sceneGraph.Entities)
 			{
-				if (entity.Tag == CharacterTag)
-					entity.Transform.Translation = charaTestData.Position;
+				if (entity->Tag == CharacterTag)
+					entity->Transform.Translation = charaTestData.Position;
 			}
 		}
 
