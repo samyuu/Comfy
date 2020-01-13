@@ -178,7 +178,7 @@ namespace Graphics
 	{
 		uint32_t EnableAlphaTest : 1;
 		uint32_t EnableBlend : 1;
-		uint32_t IgnoreBlendFactors : 1;
+		uint32_t OpaqueAlphaTest : 1;
 		DoubleSidedness DoubleSidedness : 2;
 		BlendFactor SrcBlendFactor : 4;
 		BlendFactor DstBlendFactor : 4;

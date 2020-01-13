@@ -47,13 +47,10 @@ namespace Graphics
 			if (material.BlendFlags.EnableBlend)
 				return true;
 
-			if (mesh.Flags.Transparent)
+			if (material.BlendFlags.EnableAlphaTest && !material.BlendFlags.OpaqueAlphaTest)
 				return true;
-
-			//if (subMesh.UnknownIndex > 0)
-			//	return true;
-
-			//if (mesh.AttributeFlags & VertexAttributeFlags_Color0)
+			
+			//if (mesh.Flags.Transparent)
 			//	return true;
 
 			return false;
@@ -454,9 +451,7 @@ namespace Graphics
 		BindMeshVertexBuffers(mesh, morphMesh);
 
 		auto& material = subMesh.GetMaterial(obj);
-
-		if (!material.BlendFlags.IgnoreBlendFactors)
-			cachedBlendStates.GetState(material.BlendFlags.SrcBlendFactor, material.BlendFlags.DstBlendFactor).Bind();
+		cachedBlendStates.GetState(material.BlendFlags.SrcBlendFactor, material.BlendFlags.DstBlendFactor).Bind();
 		
 		PrepareAndRenderSubMesh(*command.ObjCommand, mesh, subMesh, material);
 	}
@@ -730,7 +725,7 @@ namespace Graphics
 		if (material.Flags.UseSpecularTexture || material.Specular.TextureID != -1)
 			objectCB.Data.ShaderFlags |= ShaderFlags_SpecularTexture;
 
-		if (material.BlendFlags.EnableAlphaTest && !(material.BlendFlags.EnableBlend || mesh.Flags.Transparent))
+		if (material.BlendFlags.EnableAlphaTest && !IsMeshTransparent(mesh, subMesh, material))
 			objectCB.Data.ShaderFlags |= ShaderFlags_AlphaTest;
 
 		if (material.Flags.UseCubeMapReflection || material.Reflection.TextureID != -1)
