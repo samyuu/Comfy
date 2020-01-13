@@ -439,8 +439,9 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command)
 	{
-		auto& transform = command.ObjCommand->SourceCommand.Transform;
-		auto& obj = *command.ObjCommand->SourceCommand.SourceObj;
+		auto& objCommand = command.ObjCommand;
+		auto& transform = objCommand->SourceCommand.Transform;
+		auto& obj = *objCommand->SourceCommand.SourceObj;
 		auto& mesh = *command.ParentMesh;
 		auto& subMesh = *command.SubMesh;
 
@@ -449,7 +450,9 @@ namespace Graphics
 			|| !IntersectsCameraFrustum(subMesh.BoundingSphere, transform))
 			return;
 
-		BindMeshVertexBuffers(mesh, nullptr);
+		auto* morphMesh = (objCommand->SourceCommand.SourceMorphObj != nullptr) ? &objCommand->SourceCommand.SourceMorphObj->Meshes[std::distance(&obj.Meshes.front(), &mesh)] : nullptr;
+		BindMeshVertexBuffers(mesh, morphMesh);
+
 		auto& material = subMesh.GetMaterial(obj);
 
 		if (!material.BlendFlags.IgnoreBlendFactors)
