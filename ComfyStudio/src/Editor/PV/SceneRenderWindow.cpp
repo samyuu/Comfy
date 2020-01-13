@@ -61,11 +61,6 @@ namespace Editor
 	{
 	}
 
-	void SceneRenderWindow::Initialize()
-	{
-		RenderWindowBase::Initialize();
-	}
-
 	void SceneRenderWindow::DrawGui()
 	{
 		RenderWindowBase::DrawGui();

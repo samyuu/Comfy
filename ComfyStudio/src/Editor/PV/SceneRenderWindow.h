@@ -13,7 +13,6 @@ namespace Editor
 		~SceneRenderWindow() = default;
 
 	public:
-		void Initialize();
 		void DrawGui();
 
 	private:

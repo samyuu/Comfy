@@ -37,7 +37,7 @@ namespace Editor
 		cameraController.FirstPersonData.TargetYaw = -90.000f;
 #endif
 
-		if (sceneGraph.Entities.empty())
+		if (sceneGraph.LoadedObjSets.empty())
 		{
 			LoadStageObjects(StageType::STGTST, 7, 0);
 			// LoadStageObjects(StageType::STGNS, 6, 0);
@@ -70,7 +70,7 @@ namespace Editor
 				{
 					auto& newlyAddedStageObjSet = sceneGraph.LoadedObjSets.back();
 					for (auto& obj : *newlyAddedStageObjSet.ObjSet)
-						auto& entity = sceneGraph.AddEntityFromObj(obj, ObjectTag);
+						sceneGraph.AddEntityFromObj(obj, ObjectTag);
 				}
 			}
 			Gui::EndChild();
@@ -458,7 +458,7 @@ namespace Editor
 	void SceneEditor::DrawEntityInspectorGui()
 	{
 		if (Gui::InputInt("Entity Index", &inspector.EntityIndex, 1, 10))
-			inspector.EntityIndex = std::clamp(inspector.EntityIndex, -1, static_cast<int>(sceneGraph.Entities.size() - 1));
+			inspector.EntityIndex = std::clamp(inspector.EntityIndex, -1, static_cast<int>(sceneGraph.Entities.size()) - 1);
 
 		auto getName = [&](int index) { return (index < 0 || index >= sceneGraph.Entities.size()) ? "None" : sceneGraph.Entities[index]->Name.c_str(); };
 
@@ -698,7 +698,6 @@ namespace Editor
 		for (auto& stageTypeData : stageTestData.TypeData)
 			stageTypeGui(stageTypeData);
 
-		Gui::Checkbox("Select Ground", &stageTestData.Settings.SelectGround);
 		Gui::Checkbox("Load Light Param", &stageTestData.Settings.LoadLightParam);
 		Gui::Checkbox("Load Stage", &stageTestData.Settings.LoadObj);
 	}
@@ -709,17 +708,29 @@ namespace Editor
 
 		auto loadCharaItems = [&]()
 		{
-			auto loadPart = [&](int id)
+			auto loadPart = [&](int id, int exclusiveObjIndex = -1)
 			{
 				auto objSetPath = Debug::GetDebugFilePath(Debug::PathType::CharaItemObj, StageType::STGTST, id, 0, charaTestData.IDs.Character.data());
 				auto txpSetPath = Debug::GetDebugFilePath(Debug::PathType::CharaItemTxp, StageType::STGTST, id, 0, charaTestData.IDs.Character.data());
 
 				if (LoadRegisterObjSet(objSetPath.data(), txpSetPath.data(), CharacterTag))
-					for (auto& obj : *sceneGraph.LoadedObjSets.back().ObjSet)
-						sceneGraph.AddEntityFromObj(obj, CharacterTag);
+				{
+					auto& loadedResource = sceneGraph.LoadedObjSets.back();
+
+					if (exclusiveObjIndex < 0 || exclusiveObjIndex >= loadedResource.ObjSet->size())
+					{
+						for (auto& obj : *loadedResource.ObjSet)
+							sceneGraph.AddEntityFromObj(obj, CharacterTag);
+					}
+					else
+					{
+						sceneGraph.AddEntityFromObj(loadedResource.ObjSet->at(exclusiveObjIndex), CharacterTag);
+					}
+				}
 			};
 
 			unloadCharaItems();
+			loadPart(charaTestData.IDs.Face, charaTestData.IDs.FaceIndex);
 			loadPart(charaTestData.IDs.Overhead);
 			loadPart(charaTestData.IDs.Hair);
 			loadPart(charaTestData.IDs.Outer);
@@ -728,6 +739,9 @@ namespace Editor
 
 		Gui::PushID(&charaTestData);
 		Gui::InputText("Character", charaTestData.IDs.Character.data(), charaTestData.IDs.Character.size());
+
+		if (Gui::InputInt("Face", &charaTestData.IDs.FaceIndex))
+			loadCharaItems();
 
 		if (Gui::InputInt("Overhead", &charaTestData.IDs.Overhead))
 			loadCharaItems();
