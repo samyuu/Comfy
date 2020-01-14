@@ -65,20 +65,18 @@ VS_OUTPUT VS_main(VS_INPUT input)
     // MUL_SAT(tmp.w, tmp.w, program_env_19.w);
     // MUL(tmp.w, tmp.w, program_env_19.x);
     MAD(o_color_f1.w, tmp.w, p_bump_depth.x, 1);
-    // MUL(_tmp0, a_morph_texcoord, p_morph_weight.x);
-    // MAD(tmp, a_tex0, p_morph_weight.y, _tmp0);
-    DP4(o_tex0.x, state_matrix_texture0[0], tmp);
-    DP4(o_tex0.y, state_matrix_texture0[1], tmp);
-    // MUL(_tmp0, a_morph_texcoord1, p_morph_weight.x);
-    // MAD(tmp, a_tex1, p_morph_weight.y, _tmp0);
-    DP4(o_tex1.x, state_matrix_texture1[0], tmp);
-    DP4(o_tex1.y, state_matrix_texture1[1], tmp);
+    
+    VS_SET_OUTPUT_TEX_COORDS;
+    
     DP3(eye_w.x, camera_mvi[0], -pos_v);
     DP3(eye_w.y, camera_mvi[1], -pos_v);
     DP3(eye_w.z, camera_mvi[2], -pos_v);
     MOV(o_eye, eye_w);
     MOV(diff, 1.0);
-    MUL(diff, diff, a_color);
+    
+    if (FLAGS_VERTEX_COLOR)
+        MUL(diff, diff, VS_A_COLOR_OR_MORPH);
+    
     MUL(diff, diff, state_material_diffuse);
     MUL(o_color_f0, diff, p_blend_color);
     

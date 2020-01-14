@@ -114,7 +114,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     // LRP(o_color.xyz, a_fogcoord.x, a_color1, diff);
     MOV(o_color.xyz, diff.xyz);
     
-    CHECK_CLIP_ALPHA_TEST;
+    PS_ALPHA_TEST;
 
 #endif
 

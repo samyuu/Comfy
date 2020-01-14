@@ -33,10 +33,9 @@ VS_OUTPUT VS_main(VS_INPUT input)
     SUB(_tmp0.w, pos_c.z, state_fog_params.y);
     MUL_SAT(_tmp0.w, _tmp0.w, state_fog_params.w);
     MUL(o_fog.x, _tmp0.w, state_fog_params.x);
-    DP4(o_tex0.x, state_matrix_texture0[0], a_tex0);
-    DP4(o_tex0.y, state_matrix_texture0[1], a_tex0);
-    DP4(o_tex1.x, state_matrix_texture1[0], a_tex1);
-    DP4(o_tex1.y, state_matrix_texture1[1], a_tex1);
+    
+    VS_SET_OUTPUT_TEX_COORDS;
+    
     DP4(pos_v.x, mv[0], a_position);
     DP4(pos_v.y, mv[1], a_position);
     DP4(pos_v.z, mv[2], a_position);
@@ -86,8 +85,10 @@ VS_OUTPUT VS_main(VS_INPUT input)
     MUL(o_color_f1, spec, spec_ratio);
     MOV(diff.w, 1.0);
     MUL(diff, diff, state_material_diffuse);
+    
     if (FLAGS_VERTEX_COLOR)
-        MUL(diff, diff, a_color);
+        MUL(diff, diff, VS_A_COLOR_OR_MORPH);
+    
     MUL(o_color_f0, diff, p_blend_color);
     
 #endif

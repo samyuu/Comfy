@@ -32,7 +32,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     
     MUL(o_color, tex_col, a_color0);
     
-    CHECK_CLIP_ALPHA_TEST;
+    PS_ALPHA_TEST;
     
 #endif
 

@@ -70,7 +70,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     LRP(o_color.xyz, a_fogcoord.x, p_fog_color.xyz, _tmp0.xyz);
     MUL(o_color.w, a_color0.w, tex_col.w);
     
-    CHECK_CLIP_ALPHA_TEST;
+    PS_ALPHA_TEST;
     
 #endif
 

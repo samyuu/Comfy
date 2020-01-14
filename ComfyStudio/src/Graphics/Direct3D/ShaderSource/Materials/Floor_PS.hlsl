@@ -32,7 +32,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MAD(tmp.rgb, spec.xyz, color_map.w, diff.xyz);
     LRP(o_color.rgb, a_fogcoord.x, p_fog_color.xyz, tmp.xyz);
     
-    CHECK_CLIP_ALPHA_TEST;
+    PS_ALPHA_TEST;
     
 #endif
 

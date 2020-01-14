@@ -14,11 +14,24 @@ VS_OUTPUT VS_main(VS_INPUT input)
     
     TEMP _tmp0;
     TEMP pos_m, pos_v, pos_c, pos_w;
-    SET_VERTEX_POSITIONS;
+    TEMP normal_m, tangent_m;
     
-    TEMP normal_m = a_normal;
-    TEMP tangent_m = a_tangent;
+    MOV(normal_m, a_normal);
+    MOV(pos_m, a_position);
+    MOV(tangent_m, a_tangent);
     
+    DP4(pos_v.x, mv[0], pos_m);
+    DP4(pos_v.y, mv[1], pos_m);
+    DP4(pos_v.z, mv[2], pos_m);
+    DP4(pos_v.w, mv[3], pos_m);
+    DP4(pos_w.x, model_mtx[0], pos_m);
+    DP4(pos_w.y, model_mtx[1], pos_m);
+    DP4(pos_w.z, model_mtx[2], pos_m);
+    DP4(pos_w.w, model_mtx[3], pos_m);
+    DP4(pos_c.x, mvp[0], pos_m);
+    DP4(pos_c.y, mvp[1], pos_m);
+    DP4(pos_c.z, mvp[2], pos_m);
+    DP4(pos_c.w, mvp[3], pos_m);
     MOV(o_position, pos_c);
     
 	TEMP normal_w;
@@ -47,10 +60,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     MOV(o_binormal, binormal_w);
     MOV(o_normal, normal_w);
     
-    DP4(o_tex0.x, state_matrix_texture0[0], a_tex0);
-	DP4(o_tex0.y, state_matrix_texture0[1], a_tex0);
-    DP4(o_tex1.x, state_matrix_texture1[0], a_tex1);
-	DP4(o_tex1.y, state_matrix_texture1[1], a_tex1);
+    VS_SET_OUTPUT_TEX_COORDS;
     
 	TEMP tmp = float4(0.0, 0.0, 0.0, 0.0);
     DP3(tmp.x, camera_mvi[0], -pos_v);
@@ -76,8 +86,10 @@ VS_OUTPUT VS_main(VS_INPUT input)
     
     TEMP diff;
     MOV(diff, state_light1_diffuse);
+    
     if (FLAGS_VERTEX_COLOR)
-        MUL(diff, diff, a_color);
+        MUL(diff, diff, VS_A_COLOR_OR_MORPH);
+    
     MOV(o_color_f0, diff);
     
     SUB(_tmp0.w, pos_c.z, state_fog_params.y);

@@ -48,13 +48,13 @@ VS_OUTPUT VS_main(VS_INPUT input)
     MOV(o_tangent, tangent_w);
     MOV(o_binormal, binormal_w);
     MOV(o_normal, normal_w);
-    DP4(o_tex0.x, state_matrix_texture0[0], a_tex0);
-    DP4(o_tex0.y, state_matrix_texture0[1], a_tex0);
-    DP4(o_tex1.x, state_matrix_texture1[0], a_tex1);
-    DP4(o_tex1.y, state_matrix_texture1[1], a_tex1);
+    
+    VS_SET_OUTPUT_TEX_COORDS;
+    
     DP4(o_tex_shadow0.x, state_matrix_texture6[0], pos_w);
     DP4(o_tex_shadow0.y, state_matrix_texture6[1], pos_w);
     DP4(o_tex_shadow0.z, state_matrix_texture6[2], pos_w);
+    
     DP3(eye_w.x, camera_mvi[0], -pos_v);
     DP3(eye_w.y, camera_mvi[1], -pos_v);
     DP3(eye_w.z, camera_mvi[2], -pos_v);

@@ -95,6 +95,8 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     LRP(o_color.xyz, a_fogcoord.x, a_color1.xyz, diff.xyz);
     MAX(o_color.w, col0.w, p_max_alpha.w);
     
+    PS_ALPHA_TEST;
+    
 #endif
     
     return outputColor;

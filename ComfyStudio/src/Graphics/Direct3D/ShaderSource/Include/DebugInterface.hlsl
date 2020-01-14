@@ -1,21 +1,25 @@
 #ifndef DEBUGINTERFACE_HLSL
 #define DEBUGINTERFACE_HLSL
 
+// --------------------------------------------------------------------------------------------------------------------------
 #ifdef COMFY_VS
+// --------------------------------------------------------------------------------------------------------------------------
 // NOTE: Vertex inputs:
 #define a_position                  (float4(input.Position))
 #define a_normal                    (float4(input.Normal, 1.0))
 #define a_tangent                   (float4(input.Tangent))
-#define a_tex0                      (float4(input.TexCoord, 0.0, 0.0))
-#define a_tex1                      (float4(input.TexCoordAmbient, 0.0, 0.0))
+#define a_tex0                      (float4(input.TexCoord, 0.0, 1.0))
+#define a_tex1                      (float4(input.TexCoordAmbient, 0.0, 1.0))
 #define a_color                     (float4(input.Color))
 #define a_morph_position            (float4(input.MorphPosition))
 #define a_morph_normal              (float4(input.MorphNormal, 1.0))
 #define a_morph_tangent             (float4(input.MorphTangent))
-#define a_morph_texcoord            (float4(input.MorphTexCoord, 0.0, 0.0))
-#define a_morph_texcoord1           (float4(input.MorphTexCoordAmbient, 0.0, 0.0))
+#define a_morph_texcoord            (float4(input.MorphTexCoord, 0.0, 1.0))
+#define a_morph_texcoord1           (float4(input.MorphTexCoordAmbient, 0.0, 1.0))
 #define a_morph_color               (float4(input.MorphColor))
+// --------------------------------------------------------------------------------------------------------------------------
 
+// --------------------------------------------------------------------------------------------------------------------------
 // NOTE: Vertex outputs:
 #define o_position                  (output.Position)
 #define o_color_f0                  (output.Color)
@@ -30,9 +34,13 @@
 #define o_eye                       (output.EyeDirection)
 #define o_reflect                   (output.Reflection)
 #define o_aniso_tangent             (output.AnisoTangent)
+// --------------------------------------------------------------------------------------------------------------------------
 #endif /* COMFY_VS */
+// --------------------------------------------------------------------------------------------------------------------------
 
+// --------------------------------------------------------------------------------------------------------------------------
 #ifdef COMFY_PS
+// --------------------------------------------------------------------------------------------------------------------------
 // NOTE: Fragment inputs:
 #define a_color0                    (input.Color)
 #define a_color1                    (input.ColorSecondary)
@@ -50,11 +58,16 @@
 #define a_reflect                   (input.Reflection)
 #define a_aniso_tangent             (input.AnisoTangent)
 #define fragment_position           (input.Position)
+// --------------------------------------------------------------------------------------------------------------------------
 
-// NOTE: Fragment output:
+// NOTE: Fragment outputs:
+// --------------------------------------------------------------------------------------------------------------------------
 #define o_color                     (outputColor)
+// --------------------------------------------------------------------------------------------------------------------------
 #endif /* COMFY_PS */
+// --------------------------------------------------------------------------------------------------------------------------
 
+// --------------------------------------------------------------------------------------------------------------------------
 // NOTE: General
 #define FLOAT1_ZERO                 ((float1)0)
 #define FLOAT2_ZERO                 ((float2)0)
@@ -64,7 +77,9 @@
 #define FLOAT2_ONE                  ((float2)1)
 #define FLOAT3_ONE                  ((float3)1)
 #define FLOAT4_ONE                  ((float4)1)
+// --------------------------------------------------------------------------------------------------------------------------
 
+// --------------------------------------------------------------------------------------------------------------------------
 // NOTE: Program environment:
 #define mvp                         (transpose(CB_ModelViewProjection))
 #define mv                          (transpose(CB_ModelView))
@@ -108,11 +123,15 @@
 #define lit_diff                    (CB_Scene.LightColor)
 #define lit_spec                    ((CB_Scene.StageLight.Specular.rgb * CB_Scene.LightColor.rgb) * (1.0 / (1.0 - cos(PI / 10.0))))
 #define p_lit_dir                   (CB_Scene.CharacterLight.Direction)
+// --------------------------------------------------------------------------------------------------------------------------
 
+// --------------------------------------------------------------------------------------------------------------------------
 // NOTE: State fog:
 #define state_fog_params            (CB_Scene.DepthFog.Parameters)
 #define p_fog_color                 (CB_Scene.DepthFog.Color)
+// --------------------------------------------------------------------------------------------------------------------------
 
+// --------------------------------------------------------------------------------------------------------------------------
 // NOTE: State light:
 #define state_light0_ambient        (CB_Scene.CharacterLight.Ambient)
 #define state_light0_diffuse        (CB_Scene.CharacterLight.Diffuse)
@@ -123,7 +142,9 @@
 #define state_lightprod1_ambient    (CB_Material.Specular * CB_Scene.StageLight.Ambient)
 #define state_lightprod1_diffuse    (CB_Material.Diffuse * CB_Scene.StageLight.Diffuse)
 #define state_lightprod1_specular   (CB_Material.Specular * CB_Scene.StageLight.Specular)
+// --------------------------------------------------------------------------------------------------------------------------
 
+// --------------------------------------------------------------------------------------------------------------------------
 // NOTE: State material:
 #define state_matrix_texture0       (CB_Material.DiffuseTextureTransform)
 #define state_matrix_texture1       (CB_Material.AmbientTextureTransform)
@@ -134,7 +155,9 @@
 #define state_material_specular     (CB_Material.Specular)
 #define state_material_emission     (CB_Material.Emission)
 #define state_material_shininess    (CB_Material.Shininess)
+// --------------------------------------------------------------------------------------------------------------------------
 
+// --------------------------------------------------------------------------------------------------------------------------
 // NOTE: Instructions:
 #define TEMP                        float4
 
@@ -176,17 +199,84 @@
 #define TEXCUBE_11(result, texCoord) result = ReflectLightMap.Sample( LightMapSampler, (texCoord).xyz )
 #define TEXCUBE_12(result, texCoord) result = ShadowLightMap.Sample( LightMapSampler, (texCoord).xyz )
 #define TEXCUBE_13(result, texCoord) result = CharColorLightMap.Sample( LightMapSampler, (texCoord).xyz )
+// --------------------------------------------------------------------------------------------------------------------------
 
-// NOTE: Debug:
-#define DEBUG_RET_O_COLOR(color) return float4( (color).rgb, 1.0 );
+// NOTE: Vertex shader snippets:
+// --------------------------------------------------------------------------------------------------------------------------
+#define VS_SET_MODEL_POSITION                                                                                               \
+if (FLAGS_MORPH)                                                                                                            \
+{                                                                                                                           \
+    pos_m       = mad(a_position,   p_morph_weight.y, (a_morph_position * p_morph_weight.x));                               \
+}                                                                                                                           \
+else                                                                                                                        \
+{                                                                                                                           \
+    pos_m       = a_position;                                                                                               \
+}                                                                                                                           \
+// --------------------------------------------------------------------------------------------------------------------------
 
-// NOTE: Testing...
-#define SET_VERTEX_POSITIONS \
-    pos_m = a_position; \
-    pos_v = mul(mul(pos_m, CB_Model), CB_Scene.View); \
-    pos_c = mul(mul(pos_m, CB_Model), CB_Scene.ViewProjection); \
-    pos_w = mul(mul(pos_m, CB_Model), CB_Scene.ViewProjection)
+// --------------------------------------------------------------------------------------------------------------------------
+#define VS_SET_MODEL_POSITION_NORMAL                                                                                        \
+if (FLAGS_MORPH)                                                                                                            \
+{                                                                                                                           \
+    pos_m       = mad(a_position,   p_morph_weight.y, (a_morph_position * p_morph_weight.x));                               \
+    normal_m    = mad(a_normal,     p_morph_weight.y, (a_morph_normal   * p_morph_weight.x));                               \
+}                                                                                                                           \
+else                                                                                                                        \
+{                                                                                                                           \
+    pos_m       = a_position;                                                                                               \
+    normal_m    = a_normal;                                                                                                 \
+}                                                                                                                           \
+// --------------------------------------------------------------------------------------------------------------------------
 
-#define CHECK_CLIP_ALPHA_TEST if (FLAGS_ALPHA_TEST) ClipAlphaThreshold(o_color.a)
+// --------------------------------------------------------------------------------------------------------------------------
+#define VS_SET_MODEL_POSITION_NORMAL_TANGENT                                                                                \
+if (FLAGS_MORPH)                                                                                                            \
+{                                                                                                                           \
+    pos_m       = mad(a_position,   p_morph_weight.y, (a_morph_position * p_morph_weight.x));                               \
+    normal_m    = mad(a_normal,     p_morph_weight.y, (a_morph_normal   * p_morph_weight.x));                               \
+    tangent_m   = mad(a_tangent,    p_morph_weight.y, (a_morph_tangent  * p_morph_weight.x));                               \
+}                                                                                                                           \
+else                                                                                                                        \
+{                                                                                                                           \
+    pos_m       = a_position;                                                                                               \
+    normal_m    = a_normal;                                                                                                 \
+    tangent_m   = a_tangent;                                                                                                \
+}                                                                                                                           \
+// --------------------------------------------------------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------------------------------------------------------
+#define VS_SET_OUTPUT_TEX_COORDS                                                                                            \
+float4 __tex0, __tex1;                                                                                                      \
+if (FLAGS_MORPH)                                                                                                            \
+{                                                                                                                           \
+    __tex0 = mad(a_tex0, p_morph_weight.y, (a_morph_texcoord  * p_morph_weight.x));                                         \
+    __tex1 = mad(a_tex1, p_morph_weight.y, (a_morph_texcoord1 * p_morph_weight.x));                                         \
+}                                                                                                                           \
+else                                                                                                                        \
+{                                                                                                                           \
+    __tex0 = a_tex0;                                                                                                        \
+    __tex1 = a_tex1;                                                                                                        \
+}                                                                                                                           \
+o_tex0 = float2(dot(state_matrix_texture0[0], a_tex0), dot(state_matrix_texture0[1], __tex0));                              \
+o_tex1 = float2(dot(state_matrix_texture1[0], a_tex1), dot(state_matrix_texture1[1], __tex1));                              \
+// --------------------------------------------------------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------------------------------------------------------
+#define VS_A_COLOR_OR_MORPH ((FLAGS_MORPH) ? (mad(a_color, p_morph_weight.y, (a_morph_color * p_morph_weight.x))) : a_color)
+// --------------------------------------------------------------------------------------------------------------------------
+
+// NOTE: Pixel shader snippets:
+// --------------------------------------------------------------------------------------------------------------------------
+#define PS_ALPHA_TEST                                                                                                       \
+if (FLAGS_ALPHA_TEST)                                                                                                       \
+{                                                                                                                           \
+    ClipAlphaThreshold(o_color.a);                                                                                          \
+}                                                                                                                           \
+// --------------------------------------------------------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------------------------------------------------------
+#define PS_RET_O_COLOR                                                                                                      \
+return float4( (color).rgb, 1.0 );                                                                                          \
+// --------------------------------------------------------------------------------------------------------------------------
 
 #endif /* DEBUGINTERFACE_HLSL */
