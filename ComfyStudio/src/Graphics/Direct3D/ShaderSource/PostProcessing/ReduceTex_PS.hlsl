@@ -59,6 +59,11 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     {
         float4 p_color = float4(0.15, 0.25, 0.25, 0.25);
         
+        #undef a_tex0
+        #undef a_tex1
+        #undef a_tex2
+        #undef a_tex3
+        #undef a_tex4
         #define a_tex0 input.TexCoord
         #define a_tex1 input.TexCoords[0]
         #define a_tex2 input.TexCoords[1]

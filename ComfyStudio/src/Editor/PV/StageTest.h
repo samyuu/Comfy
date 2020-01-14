@@ -34,7 +34,6 @@ namespace Editor
 
 		struct Settings
 		{
-			bool SelectGround = false;
 			bool LoadLightParam = true;
 			bool LoadObj = true;
 		} Settings;

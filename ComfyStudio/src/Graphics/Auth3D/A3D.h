@@ -118,7 +118,7 @@ namespace Graphics
 		A3DProperty1D TranslateFrameV;
 	};
 
-	struct A3DCurveMorph
+	struct A3DCurve
 	{
 		// TODO: C-urve V-alue, C-ontrol V-alue (???)
 		std::string Name;
@@ -200,7 +200,7 @@ namespace Graphics
 		
 		A3DPlayControl PlayControl;
 		
-		std::vector<A3DCurveMorph> Curves;
+		std::vector<A3DCurve> Curves;
 		std::vector<A3DObject> Objects;
 		std::vector<std::string> ObjectList;
 
