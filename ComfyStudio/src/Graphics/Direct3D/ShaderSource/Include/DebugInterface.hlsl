@@ -261,23 +261,11 @@ o_tex0 = float2(dot(state_matrix_texture0[0], a_tex0), dot(state_matrix_texture0
 o_tex1 = float2(dot(state_matrix_texture1[0], a_tex1), dot(state_matrix_texture1[1], __tex1));                              \
 // --------------------------------------------------------------------------------------------------------------------------
 
-// --------------------------------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------------------------------
 #define VS_SET_DIFFUSE_IRRADIANCE                                                                                           \
-DP4(tmp.x, irrad_r[0], normal_w);                                                                                           \
-DP4(tmp.y, irrad_r[1], normal_w);                                                                                           \
-DP4(tmp.z, irrad_r[2], normal_w);                                                                                           \
-DP4(tmp.w, irrad_r[3], normal_w);                                                                                           \
-DP4(diff.x, normal_w, tmp);                                                                                                 \
-DP4(tmp.x, irrad_g[0], normal_w);                                                                                           \
-DP4(tmp.y, irrad_g[1], normal_w);                                                                                           \
-DP4(tmp.z, irrad_g[2], normal_w);                                                                                           \
-DP4(tmp.w, irrad_g[3], normal_w);                                                                                           \
-DP4(diff.y, normal_w, tmp);                                                                                                 \
-DP4(tmp.x, irrad_b[0], normal_w);                                                                                           \
-DP4(tmp.y, irrad_b[1], normal_w);                                                                                           \
-DP4(tmp.z, irrad_b[2], normal_w);                                                                                           \
-DP4(tmp.w, irrad_b[3], normal_w);                                                                                           \
-DP4(diff.z, normal_w, tmp);                                                                                                 \
+diff.r = dot(mul(normal_w, irrad_r), normal_w);                                                                             \
+diff.g = dot(mul(normal_w, irrad_g), normal_w);                                                                             \
+diff.b = dot(mul(normal_w, irrad_b), normal_w);                                                                             \
 // --------------------------------------------------------------------------------------------------------------------------
 
 // --------------------------------------------------------------------------------------------------------------------------
@@ -294,7 +282,7 @@ if (FLAGS_ALPHA_TEST)                                                           
 // --------------------------------------------------------------------------------------------------------------------------
 
 // --------------------------------------------------------------------------------------------------------------------------
-#define PS_RET_O_COLOR                                                                                                      \
+#define PS_RET_O_COLOR(color)                                                                                               \
 return float4( (color).rgb, 1.0 );                                                                                          \
 // --------------------------------------------------------------------------------------------------------------------------
 

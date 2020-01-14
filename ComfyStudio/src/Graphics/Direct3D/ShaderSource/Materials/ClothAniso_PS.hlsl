@@ -14,7 +14,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
 #if ARB_PROGRAM_ACCURATE
     // TODO: ...
 #else
-    outputColor = input.Position;
+    outputColor = input.Normal;
 #endif
     
     return outputColor;
