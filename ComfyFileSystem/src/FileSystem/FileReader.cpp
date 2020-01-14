@@ -1,15 +1,19 @@
 #include "FileReader.h"
 #include "FileHelperInternal.h"
+#include "FileHelper.h"
+#include <assert.h>
 
 namespace FileSystem
 {
 	void* FileReader::CreateFileHandle(std::string_view filePath, bool read)
 	{
+		assert(FileSystem::FileExists(filePath));
 		return CreateFileHandleInternal(filePath, read);
 	}
 
 	void* FileReader::CreateFileHandle(std::wstring_view filePath, bool read)
 	{
+		assert(FileSystem::FileExists(filePath));
 		return CreateFileHandleInternal(filePath, read);
 	}
 
