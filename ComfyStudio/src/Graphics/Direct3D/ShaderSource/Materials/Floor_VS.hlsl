@@ -54,21 +54,9 @@ VS_OUTPUT VS_main(VS_INPUT input)
     MAD(spec_ratio.w, tmp.w, tmp.z, 1);
     MUL(spec_ratio, spec_ratio, state_material_specular);
     MOV(normal_w.w, 1.0);
-    DP4(tmp.x, irrad_r[0], normal_w);
-    DP4(tmp.y, irrad_r[1], normal_w);
-    DP4(tmp.z, irrad_r[2], normal_w);
-    DP4(tmp.w, irrad_r[3], normal_w);
-    DP4(diff.x, normal_w, tmp);
-    DP4(tmp.x, irrad_g[0], normal_w);
-    DP4(tmp.y, irrad_g[1], normal_w);
-    DP4(tmp.z, irrad_g[2], normal_w);
-    DP4(tmp.w, irrad_g[3], normal_w);
-    DP4(diff.y, normal_w, tmp);
-    DP4(tmp.x, irrad_b[0], normal_w);
-    DP4(tmp.y, irrad_b[1], normal_w);
-    DP4(tmp.z, irrad_b[2], normal_w);
-    DP4(tmp.w, irrad_b[3], normal_w);
-    DP4(diff.z, normal_w, tmp);
+    
+    VS_SET_DIFFUSE_IRRADIANCE;
+    
     MUL(diff, diff, state_light1_diffuse);
     ADD(half_w, lit_dir_w, eye_w);
     DP3(half_w.w, half_w, half_w);

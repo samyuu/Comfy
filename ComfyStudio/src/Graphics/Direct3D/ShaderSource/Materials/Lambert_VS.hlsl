@@ -36,21 +36,8 @@ VS_OUTPUT VS_main(VS_INPUT input)
     VS_SET_OUTPUT_TEX_COORDS;
     
     MOV(normal_w.w, 1.0);
-    DP4(tmp.x, irrad_r[0], normal_w);
-    DP4(tmp.y, irrad_r[1], normal_w);
-    DP4(tmp.z, irrad_r[2], normal_w);
-    DP4(tmp.w, irrad_r[3], normal_w);
-    DP4(diff.x, normal_w, tmp);
-    DP4(tmp.x, irrad_g[0], normal_w);
-    DP4(tmp.y, irrad_g[1], normal_w);
-    DP4(tmp.z, irrad_g[2], normal_w);
-    DP4(tmp.w, irrad_g[3], normal_w);
-    DP4(diff.y, normal_w, tmp);
-    DP4(tmp.x, irrad_b[0], normal_w);
-    DP4(tmp.y, irrad_b[1], normal_w);
-    DP4(tmp.z, irrad_b[2], normal_w);
-    DP4(tmp.w, irrad_b[3], normal_w);
-    DP4(diff.z, normal_w, tmp);
+    VS_SET_DIFFUSE_IRRADIANCE;
+    
     MUL(diff, diff, state_light1_diffuse);
     DP3_SAT(tmp.x, normal_w, lit_dir_w);
     MAD(diff, tmp.x, lit_diff, diff);
