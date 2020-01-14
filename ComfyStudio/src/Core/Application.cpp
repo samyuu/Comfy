@@ -290,7 +290,7 @@ void Application::DrawGui()
 			bool openLicensePopup = false;
 			if (Gui::BeginMenu("Help"))
 			{
-				Gui::TextUnformatted("Copyright (C) 2019 Samyuu");
+				Gui::TextUnformatted("Copyright (C) 2020 Samyuu");
 				if (Gui::MenuItem("License"))
 					openLicensePopup = true;
 				if (Gui::MenuItem("Version"))
