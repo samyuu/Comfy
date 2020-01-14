@@ -167,6 +167,7 @@
     <ClCompile Include="src\Editor\Common\CameraController3D.cpp" />
     <ClCompile Include="src\Editor\PV\SceneEditor.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\A3D.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\A3DMgr.cpp" />
     <ClCompile Include="src\ImGui\ComfyTextureID.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp" />
@@ -303,6 +304,7 @@
     <ClInclude Include="src\Editor\PV\SceneGraph.h" />
     <ClInclude Include="src\Editor\PV\StageTest.h" />
     <ClInclude Include="src\Graphics\Auth3D\A3D.h" />
+    <ClInclude Include="src\Graphics\Auth3D\A3DMgr.h" />
     <ClInclude Include="src\Graphics\Auth3D\Transform.h" />
     <ClInclude Include="src\ImGui\ComfyTextureID.h" />
     <ClInclude Include="lib\rtaudio\src\asio.h" />
