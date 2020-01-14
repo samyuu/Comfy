@@ -12,20 +12,65 @@ namespace Graphics
 		struct A3DParser final : public StringParsing::TextDatabaseParser
 		{
 		private:
-			std::string currentLine;
+			// NOTE: Use a template so the A3DKeyFrameType check can be done outside the keyFrameCount loop as a constexpr if without duplicating code
+			template <typename TValue, A3DKeyFrameType TType>
+			inline void ParseProperty1DRawDataValueList(A3DProperty1D& output)
+			{
+				constexpr std::array<size_t, static_cast<size_t>(A3DKeyFrameType::Count)> valuesPerKeyFramePerType = { 1, 2, 3, 4 };
+				constexpr size_t valuesPerKeyFrame = valuesPerKeyFramePerType[static_cast<size_t>(TType)];
 
-		private:
+				const size_t keyFrameCount = output.RawData.ValueListSize / valuesPerKeyFrame;
+				output.Keys.resize(keyFrameCount);
+
+				for (size_t i = 0; i < keyFrameCount; i++)
+				{
+					auto& key = output.Keys[i];
+					key.Type = output.RawData.KeyType;
+
+					if constexpr (TType == A3DKeyFrameType::Frame)
+					{
+						key.Frame = ParseAdvanceCommaSeparatedValueString<TValue>();
+						key.Value = 0.0f;
+						key.StartCurve = 0.0f;
+						key.EndCurve = 0.0f;
+					}
+					else if constexpr (TType == A3DKeyFrameType::FrameValue)
+					{
+						key.Frame = ParseAdvanceCommaSeparatedValueString<TValue>();
+						key.Value = ParseAdvanceCommaSeparatedValueString<TValue>();
+						key.StartCurve = 0.0f;
+						key.EndCurve = 0.0f;
+					}
+					else if constexpr (TType == A3DKeyFrameType::FrameValueCurveStart)
+					{
+						key.Frame = ParseAdvanceCommaSeparatedValueString<TValue>();
+						key.Value = ParseAdvanceCommaSeparatedValueString<TValue>();
+						key.StartCurve = ParseAdvanceCommaSeparatedValueString<TValue>();
+						key.EndCurve = 0.0f;
+					}
+					else if constexpr (TType == A3DKeyFrameType::FrameValueCurveStartEnd)
+					{
+						key.Frame = ParseAdvanceCommaSeparatedValueString<TValue>();
+						key.Value = ParseAdvanceCommaSeparatedValueString<TValue>();
+						key.StartCurve = ParseAdvanceCommaSeparatedValueString<TValue>();
+						key.EndCurve = ParseAdvanceCommaSeparatedValueString<TValue>();
+					}
+					else
+					{
+						static_assert(false);
+					}
+				}
+			}
+
 			bool TryParseProperty1D(A3DProperty1D& output)
 			{
 				if (CompareProperty("value"))
 				{
 					output.StaticValue = ParseValueString<float>();
-					return true;
 				}
 				else if (CompareProperty("type"))
 				{
-					output.Type = ParseEnumValueString<A3DKeyFramesPropertyType>();
-					return true;
+					output.Type = ParseEnumValueString<A3DInterpolationType>();
 				}
 				else if (CompareProperty("raw_data_key_type"))
 				{
@@ -37,20 +82,45 @@ namespace Graphics
 					{
 						if (ParseValueString() == "float")
 							output.RawData.ValueType = A3DValueType::Float;
+						else
+							output.RawData.ValueType = A3DValueType::Unknown;
 					}
 					else if (CompareProperty("value_list_size"))
 					{
-						output.RawData.Values.resize(ParseValueString<uint32_t>());
+						output.RawData.ValueListSize = ParseValueString<uint32_t>();
 					}
 					else if (CompareProperty("value_list"))
 					{
-						ParseCommaSeparatedArray<float>(output.RawData.Values.data(), output.RawData.Values.size());
+						if (output.RawData.ValueType == A3DValueType::Float)
+						{
+							switch (output.RawData.KeyType)
+							{
+							case A3DKeyFrameType::Frame:
+								ParseProperty1DRawDataValueList<float, A3DKeyFrameType::Frame>(output);
+								break;
+
+							case A3DKeyFrameType::FrameValue:
+								ParseProperty1DRawDataValueList<float, A3DKeyFrameType::FrameValue>(output);
+								break;
+
+							case A3DKeyFrameType::FrameValueCurveStart:
+								ParseProperty1DRawDataValueList<float, A3DKeyFrameType::FrameValueCurveStart>(output);
+								break;
+
+							case A3DKeyFrameType::FrameValueCurveStartEnd:
+								ParseProperty1DRawDataValueList<float, A3DKeyFrameType::FrameValueCurveStartEnd>(output);
+								break;
+							}
+						}
+					}
+					else
+					{
+						return false;
 					}
 				}
 				else if (CompareProperty("max"))
 				{
 					output.Max = ParseValueString<float>();
-					return true;
 				}
 				else if (CompareProperty("key"))
 				{
@@ -62,40 +132,60 @@ namespace Graphics
 							key.Type = ParseEnumValueString<A3DKeyFrameType>();
 						else if (CompareProperty("data"))
 						{
-							auto rawData = ParseCommaSeparatedArray<float, 4>();
-							key.Frame = rawData[0];
-							key.Value = rawData[1];
-							key.Curve = rawData[2];
-
-							if (key.Type != A3DKeyFrameType::Hermit)
-								key.Curve = 0.0f;
-
 							switch (key.Type)
 							{
-							case A3DKeyFrameType::None:
-								break;
+							case A3DKeyFrameType::Frame:
+							{
+								key.Frame = ParseValueString<float>();
+								key.Value = 0.0f;
+								key.StartCurve = 0.0f;
+								key.EndCurve = 0.0f;
+							}
+							break;
 
-							case A3DKeyFrameType::Static:
-								break;
+							case A3DKeyFrameType::FrameValue:
+							{
+								auto[frame, value] = ParseCommaSeparatedArray<float, 2>();
+								key.Frame = frame;
+								key.Value = value;
+								key.StartCurve = 0.0f;
+								key.EndCurve = 0.0f;
+							}
+							break;
 
-							case A3DKeyFrameType::Linear:
-								break;
+							case A3DKeyFrameType::FrameValueCurveStart:
+							{
+								auto[frame, value, startCurve] = ParseCommaSeparatedArray<float, 3>();
+								key.Frame = frame;
+								key.Value = value;
+								key.StartCurve = startCurve;
+								key.EndCurve = 0.0f;
+							}
+							break;
 
-							case A3DKeyFrameType::Hermit:
-								break;
-
-							case A3DKeyFrameType::Hold:
-								break;
+							case A3DKeyFrameType::FrameValueCurveStartEnd:
+							{
+								auto[frame, value, startCurve, endCurve] = ParseCommaSeparatedArray<float, 4>();
+								key.Frame = frame;
+								key.Value = value;
+								key.StartCurve = startCurve;
+								key.EndCurve = endCurve;
+							}
+							break;
 							}
 						}
 					}
-
-					return true;
 				}
 				else if (IsLastProperty())
+				{
 					output.Enabled = ParseValueString<bool>();
+				}
+				else
+				{
+					return false;
+				}
 
-				return false;
+				return true;
 			}
 
 			bool TryParseProperty3D(A3DProperty3D& output)
@@ -157,16 +247,16 @@ namespace Graphics
 					if (CompareProperty("property"))
 					{
 						if (CompareProperty("version"))
-							a3d.Property.Version = ParseValueString<uint32_t>();
+							a3d.Metadata.Property.Version = ParseValueString<uint32_t>();
 					}
 					else if (CompareProperty("file_name"))
 					{
-						a3d.FileName = ParseValueString();
+						a3d.Metadata.FileName = ParseValueString();
 					}
 					else if (CompareProperty("converter"))
 					{
 						if (CompareProperty("version"))
-							a3d.Converter.Version = ParseValueString<uint32_t>();
+							a3d.Metadata.Converter.Version = ParseValueString<uint32_t>();
 					}
 				}
 				else if (CompareProperty("curve"))
@@ -335,15 +425,15 @@ namespace Graphics
 				auto formatIdentifier = formatLine.substr(1, 4);
 
 				if (StartsWith(formatIdentifier, "A3DA"))
-					a3d.Format = A3DFormat::Text;
+					a3d.Metadata.Format = A3DFormat::Text;
 				else if (StartsWith(formatIdentifier, "A3DC"))
-					a3d.Format = A3DFormat::Binary;
+					a3d.Metadata.Format = A3DFormat::Binary;
 				else if (StartsWith(formatIdentifier, "A3DJ"))
-					a3d.Format = A3DFormat::Json;
+					a3d.Metadata.Format = A3DFormat::Json;
 				else if (StartsWith(formatIdentifier, "A3DM"))
-					a3d.Format = A3DFormat::MessagePack;
+					a3d.Metadata.Format = A3DFormat::MessagePack;
 
-				if (a3d.Format != A3DFormat::Text)
+				if (a3d.Metadata.Format != A3DFormat::Text)
 					return false;
 
 				// NOTE: Update text buffer start beacuse the format line has already been processed
@@ -354,7 +444,7 @@ namespace Graphics
 
 				while (textBuffer >= startOfTextBuffer)
 				{
-					currentLine = StringParsing::AdvanceToStartOfPreviousLineGetNonCommentLine(textBuffer, startOfTextBuffer);
+					const std::string_view currentLine = StringParsing::AdvanceToStartOfPreviousLineGetNonCommentLine(textBuffer, startOfTextBuffer);
 					if (textBuffer <= startOfTextBuffer)
 						break;
 
@@ -367,7 +457,7 @@ namespace Graphics
 		};
 	}
 
-	A3D::A3D() : Format(A3DFormat::Unknown), Compressed16BitFloats(false), Converter(), Property(), PlayControl()
+	A3D::A3D()
 	{
 	}
 

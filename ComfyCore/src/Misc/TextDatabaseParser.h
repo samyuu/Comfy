@@ -98,7 +98,7 @@ namespace Utilities::StringParsing
 		inline void ParseCommaSeparatedArray(std::string_view commaSeparatedData, T* outputValues, size_t valueCount)
 		{
 			size_t dataIndex = 0, lastCommaIndex = 0;
-			for (int i = 0; i < commaSeparatedData.size(); i++)
+			for (int64_t i = 0; i < static_cast<int64_t>(commaSeparatedData.size()); i++)
 			{
 				if (commaSeparatedData[i] == ',')
 				{
@@ -116,6 +116,31 @@ namespace Utilities::StringParsing
 		inline void ParseCommaSeparatedArray(T* outputValues, size_t valueCount)
 		{
 			return ParseCommaSeparatedArray<T>(state.CurrentValueString, outputValues, valueCount);
+		}
+
+		template <typename T>
+		inline T ParseAdvanceCommaSeparatedValueString()
+		{
+			auto valueSubString = state.CurrentValueString;
+			for (int64_t i = 0; i < static_cast<int64_t>(valueSubString.size()); i++)
+			{
+				if ((i + 1) == valueSubString.size())
+					break;
+
+				if (valueSubString[i] == ',')
+				{
+					valueSubString = valueSubString.substr(0, i);
+					break;
+				}
+			}
+
+			state.CurrentValueString = state.CurrentValueString.substr(valueSubString.size());
+
+			if (!state.CurrentValueString.empty() && state.CurrentValueString.front() == ',')
+				state.CurrentValueString = state.CurrentValueString.substr(1);
+
+			auto value = StringParsing::ParseType<T>(valueSubString);
+			return value;
 		}
 
 		template <typename T, size_t TSize, bool TParentheses = true>

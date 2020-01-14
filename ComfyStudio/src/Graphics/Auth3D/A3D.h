@@ -4,48 +4,68 @@
 
 namespace Graphics
 {
+	enum class A3DFormat : uint32_t
+	{
+		Unknown = 0,
+		Text = 'A3DA',
+		Binary = 'A3DC',
+		Json = 'A3DJ',
+		MessagePack = 'A3DM',
+	};
+
 	struct A3DConverter
 	{
-		uint32_t Version;
+		uint32_t Version = 0x00000000;
 	};
 
 	struct A3DProperty
 	{
-		uint32_t Version;
+		uint32_t Version = 0x00000000;
+	};
+
+	struct A3DMetadata
+	{
+		A3DFormat Format = A3DFormat::Unknown;
+		bool Compressed16BitFloats = false;
+
+		A3DConverter Converter;
+		A3DProperty Property;
+		std::string FileName;
 	};
 
 	struct A3DPlayControl
 	{
-		frame_t Begin;
-		frame_t Duration;
-		frame_t FrameRate;
+		frame_t Begin = 0.0f;
+		frame_t Duration = 0.0f;
+		frame_t FrameRate = 0.0f;
 	};
 
 	enum class A3DKeyFrameType : uint32_t
+	{
+		Frame = 0,
+		FrameValue = 1,
+		FrameValueCurveStart = 2,
+		FrameValueCurveStartEnd = 3,
+		Count,
+	};
+
+	struct A3DKeyFrame
+	{
+		A3DKeyFrameType Type;
+		frame_t Frame;
+		float Value;
+		float StartCurve;
+		float EndCurve;
+	};
+
+	enum class A3DInterpolationType : uint32_t
 	{
 		None = 0,
 		Static = 1,
 		Linear = 2,
 		Hermit = 3,
 		Hold = 4,
-	};
-
-	struct A3DKeyFrame
-	{
-		A3DKeyFrameType Type;
-
-		float Value;
-		float Curve;
-		
-		frame_t Frame;
-	};
-
-	enum class A3DKeyFramesPropertyType : uint32_t
-	{
-		None = 0,
-		Static = 1,
-		// ??? = 2,
-		MultipleKeyFrames = 3,
+		Count,
 	};
 
 	enum class A3DValueType : uint32_t
@@ -57,7 +77,7 @@ namespace Graphics
 	{
 		A3DKeyFrameType KeyType;
 		A3DValueType ValueType;
-		std::vector<float> Values;
+		size_t ValueListSize;
 	};
 
 	struct A3DProperty1D
@@ -69,7 +89,7 @@ namespace Graphics
 		// TODO: ep_type_pre / ep_type_post
 		float StaticValue;
 		float Max;
-		A3DKeyFramesPropertyType Type;
+		A3DInterpolationType Type;
 	};
 
 	struct A3DProperty3D
@@ -93,6 +113,7 @@ namespace Graphics
 	struct A3DTextureTransform
 	{
 		std::string Name;
+		// TODO: RepeatU
 		A3DProperty1D TranslateFrameU;
 		A3DProperty1D TranslateFrameV;
 	};
@@ -129,21 +150,6 @@ namespace Graphics
 		std::string UIDName;
 	};
 
-	struct A3DCameraViewPoint : public A3DTransform
-	{
-		float AspectRatio;
-		A3DProperty1D FieldOfView;
-		bool HorizontalFieldOfView;
-		
-		A3DProperty3D Roll;
-	};
-
-	struct A3DCamera : public A3DTransform
-	{
-		A3DTransform Interest;
-		A3DCameraViewPoint ViewPoint;
-	};
-
 	struct A3DLightProperties
 	{
 		A3DPropertyRGB Ambient;
@@ -168,13 +174,19 @@ namespace Graphics
 		A3DProperty1D LensShaft;
 	};
 
-	enum class A3DFormat : uint32_t
+	struct A3DCameraViewPoint : public A3DTransform
 	{
-		Unknown = 0,
-		Text = 'A3DA',
-		Binary = 'A3DC',
-		Json = 'A3DJ',
-		MessagePack = 'A3DM',
+		float AspectRatio;
+		A3DProperty1D FieldOfView;
+		bool HorizontalFieldOfView;
+
+		A3DProperty3D Roll;
+	};
+
+	struct A3DCamera : public A3DTransform
+	{
+		A3DTransform Interest;
+		A3DCameraViewPoint ViewPoint;
 	};
 
 	class A3D final : public FileSystem::IBufferParsable
@@ -184,12 +196,8 @@ namespace Graphics
 		~A3D() = default;
 
 	public:
-		A3DFormat Format;
-		bool Compressed16BitFloats;
-
-		A3DConverter Converter;
-		A3DProperty Property;
-		std::string FileName;
+		A3DMetadata Metadata;
+		
 		A3DPlayControl PlayControl;
 		
 		std::vector<A3DCurveMorph> Curves;
