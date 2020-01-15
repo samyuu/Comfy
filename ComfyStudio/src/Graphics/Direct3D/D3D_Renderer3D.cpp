@@ -186,7 +186,7 @@ namespace Graphics
 	{
 		for (auto& txp : txpSet.Txps)
 		{
-			if (txp.TextureID != -1)
+			if (txp.TextureID != TxpID::Invalid)
 				textureIDTxpMap[txp.TextureID] = &txp;
 		}
 	}
@@ -195,7 +195,7 @@ namespace Graphics
 	{
 		for (auto& txp : txpSet.Txps)
 		{
-			if (txp.TextureID != -1)
+			if (txp.TextureID != TxpID::Invalid)
 				textureIDTxpMap.erase(txp.TextureID);
 		}
 	}
@@ -205,14 +205,14 @@ namespace Graphics
 		return sceneContext;
 	}
 
-	std::unordered_map<uint32_t, const Txp*>& D3D_Renderer3D::GetTextureIDTxpMap()
+	std::unordered_map<TxpID, const Txp*>& D3D_Renderer3D::GetTextureIDTxpMap()
 	{
 		return textureIDTxpMap;
 	}
 
-	const Txp* D3D_Renderer3D::GetTxpFromTextureID(uint32_t textureID) const
+	const Txp* D3D_Renderer3D::GetTxpFromTextureID(TxpID textureID) const
 	{
-		if (textureID == -1)
+		if (textureID == TxpID::Invalid)
 			return nullptr;
 
 		auto found = textureIDTxpMap.find(textureID);
@@ -710,22 +710,22 @@ namespace Graphics
 		if (mesh.AttributeFlags & VertexAttributeFlags_Color0)
 			objectCB.Data.ShaderFlags |= ShaderFlags_VertexColor;
 
-		if (material.Flags.UseDiffuseTexture || material.Diffuse.TextureID != -1)
+		if (material.Flags.UseDiffuseTexture || material.Diffuse.TextureID != TxpID::Invalid)
 			objectCB.Data.ShaderFlags |= ShaderFlags_DiffuseTexture;
 
-		if (material.Flags.UseAmbientTexture || material.Ambient.TextureID != -1)
+		if (material.Flags.UseAmbientTexture || material.Ambient.TextureID != TxpID::Invalid)
 			objectCB.Data.ShaderFlags |= ShaderFlags_AmbientTexture;
 
-		if (material.Flags.UseNormalTexture || material.Normal.TextureID != -1)
+		if (material.Flags.UseNormalTexture || material.Normal.TextureID != TxpID::Invalid)
 			objectCB.Data.ShaderFlags |= ShaderFlags_NormalTexture;
 
-		if (material.Flags.UseSpecularTexture || material.Specular.TextureID != -1)
+		if (material.Flags.UseSpecularTexture || material.Specular.TextureID != TxpID::Invalid)
 			objectCB.Data.ShaderFlags |= ShaderFlags_SpecularTexture;
 
 		if (material.BlendFlags.EnableAlphaTest && !IsMeshTransparent(mesh, subMesh, material))
 			objectCB.Data.ShaderFlags |= ShaderFlags_AlphaTest;
 
-		if (material.Flags.UseCubeMapReflection || material.Reflection.TextureID != -1)
+		if (material.Flags.UseCubeMapReflection || material.Reflection.TextureID != TxpID::Invalid)
 			objectCB.Data.ShaderFlags |= ShaderFlags_CubeMapReflection;
 
 		if (sceneContext->RenderParameters.RenderFog)

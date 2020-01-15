@@ -5,16 +5,16 @@ namespace Database
 {
 	struct AetEntry : BinaryDatabase::Entry
 	{
-		uint32_t ID;
+		AetID ID;
 		std::string Name;
 		int32_t Index;
 	};
 
 	struct AetSetEntry : BinaryDatabase::Entry, BinaryDatabase::FileEntry
 	{
-		uint32_t ID;
+		AetSetID ID;
 		std::string Name;
-		uint32_t SprSetID;
+		SprSetID SprSetID;
 		std::vector<AetEntry> AetEntries;
 		std::string FileName;
 
@@ -28,7 +28,7 @@ namespace Database
 
 		void Read(FileSystem::BinaryReader& reader) override;
 		void Write(FileSystem::BinaryWriter& writer) override;
-		AetSetEntry* GetAetSetEntry(const std::string& name);
+		AetSetEntry* GetAetSetEntry(std::string_view name);
 
 	private:
 	};

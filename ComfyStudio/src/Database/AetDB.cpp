@@ -29,11 +29,11 @@ namespace Database
 			{
 				for (auto& aetSetEntry : Entries)
 				{
-					aetSetEntry.ID = reader.ReadUInt32();
+					aetSetEntry.ID = AetSetID(reader.ReadUInt32());
 					aetSetEntry.Name = reader.ReadStrPtr();
 					aetSetEntry.FileName = reader.ReadStrPtr();
 					uint32_t index = reader.ReadInt32();
-					aetSetEntry.SprSetID = reader.ReadUInt32();
+					aetSetEntry.SprSetID = SprSetID(reader.ReadUInt32());
 				}
 			});
 		}
@@ -44,7 +44,7 @@ namespace Database
 			{
 				for (uint32_t i = 0; i < aetEntryCount; i++)
 				{
-					uint32_t id = reader.ReadUInt32();
+					AetID id = AetID(reader.ReadUInt32());
 					void* nameOffset = reader.ReadPtr();
 					int16_t aetIndex = reader.ReadInt16();
 					int16_t setIndex = reader.ReadInt16();
@@ -61,7 +61,7 @@ namespace Database
 		}
 	}
 
-	AetSetEntry* AetDB::GetAetSetEntry(const std::string& name)
+	AetSetEntry* AetDB::GetAetSetEntry(std::string_view name)
 	{
 		for (auto& entry : Entries)
 			if (entry.Name == name)

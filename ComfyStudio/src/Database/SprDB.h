@@ -5,23 +5,23 @@ namespace Database
 {
 	struct SprEntry : BinaryDatabase::Entry
 	{
-		uint32_t ID;
+		SprID ID;
 		std::string Name;
 		int16_t Index;
 	};
 
 	struct SprSetEntry : BinaryDatabase::Entry, BinaryDatabase::FileEntry
 	{
-		uint32_t ID;
+		SprSetID ID;
 		std::string Name;
 		std::string FileName;
 
 		std::vector<SprEntry> SprEntries;
 		std::vector<SprEntry> SprTexEntries;
 
-		SprEntry* GetSprEntry(uint32_t id);
-		SprEntry* GetSprEntry(const std::string& name);
-		SprEntry* GetSprTexEntry(const std::string& name);
+		SprEntry* GetSprEntry(SprID id);
+		SprEntry* GetSprEntry(std::string_view name);
+		SprEntry* GetSprTexEntry(std::string_view name);
 	};
 
 	class SprDB final : public BinaryDatabase
@@ -31,7 +31,7 @@ namespace Database
 
 		void Read(FileSystem::BinaryReader& reader) override;
 		void Write(FileSystem::BinaryWriter& writer) override;
-		SprSetEntry* GetSprSetEntry(const std::string& name);
+		SprSetEntry* GetSprSetEntry(std::string_view name);
 
 		uint32_t GetSprSetEntryCount();
 		uint32_t GetSprEntryCount();

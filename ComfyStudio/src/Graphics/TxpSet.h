@@ -1,5 +1,6 @@
 #pragma once
 #include "Types.h"
+#include "Core/IDTypes.h"
 #include "Core/CoreTypes.h"
 #include "FileSystem/FileInterface.h"
 #include "Graphics/GraphicsTypes.h"
@@ -45,7 +46,7 @@ namespace Graphics
 		// NOTE: Two dimensional array [CubeFace][MipMap]
 		std::vector<std::vector<MipMap>> MipMapsArray;
 
-		uint32_t TextureID = -1;
+		TxpID TextureID = TxpID::Invalid;
 
 		UniquePtr<D3D_Texture2D> Texture2D = nullptr;
 		UniquePtr<D3D_CubeMap> CubeMap = nullptr;

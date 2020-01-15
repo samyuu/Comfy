@@ -16,7 +16,7 @@ namespace Graphics
 			obj.Name.resize(name.size() + std::strlen("::Obj") + 1);
 			sprintf_s(obj.Name.data(), obj.Name.size(), "%.*s::Obj", static_cast<int>(name.size()), name.data());
 
-			obj.ID = 'DBG';
+			obj.ID = ObjID('DBG');
 			obj.BoundingSphere = boundingSphere;
 
 			obj.Meshes.push_back({});
@@ -54,7 +54,7 @@ namespace Graphics
 				material.BlendFlags.SrcBlendFactor = BlendFactor_SRC_ALPHA;
 				material.BlendFlags.DstBlendFactor = BlendFactor_ISRC_ALPHA;
 				material.BlendFlags.DoubleSidedness = DoubleSidedness_1_FaceLight;
-				material.IterateTextures([](auto& texture) { texture->TextureID = -1; });
+				material.IterateTextures([](auto& texture) { texture->TextureID = TxpID::Invalid; });
 				material.DiffuseColor = vec3(color);
 				material.Transparency = color.a;
 				material.AmbientColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);

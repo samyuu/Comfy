@@ -175,9 +175,9 @@ namespace Graphics
 
 	public:
 		const SceneContext* GetSceneContext() const;
-		std::unordered_map<uint32_t, const Txp*>& GetTextureIDTxpMap();
+		std::unordered_map<TxpID, const Txp*>& GetTextureIDTxpMap();
 
-		const Txp* GetTxpFromTextureID(uint32_t textureID) const;
+		const Txp* GetTxpFromTextureID(TxpID textureID) const;
 
 	private:
 		struct ObjRenderCommand
@@ -311,6 +311,6 @@ namespace Graphics
 		} toneMapData;
 
 		SceneContext* sceneContext = nullptr;
-		std::unordered_map<uint32_t, const Txp*> textureIDTxpMap = {};
+		std::unordered_map<TxpID, const Txp*> textureIDTxpMap = {};
 	};
 }

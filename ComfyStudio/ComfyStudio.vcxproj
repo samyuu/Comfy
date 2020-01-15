@@ -294,6 +294,7 @@
     <ClCompile Include="src\System\Profiling\Profiler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Core\IDTypes.h" />
     <ClInclude Include="src\Database\AetDB.h" />
     <ClInclude Include="src\Database\Database.h" />
     <ClInclude Include="src\Database\SprDB.h" />

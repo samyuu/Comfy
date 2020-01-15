@@ -227,7 +227,7 @@ namespace Graphics
 							reader.ReadAt(idsPtr, [&bones](BinaryReader& reader)
 							{
 								for (auto& bone : bones)
-									bone.ID = reader.ReadUInt32();
+									bone.ID = BoneID(reader.ReadUInt32());
 							});
 
 							reader.ReadAt(transformsPtr, [&bones](BinaryReader& reader)
@@ -250,7 +250,7 @@ namespace Graphics
 							reader.ReadAt(parentIDsPtr, [&bones](BinaryReader& reader)
 							{
 								for (auto& bone : bones)
-									bone.ParentID = reader.ReadUInt32();
+									bone.ParentID = BoneID(reader.ReadUInt32());
 							});
 						});
 					}
@@ -272,7 +272,7 @@ namespace Graphics
 			reader.ReadAt(objectIDsPtr, [this](BinaryReader& reader)
 			{
 				for (auto& obj : objects)
-					obj.ID = reader.ReadUInt32();
+					obj.ID = ObjID(reader.ReadUInt32());
 			});
 		}
 
@@ -285,7 +285,7 @@ namespace Graphics
 			reader.ReadAt(textureIDsPtr, [this](BinaryReader& reader)
 			{
 				for (auto& textureID : TextureIDs)
-					textureID = reader.ReadUInt32();
+					textureID = TxpID(reader.ReadUInt32());
 			});
 		}
 	}

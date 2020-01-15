@@ -259,7 +259,7 @@ namespace Graphics
 							for (AetSpriteIdentifier& sprite : surface->sprites)
 							{
 								sprite.Name = reader.ReadStrPtr();
-								sprite.ID = reader.ReadUInt32();
+								sprite.ID = SprID(reader.ReadUInt32());
 							}
 						});
 					}
@@ -460,7 +460,7 @@ namespace Graphics
 								for (AetSpriteIdentifier& sprite : surface->GetSprites())
 								{
 									writer.WriteStrPtr(&sprite.Name);
-									writer.WriteUInt32(sprite.ID);
+									writer.WriteUInt32(static_cast<uint32_t>(sprite.ID));
 								}
 							});
 						}

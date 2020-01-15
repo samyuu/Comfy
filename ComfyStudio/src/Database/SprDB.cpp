@@ -6,7 +6,7 @@ namespace Database
 {
 	using namespace FileSystem;
 
-	SprEntry* SprSetEntry::GetSprEntry(uint32_t id)
+	SprEntry* SprSetEntry::GetSprEntry(SprID id)
 	{
 		for (auto& entry : SprEntries)
 			if (entry.ID == id)
@@ -14,7 +14,7 @@ namespace Database
 		return nullptr;
 	}
 
-	SprEntry* SprSetEntry::GetSprEntry(const std::string& name)
+	SprEntry* SprSetEntry::GetSprEntry(std::string_view name)
 	{
 		for (auto& entry : SprEntries)
 			if (entry.Name == name)
@@ -22,7 +22,7 @@ namespace Database
 		return nullptr;
 	}
 
-	SprEntry* SprSetEntry::GetSprTexEntry(const std::string& name)
+	SprEntry* SprSetEntry::GetSprTexEntry(std::string_view name)
 	{
 		for (auto& entry : SprTexEntries)
 			if (entry.Name == name)
@@ -45,7 +45,7 @@ namespace Database
 			{
 				for (auto& sprSetEntry : Entries)
 				{
-					sprSetEntry.ID = reader.ReadUInt32();
+					sprSetEntry.ID = SprSetID(reader.ReadUInt32());
 					sprSetEntry.Name = reader.ReadStrPtr();
 					sprSetEntry.FileName = reader.ReadStrPtr();
 					uint32_t index = reader.ReadInt32();
@@ -61,7 +61,7 @@ namespace Database
 				{
 					constexpr uint16_t packedDataMask = 0x1000;
 
-					uint32_t id = reader.ReadUInt32();
+					SprID id = SprID(reader.ReadUInt32());
 					void* nameOffset = reader.ReadPtr();
 					int16_t index = reader.ReadInt16();
 					uint16_t packedData = reader.ReadUInt16();
@@ -100,7 +100,7 @@ namespace Database
 
 				for (auto& sprTexEntry : sprSetEntry.SprTexEntries)
 				{
-					writer.WriteUInt32(sprTexEntry.ID);
+					writer.WriteUInt32(static_cast<uint32_t>(sprTexEntry.ID));
 					writer.WriteStrPtr(&sprTexEntry.Name);
 					writer.WriteInt16(sprTexEntry.Index);
 					writer.WriteUInt16(sprSetIndex | packedDataMask);
@@ -109,7 +109,7 @@ namespace Database
 				int16_t sprIndex = 0;
 				for (auto& sprEntry : sprSetEntry.SprEntries)
 				{
-					writer.WriteUInt32(sprEntry.ID);
+					writer.WriteUInt32(static_cast<uint32_t>(sprEntry.ID));
 					writer.WriteStrPtr(&sprEntry.Name);
 					writer.WriteInt16(sprEntry.Index);
 					writer.WriteUInt16(sprSetIndex);
@@ -127,7 +127,7 @@ namespace Database
 			int32_t index = 0;
 			for (auto& sprSetEntry : Entries)
 			{
-				writer.WriteUInt32(sprSetEntry.ID);
+				writer.WriteUInt32(static_cast<uint32_t>(sprSetEntry.ID));
 				writer.WriteStrPtr(&sprSetEntry.Name);
 				writer.WriteStrPtr(&sprSetEntry.FileName);
 				writer.WriteInt32(index++);
@@ -146,7 +146,7 @@ namespace Database
 		writer.WriteAlignmentPadding(16);
 	}
 
-	SprSetEntry* SprDB::GetSprSetEntry(const std::string& name)
+	SprSetEntry* SprDB::GetSprSetEntry(std::string_view name)
 	{
 		for (auto& entry : Entries)
 			if (entry.Name == name)

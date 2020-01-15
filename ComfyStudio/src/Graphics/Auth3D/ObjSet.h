@@ -94,7 +94,7 @@ namespace Graphics
 	struct MaterialTexture
 	{
 		MaterialTextureFlags Flags;
-		int32_t TextureID;
+		TxpID TextureID;
 		MaterialTextureTypeFlags TypeFlags;
 		vec3 Field03_05;
 		mat4 TextureCoordinateMatrix;
@@ -251,10 +251,10 @@ namespace Graphics
 
 	struct Bone
 	{
-		uint32_t ID;
+		BoneID ID;
 		mat4 Transform;
 		std::string Name;
-		uint32_t ParentID;
+		BoneID ParentID;
 	};
 
 	struct Skeleton
@@ -268,7 +268,7 @@ namespace Graphics
 
 	public:
 		std::string Name;
-		uint32_t ID;
+		ObjID ID;
 
 		Sphere BoundingSphere;
 		std::vector<Mesh> Meshes;
@@ -293,7 +293,7 @@ namespace Graphics
 
 	public:
 		std::string Name;
-		std::vector<uint32_t> TextureIDs;
+		std::vector<TxpID> TextureIDs;
 		UniquePtr<TxpSet> TxpSet;
 
 		auto begin() { return objects.begin(); }

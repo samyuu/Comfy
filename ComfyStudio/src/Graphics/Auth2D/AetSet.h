@@ -1,5 +1,6 @@
 #pragma once
 #include "Types.h"
+#include "Core/IDTypes.h"
 #include "Core/CoreTypes.h"
 #include "FileSystem/FileInterface.h"
 #include "Graphics/GraphicsTypes.h"
@@ -46,7 +47,7 @@ namespace Graphics
 		// NOTE: Sprite name
 		std::string Name;
 		// NOTE: Database ID
-		uint32_t ID;
+		SprID ID;
 
 		// NOTE: Editor internal cache to avoid expensive string comparisons
 		mutable const struct Spr* SpriteCache;
