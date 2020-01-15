@@ -2,6 +2,7 @@
 #include "Types.h"
 #include "Core/CoreTypes.h"
 #include "Graphics/Auth3D/ObjSet.h"
+#include "Graphics/Auth3D/Transform.h"
 
 namespace Editor
 {
@@ -23,7 +24,6 @@ namespace Editor
 
 		} IDs;
 
-		vec3 Position = vec3(0.0f, 0.0f, 0.0f);
-
+		Graphics::Transform Transform = Graphics::Transform(vec3(0.0f));
 	};
 }

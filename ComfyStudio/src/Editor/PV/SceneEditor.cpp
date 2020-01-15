@@ -237,7 +237,9 @@ namespace Editor
 			Gui::DragFloat("Orbit Y", &cameraController.OrbitData.TargetRotation.y, 1.0f, -89.0f, +89.0f);
 		}
 
-		if (Gui::Checkbox("Visualize Interest", &cameraController.Visualization.VisualizeInterest) && cameraController.Visualization.VisualizeInterest)
+		Gui::Checkbox("Visualize Interest", &cameraController.Visualization.VisualizeInterest);
+
+		if (cameraController.Visualization.VisualizeInterest && cameraController.Visualization.InterestSphereObj == nullptr)
 			cameraController.Visualization.InterestSphereObj = GenerateUploadDebugSphereObj(cameraController.Visualization.InterestSphere, cameraController.Visualization.InterestSphereColor);
 
 		static bool syncDivaCamera = false;
@@ -425,18 +427,20 @@ namespace Editor
 	{
 		Gui::BeginChild("SceneGraphEntiriesListChild");
 
-		auto setCamera = [&](const Sphere& boundingSphere)
+		auto setCamera = [&](auto& entity, const Sphere& boundingSphere)
 		{
-			context.Camera.Interest = context.Camera.ViewPoint = boundingSphere.Center;
+			context.Camera.Interest = context.Camera.ViewPoint = boundingSphere.Center + entity->Transform.Translation;
 			cameraController.OrbitData.Distance = boundingSphere.Radius;
 		};
 
 		for (auto& entity : sceneGraph.Entities)
 		{
+			if (!entity->IsVisible) Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(ImGuiCol_TextDisabled));
 			const bool objectNodeOpen = Gui::WideTreeNodeEx(entity->Name.c_str(), ImGuiTreeNodeFlags_None);
+			if (!entity->IsVisible) Gui::PopStyleColor();
 
 			if (Gui::IsItemClicked(1))
-				setCamera(entity->Obj->BoundingSphere);
+				setCamera(entity, entity->Obj->BoundingSphere);
 
 			if (objectNodeOpen)
 			{
@@ -445,7 +449,7 @@ namespace Editor
 					Gui::WideTreeNodeEx(mesh.Name.data(), ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Leaf);
 
 					if (Gui::IsItemClicked(1))
-						setCamera(mesh.BoundingSphere);
+						setCamera(entity, mesh.BoundingSphere);
 				}
 
 				Gui::TreePop();
@@ -755,12 +759,15 @@ namespace Editor
 		if (Gui::InputInt("Hands", &charaTestData.IDs.Hands))
 			loadCharaItems();
 
-		if (Gui::DragFloat3("Position", glm::value_ptr(charaTestData.Position), 0.1f))
+		bool posChanged = Gui::DragFloat3("Position", glm::value_ptr(charaTestData.Transform.Translation), 0.1f);
+		bool rotChanged = Gui::DragFloat3("Rotation", glm::value_ptr(charaTestData.Transform.Rotation), 0.1f);
+
+		if (posChanged | rotChanged)
 		{
 			for (auto& entity : sceneGraph.Entities)
 			{
 				if (entity->Tag == CharacterTag)
-					entity->Transform.Translation = charaTestData.Position;
+					entity->Transform = charaTestData.Transform;
 			}
 		}
 
