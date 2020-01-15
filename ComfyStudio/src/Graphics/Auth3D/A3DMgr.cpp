@@ -95,4 +95,25 @@ namespace Graphics
 		result.z = A3DMgr::GetValueAt(property.Z, frame);
 		return result;
 	}
+
+	bool A3DMgr::GetVisibilityAt(const A3DTransform& transform, frame_t frame)
+	{
+		constexpr float threshold = 0.999999f;
+		return GetValueAt(transform.Visibility, frame) >= threshold;
+	}
+
+	float A3DMgr::GetFieldOfViewAt(const A3DCameraViewPoint& viewPoint, frame_t frame)
+	{
+		const float fov = A3DMgr::GetValueAt(viewPoint.FieldOfView, frame);
+		
+		// NOTE: Could potentially be affected by PerspectiveCamera::AspectRatio
+		const float aspectRatio = viewPoint.AspectRatio; 
+
+		// TODO: Vertical FOV is not correct (?)
+		const float result = (viewPoint.HorizontalFieldOfView) ?
+			(glm::atan(glm::tan(fov * 0.5f) / aspectRatio) * 2.0f) :
+			(glm::atan((((aspectRatio * 25.4f) * 0.5f) / fov)) * 2.0f);
+
+		return result * (180.0f / glm::pi<float>());
+	}
 }

@@ -15,5 +15,8 @@ namespace Graphics
 
 		static float GetValueAt(const A3DProperty1D& property, frame_t frame);
 		static vec3 GetValueAt(const A3DProperty3D& property, frame_t frame);
+		
+		static bool GetVisibilityAt(const A3DTransform& transform, frame_t frame);
+		static float GetFieldOfViewAt(const A3DCameraViewPoint& viewPoint, frame_t frame);
 	};
 }
