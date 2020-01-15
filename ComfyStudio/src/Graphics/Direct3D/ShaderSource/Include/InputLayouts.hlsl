@@ -24,7 +24,7 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
     float4 Position                 : SV_POSITION;
-    float4 Normal                   : NORMAL;
+    float4 Normal                   : NORMAL0;
     float4 Tangent                  : TANGENT0;
     float4 AnisoTangent             : TANGENT1;
     float4 Binormal                 : BINORMAL;
@@ -36,4 +36,5 @@ struct VS_OUTPUT
     float4 ColorSecondary           : COLOR1;
     float4 Reflection               : REFLECT;
     float1 FogFactor                : FOG;
+    float4 WorldPosition            : POSITION;
 };

@@ -48,10 +48,10 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MUL(luce.xyz, luce.xyz, lc.z);
     MOV(rot_normal.w, 0);
     // TXL(diff, rot_normal, texture[9], CUBE);
-    TEXCUBE_09(diff, rot_normal);
+    TXLCUBE_09(diff, rot_normal);
     MOV(rot_normal.w, 1);
     // TXL(tmp, rot_normal, texture[9], CUBE);
-    TEXCUBE_09(tmp, rot_normal);
+    TXLCUBE_09(tmp, rot_normal);
     LRP(diff, lc.y, diff, tmp);
     TEX2D_00(col0, a_tex_color0);
     MUL(col0.xyz, col0.xyz, p_texcol_coef.x);

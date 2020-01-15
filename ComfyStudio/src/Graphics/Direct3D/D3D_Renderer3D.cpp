@@ -49,9 +49,6 @@ namespace Graphics
 
 			if (material.BlendFlags.EnableAlphaTest && !material.BlendFlags.OpaqueAlphaTest)
 				return true;
-			
-			//if (mesh.Flags.Transparent)
-			//	return true;
 
 			return false;
 		}
@@ -157,12 +154,12 @@ namespace Graphics
 	void D3D_Renderer3D::Draw(const RenderCommand& command)
 	{
 		const mat4 translation = glm::translate(mat4(1.0f), command.Transform.Translation);
-		
+
 		const vec3 radiansRotation = glm::radians(command.Transform.Rotation);
 		const mat4 rotationX = glm::rotate(mat4(1.0f), radiansRotation.x, vec3(1.0f, 0.0f, 0.0f));
 		const mat4 rotationY = glm::rotate(mat4(1.0f), radiansRotation.y, vec3(0.0f, 1.0f, 0.0f));
 		const mat4 rotationZ = glm::rotate(mat4(1.0f), radiansRotation.z, vec3(0.0f, 0.0f, 1.0f));
-		
+
 		const mat4 scale = glm::scale(mat4(1.0f), command.Transform.Scale);
 
 		ObjRenderCommand renderCommand;
@@ -442,7 +439,7 @@ namespace Graphics
 		auto& mesh = *command.ParentMesh;
 		auto& subMesh = *command.SubMesh;
 
-		if (!IntersectsCameraFrustum(obj.BoundingSphere, transform) 
+		if (!IntersectsCameraFrustum(obj.BoundingSphere, transform)
 			|| !IntersectsCameraFrustum(mesh.BoundingSphere, transform)
 			|| !IntersectsCameraFrustum(subMesh.BoundingSphere, transform))
 			return;
@@ -452,7 +449,7 @@ namespace Graphics
 
 		auto& material = subMesh.GetMaterial(obj);
 		cachedBlendStates.GetState(material.BlendFlags.SrcBlendFactor, material.BlendFlags.DstBlendFactor).Bind();
-		
+
 		PrepareAndRenderSubMesh(*command.ObjCommand, mesh, subMesh, material);
 	}
 
@@ -482,7 +479,7 @@ namespace Graphics
 		D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 		constexpr uint32_t attributesToReset = (VertexAttribute_Count * 2);
-		
+
 		std::array<ID3D11Buffer*, attributesToReset> buffers = {};
 		std::array<UINT, attributesToReset> strides = {}, offsets = {};
 		D3D.Context->IASetVertexBuffers(0, attributesToReset, buffers.data(), strides.data(), offsets.data());
@@ -736,7 +733,7 @@ namespace Graphics
 
 		if (command.SourceCommand.SourceMorphObj != nullptr)
 			objectCB.Data.ShaderFlags |= ShaderFlags_Morph;
-		
+
 		objectCB.Data.MorphWeight = vec2(command.SourceCommand.MorphWeight, 1.0f - command.SourceCommand.MorphWeight);
 
 		objectCB.UploadData();
@@ -791,7 +788,7 @@ namespace Graphics
 		}
 		else if (material.MaterialType == Material::Identifiers.EYEBALL)
 		{
-			return shaders.EyeBall;
+			return (true) ? shaders.GlassEye : shaders.EyeBall;
 		}
 		else if (material.MaterialType == Material::Identifiers.EYELENS)
 		{
@@ -872,7 +869,7 @@ namespace Graphics
 	D3D_Renderer3D::BlendStateCache::BlendStateCache()
 	{
 		constexpr std::array d3dBlendFactors = { D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_SRC_COLOR, D3D11_BLEND_INV_SRC_COLOR, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_DEST_ALPHA, D3D11_BLEND_INV_DEST_ALPHA, D3D11_BLEND_DEST_COLOR, D3D11_BLEND_INV_DEST_COLOR, };
-		constexpr std::array blendFactorNames =  { "Zero", "One", "SrcColor", "ISrcColor", "SrcAlpha", "ISrcAlpha", "DstAlpha", "IDstAlpha", "DstColor", "IDstColor", };
+		constexpr std::array blendFactorNames = { "Zero", "One", "SrcColor", "ISrcColor", "SrcAlpha", "ISrcAlpha", "DstAlpha", "IDstAlpha", "DstColor", "IDstColor", };
 
 		for (int src = 0; src < BlendFactor_Count; src++)
 		{

@@ -288,7 +288,9 @@ namespace Graphics
 		std::vector<ObjRenderCommand> renderCommandList, reflectionCommandList;
 		std::vector<SubMeshRenderCommand> transparentSubMeshCommands;
 
+		// TODO: RendererStatistics struct with data for obj / mesh / submesh count, vertices, cull count etc.
 		size_t verticesRenderedThisFrame = 0, verticesRenderedLastFrame = 0;
+		
 		bool currentlyRenderingWireframeOverlay = false;
 
 		struct ToneMapData

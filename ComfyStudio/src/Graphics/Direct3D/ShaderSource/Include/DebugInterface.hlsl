@@ -34,6 +34,10 @@
 #define o_eye                       (output.EyeDirection)
 #define o_reflect                   (output.Reflection)
 #define o_aniso_tangent             (output.AnisoTangent)
+#define o_normal_diff               (output.Normal)
+#define o_normal_spec               (output.Binormal)
+#define o_cornea_coord              (output.Tangent)
+#define o_model_pos                 (output.WorldPosition)
 // --------------------------------------------------------------------------------------------------------------------------
 #endif /* COMFY_VS */
 // --------------------------------------------------------------------------------------------------------------------------
@@ -57,6 +61,10 @@
 #define a_binormal                  (input.Binormal)
 #define a_reflect                   (input.Reflection)
 #define a_aniso_tangent             (input.AnisoTangent)
+#define a_normal_diff               (input.Normal)
+#define a_normal_spec               (input.Binormal)
+#define a_cornea_coord              (input.Tangent)
+#define a_model_pos                 (input.WorldPosition)
 #define fragment_position           (input.Position)
 // --------------------------------------------------------------------------------------------------------------------------
 
@@ -85,6 +93,7 @@
 #define mv                          (transpose(CB_ModelView))
 #define camera_mvi                  (CB_Scene.View)
 #define model_mtx                   (CB_Model)
+#define model_mtx_i                 (transpose(CB_Model))
 #define model_mtx_it                (transpose(CB_Model))
 // TODO:
 #define nt_mtx                      (float3x3(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
@@ -104,6 +113,38 @@
 #define p_max_alpha                 (float4(1.0, 1.0, 1.0, 1.0))
 #define p_fres_coef                 (CB_Material.FresnelCoefficient)
 #define p_bump_depth                (CB_Material.BumpDepth)
+// TODO: program.local[7]
+#define p_texspc_coef               (float4(0.0, 0.0, 0.0, 0.0))
+// TODO: program.local[8]
+#define p_texspc_offset             (float4(0.0, 0.0, 0.0, 0.0))
+// TODO: program.local[11]
+#define p_ellipsoid_scale           (float4(0.02, 0.024, 0.009, 1.0))
+// TODO: program.local[12]
+#define p_tex_model_param           (float4(5.0, 5.0, 0.5, 0.5))
+// TODO: program.local[13]
+#define p_tex_offset                (float4(0.0, 0.0, 0.0, 0.0))
+// TODO: program.local[14]
+#define p_eb_radius                 (float4(1.0, 1.0, 1.0, 1.0))
+// TODO: program.local[15]
+#define p_eb_tex_model_param        (float4(2.5, 2.5, 0.5, 0.5))
+// TODO: program.local[11]
+#define p_ellipsoid_radius          (float4(2500.0, 1736.111084, 12345.680664, 0.000081))
+// TODO: program.local[12]
+#define p_fresnel                   (float4(0.966264, 0.033736, 0.0, 0.0))
+// TODO: program.local[13]
+#define p_refract1                  (float4(0.475624, 0.524376, 0.689655, 0.0))
+// TODO: program.local[14]
+#define p_refract2                  (float4(2.102500, -1.1025, 1.45, 0.0))
+// TODO: program.local[15]
+#define p_iris_radius               (float4(2500.0, 1736.111084, 40000.0, -1.0))
+// TODO: program.local[16]
+#define p_cornea_radius             (float4(2500.0, 1736.111084, 12345.680664, -1.0))
+// TODO: program.local[17]
+#define p_pupil_radius              (float4(10000.0, 6944.444336, 15624.998047, -1.0))
+// TODO: program.local[18]
+#define p_tex_scale                 (float4(10.000001, 8.333333, 61.314545, -0.004))
+// TODO: program.env[25]
+#define p_sss_param                 (float4(0.0, 0.0, 0.0, 0.0))
 // TODO: Should this be the same as p_fres_coef (?)
 #define fres_coef                   (CB_Material.FresnelCoefficient)
 #define p_fb_isize                  (CB_Scene.TexelRenderResolution)
@@ -172,9 +213,15 @@
 #define MAD_SAT(result, a, b, c)    result      = saturate( mad( (a), (b), (c) ) )
 #define MIN(result, a, b)           result      =         ( min( (a), (b) ) )
 #define MAX(result, a, b)           result      =         ( max( (a), (b) ) )
+#define ABS(result, a)              result      =         ( abs(a) )
+#define EX2(result, a)              result      =         ( exp2(a) )
+#define EX2_SAT(result, a)          result      = saturate( exp2(a) )
 #define POW(result, a, b)           result      =         ( pow( (a), (b) ) )
 #define LRP(result, a, b, c)        result      =         ( lerp( (c), (b), (a) ) )
+#define RCP(result, a)              result      =         ( rcp( (a) ) )
 #define RSQ(result, a)              result      =         ( rsqrt( (a) ) )
+#define DP2(result, a, b)           result.x    =         ( dot( (a).xy, (b).xy ) )
+#define DP2_SAT(result, a, b)       result.x    = saturate( dot( (a).xy, (b).xy ) )
 #define DP3(result, a, b)           result.x    =         ( dot( (a).xyz, (b).xyz ) )
 #define DP3_SAT(result, a, b)       result.x    = saturate( dot( (a).xyz, (b).xyz ) )
 #define DP4(result, a, b)           result.x    =         ( dot( (a).xyzw, (b).xyzw ) )
@@ -183,6 +230,14 @@
 #define NRM(result, a)              result.xyz  =         ( normalize( (a).xyz ) )
 #define NRMH(result, a)             result.xyzw =         ( normalize( (a).xyzw ) )
 
+// TODO: Might have to check b against a instead
+#define SEQ(result, a, b)           if (a == b) result  = ( a )
+#define SGE(result, a, b)           if (a >= b) result  = ( a )
+#define SGT(result, a, b)           if (a >  b) result  = ( a )
+#define SLE(result, a, b)           if (a <= b) result  = ( a )
+#define SLT(result, a, b)           if (a <  b) result  = ( a )
+#define SNE(result, a, b)           if (a != b) result  = ( a )
+
 #define TEX2D_00(result, texCoord)  result = DiffuseTexture.Sample(DiffuseSampler, (texCoord).xy)
 #define TEX2D_01(result, texCoord)  result = AmbientTexture.Sample(AmbientSampler, (texCoord).xy)
 #define TEX2D_02(result, texCoord)  result = NormalTexture.Sample(NormalSampler, (texCoord).xy).xyzx
@@ -190,7 +245,7 @@
 #define TEX2D_06(result, texCoord)  result = LucencyTexture.Sample(LucencySampler, (texCoord).xy)
 // TODO: simple_reflect...
 #define TEX2D_15(result, texCoord)  result = ScreenReflectionTexture.Sample(ScreenReflectionSampler, (texCoord).xy)
-// TODO: ...
+// TODO: subsurface scattering...
 #define TEX2D_16(result, texCoord)  result = float4(0.0, 0.0, 0.0, 0.0)
 
 #define TEXCUBE_05(result, texCoord) result = ReflectionCubeMap.Sample( ReflectionSampler, (texCoord).xyz )
@@ -199,6 +254,9 @@
 #define TEXCUBE_11(result, texCoord) result = ReflectLightMap.Sample( LightMapSampler, (texCoord).xyz )
 #define TEXCUBE_12(result, texCoord) result = ShadowLightMap.Sample( LightMapSampler, (texCoord).xyz )
 #define TEXCUBE_13(result, texCoord) result = CharColorLightMap.Sample( LightMapSampler, (texCoord).xyz )
+
+#define TXLCUBE_09(result, texCoord) result = CharacterLightMap.SampleLevel( LightMapSampler, (texCoord).xyz, (texCoord).w )
+
 // --------------------------------------------------------------------------------------------------------------------------
 
 // NOTE: Vertex shader snippets:
