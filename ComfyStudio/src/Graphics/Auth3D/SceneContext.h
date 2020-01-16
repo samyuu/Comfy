@@ -19,7 +19,6 @@ namespace Graphics
 
 		bool FrustumCulling = true;
 		bool Wireframe = false;
-		bool WireframeOverlay = false;
 		bool AlphaSort = true;
 		bool RenderOpaque = true;
 		bool RenderTransparent = true;
@@ -85,6 +84,7 @@ namespace Graphics
 		};
 	};
 
+	// TODO: Separate Viewport specific data from scene state
 	class SceneContext
 	{
 	public:

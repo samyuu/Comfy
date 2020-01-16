@@ -141,6 +141,14 @@ namespace Graphics
 
 		genericInputLayout = MakeUnique<D3D_InputLayout>(elements, std::size(elements), shaders.Debug.VS);
 		D3D_SetObjectDebugName(genericInputLayout->GetLayout(), "Renderer3D::GenericInputLayout");
+
+		constexpr size_t reasonableInitialCapacity = 64;
+
+		defaultCommandList.OpaqueAndTransparent.reserve(reasonableInitialCapacity);
+		defaultCommandList.Transparent.reserve(reasonableInitialCapacity);
+
+		reflectionCommandList.OpaqueAndTransparent.reserve(reasonableInitialCapacity);
+		reflectionCommandList.Transparent.reserve(reasonableInitialCapacity);
 	}
 
 	void D3D_Renderer3D::Begin(SceneContext& scene)
@@ -167,8 +175,8 @@ namespace Graphics
 		renderCommand.ModelMatrix = translation * rotationX * rotationY * rotationZ * scale;
 		renderCommand.AreAllMeshesTransparent = false;
 
-		auto& commandList = (command.Flags.IsReflection) ? reflectionCommandList : renderCommandList;
-		commandList.push_back(renderCommand);
+		auto& commandList = (command.Flags.IsReflection) ? reflectionCommandList : defaultCommandList;
+		commandList.OpaqueAndTransparent.push_back(renderCommand);
 	}
 
 	void D3D_Renderer3D::End()
@@ -224,18 +232,25 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalFlush()
 	{
-		InternalPrepareRenderCommands();
+		InternalPrepareRenderCommands(defaultCommandList);
+		InternalPrepareRenderCommands(reflectionCommandList);
+
 		InternalRenderItems();
 		InternalRenderPostProcessing();
 
-		transparentSubMeshCommands.clear();
-		renderCommandList.clear();
-		reflectionCommandList.clear();
+		defaultCommandList.OpaqueAndTransparent.clear();
+		defaultCommandList.Transparent.clear();
+
+		reflectionCommandList.OpaqueAndTransparent.clear();
+		reflectionCommandList.Transparent.clear();
 	}
 
-	void D3D_Renderer3D::InternalPrepareRenderCommands()
+	void D3D_Renderer3D::InternalPrepareRenderCommands(RenderPassCommandLists& commandList)
 	{
-		for (auto& command : renderCommandList)
+		if (commandList.OpaqueAndTransparent.empty())
+			return;
+
+		for (auto& command : commandList.OpaqueAndTransparent)
 		{
 			command.AreAllMeshesTransparent = true;
 
@@ -246,7 +261,7 @@ namespace Graphics
 					if (IsMeshTransparent(mesh, subMesh, subMesh.GetMaterial(*command.SourceCommand.SourceObj)))
 					{
 						const float cameraDistance = glm::distance(command.SourceCommand.Transform.Translation + subMesh.BoundingSphere.Center, sceneContext->Camera.ViewPoint);
-						transparentSubMeshCommands.push_back({ &command, &mesh, &subMesh, cameraDistance });
+						commandList.Transparent.push_back({ &command, &mesh, &subMesh, cameraDistance });
 					}
 					else
 					{
@@ -258,7 +273,7 @@ namespace Graphics
 
 		if (sceneContext->RenderParameters.AlphaSort)
 		{
-			std::sort(transparentSubMeshCommands.begin(), transparentSubMeshCommands.end(), [](SubMeshRenderCommand& a, SubMeshRenderCommand& b)
+			std::sort(commandList.Transparent.begin(), commandList.Transparent.end(), [](SubMeshRenderCommand& a, SubMeshRenderCommand& b)
 			{
 				constexpr float comparisonThreshold = 0.001f;
 				const bool sameDistance = std::abs(a.CameraDistance - b.CameraDistance) < comparisonThreshold;
@@ -340,30 +355,43 @@ namespace Graphics
 			wireframeRasterizerState.Bind();
 
 		genericInputLayout->Bind();
-		D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+		cachedTextureSamplers.CreateIfNeeded(sceneContext->RenderParameters);
 
 		if (sceneContext->RenderParameters.RenderReflection)
 		{
-			if (!reflectionCommandList.empty())
+			sceneContext->RenderData.ReflectionRenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.ReflectionRenderResolution);
+			sceneContext->RenderData.ReflectionRenderTarget.BindSetViewport();
+
+			if (sceneContext->RenderParameters.ClearReflection)
+				sceneContext->RenderData.ReflectionRenderTarget.Clear(sceneContext->RenderParameters.ClearColor);
+			else
+				sceneContext->RenderData.ReflectionRenderTarget.GetDepthBuffer()->Clear();
+
+			if (!reflectionCommandList.OpaqueAndTransparent.empty())
 			{
-				sceneContext->RenderData.ReflectionRenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.ReflectionRenderResolution);
-				sceneContext->RenderData.ReflectionRenderTarget.BindSetViewport();
-
-				if (sceneContext->RenderParameters.ClearReflection)
-					sceneContext->RenderData.ReflectionRenderTarget.Clear(sceneContext->RenderParameters.ClearColor);
-				else
-					sceneContext->RenderData.ReflectionRenderTarget.GetDepthBuffer()->Clear();
-
 				// TODO: Render using reflection shader
-				for (auto& command : reflectionCommandList)
-					InternalRenderOpaqueObjCommand(command);
+				if (sceneContext->RenderParameters.RenderOpaque)
+				{
+					D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
-				sceneContext->RenderData.ReflectionRenderTarget.UnBind();
-				sceneContext->RenderData.ReflectionRenderTarget.BindResource(TextureSlot_ScreenReflection);
+					for (auto& command : reflectionCommandList.OpaqueAndTransparent)
+						InternalRenderOpaqueObjCommand(command);
+				}
+
+				if (sceneContext->RenderParameters.RenderTransparent && !reflectionCommandList.Transparent.empty())
+				{
+					transparencyPassDepthStencilState.Bind();
+
+					for (auto& command : reflectionCommandList.Transparent)
+						InternalRenderTransparentSubMeshCommand(command);
+
+					transparencyPassDepthStencilState.UnBind();
+				}
 			}
-		}
 
-		cachedTextureSamplers.CreateIfNeeded(sceneContext->RenderParameters);
+			sceneContext->RenderData.ReflectionRenderTarget.UnBind();
+			sceneContext->RenderData.ReflectionRenderTarget.BindResource(TextureSlot_ScreenReflection);
+		}
 
 		sceneContext->RenderData.RenderTarget.SetMultiSampleCountIfDifferent(sceneContext->RenderParameters.MultiSampleCount);
 		sceneContext->RenderData.RenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.RenderResolution);
@@ -374,23 +402,25 @@ namespace Graphics
 		else
 			sceneContext->RenderData.RenderTarget.GetDepthBuffer()->Clear();
 
-		if (sceneContext->RenderParameters.RenderOpaque)
+		if (!defaultCommandList.OpaqueAndTransparent.empty())
 		{
-			for (auto& command : renderCommandList)
-				InternalRenderOpaqueObjCommand(command);
-		}
+			if (sceneContext->RenderParameters.RenderOpaque)
+			{
+				D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
-		if (sceneContext->RenderParameters.WireframeOverlay)
-			InternalRenderWireframeOverlay();
+				for (auto& command : defaultCommandList.OpaqueAndTransparent)
+					InternalRenderOpaqueObjCommand(command);
+			}
 
-		if (sceneContext->RenderParameters.RenderTransparent)
-		{
-			transparencyPassDepthStencilState.Bind();
+			if (sceneContext->RenderParameters.RenderTransparent && !defaultCommandList.Transparent.empty())
+			{
+				transparencyPassDepthStencilState.Bind();
 
-			for (auto& command : transparentSubMeshCommands)
-				InternalRenderTransparentSubMeshCommand(command);
+				for (auto& command : defaultCommandList.Transparent)
+					InternalRenderTransparentSubMeshCommand(command);
 
-			transparencyPassDepthStencilState.UnBind();
+				transparencyPassDepthStencilState.UnBind();
+			}
 		}
 
 		sceneContext->RenderData.RenderTarget.UnBind();
@@ -451,27 +481,6 @@ namespace Graphics
 		cachedBlendStates.GetState(material.BlendFlags.SrcBlendFactor, material.BlendFlags.DstBlendFactor).Bind();
 
 		PrepareAndRenderSubMesh(*command.ObjCommand, mesh, subMesh, material);
-	}
-
-	void D3D_Renderer3D::InternalRenderWireframeOverlay()
-	{
-		wireframeRasterizerState.Bind();
-		shaders.Debug.Bind();
-		currentlyRenderingWireframeOverlay = true;
-
-		for (auto& command : renderCommandList)
-		{
-			auto& obj = *command.SourceCommand.SourceObj;
-
-			for (auto& mesh : obj.Meshes)
-			{
-				BindMeshVertexBuffers(mesh, nullptr);
-				for (auto& subMesh : mesh.SubMeshes)
-					PrepareAndRenderSubMesh(command, mesh, subMesh, subMesh.GetMaterial(obj));
-			}
-		}
-
-		currentlyRenderingWireframeOverlay = false;
 	}
 
 	void D3D_Renderer3D::InternalRenderPostProcessing()
@@ -670,7 +679,7 @@ namespace Graphics
 		D3D_ShaderResourceView::BindArray<8>(TextureSlot_Diffuse, textureResources);
 		D3D_TextureSampler::BindArray<8>(TextureSlot_Diffuse, textureSamplers);
 
-		if (!currentlyRenderingWireframeOverlay && !sceneContext->RenderParameters.Wireframe)
+		if (!sceneContext->RenderParameters.Wireframe)
 			((material.BlendFlags.DoubleSidedness != DoubleSidedness_Off) ? solidNoCullingRasterizerState : solidBackfaceCullingRasterizerState).Bind();
 
 		const float fresnel = (((material.ShaderFlags.Fresnel == 0) ? 7.0f : static_cast<float>(material.ShaderFlags.Fresnel) - 1.0f) * 0.12f) * 0.82f;

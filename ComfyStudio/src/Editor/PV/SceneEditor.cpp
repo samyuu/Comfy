@@ -242,14 +242,6 @@ namespace Editor
 		if (cameraController.Visualization.VisualizeInterest && cameraController.Visualization.InterestSphereObj == nullptr)
 			cameraController.Visualization.InterestSphereObj = GenerateUploadDebugSphereObj(cameraController.Visualization.InterestSphere, cameraController.Visualization.InterestSphereColor);
 
-		static bool syncDivaCamera = false;
-		if (Gui::Button("Inject read diva.exe") || syncDivaCamera)
-		{
-			cameraController.Mode = CameraController3D::ControlMode::None;
-			//InjectReadApplyDivaCamera(context.Camera, charaTestData.Position);
-		}
-		Gui::Checkbox("Sync diva camera", &syncDivaCamera);
-
 		Gui::PopID();
 	}
 
@@ -265,7 +257,6 @@ namespace Editor
 		Gui::Checkbox("Clear", &renderParameters.Clear);
 		Gui::Checkbox("Frustum Culling", &renderParameters.FrustumCulling);
 		Gui::Checkbox("Wireframe", &renderParameters.Wireframe);
-		Gui::Checkbox("Wireframe Overlay", &renderParameters.WireframeOverlay);
 		Gui::Checkbox("Alpha Sort", &renderParameters.AlphaSort);
 		Gui::Checkbox("Render Reflection", &renderParameters.RenderReflection);
 		Gui::Checkbox("Render Opaque", &renderParameters.RenderOpaque);

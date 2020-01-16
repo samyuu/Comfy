@@ -199,13 +199,18 @@ namespace Graphics
 			float CameraDistance;
 		};
 
+		struct RenderPassCommandLists
+		{
+			std::vector<ObjRenderCommand> OpaqueAndTransparent;
+			std::vector<SubMeshRenderCommand> Transparent;
+		};
+
 		void InternalFlush();
 
-		void InternalPrepareRenderCommands();
+		void InternalPrepareRenderCommands(RenderPassCommandLists& commandList);
 		void InternalRenderItems();
 		void InternalRenderOpaqueObjCommand(ObjRenderCommand& command);
 		void InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command);
-		void InternalRenderWireframeOverlay();
 		void InternalRenderPostProcessing();
 		void InternalRenderBloom();
 
@@ -285,14 +290,11 @@ namespace Graphics
 
 		} cachedBlendStates;
 
-		std::vector<ObjRenderCommand> renderCommandList, reflectionCommandList;
-		std::vector<SubMeshRenderCommand> transparentSubMeshCommands;
+		RenderPassCommandLists defaultCommandList, reflectionCommandList;
 
 		// TODO: RendererStatistics struct with data for obj / mesh / submesh count, vertices, cull count etc.
 		size_t verticesRenderedThisFrame = 0, verticesRenderedLastFrame = 0;
 		
-		bool currentlyRenderingWireframeOverlay = false;
-
 		struct ToneMapData
 		{
 			GlowParameter Glow;
