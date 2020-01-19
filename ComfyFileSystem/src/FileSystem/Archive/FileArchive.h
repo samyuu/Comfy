@@ -33,7 +33,7 @@ namespace FileSystem
 		inline auto end() const { return archiveEntries.end(); };
 		size_t size() const;
 
-		const ArchiveEntry* GetFile(const std::string& name) const;
+		const ArchiveEntry* GetFile(std::string_view name) const;
 
 	protected:
 		std::vector<ArchiveEntry> archiveEntries;

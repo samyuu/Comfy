@@ -1,4 +1,5 @@
 #include "FileArchive.h"
+#include "Misc/StringHelper.h"
 
 namespace FileSystem
 {
@@ -22,12 +23,14 @@ namespace FileSystem
 		return archiveEntries.size();
 	}
 
-	const ArchiveEntry* FileArchive::GetFile(const std::string& name) const
+	const ArchiveEntry* FileArchive::GetFile(std::string_view name) const
 	{
 		for (const ArchiveEntry& entry : archiveEntries)
 		{
-			// NOTE: Should this be case insensitive? Probably not.
-			if (entry.Name == name)
+			// NOTE: Should this be case insensitive? Maybe.
+			// if (entry.Name == name)
+
+			if (MatchesInsensitive(entry.Name, name))
 				return &entry;
 		}
 
