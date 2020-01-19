@@ -40,5 +40,6 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     result.rb = (color.yyy + color).xz;
     result.g = dot(color.rgb, RGB_COEF);
     
-    return float4(result.rgb, screenColor.a);
+    // return float4(result.rgb, screenColor.a);
+    return float4(result.rgb, 1.0f);
 }
