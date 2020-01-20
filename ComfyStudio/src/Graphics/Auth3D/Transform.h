@@ -1,8 +1,20 @@
 #pragma once
 #include "Types.h"
+#include "Core/CoreTypes.h"
 
 namespace Graphics
 {
+	enum class VectorComponent : uint32_t { X, Y, Z };
+
+	constexpr std::array<VectorComponent, vec3::length()> RotationModeComponentsOrder = { VectorComponent::Y, VectorComponent::Z, VectorComponent::X };
+
+	template <size_t Index>
+	constexpr uint32_t GetRotationModeIndex()
+	{
+		static_assert(Index < RotationModeComponentsOrder.size());
+		return static_cast<uint32_t>(RotationModeComponentsOrder[Index]);
+	}
+
 	struct Transform
 	{
 		vec3 Translation;
@@ -28,6 +40,48 @@ namespace Graphics
 		inline bool operator!=(const Transform& other) const
 		{
 			return !(*this == other);
+		}
+
+		inline std::array<mat4, 3> CalculateRotationMatrices() const
+		{
+			return
+			{
+				glm::rotate(mat4(1.0f), glm::radians(Rotation.x), vec3(1.0f, 0.0f, 0.0f)),
+				glm::rotate(mat4(1.0f), glm::radians(Rotation.y), vec3(0.0f, 1.0f, 0.0f)),
+				glm::rotate(mat4(1.0f), glm::radians(Rotation.z), vec3(0.0f, 0.0f, 1.0f)),
+			};
+		}
+
+		inline mat4 CalculateMatrix() const
+		{
+			const mat4 translation = glm::translate(mat4(1.0f), Translation);
+			const mat4 scale = glm::scale(mat4(1.0f), Scale);
+
+			if (Rotation != vec3(0.0f))
+			{
+				const auto rotations = CalculateRotationMatrices();
+				return translation * rotations[GetRotationModeIndex<0>()] * rotations[GetRotationModeIndex<1>()] * rotations[GetRotationModeIndex<2>()] * scale;
+			}
+			else
+			{
+				return translation * scale;
+			}
+		}
+
+		inline void ApplyParent(const Transform& parent)
+		{
+			Scale *= parent.Scale;
+			Translation *= parent.Scale;
+
+			if (parent.Rotation != vec3(0.0f))
+			{
+				Rotation += parent.Rotation;
+				
+				const auto rotations = parent.CalculateRotationMatrices();
+				Translation = rotations[GetRotationModeIndex<0>()] * rotations[GetRotationModeIndex<1>()] * rotations[GetRotationModeIndex<2>()] * vec4(Translation, 1.0f);
+			}
+			
+			Translation += parent.Translation;
 		}
 	};
 }
