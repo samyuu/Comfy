@@ -96,6 +96,15 @@ namespace Graphics
 		return result;
 	}
 
+	Transform A3DMgr::GetTransformAt(const A3DTransform& transform, frame_t frame)
+	{
+		Transform result;
+		result.Translation = A3DMgr::GetValueAt(transform.Translation, frame);
+		result.Scale = A3DMgr::GetValueAt(transform.Scale, frame);
+		result.Rotation = glm::degrees(A3DMgr::GetValueAt(transform.Rotation, frame));
+		return result;
+	}
+
 	bool A3DMgr::GetVisibilityAt(const A3DTransform& transform, frame_t frame)
 	{
 		constexpr float threshold = 0.999999f;
