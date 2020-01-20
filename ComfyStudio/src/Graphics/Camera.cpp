@@ -61,6 +61,14 @@ namespace Graphics
 		return normalizedScreenPosition;
 	}
 
+	vec3 PerspectiveCamera::CalculateRayDirection(vec2 normalizeScreenPosition) const
+	{
+		const vec4 clipSpacePosition = vec4((normalizeScreenPosition.x * 2.0f) - 1.0f, 1.0f - ((normalizeScreenPosition.y * 2.0f)), 1.0f, 1.0f);
+		const vec3 rayDirection = glm::normalize(vec3(glm::inverse(viewProjection) * clipSpacePosition));
+
+		return rayDirection;
+	}
+
 	bool PerspectiveCamera::IntersectsViewFrustum(const Sphere& worldSpaceSphere) const
 	{
 		for (const auto& plane : frustum.Planes)

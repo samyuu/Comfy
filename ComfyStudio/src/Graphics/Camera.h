@@ -39,6 +39,8 @@ namespace Graphics
 
 	public:
 		vec2 ProjectPointNormalizedScreen(vec3 worldPosition) const;
+		vec3 CalculateRayDirection(vec2 normalizeScreenPosition) const;
+		
 		bool IntersectsViewFrustum(const Sphere& worldSpaceSphere) const;
 
 	public:
