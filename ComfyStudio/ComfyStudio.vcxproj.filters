@@ -923,6 +923,9 @@
     <ClInclude Include="src\Core\IDHash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\Auth3D\RayIntersection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="res\ComfyStudio.rc">
