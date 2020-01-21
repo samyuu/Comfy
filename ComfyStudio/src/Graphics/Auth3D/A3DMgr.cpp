@@ -63,6 +63,12 @@ namespace Graphics
 		return { start, end };
 	}
 
+	bool A3DMgr::GetBool(float value)
+	{
+		constexpr float threshold = 0.999999f;
+		return (value >= threshold);
+	}
+
 	float A3DMgr::GetValueAt(const A3DProperty1D& property, frame_t frame)
 	{
 		if (property.Type == A3DInterpolationType::Static)
@@ -107,16 +113,15 @@ namespace Graphics
 
 	bool A3DMgr::GetVisibilityAt(const A3DTransform& transform, frame_t frame)
 	{
-		constexpr float threshold = 0.999999f;
-		return GetValueAt(transform.Visibility, frame) >= threshold;
+		return GetBool(GetValueAt(transform.Visibility, frame));
 	}
 
 	float A3DMgr::GetFieldOfViewAt(const A3DCameraViewPoint& viewPoint, frame_t frame)
 	{
 		const float fov = A3DMgr::GetValueAt(viewPoint.FieldOfView, frame);
-		
+
 		// NOTE: Could potentially be affected by PerspectiveCamera::AspectRatio
-		const float aspectRatio = viewPoint.AspectRatio; 
+		const float aspectRatio = viewPoint.AspectRatio;
 
 		// TODO: Vertical FOV is not correct (?)
 		const float result = (viewPoint.HorizontalFieldOfView) ?
