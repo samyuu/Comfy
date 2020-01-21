@@ -176,6 +176,14 @@ namespace Graphics
 						}
 					}
 				}
+				else if (CompareProperty("ep_type_pre"))
+				{
+					output.EPTypePre = ParseEnumValueString<EPType>();
+				}
+				else if (CompareProperty("ep_type_post"))
+				{
+					output.EPTypePost = ParseEnumValueString<EPType>();
+				}
 				else if (IsLastProperty())
 				{
 					output.Enabled = ParseValueString<bool>();

@@ -80,13 +80,24 @@ namespace Graphics
 		size_t ValueListSize;
 	};
 
+	enum class EPType : uint32_t
+	{
+		// TODO:
+		None = 0,
+		Reverse = 1,
+		Repeat = 2,
+		Unknown = 3,
+	};
+
 	struct A3DProperty1D
 	{
 		bool Enabled;
 		std::vector<A3DKeyFrame> Keys;
-		A3DRawData RawData;
 
-		// TODO: ep_type_pre / ep_type_post
+		EPType EPTypePre;
+		EPType EPTypePost;
+		
+		A3DRawData RawData;
 		float StaticValue;
 		float Max;
 		A3DInterpolationType Type;
