@@ -36,12 +36,15 @@ namespace Graphics
 		uint32_t Transparent : 1;
 	};
 
+	struct DebugData
+	{
+		mutable bool RenderBoundingSphere = false;
+		mutable bool WireframeOverlay = false;
+	};
+
 	struct Mesh
 	{
-		struct DebugData
-		{
-			bool RenderBoundingSphere;
-		} Debug {};
+		DebugData Debug;
 
 		Sphere BoundingSphere;
 		std::vector<SubMesh> SubMeshes;
@@ -267,6 +270,8 @@ namespace Graphics
 		friend class ObjSet;
 
 	public:
+		DebugData Debug;
+
 		std::string Name;
 		ObjID ID;
 
