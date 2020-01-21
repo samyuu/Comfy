@@ -110,12 +110,9 @@ namespace Graphics
 		A3DProperty1D Visibility;
 	};
 
-	struct A3DTextureTransform
+	struct A3DPoint : public A3DTransform
 	{
 		std::string Name;
-		// TODO: RepeatU
-		A3DProperty1D TranslateFrameU;
-		A3DProperty1D TranslateFrameV;
 	};
 
 	struct A3DCurve
@@ -125,29 +122,27 @@ namespace Graphics
 		A3DProperty1D CV;
 	};
 
-	struct A3DObject : public A3DTransform
+	struct A3DCameraViewPoint : public A3DTransform
 	{
-		std::string Morph;
-		uint32_t MorphOffset;
+		float AspectRatio;
+		A3DProperty1D FieldOfView;
+		bool HorizontalFieldOfView;
 
-		std::vector<A3DTextureTransform> TextureTransforms;
-		std::string Name;
-		std::string ParentName;
-		std::string UIDName;
+		A3DProperty3D Roll;
 	};
 
-	struct A3DNode : public A3DTransform
+	struct A3DCamera : public A3DTransform
 	{
-		std::string Name;
-		uint32_t Parent;
+		A3DTransform Interest;
+		A3DCameraViewPoint ViewPoint;
 	};
 
-	struct A3DObjectHRC
+	struct A3DCameraAuxiliary
 	{
-		bool Shadow;
-		std::vector<A3DNode> Nodes;
-		std::string Name;
-		std::string UIDName;
+		A3DProperty1D Exposure;
+		A3DProperty1D Gamma;
+		A3DProperty1D Saturate;
+		A3DProperty1D AutoExposure;
 	};
 
 	struct A3DLightProperties
@@ -167,6 +162,15 @@ namespace Graphics
 		std::string Type;
 	};
 
+	struct A3DFog
+	{
+		uint32_t ID;
+		A3DProperty1D Density;
+		A3DProperty1D Start;
+		A3DProperty1D End;
+		A3DPropertyRGB Diffuse;
+	};
+
 	struct A3DPostProcess : public A3DLightProperties
 	{
 		A3DProperty1D LensFlare;
@@ -174,19 +178,95 @@ namespace Graphics
 		A3DProperty1D LensShaft;
 	};
 
-	struct A3DCameraViewPoint : public A3DTransform
+	struct A3DDepthOfField : public A3DTransform
 	{
-		float AspectRatio;
-		A3DProperty1D FieldOfView;
-		bool HorizontalFieldOfView;
-
-		A3DProperty3D Roll;
+		std::string Name;
 	};
 
-	struct A3DCamera : public A3DTransform
+	struct A3DCharacter : public A3DTransform
 	{
-		A3DTransform Interest;
-		A3DCameraViewPoint ViewPoint;
+		std::string Name;
+	};
+
+	struct A3DAuth2D
+	{
+		std::string Name;
+	};
+
+	// TODO: Texture Pat(tern) (?)
+	struct A3DTexturePat
+	{
+		std::string Name;
+		std::string Pat;
+		uint32_t PatOffset;
+	};
+
+	struct A3DTextureTransform
+	{
+		std::string Name;
+		A3DProperty1D CoverageU;
+		A3DProperty1D CoverageV;
+		A3DProperty1D RepeatU;
+		A3DProperty1D RepeatV;
+		A3DProperty1D Rotate;
+		A3DProperty1D RotateFrame;
+		A3DProperty1D OffsetU;
+		A3DProperty1D OffsetV;
+		A3DProperty1D TranslateFrameU;
+		A3DProperty1D TranslateFrameV;
+	};
+
+	struct A3DObject : public A3DTransform
+	{
+		std::string Name;
+		std::string UIDName;
+
+		std::string Pat;
+		uint32_t PatOffset;
+
+		std::string Morph;
+		uint32_t MorphOffset;
+
+		std::string ParentName;
+
+		std::vector<A3DTexturePat> TexturePats;
+		std::vector<A3DTextureTransform> TextureTransforms;
+	};
+
+	struct A3DNode : public A3DTransform
+	{
+		std::string Name;
+		uint32_t Parent;
+	};
+
+	struct A3DObjectHRC
+	{
+		bool Shadow;
+		std::vector<A3DNode> Nodes;
+		std::string Name;
+		std::string UIDName;
+	};
+
+	enum class A3DEventType : uint32_t
+	{
+		Misc = 0,
+		Filter = 1,
+		Effect = 2,
+		Sound = 3,
+		Motion = 4,
+		Auth2D = 5,
+		Count,
+	};
+
+	struct A3DEvent
+	{
+		A3DEventType Type;
+		std::string Name;
+		frame_t Begin;
+		frame_t End;
+		float TimeReferenceScale;
+		std::string Reference;
+		std::array<std::string, 1> Parameters;
 	};
 
 	class A3D final : public FileSystem::IBufferParsable
@@ -197,19 +277,35 @@ namespace Graphics
 
 	public:
 		A3DMetadata Metadata;
-		
 		A3DPlayControl PlayControl;
 		
+		std::vector<A3DPoint> Points;
 		std::vector<A3DCurve> Curves;
+
+		std::vector<A3DCamera> CameraRoot;
+		A3DCameraAuxiliary CameraAuxiliary;
+
+		std::vector<A3DLight> Lights;
+		std::vector<A3DFog> Fog;
+
+		A3DPostProcess PostProcess;
+		A3DDepthOfField DepthOfField;
+
+		std::vector<A3DCharacter> Characters;
+		std::vector<std::string> Motions;
+
+		std::vector<A3DAuth2D> Auth2D;
+
 		std::vector<A3DObject> Objects;
 		std::vector<std::string> ObjectList;
 
-		std::vector<std::string> ObjectHRCList;
 		std::vector<A3DObjectHRC> ObjectsHRC;
+		std::vector<std::string> ObjectHRCList;
+		
+		std::vector<A3DObjectHRC> MObjectsHRC;
+		std::vector<std::string> MObjectHRCList;
 
-		std::vector<A3DLight> Lights;
-		A3DPostProcess PostProcess;
-		std::vector<A3DCamera> CameraRoot;
+		std::vector<A3DEvent> Events;
 
 	public:
 		void Parse(const uint8_t* buffer, size_t bufferSize) override;

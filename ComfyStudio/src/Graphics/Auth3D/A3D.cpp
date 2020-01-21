@@ -240,6 +240,46 @@ namespace Graphics
 				return false;
 			}
 
+			bool TryParseObjectHRCs(std::vector<A3DObjectHRC>& output)
+			{
+				if (!TryParseLength(output))
+				{
+					auto& objectHRC = output[ParseAdvanceIndexProperty()];
+
+					if (CompareProperty("uid_name"))
+						objectHRC.UIDName = ParseValueString();
+					else if (CompareProperty("shadow"))
+						objectHRC.Shadow = ParseValueString<int>();
+					else if (CompareProperty("node"))
+					{
+						if (!TryParseLength(objectHRC.Nodes))
+						{
+							auto& node = objectHRC.Nodes[ParseAdvanceIndexProperty()];
+
+							if (!TryParseTransformProperties(node))
+							{
+								if (CompareProperty("parent"))
+									node.Parent = ParseValueString<uint32_t>();
+								else if (CompareProperty("name"))
+									node.Name = ParseValueString();
+							}
+						}
+					}
+					else if (CompareProperty("name"))
+					{
+						objectHRC.Name = ParseValueString();
+					}
+					else
+					{
+						return false;
+					}
+
+					return true;
+				}
+
+				return false;
+			}
+
 			void ParseA3DProperties(A3D& a3d)
 			{
 				if (CompareProperty("_"))
@@ -259,6 +299,28 @@ namespace Graphics
 							a3d.Metadata.Converter.Version = ParseValueString<uint32_t>();
 					}
 				}
+				else if (CompareProperty("play_control"))
+				{
+					if (CompareProperty("size"))
+						a3d.PlayControl.Duration = ParseValueString<frame_t>();
+					else if (CompareProperty("fps"))
+						a3d.PlayControl.FrameRate = ParseValueString<frame_t>();
+					else if (CompareProperty("begin"))
+						a3d.PlayControl.Begin = ParseValueString<frame_t>();
+				}
+				else if (CompareProperty("point"))
+				{
+					if (!TryParseLength(a3d.Points))
+					{
+						auto& point = a3d.Points[ParseAdvanceIndexProperty()];
+
+						if (!TryParseTransformProperties(point))
+						{
+							if (CompareProperty("name"))
+								point.Name = ParseValueString();
+						}
+					}
+				}
 				else if (CompareProperty("curve"))
 				{
 					if (!TryParseLength(a3d.Curves))
@@ -270,80 +332,6 @@ namespace Graphics
 						else if (CompareProperty("cv"))
 							TryParseProperty1D(curve.CV);
 					}
-				}
-				else if (CompareProperty("object"))
-				{
-					if (!TryParseLength(a3d.Objects))
-					{
-						auto& object = a3d.Objects[ParseAdvanceIndexProperty()];
-
-						if (!TryParseTransformProperties(object))
-						{
-							if (CompareProperty("uid_name"))
-								object.UIDName = ParseValueString();
-							else if (CompareProperty("parent_name"))
-								object.ParentName = ParseValueString();
-							else if (CompareProperty("name"))
-								object.Name = ParseValueString();
-							else if (CompareProperty("tex_transform"))
-							{
-								if (!TryParseLength(object.TextureTransforms))
-								{
-									auto& textureTransform = object.TextureTransforms[ParseAdvanceIndexProperty()];
-
-									if (CompareProperty("translateFrameV"))
-										TryParseProperty1D(textureTransform.TranslateFrameV);
-									else if (CompareProperty("translateFrameU"))
-										TryParseProperty1D(textureTransform.TranslateFrameU);
-									else if (CompareProperty("name"))
-										textureTransform.Name = ParseValueString();
-								}
-							}
-							else if (CompareProperty("morph_offset"))
-								object.MorphOffset = ParseValueString<uint32_t>();
-							else if (CompareProperty("morph"))
-								object.Morph = ParseValueString();
-						}
-					}
-				}
-				else if (CompareProperty("object_list"))
-				{
-					if (!TryParseLength(a3d.ObjectList))
-						a3d.ObjectList[ParseAdvanceIndexProperty()] = ParseValueString();
-				}
-				else if (CompareProperty("objhrc"))
-				{
-					if (!TryParseLength(a3d.ObjectsHRC))
-					{
-						auto& objectHRC = a3d.ObjectsHRC[ParseAdvanceIndexProperty()];
-
-						if (CompareProperty("uid_name"))
-							objectHRC.UIDName = ParseValueString();
-						else if (CompareProperty("shadow"))
-							objectHRC.Shadow = ParseValueString<int>();
-						else if (CompareProperty("node"))
-						{
-							if (!TryParseLength(objectHRC.Nodes))
-							{
-								auto& node = objectHRC.Nodes[ParseAdvanceIndexProperty()];
-
-								if (!TryParseTransformProperties(node))
-								{
-									if (CompareProperty("parent"))
-										node.Parent = ParseValueString<uint32_t>();
-									else if (CompareProperty("name"))
-										node.Name = ParseValueString();
-								}
-							}
-						}
-						else if (CompareProperty("name"))
-							objectHRC.Name = ParseValueString();
-					}
-				}
-				else if (CompareProperty("objhrc_list"))
-				{
-					if (!TryParseLength(a3d.ObjectHRCList))
-						a3d.ObjectHRCList[ParseAdvanceIndexProperty()] = ParseValueString();
 				}
 				else if (CompareProperty("camera_root"))
 				{
@@ -372,6 +360,17 @@ namespace Graphics
 						}
 					}
 				}
+				else if (CompareProperty("camera_auxiliary"))
+				{
+					if (CompareProperty("exposure"))
+						TryParseProperty1D(a3d.CameraAuxiliary.Exposure);
+					else if (CompareProperty("gamma"))
+						TryParseProperty1D(a3d.CameraAuxiliary.Gamma);
+					else if (CompareProperty("saturate"))
+						TryParseProperty1D(a3d.CameraAuxiliary.Saturate);
+					else if (CompareProperty("auto_exposure"))
+						TryParseProperty1D(a3d.CameraAuxiliary.AutoExposure);
+				}
 				else if (CompareProperty("light"))
 				{
 					if (!TryParseLength(a3d.Lights))
@@ -393,25 +392,184 @@ namespace Graphics
 						}
 					}
 				}
-				else if (CompareProperty("play_control"))
+				else if (CompareProperty("fog"))
 				{
-					if (CompareProperty("size"))
-						a3d.PlayControl.Duration = ParseValueString<frame_t>();
-					else if (CompareProperty("fps"))
-						a3d.PlayControl.FrameRate = ParseValueString<frame_t>();
-					else if (CompareProperty("begin"))
-						a3d.PlayControl.Begin = ParseValueString<frame_t>();
+					if (!TryParseLength(a3d.Fog))
+					{
+						auto& fog = a3d.Fog[ParseAdvanceIndexProperty()];
+
+						if (CompareProperty("type"))
+							fog.ID = ParseValueString<uint32_t>();
+						else if (CompareProperty("density"))
+							TryParseProperty1D(fog.Density);
+						else if (CompareProperty("start"))
+							TryParseProperty1D(fog.Start);
+						else if (CompareProperty("end"))
+							TryParseProperty1D(fog.End);
+						else if (CompareProperty("Diffuse"))
+							TryParsePropertyRGB(fog.Diffuse);
+					}
 				}
 				else if (CompareProperty("post_process"))
 				{
 					if (!TryParseLightProperties(a3d.PostProcess))
 					{
-						if (CompareProperty("lens_shaft"))
-							TryParseProperty1D(a3d.PostProcess.LensShaft);
+						if (CompareProperty("lens_flare"))
+							TryParseProperty1D(a3d.PostProcess.LensFlare);
 						else if (CompareProperty("lens_ghost"))
 							TryParseProperty1D(a3d.PostProcess.LensGhost);
-						else if (CompareProperty("lens_flare"))
-							TryParseProperty1D(a3d.PostProcess.LensFlare);
+						else if (CompareProperty("lens_shaft"))
+							TryParseProperty1D(a3d.PostProcess.LensShaft);
+					}
+				}
+				else if (CompareProperty("dof"))
+				{
+					if (!TryParseTransformProperties(a3d.DepthOfField))
+					{
+						if (CompareProperty("name"))
+							a3d.DepthOfField.Name = ParseValueString();
+					}
+				}
+				else if (CompareProperty("chara"))
+				{
+					if (!TryParseLength(a3d.Characters))
+					{
+						auto& character = a3d.Characters[ParseAdvanceIndexProperty()];
+
+						if (!TryParseTransformProperties(character))
+						{
+							if (CompareProperty("name"))
+								character.Name = ParseValueString();
+						}
+					}
+				}
+				else if (CompareProperty("motion"))
+				{
+					if (!TryParseLength(a3d.Motions))
+						a3d.Motions[ParseAdvanceIndexProperty()] = ParseValueString();
+				}
+				else if (CompareProperty("auth_2d"))
+				{
+					if (!TryParseLength(a3d.Auth2D))
+					{
+						auto& auth2D = a3d.Auth2D[ParseAdvanceIndexProperty()];
+
+						if (CompareProperty("name"))
+							auth2D.Name = ParseValueString();
+					}
+				}
+				else if (CompareProperty("object"))
+				{
+					if (!TryParseLength(a3d.Objects))
+					{
+						auto& object = a3d.Objects[ParseAdvanceIndexProperty()];
+
+						if (!TryParseTransformProperties(object))
+						{
+							if (CompareProperty("name"))
+								object.Name = ParseValueString();
+							else if (CompareProperty("uid_name"))
+								object.UIDName = ParseValueString();
+							else if (CompareProperty("pat"))
+								object.Pat = ParseValueString();
+							else if (CompareProperty("pat_offset"))
+								object.PatOffset = ParseValueString<uint32_t>();
+							else if (CompareProperty("morph"))
+								object.Morph = ParseValueString();
+							else if (CompareProperty("morph_offset"))
+								object.MorphOffset = ParseValueString<uint32_t>();
+							else if (CompareProperty("parent_name"))
+								object.ParentName = ParseValueString();
+							else if (CompareProperty("tex_pat"))
+							{
+								if (!TryParseLength(object.TexturePats))
+								{
+									auto& texturePat = object.TexturePats[ParseAdvanceIndexProperty()];
+
+									if (CompareProperty("name"))
+										texturePat.Name = ParseValueString();
+									else if (CompareProperty("pat"))
+										texturePat.Pat = ParseValueString();
+									else if (CompareProperty("pat_offset"))
+										texturePat.PatOffset = ParseValueString<uint32_t>();
+								}
+							}
+							else if (CompareProperty("tex_transform"))
+							{
+								if (!TryParseLength(object.TextureTransforms))
+								{
+									auto& textureTransform = object.TextureTransforms[ParseAdvanceIndexProperty()];
+
+									if (CompareProperty("name"))
+										textureTransform.Name = ParseValueString();
+									else if (CompareProperty("coverageU"))
+										TryParseProperty1D(textureTransform.CoverageU);
+									else if (CompareProperty("coverageV"))
+										TryParseProperty1D(textureTransform.CoverageV);
+									else if (CompareProperty("repeatU"))
+										TryParseProperty1D(textureTransform.RepeatU);
+									else if (CompareProperty("repeatV"))
+										TryParseProperty1D(textureTransform.RepeatV);
+									else if (CompareProperty("rotate"))
+										TryParseProperty1D(textureTransform.Rotate);
+									else if (CompareProperty("rotateFrame"))
+										TryParseProperty1D(textureTransform.RotateFrame);
+									else if (CompareProperty("offsetU"))
+										TryParseProperty1D(textureTransform.OffsetU);
+									else if (CompareProperty("offsetV"))
+										TryParseProperty1D(textureTransform.OffsetV);
+									else if (CompareProperty("translateFrameU"))
+										TryParseProperty1D(textureTransform.TranslateFrameU);
+									else if (CompareProperty("translateFrameV"))
+										TryParseProperty1D(textureTransform.TranslateFrameV);
+								}
+							}
+						}
+					}
+				}
+				else if (CompareProperty("object_list"))
+				{
+					if (!TryParseLength(a3d.ObjectList))
+						a3d.ObjectList[ParseAdvanceIndexProperty()] = ParseValueString();
+				}
+				else if (CompareProperty("objhrc"))
+				{
+					TryParseObjectHRCs(a3d.ObjectsHRC);
+				}
+				else if (CompareProperty("objhrc_list"))
+				{
+					if (!TryParseLength(a3d.ObjectHRCList))
+						a3d.ObjectHRCList[ParseAdvanceIndexProperty()] = ParseValueString();
+				}
+				else if (CompareProperty("m_objhrc"))
+				{
+					TryParseObjectHRCs(a3d.MObjectsHRC);
+				}
+				else if (CompareProperty("m_objhrc_list"))
+				{
+					if (!TryParseLength(a3d.MObjectHRCList))
+						a3d.MObjectHRCList[ParseAdvanceIndexProperty()] = ParseValueString();
+				}
+				else if (CompareProperty("event"))
+				{
+					if (!TryParseLength(a3d.Events))
+					{
+						auto& event = a3d.Events[ParseAdvanceIndexProperty()];
+
+						if (CompareProperty("type"))
+							event.Type = ParseEnumValueString<A3DEventType>();
+						else if (CompareProperty("name"))
+							event.Name = ParseValueString();
+						else if (CompareProperty("begin"))
+							event.Begin = ParseValueString<frame_t>();
+						else if (CompareProperty("end"))
+							event.End = ParseValueString<frame_t>();
+						else if (CompareProperty("param1"))
+							event.Parameters[0] = ParseValueString();
+						else if (CompareProperty("ref"))
+							event.Reference = ParseValueString();
+						else if (CompareProperty("time_ref_scale"))
+							event.TimeReferenceScale = ParseValueString<float>();
 					}
 				}
 			}
