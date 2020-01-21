@@ -315,8 +315,8 @@ else                                                                            
     __tex0 = a_tex0;                                                                                                        \
     __tex1 = a_tex1;                                                                                                        \
 }                                                                                                                           \
-o_tex0 = float2(dot(state_matrix_texture0[0], a_tex0), dot(state_matrix_texture0[1], __tex0));                              \
-o_tex1 = float2(dot(state_matrix_texture1[0], a_tex1), dot(state_matrix_texture1[1], __tex1));                              \
+o_tex0 = float2(dot(state_matrix_texture0[0], __tex0), dot(state_matrix_texture0[1], __tex0));                              \
+o_tex1 = float2(dot(state_matrix_texture1[0], __tex1), dot(state_matrix_texture1[1], __tex1));                              \
 // --------------------------------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------------------------------
