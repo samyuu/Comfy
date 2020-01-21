@@ -155,7 +155,7 @@
 // TODO:
 #define program_env_19              (float4(0.0, 0.0, 0.0, 0.0))
 // TODO:
-#define p_reflect_refract_uv_scale  (float4(0.0, 0.0, 0.0, 0.0))
+#define p_reflect_refract_uv_scale  (float4(0.1, 0.1, 0.1, 0.1))
 #define irrad_r                     (CB_Scene.IrradianceRed)
 #define irrad_g                     (CB_Scene.IrradianceGreen)
 #define irrad_b                     (CB_Scene.IrradianceBlue)
@@ -299,6 +299,20 @@ else                                                                            
     pos_m       = a_position;                                                                                               \
     normal_m    = a_normal;                                                                                                 \
     tangent_m   = a_tangent;                                                                                                \
+}                                                                                                                           \
+// --------------------------------------------------------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------------------------------------------------------
+#define VS_SET_OUTPUT_TEX_COORDS_NO_TRANSFORM                                                                               \
+if (FLAGS_MORPH)                                                                                                            \
+{                                                                                                                           \
+    o_tex0 = mad(a_tex0, p_morph_weight.y, (a_morph_texcoord  * p_morph_weight.x)).xy;                                      \
+    o_tex1 = mad(a_tex1, p_morph_weight.y, (a_morph_texcoord1 * p_morph_weight.x)).xy;                                      \
+}                                                                                                                           \
+else                                                                                                                        \
+{                                                                                                                           \
+    o_tex0 = a_tex0.xy;                                                                                                     \
+    o_tex1 = a_tex1.xy;                                                                                                     \
 }                                                                                                                           \
 // --------------------------------------------------------------------------------------------------------------------------
 
