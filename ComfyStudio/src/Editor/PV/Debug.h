@@ -121,7 +121,7 @@ namespace Debug
 
 	bool IsReflectionObj(const Graphics::Obj& obj)
 	{
-		return EndsWithInsensitive(obj.Name, "_reflect") || (obj.Name.length() > strlen("_reflect_000") && EndsWithInsensitive(obj.Name.substr(0, obj.Name.length() - strlen("_000")), "_reflect"));
+		return EndsWithInsensitive(obj.Name, "_reflect") || EndsWithInsensitive(obj.Name, "_ref") || (obj.Name.length() > strlen("_reflect_000") && EndsWithInsensitive(obj.Name.substr(0, obj.Name.length() - strlen("_000")), "_reflect"));
 	}
 
 	int FindGroundObj(Graphics::ObjSet* objSet)
