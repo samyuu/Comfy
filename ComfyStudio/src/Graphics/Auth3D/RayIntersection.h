@@ -48,6 +48,7 @@ namespace Graphics
 
 					for (size_t i = 0; i < indices.size() - 2; i += triangleIndexStep)
 					{
+						// TODO: Store last two positions so to avoid transforming them multiple times
 						const std::array<vec3, 3> triangle =
 						{
 							transformMatrix * vec4(mesh.VertexData.Positions[indices[i + 0]], 1.0f),

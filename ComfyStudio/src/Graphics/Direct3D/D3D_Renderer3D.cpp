@@ -53,6 +53,14 @@ namespace Graphics
 			return false;
 		}
 
+		const Mesh* MeshOrDefault(const Obj* obj, size_t index)
+		{
+			if (obj == nullptr)
+				return nullptr;
+
+			return index < (obj->Meshes.size()) ? &obj->Meshes[index] : nullptr;
+		}
+
 		vec4 GetPackedTextureSize(const D3D_RenderTarget& renderTarget)
 		{
 			vec2 renderTargetSize = renderTarget.GetSize();
@@ -161,19 +169,12 @@ namespace Graphics
 
 	void D3D_Renderer3D::Draw(const RenderCommand& command)
 	{
-		const mat4 translation = glm::translate(mat4(1.0f), command.Transform.Translation);
-
-		const vec3 radiansRotation = glm::radians(command.Transform.Rotation);
-		const mat4 rotationX = glm::rotate(mat4(1.0f), radiansRotation.x, vec3(1.0f, 0.0f, 0.0f));
-		const mat4 rotationY = glm::rotate(mat4(1.0f), radiansRotation.y, vec3(0.0f, 1.0f, 0.0f));
-		const mat4 rotationZ = glm::rotate(mat4(1.0f), radiansRotation.z, vec3(0.0f, 0.0f, 1.0f));
-
-		const mat4 scale = glm::scale(mat4(1.0f), command.Transform.Scale);
+		const auto& transform = command.Transform;
 
 		ObjRenderCommand renderCommand;
 		renderCommand.SourceCommand = command;
-		renderCommand.ModelMatrix = translation * rotationX * rotationY * rotationZ * scale;
 		renderCommand.AreAllMeshesTransparent = false;
+		renderCommand.ModelMatrix = command.Transform.CalculateMatrix();
 
 		auto& commandList = (command.Flags.IsReflection) ? reflectionCommandList : defaultCommandList;
 		commandList.OpaqueAndTransparent.push_back(renderCommand);
@@ -369,7 +370,7 @@ namespace Graphics
 
 			if (!reflectionCommandList.OpaqueAndTransparent.empty())
 			{
-				// TODO: Render using reflection shader
+				// TODO: Render using cheaper reflection shaders
 				if (sceneContext->RenderParameters.RenderOpaque)
 				{
 					D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
@@ -435,16 +436,16 @@ namespace Graphics
 		auto& transform = command.SourceCommand.Transform;
 		auto& obj = *command.SourceCommand.SourceObj;
 
-		if (!IntersectsCameraFrustum(obj.BoundingSphere, transform))
+		if (!IntersectsCameraFrustum(obj.BoundingSphere, command))
 			return;
 
 		for (size_t meshIndex = 0; meshIndex < obj.Meshes.size(); meshIndex++)
 		{
 			auto& mesh = obj.Meshes[meshIndex];
-			if (!IntersectsCameraFrustum(mesh.BoundingSphere, transform))
+			if (!IntersectsCameraFrustum(mesh.BoundingSphere, command))
 				continue;
 
-			auto* morphMesh = (command.SourceCommand.SourceMorphObj != nullptr) ? &command.SourceCommand.SourceMorphObj->Meshes[meshIndex] : nullptr;
+			auto* morphMesh = MeshOrDefault(command.SourceCommand.SourceMorphObj, meshIndex);
 			BindMeshVertexBuffers(mesh, morphMesh);
 
 			for (auto& subMesh : mesh.SubMeshes)
@@ -453,7 +454,7 @@ namespace Graphics
 				if (IsMeshTransparent(mesh, subMesh, material))
 					continue;
 
-				if (!IntersectsCameraFrustum(subMesh.BoundingSphere, command.SourceCommand.Transform))
+				if (!IntersectsCameraFrustum(subMesh.BoundingSphere, command))
 					continue;
 
 				PrepareAndRenderSubMesh(command, mesh, subMesh, material);
@@ -469,12 +470,12 @@ namespace Graphics
 		auto& mesh = *command.ParentMesh;
 		auto& subMesh = *command.SubMesh;
 
-		if (!IntersectsCameraFrustum(obj.BoundingSphere, transform)
-			|| !IntersectsCameraFrustum(mesh.BoundingSphere, transform)
-			|| !IntersectsCameraFrustum(subMesh.BoundingSphere, transform))
+		if (!IntersectsCameraFrustum(obj.BoundingSphere, command)
+			|| !IntersectsCameraFrustum(mesh.BoundingSphere, command)
+			|| !IntersectsCameraFrustum(subMesh.BoundingSphere, command))
 			return;
 
-		auto* morphMesh = (objCommand->SourceCommand.SourceMorphObj != nullptr) ? &objCommand->SourceCommand.SourceMorphObj->Meshes[std::distance(&obj.Meshes.front(), &mesh)] : nullptr;
+		auto* morphMesh = MeshOrDefault(objCommand->SourceCommand.SourceMorphObj, std::distance(&obj.Meshes.front(), &mesh));
 		BindMeshVertexBuffers(mesh, morphMesh);
 
 		auto& material = subMesh.GetMaterial(obj);
@@ -831,14 +832,17 @@ namespace Graphics
 		verticesRenderedThisFrame += subMesh.Indices.size();
 	}
 
-	bool D3D_Renderer3D::IntersectsCameraFrustum(const Sphere& boundingSphere, const Transform& transform) const
+	bool D3D_Renderer3D::IntersectsCameraFrustum(const Sphere& boundingSphere, const ObjRenderCommand& command) const
 	{
 		if (!sceneContext->RenderParameters.FrustumCulling)
 			return true;
 
-		// TODO: Factor in rotated position
-		float largestScale = glm::max(glm::max(transform.Scale.x, transform.Scale.y), transform.Scale.z);
-		return sceneContext->Camera.IntersectsViewFrustum({ boundingSphere.Center + transform.Translation, boundingSphere.Radius * largestScale });
+		return sceneContext->Camera.IntersectsViewFrustum(boundingSphere * command.SourceCommand.Transform);
+	}
+
+	bool D3D_Renderer3D::IntersectsCameraFrustum(const Sphere& boundingSphere, const SubMeshRenderCommand& command) const
+	{
+		return IntersectsCameraFrustum(boundingSphere, *command.ObjCommand);
 	}
 
 	bool D3D_Renderer3D::IsDebugRenderFlagSet(int bitIndex) const

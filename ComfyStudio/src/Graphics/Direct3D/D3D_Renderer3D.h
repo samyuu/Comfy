@@ -219,7 +219,9 @@ namespace Graphics
 		D3D_ShaderPair& GetMaterialShader(const Material& material);
 		void SubmitSubMeshDrawCall(const SubMesh& subMesh);
 
-		bool IntersectsCameraFrustum(const Sphere& boundingSphere, const Transform& transform) const;
+		bool IntersectsCameraFrustum(const Sphere& boundingSphere, const ObjRenderCommand& command) const;
+		bool IntersectsCameraFrustum(const Sphere& boundingSphere, const SubMeshRenderCommand& command) const;
+		
 		bool IsDebugRenderFlagSet(int bitIndex) const;
 
 	private:

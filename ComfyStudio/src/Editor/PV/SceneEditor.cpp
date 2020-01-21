@@ -420,8 +420,12 @@ namespace Editor
 
 		auto setCamera = [&](auto& entity, const Sphere& boundingSphere)
 		{
-			context.Camera.Interest = context.Camera.ViewPoint = boundingSphere.Center + entity->Transform.Translation;
-			cameraController.OrbitData.Distance = boundingSphere.Radius;
+			const Sphere transformedSphere = boundingSphere * entity->Transform;
+
+			context.Camera.Interest = context.Camera.ViewPoint = transformedSphere.Center;
+			cameraController.OrbitData.Distance = transformedSphere.Radius;
+
+			inspector.EntityIndex = static_cast<int>(std::distance(&sceneGraph.Entities.front(), &entity));
 		};
 
 		for (auto& entity : sceneGraph.Entities)
@@ -638,7 +642,6 @@ namespace Editor
 				if (Gui::Checkbox("Face Camera", &faceCamera))
 					mesh->Flags.FaceCamera = faceCamera;
 
-				// TODO:
 				Gui::Checkbox("Show Bounding Sphere", &mesh->Debug.RenderBoundingSphere);
 			}
 		}
@@ -646,6 +649,23 @@ namespace Editor
 
 	void SceneEditor::DrawStageTestGui()
 	{
+		enum class StageVisibilityType { None, All, GroundSky };
+		auto setVisibility = [&](StageVisibilityType visibility)
+		{
+			std::for_each(sceneGraph.Entities.begin(), sceneGraph.Entities.end(), [visibility](auto& e)
+			{
+				if (e->Tag != StageTag)
+					return;
+
+				if (visibility == StageVisibilityType::None)
+					e->IsVisible = false;
+				else if (visibility == StageVisibilityType::All)
+					e->IsVisible = true;
+				else if (visibility == StageVisibilityType::GroundSky)
+					e->IsVisible = (e->Name.find("_gnd") != std::string::npos || e->Name.find("_sky") != std::string::npos) || EndsWith(e->Name, "_reflect");
+			});
+		};
+
 		auto stageTypeGui = [&](auto& stageTypeData)
 		{
 			auto load = [&]()
@@ -660,6 +680,7 @@ namespace Editor
 				{
 					UnLoadStageObjects();
 					LoadStageObjects(stageTypeData.Type, stageTypeData.ID, stageTypeData.SubID);
+					setVisibility(StageVisibilityType::GroundSky);
 				}
 			};
 
@@ -694,7 +715,18 @@ namespace Editor
 			stageTypeGui(stageTypeData);
 
 		Gui::Checkbox("Load Light Param", &stageTestData.Settings.LoadLightParam);
-		Gui::Checkbox("Load Stage", &stageTestData.Settings.LoadObj);
+		Gui::Checkbox("Load Stage Obj", &stageTestData.Settings.LoadObj);
+
+		if (Gui::Button("Show All"))
+			setVisibility(StageVisibilityType::All);
+
+		Gui::SameLine();
+
+		if (Gui::Button("Hide All"))
+			setVisibility(StageVisibilityType::None);
+
+		if (Gui::Button("Show Ground & Sky"))
+			setVisibility(StageVisibilityType::GroundSky);
 	}
 
 	void SceneEditor::DrawCharaTestGui()
@@ -751,9 +783,10 @@ namespace Editor
 			loadCharaItems();
 
 		bool posChanged = Gui::DragFloat3("Position", glm::value_ptr(charaTestData.Transform.Translation), 0.1f);
+		bool scaleChanged = Gui::DragFloat3("Scale", glm::value_ptr(charaTestData.Transform.Scale), 0.1f);
 		bool rotChanged = Gui::DragFloat3("Rotation", glm::value_ptr(charaTestData.Transform.Rotation), 0.1f);
 
-		if (posChanged | rotChanged)
+		if (posChanged | scaleChanged | rotChanged)
 		{
 			for (auto& entity : sceneGraph.Entities)
 			{
