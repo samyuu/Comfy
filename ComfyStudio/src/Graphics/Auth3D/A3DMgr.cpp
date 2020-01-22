@@ -65,8 +65,13 @@ namespace Graphics
 
 	bool A3DMgr::GetBool(float value)
 	{
-		constexpr float threshold = 0.999999f;
+		constexpr float threshold = 0.999f;
 		return (value >= threshold);
+	}
+
+	bool A3DMgr::GetBoolAt(const A3DProperty1D& property, frame_t frame)
+	{
+		return GetBool(GetValueAt(property, frame));
 	}
 
 	float A3DMgr::GetValueAt(const A3DProperty1D& property, frame_t frame)
@@ -109,11 +114,6 @@ namespace Graphics
 		result.Scale = A3DMgr::GetValueAt(transform.Scale, frame);
 		result.Rotation = glm::degrees(A3DMgr::GetValueAt(transform.Rotation, frame));
 		return result;
-	}
-
-	bool A3DMgr::GetVisibilityAt(const A3DTransform& transform, frame_t frame)
-	{
-		return GetBool(GetValueAt(transform.Visibility, frame));
 	}
 
 	float A3DMgr::GetFieldOfViewAt(const A3DCameraViewPoint& viewPoint, frame_t frame)
