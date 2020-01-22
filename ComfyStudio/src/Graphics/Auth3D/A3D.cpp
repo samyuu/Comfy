@@ -490,16 +490,16 @@ namespace Graphics
 								object.ParentName = ParseValueString();
 							else if (CompareProperty("tex_pat"))
 							{
-								if (!TryParseLength(object.TexturePats))
+								if (!TryParseLength(object.TexturePatterns))
 								{
-									auto& texturePat = object.TexturePats[ParseAdvanceIndexProperty()];
+									auto& texturePat = object.TexturePatterns[ParseAdvanceIndexProperty()];
 
 									if (CompareProperty("name"))
 										texturePat.Name = ParseValueString();
 									else if (CompareProperty("pat"))
-										texturePat.Pat = ParseValueString();
+										texturePat.Pattern = ParseValueString();
 									else if (CompareProperty("pat_offset"))
-										texturePat.PatOffset = ParseValueString<uint32_t>();
+										texturePat.PatternOffset = ParseValueString<uint32_t>();
 								}
 							}
 							else if (CompareProperty("tex_transform"))

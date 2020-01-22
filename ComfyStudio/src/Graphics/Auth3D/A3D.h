@@ -204,12 +204,11 @@ namespace Graphics
 		std::string Name;
 	};
 
-	// TODO: Texture Pat(tern) (?)
-	struct A3DTexturePat
+	struct A3DTexturePattern
 	{
 		std::string Name;
-		std::string Pat;
-		uint32_t PatOffset;
+		std::string Pattern;
+		uint32_t PatternOffset;
 	};
 
 	struct A3DTextureTransform
@@ -240,7 +239,7 @@ namespace Graphics
 
 		std::string ParentName;
 
-		std::vector<A3DTexturePat> TexturePats;
+		std::vector<A3DTexturePattern> TexturePatterns;
 		std::vector<A3DTextureTransform> TextureTransforms;
 	};
 
