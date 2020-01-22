@@ -56,6 +56,8 @@ namespace Graphics
 
 		// NOTE: Where the post processed final image gets rendered to
 		D3D_RenderTarget* OutputRenderTarget = nullptr;
+
+		D3D_DepthRenderTarget SilhouetteRenderTarget = { RenderTargetDefaultSize, DXGI_FORMAT_R8_UNORM, DXGI_FORMAT_D32_FLOAT };
 	};
 
 	struct BloomRenderData

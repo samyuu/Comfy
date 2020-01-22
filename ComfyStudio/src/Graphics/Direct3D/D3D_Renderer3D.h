@@ -138,6 +138,7 @@ namespace Graphics
 		struct Flags
 		{
 			bool IsReflection = false;
+			bool SilhouetteOutline = false;
 
 			// TODO:
 			// bool CastsShadow = false;
@@ -211,6 +212,8 @@ namespace Graphics
 		void InternalRenderItems();
 		void InternalRenderOpaqueObjCommand(ObjRenderCommand& command);
 		void InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command);
+		void InternalRenderSilhouette();
+		void InternalRenderSilhouetteOutlineOverlay();
 		void InternalRenderPostProcessing();
 		void InternalRenderBloom();
 
@@ -228,6 +231,7 @@ namespace Graphics
 		struct ShaderPairs
 		{
 			D3D_ShaderPair Debug = { Debug_VS(), Debug_PS(), "Renderer3D::Debug" };
+			D3D_ShaderPair SilhouetteOutline = { SilhouetteOutline_VS(), SilhouetteOutline_PS(), "Renderer3D::SilhouetteOutline" };
 
 			D3D_ShaderPair BlinnPerFrag = { BlinnPerFrag_VS(), BlinnPerFrag_PS(), "Renderer3D::BlinnPerFrag" };
 			D3D_ShaderPair BlinnPerVert = { BlinnPerVert_VS(), BlinnPerVert_PS(), "Renderer3D::BlinnPerVert" };
@@ -292,6 +296,7 @@ namespace Graphics
 
 		} cachedBlendStates;
 
+		bool IsAnyCommandSilhouetteOutline = false;
 		RenderPassCommandLists defaultCommandList, reflectionCommandList;
 
 		// TODO: RendererStatistics struct with data for obj / mesh / submesh count, vertices, cull count etc.

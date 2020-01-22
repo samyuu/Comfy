@@ -1005,5 +1005,7 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Comfy\ImGuiDefault_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Comfy\ImGuiDefault_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Comfy\ImGuiCustom_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SilhouetteOutline_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SilhouetteOutline_VS.hlsl" />
   </ItemGroup>
 </Project>

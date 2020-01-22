@@ -163,6 +163,7 @@ namespace Graphics
 	{
 		verticesRenderedLastFrame = verticesRenderedThisFrame;
 		verticesRenderedThisFrame = 0;
+		IsAnyCommandSilhouetteOutline = false;
 
 		sceneContext = &scene;
 	}
@@ -178,6 +179,9 @@ namespace Graphics
 
 		auto& commandList = (command.Flags.IsReflection) ? reflectionCommandList : defaultCommandList;
 		commandList.OpaqueAndTransparent.push_back(renderCommand);
+
+		if (command.Flags.SilhouetteOutline)
+			IsAnyCommandSilhouetteOutline = true;
 	}
 
 	void D3D_Renderer3D::End()
@@ -238,6 +242,9 @@ namespace Graphics
 
 		InternalRenderItems();
 		InternalRenderPostProcessing();
+
+		if (IsAnyCommandSilhouetteOutline)
+			InternalRenderSilhouetteOutlineOverlay();
 
 		defaultCommandList.OpaqueAndTransparent.clear();
 		defaultCommandList.Transparent.clear();
@@ -424,6 +431,9 @@ namespace Graphics
 			}
 		}
 
+		if (IsAnyCommandSilhouetteOutline)
+			InternalRenderSilhouette();
+
 		sceneContext->RenderData.RenderTarget.UnBind();
 		genericInputLayout->UnBind();
 	}
@@ -482,6 +492,76 @@ namespace Graphics
 		cachedBlendStates.GetState(material.BlendFlags.SrcBlendFactor, material.BlendFlags.DstBlendFactor).Bind();
 
 		PrepareAndRenderSubMesh(*command.ObjCommand, mesh, subMesh, material);
+	}
+
+	void D3D_Renderer3D::InternalRenderSilhouette()
+	{
+		static const Material debugMaterialSkeleton =
+		{
+			/* TextureCount */		0,
+			/* Flags */				MaterialFlags {},
+			/* MaterialType */		Material::Identifiers.BLINN,
+			/* ShaderFlags */		MaterialShaderFlags {},
+			/* Diffuse */			MaterialTexture { {}, TxpID::Invalid },
+			/* Ambient */			MaterialTexture { {}, TxpID::Invalid },
+			/* Normal */			MaterialTexture { {}, TxpID::Invalid },
+			/* Specular */			MaterialTexture { {}, TxpID::Invalid },
+			/* ToonCurve */			MaterialTexture { {}, TxpID::Invalid },
+			/* Reflection */		MaterialTexture { {}, TxpID::Invalid },
+			/* Lucency */			MaterialTexture { {}, TxpID::Invalid },
+			/* ReservedTexture */	MaterialTexture { {}, TxpID::Invalid },
+			/* BlendFlags */		MaterialBlendFlags {},
+			/* DiffuseColor */		vec4(1.0f),
+			/* Transparency */		1.0f,
+			/* AmbientColor */		vec4(1.0f),
+			/* SpecularColor */		vec3(1.0f),
+			/* Reflectivity */		0.0f,
+			/* EmissionColor */		vec4(1.0f),
+			/* Shininess */			0.0f,
+			/* Intensity */			0.0f,
+			/* UnknownField21_24 */	vec4(0.0f),
+			/* Name */				{ "DEBUG_MATERIAL" },
+			/* BumpDepth */			0.0f,
+		};
+		Material debugMaterial = debugMaterialSkeleton;
+
+		sceneContext->RenderData.SilhouetteRenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.RenderResolution);
+		sceneContext->RenderData.SilhouetteRenderTarget.BindSetViewport();
+		sceneContext->RenderData.SilhouetteRenderTarget.Clear(vec4(1.0f));
+
+		for (auto& command : defaultCommandList.OpaqueAndTransparent)
+		{
+			if (command.AreAllMeshesTransparent || !IntersectsCameraFrustum(command.SourceCommand.SourceObj->BoundingSphere, command))
+				continue;
+
+			debugMaterial.DiffuseColor = command.SourceCommand.Flags.SilhouetteOutline ? vec4(0.0f) : vec4(1.0f);
+			for (size_t meshIndex = 0; meshIndex < command.SourceCommand.SourceObj->Meshes.size(); meshIndex++)
+			{
+				auto& mesh = command.SourceCommand.SourceObj->Meshes[meshIndex];
+				if (!IntersectsCameraFrustum(mesh.BoundingSphere, command))
+					continue;
+
+				BindMeshVertexBuffers(mesh, MeshOrDefault(command.SourceCommand.SourceMorphObj, meshIndex));
+
+				for (auto& subMesh : mesh.SubMeshes)
+				{
+					if (!IntersectsCameraFrustum(subMesh.BoundingSphere, command))
+						continue;
+
+					PrepareAndRenderSubMesh(command, mesh, subMesh, debugMaterial);
+				}
+			}
+		}
+
+		sceneContext->RenderData.SilhouetteRenderTarget.UnBind();
+	}
+
+	void D3D_Renderer3D::InternalRenderSilhouetteOutlineOverlay()
+	{
+		sceneContext->RenderData.SilhouetteRenderTarget.BindResource(0);
+
+		shaders.SilhouetteOutline.Bind();
+		D3D.Context->Draw(RectangleVertexCount, 0);
 	}
 
 	void D3D_Renderer3D::InternalRenderPostProcessing()

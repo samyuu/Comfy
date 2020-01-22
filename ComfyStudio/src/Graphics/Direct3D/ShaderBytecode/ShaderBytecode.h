@@ -18,6 +18,9 @@ namespace Graphics
 	DECLARE_BYTECODE_GETTER(Debug_VS);
 	DECLARE_BYTECODE_GETTER(Debug_PS);
 
+	DECLARE_BYTECODE_GETTER(SilhouetteOutline_VS);
+	DECLARE_BYTECODE_GETTER(SilhouetteOutline_PS);
+	
 	DECLARE_BYTECODE_GETTER(BlinnPerFrag_VS);
 	DECLARE_BYTECODE_GETTER(BlinnPerFrag_PS);
 
@@ -94,6 +97,9 @@ namespace Graphics
 #include SHADER_BYTECODE_FILE(Debug_VS.h)
 #include SHADER_BYTECODE_FILE(Debug_PS.h)
 
+#include SHADER_BYTECODE_FILE(SilhouetteOutline_VS.h)
+#include SHADER_BYTECODE_FILE(SilhouetteOutline_PS.h)
+
 #include SHADER_BYTECODE_FILE(BlinnPerFrag_VS.h)
 #include SHADER_BYTECODE_FILE(BlinnPerFrag_PS.h)
 
@@ -167,7 +173,10 @@ namespace Graphics
 
 	DEFINE_BYTECODE_GETTER(Debug_VS);
 	DEFINE_BYTECODE_GETTER(Debug_PS);
-
+	
+	DEFINE_BYTECODE_GETTER(SilhouetteOutline_VS);
+	DEFINE_BYTECODE_GETTER(SilhouetteOutline_PS);
+	
 	DEFINE_BYTECODE_GETTER(BlinnPerFrag_VS);
 	DEFINE_BYTECODE_GETTER(BlinnPerFrag_PS);
 
