@@ -63,17 +63,6 @@ namespace Graphics
 		return { start, end };
 	}
 
-	bool A3DMgr::GetBool(float value)
-	{
-		constexpr float threshold = 0.999f;
-		return (value >= threshold);
-	}
-
-	bool A3DMgr::GetBoolAt(const A3DProperty1D& property, frame_t frame)
-	{
-		return GetBool(GetValueAt(property, frame));
-	}
-
 	float A3DMgr::GetValueAt(const A3DProperty1D& property, frame_t frame)
 	{
 		if (property.Type == A3DInterpolationType::Static)
@@ -105,6 +94,27 @@ namespace Graphics
 		result.y = A3DMgr::GetValueAt(property.Y, frame);
 		result.z = A3DMgr::GetValueAt(property.Z, frame);
 		return result;
+	}
+
+	bool A3DMgr::GetBool(float value)
+	{
+		constexpr float threshold = 0.999f;
+		return (value >= threshold);
+	}
+
+	bool A3DMgr::GetBoolAt(const A3DProperty1D& property, frame_t frame)
+	{
+		return GetBool(GetValueAt(property, frame));
+	}
+
+	int A3DMgr::GetInt(float value)
+	{
+		return static_cast<int>(glm::round(value));
+	}
+
+	int A3DMgr::GetIntAt(const A3DProperty1D& property, frame_t frame)
+	{
+		return GetInt(GetValueAt(property, frame));
 	}
 
 	Transform A3DMgr::GetTransformAt(const A3DTransform& transform, frame_t frame)
