@@ -1,6 +1,6 @@
 #include "D3D_Texture.h"
 #include "Graphics/TxpSet.h"
-#include "Graphics/Auth3D/LightDataIbl.h"
+#include "Graphics/Auth3D/Light/LightDataIbl.h"
 
 namespace Graphics
 {

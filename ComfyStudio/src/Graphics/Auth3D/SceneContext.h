@@ -1,8 +1,8 @@
 #pragma once
-#include "FogParameter.h"
-#include "GlowParameter.h"
-#include "LightParameters.h"
-#include "LightDataIBL.h"
+#include "Light/FogParameter.h"
+#include "Light/GlowParameter.h"
+#include "Light/LightParameters.h"
+#include "Light/LightDataIBL.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Direct3D/D3D_RenderTarget.h"
 
