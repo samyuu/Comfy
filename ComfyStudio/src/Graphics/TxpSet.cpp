@@ -71,7 +71,7 @@ namespace Graphics
 		assert(textureIDs.size() <= Txps.size());
 
 		for (size_t i = 0; i < textureIDs.size(); i++)
-			Txps[i].TextureID = textureIDs[i];
+			Txps[i].ID = textureIDs[i];
 	}
 
 	UniquePtr<TxpSet> TxpSet::MakeUniqueReadParseUpload(std::string_view filePath, const ObjSet* objSet)

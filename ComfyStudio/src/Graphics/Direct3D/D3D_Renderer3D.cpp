@@ -195,8 +195,8 @@ namespace Graphics
 	{
 		for (auto& txp : txpSet.Txps)
 		{
-			if (txp.TextureID != TxpID::Invalid)
-				textureIDTxpMap[txp.TextureID] = &txp;
+			if (txp.ID != TxpID::Invalid)
+				textureIDTxpMap[txp.ID] = &txp;
 		}
 	}
 
@@ -204,8 +204,8 @@ namespace Graphics
 	{
 		for (auto& txp : txpSet.Txps)
 		{
-			if (txp.TextureID != TxpID::Invalid)
-				textureIDTxpMap.erase(txp.TextureID);
+			if (txp.ID != TxpID::Invalid)
+				textureIDTxpMap.erase(txp.ID);
 		}
 	}
 

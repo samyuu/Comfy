@@ -46,7 +46,7 @@ namespace Graphics
 		// NOTE: Two dimensional array [CubeFace][MipMap]
 		std::vector<std::vector<MipMap>> MipMapsArray;
 
-		TxpID TextureID = TxpID::Invalid;
+		TxpID ID = TxpID::Invalid;
 
 		UniquePtr<D3D_Texture2D> Texture2D = nullptr;
 		UniquePtr<D3D_CubeMap> CubeMap = nullptr;
