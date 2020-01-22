@@ -26,7 +26,6 @@ namespace Database
 
 	// TODO:
 	class ObjDB final : public BinaryDatabase {};
-	class TxpDB final : public BinaryDatabase {};
 
 	class StageDB final : public BinaryDatabase {};
 	class Auth3DDB final : public TextDatabase {};
