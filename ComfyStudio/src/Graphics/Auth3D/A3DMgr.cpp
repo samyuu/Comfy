@@ -96,6 +96,16 @@ namespace Graphics
 		return result;
 	}
 
+	float A3DMgr::GetRotationAt(const A3DProperty1D& property, frame_t frame)
+	{
+		return glm::degrees(GetValueAt(property, frame));
+	}
+
+	vec3 A3DMgr::GetRotationAt(const A3DProperty3D & property, frame_t frame)
+	{
+		return glm::degrees(GetValueAt(property, frame));
+	}
+
 	bool A3DMgr::GetBool(float value)
 	{
 		constexpr float threshold = 0.999f;
@@ -122,7 +132,7 @@ namespace Graphics
 		Transform result;
 		result.Translation = A3DMgr::GetValueAt(transform.Translation, frame);
 		result.Scale = A3DMgr::GetValueAt(transform.Scale, frame);
-		result.Rotation = glm::degrees(A3DMgr::GetValueAt(transform.Rotation, frame));
+		result.Rotation = A3DMgr::GetRotationAt(transform.Rotation, frame);
 		return result;
 	}
 

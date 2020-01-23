@@ -17,6 +17,9 @@ namespace Graphics
 		static float GetValueAt(const A3DProperty1D& property, frame_t frame);
 		static vec3 GetValueAt(const A3DProperty3D& property, frame_t frame);
 		
+		static float GetRotationAt(const A3DProperty1D& property, frame_t frame);
+		static vec3 GetRotationAt(const A3DProperty3D& property, frame_t frame);
+
 		static bool GetBool(float value);
 		static bool GetBoolAt(const A3DProperty1D& property, frame_t frame);
 		
