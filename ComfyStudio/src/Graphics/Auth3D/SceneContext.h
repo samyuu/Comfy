@@ -35,7 +35,7 @@ namespace Graphics
 		ivec2 ReflectionRenderResolution = ReflectionDefaultResolution;
 
 		bool Clear = true;
-		vec4 ClearColor = vec4(0.16f, 0.16f, 0.16f, 1.0f);
+		vec4 ClearColor = vec4(0.16f, 0.16f, 0.16f, 0.0f);
 
 		/*
 		struct PostProcessParameters
