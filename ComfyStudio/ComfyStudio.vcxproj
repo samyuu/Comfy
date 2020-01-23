@@ -310,6 +310,7 @@
     <ClInclude Include="src\Editor\PV\StageTest.h" />
     <ClInclude Include="src\Graphics\Auth3D\A3D.h" />
     <ClInclude Include="src\Graphics\Auth3D\A3DMgr.h" />
+    <ClInclude Include="src\Graphics\Auth3D\ObjAnimationData.h" />
     <ClInclude Include="src\Graphics\Auth3D\RayIntersection.h" />
     <ClInclude Include="src\Graphics\Auth3D\Transform.h" />
     <ClInclude Include="src\ImGui\ComfyTextureID.h" />

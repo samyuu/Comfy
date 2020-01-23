@@ -12,6 +12,7 @@
 #include "ShaderBytecode/ShaderBytecode.h"
 #include "Graphics/Auth3D/Transform.h"
 #include "Graphics/Auth3D/ObjSet.h"
+#include "Graphics/Auth3D/ObjAnimationData.h"
 #include "Graphics/Auth3D/SceneContext.h"
 #include <unordered_map>
 
@@ -131,9 +132,9 @@ namespace Graphics
 	{
 		const Obj* SourceObj = nullptr;
 		const Obj* SourceMorphObj = nullptr;
-
+		
 		Transform Transform = Graphics::Transform(vec3(0.0f));
-		float MorphWeight = 1.0f;
+		const ObjAnimationData* Animation = nullptr;
 
 		struct Flags
 		{
@@ -152,7 +153,6 @@ namespace Graphics
 		RenderCommand() = default;
 		RenderCommand(const Obj& obj) : SourceObj(&obj) {}
 		RenderCommand(const Obj& obj, const vec3& position) : SourceObj(&obj), Transform(position) {}
-		RenderCommand(const Obj& obj, const Obj& morphObj, float morphWeight) : SourceObj(&obj), SourceMorphObj(&morphObj), MorphWeight(morphWeight) {}
 	};
 
 	class D3D_Renderer3D

@@ -730,6 +730,8 @@ namespace Graphics
 
 	void D3D_Renderer3D::PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material)
 	{
+		const ObjAnimationData* animation = command.SourceCommand.Animation;
+
 		auto& materialShader = GetMaterialShader(material);
 		materialShader.Bind();
 
@@ -741,13 +743,33 @@ namespace Graphics
 		{
 			auto& materialTexture = (&material.Diffuse)[i];
 			auto& textureFormat = (&objectCB.Data.TextureFormats.Diffuse)[i];
-			auto txp = GetTxpFromTextureID(materialTexture.TextureID);
 
-			if (txp != nullptr)
+			TxpID txpID = materialTexture.TextureID;
+			MaterialTextureFlags textureFlags = materialTexture.Flags;
+
+			if (animation != nullptr)
+			{
+				for (auto& transform : animation->TextureTransforms)
+				{
+					if (txpID == transform.ID)
+					{
+						textureFlags.TextureAddressMode_U_Repeat = transform.RepeatU.value_or<int>(textureFlags.TextureAddressMode_U_Repeat);
+						textureFlags.TextureAddressMode_V_Repeat = transform.RepeatU.value_or<int>(textureFlags.TextureAddressMode_V_Repeat);
+					}
+				}
+
+				for (auto& pattern : animation->TexturePatterns)
+				{
+					if (txpID == pattern.ID && pattern.IDOverride != TxpID::Invalid)
+						txpID = pattern.IDOverride;
+				}
+			}
+
+			if (auto txp = GetTxpFromTextureID(txpID); txp != nullptr)
 			{
 				textureFormat = txp->GetFormat();
 				textureResources[i] = (txp->Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->Texture2D.get()) : (txp->CubeMap != nullptr) ? (txp->CubeMap.get()) : nullptr;
-				textureSamplers[i] = &cachedTextureSamplers.GetSampler(materialTexture.Flags);
+				textureSamplers[i] = &cachedTextureSamplers.GetSampler(textureFlags);
 			}
 			else
 			{
@@ -775,8 +797,32 @@ namespace Graphics
 		objectCB.Data.Material.Shininess = (material.Shininess - 16.0f) / 112.0f;
 		objectCB.Data.Material.Intensity = material.Intensity;
 		objectCB.Data.Material.BumpDepth = material.BumpDepth;
-		objectCB.Data.Material.DiffuseTextureTransform = glm::transpose(material.Diffuse.TextureCoordinateMatrix);
-		objectCB.Data.Material.AmbientTextureTransform = glm::transpose(material.Ambient.TextureCoordinateMatrix);
+
+		objectCB.Data.Material.DiffuseTextureTransform = material.Diffuse.TextureCoordinateMatrix;
+		objectCB.Data.Material.AmbientTextureTransform = material.Ambient.TextureCoordinateMatrix;
+
+		if (animation != nullptr)
+		{
+			for (auto& textureTransform : animation->TextureTransforms)
+			{
+				mat4* output =
+					(textureTransform.ID == material.Diffuse.TextureID) ? &objectCB.Data.Material.DiffuseTextureTransform :
+					(textureTransform.ID == material.Ambient.TextureID) ? &objectCB.Data.Material.AmbientTextureTransform :
+					nullptr;
+
+				if (output == nullptr)
+					continue;
+
+				constexpr vec3 centerOffset = vec3(0.5f, 0.5f, 0.0f);
+				constexpr vec3 rotationAxis = vec3(0.0f, 0.0f, 1.0f);
+
+				*output =
+					glm::translate(mat4(1.0f), vec3(textureTransform.Translation, 0.0f))
+					* glm::translate(mat4(1.0f), +centerOffset)
+					* glm::rotate(mat4(1.0f), glm::radians(textureTransform.Rotation), rotationAxis)
+					* glm::translate(*output, -centerOffset);
+			}
+		}
 
 		mat4 modelMatrix;
 		if (mesh.Flags.FaceCamera)
@@ -824,7 +870,8 @@ namespace Graphics
 		if (command.SourceCommand.SourceMorphObj != nullptr)
 			objectCB.Data.ShaderFlags |= ShaderFlags_Morph;
 
-		objectCB.Data.MorphWeight = vec2(command.SourceCommand.MorphWeight, 1.0f - command.SourceCommand.MorphWeight);
+		const float morphWeight = (command.SourceCommand.Animation != nullptr) ? command.SourceCommand.Animation->MorphWeight : 0.0f;
+		objectCB.Data.MorphWeight = vec2(morphWeight, 1.0f - morphWeight);
 
 		objectCB.UploadData();
 
