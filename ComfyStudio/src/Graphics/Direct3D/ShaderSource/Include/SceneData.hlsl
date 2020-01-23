@@ -29,7 +29,8 @@ struct SceneData
     ParallelLight CharacterLight;
     ParallelLight StageLight;
     
-    float4 LightColor;
+    float4 StageLightColor;
+    float4 CharacterLightColor;
     
     float2 TexelRenderResolution;
     float2 RenderResolution;

@@ -52,7 +52,9 @@ namespace Graphics
 			vec4 Direction;
 		} CharacterLight, StageLight;
 
-		vec4 LightColor;
+		vec4 StageLightColor;
+		vec4 CharacterLightColor;
+		
 		vec4 RenderResolution;
 
 		struct LinearFog

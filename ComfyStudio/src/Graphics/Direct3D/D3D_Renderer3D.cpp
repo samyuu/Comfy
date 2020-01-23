@@ -303,7 +303,8 @@ namespace Graphics
 		sceneCB.Data.Scene.View = glm::transpose(sceneContext->Camera.GetView());
 		sceneCB.Data.Scene.ViewProjection = glm::transpose(sceneContext->Camera.GetViewProjection());
 		sceneCB.Data.Scene.EyePosition = vec4(sceneContext->Camera.ViewPoint, 1.0f);
-		sceneCB.Data.LightColor = vec4(sceneContext->IBL.Stage.LightColor, 1.0f);
+		sceneCB.Data.StageLightColor = vec4(sceneContext->IBL.Stage.LightColor, 1.0f);
+		sceneCB.Data.CharacterLightColor = vec4(sceneContext->IBL.Character.LightColor, 1.0f);
 		sceneCB.Data.CharacterLight.Ambient = vec4(sceneContext->Light.Character.Ambient, 1.0f);
 		sceneCB.Data.CharacterLight.Diffuse = vec4(sceneContext->Light.Character.Diffuse, 1.0f);
 		sceneCB.Data.CharacterLight.Specular = vec4(sceneContext->Light.Character.Specular, 1.0f);
