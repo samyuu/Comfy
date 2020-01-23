@@ -1,6 +1,8 @@
 #pragma once
 #include "Graphics/Auth3D/Transform.h"
 #include "Graphics/Auth3D/ObjSet.h"
+#include "Graphics/Auth3D/ObjAnimationData.h"
+#include "Database/TxpDB.h"
 
 namespace Editor
 {
@@ -19,8 +21,12 @@ namespace Editor
 
 	struct ObjectEntity : public Entity
 	{
-		const Graphics::Obj* Obj;
-		bool IsReflection;
+		const Graphics::Obj* Obj = nullptr;
+		const Graphics::Obj* MorphObj = nullptr;
+
+		bool IsReflection = false;
+
+		UniquePtr<Graphics::ObjAnimationData> Animation = nullptr;
 	};
 
 	struct ObjSetResource
@@ -31,6 +37,8 @@ namespace Editor
 
 	struct SceneGraph
 	{
+		UniquePtr<Database::TxpDB> TxpDB = nullptr;
+
 		std::vector<ObjSetResource> LoadedObjSets;
 		std::vector<UniquePtr<ObjectEntity>> Entities;
 
@@ -48,6 +56,7 @@ namespace Editor
 			entity->IsVisible = true;
 			entity->Transform = Graphics::Transform(vec3(0.0f));
 			entity->Obj = &obj;
+			entity->MorphObj = nullptr;
 			entity->IsReflection = false;
 			
 			Entities.push_back(std::move(entity));
