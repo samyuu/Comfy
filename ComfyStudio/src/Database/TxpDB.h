@@ -17,6 +17,9 @@ namespace Database
 		void Read(FileSystem::BinaryReader& reader) override;
 		void Write(FileSystem::BinaryWriter& writer) override;
 
+		const TxpEntry* GetTxpEntry(TxpID id) const;
+		const TxpEntry* GetTxpEntry(std::string_view name) const;
+
 	private:
 	};
 }

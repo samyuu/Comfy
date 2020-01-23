@@ -46,4 +46,16 @@ namespace Database
 		writer.FlushStringPointerPool();
 		writer.WriteAlignmentPadding(16);
 	}
+	
+	const TxpEntry* TxpDB::GetTxpEntry(TxpID id) const
+	{
+		auto found = std::find_if(Entries.begin(), Entries.end(), [id](auto& e) { return e.ID == id; });
+		return (found == Entries.end()) ? nullptr : &(*found);
+	}
+
+	const TxpEntry* TxpDB::GetTxpEntry(std::string_view name) const
+	{
+		auto found = std::find_if(Entries.begin(), Entries.end(), [name](auto& e) { return e.Name == name; });
+		return (found == Entries.end()) ? nullptr : &(*found);
+	}
 }
