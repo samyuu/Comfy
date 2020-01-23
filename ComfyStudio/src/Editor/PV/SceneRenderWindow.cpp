@@ -31,26 +31,29 @@ namespace Editor
 			return sphereObjs[subMeshIndex].get();
 		}
 
-		RenderCommand GetDebugBoungingSphereRenderCommand(const ObjectEntity& entity, const SubMesh& subMesh, int subMeshIndex)
+		RenderCommand GetDebugBoungingSphereRenderCommand(const Transform& transform, const Sphere& sphere, int subMeshIndex)
 		{
 			RenderCommand command = {};
 			command.SourceObj = GetDebugBoundingSphereObj(subMeshIndex);
 
-			command.Transform = entity.Transform;
-			command.Transform.Translation += subMesh.BoundingSphere.Center;
-			command.Transform.Scale *= subMesh.BoundingSphere.Radius;
+			command.Transform.Translation = transform.CalculateMatrix() * vec4(sphere.Center, 1.0f);
+			command.Transform.Scale = vec3(sphere.Radius) * transform.Scale;
+			command.Transform.Rotation = vec3(0.0f);
 
 			return command;
 		}
 
 		void RenderDebugBoundingSpheres(D3D_Renderer3D* renderer3D, const ObjectEntity& entity)
 		{
+			if (entity.Obj->Debug.RenderBoundingSphere)
+				renderer3D->Draw(GetDebugBoungingSphereRenderCommand(entity.Transform, entity.Obj->BoundingSphere, 2));
+
 			for (auto& mesh : entity.Obj->Meshes)
 			{
 				if (mesh.Debug.RenderBoundingSphere)
 				{
 					for (int i = 0; i < mesh.SubMeshes.size(); i++)
-						renderer3D->Draw(GetDebugBoungingSphereRenderCommand(entity, mesh.SubMeshes[i], i));
+						renderer3D->Draw(GetDebugBoungingSphereRenderCommand(entity.Transform, mesh.SubMeshes[i].BoundingSphere, i));
 				}
 			}
 		}
@@ -91,9 +94,11 @@ namespace Editor
 				{
 					RenderCommand renderCommand;
 					renderCommand.SourceObj = entity->Obj;
+					renderCommand.SourceMorphObj = entity->MorphObj;
 					renderCommand.Transform = entity->Transform;
 					renderCommand.Flags.IsReflection = entity->IsReflection;
 
+					renderCommand.Animation = entity->Animation.get();
 					renderer3D->Draw(renderCommand);
 
 					if (true)
