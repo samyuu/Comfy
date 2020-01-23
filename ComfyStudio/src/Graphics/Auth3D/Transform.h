@@ -6,7 +6,7 @@ namespace Graphics
 {
 	enum class VectorComponent : uint32_t { X, Y, Z };
 
-	constexpr std::array<VectorComponent, vec3::length()> RotationModeComponentsOrder = { VectorComponent::Y, VectorComponent::Z, VectorComponent::X };
+	constexpr std::array<VectorComponent, vec3::length()> RotationModeComponentsOrder = { VectorComponent::Z, VectorComponent::Y, VectorComponent::X };
 
 	template <size_t Index>
 	constexpr uint32_t GetRotationModeIndex()
