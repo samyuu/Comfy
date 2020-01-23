@@ -996,7 +996,6 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Common.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\ConstantInputs.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\CubeMapCommon.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\DebugInterface.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Font.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\InputLayouts.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Material.hlsl" />
@@ -1010,5 +1009,10 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Comfy\ImGuiCustom_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SilhouetteOutline_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SilhouetteOutline_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\InputOutput.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\DebugInterface.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\Instructions.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\ProgramEnvironment.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\Helper.hlsl" />
   </ItemGroup>
 </Project>

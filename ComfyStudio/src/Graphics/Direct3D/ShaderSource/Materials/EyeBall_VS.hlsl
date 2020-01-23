@@ -4,7 +4,7 @@
 
 #define COMFY_VS
 #define ARB_PROGRAM_ACCURATE 0
-#include "../Include/DebugInterface.hlsl"
+#include "../Include/Assembly/DebugInterface.hlsl"
 
 VS_OUTPUT VS_main(VS_INPUT input)
 {

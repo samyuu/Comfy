@@ -5,7 +5,7 @@
 
 #define COMFY_PS
 #define ARB_PROGRAM_ACCURATE 1
-#include "../Include/DebugInterface.hlsl"
+#include "../Include/Assembly/DebugInterface.hlsl"
 
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {
@@ -36,7 +36,11 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     DP3(fresnel.w, normal_w, eye);
     SUB_SAT(fresnel.w, 1.0, fresnel.w);
     POW(fresnel.w, fresnel.w, 5.0);
-    MAD(fresnel.w, fresnel.w, p_fres_coef.x, p_fres_coef.y);
+    
+    //MAD(fresnel.w, fresnel.w, p_fres_coef.x, p_fres_coef.y);
+    const float2 p_test_fres_coef = float2(0.3936, 0.18);
+    MAD(fresnel.w, fresnel.w, p_test_fres_coef.x, p_test_fres_coef.y);
+    
     MUL(reflectivity.a, state_material_specular.a, fresnel.w);
     MUL(reflect_map, reflect_map, reflectivity.a);
     MOV(refract_map, color_map);

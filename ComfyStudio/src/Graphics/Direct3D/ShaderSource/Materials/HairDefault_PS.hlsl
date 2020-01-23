@@ -5,7 +5,7 @@
 
 #define COMFY_PS
 #define ARB_PROGRAM_ACCURATE 0
-#include "../Include/DebugInterface.hlsl"
+#include "../Include/Assembly/DebugInterface.hlsl"
 
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {

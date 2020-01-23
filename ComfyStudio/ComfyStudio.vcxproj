@@ -313,6 +313,17 @@
     <ClInclude Include="src\Graphics\Auth3D\ObjAnimationData.h" />
     <ClInclude Include="src\Graphics\Auth3D\RayIntersection.h" />
     <ClInclude Include="src\Graphics\Auth3D\Transform.h" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\Helper.hlsl">
+      <SubType>
+      </SubType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\ProgramEnvironment.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <ClInclude Include="src\ImGui\ComfyTextureID.h" />
     <ClInclude Include="lib\rtaudio\src\asio.h" />
     <ClInclude Include="lib\rtaudio\src\asiodrivers.h" />
@@ -486,6 +497,18 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\InputOutput.hlsl">
+      <SubType>
+      </SubType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\Instructions.hlsl">
+      <SubType>
+      </SubType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\BlinnPerFrag_PS.hlsl">
       <SubType>
       </SubType>
@@ -650,7 +673,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\DebugInterface.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\DebugInterface.hlsl">
       <SubType>
       </SubType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
