@@ -296,25 +296,32 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalRenderItems()
 	{
-		sceneCB.Data.RenderResolution = GetPackedTextureSize(sceneContext->RenderData.RenderTarget);
-		sceneCB.Data.IrradianceRed = glm::transpose(sceneContext->IBL.Stage.IrradianceRGB[0]);
-		sceneCB.Data.IrradianceGreen = glm::transpose(sceneContext->IBL.Stage.IrradianceRGB[1]);
-		sceneCB.Data.IrradianceBlue = glm::transpose(sceneContext->IBL.Stage.IrradianceRGB[2]);
-		sceneCB.Data.Scene.View = glm::transpose(sceneContext->Camera.GetView());
-		sceneCB.Data.Scene.ViewProjection = glm::transpose(sceneContext->Camera.GetViewProjection());
-		sceneCB.Data.Scene.EyePosition = vec4(sceneContext->Camera.ViewPoint, 1.0f);
-		sceneCB.Data.StageLightColor = vec4(sceneContext->IBL.Stage.LightColor, 1.0f);
-		sceneCB.Data.CharacterLightColor = vec4(sceneContext->IBL.Character.LightColor, 1.0f);
-		sceneCB.Data.CharacterLight.Ambient = vec4(sceneContext->Light.Character.Ambient, 1.0f);
-		sceneCB.Data.CharacterLight.Diffuse = vec4(sceneContext->Light.Character.Diffuse, 1.0f);
-		sceneCB.Data.CharacterLight.Specular = vec4(sceneContext->Light.Character.Specular, 1.0f);
-		sceneCB.Data.CharacterLight.Direction = vec4(glm::normalize(sceneContext->Light.Character.Position), 1.0f);
-		sceneCB.Data.StageLight.Ambient = vec4(sceneContext->Light.Stage.Ambient, 1.0f);
-		sceneCB.Data.StageLight.Diffuse = vec4(sceneContext->Light.Stage.Diffuse, 1.0f);
-		sceneCB.Data.StageLight.Specular = vec4(sceneContext->Light.Stage.Specular, 1.0f);
-		sceneCB.Data.StageLight.Direction = vec4(glm::normalize(sceneContext->Light.Stage.Position), 1.0f);
-		sceneCB.Data.DepthFog.Parameters = vec4(sceneContext->RenderParameters.RenderFog ? sceneContext->Fog.Depth.Density : 0.0f, sceneContext->Fog.Depth.Start, sceneContext->Fog.Depth.End, 1.0f / (sceneContext->Fog.Depth.End - sceneContext->Fog.Depth.Start));
-		sceneCB.Data.DepthFog.Color = vec4(sceneContext->Fog.Depth.Color, 1.0f);
+		auto& renderParameters = sceneContext->RenderParameters;
+		auto& renderData = sceneContext->RenderData;
+		const auto& camera = sceneContext->Camera;
+		const auto& fog = sceneContext->Fog;
+		const auto& lightParam = sceneContext->Light;
+		const auto& ibl = sceneContext->IBL;
+
+		sceneCB.Data.RenderResolution = GetPackedTextureSize(renderData.RenderTarget);
+		sceneCB.Data.IrradianceRed = glm::transpose(ibl.Stage.IrradianceRGB[0]);
+		sceneCB.Data.IrradianceGreen = glm::transpose(ibl.Stage.IrradianceRGB[1]);
+		sceneCB.Data.IrradianceBlue = glm::transpose(ibl.Stage.IrradianceRGB[2]);
+		sceneCB.Data.Scene.View = glm::transpose(camera.GetView());
+		sceneCB.Data.Scene.ViewProjection = glm::transpose(camera.GetViewProjection());
+		sceneCB.Data.Scene.EyePosition = vec4(camera.ViewPoint, 1.0f);
+		sceneCB.Data.StageLightColor = vec4(ibl.Stage.LightColor, 1.0f);
+		sceneCB.Data.CharacterLightColor = vec4(ibl.Character.LightColor, 1.0f);
+		sceneCB.Data.CharacterLight.Ambient = vec4(lightParam.Character.Ambient, 1.0f);
+		sceneCB.Data.CharacterLight.Diffuse = vec4(lightParam.Character.Diffuse, 1.0f);
+		sceneCB.Data.CharacterLight.Specular = vec4(lightParam.Character.Specular, 1.0f);
+		sceneCB.Data.CharacterLight.Direction = vec4(normalize(lightParam.Character.Position), 1.0f);
+		sceneCB.Data.StageLight.Ambient = vec4(lightParam.Stage.Ambient, 1.0f);
+		sceneCB.Data.StageLight.Diffuse = vec4(lightParam.Stage.Diffuse, 1.0f);
+		sceneCB.Data.StageLight.Specular = vec4(lightParam.Stage.Specular, 1.0f);
+		sceneCB.Data.StageLight.Direction = vec4(normalize(lightParam.Stage.Position), 1.0f);
+		sceneCB.Data.DepthFog.Parameters = vec4(renderParameters.RenderFog ? fog.Depth.Density : 0.0f, fog.Depth.Start, fog.Depth.End, 1.0f / (fog.Depth.End - fog.Depth.Start));
+		sceneCB.Data.DepthFog.Color = vec4(fog.Depth.Color, 1.0f);
 		sceneCB.UploadData();
 
 		sceneCB.BindShaders();
@@ -343,15 +350,15 @@ namespace Graphics
 				nullptr,
 
 				// NOTE: CharacterLightMap = 9
-				sceneContext->IBL.Character.LightMap.CubeMap.get(),
+				ibl.Character.LightMap.CubeMap.get(),
 				// NOTE: SunLightMap = 10
-				sceneContext->IBL.Sun.LightMap.CubeMap.get(),
+				ibl.Sun.LightMap.CubeMap.get(),
 				// NOTE: ReflectLightMap = 11
-				sceneContext->IBL.Reflect.LightMap.CubeMap.get(),
+				ibl.Reflect.LightMap.CubeMap.get(),
 				// NOTE: ShadowLightMap = 12
-				sceneContext->IBL.Shadow.LightMap.CubeMap.get(),
+				ibl.Shadow.LightMap.CubeMap.get(),
 				// NOTE: CharacterColorLightMap = 13
-				sceneContext->IBL.CharacterColor.LightMap.CubeMap.get(),
+				ibl.CharacterColor.LightMap.CubeMap.get(),
 
 				// NOTE: ---
 				nullptr,
@@ -360,26 +367,26 @@ namespace Graphics
 				nullptr,
 			});
 
-		if (sceneContext->RenderParameters.Wireframe)
+		if (renderParameters.Wireframe)
 			wireframeRasterizerState.Bind();
 
 		genericInputLayout->Bind();
-		cachedTextureSamplers.CreateIfNeeded(sceneContext->RenderParameters);
+		cachedTextureSamplers.CreateIfNeeded(renderParameters);
 
-		if (sceneContext->RenderParameters.RenderReflection)
+		if (renderParameters.RenderReflection)
 		{
-			sceneContext->RenderData.ReflectionRenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.ReflectionRenderResolution);
-			sceneContext->RenderData.ReflectionRenderTarget.BindSetViewport();
+			renderData.ReflectionRenderTarget.ResizeIfDifferent(renderParameters.ReflectionRenderResolution);
+			renderData.ReflectionRenderTarget.BindSetViewport();
 
-			if (sceneContext->RenderParameters.ClearReflection)
-				sceneContext->RenderData.ReflectionRenderTarget.Clear(sceneContext->RenderParameters.ClearColor);
+			if (renderParameters.ClearReflection)
+				renderData.ReflectionRenderTarget.Clear(renderParameters.ClearColor);
 			else
-				sceneContext->RenderData.ReflectionRenderTarget.GetDepthBuffer()->Clear();
+				renderData.ReflectionRenderTarget.GetDepthBuffer()->Clear();
 
 			if (!reflectionCommandList.OpaqueAndTransparent.empty())
 			{
 				// TODO: Render using cheaper reflection shaders
-				if (sceneContext->RenderParameters.RenderOpaque)
+				if (renderParameters.RenderOpaque)
 				{
 					D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
@@ -387,7 +394,7 @@ namespace Graphics
 						InternalRenderOpaqueObjCommand(command);
 				}
 
-				if (sceneContext->RenderParameters.RenderTransparent && !reflectionCommandList.Transparent.empty())
+				if (renderParameters.RenderTransparent && !reflectionCommandList.Transparent.empty())
 				{
 					transparencyPassDepthStencilState.Bind();
 
@@ -398,22 +405,22 @@ namespace Graphics
 				}
 			}
 
-			sceneContext->RenderData.ReflectionRenderTarget.UnBind();
-			sceneContext->RenderData.ReflectionRenderTarget.BindResource(TextureSlot_ScreenReflection);
+			renderData.ReflectionRenderTarget.UnBind();
+			renderData.ReflectionRenderTarget.BindResource(TextureSlot_ScreenReflection);
 		}
 
-		sceneContext->RenderData.RenderTarget.SetMultiSampleCountIfDifferent(sceneContext->RenderParameters.MultiSampleCount);
-		sceneContext->RenderData.RenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.RenderResolution);
-		sceneContext->RenderData.RenderTarget.BindSetViewport();
+		renderData.RenderTarget.SetMultiSampleCountIfDifferent(renderParameters.MultiSampleCount);
+		renderData.RenderTarget.ResizeIfDifferent(renderParameters.RenderResolution);
+		renderData.RenderTarget.BindSetViewport();
 
-		if (sceneContext->RenderParameters.Clear)
-			sceneContext->RenderData.RenderTarget.Clear(sceneContext->RenderParameters.ClearColor);
+		if (renderParameters.Clear)
+			renderData.RenderTarget.Clear(renderParameters.ClearColor);
 		else
-			sceneContext->RenderData.RenderTarget.GetDepthBuffer()->Clear();
+			renderData.RenderTarget.GetDepthBuffer()->Clear();
 
 		if (!defaultCommandList.OpaqueAndTransparent.empty())
 		{
-			if (sceneContext->RenderParameters.RenderOpaque)
+			if (renderParameters.RenderOpaque)
 			{
 				D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
@@ -421,7 +428,7 @@ namespace Graphics
 					InternalRenderOpaqueObjCommand(command);
 			}
 
-			if (sceneContext->RenderParameters.RenderTransparent && !defaultCommandList.Transparent.empty())
+			if (renderParameters.RenderTransparent && !defaultCommandList.Transparent.empty())
 			{
 				transparencyPassDepthStencilState.Bind();
 
@@ -435,7 +442,7 @@ namespace Graphics
 		if (IsAnyCommandSilhouetteOutline)
 			InternalRenderSilhouette();
 
-		sceneContext->RenderData.RenderTarget.UnBind();
+		renderData.RenderTarget.UnBind();
 		genericInputLayout->UnBind();
 	}
 
