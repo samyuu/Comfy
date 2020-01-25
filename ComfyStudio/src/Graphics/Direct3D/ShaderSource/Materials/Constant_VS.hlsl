@@ -1,52 +1,38 @@
 #include "../Include/InputLayouts.hlsl"
 #include "../Include/ConstantInputs.hlsl"
-#include "../Include/Common.hlsl"
 
 #define COMFY_VS
-#define ARB_PROGRAM_ACCURATE 1
 #include "../Include/Assembly/DebugInterface.hlsl"
+#include "../Include/Assembly/TempRefactor.hlsl"
 
 VS_OUTPUT VS_main(VS_INPUT input)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
     
-#if ARB_PROGRAM_ACCURATE
-    
-    TEMP _tmp0;
-    TEMP diff;
-    TEMP tmp;
-    TEMP pos_w, pos_c, pos_m;
-    
-    VS_SET_MODEL_POSITION;
-    
-    DP4(pos_w.x, model_mtx[0], pos_m);
-    DP4(pos_w.y, model_mtx[1], pos_m);
-    DP4(pos_w.z, model_mtx[2], pos_m);
-    DP4(pos_w.w, model_mtx[3], pos_m);
-    DP4(pos_c.x, mvp[0], pos_m);
-    DP4(pos_c.y, mvp[1], pos_m);
-    DP4(pos_c.z, mvp[2], pos_m);
-    DP4(pos_c.w, mvp[3], pos_m);
-    MOV(o_position, pos_c);
-    MOV(o_fog.x, 0);
-    
-    VS_SET_OUTPUT_TEX_COORDS;
-
-    MUL(diff, state_material_diffuse, p_blend_color);
-    MUL(diff.xyz, state_material_emission.xyz, diff.xyz);
-    
-    if (FLAGS_VERTEX_COLOR)
+    float4 pos_m;
+    if (FLAGS_MORPH)
     {
-        MUL(o_color_f0, diff, VS_A_COLOR_OR_MORPH);
+        VS_SetMorphModelSpaceAttributes(input, pos_m);
+        VS_SetMorphTransformTextureCoordinates(input, o_tex0, o_tex1);
     }
     else
     {
-        MOV(o_color_f0, diff);
+        VS_SetModelSpaceAttributes(input, pos_m);
+        VS_SetTransformTextureCoordinates(input, o_tex0, o_tex1);
     }
     
-    MOV(o_color_f1, p_offset_color);
+    float4 pos_c = ModelToClipSpace(pos_m);
+
+    o_position = pos_c;
+    o_fog = VS_GetFogFactor(pos_c);
+
+	float4 diff = state_material_diffuse * float4(state_material_emission.xyz, 1.0) * p_blend_color;
     
-#endif
+    if (FLAGS_VERTEX_COLOR)
+        diff *= FLAGS_MORPH ? VS_MorphAttribute(a_color, a_morph_color) : a_color;
+
+    o_color_f0 = diff;
+    o_color_f1 = p_offset_color;
     
     return output;
 }

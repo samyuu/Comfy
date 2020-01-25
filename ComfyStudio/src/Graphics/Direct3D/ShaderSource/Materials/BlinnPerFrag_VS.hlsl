@@ -1,76 +1,59 @@
 #include "../Include/InputLayouts.hlsl"
 #include "../Include/ConstantInputs.hlsl"
-#include "../Include/Common.hlsl"
 
 #define COMFY_VS
-#define ARB_PROGRAM_ACCURATE 1
 #include "../Include/Assembly/DebugInterface.hlsl"
+#include "../Include/Assembly/TempRefactor.hlsl"
 
 VS_OUTPUT VS_main(VS_INPUT input)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
     
-#if ARB_PROGRAM_ACCURATE
+	float4 pos_m, normal_m, tangent_m;
+    if (FLAGS_MORPH)
+    {
+        VS_SetMorphModelSpaceAttributes(input, pos_m, normal_m, tangent_m);
+        VS_SetMorphTransformTextureCoordinates(input, o_tex0, o_tex1);
+    }
+    else
+    {
+        VS_SetModelSpaceAttributes(input, pos_m, normal_m, tangent_m);
+        VS_SetTransformTextureCoordinates(input, o_tex0, o_tex1);
+    }
+    
+    float3 tangent_w = ModelToWorldSpace(tangent_m.xyz);
+    float3 normal_w = ModelToWorldSpace(normal_m.xyz);
+    
+    float4 pos_v = ModelToViewSpace(pos_m);
+    float4 pos_c = ModelToClipSpace(pos_m);
 
-    TEMP _tmp0, _tmp1, _tmp2;
-    TEMP diff, tmp, pos_v, pos_w, pos_c, pos_m, normal_w = FLOAT4_ZERO, normal_m, tangent_w = FLOAT4_ZERO, tangent_m, binormal_w = FLOAT4_ZERO;
+    o_position = pos_c;
+    o_fog = VS_GetFogFactor(pos_c);
+
+    float3 binormal_w = (cross(normal_w.xyz, tangent_w.xyz) * a_tangent.w);
+	float3 _tmp0 = float3(0, binormal_w.x, normal_w.x);
+	
+	binormal_w.x = tangent_w.y;
+    normal_w.x = tangent_w.z;
+    tangent_w.yz = _tmp0.yz;
+
+    _tmp0.z = normal_w.y;
+    normal_w.y = binormal_w.z;
+    binormal_w.z = _tmp0.z;
+
+    o_tangent = float4(tangent_w, 1.0);
+    o_binormal = float4(binormal_w, 1.0);
+    o_normal = float4(normal_w, 1.0);
     
-    VS_SET_MODEL_POSITION_NORMAL_TANGENT;
-    
-    DP3(tangent_w.x, model_mtx[0], tangent_m);
-    DP3(tangent_w.y, model_mtx[1], tangent_m);
-    DP3(tangent_w.z, model_mtx[2], tangent_m);
-    DP3(normal_w.x, model_mtx[0], normal_m);
-    DP3(normal_w.y, model_mtx[1], normal_m);
-    DP3(normal_w.z, model_mtx[2], normal_m);
-    DP4(pos_v.x, mv[0], pos_m);
-    DP4(pos_v.y, mv[1], pos_m);
-    DP4(pos_v.z, mv[2], pos_m);
-    DP4(pos_v.w, mv[3], pos_m);
-    DP4(pos_w.x, model_mtx[0], pos_m);
-    DP4(pos_w.y, model_mtx[1], pos_m);
-    DP4(pos_w.z, model_mtx[2], pos_m);
-    DP4(pos_w.w, model_mtx[3], pos_m);
-    DP4(pos_c.x, mvp[0], pos_m);
-    DP4(pos_c.y, mvp[1], pos_m);
-    DP4(pos_c.z, mvp[2], pos_m);
-    DP4(pos_c.w, mvp[3], pos_m);
-    MOV(o_position, pos_c);
-    XPD(binormal_w, normal_w, tangent_w);
-    MUL(binormal_w, binormal_w, a_tangent.w);
-    MOV(_tmp0.y, binormal_w.x);
-    MOV(_tmp0.z, normal_w.x);
-    MOV(binormal_w.x, tangent_w.y);
-    MOV(normal_w.x, tangent_w.z);
-    MOV(tangent_w.yz, _tmp0.yz);
-    MOV(_tmp0.z, normal_w.y);
-    MOV(normal_w.y, binormal_w.z);
-    MOV(binormal_w.z, _tmp0.z);
-    MOV(o_tangent, tangent_w);
-    MOV(o_binormal, binormal_w);
-    MOV(o_normal, normal_w);
-    SUB(_tmp0.w, pos_c.z, state_fog_params.y);
-    MUL_SAT(_tmp0.w, _tmp0.w, state_fog_params.w);
-    MUL(o_fog.x, _tmp0.w, state_fog_params.x);
-    
-    VS_SET_OUTPUT_TEX_COORDS;
-    
-    DP3(tmp.w, pos_v, pos_v);
-    RSQ(tmp.w, tmp.w);
-    MUL(tmp, pos_v, tmp.w);
-    DP3(o_eye.x, camera_mvi[0], -tmp);
-    DP3(o_eye.y, camera_mvi[1], -tmp);
-    DP3(o_eye.z, camera_mvi[2], -tmp);
-    
-    MOV(diff, float4(0.5, 0.5, 0.5, 1.0));
+	o_eye.xyz = VS_GetWorldEye(pos_v);
+
+    float4 diff = float4(0.5, 0.5, 0.5, 1.0);
     
     if (FLAGS_VERTEX_COLOR)
-        MUL(diff, diff, VS_A_COLOR_OR_MORPH);
+        diff *= FLAGS_MORPH ? VS_MorphAttribute(a_color, a_morph_color) : a_color;
     
-    MUL(o_color_f0, diff, p_blend_color);
-    MOV(o_color_f1, p_offset_color);
-    
-#endif
+    o_color_f0 = diff * p_blend_color;
+    o_color_f1 = p_offset_color;
     
     return output;
 }

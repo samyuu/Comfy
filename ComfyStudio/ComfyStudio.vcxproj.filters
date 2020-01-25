@@ -1012,8 +1012,9 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\InputOutput.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\DebugInterface.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\Instructions.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\ProgramEnvironment.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\ProgramEnvironment.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\Helper.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\MathConstants.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\TempRefactor.hlsl" />
   </ItemGroup>
 </Project>
