@@ -1,6 +1,8 @@
 #ifndef PROGRAMENVIRONMENT_HLSL
 #define PROGRAMENVIRONMENT_HLSL
 
+#include "../MathConstants.hlsl"
+
 // --------------------------------------------------------------------------------------------------------------------------
 // NOTE: Program environment:
 #define mvp                         (transpose(CB_ModelViewProjection))

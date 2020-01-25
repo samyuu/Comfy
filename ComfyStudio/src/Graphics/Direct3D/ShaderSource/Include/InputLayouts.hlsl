@@ -1,4 +1,5 @@
-// NOTE: No include guard on purpose, for different kind of layouts #defines could be used
+#ifndef INPUTLAYOUTS_HLSL
+#define INPUTLAYOUTS_HLSL
 
 struct VS_INPUT
 {
@@ -38,3 +39,5 @@ struct VS_OUTPUT
     float1 FogFactor                : FOG;
     float4 WorldPosition            : POSITION;
 };
+
+#endif /* INPUTLAYOUTS_HLSL */

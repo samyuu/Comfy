@@ -1,9 +1,7 @@
 #ifndef COMMON_HLSL
 #define COMMON_HLSL
 #include "SceneData.hlsl"
-
-static const float PI = 3.14159265358979323846;
-static const float PI_HALF = 1.57079632679489661923;
+#include "MathConstants.hlsl"
 
 static const float AlphaTestThreshold = 0.5;
 

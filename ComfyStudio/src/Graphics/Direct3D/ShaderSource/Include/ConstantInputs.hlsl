@@ -1,3 +1,6 @@
+#ifndef CONSTANTINPUTS_HLSL
+#define CONSTANTINPUTS_HLSL
+
 #include "SceneData.hlsl"
 #include "Material.hlsl"
 #include "ShaderFlags.hlsl"
@@ -36,3 +39,5 @@ cbuffer ObjectConstantData : register(b1)
     TextureFormats CB_TextureFormats;
     float4 CB_MorphWeight;
 };
+
+#endif /* CONSTANTINPUTS_HLSL */
