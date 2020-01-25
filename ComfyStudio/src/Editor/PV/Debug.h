@@ -19,10 +19,13 @@ namespace Debug
 		IBL,
 	};
 
-	std::array<char, MAX_PATH> GetDebugFilePath(PathType type, Editor::StageType stageType, int id, int subID = 0, const char* chara = nullptr)
+	std::array<char, MAX_PATH> GetDebugFilePath(PathType type, Editor::StageType stageType, int id, int subID = 0, const char* chara = nullptr, bool* outIsDefault = nullptr)
 	{
 		constexpr std::array fileNameFormatStrings = { "tst%03d", "ns%03d", "d2ns%03d", "pv%03ds%02d" };
 		const char* fileNameFormatString = fileNameFormatStrings[static_cast<size_t>(stageType)];
+
+		if (outIsDefault != nullptr)
+			*outIsDefault = false;
 
 		if (id == 0 && stageType == Editor::StageType::STGTST)
 			fileNameFormatString = "tst";
@@ -39,7 +42,12 @@ namespace Debug
 			sprintf_s(path.data(), path.size(), formatPath, fileName.data());
 
 			if (!FileSystem::FileExists(path.data()))
+			{
 				strcpy_s(path.data(), path.size(), defaultPath);
+
+				if (outIsDefault != nullptr)
+					*outIsDefault = true;
+			}
 		};
 
 		const char* fileNameSuffix = (type == PathType::StageObj || type == PathType::CharaItemObj) ? "obj" : "tex";
@@ -87,15 +95,22 @@ namespace Debug
 	{
 		auto pathBuffer = GetDebugFilePath(PathType::Fog, stageType, stageID, stageSubID);
 		LoadParseUploadLightParamFile(pathBuffer.data(), context.Fog);
-		
+
 		pathBuffer = GetDebugFilePath(PathType::Glow, stageType, stageID, stageSubID);
 		LoadParseUploadLightParamFile(pathBuffer.data(), context.Glow);
-		
-		pathBuffer = GetDebugFilePath(PathType::Light, stageType, stageID, stageSubID);
+
+		bool lightFallbackUsed, iblFallbackUsed;
+		pathBuffer = GetDebugFilePath(PathType::Light, stageType, stageID, stageSubID, nullptr, &lightFallbackUsed);
 		LoadParseUploadLightParamFile(pathBuffer.data(), context.Light);
-		
-		pathBuffer = GetDebugFilePath(PathType::IBL, stageType, stageID, stageSubID);
+
+		pathBuffer = GetDebugFilePath(PathType::IBL, stageType, stageID, stageSubID, nullptr, &iblFallbackUsed);
 		LoadParseUploadLightParamFile(pathBuffer.data(), context.IBL);
+
+		if (lightFallbackUsed && !iblFallbackUsed)
+		{
+			context.Light.Character.Position = context.IBL.Character.LightDirection;
+			context.Light.Stage.Position = context.IBL.Stage.LightDirection;
+		}
 	}
 
 	std::string GetTxpSetPathForObjSet(std::string_view objSetPath)
