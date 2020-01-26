@@ -743,7 +743,7 @@ namespace Graphics
 		auto& materialShader = GetMaterialShader(material);
 		materialShader.Bind();
 
-		constexpr size_t textureTypeCount = 8;
+		constexpr size_t textureTypeCount = 7;
 		std::array<D3D_ShaderResourceView*, textureTypeCount> textureResources;
 		std::array<D3D_TextureSampler*, textureTypeCount> textureSamplers;
 
@@ -787,8 +787,11 @@ namespace Graphics
 			}
 		}
 
-		D3D_ShaderResourceView::BindArray<8>(TextureSlot_Diffuse, textureResources);
-		D3D_TextureSampler::BindArray<8>(TextureSlot_Diffuse, textureSamplers);
+		auto ambientTypeFlags = material.Ambient.Flags.AmbientTypeFlags;
+		objectCB.Data.TextureFormats.AmbientType = (ambientTypeFlags == 0b100) ? 2 : (ambientTypeFlags == 0b110) ? 1 : (ambientTypeFlags != 0b10000) ? 0 : 3;
+
+		D3D_ShaderResourceView::BindArray<7>(TextureSlot_Diffuse, textureResources);
+		D3D_TextureSampler::BindArray<7>(TextureSlot_Diffuse, textureSamplers);
 
 		if (!sceneContext->RenderParameters.Wireframe)
 			((material.BlendFlags.DoubleSidedness != DoubleSidedness_Off) ? solidNoCullingRasterizerState : solidBackfaceCullingRasterizerState).Bind();

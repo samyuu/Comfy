@@ -66,6 +66,7 @@
 #define program_env_17              (float4(0.06, 0.05, 0.88, 1.0))
 // TODO:
 #define program_env_19              (float4(0.0, 0.0, 0.0, 0.0))
+#define program_env_24              (CB_TextureFormats.AmbientType)
 
 // TODO:
 #define p_reflect_refract_uv_scale  (float4(0.1, 0.1, 0.1, 0.1))

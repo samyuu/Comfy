@@ -79,10 +79,8 @@ namespace Graphics
 		uint32_t TextureAddressMode_U_Mirror : 1;
 		uint32_t TextureAddressMode_V_Mirror : 1;
 		uint32_t Unknown_U_Unk0 : 1;
-		uint32_t Unknown_V_Unk0 : 1;
-		uint32_t Unknown_U_Unk1 : 1;
-		uint32_t Unknown_V_Unk1 : 1;
-		uint32_t UnknownData0 : 8;
+		uint32_t AmbientTypeFlags : 5;
+		uint32_t UnknownData0 : 6;
 		uint32_t UnknownData1 : 6;
 		uint32_t MipMapBias : 8;
 		uint32_t AnsiFilters : 2;

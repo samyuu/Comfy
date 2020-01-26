@@ -74,8 +74,9 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
         
         if (FLAGS_AMBIENT_TEX2D)
         {
-            TEX2D_01(_tmp0, a_tex_color1);
-            diff *= _tmp0;
+            TEMP tex_col = diff;
+            PS_APPLY_SAMPLE_AMBIENT_TEX_COL;
+            diff = tex_col;
         }
     }
     else

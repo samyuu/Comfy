@@ -26,7 +26,7 @@ struct TextureFormats
     TextureFormat ToonCurve;
     TextureFormat Reflection;
     TextureFormat Tangent;
-    TextureFormat Reserved;
+    uint AmbientType;
 };
 
 cbuffer ObjectConstantData : register(b1)

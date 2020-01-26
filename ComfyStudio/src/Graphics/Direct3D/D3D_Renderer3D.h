@@ -94,7 +94,7 @@ namespace Graphics
 			TextureFormat ToonCurve;
 			TextureFormat Reflection;
 			TextureFormat Tangent;
-			TextureFormat Reserved;
+			uint32_t AmbientType;
 		} TextureFormats;
 		vec2 MorphWeight;
 		vec2 MorphPadding;

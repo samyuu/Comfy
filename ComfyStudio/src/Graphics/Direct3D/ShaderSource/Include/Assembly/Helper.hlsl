@@ -88,6 +88,32 @@ diff.b = dot(mul(normal_w, irrad_b), normal_w);                                 
 
 // NOTE: Pixel shader snippets:
 // --------------------------------------------------------------------------------------------------------------------------
+#define PS_APPLY_SAMPLE_AMBIENT_TEX_COL                                                                                     \
+TEX2D_01(_tmp0, a_tex_color1);                                                                                              \
+                                                                                                                            \
+if (program_env_24 == 0)                                                                                                    \
+{                                                                                                                           \
+    LRP(tex_col.xyz, _tmp0.w, _tmp0.xyz, tex_col.xyz);                                                                      \
+}                                                                                                                           \
+else if (program_env_24 == 1)                                                                                               \
+{                                                                                                                           \
+    MUL(tex_col, _tmp0, tex_col);                                                                                           \
+}                                                                                                                           \
+else if (program_env_24 == 2)                                                                                               \
+{                                                                                                                           \
+    ADD(tex_col.xyz, _tmp0.xyz, tex_col.xyz);                                                                               \
+    MUL(tex_col.w, _tmp0.w, tex_col.w);                                                                                     \
+}                                                                                                                           \
+else if (program_env_24 == 3)                                                                                               \
+{                                                                                                                           \
+    ADD(_tmp2.w, _tmp0.w, 0.004);                                                                                           \
+    RCP(_tmp2.w, _tmp2.w);                                                                                                  \
+    MUL(_tmp2.xyz, _tmp0.xyz, _tmp2.w);                                                                                     \
+    MUL(tex_col.xyz, _tmp2.xyz, tex_col.xyz);                                                                               \
+}                                                                                                                           \
+// --------------------------------------------------------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------------------------------------------------------
 #define PS_ALPHA_TEST                                                                                                       \
 if (FLAGS_ALPHA_TEST)                                                                                                       \
 {                                                                                                                           \
