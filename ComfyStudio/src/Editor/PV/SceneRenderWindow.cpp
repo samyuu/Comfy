@@ -1,4 +1,5 @@
 #include "SceneRenderWindow.h"
+#include "CameraAxisIndication.h"
 #include "Graphics/Auth3D/DebugObj.h"
 #include "Editor/Core/Theme.h"
 
@@ -67,6 +68,20 @@ namespace Editor
 	void SceneRenderWindow::DrawGui()
 	{
 		RenderWindowBase::DrawGui();
+	}
+
+	void SceneRenderWindow::PostDrawGui()
+	{
+		if (drawCameraAxisIndicator)
+		{
+			constexpr float indicatorSize = 12.0f;
+			constexpr float indicatorPadding = 20.0f;
+
+			const vec2 textOffset = vec2(1.0f, indicatorSize * 0.85f);
+			const vec2 indicatorCenter = GetRenderRegion().GetTR() + vec2(-(indicatorSize + indicatorPadding), +(indicatorSize + indicatorPadding));
+
+			DrawCameraAxisIndicationGui(Gui::GetWindowDrawList(), context->Camera, indicatorCenter, indicatorSize, indicatorPadding, textOffset);
+		}
 	}
 
 	void SceneRenderWindow::OnUpdateInput()

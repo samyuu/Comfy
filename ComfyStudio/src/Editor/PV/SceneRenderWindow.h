@@ -14,6 +14,7 @@ namespace Editor
 
 	public:
 		void DrawGui();
+		void PostDrawGui() override;
 
 	private:
 		void OnUpdateInput() override;
@@ -22,6 +23,8 @@ namespace Editor
 		void OnResize(ivec2 size) override;
 
 	private:
+		bool drawCameraAxisIndicator = true;
+		
 		SceneGraph* sceneGraph;
 
 		Graphics::SceneContext* context = nullptr;

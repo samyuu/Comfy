@@ -414,6 +414,9 @@
     <ClCompile Include="src\Database\TxpDB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Editor\PV\CameraAxisIndication.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
@@ -933,6 +936,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Auth3D\ObjAnimationData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\PV\CameraAxisIndication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

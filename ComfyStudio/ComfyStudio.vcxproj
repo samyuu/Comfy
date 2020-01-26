@@ -167,6 +167,7 @@
     <ClCompile Include="src\Database\SprDB.cpp" />
     <ClCompile Include="src\Database\TxpDB.cpp" />
     <ClCompile Include="src\Editor\Common\CameraController3D.cpp" />
+    <ClCompile Include="src\Editor\PV\CameraAxisIndication.cpp" />
     <ClCompile Include="src\Editor\PV\SceneEditor.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\A3D.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\A3DMgr.cpp" />
@@ -303,6 +304,7 @@
     <ClInclude Include="src\Database\SprDB.h" />
     <ClInclude Include="src\Database\TxpDB.h" />
     <ClInclude Include="src\Editor\Common\CameraController3D.h" />
+    <ClInclude Include="src\Editor\PV\CameraAxisIndication.h" />
     <ClInclude Include="src\Editor\PV\CharaTest.h" />
     <ClInclude Include="src\Editor\PV\Debug.h" />
     <ClInclude Include="src\Editor\PV\SceneEditor.h" />
