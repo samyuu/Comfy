@@ -833,10 +833,13 @@ namespace Graphics
 		}
 
 		mat4 modelMatrix;
-		if (mesh.Flags.FaceCamera)
+		if (mesh.Flags.FaceCameraPosition || mesh.Flags.FaceCameraView)
 		{
 			const auto& transform = command.SourceCommand.Transform;
-			const float cameraAngle = glm::atan(transform.Translation.x - sceneContext->Camera.ViewPoint.x, transform.Translation.z - sceneContext->Camera.ViewPoint.z);
+
+			// TODO: if (mesh.Flags.FaceCameraView)
+			const vec3 viewPoint = sceneContext->Camera.ViewPoint;
+			const float cameraAngle = glm::atan(transform.Translation.x - viewPoint.x, transform.Translation.z - viewPoint.z);
 
 			modelMatrix = glm::rotate(command.ModelMatrix, cameraAngle - glm::pi<float>() - glm::radians(transform.Rotation.y), vec3(0.0f, 1.0f, 0.0f));
 		}

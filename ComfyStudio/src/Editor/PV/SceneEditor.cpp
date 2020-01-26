@@ -638,9 +638,13 @@ namespace Editor
 
 			if (mesh != nullptr)
 			{
-				bool faceCamera = mesh->Flags.FaceCamera;
-				if (Gui::Checkbox("Face Camera", &faceCamera))
-					mesh->Flags.FaceCamera = faceCamera;
+				bool faceCameraPosition = mesh->Flags.FaceCameraPosition;
+				if (Gui::Checkbox("Face Camera Position", &faceCameraPosition))
+					mesh->Flags.FaceCameraPosition = faceCameraPosition;
+
+				bool faceCameraView = mesh->Flags.FaceCameraView;
+				if (Gui::Checkbox("Face Camera View", &faceCameraView))
+					mesh->Flags.FaceCameraView = faceCameraView;
 
 				Gui::Checkbox("Show Bounding Sphere", &mesh->Debug.RenderBoundingSphere);
 			}

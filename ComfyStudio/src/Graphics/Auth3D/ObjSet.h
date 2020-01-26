@@ -32,8 +32,9 @@ namespace Graphics
 	struct MeshFlags
 	{
 		uint32_t Unknown : 1;
-		uint32_t FaceCamera : 1;
+		uint32_t FaceCameraPosition : 1;
 		uint32_t Transparent : 1;
+		uint32_t FaceCameraView : 1;
 	};
 
 	struct DebugData
