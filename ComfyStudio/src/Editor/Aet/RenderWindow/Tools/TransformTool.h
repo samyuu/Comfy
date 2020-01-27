@@ -7,17 +7,17 @@ namespace Editor
 	class TransformTool : public AetTool
 	{
 	public:
-		virtual const char* GetIcon() const override;
-		virtual const char* GetName() const override;
-		virtual AetToolType GetType() const override;
-		virtual KeyCode GetShortcutKey() const override;
+		const char* GetIcon() const override;
+		const char* GetName() const override;
+		AetToolType GetType() const override;
+		KeyCode GetShortcutKey() const override;
 
 		// TODO: Rename to 'UpdateProperties' (?)
-		virtual void UpdatePostDrawGui(Graphics::Transform2D* transform, vec2 dimensions) override;
-		virtual void ProcessCommands(AetCommandManager* commandManager, const RefPtr<Graphics::AetLayer>& layer, float frame, const Graphics::Transform2D& transform, const Graphics::Transform2D& previousTransform) override;
+		void UpdatePostDrawGui(Graphics::Transform2D* transform, vec2 dimensions) override;
+		void ProcessCommands(AetCommandManager* commandManager, const RefPtr<Graphics::AetLayer>& layer, float frame, const Graphics::Transform2D& transform, const Graphics::Transform2D& previousTransform) override;
 
-		virtual void DrawContextMenu() override;
-		virtual bool MouseFocusCaptured() const override;
+		void DrawContextMenu() override;
+		bool MouseFocusCaptured() const override;
 
 	private:
 		static constexpr vec4 redColor = vec4(0.91f, 0.17f, 0.05f, 0.85f);

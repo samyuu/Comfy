@@ -286,7 +286,7 @@ namespace Graphics
 		void Read(FileSystem::BinaryReader& reader);
 	};
 
-	class ObjSet : public FileSystem::IBinaryReadable
+	class ObjSet final : public FileSystem::IBinaryReadable
 	{
 	public:
 		ObjSet() = default;
@@ -322,7 +322,7 @@ namespace Graphics
 		inline const Obj* GetObjAt(int index) const { return &objects[index]; };
 
 	public:
-		virtual void Read(FileSystem::BinaryReader& reader) override;
+		void Read(FileSystem::BinaryReader& reader) override;
 		void UploadAll();
 
 	public:

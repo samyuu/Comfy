@@ -10,9 +10,9 @@ namespace DataTest
 		IconTestWindow(Application*);
 		~IconTestWindow();
 
-		virtual void DrawGui() override;
-		virtual const char* GetGuiName() const override;
-		virtual ImGuiWindowFlags GetWindowFlags() const override;
+		void DrawGui() override;
+		const char* GetGuiName() const override;
+		ImGuiWindowFlags GetWindowFlags() const override;
 
 	private:
 		ImGuiTextFilter iconFilter;

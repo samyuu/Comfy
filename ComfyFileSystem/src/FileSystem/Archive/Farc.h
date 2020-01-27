@@ -26,7 +26,7 @@ namespace FileSystem
 		OrbisFutureTone
 	};
 
-	class Farc : public FileArchive
+	class Farc final : public FileArchive
 	{
 	public:
 		static constexpr size_t IVSize = 16;
@@ -56,7 +56,7 @@ namespace FileSystem
 		bool OpenStream(const std::wstring& filePath);
 		bool ParseEntries();
 
-		virtual void ReadArchiveEntry(const ArchiveEntry& entry, void* fileContentOut) override;
+		void ReadArchiveEntry(const ArchiveEntry& entry, void* fileContentOut) override;
 
 	private:
 		bool ParseEntryInternal(const uint8_t*& headerDataPointer);

@@ -442,7 +442,7 @@ namespace Graphics
 		void InternalFindLayerReferencedParent(AetLayer* layer);
 	};
 
-	class AetSet : public FileSystem::IBinaryFile
+	class AetSet final : public FileSystem::IBinaryFile
 	{
 	public:
 		AetSet() = default;
@@ -482,8 +482,8 @@ namespace Graphics
 		void ClearSpriteCache();
 
 	public:
-		virtual void Read(FileSystem::BinaryReader& reader) override;
-		virtual void Write(FileSystem::BinaryWriter& writer) override;
+		void Read(FileSystem::BinaryReader& reader) override;
+		void Write(FileSystem::BinaryWriter& writer) override;
 
 	private:
 		std::vector<RefPtr<Aet>> aets;

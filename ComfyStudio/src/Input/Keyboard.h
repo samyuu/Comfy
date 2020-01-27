@@ -2,10 +2,10 @@
 #include "IInputDevice.h"
 #include "KeyCode.h"
 
-class Keyboard : public IInputDevice
+class Keyboard final : public IInputDevice
 {
 public:
-	virtual bool PollInput() override;
+	bool PollInput() override;
 
 	bool Instance_IsDown(KeyCode key) const;
 	bool Instance_IsUp(KeyCode key) const;

@@ -13,7 +13,7 @@ namespace Editor
 		TimelineFrame FloorToGrid(TimelineFrame frame) const;
 		TimelineFrame RoundToGrid(TimelineFrame frame) const;
 
-		virtual float GetTimelinePosition(TimeSpan time) const override;
+		float GetTimelinePosition(TimeSpan time) const override;
 		float GetTimelinePosition(TimelineFrame frame) const;
 
 		TimelineFrame GetTimelineFrame(TimeSpan time) const;

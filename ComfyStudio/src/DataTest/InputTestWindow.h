@@ -11,9 +11,9 @@ namespace DataTest
 		InputTestWindow(Application*);
 		~InputTestWindow();
 
-		virtual void DrawGui() override;
-		virtual const char* GetGuiName() const override;
-		virtual ImGuiWindowFlags GetWindowFlags() const override;
+		void DrawGui() override;
+		const char* GetGuiName() const override;
+		ImGuiWindowFlags GetWindowFlags() const override;
 
 	private:
 		static constexpr std::array<const char*, static_cast<size_t>(Ds4Button::Count)> ds4ButtonNames =

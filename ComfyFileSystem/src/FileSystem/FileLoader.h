@@ -38,7 +38,7 @@ namespace FileSystem
 		virtual void SetFileFound(bool value) = 0;
 	};
 
-	class FileLoader : public IFileLoader
+	class FileLoader final : public IFileLoader
 	{
 	public:
 		FileLoader();
@@ -48,19 +48,19 @@ namespace FileSystem
 		const std::string& GetFilePath() const;
 		void SetFilePath(const std::string& value);
 
-		virtual void LoadSync() override;
-		virtual void LoadAsync() override;
-		virtual void CheckStartLoadAsync() override;
+		void LoadSync() override;
+		void LoadAsync() override;
+		void CheckStartLoadAsync() override;
 
-		virtual bool GetIsLoaded() const override;
-		virtual bool GetFileFound() const override;
-		virtual bool GetIsLoading() const override;
+		bool GetIsLoaded() const override;
+		bool GetFileFound() const override;
+		bool GetIsLoading() const override;
 		
-		virtual const std::vector<uint8_t>& GetFileContent() const override;
-		virtual void Read(IBinaryReadable* readable) const override;
-		virtual void Parse(IBufferParsable* parsable) const override;
+		const std::vector<uint8_t>& GetFileContent() const override;
+		void Read(IBinaryReadable* readable) const override;
+		void Parse(IBufferParsable* parsable) const override;
 
-		virtual void FreeData() override;
+		void FreeData() override;
 
 	protected:
 		std::string filePath;
@@ -74,8 +74,8 @@ namespace FileSystem
 
 		void CheckFileLocation();
 
-		virtual void SetIsLoaded(bool value) override;
-		virtual void SetFileFound(bool value) override;
+		void SetIsLoaded(bool value) override;
+		void SetFileFound(bool value) override;
 	};
 
 }

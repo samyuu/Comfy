@@ -6,12 +6,12 @@ namespace Editor
 	class MoveTool : public AetTool
 	{
 	public:
-		virtual const char* GetIcon() const override;
-		virtual const char* GetName() const override;
-		virtual AetToolType GetType() const override;
-		virtual KeyCode GetShortcutKey() const override;
+		const char* GetIcon() const override;
+		const char* GetName() const override;
+		AetToolType GetType() const override;
+		KeyCode GetShortcutKey() const override;
 
-		virtual void DrawContextMenu() override;
+		void DrawContextMenu() override;
 
 	private:
 	};

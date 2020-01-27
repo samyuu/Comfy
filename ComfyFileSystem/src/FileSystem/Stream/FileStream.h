@@ -11,23 +11,23 @@ namespace FileSystem
 		FileStream(const std::wstring& filePath);
 		~FileStream();
 
-		virtual void Seek(int64_t position) override;
-		virtual int64_t GetPosition() const override;
-		virtual int64_t GetLength() const override;
+		void Seek(int64_t position) override;
+		int64_t GetPosition() const override;
+		int64_t GetLength() const override;
 
-		virtual bool IsOpen() const override;
-		virtual bool CanRead() const override;
-		virtual bool CanWrite() const override;
+		bool IsOpen() const override;
+		bool CanRead() const override;
+		bool CanWrite() const override;
 
-		virtual int64_t Read(void* buffer, size_t size) override;
-		virtual int64_t Write(const void* buffer, size_t size) override;
+		int64_t Read(void* buffer, size_t size) override;
+		int64_t Write(const void* buffer, size_t size) override;
 
 		void OpenRead(const std::wstring& filePath);
 		void OpenWrite(const std::wstring& filePath);
 		void OpenReadWrite(const std::wstring& filePath);
 		void CreateWrite(const std::wstring& filePath);
 		void CreateReadWrite(const std::wstring& filePath);
-		virtual void Close() override;
+		void Close() override;
 
 	protected:
 		bool canRead = false;

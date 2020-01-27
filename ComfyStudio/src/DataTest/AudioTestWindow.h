@@ -12,9 +12,9 @@ namespace DataTest
 		AudioTestWindow(Application*);
 		~AudioTestWindow();
 
-		virtual void DrawGui() override;
-		virtual const char* GetGuiName() const override;
-		virtual ImGuiWindowFlags GetWindowFlags() const override;
+		void DrawGui() override;
+		const char* GetGuiName() const override;
+		ImGuiWindowFlags GetWindowFlags() const override;
 
 	private:
 		static constexpr const float audioInstancesChildHeight = 240;

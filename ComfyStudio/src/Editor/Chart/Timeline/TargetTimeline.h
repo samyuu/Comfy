@@ -166,13 +166,13 @@ namespace Editor
 
 		// Timeline Control:
 		// -----------------
-		virtual TimeSpan GetCursorTime() const override;
-		virtual bool GetIsPlayback() const override;
-		virtual void PausePlayback() override;
-		virtual void ResumePlayback() override;
-		virtual void StopPlayback() override;
+		TimeSpan GetCursorTime() const override;
+		bool GetIsPlayback() const override;
+		void PausePlayback() override;
+		void ResumePlayback() override;
+		void StopPlayback() override;
 
-		virtual float GetTimelineSize() const override;
+		float GetTimelineSize() const override;
 		void OnTimelineBaseScroll() override;
 		// -----------------
 
