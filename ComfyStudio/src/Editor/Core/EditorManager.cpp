@@ -67,10 +67,10 @@ namespace Editor
 	EditorManager::EditorManager(Application* parent) : parent(parent)
 	{
 		editorComponents.reserve(3);
-#if 0
+#if 1
 		AddEditorComponent<ChartEditor>(false);
 		AddEditorComponent<AetEditor>(true);
-		AddEditorComponent<SceneRenderWindow>(false);
+		AddEditorComponent<SceneEditor>(false);
 #else
 		AddEditorComponent<ChartEditor>(false);
 		AddEditorComponent<AetEditor>(false);
