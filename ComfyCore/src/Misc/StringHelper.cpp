@@ -33,57 +33,67 @@ namespace Utilities
 		TrimRight(string);
 	}
 
-	bool MatchesInsensitive(const std::string_view stringA, const std::string_view stringB)
+	bool MatchesInsensitive(std::string_view stringA, std::string_view stringB)
 	{
 		return std::equal(stringA.begin(), stringA.end(), stringB.begin(), stringB.end(), CaseInsenitiveComparison);
 	}
 
-	bool MatchesInsensitive(const std::wstring_view stringA, const std::wstring_view stringB)
+	bool MatchesInsensitive(std::wstring_view stringA, std::wstring_view stringB)
 	{
 		return std::equal(stringA.begin(), stringA.end(), stringB.begin(), stringB.end(), CaseInsenitiveComparison);
 	}
 
-	bool StartsWith(const std::string_view string, char suffix)
+	bool Contains(std::string_view stringA, std::string_view stringB)
+	{
+		return stringA.find(stringB) != std::string::npos;
+	}
+
+	bool Contains(std::wstring_view stringA, std::wstring_view stringB)
+	{
+		return stringA.find(stringB) != std::string::npos;
+	}
+
+	bool StartsWith(std::string_view string, char suffix)
 	{
 		return !string.empty() && string.front() == suffix;
 	}
 
-	bool StartsWith(const std::wstring_view string, wchar_t suffix)
+	bool StartsWith(std::wstring_view string, wchar_t suffix)
 	{
 		return !string.empty() && string.front() == suffix;
 	}
 
-	bool StartsWith(const std::string_view string, const std::string_view prefix)
+	bool StartsWith(std::string_view string, std::string_view prefix)
 	{
 		return string.find(prefix) == 0;
 	}
 
-	bool StartsWith(const std::wstring_view string, const std::wstring_view prefix)
+	bool StartsWith(std::wstring_view string, std::wstring_view prefix)
 	{
 		return string.find(prefix) == 0;
 	}
 
-	bool StartsWithInsensitive(const std::string_view string, const std::string_view prefix)
+	bool StartsWithInsensitive(std::string_view string, std::string_view prefix)
 	{
 		return std::equal(prefix.begin(), prefix.end(), string.begin());
 	}
 
-	bool StartsWithInsensitive(const std::wstring_view string, const std::wstring_view prefix)
+	bool StartsWithInsensitive(std::wstring_view string, std::wstring_view prefix)
 	{
 		return std::equal(prefix.begin(), prefix.end(), string.begin());
 	}
 
-	bool EndsWith(const std::string_view string, char suffix)
+	bool EndsWith(std::string_view string, char suffix)
 	{
 		return !string.empty() && string.back() == suffix;
 	}
 
-	bool EndsWith(const std::wstring_view string, wchar_t suffix)
+	bool EndsWith(std::wstring_view string, wchar_t suffix)
 	{
 		return !string.empty() && string.back() == suffix;
 	}
 
-	bool EndsWith(const std::string_view string, const std::string_view suffix)
+	bool EndsWith(std::string_view string, std::string_view suffix)
 	{
 		if (suffix.size() > string.size())
 			return false;
@@ -91,7 +101,7 @@ namespace Utilities
 		return std::equal(string.rbegin(), string.rbegin() + suffix.size(), suffix.rbegin(), suffix.rend());
 	}
 
-	bool EndsWith(const std::wstring_view string, const std::wstring_view suffix)
+	bool EndsWith(std::wstring_view string, std::wstring_view suffix)
 	{
 		if (suffix.size() > string.size())
 			return false;
@@ -99,7 +109,7 @@ namespace Utilities
 		return std::equal(string.rbegin(), string.rbegin() + suffix.size(), suffix.rbegin(), suffix.rend());
 	}
 
-	bool EndsWithInsensitive(const std::string_view string, const std::string_view suffix)
+	bool EndsWithInsensitive(std::string_view string, std::string_view suffix)
 	{
 		if (suffix.size() > string.size())
 			return false;
@@ -107,7 +117,7 @@ namespace Utilities
 		return std::equal(string.rbegin(), string.rbegin() + suffix.size(), suffix.rbegin(), suffix.rend(), CaseInsenitiveComparison);
 	}
 
-	bool EndsWithInsensitive(const std::wstring_view string, const std::wstring_view suffix)
+	bool EndsWithInsensitive(std::wstring_view string, std::wstring_view suffix)
 	{
 		if (suffix.size() > string.size())
 			return false;
@@ -115,7 +125,7 @@ namespace Utilities
 		return std::equal(string.rbegin(), string.rbegin() + suffix.size(), suffix.rbegin(), suffix.rend(), CaseInsenitiveComparison);
 	}
 
-	std::wstring Utf8ToUtf16(const std::string_view string)
+	std::wstring Utf8ToUtf16(std::string_view string)
 	{
 		std::wstring utf16String;
 
@@ -129,7 +139,7 @@ namespace Utilities
 		return utf16String;
 	}
 
-	std::string Utf16ToUtf8(const std::wstring_view string)
+	std::string Utf16ToUtf8(std::wstring_view string)
 	{
 		std::string utf8String;
 

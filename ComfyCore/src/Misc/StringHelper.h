@@ -7,29 +7,32 @@ namespace Utilities
 	void TrimRight(std::string& string);
 	void Trim(std::string& string);
 
-	bool MatchesInsensitive(const std::string_view stringA, const std::string_view stringB);
-	bool MatchesInsensitive(const std::wstring_view stringA, const std::wstring_view stringB);
+	bool MatchesInsensitive(std::string_view stringA, std::string_view stringB);
+	bool MatchesInsensitive(std::wstring_view stringA, std::wstring_view stringB);
 
-	bool StartsWith(const std::string_view string, char suffix);
-	bool StartsWith(const std::wstring_view string, wchar_t suffix);
+	bool Contains(std::string_view stringA, std::string_view stringB);
+	bool Contains(std::wstring_view stringA, std::wstring_view stringB);
 
-	bool StartsWith(const std::string_view string, const std::string_view prefix);
-	bool StartsWith(const std::wstring_view string, const std::wstring_view prefix);
+	bool StartsWith(std::string_view string, char suffix);
+	bool StartsWith(std::wstring_view string, wchar_t suffix);
 
-	bool StartsWithInsensitive(const std::string_view string, const std::string_view prefix);
-	bool StartsWithInsensitive(const std::wstring_view string, const std::wstring_view prefix);
+	bool StartsWith(std::string_view string, std::string_view prefix);
+	bool StartsWith(std::wstring_view string, std::wstring_view prefix);
 
-	bool EndsWith(const std::string_view string, char suffix);
-	bool EndsWith(const std::wstring_view string, wchar_t suffix);
+	bool StartsWithInsensitive(std::string_view string, std::string_view prefix);
+	bool StartsWithInsensitive(std::wstring_view string, std::wstring_view prefix);
 
-	bool EndsWith(const std::string_view string, const std::string_view suffix);
-	bool EndsWith(const std::wstring_view string, const std::wstring_view suffix);
+	bool EndsWith(std::string_view string, char suffix);
+	bool EndsWith(std::wstring_view string, wchar_t suffix);
 
-	bool EndsWithInsensitive(const std::string_view string, const std::string_view suffix);
-	bool EndsWithInsensitive(const std::wstring_view string, const std::wstring_view suffix);
+	bool EndsWith(std::string_view string, std::string_view suffix);
+	bool EndsWith(std::wstring_view string, std::wstring_view suffix);
 
-	std::wstring Utf8ToUtf16(const std::string_view string);
-	std::string Utf16ToUtf8(const std::wstring_view string);
+	bool EndsWithInsensitive(std::string_view string, std::string_view suffix);
+	bool EndsWithInsensitive(std::wstring_view string, std::wstring_view suffix);
+
+	std::wstring Utf8ToUtf16(std::string_view string);
+	std::string Utf16ToUtf8(std::wstring_view string);
 }
 
 using namespace Utilities;
