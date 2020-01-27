@@ -334,7 +334,7 @@ namespace Editor
 					if (Gui::MenuItem(name)) renderResolution = ivec2(vec2(renderWindow->GetRenderRegion().GetSize()) * factor);
 			});
 
-			if (renderResolution != context.RenderData.RenderTarget.GetSize())
+			if (renderResolution != context.RenderData.GetCurrentRenderTarget().GetSize())
 				renderParameters.RenderResolution = (clampSize(renderResolution));
 
 			ivec2 reflectionResolution = renderParameters.ReflectionRenderResolution;
@@ -869,7 +869,7 @@ namespace Editor
 			int StageAuthIndex = 0;
 
 			frame_t Frame = 0.0f;
-			bool Playback = true, Repeat = true, ApplyCamera = false, ParentTransform = true;
+			bool Playback = true, Repeat = true, ApplyCamera = false;
 
 			char A3DPath[MAX_PATH] = "dev_rom/auth_3d/";
 
@@ -1089,6 +1089,7 @@ namespace Editor
 									entityTexTransform.ID = txpEntry->ID;
 							}
 
+							// TODO: Might not be a single bool but different types
 							if (a3dTexTransform.RepeatU.Enabled)
 								entityTexTransform.RepeatU.emplace(A3DMgr::GetBoolAt(a3dTexTransform.RepeatU, a3dFrame));
 							if (a3dTexTransform.RepeatV.Enabled)
@@ -1109,7 +1110,6 @@ namespace Editor
 						entity->MorphObj = (morphEntityIndex >= entities.size()) ? nullptr : entities[morphEntityIndex]->Obj;
 					}
 				}
-
 			}
 
 			if (debug.Playback)
@@ -1141,12 +1141,32 @@ namespace Editor
 
 			Gui::Checkbox("Playback", &debug.Playback);
 			Gui::Checkbox("Repeat", &debug.Repeat);
-			Gui::Checkbox("Parent Transform", &debug.ParentTransform);
 
 			if (Gui::IsWindowFocused() && Gui::IsKeyPressed(KeyCode_Space))
 				debug.Playback ^= true;
 
 			Gui::SliderFloat("Frame", &debug.Frame, 0.0f, debug.A3D->PlayControl.Duration);
+
+			if (Gui::Button("Set Screen Render IDs"))
+			{
+				for (auto& entity : sceneGraph.Entities)
+				{
+					for (const auto& material : entity->Obj->Materials)
+					{
+						if (auto txp = renderer3D->GetTxpFromTextureID(material.Diffuse.TextureID); txp != nullptr)
+						{
+							if (EndsWithInsensitive(txp->Name, "_RENDER") || EndsWithInsensitive(txp->Name, "_MOVIE") || EndsWithInsensitive(txp->Name, "_TV") 
+								|| EndsWithInsensitive(txp->Name, "_FB01") || EndsWithInsensitive(txp->Name, "_FB02") || EndsWithInsensitive(txp->Name, "_FB03"))
+							{
+								if (entity->Animation == nullptr)
+									entity->Animation = MakeUnique<ObjAnimationData>();
+
+								entity->Animation->ScreenRenderTextureID = material.Diffuse.TextureID;
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 }
