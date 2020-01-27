@@ -1,6 +1,7 @@
 #include "SceneRenderWindow.h"
 #include "CameraAxisIndication.h"
 #include "Graphics/Auth3D/DebugObj.h"
+#include "Graphics/Auth3D/RayIntersection.h"
 #include "Editor/Core/Theme.h"
 
 namespace Editor
@@ -86,7 +87,41 @@ namespace Editor
 
 	void SceneRenderWindow::OnUpdateInput()
 	{
-		return;
+#if 0 // DEBUG:
+		if (Gui::IsWindowFocused() && Gui::IsWindowHovered())
+		{
+			for (auto& entity : sceneGraph->Entities)
+				entity->Obj->Debug.WireframeOverlay = false;
+
+			if (Gui::IsMouseDown(1))
+			{
+				const vec3 ray = context->Camera.CalculateRayDirection(GetRelativeMouse() / GetRenderRegion().GetSize());
+				const vec3 viewPoint = context->Camera.ViewPoint;
+
+				float closestDistance = 0.0f;
+				ObjectEntity* closestEntity = nullptr;
+
+				for (auto& entity : sceneGraph->Entities)
+				{
+					if (!entity->IsVisible || entity->IsReflection)
+						continue;
+
+					float intersectionDistance = 0.0f;
+					if (!Intersects(viewPoint, ray, *entity->Obj, entity->Transform, intersectionDistance))
+						continue;
+
+					if (intersectionDistance < closestDistance || closestEntity == nullptr)
+					{
+						closestDistance = intersectionDistance;
+						closestEntity = entity.get();
+					}
+				}
+
+				if (closestEntity != nullptr)
+					closestEntity->Obj->Debug.WireframeOverlay = true;
+			}
+		}
+#endif
 	}
 
 	void SceneRenderWindow::OnUpdate()
@@ -103,6 +138,8 @@ namespace Editor
 		context->Camera.UpdateMatrices();
 		renderer3D->Begin(*context);
 		{
+			auto isAnyReflection = std::any_of(sceneGraph->Entities.begin(), sceneGraph->Entities.end(), [](auto& e) { return e->IsReflection; });
+
 			for (auto& entity : sceneGraph->Entities)
 			{
 				if (entity->IsVisible)
@@ -114,10 +151,27 @@ namespace Editor
 					renderCommand.Flags.IsReflection = entity->IsReflection;
 
 					renderCommand.Animation = entity->Animation.get();
+
+#if 0 // DEBUG:
+					if (entity->Obj->Debug.WireframeOverlay)
+						renderCommand.Flags.SilhouetteOutline = true;
+#endif
+
 					renderer3D->Draw(renderCommand);
 
-					if (true)
-						RenderDebugBoundingSpheres(renderer3D, *entity);
+					// DEBUG: Quick and dirt hack for testing sake, not accurate of course
+					if (isAnyReflection && entity->Tag == 'chr')
+					{
+						renderCommand.Flags.IsReflection = true;
+						renderCommand.Transform.Translation.y = 0.0f - renderCommand.Transform.Translation.y;
+						renderCommand.Transform.Rotation.x = 0.0f - renderCommand.Transform.Rotation.x;
+						renderCommand.Transform.Rotation.z = 180.0f - renderCommand.Transform.Rotation.z;
+						renderer3D->Draw(renderCommand);
+					}
+
+#if 1 // DEBUG:
+					RenderDebugBoundingSpheres(renderer3D, *entity);
+#endif
 				}
 			}
 
