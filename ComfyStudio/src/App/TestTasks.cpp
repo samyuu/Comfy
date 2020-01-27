@@ -87,8 +87,8 @@ namespace App
 							aetRenderer->RenderLayerLooped(
 								data.MenuPlateSel,
 								menuPlateFrame,
-								obj.Properties.Position,
-								obj.Properties.Opacity);
+								obj.Transform.Position,
+								obj.Transform.Opacity);
 						}
 					}
 					else
@@ -96,8 +96,8 @@ namespace App
 						aetRenderer->RenderLayerLooped(
 							data.MenuPlate,
 							menuPlateFrame,
-							obj.Properties.Position,
-							obj.Properties.Opacity);
+							obj.Transform.Position,
+							obj.Transform.Opacity);
 					}
 				}
 			}
