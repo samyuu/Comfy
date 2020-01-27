@@ -2,46 +2,39 @@
 
 namespace Graphics
 {
-	static_assert((sizeof(KeyFrameCollectionArray) / sizeof(KeyFrameCollection)) == (sizeof(Properties) / sizeof(float)),
-		"The AetMgr Properties struct must have an equal number of float fields as the KeyFrameCollectionArray has KeyFrameCollections");
+	static_assert((sizeof(KeyFrameCollectionArray) / sizeof(KeyFrameCollection)) == (sizeof(Transform2D) / sizeof(float)),
+		"The Transform2D struct must have an equal number of float fields as the KeyFrameCollectionArray has KeyFrameCollections");
 
-	static_assert(sizeof(KeyFrameCollectionArray) / sizeof(KeyFrameCollection) == PropertyType_Count);
+	static_assert(sizeof(KeyFrameCollectionArray) / sizeof(KeyFrameCollection) == Transform2D_Count);
 
-	bool Properties::operator==(const Properties& other) const
+	namespace
 	{
-		return (Origin == other.Origin) && (Position == other.Position) && (Rotation == other.Rotation) && (Scale == other.Scale) && (Opacity == other.Opacity);
-	}
-
-	bool Properties::operator!=(const Properties& other) const
-	{
-		return !(*this == other);
-	}
-
-	static void TransformProperties(const Properties& input, Properties& output)
-	{
-		// BUG: This is still not 100% accurate (?)
-
-		output.Position -= input.Origin;
-		output.Position *= input.Scale;
-
-		if (input.Rotation != 0.0f)
+		void TransformByParent(const Transform2D& input, Transform2D& output)
 		{
-			float radians = glm::radians(input.Rotation);
-			float sin = glm::sin(radians);
-			float cos = glm::cos(radians);
+			// BUG: This is still not 100% accurate (?)
 
-			output.Position = vec2(output.Position.x * cos - output.Position.y * sin, output.Position.x * sin + output.Position.y * cos);
+			output.Position -= input.Origin;
+			output.Position *= input.Scale;
+
+			if (input.Rotation != 0.0f)
+			{
+				float radians = glm::radians(input.Rotation);
+				float sin = glm::sin(radians);
+				float cos = glm::cos(radians);
+
+				output.Position = vec2(output.Position.x * cos - output.Position.y * sin, output.Position.x * sin + output.Position.y * cos);
+			}
+
+			output.Position += input.Position;
+
+			if ((input.Scale.x < 0.0f) ^ (input.Scale.y < 0.0f))
+				output.Rotation *= -1.0f;
+
+			output.Rotation += input.Rotation;
+
+			output.Scale *= input.Scale;
+			output.Opacity *= input.Opacity;
 		}
-
-		output.Position += input.Position;
-
-		if ((input.Scale.x < 0.0f) ^ (input.Scale.y < 0.0f))
-			output.Rotation *= -1.0f;
-
-		output.Rotation += input.Rotation;
-
-		output.Scale *= input.Scale;
-		output.Opacity *= input.Opacity;
 	}
 
 	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetComposition* comp, frame_t frame)
@@ -52,8 +45,8 @@ namespace Graphics
 
 	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetLayer* layer, frame_t frame)
 	{
-		Properties propreties = DefaultProperites;
-		InternalAddObjects(objects, &propreties, layer, frame);
+		Transform2D transform = Transform2D(vec2(0.0f));
+		InternalAddObjects(objects, &transform, layer, frame);
 
 		if (layer->Type == AetLayerType::Eff)
 		{
@@ -76,7 +69,7 @@ namespace Graphics
 				+ ((((((t * t) * t) * 2.0f) - ((t * t) * 3.0f)) + 1.0f) * start->Value));
 	}
 
-	float AetMgr::Interpolate(const std::vector<AetKeyFrame>& keyFrames, frame_t frame)
+	float AetMgr::GetValueAt(const std::vector<AetKeyFrame>& keyFrames, frame_t frame)
 	{
 		if (keyFrames.size() <= 0)
 			return 0.0f;
@@ -104,15 +97,25 @@ namespace Graphics
 		return Interpolate(start, end, frame);
 	}
 
-	void AetMgr::Interpolate(const AetAnimationData* animationData, Properties* properties, frame_t frame)
+	vec2 AetMgr::GetValueAt(const std::vector<AetKeyFrame>& keyFramesX, const std::vector<AetKeyFrame>& keyFramesY, frame_t frame)
 	{
-		float* results = reinterpret_cast<float*>(properties);
+		return vec2(AetMgr::GetValueAt(keyFramesX, frame), AetMgr::GetValueAt(keyFramesY, frame));
+	}
 
-		for (auto& keyFrames : animationData->Properties)
-		{
-			*results = AetMgr::Interpolate(keyFrames, frame);
-			results++;
-		}
+	Transform2D AetMgr::GetTransformAt(const AetKeyFrameProperties& properties, frame_t frame)
+	{
+		Transform2D result;
+		result.Origin = AetMgr::GetValueAt(properties.OriginX(), properties.OriginY(), frame);
+		result.Position = AetMgr::GetValueAt(properties.PositionX(), properties.PositionY(), frame);
+		result.Rotation = AetMgr::GetValueAt(properties.Rotation(), frame);
+		result.Scale = AetMgr::GetValueAt(properties.ScaleX(), properties.ScaleY(), frame);
+		result.Opacity = AetMgr::GetValueAt(properties.Opacity(), frame);
+		return result;
+	}
+
+	Transform2D AetMgr::GetTransformAt(const AetAnimationData& animationData, frame_t frame)
+	{
+		return AetMgr::GetTransformAt(animationData.Properties, frame);
 	}
 
 	bool AetMgr::AreFramesTheSame(frame_t frameA, frame_t frameB)
@@ -178,7 +181,7 @@ namespace Graphics
 		}
 	}
 
-	void AetMgr::OffsetByParentProperties(Properties& properties, const AetLayer* parent, frame_t frame, int32_t& recursionCount)
+	void AetMgr::ApplyParentTransform(Transform2D& outTransform, const AetLayer* parent, frame_t frame, int32_t& recursionCount)
 	{
 		assert(recursionCount < ParentRecursionLimit);
 		if (parent == nullptr || recursionCount > ParentRecursionLimit)
@@ -189,15 +192,14 @@ namespace Graphics
 		const AetLayer* parentParent = parent->GetReferencedParentLayer();
 		assert(parentParent != parent);
 
-		Properties parentProperties;
-		Interpolate(parent->AnimationData.get(), &parentProperties, frame);
+		const Transform2D parentTransform = AetMgr::GetTransformAt(*parent->AnimationData, frame);
 
-		properties.Position += parentProperties.Position - parentProperties.Origin;
-		properties.Rotation += parentProperties.Rotation;
-		properties.Scale *= parentProperties.Scale;
+		outTransform.Position += parentTransform.Position - parentTransform.Origin;
+		outTransform.Rotation += parentTransform.Rotation;
+		outTransform.Scale *= parentTransform.Scale;
 
 		if (parentParent != nullptr && parentParent != parent)
-			OffsetByParentProperties(properties, parentParent, frame, recursionCount);
+			ApplyParentTransform(outTransform, parentParent, frame, recursionCount);
 	}
 
 	void AetMgr::FindAddCompositionUsages(const RefPtr<Aet>& aetToSearch, const RefPtr<AetComposition>& compToFind, std::vector<RefPtr<AetLayer>*>& outObjects)
@@ -217,19 +219,19 @@ namespace Graphics
 			compSearchFunction(compToTest);
 	}
 
-	void AetMgr::InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetLayer* layer, frame_t frame)
+	void AetMgr::InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Transform2D* parentTransform, const AetLayer* layer, frame_t frame)
 	{
 		if (layer->Type == AetLayerType::Pic)
 		{
-			InternalPicAddObjects(objects, parentProperties, layer, frame);
+			InternalPicAddObjects(objects, parentTransform, layer, frame);
 		}
 		else if (layer->Type == AetLayerType::Eff)
 		{
-			InternalEffAddObjects(objects, parentProperties, layer, frame);
+			InternalEffAddObjects(objects, parentTransform, layer, frame);
 		}
 	}
 
-	void AetMgr::InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetLayer* layer, frame_t frame)
+	void AetMgr::InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, const Transform2D* parentTransform, const AetLayer* layer, frame_t frame)
 	{
 		assert(layer->Type == AetLayerType::Pic);
 
@@ -257,14 +259,14 @@ namespace Graphics
 			objCache.SpriteIndex = 0;
 		}
 
-		Interpolate(layer->AnimationData.get(), &objCache.Properties, frame);
+		objCache.Transform = AetMgr::GetTransformAt(*layer->AnimationData, frame);
 
 		int32_t recursionCount = 0;
-		OffsetByParentProperties(objCache.Properties, layer->GetReferencedParentLayer(), frame, recursionCount);
-		TransformProperties(*parentProperties, objCache.Properties);
+		AetMgr::ApplyParentTransform(objCache.Transform, layer->GetReferencedParentLayer(), frame, recursionCount);
+		TransformByParent(*parentTransform, objCache.Transform);
 	}
 
-	void AetMgr::InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetLayer* layer, frame_t frame)
+	void AetMgr::InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, const Transform2D* parentTransform, const AetLayer* layer, frame_t frame)
 	{
 		assert(layer->Type == AetLayerType::Eff);
 
@@ -275,16 +277,15 @@ namespace Graphics
 		if (comp == nullptr)
 			return;
 
-		Properties effProperties;
-		Interpolate(layer->AnimationData.get(), &effProperties, frame);
+		Transform2D effTransform = AetMgr::GetTransformAt(*layer->AnimationData, frame);
 
 		int32_t recursionCount = 0;
-		OffsetByParentProperties(effProperties, layer->GetReferencedParentLayer(), frame, recursionCount);
-		TransformProperties(*parentProperties, effProperties);
+		AetMgr::ApplyParentTransform(effTransform, layer->GetReferencedParentLayer(), frame, recursionCount);
+		TransformByParent(*parentTransform, effTransform);
 
 		frame_t adjustedFrame = ((frame - layer->StartFrame) * layer->PlaybackSpeed) + layer->StartOffset;
 
 		for (int i = static_cast<int>(comp->size()) - 1; i >= 0; i--)
-			InternalAddObjects(objects, &effProperties, comp->GetLayerAt(i), adjustedFrame);
+			InternalAddObjects(objects, &effTransform, comp->GetLayerAt(i), adjustedFrame);
 	}
 }

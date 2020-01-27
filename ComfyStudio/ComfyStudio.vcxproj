@@ -310,6 +310,7 @@
     <ClInclude Include="src\Editor\PV\SceneEditor.h" />
     <ClInclude Include="src\Editor\PV\SceneGraph.h" />
     <ClInclude Include="src\Editor\PV\StageTest.h" />
+    <ClInclude Include="src\Graphics\Auth2D\Transform2D.h" />
     <ClInclude Include="src\Graphics\Auth3D\A3D.h" />
     <ClInclude Include="src\Graphics\Auth3D\A3DMgr.h" />
     <ClInclude Include="src\Graphics\Auth3D\ObjAnimationData.h" />

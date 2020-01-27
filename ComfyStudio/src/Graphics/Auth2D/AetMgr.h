@@ -1,64 +1,19 @@
 #pragma once
 #include "Types.h"
+#include "Transform2D.h"
 #include "AetSet.h"
 
 namespace Graphics
 {
-	struct PropertyTypeFlags
-	{
-		bool OriginX : 1;
-		bool OriginY : 1;
-		bool PositionX : 1;
-		bool PositionY : 1;
-		bool Rotation : 1;
-		bool ScaleX : 1;
-		bool ScaleY : 1;
-		bool Opacity : 1;
-	};
-
-	enum PropertyType_Enum
-	{
-		PropertyType_OriginX,
-		PropertyType_OriginY,
-		PropertyType_PositionX,
-		PropertyType_PositionY,
-		PropertyType_Rotation,
-		PropertyType_ScaleX,
-		PropertyType_ScaleY,
-		PropertyType_Opacity,
-		PropertyType_Count,
-	};
-
-	struct Properties
-	{
-		vec2 Origin;
-		vec2 Position;
-		float Rotation;
-		vec2 Scale;
-		float Opacity;
-
-		bool operator==(const Properties& other) const;
-		bool operator!=(const Properties& other) const;
-	};
-
 	class AetMgr
 	{
 	public:
 		// NOTE: Arbitrary safety limit, prevent stack overflows no matter the input
 		static constexpr int32_t ParentRecursionLimit = 0x100;
 
-		static constexpr Properties DefaultProperites =
-		{
-			vec2(0.0f),	// Origin
-			vec2(0.0f),	// Position
-			0.0f,		// Rotation
-			vec2(1.0f),	// Scale
-			1.0f,		// Opacity
-		};
-
 		struct ObjCache
 		{
-			Properties Properties;
+			Transform2D Transform;
 			int32_t SpriteIndex;
 			const AetSurface* Surface;
 			AetBlendMode BlendMode;
@@ -72,8 +27,12 @@ namespace Graphics
 		static void GetAddObjects(std::vector<AetMgr::ObjCache>& objects, const AetLayer* layer, frame_t frame);
 
 		static float Interpolate(const AetKeyFrame* start, const AetKeyFrame* end, frame_t frame);
-		static float Interpolate(const std::vector<AetKeyFrame>& keyFrames, frame_t frame);
-		static void Interpolate(const AetAnimationData* animationData, Properties* properties, frame_t frame);
+		
+		static float GetValueAt(const std::vector<AetKeyFrame>& keyFrames, frame_t frame);
+		static vec2 GetValueAt(const std::vector<AetKeyFrame>& keyFramesX, const std::vector<AetKeyFrame>& keyFramesY, frame_t frame);
+		
+		static Transform2D GetTransformAt(const AetKeyFrameProperties& properties, frame_t frame);
+		static Transform2D GetTransformAt(const AetAnimationData& animationData, frame_t frame);
 
 		// NOTE: Threshold frame foat comparison
 		static bool AreFramesTheSame(frame_t frameA, frame_t frameB);
@@ -90,14 +49,14 @@ namespace Graphics
 		static void OffsetAllKeyFrames(AetKeyFrameProperties& properties, frame_t frameIncrement);
 
 		// NOTE: Recursively add the properties of the parent layer to the input properties if there is one
-		static void OffsetByParentProperties(Properties& properties, const AetLayer* parent, frame_t frame, int32_t& recursionCount);
+		static void ApplyParentTransform(Transform2D& outTransform, const AetLayer* parent, frame_t frame, int32_t& recursionCount);
 
 		// NOTE: To easily navigate between composition references in the tree view
 		static void FindAddCompositionUsages(const RefPtr<Aet>& aetToSearch, const RefPtr<AetComposition>& compToFind, std::vector<RefPtr<AetLayer>*>& outObjects);
 
 	private:
-		static void InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetLayer* layer, frame_t frame);
-		static void InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetLayer* layer, frame_t frame);
-		static void InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, const Properties* parentProperties, const AetLayer* layer, frame_t frame);
+		static void InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Transform2D* parentTransform, const AetLayer* layer, frame_t frame);
+		static void InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, const Transform2D* parentTransform, const AetLayer* layer, frame_t frame);
+		static void InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, const Transform2D* parentTransform, const AetLayer* layer, frame_t frame);
 	};
 }

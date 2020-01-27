@@ -130,6 +130,15 @@ namespace Graphics
 		inline auto& ScaleY() { return KeyFrames[6]; };
 		inline auto& Opacity() { return KeyFrames[7]; };
 
+		inline auto& OriginX() const { return KeyFrames[0]; };
+		inline auto& OriginY() const { return KeyFrames[1]; };
+		inline auto& PositionX() const { return KeyFrames[2]; };
+		inline auto& PositionY() const { return KeyFrames[3]; };
+		inline auto& Rotation() const { return KeyFrames[4]; };
+		inline auto& ScaleX() const { return KeyFrames[5]; };
+		inline auto& ScaleY() const { return KeyFrames[6]; };
+		inline auto& Opacity() const { return KeyFrames[7]; };
+
 		inline auto begin() { return KeyFrames.begin(); };
 		inline auto end() { return KeyFrames.end(); };
 		inline auto begin() const { return KeyFrames.begin(); };
