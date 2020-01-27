@@ -303,7 +303,7 @@ namespace Graphics
 		const auto& lightParam = sceneContext->Light;
 		const auto& ibl = sceneContext->IBL;
 
-		sceneCB.Data.RenderResolution = GetPackedTextureSize(renderData.RenderTarget);
+		sceneCB.Data.RenderResolution = GetPackedTextureSize(renderData.GetCurrentRenderTarget());
 		sceneCB.Data.IrradianceRed = glm::transpose(ibl.Stage.IrradianceRGB[0]);
 		sceneCB.Data.IrradianceGreen = glm::transpose(ibl.Stage.IrradianceRGB[1]);
 		sceneCB.Data.IrradianceBlue = glm::transpose(ibl.Stage.IrradianceRGB[2]);
@@ -409,14 +409,14 @@ namespace Graphics
 			renderData.ReflectionRenderTarget.BindResource(TextureSlot_ScreenReflection);
 		}
 
-		renderData.RenderTarget.SetMultiSampleCountIfDifferent(renderParameters.MultiSampleCount);
-		renderData.RenderTarget.ResizeIfDifferent(renderParameters.RenderResolution);
-		renderData.RenderTarget.BindSetViewport();
+		renderData.GetCurrentRenderTarget().SetMultiSampleCountIfDifferent(renderParameters.MultiSampleCount);
+		renderData.GetCurrentRenderTarget().ResizeIfDifferent(renderParameters.RenderResolution);
+		renderData.GetCurrentRenderTarget().BindSetViewport();
 
 		if (renderParameters.Clear)
-			renderData.RenderTarget.Clear(renderParameters.ClearColor);
+			renderData.GetCurrentRenderTarget().Clear(renderParameters.ClearColor);
 		else
-			renderData.RenderTarget.GetDepthBuffer()->Clear();
+			renderData.GetCurrentRenderTarget().GetDepthBuffer()->Clear();
 
 		if (!defaultCommandList.OpaqueAndTransparent.empty())
 		{
@@ -442,7 +442,7 @@ namespace Graphics
 		if (IsAnyCommandSilhouetteOutline)
 			InternalRenderSilhouette();
 
-		renderData.RenderTarget.UnBind();
+		renderData.GetCurrentRenderTarget().UnBind();
 		genericInputLayout->UnBind();
 	}
 
@@ -598,7 +598,7 @@ namespace Graphics
 			toneMapData.Update();
 		}
 
-		D3D_ShaderResourceView::BindArray<3>(0, { &sceneContext->RenderData.RenderTarget, (sceneContext->RenderParameters.RenderBloom) ? &sceneContext->BloomRenderData.CombinedBlurRenderTarget : nullptr, toneMapData.LookupTexture.get() });
+		D3D_ShaderResourceView::BindArray<3>(0, { &sceneContext->RenderData.GetCurrentRenderTarget(), (sceneContext->RenderParameters.RenderBloom) ? &sceneContext->BloomRenderData.CombinedBlurRenderTarget : nullptr, toneMapData.LookupTexture.get() });
 
 		toneMapCB.Data.Exposure = sceneContext->Glow.Exposure;
 		toneMapCB.Data.Gamma = sceneContext->Glow.Gamma;
@@ -612,6 +612,7 @@ namespace Graphics
 		D3D.Context->Draw(RectangleVertexCount, 0);
 
 		D3D_ShaderResourceView::BindArray<3>(0, { nullptr, nullptr, nullptr });
+		sceneContext->RenderData.AdvanceRenderTarget();
 	}
 
 	void D3D_Renderer3D::InternalRenderBloom()
@@ -627,7 +628,7 @@ namespace Graphics
 		for (int i = -1; i < static_cast<int>(bloom.ReduceRenderTargets.size()); i++)
 		{
 			auto& renderTarget = (i < 0) ? bloom.BaseRenderTarget : bloom.ReduceRenderTargets[i];
-			auto& lastRenderTarget = (i < 0) ? sceneContext->RenderData.RenderTarget : (i == 0) ? bloom.BaseRenderTarget : bloom.ReduceRenderTargets[i - 1];
+			auto& lastRenderTarget = (i < 0) ? sceneContext->RenderData.GetCurrentRenderTarget() : (i == 0) ? bloom.BaseRenderTarget : bloom.ReduceRenderTargets[i - 1];
 
 			reduceTexCB.Data.TextureSize = GetPackedTextureSize(lastRenderTarget);
 			reduceTexCB.Data.ExtractBrightness = (i == 0);
@@ -747,6 +748,7 @@ namespace Graphics
 		std::array<D3D_ShaderResourceView*, textureTypeCount> textureResources;
 		std::array<D3D_TextureSampler*, textureTypeCount> textureSamplers;
 
+		bool usesDiffuseRenderTexture = false;
 		for (size_t i = 0; i < textureTypeCount; i++)
 		{
 			auto& materialTexture = (&material.Diffuse)[i];
@@ -775,8 +777,18 @@ namespace Graphics
 
 			if (auto txp = GetTxpFromTextureID(txpID); txp != nullptr)
 			{
-				textureFormat = txp->GetFormat();
-				textureResources[i] = (txp->Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->Texture2D.get()) : (txp->CubeMap != nullptr) ? (txp->CubeMap.get()) : nullptr;
+				if (animation != nullptr && txpID == animation->ScreenRenderTextureID)
+				{
+					usesDiffuseRenderTexture = true;
+					textureFormat = TextureFormat::RGBA8;
+					textureResources[i] = &sceneContext->RenderData.GetPreviounRenderTarget();
+				}
+				else
+				{
+					textureFormat = txp->GetFormat();
+					textureResources[i] = (txp->Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->Texture2D.get()) : (txp->CubeMap != nullptr) ? (txp->CubeMap.get()) : nullptr;
+				}
+
 				textureSamplers[i] = &cachedTextureSamplers.GetSampler(textureFlags);
 			}
 			else
@@ -834,6 +846,10 @@ namespace Graphics
 					* glm::translate(*output, -centerOffset);
 			}
 		}
+
+		// HACK: Flip to adjust for the expected OpenGL texture coordinates, problematic because it also effects all other textures using the first TEXCOORD attribute
+		if (usesDiffuseRenderTexture)
+			objectCB.Data.Material.DiffuseTextureTransform *= glm::scale(mat4(1.0f), vec3(1.0f, -1.0f, 1.0f));
 
 		mat4 modelMatrix;
 		if (mesh.Flags.FaceCameraPosition || mesh.Flags.FaceCameraView)
