@@ -7,11 +7,11 @@ namespace Editor
 
 	void RenderWindowBase::Initialize()
 	{
-		renderTarget = GetShouldCreateDepthRenderTarget() ? 
+		owningRenderTarget = GetShouldCreateDepthRenderTarget() ? 
 			MakeUnique<D3D_DepthRenderTarget>(RenderTargetDefaultSize, DXGI_FORMAT_D32_FLOAT) : 
 			MakeUnique<D3D_RenderTarget>(RenderTargetDefaultSize);
 
-		renderRegion = lastRenderRegion = ImRect(vec2(0.0f, 0.0f), vec2(renderTarget->GetSize()));
+		renderRegion = lastRenderRegion = ImRect(vec2(0.0f, 0.0f), vec2(owningRenderTarget->GetSize()));
 
 		OnInitialize();
 	}
@@ -84,10 +84,16 @@ namespace Editor
 				Gui::GetColorU32(ImGuiCol_WindowBg));
 		}
 
-		currentWindow->DrawList->AddImage(
-			*renderTarget,
-			renderRegion.GetTL(),
-			renderRegion.GetBR());
+		D3D_RenderTarget* externalRenderTarget = GetExternalRenderTarget();
+		D3D_RenderTarget* outputRenderTarget = (externalRenderTarget != nullptr) ? externalRenderTarget : owningRenderTarget.get();
+
+		if (outputRenderTarget != nullptr)
+		{
+			currentWindow->DrawList->AddImage(
+				*outputRenderTarget,
+				renderRegion.GetTL(),
+				renderRegion.GetBR());
+		}
 
 		PostDrawGui();
 
@@ -104,7 +110,7 @@ namespace Editor
 
 	void RenderWindowBase::OnResize(ivec2 size)
 	{
-		renderTarget->Resize(size);
+		owningRenderTarget->Resize(size);
 		needsResizing = false;
 	}
 }

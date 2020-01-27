@@ -97,7 +97,7 @@ namespace Editor
 	{
 		cameraController->Update(context->Camera);
 
-		context->RenderData.OutputRenderTarget = renderTarget.get();
+		context->RenderData.OutputRenderTarget = owningRenderTarget.get();
 		// context->RenderParameters.ClearColor = GetColorVec4(EditorColor_BaseClear);
 
 		context->Camera.UpdateMatrices();

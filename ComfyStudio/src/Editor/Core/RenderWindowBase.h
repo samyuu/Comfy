@@ -31,7 +31,7 @@ namespace Editor
 		static inline void PopWindowPadding() { Gui::PopStyleVar(); };
 
 	protected:
-		UniquePtr<Graphics::D3D_RenderTarget> renderTarget;
+		UniquePtr<Graphics::D3D_RenderTarget> owningRenderTarget = nullptr;
 
 		virtual ImGuiWindowFlags GetChildWinodwFlags() const { return ImGuiWindowFlags_None; };
 		virtual bool GetShouldCreateDepthRenderTarget() const { return false; };
@@ -43,6 +43,7 @@ namespace Editor
 		virtual void OnUpdate() = 0;
 		virtual void OnRender() = 0;
 		virtual void OnResize(ivec2 size);
+		virtual Graphics::D3D_RenderTarget* GetExternalRenderTarget() { return nullptr; };
 
 	private:
 		ImRect renderRegion, lastRenderRegion;
