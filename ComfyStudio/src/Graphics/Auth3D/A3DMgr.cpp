@@ -80,7 +80,11 @@ namespace Graphics
 		if (property.Keys.size() == 1 || frame <= first.Frame)
 			return first.Value;
 
-		if (frame >= last.Frame)
+		// TODO:
+		if (property.EPTypePost == EPType::Repeat)
+			frame = glm::mod(frame, last.Frame);
+
+		if (frame > last.Frame)
 			return last.Value;
 
 		auto[start, end] = A3DMgr::GetStartEndKeyFramesAt(property, frame);
