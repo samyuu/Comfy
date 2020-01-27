@@ -14,7 +14,7 @@ namespace Editor
 		virtual AetToolType GetType() const override;
 		virtual KeyCode GetShortcutKey() const override;
 
-		virtual void UpdatePostDrawGui(Graphics::Properties* properties, vec2 dimensions) override;
+		virtual void UpdatePostDrawGui(Graphics::Transform2D* transform, vec2 dimensions) override;
 		virtual void DrawContextMenu() override;
 		virtual void UpdateCamera(Graphics::OrthographicCamera& camera, vec2 relativeMouse) override;
 

@@ -32,13 +32,13 @@ namespace Editor
 	{
 	}
 
-	TransformBox::TransformBox(const Graphics::Properties& properties, const vec2& dimensions)
+	TransformBox::TransformBox(const Graphics::Transform2D& transform, const vec2& dimensions)
 	{
-		vec2 size = dimensions * properties.Scale;
+		vec2 size = dimensions * transform.Scale;
 
-		if (properties.Rotation == 0.0f)
+		if (transform.Rotation == 0.0f)
 		{
-			vec2 position = properties.Position - (properties.Origin * properties.Scale);
+			vec2 position = transform.Position - (transform.Origin * transform.Scale);
 
 			TL = position;
 			TR = vec2(position.x + size.x, position.y);
@@ -47,14 +47,14 @@ namespace Editor
 		}
 		else
 		{
-			float radians = glm::radians(properties.Rotation);
+			float radians = glm::radians(transform.Rotation);
 			float sin = glm::sin(radians), cos = glm::cos(radians);
-			vec2 origin = -properties.Origin * properties.Scale;
+			vec2 origin = -transform.Origin * transform.Scale;
 
-			TL = properties.Position + vec2(origin.x * cos - origin.y * sin, origin.x * sin + origin.y * cos);
-			TR = properties.Position + vec2((origin.x + size.x) * cos - origin.y * sin, (origin.x + size.x) * sin + origin.y * cos);
-			BL = properties.Position + vec2(origin.x * cos - (origin.y + size.y) * sin, origin.x * sin + (origin.y + size.y) * cos);
-			BR = properties.Position + vec2((origin.x + size.x) * cos - (origin.y + size.y) * sin, (origin.x + size.x) * sin + (origin.y + size.y) * cos);
+			TL = transform.Position + vec2(origin.x * cos - origin.y * sin, origin.x * sin + origin.y * cos);
+			TR = transform.Position + vec2((origin.x + size.x) * cos - origin.y * sin, (origin.x + size.x) * sin + origin.y * cos);
+			BL = transform.Position + vec2(origin.x * cos - (origin.y + size.y) * sin, origin.x * sin + (origin.y + size.y) * cos);
+			BR = transform.Position + vec2((origin.x + size.x) * cos - (origin.y + size.y) * sin, (origin.x + size.x) * sin + (origin.y + size.y) * cos);
 		}
 	}
 
@@ -108,7 +108,7 @@ namespace Editor
 		return vec2(-1.0f);
 	}
 
-	Graphics::Properties TransformBox::GetProperties(vec2 dimensions, vec2 origin, float rotation, float opacity) const
+	Graphics::Transform2D TransformBox::GetTransform(vec2 dimensions, vec2 origin, float rotation, float opacity) const
 	{
 		vec2 corners[2] = { TL, BR };
 		vec2 rotationorigin = TL - origin;

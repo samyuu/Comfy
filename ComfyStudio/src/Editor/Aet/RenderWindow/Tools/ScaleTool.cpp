@@ -42,10 +42,10 @@ namespace Editor
 		return KeyCode_R;
 	}
 
-	void ScaleTool::UpdatePostDrawGui(Graphics::Properties* properties, vec2 dimensions)
+	void ScaleTool::UpdatePostDrawGui(Graphics::Transform2D* transform, vec2 dimensions)
 	{
 		// TEMP:
-		Gui::Text("scale: %.1f %.1f", properties->Scale.x, properties->Scale.y);
+		Gui::Text("scale: %.1f %.1f", transform->Scale.x, transform->Scale.y);
 
 		ImGuiIO& io = Gui::GetIO();
 		bool windowFocused = Gui::IsWindowFocused();
@@ -58,7 +58,7 @@ namespace Editor
 		vec2 mouseWorldPos = ToWorldSpace(mousePos);
 
 		// if (mode == GrabMode::None)
-		// 	worldSpaceBox = TransformBox(*properties, dimensions);
+		// 	worldSpaceBox = TransformBox(*transform, dimensions);
 		// 
 		// if (windowFocused || windowHovered)
 		// 	screenSpaceBox = BoxWorldToScreenSpace(worldSpaceBox);
@@ -85,7 +85,7 @@ namespace Editor
 		if (windowFocused && Gui::IsMouseClicked(actionMouseButton))
 		{
 			mouseWorldPositionOnMouseDown = mouseWorldPos;
-			propertiesOnMouseDown = *properties;
+			transformOnMouseDown = *transform;
 
 			if (scalingNode >= 0)
 				scaleNodeWorldPositionOnMouseDown = mouseWorldPos;
@@ -107,11 +107,11 @@ namespace Editor
 
 			if (allowAction)
 			{
-				// MoveBoxCorner(scalingNode, worldSpaceBox, glm::round(mouseWorldPos), propertiesOnMouseDown.Rotation);
-				// *properties = worldSpaceBox.GetProperties(dimensions, properties->Origin, properties->Rotation, properties->Opacity);
+				// MoveBoxCorner(scalingNode, worldSpaceBox, glm::round(mouseWorldPos), transformOnMouseDown.Rotation);
+				// *transform = worldSpaceBox.GetTransform(dimensions, transform->Origin, transform->Rotation, transform->Opacity);
 			}
 
-			// DragScaleTooltip(properties->Scale, dimensions);
+			// DragScaleTooltip(transform->Scale, dimensions);
 		}
 
 		ImDrawList* drawList = Gui::GetWindowDrawList();
@@ -123,9 +123,9 @@ namespace Editor
 
 		// origin center
 
-		vec2 xPoisition = ToScreenSpace(GetAxisPoint(*properties, ScaleNode_AxisX));
-		vec2 yPoisition = ToScreenSpace(GetAxisPoint(*properties, ScaleNode_AxisY));
-		vec2 xyPoisition = ToScreenSpace(GetAxisPoint(*properties, ScaleNode_AxisXY));
+		vec2 xPoisition = ToScreenSpace(GetAxisPoint(*transform, ScaleNode_AxisX));
+		vec2 yPoisition = ToScreenSpace(GetAxisPoint(*transform, ScaleNode_AxisY));
+		vec2 xyPoisition = ToScreenSpace(GetAxisPoint(*transform, ScaleNode_AxisXY));
 
 		Gui::AddLine(drawList, xyPoisition, xPoisition, ImColor(xAxisColorLine));
 		Gui::AddLine(drawList, xyPoisition, yPoisition, ImColor(yAxisColorLine));
@@ -139,7 +139,7 @@ namespace Editor
 		//	xyPoisition + vec2(-halfRadius, halfRadius), 
 		//	ImColor(centerColor));
 
-		Gui::AddQuadFilled(drawList, xyPoisition, vec2(NodeCenterRadius), vec2(NodeCenterRadius * 0.5f), properties->Rotation, vec2(1.0f), ImColor(centerColor));
+		Gui::AddQuadFilled(drawList, xyPoisition, vec2(NodeCenterRadius), vec2(NodeCenterRadius * 0.5f), transform->Rotation, vec2(1.0f), ImColor(centerColor));
 
 		// drawList->AddCircleFilled(xyPoisition, NodeRadius, ImColor(centerColor));
 		drawList->AddCircleFilled(xPoisition, NodeRadius, ImColor(xAxisColorInner));
@@ -155,18 +155,18 @@ namespace Editor
 		// TODO: Scale to fixed values (?)
 	}
 
-	vec2 ScaleTool::GetAxisPoint(const Graphics::Properties& properties, ScaleNode node)
+	vec2 ScaleTool::GetAxisPoint(const Graphics::Transform2D& transform, ScaleNode node)
 	{
 		switch (node)
 		{
 		case ScaleNode_AxisX:
-			return properties.Position + vec2(AxisLength, 0.0f);
+			return transform.Position + vec2(AxisLength, 0.0f);
 
 		case ScaleNode_AxisY:
-			return properties.Position + vec2(0.0f, -AxisLength);
+			return transform.Position + vec2(0.0f, -AxisLength);
 
 		case ScaleNode_AxisXY:
-			return properties.Position;
+			return transform.Position;
 		}
 
 		assert(false);

@@ -32,7 +32,7 @@ namespace Editor
 		return KeyCode_Q;
 	}
 
-	void HandTool::UpdatePostDrawGui(Graphics::Properties* properties, vec2 dimensions)
+	void HandTool::UpdatePostDrawGui(Graphics::Transform2D* transform, vec2 dimensions)
 	{
 	}
 

@@ -35,7 +35,7 @@ namespace Editor
 		static BoxNode GetOpositeNode(BoxNode node);
 
 		TransformBox();
-		TransformBox(const Graphics::Properties& properties, const vec2& dimensions);
+		TransformBox(const Graphics::Transform2D& transform, const vec2& dimensions);
 
 		union
 		{
@@ -51,7 +51,7 @@ namespace Editor
 		float Rotation() const;
 
 		vec2 GetNodePosition(BoxNode node) const;
-		Graphics::Properties GetProperties(vec2 dimensions, vec2 origin, float rotation, float opacity) const;
+		Graphics::Transform2D GetTransform(vec2 dimensions, vec2 origin, float rotation, float opacity) const;
 
 		bool Contains(const vec2& point) const;
 	};

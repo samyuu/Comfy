@@ -122,7 +122,7 @@ namespace Editor
 		return KeyCode_T;
 	}
 
-	void TransformTool::UpdatePostDrawGui(Properties* properties, vec2 dimensions)
+	void TransformTool::UpdatePostDrawGui(Transform2D* transform, vec2 dimensions)
 	{
 		ImGuiIO& io = Gui::GetIO();
 		bool windowFocused = Gui::IsWindowFocused();
@@ -135,13 +135,13 @@ namespace Editor
 		vec2 mouseWorldPos = glm::round(ToWorldSpace(mousePos));
 
 		if (mode == GrabMode::None)
-			worldSpaceBox = TransformBox(*properties, dimensions);
+			worldSpaceBox = TransformBox(*transform, dimensions);
 
 		if (windowFocused || windowHovered)
 			screenSpaceBox = BoxWorldToScreenSpace(worldSpaceBox);
 
 		if (windowFocused)
-			UpdateKeyboardMoveInput(properties);
+			UpdateKeyboardMoveInput(transform);
 
 		if (windowFocused && Gui::IsMouseClicked(actionMouseButton))
 		{
@@ -171,7 +171,7 @@ namespace Editor
 		if (windowFocused  && Gui::IsMouseClicked(actionMouseButton))
 		{
 			mouseWorldPositionOnMouseDown = mouseWorldPos;
-			propertiesOnMouseDown = *properties;
+			transformOnMouseDown = *transform;
 
 			if (mode == GrabMode::None)
 			{
@@ -204,16 +204,16 @@ namespace Editor
 
 			if (allowAction)
 			{
-				vec2 grabOffset = mouseWorldPositionOnMouseDown - propertiesOnMouseDown.Position;
-				properties->Position = glm::round(mouseWorldPos - grabOffset);
+				vec2 grabOffset = mouseWorldPositionOnMouseDown - transformOnMouseDown.Position;
+				transform->Position = glm::round(mouseWorldPos - grabOffset);
 
 				if (Gui::IsKeyDown(GridSnapModifierKey))
-					properties->Position = Snap(properties->Position, PositionSnapPrecision);
+					transform->Position = Snap(transform->Position, PositionSnapPrecision);
 
-				worldSpaceBox = TransformBox(*properties, dimensions);
+				worldSpaceBox = TransformBox(*transform, dimensions);
 			}
 
-			DragPositionTooltip(properties->Position);
+			DragPositionTooltip(transform->Position);
 		}
 		else if (mode == GrabMode::Scale)
 		{
@@ -226,11 +226,11 @@ namespace Editor
 				if (Gui::IsKeyDown(GridSnapModifierKey))
 					newNodePosition = Snap(newNodePosition, ScaleSnapPrecision);
 
-				MoveBoxCorner(scalingNode, worldSpaceBox, newNodePosition, propertiesOnMouseDown.Rotation);
-				*properties = worldSpaceBox.GetProperties(dimensions, properties->Origin, properties->Rotation, properties->Opacity);
+				MoveBoxCorner(scalingNode, worldSpaceBox, newNodePosition, transformOnMouseDown.Rotation);
+				*transform = worldSpaceBox.GetTransform(dimensions, transform->Origin, transform->Rotation, transform->Opacity);
 			}
 
-			DragScaleTooltip(properties->Scale, dimensions);
+			DragScaleTooltip(transform->Scale, dimensions);
 		}
 		else if (mode == GrabMode::None)
 		{
@@ -243,7 +243,7 @@ namespace Editor
 		// NOTE: Draw box pre grab
 		if (mode != GrabMode::None)
 		{
-			TransformBox worldBoxOnMouseDown = TransformBox(propertiesOnMouseDown, dimensions);
+			TransformBox worldBoxOnMouseDown = TransformBox(transformOnMouseDown, dimensions);
 			TransformBox screenBoxOnMouseDown = BoxWorldToScreenSpace(worldBoxOnMouseDown);
 			DrawBox(drawList, screenBoxOnMouseDown, false, vec4(1.0f, 1.0f, 1.0f, 0.25f));
 		}
@@ -254,27 +254,27 @@ namespace Editor
 		DrawBox(drawList, screenSpaceBox, (mode == GrabMode::Scale), (mode == GrabMode::Move) ? allowAction ? redColor : redPreColor : whiteColor);
 
 		// NOTE: Draw origin point
-		drawList->AddCircleFilled(ToScreenSpace(properties->Position), TransformBox::NodeRadius, ImColor(yellowColor));
+		drawList->AddCircleFilled(ToScreenSpace(transform->Position), TransformBox::NodeRadius, ImColor(yellowColor));
 
 		// NOTE: Draw grabbing node
 		if (mode == GrabMode::Scale)
 			DrawBoxNode(drawList, screenSpaceBox.GetNodePosition(scalingNode), ImColor(allowAction ? redColor : redPreColor), screenSpaceBox.Rotation());
 	}
 
-	void TransformTool::ProcessCommands(AetCommandManager* commandManager, const RefPtr<AetLayer>& layer, float frame, const Properties& properties, const Properties& previousProperties)
+	void TransformTool::ProcessCommands(AetCommandManager* commandManager, const RefPtr<AetLayer>& layer, float frame, const Transform2D& transform, const Transform2D& previousTransform)
 	{
-		if (properties == previousProperties)
+		if (transform == previousTransform)
 			return;
 
 		// NOTE: Is this the desired behavior (?)
-		if (properties.Scale == previousProperties.Scale)
+		if (transform.Scale == previousTransform.Scale)
 		{
-			const auto tuple = std::make_tuple(frame, properties.Position);
+			const auto tuple = std::make_tuple(frame, transform.Position);
 			ProcessUpdatingAetCommand(commandManager, AnimationDataChangePosition, layer, tuple);
 		}
 		else
 		{
-			const auto tuple = std::make_tuple(frame, properties.Position, properties.Scale);
+			const auto tuple = std::make_tuple(frame, transform.Position, transform.Scale);
 			ProcessUpdatingAetCommand(commandManager, AnimationDataChangeTransform, layer, tuple);
 		}
 	}
@@ -289,7 +289,7 @@ namespace Editor
 		return (hoveringNode != BoxNode_Invalid) || (scalingNode != BoxNode_Invalid) || (boxHovered) || (allowAction);
 	}
 
-	void TransformTool::UpdateKeyboardMoveInput(Properties* properties)
+	void TransformTool::UpdateKeyboardMoveInput(Transform2D* transform)
 	{
 		// TODO: This should probably be moved into a common method so the MoveTool can also use it
 
@@ -300,7 +300,7 @@ namespace Editor
 			enum Direction : uint8_t { Increment, Decrement } Direction;
 		};
 
-		const NudgeBinding bindings[] =
+		constexpr NudgeBinding bindings[] =
 		{
 			{ KeyCode_Up,	 NudgeBinding::Y, NudgeBinding::Decrement },
 			{ KeyCode_Down,	 NudgeBinding::Y, NudgeBinding::Increment },
@@ -317,7 +317,7 @@ namespace Editor
 				if (binding.Direction == NudgeBinding::Decrement)
 					step *= -1.0f;
 
-				properties->Position[binding.Component] += step;
+				transform->Position[binding.Component] += step;
 			}
 		}
 	}
