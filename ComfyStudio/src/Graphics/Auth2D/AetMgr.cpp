@@ -2,11 +2,6 @@
 
 namespace Graphics
 {
-	static_assert((sizeof(KeyFrameCollectionArray) / sizeof(KeyFrameCollection)) == (sizeof(Transform2D) / sizeof(float)),
-		"The Transform2D struct must have an equal number of float fields as the KeyFrameCollectionArray has KeyFrameCollections");
-
-	static_assert(sizeof(KeyFrameCollectionArray) / sizeof(KeyFrameCollection) == Transform2D_Count);
-
 	namespace
 	{
 		void TransformByParent(const Transform2D& input, Transform2D& output)
@@ -97,25 +92,30 @@ namespace Graphics
 		return Interpolate(start, end, frame);
 	}
 
-	vec2 AetMgr::GetValueAt(const std::vector<AetKeyFrame>& keyFramesX, const std::vector<AetKeyFrame>& keyFramesY, frame_t frame)
+	float AetMgr::GetValueAt(const AetProperty1D& property, frame_t frame)
 	{
-		return vec2(AetMgr::GetValueAt(keyFramesX, frame), AetMgr::GetValueAt(keyFramesY, frame));
+		return AetMgr::GetValueAt(property.Keys, frame);
 	}
 
-	Transform2D AetMgr::GetTransformAt(const AetKeyFrameProperties& properties, frame_t frame)
+	vec2 AetMgr::GetValueAt(const AetProperty2D& property, frame_t frame)
+	{
+		return vec2(AetMgr::GetValueAt(property.X, frame), AetMgr::GetValueAt(property.Y, frame));
+	}
+
+	Transform2D AetMgr::GetTransformAt(const AetTransform& transform, frame_t frame)
 	{
 		Transform2D result;
-		result.Origin = AetMgr::GetValueAt(properties.OriginX(), properties.OriginY(), frame);
-		result.Position = AetMgr::GetValueAt(properties.PositionX(), properties.PositionY(), frame);
-		result.Rotation = AetMgr::GetValueAt(properties.Rotation(), frame);
-		result.Scale = AetMgr::GetValueAt(properties.ScaleX(), properties.ScaleY(), frame);
-		result.Opacity = AetMgr::GetValueAt(properties.Opacity(), frame);
+		result.Origin = AetMgr::GetValueAt(transform.Origin, frame);
+		result.Position = AetMgr::GetValueAt(transform.Position, frame);
+		result.Rotation = AetMgr::GetValueAt(transform.Rotation, frame);
+		result.Scale = AetMgr::GetValueAt(transform.Scale, frame);
+		result.Opacity = AetMgr::GetValueAt(transform.Opacity, frame);
 		return result;
 	}
 
 	Transform2D AetMgr::GetTransformAt(const AetAnimationData& animationData, frame_t frame)
 	{
-		return AetMgr::GetTransformAt(animationData.Properties, frame);
+		return AetMgr::GetTransformAt(animationData.Transform, frame);
 	}
 
 	bool AetMgr::AreFramesTheSame(frame_t frameA, frame_t frameB)
@@ -126,13 +126,13 @@ namespace Graphics
 		return std::abs(frameA - frameB) < frameComparisonThreshold;
 	}
 
-	AetKeyFrame* AetMgr::GetKeyFrameAt(KeyFrameCollection& keyFrames, frame_t frame)
+	AetKeyFrame* AetMgr::GetKeyFrameAt(AetProperty1D& property, frame_t frame)
 	{
 		// NOTE: The aet editor should always try to prevent this itself
-		assert(keyFrames.size() > 0);
+		assert(property->size() > 0);
 
 		// TODO: This could implement a binary search although the usually small number keyframes might not warrant it
-		for (auto& keyFrame : keyFrames)
+		for (auto& keyFrame : property.Keys)
 		{
 			if (AreFramesTheSame(keyFrame.Frame, frame))
 				return &keyFrame;
@@ -141,13 +141,13 @@ namespace Graphics
 		return nullptr;
 	}
 
-	void AetMgr::InsertKeyFrameAt(KeyFrameCollection& keyFrames, frame_t frame, float value)
+	void AetMgr::InsertKeyFrameAt(std::vector<AetKeyFrame>& keyFrames, frame_t frame, float value)
 	{
 		keyFrames.emplace_back(frame, value);
 		AetMgr::SortKeyFrames(keyFrames);
 	}
 
-	void AetMgr::DeleteKeyFrameAt(KeyFrameCollection& keyFrames, frame_t frame)
+	void AetMgr::DeleteKeyFrameAt(std::vector<AetKeyFrame>& keyFrames, frame_t frame)
 	{
 		auto existing = std::find_if(keyFrames.begin(), keyFrames.end(), [frame](const AetKeyFrame& keyFrame)
 		{
@@ -164,7 +164,7 @@ namespace Graphics
 		}
 	}
 
-	void AetMgr::SortKeyFrames(KeyFrameCollection& keyFrames)
+	void AetMgr::SortKeyFrames(std::vector<AetKeyFrame>& keyFrames)
 	{
 		std::sort(keyFrames.begin(), keyFrames.end(), [](const AetKeyFrame& keyFrameA, const AetKeyFrame& keyFrameB)
 		{
@@ -172,11 +172,11 @@ namespace Graphics
 		});
 	}
 
-	void AetMgr::OffsetAllKeyFrames(AetKeyFrameProperties& properties, frame_t frameIncrement)
+	void AetMgr::OffsetAllKeyFrames(AetTransform& transform, frame_t frameIncrement)
 	{
-		for (auto& keyFrames : properties)
+		for (Transform2DField i = 0; i < Transform2DField_Count; i++)
 		{
-			for (auto& keyFrame : keyFrames)
+			for (auto& keyFrame : transform[i].Keys)
 				keyFrame.Frame += frameIncrement;
 		}
 	}

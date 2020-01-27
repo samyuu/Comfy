@@ -378,11 +378,11 @@ namespace Editor
 				keyFramePropertyColor = GetColorVec4(EditorColor_KeyFrameProperty);
 				staticPropertyColor = Gui::GetStyleColorVec4(ImGuiCol_FrameBg);
 
-				DrawInspectorAnimationDataPropertyVec2(layer, "Origin", currentFrame, currentTransform.Origin, Transform2D_OriginX, Transform2D_OriginY);
-				DrawInspectorAnimationDataPropertyVec2(layer, "Position", currentFrame, currentTransform.Position, Transform2D_PositionX, Transform2D_PositionY);
-				DrawInspectorAnimationDataProperty(layer, "Rotation", currentFrame, currentTransform.Rotation, Transform2D_Rotation);
-				DrawInspectorAnimationDataPropertyVec2(layer, "Scale", currentFrame, currentTransform.Scale, Transform2D_ScaleX, Transform2D_ScaleY);
-				DrawInspectorAnimationDataProperty(layer, "Opacity", currentFrame, currentTransform.Opacity, Transform2D_Opacity);
+				DrawInspectorAnimationDataPropertyVec2(layer, "Origin", currentFrame, currentTransform.Origin, Transform2DField_OriginX, Transform2DField_OriginY);
+				DrawInspectorAnimationDataPropertyVec2(layer, "Position", currentFrame, currentTransform.Position, Transform2DField_PositionX, Transform2DField_PositionY);
+				DrawInspectorAnimationDataProperty(layer, "Rotation", currentFrame, currentTransform.Rotation, Transform2DField_Rotation);
+				DrawInspectorAnimationDataPropertyVec2(layer, "Scale", currentFrame, currentTransform.Scale, Transform2DField_ScaleX, Transform2DField_ScaleY);
+				DrawInspectorAnimationDataProperty(layer, "Opacity", currentFrame, currentTransform.Opacity, Transform2DField_Opacity);
 			}
 
 			if (layer->Type == AetLayerType::Pic)
@@ -447,12 +447,11 @@ namespace Editor
 		{
 			if (animationData != nullptr)
 			{
-				int i = 0;
-				for (auto& property : animationData->Properties)
+				for (Transform2DField i = 0; i < Transform2DField_Count; i++)
 				{
-					if (Gui::WideTreeNode(AetKeyFrameProperties::PropertyNames.at(i++)))
+					if (Gui::WideTreeNode(AetTransform::FieldNames[i++]))
 					{
-						for (auto& keyFrame : property)
+						for (auto& keyFrame : animationData->Transform[i].Keys)
 							Gui::Text("Frame: %f; Value: %f; Curve: %f", keyFrame.Frame, keyFrame.Value, keyFrame.Curve);
 
 						Gui::TreePop();
@@ -464,28 +463,28 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAnimationDataProperty(const RefPtr<AetLayer>& layer, const char* label, frame_t frame, float& value, int fieldType)
+	void AetInspector::DrawInspectorAnimationDataProperty(const RefPtr<AetLayer>& layer, const char* label, frame_t frame, float& value, Transform2DField field)
 	{
 		constexpr float percentFactor = 100.0f;
 
 		assert(layer->AnimationData.get() != nullptr);
 		const auto& animationData = layer->AnimationData;
 
-		AetKeyFrame* keyFrame = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Properties[fieldType], frame);
+		AetKeyFrame* keyFrame = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Transform[field], frame);
 
-		Gui::PushStyleColor(ImGuiCol_FrameBg, ((animationData->Properties[fieldType].size() > 1))
+		Gui::PushStyleColor(ImGuiCol_FrameBg, ((animationData->Transform[field]->size() > 1))
 			? (keyFrame != nullptr)
 			? keyFramePropertyColor
 			: animatedPropertyColor
 			: staticPropertyColor);
 
-		bool rotation = (fieldType == Transform2D_Rotation);
-		bool opacity = (fieldType == Transform2D_Opacity);
+		bool isRotation = (field == Transform2DField_Rotation);
+		bool isOpacity = (field == Transform2DField_Opacity);
 
-		const char* formatString = rotation ? u8"%.2f Åã" : opacity ? "%.2f%%" : "%.2f";
+		const char* formatString = isRotation ? u8"%.2f Åã" : isOpacity ? "%.2f%%" : "%.2f";
 		float min = 0.0f, max = 0.0f;
 
-		if (opacity)
+		if (isOpacity)
 		{
 			value *= percentFactor;
 			max = 1.0f * percentFactor;
@@ -493,37 +492,37 @@ namespace Editor
 
 		if (Gui::ComfyFloatTextWidget(label, &value, 1.0f, 10.0f, min, max, formatString, ImGuiInputTextFlags_None, (keyFrame == nullptr)))
 		{
-			if (opacity)
+			if (isOpacity)
 				value = glm::clamp(value * (1.0f / percentFactor), 0.0f, 1.0f);
 
-			auto tuple = std::make_tuple(static_cast<Transform2DField_Enum>(fieldType), frame, value);
+			auto tuple = std::make_tuple(static_cast<Transform2DField_Enum>(field), frame, value);
 			ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, layer, tuple);
 		}
 
 		Gui::PopStyleColor();
 	}
 
-	void AetInspector::DrawInspectorAnimationDataPropertyVec2(const RefPtr<AetLayer>& Layer, const char* label, frame_t frame, vec2& value, int fieldX, int fieldY)
+	void AetInspector::DrawInspectorAnimationDataPropertyVec2(const RefPtr<AetLayer>& Layer, const char* label, frame_t frame, vec2& value, Transform2DField fieldX, Transform2DField fieldY)
 	{
 		constexpr float percentFactor = 100.0f;
 
 		assert(Layer->AnimationData.get() != nullptr);
 		const auto& animationData = Layer->AnimationData;
 
-		const AetKeyFrame* keyFrameX = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Properties[fieldX], frame);
-		const AetKeyFrame* keyFrameY = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Properties[fieldY], frame);
+		const AetKeyFrame* keyFrameX = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Transform[fieldX], frame);
+		const AetKeyFrame* keyFrameY = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Transform[fieldY], frame);
 
-		Gui::PushStyleColor(ImGuiCol_FrameBg, ((animationData->Properties[fieldX].size() > 1) || (animationData->Properties[fieldY].size() > 1))
+		Gui::PushStyleColor(ImGuiCol_FrameBg, ((animationData->Transform[fieldX]->size() > 1) || (animationData->Transform[fieldY]->size() > 1))
 			? (keyFrameX != nullptr || keyFrameY != nullptr)
 			? keyFramePropertyColor
 			: animatedPropertyColor
 			: staticPropertyColor);
 
-		const bool scale = (fieldX == Transform2D_ScaleX) && (fieldY == Transform2D_ScaleY);
-		const char* formatString = scale ? "%.2f%%" : "%.2f";
+		const bool isScale = (fieldX == Transform2DField_ScaleX) && (fieldY == Transform2DField_ScaleY);
+		const char* formatString = isScale ? "%.2f%%" : "%.2f";
 
 		vec2 previousValue = value;
-		if (scale)
+		if (isScale)
 			value *= percentFactor;
 
 		bool disabledText[2] =
@@ -534,7 +533,7 @@ namespace Editor
 
 		if (Gui::ComfyFloat2TextWidget(label, glm::value_ptr(value), 1.0f, 0.0f, 0.0f, formatString, ImGuiInputTextFlags_None, disabledText))
 		{
-			if (scale)
+			if (isScale)
 				value *= (1.0f / percentFactor);
 
 			// NOTE: Should this check for a value change or should this always be adding X and Y KeyFrames at once? 

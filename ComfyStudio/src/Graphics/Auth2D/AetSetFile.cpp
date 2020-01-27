@@ -18,59 +18,68 @@ namespace Graphics
 			return value;
 		}
 
-		void ReadKeyFramesPointer(KeyFrameCollection& keyFrames, BinaryReader& reader)
+		void ReadProperty1DPointer(AetProperty1D& property, BinaryReader& reader)
 		{
 			size_t keyFrameCount = reader.ReadSize();
 			void* keyFramesPointer = reader.ReadPtr();
 
 			if (keyFrameCount > 0 && keyFramesPointer != nullptr)
 			{
-				reader.ReadAt(keyFramesPointer, [keyFrameCount, &keyFrames](BinaryReader& reader)
+				reader.ReadAt(keyFramesPointer, [keyFrameCount, &property](BinaryReader& reader)
 				{
-					keyFrames.resize(keyFrameCount);
+					property->resize(keyFrameCount);
 
 					if (keyFrameCount == 1)
 					{
-						keyFrames.front().Value = reader.ReadFloat();
+						property->front().Value = reader.ReadFloat();
 					}
 					else
 					{
 						for (size_t i = 0; i < keyFrameCount; i++)
-							keyFrames[i].Frame = reader.ReadFloat();
+							property.Keys[i].Frame = reader.ReadFloat();
 
 						for (size_t i = 0; i < keyFrameCount; i++)
 						{
-							keyFrames[i].Value = reader.ReadFloat();
-							keyFrames[i].Curve = reader.ReadFloat();
+							property.Keys[i].Value = reader.ReadFloat();
+							property.Keys[i].Curve = reader.ReadFloat();
 						}
 					}
 				});
 			}
 		}
 
-		void ReadKeyFrameProperties(AetKeyFrameProperties* properties, BinaryReader& reader)
+		void ReadProperty2DPointer(AetProperty2D& property, BinaryReader& reader)
 		{
-			for (KeyFrameCollection& keyFrames : *properties)
-				ReadKeyFramesPointer(keyFrames, reader);
+			ReadProperty1DPointer(property.X, reader);
+			ReadProperty1DPointer(property.Y, reader);
 		}
 
-		void WriteKeyFramesPointer(KeyFrameCollection& keyFrames, BinaryWriter& writer)
+		void ReadTransform(AetTransform& transform, BinaryReader& reader)
 		{
-			if (keyFrames.size() > 0)
+			ReadProperty2DPointer(transform.Origin, reader);
+			ReadProperty2DPointer(transform.Position, reader);
+			ReadProperty1DPointer(transform.Rotation, reader);
+			ReadProperty2DPointer(transform.Scale, reader);
+			ReadProperty1DPointer(transform.Opacity, reader);
+		}
+
+		void WriteProperty1DPointer(const AetProperty1D& property, BinaryWriter& writer)
+		{
+			if (property->size() > 0)
 			{
-				writer.WriteUInt32(static_cast<uint32_t>(keyFrames.size()));
-				writer.WritePtr([&keyFrames](BinaryWriter& writer)
+				writer.WriteUInt32(static_cast<uint32_t>(property->size()));
+				writer.WritePtr([&property](BinaryWriter& writer)
 				{
-					if (keyFrames.size() == 1)
+					if (property->size() == 1)
 					{
-						writer.WriteFloat(keyFrames.front().Value);
+						writer.WriteFloat(property->front().Value);
 					}
 					else
 					{
-						for (AetKeyFrame& keyFrame : keyFrames)
+						for (auto& keyFrame : property.Keys)
 							writer.WriteFloat(keyFrame.Frame);
 
-						for (AetKeyFrame& keyFrame : keyFrames)
+						for (auto& keyFrame : property.Keys)
 						{
 							writer.WriteFloat(keyFrame.Value);
 							writer.WriteFloat(keyFrame.Curve);
@@ -85,10 +94,19 @@ namespace Graphics
 			}
 		}
 
-		void WriteKeyFrameProperties(AetKeyFrameProperties* properties, BinaryWriter& writer)
+		void WriteProperty2DPointer(const AetProperty2D& property, BinaryWriter& writer)
 		{
-			for (KeyFrameCollection& keyFrames : *properties)
-				WriteKeyFramesPointer(keyFrames, writer);
+			WriteProperty1DPointer(property.X, writer);
+			WriteProperty1DPointer(property.Y, writer);
+		}
+
+		void WriteTransform(const AetTransform& transform, BinaryWriter& writer)
+		{
+			WriteProperty2DPointer(transform.Origin, writer);
+			WriteProperty2DPointer(transform.Position, writer);
+			WriteProperty1DPointer(transform.Rotation, writer);
+			WriteProperty2DPointer(transform.Scale, writer);
+			WriteProperty1DPointer(transform.Opacity, writer);
 		}
 
 		void ReadAnimationData(RefPtr<AetAnimationData>& animationData, BinaryReader& reader)
@@ -102,17 +120,35 @@ namespace Graphics
 			if (reader.GetPointerMode() == PtrMode::Mode64Bit)
 				reader.ReadUInt32();
 
-			ReadKeyFrameProperties(&animationData->Properties, reader);
+			ReadTransform(animationData->Transform, reader);
 
 			void* perspectivePropertiesPointer = reader.ReadPtr();
 			if (perspectivePropertiesPointer != nullptr)
 			{
 				reader.ReadAt(perspectivePropertiesPointer, [animationData](BinaryReader& reader)
 				{
-					animationData->PerspectiveProperties = MakeRef<AetKeyFrameProperties>();
-					ReadKeyFrameProperties(animationData->PerspectiveProperties.get(), reader);
+					animationData->PerspectiveTransform = MakeRef<AetTransform>();
+					ReadTransform(*animationData->PerspectiveTransform, reader);
 				});
 			}
+		}
+
+		void SetTransformStartFrame(AetTransform& transform, frame_t startFrame)
+		{
+			auto setProperty1DStartFrame = [](auto& property, frame_t startFrame)
+			{
+				if (property->size() == 1)
+					property->front().Frame = startFrame;
+			};
+
+			setProperty1DStartFrame(transform.Origin.X, startFrame);
+			setProperty1DStartFrame(transform.Origin.Y, startFrame);
+			setProperty1DStartFrame(transform.Position.X, startFrame);
+			setProperty1DStartFrame(transform.Position.Y, startFrame);
+			setProperty1DStartFrame(transform.Rotation, startFrame);
+			setProperty1DStartFrame(transform.Scale.X, startFrame);
+			setProperty1DStartFrame(transform.Scale.Y, startFrame);
+			setProperty1DStartFrame(transform.Opacity, startFrame);
 		}
 	}
 
@@ -161,13 +197,11 @@ namespace Graphics
 		{
 			reader.ReadAt(animationDataPointer, [this](BinaryReader& reader)
 			{
-				ReadAnimationData(this->AnimationData, reader);
+				ReadAnimationData(AnimationData, reader);
 
-				for (auto& keyFrames : this->AnimationData->Properties)
-				{
-					if (keyFrames.size() == 1)
-						keyFrames.front().Frame = StartFrame;
-				}
+				SetTransformStartFrame(AnimationData->Transform, StartFrame);
+				if (AnimationData->PerspectiveTransform != nullptr)
+					SetTransformStartFrame(*AnimationData->PerspectiveTransform, StartFrame);
 			});
 		}
 
@@ -191,8 +225,7 @@ namespace Graphics
 			Camera = MakeRef<AetCamera>();
 			reader.ReadAt(cameraOffsetPtr, [this](BinaryReader& reader)
 			{
-				ReadKeyFramesPointer(Camera->PositionX, reader);
-				ReadKeyFramesPointer(Camera->PositionY, reader);
+				ReadProperty2DPointer(Camera->Position, reader);
 			});
 		}
 
@@ -301,8 +334,7 @@ namespace Graphics
 			{
 				writer.WritePtr([this](BinaryWriter& writer)
 				{
-					WriteKeyFramesPointer(this->Camera->PositionX, writer);
-					WriteKeyFramesPointer(this->Camera->PositionY, writer);
+					WriteProperty2DPointer(Camera->Position, writer);
 				});
 			}
 			else
@@ -396,13 +428,13 @@ namespace Graphics
 										writer.WriteBool(animationData.UseTextureMask);
 										writer.WriteUInt8(0x00);
 
-										WriteKeyFrameProperties(&animationData.Properties, writer);
+										WriteTransform(animationData.Transform, writer);
 
-										if (animationData.PerspectiveProperties != nullptr)
+										if (animationData.PerspectiveTransform != nullptr)
 										{
 											writer.WritePtr([&animationData](BinaryWriter& writer)
 											{
-												WriteKeyFrameProperties(animationData.PerspectiveProperties.get(), writer);
+												WriteTransform(*animationData.PerspectiveTransform, writer);
 												writer.WriteAlignmentPadding(16);
 											});
 										}

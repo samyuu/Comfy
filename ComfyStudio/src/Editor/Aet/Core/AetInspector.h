@@ -52,8 +52,8 @@ namespace Editor
 		void DrawInspectorAnimationData(const RefPtr<Graphics::AetAnimationData>& animationData, const RefPtr<Graphics::AetLayer>& layer);
 		void DrawInspectorDebugAnimationData(const RefPtr<Graphics::AetAnimationData>& animationData, const RefPtr<Graphics::AetLayer>& layer);
 
-		void DrawInspectorAnimationDataProperty(const RefPtr<Graphics::AetLayer>& layer, const char* label, frame_t frame, float& value, int propertyType);
-		void DrawInspectorAnimationDataPropertyVec2(const RefPtr<Graphics::AetLayer>& layer, const char* label, frame_t frame, vec2& value, int propertyTypeX, int propertyTypeY);
+		void DrawInspectorAnimationDataProperty(const RefPtr<Graphics::AetLayer>& layer, const char* label, frame_t frame, float& value, Graphics::Transform2DField field);
+		void DrawInspectorAnimationDataPropertyVec2(const RefPtr<Graphics::AetLayer>& layer, const char* label, frame_t frame, vec2& value, Graphics::Transform2DField fieldX, Graphics::Transform2DField fieldY);
 
 		void DrawInspectorLayerMarkers(const RefPtr<Graphics::AetLayer>& layer, std::vector<RefPtr<Graphics::AetMarker>>* markers);
 		void DrawInspectorLayerParent(Graphics::Aet* aet, const RefPtr<Graphics::AetLayer>& layer);

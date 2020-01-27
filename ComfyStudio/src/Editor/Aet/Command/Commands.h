@@ -110,7 +110,7 @@ namespace Editor::Command
 private:
 	RefPtr<Graphics::AetLayer> ref;
 	frame_t newValue, oldValue;
-	inline void OffsetKeyFrames(frame_t increment) { if (ref->AnimationData != nullptr) Graphics::AetMgr::OffsetAllKeyFrames(ref->AnimationData->Properties, increment); }
+	inline void OffsetKeyFrames(frame_t increment) { if (ref->AnimationData != nullptr) Graphics::AetMgr::OffsetAllKeyFrames(ref->AnimationData->Transform, increment); }
 	inline frame_t ClampValue(frame_t value) { return glm::min(value, ref->EndFrame - 1.0f); };
 
 public:
@@ -223,10 +223,10 @@ private:
 	float oldValue;
 	bool keyFrameExisted;
 
-	inline Graphics::KeyFrameCollection& GetKeyFrames() { return ref->AnimationData->Properties[std::get<0>(newValue)]; }
+	inline Graphics::AetProperty1D& GetProperty() { return ref->AnimationData->Transform[std::get<0>(newValue)]; }
 	inline frame_t GetFrame() { return std::get<1>(newValue); }
 	inline float GetNewValue() { return std::get<2>(newValue); }
-	inline Graphics::AetKeyFrame* FindExistingKeyFrame() { return Graphics::AetMgr::GetKeyFrameAt(GetKeyFrames(), GetFrame()); }
+	inline Graphics::AetKeyFrame* FindExistingKeyFrame() { return Graphics::AetMgr::GetKeyFrameAt(GetProperty(), GetFrame()); }
 
 	inline void DoRedoInternal(bool writeOldValue)
 	{
@@ -245,8 +245,7 @@ private:
 			if (writeOldValue)
 				oldValue = GetNewValue();
 
-			Graphics::KeyFrameCollection& keyFrames = GetKeyFrames();
-			Graphics::AetMgr::InsertKeyFrameAt(keyFrames, GetFrame(), GetNewValue());
+			Graphics::AetMgr::InsertKeyFrameAt(GetProperty().Keys, GetFrame(), GetNewValue());
 		}
 	}
 
@@ -267,8 +266,7 @@ public:
 		}
 		else
 		{
-			Graphics::KeyFrameCollection& keyFrames = GetKeyFrames();
-			Graphics::AetMgr::DeleteKeyFrameAt(keyFrames, GetFrame());
+			Graphics::AetMgr::DeleteKeyFrameAt(GetProperty().Keys, GetFrame());
 		}
 	}
 	void Redo() override
@@ -283,7 +281,7 @@ public:
 	bool CanUpdate(AnimationDataChangeKeyFrameValue* newCommand)
 	{
 		// NOTE: The problem with checking for /* && keyFrameExisted */ is that text based input creates a new keyframe on the first letter which is far from ideal
-		return (&newCommand->GetKeyFrames() == &GetKeyFrames()) && (newCommand->GetFrame() == GetFrame());
+		return (&newCommand->GetProperty() == &GetProperty()) && (newCommand->GetFrame() == GetFrame());
 	}
 	Define_AetCommandEnd();
 	// ----------------------------------------------------------------------------------------------------------------------------
@@ -302,10 +300,10 @@ private:
 
 public:
 	AnimationDataChangeTransform(const RefPtr<Graphics::AetLayer>& ref, std::tuple<frame_t, vec2, vec2> value) : ref(ref), newValue(value),
-		keyFrameCommandPositionX(ref, std::make_tuple(Graphics::Transform2D_PositionX, GetFrame(), GetPosition().x)),
-		keyFrameCommandPositionY(ref, std::make_tuple(Graphics::Transform2D_PositionY, GetFrame(), GetPosition().y)),
-		keyFrameCommandScaleX(ref, std::make_tuple(Graphics::Transform2D_ScaleX, GetFrame(), GetScale().x)),
-		keyFrameCommandScaleY(ref, std::make_tuple(Graphics::Transform2D_ScaleY, GetFrame(), GetScale().y))
+		keyFrameCommandPositionX(ref, std::make_tuple(Graphics::Transform2DField_PositionX, GetFrame(), GetPosition().x)),
+		keyFrameCommandPositionY(ref, std::make_tuple(Graphics::Transform2DField_PositionY, GetFrame(), GetPosition().y)),
+		keyFrameCommandScaleX(ref, std::make_tuple(Graphics::Transform2DField_ScaleX, GetFrame(), GetScale().x)),
+		keyFrameCommandScaleY(ref, std::make_tuple(Graphics::Transform2DField_ScaleY, GetFrame(), GetScale().y))
 	{
 	}
 	void Do() override
@@ -327,10 +325,10 @@ public:
 	{
 		newValue = value;
 		float frame = GetFrame();
-		keyFrameCommandPositionX.Update(std::make_tuple(Graphics::Transform2D_PositionX, frame, GetPosition().x));
-		keyFrameCommandPositionY.Update(std::make_tuple(Graphics::Transform2D_PositionY, frame, GetPosition().y));
-		keyFrameCommandScaleX.Update(std::make_tuple(Graphics::Transform2D_ScaleX, frame, GetScale().x));
-		keyFrameCommandScaleY.Update(std::make_tuple(Graphics::Transform2D_ScaleY, frame, GetScale().y));
+		keyFrameCommandPositionX.Update(std::make_tuple(Graphics::Transform2DField_PositionX, frame, GetPosition().x));
+		keyFrameCommandPositionY.Update(std::make_tuple(Graphics::Transform2DField_PositionY, frame, GetPosition().y));
+		keyFrameCommandScaleX.Update(std::make_tuple(Graphics::Transform2DField_ScaleX, frame, GetScale().x));
+		keyFrameCommandScaleY.Update(std::make_tuple(Graphics::Transform2DField_ScaleY, frame, GetScale().y));
 	}
 	bool CanUpdate(AnimationDataChangeTransform* newCommand)
 	{
@@ -351,8 +349,8 @@ private:
 
 public:
 	AnimationDataChangePosition(const RefPtr<Graphics::AetLayer>& ref, std::tuple<frame_t, vec2> value) : ref(ref), newValue(value),
-		keyFrameCommandPositionX(ref, std::make_tuple(Graphics::Transform2D_PositionX, GetFrame(), GetPosition().x)),
-		keyFrameCommandPositionY(ref, std::make_tuple(Graphics::Transform2D_PositionY, GetFrame(), GetPosition().y))
+		keyFrameCommandPositionX(ref, std::make_tuple(Graphics::Transform2DField_PositionX, GetFrame(), GetPosition().x)),
+		keyFrameCommandPositionY(ref, std::make_tuple(Graphics::Transform2DField_PositionY, GetFrame(), GetPosition().y))
 	{
 	}
 	void Do() override
@@ -371,8 +369,8 @@ public:
 	{
 		newValue = value;
 		float frame = GetFrame();
-		keyFrameCommandPositionX.Update(std::make_tuple(Graphics::Transform2D_PositionX, frame, GetPosition().x));
-		keyFrameCommandPositionY.Update(std::make_tuple(Graphics::Transform2D_PositionY, frame, GetPosition().y));
+		keyFrameCommandPositionX.Update(std::make_tuple(Graphics::Transform2DField_PositionX, frame, GetPosition().x));
+		keyFrameCommandPositionY.Update(std::make_tuple(Graphics::Transform2DField_PositionY, frame, GetPosition().y));
 	}
 	bool CanUpdate(AnimationDataChangePosition* newCommand)
 	{
@@ -393,8 +391,8 @@ private:
 
 public:
 	AnimationDataChangeScale(const RefPtr<Graphics::AetLayer>& ref, std::tuple<frame_t, vec2> value) : ref(ref), newValue(value),
-		keyFrameCommandScaleX(ref, std::make_tuple(Graphics::Transform2D_ScaleX, GetFrame(), GetScale().x)),
-		keyFrameCommandScaleY(ref, std::make_tuple(Graphics::Transform2D_ScaleY, GetFrame(), GetScale().y))
+		keyFrameCommandScaleX(ref, std::make_tuple(Graphics::Transform2DField_ScaleX, GetFrame(), GetScale().x)),
+		keyFrameCommandScaleY(ref, std::make_tuple(Graphics::Transform2DField_ScaleY, GetFrame(), GetScale().y))
 	{
 	}
 	void Do() override
@@ -413,8 +411,8 @@ public:
 	{
 		newValue = value;
 		float frame = GetFrame();
-		keyFrameCommandScaleX.Update(std::make_tuple(Graphics::Transform2D_ScaleX, frame, GetScale().x));
-		keyFrameCommandScaleY.Update(std::make_tuple(Graphics::Transform2D_ScaleY, frame, GetScale().y));
+		keyFrameCommandScaleX.Update(std::make_tuple(Graphics::Transform2DField_ScaleX, frame, GetScale().x));
+		keyFrameCommandScaleY.Update(std::make_tuple(Graphics::Transform2DField_ScaleY, frame, GetScale().y));
 	}
 	bool CanUpdate(AnimationDataChangeScale* newCommand)
 	{

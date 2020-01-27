@@ -3,7 +3,7 @@
 
 namespace Graphics
 {
-	const std::array<const char*, 8> AetKeyFrameProperties::PropertyNames =
+	const std::array<const char*, 8> AetTransform::FieldNames =
 	{
 		"Origin X",
 		"Origin Y",
@@ -105,14 +105,15 @@ namespace Graphics
 			AnimationData = MakeRef<Graphics::AetAnimationData>();
 			AnimationData->BlendMode = AetBlendMode::Normal;
 			AnimationData->UseTextureMask = false;
-			AnimationData->Properties.OriginX().emplace_back(0.0f);
-			AnimationData->Properties.OriginY().emplace_back(0.0f);
-			AnimationData->Properties.PositionX().emplace_back(0.0f);
-			AnimationData->Properties.PositionY().emplace_back(0.0f);
-			AnimationData->Properties.Rotation().emplace_back(0.0f);
-			AnimationData->Properties.ScaleX().emplace_back(1.0f);
-			AnimationData->Properties.ScaleY().emplace_back(1.0f);
-			AnimationData->Properties.Opacity().emplace_back(1.0f);
+
+			AnimationData->Transform.Origin.X->emplace_back(0.0f);
+			AnimationData->Transform.Origin.Y->emplace_back(0.0f);
+			AnimationData->Transform.Position.X->emplace_back(0.0f);
+			AnimationData->Transform.Position.Y->emplace_back(0.0f);
+			AnimationData->Transform.Rotation->emplace_back(0.0f);
+			AnimationData->Transform.Scale.X->emplace_back(0.0f);
+			AnimationData->Transform.Scale.Y->emplace_back(0.0f);
+			AnimationData->Transform.Opacity->emplace_back(0.0f);
 		}
 
 		this->parentComposition = parentComp;

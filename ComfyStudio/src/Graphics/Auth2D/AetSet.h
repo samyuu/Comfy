@@ -2,6 +2,7 @@
 #include "Types.h"
 #include "Core/IDTypes.h"
 #include "Core/CoreTypes.h"
+#include "Transform2D.h"
 #include "FileSystem/FileInterface.h"
 #include "Graphics/GraphicsTypes.h"
 
@@ -112,44 +113,39 @@ namespace Graphics
 		float Curve;
 	};
 
-	using KeyFrameCollection = std::vector<AetKeyFrame>;
-	using KeyFrameCollectionArray = std::array<KeyFrameCollection, 8>;
-	
-	struct AetKeyFrameProperties
+	struct AetProperty1D
 	{
-		static const std::array<const char*, 8> PropertyNames;
+		std::vector<AetKeyFrame> Keys;
 
-		KeyFrameCollectionArray KeyFrames;
+		inline std::vector<AetKeyFrame>* operator->() { return &Keys; }
+		inline const std::vector<AetKeyFrame>* operator->() const { return &Keys; }
+	};
 
-		inline auto& OriginX() { return KeyFrames[0]; };
-		inline auto& OriginY() { return KeyFrames[1]; };
-		inline auto& PositionX() { return KeyFrames[2]; };
-		inline auto& PositionY() { return KeyFrames[3]; };
-		inline auto& Rotation() { return KeyFrames[4]; };
-		inline auto& ScaleX() { return KeyFrames[5]; };
-		inline auto& ScaleY() { return KeyFrames[6]; };
-		inline auto& Opacity() { return KeyFrames[7]; };
+	struct AetProperty2D
+	{
+		AetProperty1D X, Y;
+	};
 
-		inline auto& OriginX() const { return KeyFrames[0]; };
-		inline auto& OriginY() const { return KeyFrames[1]; };
-		inline auto& PositionX() const { return KeyFrames[2]; };
-		inline auto& PositionY() const { return KeyFrames[3]; };
-		inline auto& Rotation() const { return KeyFrames[4]; };
-		inline auto& ScaleX() const { return KeyFrames[5]; };
-		inline auto& ScaleY() const { return KeyFrames[6]; };
-		inline auto& Opacity() const { return KeyFrames[7]; };
+	struct AetTransform
+	{
+		static const std::array<const char*, 8> FieldNames;
 
-		inline auto begin() { return KeyFrames.begin(); };
-		inline auto end() { return KeyFrames.end(); };
-		inline auto begin() const { return KeyFrames.begin(); };
-		inline auto end() const { return KeyFrames.end(); };
-		inline auto cbegin() const { return KeyFrames.cbegin(); };
-		inline auto cend() const { return KeyFrames.cend(); };
+		AetProperty2D Origin;
+		AetProperty2D Position;
+		AetProperty1D Rotation;
+		AetProperty2D Scale;
+		AetProperty1D Opacity;
 
-		inline constexpr size_t size() const { return KeyFrames.size(); };
-		inline auto& at(size_t index) { return KeyFrames.at(index); };
-		inline auto& at(size_t index) const { return KeyFrames.at(index); };
-		inline auto& operator[](size_t index) { return KeyFrames[index]; };
+		inline AetProperty1D& operator[](Transform2DField field)
+		{
+			assert(field >= Transform2DField_OriginX && field < Transform2DField_Count);
+			return (&Origin.X)[field];
+		}
+
+		inline const AetProperty1D& operator[](Transform2DField field) const
+		{
+			return (*const_cast<AetTransform*>(this))[field];
+		}
 	};
 
 	struct AetAnimationData
@@ -158,11 +154,10 @@ namespace Graphics
 		AetBlendMode BlendMode;
 		// NOTE: Pic only texture mask bool, if true this sprite will be masked by the upper layer
 		bool UseTextureMask;
-
 		// NOTE: Key frame animation data
-		AetKeyFrameProperties Properties;
+		AetTransform Transform;
 		// TODO: Perspective animation transform, not yet implemented by the editor
-		RefPtr<AetKeyFrameProperties> PerspectiveProperties;
+		RefPtr<AetTransform> PerspectiveTransform;
 	};
 
 	union AetLayerFlags
@@ -222,7 +217,7 @@ namespace Graphics
 
 		// NOTE: A list of named frame markers used for game internals
 		std::vector<RefPtr<AetMarker>> Markers;
-		
+
 		// NOTE: Everything render and animation related. Optional field not used by audio layers
 		RefPtr<AetAnimationData> AnimationData;
 
@@ -289,14 +284,14 @@ namespace Graphics
 		~AetComposition() = default;
 
 		AetComposition& operator=(const AetComposition&) = delete;
-	
+
 	public:
 		mutable GuiExtraData GuiData;
 
 	public:
 		Aet* GetParentAet() const;
 		bool IsRootComposition() const;
-		
+
 		inline auto begin() { return layers.begin(); };
 		inline auto end() { return layers.end(); };
 		inline auto begin() const { return layers.begin(); };
@@ -325,7 +320,7 @@ namespace Graphics
 
 		RefPtr<AetLayer> FindLayer(const std::string& name);
 		RefPtr<const AetLayer> FindLayer(const std::string& name) const;
-		
+
 	public:
 		void AddNewLayer(AetLayerType type, const std::string& name);
 		void DeleteLayer(AetLayer* value);
@@ -344,8 +339,7 @@ namespace Graphics
 
 	struct AetCamera
 	{
-		KeyFrameCollection PositionX;
-		KeyFrameCollection PositionY;
+		AetProperty2D Position;
 	};
 
 	class AetSoundEffect
@@ -380,7 +374,7 @@ namespace Graphics
 		Aet(const Aet&) = delete;
 		~Aet() = default;
 
-		Aet& operator= (const Aet&) = delete;
+		Aet& operator=(const Aet&) = delete;
 
 	public:
 		// NOTE: Typically "MAIN", "TOUCH" or named after the display mode
@@ -449,7 +443,7 @@ namespace Graphics
 		AetSet(const AetSet&) = delete;
 		~AetSet() = default;
 
-		AetSet& operator= (const AetSet&) = delete;
+		AetSet& operator=(const AetSet&) = delete;
 
 	public:
 		// TODO: File name, should probably be moved into the IReadable interface and be set OnLoad (?)

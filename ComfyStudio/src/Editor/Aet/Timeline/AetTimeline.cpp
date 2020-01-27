@@ -54,7 +54,7 @@ namespace Editor
 		for (const auto& layer : *workingComp)
 		{
 			if (layer->GuiData.TimelineNodeOpen)
-				rowCount += Transform2D_Count;
+				rowCount += Transform2DField_Count;
 		}
 
 		constexpr float borderSize = 1.0f;
@@ -292,7 +292,7 @@ namespace Editor
 
 		auto drawLayerTransformProperties = [&](int& rowIndex, const RefPtr<AetLayer>& layer)
 		{
-			for (int i = 0; i < Transform2D_Count; i++)
+			for (Transform2DField i = 0; i < Transform2DField_Count; i++)
 			{
 				const auto[type, name] = timelinePropertyTypeNames[i];
 
@@ -354,7 +354,7 @@ namespace Editor
 			for (const auto& layer : *workingComp)
 			{
 				if (layer->GuiData.TimelineNodeOpen)
-					rowCount += static_cast<int>(Transform2D_Count);
+					rowCount += Transform2DField_Count;
 			}
 		}
 		return rowCount;

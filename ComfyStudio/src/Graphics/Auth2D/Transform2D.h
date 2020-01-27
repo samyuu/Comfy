@@ -3,29 +3,32 @@
 
 namespace Graphics
 {
-	struct Transform2DFieldFlags
+	typedef int32_t Transform2DField;
+	typedef int32_t Transform2DFieldFlags;
+
+	enum Transform2DField_Enum : Transform2DField
 	{
-		bool OriginX : 1;
-		bool OriginY : 1;
-		bool PositionX : 1;
-		bool PositionY : 1;
-		bool Rotation : 1;
-		bool ScaleX : 1;
-		bool ScaleY : 1;
-		bool Opacity : 1;
+		Transform2DField_OriginX,
+		Transform2DField_OriginY,
+		Transform2DField_PositionX,
+		Transform2DField_PositionY,
+		Transform2DField_Rotation,
+		Transform2DField_ScaleX,
+		Transform2DField_ScaleY,
+		Transform2DField_Opacity,
+		Transform2DField_Count,
 	};
 
-	enum Transform2DField_Enum
+	enum Transform2DFieldFlags_Enum : Transform2DFieldFlags
 	{
-		Transform2D_OriginX,
-		Transform2D_OriginY,
-		Transform2D_PositionX,
-		Transform2D_PositionY,
-		Transform2D_Rotation,
-		Transform2D_ScaleX,
-		Transform2D_ScaleY,
-		Transform2D_Opacity,
-		Transform2D_Count,
+		Transform2DFieldFlags_OriginX = (1 << Transform2DField_OriginX),
+		Transform2DFieldFlags_OriginY = (1 << Transform2DField_OriginY),
+		Transform2DFieldFlags_PositionX = (1 << Transform2DField_PositionX),
+		Transform2DFieldFlags_PositionY = (1 << Transform2DField_PositionY),
+		Transform2DFieldFlags_Rotation = (1 << Transform2DField_Rotation),
+		Transform2DFieldFlags_ScaleX = (1 << Transform2DField_ScaleX),
+		Transform2DFieldFlags_ScaleY = (1 << Transform2DField_ScaleY),
+		Transform2DFieldFlags_Opacity = (1 << Transform2DField_Opacity),
 	};
 
 	struct Transform2D

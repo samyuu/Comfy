@@ -43,7 +43,7 @@ namespace Editor
 		void DrawKeyFramePart(ImDrawList* drawList, vec2 position, KeyFramePart type, ImU32 color) const;
 		void DrawSingleKeyFrame(ImDrawList* drawList, const vec2& position, KeyFrameType type, float opacity = 1.0f) const;
 
-		static KeyFrameType GetKeyFrameType(const Graphics::AetKeyFrame& keyFrame, const Graphics::KeyFrameCollection& keyFrames);
+		static KeyFrameType GetKeyFrameType(const Graphics::AetKeyFrame& keyFrame, const Graphics::AetProperty1D& property);
 		static float GetKeyFrameOpacity(const Graphics::AetKeyFrame& keyFrame, bool opactiyKeyFrames);
 	};
 }

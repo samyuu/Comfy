@@ -29,24 +29,25 @@ namespace Graphics
 		static float Interpolate(const AetKeyFrame* start, const AetKeyFrame* end, frame_t frame);
 		
 		static float GetValueAt(const std::vector<AetKeyFrame>& keyFrames, frame_t frame);
-		static vec2 GetValueAt(const std::vector<AetKeyFrame>& keyFramesX, const std::vector<AetKeyFrame>& keyFramesY, frame_t frame);
+		static float GetValueAt(const AetProperty1D& property, frame_t frame);
+		static vec2 GetValueAt(const AetProperty2D& property, frame_t frame);
 		
-		static Transform2D GetTransformAt(const AetKeyFrameProperties& properties, frame_t frame);
+		static Transform2D GetTransformAt(const AetTransform& transform, frame_t frame);
 		static Transform2D GetTransformAt(const AetAnimationData& animationData, frame_t frame);
 
 		// NOTE: Threshold frame foat comparison
 		static bool AreFramesTheSame(frame_t frameA, frame_t frameB);
 
-		static AetKeyFrame* GetKeyFrameAt(KeyFrameCollection& keyFrames, frame_t frame);
+		static AetKeyFrame* GetKeyFrameAt(AetProperty1D& property, frame_t frame);
 		
-		static void InsertKeyFrameAt(KeyFrameCollection& keyFrames, frame_t frame, float value);
-		static void DeleteKeyFrameAt(KeyFrameCollection& keyFrames, frame_t frame);
+		static void InsertKeyFrameAt(std::vector<AetKeyFrame>& keyFrames, frame_t frame, float value);
+		static void DeleteKeyFrameAt(std::vector<AetKeyFrame>& keyFrames, frame_t frame);
 		
 		// NOTE: Because a KeyFrameCollection is expected to always be sorted
-		static void SortKeyFrames(KeyFrameCollection& keyFrames);
+		static void SortKeyFrames(std::vector<AetKeyFrame>& keyFrames);
 
 		// NOTE: To be used after changing the StartFrame frame of a layer
-		static void OffsetAllKeyFrames(AetKeyFrameProperties& properties, frame_t frameIncrement);
+		static void OffsetAllKeyFrames(AetTransform& transform, frame_t frameIncrement);
 
 		// NOTE: Recursively add the properties of the parent layer to the input properties if there is one
 		static void ApplyParentTransform(Transform2D& outTransform, const AetLayer* parent, frame_t frame, int32_t& recursionCount);

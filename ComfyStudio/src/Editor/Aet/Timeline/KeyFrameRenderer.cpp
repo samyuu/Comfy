@@ -78,18 +78,18 @@ namespace Editor
 			if (layer->AnimationData == nullptr)
 				continue;
 
-			auto& properties = layer->AnimationData->Properties;
-			for (const auto& keyFrames : properties)
+			for (Transform2DField i = 0; i < Transform2DField_Count; i++)
 			{
-				for (const auto& keyFrame : keyFrames)
+				auto& property = layer->AnimationData->Transform[i];
+				for (const auto& keyFrame : property.Keys)
 				{
 					const vec2 keyFramePosition = GetCenteredTimelineRowScreenPosition(timeline, keyFrame.Frame, currentRow);
 					const TimelineVisibility visiblity = timeline->GetTimelineVisibilityForScreenSpace(keyFramePosition.x);
 
 					if (visiblity == TimelineVisibility::Visible)
 					{
-						const bool opacityKeyFrames = (&keyFrames == &properties.Opacity());
-						DrawSingleKeyFrame(drawList, keyFramePosition, GetKeyFrameType(keyFrame, keyFrames), GetKeyFrameOpacity(keyFrame, opacityKeyFrames));
+						const bool isOpacity = (i == Transform2DField_Opacity);
+						DrawSingleKeyFrame(drawList, keyFramePosition, GetKeyFrameType(keyFrame, property), GetKeyFrameOpacity(keyFrame, isOpacity));
 					}
 				}
 				++currentRow;
@@ -202,17 +202,17 @@ namespace Editor
 		}
 	}
 
-	KeyFrameRenderer::KeyFrameType KeyFrameRenderer::GetKeyFrameType(const AetKeyFrame& keyFrame, const KeyFrameCollection& keyFrames)
+	KeyFrameRenderer::KeyFrameType KeyFrameRenderer::GetKeyFrameType(const AetKeyFrame& keyFrame, const AetProperty1D& property)
 	{
-		if (keyFrames.size() == 1)
+		if (property->size() == 1)
 		{
 			return KeyFrameType::Single;
 		}
-		else if (&keyFrame == &keyFrames.front())
+		else if (&keyFrame == &property->front())
 		{
 			return KeyFrameType::First;
 		}
-		else if (&keyFrame == &keyFrames.back())
+		else if (&keyFrame == &property->back())
 		{
 			return KeyFrameType::Last;
 		}
