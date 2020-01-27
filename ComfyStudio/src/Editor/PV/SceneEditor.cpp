@@ -43,9 +43,6 @@ namespace Editor
 		if (sceneGraph.LoadedObjSets.empty())
 		{
 			LoadStageObjects(StageType::STGTST, 7, 0);
-			// LoadStageObjects(StageType::STGNS, 6, 0);
-			// LoadStageObjects(StageType::STGPV, 260, 1);
-
 			SetStageVisibility(StageVisibilityType::GroundSky);
 		}
 	}
