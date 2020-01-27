@@ -2,7 +2,7 @@
 #include "System/CommandLine/CommandLine.h"
 
 #define RUN_MAIN_TEST 0
-#define USE_WIN_MAIN 0
+#define USE_WIN_MAIN 1
 
 #if (RUN_MAIN_TEST)
 #include "MainTest.cpp"
