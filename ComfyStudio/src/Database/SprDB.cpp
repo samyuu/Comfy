@@ -101,7 +101,7 @@ namespace Database
 				for (auto& sprTexEntry : sprSetEntry.SprTexEntries)
 				{
 					writer.WriteUInt32(static_cast<uint32_t>(sprTexEntry.ID));
-					writer.WriteStrPtr(&sprTexEntry.Name);
+					writer.WriteStrPtr(sprTexEntry.Name);
 					writer.WriteInt16(sprTexEntry.Index);
 					writer.WriteUInt16(sprSetIndex | packedDataMask);
 				}
@@ -110,7 +110,7 @@ namespace Database
 				for (auto& sprEntry : sprSetEntry.SprEntries)
 				{
 					writer.WriteUInt32(static_cast<uint32_t>(sprEntry.ID));
-					writer.WriteStrPtr(&sprEntry.Name);
+					writer.WriteStrPtr(sprEntry.Name);
 					writer.WriteInt16(sprEntry.Index);
 					writer.WriteUInt16(sprSetIndex);
 				}
@@ -128,8 +128,8 @@ namespace Database
 			for (auto& sprSetEntry : Entries)
 			{
 				writer.WriteUInt32(static_cast<uint32_t>(sprSetEntry.ID));
-				writer.WriteStrPtr(&sprSetEntry.Name);
-				writer.WriteStrPtr(&sprSetEntry.FileName);
+				writer.WriteStrPtr(sprSetEntry.Name);
+				writer.WriteStrPtr(sprSetEntry.FileName);
 				writer.WriteInt32(index++);
 			}
 			writer.WriteAlignmentPadding(16);

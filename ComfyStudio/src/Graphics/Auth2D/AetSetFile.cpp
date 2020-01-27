@@ -289,7 +289,7 @@ namespace Graphics
 		writer.WritePtr([this](BinaryWriter& writer)
 		{
 			void* aetFilePosition = writer.GetPositionPtr();
-			writer.WriteStrPtr(&Name);
+			writer.WriteStrPtr(Name);
 			writer.WriteFloat(StartFrame);
 			writer.WriteFloat(EndFrame);
 			writer.WriteFloat(FrameRate);
@@ -325,7 +325,7 @@ namespace Graphics
 							for (auto& layer : *comp)
 							{
 								layer->filePosition = writer.GetPositionPtr();
-								writer.WriteStrPtr(&layer->name);
+								writer.WriteStrPtr(layer->name);
 								writer.WriteFloat(layer->StartFrame);
 								writer.WriteFloat(layer->EndFrame);
 								writer.WriteFloat(layer->StartOffset);
@@ -376,7 +376,7 @@ namespace Graphics
 										for (auto& marker : layer->Markers)
 										{
 											writer.WriteFloat(marker->Frame);
-											writer.WriteStrPtr(&marker->Name);
+											writer.WriteStrPtr(marker->Name);
 										}
 									});
 								}
@@ -459,7 +459,7 @@ namespace Graphics
 							{
 								for (AetSpriteIdentifier& sprite : surface->GetSprites())
 								{
-									writer.WriteStrPtr(&sprite.Name);
+									writer.WriteStrPtr(sprite.Name);
 									writer.WriteUInt32(static_cast<uint32_t>(sprite.ID));
 								}
 							});

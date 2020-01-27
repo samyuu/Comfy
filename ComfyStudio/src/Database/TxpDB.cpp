@@ -33,7 +33,7 @@ namespace Database
 			for (auto& txpEntry : Entries)
 			{
 				writer.WriteUInt32(static_cast<uint32_t>(txpEntry.ID));
-				writer.WriteStrPtr(&txpEntry.Name);
+				writer.WriteStrPtr(txpEntry.Name);
 			}
 
 			writer.WriteAlignmentPadding(16);

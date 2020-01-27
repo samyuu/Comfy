@@ -22,12 +22,13 @@ namespace Database
 	{
 	public:
 		TextDatabase() = delete;
+
+		// virtual std::string_view GetFileName() const = 0;
 	};
 
 	// TODO:
 	class ObjDB final : public BinaryDatabase {};
 
-	class StageDB final : public BinaryDatabase {};
 	class Auth3DDB final : public TextDatabase {};
 
 	class ChrItemDB final : public TextDatabase {};

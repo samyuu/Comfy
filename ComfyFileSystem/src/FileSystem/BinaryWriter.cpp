@@ -74,12 +74,20 @@ namespace FileSystem
 		return stream->Write(buffer, size);
 	}
 
-	void BinaryWriter::WriteStr(const std::string& value)
+	void BinaryWriter::WriteStr(std::string_view value)
 	{
-		Write(reinterpret_cast<const void*>(value.data()), value.size() + 1);
+		// NOTE: Manually write null terminator
+		Write(value.data(), value.size());
+		Write<char>('\0');
 	}
 
-	void BinaryWriter::WriteStrPtr(const std::string* value, int32_t alignment)
+	void BinaryWriter::WriteStr(const std::string& value)
+	{
+		// NOTE: Write included null terminator
+		Write(value.data(), value.size() + 1);
+	}
+
+	void BinaryWriter::WriteStrPtr(std::string_view value, int32_t alignment)
 	{
 		stringPointerPool.push_back({ GetPositionPtr(), value, alignment });
 		WritePtr(nullptr);
@@ -142,7 +150,7 @@ namespace FileSystem
 
 			if (poolStrings)
 			{
-				auto pooledString = writtenStringPool.find(*value.String);
+				auto pooledString = writtenStringPool.find(std::string(value.String));
 				if (pooledString != writtenStringPool.end())
 				{
 					stringOffset = pooledString->second;
@@ -156,7 +164,7 @@ namespace FileSystem
 			if (!pooledStringFound)
 			{
 				SetPosition(stringOffset);
-				WriteStr(*value.String);
+				WriteStr(value.String);
 
 				if (value.Alignment > 0)
 					WriteAlignmentPadding(value.Alignment);
@@ -167,7 +175,7 @@ namespace FileSystem
 			}
 
 			if (poolStrings && !pooledStringFound)
-				writtenStringPool.insert(std::make_pair(*value.String, stringOffset));
+				writtenStringPool.insert(std::make_pair(value.String, stringOffset));
 		}
 
 		if (poolStrings)

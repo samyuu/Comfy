@@ -41,8 +41,10 @@ namespace FileSystem
 
 		template <typename T> void Write(T value) { Write(&value, sizeof(value)); };
 
+		void WriteStr(std::string_view value);
 		void WriteStr(const std::string& value);
-		void WriteStrPtr(const std::string* value, int32_t alignment = 0);
+		
+		void WriteStrPtr(std::string_view value, int32_t alignment = 0);
 
 		inline void WritePtr(void* value) { writePtrFunction(this, value); };
 
@@ -81,7 +83,7 @@ namespace FileSystem
 		struct StringPointerEntry
 		{
 			void* ReturnAddress;
-			const std::string* String;
+			std::string_view String;
 			int32_t Alignment;
 		};
 
