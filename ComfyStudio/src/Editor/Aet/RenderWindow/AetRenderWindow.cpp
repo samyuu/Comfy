@@ -214,9 +214,9 @@ namespace Editor
 		cameraController.Update(camera, relativeMouse);
 		GetCurrentTool()->UpdateCamera(camera, relativeMouse);
 
-		renderTarget->BindSetViewport();
+		owningRenderTarget->BindSetViewport();
 		{
-			renderTarget->Clear(GetColorVec4(EditorColor_DarkClear));
+			owningRenderTarget->Clear(GetColorVec4(EditorColor_DarkClear));
 
 			camera.UpdateMatrices();
 			renderer->Begin(camera);
@@ -251,7 +251,7 @@ namespace Editor
 			}
 			renderer->End();
 		}
-		renderTarget->UnBind();
+		owningRenderTarget->UnBind();
 	}
 
 	void AetRenderWindow::OnResize(ivec2 size)
@@ -368,14 +368,14 @@ namespace Editor
 
 	void AetRenderWindow::OnInitialize()
 	{
-		D3D_SetObjectDebugName(renderTarget->GetResourceView(), "AetRenderWindow::RenderTarget");
+		D3D_SetObjectDebugName(owningRenderTarget->GetResourceView(), "AetRenderWindow::RenderTarget");
 	}
 
 	void AetRenderWindow::RenderBackground()
 	{
 		checkerboardBaseGrid.GridSize = CheckerboardGrid::DefaultGridSize * 1.2f;
 		checkerboardBaseGrid.Position = camera.Position / camera.Zoom;
-		checkerboardBaseGrid.Size = vec2(renderTarget->GetSize()) / camera.Zoom;
+		checkerboardBaseGrid.Size = vec2(owningRenderTarget->GetSize()) / camera.Zoom;
 		checkerboardBaseGrid.Render(renderer.get());
 
 		const vec2 shadowOffset = vec2(3.5f, 2.5f) / camera.Zoom * 0.5f;

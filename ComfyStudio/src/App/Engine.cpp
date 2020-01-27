@@ -35,10 +35,10 @@ namespace App
 
 	void EngineRenderWindow::OnRender()
 	{
-		renderTarget->BindSetViewport();
+		owningRenderTarget->BindSetViewport();
 		{
 			const vec4 backgroundColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-			renderTarget->Clear(backgroundColor);
+			owningRenderTarget->Clear(backgroundColor);
 
 			camera.UpdateMatrices();
 
@@ -47,7 +47,7 @@ namespace App
 				task->Render(renderer.get(), aetRenderer.get());
 			renderer->End();
 		}
-		renderTarget->UnBind();
+		owningRenderTarget->UnBind();
 	}
 
 	void EngineRenderWindow::PostDrawGui()
