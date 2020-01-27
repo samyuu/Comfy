@@ -3,13 +3,14 @@
 #include "Editor/Aet/IMutatingEditorComponent.h"
 #include "Editor/Aet/RenderWindow/AetRenderPreviewData.h"
 #include "Graphics/Auth2D/AetSet.h"
+#include "Graphics/Auth2D/AetRenderer.h"
 
 namespace Editor
 {
 	class AetInspector : public IMutatingEditorComponent
 	{
 	public:
-		AetInspector(AetCommandManager* commandManager, AetRenderPreviewData* previewData);
+		AetInspector(AetCommandManager* commandManager, Graphics::SpriteGetterFunction* spriteGetter, AetRenderPreviewData* previewData);
 		~AetInspector();
 
 		void Initialize();
@@ -35,6 +36,7 @@ namespace Editor
 		bool isPlayback = false;
 		float currentFrame = 0.0f;
 
+		Graphics::SpriteGetterFunction* spriteGetter;
 		AetRenderPreviewData* previewData = nullptr;
 
 	private:

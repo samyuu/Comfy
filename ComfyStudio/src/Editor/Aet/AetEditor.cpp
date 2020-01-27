@@ -17,7 +17,7 @@ namespace Editor
 		spriteGetterFunction = [](const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr) { return false; };
 
 		treeView = MakeUnique<AetTreeView>(commandManager.get(), &selectedAetItem, &cameraSelectedAetItem);
-		inspector = MakeUnique<AetInspector>(commandManager.get(), &previewData);
+		inspector = MakeUnique<AetInspector>(commandManager.get(), &spriteGetterFunction, &previewData);
 		timeline = MakeUnique<AetTimeline>();
 		renderWindow = MakeUnique<AetRenderWindow>(commandManager.get(), &spriteGetterFunction, &selectedAetItem, &cameraSelectedAetItem, &previewData);
 		historyWindow = MakeUnique<AetHistoryWindow>(commandManager.get());

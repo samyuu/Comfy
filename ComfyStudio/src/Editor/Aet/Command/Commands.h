@@ -213,13 +213,13 @@ public:
 
 
 	// ----------------------------------------------------------------------------------------------------------------------------
-	// TODO: Add dynamic name based on the PropertyType_Enum (?)
+	// TODO: Add dynamic name based on the Transform2DField_Enum (?)
 	// NOTE: Generic change KeyFrame value command to be used by the AetInspector and other commands internally
 	Define_AetCommandStart(AnimationDataChangeKeyFrameValue, "Key Frame Change");
 private:
 	// NOTE: Use Layer instead of AnimationData because we need to know about the StartFrame
 	RefPtr<Graphics::AetLayer> ref;
-	std::tuple<Graphics::PropertyType_Enum /* Property */, frame_t /* Frame */, float /* Value */> newValue;
+	std::tuple<Graphics::Transform2DField_Enum /* Property */, frame_t /* Frame */, float /* Value */> newValue;
 	float oldValue;
 	bool keyFrameExisted;
 
@@ -251,7 +251,7 @@ private:
 	}
 
 public:
-	AnimationDataChangeKeyFrameValue(const RefPtr<Graphics::AetLayer>& ref, std::tuple<Graphics::PropertyType_Enum, frame_t, float> value) : ref(ref), newValue(value) {}
+	AnimationDataChangeKeyFrameValue(const RefPtr<Graphics::AetLayer>& ref, std::tuple<Graphics::Transform2DField_Enum, frame_t, float> value) : ref(ref), newValue(value) {}
 
 	void Do() override
 	{
@@ -275,7 +275,7 @@ public:
 	{
 		DoRedoInternal(false);
 	}
-	void Update(const std::tuple<Graphics::PropertyType_Enum, frame_t, float>& value)
+	void Update(const std::tuple<Graphics::Transform2DField_Enum, frame_t, float>& value)
 	{
 		newValue = value;
 		FindExistingKeyFrame()->Value = GetNewValue();
@@ -302,10 +302,10 @@ private:
 
 public:
 	AnimationDataChangeTransform(const RefPtr<Graphics::AetLayer>& ref, std::tuple<frame_t, vec2, vec2> value) : ref(ref), newValue(value),
-		keyFrameCommandPositionX(ref, std::make_tuple(Graphics::PropertyType_PositionX, GetFrame(), GetPosition().x)),
-		keyFrameCommandPositionY(ref, std::make_tuple(Graphics::PropertyType_PositionY, GetFrame(), GetPosition().y)),
-		keyFrameCommandScaleX(ref, std::make_tuple(Graphics::PropertyType_ScaleX, GetFrame(), GetScale().x)),
-		keyFrameCommandScaleY(ref, std::make_tuple(Graphics::PropertyType_ScaleY, GetFrame(), GetScale().y))
+		keyFrameCommandPositionX(ref, std::make_tuple(Graphics::Transform2D_PositionX, GetFrame(), GetPosition().x)),
+		keyFrameCommandPositionY(ref, std::make_tuple(Graphics::Transform2D_PositionY, GetFrame(), GetPosition().y)),
+		keyFrameCommandScaleX(ref, std::make_tuple(Graphics::Transform2D_ScaleX, GetFrame(), GetScale().x)),
+		keyFrameCommandScaleY(ref, std::make_tuple(Graphics::Transform2D_ScaleY, GetFrame(), GetScale().y))
 	{
 	}
 	void Do() override
@@ -327,10 +327,10 @@ public:
 	{
 		newValue = value;
 		float frame = GetFrame();
-		keyFrameCommandPositionX.Update(std::make_tuple(Graphics::PropertyType_PositionX, frame, GetPosition().x));
-		keyFrameCommandPositionY.Update(std::make_tuple(Graphics::PropertyType_PositionY, frame, GetPosition().y));
-		keyFrameCommandScaleX.Update(std::make_tuple(Graphics::PropertyType_ScaleX, frame, GetScale().x));
-		keyFrameCommandScaleY.Update(std::make_tuple(Graphics::PropertyType_ScaleY, frame, GetScale().y));
+		keyFrameCommandPositionX.Update(std::make_tuple(Graphics::Transform2D_PositionX, frame, GetPosition().x));
+		keyFrameCommandPositionY.Update(std::make_tuple(Graphics::Transform2D_PositionY, frame, GetPosition().y));
+		keyFrameCommandScaleX.Update(std::make_tuple(Graphics::Transform2D_ScaleX, frame, GetScale().x));
+		keyFrameCommandScaleY.Update(std::make_tuple(Graphics::Transform2D_ScaleY, frame, GetScale().y));
 	}
 	bool CanUpdate(AnimationDataChangeTransform* newCommand)
 	{
@@ -351,8 +351,8 @@ private:
 
 public:
 	AnimationDataChangePosition(const RefPtr<Graphics::AetLayer>& ref, std::tuple<frame_t, vec2> value) : ref(ref), newValue(value),
-		keyFrameCommandPositionX(ref, std::make_tuple(Graphics::PropertyType_PositionX, GetFrame(), GetPosition().x)),
-		keyFrameCommandPositionY(ref, std::make_tuple(Graphics::PropertyType_PositionY, GetFrame(), GetPosition().y))
+		keyFrameCommandPositionX(ref, std::make_tuple(Graphics::Transform2D_PositionX, GetFrame(), GetPosition().x)),
+		keyFrameCommandPositionY(ref, std::make_tuple(Graphics::Transform2D_PositionY, GetFrame(), GetPosition().y))
 	{
 	}
 	void Do() override
@@ -371,8 +371,8 @@ public:
 	{
 		newValue = value;
 		float frame = GetFrame();
-		keyFrameCommandPositionX.Update(std::make_tuple(Graphics::PropertyType_PositionX, frame, GetPosition().x));
-		keyFrameCommandPositionY.Update(std::make_tuple(Graphics::PropertyType_PositionY, frame, GetPosition().y));
+		keyFrameCommandPositionX.Update(std::make_tuple(Graphics::Transform2D_PositionX, frame, GetPosition().x));
+		keyFrameCommandPositionY.Update(std::make_tuple(Graphics::Transform2D_PositionY, frame, GetPosition().y));
 	}
 	bool CanUpdate(AnimationDataChangePosition* newCommand)
 	{
@@ -393,8 +393,8 @@ private:
 
 public:
 	AnimationDataChangeScale(const RefPtr<Graphics::AetLayer>& ref, std::tuple<frame_t, vec2> value) : ref(ref), newValue(value),
-		keyFrameCommandScaleX(ref, std::make_tuple(Graphics::PropertyType_ScaleX, GetFrame(), GetScale().x)),
-		keyFrameCommandScaleY(ref, std::make_tuple(Graphics::PropertyType_ScaleY, GetFrame(), GetScale().y))
+		keyFrameCommandScaleX(ref, std::make_tuple(Graphics::Transform2D_ScaleX, GetFrame(), GetScale().x)),
+		keyFrameCommandScaleY(ref, std::make_tuple(Graphics::Transform2D_ScaleY, GetFrame(), GetScale().y))
 	{
 	}
 	void Do() override
@@ -413,8 +413,8 @@ public:
 	{
 		newValue = value;
 		float frame = GetFrame();
-		keyFrameCommandScaleX.Update(std::make_tuple(Graphics::PropertyType_ScaleX, frame, GetScale().x));
-		keyFrameCommandScaleY.Update(std::make_tuple(Graphics::PropertyType_ScaleY, frame, GetScale().y));
+		keyFrameCommandScaleX.Update(std::make_tuple(Graphics::Transform2D_ScaleX, frame, GetScale().x));
+		keyFrameCommandScaleY.Update(std::make_tuple(Graphics::Transform2D_ScaleY, frame, GetScale().y));
 	}
 	bool CanUpdate(AnimationDataChangeScale* newCommand)
 	{

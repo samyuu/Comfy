@@ -16,7 +16,7 @@ namespace Editor
 		{
 			struct PropertyKeyFrameIndexPair
 			{
-				Graphics::PropertyType_Enum Property;
+				Graphics::Transform2DField_Enum FieldType;
 				int32_t KeyFrame;
 			} Pair;
 			int64_t PackedValue;
@@ -110,7 +110,7 @@ namespace Editor
 		static constexpr const char* settingsPopupName = "TimelineSettingsPopup::AetTimeline";
 		static constexpr const char* timelinePropertyNameTypeSeparator = ":";
 
-		static constexpr std::array<std::pair<const char*, const char*>, static_cast<size_t>(Graphics::PropertyType_Count)> timelinePropertyTypeNames =
+		static constexpr std::array<std::pair<const char*, const char*>, static_cast<size_t>(Graphics::Transform2D_Count)> timelinePropertyTypeNames =
 		{
 			std::make_pair("Transform", "Origin.X"),
 			std::make_pair("Transform", "Origin.Y"),

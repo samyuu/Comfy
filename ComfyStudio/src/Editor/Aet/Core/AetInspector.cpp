@@ -48,8 +48,8 @@ namespace Editor
 
 	constexpr ImGuiTreeNodeFlags DefaultOpenPropertiesNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow;
 
-	AetInspector::AetInspector(AetCommandManager* commandManager, AetRenderPreviewData* previewData)
-		: IMutatingEditorComponent(commandManager), previewData(previewData)
+	AetInspector::AetInspector(AetCommandManager* commandManager, SpriteGetterFunction* spriteGetter, AetRenderPreviewData* previewData)
+		: IMutatingEditorComponent(commandManager), spriteGetter(spriteGetter), previewData(previewData)
 	{
 	}
 
@@ -340,6 +340,25 @@ namespace Editor
 				Gui::ComfyEndCombo();
 			}
 
+			if (surface->SpriteCount() > 0)
+			{
+				auto sprite = surface->GetFrontSprite();
+
+				const Txp* outTxp;
+				const Spr* outSpr;
+
+				if ((*spriteGetter)(sprite, &outTxp, &outSpr))
+				{
+					vec2 uvTL = { outSpr->TexelRegion.x, -outSpr->TexelRegion.y };
+					vec2 uvBR = { outSpr->TexelRegion.z, -outSpr->TexelRegion.w };
+					//vec2 size = outSpr->GetSize();
+					vec2 size = vec2(100.0f, 100.0f);
+
+					// TODO: Something like this...
+					Gui::ImageButton(*outTxp->Texture2D, size, uvTL, uvBR);
+				}
+			}
+
 			PopDisableItemFlagIfPlayback();
 			Gui::TreePop();
 		}
@@ -353,18 +372,17 @@ namespace Editor
 
 			if (animationData != nullptr)
 			{
-				static Properties currentProperties;
-				AetMgr::Interpolate(animationData.get(), &currentProperties, currentFrame);
+				Transform2D currentTransform = AetMgr::GetTransformAt(*animationData, currentFrame);
 
 				animatedPropertyColor = GetColorVec4(EditorColor_AnimatedProperty);
 				keyFramePropertyColor = GetColorVec4(EditorColor_KeyFrameProperty);
 				staticPropertyColor = Gui::GetStyleColorVec4(ImGuiCol_FrameBg);
 
-				DrawInspectorAnimationDataPropertyVec2(layer, "Origin", currentFrame, currentProperties.Origin, PropertyType_OriginX, PropertyType_OriginY);
-				DrawInspectorAnimationDataPropertyVec2(layer, "Position", currentFrame, currentProperties.Position, PropertyType_PositionX, PropertyType_PositionY);
-				DrawInspectorAnimationDataProperty(layer, "Rotation", currentFrame, currentProperties.Rotation, PropertyType_Rotation);
-				DrawInspectorAnimationDataPropertyVec2(layer, "Scale", currentFrame, currentProperties.Scale, PropertyType_ScaleX, PropertyType_ScaleY);
-				DrawInspectorAnimationDataProperty(layer, "Opacity", currentFrame, currentProperties.Opacity, PropertyType_Opacity);
+				DrawInspectorAnimationDataPropertyVec2(layer, "Origin", currentFrame, currentTransform.Origin, Transform2D_OriginX, Transform2D_OriginY);
+				DrawInspectorAnimationDataPropertyVec2(layer, "Position", currentFrame, currentTransform.Position, Transform2D_PositionX, Transform2D_PositionY);
+				DrawInspectorAnimationDataProperty(layer, "Rotation", currentFrame, currentTransform.Rotation, Transform2D_Rotation);
+				DrawInspectorAnimationDataPropertyVec2(layer, "Scale", currentFrame, currentTransform.Scale, Transform2D_ScaleX, Transform2D_ScaleY);
+				DrawInspectorAnimationDataProperty(layer, "Opacity", currentFrame, currentTransform.Opacity, Transform2D_Opacity);
 			}
 
 			if (layer->Type == AetLayerType::Pic)
@@ -446,23 +464,23 @@ namespace Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAnimationDataProperty(const RefPtr<AetLayer>& layer, const char* label, frame_t frame, float& value, int propertyType)
+	void AetInspector::DrawInspectorAnimationDataProperty(const RefPtr<AetLayer>& layer, const char* label, frame_t frame, float& value, int fieldType)
 	{
 		constexpr float percentFactor = 100.0f;
 
 		assert(layer->AnimationData.get() != nullptr);
 		const auto& animationData = layer->AnimationData;
 
-		AetKeyFrame* keyFrame = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Properties[propertyType], frame);
+		AetKeyFrame* keyFrame = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Properties[fieldType], frame);
 
-		Gui::PushStyleColor(ImGuiCol_FrameBg, ((animationData->Properties[propertyType].size() > 1))
+		Gui::PushStyleColor(ImGuiCol_FrameBg, ((animationData->Properties[fieldType].size() > 1))
 			? (keyFrame != nullptr)
 			? keyFramePropertyColor
 			: animatedPropertyColor
 			: staticPropertyColor);
 
-		bool rotation = (propertyType == PropertyType_Rotation);
-		bool opacity = (propertyType == PropertyType_Opacity);
+		bool rotation = (fieldType == Transform2D_Rotation);
+		bool opacity = (fieldType == Transform2D_Opacity);
 
 		const char* formatString = rotation ? u8"%.2f Åã" : opacity ? "%.2f%%" : "%.2f";
 		float min = 0.0f, max = 0.0f;
@@ -478,30 +496,30 @@ namespace Editor
 			if (opacity)
 				value = glm::clamp(value * (1.0f / percentFactor), 0.0f, 1.0f);
 
-			auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(propertyType), frame, value);
+			auto tuple = std::make_tuple(static_cast<Transform2DField_Enum>(fieldType), frame, value);
 			ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, layer, tuple);
 		}
 
 		Gui::PopStyleColor();
 	}
 
-	void AetInspector::DrawInspectorAnimationDataPropertyVec2(const RefPtr<AetLayer>& Layer, const char* label, frame_t frame, vec2& value, int propertyTypeX, int propertyTypeY)
+	void AetInspector::DrawInspectorAnimationDataPropertyVec2(const RefPtr<AetLayer>& Layer, const char* label, frame_t frame, vec2& value, int fieldX, int fieldY)
 	{
 		constexpr float percentFactor = 100.0f;
 
 		assert(Layer->AnimationData.get() != nullptr);
 		const auto& animationData = Layer->AnimationData;
 
-		const AetKeyFrame* keyFrameX = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Properties[propertyTypeX], frame);
-		const AetKeyFrame* keyFrameY = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Properties[propertyTypeY], frame);
+		const AetKeyFrame* keyFrameX = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Properties[fieldX], frame);
+		const AetKeyFrame* keyFrameY = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Properties[fieldY], frame);
 
-		Gui::PushStyleColor(ImGuiCol_FrameBg, ((animationData->Properties[propertyTypeX].size() > 1) || (animationData->Properties[propertyTypeY].size() > 1))
+		Gui::PushStyleColor(ImGuiCol_FrameBg, ((animationData->Properties[fieldX].size() > 1) || (animationData->Properties[fieldY].size() > 1))
 			? (keyFrameX != nullptr || keyFrameY != nullptr)
 			? keyFramePropertyColor
 			: animatedPropertyColor
 			: staticPropertyColor);
 
-		const bool scale = (propertyTypeX == PropertyType_ScaleX) && (propertyTypeY == PropertyType_ScaleY);
+		const bool scale = (fieldX == Transform2D_ScaleX) && (fieldY == Transform2D_ScaleY);
 		const char* formatString = scale ? "%.2f%%" : "%.2f";
 
 		vec2 previousValue = value;
@@ -524,12 +542,12 @@ namespace Editor
 
 			if (value.x != previousValue.x)
 			{
-				auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(propertyTypeX), frame, value.x);
+				auto tuple = std::make_tuple(static_cast<Transform2DField_Enum>(fieldX), frame, value.x);
 				ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, Layer, tuple);
 			}
 			if (value.y != previousValue.y)
 			{
-				auto tuple = std::make_tuple(static_cast<PropertyType_Enum>(propertyTypeY), frame, value.y);
+				auto tuple = std::make_tuple(static_cast<Transform2DField_Enum>(fieldY), frame, value.y);
 				ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeKeyFrameValue, Layer, tuple);
 			}
 		}

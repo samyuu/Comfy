@@ -96,10 +96,10 @@ namespace Editor
 
 		// NOTE: The variables that will be edited by the current tool before being turned into commands
 		vec2 toolSize = vec2(100.0f, 100.0f);
-		Graphics::Properties toolProperties = Graphics::AetMgr::DefaultProperites;
+		Graphics::Transform2D toolTransform = Graphics::Transform2D(vec2(0.0f));
 
 		std::array<UniquePtr<AetTool>, AetToolType_Count> tools;
-		AetToolType currentToolType = AetToolType_Hand;
+		AetToolType currentToolType = AetToolType_Transform;
 
 		Graphics::OrthographicCamera camera;
 		CameraController2D cameraController;

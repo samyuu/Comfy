@@ -6,7 +6,7 @@ namespace Editor
 {
 	using namespace Graphics;
 
-	static_assert(sizeof(PropertyType_Enum) == sizeof(int32_t) && sizeof(KeyFrameIndex::Pair) == sizeof(KeyFrameIndex::PackedValue));
+	static_assert(sizeof(Transform2DField_Enum) == sizeof(int32_t) && sizeof(KeyFrameIndex::Pair) == sizeof(KeyFrameIndex::PackedValue));
 
 	AetTimeline::AetTimeline()
 	{
@@ -54,7 +54,7 @@ namespace Editor
 		for (const auto& layer : *workingComp)
 		{
 			if (layer->GuiData.TimelineNodeOpen)
-				rowCount += PropertyType_Count;
+				rowCount += Transform2D_Count;
 		}
 
 		constexpr float borderSize = 1.0f;
@@ -292,7 +292,7 @@ namespace Editor
 
 		auto drawLayerTransformProperties = [&](int& rowIndex, const RefPtr<AetLayer>& layer)
 		{
-			for (int i = 0; i < PropertyType_Count; i++)
+			for (int i = 0; i < Transform2D_Count; i++)
 			{
 				const auto[type, name] = timelinePropertyTypeNames[i];
 
@@ -354,7 +354,7 @@ namespace Editor
 			for (const auto& layer : *workingComp)
 			{
 				if (layer->GuiData.TimelineNodeOpen)
-					rowCount += static_cast<int>(PropertyType_Count);
+					rowCount += static_cast<int>(Transform2D_Count);
 			}
 		}
 		return rowCount;

@@ -53,8 +53,8 @@ namespace Graphics
 		const Spr* spr;
 		const bool validSprite = GetSprite(obj.Surface->GetSprite(obj.SpriteIndex), &txp, &spr);
 
-		const vec2 finalPosition = obj.Properties.Position + positionOffset;
-		const float finalOpacity = obj.Properties.Opacity * opacity;
+		const vec2 finalPosition = obj.Transform.Position + positionOffset;
+		const float finalOpacity = obj.Transform.Opacity * opacity;
 
 		if (validSprite)
 		{
@@ -62,9 +62,9 @@ namespace Graphics
 				txp->Texture2D.get(),
 				spr->PixelRegion,
 				finalPosition,
-				obj.Properties.Origin,
-				obj.Properties.Rotation,
-				obj.Properties.Scale,
+				obj.Transform.Origin,
+				obj.Transform.Rotation,
+				obj.Transform.Scale,
 				vec4(1.0f, 1.0f, 1.0f, finalOpacity),
 				obj.BlendMode);
 		}
@@ -75,9 +75,9 @@ namespace Graphics
 				nullptr,
 				vec4(0.0f, 0.0f, obj.Surface->Size),
 				finalPosition,
-				obj.Properties.Origin,
-				obj.Properties.Rotation,
-				obj.Properties.Scale,
+				obj.Transform.Origin,
+				obj.Transform.Rotation,
+				obj.Transform.Scale,
 				vec4(DummyColor.r, DummyColor.g, DummyColor.b, DummyColor.a * finalOpacity),
 				obj.BlendMode);
 		}
@@ -104,17 +104,17 @@ namespace Graphics
 			renderer2D->Draw(
 				maskTxp->Texture2D.get(),
 				maskSpr->PixelRegion,
-				maskObj.Properties.Position,
-				maskObj.Properties.Origin,
-				maskObj.Properties.Rotation,
-				maskObj.Properties.Scale,
+				maskObj.Transform.Position,
+				maskObj.Transform.Origin,
+				maskObj.Transform.Rotation,
+				maskObj.Transform.Scale,
 				txp->Texture2D.get(),
 				spr->PixelRegion,
-				obj.Properties.Position + positionOffset,
-				obj.Properties.Origin,
-				obj.Properties.Rotation,
-				obj.Properties.Scale,
-				vec4(1.0f, 1.0f, 1.0f, maskObj.Properties.Opacity * obj.Properties.Opacity * opacity),
+				obj.Transform.Position + positionOffset,
+				obj.Transform.Origin,
+				obj.Transform.Rotation,
+				obj.Transform.Scale,
+				vec4(1.0f, 1.0f, 1.0f, maskObj.Transform.Opacity * obj.Transform.Opacity * opacity),
 				maskObj.BlendMode);
 		}
 		else
@@ -122,11 +122,11 @@ namespace Graphics
 			renderer2D->Draw(
 				nullptr,
 				vec4(0.0f, 0.0f, obj.Surface->Size),
-				obj.Properties.Position + positionOffset,
-				obj.Properties.Origin,
-				obj.Properties.Rotation,
-				obj.Properties.Scale,
-				vec4(DummyColor.r, DummyColor.g, DummyColor.b, DummyColor.a * maskObj.Properties.Opacity * obj.Properties.Opacity * opacity),
+				obj.Transform.Position + positionOffset,
+				obj.Transform.Origin,
+				obj.Transform.Rotation,
+				obj.Transform.Scale,
+				vec4(DummyColor.r, DummyColor.g, DummyColor.b, DummyColor.a * maskObj.Transform.Opacity * obj.Transform.Opacity * opacity),
 				maskObj.BlendMode);
 		}
 	}

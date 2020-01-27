@@ -77,11 +77,11 @@ namespace Editor
 			if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::Layer && selectedAetItem->GetLayerRef()->AnimationData != nullptr)
 			{
 				const auto& selctedLayer = selectedAetItem->GetLayerRef();
-				AetMgr::Interpolate(selctedLayer->AnimationData.get(), &toolProperties, currentFrame);
+				toolTransform = AetMgr::GetTransformAt(*selctedLayer->AnimationData, currentFrame);
 
 				// BUG: This is problematic because the tool ignores this offset when moving
 				int32_t recursionCount = 0;
-				AetMgr::OffsetByParentProperties(toolProperties, selctedLayer->GetReferencedParentLayer().get(), currentFrame, recursionCount);
+				AetMgr::ApplyParentTransform(toolTransform, selctedLayer->GetReferencedParentLayer().get(), currentFrame, recursionCount);
 
 				toolSize = GetLayerBoundingSize(selctedLayer);
 			}
@@ -135,15 +135,15 @@ namespace Editor
 			const auto worldToScreen = [this](vec2 value) { return (camera.WorldToScreenSpace(value) + GetRenderRegion().GetTL()); };
 			const auto screenToWorld = [this](vec2 value) { return (camera.ScreenToWorldSpace(value - GetRenderRegion().GetTL())); };
 
-			const Properties previousProperties = toolProperties;
+			const Transform2D previousTransform = toolTransform;
 
 			tool->SetSpaceConversionFunctions(worldToScreen, screenToWorld);
-			tool->UpdatePostDrawGui(&toolProperties, toolSize);
+			tool->UpdatePostDrawGui(&toolTransform, toolSize);
 
 			if (!isPlayback && selectedAetItem->GetLayerRef()->Type != AetLayerType::Aif)
 			{
 				const auto& layer = selectedAetItem->GetLayerRef();
-				tool->ProcessCommands(GetCommandManager(), layer, currentFrame, toolProperties, previousProperties);
+				tool->ProcessCommands(GetCommandManager(), layer, currentFrame, toolTransform, previousTransform);
 			}
 		}
 
@@ -454,11 +454,11 @@ namespace Editor
 		renderer->Draw(
 			txp->Texture2D.get(),
 			spr->PixelRegion,
-			obj.Properties.Position + positionOffset,
-			obj.Properties.Origin,
-			obj.Properties.Rotation,
-			obj.Properties.Scale,
-			vec4(1.0f, 1.0f, 1.0f, obj.Properties.Opacity * opacity),
+			obj.Transform.Position + positionOffset,
+			obj.Transform.Origin,
+			obj.Transform.Rotation,
+			obj.Transform.Scale,
+			vec4(1.0f, 1.0f, 1.0f, obj.Transform.Opacity * opacity),
 			(previewData->BlendMode != AetBlendMode::Unknown) ? previewData->BlendMode : obj.BlendMode);
 
 		return true;
@@ -494,17 +494,17 @@ namespace Editor
 		renderer->Draw(
 			maskTxp->Texture2D.get(),
 			maskSpr->PixelRegion,
-			maskObj.Properties.Position,
-			maskObj.Properties.Origin,
-			maskObj.Properties.Rotation,
-			maskObj.Properties.Scale,
+			maskObj.Transform.Position,
+			maskObj.Transform.Origin,
+			maskObj.Transform.Rotation,
+			maskObj.Transform.Scale,
 			txp->Texture2D.get(),
 			spr->PixelRegion,
-			obj.Properties.Position + positionOffset,
-			obj.Properties.Origin,
-			obj.Properties.Rotation,
-			obj.Properties.Scale,
-			vec4(1.0f, 1.0f, 1.0f, maskObj.Properties.Opacity * obj.Properties.Opacity * opacity),
+			obj.Transform.Position + positionOffset,
+			obj.Transform.Origin,
+			obj.Transform.Rotation,
+			obj.Transform.Scale,
+			vec4(1.0f, 1.0f, 1.0f, maskObj.Transform.Opacity * obj.Transform.Opacity * opacity),
 			(maskSelected && previewData->BlendMode != AetBlendMode::Unknown) ? previewData->BlendMode : maskObj.BlendMode);
 
 		return true;
