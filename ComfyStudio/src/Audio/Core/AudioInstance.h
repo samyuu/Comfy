@@ -82,7 +82,7 @@ namespace Audio
 		uint32_t GetChannelCount() const;
 
 	public:
-		AudioInstance& operator= (AudioInstance& other) = delete;
+		AudioInstance& operator=(AudioInstance& other) = delete;
 
 	private:
 		// Members Variables

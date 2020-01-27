@@ -14,8 +14,9 @@ class Application
 public:
 	Application();
 	Application(const Application&) = delete;
-	Application& operator= (const Application&) = delete;
 	~Application();
+
+	Application& operator=(const Application&) = delete;
 
 	// NOTE: Initialize and enter the main loop
 	void Run();

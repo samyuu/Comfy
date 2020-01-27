@@ -16,7 +16,7 @@ namespace App
 		const char* Name;
 
 		inline const AetLayer* operator->() const { return Layer; };
-		inline operator const AetLayer* () { return Layer; };
+		inline operator const AetLayer*() { return Layer; };
 	};
 
 	struct Ps4MenuAetData

@@ -49,7 +49,7 @@ namespace App
 	public:
 		Engine();
 		Engine(const Engine&) = delete;
-		Engine& operator= (const Engine&) = delete;
+		Engine& operator=(const Engine&) = delete;
 		~Engine();
 
 		void Tick();

@@ -44,8 +44,9 @@ namespace Audio
 
 	public:
 		AudioEngine(const AudioEngine&) = delete;
-		const AudioEngine& operator= (const AudioEngine&) = delete;
 		~AudioEngine();
+
+		const AudioEngine& operator=(const AudioEngine&) = delete;
 
 		// ----------------------
 		void Initialize();
