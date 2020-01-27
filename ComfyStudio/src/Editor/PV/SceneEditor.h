@@ -29,12 +29,14 @@ namespace Editor
 		bool LoadStageObjects(StageType type, int id, int subID);
 		bool UnLoadStageObjects();
 
+		enum class StageVisibilityType { None, All, GroundSky };
+		void SetStageVisibility(StageVisibilityType visibility);
+
 		enum EraseFlags
 		{
 			EraseFlags_Entities = (1 << 0),
 			EraseFlags_ObjSets = (1 << 1),
 		};
-
 		void EraseByTag(EntityTag tag, EraseFlags flags);
 
 	private:
@@ -49,6 +51,7 @@ namespace Editor
 		void DrawObjectTestGui();
 		void DrawStageTestGui();
 		void DrawCharaTestGui();
+		void DrawDebugTestGui();
 
 	private:
 		SceneGraph sceneGraph;
