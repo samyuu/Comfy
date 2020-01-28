@@ -301,6 +301,7 @@ namespace Editor
 		Gui::Checkbox("Wireframe", &renderParameters.Wireframe);
 		Gui::Checkbox("Alpha Sort", &renderParameters.AlphaSort);
 		Gui::Checkbox("Render Reflection", &renderParameters.RenderReflection);
+		Gui::Checkbox("Render Subsurface Scattering", &renderParameters.RenderSubsurfaceScattering);
 		Gui::Checkbox("Render Opaque", &renderParameters.RenderOpaque);
 		Gui::Checkbox("Render Transparent", &renderParameters.RenderTransparent);
 		Gui::Checkbox("Render Bloom", &renderParameters.RenderBloom);
@@ -352,6 +353,45 @@ namespace Editor
 
 			if (Gui::InputScalar("Multi Sample Count", ImGuiDataType_U32, &renderParameters.MultiSampleCount))
 				renderParameters.MultiSampleCount = std::clamp(renderParameters.MultiSampleCount, 1u, 16u);
+		}
+
+		if (Gui::CollapsingHeader("Render Targets"))
+		{
+			auto& renderData = context.RenderData;
+
+			auto renderTargetGui = [&](const char* name, D3D_RenderTarget& renderTarget)
+			{
+				Gui::Selectable(name);
+
+				if (Gui::IsItemHovered())
+				{
+					constexpr float desiredWidth = 512.0f;
+					const vec2 size = renderTarget.GetSize();
+
+					Gui::BeginTooltip();
+					Gui::Image(renderTarget, vec2(desiredWidth, desiredWidth * (size.y / size.x)));
+					Gui::EndTooltip();
+				}
+			};
+
+			renderTargetGui("Main Current", renderData.Main.CurrentRenderTarget());
+			renderTargetGui("Main Previous", renderData.Main.PreviousRenderTarget());
+
+			renderTargetGui("Screen Reflection", renderData.Reflection.RenderTarget);
+
+			renderTargetGui("SSS Main", renderData.SubsurfaceScattering.RenderTarget);
+			renderTargetGui("SSS Filter[0]", renderData.SubsurfaceScattering.FilterRenderTargets[0]);
+			renderTargetGui("SSS Filter[1]", renderData.SubsurfaceScattering.FilterRenderTargets[1]);
+			renderTargetGui("SSS Filter[2]", renderData.SubsurfaceScattering.FilterRenderTargets[2]);
+
+			renderTargetGui("Bloom Base", renderData.Bloom.BaseRenderTarget);
+			renderTargetGui("Bloom Combined", renderData.Bloom.CombinedBlurRenderTarget);
+			renderTargetGui("Bloom Reduce->Blur [0]", renderData.Bloom.ReduceRenderTargets[0]);
+			renderTargetGui("Bloom Reduce->Blur [1]", renderData.Bloom.ReduceRenderTargets[1]);
+			renderTargetGui("Bloom Reduce->Blur [2]", renderData.Bloom.ReduceRenderTargets[2]);
+			renderTargetGui("Bloom Reduce->Blur [3]", renderData.Bloom.ReduceRenderTargets[3]);
+
+			renderTargetGui("Output", *renderData.Output.RenderTarget);
 		}
 
 		Gui::PopID();
