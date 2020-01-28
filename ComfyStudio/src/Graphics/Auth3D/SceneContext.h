@@ -46,32 +46,35 @@ namespace Graphics
 		*/
 	};
 
-	struct RenderData
+	struct MainRenderData
 	{
-		// TODO: Non multisample copies of MainRenderTargets for both screen texture rendering and post processing
-
-		// NOTE: Index of the currently active render target, keep switching to allow for last->current frame post processing effects and screen textures
-		int32_t MainRenderTargetIndex = 0;
-
 		// NOTE: Main scene HRD render targets
-		std::array<D3D_DepthRenderTarget, 2> MainRenderTargets =
+		std::array<D3D_DepthRenderTarget, 2> RenderTargets =
 		{
 			D3D_DepthRenderTarget { RenderTargetDefaultSize, RenderTargetHDRFormatRGBA, DXGI_FORMAT_D32_FLOAT, 1 },
 			D3D_DepthRenderTarget { RenderTargetDefaultSize, RenderTargetHDRFormatRGBA, DXGI_FORMAT_D32_FLOAT, 1 },
 		};
 
+	private:
+		// NOTE: Index of the currently active render target, keep switching to allow for last->current frame post processing effects and screen textures
+		int32_t currentIndex = 0;
+
+	public:
+		inline void AdvanceRenderTarget() { currentIndex = (currentIndex + 1) % RenderTargets.size(); }
+		inline D3D_DepthRenderTarget& CurrentRenderTarget() { return RenderTargets[currentIndex]; }
+		inline D3D_DepthRenderTarget& PreviounRenderTarget() { return RenderTargets[((currentIndex - 1) + RenderTargets.size()) % RenderTargets.size()]; }
+	};
+
+	struct ScreenReflectionRenderData
+	{
 		// NOTE: Stage reflection render target primarily used by floor materials
-		D3D_DepthRenderTarget ReflectionRenderTarget = { RenderParameters::ReflectionDefaultResolution, RenderTargetLDRFormatRGBA, DXGI_FORMAT_D32_FLOAT };
+		D3D_DepthRenderTarget RenderTarget = { RenderParameters::ReflectionDefaultResolution, RenderTargetLDRFormatRGBA, DXGI_FORMAT_D32_FLOAT };
+	};
 
+	struct SilhouetteRenderData
+	{
 		// NOTE: Mostly for debugging, render black and white rendering to outline and overlay on the main render target
-		D3D_DepthRenderTarget SilhouetteRenderTarget = { RenderTargetDefaultSize, DXGI_FORMAT_R8_UNORM, DXGI_FORMAT_D32_FLOAT };
-
-		// NOTE: Where the post processed final image gets rendered to
-		D3D_RenderTarget* OutputRenderTarget = nullptr;
-
-		inline void AdvanceRenderTarget() { MainRenderTargetIndex = (MainRenderTargetIndex + 1) % MainRenderTargets.size(); }
-		inline D3D_DepthRenderTarget& GetCurrentRenderTarget() { return MainRenderTargets[MainRenderTargetIndex]; }
-		inline D3D_DepthRenderTarget& GetPreviounRenderTarget() { return MainRenderTargets[((MainRenderTargetIndex - 1) + MainRenderTargets.size()) % MainRenderTargets.size()]; }
+		D3D_DepthRenderTarget RenderTarget = { RenderTargetDefaultSize, DXGI_FORMAT_R8_UNORM, DXGI_FORMAT_D32_FLOAT };
 	};
 
 	struct BloomRenderData
@@ -87,17 +90,34 @@ namespace Graphics
 		{
 			D3D_RenderTarget { ivec2(256, 144), RenderTargetHDRFormatRGBA },
 			D3D_RenderTarget { ivec2(128,  72), RenderTargetHDRFormatRGBA },
-			D3D_RenderTarget { ivec2( 64,  36), RenderTargetHDRFormatRGBA },
-			D3D_RenderTarget { ivec2( 32,  18), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2(64,  36), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2(32,  18), RenderTargetHDRFormatRGBA },
 		};
 
 		std::array<D3D_RenderTarget, 4> BlurRenderTargets =
 		{
 			D3D_RenderTarget { ivec2(256, 144), RenderTargetHDRFormatRGBA },
 			D3D_RenderTarget { ivec2(128,  72), RenderTargetHDRFormatRGBA },
-			D3D_RenderTarget { ivec2( 64,  36), RenderTargetHDRFormatRGBA },
-			D3D_RenderTarget { ivec2( 32,  18), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2(64,  36), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2(32,  18), RenderTargetHDRFormatRGBA },
 		};
+	};
+
+	struct OutputRenderData
+	{
+		// NOTE: Where the post processed final image gets rendered to
+		D3D_RenderTarget* RenderTarget = nullptr;
+	};
+
+	struct RenderData
+	{
+		// TODO: Non multisample copies of MainRenderTargets for both screen texture rendering and post processing (?)
+
+		MainRenderData Main;
+		ScreenReflectionRenderData Reflection;
+		SilhouetteRenderData Silhouette;
+		BloomRenderData Bloom;
+		OutputRenderData Output;
 	};
 
 	// TODO: Separate Viewport specific data from scene state
@@ -114,6 +134,5 @@ namespace Graphics
 		PerspectiveCamera Camera;
 
 		RenderData RenderData;
-		BloomRenderData BloomRenderData;
 	};
 }

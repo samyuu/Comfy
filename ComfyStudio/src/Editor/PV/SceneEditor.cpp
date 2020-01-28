@@ -331,7 +331,7 @@ namespace Editor
 					if (Gui::MenuItem(name)) renderResolution = ivec2(vec2(renderWindow->GetRenderRegion().GetSize()) * factor);
 			});
 
-			if (renderResolution != context.RenderData.GetCurrentRenderTarget().GetSize())
+			if (renderResolution != context.RenderData.Main.CurrentRenderTarget().GetSize())
 				renderParameters.RenderResolution = (clampSize(renderResolution));
 
 			ivec2 reflectionResolution = renderParameters.ReflectionRenderResolution;

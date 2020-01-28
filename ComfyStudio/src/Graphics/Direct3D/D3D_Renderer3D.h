@@ -332,6 +332,8 @@ namespace Graphics
 		} toneMapData;
 
 		SceneContext* sceneContext = nullptr;
+		RenderData* renderData = nullptr;
+
 		std::unordered_map<TxpID, const Txp*> textureIDTxpMap = {};
 	};
 }
