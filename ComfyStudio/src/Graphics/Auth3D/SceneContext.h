@@ -62,7 +62,7 @@ namespace Graphics
 	public:
 		inline void AdvanceRenderTarget() { currentIndex = (currentIndex + 1) % RenderTargets.size(); }
 		inline D3D_DepthRenderTarget& CurrentRenderTarget() { return RenderTargets[currentIndex]; }
-		inline D3D_DepthRenderTarget& PreviounRenderTarget() { return RenderTargets[((currentIndex - 1) + RenderTargets.size()) % RenderTargets.size()]; }
+		inline D3D_DepthRenderTarget& PreviousRenderTarget() { return RenderTargets[((currentIndex - 1) + RenderTargets.size()) % RenderTargets.size()]; }
 	};
 
 	struct ScreenReflectionRenderData
@@ -90,16 +90,16 @@ namespace Graphics
 		{
 			D3D_RenderTarget { ivec2(256, 144), RenderTargetHDRFormatRGBA },
 			D3D_RenderTarget { ivec2(128,  72), RenderTargetHDRFormatRGBA },
-			D3D_RenderTarget { ivec2(64,  36), RenderTargetHDRFormatRGBA },
-			D3D_RenderTarget { ivec2(32,  18), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2( 64,  36), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2( 32,  18), RenderTargetHDRFormatRGBA },
 		};
 
 		std::array<D3D_RenderTarget, 4> BlurRenderTargets =
 		{
 			D3D_RenderTarget { ivec2(256, 144), RenderTargetHDRFormatRGBA },
 			D3D_RenderTarget { ivec2(128,  72), RenderTargetHDRFormatRGBA },
-			D3D_RenderTarget { ivec2(64,  36), RenderTargetHDRFormatRGBA },
-			D3D_RenderTarget { ivec2(32,  18), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2( 64,  36), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2( 32,  18), RenderTargetHDRFormatRGBA },
 		};
 	};
 

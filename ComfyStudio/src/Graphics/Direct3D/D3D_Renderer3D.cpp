@@ -797,7 +797,7 @@ namespace Graphics
 				{
 					usesDiffuseRenderTexture = true;
 					textureFormat = TextureFormat::RGBA8;
-					textureResources[i] = &renderData->Main.PreviounRenderTarget();
+					textureResources[i] = &renderData->Main.PreviousRenderTarget();
 				}
 				else
 				{
