@@ -26,7 +26,12 @@ namespace Graphics
 		bool RenderFog = true;
 
 		ivec2 RenderResolution = RenderTargetDefaultSize;
+		
+#if COMFY_DEBUG
+		uint32_t MultiSampleCount = 1;
+#else
 		uint32_t MultiSampleCount = 4;
+#endif
 
 		static constexpr ivec2 ReflectionDefaultResolution = ivec2(512, 512);
 
