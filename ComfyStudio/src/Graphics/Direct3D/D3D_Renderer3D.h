@@ -171,6 +171,9 @@ namespace Graphics
 		void Draw(const RenderCommand& command);
 		void End();
 
+	private:
+		void UpdateIsAnyCommandFlags(const RenderCommand& command);
+
 	public:
 		void ClearTextureIDs();
 		void RegisterTextureIDs(const TxpSet& txpSet);
@@ -212,6 +215,7 @@ namespace Graphics
 
 		void InternalPrepareRenderCommands(RenderPassCommandLists& commandList);
 		void InternalRenderItems();
+		void InternalPreRenderScreenReflection();
 		void InternalRenderOpaqueObjCommand(ObjRenderCommand& command);
 		void InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command);
 		void InternalRenderSilhouette();
@@ -298,7 +302,13 @@ namespace Graphics
 
 		} cachedBlendStates;
 
-		bool IsAnyCommandSilhouetteOutline = false;
+		// NOTE: To avoid having to bind and clear render targets that won't be used this frame
+		struct IsAnyCommandFlags
+		{
+			bool ScreenReflection;
+			bool SilhouetteOutline;
+		} isAnyCommand = {};
+
 		RenderPassCommandLists defaultCommandList, reflectionCommandList;
 
 		// TODO: RendererStatistics struct with data for obj / mesh / submesh count, vertices, cull count etc.

@@ -117,6 +117,8 @@ namespace Graphics
 			TextureSlot_CharacterColorLightMap = 13,
 
 			TextureSlot_ScreenReflection = 15,
+
+			TextureSlot_Count,
 		};
 	}
 
@@ -163,13 +165,14 @@ namespace Graphics
 	{
 		verticesRenderedLastFrame = verticesRenderedThisFrame;
 		verticesRenderedThisFrame = 0;
-		IsAnyCommandSilhouetteOutline = false;
+		isAnyCommand = {};
 
 		sceneContext = &scene;
 	}
 
 	void D3D_Renderer3D::Draw(const RenderCommand& command)
 	{
+		assert(command.SourceObj != nullptr);
 		const auto& transform = command.Transform;
 
 		ObjRenderCommand renderCommand;
@@ -180,14 +183,22 @@ namespace Graphics
 		auto& commandList = (command.Flags.IsReflection) ? reflectionCommandList : defaultCommandList;
 		commandList.OpaqueAndTransparent.push_back(renderCommand);
 
-		if (command.Flags.SilhouetteOutline)
-			IsAnyCommandSilhouetteOutline = true;
+		UpdateIsAnyCommandFlags(command);
 	}
 
 	void D3D_Renderer3D::End()
 	{
 		InternalFlush();
 		sceneContext = nullptr;
+	}
+
+	void D3D_Renderer3D::UpdateIsAnyCommandFlags(const RenderCommand& command)
+	{
+		if (command.Flags.IsReflection)
+			isAnyCommand.ScreenReflection = true;
+
+		if (command.Flags.SilhouetteOutline)
+			isAnyCommand.SilhouetteOutline = true;
 	}
 
 	void D3D_Renderer3D::ClearTextureIDs()
@@ -243,7 +254,7 @@ namespace Graphics
 		InternalRenderItems();
 		InternalRenderPostProcessing();
 
-		if (IsAnyCommandSilhouetteOutline)
+		if (isAnyCommand.SilhouetteOutline)
 			InternalRenderSilhouetteOutlineOverlay();
 
 		defaultCommandList.OpaqueAndTransparent.clear();
@@ -327,7 +338,7 @@ namespace Graphics
 		sceneCB.BindShaders();
 		objectCB.BindShaders();
 
-		D3D_ShaderResourceView::BindArray<TextureSlot_ScreenReflection + 1>(TextureSlot_Diffuse,
+		D3D_ShaderResourceView::BindArray<TextureSlot_Count>(TextureSlot_Diffuse,
 			{
 				// NOTE: Diffuse = 0
 				nullptr,
@@ -373,39 +384,9 @@ namespace Graphics
 		genericInputLayout->Bind();
 		cachedTextureSamplers.CreateIfNeeded(renderParameters);
 
-		if (renderParameters.RenderReflection)
+		if (renderParameters.RenderReflection && isAnyCommand.ScreenReflection)
 		{
-			renderData.ReflectionRenderTarget.ResizeIfDifferent(renderParameters.ReflectionRenderResolution);
-			renderData.ReflectionRenderTarget.BindSetViewport();
-
-			if (renderParameters.ClearReflection)
-				renderData.ReflectionRenderTarget.Clear(renderParameters.ClearColor);
-			else
-				renderData.ReflectionRenderTarget.GetDepthBuffer()->Clear();
-
-			if (!reflectionCommandList.OpaqueAndTransparent.empty())
-			{
-				// TODO: Render using cheaper reflection shaders
-				if (renderParameters.RenderOpaque)
-				{
-					D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
-
-					for (auto& command : reflectionCommandList.OpaqueAndTransparent)
-						InternalRenderOpaqueObjCommand(command);
-				}
-
-				if (renderParameters.RenderTransparent && !reflectionCommandList.Transparent.empty())
-				{
-					transparencyPassDepthStencilState.Bind();
-
-					for (auto& command : reflectionCommandList.Transparent)
-						InternalRenderTransparentSubMeshCommand(command);
-
-					transparencyPassDepthStencilState.UnBind();
-				}
-			}
-
-			renderData.ReflectionRenderTarget.UnBind();
+			InternalPreRenderScreenReflection();
 			renderData.ReflectionRenderTarget.BindResource(TextureSlot_ScreenReflection);
 		}
 
@@ -439,13 +420,47 @@ namespace Graphics
 			}
 		}
 
-		if (IsAnyCommandSilhouetteOutline)
+		if (isAnyCommand.SilhouetteOutline)
 			InternalRenderSilhouette();
 
 		renderData.GetCurrentRenderTarget().UnBind();
 		genericInputLayout->UnBind();
 	}
 
+	void D3D_Renderer3D::InternalPreRenderScreenReflection()
+	{
+		sceneContext->RenderData.ReflectionRenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.ReflectionRenderResolution);
+		sceneContext->RenderData.ReflectionRenderTarget.BindSetViewport();
+
+		if (sceneContext->RenderParameters.ClearReflection)
+			sceneContext->RenderData.ReflectionRenderTarget.Clear(sceneContext->RenderParameters.ClearColor);
+		else
+			sceneContext->RenderData.ReflectionRenderTarget.GetDepthBuffer()->Clear();
+
+		if (!reflectionCommandList.OpaqueAndTransparent.empty())
+		{
+			// TODO: Render using cheaper reflection shaders
+			if (sceneContext->RenderParameters.RenderOpaque)
+			{
+				D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+
+				for (auto& command : reflectionCommandList.OpaqueAndTransparent)
+					InternalRenderOpaqueObjCommand(command);
+			}
+
+			if (sceneContext->RenderParameters.RenderTransparent && !reflectionCommandList.Transparent.empty())
+			{
+				transparencyPassDepthStencilState.Bind();
+
+				for (auto& command : reflectionCommandList.Transparent)
+					InternalRenderTransparentSubMeshCommand(command);
+
+				transparencyPassDepthStencilState.UnBind();
+			}
+		}
+
+		sceneContext->RenderData.ReflectionRenderTarget.UnBind();
+	}
 	void D3D_Renderer3D::InternalRenderOpaqueObjCommand(ObjRenderCommand& command)
 	{
 		if (command.AreAllMeshesTransparent)
