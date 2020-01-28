@@ -7,7 +7,7 @@ struct VS_OUTPUT
     float2 TexCoord : TEXCOORD;
 };
 
-cbuffer PPGaussTexConstantData : register(b0)
+cbuffer PPGaussTexConstantData : register(b7)
 {
     float2 CB_TexelTextureSize;
     float2 CB_TextureSize;
@@ -15,7 +15,7 @@ cbuffer PPGaussTexConstantData : register(b0)
     int CB_FinalPass;
 };
 
-cbuffer PPGaussCoefConstantData : register(b1)
+cbuffer PPGaussCoefConstantData : register(b8)
 {
     float4 CB_Coefficient[8];
 };

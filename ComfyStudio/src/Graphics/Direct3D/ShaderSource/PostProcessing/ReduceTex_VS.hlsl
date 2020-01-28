@@ -12,7 +12,7 @@ struct VS_OUTPUT
     float4x2 TexCoords  : TEXCOORD1;
 };
 
-cbuffer ReduceTexConstantData : register(b0)
+cbuffer ReduceTexConstantData : register(b6)
 {
     float2 CB_TexelTextureSize;
     float2 CB_TextureSize;

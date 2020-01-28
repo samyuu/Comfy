@@ -12,7 +12,7 @@ struct VS_OUTPUT
     float2 Exposure : EXPOSURE;
 };
 
-cbuffer ToneMapConstantData : register(b0)
+cbuffer ToneMapConstantData : register(b9)
 {
     float CB_Exposure;
     float CB_Gamma;

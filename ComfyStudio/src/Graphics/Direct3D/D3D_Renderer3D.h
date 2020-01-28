@@ -264,10 +264,10 @@ namespace Graphics
 
 		D3D_DefaultConstantBufferTemplate<SceneConstantData> sceneCB = { 0, "Renderer3D::SceneCB" };
 		D3D_DynamicConstantBufferTemplate<ObjectConstantData> objectCB = { 1, "Renderer3D::ObjectCB" };
-		D3D_DynamicConstantBufferTemplate<ReduceTexConstantData> reduceTexCB = { 0, "Renderer3D::ReduceTexCB" };
-		D3D_DynamicConstantBufferTemplate<PPGaussTexConstantData> ppGaussTexCB = { 0, "Renderer3D::PPGaussTexCB" };
-		D3D_DefaultConstantBufferTemplate<PPGaussCoefConstantData> ppGaussCoefCB = { 1, "Renderer3D::PPGaussCoefCB" };
-		D3D_DefaultConstantBufferTemplate<ToneMapConstantData> toneMapCB = { 0, "Renderer3D::ToneMapCB" };
+		D3D_DynamicConstantBufferTemplate<ReduceTexConstantData> reduceTexCB = { 6, "Renderer3D::ReduceTexCB" };
+		D3D_DynamicConstantBufferTemplate<PPGaussTexConstantData> ppGaussTexCB = { 7, "Renderer3D::PPGaussTexCB" };
+		D3D_DefaultConstantBufferTemplate<PPGaussCoefConstantData> ppGaussCoefCB = { 8, "Renderer3D::PPGaussCoefCB" };
+		D3D_DefaultConstantBufferTemplate<ToneMapConstantData> toneMapCB = { 9, "Renderer3D::ToneMapCB" };
 
 		UniquePtr<D3D_InputLayout> genericInputLayout = nullptr;
 
