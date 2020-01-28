@@ -53,6 +53,18 @@ namespace Graphics
 			return false;
 		}
 
+		bool UsesSubsurfaceScattering(const Mesh& mesh, const SubMesh& subMesh, const Material& material)
+		{
+			// TODO: Requires further checking
+			if (material.MaterialType == Material::Identifiers.SKIN)
+				return true;
+
+			if (material.MaterialType == Material::Identifiers.EYEBALL || material.MaterialType == Material::Identifiers.EYELENS)
+				return true;
+
+			return false;
+		}
+
 		const Mesh* MeshOrDefault(const Obj* obj, size_t index)
 		{
 			if (obj == nullptr)
@@ -117,6 +129,7 @@ namespace Graphics
 			TextureSlot_CharacterColorLightMap = 13,
 
 			TextureSlot_ScreenReflection = 15,
+			TextureSlot_SubsurfaceScattering = 16,
 
 			TextureSlot_Count,
 		};
@@ -201,6 +214,18 @@ namespace Graphics
 
 		if (command.Flags.SilhouetteOutline)
 			isAnyCommand.SilhouetteOutline = true;
+
+		if (!isAnyCommand.SubsurfaceScattering)
+		{
+			for (auto& mesh : command.SourceObj->Meshes)
+			{
+				for (auto& subMesh : mesh.SubMeshes)
+				{
+					if (UsesSubsurfaceScattering(mesh, subMesh, subMesh.GetMaterial(*command.SourceObj)))
+						isAnyCommand.SubsurfaceScattering = true;
+				}
+			}
+		}
 	}
 
 	void D3D_Renderer3D::ClearTextureIDs()
@@ -334,6 +359,7 @@ namespace Graphics
 		sceneCB.Data.StageLight.Direction = vec4(normalize(lightParam.Stage.Position), 1.0f);
 		sceneCB.Data.DepthFog.Parameters = vec4(renderParameters.RenderFog ? fog.Depth.Density : 0.0f, fog.Depth.Start, fog.Depth.End, 1.0f / (fog.Depth.End - fog.Depth.Start));
 		sceneCB.Data.DepthFog.Color = vec4(fog.Depth.Color, 1.0f);
+		sceneCB.Data.SubsurfaceScatteringParameter = renderParameters.RenderSubsurfaceScattering ? vec4(0.6f, 0.0f, 0.0f, 0.0f) : vec4(0.0f);
 		sceneCB.UploadData();
 
 		sceneCB.BindShaders();
@@ -377,10 +403,10 @@ namespace Graphics
 
 				// NOTE: ScreenReflection = 15
 				nullptr,
-			});
 
-		if (renderParameters.Wireframe)
-			wireframeRasterizerState.Bind();
+				// NOTE: SubsurfaceScattering = 16
+				nullptr,
+			});
 
 		genericInputLayout->Bind();
 		cachedTextureSamplers.CreateIfNeeded(renderParameters);
@@ -391,6 +417,13 @@ namespace Graphics
 			renderData->Reflection.RenderTarget.BindResource(TextureSlot_ScreenReflection);
 		}
 
+		if (renderParameters.RenderSubsurfaceScattering && isAnyCommand.SubsurfaceScattering)
+		{
+			InternalPreRenderSubsurfaceScattering();
+			InternalPreRenderReduceFilterSubsurfaceScattering();
+			renderData->SubsurfaceScattering.FilterRenderTargets.back().BindResource(TextureSlot_SubsurfaceScattering);
+		}
+
 		renderData->Main.CurrentRenderTarget().SetMultiSampleCountIfDifferent(renderParameters.MultiSampleCount);
 		renderData->Main.CurrentRenderTarget().ResizeIfDifferent(renderParameters.RenderResolution);
 		renderData->Main.CurrentRenderTarget().BindSetViewport();
@@ -399,6 +432,9 @@ namespace Graphics
 			renderData->Main.CurrentRenderTarget().Clear(renderParameters.ClearColor);
 		else
 			renderData->Main.CurrentRenderTarget().GetDepthBuffer()->Clear();
+
+		if (renderParameters.Wireframe)
+			wireframeRasterizerState.Bind();
 
 		if (!defaultCommandList.OpaqueAndTransparent.empty())
 		{
@@ -462,7 +498,101 @@ namespace Graphics
 
 		renderData->Reflection.RenderTarget.UnBind();
 	}
-	void D3D_Renderer3D::InternalRenderOpaqueObjCommand(ObjRenderCommand& command)
+
+	void D3D_Renderer3D::InternalPreRenderSubsurfaceScattering()
+	{
+		renderData->SubsurfaceScattering.RenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.RenderResolution);
+
+		renderData->SubsurfaceScattering.RenderTarget.BindSetViewport();
+		renderData->SubsurfaceScattering.RenderTarget.Clear(vec4(0.0f));
+
+		if (!defaultCommandList.OpaqueAndTransparent.empty())
+		{
+			D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+
+			for (auto& command : defaultCommandList.OpaqueAndTransparent)
+				InternalRenderOpaqueObjCommand(command, true);
+
+			// TODO: defaultCommandList.Transparent (?)
+		}
+
+		renderData->SubsurfaceScattering.RenderTarget.UnBind();
+	}
+
+	void D3D_Renderer3D::InternalPreRenderReduceFilterSubsurfaceScattering()
+	{
+		solidNoCullingRasterizerState.Bind();
+
+		D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+
+		D3D_TextureSampler::BindArray<1>(0, { nullptr });
+
+		shaders.SSSFilter.Bind();
+		sssFilterCB.BindPixelShader();
+
+		// TODO: Calculate dynamically
+		sssFilterCoefCB.Data.Coefficient = 
+		{
+			vec3(0.21040623,  0.78055823,  0.62655407),
+			vec3(0.12917531,  0.062717795,  0.084737904),
+			vec3(0.044682723,  0.014909152,  0.022482639),
+			vec3(0.020118745,  0.0015618494,  0.0095707672),
+			vec3(0.011492467,  0.000066359164,  0.003069486),
+			vec3(0.0073738941,  0.0000011435034,  0.00071145396),
+			vec3(0.12917531,  0.062717795,  0.084737904),
+			vec3(0.084581025,  0.03684625,  0.042938128),
+			vec3(0.035600733,  0.009494883,  0.018571729),
+			vec3(0.018209256,  0.00099466438,  0.0081350859),
+			vec3(0.010813996,  0.000042260857,  0.0026092706),
+			vec3(0.0070962897,  7.2824054e-7,  0.00060478394),
+			vec3(0.044682723,  0.014909152,  0.022482639),
+			vec3(0.035600733,  0.009494883,  0.018571729),
+			vec3(0.022485442,  0.002452459,  0.011261988),
+			vec3(0.01413135,  0.00025691456,  0.0049969591),
+			vec3(0.0091901477,  0.000010915673,  0.0016028006),
+			vec3(0.0063760825,  1.8809924e-7,  0.00037150155),
+			vec3(0.020118745,  0.0015618494,  0.0095707672),
+			vec3(0.018209256,  0.00099466438,  0.0081350859),
+			vec3(0.01413135,  0.00025691456,  0.0049969591),
+			vec3(0.010211158,  0.000026913842,  0.0022180562),
+			vec3(0.0073738941,  0.0000011435034,  0.00071145396),
+			vec3(0.0054377527,  1.970489e-8,  0.00016490277),
+			vec3(0.011492467,  0.000066359164,  0.003069486),
+			vec3(0.010813996,  0.000042260857,  0.0026092706),
+			vec3(0.0091901477,  0.000010915673,  0.0016028006),
+			vec3(0.0073738941,  0.0000011435034,  0.00071145396),
+			vec3(0.0057823872,  4.8584667e-8,  0.00022820283),
+			vec3(0.0044486467,  8.3721263e-10,  0.000052893487),
+			vec3(0.0073738941,  0.0000011435034,  0.00071145396),
+			vec3(0.0070962897,  7.2824054e-7,  0.00060478394),
+			vec3(0.0063760825,  1.8809924e-7,  0.00037150155),
+			vec3(0.0054377527,  1.970489e-8,  0.00016490277),
+			vec3(0.0044486467,  8.3721263e-10,  0.000052893487),
+			vec3(0.0034911945,  1.4426877e-11,  0.000012259798),
+		};
+		sssFilterCoefCB.BindPixelShader();
+		sssFilterCoefCB.UploadData();
+
+		for (int passIndex = 0; passIndex < static_cast<int>(renderData->SubsurfaceScattering.FilterRenderTargets.size()); passIndex++)
+		{
+			auto& sourceTarget = (passIndex == 0) ? renderData->SubsurfaceScattering.RenderTarget : renderData->SubsurfaceScattering.FilterRenderTargets[passIndex - 1];
+			auto& destinationTarget = renderData->SubsurfaceScattering.FilterRenderTargets[passIndex];
+			
+			sssFilterCB.Data.PassIndex = passIndex;
+			sssFilterCB.Data.TexelTextureSize = (1.0f / vec2(sourceTarget.GetSize()));
+			sssFilterCB.UploadData();
+
+			sourceTarget.BindResource(0);
+			destinationTarget.BindSetViewport();
+			D3D.Context->Draw(RectangleVertexCount, 0);
+			destinationTarget.UnBind();
+		}
+
+		renderData->SubsurfaceScattering.FilterRenderTargets.back().UnBind();
+	}
+
+	void D3D_Renderer3D::InternalRenderOpaqueObjCommand(ObjRenderCommand& command, bool sssPass)
 	{
 		if (command.AreAllMeshesTransparent)
 			return;
@@ -488,10 +618,13 @@ namespace Graphics
 				if (IsMeshTransparent(mesh, subMesh, material))
 					continue;
 
+				if (sssPass && !UsesSubsurfaceScattering(mesh, subMesh, material))
+					continue;
+
 				if (!IntersectsCameraFrustum(subMesh.BoundingSphere, command))
 					continue;
 
-				PrepareAndRenderSubMesh(command, mesh, subMesh, material);
+				PrepareAndRenderSubMesh(command, mesh, subMesh, material, sssPass);
 			}
 		}
 	}
@@ -753,11 +886,11 @@ namespace Graphics
 		}
 	}
 
-	void D3D_Renderer3D::PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material)
+	void D3D_Renderer3D::PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, bool sssPass)
 	{
 		const ObjAnimationData* animation = command.SourceCommand.Animation;
 
-		auto& materialShader = GetMaterialShader(material);
+		auto& materialShader = sssPass ? GetSubsurfaceScatteringMaterialShader(material) : GetMaterialShader(material);
 		materialShader.Bind();
 
 		constexpr size_t textureTypeCount = 7;
@@ -993,6 +1126,11 @@ namespace Graphics
 		{
 			return shaders.Debug;
 		}
+	}
+
+	D3D_ShaderPair& D3D_Renderer3D::GetSubsurfaceScatteringMaterialShader(const Material& material)
+	{
+		return shaders.SSSSkin;
 	}
 
 	void D3D_Renderer3D::SubmitSubMeshDrawCall(const SubMesh& subMesh)

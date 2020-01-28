@@ -55,7 +55,7 @@
 // TODO: simple_reflect...
 #define TEX2D_15(result, texCoord)  result = ScreenReflectionTexture.Sample(ScreenReflectionSampler, (texCoord).xy)
 // TODO: subsurface scattering...
-#define TEX2D_16(result, texCoord)  result = float4(0.0, 0.0, 0.0, 0.0)
+#define TEX2D_16(result, texCoord)  result = SubsurfaceScatteringTexture.Sample(ScreenReflectionSampler, (texCoord).xy)
 
 #define TEXCUBE_05(result, texCoord) result = ReflectionCubeMap.Sample( ReflectionSampler, (texCoord).xyz )
 #define TEXCUBE_09(result, texCoord) result = CharacterLightMap.Sample( LightMapSampler, (texCoord).xyz )

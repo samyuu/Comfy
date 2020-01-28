@@ -36,6 +36,7 @@ namespace Graphics
 		static constexpr ivec2 ReflectionDefaultResolution = ivec2(512, 512);
 
 		bool RenderReflection = true;
+		bool RenderSubsurfaceScattering = true;
 		bool ClearReflection = true;
 		ivec2 ReflectionRenderResolution = ReflectionDefaultResolution;
 
@@ -68,6 +69,20 @@ namespace Graphics
 		inline void AdvanceRenderTarget() { currentIndex = (currentIndex + 1) % RenderTargets.size(); }
 		inline D3D_DepthRenderTarget& CurrentRenderTarget() { return RenderTargets[currentIndex]; }
 		inline D3D_DepthRenderTarget& PreviousRenderTarget() { return RenderTargets[((currentIndex - 1) + RenderTargets.size()) % RenderTargets.size()]; }
+	};
+
+	struct SubsurfaceScatteringRenderData
+	{
+		// NOTE: Main render target, same size as the main rendering
+		D3D_DepthRenderTarget RenderTarget = { RenderTargetDefaultSize, RenderTargetHDRFormatRGBA, DXGI_FORMAT_D32_FLOAT };
+
+		// NOTE: Further reduction and filtering
+		std::array<D3D_RenderTarget, 3> FilterRenderTargets = 
+		{
+			D3D_RenderTarget { ivec2(640, 360), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2(320, 180), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2(320, 180), RenderTargetHDRFormatRGBA },
+		};
 	};
 
 	struct ScreenReflectionRenderData
@@ -120,6 +135,7 @@ namespace Graphics
 
 		MainRenderData Main;
 		ScreenReflectionRenderData Reflection;
+		SubsurfaceScatteringRenderData SubsurfaceScattering;
 		SilhouetteRenderData Silhouette;
 		BloomRenderData Bloom;
 		OutputRenderData Output;

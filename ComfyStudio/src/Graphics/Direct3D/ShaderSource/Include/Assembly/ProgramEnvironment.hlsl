@@ -55,13 +55,11 @@
 // TODO: program.local[18]
 #define p_tex_scale                 (float4(10.000001, 8.333333, 61.314545, -0.004))
 // TODO: program.env[25]
-#define p_sss_param                 (float4(0.0, 0.0, 0.0, 0.0))
+#define p_sss_param                 (CB_Scene.SubsurfaceScatteringParameter)
 // TODO: Should this be the same as p_fres_coef (?)
 #define fres_coef                   (CB_Material.FresnelCoefficient)
 #define p_fb_isize                  (CB_Scene.TexelRenderResolution)
-
-// TODO:
-#define program_env_00              (float4(42.00, 42.00, 75.00, 1.0))
+#define program_env_00              (float4(CB_Scene.TexelRenderResolution, 1.0, 1.0))
 // TODO:
 #define program_env_17              (float4(0.06, 0.05, 0.88, 1.0))
 // TODO:

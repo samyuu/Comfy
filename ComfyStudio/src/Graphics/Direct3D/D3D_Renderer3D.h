@@ -62,6 +62,8 @@ namespace Graphics
 			vec4 Parameters;
 			vec4 Color;
 		} DepthFog;
+
+		vec4 SubsurfaceScatteringParameter;
 	};
 
 	struct ObjectConstantData
@@ -98,6 +100,18 @@ namespace Graphics
 		} TextureFormats;
 		vec2 MorphWeight;
 		vec2 MorphPadding;
+	};
+
+	struct SSSFilterConstantData
+	{
+		vec2 TexelTextureSize;
+		int PassIndex;
+		int Padding;
+	};
+
+	struct SSSFilterCoefConstantData
+	{
+		std::array<vec3, 64> Coefficient;
 	};
 
 	struct ReduceTexConstantData
@@ -216,7 +230,9 @@ namespace Graphics
 		void InternalPrepareRenderCommands(RenderPassCommandLists& commandList);
 		void InternalRenderItems();
 		void InternalPreRenderScreenReflection();
-		void InternalRenderOpaqueObjCommand(ObjRenderCommand& command);
+		void InternalPreRenderSubsurfaceScattering();
+		void InternalPreRenderReduceFilterSubsurfaceScattering();
+		void InternalRenderOpaqueObjCommand(ObjRenderCommand& command, bool sssPass = false);
 		void InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command);
 		void InternalRenderSilhouette();
 		void InternalRenderSilhouetteOutlineOverlay();
@@ -224,8 +240,9 @@ namespace Graphics
 		void InternalRenderBloom();
 
 		void BindMeshVertexBuffers(const Mesh& primaryMesh, const Mesh* morphMesh);
-		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material);
+		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, bool sssPass = false);
 		D3D_ShaderPair& GetMaterialShader(const Material& material);
+		D3D_ShaderPair& GetSubsurfaceScatteringMaterialShader(const Material& material);
 		void SubmitSubMeshDrawCall(const SubMesh& subMesh);
 
 		bool IntersectsCameraFrustum(const Sphere& boundingSphere, const ObjRenderCommand& command) const;
@@ -256,6 +273,8 @@ namespace Graphics
 			D3D_ShaderPair ReduceTex = { ReduceTex_VS(), ReduceTex_PS(), "Renderer3D::ReduceTex" };
 			D3D_ShaderPair SkinDefault = { SkinDefault_VS(), SkinDefault_PS(), "Renderer3D::SkinDefault" };
 			D3D_ShaderPair SkyDefault = { SkyDefault_VS(), SkyDefault_PS(), "Renderer3D::SkyDefault" };
+			D3D_ShaderPair SSSFilter = { SSSFilter_VS(), SSSFilter_PS(), "Renderer3D::SSSFilter" };
+			D3D_ShaderPair SSSSkin = { SSSSkin_VS(), SSSSkin_PS(), "Renderer3D::SSSSkin" };
 			D3D_ShaderPair StageBlinn = { StageBlinn_VS(), StageBlinn_PS(), "Renderer3D::StageBlinn" };
 			D3D_ShaderPair Tights = { Tights_VS(), Tights_PS(), "Renderer3D::Tights" };
 			D3D_ShaderPair ToneMap = { ToneMap_VS(), ToneMap_PS(), "Renderer3D::ToneMap" };
@@ -264,6 +283,8 @@ namespace Graphics
 
 		D3D_DefaultConstantBufferTemplate<SceneConstantData> sceneCB = { 0, "Renderer3D::SceneCB" };
 		D3D_DynamicConstantBufferTemplate<ObjectConstantData> objectCB = { 1, "Renderer3D::ObjectCB" };
+		D3D_DynamicConstantBufferTemplate<SSSFilterConstantData> sssFilterCB = { 4, "Renderer3D::SSSFilterCB" };
+		D3D_DefaultConstantBufferTemplate<SSSFilterCoefConstantData> sssFilterCoefCB = { 5, "Renderer3D::SSSFilterCoefCB" };
 		D3D_DynamicConstantBufferTemplate<ReduceTexConstantData> reduceTexCB = { 6, "Renderer3D::ReduceTexCB" };
 		D3D_DynamicConstantBufferTemplate<PPGaussTexConstantData> ppGaussTexCB = { 7, "Renderer3D::PPGaussTexCB" };
 		D3D_DefaultConstantBufferTemplate<PPGaussCoefConstantData> ppGaussCoefCB = { 8, "Renderer3D::PPGaussCoefCB" };
@@ -306,6 +327,7 @@ namespace Graphics
 		struct IsAnyCommandFlags
 		{
 			bool ScreenReflection;
+			bool SubsurfaceScattering;
 			bool SilhouetteOutline;
 		} isAnyCommand = {};
 

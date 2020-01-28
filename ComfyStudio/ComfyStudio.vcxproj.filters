@@ -1025,5 +1025,9 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\Helper.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\MathConstants.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\TempRefactor.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SSSFilter_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SSSFilter_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\SSSSkin_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\SSSSkin_PS.hlsl" />
   </ItemGroup>
 </Project>

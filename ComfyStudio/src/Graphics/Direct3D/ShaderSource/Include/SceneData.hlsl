@@ -36,6 +36,8 @@ struct SceneData
     float2 RenderResolution;
     
     LinearFog DepthFog;
+    
+    float4 SubsurfaceScatteringParameter;
 };
 
 #endif /* SCENEDATA_HLSL */
