@@ -167,6 +167,9 @@ namespace Graphics
 
 			// NOTE: Not sure about this one, multiple resources with the same debug name shouldn't be a problem (?)
 			D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS,
+
+			// NOTE: Because only rendering to the depth buffer is intended behavior during the shadow mapping render pass
+			D3D11_MESSAGE_ID_DEVICE_DRAW_RENDERTARGETVIEW_NOT_SET,
 		};
 
 		D3D11_INFO_QUEUE_FILTER filter = {};
