@@ -9,7 +9,6 @@ namespace Graphics
 	void D3D_RenderTargetBase::Bind() const
 	{
 		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { renderTargetView.Get() };
-
 		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), nullptr);
 	}
 
@@ -22,7 +21,6 @@ namespace Graphics
 	void D3D_RenderTargetBase::UnBind() const
 	{
 		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { nullptr };
-
 		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), nullptr);
 	}
 
@@ -82,7 +80,7 @@ namespace Graphics
 		backBufferDescription.SampleDesc.Count = multiSampleCount;
 		backBufferDescription.SampleDesc.Quality = 0;
 		backBufferDescription.Usage = D3D11_USAGE_DEFAULT;
-		backBufferDescription.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+		backBufferDescription.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 		backBufferDescription.CPUAccessFlags = 0;
 		backBufferDescription.MiscFlags = 0;
 
@@ -118,7 +116,6 @@ namespace Graphics
 		backBufferDescription.Width = newSize.x;
 		backBufferDescription.Height = newSize.y;
 
-		// TODO: Do all of these need to be recreated? - Should the ComPtrs be explicitly reset before?
 		D3D.Device->CreateTexture2D(&backBufferDescription, nullptr, &backBuffer);
 		D3D.Device->CreateRenderTargetView(backBuffer.Get(), &renderTargetViewDescription, &renderTargetView);
 		D3D.Device->CreateShaderResourceView(backBuffer.Get(), &shaderResourceViewDescription, &shaderResourceView);
@@ -147,13 +144,13 @@ namespace Graphics
 	void D3D_DepthRenderTarget::Bind() const
 	{
 		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { renderTargetView.Get() };
-
 		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), depthBuffer.GetDepthStencilView());
 	}
 	
 	void D3D_DepthRenderTarget::UnBind() const
 	{
-		D3D_RenderTarget::UnBind();
+		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { nullptr };
+		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), nullptr);
 	}
 	
 	void D3D_DepthRenderTarget::Clear(const vec4& color)
@@ -192,5 +189,53 @@ namespace Graphics
 	D3D_DepthBuffer* D3D_DepthRenderTarget::GetDepthBuffer()
 	{
 		return &depthBuffer;
+	}
+	
+	D3D_DepthOnlyRenderTarget::D3D_DepthOnlyRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat)
+		: resourceViewDepthBuffer(size, depthBufferFormat)
+	{
+	}
+
+	void D3D_DepthOnlyRenderTarget::Bind() const
+	{
+		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { nullptr };
+		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), resourceViewDepthBuffer.GetDepthStencilView());
+	}
+
+	void D3D_DepthOnlyRenderTarget::UnBind() const
+	{
+		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { nullptr };
+		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), nullptr);
+	}
+
+	void D3D_DepthOnlyRenderTarget::Clear(const vec4& color)
+	{
+		resourceViewDepthBuffer.Clear();
+	}
+
+	ivec2 D3D_DepthOnlyRenderTarget::GetSize() const
+	{
+		return resourceViewDepthBuffer.GetSize();
+	}
+
+	void D3D_DepthOnlyRenderTarget::Resize(ivec2 newSize)
+	{
+		resourceViewDepthBuffer.Resize(newSize);
+	}
+
+	void D3D_DepthOnlyRenderTarget::BindResource(uint32_t textureSlot)
+	{
+		std::array<ID3D11ShaderResourceView*, 1> resourceViews = { GetResourceView() };
+		D3D.Context->PSSetShaderResources(textureSlot, static_cast<UINT>(resourceViews.size()), resourceViews.data());
+	}
+
+	ID3D11ShaderResourceView* D3D_DepthOnlyRenderTarget::GetResourceView() const
+	{
+		return resourceViewDepthBuffer.GetResourceView();
+	}
+
+	D3D_ResourceViewDepthBuffer* D3D_DepthOnlyRenderTarget::GetDepthBuffer()
+	{
+		return &resourceViewDepthBuffer;
 	}
 }

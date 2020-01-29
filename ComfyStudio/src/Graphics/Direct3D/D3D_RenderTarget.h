@@ -106,4 +106,31 @@ namespace Graphics
 	private:
 		D3D_DepthBuffer depthBuffer;
 	};
+
+	class D3D_DepthOnlyRenderTarget final : public D3D_RenderTargetBase, public D3D_ShaderResourceView
+	{
+	public:
+		D3D_DepthOnlyRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat);
+		D3D_DepthOnlyRenderTarget(const D3D_DepthOnlyRenderTarget&) = delete;
+		~D3D_DepthOnlyRenderTarget() = default;
+
+		D3D_DepthOnlyRenderTarget& operator=(const D3D_DepthOnlyRenderTarget&) = delete;
+	
+	public:
+		void Bind() const override;
+		void UnBind() const override;
+
+		void Clear(const vec4& color) override;
+		
+		ivec2 GetSize() const override;
+		void Resize(ivec2 newSize) override;
+
+		void BindResource(uint32_t textureSlot);
+
+		ID3D11ShaderResourceView* GetResourceView() const override;
+		D3D_ResourceViewDepthBuffer* GetDepthBuffer();
+
+	private:
+		D3D_ResourceViewDepthBuffer resourceViewDepthBuffer;
+	};
 }
