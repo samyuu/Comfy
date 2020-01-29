@@ -17,7 +17,11 @@ ComfyTextureID::ComfyTextureID(const D3D_TextureResource& texture)
 ComfyTextureID::ComfyTextureID(const D3D_RenderTarget& renderTarget) 
 	: ResourceView(renderTarget.GetResourceView()), IsCubeMap(false), DecompressRGTC(false)
 {
+}
 
+ComfyTextureID::ComfyTextureID(const D3D_DepthOnlyRenderTarget& renderTarget)
+	: ResourceView(renderTarget.GetResourceView()), IsCubeMap(false), DecompressRGTC(false)
+{
 }
 
 bool ComfyTextureID::operator==(const ComfyTextureID& other) const

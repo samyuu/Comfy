@@ -59,7 +59,6 @@ namespace Graphics
 	D3D_DepthBuffer::D3D_DepthBuffer(ivec2 size, DXGI_FORMAT format, uint32_t multiSampleCount)
 		: D3D_DepthBuffer(size, format, format, D3D11_BIND_FLAG {}, multiSampleCount)
 	{
-
 	}
 
 	void D3D_DepthBuffer::Clear(float value)
