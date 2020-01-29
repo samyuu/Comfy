@@ -107,7 +107,7 @@ namespace ImGui
 		AddRectFilled(GetForegroundDrawList(), rect, static_cast<ImU32>(IM_COL32_BLACK * 0.5f));
 	}
 
-	inline void DEBUG_NOSAVE_WINDOW(const char* windowName, const std::function<void(void)>& function, ImGuiWindowFlags flags = 0)
+	inline void DEBUG_NOSAVE_WINDOW(const char* windowName, const std::function<void(void)>& function, ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysAutoResize)
 	{
 		constexpr ImGuiWindowFlags defaultFlags = (ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking);
 		if (Begin(windowName, nullptr, flags | defaultFlags))
