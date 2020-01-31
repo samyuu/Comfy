@@ -766,6 +766,8 @@ namespace Editor
 					LoadStageObjects(stageTypeData.Type, stageTypeData.ID, stageTypeData.SubID);
 					SetStageVisibility(StageVisibilityType::GroundSky);
 				}
+
+				stageTestData.lastSetStage.emplace(stageTypeData);
 			};
 
 			Gui::PushID(&stageTypeData);

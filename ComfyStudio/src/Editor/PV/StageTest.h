@@ -32,11 +32,12 @@ namespace Editor
 			StageTypeData { StageType::STGPV, "STGPV", 1, 999, 1, 1 },
 		};
 
+		std::optional<StageTypeData> lastSetStage;
+
 		struct Settings
 		{
 			bool LoadLightParam = true;
 			bool LoadObj = true;
 		} Settings;
-
 	};
 }
