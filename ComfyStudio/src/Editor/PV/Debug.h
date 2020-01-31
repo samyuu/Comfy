@@ -13,6 +13,8 @@ namespace Debug
 		StageTxp,
 		CharaItemObj,
 		CharaItemTxp,
+		CmnItemObj,
+		CmnItemTxp,
 		Fog,
 		Glow,
 		Light,
@@ -50,7 +52,7 @@ namespace Debug
 			}
 		};
 
-		const char* fileNameSuffix = (type == PathType::StageObj || type == PathType::CharaItemObj) ? "obj" : "tex";
+		const char* fileNameSuffix = (type == PathType::StageObj || type == PathType::CharaItemObj || type == PathType::CmnItemObj) ? "obj" : "tex";
 		if (type == PathType::StageObj || type == PathType::StageTxp)
 		{
 			constexpr std::array stgTypeStrings = { "stgtst", "stgns", "stgd2ns", "stgpv" };
@@ -61,6 +63,10 @@ namespace Debug
 		else if (type == PathType::CharaItemObj || type == PathType::CharaItemTxp)
 		{
 			sprintf_s(path.data(), path.size(), "dev_rom/objset/chritm/%sitm/%sitm%03d/%sitm%03d_%s.bin", chara, chara, id, chara, id, fileNameSuffix);
+		}
+		else if (type == PathType::CmnItemObj || type == PathType::CmnItemTxp)
+		{
+			sprintf_s(path.data(), path.size(), "dev_rom/objset/chritm/cmnitm/cmnitm%04d/cmnitm%04d_%s.bin", id, id, fileNameSuffix);
 		}
 		else if (type == PathType::Fog)
 			formatFileNameOrDefault("dev_rom/light_param/fog_%s.txt", "dev_rom/light_param/fog_tst.txt");

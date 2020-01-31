@@ -10,9 +10,10 @@ namespace Editor
 	{
 		struct ItemIDs
 		{
+			int CommonItem = 1001;
 			int Face = 0, FaceIndex = 0;
 			// NOTE: item[0] range ~701
-			int Overhead = 701;
+			int Overhead = -1; // 701;
 			// NOTE: item[1] range ~501
 			int Hair = 532;
 			// NOTE: item[2] range ~1

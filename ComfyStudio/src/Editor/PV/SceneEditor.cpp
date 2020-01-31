@@ -821,10 +821,14 @@ namespace Editor
 
 		auto loadCharaItems = [&]()
 		{
-			auto loadPart = [&](int id, int exclusiveObjIndex = -1)
+			auto loadPart = [&](int id, int exclusiveObjIndex = -1, bool isCommonItem = false)
 			{
-				auto objSetPath = Debug::GetDebugFilePath(Debug::PathType::CharaItemObj, StageType::STGTST, id, 0, charaTestData.IDs.Character.data());
-				auto txpSetPath = Debug::GetDebugFilePath(Debug::PathType::CharaItemTxp, StageType::STGTST, id, 0, charaTestData.IDs.Character.data());
+				auto[objPathType, txpPathType] = (isCommonItem) ?
+					std::make_pair(Debug::PathType::CmnItemObj, Debug::PathType::CmnItemTxp) :
+					std::make_pair(Debug::PathType::CharaItemObj, Debug::PathType::CharaItemTxp);
+
+				auto objSetPath = Debug::GetDebugFilePath(objPathType, StageType::STGTST, id, 0, charaTestData.IDs.Character.data());
+				auto txpSetPath = Debug::GetDebugFilePath(txpPathType, StageType::STGTST, id, 0, charaTestData.IDs.Character.data());
 
 				if (LoadRegisterObjSet(objSetPath.data(), txpSetPath.data(), CharacterTag))
 				{
@@ -843,6 +847,7 @@ namespace Editor
 			};
 
 			unloadCharaItems();
+			loadPart(charaTestData.IDs.CommonItem, -1, true);
 			loadPart(charaTestData.IDs.Face, charaTestData.IDs.FaceIndex);
 			loadPart(charaTestData.IDs.Overhead);
 			loadPart(charaTestData.IDs.Hair);
@@ -852,6 +857,9 @@ namespace Editor
 
 		Gui::PushID(&charaTestData);
 		Gui::InputText("Character", charaTestData.IDs.Character.data(), charaTestData.IDs.Character.size());
+
+		if (Gui::InputInt("Item", &charaTestData.IDs.CommonItem))
+			loadCharaItems();
 
 		if (Gui::InputInt("Face", &charaTestData.IDs.FaceIndex))
 			loadCharaItems();
