@@ -139,6 +139,9 @@ namespace Editor
 		if (!FileSystem::FileExists(objSetPath) || !FileSystem::FileExists(txpSetPath))
 			return false;
 
+		if (objSetPath == txpSetPath)
+			return false;
+
 		RefPtr<ObjSet> objSet = ObjSet::MakeUniqueReadParseUpload(objSetPath);
 		objSet->Name = FileSystem::GetFileName(objSetPath, false);
 		objSet->TxpSet = TxpSet::MakeUniqueReadParseUpload(txpSetPath, objSet.get());
@@ -237,19 +240,30 @@ namespace Editor
 	{
 		if (flags & EraseFlags_Entities)
 		{
+			auto checkTag = [tag](auto& entity) { return entity->Tag == tag; };
+
 			sceneGraph.Entities.erase(
-				std::remove_if(sceneGraph.Entities.begin(),
-					sceneGraph.Entities.end(),
-					[tag](auto& entity) { return entity->Tag == tag; }),
+				std::remove_if(sceneGraph.Entities.begin(), sceneGraph.Entities.end(),
+					checkTag),
 				sceneGraph.Entities.end());
 		}
 
 		if (flags & EraseFlags_ObjSets)
 		{
+			auto checkTagUnregisterTxp = [&](ObjSetResource& objSetResource)
+			{
+				if (objSetResource.Tag == tag)
+				{
+					if (objSetResource.ObjSet->TxpSet != nullptr)
+						renderer3D->UnRegisterTextureIDs(*objSetResource.ObjSet->TxpSet);
+					return true;
+				}
+				return false;
+			};
+
 			sceneGraph.LoadedObjSets.erase(
-				std::remove_if(sceneGraph.LoadedObjSets.begin(),
-					sceneGraph.LoadedObjSets.end(),
-					[tag](auto& objSetResource) { return objSetResource.Tag == tag; }),
+				std::remove_if(sceneGraph.LoadedObjSets.begin(), sceneGraph.LoadedObjSets.end(),
+					checkTagUnregisterTxp),
 				sceneGraph.LoadedObjSets.end());
 		}
 	}
@@ -1192,7 +1206,7 @@ namespace Editor
 					{
 						if (auto txp = renderer3D->GetTxpFromTextureID(material.Diffuse.TextureID); txp != nullptr)
 						{
-							if (EndsWithInsensitive(txp->Name, "_RENDER") || EndsWithInsensitive(txp->Name, "_MOVIE") || EndsWithInsensitive(txp->Name, "_TV") 
+							if (EndsWithInsensitive(txp->Name, "_RENDER") || EndsWithInsensitive(txp->Name, "_MOVIE") || EndsWithInsensitive(txp->Name, "_TV")
 								|| EndsWithInsensitive(txp->Name, "_FB01") || EndsWithInsensitive(txp->Name, "_FB02") || EndsWithInsensitive(txp->Name, "_FB03"))
 							{
 								if (entity->Animation == nullptr)
