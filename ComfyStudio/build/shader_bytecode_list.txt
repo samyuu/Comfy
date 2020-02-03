@@ -5,7 +5,7 @@ Sprite_VS
 Sprite_PS
 Debug_VS
 Debug_PS
-SilhouetteOutline_VS
+FullscreenQuad_VS
 SilhouetteOutline_PS
 BlinnPerFrag_VS
 BlinnPerFrag_PS
@@ -31,15 +31,12 @@ ItemBlinn_VS
 ItemBlinn_PS
 Lambert_VS
 Lambert_PS
-PPGauss_VS
 PPGauss_PS
-ReduceTex_VS
 ReduceTex_PS
 SkinDefault_VS
 SkinDefault_PS
 SkyDefault_VS
 SkyDefault_PS
-SSSFilter_VS
 SSSFilter_PS
 SSSSkin_VS
 SSSSkin_PS
@@ -47,7 +44,6 @@ StageBlinn_VS
 StageBlinn_PS
 Tights_VS
 Tights_PS
-ToneMap_VS
 ToneMap_PS
 Water_VS
 Water_PS

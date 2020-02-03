@@ -2,7 +2,14 @@ struct VS_OUTPUT
 {
     float4 Position : SV_POSITION;
     float2 TexCoord : TEXCOORD;
-    float2 Exposure : EXPOSURE;
+};
+
+cbuffer ToneMapConstantData : register(b9)
+{
+    float CB_Exposure;
+    float CB_Gamma;
+    float CB_SaturatePower;
+    float CB_SaturateCoefficient;
 };
 
 SamplerState LinearTextureSampler
@@ -28,13 +35,16 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     
     float3 ybr = dot(screenColor.rgb, YBR_COEF);
     
+    static const float p_exposure = 0.062500;
+    const float2 outExposure = float2(CB_Exposure, CB_Exposure * p_exposure);
+    
     ybr.xz = (screenColor.rgb - ybr.yyy).xz;
-    ybr.y *= input.Exposure.y;
+    ybr.y *= outExposure.y;
     
     float2 lookup = ToneMapLookupTexture.Sample(LinearTextureSampler, ybr.y).rg;
     
     float3 color = float3(0.0, lookup.r, 0.0);
-    color.xz = (lookup.g * input.Exposure.x * ybr.xyz).xz;
+    color.xz = (lookup.g * outExposure.x * ybr.xyz).xz;
 
     float3 result;
     result.rb = (color.yyy + color).xz;

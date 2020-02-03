@@ -754,7 +754,7 @@ namespace Graphics
 		toneMapCB.Data.SaturatePower = sceneContext->Glow.SaturatePower;
 		toneMapCB.Data.SaturateCoefficient = sceneContext->Glow.SaturateCoefficient;
 		toneMapCB.UploadData();
-		toneMapCB.BindVertexShader();
+		toneMapCB.BindPixelShader();
 
 		shaders.ToneMap.Bind();
 
@@ -771,7 +771,7 @@ namespace Graphics
 		bloom.BaseRenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.RenderResolution / 2);
 
 		reduceTexCB.Data.CombineBlurred = false;
-		reduceTexCB.BindShaders();
+		reduceTexCB.BindPixelShader();
 		shaders.ReduceTex.Bind();
 
 		for (int i = -1; i < static_cast<int>(bloom.ReduceRenderTargets.size()); i++)
@@ -847,7 +847,7 @@ namespace Graphics
 		reduceTexCB.Data.ExtractBrightness = false;
 		reduceTexCB.Data.CombineBlurred = true;
 		reduceTexCB.UploadData();
-		reduceTexCB.BindShaders();
+		reduceTexCB.BindPixelShader();
 		shaders.ReduceTex.Bind();
 
 		D3D.Context->Draw(RectangleVertexCount, 0);

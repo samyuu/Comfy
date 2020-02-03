@@ -254,7 +254,7 @@ namespace Graphics
 		struct ShaderPairs
 		{
 			D3D_ShaderPair Debug = { Debug_VS(), Debug_PS(), "Renderer3D::Debug" };
-			D3D_ShaderPair SilhouetteOutline = { SilhouetteOutline_VS(), SilhouetteOutline_PS(), "Renderer3D::SilhouetteOutline" };
+			D3D_ShaderPair SilhouetteOutline = { FullscreenQuad_VS(), SilhouetteOutline_PS(), "Renderer3D::SilhouetteOutline" };
 
 			D3D_ShaderPair BlinnPerFrag = { BlinnPerFrag_VS(), BlinnPerFrag_PS(), "Renderer3D::BlinnPerFrag" };
 			D3D_ShaderPair BlinnPerVert = { BlinnPerVert_VS(), BlinnPerVert_PS(), "Renderer3D::BlinnPerVert" };
@@ -269,15 +269,15 @@ namespace Graphics
 			D3D_ShaderPair HairDefault = { HairDefault_VS(), HairDefault_PS(), "Renderer3D::HairDefault" };
 			D3D_ShaderPair ItemBlinn = { ItemBlinn_VS(), ItemBlinn_PS(), "Renderer3D::ItemBlinn" };
 			D3D_ShaderPair Lambert = { Lambert_VS(), Lambert_PS(), "Renderer3D::Lambert" };
-			D3D_ShaderPair PPGauss = { PPGauss_VS(), PPGauss_PS(), "Renderer3D::PPGauss" };
-			D3D_ShaderPair ReduceTex = { ReduceTex_VS(), ReduceTex_PS(), "Renderer3D::ReduceTex" };
+			D3D_ShaderPair PPGauss = { FullscreenQuad_VS(), PPGauss_PS(), "Renderer3D::PPGauss" };
+			D3D_ShaderPair ReduceTex = { FullscreenQuad_VS(), ReduceTex_PS(), "Renderer3D::ReduceTex" };
 			D3D_ShaderPair SkinDefault = { SkinDefault_VS(), SkinDefault_PS(), "Renderer3D::SkinDefault" };
 			D3D_ShaderPair SkyDefault = { SkyDefault_VS(), SkyDefault_PS(), "Renderer3D::SkyDefault" };
-			D3D_ShaderPair SSSFilter = { SSSFilter_VS(), SSSFilter_PS(), "Renderer3D::SSSFilter" };
+			D3D_ShaderPair SSSFilter = { FullscreenQuad_VS(), SSSFilter_PS(), "Renderer3D::SSSFilter" };
 			D3D_ShaderPair SSSSkin = { SSSSkin_VS(), SSSSkin_PS(), "Renderer3D::SSSSkin" };
 			D3D_ShaderPair StageBlinn = { StageBlinn_VS(), StageBlinn_PS(), "Renderer3D::StageBlinn" };
 			D3D_ShaderPair Tights = { Tights_VS(), Tights_PS(), "Renderer3D::Tights" };
-			D3D_ShaderPair ToneMap = { ToneMap_VS(), ToneMap_PS(), "Renderer3D::ToneMap" };
+			D3D_ShaderPair ToneMap = { FullscreenQuad_VS(), ToneMap_PS(), "Renderer3D::ToneMap" };
 			D3D_ShaderPair Water = { Water_VS(), Water_PS(), "Renderer3D::Water" };
 		} shaders;
 

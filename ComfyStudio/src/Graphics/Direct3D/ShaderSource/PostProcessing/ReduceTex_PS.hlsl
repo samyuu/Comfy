@@ -5,7 +5,6 @@ struct VS_OUTPUT
 {
     float4 Position     : SV_POSITION;
     float2 TexCoord     : TEXCOORD0;
-    float4x2 TexCoords  : TEXCOORD1;
 };
 
 cbuffer ReduceTexConstantData : register(b6)
@@ -37,12 +36,20 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
 {
     float4 outputColor;
     
+    const float2 inTexCoords[4] = 
+    {
+        mad(CB_TexelTextureSize, float2(-1.0, -1.0), input.TexCoord),
+        mad(CB_TexelTextureSize, float2(+1.0, -1.0), input.TexCoord),
+        mad(CB_TexelTextureSize, float2(-1.0, +1.0), input.TexCoord),
+        mad(CB_TexelTextureSize, float2(+1.0, +1.0), input.TexCoord),
+    };
+    
     if (CB_ExtractBrightness)
     {
-        TEMP col = ScreenTexture.Sample(LinearTextureSampler, input.TexCoords[0]);
-        TEMP col1 = ScreenTexture.Sample(LinearTextureSampler, input.TexCoords[1]);
-        TEMP col2 = ScreenTexture.Sample(LinearTextureSampler, input.TexCoords[2]);
-        TEMP tmp = ScreenTexture.Sample(LinearTextureSampler, input.TexCoords[3]);
+        TEMP col = ScreenTexture.Sample(LinearTextureSampler, inTexCoords[0]);
+        TEMP col1 = ScreenTexture.Sample(LinearTextureSampler, inTexCoords[1]);
+        TEMP col2 = ScreenTexture.Sample(LinearTextureSampler, inTexCoords[2]);
+        TEMP tmp = ScreenTexture.Sample(LinearTextureSampler, inTexCoords[3]);
         TEMP sum;
         ADD(sum.xyz, col.xyz, col1.xyz);
         ADD(sum.xyz, sum.xyz, col2.xyz);
@@ -65,10 +72,10 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
         #undef a_tex3
         #undef a_tex4
         #define a_tex0 input.TexCoord
-        #define a_tex1 input.TexCoords[0]
-        #define a_tex2 input.TexCoords[1]
-        #define a_tex3 input.TexCoords[2]
-        #define a_tex4 input.TexCoords[3]
+        #define a_tex1 inTexCoords[0]
+        #define a_tex2 inTexCoords[1]
+        #define a_tex3 inTexCoords[2]
+        #define a_tex4 inTexCoords[3]
         
         #undef TEX2D_00
         #undef TEX2D_01
@@ -102,10 +109,10 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     else
     {
         float4x4 texColors;
-        texColors[0] = ScreenTexture.Sample(LinearTextureSampler, input.TexCoords[0]);
-        texColors[1] = ScreenTexture.Sample(LinearTextureSampler, input.TexCoords[1]);
-        texColors[2] = ScreenTexture.Sample(LinearTextureSampler, input.TexCoords[2]);
-        texColors[3] = ScreenTexture.Sample(LinearTextureSampler, input.TexCoords[3]);
+        texColors[0] = ScreenTexture.Sample(LinearTextureSampler, inTexCoords[0]);
+        texColors[1] = ScreenTexture.Sample(LinearTextureSampler, inTexCoords[1]);
+        texColors[2] = ScreenTexture.Sample(LinearTextureSampler, inTexCoords[2]);
+        texColors[3] = ScreenTexture.Sample(LinearTextureSampler, inTexCoords[3]);
 
         float4 totalColor = (texColors[0] + texColors[1] + texColors[2] + texColors[3]);
         outputColor = totalColor / 4.0;

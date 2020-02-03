@@ -991,10 +991,7 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Water_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Water_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\ReduceTex_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\ReduceTex_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\ToneMap_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\ToneMap_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\PPGauss_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\PPGauss_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Comfy\Debug_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Comfy\Debug_VS.hlsl" />
@@ -1017,7 +1014,6 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Comfy\ImGuiDefault_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Comfy\ImGuiCustom_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SilhouetteOutline_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SilhouetteOutline_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\InputOutput.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\DebugInterface.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\Instructions.hlsl" />
@@ -1025,9 +1021,9 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\Helper.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\MathConstants.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\Assembly\TempRefactor.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SSSFilter_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SSSFilter_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\SSSSkin_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\SSSSkin_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\FullscreenQuad_VS.hlsl" />
   </ItemGroup>
 </Project>
