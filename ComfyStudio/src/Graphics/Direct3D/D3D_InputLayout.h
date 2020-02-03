@@ -15,7 +15,6 @@ namespace Graphics
 		uint32_t InputSlot = 0;
 	};
 
-	// TODO: Input layout class that supports multiple vertex buffers
 	class D3D_InputLayout final : IGraphicsResource
 	{
 	public:

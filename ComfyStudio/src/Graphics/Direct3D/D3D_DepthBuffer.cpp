@@ -9,6 +9,9 @@ namespace Graphics
 			if (baseFormat == DXGI_FORMAT_D32_FLOAT)
 				return DXGI_FORMAT_R32_TYPELESS;
 
+			if (baseFormat == DXGI_FORMAT_D24_UNORM_S8_UINT)
+				return DXGI_FORMAT_R24G8_TYPELESS;
+
 			assert(false);
 			return DXGI_FORMAT_UNKNOWN;
 		}
@@ -18,6 +21,9 @@ namespace Graphics
 			if (baseFormat == DXGI_FORMAT_D32_FLOAT)
 				return DXGI_FORMAT_D32_FLOAT;
 
+			if (baseFormat == DXGI_FORMAT_D24_UNORM_S8_UINT)
+				return DXGI_FORMAT_D24_UNORM_S8_UINT;
+
 			assert(false);
 			return DXGI_FORMAT_UNKNOWN;
 		}
@@ -26,6 +32,9 @@ namespace Graphics
 		{
 			if (baseFormat == DXGI_FORMAT_D32_FLOAT)
 				return DXGI_FORMAT_R32_FLOAT;
+
+			if (baseFormat == DXGI_FORMAT_D24_UNORM_S8_UINT)
+				return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 
 			assert(false);
 			return DXGI_FORMAT_UNKNOWN;
@@ -63,7 +72,10 @@ namespace Graphics
 
 	void D3D_DepthBuffer::Clear(float value)
 	{
-		D3D.Context->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH, value, 0);
+		if (depthStencilDescription.Format == DXGI_FORMAT_D24_UNORM_S8_UINT)
+			D3D.Context->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, value, 0xFF);
+		else
+			D3D.Context->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH, value, 0x00);
 	}
 
 	void D3D_DepthBuffer::Resize(ivec2 newSize)
