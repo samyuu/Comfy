@@ -35,8 +35,13 @@ namespace Graphics
 
 		inline void Transform(const Transform& transform)
 		{
-			Center = transform.CalculateMatrix() * vec4(Center, 1.0f);
-			Radius *= glm::max(transform.Scale.x, glm::max(transform.Scale.y, transform.Scale.z));
+			Transform(transform.CalculateMatrix(), transform.Scale);
+		}
+
+		inline void Transform(const mat4& transform, const vec3& scale)
+		{
+			Center = transform * vec4(Center, 1.0f);
+			Radius *= glm::max(scale.x, glm::max(scale.y, scale.z));
 		}
 	};
 
