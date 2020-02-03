@@ -16,6 +16,7 @@ ClothDefault_VS
 ClothDefault_PS
 Constant_VS
 Constant_PS
+DepthThreshold_PS
 EyeBall_VS
 EyeBall_PS
 EyeLens_VS
@@ -27,10 +28,14 @@ GlassEye_PS
 HairAniso_PS
 HairDefault_VS
 HairDefault_PS
+ImgFilter_PS
+ImgFilterBlur_PS
 ItemBlinn_VS
 ItemBlinn_PS
 Lambert_VS
 Lambert_PS
+Silhouette_VS
+Silhouette_PS
 PPGauss_PS
 ReduceTex_PS
 SkinDefault_VS

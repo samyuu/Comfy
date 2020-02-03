@@ -1024,6 +1024,12 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SSSFilter_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\SSSSkin_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\SSSSkin_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Include\InputLayoutShadow.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\FullscreenQuad_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\ImgFilter_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Silhouette_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Silhouette_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\DepthThreshold_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\ImgFilterBlur_PS.hlsl" />
   </ItemGroup>
 </Project>
