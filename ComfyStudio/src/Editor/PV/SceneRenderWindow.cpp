@@ -157,8 +157,14 @@ namespace Editor
 						renderCommand.Flags.SilhouetteOutline = true;
 #endif
 
+#if 1 // DEBUG:
+					if (entity->Tag == 'chr' || entity->Tag == 'obj')
+						renderCommand.Flags.CastsShadow = true;
+#endif
+
 					renderer3D->Draw(renderCommand);
 
+#if 1 // DEBUG:
 					// DEBUG: Quick and dirt hack for testing sake, not accurate of course
 					if (isAnyReflection && entity->Tag == 'chr')
 					{
@@ -168,6 +174,7 @@ namespace Editor
 						renderCommand.Transform.Rotation.z = 180.0f - renderCommand.Transform.Rotation.z;
 						renderer3D->Draw(renderCommand);
 					}
+#endif
 
 #if 1 // DEBUG:
 					RenderDebugBoundingSpheres(renderer3D, *entity);
