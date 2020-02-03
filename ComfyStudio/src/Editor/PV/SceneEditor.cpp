@@ -314,6 +314,7 @@ namespace Editor
 		Gui::Checkbox("Frustum Culling", &renderParameters.FrustumCulling);
 		Gui::Checkbox("Wireframe", &renderParameters.Wireframe);
 		Gui::Checkbox("Alpha Sort", &renderParameters.AlphaSort);
+		Gui::Checkbox("Render Shadow", &renderParameters.RenderShadowMap);
 		Gui::Checkbox("Render Reflection", &renderParameters.RenderReflection);
 		Gui::Checkbox("Render Subsurface Scattering", &renderParameters.RenderSubsurfaceScattering);
 		Gui::Checkbox("Render Opaque", &renderParameters.RenderOpaque);
@@ -365,6 +366,26 @@ namespace Editor
 			if (reflectionResolution != renderParameters.ReflectionRenderResolution)
 				renderParameters.ReflectionRenderResolution = clampSize(reflectionResolution);
 
+			ivec2 shadowResolution = renderParameters.ShadowMapResolution;
+			Gui::InputInt2("Shadow Resolution", glm::value_ptr(shadowResolution));
+			Gui::ItemContextMenu("ShadowResolutionContextMenu", [&]()
+			{
+				Gui::Text("Set Shadow Resolution:");
+				Gui::Separator();
+				if (Gui::MenuItem("256x256")) shadowResolution = ivec2(256, 256);
+				if (Gui::MenuItem("512x512")) shadowResolution = ivec2(512, 512);
+				if (Gui::MenuItem("1024x1024")) shadowResolution = ivec2(1024, 1024);
+				if (Gui::MenuItem("2048x2048")) shadowResolution = ivec2(2048, 2048);
+				if (Gui::MenuItem("4096x4096")) shadowResolution = ivec2(4096, 4096);
+				if (Gui::MenuItem("8192x8192")) shadowResolution = ivec2(8192, 8192);
+			});
+
+			if (shadowResolution != context.RenderData.Shadow.RenderTarget.GetSize())
+				renderParameters.ShadowMapResolution = (clampSize(shadowResolution));
+
+			if (Gui::InputScalar("Shadow Blur Passes", ImGuiDataType_U32, &renderParameters.ShadowBlurPasses))
+				renderParameters.ShadowBlurPasses = std::clamp(renderParameters.ShadowBlurPasses, 0u, 10u);
+
 			if (Gui::InputScalar("Multi Sample Count", ImGuiDataType_U32, &renderParameters.MultiSampleCount))
 				renderParameters.MultiSampleCount = std::clamp(renderParameters.MultiSampleCount, 1u, 16u);
 		}
@@ -373,23 +394,49 @@ namespace Editor
 		{
 			auto& renderData = context.RenderData;
 
-			auto renderTargetGui = [&](const char* name, D3D_RenderTarget& renderTarget)
+			static uint32_t openFlags = 0;
+			static uint32_t currentIndex = 0;
+
+			auto renderTargetGui = [&](const char* name, auto& renderTarget)
 			{
+				const uint32_t openMask = (1 << currentIndex);
+				currentIndex++;
+
 				Gui::Selectable(name);
 
-				if (Gui::IsItemHovered())
+				if (Gui::IsItemHovered() && Gui::IsMouseDoubleClicked(0))
+					openFlags ^= openMask;
+
+				const float aspectRatio = (static_cast<float>(renderTarget.GetSize().y) / static_cast<float>(renderTarget.GetSize().x));
+				if (openFlags & openMask)
 				{
 					constexpr float desiredWidth = 512.0f;
-					const vec2 size = renderTarget.GetSize();
+
+					bool open = true;
+					if (Gui::Begin(name, &open, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoDocking))
+						Gui::Image(renderTarget, vec2(desiredWidth, desiredWidth * aspectRatio));
+					Gui::End();
+					if (!open)
+						openFlags &= ~openMask;
+				}
+				else if (Gui::IsItemHovered())
+				{
+					constexpr float desiredWidth = 256.0f;
 
 					Gui::BeginTooltip();
-					Gui::Image(renderTarget, vec2(desiredWidth, desiredWidth * (size.y / size.x)));
+					Gui::Image(renderTarget, vec2(desiredWidth, desiredWidth * aspectRatio));
 					Gui::EndTooltip();
 				}
 			};
 
+			currentIndex = 0;
 			renderTargetGui("Main Current", renderData.Main.CurrentRenderTarget());
 			renderTargetGui("Main Previous", renderData.Main.PreviousRenderTarget());
+
+			renderTargetGui("Shadow Map", renderData.Shadow.RenderTarget);
+			renderTargetGui("Shadow Map Threshold", renderData.Shadow.ThresholdRenderTarget);
+			renderTargetGui("Shadow Map Blur[0]", renderData.Shadow.BlurRenderTargets[0]);
+			renderTargetGui("Shadow Map Blur[1]", renderData.Shadow.BlurRenderTargets[1]);
 
 			renderTargetGui("Screen Reflection", renderData.Reflection.RenderTarget);
 
