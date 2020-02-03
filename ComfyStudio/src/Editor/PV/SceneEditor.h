@@ -51,6 +51,7 @@ namespace Editor
 		void DrawObjectTestGui();
 		void DrawStageTestGui();
 		void DrawCharaTestGui();
+		void DrawA3DTestGui();
 		void DrawDebugTestGui();
 
 	private:

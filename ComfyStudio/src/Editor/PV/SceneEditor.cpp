@@ -63,6 +63,13 @@ namespace Editor
 
 		if (Gui::Begin(ICON_FA_FOLDER "  ObjSet Loader"))
 		{
+			static Transform objTrans = Transform(vec3(0.0f));
+			if (Gui::DragFloat3("Position", glm::value_ptr(objTrans.Translation), 0.1f) |
+				Gui::DragFloat3("Scale", glm::value_ptr(objTrans.Scale), 0.1f) |
+				Gui::DragFloat3("Rotation", glm::value_ptr(objTrans.Rotation), 0.1f))
+				for (auto& entity : sceneGraph.Entities)
+					if (entity->Tag == ObjectTag) entity->Transform = objTrans;
+
 			Gui::BeginChild("ObjSetLoaderChild");
 			if (objFileViewer.DrawGui())
 			{
@@ -117,6 +124,10 @@ namespace Editor
 
 		if (Gui::Begin(ICON_FA_FEMALE "  Chara Test"))
 			DrawCharaTestGui();
+		Gui::End();
+
+		if (Gui::Begin(ICON_FA_SYNC_ALT "  A3D Test"))
+			DrawA3DTestGui();
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_BUG "  Debug Test"))
@@ -945,6 +956,11 @@ namespace Editor
 		Gui::PopID();
 	}
 
+	void SceneEditor::DrawA3DTestGui()
+	{
+		// TODO:
+	}
+
 	void SceneEditor::DrawDebugTestGui()
 	{
 		static struct DebugData
@@ -973,13 +989,11 @@ namespace Editor
 
 			float MorphWeight = 0.0f, PlaybackSpeed = 0.0f, Elapsed = 0.0f;
 
-			UniquePtr<A3D> A3D = nullptr;
-			int StageAuthIndex = 0;
+			std::vector<A3D> StageEffA3Ds, CamPVA3Ds;
+			int StageEffIndex = -1, CamPVIndex = -1;
 
-			frame_t Frame = 0.0f;
-			bool Playback = true, Repeat = true, ApplyCamera = false;
-
-			char A3DPath[MAX_PATH] = "dev_rom/auth_3d/";
+			frame_t Frame = 0.0f, Duration = 1.0f, FrameRate = 60.0f;
+			bool Playback = true, SetLongestDuration = true, Repeat = true, ApplyStageAuth = true;
 
 		} debug;
 
@@ -1034,74 +1048,35 @@ namespace Editor
 
 		if (Gui::CollapsingHeader("A3D Test", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			bool inputTextEnter = Gui::InputText("A3D Path", debug.A3DPath, sizeof(debug.A3DPath), ImGuiInputTextFlags_EnterReturnsTrue);
-			bool loadA3D = inputTextEnter || debug.A3D == nullptr;
-
-			if (Gui::InputInt("Load Stage Auth", &debug.StageAuthIndex, 1, 10) || debug.StageAuthIndex == 0)
+			auto loadA3Ds = [](const char* farcPath)
 			{
-				if (debug.StageAuthIndex <= 0) debug.StageAuthIndex = 1;
-
-				auto stageObjSet = std::find_if(sceneGraph.LoadedObjSets.begin(), sceneGraph.LoadedObjSets.end(), [](auto& resource) { return resource.Tag == StageTag; });
-				if (stageObjSet != sceneGraph.LoadedObjSets.end() && stageObjSet->ObjSet->Name.length() > strlen("xxx_obj"))
+				std::vector<A3D> a3ds;
+				if (auto farc = FileSystem::Farc::Open(farcPath); farc != nullptr)
 				{
-					auto name = stageObjSet->ObjSet->Name.substr(0, stageObjSet->ObjSet->Name.length() - strlen("_obj"));
-					auto baseName = (tolower(name[name.length() - strlen("S01")]) == 's') ? name.substr(0, name.length() - strlen("S01")) : name;
-
-					char directory[MAX_PATH], fileName[MAX_PATH];
-					sprintf_s(directory, "dev_rom/auth_3d/EFF%.*s", static_cast<int>(baseName.length()), baseName.data());
-					sprintf_s(fileName, "%.*s_EFF_%03d.a3da", static_cast<int>(name.length()), name.data(), debug.StageAuthIndex);
-
-					sprintf_s(debug.A3DPath, "%s/%s", directory, fileName);
-					for (size_t i = strlen("dev_rom/auth_3d/"); i < strlen(debug.A3DPath) - strlen(".a3da"); i++)
-						debug.A3DPath[i] = toupper(debug.A3DPath[i]);
-
-					if (!FileSystem::FileExists(debug.A3DPath))
+					for (auto& file : *farc)
 					{
-						char farcPath[MAX_PATH];
-						sprintf_s(farcPath, "%s.farc", directory);
-
-						if (auto farc = FileSystem::Farc::Open(farcPath); farc != nullptr)
-						{
-							debug.A3D = MakeUnique<A3D>();
-							if (auto a3dFile = farc->GetFile(fileName); a3dFile != nullptr)
-							{
-								std::vector<uint8_t> fileContent(a3dFile->FileSize);
-								a3dFile->Read(fileContent.data());
-								debug.A3D->Parse(fileContent.data(), fileContent.size());
-							}
-						}
-					}
-					else
-					{
-						loadA3D = true;
+						auto content = file.ReadVector();
+						a3ds.emplace_back().Parse(content.data(), content.size());
 					}
 				}
-			}
+				return a3ds;
+			};
 
-			if (loadA3D)
+			auto loadCamPVA3Ds = [loadA3Ds](int pvID)
 			{
-				size_t strLen = strlen(debug.A3DPath);
-				if (debug.A3DPath[0] == '"')
-					std::memcpy(debug.A3DPath, debug.A3DPath + 1, strLen--);
-				if (debug.A3DPath[strLen - 1] == '"')
-					debug.A3DPath[strLen - 1] = '\0';
+				char path[MAX_PATH]; sprintf_s(path, "dev_rom/auth_3d/CAMPV%03d.farc", pvID);
+				return loadA3Ds(path);
+			};
 
-				debug.A3D = MakeUnique<A3D>();
-				if (FileSystem::FileExists(debug.A3DPath))
-				{
-					std::vector<uint8_t> fileContent;
-					FileSystem::FileReader::ReadEntireFile(debug.A3DPath, &fileContent);
-
-					debug.A3D->Parse(fileContent.data(), fileContent.size());
-				}
-			}
-
-			if (true)
+			auto loadStgEffA3Ds = [loadA3Ds](StageType type, int id)
 			{
-				auto a3dFrame = debug.Frame;
-				const auto& a3dObjects = debug.A3D->Objects;
+				char path[MAX_PATH]; sprintf_s(path, "dev_rom/auth_3d/EFFSTG%s%03d.farc", std::array { "TST", "NS", "D2NS", "PV" }[static_cast<int>(type)], id);
+				return loadA3Ds(path);
+			};
 
-				for (auto& object : a3dObjects)
+			auto applyA3D = [](auto& a3d, frame_t frame, auto& sceneGraph, auto& context)
+			{
+				for (auto& object : a3d.Objects)
 				{
 					auto& entities = sceneGraph.Entities;
 					auto correspondingEntity = std::find_if(entities.begin(), entities.end(), [&](auto& e) { return MatchesInsensitive(e->Name, object.UIDName); });
@@ -1111,11 +1086,11 @@ namespace Editor
 
 					auto& entity = (*correspondingEntity);
 
-					entity->Transform = A3DMgr::GetTransformAt(object, a3dFrame);
-					entity->IsVisible = A3DMgr::GetBoolAt(object.Visibility, a3dFrame);
+					entity->Transform = A3DMgr::GetTransformAt(object, frame);
+					entity->IsVisible = A3DMgr::GetBoolAt(object.Visibility, frame);
 
-					if (auto parent = DebugData::FindA3DObjectParent(*debug.A3D, object); parent != nullptr)
-						DebugData::ApplyA3DParentTransform(*debug.A3D, *parent, entity->Transform, a3dFrame);
+					if (auto parent = DebugData::FindA3DObjectParent(a3d, object); parent != nullptr)
+						DebugData::ApplyA3DParentTransform(a3d, *parent, entity->Transform, frame);
 
 					if (entity->Animation == nullptr)
 						entity->Animation = MakeUnique<ObjAnimationData>();
@@ -1125,8 +1100,8 @@ namespace Editor
 						if (name.empty())
 							return nullptr;
 
-						auto found = std::find_if(debug.A3D->Curves.begin(), debug.A3D->Curves.end(), [&](auto& curve) { return MatchesInsensitive(curve.Name, name); });
-						return (found == debug.A3D->Curves.end()) ? nullptr : &(*found);
+						auto found = std::find_if(a3d.Curves.begin(), a3d.Curves.end(), [&](auto& curve) { return MatchesInsensitive(curve.Name, name); });
+						return (found == a3d.Curves.end()) ? nullptr : &(*found);
 					};
 
 					// TODO: Instead of searching at the entire TxpDB for entries only the loaded ObjSets would have to be checked (?)
@@ -1168,12 +1143,8 @@ namespace Editor
 									}
 								}
 
-								const int index = A3DMgr::GetIntAt(pattern->CV, a3dFrame);
+								const int index = A3DMgr::GetIntAt(pattern->CV, frame);
 								entityPattern.IDOverride = (index >= 0 && index < entityPattern.CachedIDs->size()) ? entityPattern.CachedIDs->at(index) : TxpID::Invalid;
-
-								// DEBUG:
-								if (context.RenderParameters.DebugFlags & (1 << 0))
-									entityPattern.IDOverride = TxpID::Invalid;
 							}
 						}
 					}
@@ -1199,14 +1170,14 @@ namespace Editor
 
 							// TODO: Might not be a single bool but different types
 							if (a3dTexTransform.RepeatU.Enabled)
-								entityTexTransform.RepeatU.emplace(A3DMgr::GetBoolAt(a3dTexTransform.RepeatU, a3dFrame));
+								entityTexTransform.RepeatU.emplace(A3DMgr::GetBoolAt(a3dTexTransform.RepeatU, frame));
 							if (a3dTexTransform.RepeatV.Enabled)
-								entityTexTransform.RepeatV.emplace(A3DMgr::GetBoolAt(a3dTexTransform.RepeatV, a3dFrame));
+								entityTexTransform.RepeatV.emplace(A3DMgr::GetBoolAt(a3dTexTransform.RepeatV, frame));
 
-							entityTexTransform.Rotation = A3DMgr::GetRotationAt(a3dTexTransform.Rotate, a3dFrame) + A3DMgr::GetRotationAt(a3dTexTransform.RotateFrame, a3dFrame);
+							entityTexTransform.Rotation = A3DMgr::GetRotationAt(a3dTexTransform.Rotate, frame) + A3DMgr::GetRotationAt(a3dTexTransform.RotateFrame, frame);
 
-							entityTexTransform.Translation.x = A3DMgr::GetValueAt(a3dTexTransform.OffsetU, a3dFrame) - A3DMgr::GetValueAt(a3dTexTransform.TranslateFrameU, a3dFrame);
-							entityTexTransform.Translation.y = A3DMgr::GetValueAt(a3dTexTransform.OffsetV, a3dFrame) - A3DMgr::GetValueAt(a3dTexTransform.TranslateFrameV, a3dFrame);
+							entityTexTransform.Translation.x = A3DMgr::GetValueAt(a3dTexTransform.OffsetU, frame) - A3DMgr::GetValueAt(a3dTexTransform.TranslateFrameU, frame);
+							entityTexTransform.Translation.y = A3DMgr::GetValueAt(a3dTexTransform.OffsetV, frame) - A3DMgr::GetValueAt(a3dTexTransform.TranslateFrameV, frame);
 						}
 					}
 
@@ -1214,46 +1185,102 @@ namespace Editor
 					{
 						size_t morphEntityIndex = static_cast<size_t>(std::distance(entities.begin(), correspondingEntity)) + 1;
 
-						entity->Animation->MorphWeight = A3DMgr::GetValueAt(morphCurve->CV, a3dFrame);
+						entity->Animation->MorphWeight = A3DMgr::GetValueAt(morphCurve->CV, frame);
 						entity->MorphObj = (morphEntityIndex >= entities.size()) ? nullptr : entities[morphEntityIndex]->Obj;
 					}
 				}
-			}
 
-			if (debug.Playback)
+				for (auto& a3dCamera : a3d.CameraRoot)
+				{
+					context.Camera.ViewPoint = A3DMgr::GetValueAt(a3dCamera.ViewPoint.Translation, frame);
+					context.Camera.Interest = A3DMgr::GetValueAt(a3dCamera.Interest.Translation, frame);
+					context.Camera.FieldOfView = A3DMgr::GetFieldOfViewAt(a3dCamera.ViewPoint, frame);
+				}
+			};
+
+			auto iterateA3Ds = [](std::vector<A3D>& a3ds, int index, auto func)
 			{
-				debug.Frame += 1.0f * (Gui::GetIO().DeltaTime * debug.A3D->PlayControl.FrameRate);
+				if (a3ds.empty())
+					return;
+				else if (index < 0)
+					for (auto& a3d : a3ds)
+						func(a3d);
+				else if (index < a3ds.size())
+					func(a3ds[index]);
+			};
 
-				if (debug.Repeat && debug.Frame >= debug.A3D->PlayControl.Duration)
-					debug.Frame = 0.0f;
-
-				debug.Frame = std::clamp(debug.Frame, 0.0f, debug.A3D->PlayControl.Duration);
-			}
-
-			if (debug.ApplyCamera && !debug.A3D->CameraRoot.empty())
+			if (Gui::Button("Load STG EFF") && stageTestData.lastSetStage.has_value())
+				debug.StageEffA3Ds = loadStgEffA3Ds(stageTestData.lastSetStage->Type, stageTestData.lastSetStage->ID);
+			Gui::SameLine();
+			if (Gui::Button("Unload EFF"))
 			{
-				const A3DCamera& a3dCamera = debug.A3D->CameraRoot.front();
-				auto& camera = context.Camera;
-
-				camera.ViewPoint = A3DMgr::GetValueAt(a3dCamera.ViewPoint.Translation, debug.Frame);
-				camera.Interest = A3DMgr::GetValueAt(a3dCamera.Interest.Translation, debug.Frame);
-				camera.FieldOfView = A3DMgr::GetFieldOfViewAt(a3dCamera.ViewPoint, debug.Frame);
+				debug.StageEffA3Ds.clear();
+				debug.StageEffIndex = -1;
 			}
 
-			if (Gui::Checkbox("Apply Camera", &debug.ApplyCamera) || loadA3D)
+			if (Gui::Button("Load CAM PV ") && stageTestData.lastSetStage.has_value() && stageTestData.lastSetStage.value().Type == StageType::STGPV)
+				debug.CamPVA3Ds = loadCamPVA3Ds(stageTestData.lastSetStage->ID);
+			Gui::SameLine();
+			if (Gui::Button("Unload CAM"))
 			{
-				context.Camera.FieldOfView = 90.0f;
-				cameraController.Visualization.VisualizeInterest = true;
-				cameraController.Mode = debug.ApplyCamera ? CameraController3D::ControlMode::None : CameraController3D::ControlMode::Orbit;
+				debug.CamPVA3Ds.clear();
+				debug.CamPVIndex = -1;
 			}
 
-			Gui::Checkbox("Playback", &debug.Playback);
-			Gui::Checkbox("Repeat", &debug.Repeat);
+			if (Gui::InputInt("STGEFF Index", &debug.StageEffIndex))
+				debug.StageEffIndex = std::clamp(debug.StageEffIndex, -1, static_cast<int>(debug.StageEffA3Ds.size()));
+			if (Gui::IsItemHovered())
+			{
+				Gui::BeginTooltip();
+				iterateA3Ds(debug.StageEffA3Ds, debug.StageEffIndex, [](auto& a3d) { Gui::Selectable(a3d.Metadata.FileName.c_str()); });
+				Gui::EndTooltip();
+			}
+
+			if (Gui::InputInt("CAMPV Index", &debug.CamPVIndex))
+				debug.CamPVIndex = std::clamp(debug.CamPVIndex, -1, static_cast<int>(debug.CamPVA3Ds.size()));
+			if (Gui::IsItemHovered())
+			{
+				Gui::BeginTooltip();
+				iterateA3Ds(debug.CamPVA3Ds, debug.CamPVIndex, [](auto& a3d) { Gui::Selectable(a3d.Metadata.FileName.c_str()); });
+				Gui::EndTooltip();
+			}
+
+			Gui::Checkbox("Apply Stage Auth", &debug.ApplyStageAuth);
 
 			if (Gui::IsWindowFocused() && Gui::IsKeyPressed(KeyCode_Space))
 				debug.Playback ^= true;
 
-			Gui::SliderFloat("Frame", &debug.Frame, 0.0f, debug.A3D->PlayControl.Duration);
+			Gui::Checkbox("Playback", &debug.Playback);
+			Gui::SameLine();
+			Gui::Checkbox("Repeat", &debug.Repeat);
+
+			Gui::InputFloat("Frame", &debug.Frame, 1.0f, 100.0f);
+			Gui::InputFloat("Duration", &debug.Duration, 1.0f, 100.0f);
+
+			if (debug.SetLongestDuration)
+			{
+				debug.Duration = 0.0f;
+				iterateA3Ds(debug.StageEffA3Ds, debug.StageEffIndex, [&](auto& a3d) { debug.Duration = std::max(debug.Duration, a3d.PlayControl.Duration); });
+				iterateA3Ds(debug.CamPVA3Ds, debug.CamPVIndex, [&](auto& a3d) { debug.Duration = std::max(debug.Duration, a3d.PlayControl.Duration); });
+			}
+
+			if (debug.Playback)
+			{
+				debug.Frame += 1.0f * (Gui::GetIO().DeltaTime * debug.FrameRate);
+				if (debug.Repeat && debug.Frame >= debug.Duration)
+					debug.Frame = 0.0f;
+				debug.Frame = std::clamp(debug.Frame, 0.0f, debug.Duration);
+			}
+
+			if (debug.ApplyStageAuth)
+				iterateA3Ds(debug.StageEffA3Ds, debug.StageEffIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, context); });
+
+			if (cameraController.Mode == CameraController3D::ControlMode::None)
+				iterateA3Ds(debug.CamPVA3Ds, debug.CamPVIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, context); });
+
+			if (Gui::Button("Camera Mode Orbit")) { context.Camera.FieldOfView = 90.0f; cameraController.Mode = CameraController3D::ControlMode::Orbit; }
+			Gui::SameLine();
+			if (Gui::Button("Camera Mode None")) { cameraController.Mode = CameraController3D::ControlMode::None; }
 
 			if (Gui::Button("Set Screen Render IDs"))
 			{
