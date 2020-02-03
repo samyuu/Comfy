@@ -29,6 +29,12 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
         MOV(tex_col, state_material_diffuse);
     }
     
+    if (FLAGS_STAGE_SHADOW)
+    {
+        PS_SAMPLE_STAGE_SHADOW_MAP;
+        tex_col *= _tmp0;
+    }
+    
     MUL(o_color, tex_col, a_color0);
     
     PS_ALPHA_TEST;

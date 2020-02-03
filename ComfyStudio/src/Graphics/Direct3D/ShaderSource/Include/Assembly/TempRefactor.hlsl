@@ -28,40 +28,40 @@ float3 ViewToInverseViewSpace(float3 viewSpace) { return mul((float3x3)CB_Scene.
 float2 VS_MorphAttribute(float2 attribute, float2 morphAttribute) { return mad(attribute, p_morph_weight.y, (morphAttribute * p_morph_weight.x)); }
 float4 VS_MorphAttribute(float4 attribute, float4 morphAttribute) { return mad(attribute, p_morph_weight.y, (morphAttribute * p_morph_weight.x)); }
 
-void VS_SetModelSpaceAttributes(VS_INPUT input, out float4 worldSpacePosition)
+void VS_SetModelSpaceAttributes(VS_INPUT input, out float4 modelSpacePosition)
 {
-    worldSpacePosition = a_position;
+    modelSpacePosition = a_position;
 }
 
-void VS_SetModelSpaceAttributes(VS_INPUT input, out float4 worldSpacePosition, out float4 worldSpaceNormal)
+void VS_SetModelSpaceAttributes(VS_INPUT input, out float4 modelSpacePosition, out float4 modelSpaceNormal)
 {
-    worldSpacePosition = a_position;
-    worldSpaceNormal = a_normal;
+    modelSpacePosition = a_position;
+    modelSpaceNormal = a_normal;
 }
 
-void VS_SetModelSpaceAttributes(VS_INPUT input, out float4 worldSpacePosition, out float4 worldSpaceNormal, out float4 worldSpaceTangent)
+void VS_SetModelSpaceAttributes(VS_INPUT input, out float4 modelSpacePosition, out float4 modelSpaceNormal, out float4 modelSpaceTangent)
 {
-    worldSpacePosition = a_position;
-    worldSpaceNormal = a_normal;
-    worldSpaceTangent = a_tangent;
+    modelSpacePosition = a_position;
+    modelSpaceNormal = a_normal;
+    modelSpaceTangent = a_tangent;
 }
 
-void VS_SetMorphModelSpaceAttributes(VS_INPUT input, out float4 worldSpacePosition)
+void VS_SetMorphModelSpaceAttributes(VS_INPUT input, out float4 modelSpacePosition)
 {
-    worldSpacePosition = VS_MorphAttribute(a_position, a_morph_position);
+    modelSpacePosition = VS_MorphAttribute(a_position, a_morph_position);
 }
 
-void VS_SetMorphModelSpaceAttributes(VS_INPUT input, out float4 worldSpacePosition, out float4 worldSpaceNormal)
+void VS_SetMorphModelSpaceAttributes(VS_INPUT input, out float4 modelSpacePosition, out float4 modelSpaceNormal)
 {
-    worldSpacePosition = VS_MorphAttribute(a_position, a_morph_position);
-    worldSpaceNormal = VS_MorphAttribute(a_normal, a_morph_normal);
+    modelSpacePosition = VS_MorphAttribute(a_position, a_morph_position);
+    modelSpaceNormal = VS_MorphAttribute(a_normal, a_morph_normal);
 }
 
-void VS_SetMorphModelSpaceAttributes(VS_INPUT input, out float4 worldSpacePosition, out float4 worldSpaceNormal, out float4 worldSpaceTangent)
+void VS_SetMorphModelSpaceAttributes(VS_INPUT input, out float4 modelSpacePosition, out float4 modelSpaceNormal, out float4 modelSpaceTangent)
 {
-    worldSpacePosition = VS_MorphAttribute(a_position, a_morph_position);
-    worldSpaceNormal = VS_MorphAttribute(a_normal, a_morph_normal);
-    worldSpaceTangent = VS_MorphAttribute(a_tangent, a_morph_tangent);
+    modelSpacePosition = VS_MorphAttribute(a_position, a_morph_position);
+    modelSpaceNormal = VS_MorphAttribute(a_normal, a_morph_normal);
+    modelSpaceTangent = VS_MorphAttribute(a_tangent, a_morph_tangent);
 }
 
 float2 VS_TransformTextureCoordinates(float2 texCoord, matrix transform)
@@ -69,10 +69,20 @@ float2 VS_TransformTextureCoordinates(float2 texCoord, matrix transform)
     return float2(dot(transform[0], float4(texCoord, 0.0, 1.0)), dot(transform[1], float4(texCoord, 0.0, 1.0)));
 }
 
+void VS_SetTransformTextureCoordinates(VS_INPUT input, out float2 texCoord0)
+{
+    texCoord0 = VS_TransformTextureCoordinates(a_tex0.xy, state_matrix_texture0);
+}
+
 void VS_SetTransformTextureCoordinates(VS_INPUT input, out float2 texCoord0, out float2 texCoord1)
 {
     texCoord0 = VS_TransformTextureCoordinates(a_tex0.xy, state_matrix_texture0);
     texCoord1 = VS_TransformTextureCoordinates(a_tex1.xy, state_matrix_texture1);
+}
+
+void VS_SetMorphTransformTextureCoordinates(VS_INPUT input, out float2 texCoord0)
+{
+    texCoord0 = VS_TransformTextureCoordinates(VS_MorphAttribute(a_tex0, a_morph_texcoord).xy, state_matrix_texture0);
 }
 
 void VS_SetMorphTransformTextureCoordinates(VS_INPUT input, out float2 texCoord0, out float2 texCoord1)
@@ -85,6 +95,15 @@ void VS_SetMorphTransformTextureCoordinates(VS_INPUT input, out float2 texCoord0
 float VS_GetFogFactor(float4 clipSpacePosition)
 {
     return saturate((clipSpacePosition.z - state_fog_params.y) * state_fog_params.w) * state_fog_params.x;
+}
+
+float4 VS_GetShadowTextureCoordinates(float4 worldSpacePosition)
+{
+    // return mul(worldSpacePosition, CB_Scene.LightSpace);
+    float4 position = mul(worldSpacePosition, CB_Scene.LightSpace);
+    
+    // return float4((float2(+position.x, -position.y) / 2.0f + 0.5f).xy, position.z, 1.0);
+    return float4((float2(+position.x, -position.y) / 2.0f + 0.5f).xy, position.z / position.w, 1.0);
 }
 
 // NOTE: Assigned to o_eye / eye_w

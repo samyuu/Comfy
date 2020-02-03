@@ -49,6 +49,7 @@
 #define a_tex_normal0               (input.TexCoord)
 #define a_tex_specular              (input.TexCoord)
 #define a_tex_lucency               (input.TexCoordAmbient)
+#define a_tex_shadow0               (input.TexCoordShadow)
 #define a_fogcoord                  (float2(input.FogFactor, 0.0))
 #define a_eye                       (input.EyeDirection)
 #define a_normal                    (input.Normal)

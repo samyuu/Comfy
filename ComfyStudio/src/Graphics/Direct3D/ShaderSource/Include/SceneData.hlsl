@@ -24,6 +24,7 @@ struct SceneData
     
     matrix View;
     matrix ViewProjection;
+    matrix LightSpace;
     float4 EyePosition;
     
     ParallelLight CharacterLight;

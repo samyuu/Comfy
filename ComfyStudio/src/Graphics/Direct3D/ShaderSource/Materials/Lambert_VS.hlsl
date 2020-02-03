@@ -22,10 +22,14 @@ VS_OUTPUT VS_main(VS_INPUT input)
     }
     
     float3 normal_w = ModelToWorldSpace(normal_m.xyz);
+    float4 pos_w = ModelToWorldSpace(pos_m);
 	float4 pos_c = ModelToClipSpace(pos_m);
     
     o_position = pos_c;
     o_fog = VS_GetFogFactor(pos_c);
+    
+    if (FLAGS_STAGE_SHADOW)
+        o_tex_shadow0 = VS_GetShadowTextureCoordinates(pos_w);
     
 	float4 diff = float4(mad(saturate(dot(normal_w, lit_dir_w.xyz)), lit_diff.xyz, GetIrradiance(normal_w) * state_light1_diffuse.xyz), 1.0);
     

@@ -10,6 +10,7 @@ static const uint ShaderFlags_AlphaTest = 1 << 5;
 static const uint ShaderFlags_CubeMapReflection = 1 << 6;
 static const uint ShaderFlags_LinearFog = 1 << 7;
 static const uint ShaderFlags_Morph = 1 << 8;
+static const uint ShaderFlags_StageShadow = 1 << 9;
 
 #define FLAGS_VERTEX_COLOR (CB_ShaderFlags & ShaderFlags_VertexColor)
 #define FLAGS_DIFFUSE_TEX2D (CB_ShaderFlags & ShaderFlags_DiffuseTexture)
@@ -20,5 +21,6 @@ static const uint ShaderFlags_Morph = 1 << 8;
 #define FLAGS_REFLECTION_CUBE (CB_ShaderFlags & ShaderFlags_CubeMapReflection)
 #define FLAGS_LINEAR_FOG (CB_ShaderFlags & ShaderFlags_LinearFog)
 #define FLAGS_MORPH (CB_ShaderFlags & ShaderFlags_Morph)
+#define FLAGS_STAGE_SHADOW (CB_ShaderFlags & ShaderFlags_StageShadow)
 
 #endif /* SHADERFLAGS_HLSL */

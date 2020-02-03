@@ -23,12 +23,16 @@ VS_OUTPUT VS_main(VS_INPUT input)
 
     float3 normal_w = ModelToWorldSpace(normal_m.xyz);
     
+    float4 pos_w = ModelToWorldSpace(pos_m);
     float4 pos_v = ModelToViewSpace(pos_m);
     float4 pos_c = ModelToClipSpace(pos_m);
 
     o_position = pos_c;
     o_fog = VS_GetFogFactor(pos_c);
-
+        
+    if (FLAGS_STAGE_SHADOW)
+        o_tex_shadow0 = VS_GetShadowTextureCoordinates(pos_w);
+    
     float3 eye_w = VS_GetWorldEye(pos_v);
 
     o_reflect.xyz = mad(dot(eye_w, normal_w) * 2.0, normal_w, -eye_w);

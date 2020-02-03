@@ -24,12 +24,16 @@ VS_OUTPUT VS_main(VS_INPUT input)
     float3 tangent_w = ModelToWorldSpace(tangent_m.xyz);
     float3 normal_w = ModelToWorldSpace(normal_m.xyz);
     
+    float4 pos_w = ModelToWorldSpace(pos_m);
     float4 pos_v = ModelToViewSpace(pos_m);
     float4 pos_c = ModelToClipSpace(pos_m);
 
     o_position = pos_c;
     o_fog = VS_GetFogFactor(pos_c);
-
+        
+    if (FLAGS_STAGE_SHADOW)
+        o_tex_shadow0 = VS_GetShadowTextureCoordinates(pos_w);
+    
     float3 binormal_w = (cross(normal_w.xyz, tangent_w.xyz) * a_tangent.w);
 	float3 _tmp0 = float3(0, binormal_w.x, normal_w.x);
 	

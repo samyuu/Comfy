@@ -73,11 +73,59 @@ namespace Graphics
 			return index < (obj->Meshes.size()) ? &obj->Meshes[index] : nullptr;
 		}
 
-		vec4 GetPackedTextureSize(const D3D_RenderTarget& renderTarget)
+		vec4 GetPackedTextureSize(vec2 size)
 		{
-			vec2 renderTargetSize = renderTarget.GetSize();
-			return vec4(1.0f / renderTargetSize, renderTargetSize);
+			return vec4(1.0f / size, size);
 		};
+
+		vec4 GetPackedTextureSize(const D3D_RenderTargetBase& renderTarget)
+		{
+			return GetPackedTextureSize(vec2(renderTarget.GetSize()));
+		};
+
+		void CalculateSubsurfaceScatteringCoefficient(SSSFilterCoefConstantData& outData)
+		{
+			// TODO: Calculate dynamically
+			outData.Coefficient =
+			{
+				vec3(0.21040623,  0.78055823,  0.62655407),
+				vec3(0.12917531,  0.062717795,  0.084737904),
+				vec3(0.044682723,  0.014909152,  0.022482639),
+				vec3(0.020118745,  0.0015618494,  0.0095707672),
+				vec3(0.011492467,  0.000066359164,  0.003069486),
+				vec3(0.0073738941,  0.0000011435034,  0.00071145396),
+				vec3(0.12917531,  0.062717795,  0.084737904),
+				vec3(0.084581025,  0.03684625,  0.042938128),
+				vec3(0.035600733,  0.009494883,  0.018571729),
+				vec3(0.018209256,  0.00099466438,  0.0081350859),
+				vec3(0.010813996,  0.000042260857,  0.0026092706),
+				vec3(0.0070962897,  7.2824054e-7,  0.00060478394),
+				vec3(0.044682723,  0.014909152,  0.022482639),
+				vec3(0.035600733,  0.009494883,  0.018571729),
+				vec3(0.022485442,  0.002452459,  0.011261988),
+				vec3(0.01413135,  0.00025691456,  0.0049969591),
+				vec3(0.0091901477,  0.000010915673,  0.0016028006),
+				vec3(0.0063760825,  1.8809924e-7,  0.00037150155),
+				vec3(0.020118745,  0.0015618494,  0.0095707672),
+				vec3(0.018209256,  0.00099466438,  0.0081350859),
+				vec3(0.01413135,  0.00025691456,  0.0049969591),
+				vec3(0.010211158,  0.000026913842,  0.0022180562),
+				vec3(0.0073738941,  0.0000011435034,  0.00071145396),
+				vec3(0.0054377527,  1.970489e-8,  0.00016490277),
+				vec3(0.011492467,  0.000066359164,  0.003069486),
+				vec3(0.010813996,  0.000042260857,  0.0026092706),
+				vec3(0.0091901477,  0.000010915673,  0.0016028006),
+				vec3(0.0073738941,  0.0000011435034,  0.00071145396),
+				vec3(0.0057823872,  4.8584667e-8,  0.00022820283),
+				vec3(0.0044486467,  8.3721263e-10,  0.000052893487),
+				vec3(0.0073738941,  0.0000011435034,  0.00071145396),
+				vec3(0.0070962897,  7.2824054e-7,  0.00060478394),
+				vec3(0.0063760825,  1.8809924e-7,  0.00037150155),
+				vec3(0.0054377527,  1.970489e-8,  0.00016490277),
+				vec3(0.0044486467,  8.3721263e-10,  0.000052893487),
+				vec3(0.0034911945,  1.4426877e-11,  0.000012259798),
+			};
+		}
 
 		void CalculateGaussianBlurKernel(const GlowParameter& glow, PPGaussCoefConstantData* outData)
 		{
@@ -130,14 +178,37 @@ namespace Graphics
 
 			TextureSlot_ScreenReflection = 15,
 			TextureSlot_SubsurfaceScattering = 16,
+			TextureSlow_StageShadowMap = 19,
 
 			TextureSlot_Count,
 		};
+
+		Sphere CombineBoundingSpheres(const std::vector<Sphere>& spheres)
+		{
+			if (spheres.empty())
+				return Sphere { vec3(0.0f), 1.0f };
+
+			vec3 min = spheres.front().Center, max = spheres.front().Center;
+			for (auto& sphere : spheres)
+			{
+				const float radius = sphere.Radius;
+				min.x = std::min(min.x, sphere.Center.x - radius);
+				min.y = std::min(min.y, sphere.Center.y - radius);
+				min.z = std::min(min.z, sphere.Center.z - radius);
+
+				max.x = std::max(max.x, sphere.Center.x + radius);
+				max.y = std::max(max.y, sphere.Center.y + radius);
+				max.z = std::max(max.z, sphere.Center.z + radius);
+			}
+
+			const vec3 halfSpan = (max - min) / 2.0f;
+			return Sphere { (min + halfSpan), (std::max(halfSpan.x, std::max(halfSpan.y, halfSpan.z))) };
+		}
 	}
 
 	D3D_Renderer3D::D3D_Renderer3D()
 	{
-		static constexpr InputElement elements[] =
+		static constexpr InputElement genericElements[] =
 		{
 			{ "POSITION",		0, DXGI_FORMAT_R32G32B32_FLOAT,		0, VertexAttribute_Position },
 			{ "NORMAL",			0, DXGI_FORMAT_R32G32B32_FLOAT,		0, VertexAttribute_Normal },
@@ -150,7 +221,6 @@ namespace Graphics
 			{ "COLOR",			1, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, VertexAttribute_Color1 },
 			{ "BONE_WEIGHT",	0, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, VertexAttribute_BoneWeight },
 			{ "BONE_INDEX",		0, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, VertexAttribute_BoneIndex },
-
 			{ "POSITION",		1, DXGI_FORMAT_R32G32B32_FLOAT,		0, MorphVertexAttributeOffset + VertexAttribute_Position },
 			{ "NORMAL",			1, DXGI_FORMAT_R32G32B32_FLOAT,		0, MorphVertexAttributeOffset + VertexAttribute_Normal },
 			{ "TANGENT",		1, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, MorphVertexAttributeOffset + VertexAttribute_Tangent },
@@ -162,8 +232,21 @@ namespace Graphics
 			{ "COLOR",			3, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, MorphVertexAttributeOffset + VertexAttribute_Color1 },
 		};
 
-		genericInputLayout = MakeUnique<D3D_InputLayout>(elements, std::size(elements), shaders.Debug.VS);
+		genericInputLayout = MakeUnique<D3D_InputLayout>(genericElements, std::size(genericElements), shaders.Debug.VS);
 		D3D_SetObjectDebugName(genericInputLayout->GetLayout(), "Renderer3D::GenericInputLayout");
+
+		static constexpr InputElement silhouetteElements[] =
+		{
+			{ "POSITION",		0, DXGI_FORMAT_R32G32B32_FLOAT,		0, VertexAttribute_Position },
+			{ "TEXCOORD",		0, DXGI_FORMAT_R32G32_FLOAT,		0, VertexAttribute_TextureCoordinate0 },
+			{ "BONE_WEIGHT",	0, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, VertexAttribute_BoneWeight },
+			{ "BONE_INDEX",		0, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, VertexAttribute_BoneIndex },
+			{ "POSITION",		1, DXGI_FORMAT_R32G32B32_FLOAT,		0, MorphVertexAttributeOffset + VertexAttribute_Position },
+			{ "TEXCOORD",		4, DXGI_FORMAT_R32G32_FLOAT,		0, MorphVertexAttributeOffset + VertexAttribute_TextureCoordinate0 },
+		};
+
+		shadowSilhouetteInputLayout = MakeUnique<D3D_InputLayout>(silhouetteElements, std::size(silhouetteElements), shaders.Silhouette.VS);
+		D3D_SetObjectDebugName(shadowSilhouetteInputLayout->GetLayout(), "Renderer3D::ShadowSilhouetteInputLayout");
 
 		constexpr size_t reasonableInitialCapacity = 64;
 
@@ -178,6 +261,7 @@ namespace Graphics
 	{
 		verticesRenderedLastFrame = verticesRenderedThisFrame;
 		verticesRenderedThisFrame = 0;
+
 		isAnyCommand = {};
 
 		sceneContext = &scene;
@@ -193,6 +277,9 @@ namespace Graphics
 		renderCommand.SourceCommand = command;
 		renderCommand.AreAllMeshesTransparent = false;
 		renderCommand.ModelMatrix = command.Transform.CalculateMatrix();
+
+		renderCommand.TransformedBoundingSphere = command.SourceObj->BoundingSphere;
+		renderCommand.TransformedBoundingSphere.Transform(renderCommand.ModelMatrix, command.Transform.Scale);
 
 		auto& commandList = (command.Flags.IsReflection) ? reflectionCommandList : defaultCommandList;
 		commandList.OpaqueAndTransparent.push_back(renderCommand);
@@ -214,6 +301,12 @@ namespace Graphics
 
 		if (command.Flags.SilhouetteOutline)
 			isAnyCommand.SilhouetteOutline = true;
+
+		if (command.Flags.CastsShadow)
+			isAnyCommand.CastShadow = true;
+
+		if (command.Flags.ReceivesShadow)
+			isAnyCommand.ReceiveShadow = true;
 
 		if (!isAnyCommand.SubsurfaceScattering)
 		{
@@ -306,7 +399,7 @@ namespace Graphics
 				{
 					if (IsMeshTransparent(mesh, subMesh, subMesh.GetMaterial(*command.SourceCommand.SourceObj)))
 					{
-						const float cameraDistance = glm::distance(command.SourceCommand.Transform.Translation + subMesh.BoundingSphere.Center, sceneContext->Camera.ViewPoint);
+						const float cameraDistance = glm::distance((subMesh.BoundingSphere * command.SourceCommand.Transform).Center, sceneContext->Camera.ViewPoint);
 						commandList.Transparent.push_back({ &command, &mesh, &subMesh, cameraDistance });
 					}
 					else
@@ -406,10 +499,26 @@ namespace Graphics
 
 				// NOTE: SubsurfaceScattering = 16
 				nullptr,
+
+				// NOTE: ---
+				nullptr,
+
+				// NOTE: ---
+				nullptr,
+
+				// NOTE: StageShadowMap = 19
+				nullptr,
 			});
 
-		genericInputLayout->Bind();
 		cachedTextureSamplers.CreateIfNeeded(renderParameters);
+
+		if (renderParameters.RenderShadowMap) // TODO: && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
+		{
+			InternalPreRenderShadowMap();
+			InternalPreRenderReduceFilterShadowMap();
+		}
+
+		genericInputLayout->Bind();
 
 		if (renderParameters.RenderReflection && isAnyCommand.ScreenReflection)
 		{
@@ -436,25 +545,22 @@ namespace Graphics
 		if (renderParameters.Wireframe)
 			wireframeRasterizerState.Bind();
 
-		if (!defaultCommandList.OpaqueAndTransparent.empty())
+		if (renderParameters.RenderOpaque && !defaultCommandList.OpaqueAndTransparent.empty())
 		{
-			if (renderParameters.RenderOpaque)
-			{
-				D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+			D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
-				for (auto& command : defaultCommandList.OpaqueAndTransparent)
-					InternalRenderOpaqueObjCommand(command);
-			}
+			for (auto& command : defaultCommandList.OpaqueAndTransparent)
+				InternalRenderOpaqueObjCommand(command);
+		}
 
-			if (renderParameters.RenderTransparent && !defaultCommandList.Transparent.empty())
-			{
-				transparencyPassDepthStencilState.Bind();
+		if (renderParameters.RenderTransparent && !defaultCommandList.Transparent.empty())
+		{
+			transparencyPassDepthStencilState.Bind();
 
-				for (auto& command : defaultCommandList.Transparent)
-					InternalRenderTransparentSubMeshCommand(command);
+			for (auto& command : defaultCommandList.Transparent)
+				InternalRenderTransparentSubMeshCommand(command);
 
-				transparencyPassDepthStencilState.UnBind();
-			}
+			transparencyPassDepthStencilState.UnBind();
 		}
 
 		if (isAnyCommand.SilhouetteOutline)
@@ -462,6 +568,108 @@ namespace Graphics
 
 		renderData->Main.CurrentRenderTarget().UnBind();
 		genericInputLayout->UnBind();
+	}
+
+	void D3D_Renderer3D::InternalPreRenderShadowMap()
+	{
+		const auto& renderParameters = sceneContext->RenderParameters;
+		const auto& light = sceneContext->Light.Character;
+		const auto& camera = sceneContext->Camera;
+
+		shadowSilhouetteInputLayout->Bind();
+		solidBackfaceCullingRasterizerState.Bind();
+
+		// D3D_RasterizerState rasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_BACK, true, "Renderer3D::TestSolidBackfaceCulling" };
+
+		const Sphere frustumSphere = CalculateShadowViewFrustumSphere();
+
+		const float lightDistance = 1.0f;
+		const vec2 nearFarPlane = { 0.1f, +20.0f };
+		const vec3 lightViewPoint = glm::normalize(light.Position) * lightDistance;
+		const vec3 lightInterest = vec3(0.0f, 0.0f, 0.0f);
+
+		const mat4 lightView = glm::lookAt(
+			lightViewPoint + frustumSphere.Center,
+			lightInterest + frustumSphere.Center,
+			camera.UpDirection);
+
+		const mat4 lightProjection = glm::ortho(
+			-frustumSphere.Radius, +frustumSphere.Radius,
+			-frustumSphere.Radius, +frustumSphere.Radius,
+			nearFarPlane.x, nearFarPlane.y);
+
+		sceneCB.Data.Scene.View = glm::transpose(lightView);
+		sceneCB.Data.Scene.ViewProjection = glm::transpose(lightProjection * lightView);
+		sceneCB.UploadData();
+
+		renderData->Shadow.RenderTarget.ResizeIfDifferent(renderParameters.ShadowMapResolution);
+		renderData->Shadow.RenderTarget.BindSetViewport();
+		renderData->Shadow.RenderTarget.Clear(vec4(0.0f));
+		D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+
+		// D3D.SetScissorRect(ivec4(0, 0, renderParameters.ShadowMapResolution.x, renderParameters.ShadowMapResolution.y));
+		shaders.Silhouette.Bind();
+		for (auto& command : defaultCommandList.OpaqueAndTransparent)
+		{
+			if (command.SourceCommand.Flags.CastsShadow)
+				InternalRenderOpaqueObjCommand(command, static_cast<InternalRenderFlags>(RenderFlags_DontBindMaterialShader | RenderFlags_DontSetRasterizerState | RenderFlags_DontDoFrustumCulling));
+		}
+		// D3D.Context->RSSetScissorRects(0, nullptr);
+
+		renderData->Shadow.RenderTarget.UnBind();
+
+		sceneCB.Data.Scene.View = glm::transpose(camera.GetView());
+		sceneCB.Data.Scene.ViewProjection = glm::transpose(camera.GetViewProjection());
+		sceneCB.Data.Scene.LightSpace = glm::transpose(lightProjection * lightView);
+		sceneCB.UploadData();
+	}
+
+	void D3D_Renderer3D::InternalPreRenderReduceFilterShadowMap()
+	{
+		solidNoCullingRasterizerState.Bind();
+
+		D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+
+		D3D_TextureSampler::BindArray<1>(0, { nullptr });
+
+		shaders.DepthThreshold.Bind();
+
+		renderData->Shadow.ThresholdRenderTarget.ResizeIfDifferent(renderData->Shadow.RenderTarget.GetSize() / 2);
+		renderData->Shadow.ThresholdRenderTarget.BindSetViewport();
+		renderData->Shadow.RenderTarget.BindResource(0);
+		D3D.Context->Draw(RectangleVertexCount, 0);
+		renderData->Shadow.ThresholdRenderTarget.UnBind();
+
+		const ivec2 blurResolution = renderData->Shadow.RenderTarget.GetSize() / 4;
+		for (auto& renderTarget : renderData->Shadow.BlurRenderTargets)
+			renderTarget.ResizeIfDifferent(blurResolution);
+
+		const int blurTargets = static_cast<int>(renderData->Shadow.BlurRenderTargets.size());
+		const int blurPasses = sceneContext->RenderParameters.ShadowBlurPasses + 1;
+
+		D3D.SetViewport(blurResolution);
+		shaders.ImgFilter.Bind();
+
+		for (int passIndex = 0; passIndex < blurPasses; passIndex++)
+		{
+			const int blurIndex = (passIndex % blurTargets);
+			const int previousBlurIndex = ((passIndex - 1) + blurTargets) % blurTargets;
+
+			auto& sourceTarget = (passIndex == 0) ? renderData->Shadow.ThresholdRenderTarget : renderData->Shadow.BlurRenderTargets[previousBlurIndex];
+			auto& destinationTarget = renderData->Shadow.BlurRenderTargets[blurIndex];
+
+			if (passIndex == 1)
+				shaders.ImgFilterBlur.Bind();
+
+			sourceTarget.BindResource(0);
+			destinationTarget.Bind();
+			D3D.Context->Draw(RectangleVertexCount, 0);
+			destinationTarget.UnBind();
+
+			if (passIndex == (blurPasses - 1))
+				destinationTarget.BindResource(TextureSlow_StageShadowMap);
+		}
 	}
 
 	void D3D_Renderer3D::InternalPreRenderScreenReflection()
@@ -511,7 +719,7 @@ namespace Graphics
 			D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
 			for (auto& command : defaultCommandList.OpaqueAndTransparent)
-				InternalRenderOpaqueObjCommand(command, true);
+				InternalRenderOpaqueObjCommand(command, RenderFlags_SSSPass);
 
 			// TODO: defaultCommandList.Transparent (?)
 		}
@@ -531,46 +739,7 @@ namespace Graphics
 		shaders.SSSFilter.Bind();
 		sssFilterCB.BindPixelShader();
 
-		// TODO: Calculate dynamically
-		sssFilterCoefCB.Data.Coefficient = 
-		{
-			vec3(0.21040623,  0.78055823,  0.62655407),
-			vec3(0.12917531,  0.062717795,  0.084737904),
-			vec3(0.044682723,  0.014909152,  0.022482639),
-			vec3(0.020118745,  0.0015618494,  0.0095707672),
-			vec3(0.011492467,  0.000066359164,  0.003069486),
-			vec3(0.0073738941,  0.0000011435034,  0.00071145396),
-			vec3(0.12917531,  0.062717795,  0.084737904),
-			vec3(0.084581025,  0.03684625,  0.042938128),
-			vec3(0.035600733,  0.009494883,  0.018571729),
-			vec3(0.018209256,  0.00099466438,  0.0081350859),
-			vec3(0.010813996,  0.000042260857,  0.0026092706),
-			vec3(0.0070962897,  7.2824054e-7,  0.00060478394),
-			vec3(0.044682723,  0.014909152,  0.022482639),
-			vec3(0.035600733,  0.009494883,  0.018571729),
-			vec3(0.022485442,  0.002452459,  0.011261988),
-			vec3(0.01413135,  0.00025691456,  0.0049969591),
-			vec3(0.0091901477,  0.000010915673,  0.0016028006),
-			vec3(0.0063760825,  1.8809924e-7,  0.00037150155),
-			vec3(0.020118745,  0.0015618494,  0.0095707672),
-			vec3(0.018209256,  0.00099466438,  0.0081350859),
-			vec3(0.01413135,  0.00025691456,  0.0049969591),
-			vec3(0.010211158,  0.000026913842,  0.0022180562),
-			vec3(0.0073738941,  0.0000011435034,  0.00071145396),
-			vec3(0.0054377527,  1.970489e-8,  0.00016490277),
-			vec3(0.011492467,  0.000066359164,  0.003069486),
-			vec3(0.010813996,  0.000042260857,  0.0026092706),
-			vec3(0.0091901477,  0.000010915673,  0.0016028006),
-			vec3(0.0073738941,  0.0000011435034,  0.00071145396),
-			vec3(0.0057823872,  4.8584667e-8,  0.00022820283),
-			vec3(0.0044486467,  8.3721263e-10,  0.000052893487),
-			vec3(0.0073738941,  0.0000011435034,  0.00071145396),
-			vec3(0.0070962897,  7.2824054e-7,  0.00060478394),
-			vec3(0.0063760825,  1.8809924e-7,  0.00037150155),
-			vec3(0.0054377527,  1.970489e-8,  0.00016490277),
-			vec3(0.0044486467,  8.3721263e-10,  0.000052893487),
-			vec3(0.0034911945,  1.4426877e-11,  0.000012259798),
-		};
+		CalculateSubsurfaceScatteringCoefficient(sssFilterCoefCB.Data);
 		sssFilterCoefCB.BindPixelShader();
 		sssFilterCoefCB.UploadData();
 
@@ -578,7 +747,7 @@ namespace Graphics
 		{
 			auto& sourceTarget = (passIndex == 0) ? renderData->SubsurfaceScattering.RenderTarget : renderData->SubsurfaceScattering.FilterRenderTargets[passIndex - 1];
 			auto& destinationTarget = renderData->SubsurfaceScattering.FilterRenderTargets[passIndex];
-			
+
 			sssFilterCB.Data.PassIndex = passIndex;
 			sssFilterCB.Data.TexelTextureSize = (1.0f / vec2(sourceTarget.GetSize()));
 			sssFilterCB.UploadData();
@@ -592,7 +761,7 @@ namespace Graphics
 		renderData->SubsurfaceScattering.FilterRenderTargets.back().UnBind();
 	}
 
-	void D3D_Renderer3D::InternalRenderOpaqueObjCommand(ObjRenderCommand& command, bool sssPass)
+	void D3D_Renderer3D::InternalRenderOpaqueObjCommand(ObjRenderCommand& command, InternalRenderFlags flags)
 	{
 		if (command.AreAllMeshesTransparent)
 			return;
@@ -600,13 +769,15 @@ namespace Graphics
 		auto& transform = command.SourceCommand.Transform;
 		auto& obj = *command.SourceCommand.SourceObj;
 
-		if (!IntersectsCameraFrustum(obj.BoundingSphere, command))
+		const bool doFrustumCulling = !(flags & RenderFlags_DontDoFrustumCulling);
+
+		if (doFrustumCulling && !IntersectsCameraFrustum(obj.BoundingSphere, command))
 			return;
 
 		for (size_t meshIndex = 0; meshIndex < obj.Meshes.size(); meshIndex++)
 		{
 			auto& mesh = obj.Meshes[meshIndex];
-			if (!IntersectsCameraFrustum(mesh.BoundingSphere, command))
+			if (doFrustumCulling && !IntersectsCameraFrustum(mesh.BoundingSphere, command))
 				continue;
 
 			auto* morphMesh = MeshOrDefault(command.SourceCommand.SourceMorphObj, meshIndex);
@@ -618,13 +789,13 @@ namespace Graphics
 				if (IsMeshTransparent(mesh, subMesh, material))
 					continue;
 
-				if (sssPass && !UsesSubsurfaceScattering(mesh, subMesh, material))
+				if ((flags & RenderFlags_SSSPass) && !UsesSubsurfaceScattering(mesh, subMesh, material))
 					continue;
 
-				if (!IntersectsCameraFrustum(subMesh.BoundingSphere, command))
+				if (doFrustumCulling && !IntersectsCameraFrustum(subMesh.BoundingSphere, command))
 					continue;
 
-				PrepareAndRenderSubMesh(command, mesh, subMesh, material, sssPass);
+				PrepareAndRenderSubMesh(command, mesh, subMesh, material, flags);
 			}
 		}
 	}
@@ -686,9 +857,11 @@ namespace Graphics
 		renderData->Silhouette.RenderTarget.BindSetViewport();
 		renderData->Silhouette.RenderTarget.Clear(vec4(1.0f));
 
+		shaders.Constant.Bind();
+
 		for (auto& command : defaultCommandList.OpaqueAndTransparent)
 		{
-			if (command.AreAllMeshesTransparent || !IntersectsCameraFrustum(command.SourceCommand.SourceObj->BoundingSphere, command))
+			if (command.AreAllMeshesTransparent || !IntersectsCameraFrustum(command))
 				continue;
 
 			debugMaterial.DiffuseColor = command.SourceCommand.Flags.SilhouetteOutline ? vec4(0.0f) : vec4(1.0f);
@@ -705,7 +878,7 @@ namespace Graphics
 					if (!IntersectsCameraFrustum(subMesh.BoundingSphere, command))
 						continue;
 
-					PrepareAndRenderSubMesh(command, mesh, subMesh, debugMaterial);
+					PrepareAndRenderSubMesh(command, mesh, subMesh, debugMaterial, RenderFlags_DontBindMaterialShader);
 				}
 			}
 		}
@@ -886,75 +1059,111 @@ namespace Graphics
 		}
 	}
 
-	void D3D_Renderer3D::PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, bool sssPass)
+	void D3D_Renderer3D::PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, InternalRenderFlags flags)
 	{
-		const ObjAnimationData* animation = command.SourceCommand.Animation;
-
-		auto& materialShader = sssPass ? GetSubsurfaceScatteringMaterialShader(material) : GetMaterialShader(material);
-		materialShader.Bind();
-
-		constexpr size_t textureTypeCount = 7;
-		std::array<D3D_ShaderResourceView*, textureTypeCount> textureResources;
-		std::array<D3D_TextureSampler*, textureTypeCount> textureSamplers;
-
-		bool usesDiffuseRenderTexture = false;
-		for (size_t i = 0; i < textureTypeCount; i++)
+		if (!(flags & RenderFlags_DontBindMaterialShader))
 		{
-			auto& materialTexture = (&material.Diffuse)[i];
-			auto& textureFormat = (&objectCB.Data.TextureFormats.Diffuse)[i];
+			auto& materialShader = (flags & RenderFlags_SSSPass) ? GetSubsurfaceScatteringMaterialShader(material) : GetMaterialShader(material);
+			materialShader.Bind();
+		}
 
-			TxpID txpID = materialTexture.TextureID;
-			MaterialTextureFlags textureFlags = materialTexture.Flags;
+		if (!(flags & RenderFlags_DontBindMaterialTextures))
+		{
+			constexpr size_t textureTypeCount = 7;
+			std::array<D3D_ShaderResourceView*, textureTypeCount> textureResources;
+			std::array<D3D_TextureSampler*, textureTypeCount> textureSamplers;
 
-			if (animation != nullptr)
+			bool usesDiffuseRenderTexture = false;
+			for (size_t i = 0; i < textureTypeCount; i++)
 			{
-				for (auto& transform : animation->TextureTransforms)
+				auto& materialTexture = (&material.Diffuse)[i];
+				auto& textureFormat = (&objectCB.Data.TextureFormats.Diffuse)[i];
+
+				TxpID txpID = materialTexture.TextureID;
+				MaterialTextureFlags textureFlags = materialTexture.Flags;
+
+				auto animation = command.SourceCommand.Animation;
+				if (animation != nullptr)
 				{
-					if (txpID == transform.ID)
+					for (auto& transform : animation->TextureTransforms)
 					{
-						textureFlags.TextureAddressMode_U_Repeat = transform.RepeatU.value_or<int>(textureFlags.TextureAddressMode_U_Repeat);
-						textureFlags.TextureAddressMode_V_Repeat = transform.RepeatU.value_or<int>(textureFlags.TextureAddressMode_V_Repeat);
+						if (txpID == transform.ID)
+						{
+							textureFlags.TextureAddressMode_U_Repeat = transform.RepeatU.value_or<int>(textureFlags.TextureAddressMode_U_Repeat);
+							textureFlags.TextureAddressMode_V_Repeat = transform.RepeatU.value_or<int>(textureFlags.TextureAddressMode_V_Repeat);
+						}
+					}
+
+					for (auto& pattern : animation->TexturePatterns)
+					{
+						if (txpID == pattern.ID && pattern.IDOverride != TxpID::Invalid)
+							txpID = pattern.IDOverride;
 					}
 				}
 
-				for (auto& pattern : animation->TexturePatterns)
+				if (auto txp = GetTxpFromTextureID(txpID); txp != nullptr)
 				{
-					if (txpID == pattern.ID && pattern.IDOverride != TxpID::Invalid)
-						txpID = pattern.IDOverride;
-				}
-			}
+					if (animation != nullptr && txpID == animation->ScreenRenderTextureID)
+					{
+						usesDiffuseRenderTexture = true;
+						textureFormat = TextureFormat::RGBA8;
+						textureResources[i] = &renderData->Main.PreviousRenderTarget();
+					}
+					else
+					{
+						textureFormat = txp->GetFormat();
+						textureResources[i] = (txp->Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->Texture2D.get()) : (txp->CubeMap != nullptr) ? (txp->CubeMap.get()) : nullptr;
+					}
 
-			if (auto txp = GetTxpFromTextureID(txpID); txp != nullptr)
-			{
-				if (animation != nullptr && txpID == animation->ScreenRenderTextureID)
-				{
-					usesDiffuseRenderTexture = true;
-					textureFormat = TextureFormat::RGBA8;
-					textureResources[i] = &renderData->Main.PreviousRenderTarget();
+					textureSamplers[i] = &cachedTextureSamplers.GetSampler(textureFlags);
 				}
 				else
 				{
-					textureFormat = txp->GetFormat();
-					textureResources[i] = (txp->Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->Texture2D.get()) : (txp->CubeMap != nullptr) ? (txp->CubeMap.get()) : nullptr;
+					textureFormat = TextureFormat::Unknown;
+					textureResources[i] = nullptr;
+					textureSamplers[i] = nullptr;
 				}
+			}
 
-				textureSamplers[i] = &cachedTextureSamplers.GetSampler(textureFlags);
-			}
-			else
+			auto ambientTypeFlags = material.Ambient.Flags.AmbientTypeFlags;
+			objectCB.Data.TextureFormats.AmbientType = (ambientTypeFlags == 0b100) ? 2 : (ambientTypeFlags == 0b110) ? 1 : (ambientTypeFlags != 0b10000) ? 0 : 3;
+
+			D3D_ShaderResourceView::BindArray<7>(TextureSlot_Diffuse, textureResources);
+			D3D_TextureSampler::BindArray<7>(TextureSlot_Diffuse, textureSamplers);
+
+			objectCB.Data.Material.DiffuseTextureTransform = material.Diffuse.TextureCoordinateMatrix;
+			objectCB.Data.Material.AmbientTextureTransform = material.Ambient.TextureCoordinateMatrix;
+
+			auto animation = command.SourceCommand.Animation;
+			if (animation != nullptr)
 			{
-				textureFormat = TextureFormat::Unknown;
-				textureResources[i] = nullptr;
-				textureSamplers[i] = nullptr;
+				for (auto& textureTransform : animation->TextureTransforms)
+				{
+					mat4* output =
+						(textureTransform.ID == material.Diffuse.TextureID) ? &objectCB.Data.Material.DiffuseTextureTransform :
+						(textureTransform.ID == material.Ambient.TextureID) ? &objectCB.Data.Material.AmbientTextureTransform :
+						nullptr;
+
+					if (output == nullptr)
+						continue;
+
+					constexpr vec3 centerOffset = vec3(0.5f, 0.5f, 0.0f);
+					constexpr vec3 rotationAxis = vec3(0.0f, 0.0f, 1.0f);
+
+					*output =
+						glm::translate(mat4(1.0f), vec3(textureTransform.Translation, 0.0f))
+						* glm::translate(mat4(1.0f), +centerOffset)
+						* glm::rotate(mat4(1.0f), glm::radians(textureTransform.Rotation), rotationAxis)
+						* glm::translate(*output, -centerOffset);
+				}
 			}
+
+			// HACK: Flip to adjust for the expected OpenGL texture coordinates, problematic because it also effects all other textures using the first TEXCOORD attribute
+			if (usesDiffuseRenderTexture)
+				objectCB.Data.Material.DiffuseTextureTransform *= glm::scale(mat4(1.0f), vec3(1.0f, -1.0f, 1.0f));
 		}
 
-		auto ambientTypeFlags = material.Ambient.Flags.AmbientTypeFlags;
-		objectCB.Data.TextureFormats.AmbientType = (ambientTypeFlags == 0b100) ? 2 : (ambientTypeFlags == 0b110) ? 1 : (ambientTypeFlags != 0b10000) ? 0 : 3;
-
-		D3D_ShaderResourceView::BindArray<7>(TextureSlot_Diffuse, textureResources);
-		D3D_TextureSampler::BindArray<7>(TextureSlot_Diffuse, textureSamplers);
-
-		if (!sceneContext->RenderParameters.Wireframe)
+		if (!sceneContext->RenderParameters.Wireframe && !(flags & RenderFlags_DontSetRasterizerState))
 			((material.BlendFlags.DoubleSidedness != DoubleSidedness_Off) ? solidNoCullingRasterizerState : solidBackfaceCullingRasterizerState).Bind();
 
 		const float fresnel = (((material.ShaderFlags.Fresnel == 0) ? 7.0f : static_cast<float>(material.ShaderFlags.Fresnel) - 1.0f) * 0.12f) * 0.82f;
@@ -969,36 +1178,6 @@ namespace Graphics
 		objectCB.Data.Material.Shininess = (material.Shininess - 16.0f) / 112.0f;
 		objectCB.Data.Material.Intensity = material.Intensity;
 		objectCB.Data.Material.BumpDepth = material.BumpDepth;
-
-		objectCB.Data.Material.DiffuseTextureTransform = material.Diffuse.TextureCoordinateMatrix;
-		objectCB.Data.Material.AmbientTextureTransform = material.Ambient.TextureCoordinateMatrix;
-
-		if (animation != nullptr)
-		{
-			for (auto& textureTransform : animation->TextureTransforms)
-			{
-				mat4* output =
-					(textureTransform.ID == material.Diffuse.TextureID) ? &objectCB.Data.Material.DiffuseTextureTransform :
-					(textureTransform.ID == material.Ambient.TextureID) ? &objectCB.Data.Material.AmbientTextureTransform :
-					nullptr;
-
-				if (output == nullptr)
-					continue;
-
-				constexpr vec3 centerOffset = vec3(0.5f, 0.5f, 0.0f);
-				constexpr vec3 rotationAxis = vec3(0.0f, 0.0f, 1.0f);
-
-				*output =
-					glm::translate(mat4(1.0f), vec3(textureTransform.Translation, 0.0f))
-					* glm::translate(mat4(1.0f), +centerOffset)
-					* glm::rotate(mat4(1.0f), glm::radians(textureTransform.Rotation), rotationAxis)
-					* glm::translate(*output, -centerOffset);
-			}
-		}
-
-		// HACK: Flip to adjust for the expected OpenGL texture coordinates, problematic because it also effects all other textures using the first TEXCOORD attribute
-		if (usesDiffuseRenderTexture)
-			objectCB.Data.Material.DiffuseTextureTransform *= glm::scale(mat4(1.0f), vec3(1.0f, -1.0f, 1.0f));
 
 		mat4 modelMatrix;
 		if (mesh.Flags.FaceCameraPosition || mesh.Flags.FaceCameraView)
@@ -1017,8 +1196,13 @@ namespace Graphics
 		}
 
 		objectCB.Data.Model = glm::transpose(modelMatrix);
+#if 0 // TODO:
 		objectCB.Data.ModelView = glm::transpose(sceneContext->Camera.GetView() * modelMatrix);
 		objectCB.Data.ModelViewProjection = glm::transpose(sceneContext->Camera.GetViewProjection() * modelMatrix);
+#else
+		objectCB.Data.ModelView = glm::transpose(glm::transpose(sceneCB.Data.Scene.View) * modelMatrix);
+		objectCB.Data.ModelViewProjection = glm::transpose(glm::transpose(sceneCB.Data.Scene.ViewProjection) * modelMatrix);
+#endif
 
 		objectCB.Data.ShaderFlags = 0;
 
@@ -1048,6 +1232,14 @@ namespace Graphics
 
 		if (command.SourceCommand.SourceMorphObj != nullptr)
 			objectCB.Data.ShaderFlags |= ShaderFlags_Morph;
+
+		if (sceneContext->RenderParameters.RenderShadowMap)
+		{
+			if (command.SourceCommand.Flags.ReceivesShadow)
+				objectCB.Data.ShaderFlags |= ShaderFlags_StageShadow;
+
+			// TODO: self and secondary stage shadow
+		}
 
 		const float morphWeight = (command.SourceCommand.Animation != nullptr) ? command.SourceCommand.Animation->MorphWeight : 0.0f;
 		objectCB.Data.MorphWeight = vec2(morphWeight, 1.0f - morphWeight);
@@ -1141,6 +1333,53 @@ namespace Graphics
 		D3D.Context->DrawIndexed(static_cast<UINT>(subMesh.Indices.size()), 0, 0);
 
 		verticesRenderedThisFrame += subMesh.Indices.size();
+	}
+
+	Sphere D3D_Renderer3D::CalculateShadowViewFrustumSphere() const
+	{
+		// TODO: If larger than some threshold, split into two (or more)
+		// TODO: Shadow casting objects which don't lie within the view frustum *nor* the light frustum should be ignored
+
+		if (!isAnyCommand.CastShadow)
+			return Sphere { vec3(0.0f), 1.0f };
+
+		vec3 min, max;
+		for (auto& command : defaultCommandList.OpaqueAndTransparent)
+		{
+			if (!command.SourceCommand.Flags.CastsShadow)
+				continue;
+
+			min = max = command.TransformedBoundingSphere.Center;
+			break;
+		}
+
+		for (auto& command : defaultCommandList.OpaqueAndTransparent)
+		{
+			if (!command.SourceCommand.Flags.CastsShadow)
+				continue;
+
+			const auto sphere = command.TransformedBoundingSphere;
+			const float radius = sphere.Radius;
+
+			min.x = std::min(min.x, sphere.Center.x - radius);
+			min.y = std::min(min.y, sphere.Center.y - radius);
+			min.z = std::min(min.z, sphere.Center.z - radius);
+
+			max.x = std::max(max.x, sphere.Center.x + radius);
+			max.y = std::max(max.y, sphere.Center.y + radius);
+			max.z = std::max(max.z, sphere.Center.z + radius);
+		}
+
+		const vec3 size = (max - min) / 2.0f;
+		return Sphere { (min + size), (std::max(size.x, std::max(size.y, size.z))) };
+	}
+
+	bool D3D_Renderer3D::IntersectsCameraFrustum(const ObjRenderCommand& command) const
+	{
+		if (!sceneContext->RenderParameters.FrustumCulling)
+			return true;
+
+		return sceneContext->Camera.IntersectsViewFrustum(command.TransformedBoundingSphere);
 	}
 
 	bool D3D_Renderer3D::IntersectsCameraFrustum(const Sphere& boundingSphere, const ObjRenderCommand& command) const

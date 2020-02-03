@@ -13,7 +13,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
  
 #if ARB_PROGRAM_ACCURATE
 
-    TEMP color_map, normal_w, spec, reflect, reflect_high, screen_uv, diff, tmp;
+    TEMP color_map, normal_w, spec, reflect, reflect_high, screen_uv, diff, tmp, _tmp0;
     
     TEX2D_00(color_map, a_tex_color0);
     MOV(o_color.w, color_map.w);
@@ -28,6 +28,13 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MUL(spec.xyz, a_color1.xyz, tmp.xyz);
     MAD(spec.xyz, reflect.xyz, a_color1.w, spec.xyz);
     MUL(diff, color_map, a_color0);
+    
+   if (FLAGS_STAGE_SHADOW)
+    {
+        PS_SAMPLE_STAGE_SHADOW_MAP;
+        diff *= _tmp0;
+    }
+    
     // MAD(o_color.rgb, spec.xyz, color_map.w, diff.xyz);
     MAD(tmp.rgb, spec.xyz, color_map.w, diff.xyz);
     LRP(o_color.rgb, a_fogcoord.x, p_fog_color.xyz, tmp.xyz);

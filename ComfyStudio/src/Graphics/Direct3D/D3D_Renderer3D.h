@@ -29,6 +29,8 @@ namespace Graphics
 		ShaderFlags_CubeMapReflection = 1 << 6,
 		ShaderFlags_LinearFog = 1 << 7,
 		ShaderFlags_Morph = 1 << 8,
+		ShaderFlags_StageShadow = 1 << 9,
+		// ShaderFlags_StageShadowSecondary = 1 << 10,
 	};
 
 	struct SceneConstantData
@@ -41,6 +43,7 @@ namespace Graphics
 		{
 			mat4 View;
 			mat4 ViewProjection;
+			mat4 LightSpace;
 			vec4 EyePosition;
 		} Scene;
 
@@ -158,8 +161,8 @@ namespace Graphics
 			bool SilhouetteOutline = false;
 
 			// TODO:
-			// bool CastsShadow = false;
-			// bool ReceivesShadow = false;
+			bool CastsShadow = false;
+			bool ReceivesShadow = true;
 			// bool SubsurfaceScattering = false;
 			// bool Skeleton = false;
 
@@ -204,9 +207,10 @@ namespace Graphics
 		{
 			RenderCommand SourceCommand;
 			
-			// NOTE: To avoid calculating it multiple times
+			// NOTE: To avoid needlessly calculating them multiple times
 			mat4 ModelMatrix;
-			
+			Sphere TransformedBoundingSphere;
+
 			// NOTE: To avoid needlessly binding buffers during the opaque render pass
 			bool AreAllMeshesTransparent;
 		};
@@ -225,14 +229,26 @@ namespace Graphics
 			std::vector<SubMeshRenderCommand> Transparent;
 		};
 
+		enum InternalRenderFlags : uint32_t
+		{
+			RenderFlags_None = 0,
+			RenderFlags_SSSPass = (1 << 0),
+			RenderFlags_DontBindMaterialShader = (1 << 1),
+			RenderFlags_DontBindMaterialTextures = (1 << 2),
+			RenderFlags_DontSetRasterizerState = (1 << 3),
+			RenderFlags_DontDoFrustumCulling = (1 << 4),
+		};
+
 		void InternalFlush();
 
 		void InternalPrepareRenderCommands(RenderPassCommandLists& commandList);
 		void InternalRenderItems();
+		void InternalPreRenderShadowMap();
+		void InternalPreRenderReduceFilterShadowMap();
 		void InternalPreRenderScreenReflection();
 		void InternalPreRenderSubsurfaceScattering();
 		void InternalPreRenderReduceFilterSubsurfaceScattering();
-		void InternalRenderOpaqueObjCommand(ObjRenderCommand& command, bool sssPass = false);
+		void InternalRenderOpaqueObjCommand(ObjRenderCommand& command, InternalRenderFlags flags = RenderFlags_None);
 		void InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command);
 		void InternalRenderSilhouette();
 		void InternalRenderSilhouetteOutlineOverlay();
@@ -240,11 +256,14 @@ namespace Graphics
 		void InternalRenderBloom();
 
 		void BindMeshVertexBuffers(const Mesh& primaryMesh, const Mesh* morphMesh);
-		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, bool sssPass = false);
+		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, InternalRenderFlags flags = RenderFlags_None);
 		D3D_ShaderPair& GetMaterialShader(const Material& material);
 		D3D_ShaderPair& GetSubsurfaceScatteringMaterialShader(const Material& material);
 		void SubmitSubMeshDrawCall(const SubMesh& subMesh);
 
+		Sphere CalculateShadowViewFrustumSphere() const;
+
+		bool IntersectsCameraFrustum(const ObjRenderCommand& command) const;
 		bool IntersectsCameraFrustum(const Sphere& boundingSphere, const ObjRenderCommand& command) const;
 		bool IntersectsCameraFrustum(const Sphere& boundingSphere, const SubMeshRenderCommand& command) const;
 		
@@ -261,14 +280,18 @@ namespace Graphics
 			D3D_ShaderPair ClothAniso = { ClothDefault_VS(), ClothAniso_PS(), "Renderer3D::ClothAniso" };
 			D3D_ShaderPair ClothDefault = { ClothDefault_VS(), ClothDefault_PS(), "Renderer3D::ClothDefault" };
 			D3D_ShaderPair Constant = { Constant_VS(), Constant_PS(), "Renderer3D::Constant" };
+			D3D_ShaderPair DepthThreshold = { FullscreenQuad_VS(), DepthThreshold_PS(), "Renderer3D::DepthThreshold" };
 			D3D_ShaderPair EyeBall = { EyeBall_VS(), EyeBall_PS(), "Renderer3D::EyeBall" };
 			D3D_ShaderPair EyeLens = { EyeLens_VS(), EyeLens_PS(), "Renderer3D::EyeLens" };
 			D3D_ShaderPair Floor = { Floor_VS(), Floor_PS(), "Renderer3D::Floor" };
 			D3D_ShaderPair GlassEye = { GlassEye_VS(), GlassEye_PS(), "Renderer3D::GlassEye" };
 			D3D_ShaderPair HairAniso = { HairDefault_VS(), HairAniso_PS(), "Renderer3D::HairAniso" };
 			D3D_ShaderPair HairDefault = { HairDefault_VS(), HairDefault_PS(), "Renderer3D::HairDefault" };
+			D3D_ShaderPair ImgFilter = { FullscreenQuad_VS(), ImgFilter_PS(), "Renderer3D::ImgFilter" };
+			D3D_ShaderPair ImgFilterBlur = { FullscreenQuad_VS(), ImgFilterBlur_PS(), "Renderer3D::ImgFilterBlur" };
 			D3D_ShaderPair ItemBlinn = { ItemBlinn_VS(), ItemBlinn_PS(), "Renderer3D::ItemBlinn" };
 			D3D_ShaderPair Lambert = { Lambert_VS(), Lambert_PS(), "Renderer3D::Lambert" };
+			D3D_ShaderPair Silhouette = { Silhouette_VS(), Silhouette_PS(), "Renderer3D::Silhouette" };
 			D3D_ShaderPair PPGauss = { FullscreenQuad_VS(), PPGauss_PS(), "Renderer3D::PPGauss" };
 			D3D_ShaderPair ReduceTex = { FullscreenQuad_VS(), ReduceTex_PS(), "Renderer3D::ReduceTex" };
 			D3D_ShaderPair SkinDefault = { SkinDefault_VS(), SkinDefault_PS(), "Renderer3D::SkinDefault" };
@@ -281,6 +304,7 @@ namespace Graphics
 			D3D_ShaderPair Water = { Water_VS(), Water_PS(), "Renderer3D::Water" };
 		} shaders;
 
+		// TODO: Separate scene CB from ~~viewport~~ camera CB (camera view/projection/eye, SSS param & render resolution)
 		D3D_DefaultConstantBufferTemplate<SceneConstantData> sceneCB = { 0, "Renderer3D::SceneCB" };
 		D3D_DynamicConstantBufferTemplate<ObjectConstantData> objectCB = { 1, "Renderer3D::ObjectCB" };
 		D3D_DynamicConstantBufferTemplate<SSSFilterConstantData> sssFilterCB = { 4, "Renderer3D::SSSFilterCB" };
@@ -291,8 +315,10 @@ namespace Graphics
 		D3D_DefaultConstantBufferTemplate<ToneMapConstantData> toneMapCB = { 9, "Renderer3D::ToneMapCB" };
 
 		UniquePtr<D3D_InputLayout> genericInputLayout = nullptr;
+		UniquePtr<D3D_InputLayout> shadowSilhouetteInputLayout = nullptr;
 
 		D3D_RasterizerState solidBackfaceCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_BACK, "Renderer3D::SolidBackfaceCulling" };
+		D3D_RasterizerState solidFrontfaceCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_FRONT, "Renderer3D::SolidFrontfaceCulling" };
 		D3D_RasterizerState solidNoCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_NONE, "Renderer3D::SolidNoCulling" };
 		D3D_RasterizerState wireframeRasterizerState = { D3D11_FILL_WIREFRAME, D3D11_CULL_NONE, "Renderer3D::Wireframe" };
 
@@ -328,6 +354,8 @@ namespace Graphics
 		{
 			bool ScreenReflection;
 			bool SubsurfaceScattering;
+			bool CastShadow;
+			bool ReceiveShadow;
 			bool SilhouetteOutline;
 		} isAnyCommand = {};
 

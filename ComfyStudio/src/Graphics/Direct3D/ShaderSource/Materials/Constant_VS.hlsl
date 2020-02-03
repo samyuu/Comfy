@@ -21,11 +21,15 @@ VS_OUTPUT VS_main(VS_INPUT input)
         VS_SetTransformTextureCoordinates(input, o_tex0, o_tex1);
     }
     
+    float4 pos_w = ModelToWorldSpace(pos_m);
     float4 pos_c = ModelToClipSpace(pos_m);
 
     o_position = pos_c;
     o_fog = VS_GetFogFactor(pos_c);
-
+        
+    if (FLAGS_STAGE_SHADOW)
+        o_tex_shadow0 = VS_GetShadowTextureCoordinates(pos_w);
+    
 	float4 diff = state_material_diffuse * float4(state_material_emission.xyz, 1.0) * p_blend_color;
     
     if (FLAGS_VERTEX_COLOR)

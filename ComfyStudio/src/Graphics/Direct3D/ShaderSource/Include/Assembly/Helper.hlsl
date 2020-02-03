@@ -114,6 +114,20 @@ else if (program_env_24 == 3)                                                   
 // --------------------------------------------------------------------------------------------------------------------------
 
 // --------------------------------------------------------------------------------------------------------------------------
+// TEX2D_20(_tmp0, a_tex_shadow0);
+// SUB(_tmp0.x, _tmp0.x, a_tex_shadow0.z);
+// MUL(_tmp0.x, _tmp0.x, p_esm_k.x);
+// EX2_SAT(_tmp2.y, _tmp0.x);
+// TEX2D_06(_tmp0, a_tex_shadow0);
+// MAX(_tmp0, _tmp0, _tmp2.y);
+// MAD(_tmp0, _tmp0, program_env_13, program_env_12);
+// MUL(diff, a_color0, _tmp0);
+#define PS_SAMPLE_STAGE_SHADOW_MAP                                                                                          \
+_tmp0 = StageShadowMap.Sample(ScreenReflectionSampler, a_tex_shadow0.xy);                                                   \
+_tmp0 = mad(_tmp0, program_env_13, program_env_12);                                                                         \
+// --------------------------------------------------------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------------------------------------------------------
 #define PS_ALPHA_TEST                                                                                                       \
 if (FLAGS_ALPHA_TEST)                                                                                                       \
 {                                                                                                                           \

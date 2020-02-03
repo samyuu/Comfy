@@ -93,6 +93,12 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MUL(spec.xyz, spec.xyz, state_lightprod1_specular.xyz);
     MAD(diff, diff, state_light1_diffuse, a_color0);
     
+    if (FLAGS_STAGE_SHADOW)
+    {
+        PS_SAMPLE_STAGE_SHADOW_MAP;
+        diff *= _tmp0;
+    }
+    
     // MAD(o_color.xyz, diff.xyz, tex_col.xyz, spec.xyz);
     // MUL(o_color.w, diff.w, tex_col.w);
     MAD(_tmp0, diff, tex_col, spec);

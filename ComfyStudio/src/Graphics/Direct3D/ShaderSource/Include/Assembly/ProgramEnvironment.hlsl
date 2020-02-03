@@ -60,6 +60,11 @@
 #define fres_coef                   (CB_Material.FresnelCoefficient)
 #define p_fb_isize                  (CB_Scene.TexelRenderResolution)
 #define program_env_00              (float4(CB_Scene.TexelRenderResolution, 1.0, 1.0))
+
+#define shadow_ambient              (0.4)
+#define program_env_12              (float4(shadow_ambient, shadow_ambient, shadow_ambient, 1.0))
+#define program_env_13              (float4(1.0 - shadow_ambient, 1.0 - shadow_ambient, 1.0 - shadow_ambient, 0.0))
+
 // TODO:
 #define program_env_17              (float4(0.06, 0.05, 0.88, 1.0))
 // TODO:
@@ -112,8 +117,8 @@
 // NOTE: State material:
 #define state_matrix_texture0       (CB_Material.DiffuseTextureTransform)
 #define state_matrix_texture1       (CB_Material.AmbientTextureTransform)
-// TODO:
-#define state_matrix_texture6       (float4x4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0))
+#define state_matrix_texture6       (CB_Scene.LightSpace)
+#define state_matrix_texture7       (CB_Scene.LightSpace)
 #define state_material_diffuse      (CB_Material.Diffuse)
 #define state_material_ambient      (CB_Material.Ambient)
 #define state_material_specular     (CB_Material.Specular)

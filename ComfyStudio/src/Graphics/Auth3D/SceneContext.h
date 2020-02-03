@@ -11,6 +11,9 @@ namespace Graphics
 	// NOTE: Different user controlable render graphics settings
 	struct RenderParameters
 	{
+		static constexpr ivec2 ShadowMapDefaultResolution = ivec2(2048, 2048);
+		static constexpr ivec2 ReflectionDefaultResolution = ivec2(512, 512);
+
 		// DEBUG: Non specific debug flags for quick testing
 		uint32_t DebugFlags = 0;
 
@@ -23,20 +26,25 @@ namespace Graphics
 		bool RenderOpaque = true;
 		bool RenderTransparent = true;
 		bool RenderBloom = true;
+		// TODO: bool RenderToneMap = true;
 		bool RenderFog = true;
 
 		ivec2 RenderResolution = RenderTargetDefaultSize;
-		
+
 #if COMFY_DEBUG
 		uint32_t MultiSampleCount = 1;
 #else
 		uint32_t MultiSampleCount = 4;
 #endif
 
-		static constexpr ivec2 ReflectionDefaultResolution = ivec2(512, 512);
+		bool RenderShadowMap = true;
+		ivec2 ShadowMapResolution = ShadowMapDefaultResolution;
+
+		uint32_t ShadowBlurPasses = 1;
+
+		bool RenderSubsurfaceScattering = true;
 
 		bool RenderReflection = true;
-		bool RenderSubsurfaceScattering = true;
 		bool ClearReflection = true;
 		ivec2 ReflectionRenderResolution = ReflectionDefaultResolution;
 
@@ -69,6 +77,19 @@ namespace Graphics
 		inline void AdvanceRenderTarget() { currentIndex = (currentIndex + 1) % RenderTargets.size(); }
 		inline D3D_DepthRenderTarget& CurrentRenderTarget() { return RenderTargets[currentIndex]; }
 		inline D3D_DepthRenderTarget& PreviousRenderTarget() { return RenderTargets[((currentIndex - 1) + RenderTargets.size()) % RenderTargets.size()]; }
+	};
+
+	struct ShadowMappingRenderData
+	{
+		D3D_DepthOnlyRenderTarget RenderTarget = { RenderParameters::ShadowMapDefaultResolution, DXGI_FORMAT_D32_FLOAT };
+
+		D3D_RenderTarget ThresholdRenderTarget = { RenderParameters::ShadowMapDefaultResolution / 2, DXGI_FORMAT_R8_UNORM };
+		
+		std::array<D3D_RenderTarget, 2> BlurRenderTargets = 
+		{ 
+			D3D_RenderTarget { RenderParameters::ShadowMapDefaultResolution / 4, DXGI_FORMAT_R8_UNORM },
+			D3D_RenderTarget { RenderParameters::ShadowMapDefaultResolution / 4, DXGI_FORMAT_R8_UNORM },
+		};
 	};
 
 	struct SubsurfaceScatteringRenderData
@@ -134,6 +155,7 @@ namespace Graphics
 		// TODO: Non multisample copies of MainRenderTargets for both screen texture rendering and post processing (?)
 
 		MainRenderData Main;
+		ShadowMappingRenderData Shadow;
 		ScreenReflectionRenderData Reflection;
 		SubsurfaceScatteringRenderData SubsurfaceScattering;
 		SilhouetteRenderData Silhouette;
