@@ -824,63 +824,16 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalRenderSilhouette()
 	{
-		static const Material debugMaterialSkeleton =
-		{
-			/* TextureCount */		0,
-			/* Flags */				MaterialFlags {},
-			/* MaterialType */		Material::Identifiers.BLINN,
-			/* ShaderFlags */		MaterialShaderFlags {},
-			/* Diffuse */			MaterialTexture { {}, TxpID::Invalid },
-			/* Ambient */			MaterialTexture { {}, TxpID::Invalid },
-			/* Normal */			MaterialTexture { {}, TxpID::Invalid },
-			/* Specular */			MaterialTexture { {}, TxpID::Invalid },
-			/* ToonCurve */			MaterialTexture { {}, TxpID::Invalid },
-			/* Reflection */		MaterialTexture { {}, TxpID::Invalid },
-			/* Lucency */			MaterialTexture { {}, TxpID::Invalid },
-			/* ReservedTexture */	MaterialTexture { {}, TxpID::Invalid },
-			/* BlendFlags */		MaterialBlendFlags {},
-			/* DiffuseColor */		vec4(1.0f),
-			/* Transparency */		1.0f,
-			/* AmbientColor */		vec4(1.0f),
-			/* SpecularColor */		vec3(1.0f),
-			/* Reflectivity */		0.0f,
-			/* EmissionColor */		vec4(1.0f),
-			/* Shininess */			0.0f,
-			/* Intensity */			0.0f,
-			/* UnknownField21_24 */	vec4(0.0f),
-			/* Name */				{ "DEBUG_MATERIAL" },
-			/* BumpDepth */			0.0f,
-		};
-		Material debugMaterial = debugMaterialSkeleton;
-
 		renderData->Silhouette.RenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.RenderResolution);
 		renderData->Silhouette.RenderTarget.BindSetViewport();
 		renderData->Silhouette.RenderTarget.Clear(vec4(1.0f));
 
-		shaders.Constant.Bind();
-
-		for (auto& command : defaultCommandList.OpaqueAndTransparent)
+		if (!defaultCommandList.OpaqueAndTransparent.empty())
 		{
-			if (command.AreAllMeshesTransparent || !IntersectsCameraFrustum(command))
-				continue;
+			D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
-			debugMaterial.DiffuseColor = command.SourceCommand.Flags.SilhouetteOutline ? vec4(0.0f) : vec4(1.0f);
-			for (size_t meshIndex = 0; meshIndex < command.SourceCommand.SourceObj->Meshes.size(); meshIndex++)
-			{
-				auto& mesh = command.SourceCommand.SourceObj->Meshes[meshIndex];
-				if (!IntersectsCameraFrustum(mesh.BoundingSphere, command))
-					continue;
-
-				BindMeshVertexBuffers(mesh, MeshOrDefault(command.SourceCommand.SourceMorphObj, meshIndex));
-
-				for (auto& subMesh : mesh.SubMeshes)
-				{
-					if (!IntersectsCameraFrustum(subMesh.BoundingSphere, command))
-						continue;
-
-					PrepareAndRenderSubMesh(command, mesh, subMesh, debugMaterial, RenderFlags_DontBindMaterialShader);
-				}
-			}
+			for (auto& command : defaultCommandList.OpaqueAndTransparent)
+				InternalRenderOpaqueObjCommand(command, static_cast<InternalRenderFlags>(RenderFlags_SilhouetteOverlayPass | RenderFlags_DontBindMaterialShader | RenderFlags_DontBindMaterialTextures));
 		}
 
 		renderData->Silhouette.RenderTarget.UnBind();
@@ -1067,6 +1020,11 @@ namespace Graphics
 			materialShader.Bind();
 		}
 
+		if (flags & RenderFlags_SilhouetteOverlayPass)
+		{
+			shaders.Constant.Bind();
+		}
+
 		if (!(flags & RenderFlags_DontBindMaterialTextures))
 		{
 			constexpr size_t textureTypeCount = 7;
@@ -1233,7 +1191,7 @@ namespace Graphics
 		if (command.SourceCommand.SourceMorphObj != nullptr)
 			objectCB.Data.ShaderFlags |= ShaderFlags_Morph;
 
-		if (sceneContext->RenderParameters.RenderShadowMap)
+		if (sceneContext->RenderParameters.RenderShadowMap && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
 		{
 			if (command.SourceCommand.Flags.ReceivesShadow)
 				objectCB.Data.ShaderFlags |= ShaderFlags_StageShadow;
@@ -1243,6 +1201,17 @@ namespace Graphics
 
 		const float morphWeight = (command.SourceCommand.Animation != nullptr) ? command.SourceCommand.Animation->MorphWeight : 0.0f;
 		objectCB.Data.MorphWeight = vec2(morphWeight, 1.0f - morphWeight);
+
+		if (flags & RenderFlags_SilhouetteOverlayPass)
+		{
+			objectCB.Data.ShaderFlags = 0;
+
+			if (command.SourceCommand.SourceMorphObj != nullptr)
+				objectCB.Data.ShaderFlags |= ShaderFlags_Morph;
+
+			objectCB.Data.Material.Emission = vec4(1.0f);
+			objectCB.Data.Material.Diffuse = command.SourceCommand.Flags.SilhouetteOutline ? vec4(0.0f) : vec4(1.0f);
+		}
 
 		objectCB.UploadData();
 

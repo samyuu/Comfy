@@ -233,10 +233,11 @@ namespace Graphics
 		{
 			RenderFlags_None = 0,
 			RenderFlags_SSSPass = (1 << 0),
-			RenderFlags_DontBindMaterialShader = (1 << 1),
-			RenderFlags_DontBindMaterialTextures = (1 << 2),
-			RenderFlags_DontSetRasterizerState = (1 << 3),
-			RenderFlags_DontDoFrustumCulling = (1 << 4),
+			RenderFlags_SilhouetteOverlayPass = (1 << 1),
+			RenderFlags_DontBindMaterialShader = (1 << 2),
+			RenderFlags_DontBindMaterialTextures = (1 << 3),
+			RenderFlags_DontSetRasterizerState = (1 << 4),
+			RenderFlags_DontDoFrustumCulling = (1 << 5),
 		};
 
 		void InternalFlush();
