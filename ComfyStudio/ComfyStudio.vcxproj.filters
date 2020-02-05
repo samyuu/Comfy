@@ -396,9 +396,6 @@
     <ClCompile Include="src\Graphics\Auth3D\A3DMgr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Core\IDHash.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\Auth3D\Light\FogParameter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

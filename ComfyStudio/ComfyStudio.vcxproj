@@ -162,7 +162,6 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Core\IDHash.cpp" />
     <ClCompile Include="src\Database\AetDB.cpp" />
     <ClCompile Include="src\Database\SprDB.cpp" />
     <ClCompile Include="src\Database\TxpDB.cpp" />
