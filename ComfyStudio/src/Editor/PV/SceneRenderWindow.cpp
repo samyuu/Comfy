@@ -87,7 +87,7 @@ namespace Editor
 
 	void SceneRenderWindow::OnUpdateInput()
 	{
-#if 0 // DEBUG:
+#if 1 // DEBUG:
 		if (Gui::IsWindowFocused() && Gui::IsWindowHovered())
 		{
 			for (auto& entity : sceneGraph->Entities)
@@ -104,6 +104,9 @@ namespace Editor
 				for (auto& entity : sceneGraph->Entities)
 				{
 					if (!entity->IsVisible || entity->IsReflection)
+						continue;
+
+					if ((entity->Obj->BoundingSphere * entity->Transform).Contains(viewPoint))
 						continue;
 
 					float intersectionDistance = 0.0f;
@@ -152,7 +155,7 @@ namespace Editor
 
 					renderCommand.Animation = entity->Animation.get();
 
-#if 0 // DEBUG:
+#if 1 // DEBUG:
 					if (entity->Obj->Debug.WireframeOverlay)
 						renderCommand.Flags.SilhouetteOutline = true;
 #endif

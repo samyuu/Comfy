@@ -43,6 +43,11 @@ namespace Graphics
 			Center = transform * vec4(Center, 1.0f);
 			Radius *= glm::max(scale.x, glm::max(scale.y, scale.z));
 		}
+
+		inline bool Contains(const vec3& point) const
+		{
+			return (glm::distance(Center, point) < Radius);
+		}
 	};
 
 	struct Box
