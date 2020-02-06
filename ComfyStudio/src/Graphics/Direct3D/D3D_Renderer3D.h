@@ -233,7 +233,7 @@ namespace Graphics
 		{
 			RenderFlags_None = 0,
 			RenderFlags_SSSPass = (1 << 0),
-			RenderFlags_SilhouetteOverlayPass = (1 << 1),
+			RenderFlags_SilhouetteOutlinePass = (1 << 1),
 			RenderFlags_DontBindMaterialShader = (1 << 2),
 			RenderFlags_DontBindMaterialTextures = (1 << 3),
 			RenderFlags_DontSetRasterizerState = (1 << 4),
@@ -297,6 +297,8 @@ namespace Graphics
 			D3D_ShaderPair ReduceTex = { FullscreenQuad_VS(), ReduceTex_PS(), "Renderer3D::ReduceTex" };
 			D3D_ShaderPair SkinDefault = { SkinDefault_VS(), SkinDefault_PS(), "Renderer3D::SkinDefault" };
 			D3D_ShaderPair SkyDefault = { SkyDefault_VS(), SkyDefault_PS(), "Renderer3D::SkyDefault" };
+			D3D_ShaderPair SolidBlack = { PositionTransform_VS(), SolidBlack_PS(), "Renderer3D::SolidBlack" };
+			D3D_ShaderPair SolidWhite = { PositionTransform_VS(), SolidWhite_PS(), "Renderer3D::SolidWhite" };
 			D3D_ShaderPair SSSFilter = { FullscreenQuad_VS(), SSSFilter_PS(), "Renderer3D::SSSFilter" };
 			D3D_ShaderPair SSSSkin = { SSSSkin_VS(), SSSSkin_PS(), "Renderer3D::SSSSkin" };
 			D3D_ShaderPair StageBlinn = { StageBlinn_VS(), StageBlinn_PS(), "Renderer3D::StageBlinn" };

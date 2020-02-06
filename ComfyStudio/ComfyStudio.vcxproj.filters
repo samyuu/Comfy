@@ -1028,5 +1028,8 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Silhouette_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\DepthThreshold_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\ImgFilterBlur_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\PositionTransform_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\SolidWhite_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\SolidBlack_PS.hlsl" />
   </ItemGroup>
 </Project>

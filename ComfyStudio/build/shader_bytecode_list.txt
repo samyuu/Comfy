@@ -32,6 +32,7 @@ ImgFilter_PS
 ImgFilterBlur_PS
 ItemBlinn_VS
 ItemBlinn_PS
+PositionTransform_VS
 Lambert_VS
 Lambert_PS
 Silhouette_VS
@@ -42,6 +43,8 @@ SkinDefault_VS
 SkinDefault_PS
 SkyDefault_VS
 SkyDefault_PS
+SolidBlack_PS
+SolidWhite_PS
 SSSFilter_PS
 SSSSkin_VS
 SSSSkin_PS

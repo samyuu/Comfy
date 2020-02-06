@@ -833,7 +833,7 @@ namespace Graphics
 			D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
 			for (auto& command : defaultCommandList.OpaqueAndTransparent)
-				InternalRenderOpaqueObjCommand(command, static_cast<InternalRenderFlags>(RenderFlags_SilhouetteOverlayPass | RenderFlags_DontBindMaterialShader | RenderFlags_DontBindMaterialTextures));
+				InternalRenderOpaqueObjCommand(command, static_cast<InternalRenderFlags>(RenderFlags_SilhouetteOutlinePass | RenderFlags_DontBindMaterialShader | RenderFlags_DontBindMaterialTextures));
 		}
 
 		renderData->Silhouette.RenderTarget.UnBind();
@@ -1020,9 +1020,12 @@ namespace Graphics
 			materialShader.Bind();
 		}
 
-		if (flags & RenderFlags_SilhouetteOverlayPass)
+		if (flags & RenderFlags_SilhouetteOutlinePass)
 		{
-			shaders.Constant.Bind();
+			if (command.SourceCommand.Flags.SilhouetteOutline)
+				shaders.SolidWhite.Bind();
+			else
+				shaders.SolidBlack.Bind();
 		}
 
 		if (!(flags & RenderFlags_DontBindMaterialTextures))
@@ -1201,17 +1204,6 @@ namespace Graphics
 
 		const float morphWeight = (command.SourceCommand.Animation != nullptr) ? command.SourceCommand.Animation->MorphWeight : 0.0f;
 		objectCB.Data.MorphWeight = vec2(morphWeight, 1.0f - morphWeight);
-
-		if (flags & RenderFlags_SilhouetteOverlayPass)
-		{
-			objectCB.Data.ShaderFlags = 0;
-
-			if (command.SourceCommand.SourceMorphObj != nullptr)
-				objectCB.Data.ShaderFlags |= ShaderFlags_Morph;
-
-			objectCB.Data.Material.Emission = vec4(1.0f);
-			objectCB.Data.Material.Diffuse = command.SourceCommand.Flags.SilhouetteOutline ? vec4(0.0f) : vec4(1.0f);
-		}
 
 		objectCB.UploadData();
 
