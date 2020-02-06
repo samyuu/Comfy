@@ -87,11 +87,11 @@ namespace Editor
 
 	void SceneRenderWindow::OnUpdateInput()
 	{
-#if 1 // DEBUG:
+#if 0 // DEBUG:
 		if (Gui::IsWindowFocused() && Gui::IsWindowHovered())
 		{
 			for (auto& entity : sceneGraph->Entities)
-				entity->Obj->Debug.WireframeOverlay = false;
+				entity->SilhouetteOutline = false;
 
 			if (Gui::IsMouseDown(1))
 			{
@@ -106,12 +106,18 @@ namespace Editor
 					if (!entity->IsVisible || entity->IsReflection)
 						continue;
 
-					if ((entity->Obj->BoundingSphere * entity->Transform).Contains(viewPoint))
-						continue;
+					// NOTE: Optionally ignore *all* camera intersecting entities
+					// if ((entity->Obj->BoundingSphere * entity->Transform).Contains(viewPoint))
+					// 	continue;
 
 					float intersectionDistance = 0.0f;
 					if (!Intersects(viewPoint, ray, *entity->Obj, entity->Transform, intersectionDistance))
 						continue;
+
+					// NOTE: Add a bias to camera intersecting entities so the stage ground / sky only get picked if nothing else is in between
+					const Sphere transformedSphere = (entity->Obj->BoundingSphere * entity->Transform);
+					if (transformedSphere.Contains(viewPoint))
+						intersectionDistance += transformedSphere.Radius;
 
 					if (intersectionDistance < closestDistance || closestEntity == nullptr)
 					{
@@ -121,7 +127,7 @@ namespace Editor
 				}
 
 				if (closestEntity != nullptr)
-					closestEntity->Obj->Debug.WireframeOverlay = true;
+					closestEntity->SilhouetteOutline = true;
 			}
 		}
 #endif
@@ -155,10 +161,8 @@ namespace Editor
 
 					renderCommand.Animation = entity->Animation.get();
 
-#if 1 // DEBUG:
-					if (entity->Obj->Debug.WireframeOverlay)
+					if (entity->SilhouetteOutline)
 						renderCommand.Flags.SilhouetteOutline = true;
-#endif
 
 #if 1 // DEBUG:
 					if (entity->Tag == 'chr' || entity->Tag == 'obj')

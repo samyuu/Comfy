@@ -25,6 +25,7 @@ namespace Editor
 		const Graphics::Obj* MorphObj = nullptr;
 
 		bool IsReflection = false;
+		bool SilhouetteOutline = false;
 
 		UniquePtr<Graphics::ObjAnimationData> Animation = nullptr;
 	};
