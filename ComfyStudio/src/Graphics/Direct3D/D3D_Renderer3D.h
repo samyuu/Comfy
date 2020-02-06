@@ -114,7 +114,7 @@ namespace Graphics
 
 	struct SSSFilterCoefConstantData
 	{
-		std::array<vec3, 64> Coefficient;
+		std::array<vec4, 36> Coefficient;
 	};
 
 	struct ReduceTexConstantData

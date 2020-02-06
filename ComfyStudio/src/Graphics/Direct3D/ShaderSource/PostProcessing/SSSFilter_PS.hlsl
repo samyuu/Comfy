@@ -15,7 +15,7 @@ cbuffer SSSFilterConstantData : register(b4)
 
 cbuffer SSSFilterCoefConstantData : register(b5)
 {
-    float3 CB_Coefficient[64];
+    float4 CB_Coefficient[36];
 };
 
 SamplerState LinearTextureSampler
@@ -90,8 +90,8 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
             
         int index = 0;
         
-        sum = mad(col0.xyz, CB_Coefficient[index], sum);
-        sum_coef = CB_Coefficient[index] + sum_coef;
+        sum = mad(col0.xyz, CB_Coefficient[index].xyz, sum);
+        sum_coef = CB_Coefficient[index].xyz + sum_coef;
         
         index++;
         
@@ -109,10 +109,10 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
             col0 = SubsurfaceScatteringTexture.Sample(LinearTextureSampler, stex0);
             col1 = SubsurfaceScatteringTexture.Sample(LinearTextureSampler, stex1);
         
-            _tmp0.xyz = CB_Coefficient[index] * col0.w;
+            _tmp0.xyz = CB_Coefficient[index].xyz * col0.w;
             sum = mad(col0.xyz, _tmp0, sum);
             sum_coef = _tmp0.xyz + sum_coef;
-            _tmp0.xyz = CB_Coefficient[index] * col1.w;
+            _tmp0.xyz = CB_Coefficient[index].xyz * col1.w;
             sum = mad(col1.xyz, _tmp0, sum);
             sum_coef = _tmp0.xyz + sum_coef;
         
@@ -137,10 +137,10 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
             col0 = SubsurfaceScatteringTexture.Sample(LinearTextureSampler, stex0);
             col2 = SubsurfaceScatteringTexture.Sample(LinearTextureSampler, stex2);
             
-            _tmp0.xyz = CB_Coefficient[index] * col0.w;
+            _tmp0.xyz = CB_Coefficient[index].xyz * col0.w;
             sum = mad(col0.xyz, _tmp0, sum);
             sum_coef = _tmp0.xyz + sum_coef;
-            _tmp0.xyz = CB_Coefficient[index] * col2.w;
+            _tmp0.xyz = CB_Coefficient[index].xyz * col2.w;
             sum = mad(col2.xyz, _tmp0, sum);
             sum_coef = _tmp0.xyz + sum_coef;
             
@@ -159,16 +159,16 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
                 col2 = SubsurfaceScatteringTexture.Sample(LinearTextureSampler, stex2);
                 col3 = SubsurfaceScatteringTexture.Sample(LinearTextureSampler, stex3);
                    
-                _tmp0.xyz = CB_Coefficient[index] * col0.w;
+                _tmp0.xyz = CB_Coefficient[index].xyz * col0.w;
                 sum = mad(col0.xyz, _tmp0, sum);
                 sum_coef = _tmp0.xyz + sum_coef;
-                _tmp0.xyz = CB_Coefficient[index] * col1.w;
+                _tmp0.xyz = CB_Coefficient[index].xyz * col1.w;
                 sum = mad(col1.xyz, _tmp0, sum);
                 sum_coef = _tmp0.xyz + sum_coef;
-                _tmp0.xyz = CB_Coefficient[index] * col2.w;
+                _tmp0.xyz = CB_Coefficient[index].xyz * col2.w;
                 sum = mad(col2.xyz, _tmp0, sum);
                 sum_coef = _tmp0.xyz + sum_coef;
-                _tmp0.xyz = CB_Coefficient[index] * col3.w;
+                _tmp0.xyz = CB_Coefficient[index].xyz * col3.w;
                 sum = mad(col3.xyz, _tmp0, sum);
                 sum_coef = _tmp0.xyz + sum_coef;
                 index++;

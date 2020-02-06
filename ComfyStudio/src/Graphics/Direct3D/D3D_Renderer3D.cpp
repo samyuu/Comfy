@@ -83,48 +83,107 @@ namespace Graphics
 			return GetPackedTextureSize(vec2(renderTarget.GetSize()));
 		};
 
-		void CalculateSubsurfaceScatteringCoefficient(SSSFilterCoefConstantData& outData)
+		inline float RootMeanSquare(const vec3 value)
 		{
-			// TODO: Calculate dynamically
-			outData.Coefficient =
+			const vec3 squared = (value * value);
+			return glm::sqrt(squared.x + squared.y + squared.z);
+		}
+
+		double CalculateSSSCameraCoefficient(const vec3 viewPoint, const vec3 interest, const float fieldOfView, const std::array<std::optional<vec3>, 2>& characterHeadPositions)
+		{
+			std::array<float, 2> meanSquareRoots;
+			std::array<vec3, 2> headPositions;
+
+			for (size_t i = 0; i < meanSquareRoots.size(); i++)
 			{
-				vec3(0.21040623,  0.78055823,  0.62655407),
-				vec3(0.12917531,  0.062717795,  0.084737904),
-				vec3(0.044682723,  0.014909152,  0.022482639),
-				vec3(0.020118745,  0.0015618494,  0.0095707672),
-				vec3(0.011492467,  0.000066359164,  0.003069486),
-				vec3(0.0073738941,  0.0000011435034,  0.00071145396),
-				vec3(0.12917531,  0.062717795,  0.084737904),
-				vec3(0.084581025,  0.03684625,  0.042938128),
-				vec3(0.035600733,  0.009494883,  0.018571729),
-				vec3(0.018209256,  0.00099466438,  0.0081350859),
-				vec3(0.010813996,  0.000042260857,  0.0026092706),
-				vec3(0.0070962897,  7.2824054e-7,  0.00060478394),
-				vec3(0.044682723,  0.014909152,  0.022482639),
-				vec3(0.035600733,  0.009494883,  0.018571729),
-				vec3(0.022485442,  0.002452459,  0.011261988),
-				vec3(0.01413135,  0.00025691456,  0.0049969591),
-				vec3(0.0091901477,  0.000010915673,  0.0016028006),
-				vec3(0.0063760825,  1.8809924e-7,  0.00037150155),
-				vec3(0.020118745,  0.0015618494,  0.0095707672),
-				vec3(0.018209256,  0.00099466438,  0.0081350859),
-				vec3(0.01413135,  0.00025691456,  0.0049969591),
-				vec3(0.010211158,  0.000026913842,  0.0022180562),
-				vec3(0.0073738941,  0.0000011435034,  0.00071145396),
-				vec3(0.0054377527,  1.970489e-8,  0.00016490277),
-				vec3(0.011492467,  0.000066359164,  0.003069486),
-				vec3(0.010813996,  0.000042260857,  0.0026092706),
-				vec3(0.0091901477,  0.000010915673,  0.0016028006),
-				vec3(0.0073738941,  0.0000011435034,  0.00071145396),
-				vec3(0.0057823872,  4.8584667e-8,  0.00022820283),
-				vec3(0.0044486467,  8.3721263e-10,  0.000052893487),
-				vec3(0.0073738941,  0.0000011435034,  0.00071145396),
-				vec3(0.0070962897,  7.2824054e-7,  0.00060478394),
-				vec3(0.0063760825,  1.8809924e-7,  0.00037150155),
-				vec3(0.0054377527,  1.970489e-8,  0.00016490277),
-				vec3(0.0044486467,  8.3721263e-10,  0.000052893487),
-				vec3(0.0034911945,  1.4426877e-11,  0.000012259798),
+				if (characterHeadPositions[i].has_value())
+				{
+					headPositions[i] = characterHeadPositions[i].value();
+					meanSquareRoots[i] = RootMeanSquare(viewPoint - characterHeadPositions[i].value());
+				}
+				else
+				{
+					headPositions[i] = interest;
+					meanSquareRoots[i] = 999999.0f;
+				}
+			}
+
+			vec3 headPosition;
+			if (meanSquareRoots[0] <= meanSquareRoots[1])
+			{
+				headPosition = headPositions[0];
+			}
+			else
+			{
+				headPosition = headPositions[1];
+				headPositions[0] = headPositions[1];
+			}
+
+			const double result = 1.0f / std::clamp(
+				std::max(glm::tan(glm::radians(fieldOfView * 0.5f)) * 5.0f, 0.25f) *
+				std::max(RootMeanSquare(viewPoint - ((RootMeanSquare(interest - headPosition) > 1.25f) ? headPositions[0] : interest)), 0.25f),
+				0.25f, 100.0f);
+
+			return result;
+		}
+
+		std::array<vec4, 36> CalculateSSSFilterCoefficient(double cameraCoefficient)
+		{
+			constexpr std::array<std::array<double, 3>, 4> weights =
+			{
+				std::array { 1.0, 2.0, 5.0, },
+				std::array { 0.2, 0.4, 1.2, },
+				std::array { 0.3, 0.7, 2.0, },
+				std::array { 0.4, 0.3, 0.3, },
 			};
+			constexpr double expFactorIncrement = 1.0;
+
+			std::array<vec4, 36> coefficient = {};
+
+			for (int iteration = 0; iteration < 3; iteration++)
+			{
+				for (int component = 0; component < 3; component++)
+				{
+					const double reciprocalWeight = 1.0 / (cameraCoefficient * weights[component][iteration]);
+
+					double expSum = 0.0;
+					double expFactorSum = 0.0;
+
+					std::array<double, 6> exponentials;
+					for (double& exp : exponentials)
+					{
+						const double expResult = glm::exp(reciprocalWeight * expFactorSum * -0.5 * (reciprocalWeight * expFactorSum));
+						exp = expResult;
+
+						expSum += expResult;
+						expFactorSum += expFactorIncrement;
+					}
+
+					const double reciprocalExpSum = 1.0 / expSum;
+					for (double& exp : exponentials)
+						exp *= reciprocalExpSum;
+
+					for (int i = 0; i < 6; i++)
+					{
+						const double weight = weights.back()[iteration] * exponentials[i];
+						for (int j = 0; j < 6; j++)
+						{
+							float& coef = coefficient[(i * 6) + j][component];
+							coef = static_cast<float>(static_cast<double>(coef) + exponentials[j] * weight);
+						}
+					}
+				}
+			}
+
+			return coefficient;
+		}
+
+		void CalculateSSSCoefficient(const PerspectiveCamera& camera, SSSFilterCoefConstantData& outData)
+		{
+			const std::array<std::optional<vec3>, 2> characterHeadPositions = { vec3(0.0f, 1.055f, 0.0f) };
+			const double cameraCoefficient = CalculateSSSCameraCoefficient(camera.ViewPoint, camera.Interest, camera.FieldOfView, characterHeadPositions);
+
+			outData.Coefficient = CalculateSSSFilterCoefficient(cameraCoefficient);
 		}
 
 		void CalculateGaussianBlurKernel(const GlowParameter& glow, PPGaussCoefConstantData* outData)
@@ -739,7 +798,7 @@ namespace Graphics
 		shaders.SSSFilter.Bind();
 		sssFilterCB.BindPixelShader();
 
-		CalculateSubsurfaceScatteringCoefficient(sssFilterCoefCB.Data);
+		CalculateSSSCoefficient(sceneContext->Camera, sssFilterCoefCB.Data);
 		sssFilterCoefCB.BindPixelShader();
 		sssFilterCoefCB.UploadData();
 
@@ -1140,6 +1199,9 @@ namespace Graphics
 		objectCB.Data.Material.Intensity = material.Intensity;
 		objectCB.Data.Material.BumpDepth = material.BumpDepth;
 
+		const float morphWeight = (command.SourceCommand.Animation != nullptr) ? command.SourceCommand.Animation->MorphWeight : 0.0f;
+		objectCB.Data.MorphWeight = vec2(morphWeight, 1.0f - morphWeight);
+
 		mat4 modelMatrix;
 		if (mesh.Flags.FaceCameraPosition || mesh.Flags.FaceCameraView)
 		{
@@ -1190,7 +1252,7 @@ namespace Graphics
 			if (material.Flags.UseNormalTexture || material.Normal.TextureID != TxpID::Invalid)
 				objectCB.Data.ShaderFlags |= ShaderFlags_NormalTexture;
 		}
-		
+
 		if (renderParameters->SpecularMapping)
 		{
 			if (material.Flags.UseSpecularTexture || material.Specular.TextureID != TxpID::Invalid)
@@ -1199,8 +1261,8 @@ namespace Graphics
 
 		if (renderParameters->AlphaTesting)
 		{
-		if (material.BlendFlags.EnableAlphaTest && !IsMeshTransparent(mesh, subMesh, material))
-			objectCB.Data.ShaderFlags |= ShaderFlags_AlphaTest;
+			if (material.BlendFlags.EnableAlphaTest && !IsMeshTransparent(mesh, subMesh, material))
+				objectCB.Data.ShaderFlags |= ShaderFlags_AlphaTest;
 		}
 
 		if (renderParameters->CubeReflection)
@@ -1225,9 +1287,6 @@ namespace Graphics
 
 			// TODO: self and secondary stage shadow
 		}
-
-		const float morphWeight = (command.SourceCommand.Animation != nullptr) ? command.SourceCommand.Animation->MorphWeight : 0.0f;
-		objectCB.Data.MorphWeight = vec2(morphWeight, 1.0f - morphWeight);
 
 		objectCB.UploadData();
 
