@@ -75,12 +75,12 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
 	    DP3(rot_ray.y, nt_mtx[1], nrm_cornea1);
 	    DP3(rot_ray.z, nt_mtx[2], nrm_cornea1);
 	    MOV(rot_ray.w, 0);
-        // TODO: TXLCUBE_09 etc.
-	    TXLCUBE_09(diff, rot_ray);
+	    
+        TXLCUBE_09(diff, rot_ray);
 	    MOV(rot_ray.w, 1);
 	    TXLCUBE_09(diff, rot_ray);
-        
-	    LRP(diff.xyz, lc.y, diff.xyz, tmp.xyz);
+	    
+        LRP(diff.xyz, lc.y, diff.xyz, tmp.xyz);
 	    MAD(diff.xyz, diff.xyz, state_light0_diffuse.xyz, a_color0.w);
 	    ADD(diff.xyz, diff.xyz, state_light0_ambient.xyz);
 	    MOV(diff.xyz, diff.xyz);

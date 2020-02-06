@@ -18,15 +18,15 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     if (FLAGS_DIFFUSE_TEX2D)
     {
         TEX2D_00(tex_col, a_tex_color0);
-        
-        if (FLAGS_AMBIENT_TEX2D)
-        {
-            PS_APPLY_SAMPLE_AMBIENT_TEX_COL;
-        }
     }
     else
     {
         MOV(tex_col, state_material_diffuse);
+    }
+    
+    if (FLAGS_AMBIENT_TEX2D)
+    {
+        PS_APPLY_SAMPLE_AMBIENT_TEX_COL;
     }
 
     if (FLAGS_STAGE_SHADOW)

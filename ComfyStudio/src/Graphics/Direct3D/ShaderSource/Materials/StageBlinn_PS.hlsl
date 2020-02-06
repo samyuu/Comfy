@@ -71,17 +71,17 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     if (FLAGS_DIFFUSE_TEX2D)
     {
         TEX2D_00(col0, a_tex_color0);
-        
-        if (FLAGS_AMBIENT_TEX2D)
-        {
-            TEMP tex_col = diff;
-            PS_APPLY_SAMPLE_AMBIENT_TEX_COL;
-            diff = tex_col;
-        }
     }
     else
     {
         MOV(col0, state_material_diffuse);
+    }
+    
+    if (FLAGS_AMBIENT_TEX2D)
+    {
+        TEMP tex_col = diff;
+        PS_APPLY_SAMPLE_AMBIENT_TEX_COL;
+        diff = tex_col;
     }
     
     MUL(diff.xyz, diff.xyz, col0.xyz);
