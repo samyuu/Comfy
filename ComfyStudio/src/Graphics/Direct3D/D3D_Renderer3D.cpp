@@ -826,7 +826,7 @@ namespace Graphics
 	{
 		renderData->Silhouette.RenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.RenderResolution);
 		renderData->Silhouette.RenderTarget.BindSetViewport();
-		renderData->Silhouette.RenderTarget.Clear(vec4(1.0f));
+		renderData->Silhouette.RenderTarget.Clear(vec4(0.0f));
 
 		if (!defaultCommandList.OpaqueAndTransparent.empty())
 		{
