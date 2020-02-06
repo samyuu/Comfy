@@ -319,7 +319,6 @@ namespace Editor
 		Gui::PushID(&renderParameters);
 		Gui::CheckboxFlags("DebugFlags_0", &renderParameters.DebugFlags, (1 << 0));
 		Gui::CheckboxFlags("DebugFlags_1", &renderParameters.DebugFlags, (1 << 1));
-		Gui::CheckboxFlags("DebugFlags_2", &renderParameters.DebugFlags, (1 << 2));
 		Gui::ColorEdit4("Clear Color", glm::value_ptr(renderParameters.ClearColor));
 		Gui::Checkbox("Clear", &renderParameters.Clear);
 		Gui::Checkbox("Frustum Culling", &renderParameters.FrustumCulling);
@@ -330,7 +329,14 @@ namespace Editor
 		Gui::Checkbox("Render Subsurface Scattering", &renderParameters.RenderSubsurfaceScattering);
 		Gui::Checkbox("Render Opaque", &renderParameters.RenderOpaque);
 		Gui::Checkbox("Render Transparent", &renderParameters.RenderTransparent);
-		Gui::Checkbox("Render Bloom", &renderParameters.RenderBloom);
+		Gui::Checkbox("Render Bloom", &renderParameters.RenderBloom);	
+		Gui::Checkbox("Vertex Coloring", &renderParameters.VertexColoring);
+		Gui::Checkbox("Diffuse Mapping", &renderParameters.DiffuseMapping);
+		Gui::Checkbox("Ambient Occlusion Mapping", &renderParameters.AmbientOcclusionMapping);
+		Gui::Checkbox("Normal Mapping", &renderParameters.NormalMapping);
+		Gui::Checkbox("Specular Mapping", &renderParameters.SpecularMapping);
+		Gui::Checkbox("Alpha Testing", &renderParameters.AlphaTesting);
+		Gui::Checkbox("Cube Reflection", &renderParameters.CubeReflection);
 		Gui::Checkbox("Render Fog", &renderParameters.RenderFog);
 		Gui::SliderInt("Anistropic Filtering", &renderParameters.AnistropicFiltering, D3D11_MIN_MAXANISOTROPY, D3D11_MAX_MAXANISOTROPY);
 
