@@ -27,6 +27,13 @@ namespace Graphics
 		bool RenderTransparent = true;
 		bool RenderBloom = true;
 		// TODO: bool RenderToneMap = true;
+		bool VertexColoring = true;
+		bool DiffuseMapping = true;
+		bool AmbientOcclusionMapping = true;
+		bool NormalMapping = true;
+		bool SpecularMapping = true;
+		bool AlphaTesting = true;
+		bool CubeReflection = true;
 		bool RenderFog = true;
 
 		ivec2 RenderResolution = RenderTargetDefaultSize;

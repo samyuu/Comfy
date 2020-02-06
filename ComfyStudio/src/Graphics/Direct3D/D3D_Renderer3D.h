@@ -164,6 +164,7 @@ namespace Graphics
 			bool CastsShadow = false;
 			bool ReceivesShadow = true;
 			// bool SubsurfaceScattering = false;
+			// bool SubsurfaceScatteringFocusPoint = false;
 			// bool Skeleton = false;
 
 		} Flags;
@@ -229,7 +230,8 @@ namespace Graphics
 			std::vector<SubMeshRenderCommand> Transparent;
 		};
 
-		enum InternalRenderFlags : uint32_t
+		using RenderFlags = uint32_t;
+		enum RenderFlagsEnum : RenderFlags
 		{
 			RenderFlags_None = 0,
 			RenderFlags_SSSPass = (1 << 0),
@@ -249,7 +251,7 @@ namespace Graphics
 		void InternalPreRenderScreenReflection();
 		void InternalPreRenderSubsurfaceScattering();
 		void InternalPreRenderReduceFilterSubsurfaceScattering();
-		void InternalRenderOpaqueObjCommand(ObjRenderCommand& command, InternalRenderFlags flags = RenderFlags_None);
+		void InternalRenderOpaqueObjCommand(ObjRenderCommand& command, RenderFlags flags = RenderFlags_None);
 		void InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command);
 		void InternalRenderSilhouette();
 		void InternalRenderSilhouetteOutlineOverlay();
@@ -257,7 +259,7 @@ namespace Graphics
 		void InternalRenderBloom();
 
 		void BindMeshVertexBuffers(const Mesh& primaryMesh, const Mesh* morphMesh);
-		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, InternalRenderFlags flags = RenderFlags_None);
+		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, RenderFlags flags = RenderFlags_None);
 		D3D_ShaderPair& GetMaterialShader(const Material& material);
 		D3D_ShaderPair& GetSubsurfaceScatteringMaterialShader(const Material& material);
 		void SubmitSubMeshDrawCall(const SubMesh& subMesh);
@@ -385,6 +387,7 @@ namespace Graphics
 		} toneMapData;
 
 		SceneContext* sceneContext = nullptr;
+		RenderParameters* renderParameters = nullptr;
 		RenderData* renderData = nullptr;
 
 		std::unordered_map<TxpID, const Txp*> textureIDTxpMap = {};

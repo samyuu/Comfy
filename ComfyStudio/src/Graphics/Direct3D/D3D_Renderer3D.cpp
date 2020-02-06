@@ -265,6 +265,7 @@ namespace Graphics
 		isAnyCommand = {};
 
 		sceneContext = &scene;
+		renderParameters = &scene.RenderParameters;
 		renderData = &scene.RenderData;
 	}
 
@@ -291,6 +292,7 @@ namespace Graphics
 	{
 		InternalFlush();
 		sceneContext = nullptr;
+		renderParameters = nullptr;
 		renderData = nullptr;
 	}
 
@@ -410,7 +412,7 @@ namespace Graphics
 			}
 		}
 
-		if (sceneContext->RenderParameters.AlphaSort)
+		if (renderParameters->AlphaSort)
 		{
 			std::sort(commandList.Transparent.begin(), commandList.Transparent.end(), [](SubMeshRenderCommand& a, SubMeshRenderCommand& b)
 			{
@@ -427,7 +429,6 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalRenderItems()
 	{
-		auto& renderParameters = sceneContext->RenderParameters;
 		const auto& camera = sceneContext->Camera;
 		const auto& fog = sceneContext->Fog;
 		const auto& lightParam = sceneContext->Light;
@@ -450,9 +451,9 @@ namespace Graphics
 		sceneCB.Data.StageLight.Diffuse = vec4(lightParam.Stage.Diffuse, 1.0f);
 		sceneCB.Data.StageLight.Specular = vec4(lightParam.Stage.Specular, 1.0f);
 		sceneCB.Data.StageLight.Direction = vec4(normalize(lightParam.Stage.Position), 1.0f);
-		sceneCB.Data.DepthFog.Parameters = vec4(renderParameters.RenderFog ? fog.Depth.Density : 0.0f, fog.Depth.Start, fog.Depth.End, 1.0f / (fog.Depth.End - fog.Depth.Start));
+		sceneCB.Data.DepthFog.Parameters = vec4(renderParameters->RenderFog ? fog.Depth.Density : 0.0f, fog.Depth.Start, fog.Depth.End, 1.0f / (fog.Depth.End - fog.Depth.Start));
 		sceneCB.Data.DepthFog.Color = vec4(fog.Depth.Color, 1.0f);
-		sceneCB.Data.SubsurfaceScatteringParameter = renderParameters.RenderSubsurfaceScattering ? vec4(0.6f, 0.0f, 0.0f, 0.0f) : vec4(0.0f);
+		sceneCB.Data.SubsurfaceScatteringParameter = renderParameters->RenderSubsurfaceScattering ? vec4(0.6f, 0.0f, 0.0f, 0.0f) : vec4(0.0f);
 		sceneCB.UploadData();
 
 		sceneCB.BindShaders();
@@ -510,9 +511,9 @@ namespace Graphics
 				nullptr,
 			});
 
-		cachedTextureSamplers.CreateIfNeeded(renderParameters);
+		cachedTextureSamplers.CreateIfNeeded(*renderParameters);
 
-		if (renderParameters.RenderShadowMap) // TODO: && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
+		if (renderParameters->RenderShadowMap && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
 		{
 			InternalPreRenderShadowMap();
 			InternalPreRenderReduceFilterShadowMap();
@@ -520,32 +521,32 @@ namespace Graphics
 
 		genericInputLayout->Bind();
 
-		if (renderParameters.RenderReflection && isAnyCommand.ScreenReflection)
+		if (renderParameters->RenderReflection && isAnyCommand.ScreenReflection)
 		{
 			InternalPreRenderScreenReflection();
 			renderData->Reflection.RenderTarget.BindResource(TextureSlot_ScreenReflection);
 		}
 
-		if (renderParameters.RenderSubsurfaceScattering && isAnyCommand.SubsurfaceScattering)
+		if (renderParameters->RenderSubsurfaceScattering && isAnyCommand.SubsurfaceScattering)
 		{
 			InternalPreRenderSubsurfaceScattering();
 			InternalPreRenderReduceFilterSubsurfaceScattering();
 			renderData->SubsurfaceScattering.FilterRenderTargets.back().BindResource(TextureSlot_SubsurfaceScattering);
 		}
 
-		renderData->Main.CurrentRenderTarget().SetMultiSampleCountIfDifferent(renderParameters.MultiSampleCount);
-		renderData->Main.CurrentRenderTarget().ResizeIfDifferent(renderParameters.RenderResolution);
+		renderData->Main.CurrentRenderTarget().SetMultiSampleCountIfDifferent(renderParameters->MultiSampleCount);
+		renderData->Main.CurrentRenderTarget().ResizeIfDifferent(renderParameters->RenderResolution);
 		renderData->Main.CurrentRenderTarget().BindSetViewport();
 
-		if (renderParameters.Clear)
-			renderData->Main.CurrentRenderTarget().Clear(renderParameters.ClearColor);
+		if (renderParameters->Clear)
+			renderData->Main.CurrentRenderTarget().Clear(renderParameters->ClearColor);
 		else
 			renderData->Main.CurrentRenderTarget().GetDepthBuffer()->Clear();
 
-		if (renderParameters.Wireframe)
+		if (renderParameters->Wireframe)
 			wireframeRasterizerState.Bind();
 
-		if (renderParameters.RenderOpaque && !defaultCommandList.OpaqueAndTransparent.empty())
+		if (renderParameters->RenderOpaque && !defaultCommandList.OpaqueAndTransparent.empty())
 		{
 			D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
@@ -553,7 +554,7 @@ namespace Graphics
 				InternalRenderOpaqueObjCommand(command);
 		}
 
-		if (renderParameters.RenderTransparent && !defaultCommandList.Transparent.empty())
+		if (renderParameters->RenderTransparent && !defaultCommandList.Transparent.empty())
 		{
 			transparencyPassDepthStencilState.Bind();
 
@@ -572,7 +573,6 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalPreRenderShadowMap()
 	{
-		const auto& renderParameters = sceneContext->RenderParameters;
 		const auto& light = sceneContext->Light.Character;
 		const auto& camera = sceneContext->Camera;
 
@@ -602,17 +602,17 @@ namespace Graphics
 		sceneCB.Data.Scene.ViewProjection = glm::transpose(lightProjection * lightView);
 		sceneCB.UploadData();
 
-		renderData->Shadow.RenderTarget.ResizeIfDifferent(renderParameters.ShadowMapResolution);
+		renderData->Shadow.RenderTarget.ResizeIfDifferent(renderParameters->ShadowMapResolution);
 		renderData->Shadow.RenderTarget.BindSetViewport();
 		renderData->Shadow.RenderTarget.Clear(vec4(0.0f));
 		D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
-		// D3D.SetScissorRect(ivec4(0, 0, renderParameters.ShadowMapResolution.x, renderParameters.ShadowMapResolution.y));
+		// D3D.SetScissorRect(ivec4(0, 0, renderParameters->ShadowMapResolution.x, renderParameters->ShadowMapResolution.y));
 		shaders.Silhouette.Bind();
 		for (auto& command : defaultCommandList.OpaqueAndTransparent)
 		{
 			if (command.SourceCommand.Flags.CastsShadow)
-				InternalRenderOpaqueObjCommand(command, static_cast<InternalRenderFlags>(RenderFlags_DontBindMaterialShader | RenderFlags_DontSetRasterizerState | RenderFlags_DontDoFrustumCulling));
+				InternalRenderOpaqueObjCommand(command, RenderFlags_DontBindMaterialShader | RenderFlags_DontSetRasterizerState | RenderFlags_DontDoFrustumCulling);
 		}
 		// D3D.Context->RSSetScissorRects(0, nullptr);
 
@@ -646,7 +646,7 @@ namespace Graphics
 			renderTarget.ResizeIfDifferent(blurResolution);
 
 		const int blurTargets = static_cast<int>(renderData->Shadow.BlurRenderTargets.size());
-		const int blurPasses = sceneContext->RenderParameters.ShadowBlurPasses + 1;
+		const int blurPasses = renderParameters->ShadowBlurPasses + 1;
 
 		D3D.SetViewport(blurResolution);
 		shaders.ImgFilter.Bind();
@@ -674,18 +674,18 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalPreRenderScreenReflection()
 	{
-		renderData->Reflection.RenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.ReflectionRenderResolution);
+		renderData->Reflection.RenderTarget.ResizeIfDifferent(renderParameters->ReflectionRenderResolution);
 		renderData->Reflection.RenderTarget.BindSetViewport();
 
-		if (sceneContext->RenderParameters.ClearReflection)
-			renderData->Reflection.RenderTarget.Clear(sceneContext->RenderParameters.ClearColor);
+		if (renderParameters->ClearReflection)
+			renderData->Reflection.RenderTarget.Clear(renderParameters->ClearColor);
 		else
 			renderData->Reflection.RenderTarget.GetDepthBuffer()->Clear();
 
 		if (!reflectionCommandList.OpaqueAndTransparent.empty())
 		{
 			// TODO: Render using cheaper reflection shaders
-			if (sceneContext->RenderParameters.RenderOpaque)
+			if (renderParameters->RenderOpaque)
 			{
 				D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
@@ -693,7 +693,7 @@ namespace Graphics
 					InternalRenderOpaqueObjCommand(command);
 			}
 
-			if (sceneContext->RenderParameters.RenderTransparent && !reflectionCommandList.Transparent.empty())
+			if (renderParameters->RenderTransparent && !reflectionCommandList.Transparent.empty())
 			{
 				transparencyPassDepthStencilState.Bind();
 
@@ -709,7 +709,7 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalPreRenderSubsurfaceScattering()
 	{
-		renderData->SubsurfaceScattering.RenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.RenderResolution);
+		renderData->SubsurfaceScattering.RenderTarget.ResizeIfDifferent(renderParameters->RenderResolution);
 
 		renderData->SubsurfaceScattering.RenderTarget.BindSetViewport();
 		renderData->SubsurfaceScattering.RenderTarget.Clear(vec4(0.0f));
@@ -761,7 +761,7 @@ namespace Graphics
 		renderData->SubsurfaceScattering.FilterRenderTargets.back().UnBind();
 	}
 
-	void D3D_Renderer3D::InternalRenderOpaqueObjCommand(ObjRenderCommand& command, InternalRenderFlags flags)
+	void D3D_Renderer3D::InternalRenderOpaqueObjCommand(ObjRenderCommand& command, RenderFlags flags)
 	{
 		if (command.AreAllMeshesTransparent)
 			return;
@@ -824,7 +824,7 @@ namespace Graphics
 
 	void D3D_Renderer3D::InternalRenderSilhouette()
 	{
-		renderData->Silhouette.RenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.RenderResolution);
+		renderData->Silhouette.RenderTarget.ResizeIfDifferent(renderParameters->RenderResolution);
 		renderData->Silhouette.RenderTarget.BindSetViewport();
 		renderData->Silhouette.RenderTarget.Clear(vec4(0.0f));
 
@@ -833,7 +833,7 @@ namespace Graphics
 			D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
 			for (auto& command : defaultCommandList.OpaqueAndTransparent)
-				InternalRenderOpaqueObjCommand(command, static_cast<InternalRenderFlags>(RenderFlags_SilhouetteOutlinePass | RenderFlags_DontBindMaterialShader | RenderFlags_DontBindMaterialTextures));
+				InternalRenderOpaqueObjCommand(command, RenderFlags_SilhouetteOutlinePass | RenderFlags_DontBindMaterialShader | RenderFlags_DontBindMaterialTextures);
 		}
 
 		renderData->Silhouette.RenderTarget.UnBind();
@@ -862,7 +862,7 @@ namespace Graphics
 
 		D3D_TextureSampler::BindArray<1>(0, { nullptr });
 
-		if (sceneContext->RenderParameters.RenderBloom)
+		if (renderParameters->RenderBloom)
 			InternalRenderBloom();
 
 		renderData->Output.RenderTarget->BindSetViewport();
@@ -873,7 +873,7 @@ namespace Graphics
 			toneMapData.Update();
 		}
 
-		D3D_ShaderResourceView::BindArray<3>(0, { &renderData->Main.CurrentRenderTarget(), (sceneContext->RenderParameters.RenderBloom) ? &renderData->Bloom.CombinedBlurRenderTarget : nullptr, toneMapData.LookupTexture.get() });
+		D3D_ShaderResourceView::BindArray<3>(0, { &renderData->Main.CurrentRenderTarget(), (renderParameters->RenderBloom) ? &renderData->Bloom.CombinedBlurRenderTarget : nullptr, toneMapData.LookupTexture.get() });
 
 		toneMapCB.Data.Exposure = sceneContext->Glow.Exposure;
 		toneMapCB.Data.Gamma = sceneContext->Glow.Gamma;
@@ -894,7 +894,7 @@ namespace Graphics
 	{
 		auto& bloom = renderData->Bloom;
 
-		bloom.BaseRenderTarget.ResizeIfDifferent(sceneContext->RenderParameters.RenderResolution / 2);
+		bloom.BaseRenderTarget.ResizeIfDifferent(renderParameters->RenderResolution / 2);
 
 		reduceTexCB.Data.CombineBlurred = false;
 		reduceTexCB.BindPixelShader();
@@ -1012,7 +1012,7 @@ namespace Graphics
 		}
 	}
 
-	void D3D_Renderer3D::PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, InternalRenderFlags flags)
+	void D3D_Renderer3D::PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, RenderFlags flags)
 	{
 		if (!(flags & RenderFlags_DontBindMaterialShader))
 		{
@@ -1124,7 +1124,7 @@ namespace Graphics
 				objectCB.Data.Material.DiffuseTextureTransform *= glm::scale(mat4(1.0f), vec3(1.0f, -1.0f, 1.0f));
 		}
 
-		if (!sceneContext->RenderParameters.Wireframe && !(flags & RenderFlags_DontSetRasterizerState))
+		if (!renderParameters->Wireframe && !(flags & RenderFlags_DontSetRasterizerState))
 			((material.BlendFlags.DoubleSidedness != DoubleSidedness_Off) ? solidNoCullingRasterizerState : solidBackfaceCullingRasterizerState).Bind();
 
 		const float fresnel = (((material.ShaderFlags.Fresnel == 0) ? 7.0f : static_cast<float>(material.ShaderFlags.Fresnel) - 1.0f) * 0.12f) * 0.82f;
@@ -1167,34 +1167,58 @@ namespace Graphics
 
 		objectCB.Data.ShaderFlags = 0;
 
-		if (mesh.AttributeFlags & VertexAttributeFlags_Color0)
-			objectCB.Data.ShaderFlags |= ShaderFlags_VertexColor;
+		if (renderParameters->VertexColoring)
+		{
+			if (mesh.AttributeFlags & VertexAttributeFlags_Color0)
+				objectCB.Data.ShaderFlags |= ShaderFlags_VertexColor;
+		}
 
-		if (material.Flags.UseDiffuseTexture || material.Diffuse.TextureID != TxpID::Invalid)
-			objectCB.Data.ShaderFlags |= ShaderFlags_DiffuseTexture;
+		if (renderParameters->DiffuseMapping)
+		{
+			if (material.Flags.UseDiffuseTexture || material.Diffuse.TextureID != TxpID::Invalid)
+				objectCB.Data.ShaderFlags |= ShaderFlags_DiffuseTexture;
+		}
 
-		if (material.Flags.UseAmbientTexture || material.Ambient.TextureID != TxpID::Invalid)
-			objectCB.Data.ShaderFlags |= ShaderFlags_AmbientTexture;
+		if (renderParameters->AmbientOcclusionMapping)
+		{
+			if (material.Flags.UseAmbientTexture || material.Ambient.TextureID != TxpID::Invalid)
+				objectCB.Data.ShaderFlags |= ShaderFlags_AmbientTexture;
+		}
 
-		if (material.Flags.UseNormalTexture || material.Normal.TextureID != TxpID::Invalid)
-			objectCB.Data.ShaderFlags |= ShaderFlags_NormalTexture;
+		if (renderParameters->NormalMapping)
+		{
+			if (material.Flags.UseNormalTexture || material.Normal.TextureID != TxpID::Invalid)
+				objectCB.Data.ShaderFlags |= ShaderFlags_NormalTexture;
+		}
+		
+		if (renderParameters->SpecularMapping)
+		{
+			if (material.Flags.UseSpecularTexture || material.Specular.TextureID != TxpID::Invalid)
+				objectCB.Data.ShaderFlags |= ShaderFlags_SpecularTexture;
+		}
 
-		if (material.Flags.UseSpecularTexture || material.Specular.TextureID != TxpID::Invalid)
-			objectCB.Data.ShaderFlags |= ShaderFlags_SpecularTexture;
-
+		if (renderParameters->AlphaTesting)
+		{
 		if (material.BlendFlags.EnableAlphaTest && !IsMeshTransparent(mesh, subMesh, material))
 			objectCB.Data.ShaderFlags |= ShaderFlags_AlphaTest;
+		}
 
-		if (material.Flags.UseCubeMapReflection || material.Reflection.TextureID != TxpID::Invalid)
-			objectCB.Data.ShaderFlags |= ShaderFlags_CubeMapReflection;
+		if (renderParameters->CubeReflection)
+		{
+			if (material.Flags.UseCubeMapReflection || material.Reflection.TextureID != TxpID::Invalid)
+				objectCB.Data.ShaderFlags |= ShaderFlags_CubeMapReflection;
+		}
 
-		if (sceneContext->RenderParameters.RenderFog)
-			objectCB.Data.ShaderFlags |= ShaderFlags_LinearFog;
+		if (renderParameters->RenderFog)
+		{
+			if (sceneContext->Fog.Depth.Density > 0.0f)
+				objectCB.Data.ShaderFlags |= ShaderFlags_LinearFog;
+		}
 
 		if (command.SourceCommand.SourceMorphObj != nullptr)
 			objectCB.Data.ShaderFlags |= ShaderFlags_Morph;
 
-		if (sceneContext->RenderParameters.RenderShadowMap && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
+		if (renderParameters->RenderShadowMap && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
 		{
 			if (command.SourceCommand.Flags.ReceivesShadow)
 				objectCB.Data.ShaderFlags |= ShaderFlags_StageShadow;
@@ -1337,7 +1361,7 @@ namespace Graphics
 
 	bool D3D_Renderer3D::IntersectsCameraFrustum(const ObjRenderCommand& command) const
 	{
-		if (!sceneContext->RenderParameters.FrustumCulling)
+		if (!renderParameters->FrustumCulling)
 			return true;
 
 		return sceneContext->Camera.IntersectsViewFrustum(command.TransformedBoundingSphere);
@@ -1345,7 +1369,7 @@ namespace Graphics
 
 	bool D3D_Renderer3D::IntersectsCameraFrustum(const Sphere& boundingSphere, const ObjRenderCommand& command) const
 	{
-		if (!sceneContext->RenderParameters.FrustumCulling)
+		if (!renderParameters->FrustumCulling)
 			return true;
 
 		return sceneContext->Camera.IntersectsViewFrustum(boundingSphere * command.SourceCommand.Transform);
@@ -1358,7 +1382,7 @@ namespace Graphics
 
 	bool D3D_Renderer3D::IsDebugRenderFlagSet(int bitIndex) const
 	{
-		return sceneContext->RenderParameters.DebugFlags & (1 << bitIndex);
+		return renderParameters->DebugFlags & (1 << bitIndex);
 	}
 
 	void D3D_Renderer3D::TextureSamplerCache::CreateIfNeeded(const RenderParameters& renderParameters)
