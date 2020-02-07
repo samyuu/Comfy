@@ -661,8 +661,10 @@ namespace Graphics
 
 		const Sphere frustumSphere = CalculateShadowViewFrustumSphere();
 
-		const float lightDistance = 1.0f;
-		const vec2 nearFarPlane = { 0.1f, +20.0f };
+		const float lightDistance = frustumSphere.Radius;
+		const float nearFarPadding = 0.1f;
+		const vec2 nearFarPlane = { -nearFarPadding, (frustumSphere.Radius * 2.0f) + nearFarPadding };
+
 		const vec3 lightViewPoint = glm::normalize(light.Position) * lightDistance;
 		const vec3 lightInterest = vec3(0.0f, 0.0f, 0.0f);
 
