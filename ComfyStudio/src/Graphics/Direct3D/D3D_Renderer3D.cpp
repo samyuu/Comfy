@@ -4,6 +4,16 @@ namespace Graphics
 {
 	namespace
 	{
+		constexpr std::array<vec4, 2> DefaultShadowCoefficient =
+		{
+			vec4(0.199471f, 0.176033f, 0.120985f, 0.064759f),
+			vec4(0.026995f, 0.008764f, 0.002216f, 0.000436f),
+		};
+		constexpr float DefaultShadowAmbient = 0.4f;
+		constexpr float DefaultShadowExpontent = 80.0f * (9.95f * 2.0f) * 1.442695f;
+		constexpr float DefaultShadowTexelOffset = 0.05f / (9.95f * 2.0f);
+		constexpr float DefaultSSSParameter = 0.6f;
+
 		constexpr UINT RectangleVertexCount = 6;
 
 		constexpr uint32_t MorphVertexAttributeOffset = VertexAttribute_Count;
@@ -237,7 +247,10 @@ namespace Graphics
 
 			TextureSlot_ScreenReflection = 15,
 			TextureSlot_SubsurfaceScattering = 16,
-			TextureSlow_StageShadowMap = 19,
+
+			TextureSlot_StageShadowMap = 19,	// textures[6]
+			TextureSlot_ESMFull = 20,			// textures[19]
+			TextureSlot_ESMGauss = 21,			// textures[20]
 
 			TextureSlot_Count,
 		};
@@ -512,7 +525,13 @@ namespace Graphics
 		sceneCB.Data.StageLight.Direction = vec4(normalize(lightParam.Stage.Position), 1.0f);
 		sceneCB.Data.DepthFog.Parameters = vec4(renderParameters->RenderFog ? fog.Depth.Density : 0.0f, fog.Depth.Start, fog.Depth.End, 1.0f / (fog.Depth.End - fog.Depth.Start));
 		sceneCB.Data.DepthFog.Color = vec4(fog.Depth.Color, 1.0f);
-		sceneCB.Data.SubsurfaceScatteringParameter = renderParameters->RenderSubsurfaceScattering ? vec4(0.6f, 0.0f, 0.0f, 0.0f) : vec4(0.0f);
+
+		sceneCB.Data.ShadowAmbient = vec4(DefaultShadowAmbient, DefaultShadowAmbient, DefaultShadowAmbient, 1.0);
+		sceneCB.Data.OneMinusShadowAmbient = vec4(1.0f) - sceneCB.Data.ShadowAmbient;
+		sceneCB.Data.ShadowExponent = DefaultShadowExpontent;
+
+		sceneCB.Data.SubsurfaceScatteringParameter = renderParameters->RenderSubsurfaceScattering ? DefaultSSSParameter : 0.0f;
+
 		sceneCB.UploadData();
 
 		sceneCB.BindShaders();
@@ -636,9 +655,9 @@ namespace Graphics
 		const auto& camera = sceneContext->Camera;
 
 		shadowSilhouetteInputLayout->Bind();
-		solidBackfaceCullingRasterizerState.Bind();
 
-		// D3D_RasterizerState rasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_BACK, true, "Renderer3D::TestSolidBackfaceCulling" };
+		// solidBackfaceCullingRasterizerState.Bind();
+		solidFrontfaceCullingRasterizerState.Bind();
 
 		const Sphere frustumSphere = CalculateShadowViewFrustumSphere();
 
@@ -666,14 +685,12 @@ namespace Graphics
 		renderData->Shadow.RenderTarget.Clear(vec4(0.0f));
 		D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
-		// D3D.SetScissorRect(ivec4(0, 0, renderParameters->ShadowMapResolution.x, renderParameters->ShadowMapResolution.y));
 		shaders.Silhouette.Bind();
 		for (auto& command : defaultCommandList.OpaqueAndTransparent)
 		{
 			if (command.SourceCommand.Flags.CastsShadow)
 				InternalRenderOpaqueObjCommand(command, RenderFlags_DontBindMaterialShader | RenderFlags_DontSetRasterizerState | RenderFlags_DontDoFrustumCulling);
 		}
-		// D3D.Context->RSSetScissorRects(0, nullptr);
 
 		renderData->Shadow.RenderTarget.UnBind();
 
@@ -692,42 +709,96 @@ namespace Graphics
 
 		D3D_TextureSampler::BindArray<1>(0, { nullptr });
 
-		shaders.DepthThreshold.Bind();
+		const ivec2 fullResolution = renderData->Shadow.RenderTarget.GetSize();
+		const ivec2 halfResolution = fullResolution / 2;
+		const ivec2 blurResolution = fullResolution / 4;
 
-		renderData->Shadow.ThresholdRenderTarget.ResizeIfDifferent(renderData->Shadow.RenderTarget.GetSize() / 2);
-		renderData->Shadow.ThresholdRenderTarget.BindSetViewport();
-		renderData->Shadow.RenderTarget.BindResource(0);
-		D3D.Context->Draw(RectangleVertexCount, 0);
-		renderData->Shadow.ThresholdRenderTarget.UnBind();
-
-		const ivec2 blurResolution = renderData->Shadow.RenderTarget.GetSize() / 4;
-		for (auto& renderTarget : renderData->Shadow.BlurRenderTargets)
-			renderTarget.ResizeIfDifferent(blurResolution);
-
-		const int blurTargets = static_cast<int>(renderData->Shadow.BlurRenderTargets.size());
-		const int blurPasses = renderParameters->ShadowBlurPasses + 1;
-
-		D3D.SetViewport(blurResolution);
-		shaders.ImgFilter.Bind();
-
-		for (int passIndex = 0; passIndex < blurPasses; passIndex++)
+		// NOTE: ESM
 		{
-			const int blurIndex = (passIndex % blurTargets);
-			const int previousBlurIndex = ((passIndex - 1) + blurTargets) % blurTargets;
+			esmFilterCB.BindPixelShader();
 
-			auto& sourceTarget = (passIndex == 0) ? renderData->Shadow.ThresholdRenderTarget : renderData->Shadow.BlurRenderTargets[previousBlurIndex];
-			auto& destinationTarget = renderData->Shadow.BlurRenderTargets[blurIndex];
+			for (auto& renderTarget : renderData->Shadow.ExponentialRenderTargets)
+				renderTarget.ResizeIfDifferent(fullResolution);
 
-			if (passIndex == 1)
-				shaders.ImgFilterBlur.Bind();
-
-			sourceTarget.BindResource(0);
-			destinationTarget.Bind();
+			shaders.ESMGauss.Bind();
+			renderData->Shadow.ExponentialRenderTargets[0].BindSetViewport();
+			renderData->Shadow.RenderTarget.BindResource(0);
+			esmFilterCB.Data.Coefficient = DefaultShadowCoefficient;
+			esmFilterCB.Data.TextureStep = vec2(1.0f / fullResolution.x, 0.0f);
+			esmFilterCB.Data.FarTexelOffset = vec2(DefaultShadowTexelOffset, DefaultShadowTexelOffset);
+			esmFilterCB.Data.PassIndex = 0;
+			esmFilterCB.UploadData();
 			D3D.Context->Draw(RectangleVertexCount, 0);
-			destinationTarget.UnBind();
+			renderData->Shadow.ExponentialRenderTargets[0].UnBind();
 
-			if (passIndex == (blurPasses - 1))
-				destinationTarget.BindResource(TextureSlow_StageShadowMap);
+			renderData->Shadow.ExponentialRenderTargets[1].Bind();
+			renderData->Shadow.ExponentialRenderTargets[0].BindResource(0);
+			esmFilterCB.Data.TextureStep = vec2(0.0f, 1.0f / fullResolution.y);
+			esmFilterCB.Data.PassIndex = 1;
+			esmFilterCB.UploadData();
+			D3D.Context->Draw(RectangleVertexCount, 0);
+			renderData->Shadow.ExponentialRenderTargets[1].UnBind();
+			renderData->Shadow.ExponentialRenderTargets[1].BindResource(TextureSlot_ESMFull);
+
+			for (auto& renderTarget : renderData->Shadow.ExponentialBlurRenderTargets)
+				renderTarget.ResizeIfDifferent(blurResolution);
+
+			shaders.ESMFilter.Bind();
+			renderData->Shadow.ExponentialBlurRenderTargets[0].BindSetViewport();
+			renderData->Shadow.ExponentialRenderTargets[1].BindResource(0);
+			esmFilterCB.Data.TextureStep = vec2(1.0f) / vec2(fullResolution);
+			esmFilterCB.Data.PassIndex = 0;
+			esmFilterCB.UploadData();
+			D3D.Context->Draw(RectangleVertexCount, 0);
+			renderData->Shadow.ExponentialBlurRenderTargets[0].UnBind();
+
+			renderData->Shadow.ExponentialBlurRenderTargets[1].Bind();
+			renderData->Shadow.ExponentialBlurRenderTargets[0].BindResource(0);
+			esmFilterCB.Data.TextureStep = vec2(0.75f) / vec2(blurResolution);
+			esmFilterCB.Data.PassIndex = 1;
+			esmFilterCB.UploadData();
+			D3D.Context->Draw(RectangleVertexCount, 0);
+			renderData->Shadow.ExponentialBlurRenderTargets[1].UnBind();
+			renderData->Shadow.ExponentialBlurRenderTargets[1].BindResource(TextureSlot_ESMGauss);
+		}
+
+		{
+			shaders.DepthThreshold.Bind();
+
+			renderData->Shadow.ThresholdRenderTarget.ResizeIfDifferent(halfResolution);
+			renderData->Shadow.ThresholdRenderTarget.BindSetViewport();
+			renderData->Shadow.RenderTarget.BindResource(0);
+			D3D.Context->Draw(RectangleVertexCount, 0);
+			renderData->Shadow.ThresholdRenderTarget.UnBind();
+
+			for (auto& renderTarget : renderData->Shadow.BlurRenderTargets)
+				renderTarget.ResizeIfDifferent(blurResolution);
+
+			const int blurTargets = static_cast<int>(renderData->Shadow.BlurRenderTargets.size());
+			const int blurPasses = renderParameters->ShadowBlurPasses + 1;
+
+			D3D.SetViewport(blurResolution);
+			shaders.ImgFilter.Bind();
+
+			for (int passIndex = 0; passIndex < blurPasses; passIndex++)
+			{
+				const int blurIndex = (passIndex % blurTargets);
+				const int previousBlurIndex = ((passIndex - 1) + blurTargets) % blurTargets;
+
+				auto& sourceTarget = (passIndex == 0) ? renderData->Shadow.ThresholdRenderTarget : renderData->Shadow.BlurRenderTargets[previousBlurIndex];
+				auto& destinationTarget = renderData->Shadow.BlurRenderTargets[blurIndex];
+
+				if (passIndex == 1)
+					shaders.ImgFilterBlur.Bind();
+
+				sourceTarget.BindResource(0);
+				destinationTarget.Bind();
+				D3D.Context->Draw(RectangleVertexCount, 0);
+				destinationTarget.UnBind();
+
+				if (passIndex == (blurPasses - 1))
+					destinationTarget.BindResource(TextureSlot_StageShadowMap);
+			}
 		}
 	}
 

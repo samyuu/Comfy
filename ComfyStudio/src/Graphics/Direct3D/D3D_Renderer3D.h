@@ -66,7 +66,11 @@ namespace Graphics
 			vec4 Color;
 		} DepthFog;
 
-		vec4 SubsurfaceScatteringParameter;
+		vec4 ShadowAmbient;
+		vec4 OneMinusShadowAmbient;
+		float ShadowExponent;
+		float SubsurfaceScatteringParameter;
+		float Padding[2];
 	};
 
 	struct ObjectConstantData
@@ -103,6 +107,15 @@ namespace Graphics
 		} TextureFormats;
 		vec2 MorphWeight;
 		vec2 MorphPadding;
+	};
+	
+	struct ESMFilterConstantData
+	{
+		std::array<vec4, 2> Coefficient;
+		vec2 TextureStep;
+		vec2 FarTexelOffset;
+		int PassIndex;
+		int Padding[3];
 	};
 
 	struct SSSFilterConstantData
@@ -290,6 +303,8 @@ namespace Graphics
 			D3D_ShaderPair GlassEye = { GlassEye_VS(), GlassEye_PS(), "Renderer3D::GlassEye" };
 			D3D_ShaderPair HairAniso = { HairDefault_VS(), HairAniso_PS(), "Renderer3D::HairAniso" };
 			D3D_ShaderPair HairDefault = { HairDefault_VS(), HairDefault_PS(), "Renderer3D::HairDefault" };
+			D3D_ShaderPair ESMFilter = { FullscreenQuad_VS(), ESMFilter_PS(), "Renderer3D::ESMFilter" };
+			D3D_ShaderPair ESMGauss = { FullscreenQuad_VS(), ESMGauss_PS(), "Renderer3D::ESMGauss" };
 			D3D_ShaderPair ImgFilter = { FullscreenQuad_VS(), ImgFilter_PS(), "Renderer3D::ImgFilter" };
 			D3D_ShaderPair ImgFilterBlur = { FullscreenQuad_VS(), ImgFilterBlur_PS(), "Renderer3D::ImgFilterBlur" };
 			D3D_ShaderPair ItemBlinn = { ItemBlinn_VS(), ItemBlinn_PS(), "Renderer3D::ItemBlinn" };
@@ -312,6 +327,7 @@ namespace Graphics
 		// TODO: Separate scene CB from ~~viewport~~ camera CB (camera view/projection/eye, SSS param & render resolution)
 		D3D_DefaultConstantBufferTemplate<SceneConstantData> sceneCB = { 0, "Renderer3D::SceneCB" };
 		D3D_DynamicConstantBufferTemplate<ObjectConstantData> objectCB = { 1, "Renderer3D::ObjectCB" };
+		D3D_DynamicConstantBufferTemplate<ESMFilterConstantData> esmFilterCB = { 3, "Renderer3D::ESMFilterCB" };
 		D3D_DynamicConstantBufferTemplate<SSSFilterConstantData> sssFilterCB = { 4, "Renderer3D::SSSFilterCB" };
 		D3D_DefaultConstantBufferTemplate<SSSFilterCoefConstantData> sssFilterCoefCB = { 5, "Renderer3D::SSSFilterCoefCB" };
 		D3D_DynamicConstantBufferTemplate<ReduceTexConstantData> reduceTexCB = { 6, "Renderer3D::ReduceTexCB" };

@@ -61,9 +61,9 @@
 #define p_fb_isize                  (CB_Scene.TexelRenderResolution)
 #define program_env_00              (float4(CB_Scene.TexelRenderResolution, 1.0, 1.0))
 
-#define shadow_ambient              (0.4)
-#define program_env_12              (float4(shadow_ambient, shadow_ambient, shadow_ambient, 1.0))
-#define program_env_13              (float4(1.0 - shadow_ambient, 1.0 - shadow_ambient, 1.0 - shadow_ambient, 0.0))
+#define p_esm_k                     (CB_Scene.ShadowExponent)
+#define program_env_12              (CB_Scene.ShadowAmbient)
+#define program_env_13              (CB_Scene.OneMinusShadowAmbient)
 
 // TODO:
 #define program_env_17              (float4(0.06, 0.05, 0.88, 1.0))

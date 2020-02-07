@@ -88,14 +88,33 @@ namespace Graphics
 
 	struct ShadowMappingRenderData
 	{
-		D3D_DepthOnlyRenderTarget RenderTarget = { RenderParameters::ShadowMapDefaultResolution, DXGI_FORMAT_D32_FLOAT };
+		static constexpr DXGI_FORMAT MainDepthFormat = DXGI_FORMAT_D32_FLOAT;
+		static constexpr DXGI_FORMAT PostProcessingFormat = DXGI_FORMAT_R16_FLOAT;
 
-		D3D_RenderTarget ThresholdRenderTarget = { RenderParameters::ShadowMapDefaultResolution / 2, DXGI_FORMAT_R8_UNORM };
+		// NOTE: Main depth render target rendered to using the silhouette shader
+		D3D_DepthOnlyRenderTarget RenderTarget = { RenderParameters::ShadowMapDefaultResolution, MainDepthFormat };
+
+		// NOTE: Full resolution render targets used for initial blurring
+		std::array<D3D_RenderTarget, 2> ExponentialRenderTargets =
+		{
+			D3D_RenderTarget { RenderParameters::ShadowMapDefaultResolution, PostProcessingFormat },
+			D3D_RenderTarget { RenderParameters::ShadowMapDefaultResolution, PostProcessingFormat },
+		};
+		// NOTE: Half resolution render targets used for additional filtering, sampled by stage and character material shaders
+		std::array<D3D_RenderTarget, 2> ExponentialBlurRenderTargets =
+		{
+			D3D_RenderTarget { RenderParameters::ShadowMapDefaultResolution / 4, PostProcessingFormat },
+			D3D_RenderTarget { RenderParameters::ShadowMapDefaultResolution / 4, PostProcessingFormat },
+		};
+
+		// NOTE: Processed main depth render target with a constant depth value
+		D3D_RenderTarget ThresholdRenderTarget = { RenderParameters::ShadowMapDefaultResolution / 2, PostProcessingFormat };
 		
-		std::array<D3D_RenderTarget, 2> BlurRenderTargets = 
+		// NOTE: Low resolution render targets used for ping pong blurring, sampled by stage material shaders
+		std::array<D3D_RenderTarget, 2> BlurRenderTargets =
 		{ 
-			D3D_RenderTarget { RenderParameters::ShadowMapDefaultResolution / 4, DXGI_FORMAT_R8_UNORM },
-			D3D_RenderTarget { RenderParameters::ShadowMapDefaultResolution / 4, DXGI_FORMAT_R8_UNORM },
+			D3D_RenderTarget { RenderParameters::ShadowMapDefaultResolution / 4, PostProcessingFormat },
+			D3D_RenderTarget { RenderParameters::ShadowMapDefaultResolution / 4, PostProcessingFormat },
 		};
 	};
 

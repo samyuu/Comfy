@@ -38,7 +38,11 @@ struct SceneData
     
     LinearFog DepthFog;
     
-    float4 SubsurfaceScatteringParameter;
+    float4 ShadowAmbient;
+    float4 OneMinusShadowAmbient;
+    float1 ShadowExponent;
+    
+    float1 SubsurfaceScatteringParameter;
 };
 
 #endif /* SCENEDATA_HLSL */

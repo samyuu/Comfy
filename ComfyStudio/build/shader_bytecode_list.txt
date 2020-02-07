@@ -17,6 +17,8 @@ ClothDefault_PS
 Constant_VS
 Constant_PS
 DepthThreshold_PS
+ESMFilter_PS
+ESMGauss_PS
 EyeBall_VS
 EyeBall_PS
 EyeLens_VS

@@ -31,3 +31,5 @@ TextureCube<float4> CharColorLightMap           : register(t13);
 Texture2D<float4> ScreenReflectionTexture       : register(t15);
 Texture2D<float4> SubsurfaceScatteringTexture   : register(t16);
 Texture2D<float1> StageShadowMap                : register(t19);
+Texture2D<float1> ESMFull                       : register(t20);
+Texture2D<float1> ESMGauss                      : register(t21);
