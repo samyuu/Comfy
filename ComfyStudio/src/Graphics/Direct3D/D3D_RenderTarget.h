@@ -21,12 +21,12 @@ namespace Graphics
 	public:
 		virtual void Bind() const;
 		void BindSetViewport() const;
-		
+
 		virtual void UnBind() const;
 
 		virtual void Clear(const vec4& color);
 		virtual ivec2 GetSize() const = 0;
-		
+
 		virtual void Resize(ivec2 newSize) = 0;
 		virtual void ResizeIfDifferent(ivec2 newSize);
 
@@ -68,9 +68,10 @@ namespace Graphics
 
 		ivec2 GetSize() const override;
 		void Resize(ivec2 newSize) override;
+		void SetFormat(DXGI_FORMAT format);
 
 		uint32_t GetMultiSampleCount() const;
-		
+
 		ID3D11ShaderResourceView* GetResourceView() const override;
 
 	protected:
@@ -115,13 +116,13 @@ namespace Graphics
 		~D3D_DepthOnlyRenderTarget() = default;
 
 		D3D_DepthOnlyRenderTarget& operator=(const D3D_DepthOnlyRenderTarget&) = delete;
-	
+
 	public:
 		void Bind() const override;
 		void UnBind() const override;
 
 		void Clear(const vec4& color) override;
-		
+
 		ivec2 GetSize() const override;
 		void Resize(ivec2 newSize) override;
 

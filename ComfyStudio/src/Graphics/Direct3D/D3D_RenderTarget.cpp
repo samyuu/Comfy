@@ -105,7 +105,7 @@ namespace Graphics
 		std::array<ID3D11ShaderResourceView*, 1> resourceViews = { GetResourceView() };
 		D3D.Context->PSSetShaderResources(textureSlot, static_cast<UINT>(resourceViews.size()), resourceViews.data());
 	}
-	
+
 	ivec2 D3D_RenderTarget::GetSize() const
 	{
 		return ivec2(backBufferDescription.Width, backBufferDescription.Height);
@@ -116,6 +116,19 @@ namespace Graphics
 		backBufferDescription.Width = newSize.x;
 		backBufferDescription.Height = newSize.y;
 
+		D3D.Device->CreateTexture2D(&backBufferDescription, nullptr, &backBuffer);
+		D3D.Device->CreateRenderTargetView(backBuffer.Get(), &renderTargetViewDescription, &renderTargetView);
+		D3D.Device->CreateShaderResourceView(backBuffer.Get(), &shaderResourceViewDescription, &shaderResourceView);
+	}
+
+	void D3D_RenderTarget::SetFormat(DXGI_FORMAT format)
+	{
+		if (backBufferDescription.Format == format)
+			return;
+
+		backBufferDescription.Format = format;
+		renderTargetViewDescription.Format = backBufferDescription.Format;
+		shaderResourceViewDescription.Format = backBufferDescription.Format;
 		D3D.Device->CreateTexture2D(&backBufferDescription, nullptr, &backBuffer);
 		D3D.Device->CreateRenderTargetView(backBuffer.Get(), &renderTargetViewDescription, &renderTargetView);
 		D3D.Device->CreateShaderResourceView(backBuffer.Get(), &shaderResourceViewDescription, &shaderResourceView);
@@ -135,7 +148,7 @@ namespace Graphics
 		: D3D_RenderTarget(size), depthBuffer(size, depthBufferFormat)
 	{
 	}
-	
+
 	D3D_DepthRenderTarget::D3D_DepthRenderTarget(ivec2 size, DXGI_FORMAT format, DXGI_FORMAT depthBufferFormat, uint32_t multiSampleCount)
 		: D3D_RenderTarget(size, format, multiSampleCount), depthBuffer(size, depthBufferFormat, multiSampleCount)
 	{
@@ -146,19 +159,19 @@ namespace Graphics
 		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { renderTargetView.Get() };
 		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), depthBuffer.GetDepthStencilView());
 	}
-	
+
 	void D3D_DepthRenderTarget::UnBind() const
 	{
 		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { nullptr };
 		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), nullptr);
 	}
-	
+
 	void D3D_DepthRenderTarget::Clear(const vec4& color)
 	{
 		D3D_RenderTarget::Clear(color);
 		depthBuffer.Clear();
 	}
-	
+
 	void D3D_DepthRenderTarget::Resize(ivec2 newSize)
 	{
 		D3D_RenderTarget::Resize(newSize);
@@ -190,7 +203,7 @@ namespace Graphics
 	{
 		return &depthBuffer;
 	}
-	
+
 	D3D_DepthOnlyRenderTarget::D3D_DepthOnlyRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat)
 		: resourceViewDepthBuffer(size, depthBufferFormat)
 	{
