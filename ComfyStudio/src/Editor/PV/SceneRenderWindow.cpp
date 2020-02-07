@@ -10,33 +10,33 @@ namespace Editor
 
 	namespace
 	{
-		Obj* GetDebugBoundingSphereObj(int subMeshIndex)
+		const Obj& GetDebugBoundingSphereObj(int subMeshIndex)
 		{
 			static std::array<UniquePtr<Obj>, 8> sphereObjs;
 			constexpr std::array sphereColors =
 			{
-				vec4(0.00f, 0.00f, 0.75f, 0.25f),
-				vec4(0.00f, 0.75f, 0.00f, 0.25f),
-				vec4(0.00f, 0.75f, 0.75f, 0.25f),
-				vec4(0.75f, 0.00f, 0.00f, 0.25f),
-				vec4(0.75f, 0.00f, 0.75f, 0.25f),
-				vec4(0.75f, 0.75f, 0.00f, 0.25f),
-				vec4(0.75f, 0.75f, 0.75f, 0.25f),
-				vec4(0.00f, 0.00f, 0.00f, 0.25f),
+				vec4(0.00f, 0.00f, 0.75f, 0.50f),
+				vec4(0.00f, 0.75f, 0.00f, 0.50f),
+				vec4(0.00f, 0.75f, 0.75f, 0.50f),
+				vec4(0.75f, 0.00f, 0.00f, 0.50f),
+				vec4(0.75f, 0.00f, 0.75f, 0.50f),
+				vec4(0.75f, 0.75f, 0.00f, 0.50f),
+				vec4(0.75f, 0.75f, 0.75f, 0.50f),
+				vec4(0.00f, 0.00f, 0.00f, 0.50f),
 			};
 
 			subMeshIndex %= sphereObjs.size();
 			if (sphereObjs[subMeshIndex] != nullptr)
-				return sphereObjs[subMeshIndex].get();
+				return *sphereObjs[subMeshIndex];
 
 			sphereObjs[subMeshIndex] = GenerateUploadDebugSphereObj(Sphere { vec3(0.0f), 1.0f }, sphereColors[subMeshIndex]);
-			return sphereObjs[subMeshIndex].get();
+			return *sphereObjs[subMeshIndex];
 		}
 
 		RenderCommand GetDebugBoungingSphereRenderCommand(const Transform& transform, const Sphere& sphere, int subMeshIndex)
 		{
 			RenderCommand command = {};
-			command.SourceObj = GetDebugBoundingSphereObj(subMeshIndex);
+			command.SourceObj = &GetDebugBoundingSphereObj(subMeshIndex);
 
 			command.Transform.Translation = transform.CalculateMatrix() * vec4(sphere.Center, 1.0f);
 			command.Transform.Scale = vec3(sphere.Radius) * transform.Scale;

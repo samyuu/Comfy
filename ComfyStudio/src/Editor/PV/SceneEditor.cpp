@@ -292,6 +292,27 @@ namespace Editor
 		Gui::DragFloat("Smoothness", &cameraController.Settings.InterpolationSmoothness, 1.0f, 0.0f, 250.0f);
 
 		Gui::Combo("Control Mode", reinterpret_cast<int*>(&cameraController.Mode), "None\0First Person\0Orbit\0");
+
+		Gui::ItemContextMenu("ControlModeContextMenu", [&]()
+		{
+			Gui::Text("Camera Presets:");
+			Gui::Separator();
+			if (Gui::MenuItem("Orbit Default"))
+			{
+				cameraController.Mode = CameraController3D::ControlMode::Orbit;
+				cameraController.OrbitData.Distance = 5.0f;
+				cameraController.OrbitData.TargetRotation = vec3(0.0f);
+				context.Camera.FieldOfView = 90.0f;
+			}
+			if (Gui::MenuItem("None Default"))
+			{
+				cameraController.Mode = CameraController3D::ControlMode::None;
+				camera.ViewPoint = vec3(0.0f, 0.88f, 4.3f);
+				camera.Interest = vec3(0.0f, 1.0f, 0.0f);
+				camera.FieldOfView = 32.26734161f;
+			}
+		});
+
 		if (cameraController.Mode == CameraController3D::ControlMode::FirstPerson)
 		{
 			Gui::DragFloat("Camera Pitch", &cameraController.FirstPersonData.TargetPitch, 1.0f);
@@ -317,6 +338,7 @@ namespace Editor
 		auto& renderParameters = context.RenderParameters;
 
 		Gui::PushID(&renderParameters);
+
 		Gui::CheckboxFlags("DebugFlags_0", &renderParameters.DebugFlags, (1 << 0));
 		Gui::CheckboxFlags("DebugFlags_1", &renderParameters.DebugFlags, (1 << 1));
 		Gui::ColorEdit4("Clear Color", glm::value_ptr(renderParameters.ClearColor));
@@ -329,7 +351,7 @@ namespace Editor
 		Gui::Checkbox("Render Subsurface Scattering", &renderParameters.RenderSubsurfaceScattering);
 		Gui::Checkbox("Render Opaque", &renderParameters.RenderOpaque);
 		Gui::Checkbox("Render Transparent", &renderParameters.RenderTransparent);
-		Gui::Checkbox("Render Bloom", &renderParameters.RenderBloom);	
+		Gui::Checkbox("Render Bloom", &renderParameters.RenderBloom);
 		Gui::Checkbox("Vertex Coloring", &renderParameters.VertexColoring);
 		Gui::Checkbox("Diffuse Mapping", &renderParameters.DiffuseMapping);
 		Gui::Checkbox("Ambient Occlusion Mapping", &renderParameters.AmbientOcclusionMapping);
@@ -338,6 +360,7 @@ namespace Editor
 		Gui::Checkbox("Alpha Testing", &renderParameters.AlphaTesting);
 		Gui::Checkbox("Cube Reflection", &renderParameters.CubeReflection);
 		Gui::Checkbox("Render Fog", &renderParameters.RenderFog);
+
 		Gui::SliderInt("Anistropic Filtering", &renderParameters.AnistropicFiltering, D3D11_MIN_MAXANISOTROPY, D3D11_MAX_MAXANISOTROPY);
 
 		if (Gui::CollapsingHeader("Resolution", ImGuiTreeNodeFlags_DefaultOpen))
@@ -451,6 +474,12 @@ namespace Editor
 			renderTargetGui("Main Previous", renderData.Main.PreviousRenderTarget());
 
 			renderTargetGui("Shadow Map", renderData.Shadow.RenderTarget);
+			
+			renderTargetGui("Exponential Shadow Map[0]", renderData.Shadow.ExponentialRenderTargets[0]);
+			renderTargetGui("Exponential Shadow Map[1]", renderData.Shadow.ExponentialRenderTargets[1]);
+			renderTargetGui("Exponential Shadow Map Blur[0]", renderData.Shadow.ExponentialBlurRenderTargets[0]);
+			renderTargetGui("Exponential Shadow Map Blur[1]", renderData.Shadow.ExponentialBlurRenderTargets[1]);
+
 			renderTargetGui("Shadow Map Threshold", renderData.Shadow.ThresholdRenderTarget);
 			renderTargetGui("Shadow Map Blur[0]", renderData.Shadow.BlurRenderTargets[0]);
 			renderTargetGui("Shadow Map Blur[1]", renderData.Shadow.BlurRenderTargets[1]);
