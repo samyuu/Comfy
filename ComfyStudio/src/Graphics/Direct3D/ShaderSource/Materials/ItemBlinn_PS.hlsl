@@ -6,7 +6,10 @@
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {
     float4 outputColor = DiffuseTexture.Sample(DiffuseSampler, input.TexCoord);
-    ClipAlphaThreshold(outputColor.a);
+    
+    if (FLAGS_ALPHA_TEST)
+        ClipAlphaThreshold(outputColor.a);
+    
     return outputColor;
     
     return float4(1.0, 1.0, 0.0, 1.0);
