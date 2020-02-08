@@ -691,7 +691,7 @@ namespace Graphics
 		for (auto& command : defaultCommandList.OpaqueAndTransparent)
 		{
 			if (command.SourceCommand.Flags.CastsShadow)
-				InternalRenderOpaqueObjCommand(command, RenderFlags_DontBindMaterialShader | RenderFlags_DontSetRasterizerState | RenderFlags_DontDoFrustumCulling);
+				InternalRenderOpaqueObjCommand(command, RenderFlags_NoMaterialShader | RenderFlags_NoRasterizerState | RenderFlags_NoDoFrustumCulling);
 		}
 
 		renderData->Shadow.RenderTarget.UnBind();
@@ -901,7 +901,7 @@ namespace Graphics
 		auto& transform = command.SourceCommand.Transform;
 		auto& obj = *command.SourceCommand.SourceObj;
 
-		const bool doFrustumCulling = !(flags & RenderFlags_DontDoFrustumCulling);
+		const bool doFrustumCulling = !(flags & RenderFlags_NoDoFrustumCulling);
 
 		if (doFrustumCulling && !IntersectsCameraFrustum(obj.BoundingSphere, command))
 			return;
@@ -965,7 +965,7 @@ namespace Graphics
 			D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
 			for (auto& command : defaultCommandList.OpaqueAndTransparent)
-				InternalRenderOpaqueObjCommand(command, RenderFlags_SilhouetteOutlinePass | RenderFlags_DontBindMaterialShader | RenderFlags_DontBindMaterialTextures);
+				InternalRenderOpaqueObjCommand(command, RenderFlags_SilhouetteOutlinePass | RenderFlags_NoMaterialShader | RenderFlags_NoMaterialTextures);
 		}
 
 		renderData->Silhouette.RenderTarget.UnBind();
@@ -1146,7 +1146,7 @@ namespace Graphics
 
 	void D3D_Renderer3D::PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, RenderFlags flags)
 	{
-		if (!(flags & RenderFlags_DontBindMaterialShader))
+		if (!(flags & RenderFlags_NoMaterialShader))
 		{
 			auto& materialShader = (flags & RenderFlags_SSSPass) ? GetSubsurfaceScatteringMaterialShader(material) : GetMaterialShader(material);
 			materialShader.Bind();
@@ -1160,25 +1160,25 @@ namespace Graphics
 				shaders.SolidBlack.Bind();
 		}
 
-		if (!(flags & RenderFlags_DontBindMaterialTextures))
+		if (!(flags & RenderFlags_NoMaterialTextures))
 		{
 			constexpr size_t textureTypeCount = 7;
-			std::array<D3D_ShaderResourceView*, textureTypeCount> textureResources;
-			std::array<D3D_TextureSampler*, textureTypeCount> textureSamplers;
+			std::array<D3D_ShaderResourceView*, textureTypeCount> textureResources = {};
+			std::array<D3D_TextureSampler*, textureTypeCount> textureSamplers = {};
 
-			bool usesDiffuseRenderTexture = false;
+			objectCB.Data.DiffuseRGTC1 = false;
+			objectCB.Data.DiffuseScreenTexture = false;
+
 			for (size_t i = 0; i < textureTypeCount; i++)
 			{
-				auto& materialTexture = (&material.Diffuse)[i];
-				auto& textureFormat = (&objectCB.Data.TextureFormats.Diffuse)[i];
+				const MaterialTexture& materialTexture = (&material.Diffuse)[i];
 
 				TxpID txpID = materialTexture.TextureID;
 				MaterialTextureFlags textureFlags = materialTexture.Flags;
 
-				auto animation = command.SourceCommand.Animation;
-				if (animation != nullptr)
+				if (command.SourceCommand.Animation != nullptr)
 				{
-					for (auto& transform : animation->TextureTransforms)
+					for (auto& transform : command.SourceCommand.Animation->TextureTransforms)
 					{
 						if (txpID == transform.ID)
 						{
@@ -1187,7 +1187,7 @@ namespace Graphics
 						}
 					}
 
-					for (auto& pattern : animation->TexturePatterns)
+					for (auto& pattern : command.SourceCommand.Animation->TexturePatterns)
 					{
 						if (txpID == pattern.ID && pattern.IDOverride != TxpID::Invalid)
 							txpID = pattern.IDOverride;
@@ -1196,30 +1196,25 @@ namespace Graphics
 
 				if (auto txp = GetTxpFromTextureID(txpID); txp != nullptr)
 				{
-					if (animation != nullptr && txpID == animation->ScreenRenderTextureID)
-					{
-						usesDiffuseRenderTexture = true;
-						textureFormat = TextureFormat::RGBA8;
-						textureResources[i] = &renderData->Main.PreviousRenderTarget();
-					}
-					else
-					{
-						textureFormat = txp->GetFormat();
-						textureResources[i] = (txp->Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->Texture2D.get()) : (txp->CubeMap != nullptr) ? (txp->CubeMap.get()) : nullptr;
-					}
-
+					textureResources[i] = (txp->Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->Texture2D.get()) : (txp->CubeMap != nullptr) ? (txp->CubeMap.get()) : nullptr;
 					textureSamplers[i] = &cachedTextureSamplers.GetSampler(textureFlags);
-				}
-				else
-				{
-					textureFormat = TextureFormat::Unknown;
-					textureResources[i] = nullptr;
-					textureSamplers[i] = nullptr;
+
+					if (&materialTexture == &material.Diffuse)
+					{
+						if (command.SourceCommand.Animation != nullptr && txpID == command.SourceCommand.Animation->ScreenRenderTextureID)
+						{
+							objectCB.Data.DiffuseScreenTexture = true;
+							textureResources[i] = &renderData->Main.PreviousRenderTarget();
+						}
+
+						if (txp->GetFormat() == TextureFormat::RGTC1)
+							objectCB.Data.DiffuseRGTC1 = true;
+					}
 				}
 			}
 
 			auto ambientTypeFlags = material.Ambient.Flags.AmbientTypeFlags;
-			objectCB.Data.TextureFormats.AmbientType = (ambientTypeFlags == 0b100) ? 2 : (ambientTypeFlags == 0b110) ? 1 : (ambientTypeFlags != 0b10000) ? 0 : 3;
+			objectCB.Data.AmbientTextureType = (ambientTypeFlags == 0b100) ? 2 : (ambientTypeFlags == 0b110) ? 1 : (ambientTypeFlags != 0b10000) ? 0 : 3;
 
 			D3D_ShaderResourceView::BindArray<7>(TextureSlot_Diffuse, textureResources);
 			D3D_TextureSampler::BindArray<7>(TextureSlot_Diffuse, textureSamplers);
@@ -1227,10 +1222,9 @@ namespace Graphics
 			objectCB.Data.Material.DiffuseTextureTransform = material.Diffuse.TextureCoordinateMatrix;
 			objectCB.Data.Material.AmbientTextureTransform = material.Ambient.TextureCoordinateMatrix;
 
-			auto animation = command.SourceCommand.Animation;
-			if (animation != nullptr)
+			if (command.SourceCommand.Animation != nullptr)
 			{
-				for (auto& textureTransform : animation->TextureTransforms)
+				for (auto& textureTransform : command.SourceCommand.Animation->TextureTransforms)
 				{
 					mat4* output =
 						(textureTransform.ID == material.Diffuse.TextureID) ? &objectCB.Data.Material.DiffuseTextureTransform :
@@ -1252,11 +1246,11 @@ namespace Graphics
 			}
 
 			// HACK: Flip to adjust for the expected OpenGL texture coordinates, problematic because it also effects all other textures using the first TEXCOORD attribute
-			if (usesDiffuseRenderTexture)
+			if (objectCB.Data.DiffuseScreenTexture)
 				objectCB.Data.Material.DiffuseTextureTransform *= glm::scale(mat4(1.0f), vec3(1.0f, -1.0f, 1.0f));
 		}
 
-		if (!renderParameters->Wireframe && !(flags & RenderFlags_DontSetRasterizerState))
+		if (!renderParameters->Wireframe && !(flags & RenderFlags_NoRasterizerState))
 			((material.BlendFlags.DoubleSidedness != DoubleSidedness_Off) ? solidNoCullingRasterizerState : solidBackfaceCullingRasterizerState).Bind();
 
 		const float fresnel = (((material.ShaderFlags.Fresnel == 0) ? 7.0f : static_cast<float>(material.ShaderFlags.Fresnel) - 1.0f) * 0.12f) * 0.82f;
@@ -1273,7 +1267,7 @@ namespace Graphics
 		objectCB.Data.Material.BumpDepth = material.BumpDepth;
 
 		const float morphWeight = (command.SourceCommand.Animation != nullptr) ? command.SourceCommand.Animation->MorphWeight : 0.0f;
-		objectCB.Data.MorphWeight = vec2(morphWeight, 1.0f - morphWeight);
+		objectCB.Data.MorphWeight = vec4(morphWeight, 1.0f - morphWeight, 0.0f, 0.0f);
 
 		mat4 modelMatrix;
 		if (mesh.Flags.FaceCameraPosition || mesh.Flags.FaceCameraView)

@@ -92,21 +92,13 @@ namespace Graphics
 			float Shininess;
 			float Intensity;
 			float BumpDepth;
+			float Padding[1];
 		} Material;
+		vec4 MorphWeight;
 		uint32_t ShaderFlags;
-		struct TextureFormats
-		{
-			TextureFormat Diffuse;
-			TextureFormat Ambient;
-			TextureFormat Normal;
-			TextureFormat Specular;
-			TextureFormat ToonCurve;
-			TextureFormat Reflection;
-			TextureFormat Tangent;
-			uint32_t AmbientType;
-		} TextureFormats;
-		vec2 MorphWeight;
-		vec2 MorphPadding;
+		uint32_t DiffuseRGTC1;
+		uint32_t DiffuseScreenTexture;
+		uint32_t AmbientTextureType;
 	};
 
 	struct ESMFilterConstantData
@@ -122,7 +114,7 @@ namespace Graphics
 	{
 		vec2 TexelTextureSize;
 		int PassIndex;
-		int Padding;
+		int Padding[1];
 	};
 
 	struct SSSFilterCoefConstantData
@@ -249,10 +241,10 @@ namespace Graphics
 			RenderFlags_None = 0,
 			RenderFlags_SSSPass = (1 << 0),
 			RenderFlags_SilhouetteOutlinePass = (1 << 1),
-			RenderFlags_DontBindMaterialShader = (1 << 2),
-			RenderFlags_DontBindMaterialTextures = (1 << 3),
-			RenderFlags_DontSetRasterizerState = (1 << 4),
-			RenderFlags_DontDoFrustumCulling = (1 << 5),
+			RenderFlags_NoMaterialShader = (1 << 2),
+			RenderFlags_NoMaterialTextures = (1 << 3),
+			RenderFlags_NoRasterizerState = (1 << 4),
+			RenderFlags_NoDoFrustumCulling = (1 << 5),
 		};
 
 		void InternalFlush();

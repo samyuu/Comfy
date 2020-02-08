@@ -9,7 +9,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
 {
     float4 outputColor;
     
-    if (CB_Object.TextureFormats.Diffuse == TextureFormat_RGTC1)
+    if (CB_Object.DiffuseRGTC1)
     {
         outputColor = UncompressRGTC1_RGBA(DiffuseTexture, DiffuseSampler, input.TexCoord);
     }

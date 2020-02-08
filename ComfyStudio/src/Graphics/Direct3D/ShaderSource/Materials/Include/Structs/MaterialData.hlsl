@@ -13,6 +13,7 @@ struct MaterialData
     float1 Shininess;
     float1 Intensity;
     float1 BumpDepth;
+    float1 Padding;
 };
 
 #endif /* MATERIALDATA_HLSL */
