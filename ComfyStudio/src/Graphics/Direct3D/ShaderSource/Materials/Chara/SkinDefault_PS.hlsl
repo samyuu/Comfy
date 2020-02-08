@@ -64,7 +64,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     POW(spec_ratio.w, spec_ratio.w, 0.5);
     MAD(spec_ratio.w, spec_ratio.w, 0.75, 0.25);
     
-    if (FLAGS_STAGE_SHADOW)
+    if (FLAGS_SHADOW)
     {
         //float esm = saturate(exp2((ESMGauss.Sample(ScreenReflectionSampler, a_tex_shadow0.xy) - a_tex_shadow0.z) * p_esm_k.x));
         //_tmp0 = StageShadowMap.Sample(ScreenReflectionSampler, a_tex_shadow0.xy);

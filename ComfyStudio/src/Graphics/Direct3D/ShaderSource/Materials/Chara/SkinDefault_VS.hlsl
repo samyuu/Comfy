@@ -52,7 +52,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     
     VS_SET_OUTPUT_TEX_COORDS;
     
-    if (FLAGS_STAGE_SHADOW)
+    if (FLAGS_SHADOW)
         o_tex_shadow0 = VS_GetShadowTextureCoordinates(pos_w);
     
     //DP4(o_tex_shadow0.x, state_matrix_texture6[0], pos_w);

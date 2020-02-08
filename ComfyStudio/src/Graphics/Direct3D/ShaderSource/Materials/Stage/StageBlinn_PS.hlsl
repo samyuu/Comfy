@@ -103,7 +103,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MUL(env.xyz, env.xyz, env.w);
     MAD(tmp.xyz, env.xyz, spec_ratio.w, diff.xyz);
     
-    if (FLAGS_STAGE_SHADOW)
+    if (FLAGS_SHADOW)
     {
         PS_SAMPLE_STAGE_SHADOW_MAP;
         tmp *= _tmp0;

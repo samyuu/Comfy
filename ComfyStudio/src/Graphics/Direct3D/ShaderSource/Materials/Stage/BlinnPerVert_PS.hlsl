@@ -62,7 +62,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
         MUL(spec.xyz, spec.xyz, state_lightprod1_specular.xyz);
     }
 
-    if (FLAGS_STAGE_SHADOW)
+    if (FLAGS_SHADOW)
     {
         PS_SAMPLE_STAGE_SHADOW_MAP;
         tex_col *= _tmp0;

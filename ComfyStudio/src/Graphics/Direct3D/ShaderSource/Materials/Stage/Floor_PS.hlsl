@@ -30,7 +30,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MAD(spec.xyz, reflect.xyz, a_color1.w, spec.xyz);
     MUL(diff, color_map, a_color0);
     
-   if (FLAGS_STAGE_SHADOW)
+   if (FLAGS_SHADOW)
     {
         PS_SAMPLE_STAGE_SHADOW_MAP;
         diff *= _tmp0;

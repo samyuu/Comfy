@@ -31,7 +31,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     o_normal = float4(normal_w, 1.0);
     o_fog = VS_GetFogFactor(pos_c);
         
-    if (FLAGS_STAGE_SHADOW)
+    if (FLAGS_SHADOW)
         o_tex_shadow0 = VS_GetShadowTextureCoordinates(pos_w);
     
 	float3 eye_w = VS_GetWorldEye(pos_v * rsqrt(dot(pos_v.xyz, pos_v.xyz)));

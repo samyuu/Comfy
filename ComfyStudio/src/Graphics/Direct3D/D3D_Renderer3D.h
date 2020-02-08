@@ -29,7 +29,7 @@ namespace Graphics
 		ShaderFlags_CubeMapReflection = 1 << 6,
 		ShaderFlags_LinearFog = 1 << 7,
 		ShaderFlags_Morph = 1 << 8,
-		ShaderFlags_StageShadow = 1 << 9,
+		ShaderFlags_Shadow = 1 << 9,
 		// ShaderFlags_StageShadowSecondary = 1 << 10,
 	};
 
@@ -256,6 +256,8 @@ namespace Graphics
 		void InternalPreRenderScreenReflection();
 		void InternalPreRenderSubsurfaceScattering();
 		void InternalPreRenderReduceFilterSubsurfaceScattering();
+
+		// TODO: Add wrapper function to loop over commnad list and add opaque and transparent to RenderFlags
 		void InternalRenderOpaqueObjCommand(ObjRenderCommand& command, RenderFlags flags = RenderFlags_None);
 		void InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command);
 		void InternalRenderSilhouette();

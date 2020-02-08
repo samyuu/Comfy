@@ -116,7 +116,7 @@ else if (program_env_24 == 3)                                                   
 // --------------------------------------------------------------------------------------------------------------------------
 #define PS_SAMPLE_STAGE_SHADOW_MAP                                                                                          \
 float esm = saturate(exp2((ESMGauss.Sample(ScreenReflectionSampler, a_tex_shadow0.xy) - a_tex_shadow0.z) * p_esm_k.x));     \
-_tmp0 = StageShadowMap.Sample(ScreenReflectionSampler, a_tex_shadow0.xy);                                                   \
+_tmp0 = ShadowMap.Sample(ScreenReflectionSampler, a_tex_shadow0.xy);                                                        \
 _tmp0 = mad(max(_tmp0, esm), program_env_13, program_env_12);                                                               \
 // --------------------------------------------------------------------------------------------------------------------------
 

@@ -248,9 +248,9 @@ namespace Graphics
 			TextureSlot_ScreenReflection = 15,
 			TextureSlot_SubsurfaceScattering = 16,
 
-			TextureSlot_StageShadowMap = 19,	// textures[6]
-			TextureSlot_ESMFull = 20,			// textures[19]
-			TextureSlot_ESMGauss = 21,			// textures[20]
+			TextureSlot_ShadowMap = 19,	// textures[6]
+			TextureSlot_ESMFull = 20,	// textures[19]
+			TextureSlot_ESMGauss = 21,	// textures[20]
 
 			TextureSlot_Count,
 		};
@@ -799,7 +799,7 @@ namespace Graphics
 				destinationTarget.UnBind();
 
 				if (passIndex == (blurPasses - 1))
-					destinationTarget.BindResource(TextureSlot_StageShadowMap);
+					destinationTarget.BindResource(TextureSlot_ShadowMap);
 			}
 		}
 	}
@@ -1350,7 +1350,7 @@ namespace Graphics
 		if (renderParameters->RenderShadowMap && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
 		{
 			if (command.SourceCommand.Flags.ReceivesShadow)
-				objectCB.Data.ShaderFlags |= ShaderFlags_StageShadow;
+				objectCB.Data.ShaderFlags |= ShaderFlags_Shadow;
 
 			// TODO: self and secondary stage shadow
 		}

@@ -31,7 +31,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     o_position = pos_c;
     o_fog = VS_GetFogFactor(pos_c);
         
-    if (FLAGS_STAGE_SHADOW)
+    if (FLAGS_SHADOW)
         o_tex_shadow0 = VS_GetShadowTextureCoordinates(pos_w);
     
     float3 binormal_w = (cross(normal_w.xyz, tangent_w.xyz) * a_tangent.w);
