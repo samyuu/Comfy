@@ -57,7 +57,7 @@ namespace Graphics
 
 		vec4 StageLightColor;
 		vec4 CharacterLightColor;
-		
+
 		vec4 RenderResolution;
 
 		struct LinearFog
@@ -78,7 +78,7 @@ namespace Graphics
 		mat4 Model;
 		mat4 ModelView;
 		mat4 ModelViewProjection;
-		struct Material
+		struct MaterialData
 		{
 			mat4 DiffuseTextureTransform;
 			mat4 AmbientTextureTransform;
@@ -108,7 +108,7 @@ namespace Graphics
 		vec2 MorphWeight;
 		vec2 MorphPadding;
 	};
-	
+
 	struct ESMFilterConstantData
 	{
 		std::array<vec4, 2> Coefficient;
@@ -164,7 +164,7 @@ namespace Graphics
 	{
 		const Obj* SourceObj = nullptr;
 		const Obj* SourceMorphObj = nullptr;
-		
+
 		Transform Transform = Graphics::Transform(vec3(0.0f));
 		const ObjAnimationData* Animation = nullptr;
 
@@ -220,7 +220,7 @@ namespace Graphics
 		struct ObjRenderCommand
 		{
 			RenderCommand SourceCommand;
-			
+
 			// NOTE: To avoid needlessly calculating them multiple times
 			mat4 ModelMatrix;
 			Sphere TransformedBoundingSphere;
@@ -282,7 +282,7 @@ namespace Graphics
 		bool IntersectsCameraFrustum(const ObjRenderCommand& command) const;
 		bool IntersectsCameraFrustum(const Sphere& boundingSphere, const ObjRenderCommand& command) const;
 		bool IntersectsCameraFrustum(const Sphere& boundingSphere, const SubMeshRenderCommand& command) const;
-		
+
 		bool IsDebugRenderFlagSet(int bitIndex) const;
 
 	private:
@@ -384,7 +384,7 @@ namespace Graphics
 
 		// TODO: RendererStatistics struct with data for obj / mesh / submesh count, vertices, cull count etc.
 		size_t verticesRenderedThisFrame = 0, verticesRenderedLastFrame = 0;
-		
+
 		struct ToneMapData
 		{
 			GlowParameter Glow;

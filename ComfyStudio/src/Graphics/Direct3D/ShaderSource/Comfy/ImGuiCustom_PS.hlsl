@@ -1,5 +1,5 @@
-#include "../Include/UncompressRGTC.hlsl"
-#include "../Include/CubeMapCommon.hlsl"
+#include "Include/UncompressRGTC.hlsl"
+#include "Include/CubeMapCommon.hlsl"
 
 struct VS_OUTPUT
 {
@@ -16,10 +16,10 @@ cbuffer CustomConstantData : register(b0)
     int CB_DecompressRGTC;
 };
 
-SamplerState TextureSampler     : register(s0);
+SamplerState TextureSampler : register(s0);
 
-Texture2D SpriteTexture         : register(t0);
-TextureCube SpriteCubeTexture   : register(t1);
+Texture2D SpriteTexture : register(t0);
+TextureCube SpriteCubeTexture : register(t1);
 
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {

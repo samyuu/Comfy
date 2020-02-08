@@ -1,7 +1,7 @@
-#include "../Include/BlendModes.hlsl"
-#include "../Include/Checkerboard.hlsl"
-#include "../Include/UncompressRGTC.hlsl"
-#include "../Include/Font.hlsl"
+#include "Include/BlendModes.hlsl"
+#include "Include/Checkerboard.hlsl"
+#include "Include/UncompressRGTC.hlsl"
+#include "Include/Font.hlsl"
 
 struct VS_OUTPUT
 {
@@ -13,9 +13,9 @@ struct VS_OUTPUT
 
 cbuffer SpriteConstantData : register(b0)
 {
-    TextureFormat CB_TextureFormat;
-    TextureFormat CB_TextureMaskFormat;
-    BlendMode CB_BlendMode;
+    int CB_TextureFormat;
+    int CB_TextureMaskFormat;
+    int CB_BlendMode;
 
     bool CB_Flags;
     bool CB_DrawTextBorder;
