@@ -599,9 +599,6 @@
     <ClInclude Include="src\Graphics\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\VertexLayouts.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Graphics\GraphicTypesNames.h">
       <Filter>Header Files</Filter>
     </ClInclude>

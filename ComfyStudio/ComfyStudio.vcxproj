@@ -474,7 +474,6 @@
     <ClInclude Include="src\Input\Keyboard.h" />
     <ClInclude Include="src\Core\Application.h" />
     <ClInclude Include="src\Graphics\Camera.h" />
-    <ClInclude Include="src\Graphics\VertexLayouts.h" />
     <ClInclude Include="src\ImGui\Core\imconfig.h" />
     <ClInclude Include="src\ImGui\Core\imgui.h" />
     <ClInclude Include="src\ImGui\Core\imgui_internal.h" />
