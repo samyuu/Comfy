@@ -998,7 +998,8 @@ namespace Graphics
 		if (renderParameters->RenderBloom)
 			InternalRenderBloom();
 
-		renderData->Output.RenderTarget->BindSetViewport();
+		renderData->Output.RenderTarget.ResizeIfDifferent(renderParameters->RenderResolution);
+		renderData->Output.RenderTarget.BindSetViewport();
 
 		if (toneMapData.NeedsUpdating(sceneContext))
 		{

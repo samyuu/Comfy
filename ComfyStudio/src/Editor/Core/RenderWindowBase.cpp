@@ -7,11 +7,18 @@ namespace Editor
 
 	void RenderWindowBase::Initialize()
 	{
-		owningRenderTarget = GetShouldCreateDepthRenderTarget() ? 
-			MakeUnique<D3D_DepthRenderTarget>(RenderTargetDefaultSize, DXGI_FORMAT_D32_FLOAT) : 
-			MakeUnique<D3D_RenderTarget>(RenderTargetDefaultSize);
-
-		renderRegion = lastRenderRegion = ImRect(vec2(0.0f, 0.0f), vec2(owningRenderTarget->GetSize()));
+		if (auto externalRenderTarget = GetExternalRenderTarget(); externalRenderTarget == nullptr)
+		{
+			owningRenderTarget = GetShouldCreateDepthRenderTarget() ?
+				MakeUnique<D3D_DepthRenderTarget>(RenderTargetDefaultSize, DXGI_FORMAT_D32_FLOAT) :
+				MakeUnique<D3D_RenderTarget>(RenderTargetDefaultSize);
+			
+			renderRegion = lastRenderRegion = ImRect(vec2(0.0f, 0.0f), vec2(owningRenderTarget->GetSize()));
+		}
+		else
+		{
+			renderRegion = lastRenderRegion = ImRect(vec2(0.0f, 0.0f), vec2(externalRenderTarget->GetSize()));
+		}
 
 		OnInitialize();
 	}
@@ -110,7 +117,9 @@ namespace Editor
 
 	void RenderWindowBase::OnResize(ivec2 size)
 	{
-		owningRenderTarget->Resize(size);
+		if (resizeOwningRenderTarget && owningRenderTarget != nullptr)
+			owningRenderTarget->Resize(size);
+
 		needsResizing = false;
 	}
 }

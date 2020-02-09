@@ -474,22 +474,22 @@ namespace Editor
 			renderTargetGui("Main Previous", renderData.Main.PreviousRenderTarget());
 
 			renderTargetGui("Shadow Map", renderData.Shadow.RenderTarget);
-			
-			renderTargetGui("Exponential Shadow Map[0]", renderData.Shadow.ExponentialRenderTargets[0]);
-			renderTargetGui("Exponential Shadow Map[1]", renderData.Shadow.ExponentialRenderTargets[1]);
-			renderTargetGui("Exponential Shadow Map Blur[0]", renderData.Shadow.ExponentialBlurRenderTargets[0]);
-			renderTargetGui("Exponential Shadow Map Blur[1]", renderData.Shadow.ExponentialBlurRenderTargets[1]);
+
+			renderTargetGui("Exponential Shadow Map [0]", renderData.Shadow.ExponentialRenderTargets[0]);
+			renderTargetGui("Exponential Shadow Map [1]", renderData.Shadow.ExponentialRenderTargets[1]);
+			renderTargetGui("Exponential Shadow Map Blur [0]", renderData.Shadow.ExponentialBlurRenderTargets[0]);
+			renderTargetGui("Exponential Shadow Map Blur [1]", renderData.Shadow.ExponentialBlurRenderTargets[1]);
 
 			renderTargetGui("Shadow Map Threshold", renderData.Shadow.ThresholdRenderTarget);
-			renderTargetGui("Shadow Map Blur[0]", renderData.Shadow.BlurRenderTargets[0]);
-			renderTargetGui("Shadow Map Blur[1]", renderData.Shadow.BlurRenderTargets[1]);
+			renderTargetGui("Shadow Map Blur [0]", renderData.Shadow.BlurRenderTargets[0]);
+			renderTargetGui("Shadow Map Blur [1]", renderData.Shadow.BlurRenderTargets[1]);
 
 			renderTargetGui("Screen Reflection", renderData.Reflection.RenderTarget);
 
 			renderTargetGui("SSS Main", renderData.SubsurfaceScattering.RenderTarget);
-			renderTargetGui("SSS Filter[0]", renderData.SubsurfaceScattering.FilterRenderTargets[0]);
-			renderTargetGui("SSS Filter[1]", renderData.SubsurfaceScattering.FilterRenderTargets[1]);
-			renderTargetGui("SSS Filter[2]", renderData.SubsurfaceScattering.FilterRenderTargets[2]);
+			renderTargetGui("SSS Filter [0]", renderData.SubsurfaceScattering.FilterRenderTargets[0]);
+			renderTargetGui("SSS Filter [1]", renderData.SubsurfaceScattering.FilterRenderTargets[1]);
+			renderTargetGui("SSS Filter [2]", renderData.SubsurfaceScattering.FilterRenderTargets[2]);
 
 			renderTargetGui("Bloom Base", renderData.Bloom.BaseRenderTarget);
 			renderTargetGui("Bloom Combined", renderData.Bloom.CombinedBlurRenderTarget);
@@ -498,7 +498,7 @@ namespace Editor
 			renderTargetGui("Bloom Reduce->Blur [2]", renderData.Bloom.ReduceRenderTargets[2]);
 			renderTargetGui("Bloom Reduce->Blur [3]", renderData.Bloom.ReduceRenderTargets[3]);
 
-			renderTargetGui("Output", *renderData.Output.RenderTarget);
+			renderTargetGui("Output", renderData.Output.RenderTarget);
 		}
 
 		Gui::PopID();
@@ -772,7 +772,8 @@ namespace Editor
 				Gui::DragFloat("Shininess", &material->Shininess, 0.05f);
 				Gui::ColorEdit3("Ambient", glm::value_ptr(material->AmbientColor), ImGuiColorEditFlags_Float);
 				Gui::ColorEdit3("Emission", glm::value_ptr(material->EmissionColor), ImGuiColorEditFlags_Float);
-				Gui::InputText("Material Type", material->MaterialType.data(), material->MaterialType.size(), ImGuiInputTextFlags_None);
+				if (Gui::InputText("Material Type", material->MaterialType.data(), material->MaterialType.size(), ImGuiInputTextFlags_None))
+					std::fill(std::find(material->MaterialType.begin(), material->MaterialType.end(), '\0'), material->MaterialType.end(), '\0');
 
 				bool lambertShading = material->ShaderFlags.LambertShading;
 				if (Gui::Checkbox("Lambert Shading", &lambertShading))

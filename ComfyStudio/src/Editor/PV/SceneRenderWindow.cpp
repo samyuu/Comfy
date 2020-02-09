@@ -141,7 +141,6 @@ namespace Editor
 	{
 		cameraController->Update(context->Camera);
 
-		context->RenderData.Output.RenderTarget = owningRenderTarget.get();
 		// context->RenderParameters.ClearColor = GetColorVec4(EditorColor_BaseClear);
 
 		context->Camera.UpdateMatrices();
@@ -203,5 +202,10 @@ namespace Editor
 		context->Camera.AspectRatio = renderRegionSize.x / renderRegionSize.y;
 
 		context->RenderParameters.RenderResolution = renderRegionSize;
+	}
+
+	Graphics::D3D_RenderTarget* SceneRenderWindow::GetExternalRenderTarget()
+	{
+		return (context == nullptr) ? nullptr : &context->RenderData.Output.RenderTarget;
 	}
 }

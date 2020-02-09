@@ -21,6 +21,7 @@ namespace Editor
 		void OnUpdate() override;
 		void OnRender() override;
 		void OnResize(ivec2 size) override;
+		Graphics::D3D_RenderTarget* GetExternalRenderTarget() override;
 
 	private:
 		bool drawCameraAxisIndicator = true;

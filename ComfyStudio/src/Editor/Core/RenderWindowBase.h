@@ -34,7 +34,6 @@ namespace Editor
 		UniquePtr<Graphics::D3D_RenderTarget> owningRenderTarget = nullptr;
 
 		virtual ImGuiWindowFlags GetChildWinodwFlags() const { return ImGuiWindowFlags_None; };
-		virtual bool GetShouldCreateDepthRenderTarget() const { return false; };
 
 		virtual void OnInitialize() {};
 		virtual void OnDrawGui() {};
@@ -43,10 +42,13 @@ namespace Editor
 		virtual void OnUpdate() = 0;
 		virtual void OnRender() = 0;
 		virtual void OnResize(ivec2 size);
+
+		virtual bool GetShouldCreateDepthRenderTarget() const { return false; };
 		virtual Graphics::D3D_RenderTarget* GetExternalRenderTarget() { return nullptr; };
 
 	private:
 		ImRect renderRegion, lastRenderRegion;
+		bool resizeOwningRenderTarget = true;
 		bool wasResized = false;
 		bool needsResizing = true;
 		bool keepAspectRatio = false;

@@ -173,7 +173,7 @@ namespace Graphics
 	struct OutputRenderData
 	{
 		// NOTE: Where the post processed final image gets rendered to
-		D3D_RenderTarget* RenderTarget = nullptr;
+		D3D_RenderTarget RenderTarget = { RenderTargetDefaultSize, RenderTargetLDRFormatRGBA };
 	};
 
 	struct RenderData
