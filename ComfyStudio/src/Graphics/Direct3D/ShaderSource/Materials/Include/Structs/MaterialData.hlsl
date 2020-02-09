@@ -10,10 +10,9 @@ struct MaterialData
     float4 Ambient;
     float4 Specular;
     float4 Emission;
-    float1 Shininess;
+    float2 Shininess;
     float1 Intensity;
     float1 BumpDepth;
-    float1 Padding;
 };
 
 #endif /* MATERIALDATA_HLSL */

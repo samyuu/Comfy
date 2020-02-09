@@ -11,21 +11,69 @@
 #define model_mtx                   (CB_Object.Model)
 #define model_mtx_i                 (transpose(CB_Object.Model))
 #define model_mtx_it                (transpose(CB_Object.Model))
-// TODO:
-#define nt_mtx                      (float3x3(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
 
-// TODO: program.env[9]
-#define p_lit_back                  (float4(18.160395, 18.160395, 18.160395, 0.0))
-#define p_morph_weight              (float4(CB_Object.MorphWeight.xy, 0.0, 0.0))
-// TODO:
-#define p_texcol_coef               (float4(0.9, 0.0, 0.0, 0.0))
+// TODO: { program.env[26 .. 28] }
+#define nt_mtx                      (FLOAT3x3_IDENTITY)
+
+// TODO: program.env[2]
 #define p_blend_color               (float4(1.0, 1.0, 1.0, 1.0))
+// TODO: program.env[3]
 #define p_offset_color              (float4(0.0, 0.0, 0.0, 1.0))
+// TODO: program.env[21]
 #define p_max_alpha                 (float4(1.0, 1.0, 1.0, 1.0))
+
+#define p_morph_weight              (float4(CB_Object.MorphWeight.xy, 0.0, 0.0))
 #define p_fres_coef                 (CB_Object.Material.FresnelCoefficient)
 #define p_bump_depth                (CB_Object.Material.BumpDepth)
+
+#define p_sss_param                 (CB_Scene.SubsurfaceScatteringParameter)
+
+// TODO: Should this be the same as p_fres_coef (?)
+#define fres_coef                   (CB_Object.Material.FresnelCoefficient)
+#define p_fb_isize                  (CB_Scene.TexelRenderResolution)
+#define program_env_00              (float4(CB_Scene.TexelRenderResolution, 1.0, 1.0))
+
+#define p_esm_k                     (CB_Scene.ShadowExponent)
+#define program_env_12              (CB_Scene.ShadowAmbient)
+#define program_env_13              (CB_Scene.OneMinusShadowAmbient)
+
+// TODO:
+#define program_env_17              (float4(0.06, 0.05, 0.88, 1.0))
+// TODO:
+#define program_env_19              (float4(0.0, 0.0, 0.0, 0.0))
+#define program_env_24              (CB_Object.AmbientTextureType)
+
+// TODO:
+#define p_reflect_refract_uv_scale  (float4(0.1, 0.1, 0.1, 0.1))
+
+// NOTE: 
+#define reciprocal_one_minus_cos_pi_ten     (1.0 / (1.0 - cos(PI / 10.0)))
+#define reciprocal_one_minus_cos_pi_four    (1.0 / (1.0 - cos(PI / 4.0)))
+
+#define irrad_r                     (CB_Scene.IBLIrradianceRed)
+#define irrad_g                     (CB_Scene.IBLIrradianceGreen)
+#define irrad_b                     (CB_Scene.IBLIrradianceBlue)
+#define lit_dir                     (CB_Scene.StageLight.Direction)
+#define lit_dir_w                   (CB_Scene.StageLight.Direction)
+#define lit_diff                    (CB_Scene.IBLStageColor)
+#define lit_spec                    ((CB_Scene.StageLight.Specular.rgb * CB_Scene.IBLStageColor.rgb) * reciprocal_one_minus_cos_pi_ten)
+
+#define p_shininess                 (float4(CB_Object.Material.Shininess.x, 0.0, 0.0, 0.0))
+#define p_lit_luce                  ((CB_Scene.IBLCharaColor.yyyy) * reciprocal_one_minus_cos_pi_four)
+#define p_lit_spec                  ((CB_Scene.CharaLight.Specular * CB_Scene.IBLCharaColor) * reciprocal_one_minus_cos_pi_ten)
+#define p_lit_back                  ((CB_Scene.CharaLight.Specular * CB_Scene.IBLSunColor) * reciprocal_one_minus_cos_pi_ten)
+#define p_lit_dir                   (CB_Scene.CharaLight.Direction)
+// --------------------------------------------------------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------------------------------------------------------
+// NOTE: Program local:
+
+// TODO: program.local[5]
+#define p_texcol_coef               (float4(1.0, 1.0, 1.0, 0.0))
+// TODO: program.local[6]
+#define p_texcol_offset             (float4(0.0, 0.0, 0.0, 0.0))
 // TODO: program.local[7]
-#define p_texspc_coef               (float4(0.0, 0.0, 0.0, 0.0))
+#define p_texspc_coef               (float4(1.0, 1.0, 1.0, 0.015))
 // TODO: program.local[8]
 #define p_texspc_offset             (float4(0.0, 0.0, 0.0, 0.0))
 // TODO: program.local[11]
@@ -54,44 +102,6 @@
 #define p_pupil_radius              (float4(10000.0, 6944.444336, 15624.998047, -1.0))
 // TODO: program.local[18]
 #define p_tex_scale                 (float4(10.000001, 8.333333, 61.314545, -0.004))
-// TODO: program.env[25]
-#define p_sss_param                 (CB_Scene.SubsurfaceScatteringParameter)
-// TODO: Should this be the same as p_fres_coef (?)
-#define fres_coef                   (CB_Object.Material.FresnelCoefficient)
-#define p_fb_isize                  (CB_Scene.TexelRenderResolution)
-#define program_env_00              (float4(CB_Scene.TexelRenderResolution, 1.0, 1.0))
-
-#define p_esm_k                     (CB_Scene.ShadowExponent)
-#define program_env_12              (CB_Scene.ShadowAmbient)
-#define program_env_13              (CB_Scene.OneMinusShadowAmbient)
-
-// TODO:
-#define program_env_17              (float4(0.06, 0.05, 0.88, 1.0))
-// TODO:
-#define program_env_19              (float4(0.0, 0.0, 0.0, 0.0))
-#define program_env_24              (CB_Object.AmbientTextureType)
-
-// TODO:
-#define p_reflect_refract_uv_scale  (float4(0.1, 0.1, 0.1, 0.1))
-
-#define irrad_r                     (CB_Scene.IrradianceRed)
-#define irrad_g                     (CB_Scene.IrradianceGreen)
-#define irrad_b                     (CB_Scene.IrradianceBlue)
-#define lit_dir                     (CB_Scene.StageLight.Direction)
-#define lit_dir_w                   (CB_Scene.StageLight.Direction)
-#define lit_diff                    (CB_Scene.StageLightColor)
-#define lit_spec                    ((CB_Scene.StageLight.Specular.rgb * CB_Scene.StageLightColor.rgb) * (1.0 / (1.0 - cos(PI / 10.0))))
-
-// TODO:
-#define p_lit_luce                  (CB_Scene.CharacterLightColor)
-// TODO: program.local[3] (CB_Material.Shininess) (?) 
-#define p_shininess                 (float4(20.0, 0.0, 0.0, 0.0))
-// TODO: program.env[7]
-//#define p_lit_spec                  (float4(24.190920, 17.838573, 4.641884, 0.0))
-//#define p_lit_spec                  ((CB_Scene.CharacterLight.Specular.rgb * CB_Scene.CharacterLightColor.rgb) * (1.0 / (1.0 - cos(PI / 10.0))))
-#define p_lit_spec                  ((CB_Scene.CharacterLight.Specular * CB_Scene.CharacterLightColor) * (1.0 / (1.0 - cos(PI / 10.0))))
-
-#define p_lit_dir                   (CB_Scene.CharacterLight.Direction)
 // --------------------------------------------------------------------------------------------------------------------------
 
 // --------------------------------------------------------------------------------------------------------------------------
@@ -102,9 +112,9 @@
 
 // --------------------------------------------------------------------------------------------------------------------------
 // NOTE: State light:
-#define state_light0_ambient        (CB_Scene.CharacterLight.Ambient)
-#define state_light0_diffuse        (CB_Scene.CharacterLight.Diffuse)
-#define state_light0_specular       (CB_Scene.CharacterLight.Specular)
+#define state_light0_ambient        (CB_Scene.CharaLight.Ambient)
+#define state_light0_diffuse        (CB_Scene.CharaLight.Diffuse)
+#define state_light0_specular       (CB_Scene.CharaLight.Specular)
 #define state_light1_ambient        (CB_Scene.StageLight.Ambient)
 #define state_light1_diffuse        (CB_Scene.StageLight.Diffuse)
 #define state_light1_specular       (CB_Scene.StageLight.Specular)
@@ -123,7 +133,7 @@
 #define state_material_ambient      (CB_Object.Material.Ambient)
 #define state_material_specular     (CB_Object.Material.Specular)
 #define state_material_emission     (CB_Object.Material.Emission)
-#define state_material_shininess    (CB_Object.Material.Shininess)
+#define state_material_shininess    (CB_Object.Material.Shininess.y)
 // --------------------------------------------------------------------------------------------------------------------------
 
 #endif /* PROGRAMENVIRONMENT_HLSL */

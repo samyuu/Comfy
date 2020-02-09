@@ -18,20 +18,21 @@ struct LinearFog
 
 struct SceneData
 {
-    matrix IrradianceRed;
-    matrix IrradianceGreen;
-    matrix IrradianceBlue;
+    matrix IBLIrradianceRed;
+    matrix IBLIrradianceGreen;
+    matrix IBLIrradianceBlue;
     
     matrix View;
     matrix ViewProjection;
     matrix LightSpace;
     float4 EyePosition;
     
-    ParallelLight CharacterLight;
+    ParallelLight CharaLight;
     ParallelLight StageLight;
     
-    float4 StageLightColor;
-    float4 CharacterLightColor;
+    float4 IBLStageColor;
+    float4 IBLCharaColor;
+    float4 IBLSunColor;
     
     float2 TexelRenderResolution;
     float2 RenderResolution;

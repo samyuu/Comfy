@@ -507,18 +507,19 @@ namespace Graphics
 		const auto& ibl = sceneContext->IBL;
 
 		sceneCB.Data.RenderResolution = GetPackedTextureSize(renderData->Main.CurrentRenderTarget());
-		sceneCB.Data.IrradianceRed = glm::transpose(ibl.Stage.IrradianceRGB[0]);
-		sceneCB.Data.IrradianceGreen = glm::transpose(ibl.Stage.IrradianceRGB[1]);
-		sceneCB.Data.IrradianceBlue = glm::transpose(ibl.Stage.IrradianceRGB[2]);
+		sceneCB.Data.IBLIrradianceRed = glm::transpose(ibl.Stage.IrradianceRGB[0]);
+		sceneCB.Data.IBLIrradianceGreen = glm::transpose(ibl.Stage.IrradianceRGB[1]);
+		sceneCB.Data.IBLIrradianceBlue = glm::transpose(ibl.Stage.IrradianceRGB[2]);
 		sceneCB.Data.Scene.View = glm::transpose(camera.GetView());
 		sceneCB.Data.Scene.ViewProjection = glm::transpose(camera.GetViewProjection());
 		sceneCB.Data.Scene.EyePosition = vec4(camera.ViewPoint, 1.0f);
-		sceneCB.Data.StageLightColor = vec4(ibl.Stage.LightColor, 1.0f);
-		sceneCB.Data.CharacterLightColor = vec4(ibl.Character.LightColor, 1.0f);
-		sceneCB.Data.CharacterLight.Ambient = vec4(lightParam.Character.Ambient, 1.0f);
-		sceneCB.Data.CharacterLight.Diffuse = vec4(lightParam.Character.Diffuse, 1.0f);
-		sceneCB.Data.CharacterLight.Specular = vec4(lightParam.Character.Specular, 1.0f);
-		sceneCB.Data.CharacterLight.Direction = vec4(normalize(lightParam.Character.Position), 1.0f);
+		sceneCB.Data.IBLStageColor = vec4(ibl.Stage.LightColor, 1.0f);
+		sceneCB.Data.IBLCharaColor = vec4(ibl.Character.LightColor, 1.0f);
+		sceneCB.Data.IBLSunColor = vec4(ibl.Sun.LightColor, 1.0f);
+		sceneCB.Data.CharaLight.Ambient = vec4(lightParam.Character.Ambient, 1.0f);
+		sceneCB.Data.CharaLight.Diffuse = vec4(lightParam.Character.Diffuse, 1.0f);
+		sceneCB.Data.CharaLight.Specular = vec4(lightParam.Character.Specular, 1.0f);
+		sceneCB.Data.CharaLight.Direction = vec4(normalize(lightParam.Character.Position), 1.0f);
 		sceneCB.Data.StageLight.Ambient = vec4(lightParam.Stage.Ambient, 1.0f);
 		sceneCB.Data.StageLight.Diffuse = vec4(lightParam.Stage.Diffuse, 1.0f);
 		sceneCB.Data.StageLight.Specular = vec4(lightParam.Stage.Specular, 1.0f);
@@ -1262,7 +1263,11 @@ namespace Graphics
 		objectCB.Data.Material.Specular = material.SpecularColor;
 		objectCB.Data.Material.Reflectivity = material.Reflectivity;
 		objectCB.Data.Material.Emission = material.EmissionColor;
-		objectCB.Data.Material.Shininess = (material.Shininess - 16.0f) / 112.0f;
+
+		objectCB.Data.Material.Shininess = vec2(
+			(material.Shininess >= 0.0f ? material.Shininess : 1.0f), 
+			(material.MaterialType != Material::Identifiers.EYEBALL) ? ((material.Shininess - 16.0f) / 112.0f) : 10.0f);
+
 		objectCB.Data.Material.Intensity = material.Intensity;
 		objectCB.Data.Material.BumpDepth = material.BumpDepth;
 

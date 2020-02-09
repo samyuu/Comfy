@@ -35,9 +35,9 @@ namespace Graphics
 
 	struct SceneConstantData
 	{
-		mat4 IrradianceRed;
-		mat4 IrradianceGreen;
-		mat4 IrradianceBlue;
+		mat4 IBLIrradianceRed;
+		mat4 IBLIrradianceGreen;
+		mat4 IBLIrradianceBlue;
 
 		struct SceneData
 		{
@@ -53,10 +53,11 @@ namespace Graphics
 			vec4 Diffuse;
 			vec4 Specular;
 			vec4 Direction;
-		} CharacterLight, StageLight;
+		} CharaLight, StageLight;
 
-		vec4 StageLightColor;
-		vec4 CharacterLightColor;
+		vec4 IBLStageColor;
+		vec4 IBLCharaColor;
+		vec4 IBLSunColor;
 
 		vec4 RenderResolution;
 
@@ -89,10 +90,9 @@ namespace Graphics
 			vec3 Specular;
 			float Reflectivity;
 			vec4 Emission;
-			float Shininess;
+			vec2 Shininess;
 			float Intensity;
 			float BumpDepth;
-			float Padding[1];
 		} Material;
 		vec4 MorphWeight;
 		uint32_t ShaderFlags;
