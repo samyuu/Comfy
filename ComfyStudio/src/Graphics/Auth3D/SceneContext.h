@@ -26,7 +26,6 @@ namespace Graphics
 		bool RenderOpaque = true;
 		bool RenderTransparent = true;
 		bool RenderBloom = true;
-		// TODO: bool RenderToneMap = true;
 		bool VertexColoring = true;
 		bool DiffuseMapping = true;
 		bool AmbientOcclusionMapping = true;
@@ -35,6 +34,9 @@ namespace Graphics
 		bool AlphaTesting = true;
 		bool CubeReflection = true;
 		bool RenderFog = true;
+
+		// NOTE: Enable to take alpha render target captures with a clear color alpha of zero
+		bool ToneMapPreserveAlpha = true;
 
 		ivec2 RenderResolution = RenderTargetDefaultSize;
 
@@ -56,7 +58,7 @@ namespace Graphics
 		ivec2 ReflectionRenderResolution = ReflectionDefaultResolution;
 
 		bool Clear = true;
-		vec4 ClearColor = vec4(0.16f, 0.16f, 0.16f, 0.0f);
+		vec4 ClearColor = vec4(0.16f, 0.16f, 0.16f, 1.00f);
 
 		/*
 		struct PostProcessParameters

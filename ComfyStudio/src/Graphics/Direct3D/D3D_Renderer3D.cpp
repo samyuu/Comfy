@@ -1011,8 +1011,10 @@ namespace Graphics
 
 		toneMapCB.Data.Exposure = sceneContext->Glow.Exposure;
 		toneMapCB.Data.Gamma = sceneContext->Glow.Gamma;
-		toneMapCB.Data.SaturatePower = sceneContext->Glow.SaturatePower;
+		toneMapCB.Data.SaturatePower = static_cast<float>(sceneContext->Glow.SaturatePower);
 		toneMapCB.Data.SaturateCoefficient = sceneContext->Glow.SaturateCoefficient;
+		toneMapCB.Data.AlphaLerp = renderParameters->ToneMapPreserveAlpha ? 0.0f : 1.0f;
+		toneMapCB.Data.AlphaValue = 1.0f;
 		toneMapCB.UploadData();
 		toneMapCB.BindPixelShader();
 

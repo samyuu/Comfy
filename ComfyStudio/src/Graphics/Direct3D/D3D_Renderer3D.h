@@ -147,9 +147,11 @@ namespace Graphics
 	{
 		float Exposure;
 		float Gamma;
-		int SaturatePower;
+		float SaturatePower;
 		float SaturateCoefficient;
-		float Padding[12];
+		float AlphaLerp;
+		float AlphaValue;
+		float Padding[2];
 	};
 
 	struct RenderCommand
