@@ -8,6 +8,7 @@
 #include "ImGui/Widgets/FileViewer.h"
 #include "StageTest.h"
 #include "CharaTest.h"
+#include <future>
 
 namespace Editor
 {
@@ -55,6 +56,9 @@ namespace Editor
 		void DrawDebugTestGui();
 
 	private:
+		void TakeSceneRenderTargetScreenshot(Graphics::D3D_RenderTarget& renderTarget);
+
+	private:
 		SceneGraph sceneGraph;
 
 		Graphics::SceneContext context;
@@ -68,6 +72,9 @@ namespace Editor
 
 		StageTestData stageTestData;
 		CharacterTestData charaTestData;
+
+		// NOTE: To asyncronously take screenshots 
+		std::future<void> lastScreenshotTaskFuture;
 
 		struct EntityInspector
 		{

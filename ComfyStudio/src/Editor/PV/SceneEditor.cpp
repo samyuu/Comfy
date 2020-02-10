@@ -5,8 +5,10 @@
 #include "Graphics/Auth3D/DebugObj.h"
 #include "FileSystem/Archive/Farc.h"
 #include "ImGui/Extensions/TxpExtensions.h"
+#include "Misc/ImageHelper.h"
 #include "Input/KeyCode.h"
 #include <FontIcons.h>
+#include <time.h>
 
 namespace Editor
 {
@@ -339,10 +341,21 @@ namespace Editor
 
 		Gui::PushID(&renderParameters);
 
+		const bool isScreenshotSaving = lastScreenshotTaskFuture.valid() && !lastScreenshotTaskFuture._Is_ready();
+		const vec4 loadingColor = vec4(0.83f, 0.75f, 0.42f, 1.00f);
+
+		if (isScreenshotSaving)
+			Gui::PushStyleColor(ImGuiCol_Text, loadingColor);
+		if (Gui::Button("Take Screenshot", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+			TakeSceneRenderTargetScreenshot(context.RenderData.Output.RenderTarget);
+		if (isScreenshotSaving)
+			Gui::PopStyleColor(1);
+
 		Gui::CheckboxFlags("DebugFlags_0", &renderParameters.DebugFlags, (1 << 0));
 		Gui::CheckboxFlags("DebugFlags_1", &renderParameters.DebugFlags, (1 << 1));
 		Gui::ColorEdit4("Clear Color", glm::value_ptr(renderParameters.ClearColor));
 		Gui::Checkbox("Clear", &renderParameters.Clear);
+		Gui::Checkbox("Preserve Alpha", &renderParameters.ToneMapPreserveAlpha);
 		Gui::Checkbox("Frustum Culling", &renderParameters.FrustumCulling);
 		Gui::Checkbox("Wireframe", &renderParameters.Wireframe);
 		Gui::Checkbox("Alpha Sort", &renderParameters.AlphaSort);
@@ -1110,12 +1123,14 @@ namespace Editor
 				return loadA3Ds(path);
 			};
 
+			// TODO: Optimize and refactor into its own A3DSceneManager (?) class
 			auto applyA3D = [](auto& a3d, frame_t frame, auto& sceneGraph, auto& context)
 			{
 				for (auto& object : a3d.Objects)
 				{
 					auto& entities = sceneGraph.Entities;
 					auto correspondingEntity = std::find_if(entities.begin(), entities.end(), [&](auto& e) { return MatchesInsensitive(e->Name, object.UIDName); });
+					//auto correspondingEntity = std::find_if(entities.begin(), entities.end(), [&](auto& e) { return e->Name == object.UIDName; });
 
 					if (correspondingEntity == entities.end())
 						continue;
@@ -1137,6 +1152,7 @@ namespace Editor
 							return nullptr;
 
 						auto found = std::find_if(a3d.Curves.begin(), a3d.Curves.end(), [&](auto& curve) { return MatchesInsensitive(curve.Name, name); });
+						//auto found = std::find_if(a3d.Curves.begin(), a3d.Curves.end(), [&](auto& curve) { return curve.Name == name; });
 						return (found == a3d.Curves.end()) ? nullptr : &(*found);
 					};
 
@@ -1339,5 +1355,21 @@ namespace Editor
 				}
 			}
 		}
+	}
+
+	void SceneEditor::TakeSceneRenderTargetScreenshot(D3D_RenderTarget& renderTarget)
+	{
+		auto pixelData = renderTarget.StageAndCopyBackBuffer();
+
+		if (lastScreenshotTaskFuture.valid())
+			lastScreenshotTaskFuture.wait();
+
+		lastScreenshotTaskFuture = std::async(std::launch::async, [&renderTarget, data = std::move(pixelData)]
+			{
+				char fileName[MAX_PATH];
+				sprintf_s(fileName, "dev_ram/ss/scene_%I64d.png", static_cast<int64_t>(time(nullptr)));
+
+				Utilities::WritePNG(fileName, renderTarget.GetSize(), data.get());
+			});
 	}
 }
