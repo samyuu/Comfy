@@ -365,7 +365,7 @@ namespace Editor
 
 		if (Gui::CollapsingHeader("Resolution", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			auto clampSize = [](ivec2 size) { return glm::clamp(size, ivec2(1, 1), ivec2(16384, 16384)); };
+			auto clampSize = [](ivec2 size) { return glm::clamp(size, D3D_Texture2D::MinSize, D3D_Texture2D::MaxSize); };
 
 			constexpr std::array namedFactors =
 			{

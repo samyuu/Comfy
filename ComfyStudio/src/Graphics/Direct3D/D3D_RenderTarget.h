@@ -7,7 +7,7 @@
 namespace Graphics
 {
 	// NOTE: Since the render target is stretched to the correct asspect ratio in the end it could easily be scaled down to improve performance
-	constexpr ivec2 RenderTargetDefaultSize = ivec2(1, 1);
+	constexpr ivec2 RenderTargetDefaultSize = D3D_Texture2D::MinSize;
 
 	constexpr DXGI_FORMAT RenderTargetHDRFormatRGBA = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	constexpr DXGI_FORMAT RenderTargetLDRFormatRGBA = DXGI_FORMAT_R8G8B8A8_UNORM;

@@ -31,6 +31,8 @@ namespace Graphics
 
 	void D3D_RenderTargetBase::ResizeIfDifferent(ivec2 newSize)
 	{
+		newSize = glm::clamp(newSize, D3D_Texture2D::MinSize, D3D_Texture2D::MaxSize);
+
 		if (newSize != GetSize())
 			Resize(newSize);
 	}

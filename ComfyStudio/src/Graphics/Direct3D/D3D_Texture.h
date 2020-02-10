@@ -72,6 +72,10 @@ namespace Graphics
 	class D3D_Texture2D final : public D3D_TextureResource
 	{
 	public:
+		static constexpr ivec2 MinSize = { 1, 1 };
+		static constexpr ivec2 MaxSize = { D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION, D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION };
+
+	public:
 		D3D_Texture2D(const struct Txp& txp);
 		D3D_Texture2D(ivec2 size, const uint32_t* rgbaBuffer);
 		D3D_Texture2D(const D3D_Texture2D&) = delete;
