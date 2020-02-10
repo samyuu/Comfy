@@ -58,7 +58,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyCore\src;$(SolutionDir)ComfyCore\lib\glm\include;$(SolutionDir)ComfyFileSystem\src;$(SolutionDir)ComfyFileSystem\lib\zlib\include;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\plusaes\include;$(ProjectDir)lib\rtaudio\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyCore\src;$(SolutionDir)ComfyCore\lib\glm\include;$(SolutionDir)ComfyCore\lib\stb\include;$(SolutionDir)ComfyFileSystem\src;$(SolutionDir)ComfyFileSystem\lib\zlib\include;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\plusaes\include;$(ProjectDir)lib\rtaudio\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -112,7 +112,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyCore\src;$(SolutionDir)ComfyCore\lib\glm\include;$(SolutionDir)ComfyFileSystem\src;$(SolutionDir)ComfyFileSystem\lib\zlib\include;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\plusaes\include;$(ProjectDir)lib\rtaudio\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyCore\src;$(SolutionDir)ComfyCore\lib\glm\include;$(SolutionDir)ComfyCore\lib\stb\include;$(SolutionDir)ComfyFileSystem\src;$(SolutionDir)ComfyFileSystem\lib\zlib\include;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\plusaes\include;$(ProjectDir)lib\rtaudio\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
