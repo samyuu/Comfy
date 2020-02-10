@@ -72,7 +72,10 @@ namespace Graphics
 
 		uint32_t GetMultiSampleCount() const;
 
+		ID3D11Resource* GetResource() const;
 		ID3D11ShaderResourceView* GetResourceView() const override;
+
+		UniquePtr<uint8_t[]> StageAndCopyBackBuffer();
 
 	protected:
 		D3D11_TEXTURE2D_DESC backBufferDescription;
