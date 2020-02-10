@@ -18,6 +18,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Core\Logger.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Core\SmartPointers.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Core\Win32\ComfyWindows.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\ImageHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\EndianHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\FileExtensionHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\StringHelper.h" />
@@ -28,6 +29,7 @@
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\Core\Logger.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\Misc\FileExtensionHelper.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\Misc\ImageHelper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\Misc\StringHelper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\Misc\StringParseHelper.cpp" />
   </ItemGroup>
