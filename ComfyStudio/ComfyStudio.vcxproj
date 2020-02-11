@@ -279,7 +279,7 @@
     <ClCompile Include="src\DataTest\AudioTestWindow.cpp" />
     <ClCompile Include="src\Audio\Core\AudioEngine.cpp" />
     <ClCompile Include="src\Core\BaseWindow.cpp" />
-    <ClCompile Include="src\ImGui\Extensions\ImguiExtensions.cpp" />
+    <ClCompile Include="src\ImGui\Extensions\ImGuiExtensions.cpp" />
     <ClCompile Include="src\Input\DirectInput\DirectInput.cpp" />
     <ClCompile Include="src\Input\DirectInput\DirectInputDevice.cpp" />
     <ClCompile Include="src\Input\DirectInput\Ds4State.cpp" />
@@ -464,7 +464,7 @@
     <ClInclude Include="src\Audio\Core\AudioEngine.h" />
     <ClInclude Include="src\Audio\SampleProvider\ISampleProvider.h" />
     <ClInclude Include="src\Core\BaseWindow.h" />
-    <ClInclude Include="src\ImGui\Extensions\ImguiExtensions.h" />
+    <ClInclude Include="src\ImGui\Extensions\ImGuiExtensions.h" />
     <ClInclude Include="src\Input\DirectInput\DirectInput.h" />
     <ClInclude Include="src\Input\DirectInput\DirectInputDevice.h" />
     <ClInclude Include="src\Input\DirectInput\Ds4Button.h" />
