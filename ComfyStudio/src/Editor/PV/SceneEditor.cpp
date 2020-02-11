@@ -14,6 +14,8 @@ namespace Editor
 {
 	using namespace Graphics;
 
+	constexpr const char* ScreenshotDirectoy = "dev_ram/ss";
+
 	enum SceneEntityTag : EntityTag
 	{
 		NullTag = 0,
@@ -348,6 +350,11 @@ namespace Editor
 			Gui::PushStyleColor(ImGuiCol_Text, loadingColor);
 		if (Gui::Button("Take Screenshot", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
 			TakeSceneRenderTargetScreenshot(context.RenderData.Output.RenderTarget);
+		Gui::ItemContextMenu("TakeScreenshotContextMenu", [&]
+		{
+			if (Gui::MenuItem("Open Directory"))
+				FileSystem::OpenInExplorer(Utf8ToUtf16(ScreenshotDirectoy));
+		});
 		if (isScreenshotSaving)
 			Gui::PopStyleColor(1);
 
@@ -910,15 +917,15 @@ namespace Editor
 		Gui::Checkbox("Load Light Param", &stageTestData.Settings.LoadLightParam);
 		Gui::Checkbox("Load Stage Obj", &stageTestData.Settings.LoadObj);
 
-		if (Gui::Button("Show All"))
+		const float availWidth = Gui::GetContentRegionAvailWidth();
+
+		if (Gui::Button("Show All", vec2(availWidth * 0.8f, 0.0f)))
 			SetStageVisibility(StageVisibilityType::All);
 
-		Gui::SameLine();
-
-		if (Gui::Button("Hide All"))
+		if (Gui::Button("Hide All", vec2(availWidth * 0.8f, 0.0f)))
 			SetStageVisibility(StageVisibilityType::None);
 
-		if (Gui::Button("Show Ground & Sky"))
+		if (Gui::Button("Show Ground & Sky", vec2(availWidth * 0.8f, 0.0f)))
 			SetStageVisibility(StageVisibilityType::GroundSky);
 	}
 
@@ -1261,19 +1268,21 @@ namespace Editor
 					func(a3ds[index]);
 			};
 
-			if (Gui::Button("Load STG EFF") && stageTestData.lastSetStage.has_value())
+			const float availWidth = Gui::GetContentRegionAvailWidth();
+
+			if (Gui::Button("Load STG EFF", vec2(availWidth * 0.25f, 0.0f)) && stageTestData.lastSetStage.has_value())
 				debug.StageEffA3Ds = loadStgEffA3Ds(stageTestData.lastSetStage->Type, stageTestData.lastSetStage->ID);
 			Gui::SameLine();
-			if (Gui::Button("Unload EFF"))
+			if (Gui::Button("Unload EFF", vec2(availWidth * 0.25f, 0.0f)))
 			{
 				debug.StageEffA3Ds.clear();
 				debug.StageEffIndex = -1;
 			}
 
-			if (Gui::Button("Load CAM PV ") && stageTestData.lastSetStage.has_value() && stageTestData.lastSetStage.value().Type == StageType::STGPV)
+			if (Gui::Button("Load CAM PV ", vec2(availWidth * 0.25f, 0.0f)) && stageTestData.lastSetStage.has_value() && stageTestData.lastSetStage.value().Type == StageType::STGPV)
 				debug.CamPVA3Ds = loadCamPVA3Ds(stageTestData.lastSetStage->ID);
 			Gui::SameLine();
-			if (Gui::Button("Unload CAM"))
+			if (Gui::Button("Unload CAM", vec2(availWidth * 0.25f, 0.0f)))
 			{
 				debug.CamPVA3Ds.clear();
 				debug.CamPVIndex = -1;
@@ -1367,7 +1376,7 @@ namespace Editor
 		lastScreenshotTaskFuture = std::async(std::launch::async, [&renderTarget, data = std::move(pixelData)]
 			{
 				char fileName[MAX_PATH];
-				sprintf_s(fileName, "dev_ram/ss/scene_%I64d.png", static_cast<int64_t>(time(nullptr)));
+				sprintf_s(fileName, "%s/scene_%I64d.png", ScreenshotDirectoy, static_cast<int64_t>(time(nullptr)));
 
 				Utilities::WritePNG(fileName, renderTarget.GetSize(), data.get());
 			});
