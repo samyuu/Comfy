@@ -15,6 +15,10 @@ namespace Editor
 	public:
 		void DrawGui();
 		void PostDrawGui() override;
+		
+	public:
+		// NOTE: Publicly accessible to allow for potential offline renders
+		void RenderScene();
 
 	private:
 		void OnUpdateInput() override;

@@ -85,6 +85,63 @@ namespace Editor
 		}
 	}
 
+	void SceneRenderWindow::RenderScene()
+	{
+		cameraController->Update(context->Camera);
+
+		// context->RenderParameters.ClearColor = GetColorVec4(EditorColor_BaseClear);
+
+		context->Camera.UpdateMatrices();
+		renderer3D->Begin(*context);
+		{
+			auto isAnyReflection = std::any_of(sceneGraph->Entities.begin(), sceneGraph->Entities.end(), [](auto& e) { return e->IsReflection; });
+
+			for (auto& entity : sceneGraph->Entities)
+			{
+				if (entity->IsVisible)
+				{
+					RenderCommand renderCommand;
+					renderCommand.SourceObj = entity->Obj;
+					renderCommand.SourceMorphObj = entity->MorphObj;
+					renderCommand.Transform = entity->Transform;
+					renderCommand.Flags.IsReflection = entity->IsReflection;
+
+					renderCommand.Animation = entity->Animation.get();
+
+					if (entity->SilhouetteOutline)
+						renderCommand.Flags.SilhouetteOutline = true;
+
+#if 1 // DEBUG:
+					if (entity->Tag == 'chr' || entity->Tag == 'obj')
+						renderCommand.Flags.CastsShadow = true;
+#endif
+
+					renderer3D->Draw(renderCommand);
+
+#if 1 // DEBUG:
+					// DEBUG: Quick and dirt hack for testing sake, not accurate of course
+					if (isAnyReflection && entity->Tag == 'chr')
+					{
+						renderCommand.Flags.IsReflection = true;
+						renderCommand.Transform.Translation.y = 0.0f - renderCommand.Transform.Translation.y;
+						renderCommand.Transform.Rotation.x = 0.0f - renderCommand.Transform.Rotation.x;
+						renderCommand.Transform.Rotation.z = 180.0f - renderCommand.Transform.Rotation.z;
+						renderer3D->Draw(renderCommand);
+					}
+#endif
+
+#if 1 // DEBUG:
+					RenderDebugBoundingSpheres(renderer3D, *entity);
+#endif
+				}
+	}
+
+			if (cameraController->Visualization.VisualizeInterest && cameraController->Visualization.InterestSphereObj != nullptr)
+				renderer3D->Draw(RenderCommand(*cameraController->Visualization.InterestSphereObj, context->Camera.Interest));
+}
+		renderer3D->End();
+	}
+
 	void SceneRenderWindow::OnUpdateInput()
 	{
 #if 0 // DEBUG:
@@ -139,59 +196,7 @@ namespace Editor
 
 	void SceneRenderWindow::OnRender()
 	{
-		cameraController->Update(context->Camera);
-
-		// context->RenderParameters.ClearColor = GetColorVec4(EditorColor_BaseClear);
-
-		context->Camera.UpdateMatrices();
-		renderer3D->Begin(*context);
-		{
-			auto isAnyReflection = std::any_of(sceneGraph->Entities.begin(), sceneGraph->Entities.end(), [](auto& e) { return e->IsReflection; });
-
-			for (auto& entity : sceneGraph->Entities)
-			{
-				if (entity->IsVisible)
-				{
-					RenderCommand renderCommand;
-					renderCommand.SourceObj = entity->Obj;
-					renderCommand.SourceMorphObj = entity->MorphObj;
-					renderCommand.Transform = entity->Transform;
-					renderCommand.Flags.IsReflection = entity->IsReflection;
-
-					renderCommand.Animation = entity->Animation.get();
-
-					if (entity->SilhouetteOutline)
-						renderCommand.Flags.SilhouetteOutline = true;
-
-#if 1 // DEBUG:
-					if (entity->Tag == 'chr' || entity->Tag == 'obj')
-						renderCommand.Flags.CastsShadow = true;
-#endif
-
-					renderer3D->Draw(renderCommand);
-
-#if 1 // DEBUG:
-					// DEBUG: Quick and dirt hack for testing sake, not accurate of course
-					if (isAnyReflection && entity->Tag == 'chr')
-					{
-						renderCommand.Flags.IsReflection = true;
-						renderCommand.Transform.Translation.y = 0.0f - renderCommand.Transform.Translation.y;
-						renderCommand.Transform.Rotation.x = 0.0f - renderCommand.Transform.Rotation.x;
-						renderCommand.Transform.Rotation.z = 180.0f - renderCommand.Transform.Rotation.z;
-						renderer3D->Draw(renderCommand);
-					}
-#endif
-
-#if 1 // DEBUG:
-					RenderDebugBoundingSpheres(renderer3D, *entity);
-#endif
-				}
-			}
-
-			if (cameraController->Visualization.VisualizeInterest && cameraController->Visualization.InterestSphereObj != nullptr)
-				renderer3D->Draw(RenderCommand(*cameraController->Visualization.InterestSphereObj, context->Camera.Interest));
-		}
-		renderer3D->End();
+		RenderScene();
 	}
 
 	void SceneRenderWindow::OnResize(ivec2 size)
