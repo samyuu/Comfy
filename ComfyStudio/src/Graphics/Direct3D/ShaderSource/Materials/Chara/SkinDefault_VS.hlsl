@@ -2,7 +2,6 @@
 #include "../Include/ConstantInputs.hlsl"
 
 #define COMFY_VS
-#define ARB_PROGRAM_ACCURATE 1
 #include "../Include/Assembly/DebugInterface.hlsl"
 #include "../Include/Assembly/TempRefactor.hlsl"
 
@@ -10,84 +9,57 @@ VS_OUTPUT VS_main(VS_INPUT input)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
     
-#if ARB_PROGRAM_ACCURATE
+    float4 pos_m, normal_m, tangent_m;
+    if (FLAGS_MORPH)
+    {
+        VS_SetMorphModelSpaceAttributes(input, pos_m, normal_m, tangent_m);
+        VS_SetMorphTransformTextureCoordinates(input, o_tex0, o_tex1);
+    }
+    else
+    {
+        VS_SetModelSpaceAttributes(input, pos_m, normal_m, tangent_m);
+        VS_SetTransformTextureCoordinates(input, o_tex0, o_tex1);
+    }
     
-    TEMP _tmp0, _tmp1, _tmp2;
-    TEMP diff;
-    TEMP pos_v;
-    TEMP pos_w;
-    TEMP pos_c;
-    TEMP normal_w = FLOAT4_ZERO;
-    TEMP normal_v = FLOAT4_ZERO;
-    TEMP tangent_w = FLOAT4_ZERO;
-    TEMP binormal_w = FLOAT4_ZERO;
-    TEMP eye_w = FLOAT4_ZERO;
-    DP4(pos_v.x, mv[0], a_position);
-    DP4(pos_v.y, mv[1], a_position);
-    DP4(pos_v.z, mv[2], a_position);
-    DP4(pos_v.w, mv[3], a_position);
-    DP3(normal_v.x, mv[0], a_normal);
-    DP3(normal_v.y, mv[1], a_normal);
-    DP3(normal_v.z, mv[2], a_normal);
-    DP4(pos_w.x, model_mtx[0], a_position);
-    DP4(pos_w.y, model_mtx[1], a_position);
-    DP4(pos_w.z, model_mtx[2], a_position);
-    DP4(pos_w.w, model_mtx[3], a_position);
-    DP3(normal_w.x, model_mtx[0], a_normal);
-    DP3(normal_w.y, model_mtx[1], a_normal);
-    DP3(normal_w.z, model_mtx[2], a_normal);
-    DP3(tangent_w.x, model_mtx[0], a_tangent);
-    DP3(tangent_w.y, model_mtx[1], a_tangent);
-    DP3(tangent_w.z, model_mtx[2], a_tangent);
-    DP4(pos_c.x, mvp[0], a_position);
-    DP4(pos_c.y, mvp[1], a_position);
-    DP4(pos_c.z, mvp[2], a_position);
-    DP4(pos_c.w, mvp[3], a_position);
-    MOV(o_position, pos_c);
-    XPD(binormal_w, normal_w, tangent_w);
-    MUL(binormal_w, binormal_w, a_tangent.w);
-    MOV(o_tangent, tangent_w);
-    MOV(o_binormal, binormal_w);
-    MOV(o_normal, normal_w);
+    float4 tangent_w = float4(ModelToWorldSpace(tangent_m.xyz), 1.0);
     
-    VS_SET_OUTPUT_TEX_COORDS;
+    float4 normal_w = float4(ModelToWorldSpace(normal_m.xyz), 1.0);
+    float3 normal_v = ModelToViewSpace(normal_m.xyz);
     
+    float4 pos_w = ModelToWorldSpace(pos_m);
+    float4 pos_v = ModelToViewSpace(pos_m);
+    float4 pos_c = ModelToClipSpace(pos_m);
+
+    o_position = pos_c;
+    o_fog = VS_GetFogFactor(pos_c);
+        
     if (FLAGS_SHADOW)
         o_tex_shadow0 = VS_GetShadowTextureCoordinates(pos_w);
     
-    //DP4(o_tex_shadow0.x, state_matrix_texture6[0], pos_w);
-    //DP4(o_tex_shadow0.y, state_matrix_texture6[1], pos_w);
-    //DP4(o_tex_shadow0.z, state_matrix_texture6[2], pos_w);
-    DP3(eye_w.x, camera_mvi[0], -pos_v);
-    DP3(eye_w.y, camera_mvi[1], -pos_v);
-    DP3(eye_w.z, camera_mvi[2], -pos_v);
-    MOV(o_eye, eye_w);
-    DP3(eye_w.w, eye_w, eye_w);
-    RSQ(eye_w.w, eye_w.w);
-    MUL(eye_w, eye_w, eye_w.w);
+    float4 binormal_w = float4(cross(normal_w.xyz, tangent_w.xyz), 0.0) * a_tangent.w;
     
-    // DP3C(eye_w.w, eye_w, normal_w);
-    DP3(eye_w.w, eye_w, normal_w);
-    MUL(eye_w.w, eye_w.w, 1.02);
+    o_tangent = tangent_w;
+    o_binormal = binormal_w;
+    o_normal = normal_w;
     
-    //MAD(o_normal.xyz (LT.w), eye_w, -eye_w.w, normal_w);
-    if (eye_w.w < 0.0)
-        MAD(o_normal.xyz, eye_w.xyz, -eye_w.w, normal_w.xyz);
+    float4 eye_w = float4(VS_GetWorldEye(pos_v), 1.0);
+    o_eye = eye_w;
     
-    MOV(o_color_f0.xyz, 0);
-    DP3_SAT(diff.x, normal_v, float3(0, 0, 1));
-    POW(diff.x, diff.x, 0.4);
-    DP3(diff.y, p_lit_dir, -eye_w);
-    MAD_SAT(diff.y, diff.y, 0.5, 0.5);
-    MUL(diff.y, diff.y, diff.x);
-    MUL(diff.xy, diff.xy, program_env_17.xy);
-    ADD(o_color_f0.w, diff.x, diff.y);
-    SUB(_tmp0.w, pos_c.z, state_fog_params.y);
-    MUL_SAT(_tmp0.w, _tmp0.w, state_fog_params.w);
-    MUL(o_fog.x, _tmp0.w, state_fog_params.x);
-    MOV(o_color_f1.xyz, p_fog_color.xyz);
-
-#endif
+    eye_w.w = rsqrt(dot(eye_w.xyz, eye_w.xyz));
+    eye_w = (eye_w * eye_w.w);
+    
+    if ((eye_w.w = dot(eye_w.xyz, normal_w.xyz)) < 0.0)
+        o_normal.xyz = mad(eye_w.xyz, (eye_w.w * -1.02), normal_w.xyz);
+    
+    float2 diff;
+    diff.x = pow(saturate(dot(normal_v.xyz, float3(0.0, 0.0, 1.0))), 0.4);
+    diff.y = saturate(mad(dot(p_lit_dir.xyz, -eye_w.xyz), 0.5, 0.5)) * diff.x;
+    diff.xy *= program_env_17.xy;
+    
+    o_color_f0.xyz = 0;
+    o_color_f0.w = diff.x + diff.y;
+    
+    o_color_f1.xyz = p_fog_color.xyz;
     
     return output;
 }
