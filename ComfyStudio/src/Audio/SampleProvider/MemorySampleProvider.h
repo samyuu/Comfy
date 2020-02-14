@@ -1,6 +1,6 @@
 #pragma once
+#include "CoreTypes.h"
 #include "ISampleProvider.h"
-#include "Core/CoreTypes.h"
 
 namespace Audio
 {

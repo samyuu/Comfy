@@ -1,6 +1,6 @@
 #pragma once
+#include "CoreTypes.h"
 #include "Core/BaseWindow.h"
-#include "Core/CoreTypes.h"
 #include "Audio/Core/AudioEngine.h"
 #include "Audio/SampleProvider/MemorySampleProvider.h"
 

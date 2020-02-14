@@ -1,7 +1,7 @@
 #pragma once
+#include "CoreTypes.h"
 #include "Stream/Stream.h"
 #include "BinaryMode.h"
-#include "Core/CoreTypes.h"
 #include <list>
 #include <map>
 #include <functional>

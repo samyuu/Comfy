@@ -1,6 +1,5 @@
 #include "Direct3D.h"
 #include "D3D_RenderTarget.h"
-#include "Core/CoreTypes.h"
 #include "Core/Logger.h"
 
 namespace Graphics

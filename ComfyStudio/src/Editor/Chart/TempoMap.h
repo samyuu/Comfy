@@ -1,6 +1,6 @@
 #pragma once
+#include "CoreTypes.h"
 #include "TempoChange.h"
-#include "Core/CoreTypes.h"
 
 namespace Editor
 {

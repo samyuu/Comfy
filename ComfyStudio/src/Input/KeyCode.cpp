@@ -1,5 +1,5 @@
 #include "KeyCode.h"
-#include "Core/CoreTypes.h"
+#include "CoreTypes.h"
 
 const char* GetKeyCodeName(const KeyCode keyCode)
 {

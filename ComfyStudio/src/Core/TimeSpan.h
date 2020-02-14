@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/CoreTypes.h"
+#include "CoreTypes.h"
 
 // NOTE: Time struct storing the underlying time as a double in seconds
 struct TimeSpan

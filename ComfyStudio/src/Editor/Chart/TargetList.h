@@ -1,7 +1,7 @@
 #pragma once
-#include "Timeline/TimelineTick.h"
 #include "Types.h"
-#include "Core/CoreTypes.h"
+#include "CoreTypes.h"
+#include "Timeline/TimelineTick.h"
 
 namespace Editor
 {

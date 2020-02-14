@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "Misc/StringHelper.h"
-#include "Core/CoreTypes.h"
+#include "CoreTypes.h"
 
 struct LicenseInfo
 {

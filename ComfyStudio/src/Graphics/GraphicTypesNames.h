@@ -1,6 +1,6 @@
 #pragma once
 #include "GraphicsTypes.h"
-#include "Core/CoreTypes.h"
+#include "CoreTypes.h"
 
 namespace Graphics
 {

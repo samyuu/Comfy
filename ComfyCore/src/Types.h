@@ -1,27 +1,22 @@
 #pragma once
 
 #include <stdint.h>
-
 #include <glm/gtc/type_ptr.hpp>
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
-#include <glm/mat4x4.hpp>
 
 #include "Core/SmartPointers.h"
 
-typedef uint8_t unk8_t;
-typedef uint16_t unk16_t;
-typedef uint32_t unk32_t;
-typedef float frame_t;
+using unk8_t = uint8_t;
+using unk16_t = uint16_t;
+using unk32_t = uint32_t;
+using frame_t = float;
 
-using ivec2 = glm::ivec2;
-using ivec3 = glm::ivec3;
-using ivec4 = glm::ivec4;
+using ivec2 = glm::vec<2, int, glm::defaultp>;
+using ivec3 = glm::vec<3, int, glm::defaultp>;
+using ivec4 = glm::vec<4, int, glm::defaultp>;
 
-using vec2 = glm::vec2;
-using vec3 = glm::vec3;
-using vec4 = glm::vec4;
+using vec2 = glm::vec<2, float, glm::defaultp>;
+using vec3 = glm::vec<3, float, glm::defaultp>;
+using vec4 = glm::vec<4, float, glm::defaultp>;
 
-using mat3 = glm::mat3;
-using mat4 = glm::mat4;
+using mat3 = glm::mat<3, 3, float, glm::defaultp>;
+using mat4 = glm::mat<4, 4, float, glm::defaultp>;

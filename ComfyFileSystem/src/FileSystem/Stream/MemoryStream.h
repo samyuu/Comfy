@@ -1,6 +1,6 @@
 #pragma once
 #include "Stream.h"
-#include "Core/CoreTypes.h"
+#include "CoreTypes.h"
 
 namespace FileSystem
 {

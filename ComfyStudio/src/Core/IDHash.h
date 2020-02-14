@@ -1,6 +1,6 @@
 #pragma once
 #include "IDTypes.h"
-#include "Core/CoreTypes.h"
+#include "CoreTypes.h"
 
 constexpr uint32_t MurmurHashSeed = 0xDEADBEEF;
 constexpr uint32_t MurmurHashM = 0x7FD652AD;

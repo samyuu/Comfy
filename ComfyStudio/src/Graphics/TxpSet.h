@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
+#include "CoreTypes.h"
 #include "Core/IDTypes.h"
-#include "Core/CoreTypes.h"
 #include "FileSystem/FileInterface.h"
 #include "Graphics/GraphicsTypes.h"
 #include "Graphics/Direct3D/D3D_Texture.h"

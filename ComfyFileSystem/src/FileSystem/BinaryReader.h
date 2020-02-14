@@ -1,8 +1,8 @@
 #pragma once
+#include "CoreTypes.h"
 #include "Stream/Stream.h"
 #include "BinaryMode.h"
 #include "Misc/EndianHelper.h"
-#include "Core/CoreTypes.h"
 #include <functional>
 
 namespace FileSystem

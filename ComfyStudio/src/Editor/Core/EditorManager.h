@@ -1,6 +1,6 @@
 #pragma once
+#include "CoreTypes.h"
 #include "IEditorComponent.h"
-#include "Core/CoreTypes.h"
 
 class Application;
 

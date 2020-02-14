@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
+#include "CoreTypes.h"
 #include "FileInterface.h"
-#include "Core/CoreTypes.h"
 #include <atomic>
 #include <thread>
 

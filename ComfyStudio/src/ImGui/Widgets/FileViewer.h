@@ -1,6 +1,6 @@
 #pragma once
+#include "CoreTypes.h"
 #include "ImGui/Gui.h"
-#include "Core/CoreTypes.h"
 #include <FontIcons.h>
 
 namespace ImGui

@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "Core/CoreTypes.h"
+#include "CoreTypes.h"
 
 namespace Editor
 {

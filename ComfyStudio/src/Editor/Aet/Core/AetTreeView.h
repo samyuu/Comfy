@@ -3,7 +3,6 @@
 #include "Editor/Aet/AetSelection.h"
 #include "Editor/Aet/AetIcons.h"
 #include "Graphics/Auth2D/AetSet.h"
-#include "Core/CoreTypes.h"
 #include "ImGui/Gui.h"
 #include <stack>
 

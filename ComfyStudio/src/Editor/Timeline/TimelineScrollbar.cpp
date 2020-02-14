@@ -1,5 +1,5 @@
-#include "Core/CoreTypes.h"
 #include "TimelineScrollbar.h"
+#include "CoreTypes.h"
 
 namespace Editor
 {

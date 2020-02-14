@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "Core/CoreTypes.h"
+#include "CoreTypes.h"
 #include "Core/Win32/ComfyWindows.h"
 #include <d3d11.h>
 #include <wrl.h>
