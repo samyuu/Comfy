@@ -236,7 +236,7 @@ namespace Graphics
 			TextureSlot_Specular = 3,
 			TextureSlot_ToonCurve = 4,
 			TextureSlot_Reflection = 5,
-			TextureSlot_Lucency = 6,
+			TextureSlot_Translucency = 6,
 			TextureSlot_Reserved = 7,
 
 			TextureSlot_CharacterLightMap = 9,
@@ -552,7 +552,7 @@ namespace Graphics
 				nullptr,
 				// NOTE: Reflection = 5
 				nullptr,
-				// NOTE: Lucency = 6
+				// NOTE: Translucency = 6
 				nullptr,
 				// NOTE: Reserved = 7
 				nullptr,

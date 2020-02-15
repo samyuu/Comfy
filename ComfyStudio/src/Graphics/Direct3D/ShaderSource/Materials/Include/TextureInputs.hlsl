@@ -5,7 +5,7 @@ SamplerState DiffuseSampler         : register(s0);
 SamplerState AmbientSampler         : register(s1);
 SamplerState NormalSampler          : register(s2);
 SamplerState SpecularSampler        : register(s3);
-SamplerState LucencySampler         : register(s6);
+SamplerState TranslucencySampler    : register(s6);
 SamplerState ReflectionSampler      : register(s5);
 
 SamplerState LightMapSampler        : register(s14)
@@ -28,7 +28,7 @@ Texture2D<float4> DiffuseTexture                : register(t0);
 Texture2D<float4> AmbientTexture                : register(t1);
 Texture2D<float4> NormalTexture                 : register(t2);
 Texture2D<float4> SpecularTexture               : register(t3);
-Texture2D<float4> LucencyTexture                : register(t6);
+Texture2D<float4> TranslucencyTexture           : register(t6);
 
 TextureCube<float4> ReflectionCubeMap           : register(t5);
 TextureCube<float4> CharacterLightMap           : register(t9);

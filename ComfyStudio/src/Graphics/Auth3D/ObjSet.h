@@ -118,7 +118,7 @@ namespace Graphics
 		uint32_t UseUnknown5 : 1;
 		uint32_t UseUnknown6 : 1;
 		uint32_t UseUnknown7 : 1;
-		uint32_t UseLucencyTexture : 1;
+		uint32_t UseTranslucencyTexture : 1;
 		uint32_t UseCubeMapReflection : 1;
 		uint32_t CubeMapReflectionRelated : 16;
 	};
@@ -202,7 +202,7 @@ namespace Graphics
 		MaterialTexture Specular;
 		MaterialTexture ToonCurve;
 		MaterialTexture Reflection;
-		MaterialTexture Lucency;
+		MaterialTexture Translucency;
 		MaterialTexture ReservedTexture;
 		MaterialBlendFlags BlendFlags;
 		vec3 DiffuseColor;
