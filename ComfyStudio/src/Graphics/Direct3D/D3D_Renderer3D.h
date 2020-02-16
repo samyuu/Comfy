@@ -30,7 +30,7 @@ namespace Graphics
 		ShaderFlags_LinearFog = 1 << 7,
 		ShaderFlags_Morph = 1 << 8,
 		ShaderFlags_Shadow = 1 << 9,
-		// ShaderFlags_StageShadowSecondary = 1 << 10,
+		// ShaderFlags_ShadowSecondary = 1 << 10,
 	};
 
 	struct SceneConstantData
@@ -71,7 +71,9 @@ namespace Graphics
 		vec4 OneMinusShadowAmbient;
 		float ShadowExponent;
 		float SubsurfaceScatteringParameter;
-		float Padding[2];
+
+		uint32_t DebugFlags;
+		uint32_t Padding[1];
 	};
 
 	struct ObjectConstantData
@@ -170,6 +172,7 @@ namespace Graphics
 			// TODO:
 			bool CastsShadow = false;
 			bool ReceivesShadow = true;
+			// int ShadowMapIndex = -1;
 			// bool SubsurfaceScattering = false;
 			// bool SubsurfaceScatteringFocusPoint = false;
 			// bool Skeleton = false;

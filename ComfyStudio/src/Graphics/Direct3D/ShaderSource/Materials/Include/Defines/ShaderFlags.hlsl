@@ -23,4 +23,6 @@ static const uint ShaderFlags_Shadow = 1 << 9;
 #define FLAGS_MORPH (CB_Object.ShaderFlags & ShaderFlags_Morph)
 #define FLAGS_SHADOW (CB_Object.ShaderFlags & ShaderFlags_Shadow)
 
+#define DEBUG_FLAGS (CB_Scene.DebugFlags)
+
 #endif /* SHADERFLAGS_HLSL */

@@ -16,6 +16,7 @@ namespace Graphics
 
 		// DEBUG: Non specific debug flags for quick testing
 		uint32_t DebugFlags = 0;
+		uint32_t ShaderDebugFlags = 0;
 
 		// NOTE: Used by all newly created texture samplers
 		int32_t AnistropicFiltering = D3D11_DEFAULT_MAX_ANISOTROPY;

@@ -44,6 +44,8 @@ struct SceneData
     float1 ShadowExponent;
     
     float1 SubsurfaceScatteringParameter;
+    
+    uint DebugFlags;
 };
 
 #endif /* SCENEDATA_HLSL */

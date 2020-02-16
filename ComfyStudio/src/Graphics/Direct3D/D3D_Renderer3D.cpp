@@ -533,6 +533,8 @@ namespace Graphics
 
 		sceneCB.Data.SubsurfaceScatteringParameter = renderParameters->RenderSubsurfaceScattering ? DefaultSSSParameter : 0.0f;
 
+		sceneCB.Data.DebugFlags = renderParameters->ShaderDebugFlags;
+
 		sceneCB.UploadData();
 
 		sceneCB.BindShaders();

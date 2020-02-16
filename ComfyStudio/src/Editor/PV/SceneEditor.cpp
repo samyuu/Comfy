@@ -34,7 +34,6 @@ namespace Editor
 	{
 		renderWindow->Initialize();
 
-#if 1 // DEBUG:
 		context.Camera.FieldOfView = 90.0f;
 
 		context.Camera.ViewPoint = vec3(0.0f, 1.1f, 1.5f);
@@ -42,7 +41,6 @@ namespace Editor
 
 		cameraController.FirstPersonData.TargetPitch = -11.0f;
 		cameraController.FirstPersonData.TargetYaw = -90.000f;
-#endif
 
 		if (sceneGraph.LoadedObjSets.empty())
 		{
@@ -350,16 +348,16 @@ namespace Editor
 			Gui::PushStyleColor(ImGuiCol_Text, loadingColor);
 		if (Gui::Button("Take Screenshot", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
 			TakeSceneRenderTargetScreenshot(context.RenderData.Output.RenderTarget);
+		if (isScreenshotSaving)
+			Gui::PopStyleColor(1);
 		Gui::ItemContextMenu("TakeScreenshotContextMenu", [&]
 		{
 			if (Gui::MenuItem("Open Directory"))
 				FileSystem::OpenInExplorer(Utf8ToUtf16(ScreenshotDirectoy));
 		});
-		if (isScreenshotSaving)
-			Gui::PopStyleColor(1);
 
-		Gui::CheckboxFlags("DebugFlags_0", &renderParameters.DebugFlags, (1 << 0));
-		Gui::CheckboxFlags("DebugFlags_1", &renderParameters.DebugFlags, (1 << 1));
+		Gui::CheckboxFlags("DebugFlags_0", &renderParameters.DebugFlags, (1 << 0)); Gui::SameLine(); Gui::CheckboxFlags("ShaderDebugFlags_0", &renderParameters.ShaderDebugFlags, (1 << 0));
+		Gui::CheckboxFlags("DebugFlags_1", &renderParameters.DebugFlags, (1 << 1)); Gui::SameLine(); Gui::CheckboxFlags("ShaderDebugFlags_1", &renderParameters.ShaderDebugFlags, (1 << 1));
 		Gui::ColorEdit4("Clear Color", glm::value_ptr(renderParameters.ClearColor));
 		Gui::Checkbox("Clear", &renderParameters.Clear);
 		Gui::Checkbox("Preserve Alpha", &renderParameters.ToneMapPreserveAlpha);
@@ -806,7 +804,7 @@ namespace Editor
 				int materialIndex = 0;
 				material->IterateTextures([&](MaterialTexture* materialTexture)
 				{
-					std::array names = { "Diffuse", "Ambient", "Normal", "Specular", "ToonCurve", "Reflection", "Lucency", "" };
+					std::array names = { "Diffuse", "Ambient", "Normal", "Specular", "ToonCurve", "Reflection", "Translucency", "" };
 					auto textureTypeName = names[materialIndex++];
 
 					if (auto txp = renderer3D->GetTxpFromTextureID(materialTexture->TextureID); txp != nullptr)
