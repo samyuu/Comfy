@@ -29,9 +29,9 @@ namespace Graphics
 			return {};
 		}
 
-		constexpr size_t GetLightMapByteSize(LightMap& lightMap)
+		constexpr size_t GetLightMapFaceByteSize(ivec2 lightMapSize, LightMapFormat lightMapFormat)
 		{
-			auto getBytesPerPixel = [](LightMapFormat format) 
+			auto getBytesPerPixel = [](LightMapFormat format)
 			{
 				switch (format)
 				{
@@ -45,13 +45,13 @@ namespace Graphics
 					return 0;
 				}
 			};
-			
-			const size_t bytesPerPixel = getBytesPerPixel(lightMap.Format);
-			return lightMap.Size.x * lightMap.Size.y * bytesPerPixel;
+
+			const size_t bytesPerPixel = getBytesPerPixel(lightMapFormat);
+			return lightMapSize.x * lightMapSize.y * bytesPerPixel;
 		}
 	}
 
-	LightDataIBL::LightDataIBL() 
+	LightDataIBL::LightDataIBL()
 		: Version(), Character(), Stage(), Sun(), Reflect(), Shadow(), CharacterColor(), CharacterF(), Projection()
 	{
 
@@ -159,14 +159,17 @@ namespace Graphics
 		for (size_t i = 0; i < static_cast<size_t>(LightTargetType::Count); i++)
 		{
 			auto& lightMap = GetLightData(static_cast<LightTargetType>(i))->LightMap;
+			const bool valid = (lightMap.Size.x >= 1 && lightMap.Size.y >= 1);
 
-			bool valid = (lightMap.Size.x >= 1 && lightMap.Size.y >= 1);
+			lightMap.DataPointers = {};
 			for (size_t i = 0; i < lightMap.DataPointers.size(); i++)
 			{
-				lightMap.DataPointers[i] = valid ? binaryBuffer : nullptr;
-				binaryBuffer += GetLightMapByteSize(lightMap);
+				lightMap.DataPointers[i][0] = valid ? binaryBuffer : nullptr;
+				binaryBuffer += GetLightMapFaceByteSize(lightMap.Size, lightMap.Format);
 			}
 		}
+
+		// TODO: Calculate mipmaps used for rendering self shadows
 	}
 
 	void LightDataIBL::UploadAll()

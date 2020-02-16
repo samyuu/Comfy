@@ -16,9 +16,11 @@ namespace Graphics
 
 	struct LightMap
 	{
+		static constexpr size_t CubeMapFaces = 6, MaxMipMaps = 2;
+
 		LightMapFormat Format;
 		ivec2 Size;
-		std::array<const uint8_t*, 6> DataPointers;
+		std::array<std::array<const uint8_t*, MaxMipMaps>, CubeMapFaces> DataPointers;
 
 		UniquePtr<D3D_CubeMap> CubeMap;
 	};

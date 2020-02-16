@@ -563,10 +563,18 @@ namespace Graphics
 
 	D3D_CubeMap::D3D_CubeMap(const LightMap& lightMap)
 	{
+		uint32_t mipMapLevels = 1;
+		for (uint32_t i = 0; i < lightMap.DataPointers[0].size(); i++)
+		{
+			if (lightMap.DataPointers[0][i] == nullptr)
+				break;
+			mipMapLevels = i + 1;
+		}
+
 		textureFormat = TextureFormat::Unknown;
 		textureDescription.Width = lightMap.Size.x;
 		textureDescription.Height = lightMap.Size.y;
-		textureDescription.MipLevels = 1;
+		textureDescription.MipLevels = mipMapLevels;
 		textureDescription.ArraySize = CubeFaceCount;
 		textureDescription.Format = GetDxgiFormat(lightMap.Format);
 		textureDescription.SampleDesc.Count = 1;
@@ -578,12 +586,15 @@ namespace Graphics
 
 		const UINT bitsPerPixel = GetBitsPerPixel(textureDescription.Format);
 
-		std::array<D3D11_SUBRESOURCE_DATA, CubeFaceCount * MaxMipMaps> initialResourceData;
+		std::array<D3D11_SUBRESOURCE_DATA, CubeFaceCount * MaxMipMaps> initialResourceData = {};
 
 		for (uint32_t faceIndex = 0; faceIndex < CubeFaceCount; faceIndex++)
 		{
 			for (uint32_t mipIndex = 0; mipIndex < textureDescription.MipLevels; mipIndex++)
-				initialResourceData[LightMapCubeFaceIndices[faceIndex] * textureDescription.MipLevels + mipIndex] = { lightMap.DataPointers[faceIndex], GetMemoryPitch(lightMap.Size, bitsPerPixel), 0 };
+			{
+				const ivec2 mipMapSize = (lightMap.Size >> static_cast<int32_t>(mipIndex));
+				initialResourceData[LightMapCubeFaceIndices[faceIndex] * textureDescription.MipLevels + mipIndex] = { lightMap.DataPointers[faceIndex][mipIndex], GetMemoryPitch(mipMapSize, bitsPerPixel, false), 0 };
+			}
 		}
 
 		D3D.Device->CreateTexture2D(&textureDescription, initialResourceData.data(), &texture);
