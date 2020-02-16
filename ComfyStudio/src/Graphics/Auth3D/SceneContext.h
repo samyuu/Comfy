@@ -91,7 +91,7 @@ namespace Graphics
 	struct ShadowMappingRenderData
 	{
 		static constexpr DXGI_FORMAT MainDepthFormat = DXGI_FORMAT_D32_FLOAT;
-		static constexpr DXGI_FORMAT PostProcessingFormat = DXGI_FORMAT_R16_FLOAT;
+		static constexpr DXGI_FORMAT PostProcessingFormat = DXGI_FORMAT_R32_FLOAT;
 
 		// NOTE: Main depth render target rendered to using the silhouette shader
 		D3D_DepthOnlyRenderTarget RenderTarget = { RenderParameters::ShadowMapDefaultResolution, MainDepthFormat };
