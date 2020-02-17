@@ -54,23 +54,23 @@ bool DualShock4::PollInput()
 }
 
 float DualShock4::NormalizeTrigger(long value) const
-{ 
-	return static_cast<float>(value) / std::numeric_limits<uint16_t>::max(); 
+{
+	return static_cast<float>(value) / std::numeric_limits<uint16_t>::max();
 }
 
 float DualShock4::NormalizeStick(long value) const
-{ 
+{
 	return static_cast<float>(value) / std::numeric_limits<uint16_t>::max() * 2.0f - 1.0f;
 }
 
 Joystick DualShock4::NormalizeStick(long x, long y) const
-{ 
-	return Joystick(NormalizeStick(x), NormalizeStick(y)); 
+{
+	return Joystick(NormalizeStick(x), NormalizeStick(y));
 }
 
 void DualShock4::UpdateInternalDs4State(Ds4State& state)
 {
-	if ((state.Dpad.IsDown = state.DI_JoyState.rgdwPOV[0]) != -1)
+	if (state.Dpad.IsDown = (state.DI_JoyState.rgdwPOV[0] != -1))
 	{
 		state.Dpad.Angle = (state.DI_JoyState.rgdwPOV[0] / 100.0f);
 
@@ -120,19 +120,19 @@ bool DualShock4::Instance_WasUp(Ds4Button button) const
 	return !Instance_WasDown(button);
 }
 
-Joystick DualShock4::GetLeftStick() const 
-{ 
-	return currentState.LeftStick; 
+Joystick DualShock4::GetLeftStick() const
+{
+	return currentState.LeftStick;
 }
 
-Joystick DualShock4::GetRightStick() const 
-{ 
-	return currentState.RightStick; 
+Joystick DualShock4::GetRightStick() const
+{
+	return currentState.RightStick;
 }
 
-Joystick DualShock4::GetDpad() const 
-{ 
-	return currentState.Dpad.Stick; 
+Joystick DualShock4::GetDpad() const
+{
+	return currentState.Dpad.Stick;
 }
 
 bool DualShock4::TryInitializeInstance()
