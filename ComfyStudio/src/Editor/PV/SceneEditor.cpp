@@ -1,4 +1,5 @@
 #include "SceneEditor.h"
+#include "Core/ComfyData.h"
 #include "Debug.h"
 #include "Graphics/Auth3D/A3D.h"
 #include "Graphics/Auth3D/A3DMgr.h"
@@ -130,6 +131,10 @@ namespace Editor
 
 		if (Gui::Begin(ICON_FA_SYNC_ALT "  A3D Test"))
 			DrawA3DTestGui();
+		Gui::End();
+
+		if (Gui::Begin(ICON_FA_PROJECT_DIAGRAM "  External Process"))
+			DrawExternalProcessTestGui();
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_BUG "  Debug Test"))
@@ -1013,6 +1018,64 @@ namespace Editor
 	void SceneEditor::DrawA3DTestGui()
 	{
 		// TODO:
+	}
+
+	void SceneEditor::DrawExternalProcessTestGui()
+	{
+		if (externalProcessTest.WasConfigInvalid)
+		{
+			Gui::TextUnformatted("Invalid Config Error");
+			return;
+		}
+
+		Gui::Text("ProcessID: %d", externalProcessTest.Process.GetProcess().ID);
+
+		if (Gui::Button("attach", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+		{
+			if (externalProcessTest.ShouldReadConfigFile)
+			{
+				externalProcessTest.ShouldReadConfigFile = false;
+
+				std::vector<uint8_t> fileBuffer;
+				if (ComfyData->ReadFileIntoBuffer("process/external_process.bin", fileBuffer))
+					externalProcessTest.Process.ParseConfig(fileBuffer.data(), fileBuffer.size());
+				else
+					externalProcessTest.WasConfigInvalid = true;
+			}
+
+			externalProcessTest.Process.Attach();
+		}
+
+		if (Gui::Checkbox("Sync Read Camera", &externalProcessTest.SyncReadCamera) && externalProcessTest.SyncReadCamera)
+			cameraController.Mode = CameraController3D::ControlMode::None;
+
+		if (Gui::Checkbox("Sync Write Camera", &externalProcessTest.SyncWriteCamera) && externalProcessTest.SyncWriteCamera)
+			cameraController.Mode = CameraController3D::ControlMode::Orbit;
+
+		if (externalProcessTest.SyncReadCamera)
+		{
+			const ProcessCameraData cameraData = externalProcessTest.Process.ReadCamera();
+			
+			if (externalProcessTest.Process.IsAttached())
+			{
+				context.Camera.ViewPoint = cameraData.ViewPoint;
+				context.Camera.Interest = cameraData.Interest;
+				context.Camera.FieldOfView = cameraData.FieldOfView;
+			}
+		}
+
+		if (externalProcessTest.SyncWriteCamera)
+		{
+			const ProcessCameraData cameraData = 
+			{
+				context.Camera.ViewPoint, 
+				context.Camera.Interest,
+				0.0f, 
+				context.Camera.FieldOfView
+			};
+
+			externalProcessTest.Process.WriteCamera(cameraData);
+		}
 	}
 
 	void SceneEditor::DrawDebugTestGui()

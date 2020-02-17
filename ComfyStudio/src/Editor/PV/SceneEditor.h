@@ -8,6 +8,7 @@
 #include "ImGui/Widgets/FileViewer.h"
 #include "StageTest.h"
 #include "CharaTest.h"
+#include "ExternalProcess.h"
 #include <future>
 
 namespace Editor
@@ -53,6 +54,7 @@ namespace Editor
 		void DrawStageTestGui();
 		void DrawCharaTestGui();
 		void DrawA3DTestGui();
+		void DrawExternalProcessTestGui();
 		void DrawDebugTestGui();
 
 	private:
@@ -72,6 +74,15 @@ namespace Editor
 
 		StageTestData stageTestData;
 		CharacterTestData charaTestData;
+		
+		struct ExtenralProcessTest
+		{
+			ExternalProcess Process;
+			bool ShouldReadConfigFile = true;
+			bool WasConfigInvalid = false;
+			bool SyncReadCamera = false;
+			bool SyncWriteCamera = false;
+		} externalProcessTest;
 
 		// NOTE: To asyncronously take screenshots 
 		std::future<void> lastScreenshotTaskFuture;
