@@ -27,7 +27,7 @@ namespace Graphics
 		float FieldOfView = 90.0f;
 		float AspectRatio = 16.0f / 9.0f;
 
-		float NearPlane = 0.1f;
+		float NearPlane = 0.050f;
 		float FarPlane = 6000.0f;
 
 	public:
