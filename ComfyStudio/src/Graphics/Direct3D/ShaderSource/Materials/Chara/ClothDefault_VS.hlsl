@@ -4,6 +4,7 @@
 #define COMFY_VS
 #define ARB_PROGRAM_ACCURATE 1
 #include "../Include/Assembly/DebugInterface.hlsl"
+#include "../Include/Assembly/TempRefactor.hlsl"
 
 VS_OUTPUT VS_main(VS_INPUT input)
 {
@@ -50,9 +51,8 @@ VS_OUTPUT VS_main(VS_INPUT input)
     
     VS_SET_OUTPUT_TEX_COORDS;
     
-    DP4(o_tex_shadow0.x, state_matrix_texture6[0], pos_w);
-    DP4(o_tex_shadow0.y, state_matrix_texture6[1], pos_w);
-    DP4(o_tex_shadow0.z, state_matrix_texture6[2], pos_w);
+    if (FLAGS_SHADOW)
+        o_tex_shadow0 = VS_GetShadowTextureCoordinates(pos_w);
     
     DP3(eye_w.x, camera_mvi[0], -pos_v);
     DP3(eye_w.y, camera_mvi[1], -pos_v);

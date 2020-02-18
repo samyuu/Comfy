@@ -23,10 +23,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     TEMP ndote;
         
     TEX2D_00(col0, a_tex_color0);
-    
-    // TODO: p_texcol_coef should be 1
-    //MAD(col0.xyz, col0.xyz, p_texcol_coef.xyz, p_texcol_offset.xyz);
-    
+    MAD(col0.xyz, col0.xyz, p_texcol_coef.xyz, p_texcol_offset.xyz);
     MAX(o_color.w, col0.w, p_max_alpha.w);
     TEX2D_02(tmp, a_tex_normal0);
     MAD(tmp.xy, tmp.wy, 2.0, -1.0);
@@ -66,27 +63,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     
     if (FLAGS_SHADOW)
     {
-        //float esm = saturate(exp2((ESMGauss.Sample(ScreenReflectionSampler, a_tex_shadow0.xy) - a_tex_shadow0.z) * p_esm_k.x));
-        //_tmp0 = StageShadowMap.Sample(ScreenReflectionSampler, a_tex_shadow0.xy);
-        //_tmp0 = mad(max(_tmp0, esm), program_env_13, program_env_12);
-        
-        #define TEX2D_19(result, texCoord) result = ESMFull.Sample(ScreenReflectionSampler, (texCoord).xy)
-        //return ESMFull.Sample(ScreenReflectionSampler, (a_tex_shadow0).xy);
-
-        TEX2D_19(_tmp0, a_tex_shadow0);
-        SUB(_tmp0.x, _tmp0.x, a_tex_shadow0.z);
-        MUL(_tmp0.x, _tmp0.x, p_esm_k.x);
-        MUL(_tmp0.x, _tmp0.x, state_material_emission.w);
-        EX2_SAT(_tmp0.x, _tmp0.x);
-        DP3(_tmp0.y, p_lit_dir, org_normal);
-        ADD_SAT(_tmp0.y, _tmp0.y, 1);
-        MUL(_tmp0.y, _tmp0.y, _tmp0.y);
-        MUL(_tmp0.y, _tmp0.y, _tmp0.y);
-        MIN(lc.yz, _tmp0.x, _tmp0.y);
-        MOV(lc.x, _tmp0.x);
-
-        //return float4(lc.xyz, 1.0);
-        //return float4(lc.x, 0.0, 0.0, 1.0);
+        PS_SAMPLE_CHARA_SHADOW_MAP;
     }
     else
     {
@@ -100,6 +77,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     TXLCUBE_09(diff, normal);
     MOV(normal.w, 1);
     TXLCUBE_09(tmp, normal);
+    
     LRP(diff, lc.y, diff, tmp);
     MUL(diff.xyz, diff.xyz, state_light0_diffuse.xyz);
     ADD(diff.xyz, diff.xyz, a_color0.w);

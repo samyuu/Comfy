@@ -120,6 +120,14 @@ _tmp0 = ShadowMap.Sample(ScreenReflectionSampler, a_tex_shadow0.xy);            
 _tmp0 = mad(max(_tmp0, esm), program_env_13, program_env_12);                                                               \
 // --------------------------------------------------------------------------------------------------------------------------
 
+// --------------------------------------------------------------------------------------------------------------------------
+#define PS_SAMPLE_CHARA_SHADOW_MAP                                                                                          \
+float light = saturate(dot(p_lit_dir.xyz, org_normal.xyz) + 1.0);                                                           \
+float depth = (ESMFull.Sample(ScreenReflectionSampler, a_tex_shadow0.xy) - a_tex_shadow0.z);                                \
+lc.x = saturate(exp2(depth * p_esm_k.x * state_material_emission.w));                                                       \
+lc.yz = min(lc.x, light * light * light).xx;                                                                                \
+// --------------------------------------------------------------------------------------------------------------------------
+
 static const float AlphaTestThreshold = 0.5;
 
 void ClipAlphaThreshold(const float alpha)

@@ -34,15 +34,28 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     DP3(rot_normal.x, nt_mtx[0], normal);
     DP3(rot_normal.y, nt_mtx[1], normal);
     DP3(rot_normal.z, nt_mtx[2], normal);
-    MOV(lc, 1);
+    
+    if (FLAGS_SHADOW)
+    {
+        float4 org_normal = normal;
+        PS_SAMPLE_CHARA_SHADOW_MAP;
+    }
+    else
+    {
+        MOV(lc, 1);
+    }
+    
     DP3_SAT(tmp.x, normal, eye);
     MOV(ndote.x, tmp.x);
     MAD(tmp.x, tmp.x, -tmp.x, 1.0);
     POW(tmp.x, tmp.x, 8.0);
+    
     MUL(tmp.x, tmp.x, a_color1.w);
+    
     MUL(luce.xyz, p_lit_luce.xyz, tmp.x);
     // TEX2D_01(tmp, a_tex_lucency);
     TEX2D_06(tmp, a_tex_lucency);
+    
     MUL(luce.xyz, luce.xyz, tmp.xyz);
     MUL(luce.xyz, luce.xyz, lc.z);
     MOV(rot_normal.w, 0);

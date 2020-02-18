@@ -42,7 +42,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     o_binormal = binormal_w;
     o_normal = normal_w;
     
-    float4 eye_w = float4(VS_GetWorldEye(pos_v), 1.0);
+    float4 eye_w = float4(ViewToInverseViewSpace(-pos_v.xyz), 0.0);
     o_eye = eye_w;
     
     eye_w.w = rsqrt(dot(eye_w.xyz, eye_w.xyz));

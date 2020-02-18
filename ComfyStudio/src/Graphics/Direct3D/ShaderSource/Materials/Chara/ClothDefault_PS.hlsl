@@ -50,7 +50,16 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     DP3(reflect.x, nt_mtx[0], tmp);
     DP3(reflect.y, nt_mtx[1], tmp);
     DP3(reflect.z, nt_mtx[2], tmp);
-    MOV(lc, 1);
+    
+    if (FLAGS_SHADOW)
+    {
+        PS_SAMPLE_CHARA_SHADOW_MAP;
+    }
+    else
+    {
+        MOV(lc, 1);
+    }
+    
     DP3_SAT(fres.w, normal, eye);
     MOV(ndote.x, fres.w);
     MAD(fres.x, fres.w, -fres.w, 1.0);
@@ -80,9 +89,9 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MAD(spec_ratio, spec_ratio, tmp.xxxw, p_texcol_coef.w);
     TEXCUBE_05(env, reflect);
     MOV(normal.w, 0);
-    TEXCUBE_09(diff, normal);
+    TXLCUBE_09(diff, normal);
     MOV(normal.w, 1);
-    TEXCUBE_09(tmp, normal);
+    TXLCUBE_09(tmp, normal);
     LRP(diff, lc.y, diff, tmp);
     MAD(diff.xyz, diff.xyz, state_light0_diffuse.xyz, a_color0.w);
     ADD(diff.xyz, diff.xyz, state_light0_ambient.xyz);

@@ -34,7 +34,8 @@ VS_OUTPUT VS_main(VS_INPUT input)
     if (FLAGS_SHADOW)
         o_tex_shadow0 = VS_GetShadowTextureCoordinates(pos_w);
     
-	float3 eye_w = VS_GetWorldEye(pos_v * rsqrt(dot(pos_v.xyz, pos_v.xyz)));
+	//float3 eye_w = VS_GetWorldEye(pos_v * rsqrt(dot(pos_v.xyz, pos_v.xyz)));
+	float3 eye_w = VS_GetWorldEye(pos_v);
 
 	float tmp = pow(saturate(1.0 - dot(normal_w, eye_w)), 5.0);
 	float4 spec_ratio = float4(mad(tmp, p_fres_coef.x, p_fres_coef.y).xxx, mad(tmp, (p_fres_coef.x * 10.0), 1.0)) * state_material_specular;

@@ -22,7 +22,16 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     DP3(normal.x, nt_mtx[0], org_normal);
     DP3(normal.y, nt_mtx[1], org_normal);
     DP3(normal.z, nt_mtx[2], org_normal);
-    MOV(lc, 1);
+    
+    if (FLAGS_SHADOW)
+    {
+        PS_SAMPLE_CHARA_SHADOW_MAP;
+    }
+    else
+    {
+        MOV(lc, 1);
+    }
+    
     TEX2D_03(tmp, a_tex_color0);
     //MUL(lc.z, lc, tmp.w);
     MUL(lc.z, lc.x, tmp.w);
