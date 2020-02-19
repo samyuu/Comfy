@@ -75,13 +75,13 @@ namespace Editor
 		StageTestData stageTestData;
 		CharacterTestData charaTestData;
 		
-		struct ExtenralProcessTest
+		struct ExternalProcessTest
 		{
-			ExternalProcess Process;
+			ExternalProcess ExternalProcess;
 			bool ShouldReadConfigFile = true;
 			bool WasConfigInvalid = false;
-			bool SyncReadCamera = false;
-			bool SyncWriteCamera = false;
+			bool SyncReadCamera = false, SyncWriteCamera = false;
+			bool SyncReadLightParam = false, SyncWriteLightParam = false;
 		} externalProcessTest;
 
 		// NOTE: To asyncronously take screenshots 

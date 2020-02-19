@@ -7,7 +7,7 @@ namespace Editor
 	namespace
 	{
 		template <typename T>
-		std::optional<T> ReadProcessValue(const ProcessData& process, uintptr_t address)
+		std::optional<T> ReadProcessValue(const ExternalProcess::ProcessData& process, uintptr_t address)
 		{
 			T valueToRead;
 
@@ -18,7 +18,7 @@ namespace Editor
 		}
 
 		template <typename T>
-		void TryReadProcessValueElseReset(std::optional<ProcessData>& process, T& valueOut, uintptr_t address)
+		void TryReadProcessValueElseReset(std::optional<ExternalProcess::ProcessData>& process, T& valueOut, uintptr_t address)
 		{
 			if (!process.has_value())
 				return;
@@ -32,7 +32,7 @@ namespace Editor
 		}
 
 		template <typename T>
-		bool WriteProcessValue(const ProcessData& process, uintptr_t address, T valueToWrite)
+		bool WriteProcessValue(const ExternalProcess::ProcessData& process, uintptr_t address, T valueToWrite)
 		{
 			SIZE_T bytesWritten = 0;
 			const BOOL result = ::WriteProcessMemory(static_cast<HANDLE>(process.Handle), reinterpret_cast<void*>(address), &valueToWrite, sizeof(T), &bytesWritten);
@@ -41,7 +41,7 @@ namespace Editor
 		}
 
 		template <typename T>
-		void TryWriteProcessValueElseReset(std::optional<ProcessData>& process, T valueIn, uintptr_t address)
+		void TryWriteProcessValueElseReset(std::optional<ExternalProcess::ProcessData>& process, T valueIn, uintptr_t address)
 		{
 			if (!process.has_value())
 				return;
@@ -60,10 +60,11 @@ namespace Editor
 		settings.ProcessName = reinterpret_cast<const char*>(buffer);
 		buffer += processNameMaxLength;
 
-		settings.Addresses.ViewPoint = *(reinterpret_cast<const uintptr_t*>(buffer) + 0);
-		settings.Addresses.Interest = *(reinterpret_cast<const uintptr_t*>(buffer) + 1);
-		settings.Addresses.Rotation = *(reinterpret_cast<const uintptr_t*>(buffer) + 2);
-		settings.Addresses.FieldOfView = *(reinterpret_cast<const uintptr_t*>(buffer) + 3);
+		settings.Addresses = *(reinterpret_cast<const ProcessSettings::AddressData*>(buffer));
+		buffer += sizeof(ProcessSettings::AddressData);
+
+		assert(std::strcmp(settings.Addresses.CameraIdentifier.data(), "camera") == 0);
+		assert(std::strcmp(settings.Addresses.LightParamIdentifier.data(), "light_param") == 0);
 	}
 
 	bool ExternalProcess::IsAttached() const
@@ -82,7 +83,7 @@ namespace Editor
 
 		PROCESSENTRY32 processEntry = {};
 		processEntry.dwSize = sizeof(processEntry);
-		
+
 		if (::Process32First(snapshot, &processEntry))
 		{
 			do
@@ -110,38 +111,84 @@ namespace Editor
 		process.reset();
 	}
 
-	ProcessCameraData ExternalProcess::ReadCamera()
+	ExternalProcess::CameraData ExternalProcess::ReadCamera()
 	{
-		ProcessCameraData cameraData {};
-
+		CameraData cameraData {};
 		if (!process.has_value())
 			return cameraData;
 
-		TryReadProcessValueElseReset(process, cameraData.ViewPoint, settings.Addresses.ViewPoint);
-		TryReadProcessValueElseReset(process, cameraData.Interest, settings.Addresses.Interest);
-		TryReadProcessValueElseReset(process, cameraData.Rotation, settings.Addresses.Rotation);
-		TryReadProcessValueElseReset(process, cameraData.FieldOfView, settings.Addresses.FieldOfView);
+		TryReadProcessValueElseReset(process, cameraData.ViewPoint, settings.Addresses.Camera.ViewPoint);
+		TryReadProcessValueElseReset(process, cameraData.Interest, settings.Addresses.Camera.Interest);
+		TryReadProcessValueElseReset(process, cameraData.Rotation, settings.Addresses.Camera.Rotation);
+		TryReadProcessValueElseReset(process, cameraData.FieldOfView, settings.Addresses.Camera.FieldOfView);
 
 		return cameraData;
 	}
 
-	void ExternalProcess::WriteCamera(const ProcessCameraData& cameraData)
+	void ExternalProcess::WriteCamera(const CameraData& cameraData)
 	{
 		if (!process.has_value())
 			return;
 
-		TryWriteProcessValueElseReset(process, cameraData.ViewPoint, settings.Addresses.ViewPoint);
-		TryWriteProcessValueElseReset(process, cameraData.Interest, settings.Addresses.Interest);
-		TryWriteProcessValueElseReset(process, cameraData.Rotation, settings.Addresses.Rotation);
-		TryWriteProcessValueElseReset(process, cameraData.FieldOfView, settings.Addresses.FieldOfView);
+		TryWriteProcessValueElseReset(process, cameraData.ViewPoint, settings.Addresses.Camera.ViewPoint);
+		TryWriteProcessValueElseReset(process, cameraData.Interest, settings.Addresses.Camera.Interest);
+		TryWriteProcessValueElseReset(process, cameraData.Rotation, settings.Addresses.Camera.Rotation);
+		TryWriteProcessValueElseReset(process, cameraData.FieldOfView, settings.Addresses.Camera.FieldOfView);
 	}
 
-	ProcessData ExternalProcess::GetProcess() const
+	ExternalProcess::LightParamData ExternalProcess::ReadLightParam()
+	{
+		LightParamData lightData {};
+		if (!process.has_value())
+			return lightData;
+
+		TryReadProcessValueElseReset(process, lightData.Character.Ambient, settings.Addresses.LightParam.Character.Ambient);
+		TryReadProcessValueElseReset(process, lightData.Character.Diffuse, settings.Addresses.LightParam.Character.Diffuse);
+		TryReadProcessValueElseReset(process, lightData.Character.Specular, settings.Addresses.LightParam.Character.Specular);
+		TryReadProcessValueElseReset(process, lightData.Character.Position, settings.Addresses.LightParam.Character.Position);
+
+		TryReadProcessValueElseReset(process, lightData.Stage.Ambient, settings.Addresses.LightParam.Stage.Ambient);
+		TryReadProcessValueElseReset(process, lightData.Stage.Diffuse, settings.Addresses.LightParam.Stage.Diffuse);
+		TryReadProcessValueElseReset(process, lightData.Stage.Specular, settings.Addresses.LightParam.Stage.Specular);
+		TryReadProcessValueElseReset(process, lightData.Stage.Position, settings.Addresses.LightParam.Stage.Position);
+
+		TryReadProcessValueElseReset(process, lightData.IBLCharacter.Color, settings.Addresses.LightParam.IBLCharacter.Color);
+		// NOTE: Unused
+		// TryReadProcessValueElseReset(process, lightData.IBLCharacter.Matrices, settings.Addresses.LightParam.IBLCharacter.Matrices);
+		TryReadProcessValueElseReset(process, lightData.IBLStage.Color, settings.Addresses.LightParam.IBLStage.Color);
+		TryReadProcessValueElseReset(process, lightData.IBLStage.Matrices, settings.Addresses.LightParam.IBLStage.Matrices);
+
+		return lightData;
+	}
+
+	void ExternalProcess::WriteLightParam(const LightParamData& lightData)
+	{
+		if (!process.has_value())
+			return;
+
+		TryWriteProcessValueElseReset(process, lightData.Character.Ambient, settings.Addresses.LightParam.Character.Ambient);
+		TryWriteProcessValueElseReset(process, lightData.Character.Diffuse, settings.Addresses.LightParam.Character.Diffuse);
+		TryWriteProcessValueElseReset(process, lightData.Character.Specular, settings.Addresses.LightParam.Character.Specular);
+		TryWriteProcessValueElseReset(process, lightData.Character.Position, settings.Addresses.LightParam.Character.Position);
+
+		TryWriteProcessValueElseReset(process, lightData.Stage.Ambient, settings.Addresses.LightParam.Stage.Ambient);
+		TryWriteProcessValueElseReset(process, lightData.Stage.Diffuse, settings.Addresses.LightParam.Stage.Diffuse);
+		TryWriteProcessValueElseReset(process, lightData.Stage.Specular, settings.Addresses.LightParam.Stage.Specular);
+		TryWriteProcessValueElseReset(process, lightData.Stage.Position, settings.Addresses.LightParam.Stage.Position);
+
+		TryWriteProcessValueElseReset(process, lightData.IBLCharacter.Color, settings.Addresses.LightParam.IBLCharacter.Color);
+		// NOTE: Unused
+		// TryWriteProcessValueElseReset(process, lightData.IBLCharacter.Matrices, settings.Addresses.LightParam.IBLCharacter.Matrices);
+		TryWriteProcessValueElseReset(process, lightData.IBLStage.Color, settings.Addresses.LightParam.IBLStage.Color);
+		TryWriteProcessValueElseReset(process, lightData.IBLStage.Matrices, settings.Addresses.LightParam.IBLStage.Matrices);
+	}
+
+	ExternalProcess::ProcessData ExternalProcess::GetProcess() const
 	{
 		return process.value_or(ProcessData {});
 	}
 
-	const ProcessSettings& ExternalProcess::GetSettings() const
+	const ExternalProcess::ProcessSettings& ExternalProcess::GetSettings() const
 	{
 		return settings;
 	}

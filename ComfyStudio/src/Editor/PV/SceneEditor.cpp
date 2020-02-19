@@ -1022,15 +1022,7 @@ namespace Editor
 
 	void SceneEditor::DrawExternalProcessTestGui()
 	{
-		if (externalProcessTest.WasConfigInvalid)
-		{
-			Gui::TextUnformatted("Invalid Config Error");
-			return;
-		}
-
-		Gui::Text("ProcessID: %d", externalProcessTest.Process.GetProcess().ID);
-
-		if (Gui::Button("attach", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+		auto tryAttach = [&]
 		{
 			if (externalProcessTest.ShouldReadConfigFile)
 			{
@@ -1038,43 +1030,134 @@ namespace Editor
 
 				std::vector<uint8_t> fileBuffer;
 				if (ComfyData->ReadFileIntoBuffer("process/external_process.bin", fileBuffer))
-					externalProcessTest.Process.ParseConfig(fileBuffer.data(), fileBuffer.size());
+					externalProcessTest.ExternalProcess.ParseConfig(fileBuffer.data(), fileBuffer.size());
 				else
 					externalProcessTest.WasConfigInvalid = true;
 			}
 
-			externalProcessTest.Process.Attach();
+			if (!externalProcessTest.ExternalProcess.IsAttached())
+				externalProcessTest.ExternalProcess.Attach();
+
+			return externalProcessTest.ExternalProcess.IsAttached();
+		};
+
+		if (externalProcessTest.WasConfigInvalid)
+		{
+			Gui::TextUnformatted("Invalid Config Error");
+			return;
 		}
 
-		if (Gui::Checkbox("Sync Read Camera", &externalProcessTest.SyncReadCamera) && externalProcessTest.SyncReadCamera)
-			cameraController.Mode = CameraController3D::ControlMode::None;
-
-		if (Gui::Checkbox("Sync Write Camera", &externalProcessTest.SyncWriteCamera) && externalProcessTest.SyncWriteCamera)
-			cameraController.Mode = CameraController3D::ControlMode::Orbit;
-
-		if (externalProcessTest.SyncReadCamera)
+		Gui::BeginChild("ExternalProcessChild", vec2(0.0f), true);
 		{
-			const ProcessCameraData cameraData = externalProcessTest.Process.ReadCamera();
-			
-			if (externalProcessTest.Process.IsAttached())
+			if (Gui::WideTreeNodeEx(ICON_FA_INFO "  Process Info", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				context.Camera.ViewPoint = cameraData.ViewPoint;
-				context.Camera.Interest = cameraData.Interest;
-				context.Camera.FieldOfView = cameraData.FieldOfView;
+				const auto& processData = externalProcessTest.ExternalProcess.GetProcess();
+				const auto& processSettings = externalProcessTest.ExternalProcess.GetSettings();
+
+				Gui::BeginColumns("ProcessInfoColumns", 2, ImGuiColumnsFlags_NoBorder);
+				{
+					Gui::TextUnformatted("Process Name");
+					Gui::NextColumn();
+					Gui::Text("%s", processSettings.ProcessName.c_str());
+					Gui::NextColumn();
+
+					Gui::TextUnformatted("Process ID");
+					Gui::NextColumn();
+					Gui::Text("%d", processData.ID);
+					Gui::NextColumn();
+
+					Gui::TextUnformatted("Process Handle");
+					Gui::NextColumn();
+					Gui::Text("%p", processData.Handle);
+					Gui::NextColumn();
+				}
+				Gui::EndColumns();
+				Gui::TreePop();
 			}
+			Gui::Separator();
+
+			if (Gui::WideTreeNodeEx(ICON_FA_CAMERA "  Camera", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				Gui::BeginColumns("CameraColumns", 2, ImGuiColumnsFlags_NoBorder);
+				{
+					if (Gui::Checkbox("Sync Read Camera", &externalProcessTest.SyncReadCamera) && externalProcessTest.SyncReadCamera)
+						cameraController.Mode = CameraController3D::ControlMode::None;
+					Gui::NextColumn();
+					if (Gui::Checkbox("Sync Write Camera", &externalProcessTest.SyncWriteCamera) && externalProcessTest.SyncWriteCamera)
+						cameraController.Mode = CameraController3D::ControlMode::Orbit;
+					Gui::NextColumn();
+				}
+				Gui::EndColumns();
+				Gui::TreePop();
+			}
+			Gui::Separator();
+
+			if (Gui::WideTreeNodeEx(ICON_FA_LIGHTBULB "  Light Param", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				Gui::BeginColumns("LightParamColumns", 2, ImGuiColumnsFlags_NoBorder);
+				{
+					Gui::Checkbox("Sync Read Light", &externalProcessTest.SyncReadLightParam);
+					Gui::NextColumn();
+					Gui::Checkbox("Sync Write Light", &externalProcessTest.SyncWriteLightParam);
+					Gui::NextColumn();
+				}
+				Gui::EndColumns();
+				Gui::TreePop();
+			}
+			Gui::Separator();
+		}
+		Gui::EndChild();
+
+		if (externalProcessTest.SyncReadCamera && tryAttach())
+		{
+			const auto cameraData = externalProcessTest.ExternalProcess.ReadCamera();
+			context.Camera.ViewPoint = cameraData.ViewPoint;
+			context.Camera.Interest = cameraData.Interest;
+			context.Camera.FieldOfView = cameraData.FieldOfView;
+		}
+		else if (externalProcessTest.SyncWriteCamera && tryAttach())
+		{
+			externalProcessTest.ExternalProcess.WriteCamera({ context.Camera.ViewPoint, context.Camera.Interest, 0.0f, context.Camera.FieldOfView });
 		}
 
-		if (externalProcessTest.SyncWriteCamera)
+		if (externalProcessTest.SyncReadLightParam && tryAttach())
 		{
-			const ProcessCameraData cameraData = 
-			{
-				context.Camera.ViewPoint, 
-				context.Camera.Interest,
-				0.0f, 
-				context.Camera.FieldOfView
-			};
+			const auto lightData = externalProcessTest.ExternalProcess.ReadLightParam();
 
-			externalProcessTest.Process.WriteCamera(cameraData);
+			context.Light.Character.Ambient = lightData.Character.Ambient;
+			context.Light.Character.Diffuse = lightData.Character.Diffuse;
+			context.Light.Character.Specular = lightData.Character.Specular;
+			context.Light.Character.Position = lightData.Character.Position;
+
+			context.Light.Stage.Ambient = lightData.Stage.Ambient;
+			context.Light.Stage.Diffuse = lightData.Stage.Diffuse;
+			context.Light.Stage.Specular = lightData.Stage.Specular;
+			context.Light.Stage.Position = lightData.Stage.Position;
+
+			context.IBL.Character.LightColor = lightData.IBLCharacter.Color;
+			context.IBL.Character.IrradianceRGB = lightData.IBLCharacter.Matrices;
+			context.IBL.Stage.LightColor = lightData.IBLStage.Color;
+			context.IBL.Stage.IrradianceRGB = lightData.IBLStage.Matrices;
+		}
+		else if (externalProcessTest.SyncWriteLightParam && tryAttach())
+		{
+			externalProcessTest.ExternalProcess.WriteLightParam(
+				{
+					vec4(context.Light.Character.Ambient, 1.0f),
+					vec4(context.Light.Character.Diffuse, 1.0f),
+					vec4(context.Light.Character.Specular, 1.0f),
+					context.Light.Character.Position,
+
+					vec4(context.Light.Stage.Ambient, 1.0f),
+					vec4(context.Light.Stage.Diffuse, 1.0f),
+					vec4(context.Light.Stage.Specular, 1.0f),
+					context.Light.Stage.Position,
+
+					context.IBL.Character.LightColor,
+					context.IBL.Character.IrradianceRGB,
+					context.IBL.Stage.LightColor,
+					context.IBL.Stage.IrradianceRGB,
+				});
 		}
 	}
 
