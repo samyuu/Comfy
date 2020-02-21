@@ -12,7 +12,6 @@ namespace App
 	{
 	public:
 		EngineRenderWindow();
-		EngineRenderWindow(const EngineRenderWindow& other) = delete;
 		~EngineRenderWindow();
 
 		void OnUpdateInput() override;
@@ -21,7 +20,7 @@ namespace App
 		void OnRender() override;
 		void PostDrawGui() override;
 
-		template <class T> void StartTask() 
+		template <typename T> void StartTask() 
 		{
 			static_assert(std::is_base_of<Task, T>::value, "T must inherit from Task");
 
@@ -44,12 +43,10 @@ namespace App
 		ImGuiWindow* guiWindow;
 	};
 
-	class Engine
+	class Engine : NonCopyable
 	{
 	public:
 		Engine();
-		Engine(const Engine&) = delete;
-		Engine& operator=(const Engine&) = delete;
 		~Engine();
 
 		void Tick();

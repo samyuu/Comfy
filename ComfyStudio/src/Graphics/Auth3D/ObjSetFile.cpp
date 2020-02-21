@@ -39,7 +39,7 @@ namespace Graphics
 			return { ReadTranposeVec3(reader), ReadTranposeVec3(reader) };
 		}
 
-		template <class T>
+		template <typename T>
 		void CheckReadVertexData(BinaryReader& reader, Mesh& mesh, VertexAttribute_Enum attribute, std::vector<T>& vector, void** attributePointers, void* baseAddress)
 		{
 			void* attributePointer = attributePointers[attribute];

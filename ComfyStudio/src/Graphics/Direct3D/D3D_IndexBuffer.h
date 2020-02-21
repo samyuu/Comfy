@@ -28,10 +28,7 @@ namespace Graphics
 	{
 	public:
 		D3D_StaticIndexBuffer(size_t dataSize, const void* data, IndexType indexType);
-		D3D_StaticIndexBuffer(const D3D_StaticIndexBuffer&) = delete;
 		~D3D_StaticIndexBuffer() = default;
-
-		D3D_StaticIndexBuffer& operator=(const D3D_StaticIndexBuffer&) = delete;
 
 	public:
 	};
@@ -40,10 +37,7 @@ namespace Graphics
 	{
 	public:
 		D3D_DynamicIndexBuffer(size_t dataSize, const void* data, IndexType indexType);
-		D3D_DynamicIndexBuffer(const D3D_DynamicIndexBuffer&) = delete;
 		~D3D_DynamicIndexBuffer() = default;
-
-		D3D_DynamicIndexBuffer& operator=(const D3D_DynamicIndexBuffer&) = delete;
 
 	public:
 		void UploadData(size_t dataSize, const void* data);

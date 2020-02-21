@@ -55,16 +55,13 @@ namespace Graphics
 	};
 
 	// TODO: Rename to reflect sprite / position templates, sprites and image sequences
-	class AetSurface
+	class AetSurface : NonCopyable
 	{
 		friend class Aet;
 
 	public:
 		AetSurface() = default;
-		AetSurface(const AetSurface&) = delete;
 		~AetSurface() = default;
-
-		AetSurface& operator=(const AetSurface&) = delete;
 
 	public:
 		// NOTE: Editor internal color
@@ -174,7 +171,7 @@ namespace Graphics
 		uint16_t AllBits;
 	};
 
-	class AetLayer
+	class AetLayer : NonCopyable
 	{
 		friend class Aet;
 		friend class AetComposition;
@@ -185,10 +182,7 @@ namespace Graphics
 	public:
 		AetLayer();
 		AetLayer(AetLayerType type, const std::string& name, AetComposition* parentComp);
-		AetLayer(const AetLayer&) = delete;
 		~AetLayer();
-
-		AetLayer& operator=(const AetLayer&) = delete;
 
 	public:
 		mutable GuiExtraData GuiData;
@@ -274,16 +268,13 @@ namespace Graphics
 		void Read(FileSystem::BinaryReader& reader);
 	};
 
-	class AetComposition
+	class AetComposition : NonCopyable
 	{
 		friend class Aet;
 
 	public:
 		AetComposition() = default;
-		AetComposition(const AetComposition&) = delete;
 		~AetComposition() = default;
-
-		AetComposition& operator=(const AetComposition&) = delete;
 
 	public:
 		mutable GuiExtraData GuiData;
@@ -342,16 +333,13 @@ namespace Graphics
 		AetProperty2D Position;
 	};
 
-	class AetSoundEffect
+	class AetSoundEffect : NonCopyable
 	{
 		friend class Aet;
 
 	public:
 		AetSoundEffect() = default;
-		AetSoundEffect(const AetSoundEffect&) = delete;
 		~AetSoundEffect() = default;
-
-		AetSoundEffect& operator=(const AetSoundEffect&) = delete;
 
 	public:
 		unk32_t Data;
@@ -363,7 +351,7 @@ namespace Graphics
 		fileptr_t filePosition;
 	};
 
-	class Aet
+	class Aet : NonCopyable
 	{
 		friend class AetSet;
 		friend class AetComposition;
@@ -371,10 +359,7 @@ namespace Graphics
 
 	public:
 		Aet() = default;
-		Aet(const Aet&) = delete;
 		~Aet() = default;
-
-		Aet& operator=(const Aet&) = delete;
 
 	public:
 		// NOTE: Typically "MAIN", "TOUCH" or named after the display mode
@@ -436,14 +421,11 @@ namespace Graphics
 		void InternalFindLayerReferencedParent(AetLayer* layer);
 	};
 
-	class AetSet final : public FileSystem::IBinaryFile
+	class AetSet final : public FileSystem::IBinaryFile, NonCopyable
 	{
 	public:
 		AetSet() = default;
-		AetSet(const AetSet&) = delete;
 		~AetSet() = default;
-
-		AetSet& operator=(const AetSet&) = delete;
 
 	public:
 		// TODO: File name, should probably be moved into the IReadable interface and be set OnLoad (?)

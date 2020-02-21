@@ -3,7 +3,7 @@
 
 namespace Editor
 {
-	class IMutatingEditorComponent
+	class IMutatingEditorComponent : NonCopyable
 	{
 	public:
 		IMutatingEditorComponent(AetCommandManager* commandManager);

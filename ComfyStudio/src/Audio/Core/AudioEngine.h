@@ -25,7 +25,7 @@ namespace Audio
 
 	class AudioInstance;
 
-	class AudioEngine
+	class AudioEngine : NonCopyable
 	{
 		friend DataTest::AudioTestWindow;
 
@@ -43,10 +43,7 @@ namespace Audio
 		static constexpr uint32_t MAX_BUFFER_SIZE = 0x2000;
 
 	public:
-		AudioEngine(const AudioEngine&) = delete;
 		~AudioEngine();
-
-		const AudioEngine& operator=(const AudioEngine&) = delete;
 
 		// ----------------------
 		void Initialize();

@@ -6,7 +6,7 @@
 
 namespace Editor
 {
-	template <class TCommand>
+	template <typename TCommand>
 	class CommandManager
 	{
 		static_assert(std::is_base_of<ICommand, TCommand>::value, "TCommand must inherit from ICommand");

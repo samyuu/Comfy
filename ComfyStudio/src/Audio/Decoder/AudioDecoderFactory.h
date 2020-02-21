@@ -6,12 +6,11 @@
 
 namespace Audio
 {
-	class AudioDecoderFactory
+	class AudioDecoderFactory : NonCopyable
 	{
 		static UniquePtr<AudioDecoderFactory> instance;
 
 	public:
-		AudioDecoderFactory(const AudioDecoderFactory& other) = delete;
 		~AudioDecoderFactory();
 
 		RefPtr<MemorySampleProvider> DecodeFile(std::string_view filePath);
@@ -23,7 +22,7 @@ namespace Audio
 	protected:
 		std::vector<UniquePtr<IAudioDecoder>> availableDecoders;
 	
-		template <class T>
+		template <typename T>
 		inline void RegisterDecoder()
 		{
 			static_assert(std::is_base_of<IAudioDecoder, T>::value, "T must inherit from IAudioDecoder");

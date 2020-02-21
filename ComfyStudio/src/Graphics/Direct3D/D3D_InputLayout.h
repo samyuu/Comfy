@@ -19,10 +19,7 @@ namespace Graphics
 	{
 	public:
 		D3D_InputLayout(const InputElement* elements, size_t elementCount, const D3D_VertexShader& vertexShader);
-		D3D_InputLayout(const D3D_InputLayout&) = delete;
 		~D3D_InputLayout() = default;
-
-		D3D_InputLayout& operator=(const D3D_InputLayout&) = delete;
 
 	public:
 		void Bind();

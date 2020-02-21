@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Core/NonCopyable.h"
 #include "Core/SmartPointers.h"
 
 using unk8_t = uint8_t;

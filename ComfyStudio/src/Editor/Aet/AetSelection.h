@@ -38,7 +38,7 @@ namespace Editor
 	struct AetItemTypePtr
 	{
 	public:
-		template <class T>
+		template <typename T>
 		inline void SetItem(const RefPtr<T>& value);
 
 		inline AetItemType Type() const { return type; };

@@ -81,7 +81,7 @@ namespace FileSystem
 		uint64_t DataOffset;
 	};
 
-	class ComfyArchive
+	class ComfyArchive : NonCopyable
 	{
 	public:
 		static constexpr std::array<uint8_t, 4> Magic = { 0xCF, 0x5C, 0xAC, 0x90 };
@@ -91,10 +91,7 @@ namespace FileSystem
 
 	public:
 		ComfyArchive();
-		ComfyArchive(const ComfyArchive&) = delete;
 		~ComfyArchive();
-
-		ComfyArchive& operator=(const ComfyArchive&) = delete;
 
 	public:
 		void Mount(const std::string_view filePath);

@@ -13,17 +13,14 @@
 
 namespace Graphics
 {
-	class D3D_Renderer2D
+	class D3D_Renderer2D : NonCopyable
 	{
 	public:
 		static constexpr uint32_t MaxBatchItemSize = 2048;
 
 	public:
 		D3D_Renderer2D();
-		D3D_Renderer2D(const D3D_Renderer2D&) = default;
 		~D3D_Renderer2D() = default;
-
-		D3D_Renderer2D& operator=(const D3D_Renderer2D&) = delete;
 
 	public:
 		void Begin(const OrthographicCamera& camera);

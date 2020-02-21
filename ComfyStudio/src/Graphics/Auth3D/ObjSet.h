@@ -286,14 +286,11 @@ namespace Graphics
 		void Read(FileSystem::BinaryReader& reader);
 	};
 
-	class ObjSet final : public FileSystem::IBinaryReadable
+	class ObjSet final : public FileSystem::IBinaryReadable, NonCopyable
 	{
 	public:
 		ObjSet() = default;
-		ObjSet(const ObjSet&) = delete;
 		~ObjSet() = default;
-
-		ObjSet& operator=(const ObjSet&) = delete;
 
 	public:
 		std::string Name;

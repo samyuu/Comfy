@@ -32,7 +32,7 @@ namespace Editor
 
 	private:
 		// NOTE: Base methods
-		template <class T> 
+		template <typename T> 
 		void AddEditorComponent(bool opened);
 
 		void Initialize();

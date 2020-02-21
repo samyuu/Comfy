@@ -4,13 +4,12 @@
 
 namespace Audio
 {
-	class MemorySampleProvider : public ISampleProvider
+	class MemorySampleProvider : public ISampleProvider, NonCopyable
 	{
 		friend class AudioDecoderFactory;
 
 	public:
 		MemorySampleProvider();
-		MemorySampleProvider(const MemorySampleProvider& other) = delete;
 		~MemorySampleProvider();
 
 		int64_t ReadSamples(int16_t bufferToFill[], int64_t frameOffset, int64_t framesToRead, uint32_t channelsToFill) override;

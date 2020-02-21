@@ -9,14 +9,11 @@
 // NOTE: Forward declare to avoid include polution
 namespace App { class Engine; }
 
-class Application
+class Application : NonCopyable
 {
 public:
 	Application();
-	Application(const Application&) = delete;
 	~Application();
-
-	Application& operator=(const Application&) = delete;
 
 	// NOTE: Initialize and enter the main loop
 	void Run();

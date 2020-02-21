@@ -4,7 +4,7 @@ namespace Graphics
 {
 	namespace
 	{
-		template <class T>
+		template <typename T>
 		void InitializeBufferIfAttribute(Mesh& mesh, VertexAttribute attribute, std::vector<T>& vertexData, const char* objSetName, const char* bufferName)
 		{
 			auto& vertexBuffer = mesh.GraphicsAttributeBuffers[attribute];

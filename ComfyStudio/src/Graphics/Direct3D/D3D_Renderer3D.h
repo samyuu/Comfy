@@ -185,14 +185,11 @@ namespace Graphics
 		RenderCommand(const Obj& obj, const vec3& position) : SourceObj(&obj), Transform(position) {}
 	};
 
-	class D3D_Renderer3D
+	class D3D_Renderer3D : NonCopyable
 	{
 	public:
 		D3D_Renderer3D();
-		D3D_Renderer3D(const D3D_Renderer3D&) = default;
 		~D3D_Renderer3D() = default;
-
-		D3D_Renderer3D& operator=(const D3D_Renderer3D&) = delete;
 
 	public:
 		void Begin(SceneContext& scene);

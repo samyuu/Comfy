@@ -12,16 +12,13 @@ namespace Editor
 	{
 	public:
 		AetTreeView(AetCommandManager* commandManager, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
-		AetTreeView(const AetTreeView&) = delete;
 		~AetTreeView();
-
-		AetTreeView& operator=(AetTreeView&) = delete;
 
 	public:
 		void Initialize();
 		bool DrawGui(const RefPtr<Graphics::AetSet>& aetSet);
 
-		template <class T>
+		template <typename T>
 		inline void SetSelectedItems(const RefPtr<T>& value) 
 		{ 
 			selectedAetItem->SetItem(value);

@@ -10,7 +10,7 @@ namespace Editor
 	class AetCommandManager : public CommandManager<AetCommand>
 	{
 	public:
-		template <class TCommand, class TRef, class TValue>
+		template <typename TCommand, typename TRef, typename TValue>
 		inline void AddOrUpdateCommand(Command::AetCommandType commandType, const RefPtr<TRef>& ref, const TValue& value)
 		{
 			AetCommand* lastStackCommand = !undoStack.empty() ? undoStack.back().get() : nullptr;

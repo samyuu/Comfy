@@ -15,7 +15,7 @@ namespace System
 		bool GetLibraryLoaded() const;
 		void* GetFunctionAddress(const char* functionName) const;
 		
-		template <class T>
+		template <typename T>
 		inline T* GetFunctionAddress(const char* functionName) const
 		{
 			static_assert(std::is_function<T>::value, "T must be a function type");

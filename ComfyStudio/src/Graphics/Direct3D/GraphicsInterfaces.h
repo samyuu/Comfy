@@ -2,7 +2,7 @@
 
 namespace Graphics
 {
-	class IGraphicsResource
+	class IGraphicsResource : NonCopyable
 	{
 	protected:
 		IGraphicsResource() = default;

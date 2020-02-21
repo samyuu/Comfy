@@ -4,11 +4,10 @@
 
 namespace Editor
 {
-	class RenderWindowBase
+	class RenderWindowBase : NonCopyable
 	{
 	public:
 		RenderWindowBase() = default;
-		RenderWindowBase(const RenderWindowBase&) = delete;
 		virtual ~RenderWindowBase() = default;
 
 	public:

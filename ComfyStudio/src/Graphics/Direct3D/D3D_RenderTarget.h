@@ -39,10 +39,7 @@ namespace Graphics
 	{
 	public:
 		D3D_SwapChainRenderTarget(IDXGISwapChain* swapChain);
-		D3D_SwapChainRenderTarget(const D3D_SwapChainRenderTarget&) = delete;
 		~D3D_SwapChainRenderTarget() = default;
-
-		D3D_SwapChainRenderTarget& operator=(const D3D_SwapChainRenderTarget&) = delete;
 
 	public:
 		void Resize(ivec2 newSize) override;
@@ -58,10 +55,7 @@ namespace Graphics
 	public:
 		D3D_RenderTarget(ivec2 size);
 		D3D_RenderTarget(ivec2 size, DXGI_FORMAT format, uint32_t multiSampleCount = 1);
-		D3D_RenderTarget(const D3D_RenderTarget&) = delete;
 		~D3D_RenderTarget() = default;
-
-		D3D_RenderTarget& operator=(const D3D_RenderTarget&) = delete;
 
 	public:
 		void BindResource(uint32_t textureSlot);
@@ -90,10 +84,7 @@ namespace Graphics
 	public:
 		D3D_DepthRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat);
 		D3D_DepthRenderTarget(ivec2 size, DXGI_FORMAT format, DXGI_FORMAT depthBufferFormat, uint32_t multiSampleCount = 1);
-		D3D_DepthRenderTarget(const D3D_DepthRenderTarget&) = delete;
 		~D3D_DepthRenderTarget() = default;
-
-		D3D_DepthRenderTarget& operator=(const D3D_DepthRenderTarget&) = delete;
 
 	public:
 		void Bind() const override;
@@ -115,10 +106,7 @@ namespace Graphics
 	{
 	public:
 		D3D_DepthOnlyRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat);
-		D3D_DepthOnlyRenderTarget(const D3D_DepthOnlyRenderTarget&) = delete;
 		~D3D_DepthOnlyRenderTarget() = default;
-
-		D3D_DepthOnlyRenderTarget& operator=(const D3D_DepthOnlyRenderTarget&) = delete;
 
 	public:
 		void Bind() const override;

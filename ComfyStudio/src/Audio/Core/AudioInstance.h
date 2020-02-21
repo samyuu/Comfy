@@ -12,7 +12,7 @@ namespace Audio
 		Count,
 	};
 
-	class AudioInstance
+	class AudioInstance : NonCopyable
 	{
 	public:
 		friend class AudioEngine;
@@ -21,8 +21,6 @@ namespace Audio
 		// ------------
 		AudioInstance(RefPtr<ISampleProvider> sampleProvider, bool playing, const char* name = nullptr);
 		AudioInstance(RefPtr<ISampleProvider> sampleProvider, bool playing, AudioFinishedAction finishedAction, float volume = AudioEngine::MaxVolume, const char* name = nullptr);
-
-		AudioInstance(const AudioInstance& other) = delete;
 
 		// Destructors
 		// -----------
@@ -80,9 +78,6 @@ namespace Audio
 		int64_t GetFrameCount() const;
 		uint32_t GetSampleRate() const;
 		uint32_t GetChannelCount() const;
-
-	public:
-		AudioInstance& operator=(AudioInstance& other) = delete;
 
 	private:
 		// Members Variables

@@ -27,10 +27,7 @@ namespace Graphics
 	{
 	public:
 		D3D_VertexShader(BytecodeBlob bytecodeBlob);
-		D3D_VertexShader(const D3D_VertexShader&) = delete;
 		~D3D_VertexShader() = default;
-
-		D3D_VertexShader& operator=(const D3D_VertexShader&) = delete;
 
 	public:
 		void Bind() const;
@@ -47,10 +44,7 @@ namespace Graphics
 	{
 	public:
 		D3D_PixelShader(BytecodeBlob bytecodeBlob);
-		D3D_PixelShader(const D3D_PixelShader&) = delete;
 		~D3D_PixelShader() = default;
-
-		D3D_PixelShader& operator=(const D3D_PixelShader&) = delete;
 
 	public:
 		void Bind() const;

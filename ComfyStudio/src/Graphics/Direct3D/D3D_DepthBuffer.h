@@ -12,10 +12,7 @@ namespace Graphics
 
 	public:
 		D3D_DepthBuffer(ivec2 size, DXGI_FORMAT format, uint32_t multiSampleCount = 1);
-		D3D_DepthBuffer(const D3D_DepthBuffer&) = delete;
 		~D3D_DepthBuffer() = default;
-
-		D3D_DepthBuffer& operator=(const D3D_DepthBuffer&) = delete;
 
 	public:
 		void Clear(float value = 1.0f);
@@ -41,10 +38,7 @@ namespace Graphics
 	{
 	public:
 		D3D_ResourceViewDepthBuffer(ivec2 size, DXGI_FORMAT format);
-		D3D_ResourceViewDepthBuffer(const D3D_DepthBuffer&) = delete;
 		~D3D_ResourceViewDepthBuffer() = default;
-
-		D3D_ResourceViewDepthBuffer& operator=(const D3D_ResourceViewDepthBuffer&) = delete;
 
 	public:
 		void Resize(ivec2 newSize) override;

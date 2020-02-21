@@ -27,10 +27,7 @@ namespace Graphics
 	{
 	public:
 		D3D_StaticVertexBuffer(size_t dataSize, const void* data, size_t stride);
-		D3D_StaticVertexBuffer(const D3D_StaticVertexBuffer&) = delete;
 		~D3D_StaticVertexBuffer() = default;
-
-		D3D_StaticVertexBuffer& operator=(const D3D_StaticVertexBuffer&) = delete;
 
 	public:
 	};
@@ -39,10 +36,7 @@ namespace Graphics
 	{
 	public:
 		D3D_DynamicVertexBuffer(size_t dataSize, const void* data, size_t stride);
-		D3D_DynamicVertexBuffer(const D3D_DynamicVertexBuffer&) = delete;
 		~D3D_DynamicVertexBuffer() = default;
-
-		D3D_DynamicVertexBuffer& operator=(const D3D_DynamicVertexBuffer&) = delete;
 
 	public:
 		void UploadData(size_t dataSize, const void* data);

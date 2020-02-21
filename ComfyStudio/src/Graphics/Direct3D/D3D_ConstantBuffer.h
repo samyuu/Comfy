@@ -36,10 +36,7 @@ namespace Graphics
 	{
 	public:
 		D3D_DefaultConstantBuffer(uint32_t slot, size_t dataSize);
-		D3D_DefaultConstantBuffer(const D3D_DefaultConstantBuffer&) = delete;
 		~D3D_DefaultConstantBuffer() = default;
-
-		D3D_DefaultConstantBuffer& operator=(const D3D_DefaultConstantBuffer&) = delete;
 
 	public:
 		void UploadData(size_t dataSize, const void* data);
@@ -50,10 +47,7 @@ namespace Graphics
 	{
 	public:
 		D3D_DynamicConstantBuffer(uint32_t slot, size_t dataSize);
-		D3D_DynamicConstantBuffer(const D3D_DynamicConstantBuffer&) = delete;
 		~D3D_DynamicConstantBuffer() = default;
-
-		D3D_DynamicConstantBuffer& operator=(const D3D_DynamicConstantBuffer&) = delete;
 
 	public:
 		void UploadData(size_t dataSize, const void* data);

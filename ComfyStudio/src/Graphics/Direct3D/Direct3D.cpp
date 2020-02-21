@@ -6,7 +6,7 @@ namespace Graphics
 {
 	namespace
 	{
-		template <class T>
+		template <typename T>
 		inline void DisposeReleaseSetNullIfNotNull(T*& resourcePointerReference)
 		{
 			if (resourcePointerReference == nullptr)
