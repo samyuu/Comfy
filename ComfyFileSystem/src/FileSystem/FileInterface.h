@@ -38,7 +38,7 @@ namespace FileSystem
 		virtual void Save(const std::wstring& filePath) override;
 	};
 
-	class IBinaryFile : public IBinaryReadable, public IBinaryWritable
+	class IBinaryReadWritable : public IBinaryReadable, public IBinaryWritable
 	{
 	public:
 	};

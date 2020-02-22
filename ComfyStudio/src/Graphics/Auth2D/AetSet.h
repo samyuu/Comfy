@@ -421,7 +421,7 @@ namespace Graphics
 		void InternalFindLayerReferencedParent(AetLayer* layer);
 	};
 
-	class AetSet final : public FileSystem::IBinaryFile, NonCopyable
+	class AetSet final : public FileSystem::IBinaryReadWritable, NonCopyable
 	{
 	public:
 		AetSet() = default;
