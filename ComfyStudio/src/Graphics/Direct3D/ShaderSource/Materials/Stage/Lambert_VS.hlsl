@@ -37,7 +37,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
 	float4 diff = float4(mad(saturate(dot(normal_w, lit_dir_w.xyz)), lit_diff.xyz, GetIrradiance(normal_w) * state_light1_diffuse.xyz), 1.0);
     
     if (FLAGS_VERTEX_COLOR)
-        diff *= FLAGS_MORPH ? VS_MorphAttribute(a_color, a_morph_color) : a_color;
+        diff *= FLAGS_MORPH_COLOR ? VS_MorphAttribute(a_color, a_morph_color) : a_color;
 
     o_color_f0 = diff * p_blend_color;
     o_color_f1 = p_offset_color;

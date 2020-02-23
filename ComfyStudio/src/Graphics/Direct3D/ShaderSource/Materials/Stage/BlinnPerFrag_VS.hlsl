@@ -54,7 +54,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     float4 diff = float4(0.5, 0.5, 0.5, 1.0);
     
     if (FLAGS_VERTEX_COLOR)
-        diff *= FLAGS_MORPH ? VS_MorphAttribute(a_color, a_morph_color) : a_color;
+        diff *= FLAGS_MORPH_COLOR ? VS_MorphAttribute(a_color, a_morph_color) : a_color;
     
     o_color_f0 = diff * p_blend_color;
     o_color_f1 = p_offset_color;

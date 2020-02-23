@@ -47,7 +47,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
 	diff = float4(mad(saturate(dot(normal_w, lit_dir_w.xyz)), lit_diff, diff).xyz, 1.0) * state_material_diffuse;
 
     if (FLAGS_VERTEX_COLOR)
-        diff *= FLAGS_MORPH ? VS_MorphAttribute(a_color, a_morph_color) : a_color;
+        diff *= FLAGS_MORPH_COLOR ? VS_MorphAttribute(a_color, a_morph_color) : a_color;
 
     o_color_f0 = diff * p_blend_color;
     o_color_f1 = (float4(pow(saturate(dot(normal_w, half_w.xyz)), mad(state_material_shininess, 112.0, 16.0)) * lit_spec.xyz, 1.0) * spec_ratio);

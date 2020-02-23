@@ -25,7 +25,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     o_position = pos_c;
     
     if (FLAGS_VERTEX_COLOR)
-        o_color_f0 = FLAGS_MORPH ? VS_MorphAttribute(a_color, a_morph_color) : a_color;
+        o_color_f0 = FLAGS_MORPH_COLOR ? VS_MorphAttribute(a_color, a_morph_color) : a_color;
     else
         o_color_f0 = float4(1.0, 1.0, 1.0, 1.0);
     

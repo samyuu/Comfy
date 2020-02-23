@@ -58,7 +58,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     float4 diff = state_light1_diffuse;
     
     if (FLAGS_VERTEX_COLOR)
-        diff *= FLAGS_MORPH ? VS_MorphAttribute(a_color, a_morph_color) : a_color;
+        diff *= FLAGS_MORPH_COLOR ? VS_MorphAttribute(a_color, a_morph_color) : a_color;
 
     o_color_f0 = diff;
     
