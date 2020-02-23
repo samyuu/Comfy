@@ -123,9 +123,16 @@ namespace Graphics
 									});
 								}
 
-								subMesh.BoundingBox = ReadBox(reader);
+								// subMesh.BoundingBox = ReadBox(reader);
+
+								subMesh.ShadowFlags = reader.ReadUInt32();
 								uint32_t unknown3 = reader.ReadUInt32();
 								uint32_t unknown4 = reader.ReadUInt32();
+								uint32_t unknown5 = reader.ReadUInt32();
+								uint32_t unknown6 = reader.ReadUInt32();
+								uint32_t unknown7 = reader.ReadUInt32();
+								uint32_t unknown8 = reader.ReadUInt32();
+								uint32_t unknown9 = reader.ReadUInt32();
 							}
 						});
 					}

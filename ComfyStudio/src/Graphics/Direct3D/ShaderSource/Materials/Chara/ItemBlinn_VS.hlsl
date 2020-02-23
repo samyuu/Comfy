@@ -33,7 +33,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     o_position = pos_c;
     o_fog = VS_GetFogFactor(pos_c);
         
-    if (FLAGS_SHADOW)
+    if (FLAGS_SELF_SHADOW)
         o_tex_shadow0 = VS_GetShadowTextureCoordinates(pos_w);
     
     float4 binormal_w = float4(cross(normal_w.xyz, tangent_w.xyz), 0.0) * a_tangent.w;

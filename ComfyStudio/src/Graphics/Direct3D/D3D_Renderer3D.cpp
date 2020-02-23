@@ -52,6 +52,16 @@ namespace Graphics
 			}
 		}
 
+		constexpr bool ReceivesShadows(const RenderCommand& command, const Mesh& mesh, const SubMesh& subMesh)
+		{
+			return (command.Flags.ReceivesShadow && subMesh.ShadowFlags);
+		}
+		
+		constexpr bool ReceivesSelfShadow(const RenderCommand& command, const Mesh& mesh, const SubMesh& subMesh)
+		{
+			return (command.Flags.ReceivesShadow);
+		}
+
 		constexpr bool IsMeshTransparent(const Mesh& mesh, const SubMesh& subMesh, const Material& material)
 		{
 			if (material.BlendFlags.EnableBlend)
@@ -379,8 +389,17 @@ namespace Graphics
 		if (command.Flags.CastsShadow)
 			isAnyCommand.CastShadow = true;
 
-		if (command.Flags.ReceivesShadow)
-			isAnyCommand.ReceiveShadow = true;
+		if (!isAnyCommand.ReceiveShadow)
+		{
+			for (auto& mesh : command.SourceObj->Meshes)
+			{
+				for (auto& subMesh : mesh.SubMeshes)
+				{
+					if (ReceivesShadows(command, mesh, subMesh) || ReceivesSelfShadow(command, mesh, subMesh))
+						isAnyCommand.ReceiveShadow = true;
+				}
+			}
+		}
 
 		if (!isAnyCommand.SubsurfaceScattering)
 		{
@@ -1383,13 +1402,13 @@ namespace Graphics
 
 		if (renderParameters->ShadowMapping && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
 		{
-			if (command.SourceCommand.Flags.ReceivesShadow)
+			if (ReceivesShadows(command.SourceCommand, mesh, subMesh))
 				objectCB.Data.ShaderFlags |= ShaderFlags_Shadow;
 		}
 
-		if (renderParameters->SelfShadowing && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
+		if (renderParameters->ShadowMapping && renderParameters->SelfShadowing && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
 		{
-			if (command.SourceCommand.Flags.ReceivesShadow)
+			if (ReceivesSelfShadow(command.SourceCommand, mesh, subMesh))
 				objectCB.Data.ShaderFlags |= ShaderFlags_SelfShadow;
 		}
 

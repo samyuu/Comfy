@@ -14,6 +14,8 @@ namespace Graphics
 	struct SubMesh
 	{
 		Sphere BoundingSphere;
+		Box BoundingBox;
+
 		uint32_t MaterialIndex;
 		uint32_t MaterialUVIndices[2];
 		std::vector<uint16_t> BoneIndices;
@@ -21,7 +23,7 @@ namespace Graphics
 		PrimitiveType Primitive;
 		uint32_t UnknownIndex;
 		std::vector<uint16_t> Indices;
-		Box BoundingBox;
+		uint32_t ShadowFlags;
 
 		UniquePtr<D3D_StaticIndexBuffer> GraphicsIndexBuffer;
 
