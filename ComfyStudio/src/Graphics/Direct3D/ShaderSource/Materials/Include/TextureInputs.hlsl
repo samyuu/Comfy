@@ -5,10 +5,18 @@ SamplerState DiffuseSampler         : register(s0);
 SamplerState AmbientSampler         : register(s1);
 SamplerState NormalSampler          : register(s2);
 SamplerState SpecularSampler        : register(s3);
+SamplerState TransparencySampler    : register(s4);
+SamplerState EnvironmentSampler     : register(s5);
 SamplerState TranslucencySampler    : register(s6);
-SamplerState ReflectionSampler      : register(s5);
 
-SamplerState LightMapSampler        : register(s14)
+SamplerState IBL_LightMapSampler    : register(s13)
+{
+    Filter = MIN_MAG_MIP_LINEAR;
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+};
+
+SamplerState LinearSampler          : register(s14)
 {
     Filter = MIN_MAG_MIP_LINEAR;
     AddressU = CLAMP;
@@ -22,20 +30,19 @@ SamplerState ScreenReflectionSampler : register(s15)
     AddressV = CLAMP;
 };
 
-// TODO: Use a single "LinearSampler" for all non material textures
-
 Texture2D<float4> DiffuseTexture                : register(t0);
 Texture2D<float4> AmbientTexture                : register(t1);
 Texture2D<float4> NormalTexture                 : register(t2);
 Texture2D<float4> SpecularTexture               : register(t3);
+Texture2D<float4> TransparencyTexture           : register(t4);
+TextureCube<float4> EnvironmentTexture          : register(t5);
 Texture2D<float4> TranslucencyTexture           : register(t6);
 
-TextureCube<float4> ReflectionCubeMap           : register(t5);
-TextureCube<float4> CharacterLightMap           : register(t9);
-TextureCube<float4> SunLightMap                 : register(t10);
-TextureCube<float4> ReflectLightMap             : register(t11);
-TextureCube<float4> ShadowLightMap              : register(t12);
-TextureCube<float4> CharColorLightMap           : register(t13);
+TextureCube<float4> IBL_CharacterLightMap       : register(t9);
+TextureCube<float4> IBL_SunLightMap             : register(t10);
+TextureCube<float4> IBL_ReflectLightMap         : register(t11);
+TextureCube<float4> IBL_ShadowLightMap          : register(t12);
+TextureCube<float4> IBL_CharColorLightMap       : register(t13);
 
 Texture2D<float4> ScreenReflectionTexture       : register(t15);
 Texture2D<float4> SubsurfaceScatteringTexture   : register(t16);

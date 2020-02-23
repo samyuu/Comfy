@@ -61,9 +61,9 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     POW(spec_ratio.w, spec_ratio.w, 0.5);
     MAD(spec_ratio.w, spec_ratio.w, 0.75, 0.25);
     
-    if (FLAGS_SHADOW)
+    if (FLAGS_SELF_SHADOW)
     {
-        PS_SAMPLE_CHARA_SHADOW_MAP;
+        PS_SAMPLE_SELF_SHADOW_MAP;
     }
     else
     {

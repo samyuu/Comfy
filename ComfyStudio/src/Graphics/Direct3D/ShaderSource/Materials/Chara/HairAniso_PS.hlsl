@@ -35,10 +35,10 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     DP3(rot_normal.y, nt_mtx[1], normal);
     DP3(rot_normal.z, nt_mtx[2], normal);
     
-    if (FLAGS_SHADOW)
+    if (FLAGS_SELF_SHADOW)
     {
         float4 org_normal = normal;
-        PS_SAMPLE_CHARA_SHADOW_MAP;
+        PS_SAMPLE_SELF_SHADOW_MAP;
     }
     else
     {

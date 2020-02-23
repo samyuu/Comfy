@@ -23,9 +23,9 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     DP3(normal.y, nt_mtx[1], org_normal);
     DP3(normal.z, nt_mtx[2], org_normal);
     
-    if (FLAGS_SHADOW)
+    if (FLAGS_SELF_SHADOW)
     {
-        PS_SAMPLE_CHARA_SHADOW_MAP;
+        PS_SAMPLE_SELF_SHADOW_MAP;
     }
     else
     {

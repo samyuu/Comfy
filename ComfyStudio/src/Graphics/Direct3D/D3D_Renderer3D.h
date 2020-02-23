@@ -21,16 +21,24 @@ namespace Graphics
 	enum ShaderFlags : uint32_t
 	{
 		ShaderFlags_VertexColor = 1 << 0,
+		
 		ShaderFlags_DiffuseTexture = 1 << 1,
 		ShaderFlags_AmbientTexture = 1 << 2,
 		ShaderFlags_NormalTexture = 1 << 3,
 		ShaderFlags_SpecularTexture = 1 << 4,
-		ShaderFlags_AlphaTest = 1 << 5,
-		ShaderFlags_CubeMapReflection = 1 << 6,
-		ShaderFlags_LinearFog = 1 << 7,
-		ShaderFlags_Morph = 1 << 8,
-		ShaderFlags_Shadow = 1 << 9,
-		// ShaderFlags_ShadowSecondary = 1 << 10,
+		ShaderFlags_TransparencyTexture = 1 << 5,
+		ShaderFlags_EnvironmentTexture = 1 << 6,
+		ShaderFlags_TranslucencyTexture = 1 << 7,
+
+		ShaderFlags_PunchThrough = 1 << 8,
+		ShaderFlags_LinearFog = 1 << 9,
+
+		ShaderFlags_Morph = 1 << 10,
+		ShaderFlags_MorphColor = 1 << 11,
+
+		ShaderFlags_Shadow = 1 << 12,
+		ShaderFlags_ShadowSecondary = 1 << 13,
+		ShaderFlags_SelfShadow = 1 << 14,
 	};
 
 	struct SceneConstantData
@@ -245,8 +253,9 @@ namespace Graphics
 			RenderFlags_SilhouetteOutlinePass = (1 << 1),
 			RenderFlags_NoMaterialShader = (1 << 2),
 			RenderFlags_NoMaterialTextures = (1 << 3),
-			RenderFlags_NoRasterizerState = (1 << 4),
-			RenderFlags_NoDoFrustumCulling = (1 << 5),
+			RenderFlags_DiffuseTextureOnly = (1 << 4),
+			RenderFlags_NoRasterizerState = (1 << 5),
+			RenderFlags_NoDoFrustumCulling = (1 << 6),
 		};
 
 		void InternalFlush();

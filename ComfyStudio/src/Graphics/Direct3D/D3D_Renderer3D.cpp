@@ -234,16 +234,16 @@ namespace Graphics
 			TextureSlot_Ambient = 1,
 			TextureSlot_Normal = 2,
 			TextureSlot_Specular = 3,
-			TextureSlot_ToonCurve = 4,
-			TextureSlot_Reflection = 5,
+			TextureSlot_Tranparency = 4,
+			TextureSlot_Environment = 5,
 			TextureSlot_Translucency = 6,
 			TextureSlot_Reserved = 7,
 
-			TextureSlot_CharacterLightMap = 9,
-			TextureSlot_SunLightMap = 10,
-			TextureSlot_ReflectLightMap = 11,
-			TextureSlot_ShadowLightMap = 12,
-			TextureSlot_CharacterColorLightMap = 13,
+			TextureSlot_IBLCharacterLightMap = 9,
+			TextureSlot_IBLSunLightMap = 10,
+			TextureSlot_IBLReflectLightMap = 11,
+			TextureSlot_IBLShadowLightMap = 12,
+			TextureSlot_IBLCharacterColorLightMap = 13,
 
 			TextureSlot_ScreenReflection = 15,
 			TextureSlot_SubsurfaceScattering = 16,
@@ -473,7 +473,9 @@ namespace Graphics
 				{
 					if (IsMeshTransparent(mesh, subMesh, subMesh.GetMaterial(*command.SourceCommand.SourceObj)))
 					{
-						const float cameraDistance = glm::distance((subMesh.BoundingSphere * command.SourceCommand.Transform).Center, sceneContext->Camera.ViewPoint);
+						const auto boundingSphere = (subMesh.BoundingSphere * command.SourceCommand.Transform);
+						const float cameraDistance = glm::distance(boundingSphere.Center, sceneContext->Camera.ViewPoint);
+
 						commandList.Transparent.push_back({ &command, &mesh, &subMesh, cameraDistance });
 					}
 					else
@@ -519,11 +521,11 @@ namespace Graphics
 		sceneCB.Data.CharaLight.Ambient = vec4(lightParam.Character.Ambient, 1.0f);
 		sceneCB.Data.CharaLight.Diffuse = vec4(lightParam.Character.Diffuse, 1.0f);
 		sceneCB.Data.CharaLight.Specular = vec4(lightParam.Character.Specular, 1.0f);
-		sceneCB.Data.CharaLight.Direction = vec4(normalize(lightParam.Character.Position), 1.0f);
+		sceneCB.Data.CharaLight.Direction = vec4(glm::normalize(lightParam.Character.Position), 1.0f);
 		sceneCB.Data.StageLight.Ambient = vec4(lightParam.Stage.Ambient, 1.0f);
 		sceneCB.Data.StageLight.Diffuse = vec4(lightParam.Stage.Diffuse, 1.0f);
 		sceneCB.Data.StageLight.Specular = vec4(lightParam.Stage.Specular, 1.0f);
-		sceneCB.Data.StageLight.Direction = vec4(normalize(lightParam.Stage.Position), 1.0f);
+		sceneCB.Data.StageLight.Direction = vec4(glm::normalize(lightParam.Stage.Position), 1.0f);
 		sceneCB.Data.DepthFog.Parameters = vec4(renderParameters->RenderFog ? fog.Depth.Density : 0.0f, fog.Depth.Start, fog.Depth.End, 1.0f / (fog.Depth.End - fog.Depth.Start));
 		sceneCB.Data.DepthFog.Color = vec4(fog.Depth.Color, 1.0f);
 
@@ -550,9 +552,9 @@ namespace Graphics
 				nullptr,
 				// NOTE: Specular = 3
 				nullptr,
-				// NOTE: ToonCurve = 4
+				// NOTE: Tranparency = 4
 				nullptr,
-				// NOTE: Reflection = 5
+				// NOTE: Environment = 5
 				nullptr,
 				// NOTE: Translucency = 6
 				nullptr,
@@ -562,15 +564,15 @@ namespace Graphics
 				// NOTE: ---
 				nullptr,
 
-				// NOTE: CharacterLightMap = 9
+				// NOTE: IBLCharacterLightMap = 9
 				ibl.Character.LightMap.CubeMap.get(),
-				// NOTE: SunLightMap = 10
+				// NOTE: IBLSunLightMap = 10
 				ibl.Sun.LightMap.CubeMap.get(),
-				// NOTE: ReflectLightMap = 11
+				// NOTE: IBLReflectLightMap = 11
 				ibl.Reflect.LightMap.CubeMap.get(),
-				// NOTE: ShadowLightMap = 12
+				// NOTE: IBLShadowLightMap = 12
 				ibl.Shadow.LightMap.CubeMap.get(),
-				// NOTE: CharacterColorLightMap = 13
+				// NOTE: IBLCharacterColorLightMap = 13
 				ibl.CharacterColor.LightMap.CubeMap.get(),
 
 				// NOTE: ---
@@ -594,7 +596,7 @@ namespace Graphics
 
 		cachedTextureSamplers.CreateIfNeeded(*renderParameters);
 
-		if (renderParameters->RenderShadowMap && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
+		if (renderParameters->ShadowMapping && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
 		{
 			InternalPreRenderShadowMap();
 			InternalPreRenderReduceFilterShadowMap();
@@ -660,7 +662,8 @@ namespace Graphics
 		shadowSilhouetteInputLayout->Bind();
 
 		// solidBackfaceCullingRasterizerState.Bind();
-		solidFrontfaceCullingRasterizerState.Bind();
+		// solidFrontfaceCullingRasterizerState.Bind();
+		solidNoCullingRasterizerState.Bind();
 
 		const Sphere frustumSphere = CalculateShadowViewFrustumSphere();
 
@@ -694,7 +697,7 @@ namespace Graphics
 		for (auto& command : defaultCommandList.OpaqueAndTransparent)
 		{
 			if (command.SourceCommand.Flags.CastsShadow)
-				InternalRenderOpaqueObjCommand(command, RenderFlags_NoMaterialShader | RenderFlags_NoRasterizerState | RenderFlags_NoDoFrustumCulling);
+				InternalRenderOpaqueObjCommand(command, RenderFlags_NoMaterialShader | RenderFlags_NoRasterizerState | RenderFlags_NoDoFrustumCulling | RenderFlags_DiffuseTextureOnly);
 		}
 
 		renderData->Shadow.RenderTarget.UnBind();
@@ -768,6 +771,7 @@ namespace Graphics
 		}
 
 		{
+			// NOTE: This is the alternative to rendering to a depth and color buffer, is this more performant though, I'm not sure
 			shaders.DepthThreshold.Bind();
 
 			renderData->Shadow.ThresholdRenderTarget.ResizeIfDifferent(halfResolution);
@@ -1175,9 +1179,11 @@ namespace Graphics
 			objectCB.Data.DiffuseRGTC1 = false;
 			objectCB.Data.DiffuseScreenTexture = false;
 
-			for (size_t i = 0; i < textureTypeCount; i++)
+			const size_t texturesToBind = (flags & RenderFlags_DiffuseTextureOnly) ? 1 : textureTypeCount;
+
+			for (size_t i = 0; i < texturesToBind; i++)
 			{
-				const MaterialTexture& materialTexture = (&material.Diffuse)[i];
+				const MaterialTexture& materialTexture = (&material.DiffuseMap)[i];
 
 				TxpID txpID = materialTexture.TextureID;
 				MaterialTextureFlags textureFlags = materialTexture.Flags;
@@ -1205,7 +1211,7 @@ namespace Graphics
 					textureResources[i] = (txp->Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->Texture2D.get()) : (txp->CubeMap != nullptr) ? (txp->CubeMap.get()) : nullptr;
 					textureSamplers[i] = &cachedTextureSamplers.GetSampler(textureFlags);
 
-					if (&materialTexture == &material.Diffuse)
+					if (&materialTexture == &material.DiffuseMap)
 					{
 						if (command.SourceCommand.Animation != nullptr && txpID == command.SourceCommand.Animation->ScreenRenderTextureID)
 						{
@@ -1219,22 +1225,22 @@ namespace Graphics
 				}
 			}
 
-			auto ambientTypeFlags = material.Ambient.Flags.AmbientTypeFlags;
+			auto ambientTypeFlags = material.AmbientMap.Flags.AmbientTypeFlags;
 			objectCB.Data.AmbientTextureType = (ambientTypeFlags == 0b100) ? 2 : (ambientTypeFlags == 0b110) ? 1 : (ambientTypeFlags != 0b10000) ? 0 : 3;
 
-			D3D_ShaderResourceView::BindArray<7>(TextureSlot_Diffuse, textureResources);
-			D3D_TextureSampler::BindArray<7>(TextureSlot_Diffuse, textureSamplers);
+			D3D_ShaderResourceView::BindArray(TextureSlot_Diffuse, textureResources);
+			D3D_TextureSampler::BindArray(TextureSlot_Diffuse, textureSamplers);
 
-			objectCB.Data.Material.DiffuseTextureTransform = material.Diffuse.TextureCoordinateMatrix;
-			objectCB.Data.Material.AmbientTextureTransform = material.Ambient.TextureCoordinateMatrix;
+			objectCB.Data.Material.DiffuseTextureTransform = material.DiffuseMap.TextureCoordinateMatrix;
+			objectCB.Data.Material.AmbientTextureTransform = material.AmbientMap.TextureCoordinateMatrix;
 
 			if (command.SourceCommand.Animation != nullptr)
 			{
 				for (auto& textureTransform : command.SourceCommand.Animation->TextureTransforms)
 				{
 					mat4* output =
-						(textureTransform.ID == material.Diffuse.TextureID) ? &objectCB.Data.Material.DiffuseTextureTransform :
-						(textureTransform.ID == material.Ambient.TextureID) ? &objectCB.Data.Material.AmbientTextureTransform :
+						(textureTransform.ID == material.DiffuseMap.TextureID) ? &objectCB.Data.Material.DiffuseTextureTransform :
+						(textureTransform.ID == material.AmbientMap.TextureID) ? &objectCB.Data.Material.AmbientTextureTransform :
 						nullptr;
 
 					if (output == nullptr)
@@ -1270,7 +1276,7 @@ namespace Graphics
 		objectCB.Data.Material.Emission = material.EmissionColor;
 
 		objectCB.Data.Material.Shininess = vec2(
-			(material.Shininess >= 0.0f ? material.Shininess : 1.0f), 
+			(material.Shininess >= 0.0f ? material.Shininess : 1.0f),
 			(material.MaterialType != Material::Identifiers.EYEBALL) ? ((material.Shininess - 16.0f) / 112.0f) : 10.0f);
 
 		objectCB.Data.Material.Intensity = material.Intensity;
@@ -1314,38 +1320,50 @@ namespace Graphics
 
 		if (renderParameters->DiffuseMapping)
 		{
-			if (material.Flags.UseDiffuseTexture || material.Diffuse.TextureID != TxpID::Invalid)
+			if (material.DiffuseMap.TextureID != TxpID::Invalid)
 				objectCB.Data.ShaderFlags |= ShaderFlags_DiffuseTexture;
 		}
 
 		if (renderParameters->AmbientOcclusionMapping)
 		{
-			if (material.Flags.UseAmbientTexture || material.Ambient.TextureID != TxpID::Invalid)
+			if (material.AmbientMap.TextureID != TxpID::Invalid)
 				objectCB.Data.ShaderFlags |= ShaderFlags_AmbientTexture;
 		}
 
 		if (renderParameters->NormalMapping)
 		{
-			if (material.Flags.UseNormalTexture || material.Normal.TextureID != TxpID::Invalid)
+			if (material.NormalMap.TextureID != TxpID::Invalid)
 				objectCB.Data.ShaderFlags |= ShaderFlags_NormalTexture;
 		}
 
 		if (renderParameters->SpecularMapping)
 		{
-			if (material.Flags.UseSpecularTexture || material.Specular.TextureID != TxpID::Invalid)
+			if (material.SpecularMap.TextureID != TxpID::Invalid)
 				objectCB.Data.ShaderFlags |= ShaderFlags_SpecularTexture;
 		}
 
-		if (renderParameters->AlphaTesting)
+		if (renderParameters->TransparencyMapping)
 		{
-			if (material.BlendFlags.EnableAlphaTest && !IsMeshTransparent(mesh, subMesh, material))
-				objectCB.Data.ShaderFlags |= ShaderFlags_AlphaTest;
+			if (material.TransparencyMap.TextureID != TxpID::Invalid)
+				objectCB.Data.ShaderFlags |= ShaderFlags_TransparencyTexture;
 		}
 
-		if (renderParameters->CubeReflection)
+		if (renderParameters->EnvironmentMapping)
 		{
-			if (material.Flags.UseCubeMapReflection || material.Reflection.TextureID != TxpID::Invalid)
-				objectCB.Data.ShaderFlags |= ShaderFlags_CubeMapReflection;
+			if (material.EnvironmentMap.TextureID != TxpID::Invalid)
+				objectCB.Data.ShaderFlags |= ShaderFlags_EnvironmentTexture;
+		}
+
+		if (renderParameters->TranslucencyMapping)
+		{
+			if (material.TranslucencyMap.TextureID != TxpID::Invalid)
+				objectCB.Data.ShaderFlags |= ShaderFlags_TranslucencyTexture;
+		}
+
+		if (renderParameters->RenderPunchThrough)
+		{
+			if (material.BlendFlags.EnableAlphaTest && !IsMeshTransparent(mesh, subMesh, material))
+				objectCB.Data.ShaderFlags |= ShaderFlags_PunchThrough;
 		}
 
 		if (renderParameters->RenderFog)
@@ -1354,15 +1372,25 @@ namespace Graphics
 				objectCB.Data.ShaderFlags |= ShaderFlags_LinearFog;
 		}
 
-		if (command.SourceCommand.SourceMorphObj != nullptr)
-			objectCB.Data.ShaderFlags |= ShaderFlags_Morph;
+		if (renderParameters->ObjectMorphing)
+		{
+			if (command.SourceCommand.SourceMorphObj != nullptr)
+			{
+				objectCB.Data.ShaderFlags |= ShaderFlags_Morph;
+				objectCB.Data.ShaderFlags |= ShaderFlags_MorphColor;
+			}
+		}
 
-		if (renderParameters->RenderShadowMap && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
+		if (renderParameters->ShadowMapping && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
 		{
 			if (command.SourceCommand.Flags.ReceivesShadow)
 				objectCB.Data.ShaderFlags |= ShaderFlags_Shadow;
+		}
 
-			// TODO: self and secondary stage shadow
+		if (renderParameters->SelfShadowing && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
+		{
+			if (command.SourceCommand.Flags.ReceivesShadow)
+				objectCB.Data.ShaderFlags |= ShaderFlags_SelfShadow;
 		}
 
 		objectCB.UploadData();

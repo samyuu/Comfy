@@ -47,24 +47,27 @@
 #define SLT(result, a, b)           if (a <  b) result  = ( a )
 #define SNE(result, a, b)           if (a != b) result  = ( a )
 
-#define TEX2D_00(result, texCoord)  result = DiffuseTexture.Sample(DiffuseSampler, (texCoord).xy)
-#define TEX2D_01(result, texCoord)  result = AmbientTexture.Sample(AmbientSampler, (texCoord).xy)
-#define TEX2D_02(result, texCoord)  result = NormalTexture.Sample(NormalSampler, (texCoord).xy).xyzx
-#define TEX2D_03(result, texCoord)  result = SpecularTexture.Sample(SpecularSampler, (texCoord).xy)
-#define TEX2D_06(result, texCoord)  result = TranslucencyTexture.Sample(TranslucencySampler, (texCoord).xy)
+#define TEX2D_00(result, texCoord)  result = DiffuseTexture.Sample( DiffuseSampler, (texCoord).xy )
+#define TEX2D_01(result, texCoord)  result = AmbientTexture.Sample( AmbientSampler, (texCoord).xy )
+#define TEX2D_02(result, texCoord)  result = NormalTexture.Sample( NormalSampler, (texCoord).xy ).xyzx
+#define TEX2D_03(result, texCoord)  result = SpecularTexture.Sample( SpecularSampler, (texCoord).xy )
+#define TEX2D_04(result, texCoord)  result = TransparencyTexture.Sample( TransparencySampler, (texCoord).xy )
+#define TEX2D_06(result, texCoord)  result = TranslucencyTexture.Sample( TranslucencySampler, (texCoord).xy )
+
 // TODO: simple_reflect...
-#define TEX2D_15(result, texCoord)  result = ScreenReflectionTexture.Sample(ScreenReflectionSampler, (texCoord).xy)
-#define TEX2D_16(result, texCoord)  result = SubsurfaceScatteringTexture.Sample(ScreenReflectionSampler, (texCoord).xy)
-#define TEX2D_19(result, texCoord)  result = ESMFull.Sample(ScreenReflectionSampler, (texCoord).xy)
+#define TEX2D_15(result, texCoord)  result = ScreenReflectionTexture.Sample( LinearSampler, (texCoord).xy )
+#define TEX2D_16(result, texCoord)  result = SubsurfaceScatteringTexture.Sample( LinearSampler, (texCoord).xy )
+#define TEX2D_19(result, texCoord)  result = ESMFull.Sample( LinearSampler, (texCoord).xy )
 
-#define TEXCUBE_05(result, texCoord) result = ReflectionCubeMap.Sample( ReflectionSampler, (texCoord).xyz )
-#define TEXCUBE_09(result, texCoord) result = CharacterLightMap.Sample( LightMapSampler, (texCoord).xyz )
-#define TEXCUBE_10(result, texCoord) result = SunLightMap.Sample( LightMapSampler, (texCoord).xyz )
-#define TEXCUBE_11(result, texCoord) result = ReflectLightMap.Sample( LightMapSampler, (texCoord).xyz )
-#define TEXCUBE_12(result, texCoord) result = ShadowLightMap.Sample( LightMapSampler, (texCoord).xyz )
-#define TEXCUBE_13(result, texCoord) result = CharColorLightMap.Sample( LightMapSampler, (texCoord).xyz )
+#define TEXCUBE_05(result, texCoord) result = EnvironmentTexture.Sample( EnvironmentSampler, (texCoord).xyz )
 
-#define TXLCUBE_09(result, texCoord) result = CharacterLightMap.SampleLevel( LightMapSampler, (texCoord).xyz, (texCoord).w )
+#define TEXCUBE_09(result, texCoord) result = IBL_CharacterLightMap.Sample( IBL_LightMapSampler, (texCoord).xyz )
+#define TEXCUBE_10(result, texCoord) result = IBL_SunLightMap.Sample( IBL_LightMapSampler, (texCoord).xyz )
+#define TEXCUBE_11(result, texCoord) result = IBL_ReflectLightMap.Sample( IBL_LightMapSampler, (texCoord).xyz )
+#define TEXCUBE_12(result, texCoord) result = IBL_ShadowLightMap.Sample( IBL_LightMapSampler, (texCoord).xyz )
+#define TEXCUBE_13(result, texCoord) result = IBL_CharColorLightMap.Sample( IBL_LightMapSampler, (texCoord).xyz )
+
+#define TXLCUBE_09(result, texCoord) result = IBL_CharacterLightMap.SampleLevel( IBL_LightMapSampler, (texCoord).xyz, (texCoord).w )
 
 #ifdef COMFY_VS
 #define RET                         return output

@@ -30,7 +30,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     
     if (FLAGS_SPECULAR_TEX2D)
     {
-        if (FLAGS_REFLECTION_CUBE)
+        if (FLAGS_ENVIRONMENT_CUBE)
         {
             TEXCUBE_05(spec, a_reflect);
             TEX2D_03(_tmp0, a_tex_specular);
@@ -47,7 +47,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     }
     else
     {
-        if (FLAGS_REFLECTION_CUBE)
+        if (FLAGS_ENVIRONMENT_CUBE)
         {
             TEXCUBE_05(spec, a_reflect);
             MUL(spec.w, state_material_specular.w, state_light1_specular.w);
@@ -64,7 +64,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
 
     if (FLAGS_SHADOW)
     {
-        PS_SAMPLE_STAGE_SHADOW_MAP;
+        PS_SAMPLE_SHADOW_MAP;
         tex_col *= _tmp0;
     }
     

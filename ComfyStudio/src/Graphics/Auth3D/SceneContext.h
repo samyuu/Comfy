@@ -32,9 +32,12 @@ namespace Graphics
 		bool AmbientOcclusionMapping = true;
 		bool NormalMapping = true;
 		bool SpecularMapping = true;
-		bool AlphaTesting = true;
-		bool CubeReflection = true;
+		bool TransparencyMapping = true;
+		bool EnvironmentMapping = true;
+		bool TranslucencyMapping = true;
+		bool RenderPunchThrough = true;
 		bool RenderFog = true;
+		bool ObjectMorphing = true;
 
 		// NOTE: Enable to take alpha render target captures with a clear color alpha of zero
 		bool ToneMapPreserveAlpha = true;
@@ -47,9 +50,10 @@ namespace Graphics
 		uint32_t MultiSampleCount = 4;
 #endif
 
-		bool RenderShadowMap = true;
-		ivec2 ShadowMapResolution = ShadowMapDefaultResolution;
+		bool ShadowMapping = true;
+		bool SelfShadowing = true;
 
+		ivec2 ShadowMapResolution = ShadowMapDefaultResolution;
 		uint32_t ShadowBlurPasses = 1;
 
 		bool RenderSubsurfaceScattering = true;

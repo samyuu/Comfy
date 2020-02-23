@@ -363,27 +363,36 @@ namespace Editor
 
 		Gui::CheckboxFlags("DebugFlags_0", &renderParameters.DebugFlags, (1 << 0)); Gui::SameLine(); Gui::CheckboxFlags("ShaderDebugFlags_0", &renderParameters.ShaderDebugFlags, (1 << 0));
 		Gui::CheckboxFlags("DebugFlags_1", &renderParameters.DebugFlags, (1 << 1)); Gui::SameLine(); Gui::CheckboxFlags("ShaderDebugFlags_1", &renderParameters.ShaderDebugFlags, (1 << 1));
+		Gui::Separator();
 		Gui::ColorEdit4("Clear Color", glm::value_ptr(renderParameters.ClearColor));
 		Gui::Checkbox("Clear", &renderParameters.Clear);
 		Gui::Checkbox("Preserve Alpha", &renderParameters.ToneMapPreserveAlpha);
+		Gui::Separator();
 		Gui::Checkbox("Frustum Culling", &renderParameters.FrustumCulling);
 		Gui::Checkbox("Wireframe", &renderParameters.Wireframe);
 		Gui::Checkbox("Alpha Sort", &renderParameters.AlphaSort);
-		Gui::Checkbox("Render Shadow", &renderParameters.RenderShadowMap);
+		Gui::Separator();
+		Gui::Checkbox("Shadow Mapping", &renderParameters.ShadowMapping);
+		Gui::Checkbox("Self Shadowing", &renderParameters.SelfShadowing);
+		Gui::Separator();
 		Gui::Checkbox("Render Reflection", &renderParameters.RenderReflection);
 		Gui::Checkbox("Render Subsurface Scattering", &renderParameters.RenderSubsurfaceScattering);
 		Gui::Checkbox("Render Opaque", &renderParameters.RenderOpaque);
 		Gui::Checkbox("Render Transparent", &renderParameters.RenderTransparent);
 		Gui::Checkbox("Render Bloom", &renderParameters.RenderBloom);
 		Gui::Checkbox("Vertex Coloring", &renderParameters.VertexColoring);
+		Gui::Separator();
 		Gui::Checkbox("Diffuse Mapping", &renderParameters.DiffuseMapping);
 		Gui::Checkbox("Ambient Occlusion Mapping", &renderParameters.AmbientOcclusionMapping);
 		Gui::Checkbox("Normal Mapping", &renderParameters.NormalMapping);
 		Gui::Checkbox("Specular Mapping", &renderParameters.SpecularMapping);
-		Gui::Checkbox("Alpha Testing", &renderParameters.AlphaTesting);
-		Gui::Checkbox("Cube Reflection", &renderParameters.CubeReflection);
+		Gui::Checkbox("Transparency Mapping", &renderParameters.TransparencyMapping);
+		Gui::Checkbox("Environment Mapping", &renderParameters.EnvironmentMapping);
+		Gui::Checkbox("Translucency Mapping", &renderParameters.TranslucencyMapping);
+		Gui::Separator();
+		Gui::Checkbox("Render Punch Through", &renderParameters.RenderPunchThrough);
 		Gui::Checkbox("Render Fog", &renderParameters.RenderFog);
-
+		Gui::Separator();
 		Gui::SliderInt("Anistropic Filtering", &renderParameters.AnistropicFiltering, D3D11_MIN_MAXANISOTROPY, D3D11_MAX_MAXANISOTROPY);
 
 		if (Gui::CollapsingHeader("Resolution", ImGuiTreeNodeFlags_DefaultOpen))
@@ -809,7 +818,7 @@ namespace Editor
 				int materialIndex = 0;
 				material->IterateTextures([&](MaterialTexture* materialTexture)
 				{
-					std::array names = { "Diffuse", "Ambient", "Normal", "Specular", "ToonCurve", "Reflection", "Translucency", "" };
+					static constexpr std::array names = { "Diffuse", "Ambient", "Normal", "Specular", "Transparency", "Environment", "Translucency", "Reserved" };
 					auto textureTypeName = names[materialIndex++];
 
 					if (auto txp = renderer3D->GetTxpFromTextureID(materialTexture->TextureID); txp != nullptr)
@@ -1493,7 +1502,7 @@ namespace Editor
 				{
 					for (const auto& material : entity->Obj->Materials)
 					{
-						if (auto txp = renderer3D->GetTxpFromTextureID(material.Diffuse.TextureID); txp != nullptr)
+						if (auto txp = renderer3D->GetTxpFromTextureID(material.DiffuseMap.TextureID); txp != nullptr)
 						{
 							if (EndsWithInsensitive(txp->Name, "_RENDER") || EndsWithInsensitive(txp->Name, "_MOVIE") || EndsWithInsensitive(txp->Name, "_TV")
 								|| EndsWithInsensitive(txp->Name, "_FB01") || EndsWithInsensitive(txp->Name, "_FB02") || EndsWithInsensitive(txp->Name, "_FB03"))
@@ -1501,7 +1510,7 @@ namespace Editor
 								if (entity->Animation == nullptr)
 									entity->Animation = MakeUnique<ObjAnimationData>();
 
-								entity->Animation->ScreenRenderTextureID = material.Diffuse.TextureID;
+								entity->Animation->ScreenRenderTextureID = material.DiffuseMap.TextureID;
 							}
 						}
 					}

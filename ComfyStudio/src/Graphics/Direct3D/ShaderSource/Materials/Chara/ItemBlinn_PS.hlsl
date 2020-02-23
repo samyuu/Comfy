@@ -63,9 +63,9 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     DP3(reflect.y, nt_mtx[1], tmp);
     DP3(reflect.z, nt_mtx[2], tmp);
     
-    if (FLAGS_SHADOW)
+    if (FLAGS_SELF_SHADOW)
     {
-        PS_SAMPLE_CHARA_SHADOW_MAP;
+        PS_SAMPLE_SELF_SHADOW_MAP;
     }
     else
     {
@@ -94,7 +94,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MOV(diff.xyz, diff);
     MUL(diff.xyz, diff, col0);
 
-    if (FLAGS_SPECULAR_TEX2D)
+    if (FLAGS_ENVIRONMENT_CUBE)
     {
         TEXCUBE_10(spec, reflect);
         TEXCUBE_11(_tmp2, reflect);
@@ -113,7 +113,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
         MUL(diff.xyz, diff, 0.96);
     }
 
-    if (FLAGS_REFLECTION_CUBE)
+    if (FLAGS_ENVIRONMENT_CUBE)
     {
         TEXCUBE_05(env, reflect);
         MAD(env.w, lc.z, 0.5, 0.5);

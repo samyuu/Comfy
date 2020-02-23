@@ -194,41 +194,53 @@ namespace Graphics
 	{
 		uint32_t TextureCount;
 		MaterialFlags Flags;
+
 		std::array<char, 8> MaterialType;
 		MaterialShaderFlags ShaderFlags;
-		MaterialTexture Diffuse;
-		MaterialTexture Ambient;
-		MaterialTexture Normal;
-		MaterialTexture Specular;
-		MaterialTexture ToonCurve;
-		MaterialTexture Reflection;
-		MaterialTexture Translucency;
+		
+		MaterialTexture DiffuseMap;
+		MaterialTexture AmbientMap;
+		MaterialTexture NormalMap;
+		MaterialTexture SpecularMap;
+		// NOTE: Transparency / ToonCurve
+		MaterialTexture TransparencyMap;
+		// NOTE: Environment / Reflection
+		MaterialTexture EnvironmentMap;
+		MaterialTexture TranslucencyMap;
 		MaterialTexture ReservedTexture;
+
 		MaterialBlendFlags BlendFlags;
+
 		vec3 DiffuseColor;
 		float Transparency;
+
 		vec4 AmbientColor;
+
 		vec3 SpecularColor;
 		float Reflectivity;
+
 		vec4 EmissionColor;
+
 		float Shininess;
 		float Intensity;
+
 		vec4 UnknownField21_24;
 		std::array<char, 64> Name;
+
 		float BumpDepth;
 		float Reserved[15];
 
 		template <typename T>
 		void IterateTextures(T func)
 		{
-			for (auto* texture = &Diffuse; texture <= &ReservedTexture; texture++)
+			for (auto* texture = &DiffuseMap; texture <= &ReservedTexture; texture++)
 				func(texture);
 		}
 		
 		template <typename T>
 		void IterateTextures(T func) const
 		{
-			for (auto* texture = &Diffuse; texture <= &ReservedTexture; texture++)
+			for (auto* texture = &DiffuseMap; texture <= &ReservedTexture; texture++)
 				func(texture);
 		}
 

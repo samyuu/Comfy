@@ -30,7 +30,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
 
     if (FLAGS_SHADOW)
     {
-        PS_SAMPLE_STAGE_SHADOW_MAP;
+        PS_SAMPLE_SHADOW_MAP;
         tex_col *= _tmp0;
     }
 
