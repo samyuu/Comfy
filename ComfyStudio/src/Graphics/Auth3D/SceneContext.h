@@ -83,14 +83,29 @@ namespace Graphics
 			D3D_DepthRenderTarget { RenderTargetDefaultSize, RenderTargetHDRFormatRGBA, DXGI_FORMAT_D32_FLOAT, 1 },
 		};
 
+		// NOTE: Optional MSAA resolved copies
+		std::array<D3D_RenderTarget, 2> ResolvedRenderTargets =
+		{
+			D3D_RenderTarget { RenderTargetDefaultSize, RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { RenderTargetDefaultSize, RenderTargetHDRFormatRGBA },
+		};
+
+	public:
+		inline bool MSAAEnabled() { return Current().GetMultiSampleCount() > 1; }
+		inline void AdvanceRenderTarget() { currentIndex = (currentIndex + 1) % RenderTargets.size(); }
+
+		inline D3D_DepthRenderTarget& Current() { return RenderTargets[currentIndex]; }
+		inline D3D_DepthRenderTarget& Previous() { return RenderTargets[((currentIndex - 1) + RenderTargets.size()) % RenderTargets.size()]; }
+
+		inline D3D_RenderTarget& CurrentResolved() { return ResolvedRenderTargets[currentIndex]; }
+		inline D3D_RenderTarget& PreviousResolved() { return ResolvedRenderTargets[((currentIndex - 1) + ResolvedRenderTargets.size()) % ResolvedRenderTargets.size()]; }
+
+		inline D3D_RenderTarget& CurrentOrResolved() { return MSAAEnabled() ? CurrentResolved() : Current(); }
+		inline D3D_RenderTarget& PreviousOrResolved() { return MSAAEnabled() ? PreviousResolved() : Previous(); }
+
 	private:
 		// NOTE: Index of the currently active render target, keep switching to allow for last->current frame post processing effects and screen textures
 		int32_t currentIndex = 0;
-
-	public:
-		inline void AdvanceRenderTarget() { currentIndex = (currentIndex + 1) % RenderTargets.size(); }
-		inline D3D_DepthRenderTarget& CurrentRenderTarget() { return RenderTargets[currentIndex]; }
-		inline D3D_DepthRenderTarget& PreviousRenderTarget() { return RenderTargets[((currentIndex - 1) + RenderTargets.size()) % RenderTargets.size()]; }
 	};
 
 	struct ShadowMappingRenderData

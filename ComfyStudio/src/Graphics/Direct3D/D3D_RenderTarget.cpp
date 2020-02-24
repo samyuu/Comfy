@@ -189,6 +189,11 @@ namespace Graphics
 		return shaderResourceView.Get();
 	}
 
+	const D3D11_TEXTURE2D_DESC& D3D_RenderTarget::GetBackBufferDescription() const
+	{
+		return backBufferDescription;
+	}
+
 	UniquePtr<uint8_t[]> D3D_RenderTarget::StageAndCopyBackBuffer()
 	{
 		return StageAndCopyD3DTexture2D(backBuffer.Get(), backBufferDescription);

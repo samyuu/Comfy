@@ -69,6 +69,8 @@ namespace Graphics
 		ID3D11Resource* GetResource() const;
 		ID3D11ShaderResourceView* GetResourceView() const override;
 
+		const D3D11_TEXTURE2D_DESC& GetBackBufferDescription() const;
+
 		UniquePtr<uint8_t[]> StageAndCopyBackBuffer();
 
 	protected:

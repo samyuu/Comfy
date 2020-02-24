@@ -261,7 +261,7 @@ namespace Graphics
 		void InternalFlush();
 
 		void InternalPrepareRenderCommands(RenderPassCommandLists& commandList);
-		void InternalRenderItems();
+		void InternalRenderScene();
 		void InternalPreRenderShadowMap();
 		void InternalPreRenderReduceFilterShadowMap();
 		void InternalPreRenderScreenReflection();

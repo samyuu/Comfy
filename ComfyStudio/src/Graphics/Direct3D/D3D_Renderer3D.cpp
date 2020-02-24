@@ -468,7 +468,7 @@ namespace Graphics
 		InternalPrepareRenderCommands(defaultCommandList);
 		InternalPrepareRenderCommands(reflectionCommandList);
 
-		InternalRenderItems();
+		InternalRenderScene();
 		InternalRenderPostProcessing();
 
 		if (isAnyCommand.SilhouetteOutline)
@@ -524,14 +524,14 @@ namespace Graphics
 		}
 	}
 
-	void D3D_Renderer3D::InternalRenderItems()
+	void D3D_Renderer3D::InternalRenderScene()
 	{
 		const auto& camera = sceneContext->Camera;
 		const auto& fog = sceneContext->Fog;
 		const auto& lightParam = sceneContext->Light;
 		const auto& ibl = sceneContext->IBL;
 
-		sceneCB.Data.RenderResolution = GetPackedTextureSize(renderData->Main.CurrentRenderTarget());
+		sceneCB.Data.RenderResolution = GetPackedTextureSize(renderData->Main.Current());
 		sceneCB.Data.IBLIrradianceRed = glm::transpose(ibl.Stage.IrradianceRGB[0]);
 		sceneCB.Data.IBLIrradianceGreen = glm::transpose(ibl.Stage.IrradianceRGB[1]);
 		sceneCB.Data.IBLIrradianceBlue = glm::transpose(ibl.Stage.IrradianceRGB[2]);
@@ -640,14 +640,14 @@ namespace Graphics
 			renderData->SubsurfaceScattering.FilterRenderTargets.back().BindResource(TextureSlot_SubsurfaceScattering);
 		}
 
-		renderData->Main.CurrentRenderTarget().SetMultiSampleCountIfDifferent(renderParameters->MultiSampleCount);
-		renderData->Main.CurrentRenderTarget().ResizeIfDifferent(renderParameters->RenderResolution);
-		renderData->Main.CurrentRenderTarget().BindSetViewport();
+		renderData->Main.Current().SetMultiSampleCountIfDifferent(renderParameters->MultiSampleCount);
+		renderData->Main.Current().ResizeIfDifferent(renderParameters->RenderResolution);
+		renderData->Main.Current().BindSetViewport();
 
 		if (renderParameters->Clear)
-			renderData->Main.CurrentRenderTarget().Clear(renderParameters->ClearColor);
+			renderData->Main.Current().Clear(renderParameters->ClearColor);
 		else
-			renderData->Main.CurrentRenderTarget().GetDepthBuffer()->Clear();
+			renderData->Main.Current().GetDepthBuffer()->Clear();
 
 		if (renderParameters->Wireframe)
 			wireframeRasterizerState.Bind();
@@ -673,8 +673,17 @@ namespace Graphics
 		if (isAnyCommand.SilhouetteOutline)
 			InternalRenderSilhouette();
 
-		renderData->Main.CurrentRenderTarget().UnBind();
+		renderData->Main.Current().UnBind();
 		genericInputLayout->UnBind();
+
+		if (renderData->Main.MSAAEnabled())
+		{
+			auto& current = renderData->Main.Current();
+			auto& currentResolved = renderData->Main.CurrentResolved();
+			
+			currentResolved.ResizeIfDifferent(current.GetSize());
+			D3D.Context->ResolveSubresource(currentResolved.GetResource(), 0, current.GetResource(), 0, current.GetBackBufferDescription().Format);
+		}
 	}
 
 	void D3D_Renderer3D::InternalPreRenderShadowMap()
@@ -1036,7 +1045,7 @@ namespace Graphics
 			toneMapData.Update();
 		}
 
-		D3D_ShaderResourceView::BindArray<3>(0, { &renderData->Main.CurrentRenderTarget(), (renderParameters->RenderBloom) ? &renderData->Bloom.CombinedBlurRenderTarget : nullptr, toneMapData.LookupTexture.get() });
+		D3D_ShaderResourceView::BindArray<3>(0, { &renderData->Main.CurrentOrResolved(), (renderParameters->RenderBloom) ? &renderData->Bloom.CombinedBlurRenderTarget : nullptr, toneMapData.LookupTexture.get() });
 
 		toneMapCB.Data.Exposure = sceneContext->Glow.Exposure;
 		toneMapCB.Data.Gamma = sceneContext->Glow.Gamma;
@@ -1068,7 +1077,7 @@ namespace Graphics
 		for (int i = -1; i < static_cast<int>(bloom.ReduceRenderTargets.size()); i++)
 		{
 			auto& renderTarget = (i < 0) ? bloom.BaseRenderTarget : bloom.ReduceRenderTargets[i];
-			auto& lastRenderTarget = (i < 0) ? renderData->Main.CurrentRenderTarget() : (i == 0) ? bloom.BaseRenderTarget : bloom.ReduceRenderTargets[i - 1];
+			auto& lastRenderTarget = (i < 0) ? renderData->Main.CurrentOrResolved() : (i == 0) ? bloom.BaseRenderTarget : bloom.ReduceRenderTargets[i - 1];
 
 			reduceTexCB.Data.TextureSize = GetPackedTextureSize(lastRenderTarget);
 			reduceTexCB.Data.ExtractBrightness = (i == 0);
@@ -1239,7 +1248,7 @@ namespace Graphics
 						if (command.SourceCommand.Animation != nullptr && txpID == command.SourceCommand.Animation->ScreenRenderTextureID)
 						{
 							objectCB.Data.DiffuseScreenTexture = true;
-							textureResources[i] = &renderData->Main.PreviousRenderTarget();
+							textureResources[i] = &renderData->Main.PreviousOrResolved();
 						}
 
 						if (txp->GetFormat() == TextureFormat::RGTC1)
