@@ -1,7 +1,7 @@
 from io import open
 
-inputFileName = "shader_bytecode_list.txt"
-outputFileName = "../src/Graphics/Direct3D/ShaderBytecode/ShaderBytecode.h"
+inputFileName = "ShaderList.txt"
+outputFileName = "../../src/Graphics/Direct3D/ShaderBytecode/ShaderBytecode.h"
 
 shaderNamesToInclude = []
 with open(inputFileName, 'r') as inputFile:
