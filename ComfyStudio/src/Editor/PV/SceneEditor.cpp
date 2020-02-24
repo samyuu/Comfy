@@ -419,7 +419,7 @@ namespace Editor
 					if (Gui::MenuItem(name)) renderResolution = ivec2(vec2(renderWindow->GetRenderRegion().GetSize()) * factor);
 			});
 
-			if (renderResolution != context.RenderData.Main.CurrentRenderTarget().GetSize())
+			if (renderResolution != context.RenderData.Main.Current().GetSize())
 				renderParameters.RenderResolution = (clampSize(renderResolution));
 
 			ivec2 reflectionResolution = renderParameters.ReflectionRenderResolution;
@@ -502,8 +502,8 @@ namespace Editor
 			};
 
 			currentIndex = 0;
-			renderTargetGui("Main Current", renderData.Main.CurrentRenderTarget());
-			renderTargetGui("Main Previous", renderData.Main.PreviousRenderTarget());
+			renderTargetGui("Main Current", renderData.Main.CurrentOrResolved());
+			renderTargetGui("Main Previous", renderData.Main.PreviousOrResolved());
 
 			renderTargetGui("Shadow Map", renderData.Shadow.RenderTarget);
 
