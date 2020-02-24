@@ -50,6 +50,7 @@ SolidWhite_PS
 SSSFilter_PS
 SSSSkin_VS
 SSSSkin_PS
+SSSSkinConst_PS
 StageBlinn_VS
 StageBlinn_PS
 Tights_VS

@@ -56,7 +56,7 @@ namespace Graphics
 		{
 			return (command.Flags.ReceivesShadow && subMesh.ShadowFlags);
 		}
-		
+
 		constexpr bool ReceivesSelfShadow(const RenderCommand& command, const Mesh& mesh, const SubMesh& subMesh)
 		{
 			return (command.Flags.ReceivesShadow);
@@ -73,13 +73,17 @@ namespace Graphics
 			return false;
 		}
 
-		bool UsesSubsurfaceScattering(const Mesh& mesh, const SubMesh& subMesh, const Material& material)
+		bool UsesSSSSkin(const Material& material)
 		{
-			// TODO: Requires further checking
-			if (material.MaterialType == Material::Identifiers.SKIN)
+			if (material.MaterialType == Material::Identifiers.SKIN || material.MaterialType == Material::Identifiers.EYEBALL || material.MaterialType == Material::Identifiers.EYELENS)
 				return true;
 
-			if (material.MaterialType == Material::Identifiers.EYEBALL || material.MaterialType == Material::Identifiers.EYELENS)
+			return false;
+		}
+
+		bool UsesSSSSkinConst(const Material& material)
+		{
+			if (material.MaterialType == Material::Identifiers.HAIR || material.MaterialType == Material::Identifiers.CLOTH || material.MaterialType == Material::Identifiers.TIGHTS)
 				return true;
 
 			return false;
@@ -407,7 +411,7 @@ namespace Graphics
 			{
 				for (auto& subMesh : mesh.SubMeshes)
 				{
-					if (UsesSubsurfaceScattering(mesh, subMesh, subMesh.GetMaterial(*command.SourceObj)))
+					if (UsesSSSSkin(subMesh.GetMaterial(*command.SourceObj)))
 						isAnyCommand.SubsurfaceScattering = true;
 				}
 			}
@@ -947,7 +951,7 @@ namespace Graphics
 				if (IsMeshTransparent(mesh, subMesh, material))
 					continue;
 
-				if ((flags & RenderFlags_SSSPass) && !UsesSubsurfaceScattering(mesh, subMesh, material))
+				if ((flags & RenderFlags_SSSPass) && !(UsesSSSSkin(material) || UsesSSSSkinConst(material)))
 					continue;
 
 				if (doFrustumCulling && !IntersectsCameraFrustum(subMesh.BoundingSphere, command))
@@ -1177,7 +1181,7 @@ namespace Graphics
 	{
 		if (!(flags & RenderFlags_NoMaterialShader))
 		{
-			auto& materialShader = (flags & RenderFlags_SSSPass) ? GetSubsurfaceScatteringMaterialShader(material) : GetMaterialShader(material);
+			auto& materialShader = (flags & RenderFlags_SSSPass) ? GetSSSMaterialShader(material) : GetMaterialShader(material);
 			materialShader.Bind();
 		}
 
@@ -1488,8 +1492,11 @@ namespace Graphics
 		}
 	}
 
-	D3D_ShaderPair& D3D_Renderer3D::GetSubsurfaceScatteringMaterialShader(const Material& material)
+	D3D_ShaderPair& D3D_Renderer3D::GetSSSMaterialShader(const Material& material)
 	{
+		if (UsesSSSSkinConst(material))
+			return shaders.SSSSkinConst;
+
 		return shaders.SSSSkin;
 	}
 

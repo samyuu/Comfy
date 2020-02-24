@@ -279,7 +279,7 @@ namespace Graphics
 		void BindMeshVertexBuffers(const Mesh& primaryMesh, const Mesh* morphMesh);
 		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, RenderFlags flags = RenderFlags_None);
 		D3D_ShaderPair& GetMaterialShader(const Material& material);
-		D3D_ShaderPair& GetSubsurfaceScatteringMaterialShader(const Material& material);
+		D3D_ShaderPair& GetSSSMaterialShader(const Material& material);
 		void SubmitSubMeshDrawCall(const SubMesh& subMesh);
 
 		Sphere CalculateShadowViewFrustumSphere() const;
@@ -323,6 +323,7 @@ namespace Graphics
 			D3D_ShaderPair SolidWhite = { PositionTransform_VS(), SolidWhite_PS(), "Renderer3D::SolidWhite" };
 			D3D_ShaderPair SSSFilter = { FullscreenQuad_VS(), SSSFilter_PS(), "Renderer3D::SSSFilter" };
 			D3D_ShaderPair SSSSkin = { SSSSkin_VS(), SSSSkin_PS(), "Renderer3D::SSSSkin" };
+			D3D_ShaderPair SSSSkinConst = { PositionTransform_VS(), SSSSkinConst_PS(), "Renderer3D::SSSSkinConst" };
 			D3D_ShaderPair StageBlinn = { StageBlinn_VS(), StageBlinn_PS(), "Renderer3D::StageBlinn" };
 			D3D_ShaderPair Tights = { Tights_VS(), Tights_PS(), "Renderer3D::Tights" };
 			D3D_ShaderPair ToneMap = { FullscreenQuad_VS(), ToneMap_PS(), "Renderer3D::ToneMap" };
@@ -390,12 +391,12 @@ namespace Graphics
 		struct Statistics
 		{
 			size_t VerticesRendered = 0;
-			
+
 			// TODO: Implement different statistics
 			// size_t ObjectsRendered = 0, MeshesRendered = 0, SubMeshesRendered = 0;
 			// size_t ObjectsCulled = 0, MeshesCulled = 0, SubMeshesCulled = 0;
 		} statistics, lastFrameStatistics;
-		
+
 		struct ToneMapData
 		{
 			GlowParameter Glow;
