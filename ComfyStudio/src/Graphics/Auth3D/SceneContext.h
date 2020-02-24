@@ -92,6 +92,8 @@ namespace Graphics
 
 	public:
 		inline bool MSAAEnabled() { return Current().GetMultiSampleCount() > 1; }
+		inline bool MSAAEnabledPrevious() { return Previous().GetMultiSampleCount() > 1; }
+
 		inline void AdvanceRenderTarget() { currentIndex = (currentIndex + 1) % RenderTargets.size(); }
 
 		inline D3D_DepthRenderTarget& Current() { return RenderTargets[currentIndex]; }
@@ -101,7 +103,7 @@ namespace Graphics
 		inline D3D_RenderTarget& PreviousResolved() { return ResolvedRenderTargets[((currentIndex - 1) + ResolvedRenderTargets.size()) % ResolvedRenderTargets.size()]; }
 
 		inline D3D_RenderTarget& CurrentOrResolved() { return MSAAEnabled() ? CurrentResolved() : Current(); }
-		inline D3D_RenderTarget& PreviousOrResolved() { return MSAAEnabled() ? PreviousResolved() : Previous(); }
+		inline D3D_RenderTarget& PreviousOrResolved() { return MSAAEnabledPrevious() ? PreviousResolved() : Previous(); }
 
 	private:
 		// NOTE: Index of the currently active render target, keep switching to allow for last->current frame post processing effects and screen textures
