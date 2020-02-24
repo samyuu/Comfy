@@ -341,8 +341,8 @@ namespace Graphics
 
 	void D3D_Renderer3D::Begin(SceneContext& scene)
 	{
-		verticesRenderedLastFrame = verticesRenderedThisFrame;
-		verticesRenderedThisFrame = 0;
+		lastFrameStatistics = statistics;
+		statistics = {};
 
 		isAnyCommand = {};
 
@@ -1500,7 +1500,7 @@ namespace Graphics
 		D3D.Context->IASetPrimitiveTopology(GetD3DPrimitiveTopolgy(subMesh.Primitive));
 		D3D.Context->DrawIndexed(static_cast<UINT>(subMesh.Indices.size()), 0, 0);
 
-		verticesRenderedThisFrame += subMesh.Indices.size();
+		statistics.VerticesRendered += subMesh.Indices.size();
 	}
 
 	Sphere D3D_Renderer3D::CalculateShadowViewFrustumSphere() const

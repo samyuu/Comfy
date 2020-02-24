@@ -21,7 +21,7 @@ namespace Graphics
 	enum ShaderFlags : uint32_t
 	{
 		ShaderFlags_VertexColor = 1 << 0,
-		
+
 		ShaderFlags_DiffuseTexture = 1 << 1,
 		ShaderFlags_AmbientTexture = 1 << 2,
 		ShaderFlags_NormalTexture = 1 << 3,
@@ -387,9 +387,15 @@ namespace Graphics
 
 		RenderPassCommandLists defaultCommandList, reflectionCommandList;
 
-		// TODO: RendererStatistics struct with data for obj / mesh / submesh count, vertices, cull count etc.
-		size_t verticesRenderedThisFrame = 0, verticesRenderedLastFrame = 0;
-
+		struct Statistics
+		{
+			size_t VerticesRendered = 0;
+			
+			// TODO: Implement different statistics
+			// size_t ObjectsRendered = 0, MeshesRendered = 0, SubMeshesRendered = 0;
+			// size_t ObjectsCulled = 0, MeshesCulled = 0, SubMeshesCulled = 0;
+		} statistics, lastFrameStatistics;
+		
 		struct ToneMapData
 		{
 			GlowParameter Glow;
