@@ -9,7 +9,7 @@ struct VS_OUTPUT
 
 cbuffer ESMFilterConstantData : register(b3)
 {
-    float4 CB_Coefficient[2];
+    float4 CB_Coefficients[2];
     float2 CB_TextureStep;
     float2 CB_FarTexelOffset;
     int CB_PassIndex;
@@ -63,8 +63,8 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
         RET;
     }
     
-    MAD(sum.x, dep0.x, CB_Coefficient[0].x, sum.x);
-    ADD(sum.y, CB_Coefficient[0].x, sum.y);
+    MAD(sum.x, dep0.x, CB_Coefficients[0].x, sum.x);
+    ADD(sum.y, CB_Coefficients[0].x, sum.y);
     ADD(stex0.xy, CB_TextureStep, a_tex0);
     ADD(stex1.xy,-CB_TextureStep, a_tex0);
     TEX(dep0, stex0);
@@ -73,14 +73,14 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     if ((dep0.w = dep0.x - sum.w) > 0.0)
         MOV(dep0.x, sum.z);
     
-    MAD(sum.x, dep0.x, CB_Coefficient[0].y, sum.x);
-    ADD(sum.y, CB_Coefficient[0].y, sum.y);
+    MAD(sum.x, dep0.x, CB_Coefficients[0].y, sum.x);
+    ADD(sum.y, CB_Coefficients[0].y, sum.y);
     
     if ((dep1.w = dep1.x - sum.w) > 0.0)
         MOV(dep1.x, sum.z);
     
-    MAD(sum.x, dep1.x, CB_Coefficient[0].y, sum.x);
-    ADD(sum.y, CB_Coefficient[0].y, sum.y);
+    MAD(sum.x, dep1.x, CB_Coefficients[0].y, sum.x);
+    ADD(sum.y, CB_Coefficients[0].y, sum.y);
     ADD(stex0.xy, CB_TextureStep.xy, stex0.xy);
     ADD(stex1.xy,-CB_TextureStep.xy, stex1.xy);
     TEX(dep0, stex0);
@@ -89,14 +89,14 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     if ((dep0.w = dep0.x - sum.w) > 0.0)
         MOV(dep0.x, sum.z);
     
-    MAD(sum.x, dep0.x, CB_Coefficient[0].z, sum.x);
-    ADD(sum.y, CB_Coefficient[0].z, sum.y);
+    MAD(sum.x, dep0.x, CB_Coefficients[0].z, sum.x);
+    ADD(sum.y, CB_Coefficients[0].z, sum.y);
     
     if ((dep1.w = dep1.x - sum.w) > 0.0)
         MOV(dep1.x, sum.z);
     
-    MAD(sum.x, dep1.x, CB_Coefficient[0].z, sum.x);
-    ADD(sum.y, CB_Coefficient[0].z, sum.y);
+    MAD(sum.x, dep1.x, CB_Coefficients[0].z, sum.x);
+    ADD(sum.y, CB_Coefficients[0].z, sum.y);
     ADD(stex0.xy, CB_TextureStep.xy, stex0.xy);
     ADD(stex1.xy,-CB_TextureStep.xy, stex1.xy);
     TEX(dep0, stex0);
@@ -105,14 +105,14 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     if ((dep0.w = dep0.x - sum.w) > 0.0)
         MOV(dep0.x, sum.z);
     
-    MAD(sum.x, dep0.x, CB_Coefficient[0].w, sum.x);
-    ADD(sum.y, CB_Coefficient[0].w, sum.y);
+    MAD(sum.x, dep0.x, CB_Coefficients[0].w, sum.x);
+    ADD(sum.y, CB_Coefficients[0].w, sum.y);
     
     if ((dep1.w = dep1.x - sum.w) > 0.0)
         MOV(dep1.x, sum.z);
     
-    MAD(sum.x, dep1.x, CB_Coefficient[0].w, sum.x);
-    ADD(sum.y, CB_Coefficient[0].w, sum.y);
+    MAD(sum.x, dep1.x, CB_Coefficients[0].w, sum.x);
+    ADD(sum.y, CB_Coefficients[0].w, sum.y);
     ADD(stex0.xy, CB_TextureStep.xy, stex0.xy);
     ADD(stex1.xy,-CB_TextureStep.xy, stex1.xy);
     TEX(dep0, stex0);
@@ -121,14 +121,14 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     if ((dep0.w = dep0.x - sum.w) > 0.0)
         MOV(dep0.x, sum.z);
     
-    MAD(sum.x, dep0.x, CB_Coefficient[1].x, sum.x);
-    ADD(sum.y, CB_Coefficient[1].x, sum.y);
+    MAD(sum.x, dep0.x, CB_Coefficients[1].x, sum.x);
+    ADD(sum.y, CB_Coefficients[1].x, sum.y);
     
     if ((dep1.w = dep1.x - sum.w) > 0.0)
         MOV(dep1.x, sum.z);
     
-    MAD(sum.x, dep1.x, CB_Coefficient[1].x, sum.x);
-    ADD(sum.y, CB_Coefficient[1].x, sum.y);
+    MAD(sum.x, dep1.x, CB_Coefficients[1].x, sum.x);
+    ADD(sum.y, CB_Coefficients[1].x, sum.y);
     ADD(stex0.xy, CB_TextureStep.xy, stex0.xy);
     ADD(stex1.xy,-CB_TextureStep.xy, stex1.xy);
     TEX(dep0, stex0);
@@ -137,14 +137,14 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     if ((dep0.w = dep0.x - sum.w) > 0.0)
         MOV(dep0.x, sum.z);
     
-    MAD(sum.x, dep0.x, CB_Coefficient[1].y, sum.x);
-    ADD(sum.y, CB_Coefficient[1].y, sum.y);
+    MAD(sum.x, dep0.x, CB_Coefficients[1].y, sum.x);
+    ADD(sum.y, CB_Coefficients[1].y, sum.y);
     
     if ((dep1.w = dep1.x - sum.w) > 0.0)
         MOV(dep1.x, sum.z);
     
-    MAD(sum.x, dep1.x, CB_Coefficient[1].y, sum.x);
-    ADD(sum.y, CB_Coefficient[1].y, sum.y);
+    MAD(sum.x, dep1.x, CB_Coefficients[1].y, sum.x);
+    ADD(sum.y, CB_Coefficients[1].y, sum.y);
     ADD(stex0.xy, CB_TextureStep.xy, stex0.xy);
     ADD(stex1.xy,-CB_TextureStep.xy, stex1.xy);
     TEX(dep0, stex0);
@@ -153,14 +153,14 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     if ((dep0.w = dep0.x - sum.w) > 0.0)
         MOV(dep0.x, sum.z);
     
-    MAD(sum.x, dep0.x, CB_Coefficient[1].z, sum.x);
-    ADD(sum.y, CB_Coefficient[1].z, sum.y);
+    MAD(sum.x, dep0.x, CB_Coefficients[1].z, sum.x);
+    ADD(sum.y, CB_Coefficients[1].z, sum.y);
     
     if ((dep1.w = dep1.x - sum.w) > 0.0)
         MOV(dep1.x, sum.z);
     
-    MAD(sum.x, dep1.x, CB_Coefficient[1].z, sum.x);
-    ADD(sum.y, CB_Coefficient[1].z, sum.y);
+    MAD(sum.x, dep1.x, CB_Coefficients[1].z, sum.x);
+    ADD(sum.y, CB_Coefficients[1].z, sum.y);
     ADD(stex0.xy, CB_TextureStep.xy, stex0.xy);
     ADD(stex1.xy,-CB_TextureStep.xy, stex1.xy);
     TEX(dep0, stex0);
@@ -169,14 +169,14 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     if ((dep0.w = dep0.x - sum.w) > 0.0)
         MOV(dep0.x, sum.z);
     
-    MAD(sum.x, dep0.x, CB_Coefficient[1].w, sum.x);
-    ADD(sum.y, CB_Coefficient[1].w, sum.y);
+    MAD(sum.x, dep0.x, CB_Coefficients[1].w, sum.x);
+    ADD(sum.y, CB_Coefficients[1].w, sum.y);
     
     if ((dep1.w = dep1.x - sum.w) > 0.0)
         MOV(dep1.x, sum.z);
     
-    MAD(sum.x, dep1.x, CB_Coefficient[1].w, sum.x);
-    ADD(sum.y, CB_Coefficient[1].w, sum.y);
+    MAD(sum.x, dep1.x, CB_Coefficients[1].w, sum.x);
+    ADD(sum.y, CB_Coefficients[1].w, sum.y);
     RCP(sum.y, sum.y);
     MUL(o_color, sum.x, sum.y);
     

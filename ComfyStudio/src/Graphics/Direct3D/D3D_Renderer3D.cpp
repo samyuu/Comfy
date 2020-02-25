@@ -4,7 +4,7 @@ namespace Graphics
 {
 	namespace
 	{
-		constexpr std::array<vec4, 2> DefaultShadowCoefficient =
+		constexpr std::array<vec4, 2> DefaultShadowCoefficients =
 		{
 			vec4(0.199471f, 0.176033f, 0.120985f, 0.064759f),
 			vec4(0.026995f, 0.008764f, 0.002216f, 0.000436f),
@@ -162,7 +162,7 @@ namespace Graphics
 			};
 			constexpr double expFactorIncrement = 1.0;
 
-			std::array<vec4, 36> coefficient = {};
+			std::array<vec4, 36> coefficients = {};
 
 			for (int iteration = 0; iteration < 3; iteration++)
 			{
@@ -192,22 +192,22 @@ namespace Graphics
 						const double weight = weights.back()[iteration] * exponentials[i];
 						for (int j = 0; j < 6; j++)
 						{
-							float& coef = coefficient[(i * 6) + j][component];
+							float& coef = coefficients[(i * 6) + j][component];
 							coef = static_cast<float>(static_cast<double>(coef) + exponentials[j] * weight);
 						}
 					}
 				}
 			}
 
-			return coefficient;
+			return coefficients;
 		}
 
-		void CalculateSSSCoefficient(const PerspectiveCamera& camera, SSSFilterCoefConstantData& outData)
+		void CalculateSSSCoefficients(const PerspectiveCamera& camera, SSSFilterCoefConstantData& outData)
 		{
 			const std::array<std::optional<vec3>, 2> characterHeadPositions = { vec3(0.0f, 1.055f, 0.0f) };
 			const double cameraCoefficient = CalculateSSSCameraCoefficient(camera.ViewPoint, camera.Interest, camera.FieldOfView, characterHeadPositions);
 
-			outData.Coefficient = CalculateSSSFilterCoefficient(cameraCoefficient);
+			outData.Coefficients = CalculateSSSFilterCoefficient(cameraCoefficient);
 		}
 
 		void CalculateGaussianBlurKernel(const GlowParameter& glow, PPGaussCoefConstantData* outData)
@@ -237,8 +237,8 @@ namespace Graphics
 
 				const float channelIntensity = glow.Intensity[channel] * (intensityFactor * 0.5f);
 
-				for (int i = 0; i < outData->Coefficient.size(); i++)
-					outData->Coefficient[i][channel] = (results[i] / accumilatedExpResult) * channelIntensity;
+				for (int i = 0; i < outData->Coefficients.size(); i++)
+					outData->Coefficients[i][channel] = (results[i] / accumilatedExpResult) * channelIntensity;
 			}
 		}
 
@@ -763,7 +763,7 @@ namespace Graphics
 			shaders.ESMGauss.Bind();
 			renderData->Shadow.ExponentialRenderTargets[0].BindSetViewport();
 			renderData->Shadow.RenderTarget.BindResource(0);
-			esmFilterCB.Data.Coefficient = DefaultShadowCoefficient;
+			esmFilterCB.Data.Coefficients = DefaultShadowCoefficients;
 			esmFilterCB.Data.TextureStep = vec2(1.0f / fullResolution.x, 0.0f);
 			esmFilterCB.Data.FarTexelOffset = vec2(DefaultShadowTexelOffset, DefaultShadowTexelOffset);
 			esmFilterCB.Data.PassIndex = 0;
@@ -910,7 +910,7 @@ namespace Graphics
 		shaders.SSSFilter.Bind();
 		sssFilterCB.BindPixelShader();
 
-		CalculateSSSCoefficient(sceneContext->Camera, sssFilterCoefCB.Data);
+		CalculateSSSCoefficients(sceneContext->Camera, sssFilterCoefCB.Data);
 		sssFilterCoefCB.BindPixelShader();
 		sssFilterCoefCB.UploadData();
 
@@ -1299,7 +1299,7 @@ namespace Graphics
 
 		const float fresnel = (((material.ShaderFlags.Fresnel == 0) ? 7.0f : static_cast<float>(material.ShaderFlags.Fresnel) - 1.0f) * 0.12f) * 0.82f;
 		const float lineLight = material.ShaderFlags.LineLight * 0.111f;
-		objectCB.Data.Material.FresnelCoefficient = vec4(fresnel, 0.18f, lineLight, 0.0f);
+		objectCB.Data.Material.FresnelCoefficients = vec4(fresnel, 0.18f, lineLight, 0.0f);
 		objectCB.Data.Material.Diffuse = material.DiffuseColor;
 		objectCB.Data.Material.Transparency = material.Transparency;
 		objectCB.Data.Material.Ambient = material.AmbientColor;

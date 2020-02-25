@@ -93,7 +93,7 @@ namespace Graphics
 		{
 			mat4 DiffuseTextureTransform;
 			mat4 AmbientTextureTransform;
-			vec4 FresnelCoefficient;
+			vec4 FresnelCoefficients;
 			vec3 Diffuse;
 			float Transparency;
 			vec4 Ambient;
@@ -113,7 +113,7 @@ namespace Graphics
 
 	struct ESMFilterConstantData
 	{
-		std::array<vec4, 2> Coefficient;
+		std::array<vec4, 2> Coefficients;
 		vec2 TextureStep;
 		vec2 FarTexelOffset;
 		int PassIndex;
@@ -129,7 +129,7 @@ namespace Graphics
 
 	struct SSSFilterCoefConstantData
 	{
-		std::array<vec4, 36> Coefficient;
+		std::array<vec4, 36> Coefficients;
 	};
 
 	struct ReduceTexConstantData
@@ -150,7 +150,13 @@ namespace Graphics
 
 	struct PPGaussCoefConstantData
 	{
-		std::array<vec4, 8> Coefficient;
+		std::array<vec4, 8> Coefficients;
+	};
+
+	struct ExposureConstantData
+	{
+		vec4 SpotWeight;
+		std::array<vec4, 32> SpotCoefficients;
 	};
 
 	struct ToneMapConstantData

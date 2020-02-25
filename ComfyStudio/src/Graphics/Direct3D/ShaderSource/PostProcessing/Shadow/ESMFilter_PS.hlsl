@@ -9,7 +9,7 @@ struct VS_OUTPUT
 
 cbuffer ESMFilterConstantData : register(b3)
 {
-    float4 CB_Coefficient[2];
+    float4 CB_Coefficients[2];
     float2 CB_TextureStep;
     float2 CB_FarTexelOffset;
     int CB_PassIndex;
