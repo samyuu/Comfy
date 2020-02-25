@@ -51,7 +51,9 @@ SkyDefault_VS
 SkyDefault_PS
 SolidBlack_PS
 SolidWhite_PS
-SSSFilter_PS
+SSSFilterCopy_PS
+SSSFilterMin_PS
+SSSFilterGauss2D_PS
 SSSSkin_VS
 SSSSkin_PS
 SSSSkinConst_PS

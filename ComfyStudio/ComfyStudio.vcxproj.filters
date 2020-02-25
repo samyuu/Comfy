@@ -1002,7 +1002,6 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Shadow\ImgFilterBlur_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Bloom\PPGauss_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Bloom\ReduceTex_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SSS\SSSFilter_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\ToneMap\ToneMap_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Other\SolidWhite_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Other\PositionTransform_VS.hlsl" />
@@ -1040,5 +1039,8 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Shadow\ESMGauss_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Shadow\ESMFilterErosion_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Shadow\ESMFilterMin_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SSS\SSSFilterMin_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SSS\SSSFilterCopy_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SSS\SSSFilterGauss2D_PS.hlsl" />
   </ItemGroup>
 </Project>

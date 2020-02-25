@@ -123,13 +123,7 @@ namespace Graphics
 
 	struct SSSFilterConstantData
 	{
-		vec2 TexelTextureSize;
-		int PassIndex;
-		int Padding[1];
-	};
-
-	struct SSSFilterCoefConstantData
-	{
+		vec4 TextureSize;
 		std::array<vec4, 36> Coefficients;
 	};
 
@@ -332,7 +326,9 @@ namespace Graphics
 			D3D_ShaderPair SkyDefault = { SkyDefault_VS(), SkyDefault_PS(), "Renderer3D::SkyDefault" };
 			D3D_ShaderPair SolidBlack = { PositionTransform_VS(), SolidBlack_PS(), "Renderer3D::SolidBlack" };
 			D3D_ShaderPair SolidWhite = { PositionTransform_VS(), SolidWhite_PS(), "Renderer3D::SolidWhite" };
-			D3D_ShaderPair SSSFilter = { FullscreenQuad_VS(), SSSFilter_PS(), "Renderer3D::SSSFilter" };
+			D3D_ShaderPair SSSFilterCopy = { FullscreenQuad_VS(), SSSFilterCopy_PS(), "Renderer3D::SSSFilterCopy" };
+			D3D_ShaderPair SSSFilterMin = { FullscreenQuad_VS(), SSSFilterMin_PS(), "Renderer3D::SSSFilterMin" };
+			D3D_ShaderPair SSSFilterGauss2D = { FullscreenQuad_VS(), SSSFilterGauss2D_PS(), "Renderer3D::SSSFilterGauss2D" };
 			D3D_ShaderPair SSSSkin = { SSSSkin_VS(), SSSSkin_PS(), "Renderer3D::SSSSkin" };
 			D3D_ShaderPair SSSSkinConst = { PositionTransform_VS(), SSSSkinConst_PS(), "Renderer3D::SSSSkinConst" };
 			D3D_ShaderPair StageBlinn = { StageBlinn_VS(), StageBlinn_PS(), "Renderer3D::StageBlinn" };
@@ -345,8 +341,7 @@ namespace Graphics
 		D3D_DefaultConstantBufferTemplate<SceneConstantData> sceneCB = { 0, "Renderer3D::SceneCB" };
 		D3D_DynamicConstantBufferTemplate<ObjectConstantData> objectCB = { 1, "Renderer3D::ObjectCB" };
 		D3D_DynamicConstantBufferTemplate<ESMFilterConstantData> esmFilterCB = { 3, "Renderer3D::ESMFilterCB" };
-		D3D_DynamicConstantBufferTemplate<SSSFilterConstantData> sssFilterCB = { 4, "Renderer3D::SSSFilterCB" };
-		D3D_DefaultConstantBufferTemplate<SSSFilterCoefConstantData> sssFilterCoefCB = { 5, "Renderer3D::SSSFilterCoefCB" };
+		D3D_DynamicConstantBufferTemplate<SSSFilterConstantData> sssFilterCB = { 5, "Renderer3D::SSSFilterCB" };
 		D3D_DynamicConstantBufferTemplate<ReduceTexConstantData> reduceTexCB = { 6, "Renderer3D::ReduceTexCB" };
 		D3D_DynamicConstantBufferTemplate<PPGaussTexConstantData> ppGaussTexCB = { 7, "Renderer3D::PPGaussTexCB" };
 		D3D_DefaultConstantBufferTemplate<PPGaussCoefConstantData> ppGaussCoefCB = { 8, "Renderer3D::PPGaussCoefCB" };

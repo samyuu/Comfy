@@ -202,7 +202,7 @@ namespace Graphics
 			return coefficients;
 		}
 
-		void CalculateSSSCoefficients(const PerspectiveCamera& camera, SSSFilterCoefConstantData& outData)
+		void CalculateSSSCoefficients(const PerspectiveCamera& camera, SSSFilterConstantData& outData)
 		{
 			const std::array<std::optional<vec3>, 2> characterHeadPositions = { vec3(0.0f, 1.055f, 0.0f) };
 			const double cameraCoefficient = CalculateSSSCameraCoefficient(camera.ViewPoint, camera.Interest, camera.FieldOfView, characterHeadPositions);
@@ -904,29 +904,27 @@ namespace Graphics
 
 		D3D_TextureSampler::BindArray<1>(0, { nullptr });
 
-		shaders.SSSFilter.Bind();
+		shaders.SSSFilterCopy.Bind();
+		renderData->SubsurfaceScattering.RenderTarget.BindResource(0);
+		renderData->SubsurfaceScattering.FilterRenderTargets[0].BindSetViewport();
+		D3D.Context->Draw(RectangleVertexCount, 0);
+		renderData->SubsurfaceScattering.FilterRenderTargets[0].UnBind();
+
+		shaders.SSSFilterMin.Bind();
+		renderData->SubsurfaceScattering.FilterRenderTargets[0].BindResource(0);
+		renderData->SubsurfaceScattering.FilterRenderTargets[1].BindSetViewport();
+		D3D.Context->Draw(RectangleVertexCount, 0);
+		renderData->SubsurfaceScattering.FilterRenderTargets[1].UnBind();
+
+		sssFilterCB.Data.TextureSize = GetPackedTextureSize(renderData->SubsurfaceScattering.FilterRenderTargets[1]);
+		CalculateSSSCoefficients(sceneContext->Camera, sssFilterCB.Data);
 		sssFilterCB.BindPixelShader();
-
-		CalculateSSSCoefficients(sceneContext->Camera, sssFilterCoefCB.Data);
-		sssFilterCoefCB.BindPixelShader();
-		sssFilterCoefCB.UploadData();
-
-		for (int passIndex = 0; passIndex < static_cast<int>(renderData->SubsurfaceScattering.FilterRenderTargets.size()); passIndex++)
-		{
-			auto& sourceTarget = (passIndex == 0) ? renderData->SubsurfaceScattering.RenderTarget : renderData->SubsurfaceScattering.FilterRenderTargets[passIndex - 1];
-			auto& destinationTarget = renderData->SubsurfaceScattering.FilterRenderTargets[passIndex];
-
-			sssFilterCB.Data.PassIndex = passIndex;
-			sssFilterCB.Data.TexelTextureSize = (1.0f / vec2(sourceTarget.GetSize()));
-			sssFilterCB.UploadData();
-
-			sourceTarget.BindResource(0);
-			destinationTarget.BindSetViewport();
-			D3D.Context->Draw(RectangleVertexCount, 0);
-			destinationTarget.UnBind();
-		}
-
-		renderData->SubsurfaceScattering.FilterRenderTargets.back().UnBind();
+		sssFilterCB.UploadData();
+		shaders.SSSFilterGauss2D.Bind();
+		renderData->SubsurfaceScattering.FilterRenderTargets[1].BindResource(0);
+		renderData->SubsurfaceScattering.FilterRenderTargets[2].BindSetViewport();
+		D3D.Context->Draw(RectangleVertexCount, 0);
+		renderData->SubsurfaceScattering.FilterRenderTargets[2].UnBind();
 	}
 
 	void D3D_Renderer3D::InternalRenderOpaqueObjCommand(ObjRenderCommand& command, RenderFlags flags)
