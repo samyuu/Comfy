@@ -9,13 +9,16 @@ static const uint ShaderFlags_SpecularTexture = 1 << 4;
 static const uint ShaderFlags_TransparencyTexture = 1 << 5;
 static const uint ShaderFlags_EnvironmentTexture = 1 << 6;
 static const uint ShaderFlags_TranslucencyTexture = 1 << 7;
-static const uint ShaderFlags_PunchThrough = 1 << 8;
-static const uint ShaderFlags_LinearFog = 1 << 9;
-static const uint ShaderFlags_Morph = 1 << 10;
-static const uint ShaderFlags_MorphColor = 1 << 11;
-static const uint ShaderFlags_Shadow = 1 << 12;
-static const uint ShaderFlags_ShadowSecondary = 1 << 13;
-static const uint ShaderFlags_SelfShadow = 1 << 14;
+static const uint ShaderFlags_ScreenTexture = 1 << 8;
+static const uint ShaderFlags_PunchThrough = 1 << 9;
+static const uint ShaderFlags_ClipPlane = 1 << 10;
+static const uint ShaderFlags_LinearFog = 1 << 11;
+static const uint ShaderFlags_Morph = 1 << 12;
+static const uint ShaderFlags_MorphColor = 1 << 13;
+static const uint ShaderFlags_Skinning = 1 << 14;
+static const uint ShaderFlags_Shadow = 1 << 15;
+static const uint ShaderFlags_ShadowSecondary = 1 << 16;
+static const uint ShaderFlags_SelfShadow = 1 << 17;
 
 #define FLAGS_VERTEX_COLOR (CB_Object.ShaderFlags & ShaderFlags_VertexColor)
 #define FLAGS_DIFFUSE_TEX2D (CB_Object.ShaderFlags & ShaderFlags_DiffuseTexture)
@@ -25,10 +28,13 @@ static const uint ShaderFlags_SelfShadow = 1 << 14;
 #define FLAGS_TRANSPARENCY_TEX2D (CB_Object.ShaderFlags & ShaderFlags_TransparencyTexture)
 #define FLAGS_ENVIRONMENT_CUBE (CB_Object.ShaderFlags & ShaderFlags_EnvironmentTexture)
 #define FLAGS_TRANSLUCENCY_TEX2D (CB_Object.ShaderFlags & ShaderFlags_TranslucencyTexture)
+#define FLAGS_SCREEN_TEX2D (CB_Object.ShaderFlags & ShaderFlags_ScreenTexture)
 #define FLAGS_PUNCH_THROUGH (CB_Object.ShaderFlags & ShaderFlags_PunchThrough)
+#define FLAGS_CLIP_PLANE (CB_Object.ShaderFlags & ShaderFlags_ClipPlane)
 #define FLAGS_LINEAR_FOG (CB_Object.ShaderFlags & ShaderFlags_LinearFog)
 #define FLAGS_MORPH (CB_Object.ShaderFlags & ShaderFlags_Morph)
 #define FLAGS_MORPH_COLOR (CB_Object.ShaderFlags & ShaderFlags_MorphColor)
+#define FLAGS_SKINNING (CB_Object.ShaderFlags & ShaderFlags_Skinning)
 #define FLAGS_SHADOW (CB_Object.ShaderFlags & ShaderFlags_Shadow)
 #define FLAGS_SHADOW_SECONDARY (CB_Object.ShaderFlags & ShaderFlags_ShadowSecondary)
 #define FLAGS_SELF_SHADOW (CB_Object.ShaderFlags & ShaderFlags_SelfShadow)
