@@ -766,7 +766,6 @@ namespace Graphics
 			esmFilterCB.Data.Coefficients = DefaultShadowCoefficients;
 			esmFilterCB.Data.TextureStep = vec2(1.0f / fullResolution.x, 0.0f);
 			esmFilterCB.Data.FarTexelOffset = vec2(DefaultShadowTexelOffset, DefaultShadowTexelOffset);
-			esmFilterCB.Data.PassIndex = 0;
 			esmFilterCB.UploadData();
 			D3D.Context->Draw(RectangleVertexCount, 0);
 			renderData->Shadow.ExponentialRenderTargets[0].UnBind();
@@ -774,7 +773,6 @@ namespace Graphics
 			renderData->Shadow.ExponentialRenderTargets[1].Bind();
 			renderData->Shadow.ExponentialRenderTargets[0].BindResource(0);
 			esmFilterCB.Data.TextureStep = vec2(0.0f, 1.0f / fullResolution.y);
-			esmFilterCB.Data.PassIndex = 1;
 			esmFilterCB.UploadData();
 			D3D.Context->Draw(RectangleVertexCount, 0);
 			renderData->Shadow.ExponentialRenderTargets[1].UnBind();
@@ -783,19 +781,18 @@ namespace Graphics
 			for (auto& renderTarget : renderData->Shadow.ExponentialBlurRenderTargets)
 				renderTarget.ResizeIfDifferent(blurResolution);
 
-			shaders.ESMFilter.Bind();
+			shaders.ESMFilterMin.Bind();
 			renderData->Shadow.ExponentialBlurRenderTargets[0].BindSetViewport();
 			renderData->Shadow.ExponentialRenderTargets[1].BindResource(0);
 			esmFilterCB.Data.TextureStep = vec2(1.0f) / vec2(fullResolution);
-			esmFilterCB.Data.PassIndex = 0;
 			esmFilterCB.UploadData();
 			D3D.Context->Draw(RectangleVertexCount, 0);
 			renderData->Shadow.ExponentialBlurRenderTargets[0].UnBind();
 
+			shaders.ESMFilterErosion.Bind();
 			renderData->Shadow.ExponentialBlurRenderTargets[1].Bind();
 			renderData->Shadow.ExponentialBlurRenderTargets[0].BindResource(0);
 			esmFilterCB.Data.TextureStep = vec2(0.75f) / vec2(blurResolution);
-			esmFilterCB.Data.PassIndex = 1;
 			esmFilterCB.UploadData();
 			D3D.Context->Draw(RectangleVertexCount, 0);
 			renderData->Shadow.ExponentialBlurRenderTargets[1].UnBind();

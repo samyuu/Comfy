@@ -998,8 +998,6 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Stage\SkyDefault_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Stage\SkyDefault_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Shadow\DepthThreshold_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Shadow\ESMFilter_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Shadow\ESMGauss_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Shadow\ImgFilter_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Shadow\ImgFilterBlur_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Bloom\PPGauss_PS.hlsl" />
@@ -1039,5 +1037,8 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Exposure\ExposureMinify_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Exposure\ExposureAverage_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Exposure\ExposureMeasure_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Shadow\ESMGauss_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Shadow\ESMFilterErosion_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Shadow\ESMFilterMin_PS.hlsl" />
   </ItemGroup>
 </Project>

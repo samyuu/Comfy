@@ -119,8 +119,6 @@ namespace Graphics
 		std::array<vec4, 2> Coefficients;
 		vec2 TextureStep;
 		vec2 FarTexelOffset;
-		int PassIndex;
-		int Padding[3];
 	};
 
 	struct SSSFilterConstantData
@@ -317,7 +315,8 @@ namespace Graphics
 			D3D_ShaderPair GlassEye = { GlassEye_VS(), GlassEye_PS(), "Renderer3D::GlassEye" };
 			D3D_ShaderPair HairAniso = { HairDefault_VS(), HairAniso_PS(), "Renderer3D::HairAniso" };
 			D3D_ShaderPair HairDefault = { HairDefault_VS(), HairDefault_PS(), "Renderer3D::HairDefault" };
-			D3D_ShaderPair ESMFilter = { FullscreenQuad_VS(), ESMFilter_PS(), "Renderer3D::ESMFilter" };
+			D3D_ShaderPair ESMFilterMin = { FullscreenQuad_VS(), ESMFilterMin_PS(), "Renderer3D::ESMFilterMin" };
+			D3D_ShaderPair ESMFilterErosion = { FullscreenQuad_VS(), ESMFilterErosion_PS(), "Renderer3D::ESMFilterErosion" };
 			D3D_ShaderPair ESMGauss = { FullscreenQuad_VS(), ESMGauss_PS(), "Renderer3D::ESMGauss" };
 			D3D_ShaderPair ExposureMinify = { FullscreenQuad_VS(), ExposureMinify_PS(), "Renderer3D::ExposureMinify" };
 			D3D_ShaderPair ExposureMeasure = { FullscreenQuad_VS(), ExposureMeasure_PS(), "Renderer3D::ExposureMeasure" };

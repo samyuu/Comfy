@@ -17,7 +17,8 @@ ClothDefault_PS
 Constant_VS
 Constant_PS
 DepthThreshold_PS
-ESMFilter_PS
+ESMFilterMin_PS
+ESMFilterErosion_PS
 ESMGauss_PS
 ExposureMinify_PS
 ExposureMeasure_PS
