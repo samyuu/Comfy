@@ -7,7 +7,7 @@ namespace Graphics
 		template <typename T>
 		void InitializeBufferIfAttribute(Mesh& mesh, VertexAttribute attribute, std::vector<T>& vertexData, const char* objSetName, const char* bufferName)
 		{
-			auto& vertexBuffer = mesh.GraphicsAttributeBuffers[attribute];
+			auto& vertexBuffer = mesh.D3D_VertexBuffers[attribute];
 
 			VertexAttributeFlags attributeFlags = (1 << attribute);
 			if (!(mesh.AttributeFlags & attributeFlags))
@@ -41,9 +41,9 @@ namespace Graphics
 			uint32_t subMeshIndex = 0;
 			for (auto& subMesh : mesh.SubMeshes)
 			{
-				subMesh.GraphicsIndexBuffer = MakeUnique<D3D_StaticIndexBuffer>(subMesh.Indices.size() * sizeof(uint16_t), subMesh.Indices.data(), IndexType::UInt16);
+				subMesh.D3D_IndexBuffer = MakeUnique<D3D_StaticIndexBuffer>(subMesh.Indices.size() * sizeof(uint16_t), subMesh.Indices.data(), IndexType::UInt16);
 
-				D3D_SetObjectDebugName(subMesh.GraphicsIndexBuffer->GetBuffer(), "<%s> %s[%d]::IndexBuffer", Name.c_str(), mesh.Name, subMeshIndex);
+				D3D_SetObjectDebugName(subMesh.D3D_IndexBuffer->GetBuffer(), "<%s> %s[%d]::IndexBuffer", Name.c_str(), mesh.Name, subMeshIndex);
 				subMeshIndex++;
 			}
 		}

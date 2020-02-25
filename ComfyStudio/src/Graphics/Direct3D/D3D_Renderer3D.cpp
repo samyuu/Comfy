@@ -1165,7 +1165,7 @@ namespace Graphics
 			const Mesh& mesh = (meshIndex == 0) ? primaryMesh : *morphMesh;;
 			for (VertexAttribute i = 0; i < VertexAttribute_Count; i++)
 			{
-				D3D_StaticVertexBuffer* vertexBuffer = mesh.GraphicsAttributeBuffers[i].get();
+				D3D_StaticVertexBuffer* vertexBuffer = mesh.D3D_VertexBuffers[i].get();
 
 				if (vertexBuffer != nullptr)
 				{
@@ -1511,7 +1511,7 @@ namespace Graphics
 
 	void D3D_Renderer3D::SubmitSubMeshDrawCall(const SubMesh& subMesh)
 	{
-		subMesh.GraphicsIndexBuffer->Bind();
+		subMesh.D3D_IndexBuffer->Bind();
 
 		D3D.Context->IASetPrimitiveTopology(GetD3DPrimitiveTopolgy(subMesh.Primitive));
 		D3D.Context->DrawIndexed(static_cast<UINT>(subMesh.Indices.size()), 0, 0);

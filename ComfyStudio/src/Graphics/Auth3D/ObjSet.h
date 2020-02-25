@@ -25,7 +25,7 @@ namespace Graphics
 		std::vector<uint16_t> Indices;
 		uint32_t ShadowFlags;
 
-		UniquePtr<D3D_StaticIndexBuffer> GraphicsIndexBuffer;
+		UniquePtr<D3D_StaticIndexBuffer> D3D_IndexBuffer;
 
 		Material& GetMaterial(Obj& obj);
 		const Material& GetMaterial(const Obj& obj) const;
@@ -71,7 +71,7 @@ namespace Graphics
 			std::vector<vec4> BoneIndices;
 		} VertexData;
 
-		std::array<UniquePtr<D3D_StaticVertexBuffer>, VertexAttribute_Count> GraphicsAttributeBuffers;
+		std::array<UniquePtr<D3D_StaticVertexBuffer>, VertexAttribute_Count> D3D_VertexBuffers;
 	};
 
 	struct MaterialTextureFlags
