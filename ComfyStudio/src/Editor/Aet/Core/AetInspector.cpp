@@ -355,7 +355,7 @@ namespace Editor
 					vec2 size = vec2(100.0f, 100.0f);
 
 					// TODO: Something like this...
-					Gui::ImageButton(*outTxp->Texture2D, size, uvTL, uvBR);
+					Gui::ImageButton(*outTxp->D3D_Texture2D, size, uvTL, uvBR);
 				}
 			}
 

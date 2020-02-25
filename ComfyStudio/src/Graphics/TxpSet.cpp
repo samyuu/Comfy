@@ -52,15 +52,15 @@ namespace Graphics
 		{
 			if (txp.Signature.Type == TxpSig::Texture2D)
 			{
-				txp.Texture2D = MakeUnique<D3D_Texture2D>(txp);
-				D3D_SetObjectDebugName(txp.Texture2D->GetTexture(), "Texture2D %s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp.Name.empty() ? "???" : txp.Name.c_str());
-				D3D_SetObjectDebugName(txp.Texture2D->GetResourceView(), "Texture2D::View %s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp.Name.empty() ? "???" : txp.Name.c_str());
+				txp.D3D_Texture2D = MakeUnique<D3D_Texture2D>(txp);
+				D3D_SetObjectDebugName(txp.D3D_Texture2D->GetTexture(), "Texture2D %s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp.Name.empty() ? "???" : txp.Name.c_str());
+				D3D_SetObjectDebugName(txp.D3D_Texture2D->GetResourceView(), "Texture2D::View %s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp.Name.empty() ? "???" : txp.Name.c_str());
 			}
 			else if (txp.Signature.Type == TxpSig::CubeMap)
 			{
-				txp.CubeMap = MakeUnique<D3D_CubeMap>(txp);
-				D3D_SetObjectDebugName(txp.CubeMap->GetTexture(), "CubeMap %s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp.Name.empty() ? "???" : txp.Name.c_str());
-				D3D_SetObjectDebugName(txp.CubeMap->GetTexture(), "CubeMap::View %s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp.Name.empty() ? "???" : txp.Name.c_str());
+				txp.D3D_CubeMap = MakeUnique<D3D_CubeMap>(txp);
+				D3D_SetObjectDebugName(txp.D3D_CubeMap->GetTexture(), "CubeMap %s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp.Name.empty() ? "???" : txp.Name.c_str());
+				D3D_SetObjectDebugName(txp.D3D_CubeMap->GetTexture(), "CubeMap::View %s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp.Name.empty() ? "???" : txp.Name.c_str());
 			}
 		}
 	}

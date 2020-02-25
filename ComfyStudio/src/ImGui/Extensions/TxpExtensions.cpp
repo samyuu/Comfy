@@ -8,7 +8,7 @@ namespace ImGui
 {
 	void ImageSprTxp(const Graphics::Txp* txp, const ImVec2& size)
 	{
-		D3D_TextureResource* textureResource = txp->Texture2D.get();
+		D3D_TextureResource* textureResource = txp->D3D_Texture2D.get();
 
 		if (textureResource == nullptr)
 			return;
@@ -21,10 +21,10 @@ namespace ImGui
 
 	void ImageObjTxp(const Txp* txp, const ImVec2& size)
 	{
-		D3D_TextureResource* textureResource = txp->Texture2D.get();
+		D3D_TextureResource* textureResource = txp->D3D_Texture2D.get();
 
 		if (textureResource == nullptr)
-			textureResource = txp->CubeMap.get();
+			textureResource = txp->D3D_CubeMap.get();
 
 		if (textureResource == nullptr)
 			return;

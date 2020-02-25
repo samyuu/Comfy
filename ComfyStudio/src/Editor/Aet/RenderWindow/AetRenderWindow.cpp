@@ -452,7 +452,7 @@ namespace Editor
 			return false;
 
 		renderer->Draw(
-			txp->Texture2D.get(),
+			txp->D3D_Texture2D.get(),
 			spr->PixelRegion,
 			obj.Transform.Position + positionOffset,
 			obj.Transform.Origin,
@@ -492,13 +492,13 @@ namespace Editor
 			return false;
 
 		renderer->Draw(
-			maskTxp->Texture2D.get(),
+			maskTxp->D3D_Texture2D.get(),
 			maskSpr->PixelRegion,
 			maskObj.Transform.Position,
 			maskObj.Transform.Origin,
 			maskObj.Transform.Rotation,
 			maskObj.Transform.Scale,
-			txp->Texture2D.get(),
+			txp->D3D_Texture2D.get(),
 			spr->PixelRegion,
 			obj.Transform.Position + positionOffset,
 			obj.Transform.Origin,

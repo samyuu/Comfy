@@ -48,8 +48,8 @@ namespace Graphics
 
 		TxpID ID = TxpID::Invalid;
 
-		UniquePtr<D3D_Texture2D> Texture2D = nullptr;
-		UniquePtr<D3D_CubeMap> CubeMap = nullptr;
+		UniquePtr<D3D_Texture2D> D3D_Texture2D = nullptr;
+		UniquePtr<D3D_CubeMap> D3D_CubeMap = nullptr;
 
 	public:
 		const std::vector<MipMap>& GetMipMaps(uint32_t arrayIndex = 0) const;
