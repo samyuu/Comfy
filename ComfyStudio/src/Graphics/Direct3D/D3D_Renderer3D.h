@@ -340,7 +340,8 @@ namespace Graphics
 		// TODO: Separate scene CB from ~~viewport~~ camera CB (camera view/projection/eye, SSS param & render resolution)
 		D3D_DefaultConstantBufferTemplate<SceneConstantData> sceneCB = { 0, "Renderer3D::SceneCB" };
 		D3D_DynamicConstantBufferTemplate<ObjectConstantData> objectCB = { 1, "Renderer3D::ObjectCB" };
-		D3D_DynamicConstantBufferTemplate<ESMFilterConstantData> esmFilterCB = { 3, "Renderer3D::ESMFilterCB" };
+
+		D3D_DynamicConstantBufferTemplate<ESMFilterConstantData> esmFilterCB = { 4, "Renderer3D::ESMFilterCB" };
 		D3D_DynamicConstantBufferTemplate<SSSFilterConstantData> sssFilterCB = { 5, "Renderer3D::SSSFilterCB" };
 		D3D_DynamicConstantBufferTemplate<ReduceTexConstantData> reduceTexCB = { 6, "Renderer3D::ReduceTexCB" };
 		D3D_DynamicConstantBufferTemplate<PPGaussTexConstantData> ppGaussTexCB = { 7, "Renderer3D::PPGaussTexCB" };

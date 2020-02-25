@@ -6,7 +6,7 @@ struct VS_OUTPUT
     float2 TexCoord     : TEXCOORD0;
 };
 
-cbuffer ESMFilterConstantData : register(b3)
+cbuffer ESMFilterConstantData : register(b4)
 {
     float4 CB_Coefficients[2];
     float2 CB_TextureStep;
