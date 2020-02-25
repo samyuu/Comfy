@@ -19,6 +19,9 @@ Constant_PS
 DepthThreshold_PS
 ESMFilter_PS
 ESMGauss_PS
+ExposureMinify_PS
+ExposureMeasure_PS
+ExposureAverage_PS
 EyeBall_VS
 EyeBall_PS
 EyeLens_VS

@@ -1036,5 +1036,8 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Other\SilhouetteOutline_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Other\FullscreenQuad_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Chara\SSSSkinConst_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Exposure\ExposureMinify_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Exposure\ExposureAverage_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\Exposure\ExposureMeasure_PS.hlsl" />
   </ItemGroup>
 </Project>
