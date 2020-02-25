@@ -22,7 +22,7 @@ namespace Graphics
 		ivec2 Size;
 		std::array<std::array<const uint8_t*, MaxMipMaps>, CubeMapFaces> DataPointers;
 
-		UniquePtr<D3D_CubeMap> CubeMap;
+		UniquePtr<D3D_CubeMap> D3D_CubeMap;
 	};
 
 	struct LightData

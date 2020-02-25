@@ -180,8 +180,8 @@ namespace Graphics
 
 			if (lightMap.Size.x >= 1 && lightMap.Size.y >= 1)
 			{
-				lightMap.CubeMap = MakeUnique<D3D_CubeMap>(lightMap);
-				D3D_SetObjectDebugName(lightMap.CubeMap->GetTexture(), "LightMap IBL: %s", LightTargetTypeNames[i]);
+				lightMap.D3D_CubeMap = MakeUnique<D3D_CubeMap>(lightMap);
+				D3D_SetObjectDebugName(lightMap.D3D_CubeMap->GetTexture(), "LightMap IBL: %s", LightTargetTypeNames[i]);
 			}
 		}
 	}

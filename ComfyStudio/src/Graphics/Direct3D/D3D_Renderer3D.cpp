@@ -588,15 +588,15 @@ namespace Graphics
 				nullptr,
 
 				// NOTE: IBLCharacterLightMap = 9
-				ibl.Character.LightMap.CubeMap.get(),
+				ibl.Character.LightMap.D3D_CubeMap.get(),
 				// NOTE: IBLSunLightMap = 10
-				ibl.Sun.LightMap.CubeMap.get(),
+				ibl.Sun.LightMap.D3D_CubeMap.get(),
 				// NOTE: IBLReflectLightMap = 11
-				ibl.Reflect.LightMap.CubeMap.get(),
+				ibl.Reflect.LightMap.D3D_CubeMap.get(),
 				// NOTE: IBLShadowLightMap = 12
-				ibl.Shadow.LightMap.CubeMap.get(),
+				ibl.Shadow.LightMap.D3D_CubeMap.get(),
 				// NOTE: IBLCharacterColorLightMap = 13
-				ibl.CharacterColor.LightMap.CubeMap.get(),
+				ibl.CharacterColor.LightMap.D3D_CubeMap.get(),
 
 				// NOTE: ---
 				nullptr,
