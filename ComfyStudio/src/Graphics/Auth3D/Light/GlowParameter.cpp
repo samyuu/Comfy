@@ -32,7 +32,7 @@ namespace Graphics
 		GhostA(0.5f),
 		Sigma(1.0f, 1.0f, 1.0f),
 		Intensity(1.0f, 1.0f, 1.0f),
-		AutoExposure(false),
+		AutoExposure(true),
 		ToneMapMethod(ToneMapMethod::YCC_Exponent),
 		FadeColor(0.0f, 0.0f, 0.0f, 0.0f),
 		ToneTransform(0.0f, 0.0f, 0.0f, 0.0f)
