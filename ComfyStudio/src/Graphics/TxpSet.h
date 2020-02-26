@@ -19,7 +19,7 @@ namespace Graphics
 			Rectangle = 6,
 		};
 
-		char Signature[3];
+		std::array<char, 3> Txp;
 		TxpType Type;
 	};
 
@@ -64,8 +64,6 @@ namespace Graphics
 		TxpSig Signature;
 		std::vector<Txp> Txps;
 		
-		std::vector<uint8_t> FileContent;
-
 		void Parse(const uint8_t* buffer, size_t bufferSize) override;
 		void UploadAll(class SprSet* parentSprSet);
 
