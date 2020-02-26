@@ -162,7 +162,8 @@ namespace Graphics
 		float SaturateCoefficient;
 		float AlphaLerp;
 		float AlphaValue;
-		float Padding[2];
+		int AutoExposure;
+		int Padding[1];
 	};
 
 	struct RenderCommand
@@ -276,6 +277,8 @@ namespace Graphics
 		void InternalRenderSilhouetteOutlineOverlay();
 		void InternalRenderPostProcessing();
 		void InternalRenderBloom();
+		void InternalRenderExposurePreBloom();
+		void InternalRenderExposurePostBloom();
 
 		void BindMeshVertexBuffers(const Mesh& primaryMesh, const Mesh* morphMesh);
 		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, RenderFlags flags = RenderFlags_None);
@@ -346,6 +349,7 @@ namespace Graphics
 		D3D_DynamicConstantBufferTemplate<ReduceTexConstantData> reduceTexCB = { 6, "Renderer3D::ReduceTexCB" };
 		D3D_DynamicConstantBufferTemplate<PPGaussTexConstantData> ppGaussTexCB = { 7, "Renderer3D::PPGaussTexCB" };
 		D3D_DefaultConstantBufferTemplate<PPGaussCoefConstantData> ppGaussCoefCB = { 8, "Renderer3D::PPGaussCoefCB" };
+		D3D_DefaultConstantBufferTemplate<ExposureConstantData> exposureCB = { 9, "Renderer3D::ExposureCB" };
 		D3D_DefaultConstantBufferTemplate<ToneMapConstantData> toneMapCB = { 9, "Renderer3D::ToneMapCB" };
 
 		UniquePtr<D3D_InputLayout> genericInputLayout = nullptr;

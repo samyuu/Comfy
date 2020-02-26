@@ -210,7 +210,7 @@ namespace Graphics
 			outData.Coefficients = CalculateSSSFilterCoefficient(cameraCoefficient);
 		}
 
-		void CalculateGaussianBlurKernel(const GlowParameter& glow, PPGaussCoefConstantData* outData)
+		void CalculateGaussianBlurKernel(const GlowParameter& glow, PPGaussCoefConstantData& outData)
 		{
 			constexpr float powStart = 1.0f, powIncrement = 1.0f;
 			constexpr float sigmaFactor = 0.8f, intensityFactor = 1.0f;
@@ -237,9 +237,25 @@ namespace Graphics
 
 				const float channelIntensity = glow.Intensity[channel] * (intensityFactor * 0.5f);
 
-				for (int i = 0; i < outData->Coefficients.size(); i++)
-					outData->Coefficients[i][channel] = (results[i] / accumilatedExpResult) * channelIntensity;
+				for (int i = 0; i < outData.Coefficients.size(); i++)
+					outData.Coefficients[i][channel] = (results[i] / accumilatedExpResult) * channelIntensity;
 			}
+		}
+
+		void CalculateExposureSpotCoefficients(ExposureConstantData& outData)
+		{
+			// TODO: Calculate dynamically
+			outData.SpotWeight = vec4(1.28, 0.0, 0.0, 0.0);
+			outData.SpotCoefficients =
+			{
+				vec4(0.500000, 0.675559, 0.0, 4.0),
+				vec4(0.500000, 0.663732, 0.0, 4.0),
+				vec4(0.491685, 0.657819, 0.0, 3.0),
+				vec4(0.490021, 0.669645, 0.0, 2.0),
+				vec4(0.509979, 0.669645, 0.0, 2.0),
+				vec4(0.508315, 0.657819, 0.0, 3.0),
+				vec4(0.500000, 0.648949, 0.0, 3.0),
+			};
 		}
 
 		enum Renderer3DTextureSlot : int32_t
@@ -1040,7 +1056,15 @@ namespace Graphics
 			toneMapData.Update();
 		}
 
-		D3D_ShaderResourceView::BindArray<3>(0, { &renderData->Main.CurrentOrResolved(), (renderParameters->RenderBloom) ? &renderData->Bloom.CombinedBlurRenderTarget : nullptr, toneMapData.LookupTexture.get() });
+		const bool autoExposureEnabled = (renderParameters->AutoExposure && sceneContext->Glow.AutoExposure && renderParameters->RenderBloom);
+
+		D3D_ShaderResourceView::BindArray<4>(0, 
+			{ 
+				&renderData->Main.CurrentOrResolved(),
+				(renderParameters->RenderBloom) ? &renderData->Bloom.CombinedBlurRenderTarget : nullptr,
+				toneMapData.LookupTexture.get(),
+				autoExposureEnabled ? &renderData->Bloom.ExposureRenderTargets.back() : nullptr
+			});
 
 		toneMapCB.Data.Exposure = sceneContext->Glow.Exposure;
 		toneMapCB.Data.Gamma = sceneContext->Glow.Gamma;
@@ -1048,6 +1072,7 @@ namespace Graphics
 		toneMapCB.Data.SaturateCoefficient = sceneContext->Glow.SaturateCoefficient;
 		toneMapCB.Data.AlphaLerp = renderParameters->ToneMapPreserveAlpha ? 0.0f : 1.0f;
 		toneMapCB.Data.AlphaValue = 1.0f;
+		toneMapCB.Data.AutoExposure = autoExposureEnabled;
 		toneMapCB.UploadData();
 		toneMapCB.BindPixelShader();
 
@@ -1084,7 +1109,10 @@ namespace Graphics
 			D3D.Context->Draw(RectangleVertexCount, 0);
 		}
 
-		CalculateGaussianBlurKernel(sceneContext->Glow, &ppGaussCoefCB.Data);
+		if (renderParameters->AutoExposure && sceneContext->Glow.AutoExposure)
+			InternalRenderExposurePreBloom();
+
+		CalculateGaussianBlurKernel(sceneContext->Glow, ppGaussCoefCB.Data);
 		ppGaussCoefCB.UploadData();
 		ppGaussCoefCB.BindPixelShader();
 
@@ -1146,6 +1174,37 @@ namespace Graphics
 		shaders.ReduceTex.Bind();
 
 		D3D.Context->Draw(RectangleVertexCount, 0);
+
+		if (renderParameters->AutoExposure && sceneContext->Glow.AutoExposure)
+			InternalRenderExposurePostBloom();
+	}
+
+	void D3D_Renderer3D::InternalRenderExposurePreBloom()
+	{
+		shaders.ExposureMinify.Bind();
+		renderData->Bloom.ExposureRenderTargets[0].BindSetViewport();
+		renderData->Bloom.ReduceRenderTargets.back().BindResource(0);
+		D3D.Context->Draw(RectangleVertexCount, 0);
+		renderData->Bloom.ExposureRenderTargets[0].UnBind();
+	}
+
+	void D3D_Renderer3D::InternalRenderExposurePostBloom()
+	{
+		CalculateExposureSpotCoefficients(exposureCB.Data);
+		exposureCB.UploadData();
+		exposureCB.BindPixelShader();
+
+		shaders.ExposureMeasure.Bind();
+		renderData->Bloom.ExposureRenderTargets[1].BindSetViewport();
+		renderData->Bloom.ExposureRenderTargets[0].BindResource(0);
+		D3D.Context->Draw(RectangleVertexCount, 0);
+		renderData->Bloom.ExposureRenderTargets[1].UnBind();
+
+		shaders.ExposureAverage.Bind();
+		renderData->Bloom.ExposureRenderTargets[2].BindSetViewport();
+		renderData->Bloom.ExposureRenderTargets[1].BindResource(0);
+		D3D.Context->Draw(RectangleVertexCount, 0);
+		renderData->Bloom.ExposureRenderTargets[2].UnBind();
 	}
 
 	void D3D_Renderer3D::BindMeshVertexBuffers(const Mesh& primaryMesh, const Mesh* morphMesh)

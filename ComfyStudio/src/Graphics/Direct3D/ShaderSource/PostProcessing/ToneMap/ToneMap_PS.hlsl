@@ -12,6 +12,7 @@ cbuffer ToneMapConstantData : register(b9)
     float1 CB_SaturateCoefficient;
     float1 CB_AlphaLerp;
     float1 CB_AlphaValue;
+    bool CB_AutoExposure;
 };
 
 SamplerState LinearTextureSampler
@@ -24,21 +25,29 @@ SamplerState LinearTextureSampler
 Texture2D<float4> ScreenTexture : register(t0);
 Texture2D<float4> BloomTexture : register(t1);
 Texture1D<float2> ToneMapLookupTexture : register(t2);
+Texture2D<float1> ExposureTexture : register(t3);
 
 static const float3 YBR_COEF = { +0.300000, +0.590000, +0.110000 };
 static const float3 RGB_COEF = { -0.508475, +1.000000, -0.186441 };
 
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {
+	const float3 p_exposure = float3(CB_Exposure, 0.0625, 1.0);
+    float2 outExposure = float2(p_exposure.x, p_exposure.x * p_exposure.y);
+    
+    if (CB_AutoExposure)
+    {
+		const float autoExposure = ExposureTexture.Load(int3(0, 0, 0));
+		outExposure.x = mad(exp2(autoExposure * -1.8), 2.9, 0.4) * p_exposure.z;
+		outExposure.y = outExposure.x * p_exposure.y;
+    }
+    
     float4 screenColor = ScreenTexture.Sample(LinearTextureSampler, input.TexCoord);
     
     if (true)
         screenColor.rgb += BloomTexture.Sample(LinearTextureSampler, input.TexCoord).rgb;
     
     float3 ybr = dot(screenColor.rgb, YBR_COEF);
-    
-    static const float p_exposure = 0.062500;
-    const float2 outExposure = float2(CB_Exposure, CB_Exposure * p_exposure);
     
     ybr.xz = (screenColor.rgb - ybr.yyy).xz;
     ybr.y *= outExposure.y;

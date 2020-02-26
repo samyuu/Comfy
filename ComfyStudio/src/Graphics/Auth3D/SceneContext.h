@@ -27,6 +27,7 @@ namespace Graphics
 		bool RenderOpaque = true;
 		bool RenderTransparent = true;
 		bool RenderBloom = true;
+		bool AutoExposure = true;
 		bool VertexColoring = true;
 		bool DiffuseMapping = true;
 		bool AmbientOcclusionMapping = true;
@@ -191,6 +192,17 @@ namespace Graphics
 			D3D_RenderTarget { ivec2(128,  72), RenderTargetHDRFormatRGBA },
 			D3D_RenderTarget { ivec2( 64,  36), RenderTargetHDRFormatRGBA },
 			D3D_RenderTarget { ivec2( 32,  18), RenderTargetHDRFormatRGBA },
+		};
+
+		// NOTE: Auto Exposure
+		std::array<D3D_RenderTarget, 3> ExposureRenderTargets = 
+		{
+			// NOTE: 32 x 18 ->  8 x  8
+			D3D_RenderTarget { ivec2( 8,  8), RenderTargetHDRFormatRGBA },
+			// NOTE:  8 x  8 -> 32 x  1
+			D3D_RenderTarget { ivec2(32,  1), RenderTargetHDRFormatRGBA },
+			// NOTE: 32 x  1 ->  1 x  1
+			D3D_RenderTarget { ivec2( 1,  1), RenderTargetHDRFormatRGBA },
 		};
 	};
 
