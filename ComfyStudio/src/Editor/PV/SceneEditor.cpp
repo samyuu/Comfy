@@ -380,6 +380,7 @@ namespace Editor
 		Gui::Checkbox("Render Opaque", &renderParameters.RenderOpaque);
 		Gui::Checkbox("Render Transparent", &renderParameters.RenderTransparent);
 		Gui::Checkbox("Render Bloom", &renderParameters.RenderBloom);
+		Gui::Checkbox("Auto Exposure", &renderParameters.AutoExposure);
 		Gui::Checkbox("Vertex Coloring", &renderParameters.VertexColoring);
 		Gui::Separator();
 		Gui::Checkbox("Diffuse Mapping", &renderParameters.DiffuseMapping);
@@ -530,6 +531,10 @@ namespace Editor
 			renderTargetGui("Bloom Reduce->Blur [2]", renderData.Bloom.ReduceRenderTargets[2]);
 			renderTargetGui("Bloom Reduce->Blur [3]", renderData.Bloom.ReduceRenderTargets[3]);
 
+			renderTargetGui("Exposure [0]", renderData.Bloom.ExposureRenderTargets[0]);
+			renderTargetGui("Exposure [1]", renderData.Bloom.ExposureRenderTargets[1]);
+			renderTargetGui("Exposure [2]", renderData.Bloom.ExposureRenderTargets[2]);
+
 			renderTargetGui("Output", renderData.Output.RenderTarget);
 		}
 
@@ -571,6 +576,8 @@ namespace Editor
 
 		Gui::DragFloat3("Bloom Sigma", glm::value_ptr(context.Glow.Sigma), 0.005f, 0.0f, 3.0f);
 		Gui::DragFloat3("Bloom Intensity", glm::value_ptr(context.Glow.Intensity), 0.005f, 0.0f, 2.0f);
+		
+		Gui::Checkbox("Auto Exposure", &context.Glow.AutoExposure);
 		Gui::PopID();
 	}
 
@@ -613,8 +620,8 @@ namespace Editor
 				// Gui::DragFloat3("Light Direction", glm::value_ptr(lightData.LightDirection), 0.01f);
 
 				constexpr float cubeMapSize = 60.0f;
-				if (lightData.LightMap.CubeMap != nullptr)
-					Gui::ImageButton(*lightData.LightMap.CubeMap, vec2(cubeMapSize, cubeMapSize * (3.0f / 4.0f)));
+				if (lightData.LightMap.D3D_CubeMap != nullptr)
+					Gui::ImageButton(*lightData.LightMap.D3D_CubeMap, vec2(cubeMapSize, cubeMapSize * (3.0f / 4.0f)));
 
 				Gui::TreePop();
 			}
