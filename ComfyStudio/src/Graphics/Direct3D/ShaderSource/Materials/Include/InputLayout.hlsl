@@ -10,8 +10,8 @@ struct VS_INPUT
     float2 TexCoordAmbient          : TEXCOORD1;
     float4 Color                    : COLOR0;
     float4 ColorSecondary           : COLOR1;
-    float4 BoneWeight               : BONE_WEIGHT0;
-    float4 BoneIndex                : BONE_INDEX0;
+    float4 BoneWeight               : BLENDWEIGHT;
+    float4 BoneIndex                : BLENDINDICES;
     
     float4 MorphPosition            : POSITION1;
     float3 MorphNormal              : NORMAL1;
@@ -29,7 +29,7 @@ struct VS_OUTPUT
     float4 Tangent                  : TANGENT0;
     float4 AnisoTangent             : TANGENT1;
     float4 Binormal                 : BINORMAL;
-    float4 EyeDirection             : EYE_DIRECTION;
+    float4 EyeDirection             : EYE;
     float2 TexCoord                 : TEXCOORD0;
     float2 TexCoordAmbient          : TEXCOORD1;
     float4 TexCoordShadow           : TEXCOORD2;
