@@ -45,7 +45,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     DP3(_tmp2.y, a_binormal, _tmp0);
     DP3(_tmp2.z, a_normal, _tmp0);
     MOV(_tmp2.w, 0.0);
-    TEXCUBE_09(diff, _tmp2);
+    TXLCUBE_09(diff, _tmp2);
     DP3(_tmp1.x, a_eye, _tmp2);
     MUL(_tmp1.x, _tmp1.x, 2.0);
     MAD(_tmp1.xyz, _tmp1.x, _tmp2.xyz, -a_eye.xyz);
