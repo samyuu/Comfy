@@ -30,7 +30,6 @@ namespace Graphics
 		vec3 LightDirection;
 		vec3 LightColor;
 		std::array<mat4, 3> IrradianceRGB;
-		LightMap LightMap;
 	};
 
 	class LightDataIBL final : public FileSystem::IBufferParsable
@@ -41,17 +40,14 @@ namespace Graphics
 
 	public:
 		uint32_t Version;
-	
-		LightData Character;
-		LightData Stage;
-		LightData Sun;
-		LightData Reflect;
-		LightData Shadow;
-		LightData CharacterColor;
-		LightData CharacterF;
-		LightData Projection;
 
-		LightData* GetLightData(LightTargetType type);
+		union
+		{
+			struct { LightData Character, Stage, Sun; };
+			std::array<LightData, 3> Lights;
+		};
+
+		std::array<LightMap, 5> LightMaps;
 
 	public:
 		void Parse(const uint8_t* buffer, size_t bufferSize) override;

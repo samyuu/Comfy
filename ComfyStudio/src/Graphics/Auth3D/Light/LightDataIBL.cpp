@@ -52,36 +52,9 @@ namespace Graphics
 	}
 
 	LightDataIBL::LightDataIBL()
-		: Version(), Character(), Stage(), Sun(), Reflect(), Shadow(), CharacterColor(), CharacterF(), Projection()
+		: Version(), Lights(), LightMaps()
 	{
 
-	}
-
-	LightData* LightDataIBL::GetLightData(LightTargetType type)
-	{
-		switch (type)
-		{
-		case LightTargetType::Character:
-			return &Character;
-		case LightTargetType::Stage:
-			return &Stage;
-		case LightTargetType::Sun:
-			return &Sun;
-		case LightTargetType::Reflect:
-			return &Reflect;
-		case LightTargetType::Shadow:
-			return &Shadow;
-		case LightTargetType::CharacterColor:
-			return &CharacterColor;
-		case LightTargetType::CharacterF:
-			return &CharacterF;
-		case LightTargetType::Projection:
-			return &Projection;
-
-		default:
-			assert(false);
-			return nullptr;
-		}
 	}
 
 	void LightDataIBL::Parse(const uint8_t* buffer, size_t bufferSize)
@@ -110,8 +83,8 @@ namespace Graphics
 			if (tag == BinaryDataTag || tag.empty())
 				break;
 
-			auto targetType = static_cast<LightTargetType>(StringParsing::ParseType<uint32_t>(StringParsing::GetLineAdvanceToNonCommentLine(textBuffer)));
-			LightData* lightData = GetLightData(targetType);
+			auto lightIndex = StringParsing::ParseType<uint32_t>(StringParsing::GetLineAdvanceToNonCommentLine(textBuffer));
+			LightData* lightData = (lightIndex < Lights.size()) ? &Lights[lightIndex] : nullptr;
 
 			if (tag == LightDirectionTag)
 			{
@@ -146,42 +119,59 @@ namespace Graphics
 				auto lightMapFormat = ParseLightMapFormat(StringParsing::GetLineAdvanceToNonCommentLine(textBuffer));
 				auto size = StringParsing::ParseTypeArray<int32_t, 2>(StringParsing::GetLineAdvanceToNonCommentLine(textBuffer));
 
-				if (lightData != nullptr)
+				// NOTE: Special light map that is stored as a mipmap of the first
+				if (lightIndex == 1)
 				{
-					lightData->LightMap.Format = lightMapFormat;
-					lightData->LightMap.Size = { size[0], size[1] };
+					const auto& parentLightMap = LightMaps[0];
+					assert(lightMapFormat == parentLightMap.Format && ivec2(size[0], size[1]) == (parentLightMap.Size / 2));
+					continue;
+				}
+
+				// NOTE: Adjust for the mipmap lightmap that has been skipped
+				if (lightIndex > 1)
+					lightIndex--;
+
+				if (LightMap* lightMap = (lightIndex < LightMaps.size()) ? (&LightMaps[lightIndex]) : nullptr; lightMap != nullptr)
+				{
+					lightMap->Format = lightMapFormat;
+					lightMap->Size = { size[0], size[1] };
 				}
 			}
 		}
 
 		const uint8_t* binaryBuffer = reinterpret_cast<const uint8_t*>(textBuffer);
 
-		for (size_t i = 0; i < static_cast<size_t>(LightTargetType::Count); i++)
+		for (auto& lightMap : LightMaps)
 		{
-			auto& lightMap = GetLightData(static_cast<LightTargetType>(i))->LightMap;
 			const bool valid = (lightMap.Size.x >= 1 && lightMap.Size.y >= 1);
 
 			lightMap.DataPointers = {};
-			for (size_t i = 0; i < lightMap.DataPointers.size(); i++)
+			for (size_t cubeFace = 0; cubeFace < lightMap.DataPointers.size(); cubeFace++)
 			{
-				lightMap.DataPointers[i][0] = valid ? binaryBuffer : nullptr;
+				lightMap.DataPointers[cubeFace][0] = valid ? binaryBuffer : nullptr;
 				binaryBuffer += GetLightMapFaceByteSize(lightMap.Size, lightMap.Format);
 			}
-		}
 
-		// TODO: Calculate mipmaps used for rendering self shadows
+			// NOTE: Special combined mipmap case
+			if (&lightMap == &LightMaps.front())
+			{
+				for (size_t cubeFace = 0; cubeFace < lightMap.DataPointers.size(); cubeFace++)
+				{
+					lightMap.DataPointers[cubeFace][1] = valid ? binaryBuffer : nullptr;
+					binaryBuffer += GetLightMapFaceByteSize(lightMap.Size / 2, lightMap.Format);
+				}
+			}
+		}
 	}
 
 	void LightDataIBL::UploadAll()
 	{
-		for (size_t i = 0; i < static_cast<size_t>(LightTargetType::Count); i++)
+		for (size_t i = 0; i < LightMaps.size(); i++)
 		{
-			auto& lightMap = GetLightData(static_cast<LightTargetType>(i))->LightMap;
-
-			if (lightMap.Size.x >= 1 && lightMap.Size.y >= 1)
+			if (auto& lightMap = LightMaps[i]; lightMap.Size.x >= 1 && lightMap.Size.y >= 1)
 			{
 				lightMap.D3D_CubeMap = MakeUnique<D3D_CubeMap>(lightMap);
-				D3D_SetObjectDebugName(lightMap.D3D_CubeMap->GetTexture(), "LightMap IBL: %s", LightTargetTypeNames[i]);
+				D3D_SetObjectDebugName(lightMap.D3D_CubeMap->GetTexture(), "LightMap IBL [%zu]", i);
 			}
 		}
 	}

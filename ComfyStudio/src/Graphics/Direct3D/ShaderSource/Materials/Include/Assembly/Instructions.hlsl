@@ -61,13 +61,17 @@
 
 #define TEXCUBE_05(result, texCoord) result = EnvironmentTexture.Sample( EnvironmentSampler, (texCoord).xyz )
 
-#define TEXCUBE_09(result, texCoord) result = IBL_CharacterLightMap.Sample( IBL_LightMapSampler, (texCoord).xyz )
-#define TEXCUBE_10(result, texCoord) result = IBL_SunLightMap.Sample( IBL_LightMapSampler, (texCoord).xyz )
-#define TEXCUBE_11(result, texCoord) result = IBL_ReflectLightMap.Sample( IBL_LightMapSampler, (texCoord).xyz )
-#define TEXCUBE_12(result, texCoord) result = IBL_ShadowLightMap.Sample( IBL_LightMapSampler, (texCoord).xyz )
-#define TEXCUBE_13(result, texCoord) result = IBL_CharColorLightMap.Sample( IBL_LightMapSampler, (texCoord).xyz )
+#define TEXCUBE_09(result, texCoord) result = IBL_LightMaps[0].Sample( IBL_LightMapSampler, (texCoord).xyz )
+#define TEXCUBE_10(result, texCoord) result = IBL_LightMaps[1].Sample( IBL_LightMapSampler, (texCoord).xyz )
+#define TEXCUBE_11(result, texCoord) result = IBL_LightMaps[2].Sample( IBL_LightMapSampler, (texCoord).xyz )
+#define TEXCUBE_12(result, texCoord) result = IBL_LightMaps[3].Sample( IBL_LightMapSampler, (texCoord).xyz )
+#define TEXCUBE_13(result, texCoord) result = IBL_LightMaps[4].Sample( IBL_LightMapSampler, (texCoord).xyz )
 
-#define TXLCUBE_09(result, texCoord) result = IBL_CharacterLightMap.SampleLevel( IBL_LightMapSampler, (texCoord).xyz, (texCoord).w )
+#define TXLCUBE_09(result, texCoord) result = IBL_LightMaps[0].SampleLevel( IBL_LightMapSampler, (texCoord).xyz, (texCoord).w )
+// #define TXLCUBE_10(result, texCoord) result = IBL_LightMaps[1].SampleLevel( IBL_LightMapSampler, (texCoord).xyz, (texCoord).w )
+// #define TXLCUBE_11(result, texCoord) result = IBL_LightMaps[2].SampleLevel( IBL_LightMapSampler, (texCoord).xyz, (texCoord).w )
+// #define TXLCUBE_12(result, texCoord) result = IBL_LightMaps[3].SampleLevel( IBL_LightMapSampler, (texCoord).xyz, (texCoord).w )
+// #define TXLCUBE_13(result, texCoord) result = IBL_LightMaps[4].SampleLevel( IBL_LightMapSampler, (texCoord).xyz, (texCoord).w )
 
 #ifdef COMFY_VS
 #define RET                         return output

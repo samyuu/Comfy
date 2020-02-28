@@ -618,10 +618,19 @@ namespace Editor
 			{
 				Gui::ColorEdit3("Light Color", glm::value_ptr(lightData.LightColor), ImGuiColorEditFlags_Float);
 				// Gui::DragFloat3("Light Direction", glm::value_ptr(lightData.LightDirection), 0.01f);
+				Gui::TreePop();
+			}
+			Gui::PopID();
+		};
 
+		auto iblLightMapGui = [](const char* name, LightMap& lightMap, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None)
+		{
+			Gui::PushID(&lightMap);
+			if (Gui::WideTreeNodeEx(name, flags))
+			{
 				constexpr float cubeMapSize = 60.0f;
-				if (lightData.LightMap.D3D_CubeMap != nullptr)
-					Gui::ImageButton(*lightData.LightMap.D3D_CubeMap, vec2(cubeMapSize, cubeMapSize * (3.0f / 4.0f)));
+				if (lightMap.D3D_CubeMap != nullptr)
+					Gui::ImageButton(*lightMap.D3D_CubeMap, vec2(cubeMapSize, cubeMapSize * (3.0f / 4.0f)));
 
 				Gui::TreePop();
 			}
@@ -634,11 +643,16 @@ namespace Editor
 		if (Gui::InputText("Load IBL", iblPathBuffer.data(), iblPathBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
 			Debug::LoadParseUploadLightParamFile(iblPathBuffer.data(), context.IBL);
 
-		iblLightDataGui("Stage", context.IBL.Stage, ImGuiTreeNodeFlags_DefaultOpen);
 		iblLightDataGui("Character", context.IBL.Character, ImGuiTreeNodeFlags_DefaultOpen);
+		iblLightDataGui("Stage", context.IBL.Stage, ImGuiTreeNodeFlags_DefaultOpen);
 		iblLightDataGui("Sun", context.IBL.Sun, ImGuiTreeNodeFlags_DefaultOpen);
-		iblLightDataGui("Reflect", context.IBL.Reflect, ImGuiTreeNodeFlags_DefaultOpen);
-		iblLightDataGui("Shadow", context.IBL.Shadow, ImGuiTreeNodeFlags_DefaultOpen);
+
+		for (size_t i = 0; i < context.IBL.LightMaps.size(); i++)
+		{
+			char buffer[64];
+			sprintf_s(buffer, "LightMaps[%zu]", i);
+			iblLightMapGui(buffer, context.IBL.LightMaps[i], ImGuiTreeNodeFlags_DefaultOpen);
+		}
 
 		Gui::PopID();
 	}

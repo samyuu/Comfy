@@ -271,11 +271,11 @@ namespace Graphics
 			TextureSlot_Translucency = 6,
 			TextureSlot_Reserved = 7,
 
-			TextureSlot_IBLCharacterLightMap = 9,
-			TextureSlot_IBLSunLightMap = 10,
-			TextureSlot_IBLReflectLightMap = 11,
-			TextureSlot_IBLShadowLightMap = 12,
-			TextureSlot_IBLCharacterColorLightMap = 13,
+			TextureSlot_IBLLightMap_0 = 9,
+			TextureSlot_IBLLightMap_1 = 10,
+			TextureSlot_IBLLightMap_2 = 11,
+			TextureSlot_IBLLightMap_3 = 12,
+			TextureSlot_IBLLightMap_4 = 13,
 
 			TextureSlot_ScreenReflection = 15,
 			TextureSlot_SubsurfaceScattering = 16,
@@ -611,16 +611,16 @@ namespace Graphics
 				// NOTE: ---
 				nullptr,
 
-				// NOTE: IBLCharacterLightMap = 9
-				ibl.Character.LightMap.D3D_CubeMap.get(),
-				// NOTE: IBLSunLightMap = 10
-				ibl.Sun.LightMap.D3D_CubeMap.get(),
-				// NOTE: IBLReflectLightMap = 11
-				ibl.Reflect.LightMap.D3D_CubeMap.get(),
-				// NOTE: IBLShadowLightMap = 12
-				ibl.Shadow.LightMap.D3D_CubeMap.get(),
-				// NOTE: IBLCharacterColorLightMap = 13
-				ibl.CharacterColor.LightMap.D3D_CubeMap.get(),
+				// NOTE: IBLLightMap_0 = 9
+				ibl.LightMaps[0].D3D_CubeMap.get(),
+				// NOTE: IBLLightMap_1 = 10
+				ibl.LightMaps[1].D3D_CubeMap.get(),
+				// NOTE: IBLLightMap_2 = 11
+				ibl.LightMaps[2].D3D_CubeMap.get(),
+				// NOTE: IBLLightMap_3 = 12
+				ibl.LightMaps[3].D3D_CubeMap.get(),
+				// NOTE: IBLLightMap_4 = 13
+				ibl.LightMaps[4].D3D_CubeMap.get(),
 
 				// NOTE: ---
 				nullptr,
