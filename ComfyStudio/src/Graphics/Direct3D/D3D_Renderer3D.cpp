@@ -1,5 +1,6 @@
 #include "D3D_Renderer3D.h"
 #include "Core/TimeSpan.h"
+#include "ImGui/Gui.h"
 
 namespace Graphics
 {
@@ -722,9 +723,51 @@ namespace Graphics
 
 		const Sphere frustumSphere = CalculateShadowViewFrustumSphere();
 
+#if 0
+		static float DEBUG_nearFarPadding = 0.1f;
+
 		const float lightDistance = frustumSphere.Radius;
-		const float nearFarPadding = 0.1f;
+		const float nearFarPadding = DEBUG_nearFarPadding;
 		const vec2 nearFarPlane = { -nearFarPadding, (frustumSphere.Radius * 2.0f) + nearFarPadding };
+
+		Gui::DEBUG_NOSAVE_WINDOW(__FUNCTION__"(): Shadow Test", [&]
+		{
+			Gui::DragFloat("near far padding", &DEBUG_nearFarPadding, 1.0f);
+			Gui::Text("near %f far %f plane", nearFarPlane[0], nearFarPlane[1]);
+			Gui::Text("near far plane distance: %f", nearFarPlane.y - nearFarPlane.x);
+
+			static float nearFarTargetSpan = 20.0f - 0.1f;
+			static bool debugAdjustToTargetSpan = true;
+
+			Gui::DragFloat("nearFarTargetSpan", &nearFarTargetSpan);
+			Gui::Checkbox("debugAdjustToTargetSpan", &debugAdjustToTargetSpan);
+
+			if (debugAdjustToTargetSpan)
+				DEBUG_nearFarPadding = (nearFarTargetSpan / 2.0f) - (frustumSphere.Radius);
+		});
+#else
+
+#if 0
+		static float nearFarTargetSpan = 20.0f - 0.1f;
+#else
+		constexpr float nearFarTargetSpan = 20.0f - 0.1f;
+#endif
+
+		const float lightDistance = frustumSphere.Radius;
+		const float nearFarPadding = (nearFarTargetSpan / 2.0f) - (frustumSphere.Radius);
+		const vec2 nearFarPlane = { -nearFarPadding, (frustumSphere.Radius * 2.0f) + nearFarPadding };
+
+#if 0
+		Gui::DEBUG_NOSAVE_WINDOW(__FUNCTION__"(): Shadow Test", [&]
+		{
+			Gui::Text("near far padding %f", nearFarPadding);
+			Gui::Text("near %f far %f plane", nearFarPlane[0], nearFarPlane[1]);
+			Gui::Text("near far plane distance: %f", nearFarPlane.y - nearFarPlane.x);
+			Gui::DragFloat("nearFarTargetSpan", &nearFarTargetSpan);
+		});
+#endif
+		
+#endif
 
 		const vec3 lightViewPoint = glm::normalize(light.Position) * lightDistance;
 		const vec3 lightInterest = vec3(0.0f, 0.0f, 0.0f);
