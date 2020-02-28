@@ -18,6 +18,7 @@ struct LinearFog
 
 struct RenderTime
 {
+    // NOTE: Time scales { x = 0.5, y = 1.0, z = 2.0, w = 4.0 }
     float4 Time;
     float4 TimeSin;
     float4 TimeCos;
