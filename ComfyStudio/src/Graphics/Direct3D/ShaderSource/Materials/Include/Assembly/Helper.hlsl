@@ -132,12 +132,12 @@ static const float AlphaTestThreshold = 0.5;
 
 void ClipAlphaThreshold(const float alpha)
 {
-    clip(alpha < AlphaTestThreshold ? -1.0 : 1.0);
+    clip(alpha - AlphaTestThreshold);
 }
 
 // --------------------------------------------------------------------------------------------------------------------------
 #define PS_ALPHA_TEST                                                                                                       \
-if (FLAGS_PUNCH_THROUGH)                                                                                                       \
+if (FLAGS_PUNCH_THROUGH)                                                                                                    \
 {                                                                                                                           \
     ClipAlphaThreshold(o_color.a);                                                                                          \
 }                                                                                                                           \

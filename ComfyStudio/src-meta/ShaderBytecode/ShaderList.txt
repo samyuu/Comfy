@@ -3,8 +3,8 @@ ImGuiDefault_PS
 ImGuiCustom_PS
 Sprite_VS
 Sprite_PS
-Debug_VS
-Debug_PS
+DebugMaterial_VS
+DebugMaterial_PS
 FullscreenQuad_VS
 SilhouetteOutline_PS
 BlinnPerFrag_VS

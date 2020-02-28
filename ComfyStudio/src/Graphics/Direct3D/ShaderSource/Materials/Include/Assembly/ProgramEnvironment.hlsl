@@ -46,7 +46,7 @@
 // TODO:
 #define p_reflect_refract_uv_scale  (float4(0.1, 0.1, 0.1, 0.1))
 
-// NOTE: 
+// NOTE: Frensel effect approximation
 #define reciprocal_one_minus_cos_pi_ten     (1.0 / (1.0 - cos(PI / 10.0)))
 #define reciprocal_one_minus_cos_pi_four    (1.0 / (1.0 - cos(PI / 4.0)))
 

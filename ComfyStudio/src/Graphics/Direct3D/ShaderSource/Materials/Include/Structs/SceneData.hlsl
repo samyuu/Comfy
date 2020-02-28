@@ -11,9 +11,16 @@ struct ParallelLight
 
 struct LinearFog
 {
-    // NOTE: x: Density, y: Start, z: End, w: 1.0 / (End - Start)
+    // NOTE: { x = Density, y = Start, z = End, w = 1.0 / (End - Start) }
     float4 Parameters;
     float4 Color;
+};
+
+struct RenderTime
+{
+    float4 Time;
+    float4 TimeSin;
+    float4 TimeCos;
 };
 
 struct SceneData
@@ -36,6 +43,8 @@ struct SceneData
     
     float2 TexelRenderResolution;
     float2 RenderResolution;
+
+    RenderTime RenderTime;
     
     LinearFog DepthFog;
     

@@ -1,4 +1,5 @@
 #include "D3D_Renderer3D.h"
+#include "Core/TimeSpan.h"
 
 namespace Graphics
 {
@@ -334,7 +335,7 @@ namespace Graphics
 			{ "COLOR",			3, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, MorphVertexAttributeOffset + VertexAttribute_Color1 },
 		};
 
-		genericInputLayout = MakeUnique<D3D_InputLayout>(genericElements, std::size(genericElements), shaders.Debug.VS);
+		genericInputLayout = MakeUnique<D3D_InputLayout>(genericElements, std::size(genericElements), shaders.DebugMaterial.VS);
 		D3D_SetObjectDebugName(genericInputLayout->GetLayout(), "Renderer3D::GenericInputLayout");
 
 		static constexpr InputElement silhouetteElements[] =
@@ -411,9 +412,9 @@ namespace Graphics
 
 		if (!isAnyCommand.ReceiveShadow)
 		{
-			for (auto& mesh : command.SourceObj->Meshes)
+			for (const auto& mesh : command.SourceObj->Meshes)
 			{
-				for (auto& subMesh : mesh.SubMeshes)
+				for (const auto& subMesh : mesh.SubMeshes)
 				{
 					if (ReceivesShadows(command, mesh, subMesh) || ReceivesSelfShadow(command, mesh, subMesh))
 						isAnyCommand.ReceiveShadow = true;
@@ -423,9 +424,9 @@ namespace Graphics
 
 		if (!isAnyCommand.SubsurfaceScattering)
 		{
-			for (auto& mesh : command.SourceObj->Meshes)
+			for (const auto& mesh : command.SourceObj->Meshes)
 			{
-				for (auto& subMesh : mesh.SubMeshes)
+				for (const auto& subMesh : mesh.SubMeshes)
 				{
 					if (UsesSSSSkin(subMesh.GetMaterial(*command.SourceObj)))
 						isAnyCommand.SubsurfaceScattering = true;
@@ -548,6 +549,12 @@ namespace Graphics
 		const auto& ibl = sceneContext->IBL;
 
 		sceneCB.Data.RenderResolution = GetPackedTextureSize(renderData->Main.Current());
+		
+		const vec4 renderTimeNow = static_cast<float>(TimeSpan::GetTimeNow().TotalSeconds()) * SceneConstantData::RenderTime::Scales;
+		sceneCB.Data.RenderTime.Time = renderTimeNow;
+		sceneCB.Data.RenderTime.TimeSin = (glm::sin(renderTimeNow) + 1.0f) * 0.5f;
+		sceneCB.Data.RenderTime.TimeCos = (glm::cos(renderTimeNow) + 1.0f) * 0.5f;
+
 		sceneCB.Data.IBLIrradianceRed = glm::transpose(ibl.Stage.IrradianceRGB[0]);
 		sceneCB.Data.IBLIrradianceGreen = glm::transpose(ibl.Stage.IrradianceRGB[1]);
 		sceneCB.Data.IBLIrradianceBlue = glm::transpose(ibl.Stage.IrradianceRGB[2]);
@@ -1551,7 +1558,7 @@ namespace Graphics
 		}
 		else
 		{
-			return shaders.Debug;
+			return shaders.DebugMaterial;
 		}
 	}
 

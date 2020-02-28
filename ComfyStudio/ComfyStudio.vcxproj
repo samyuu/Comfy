@@ -1034,7 +1034,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">XX_main</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XX_main</EntryPointName>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Other\Debug_PS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Other\DebugMaterial_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
@@ -1046,7 +1046,7 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </DeploymentContent>
     </FxCompile>
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Other\Debug_VS.hlsl">
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Other\DebugMaterial_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>

@@ -72,6 +72,14 @@ namespace Graphics
 
 		vec4 RenderResolution;
 
+		struct RenderTime
+		{
+			static constexpr vec4 Scales = vec4(0.5f, 1.0f, 2.0f, 4.0f);
+			vec4 Time;
+			vec4 TimeSin;
+			vec4 TimeCos;
+		} RenderTime;
+
 		struct LinearFog
 		{
 			vec4 Parameters;

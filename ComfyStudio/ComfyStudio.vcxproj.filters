@@ -1008,8 +1008,6 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Other\Silhouette_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Other\Silhouette_VS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Other\SolidBlack_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Other\Debug_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Other\Debug_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Include\ConstantInputs.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Include\TextureInputs.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Include\InputLayout.hlsl" />
@@ -1042,5 +1040,7 @@
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SSS\SSSFilterMin_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SSS\SSSFilterCopy_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\ShaderSource\PostProcessing\SSS\SSSFilterGauss2D_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Other\DebugMaterial_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\ShaderSource\Materials\Other\DebugMaterial_VS.hlsl" />
   </ItemGroup>
 </Project>
