@@ -17,6 +17,7 @@ namespace Graphics
 		// DEBUG: Non specific debug flags for quick testing
 		uint32_t DebugFlags = 0;
 		uint32_t ShaderDebugFlags = 0;
+		vec4 ShaderDebugValue = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
 		// NOTE: Used by all newly created texture samplers
 		int32_t AnistropicFiltering = D3D11_DEFAULT_MAX_ANISOTROPY;

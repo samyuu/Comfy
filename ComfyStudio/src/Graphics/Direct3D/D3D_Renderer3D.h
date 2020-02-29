@@ -93,6 +93,7 @@ namespace Graphics
 
 		uint32_t DebugFlags;
 		uint32_t Padding[1];
+		vec4 DebugValue;
 	};
 
 	struct ObjectConstantData

@@ -363,6 +363,7 @@ namespace Editor
 
 		Gui::CheckboxFlags("DebugFlags_0", &renderParameters.DebugFlags, (1 << 0)); Gui::SameLine(); Gui::CheckboxFlags("ShaderDebugFlags_0", &renderParameters.ShaderDebugFlags, (1 << 0));
 		Gui::CheckboxFlags("DebugFlags_1", &renderParameters.DebugFlags, (1 << 1)); Gui::SameLine(); Gui::CheckboxFlags("ShaderDebugFlags_1", &renderParameters.ShaderDebugFlags, (1 << 1));
+		Gui::ColorEdit4("ShaderDebugValue", glm::value_ptr(renderParameters.ShaderDebugValue));
 		Gui::Separator();
 		Gui::ColorEdit4("Clear Color", glm::value_ptr(renderParameters.ClearColor));
 		Gui::Checkbox("Clear", &renderParameters.Clear);
