@@ -16,11 +16,11 @@ namespace Graphics
 
 	struct LightMap
 	{
-		static constexpr size_t CubeMapFaces = 6, MaxMipMaps = 2;
+		static constexpr size_t Faces = 6, MipMaps = 2;
 
 		LightMapFormat Format;
 		ivec2 Size;
-		std::array<std::array<const uint8_t*, MaxMipMaps>, CubeMapFaces> DataPointers;
+		std::array<std::array<const uint8_t*, MipMaps>, Faces> DataPointers;
 
 		UniquePtr<D3D_CubeMap> D3D_CubeMap;
 	};
@@ -47,7 +47,7 @@ namespace Graphics
 			std::array<LightData, 3> Lights;
 		};
 
-		std::array<LightMap, 5> LightMaps;
+		std::array<LightMap, 3> LightMaps;
 
 	public:
 		void Parse(const uint8_t* buffer, size_t bufferSize) override;

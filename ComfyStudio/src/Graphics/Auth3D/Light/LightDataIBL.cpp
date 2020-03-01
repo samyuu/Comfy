@@ -119,22 +119,20 @@ namespace Graphics
 				auto lightMapFormat = ParseLightMapFormat(StringParsing::GetLineAdvanceToNonCommentLine(textBuffer));
 				auto size = StringParsing::ParseTypeArray<int32_t, 2>(StringParsing::GetLineAdvanceToNonCommentLine(textBuffer));
 
-				// NOTE: Special light map that is stored as a mipmap of the first
-				if (lightIndex == 1)
+				// NOTE: Skip odd LightMaps as they will be stored as mipmaps instead
+				if (lightIndex % 2 != 0)
 				{
-					const auto& parentLightMap = LightMaps[0];
+					const auto& parentLightMap = LightMaps[lightIndex / 2];
 					assert(lightMapFormat == parentLightMap.Format && ivec2(size[0], size[1]) == (parentLightMap.Size / 2));
 					continue;
 				}
 
-				// NOTE: Adjust for the mipmap lightmap that has been skipped
-				if (lightIndex > 1)
-					lightIndex--;
+				lightIndex /= 2;
 
-				if (LightMap* lightMap = (lightIndex < LightMaps.size()) ? (&LightMaps[lightIndex]) : nullptr; lightMap != nullptr)
+				if (lightIndex < LightMaps.size())
 				{
-					lightMap->Format = lightMapFormat;
-					lightMap->Size = { size[0], size[1] };
+					LightMaps[lightIndex].Format = lightMapFormat;
+					LightMaps[lightIndex].Size = { size[0], size[1] };
 				}
 			}
 		}
@@ -143,22 +141,12 @@ namespace Graphics
 
 		for (auto& lightMap : LightMaps)
 		{
-			const bool valid = (lightMap.Size.x >= 1 && lightMap.Size.y >= 1);
-
-			lightMap.DataPointers = {};
-			for (size_t cubeFace = 0; cubeFace < lightMap.DataPointers.size(); cubeFace++)
+			for (int mipMap = 0; mipMap < LightMap::MipMaps; mipMap++)
 			{
-				lightMap.DataPointers[cubeFace][0] = valid ? binaryBuffer : nullptr;
-				binaryBuffer += GetLightMapFaceByteSize(lightMap.Size, lightMap.Format);
-			}
-
-			// NOTE: Special combined mipmap case
-			if (&lightMap == &LightMaps.front())
-			{
-				for (size_t cubeFace = 0; cubeFace < lightMap.DataPointers.size(); cubeFace++)
+				for (int cubeFace = 0; cubeFace < LightMap::Faces; cubeFace++)
 				{
-					lightMap.DataPointers[cubeFace][1] = valid ? binaryBuffer : nullptr;
-					binaryBuffer += GetLightMapFaceByteSize(lightMap.Size / 2, lightMap.Format);
+					lightMap.DataPointers[cubeFace][mipMap] = binaryBuffer;
+					binaryBuffer += GetLightMapFaceByteSize(lightMap.Size / (mipMap + 1), lightMap.Format);
 				}
 			}
 		}

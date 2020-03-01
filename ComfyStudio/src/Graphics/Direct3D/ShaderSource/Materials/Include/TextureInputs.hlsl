@@ -38,7 +38,7 @@ Texture2D<float4> TransparencyTexture           : register(t4);
 TextureCube<float4> EnvironmentTexture          : register(t5);
 Texture2D<float4> TranslucencyTexture           : register(t6);
 
-TextureCube<float4> IBL_LightMaps[5]            : register(t9);
+TextureCube<float4> IBL_LightMaps[3]            : register(t9);
 
 Texture2D<float4> ScreenReflectionTexture       : register(t15);
 Texture2D<float4> SubsurfaceScatteringTexture   : register(t16);
