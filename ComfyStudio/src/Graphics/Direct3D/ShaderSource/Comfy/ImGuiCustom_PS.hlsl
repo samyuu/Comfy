@@ -21,18 +21,25 @@ SamplerState TextureSampler : register(s0);
 Texture2D SpriteTexture : register(t0);
 TextureCube SpriteCubeTexture : register(t1);
 
+static const float CubeMapMipMapLevel = 0.0;
+
+float3 CB_GetCubeMapTextureCoordinates(const float2 texCoord)
+{
+    if (CB_CubeMapUnwrapNet)
+        return GetCubeMapNetTextureCoordinates(texCoord);
+    else if (CB_CubeMapFace >= 0)
+        return GetCubeMapFaceTextureCoordinates(texCoord, CB_CubeMapFace);
+    else
+        return GetCubeMapTextureCoordinates(texCoord);
+}
+
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {
     float4 textureColor;
     
     if (CB_RenderCubeMap)
     {
-        if (CB_CubeMapUnwrapNet)
-            textureColor = SpriteCubeTexture.Sample(TextureSampler, GetCubeMapNetTextureCoordinates(input.TexCoord));
-        else if (CB_CubeMapFace >= 0)
-            textureColor = SpriteCubeTexture.Sample(TextureSampler, GetCubeMapFaceTextureCoordinates(input.TexCoord, CB_CubeMapFace));
-        else
-            textureColor = SpriteCubeTexture.Sample(TextureSampler, GetCubeMapTextureCoordinates(input.TexCoord));
+        textureColor = SpriteCubeTexture.SampleLevel(TextureSampler, CB_GetCubeMapTextureCoordinates(input.TexCoord), CubeMapMipMapLevel);
     }
     else if (CB_DecompressRGTC)
     {
