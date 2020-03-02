@@ -17,7 +17,7 @@ namespace Graphics
 		Box BoundingBox;
 
 		uint32_t MaterialIndex;
-		uint32_t MaterialUVIndices[2];
+		std::array<uint32_t, 2> MaterialUVIndices;
 		std::vector<uint16_t> BoneIndices;
 		uint32_t UnknownPrePrimitive;
 		PrimitiveType Primitive;
@@ -102,7 +102,7 @@ namespace Graphics
 		MaterialTextureTypeFlags TypeFlags;
 		vec3 Field03_05;
 		mat4 TextureCoordinateMatrix;
-		float Reserved[8];
+		std::array<float, 8> Reserved;
 	};
 
 	struct MaterialFlags
@@ -230,7 +230,7 @@ namespace Graphics
 		std::array<char, 64> Name;
 
 		float BumpDepth;
-		float Reserved[15];
+		std::array<float, 15> Reserved;
 
 		template <typename T>
 		void IterateTextures(T func)

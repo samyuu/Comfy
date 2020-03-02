@@ -7,20 +7,23 @@ namespace Graphics
 {
 	namespace
 	{
-		constexpr vec3 TranposeVec3(const vec3& value)
-		{
-			return vec3(value[2], value[1], value[0]);
-		}
-
 		vec3 ReadVec3(BinaryReader& reader)
 		{
-			return vec3(reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat());
+			vec3 result;
+			result.x = reader.ReadFloat();
+			result.y = reader.ReadFloat();
+			result.z = reader.ReadFloat();
+			return result;
 		}
 
-		// NOTE: Not sure why these are stored differently from the way the vertex positions are
-		vec3 ReadTranposeVec3(BinaryReader& reader)
+		vec4 ReadVec4(BinaryReader& reader)
 		{
-			return TranposeVec3(ReadVec3(reader));
+			vec4 result;
+			result.x = reader.ReadFloat();
+			result.y = reader.ReadFloat();
+			result.z = reader.ReadFloat();
+			result.w = reader.ReadFloat();
+			return result;
 		}
 
 		void ReadMat4(BinaryReader& reader, mat4& output)
@@ -31,12 +34,27 @@ namespace Graphics
 
 		Sphere ReadSphere(BinaryReader& reader)
 		{
-			return { ReadTranposeVec3(reader), reader.ReadFloat() };
+			Sphere result;
+			result.Center = ReadVec3(reader);
+			result.Radius = reader.ReadFloat();
+			return result;
 		}
 
 		Box ReadBox(BinaryReader& reader)
 		{
-			return { ReadTranposeVec3(reader), ReadTranposeVec3(reader) };
+			Box result;
+			result.Center = ReadVec3(reader);
+			result.Size = ReadVec3(reader);
+			return result;
+		}
+
+		template <typename FlagsStruct>
+		FlagsStruct ReadFlagsStruct32(BinaryReader& reader)
+		{
+			static_assert(sizeof(FlagsStruct) == sizeof(uint32_t));
+			
+			const auto uintFlags = reader.ReadUInt32();
+			return *reinterpret_cast<const FlagsStruct*>(&uintFlags);
 		}
 
 		template <typename T>
@@ -179,8 +197,45 @@ namespace Graphics
 			{
 				for (auto& material : Materials)
 				{
-					assert(reader.GetEndianness() == Endianness::Little);
-					reader.Read(&material, sizeof(Material));
+					auto readMaterialTexture = [](auto& reader, MaterialTexture& output)
+					{
+						output.Flags = ReadFlagsStruct32<MaterialTextureFlags>(reader);
+						output.TextureID = TxpID(reader.ReadUInt32());
+						output.TypeFlags = ReadFlagsStruct32<MaterialTextureTypeFlags>(reader);
+						output.Field03_05 = ReadVec3(reader);
+						ReadMat4(reader, output.TextureCoordinateMatrix);
+						for (float& reserved : output.Reserved)
+							reserved = reader.ReadFloat();
+					};
+
+					material.TextureCount = reader.ReadUInt32();
+					material.Flags = ReadFlagsStruct32<MaterialFlags>(reader);
+					reader.Read(material.MaterialType.data(), material.MaterialType.size());
+					material.ShaderFlags = ReadFlagsStruct32<MaterialShaderFlags>(reader);
+
+					readMaterialTexture(reader, material.DiffuseMap);
+					readMaterialTexture(reader, material.AmbientMap);
+					readMaterialTexture(reader, material.NormalMap);
+					readMaterialTexture(reader, material.SpecularMap);
+					readMaterialTexture(reader, material.TransparencyMap);
+					readMaterialTexture(reader, material.EnvironmentMap);
+					readMaterialTexture(reader, material.TranslucencyMap);
+					readMaterialTexture(reader, material.ReservedTexture);
+
+					material.BlendFlags = ReadFlagsStruct32<MaterialBlendFlags>(reader);
+					material.DiffuseColor = ReadVec3(reader);
+					material.Transparency = reader.ReadFloat();
+					material.AmbientColor = ReadVec4(reader);
+					material.SpecularColor = ReadVec3(reader);
+					material.Reflectivity = reader.ReadFloat();
+					material.EmissionColor = ReadVec4(reader);
+					material.Shininess = reader.ReadFloat();
+					material.Intensity = reader.ReadFloat();
+					material.UnknownField21_24 = ReadVec4(reader);
+					reader.Read(material.Name.data(), material.Name.size());
+					material.BumpDepth = reader.ReadFloat();
+					for (float& reserved : material.Reserved)
+						reserved = reader.ReadFloat();
 				}
 			});
 		}
