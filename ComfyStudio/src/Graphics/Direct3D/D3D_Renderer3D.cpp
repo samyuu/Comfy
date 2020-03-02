@@ -288,7 +288,7 @@ namespace Graphics
 		Sphere CombineBoundingSpheres(const std::vector<Sphere>& spheres)
 		{
 			if (spheres.empty())
-				return Sphere{ vec3(0.0f), 1.0f };
+				return Sphere { vec3(0.0f), 1.0f };
 
 			vec3 min = spheres.front().Center, max = spheres.front().Center;
 			for (auto& sphere : spheres)
@@ -304,7 +304,7 @@ namespace Graphics
 			}
 
 			const vec3 halfSpan = (max - min) / 2.0f;
-			return Sphere{ (min + halfSpan), (std::max(halfSpan.x, std::max(halfSpan.y, halfSpan.z))) };
+			return Sphere { (min + halfSpan), (std::max(halfSpan.x, std::max(halfSpan.y, halfSpan.z))) };
 		}
 	}
 
@@ -528,15 +528,15 @@ namespace Graphics
 		if (renderParameters->AlphaSort)
 		{
 			std::sort(commandList.Transparent.begin(), commandList.Transparent.end(), [](SubMeshRenderCommand& a, SubMeshRenderCommand& b)
-				{
-					constexpr float comparisonThreshold = 0.001f;
-					const bool sameDistance = std::abs(a.CameraDistance - b.CameraDistance) < comparisonThreshold;
+			{
+				constexpr float comparisonThreshold = 0.001f;
+				const bool sameDistance = std::abs(a.CameraDistance - b.CameraDistance) < comparisonThreshold;
 
-					if (sameDistance)
-						return a.SubMesh->BoundingSphere.Radius > b.SubMesh->BoundingSphere.Radius;
+				if (sameDistance)
+					return a.SubMesh->BoundingSphere.Radius > b.SubMesh->BoundingSphere.Radius;
 
-					return (a.CameraDistance > b.CameraDistance);
-				});
+				return (a.CameraDistance > b.CameraDistance);
+			});
 		}
 	}
 
@@ -730,20 +730,20 @@ namespace Graphics
 		const vec2 nearFarPlane = { -nearFarPadding, (frustumSphere.Radius * 2.0f) + nearFarPadding };
 
 		Gui::DEBUG_NOSAVE_WINDOW(__FUNCTION__"(): Shadow Test", [&]
-			{
-				Gui::DragFloat("near far padding", &DEBUG_nearFarPadding, 1.0f);
-				Gui::Text("near %f far %f plane", nearFarPlane[0], nearFarPlane[1]);
-				Gui::Text("near far plane distance: %f", nearFarPlane.y - nearFarPlane.x);
+		{
+			Gui::DragFloat("near far padding", &DEBUG_nearFarPadding, 1.0f);
+			Gui::Text("near %f far %f plane", nearFarPlane[0], nearFarPlane[1]);
+			Gui::Text("near far plane distance: %f", nearFarPlane.y - nearFarPlane.x);
 
-				static float nearFarTargetSpan = 20.0f - 0.1f;
-				static bool debugAdjustToTargetSpan = true;
+			static float nearFarTargetSpan = 20.0f - 0.1f;
+			static bool debugAdjustToTargetSpan = true;
 
-				Gui::DragFloat("nearFarTargetSpan", &nearFarTargetSpan);
-				Gui::Checkbox("debugAdjustToTargetSpan", &debugAdjustToTargetSpan);
+			Gui::DragFloat("nearFarTargetSpan", &nearFarTargetSpan);
+			Gui::Checkbox("debugAdjustToTargetSpan", &debugAdjustToTargetSpan);
 
-				if (debugAdjustToTargetSpan)
-					DEBUG_nearFarPadding = (nearFarTargetSpan / 2.0f) - (frustumSphere.Radius);
-			});
+			if (debugAdjustToTargetSpan)
+				DEBUG_nearFarPadding = (nearFarTargetSpan / 2.0f) - (frustumSphere.Radius);
+		});
 #else
 
 #if 0
@@ -758,12 +758,12 @@ namespace Graphics
 
 #if 0
 		Gui::DEBUG_NOSAVE_WINDOW(__FUNCTION__"(): Shadow Test", [&]
-			{
-				Gui::Text("near far padding %f", nearFarPadding);
-				Gui::Text("near %f far %f plane", nearFarPlane[0], nearFarPlane[1]);
-				Gui::Text("near far plane distance: %f", nearFarPlane.y - nearFarPlane.x);
-				Gui::DragFloat("nearFarTargetSpan", &nearFarTargetSpan);
-			});
+		{
+			Gui::Text("near far padding %f", nearFarPadding);
+			Gui::Text("near %f far %f plane", nearFarPlane[0], nearFarPlane[1]);
+			Gui::Text("near far plane distance: %f", nearFarPlane.y - nearFarPlane.x);
+			Gui::DragFloat("nearFarTargetSpan", &nearFarTargetSpan);
+		});
 #endif
 
 #endif
@@ -1628,7 +1628,7 @@ namespace Graphics
 		// TODO: Shadow casting objects which don't lie within the view frustum *nor* the light frustum should be ignored
 
 		if (!isAnyCommand.CastShadow)
-			return Sphere{ vec3(0.0f), 1.0f };
+			return Sphere { vec3(0.0f), 1.0f };
 
 		vec3 min, max;
 		for (auto& command : defaultCommandList.OpaqueAndTransparent)
@@ -1658,7 +1658,7 @@ namespace Graphics
 		}
 
 		const vec3 size = (max - min) / 2.0f;
-		return Sphere{ (min + size), (std::max(size.x, std::max(size.y, size.z))) };
+		return Sphere { (min + size), (std::max(size.x, std::max(size.y, size.z))) };
 	}
 
 	bool D3D_Renderer3D::IntersectsCameraFrustum(const ObjRenderCommand& command) const
