@@ -361,6 +361,49 @@ namespace Editor
 				FileSystem::OpenInExplorer(Utf8ToUtf16(ScreenshotDirectoy));
 		});
 
+		constexpr const char* renderPopupID = "RenderSequencePopup";
+
+		if (Gui::Button("Render Sequence...", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+			Gui::OpenPopup(renderPopupID);
+
+		if (Gui::BeginPopup(renderPopupID))
+		{
+			static struct SequenceData
+			{
+				int FramesToRender = 360 / 6;
+				float RotationXStep = 6.0f;
+				std::vector<std::future<void>> Futures;
+			} data;
+
+			Gui::InputInt("Frams To Render", &data.FramesToRender);
+			Gui::InputFloat("Rotation Step", &data.RotationXStep);
+
+			if (Gui::Button("Render!", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+			{
+				auto& renderTarget = context.RenderData.Output.RenderTarget;
+
+				data.Futures.clear();
+				data.Futures.reserve(data.FramesToRender);
+
+				for (int i = 0; i < data.FramesToRender; i += 1)
+				{
+					cameraController.Mode = CameraController3D::ControlMode::Orbit;
+					cameraController.OrbitData.TargetRotation.x = static_cast<float>(i) * data.RotationXStep;
+					cameraController.Update(context.Camera);
+
+					renderWindow->RenderScene();
+
+					data.Futures.push_back(std::async(std::launch::async, [&renderTarget, i, data = std::move(renderTarget.StageAndCopyBackBuffer())]
+						{
+							char fileName[MAX_PATH];
+							sprintf_s(fileName, "%s/sequence/scene_%04d.png", ScreenshotDirectoy, i);
+							Utilities::WritePNG(fileName, renderTarget.GetSize(), data.get());
+						}));
+				}
+			}
+			Gui::EndPopup();
+		}
+
 		Gui::CheckboxFlags("DebugFlags_0", &renderParameters.DebugFlags, (1 << 0)); Gui::SameLine(); Gui::CheckboxFlags("ShaderDebugFlags_0", &renderParameters.ShaderDebugFlags, (1 << 0));
 		Gui::CheckboxFlags("DebugFlags_1", &renderParameters.DebugFlags, (1 << 1)); Gui::SameLine(); Gui::CheckboxFlags("ShaderDebugFlags_1", &renderParameters.ShaderDebugFlags, (1 << 1));
 		Gui::ColorEdit4("ShaderDebugValue", glm::value_ptr(renderParameters.ShaderDebugValue));
