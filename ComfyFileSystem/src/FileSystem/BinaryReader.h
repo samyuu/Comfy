@@ -58,7 +58,7 @@ namespace FileSystem
 		inline Endianness GetEndianness() const { return endianness; }
 		void SetEndianness(Endianness value);
 
-		inline int64_t ReadBuffer(void* buffer, size_t size) { return underlyingStream->ReadBuffer(buffer, size); }
+		inline size_t ReadBuffer(void* buffer, size_t size) { return underlyingStream->ReadBuffer(buffer, size); }
 
 		template <typename Func>
 		void ReadAt(FileAddr position, const Func func)
