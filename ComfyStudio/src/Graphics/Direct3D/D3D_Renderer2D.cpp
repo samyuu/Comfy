@@ -174,6 +174,9 @@ namespace Comfy::Graphics
 		InternalCreateBatches();
 		AetBlendMode lastBlendMode = AetBlendMode::Normal;
 
+		D3D_ShaderResourceView::BindArray<2>(0, { nullptr, nullptr });
+		D3D_TextureSampler::BindArray<2>(0, { nullptr, nullptr });
+
 		for (uint16_t i = 0; i < batches.size(); i++)
 		{
 			const SpriteBatch& batch = batches[i];
