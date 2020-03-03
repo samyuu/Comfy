@@ -26,7 +26,7 @@ namespace FileSystem
 		OrbisFutureTone
 	};
 
-	class Farc final : public FileArchive
+	class Farc final : public FileArchive, NonCopyable
 	{
 	public:
 		static constexpr size_t IVSize = 16;
@@ -42,18 +42,18 @@ namespace FileSystem
 		Farc();
 		~Farc();
 
-		static RefPtr<Farc> Open(const std::string& filePath);
+		static RefPtr<Farc> Open(std::string_view filePath);
 
 	protected:
 		FileStream stream;
 		BinaryReader reader;
-		uint32_t alignment;
-		FarcFlags flags;
-		FarcEncryptionFormat encryptionFormat;
-		std::array<uint8_t, IVSize> aesIV;
+		uint32_t alignment = {};
+		FarcFlags flags = {};
+		FarcEncryptionFormat encryptionFormat = {};
+		std::array<uint8_t, IVSize> aesIV = {};
 
 	protected:
-		bool OpenStream(const std::wstring& filePath);
+		bool OpenStream(std::wstring_view filePath);
 		bool ParseEntries();
 
 		void ReadArchiveEntry(const ArchiveEntry& entry, void* fileContentOut) override;

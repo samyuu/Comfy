@@ -4,38 +4,38 @@
 
 namespace FileSystem
 {
-	class MemoryStream : public Stream
+	class MemoryStream : public StreamBase
 	{
 	public:
 		MemoryStream();
-		MemoryStream(const std::string& filePath);
-		MemoryStream(const std::wstring& filePath);
-		MemoryStream(Stream* stream);
-		MemoryStream(std::vector<uint8_t>* source);
+		MemoryStream(std::string_view filePath);
+		MemoryStream(std::wstring_view filePath);
+		MemoryStream(IStream& stream);
+		MemoryStream(std::vector<uint8_t>& source);
 		~MemoryStream();
 
-		void Seek(int64_t position) override;
-		int64_t GetPosition() const override;
-		int64_t GetLength() const override;
+		void Seek(FileAddr position) override;
+		FileAddr GetPosition() const override;
+		FileAddr GetLength() const override;
 
 		bool IsOpen() const override;
 		bool CanRead() const override;
 		bool CanWrite() const override;
 
-		int64_t Read(void* buffer, size_t size) override;
-		int64_t Write(const void* buffer, size_t size) override;
+		size_t ReadBuffer(void* buffer, size_t size) override;
+		size_t WriteBuffer(const void* buffer, size_t size) override;
 
-		void FromStreamSource(std::vector<uint8_t>* source);
-		void FromFile(const std::string& filePath);
-		void FromFile(const std::wstring& filePath);
-		void FromStream(Stream* stream);
+		void FromStreamSource(std::vector<uint8_t>& source);
+		void FromFile(std::string_view filePath);
+		void FromFile(std::wstring_view filePath);
+		void FromStream(IStream& stream);
 		void Close() override;
 
 	protected:
 		bool canRead = false;
 
-		int64_t position = 0L;
-		int64_t dataSize = 0L;
+		FileAddr position = {};
+		FileAddr dataSize = {};
 
 		std::vector<uint8_t>* dataSource;
 		std::vector<uint8_t> dataVector;

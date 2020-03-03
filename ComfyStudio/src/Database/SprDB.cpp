@@ -32,28 +32,28 @@ namespace Database
 
 	void SprDB::Read(BinaryReader& reader)
 	{
-		uint32_t sprSetEntryCount = reader.ReadUInt32();
-		void* sprSetOffset = reader.ReadPtr();
+		uint32_t sprSetEntryCount = reader.ReadU32();
+		FileAddr sprSetOffset = reader.ReadPtr();
 
-		uint32_t sprEntryCount = reader.ReadUInt32();
-		void* sprOffset = reader.ReadPtr();
+		uint32_t sprEntryCount = reader.ReadU32();
+		FileAddr sprOffset = reader.ReadPtr();
 
-		if (sprSetEntryCount > 0 && sprSetOffset != nullptr)
+		if (sprSetEntryCount > 0 && sprSetOffset != FileAddr::NullPtr)
 		{
 			Entries.resize(sprSetEntryCount);
 			reader.ReadAt(sprSetOffset, [this](BinaryReader& reader)
 			{
 				for (auto& sprSetEntry : Entries)
 				{
-					sprSetEntry.ID = SprSetID(reader.ReadUInt32());
+					sprSetEntry.ID = SprSetID(reader.ReadU32());
 					sprSetEntry.Name = reader.ReadStrPtr();
 					sprSetEntry.FileName = reader.ReadStrPtr();
-					uint32_t index = reader.ReadInt32();
+					uint32_t index = reader.ReadI32();
 				}
 			});
 		}
 
-		if (sprEntryCount > 0 && sprOffset != nullptr)
+		if (sprEntryCount > 0 && sprOffset != FileAddr::NullPtr)
 		{
 			reader.ReadAt(sprOffset, [this, sprEntryCount](BinaryReader& reader)
 			{
@@ -61,10 +61,10 @@ namespace Database
 				{
 					constexpr uint16_t packedDataMask = 0x1000;
 
-					SprID id = SprID(reader.ReadUInt32());
-					void* nameOffset = reader.ReadPtr();
-					int16_t index = reader.ReadInt16();
-					uint16_t packedData = reader.ReadUInt16();
+					SprID id = SprID(reader.ReadU32());
+					FileAddr nameOffset = reader.ReadPtr();
+					int16_t index = reader.ReadI16();
+					uint16_t packedData = reader.ReadU16();
 
 					int32_t sprSetEntryIndex = (packedData & ~packedDataMask);
 					SprSetEntry& sprSetEntry = Entries[sprSetEntryIndex];
@@ -74,7 +74,7 @@ namespace Database
 					SprEntry& sprEntry = sprEntries.back();
 
 					sprEntry.ID = id;
-					sprEntry.Name = reader.ReadStr(nameOffset);
+					sprEntry.Name = reader.ReadStrAt(nameOffset);
 					sprEntry.Index = index;
 				}
 			});
@@ -83,14 +83,14 @@ namespace Database
 
 	void SprDB::Write(BinaryWriter& writer)
 	{
-		int64_t startPosition = writer.GetPosition();
+		const auto startPosition = writer.GetPosition();
 
-		writer.WriteUInt32(GetSprSetEntryCount());
-		writer.WritePtr(nullptr);
-		writer.WriteUInt32(GetSprEntryCount());
-		writer.WritePtr(nullptr);
+		writer.WriteU32(GetSprSetEntryCount());
+		writer.WritePtr(FileAddr::NullPtr);
+		writer.WriteU32(GetSprEntryCount());
+		writer.WritePtr(FileAddr::NullPtr);
 
-		writer.SetPosition(startPosition + 0xC);
+		writer.SetPosition(startPosition + FileAddr(0xC));
 		writer.WritePtr([this](BinaryWriter& writer)
 		{
 			int16_t sprSetIndex = 0;
@@ -100,19 +100,19 @@ namespace Database
 
 				for (auto& sprTexEntry : sprSetEntry.SprTexEntries)
 				{
-					writer.WriteUInt32(static_cast<uint32_t>(sprTexEntry.ID));
+					writer.WriteU32(static_cast<uint32_t>(sprTexEntry.ID));
 					writer.WriteStrPtr(sprTexEntry.Name);
-					writer.WriteInt16(sprTexEntry.Index);
-					writer.WriteUInt16(sprSetIndex | packedDataMask);
+					writer.WriteI16(sprTexEntry.Index);
+					writer.WriteU16(sprSetIndex | packedDataMask);
 				}
 
 				int16_t sprIndex = 0;
 				for (auto& sprEntry : sprSetEntry.SprEntries)
 				{
-					writer.WriteUInt32(static_cast<uint32_t>(sprEntry.ID));
+					writer.WriteU32(static_cast<uint32_t>(sprEntry.ID));
 					writer.WriteStrPtr(sprEntry.Name);
-					writer.WriteInt16(sprEntry.Index);
-					writer.WriteUInt16(sprSetIndex);
+					writer.WriteI16(sprEntry.Index);
+					writer.WriteU16(sprSetIndex);
 				}
 
 				sprSetIndex++;
@@ -121,22 +121,22 @@ namespace Database
 			writer.WritePadding(16);
 		});
 
-		writer.SetPosition(startPosition + 0x4);
+		writer.SetPosition(startPosition + FileAddr(0x4));
 		writer.WritePtr([this](BinaryWriter& writer)
 		{
 			int32_t index = 0;
 			for (auto& sprSetEntry : Entries)
 			{
-				writer.WriteUInt32(static_cast<uint32_t>(sprSetEntry.ID));
+				writer.WriteU32(static_cast<uint32_t>(sprSetEntry.ID));
 				writer.WriteStrPtr(sprSetEntry.Name);
 				writer.WriteStrPtr(sprSetEntry.FileName);
-				writer.WriteInt32(index++);
+				writer.WriteI32(index++);
 			}
 			writer.WriteAlignmentPadding(16);
 			writer.WritePadding(16);
 		});
 
-		writer.SetPosition(startPosition + 0x10);
+		writer.SetPosition(startPosition + FileAddr(0x10));
 		writer.WritePadding(16);
 
 		writer.FlushPointerPool();

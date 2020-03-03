@@ -3,50 +3,6 @@
 
 namespace FileSystem
 {
-	BinaryWriter::BinaryWriter()
-	{
-		SetPointerMode(PtrMode::Mode32Bit);
-	}
-
-	BinaryWriter::BinaryWriter(Stream* stream) : BinaryWriter()
-	{
-		OpenStream(stream);
-	}
-
-	BinaryWriter::~BinaryWriter()
-	{
-		Close();
-	}
-
-	void BinaryWriter::OpenStream(Stream* stream)
-	{
-		assert(!IsOpen());
-		assert(stream->CanWrite());
-
-		this->stream = stream;
-	}
-
-	void BinaryWriter::Close()
-	{
-		if (IsOpen() && !GetLeaveOpen())
-			stream->Close();
-	}
-
-	bool BinaryWriter::IsOpen()
-	{
-		return stream != nullptr;
-	}
-
-	bool BinaryWriter::GetLeaveOpen()
-	{
-		return leaveOpen;
-	}
-
-	PtrMode BinaryWriter::GetPointerMode() const
-	{
-		return pointerMode;
-	}
-
 	void BinaryWriter::SetPointerMode(PtrMode mode)
 	{
 		pointerMode = mode;
@@ -54,55 +10,42 @@ namespace FileSystem
 		switch (pointerMode)
 		{
 		case PtrMode::Mode32Bit:
-			writePtrFunction = Write32BitPtr;
+			writePtrFunc = &WritePtr32;
 			return;
 
 		case PtrMode::Mode64Bit:
-			writePtrFunction = Write64BitPtr;
+			writePtrFunc = &WritePtr64;
 			return;
 
 		default:
-			writePtrFunction = nullptr;
-			break;
+			assert(false);
+			return;
 		}
-
-		assert(false);
-	}
-
-	int64_t BinaryWriter::Write(const void* buffer, size_t size)
-	{
-		return stream->Write(buffer, size);
 	}
 
 	void BinaryWriter::WriteStr(std::string_view value)
 	{
 		// NOTE: Manually write null terminator
-		Write(value.data(), value.size());
-		Write<char>('\0');
-	}
-
-	void BinaryWriter::WriteStr(const std::string& value)
-	{
-		// NOTE: Write included null terminator
-		Write(value.data(), value.size() + 1);
+		WriteBuffer(value.data(), value.size());
+		WriteChar('\0');
 	}
 
 	void BinaryWriter::WriteStrPtr(std::string_view value, int32_t alignment)
 	{
-		stringPointerPool.push_back({ GetPositionPtr(), value, alignment });
-		WritePtr(nullptr);
+		stringPointerPool.push_back({ GetPosition(), value, alignment });
+		WritePtr(FileAddr::NullPtr);
 	}
 
 	void BinaryWriter::WritePtr(const std::function<void(BinaryWriter&)>& func)
 	{
-		pointerPool.push_back({ GetPositionPtr(), func });
-		WritePtr(nullptr);
+		pointerPool.push_back({ GetPosition(), func });
+		WritePtr(FileAddr::NullPtr);
 	}
 
 	void BinaryWriter::WriteDelayedPtr(const std::function<void(BinaryWriter&)>& func)
 	{
-		delayedWritePool.push_back({ GetPositionPtr(), func });
-		WritePtr(nullptr);
+		delayedWritePool.push_back({ GetPosition(), func });
+		WritePtr(FileAddr::NullPtr);
 	}
 
 	void BinaryWriter::WritePadding(size_t size, uint32_t paddingValue)
@@ -112,10 +55,10 @@ namespace FileSystem
 
 		constexpr size_t maxSize = 32;
 		assert(size <= maxSize);
-		uint8_t paddingValues[maxSize];
+		std::array<uint8_t, maxSize> paddingValues;
 
-		memset(paddingValues, paddingValue, size);
-		Write(paddingValues, size);
+		std::memset(paddingValues.data(), paddingValue, size);
+		WriteBuffer(paddingValues.data(), size);
 	}
 
 	void BinaryWriter::WriteAlignmentPadding(int32_t alignment, uint32_t paddingValue)
@@ -124,9 +67,9 @@ namespace FileSystem
 		constexpr int32_t maxAlignment = 32;
 
 		assert(alignment <= maxAlignment);
-		uint8_t paddingValues[maxAlignment];
+		std::array<uint8_t, maxAlignment> paddingValues;
 
-		int32_t value = static_cast<int32_t>(GetPosition());
+		const int32_t value = static_cast<int32_t>(GetPosition());
 		int32_t paddingSize = ((value + (alignment - 1)) & ~(alignment - 1)) - value;
 
 		if (forceExtraPadding && paddingSize <= 0)
@@ -134,8 +77,8 @@ namespace FileSystem
 
 		if (paddingSize > 0)
 		{
-			memset(paddingValues, paddingValue, paddingSize);
-			Write(paddingValues, paddingSize);
+			std::memset(paddingValues.data(), paddingValue, paddingSize);
+			WriteBuffer(paddingValues.data(), paddingSize);
 		}
 	}
 
@@ -143,15 +86,13 @@ namespace FileSystem
 	{
 		for (auto& value : stringPointerPool)
 		{
-			void* originalStringOffset = GetPositionPtr();
-			void* stringOffset = originalStringOffset;
+			const auto originalStringOffset = GetPosition();
+			auto stringOffset = originalStringOffset;
 
 			bool pooledStringFound = false;
-
 			if (poolStrings)
 			{
-				auto pooledString = writtenStringPool.find(std::string(value.String));
-				if (pooledString != writtenStringPool.end())
+				if (auto pooledString = writtenStringPool.find(std::string(value.String)); pooledString != writtenStringPool.end())
 				{
 					stringOffset = pooledString->second;
 					pooledStringFound = true;
@@ -180,7 +121,7 @@ namespace FileSystem
 
 		if (poolStrings)
 			writtenStringPool.clear();
-		
+
 		stringPointerPool.clear();
 	}
 
@@ -188,7 +129,7 @@ namespace FileSystem
 	{
 		for (auto& value : pointerPool)
 		{
-			void* offset = GetPositionPtr();
+			const auto offset = GetPosition();
 
 			SetPosition(value.ReturnAddress);
 			WritePtr(offset);
@@ -204,11 +145,11 @@ namespace FileSystem
 	{
 		for (auto& value : delayedWritePool)
 		{
-			void* offset = GetPositionPtr();
+			const auto offset = GetPosition();
 
 			SetPosition(value.ReturnAddress);
 			value.Function(*this);
-			
+
 			SetPosition(offset);
 		}
 

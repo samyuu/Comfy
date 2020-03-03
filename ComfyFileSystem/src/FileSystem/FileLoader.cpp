@@ -104,8 +104,8 @@ namespace FileSystem
 		assert(readable != nullptr);
 		assert(fileFound && isLoaded);
 
-		MemoryStream stream(const_cast<std::vector<uint8_t>*>(&fileContent));
-		BinaryReader reader(&stream);
+		MemoryStream stream(const_cast<FileLoader*>(this)->fileContent);
+		BinaryReader reader(stream);
 		
 		readable->Read(reader);
 	}

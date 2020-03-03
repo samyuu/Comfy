@@ -3,56 +3,6 @@
 
 namespace FileSystem
 {
-	BinaryReader::BinaryReader()
-	{
-		SetPointerMode(PtrMode::Mode32Bit);
-		SetEndianness(Endianness::Little);
-	}
-
-	BinaryReader::BinaryReader(Stream* stream) : BinaryReader()
-	{
-		OpenStream(stream);
-	}
-
-	BinaryReader::~BinaryReader()
-	{
-		Close();
-	}
-
-	void BinaryReader::OpenStream(Stream* stream)
-	{
-		assert(!IsOpen());
-		assert(stream->CanRead());
-
-		this->stream = stream;
-	}
-
-	void BinaryReader::Close()
-	{
-		if (IsOpen() && !GetLeaveOpen())
-			stream->Close();
-	}
-
-	bool BinaryReader::IsOpen()
-	{
-		return stream != nullptr;
-	}
-
-	void BinaryReader::SetLeaveOpen(bool value)
-	{
-		leaveOpen = value;
-	}
-
-	bool BinaryReader::GetLeaveOpen() const
-	{
-		return leaveOpen;
-	}
-
-	PtrMode BinaryReader::GetPointerMode() const
-	{
-		return pointerMode;
-	}
-
 	void BinaryReader::SetPointerMode(PtrMode value)
 	{
 		pointerMode = value;
@@ -60,87 +10,61 @@ namespace FileSystem
 		switch (pointerMode)
 		{
 		case PtrMode::Mode32Bit:
-			readPtrFunction = Read32BitPtr; 
-			readSizeFunction = Read32BitSize;
+			readPtrFunc = &ReadPtr32;
+			readSizeFunc = &ReadSize32;
 			return;
 
 		case PtrMode::Mode64Bit:
-			readPtrFunction = Read64BitPtr;
-			readSizeFunction = Read64BitSize;
+			readPtrFunc = &ReadPtr64;
+			readSizeFunc = &ReadSize64;
 			return;
 
 		default:
-			break;
+			assert(false);
+			return;
 		}
-
-		assert(false);
-	}
-
-	Endianness BinaryReader::GetEndianness() const
-	{
-		return endianness;
 	}
 
 	void BinaryReader::SetEndianness(Endianness value)
 	{
 		endianness = value;
-		
+
 		switch (value)
 		{
 		case Endianness::Little:
-			readInt16Function = LE_ReadInt16;
-			readUInt16Function = LE_ReadUInt16;
-			readInt32Function = LE_ReadInt32;
-			readUInt32Function = LE_ReadUInt32;
-			readInt64Function = LE_ReadInt64;
-			readUInt64Function = LE_ReadUInt64;
-			readFloatFunction = LE_ReadFloat;
-			readDoubleFunction = LE_ReadDouble;
+			readI16Func = &LE_ReadI16;
+			readU16Func = &LE_ReadU16;
+			readI32Func = &LE_ReadI32;
+			readU32Func = &LE_ReadU32;
+			readI64Func = &LE_ReadI64;
+			readU64Func = &LE_ReadU64;
+			readF32Func = &LE_ReadF32;
+			readF64Func = &LE_ReadF64;
 			return;
-		
+
 		case Endianness::Big:
-			readInt16Function = BE_ReadInt16;
-			readUInt16Function = BE_ReadUInt16;
-			readInt32Function = BE_ReadInt32;
-			readUInt32Function = BE_ReadUInt32;
-			readInt64Function = BE_ReadInt64;
-			readUInt64Function = BE_ReadUInt64;
-			readFloatFunction = BE_ReadFloat;
-			readDoubleFunction = BE_ReadDouble;
+			readI16Func = &BE_ReadI16;
+			readU16Func = &BE_ReadU16;
+			readI32Func = &BE_ReadI32;
+			readU32Func = &BE_ReadU32;
+			readI64Func = &BE_ReadI64;
+			readU64Func = &BE_ReadU64;
+			readF32Func = &BE_ReadF32;
+			readF64Func = &BE_ReadF64;
 			return;
-		
+
 		default:
-			break;
+			assert(false);
+			return;
 		}
-
-		assert(false);
-	}
-
-	int64_t BinaryReader::Read(void* buffer, size_t size)
-	{
-		return stream->Read(buffer, size);
-	}
-
-	void BinaryReader::ReadAt(void* position, const std::function<void(BinaryReader&)>& func)
-	{
-		int64_t prePos = GetPosition();
-		SetPosition(position);
-		func(*this);
-		SetPosition(prePos);
-	}
-
-	void BinaryReader::ReadAt(void* position, void* baseAddress, const std::function<void(BinaryReader&)>& func)
-	{
-		void* finalPosition = (void*)((int64_t)position + (int64_t)baseAddress);
-		ReadAt(finalPosition, func);
 	}
 
 	std::string BinaryReader::ReadStr()
 	{
-		// Account for the ending null byte
-		size_t length = sizeof(char);
+		// NOTE: Account for the ending null byte
+		size_t length = sizeof('\0');
 
-		int64_t prePos = GetPosition();
+		const auto prePos = GetPosition();
 		{
 			while (ReadChar() != '\0' && !EndOfFile())
 				length++;
@@ -150,20 +74,14 @@ namespace FileSystem
 		if (length == sizeof(char))
 			return "";
 
-		std::string value;
-		value.resize(length - sizeof(char));
-		
-		Read(value.data(), length * sizeof(char) - 1);
-		SetPosition(GetPosition() + sizeof(char));
-
-		return value;
+		std::string result(length - sizeof(char), '\0');
+		ReadBuffer(result.data(), length * sizeof(char) - 1);
+		SetPosition(GetPosition() + static_cast<FileAddr>(sizeof(char)));
+		return result;
 	}
 
-	std::string BinaryReader::ReadStr(void* position)
+	std::string BinaryReader::ReadStrAt(FileAddr position)
 	{
-		if (position == nullptr)
-			return "";
-
 		return ReadAt<std::string>(position, [this](BinaryReader&)
 		{
 			return ReadStr();
@@ -172,17 +90,8 @@ namespace FileSystem
 
 	std::string BinaryReader::ReadStr(size_t size)
 	{
-		std::string value;
-		value.resize(size);
-
-		Read(value.data(), size * sizeof(char));
-
-		return value;
-	}
-
-	std::string BinaryReader::ReadStrPtr()
-	{
-		void* stringPointer = ReadPtr();
-		return ReadStr(stringPointer);
+		std::string result(size, '\0');
+		ReadBuffer(result.data(), size * sizeof(char));
+		return result;
 	}
 }

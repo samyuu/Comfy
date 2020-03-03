@@ -135,8 +135,8 @@ namespace FileSystem
 		if (entry == nullptr || !isMounted || dataStream == nullptr || !dataStream->CanRead())
 			return false;
 		
-		dataStream->Seek(entry->Offset);
-		dataStream->Read(outputBuffer, entry->Size);
+		dataStream->Seek(static_cast<FileAddr>(entry->Offset));
+		dataStream->ReadBuffer(outputBuffer, entry->Size);
 
 		return true;
 	}
@@ -176,15 +176,15 @@ namespace FileSystem
 
 	void ComfyArchive::ParseEntries()
 	{
-		dataStream->Read(&header, sizeof(header));
+		dataStream->ReadBuffer(&header, sizeof(header));
 
 		// TODO: Extensive validation checking
 		assert(header.Magic == ComfyArchive::Magic);
 
 		dataBuffer = MakeUnique<uint8_t[]>(header.DataSize);
 
-		dataStream->Seek(header.DataOffset);
-		dataStream->Read(dataBuffer.get(), header.DataSize);
+		dataStream->Seek(static_cast<FileAddr>(header.DataOffset));
+		dataStream->ReadBuffer(dataBuffer.get(), header.DataSize);
 	}
 
 	namespace

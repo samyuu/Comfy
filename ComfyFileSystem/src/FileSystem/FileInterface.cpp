@@ -7,49 +7,46 @@
 
 namespace FileSystem
 {
-	static void IBinaryReadableLoadBase(IBinaryReadable* readable, Stream* stream)
+	namespace
 	{
-		BinaryReader reader(stream);
-		readable->Read(reader);
-		reader.Close();
+		void IBinaryReadableLoadBase(IBinaryReadable& readable, IStream& stream)
+		{
+			BinaryReader reader(stream);
+			readable.Read(reader);
+		}
+
+		void IBinaryWritableSaveBase(IBinaryWritable& writable, IStream& stream)
+		{
+			BinaryWriter writer(stream);
+			writable.Write(writer);
+		}
 	}
 
-	static void IBinaryWritableSaveBase(IBinaryWritable* writable, Stream* stream)
-	{
-		BinaryWriter writer(stream);
-		writable->Write(writer);
-		writer.Close();
-	}
-
-	void IBinaryReadable::Load(const std::string& filePath)
-	{
-		MemoryStream stream(filePath);
-		IBinaryReadableLoadBase(this, &stream);
-		stream.Close();
-	}
-
-	void IBinaryReadable::Load(const std::wstring& filePath)
+	void IBinaryReadable::Load(std::string_view filePath)
 	{
 		MemoryStream stream(filePath);
-		IBinaryReadableLoadBase(this, &stream);
-		stream.Close();
+		IBinaryReadableLoadBase(*this, stream);
 	}
 
-	void IBinaryWritable::Save(const std::string& filePath)
+	void IBinaryReadable::Load(std::wstring_view filePath)
+	{
+		MemoryStream stream(filePath);
+		IBinaryReadableLoadBase(*this, stream);
+	}
+
+	void IBinaryWritable::Save(std::string_view filePath)
 	{
 		FileStream stream;
-		
+
 		std::wstring widePath = Utf8ToUtf16(filePath);
 		stream.CreateReadWrite(widePath);
-		IBinaryWritableSaveBase(this, &stream);
-		stream.Close();
+		IBinaryWritableSaveBase(*this, stream);
 	}
 
-	void IBinaryWritable::Save(const std::wstring& filePath)
+	void IBinaryWritable::Save(std::wstring_view filePath)
 	{
 		FileStream stream;
 		stream.CreateReadWrite(filePath);
-		IBinaryWritableSaveBase(this, &stream);
-		stream.Close();
+		IBinaryWritableSaveBase(*this, stream);
 	}
 }

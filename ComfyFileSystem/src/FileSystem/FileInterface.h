@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "CoreTypes.h"
 
 namespace FileSystem
@@ -9,15 +10,15 @@ namespace FileSystem
 	class IReadable
 	{
 	public:
-		virtual void Load(const std::string& filePath) = 0;
-		virtual void Load(const std::wstring& filePath) = 0;
+		virtual void Load(std::string_view filePath) = 0;
+		virtual void Load(std::wstring_view filePath) = 0;
 	};
 
 	class IWritable
 	{
 	public:
-		virtual void Save(const std::string& filePath) = 0;
-		virtual void Save(const std::wstring& filePath) = 0;
+		virtual void Save(std::string_view filePath) = 0;
+		virtual void Save(std::wstring_view filePath) = 0;
 	};
 
 	class IBinaryReadable : public IReadable
@@ -25,8 +26,8 @@ namespace FileSystem
 	public:
 		virtual void Read(BinaryReader& reader) = 0;
 
-		void Load(const std::string& filePath) override;
-		void Load(const std::wstring& filePath) override;
+		void Load(std::string_view filePath) override;
+		void Load(std::wstring_view filePath) override;
 	};
 
 	class IBinaryWritable : public IWritable
@@ -34,8 +35,8 @@ namespace FileSystem
 	public:
 		virtual void Write(BinaryWriter& writer) = 0;
 
-		virtual void Save(const std::string& filePath) override;
-		virtual void Save(const std::wstring& filePath) override;
+		virtual void Save(std::string_view filePath) override;
+		virtual void Save(std::wstring_view filePath) override;
 	};
 
 	class IBinaryReadWritable : public IBinaryReadable, public IBinaryWritable

@@ -11,42 +11,43 @@ namespace FileSystem
 		dataSource = &dataVector;
 	}
 
-	MemoryStream::MemoryStream(const std::string& filePath) : MemoryStream()
+	MemoryStream::MemoryStream(std::string_view filePath) : MemoryStream()
 	{
 		FromFile(filePath);
 	}
 
-	MemoryStream::MemoryStream(const std::wstring& filePath) : MemoryStream()
+	MemoryStream::MemoryStream(std::wstring_view filePath) : MemoryStream()
 	{
 		FromFile(filePath);
 	}
 
-	MemoryStream::MemoryStream(Stream* stream) : MemoryStream()
+	MemoryStream::MemoryStream(IStream& stream) : MemoryStream()
 	{
 		FromStream(stream);
 	}
 
-	MemoryStream::MemoryStream(std::vector<uint8_t>* source)
+	MemoryStream::MemoryStream(std::vector<uint8_t>& source)
 	{
 		FromStreamSource(source);
 	}
 
 	MemoryStream::~MemoryStream()
 	{
+		Close();
 	}
 
-	void MemoryStream::Seek(int64_t position)
+	void MemoryStream::Seek(FileAddr position)
 	{
 		this->position = position;
 		this->position = std::min(position, GetLength());
 	}
 
-	int64_t MemoryStream::GetPosition() const
+	FileAddr MemoryStream::GetPosition() const
 	{
 		return position;
 	}
 
-	int64_t MemoryStream::GetLength() const
+	FileAddr MemoryStream::GetLength() const
 	{
 		return dataSize;
 	}
@@ -66,24 +67,21 @@ namespace FileSystem
 		return false;
 	}
 
-	int64_t MemoryStream::Read(void* buffer, size_t size)
+	size_t MemoryStream::ReadBuffer(void* buffer, size_t size)
 	{
-		assert(CanRead());
+		assert(canRead);
+		int64_t bytesRead = std::min(static_cast<int64_t>(size), static_cast<int64_t>(RemainingBytes()));
 
-		int64_t remaining = RemainingBytes();
-		int64_t bytesRead = std::min(static_cast<int64_t>(size), remaining);
-
-		void* source = &(*dataSource)[position];
+		void* source = &(*dataSource)[static_cast<size_t>(position)];
 		memcpy(buffer, source, bytesRead);
 
-		position += bytesRead;
+		position += static_cast<FileAddr>(bytesRead);
 		return bytesRead;
 	}
 
-	int64_t MemoryStream::Write(const void* buffer, size_t size)
+	size_t MemoryStream::WriteBuffer(const void* buffer, size_t size)
 	{
-		assert(CanWrite());
-
+		assert(canRead);
 		dataSource->resize(dataSource->size() + size);
 
 		const uint8_t* bufferStart = reinterpret_cast<const uint8_t*>(buffer);
@@ -93,37 +91,36 @@ namespace FileSystem
 		return size;
 	}
 
-	void MemoryStream::FromStreamSource(std::vector<uint8_t>* source)
+	void MemoryStream::FromStreamSource(std::vector<uint8_t>& source)
 	{
-		dataSource = source;
+		dataSource = &source;
 
 		canRead = true;
-		dataSize = static_cast<int64_t>(source->size());
+		dataSize = static_cast<FileAddr>(source.size());
 	}
 
-	void MemoryStream::FromFile(const std::string& filePath)
+	void MemoryStream::FromFile(std::string_view filePath)
 	{
 		FromFile(Utf8ToUtf16(filePath));
 	}
 
-	void MemoryStream::FromFile(const std::wstring& filePath)
+	void MemoryStream::FromFile(std::wstring_view filePath)
 	{
 		FileStream fileStream(filePath);
-		FromStream(&fileStream);
-		fileStream.Close();
+		FromStream(fileStream);
 	}
 
-	void MemoryStream::FromStream(Stream* stream)
+	void MemoryStream::FromStream(IStream& stream)
 	{
-		assert(stream->CanRead());
+		assert(stream.CanRead());
 
 		canRead = true;
-		dataSize = stream->RemainingBytes();
-		dataSource->resize(dataSize);
+		dataSize = stream.RemainingBytes();
+		dataSource->resize(static_cast<size_t>(dataSize));
 
-		int64_t prePos = stream->GetPosition();
-		stream->Read(dataSource->data(), dataSize);
-		stream->Seek(prePos);
+		const auto prePos = stream.GetPosition();
+		stream.ReadBuffer(dataSource->data(), static_cast<size_t>(dataSize));
+		stream.Seek(prePos);
 	}
 
 	void MemoryStream::Close()

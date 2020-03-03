@@ -13,5 +13,8 @@ namespace FileSystem
 	{
 		Little = 'LE',
 		Big = 'BE',
+
+		// TODO: C++20 std::endian please come to rescue :PeepoHug:
+		Native = (true) ? Little : Big,
 	};
 }

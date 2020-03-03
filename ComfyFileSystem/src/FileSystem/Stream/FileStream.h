@@ -4,41 +4,39 @@
 
 namespace FileSystem
 {
-	class FileStream : public Stream
+	class FileStream : public StreamBase
 	{
 	public:
 		FileStream();
-		FileStream(const std::wstring& filePath);
+		FileStream(std::wstring_view filePath);
 		~FileStream();
 
-		void Seek(int64_t position) override;
-		int64_t GetPosition() const override;
-		int64_t GetLength() const override;
+		void Seek(FileAddr position) override;
+		FileAddr GetPosition() const override;
+		FileAddr GetLength() const override;
 
 		bool IsOpen() const override;
 		bool CanRead() const override;
 		bool CanWrite() const override;
 
-		int64_t Read(void* buffer, size_t size) override;
-		int64_t Write(const void* buffer, size_t size) override;
+		size_t ReadBuffer(void* buffer, size_t size) override;
+		size_t WriteBuffer(const void* buffer, size_t size) override;
 
-		void OpenRead(const std::wstring& filePath);
-		void OpenWrite(const std::wstring& filePath);
-		void OpenReadWrite(const std::wstring& filePath);
-		void CreateWrite(const std::wstring& filePath);
-		void CreateReadWrite(const std::wstring& filePath);
+		void OpenRead(std::wstring_view filePath);
+		void OpenWrite(std::wstring_view filePath);
+		void OpenReadWrite(std::wstring_view filePath);
+		void CreateWrite(std::wstring_view filePath);
+		void CreateReadWrite(std::wstring_view filePath);
 		void Close() override;
 
 	protected:
 		bool canRead = false;
 		bool canWrite = false;
-		int64_t position = 0L;
-		int64_t fileSize = 0L;
+		FileAddr position = {};
+		FileAddr fileSize = {};
 
 		void* fileHandle = nullptr;
 
 		void UpdateFileSize();
-		static unsigned long GetShareMode();
-		static unsigned long GetFileAttribute();
 	};
 }

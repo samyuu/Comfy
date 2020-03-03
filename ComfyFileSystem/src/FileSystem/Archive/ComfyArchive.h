@@ -125,6 +125,6 @@ namespace FileSystem
 		ComfyDirectory* rootDirectory = nullptr;
 		
 		UniquePtr<uint8_t[]> dataBuffer = nullptr;
-		UniquePtr<Stream> dataStream = nullptr;
+		UniquePtr<IStream> dataStream = nullptr;
 	};
 }

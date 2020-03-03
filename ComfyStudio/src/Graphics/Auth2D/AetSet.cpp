@@ -423,7 +423,7 @@ namespace Graphics
 	{
 		for (RefPtr<AetLayer>& layer : *comp)
 		{
-			if (layer->dataFilePtr != nullptr)
+			if (layer->dataFilePtr != FileAddr::NullPtr)
 			{
 				if (layer->Type == AetLayerType::Pic)
 					InternalFindLayerReferencedSurface(layer.get());
@@ -432,7 +432,7 @@ namespace Graphics
 				else if (layer->Type == AetLayerType::Eff)
 					InternalFindLayerReferencedComposition(layer.get());
 			}
-			if (layer->parentFilePtr != nullptr)
+			if (layer->parentFilePtr != FileAddr::NullPtr)
 			{
 				InternalFindLayerReferencedParent(layer.get());
 			}

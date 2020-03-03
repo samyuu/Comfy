@@ -1,14 +1,11 @@
 #pragma once
-
-#include <stdint.h>
-#include <glm/gtc/type_ptr.hpp>
-
+#include "IntegralTypes.h"
+#include "FileAddr.h"
 #include "Core/NonCopyable.h"
 #include "Core/SmartPointers.h"
+#include <glm/gtc/type_ptr.hpp>
 
-using unk8_t = uint8_t;
-using unk16_t = uint16_t;
-using unk32_t = uint32_t;
+// NOTE: Measure a frame unit / frame rate
 using frame_t = float;
 
 using ivec2 = glm::vec<2, int, glm::defaultp>;

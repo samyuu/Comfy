@@ -8,17 +8,17 @@ namespace Database
 
 	void TxpDB::Read(BinaryReader& reader)
 	{
-		uint32_t txpEntryCount = reader.ReadUInt32();
-		void* txpOffset = reader.ReadPtr();
+		uint32_t txpEntryCount = reader.ReadU32();
+		FileAddr txpOffset = reader.ReadPtr();
 
-		if (txpEntryCount > 0 && txpOffset != nullptr)
+		if (txpEntryCount > 0 && txpOffset != FileAddr::NullPtr)
 		{
 			Entries.resize(txpEntryCount);
 			reader.ReadAt(txpOffset, [this](BinaryReader& reader)
 			{
 				for (auto& txpEntry : Entries)
 				{
-					txpEntry.ID = TxpID(reader.ReadUInt32());
+					txpEntry.ID = TxpID(reader.ReadU32());
 					txpEntry.Name = reader.ReadStrPtr();
 				}
 			});
@@ -27,12 +27,12 @@ namespace Database
 
 	void TxpDB::Write(BinaryWriter& writer)
 	{
-		writer.WriteUInt32(static_cast<uint32_t>(Entries.size()));
+		writer.WriteU32(static_cast<uint32_t>(Entries.size()));
 		writer.WritePtr([this](BinaryWriter& writer)
 		{
 			for (auto& txpEntry : Entries)
 			{
-				writer.WriteUInt32(static_cast<uint32_t>(txpEntry.ID));
+				writer.WriteU32(static_cast<uint32_t>(txpEntry.ID));
 				writer.WriteStrPtr(txpEntry.Name);
 			}
 

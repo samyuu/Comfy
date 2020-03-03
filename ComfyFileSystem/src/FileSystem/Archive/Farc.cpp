@@ -25,33 +25,33 @@ namespace FileSystem
 		stream.Close();
 	}
 
-	RefPtr<Farc> Farc::Open(const std::string& filePath)
+	RefPtr<Farc> Farc::Open(std::string_view filePath)
 	{
 		const std::wstring widePath = Utf8ToUtf16(filePath);
 
 		RefPtr<Farc> farc = MakeRef<Farc>();
 		if (!farc->OpenStream(widePath))
 		{
-			Logger::LogErrorLine(__FUNCTION__"(): Unable to open '%s'", filePath.c_str());
+			Logger::LogErrorLine(__FUNCTION__"(): Unable to open '%s'", filePath.data());
 			return nullptr;
 		}
 
 		if (!farc->ParseEntries())
 		{
-			Logger::LogErrorLine(__FUNCTION__"(): Unable to parse '%s'", filePath.c_str());
+			Logger::LogErrorLine(__FUNCTION__"(): Unable to parse '%s'", filePath.data());
 			return nullptr;
 		}
 
 		return farc;
 	}
 
-	bool Farc::OpenStream(const std::wstring& filePath)
+	bool Farc::OpenStream(std::wstring_view filePath)
 	{
 		stream.OpenRead(filePath);
 
 		if (stream.IsOpen())
 		{
-			reader.OpenStream(&stream);
+			reader.OpenStream(stream);
 			reader.SetEndianness(Endianness::Big);
 			return true;
 		}
@@ -61,84 +61,80 @@ namespace FileSystem
 
 	bool Farc::ParseEntries()
 	{
-		if (reader.GetLength() <= sizeof(uint32_t[2]))
+		if (reader.GetLength() <= FileAddr(sizeof(uint32_t[2])))
 			return false;
 
-		uint32_t farcInfo[2];
-		reader.Read(farcInfo, sizeof(farcInfo));
+		std::array<uint32_t, 2> farcInfo;
+		reader.ReadBuffer(farcInfo.data(), sizeof(farcInfo));
 
-		uint32_t signature = ByteswapUInt32(farcInfo[0]);
-		uint32_t headerSize = ByteswapUInt32(farcInfo[1]);
+		uint32_t signature = ByteSwapU32(farcInfo[0]);
+		uint32_t headerSize = ByteSwapU32(farcInfo[1]);
 
-		if (reader.GetLength() <= (reader.GetPosition() + headerSize))
+		if (reader.GetLength() <= (reader.GetPosition() + static_cast<FileAddr>(headerSize)))
 			return false;
 
 		if (signature == FarcSignature_Normal || signature == FarcSignature_Compressed)
 		{
 			encryptionFormat = FarcEncryptionFormat::None;
 
-			alignment = reader.ReadUInt32();
+			alignment = reader.ReadU32();
 			flags = (signature == FarcSignature_Compressed) ? FarcFlags_Compressed : FarcFlags_None;
 
 			headerSize -= sizeof(alignment);
 
-			uint8_t* headerData = new uint8_t[headerSize];
-			reader.Read(headerData, headerSize);
+			auto headerData = MakeUnique<uint8_t[]>(headerSize);
+			reader.ReadBuffer(headerData.get(), headerSize);
 
-			uint8_t* currentHeaderPosition = headerData;
-			uint8_t* headerEnd = headerData + headerSize;
+			uint8_t* currentHeaderPosition = headerData.get();
+			uint8_t* headerEnd = headerData.get() + headerSize;
 
 			ParseEntriesInternal(currentHeaderPosition, headerEnd);
-
-			delete[] headerData;
 		}
 		else if (signature == FarcSignature_Encrypted)
 		{
-			uint32_t formatData[2];
-			reader.Read(formatData, sizeof(formatData));
-			flags = static_cast<FarcFlags>(ByteswapUInt32(formatData[0]));
-			alignment = ByteswapUInt32(formatData[1]);
+			std::array<uint32_t, 2> formatData;
+			reader.ReadBuffer(formatData.data(), sizeof(formatData));
+			flags = static_cast<FarcFlags>(ByteSwapU32(formatData[0]));
+			alignment = ByteSwapU32(formatData[1]);
 
 			// NOTE: Peek at the next 8 bytes which are either the alignment value followed by padding or the start of the AES IV
-			uint32_t nextData[2];
-			reader.Read(nextData, sizeof(nextData));
-			reader.SetPosition(reader.GetPosition() - sizeof(nextData));
+			std::array<uint32_t, 2> nextData;
+			reader.ReadBuffer(nextData.data(), sizeof(nextData));
+			reader.SetPosition(reader.GetPosition() - FileAddr(sizeof(nextData)));
 
 			// NOTE: If the padding is not zero and the potential alignment value is unreasonably high we treat it as an encrypted entry table
 			constexpr uint32_t reasonableAlignmentThreshold = 0x1000;
-			bool encryptedEntries = (flags & FarcFlags_Encrypted) && (nextData[1] != 0) && (ByteswapUInt32(nextData[0]) >= reasonableAlignmentThreshold);
+			bool encryptedEntries = (flags & FarcFlags_Encrypted) && (nextData[1] != 0) && (ByteSwapU32(nextData[0]) >= reasonableAlignmentThreshold);
 
 			if (encryptedEntries)
 			{
 				encryptionFormat = FarcEncryptionFormat::OrbisFutureTone;
-				reader.Read(aesIV.data(), aesIV.size());
+				reader.ReadBuffer(aesIV.data(), aesIV.size());
 
 				uint32_t paddedHeaderSize = GetAesDataAlignmentSize(headerSize);
 
 				// NOTE: Allocate encrypted and decrypted data as a continuous block
-				uint8_t* headerData = new uint8_t[paddedHeaderSize * 2];
+				auto headerData = MakeUnique<uint8_t[]>(paddedHeaderSize * 2);
 
-				uint8_t* encryptedHeaderData = headerData;
-				uint8_t* decryptedHeaderData = headerData + paddedHeaderSize;
+				uint8_t* encryptedHeaderData = headerData.get();
+				uint8_t* decryptedHeaderData = headerData.get() + paddedHeaderSize;
 
-				reader.Read(encryptedHeaderData, paddedHeaderSize);
+				reader.ReadBuffer(encryptedHeaderData, paddedHeaderSize);
 
 				DecryptFileInternal(encryptedHeaderData, decryptedHeaderData, paddedHeaderSize);
 
 				uint8_t* currentHeaderPosition = decryptedHeaderData;
 				uint8_t* headerEnd = decryptedHeaderData + headerSize;
 
-				alignment = ByteswapUInt32(*reinterpret_cast<uint32_t*>(currentHeaderPosition));
+				alignment = ByteSwapU32(*reinterpret_cast<uint32_t*>(currentHeaderPosition));
 				currentHeaderPosition += sizeof(uint32_t);
 				currentHeaderPosition += sizeof(uint32_t);
 
-				uint32_t entryCount = ByteswapUInt32(*reinterpret_cast<uint32_t*>(currentHeaderPosition));
+				uint32_t entryCount = ByteSwapU32(*reinterpret_cast<uint32_t*>(currentHeaderPosition));
 				currentHeaderPosition += sizeof(uint32_t);
 				currentHeaderPosition += sizeof(uint32_t);
 
 				ParseEntriesInternal(currentHeaderPosition, entryCount);
-
-				delete[] headerData;
 			}
 			else
 			{
@@ -146,22 +142,20 @@ namespace FileSystem
 
 				headerSize -= sizeof(formatData);
 
-				uint8_t* headerData = new uint8_t[headerSize];
-				reader.Read(headerData, headerSize);
+				auto headerData = MakeUnique<uint8_t[]>(headerSize);
+				reader.ReadBuffer(headerData.get(), headerSize);
 
-				uint8_t* currentHeaderPosition = headerData;
-				uint8_t* headerEnd = headerData + headerSize;
+				uint8_t* currentHeaderPosition = headerData.get();
+				uint8_t* headerEnd = headerData.get() + headerSize;
 
-				alignment = ByteswapUInt32(*reinterpret_cast<uint32_t*>(currentHeaderPosition));
+				alignment = ByteSwapU32(*reinterpret_cast<uint32_t*>(currentHeaderPosition));
 				currentHeaderPosition += sizeof(uint32_t);
 
-				// Padding (?)
+				// NOTE: Padding (?)
 				currentHeaderPosition += sizeof(uint32_t);
 				currentHeaderPosition += sizeof(uint32_t);
 
 				ParseEntriesInternal(currentHeaderPosition, headerEnd);
-
-				delete[] headerData;
 			}
 		}
 		else
@@ -175,30 +169,30 @@ namespace FileSystem
 
 	void Farc::ReadArchiveEntry(const ArchiveEntry& entry, void* fileContentOut)
 	{
-		stream.Seek(entry.FileOffset);
+		stream.Seek(static_cast<FileAddr>(entry.FileOffset));
 
 		if (flags == FarcFlags_None)
 		{
-			reader.Read(fileContentOut, entry.FileSize);
+			reader.ReadBuffer(fileContentOut, entry.FileSize);
 		}
 		else if (flags & FarcFlags_Compressed)
 		{
 			// NOTE: Since the farc file size is only stored in a 32bit integer, decompressing it as a single block should be safe enough (?)
 			const uint32_t paddedSize = GetAesDataAlignmentSize(entry.CompressedSize) + 16;
 
-			uint8_t* encryptedData = nullptr;
-			uint8_t* compressedData = new uint8_t[paddedSize];
+			UniquePtr<uint8_t[]> encryptedData = nullptr;
+			UniquePtr<uint8_t[]> compressedData = MakeUnique<uint8_t[]>(paddedSize);
 
 			if (flags & FarcFlags_Encrypted)
 			{
-				encryptedData = new uint8_t[paddedSize];
-				reader.Read(encryptedData, entry.CompressedSize);
+				encryptedData = MakeUnique<uint8_t[]>(paddedSize);
+				reader.ReadBuffer(encryptedData.get(), entry.CompressedSize);
 
-				DecryptFileInternal(encryptedData, compressedData, paddedSize);
+				DecryptFileInternal(encryptedData.get(), compressedData.get(), paddedSize);
 			}
 			else
 			{
-				reader.Read(compressedData, entry.CompressedSize);
+				reader.ReadBuffer(compressedData.get(), entry.CompressedSize);
 			}
 
 			// NOTE: Could this be related to the IV size?
@@ -209,7 +203,7 @@ namespace FileSystem
 			zStream.zfree = Z_NULL;
 			zStream.opaque = Z_NULL;
 			zStream.avail_in = static_cast<uInt>(entry.CompressedSize);
-			zStream.next_in = reinterpret_cast<Bytef*>(compressedData + dataOffset);
+			zStream.next_in = reinterpret_cast<Bytef*>(compressedData.get() + dataOffset);
 			zStream.avail_out = static_cast<uInt>(entry.FileSize);
 			zStream.next_out = reinterpret_cast<Bytef*>(fileContentOut);
 
@@ -223,34 +217,27 @@ namespace FileSystem
 
 			const int endResult = inflateEnd(&zStream);
 			assert(endResult == Z_OK);
-
-			delete[] encryptedData;
-			delete[] compressedData;
 		}
 		else if (flags & FarcFlags_Encrypted)
 		{
 			const uint32_t paddedSize = GetAesDataAlignmentSize(entry.CompressedSize);
-			uint8_t* encryptedData = new uint8_t[paddedSize];
+			auto encryptedData = MakeUnique<uint8_t[]>(paddedSize);
 
-			reader.Read(encryptedData, entry.FileSize);
+			reader.ReadBuffer(encryptedData.get(), entry.FileSize);
 			uint8_t* fileOutput = reinterpret_cast<uint8_t*>(fileContentOut);
 
 			if (paddedSize == entry.FileSize)
 			{
-				DecryptFileInternal(encryptedData, fileOutput, paddedSize);
+				DecryptFileInternal(encryptedData.get(), fileOutput, paddedSize);
 			}
 			else
 			{
 				// NOTE: Suboptimal temporary file copy to avoid AES padding issues. All encrypted farcs should however always be either compressed or have correct alignment
-				uint8_t* decryptedData = new uint8_t[paddedSize];
-				{
-					DecryptFileInternal(encryptedData, decryptedData, paddedSize);
-					std::copy(decryptedData, decryptedData + entry.FileSize, fileOutput);
-				}
-				delete[] decryptedData;
+				auto decryptedData = MakeUnique<uint8_t[]>(paddedSize);
+				
+				DecryptFileInternal(encryptedData.get(), decryptedData.get(), paddedSize);
+				std::copy(decryptedData.get(), decryptedData.get() + entry.FileSize, fileOutput);
 			}
-
-			delete[] encryptedData;
 		}
 		else
 		{
@@ -266,16 +253,16 @@ namespace FileSystem
 		entry.Name = std::string(reinterpret_cast<const char*>(headerDataPointer));
 		headerDataPointer += entry.Name.size() + sizeof(char);
 
-		entry.FileOffset = ByteswapUInt32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
+		entry.FileOffset = ByteSwapU32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
 		headerDataPointer += sizeof(uint32_t);
 
-		const uint32_t fileSize = ByteswapUInt32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
+		const uint32_t fileSize = ByteSwapU32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
 		headerDataPointer += sizeof(uint32_t);
 
 		if (flags & FarcFlags_Compressed)
 		{
 			entry.CompressedSize = fileSize;
-			entry.FileSize = ByteswapUInt32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
+			entry.FileSize = ByteSwapU32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
 
 			headerDataPointer += sizeof(uint32_t);
 		}
@@ -293,7 +280,7 @@ namespace FileSystem
 
 		if (encryptionFormat == FarcEncryptionFormat::OrbisFutureTone)
 		{
-			const uint32_t unknown = ByteswapUInt32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
+			const uint32_t unknown = ByteSwapU32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
 			headerDataPointer += sizeof(uint32_t);
 		}
 

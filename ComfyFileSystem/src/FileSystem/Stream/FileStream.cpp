@@ -1,37 +1,52 @@
 #include "FileStream.h"
 #include "Core/Win32/ComfyWindows.h"
+#include "FileSystem/FileHelperInternal.h"
 #include <assert.h>
 
 namespace FileSystem
 {
+	namespace
+	{
+		constexpr unsigned long GetWin32FileShareMode()
+		{
+			return (FILE_SHARE_READ | FILE_SHARE_WRITE);
+		}
+
+		unsigned long GetWin32FileAttributes()
+		{
+			return (FILE_ATTRIBUTE_NORMAL);
+		}
+	}
+
 	FileStream::FileStream()
 	{
 	}
 
-	FileStream::FileStream(const std::wstring& filePath)
+	FileStream::FileStream(std::wstring_view filePath)
 	{
 		OpenReadWrite(filePath);
 	}
 
 	FileStream::~FileStream()
 	{
+		Close();
 	}
 
-	void FileStream::Seek(int64_t position)
+	void FileStream::Seek(FileAddr position)
 	{
-		LARGE_INTEGER distanceToMove;
-		distanceToMove.QuadPart = position;
-		SetFilePointerEx(fileHandle, distanceToMove, NULL, FILE_BEGIN);
+		::LARGE_INTEGER distanceToMove;
+		distanceToMove.QuadPart = static_cast<LONGLONG>(position);
+		::SetFilePointerEx(fileHandle, distanceToMove, NULL, FILE_BEGIN);
 
 		this->position = position;
 	}
 
-	int64_t FileStream::GetPosition() const
+	FileAddr FileStream::GetPosition() const
 	{
 		return position;
 	}
 
-	int64_t FileStream::GetLength() const
+	FileAddr FileStream::GetLength() const
 	{
 		return fileSize;
 	}
@@ -51,102 +66,119 @@ namespace FileSystem
 		return canWrite;
 	}
 
-	int64_t FileStream::Read(void* buffer, size_t size)
+	size_t FileStream::ReadBuffer(void* buffer, size_t size)
 	{
-		assert(CanRead());
+		assert(canRead);
 
 		DWORD bytesRead = 0;
-		ReadFile(fileHandle, buffer, static_cast<DWORD>(size), &bytesRead, nullptr);
+		::ReadFile(fileHandle, buffer, static_cast<DWORD>(size), &bytesRead, nullptr);
 
-		position += bytesRead;
+		position += static_cast<FileAddr>(bytesRead);
 		return bytesRead;
 	}
 
-	int64_t FileStream::Write(const void* buffer, size_t size)
+	size_t FileStream::WriteBuffer(const void* buffer, size_t size)
 	{
-		assert(CanWrite());
+		assert(canWrite);
 
 		DWORD bytesWritten = 0;
-		WriteFile(fileHandle, buffer, static_cast<DWORD>(size), &bytesWritten, nullptr);
+		::WriteFile(fileHandle, buffer, static_cast<DWORD>(size), &bytesWritten, nullptr);
 
-		if (position > (GetLength() - static_cast<int64_t>(bytesWritten)))
-			fileSize += bytesWritten;
-		position += bytesWritten;
+		if (position > (GetLength() - static_cast<FileAddr>(bytesWritten)))
+			fileSize += static_cast<FileAddr>(bytesWritten);
+		position += static_cast<FileAddr>(bytesWritten);
 
 		return bytesWritten;
 	}
 
-	void FileStream::OpenRead(const std::wstring& filePath)
+	void FileStream::OpenRead(std::wstring_view filePath)
 	{
-		assert(!IsOpen());
-		canRead = true;
+		auto pathBuffer = NullTerminatedPathBufferInternal(filePath);
 
-		fileHandle = CreateFileW(filePath.c_str(), GENERIC_READ, GetShareMode(), NULL, OPEN_EXISTING, GetFileAttribute(), NULL);
+		assert(fileHandle == nullptr);
+		fileHandle = ::CreateFileW(pathBuffer.data(), (GENERIC_READ), GetWin32FileShareMode(), NULL, OPEN_EXISTING, GetWin32FileAttributes(), NULL);
+
+		if (fileHandle != nullptr)
+			canRead = true;
 		UpdateFileSize();
 	}
 
-	void FileStream::OpenWrite(const std::wstring& filePath)
+	void FileStream::OpenWrite(std::wstring_view filePath)
 	{
-		assert(!IsOpen());
-		canWrite = true;
+		auto pathBuffer = NullTerminatedPathBufferInternal(filePath);
 
-		fileHandle = CreateFileW(filePath.c_str(), GENERIC_WRITE, GetShareMode(), NULL, OPEN_EXISTING, GetFileAttribute(), NULL);
+		assert(fileHandle == nullptr);
+		fileHandle = ::CreateFileW(pathBuffer.data(), (GENERIC_WRITE), GetWin32FileShareMode(), NULL, OPEN_EXISTING, GetWin32FileAttributes(), NULL);
+
+		if (fileHandle != nullptr)
+			canWrite = true;
 		UpdateFileSize();
 	}
 
-	void FileStream::OpenReadWrite(const std::wstring& filePath)
+	void FileStream::OpenReadWrite(std::wstring_view filePath)
 	{
-		assert(!IsOpen());
-		canRead = canWrite = true;
+		auto pathBuffer = NullTerminatedPathBufferInternal(filePath);
 
-		fileHandle = CreateFileW(filePath.c_str(), GENERIC_READ | GENERIC_WRITE, GetShareMode(), NULL, OPEN_EXISTING, GetFileAttribute(), NULL);
+		assert(fileHandle == nullptr);
+		fileHandle = ::CreateFileW(pathBuffer.data(), (GENERIC_READ | GENERIC_WRITE), GetWin32FileShareMode(), NULL, OPEN_EXISTING, GetWin32FileAttributes(), NULL);
+
+		if (fileHandle != nullptr)
+		{
+			canRead = true;
+			canWrite = true;
+		}
 		UpdateFileSize();
 	}
 
-	void FileStream::CreateWrite(const std::wstring& filePath)
+	void FileStream::CreateWrite(std::wstring_view filePath)
 	{
-		assert(!IsOpen());
-		canWrite = true;
+		auto pathBuffer = NullTerminatedPathBufferInternal(filePath);
 
-		fileHandle = CreateFileW(filePath.c_str(), GENERIC_WRITE, GetShareMode(), NULL, CREATE_ALWAYS, GetFileAttribute(), NULL);
+		assert(fileHandle == nullptr);
+		fileHandle = ::CreateFileW(pathBuffer.data(), (GENERIC_WRITE), GetWin32FileShareMode(), NULL, CREATE_ALWAYS, GetWin32FileAttributes(), NULL);
+
+		if (fileHandle != nullptr)
+			canWrite = true;
 		UpdateFileSize();
 	}
 
-	void FileStream::CreateReadWrite(const std::wstring& filePath)
+	void FileStream::CreateReadWrite(std::wstring_view filePath)
 	{
-		assert(!IsOpen());
-		canRead = canWrite = true;
+		auto pathBuffer = NullTerminatedPathBufferInternal(filePath);
 
-		fileHandle = CreateFileW(filePath.c_str(), GENERIC_READ | GENERIC_WRITE, GetShareMode(), NULL, CREATE_ALWAYS, GetFileAttribute(), NULL);
+		assert(fileHandle == nullptr);
+		fileHandle = ::CreateFileW(pathBuffer.data(), (GENERIC_READ | GENERIC_WRITE), GetWin32FileShareMode(), NULL, CREATE_ALWAYS, GetWin32FileAttributes(), NULL);
+
+		if (fileHandle != nullptr)
+		{
+			canRead = true;
+			canWrite = true;
+		}
 		UpdateFileSize();
 	}
 
 	void FileStream::Close()
 	{
-		if (IsOpen())
-		{
-			CloseHandle(fileHandle);
-			fileHandle = nullptr;
-		}
+		if (fileHandle != nullptr)
+			::CloseHandle(fileHandle);
+		fileHandle = nullptr;
 	}
 
 	void FileStream::UpdateFileSize()
 	{
-		assert(IsOpen());
+		if (fileHandle != nullptr)
+		{
+			::LARGE_INTEGER largeIntegerFileSize = {};
+			::GetFileSizeEx(fileHandle, &largeIntegerFileSize);
 
-		LARGE_INTEGER fileSize = {};
-		GetFileSizeEx(fileHandle, &fileSize);
-
-		this->fileSize = fileSize.QuadPart;
-	}
-
-	unsigned long FileStream::GetShareMode()
-	{
-		return FILE_SHARE_READ | FILE_SHARE_WRITE;
-	}
-
-	unsigned long FileStream::GetFileAttribute()
-	{
-		return FILE_ATTRIBUTE_NORMAL;
+			fileSize = static_cast<FileAddr>(largeIntegerFileSize.QuadPart);
+		}
+		else
+		{
+			assert(false);
+			fileSize = {};
+			canRead = false;
+			canWrite = false;
+		}
 	}
 }

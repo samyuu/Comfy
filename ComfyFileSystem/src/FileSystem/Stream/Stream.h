@@ -3,28 +3,37 @@
 
 namespace FileSystem
 {
-	class Stream
+	class IStream
 	{
 	public:
-		Stream();
-		~Stream();
+		virtual ~IStream() = default;
 
-		bool EndOfFile();
-		void Skip(int64_t amount);
-		void Rewind();
+		virtual bool EndOfFile() const = 0;
+		virtual void Skip(FileAddr amount) = 0;
+		virtual void Rewind() = 0;
 
-		virtual void Seek(int64_t position) = 0;
-		int64_t RemainingBytes() const;
-		virtual int64_t GetPosition() const = 0;
-		virtual int64_t GetLength() const = 0;
+		virtual void Seek(FileAddr position) = 0;
+		virtual FileAddr RemainingBytes() const = 0;
+		virtual FileAddr GetPosition() const = 0;
+		virtual FileAddr GetLength() const = 0;
 
 		virtual bool IsOpen() const = 0;
 		virtual bool CanRead() const = 0;
 		virtual bool CanWrite() const = 0;
 
-		virtual int64_t Read(void* buffer, size_t size) = 0;
-		virtual int64_t Write(const void* buffer, size_t size) = 0;
+		virtual size_t ReadBuffer(void* buffer, size_t size) = 0;
+		virtual size_t WriteBuffer(const void* buffer, size_t size) = 0;
 
 		virtual void Close() = 0;
+	};
+
+	class StreamBase : public IStream, NonCopyable
+	{
+	public:
+		bool EndOfFile() const override;
+		void Skip(FileAddr amount) override;
+		void Rewind() override;
+
+		FileAddr RemainingBytes() const;
 	};
 }

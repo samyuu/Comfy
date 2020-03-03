@@ -2,31 +2,23 @@
 
 namespace FileSystem
 {
-	Stream::Stream()
-	{
-	}
-
-	Stream::~Stream()
-	{
-	}
-
-	int64_t Stream::RemainingBytes() const
+	FileAddr StreamBase::RemainingBytes() const
 	{
 		return GetLength() - GetPosition();
 	}
 
-	bool Stream::EndOfFile()
+	bool StreamBase::EndOfFile() const
 	{
 		return GetPosition() >= GetLength();
 	}
 
-	void Stream::Skip(int64_t amount)
+	void StreamBase::Skip(FileAddr amount)
 	{
 		Seek(GetPosition() + amount);
 	}
 
-	void Stream::Rewind()
+	void StreamBase::Rewind()
 	{
-		Seek(0L);
+		Seek(FileAddr(0));
 	}
 }

@@ -15,9 +15,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\CoreTypes.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\Core\FileAddr.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Core\Logger.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Core\SmartPointers.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Core\Win32\ComfyWindows.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\FileAddr.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\IntegralTypes.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\ImageHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\EndianHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)src\Misc\FileExtensionHelper.h" />

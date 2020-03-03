@@ -28,9 +28,6 @@ namespace Graphics
 	class AetComposition;
 	class AetSoundEffect;
 
-	// NOTE: Internal temporary file position for file parsing and writing
-	typedef void* fileptr_t;
-
 	enum class AetLayerType : uint8_t
 	{
 		// NOTE: None
@@ -84,7 +81,7 @@ namespace Graphics
 
 	private:
 		std::vector<AetSpriteIdentifier> sprites;
-		fileptr_t filePosition;
+		FileAddr filePosition;
 	};
 
 	struct AetMarker
@@ -260,10 +257,10 @@ namespace Graphics
 			RefPtr<AetLayer> ParentLayer;
 		} references;
 
-		fileptr_t filePosition;
-		fileptr_t dataFilePtr;
-		fileptr_t parentFilePtr;
-		fileptr_t audioDataFilePtr;
+		FileAddr filePosition;
+		FileAddr dataFilePtr;
+		FileAddr parentFilePtr;
+		FileAddr audioDataFilePtr;
 
 		void Read(FileSystem::BinaryReader& reader);
 	};
@@ -321,7 +318,7 @@ namespace Graphics
 		static const std::string unusedCompositionName;
 
 		Aet* parentAet;
-		fileptr_t filePosition;
+		FileAddr filePosition;
 
 		// NOTE: The Name given to any new eff layer referencing this composition. Assigned on AetSet load to the last layer's name using it (= not saved if unused)
 		std::string givenName;
@@ -348,7 +345,7 @@ namespace Graphics
 		// TODO:
 		// std::string givenName;
 
-		fileptr_t filePosition;
+		FileAddr filePosition;
 	};
 
 	class Aet : NonCopyable
