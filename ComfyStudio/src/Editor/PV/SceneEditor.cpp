@@ -1253,7 +1253,7 @@ namespace Comfy::Editor
 			{
 				auto& a3dObjects = a3d.Objects;
 
-				Transform parentTransform = A3DMgr::GetTransformAt(parentObject, frame);
+				Transform parentTransform = A3DMgr::GetTransformAt(parentObject.Transform, frame);
 
 				if (auto nestedParent = FindA3DObjectParent(a3d, parentObject); nestedParent != nullptr)
 					ApplyA3DParentTransform(a3d, *nestedParent, parentTransform, frame);
@@ -1362,8 +1362,8 @@ namespace Comfy::Editor
 
 					auto& entity = (*correspondingEntity);
 
-					entity->Transform = A3DMgr::GetTransformAt(object, frame);
-					entity->IsVisible = A3DMgr::GetBoolAt(object.Visibility, frame);
+					entity->Transform = A3DMgr::GetTransformAt(object.Transform, frame);
+					entity->IsVisible = A3DMgr::GetBoolAt(object.Transform.Visibility, frame);
 
 					if (auto parent = DebugData::FindA3DObjectParent(a3d, object); parent != nullptr)
 						DebugData::ApplyA3DParentTransform(a3d, *parent, entity->Transform, frame);
@@ -1469,7 +1469,7 @@ namespace Comfy::Editor
 
 				for (auto& a3dCamera : a3d.CameraRoot)
 				{
-					context.Camera.ViewPoint = A3DMgr::GetValueAt(a3dCamera.ViewPoint.Translation, frame);
+					context.Camera.ViewPoint = A3DMgr::GetValueAt(a3dCamera.ViewPoint.Transform.Translation, frame);
 					context.Camera.Interest = A3DMgr::GetValueAt(a3dCamera.Interest.Translation, frame);
 					context.Camera.FieldOfView = A3DMgr::GetFieldOfViewAt(a3dCamera.ViewPoint, frame);
 				}

@@ -121,9 +121,10 @@ namespace Comfy::Graphics
 		A3DProperty1D Visibility;
 	};
 
-	struct A3DPoint : public A3DTransform
+	struct A3DPoint
 	{
 		std::string Name;
+		A3DTransform Transform;
 	};
 
 	struct A3DCurve
@@ -133,8 +134,9 @@ namespace Comfy::Graphics
 		A3DProperty1D CV;
 	};
 
-	struct A3DCameraViewPoint : public A3DTransform
+	struct A3DCameraViewPoint
 	{
+		A3DTransform Transform;
 		float AspectRatio;
 		A3DProperty1D FieldOfView;
 		bool HorizontalFieldOfView;
@@ -142,8 +144,9 @@ namespace Comfy::Graphics
 		A3DProperty3D Roll;
 	};
 
-	struct A3DCamera : public A3DTransform
+	struct A3DCamera
 	{
+		A3DTransform Transform;
 		A3DTransform Interest;
 		A3DCameraViewPoint ViewPoint;
 	};
@@ -156,7 +159,7 @@ namespace Comfy::Graphics
 		A3DProperty1D AutoExposure;
 	};
 
-	struct A3DLightProperties
+	struct A3DLightColor
 	{
 		A3DPropertyRGB Ambient;
 		A3DPropertyRGB Diffuse;
@@ -164,10 +167,11 @@ namespace Comfy::Graphics
 		A3DPropertyRGB Incandescence;
 	};
 
-	struct A3DLight : public A3DLightProperties
+	struct A3DLight
 	{
 		uint32_t ID;
 		std::string Name;
+		A3DLightColor Color;
 		A3DTransform Position;
 		A3DTransform SpotDirection;
 		std::string Type;
@@ -182,21 +186,24 @@ namespace Comfy::Graphics
 		A3DPropertyRGB Diffuse;
 	};
 
-	struct A3DPostProcess : public A3DLightProperties
+	struct A3DPostProcess
 	{
+		A3DLightColor LightColor;
 		A3DProperty1D LensFlare;
 		A3DProperty1D LensGhost;
 		A3DProperty1D LensShaft;
 	};
 
-	struct A3DDepthOfField : public A3DTransform
+	struct A3DDepthOfField
 	{
 		std::string Name;
+		A3DTransform Transform;
 	};
 
-	struct A3DCharacter : public A3DTransform
+	struct A3DCharacter
 	{
 		std::string Name;
+		A3DTransform Transform;
 	};
 
 	struct A3DAuth2D
@@ -226,10 +233,12 @@ namespace Comfy::Graphics
 		A3DProperty1D TranslateFrameV;
 	};
 
-	struct A3DObject : public A3DTransform
+	struct A3DObject
 	{
 		std::string Name;
 		std::string UIDName;
+
+		A3DTransform Transform;
 
 		std::string Pat;
 		uint32_t PatOffset;
@@ -243,9 +252,10 @@ namespace Comfy::Graphics
 		std::vector<A3DTextureTransform> TextureTransforms;
 	};
 
-	struct A3DNode : public A3DTransform
+	struct A3DNode
 	{
 		std::string Name;
+		A3DTransform Transform;
 		uint32_t Parent;
 	};
 

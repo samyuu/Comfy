@@ -220,7 +220,7 @@ namespace Comfy::Graphics
 				return false;
 			}
 
-			bool TryParseLightProperties(A3DLightProperties& output)
+			bool TryParseLightColor(A3DLightColor& output)
 			{
 				if (CompareProperty("Specular"))
 					return TryParsePropertyRGB(output.Specular);
@@ -264,7 +264,7 @@ namespace Comfy::Graphics
 						{
 							auto& node = objectHRC.Nodes[ParseAdvanceIndexProperty()];
 
-							if (!TryParseTransformProperties(node))
+							if (!TryParseTransformProperties(node.Transform))
 							{
 								if (CompareProperty("parent"))
 									node.Parent = ParseValueString<uint32_t>();
@@ -322,7 +322,7 @@ namespace Comfy::Graphics
 					{
 						auto& point = a3d.Points[ParseAdvanceIndexProperty()];
 
-						if (!TryParseTransformProperties(point))
+						if (!TryParseTransformProperties(point.Transform))
 						{
 							if (CompareProperty("name"))
 								point.Name = ParseValueString();
@@ -347,11 +347,11 @@ namespace Comfy::Graphics
 					{
 						auto& camera = a3d.CameraRoot[ParseAdvanceIndexProperty()];
 
-						if (!TryParseTransformProperties(camera))
+						if (!TryParseTransformProperties(camera.Transform))
 						{
 							if (CompareProperty("view_point"))
 							{
-								if (!TryParseTransformProperties(camera.ViewPoint))
+								if (!TryParseTransformProperties(camera.ViewPoint.Transform))
 								{
 									if (CompareProperty("roll"))
 										TryParseProperty3D(camera.ViewPoint.Roll);
@@ -385,7 +385,7 @@ namespace Comfy::Graphics
 					{
 						auto& light = a3d.Lights[ParseAdvanceIndexProperty()];
 
-						if (!TryParseLightProperties(light))
+						if (!TryParseLightColor(light.Color))
 						{
 							if (CompareProperty("type"))
 								light.Type = ParseValueString();
@@ -420,7 +420,7 @@ namespace Comfy::Graphics
 				}
 				else if (CompareProperty("post_process"))
 				{
-					if (!TryParseLightProperties(a3d.PostProcess))
+					if (!TryParseLightColor(a3d.PostProcess.LightColor))
 					{
 						if (CompareProperty("lens_flare"))
 							TryParseProperty1D(a3d.PostProcess.LensFlare);
@@ -432,7 +432,7 @@ namespace Comfy::Graphics
 				}
 				else if (CompareProperty("dof"))
 				{
-					if (!TryParseTransformProperties(a3d.DepthOfField))
+					if (!TryParseTransformProperties(a3d.DepthOfField.Transform))
 					{
 						if (CompareProperty("name"))
 							a3d.DepthOfField.Name = ParseValueString();
@@ -444,7 +444,7 @@ namespace Comfy::Graphics
 					{
 						auto& character = a3d.Characters[ParseAdvanceIndexProperty()];
 
-						if (!TryParseTransformProperties(character))
+						if (!TryParseTransformProperties(character.Transform))
 						{
 							if (CompareProperty("name"))
 								character.Name = ParseValueString();
@@ -472,7 +472,7 @@ namespace Comfy::Graphics
 					{
 						auto& object = a3d.Objects[ParseAdvanceIndexProperty()];
 
-						if (!TryParseTransformProperties(object))
+						if (!TryParseTransformProperties(object.Transform))
 						{
 							if (CompareProperty("name"))
 								object.Name = ParseValueString();
