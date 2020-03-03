@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
-#include "Core/IDTypes.h"
+#include "Resource/IDTypes.h"
 #include <optional>
 
 namespace Comfy::Graphics

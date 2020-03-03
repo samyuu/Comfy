@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "Core/IDTypes.h"
+#include "Resource/IDTypes.h"
 #include "FileSystem/FileInterface.h"
 
 namespace Comfy::Database

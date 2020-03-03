@@ -297,8 +297,9 @@
     <ClCompile Include="src\System\Profiling\Profiler.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Core\IDHash.h" />
-    <ClInclude Include="src\Core\IDTypes.h" />
+    <ClInclude Include="src\Resource\IDHash.h" />
+    <ClInclude Include="src\Resource\Detail\IDTypeDeclarations.h" />
+    <ClInclude Include="src\Resource\IDTypes.h" />
     <ClInclude Include="src\Database\AetDB.h" />
     <ClInclude Include="src\Database\Database.h" />
     <ClInclude Include="src\Database\SprDB.h" />
@@ -440,6 +441,7 @@
     <ClInclude Include="src\ImGui\GuiRenderer.h" />
     <ClInclude Include="src\ImGui\Implementation\ComfyD3D11.h" />
     <ClInclude Include="src\ImGui\Implementation\ComfyWin32.h" />
+    <ClInclude Include="src\Resource\ResourceIDMap.h" />
     <ClInclude Include="src\System\CommandLine\CommandLine.h" />
     <ClInclude Include="src\Audio\Core\Detail\SampleMixer.h" />
     <ClInclude Include="src\Audio\Decoder\AudioDecoderFactory.h" />
