@@ -40,6 +40,8 @@ namespace Graphics
 		bool RenderPunchThrough = true;
 		bool RenderFog = true;
 		bool ObjectMorphing = true;
+		// TODO:
+		// bool ObjectSkinning = true;
 
 		// NOTE: Enable to take alpha render target captures with a clear color alpha of zero
 		bool ToneMapPreserveAlpha = true;

@@ -18,6 +18,7 @@ namespace Editor
 
 		treeView = MakeUnique<AetTreeView>(commandManager.get(), &selectedAetItem, &cameraSelectedAetItem);
 		inspector = MakeUnique<AetInspector>(commandManager.get(), &spriteGetterFunction, &previewData);
+		//contentView = MakeUnique<AetContentView>();
 		timeline = MakeUnique<AetTimeline>();
 		renderWindow = MakeUnique<AetRenderWindow>(commandManager.get(), &spriteGetterFunction, &selectedAetItem, &cameraSelectedAetItem, &previewData);
 		historyWindow = MakeUnique<AetHistoryWindow>(commandManager.get());
@@ -31,6 +32,7 @@ namespace Editor
 	{
 		treeView->Initialize();
 		inspector->Initialize();
+		//contentView->Initialize();
 		timeline->Initialize();
 		renderWindow->Initialize();
 

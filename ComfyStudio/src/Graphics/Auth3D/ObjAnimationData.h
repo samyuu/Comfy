@@ -28,6 +28,9 @@ namespace Graphics
 
 		float MorphWeight = 1.0f;
 		TxpID ScreenRenderTextureID = TxpID::Invalid;
+		
+		// TODO: Transparency, automatically add to transparent command list
+		// std::optional<vec4> ColorTint;
 
 		std::vector<TexturePattern> TexturePatterns;
 		std::vector<TextureTransform> TextureTransforms;

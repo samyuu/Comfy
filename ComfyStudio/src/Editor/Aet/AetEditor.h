@@ -2,6 +2,7 @@
 #include "AetSelection.h"
 #include "Core/AetTreeView.h"
 #include "Core/AetInspector.h"
+#include "Core/AetContentView.h"
 #include "Timeline/AetTimeline.h"
 #include "RenderWindow/AetRenderWindow.h"
 #include "Command/AetHistoryWindow.h"
@@ -51,6 +52,7 @@ namespace Editor
 
 		UniquePtr<AetTreeView> treeView;
 		UniquePtr<AetInspector> inspector;
+		UniquePtr<AetContentView> contentView;
 		UniquePtr<AetTimeline> timeline;
 		UniquePtr<AetRenderWindow> renderWindow;
 		UniquePtr<AetHistoryWindow> historyWindow;

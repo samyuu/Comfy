@@ -123,6 +123,14 @@ namespace Graphics
 		uint32_t AmbientTextureType;
 	};
 
+#define COMFY_SKELETON_TEST 0
+#if COMFY_SKELETON_TEST
+	struct SkeletonConstantData
+	{
+		std::array<mat4, 192> Bones;
+	};
+#endif
+
 	struct ESMFilterConstantData
 	{
 		std::array<vec4, 2> Coefficients;
@@ -352,6 +360,10 @@ namespace Graphics
 		// TODO: Separate scene CB from ~~viewport~~ camera CB (camera view/projection/eye, SSS param & render resolution)
 		D3D_DefaultConstantBufferTemplate<SceneConstantData> sceneCB = { 0, "Renderer3D::SceneCB" };
 		D3D_DynamicConstantBufferTemplate<ObjectConstantData> objectCB = { 1, "Renderer3D::ObjectCB" };
+
+#if COMFY_SKELETON_TEST
+		D3D_DynamicConstantBufferTemplate<SkeletonConstantData> skeletonCB = { 2, "Renderer3D::SkeletonCB" };
+#endif
 
 		D3D_DynamicConstantBufferTemplate<ESMFilterConstantData> esmFilterCB = { 4, "Renderer3D::ESMFilterCB" };
 		D3D_DynamicConstantBufferTemplate<SSSFilterConstantData> sssFilterCB = { 5, "Renderer3D::SSSFilterCB" };
