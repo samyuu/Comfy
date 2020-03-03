@@ -41,15 +41,19 @@ namespace Comfy::Graphics
 
 		assert(txpSet.Signature.Type == TxpSig::TxpSet);
 
-		Txps.resize(textureCount);
+		Txps.reserve(textureCount);
 		for (uint32_t i = 0; i < textureCount; i++)
-			ParseTxp(buffer + offsets[i], Txps[i]);
+		{
+			Txps.push_back(MakeRef<Txp>());
+			ParseTxp(buffer + offsets[i], *Txps[i]);
+		}
 	}
 
 	void TxpSet::UploadAll(SprSet* parentSprSet)
 	{
-		for (auto& txp : Txps)
+		for (auto& txpRef : Txps)
 		{
+			auto& txp = *txpRef;
 			if (txp.Signature.Type == TxpSig::Texture2D)
 			{
 				txp.D3D_Texture2D = MakeUnique<D3D_Texture2D>(txp);
@@ -71,7 +75,7 @@ namespace Comfy::Graphics
 		assert(textureIDs.size() <= Txps.size());
 
 		for (size_t i = 0; i < textureIDs.size(); i++)
-			Txps[i].ID = textureIDs[i];
+			Txps[i]->ID = textureIDs[i];
 	}
 
 	UniquePtr<TxpSet> TxpSet::MakeUniqueReadParseUpload(std::string_view filePath, const ObjSet* objSet)

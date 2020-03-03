@@ -179,9 +179,9 @@ namespace Comfy::Editor
 			for (auto& txp : objSet->TxpSet->Txps)
 			{
 				// TODO: Linear search yikesydoodles
-				auto txpEntry = std::find_if(sceneGraph.TxpDB->Entries.begin(), sceneGraph.TxpDB->Entries.end(), [&](auto& e) { return e.ID == txp.ID; });
+				auto txpEntry = std::find_if(sceneGraph.TxpDB->Entries.begin(), sceneGraph.TxpDB->Entries.end(), [&](auto& e) { return e.ID == txp->ID; });
 				if (txpEntry != sceneGraph.TxpDB->Entries.end())
-					txp.Name = txpEntry->Name;
+					txp->Name = txpEntry->Name;
 			}
 		}
 

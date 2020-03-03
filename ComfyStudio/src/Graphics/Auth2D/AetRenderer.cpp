@@ -192,7 +192,7 @@ namespace Comfy::Graphics
 		if (identifier->SpriteCache != nullptr)
 		{
 		from_sprite_cache:
-			*outTxp = &sprSet->TxpSet->Txps[identifier->SpriteCache->TextureIndex];
+			*outTxp = sprSet->TxpSet->Txps[identifier->SpriteCache->TextureIndex].get();
 			*outSpr = identifier->SpriteCache;
 			return true;
 		}

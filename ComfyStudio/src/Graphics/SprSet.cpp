@@ -54,7 +54,7 @@ namespace Comfy::Graphics
 			{
 				uint32_t nameOffset = ((uint32_t*)textureNamesOffsetBuffer)[i];
 				char* name = (char*)(buffer + nameOffset);
-				sprSet->TxpSet->Txps[i].Name = std::string(name);
+				sprSet->TxpSet->Txps[i]->Name = std::string(name);
 			}
 		}
 

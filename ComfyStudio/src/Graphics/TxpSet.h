@@ -62,7 +62,7 @@ namespace Comfy::Graphics
 	{
 	public:
 		TxpSig Signature;
-		std::vector<Txp> Txps;
+		std::vector<RefPtr<Txp>> Txps;
 		
 		void Parse(const uint8_t* buffer, size_t bufferSize) override;
 		void UploadAll(class SprSet* parentSprSet);

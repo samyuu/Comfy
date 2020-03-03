@@ -443,8 +443,8 @@ namespace Comfy::Graphics
 	{
 		for (auto& txp : txpSet.Txps)
 		{
-			if (txp.ID != TxpID::Invalid)
-				textureIDTxpMap[txp.ID] = &txp;
+			if (txp->ID != TxpID::Invalid)
+				textureIDTxpMap[txp->ID] = txp.get();
 		}
 	}
 
@@ -452,8 +452,8 @@ namespace Comfy::Graphics
 	{
 		for (auto& txp : txpSet.Txps)
 		{
-			if (txp.ID != TxpID::Invalid)
-				textureIDTxpMap.erase(txp.ID);
+			if (txp->ID != TxpID::Invalid)
+				textureIDTxpMap.erase(txp->ID);
 		}
 	}
 
