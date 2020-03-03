@@ -32,18 +32,18 @@ namespace Comfy::Graphics
 
 	void TxpSet::Parse(const uint8_t* buffer, size_t bufferSize)
 	{
-		TxpSet* txpSet = this;
+		TxpSet& txpSet = *this;
 
-		txpSet->Signature = *(TxpSig*)(buffer + 0);
+		txpSet.Signature = *(TxpSig*)(buffer + 0);
 		uint32_t textureCount = *(uint32_t*)(buffer + 4);
 		uint32_t packedCount = *(uint32_t*)(buffer + 8);
 		uint32_t* offsets = (uint32_t*)(buffer + 12);
 
-		assert(txpSet->Signature.Type == TxpSig::TxpSet);
+		assert(txpSet.Signature.Type == TxpSig::TxpSet);
 
 		Txps.resize(textureCount);
 		for (uint32_t i = 0; i < textureCount; i++)
-			ParseTxp(buffer + offsets[i], &Txps[i]);
+			ParseTxp(buffer + offsets[i], Txps[i]);
 	}
 
 	void TxpSet::UploadAll(SprSet* parentSprSet)
@@ -93,25 +93,25 @@ namespace Comfy::Graphics
 		return txpSet;
 	}
 
-	void TxpSet::ParseTxp(const uint8_t* buffer, Txp* txp)
+	void TxpSet::ParseTxp(const uint8_t* buffer, Txp& txp)
 	{
-		txp->Signature = *(TxpSig*)(buffer + 0);
+		txp.Signature = *(TxpSig*)(buffer + 0);
 		uint32_t mipMapCount = *(uint32_t*)(buffer + 4);
-		txp->MipLevels = *(uint8_t*)(buffer + 8);
-		txp->ArraySize = *(uint8_t*)(buffer + 9);
+		txp.MipLevels = *(uint8_t*)(buffer + 8);
+		txp.ArraySize = *(uint8_t*)(buffer + 9);
 
 		uint32_t* offsets = (uint32_t*)(buffer + 12);
 		const uint8_t* mipMapBuffer = buffer + *offsets;
 		++offsets;
 
-		assert(txp->Signature.Type == TxpSig::Texture2D || txp->Signature.Type == TxpSig::CubeMap || txp->Signature.Type == TxpSig::Rectangle);
-		// assert(mipMapCount == txp->MipLevels * txp->ArraySize);
+		assert(txp.Signature.Type == TxpSig::Texture2D || txp.Signature.Type == TxpSig::CubeMap || txp.Signature.Type == TxpSig::Rectangle);
+		// assert(mipMapCount == txp.MipLevels * txp.ArraySize);
 
-		txp->MipMapsArray.resize(txp->ArraySize);
+		txp.MipMapsArray.resize(txp.ArraySize);
 
-		for (auto& mipMaps : txp->MipMapsArray)
+		for (auto& mipMaps : txp.MipMapsArray)
 		{
-			mipMaps.resize(txp->MipLevels);
+			mipMaps.resize(txp.MipLevels);
 
 			for (auto& mipMap : mipMaps)
 			{

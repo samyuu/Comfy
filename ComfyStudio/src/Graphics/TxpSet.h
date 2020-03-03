@@ -73,6 +73,6 @@ namespace Comfy::Graphics
 		static UniquePtr<TxpSet> MakeUniqueReadParseUpload(std::string_view filePath, const class ObjSet* objSet);
 
 	private:
-		void ParseTxp(const uint8_t* buffer, Txp* txp);
+		void ParseTxp(const uint8_t* buffer, Txp& txp);
 	};
 }
