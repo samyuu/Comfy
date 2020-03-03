@@ -1,7 +1,7 @@
 #include "AetSet.h"
 #include <assert.h>
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	const std::array<const char*, 8> AetTransform::FieldNames =
 	{

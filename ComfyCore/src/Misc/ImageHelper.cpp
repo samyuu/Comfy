@@ -32,7 +32,7 @@ namespace
 #define STBIW_ZLIB_COMPRESS CustomStbImageZLibCompress2
 #include <stb_image_write.h>
 
-namespace Utilities
+namespace Comfy::Utilities
 {
 	void WritePNG(std::string_view filePath, ivec2 size, const uint8_t* rgbaPixels)
 	{

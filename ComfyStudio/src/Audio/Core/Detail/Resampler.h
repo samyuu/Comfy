@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Audio
+namespace Comfy::Audio
 {
 	class Resampler
 	{

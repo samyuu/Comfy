@@ -3,7 +3,7 @@
 #include "CoreTypes.h"
 #include "Graphics/Camera.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	class CameraController2D
 	{

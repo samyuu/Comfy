@@ -1,7 +1,7 @@
 #include "FrameTimeline.h"
 #include "Editor/Core/Theme.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	TimelineFrame FrameTimeline::GetCursorFrame() const
 	{

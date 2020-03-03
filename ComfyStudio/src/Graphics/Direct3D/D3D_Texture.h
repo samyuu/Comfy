@@ -1,9 +1,9 @@
 #pragma once
 #include "Direct3D.h"
 #include "D3D_TextureSampler.h"
-#include "Graphics/GraphicsTypes.h"
+#include "Graphics/GraphicTypes.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	class D3D_ShaderResourceView
 	{

@@ -2,7 +2,7 @@
 #include "CoreTypes.h"
 #include <functional>
 
-namespace System
+namespace Comfy::System
 {
 	struct CommandLineOption
 	{

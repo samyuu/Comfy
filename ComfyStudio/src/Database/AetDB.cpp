@@ -2,7 +2,7 @@
 #include "FileSystem/BinaryReader.h"
 #include "FileSystem/BinaryWriter.h"
 
-namespace Database
+namespace Comfy::Database
 {
 	using namespace FileSystem;
 

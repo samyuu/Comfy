@@ -6,7 +6,7 @@
 #include "Graphics/Direct3D/D3D_IndexBuffer.h"
 #include "Graphics/Direct3D/D3D_VertexBuffer.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	struct Material;
 	class Obj;

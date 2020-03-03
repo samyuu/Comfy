@@ -4,7 +4,7 @@
 #include "Audio/Core/AudioEngine.h"
 #include "Audio/SampleProvider/MemorySampleProvider.h"
 
-namespace DataTest
+namespace Comfy::DataTest
 {
 	class AudioTestWindow : public BaseWindow
 	{

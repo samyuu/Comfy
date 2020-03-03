@@ -1,7 +1,7 @@
 #pragma once
 #include "Editor/Command/ICommand.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	namespace Command
 	{

@@ -1,7 +1,7 @@
 #include "TargetList.h"
 #include <algorithm>
 
-namespace Editor
+namespace Comfy::Editor
 {
 	TimelineTarget::TimelineTarget() : Tick(0), Type(static_cast<TargetType>(0)), Flags(TargetFlags_None)
 	{

@@ -2,7 +2,7 @@
 #include "Types.h"
 #include <intrin.h>
 
-namespace Utilities
+namespace Comfy::Utilities
 {
 	inline int16_t ByteSwapI16(int16_t value) { return _byteswap_ushort(value); }
 	inline uint16_t ByteSwapU16(uint16_t value) { return _byteswap_ushort(value); }

@@ -3,7 +3,7 @@
 #include "Misc/StringParseHelper.h"
 #include "Misc/TextDatabaseParser.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	using namespace Utilities;
 

@@ -1,7 +1,7 @@
 #include "KeyFrameRenderer.h"
 #include "AetTimeline.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	using namespace Graphics;
 

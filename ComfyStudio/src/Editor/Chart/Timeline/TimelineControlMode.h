@@ -1,9 +1,8 @@
 #pragma once
 
-namespace Editor
+namespace Comfy::Editor
 {
 	class TargetTimelineControlMode
 	{
-
 	};
 }

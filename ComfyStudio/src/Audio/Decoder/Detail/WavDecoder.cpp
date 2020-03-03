@@ -1,7 +1,7 @@
 #include "Decoders.h"
 #include <dr_wav.h>
 
-namespace Audio
+namespace Comfy::Audio
 {
 	const char* WavDecoder::GetFileExtensions() const
 	{

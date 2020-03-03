@@ -7,7 +7,7 @@
 
 using Microsoft::WRL::ComPtr;
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	class D3D_SwapChainRenderTarget;
 
@@ -19,7 +19,7 @@ namespace Graphics
 
 	public:
 		void ResizeWindowRenderTarget(ivec2 newSize);
-		
+
 		void SetViewport(ivec2 size);
 		void SetViewport(ivec2 position, ivec2 size);
 
@@ -44,7 +44,7 @@ namespace Graphics
 	private:
 		bool InternalCreateDeviceAndSwapchain(HWND window);
 		bool InternalSetUpDebugInterface();
-	
+
 	private:
 		std::vector<ID3D11DeviceChild*> objectsToBeReleased;
 
@@ -74,4 +74,4 @@ namespace Graphics
 #else
 #define D3D_SetObjectDebugName(deviceChild, format, ...) do {} while(false);
 #endif
-	}
+}

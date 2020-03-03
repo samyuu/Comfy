@@ -2,7 +2,7 @@
 #include "Graphics/Auth2D/AetRenderer.h"
 #include "Core/TimeSpan.h"
 
-namespace App
+namespace Comfy::App
 {
 	class TaskInterface
 	{

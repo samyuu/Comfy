@@ -1,8 +1,7 @@
 #include "Waveform.h"
-#include "Core/TimeSpan.h"
 #include "System/Version/BuildConfiguration.h"
 
-namespace Audio
+namespace Comfy::Audio
 {
 	Waveform::Waveform()
 	{

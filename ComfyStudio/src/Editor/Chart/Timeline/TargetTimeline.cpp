@@ -7,7 +7,7 @@
 #include "Core/TimeSpan.h"
 #include <FontIcons.h>
 
-namespace Editor
+namespace Comfy::Editor
 {
 	namespace
 	{

@@ -8,7 +8,7 @@
 #include "Graphics/SprSet.h"
 #include "Input/KeyCode.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	enum EditorColor;
 	class ChartEditor;

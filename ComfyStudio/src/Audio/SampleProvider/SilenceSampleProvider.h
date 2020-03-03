@@ -1,7 +1,7 @@
 #pragma once
 #include "ISampleProvider.h"
 
-namespace Audio
+namespace Comfy::Audio
 {
 	class SilenceSampleProvider : public ISampleProvider
 	{

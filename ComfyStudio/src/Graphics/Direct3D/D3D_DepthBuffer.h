@@ -3,7 +3,7 @@
 #include "GraphicsInterfaces.h"
 #include "D3D_Texture.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	class D3D_DepthBuffer : IGraphicsResource
 	{

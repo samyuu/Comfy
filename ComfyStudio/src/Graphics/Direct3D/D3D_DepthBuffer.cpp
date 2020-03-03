@@ -1,6 +1,6 @@
 #include "D3D_DepthBuffer.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	namespace
 	{

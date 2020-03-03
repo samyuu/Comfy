@@ -1,6 +1,6 @@
 #include "IMutatingEditorComponent.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	IMutatingEditorComponent::IMutatingEditorComponent(AetCommandManager* commandManager) : commandManager(commandManager)
 	{

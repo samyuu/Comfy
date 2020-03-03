@@ -6,141 +6,144 @@
 #include <functional>
 #include <optional>
 
-// NOTE: Manage window and general IO platform agnostically
-class ApplicationHost
+namespace Comfy
 {
-public:
-	static constexpr ivec2 StartupWindowPosition = ivec2(0, 0);
-	static constexpr ivec2 StartupWindowSize = ivec2(1280, 720);
-	static constexpr ivec2 WindowSizeRestraints = ivec2(640, 360);
+	// NOTE: Manage window and general IO platform agnostically
+	class ApplicationHost
+	{
+	public:
+		static constexpr ivec2 StartupWindowPosition = ivec2(0, 0);
+		static constexpr ivec2 StartupWindowSize = ivec2(1280, 720);
+		static constexpr ivec2 WindowSizeRestraints = ivec2(640, 360);
 
-	static constexpr const char* ComfyWindowClassName = "ComfyWindowClass";
-	static constexpr const char* ComfyStudioWindowTitle = "Comfy Studio";
+		static constexpr const char* ComfyWindowClassName = "ComfyWindowClass";
+		static constexpr const char* ComfyStudioWindowTitle = "Comfy Studio";
 
-public:
-	ApplicationHost();
-	~ApplicationHost();
+	public:
+		ApplicationHost();
+		~ApplicationHost();
 
-	bool Initialize();
-	void EnterProgramLoop(const std::function<void()> updateFunction);
-	void Exit();
-	void Dispose();
+		bool Initialize();
+		void EnterProgramLoop(const std::function<void()> updateFunction);
+		void Exit();
+		void Dispose();
 
-public:
-	bool GetIsFullscreen() const;
-	void SetIsFullscreen(bool value);
-	void ToggleFullscreen();
+	public:
+		bool GetIsFullscreen() const;
+		void SetIsFullscreen(bool value);
+		void ToggleFullscreen();
 
-	bool GetIsMaximized() const;
-	void SetIsMaximized(bool value);
+		bool GetIsMaximized() const;
+		void SetIsMaximized(bool value);
 
-	void SetSwapInterval(int interval);
+		void SetSwapInterval(int interval);
 
-	bool HasFocusBeenGained() const;
-	bool HasFocusBeenLost() const;
+		bool HasFocusBeenGained() const;
+		bool HasFocusBeenLost() const;
 
-	ivec2 GetWindowPosition() const;
-	void SetWindowPosition(ivec2 value);
-	
-	ivec2 GetWindowSize() const;
-	void SetWindowSize(ivec2 value);
+		ivec2 GetWindowPosition() const;
+		void SetWindowPosition(ivec2 value);
 
-	ivec4 GetWindowRestoreRegion();
-	void SetWindowRestoreRegion(ivec4 value);
+		ivec2 GetWindowSize() const;
+		void SetWindowSize(ivec2 value);
 
-	void SetDefaultPositionWindow(bool value);
-	void SetDefaultResizeWindow(bool value);
+		ivec4 GetWindowRestoreRegion();
+		void SetWindowRestoreRegion(ivec4 value);
 
-	inline HWND GetWindow() const { return windowHandle; };
+		void SetDefaultPositionWindow(bool value);
+		void SetDefaultResizeWindow(bool value);
 
-public:
-	void RegisterWindowProcCallback(const std::function<bool(HWND, UINT, WPARAM, LPARAM)> onWindowProc);
-	void RegisterWindowResizeCallback(const std::function<void(ivec2 size)> onWindowResize);
-	void RegisterWindowClosingCallback(const std::function<void()> onClosing);
+		inline HWND GetWindow() const { return windowHandle; };
 
-public:
-	bool GetDispatchFileDrop();
-	void SetFileDropDispatched(bool value = true);
-	const std::vector<std::string>& GetDroppedFiles() const;
+	public:
+		void RegisterWindowProcCallback(const std::function<bool(HWND, UINT, WPARAM, LPARAM)> onWindowProc);
+		void RegisterWindowResizeCallback(const std::function<void(ivec2 size)> onWindowResize);
+		void RegisterWindowClosingCallback(const std::function<void()> onClosing);
 
-	static void LoadComfyWindowIcon();
-	static HICON GetComfyWindowIcon();
+	public:
+		bool GetDispatchFileDrop();
+		void SetFileDropDispatched(bool value = true);
+		const std::vector<std::string>& GetDroppedFiles() const;
 
-private:
-	// NOTE: Initialization
-	bool InternalCreateWindow();
+		static void LoadComfyWindowIcon();
+		static HICON GetComfyWindowIcon();
 
-	// NOTE: Helpers
-	void InternalSnycMoveWindow();
+	private:
+		// NOTE: Initialization
+		bool InternalCreateWindow();
 
-	// NOTE: Callbacks
-	void InternalMouseMoveCallback(ivec2 position);
-	void InternalMouseScrollCallback(float offset);
-	void InternalWindowMoveCallback(ivec2 position);
-	void InternalWindowResizeCallback(bool minimized, bool maximized, ivec2 size);
-	void InternalWindowDropCallback(size_t count, const char* paths[]);
-	void InternalWindowPaintCallback();
-	void InternalWindowFocusCallback(bool focused);
-	void InternalWindowClosingCallback();
-	void InternalCheckConnectedDevices();
+		// NOTE: Helpers
+		void InternalSnycMoveWindow();
 
-	void InternalPreUpdateTick();
-	void InternalPostUpdateTick();
-	void InternalPreUpdatePollInput();
+		// NOTE: Callbacks
+		void InternalMouseMoveCallback(ivec2 position);
+		void InternalMouseScrollCallback(float offset);
+		void InternalWindowMoveCallback(ivec2 position);
+		void InternalWindowResizeCallback(bool minimized, bool maximized, ivec2 size);
+		void InternalWindowDropCallback(size_t count, const char* paths[]);
+		void InternalWindowPaintCallback();
+		void InternalWindowFocusCallback(bool focused);
+		void InternalWindowClosingCallback();
+		void InternalCheckConnectedDevices();
 
-	void InternalDisposeWindow();
+		void InternalPreUpdateTick();
+		void InternalPostUpdateTick();
+		void InternalPreUpdatePollInput();
 
-private:
-	LRESULT InternalProcessWindowMessage(const UINT message, const WPARAM wParam, const LPARAM lParam);
+		void InternalDisposeWindow();
 
-private:
-	// NOTE: Window management
-	HWND windowHandle = nullptr;
-	bool isRunning = false;
-	bool isFullscreen = false;
-	bool isMaximized = false;
+	private:
+		LRESULT InternalProcessWindowMessage(const UINT message, const WPARAM wParam, const LPARAM lParam);
 
-	ivec2 windowPosition = StartupWindowPosition;
-	ivec2 windowSize = StartupWindowSize;
-	
-	ivec4 windowRestoreRegion = { StartupWindowPosition, StartupWindowSize };
+	private:
+		// NOTE: Window management
+		HWND windowHandle = nullptr;
+		bool isRunning = false;
+		bool isFullscreen = false;
+		bool isMaximized = false;
 
-	bool defaultPositionWindow = false;
-	bool defaultResizeWindow = false;
+		ivec2 windowPosition = StartupWindowPosition;
+		ivec2 windowSize = StartupWindowSize;
 
-	ivec2 preFullScreenWindowPosition = StartupWindowPosition;
-	ivec2 preFullScreenWindowSize = StartupWindowSize;
-	const bool mainLoopLowPowerSleep = false;
+		ivec4 windowRestoreRegion = { StartupWindowPosition, StartupWindowSize };
 
-	bool windowFocused = true, lastWindowFocused = false;
-	bool focusLostThisFrame = false, focusGainedThisFrame = false;
+		bool defaultPositionWindow = false;
+		bool defaultResizeWindow = false;
 
-	// NOTE: Callbacks
-	std::optional<std::function<bool(HWND, UINT, WPARAM, LPARAM)>> windowProcCallback = {};
-	std::optional<std::function<void(ivec2 size)>> windowResizeCallback = {};
-	std::optional<std::function<void()>> windowClosingCallback = {};
+		ivec2 preFullScreenWindowPosition = StartupWindowPosition;
+		ivec2 preFullScreenWindowSize = StartupWindowSize;
+		const bool mainLoopLowPowerSleep = false;
 
-	// NOTE: Program timing
-	int swapInterval = 1;
-	TimeSpan elapsedTime = 0.0f;
-	TimeSpan currentTime, lastTime;
-	uint64_t elapsedFrames = 0;
+		bool windowFocused = true, lastWindowFocused = false;
+		bool focusLostThisFrame = false, focusGainedThisFrame = false;
 
-	const TimeSpan powerSleepDuration = TimeSpan::FromMilliseconds(10.0);
+		// NOTE: Callbacks
+		std::optional<std::function<bool(HWND, UINT, WPARAM, LPARAM)>> windowProcCallback = {};
+		std::optional<std::function<void(ivec2 size)>> windowResizeCallback = {};
+		std::optional<std::function<void()>> windowClosingCallback = {};
 
-	// NOTE: File drop dispatching
-	std::vector<std::string> droppedFiles;
+		// NOTE: Program timing
+		int swapInterval = 1;
+		TimeSpan elapsedTime = 0.0f;
+		TimeSpan currentTime, lastTime;
+		uint64_t elapsedFrames = 0;
 
-	bool filesDroppedThisFrame = false, filesDropped = false;
-	bool filesLastDropped = false, fileDropDispatched = false;
+		const TimeSpan powerSleepDuration = TimeSpan::FromMilliseconds(10.0);
 
-	// NOTE: Input management
-	ivec2 mousePosition = ivec2(0, 0), lastMousePosition = ivec2(0, 0);
-	ivec2 mouseDelta = ivec2(0, 0);
+		// NOTE: File drop dispatching
+		std::vector<std::string> droppedFiles;
 
-	float mouseWheel = 0.0f, lastMouseWheel = 0.0f;
-	bool mouseScrolledUp = false, mouseScrolledDown = false;
+		bool filesDroppedThisFrame = false, filesDropped = false;
+		bool filesLastDropped = false, fileDropDispatched = false;
 
-private:
-	static LRESULT ProcessWindowMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
-};
+		// NOTE: Input management
+		ivec2 mousePosition = ivec2(0, 0), lastMousePosition = ivec2(0, 0);
+		ivec2 mouseDelta = ivec2(0, 0);
+
+		float mouseWheel = 0.0f, lastMouseWheel = 0.0f;
+		bool mouseScrolledUp = false, mouseScrolledDown = false;
+
+	private:
+		static LRESULT ProcessWindowMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
+	};
+}

@@ -2,7 +2,7 @@
 #include "Camera.h"
 #undef GLM_FORCE_SWIZZLE
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	namespace
 	{

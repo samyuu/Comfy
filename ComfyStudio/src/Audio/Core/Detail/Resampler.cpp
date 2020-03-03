@@ -1,6 +1,6 @@
 #include "Resampler.h"
 
-namespace Audio
+namespace Comfy::Audio
 {
 
 }

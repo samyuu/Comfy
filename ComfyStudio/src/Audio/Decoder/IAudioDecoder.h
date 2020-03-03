@@ -1,7 +1,7 @@
 #pragma once
 #include "CoreTypes.h"
 
-namespace Audio
+namespace Comfy::Audio
 {
 	enum class AudioDecoderResult
 	{

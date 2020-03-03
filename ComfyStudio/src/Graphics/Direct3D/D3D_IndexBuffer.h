@@ -1,9 +1,9 @@
 #pragma once
 #include "Direct3D.h"
 #include "GraphicsInterfaces.h"
-#include "Graphics/GraphicsTypes.h"
+#include "Graphics/GraphicTypes.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	class D3D_IndexBuffer : IGraphicsResource
 	{

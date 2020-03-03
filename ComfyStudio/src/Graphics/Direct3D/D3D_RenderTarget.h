@@ -4,7 +4,7 @@
 #include "D3D_Texture.h"
 #include "D3D_DepthBuffer.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	// NOTE: Since the render target is stretched to the correct asspect ratio in the end it could easily be scaled down to improve performance
 	constexpr ivec2 RenderTargetDefaultSize = D3D_Texture2D::MinSize;

@@ -2,7 +2,7 @@
 #include "Graphics/TxpSet.h"
 #include "Graphics/Auth3D/Light/LightDataIbl.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	namespace
 	{

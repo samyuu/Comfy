@@ -9,7 +9,7 @@
 
 #include "FileHelperInternal.h"
 
-namespace FileSystem
+namespace Comfy::FileSystem
 {
 	namespace
 	{

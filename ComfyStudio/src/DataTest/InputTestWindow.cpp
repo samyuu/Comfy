@@ -2,7 +2,7 @@
 #include "Core/Application.h"
 #include "Input/Keyboard.h"
 
-namespace DataTest
+namespace Comfy::DataTest
 {
 	InputTestWindow::InputTestWindow(Application* parent) : BaseWindow(parent)
 	{

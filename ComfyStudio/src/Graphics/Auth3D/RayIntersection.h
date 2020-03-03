@@ -6,7 +6,7 @@
 
 #include <glm/gtx/intersect.hpp>
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	inline bool Intersects(const vec3& viewPoint, const vec3& ray, const vec3* trianglePoints, float& outIntersectionDistance)
 	{

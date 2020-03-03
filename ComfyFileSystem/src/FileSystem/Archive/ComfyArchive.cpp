@@ -2,7 +2,7 @@
 #include "FileSystem/Stream/FileStream.h"
 #include "Misc/StringHelper.h"
 
-namespace FileSystem
+namespace Comfy::FileSystem
 {
 	ComfyArchive::ComfyArchive()
 	{

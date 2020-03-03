@@ -2,7 +2,7 @@
 #include "Core/TimeSpan.h"
 #include "ImGui/Gui.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	namespace
 	{

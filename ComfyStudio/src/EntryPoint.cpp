@@ -27,12 +27,12 @@ int main(int argc, const char* argv[])
 
 #endif /* USE_WIN_MAIN */
 
-	System::CommandLineResult commandLineResult = System::CommandLine::Parse(argc, argv);
+	const auto commandLineResult = Comfy::System::CommandLine::Parse(argc, argv);
 
-	if (commandLineResult == System::CommandLineResult::Exit)
+	if (commandLineResult == Comfy::System::CommandLineResult::Exit)
 		return EXIT_SUCCESS;
 
-	Application application;
+	Comfy::Application application;
 	application.Run();
 
 	return EXIT_SUCCESS;

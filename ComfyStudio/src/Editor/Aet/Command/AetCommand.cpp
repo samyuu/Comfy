@@ -1,5 +1,5 @@
 #include "AetCommand.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 }

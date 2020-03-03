@@ -1,9 +1,9 @@
 #pragma once
 #include "Types.h"
 #include "TxpSet.h"
-#include "Graphics/GraphicsTypes.h"
+#include "Graphics/GraphicTypes.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	struct Spr
 	{

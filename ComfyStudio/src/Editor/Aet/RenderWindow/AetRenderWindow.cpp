@@ -11,7 +11,7 @@
 #include "Input/KeyCode.h"
 #include "Core/TimeSpan.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	using namespace Graphics;
 

@@ -3,7 +3,7 @@
 #include "Input/KeyCode.h"
 #include <algorithm>
 
-namespace Editor
+namespace Comfy::Editor
 {
 	void CameraController2D::Update(Graphics::OrthographicCamera& camera, vec2 relativeMouse)
 	{

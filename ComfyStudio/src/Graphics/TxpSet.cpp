@@ -5,9 +5,9 @@
 #include "FileSystem/BinaryReader.h"
 #include "FileSystem/FileReader.h"
 
-using namespace FileSystem;
+using namespace Comfy::FileSystem;
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	const std::vector<MipMap>& Txp::GetMipMaps(uint32_t arrayIndex) const
 	{

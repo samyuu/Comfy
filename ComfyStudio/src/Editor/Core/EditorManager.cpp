@@ -5,22 +5,22 @@
 #include "Editor/PV/SceneEditor.h"
 #include "Misc/StringHelper.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
-	std::array<ImU32, EditorColor_Count> EditorColors;
+	std::array<uint32_t, EditorColor_Count> EditorColors;
 
 	vec4 GetColorVec4(EditorColor color)
 	{
 		return ImColor(GetColor(color)).Value;
 	}
 
-	ImU32 GetColor(EditorColor color)
+	uint32_t GetColor(EditorColor color)
 	{
 		assert(color >= 0 && color < EditorColor_Count);
 		return EditorColors[color];
 	}
 
-	ImU32 GetColor(EditorColor color, float alpha)
+	uint32_t GetColor(EditorColor color, float alpha)
 	{
 		ImVec4 colorVector = Gui::ColorConvertU32ToFloat4(GetColor(color));
 		colorVector.w *= alpha;
@@ -28,7 +28,7 @@ namespace Editor
 		return Gui::ColorConvertFloat4ToU32(colorVector);
 	}
 
-	void SetColor(EditorColor color, ImU32 value)
+	void SetColor(EditorColor color, uint32_t value)
 	{
 		EditorColors[color] = value;
 	}

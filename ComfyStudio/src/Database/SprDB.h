@@ -1,7 +1,7 @@
 #pragma once
 #include "Database.h"
 
-namespace Database
+namespace Comfy::Database
 {
 	struct SprEntry : BinaryDatabase::Entry
 	{

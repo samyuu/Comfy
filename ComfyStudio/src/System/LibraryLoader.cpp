@@ -3,7 +3,7 @@
 #include "Core/Logger.h"
 #include "Core/Win32/ComfyWindows.h"
 
-namespace System
+namespace Comfy::System
 {
 	constexpr HMODULE InvalidModuleHandle = NULL;
 

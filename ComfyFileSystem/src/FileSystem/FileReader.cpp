@@ -3,7 +3,7 @@
 #include "FileHelper.h"
 #include <assert.h>
 
-namespace FileSystem
+namespace Comfy::FileSystem
 {
 	void* FileReader::CreateFileHandle(std::string_view filePath, bool read)
 	{

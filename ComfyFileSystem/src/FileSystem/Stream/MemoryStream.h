@@ -2,7 +2,7 @@
 #include "Stream.h"
 #include "CoreTypes.h"
 
-namespace FileSystem
+namespace Comfy::FileSystem
 {
 	class MemoryStream : public StreamBase
 	{

@@ -2,11 +2,11 @@
 #include "TxpExtensions.h"
 #include "ImguiExtensions.h"
 
-using namespace Graphics;
+using namespace Comfy::Graphics;
 
 namespace ImGui
 {
-	void ImageSprTxp(const Graphics::Txp* txp, const ImVec2& size)
+	void ImageSprTxp(const Txp* txp, const ImVec2& size)
 	{
 		D3D_TextureResource* textureResource = txp->D3D_Texture2D.get();
 

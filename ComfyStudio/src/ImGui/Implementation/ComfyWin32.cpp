@@ -737,12 +737,12 @@ namespace ImGui
 		wcex.cbClsExtra = 0;
 		wcex.cbWndExtra = 0;
 		wcex.hInstance = ::GetModuleHandleA(NULL);
-		wcex.hIcon = ApplicationHost::GetComfyWindowIcon();
+		wcex.hIcon = Comfy::ApplicationHost::GetComfyWindowIcon();
 		wcex.hCursor = NULL;
 		wcex.hbrBackground = NULL;
 		wcex.lpszMenuName = NULL;
 		wcex.lpszClassName = ImGuiWindowClassName;
-		wcex.hIconSm = ApplicationHost::GetComfyWindowIcon();
+		wcex.hIconSm = Comfy::ApplicationHost::GetComfyWindowIcon();
 		::RegisterClassExA(&wcex);
 
 		ImGui_ImplWin32_UpdateMonitors();

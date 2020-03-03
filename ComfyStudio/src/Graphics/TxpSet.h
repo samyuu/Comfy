@@ -3,10 +3,10 @@
 #include "CoreTypes.h"
 #include "Core/IDTypes.h"
 #include "FileSystem/FileInterface.h"
-#include "Graphics/GraphicsTypes.h"
+#include "Graphics/GraphicTypes.h"
 #include "Graphics/Direct3D/D3D_Texture.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	struct TxpSig
 	{

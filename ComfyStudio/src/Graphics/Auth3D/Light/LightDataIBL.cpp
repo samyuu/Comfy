@@ -2,7 +2,7 @@
 #include "Graphics/GraphicTypesNames.h"
 #include "Misc/StringParseHelper.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	using namespace Utilities;
 

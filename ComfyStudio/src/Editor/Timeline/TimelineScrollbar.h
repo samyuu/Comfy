@@ -1,7 +1,7 @@
 #pragma once
 #include "ImGui/Gui.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	class TimelineScrollbar
 	{

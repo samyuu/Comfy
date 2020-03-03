@@ -4,125 +4,128 @@
 #include "Misc/StringParseHelper.h"
 #include "Core/ComfyData.h"
 
-bool LicenseWindow::DrawGui()
+namespace Comfy
 {
-	if (!dataLoaded)
+	bool LicenseWindow::DrawGui()
 	{
-		LoadLicenseData();
-		dataLoaded = true;
-	}
-
-	constexpr ImGuiWindowFlags scrollBarWindowFlags = ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar;
-
-	Gui::BulletText("License:");
-	Gui::Separator();
-
-	Gui::BeginChild("ListChild##LicenseWindow", vec2(Gui::GetWindowWidth() * listWidth, 0.0f), true, scrollBarWindowFlags);
-	{
-		for (int i = 0; i < licenseData.size(); i++)
+		if (!dataLoaded)
 		{
-			if (Gui::Selectable(licenseData[i].Name.c_str(), i == selectedIndex))
-				selectedIndex = i;
+			LoadLicenseData();
+			dataLoaded = true;
 		}
-	}
-	Gui::EndChild();
-	Gui::SameLine();
-	Gui::BeginChild("InfoChild##LicenseWindow", vec2(0.0f, 0.0f), true);
-	{
-		if (selectedIndex >= 0 && selectedIndex < licenseData.size())
+
+		constexpr ImGuiWindowFlags scrollBarWindowFlags = ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar;
+
+		Gui::BulletText("License:");
+		Gui::Separator();
+
+		Gui::BeginChild("ListChild##LicenseWindow", vec2(Gui::GetWindowWidth() * listWidth, 0.0f), true, scrollBarWindowFlags);
 		{
-			auto data = &licenseData[selectedIndex];
-
-			Gui::BulletText("%s / %s:", data->Name.c_str(), data->LicenseName.c_str());
-			Gui::Separator();
-
-			Gui::BeginChild("InfoChildInner##LicenseWindow", vec2(0.0f, 0.0f), true);
+			for (int i = 0; i < licenseData.size(); i++)
 			{
-				Gui::TextUnformatted(data->Description.c_str());
+				if (Gui::Selectable(licenseData[i].Name.c_str(), i == selectedIndex))
+					selectedIndex = i;
+			}
+		}
+		Gui::EndChild();
+		Gui::SameLine();
+		Gui::BeginChild("InfoChild##LicenseWindow", vec2(0.0f, 0.0f), true);
+		{
+			if (selectedIndex >= 0 && selectedIndex < licenseData.size())
+			{
+				auto data = &licenseData[selectedIndex];
 
-				Gui::BeginChild("InfoChildLicense##LicenseWindow", vec2(0.0f, 0.0f), true, scrollBarWindowFlags);
+				Gui::BulletText("%s / %s:", data->Name.c_str(), data->LicenseName.c_str());
+				Gui::Separator();
+
+				Gui::BeginChild("InfoChildInner##LicenseWindow", vec2(0.0f, 0.0f), true);
 				{
-					Gui::TextUnformatted(data->License.c_str());
+					Gui::TextUnformatted(data->Description.c_str());
 
-					if (!data->Remark.empty())
+					Gui::BeginChild("InfoChildLicense##LicenseWindow", vec2(0.0f, 0.0f), true, scrollBarWindowFlags);
 					{
-						Gui::TextUnformatted("\n");
-						Gui::Separator();
-						Gui::PushStyleColor(ImGuiCol_Text, remarkTextColor);
-						Gui::TextUnformatted(data->Remark.c_str());
-						Gui::PopStyleColor();
+						Gui::TextUnformatted(data->License.c_str());
+
+						if (!data->Remark.empty())
+						{
+							Gui::TextUnformatted("\n");
+							Gui::Separator();
+							Gui::PushStyleColor(ImGuiCol_Text, remarkTextColor);
+							Gui::TextUnformatted(data->Remark.c_str());
+							Gui::PopStyleColor();
+						}
 					}
+					Gui::EndChild();
 				}
 				Gui::EndChild();
 			}
-			Gui::EndChild();
 		}
+		Gui::EndChild();
+		return true;
 	}
-	Gui::EndChild();
-	return true;
-}
 
-bool* LicenseWindow::GetIsWindowOpen()
-{
-	return &isWindowOpen;
-}
-
-const char* LicenseWindow::GetWindowName() const
-{
-	return "License Window";
-}
-
-void LicenseWindow::LoadLicenseData()
-{
-	const auto licenseDirectoryEntry = ComfyData->FindDirectory(licenseDirectory);
-	assert(licenseDirectoryEntry != nullptr);
-
-	licenseData.reserve(licenseDirectoryEntry->EntryCount);
-
-	for (size_t i = 0; i < licenseDirectoryEntry->EntryCount; i++)
+	bool* LicenseWindow::GetIsWindowOpen()
 	{
-		const auto licenseFileEntry = licenseDirectoryEntry->Entries[i];
-
-		UniquePtr<char[]> fileContent = MakeUnique<char[]>(licenseFileEntry.Size + 1);
-		ComfyData->ReadEntryIntoBuffer(&licenseFileEntry, fileContent.get());
-		
-		const char* textBuffer = fileContent.get();
-		const char* textBufferEnd = textBuffer + licenseFileEntry.Size;
-
-		licenseData.emplace_back();
-		auto info = &licenseData.back();
-
-		enum { name, description, license_name, license, remark } type = {};
-		
-		while (true)
-		{
-			if (textBuffer >= textBufferEnd || textBuffer[0] == '\0')
-				break;
-
-			auto line = StringParsing::GetLineAdvanceToNextLine(textBuffer);
-
-			if (StartsWith(line, '#'))
-			{
-				if (line == "#name")
-					type = name;
-				else if (line == "#description")
-					type = description;
-				else if (line == "#license_name")
-					type = license_name;
-				else if (line == "#license")
-					type = license;
-				else if (line == "#remark")
-					type = remark;
-				continue;
-			}
-
-			std::string& stringToAppend = info->Strings[type];
-			stringToAppend.reserve(stringToAppend.size() + line.size() + 1);
-			stringToAppend.append(line);
-			stringToAppend.append("\n");
-		}
+		return &isWindowOpen;
 	}
 
-	for (auto& info : licenseData)
-		info.TrimAllEnds();
+	const char* LicenseWindow::GetWindowName() const
+	{
+		return "License Window";
+	}
+
+	void LicenseWindow::LoadLicenseData()
+	{
+		const auto licenseDirectoryEntry = ComfyData->FindDirectory(licenseDirectory);
+		assert(licenseDirectoryEntry != nullptr);
+
+		licenseData.reserve(licenseDirectoryEntry->EntryCount);
+
+		for (size_t i = 0; i < licenseDirectoryEntry->EntryCount; i++)
+		{
+			const auto licenseFileEntry = licenseDirectoryEntry->Entries[i];
+
+			UniquePtr<char[]> fileContent = MakeUnique<char[]>(licenseFileEntry.Size + 1);
+			ComfyData->ReadEntryIntoBuffer(&licenseFileEntry, fileContent.get());
+
+			const char* textBuffer = fileContent.get();
+			const char* textBufferEnd = textBuffer + licenseFileEntry.Size;
+
+			licenseData.emplace_back();
+			auto info = &licenseData.back();
+
+			enum { name, description, license_name, license, remark } type = {};
+
+			while (true)
+			{
+				if (textBuffer >= textBufferEnd || textBuffer[0] == '\0')
+					break;
+
+				auto line = StringParsing::GetLineAdvanceToNextLine(textBuffer);
+
+				if (StartsWith(line, '#'))
+				{
+					if (line == "#name")
+						type = name;
+					else if (line == "#description")
+						type = description;
+					else if (line == "#license_name")
+						type = license_name;
+					else if (line == "#license")
+						type = license;
+					else if (line == "#remark")
+						type = remark;
+					continue;
+				}
+
+				std::string& stringToAppend = info->Strings[type];
+				stringToAppend.reserve(stringToAppend.size() + line.size() + 1);
+				stringToAppend.append(line);
+				stringToAppend.append("\n");
+			}
+		}
+
+		for (auto& info : licenseData)
+			info.TrimAllEnds();
+	}
 }

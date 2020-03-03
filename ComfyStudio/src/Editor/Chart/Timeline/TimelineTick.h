@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	// NOTE: Bar-Beat based BPM depended timeline unit
 	struct TimelineTick

@@ -2,9 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 
-typedef unsigned int ImU32;
-
-namespace Editor
+namespace Comfy::Editor
 {
 	enum EditorColor
 	{
@@ -34,12 +32,12 @@ namespace Editor
 		EditorColor_Count,
 	};
 
-	extern std::array<ImU32, EditorColor_Count> EditorColors;
+	extern std::array<uint32_t, EditorColor_Count> EditorColors;
 
 	vec4 GetColorVec4(EditorColor color);
-	ImU32 GetColor(EditorColor color);
-	ImU32 GetColor(EditorColor color, float alpha);
-	void SetColor(EditorColor color, ImU32 value);
+	uint32_t GetColor(EditorColor color);
+	uint32_t GetColor(EditorColor color, float alpha);
+	void SetColor(EditorColor color, uint32_t value);
 
 	void UpdateEditorColors();
 }

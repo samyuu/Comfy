@@ -2,7 +2,7 @@
 #include "Direct3D.h"
 #include "GraphicsInterfaces.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	class D3D_VertexBuffer : IGraphicsResource
 	{

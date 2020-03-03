@@ -2,7 +2,7 @@
 #include "SampleMixer.h"
 #include <assert.h>
 
-namespace Audio
+namespace Comfy::Audio
 {
 	int64_t ChannelMixer::MixChannels(ISampleProvider* sampleProvider, int16_t bufferToFill[], int64_t frameOffset, int64_t framesToRead)
 	{

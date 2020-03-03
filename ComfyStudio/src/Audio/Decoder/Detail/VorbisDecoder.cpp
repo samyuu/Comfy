@@ -1,6 +1,6 @@
 #include "Decoders.h"
 
-namespace Audio
+namespace Comfy::Audio
 {
 	const char* VorbisDecoder::GetFileExtensions() const
 	{

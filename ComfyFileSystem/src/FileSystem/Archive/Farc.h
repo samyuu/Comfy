@@ -3,7 +3,7 @@
 #include "FileSystem/Stream/FileStream.h"
 #include "FileSystem/BinaryReader.h"
 
-namespace FileSystem
+namespace Comfy::FileSystem
 {
 	enum FarcSignature : uint32_t
 	{

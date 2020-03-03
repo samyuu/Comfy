@@ -1,7 +1,7 @@
 #include "CommandLine.h"
 #include "Core/Logger.h"
 
-namespace System
+namespace Comfy::System
 {
 	CommandLineResult CommandLine::Parse(int count, const char* arguments[])
 	{

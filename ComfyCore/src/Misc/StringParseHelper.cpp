@@ -1,7 +1,7 @@
 #include "StringParseHelper.h"
 #include "StringHelper.h"
 
-namespace Utilities::StringParsing
+namespace Comfy::Utilities::StringParsing
 {
 	std::string_view GetLine(const char* textBuffer)
 	{

@@ -1,7 +1,7 @@
 #include "SilenceSampleProvider.h"
 #include "Audio/Core/AudioEngine.h"
 
-namespace Audio
+namespace Comfy::Audio
 {
 	int64_t SilenceSampleProvider::ReadSamples(int16_t bufferToFill[], int64_t frameOffset, int64_t framesToRead, uint32_t channelsToFill)
 	{

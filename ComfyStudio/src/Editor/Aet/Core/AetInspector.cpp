@@ -5,7 +5,7 @@
 #include "Graphics/GraphicTypesNames.h"
 #include "ImGui/Gui.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	using namespace Graphics;
 

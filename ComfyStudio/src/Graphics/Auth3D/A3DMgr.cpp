@@ -1,6 +1,6 @@
 #include "A3DMgr.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	float A3DMgr::Interpolate(A3DInterpolationType type, const A3DKeyFrame* start, const A3DKeyFrame* end, frame_t frame)
 	{

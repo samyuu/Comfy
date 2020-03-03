@@ -1,7 +1,7 @@
 #include "AetRenderer.h"
 #include "Misc/StringHelper.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	AetRenderer::AetRenderer(D3D_Renderer2D* renderer) : renderer2D(renderer)
 	{

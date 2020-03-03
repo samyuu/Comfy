@@ -4,22 +4,25 @@
 #include "Core/IDTypes.h"
 #include "Transform2D.h"
 #include "FileSystem/FileInterface.h"
-#include "Graphics/GraphicsTypes.h"
+#include "Graphics/GraphicTypes.h"
 
-// NOTE: Extra data used by Editor Components to avoid additional allocations and reduce complexity
-struct GuiExtraData
+namespace Comfy
 {
-	// NOTE: For scroll jumping to a destination
-	float TreeViewScrollY;
-	// NOTE: Stored separately so we can expand nodes when jumping to a composition reference for example
-	bool TreeViewNodeOpen;
-	// NOTE: Stored to be used by the timeline
-	bool TimelineNodeOpen;
-	// NOTE: To try and prevent composition name ambiguity
-	int ThisIndex;
-};
+	// NOTE: Extra data used by Editor Components to avoid additional allocations and reduce complexity
+	struct GuiExtraData
+	{
+		// NOTE: For scroll jumping to a destination
+		float TreeViewScrollY;
+		// NOTE: Stored separately so we can expand nodes when jumping to a composition reference for example
+		bool TreeViewNodeOpen;
+		// NOTE: Stored to be used by the timeline
+		bool TimelineNodeOpen;
+		// NOTE: To try and prevent composition name ambiguity
+		int ThisIndex;
+	};
+}
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	// NOTE: Aet related types are prefixed with "Aet" but object instances of them should never use these prefixes as they are redundant.
 	//		 "Composition" should be abbreviated to "Comp" in parameters, locals temporaries but not in function names or important member fields

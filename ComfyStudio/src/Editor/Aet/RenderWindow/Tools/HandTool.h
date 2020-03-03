@@ -2,7 +2,7 @@
 #include "AetTool.h"
 #include "Editor/Common/CameraController2D.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	class HandTool : public AetTool
 	{

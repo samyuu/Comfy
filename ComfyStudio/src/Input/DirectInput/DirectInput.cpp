@@ -1,28 +1,31 @@
 #include "DirectInput.h"
 #include "Core/Logger.h"
 
-IDirectInput8A* IDirectInputInstance = nullptr;
-
-HRESULT InitializeDirectInput(const HMODULE module)
+namespace Comfy
 {
-	const auto result = DirectInput8Create(module, DIRECTINPUT_VERSION, IID_IDirectInput8A, reinterpret_cast<VOID**>(&IDirectInputInstance), nullptr);
-	
-	if (FAILED(result))
-		Logger::LogErrorLine(__FUNCTION__"(): Failed to initialize DirectInput. Error: %d", result);
+	IDirectInput8A* IDirectInputInstance = nullptr;
 
-	return result;
-}
+	HRESULT InitializeDirectInput(const HMODULE module)
+	{
+		const auto result = DirectInput8Create(module, DIRECTINPUT_VERSION, IID_IDirectInput8A, reinterpret_cast<VOID**>(&IDirectInputInstance), nullptr);
 
-bool DirectInputInitialized()
-{
-	return IDirectInputInstance != nullptr;
-}
+		if (FAILED(result))
+			Logger::LogErrorLine(__FUNCTION__"(): Failed to initialize DirectInput. Error: %d", result);
 
-void DisposeDirectInput()
-{
-	if (IDirectInputInstance == nullptr)
-		return;
+		return result;
+	}
 
-	IDirectInputInstance->Release();
-	IDirectInputInstance = nullptr;
+	bool DirectInputInitialized()
+	{
+		return IDirectInputInstance != nullptr;
+	}
+
+	void DisposeDirectInput()
+	{
+		if (IDirectInputInstance == nullptr)
+			return;
+
+		IDirectInputInstance->Release();
+		IDirectInputInstance = nullptr;
+	}
 }

@@ -1,7 +1,7 @@
 #include "D3D_Renderer2D.h"
 #include "ShaderBytecode/ShaderBytecode.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	namespace
 	{

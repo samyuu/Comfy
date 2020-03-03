@@ -11,7 +11,7 @@
 #include "Graphics/Camera.h"
 #include "Graphics/Auth2D/AetRenderer.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	class AetRenderWindow : public RenderWindowBase, IMutatingEditorComponent
 	{

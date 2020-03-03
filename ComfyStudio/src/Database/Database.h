@@ -3,7 +3,7 @@
 #include "Core/IDTypes.h"
 #include "FileSystem/FileInterface.h"
 
-namespace Database
+namespace Comfy::Database
 {
 	class BinaryDatabase : public FileSystem::IBinaryReadable, public FileSystem::IBinaryWritable
 	{

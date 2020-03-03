@@ -5,7 +5,7 @@
 #include <atomic>
 #include <thread>
 
-namespace FileSystem
+namespace Comfy::FileSystem
 {
 	class ISynchronousFileLoader
 	{
@@ -55,7 +55,7 @@ namespace FileSystem
 		bool GetIsLoaded() const override;
 		bool GetFileFound() const override;
 		bool GetIsLoading() const override;
-		
+
 		const std::vector<uint8_t>& GetFileContent() const override;
 		void Read(IBinaryReadable* readable) const override;
 		void Parse(IBufferParsable* parsable) const override;
@@ -68,7 +68,7 @@ namespace FileSystem
 		bool isLoaded = false;
 		bool fileFound = false;
 		std::vector<uint8_t> fileContent;
-	
+
 		std::atomic_bool threadRunning = false;
 		UniquePtr<std::thread> loaderThread = nullptr;
 
@@ -77,5 +77,4 @@ namespace FileSystem
 		void SetIsLoaded(bool value) override;
 		void SetFileFound(bool value) override;
 	};
-
 }

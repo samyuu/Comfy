@@ -3,7 +3,7 @@
 #include "CoreTypes.h"
 #include "FileSystem/Stream/Stream.h"
 
-namespace FileSystem
+namespace Comfy::FileSystem
 {
 	enum class EntryType : uint32_t
 	{

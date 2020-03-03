@@ -2,7 +2,7 @@
 #include "Input/Keyboard.h"
 #include <assert.h>
 
-namespace Editor
+namespace Comfy::Editor
 {
 	TimelineMap::TimelineMap()
 	{

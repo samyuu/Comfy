@@ -5,7 +5,7 @@
 #include <zlib.h>
 #include <assert.h>
 
-namespace FileSystem
+namespace Comfy::FileSystem
 {
 	namespace
 	{

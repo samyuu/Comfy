@@ -1,7 +1,7 @@
 #include "Decoders.h"
 #include "Misc/EndianHelper.h"
 
-namespace Audio
+namespace Comfy::Audio
 {
 	const char* HevagDecoder::GetFileExtensions() const
 	{

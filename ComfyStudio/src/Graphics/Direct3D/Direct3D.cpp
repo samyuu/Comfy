@@ -2,7 +2,7 @@
 #include "D3D_RenderTarget.h"
 #include "Core/Logger.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	namespace
 	{

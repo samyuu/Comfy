@@ -5,7 +5,7 @@
 #include "Misc/StringHelper.h"
 #include "Core/Logger.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	using namespace Graphics;
 

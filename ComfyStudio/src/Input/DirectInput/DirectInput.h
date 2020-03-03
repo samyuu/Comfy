@@ -3,9 +3,12 @@
 #include "Core/Win32/ComfyWindows.h"
 #include <dinput.h>
 
-extern IDirectInput8A* IDirectInputInstance;
+namespace Comfy
+{
+	extern IDirectInput8A* IDirectInputInstance;
 
-HRESULT InitializeDirectInput(const HMODULE module);
+	HRESULT InitializeDirectInput(const HMODULE module);
 
-bool DirectInputInitialized();
-void DisposeDirectInput();
+	bool DirectInputInitialized();
+	void DisposeDirectInput();
+}

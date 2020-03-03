@@ -1,7 +1,7 @@
 #pragma once
 #include "Misc/StringParseHelper.h"
 
-namespace Utilities::StringParsing
+namespace Comfy::Utilities::StringParsing
 {
 	constexpr size_t MaximumNestedProperties = 16;
 

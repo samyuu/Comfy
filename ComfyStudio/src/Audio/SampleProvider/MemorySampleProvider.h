@@ -2,7 +2,7 @@
 #include "CoreTypes.h"
 #include "ISampleProvider.h"
 
-namespace Audio
+namespace Comfy::Audio
 {
 	class MemorySampleProvider : public ISampleProvider, NonCopyable
 	{

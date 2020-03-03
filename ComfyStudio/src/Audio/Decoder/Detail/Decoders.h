@@ -1,7 +1,7 @@
 #pragma once
 #include "Audio/Decoder/IAudioDecoder.h"
 
-namespace Audio
+namespace Comfy::Audio
 {
 	class FlacDecoder : public IAudioDecoder
 	{

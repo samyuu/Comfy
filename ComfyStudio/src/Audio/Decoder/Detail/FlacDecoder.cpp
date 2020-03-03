@@ -1,7 +1,7 @@
 #include "Decoders.h"
 #include <dr_flac.h>
 
-namespace Audio
+namespace Comfy::Audio
 {
 	const char* FlacDecoder::GetFileExtensions() const
 	{

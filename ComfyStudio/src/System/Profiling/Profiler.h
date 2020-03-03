@@ -6,12 +6,12 @@
 #define COMFY_PROFILER_ENABLED 0
 
 #if COMFY_PROFILER_ENABLED
-#define ProfileFunction() System::ProfilerRAII uniquename(__PROFILER_ENTRY) (__FUNCTION__)
+#define ProfileFunction() Comfy::System::ProfilerRAII uniquename(__PROFILER_ENTRY) (__FUNCTION__)
 #else
 #define ProfileFunction() do { } while(false)
 #endif
 
-namespace System
+namespace Comfy::System
 {
 	class Profiler
 	{

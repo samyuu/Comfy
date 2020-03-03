@@ -1,7 +1,7 @@
 #include "AudioInstance.h"
 #include <assert.h>
 
-namespace Audio
+namespace Comfy::Audio
 {
 	AudioInstance::AudioInstance(RefPtr<ISampleProvider> sampleProvider, bool playing, const char* name) 
 		: AudioInstance(sampleProvider, playing, AudioFinishedAction::None, AudioEngine::MaxVolume, name)

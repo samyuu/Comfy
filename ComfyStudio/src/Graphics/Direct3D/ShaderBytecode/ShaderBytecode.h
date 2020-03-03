@@ -5,7 +5,7 @@
 #define DEFINE_BYTECODE_GETTER(shader)	BytecodeBlob shader() { return { ::shader##_Bytecode, sizeof(::shader##_Bytecode) }; }
 
 // NOTE: Public interface
-namespace Graphics
+namespace Comfy::Graphics
 {
 	DECLARE_BYTECODE_GETTER(ImGuiDefault_VS);
 	DECLARE_BYTECODE_GETTER(ImGuiDefault_PS);
@@ -145,7 +145,7 @@ namespace Graphics
 #include SHADER_BYTECODE_FILE(Water_VS.h)
 #include SHADER_BYTECODE_FILE(Water_PS.h)
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	DEFINE_BYTECODE_GETTER(ImGuiDefault_VS);
 	DEFINE_BYTECODE_GETTER(ImGuiDefault_PS);

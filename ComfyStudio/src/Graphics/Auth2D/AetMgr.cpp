@@ -1,6 +1,6 @@
 #include "AetMgr.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	namespace
 	{

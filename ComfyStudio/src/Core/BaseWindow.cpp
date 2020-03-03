@@ -1,14 +1,17 @@
 #include "BaseWindow.h"
 
-BaseWindow::BaseWindow(Application* parent) : parentApplication(parent)
+namespace Comfy
 {
-}
+	BaseWindow::BaseWindow(Application* parent) : parentApplication(parent)
+	{
+	}
 
-BaseWindow::~BaseWindow()
-{
-}
+	BaseWindow::~BaseWindow()
+	{
+	}
 
-ImGuiWindowFlags BaseWindow::GetWindowFlags() const
-{
-	return ImGuiWindowFlags_None;
+	ImGuiWindowFlags BaseWindow::GetWindowFlags() const
+	{
+		return ImGuiWindowFlags_None;
+	}
 }

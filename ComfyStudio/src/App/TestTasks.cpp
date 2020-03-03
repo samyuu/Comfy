@@ -4,7 +4,7 @@
 #include "Misc/StringHelper.h"
 #include "Input/KeyCode.h"
 
-namespace App
+namespace Comfy::App
 {
 	static float TimespanToFrame(TimeSpan time, float frameRate = 60.0f)
 	{

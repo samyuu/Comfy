@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "Graphics/Direct3D/D3D_Texture.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	struct SpriteIndices
 	{

@@ -6,13 +6,12 @@
 #include "ImGui/Implementation/ComfyD3D11.h"
 #include "FontIcons.h"
 
-namespace ImGui
-{
-	LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-}
+using namespace Comfy;
 
 namespace ImGui
 {
+	LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 	GuiRenderer::GuiRenderer(ApplicationHost& host)
 		: host(host), iconFontGlyphRange { ICON_MIN_FA, ICON_MAX_FA, 0 }
 	{

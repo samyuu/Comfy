@@ -1,7 +1,7 @@
 #pragma once
 #include "AetTool.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	class MoveTool : public AetTool
 	{

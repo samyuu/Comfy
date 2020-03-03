@@ -33,7 +33,7 @@
 			bool CanUpdate(commandName* newCommand) { return true; }										\
 		Define_AetCommandEnd();
 
-namespace Editor::Command
+namespace Comfy::Editor::Command
 {
 	constexpr float FloatInfinity = std::numeric_limits<float>::infinity();
 

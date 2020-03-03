@@ -5,7 +5,7 @@
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
 
-namespace Debug
+namespace Comfy::Debug
 {
 	enum class PathType
 	{

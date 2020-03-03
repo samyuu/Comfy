@@ -1,6 +1,6 @@
 #include "Profiler.h"
 
-namespace System
+namespace Comfy::System
 {
 	Profiler Profiler::instance;
 

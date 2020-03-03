@@ -1,9 +1,9 @@
 #pragma once
 #include "Types.h"
-#include "Graphics/GraphicsTypes.h"
+#include "Graphics/GraphicTypes.h"
 #include "FileSystem/FileInterface.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	struct Fog
 	{

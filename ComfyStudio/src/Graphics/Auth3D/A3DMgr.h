@@ -2,7 +2,7 @@
 #include "A3D.h"
 #include "Transform.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	class A3DMgr
 	{

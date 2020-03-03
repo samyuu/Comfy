@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <assert.h>
 
-namespace Editor
+namespace Comfy::Editor
 {
 	TempoMap::TempoMap()
 	{

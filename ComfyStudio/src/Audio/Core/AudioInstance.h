@@ -3,7 +3,7 @@
 #include "AudioEngine.h"
 #include "Core/TimeSpan.h"
 
-namespace Audio
+namespace Comfy::Audio
 {
 	enum class AudioFinishedAction
 	{

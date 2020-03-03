@@ -2,7 +2,7 @@
 #include "Editor/Aet/AetIcons.h"
 #include "Editor/Aet/Command/Commands.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	using namespace Graphics;
 

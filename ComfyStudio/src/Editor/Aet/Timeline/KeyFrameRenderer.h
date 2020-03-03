@@ -4,7 +4,7 @@
 #include "Graphics/Auth2D/AetSet.h"
 #include "Graphics/Direct3D/D3D_Texture.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	class AetTimeline;
 

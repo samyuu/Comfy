@@ -3,7 +3,7 @@
 #include "GraphicsInterfaces.h"
 #include "D3D_Shader.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	// TODO: Use easier more limited custom format enum instead of the DXGI format type
 	struct InputElement

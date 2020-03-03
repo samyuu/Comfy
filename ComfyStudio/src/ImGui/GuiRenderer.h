@@ -7,7 +7,7 @@ namespace ImGui
 	class GuiRenderer
 	{
 	public:
-		GuiRenderer(ApplicationHost& host);
+		GuiRenderer(Comfy::ApplicationHost& host);
 		~GuiRenderer();
 
 		bool Initialize();
@@ -28,7 +28,7 @@ namespace ImGui
 		ImFontConfig GetIconFontConfig() const;
 
 	private:
-		ApplicationHost& host;
+		Comfy::ApplicationHost& host;
 		const std::array<ImWchar, 3> iconFontGlyphRange;
 		
 	private:

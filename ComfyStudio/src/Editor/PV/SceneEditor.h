@@ -11,7 +11,7 @@
 #include "ExternalProcess.h"
 #include <future>
 
-namespace Editor
+namespace Comfy::Editor
 {
 	class SceneEditor : public IEditorComponent
 	{

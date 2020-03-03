@@ -5,7 +5,7 @@
 #include "Input/Keyboard.h"
 #include <sstream>
 
-namespace DataTest
+namespace Comfy::DataTest
 {
 	AudioTestWindow::AudioTestWindow(Application* parent) : BaseWindow(parent)
 	{

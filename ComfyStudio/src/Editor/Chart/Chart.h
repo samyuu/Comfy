@@ -4,7 +4,7 @@
 #include "Timeline/TimelineMap.h"
 #include "Core/TimeSpan.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	class Chart
 	{

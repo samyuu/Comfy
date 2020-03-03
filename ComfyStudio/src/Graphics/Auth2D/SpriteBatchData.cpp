@@ -1,6 +1,6 @@
 #include "SpriteBatchData.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	namespace
 	{

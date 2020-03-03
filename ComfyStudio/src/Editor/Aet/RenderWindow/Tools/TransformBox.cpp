@@ -1,6 +1,6 @@
 #include "TransformBox.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	BoxNode TransformBox::GetOpositeNode(BoxNode node)
 	{

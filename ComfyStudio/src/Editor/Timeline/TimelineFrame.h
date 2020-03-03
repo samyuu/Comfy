@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Editor
+namespace Comfy::Editor
 {
 	// NOTE: Frame based timeline unit
 	struct TimelineFrame

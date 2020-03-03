@@ -2,7 +2,7 @@
 #include "Graphics/Auth2D/AetMgr.h"
 #include "Editor/Aet/AetSelection.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	class ObjectMousePicker
 	{

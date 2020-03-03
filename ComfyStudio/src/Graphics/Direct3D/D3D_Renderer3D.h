@@ -16,7 +16,7 @@
 #include "Graphics/Auth3D/SceneContext.h"
 #include <unordered_map>
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	enum ShaderFlags : uint32_t
 	{

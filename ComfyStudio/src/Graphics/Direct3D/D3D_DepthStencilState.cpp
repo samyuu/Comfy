@@ -1,6 +1,6 @@
 #include "D3D_DepthStencilState.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	D3D_DepthStencilState::D3D_DepthStencilState(bool depthEnabled, D3D11_DEPTH_WRITE_MASK depthWriteMask)
 	{

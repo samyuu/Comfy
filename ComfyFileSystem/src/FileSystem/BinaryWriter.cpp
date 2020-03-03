@@ -1,7 +1,7 @@
 #include "BinaryWriter.h"
 #include <assert.h>
 
-namespace FileSystem
+namespace Comfy::FileSystem
 {
 	void BinaryWriter::SetPointerMode(PtrMode mode)
 	{

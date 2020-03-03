@@ -6,7 +6,7 @@
 #include "Core/Logger.h"
 #include <assert.h>
 
-namespace FileSystem
+namespace Comfy::FileSystem
 {
 	FileLoader::FileLoader()
 	{

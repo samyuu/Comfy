@@ -2,9 +2,9 @@
 #include "FileSystem/BinaryReader.h"
 #include "FileSystem/BinaryWriter.h"
 
-using namespace FileSystem;
+using namespace Comfy::FileSystem;
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	namespace
 	{

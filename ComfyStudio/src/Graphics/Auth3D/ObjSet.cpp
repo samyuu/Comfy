@@ -1,6 +1,6 @@
 #include "ObjSet.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	namespace
 	{

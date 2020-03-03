@@ -1,6 +1,6 @@
 #include "D3D_Shader.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	D3D_Shader::D3D_Shader(BytecodeBlob bytecodeBlob)
 		: bytecodeBlob(bytecodeBlob)

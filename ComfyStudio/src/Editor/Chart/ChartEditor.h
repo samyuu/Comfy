@@ -7,7 +7,7 @@
 #include "Audio/SampleProvider/SilenceSampleProvider.h"
 #include "ImGui/Widgets/FileViewer.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	class ChartEditor : public IEditorComponent
 	{

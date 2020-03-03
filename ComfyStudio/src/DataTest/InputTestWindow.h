@@ -3,7 +3,7 @@
 #include "Core/BaseWindow.h"
 #include "Input/DirectInput/DualShock4.h"
 
-namespace DataTest
+namespace Comfy::DataTest
 {
 	class InputTestWindow : public BaseWindow
 	{

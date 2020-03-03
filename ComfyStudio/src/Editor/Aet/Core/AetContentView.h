@@ -1,7 +1,7 @@
 #pragma once
 #include "Editor/Aet/IMutatingEditorComponent.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	// TODO: - Set AetItemType::Surface
 	//		 - Should work both horizontally and vertically (?)

@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "FileSystem/FileInterface.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	enum class A3DFormat : uint32_t
 	{

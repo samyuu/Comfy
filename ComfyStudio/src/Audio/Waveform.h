@@ -1,9 +1,8 @@
 #pragma once
 #include "SampleProvider/MemorySampleProvider.h"
+#include "Core/TimeSpan.h"
 
-struct TimeSpan;
-
-namespace Audio
+namespace Comfy::Audio
 {
 	class Waveform
 	{

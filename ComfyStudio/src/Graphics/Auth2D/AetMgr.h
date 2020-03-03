@@ -3,7 +3,7 @@
 #include "Transform2D.h"
 #include "AetSet.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	class AetMgr
 	{

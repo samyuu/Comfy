@@ -1,8 +1,8 @@
 #pragma once
-#include "GraphicsTypes.h"
+#include "GraphicTypes.h"
 #include "CoreTypes.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	constexpr std::array<const char*, static_cast<size_t>(PrimitiveType::Count)> PrimitiveTypeNames =
 	{

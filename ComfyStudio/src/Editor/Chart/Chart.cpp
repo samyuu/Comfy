@@ -1,6 +1,6 @@
 #include "Chart.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	TargetList& Chart::GetTargets()
 	{

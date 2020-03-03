@@ -3,7 +3,7 @@
 #include "FileSystem/FileHelperInternal.h"
 #include <assert.h>
 
-namespace FileSystem
+namespace Comfy::FileSystem
 {
 	namespace
 	{

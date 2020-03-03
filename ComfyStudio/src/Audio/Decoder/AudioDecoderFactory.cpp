@@ -5,7 +5,7 @@
 #include "Misc/StringHelper.h"
 #include "Core/Logger.h"
 
-namespace Audio
+namespace Comfy::Audio
 {
 	UniquePtr<AudioDecoderFactory> AudioDecoderFactory::instance = nullptr;
 

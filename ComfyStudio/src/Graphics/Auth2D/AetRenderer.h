@@ -5,7 +5,7 @@
 #include <functional>
 #include <optional>
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	typedef std::function<bool(const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr)> SpriteGetterFunction;
 

@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	enum class StageType 
 	{ 

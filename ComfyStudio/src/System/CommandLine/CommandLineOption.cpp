@@ -7,7 +7,7 @@
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
 
-namespace System
+namespace Comfy::System
 {
 	static void FarcProcessor(int index, const char* arguments[])
 	{

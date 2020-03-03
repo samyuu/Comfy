@@ -1,7 +1,7 @@
 #pragma once
 #include "CoreTypes.h"
 
-namespace Utilities
+namespace Comfy::Utilities
 {
 	class FileExtensionHelper
 	{

@@ -4,6 +4,8 @@
 #include "Misc/StringHelper.h"
 #include <filesystem>
 
+using namespace Comfy;
+
 namespace ImGui
 {
 	FileViewer::FileViewer(const std::string_view directory)

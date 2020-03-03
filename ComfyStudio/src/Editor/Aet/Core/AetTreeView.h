@@ -6,7 +6,7 @@
 #include "ImGui/Gui.h"
 #include <stack>
 
-namespace Editor
+namespace Comfy::Editor
 {
 	class AetTreeView : public IMutatingEditorComponent
 	{

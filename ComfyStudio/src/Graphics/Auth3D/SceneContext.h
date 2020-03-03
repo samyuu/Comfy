@@ -6,7 +6,7 @@
 #include "Graphics/Camera.h"
 #include "Graphics/Direct3D/D3D_RenderTarget.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	// NOTE: Different user controlable render graphics settings
 	struct RenderParameters

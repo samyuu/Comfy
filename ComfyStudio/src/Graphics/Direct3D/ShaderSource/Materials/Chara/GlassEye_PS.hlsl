@@ -59,7 +59,20 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     DP3(nrm_cornea1.z, model_mtx[2], tmp);
     NRM(eye, a_eye);
     
-    MOV(lc, float4(1, 1, 1, 1));
+#if 0
+    if (FLAGS_SELF_SHADOW)
+    {
+        float4 org_normal = a_normal_diff;
+        PS_SAMPLE_SELF_SHADOW_MAP;
+    }
+    else
+    {
+        MOV(lc, 1);
+    }
+#else
+    MOV(lc, 1);
+#endif
+    
     TEX2D_03(col2, a_tex_color1);
     MUL(col2.xyz, col2.w, 0.9);
     DP2(tmp.w, a_cornea_coord, a_cornea_coord);

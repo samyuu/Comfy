@@ -6,7 +6,7 @@
 #include "Graphics/SprSet.h"
 #include "FileSystem/FileLoader.h"
 
-namespace App
+namespace Comfy::App
 {
 	using namespace Graphics;
 

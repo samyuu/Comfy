@@ -1,7 +1,7 @@
 #pragma once
 #include "FileReader.h"
 
-namespace FileSystem
+namespace Comfy::FileSystem
 {
 	const std::vector<std::string> AllFilesFilter = { "All Files (*.*)", "*.*" };
 

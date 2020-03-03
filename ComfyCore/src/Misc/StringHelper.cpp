@@ -2,7 +2,7 @@
 #include "Core/Win32/ComfyWindows.h"
 #include <algorithm>
 
-namespace Utilities
+namespace Comfy::Utilities
 {
 	namespace
 	{

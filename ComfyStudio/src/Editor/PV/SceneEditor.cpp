@@ -11,7 +11,7 @@
 #include <FontIcons.h>
 #include <time.h>
 
-namespace Editor
+namespace Comfy::Editor
 {
 	using namespace Graphics;
 

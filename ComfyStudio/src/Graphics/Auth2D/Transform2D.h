@@ -1,10 +1,10 @@
 #pragma once
 #include "Types.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
-	typedef int32_t Transform2DField;
-	typedef int32_t Transform2DFieldFlags;
+	using Transform2DField = int32_t;
+	using Transform2DFieldFlags = int32_t;
 
 	enum Transform2DField_Enum : Transform2DField
 	{

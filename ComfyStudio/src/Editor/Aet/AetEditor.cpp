@@ -4,7 +4,7 @@
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	using namespace Graphics;
 

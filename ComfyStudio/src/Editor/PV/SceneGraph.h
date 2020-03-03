@@ -4,9 +4,9 @@
 #include "Graphics/Auth3D/ObjAnimationData.h"
 #include "Database/TxpDB.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
-	typedef int64_t EntityTag;
+	using EntityTag = int64_t;
 
 	struct Entity
 	{

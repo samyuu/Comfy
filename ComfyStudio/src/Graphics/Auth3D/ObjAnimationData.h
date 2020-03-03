@@ -4,7 +4,7 @@
 #include "Core/IDTypes.h"
 #include <optional>
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	struct ObjAnimationData
 	{

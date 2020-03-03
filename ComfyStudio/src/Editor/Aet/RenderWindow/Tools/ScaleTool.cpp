@@ -1,7 +1,7 @@
 #include "ScaleTool.h"
 #include "Editor/Aet/AetIcons.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	namespace
 	{

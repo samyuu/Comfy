@@ -6,7 +6,7 @@
 #include "ImGui/Gui.h"
 #include <functional>
 
-namespace Editor
+namespace Comfy::Editor
 {
 	enum AetToolType
 	{

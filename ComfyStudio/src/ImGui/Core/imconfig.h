@@ -73,7 +73,7 @@
 #include "ImGui/ComfyTextureID.h"
 
 #define IM_CUSTOM_TEXTURE_ID										\
-	using ImTextureID = ComfyTextureID;
+	using ImTextureID = Comfy::ComfyTextureID;
 
 //---- Use 32-bit vertex indices (default is 16-bit) to allow meshes with more than 64K vertices. Render function needs to support it.
 //#define ImDrawIdx unsigned int
@@ -82,6 +82,6 @@
 /*
 namespace ImGui
 {
-    void MyFunction(const char* name, const MyMatrix44& v);
+	void MyFunction(const char* name, const MyMatrix44& v);
 }
 */

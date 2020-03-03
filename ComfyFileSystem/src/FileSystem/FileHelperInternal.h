@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/Win32/ComfyWindows.h"
 
-namespace FileSystem
+namespace Comfy::FileSystem
 {
 	template <typename T>
 	inline auto NullTerminatedPathBufferInternal(std::basic_string_view<T> path)

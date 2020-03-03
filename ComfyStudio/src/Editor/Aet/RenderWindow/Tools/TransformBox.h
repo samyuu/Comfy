@@ -1,7 +1,7 @@
 #pragma once
 #include "Graphics/Auth2D/AetMgr.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	inline void RotatePointSinCos(vec2& point, float sin, float cos)
 	{

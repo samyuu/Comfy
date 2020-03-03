@@ -6,7 +6,7 @@
 #include "Graphics/Camera.h"
 #include "ImGui/Gui.h"
 
-namespace App
+namespace Comfy::App
 {
 	class EngineRenderWindow : public Editor::RenderWindowBase
 	{

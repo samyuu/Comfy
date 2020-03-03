@@ -14,7 +14,7 @@ outputFileContent += "#define DECLARE_BYTECODE_GETTER(shader)	BytecodeBlob shade
 outputFileContent += "#define DEFINE_BYTECODE_GETTER(shader)	BytecodeBlob shader() { return { ::shader##_Bytecode, sizeof(::shader##_Bytecode) }; }\n"
 outputFileContent += "\n"
 outputFileContent += "// NOTE: Public interface\n"
-outputFileContent += "namespace Graphics\n"
+outputFileContent += "namespace Comfy::Graphics\n"
 outputFileContent += "{\n"
 for name in shaderNamesToInclude:
 	outputFileContent += f"\tDECLARE_BYTECODE_GETTER({name});\n"
@@ -26,7 +26,7 @@ outputFileContent += "\n"
 for name in shaderNamesToInclude:
 	outputFileContent += f"#include SHADER_BYTECODE_FILE({name}.h)\n"
 outputFileContent += "\n"
-outputFileContent += "namespace Graphics\n"
+outputFileContent += "namespace Comfy::Graphics\n"
 outputFileContent += "{\n"
 for name in shaderNamesToInclude:
 	outputFileContent += f"\tDEFINE_BYTECODE_GETTER({name});\n"

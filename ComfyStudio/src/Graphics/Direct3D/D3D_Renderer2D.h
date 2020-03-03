@@ -11,7 +11,7 @@
 #include "Graphics/Auth2D/SpriteBatchData.h"
 #include "Graphics/Camera.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	class D3D_Renderer2D : NonCopyable
 	{

@@ -6,7 +6,7 @@
 #include <RtAudio.h>
 #include <assert.h>
 
-namespace Audio
+namespace Comfy::Audio
 {
 	UniquePtr<AudioEngine> AudioEngine::engineInstance = nullptr;
 

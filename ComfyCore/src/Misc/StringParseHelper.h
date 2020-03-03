@@ -3,7 +3,7 @@
 #include "CoreTypes.h"
 #include <charconv>
 
-namespace Utilities::StringParsing
+namespace Comfy::Utilities::StringParsing
 {
 	std::string_view GetLine(const char* textBuffer);
 	std::string_view GetWord(const char* textBuffer);

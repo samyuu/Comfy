@@ -1,9 +1,9 @@
 #include "ObjSet.h"
 #include "FileSystem/BinaryReader.h"
 
-using namespace FileSystem;
+using namespace Comfy::FileSystem;
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	namespace
 	{

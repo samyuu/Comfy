@@ -1,6 +1,6 @@
 #include "D3D_RasterizerState.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	D3D_RasterizerState::D3D_RasterizerState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode, bool scissorEnabled)
 	{

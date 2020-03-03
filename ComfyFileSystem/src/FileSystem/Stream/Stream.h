@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 
-namespace FileSystem
+namespace Comfy::FileSystem
 {
 	class IStream
 	{

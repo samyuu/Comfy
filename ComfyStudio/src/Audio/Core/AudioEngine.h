@@ -9,9 +9,9 @@
 #include <algorithm>
 #include <mutex>
 
-namespace DataTest { class AudioTestWindow; }
+namespace Comfy::DataTest { class AudioTestWindow; }
 
-namespace Audio
+namespace Comfy::Audio
 {
 	enum class AudioApi : int32_t
 	{

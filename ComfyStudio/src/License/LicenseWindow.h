@@ -3,64 +3,67 @@
 #include "Misc/StringHelper.h"
 #include "CoreTypes.h"
 
-struct LicenseInfo
+namespace Comfy
 {
-	union
+	struct LicenseInfo
 	{
-		struct
+		union
 		{
-			std::string Name;
-			std::string Description;
-			std::string LicenseName;
-			std::string License;
-			std::string Remark;
+			struct
+			{
+				std::string Name;
+				std::string Description;
+				std::string LicenseName;
+				std::string License;
+				std::string Remark;
+			};
+			std::string Strings[5];
 		};
-		std::string Strings[5];
+
+		LicenseInfo() : LicenseInfo("", "", "", "", "")
+		{
+		}
+
+		LicenseInfo(const char* name, const char* description, const char* licenseName, const char* license, const char* remark)
+			: Name(name), Description(description), LicenseName(licenseName), License(license), Remark(remark)
+		{
+			TrimAllEnds();
+		}
+
+		LicenseInfo(const LicenseInfo& other)
+		{
+			*Strings = *other.Strings;
+		}
+
+		~LicenseInfo()
+		{
+		}
+
+		void TrimAllEnds()
+		{
+			for (auto& string : Strings)
+				Trim(string);
+		}
 	};
 
-	LicenseInfo() : LicenseInfo("", "", "", "", "")
+	class LicenseWindow
 	{
-	}
+	public:
+		bool DrawGui();
+		bool* GetIsWindowOpen();
+		const char* GetWindowName() const;
 
-	LicenseInfo(const char* name, const char* description, const char* licenseName, const char* license, const char* remark)
-		: Name(name), Description(description), LicenseName(licenseName), License(license), Remark(remark)
-	{
-		TrimAllEnds();
-	}
+	private:
+		bool dataLoaded = false;
+		bool isWindowOpen = true;
+		int selectedIndex = 0;
+		std::vector<LicenseInfo> licenseData;
 
-	LicenseInfo(const LicenseInfo& other)
-	{
-		*Strings = *other.Strings;
-	}
+		static constexpr float listWidth = 0.2f;
+		static constexpr const vec4 remarkTextColor = vec4(0.85f, 0.86f, 0.15f, 1.0f);
 
-	~LicenseInfo()
-	{
-	}
+		static constexpr const char* licenseDirectory = "license";
 
-	void TrimAllEnds()
-	{
-		for (auto& string : Strings)
-			Trim(string);
-	}
-};
-
-class LicenseWindow
-{
-public:
-	bool DrawGui();
-	bool* GetIsWindowOpen();
-	const char* GetWindowName() const;
-
-private:
-	bool dataLoaded = false;
-	bool isWindowOpen = true;
-	int selectedIndex = 0;
-	std::vector<LicenseInfo> licenseData;
-
-	static constexpr float listWidth = 0.2f;
-	static constexpr const vec4 remarkTextColor = vec4(0.85f, 0.86f, 0.15f, 1.0f);
-	
-	static constexpr const char* licenseDirectory = "license";
-
-	void LoadLicenseData();
-};
+		void LoadLicenseData();
+	};
+}

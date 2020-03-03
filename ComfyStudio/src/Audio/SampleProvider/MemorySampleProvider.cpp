@@ -1,7 +1,7 @@
 #include "MemorySampleProvider.h"
 #include "Audio/Core/AudioEngine.h"
 
-namespace Audio
+namespace Comfy::Audio
 {
 	MemorySampleProvider::MemorySampleProvider()
 	{

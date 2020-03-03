@@ -6,11 +6,14 @@
 #define uniquename(prefix) CONCAT(prefix, __COUNTER__)
 #define DEBUG_STOPWATCH(description) DebugStopwatch uniquename(__DEBUG_STOPWATCH)(description)
 
-struct DebugStopwatch
+namespace Comfy
 {
-	DebugStopwatch(const char* description);
-	~DebugStopwatch();
+	struct DebugStopwatch
+	{
+		DebugStopwatch(const char* description);
+		~DebugStopwatch();
 
-	const char* Description;
-	TimeSpan TimeOnStart;
-};
+		const char* Description;
+		TimeSpan TimeOnStart;
+	};
+}

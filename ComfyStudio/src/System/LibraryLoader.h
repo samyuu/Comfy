@@ -1,7 +1,7 @@
 #pragma once
 #include "CoreTypes.h"
 
-namespace System
+namespace Comfy::System
 {
 	class LibraryLoader
 	{

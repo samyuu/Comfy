@@ -3,7 +3,7 @@
 #include "Audio/Decoder/AudioDecoderFactory.h"
 #include <assert.h>
 
-namespace Editor
+namespace Comfy::Editor
 {
 	AudioController::AudioController()
 	{

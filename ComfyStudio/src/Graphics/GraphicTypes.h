@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	enum class IndexType
 	{

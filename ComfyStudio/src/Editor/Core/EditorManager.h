@@ -2,9 +2,9 @@
 #include "CoreTypes.h"
 #include "IEditorComponent.h"
 
-class Application;
+namespace Comfy { class Application; }
 
-namespace Editor
+namespace Comfy::Editor
 {
 	class EditorManager
 	{

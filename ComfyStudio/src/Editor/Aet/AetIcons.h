@@ -35,7 +35,7 @@
 #define ICON_MOVEDOWN		ICON_FA_ARROW_DOWN
 #define ICON_DELETE			ICON_FA_TRASH
 
-namespace Editor
+namespace Comfy::Editor
 {
 	const char* GetLayerTypeIcon(Graphics::AetLayerType type);
 }

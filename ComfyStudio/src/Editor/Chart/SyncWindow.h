@@ -2,7 +2,7 @@
 #include "Chart.h"
 #include "Timeline/TargetTimeline.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	class SyncWindow
 	{

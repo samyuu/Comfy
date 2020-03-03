@@ -4,7 +4,7 @@
 #include "IAudioDecoder.h"
 #include "Audio/SampleProvider/MemorySampleProvider.h"
 
-namespace Audio
+namespace Comfy::Audio
 {
 	class AudioDecoderFactory : NonCopyable
 	{

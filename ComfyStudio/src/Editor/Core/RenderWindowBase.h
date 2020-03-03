@@ -2,7 +2,7 @@
 #include "ImGui/Gui.h"
 #include "Graphics/Direct3D/D3D_RenderTarget.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	class RenderWindowBase : NonCopyable
 	{

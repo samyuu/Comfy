@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	enum class VectorComponent : uint32_t { X, Y, Z };
 

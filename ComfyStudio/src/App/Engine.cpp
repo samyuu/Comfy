@@ -1,7 +1,7 @@
 #include "Engine.h"
 #include "TestTasks.h"
 
-namespace App
+namespace Comfy::App
 {
 	EngineRenderWindow::EngineRenderWindow()
 	{

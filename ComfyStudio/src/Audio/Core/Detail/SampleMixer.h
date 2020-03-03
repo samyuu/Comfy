@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 
-namespace Audio
+namespace Comfy::Audio
 {
 	class SampleMixer
 	{

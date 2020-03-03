@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "Graphics/Auth3D/Transform.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	struct Sphere
 	{

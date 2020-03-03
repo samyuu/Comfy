@@ -1,7 +1,7 @@
 #include "HandTool.h"
 #include "Editor/Aet/AetIcons.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	HandTool::HandTool()
 	{

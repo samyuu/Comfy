@@ -1,7 +1,7 @@
 #pragma once
 #include "Graphics/Direct3D/D3D_Renderer2D.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	class CheckerboardGrid
 	{

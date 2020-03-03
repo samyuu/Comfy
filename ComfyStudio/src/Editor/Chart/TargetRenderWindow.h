@@ -6,7 +6,7 @@
 #include "Graphics/Auth2D/AetRenderer.h"
 #include "Graphics/SprSet.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	class TargetRenderWindow : public RenderWindowBase
 	{

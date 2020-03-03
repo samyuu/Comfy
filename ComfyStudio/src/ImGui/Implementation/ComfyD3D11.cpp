@@ -12,7 +12,7 @@
 #include "Graphics/Direct3D/D3D_VertexBuffer.h"
 #include "Graphics/Direct3D/ShaderBytecode/ShaderBytecode.h"
 
-using namespace Graphics;
+using namespace Comfy::Graphics;
 
 namespace ImGui
 {

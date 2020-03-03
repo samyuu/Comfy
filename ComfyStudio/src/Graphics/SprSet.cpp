@@ -1,9 +1,9 @@
 #include "SprSet.h"
 #include "FileSystem/BinaryReader.h"
 
-using namespace FileSystem;
+using namespace Comfy::FileSystem;
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	vec2 Spr::GetSize() const
 	{

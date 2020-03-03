@@ -1,7 +1,7 @@
 #include "MoveTool.h"
 #include "Editor/Aet/AetIcons.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	const char* MoveTool::GetIcon() const
 	{

@@ -3,7 +3,7 @@
 #include "Audio/Core/AudioInstance.h"
 #include "Audio/SampleProvider/MemorySampleProvider.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	// This class stores a pool of button sound instances.
 	// It controls their volume levels and exposes a public play method.

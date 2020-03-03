@@ -3,7 +3,7 @@
 #include "CoreTypes.h"
 #include "Audio/SampleProvider/ISampleProvider.h"
 
-namespace Audio
+namespace Comfy::Audio
 {
 	class ChannelMixer
 	{

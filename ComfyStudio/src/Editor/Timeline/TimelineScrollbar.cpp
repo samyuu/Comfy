@@ -1,7 +1,7 @@
 #include "TimelineScrollbar.h"
 #include "CoreTypes.h"
 
-namespace Editor
+namespace Comfy::Editor
 {
 	TimelineScrollbar::TimelineScrollbar(ImGuiAxis axis, const vec2 timelineScrollbarSize)
 		: axis(axis), timelineScrollbarSize(timelineScrollbarSize)

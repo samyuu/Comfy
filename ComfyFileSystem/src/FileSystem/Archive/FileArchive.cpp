@@ -1,7 +1,7 @@
 #include "FileArchive.h"
 #include "Misc/StringHelper.h"
 
-namespace FileSystem
+namespace Comfy::FileSystem
 {
 	ArchiveEntry::ArchiveEntry(FileArchive* parent) : parent(parent)
 	{

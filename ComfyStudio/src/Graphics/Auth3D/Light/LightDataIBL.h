@@ -1,11 +1,11 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
-#include "Graphics/GraphicsTypes.h"
+#include "Graphics/GraphicTypes.h"
 #include "Graphics/Direct3D/D3D_Texture.h"
 #include "FileSystem/FileInterface.h"
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	enum class LightMapFormat
 	{

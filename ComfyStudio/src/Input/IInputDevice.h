@@ -1,7 +1,10 @@
 #pragma once
 
-class IInputDevice
+namespace Comfy
 {
-public:
-	virtual bool PollInput() = 0;
-};
+	class IInputDevice
+	{
+	public:
+		virtual bool PollInput() = 0;
+	};
+}

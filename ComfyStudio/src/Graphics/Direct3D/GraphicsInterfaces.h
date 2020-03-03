@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Graphics
+namespace Comfy::Graphics
 {
 	class IGraphicsResource : NonCopyable
 	{

@@ -2,7 +2,7 @@
 #include "Audio/Core/AudioEngine.h"
 #include <dr_mp3.h>
 
-namespace Audio
+namespace Comfy::Audio
 {
 	const char* Mp3Decoder::GetFileExtensions() const
 	{
