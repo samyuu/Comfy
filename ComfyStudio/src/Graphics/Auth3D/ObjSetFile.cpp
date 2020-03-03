@@ -7,35 +7,10 @@ namespace Comfy::Graphics
 {
 	namespace
 	{
-		vec3 ReadVec3(BinaryReader& reader)
-		{
-			vec3 result;
-			result.x = reader.ReadF32();
-			result.y = reader.ReadF32();
-			result.z = reader.ReadF32();
-			return result;
-		}
-
-		vec4 ReadVec4(BinaryReader& reader)
-		{
-			vec4 result;
-			result.x = reader.ReadF32();
-			result.y = reader.ReadF32();
-			result.z = reader.ReadF32();
-			result.w = reader.ReadF32();
-			return result;
-		}
-
-		void ReadMat4(BinaryReader& reader, mat4& output)
-		{
-			assert(reader.GetEndianness() == Endianness::Native);
-			reader.ReadBuffer(&output, sizeof(output));
-		}
-
 		Sphere ReadSphere(BinaryReader& reader)
 		{
 			Sphere result;
-			result.Center = ReadVec3(reader);
+			result.Center = reader.ReadV3();
 			result.Radius = reader.ReadF32();
 			return result;
 		}
@@ -43,8 +18,8 @@ namespace Comfy::Graphics
 		Box ReadBox(BinaryReader& reader)
 		{
 			Box result;
-			result.Center = ReadVec3(reader);
-			result.Size = ReadVec3(reader);
+			result.Center = reader.ReadV3();
+			result.Size = reader.ReadV3();
 			return result;
 		}
 
@@ -202,8 +177,8 @@ namespace Comfy::Graphics
 						output.Flags = ReadFlagsStruct32<MaterialTextureFlags>(reader);
 						output.TextureID = TxpID(reader.ReadU32());
 						output.TypeFlags = ReadFlagsStruct32<MaterialTextureTypeFlags>(reader);
-						output.Field03_05 = ReadVec3(reader);
-						ReadMat4(reader, output.TextureCoordinateMatrix);
+						output.Field03_05 = reader.ReadV3();
+						output.TextureCoordinateMatrix = reader.ReadMat4();
 						for (float& reserved : output.Reserved)
 							reserved = reader.ReadF32();
 					};
@@ -223,15 +198,15 @@ namespace Comfy::Graphics
 					readMaterialTexture(reader, material.ReservedTexture);
 
 					material.BlendFlags = ReadFlagsStruct32<MaterialBlendFlags>(reader);
-					material.DiffuseColor = ReadVec3(reader);
+					material.DiffuseColor = reader.ReadV3();
 					material.Transparency = reader.ReadF32();
-					material.AmbientColor = ReadVec4(reader);
-					material.SpecularColor = ReadVec3(reader);
+					material.AmbientColor = reader.ReadV4();
+					material.SpecularColor = reader.ReadV3();
 					material.Reflectivity = reader.ReadF32();
-					material.EmissionColor = ReadVec4(reader);
+					material.EmissionColor = reader.ReadV4();
 					material.Shininess = reader.ReadF32();
 					material.Intensity = reader.ReadF32();
-					material.UnknownField21_24 = ReadVec4(reader);
+					material.UnknownField21_24 = reader.ReadV4();
 					reader.ReadBuffer(material.Name.data(), material.Name.size());
 					material.BumpDepth = reader.ReadF32();
 					for (float& reserved : material.Reserved)
@@ -295,7 +270,7 @@ namespace Comfy::Graphics
 							reader.ReadAt(transformsPtr, [&bones](BinaryReader& reader)
 							{
 								for (auto& bone : bones)
-									ReadMat4(reader, bone.Transform);
+									bone.Transform = reader.ReadMat4();
 							});
 
 							reader.ReadAt(namesPtr, [&bones](BinaryReader& reader)

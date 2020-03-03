@@ -106,6 +106,15 @@ namespace Comfy::FileSystem
 		inline float ReadF32() { return readF32Func(*this); }
 		inline double ReadF64() { return readF64Func(*this); }
 
+		inline vec2 ReadV2() { vec2 result; result.x = ReadF32(); result.y = ReadF32(); return result; }
+		inline vec3 ReadV3() { vec3 result; result.x = ReadF32(); result.y = ReadF32(); result.z = ReadF32(); return result; }
+		inline vec4 ReadV4() { vec4 result; result.x = ReadF32(); result.y = ReadF32(); result.z = ReadF32(); result.w = ReadF32(); return result; }
+		inline mat3 ReadMat3() { assert(GetEndianness() == Endianness::Native); return ReadType<mat3>(); }
+		inline mat4 ReadMat4() { assert(GetEndianness() == Endianness::Native); return ReadType<mat4>(); }
+		inline ivec2 ReadIV2() { ivec2 result; result.x = ReadI32(); result.y = ReadI32(); return result; }
+		inline ivec3 ReadIV3() { ivec3 result; result.x = ReadI32(); result.y = ReadI32(); result.z = ReadI32(); return result; }
+		inline ivec4 ReadIV4() { ivec4 result; result.x = ReadI32(); result.y = ReadI32(); result.z = ReadI32(); result.w = ReadI32(); return result; }
+
 	protected:
 		using ReadPtrFunc_t = FileAddr(BinaryReader&);
 		using ReadSizeFunc_t = size_t(BinaryReader&);
