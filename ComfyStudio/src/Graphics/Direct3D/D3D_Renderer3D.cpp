@@ -271,9 +271,9 @@ namespace Comfy::Graphics
 			TextureSlot_Translucency = 6,
 			TextureSlot_Reserved = 7,
 
-			TextureSlot_IBLLightMap_0 = 9,
-			TextureSlot_IBLLightMap_1 = 10,
-			TextureSlot_IBLLightMap_2 = 11,
+			TextureSlot_IBLLightMaps_0 = 9,
+			TextureSlot_IBLLightMaps_1 = 10,
+			TextureSlot_IBLLightMaps_2 = 11,
 
 			TextureSlot_ScreenReflection = 15,
 			TextureSlot_SubsurfaceScattering = 16,
@@ -610,11 +610,11 @@ namespace Comfy::Graphics
 				// NOTE: ---
 				nullptr,
 
-				// NOTE: IBLLightMap_0 = 9
+				// NOTE: IBLLightMaps_0 = 9
 				ibl.LightMaps[0].D3D_CubeMap.get(),
-				// NOTE: IBLLightMap_1 = 10
+				// NOTE: IBLLightMaps_1 = 10
 				ibl.LightMaps[1].D3D_CubeMap.get(),
-				// NOTE: IBLLightMap_2 = 11
+				// NOTE: IBLLightMaps_2 = 11
 				ibl.LightMaps[2].D3D_CubeMap.get(),
 
 				// NOTE: ---

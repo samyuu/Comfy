@@ -61,11 +61,11 @@
 
 #define TEXCUBE_05(result, texCoord) result = EnvironmentTexture.Sample( EnvironmentSampler, (texCoord).xyz )
 
-#define TXLCUBE_09(result, texCoord) result = IBL_LightMaps[0].SampleLevel( IBL_LightMapSampler, (texCoord).xyz, (texCoord).w )
-#define TEXCUBE_10(result, texCoord) result = IBL_LightMaps[1].SampleLevel( IBL_LightMapSampler, (texCoord).xyz, 0 )
-#define TEXCUBE_11(result, texCoord) result = IBL_LightMaps[1].SampleLevel( IBL_LightMapSampler, (texCoord).xyz, 1 )
-#define TEXCUBE_12(result, texCoord) result = IBL_LightMaps[2].SampleLevel( IBL_LightMapSampler, (texCoord).xyz, 0 )
-#define TEXCUBE_13(result, texCoord) result = IBL_LightMaps[2].SampleLevel( IBL_LightMapSampler, (texCoord).xyz, 1 )
+#define TXLCUBE_09(result, texCoord) result = IBL_LightMaps_0.SampleLevel( IBL_LightMapSampler, (texCoord).xyz, (texCoord).w )
+#define TEXCUBE_10(result, texCoord) result = IBL_LightMaps_1.SampleLevel( IBL_LightMapSampler, (texCoord).xyz, 0 )
+#define TEXCUBE_11(result, texCoord) result = IBL_LightMaps_1.SampleLevel( IBL_LightMapSampler, (texCoord).xyz, 1 )
+#define TEXCUBE_12(result, texCoord) result = IBL_LightMaps_2.SampleLevel( IBL_LightMapSampler, (texCoord).xyz, 0 )
+#define TEXCUBE_13(result, texCoord) result = IBL_LightMaps_2.SampleLevel( IBL_LightMapSampler, (texCoord).xyz, 1 )
 
 #ifdef COMFY_VS
 #define RET                         return output
