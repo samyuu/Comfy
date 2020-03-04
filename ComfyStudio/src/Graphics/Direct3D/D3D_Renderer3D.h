@@ -196,13 +196,18 @@ namespace Comfy::Graphics
 			bool IsReflection = false;
 			bool SilhouetteOutline = false;
 
-			// TODO:
 			bool CastsShadow = false;
 			bool ReceivesShadow = true;
+
+			// TODO:
 			// int ShadowMapIndex = -1;
 			// bool SubsurfaceScattering = false;
 			// bool SubsurfaceScatteringFocusPoint = false;
 			// bool Skeleton = false;
+
+			// NOTE: Optionally render the specified subset of the SourceObj instead
+			int MeshIndex = -1;
+			int SubMeshIndex = -1;
 
 		} Flags;
 
@@ -274,7 +279,7 @@ namespace Comfy::Graphics
 			RenderFlags_NoMaterialTextures = (1 << 3),
 			RenderFlags_DiffuseTextureOnly = (1 << 4),
 			RenderFlags_NoRasterizerState = (1 << 5),
-			RenderFlags_NoDoFrustumCulling = (1 << 6),
+			RenderFlags_NoFrustumCulling = (1 << 6),
 		};
 
 		void InternalFlush();

@@ -54,6 +54,52 @@ namespace Comfy::Graphics
 			}
 		}
 
+		constexpr bool IsMeshOrSubMeshIndexSpecified(int index)
+		{
+			return (index >= 0);
+		}
+
+		template <typename Func>
+		void IterateCommandMeshes(const RenderCommand& command, Func func)
+		{
+			if (IsMeshOrSubMeshIndexSpecified(command.Flags.MeshIndex))
+			{
+				func(command.SourceObj->Meshes[command.Flags.MeshIndex]);
+			}
+			else
+			{
+				for (auto& mesh : command.SourceObj->Meshes)
+					func(mesh);
+			}
+		}
+
+		template <typename Func>
+		void IterateCommandSubMeshes(const RenderCommand& command, const Mesh& mesh, Func func)
+		{
+			if (IsMeshOrSubMeshIndexSpecified(command.Flags.SubMeshIndex) && IsMeshOrSubMeshIndexSpecified(command.Flags.MeshIndex))
+			{
+				auto& specifiedSubMesh = mesh.SubMeshes[command.Flags.SubMeshIndex];
+				func(specifiedSubMesh, specifiedSubMesh.GetMaterial(*command.SourceObj));
+			}
+			else
+			{
+				for (auto& subMesh : mesh.SubMeshes)
+					func(subMesh, subMesh.GetMaterial(*command.SourceObj));
+			}
+		}
+
+		template <typename Func>
+		void IterateCommandMeshesAndSubMeshes(const RenderCommand& command, Func func)
+		{
+			IterateCommandMeshes(command, [&](auto& mesh)
+			{
+				IterateCommandSubMeshes(command, mesh, [&](auto& subMesh, auto& material)
+				{
+					func(mesh, subMesh, material);
+				});
+			});
+		}
+
 		constexpr bool ReceivesShadows(const RenderCommand& command, const Mesh& mesh, const SubMesh& subMesh)
 		{
 			return (command.Flags.ReceivesShadow && subMesh.ShadowFlags);
@@ -91,23 +137,24 @@ namespace Comfy::Graphics
 			return false;
 		}
 
-		const Mesh* MeshOrDefault(const Obj* obj, size_t index)
+		const Mesh* GetMorphMesh(const Obj& obj, const Obj* morphObj, const Mesh& mesh)
 		{
-			if (obj == nullptr)
+			if (morphObj == nullptr)
 				return nullptr;
 
-			return index < (obj->Meshes.size()) ? &obj->Meshes[index] : nullptr;
+			const size_t meshIndex = static_cast<size_t>(std::distance(&obj.Meshes.front(), &mesh));
+			return (meshIndex < morphObj->Meshes.size()) ? &morphObj->Meshes[meshIndex] : nullptr;
 		}
 
 		vec4 GetPackedTextureSize(vec2 size)
 		{
 			return vec4(1.0f / size, size);
-		};
+		}
 
 		vec4 GetPackedTextureSize(const D3D_RenderTargetBase& renderTarget)
 		{
 			return GetPackedTextureSize(vec2(renderTarget.GetSize()));
-		};
+		}
 
 		inline float RootMeanSquare(const vec3 value)
 		{
@@ -373,7 +420,19 @@ namespace Comfy::Graphics
 
 	void D3D_Renderer3D::Draw(const RenderCommand& command)
 	{
-		assert(command.SourceObj != nullptr);
+		if (command.SourceObj == nullptr)
+			return;
+
+		if (IsMeshOrSubMeshIndexSpecified(command.Flags.MeshIndex))
+		{
+			if (command.Flags.MeshIndex >= command.SourceObj->Meshes.size())
+				return;
+
+			if (IsMeshOrSubMeshIndexSpecified(command.Flags.SubMeshIndex))
+				if (command.Flags.SubMeshIndex >= command.SourceObj->Meshes[command.Flags.MeshIndex].SubMeshes.size())
+					return;
+		}
+
 		const auto& transform = command.Transform;
 
 		ObjRenderCommand renderCommand;
@@ -411,26 +470,20 @@ namespace Comfy::Graphics
 
 		if (!isAnyCommand.ReceiveShadow)
 		{
-			for (const auto& mesh : command.SourceObj->Meshes)
+			IterateCommandMeshesAndSubMeshes(command, [&](auto& mesh, auto& subMesh, auto& material)
 			{
-				for (const auto& subMesh : mesh.SubMeshes)
-				{
-					if (ReceivesShadows(command, mesh, subMesh) || ReceivesSelfShadow(command, mesh, subMesh))
-						isAnyCommand.ReceiveShadow = true;
-				}
-			}
+				if (ReceivesShadows(command, mesh, subMesh) || ReceivesSelfShadow(command, mesh, subMesh))
+					isAnyCommand.ReceiveShadow = true;
+			});
 		}
 
 		if (!isAnyCommand.SubsurfaceScattering)
 		{
-			for (const auto& mesh : command.SourceObj->Meshes)
+			IterateCommandMeshesAndSubMeshes(command, [&](auto& mesh, auto& subMesh, auto& material)
 			{
-				for (const auto& subMesh : mesh.SubMeshes)
-				{
-					if (UsesSSSSkin(subMesh.GetMaterial(*command.SourceObj)))
-						isAnyCommand.SubsurfaceScattering = true;
-				}
-			}
+				if (UsesSSSSkin(subMesh.GetMaterial(*command.SourceObj)))
+					isAnyCommand.SubsurfaceScattering = true;
+			});
 		}
 	}
 
@@ -506,23 +559,20 @@ namespace Comfy::Graphics
 		{
 			command.AreAllMeshesTransparent = true;
 
-			for (auto& mesh : command.SourceCommand.SourceObj->Meshes)
+			IterateCommandMeshesAndSubMeshes(command.SourceCommand, [&](auto& mesh, auto& subMesh, auto& material)
 			{
-				for (auto& subMesh : mesh.SubMeshes)
+				if (IsMeshTransparent(mesh, subMesh, material))
 				{
-					if (IsMeshTransparent(mesh, subMesh, subMesh.GetMaterial(*command.SourceCommand.SourceObj)))
-					{
-						const auto boundingSphere = (subMesh.BoundingSphere * command.SourceCommand.Transform);
-						const float cameraDistance = glm::distance(boundingSphere.Center, sceneContext->Camera.ViewPoint);
+					const auto boundingSphere = (subMesh.BoundingSphere * command.SourceCommand.Transform);
+					const float cameraDistance = glm::distance(boundingSphere.Center, sceneContext->Camera.ViewPoint);
 
-						commandList.Transparent.push_back({ &command, &mesh, &subMesh, cameraDistance });
-					}
-					else
-					{
-						command.AreAllMeshesTransparent = false;
-					}
+					commandList.Transparent.push_back({ &command, &mesh, &subMesh, cameraDistance });
 				}
-			}
+				else
+				{
+					command.AreAllMeshesTransparent = false;
+				}
+			});
 		}
 
 		if (renderParameters->AlphaSort)
@@ -794,7 +844,7 @@ namespace Comfy::Graphics
 		for (auto& command : defaultCommandList.OpaqueAndTransparent)
 		{
 			if (command.SourceCommand.Flags.CastsShadow)
-				InternalRenderOpaqueObjCommand(command, RenderFlags_NoMaterialShader | RenderFlags_NoRasterizerState | RenderFlags_NoDoFrustumCulling | RenderFlags_DiffuseTextureOnly);
+				InternalRenderOpaqueObjCommand(command, RenderFlags_NoMaterialShader | RenderFlags_NoRasterizerState | RenderFlags_NoFrustumCulling | RenderFlags_DiffuseTextureOnly);
 		}
 
 		renderData->Shadow.RenderTarget.UnBind();
@@ -997,38 +1047,28 @@ namespace Comfy::Graphics
 		if (command.AreAllMeshesTransparent)
 			return;
 
-		auto& transform = command.SourceCommand.Transform;
-		auto& obj = *command.SourceCommand.SourceObj;
-
-		const bool doFrustumCulling = !(flags & RenderFlags_NoDoFrustumCulling);
-
-		if (doFrustumCulling && !IntersectsCameraFrustum(obj.BoundingSphere, command))
+		if (!(flags & RenderFlags_NoFrustumCulling) && !IntersectsCameraFrustum(command.SourceCommand.SourceObj->BoundingSphere, command))
 			return;
 
-		for (size_t meshIndex = 0; meshIndex < obj.Meshes.size(); meshIndex++)
+		IterateCommandMeshes(command.SourceCommand, [&](auto& mesh)
 		{
-			auto& mesh = obj.Meshes[meshIndex];
-			if (doFrustumCulling && !IntersectsCameraFrustum(mesh.BoundingSphere, command))
-				continue;
+			if (!(flags & RenderFlags_NoFrustumCulling) && !IntersectsCameraFrustum(mesh.BoundingSphere, command))
+				return;
 
-			auto* morphMesh = MeshOrDefault(command.SourceCommand.SourceMorphObj, meshIndex);
-			BindMeshVertexBuffers(mesh, morphMesh);
+			BindMeshVertexBuffers(mesh, GetMorphMesh(*command.SourceCommand.SourceObj, command.SourceCommand.SourceMorphObj, mesh));
 
-			for (auto& subMesh : mesh.SubMeshes)
+			IterateCommandSubMeshes(command.SourceCommand, mesh, [&](auto& subMesh, auto& material)
 			{
-				auto& material = subMesh.GetMaterial(obj);
 				if (IsMeshTransparent(mesh, subMesh, material))
-					continue;
-
+					return;
 				if ((flags & RenderFlags_SSSPass) && !(UsesSSSSkin(material) || UsesSSSSkinConst(material)))
-					continue;
-
-				if (doFrustumCulling && !IntersectsCameraFrustum(subMesh.BoundingSphere, command))
-					continue;
+					return;
+				if (!(flags & RenderFlags_NoFrustumCulling) && !IntersectsCameraFrustum(subMesh.BoundingSphere, command))
+					return;
 
 				PrepareAndRenderSubMesh(command, mesh, subMesh, material, flags);
-			}
-		}
+			});
+		});
 	}
 
 	void D3D_Renderer3D::InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command)
@@ -1044,8 +1084,7 @@ namespace Comfy::Graphics
 			|| !IntersectsCameraFrustum(subMesh.BoundingSphere, command))
 			return;
 
-		auto* morphMesh = MeshOrDefault(objCommand->SourceCommand.SourceMorphObj, std::distance(&obj.Meshes.front(), &mesh));
-		BindMeshVertexBuffers(mesh, morphMesh);
+		BindMeshVertexBuffers(mesh, GetMorphMesh(obj, objCommand->SourceCommand.SourceMorphObj, mesh));
 
 		auto& material = subMesh.GetMaterial(obj);
 		cachedBlendStates.GetState(material.BlendFlags.SrcBlendFactor, material.BlendFlags.DstBlendFactor).Bind();
