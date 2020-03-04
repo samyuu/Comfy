@@ -30,14 +30,18 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     if (FLAGS_NORMAL_TEX2D)
     {
         TEX2D_02(tmp, a_tex_normal0);
-        MAD(tmp.xy, tmp.wyyy, 2.0, -1.0);
-        MUL(tmp.zw, tmp.xyyy, tmp.xyyy);
-        MUL(tmp.zw, tmp.zwww, tmp.xyyy);
+        MAD(tmp.xy, tmp.wy, 2.0, -1.0);
+        
+        //MUL(tmp.zw, tmp.xyyy, tmp.xyyy);
+        //MUL(tmp.zw, tmp.zwww, tmp.xyyy);
+        MUL(tmp.zw, tmp.xy, tmp.xy);
+        MUL(tmp.zw, tmp.zw, tmp.xy);
+        
         MUL(tmp, tmp, float4(1.5, 1.5, 2.0, 2.0));
-        ADD(tmp.xy, tmp.xyyy, tmp.zwww);
-        MUL(normal.xyz, a_tangent, tmp.x);
-        MAD(normal.xyz, a_binormal, tmp.y, normal);
-        ADD(normal.xyz, normal, a_normal);
+        ADD(tmp.xy, tmp.xy, tmp.zw);
+        MUL(normal.xyz, a_tangent.xyz, tmp.x);
+        MAD(normal.xyz, a_binormal.xyz, tmp.y, normal.xyz);
+        ADD(normal.xyz, normal.xyz, a_normal.xyz);
         //NRMH(normal, normal);
         NRM(normal, normal);
     }
@@ -58,7 +62,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     DP3(eye.z, nt_mtx[2], org_eye);
     DP3(tmp.x, org_eye, org_normal);
     MUL(tmp.x, tmp.x, 2.0);
-    MAD(tmp.xyz, tmp.x, org_normal, -org_eye);
+    MAD(tmp.xyz, tmp.x, org_normal.xyz, -org_eye.xyz);
     DP3(reflect.x, nt_mtx[0], tmp);
     DP3(reflect.y, nt_mtx[1], tmp);
     DP3(reflect.z, nt_mtx[2], tmp);
@@ -88,29 +92,29 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MOV(normal.w, 1);
     TXLCUBE_09(tmp, normal);
     LRP(diff, lc.y, diff, tmp);
-    MAD(diff.xyz, diff, state_light0_diffuse, a_color0.w);
-    ADD(diff.xyz, diff, state_light0_ambient);
-    ADD(diff.xyz, diff, state_material_emission);
-    MOV(diff.xyz, diff);
-    MUL(diff.xyz, diff, col0);
+    MAD(diff.xyz, diff.xyz, state_light0_diffuse.xyz, a_color0.w);
+    ADD(diff.xyz, diff.xyz, state_light0_ambient.xyz);
+    ADD(diff.xyz, diff.xyz, state_material_emission.xyz);
+    MOV(diff.xyz, diff.xyz);
+    MUL(diff.xyz, diff.xyz, col0.xyz);
 
     if (FLAGS_ENVIRONMENT_CUBE)
     {
         TEXCUBE_10(spec, reflect);
         TEXCUBE_11(_tmp2, reflect);
-        LRP(spec.xyz, state_material_shininess.x, spec, _tmp2);
+        LRP(spec.xyz, state_material_shininess.x, spec.xyz, _tmp2.xyz);
         MIN(tmp, spec, 3.0);
-        LRP(spec.xyz, lc.z, spec, tmp);
-        MUL(spec.xyz, spec, state_light0_specular);
+        LRP(spec.xyz, lc.z, spec.xyz, tmp.xyz);
+        MUL(spec.xyz, spec.xyz, state_light0_specular.xyz);
         TEX2D_03(tmp, a_tex_specular);
         MUL(spec_ratio, spec_ratio, tmp);
         
-        MUL(diff.xyz, diff, 0.96);
-        MAD(diff.xyz, spec, spec_ratio, diff);
+        MUL(diff.xyz, diff.xyz, 0.96);
+        MAD(diff.xyz, spec.xyz, spec_ratio.xyz, diff.xyz);
     }
     else
     {
-        MUL(diff.xyz, diff, 0.96);
+        MUL(diff.xyz, diff.xyz, 0.96);
     }
 
     if (FLAGS_ENVIRONMENT_CUBE)
@@ -118,13 +122,13 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
         TEXCUBE_05(env, reflect);
         MAD(env.w, lc.z, 0.5, 0.5);
         MUL(env.w, env.w, state_light0_specular.w);
-        MUL(env.xyz, env, env.w);
-        MAD(diff.xyz, env, spec_ratio.w, diff);
+        MUL(env.xyz, env.xyz, env.w);
+        MAD(diff.xyz, env.xyz, spec_ratio.w, diff.xyz);
     }
     
-    MOV(diff.xyz, diff);
+    MOV(diff.xyz, diff.xyz);
     
-    LRP(o_color.xyz, a_fogcoord.x, a_color1, diff);
+    LRP(o_color.xyz, a_fogcoord.x, a_color1.xyz, diff.xyz);
     //MAX(o_color.w, col0.w, p_max_alpha.w);
     MOV(o_color.w, col0.w);
     
