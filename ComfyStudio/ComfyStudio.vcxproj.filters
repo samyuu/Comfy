@@ -605,9 +605,6 @@
     <ClInclude Include="src\Graphics\Direct3D\Direct3D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\GraphicsInterfaces.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\Core\IEditorComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -948,6 +945,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Direct3D\Shader\Bytecode\ShaderBytecode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Direct3D\IGraphicsResource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,5 @@
 #pragma once
 #include "../Direct3D.h"
-#include "../GraphicsInterfaces.h"
 #include "D3D_DepthBuffer.h"
 #include "D3D_Texture.h"
 

@@ -461,7 +461,7 @@
     <ClInclude Include="src\DataTest\IconTestWindow.h" />
     <ClInclude Include="src\Graphics\SprSet.h" />
     <ClInclude Include="src\Graphics\TxpSet.h" />
-    <ClInclude Include="src\Graphics\Direct3D\GraphicsInterfaces.h" />
+    <ClInclude Include="src\Graphics\Direct3D\IGraphicsResource.h" />
     <ClInclude Include="src\ImGui\Widgets\FileViewer.h" />
     <ClInclude Include="src\Input\KeyCode.h" />
     <ClInclude Include="src\License\LicenseWindow.h" />

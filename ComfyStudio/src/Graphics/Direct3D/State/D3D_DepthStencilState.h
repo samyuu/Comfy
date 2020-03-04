@@ -1,6 +1,5 @@
 #pragma once
 #include "../Direct3D.h"
-#include "../GraphicsInterfaces.h"
 
 namespace Comfy::Graphics
 {
