@@ -10,6 +10,11 @@
 #include "../State/D3D_InputLayout.h"
 #include "../State/D3D_RasterizerState.h"
 #include "../Texture/D3D_Texture.h"
+#include "Detail/ConstantData.h"
+#include "Detail/ShaderFlags.h"
+#include "Detail/BlendStateCache.h"
+#include "Detail/TextureSamplerCache.h"
+#include "Detail/ToneMapData.h"
 #include "Graphics/Auth3D/Transform.h"
 #include "Graphics/Auth3D/ObjSet.h"
 #include "Graphics/Auth3D/ObjAnimationData.h"
@@ -18,171 +23,6 @@
 
 namespace Comfy::Graphics
 {
-	enum ShaderFlags : uint32_t
-	{
-		ShaderFlags_VertexColor = 1 << 0,
-
-		ShaderFlags_DiffuseTexture = 1 << 1,
-		ShaderFlags_AmbientTexture = 1 << 2,
-		ShaderFlags_NormalTexture = 1 << 3,
-		ShaderFlags_SpecularTexture = 1 << 4,
-		ShaderFlags_TransparencyTexture = 1 << 5,
-		ShaderFlags_EnvironmentTexture = 1 << 6,
-		ShaderFlags_TranslucencyTexture = 1 << 7,
-		ShaderFlags_ScreenTexture = 1 << 8,
-
-		ShaderFlags_PunchThrough = 1 << 9,
-		ShaderFlags_ClipPlane = 1 << 10,
-		ShaderFlags_LinearFog = 1 << 11,
-
-		ShaderFlags_Morph = 1 << 12,
-		ShaderFlags_MorphColor = 1 << 13,
-		ShaderFlags_Skinning = 1 << 14,
-
-		ShaderFlags_Shadow = 1 << 15,
-		ShaderFlags_ShadowSecondary = 1 << 16,
-		ShaderFlags_SelfShadow = 1 << 17,
-	};
-
-	struct SceneConstantData
-	{
-		mat4 IBLIrradianceRed;
-		mat4 IBLIrradianceGreen;
-		mat4 IBLIrradianceBlue;
-
-		struct SceneData
-		{
-			mat4 View;
-			mat4 ViewProjection;
-			mat4 LightSpace;
-			vec4 EyePosition;
-		} Scene;
-
-		struct ParallelLight
-		{
-			vec4 Ambient;
-			vec4 Diffuse;
-			vec4 Specular;
-			vec4 Direction;
-		} CharaLight, StageLight;
-
-		vec4 IBLStageColor;
-		vec4 IBLCharaColor;
-		vec4 IBLSunColor;
-
-		vec4 RenderResolution;
-
-		struct RenderTime
-		{
-			static constexpr vec4 Scales = vec4(0.5f, 1.0f, 2.0f, 4.0f);
-			vec4 Time;
-			vec4 TimeSin;
-			vec4 TimeCos;
-		} RenderTime;
-
-		struct LinearFog
-		{
-			vec4 Parameters;
-			vec4 Color;
-		} DepthFog;
-
-		vec4 ShadowAmbient;
-		vec4 OneMinusShadowAmbient;
-		float ShadowExponent;
-		float SubsurfaceScatteringParameter;
-
-		uint32_t DebugFlags;
-		uint32_t Padding[1];
-		vec4 DebugValue;
-	};
-
-	struct ObjectConstantData
-	{
-		mat4 Model;
-		mat4 ModelView;
-		mat4 ModelViewProjection;
-		struct MaterialData
-		{
-			mat4 DiffuseTextureTransform;
-			mat4 AmbientTextureTransform;
-			vec4 FresnelCoefficients;
-			vec3 Diffuse;
-			float Transparency;
-			vec4 Ambient;
-			vec3 Specular;
-			float Reflectivity;
-			vec4 Emission;
-			vec2 Shininess;
-			float Intensity;
-			float BumpDepth;
-		} Material;
-		vec4 MorphWeight;
-		uint32_t ShaderFlags;
-		uint32_t DiffuseRGTC1;
-		uint32_t DiffuseScreenTexture;
-		uint32_t AmbientTextureType;
-	};
-
-#define COMFY_SKELETON_TEST 0
-#if COMFY_SKELETON_TEST
-	struct SkeletonConstantData
-	{
-		std::array<mat4, 192> Bones;
-	};
-#endif
-
-	struct ESMFilterConstantData
-	{
-		std::array<vec4, 2> Coefficients;
-		vec2 TextureStep;
-		vec2 FarTexelOffset;
-	};
-
-	struct SSSFilterConstantData
-	{
-		vec4 TextureSize;
-		std::array<vec4, 36> Coefficients;
-	};
-
-	struct ReduceTexConstantData
-	{
-		vec4 TextureSize;
-		int ExtractBrightness;
-		int CombineBlurred;
-		float Padding[2];
-	};
-
-	struct PPGaussTexConstantData
-	{
-		vec4 TextureSize;
-		vec4 TextureOffsets;
-		int FinalPass;
-		int Padding[3];
-	};
-
-	struct PPGaussCoefConstantData
-	{
-		std::array<vec4, 8> Coefficients;
-	};
-
-	struct ExposureConstantData
-	{
-		vec4 SpotWeight;
-		std::array<vec4, 32> SpotCoefficients;
-	};
-
-	struct ToneMapConstantData
-	{
-		float Exposure;
-		float Gamma;
-		float SaturatePower;
-		float SaturateCoefficient;
-		float AlphaLerp;
-		float AlphaValue;
-		int AutoExposure;
-		int Padding[1];
-	};
-
 	struct RenderCommand
 	{
 		const Obj* SourceObj = nullptr;
@@ -388,30 +228,8 @@ namespace Comfy::Graphics
 
 		D3D_DepthStencilState transparencyPassDepthStencilState = { true, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::Transparency" };
 
-		struct TextureSamplerCache
-		{
-		public:
-			void CreateIfNeeded(const RenderParameters& renderParameters);
-			D3D_TextureSampler& GetSampler(MaterialTextureFlags flags);
-
-		private:
-			enum AddressMode { Mirror, Repeat, Clamp, AddressMode_Count };
-
-			int32_t lastAnistropicFiltering = -1;
-			std::array<std::array<UniquePtr<D3D_TextureSampler>, AddressMode_Count>, AddressMode_Count> samplers;
-
-		} cachedTextureSamplers;
-
-		struct BlendStateCache
-		{
-		public:
-			BlendStateCache();
-			D3D_BlendState& GetState(BlendFactor source, BlendFactor destination);
-
-		private:
-			std::array<std::array<UniquePtr<D3D_BlendState>, BlendFactor_Count>, BlendFactor_Count> states;
-
-		} cachedBlendStates;
+		TextureSamplerCache cachedTextureSamplers;
+		BlendStateCache cachedBlendStates;
 
 		// NOTE: To avoid having to bind and clear render targets that won't be used this frame
 		struct IsAnyCommandFlags
@@ -434,22 +252,7 @@ namespace Comfy::Graphics
 			// size_t ObjectsCulled = 0, MeshesCulled = 0, SubMeshesCulled = 0;
 		} statistics, lastFrameStatistics;
 
-		struct ToneMapData
-		{
-			GlowParameter Glow;
-
-			std::array<vec2, 512> TextureData;
-			UniquePtr<D3D_Texture1D> LookupTexture = nullptr;
-
-		public:
-			bool NeedsUpdating(const SceneContext* sceneContext);
-			void Update();
-
-		private:
-			void GenerateLookupData();
-			void UpdateTexture();
-
-		} toneMapData;
+		ToneMapData toneMapData;
 
 		SceneContext* sceneContext = nullptr;
 		RenderParameters* renderParameters = nullptr;

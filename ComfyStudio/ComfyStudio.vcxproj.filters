@@ -411,10 +411,19 @@
     <ClCompile Include="src\Graphics\Direct3D\Shader\D3D_Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Renderer\SpriteBatchData.cpp">
+    <ClCompile Include="src\Graphics\Direct3D\Shader\Bytecode\ShaderBytecode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Shader\Bytecode\ShaderBytecode.cpp">
+    <ClCompile Include="src\Graphics\Direct3D\Renderer\Detail\SpriteBatchData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Direct3D\Renderer\Detail\TextureSamplerCache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Direct3D\Renderer\Detail\ToneMapData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Direct3D\Renderer\Detail\BlendStateCache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -941,13 +950,25 @@
     <ClInclude Include="src\Graphics\Direct3D\Shader\D3D_Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Renderer\SpriteBatchData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Graphics\Direct3D\Shader\Bytecode\ShaderBytecode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Direct3D\IGraphicsResource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\ShaderFlags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\TextureSamplerCache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\SpriteBatchData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\ToneMapData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\BlendStateCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1048,5 +1069,8 @@
     <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\SSS\SSSFilterGauss2D_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\SSS\SSSFilterMin_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\ToneMap\ToneMap_PS.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Graphics\Direct3D\Renderer\Detail\ConstantData.h" />
   </ItemGroup>
 </Project>

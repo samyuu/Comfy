@@ -171,6 +171,9 @@
     <ClCompile Include="src\Editor\PV\SceneEditor.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\A3D.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\A3DMgr.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\Renderer\Detail\BlendStateCache.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\Renderer\Detail\TextureSamplerCache.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\Renderer\Detail\ToneMapData.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\Shader\Bytecode\ShaderBytecode.cpp" />
     <ClCompile Include="src\ImGui\ComfyTextureID.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
@@ -227,7 +230,7 @@
     <ClCompile Include="src\Graphics\Auth2D\AetRenderer.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\AetSet.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\AetSetFile.cpp" />
-    <ClCompile Include="src\Graphics\Direct3D\Renderer\SpriteBatchData.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\Renderer\Detail\SpriteBatchData.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\Light\FogParameter.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\Light\GlowParameter.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\Light\LightDataIBL.cpp" />
@@ -297,6 +300,10 @@
     <ClCompile Include="src\System\Profiling\Profiler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\BlendStateCache.h" />
+    <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\ShaderFlags.h" />
+    <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\TextureSamplerCache.h" />
+    <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\ToneMapData.h" />
     <ClInclude Include="src\Graphics\Direct3D\Shader\Bytecode\ShaderBytecode.h" />
     <ClInclude Include="src\Resource\IDHash.h" />
     <ClInclude Include="src\Resource\Detail\IDTypeDeclarations.h" />
@@ -409,7 +416,7 @@
     <ClInclude Include="src\Graphics\Auth2D\AetMgr.h" />
     <ClInclude Include="src\Graphics\Auth2D\AetRenderer.h" />
     <ClInclude Include="src\Graphics\Auth2D\AetSet.h" />
-    <ClInclude Include="src\Graphics\Direct3D\Renderer\SpriteBatchData.h" />
+    <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\SpriteBatchData.h" />
     <ClInclude Include="src\Graphics\Auth3D\BoundingTypes.h" />
     <ClInclude Include="src\Graphics\Auth3D\Light\FogParameter.h" />
     <ClInclude Include="src\Graphics\Auth3D\Light\GlowParameter.h" />
@@ -1121,6 +1128,9 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XX_main</EntryPointName>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Graphics\Direct3D\Renderer\Detail\ConstantData.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -8,7 +8,7 @@
 #include "../State/D3D_RasterizerState.h"
 #include "../State/D3D_InputLayout.h"
 #include "../Texture/D3D_Texture.h"
-#include "SpriteBatchData.h"
+#include "Detail/SpriteBatchData.h"
 #include "Graphics/Camera.h"
 
 namespace Comfy::Graphics

@@ -525,8 +525,7 @@ namespace Comfy::Graphics
 		if (textureID == TxpID::Invalid)
 			return nullptr;
 
-		auto found = textureIDTxpMap.find(textureID);
-		if (found != textureIDTxpMap.end())
+		if (auto found = textureIDTxpMap.find(textureID); found != textureIDTxpMap.end())
 			return found->second;
 
 		return nullptr;
@@ -1724,110 +1723,5 @@ namespace Comfy::Graphics
 	bool D3D_Renderer3D::IsDebugRenderFlagSet(int bitIndex) const
 	{
 		return renderParameters->DebugFlags & (1 << bitIndex);
-	}
-
-	void D3D_Renderer3D::TextureSamplerCache::CreateIfNeeded(const RenderParameters& renderParameters)
-	{
-		if (samplers[0][0] == nullptr || lastAnistropicFiltering != renderParameters.AnistropicFiltering)
-		{
-			const auto filter = (renderParameters.AnistropicFiltering > D3D11_MIN_MAXANISOTROPY) ? D3D11_FILTER_ANISOTROPIC : D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-
-			constexpr std::array d3dAddressModes = { D3D11_TEXTURE_ADDRESS_MIRROR, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_CLAMP };
-			constexpr std::array addressModeNames = { "Mirror", "Repeat", "Clamp" };
-
-			for (int u = 0; u < AddressMode_Count; u++)
-			{
-				for (int v = 0; v < AddressMode_Count; v++)
-				{
-					samplers[u][v] = MakeUnique<D3D_TextureSampler>(filter, d3dAddressModes[u], d3dAddressModes[v], 0.0f, renderParameters.AnistropicFiltering);
-					D3D_SetObjectDebugName(samplers[u][v]->GetSampler(), "Renderer3D::Sampler::%s-%s", addressModeNames[u], addressModeNames[v]);
-				}
-			}
-
-			lastAnistropicFiltering = renderParameters.AnistropicFiltering;
-		}
-	}
-
-	D3D_TextureSampler& D3D_Renderer3D::TextureSamplerCache::GetSampler(MaterialTextureFlags flags)
-	{
-		auto u = flags.TextureAddressMode_U_Mirror ? Mirror : flags.TextureAddressMode_U_Repeat ? Repeat : Clamp;
-		auto v = flags.TextureAddressMode_V_Mirror ? Mirror : flags.TextureAddressMode_V_Repeat ? Repeat : Clamp;
-		return *samplers[u][v];
-	}
-
-	D3D_Renderer3D::BlendStateCache::BlendStateCache()
-	{
-		constexpr std::array d3dBlendFactors = { D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_SRC_COLOR, D3D11_BLEND_INV_SRC_COLOR, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_DEST_ALPHA, D3D11_BLEND_INV_DEST_ALPHA, D3D11_BLEND_DEST_COLOR, D3D11_BLEND_INV_DEST_COLOR, };
-		constexpr std::array blendFactorNames = { "Zero", "One", "SrcColor", "ISrcColor", "SrcAlpha", "ISrcAlpha", "DstAlpha", "IDstAlpha", "DstColor", "IDstColor", };
-
-		for (int src = 0; src < BlendFactor_Count; src++)
-		{
-			for (int dst = 0; dst < BlendFactor_Count; dst++)
-			{
-				states[src][dst] = MakeUnique<D3D_BlendState>(d3dBlendFactors[src], d3dBlendFactors[dst], D3D11_BLEND_INV_DEST_ALPHA, D3D11_BLEND_ONE);
-				D3D_SetObjectDebugName(states[src][dst]->GetBlendState(), "Renderer3D::BlendState::%s-%s", blendFactorNames[src], blendFactorNames[dst]);
-			}
-		}
-	}
-
-	D3D_BlendState& D3D_Renderer3D::BlendStateCache::GetState(BlendFactor source, BlendFactor destination)
-	{
-		return *states[source][destination];
-	}
-
-	bool D3D_Renderer3D::ToneMapData::NeedsUpdating(const SceneContext* sceneContext)
-	{
-		if (LookupTexture == nullptr)
-			return true;
-
-		if (Glow.Gamma != sceneContext->Glow.Gamma)
-			return true;
-
-		if (Glow.SaturatePower != sceneContext->Glow.SaturatePower)
-			return true;
-
-		if (Glow.SaturateCoefficient != sceneContext->Glow.SaturateCoefficient)
-			return true;
-
-		return false;
-	}
-
-	void D3D_Renderer3D::ToneMapData::Update()
-	{
-		GenerateLookupData();
-		UpdateTexture();
-	}
-
-	void D3D_Renderer3D::ToneMapData::GenerateLookupData()
-	{
-		const float pixelCount = static_cast<float>(TextureData.size());
-		const float gammaPower = 1.0f * Glow.Gamma * 1.5f;
-		const int saturatePowerCount = Glow.SaturatePower * 4;
-
-		TextureData[0] = vec2(0.0f, 0.0f);
-		for (int i = 1; i < static_cast<int>(TextureData.size()); i++)
-		{
-			const float step = (static_cast<float>(i) * 16.0f) / pixelCount;
-			const float gamma = glm::pow((1.0f - glm::exp(-step)), gammaPower);
-
-			float saturation = (gamma * 2.0f) - 1.0f;
-			for (int j = 0; j < saturatePowerCount; j++)
-				saturation *= saturation;
-
-			TextureData[i].x = gamma;
-			TextureData[i].y = ((gamma * Glow.SaturateCoefficient) / step) * (1.0f - saturation);
-		}
-	}
-
-	void D3D_Renderer3D::ToneMapData::UpdateTexture()
-	{
-		if (LookupTexture == nullptr)
-		{
-			LookupTexture = MakeUnique<D3D_Texture1D>(static_cast<int32_t>(TextureData.size()), TextureData.data(), DXGI_FORMAT_R32G32_FLOAT);
-		}
-		else
-		{
-			LookupTexture->UploadData(sizeof(toneMapData.TextureData), TextureData.data());
-		}
 	}
 }
