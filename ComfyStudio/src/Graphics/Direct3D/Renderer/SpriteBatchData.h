@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "Graphics/Direct3D/D3D_Texture.h"
+#include "../Texture/D3D_Texture.h"
 
 namespace Comfy::Graphics
 {
@@ -16,7 +16,7 @@ namespace Comfy::Graphics
 	public:
 		static inline constexpr uint32_t GetIndexCount() { return sizeof(SpriteIndices) / sizeof(uint16_t); };
 	};
-
+	
 	struct SpriteVertex
 	{
 		// TODO: Consider using 16-bit texture coordinates
@@ -72,5 +72,4 @@ namespace Comfy::Graphics
 		SpriteBatchItem* Item;
 		SpriteVertices* Vertices;
 	};
-
 }

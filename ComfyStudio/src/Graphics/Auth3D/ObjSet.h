@@ -3,8 +3,8 @@
 #include "BoundingTypes.h"
 #include "FileSystem/FileInterface.h"
 #include "Graphics/TxpSet.h"
-#include "Graphics/Direct3D/D3D_IndexBuffer.h"
-#include "Graphics/Direct3D/D3D_VertexBuffer.h"
+#include "Graphics/Direct3D/Buffer/D3D_IndexBuffer.h"
+#include "Graphics/Direct3D/Buffer/D3D_VertexBuffer.h"
 
 namespace Comfy::Graphics
 {

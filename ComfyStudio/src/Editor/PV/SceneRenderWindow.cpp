@@ -134,11 +134,11 @@ namespace Comfy::Editor
 					RenderDebugBoundingSpheres(renderer3D, *entity);
 #endif
 				}
-	}
+			}
 
 			if (cameraController->Visualization.VisualizeInterest && cameraController->Visualization.InterestSphereObj != nullptr)
 				renderer3D->Draw(RenderCommand(*cameraController->Visualization.InterestSphereObj, context->Camera.Interest));
-}
+		}
 		renderer3D->End();
 	}
 

@@ -3,7 +3,7 @@
 #include "SceneRenderWindow.h"
 #include "Editor/Core/IEditorComponent.h"
 #include "Editor/Common/CameraController3D.h"
-#include "Graphics/Direct3D/D3D_Renderer3D.h"
+#include "Graphics/Direct3D/Renderer/D3D_Renderer3D.h"
 #include "Graphics/SprSet.h"
 #include "ImGui/Widgets/FileViewer.h"
 #include "StageTest.h"

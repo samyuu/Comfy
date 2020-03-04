@@ -1,6 +1,6 @@
 #pragma once
 #include "AetMgr.h"
-#include "Graphics/Direct3D/D3D_Renderer2D.h"
+#include "Graphics/Direct3D/Renderer/D3D_Renderer2D.h"
 #include "Graphics/SprSet.h"
 #include <functional>
 #include <optional>

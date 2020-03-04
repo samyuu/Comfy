@@ -1,5 +1,5 @@
 #include "ImGuiExtensions.h"
-#include "Graphics/Direct3D/D3D_Texture.h"
+#include "Graphics/Direct3D/Texture/D3D_Texture.h"
 #include "Core/DebugStopwatch.h"
 #include "FontIcons.h"
 

@@ -4,7 +4,7 @@
 #include "Resource/IDTypes.h"
 #include "FileSystem/FileInterface.h"
 #include "Graphics/GraphicTypes.h"
-#include "Graphics/Direct3D/D3D_Texture.h"
+#include "Graphics/Direct3D/Texture/D3D_Texture.h"
 
 namespace Comfy::Graphics
 {

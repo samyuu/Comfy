@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "Graphics/GraphicTypes.h"
-#include "Graphics/Direct3D/D3D_Texture.h"
+#include "Graphics/Direct3D/Texture/D3D_Texture.h"
 #include "FileSystem/FileInterface.h"
 
 namespace Comfy::Graphics

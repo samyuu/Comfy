@@ -1,7 +1,7 @@
 #pragma once
 #include "SceneGraph.h"
 #include "Editor/Core/RenderWindowBase.h"
-#include "Graphics/Direct3D/D3D_Renderer3D.h"
+#include "Graphics/Direct3D/Renderer/D3D_Renderer3D.h"
 #include "Editor/Common/CameraController3D.h"
 
 namespace Comfy::Editor

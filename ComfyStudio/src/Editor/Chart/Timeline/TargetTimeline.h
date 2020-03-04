@@ -4,7 +4,7 @@
 #include "Editor/Common/AudioController.h"
 #include "Editor/Chart/Chart.h"
 #include "Audio/Waveform.h"
-#include "Graphics/Direct3D/D3D_Texture.h"
+#include "Graphics/Direct3D/Texture/D3D_Texture.h"
 #include "Graphics/SprSet.h"
 #include "Input/KeyCode.h"
 

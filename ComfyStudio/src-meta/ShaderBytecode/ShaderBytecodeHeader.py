@@ -1,14 +1,14 @@
 from io import open
 
 inputFileName = "ShaderList.txt"
-outputFileName = "../../src/Graphics/Direct3D/ShaderBytecode/ShaderBytecode.h"
+outputFileName = "../../src/Graphics/Direct3D/Shader/Bytecode/ShaderBytecode.h"
 
 shaderNamesToInclude = []
 with open(inputFileName, 'r') as inputFile:
 	shaderNamesToInclude = inputFile.read().splitlines()
 
 outputFileContent = "#pragma once\n"
-outputFileContent += "#include \"Graphics/Direct3D/D3D_Shader.h\"\n"
+outputFileContent += "#include \"Graphics/Direct3D/Shader/D3D_Shader.h\"\n"
 outputFileContent += "\n"
 outputFileContent += "#define DECLARE_BYTECODE_GETTER(shader)	BytecodeBlob shader();\n"
 outputFileContent += "#define DEFINE_BYTECODE_GETTER(shader)	BytecodeBlob shader() { return { ::shader##_Bytecode, sizeof(::shader##_Bytecode) }; }\n"
