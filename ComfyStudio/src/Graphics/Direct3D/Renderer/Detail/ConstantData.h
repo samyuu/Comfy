@@ -82,13 +82,10 @@ namespace Comfy::Graphics
 		uint32_t AmbientTextureType;
 	};
 
-#define COMFY_SKELETON_TEST 0
-#if COMFY_SKELETON_TEST
 	struct SkeletonConstantData
 	{
 		std::array<mat4, 192> Bones;
 	};
-#endif
 
 	struct ESMFilterConstantData
 	{

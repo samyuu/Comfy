@@ -1069,6 +1069,7 @@
     <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\SSS\SSSFilterGauss2D_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\SSS\SSSFilterMin_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\ToneMap\ToneMap_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\Structs\SkeletonData.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Graphics\Direct3D\Renderer\Detail\ConstantData.h" />

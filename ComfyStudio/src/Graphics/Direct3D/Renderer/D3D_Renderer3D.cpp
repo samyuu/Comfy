@@ -604,6 +604,7 @@ namespace Comfy::Graphics
 
 		sceneCB.BindShaders();
 		objectCB.BindShaders();
+		skeletonCB.BindVertexShader();
 
 		D3D_ShaderResourceView::BindArray<TextureSlot_Count>(TextureSlot_Diffuse,
 			{
