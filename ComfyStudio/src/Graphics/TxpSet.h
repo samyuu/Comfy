@@ -46,7 +46,7 @@ namespace Comfy::Graphics
 		// NOTE: Two dimensional array [CubeFace][MipMap]
 		std::vector<std::vector<MipMap>> MipMapsArray;
 
-		TxpID ID = TxpID::Invalid;
+		Cached_TxpID ID = TxpID::Invalid;
 
 		UniquePtr<D3D_Texture2D> D3D_Texture2D = nullptr;
 		UniquePtr<D3D_CubeMap> D3D_CubeMap = nullptr;

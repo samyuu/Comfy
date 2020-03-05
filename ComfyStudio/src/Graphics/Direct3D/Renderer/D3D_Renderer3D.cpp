@@ -355,8 +355,10 @@ namespace Comfy::Graphics
 		}
 	}
 
-	D3D_Renderer3D::D3D_Renderer3D()
+	D3D_Renderer3D::D3D_Renderer3D(TxpGetterFunction txpGetter)
 	{
+		this->txpGetter = txpGetter;
+
 		static constexpr InputElement genericElements[] =
 		{
 			{ "POSITION",		0, DXGI_FORMAT_R32G32B32_FLOAT,		0, VertexAttribute_Position },
@@ -487,48 +489,14 @@ namespace Comfy::Graphics
 		}
 	}
 
-	void D3D_Renderer3D::ClearTextureIDs()
-	{
-		textureIDTxpMap.clear();
-	}
-
-	void D3D_Renderer3D::RegisterTextureIDs(const TxpSet& txpSet)
-	{
-		for (auto& txp : txpSet.Txps)
-		{
-			if (txp->ID != TxpID::Invalid)
-				textureIDTxpMap[txp->ID] = txp.get();
-		}
-	}
-
-	void D3D_Renderer3D::UnRegisterTextureIDs(const TxpSet& txpSet)
-	{
-		for (auto& txp : txpSet.Txps)
-		{
-			if (txp->ID != TxpID::Invalid)
-				textureIDTxpMap.erase(txp->ID);
-		}
-	}
-
 	const SceneContext* D3D_Renderer3D::GetSceneContext() const
 	{
 		return sceneContext;
 	}
 
-	std::unordered_map<TxpID, const Txp*>& D3D_Renderer3D::GetTextureIDTxpMap()
+	const Txp* D3D_Renderer3D::GetTxpFromTextureID(const Cached_TxpID& textureID) const
 	{
-		return textureIDTxpMap;
-	}
-
-	const Txp* D3D_Renderer3D::GetTxpFromTextureID(TxpID textureID) const
-	{
-		if (textureID == TxpID::Invalid)
-			return nullptr;
-
-		if (auto found = textureIDTxpMap.find(textureID); found != textureIDTxpMap.end())
-			return found->second;
-
-		return nullptr;
+		return txpGetter(textureID);
 	}
 
 	void D3D_Renderer3D::InternalFlush()
@@ -1358,14 +1326,14 @@ namespace Comfy::Graphics
 			{
 				const MaterialTexture& materialTexture = (&material.DiffuseMap)[i];
 
-				TxpID txpID = materialTexture.TextureID;
+				const Cached_TxpID* txpID = &materialTexture.TextureID;
 				MaterialTextureFlags textureFlags = materialTexture.Flags;
 
 				if (command.SourceCommand.Animation != nullptr)
 				{
 					for (auto& transform : command.SourceCommand.Animation->TextureTransforms)
 					{
-						if (txpID == transform.ID)
+						if (*txpID == transform.ID)
 						{
 							textureFlags.TextureAddressMode_U_Repeat = transform.RepeatU.value_or<int>(textureFlags.TextureAddressMode_U_Repeat);
 							textureFlags.TextureAddressMode_V_Repeat = transform.RepeatU.value_or<int>(textureFlags.TextureAddressMode_V_Repeat);
@@ -1374,19 +1342,19 @@ namespace Comfy::Graphics
 
 					for (auto& pattern : command.SourceCommand.Animation->TexturePatterns)
 					{
-						if (txpID == pattern.ID && pattern.IDOverride != TxpID::Invalid)
-							txpID = pattern.IDOverride;
+						if (*txpID == pattern.ID && pattern.IDOverride != TxpID::Invalid)
+							txpID = &pattern.IDOverride;
 					}
 				}
 
-				if (auto txp = GetTxpFromTextureID(txpID); txp != nullptr)
+				if (auto txp = GetTxpFromTextureID(*txpID); txp != nullptr)
 				{
 					textureResources[i] = (txp->D3D_Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->D3D_Texture2D.get()) : (txp->D3D_CubeMap != nullptr) ? (txp->D3D_CubeMap.get()) : nullptr;
 					textureSamplers[i] = &cachedTextureSamplers.GetSampler(textureFlags);
 
 					if (&materialTexture == &material.DiffuseMap)
 					{
-						if (command.SourceCommand.Animation != nullptr && txpID == command.SourceCommand.Animation->ScreenRenderTextureID)
+						if (command.SourceCommand.Animation != nullptr && *txpID == command.SourceCommand.Animation->ScreenRenderTextureID)
 						{
 							objectCB.Data.DiffuseScreenTexture = true;
 							textureResources[i] = &renderData->Main.PreviousOrResolved();

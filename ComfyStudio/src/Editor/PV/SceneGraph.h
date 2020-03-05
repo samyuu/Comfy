@@ -3,6 +3,7 @@
 #include "Graphics/Auth3D/ObjSet.h"
 #include "Graphics/Auth3D/ObjAnimationData.h"
 #include "Database/TxpDB.h"
+#include "Resource/ResourceIDMap.h"
 
 namespace Comfy::Editor
 {
@@ -38,6 +39,7 @@ namespace Comfy::Editor
 
 	struct SceneGraph
 	{
+		ResourceIDMap<TxpID, Graphics::Txp> TxpIDMap;
 		UniquePtr<Database::TxpDB> TxpDB = nullptr;
 
 		std::vector<ObjSetResource> LoadedObjSets;
@@ -45,8 +47,13 @@ namespace Comfy::Editor
 
 		inline ObjSetResource& LoadObjSet(const RefPtr<Graphics::ObjSet>& objSet, EntityTag tag)
 		{
-			LoadedObjSets.emplace_back(ObjSetResource { objSet, tag });
-			return LoadedObjSets.back();
+			return LoadedObjSets.emplace_back(ObjSetResource { objSet, tag });
+		}
+
+		inline void RegisterTextures(Graphics::TxpSet* txpSet)
+		{
+			if (txpSet != nullptr)
+				TxpIDMap.AddRange(txpSet->Txps, [](auto& txp) { return ResourceIDMap<TxpID, Graphics::Txp>::ResourceIDPair { txp->ID, txp }; });
 		}
 
 		inline ObjectEntity& AddEntityFromObj(const Graphics::Obj& obj, EntityTag tag)

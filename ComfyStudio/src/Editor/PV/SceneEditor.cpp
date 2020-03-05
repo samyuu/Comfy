@@ -27,7 +27,9 @@ namespace Comfy::Editor
 
 	SceneEditor::SceneEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
-		renderer3D = MakeUnique<D3D_Renderer3D>();
+		auto txpGetter = [&](const Cached_TxpID& txpID) { return sceneGraph.TxpIDMap.Find(txpID); };
+		renderer3D = MakeUnique<D3D_Renderer3D>(txpGetter);
+
 		renderWindow = MakeUnique<SceneRenderWindow>(sceneGraph, context, cameraController, *renderer3D);
 	}
 
@@ -164,6 +166,7 @@ namespace Comfy::Editor
 		objSet->Name = FileSystem::GetFileName(objSetPath, false);
 		objSet->TxpSet = TxpSet::MakeUniqueReadParseUpload(txpSetPath, objSet.get());
 		sceneGraph.LoadObjSet(objSet, tag);
+		sceneGraph.RegisterTextures(objSet->TxpSet.get());
 
 		if (sceneGraph.TxpDB == nullptr)
 		{
@@ -185,7 +188,6 @@ namespace Comfy::Editor
 			}
 		}
 
-		renderer3D->RegisterTextureIDs(*objSet->TxpSet);
 		return true;
 	}
 
@@ -194,7 +196,13 @@ namespace Comfy::Editor
 		if (objSetToRemove == nullptr)
 			return false;
 
-		renderer3D->UnRegisterTextureIDs(*objSetToRemove->TxpSet);
+		if (objSetToRemove->TxpSet != nullptr)
+		{
+			sceneGraph.TxpIDMap.RemoveRange([&](auto& pair) 
+			{
+				return std::any_of(objSetToRemove->TxpSet->Txps.begin(), objSetToRemove->TxpSet->Txps.end(), [&pair](auto& txp)  { return txp->ID == pair.ID; });
+			});
+		}
 
 		sceneGraph.LoadedObjSets.erase(
 			std::remove_if(sceneGraph.LoadedObjSets.begin(),
@@ -273,7 +281,12 @@ namespace Comfy::Editor
 				if (objSetResource.Tag == tag)
 				{
 					if (objSetResource.ObjSet->TxpSet != nullptr)
-						renderer3D->UnRegisterTextureIDs(*objSetResource.ObjSet->TxpSet);
+					{
+						sceneGraph.TxpIDMap.RemoveRange([&](auto& pair)
+						{
+							return std::any_of(objSetResource.ObjSet->TxpSet->Txps.begin(), objSetResource.ObjSet->TxpSet->Txps.end(), [&pair](auto& txp) { return txp->ID == pair.ID; });
+						});
+					}
 					return true;
 				}
 				return false;
@@ -620,7 +633,7 @@ namespace Comfy::Editor
 
 		Gui::DragFloat3("Bloom Sigma", glm::value_ptr(context.Glow.Sigma), 0.005f, 0.0f, 3.0f);
 		Gui::DragFloat3("Bloom Intensity", glm::value_ptr(context.Glow.Intensity), 0.005f, 0.0f, 2.0f);
-		
+
 		Gui::Checkbox("Auto Exposure", &context.Glow.AutoExposure);
 		Gui::PopID();
 	}

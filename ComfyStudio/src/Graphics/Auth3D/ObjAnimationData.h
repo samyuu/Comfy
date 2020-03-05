@@ -10,8 +10,8 @@ namespace Comfy::Graphics
 	{
 		struct TexturePattern
 		{
-			TxpID ID = TxpID::Invalid;
-			TxpID IDOverride = TxpID::Invalid;
+			Cached_TxpID ID = TxpID::Invalid;
+			Cached_TxpID IDOverride = TxpID::Invalid;
 			
 			// NOTE: To easily index into and avoid needless searches
 			std::optional<std::vector<TxpID>> CachedIDs;

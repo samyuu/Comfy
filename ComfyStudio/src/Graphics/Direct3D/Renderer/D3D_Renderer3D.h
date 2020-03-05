@@ -19,7 +19,7 @@
 #include "Graphics/Auth3D/ObjSet.h"
 #include "Graphics/Auth3D/ObjAnimationData.h"
 #include "Graphics/Auth3D/SceneContext.h"
-#include <unordered_map>
+#include <functional>
 
 namespace Comfy::Graphics
 {
@@ -57,10 +57,12 @@ namespace Comfy::Graphics
 		RenderCommand(const Obj& obj, const vec3& position) : SourceObj(&obj), Transform(position) {}
 	};
 
+	using TxpGetterFunction = std::function<const Txp*(const Cached_TxpID& txpID)>;
+
 	class D3D_Renderer3D : NonCopyable
 	{
 	public:
-		D3D_Renderer3D();
+		D3D_Renderer3D(TxpGetterFunction txpGetter);
 		~D3D_Renderer3D() = default;
 
 	public:
@@ -72,15 +74,9 @@ namespace Comfy::Graphics
 		void UpdateIsAnyCommandFlags(const RenderCommand& command);
 
 	public:
-		void ClearTextureIDs();
-		void RegisterTextureIDs(const TxpSet& txpSet);
-		void UnRegisterTextureIDs(const TxpSet& txpSet);
-
-	public:
 		const SceneContext* GetSceneContext() const;
-		std::unordered_map<TxpID, const Txp*>& GetTextureIDTxpMap();
 
-		const Txp* GetTxpFromTextureID(TxpID textureID) const;
+		const Txp* GetTxpFromTextureID(const Cached_TxpID& textureID) const;
 
 	private:
 		struct ObjRenderCommand
@@ -258,6 +254,6 @@ namespace Comfy::Graphics
 		RenderParameters* renderParameters = nullptr;
 		RenderData* renderData = nullptr;
 
-		std::unordered_map<TxpID, const Txp*> textureIDTxpMap = {};
+		TxpGetterFunction txpGetter = nullptr;
 	};
 }

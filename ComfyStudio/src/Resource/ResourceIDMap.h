@@ -4,14 +4,13 @@
 
 namespace Comfy
 {
-#define DEBUG_ASSERT_SORTED() assert(std::is_sorted(sortedResources.begin(), sortedResources.end(), [](const auto& a, const auto& b) { return a.ID < b.ID; }));
-
 	// NOTE: High performance container to map between (ID -> Resource) using CachedResourceIDs
 	template <typename IDType, typename ResourceType>
 	class ResourceIDMap
 	{
 		// NOTE: Completly arbitrary threshold, might wanna do some real performance testing
 		static constexpr size_t LinearSearchThreshold = 32;
+		static constexpr bool OverideDuplicateIDs = true;
 
 	public:
 		struct ResourceIDPair
@@ -31,11 +30,14 @@ namespace Comfy
 				return;
 
 			if (const auto[indexOrClosest, wasFound] = FindIndex(id); wasFound)
-				sortedResources[indexOrClosest].Resource = resource;
+			{
+				if (OverideDuplicateIDs)
+					sortedResources[indexOrClosest].Resource = resource;
+			}
 			else
+			{
 				sortedResources.insert(sortedResources.begin() + indexOrClosest, { id, resource });
-
-			DEBUG_ASSERT_SORTED();
+			}
 		}
 
 		template <typename CollectionType, typename Func>
@@ -44,14 +46,41 @@ namespace Comfy
 			sortedResources.reserve(sortedResources.size() + collection.size());
 
 			for (auto& item : collection)
-				sortedResources.push_back(func(item));
+			{
+				auto resourceToAdd = func(item);
+				if (const auto[indexOrClosest, wasFound] = FindIndex(resourceToAdd.ID); wasFound)
+				{
+					if (OverideDuplicateIDs)
+						sortedResources[indexOrClosest].Resource = std::move(resourceToAdd.Resource);
+				}
+				else
+				{
+					sortedResources.push_back(std::move(resourceToAdd));
+				}
+			}
 
 			SortAllResources();
 		}
 
 		void Remove(IDType id)
 		{
-			RemoveResource(id);
+			sortedResources.erase(
+				std::remove_if(
+					sortedResources.begin(),
+					sortedResources.end(),
+					[id](auto& pair) { return pair.ID == id; }),
+				sortedResources.end());
+		}
+
+		template <typename Func>
+		void RemoveRange(Func func)
+		{
+			sortedResources.erase(
+				std::remove_if(
+					sortedResources.begin(),
+					sortedResources.end(),
+					func),
+				sortedResources.end());
 		}
 
 		void Clear()
@@ -68,8 +97,6 @@ namespace Comfy
 
 		ResourceType* Find(const CachedResourceID<IDType>& cachedID) const
 		{
-			DEBUG_ASSERT_SORTED();
-
 			if (cachedID == IDType::Invalid)
 				return nullptr;
 
@@ -93,7 +120,7 @@ namespace Comfy
 	private:
 		struct FindIndexResult
 		{
-			size_t IndexOrClosest;
+			int IndexOrClosest;
 			bool WasFound;
 		};
 
@@ -104,25 +131,26 @@ namespace Comfy
 
 		FindIndexResult FindIndexLinearSearch(IDType id) const
 		{
-			for (size_t i = 0; i < sortedResources.size(); i++)
+			const int resourceCount = static_cast<int>(sortedResources.size());
+			for (int i = 0; i < resourceCount; i++)
 			{
 				if (sortedResources[i].ID == id)
 					return { i, true };
 				else if (sortedResources[i].ID > id)
 					return { i, false };
 			}
-			return { sortedResources.size(), false };
+			return { resourceCount, false };
 		}
 
 		FindIndexResult FindIndexBinarySearch(IDType id) const
 		{
 			if (sortedResources.size() < 1)
-				return { sortedResources.size(), false };
+				return { 0, false };
 
-			size_t left = 0, right = sortedResources.size() - 1;
+			int left = 0, right = static_cast<int>(sortedResources.size()) - 1;
 			while (left <= right)
 			{
-				const size_t mid = (left + right) / 2;
+				const int mid = (left + right) / 2;
 
 				if (id < sortedResources[mid].ID)
 					right = (mid - 1);
@@ -138,11 +166,6 @@ namespace Comfy
 		void SortAllResources()
 		{
 			std::sort(sortedResources.begin(), sortedResources.end(), [](auto& a, auto& b) { return a.ID < b.ID; });
-		}
-
-		void RemoveResource(IDType id)
-		{
-			sortedResources.erase(std::remove_if(sortedResources.begin(), sortedResources.end(), [id](auto& pair) { return pair.ID = id; }), sortedResources.end());
 		}
 
 		std::vector<ResourceIDPair> sortedResources;

@@ -98,7 +98,7 @@ namespace Comfy::Graphics
 	struct MaterialTexture
 	{
 		MaterialTextureFlags Flags;
-		TxpID TextureID;
+		Cached_TxpID TextureID;
 		MaterialTextureTypeFlags TypeFlags;
 		vec3 Field03_05;
 		mat4 TextureCoordinateMatrix;
