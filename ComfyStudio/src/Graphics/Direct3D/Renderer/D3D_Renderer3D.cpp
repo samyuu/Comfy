@@ -1313,18 +1313,17 @@ namespace Comfy::Graphics
 
 		if (!(flags & RenderFlags_NoMaterialTextures))
 		{
-			constexpr size_t textureTypeCount = 7;
-			std::array<D3D_ShaderResourceView*, textureTypeCount> textureResources = {};
-			std::array<D3D_TextureSampler*, textureTypeCount> textureSamplers = {};
+			std::array<D3D_ShaderResourceView*, MaterialTexture::Count> textureResources = {};
+			std::array<D3D_TextureSampler*, MaterialTexture::Count> textureSamplers = {};
 
 			objectCB.Data.DiffuseRGTC1 = false;
 			objectCB.Data.DiffuseScreenTexture = false;
 
-			const size_t texturesToBind = (flags & RenderFlags_DiffuseTextureOnly) ? 1 : textureTypeCount;
+			const size_t texturesToBind = (flags & RenderFlags_DiffuseTextureOnly) ? 1 : MaterialTexture::Count;
 
 			for (size_t i = 0; i < texturesToBind; i++)
 			{
-				const MaterialTexture& materialTexture = (&material.DiffuseMap)[i];
+				const MaterialTexture& materialTexture = material.TexturesArray[i];
 
 				const Cached_TxpID* txpID = &materialTexture.TextureID;
 				MaterialTextureFlags textureFlags = materialTexture.Flags;
@@ -1352,7 +1351,7 @@ namespace Comfy::Graphics
 					textureResources[i] = (txp->D3D_Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->D3D_Texture2D.get()) : (txp->D3D_CubeMap != nullptr) ? (txp->D3D_CubeMap.get()) : nullptr;
 					textureSamplers[i] = &cachedTextureSamplers.GetSampler(textureFlags);
 
-					if (&materialTexture == &material.DiffuseMap)
+					if (&materialTexture == &material.Textures.Diffuse)
 					{
 						if (command.SourceCommand.Animation != nullptr && *txpID == command.SourceCommand.Animation->ScreenRenderTextureID)
 						{
@@ -1366,22 +1365,22 @@ namespace Comfy::Graphics
 				}
 			}
 
-			auto ambientTypeFlags = material.AmbientMap.Flags.AmbientTypeFlags;
+			auto ambientTypeFlags = material.Textures.Ambient.Flags.AmbientTypeFlags;
 			objectCB.Data.AmbientTextureType = (ambientTypeFlags == 0b100) ? 2 : (ambientTypeFlags == 0b110) ? 1 : (ambientTypeFlags != 0b10000) ? 0 : 3;
 
 			D3D_ShaderResourceView::BindArray(TextureSlot_Diffuse, textureResources);
 			D3D_TextureSampler::BindArray(TextureSlot_Diffuse, textureSamplers);
 
-			objectCB.Data.Material.DiffuseTextureTransform = material.DiffuseMap.TextureCoordinateMatrix;
-			objectCB.Data.Material.AmbientTextureTransform = material.AmbientMap.TextureCoordinateMatrix;
+			objectCB.Data.Material.DiffuseTextureTransform = material.Textures.Diffuse.TextureCoordinateMatrix;
+			objectCB.Data.Material.AmbientTextureTransform = material.Textures.Ambient.TextureCoordinateMatrix;
 
 			if (command.SourceCommand.Animation != nullptr)
 			{
 				for (auto& textureTransform : command.SourceCommand.Animation->TextureTransforms)
 				{
 					mat4* output =
-						(textureTransform.ID == material.DiffuseMap.TextureID) ? &objectCB.Data.Material.DiffuseTextureTransform :
-						(textureTransform.ID == material.AmbientMap.TextureID) ? &objectCB.Data.Material.AmbientTextureTransform :
+						(textureTransform.ID == material.Textures.Diffuse.TextureID) ? &objectCB.Data.Material.DiffuseTextureTransform :
+						(textureTransform.ID == material.Textures.Ambient.TextureID) ? &objectCB.Data.Material.AmbientTextureTransform :
 						nullptr;
 
 					if (output == nullptr)
@@ -1461,43 +1460,43 @@ namespace Comfy::Graphics
 
 		if (renderParameters->DiffuseMapping)
 		{
-			if (material.DiffuseMap.TextureID != TxpID::Invalid)
+			if (material.Textures.Diffuse.TextureID != TxpID::Invalid)
 				objectCB.Data.ShaderFlags |= ShaderFlags_DiffuseTexture;
 		}
 
 		if (renderParameters->AmbientOcclusionMapping)
 		{
-			if (material.AmbientMap.TextureID != TxpID::Invalid)
+			if (material.Textures.Ambient.TextureID != TxpID::Invalid)
 				objectCB.Data.ShaderFlags |= ShaderFlags_AmbientTexture;
 		}
 
 		if (renderParameters->NormalMapping)
 		{
-			if (material.NormalMap.TextureID != TxpID::Invalid)
+			if (material.Textures.Normal.TextureID != TxpID::Invalid)
 				objectCB.Data.ShaderFlags |= ShaderFlags_NormalTexture;
 		}
 
 		if (renderParameters->SpecularMapping)
 		{
-			if (material.SpecularMap.TextureID != TxpID::Invalid)
+			if (material.Textures.Specular.TextureID != TxpID::Invalid)
 				objectCB.Data.ShaderFlags |= ShaderFlags_SpecularTexture;
 		}
 
 		if (renderParameters->TransparencyMapping)
 		{
-			if (material.TransparencyMap.TextureID != TxpID::Invalid)
+			if (material.Textures.Transparency.TextureID != TxpID::Invalid)
 				objectCB.Data.ShaderFlags |= ShaderFlags_TransparencyTexture;
 		}
 
 		if (renderParameters->EnvironmentMapping)
 		{
-			if (material.EnvironmentMap.TextureID != TxpID::Invalid)
+			if (material.Textures.Environment.TextureID != TxpID::Invalid)
 				objectCB.Data.ShaderFlags |= ShaderFlags_EnvironmentTexture;
 		}
 
 		if (renderParameters->TranslucencyMapping)
 		{
-			if (material.TranslucencyMap.TextureID != TxpID::Invalid)
+			if (material.Textures.Translucency.TextureID != TxpID::Invalid)
 				objectCB.Data.ShaderFlags |= ShaderFlags_TranslucencyTexture;
 		}
 

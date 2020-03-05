@@ -893,20 +893,16 @@ namespace Comfy::Editor
 				if (Gui::Checkbox("Phong Shading", &phongShading))
 					material->ShaderFlags.PhongShading = phongShading;
 
-				int materialIndex = 0;
-				material->IterateTextures([&](MaterialTexture* materialTexture)
+				for (size_t i = 0; i < material->TexturesArray.size(); i++)
 				{
-					static constexpr std::array names = { "Diffuse", "Ambient", "Normal", "Specular", "Transparency", "Environment", "Translucency", "Reserved" };
-					auto textureTypeName = names[materialIndex++];
-
-					if (auto txp = renderer3D->GetTxpFromTextureID(materialTexture->TextureID); txp != nullptr)
+					if (auto txp = renderer3D->GetTxpFromTextureID(material->TexturesArray[i].TextureID); txp != nullptr)
 					{
 						Gui::ImageObjTxp(txp, vec2(120.0f));
 
 						if (Gui::IsItemHovered())
-							Gui::SetTooltip("%s: %s", textureTypeName, txp->Name.empty() ? "Unknown" : txp->Name.c_str());
+							Gui::SetTooltip("%s: %s", MaterialTexture::TextureTypeNames[i], txp->Name.empty() ? "Unknown" : txp->Name.c_str());
 					}
-				});
+				}
 			}
 		}
 
@@ -1580,7 +1576,7 @@ namespace Comfy::Editor
 				{
 					for (const auto& material : entity->Obj->Materials)
 					{
-						if (auto txp = renderer3D->GetTxpFromTextureID(material.DiffuseMap.TextureID); txp != nullptr)
+						if (auto txp = renderer3D->GetTxpFromTextureID(material.Textures.Diffuse.TextureID); txp != nullptr)
 						{
 							if (EndsWithInsensitive(txp->Name, "_RENDER") || EndsWithInsensitive(txp->Name, "_MOVIE") || EndsWithInsensitive(txp->Name, "_TV")
 								|| EndsWithInsensitive(txp->Name, "_FB01") || EndsWithInsensitive(txp->Name, "_FB02") || EndsWithInsensitive(txp->Name, "_FB03"))
@@ -1588,7 +1584,7 @@ namespace Comfy::Editor
 								if (entity->Animation == nullptr)
 									entity->Animation = MakeUnique<ObjAnimationData>();
 
-								entity->Animation->ScreenRenderTextureID = material.DiffuseMap.TextureID;
+								entity->Animation->ScreenRenderTextureID = material.Textures.Diffuse.TextureID;
 							}
 						}
 					}

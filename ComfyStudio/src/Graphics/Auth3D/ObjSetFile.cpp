@@ -172,30 +172,21 @@ namespace Comfy::Graphics
 			{
 				for (auto& material : Materials)
 				{
-					auto readMaterialTexture = [](auto& reader, MaterialTexture& output)
-					{
-						output.Flags = ReadFlagsStruct32<MaterialTextureFlags>(reader);
-						output.TextureID = TxpID(reader.ReadU32());
-						output.TypeFlags = ReadFlagsStruct32<MaterialTextureTypeFlags>(reader);
-						output.Field03_05 = reader.ReadV3();
-						output.TextureCoordinateMatrix = reader.ReadMat4();
-						for (float& reserved : output.Reserved)
-							reserved = reader.ReadF32();
-					};
-
-					material.TextureCount = reader.ReadU32();
+					material.UsedTextureCount = reader.ReadU32();
 					material.Flags = ReadFlagsStruct32<MaterialFlags>(reader);
 					reader.ReadBuffer(material.MaterialType.data(), material.MaterialType.size());
 					material.ShaderFlags = ReadFlagsStruct32<MaterialShaderFlags>(reader);
 
-					readMaterialTexture(reader, material.DiffuseMap);
-					readMaterialTexture(reader, material.AmbientMap);
-					readMaterialTexture(reader, material.NormalMap);
-					readMaterialTexture(reader, material.SpecularMap);
-					readMaterialTexture(reader, material.TransparencyMap);
-					readMaterialTexture(reader, material.EnvironmentMap);
-					readMaterialTexture(reader, material.TranslucencyMap);
-					readMaterialTexture(reader, material.ReservedTexture);
+					for (auto& texture : material.TexturesArray)
+					{
+						texture.Flags = ReadFlagsStruct32<MaterialTextureFlags>(reader);
+						texture.TextureID = TxpID(reader.ReadU32());
+						texture.TypeFlags = ReadFlagsStruct32<MaterialTextureTypeFlags>(reader);
+						texture.Field03_05 = reader.ReadV3();
+						texture.TextureCoordinateMatrix = reader.ReadMat4();
+						for (float& reserved : texture.ReservedData)
+							reserved = reader.ReadF32();
+					}
 
 					material.BlendFlags = ReadFlagsStruct32<MaterialBlendFlags>(reader);
 					material.DiffuseColor = reader.ReadV3();

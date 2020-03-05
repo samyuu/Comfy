@@ -97,12 +97,37 @@ namespace Comfy::Graphics
 
 	struct MaterialTexture
 	{
+		enum TextureType
+		{
+			Diffuse,
+			Ambient,
+			Normal,
+			Specular,
+			Transparency,
+			Environment,
+			Translucency,
+			ReservedTexture,
+			Count
+		};
+
+		static constexpr std::array<const char*, Count> TextureTypeNames = 
+		{ 
+			"Diffuse", 
+			"Ambient", 
+			"Normal", 
+			"Specular", 
+			"Transparency", 
+			"Environment", 
+			"Translucency", 
+			"Reserved" 
+		};
+
 		MaterialTextureFlags Flags;
 		Cached_TxpID TextureID;
 		MaterialTextureTypeFlags TypeFlags;
 		vec3 Field03_05;
 		mat4 TextureCoordinateMatrix;
-		std::array<float, 8> Reserved;
+		std::array<float, 8> ReservedData;
 	};
 
 	struct MaterialFlags
@@ -194,22 +219,47 @@ namespace Comfy::Graphics
 
 	struct Material
 	{
-		uint32_t TextureCount;
+		static inline const struct Identifiers
+		{
+			std::array<char, 8> BLINN { "BLINN" };
+			std::array<char, 8> ITEM { "ITEM" };
+			std::array<char, 8> STAGE { "STAGE" };
+			std::array<char, 8> SKIN { "SKIN" };
+			std::array<char, 8> HAIR { "HAIR" };
+			std::array<char, 8> CLOTH { "CLOTH" };
+			std::array<char, 8> TIGHTS { "TIGHTS" };
+			std::array<char, 8> SKY { "SKY" };
+			std::array<char, 8> EYEBALL { "EYEBALL" };
+			std::array<char, 8> EYELENS { "EYELENS" };
+			std::array<char, 8> GLASEYE { "GLASEYE" };
+			std::array<char, 8> WATER01 { "WATER01" };
+			std::array<char, 8> WATER02 { "WATER02" };
+			std::array<char, 8> FLOOR { "FLOOR" };
+		} Identifiers;
+
+		uint32_t UsedTextureCount;
 		MaterialFlags Flags;
 
 		std::array<char, 8> MaterialType;
 		MaterialShaderFlags ShaderFlags;
 		
-		MaterialTexture DiffuseMap;
-		MaterialTexture AmbientMap;
-		MaterialTexture NormalMap;
-		MaterialTexture SpecularMap;
-		// NOTE: Transparency / ToonCurve
-		MaterialTexture TransparencyMap;
-		// NOTE: Environment / Reflection
-		MaterialTexture EnvironmentMap;
-		MaterialTexture TranslucencyMap;
-		MaterialTexture ReservedTexture;
+		union
+		{
+			struct Textures
+			{
+				MaterialTexture Diffuse;
+				MaterialTexture Ambient;
+				MaterialTexture Normal;
+				MaterialTexture Specular;
+				// NOTE: Transparency / ToonCurve
+				MaterialTexture Transparency;
+				// NOTE: Environment / Reflection
+				MaterialTexture Environment;
+				MaterialTexture Translucency;
+				MaterialTexture ReservedTexture;
+			} Textures;
+			std::array<MaterialTexture, MaterialTexture::Count> TexturesArray;
+		};
 
 		MaterialBlendFlags BlendFlags;
 
@@ -231,38 +281,6 @@ namespace Comfy::Graphics
 
 		float BumpDepth;
 		std::array<float, 15> Reserved;
-
-		template <typename T>
-		void IterateTextures(T func)
-		{
-			for (auto* texture = &DiffuseMap; texture <= &ReservedTexture; texture++)
-				func(texture);
-		}
-		
-		template <typename T>
-		void IterateTextures(T func) const
-		{
-			for (auto* texture = &DiffuseMap; texture <= &ReservedTexture; texture++)
-				func(texture);
-		}
-
-		static inline const struct Identifiers
-		{
-			std::array<char, 8> BLINN { "BLINN" };
-			std::array<char, 8> ITEM { "ITEM" };
-			std::array<char, 8> STAGE { "STAGE" };
-			std::array<char, 8> SKIN { "SKIN" };
-			std::array<char, 8> HAIR { "HAIR" };
-			std::array<char, 8> CLOTH { "CLOTH" };
-			std::array<char, 8> TIGHTS { "TIGHTS" };
-			std::array<char, 8> SKY { "SKY" };
-			std::array<char, 8> EYEBALL { "EYEBALL" };
-			std::array<char, 8> EYELENS { "EYELENS" };
-			std::array<char, 8> GLASEYE { "GLASEYE" };
-			std::array<char, 8> WATER01 { "WATER01" };
-			std::array<char, 8> WATER02 { "WATER02" };
-			std::array<char, 8> FLOOR { "FLOOR" };
-		} Identifiers;
 	};
 
 	struct Bone

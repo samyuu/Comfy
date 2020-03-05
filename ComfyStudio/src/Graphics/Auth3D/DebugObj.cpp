@@ -54,7 +54,8 @@ namespace Comfy::Graphics
 				material.BlendFlags.SrcBlendFactor = BlendFactor_SRC_ALPHA;
 				material.BlendFlags.DstBlendFactor = BlendFactor_ISRC_ALPHA;
 				material.BlendFlags.DoubleSidedness = DoubleSidedness_1_FaceLight;
-				material.IterateTextures([](auto& texture) { texture->TextureID = TxpID::Invalid; });
+				for (auto& texture : material.TexturesArray)
+					texture.TextureID = TxpID::Invalid;
 				material.DiffuseColor = vec3(color);
 				material.Transparency = color.a;
 				material.AmbientColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
