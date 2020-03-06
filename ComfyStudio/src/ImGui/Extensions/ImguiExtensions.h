@@ -102,16 +102,35 @@ namespace ImGui
 		ImGuiTextFilter textFilter;
 	};
 
-	inline void DRAW_DEBUG_REGION(ImRect& rect)
+	inline void DRAW_DEBUG_REGION(ImRect rect)
 	{
 		AddRectFilled(GetForegroundDrawList(), rect, static_cast<ImU32>(IM_COL32_BLACK * 0.5f));
 	}
 
-	inline void DEBUG_NOSAVE_WINDOW(const char* windowName, const std::function<void(void)>& function, ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysAutoResize)
+	template <typename Func>
+	inline void DEBUG_NOSAVE_WINDOW(const char* windowName, Func function, ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysAutoResize)
 	{
 		constexpr ImGuiWindowFlags defaultFlags = (ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking);
 		if (Begin(windowName, nullptr, flags | defaultFlags))
 			function();
+		End();
+	}
+
+	template <typename Func>
+	inline void DEBUG_NOSAVE_ONCE_PER_FRAME_WINDOW(const char* windowName, Func function, ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysAutoResize)
+	{
+		constexpr ImGuiWindowFlags defaultFlags = (ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking);
+		if (Begin(windowName, nullptr, flags | defaultFlags))
+		{
+			int* lastFrame = GetStateStorage()->GetIntRef(GetID("last_frame"));
+			int* thisFrame = GetStateStorage()->GetIntRef(GetID("this_frame"));
+
+			*lastFrame = *thisFrame;
+			*thisFrame = GetFrameCount();
+			
+			if (*thisFrame != *lastFrame)
+				function();
+		}
 		End();
 	}
 }
