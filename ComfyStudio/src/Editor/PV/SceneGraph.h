@@ -53,7 +53,11 @@ namespace Comfy::Editor
 		inline void RegisterTextures(Graphics::TxpSet* txpSet)
 		{
 			if (txpSet != nullptr)
-				TxpIDMap.AddRange(txpSet->Txps, [](auto& txp) { return ResourceIDMap<TxpID, Graphics::Txp>::ResourceIDPair { txp->ID, txp }; });
+			{
+				TxpIDMap.ReservedAdditional(txpSet->Txps.size());
+				for (auto& txp : txpSet->Txps)
+					TxpIDMap.Add(txp->ID, txp);
+			}
 		}
 
 		inline ObjectEntity& AddEntityFromObj(const Graphics::Obj& obj, EntityTag tag)

@@ -198,7 +198,7 @@ namespace Comfy::Editor
 
 		if (objSetToRemove->TxpSet != nullptr)
 		{
-			sceneGraph.TxpIDMap.RemoveRange([&](auto& pair) 
+			sceneGraph.TxpIDMap.RemoveIf([&](auto& pair) 
 			{
 				return std::any_of(objSetToRemove->TxpSet->Txps.begin(), objSetToRemove->TxpSet->Txps.end(), [&pair](auto& txp)  { return txp->ID == pair.ID; });
 			});
@@ -282,7 +282,7 @@ namespace Comfy::Editor
 				{
 					if (objSetResource.ObjSet->TxpSet != nullptr)
 					{
-						sceneGraph.TxpIDMap.RemoveRange([&](auto& pair)
+						sceneGraph.TxpIDMap.RemoveIf([&](auto& pair)
 						{
 							return std::any_of(objSetResource.ObjSet->TxpSet->Txps.begin(), objSetResource.ObjSet->TxpSet->Txps.end(), [&pair](auto& txp) { return txp->ID == pair.ID; });
 						});

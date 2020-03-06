@@ -24,6 +24,11 @@ namespace Comfy
 			return FindIndex(id).WasFound;
 		}
 
+		void ReservedAdditional(size_t count)
+		{
+			sortedResources.reserve(sortedResources.size() + count);
+		}
+
 		void Add(IDType id, const RefPtr<ResourceType>& resource)
 		{
 			if (id == IDType::Invalid)
@@ -40,40 +45,13 @@ namespace Comfy
 			}
 		}
 
-		template <typename CollectionType, typename Func>
-		void AddRange(CollectionType& collection, Func func)
-		{
-			sortedResources.reserve(sortedResources.size() + collection.size());
-
-			for (auto& item : collection)
-			{
-				auto resourceToAdd = func(item);
-				if (const auto[indexOrClosest, wasFound] = FindIndex(resourceToAdd.ID); wasFound)
-				{
-					if (OverideDuplicateIDs)
-						sortedResources[indexOrClosest].Resource = std::move(resourceToAdd.Resource);
-				}
-				else
-				{
-					sortedResources.push_back(std::move(resourceToAdd));
-				}
-			}
-
-			SortAllResources();
-		}
-
 		void Remove(IDType id)
 		{
-			sortedResources.erase(
-				std::remove_if(
-					sortedResources.begin(),
-					sortedResources.end(),
-					[id](auto& pair) { return pair.ID == id; }),
-				sortedResources.end());
+			RemoveIf([id](auto& pair) { return pair.ID == id; });
 		}
 
 		template <typename Func>
-		void RemoveRange(Func func)
+		void RemoveIf(Func func)
 		{
 			sortedResources.erase(
 				std::remove_if(
@@ -81,6 +59,13 @@ namespace Comfy
 					sortedResources.end(),
 					func),
 				sortedResources.end());
+		}
+
+		template <typename Func>
+		void Iterate(Func func)
+		{
+			for (auto& resource : sortedResources)
+				func(resource);
 		}
 
 		void Clear()
