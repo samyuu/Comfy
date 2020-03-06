@@ -8,7 +8,7 @@
 #define mvp                         (transpose(CB_Object.ModelViewProjection))
 #define mv                          (transpose(CB_Object.ModelView))
 #define camera_mvi                  (CB_Scene.View)
-#define model_mtx                   (CB_Object.Model)
+#define model_mtx                   (transpose(CB_Object.Model))
 #define model_mtx_i                 (transpose(CB_Object.Model))
 #define model_mtx_it                (transpose(CB_Object.Model))
 
