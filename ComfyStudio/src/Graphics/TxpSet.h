@@ -5,6 +5,7 @@
 #include "FileSystem/FileInterface.h"
 #include "Graphics/GraphicTypes.h"
 #include "Graphics/Direct3D/Texture/D3D_Texture.h"
+#include <optional>
 
 namespace Comfy::Graphics
 {
@@ -38,7 +39,7 @@ namespace Comfy::Graphics
 	struct Txp
 	{
 		TxpSig Signature;
-		std::string Name;
+		std::optional<std::string> Name;
 
 		uint8_t MipLevels;
 		uint8_t ArraySize;
@@ -56,6 +57,9 @@ namespace Comfy::Graphics
 
 		ivec2 GetSize() const;
 		TextureFormat GetFormat() const;
+		
+		static constexpr std::string_view UnknownName = "F_COMFY_UNKNOWN";
+		std::string_view GetName() const;
 	};
 
 	class TxpSet : public FileSystem::IBufferParsable

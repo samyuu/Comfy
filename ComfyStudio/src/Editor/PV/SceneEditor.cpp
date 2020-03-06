@@ -184,7 +184,7 @@ namespace Comfy::Editor
 				// TODO: Linear search yikesydoodles
 				auto txpEntry = std::find_if(sceneGraph.TxpDB->Entries.begin(), sceneGraph.TxpDB->Entries.end(), [&](auto& e) { return e.ID == txp->ID; });
 				if (txpEntry != sceneGraph.TxpDB->Entries.end())
-					txp->Name = txpEntry->Name;
+					txp->Name.emplace(txpEntry->Name);
 			}
 		}
 
@@ -900,7 +900,7 @@ namespace Comfy::Editor
 						Gui::ImageObjTxp(txp, vec2(120.0f));
 
 						if (Gui::IsItemHovered())
-							Gui::SetTooltip("%s: %s", MaterialTexture::TextureTypeNames[i], txp->Name.empty() ? "Unknown" : txp->Name.c_str());
+							Gui::SetTooltip("%s: %s", MaterialTexture::TextureTypeNames[i], txp->GetName().data());
 					}
 				}
 			}
@@ -1576,10 +1576,15 @@ namespace Comfy::Editor
 				{
 					for (const auto& material : entity->Obj->Materials)
 					{
-						if (auto txp = renderer3D->GetTxpFromTextureID(&material.Textures.Diffuse.TextureID); txp != nullptr)
+						if (auto txp = renderer3D->GetTxpFromTextureID(&material.Textures.Diffuse.TextureID); txp != nullptr && txp->Name.has_value())
 						{
-							if (EndsWithInsensitive(txp->Name, "_RENDER") || EndsWithInsensitive(txp->Name, "_MOVIE") || EndsWithInsensitive(txp->Name, "_TV")
-								|| EndsWithInsensitive(txp->Name, "_FB01") || EndsWithInsensitive(txp->Name, "_FB02") || EndsWithInsensitive(txp->Name, "_FB03"))
+							if (auto& name = txp->Name.value(); 
+								EndsWithInsensitive(name, "_RENDER") || 
+								EndsWithInsensitive(name, "_MOVIE") || 
+								EndsWithInsensitive(name, "_TV") || 
+								EndsWithInsensitive(name, "_FB01") || 
+								EndsWithInsensitive(name, "_FB02") || 
+								EndsWithInsensitive(name, "_FB03"))
 							{
 								if (entity->Animation == nullptr)
 									entity->Animation = MakeUnique<ObjAnimationData>();
