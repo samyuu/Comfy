@@ -494,7 +494,7 @@ namespace Comfy::Graphics
 		return sceneContext;
 	}
 
-	const Txp* D3D_Renderer3D::GetTxpFromTextureID(const Cached_TxpID& textureID) const
+	const Txp* D3D_Renderer3D::GetTxpFromTextureID(const Cached_TxpID* textureID) const
 	{
 		return txpGetter(textureID);
 	}
@@ -1347,7 +1347,7 @@ namespace Comfy::Graphics
 					}
 				}
 
-				if (auto txp = GetTxpFromTextureID(*txpID); txp != nullptr)
+				if (auto txp = GetTxpFromTextureID(txpID); txp != nullptr)
 				{
 					textureResources[i] = (txp->D3D_Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->D3D_Texture2D.get()) : (txp->D3D_CubeMap != nullptr) ? (txp->D3D_CubeMap.get()) : nullptr;
 					textureSamplers[i] = &cachedTextureSamplers.GetSampler(textureFlags);

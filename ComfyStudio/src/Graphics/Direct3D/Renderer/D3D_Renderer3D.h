@@ -57,7 +57,7 @@ namespace Comfy::Graphics
 		RenderCommand(const Obj& obj, const vec3& position) : SourceObj(&obj), Transform(position) {}
 	};
 
-	using TxpGetterFunction = std::function<const Txp*(const Cached_TxpID& txpID)>;
+	using TxpGetterFunction = std::function<const Txp*(const Cached_TxpID* txpID)>;
 
 	class D3D_Renderer3D : NonCopyable
 	{
@@ -75,8 +75,7 @@ namespace Comfy::Graphics
 
 	public:
 		const SceneContext* GetSceneContext() const;
-
-		const Txp* GetTxpFromTextureID(const Cached_TxpID& textureID) const;
+		const Txp* GetTxpFromTextureID(const Cached_TxpID* textureID) const;
 
 	private:
 		struct ObjRenderCommand

@@ -93,24 +93,26 @@ namespace Comfy
 			return sortedResources.size();
 		}
 
+		ResourceType* Find(const IDType* rawID) const = delete;
 		ResourceType* Find(const IDType& rawID) const = delete;
 
-		ResourceType* Find(const CachedResourceID<IDType>& cachedID) const
+		// NOTE: Explicitly take in a pointer to avoid accidental temporaries
+		ResourceType* Find(const CachedResourceID<IDType>* cachedID) const
 		{
-			if (cachedID == IDType::Invalid)
+			if (cachedID == nullptr || *cachedID == IDType::Invalid)
 				return nullptr;
 
-			if (cachedID.CachedIndex < sortedResources.size())
+			if (cachedID->CachedIndex < sortedResources.size())
 			{
-				if (sortedResources[cachedID.CachedIndex].ID == cachedID)
-					return sortedResources[cachedID.CachedIndex].Resource.get();
+				if (sortedResources[cachedID->CachedIndex].ID == cachedID->ID)
+					return sortedResources[cachedID->CachedIndex].Resource.get();
 				else
-					cachedID.CachedIndex = std::numeric_limits<decltype(cachedID.CachedIndex)>::max();
+					cachedID->CachedIndex = std::numeric_limits<decltype(cachedID->CachedIndex)>::max();
 			}
 
-			if (const auto[index, wasFound] = FindIndex(cachedID.ID); wasFound)
+			if (const auto[index, wasFound] = FindIndex(cachedID->ID); wasFound)
 			{
-				cachedID.CachedIndex = static_cast<decltype(cachedID.CachedIndex)>(index);
+				cachedID->CachedIndex = static_cast<decltype(cachedID->CachedIndex)>(index);
 				return sortedResources[index].Resource.get();
 			}
 

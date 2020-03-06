@@ -27,7 +27,7 @@ namespace Comfy::Editor
 
 	SceneEditor::SceneEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
-		auto txpGetter = [&](const Cached_TxpID& txpID) { return sceneGraph.TxpIDMap.Find(txpID); };
+		auto txpGetter = [&](const Cached_TxpID* txpID) { return sceneGraph.TxpIDMap.Find(txpID); };
 		renderer3D = MakeUnique<D3D_Renderer3D>(txpGetter);
 
 		renderWindow = MakeUnique<SceneRenderWindow>(sceneGraph, context, cameraController, *renderer3D);
@@ -895,7 +895,7 @@ namespace Comfy::Editor
 
 				for (size_t i = 0; i < material->TexturesArray.size(); i++)
 				{
-					if (auto txp = renderer3D->GetTxpFromTextureID(material->TexturesArray[i].TextureID); txp != nullptr)
+					if (auto txp = renderer3D->GetTxpFromTextureID(&material->TexturesArray[i].TextureID); txp != nullptr)
 					{
 						Gui::ImageObjTxp(txp, vec2(120.0f));
 
@@ -1576,7 +1576,7 @@ namespace Comfy::Editor
 				{
 					for (const auto& material : entity->Obj->Materials)
 					{
-						if (auto txp = renderer3D->GetTxpFromTextureID(material.Textures.Diffuse.TextureID); txp != nullptr)
+						if (auto txp = renderer3D->GetTxpFromTextureID(&material.Textures.Diffuse.TextureID); txp != nullptr)
 						{
 							if (EndsWithInsensitive(txp->Name, "_RENDER") || EndsWithInsensitive(txp->Name, "_MOVIE") || EndsWithInsensitive(txp->Name, "_TV")
 								|| EndsWithInsensitive(txp->Name, "_FB01") || EndsWithInsensitive(txp->Name, "_FB02") || EndsWithInsensitive(txp->Name, "_FB03"))
