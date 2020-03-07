@@ -30,6 +30,7 @@ namespace Comfy::Graphics
 		bool RenderBloom = true;
 		bool AutoExposure = true;
 		bool VertexColoring = true;
+
 		bool DiffuseMapping = true;
 		bool AmbientOcclusionMapping = true;
 		bool NormalMapping = true;
@@ -37,6 +38,7 @@ namespace Comfy::Graphics
 		bool TransparencyMapping = true;
 		bool EnvironmentMapping = true;
 		bool TranslucencyMapping = true;
+
 		bool RenderPunchThrough = true;
 		bool RenderFog = true;
 		bool ObjectMorphing = true;
@@ -137,10 +139,10 @@ namespace Comfy::Graphics
 
 		// NOTE: Processed main depth render target with a constant depth value
 		D3D_RenderTarget ThresholdRenderTarget = { RenderParameters::ShadowMapDefaultResolution / 2, PostProcessingFormat };
-		
+
 		// NOTE: Low resolution render targets used for ping pong blurring, sampled by stage material shaders
 		std::array<D3D_RenderTarget, 2> BlurRenderTargets =
-		{ 
+		{
 			D3D_RenderTarget { RenderParameters::ShadowMapDefaultResolution / 4, PostProcessingFormat },
 			D3D_RenderTarget { RenderParameters::ShadowMapDefaultResolution / 4, PostProcessingFormat },
 		};
@@ -152,7 +154,7 @@ namespace Comfy::Graphics
 		D3D_DepthRenderTarget RenderTarget = { RenderTargetDefaultSize, RenderTargetHDRFormatRGBA, DXGI_FORMAT_D32_FLOAT };
 
 		// NOTE: Further reduction and filtering
-		std::array<D3D_RenderTarget, 3> FilterRenderTargets = 
+		std::array<D3D_RenderTarget, 3> FilterRenderTargets =
 		{
 			D3D_RenderTarget { ivec2(640, 360), RenderTargetHDRFormatRGBA },
 			D3D_RenderTarget { ivec2(320, 180), RenderTargetHDRFormatRGBA },
@@ -185,27 +187,27 @@ namespace Comfy::Graphics
 		{
 			D3D_RenderTarget { ivec2(256, 144), RenderTargetHDRFormatRGBA },
 			D3D_RenderTarget { ivec2(128,  72), RenderTargetHDRFormatRGBA },
-			D3D_RenderTarget { ivec2( 64,  36), RenderTargetHDRFormatRGBA },
-			D3D_RenderTarget { ivec2( 32,  18), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2(64,  36), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2(32,  18), RenderTargetHDRFormatRGBA },
 		};
 
 		std::array<D3D_RenderTarget, 4> BlurRenderTargets =
 		{
 			D3D_RenderTarget { ivec2(256, 144), RenderTargetHDRFormatRGBA },
 			D3D_RenderTarget { ivec2(128,  72), RenderTargetHDRFormatRGBA },
-			D3D_RenderTarget { ivec2( 64,  36), RenderTargetHDRFormatRGBA },
-			D3D_RenderTarget { ivec2( 32,  18), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2(64,  36), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2(32,  18), RenderTargetHDRFormatRGBA },
 		};
 
 		// NOTE: Auto Exposure
-		std::array<D3D_RenderTarget, 3> ExposureRenderTargets = 
+		std::array<D3D_RenderTarget, 3> ExposureRenderTargets =
 		{
 			// NOTE: 32 x 18 ->  8 x  8
-			D3D_RenderTarget { ivec2( 8,  8), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2(8,  8), RenderTargetHDRFormatRGBA },
 			// NOTE:  8 x  8 -> 32 x  1
 			D3D_RenderTarget { ivec2(32,  1), RenderTargetHDRFormatRGBA },
 			// NOTE: 32 x  1 ->  1 x  1
-			D3D_RenderTarget { ivec2( 1,  1), RenderTargetHDRFormatRGBA },
+			D3D_RenderTarget { ivec2(1,  1), RenderTargetHDRFormatRGBA },
 		};
 	};
 

@@ -9,16 +9,20 @@ VS_OUTPUT_SHADOW VS_main(VS_INPUT_SHADOW input)
 {
     VS_OUTPUT_SHADOW output;
     
+    float4 pos_m;
     if (FLAGS_MORPH)
     {
-        output.Position = mul(VS_MorphAttribute(input.Position, input.MorphPosition), CB_Object.ModelViewProjection);
-        output.TexCoord = VS_TransformTextureCoordinates(VS_MorphAttribute(input.TexCoord, input.MorphTexCoord), CB_Object.Material.DiffuseTextureTransform);
+        VS_SetMorphModelSpaceAttributes(input, pos_m);
+        VS_SetMorphTransformTextureCoordinates(input, o_tex0);
     }
     else
     {
-        output.Position = mul(input.Position, CB_Object.ModelViewProjection);
-        output.TexCoord = VS_TransformTextureCoordinates(input.TexCoord, CB_Object.Material.DiffuseTextureTransform);
+        VS_SetModelSpaceAttributes(input, pos_m);
+        VS_SetTransformTextureCoordinates(input, o_tex0);
     }
+    
+    float4 pos_c = ModelToClipSpace(pos_m);
+    o_position = pos_c;
     
     return output;
 }

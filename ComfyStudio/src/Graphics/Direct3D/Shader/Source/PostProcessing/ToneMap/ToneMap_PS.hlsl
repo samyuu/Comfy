@@ -32,16 +32,16 @@ static const float3 RGB_COEF = { -0.508475, +1.000000, -0.186441 };
 
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {
-	const float3 p_exposure = float3(CB_Exposure, 0.0625, 1.0);
+    const float3 p_exposure = float3(CB_Exposure, 0.0625, 1.0);
     float2 outExposure = float2(p_exposure.x, p_exposure.x * p_exposure.y);
     
     if (CB_AutoExposure)
     {
-		const float autoExposure = ExposureTexture.Load(int3(0, 0, 0));
-		outExposure.x = mad(exp2(autoExposure * -1.8), 2.9, 0.4) * p_exposure.z;
-		outExposure.y = outExposure.x * p_exposure.y;
-
-#if 0
+        const float autoExposure = ExposureTexture.Load(int3(0, 0, 0));
+        outExposure.x = mad(exp2(autoExposure * -1.8), 2.9, 0.4) * p_exposure.z;
+        outExposure.y = outExposure.x * p_exposure.y;
+        
+#if 1
         float2 screenSize; ScreenTexture.GetDimensions(screenSize.x, screenSize.y);
         if (input.TexCoord.x < 0.1 && (input.TexCoord.y * (screenSize.y / screenSize.x)) < 0.1)
             return autoExposure;
@@ -62,7 +62,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     
     float3 color = float3(0.0, lookup.r, 0.0);
     color.xz = (lookup.g * outExposure.x * ybr.xyz).xz;
-
+    
     float3 finalColor;
     finalColor.rb = (color.yyy + color).xz;
     finalColor.g = dot(color.rgb, RGB_COEF);

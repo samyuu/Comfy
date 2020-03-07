@@ -20,6 +20,8 @@ namespace Comfy::Graphics
 		virtual void BindPixelShader();
 		virtual void UnBindPixelShader();
 
+		virtual void UploadData(size_t dataSize, const void* data) = 0;
+
 	public:
 		ID3D11Buffer* GetBuffer();
 
@@ -38,7 +40,7 @@ namespace Comfy::Graphics
 		~D3D_DefaultConstantBuffer() = default;
 
 	public:
-		void UploadData(size_t dataSize, const void* data);
+		void UploadData(size_t dataSize, const void* data) override;
 	};
 
 	// NOTE: Use for data that changes at least once per frame
@@ -49,7 +51,7 @@ namespace Comfy::Graphics
 		~D3D_DynamicConstantBuffer() = default;
 
 	public:
-		void UploadData(size_t dataSize, const void* data);
+		void UploadData(size_t dataSize, const void* data) override;
 	};
 
 	template <typename CBType, typename DataType>

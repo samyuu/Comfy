@@ -84,7 +84,8 @@ namespace Comfy::Graphics
 
 	struct SkeletonConstantData
 	{
-		std::array<mat4, 192> Bones;
+		// NOTE: Model space final bone transforms
+		std::array<mat4, 192> FinalBoneTransforms;
 	};
 
 	struct ESMFilterConstantData
