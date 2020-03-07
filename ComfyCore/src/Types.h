@@ -18,3 +18,5 @@ using vec4 = glm::vec<4, float, glm::defaultp>;
 
 using mat3 = glm::mat<3, 3, float, glm::defaultp>;
 using mat4 = glm::mat<4, 4, float, glm::defaultp>;
+
+using quat = glm::qua<float, glm::defaultp>;
