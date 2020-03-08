@@ -24,7 +24,10 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
         
     TEX2D_00(col0, a_tex_color0);
     MAD(col0.xyz, col0.xyz, p_texcol_coef.xyz, p_texcol_offset.xyz);
-    MAX(o_color.w, col0.w, p_max_alpha.w);
+    
+    // MAX(o_color.w, col0.w, p_max_alpha.w);
+    MOV(o_color.w, col0.w);
+    
     TEX2D_02(tmp, a_tex_normal0);
     MAD(tmp.xy, tmp.wy, 2.0, -1.0);
     MUL(tmp.zw, tmp.xy, tmp.xy);
@@ -111,6 +114,8 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MAD(diff.xyz, spec.xyz, spec_ratio.xyz, diff.xyz);
     MOV(diff.xyz, diff.xyz);
     LRP(o_color.xyz, a_fogcoord.x, a_color1.xyz, diff.xyz);
+    
+    PS_ALPHA_TEST;
     
 #endif
     
