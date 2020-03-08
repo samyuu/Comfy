@@ -52,7 +52,7 @@ namespace Comfy::Graphics
 		Sphere BoundingSphere;
 		std::vector<SubMesh> SubMeshes;
 		VertexAttributeFlags AttributeFlags;
-		
+
 		MeshFlags Flags;
 		std::array<char, 64> Name;
 
@@ -110,16 +110,16 @@ namespace Comfy::Graphics
 			Count
 		};
 
-		static constexpr std::array<const char*, Count> TextureTypeNames = 
-		{ 
-			"Diffuse", 
-			"Ambient", 
-			"Normal", 
-			"Specular", 
-			"Transparency", 
-			"Environment", 
-			"Translucency", 
-			"Reserved" 
+		static constexpr std::array<const char*, Count> TextureTypeNames =
+		{
+			"Diffuse",
+			"Ambient",
+			"Normal",
+			"Specular",
+			"Transparency",
+			"Environment",
+			"Translucency",
+			"Reserved"
 		};
 
 		MaterialTextureFlags Flags;
@@ -217,32 +217,35 @@ namespace Comfy::Graphics
 		uint32_t AffectsShaderUsed1 : 8;
 	};
 
+	using MaterialTypeIdentifier = std::array<char, 8>;
+
 	struct Material
 	{
-		static inline const struct Identifiers
+		struct Identifiers
 		{
-			std::array<char, 8> BLINN { "BLINN" };
-			std::array<char, 8> ITEM { "ITEM" };
-			std::array<char, 8> STAGE { "STAGE" };
-			std::array<char, 8> SKIN { "SKIN" };
-			std::array<char, 8> HAIR { "HAIR" };
-			std::array<char, 8> CLOTH { "CLOTH" };
-			std::array<char, 8> TIGHTS { "TIGHTS" };
-			std::array<char, 8> SKY { "SKY" };
-			std::array<char, 8> EYEBALL { "EYEBALL" };
-			std::array<char, 8> EYELENS { "EYELENS" };
-			std::array<char, 8> GLASEYE { "GLASEYE" };
-			std::array<char, 8> WATER01 { "WATER01" };
-			std::array<char, 8> WATER02 { "WATER02" };
-			std::array<char, 8> FLOOR { "FLOOR" };
-		} Identifiers;
+			static constexpr MaterialTypeIdentifier Blinn = { "BLINN" };
+			static constexpr MaterialTypeIdentifier Item = { "ITEM" };
+			static constexpr MaterialTypeIdentifier Stage = { "STAGE" };
+			static constexpr MaterialTypeIdentifier Skin = { "SKIN" };
+			static constexpr MaterialTypeIdentifier Hair = { "HAIR" };
+			static constexpr MaterialTypeIdentifier Cloth = { "CLOTH" };
+			static constexpr MaterialTypeIdentifier Tights = { "TIGHTS" };
+			static constexpr MaterialTypeIdentifier Sky = { "SKY" };
+			static constexpr MaterialTypeIdentifier EyeBall = { "EYEBALL" };
+			static constexpr MaterialTypeIdentifier EyeLens = { "EYELENS" };
+			static constexpr MaterialTypeIdentifier GlassEye = { "GLASEYE" };
+			static constexpr MaterialTypeIdentifier Simple = { "SIMPLE" };
+			static constexpr MaterialTypeIdentifier Water01 = { "WATER01" };
+			static constexpr MaterialTypeIdentifier Water02 = { "WATER02" };
+			static constexpr MaterialTypeIdentifier Floor = { "FLOOR" };
+		};
 
 		uint32_t UsedTextureCount;
 		MaterialFlags Flags;
 
-		std::array<char, 8> MaterialType;
+		MaterialTypeIdentifier Type;
 		MaterialShaderFlags ShaderFlags;
-		
+
 		union
 		{
 			struct Textures

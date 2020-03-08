@@ -123,7 +123,7 @@ namespace Comfy::Graphics
 
 		bool UsesSSSSkin(const Material& material)
 		{
-			if (material.MaterialType == Material::Identifiers.SKIN || material.MaterialType == Material::Identifiers.EYEBALL || material.MaterialType == Material::Identifiers.EYELENS)
+			if (material.Type == Material::Identifiers::Skin || material.Type == Material::Identifiers::EyeBall || material.Type == Material::Identifiers::EyeLens)
 				return true;
 
 			return false;
@@ -131,7 +131,7 @@ namespace Comfy::Graphics
 
 		bool UsesSSSSkinConst(const Material& material)
 		{
-			if (material.MaterialType == Material::Identifiers.HAIR || material.MaterialType == Material::Identifiers.CLOTH || material.MaterialType == Material::Identifiers.TIGHTS)
+			if (material.Type == Material::Identifiers::Hair || material.Type == Material::Identifiers::Cloth || material.Type == Material::Identifiers::Tights)
 				return true;
 
 			return false;
@@ -1298,6 +1298,8 @@ namespace Comfy::Graphics
 
 	void D3D_Renderer3D::PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, RenderFlags flags)
 	{
+		const RenderCommand& sourceCommand = command.SourceCommand;
+
 		if (!(flags & RenderFlags_NoMaterialShader))
 		{
 			auto& materialShader = (flags & RenderFlags_SSSPass) ? GetSSSMaterialShader(material) : GetMaterialShader(material);
@@ -1306,7 +1308,7 @@ namespace Comfy::Graphics
 
 		if (flags & RenderFlags_SilhouetteOutlinePass)
 		{
-			if (command.SourceCommand.Flags.SilhouetteOutline)
+			if (sourceCommand.Flags.SilhouetteOutline)
 				shaders.SolidWhite.Bind();
 			else
 				shaders.SolidBlack.Bind();
@@ -1418,18 +1420,18 @@ namespace Comfy::Graphics
 
 		objectCB.Data.Material.Shininess = vec2(
 			(material.Shininess >= 0.0f ? material.Shininess : 1.0f),
-			(material.MaterialType != Material::Identifiers.EYEBALL) ? ((material.Shininess - 16.0f) / 112.0f) : 10.0f);
+			(material.Type != Material::Identifiers::EyeBall) ? ((material.Shininess - 16.0f) / 112.0f) : 10.0f);
 
 		objectCB.Data.Material.Intensity = material.Intensity;
 		objectCB.Data.Material.BumpDepth = material.BumpDepth;
 
-		const float morphWeight = (command.SourceCommand.Animation != nullptr) ? command.SourceCommand.Animation->MorphWeight : 0.0f;
+		const float morphWeight = (sourceCommand.Animation != nullptr) ? sourceCommand.Animation->MorphWeight : 0.0f;
 		objectCB.Data.MorphWeight = vec4(morphWeight, 1.0f - morphWeight, 0.0f, 0.0f);
 
 		mat4 modelMatrix;
 		if (mesh.Flags.FaceCameraPosition || mesh.Flags.FaceCameraView)
 		{
-			const auto& transform = command.SourceCommand.Transform;
+			const auto& transform = sourceCommand.Transform;
 
 			// TODO: if (mesh.Flags.FaceCameraView)
 			const vec3 viewPoint = sceneContext->Camera.ViewPoint;
@@ -1515,7 +1517,7 @@ namespace Comfy::Graphics
 
 		if (renderParameters->ObjectMorphing)
 		{
-			if (command.SourceCommand.SourceMorphObj != nullptr)
+			if (sourceCommand.SourceMorphObj != nullptr)
 			{
 				objectCB.Data.ShaderFlags |= ShaderFlags_Morph;
 				objectCB.Data.ShaderFlags |= ShaderFlags_MorphColor;
@@ -1524,13 +1526,13 @@ namespace Comfy::Graphics
 
 		if (renderParameters->ShadowMapping && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
 		{
-			if (ReceivesShadows(command.SourceCommand, mesh, subMesh))
+			if (ReceivesShadows(sourceCommand, mesh, subMesh))
 				objectCB.Data.ShaderFlags |= ShaderFlags_Shadow;
 		}
 
 		if (renderParameters->ShadowMapping && renderParameters->SelfShadowing && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
 		{
-			if (ReceivesSelfShadow(command.SourceCommand, mesh, subMesh))
+			if (ReceivesSelfShadow(sourceCommand, mesh, subMesh))
 				objectCB.Data.ShaderFlags |= ShaderFlags_SelfShadow;
 		}
 
@@ -1541,7 +1543,7 @@ namespace Comfy::Graphics
 
 	D3D_ShaderPair& D3D_Renderer3D::GetMaterialShader(const Material& material)
 	{
-		if (material.MaterialType == Material::Identifiers.BLINN)
+		if (material.Type == Material::Identifiers::Blinn)
 		{
 			if (material.ShaderFlags.PhongShading)
 			{
@@ -1556,51 +1558,51 @@ namespace Comfy::Graphics
 				return shaders.Constant;
 			}
 		}
-		else if (material.MaterialType == Material::Identifiers.ITEM)
+		else if (material.Type == Material::Identifiers::Item)
 		{
 			return shaders.ItemBlinn;
 		}
-		else if (material.MaterialType == Material::Identifiers.STAGE)
+		else if (material.Type == Material::Identifiers::Stage)
 		{
 			return shaders.StageBlinn;
 		}
-		else if (material.MaterialType == Material::Identifiers.SKIN)
+		else if (material.Type == Material::Identifiers::Skin)
 		{
 			return shaders.SkinDefault;
 		}
-		else if (material.MaterialType == Material::Identifiers.HAIR)
+		else if (material.Type == Material::Identifiers::Hair)
 		{
 			return (material.ShaderFlags.AnisoDirection != AnisoDirection_Normal) ? shaders.HairAniso : shaders.HairDefault;
 		}
-		else if (material.MaterialType == Material::Identifiers.CLOTH)
+		else if (material.Type == Material::Identifiers::Cloth)
 		{
 			return (material.ShaderFlags.AnisoDirection != AnisoDirection_Normal) ? shaders.ClothAniso : shaders.ClothDefault;
 		}
-		else if (material.MaterialType == Material::Identifiers.TIGHTS)
+		else if (material.Type == Material::Identifiers::Tights)
 		{
 			return shaders.Tights;
 		}
-		else if (material.MaterialType == Material::Identifiers.SKY)
+		else if (material.Type == Material::Identifiers::Sky)
 		{
 			return shaders.SkyDefault;
 		}
-		else if (material.MaterialType == Material::Identifiers.EYEBALL)
+		else if (material.Type == Material::Identifiers::EyeBall)
 		{
 			return (true) ? shaders.GlassEye : shaders.EyeBall;
 		}
-		else if (material.MaterialType == Material::Identifiers.EYELENS)
+		else if (material.Type == Material::Identifiers::EyeLens)
 		{
 			return shaders.EyeLens;
 		}
-		else if (material.MaterialType == Material::Identifiers.GLASEYE)
+		else if (material.Type == Material::Identifiers::GlassEye)
 		{
 			return shaders.GlassEye;
 		}
-		else if (material.MaterialType == Material::Identifiers.WATER01 || material.MaterialType == Material::Identifiers.WATER02)
+		else if (material.Type == Material::Identifiers::Water01 || material.Type == Material::Identifiers::Water02)
 		{
 			return shaders.Water;
 		}
-		else if (material.MaterialType == Material::Identifiers.FLOOR)
+		else if (material.Type == Material::Identifiers::Floor)
 		{
 			return shaders.Floor;
 		}

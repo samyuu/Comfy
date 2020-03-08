@@ -882,8 +882,8 @@ namespace Comfy::Editor
 				Gui::DragFloat("Shininess", &material->Shininess, 0.05f);
 				Gui::ColorEdit3("Ambient", glm::value_ptr(material->AmbientColor), ImGuiColorEditFlags_Float);
 				Gui::ColorEdit3("Emission", glm::value_ptr(material->EmissionColor), ImGuiColorEditFlags_Float);
-				if (Gui::InputText("Material Type", material->MaterialType.data(), material->MaterialType.size(), ImGuiInputTextFlags_None))
-					std::fill(std::find(material->MaterialType.begin(), material->MaterialType.end(), '\0'), material->MaterialType.end(), '\0');
+				if (Gui::InputText("Type", material->Type.data(), material->Type.size(), ImGuiInputTextFlags_None))
+					std::fill(std::find(material->Type.begin(), material->Type.end(), '\0'), material->Type.end(), '\0');
 
 				bool lambertShading = material->ShaderFlags.LambertShading;
 				if (Gui::Checkbox("Lambert Shading", &lambertShading))

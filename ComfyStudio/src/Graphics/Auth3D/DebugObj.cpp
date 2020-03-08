@@ -47,7 +47,7 @@ namespace Comfy::Graphics
 
 			Material material = {};
 			{
-				material.MaterialType = Material::Identifiers.BLINN;
+				material.Type = Material::Identifiers::Blinn;
 				material.ShaderFlags.LambertShading = false;
 				material.ShaderFlags.PhongShading = false;
 				material.BlendFlags.EnableBlend = (color.a < 1.0f);

@@ -174,7 +174,7 @@ namespace Comfy::Graphics
 				{
 					material.UsedTextureCount = reader.ReadU32();
 					material.Flags = ReadFlagsStruct32<MaterialFlags>(reader);
-					reader.ReadBuffer(material.MaterialType.data(), material.MaterialType.size());
+					reader.ReadBuffer(material.Type.data(), material.Type.size());
 					material.ShaderFlags = ReadFlagsStruct32<MaterialShaderFlags>(reader);
 
 					for (auto& texture : material.TexturesArray)
