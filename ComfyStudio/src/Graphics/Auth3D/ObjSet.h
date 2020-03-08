@@ -293,6 +293,7 @@ namespace Comfy::Graphics
 
 	struct Skeleton
 	{
+		static constexpr size_t MaxBoneCount = 192;
 		std::vector<Bone> Bones;
 	};
 
@@ -309,7 +310,7 @@ namespace Comfy::Graphics
 		Sphere BoundingSphere;
 		std::vector<Mesh> Meshes;
 		std::vector<Material> Materials;
-		Skeleton Skeleton;
+		std::optional<Skeleton> Skeleton;
 
 	public:
 		void Upload();

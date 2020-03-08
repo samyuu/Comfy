@@ -249,7 +249,7 @@ namespace Comfy::Graphics
 							if (count < 1)
 								return;
 
-							auto& bones = obj.Skeleton.Bones;
+							auto& bones = obj.Skeleton.emplace().Bones;
 							bones.resize(count);
 
 							reader.ReadAt(idsPtr, [&bones](BinaryReader& reader)

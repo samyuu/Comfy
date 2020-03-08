@@ -1,5 +1,6 @@
 #pragma once
 #include "Types.h"
+#include "Graphics/Auth3D/ObjSet.h"
 
 namespace Comfy::Graphics
 {
@@ -85,7 +86,7 @@ namespace Comfy::Graphics
 	struct SkeletonConstantData
 	{
 		// NOTE: Model space final bone transforms
-		std::array<mat4, 192> FinalBoneTransforms;
+		std::array<mat4, Skeleton::MaxBoneCount> FinalBoneTransforms;
 	};
 
 	struct ESMFilterConstantData
