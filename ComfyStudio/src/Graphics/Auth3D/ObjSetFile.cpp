@@ -80,10 +80,10 @@ namespace Comfy::Graphics
 						{
 							for (auto& subMesh : mesh.SubMeshes)
 							{
-								uint32_t unknown0 = reader.ReadU32();
+								subMesh.Flags = reader.ReadU32();
 								subMesh.BoundingSphere = ReadSphere(reader);
 								subMesh.MaterialIndex = reader.ReadU32();
-								for (auto& index : subMesh.MaterialUVIndices)
+								for (auto& index : subMesh.UVIndices)
 									index = reader.ReadU32();
 
 								uint32_t boneIndexCount = reader.ReadU32();
@@ -99,9 +99,9 @@ namespace Comfy::Graphics
 									});
 								}
 
-								subMesh.UnknownPrePrimitive = reader.ReadU32();
+								subMesh.BonePerVertex = reader.ReadU32();
 								subMesh.Primitive = static_cast<PrimitiveType>(reader.ReadU32());
-								subMesh.UnknownIndex = reader.ReadU32();
+								subMesh.IndexType = static_cast<IndexType>(reader.ReadU32());
 
 								uint32_t indexCount = reader.ReadU32();
 								FileAddr indicesPtr = reader.ReadPtr();
@@ -116,16 +116,13 @@ namespace Comfy::Graphics
 									});
 								}
 
-								// subMesh.BoundingBox = ReadBox(reader);
+								subMesh.ShadowFlags = ReadFlagsStruct32<SubMeshShadowFlags>(reader);
 
-								subMesh.ShadowFlags = reader.ReadU32();
-								uint32_t unknown3 = reader.ReadU32();
-								uint32_t unknown4 = reader.ReadU32();
-								uint32_t unknown5 = reader.ReadU32();
-								uint32_t unknown6 = reader.ReadU32();
-								uint32_t unknown7 = reader.ReadU32();
-								uint32_t unknown8 = reader.ReadU32();
-								uint32_t unknown9 = reader.ReadU32();
+								std::array<unk32_t, 6> reserved;
+								for (auto& value : reserved)
+									value = reader.ReadU32();
+
+								unk32_t indexOffset = reader.ReadU32();
 							}
 						});
 					}

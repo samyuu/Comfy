@@ -11,19 +11,30 @@ namespace Comfy::Graphics
 	struct Material;
 	class Obj;
 
+	struct SubMeshShadowFlags
+	{
+		uint32_t ReceivesShadows : 1;
+		uint32_t CastsShadows : 1;
+	};
+
 	struct SubMesh
 	{
+		uint32_t Flags;
+
 		Sphere BoundingSphere;
-		Box BoundingBox;
+		std::optional<Box> BoundingBox;
 
 		uint32_t MaterialIndex;
-		std::array<uint32_t, 2> MaterialUVIndices;
+		std::array<uint32_t, 2> UVIndices;
 		std::vector<uint16_t> BoneIndices;
-		uint32_t UnknownPrePrimitive;
+
+		uint32_t BonePerVertex;
 		PrimitiveType Primitive;
-		uint32_t UnknownIndex;
+
+		IndexType IndexType;
 		std::vector<uint16_t> Indices;
-		uint32_t ShadowFlags;
+
+		SubMeshShadowFlags ShadowFlags;
 
 		UniquePtr<D3D_StaticIndexBuffer> D3D_IndexBuffer;
 

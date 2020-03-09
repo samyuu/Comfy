@@ -25,8 +25,8 @@ namespace Comfy::Graphics
 			mesh.SubMeshes.push_back({});
 			SubMesh& subMesh = mesh.SubMeshes.back();
 			{
-				subMesh.BoundingBox = boundingBox;
 				subMesh.BoundingSphere = boundingSphere;
+				subMesh.BoundingBox.emplace(boundingBox);
 				subMesh.MaterialIndex = 0;
 				subMesh.Primitive = PrimitiveType::Triangles;
 

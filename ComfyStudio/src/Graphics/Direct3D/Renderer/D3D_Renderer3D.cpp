@@ -102,7 +102,7 @@ namespace Comfy::Graphics
 
 		constexpr bool ReceivesShadows(const RenderCommand& command, const Mesh& mesh, const SubMesh& subMesh)
 		{
-			return (command.Flags.ReceivesShadow && subMesh.ShadowFlags);
+			return (command.Flags.ReceivesShadow && subMesh.ShadowFlags.ReceivesShadows);
 		}
 
 		constexpr bool ReceivesSelfShadow(const RenderCommand& command, const Mesh& mesh, const SubMesh& subMesh)
