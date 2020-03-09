@@ -11,7 +11,7 @@ namespace Comfy::Graphics
 	constexpr DXGI_FORMAT RenderTargetHDRFormatRGBA = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	constexpr DXGI_FORMAT RenderTargetLDRFormatRGBA = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-	class D3D_RenderTargetBase : IGraphicsResource
+	class D3D_RenderTargetBase : ID3DGraphicsResource
 	{
 	protected:
 		D3D_RenderTargetBase();

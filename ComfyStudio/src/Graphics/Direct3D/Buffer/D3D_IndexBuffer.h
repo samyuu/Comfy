@@ -4,7 +4,7 @@
 
 namespace Comfy::Graphics
 {
-	class D3D_IndexBuffer : IGraphicsResource
+	class D3D_IndexBuffer : ID3DGraphicsResource
 	{
 	protected:
 		D3D_IndexBuffer(size_t dataSize, const void* data, IndexType indexType, D3D11_USAGE usage, UINT accessFlags);

@@ -3,7 +3,7 @@
 
 namespace Comfy::Graphics
 {
-	class D3D_DepthStencilState final : IGraphicsResource
+	class D3D_DepthStencilState final : ID3DGraphicsResource
 	{
 	public:
 		D3D_DepthStencilState(bool depthEnabled, D3D11_DEPTH_WRITE_MASK depthWriteMask);

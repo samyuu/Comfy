@@ -15,7 +15,7 @@ namespace Comfy::Graphics
 		static void BindArray(uint32_t startSlot, const std::array<D3D_ShaderResourceView*, Size>& resources);
 	};
 
-	class D3D_TextureResource : public D3D_ShaderResourceView, IGraphicsResource
+	class D3D_TextureResource : public D3D_ShaderResourceView, ID3DGraphicsResource
 	{
 	protected:
 		D3D_TextureResource();

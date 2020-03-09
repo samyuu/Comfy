@@ -4,7 +4,7 @@
 
 namespace Comfy::Graphics
 {
-	class D3D_BlendState final : IGraphicsResource
+	class D3D_BlendState final : ID3DGraphicsResource
 	{
 	public:
 		D3D_BlendState(AetBlendMode blendMode);

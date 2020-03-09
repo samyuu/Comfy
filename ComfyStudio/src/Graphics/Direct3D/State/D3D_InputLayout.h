@@ -14,7 +14,7 @@ namespace Comfy::Graphics
 		uint32_t InputSlot = 0;
 	};
 
-	class D3D_InputLayout final : IGraphicsResource
+	class D3D_InputLayout final : ID3DGraphicsResource
 	{
 	public:
 		D3D_InputLayout(const InputElement* elements, size_t elementCount, const D3D_VertexShader& vertexShader);

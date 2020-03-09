@@ -3,7 +3,7 @@
 
 namespace Comfy::Graphics
 {
-	class D3D_VertexBuffer : IGraphicsResource
+	class D3D_VertexBuffer : ID3DGraphicsResource
 	{
 	protected:
 		D3D_VertexBuffer(size_t dataSize, const void* data, size_t stride, D3D11_USAGE usage, UINT accessFlags);

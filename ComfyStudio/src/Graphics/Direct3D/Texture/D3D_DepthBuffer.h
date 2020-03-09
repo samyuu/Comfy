@@ -4,7 +4,7 @@
 
 namespace Comfy::Graphics
 {
-	class D3D_DepthBuffer : IGraphicsResource
+	class D3D_DepthBuffer : ID3DGraphicsResource
 	{
 	protected:
 		D3D_DepthBuffer(ivec2 size, DXGI_FORMAT textureFormat, DXGI_FORMAT depthFormat, D3D11_BIND_FLAG bindFlags, uint32_t multiSampleCount);

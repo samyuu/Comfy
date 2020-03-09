@@ -3,7 +3,7 @@
 
 namespace Comfy::Graphics
 {
-	class D3D_RasterizerState final : IGraphicsResource
+	class D3D_RasterizerState final : ID3DGraphicsResource
 	{
 	public:
 		D3D_RasterizerState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode, bool scissorEnabled = false);

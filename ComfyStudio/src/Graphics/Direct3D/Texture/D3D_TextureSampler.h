@@ -3,7 +3,7 @@
 
 namespace Comfy::Graphics
 {
-	class D3D_TextureSampler : IGraphicsResource
+	class D3D_TextureSampler : ID3DGraphicsResource
 	{
 	public:
 		D3D_TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeUV);

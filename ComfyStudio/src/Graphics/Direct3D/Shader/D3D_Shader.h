@@ -9,7 +9,7 @@ namespace Comfy::Graphics
 		const size_t Size;
 	};
 
-	class D3D_Shader : IGraphicsResource
+	class D3D_Shader : ID3DGraphicsResource
 	{
 	protected:
 		D3D_Shader(BytecodeBlob bytecodeBlob);

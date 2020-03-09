@@ -3,7 +3,7 @@
 
 namespace Comfy::Graphics
 {
-	class D3D_ConstantBuffer : IGraphicsResource
+	class D3D_ConstantBuffer : ID3DGraphicsResource
 	{
 	public:
 		static constexpr size_t DataAlignmentRequirement = 16;

@@ -3,11 +3,11 @@
 
 namespace Comfy::Graphics
 {
-	class IGraphicsResource : NonCopyable
+	class ID3DGraphicsResource : NonCopyable
 	{
 	protected:
-		IGraphicsResource() = default;
-		virtual ~IGraphicsResource() = default;
+		ID3DGraphicsResource() = default;
+		virtual ~ID3DGraphicsResource() = default;
 
 	protected:
 	};
