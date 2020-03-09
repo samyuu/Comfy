@@ -594,10 +594,10 @@ namespace Comfy::Editor
 
 			if (GetIsPlayback())
 			{
-				TimeSpan cursorTime = GetCursorTime();
-				TimeSpan timeUntilButton = buttonTime - cursorTime;
+				const TimeSpan cursorTime = GetCursorTime();
+				const TimeSpan timeUntilButton = buttonTime - cursorTime;
 
-				if (timeUntilButton <= 0.0 && timeUntilButton >= -buttonAnimationDuration)
+				if (timeUntilButton <= TimeSpan::FromSeconds(0.0) && timeUntilButton >= -buttonAnimationDuration)
 				{
 					float t = static_cast<float>(timeUntilButton.TotalSeconds() / -buttonAnimationDuration.TotalSeconds());
 					scale *= ImLerp(buttonAnimationScale, 1.0f, t);
@@ -720,7 +720,7 @@ namespace Comfy::Editor
 						audioController.PlayButtonSound();
 
 						buttonAnimations[target.Type].Tick = target.Tick;
-						buttonAnimations[target.Type].ElapsedTime = 0;
+						buttonAnimations[target.Type].ElapsedTime = TimeSpan::FromSeconds(0.0);
 					}
 				}
 			}
@@ -765,7 +765,7 @@ namespace Comfy::Editor
 		if (Gui::IsMouseClicked(4)) SelectNextGridDivision(+1);
 
 		for (int type = 0; type < TargetType_Max; type++)
-			buttonAnimations[type].ElapsedTime += io.DeltaTime;
+			buttonAnimations[type].ElapsedTime += TimeSpan::FromSeconds(io.DeltaTime);
 
 		TimelineTick cursorTick = RoundToGrid(GetCursorTick());
 		for (size_t i = 0; i < std::size(buttonPlacementMapping); i++)
@@ -797,7 +797,7 @@ namespace Comfy::Editor
 		}
 
 		buttonAnimations[type].Tick = tick;
-		buttonAnimations[type].ElapsedTime = 0;
+		buttonAnimations[type].ElapsedTime = TimeSpan::FromSeconds(0.0);
 	}
 
 	void TargetTimeline::SelectNextGridDivision(int direction)
@@ -847,8 +847,8 @@ namespace Comfy::Editor
 			chartEditor->PausePlayback();
 			chartEditor->SetPlaybackTime(chartEditor->GetPlaybackTime() + increment);
 
-			if (chartEditor->GetPlaybackTime() < 0.0)
-				chartEditor->SetPlaybackTime(0.0);
+			if (chartEditor->GetPlaybackTime() < TimeSpan::FromSeconds(0.0))
+				chartEditor->SetPlaybackTime(TimeSpan::FromSeconds(0.0));
 
 			chartEditor->ResumePlayback();
 

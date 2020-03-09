@@ -113,7 +113,7 @@ namespace Comfy::App
 
 	bool TaskPs4Menu::Update()
 	{
-		elapsedTime += Gui::GetIO().DeltaTime;
+		elapsedTime += TimeSpan::FromSeconds(Gui::GetIO().DeltaTime);
 
 		if (aetSet == nullptr || sprSet == nullptr)
 		{
@@ -161,7 +161,7 @@ namespace Comfy::App
 
 		aetRenderer->SetSpriteGetterFunction(&spriteGetterFunction);
 
-		float deltaFrame = TimespanToFrame(Gui::GetIO().DeltaTime);
+		float deltaFrame = TimespanToFrame(TimeSpan::FromSeconds(Gui::GetIO().DeltaTime));
 		elapsedFrames += deltaFrame;
 
 		if (IsWindowFocused())

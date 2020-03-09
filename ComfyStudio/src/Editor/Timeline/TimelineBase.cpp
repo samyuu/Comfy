@@ -12,7 +12,7 @@ namespace Comfy::Editor
 
 	TimeSpan TimelineBase::GetTimelineTime(float position) const
 	{
-		return position / zoomLevel / ZOOM_BASE;
+		return TimeSpan::FromSeconds(position / zoomLevel / ZOOM_BASE);
 	}
 
 	float TimelineBase::ScreenToTimelinePosition(float screenPosition) const

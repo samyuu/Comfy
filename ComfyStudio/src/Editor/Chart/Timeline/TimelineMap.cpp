@@ -14,29 +14,29 @@ namespace Comfy::Editor
 
 	TimeSpan TimelineMap::GetTimeAt(TimelineTick tick) const
 	{
-		int32_t tickTimeCount = static_cast<int32_t>(tickTimes.size());
+		const int32_t tickTimeCount = static_cast<int32_t>(tickTimes.size());
 
-		if (tick.TotalTicks() < 0) // negative tick
+		if (tick.TotalTicks() < 0) // NOTE: Negative tick
 		{
-			// calculate the duration of a TimelineTick at the first tempo
-			TimeSpan firstTickDuration = ((60.0 / firstTempo.BeatsPerMinute) / TimelineTick::TicksPerBeat);
+			// NOTE: Calculate the duration of a TimelineTick at the first tempo
+			TimeSpan firstTickDuration = TimeSpan::FromSeconds((60.0 / firstTempo.BeatsPerMinute) / TimelineTick::TicksPerBeat);
 
-			// then scale by the negative tick
+			// NOTE: Then scale by the negative tick
 			return firstTickDuration * tick.TotalTicks();
 		}
-		else if (tick.TotalTicks() >= tickTimeCount) // tick is outside the defined tempo map
+		else if (tick.TotalTicks() >= tickTimeCount) // NOTE: Tick is outside the defined tempo map
 		{
-			// take the last calculated time
+			// NOTE: Take the last calculated time
 			TimeSpan lastTime = GetLastCalculatedTime();;
 
-			// calculate the duration of a TimelineTick at the last used tempo
-			TimeSpan lastTickDuration = ((60.0 / lastTempo.BeatsPerMinute) / TimelineTick::TicksPerBeat);
+			// NOTE: Calculate the duration of a TimelineTick at the last used tempo
+			TimeSpan lastTickDuration = TimeSpan::FromSeconds((60.0 / lastTempo.BeatsPerMinute) / TimelineTick::TicksPerBeat);
 
-			// then scale by the remaining ticks
+			// NOTE: Then scale by the remaining ticks
 			int remainingTicks = tick.TotalTicks() - tickTimeCount;
 			return lastTime + (lastTickDuration * remainingTicks);
 		}
-		else // use the pre calculated lookup table
+		else // NOTE: Use the pre calculated lookup table
 		{
 			return tickTimes.at(tick.TotalTicks());
 		}
@@ -44,36 +44,36 @@ namespace Comfy::Editor
 
 	TimeSpan TimelineMap::GetLastCalculatedTime() const
 	{
-		size_t tickTimeCount = tickTimes.size();
+		const size_t tickTimeCount = tickTimes.size();
 		return tickTimeCount == 0 ? TimeSpan(0.0) : tickTimes[tickTimeCount - 1];
 	}
 
 	TimelineTick TimelineMap::GetTickAt(TimeSpan time) const
 	{
-		int32_t tickTimeCount = static_cast<int32_t>(tickTimes.size());
-		TimeSpan lastTime = GetLastCalculatedTime();
+		const int32_t tickTimeCount = static_cast<int32_t>(tickTimes.size());
+		const TimeSpan lastTime = GetLastCalculatedTime();
 
-		if (time < 0.0) // negative time
+		if (time < TimeSpan::FromSeconds(0.0)) // NOTE: Negative time
 		{
-			// calculate the duration of a TimelineTick at the first tempo
-			TimeSpan firstTickDuration = ((60.0 / firstTempo.BeatsPerMinute) / TimelineTick::TicksPerBeat);
+			// NOTE: Calculate the duration of a TimelineTick at the first tempo
+			const TimeSpan firstTickDuration = TimeSpan::FromSeconds((60.0 / firstTempo.BeatsPerMinute) / TimelineTick::TicksPerBeat);
 
-			// then the time by the negative tick, this is assuming all tempo changes happen on positive ticks
+			// NOTE: Then the time by the negative tick, this is assuming all tempo changes happen on positive ticks
 			return TimelineTick(static_cast<int32_t>(time / firstTickDuration));
 		}
-		else if (time >= lastTime) // tick is outside the defined tempo map
+		else if (time >= lastTime) // NOTE: Tick is outside the defined tempo map
 		{
-			TimeSpan timePastLast = time - lastTime;
+			const TimeSpan timePastLast = (time - lastTime);
 
-			// each tick past the end has a duration of this value
-			TimeSpan lastTickDuration = ((60.0 / lastTempo.BeatsPerMinute) / TimelineTick::TicksPerBeat);
+			// NOTE: Each tick past the end has a duration of this value
+			const TimeSpan lastTickDuration = TimeSpan::FromSeconds((60.0 / lastTempo.BeatsPerMinute) / TimelineTick::TicksPerBeat);
 
-			// so we just have to divide the remaining ticks by the duration
-			double ticks = timePastLast / lastTickDuration;
-			// and add it to the last tick
+			// NOTE: So we just have to divide the remaining ticks by the duration
+			const double ticks = timePastLast / lastTickDuration;
+			// NOTE: And add it to the last tick
 			return TimelineTick(static_cast<int32_t>(tickTimeCount + ticks));
 		}
-		else // perform a binary search
+		else // NOTE: Perform a binary search
 		{
 			int left = 0, right = tickTimeCount - 1;
 
@@ -102,7 +102,7 @@ namespace Comfy::Editor
 
 		tickTimes.resize(timeCount);
 		{
-			// the time of when the last tempo change ended, so we can use higher precision multiplication
+			// NOTE: The time of when the last tempo change ended, so we can use higher precision multiplication
 			double tempoChangeEndTime = 0.0;
 
 			const size_t tempoChanges = tempoMap.TempoChangeCount();
@@ -120,7 +120,7 @@ namespace Comfy::Editor
 				const size_t timesCount = (onlyTempo || lastTempo) ? (tickTimes.size()) : (tempoMap.GetTempoChangeAt(b + 1).Tick.TotalTicks());
 
 				for (size_t i = 0, t = timesStart; t < timesCount; t++)
-					tickTimes[t] = (tickDuration * i++) + tempoChangeEndTime;
+					tickTimes[t] = TimeSpan::FromSeconds((tickDuration * i++) + tempoChangeEndTime);
 
 				if (tempoChanges > 1)
 					tempoChangeEndTime = tickTimes[timesCount - 1].TotalSeconds() + tickDuration;

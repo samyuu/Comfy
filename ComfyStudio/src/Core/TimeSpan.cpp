@@ -67,13 +67,13 @@ namespace Comfy
 	TimeSpan TimeSpan::GetTimeNow()
 	{
 		const int64_t relativeTime = TimingData::QueryTime() - GlobalTimingData.StartTime;
-		return static_cast<double>(relativeTime) / static_cast<double>(GlobalTimingData.Frequency);
+		return TimeSpan::FromSeconds(static_cast<double>(relativeTime) / static_cast<double>(GlobalTimingData.Frequency));
 	}
 
 	TimeSpan TimeSpan::GetTimeNowAbsolute()
 	{
 		const int64_t absoluteTime = TimingData::QueryTime();
-		return static_cast<double>(absoluteTime) / static_cast<double>(GlobalTimingData.Frequency);
+		return TimeSpan::FromSeconds(static_cast<double>(absoluteTime) / static_cast<double>(GlobalTimingData.Frequency));
 	}
 
 	DebugStopwatch::DebugStopwatch(const char* description)

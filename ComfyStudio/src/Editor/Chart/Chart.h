@@ -24,7 +24,7 @@ namespace Comfy::Editor
 		TempoMap tempoMap;
 		TimelineMap timelineMap;
 
-		TimeSpan startOffset = 0.0;
+		TimeSpan startOffset = TimeSpan::FromSeconds(0.0);
 		TimeSpan duration = TimeSpan::FromMinutes(1.0);
 	};
 }

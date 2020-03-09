@@ -94,15 +94,15 @@ namespace Comfy::Editor
 			// NOTE: Sync timeline cursor to mouse cursor
 
 			const TimelineFrame cursorMouseFrame = timeline->GetTimelineFrameAtMouseX();
-			TimeSpan previousTime = timeline->GetCursorTime();
+			const TimeSpan previousTime = timeline->GetCursorTime();
 			newCursorTime = timeline->GetTimelineTime(cursorMouseFrame);
 
 			if (previousTime == newCursorTime)
 				return;
 
-			TimeSpan startTime = timeline->GetTimelineTime(timeline->GetLoopStartFrame());
-			TimeSpan endTime = timeline->GetTimelineTime(timeline->GetLoopEndFrame());
-			newCursorTime = glm::clamp(newCursorTime.TotalSeconds(), startTime.TotalSeconds(), endTime.TotalSeconds());
+			const TimeSpan startTime = timeline->GetTimelineTime(timeline->GetLoopStartFrame());
+			const TimeSpan endTime = timeline->GetTimelineTime(timeline->GetLoopEndFrame());
+			newCursorTime = std::clamp(newCursorTime, startTime, endTime);
 
 			updateCursorTime = true;
 		}

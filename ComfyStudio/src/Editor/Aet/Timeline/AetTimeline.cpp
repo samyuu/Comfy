@@ -601,7 +601,7 @@ namespace Comfy::Editor
 	void AetTimeline::UpdateCursorPlaybackTime()
 	{
 		const auto& io = Gui::GetIO();
-		cursorTime += io.DeltaTime * playbackSpeedFactor;
+		cursorTime += TimeSpan::FromSeconds(io.DeltaTime * playbackSpeedFactor);
 	}
 
 	void AetTimeline::RoundCursorTimeToNearestFrame()

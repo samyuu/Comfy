@@ -46,7 +46,7 @@ namespace Comfy::Editor
 
 	TimeSpan FrameTimeline::GetTimelineTime(TimelineFrame frame) const
 	{
-		return (1.0f / frameRate) * frame.Frames();
+		return TimeSpan::FromSeconds((1.0 / frameRate) * frame.Frames());
 	}
 
 	TimeSpan FrameTimeline::GetTimelineTime(float position) const

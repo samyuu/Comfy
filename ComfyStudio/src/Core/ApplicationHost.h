@@ -124,7 +124,7 @@ namespace Comfy
 
 		// NOTE: Program timing
 		int swapInterval = 1;
-		TimeSpan elapsedTime = 0.0f;
+		TimeSpan elapsedTime = TimeSpan::FromSeconds(0.0f);
 		TimeSpan currentTime, lastTime;
 		uint64_t elapsedFrames = 0;
 

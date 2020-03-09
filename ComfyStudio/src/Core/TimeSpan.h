@@ -7,13 +7,13 @@ namespace Comfy
 	struct TimeSpan
 	{
 		// NOTE: Constructors
-		inline TimeSpan() : timeInSeconds(0.0) {};
-		inline TimeSpan(double seconds) : timeInSeconds(seconds) {};
+		constexpr TimeSpan() : timeInSeconds(0.0) {};
+		explicit constexpr TimeSpan(double seconds) : timeInSeconds(seconds) {};
 
 		// NOTE: Accessers
-		inline double TotalMinutes() const { return TotalSeconds() / 60.0; };
-		inline double TotalSeconds() const { return timeInSeconds; };
-		inline double TotalMilliseconds() const { return TotalSeconds() * 1000.0; };
+		inline constexpr double TotalMinutes() const { return TotalSeconds() / 60.0; };
+		inline constexpr double TotalSeconds() const { return timeInSeconds; };
+		inline constexpr double TotalMilliseconds() const { return TotalSeconds() * 1000.0; };
 
 		// NOTE: Formatting
 		void FormatTime(char* buffer, size_t bufferSize) const;
@@ -43,12 +43,12 @@ namespace Comfy
 		inline double operator/(double other) const { return TotalSeconds() / other; };
 		inline double operator/(int other) const { return TotalSeconds() / other; };
 
-		inline TimeSpan operator-() const { return -timeInSeconds; };
+		inline TimeSpan operator-() const { return TimeSpan(-timeInSeconds); };
 
 		// NOTE: Factory helpers
-		static inline TimeSpan FromMinutes(double value) { return TimeSpan(value * 60.0); };
-		static inline TimeSpan FromSeconds(double value) { return TimeSpan(value); };
-		static inline TimeSpan FromMilliseconds(double value) { return TimeSpan(value / 1000.0); };
+		static inline constexpr TimeSpan FromMinutes(double value) { return TimeSpan(value * 60.0); };
+		static inline constexpr TimeSpan FromSeconds(double value) { return TimeSpan(value); };
+		static inline constexpr TimeSpan FromMilliseconds(double value) { return TimeSpan(value / 1000.0); };
 
 		// NOTE: Utilities
 		static void Initialize();
