@@ -5,6 +5,7 @@
 #include "Graphics/TxpSet.h"
 #include "Graphics/Direct3D/Buffer/D3D_IndexBuffer.h"
 #include "Graphics/Direct3D/Buffer/D3D_VertexBuffer.h"
+#include <variant>
 
 namespace Comfy::Graphics
 {
@@ -31,12 +32,28 @@ namespace Comfy::Graphics
 		uint32_t BonePerVertex;
 		PrimitiveType Primitive;
 
-		IndexType IndexType;
-		std::vector<uint16_t> Indices;
+		// NOTE: IndexType IndexType; (Stored as part of the std::variant)
+		std::variant<std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>> Indices;
 
 		SubMeshShadowFlags ShadowFlags;
 
 		UniquePtr<D3D_StaticIndexBuffer> D3D_IndexBuffer;
+
+		IndexType GetIndexType() const;
+
+		std::vector<uint8_t>* GetIndicesU8();
+		const std::vector<uint8_t>* GetIndicesU8() const;
+
+		std::vector<uint16_t>* GetIndicesU16();
+		const std::vector<uint16_t>* GetIndicesU16() const;
+		
+		std::vector<uint32_t>* GetIndicesU32();
+		const std::vector<uint32_t>* GetIndicesU32() const;
+
+		const size_t GetIndexCount() const;
+
+		const uint8_t* GetRawIndices() const;
+		size_t GetRawIndicesByteSize() const;
 
 		Material& GetMaterial(Obj& obj);
 		const Material& GetMaterial(const Obj& obj) const;

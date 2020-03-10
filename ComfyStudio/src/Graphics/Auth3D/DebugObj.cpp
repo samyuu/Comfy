@@ -25,10 +25,18 @@ namespace Comfy::Graphics
 			mesh.SubMeshes.push_back({});
 			SubMesh& subMesh = mesh.SubMeshes.back();
 			{
+				subMesh.Flags = {};
 				subMesh.BoundingSphere = boundingSphere;
 				subMesh.BoundingBox.emplace(boundingBox);
+				
 				subMesh.MaterialIndex = 0;
+				subMesh.UVIndices = {};
+				
+				subMesh.BonePerVertex = 0;
 				subMesh.Primitive = PrimitiveType::Triangles;
+
+				subMesh.Indices.emplace<std::vector<uint16_t>>();
+				subMesh.ShadowFlags = {};
 
 				// TODO: Optionally generate normals but not needed for now
 				// bool generateNormals = ...;
@@ -264,7 +272,7 @@ namespace Comfy::Graphics
 
 			GenerateDebugObj("DebugBox", *obj, sphere, box, color, [&](Mesh& mesh, SubMesh& subMesh)
 			{
-				GenerateUnitBoxMesh(mesh.VertexData.Positions, subMesh.Indices);
+				GenerateUnitBoxMesh(mesh.VertexData.Positions, *subMesh.GetIndicesU16());
 
 				for (auto& position : mesh.VertexData.Positions)
 				{
@@ -287,7 +295,7 @@ namespace Comfy::Graphics
 			Box box = { sphere.Center, vec3(sphere.Radius) };
 			GenerateDebugObj("DebugSphere", *obj, sphere, box, color, [&](Mesh& mesh, SubMesh& subMesh)
 			{
-				GenerateUnitIcosahedronMesh(mesh.VertexData.Positions, subMesh.Indices, detailLevel);
+				GenerateUnitIcosahedronMesh(mesh.VertexData.Positions, *subMesh.GetIndicesU16(), detailLevel);
 
 				for (auto& position : mesh.VertexData.Positions)
 				{

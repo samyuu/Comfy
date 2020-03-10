@@ -41,7 +41,7 @@ namespace Comfy::Graphics
 			uint32_t subMeshIndex = 0;
 			for (auto& subMesh : mesh.SubMeshes)
 			{
-				subMesh.D3D_IndexBuffer = MakeUnique<D3D_StaticIndexBuffer>(subMesh.Indices.size() * sizeof(uint16_t), subMesh.Indices.data(), IndexType::UInt16);
+				subMesh.D3D_IndexBuffer = MakeUnique<D3D_StaticIndexBuffer>(subMesh.GetRawIndicesByteSize(), subMesh.GetRawIndices(), subMesh.GetIndexType());
 
 				D3D_SetObjectDebugName(subMesh.D3D_IndexBuffer->GetBuffer(), "<%s> %s[%d]::IndexBuffer", Name.c_str(), mesh.Name, subMeshIndex);
 				subMeshIndex++;
@@ -61,6 +61,83 @@ namespace Comfy::Graphics
 		objSet->Load(std::string(filePath));
 		objSet->UploadAll();
 		return objSet;
+	}
+
+	IndexType SubMesh::GetIndexType() const
+	{
+		return static_cast<IndexType>(Indices.index());
+	}
+
+	std::vector<uint8_t>* SubMesh::GetIndicesU8()
+	{
+		return std::get_if<std::vector<uint8_t>>(&Indices);
+	}
+
+	const std::vector<uint8_t>* SubMesh::GetIndicesU8() const
+	{
+		return std::get_if<std::vector<uint8_t>>(&Indices);
+	}
+
+	std::vector<uint16_t>* SubMesh::GetIndicesU16()
+	{
+		return std::get_if<std::vector<uint16_t>>(&Indices);
+	}
+
+	const std::vector<uint16_t>* SubMesh::GetIndicesU16() const
+	{
+		return std::get_if<std::vector<uint16_t>>(&Indices);
+	}
+
+	std::vector<uint32_t>* SubMesh::GetIndicesU32()
+	{
+		return std::get_if<std::vector<uint32_t>>(&Indices);
+	}
+
+	const std::vector<uint32_t>* SubMesh::GetIndicesU32() const
+	{
+		return std::get_if<std::vector<uint32_t>>(&Indices);
+	}
+
+	const size_t SubMesh::GetIndexCount() const
+	{
+		if (auto indices = GetIndicesU8(); indices != nullptr)
+			return indices->size();
+
+		if (auto indices = GetIndicesU16(); indices != nullptr)
+			return indices->size();
+
+		if (auto indices = GetIndicesU32(); indices != nullptr)
+			return indices->size();
+
+		return 0;
+	}
+
+	const uint8_t* SubMesh::GetRawIndices() const
+	{
+		if (auto indices = GetIndicesU8(); indices != nullptr)
+			return reinterpret_cast<const uint8_t*>(indices->data());
+
+		if (auto indices = GetIndicesU16(); indices != nullptr)
+			return reinterpret_cast<const uint8_t*>(indices->data());
+
+		if (auto indices = GetIndicesU32(); indices != nullptr)
+			return reinterpret_cast<const uint8_t*>(indices->data());
+
+		return nullptr;
+	}
+
+	size_t SubMesh::GetRawIndicesByteSize() const
+	{
+		if (auto indices = GetIndicesU8(); indices != nullptr)
+			return indices->size() * sizeof(uint8_t);
+
+		if (auto indices = GetIndicesU16(); indices != nullptr)
+			return indices->size() * sizeof(uint16_t);
+
+		if (auto indices = GetIndicesU32(); indices != nullptr)
+			return indices->size() * sizeof(uint32_t);
+
+		return 0;
 	}
 
 	Material& SubMesh::GetMaterial(Obj& obj)

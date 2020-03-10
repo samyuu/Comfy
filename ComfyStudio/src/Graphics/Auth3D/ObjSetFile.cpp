@@ -101,19 +101,30 @@ namespace Comfy::Graphics
 
 								subMesh.BonePerVertex = reader.ReadU32();
 								subMesh.Primitive = static_cast<PrimitiveType>(reader.ReadU32());
-								subMesh.IndexType = static_cast<IndexType>(reader.ReadU32());
+								
+								// NOTE = subMesh.IndexType
+								auto indexType = static_cast<IndexType>(reader.ReadU32());
 
 								uint32_t indexCount = reader.ReadU32();
 								FileAddr indicesPtr = reader.ReadPtr();
 								if (indexCount > 0 && indicesPtr != FileAddr::NullPtr)
 								{
-									subMesh.Indices.resize(indexCount);
-
-									reader.ReadAt(indicesPtr, objBaseAddress, [&subMesh, indexCount](BinaryReader& reader)
+									assert(reader.GetEndianness() == Endianness::Native);
+									if (indexType == IndexType::UInt8)
 									{
-										assert(reader.GetEndianness() == Endianness::Native);
-										reader.ReadBuffer(subMesh.Indices.data(), indexCount * sizeof(uint16_t));
-									});
+										uint8_t* data = subMesh.Indices.emplace<std::vector<uint8_t>>(indexCount).data();
+										reader.ReadAt(indicesPtr, objBaseAddress, [&](BinaryReader& reader) { reader.ReadBuffer(data, indexCount * sizeof(uint8_t)); });
+									}
+									else if (indexType == IndexType::UInt16)
+									{
+										uint16_t* data = subMesh.Indices.emplace<std::vector<uint16_t>>(indexCount).data();
+										reader.ReadAt(indicesPtr, objBaseAddress, [&](BinaryReader& reader) { reader.ReadBuffer(data, indexCount * sizeof(uint16_t)); });
+									}
+									else if (indexType == IndexType::UInt32)
+									{
+										uint32_t* data = subMesh.Indices.emplace<std::vector<uint32_t>>(indexCount).data();
+										reader.ReadAt(indicesPtr, objBaseAddress, [&](BinaryReader& reader) { reader.ReadBuffer(data, indexCount * sizeof(uint32_t)); });
+									}
 								}
 
 								subMesh.ShadowFlags = ReadFlagsStruct32<SubMeshShadowFlags>(reader);

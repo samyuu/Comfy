@@ -1622,12 +1622,13 @@ namespace Comfy::Graphics
 
 	void D3D_Renderer3D::SubmitSubMeshDrawCall(const SubMesh& subMesh)
 	{
+		const size_t indexCount = subMesh.GetIndexCount();
 		subMesh.D3D_IndexBuffer->Bind();
 
 		D3D.Context->IASetPrimitiveTopology(GetD3DPrimitiveTopolgy(subMesh.Primitive));
-		D3D.Context->DrawIndexed(static_cast<UINT>(subMesh.Indices.size()), 0, 0);
+		D3D.Context->DrawIndexed(static_cast<UINT>(indexCount), 0, 0);
 
-		statistics.VerticesRendered += subMesh.Indices.size();
+		statistics.VerticesRendered += indexCount;
 	}
 
 	Sphere D3D_Renderer3D::CalculateShadowViewFrustumSphere() const

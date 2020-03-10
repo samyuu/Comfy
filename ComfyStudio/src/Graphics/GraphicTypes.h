@@ -5,6 +5,8 @@ namespace Comfy::Graphics
 {
 	enum class IndexType
 	{
+		Invalid = -1,
+
 		// NOTE: DXGI_FORMAT_R8_UINT / GL_UNSIGNED_BYTE
 		UInt8 = 0,
 		// NOTE: DXGI_FORMAT_R16_UINT / GL_UNSIGNED_SHORT

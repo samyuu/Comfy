@@ -43,9 +43,12 @@ namespace Comfy::Graphics
 				const PrimitiveType primitive = subMesh.Primitive;
 				if (primitive == PrimitiveType::TriangleStrip || primitive == PrimitiveType::Triangles || primitive == PrimitiveType::TriangleFan)
 				{
-					const size_t triangleIndexStep = (primitive == PrimitiveType::Triangles) ? 3 : 1;
-					const auto& indices = subMesh.Indices;
+					if (subMesh.GetIndexType() != IndexType::UInt16)
+						continue;
 
+					const auto& indices = *subMesh.GetIndicesU16();
+
+					const size_t triangleIndexStep = (primitive == PrimitiveType::Triangles) ? 3 : 1;
 					for (size_t i = 0; i < indices.size() - 2; i += triangleIndexStep)
 					{
 						// TODO: Store last two positions so to avoid transforming them multiple times
