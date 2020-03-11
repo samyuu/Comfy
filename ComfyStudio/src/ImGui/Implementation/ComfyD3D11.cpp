@@ -177,7 +177,7 @@ namespace ImGui
 			if (Data.DeviceObjects->IndexBuffer == nullptr || Data.IndexBufferSize < drawData->TotalIdxCount)
 			{
 				Data.IndexBufferSize = drawData->TotalIdxCount + 10000;
-				Data.DeviceObjects->IndexBuffer = MakeUnique<D3D_DynamicIndexBuffer>(Data.IndexBufferSize * sizeof(ImDrawIdx), nullptr, IndexType::UInt16);
+				Data.DeviceObjects->IndexBuffer = MakeUnique<D3D_DynamicIndexBuffer>(Data.IndexBufferSize * sizeof(ImDrawIdx), nullptr, IndexFormat::U16);
 
 				D3D_SetObjectDebugName(Data.DeviceObjects->IndexBuffer->GetBuffer(), "ComfyD3D11::IndexBuffer");
 			}

@@ -43,7 +43,7 @@ namespace Comfy::Graphics
 				const PrimitiveType primitive = subMesh.Primitive;
 				if (primitive == PrimitiveType::TriangleStrip || primitive == PrimitiveType::Triangles || primitive == PrimitiveType::TriangleFan)
 				{
-					if (subMesh.GetIndexType() != IndexType::UInt16)
+					if (subMesh.GetIndexFormat() != IndexFormat::U16)
 						continue;
 
 					const auto& indices = *subMesh.GetIndicesU16();

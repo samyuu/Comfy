@@ -4,26 +4,26 @@ namespace Comfy::Graphics
 {
 	namespace
 	{
-		constexpr DXGI_FORMAT GetDXGIFormatFromIndexType(IndexType indexType)
+		constexpr DXGI_FORMAT GetDXGIFormatFromIndexType(IndexFormat indexFormat)
 		{
-			switch (indexType)
+			switch (indexFormat)
 			{
-			case IndexType::UInt8:	return DXGI_FORMAT_R8_UINT;
-			case IndexType::UInt16: return DXGI_FORMAT_R16_UINT;
-			case IndexType::UInt32: return DXGI_FORMAT_R32_UINT;
+			case IndexFormat::U8:	return DXGI_FORMAT_R8_UINT;
+			case IndexFormat::U16:	return DXGI_FORMAT_R16_UINT;
+			case IndexFormat::U32:	return DXGI_FORMAT_R32_UINT;
 			}
 
 			assert(false);
 			return DXGI_FORMAT_UNKNOWN;
 		}
 
-		constexpr size_t GetIndexTypeSize(IndexType indexType)
+		constexpr size_t GetIndexTypeSize(IndexFormat indexFormat)
 		{
-			switch (indexType)
+			switch (indexFormat)
 			{
-			case IndexType::UInt8:	return sizeof(uint8_t);
-			case IndexType::UInt16: return sizeof(uint16_t);
-			case IndexType::UInt32: return sizeof(uint32_t);
+			case IndexFormat::U8:	return sizeof(uint8_t);
+			case IndexFormat::U16:	return sizeof(uint16_t);
+			case IndexFormat::U32:	return sizeof(uint32_t);
 			}
 
 			assert(false);
@@ -31,15 +31,15 @@ namespace Comfy::Graphics
 		}
 	}
 
-	D3D_IndexBuffer::D3D_IndexBuffer(size_t dataSize, const void* data, IndexType indexType, D3D11_USAGE usage, UINT accessFlags)
-		: indexFormat(GetDXGIFormatFromIndexType(indexType))
+	D3D_IndexBuffer::D3D_IndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat, D3D11_USAGE usage, UINT accessFlags)
+		: indexFormat(GetDXGIFormatFromIndexType(indexFormat))
 	{
 		bufferDescription.ByteWidth = static_cast<UINT>(dataSize);
 		bufferDescription.Usage = usage;
 		bufferDescription.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		bufferDescription.CPUAccessFlags = accessFlags;
 		bufferDescription.MiscFlags = 0;
-		bufferDescription.StructureByteStride = static_cast<UINT>(GetIndexTypeSize(indexType));
+		bufferDescription.StructureByteStride = static_cast<UINT>(GetIndexTypeSize(indexFormat));
 
 		D3D11_SUBRESOURCE_DATA initialResourceData = { data, 0, 0 };
 		D3D.Device->CreateBuffer(&bufferDescription, (data == nullptr) ? nullptr : &initialResourceData, &buffer);
@@ -62,13 +62,13 @@ namespace Comfy::Graphics
 		return buffer.Get();
 	}
 
-	D3D_StaticIndexBuffer::D3D_StaticIndexBuffer(size_t dataSize, const void* data, IndexType indexType)
-		: D3D_IndexBuffer(dataSize, data, indexType, D3D11_USAGE_IMMUTABLE, 0)
+	D3D_StaticIndexBuffer::D3D_StaticIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat)
+		: D3D_IndexBuffer(dataSize, data, indexFormat, D3D11_USAGE_IMMUTABLE, 0)
 	{
 	}
 
-	D3D_DynamicIndexBuffer::D3D_DynamicIndexBuffer(size_t dataSize, const void* data, IndexType indexType)
-		: D3D_IndexBuffer(dataSize, data, indexType, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE)
+	D3D_DynamicIndexBuffer::D3D_DynamicIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat)
+		: D3D_IndexBuffer(dataSize, data, indexFormat, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE)
 	{
 	}
 

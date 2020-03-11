@@ -3,16 +3,16 @@
 
 namespace Comfy::Graphics
 {
-	enum class IndexType
+	enum class IndexFormat
 	{
 		Invalid = -1,
 
 		// NOTE: DXGI_FORMAT_R8_UINT / GL_UNSIGNED_BYTE
-		UInt8 = 0,
+		U8 = 0,
 		// NOTE: DXGI_FORMAT_R16_UINT / GL_UNSIGNED_SHORT
-		UInt16 = 1,
+		U16 = 1,
 		// NOTE: DXGI_FORMAT_R32_UINT / GL_UNSIGNED_INT
-		UInt32 = 2,
+		U32 = 2,
 	};
 
 	enum class PrimitiveType : uint32_t

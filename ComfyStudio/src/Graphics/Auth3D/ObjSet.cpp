@@ -41,7 +41,7 @@ namespace Comfy::Graphics
 			uint32_t subMeshIndex = 0;
 			for (auto& subMesh : mesh.SubMeshes)
 			{
-				subMesh.D3D_IndexBuffer = MakeUnique<D3D_StaticIndexBuffer>(subMesh.GetRawIndicesByteSize(), subMesh.GetRawIndices(), subMesh.GetIndexType());
+				subMesh.D3D_IndexBuffer = MakeUnique<D3D_StaticIndexBuffer>(subMesh.GetRawIndicesByteSize(), subMesh.GetRawIndices(), subMesh.GetIndexFormat());
 
 				D3D_SetObjectDebugName(subMesh.D3D_IndexBuffer->GetBuffer(), "<%s> %s[%d]::IndexBuffer", Name.c_str(), mesh.Name, subMeshIndex);
 				subMeshIndex++;
@@ -63,9 +63,9 @@ namespace Comfy::Graphics
 		return objSet;
 	}
 
-	IndexType SubMesh::GetIndexType() const
+	IndexFormat SubMesh::GetIndexFormat() const
 	{
-		return static_cast<IndexType>(Indices.index());
+		return static_cast<IndexFormat>(Indices.index());
 	}
 
 	std::vector<uint8_t>* SubMesh::GetIndicesU8()
@@ -112,16 +112,16 @@ namespace Comfy::Graphics
 		return 0;
 	}
 
-	const uint8_t* SubMesh::GetRawIndices() const
+	const void* SubMesh::GetRawIndices() const
 	{
 		if (auto indices = GetIndicesU8(); indices != nullptr)
-			return reinterpret_cast<const uint8_t*>(indices->data());
+			return static_cast<const void*>(indices->data());
 
 		if (auto indices = GetIndicesU16(); indices != nullptr)
-			return reinterpret_cast<const uint8_t*>(indices->data());
+			return static_cast<const void*>(indices->data());
 
 		if (auto indices = GetIndicesU32(); indices != nullptr)
-			return reinterpret_cast<const uint8_t*>(indices->data());
+			return static_cast<const void*>(indices->data());
 
 		return nullptr;
 	}

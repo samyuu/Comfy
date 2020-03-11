@@ -39,22 +39,27 @@ namespace Comfy::Graphics
 
 		UniquePtr<D3D_StaticIndexBuffer> D3D_IndexBuffer;
 
-		IndexType GetIndexType() const;
+		// NOTE: IndexFormat wrapper around the Indices variant
+		IndexFormat GetIndexFormat() const;
 
 		std::vector<uint8_t>* GetIndicesU8();
 		const std::vector<uint8_t>* GetIndicesU8() const;
 
 		std::vector<uint16_t>* GetIndicesU16();
 		const std::vector<uint16_t>* GetIndicesU16() const;
-		
+
 		std::vector<uint32_t>* GetIndicesU32();
 		const std::vector<uint32_t>* GetIndicesU32() const;
 
+		// NOTE: Index count of the current valid index format
 		const size_t GetIndexCount() const;
 
-		const uint8_t* GetRawIndices() const;
+		// NOTE: Raw byte view for interfacing with generic data
+		const void* GetRawIndices() const;
+		// NOTE: Raw byte size for interfacing with generic data
 		size_t GetRawIndicesByteSize() const;
 
+		// NOTE: Convenient helper
 		Material& GetMaterial(Obj& obj);
 		const Material& GetMaterial(const Obj& obj) const;
 	};

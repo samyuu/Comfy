@@ -88,7 +88,7 @@ namespace Comfy::Graphics
 			offset += static_cast<uint16_t>(SpriteVertices::GetVertexCount());
 		}
 
-		indexBuffer = MakeUnique<D3D_StaticIndexBuffer>(indexData.size(), indexData.data(), IndexType::UInt16);
+		indexBuffer = MakeUnique<D3D_StaticIndexBuffer>(indexData.size(), indexData.data(), IndexFormat::U16);
 		D3D_SetObjectDebugName(indexBuffer->GetBuffer(), "Renderer2D::IndexBuffer");
 	}
 

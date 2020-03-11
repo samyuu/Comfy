@@ -7,7 +7,7 @@ namespace Comfy::Graphics
 	class D3D_IndexBuffer : ID3DGraphicsResource
 	{
 	protected:
-		D3D_IndexBuffer(size_t dataSize, const void* data, IndexType indexType, D3D11_USAGE usage, UINT accessFlags);
+		D3D_IndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat, D3D11_USAGE usage, UINT accessFlags);
 		virtual ~D3D_IndexBuffer() = default;
 
 	public:
@@ -26,7 +26,7 @@ namespace Comfy::Graphics
 	class D3D_StaticIndexBuffer final : public D3D_IndexBuffer
 	{
 	public:
-		D3D_StaticIndexBuffer(size_t dataSize, const void* data, IndexType indexType);
+		D3D_StaticIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat);
 		~D3D_StaticIndexBuffer() = default;
 
 	public:
@@ -35,7 +35,7 @@ namespace Comfy::Graphics
 	class D3D_DynamicIndexBuffer final : public D3D_IndexBuffer
 	{
 	public:
-		D3D_DynamicIndexBuffer(size_t dataSize, const void* data, IndexType indexType);
+		D3D_DynamicIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat);
 		~D3D_DynamicIndexBuffer() = default;
 
 	public:
