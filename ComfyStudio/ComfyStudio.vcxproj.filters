@@ -1076,6 +1076,9 @@
     <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\SSS\SSSFilterMin_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\ToneMap\ToneMap_PS.hlsl" />
     <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\Structs\SkeletonData.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\LensFlare\LensFlare_PS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\LensFlare\LensFlare_VS.hlsl" />
+    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\LensFlare\Sun_PS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Graphics\Direct3D\Renderer\Detail\ConstantData.h" />

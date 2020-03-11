@@ -699,6 +699,9 @@ namespace Comfy::Graphics
 
 			for (auto& command : defaultCommandList.OpaqueAndTransparent)
 				InternalRenderOpaqueObjCommand(command);
+
+			if (renderParameters->RenderLensFlare && sceneContext->Stage.LensFlare.SunPosition.has_value())
+				InternalQueryRenderLensFlare();
 		}
 
 		if (renderParameters->RenderTransparent && !defaultCommandList.Transparent.empty())
@@ -707,6 +710,9 @@ namespace Comfy::Graphics
 
 			for (auto& command : defaultCommandList.Transparent)
 				InternalRenderTransparentSubMeshCommand(command);
+
+			if (renderParameters->RenderLensFlare && sceneContext->Stage.LensFlare.SunPosition.has_value())
+				InternalRenderLensFlare();
 
 			transparencyPassDepthStencilState.UnBind();
 		}
@@ -1083,6 +1089,25 @@ namespace Comfy::Graphics
 
 		shaders.SilhouetteOutline.Bind();
 		D3D.Context->Draw(RectangleVertexCount, 0);
+	}
+
+	void D3D_Renderer3D::InternalQueryRenderLensFlare()
+	{
+		shaders.Sun.Bind();
+
+		sunOcclusionQuery.BeginQuery();
+		{
+			// TODO: 
+		}
+		sunOcclusionQuery.EndQuery();
+
+		sunOcclusionQuery.QueryData();
+		const auto coveredPixels = sunOcclusionQuery.GetCoveredPixels();
+	}
+
+	void D3D_Renderer3D::InternalRenderLensFlare()
+	{
+		shaders.LensFlare.Bind();
 	}
 
 	void D3D_Renderer3D::InternalRenderPostProcessing()

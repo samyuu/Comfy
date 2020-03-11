@@ -41,6 +41,8 @@ ItemBlinn_PS
 PositionTransform_VS
 Lambert_VS
 Lambert_PS
+LensFlare_VS
+LensFlare_PS
 Silhouette_VS
 Silhouette_PS
 PPGauss_PS
@@ -59,6 +61,7 @@ SSSSkin_PS
 SSSSkinConst_PS
 StageBlinn_VS
 StageBlinn_PS
+Sun_PS
 Tights_VS
 Tights_PS
 ToneMap_PS

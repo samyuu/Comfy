@@ -5,6 +5,8 @@
 #include "Light/LightDataIBL.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Direct3D/Texture/D3D_RenderTarget.h"
+#include "Resource/IDTypes.h"
+#include <optional>
 
 namespace Comfy::Graphics
 {
@@ -28,7 +30,9 @@ namespace Comfy::Graphics
 		bool RenderOpaque = true;
 		bool RenderTransparent = true;
 		bool RenderBloom = true;
+		bool RenderLensFlare = true;
 		bool AutoExposure = true;
+
 		bool VertexColoring = true;
 
 		bool DiffuseMapping = true;
@@ -42,11 +46,10 @@ namespace Comfy::Graphics
 		bool RenderPunchThrough = true;
 		bool RenderFog = true;
 		bool ObjectMorphing = true;
-		// TODO:
-		// bool ObjectSkinning = true;
+		bool ObjectSkinning = true;
 
 		// NOTE: Enable to take alpha render target captures with a clear color alpha of zero
-		bool ToneMapPreserveAlpha = true;
+		bool ToneMapPreserveAlpha = false;
 
 		ivec2 RenderResolution = RenderTargetDefaultSize;
 
@@ -69,7 +72,7 @@ namespace Comfy::Graphics
 		ivec2 ReflectionRenderResolution = ReflectionDefaultResolution;
 
 		bool Clear = true;
-		vec4 ClearColor = vec4(0.16f, 0.16f, 0.16f, 1.00f);
+		vec4 ClearColor = vec4(0.16f, 0.16f, 0.16f, 0.00f);
 
 		/*
 		struct PostProcessParameters
@@ -235,6 +238,25 @@ namespace Comfy::Graphics
 	{
 	public:
 		RenderParameters RenderParameters;
+
+		struct Stageparameters
+		{
+			struct LensFlare
+			{
+				// NOTE: Lens flare sun position
+				std::optional<vec3> SunPosition;
+
+				struct Textures
+				{
+					// NOTE: Common sun texture from effcmn
+					Cached_TxpID Sun;
+					// NOTE: Stage specific textures
+					std::array<Cached_TxpID, 2> Flares;
+					Cached_TxpID Ghost;
+				} Textures;
+				
+			} LensFlare;
+		} Stage;
 
 		FogParameter Fog;
 		GlowParameter Glow;

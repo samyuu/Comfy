@@ -8,6 +8,7 @@
 #include "../State/D3D_BlendState.h"
 #include "../State/D3D_DepthStencilState.h"
 #include "../State/D3D_InputLayout.h"
+#include "../State/D3D_OcclusionQuery.h"
 #include "../State/D3D_RasterizerState.h"
 #include "../Texture/D3D_Texture.h"
 #include "Detail/ConstantData.h"
@@ -121,26 +122,37 @@ namespace Comfy::Graphics
 
 		void InternalPrepareRenderCommands(RenderPassCommandLists& commandList);
 		void InternalRenderScene();
+
 		void InternalPreRenderShadowMap();
 		void InternalPreRenderReduceFilterShadowMap();
+
 		void InternalPreRenderScreenReflection();
+
 		void InternalPreRenderSubsurfaceScattering();
 		void InternalPreRenderReduceFilterSubsurfaceScattering();
 
 		// TODO: Add wrapper function to loop over commnad list and add opaque and transparent to RenderFlags
 		void InternalRenderOpaqueObjCommand(ObjRenderCommand& command, RenderFlags flags = RenderFlags_None);
 		void InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command);
+		
 		void InternalRenderSilhouette();
 		void InternalRenderSilhouetteOutlineOverlay();
+		
+		void InternalQueryRenderLensFlare();
+		void InternalRenderLensFlare();
+
 		void InternalRenderPostProcessing();
 		void InternalRenderBloom();
+		
 		void InternalRenderExposurePreBloom();
 		void InternalRenderExposurePostBloom();
 
 		void BindMeshVertexBuffers(const Mesh& primaryMesh, const Mesh* morphMesh);
 		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, RenderFlags flags = RenderFlags_None);
+
 		D3D_ShaderPair& GetMaterialShader(const Material& material);
 		D3D_ShaderPair& GetSSSMaterialShader(const Material& material);
+
 		void SubmitSubMeshDrawCall(const SubMesh& subMesh);
 
 		Sphere CalculateShadowViewFrustumSphere() const;
@@ -179,6 +191,7 @@ namespace Comfy::Graphics
 			D3D_ShaderPair ImgFilterBlur = { FullscreenQuad_VS(), ImgFilterBlur_PS(), "Renderer3D::ImgFilterBlur" };
 			D3D_ShaderPair ItemBlinn = { ItemBlinn_VS(), ItemBlinn_PS(), "Renderer3D::ItemBlinn" };
 			D3D_ShaderPair Lambert = { Lambert_VS(), Lambert_PS(), "Renderer3D::Lambert" };
+			D3D_ShaderPair LensFlare = { LensFlare_VS(), LensFlare_PS(), "Renderer3D::LensFlare" };
 			D3D_ShaderPair Silhouette = { Silhouette_VS(), Silhouette_PS(), "Renderer3D::Silhouette" };
 			D3D_ShaderPair PPGauss = { FullscreenQuad_VS(), PPGauss_PS(), "Renderer3D::PPGauss" };
 			D3D_ShaderPair ReduceTex = { FullscreenQuad_VS(), ReduceTex_PS(), "Renderer3D::ReduceTex" };
@@ -192,6 +205,7 @@ namespace Comfy::Graphics
 			D3D_ShaderPair SSSSkin = { SSSSkin_VS(), SSSSkin_PS(), "Renderer3D::SSSSkin" };
 			D3D_ShaderPair SSSSkinConst = { PositionTransform_VS(), SSSSkinConst_PS(), "Renderer3D::SSSSkinConst" };
 			D3D_ShaderPair StageBlinn = { StageBlinn_VS(), StageBlinn_PS(), "Renderer3D::StageBlinn" };
+			D3D_ShaderPair Sun = { LensFlare_VS(), Sun_PS(), "Renderer3D::Sun" };
 			D3D_ShaderPair Tights = { Tights_VS(), Tights_PS(), "Renderer3D::Tights" };
 			D3D_ShaderPair ToneMap = { FullscreenQuad_VS(), ToneMap_PS(), "Renderer3D::ToneMap" };
 			D3D_ShaderPair Water = { Water_VS(), Water_PS(), "Renderer3D::Water" };
@@ -212,6 +226,8 @@ namespace Comfy::Graphics
 
 		UniquePtr<D3D_InputLayout> genericInputLayout = nullptr;
 		UniquePtr<D3D_InputLayout> shadowSilhouetteInputLayout = nullptr;
+		
+		D3D_OcclusionQuery sunOcclusionQuery = { "Renderer3D::SunOcclusionQuery" };
 
 		D3D_RasterizerState solidBackfaceCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_BACK, "Renderer3D::SolidBackfaceCulling" };
 		D3D_RasterizerState solidFrontfaceCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_FRONT, "Renderer3D::SolidFrontfaceCulling" };

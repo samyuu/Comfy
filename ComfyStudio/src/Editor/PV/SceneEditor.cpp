@@ -198,9 +198,9 @@ namespace Comfy::Editor
 
 		if (objSetToRemove->TxpSet != nullptr)
 		{
-			sceneGraph.TxpIDMap.RemoveIf([&](auto& pair) 
+			sceneGraph.TxpIDMap.RemoveIf([&](auto& pair)
 			{
-				return std::any_of(objSetToRemove->TxpSet->Txps.begin(), objSetToRemove->TxpSet->Txps.end(), [&pair](auto& txp)  { return txp->ID == pair.ID; });
+				return std::any_of(objSetToRemove->TxpSet->Txps.begin(), objSetToRemove->TxpSet->Txps.end(), [&pair](auto& txp) { return txp->ID == pair.ID; });
 			});
 		}
 
@@ -437,6 +437,7 @@ namespace Comfy::Editor
 		Gui::Checkbox("Render Opaque", &renderParameters.RenderOpaque);
 		Gui::Checkbox("Render Transparent", &renderParameters.RenderTransparent);
 		Gui::Checkbox("Render Bloom", &renderParameters.RenderBloom);
+		Gui::Checkbox("Render Lens Flare", &renderParameters.RenderLensFlare);
 		Gui::Checkbox("Auto Exposure", &renderParameters.AutoExposure);
 		Gui::Checkbox("Vertex Coloring", &renderParameters.VertexColoring);
 		Gui::Separator();
@@ -450,6 +451,8 @@ namespace Comfy::Editor
 		Gui::Separator();
 		Gui::Checkbox("Render Punch Through", &renderParameters.RenderPunchThrough);
 		Gui::Checkbox("Render Fog", &renderParameters.RenderFog);
+		Gui::Checkbox("Object Morphing", &renderParameters.ObjectMorphing);
+		Gui::Checkbox("Object Skinning", &renderParameters.ObjectSkinning);
 		Gui::Separator();
 		Gui::SliderInt("Anistropic Filtering", &renderParameters.AnistropicFiltering, D3D11_MIN_MAXANISOTROPY, D3D11_MAX_MAXANISOTROPY);
 
