@@ -57,8 +57,8 @@ namespace Comfy::Graphics
 			Material material = {};
 			{
 				material.ShaderType = Material::ShaderIdentifiers::Blinn;
-				material.ShaderFlags.is_lgt_diffuse = false;
-				material.ShaderFlags.is_lgt_specular = false;
+				material.ShaderFlags.LambertShading = false;
+				material.ShaderFlags.PhongShading = false;
 				material.BlendFlags.AlphaMaterial = (color.a < 1.0f);
 				material.BlendFlags.SrcBlendFactor = BlendFactor_SrcAlpha;
 				material.BlendFlags.DstBlendFactor = BlendFactor_ISrcAlpha;

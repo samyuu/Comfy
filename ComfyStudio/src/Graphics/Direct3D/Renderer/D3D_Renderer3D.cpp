@@ -1579,13 +1579,13 @@ namespace Comfy::Graphics
 
 		if (material.ShaderType == Material::ShaderIdentifiers::Blinn)
 		{
-			if (material.ShaderFlags.is_lgt_specular)
+			if (material.ShaderFlags.PhongShading)
 			{
 				// TODO:
-				// return (material.UsedTexturesFlags.UseNormalTexture) ? shaders.BlinnPerFrag : shaders.BlinnPerVert;
-				return (material.ShaderFlags.is_lgt_per_pixel) ? shaders.BlinnPerFrag : shaders.BlinnPerVert;
+				return (material.UsedTexturesFlags.Normal) ? shaders.BlinnPerFrag : shaders.BlinnPerVert;
+				//return (material.ShaderFlags.PerPixelShading) ? shaders.BlinnPerFrag : shaders.BlinnPerVert;
 			}
-			else if (material.ShaderFlags.is_lgt_diffuse)
+			else if (material.ShaderFlags.LambertShading)
 			{
 				return shaders.Lambert;
 			}

@@ -225,59 +225,38 @@ namespace Comfy::Graphics
 
 		mutable DebugData Debug;
 
-		uint32_t UsedTextureCount;
-
+		uint32_t UsedTexturesCount;
 		struct MaterialTextureFlags
 		{
-			// TODO:
-#if 1
-			unsigned __int32 color : 1;
-			unsigned __int32 color_a : 1;
-			unsigned __int32 color_l1 : 1;
-			unsigned __int32 color_l1_a : 1;
-			unsigned __int32 color_l2 : 1;
-			unsigned __int32 color_l2_a : 1;
-			unsigned __int32 transparency : 1;
-			unsigned __int32 specular : 1;
-			unsigned __int32 normal_01 : 1;
-			unsigned __int32 normal_02 : 1;
-			unsigned __int32 envmap : 1;
-			unsigned __int32 color_l3 : 1;
-			unsigned __int32 color_l3_a : 1;
-			unsigned __int32 translucency : 1;
-			unsigned __int32 dummy : 18;
-#else
-			uint32_t UseDiffuseTexture : 1; // color
-			uint32_t UseUnknown0 : 1; // color_a
-			uint32_t UseAmbientTexture : 1; // color_l1
-			uint32_t UseUnknown1 : 1; // color_l1_a
-			uint32_t ResultsInNoTexture : 1; // color_l2
-			uint32_t UseUnknown2 : 1; // color_l2_a
-			uint32_t UseUnknown3 : 1; // transparency
-			uint32_t UseSpecularTexture : 1; // specular
-			uint32_t UseNormalTexture : 1; // normal_01
-			uint32_t UseUnknown4 : 1; // normal_02
-			uint32_t UseUnknown5 : 1; // envmap
-			uint32_t UseUnknown6 : 1; // color_l3
-			uint32_t UseUnknown7 : 1; // color_l3_a
-			uint32_t UseTranslucencyTexture : 1; // translucency
-			uint32_t UseCubeMapReflection : 1;
-
-			uint32_t CubeMapReflectionRelated : 16;
-#endif
+			uint32_t Color : 1;
+			uint32_t ColorA : 1;
+			uint32_t ColorL1 : 1;
+			uint32_t ColorL1A : 1;
+			uint32_t ColorL2 : 1;
+			uint32_t ColorL2A : 1;
+			uint32_t Transparency : 1;
+			uint32_t Specular : 1;
+			uint32_t Normal : 1;
+			uint32_t NormalAlt : 1;
+			uint32_t Environment : 1;
+			uint32_t ColorL3 : 1;
+			uint32_t ColorL3A : 1;
+			uint32_t Translucency : 1;
+			uint32_t Unknown0 : 1;
+			uint32_t Unknown1 : 1;
+			uint32_t Reserved : 16;
 		} UsedTexturesFlags;
 
 		ShaderTypeIdentifier ShaderType;
-
 		struct MaterialShaderFlags
 		{
-			uint32_t vtx_trans_type : 2;
-			uint32_t col_src : 2;
+			uint32_t VertexTransType : 2;
+			uint32_t ColorSource : 2;
 
-			uint32_t is_lgt_diffuse : 1;
-			uint32_t is_lgt_specular : 1;
-			uint32_t is_lgt_per_pixel : 1;
-			uint32_t is_lgt_double : 1;
+			uint32_t LambertShading : 1;
+			uint32_t PhongShading : 1;
+			uint32_t PerPixelShading : 1;
+			uint32_t DoubleShading : 1;
 
 			uint32_t BumpMapType : 2;
 			uint32_t Fresnel : 4;
@@ -342,7 +321,6 @@ namespace Comfy::Graphics
 		} Color;
 
 		Sphere ReservedSphere;
-
 		std::array<char, 64> Name;
 
 		float BumpDepth;
