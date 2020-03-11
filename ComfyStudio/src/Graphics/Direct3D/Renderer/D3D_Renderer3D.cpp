@@ -112,10 +112,10 @@ namespace Comfy::Graphics
 
 		constexpr bool IsMeshTransparent(const Mesh& mesh, const SubMesh& subMesh, const Material& material)
 		{
-			if (material.BlendFlags.EnableBlend)
+			if (material.BlendFlags.AlphaMaterial)
 				return true;
 
-			if (material.BlendFlags.EnableAlphaTest && !material.BlendFlags.OpaqueAlphaTest)
+			if (material.BlendFlags.AlphaTexture && !material.BlendFlags.PunchThrough)
 				return true;
 
 			return false;
@@ -123,7 +123,7 @@ namespace Comfy::Graphics
 
 		bool UsesSSSSkin(const Material& material)
 		{
-			if (material.Type == Material::Identifiers::Skin || material.Type == Material::Identifiers::EyeBall || material.Type == Material::Identifiers::EyeLens)
+			if (material.ShaderType == Material::ShaderIdentifiers::Skin || material.ShaderType == Material::ShaderIdentifiers::EyeBall || material.ShaderType == Material::ShaderIdentifiers::EyeLens)
 				return true;
 
 			return false;
@@ -131,7 +131,7 @@ namespace Comfy::Graphics
 
 		bool UsesSSSSkinConst(const Material& material)
 		{
-			if (material.Type == Material::Identifiers::Hair || material.Type == Material::Identifiers::Cloth || material.Type == Material::Identifiers::Tights)
+			if (material.ShaderType == Material::ShaderIdentifiers::Hair || material.ShaderType == Material::ShaderIdentifiers::Cloth || material.ShaderType == Material::ShaderIdentifiers::Tights)
 				return true;
 
 			return false;
@@ -1114,7 +1114,8 @@ namespace Comfy::Graphics
 	{
 		D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-		constexpr uint32_t attributesToReset = (VertexAttribute_Count * 2);
+		constexpr uint32_t morphAttrbutesFactor = 2;
+		constexpr uint32_t attributesToReset = (VertexAttribute_Count * morphAttrbutesFactor);
 
 		std::array<ID3D11Buffer*, attributesToReset> buffers = {};
 		std::array<UINT, attributesToReset> strides = {}, offsets = {};
@@ -1339,22 +1340,22 @@ namespace Comfy::Graphics
 				shaders.SolidBlack.Bind();
 		}
 
-		std::array<D3D_ShaderResourceView*, MaterialTexture::Count> textureResources = {};
-		std::array<D3D_TextureSampler*, MaterialTexture::Count> textureSamplers = {};
+		std::array<D3D_ShaderResourceView*, MaterialTextureData::TextureType_Count> textureResources = {};
+		std::array<D3D_TextureSampler*, MaterialTextureData::TextureType_Count> textureSamplers = {};
 
 		if (!(flags & RenderFlags_NoMaterialTextures))
 		{
 			objectCB.Data.DiffuseRGTC1 = false;
 			objectCB.Data.DiffuseScreenTexture = false;
 
-			const size_t texturesToBind = (flags & RenderFlags_DiffuseTextureOnly) ? 1 : MaterialTexture::Count;
+			const size_t texturesToBind = (flags & RenderFlags_DiffuseTextureOnly) ? 1 : MaterialTextureData::TextureType_Count;
 
 			for (size_t typeIndex = 0; typeIndex < texturesToBind; typeIndex++)
 			{
-				const MaterialTexture& materialTexture = material.TexturesArray[typeIndex];
+				const MaterialTextureData& materialTexture = material.TextureDataArray[typeIndex];
 
 				const Cached_TxpID* txpID = &materialTexture.TextureID;
-				MaterialTextureFlags textureFlags = materialTexture.Flags;
+				auto textureFlags = materialTexture.TextureFlags;
 
 				if (command.SourceCommand.Animation != nullptr)
 				{
@@ -1362,8 +1363,8 @@ namespace Comfy::Graphics
 					{
 						if (*txpID == transform.ID)
 						{
-							textureFlags.TextureAddressMode_U_Repeat = transform.RepeatU.value_or<int>(textureFlags.TextureAddressMode_U_Repeat);
-							textureFlags.TextureAddressMode_V_Repeat = transform.RepeatU.value_or<int>(textureFlags.TextureAddressMode_V_Repeat);
+							textureFlags.RepeatU = transform.RepeatU.value_or<int>(textureFlags.RepeatU);
+							textureFlags.RepeatV = transform.RepeatU.value_or<int>(textureFlags.RepeatV);
 						}
 					}
 
@@ -1379,7 +1380,7 @@ namespace Comfy::Graphics
 					textureResources[typeIndex] = (txp->D3D_Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->D3D_Texture2D.get()) : (txp->D3D_CubeMap != nullptr) ? (txp->D3D_CubeMap.get()) : nullptr;
 					textureSamplers[typeIndex] = &cachedTextureSamplers.GetSampler(textureFlags);
 
-					if (&materialTexture == &material.Textures.Diffuse)
+					if (&materialTexture == &material.TextureData.Diffuse)
 					{
 						if (command.SourceCommand.Animation != nullptr && *txpID == command.SourceCommand.Animation->ScreenRenderTextureID)
 						{
@@ -1393,22 +1394,22 @@ namespace Comfy::Graphics
 				}
 			}
 
-			auto ambientTypeFlags = material.Textures.Ambient.Flags.AmbientTypeFlags;
-			objectCB.Data.AmbientTextureType = (ambientTypeFlags == 0b100) ? 2 : (ambientTypeFlags == 0b110) ? 1 : (ambientTypeFlags != 0b10000) ? 0 : 3;
+			const auto blendFlags = material.TextureData.Ambient.TextureFlags.Blend;
+			objectCB.Data.AmbientTextureType = (blendFlags == 0b100) ? 2 : (blendFlags == 0b110) ? 1 : (blendFlags != 0b10000) ? 0 : 3;
 
 			D3D_ShaderResourceView::BindArray(TextureSlot_Diffuse, textureResources);
 			D3D_TextureSampler::BindArray(TextureSlot_Diffuse, textureSamplers);
 
-			objectCB.Data.Material.DiffuseTextureTransform = material.Textures.Diffuse.TextureCoordinateMatrix;
-			objectCB.Data.Material.AmbientTextureTransform = material.Textures.Ambient.TextureCoordinateMatrix;
+			objectCB.Data.Material.DiffuseTextureTransform = material.TextureData.Diffuse.TextureCoordinateMatrix;
+			objectCB.Data.Material.AmbientTextureTransform = material.TextureData.Ambient.TextureCoordinateMatrix;
 
 			if (command.SourceCommand.Animation != nullptr)
 			{
 				for (auto& textureTransform : command.SourceCommand.Animation->TextureTransforms)
 				{
 					mat4* output =
-						(textureTransform.ID == material.Textures.Diffuse.TextureID) ? &objectCB.Data.Material.DiffuseTextureTransform :
-						(textureTransform.ID == material.Textures.Ambient.TextureID) ? &objectCB.Data.Material.AmbientTextureTransform :
+						(textureTransform.ID == material.TextureData.Diffuse.TextureID) ? &objectCB.Data.Material.DiffuseTextureTransform :
+						(textureTransform.ID == material.TextureData.Ambient.TextureID) ? &objectCB.Data.Material.AmbientTextureTransform :
 						nullptr;
 
 					if (output == nullptr)
@@ -1431,23 +1432,28 @@ namespace Comfy::Graphics
 		}
 
 		if (!renderParameters->Wireframe && !(flags & RenderFlags_NoRasterizerState))
-			((material.BlendFlags.DoubleSidedness != DoubleSidedness_Off) ? solidNoCullingRasterizerState : solidBackfaceCullingRasterizerState).Bind();
+		{
+			if (material.BlendFlags.DoubleSided)
+				solidNoCullingRasterizerState.Bind();
+			else
+				solidBackfaceCullingRasterizerState.Bind();
+		}
 
 		const float fresnel = (((material.ShaderFlags.Fresnel == 0) ? 7.0f : static_cast<float>(material.ShaderFlags.Fresnel) - 1.0f) * 0.12f) * 0.82f;
 		const float lineLight = material.ShaderFlags.LineLight * 0.111f;
 		objectCB.Data.Material.FresnelCoefficients = vec4(fresnel, 0.18f, lineLight, 0.0f);
-		objectCB.Data.Material.Diffuse = material.DiffuseColor;
-		objectCB.Data.Material.Transparency = material.Transparency;
-		objectCB.Data.Material.Ambient = material.AmbientColor;
-		objectCB.Data.Material.Specular = material.SpecularColor;
-		objectCB.Data.Material.Reflectivity = material.Reflectivity;
-		objectCB.Data.Material.Emission = material.EmissionColor;
+		objectCB.Data.Material.Diffuse = material.Color.Diffuse;
+		objectCB.Data.Material.Transparency = material.Color.Transparency;
+		objectCB.Data.Material.Ambient = material.Color.Ambient;
+		objectCB.Data.Material.Specular = material.Color.Specular;
+		objectCB.Data.Material.Reflectivity = material.Color.Reflectivity;
+		objectCB.Data.Material.Emission = material.Color.Emission;
 
 		objectCB.Data.Material.Shininess = vec2(
-			(material.Shininess >= 0.0f ? material.Shininess : 1.0f),
-			(material.Type != Material::Identifiers::EyeBall) ? ((material.Shininess - 16.0f) / 112.0f) : 10.0f);
+			(material.Color.Shininess >= 0.0f ? material.Color.Shininess : 1.0f),
+			(material.ShaderType != Material::ShaderIdentifiers::EyeBall) ? ((material.Color.Shininess - 16.0f) / 112.0f) : 10.0f);
 
-		objectCB.Data.Material.Intensity = material.Intensity;
+		objectCB.Data.Material.Intensity = material.Color.Intensity;
 		objectCB.Data.Material.BumpDepth = material.BumpDepth;
 
 		const float morphWeight = (sourceCommand.Animation != nullptr) ? sourceCommand.Animation->MorphWeight : 0.0f;
@@ -1488,55 +1494,55 @@ namespace Comfy::Graphics
 
 		if (renderParameters->DiffuseMapping)
 		{
-			if (textureResources[MaterialTexture::Diffuse] != nullptr)
+			if (textureResources[MaterialTextureData::TextureType_Diffuse] != nullptr)
 				objectCB.Data.ShaderFlags |= ShaderFlags_DiffuseTexture;
 		}
 
 		if (renderParameters->AmbientOcclusionMapping)
 		{
-			if (textureResources[MaterialTexture::Ambient] != nullptr)
+			if (textureResources[MaterialTextureData::TextureType_Ambient] != nullptr)
 				objectCB.Data.ShaderFlags |= ShaderFlags_AmbientTexture;
 		}
 
 		if (renderParameters->NormalMapping)
 		{
-			if (textureResources[MaterialTexture::Normal] != nullptr)
+			if (textureResources[MaterialTextureData::TextureType_Normal] != nullptr)
 				objectCB.Data.ShaderFlags |= ShaderFlags_NormalTexture;
 		}
 
 		if (renderParameters->SpecularMapping)
 		{
-			if (textureResources[MaterialTexture::Specular] != nullptr)
+			if (textureResources[MaterialTextureData::TextureType_Specular] != nullptr)
 				objectCB.Data.ShaderFlags |= ShaderFlags_SpecularTexture;
 		}
 
 		if (renderParameters->TransparencyMapping)
 		{
-			if (textureResources[MaterialTexture::Transparency] != nullptr)
+			if (textureResources[MaterialTextureData::TextureType_Transparency] != nullptr)
 				objectCB.Data.ShaderFlags |= ShaderFlags_TransparencyTexture;
 		}
 
 		if (renderParameters->EnvironmentMapping)
 		{
-			if (textureResources[MaterialTexture::Environment] != nullptr)
+			if (textureResources[MaterialTextureData::TextureType_Environment] != nullptr)
 				objectCB.Data.ShaderFlags |= ShaderFlags_EnvironmentTexture;
 		}
 
 		if (renderParameters->TranslucencyMapping)
 		{
-			if (textureResources[MaterialTexture::Translucency] != nullptr)
+			if (textureResources[MaterialTextureData::TextureType_Translucency] != nullptr)
 				objectCB.Data.ShaderFlags |= ShaderFlags_TranslucencyTexture;
 		}
 
 		if (renderParameters->RenderPunchThrough)
 		{
-			if (material.BlendFlags.EnableAlphaTest && !IsMeshTransparent(mesh, subMesh, material))
+			if (material.BlendFlags.AlphaTexture && !IsMeshTransparent(mesh, subMesh, material))
 				objectCB.Data.ShaderFlags |= ShaderFlags_PunchThrough;
 		}
 
 		if (renderParameters->RenderFog)
 		{
-			if (sceneContext->Fog.Depth.Density > 0.0f)
+			if (!material.BlendFlags.NoFog && sceneContext->Fog.Depth.Density > 0.0f)
 				objectCB.Data.ShaderFlags |= ShaderFlags_LinearFog;
 		}
 
@@ -1568,13 +1574,18 @@ namespace Comfy::Graphics
 
 	D3D_ShaderPair& D3D_Renderer3D::GetMaterialShader(const Material& material)
 	{
-		if (material.Type == Material::Identifiers::Blinn)
+		if (material.Debug.UseDebugMaterial)
+			return shaders.DebugMaterial;
+
+		if (material.ShaderType == Material::ShaderIdentifiers::Blinn)
 		{
-			if (material.ShaderFlags.PhongShading)
+			if (material.ShaderFlags.is_lgt_specular)
 			{
-				return (material.Flags.UseNormalTexture) ? shaders.BlinnPerFrag : shaders.BlinnPerVert;
+				// TODO:
+				// return (material.UsedTexturesFlags.UseNormalTexture) ? shaders.BlinnPerFrag : shaders.BlinnPerVert;
+				return (material.ShaderFlags.is_lgt_per_pixel) ? shaders.BlinnPerFrag : shaders.BlinnPerVert;
 			}
-			else if (material.ShaderFlags.LambertShading)
+			else if (material.ShaderFlags.is_lgt_diffuse)
 			{
 				return shaders.Lambert;
 			}
@@ -1583,51 +1594,51 @@ namespace Comfy::Graphics
 				return shaders.Constant;
 			}
 		}
-		else if (material.Type == Material::Identifiers::Item)
+		else if (material.ShaderType == Material::ShaderIdentifiers::Item)
 		{
 			return shaders.ItemBlinn;
 		}
-		else if (material.Type == Material::Identifiers::Stage)
+		else if (material.ShaderType == Material::ShaderIdentifiers::Stage)
 		{
 			return shaders.StageBlinn;
 		}
-		else if (material.Type == Material::Identifiers::Skin)
+		else if (material.ShaderType == Material::ShaderIdentifiers::Skin)
 		{
 			return shaders.SkinDefault;
 		}
-		else if (material.Type == Material::Identifiers::Hair)
+		else if (material.ShaderType == Material::ShaderIdentifiers::Hair)
 		{
 			return (material.ShaderFlags.AnisoDirection != AnisoDirection_Normal) ? shaders.HairAniso : shaders.HairDefault;
 		}
-		else if (material.Type == Material::Identifiers::Cloth)
+		else if (material.ShaderType == Material::ShaderIdentifiers::Cloth)
 		{
 			return (material.ShaderFlags.AnisoDirection != AnisoDirection_Normal) ? shaders.ClothAniso : shaders.ClothDefault;
 		}
-		else if (material.Type == Material::Identifiers::Tights)
+		else if (material.ShaderType == Material::ShaderIdentifiers::Tights)
 		{
 			return shaders.Tights;
 		}
-		else if (material.Type == Material::Identifiers::Sky)
+		else if (material.ShaderType == Material::ShaderIdentifiers::Sky)
 		{
 			return shaders.SkyDefault;
 		}
-		else if (material.Type == Material::Identifiers::EyeBall)
+		else if (material.ShaderType == Material::ShaderIdentifiers::EyeBall)
 		{
 			return (true) ? shaders.GlassEye : shaders.EyeBall;
 		}
-		else if (material.Type == Material::Identifiers::EyeLens)
+		else if (material.ShaderType == Material::ShaderIdentifiers::EyeLens)
 		{
 			return shaders.EyeLens;
 		}
-		else if (material.Type == Material::Identifiers::GlassEye)
+		else if (material.ShaderType == Material::ShaderIdentifiers::GlassEye)
 		{
 			return shaders.GlassEye;
 		}
-		else if (material.Type == Material::Identifiers::Water01 || material.Type == Material::Identifiers::Water02)
+		else if (material.ShaderType == Material::ShaderIdentifiers::Water01 || material.ShaderType == Material::ShaderIdentifiers::Water02)
 		{
 			return shaders.Water;
 		}
-		else if (material.Type == Material::Identifiers::Floor)
+		else if (material.ShaderType == Material::ShaderIdentifiers::Floor)
 		{
 			return shaders.Floor;
 		}

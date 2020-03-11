@@ -8,7 +8,7 @@ namespace Comfy::Graphics
 	{
 	public:
 		void CreateIfNeeded(const RenderParameters& renderParameters);
-		D3D_TextureSampler& GetSampler(MaterialTextureFlags flags);
+		D3D_TextureSampler& GetSampler(MaterialTextureData::TextureDataFlags flags);
 
 	private:
 		enum AddressMode { Mirror, Repeat, Clamp, AddressMode_Count };

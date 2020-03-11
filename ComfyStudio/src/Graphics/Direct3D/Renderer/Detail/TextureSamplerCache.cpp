@@ -27,10 +27,10 @@ namespace Comfy::Graphics
 		}
 	}
 
-	D3D_TextureSampler& TextureSamplerCache::GetSampler(MaterialTextureFlags flags)
+	D3D_TextureSampler& TextureSamplerCache::GetSampler(MaterialTextureData::TextureDataFlags flags)
 	{
-		auto u = flags.TextureAddressMode_U_Mirror ? Mirror : flags.TextureAddressMode_U_Repeat ? Repeat : Clamp;
-		auto v = flags.TextureAddressMode_V_Mirror ? Mirror : flags.TextureAddressMode_V_Repeat ? Repeat : Clamp;
+		auto u = flags.MirrorU ? Mirror : flags.RepeatU ? Repeat : Clamp;
+		auto v = flags.MirrorV ? Mirror : flags.RepeatV ? Repeat : Clamp;
 		return *samplers[u][v];
 	}
 }

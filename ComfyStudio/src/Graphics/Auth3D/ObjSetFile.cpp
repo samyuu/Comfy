@@ -84,7 +84,7 @@ namespace Comfy::Graphics
 								subMesh.BoundingSphere = ReadSphere(reader);
 								subMesh.MaterialIndex = reader.ReadU32();
 								for (auto& index : subMesh.UVIndices)
-									index = reader.ReadU32();
+									index = reader.ReadU8();
 
 								uint32_t boneIndexCount = reader.ReadU32();
 								FileAddr boneIndicesPtr = reader.ReadPtr();
@@ -99,7 +99,7 @@ namespace Comfy::Graphics
 									});
 								}
 
-								subMesh.BonePerVertex = reader.ReadU32();
+								subMesh.BonesPerVertex = reader.ReadU32();
 								subMesh.Primitive = static_cast<PrimitiveType>(reader.ReadU32());
 								
 								auto indexFormat = static_cast<IndexFormat>(reader.ReadU32());
@@ -126,7 +126,7 @@ namespace Comfy::Graphics
 									}
 								}
 
-								subMesh.ShadowFlags = ReadFlagsStruct32<SubMeshShadowFlags>(reader);
+								subMesh.ShadowFlags = ReadFlagsStruct32<SubMesh::SubMeshShadowFlags>(reader);
 
 								std::array<unk32_t, 6> reserved;
 								for (auto& value : reserved)
@@ -151,7 +151,7 @@ namespace Comfy::Graphics
 					CheckReadVertexData(reader, mesh, VertexAttribute_Position, mesh.VertexData.Positions, vertexAttributePtrs.data(), objBaseAddress);
 					CheckReadVertexData(reader, mesh, VertexAttribute_Normal, mesh.VertexData.Normals, vertexAttributePtrs.data(), objBaseAddress);
 					CheckReadVertexData(reader, mesh, VertexAttribute_Tangent, mesh.VertexData.Tangents, vertexAttributePtrs.data(), objBaseAddress);
-					CheckReadVertexData(reader, mesh, VertexAttribute_0x3, mesh.VertexData.Attribute_0x3, vertexAttributePtrs.data(), objBaseAddress);
+					CheckReadVertexData(reader, mesh, VertexAttribute_0x3, mesh.VertexData.Reserved0x3, vertexAttributePtrs.data(), objBaseAddress);
 					CheckReadVertexData(reader, mesh, VertexAttribute_TextureCoordinate0, mesh.VertexData.TextureCoordinates[0], vertexAttributePtrs.data(), objBaseAddress);
 					CheckReadVertexData(reader, mesh, VertexAttribute_TextureCoordinate1, mesh.VertexData.TextureCoordinates[1], vertexAttributePtrs.data(), objBaseAddress);
 					CheckReadVertexData(reader, mesh, VertexAttribute_TextureCoordinate2, mesh.VertexData.TextureCoordinates[2], vertexAttributePtrs.data(), objBaseAddress);
@@ -180,34 +180,41 @@ namespace Comfy::Graphics
 				for (auto& material : Materials)
 				{
 					material.UsedTextureCount = reader.ReadU32();
-					material.Flags = ReadFlagsStruct32<MaterialFlags>(reader);
-					reader.ReadBuffer(material.Type.data(), material.Type.size());
-					material.ShaderFlags = ReadFlagsStruct32<MaterialShaderFlags>(reader);
+					material.UsedTexturesFlags = ReadFlagsStruct32<Material::MaterialTextureFlags>(reader);
+					reader.ReadBuffer(material.ShaderType.data(), material.ShaderType.size());
+					material.ShaderFlags = ReadFlagsStruct32<Material::MaterialShaderFlags>(reader);
 
-					for (auto& texture : material.TexturesArray)
+					for (auto& textureData : material.TextureDataArray)
 					{
-						texture.Flags = ReadFlagsStruct32<MaterialTextureFlags>(reader);
-						texture.TextureID = TxpID(reader.ReadU32());
-						texture.TypeFlags = ReadFlagsStruct32<MaterialTextureTypeFlags>(reader);
-						texture.Field03_05 = reader.ReadV3();
-						texture.TextureCoordinateMatrix = reader.ReadMat4();
-						for (float& reserved : texture.ReservedData)
+						textureData.TextureFlags = ReadFlagsStruct32<MaterialTextureData::TextureDataFlags>(reader);
+						textureData.TextureID = TxpID(reader.ReadU32());
+						textureData.ShaderFlags = ReadFlagsStruct32<MaterialTextureData::ShaderDataFlags>(reader);
+						
+						reader.ReadBuffer(textureData.ExShader.data(), textureData.ExShader.size());
+						textureData.Weight = reader.ReadF32();
+
+						textureData.TextureCoordinateMatrix = reader.ReadMat4();
+						for (float& reserved : textureData.ReservedData)
 							reserved = reader.ReadF32();
 					}
 
-					material.BlendFlags = ReadFlagsStruct32<MaterialBlendFlags>(reader);
-					material.DiffuseColor = reader.ReadV3();
-					material.Transparency = reader.ReadF32();
-					material.AmbientColor = reader.ReadV4();
-					material.SpecularColor = reader.ReadV3();
-					material.Reflectivity = reader.ReadF32();
-					material.EmissionColor = reader.ReadV4();
-					material.Shininess = reader.ReadF32();
-					material.Intensity = reader.ReadF32();
-					material.UnknownField21_24 = reader.ReadV4();
+					material.BlendFlags = ReadFlagsStruct32<Material::MaterialBlendFlags>(reader);
+
+					material.Color.Diffuse = reader.ReadV3();
+					material.Color.Transparency = reader.ReadF32();
+					material.Color.Ambient = reader.ReadV4();
+					material.Color.Specular = reader.ReadV3();
+					material.Color.Reflectivity = reader.ReadF32();
+					material.Color.Emission = reader.ReadV4();
+					material.Color.Shininess = reader.ReadF32();
+					material.Color.Intensity = reader.ReadF32();
+
+					material.ReservedSphere = ReadSphere(reader);
+
 					reader.ReadBuffer(material.Name.data(), material.Name.size());
 					material.BumpDepth = reader.ReadF32();
-					for (float& reserved : material.Reserved)
+
+					for (float& reserved : material.ReservedData)
 						reserved = reader.ReadF32();
 				}
 			});

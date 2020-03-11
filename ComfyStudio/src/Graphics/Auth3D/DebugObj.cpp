@@ -34,7 +34,7 @@ namespace Comfy::Graphics
 				subMesh.MaterialIndex = 0;
 				subMesh.UVIndices = {};
 
-				subMesh.BonePerVertex = 0;
+				subMesh.BonesPerVertex = 0;
 				subMesh.Primitive = PrimitiveType::Triangles;
 
 				subMesh.ShadowFlags = {};
@@ -56,23 +56,23 @@ namespace Comfy::Graphics
 
 			Material material = {};
 			{
-				material.Type = Material::Identifiers::Blinn;
-				material.ShaderFlags.LambertShading = false;
-				material.ShaderFlags.PhongShading = false;
-				material.BlendFlags.EnableBlend = (color.a < 1.0f);
-				material.BlendFlags.SrcBlendFactor = BlendFactor_SRC_ALPHA;
-				material.BlendFlags.DstBlendFactor = BlendFactor_ISRC_ALPHA;
-				material.BlendFlags.DoubleSidedness = DoubleSidedness_1_FaceLight;
-				for (auto& texture : material.TexturesArray)
+				material.ShaderType = Material::ShaderIdentifiers::Blinn;
+				material.ShaderFlags.is_lgt_diffuse = false;
+				material.ShaderFlags.is_lgt_specular = false;
+				material.BlendFlags.AlphaMaterial = (color.a < 1.0f);
+				material.BlendFlags.SrcBlendFactor = BlendFactor_SrcAlpha;
+				material.BlendFlags.DstBlendFactor = BlendFactor_ISrcAlpha;
+				material.BlendFlags.DoubleSided = true;
+				for (auto& texture : material.TextureDataArray)
 					texture.TextureID = TxpID::Invalid;
-				material.DiffuseColor = vec3(color);
-				material.Transparency = color.a;
-				material.AmbientColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-				material.SpecularColor = vec3(1.0f, 1.0f, 1.0f);
-				material.Reflectivity = 1.0f;
-				material.EmissionColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-				material.Shininess = 50.0f;
-				material.Intensity = 0.0f;
+				material.Color.Diffuse = vec3(color);
+				material.Color.Transparency = color.a;
+				material.Color.Ambient = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+				material.Color.Specular = vec3(1.0f, 1.0f, 1.0f);
+				material.Color.Reflectivity = 1.0f;
+				material.Color.Emission = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+				material.Color.Shininess = 50.0f;
+				material.Color.Intensity = 0.0f;
 				sprintf_s(material.Name.data(), material.Name.size(), "%.*s::Material", static_cast<int>(name.size()), name.data());
 				material.BumpDepth = 1.0f;
 			}

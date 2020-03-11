@@ -878,32 +878,34 @@ namespace Comfy::Editor
 
 			if (material != nullptr)
 			{
-				Gui::ColorEdit3("Diffuse", glm::value_ptr(material->DiffuseColor), ImGuiColorEditFlags_Float);
-				Gui::DragFloat("Transparency", &material->Transparency, 0.01f);
-				Gui::ColorEdit3("Specular", glm::value_ptr(material->SpecularColor), ImGuiColorEditFlags_Float);
-				Gui::DragFloat("Reflectivity", &material->Reflectivity, 0.01f);
-				Gui::DragFloat("Shininess", &material->Shininess, 0.05f);
-				Gui::ColorEdit3("Ambient", glm::value_ptr(material->AmbientColor), ImGuiColorEditFlags_Float);
-				Gui::ColorEdit3("Emission", glm::value_ptr(material->EmissionColor), ImGuiColorEditFlags_Float);
-				if (Gui::InputText("Type", material->Type.data(), material->Type.size(), ImGuiInputTextFlags_None))
-					std::fill(std::find(material->Type.begin(), material->Type.end(), '\0'), material->Type.end(), '\0');
+				Gui::Checkbox("DEBUG_MATERIAL", &material->Debug.UseDebugMaterial);
 
-				bool lambertShading = material->ShaderFlags.LambertShading;
+				Gui::ColorEdit3("Diffuse", glm::value_ptr(material->Color.Diffuse), ImGuiColorEditFlags_Float);
+				Gui::DragFloat("Transparency", &material->Color.Transparency, 0.01f);
+				Gui::ColorEdit3("Specular", glm::value_ptr(material->Color.Specular), ImGuiColorEditFlags_Float);
+				Gui::DragFloat("Reflectivity", &material->Color.Reflectivity, 0.01f);
+				Gui::DragFloat("Shininess", &material->Color.Shininess, 0.05f);
+				Gui::ColorEdit3("Ambient", glm::value_ptr(material->Color.Ambient), ImGuiColorEditFlags_Float);
+				Gui::ColorEdit3("Emission", glm::value_ptr(material->Color.Emission), ImGuiColorEditFlags_Float);
+				if (Gui::InputText("Type", material->ShaderType.data(), material->ShaderType.size(), ImGuiInputTextFlags_None))
+					std::fill(std::find(material->ShaderType.begin(), material->ShaderType.end(), '\0'), material->ShaderType.end(), '\0');
+
+				bool lambertShading = material->ShaderFlags.is_lgt_diffuse;
 				if (Gui::Checkbox("Lambert Shading", &lambertShading))
-					material->ShaderFlags.LambertShading = lambertShading;
+					material->ShaderFlags.is_lgt_diffuse = lambertShading;
 
-				bool phongShading = material->ShaderFlags.PhongShading;
+				bool phongShading = material->ShaderFlags.is_lgt_specular;
 				if (Gui::Checkbox("Phong Shading", &phongShading))
-					material->ShaderFlags.PhongShading = phongShading;
+					material->ShaderFlags.is_lgt_specular = phongShading;
 
-				for (size_t i = 0; i < material->TexturesArray.size(); i++)
+				for (size_t i = 0; i < material->TextureDataArray.size(); i++)
 				{
-					if (auto txp = renderer3D->GetTxpFromTextureID(&material->TexturesArray[i].TextureID); txp != nullptr)
+					if (auto txp = renderer3D->GetTxpFromTextureID(&material->TextureDataArray[i].TextureID); txp != nullptr)
 					{
 						Gui::ImageObjTxp(txp, vec2(120.0f));
 
 						if (Gui::IsItemHovered())
-							Gui::SetTooltip("%s: %s", MaterialTexture::TextureTypeNames[i], txp->GetName().data());
+							Gui::SetTooltip("%s: %s", MaterialTextureData::TextureTypeNames[i], txp->GetName().data());
 					}
 				}
 			}
@@ -1579,20 +1581,20 @@ namespace Comfy::Editor
 				{
 					for (const auto& material : entity->Obj->Materials)
 					{
-						if (auto txp = renderer3D->GetTxpFromTextureID(&material.Textures.Diffuse.TextureID); txp != nullptr && txp->Name.has_value())
+						if (auto txp = renderer3D->GetTxpFromTextureID(&material.TextureData.Diffuse.TextureID); txp != nullptr && txp->Name.has_value())
 						{
-							if (auto& name = txp->Name.value(); 
-								EndsWithInsensitive(name, "_RENDER") || 
-								EndsWithInsensitive(name, "_MOVIE") || 
-								EndsWithInsensitive(name, "_TV") || 
-								EndsWithInsensitive(name, "_FB01") || 
-								EndsWithInsensitive(name, "_FB02") || 
+							if (auto& name = txp->Name.value();
+								EndsWithInsensitive(name, "_RENDER") ||
+								EndsWithInsensitive(name, "_MOVIE") ||
+								EndsWithInsensitive(name, "_TV") ||
+								EndsWithInsensitive(name, "_FB01") ||
+								EndsWithInsensitive(name, "_FB02") ||
 								EndsWithInsensitive(name, "_FB03"))
 							{
 								if (entity->Animation == nullptr)
 									entity->Animation = MakeUnique<ObjAnimationData>();
 
-								entity->Animation->ScreenRenderTextureID = material.Textures.Diffuse.TextureID;
+								entity->Animation->ScreenRenderTextureID = material.TextureData.Diffuse.TextureID;
 							}
 						}
 					}
