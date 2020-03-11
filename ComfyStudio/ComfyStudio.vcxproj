@@ -175,6 +175,7 @@
     <ClCompile Include="src\Graphics\Direct3D\Renderer\Detail\TextureSamplerCache.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\Renderer\Detail\ToneMapData.cpp" />
     <ClCompile Include="src\Graphics\Direct3D\Shader\Bytecode\ShaderBytecode.cpp" />
+    <ClCompile Include="src\Graphics\Direct3D\State\D3D_OcclusionQuery.cpp" />
     <ClCompile Include="src\ImGui\ComfyTextureID.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp" />
@@ -305,6 +306,7 @@
     <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\TextureSamplerCache.h" />
     <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\ToneMapData.h" />
     <ClInclude Include="src\Graphics\Direct3D\Shader\Bytecode\ShaderBytecode.h" />
+    <ClInclude Include="src\Graphics\Direct3D\State\D3D_OcclusionQuery.h" />
     <ClInclude Include="src\Resource\IDHash.h" />
     <ClInclude Include="src\Resource\Detail\IDTypeDeclarations.h" />
     <ClInclude Include="src\Resource\IDTypes.h" />
