@@ -1629,7 +1629,10 @@ namespace Comfy::Graphics
 
 		uint32_t boundMaterialTexturesFlags = 0;
 		for (size_t textureSlot = 0; textureSlot < textureResources.size(); textureSlot++)
-			boundMaterialTexturesFlags |= (1 << textureSlot);
+		{
+			if (textureResources[textureSlot] != nullptr)
+				boundMaterialTexturesFlags |= (1 << textureSlot);
+		}
 		return boundMaterialTexturesFlags;
 	}
 
