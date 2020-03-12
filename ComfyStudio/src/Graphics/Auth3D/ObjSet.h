@@ -21,7 +21,7 @@ namespace Comfy::Graphics
 
 	struct SubMesh
 	{
-		uint32_t Flags;
+		uint32_t ReservedFlags;
 
 		Sphere BoundingSphere;
 		std::optional<Box> BoundingBox;
@@ -37,11 +37,12 @@ namespace Comfy::Graphics
 		// NOTE: IndexFormat IndexFormat; (Stored as part of the std::variant)
 		std::variant<std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>> Indices;
 
-		struct SubMeshShadowFlags
+		struct SubMeshFlags
 		{
 			uint32_t ReceivesShadows : 1;
 			uint32_t CastsShadows : 1;
-		} ShadowFlags;
+			uint32_t Transparent : 1;
+		} Flags;
 
 		UniquePtr<D3D_StaticIndexBuffer> D3D_IndexBuffer;
 

@@ -80,7 +80,7 @@ namespace Comfy::Graphics
 						{
 							for (auto& subMesh : mesh.SubMeshes)
 							{
-								subMesh.Flags = reader.ReadU32();
+								subMesh.ReservedFlags = reader.ReadU32();
 								subMesh.BoundingSphere = ReadSphere(reader);
 								subMesh.MaterialIndex = reader.ReadU32();
 								for (auto& index : subMesh.UVIndices)
@@ -126,7 +126,7 @@ namespace Comfy::Graphics
 									}
 								}
 
-								subMesh.ShadowFlags = ReadFlagsStruct32<SubMesh::SubMeshShadowFlags>(reader);
+								subMesh.Flags = ReadFlagsStruct32<SubMesh::SubMeshFlags>(reader);
 
 								std::array<unk32_t, 6> reserved;
 								for (auto& value : reserved)

@@ -27,7 +27,7 @@ namespace Comfy::Graphics
 			mesh.SubMeshes.push_back({});
 			SubMesh& subMesh = mesh.SubMeshes.back();
 			{
-				subMesh.Flags = {};
+				subMesh.ReservedFlags = {};
 				subMesh.BoundingSphere = boundingSphere;
 				subMesh.BoundingBox.emplace(boundingBox);
 
@@ -37,7 +37,7 @@ namespace Comfy::Graphics
 				subMesh.BonesPerVertex = 0;
 				subMesh.Primitive = PrimitiveType::Triangles;
 
-				subMesh.ShadowFlags = {};
+				subMesh.Flags = {};
 
 				// TODO: Optionally generate normals but not needed for now
 				// bool generateNormals = ...;

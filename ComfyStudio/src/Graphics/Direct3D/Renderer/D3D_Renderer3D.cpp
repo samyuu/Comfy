@@ -102,7 +102,7 @@ namespace Comfy::Graphics
 
 		constexpr bool ReceivesShadows(const RenderCommand& command, const Mesh& mesh, const SubMesh& subMesh)
 		{
-			return (command.Flags.ReceivesShadow && subMesh.ShadowFlags.ReceivesShadows);
+			return (command.Flags.ReceivesShadow && subMesh.Flags.ReceivesShadows);
 		}
 
 		constexpr bool ReceivesSelfShadow(const RenderCommand& command, const Mesh& mesh, const SubMesh& subMesh)
@@ -116,6 +116,9 @@ namespace Comfy::Graphics
 				return true;
 
 			if (material.BlendFlags.AlphaTexture && !material.BlendFlags.PunchThrough)
+				return true;
+
+			if (subMesh.Flags.Transparent)
 				return true;
 
 			return false;
