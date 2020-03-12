@@ -29,7 +29,9 @@ VS_OUTPUT VS_main(VS_INPUT input)
     normal_w = normalize(normal_w);
     
     o_position = pos_c;
-    o_fog = VS_GetFogFactor(pos_c);
+    
+    if (FLAGS_LINEAR_FOG)
+        o_fog = VS_GetFogFactor(pos_c);
     
     if (FLAGS_SHADOW)
         o_tex_shadow0 = VS_GetShadowTextureCoordinates(pos_w);

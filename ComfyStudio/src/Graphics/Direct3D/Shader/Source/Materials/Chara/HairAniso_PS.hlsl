@@ -101,7 +101,16 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MAD(diff, luce, 0.5, diff);
     MAD(diff.xyz, spec.xyz, state_material_specular.xyz, diff.xyz);
     MOV(diff.xyz, diff.xyz);
-    LRP(o_color.xyz, a_fogcoord.x, a_color1.xyz, diff.xyz);
+    
+    if (FLAGS_LINEAR_FOG)
+    {
+        LRP(o_color.xyz, a_fogcoord.x, a_color1.xyz, diff.xyz);
+    }
+    else
+    {
+        MOV(o_color.xyz, diff.xyz);
+    }
+    
     MAX(o_color.w, col0.w, p_max_alpha.w);
     
     PS_ALPHA_TEST;

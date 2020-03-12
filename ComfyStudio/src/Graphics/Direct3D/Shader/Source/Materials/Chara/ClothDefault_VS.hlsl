@@ -51,6 +51,9 @@ VS_OUTPUT VS_main(VS_INPUT input)
     
     VS_SET_OUTPUT_TEX_COORDS;
     
+    if (FLAGS_LINEAR_FOG)
+        o_fog = VS_GetFogFactor(pos_c);
+        
     if (FLAGS_SELF_SHADOW)
         o_tex_shadow0 = VS_GetShadowTextureCoordinates(pos_w);
     
@@ -83,7 +86,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     // SUB(_tmp0.w, pos_c.z, state.fog.params.y);
     // MUL_SAT(_tmp0.w, _tmp0.w, state.fog.params.w);
     // MUL(o_fog.x, _tmp0.w, state.fog.params.x);
-    // MOV(o_color_f1.xyz, p_fog_color);
+    MOV(o_color_f1.xyz, p_fog_color);
     
 #endif
 

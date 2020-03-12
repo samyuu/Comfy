@@ -98,10 +98,16 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
         diff *= _tmp0;
     }
     
-    // MAD(o_color.xyz, diff.xyz, tex_col.xyz, spec.xyz);
-    // MUL(o_color.w, diff.w, tex_col.w);
-    MAD(_tmp0, diff, tex_col, spec);
-    LRP(o_color.xyz, a_fogcoord.x, p_fog_color.xyz, _tmp0.xyz);
+    if (FLAGS_LINEAR_FOG)
+    {
+        MAD(_tmp0, diff, tex_col, spec);
+        LRP(o_color.xyz, a_fogcoord.x, p_fog_color.xyz, _tmp0.xyz);
+    }
+    else
+    {
+        MAD(o_color.xyz, diff.xyz, tex_col.xyz, spec.xyz);
+    }
+    
     MUL(o_color.w, diff.w, tex_col.w);
     
     PS_ALPHA_TEST;

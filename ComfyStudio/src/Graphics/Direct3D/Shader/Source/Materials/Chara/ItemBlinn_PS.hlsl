@@ -128,7 +128,15 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     
     MOV(diff.xyz, diff.xyz);
     
-    LRP(o_color.xyz, a_fogcoord.x, a_color1.xyz, diff.xyz);
+    if (FLAGS_LINEAR_FOG)
+    {
+        LRP(o_color.xyz, a_fogcoord.x, a_color1.xyz, diff.xyz);
+    }
+    else
+    {
+        MOV(o_color.xyz, diff.xyz);
+    }
+    
     //MAX(o_color.w, col0.w, p_max_alpha.w);
     MOV(o_color.w, col0.w);
     

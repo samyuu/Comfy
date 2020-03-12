@@ -119,8 +119,15 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MAD(diff.xyz, env.xyz, spec_ratio.w, diff.xyz);
     ADD(diff.xyz, diff.xyz, luce.w);
     MOV(diff.xyz, diff.xyz);
-    // LRP(o_color.xyz, a_fogcoord.x, a_color1, diff);
-    MOV(o_color.xyz, diff.xyz);
+    
+    if (FLAGS_LINEAR_FOG)
+    {
+        LRP(o_color.xyz, a_fogcoord.x, a_color1.xyz, diff.xyz);
+    }
+    else
+    {
+        MOV(o_color.xyz, diff.xyz);
+    }
     
     PS_ALPHA_TEST;
 

@@ -109,8 +109,15 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
         tmp *= _tmp0;
     }
     
-    // MOV(o_color.rgb, tmp.xyz);
-    LRP(o_color.rgb, a_fogcoord.x, p_fog_color.xyz, tmp.xyz);
+    if (FLAGS_LINEAR_FOG)
+    {
+        LRP(o_color.rgb, a_fogcoord.x, p_fog_color.xyz, tmp.xyz);
+    }
+    else
+    {
+        MOV(o_color.rgb, tmp.xyz);
+    }
+    
     MUL(diff.w, col0.w, a_color0.w);
     
     // TODO:
