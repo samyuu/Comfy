@@ -60,10 +60,10 @@ namespace Comfy::Graphics
 				material.ShaderFlags.LambertShading = false;
 				material.ShaderFlags.PhongShading = false;
 				material.BlendFlags.AlphaMaterial = (color.a < 1.0f);
-				material.BlendFlags.SrcBlendFactor = BlendFactor_SrcAlpha;
-				material.BlendFlags.DstBlendFactor = BlendFactor_ISrcAlpha;
+				material.BlendFlags.SrcBlendFactor = BlendFactor::SrcAlpha;
+				material.BlendFlags.DstBlendFactor = BlendFactor::InverseSrcAlpha;
 				material.BlendFlags.DoubleSided = true;
-				for (auto& texture : material.TextureDataArray)
+				for (auto& texture : material.Textures)
 					texture.TextureID = TxpID::Invalid;
 				material.Color.Diffuse = vec3(color);
 				material.Color.Transparency = color.a;

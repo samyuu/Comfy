@@ -161,9 +161,10 @@ namespace Comfy::Graphics
 					CheckReadVertexData(reader, mesh, VertexAttribute_BoneWeight, mesh.VertexData.BoneWeights, vertexAttributePtrs.data(), objBaseAddress);
 					CheckReadVertexData(reader, mesh, VertexAttribute_BoneIndex, mesh.VertexData.BoneIndices, vertexAttributePtrs.data(), objBaseAddress);
 
-					*reinterpret_cast<uint32_t*>(&mesh.Flags) = reader.ReadU32();
-					for (int i = 0; i < 7; i++)
-						reader.ReadU32();
+					mesh.Flags = ReadFlagsStruct32<Mesh::MeshFlags>(reader);
+
+					for (auto& reserved : mesh.ReservedData)
+						reserved = reader.ReadU32();
 
 					reader.ReadBuffer(mesh.Name.data(), sizeof(mesh.Name));
 				}
@@ -181,20 +182,21 @@ namespace Comfy::Graphics
 				{
 					material.UsedTexturesCount = reader.ReadU32();
 					material.UsedTexturesFlags = ReadFlagsStruct32<Material::MaterialTextureFlags>(reader);
+
 					reader.ReadBuffer(material.ShaderType.data(), material.ShaderType.size());
 					material.ShaderFlags = ReadFlagsStruct32<Material::MaterialShaderFlags>(reader);
 
-					for (auto& textureData : material.TextureDataArray)
+					for (auto& texture : material.Textures)
 					{
-						textureData.TextureFlags = ReadFlagsStruct32<MaterialTextureData::TextureDataFlags>(reader);
-						textureData.TextureID = TxpID(reader.ReadU32());
-						textureData.ShaderFlags = ReadFlagsStruct32<MaterialTextureData::ShaderDataFlags>(reader);
+						texture.SamplerFlags = ReadFlagsStruct32<MaterialTextureData::TextureSamplerFlags>(reader);
+						texture.TextureID = TxpID(reader.ReadU32());
+						texture.TextureFlags = ReadFlagsStruct32<MaterialTextureData::TextureDataFlags>(reader);
 						
-						reader.ReadBuffer(textureData.ExShader.data(), textureData.ExShader.size());
-						textureData.Weight = reader.ReadF32();
+						reader.ReadBuffer(texture.ExShader.data(), texture.ExShader.size());
+						texture.Weight = reader.ReadF32();
 
-						textureData.TextureCoordinateMatrix = reader.ReadMat4();
-						for (float& reserved : textureData.ReservedData)
+						texture.TextureCoordinateMatrix = reader.ReadMat4();
+						for (float& reserved : texture.ReservedData)
 							reserved = reader.ReadF32();
 					}
 

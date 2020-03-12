@@ -27,7 +27,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	D3D_TextureSampler& TextureSamplerCache::GetSampler(MaterialTextureData::TextureDataFlags flags)
+	D3D_TextureSampler& TextureSamplerCache::GetSampler(MaterialTextureData::TextureSamplerFlags flags)
 	{
 		auto u = flags.MirrorU ? Mirror : flags.RepeatU ? Repeat : Clamp;
 		auto v = flags.MirrorV ? Mirror : flags.RepeatV ? Repeat : Clamp;

@@ -11,6 +11,6 @@ namespace Comfy::Graphics
 		D3D_BlendState& GetState(BlendFactor source, BlendFactor destination);
 
 	private:
-		std::array<std::array<UniquePtr<D3D_BlendState>, BlendFactor_Count>, BlendFactor_Count> states;
+		std::array<std::array<UniquePtr<D3D_BlendState>, static_cast<size_t>(BlendFactor::Count)>, static_cast<size_t>(BlendFactor::Count)> states;
 	};
 }

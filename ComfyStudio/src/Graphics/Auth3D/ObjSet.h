@@ -86,6 +86,7 @@ namespace Comfy::Graphics
 			uint32_t FaceCameraView : 1;
 		} Flags;
 
+		std::array<uint32_t, 7> ReservedData;
 		std::array<char, 64> Name;
 
 		struct VertexData
@@ -106,34 +107,88 @@ namespace Comfy::Graphics
 		std::array<UniquePtr<D3D_StaticVertexBuffer>, VertexAttribute_Count> D3D_VertexBuffers;
 	};
 
+	enum class MaterialTextureType : uint32_t
+	{
+		None = 0,
+		ColorMap = 1,
+		NormalMap = 2,
+		SpecularMap = 3,
+		HeightMap = 4,
+		ReflectionMap = 5,
+		TranslucencyMap = 6,
+		TransparencyMap = 7,
+		EnvironmentMapSphere = 8,
+		EnvironmentMapCube = 9,
+		Count,
+	};
+
+	static constexpr std::array<const char*, static_cast<size_t>(MaterialTextureType::Count)> MaterialTextureTypeNames =
+	{
+		"None",
+		"Color Map",
+		"Normal Map",
+		"Specular Map",
+		"Height Map",
+		"Reflection Map",
+		"Translucency Map",
+		"Transparency Map",
+		"Environment Map (Sphere)",
+		"Environment Map (Cube)",
+	};
+
+	enum class MaterialTextureUVIndex : uint32_t
+	{
+		Index_0 = 0,
+		Index_1 = 1,
+		Index_3 = 3,
+		Index_4 = 4,
+		Index_5 = 5,
+		Index_6 = 6,
+		Index_7 = 7,
+		None = 0xF,
+		Count,
+	};
+
+	static constexpr std::array<const char*, static_cast<size_t>(MaterialTextureUVIndex::Count)> MaterialTextureUVIndexNames =
+	{
+		"Index 0",
+		"Index 1",
+		"Index 2",
+		"Index 3",
+		"Index 4",
+		"Index 5",
+		"Index 6",
+		"Index 7",
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		"None",
+	};
+
+	enum class MaterialTextureUVTranslationType : uint32_t
+	{
+		None = 0,
+		UV = 1,
+		EnvironmentSphere = 2,
+		EnvironmentCube = 3,
+		Count,
+	};
+
+	static constexpr std::array<const char*, static_cast<size_t>(MaterialTextureUVTranslationType::Count)> MaterialTextureUVTranslationTypeNames =
+	{
+		"None",
+		"UV",
+		"Environment Sphere",
+		"Environment Cube",
+	};
+
 	struct MaterialTextureData
 	{
-		enum TextureType
-		{
-			TextureType_Diffuse = 0,
-			TextureType_Ambient = 1,
-			TextureType_Normal = 2,
-			TextureType_Specular = 3,
-			TextureType_Transparency = 4,
-			TextureType_Environment = 5,
-			TextureType_Translucency = 6,
-			TextureType_ReservedTexture = 7,
-			TextureType_Count
-		};
-
-		static constexpr std::array<const char*, TextureType_Count> TextureTypeNames =
-		{
-			"Diffuse",
-			"Ambient",
-			"Normal",
-			"Specular",
-			"Transparency",
-			"Environment",
-			"Translucency",
-			"Reserved"
-		};
-
-		struct TextureDataFlags
+		struct TextureSamplerFlags
 		{
 			uint32_t RepeatU : 1;
 			uint32_t RepeatV : 1;
@@ -141,28 +196,27 @@ namespace Comfy::Graphics
 			uint32_t MirrorV : 1;
 
 			uint32_t IgnoreAlpha : 1;
-			
 			uint32_t Blend : 5;
 			uint32_t AlphaBlend : 5;
-			
+
 			uint32_t Border : 1;
 			uint32_t ClampToEdge : 1;
 			uint32_t Filter : 3;
-			
+
 			uint32_t MipMap : 2;
 			uint32_t MipMapBias : 8;
 			uint32_t AnsiFilters : 2;
-		} TextureFlags;
+		} SamplerFlags;
 
 		Cached_TxpID TextureID;
 
-		struct ShaderDataFlags
+		struct TextureDataFlags
 		{
-			uint32_t TextureType : 4;
-			uint32_t UVIndex : 4;
-			uint32_t TextureCoordinateTranslation : 3;
+			MaterialTextureType Type : 4;
+			MaterialTextureUVIndex UVIndex : 4;
+			MaterialTextureUVTranslationType UVTranslationType : 3;
 			uint32_t Reserved : 21;
-		} ShaderFlags;
+		} TextureFlags;
 
 		std::array<char, 8> ExShader;
 		float Weight;
@@ -171,33 +225,108 @@ namespace Comfy::Graphics
 		std::array<float, 8> ReservedData;
 	};
 
-	enum SpecularQuality : uint32_t
+	enum class VertexTranslationType : uint32_t
 	{
-		SpecularQuality_Low = 0,
-		SpecularQuality_High = 1,
+		Default = 0,
+		Envelope = 1,
+		Morphing = 2,
+		Count,
 	};
 
-	enum AnisoDirection : uint32_t
+	static constexpr std::array<const char*, static_cast<size_t>(VertexTranslationType::Count)> VertexTranslationTypeNames =
 	{
-		AnisoDirection_Normal = 0,
-		AnisoDirection_U = 1,
-		AnisoDirection_V = 2,
-		AnisoDirection_Radial = 3,
+		"Default",
+		"Envelope",
+		"Morphing",
 	};
 
-	enum BlendFactor : uint32_t
+	enum class ColorSourceType : uint32_t
 	{
-		BlendFactor_Zero = 0,
-		BlendFactor_One = 1,
-		BlendFactor_SrcColor = 2,
-		BlendFactor_ISrcColor = 3,
-		BlendFactor_SrcAlpha = 4,
-		BlendFactor_ISrcAlpha = 5,
-		BlendFactor_DstAlpha = 6,
-		BlendFactor_IDstAlpha = 7,
-		BlendFactor_DstColor = 8,
-		BlendFactor_IDstColor = 9,
-		BlendFactor_Count,
+		MaterialColor = 0,
+		VertexColor = 1,
+		VertexMorph = 2,
+		Count,
+	};
+
+	static constexpr std::array<const char*, static_cast<size_t>(ColorSourceType::Count)> ColorSourceTypeNames =
+	{
+		"Material Color",
+		"Vertex Color",
+		"Vertex Morph",
+	};
+
+	enum class BumpMapType : uint32_t
+	{
+		None = 0,
+		Dot = 1,
+		Env = 2,
+		Count,
+	};
+
+	static constexpr std::array<const char*, static_cast<size_t>(BumpMapType::Count)> BumpMapTypeNames =
+	{
+		"None",
+		"Dot",
+		"Env",
+	};
+
+	enum class SpecularQuality : uint32_t
+	{
+		Low = 0,
+		High = 1,
+		Count,
+	};
+
+	static constexpr std::array<const char*, static_cast<size_t>(SpecularQuality::Count)> SpecularQualityNames =
+	{
+		"Low",
+		"Hight",
+	};
+
+	enum class AnisoDirection : uint32_t
+	{
+		Normal = 0,
+		U = 1,
+		V = 2,
+		Radial = 3,
+		Count,
+	};
+
+	static constexpr std::array<const char*, static_cast<size_t>(AnisoDirection::Count)> AnisoDirectionNames =
+	{
+		"Normal",
+		"U",
+		"V",
+		"Radial",
+	};
+
+	enum class BlendFactor : uint32_t
+	{
+		Zero = 0,
+		One = 1,
+		SrcColor = 2,
+		InverseSrcColor = 3,
+		SrcAlpha = 4,
+		InverseSrcAlpha = 5,
+		DstAlpha = 6,
+		InverseDstAlpha = 7,
+		DstColor = 8,
+		InverseDstColor = 9,
+		Count,
+	};
+
+	static constexpr std::array<const char*, static_cast<size_t>(BlendFactor::Count)> BlendFactorNames =
+	{
+		"Zero",
+		"One",
+		"Source Color",
+		"Inverse Source Color",
+		"Source Alpha",
+		"Inverse Source Alpha",
+		"Destination Alpha",
+		"Inverse Destination Alpha",
+		"Destination Color",
+		"Inverse Destination Color",
 	};
 
 	struct Material
@@ -243,51 +372,35 @@ namespace Comfy::Graphics
 			uint32_t ColorL3A : 1;
 			uint32_t Translucency : 1;
 			uint32_t Unknown0 : 1;
-			uint32_t Unknown1 : 1;
+			uint32_t OverrideIBLCubeMap : 1;
 			uint32_t Reserved : 16;
 		} UsedTexturesFlags;
 
 		ShaderTypeIdentifier ShaderType;
 		struct MaterialShaderFlags
 		{
-			uint32_t VertexTransType : 2;
-			uint32_t ColorSource : 2;
+			VertexTranslationType VertexTranslationType : 2;
+			ColorSourceType ColorSourceType : 2;
 
 			uint32_t LambertShading : 1;
 			uint32_t PhongShading : 1;
 			uint32_t PerPixelShading : 1;
 			uint32_t DoubleShading : 1;
 
-			uint32_t BumpMapType : 2;
+			BumpMapType BumpMapType : 2;
 			uint32_t Fresnel : 4;
 			uint32_t LineLight : 4;
 
 			uint32_t ReceivesShadows : 1;
 			uint32_t CastsShadows : 1;
-			
+
 			SpecularQuality SpecularQuality : 1;
 			AnisoDirection AnisoDirection : 3;
 
 			uint32_t Reserved : 8;
 		} ShaderFlags;
 
-		union
-		{
-			struct TextureTypesData
-			{
-				MaterialTextureData Diffuse;
-				MaterialTextureData Ambient;
-				MaterialTextureData Normal;
-				MaterialTextureData Specular;
-				// NOTE: Transparency / ToonCurve
-				MaterialTextureData Transparency;
-				// NOTE: Environment / Reflection
-				MaterialTextureData Environment;
-				MaterialTextureData Translucency;
-				MaterialTextureData ReservedTexture;
-			} TextureData;
-			std::array<MaterialTextureData, MaterialTextureData::TextureType_Count> TextureDataArray;
-		};
+		std::array<MaterialTextureData, 8> Textures;
 
 		struct MaterialBlendFlags
 		{
@@ -305,7 +418,9 @@ namespace Comfy::Graphics
 			uint32_t ZBias : 4;
 			uint32_t NoFog : 1;
 
-			uint32_t Reserved : 11;
+			uint32_t Unknown0 : 7;
+			uint32_t Unknown1 : 1;
+			uint32_t Reserved : 3;
 		} BlendFlags;
 
 		struct MaterialColor

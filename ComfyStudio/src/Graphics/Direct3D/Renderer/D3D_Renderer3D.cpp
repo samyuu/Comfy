@@ -309,22 +309,27 @@ namespace Comfy::Graphics
 
 		enum Renderer3DTextureSlot : int32_t
 		{
+			// NOTE: Material Textures
 			TextureSlot_Diffuse = 0,
 			TextureSlot_Ambient = 1,
 			TextureSlot_Normal = 2,
 			TextureSlot_Specular = 3,
-			TextureSlot_Tranparency = 4,
+			TextureSlot_Transparency = 4,
 			TextureSlot_Environment = 5,
 			TextureSlot_Translucency = 6,
 			TextureSlot_Reserved = 7,
+			TextureSlot_MaterialTextureCount = 8,
 
+			// NOTE: IBL Light Maps
 			TextureSlot_IBLLightMaps_0 = 9,
 			TextureSlot_IBLLightMaps_1 = 10,
 			TextureSlot_IBLLightMaps_2 = 11,
 
+			// NOTE: Screen Space Lookups
 			TextureSlot_ScreenReflection = 15,
 			TextureSlot_SubsurfaceScattering = 16,
 
+			// NOTE: Shadow Maps
 			TextureSlot_ShadowMap = 19,	// textures[6]
 			TextureSlot_ESMFull = 20,	// textures[19]
 			TextureSlot_ESMGauss = 21,	// textures[20]
@@ -1340,96 +1345,7 @@ namespace Comfy::Graphics
 				shaders.SolidBlack.Bind();
 		}
 
-		std::array<D3D_ShaderResourceView*, MaterialTextureData::TextureType_Count> textureResources = {};
-		std::array<D3D_TextureSampler*, MaterialTextureData::TextureType_Count> textureSamplers = {};
-
-		if (!(flags & RenderFlags_NoMaterialTextures))
-		{
-			objectCB.Data.DiffuseRGTC1 = false;
-			objectCB.Data.DiffuseScreenTexture = false;
-
-			const size_t texturesToBind = (flags & RenderFlags_DiffuseTextureOnly) ? 1 : MaterialTextureData::TextureType_Count;
-
-			for (size_t typeIndex = 0; typeIndex < texturesToBind; typeIndex++)
-			{
-				const MaterialTextureData& materialTexture = material.TextureDataArray[typeIndex];
-
-				const Cached_TxpID* txpID = &materialTexture.TextureID;
-				auto textureFlags = materialTexture.TextureFlags;
-
-				if (command.SourceCommand.Animation != nullptr)
-				{
-					for (auto& transform : command.SourceCommand.Animation->TextureTransforms)
-					{
-						if (*txpID == transform.ID)
-						{
-							textureFlags.RepeatU = transform.RepeatU.value_or<int>(textureFlags.RepeatU);
-							textureFlags.RepeatV = transform.RepeatU.value_or<int>(textureFlags.RepeatV);
-						}
-					}
-
-					for (auto& pattern : command.SourceCommand.Animation->TexturePatterns)
-					{
-						if (*txpID == pattern.ID && pattern.IDOverride != TxpID::Invalid)
-							txpID = &pattern.IDOverride;
-					}
-				}
-
-				if (auto txp = GetTxpFromTextureID(txpID); txp != nullptr)
-				{
-					textureResources[typeIndex] = (txp->D3D_Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->D3D_Texture2D.get()) : (txp->D3D_CubeMap != nullptr) ? (txp->D3D_CubeMap.get()) : nullptr;
-					textureSamplers[typeIndex] = &cachedTextureSamplers.GetSampler(textureFlags);
-
-					if (&materialTexture == &material.TextureData.Diffuse)
-					{
-						if (command.SourceCommand.Animation != nullptr && *txpID == command.SourceCommand.Animation->ScreenRenderTextureID)
-						{
-							objectCB.Data.DiffuseScreenTexture = true;
-							textureResources[typeIndex] = &renderData->Main.PreviousOrResolved();
-						}
-
-						if (txp->GetFormat() == TextureFormat::RGTC1)
-							objectCB.Data.DiffuseRGTC1 = true;
-					}
-				}
-			}
-
-			const auto blendFlags = material.TextureData.Ambient.TextureFlags.Blend;
-			objectCB.Data.AmbientTextureType = (blendFlags == 0b100) ? 2 : (blendFlags == 0b110) ? 1 : (blendFlags != 0b10000) ? 0 : 3;
-
-			D3D_ShaderResourceView::BindArray(TextureSlot_Diffuse, textureResources);
-			D3D_TextureSampler::BindArray(TextureSlot_Diffuse, textureSamplers);
-
-			objectCB.Data.Material.DiffuseTextureTransform = material.TextureData.Diffuse.TextureCoordinateMatrix;
-			objectCB.Data.Material.AmbientTextureTransform = material.TextureData.Ambient.TextureCoordinateMatrix;
-
-			if (command.SourceCommand.Animation != nullptr)
-			{
-				for (auto& textureTransform : command.SourceCommand.Animation->TextureTransforms)
-				{
-					mat4* output =
-						(textureTransform.ID == material.TextureData.Diffuse.TextureID) ? &objectCB.Data.Material.DiffuseTextureTransform :
-						(textureTransform.ID == material.TextureData.Ambient.TextureID) ? &objectCB.Data.Material.AmbientTextureTransform :
-						nullptr;
-
-					if (output == nullptr)
-						continue;
-
-					constexpr vec3 centerOffset = vec3(0.5f, 0.5f, 0.0f);
-					constexpr vec3 rotationAxis = vec3(0.0f, 0.0f, 1.0f);
-
-					*output =
-						glm::translate(mat4(1.0f), vec3(textureTransform.Translation, 0.0f))
-						* glm::translate(mat4(1.0f), +centerOffset)
-						* glm::rotate(mat4(1.0f), glm::radians(textureTransform.Rotation), rotationAxis)
-						* glm::translate(*output, -centerOffset);
-				}
-			}
-
-			// HACK: Flip to adjust for the expected OpenGL texture coordinates, problematic because it also effects all other textures using the first TEXCOORD attribute
-			if (objectCB.Data.DiffuseScreenTexture)
-				objectCB.Data.Material.DiffuseTextureTransform *= glm::scale(mat4(1.0f), vec3(1.0f, -1.0f, 1.0f));
-		}
+		const uint32_t boundMaterialTexturesFlags = (flags & RenderFlags_NoMaterialTextures) ? 0 : BindMaterialTextures(command, material, flags);
 
 		if (!renderParameters->Wireframe && !(flags & RenderFlags_NoRasterizerState))
 		{
@@ -1476,6 +1392,7 @@ namespace Comfy::Graphics
 		}
 
 		objectCB.Data.Model = glm::transpose(modelMatrix);
+
 #if 0 // TODO:
 		objectCB.Data.ModelView = glm::transpose(sceneContext->Camera.GetView() * modelMatrix);
 		objectCB.Data.ModelViewProjection = glm::transpose(sceneContext->Camera.GetViewProjection() * modelMatrix);
@@ -1494,43 +1411,43 @@ namespace Comfy::Graphics
 
 		if (renderParameters->DiffuseMapping)
 		{
-			if (textureResources[MaterialTextureData::TextureType_Diffuse] != nullptr)
+			if (boundMaterialTexturesFlags & (1 << TextureSlot_Diffuse))
 				objectCB.Data.ShaderFlags |= ShaderFlags_DiffuseTexture;
 		}
 
 		if (renderParameters->AmbientOcclusionMapping)
 		{
-			if (textureResources[MaterialTextureData::TextureType_Ambient] != nullptr)
+			if (boundMaterialTexturesFlags & (1 << TextureSlot_Ambient))
 				objectCB.Data.ShaderFlags |= ShaderFlags_AmbientTexture;
 		}
 
 		if (renderParameters->NormalMapping)
 		{
-			if (textureResources[MaterialTextureData::TextureType_Normal] != nullptr)
+			if (boundMaterialTexturesFlags & (1 << TextureSlot_Normal))
 				objectCB.Data.ShaderFlags |= ShaderFlags_NormalTexture;
 		}
 
 		if (renderParameters->SpecularMapping)
 		{
-			if (textureResources[MaterialTextureData::TextureType_Specular] != nullptr)
+			if (boundMaterialTexturesFlags & (1 << TextureSlot_Specular))
 				objectCB.Data.ShaderFlags |= ShaderFlags_SpecularTexture;
 		}
 
 		if (renderParameters->TransparencyMapping)
 		{
-			if (textureResources[MaterialTextureData::TextureType_Transparency] != nullptr)
+			if (boundMaterialTexturesFlags & (1 << TextureSlot_Transparency))
 				objectCB.Data.ShaderFlags |= ShaderFlags_TransparencyTexture;
 		}
 
 		if (renderParameters->EnvironmentMapping)
 		{
-			if (textureResources[MaterialTextureData::TextureType_Environment] != nullptr)
+			if (boundMaterialTexturesFlags & (1 << TextureSlot_Environment))
 				objectCB.Data.ShaderFlags |= ShaderFlags_EnvironmentTexture;
 		}
 
 		if (renderParameters->TranslucencyMapping)
 		{
-			if (textureResources[MaterialTextureData::TextureType_Translucency] != nullptr)
+			if (boundMaterialTexturesFlags & (1 << TextureSlot_Translucency))
 				objectCB.Data.ShaderFlags |= ShaderFlags_TranslucencyTexture;
 		}
 
@@ -1572,6 +1489,150 @@ namespace Comfy::Graphics
 		SubmitSubMeshDrawCall(subMesh);
 	}
 
+	uint32_t D3D_Renderer3D::MaterialTextureTypeToTextureSlot(MaterialTextureType textureType, bool secondColorMap)
+	{
+		switch (textureType)
+		{
+		case MaterialTextureType::ColorMap:
+			return (secondColorMap) ? TextureSlot_Ambient : TextureSlot_Diffuse;
+		case MaterialTextureType::NormalMap:
+			return TextureSlot_Normal;
+		case MaterialTextureType::SpecularMap:
+			return TextureSlot_Specular;
+		case MaterialTextureType::TranslucencyMap:
+			return TextureSlot_Translucency;
+		case MaterialTextureType::TransparencyMap:
+			return TextureSlot_Transparency;
+		case MaterialTextureType::EnvironmentMapCube:
+			return TextureSlot_Environment;
+
+		case MaterialTextureType::None:
+		case MaterialTextureType::HeightMap:
+		case MaterialTextureType::ReflectionMap:
+		case MaterialTextureType::EnvironmentMapSphere:
+			return TextureSlot_MaterialTextureCount;
+
+		default:
+			assert(false);
+			return TextureSlot_MaterialTextureCount;
+		}
+	}
+
+	uint32_t D3D_Renderer3D::BindMaterialTextures(const ObjRenderCommand& command, const Material& material, RenderFlags flags)
+	{
+		auto applyTextureTransform = [](mat4& outTransform, const ObjAnimationData::TextureTransform& textureTransform)
+		{
+			constexpr vec3 centerOffset = vec3(0.5f, 0.5f, 0.0f);
+			constexpr vec3 rotationAxis = vec3(0.0f, 0.0f, 1.0f);
+
+			outTransform =
+				glm::translate(mat4(1.0f), vec3(textureTransform.Translation, 0.0f))
+				* glm::translate(mat4(1.0f), +centerOffset)
+				* glm::rotate(mat4(1.0f), glm::radians(textureTransform.Rotation), rotationAxis)
+				* glm::translate(outTransform, -centerOffset);
+		};
+
+		const ObjAnimationData* animation = command.SourceCommand.Animation;
+
+		objectCB.Data.DiffuseRGTC1 = false;
+		objectCB.Data.DiffuseScreenTexture = false;
+		objectCB.Data.AmbientTextureType = 0;
+
+		std::array<D3D_ShaderResourceView*, TextureSlot_MaterialTextureCount> textureResources = {};
+		std::array<D3D_TextureSampler*, TextureSlot_MaterialTextureCount> textureSamplers = {};
+
+		for (auto& materialTexture : material.Textures)
+		{
+			const bool secondColorMap = textureResources[TextureSlot_Diffuse] != nullptr;
+			const auto correspondingTextureSlot = MaterialTextureTypeToTextureSlot(materialTexture.TextureFlags.Type, secondColorMap);
+
+			if (correspondingTextureSlot >= TextureSlot_MaterialTextureCount || textureResources[correspondingTextureSlot] != nullptr)
+				continue;
+
+			const Cached_TxpID* txpID = &materialTexture.TextureID;
+			auto samplerFlags = materialTexture.SamplerFlags;
+
+			if (animation != nullptr)
+			{
+				for (auto& transform : animation->TextureTransforms)
+				{
+					if (*txpID == transform.ID)
+					{
+						samplerFlags.RepeatU = transform.RepeatU.value_or<int>(samplerFlags.RepeatU);
+						samplerFlags.RepeatV = transform.RepeatU.value_or<int>(samplerFlags.RepeatV);
+					}
+				}
+
+				for (auto& pattern : animation->TexturePatterns)
+				{
+					if (*txpID == pattern.ID && pattern.IDOverride != TxpID::Invalid)
+						txpID = &pattern.IDOverride;
+				}
+			}
+
+			auto txp = GetTxpFromTextureID(txpID);
+			if (txp == nullptr)
+				continue;
+
+			textureResources[correspondingTextureSlot] = (txp->D3D_Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->D3D_Texture2D.get()) : (txp->D3D_CubeMap != nullptr) ? (txp->D3D_CubeMap.get()) : nullptr;
+			textureSamplers[correspondingTextureSlot] = &cachedTextureSamplers.GetSampler(samplerFlags);
+
+			if (correspondingTextureSlot == TextureSlot_Diffuse)
+			{
+				objectCB.Data.Material.DiffuseTextureTransform = materialTexture.TextureCoordinateMatrix;
+
+				if (animation != nullptr)
+				{
+					for (auto& textureTransform : animation->TextureTransforms)
+						if (textureTransform.ID == *txpID)
+							applyTextureTransform(objectCB.Data.Material.DiffuseTextureTransform, textureTransform);
+
+					if (*txpID == animation->ScreenRenderTextureID)
+					{
+						objectCB.Data.DiffuseScreenTexture = true;
+						textureResources[correspondingTextureSlot] = &renderData->Main.PreviousOrResolved();
+
+						// HACK: Flip to adjust for the expected OpenGL texture coordinates, problematic because it also effects all other textures using the first TEXCOORD attribute
+						objectCB.Data.Material.DiffuseTextureTransform *= glm::scale(mat4(1.0f), vec3(1.0f, -1.0f, 1.0f));
+					}
+				}
+
+				if (txp->GetFormat() == TextureFormat::RGTC1)
+					objectCB.Data.DiffuseRGTC1 = true;
+			}
+			else if (correspondingTextureSlot == TextureSlot_Ambient)
+			{
+				objectCB.Data.Material.AmbientTextureTransform = materialTexture.TextureCoordinateMatrix;
+
+				if (animation != nullptr)
+				{
+					for (auto& textureTransform : animation->TextureTransforms)
+						if (textureTransform.ID == *txpID)
+							applyTextureTransform(objectCB.Data.Material.AmbientTextureTransform, textureTransform);
+				}
+
+				const auto blendFlags = materialTexture.SamplerFlags.Blend;
+				objectCB.Data.AmbientTextureType = (blendFlags == 0b100) ? 2 : (blendFlags == 0b110) ? 1 : (blendFlags != 0b10000) ? 0 : 3;
+			}
+		}
+
+		if (flags & RenderFlags_DiffuseTextureOnly)
+		{
+			D3D_ShaderResourceView::BindArray<1>(TextureSlot_Diffuse, { textureResources[TextureSlot_Diffuse] });
+			D3D_TextureSampler::BindArray<1>(TextureSlot_Diffuse, { textureSamplers[TextureSlot_Diffuse] });
+		}
+		else
+		{
+			D3D_ShaderResourceView::BindArray(TextureSlot_Diffuse, textureResources);
+			D3D_TextureSampler::BindArray(TextureSlot_Diffuse, textureSamplers);
+		}
+
+		uint32_t boundMaterialTexturesFlags = 0;
+		for (size_t textureSlot = 0; textureSlot < textureResources.size(); textureSlot++)
+			boundMaterialTexturesFlags |= (1 << textureSlot);
+		return boundMaterialTexturesFlags;
+	}
+
 	D3D_ShaderPair& D3D_Renderer3D::GetMaterialShader(const Material& material)
 	{
 		if (material.Debug.UseDebugMaterial)
@@ -1581,9 +1642,7 @@ namespace Comfy::Graphics
 		{
 			if (material.ShaderFlags.PhongShading)
 			{
-				// TODO:
 				return (material.UsedTexturesFlags.Normal) ? shaders.BlinnPerFrag : shaders.BlinnPerVert;
-				//return (material.ShaderFlags.PerPixelShading) ? shaders.BlinnPerFrag : shaders.BlinnPerVert;
 			}
 			else if (material.ShaderFlags.LambertShading)
 			{
@@ -1608,11 +1667,11 @@ namespace Comfy::Graphics
 		}
 		else if (material.ShaderType == Material::ShaderIdentifiers::Hair)
 		{
-			return (material.ShaderFlags.AnisoDirection != AnisoDirection_Normal) ? shaders.HairAniso : shaders.HairDefault;
+			return (material.ShaderFlags.AnisoDirection != AnisoDirection::Normal) ? shaders.HairAniso : shaders.HairDefault;
 		}
 		else if (material.ShaderType == Material::ShaderIdentifiers::Cloth)
 		{
-			return (material.ShaderFlags.AnisoDirection != AnisoDirection_Normal) ? shaders.ClothAniso : shaders.ClothDefault;
+			return (material.ShaderFlags.AnisoDirection != AnisoDirection::Normal) ? shaders.ClothAniso : shaders.ClothDefault;
 		}
 		else if (material.ShaderType == Material::ShaderIdentifiers::Tights)
 		{
@@ -1702,8 +1761,10 @@ namespace Comfy::Graphics
 			max.z = std::max(max.z, sphere.Center.z + radius);
 		}
 
+		constexpr float radiusPadding = 0.05f;
 		const vec3 size = (max - min) / 2.0f;
-		return Sphere { (min + size), (std::max(size.x, std::max(size.y, size.z))) };
+
+		return Sphere { (min + size), (std::max(size.x, std::max(size.y, size.z))) + radiusPadding };
 	}
 
 	bool D3D_Renderer3D::IntersectsCameraFrustum(const ObjRenderCommand& command) const

@@ -149,6 +149,8 @@ namespace Comfy::Graphics
 
 		void BindMeshVertexBuffers(const Mesh& primaryMesh, const Mesh* morphMesh);
 		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, RenderFlags flags = RenderFlags_None);
+		uint32_t MaterialTextureTypeToTextureSlot(MaterialTextureType textureType, bool secondColorMap);
+		uint32_t BindMaterialTextures(const ObjRenderCommand& command, const Material& material, RenderFlags flags);
 
 		D3D_ShaderPair& GetMaterialShader(const Material& material);
 		D3D_ShaderPair& GetSSSMaterialShader(const Material& material);
