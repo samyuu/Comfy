@@ -162,6 +162,7 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Editor\PV\MaterialEditor.cpp" />
     <ClCompile Include="src\Database\AetDB.cpp" />
     <ClCompile Include="src\Database\SprDB.cpp" />
     <ClCompile Include="src\Database\TxpDB.cpp" />
@@ -301,6 +302,7 @@
     <ClCompile Include="src\System\Profiling\Profiler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Editor\PV\MaterialEditor.h" />
     <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\BlendStateCache.h" />
     <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\ShaderFlags.h" />
     <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\TextureSamplerCache.h" />

@@ -429,6 +429,9 @@
     <ClCompile Include="src\Graphics\Direct3D\State\D3D_OcclusionQuery.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Editor\PV\MaterialEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
@@ -975,6 +978,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Direct3D\State\D3D_OcclusionQuery.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\PV\MaterialEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

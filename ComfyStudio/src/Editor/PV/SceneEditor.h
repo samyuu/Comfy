@@ -9,6 +9,7 @@
 #include "StageTest.h"
 #include "CharaTest.h"
 #include "ExternalProcess.h"
+#include "MaterialEditor.h"
 #include <future>
 
 namespace Comfy::Editor
@@ -74,6 +75,7 @@ namespace Comfy::Editor
 
 		StageTestData stageTestData;
 		CharacterTestData charaTestData;
+		MaterialEditor materialEditor;
 		
 		struct ExternalProcessTest
 		{
