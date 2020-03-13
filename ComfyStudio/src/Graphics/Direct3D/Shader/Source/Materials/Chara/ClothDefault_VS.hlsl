@@ -83,10 +83,7 @@ VS_OUTPUT VS_main(VS_INPUT input)
     MUL(diff.y, diff.y, diff.x);
     MUL(diff.xy, diff.xy, program_env_17.xy);
     ADD(o_color_f0.w, diff.x, diff.y);
-    // SUB(_tmp0.w, pos_c.z, state.fog.params.y);
-    // MUL_SAT(_tmp0.w, _tmp0.w, state.fog.params.w);
-    // MUL(o_fog.x, _tmp0.w, state.fog.params.x);
-    MOV(o_color_f1.xyz, p_fog_color);
+    MOV(o_color_f1.xyz, p_fog_color.xyz);
     
 #endif
 
