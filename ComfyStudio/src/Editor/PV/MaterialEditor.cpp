@@ -23,10 +23,10 @@ namespace Comfy::Editor
 			std::make_pair("Cloth", Material::ShaderIdentifiers::Cloth),
 			std::make_pair("Tights", Material::ShaderIdentifiers::Tights),
 			std::make_pair("Sky", Material::ShaderIdentifiers::Sky),
-			std::make_pair("EyeBall", Material::ShaderIdentifiers::EyeBall),
-			std::make_pair("EyeLens", Material::ShaderIdentifiers::EyeLens),
-			std::make_pair("GlassEye", Material::ShaderIdentifiers::GlassEye),
-			std::make_pair("Water01", Material::ShaderIdentifiers::Water01),
+			std::make_pair("Eye Ball", Material::ShaderIdentifiers::EyeBall),
+			std::make_pair("Eye Lens", Material::ShaderIdentifiers::EyeLens),
+			std::make_pair("Glass Eye", Material::ShaderIdentifiers::GlassEye),
+			std::make_pair("Water", Material::ShaderIdentifiers::Water01),
 			std::make_pair("Floor", Material::ShaderIdentifiers::Floor),
 		};
 
@@ -43,9 +43,7 @@ namespace Comfy::Editor
 
 		GuiProperty::TreeNode("Material", valueNodeBuffer, ImGuiTreeNodeFlags_DefaultOpen, [&]
 		{
-			GuiProperty::Separator();
 			GuiProperty::Checkbox("Use Debug Material", material.Debug.UseDebugMaterial);
-			GuiProperty::Separator();
 			DrawUsedTexturesFlagsGui(material.UsedTexturesCount, material.UsedTexturesFlags);
 			DrawShaderFlagsGui(material.ShaderType, material.ShaderFlags);
 			DrawTextureDataGui(renderer, material);
@@ -58,7 +56,6 @@ namespace Comfy::Editor
 	{
 		GuiProperty::TreeNode("Used Textures Flags", ImGuiTreeNodeFlags_None, [&]
 		{
-			GuiProperty::Separator();
 			GuiProperty::Input("Used Texture Count", usedTexturesCount);
 			GuiBitFieldCheckbox("Color", texturesFlags.Color);
 			GuiBitFieldCheckbox("Color A", texturesFlags.ColorA);
@@ -77,14 +74,12 @@ namespace Comfy::Editor
 			GuiBitFieldCheckbox("Unknown 0", texturesFlags.Unknown0);
 			GuiBitFieldCheckbox("OverrideIBLCubeMap", texturesFlags.OverrideIBLCubeMap);
 		});
-		GuiProperty::Separator();
 	}
 
 	void MaterialEditor::DrawShaderFlagsGui(Material::ShaderTypeIdentifier& shaderType, Material::MaterialShaderFlags& shaderFlags)
 	{
 		GuiProperty::TreeNode("Shader Flags", ImGuiTreeNodeFlags_None, [&]
 		{
-			GuiProperty::Separator();
 			if (GuiProperty::Input("Shader Type", shaderType.data(), shaderType.size(), ImGuiInputTextFlags_None))
 				std::fill(std::find(shaderType.begin(), shaderType.end(), '\0'), shaderType.end(), '\0');
 
@@ -97,26 +92,20 @@ namespace Comfy::Editor
 				}
 			});
 
-			GuiProperty::Separator();
 			GuiBitFieldComboEnum("Vertex Translation Type", shaderFlags.VertexTranslationType, VertexTranslationTypeNames);
 			GuiBitFieldComboEnum("Color Source Type", shaderFlags.ColorSourceType, ColorSourceTypeNames);
-			GuiProperty::Separator();
 			GuiBitFieldCheckbox("Lambert Shading", shaderFlags.LambertShading);
 			GuiBitFieldCheckbox("Phong Shading", shaderFlags.PhongShading);
 			GuiBitFieldCheckbox("Per Pixel Shading", shaderFlags.PerPixelShading);
 			GuiBitFieldCheckbox("Double Shading", shaderFlags.DoubleShading);
-			GuiProperty::Separator();
 			GuiBitFieldComboEnum("Bump Map Type", shaderFlags.BumpMapType, BumpMapTypeNames);
 			GuiBitFieldInputInt("Fresnel", shaderFlags.Fresnel);
 			GuiBitFieldInputInt("Line Light", shaderFlags.LineLight);
-			GuiProperty::Separator();
 			GuiBitFieldCheckbox("Receives Shadows", shaderFlags.ReceivesShadows);
 			GuiBitFieldCheckbox("Casts Shadows", shaderFlags.CastsShadows);
-			GuiProperty::Separator();
 			GuiBitFieldComboEnum("Specular Quality", shaderFlags.SpecularQuality, SpecularQualityNames);
 			GuiBitFieldComboEnum("Aniso Direction", shaderFlags.AnisoDirection, AnisoDirectionNames);
 		});
-		GuiProperty::Separator();
 	}
 
 	void MaterialEditor::DrawTextureDataGui(const D3D_Renderer3D& renderer, Material& material)
@@ -135,38 +124,30 @@ namespace Comfy::Editor
 				char nodeValueNameBuffer[32];
 				sprintf_s(nodeValueNameBuffer, "(%s)", MaterialTextureTypeNames[static_cast<uint32_t>(texture.TextureFlags.Type)]);
 
-				GuiProperty::Separator();
 				GuiProperty::TreeNode(nodePropertyNameBuffer, nodeValueNameBuffer, ImGuiTreeNodeFlags_None, [&]
 				{
-					GuiProperty::Separator();
 					GuiProperty::TreeNode("Sampler Flags", ImGuiTreeNodeFlags_None, [&]
 					{
 						auto& samplerFlags = texture.SamplerFlags;
-						GuiProperty::Separator();
 						GuiBitFieldCheckbox("Repeat U", samplerFlags.RepeatU);
 						GuiBitFieldCheckbox("Repeat V", samplerFlags.RepeatV);
 						GuiBitFieldCheckbox("Mirror U", samplerFlags.MirrorU);
 						GuiBitFieldCheckbox("Mirror V", samplerFlags.MirrorV);
-						GuiProperty::Separator();
 						GuiBitFieldCheckbox("Ignore Alpha", samplerFlags.IgnoreAlpha);
 						GuiBitFieldInputInt("Blend", samplerFlags.Blend);
 						GuiBitFieldInputInt("Alpha Blend", samplerFlags.AlphaBlend);
-						GuiProperty::Separator();
 						GuiBitFieldCheckbox("Border", samplerFlags.Border);
 						GuiBitFieldCheckbox("Clamp To Edge", samplerFlags.ClampToEdge);
 						GuiBitFieldInputInt("Filter", samplerFlags.Filter);
-						GuiProperty::Separator();
 						GuiBitFieldInputInt("Mip Map", samplerFlags.MipMap);
 						GuiBitFieldInputInt("Mip Map Bias", samplerFlags.MipMapBias);
 						GuiBitFieldInputInt("Ansi Filters", samplerFlags.AnsiFilters);
 					});
 
-					GuiProperty::Separator();
 					auto tempID = static_cast<uint32_t>(texture.TextureID.ID);
 					if (GuiProperty::InputHex("Texture ID", tempID))
 						texture.TextureID = static_cast<TxpID>(tempID);
 
-					GuiProperty::Separator();
 					auto txp = renderer.GetTxpFromTextureID(&texture.TextureID);
 					GuiProperty::PropertyLabelValueFunc((txp == nullptr) ? "(No Texture)" : txp->GetName(), [&]
 					{
@@ -179,11 +160,9 @@ namespace Comfy::Editor
 						return false;
 					});
 
-					GuiProperty::Separator();
 					GuiProperty::TreeNode("Texture Flags", ImGuiTreeNodeFlags_None, [&]
 					{
 						auto& textureFlags = texture.TextureFlags;
-						GuiProperty::Separator();
 						GuiBitFieldComboEnum("Type", textureFlags.Type, MaterialTextureTypeNames);
 						GuiBitFieldComboEnum("UV Index", textureFlags.UVIndex, MaterialTextureUVIndexNames);
 						GuiBitFieldComboEnum("UV Translation Type", textureFlags.UVTranslationType, MaterialTextureUVTranslationTypeNames);
@@ -191,32 +170,25 @@ namespace Comfy::Editor
 				});
 			}
 		});
-		GuiProperty::Separator();
 	}
 
 	void MaterialEditor::DrawBlendFlagsGui(Material::MaterialBlendFlags& blendFlags)
 	{
 		GuiProperty::TreeNode("Blend Flags", ImGuiTreeNodeFlags_None, [&]
 		{
-			GuiProperty::Separator();
 			GuiBitFieldCheckbox("Alpha Texture", blendFlags.AlphaTexture);
 			GuiBitFieldCheckbox("Alpha Material", blendFlags.AlphaMaterial);
 			GuiBitFieldCheckbox("Punch Through", blendFlags.PunchThrough);
-			GuiProperty::Separator();
 			GuiBitFieldCheckbox("Double Sided", blendFlags.DoubleSided);
 			GuiBitFieldCheckbox("Normal Direction Light", blendFlags.NormalDirectionLight);
-			GuiProperty::Separator();
 			GuiBitFieldComboEnum("Source Blend Factor", blendFlags.SrcBlendFactor, BlendFactorNames);
 			GuiBitFieldComboEnum("Destination Blend Factor", blendFlags.DstBlendFactor, BlendFactorNames);
 			GuiBitFieldInputInt("Blend Operation", blendFlags.BlendOperation);
-			GuiProperty::Separator();
 			GuiBitFieldInputInt("Z Bias", blendFlags.ZBias);
 			GuiBitFieldCheckbox("No Fog", blendFlags.NoFog);
-			GuiProperty::Separator();
 			GuiBitFieldInputInt("Unknown0", blendFlags.Unknown0);
 			GuiBitFieldInputInt("Unknown1", blendFlags.Unknown1);
 		});
-		GuiProperty::Separator();
 	}
 
 	void MaterialEditor::DrawColorGui(Material::MaterialColor& materialColor)
@@ -224,7 +196,6 @@ namespace Comfy::Editor
 		GuiPropertyRAII::ID id(&materialColor);
 		GuiProperty::TreeNode("Color", ImGuiTreeNodeFlags_None, [&]
 		{
-			GuiProperty::Separator();
 			GuiProperty::ColorEdit("Diffuse", materialColor.Diffuse, ImGuiColorEditFlags_Float);
 			GuiProperty::Input("Transparency", materialColor.Transparency, 0.01f, 0.0f, 1.0f);
 			GuiProperty::ColorEdit("Ambient", materialColor.Ambient, ImGuiColorEditFlags_Float);
@@ -234,7 +205,6 @@ namespace Comfy::Editor
 			GuiProperty::Input("Shininess", materialColor.Shininess, 0.05f, 0.0f, 128.0f);
 			GuiProperty::Input("Intensity", materialColor.Intensity, 0.01f, 0.0f, 1.0f);
 		});
-		GuiProperty::Separator();
 	}
 }
 
