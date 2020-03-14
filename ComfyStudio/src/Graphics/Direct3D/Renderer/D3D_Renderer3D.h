@@ -152,7 +152,7 @@ namespace Comfy::Graphics
 		uint32_t MaterialTextureTypeToTextureSlot(MaterialTextureType textureType, bool secondColorMap);
 		uint32_t BindMaterialTextures(const ObjRenderCommand& command, const Material& material, RenderFlags flags);
 
-		D3D_ShaderPair& GetMaterialShader(const Material& material);
+		D3D_ShaderPair& GetMaterialShader(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material);
 		D3D_ShaderPair& GetSSSMaterialShader(const Material& material);
 
 		void SubmitSubMeshDrawCall(const SubMesh& subMesh);

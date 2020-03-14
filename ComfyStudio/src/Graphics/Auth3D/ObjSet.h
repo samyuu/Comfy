@@ -21,6 +21,8 @@ namespace Comfy::Graphics
 
 	struct SubMesh
 	{
+		mutable DebugData Debug;
+
 		uint32_t ReservedFlags;
 
 		Sphere BoundingSphere;
