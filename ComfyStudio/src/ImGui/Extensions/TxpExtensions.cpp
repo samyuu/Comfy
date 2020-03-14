@@ -35,6 +35,9 @@ namespace ImGui
 		ImTextureID textureID = *textureResource;
 		textureID.DecompressRGTC = false;
 
-		Image(textureID, adjustedSize, UV0, UV1);
+		if (textureResource == txp->D3D_CubeMap.get())
+			Image(textureID, adjustedSize, UV0, UV1);
+		else
+			Image(textureID, adjustedSize, UV0_R, UV1_R);
 	}
 }
