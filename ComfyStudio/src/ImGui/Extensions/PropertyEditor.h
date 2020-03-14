@@ -43,12 +43,18 @@ namespace ImGui
 
 			struct TreeNode : NonCopyable
 			{
-				TreeNode(const char* label, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None)
+				TreeNode(std::string_view label, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None, std::string_view valueLabel = "")
 				{
 					AlignTextToFramePadding();
 					NoPushOnOpen = (flags & ImGuiTreeNodeFlags_NoTreePushOnOpen);
-					IsOpen = WideTreeNodeEx(label, flags);
-					NextColumn(); NextColumn();
+					IsOpen = WideTreeNodeEx(label.data(), flags);
+					NextColumn();
+					if (!valueLabel.empty())
+					{
+						AlignTextToFramePadding();
+						TextUnformatted(StringViewStart(valueLabel), StringViewEnd(valueLabel));
+					}
+					NextColumn();
 				}
 				~TreeNode() { if (IsOpen && !NoPushOnOpen) TreePop(); }
 				bool IsOpen, NoPushOnOpen;
@@ -61,6 +67,13 @@ namespace ImGui
 			namespace Detail
 			{
 				constexpr const char* DummyLabel = "##Dummy";
+				constexpr bool PerItemSeparation = true;
+
+				inline void PerItemSeparator()
+				{
+					if (PerItemSeparation)
+						Gui::Separator();
+				}
 
 				inline void PushItemDisabled()
 				{
@@ -74,17 +87,13 @@ namespace ImGui
 					PopItemFlag();
 				}
 
-				template <typename T>
-				struct ImGuiDataTypeLookup {};
-
-				template<>
-				struct ImGuiDataTypeLookup<int> { static constexpr ImGuiDataType Value = ImGuiDataType_S32; };
-
-				template<>
-				struct ImGuiDataTypeLookup<float> { static constexpr ImGuiDataType Value = ImGuiDataType_Float; };
+				template <typename T> struct ImGuiDataTypeLookup {};
+				template<> struct ImGuiDataTypeLookup<int> { static constexpr ImGuiDataType Value = ImGuiDataType_S32; };
+				template<> struct ImGuiDataTypeLookup<uint32_t> { static constexpr ImGuiDataType Value = ImGuiDataType_U32; };
+				template<> struct ImGuiDataTypeLookup<float> { static constexpr ImGuiDataType Value = ImGuiDataType_Float; };
 
 				template <typename T>
-				inline bool DragText(std::string_view label, T& inOutValue, float speed, T min, T max, float width)
+				inline bool DragText(std::string_view label, T& inOutValue, float speed, T* min, T* max, float width)
 				{
 					ImGuiWindow* window = GetCurrentWindow();
 					const ImGuiID id = window->GetID(&inOutValue);
@@ -108,7 +117,7 @@ namespace ImGui
 						FocusWindow(window);
 					}
 
-					const bool valueChanged = Gui::DragBehavior(id, ImGuiDataTypeLookup<T>::Value, &inOutValue, speed, &min, &max, "", 1.0f, ImGuiDragFlags_None);
+					const bool valueChanged = Gui::DragBehavior(id, ImGuiDataTypeLookup<T>::Value, &inOutValue, speed, min, max, "", 1.0f, ImGuiDragFlags_None);
 					if (valueChanged)
 						MarkItemEdited(id);
 
@@ -153,7 +162,7 @@ namespace ImGui
 							PushItemDisabled();
 
 						constexpr float dragSpeed = 1.0f;
-						anyValueChanged |= DragText<ValueType>(componentLabels[component], inOutValue[component], dragSpeed, dragMin, dragMax, componentLabelWidth);
+						anyValueChanged |= DragText<ValueType>(componentLabels[component], inOutValue[component], dragSpeed, &dragMin, &dragMax, componentLabelWidth);
 						SameLine(0.0f, 0.0f);
 
 						const bool isLastComponent = ((component + 1) == VecType::length());
@@ -175,10 +184,27 @@ namespace ImGui
 				}
 			}
 
+			inline void Separator()
+			{
+				if (!Detail::PerItemSeparation)
+					Gui::Separator();
+			}
+
+			template <typename Func>
+			inline bool TreeNode(std::string_view label, std::string_view valueLabel, ImGuiTreeNodeFlags flags, Func func)
+			{
+				Detail::PerItemSeparator();
+				RAII::TreeNode treeNode(label, flags, valueLabel);
+				if (treeNode)
+					func();
+				return treeNode.IsOpen;
+			}
+
 			template <typename Func>
 			inline bool TreeNode(std::string_view label, ImGuiTreeNodeFlags flags, Func func)
 			{
-				RAII::TreeNode treeNode(label.data(), flags);
+				Detail::PerItemSeparator();
+				RAII::TreeNode treeNode(label, flags);
 				if (treeNode)
 					func();
 				return treeNode.IsOpen;
@@ -193,6 +219,7 @@ namespace ImGui
 			template <typename PropertyFunc, typename ValueFunc>
 			inline bool PropertyFuncValueFunc(PropertyFunc propertyGuiFunc, ValueFunc valueGuiFunc)
 			{
+				Detail::PerItemSeparator();
 				AlignTextToFramePadding();
 				bool anyValueChanged = propertyGuiFunc();
 				NextColumn();
@@ -218,16 +245,16 @@ namespace ImGui
 				});
 			}
 
-			inline bool Input(std::string_view label, float& inOutValue, float step = 1.0f, float fastStep = 10.0f)
+			inline bool Input(std::string_view label, float& inOutValue, float dragSpeed = 1.0f, float dragMin = 0.0f, float dragMax = 0.0f)
 			{
 				RAII::ID id(label);
 				return PropertyFuncValueFunc([&]
 				{
-					return Detail::DragText(label, inOutValue, 1.0f, 0.0f, 0.0f, 0.0f);
+					return Detail::DragText(label, inOutValue, dragSpeed, &dragMin, &dragMax, 0.0f);
 				}, [&]
 				{
 					RAII::ItemWidth width(-1.0f);
-					return Gui::InputFloat(Detail::DummyLabel, &inOutValue, step, fastStep);
+					return Gui::InputFloat(Detail::DummyLabel, &inOutValue, dragSpeed, dragSpeed * 10.0f);
 				});
 			}
 
@@ -248,14 +275,48 @@ namespace ImGui
 
 			inline bool Input(std::string_view label, int& inOutValue, int step = 1, int fastStep = 10)
 			{
+				using InputType = std::remove_reference<decltype(inOutValue)>::type;
+
 				RAII::ID id(label);
 				return PropertyFuncValueFunc([&]
 				{
-					return Detail::DragText(label, inOutValue, 1.0f, 0, 0, 0.0f);
+					return Detail::DragText<InputType>(label, inOutValue, 0.1f, nullptr, nullptr, 0.0f);
 				}, [&]
 				{
 					RAII::ItemWidth width(-1.0f);
 					return Gui::InputInt(Detail::DummyLabel, &inOutValue, step, fastStep);
+				});
+			}
+
+			inline bool Input(std::string_view label, uint32_t& inOutValue, uint32_t step = 1, uint32_t fastStep = 10)
+			{
+				using InputType = std::remove_reference<decltype(inOutValue)>::type;
+
+				RAII::ID id(label);
+				return PropertyFuncValueFunc([&]
+				{
+					return Detail::DragText<InputType>(label, inOutValue, 0.1f, nullptr, nullptr, 0.0f);
+				}, [&]
+				{
+					RAII::ItemWidth width(-1.0f);
+					return Gui::InputScalar(Detail::DummyLabel, Detail::ImGuiDataTypeLookup<InputType>::Value, &inOutValue, &step, &fastStep);
+				});
+			}
+
+			inline bool InputHex(std::string_view label, uint32_t& inOutValue)
+			{
+				using InputType = std::remove_reference<decltype(inOutValue)>::type;
+
+				RAII::ID id(label);
+				return PropertyFuncValueFunc([&]
+				{
+					return Detail::DragText<InputType>(label, inOutValue, 0.1f, nullptr, nullptr, 0.0f);
+				}, [&]
+				{
+					uint32_t step = 1, fastStep = 1;
+
+					RAII::ItemWidth width(-1.0f);
+					return Gui::InputScalar(Detail::DummyLabel, Detail::ImGuiDataTypeLookup<InputType>::Value, &inOutValue, &step, &fastStep, "%X", ImGuiInputTextFlags_CharsHexadecimal);
 				});
 			}
 
@@ -355,6 +416,16 @@ namespace ImGui
 					return true;
 				}
 				return false;
+			}
+
+			inline bool ColorEdit(std::string_view label, vec3& inOutValue, ImGuiColorEditFlags flags = ImGuiColorEditFlags_None)
+			{
+				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return Gui::ColorEdit3(Detail::DummyLabel, glm::value_ptr(inOutValue), flags); });
+			}
+
+			inline bool ColorEdit(std::string_view label, vec4& inOutValue, ImGuiColorEditFlags flags = ImGuiColorEditFlags_None)
+			{
+				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return Gui::ColorEdit4(Detail::DummyLabel, glm::value_ptr(inOutValue), flags); });
 			}
 		}
 	}
