@@ -309,6 +309,7 @@
     <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\ToneMapData.h" />
     <ClInclude Include="src\Graphics\Direct3D\Shader\Bytecode\ShaderBytecode.h" />
     <ClInclude Include="src\Graphics\Direct3D\State\D3D_OcclusionQuery.h" />
+    <ClInclude Include="src\ImGui\Extensions\PropertyEditor.h" />
     <ClInclude Include="src\Resource\IDHash.h" />
     <ClInclude Include="src\Resource\Detail\IDTypeDeclarations.h" />
     <ClInclude Include="src\Resource\IDTypes.h" />
