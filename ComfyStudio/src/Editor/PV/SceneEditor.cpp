@@ -849,7 +849,7 @@ namespace Comfy::Editor
 
 		Obj* obj = (objTestData.ObjIndex >= 0 && objTestData.ObjIndex < objSet.size()) ? objSet.GetObjAt(objTestData.ObjIndex) : nullptr;
 
-		if (Gui::CollapsingHeader("Material Editor"))
+		if (Gui::CollapsingHeader("Material Editor", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			Gui::BeginChild("MaterialEditorChild", vec2(), true);
 			auto getMaterialName = [](Obj* obj, int index) { return (obj == nullptr || index < 0 || index >= obj->Materials.size()) ? "None" : obj->Materials[index].Name.data(); };
@@ -865,6 +865,10 @@ namespace Comfy::Editor
 					{
 						if (Gui::Selectable(getMaterialName(obj, matIndex), (matIndex == objTestData.MaterialIndex)))
 							objTestData.MaterialIndex = matIndex;
+
+#if 1 // DEBUG:
+						obj->Materials[matIndex].Debug.UseDebugMaterial = (matIndex == objTestData.MaterialIndex) ? false : Gui::IsItemHovered();
+#endif // 1
 
 						if (matIndex == objTestData.MaterialIndex)
 							Gui::SetItemDefaultFocus();
