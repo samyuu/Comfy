@@ -358,7 +358,7 @@ namespace Comfy::Graphics
 		mutable DebugData Debug;
 
 		uint32_t UsedTexturesCount;
-		struct MaterialTextureFlags
+		struct MaterialUsedTextureFlags
 		{
 			uint32_t Color : 1;
 			uint32_t ColorA : 1;

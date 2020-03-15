@@ -1552,6 +1552,9 @@ namespace Comfy::Graphics
 			if (correspondingTextureSlot >= TextureSlot_MaterialTextureCount || textureResources[correspondingTextureSlot] != nullptr)
 				continue;
 
+			if (!GetIsTextureSlotUsed(material.UsedTexturesFlags, correspondingTextureSlot))
+				continue;
+
 			const Cached_TxpID* txpID = &materialTexture.TextureID;
 			auto samplerFlags = materialTexture.SamplerFlags;
 
@@ -1637,6 +1640,34 @@ namespace Comfy::Graphics
 				boundMaterialTexturesFlags |= (1 << textureSlot);
 		}
 		return boundMaterialTexturesFlags;
+	}
+
+	bool D3D_Renderer3D::GetIsTextureSlotUsed(Material::MaterialUsedTextureFlags usedTextureFlags, uint32_t textureSlot)
+	{
+		switch (textureSlot)
+		{
+		case TextureSlot_Diffuse:
+			// HACK: Eye materials only set the ColorL1 flag for their diffuse texture
+			return usedTextureFlags.Color || usedTextureFlags.ColorL1;
+		case TextureSlot_Ambient:
+			return usedTextureFlags.ColorL1;
+		case TextureSlot_Normal:
+			return usedTextureFlags.Normal;
+		case TextureSlot_Specular:
+			return usedTextureFlags.Specular;
+		case TextureSlot_Transparency:
+			return usedTextureFlags.Transparency;
+		case TextureSlot_Environment:
+			return usedTextureFlags.Environment;
+		case TextureSlot_Translucency:
+			return usedTextureFlags.Translucency;
+		case TextureSlot_Reserved:
+			return false;
+
+		default:
+			assert(false);
+			return false;
+		}
 	}
 
 	D3D_ShaderPair& D3D_Renderer3D::GetMaterialShader(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material)

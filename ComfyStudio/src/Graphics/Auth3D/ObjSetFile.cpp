@@ -181,7 +181,7 @@ namespace Comfy::Graphics
 				for (auto& material : Materials)
 				{
 					material.UsedTexturesCount = reader.ReadU32();
-					material.UsedTexturesFlags = ReadFlagsStruct32<Material::MaterialTextureFlags>(reader);
+					material.UsedTexturesFlags = ReadFlagsStruct32<Material::MaterialUsedTextureFlags>(reader);
 
 					reader.ReadBuffer(material.ShaderType.data(), material.ShaderType.size());
 					material.ShaderFlags = ReadFlagsStruct32<Material::MaterialShaderFlags>(reader);
