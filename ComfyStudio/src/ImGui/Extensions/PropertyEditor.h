@@ -35,10 +35,32 @@ namespace ImGui
 				~ItemWidth() { PopItemWidth(); }
 			};
 
+			struct Columns
+			{
+				Columns(int columnsCount, const char* id, bool border)
+				{
+					if (auto previousColumns = GetCurrentWindow()->DC.CurrentColumns; previousColumns == nullptr)
+						Previous = { nullptr, 1, false };
+					else
+						Previous = { nullptr, previousColumns->Count, (previousColumns->Flags & ImGuiColumnsFlags_NoBorder) == 0 };
+
+					Gui::Columns(columnsCount, id, border);
+				}
+				~Columns()
+				{
+					Gui::Columns(Previous.Count, Previous.ID, Previous.Border);
+				}
+				struct ColumnData
+				{
+					const char* ID; 
+					int Count; 
+					bool Border;
+				} Previous;
+			};
+
 			struct PropertyValueColumns : NonCopyable
 			{
-				PropertyValueColumns() { Columns(2, nullptr, true); }
-				~PropertyValueColumns() { Columns(1); }
+				Columns Columns { 2, nullptr, true };
 			};
 
 			struct TreeNode : NonCopyable
@@ -161,7 +183,6 @@ namespace ImGui
 						if (disabled)
 							PushItemDisabled();
 
-						constexpr float dragSpeed = 1.0f;
 						anyValueChanged |= DragText<ValueType>(componentLabels[component], inOutValue[component], dragSpeed, &dragMin, &dragMax, componentLabelWidth);
 						SameLine(0.0f, 0.0f);
 
@@ -366,9 +387,16 @@ namespace ImGui
 				return false;
 			}
 
+			struct ComboResult
+			{
+				int HoveredIndex;
+				bool IsOpen;
+				bool ValueChanged;
+			};
+
 			// NOTE: IndexToStringFunc should handle index validation itself (range checking for arrays), nullptr returns will be skipped
 			template <typename IndexToStringFunc>
-			inline bool Combo(std::string_view label, int& inOutIndex, int startRange, int endRange, ImGuiComboFlags flags, IndexToStringFunc indexToString)
+			inline bool Combo(std::string_view label, int& inOutIndex, int startRange, int endRange, ImGuiComboFlags flags, IndexToStringFunc indexToString, ComboResult* outResult = nullptr)
 			{
 				return PropertyLabelValueFunc(label, [&]
 				{
@@ -377,6 +405,12 @@ namespace ImGui
 					const char* previewValue = indexToString(inOutIndex);
 					if (InternalVariableWidthBeginCombo(Detail::DummyLabel, (previewValue == nullptr) ? "" : previewValue, flags, GetContentRegionAvailWidth()))
 					{
+						if (outResult != nullptr)
+						{
+							outResult->IsOpen = true;
+							outResult->HoveredIndex = -1;
+						}
+
 						for (int i = startRange; i < endRange; i++)
 						{
 							if (const char* itemLabel = indexToString(i); itemLabel != nullptr)
@@ -387,12 +421,21 @@ namespace ImGui
 									inOutIndex = i;
 									valueChanged = true;
 								}
+								
+								if (outResult != nullptr && IsItemHovered())
+									outResult->HoveredIndex = i;
+								
 								if (isSelected)
 									SetItemDefaultFocus();
 							}
 						}
 						EndCombo();
 					}
+					else if (outResult != nullptr)
+						outResult->IsOpen = false;
+
+					if (outResult != nullptr)
+						outResult->ValueChanged = valueChanged;
 
 					return valueChanged;
 				});
@@ -410,7 +453,7 @@ namespace ImGui
 				static_assert(sizeof(EnumType) <= sizeof(int));
 
 				int tempIndex = static_cast<int>(inOutEnum);
-				if (Combo(label, tempIndex, 0, static_cast<int>(ArraySize), flags, [&](int index) { return (index >= 0 && index < nameLookup.size()) ? nameLookup[index] : nullptr; }))
+				if (Combo(label, tempIndex, 0, static_cast<int>(ArraySize), flags, [&](int index) { return InBounds(index, nameLookup) ? nameLookup[index] : nullptr; }))
 				{
 					inOutEnum = static_cast<EnumType>(tempIndex);
 					return true;
@@ -433,3 +476,28 @@ namespace ImGui
 
 namespace GuiProperty = Gui::PropertyEditor::Widgets;
 namespace GuiPropertyRAII = Gui::PropertyEditor::RAII;
+
+#ifndef COMFY_GUI_PROPERTY_NO_MACROS
+
+#define GuiPropertyBitFieldCheckbox(name, bitFieldMember) \
+{ 														  \
+	bool temp = bitFieldMember; 						  \
+	if (GuiProperty::Checkbox(name, temp)) 				  \
+		bitFieldMember = temp; 							  \
+}
+
+#define GuiPropertyBitFieldInputInt(name, bitFieldMember) \
+{ 														  \
+	int temp = bitFieldMember; 							  \
+	if (GuiProperty::Input(name, temp)) 				  \
+		bitFieldMember = temp;							  \
+}
+
+#define GuiPropertyBitFieldComboEnum(name, bitfieldMember, enumNames) \
+{ 																	  \
+	int temp = static_cast<int>(bitfieldMember); 					  \
+	if (GuiProperty::Combo(name, temp, enumNames)) 					  \
+		bitfieldMember = static_cast<decltype(bitfieldMember)>(temp); \
+}
+
+#endif // !COMFY_GUI_PROPERTY_NO_MACROS

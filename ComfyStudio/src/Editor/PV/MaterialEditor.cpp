@@ -3,10 +3,6 @@
 #include "ImGui/Extensions/TxpExtensions.h"
 #include "ImGui/Extensions/PropertyEditor.h"
 
-#define GuiBitFieldCheckbox(name, bitFieldMember) { bool temp = bitFieldMember; if (GuiProperty::Checkbox(name, temp)) { bitFieldMember = temp; } }
-#define GuiBitFieldInputInt(name, bitFieldMember) { int temp = bitFieldMember; if (GuiProperty::Input(name, temp)) { bitFieldMember = temp; } }
-#define GuiBitFieldComboEnum(name, bitfieldMember, enumNames) { int temp = static_cast<int>(bitfieldMember); if (GuiProperty::Combo(name, temp, enumNames)) { bitfieldMember = static_cast<decltype(bitfieldMember)>(temp); } }
-
 namespace Comfy::Editor
 {
 	using namespace Graphics;
@@ -38,10 +34,7 @@ namespace Comfy::Editor
 		GuiPropertyRAII::ID id(&material);
 		GuiPropertyRAII::PropertyValueColumns rootColumns;
 
-		char valueNodeBuffer[68];
-		sprintf_s(valueNodeBuffer, "(%s)", material.Name.data());
-
-		GuiProperty::TreeNode("Material", valueNodeBuffer, ImGuiTreeNodeFlags_DefaultOpen, [&]
+		GuiProperty::TreeNode("Material", material.Name.data(), ImGuiTreeNodeFlags_DefaultOpen, [&]
 		{
 			GuiProperty::Checkbox("Use Debug Material", material.Debug.UseDebugMaterial);
 			DrawUsedTexturesFlagsGui(material.UsedTexturesCount, material.UsedTexturesFlags);
@@ -52,27 +45,27 @@ namespace Comfy::Editor
 		});
 	}
 
-	void MaterialEditor::DrawUsedTexturesFlagsGui(uint32_t& usedTexturesCount, Material::MaterialTextureFlags& texturesFlags)
+	void MaterialEditor::DrawUsedTexturesFlagsGui(uint32_t& usedTexturesCount, Material::MaterialUsedTextureFlags& texturesFlags)
 	{
 		GuiProperty::TreeNode("Used Textures Flags", ImGuiTreeNodeFlags_None, [&]
 		{
 			GuiProperty::Input("Used Texture Count", usedTexturesCount);
-			GuiBitFieldCheckbox("Color", texturesFlags.Color);
-			GuiBitFieldCheckbox("Color A", texturesFlags.ColorA);
-			GuiBitFieldCheckbox("Color L1", texturesFlags.ColorL1);
-			GuiBitFieldCheckbox("Color L1 A", texturesFlags.ColorL1A);
-			GuiBitFieldCheckbox("Color L2", texturesFlags.ColorL2);
-			GuiBitFieldCheckbox("Color L2 A", texturesFlags.ColorL2A);
-			GuiBitFieldCheckbox("Transparency", texturesFlags.Transparency);
-			GuiBitFieldCheckbox("Specular", texturesFlags.Specular);
-			GuiBitFieldCheckbox("Normal", texturesFlags.Normal);
-			GuiBitFieldCheckbox("NormalAlt", texturesFlags.NormalAlt);
-			GuiBitFieldCheckbox("Environment", texturesFlags.Environment);
-			GuiBitFieldCheckbox("Color L3", texturesFlags.ColorL3);
-			GuiBitFieldCheckbox("Color L3 A", texturesFlags.ColorL3A);
-			GuiBitFieldCheckbox("Translucency", texturesFlags.Translucency);
-			GuiBitFieldCheckbox("Unknown 0", texturesFlags.Unknown0);
-			GuiBitFieldCheckbox("OverrideIBLCubeMap", texturesFlags.OverrideIBLCubeMap);
+			GuiPropertyBitFieldCheckbox("Color", texturesFlags.Color);
+			GuiPropertyBitFieldCheckbox("Color A", texturesFlags.ColorA);
+			GuiPropertyBitFieldCheckbox("Color L1", texturesFlags.ColorL1);
+			GuiPropertyBitFieldCheckbox("Color L1 A", texturesFlags.ColorL1A);
+			GuiPropertyBitFieldCheckbox("Color L2", texturesFlags.ColorL2);
+			GuiPropertyBitFieldCheckbox("Color L2 A", texturesFlags.ColorL2A);
+			GuiPropertyBitFieldCheckbox("Transparency", texturesFlags.Transparency);
+			GuiPropertyBitFieldCheckbox("Specular", texturesFlags.Specular);
+			GuiPropertyBitFieldCheckbox("Normal", texturesFlags.Normal);
+			GuiPropertyBitFieldCheckbox("Normal Alt", texturesFlags.NormalAlt);
+			GuiPropertyBitFieldCheckbox("Environment", texturesFlags.Environment);
+			GuiPropertyBitFieldCheckbox("Color L3", texturesFlags.ColorL3);
+			GuiPropertyBitFieldCheckbox("Color L3 A", texturesFlags.ColorL3A);
+			GuiPropertyBitFieldCheckbox("Translucency", texturesFlags.Translucency);
+			GuiPropertyBitFieldCheckbox("Unknown 0", texturesFlags.Unknown0);
+			GuiPropertyBitFieldCheckbox("OverrideIBLCubeMap", texturesFlags.OverrideIBLCubeMap);
 		});
 	}
 
@@ -92,19 +85,19 @@ namespace Comfy::Editor
 				}
 			});
 
-			GuiBitFieldComboEnum("Vertex Translation Type", shaderFlags.VertexTranslationType, VertexTranslationTypeNames);
-			GuiBitFieldComboEnum("Color Source Type", shaderFlags.ColorSourceType, ColorSourceTypeNames);
-			GuiBitFieldCheckbox("Lambert Shading", shaderFlags.LambertShading);
-			GuiBitFieldCheckbox("Phong Shading", shaderFlags.PhongShading);
-			GuiBitFieldCheckbox("Per Pixel Shading", shaderFlags.PerPixelShading);
-			GuiBitFieldCheckbox("Double Shading", shaderFlags.DoubleShading);
-			GuiBitFieldComboEnum("Bump Map Type", shaderFlags.BumpMapType, BumpMapTypeNames);
-			GuiBitFieldInputInt("Fresnel", shaderFlags.Fresnel);
-			GuiBitFieldInputInt("Line Light", shaderFlags.LineLight);
-			GuiBitFieldCheckbox("Receives Shadows", shaderFlags.ReceivesShadows);
-			GuiBitFieldCheckbox("Casts Shadows", shaderFlags.CastsShadows);
-			GuiBitFieldComboEnum("Specular Quality", shaderFlags.SpecularQuality, SpecularQualityNames);
-			GuiBitFieldComboEnum("Aniso Direction", shaderFlags.AnisoDirection, AnisoDirectionNames);
+			GuiPropertyBitFieldComboEnum("Vertex Translation Type", shaderFlags.VertexTranslationType, VertexTranslationTypeNames);
+			GuiPropertyBitFieldComboEnum("Color Source Type", shaderFlags.ColorSourceType, ColorSourceTypeNames);
+			GuiPropertyBitFieldCheckbox("Lambert Shading", shaderFlags.LambertShading);
+			GuiPropertyBitFieldCheckbox("Phong Shading", shaderFlags.PhongShading);
+			GuiPropertyBitFieldCheckbox("Per Pixel Shading", shaderFlags.PerPixelShading);
+			GuiPropertyBitFieldCheckbox("Double Shading", shaderFlags.DoubleShading);
+			GuiPropertyBitFieldComboEnum("Bump Map Type", shaderFlags.BumpMapType, BumpMapTypeNames);
+			GuiPropertyBitFieldInputInt("Fresnel", shaderFlags.Fresnel);
+			GuiPropertyBitFieldInputInt("Line Light", shaderFlags.LineLight);
+			GuiPropertyBitFieldCheckbox("Receives Shadows", shaderFlags.ReceivesShadows);
+			GuiPropertyBitFieldCheckbox("Casts Shadows", shaderFlags.CastsShadows);
+			GuiPropertyBitFieldComboEnum("Specular Quality", shaderFlags.SpecularQuality, SpecularQualityNames);
+			GuiPropertyBitFieldComboEnum("Aniso Direction", shaderFlags.AnisoDirection, AnisoDirectionNames);
 		});
 	}
 
@@ -129,19 +122,19 @@ namespace Comfy::Editor
 					GuiProperty::TreeNode("Sampler Flags", ImGuiTreeNodeFlags_None, [&]
 					{
 						auto& samplerFlags = texture.SamplerFlags;
-						GuiBitFieldCheckbox("Repeat U", samplerFlags.RepeatU);
-						GuiBitFieldCheckbox("Repeat V", samplerFlags.RepeatV);
-						GuiBitFieldCheckbox("Mirror U", samplerFlags.MirrorU);
-						GuiBitFieldCheckbox("Mirror V", samplerFlags.MirrorV);
-						GuiBitFieldCheckbox("Ignore Alpha", samplerFlags.IgnoreAlpha);
-						GuiBitFieldInputInt("Blend", samplerFlags.Blend);
-						GuiBitFieldInputInt("Alpha Blend", samplerFlags.AlphaBlend);
-						GuiBitFieldCheckbox("Border", samplerFlags.Border);
-						GuiBitFieldCheckbox("Clamp To Edge", samplerFlags.ClampToEdge);
-						GuiBitFieldInputInt("Filter", samplerFlags.Filter);
-						GuiBitFieldInputInt("Mip Map", samplerFlags.MipMap);
-						GuiBitFieldInputInt("Mip Map Bias", samplerFlags.MipMapBias);
-						GuiBitFieldInputInt("Ansi Filters", samplerFlags.AnsiFilters);
+						GuiPropertyBitFieldCheckbox("Repeat U", samplerFlags.RepeatU);
+						GuiPropertyBitFieldCheckbox("Repeat V", samplerFlags.RepeatV);
+						GuiPropertyBitFieldCheckbox("Mirror U", samplerFlags.MirrorU);
+						GuiPropertyBitFieldCheckbox("Mirror V", samplerFlags.MirrorV);
+						GuiPropertyBitFieldCheckbox("Ignore Alpha", samplerFlags.IgnoreAlpha);
+						GuiPropertyBitFieldInputInt("Blend", samplerFlags.Blend);
+						GuiPropertyBitFieldInputInt("Alpha Blend", samplerFlags.AlphaBlend);
+						GuiPropertyBitFieldCheckbox("Border", samplerFlags.Border);
+						GuiPropertyBitFieldCheckbox("Clamp To Edge", samplerFlags.ClampToEdge);
+						GuiPropertyBitFieldInputInt("Filter", samplerFlags.Filter);
+						GuiPropertyBitFieldInputInt("Mip Map", samplerFlags.MipMap);
+						GuiPropertyBitFieldInputInt("Mip Map Bias", samplerFlags.MipMapBias);
+						GuiPropertyBitFieldInputInt("Ansi Filters", samplerFlags.AnsiFilters);
 					});
 
 					auto tempID = static_cast<uint32_t>(texture.TextureID.ID);
@@ -163,9 +156,9 @@ namespace Comfy::Editor
 					GuiProperty::TreeNode("Texture Flags", ImGuiTreeNodeFlags_None, [&]
 					{
 						auto& textureFlags = texture.TextureFlags;
-						GuiBitFieldComboEnum("Type", textureFlags.Type, MaterialTextureTypeNames);
-						GuiBitFieldComboEnum("UV Index", textureFlags.UVIndex, MaterialTextureUVIndexNames);
-						GuiBitFieldComboEnum("UV Translation Type", textureFlags.UVTranslationType, MaterialTextureUVTranslationTypeNames);
+						GuiPropertyBitFieldComboEnum("Type", textureFlags.Type, MaterialTextureTypeNames);
+						GuiPropertyBitFieldComboEnum("UV Index", textureFlags.UVIndex, MaterialTextureUVIndexNames);
+						GuiPropertyBitFieldComboEnum("UV Translation Type", textureFlags.UVTranslationType, MaterialTextureUVTranslationTypeNames);
 					});
 				});
 			}
@@ -176,18 +169,18 @@ namespace Comfy::Editor
 	{
 		GuiProperty::TreeNode("Blend Flags", ImGuiTreeNodeFlags_None, [&]
 		{
-			GuiBitFieldCheckbox("Alpha Texture", blendFlags.AlphaTexture);
-			GuiBitFieldCheckbox("Alpha Material", blendFlags.AlphaMaterial);
-			GuiBitFieldCheckbox("Punch Through", blendFlags.PunchThrough);
-			GuiBitFieldCheckbox("Double Sided", blendFlags.DoubleSided);
-			GuiBitFieldCheckbox("Normal Direction Light", blendFlags.NormalDirectionLight);
-			GuiBitFieldComboEnum("Source Blend Factor", blendFlags.SrcBlendFactor, BlendFactorNames);
-			GuiBitFieldComboEnum("Destination Blend Factor", blendFlags.DstBlendFactor, BlendFactorNames);
-			GuiBitFieldInputInt("Blend Operation", blendFlags.BlendOperation);
-			GuiBitFieldInputInt("Z Bias", blendFlags.ZBias);
-			GuiBitFieldCheckbox("No Fog", blendFlags.NoFog);
-			GuiBitFieldInputInt("Unknown0", blendFlags.Unknown0);
-			GuiBitFieldInputInt("Unknown1", blendFlags.Unknown1);
+			GuiPropertyBitFieldCheckbox("Alpha Texture", blendFlags.AlphaTexture);
+			GuiPropertyBitFieldCheckbox("Alpha Material", blendFlags.AlphaMaterial);
+			GuiPropertyBitFieldCheckbox("Punch Through", blendFlags.PunchThrough);
+			GuiPropertyBitFieldCheckbox("Double Sided", blendFlags.DoubleSided);
+			GuiPropertyBitFieldCheckbox("Normal Direction Light", blendFlags.NormalDirectionLight);
+			GuiPropertyBitFieldComboEnum("Source Blend Factor", blendFlags.SrcBlendFactor, BlendFactorNames);
+			GuiPropertyBitFieldComboEnum("Destination Blend Factor", blendFlags.DstBlendFactor, BlendFactorNames);
+			GuiPropertyBitFieldInputInt("Blend Operation", blendFlags.BlendOperation);
+			GuiPropertyBitFieldInputInt("Z Bias", blendFlags.ZBias);
+			GuiPropertyBitFieldCheckbox("No Fog", blendFlags.NoFog);
+			GuiPropertyBitFieldInputInt("Unknown0", blendFlags.Unknown0);
+			GuiPropertyBitFieldInputInt("Unknown1", blendFlags.Unknown1);
 		});
 	}
 
@@ -207,7 +200,3 @@ namespace Comfy::Editor
 		});
 	}
 }
-
-#undef GuiBitFieldComboEnum
-#undef GuiBitFieldInputInt
-#undef GuiBitFieldCheckbox
