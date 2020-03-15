@@ -6,6 +6,7 @@
 #include "Graphics/Auth3D/DebugObj.h"
 #include "FileSystem/Archive/Farc.h"
 #include "ImGui/Extensions/TxpExtensions.h"
+#include "ImGui/Extensions/PropertyEditor.h"
 #include "Misc/ImageHelper.h"
 #include "Input/KeyCode.h"
 #include <FontIcons.h>
@@ -759,173 +760,125 @@ namespace Comfy::Editor
 
 	void SceneEditor::DrawEntityInspectorGui()
 	{
-		if (Gui::InputInt("Entity Index", &inspector.EntityIndex, 1, 10))
-			inspector.EntityIndex = std::clamp(inspector.EntityIndex, -1, static_cast<int>(sceneGraph.Entities.size()) - 1);
+		GuiPropertyRAII::PropertyValueColumns columns;
 
-		auto getName = [&](int index) { return (index < 0 || index >= sceneGraph.Entities.size()) ? "None" : sceneGraph.Entities[index]->Name.c_str(); };
+		auto entityNameGetter = [&](int i) {return InBounds(i, sceneGraph.Entities) ? sceneGraph.Entities[i]->Name.c_str() : "None"; };
+		GuiProperty::ComboResult comboResult;
+		GuiProperty::Combo("Entities", inspector.EntityIndex, -1, static_cast<int>(sceneGraph.Entities.size()), ImGuiComboFlags_HeightLarge, entityNameGetter, &comboResult);
 
-		if (Gui::BeginCombo("Obj", getName(inspector.EntityIndex), ImGuiComboFlags_HeightLarge))
+		if (comboResult.IsOpen)
 		{
-			for (int objIndex = 0; objIndex < static_cast<int>(sceneGraph.Entities.size()); objIndex++)
-			{
-				if (Gui::Selectable(getName(objIndex), (objIndex == inspector.EntityIndex)))
-					inspector.EntityIndex = objIndex;
+			std::for_each(sceneGraph.Entities.begin(), sceneGraph.Entities.end(), [](auto& e) { e->Obj->Debug.UseDebugMaterial = false; });
 
-				if (objIndex == inspector.EntityIndex)
-					Gui::SetItemDefaultFocus();
-			}
-
-			Gui::EndCombo();
+			if (InBounds(comboResult.HoveredIndex, sceneGraph.Entities) && !comboResult.ValueChanged)
+				sceneGraph.Entities[comboResult.HoveredIndex]->Obj->Debug.UseDebugMaterial = true;
 		}
 
-		if (inspector.EntityIndex < 0 || inspector.EntityIndex >= sceneGraph.Entities.size())
+		if (!InBounds(inspector.EntityIndex, sceneGraph.Entities))
 			return;
 
-		auto& entity = sceneGraph.Entities[inspector.EntityIndex];
-		Gui::PushID(&entity);
+		auto& entity = *sceneGraph.Entities[inspector.EntityIndex];
 
-		Gui::InputScalar("Tag", ImGuiDataType_S64, &entity->Tag, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
-		Gui::Checkbox("Visible", &entity->IsVisible);
+		GuiPropertyRAII::ID id(&entity);
+		GuiProperty::TreeNode("Entity", entity.Name, ImGuiTreeNodeFlags_DefaultOpen, [&]
+		{
+			GuiProperty::PropertyLabelValueFunc("Tag", [&] { return Gui::InputScalar(GuiProperty::Detail::DummyLabel, ImGuiDataType_U64, &entity.Tag, nullptr, nullptr, "%X", ImGuiInputTextFlags_ReadOnly); });
 
-		// TODO: Gui::ComfyFloat3TextWidget();
-		Gui::DragFloat3("Translation", glm::value_ptr(entity->Transform.Translation), 0.1f);
-		Gui::DragFloat3("Rotation", glm::value_ptr(entity->Transform.Rotation), 0.1f);
-		Gui::DragFloat3("Scale", glm::value_ptr(entity->Transform.Scale), 0.01f);
+			GuiProperty::Checkbox("Is Visible", entity.IsVisible);
+			GuiProperty::Checkbox("Is Reflection", entity.IsReflection);
+			GuiProperty::Checkbox("Silhouette Outline", entity.SilhouetteOutline);
 
-		Gui::PopID();
+			GuiProperty::Input("Translation", entity.Transform.Translation, 0.1f);
+			GuiProperty::Input("Scale", entity.Transform.Scale, 0.05f);
+			GuiProperty::Input("Rotation", entity.Transform.Rotation, 1.0f);
+		});
 	}
 
 	void SceneEditor::DrawObjectTestGui()
 	{
-		if (objTestData.ObjSetIndex < 0 || objTestData.ObjSetIndex >= sceneGraph.LoadedObjSets.size())
+		auto collectionComboDebugMaterialHover = [&](std::string_view label, auto& collection, int& inOutIndex)
 		{
-			objTestData.ObjSetIndex = 0;
+			GuiProperty::ComboResult comboResult;
+			GuiProperty::Combo(label, inOutIndex, -1, static_cast<int>(collection.size()), ImGuiComboFlags_HeightLarge, [&](int i) { return InBounds(i, collection) ? &collection[i].Name[0] : "None"; }, &comboResult);
+
+			if (comboResult.IsOpen)
+			{
+				std::for_each(collection.begin(), collection.end(), [](auto& e) { e.Debug.UseDebugMaterial = false; });
+
+				if (InBounds(comboResult.HoveredIndex, collection) && !comboResult.ValueChanged)
+					collection[comboResult.HoveredIndex].Debug.UseDebugMaterial = true;
+			}
+
+			return InBounds(inOutIndex, collection);
+		};
+
+		GuiPropertyRAII::PropertyValueColumns columns;
+
+		Obj* selectedObj = nullptr;
+		GuiProperty::TreeNode("Object Select", ImGuiTreeNodeFlags_DefaultOpen, [&]
+		{
+			GuiProperty::Combo("Obj Set", objTestData.ObjSetIndex, -1, static_cast<int>(sceneGraph.LoadedObjSets.size()), ImGuiComboFlags_HeightLarge, [&](int i)
+			{
+				return InBounds(i, sceneGraph.LoadedObjSets) ? sceneGraph.LoadedObjSets[i].ObjSet->Name.c_str() : "None";
+			});
+
+			if (!InBounds(objTestData.ObjSetIndex, sceneGraph.LoadedObjSets))
+				return;
+
+			ObjSet& objSet = *sceneGraph.LoadedObjSets[objTestData.ObjSetIndex].ObjSet;
+			if (!collectionComboDebugMaterialHover("Obj", objSet, objTestData.ObjIndex))
+				return;
+
+			selectedObj = &objSet[objTestData.ObjIndex];
+		});
+
+		if (selectedObj == nullptr)
 			return;
-		}
 
-		if (Gui::InputInt("ObjSet Index", &objTestData.ObjSetIndex, 1, 10))
-			objTestData.ObjSetIndex = std::clamp(objTestData.ObjSetIndex, 0, static_cast<int>(sceneGraph.LoadedObjSets.size()) - 1);
-
-		auto getObjSetName = [&](int index) { return (index < 0 || index >= sceneGraph.LoadedObjSets.size()) ? "None" : sceneGraph.LoadedObjSets[index].ObjSet->Name.c_str(); };
-
-		// TODO: Refactor combo box vector + index into helper function
-		if (Gui::BeginCombo("ObjSet", getObjSetName(objTestData.ObjSetIndex), ImGuiComboFlags_HeightLarge))
+		GuiProperty::TreeNode("Material Editor", [&]
 		{
-			for (int setIndex = 0; setIndex < static_cast<int>(sceneGraph.LoadedObjSets.size()); setIndex++)
-			{
-				if (Gui::Selectable(getObjSetName(setIndex), (setIndex == objTestData.ObjSetIndex)))
-					objTestData.ObjSetIndex = setIndex;
+			if (!collectionComboDebugMaterialHover("Material", selectedObj->Materials, objTestData.MaterialIndex))
+				return;
 
-				if (setIndex == objTestData.ObjSetIndex)
-					Gui::SetItemDefaultFocus();
-			}
+			Material& material = selectedObj->Materials[objTestData.MaterialIndex];
+			materialEditor.DrawGui(*renderer3D, material);
+		});
 
-			Gui::ComfyEndCombo();
-		}
-
-		if (objTestData.ObjSetIndex < 0 || objTestData.ObjSetIndex >= sceneGraph.LoadedObjSets.size())
-			return;
-
-		ObjSet& objSet = *sceneGraph.LoadedObjSets[objTestData.ObjSetIndex].ObjSet;
-
-		auto getObjName = [&](int index) { return (index < 0 || index >= objSet.size()) ? "None" : objSet.GetObjAt(index)->Name.c_str(); };
-
-		if (Gui::InputInt("Object Index", &objTestData.ObjIndex, 1, 10))
-			objTestData.ObjIndex = std::clamp(objTestData.ObjIndex, 0, static_cast<int>(objSet.size()) - 1);
-
-		if (Gui::BeginCombo("Object", getObjName(objTestData.ObjIndex), ImGuiComboFlags_HeightLarge))
+		GuiProperty::TreeNode("Mesh Flags Editor", [&]
 		{
-			for (int objIndex = 0; objIndex < static_cast<int>(objSet.size()); objIndex++)
+			if (!collectionComboDebugMaterialHover("Mesh", selectedObj->Meshes, objTestData.MeshIndex))
+				return;
+
+			Mesh& selectedMesh = selectedObj->Meshes[objTestData.MeshIndex];
+			GuiProperty::TreeNode("Mesh", selectedMesh.Name.data(), ImGuiTreeNodeFlags_DefaultOpen, [&]
 			{
-				if (Gui::Selectable(getObjName(objIndex), (objIndex == objTestData.ObjIndex)))
-					objTestData.ObjIndex = objIndex;
+				GuiPropertyRAII::ID id(&selectedMesh);
+				GuiProperty::Checkbox("Use Debug Material", selectedMesh.Debug.UseDebugMaterial);
+				GuiProperty::Checkbox("Render Bounding Sphere", selectedMesh.Debug.RenderBoundingSphere);
+				GuiPropertyBitFieldCheckbox("Face Camera", selectedMesh.Flags.FaceCameraPosition);
+				GuiPropertyBitFieldCheckbox("Transparent", selectedMesh.Flags.Transparent);
+				GuiPropertyBitFieldCheckbox("Face Camera View", selectedMesh.Flags.FaceCameraView);
+			});
 
-				if (objIndex == objTestData.ObjIndex)
-					Gui::SetItemDefaultFocus();
-			}
-
-			Gui::ComfyEndCombo();
-		}
-
-		Obj* obj = (objTestData.ObjIndex >= 0 && objTestData.ObjIndex < objSet.size()) ? objSet.GetObjAt(objTestData.ObjIndex) : nullptr;
-
-		if (Gui::CollapsingHeader("Material Editor", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			Gui::BeginChild("MaterialEditorChild", vec2(), true);
-			auto getMaterialName = [](Obj* obj, int index) { return (obj == nullptr || index < 0 || index >= obj->Materials.size()) ? "None" : obj->Materials[index].Name.data(); };
-
-			if (Gui::InputInt("Material Index", &objTestData.MaterialIndex, 1, 10))
-				objTestData.MaterialIndex = std::clamp(objTestData.MaterialIndex, 0, (obj != nullptr) ? static_cast<int>(obj->Materials.size()) - 1 : 0);
-
-			if (Gui::BeginCombo("Material", getMaterialName(obj, objTestData.MaterialIndex), ImGuiComboFlags_HeightLarge))
+			GuiProperty::TreeNode("Sub Meshes", ImGuiTreeNodeFlags_DefaultOpen, [&]
 			{
-				if (obj != nullptr)
+				for (size_t i = 0; i < selectedMesh.SubMeshes.size(); i++)
 				{
-					for (int matIndex = 0; matIndex < static_cast<int>(obj->Materials.size()); matIndex++)
+					char nodePropertyBuffer[32];
+					sprintf_s(nodePropertyBuffer, "Sub Meshes[%zu]", i);
+
+					GuiProperty::TreeNode(nodePropertyBuffer, ImGuiTreeNodeFlags_DefaultOpen, [&]
 					{
-						if (Gui::Selectable(getMaterialName(obj, matIndex), (matIndex == objTestData.MaterialIndex)))
-							objTestData.MaterialIndex = matIndex;
-
-#if 1 // DEBUG:
-						obj->Materials[matIndex].Debug.UseDebugMaterial = (matIndex == objTestData.MaterialIndex) ? false : Gui::IsItemHovered();
-#endif // 1
-
-						if (matIndex == objTestData.MaterialIndex)
-							Gui::SetItemDefaultFocus();
-					}
+						SubMesh& subMesh = selectedMesh.SubMeshes[i];
+						GuiPropertyRAII::ID id(&subMesh);
+						GuiProperty::Checkbox("Use Debug Material", subMesh.Debug.UseDebugMaterial);
+						GuiPropertyBitFieldCheckbox("Receives Shadows", subMesh.Flags.ReceivesShadows);
+						GuiPropertyBitFieldCheckbox("Casts Shadows", subMesh.Flags.CastsShadows);
+						GuiPropertyBitFieldCheckbox("Transparent", subMesh.Flags.Transparent);
+					});
 				}
-
-				Gui::EndCombo();
-			}
-
-			Material* material = (obj != nullptr && objTestData.MaterialIndex >= 0 && objTestData.MaterialIndex < obj->Materials.size()) ?
-				&obj->Materials[objTestData.MaterialIndex] : nullptr;
-
-			if (material != nullptr)
-				materialEditor.DrawGui(*renderer3D, *material);
-			Gui::EndChild();
-		}
-
-		if (Gui::CollapsingHeader("Mesh Test"))
-		{
-			auto getMeshName = [](Obj* obj, int index) { return (obj == nullptr || index < 0 || index >= obj->Meshes.size()) ? "None" : obj->Meshes[index].Name.data(); };
-
-			if (Gui::InputInt("Mesh Index", &objTestData.MeshIndex, 1, 10))
-				objTestData.MeshIndex = std::clamp(objTestData.MeshIndex, 0, (obj != nullptr) ? static_cast<int>(obj->Meshes.size()) - 1 : 0);
-
-			if (Gui::BeginCombo("Mesh", getMeshName(obj, objTestData.MeshIndex), ImGuiComboFlags_HeightLarge))
-			{
-				if (obj != nullptr)
-				{
-					for (int meshIndex = 0; meshIndex < static_cast<int>(obj->Meshes.size()); meshIndex++)
-					{
-						if (Gui::Selectable(getMeshName(obj, meshIndex), (meshIndex == objTestData.MeshIndex)))
-							objTestData.MeshIndex = meshIndex;
-
-						if (meshIndex == objTestData.MeshIndex)
-							Gui::SetItemDefaultFocus();
-					}
-				}
-
-				Gui::EndCombo();
-			}
-
-			Mesh* mesh = (obj != nullptr && objTestData.MeshIndex >= 0 && objTestData.MeshIndex < obj->Meshes.size()) ?
-				&obj->Meshes[objTestData.MeshIndex] : nullptr;
-
-			if (mesh != nullptr)
-			{
-				bool faceCameraPosition = mesh->Flags.FaceCameraPosition;
-				if (Gui::Checkbox("Face Camera Position", &faceCameraPosition))
-					mesh->Flags.FaceCameraPosition = faceCameraPosition;
-
-				bool faceCameraView = mesh->Flags.FaceCameraView;
-				if (Gui::Checkbox("Face Camera View", &faceCameraView))
-					mesh->Flags.FaceCameraView = faceCameraView;
-
-				Gui::Checkbox("Show Bounding Sphere", &mesh->Debug.RenderBoundingSphere);
-			}
-		}
+			});
+		});
 	}
 
 	void SceneEditor::DrawStageTestGui()
@@ -1243,7 +1196,7 @@ namespace Comfy::Editor
 					Gui::ImageObjTxp(&txp);
 					Gui::EndTooltip();
 				}
-});
+			});
 		});
 #endif
 
