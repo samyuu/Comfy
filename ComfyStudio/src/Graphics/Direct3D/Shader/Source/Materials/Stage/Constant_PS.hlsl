@@ -37,7 +37,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     if (FLAGS_LINEAR_FOG)
     {
         MUL(_tmp0, tex_col, a_color0);
-        LRP(o_color, a_fogcoord.x, p_fog_color, _tmp0);
+        LRP(o_color, a_fogcoord.xxxy, p_fog_color, _tmp0);
     }
     else
     {
