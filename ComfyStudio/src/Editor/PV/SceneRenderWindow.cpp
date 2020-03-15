@@ -52,9 +52,9 @@ namespace Comfy::Editor
 
 			for (auto& mesh : entity.Obj->Meshes)
 			{
-				if (mesh.Debug.RenderBoundingSphere)
+				for (int i = 0; i < mesh.SubMeshes.size(); i++)
 				{
-					for (int i = 0; i < mesh.SubMeshes.size(); i++)
+					if (mesh.Debug.RenderBoundingSphere || mesh.SubMeshes[i].Debug.RenderBoundingSphere)
 						renderer3D->Draw(GetDebugBoungingSphereRenderCommand(entity.Transform, mesh.SubMeshes[i].BoundingSphere, i));
 				}
 			}
