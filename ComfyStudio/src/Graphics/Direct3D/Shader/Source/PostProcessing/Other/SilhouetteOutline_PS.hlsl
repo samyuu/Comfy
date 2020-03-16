@@ -41,18 +41,19 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     return NoColor;
 #else
     // NOTE: Manually unrolled to avoid "Warning X4000: Use of potentially uninitialized variable"
-    if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord) >= Threshold) return OutlineColor;
-    
-    if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord, int2(-1, -1)) >= Threshold) return OutlineColor;
-    if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord, int2(-1, +0)) >= Threshold) return OutlineColor;
-    if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord, int2(-1, +1)) >= Threshold) return OutlineColor;
+    if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord) < Threshold)
+    {
+        if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord, int2(-1, -1)) >= Threshold) return OutlineColor;
+        if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord, int2(-1, +0)) >= Threshold) return OutlineColor;
+        if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord, int2(-1, +1)) >= Threshold) return OutlineColor;
 
-    if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord, int2(+0, -1)) >= Threshold) return OutlineColor;
-    if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord, int2(+0, +1)) >= Threshold) return OutlineColor;
-    
-    if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord, int2(+1, -1)) >= Threshold) return OutlineColor;
-    if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord, int2(+1, +0)) >= Threshold) return OutlineColor;
-    if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord, int2(+1, +1)) >= Threshold) return OutlineColor;
+        if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord, int2(+0, -1)) >= Threshold) return OutlineColor;
+        if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord, int2(+0, +1)) >= Threshold) return OutlineColor;
+
+        if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord, int2(+1, -1)) >= Threshold) return OutlineColor;
+        if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord, int2(+1, +0)) >= Threshold) return OutlineColor;
+        if (SilhouetteTexture.Sample(LinearTextureSampler, input.TexCoord, int2(+1, +1)) >= Threshold) return OutlineColor;
+    }
     
     clip(-1.0);
     return NoColor;
