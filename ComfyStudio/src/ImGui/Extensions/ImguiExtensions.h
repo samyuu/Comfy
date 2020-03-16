@@ -83,6 +83,7 @@ namespace ImGui
 	void WideSetTooltip(const char* fmt, ...);
 	void WideTooltip(const std::function<void(void)>& func);
 
+	// TODO: Use templates instead of std::function wherever possible
 	void WindowContextMenu(const char* str_id, const std::function<void(void)>& func);
 	void ItemContextMenu(const char* str_id, const std::function<void(void)>& func);
 

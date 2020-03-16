@@ -190,13 +190,13 @@ namespace Comfy::Editor
 		GuiProperty::TreeNode("Color", ImGuiTreeNodeFlags_None, [&]
 		{
 			GuiProperty::ColorEdit("Diffuse", materialColor.Diffuse, ImGuiColorEditFlags_Float);
-			GuiProperty::Input("Transparency", materialColor.Transparency, 0.01f, 0.0f, 1.0f);
+			GuiProperty::Input("Transparency", materialColor.Transparency, 0.01f, vec2(0.0f, 1.0f));
 			GuiProperty::ColorEdit("Ambient", materialColor.Ambient, ImGuiColorEditFlags_Float);
 			GuiProperty::ColorEdit("Specular", materialColor.Specular, ImGuiColorEditFlags_Float);
-			GuiProperty::Input("Reflectivity", materialColor.Reflectivity, 0.01f, 0.0f, 1.0f);
+			GuiProperty::Input("Reflectivity", materialColor.Reflectivity, 0.01f, vec2(0.0f, 1.0f));
 			GuiProperty::ColorEdit("Emission", materialColor.Emission, ImGuiColorEditFlags_Float);
-			GuiProperty::Input("Shininess", materialColor.Shininess, 0.05f, 0.0f, 128.0f);
-			GuiProperty::Input("Intensity", materialColor.Intensity, 0.01f, 0.0f, 1.0f);
+			GuiProperty::Input("Shininess", materialColor.Shininess, 0.05f, vec2(0.0f, 128.0f));
+			GuiProperty::Input("Intensity", materialColor.Intensity, 0.01f, vec2(0.0f, 1.0f));
 		});
 	}
 }
