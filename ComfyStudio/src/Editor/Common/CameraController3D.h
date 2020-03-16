@@ -15,6 +15,15 @@ namespace Comfy::Editor
 			FirstPerson,
 			// NOTE: Rotate around point of interest
 			Orbit,
+
+			Count,
+		};
+
+		static constexpr std::array<const char*, static_cast<size_t>(ControlMode::Count)> ControlModeNames =
+		{
+			"None",
+			"First Person",
+			"Orbit",
 		};
 
 		ControlMode Mode = ControlMode::Orbit;
@@ -55,7 +64,7 @@ namespace Comfy::Editor
 
 	public:
 		void Update(Graphics::PerspectiveCamera& camera);
-	
+
 	private:
 		void UpdateKeyboardInput(vec3& pointToChange, const vec3& frontDirection, float cameraSpeed);
 	};
