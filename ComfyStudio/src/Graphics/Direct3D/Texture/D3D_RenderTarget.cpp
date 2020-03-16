@@ -237,7 +237,11 @@ namespace Comfy::Graphics
 	{
 		backBufferDescription.SampleDesc.Count = multiSampleCount;
 		backBufferDescription.SampleDesc.Quality = 0;
-		D3D.Device->CreateTexture2D(&backBufferDescription, nullptr, &backBuffer);
+		if FAILED(D3D.Device->CreateTexture2D(&backBufferDescription, nullptr, &backBuffer))
+		{
+			backBufferDescription.SampleDesc.Count = multiSampleCount = 1;
+			D3D.Device->CreateTexture2D(&backBufferDescription, nullptr, &backBuffer);
+		}
 
 		renderTargetViewDescription.ViewDimension = (multiSampleCount == 1) ? D3D11_RTV_DIMENSION_TEXTURE2D : D3D11_RTV_DIMENSION_TEXTURE2DMS;
 		D3D.Device->CreateRenderTargetView(backBuffer.Get(), &renderTargetViewDescription, &renderTargetView);

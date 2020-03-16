@@ -91,7 +91,11 @@ namespace Comfy::Graphics
 	{
 		textureDescription.SampleDesc.Count = multiSampleCount;
 		textureDescription.SampleDesc.Quality = 0;
-		D3D.Device->CreateTexture2D(&textureDescription, nullptr, &depthTexture);
+		if (FAILED(D3D.Device->CreateTexture2D(&textureDescription, nullptr, &depthTexture)))
+		{
+			textureDescription.SampleDesc.Count = multiSampleCount = 1;
+			D3D.Device->CreateTexture2D(&textureDescription, nullptr, &depthTexture);
+		}
 
 		depthStencilDescription.ViewDimension = (multiSampleCount == 1) ? D3D11_DSV_DIMENSION_TEXTURE2D : D3D11_DSV_DIMENSION_TEXTURE2DMS;
 		D3D.Device->CreateDepthStencilView(depthTexture.Get(), &depthStencilDescription, &depthStencilView);
