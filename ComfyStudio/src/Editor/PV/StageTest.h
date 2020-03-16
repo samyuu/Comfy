@@ -18,7 +18,7 @@ namespace Comfy::Editor
 		struct StageTypeData
 		{
 			const StageType Type;
-			const char* Name;
+			std::string_view Name;
 			const int MinID, MaxID;
 			int ID;
 			int SubID;

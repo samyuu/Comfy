@@ -29,7 +29,7 @@ namespace Comfy::Editor
 		bool LoadRegisterObjSet(std::string_view objSetPath, std::string_view txpSetPath, EntityTag tag);
 		bool UnLoadUnRegisterObjSet(const Graphics::ObjSet* objSetToRemove);
 		
-		bool LoadStageObjects(StageType type, int id, int subID);
+		bool LoadStageObjects(StageType type, int id, int subID, bool loadLightParam = true);
 		bool UnLoadStageObjects();
 
 		enum class StageVisibilityType { None, All, GroundSky };
@@ -44,6 +44,7 @@ namespace Comfy::Editor
 
 	private:
 		void DrawCameraGui();
+		void DrawObjSetLoaderGui();
 		void DrawRenderingGui();
 		void DrawFogGui();
 		void DrawPostProcessingGui();
@@ -59,6 +60,7 @@ namespace Comfy::Editor
 		void DrawDebugTestGui();
 
 	private:
+		void TakeScreenshotGui();
 		void TakeSceneRenderTargetScreenshot(Graphics::D3D_RenderTarget& renderTarget);
 
 	private:
@@ -71,7 +73,8 @@ namespace Comfy::Editor
 
 		UniquePtr<SceneRenderWindow> renderWindow = nullptr;
 
-		Gui::FileViewer objFileViewer = { "dev_rom/objset/" };
+		Gui::FileViewer objSetFileViewer = { "dev_rom/objset/" };
+		Graphics::Transform objSetTransform = Graphics::Transform(vec3(0.0f));
 
 		StageTestData stageTestData;
 		CharacterTestData charaTestData;
@@ -88,6 +91,14 @@ namespace Comfy::Editor
 
 		// NOTE: To asyncronously take screenshots 
 		std::future<void> lastScreenshotTaskFuture;
+
+		std::array<char, MAX_PATH> lightPathBuffer = { "dev_rom/light_param/light_tst.txt" };
+		std::array<char, MAX_PATH> glowPathBuffer = { "dev_rom/light_param/glow_tst.txt" };
+		std::array<char, MAX_PATH> fogPathBuffer = { "dev_rom/light_param/fog_tst.txt" };
+		std::array<char, MAX_PATH> iblPathBuffer = { "dev_rom/ibl/tst.ibl" };
+
+		// NOTE: To keep track of the open and closed render target debug windows
+		uint32_t openRenderTargetsFlags = 0;
 
 		struct EntityInspector
 		{

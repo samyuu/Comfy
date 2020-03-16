@@ -68,28 +68,7 @@ namespace Comfy::Editor
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_FOLDER "  ObjSet Loader"))
-		{
-			static Transform objTrans = Transform(vec3(0.0f));
-			if (Gui::DragFloat3("Position", glm::value_ptr(objTrans.Translation), 0.1f) |
-				Gui::DragFloat3("Scale", glm::value_ptr(objTrans.Scale), 0.1f) |
-				Gui::DragFloat3("Rotation", glm::value_ptr(objTrans.Rotation), 0.1f))
-				for (auto& entity : sceneGraph.Entities)
-					if (entity->Tag == ObjectTag) entity->Transform = objTrans;
-
-			Gui::BeginChild("ObjSetLoaderChild");
-			if (objFileViewer.DrawGui())
-			{
-				EraseByTag(ObjectTag, static_cast<EraseFlags>(EraseFlags_Entities | EraseFlags_ObjSets));
-
-				if (LoadRegisterObjSet(objFileViewer.GetFileToOpen(), Debug::GetTxpSetPathForObjSet(objFileViewer.GetFileToOpen()), ObjectTag))
-				{
-					auto& newlyAddedStageObjSet = sceneGraph.LoadedObjSets.back();
-					for (auto& obj : *newlyAddedStageObjSet.ObjSet)
-						sceneGraph.AddEntityFromObj(obj, ObjectTag);
-				}
-			}
-			Gui::EndChild();
-		}
+			DrawObjSetLoaderGui();
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_WRENCH "  Rendering"))
@@ -214,9 +193,10 @@ namespace Comfy::Editor
 		return true;
 	}
 
-	bool SceneEditor::LoadStageObjects(StageType type, int id, int subID)
+	bool SceneEditor::LoadStageObjects(StageType type, int id, int subID, bool loadLightParam)
 	{
-		Debug::LoadStageLightParamFiles(context, type, id, subID);
+		if (loadLightParam)
+			Debug::LoadStageLightParamFiles(context, type, id, subID);
 
 		auto objPath = Debug::GetDebugFilePath(Debug::PathType::StageObj, type, id, subID);
 		auto txpPath = Debug::GetDebugFilePath(Debug::PathType::StageTxp, type, id, subID);
@@ -304,19 +284,19 @@ namespace Comfy::Editor
 	{
 		auto& camera = context.Camera;
 
-		Gui::PushID(&camera);
-		Gui::DragFloat("Field Of View", &camera.FieldOfView, 1.0f, 1.0f, 173.0f);
-		Gui::DragFloat("Near Plane", &camera.NearPlane, 0.001f, 0.001f, 1.0f);
-		Gui::DragFloat("Far Plane", &camera.FarPlane);
-		Gui::DragFloat3("View Point", glm::value_ptr(camera.ViewPoint), 0.01f);
-		Gui::DragFloat3("Interest", glm::value_ptr(camera.Interest), 0.01f);
-		Gui::DragFloat("Smoothness", &cameraController.Settings.InterpolationSmoothness, 1.0f, 0.0f, 250.0f);
+		GuiPropertyRAII::PropertyValueColumns columns;
+		GuiPropertyRAII::ID id(&camera);
 
-		Gui::Combo("Control Mode", reinterpret_cast<int*>(&cameraController.Mode), "None\0First Person\0Orbit\0");
+		GuiProperty::Input("Field Of View", camera.FieldOfView, 1.0f, vec2(1.0f, 173.0f));
+		GuiProperty::Input("Near Plane", camera.NearPlane, 0.001f, vec2(0.001f, 1.0f));
+		GuiProperty::Input("Far Plane", camera.FarPlane, 10.0f);
+		GuiProperty::Input("View Point", camera.ViewPoint, 0.01f);
+		GuiProperty::Input("Interest", camera.Interest, 0.01f);
+		GuiProperty::Combo("Control Mode", cameraController.Mode, CameraController3D::ControlModeNames, ImGuiComboFlags_None);
 
 		Gui::ItemContextMenu("ControlModeContextMenu", [&]()
 		{
-			Gui::Text("Camera Presets:");
+			Gui::TextUnformatted("Camera Presets:");
 			Gui::Separator();
 			if (Gui::MenuItem("Orbit Default"))
 			{
@@ -336,213 +316,182 @@ namespace Comfy::Editor
 
 		if (cameraController.Mode == CameraController3D::ControlMode::FirstPerson)
 		{
-			Gui::DragFloat("Camera Pitch", &cameraController.FirstPersonData.TargetPitch, 1.0f);
-			Gui::DragFloat("Camera Yaw", &cameraController.FirstPersonData.TargetYaw, 1.0f);
+			GuiProperty::Input("Camera Pitch", cameraController.FirstPersonData.TargetPitch, 1.0f);
+			GuiProperty::Input("Camera Yaw", cameraController.FirstPersonData.TargetYaw, 1.0f);
 		}
 		else if (cameraController.Mode == CameraController3D::ControlMode::Orbit)
 		{
-			Gui::DragFloat("Orbit Distance", &cameraController.OrbitData.Distance, 0.1f, cameraController.OrbitData.MinDistance, cameraController.OrbitData.MaxDistance);
-			Gui::DragFloat("Orbit X", &cameraController.OrbitData.TargetRotation.x, 1.0f);
-			Gui::DragFloat("Orbit Y", &cameraController.OrbitData.TargetRotation.y, 1.0f, -89.0f, +89.0f);
+			GuiProperty::Input("Orbit Distance", cameraController.OrbitData.Distance, 0.1f, vec2(cameraController.OrbitData.MinDistance, cameraController.OrbitData.MaxDistance));
+			GuiProperty::Input("Orbit X", cameraController.OrbitData.TargetRotation.x, 1.0f);
+			GuiProperty::Input("Orbit Y", cameraController.OrbitData.TargetRotation.y, 1.0f, vec2(-89.0f, +89.0f));
 		}
 
-		Gui::Checkbox("Visualize Interest", &cameraController.Visualization.VisualizeInterest);
+		GuiProperty::Checkbox("Visualize Interest", cameraController.Visualization.VisualizeInterest);
 
 		if (cameraController.Visualization.VisualizeInterest && cameraController.Visualization.InterestSphereObj == nullptr)
 			cameraController.Visualization.InterestSphereObj = GenerateUploadDebugSphereObj(cameraController.Visualization.InterestSphere, cameraController.Visualization.InterestSphereColor);
+	}
 
-		Gui::PopID();
+	void SceneEditor::DrawObjSetLoaderGui()
+	{
+		{
+			GuiPropertyRAII::PropertyValueColumns columns;
+			GuiPropertyRAII::ID id(&objSetTransform);
+
+			bool transformChanged = false;
+			transformChanged |= GuiProperty::Input("Translation", objSetTransform.Translation, 0.1f);
+			transformChanged |= GuiProperty::Input("Scale", objSetTransform.Scale, 0.05f);
+			transformChanged |= GuiProperty::Input("Rotation", objSetTransform.Rotation, 1.0f);
+
+			if (transformChanged)
+			{
+				for (auto& entity : sceneGraph.Entities)
+					if (entity->Tag == ObjectTag) entity->Transform = objSetTransform;
+			}
+		}
+
+		Gui::BeginChild("ObjSetLoaderChild");
+		if (objSetFileViewer.DrawGui())
+		{
+			EraseByTag(ObjectTag, static_cast<EraseFlags>(EraseFlags_Entities | EraseFlags_ObjSets));
+
+			if (LoadRegisterObjSet(objSetFileViewer.GetFileToOpen(), Debug::GetTxpSetPathForObjSet(objSetFileViewer.GetFileToOpen()), ObjectTag))
+			{
+				auto& newlyAddedStageObjSet = sceneGraph.LoadedObjSets.back();
+				for (auto& obj : *newlyAddedStageObjSet.ObjSet)
+					sceneGraph.AddEntityFromObj(obj, ObjectTag);
+			}
+		}
+		Gui::EndChild();
 	}
 
 	void SceneEditor::DrawRenderingGui()
 	{
 		auto& renderParameters = context.RenderParameters;
+		GuiPropertyRAII::ID id(&renderParameters);
 
-		Gui::PushID(&renderParameters);
+		TakeScreenshotGui();
 
-		const bool isScreenshotSaving = lastScreenshotTaskFuture.valid() && !lastScreenshotTaskFuture._Is_ready();
-		const vec4 loadingColor = vec4(0.83f, 0.75f, 0.42f, 1.00f);
-
-		if (isScreenshotSaving)
-			Gui::PushStyleColor(ImGuiCol_Text, loadingColor);
-		if (Gui::Button("Take Screenshot", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
-			TakeSceneRenderTargetScreenshot(context.RenderData.Output.RenderTarget);
-		if (isScreenshotSaving)
-			Gui::PopStyleColor(1);
-		Gui::ItemContextMenu("TakeScreenshotContextMenu", [&]
+		GuiProperty::TreeNode("Render Parameters", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen, [&]
 		{
-			if (Gui::MenuItem("Open Directory"))
-				FileSystem::OpenInExplorer(Utf8ToUtf16(ScreenshotDirectoy));
-		});
-
-		constexpr const char* renderPopupID = "RenderSequencePopup";
-
-		if (Gui::Button("Render Sequence...", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
-			Gui::OpenPopup(renderPopupID);
-
-		if (Gui::BeginPopup(renderPopupID))
-		{
-			static struct SequenceData
+			auto resolutionGui = [&](const char* label, const char* contextMenu, ivec2& inOutResolution)
 			{
-				int FramesToRender = 360 / 6;
-				float RotationXStep = 6.0f;
-				std::vector<std::future<void>> Futures;
-			} data;
+				auto clampValidTextureSize = [](ivec2 size) { return glm::clamp(size, D3D_Texture2D::MinSize, D3D_Texture2D::MaxSize); };
 
-			Gui::InputInt("Frams To Render", &data.FramesToRender);
-			Gui::InputFloat("Rotation Step", &data.RotationXStep);
+				if (GuiProperty::Input(label, inOutResolution))
+					inOutResolution = clampValidTextureSize(inOutResolution);
 
-			if (Gui::Button("Render!", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
-			{
-				auto& renderTarget = context.RenderData.Output.RenderTarget;
-
-				data.Futures.clear();
-				data.Futures.reserve(data.FramesToRender);
-
-				for (int i = 0; i < data.FramesToRender; i += 1)
+				Gui::ItemContextMenu(contextMenu, [&]
 				{
-					cameraController.Mode = CameraController3D::ControlMode::Orbit;
-					cameraController.OrbitData.TargetRotation.x = static_cast<float>(i) * data.RotationXStep;
-					cameraController.Update(context.Camera);
+					static constexpr std::array fixedResolutions = { ivec2(256, 256), ivec2(512, 512), ivec2(1024, 1024), ivec2(2048, 2048), ivec2(4096, 4096), ivec2(8192, 8192) };
+					static constexpr std::array scaleFactors = { 0.25f, 0.50f, 0.75f, 1.00f, 1.50f, 2.00f, 4.00f, 8.00f };
 
-					renderWindow->RenderScene();
+					char nameBuffer[32];
 
-					data.Futures.push_back(std::async(std::launch::async, [&renderTarget, i, data = std::move(renderTarget.StageAndCopyBackBuffer())]
-						{
-							char fileName[MAX_PATH];
-							sprintf_s(fileName, "%s/sequence/scene_%04d.png", ScreenshotDirectoy, i);
-							Utilities::WritePNG(fileName, renderTarget.GetSize(), data.get());
-						}));
-				}
-			}
-			Gui::EndPopup();
-		}
-
-		Gui::CheckboxFlags("DebugFlags_0", &renderParameters.DebugFlags, (1 << 0)); Gui::SameLine(); Gui::CheckboxFlags("ShaderDebugFlags_0", &renderParameters.ShaderDebugFlags, (1 << 0));
-		Gui::CheckboxFlags("DebugFlags_1", &renderParameters.DebugFlags, (1 << 1)); Gui::SameLine(); Gui::CheckboxFlags("ShaderDebugFlags_1", &renderParameters.ShaderDebugFlags, (1 << 1));
-		Gui::ColorEdit4("ShaderDebugValue", glm::value_ptr(renderParameters.ShaderDebugValue));
-		Gui::Separator();
-		Gui::ColorEdit4("Clear Color", glm::value_ptr(renderParameters.ClearColor));
-		Gui::Checkbox("Clear", &renderParameters.Clear);
-		Gui::Checkbox("Preserve Alpha", &renderParameters.ToneMapPreserveAlpha);
-		Gui::Separator();
-		Gui::Checkbox("Frustum Culling", &renderParameters.FrustumCulling);
-		Gui::Checkbox("Wireframe", &renderParameters.Wireframe);
-		Gui::Checkbox("Alpha Sort", &renderParameters.AlphaSort);
-		Gui::Separator();
-		Gui::Checkbox("Shadow Mapping", &renderParameters.ShadowMapping);
-		Gui::Checkbox("Self Shadowing", &renderParameters.SelfShadowing);
-		Gui::Separator();
-		Gui::Checkbox("Render Reflection", &renderParameters.RenderReflection);
-		Gui::Checkbox("Render Subsurface Scattering", &renderParameters.RenderSubsurfaceScattering);
-		Gui::Checkbox("Render Opaque", &renderParameters.RenderOpaque);
-		Gui::Checkbox("Render Transparent", &renderParameters.RenderTransparent);
-		Gui::Checkbox("Render Bloom", &renderParameters.RenderBloom);
-		Gui::Checkbox("Render Lens Flare", &renderParameters.RenderLensFlare);
-		Gui::Checkbox("Auto Exposure", &renderParameters.AutoExposure);
-		Gui::Checkbox("Vertex Coloring", &renderParameters.VertexColoring);
-		Gui::Separator();
-		Gui::Checkbox("Diffuse Mapping", &renderParameters.DiffuseMapping);
-		Gui::Checkbox("Ambient Occlusion Mapping", &renderParameters.AmbientOcclusionMapping);
-		Gui::Checkbox("Normal Mapping", &renderParameters.NormalMapping);
-		Gui::Checkbox("Specular Mapping", &renderParameters.SpecularMapping);
-		Gui::Checkbox("Transparency Mapping", &renderParameters.TransparencyMapping);
-		Gui::Checkbox("Environment Mapping", &renderParameters.EnvironmentMapping);
-		Gui::Checkbox("Translucency Mapping", &renderParameters.TranslucencyMapping);
-		Gui::Separator();
-		Gui::Checkbox("Render Punch Through", &renderParameters.RenderPunchThrough);
-		Gui::Checkbox("Render Fog", &renderParameters.RenderFog);
-		Gui::Checkbox("Object Morphing", &renderParameters.ObjectMorphing);
-		Gui::Checkbox("Object Skinning", &renderParameters.ObjectSkinning);
-		Gui::Separator();
-		Gui::SliderInt("Anistropic Filtering", &renderParameters.AnistropicFiltering, D3D11_MIN_MAXANISOTROPY, D3D11_MAX_MAXANISOTROPY);
-
-		if (Gui::CollapsingHeader("Resolution", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			auto clampSize = [](ivec2 size) { return glm::clamp(size, D3D_Texture2D::MinSize, D3D_Texture2D::MaxSize); };
-
-			constexpr std::array namedFactors =
-			{
-				std::make_pair("Render Region x0.5", 0.5f),
-				std::make_pair("Render Region x1.0", 1.0f),
-				std::make_pair("Render Region x2.0", 2.0f),
-				std::make_pair("Render Region x4.0", 4.0f),
-				std::make_pair("Render Region x8.0", 8.0f),
-				std::make_pair("Render Region x16.0", 16.0f),
+					Gui::Text("Set Resolution:");
+					Gui::Separator();
+					for (const ivec2 resolution : fixedResolutions)
+					{
+						sprintf_s(nameBuffer, "%dx%d", resolution.x, resolution.y);
+						if (Gui::MenuItem(nameBuffer))
+							inOutResolution = clampValidTextureSize(resolution);
+					}
+					Gui::Separator();
+					for (const float factor : scaleFactors)
+					{
+						sprintf_s(nameBuffer, "Render Region x%.2f", factor);
+						if (Gui::MenuItem(nameBuffer))
+							inOutResolution = clampValidTextureSize(ivec2(vec2(renderWindow->GetRenderRegion().GetSize()) * factor));
+					}
+				});
 			};
 
-			ivec2 renderResolution = renderParameters.RenderResolution;
-			Gui::InputInt2("Render Resolution", glm::value_ptr(renderResolution));
-			Gui::ItemContextMenu("RenderResolutionContextMenu", [&]()
+			GuiPropertyRAII::PropertyValueColumns columns;
+			GuiProperty::TreeNode("Debug", [&]
 			{
-				Gui::Text("Set Render Resolution:");
-				Gui::Separator();
-				for (auto[name, factor] : namedFactors)
-					if (Gui::MenuItem(name)) renderResolution = ivec2(vec2(renderWindow->GetRenderRegion().GetSize()) * factor);
+				GuiProperty::CheckboxFlags("DebugFlags_0", renderParameters.DebugFlags, (1 << 0));
+				GuiProperty::CheckboxFlags("DebugFlags_1", renderParameters.DebugFlags, (1 << 1));
+				GuiProperty::CheckboxFlags("ShaderDebugFlags_0", renderParameters.ShaderDebugFlags, (1 << 0));
+				GuiProperty::CheckboxFlags("ShaderDebugFlags_1", renderParameters.ShaderDebugFlags, (1 << 1));
+				GuiProperty::ColorEditHDR("ShaderDebugValue", renderParameters.ShaderDebugValue);
 			});
 
-			if (renderResolution != context.RenderData.Main.Current().GetSize())
-				renderParameters.RenderResolution = (clampSize(renderResolution));
-
-			ivec2 reflectionResolution = renderParameters.ReflectionRenderResolution;
-			Gui::InputInt2("Reflection Resolution", glm::value_ptr(reflectionResolution));
-			Gui::ItemContextMenu("ReflectionResolutionContextMenu", [&]()
+			GuiProperty::TreeNode("General", ImGuiTreeNodeFlags_DefaultOpen, [&]
 			{
-				Gui::Text("Set Reflection Resolution:");
-				Gui::Separator();
-				if (Gui::MenuItem("256x256")) reflectionResolution = ivec2(256, 256);
-				if (Gui::MenuItem("512x512")) reflectionResolution = ivec2(512, 512);
+				resolutionGui("Main Scene", "RenderResolutionContextMenu", renderParameters.RenderResolution);
+				resolutionGui("Reflection", "ReflectionResolutionContextMenu", renderParameters.ReflectionRenderResolution);
 
-				for (auto[name, factor] : namedFactors)
-					if (Gui::MenuItem(name)) reflectionResolution = (vec2(renderWindow->GetRenderRegion().GetSize()) * factor);
+				if (GuiProperty::Input("Multi Sample Count", renderParameters.MultiSampleCount))
+					renderParameters.MultiSampleCount = std::clamp(renderParameters.MultiSampleCount, 1u, 16u);
+
+				if (GuiProperty::Input("Anistropic Filtering", renderParameters.AnistropicFiltering))
+					renderParameters.AnistropicFiltering = std::clamp(renderParameters.AnistropicFiltering, D3D11_MIN_MAXANISOTROPY, D3D11_MAX_MAXANISOTROPY);
+
+				GuiProperty::ColorEdit("Clear Color", renderParameters.ClearColor);
+				GuiProperty::Checkbox("Clear", renderParameters.Clear);
+				GuiProperty::Checkbox("Preserve Alpha", renderParameters.ToneMapPreserveAlpha);
+
+				GuiProperty::Checkbox("Frustum Culling", renderParameters.FrustumCulling);
+				GuiProperty::Checkbox("Alpha Sort", renderParameters.AlphaSort);
+				GuiProperty::Checkbox("Wireframe", renderParameters.Wireframe);
 			});
 
-			if (reflectionResolution != renderParameters.ReflectionRenderResolution)
-				renderParameters.ReflectionRenderResolution = clampSize(reflectionResolution);
-
-			ivec2 shadowResolution = renderParameters.ShadowMapResolution;
-			Gui::InputInt2("Shadow Resolution", glm::value_ptr(shadowResolution));
-			Gui::ItemContextMenu("ShadowResolutionContextMenu", [&]()
+			GuiProperty::TreeNode("Shadow Mapping", ImGuiTreeNodeFlags_DefaultOpen, [&]
 			{
-				Gui::Text("Set Shadow Resolution:");
-				Gui::Separator();
-				if (Gui::MenuItem("256x256")) shadowResolution = ivec2(256, 256);
-				if (Gui::MenuItem("512x512")) shadowResolution = ivec2(512, 512);
-				if (Gui::MenuItem("1024x1024")) shadowResolution = ivec2(1024, 1024);
-				if (Gui::MenuItem("2048x2048")) shadowResolution = ivec2(2048, 2048);
-				if (Gui::MenuItem("4096x4096")) shadowResolution = ivec2(4096, 4096);
-				if (Gui::MenuItem("8192x8192")) shadowResolution = ivec2(8192, 8192);
+				GuiProperty::Checkbox("Shadow Mapping", renderParameters.ShadowMapping);
+				GuiProperty::Checkbox("Self Shadowing", renderParameters.SelfShadowing);
+
+				resolutionGui("Resolution", "ShadowMapResolutionContextMenu", renderParameters.ShadowMapResolution);
+
+				if (GuiProperty::Input("Blur Passes", renderParameters.ShadowBlurPasses))
+					renderParameters.ShadowBlurPasses = std::clamp(renderParameters.ShadowBlurPasses, 0u, 10u);
 			});
 
-			if (shadowResolution != context.RenderData.Shadow.RenderTarget.GetSize())
-				renderParameters.ShadowMapResolution = (clampSize(shadowResolution));
+			GuiProperty::TreeNode("Render Passes", ImGuiTreeNodeFlags_DefaultOpen, [&]
+			{
+				GuiProperty::Checkbox("Reflection", renderParameters.RenderReflection);
+				GuiProperty::Checkbox("Subsurface Scattering", renderParameters.RenderSubsurfaceScattering);
+				GuiProperty::Checkbox("Opaque", renderParameters.RenderOpaque);
+				GuiProperty::Checkbox("Transparent", renderParameters.RenderTransparent);
+				GuiProperty::Checkbox("Bloom", renderParameters.RenderBloom);
+				GuiProperty::Checkbox("Lens Flare", renderParameters.RenderLensFlare);
+				GuiProperty::Checkbox("Auto Exposure", renderParameters.AutoExposure);
+			});
 
-			if (Gui::InputScalar("Shadow Blur Passes", ImGuiDataType_U32, &renderParameters.ShadowBlurPasses))
-				renderParameters.ShadowBlurPasses = std::clamp(renderParameters.ShadowBlurPasses, 0u, 10u);
+			GuiProperty::TreeNode("Shader", ImGuiTreeNodeFlags_DefaultOpen, [&]
+			{
+				GuiProperty::Checkbox("Vertex Coloring", renderParameters.VertexColoring);
+				GuiProperty::Checkbox("Diffuse Mapping", renderParameters.DiffuseMapping);
+				GuiProperty::Checkbox("Ambient Occlusion Mapping", renderParameters.AmbientOcclusionMapping);
+				GuiProperty::Checkbox("Normal Mapping", renderParameters.NormalMapping);
+				GuiProperty::Checkbox("Specular Mapping", renderParameters.SpecularMapping);
+				GuiProperty::Checkbox("Transparency Mapping", renderParameters.TransparencyMapping);
+				GuiProperty::Checkbox("Environment Mapping", renderParameters.EnvironmentMapping);
+				GuiProperty::Checkbox("Translucency Mapping", renderParameters.TranslucencyMapping);
+			});
 
-			if (Gui::InputScalar("Multi Sample Count", ImGuiDataType_U32, &renderParameters.MultiSampleCount))
-				renderParameters.MultiSampleCount = std::clamp(renderParameters.MultiSampleCount, 1u, 16u);
-		}
+			GuiProperty::TreeNode("Other", ImGuiTreeNodeFlags_DefaultOpen, [&]
+			{
+				GuiProperty::Checkbox("Punch Through", renderParameters.RenderPunchThrough);
+				GuiProperty::Checkbox("Render Fog", renderParameters.RenderFog);
+				GuiProperty::Checkbox("Object Morphing", renderParameters.ObjectMorphing);
+				GuiProperty::Checkbox("Object Skinning", renderParameters.ObjectSkinning);
+			});
 
-		if (Gui::CollapsingHeader("Render Targets"))
+		});
+
+		GuiProperty::TreeNode("Render Targets", ImGuiTreeNodeFlags_NoTreePushOnOpen, [&]
 		{
-			auto& renderData = context.RenderData;
-
-			static uint32_t openFlags = 0;
-			static uint32_t currentIndex = 0;
-
-			auto renderTargetGui = [&](const char* name, auto& renderTarget)
+			auto renderTargetGui = [&](const char* name, auto& renderTarget, int index)
 			{
-				const uint32_t openMask = (1 << currentIndex);
-				currentIndex++;
-
+				const uint32_t openMask = (1 << index);
 				Gui::Selectable(name);
 
 				if (Gui::IsItemHovered() && Gui::IsMouseDoubleClicked(0))
-					openFlags ^= openMask;
+					openRenderTargetsFlags ^= openMask;
 
 				const float aspectRatio = (static_cast<float>(renderTarget.GetSize().y) / static_cast<float>(renderTarget.GetSize().x));
-				if (openFlags & openMask)
+				if (openRenderTargetsFlags & openMask)
 				{
 					constexpr float desiredWidth = 512.0f;
 
@@ -551,7 +500,7 @@ namespace Comfy::Editor
 						Gui::Image(renderTarget, vec2(desiredWidth, desiredWidth * aspectRatio));
 					Gui::End();
 					if (!open)
-						openFlags &= ~openMask;
+						openRenderTargetsFlags &= ~openMask;
 				}
 				else if (Gui::IsItemHovered())
 				{
@@ -563,159 +512,148 @@ namespace Comfy::Editor
 				}
 			};
 
-			currentIndex = 0;
-			renderTargetGui("Main Current", renderData.Main.CurrentOrResolved());
-			renderTargetGui("Main Previous", renderData.Main.PreviousOrResolved());
+			auto& renderData = context.RenderData;
+			int index = 0;
 
-			renderTargetGui("Shadow Map", renderData.Shadow.RenderTarget);
+			renderTargetGui("Main Current", renderData.Main.CurrentOrResolved(), index++);
+			renderTargetGui("Main Previous", renderData.Main.PreviousOrResolved(), index++);
 
-			renderTargetGui("Exponential Shadow Map [0]", renderData.Shadow.ExponentialRenderTargets[0]);
-			renderTargetGui("Exponential Shadow Map [1]", renderData.Shadow.ExponentialRenderTargets[1]);
-			renderTargetGui("Exponential Shadow Map Blur [0]", renderData.Shadow.ExponentialBlurRenderTargets[0]);
-			renderTargetGui("Exponential Shadow Map Blur [1]", renderData.Shadow.ExponentialBlurRenderTargets[1]);
+			renderTargetGui("Shadow Map", renderData.Shadow.RenderTarget, index++);
 
-			renderTargetGui("Shadow Map Threshold", renderData.Shadow.ThresholdRenderTarget);
-			renderTargetGui("Shadow Map Blur [0]", renderData.Shadow.BlurRenderTargets[0]);
-			renderTargetGui("Shadow Map Blur [1]", renderData.Shadow.BlurRenderTargets[1]);
+			renderTargetGui("Exponential Shadow Map [0]", renderData.Shadow.ExponentialRenderTargets[0], index++);
+			renderTargetGui("Exponential Shadow Map [1]", renderData.Shadow.ExponentialRenderTargets[1], index++);
+			renderTargetGui("Exponential Shadow Map Blur [0]", renderData.Shadow.ExponentialBlurRenderTargets[0], index++);
+			renderTargetGui("Exponential Shadow Map Blur [1]", renderData.Shadow.ExponentialBlurRenderTargets[1], index++);
 
-			renderTargetGui("Screen Reflection", renderData.Reflection.RenderTarget);
+			renderTargetGui("Shadow Map Threshold", renderData.Shadow.ThresholdRenderTarget, index++);
+			renderTargetGui("Shadow Map Blur [0]", renderData.Shadow.BlurRenderTargets[0], index++);
+			renderTargetGui("Shadow Map Blur [1]", renderData.Shadow.BlurRenderTargets[1], index++);
 
-			renderTargetGui("SSS Main", renderData.SubsurfaceScattering.RenderTarget);
-			renderTargetGui("SSS Filter [0]", renderData.SubsurfaceScattering.FilterRenderTargets[0]);
-			renderTargetGui("SSS Filter [1]", renderData.SubsurfaceScattering.FilterRenderTargets[1]);
-			renderTargetGui("SSS Filter [2]", renderData.SubsurfaceScattering.FilterRenderTargets[2]);
+			renderTargetGui("Screen Reflection", renderData.Reflection.RenderTarget, index++);
 
-			renderTargetGui("Bloom Base", renderData.Bloom.BaseRenderTarget);
-			renderTargetGui("Bloom Combined", renderData.Bloom.CombinedBlurRenderTarget);
-			renderTargetGui("Bloom Reduce->Blur [0]", renderData.Bloom.ReduceRenderTargets[0]);
-			renderTargetGui("Bloom Reduce->Blur [1]", renderData.Bloom.ReduceRenderTargets[1]);
-			renderTargetGui("Bloom Reduce->Blur [2]", renderData.Bloom.ReduceRenderTargets[2]);
-			renderTargetGui("Bloom Reduce->Blur [3]", renderData.Bloom.ReduceRenderTargets[3]);
+			renderTargetGui("SSS Main", renderData.SubsurfaceScattering.RenderTarget, index++);
+			renderTargetGui("SSS Filter [0]", renderData.SubsurfaceScattering.FilterRenderTargets[0], index++);
+			renderTargetGui("SSS Filter [1]", renderData.SubsurfaceScattering.FilterRenderTargets[1], index++);
+			renderTargetGui("SSS Filter [2]", renderData.SubsurfaceScattering.FilterRenderTargets[2], index++);
 
-			renderTargetGui("Exposure [0]", renderData.Bloom.ExposureRenderTargets[0]);
-			renderTargetGui("Exposure [1]", renderData.Bloom.ExposureRenderTargets[1]);
-			renderTargetGui("Exposure [2]", renderData.Bloom.ExposureRenderTargets[2]);
+			renderTargetGui("Bloom Base", renderData.Bloom.BaseRenderTarget, index++);
+			renderTargetGui("Bloom Combined", renderData.Bloom.CombinedBlurRenderTarget, index++);
+			renderTargetGui("Bloom Reduce->Blur [0]", renderData.Bloom.ReduceRenderTargets[0], index++);
+			renderTargetGui("Bloom Reduce->Blur [1]", renderData.Bloom.ReduceRenderTargets[1], index++);
+			renderTargetGui("Bloom Reduce->Blur [2]", renderData.Bloom.ReduceRenderTargets[2], index++);
+			renderTargetGui("Bloom Reduce->Blur [3]", renderData.Bloom.ReduceRenderTargets[3], index++);
 
-			renderTargetGui("Output", renderData.Output.RenderTarget);
-		}
+			renderTargetGui("Exposure [0]", renderData.Bloom.ExposureRenderTargets[0], index++);
+			renderTargetGui("Exposure [1]", renderData.Bloom.ExposureRenderTargets[1], index++);
+			renderTargetGui("Exposure [2]", renderData.Bloom.ExposureRenderTargets[2], index++);
 
-		Gui::PopID();
+			renderTargetGui("Output", renderData.Output.RenderTarget, index++);
+		});
 	}
 
 	void SceneEditor::DrawFogGui()
 	{
-		Gui::PushID(&context.Fog);
+		GuiPropertyRAII::ID id(&context.Fog);
+		GuiPropertyRAII::PropertyValueColumns columns;
 
-		static std::array<char, MAX_PATH> fogPathBuffer = { "dev_rom/light_param/fog_tst.txt" };
-		if (Gui::InputText("Load Fog", fogPathBuffer.data(), fogPathBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
+		if (GuiProperty::Input("Load Fog File", fogPathBuffer.data(), fogPathBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
 			Debug::LoadParseUploadLightParamFile(fogPathBuffer.data(), context.Glow);
 
-		if (Gui::WideTreeNodeEx("Depth", ImGuiTreeNodeFlags_DefaultOpen))
+		GuiProperty::TreeNode("Depth", ImGuiTreeNodeFlags_DefaultOpen, [&]
 		{
-			Gui::SliderFloat("Density", &context.Fog.Depth.Density, 0.0f, 1.0f);
-			Gui::SliderFloat("Start", &context.Fog.Depth.Start, -100.0f, 1000.0f);
-			Gui::SliderFloat("End", &context.Fog.Depth.End, -100.0f, 1000.0f);
-			Gui::ColorEdit3("Color", glm::value_ptr(context.Fog.Depth.Color), ImGuiColorEditFlags_Float);
-			Gui::TreePop();
-		}
-
-		Gui::PopID();
+			GuiProperty::Input("Density", context.Fog.Depth.Density, 0.005f, vec2(0.0f, 1.0f));
+			GuiProperty::Input("Start", context.Fog.Depth.Start, 0.1f, vec2(-100.0f, 1000.0f));
+			GuiProperty::Input("End", context.Fog.Depth.End, 0.1f, vec2(-100.0f, 1000.0f));
+			GuiProperty::ColorEditHDR("Color", context.Fog.Depth.Color, ImGuiColorEditFlags_Float);
+		});
 	}
 
 	void SceneEditor::DrawPostProcessingGui()
 	{
-		Gui::PushID(&context.Glow);
+		GuiPropertyRAII::ID id(&context.Glow);
+		GuiPropertyRAII::PropertyValueColumns columns;
 
-		static std::array<char, MAX_PATH> glowPathBuffer = { "dev_rom/light_param/glow_tst.txt" };
-		if (Gui::InputText("Load Glow", glowPathBuffer.data(), glowPathBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
+		if (GuiProperty::Input("Load Glow File", glowPathBuffer.data(), glowPathBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
 			Debug::LoadParseUploadLightParamFile(glowPathBuffer.data(), context.Glow);
 
-		Gui::SliderFloat("Exposure", &context.Glow.Exposure, 0.0f, 4.0f);
-		Gui::SliderFloat("Gamma", &context.Glow.Gamma, 0.2f, 2.2f);
-		Gui::SliderInt("Saturate Power", &context.Glow.SaturatePower, 1, 6);
-		Gui::SliderFloat("Saturate Coefficient", &context.Glow.SaturateCoefficient, 0.0f, 1.0f);
-
-		Gui::DragFloat3("Bloom Sigma", glm::value_ptr(context.Glow.Sigma), 0.005f, 0.0f, 3.0f);
-		Gui::DragFloat3("Bloom Intensity", glm::value_ptr(context.Glow.Intensity), 0.005f, 0.0f, 2.0f);
-
-		Gui::Checkbox("Auto Exposure", &context.Glow.AutoExposure);
-		Gui::PopID();
+		GuiProperty::Input("Exposure", context.Glow.Exposure, 0.005f, vec2(0.0f, 4.0f));
+		GuiProperty::Input("Gamma", context.Glow.Gamma, 0.005f, vec2(0.2f, 2.2f));
+		GuiProperty::Input("Saturate Power", context.Glow.SaturatePower, 0.1f, ivec2(1, 6));
+		GuiProperty::Input("Saturate Coefficient", context.Glow.SaturateCoefficient, 0.005f, vec2(0.0f, 1.0f));
+		GuiProperty::Input("Bloom Sigma", context.Glow.Sigma, 0.005f, vec2(0.0f, 3.0f));
+		GuiProperty::Input("Bloom Intensity", context.Glow.Intensity, 0.005f, vec2(0.0f, 2.0f));
+		GuiProperty::Checkbox("Auto Exposure", context.Glow.AutoExposure);
 	}
 
 	void SceneEditor::DrawLightGui()
 	{
-		auto lightGui = [](const char* name, Light& light, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None)
+		auto lightGui = [](std::string_view name, Light& light, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None)
 		{
-			Gui::PushID(&light);
-			if (Gui::WideTreeNodeEx(name, flags))
+			GuiPropertyRAII::ID id(&light);
+
+			GuiProperty::TreeNode(name, flags, [&]
 			{
-				Gui::ColorEdit3("Ambient", glm::value_ptr(light.Ambient), ImGuiColorEditFlags_Float);
-				Gui::ColorEdit3("Diffuse", glm::value_ptr(light.Diffuse), ImGuiColorEditFlags_Float);
-				Gui::ColorEdit3("Specular", glm::value_ptr(light.Specular), ImGuiColorEditFlags_Float);
-				Gui::DragFloat3("Position", glm::value_ptr(light.Position), 0.01f);
-				Gui::TreePop();
-			}
-			Gui::PopID();
+				GuiProperty::Input("Position", light.Position, 0.01f);
+				GuiProperty::ColorEditHDR("Ambient", light.Ambient);
+				GuiProperty::ColorEditHDR("Diffuse", light.Diffuse);
+				GuiProperty::ColorEditHDR("Specular", light.Specular);
+			});
 		};
 
-		Gui::PushID(&context.Light);
+		GuiPropertyRAII::ID id(&context.Light);
+		GuiPropertyRAII::PropertyValueColumns columns;
 
-		static std::array<char, MAX_PATH> lightPathBuffer = { "dev_rom/light_param/light_tst.txt" };
-		if (Gui::InputText("Load Light", lightPathBuffer.data(), lightPathBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
+		if (GuiProperty::Input("Load Light File", lightPathBuffer.data(), lightPathBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
 			Debug::LoadParseUploadLightParamFile(lightPathBuffer.data(), context.Light);
 
 		lightGui("Character Light", context.Light.Character, ImGuiTreeNodeFlags_DefaultOpen);
 		lightGui("Stage Light", context.Light.Stage, ImGuiTreeNodeFlags_DefaultOpen);
-
-		Gui::PopID();
 	}
 
 	void SceneEditor::DrawIBLGui()
 	{
-		auto iblLightDataGui = [](const char* name, LightData& lightData, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None)
+		auto iblLightDataGui = [](std::string_view name, LightData& lightData, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None)
 		{
-			Gui::PushID(&lightData);
-			if (Gui::WideTreeNodeEx(name, flags))
+			GuiPropertyRAII::ID id(&lightData);
+			GuiProperty::TreeNode(name, flags, [&]
 			{
-				Gui::ColorEdit3("Light Color", glm::value_ptr(lightData.LightColor), ImGuiColorEditFlags_Float);
-				// Gui::DragFloat3("Light Direction", glm::value_ptr(lightData.LightDirection), 0.01f);
-				Gui::TreePop();
-			}
-			Gui::PopID();
+				GuiProperty::ColorEditHDR("Light Color", lightData.LightColor);
+				// GuiProperty::Input("Light Direction", lightData.LightDirection, 0.01f);
+			});
 		};
 
-		auto iblLightMapGui = [](const char* name, LightMap& lightMap, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None)
-		{
-			Gui::PushID(&lightMap);
-			if (Gui::WideTreeNodeEx(name, flags))
-			{
-				constexpr float cubeMapSize = 60.0f;
-				if (lightMap.D3D_CubeMap != nullptr)
-					Gui::ImageButton(*lightMap.D3D_CubeMap, vec2(cubeMapSize, cubeMapSize * (3.0f / 4.0f)));
+		GuiPropertyRAII::ID id(&context.IBL);
+		GuiPropertyRAII::PropertyValueColumns columns;
 
-				Gui::TreePop();
-			}
-			Gui::PopID();
-		};
-
-		Gui::PushID(&context.IBL);
-
-		static std::array<char, MAX_PATH> iblPathBuffer = { "dev_rom/ibl/tst.ibl" };
-		if (Gui::InputText("Load IBL", iblPathBuffer.data(), iblPathBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
+		if (GuiProperty::Input("Load IBL File", iblPathBuffer.data(), iblPathBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
 			Debug::LoadParseUploadLightParamFile(iblPathBuffer.data(), context.IBL);
 
 		iblLightDataGui("Character", context.IBL.Character, ImGuiTreeNodeFlags_DefaultOpen);
 		iblLightDataGui("Stage", context.IBL.Stage, ImGuiTreeNodeFlags_DefaultOpen);
 		iblLightDataGui("Sun", context.IBL.Sun, ImGuiTreeNodeFlags_DefaultOpen);
 
-		for (size_t i = 0; i < context.IBL.LightMaps.size(); i++)
+		GuiProperty::TreeNode("Light Maps", ImGuiTreeNodeFlags_DefaultOpen, [&]
 		{
-			char buffer[64];
-			sprintf_s(buffer, "LightMaps[%zu]", i);
-			iblLightMapGui(buffer, context.IBL.LightMaps[i], ImGuiTreeNodeFlags_DefaultOpen);
-		}
+			char nameBuffer[32];
+			for (size_t i = 0; i < context.IBL.LightMaps.size(); i++)
+			{
+				const auto& lightMap = context.IBL.LightMaps[i];
+				sprintf_s(nameBuffer, "Light Maps[%zu]", i);
 
-		Gui::PopID();
+				GuiPropertyRAII::ID id(&lightMap);
+				GuiProperty::PropertyLabelValueFunc(nameBuffer, [&]
+				{
+					if (lightMap.D3D_CubeMap != nullptr)
+					{
+						constexpr vec2 cubeMapDisplaySize = vec2(96.0f, 96.0f);
+
+						const float width = std::clamp(Gui::GetContentRegionAvailWidth(), 1.0f, cubeMapDisplaySize.x);
+						Gui::Image(*lightMap.D3D_CubeMap, vec2(width, width * (3.0f / 4.0f)));
+					}
+					return false;
+				});
+			}
+		});
 	}
 
 	void SceneEditor::DrawSceneGraphGui()
@@ -762,7 +700,7 @@ namespace Comfy::Editor
 	{
 		GuiPropertyRAII::PropertyValueColumns columns;
 
-		auto entityNameGetter = [&](int i) {return InBounds(i, sceneGraph.Entities) ? sceneGraph.Entities[i]->Name.c_str() : "None"; };
+		auto entityNameGetter = [&](int i) { return InBounds(i, sceneGraph.Entities) ? sceneGraph.Entities[i]->Name.c_str() : "None"; };
 		GuiProperty::ComboResult comboResult;
 		GuiProperty::Combo("Entities", inspector.EntityIndex, -1, static_cast<int>(sceneGraph.Entities.size()), ImGuiComboFlags_HeightLarge, entityNameGetter, &comboResult);
 
@@ -782,7 +720,7 @@ namespace Comfy::Editor
 		GuiPropertyRAII::ID id(&entity);
 		GuiProperty::TreeNode("Entity", entity.Name, ImGuiTreeNodeFlags_DefaultOpen, [&]
 		{
-			GuiProperty::PropertyLabelValueFunc("Tag", [&] { return Gui::InputScalar(GuiProperty::Detail::DummyLabel, ImGuiDataType_U64, &entity.Tag, nullptr, nullptr, "%X", ImGuiInputTextFlags_ReadOnly); });
+			GuiProperty::PropertyLabelValueFunc("Tag", [&] { return Gui::InputScalar(GuiProperty::Detail::DummyLabel, ImGuiDataType_U64, &entity.Tag, nullptr, nullptr, "0x%08X", ImGuiInputTextFlags_ReadOnly); });
 
 			GuiProperty::Checkbox("Is Visible", entity.IsVisible);
 			GuiProperty::Checkbox("Is Reflection", entity.IsReflection);
@@ -883,69 +821,76 @@ namespace Comfy::Editor
 
 	void SceneEditor::DrawStageTestGui()
 	{
-		auto stageTypeGui = [&](auto& stageTypeData)
+		GuiPropertyRAII::PropertyValueColumns columns;
+
+		for (auto& stageTypeData : stageTestData.TypeData)
 		{
 			auto load = [&]()
 			{
 				stageTypeData.ID = std::clamp(stageTypeData.ID, stageTypeData.MinID, stageTypeData.MaxID);
 				stageTypeData.SubID = std::clamp(stageTypeData.SubID, 1, 39);
 
-				if (stageTestData.Settings.LoadLightParam)
-					Debug::LoadStageLightParamFiles(context, stageTypeData.Type, stageTypeData.ID, stageTypeData.SubID);
-
 				if (stageTestData.Settings.LoadObj)
 				{
 					UnLoadStageObjects();
-					LoadStageObjects(stageTypeData.Type, stageTypeData.ID, stageTypeData.SubID);
+					LoadStageObjects(stageTypeData.Type, stageTypeData.ID, stageTypeData.SubID, stageTestData.Settings.LoadLightParam);
 					SetStageVisibility(StageVisibilityType::GroundSky);
+				}
+				else if (stageTestData.Settings.LoadLightParam)
+				{
+					Debug::LoadStageLightParamFiles(context, stageTypeData.Type, stageTypeData.ID, stageTypeData.SubID);
 				}
 
 				stageTestData.lastSetStage.emplace(stageTypeData);
 			};
 
-			Gui::PushID(&stageTypeData);
+			GuiPropertyRAII::ID id(&stageTypeData.ID);
+			GuiProperty::PropertyLabelValueFunc(stageTypeData.Name, [&]
 			{
 				if (Gui::Button("Reload"))
 					load();
-
 				Gui::SameLine();
-
-				if (Gui::InputInt(stageTypeData.Name, &stageTypeData.ID, 1, 100))
+				if (Gui::InputInt(GuiProperty::Detail::DummyLabel, &stageTypeData.ID, 1, 10))
 				{
 					stageTypeData.SubID = 1;
 					load();
 				}
+				return false;
+			});
 
-				if (stageTypeData.Type == StageType::STGPV)
+			if (stageTypeData.Type == StageType::STGPV)
+			{
+				char subIDLabelBuffer[32];
+				sprintf_s(subIDLabelBuffer, "%.*s (Sub ID)", static_cast<int>(stageTypeData.Name.size()), stageTypeData.Name.data());
+
+				GuiPropertyRAII::ID id(&stageTypeData.SubID);
+				GuiProperty::PropertyLabelValueFunc(subIDLabelBuffer, [&]
 				{
 					if (Gui::Button("Reload"))
 						load();
-
 					Gui::SameLine();
-
-					if (Gui::InputInt("SUB ID", &stageTypeData.SubID))
+					if (Gui::InputInt(GuiProperty::Detail::DummyLabel, &stageTypeData.SubID))
 						load();
-				}
+					return false;
+				});
 			}
-			Gui::PopID();
+		}
+
+		GuiProperty::Checkbox("Load Light Param", stageTestData.Settings.LoadLightParam);
+		GuiProperty::Checkbox("Load Stage Obj", stageTestData.Settings.LoadObj);
+
+		static constexpr std::array visibilityButtons =
+		{
+			std::make_pair("Show All", StageVisibilityType::All),
+			std::make_pair("Hide All", StageVisibilityType::None),
+			std::make_pair("Show Ground & Sky", StageVisibilityType::GroundSky),
 		};
 
-		for (auto& stageTypeData : stageTestData.TypeData)
-			stageTypeGui(stageTypeData);
-
-		Gui::Checkbox("Load Light Param", &stageTestData.Settings.LoadLightParam);
-		Gui::Checkbox("Load Stage Obj", &stageTestData.Settings.LoadObj);
-
-		const float availWidth = Gui::GetContentRegionAvailWidth();
-
-		if (Gui::Button("Show All", vec2(availWidth * 0.8f, 0.0f)))
-			SetStageVisibility(StageVisibilityType::All);
-
-		if (Gui::Button("Hide All", vec2(availWidth * 0.8f, 0.0f)))
-			SetStageVisibility(StageVisibilityType::None);
-
-		if (Gui::Button("Show Ground & Sky", vec2(availWidth * 0.8f, 0.0f)))
-			SetStageVisibility(StageVisibilityType::GroundSky);
+		for (const auto& button : visibilityButtons)
+		{
+			if (GuiProperty::PropertyLabelValueFunc("Set Visibility", [&] { return Gui::Button(button.first, vec2(Gui::GetContentRegionAvailWidth() * 0.8f, 0.0f)); }))
+				SetStageVisibility(button.second);
+		}
 	}
 
 	void SceneEditor::DrawCharaTestGui()
@@ -967,14 +912,14 @@ namespace Comfy::Editor
 				{
 					auto& loadedResource = sceneGraph.LoadedObjSets.back();
 
-					if (exclusiveObjIndex < 0 || exclusiveObjIndex >= loadedResource.ObjSet->size())
+					if (InBounds(exclusiveObjIndex, *loadedResource.ObjSet))
 					{
-						for (auto& obj : *loadedResource.ObjSet)
-							sceneGraph.AddEntityFromObj(obj, CharacterTag);
+						sceneGraph.AddEntityFromObj(loadedResource.ObjSet->at(exclusiveObjIndex), CharacterTag);
 					}
 					else
 					{
-						sceneGraph.AddEntityFromObj(loadedResource.ObjSet->at(exclusiveObjIndex), CharacterTag);
+						for (auto& obj : *loadedResource.ObjSet)
+							sceneGraph.AddEntityFromObj(obj, CharacterTag);
 					}
 				}
 			};
@@ -988,32 +933,35 @@ namespace Comfy::Editor
 			loadPart(charaTestData.IDs.Hands);
 		};
 
-		Gui::PushID(&charaTestData);
-		Gui::InputText("Character", charaTestData.IDs.Character.data(), charaTestData.IDs.Character.size());
+		GuiPropertyRAII::ID id(&charaTestData);
+		GuiPropertyRAII::PropertyValueColumns columns;
 
-		if (Gui::InputInt("Item", &charaTestData.IDs.CommonItem))
+		GuiProperty::Input("Character", charaTestData.IDs.Character.data(), charaTestData.IDs.Character.size());
+
+		if (GuiProperty::Input("Item", charaTestData.IDs.CommonItem))
 			loadCharaItems();
 
-		if (Gui::InputInt("Face", &charaTestData.IDs.FaceIndex))
+		if (GuiProperty::Input("Face", charaTestData.IDs.FaceIndex))
 			loadCharaItems();
 
-		if (Gui::InputInt("Overhead", &charaTestData.IDs.Overhead))
+		if (GuiProperty::Input("Overhead", charaTestData.IDs.Overhead))
 			loadCharaItems();
 
-		if (Gui::InputInt("Hair", &charaTestData.IDs.Hair))
+		if (GuiProperty::Input("Hair", charaTestData.IDs.Hair))
 			loadCharaItems();
 
-		if (Gui::InputInt("Outer", &charaTestData.IDs.Outer))
+		if (GuiProperty::Input("Outer", charaTestData.IDs.Outer))
 			loadCharaItems();
 
-		if (Gui::InputInt("Hands", &charaTestData.IDs.Hands))
+		if (GuiProperty::Input("Hands", charaTestData.IDs.Hands))
 			loadCharaItems();
 
-		bool posChanged = Gui::DragFloat3("Position", glm::value_ptr(charaTestData.Transform.Translation), 0.1f);
-		bool scaleChanged = Gui::DragFloat3("Scale", glm::value_ptr(charaTestData.Transform.Scale), 0.1f);
-		bool rotChanged = Gui::DragFloat3("Rotation", glm::value_ptr(charaTestData.Transform.Rotation), 0.1f);
+		bool transformChanged = false;
+		transformChanged |= GuiProperty::Input("Translation", charaTestData.Transform.Translation, 0.1f);
+		transformChanged |= GuiProperty::Input("Scale", charaTestData.Transform.Scale, 0.05f);
+		transformChanged |= GuiProperty::Input("Rotation", charaTestData.Transform.Rotation, 1.0f);
 
-		if (posChanged | scaleChanged | rotChanged)
+		if (transformChanged)
 		{
 			for (auto& entity : sceneGraph.Entities)
 			{
@@ -1022,13 +970,17 @@ namespace Comfy::Editor
 			}
 		}
 
-		if (Gui::Button("Reload"))
-			loadCharaItems();
-		Gui::SameLine();
-		if (Gui::Button("Unload"))
-			unloadCharaItems();
-
-		Gui::PopID();
+		GuiProperty::PropertyFuncValueFunc([&] 
+		{
+			if (Gui::Button("Reload", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+				loadCharaItems();
+			return false;
+		}, [&]
+		{
+			if (Gui::Button("Unload", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+				unloadCharaItems();
+			return false;
+		});
 	}
 
 	void SceneEditor::DrawA3DTestGui()
@@ -1244,7 +1196,7 @@ namespace Comfy::Editor
 			for (size_t i = 0; i < sceneGraph.Entities.size(); i++)
 			{
 				auto* entity = sceneGraph.Entities[i].get();
-				auto* nextEntity = ((i + 1) < sceneGraph.Entities.size()) ? sceneGraph.Entities[i + 1].get() : nullptr;
+				auto* nextEntity = InBounds(i + 1, sceneGraph.Entities) ? sceneGraph.Entities[i + 1].get() : nullptr;
 
 				if (!EndsWith(entity->Name, "000") || nextEntity == nullptr)
 					continue;
@@ -1384,7 +1336,7 @@ namespace Comfy::Editor
 								}
 
 								const int index = A3DMgr::GetIntAt(pattern->CV, frame);
-								entityPattern.IDOverride = (index >= 0 && index < entityPattern.CachedIDs->size()) ? entityPattern.CachedIDs->at(index) : TxpID::Invalid;
+								entityPattern.IDOverride = (InBounds(index, *entityPattern.CachedIDs)) ? entityPattern.CachedIDs->at(index) : TxpID::Invalid;
 							}
 						}
 					}
@@ -1553,6 +1505,67 @@ namespace Comfy::Editor
 					}
 				}
 			}
+		}
+	}
+
+	void SceneEditor::TakeScreenshotGui()
+	{
+		const bool isScreenshotSaving = lastScreenshotTaskFuture.valid() && !lastScreenshotTaskFuture._Is_ready();
+		const vec4 loadingColor = vec4(0.83f, 0.75f, 0.42f, 1.00f);
+
+		if (isScreenshotSaving)
+			Gui::PushStyleColor(ImGuiCol_Text, loadingColor);
+		if (Gui::Button("Take Screenshot", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+			TakeSceneRenderTargetScreenshot(context.RenderData.Output.RenderTarget);
+		if (isScreenshotSaving)
+			Gui::PopStyleColor(1);
+		Gui::ItemContextMenu("TakeScreenshotContextMenu", [&]
+		{
+			if (Gui::MenuItem("Open Directory"))
+				FileSystem::OpenInExplorer(Utf8ToUtf16(ScreenshotDirectoy));
+		});
+
+		constexpr const char* renderPopupID = "RenderSequencePopup";
+
+		if (Gui::Button("Render Sequence...", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+			Gui::OpenPopup(renderPopupID);
+
+		if (Gui::BeginPopup(renderPopupID))
+		{
+			static struct SequenceData
+			{
+				int FramesToRender = 360 / 6;
+				float RotationXStep = 6.0f;
+				std::vector<std::future<void>> Futures;
+			} data;
+
+			Gui::InputInt("Frams To Render", &data.FramesToRender);
+			Gui::InputFloat("Rotation Step", &data.RotationXStep);
+
+			if (Gui::Button("Render!", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+			{
+				auto& renderTarget = context.RenderData.Output.RenderTarget;
+
+				data.Futures.clear();
+				data.Futures.reserve(data.FramesToRender);
+
+				for (int i = 0; i < data.FramesToRender; i += 1)
+				{
+					cameraController.Mode = CameraController3D::ControlMode::Orbit;
+					cameraController.OrbitData.TargetRotation.x = static_cast<float>(i) * data.RotationXStep;
+					cameraController.Update(context.Camera);
+
+					renderWindow->RenderScene();
+
+					data.Futures.push_back(std::async(std::launch::async, [&renderTarget, i, data = std::move(renderTarget.StageAndCopyBackBuffer())]
+						{
+							char fileName[MAX_PATH];
+							sprintf_s(fileName, "%s/sequence/scene_%04d.png", ScreenshotDirectoy, i);
+							Utilities::WritePNG(fileName, renderTarget.GetSize(), data.get());
+						}));
+				}
+			}
+			Gui::EndPopup();
 		}
 	}
 
