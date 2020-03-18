@@ -1679,8 +1679,11 @@ namespace Comfy::Graphics
 
 	D3D_ShaderPair& D3D_Renderer3D::GetMaterialShader(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material)
 	{
-		if (command.SourceCommand.SourceObj->Debug.UseDebugMaterial || mesh.Debug.UseDebugMaterial || subMesh.Debug.UseDebugMaterial || material.Debug.UseDebugMaterial)
-			return shaders.DebugMaterial;
+		if (current.Viewport->Parameters.AllowDebugShaderOverride)
+		{
+			if (command.SourceCommand.SourceObj->Debug.UseDebugMaterial || mesh.Debug.UseDebugMaterial || subMesh.Debug.UseDebugMaterial || material.Debug.UseDebugMaterial)
+				return shaders.DebugMaterial;
+		}
 
 		if (material.ShaderType == Material::ShaderIdentifiers::Blinn)
 		{

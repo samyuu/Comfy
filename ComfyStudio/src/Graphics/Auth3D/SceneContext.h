@@ -20,6 +20,7 @@ namespace Comfy::Graphics
 		uint32_t DebugFlags = 0;
 		uint32_t ShaderDebugFlags = 0;
 		vec4 ShaderDebugValue = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		bool AllowDebugShaderOverride = true;
 
 		// NOTE: Used by all newly created texture samplers
 		int32_t AnistropicFiltering = D3D11_DEFAULT_MAX_ANISOTROPY;
