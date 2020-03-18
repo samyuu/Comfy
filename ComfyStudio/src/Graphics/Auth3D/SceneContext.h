@@ -34,7 +34,6 @@ namespace Comfy::Graphics
 		bool AutoExposure = true;
 
 		bool VertexColoring = true;
-
 		bool DiffuseMapping = true;
 		bool AmbientOcclusionMapping = true;
 		bool NormalMapping = true;
@@ -222,8 +221,6 @@ namespace Comfy::Graphics
 
 	struct RenderData
 	{
-		// TODO: Non multisample copies of MainRenderTargets for both screen texture rendering and post processing (?)
-
 		MainRenderData Main;
 		ShadowMappingRenderData Shadow;
 		ScreenReflectionRenderData Reflection;
@@ -233,38 +230,33 @@ namespace Comfy::Graphics
 		OutputRenderData Output;
 	};
 
-	// TODO: Separate Viewport specific data from scene state
-	class SceneContext
+	struct SceneViewport
 	{
-	public:
-		RenderParameters RenderParameters;
+		PerspectiveCamera Camera;
+		RenderParameters Parameters;
+		RenderData Data;
+	};
 
-		struct Stageparameters
+	struct SceneParameters
+	{
+		struct LensFlareParameters
 		{
-			struct LensFlare
-			{
-				// NOTE: Lens flare sun position
-				std::optional<vec3> SunPosition;
+			// NOTE: Lens flare sun position
+			std::optional<vec3> SunPosition;
 
-				struct Textures
-				{
-					// NOTE: Common sun texture from effcmn
-					Cached_TxpID Sun;
-					// NOTE: Stage specific textures
-					std::array<Cached_TxpID, 2> Flares;
-					Cached_TxpID Ghost;
-				} Textures;
-				
-			} LensFlare;
-		} Stage;
+			struct Textures
+			{
+				// NOTE: Common sun texture from effcmn
+				Cached_TxpID Sun = TxpID::Invalid;
+				// NOTE: Stage specific textures
+				std::array<Cached_TxpID, 2> Flares = { TxpID::Invalid, TxpID::Invalid };
+				Cached_TxpID Ghost = TxpID::Invalid;
+			} Textures;
+		} LensFlare;
 
 		FogParameter Fog;
 		GlowParameter Glow;
 		LightParameter Light;
 		LightDataIBL IBL;
-
-		PerspectiveCamera Camera;
-
-		RenderData RenderData;
 	};
 }

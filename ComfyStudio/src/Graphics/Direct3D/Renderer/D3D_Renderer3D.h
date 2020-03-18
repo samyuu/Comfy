@@ -67,7 +67,7 @@ namespace Comfy::Graphics
 		~D3D_Renderer3D() = default;
 
 	public:
-		void Begin(SceneContext& scene);
+		void Begin(SceneViewport& viewport, const SceneParameters& scene);
 		void Draw(const RenderCommand& command);
 		void End();
 
@@ -75,7 +75,6 @@ namespace Comfy::Graphics
 		void UpdateIsAnyCommandFlags(const RenderCommand& command);
 
 	public:
-		const SceneContext* GetSceneContext() const;
 		const Txp* GetTxpFromTextureID(const Cached_TxpID* textureID) const;
 
 	private:
@@ -122,6 +121,8 @@ namespace Comfy::Graphics
 
 		void InternalPrepareRenderCommands(RenderPassCommandLists& commandList);
 		void InternalRenderScene();
+		void InternalSetUploadSceneCB();
+		void InternalBindSceneTextures();
 
 		void InternalPreRenderShadowMap();
 		void InternalPreRenderReduceFilterShadowMap();
@@ -134,16 +135,16 @@ namespace Comfy::Graphics
 		// TODO: Add wrapper function to loop over commnad list and add opaque and transparent to RenderFlags
 		void InternalRenderOpaqueObjCommand(ObjRenderCommand& command, RenderFlags flags = RenderFlags_None);
 		void InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command);
-		
+
 		void InternalRenderSilhouette();
 		void InternalRenderSilhouetteOutlineOverlay();
-		
+
 		void InternalQueryRenderLensFlare();
 		void InternalRenderLensFlare();
 
 		void InternalRenderPostProcessing();
 		void InternalRenderBloom();
-		
+
 		void InternalRenderExposurePreBloom();
 		void InternalRenderExposurePostBloom();
 
@@ -229,7 +230,7 @@ namespace Comfy::Graphics
 
 		UniquePtr<D3D_InputLayout> genericInputLayout = nullptr;
 		UniquePtr<D3D_InputLayout> shadowSilhouetteInputLayout = nullptr;
-		
+
 		D3D_OcclusionQuery sunOcclusionQuery = { "Renderer3D::SunOcclusionQuery" };
 
 		D3D_RasterizerState solidBackfaceCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_BACK, "Renderer3D::SolidBackfaceCulling" };
@@ -265,9 +266,11 @@ namespace Comfy::Graphics
 
 		ToneMapData toneMapData;
 
-		SceneContext* sceneContext = nullptr;
-		RenderParameters* renderParameters = nullptr;
-		RenderData* renderData = nullptr;
+		struct BeginEndData
+		{
+			SceneViewport* Viewport;
+			const SceneParameters* Scene;
+		} current = {};
 
 		TxpGetterFunction txpGetter = nullptr;
 	};

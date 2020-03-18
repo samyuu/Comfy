@@ -61,8 +61,8 @@ namespace Comfy::Editor
 		}
 	}
 
-	SceneRenderWindow::SceneRenderWindow(SceneGraph& sceneGraph, SceneContext& context, CameraController3D& cameraController, D3D_Renderer3D& renderer3D)
-		: sceneGraph(&sceneGraph), context(&context), cameraController(&cameraController), renderer3D(&renderer3D)
+	SceneRenderWindow::SceneRenderWindow(SceneGraph& sceneGraph, SceneViewport& viewport, SceneParameters& scene, CameraController3D& cameraController, D3D_Renderer3D& renderer3D)
+		: sceneGraph(&sceneGraph), viewport(&viewport), scene(&scene), cameraController(&cameraController), renderer3D(&renderer3D)
 	{
 	}
 
@@ -81,18 +81,18 @@ namespace Comfy::Editor
 			const vec2 textOffset = vec2(1.0f, indicatorSize * 0.85f);
 			const vec2 indicatorCenter = GetRenderRegion().GetTR() + vec2(-(indicatorSize + indicatorPadding), +(indicatorSize + indicatorPadding));
 
-			DrawCameraAxisIndicationGui(Gui::GetWindowDrawList(), context->Camera, indicatorCenter, indicatorSize, indicatorPadding, textOffset);
+			DrawCameraAxisIndicationGui(Gui::GetWindowDrawList(), viewport->Camera, indicatorCenter, indicatorSize, indicatorPadding, textOffset);
 		}
 	}
 
 	void SceneRenderWindow::RenderScene()
 	{
-		cameraController->Update(context->Camera);
+		cameraController->Update(viewport->Camera);
 
 		// context->RenderParameters.ClearColor = GetColorVec4(EditorColor_BaseClear);
 
-		context->Camera.UpdateMatrices();
-		renderer3D->Begin(*context);
+		viewport->Camera.UpdateMatrices();
+		renderer3D->Begin(*viewport, *scene);
 		{
 			auto isAnyReflection = std::any_of(sceneGraph->Entities.begin(), sceneGraph->Entities.end(), [](auto& e) { return e->IsReflection; });
 
@@ -137,7 +137,7 @@ namespace Comfy::Editor
 			}
 
 			if (cameraController->Visualization.VisualizeInterest && cameraController->Visualization.InterestSphereObj != nullptr)
-				renderer3D->Draw(RenderCommand(*cameraController->Visualization.InterestSphereObj, context->Camera.Interest));
+				renderer3D->Draw(RenderCommand(*cameraController->Visualization.InterestSphereObj, viewport->Camera.Interest));
 		}
 		renderer3D->End();
 	}
@@ -152,8 +152,8 @@ namespace Comfy::Editor
 
 			if (Gui::IsMouseDown(1))
 			{
-				const vec3 ray = context->Camera.CalculateRayDirection(GetRelativeMouse() / GetRenderRegion().GetSize());
-				const vec3 viewPoint = context->Camera.ViewPoint;
+				const vec3 ray = viewport->Camera.CalculateRayDirection(GetRelativeMouse() / GetRenderRegion().GetSize());
+				const vec3 viewPoint = viewport->Camera.ViewPoint;
 
 				float closestDistance = 0.0f;
 				ObjectEntity* closestEntity = nullptr;
@@ -204,13 +204,13 @@ namespace Comfy::Editor
 		RenderWindowBase::OnResize(size);
 
 		vec2 renderRegionSize = GetRenderRegion().GetSize();
-		context->Camera.AspectRatio = renderRegionSize.x / renderRegionSize.y;
+		viewport->Camera.AspectRatio = renderRegionSize.x / renderRegionSize.y;
 
-		context->RenderParameters.RenderResolution = renderRegionSize;
+		viewport->Parameters.RenderResolution = renderRegionSize;
 	}
 
-	Graphics::D3D_RenderTarget* SceneRenderWindow::GetExternalRenderTarget()
+	D3D_RenderTarget* SceneRenderWindow::GetExternalRenderTarget()
 	{
-		return (context == nullptr) ? nullptr : &context->RenderData.Output.RenderTarget;
+		return (viewport == nullptr) ? nullptr : &viewport->Data.Output.RenderTarget;
 	}
 }

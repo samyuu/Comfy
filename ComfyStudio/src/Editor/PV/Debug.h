@@ -97,25 +97,25 @@ namespace Comfy::Debug
 		return true;
 	}
 
-	void LoadStageLightParamFiles(Graphics::SceneContext& context, Editor::StageType stageType, int stageID, int stageSubID = 0)
+	void LoadStageLightParamFiles(Graphics::SceneParameters& scene, Editor::StageType stageType, int stageID, int stageSubID = 0)
 	{
 		auto pathBuffer = GetDebugFilePath(PathType::Fog, stageType, stageID, stageSubID);
-		LoadParseUploadLightParamFile(pathBuffer.data(), context.Fog);
+		LoadParseUploadLightParamFile(pathBuffer.data(), scene.Fog);
 
 		pathBuffer = GetDebugFilePath(PathType::Glow, stageType, stageID, stageSubID);
-		LoadParseUploadLightParamFile(pathBuffer.data(), context.Glow);
+		LoadParseUploadLightParamFile(pathBuffer.data(), scene.Glow);
 
 		bool lightFallbackUsed, iblFallbackUsed;
 		pathBuffer = GetDebugFilePath(PathType::Light, stageType, stageID, stageSubID, nullptr, &lightFallbackUsed);
-		LoadParseUploadLightParamFile(pathBuffer.data(), context.Light);
+		LoadParseUploadLightParamFile(pathBuffer.data(), scene.Light);
 
 		pathBuffer = GetDebugFilePath(PathType::IBL, stageType, stageID, stageSubID, nullptr, &iblFallbackUsed);
-		LoadParseUploadLightParamFile(pathBuffer.data(), context.IBL);
+		LoadParseUploadLightParamFile(pathBuffer.data(), scene.IBL);
 
 		if (lightFallbackUsed && !iblFallbackUsed)
 		{
-			context.Light.Character.Position = context.IBL.Character.LightDirection;
-			context.Light.Stage.Position = context.IBL.Stage.LightDirection;
+			scene.Light.Character.Position = scene.IBL.Character.LightDirection;
+			scene.Light.Stage.Position = scene.IBL.Stage.LightDirection;
 		}
 	}
 

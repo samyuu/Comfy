@@ -5,17 +5,20 @@ namespace Comfy::Graphics
 {
 	struct ToneMapData
 	{
-		GlowParameter Glow;
-
-		std::array<vec2, 512> TextureData;
-		UniquePtr<D3D_Texture1D> LookupTexture = nullptr;
-
 	public:
-		bool NeedsUpdating(const SceneContext* sceneContext);
-		void Update();
+		bool NeedsUpdating(const GlowParameter& glow);
+		void Update(const GlowParameter& glow);
+
+		D3D_Texture1D* GetLookupTexture();
 
 	private:
-		void GenerateLookupData();
+		void GenerateLookupData(const GlowParameter& glow);
 		void UpdateTexture();
+
+	private:
+		GlowParameter lastSetGlow;
+
+		std::array<vec2, 512> textureData;
+		UniquePtr<D3D_Texture1D> lookupTexture = nullptr;
 	};
 }

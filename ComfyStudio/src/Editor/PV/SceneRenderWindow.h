@@ -9,7 +9,7 @@ namespace Comfy::Editor
 	class SceneRenderWindow : public RenderWindowBase
 	{
 	public:
-		SceneRenderWindow(SceneGraph& sceneGraph, Graphics::SceneContext& context, CameraController3D& cameraController, Graphics::D3D_Renderer3D& renderer3D);
+		SceneRenderWindow(SceneGraph& sceneGraph, Graphics::SceneViewport& viewport, Graphics::SceneParameters& scene, CameraController3D& cameraController, Graphics::D3D_Renderer3D& renderer3D);
 		~SceneRenderWindow() = default;
 
 	public:
@@ -32,7 +32,9 @@ namespace Comfy::Editor
 		
 		SceneGraph* sceneGraph;
 
-		Graphics::SceneContext* context = nullptr;
+		Graphics::SceneViewport* viewport = nullptr;
+		Graphics::SceneParameters* scene = nullptr;
+
 		CameraController3D* cameraController = nullptr;
 
 		Graphics::D3D_Renderer3D* renderer3D = nullptr;

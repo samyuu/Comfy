@@ -66,7 +66,9 @@ namespace Comfy::Editor
 	private:
 		SceneGraph sceneGraph;
 
-		Graphics::SceneContext context;
+		Graphics::SceneViewport viewport;
+		Graphics::SceneParameters scene;
+
 		CameraController3D cameraController;
 		
 		UniquePtr<Graphics::D3D_Renderer3D> renderer3D = nullptr;

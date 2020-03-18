@@ -31,17 +31,17 @@ namespace Comfy::Editor
 		auto txpGetter = [&](const Cached_TxpID* txpID) { return sceneGraph.TxpIDMap.Find(txpID); };
 		renderer3D = MakeUnique<D3D_Renderer3D>(txpGetter);
 
-		renderWindow = MakeUnique<SceneRenderWindow>(sceneGraph, context, cameraController, *renderer3D);
+		renderWindow = MakeUnique<SceneRenderWindow>(sceneGraph, viewport, scene, cameraController, *renderer3D);
 	}
 
 	void SceneEditor::Initialize()
 	{
 		renderWindow->Initialize();
 
-		context.Camera.FieldOfView = 90.0f;
+		viewport.Camera.FieldOfView = 90.0f;
 
-		context.Camera.ViewPoint = vec3(0.0f, 1.1f, 1.5f);
-		context.Camera.Interest = vec3(0.0f, 1.0f, 0.0f);
+		viewport.Camera.ViewPoint = vec3(0.0f, 1.1f, 1.5f);
+		viewport.Camera.Interest = vec3(0.0f, 1.0f, 0.0f);
 
 		cameraController.FirstPersonData.TargetPitch = -11.0f;
 		cameraController.FirstPersonData.TargetYaw = -90.000f;
@@ -196,7 +196,7 @@ namespace Comfy::Editor
 	bool SceneEditor::LoadStageObjects(StageType type, int id, int subID, bool loadLightParam)
 	{
 		if (loadLightParam)
-			Debug::LoadStageLightParamFiles(context, type, id, subID);
+			Debug::LoadStageLightParamFiles(scene, type, id, subID);
 
 		auto objPath = Debug::GetDebugFilePath(Debug::PathType::StageObj, type, id, subID);
 		auto txpPath = Debug::GetDebugFilePath(Debug::PathType::StageTxp, type, id, subID);
@@ -282,7 +282,7 @@ namespace Comfy::Editor
 
 	void SceneEditor::DrawCameraGui()
 	{
-		auto& camera = context.Camera;
+		auto& camera = viewport.Camera;
 
 		GuiPropertyRAII::PropertyValueColumns columns;
 		GuiPropertyRAII::ID id(&camera);
@@ -303,7 +303,7 @@ namespace Comfy::Editor
 				cameraController.Mode = CameraController3D::ControlMode::Orbit;
 				cameraController.OrbitData.Distance = 5.0f;
 				cameraController.OrbitData.TargetRotation = vec3(0.0f);
-				context.Camera.FieldOfView = 90.0f;
+				camera.FieldOfView = 90.0f;
 			}
 			if (Gui::MenuItem("None Default"))
 			{
@@ -367,7 +367,7 @@ namespace Comfy::Editor
 
 	void SceneEditor::DrawRenderingGui()
 	{
-		auto& renderParameters = context.RenderParameters;
+		auto& renderParameters = viewport.Parameters;
 		GuiPropertyRAII::ID id(&renderParameters);
 
 		TakeScreenshotGui();
@@ -512,7 +512,7 @@ namespace Comfy::Editor
 				}
 			};
 
-			auto& renderData = context.RenderData;
+			auto& renderData = viewport.Data;
 			int index = 0;
 
 			renderTargetGui("Main Current", renderData.Main.CurrentOrResolved(), index++);
@@ -553,36 +553,36 @@ namespace Comfy::Editor
 
 	void SceneEditor::DrawFogGui()
 	{
-		GuiPropertyRAII::ID id(&context.Fog);
+		GuiPropertyRAII::ID id(&scene.Fog);
 		GuiPropertyRAII::PropertyValueColumns columns;
 
 		if (GuiProperty::Input("Load Fog File", fogPathBuffer.data(), fogPathBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
-			Debug::LoadParseUploadLightParamFile(fogPathBuffer.data(), context.Glow);
+			Debug::LoadParseUploadLightParamFile(fogPathBuffer.data(), scene.Glow);
 
 		GuiProperty::TreeNode("Depth", ImGuiTreeNodeFlags_DefaultOpen, [&]
 		{
-			GuiProperty::Input("Density", context.Fog.Depth.Density, 0.005f, vec2(0.0f, 1.0f));
-			GuiProperty::Input("Start", context.Fog.Depth.Start, 0.1f, vec2(-100.0f, 1000.0f));
-			GuiProperty::Input("End", context.Fog.Depth.End, 0.1f, vec2(-100.0f, 1000.0f));
-			GuiProperty::ColorEditHDR("Color", context.Fog.Depth.Color, ImGuiColorEditFlags_Float);
+			GuiProperty::Input("Density", scene.Fog.Depth.Density, 0.005f, vec2(0.0f, 1.0f));
+			GuiProperty::Input("Start", scene.Fog.Depth.Start, 0.1f, vec2(-100.0f, 1000.0f));
+			GuiProperty::Input("End", scene.Fog.Depth.End, 0.1f, vec2(-100.0f, 1000.0f));
+			GuiProperty::ColorEditHDR("Color", scene.Fog.Depth.Color, ImGuiColorEditFlags_Float);
 		});
 	}
 
 	void SceneEditor::DrawPostProcessingGui()
 	{
-		GuiPropertyRAII::ID id(&context.Glow);
+		GuiPropertyRAII::ID id(&scene.Glow);
 		GuiPropertyRAII::PropertyValueColumns columns;
 
 		if (GuiProperty::Input("Load Glow File", glowPathBuffer.data(), glowPathBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
-			Debug::LoadParseUploadLightParamFile(glowPathBuffer.data(), context.Glow);
+			Debug::LoadParseUploadLightParamFile(glowPathBuffer.data(), scene.Glow);
 
-		GuiProperty::Input("Exposure", context.Glow.Exposure, 0.005f, vec2(0.0f, 4.0f));
-		GuiProperty::Input("Gamma", context.Glow.Gamma, 0.005f, vec2(0.2f, 2.2f));
-		GuiProperty::Input("Saturate Power", context.Glow.SaturatePower, 0.1f, ivec2(1, 6));
-		GuiProperty::Input("Saturate Coefficient", context.Glow.SaturateCoefficient, 0.005f, vec2(0.0f, 1.0f));
-		GuiProperty::Input("Bloom Sigma", context.Glow.Sigma, 0.005f, vec2(0.0f, 3.0f));
-		GuiProperty::Input("Bloom Intensity", context.Glow.Intensity, 0.005f, vec2(0.0f, 2.0f));
-		GuiProperty::Checkbox("Auto Exposure", context.Glow.AutoExposure);
+		GuiProperty::Input("Exposure", scene.Glow.Exposure, 0.005f, vec2(0.0f, 4.0f));
+		GuiProperty::Input("Gamma", scene.Glow.Gamma, 0.005f, vec2(0.2f, 2.2f));
+		GuiProperty::Input("Saturate Power", scene.Glow.SaturatePower, 0.1f, ivec2(1, 6));
+		GuiProperty::Input("Saturate Coefficient", scene.Glow.SaturateCoefficient, 0.005f, vec2(0.0f, 1.0f));
+		GuiProperty::Input("Bloom Sigma", scene.Glow.Sigma, 0.005f, vec2(0.0f, 3.0f));
+		GuiProperty::Input("Bloom Intensity", scene.Glow.Intensity, 0.005f, vec2(0.0f, 2.0f));
+		GuiProperty::Checkbox("Auto Exposure", scene.Glow.AutoExposure);
 	}
 
 	void SceneEditor::DrawLightGui()
@@ -600,14 +600,14 @@ namespace Comfy::Editor
 			});
 		};
 
-		GuiPropertyRAII::ID id(&context.Light);
+		GuiPropertyRAII::ID id(&scene.Light);
 		GuiPropertyRAII::PropertyValueColumns columns;
 
 		if (GuiProperty::Input("Load Light File", lightPathBuffer.data(), lightPathBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
-			Debug::LoadParseUploadLightParamFile(lightPathBuffer.data(), context.Light);
+			Debug::LoadParseUploadLightParamFile(lightPathBuffer.data(), scene.Light);
 
-		lightGui("Character Light", context.Light.Character, ImGuiTreeNodeFlags_DefaultOpen);
-		lightGui("Stage Light", context.Light.Stage, ImGuiTreeNodeFlags_DefaultOpen);
+		lightGui("Character Light", scene.Light.Character, ImGuiTreeNodeFlags_DefaultOpen);
+		lightGui("Stage Light", scene.Light.Stage, ImGuiTreeNodeFlags_DefaultOpen);
 	}
 
 	void SceneEditor::DrawIBLGui()
@@ -622,22 +622,22 @@ namespace Comfy::Editor
 			});
 		};
 
-		GuiPropertyRAII::ID id(&context.IBL);
+		GuiPropertyRAII::ID id(&scene.IBL);
 		GuiPropertyRAII::PropertyValueColumns columns;
 
 		if (GuiProperty::Input("Load IBL File", iblPathBuffer.data(), iblPathBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
-			Debug::LoadParseUploadLightParamFile(iblPathBuffer.data(), context.IBL);
+			Debug::LoadParseUploadLightParamFile(iblPathBuffer.data(), scene.IBL);
 
-		iblLightDataGui("Character", context.IBL.Character, ImGuiTreeNodeFlags_DefaultOpen);
-		iblLightDataGui("Stage", context.IBL.Stage, ImGuiTreeNodeFlags_DefaultOpen);
-		iblLightDataGui("Sun", context.IBL.Sun, ImGuiTreeNodeFlags_DefaultOpen);
+		iblLightDataGui("Character", scene.IBL.Character, ImGuiTreeNodeFlags_DefaultOpen);
+		iblLightDataGui("Stage", scene.IBL.Stage, ImGuiTreeNodeFlags_DefaultOpen);
+		iblLightDataGui("Sun", scene.IBL.Sun, ImGuiTreeNodeFlags_DefaultOpen);
 
 		GuiProperty::TreeNode("Light Maps", ImGuiTreeNodeFlags_DefaultOpen, [&]
 		{
 			char nameBuffer[32];
-			for (size_t i = 0; i < context.IBL.LightMaps.size(); i++)
+			for (size_t i = 0; i < scene.IBL.LightMaps.size(); i++)
 			{
-				const auto& lightMap = context.IBL.LightMaps[i];
+				const auto& lightMap = scene.IBL.LightMaps[i];
 				sprintf_s(nameBuffer, "Light Maps[%zu]", i);
 
 				GuiPropertyRAII::ID id(&lightMap);
@@ -664,7 +664,7 @@ namespace Comfy::Editor
 		{
 			const Sphere transformedSphere = boundingSphere * entity->Transform;
 
-			context.Camera.Interest = context.Camera.ViewPoint = transformedSphere.Center;
+			viewport.Camera.Interest = viewport.Camera.ViewPoint = transformedSphere.Center;
 			cameraController.OrbitData.Distance = transformedSphere.Radius;
 
 			inspector.EntityIndex = static_cast<int>(std::distance(&sceneGraph.Entities.front(), &entity));
@@ -838,7 +838,7 @@ namespace Comfy::Editor
 				}
 				else if (stageTestData.Settings.LoadLightParam)
 				{
-					Debug::LoadStageLightParamFiles(context, stageTypeData.Type, stageTypeData.ID, stageTypeData.SubID);
+					Debug::LoadStageLightParamFiles(scene, stageTypeData.Type, stageTypeData.ID, stageTypeData.SubID);
 				}
 
 				stageTestData.lastSetStage.emplace(stageTypeData);
@@ -1079,52 +1079,52 @@ namespace Comfy::Editor
 		if (externalProcessTest.SyncReadCamera && tryAttach())
 		{
 			const auto cameraData = externalProcessTest.ExternalProcess.ReadCamera();
-			context.Camera.ViewPoint = cameraData.ViewPoint;
-			context.Camera.Interest = cameraData.Interest;
-			context.Camera.FieldOfView = cameraData.FieldOfView;
+			viewport.Camera.ViewPoint = cameraData.ViewPoint;
+			viewport.Camera.Interest = cameraData.Interest;
+			viewport.Camera.FieldOfView = cameraData.FieldOfView;
 		}
 		else if (externalProcessTest.SyncWriteCamera && tryAttach())
 		{
-			externalProcessTest.ExternalProcess.WriteCamera({ context.Camera.ViewPoint, context.Camera.Interest, 0.0f, context.Camera.FieldOfView });
+			externalProcessTest.ExternalProcess.WriteCamera({ viewport.Camera.ViewPoint, viewport.Camera.Interest, 0.0f, viewport.Camera.FieldOfView });
 		}
 
 		if (externalProcessTest.SyncReadLightParam && tryAttach())
 		{
 			const auto lightData = externalProcessTest.ExternalProcess.ReadLightParam();
 
-			context.Light.Character.Ambient = lightData.Character.Ambient;
-			context.Light.Character.Diffuse = lightData.Character.Diffuse;
-			context.Light.Character.Specular = lightData.Character.Specular;
-			context.Light.Character.Position = lightData.Character.Position;
+			scene.Light.Character.Ambient = lightData.Character.Ambient;
+			scene.Light.Character.Diffuse = lightData.Character.Diffuse;
+			scene.Light.Character.Specular = lightData.Character.Specular;
+			scene.Light.Character.Position = lightData.Character.Position;
 
-			context.Light.Stage.Ambient = lightData.Stage.Ambient;
-			context.Light.Stage.Diffuse = lightData.Stage.Diffuse;
-			context.Light.Stage.Specular = lightData.Stage.Specular;
-			context.Light.Stage.Position = lightData.Stage.Position;
+			scene.Light.Stage.Ambient = lightData.Stage.Ambient;
+			scene.Light.Stage.Diffuse = lightData.Stage.Diffuse;
+			scene.Light.Stage.Specular = lightData.Stage.Specular;
+			scene.Light.Stage.Position = lightData.Stage.Position;
 
-			context.IBL.Character.LightColor = lightData.IBLCharacter.Color;
-			context.IBL.Character.IrradianceRGB = lightData.IBLCharacter.Matrices;
-			context.IBL.Stage.LightColor = lightData.IBLStage.Color;
-			context.IBL.Stage.IrradianceRGB = lightData.IBLStage.Matrices;
+			scene.IBL.Character.LightColor = lightData.IBLCharacter.Color;
+			scene.IBL.Character.IrradianceRGB = lightData.IBLCharacter.Matrices;
+			scene.IBL.Stage.LightColor = lightData.IBLStage.Color;
+			scene.IBL.Stage.IrradianceRGB = lightData.IBLStage.Matrices;
 		}
 		else if (externalProcessTest.SyncWriteLightParam && tryAttach())
 		{
 			externalProcessTest.ExternalProcess.WriteLightParam(
 				{
-					vec4(context.Light.Character.Ambient, 1.0f),
-					vec4(context.Light.Character.Diffuse, 1.0f),
-					vec4(context.Light.Character.Specular, 1.0f),
-					context.Light.Character.Position,
+					vec4(scene.Light.Character.Ambient, 1.0f),
+					vec4(scene.Light.Character.Diffuse, 1.0f),
+					vec4(scene.Light.Character.Specular, 1.0f),
+					scene.Light.Character.Position,
 
-					vec4(context.Light.Stage.Ambient, 1.0f),
-					vec4(context.Light.Stage.Diffuse, 1.0f),
-					vec4(context.Light.Stage.Specular, 1.0f),
-					context.Light.Stage.Position,
+					vec4(scene.Light.Stage.Ambient, 1.0f),
+					vec4(scene.Light.Stage.Diffuse, 1.0f),
+					vec4(scene.Light.Stage.Specular, 1.0f),
+					scene.Light.Stage.Position,
 
-					context.IBL.Character.LightColor,
-					context.IBL.Character.IrradianceRGB,
-					context.IBL.Stage.LightColor,
-					context.IBL.Stage.IrradianceRGB,
+					scene.IBL.Character.LightColor,
+					scene.IBL.Character.IrradianceRGB,
+					scene.IBL.Stage.LightColor,
+					scene.IBL.Stage.IrradianceRGB,
 				});
 		}
 	}
@@ -1264,7 +1264,7 @@ namespace Comfy::Editor
 			};
 
 			// TODO: Optimize and refactor into its own A3DSceneManager (?) class
-			auto applyA3D = [](auto& a3d, frame_t frame, auto& sceneGraph, auto& context)
+			auto applyA3D = [](auto& a3d, frame_t frame, auto& sceneGraph, auto& scene, auto& camera)
 			{
 				for (auto& object : a3d.Objects)
 				{
@@ -1384,9 +1384,9 @@ namespace Comfy::Editor
 
 				for (auto& a3dCamera : a3d.CameraRoot)
 				{
-					context.Camera.ViewPoint = A3DMgr::GetValueAt(a3dCamera.ViewPoint.Transform.Translation, frame);
-					context.Camera.Interest = A3DMgr::GetValueAt(a3dCamera.Interest.Translation, frame);
-					context.Camera.FieldOfView = A3DMgr::GetFieldOfViewAt(a3dCamera.ViewPoint, frame);
+					camera.ViewPoint = A3DMgr::GetValueAt(a3dCamera.ViewPoint.Transform.Translation, frame);
+					camera.Interest = A3DMgr::GetValueAt(a3dCamera.Interest.Translation, frame);
+					camera.FieldOfView = A3DMgr::GetFieldOfViewAt(a3dCamera.ViewPoint, frame);
 				}
 			};
 
@@ -1467,12 +1467,12 @@ namespace Comfy::Editor
 			}
 
 			if (debug.ApplyStageAuth)
-				iterateA3Ds(debug.StageEffA3Ds, debug.StageEffIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, context); });
+				iterateA3Ds(debug.StageEffA3Ds, debug.StageEffIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, scene, viewport.Camera); });
 
 			if (cameraController.Mode == CameraController3D::ControlMode::None)
-				iterateA3Ds(debug.CamPVA3Ds, debug.CamPVIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, context); });
+				iterateA3Ds(debug.CamPVA3Ds, debug.CamPVIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, scene, viewport.Camera); });
 
-			if (Gui::Button("Camera Mode Orbit")) { context.Camera.FieldOfView = 90.0f; cameraController.Mode = CameraController3D::ControlMode::Orbit; }
+			if (Gui::Button("Camera Mode Orbit")) { viewport.Camera.FieldOfView = 90.0f; cameraController.Mode = CameraController3D::ControlMode::Orbit; }
 			Gui::SameLine();
 			if (Gui::Button("Camera Mode None")) { cameraController.Mode = CameraController3D::ControlMode::None; }
 
@@ -1516,7 +1516,7 @@ namespace Comfy::Editor
 		if (isScreenshotSaving)
 			Gui::PushStyleColor(ImGuiCol_Text, loadingColor);
 		if (Gui::Button("Take Screenshot", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
-			TakeSceneRenderTargetScreenshot(context.RenderData.Output.RenderTarget);
+			TakeSceneRenderTargetScreenshot(viewport.Data.Output.RenderTarget);
 		if (isScreenshotSaving)
 			Gui::PopStyleColor(1);
 		Gui::ItemContextMenu("TakeScreenshotContextMenu", [&]
@@ -1544,7 +1544,7 @@ namespace Comfy::Editor
 
 			if (Gui::Button("Render!", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
 			{
-				auto& renderTarget = context.RenderData.Output.RenderTarget;
+				auto& renderTarget = viewport.Data.Output.RenderTarget;
 
 				data.Futures.clear();
 				data.Futures.reserve(data.FramesToRender);
@@ -1553,7 +1553,7 @@ namespace Comfy::Editor
 				{
 					cameraController.Mode = CameraController3D::ControlMode::Orbit;
 					cameraController.OrbitData.TargetRotation.x = static_cast<float>(i) * data.RotationXStep;
-					cameraController.Update(context.Camera);
+					cameraController.Update(viewport.Camera);
 
 					renderWindow->RenderScene();
 
