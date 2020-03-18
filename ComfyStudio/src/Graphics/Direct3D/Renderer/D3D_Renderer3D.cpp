@@ -1308,160 +1308,28 @@ namespace Comfy::Graphics
 
 	void D3D_Renderer3D::PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, RenderFlags flags)
 	{
-		const RenderCommand& sourceCommand = command.SourceCommand;
-
-		if (!(flags & RenderFlags_NoMaterialShader))
-		{
-			auto& materialShader = (flags & RenderFlags_SSSPass) ? GetSSSMaterialShader(material) : GetMaterialShader(command, mesh, subMesh, material);
-			materialShader.Bind();
-		}
-
 		if (flags & RenderFlags_SilhouetteOutlinePass)
 		{
-			if (sourceCommand.Flags.SilhouetteOutline)
+			if (command.SourceCommand.Flags.SilhouetteOutline)
 				shaders.SolidWhite.Bind();
 			else
 				shaders.SolidBlack.Bind();
+		}
+		else if (!(flags & RenderFlags_NoMaterialShader))
+		{
+			((flags & RenderFlags_SSSPass) ? GetSSSMaterialShader(material) : GetMaterialShader(command, mesh, subMesh, material)).Bind();
 		}
 
 		const uint32_t boundMaterialTexturesFlags = (flags & RenderFlags_NoMaterialTextures) ? 0 : BindMaterialTextures(command, material, flags);
 
 		if (!current.Viewport->Parameters.Wireframe && !(flags & RenderFlags_NoRasterizerState))
-		{
-			if (material.BlendFlags.DoubleSided)
-				solidNoCullingRasterizerState.Bind();
-			else
-				solidBackfaceCullingRasterizerState.Bind();
-		}
+			SetSubMeshRasterizerState(material);
 
-		const float fresnel = (((material.ShaderFlags.Fresnel == 0) ? 7.0f : static_cast<float>(material.ShaderFlags.Fresnel) - 1.0f) * 0.12f) * 0.82f;
-		const float lineLight = material.ShaderFlags.LineLight * 0.111f;
-		objectCB.Data.Material.FresnelCoefficients = vec4(fresnel, 0.18f, lineLight, 0.0f);
-		objectCB.Data.Material.Diffuse = material.Color.Diffuse;
-		objectCB.Data.Material.Transparency = material.Color.Transparency;
-		objectCB.Data.Material.Ambient = material.Color.Ambient;
-		objectCB.Data.Material.Specular = material.Color.Specular;
-		objectCB.Data.Material.Reflectivity = material.Color.Reflectivity;
-		objectCB.Data.Material.Emission = material.Color.Emission;
+		SetObjectCBMaterialData(material, objectCB.Data.Material);
+		SetObjectCBTransforms(command, mesh, subMesh, objectCB.Data);
 
-		objectCB.Data.Material.Shininess = vec2(
-			(material.Color.Shininess >= 0.0f ? material.Color.Shininess : 1.0f),
-			(material.ShaderType != Material::ShaderIdentifiers::EyeBall) ? ((material.Color.Shininess - 16.0f) / 112.0f) : 10.0f);
-
-		objectCB.Data.Material.Intensity = material.Color.Intensity;
-		objectCB.Data.Material.BumpDepth = material.BumpDepth;
-
-		const float morphWeight = (sourceCommand.Animation != nullptr) ? sourceCommand.Animation->MorphWeight : 0.0f;
-		objectCB.Data.MorphWeight = vec4(morphWeight, 1.0f - morphWeight, 0.0f, 0.0f);
-
-		mat4 modelMatrix;
-		if (mesh.Flags.FaceCameraPosition || mesh.Flags.FaceCameraView)
-		{
-			const auto& transform = sourceCommand.Transform;
-
-			// TODO: if (mesh.Flags.FaceCameraView)
-			const vec3 viewPoint = current.Viewport->Camera.ViewPoint;
-			const float cameraAngle = glm::atan(transform.Translation.x - viewPoint.x, transform.Translation.z - viewPoint.z);
-
-			modelMatrix = glm::rotate(command.ModelMatrix, cameraAngle - glm::pi<float>() - glm::radians(transform.Rotation.y), vec3(0.0f, 1.0f, 0.0f));
-		}
-		else
-		{
-			modelMatrix = command.ModelMatrix;
-		}
-
-		objectCB.Data.Model = glm::transpose(modelMatrix);
-
-#if 0 // TODO:
-		objectCB.Data.ModelView = glm::transpose(current.Viewport->Camera.GetView() * modelMatrix);
-		objectCB.Data.ModelViewProjection = glm::transpose(current.Viewport->Camera.GetViewProjection() * modelMatrix);
-#else
-		objectCB.Data.ModelView = glm::transpose(glm::transpose(sceneCB.Data.Scene.View) * modelMatrix);
-		objectCB.Data.ModelViewProjection = glm::transpose(glm::transpose(sceneCB.Data.Scene.ViewProjection) * modelMatrix);
-#endif
-
-		objectCB.Data.ShaderFlags = 0;
-
-		if (current.Viewport->Parameters.VertexColoring)
-		{
-			if (mesh.AttributeFlags & VertexAttributeFlags_Color0)
-				objectCB.Data.ShaderFlags |= ShaderFlags_VertexColor;
-		}
-
-		if (current.Viewport->Parameters.DiffuseMapping)
-		{
-			if (boundMaterialTexturesFlags & (1 << TextureSlot_Diffuse))
-				objectCB.Data.ShaderFlags |= ShaderFlags_DiffuseTexture;
-		}
-
-		if (current.Viewport->Parameters.AmbientOcclusionMapping)
-		{
-			if (boundMaterialTexturesFlags & (1 << TextureSlot_Ambient))
-				objectCB.Data.ShaderFlags |= ShaderFlags_AmbientTexture;
-		}
-
-		if (current.Viewport->Parameters.NormalMapping)
-		{
-			if (boundMaterialTexturesFlags & (1 << TextureSlot_Normal))
-				objectCB.Data.ShaderFlags |= ShaderFlags_NormalTexture;
-		}
-
-		if (current.Viewport->Parameters.SpecularMapping)
-		{
-			if (boundMaterialTexturesFlags & (1 << TextureSlot_Specular))
-				objectCB.Data.ShaderFlags |= ShaderFlags_SpecularTexture;
-		}
-
-		if (current.Viewport->Parameters.TransparencyMapping)
-		{
-			if (boundMaterialTexturesFlags & (1 << TextureSlot_Transparency))
-				objectCB.Data.ShaderFlags |= ShaderFlags_TransparencyTexture;
-		}
-
-		if (current.Viewport->Parameters.EnvironmentMapping)
-		{
-			if (boundMaterialTexturesFlags & (1 << TextureSlot_Environment))
-				objectCB.Data.ShaderFlags |= ShaderFlags_EnvironmentTexture;
-		}
-
-		if (current.Viewport->Parameters.TranslucencyMapping)
-		{
-			if (boundMaterialTexturesFlags & (1 << TextureSlot_Translucency))
-				objectCB.Data.ShaderFlags |= ShaderFlags_TranslucencyTexture;
-		}
-
-		if (current.Viewport->Parameters.RenderPunchThrough)
-		{
-			if (material.BlendFlags.AlphaTexture && !IsMeshTransparent(mesh, subMesh, material))
-				objectCB.Data.ShaderFlags |= ShaderFlags_PunchThrough;
-		}
-
-		if (current.Viewport->Parameters.RenderFog)
-		{
-			if (!material.BlendFlags.NoFog && current.Scene->Fog.Depth.Density > 0.0f)
-				objectCB.Data.ShaderFlags |= ShaderFlags_LinearFog;
-		}
-
-		if (current.Viewport->Parameters.ObjectMorphing)
-		{
-			if (sourceCommand.SourceMorphObj != nullptr)
-			{
-				objectCB.Data.ShaderFlags |= ShaderFlags_Morph;
-				objectCB.Data.ShaderFlags |= ShaderFlags_MorphColor;
-			}
-		}
-
-		if (current.Viewport->Parameters.ShadowMapping && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
-		{
-			if (ReceivesShadows(sourceCommand, mesh, subMesh))
-				objectCB.Data.ShaderFlags |= ShaderFlags_Shadow;
-		}
-
-		if (current.Viewport->Parameters.ShadowMapping && current.Viewport->Parameters.SelfShadowing && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
-		{
-			if (ReceivesSelfShadow(sourceCommand, mesh, subMesh))
-				objectCB.Data.ShaderFlags |= ShaderFlags_SelfShadow;
-		}
+		objectCB.Data.MorphWeight = GetObjectCBMorphWeight(command);
+		objectCB.Data.ShaderFlags = GetObjectCBShaderFlags(command, mesh, subMesh, material, boundMaterialTexturesFlags);
 
 		objectCB.UploadData();
 
@@ -1644,6 +1512,169 @@ namespace Comfy::Graphics
 			assert(false);
 			return false;
 		}
+	}
+
+	void D3D_Renderer3D::SetSubMeshRasterizerState(const Material& material)
+	{
+		if (material.BlendFlags.DoubleSided)
+			solidNoCullingRasterizerState.Bind();
+		else
+			solidBackfaceCullingRasterizerState.Bind();
+	}
+
+	void D3D_Renderer3D::SetObjectCBMaterialData(const Material& material, ObjectConstantData::MaterialData& outMaterialData) const
+	{
+		const float fresnel = (((material.ShaderFlags.Fresnel == 0) ? 7.0f : static_cast<float>(material.ShaderFlags.Fresnel) - 1.0f) * 0.12f) * 0.82f;
+		const float lineLight = material.ShaderFlags.LineLight * 0.111f;
+		outMaterialData.FresnelCoefficients = vec4(fresnel, 0.18f, lineLight, 0.0f);
+
+		outMaterialData.Diffuse = material.Color.Diffuse;
+		outMaterialData.Transparency = material.Color.Transparency;
+		outMaterialData.Ambient = material.Color.Ambient;
+		outMaterialData.Specular = material.Color.Specular;
+		outMaterialData.Reflectivity = material.Color.Reflectivity;
+		outMaterialData.Emission = material.Color.Emission;
+
+		outMaterialData.Shininess = vec2(
+			(material.Color.Shininess >= 0.0f ? material.Color.Shininess : 1.0f),
+			(material.ShaderType != Material::ShaderIdentifiers::EyeBall) ? ((material.Color.Shininess - 16.0f) / 112.0f) : 10.0f);
+
+		outMaterialData.Intensity = material.Color.Intensity;
+		outMaterialData.BumpDepth = material.BumpDepth;
+	}
+
+	void D3D_Renderer3D::SetObjectCBTransforms(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, ObjectConstantData& outData) const
+	{
+		mat4 modelMatrix;
+		if (mesh.Flags.FaceCameraPosition || mesh.Flags.FaceCameraView)
+		{
+			const auto& transform = command.SourceCommand.Transform;
+
+			// TODO: if (mesh.Flags.FaceCameraView)
+			const vec3 viewPoint = current.Viewport->Camera.ViewPoint;
+			const float cameraAngle = glm::atan(transform.Translation.x - viewPoint.x, transform.Translation.z - viewPoint.z);
+
+			modelMatrix = glm::rotate(command.ModelMatrix, cameraAngle - glm::pi<float>() - glm::radians(transform.Rotation.y), vec3(0.0f, 1.0f, 0.0f));
+		}
+		else
+		{
+			modelMatrix = command.ModelMatrix;
+		}
+
+		outData.Model = glm::transpose(modelMatrix);
+
+#if 0 // TODO:
+		outData.ModelView = glm::transpose(current.Viewport->Camera.GetView() * modelMatrix);
+		outData.ModelViewProjection = glm::transpose(current.Viewport->Camera.GetViewProjection() * modelMatrix);
+#else
+		outData.ModelView = glm::transpose(glm::transpose(sceneCB.Data.Scene.View) * modelMatrix);
+		outData.ModelViewProjection = glm::transpose(glm::transpose(sceneCB.Data.Scene.ViewProjection) * modelMatrix);
+#endif
+	}
+
+	vec4 D3D_Renderer3D::GetObjectCBMorphWeight(const ObjRenderCommand& command) const
+	{
+		if (command.SourceCommand.Animation != nullptr)
+		{
+			const float morphWeight = command.SourceCommand.Animation->MorphWeight;
+			return vec4(morphWeight, 1.0f - morphWeight, 0.0f, 0.0f);
+		}
+		else
+		{
+			return vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		}
+	}
+
+	uint32_t D3D_Renderer3D::GetObjectCBShaderFlags(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, uint32_t boundMaterialTexturesFlags) const
+	{
+		uint32_t result = 0;
+
+		const bool hasVertexTangents = (mesh.AttributeFlags & VertexAttributeFlags_Tangent);
+		const bool hasVertexTexCoords0 = (mesh.AttributeFlags & VertexAttributeFlags_TextureCoordinate0);
+		const bool hasVertexTexCoords1 = (mesh.AttributeFlags & VertexAttributeFlags_TextureCoordinate1);
+
+		if (current.Viewport->Parameters.VertexColoring)
+		{
+			if (mesh.AttributeFlags & VertexAttributeFlags_Color0)
+				result |= ShaderFlags_VertexColor;
+		}
+
+		if (current.Viewport->Parameters.DiffuseMapping)
+		{
+			if (hasVertexTexCoords0 && (boundMaterialTexturesFlags & (1 << TextureSlot_Diffuse)))
+				result |= ShaderFlags_DiffuseTexture;
+		}
+
+		if (current.Viewport->Parameters.AmbientOcclusionMapping)
+		{
+			if (hasVertexTexCoords1 && (boundMaterialTexturesFlags & (1 << TextureSlot_Ambient)))
+				result |= ShaderFlags_AmbientTexture;
+		}
+
+		if (current.Viewport->Parameters.NormalMapping)
+		{
+			if (hasVertexTangents && (boundMaterialTexturesFlags & (1 << TextureSlot_Normal)))
+				result |= ShaderFlags_NormalTexture;
+		}
+
+		if (current.Viewport->Parameters.SpecularMapping)
+		{
+			if (hasVertexTexCoords0 && (boundMaterialTexturesFlags & (1 << TextureSlot_Specular)))
+				result |= ShaderFlags_SpecularTexture;
+		}
+
+		if (current.Viewport->Parameters.TransparencyMapping)
+		{
+			if (hasVertexTexCoords0 && (boundMaterialTexturesFlags & (1 << TextureSlot_Transparency)))
+				result |= ShaderFlags_TransparencyTexture;
+		}
+
+		if (current.Viewport->Parameters.EnvironmentMapping)
+		{
+			if (boundMaterialTexturesFlags & (1 << TextureSlot_Environment))
+				result |= ShaderFlags_EnvironmentTexture;
+		}
+
+		if (current.Viewport->Parameters.TranslucencyMapping)
+		{
+			if (hasVertexTexCoords0 && (boundMaterialTexturesFlags & (1 << TextureSlot_Translucency)))
+				result |= ShaderFlags_TranslucencyTexture;
+		}
+
+		if (current.Viewport->Parameters.RenderPunchThrough)
+		{
+			if (material.BlendFlags.AlphaTexture && !IsMeshTransparent(mesh, subMesh, material))
+				result |= ShaderFlags_PunchThrough;
+		}
+
+		if (current.Viewport->Parameters.RenderFog)
+		{
+			if (!material.BlendFlags.NoFog && current.Scene->Fog.Depth.Density > 0.0f)
+				result |= ShaderFlags_LinearFog;
+		}
+
+		if (current.Viewport->Parameters.ObjectMorphing)
+		{
+			if (command.SourceCommand.SourceMorphObj != nullptr)
+			{
+				result |= ShaderFlags_Morph;
+				result |= ShaderFlags_MorphColor;
+			}
+		}
+
+		if (current.Viewport->Parameters.ShadowMapping && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
+		{
+			if (ReceivesShadows(command.SourceCommand, mesh, subMesh))
+				result |= ShaderFlags_Shadow;
+		}
+
+		if (current.Viewport->Parameters.ShadowMapping && current.Viewport->Parameters.SelfShadowing && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
+		{
+			if (ReceivesSelfShadow(command.SourceCommand, mesh, subMesh))
+				result |= ShaderFlags_SelfShadow;
+		}
+
+		return result;
 	}
 
 	D3D_ShaderPair& D3D_Renderer3D::GetMaterialShader(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material)
