@@ -139,16 +139,4 @@ namespace Comfy::Graphics
 
 		return 0;
 	}
-
-	Material& SubMesh::GetMaterial(Obj& obj)
-	{
-		assert(MaterialIndex < obj.Materials.size());
-		return obj.Materials[MaterialIndex];
-	}
-
-	const Material& SubMesh::GetMaterial(const Obj& obj) const
-	{
-		assert(MaterialIndex < obj.Materials.size());
-		return obj.Materials[MaterialIndex];
-	}
 }

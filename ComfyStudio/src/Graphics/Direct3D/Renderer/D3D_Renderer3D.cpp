@@ -54,6 +54,26 @@ namespace Comfy::Graphics
 			}
 		}
 
+		const Material& GetSubMeshMaterial(const SubMesh& subMesh, const RenderCommand& command)
+		{
+			if (command.Animation != nullptr)
+			{
+				for (auto& materialOverride : command.Animation->MaterialOverrides)
+				{
+					if (&subMesh == materialOverride.SubMeshToReplace && materialOverride.NewMaterial != nullptr)
+						return *materialOverride.NewMaterial;
+				}
+			}
+
+			const auto& parentObj = *command.SourceObj;
+
+			if (InBounds(subMesh.MaterialIndex, parentObj.Materials))
+				return parentObj.Materials[subMesh.MaterialIndex];
+
+			static Material dummyMaterial = {};
+			return dummyMaterial;
+		}
+
 		constexpr bool IsMeshOrSubMeshIndexSpecified(int index)
 		{
 			return (index >= 0);
@@ -79,12 +99,12 @@ namespace Comfy::Graphics
 			if (IsMeshOrSubMeshIndexSpecified(command.Flags.SubMeshIndex) && IsMeshOrSubMeshIndexSpecified(command.Flags.MeshIndex))
 			{
 				auto& specifiedSubMesh = mesh.SubMeshes[command.Flags.SubMeshIndex];
-				func(specifiedSubMesh, specifiedSubMesh.GetMaterial(*command.SourceObj));
+				func(specifiedSubMesh, GetSubMeshMaterial(specifiedSubMesh, command));
 			}
 			else
 			{
 				for (auto& subMesh : mesh.SubMeshes)
-					func(subMesh, subMesh.GetMaterial(*command.SourceObj));
+					func(subMesh, GetSubMeshMaterial(subMesh, command));
 			}
 		}
 
@@ -485,7 +505,7 @@ namespace Comfy::Graphics
 		{
 			IterateCommandMeshesAndSubMeshes(command, [&](auto& mesh, auto& subMesh, auto& material)
 			{
-				if (UsesSSSSkin(subMesh.GetMaterial(*command.SourceObj)))
+				if (UsesSSSSkin(GetSubMeshMaterial(subMesh, command)))
 					isAnyCommand.SubsurfaceScattering = true;
 			});
 		}
@@ -1027,7 +1047,7 @@ namespace Comfy::Graphics
 
 		BindMeshVertexBuffers(mesh, GetMorphMesh(obj, objCommand->SourceCommand.SourceMorphObj, mesh));
 
-		auto& material = subMesh.GetMaterial(obj);
+		auto& material = GetSubMeshMaterial(subMesh, command.ObjCommand->SourceCommand);
 		cachedBlendStates.GetState(material.BlendFlags.SrcBlendFactor, material.BlendFlags.DstBlendFactor).Bind();
 
 		PrepareAndRenderSubMesh(*command.ObjCommand, mesh, subMesh, material);

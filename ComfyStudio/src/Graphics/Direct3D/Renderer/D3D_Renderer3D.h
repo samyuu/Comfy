@@ -32,7 +32,7 @@ namespace Comfy::Graphics
 		Transform Transform = Graphics::Transform(vec3(0.0f));
 		const ObjAnimationData* Animation = nullptr;
 
-		struct Flags
+		struct CommandFlags
 		{
 			bool IsReflection = false;
 			bool SilhouetteOutline = false;

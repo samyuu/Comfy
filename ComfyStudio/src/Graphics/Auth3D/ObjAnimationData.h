@@ -26,6 +26,12 @@ namespace Comfy::Graphics
 			vec2 Translation = vec2(0.0f);
 		};
 
+		struct MaterialOverride
+		{
+			const SubMesh* SubMeshToReplace = nullptr;
+			const Material* NewMaterial = nullptr;
+		};
+
 		float MorphWeight = 1.0f;
 		TxpID ScreenRenderTextureID = TxpID::Invalid;
 		
@@ -34,5 +40,7 @@ namespace Comfy::Graphics
 
 		std::vector<TexturePattern> TexturePatterns;
 		std::vector<TextureTransform> TextureTransforms;
+
+		std::vector<MaterialOverride> MaterialOverrides;
 	};
 }

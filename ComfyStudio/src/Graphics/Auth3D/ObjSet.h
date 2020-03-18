@@ -67,10 +67,6 @@ namespace Comfy::Graphics
 		const void* GetRawIndices() const;
 		// NOTE: Raw byte size for interfacing with generic data
 		size_t GetRawIndicesByteSize() const;
-
-		// NOTE: Convenient helper
-		Material& GetMaterial(Obj& obj);
-		const Material& GetMaterial(const Obj& obj) const;
 	};
 
 	struct Mesh
