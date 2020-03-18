@@ -32,6 +32,7 @@ namespace Comfy::Editor
 		{
 			float InterpolationSmoothness = 0.0f;
 			float MouseSensitivity = 0.25f;
+			bool OrbitMouseScrollDistance = true;
 		} Settings;
 
 		struct FirstPersonData

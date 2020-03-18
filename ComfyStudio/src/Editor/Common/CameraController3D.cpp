@@ -75,7 +75,7 @@ namespace Comfy::Editor
 					OrbitData.TargetRotation.y = glm::clamp(OrbitData.TargetRotation.y, -89.0f, +89.0f);
 				}
 
-				if (Gui::IsWindowHovered())
+				if (Settings.OrbitMouseScrollDistance && Gui::IsWindowHovered())
 				{
 					if (io.MouseWheel != 0.0f)
 						OrbitData.Distance = glm::clamp(OrbitData.Distance - (scrollStep * io.MouseWheel), OrbitData.MinDistance, OrbitData.MaxDistance);
