@@ -794,7 +794,6 @@ namespace Comfy::Editor
 				GuiProperty::Checkbox("Use Debug Material", selectedMesh.Debug.UseDebugMaterial);
 				GuiProperty::Checkbox("Render Bounding Sphere", selectedMesh.Debug.RenderBoundingSphere);
 				GuiPropertyBitFieldCheckbox("Face Camera", selectedMesh.Flags.FaceCameraPosition);
-				GuiPropertyBitFieldCheckbox("Transparent", selectedMesh.Flags.Transparent);
 				GuiPropertyBitFieldCheckbox("Face Camera View", selectedMesh.Flags.FaceCameraView);
 			});
 
