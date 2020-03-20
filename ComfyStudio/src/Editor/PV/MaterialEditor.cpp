@@ -1,4 +1,5 @@
 #include "MaterialEditor.h"
+#include "Graphics/Auth3D/DebugObj.h"
 #include "ImGui/Gui.h"
 #include "ImGui/Extensions/TxpExtensions.h"
 #include "ImGui/Extensions/PropertyEditor.h"
@@ -29,7 +30,7 @@ namespace Comfy::Editor
 		constexpr vec2 TxpDisplaySize = vec2(96.0f);
 	}
 
-	void MaterialEditor::DrawGui(const D3D_Renderer3D& renderer, Material& material)
+	void MaterialEditor::DrawGui(D3D_Renderer3D& renderer, const SceneParameters& scene, Material& material)
 	{
 		GuiPropertyRAII::ID id(&material);
 		GuiPropertyRAII::PropertyValueColumns rootColumns;
@@ -42,6 +43,11 @@ namespace Comfy::Editor
 			DrawTextureDataGui(renderer, material);
 			DrawBlendFlagsGui(material.BlendFlags);
 			DrawColorGui(material.Color);
+
+			GuiProperty::TreeNode("Preview", ImGuiTreeNodeFlags_DefaultOpen, [&]
+			{
+				preview.DrawGui(renderer, scene, material);
+			});
 		});
 	}
 
@@ -101,7 +107,7 @@ namespace Comfy::Editor
 		});
 	}
 
-	void MaterialEditor::DrawTextureDataGui(const D3D_Renderer3D& renderer, Material& material)
+	void MaterialEditor::DrawTextureDataGui(D3D_Renderer3D& renderer, Material& material)
 	{
 		GuiPropertyRAII::ID id(&material.Textures);
 
@@ -198,5 +204,73 @@ namespace Comfy::Editor
 			GuiProperty::Input("Shininess", materialColor.Shininess, 0.05f, vec2(0.0f, 128.0f));
 			GuiProperty::Input("Intensity", materialColor.Intensity, 0.01f, vec2(0.0f, 1.0f));
 		});
+	}
+
+	void MaterialEditor::MaterialPreview::DrawGui(D3D_Renderer3D& renderer, const SceneParameters& scene, Material& material)
+	{
+		Gui::Columns(1);
+
+		if (viewport == nullptr)
+		{
+			viewport = MakeUnique<SceneViewport>();
+			viewport->Parameters.AllowDebugShaderOverride = false;
+			viewport->Parameters.FrustumCulling = false;
+			viewport->Parameters.AlphaSort = false;
+			viewport->Parameters.RenderBloom = true;
+			viewport->Parameters.RenderLensFlare = false;
+			viewport->Parameters.AutoExposure = false;
+			viewport->Parameters.RenderFog = false;
+			viewport->Parameters.ObjectMorphing = false;
+			viewport->Parameters.ObjectSkinning = false;
+			viewport->Parameters.ToneMapPreserveAlpha = true;
+			viewport->Parameters.ShadowMapping = true;
+			viewport->Parameters.RenderReflection = false;
+			viewport->Parameters.MultiSampleCount = 2;
+			viewport->Parameters.ClearColor = vec4(vec3(vec4(Gui::GetStyleColorVec4(ImGuiCol_ChildBg))), 0.0f);
+
+			sphereObj = GenerateUploadMaterialTestSphereObj();
+		}
+
+		const vec2 cursorPos = Gui::GetCursorScreenPos();
+		renderSize = vec2(Gui::GetContentRegionAvailWidth(), targetRenderHeight);
+		viewport->Parameters.RenderResolution = renderSize;
+
+		Gui::BeginChild("MaterialPreviewChid", renderSize, false, ImGuiWindowFlags_None);
+		UpdateCameraView();
+		RenderMaterial(renderer, scene, material);
+		Gui::GetWindowDrawList()->AddImage(viewport->Data.Output.RenderTarget, cursorPos, cursorPos + renderSize);
+		Gui::ItemSize(renderSize);
+		Gui::EndChild();
+	}
+
+	void MaterialEditor::MaterialPreview::UpdateCameraView()
+	{
+		viewport->Camera.FieldOfView = 90.0f;
+		viewport->Camera.AspectRatio = (renderSize.x / renderSize.y);
+
+		cameraController.Settings.OrbitMouseScrollDistance = false;
+		cameraController.OrbitData.Distance = cameraDistance;
+
+		if (rotateCamera)
+			cameraController.OrbitData.TargetRotation += (rotationSpeed * Gui::GetIO().DeltaTime);
+
+		cameraController.Update(viewport->Camera);
+	}
+
+	void MaterialEditor::MaterialPreview::RenderMaterial(D3D_Renderer3D& renderer, const SceneParameters& scene, Material& material)
+	{
+		viewport->Camera.UpdateMatrices();
+		renderer.Begin(*viewport, scene);
+		{
+			overrideAnimation.MaterialOverrides.clear();
+			overrideAnimation.MaterialOverrides.push_back({ &sphereObj->Meshes.front().SubMeshes.front(), &material });
+
+			RenderCommand renderCommand;
+			renderCommand.SourceObj = sphereObj.get();
+			renderCommand.Transform = Transform(viewport->Camera.Interest);
+			renderCommand.Animation = &overrideAnimation;
+			renderer.Draw(renderCommand);
+		}
+		renderer.End();
 	}
 }

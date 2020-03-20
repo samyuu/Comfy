@@ -779,7 +779,7 @@ namespace Comfy::Editor
 				return;
 
 			Material& material = selectedObj->Materials[objTestData.MaterialIndex];
-			materialEditor.DrawGui(*renderer3D, material);
+			materialEditor.DrawGui(*renderer3D, scene, material);
 		});
 
 		GuiProperty::TreeNode("Mesh Flags Editor", [&]
@@ -969,7 +969,7 @@ namespace Comfy::Editor
 			}
 		}
 
-		GuiProperty::PropertyFuncValueFunc([&] 
+		GuiProperty::PropertyFuncValueFunc([&]
 		{
 			if (Gui::Button("Reload", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
 				loadCharaItems();
