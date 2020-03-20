@@ -87,7 +87,7 @@ namespace Comfy::Graphics
 	{
 	public:
 		D3D_CubeMap(const struct Txp& txp);
-		D3D_CubeMap(const struct LightMap& lightMap);
+		D3D_CubeMap(const struct LightMapIBL& lightMap);
 		~D3D_CubeMap() = default;
 
 	public:

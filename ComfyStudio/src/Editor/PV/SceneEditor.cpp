@@ -612,7 +612,7 @@ namespace Comfy::Editor
 
 	void SceneEditor::DrawIBLGui()
 	{
-		auto iblLightDataGui = [](std::string_view name, LightData& lightData, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None)
+		auto iblLightDataGui = [](std::string_view name, LightDataIBL& lightData, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None)
 		{
 			GuiPropertyRAII::ID id(&lightData);
 			GuiProperty::TreeNode(name, flags, [&]

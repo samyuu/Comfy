@@ -1,4 +1,4 @@
-#include "LightDataIBL.h"
+#include "IBLParameters.h"
 #include "Graphics/GraphicTypesNames.h"
 #include "Misc/StringParseHelper.h"
 
@@ -31,33 +31,33 @@ namespace Comfy::Graphics
 
 		constexpr size_t GetLightMapFaceByteSize(ivec2 lightMapSize, LightMapFormat lightMapFormat)
 		{
-			auto getBytesPerPixel = [](LightMapFormat format)
+			auto getBytesPerComponent = [](LightMapFormat format)
 			{
 				switch (format)
 				{
 				case LightMapFormat::RGBA8_CUBE:
-					return 4;
+					return sizeof(uint8_t);
 				case LightMapFormat::RGBA16F_CUBE:
-					return 8;
+					return sizeof(uint16_t);
 				case LightMapFormat::RGBA32F_CUBE:
-					return 16;
+					return sizeof(float);
 				default:
-					return 0;
+					return static_cast<size_t>(0);
 				}
 			};
 
-			const size_t bytesPerPixel = getBytesPerPixel(lightMapFormat);
+			const size_t bytesPerPixel = (getBytesPerComponent(lightMapFormat) * 4);
 			return lightMapSize.x * lightMapSize.y * bytesPerPixel;
 		}
 	}
 
-	LightDataIBL::LightDataIBL()
+	IBLParameters::IBLParameters()
 		: Version(), Lights(), LightMaps()
 	{
 
 	}
 
-	void LightDataIBL::Parse(const uint8_t* buffer, size_t bufferSize)
+	void IBLParameters::Parse(const uint8_t* buffer, size_t bufferSize)
 	{
 		const char* textBuffer = reinterpret_cast<const char*>(buffer);
 		const char* endOfTextBuffer = reinterpret_cast<const char*>(buffer + bufferSize);
@@ -84,7 +84,7 @@ namespace Comfy::Graphics
 				break;
 
 			auto lightIndex = StringParsing::ParseType<uint32_t>(StringParsing::GetLineAdvanceToNonCommentLine(textBuffer));
-			LightData* lightData = (lightIndex < Lights.size()) ? &Lights[lightIndex] : nullptr;
+			LightDataIBL* lightData = (lightIndex < Lights.size()) ? &Lights[lightIndex] : nullptr;
 
 			if (tag == LightDirectionTag)
 			{
@@ -141,9 +141,9 @@ namespace Comfy::Graphics
 
 		for (auto& lightMap : LightMaps)
 		{
-			for (int mipMap = 0; mipMap < LightMap::MipMaps; mipMap++)
+			for (int mipMap = 0; mipMap < LightMapIBL::MipMaps; mipMap++)
 			{
-				for (int cubeFace = 0; cubeFace < LightMap::Faces; cubeFace++)
+				for (int cubeFace = 0; cubeFace < LightMapIBL::Faces; cubeFace++)
 				{
 					lightMap.DataPointers[cubeFace][mipMap] = binaryBuffer;
 					binaryBuffer += GetLightMapFaceByteSize(lightMap.Size / (mipMap + 1), lightMap.Format);
@@ -152,7 +152,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	void LightDataIBL::UploadAll()
+	void IBLParameters::UploadAll()
 	{
 		for (size_t i = 0; i < LightMaps.size(); i++)
 		{

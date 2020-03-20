@@ -14,7 +14,7 @@ namespace Comfy::Graphics
 		RGBA32F_CUBE,
 	};
 
-	struct LightMap
+	struct LightMapIBL
 	{
 		static constexpr size_t Faces = 6, MipMaps = 2;
 
@@ -25,29 +25,29 @@ namespace Comfy::Graphics
 		UniquePtr<D3D_CubeMap> D3D_CubeMap;
 	};
 
-	struct LightData
+	struct LightDataIBL
 	{
 		vec3 LightDirection;
 		vec3 LightColor;
 		std::array<mat4, 3> IrradianceRGB;
 	};
 
-	class LightDataIBL final : public FileSystem::IBufferParsable
+	class IBLParameters final : public FileSystem::IBufferParsable
 	{
 	public:
-		LightDataIBL();
-		~LightDataIBL() = default;
+		IBLParameters();
+		~IBLParameters() = default;
 
 	public:
 		uint32_t Version;
 
 		union
 		{
-			struct { LightData Character, Stage, Sun; };
-			std::array<LightData, 3> Lights;
+			struct { LightDataIBL Character, Stage, Sun; };
+			std::array<LightDataIBL, 3> Lights;
 		};
 
-		std::array<LightMap, 3> LightMaps;
+		std::array<LightMapIBL, 3> LightMaps;
 
 	public:
 		void Parse(const uint8_t* buffer, size_t bufferSize) override;

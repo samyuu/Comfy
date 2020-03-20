@@ -91,7 +91,7 @@ namespace Comfy::Debug
 
 		param.Parse(fileContent.data(), fileContent.size());
 
-		if constexpr (std::is_same<T, Graphics::LightDataIBL>::value)
+		if constexpr (std::is_same<T, Graphics::IBLParameters>::value)
 			param.UploadAll();
 
 		return true;

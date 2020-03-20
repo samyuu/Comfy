@@ -235,7 +235,7 @@
     <ClCompile Include="src\Graphics\Direct3D\Renderer\Detail\SpriteBatchData.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\Light\FogParameter.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\Light\GlowParameter.cpp" />
-    <ClCompile Include="src\Graphics\Auth3D\Light\LightDataIBL.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\Light\IBLParameters.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\Light\LightParameters.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\ObjSet.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\ObjSetFile.cpp" />
@@ -303,6 +303,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Editor\PV\MaterialEditor.h" />
+    <ClInclude Include="src\Graphics\Auth3D\Light\Parameters.h" />
     <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\BlendStateCache.h" />
     <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\ShaderFlags.h" />
     <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\TextureSamplerCache.h" />
@@ -425,7 +426,7 @@
     <ClInclude Include="src\Graphics\Auth3D\BoundingTypes.h" />
     <ClInclude Include="src\Graphics\Auth3D\Light\FogParameter.h" />
     <ClInclude Include="src\Graphics\Auth3D\Light\GlowParameter.h" />
-    <ClInclude Include="src\Graphics\Auth3D\Light\LightDataIBL.h" />
+    <ClInclude Include="src\Graphics\Auth3D\Light\IBLParameters.h" />
     <ClInclude Include="src\Graphics\Auth3D\Light\LightParameters.h" />
     <ClInclude Include="src\Graphics\Auth3D\ObjSet.h" />
     <ClInclude Include="src\Graphics\Auth3D\SceneContext.h" />

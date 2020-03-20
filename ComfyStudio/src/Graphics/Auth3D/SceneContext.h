@@ -1,8 +1,5 @@
 #pragma once
-#include "Light/FogParameter.h"
-#include "Light/GlowParameter.h"
-#include "Light/LightParameters.h"
-#include "Light/LightDataIBL.h"
+#include "Light/Parameters.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Direct3D/Texture/D3D_RenderTarget.h"
 #include "Resource/IDTypes.h"
@@ -258,6 +255,6 @@ namespace Comfy::Graphics
 		FogParameter Fog;
 		GlowParameter Glow;
 		LightParameter Light;
-		LightDataIBL IBL;
+		IBLParameters IBL;
 	};
 }

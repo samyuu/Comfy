@@ -1,6 +1,6 @@
 #include "D3D_Texture.h"
 #include "Graphics/TxpSet.h"
-#include "Graphics/Auth3D/Light/LightDataIbl.h"
+#include "Graphics/Auth3D/Light/IBLParameters.h"
 
 namespace Comfy::Graphics
 {
@@ -561,7 +561,7 @@ namespace Comfy::Graphics
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 
-	D3D_CubeMap::D3D_CubeMap(const LightMap& lightMap)
+	D3D_CubeMap::D3D_CubeMap(const LightMapIBL& lightMap)
 	{
 		uint32_t mipMapLevels = 1;
 		for (uint32_t i = 0; i < lightMap.DataPointers[0].size(); i++)
