@@ -11,4 +11,5 @@ namespace Comfy::Graphics
 
 	UniquePtr<Obj> GenerateUploadDebugBoxObj(const Box& box, const vec4& color);
 	UniquePtr<Obj> GenerateUploadDebugSphereObj(const Sphere& sphere, const vec4& color, int detailLevel = -1);
+	UniquePtr<Obj> GenerateUploadMaterialTestSphereObj();
 }

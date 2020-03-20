@@ -45,7 +45,12 @@ namespace Comfy::Graphics
 				meshGeneratorFunc(mesh, subMesh);
 
 				mesh.BoundingSphere = boundingSphere;
-				mesh.AttributeFlags = (mesh.VertexData.Positions.empty() ? 0 : VertexAttributeFlags_Position) | (mesh.VertexData.Normals.empty() ? 0 : VertexAttributeFlags_Normal);
+				mesh.AttributeFlags =
+					(mesh.VertexData.Positions.empty() ? 0 : VertexAttributeFlags_Position) |
+					(mesh.VertexData.Normals.empty() ? 0 : VertexAttributeFlags_Normal) |
+					(mesh.VertexData.Tangents.empty() ? 0 : VertexAttributeFlags_Tangent) |
+					(mesh.VertexData.TextureCoordinates.front().empty() ? 0 : VertexAttributeFlags_TextureCoordinate0) |
+					(mesh.VertexData.Colors.front().empty() ? 0 : VertexAttributeFlags_Color0);
 
 				mesh.Flags = {};
 				sprintf_s(mesh.Name.data(), mesh.Name.size(), "%.*s::Mesh", static_cast<int>(name.size()), name.data());
@@ -276,7 +281,6 @@ namespace Comfy::Graphics
 			GenerateDebugObj("DebugBox", *obj, sphere, box, color, [&](Mesh& mesh, SubMesh& subMesh)
 			{
 				GenerateUnitBoxMesh(mesh.VertexData.Positions, subMesh.Indices.emplace<std::vector<uint8_t>>());
-				// GenerateUnitBoxMesh(mesh.VertexData.Positions, subMesh.Indices.emplace<std::vector<uint16_t>>());
 
 				for (auto& position : mesh.VertexData.Positions)
 				{
@@ -299,13 +303,55 @@ namespace Comfy::Graphics
 			Box box = { sphere.Center, vec3(sphere.Radius) };
 			GenerateDebugObj("DebugSphere", *obj, sphere, box, color, [&](Mesh& mesh, SubMesh& subMesh)
 			{
-				// GenerateUnitIcosahedronMesh(mesh.VertexData.Positions, subMesh.Indices.emplace<std::vector<uint8_t>>(), detailLevel);
 				GenerateUnitIcosahedronMesh(mesh.VertexData.Positions, subMesh.Indices.emplace<std::vector<uint16_t>>(), detailLevel);
 
 				for (auto& position : mesh.VertexData.Positions)
 				{
 					position *= sphere.Radius;
 					position += sphere.Center;
+				}
+			});
+		}
+		obj->Upload();
+		return obj;
+	}
+
+	UniquePtr<Obj> GenerateUploadMaterialTestSphereObj()
+	{
+		constexpr Sphere boundingSphere = { vec3(0.0f), 1.0f };
+		const int detailLevel = GetSphereMeshDetailLevelForRadius(boundingSphere);
+
+		auto obj = MakeUnique<Obj>();
+		{
+			Box box = { boundingSphere.Center, vec3(boundingSphere.Radius) };
+			GenerateDebugObj("MaterialTestSphere", *obj, boundingSphere, box, vec4(1.0f, 0.0f, 1.0f, 1.0f), [&](Mesh& mesh, SubMesh& subMesh)
+			{
+				GenerateUnitIcosahedronMesh(mesh.VertexData.Positions, subMesh.Indices.emplace<std::vector<uint16_t>>(), detailLevel);
+
+				mesh.VertexData.VertexCount = static_cast<uint32_t>(mesh.VertexData.Positions.size());
+
+				mesh.VertexData.Normals.resize(mesh.VertexData.VertexCount);
+				mesh.VertexData.Tangents.resize(mesh.VertexData.VertexCount);
+				mesh.VertexData.TextureCoordinates[0].resize(mesh.VertexData.VertexCount);
+				mesh.VertexData.Colors[0].resize(mesh.VertexData.VertexCount);
+
+				const mat4 normalToTangent = glm::rotate(mat4(1.0f), glm::radians(90.0f), vec3(1.0f, 0.0f, 0.0f));
+
+				for (size_t i = 0; i < mesh.VertexData.VertexCount; i++)
+				{
+					vec3& normal = mesh.VertexData.Normals[i];
+					normal = glm::normalize(mesh.VertexData.Positions[i]);
+
+					// HACK: Quick bodge
+					mesh.VertexData.Tangents[i] = vec4(
+						glm::normalize(vec3(normalToTangent * vec4(normal, 0.0f))), 
+						1.0f);
+
+					mesh.VertexData.TextureCoordinates[0][i] = vec2(
+						glm::asin(normal.x) / glm::pi<float>() + 0.5f,
+						glm::asin(normal.y) / glm::pi<float>() + 0.5f);
+
+					mesh.VertexData.Colors[0][i] = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 				}
 			});
 		}
