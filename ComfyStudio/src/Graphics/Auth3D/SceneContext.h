@@ -1,5 +1,5 @@
 #pragma once
-#include "Light/Parameters.h"
+#include "LightParam/Parameters.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Direct3D/Texture/D3D_RenderTarget.h"
 #include "Resource/IDTypes.h"

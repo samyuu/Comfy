@@ -54,7 +54,6 @@ namespace Comfy::Graphics
 	IBLParameters::IBLParameters()
 		: Version(), Lights(), LightMaps()
 	{
-
 	}
 
 	void IBLParameters::Parse(const uint8_t* buffer, size_t bufferSize)

@@ -1,6 +1,6 @@
 #include "D3D_Texture.h"
 #include "Graphics/TxpSet.h"
-#include "Graphics/Auth3D/Light/IBLParameters.h"
+#include "Graphics/Auth3D/LightParam/IBLParameters.h"
 
 namespace Comfy::Graphics
 {
@@ -8,7 +8,6 @@ namespace Comfy::Graphics
 	{
 		// NOTE: This doesn't seem to be defined anywhere but this should cover even the largest supported textures
 		constexpr size_t MaxMipMaps = 16;
-
 		constexpr size_t CubeFaceCount = 6;
 
 		constexpr uint32_t BlockCompressionAlignment = 4;
