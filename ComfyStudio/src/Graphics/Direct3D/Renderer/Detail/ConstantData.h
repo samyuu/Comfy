@@ -6,9 +6,11 @@ namespace Comfy::Graphics
 {
 	struct SceneConstantData
 	{
-		mat4 IBLIrradianceRed;
-		mat4 IBLIrradianceGreen;
-		mat4 IBLIrradianceBlue;
+		struct IBLData
+		{
+			std::array<mat4, 3> IrradianceRGB;
+			std::array<vec4, 4> LightColors;
+		} IBL;
 
 		struct SceneData
 		{
@@ -25,10 +27,6 @@ namespace Comfy::Graphics
 			vec4 Specular;
 			vec4 Direction;
 		} CharaLight, StageLight;
-
-		vec4 IBLStageColor;
-		vec4 IBLCharaColor;
-		vec4 IBLSunColor;
 
 		vec4 RenderResolution;
 

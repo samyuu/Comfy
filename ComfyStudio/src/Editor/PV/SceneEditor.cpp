@@ -612,25 +612,28 @@ namespace Comfy::Editor
 
 	void SceneEditor::DrawIBLGui()
 	{
-		auto iblLightDataGui = [](std::string_view name, LightDataIBL& lightData, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None)
-		{
-			GuiPropertyRAII::ID id(&lightData);
-			GuiProperty::TreeNode(name, flags, [&]
-			{
-				GuiProperty::ColorEditHDR("Light Color", lightData.LightColor);
-				// GuiProperty::Input("Light Direction", lightData.LightDirection, 0.01f);
-			});
-		};
-
 		GuiPropertyRAII::ID id(&scene.IBL);
 		GuiPropertyRAII::PropertyValueColumns columns;
 
 		if (GuiProperty::Input("Load IBL File", iblPathBuffer.data(), iblPathBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
 			Debug::LoadParseUploadLightParamFile(iblPathBuffer.data(), scene.IBL);
 
-		iblLightDataGui("Character", scene.IBL.Character, ImGuiTreeNodeFlags_DefaultOpen);
-		iblLightDataGui("Stage", scene.IBL.Stage, ImGuiTreeNodeFlags_DefaultOpen);
-		iblLightDataGui("Sun", scene.IBL.Sun, ImGuiTreeNodeFlags_DefaultOpen);
+		GuiProperty::TreeNode("Lights", ImGuiTreeNodeFlags_DefaultOpen, [&]
+		{
+			char nameBuffer[32];
+			for (size_t i = 0; i < scene.IBL.Lights.size(); i++)
+			{
+				auto& lightData = scene.IBL.Lights[i];
+				sprintf_s(nameBuffer, "Lights[%zu]", i);
+
+				GuiPropertyRAII::ID id(&lightData);
+				GuiProperty::TreeNode(nameBuffer, ImGuiTreeNodeFlags_DefaultOpen, [&]
+				{
+					GuiProperty::ColorEditHDR("Light Color", lightData.LightColor);
+					// GuiProperty::Input("Light Direction", lightData.LightDirection, 0.01f);
+				});
+			}
+		});
 
 		GuiProperty::TreeNode("Light Maps", ImGuiTreeNodeFlags_DefaultOpen, [&]
 		{
@@ -1101,10 +1104,10 @@ namespace Comfy::Editor
 			scene.Light.Stage.Specular = lightData.Stage.Specular;
 			scene.Light.Stage.Position = lightData.Stage.Position;
 
-			scene.IBL.Character.LightColor = lightData.IBLCharacter.Color;
-			scene.IBL.Character.IrradianceRGB = lightData.IBLCharacter.Matrices;
-			scene.IBL.Stage.LightColor = lightData.IBLStage.Color;
-			scene.IBL.Stage.IrradianceRGB = lightData.IBLStage.Matrices;
+			scene.IBL.Lights[0].LightColor = lightData.IBL0.LightColor;
+			scene.IBL.Lights[0].IrradianceRGB = lightData.IBL0.IrradianceRGB;
+			scene.IBL.Lights[1].LightColor = lightData.IBL1.LightColor;
+			scene.IBL.Lights[1].IrradianceRGB = lightData.IBL1.IrradianceRGB;
 		}
 		else if (externalProcessTest.SyncWriteLightParam && tryAttach())
 		{
@@ -1120,10 +1123,10 @@ namespace Comfy::Editor
 					vec4(scene.Light.Stage.Specular, 1.0f),
 					scene.Light.Stage.Position,
 
-					scene.IBL.Character.LightColor,
-					scene.IBL.Character.IrradianceRGB,
-					scene.IBL.Stage.LightColor,
-					scene.IBL.Stage.IrradianceRGB,
+					scene.IBL.Lights[0].LightColor,
+					scene.IBL.Lights[0].IrradianceRGB,
+					scene.IBL.Lights[1].LightColor,
+					scene.IBL.Lights[1].IrradianceRGB,
 				});
 		}
 	}

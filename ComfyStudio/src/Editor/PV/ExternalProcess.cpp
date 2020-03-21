@@ -152,11 +152,11 @@ namespace Comfy::Editor
 		TryReadProcessValueElseReset(process, lightData.Stage.Specular, settings.Addresses.LightParam.Stage.Specular);
 		TryReadProcessValueElseReset(process, lightData.Stage.Position, settings.Addresses.LightParam.Stage.Position);
 
-		TryReadProcessValueElseReset(process, lightData.IBLCharacter.Color, settings.Addresses.LightParam.IBLCharacter.Color);
+		TryReadProcessValueElseReset(process, lightData.IBL0.LightColor, settings.Addresses.LightParam.IBL0.LightColor);
 		// NOTE: Unused
-		// TryReadProcessValueElseReset(process, lightData.IBLCharacter.Matrices, settings.Addresses.LightParam.IBLCharacter.Matrices);
-		TryReadProcessValueElseReset(process, lightData.IBLStage.Color, settings.Addresses.LightParam.IBLStage.Color);
-		TryReadProcessValueElseReset(process, lightData.IBLStage.Matrices, settings.Addresses.LightParam.IBLStage.Matrices);
+		// TryReadProcessValueElseReset(process, lightData.IBLCharacter.Matrices, settings.Addresses.LightParam.IBL0.Matrices);
+		TryReadProcessValueElseReset(process, lightData.IBL1.LightColor, settings.Addresses.LightParam.IBL1.LightColor);
+		TryReadProcessValueElseReset(process, lightData.IBL1.IrradianceRGB, settings.Addresses.LightParam.IBL1.IrradianceRGB);
 
 		return lightData;
 	}
@@ -176,11 +176,11 @@ namespace Comfy::Editor
 		TryWriteProcessValueElseReset(process, lightData.Stage.Specular, settings.Addresses.LightParam.Stage.Specular);
 		TryWriteProcessValueElseReset(process, lightData.Stage.Position, settings.Addresses.LightParam.Stage.Position);
 
-		TryWriteProcessValueElseReset(process, lightData.IBLCharacter.Color, settings.Addresses.LightParam.IBLCharacter.Color);
+		TryWriteProcessValueElseReset(process, lightData.IBL0.LightColor, settings.Addresses.LightParam.IBL0.LightColor);
 		// NOTE: Unused
-		// TryWriteProcessValueElseReset(process, lightData.IBLCharacter.Matrices, settings.Addresses.LightParam.IBLCharacter.Matrices);
-		TryWriteProcessValueElseReset(process, lightData.IBLStage.Color, settings.Addresses.LightParam.IBLStage.Color);
-		TryWriteProcessValueElseReset(process, lightData.IBLStage.Matrices, settings.Addresses.LightParam.IBLStage.Matrices);
+		// TryWriteProcessValueElseReset(process, lightData.IBLCharacter.Matrices, settings.Addresses.LightParam.IBL1.Matrices);
+		TryWriteProcessValueElseReset(process, lightData.IBL1.LightColor, settings.Addresses.LightParam.IBL1.LightColor);
+		TryWriteProcessValueElseReset(process, lightData.IBL1.IrradianceRGB, settings.Addresses.LightParam.IBL1.IrradianceRGB);
 	}
 
 	ExternalProcess::ProcessData ExternalProcess::GetProcess() const

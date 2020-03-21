@@ -50,18 +50,18 @@
 #define reciprocal_one_minus_cos_pi_ten     (1.0 / (1.0 - cos(PI / 10.0)))
 #define reciprocal_one_minus_cos_pi_four    (1.0 / (1.0 - cos(PI / 4.0)))
 
-#define irrad_r                     (CB_Scene.IBLIrradianceRed)
-#define irrad_g                     (CB_Scene.IBLIrradianceGreen)
-#define irrad_b                     (CB_Scene.IBLIrradianceBlue)
+#define irrad_r                     (CB_Scene.IBL.IrradianceRGB[0])
+#define irrad_g                     (CB_Scene.IBL.IrradianceRGB[1])
+#define irrad_b                     (CB_Scene.IBL.IrradianceRGB[2])
 #define lit_dir                     (CB_Scene.StageLight.Direction)
 #define lit_dir_w                   (CB_Scene.StageLight.Direction)
-#define lit_diff                    (CB_Scene.IBLStageColor)
-#define lit_spec                    ((CB_Scene.StageLight.Specular.rgb * CB_Scene.IBLStageColor.rgb) * reciprocal_one_minus_cos_pi_ten)
+#define lit_diff                    (CB_Scene.IBL.LightColors[1])
+#define lit_spec                    ((CB_Scene.StageLight.Specular.rgb * CB_Scene.IBL.LightColors[1].rgb) * reciprocal_one_minus_cos_pi_ten)
 
 #define p_shininess                 (float4(CB_Object.Material.Shininess.x, 0.0, 0.0, 0.0))
-#define p_lit_luce                  ((CB_Scene.IBLCharaColor.yyyy) * reciprocal_one_minus_cos_pi_four)
-#define p_lit_spec                  ((CB_Scene.CharaLight.Specular * CB_Scene.IBLCharaColor) * reciprocal_one_minus_cos_pi_ten)
-#define p_lit_back                  ((CB_Scene.CharaLight.Specular * CB_Scene.IBLSunColor) * reciprocal_one_minus_cos_pi_ten)
+#define p_lit_luce                  ((CB_Scene.IBL.LightColors[0].yyyy) * reciprocal_one_minus_cos_pi_four)
+#define p_lit_spec                  ((CB_Scene.CharaLight.Specular * CB_Scene.IBL.LightColors[0]) * reciprocal_one_minus_cos_pi_ten)
+#define p_lit_back                  ((CB_Scene.CharaLight.Specular * CB_Scene.IBL.LightColors[2]) * reciprocal_one_minus_cos_pi_ten)
 #define p_lit_dir                   (CB_Scene.CharaLight.Direction)
 // --------------------------------------------------------------------------------------------------------------------------
 

@@ -38,9 +38,9 @@ namespace Comfy::Editor
 					} Character, Stage;
 					struct IBLLight
 					{
-						uintptr_t Color;
-						uintptr_t Matrices;
-					} IBLCharacter, IBLStage;
+						uintptr_t LightColor;
+						uintptr_t IrradianceRGB;
+					} IBL0, IBL1;
 				} LightParam;
 			};
 
@@ -63,9 +63,9 @@ namespace Comfy::Editor
 			} Character, Stage;
 			struct IBLLight
 			{
-				vec3 Color;
-				std::array<mat4, 3> Matrices;
-			} IBLCharacter, IBLStage;
+				vec3 LightColor;
+				std::array<mat4, 3> IrradianceRGB;
+			} IBL0, IBL1;
 		};
 
 	public:

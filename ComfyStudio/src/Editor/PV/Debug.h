@@ -114,8 +114,8 @@ namespace Comfy::Debug
 
 		if (lightFallbackUsed && !iblFallbackUsed)
 		{
-			scene.Light.Character.Position = scene.IBL.Character.LightDirection;
-			scene.Light.Stage.Position = scene.IBL.Stage.LightDirection;
+			scene.Light.Character.Position = scene.IBL.Lights[0].LightDirection;
+			scene.Light.Stage.Position = scene.IBL.Lights[1].LightDirection;
 		}
 	}
 

@@ -669,13 +669,11 @@ namespace Comfy::Graphics
 		sceneCB.Data.RenderTime.TimeCos = (glm::cos(renderTimeNow) + 1.0f) * 0.5f;
 
 		const auto& ibl = current.Scene->IBL;
-		sceneCB.Data.IBLIrradianceRed = glm::transpose(ibl.Stage.IrradianceRGB[0]);
-		sceneCB.Data.IBLIrradianceGreen = glm::transpose(ibl.Stage.IrradianceRGB[1]);
-		sceneCB.Data.IBLIrradianceBlue = glm::transpose(ibl.Stage.IrradianceRGB[2]);
+		for (size_t component = 0; component < ibl.Lights[1].IrradianceRGB.size(); component++)
+			sceneCB.Data.IBL.IrradianceRGB[component] = glm::transpose(ibl.Lights[1].IrradianceRGB[component]);
 
-		sceneCB.Data.IBLStageColor = vec4(ibl.Stage.LightColor, 1.0f);
-		sceneCB.Data.IBLCharaColor = vec4(ibl.Character.LightColor, 1.0f);
-		sceneCB.Data.IBLSunColor = vec4(ibl.Sun.LightColor, 1.0f);
+		for (size_t i = 0; i < ibl.Lights.size(); i++)
+			sceneCB.Data.IBL.LightColors[i] = vec4(ibl.Lights[i].LightColor, 1.0f);
 
 		const auto& camera = current.Viewport->Camera;
 		sceneCB.Data.Scene.View = glm::transpose(camera.GetView());

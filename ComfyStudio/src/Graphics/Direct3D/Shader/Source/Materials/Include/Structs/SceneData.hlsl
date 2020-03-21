@@ -1,6 +1,12 @@
 #ifndef SCENEDATA_HLSL
 #define SCENEDATA_HLSL
 
+struct IBLData
+{
+    matrix IrradianceRGB[3];
+    float4 LightColors[4];
+};
+
 struct ParallelLight
 {
     float4 Ambient;
@@ -26,10 +32,8 @@ struct RenderTime
 
 struct SceneData
 {
-    matrix IBLIrradianceRed;
-    matrix IBLIrradianceGreen;
-    matrix IBLIrradianceBlue;
-    
+    IBLData IBL;
+
     matrix View;
     matrix ViewProjection;
     matrix LightSpace;
@@ -37,10 +41,6 @@ struct SceneData
     
     ParallelLight CharaLight;
     ParallelLight StageLight;
-    
-    float4 IBLStageColor;
-    float4 IBLCharaColor;
-    float4 IBLSunColor;
     
     float2 TexelRenderResolution;
     float2 RenderResolution;

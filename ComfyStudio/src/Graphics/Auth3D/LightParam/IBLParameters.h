@@ -43,7 +43,9 @@ namespace Comfy::Graphics
 
 		union
 		{
-			struct { LightDataIBL Character, Stage, Sun; };
+			// TODO: Decide on a final name
+			// struct { LightDataIBL Specular, Diffuse, Back; };
+			// struct { LightDataIBL Character, Stage, Sun; };
 			std::array<LightDataIBL, 3> Lights;
 		};
 
