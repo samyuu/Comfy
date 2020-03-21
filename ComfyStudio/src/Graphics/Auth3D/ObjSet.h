@@ -24,7 +24,6 @@ namespace Comfy::Graphics
 		mutable DebugData Debug;
 
 		uint32_t ReservedFlags;
-
 		Sphere BoundingSphere;
 		std::optional<Box> BoundingBox;
 
@@ -73,6 +72,7 @@ namespace Comfy::Graphics
 	{
 		mutable DebugData Debug;
 
+		uint32_t ReservedFlags;
 		Sphere BoundingSphere;
 		std::vector<SubMesh> SubMeshes;
 		VertexAttributeFlags AttributeFlags;
@@ -465,6 +465,8 @@ namespace Comfy::Graphics
 		std::string Name;
 		ObjID ID;
 
+		uint32_t Version;
+		uint32_t ReservedFlags;
 		Sphere BoundingSphere;
 		std::vector<Mesh> Meshes;
 		std::vector<Material> Materials;

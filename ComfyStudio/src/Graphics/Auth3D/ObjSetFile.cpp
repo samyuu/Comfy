@@ -55,8 +55,8 @@ namespace Comfy::Graphics
 	{
 		FileAddr objBaseAddress = reader.GetPosition();
 
-		uint32_t unknown0 = reader.ReadU32();
-		uint32_t unknown1 = reader.ReadU32();
+		Version = reader.ReadU32();
+		ReservedFlags = reader.ReadU32();
 		BoundingSphere = ReadSphere(reader);
 
 		uint32_t meshCount = reader.ReadU32();
@@ -68,7 +68,7 @@ namespace Comfy::Graphics
 			{
 				for (auto& mesh : Meshes)
 				{
-					uint32_t unknown0 = reader.ReadU32();
+					mesh.ReservedFlags = reader.ReadU32();
 					mesh.BoundingSphere = ReadSphere(reader);
 
 					uint32_t subMeshCount = reader.ReadU32();
