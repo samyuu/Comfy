@@ -19,6 +19,15 @@ namespace Comfy::Graphics
 		vec4 ShaderDebugValue = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		bool AllowDebugShaderOverride = true;
 
+		// TODO: In the future (to then only enable for certain viewports)
+		// bool VisualizeNormals = false;
+		// bool VisualizeShadowCasters = false;
+		// bool VisualizeShadowReceivers = false;
+		// bool VisualizeMorphMeshes = false;
+		// bool VisualizeSkinMeshes = false;
+		// bool VisualizeMipMapLevels = false; // (Object.CalculateLevelOfDetail(...))
+		// bool OverrideSimpleShader = false;
+
 		// NOTE: Used by all newly created texture samplers
 		int32_t AnistropicFiltering = D3D11_DEFAULT_MAX_ANISOTROPY;
 
