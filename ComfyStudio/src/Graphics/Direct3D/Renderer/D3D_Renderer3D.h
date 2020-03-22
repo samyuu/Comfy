@@ -153,7 +153,7 @@ namespace Comfy::Graphics
 
 		uint32_t MaterialTextureTypeToTextureSlot(MaterialTextureType textureType, bool secondColorMap);
 		uint32_t BindMaterialTextures(const ObjRenderCommand& command, const Material& material, RenderFlags flags);
-		bool GetIsTextureSlotUsed(Material::MaterialUsedTextureFlags usedTextureFlags, uint32_t textureSlot);
+		bool GetIsTextureSlotUsed(Material::ShaderTypeIdentifier shaderType, Material::MaterialUsedTextureFlags usedTextureFlags, uint32_t textureSlot);
 		void SetSubMeshRasterizerState(const Material& material);
 		void SetObjectCBMaterialData(const Material& material, ObjectConstantData::MaterialData& outMaterialData) const;
 		void SetObjectCBTransforms(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, ObjectConstantData& outData) const;

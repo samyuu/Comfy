@@ -1394,7 +1394,7 @@ namespace Comfy::Graphics
 			if (correspondingTextureSlot >= TextureSlot_MaterialTextureCount || textureResources[correspondingTextureSlot] != nullptr)
 				continue;
 
-			if (!GetIsTextureSlotUsed(material.UsedTexturesFlags, correspondingTextureSlot))
+			if (!GetIsTextureSlotUsed(material.ShaderType, material.UsedTexturesFlags, correspondingTextureSlot))
 				continue;
 
 			const Cached_TxpID* txpID = &materialTexture.TextureID;
@@ -1484,13 +1484,15 @@ namespace Comfy::Graphics
 		return boundMaterialTexturesFlags;
 	}
 
-	bool D3D_Renderer3D::GetIsTextureSlotUsed(Material::MaterialUsedTextureFlags usedTextureFlags, uint32_t textureSlot)
+	bool D3D_Renderer3D::GetIsTextureSlotUsed(Material::ShaderTypeIdentifier shaderType, Material::MaterialUsedTextureFlags usedTextureFlags, uint32_t textureSlot)
 	{
 		switch (textureSlot)
 		{
 		case TextureSlot_Diffuse:
 			// HACK: Eye materials only set the ColorL1 flag for their diffuse texture
-			return usedTextureFlags.Color || usedTextureFlags.ColorL1;
+			if (shaderType == Material::ShaderIdentifiers::EyeBall || shaderType == Material::ShaderIdentifiers::EyeLens || shaderType == Material::ShaderIdentifiers::GlassEye)
+				return usedTextureFlags.Color || usedTextureFlags.ColorL1;
+			return usedTextureFlags.Color;
 		case TextureSlot_Ambient:
 			return usedTextureFlags.ColorL1;
 		case TextureSlot_Normal:
