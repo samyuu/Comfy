@@ -9,7 +9,7 @@ using namespace Comfy::FileSystem;
 
 namespace Comfy::Graphics
 {
-	const std::vector<MipMap>& Txp::GetMipMaps(uint32_t arrayIndex) const
+	const std::vector<TxpMipMap>& Txp::GetMipMaps(uint32_t arrayIndex) const
 	{
 		return MipMapsArray[arrayIndex];
 	}

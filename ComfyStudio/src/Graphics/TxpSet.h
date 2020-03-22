@@ -24,7 +24,7 @@ namespace Comfy::Graphics
 		TxpType Type;
 	};
 
-	struct MipMap
+	struct TxpMipMap
 	{
 		TxpSig Signature;
 		ivec2 Size;
@@ -45,7 +45,7 @@ namespace Comfy::Graphics
 		uint8_t ArraySize;
 
 		// NOTE: Two dimensional array [CubeFace][MipMap]
-		std::vector<std::vector<MipMap>> MipMapsArray;
+		std::vector<std::vector<TxpMipMap>> MipMapsArray;
 
 		Cached_TxpID ID = TxpID::Invalid;
 
@@ -53,7 +53,7 @@ namespace Comfy::Graphics
 		UniquePtr<GPU_CubeMap> GPU_CubeMap = nullptr;
 
 	public:
-		const std::vector<MipMap>& GetMipMaps(uint32_t arrayIndex = 0) const;
+		const std::vector<TxpMipMap>& GetMipMaps(uint32_t arrayIndex = 0) const;
 
 		ivec2 GetSize() const;
 		TextureFormat GetFormat() const;

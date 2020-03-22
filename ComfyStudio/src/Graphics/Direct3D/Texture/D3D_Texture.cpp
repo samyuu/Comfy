@@ -287,7 +287,7 @@ namespace Comfy::Graphics
 			}
 		}
 
-		D3D11_SUBRESOURCE_DATA CreateMipMapSubresourceData(const MipMap& mipMap, bool usesBlockCompression, UINT bitsPerPixel)
+		D3D11_SUBRESOURCE_DATA CreateMipMapSubresourceData(const TxpMipMap& mipMap, bool usesBlockCompression, UINT bitsPerPixel)
 		{
 			D3D11_SUBRESOURCE_DATA resource;
 			resource.pSysMem = mipMap.DataPointer;
