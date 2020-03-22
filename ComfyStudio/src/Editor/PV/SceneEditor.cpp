@@ -239,7 +239,7 @@ namespace Comfy::Editor
 			else if (visibility == StageVisibilityType::All)
 				e->IsVisible = true;
 			else if (visibility == StageVisibilityType::GroundSky)
-				e->IsVisible = (e->Name.find("_gnd") != std::string::npos || e->Name.find("_sky") != std::string::npos) || (e->Obj != nullptr && Debug::IsReflectionObj(*e->Obj));
+				e->IsVisible = (e->Obj != nullptr) && (Debug::IsGroundOrSkyObj(*e->Obj) || Debug::IsReflectionObj(*e->Obj));
 		});
 	}
 

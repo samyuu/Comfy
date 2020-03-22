@@ -97,7 +97,7 @@ namespace Comfy::Debug
 		return true;
 	}
 
-	void LoadStageLightParamFiles(Graphics::SceneParameters& scene, Editor::StageType stageType, int stageID, int stageSubID = 0)
+	inline void LoadStageLightParamFiles(Graphics::SceneParameters& scene, Editor::StageType stageType, int stageID, int stageSubID = 0)
 	{
 		auto pathBuffer = GetDebugFilePath(PathType::Fog, stageType, stageID, stageSubID);
 		LoadParseUploadLightParamFile(pathBuffer.data(), scene.Fog);
@@ -119,7 +119,7 @@ namespace Comfy::Debug
 		}
 	}
 
-	std::string GetTxpSetPathForObjSet(std::string_view objSetPath)
+	inline std::string GetTxpSetPathForObjSet(std::string_view objSetPath)
 	{
 		std::string txpSetPath;
 		txpSetPath.reserve(MAX_PATH);
@@ -135,17 +135,22 @@ namespace Comfy::Debug
 		return txpSetPath;
 	}
 
-	bool IsGroundObj(const Graphics::Obj& obj)
+	inline bool IsGroundObj(const Graphics::Obj& obj)
 	{
 		return EndsWithInsensitive(obj.Name, "_gnd");
 	}
 
-	bool IsReflectionObj(const Graphics::Obj& obj)
+	inline bool IsGroundOrSkyObj(const Graphics::Obj& obj)
+	{
+		return IsGroundObj(obj) || Contains(obj.Name, "_sky");
+	}
+
+	inline bool IsReflectionObj(const Graphics::Obj& obj)
 	{
 		return EndsWithInsensitive(obj.Name, "_reflect") || EndsWithInsensitive(obj.Name, "_ref") || (obj.Name.length() > strlen("_reflect_000") && EndsWithInsensitive(obj.Name.substr(0, obj.Name.length() - strlen("_000")), "_reflect"));
 	}
 
-	int FindGroundObj(Graphics::ObjSet* objSet)
+	inline int FindGroundObj(Graphics::ObjSet* objSet)
 	{
 		if (objSet == nullptr)
 			return -1;
