@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "TxpSet.h"
+#include "Graphics/TxpSet.h"
 #include "Graphics/GraphicTypes.h"
 
 namespace Comfy::Graphics

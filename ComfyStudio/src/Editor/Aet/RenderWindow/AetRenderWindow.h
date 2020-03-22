@@ -7,7 +7,6 @@
 #include "Editor/Core/RenderWindowBase.h"
 #include "Editor/Common/CameraController2D.h"
 #include "Editor/Common/CheckerboardGrid.h"
-#include "Graphics/SprSet.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Auth2D/AetRenderer.h"
 

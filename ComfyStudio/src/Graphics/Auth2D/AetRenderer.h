@@ -1,7 +1,7 @@
 #pragma once
 #include "AetMgr.h"
 #include "Graphics/Direct3D/Renderer/D3D_Renderer2D.h"
-#include "Graphics/SprSet.h"
+#include "Graphics/Auth2D/SprSet.h"
 #include <functional>
 #include <optional>
 

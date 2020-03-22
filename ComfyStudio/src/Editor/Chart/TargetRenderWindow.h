@@ -4,7 +4,6 @@
 #include "FileSystem/FileLoader.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Auth2D/AetRenderer.h"
-#include "Graphics/SprSet.h"
 
 namespace Comfy::Editor
 {

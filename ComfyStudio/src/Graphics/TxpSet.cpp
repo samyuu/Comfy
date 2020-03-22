@@ -1,5 +1,5 @@
 #include "TxpSet.h"
-#include "SprSet.h"
+#include "Auth2D/SprSet.h"
 #include "Auth3D/ObjSet.h"
 #include "FileSystem/FileInterface.h"
 #include "FileSystem/BinaryReader.h"

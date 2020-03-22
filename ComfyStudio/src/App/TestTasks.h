@@ -3,7 +3,7 @@
 #include "Types.h"
 #include "Graphics/Auth2D/AetMgr.h"
 #include "Graphics/Auth2D/AetSet.h"
-#include "Graphics/SprSet.h"
+#include "Graphics/Auth2D/SprSet.h"
 #include "FileSystem/FileLoader.h"
 
 namespace Comfy::App

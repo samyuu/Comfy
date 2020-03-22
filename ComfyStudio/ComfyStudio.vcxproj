@@ -272,7 +272,7 @@
     <ClCompile Include="src\System\CommandLine\CommandLineOption.cpp" />
     <ClCompile Include="src\System\LibraryLoader.cpp" />
     <ClCompile Include="src\DataTest\IconTestWindow.cpp" />
-    <ClCompile Include="src\Graphics\SprSet.cpp" />
+    <ClCompile Include="src\Graphics\Auth2D\SprSet.cpp" />
     <ClCompile Include="src\Graphics\TxpSet.cpp" />
     <ClCompile Include="src\ImGui\Widgets\FileViewer.cpp" />
     <ClCompile Include="src\License\LicenseWindow.cpp" />
@@ -472,7 +472,7 @@
     <ClInclude Include="src\System\LibraryLoader.h" />
     <ClInclude Include="res\resource.h" />
     <ClInclude Include="src\DataTest\IconTestWindow.h" />
-    <ClInclude Include="src\Graphics\SprSet.h" />
+    <ClInclude Include="src\Graphics\Auth2D\SprSet.h" />
     <ClInclude Include="src\Graphics\TxpSet.h" />
     <ClInclude Include="src\Graphics\Direct3D\IGraphicsResource.h" />
     <ClInclude Include="src\ImGui\Widgets\FileViewer.h" />
