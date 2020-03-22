@@ -4,8 +4,8 @@
 #include "Editor/Common/AudioController.h"
 #include "Editor/Chart/Chart.h"
 #include "Audio/Waveform.h"
-#include "Graphics/Direct3D/Texture/D3D_Texture.h"
 #include "Graphics/Auth2D/SprSet.h"
+#include "Graphics/GPU/GPUResources.h"
 #include "Input/KeyCode.h"
 
 namespace Comfy::Editor
@@ -79,7 +79,7 @@ namespace Comfy::Editor
 
 		std::array<ImRect, buttonIconsTypeCount * 2> buttonIconsTextureCoordinates;
 		Graphics::SprSet sprSet;
-		Graphics::D3D_Texture2D* buttonIconsTexture;
+		Graphics::GPU_Texture2D* buttonIconsTexture = nullptr;
 
 		bool checkHitsoundsInCallback = false;
 		struct { bool Down, WasDown; } buttonPlacementKeyStates[12];

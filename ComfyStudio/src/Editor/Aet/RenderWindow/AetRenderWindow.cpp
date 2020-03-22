@@ -376,7 +376,7 @@ namespace Comfy::Editor
 		checkerboardBaseGrid.GridSize = CheckerboardGrid::DefaultGridSize * 1.2f;
 		checkerboardBaseGrid.Position = camera.Position / camera.Zoom;
 		checkerboardBaseGrid.Size = vec2(owningRenderTarget->GetSize()) / camera.Zoom;
-		checkerboardBaseGrid.Render(renderer.get());
+		checkerboardBaseGrid.Render(*renderer);
 
 		const vec2 shadowOffset = vec2(3.5f, 2.5f) / camera.Zoom * 0.5f;
 		const vec2 shadowMargin = vec2(2.5f) / camera.Zoom;
@@ -387,7 +387,7 @@ namespace Comfy::Editor
 
 		checkerboardGrid.GridSize = CheckerboardGrid::DefaultGridSize;
 		checkerboardGrid.Size = aetRegionSize;
-		checkerboardGrid.Render(renderer.get());
+		checkerboardGrid.Render(*renderer);
 	}
 
 	void AetRenderWindow::RenderAetSet(const AetSet* aetSet)
@@ -452,7 +452,7 @@ namespace Comfy::Editor
 			return false;
 
 		renderer->Draw(
-			txp->D3D_Texture2D.get(),
+			txp->GPU_Texture2D.get(),
 			spr->PixelRegion,
 			obj.Transform.Position + positionOffset,
 			obj.Transform.Origin,
@@ -492,13 +492,13 @@ namespace Comfy::Editor
 			return false;
 
 		renderer->Draw(
-			maskTxp->D3D_Texture2D.get(),
+			maskTxp->GPU_Texture2D.get(),
 			maskSpr->PixelRegion,
 			maskObj.Transform.Position,
 			maskObj.Transform.Origin,
 			maskObj.Transform.Rotation,
 			maskObj.Transform.Scale,
-			txp->D3D_Texture2D.get(),
+			txp->GPU_Texture2D.get(),
 			spr->PixelRegion,
 			obj.Transform.Position + positionOffset,
 			obj.Transform.Origin,

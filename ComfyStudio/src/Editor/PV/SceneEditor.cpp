@@ -376,7 +376,7 @@ namespace Comfy::Editor
 		{
 			auto resolutionGui = [&](const char* label, const char* contextMenu, ivec2& inOutResolution)
 			{
-				auto clampValidTextureSize = [](ivec2 size) { return glm::clamp(size, D3D_Texture2D::MinSize, D3D_Texture2D::MaxSize); };
+				auto clampValidTextureSize = [](ivec2 size) { return glm::clamp(size, GPU_Texture2D::MinSize, GPU_Texture2D::MaxSize); };
 
 				if (GuiProperty::Input(label, inOutResolution))
 					inOutResolution = clampValidTextureSize(inOutResolution);
@@ -646,12 +646,12 @@ namespace Comfy::Editor
 				GuiPropertyRAII::ID id(&lightMap);
 				GuiProperty::PropertyLabelValueFunc(nameBuffer, [&]
 				{
-					if (lightMap.D3D_CubeMap != nullptr)
+					if (lightMap.GPU_CubeMap != nullptr)
 					{
 						constexpr vec2 cubeMapDisplaySize = vec2(96.0f, 96.0f);
 
 						const float width = std::clamp(Gui::GetContentRegionAvailWidth(), 1.0f, cubeMapDisplaySize.x);
-						Gui::Image(*lightMap.D3D_CubeMap, vec2(width, width * (3.0f / 4.0f)));
+						Gui::Image(*lightMap.GPU_CubeMap, vec2(width, width * (3.0f / 4.0f)));
 					}
 					return false;
 				});
@@ -1571,7 +1571,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	void SceneEditor::TakeSceneRenderTargetScreenshot(D3D_RenderTarget& renderTarget)
+	void SceneEditor::TakeSceneRenderTargetScreenshot(GPU_RenderTarget& renderTarget)
 	{
 		auto pixelData = renderTarget.StageAndCopyBackBuffer();
 

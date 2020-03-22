@@ -1,0 +1,28 @@
+#pragma once
+#include "Types.h"
+
+#ifdef COMFY_D3D11
+#include "Graphics/Direct3D/Texture/D3D_Texture.h"
+#include "Graphics/Direct3D/Texture/D3D_RenderTarget.h"
+#include "Graphics/Direct3D/Buffer/D3D_IndexBuffer.h"
+#include "Graphics/Direct3D/Buffer/D3D_VertexBuffer.h"
+#endif
+
+namespace Comfy::Graphics
+{
+	// NOTE: GPU resource aliases to hide away the graphics API implementation without relying on virtual interfaces, for now
+
+#ifdef COMFY_D3D11
+	using GPU_Texture2D = D3D_Texture2D;
+	using GPU_CubeMap = D3D_CubeMap;
+	using GPU_RenderTarget = D3D_RenderTarget;
+	using GPU_IndexBuffer = D3D_StaticIndexBuffer;
+	using GPU_VertexBuffer = D3D_StaticVertexBuffer;
+#else
+	class GPU_Texture2D {};
+	class GPU_CubeMap {};
+	class GPU_RenderTarget {};
+	class GPU_IndexBuffer {};
+	class GPU_VertexBuffer {};
+#endif
+}

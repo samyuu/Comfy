@@ -3,7 +3,7 @@
 
 namespace Comfy::Graphics
 {
-	AetRenderer::AetRenderer(D3D_Renderer2D* renderer) : renderer2D(renderer)
+	AetRenderer::AetRenderer(GPU_Renderer2D* renderer) : renderer2D(renderer)
 	{
 	}
 
@@ -11,12 +11,12 @@ namespace Comfy::Graphics
 	{
 	}
 
-	D3D_Renderer2D* AetRenderer::GetRenderer2D()
+	GPU_Renderer2D* AetRenderer::GetRenderer2D()
 	{
 		return renderer2D;
 	}
 
-	void AetRenderer::SetRenderer2D(D3D_Renderer2D* value)
+	void AetRenderer::SetRenderer2D(GPU_Renderer2D* value)
 	{
 		renderer2D = value;
 	}
@@ -59,7 +59,7 @@ namespace Comfy::Graphics
 		if (validSprite)
 		{
 			renderer2D->Draw(
-				txp->D3D_Texture2D.get(),
+				txp->GPU_Texture2D.get(),
 				spr->PixelRegion,
 				finalPosition,
 				obj.Transform.Origin,
@@ -102,13 +102,13 @@ namespace Comfy::Graphics
 		if (validMaskSprite && validSprite)
 		{
 			renderer2D->Draw(
-				maskTxp->D3D_Texture2D.get(),
+				maskTxp->GPU_Texture2D.get(),
 				maskSpr->PixelRegion,
 				maskObj.Transform.Position,
 				maskObj.Transform.Origin,
 				maskObj.Transform.Rotation,
 				maskObj.Transform.Scale,
-				txp->D3D_Texture2D.get(),
+				txp->GPU_Texture2D.get(),
 				spr->PixelRegion,
 				obj.Transform.Position + positionOffset,
 				obj.Transform.Origin,
@@ -180,7 +180,7 @@ namespace Comfy::Graphics
 		}
 		else
 		{
-			renderer2D->Draw(texture->D3D_Texture2D.get(), sprite->PixelRegion, vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), vec4(1.0f));
+			renderer2D->Draw(texture->GPU_Texture2D.get(), sprite->PixelRegion, vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), vec4(1.0f));
 		}
 	}
 

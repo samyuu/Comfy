@@ -32,7 +32,7 @@ namespace Comfy::App
 		void OnResize(ivec2 size) override;
 
 	protected:
-		UniquePtr<Graphics::D3D_Renderer2D> renderer;
+		UniquePtr<Graphics::GPU_Renderer2D> renderer;
 		UniquePtr<Graphics::AetRenderer> aetRenderer;
 
 		Graphics::OrthographicCamera camera;

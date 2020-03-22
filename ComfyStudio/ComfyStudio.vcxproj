@@ -66,7 +66,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
-      <PreprocessorDefinitions>GLM_FORCE_DEPTH_ZERO_TO_ONE;COMFY_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLM_FORCE_DEPTH_ZERO_TO_ONE;COMFY_D3D11;COMFY_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OmitFramePointers>false</OmitFramePointers>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -120,7 +120,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
-      <PreprocessorDefinitions>GLM_FORCE_DEPTH_ZERO_TO_ONE;COMFY_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLM_FORCE_DEPTH_ZERO_TO_ONE;COMFY_D3D11;COMFY_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OmitFramePointers>true</OmitFramePointers>
@@ -310,6 +310,8 @@
     <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\ToneMapData.h" />
     <ClInclude Include="src\Graphics\Direct3D\Shader\Bytecode\ShaderBytecode.h" />
     <ClInclude Include="src\Graphics\Direct3D\State\D3D_OcclusionQuery.h" />
+    <ClInclude Include="src\Graphics\GPU\GPURenderers.h" />
+    <ClInclude Include="src\Graphics\GPU\GPUResources.h" />
     <ClInclude Include="src\ImGui\Extensions\PropertyEditor.h" />
     <ClInclude Include="src\Resource\IDHash.h" />
     <ClInclude Include="src\Resource\Detail\IDTypeDeclarations.h" />

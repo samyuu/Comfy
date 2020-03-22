@@ -1,6 +1,6 @@
 #pragma once
 #include "ImGui/Gui.h"
-#include "Graphics/Direct3D/Texture/D3D_RenderTarget.h"
+#include "Graphics/GPU/GPUResources.h"
 
 namespace Comfy::Editor
 {
@@ -30,7 +30,7 @@ namespace Comfy::Editor
 		static inline void PopWindowPadding() { Gui::PopStyleVar(); };
 
 	protected:
-		UniquePtr<Graphics::D3D_RenderTarget> owningRenderTarget = nullptr;
+		UniquePtr<Graphics::GPU_RenderTarget> owningRenderTarget = nullptr;
 
 		virtual ImGuiWindowFlags GetChildWinodwFlags() const { return ImGuiWindowFlags_None; };
 
@@ -43,7 +43,7 @@ namespace Comfy::Editor
 		virtual void OnResize(ivec2 size);
 
 		virtual bool GetShouldCreateDepthRenderTarget() const { return false; };
-		virtual Graphics::D3D_RenderTarget* GetExternalRenderTarget() { return nullptr; };
+		virtual Graphics::GPU_RenderTarget* GetExternalRenderTarget() { return nullptr; };
 
 	private:
 		ImRect renderRegion, lastRenderRegion;

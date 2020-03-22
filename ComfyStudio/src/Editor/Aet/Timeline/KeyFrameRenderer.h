@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "ImGui/Gui.h"
 #include "Graphics/Auth2D/AetSet.h"
-#include "Graphics/Direct3D/Texture/D3D_Texture.h"
+#include "Graphics/GPU/GPUResources.h"
 
 namespace Comfy::Editor
 {
@@ -25,7 +25,7 @@ namespace Comfy::Editor
 		static constexpr ivec2 keyFrameTextureSize = ivec2(22, 22);
 		static const uint32_t keyFrameTexturePixels[keyFrameTextureSize.x * keyFrameTextureSize.y];
 
-		UniquePtr<Graphics::D3D_Texture2D> keyFrameTexture = nullptr;
+		UniquePtr<Graphics::GPU_Texture2D> keyFrameTexture = nullptr;
 
 		enum class KeyFrameType
 		{

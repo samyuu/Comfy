@@ -3,8 +3,8 @@
 #include "BoundingTypes.h"
 #include "FileSystem/FileInterface.h"
 #include "Graphics/TxpSet.h"
-#include "Graphics/Direct3D/Buffer/D3D_IndexBuffer.h"
-#include "Graphics/Direct3D/Buffer/D3D_VertexBuffer.h"
+#include "Graphics/GPU/GPUResources.h"
+#include <optional>
 #include <variant>
 
 namespace Comfy::Graphics
@@ -45,7 +45,7 @@ namespace Comfy::Graphics
 			uint32_t Transparent : 1;
 		} Flags;
 
-		UniquePtr<D3D_StaticIndexBuffer> D3D_IndexBuffer;
+		UniquePtr<GPU_IndexBuffer> GPU_IndexBuffer;
 
 		// NOTE: IndexFormat wrapper around the Indices variant
 		IndexFormat GetIndexFormat() const;
@@ -103,7 +103,7 @@ namespace Comfy::Graphics
 			std::vector<vec4> BoneIndices;
 		} VertexData;
 
-		std::array<UniquePtr<D3D_StaticVertexBuffer>, VertexAttribute_Count> D3D_VertexBuffers;
+		std::array<UniquePtr<GPU_VertexBuffer>, VertexAttribute_Count> GPU_VertexBuffers;
 	};
 
 	enum class MaterialTextureType : uint32_t

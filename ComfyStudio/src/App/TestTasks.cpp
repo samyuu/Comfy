@@ -152,7 +152,7 @@ namespace Comfy::App
 		return true;
 	}
 
-	bool TaskPs4Menu::Render(D3D_Renderer2D* renderer, AetRenderer* aetRenderer)
+	bool TaskPs4Menu::Render(GPU_Renderer2D* renderer, AetRenderer* aetRenderer)
 	{
 		if (isLoading)
 			return true;

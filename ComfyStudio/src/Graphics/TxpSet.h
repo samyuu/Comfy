@@ -4,7 +4,7 @@
 #include "Resource/IDTypes.h"
 #include "FileSystem/FileInterface.h"
 #include "Graphics/GraphicTypes.h"
-#include "Graphics/Direct3D/Texture/D3D_Texture.h"
+#include "Graphics/GPU/GPUResources.h"
 #include <optional>
 
 namespace Comfy::Graphics
@@ -49,8 +49,8 @@ namespace Comfy::Graphics
 
 		Cached_TxpID ID = TxpID::Invalid;
 
-		UniquePtr<D3D_Texture2D> D3D_Texture2D = nullptr;
-		UniquePtr<D3D_CubeMap> D3D_CubeMap = nullptr;
+		UniquePtr<GPU_Texture2D> GPU_Texture2D = nullptr;
+		UniquePtr<GPU_CubeMap> GPU_CubeMap = nullptr;
 
 	public:
 		const std::vector<MipMap>& GetMipMaps(uint32_t arrayIndex = 0) const;

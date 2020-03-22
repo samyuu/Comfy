@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "Graphics/GraphicTypes.h"
-#include "Graphics/Direct3D/Texture/D3D_Texture.h"
+#include "Graphics/GPU/GPUResources.h"
 #include "FileSystem/FileInterface.h"
 
 namespace Comfy::Graphics
@@ -22,7 +22,7 @@ namespace Comfy::Graphics
 		ivec2 Size;
 		std::array<std::array<const uint8_t*, MipMaps>, Faces> DataPointers;
 
-		UniquePtr<D3D_CubeMap> D3D_CubeMap;
+		UniquePtr<GPU_CubeMap> GPU_CubeMap;
 	};
 
 	struct LightDataIBL

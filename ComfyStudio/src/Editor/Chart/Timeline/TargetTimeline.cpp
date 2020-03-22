@@ -221,7 +221,7 @@ namespace Comfy::Editor
 			sprSet.Parse(sprFileBuffer.get(), sprFileEntry->Size);
 			sprSet.TxpSet->UploadAll(&sprSet);
 
-			buttonIconsTexture = sprSet.TxpSet->Txps.front()->D3D_Texture2D.get();
+			buttonIconsTexture = sprSet.TxpSet->Txps.front()->GPU_Texture2D.get();
 		}
 
 		const vec2 texelSize = vec2(1.0f, 1.0f) / vec2(buttonIconsTexture->GetSize());

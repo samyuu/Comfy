@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/Direct3D/Renderer/D3D_Renderer2D.h"
+#include "Graphics/GPU/GPURenderers.h"
 
 namespace Comfy::Editor
 {
@@ -21,7 +21,7 @@ namespace Comfy::Editor
 		// NOTE: Secondary color
 		vec4 ColorAlt = vec4(0.32f, 0.32f, 0.32f, 1.0f);
 
-		void Render(Graphics::D3D_Renderer2D* renderer) const;
+		void Render(Graphics::GPU_Renderer2D& renderer) const;
 
 	private:
 	};

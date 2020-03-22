@@ -1,15 +1,15 @@
 #pragma once
 #include "SceneGraph.h"
 #include "Editor/Core/RenderWindowBase.h"
-#include "Graphics/Direct3D/Renderer/D3D_Renderer3D.h"
 #include "Editor/Common/CameraController3D.h"
+#include "Graphics/GPU/GPURenderers.h"
 
 namespace Comfy::Editor
 {
 	class SceneRenderWindow : public RenderWindowBase
 	{
 	public:
-		SceneRenderWindow(SceneGraph& sceneGraph, Graphics::SceneViewport& viewport, Graphics::SceneParameters& scene, CameraController3D& cameraController, Graphics::D3D_Renderer3D& renderer3D);
+		SceneRenderWindow(SceneGraph& sceneGraph, Graphics::SceneViewport& viewport, Graphics::SceneParameters& scene, CameraController3D& cameraController, Graphics::GPU_Renderer3D& renderer3D);
 		~SceneRenderWindow() = default;
 
 	public:
@@ -25,7 +25,7 @@ namespace Comfy::Editor
 		void OnUpdate() override;
 		void OnRender() override;
 		void OnResize(ivec2 size) override;
-		Graphics::D3D_RenderTarget* GetExternalRenderTarget() override;
+		Graphics::GPU_RenderTarget* GetExternalRenderTarget() override;
 
 	private:
 		bool drawCameraAxisIndicator = true;
@@ -37,6 +37,6 @@ namespace Comfy::Editor
 
 		CameraController3D* cameraController = nullptr;
 
-		Graphics::D3D_Renderer3D* renderer3D = nullptr;
+		Graphics::GPU_Renderer3D* renderer3D = nullptr;
 	};
 }

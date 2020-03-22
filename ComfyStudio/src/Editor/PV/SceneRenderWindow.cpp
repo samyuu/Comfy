@@ -45,7 +45,7 @@ namespace Comfy::Editor
 			return command;
 		}
 
-		void RenderDebugBoundingSpheres(D3D_Renderer3D* renderer3D, const ObjectEntity& entity)
+		void RenderDebugBoundingSpheres(GPU_Renderer3D* renderer3D, const ObjectEntity& entity)
 		{
 			if (entity.Obj->Debug.RenderBoundingSphere)
 				renderer3D->Draw(GetDebugBoungingSphereRenderCommand(entity.Transform, entity.Obj->BoundingSphere, 2));
@@ -61,7 +61,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	SceneRenderWindow::SceneRenderWindow(SceneGraph& sceneGraph, SceneViewport& viewport, SceneParameters& scene, CameraController3D& cameraController, D3D_Renderer3D& renderer3D)
+	SceneRenderWindow::SceneRenderWindow(SceneGraph& sceneGraph, SceneViewport& viewport, SceneParameters& scene, CameraController3D& cameraController, GPU_Renderer3D& renderer3D)
 		: sceneGraph(&sceneGraph), viewport(&viewport), scene(&scene), cameraController(&cameraController), renderer3D(&renderer3D)
 	{
 	}
@@ -209,7 +209,7 @@ namespace Comfy::Editor
 		viewport->Parameters.RenderResolution = renderRegionSize;
 	}
 
-	D3D_RenderTarget* SceneRenderWindow::GetExternalRenderTarget()
+	GPU_RenderTarget* SceneRenderWindow::GetExternalRenderTarget()
 	{
 		return (viewport == nullptr) ? nullptr : &viewport->Data.Output.RenderTarget;
 	}

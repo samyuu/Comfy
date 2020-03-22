@@ -1,7 +1,7 @@
 #pragma once
 #include "AetMgr.h"
-#include "Graphics/Direct3D/Renderer/D3D_Renderer2D.h"
 #include "Graphics/Auth2D/SprSet.h"
+#include "Graphics/GPU/GPURenderers.h"
 #include <functional>
 #include <optional>
 
@@ -15,12 +15,12 @@ namespace Comfy::Graphics
 	class AetRenderer
 	{
 	public:
-		AetRenderer(D3D_Renderer2D* renderer);
+		AetRenderer(GPU_Renderer2D* renderer);
 		~AetRenderer();
 
 	public:
-		D3D_Renderer2D* GetRenderer2D();
-		void SetRenderer2D(D3D_Renderer2D* value);
+		GPU_Renderer2D* GetRenderer2D();
+		void SetRenderer2D(GPU_Renderer2D* value);
 		
 		SpriteGetterFunction* GetSpriteGetterFunction();
 		void SetSpriteGetterFunction(SpriteGetterFunction* value);
@@ -48,7 +48,7 @@ namespace Comfy::Graphics
 		bool GetSprite(const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr);
 
 	private:
-		D3D_Renderer2D* renderer2D = nullptr;
+		GPU_Renderer2D* renderer2D = nullptr;
 		SpriteGetterFunction* spriteGetter = nullptr;
 
 		std::optional<AetObjCallbackFunction> objCallback;

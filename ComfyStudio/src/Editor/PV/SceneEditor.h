@@ -3,8 +3,8 @@
 #include "SceneRenderWindow.h"
 #include "Editor/Core/IEditorComponent.h"
 #include "Editor/Common/CameraController3D.h"
-#include "Graphics/Direct3D/Renderer/D3D_Renderer3D.h"
 #include "Graphics/Auth2D/SprSet.h"
+#include "Graphics/GPU/GPURenderers.h"
 #include "ImGui/Widgets/FileViewer.h"
 #include "StageTest.h"
 #include "CharaTest.h"
@@ -61,7 +61,7 @@ namespace Comfy::Editor
 
 	private:
 		void TakeScreenshotGui();
-		void TakeSceneRenderTargetScreenshot(Graphics::D3D_RenderTarget& renderTarget);
+		void TakeSceneRenderTargetScreenshot(Graphics::GPU_RenderTarget& renderTarget);
 
 	private:
 		SceneGraph sceneGraph;
@@ -71,7 +71,7 @@ namespace Comfy::Editor
 
 		CameraController3D cameraController;
 		
-		UniquePtr<Graphics::D3D_Renderer3D> renderer3D = nullptr;
+		UniquePtr<Graphics::GPU_Renderer3D> renderer3D = nullptr;
 
 		UniquePtr<SceneRenderWindow> renderWindow = nullptr;
 

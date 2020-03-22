@@ -732,11 +732,11 @@ namespace Comfy::Graphics
 				nullptr,
 
 				// NOTE: IBLLightMaps_0 = 9
-				current.Scene->IBL.LightMaps[0].D3D_CubeMap.get(),
+				current.Scene->IBL.LightMaps[0].GPU_CubeMap.get(),
 				// NOTE: IBLLightMaps_1 = 10
-				current.Scene->IBL.LightMaps[1].D3D_CubeMap.get(),
+				current.Scene->IBL.LightMaps[1].GPU_CubeMap.get(),
 				// NOTE: IBLLightMaps_2 = 11
-				current.Scene->IBL.LightMaps[2].D3D_CubeMap.get(),
+				current.Scene->IBL.LightMaps[2].GPU_CubeMap.get(),
 
 				// NOTE: ---
 				nullptr,
@@ -1283,7 +1283,7 @@ namespace Comfy::Graphics
 			const Mesh& mesh = (meshIndex == 0) ? primaryMesh : *morphMesh;;
 			for (VertexAttribute i = 0; i < VertexAttribute_Count; i++)
 			{
-				D3D_StaticVertexBuffer* vertexBuffer = mesh.D3D_VertexBuffers[i].get();
+				D3D_StaticVertexBuffer* vertexBuffer = mesh.GPU_VertexBuffers[i].get();
 
 				if (vertexBuffer != nullptr)
 				{
@@ -1422,7 +1422,7 @@ namespace Comfy::Graphics
 			if (txp == nullptr)
 				continue;
 
-			textureResources[correspondingTextureSlot] = (txp->D3D_Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->D3D_Texture2D.get()) : (txp->D3D_CubeMap != nullptr) ? (txp->D3D_CubeMap.get()) : nullptr;
+			textureResources[correspondingTextureSlot] = (txp->GPU_Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->GPU_Texture2D.get()) : (txp->GPU_CubeMap != nullptr) ? (txp->GPU_CubeMap.get()) : nullptr;
 			textureSamplers[correspondingTextureSlot] = &cachedTextureSamplers.GetSampler(samplerFlags);
 
 			if (correspondingTextureSlot == TextureSlot_Diffuse)
@@ -1765,7 +1765,7 @@ namespace Comfy::Graphics
 	void D3D_Renderer3D::SubmitSubMeshDrawCall(const SubMesh& subMesh)
 	{
 		const size_t indexCount = subMesh.GetIndexCount();
-		subMesh.D3D_IndexBuffer->Bind();
+		subMesh.GPU_IndexBuffer->Bind();
 
 		D3D.Context->IASetPrimitiveTopology(GetD3DPrimitiveTopolgy(subMesh.Primitive));
 		D3D.Context->DrawIndexed(static_cast<UINT>(indexCount), 0, 0);

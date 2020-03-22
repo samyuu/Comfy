@@ -30,7 +30,7 @@ namespace Comfy::Editor
 		constexpr vec2 TxpDisplaySize = vec2(96.0f);
 	}
 
-	void MaterialEditor::DrawGui(D3D_Renderer3D& renderer, const SceneParameters& scene, Material& material)
+	void MaterialEditor::DrawGui(GPU_Renderer3D& renderer, const SceneParameters& scene, Material& material)
 	{
 		GuiPropertyRAII::ID id(&material);
 		GuiPropertyRAII::PropertyValueColumns rootColumns;
@@ -107,7 +107,7 @@ namespace Comfy::Editor
 		});
 	}
 
-	void MaterialEditor::DrawTextureDataGui(D3D_Renderer3D& renderer, Material& material)
+	void MaterialEditor::DrawTextureDataGui(GPU_Renderer3D& renderer, Material& material)
 	{
 		GuiPropertyRAII::ID id(&material.Textures);
 
@@ -206,7 +206,7 @@ namespace Comfy::Editor
 		});
 	}
 
-	void MaterialEditor::MaterialPreview::DrawGui(D3D_Renderer3D& renderer, const SceneParameters& scene, Material& material)
+	void MaterialEditor::MaterialPreview::DrawGui(GPU_Renderer3D& renderer, const SceneParameters& scene, Material& material)
 	{
 		Gui::Columns(1);
 
@@ -257,7 +257,7 @@ namespace Comfy::Editor
 		cameraController.Update(viewport->Camera);
 	}
 
-	void MaterialEditor::MaterialPreview::RenderMaterial(D3D_Renderer3D& renderer, const SceneParameters& scene, Material& material)
+	void MaterialEditor::MaterialPreview::RenderMaterial(GPU_Renderer3D& renderer, const SceneParameters& scene, Material& material)
 	{
 		viewport->Camera.UpdateMatrices();
 		renderer.Begin(*viewport, scene);

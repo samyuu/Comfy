@@ -94,7 +94,7 @@ namespace Comfy::Editor
 	void TargetRenderWindow::RenderBackground()
 	{
 		checkerboardGrid.Size = renderSize;
-		checkerboardGrid.Render(renderer.get());
+		checkerboardGrid.Render(*renderer);
 
 		renderer->Draw(
 			vec2(0.0f),

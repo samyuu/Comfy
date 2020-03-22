@@ -91,8 +91,8 @@ namespace Comfy::Editor
 				Gui::GetColorU32(ImGuiCol_WindowBg));
 		}
 
-		D3D_RenderTarget* externalRenderTarget = GetExternalRenderTarget();
-		D3D_RenderTarget* outputRenderTarget = (externalRenderTarget != nullptr) ? externalRenderTarget : owningRenderTarget.get();
+		GPU_RenderTarget* externalRenderTarget = GetExternalRenderTarget();
+		GPU_RenderTarget* outputRenderTarget = (externalRenderTarget != nullptr) ? externalRenderTarget : owningRenderTarget.get();
 
 		if (outputRenderTarget != nullptr)
 		{

@@ -29,7 +29,7 @@ namespace Comfy::Editor
 		Graphics::OrthographicCamera camera;
 
 		Graphics::SpriteGetterFunction spriteGetterFunction;
-		UniquePtr<Graphics::D3D_Renderer2D> renderer;
+		UniquePtr<Graphics::GPU_Renderer2D> renderer;
 		UniquePtr<Graphics::AetRenderer> aetRenderer;
 
 		// TODO: ps4_gam

@@ -8,7 +8,7 @@ namespace ImGui
 {
 	void ImageSprTxp(const Txp* txp, const ImVec2& size)
 	{
-		D3D_TextureResource* textureResource = txp->D3D_Texture2D.get();
+		D3D_TextureResource* textureResource = txp->GPU_Texture2D.get();
 
 		if (textureResource == nullptr)
 			return;
@@ -21,10 +21,10 @@ namespace ImGui
 
 	void ImageObjTxp(const Txp* txp, const ImVec2& size)
 	{
-		D3D_TextureResource* textureResource = txp->D3D_Texture2D.get();
+		D3D_TextureResource* textureResource = txp->GPU_Texture2D.get();
 
 		if (textureResource == nullptr)
-			textureResource = txp->D3D_CubeMap.get();
+			textureResource = txp->GPU_CubeMap.get();
 
 		if (textureResource == nullptr)
 			return;
@@ -35,7 +35,7 @@ namespace ImGui
 		ImTextureID textureID = *textureResource;
 		textureID.DecompressRGTC = false;
 
-		if (textureResource == txp->D3D_CubeMap.get())
+		if (textureResource == txp->GPU_CubeMap.get())
 			Image(textureID, adjustedSize, UV0, UV1);
 		else
 			Image(textureID, adjustedSize, UV0_R, UV1_R);

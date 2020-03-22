@@ -82,7 +82,7 @@ namespace Comfy::Editor
 		};
 
 		// NOTE: General rendering
-		UniquePtr<Graphics::D3D_Renderer2D> renderer = nullptr;
+		UniquePtr<Graphics::GPU_Renderer2D> renderer = nullptr;
 		UniquePtr<Graphics::AetRenderer> aetRenderer = nullptr;
 
 		AetRenderPreviewData* previewData = nullptr;

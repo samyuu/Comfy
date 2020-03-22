@@ -2,20 +2,20 @@
 
 namespace Comfy::Editor
 {
-	void CheckerboardGrid::Render(Graphics::D3D_Renderer2D* renderer) const
+	void CheckerboardGrid::Render(Graphics::GPU_Renderer2D& renderer) const
 	{
-		renderer->Draw(
+		renderer.Draw(
 			Position,
 			Size,
 			Color);
 
-		renderer->DrawCheckerboardRectangle(
+		renderer.DrawCheckerboardRectangle(
 			Position,
 			vec2(1.0f),
 			vec2(0.0f),
 			0.0f,
 			Size,
 			ColorAlt,
-			renderer->GetCamera()->Zoom / GridSize);
+			renderer.GetCamera()->Zoom / GridSize);
 	}
 }
