@@ -16,8 +16,15 @@ namespace Comfy::Graphics
 				return;
 			}
 
-			vertexBuffer = MakeUnique<D3D_StaticVertexBuffer>(vertexData.size() * sizeof(T), vertexData.data(), sizeof(T));
-			D3D_SetObjectDebugName(vertexBuffer->GetBuffer(), "<%s> %s::%sBuffer", objSetName, mesh.Name, bufferName);
+			const char* debugName = nullptr;
+
+#if COMFY_D3D11_DEBUG_NAMES
+			char debugNameBuffer[128];
+			sprintf_s(debugNameBuffer,"<%s> %s::%sBuffer", objSetName, mesh.Name.data(), bufferName);
+			debugName = debugNameBuffer;
+#endif
+
+			vertexBuffer = GPU::MakeVertexBuffer(vertexData.size() * sizeof(T), vertexData.data(), sizeof(T), debugName);
 		}
 	}
 
@@ -41,10 +48,15 @@ namespace Comfy::Graphics
 			uint32_t subMeshIndex = 0;
 			for (auto& subMesh : mesh.SubMeshes)
 			{
-				subMesh.GPU_IndexBuffer = MakeUnique<D3D_StaticIndexBuffer>(subMesh.GetRawIndicesByteSize(), subMesh.GetRawIndices(), subMesh.GetIndexFormat());
+				const char* debugName = nullptr;
 
-				D3D_SetObjectDebugName(subMesh.GPU_IndexBuffer->GetBuffer(), "<%s> %s[%d]::IndexBuffer", Name.c_str(), mesh.Name, subMeshIndex);
-				subMeshIndex++;
+#if COMFY_D3D11_DEBUG_NAMES
+				char debugNameBuffer[128];
+				sprintf_s(debugNameBuffer, "<%s> %s[%d]::IndexBuffer", Name.c_str(), mesh.Name.data(), subMeshIndex++);
+				debugName = debugNameBuffer;
+#endif
+
+				subMesh.GPU_IndexBuffer = GPU::MakeIndexBuffer(subMesh.GetRawIndicesByteSize(), subMesh.GetRawIndices(), subMesh.GetIndexFormat(), debugName);
 			}
 		}
 	}

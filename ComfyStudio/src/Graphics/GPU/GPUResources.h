@@ -25,4 +25,19 @@ namespace Comfy::Graphics
 	class GPU_IndexBuffer {};
 	class GPU_VertexBuffer {};
 #endif
+
+	struct Txp;
+	struct LightMapIBL;
+
+	namespace GPU
+	{
+		UniquePtr<GPU_Texture2D> MakeTexture2D(const Txp& txp, const char* debugName = nullptr);
+		UniquePtr<GPU_Texture2D> MakeTexture2D(ivec2 size, const uint32_t* rgbaBuffer, const char* debugName = nullptr);
+
+		UniquePtr<GPU_CubeMap> MakeCubeMap(const Txp& txp, const char* debugName = nullptr);
+		UniquePtr<GPU_CubeMap> MakeCubeMap(const LightMapIBL& lightMap, const char* debugName = nullptr);
+
+		UniquePtr<GPU_IndexBuffer> MakeIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat, const char* debugName = nullptr);
+		UniquePtr<GPU_VertexBuffer> MakeVertexBuffer(size_t dataSize, const void* data, size_t stride, const char* debugName = nullptr);
+	}
 }

@@ -53,13 +53,22 @@ namespace Comfy::Graphics
 #if COMFY_DEBUG
 		ComPtr<ID3D11Debug> debugInterface = nullptr;
 		ComPtr<ID3D11InfoQueue> infoQueue = nullptr;
-#endif
+#endif /* COMFY_DEBUG */
 	};
 
 	// NOTE: Global instance
 	extern Direct3D D3D;
 
-#if COMFY_DEBUG
+#ifndef COMFY_D3D11_DEBUG_NAMES
+#ifdef COMFY_DEBUG
+#define COMFY_D3D11_DEBUG_NAMES 1
+#else
+#define COMFY_D3D11_DEBUG_NAMES 0
+#endif /* COMFY_DEBUG */
+#endif /* COMFY_D3D11_DEBUG_NAMES */
+
+
+#if COMFY_D3D11_DEBUG_NAMES
 	inline void D3D_SetObjectDebugName(ID3D11DeviceChild* deviceChild, const char* format, ...)
 	{
 		char buffer[512];
@@ -74,5 +83,5 @@ namespace Comfy::Graphics
 	}
 #else
 #define D3D_SetObjectDebugName(deviceChild, format, ...) do {} while(false);
-#endif
+#endif /* COMFY_D3D11_DEBUG_NAMES */
 }

@@ -157,8 +157,15 @@ namespace Comfy::Graphics
 		{
 			if (auto& lightMap = LightMaps[i]; lightMap.Size.x >= 1 && lightMap.Size.y >= 1)
 			{
-				lightMap.GPU_CubeMap = MakeUnique<D3D_CubeMap>(lightMap);
-				D3D_SetObjectDebugName(lightMap.GPU_CubeMap->GetTexture(), "LightMap IBL [%zu]", i);
+				const char* debugName = nullptr;
+
+#if COMFY_D3D11_DEBUG_NAMES
+				char debugNameBuffer[64];
+				sprintf_s(debugNameBuffer, "LightMap IBL [%zu]", i);
+				debugName = debugNameBuffer;
+#endif
+
+				lightMap.GPU_CubeMap = GPU::MakeCubeMap(lightMap, debugName);
 			}
 		}
 	}

@@ -115,8 +115,7 @@ namespace Comfy::Editor
 
 	void KeyFrameRenderer::CreateKeyFrameTexture()
 	{
-		keyFrameTexture = MakeUnique<D3D_Texture2D>(keyFrameTextureSize, keyFrameTexturePixels);
-		D3D_SetObjectDebugName(keyFrameTexture->GetTexture(), "KeyFrameRenderer::KeyFrameTexture");
+		keyFrameTexture = GPU::MakeTexture2D(keyFrameTextureSize, keyFrameTexturePixels, "KeyFrameRenderer::KeyFrameTexture");
 	}
 
 	void KeyFrameRenderer::DrawKeyFrameConnection(ImDrawList* drawList, const vec2& start, const vec2& end, bool active) const

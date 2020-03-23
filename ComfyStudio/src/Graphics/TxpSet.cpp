@@ -56,21 +56,24 @@ namespace Comfy::Graphics
 
 	void TxpSet::UploadAll(SprSet* parentSprSet)
 	{
-		for (auto& txpRef : Txps)
+		for (auto& txp : Txps)
 		{
-			auto& txp = *txpRef;
-			if (txp.Signature.Type == TxpSig::Texture2D)
-			{
-				txp.GPU_Texture2D = MakeUnique<D3D_Texture2D>(txp);
-				D3D_SetObjectDebugName(txp.GPU_Texture2D->GetTexture(), "Texture2D %s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp.GetName().data());
-				D3D_SetObjectDebugName(txp.GPU_Texture2D->GetResourceView(), "Texture2D::View %s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp.GetName().data());
-			}
-			else if (txp.Signature.Type == TxpSig::CubeMap)
-			{
-				txp.GPU_CubeMap = MakeUnique<D3D_CubeMap>(txp);
-				D3D_SetObjectDebugName(txp.GPU_CubeMap->GetTexture(), "CubeMap %s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp.GetName().data());
-				D3D_SetObjectDebugName(txp.GPU_CubeMap->GetTexture(), "CubeMap::View %s: %s", (parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet", txp.GetName().data());
-			}
+			const char* debugName = nullptr;
+
+#if COMFY_D3D11_DEBUG_NAMES
+			char debugNameBuffer[128];
+			sprintf_s(debugNameBuffer, "%s %s: %s",
+				(txp->Signature.Type == TxpSig::Texture2D) ? "Texture2D" : "CubeMap",
+				(parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet",
+				txp->GetName().data());
+
+			debugName = debugNameBuffer;
+#endif
+
+			if (txp->Signature.Type == TxpSig::Texture2D)
+				txp->GPU_Texture2D = GPU::MakeTexture2D(*txp, debugName);
+			else if (txp->Signature.Type == TxpSig::CubeMap)
+				txp->GPU_CubeMap = GPU::MakeCubeMap(*txp, debugName);
 		}
 	}
 
