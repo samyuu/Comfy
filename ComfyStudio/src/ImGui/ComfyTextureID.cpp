@@ -6,33 +6,25 @@ namespace Comfy
 {
 	using namespace Graphics;
 
-	ComfyTextureID::ComfyTextureID(const nullptr_t dummy)
-		: ResourceView(dummy), IsCubeMap(false), DecompressRGTC(false)
+	inline ComfyTextureID::ComfyTextureID_T(const nullptr_t dummy)
 	{
+		Data.ResourceView = reinterpret_cast<uint64_t>(dummy);
 	}
 
-	ComfyTextureID::ComfyTextureID(const D3D_TextureResource& texture)
-		: ResourceView(texture.GetResourceView()), IsCubeMap(texture.GetArraySize() == 6), DecompressRGTC(!IsCubeMap && texture.GetTextureFormat() == TextureFormat::RGTC2)
+	inline ComfyTextureID::ComfyTextureID_T(const D3D_TextureResource& texture)
 	{
+		Data.ResourceView = reinterpret_cast<uint64_t>(texture.GetResourceView());
+		Data.DecompressRGTC = texture.GetTextureFormat() == TextureFormat::RGTC2;
+		Data.IsCubeMap = texture.GetArraySize() == 6;
 	}
 
-	ComfyTextureID::ComfyTextureID(const D3D_RenderTarget& renderTarget)
-		: ResourceView(renderTarget.GetResourceView()), IsCubeMap(false), DecompressRGTC(false)
+	inline ComfyTextureID::ComfyTextureID_T(const D3D_RenderTarget& renderTarget)
 	{
+		Data.ResourceView = reinterpret_cast<uint64_t>(renderTarget.GetResourceView());
 	}
 
-	ComfyTextureID::ComfyTextureID(const D3D_DepthOnlyRenderTarget& renderTarget)
-		: ResourceView(renderTarget.GetResourceView()), IsCubeMap(false), DecompressRGTC(false)
+	inline ComfyTextureID::ComfyTextureID_T(const D3D_DepthOnlyRenderTarget& renderTarget)
 	{
-	}
-
-	bool ComfyTextureID::operator==(const ComfyTextureID& other) const
-	{
-		return ResourceView == other.ResourceView;
-	}
-
-	bool ComfyTextureID::operator!=(const ComfyTextureID& other) const
-	{
-		return ResourceView != other.ResourceView;
+		Data.ResourceView = reinterpret_cast<uint64_t>(renderTarget.GetResourceView());
 	}
 }

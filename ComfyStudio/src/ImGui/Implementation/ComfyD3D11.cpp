@@ -339,24 +339,26 @@ namespace ImGui
 						{
 							cache.TextureID = commandTexture;
 
-							if (commandTexture.IsCubeMap || commandTexture.DecompressRGTC)
+							if (commandTexture.Data.IsCubeMap || commandTexture.Data.DecompressRGTC)
 							{
 								commandShader = &Data.DeviceObjects->CustomShader;
 
-								Data.DeviceObjects->DynamicCB.Data.RenderCubeMap = commandTexture.IsCubeMap;
+								Data.DeviceObjects->DynamicCB.Data.DecompressRGTC = !commandTexture.Data.IsCubeMap && commandTexture.Data.DecompressRGTC;
+								Data.DeviceObjects->DynamicCB.Data.RenderCubeMap = commandTexture.Data.IsCubeMap;
 								Data.DeviceObjects->DynamicCB.Data.CubeMapFace = -1;
 								Data.DeviceObjects->DynamicCB.Data.CubeMapUnwrapNet = true;
-								Data.DeviceObjects->DynamicCB.Data.DecompressRGTC = commandTexture.DecompressRGTC;
+								Data.DeviceObjects->DynamicCB.Data.CubeMapMipLevel = commandTexture.Data.CubeMapMipLevel;
 								Data.DeviceObjects->DynamicCB.UploadData();
 
 								std::array<ID3D11ShaderResourceView*, 2> resourceViews = { nullptr, nullptr };
-								resourceViews[commandTexture.IsCubeMap] = commandTexture;
+								resourceViews[commandTexture.Data.IsCubeMap] = commandTexture.GetResourceView();
 
 								D3D.Context->PSSetShaderResources(0, static_cast<UINT>(resourceViews.size()), resourceViews.data());
 							}
 							else
 							{
-								D3D.Context->PSSetShaderResources(0, 1, &commandTexture.ResourceView);
+								std::array<ID3D11ShaderResourceView*, 1> resourceViews = { commandTexture.GetResourceView() };
+								D3D.Context->PSSetShaderResources(0, static_cast<UINT>(resourceViews.size()), resourceViews.data());
 							}
 						}
 

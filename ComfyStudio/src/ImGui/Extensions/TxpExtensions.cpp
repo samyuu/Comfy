@@ -33,7 +33,7 @@ namespace ImGui
 		const vec2 adjustedSize = vec2((size.x <= 0.0f) ? resourceSize.x : size.x, (size.y <= 0.0f) ? resourceSize.y : size.y);
 
 		ImTextureID textureID = *textureResource;
-		textureID.DecompressRGTC = false;
+		textureID.Data.DecompressRGTC = false;
 
 		if (textureResource == txp->GPU_CubeMap.get())
 			Image(textureID, adjustedSize, UV0, UV1);
