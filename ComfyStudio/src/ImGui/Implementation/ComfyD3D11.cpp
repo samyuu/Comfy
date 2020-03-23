@@ -34,10 +34,12 @@ namespace ImGui
 
 		struct DynamicConstantData
 		{
+			int DecompressRGTC;
 			int RenderCubeMap;
 			int CubeMapFace;
 			int CubeMapUnwrapNet;
-			int DecompressRGTC;
+			int CubeMapMipLevel;
+			int Padding[3];
 		};
 
 		struct ComfyD3D11DeviceObjects

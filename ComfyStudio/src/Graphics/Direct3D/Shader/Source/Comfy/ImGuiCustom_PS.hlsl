@@ -10,18 +10,18 @@ struct VS_OUTPUT
 
 cbuffer CustomConstantData : register(b0)
 {
+    int CB_DecompressRGTC;
     int CB_RenderCubeMap;
     int CB_CubeMapFace;
     int CB_CubeMapUnwrapNet;
-    int CB_DecompressRGTC;
+    int CB_CubeMapMipLevel;
+    int CB_Padding[3];
 };
 
 SamplerState TextureSampler : register(s0);
 
 Texture2D SpriteTexture : register(t0);
 TextureCube SpriteCubeTexture : register(t1);
-
-static const float CubeMapMipMapLevel = 0.0;
 
 float3 CB_GetCubeMapTextureCoordinates(const float2 texCoord)
 {
@@ -39,7 +39,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     
     if (CB_RenderCubeMap)
     {
-        textureColor = SpriteCubeTexture.SampleLevel(TextureSampler, CB_GetCubeMapTextureCoordinates(input.TexCoord), CubeMapMipMapLevel);
+        textureColor = SpriteCubeTexture.SampleLevel(TextureSampler, CB_GetCubeMapTextureCoordinates(input.TexCoord), CB_CubeMapMipLevel);
     }
     else if (CB_DecompressRGTC)
     {
