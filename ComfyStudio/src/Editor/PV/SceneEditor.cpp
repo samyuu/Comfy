@@ -651,7 +651,14 @@ namespace Comfy::Editor
 						constexpr vec2 cubeMapDisplaySize = vec2(96.0f, 96.0f);
 
 						const float width = std::clamp(Gui::GetContentRegionAvailWidth(), 1.0f, cubeMapDisplaySize.x);
-						Gui::Image(*lightMap.GPU_CubeMap, vec2(width, width * (3.0f / 4.0f)));
+						const vec2 size = vec2(width, width * (3.0f / 4.0f));
+
+						ImTextureID textureID = *lightMap.GPU_CubeMap;
+						textureID.Data.CubeMapMipLevel = 0;
+						Gui::Image(textureID, size);
+						Gui::SameLine();
+						textureID.Data.CubeMapMipLevel = 1;
+						Gui::Image(textureID, size);
 					}
 					return false;
 				});
