@@ -57,7 +57,7 @@ float3 GetCubeMapFaceTextureCoordinates(float2 inputTexCoord, int face)
 
 	const float3 faceTextureCoords[CubeMapFaces] = 
 	{
-        float3(+1.0, -inputTexCoord.y, +inputTexCoord.x),
+        float3(+1.0, -inputTexCoord.y, -inputTexCoord.x),
         float3(-1.0, -inputTexCoord.y, +inputTexCoord.x),
         
         float3(+inputTexCoord.x, +1.0, +inputTexCoord.y),
