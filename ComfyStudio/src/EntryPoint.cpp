@@ -1,10 +1,10 @@
 ﻿#include "Core/Application.h"
 #include "System/CommandLine/CommandLine.h"
 
-#define RUN_MAIN_TEST 0
-#define USE_WIN_MAIN 1
+#define COMFY_RUN_MAIN_TEST 0
+#define COMFY_USE_WIN_MAIN 1
 
-#if (RUN_MAIN_TEST)
+#if (COMFY_RUN_MAIN_TEST)
 #include "MainTest.cpp"
 
 int main(int argc, const char* argv[])
@@ -13,7 +13,7 @@ int main(int argc, const char* argv[])
 }
 #else
 
-#if (USE_WIN_MAIN)
+#if (COMFY_USE_WIN_MAIN)
 
 int WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int showCommand)
 {
@@ -25,7 +25,7 @@ int WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, i
 int main(int argc, const char* argv[])
 {
 
-#endif /* USE_WIN_MAIN */
+#endif /* COMFY_USE_WIN_MAIN */
 
 	const auto commandLineResult = Comfy::System::CommandLine::Parse(argc, argv);
 
@@ -37,4 +37,4 @@ int main(int argc, const char* argv[])
 
 	return EXIT_SUCCESS;
 }
-#endif /* RUN_MAIN_TEST */
+#endif /* COMFY_RUN_MAIN_TEST */
