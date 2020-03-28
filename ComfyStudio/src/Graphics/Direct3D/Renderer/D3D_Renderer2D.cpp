@@ -147,15 +147,6 @@ namespace Comfy::Graphics
 		rasterizerState.Bind();
 		D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		std::array<ID3D11SamplerState*, 2> samplerStates = 
-		{ 
-			// NOTE: Sprite sampler
-			defaultTextureSampler.GetSampler(), 
-			// NOTE: Sprite mask sampler
-			defaultTextureSampler.GetSampler(),
-		};
-		D3D.Context->PSSetSamplers(0, static_cast<UINT>(samplerStates.size()), samplerStates.data());
-
 		spriteShader.Bind();
 
 		vertexBuffer->Bind();
@@ -175,7 +166,7 @@ namespace Comfy::Graphics
 		AetBlendMode lastBlendMode = AetBlendMode::Normal;
 
 		D3D_ShaderResourceView::BindArray<2>(0, { nullptr, nullptr });
-		D3D_TextureSampler::BindArray<2>(0, { nullptr, nullptr });
+		D3D_TextureSampler::BindArray<2>(0, { &defaultTextureSampler, &defaultTextureSampler });
 
 		for (uint16_t i = 0; i < batches.size(); i++)
 		{
