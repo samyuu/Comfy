@@ -1,6 +1,6 @@
 #include "Application.h"
 #include "App/Engine.h"
-#include "Graphics/Direct3D/Direct3D.h"
+#include "Graphics/D3D11/Direct3D.h"
 #include "FileSystem/FileHelper.h"
 #include "DataTest/AudioTestWindow.h"
 #include "DataTest/IconTestWindow.h"

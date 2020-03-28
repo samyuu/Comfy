@@ -1,6 +1,6 @@
 #include "ComfyTextureID.h"
-#include "Graphics/Direct3D/Texture/D3D_RenderTarget.h"
-#include "Graphics/Direct3D/Texture/D3D_Texture.h"
+#include "Graphics/D3D11/Texture/D3D_RenderTarget.h"
+#include "Graphics/D3D11/Texture/D3D_Texture.h"
 
 namespace Comfy
 {

@@ -2,10 +2,10 @@
 #include "Types.h"
 
 #ifdef COMFY_D3D11
-#include "Graphics/Direct3D/Texture/D3D_Texture.h"
-#include "Graphics/Direct3D/Texture/D3D_RenderTarget.h"
-#include "Graphics/Direct3D/Buffer/D3D_IndexBuffer.h"
-#include "Graphics/Direct3D/Buffer/D3D_VertexBuffer.h"
+#include "Graphics/D3D11/Texture/D3D_Texture.h"
+#include "Graphics/D3D11/Texture/D3D_RenderTarget.h"
+#include "Graphics/D3D11/Buffer/D3D_IndexBuffer.h"
+#include "Graphics/D3D11/Buffer/D3D_VertexBuffer.h"
 #endif
 
 namespace Comfy::Graphics

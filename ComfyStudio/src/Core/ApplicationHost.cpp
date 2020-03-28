@@ -1,5 +1,5 @@
 #include "ApplicationHost.h"
-#include "Graphics/Direct3D/Direct3D.h"
+#include "Graphics/D3D11/Direct3D.h"
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
 #include "Core/Logger.h"

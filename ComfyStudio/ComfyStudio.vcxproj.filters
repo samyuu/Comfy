@@ -165,9 +165,6 @@
     <ClCompile Include="lib\dr_libs\src\dr_wav.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Direct3D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Editor\Core\IEditorComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -354,66 +351,6 @@
     <ClCompile Include="src\Editor\PV\ExternalProcess.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Texture\D3D_DepthBuffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Texture\D3D_RenderTarget.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Texture\D3D_Texture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Texture\D3D_TextureSampler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\State\D3D_BlendState.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\State\D3D_DepthStencilState.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\State\D3D_RasterizerState.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Buffer\D3D_ConstantBuffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Buffer\D3D_VertexBuffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Buffer\D3D_IndexBuffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Renderer\D3D_Renderer3D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Renderer\D3D_Renderer2D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\State\D3D_InputLayout.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Shader\D3D_Shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Shader\Bytecode\ShaderBytecode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Renderer\Detail\SpriteBatchData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Renderer\Detail\TextureSamplerCache.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Renderer\Detail\ToneMapData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\Renderer\Detail\BlendStateCache.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\State\D3D_OcclusionQuery.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Editor\PV\MaterialEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -432,7 +369,70 @@
     <ClCompile Include="src\Graphics\Auth2D\SprSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Direct3D\D3DResources.cpp">
+    <ClCompile Include="src\Graphics\D3D11\Buffer\D3D_ConstantBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\Buffer\D3D_IndexBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\Buffer\D3D_VertexBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\Renderer\Detail\BlendStateCache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\Renderer\Detail\SpriteBatchData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\Renderer\Detail\TextureSamplerCache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\Renderer\Detail\ToneMapData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\Renderer\D3D_Renderer2D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\Renderer\D3D_Renderer3D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\Shader\Bytecode\ShaderBytecode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\Shader\D3D_Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\State\D3D_BlendState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\State\D3D_DepthStencilState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\State\D3D_InputLayout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\State\D3D_OcclusionQuery.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\State\D3D_RasterizerState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\Texture\D3D_DepthBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\Texture\D3D_RenderTarget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\Texture\D3D_Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\Texture\D3D_TextureSampler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\D3DResources.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\Direct3D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -615,9 +615,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\ComfyData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Direct3D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Core\IEditorComponent.h">
@@ -902,72 +899,6 @@
     <ClInclude Include="src\Resource\Detail\IDTypeDeclarations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Texture\D3D_DepthBuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Texture\D3D_RenderTarget.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Texture\D3D_Texture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Texture\D3D_TextureSampler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\State\D3D_BlendState.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\State\D3D_DepthStencilState.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\State\D3D_RasterizerState.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Buffer\D3D_ConstantBuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Buffer\D3D_VertexBuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Buffer\D3D_IndexBuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Renderer\D3D_Renderer3D.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Renderer\D3D_Renderer2D.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\State\D3D_InputLayout.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Shader\D3D_Shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Shader\Bytecode\ShaderBytecode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\IGraphicsResource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\ShaderFlags.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\TextureSamplerCache.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\SpriteBatchData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\ToneMapData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\Renderer\Detail\BlendStateCache.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Direct3D\State\D3D_OcclusionQuery.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\PV\MaterialEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -998,6 +929,75 @@
     <ClInclude Include="src\Graphics\GPU\GPURenderers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Buffer\D3D_ConstantBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Buffer\D3D_IndexBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Buffer\D3D_VertexBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\BlendStateCache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ShaderFlags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\SpriteBatchData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\TextureSamplerCache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ToneMapData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\D3D_Renderer2D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\D3D_Renderer3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Shader\Bytecode\ShaderBytecode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Shader\D3D_Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\State\D3D_BlendState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\State\D3D_DepthStencilState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\State\D3D_InputLayout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\State\D3D_OcclusionQuery.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\State\D3D_RasterizerState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Texture\D3D_DepthBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Texture\D3D_RenderTarget.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Texture\D3D_Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Texture\D3D_TextureSampler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Direct3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\IGraphicsResource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="res\ComfyStudio.rc">
@@ -1010,98 +1010,98 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Comfy\Include\BlendModes.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Comfy\Include\Checkerboard.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Comfy\Include\CubeMapCommon.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Comfy\Include\Font.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Comfy\Include\UncompressRGTC.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Comfy\ImGuiCustom_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Comfy\ImGuiDefault_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Comfy\ImGuiDefault_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Comfy\Sprite_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Comfy\Sprite_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\ClothAniso_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\ClothDefault_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\ClothDefault_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\EyeBall_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\EyeBall_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\EyeLens_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\EyeLens_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\GlassEye_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\GlassEye_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\HairAniso_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\HairDefault_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\HairDefault_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\ItemBlinn_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\ItemBlinn_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\SkinDefault_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\SkinDefault_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\SSSSkin_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\SSSSkin_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\SSSSkinConst_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\Tights_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Chara\Tights_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\Assembly\DebugInterface.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\Assembly\Helper.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\Assembly\InputOutput.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\Assembly\Instructions.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\Assembly\ProgramEnvironment.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\Assembly\TempRefactor.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\Defines\MathConstants.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\Defines\ShaderFlags.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\Defines\TextureFormats.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\Structs\MaterialData.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\Structs\ObjectData.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\Structs\SceneData.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\ConstantInputs.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\InputLayout.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\TextureInputs.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Other\DebugMaterial_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Other\DebugMaterial_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Other\PositionTransform_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Other\Silhouette_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Other\Silhouette_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Other\SolidBlack_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Other\SolidWhite_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Stage\BlinnPerFrag_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Stage\BlinnPerFrag_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Stage\BlinnPerVert_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Stage\BlinnPerVert_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Stage\Constant_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Stage\Constant_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Stage\Floor_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Stage\Floor_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Stage\Lambert_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Stage\Lambert_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Stage\SkyDefault_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Stage\SkyDefault_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Stage\StageBlinn_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Stage\StageBlinn_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Stage\Water_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Stage\Water_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\Bloom\PPGauss_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\Bloom\ReduceTex_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\Exposure\ExposureAverage_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\Exposure\ExposureMeasure_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\Exposure\ExposureMinify_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\Other\FullscreenQuad_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\Other\SilhouetteOutline_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\Shadow\DepthThreshold_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\Shadow\ESMFilterErosion_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\Shadow\ESMFilterMin_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\Shadow\ESMGauss_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\Shadow\ImgFilter_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\Shadow\ImgFilterBlur_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\SSS\SSSFilterCopy_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\SSS\SSSFilterGauss2D_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\SSS\SSSFilterMin_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\PostProcessing\ToneMap\ToneMap_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\Include\Structs\SkeletonData.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\LensFlare\LensFlare_PS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\LensFlare\LensFlare_VS.hlsl" />
-    <FxCompile Include="src\Graphics\Direct3D\Shader\Source\Materials\LensFlare\Sun_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Include\BlendModes.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Include\Checkerboard.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Include\CubeMapCommon.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Include\Font.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Include\UncompressRGTC.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\ImGuiCustom_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\ImGuiDefault_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\ImGuiDefault_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Sprite_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Sprite_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\ClothAniso_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\ClothDefault_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\ClothDefault_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\EyeBall_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\EyeBall_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\EyeLens_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\EyeLens_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\GlassEye_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\GlassEye_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\HairAniso_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\HairDefault_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\HairDefault_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\ItemBlinn_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\ItemBlinn_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\SkinDefault_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\SkinDefault_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\SSSSkin_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\SSSSkin_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\SSSSkinConst_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\Tights_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\Tights_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\DebugInterface.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\Helper.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\InputOutput.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\Instructions.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\ProgramEnvironment.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\TempRefactor.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Defines\MathConstants.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Defines\ShaderFlags.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Defines\TextureFormats.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Structs\MaterialData.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Structs\ObjectData.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Structs\SceneData.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Structs\SkeletonData.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\ConstantInputs.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\InputLayout.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\TextureInputs.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\LensFlare\LensFlare_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\LensFlare\LensFlare_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\LensFlare\Sun_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\DebugMaterial_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\DebugMaterial_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\PositionTransform_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\Silhouette_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\Silhouette_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\SolidBlack_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\SolidWhite_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\BlinnPerFrag_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\BlinnPerFrag_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\BlinnPerVert_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\BlinnPerVert_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Constant_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Constant_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Floor_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Floor_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Lambert_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Lambert_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\SkyDefault_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\SkyDefault_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\StageBlinn_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\StageBlinn_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Water_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Water_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Bloom\PPGauss_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Bloom\ReduceTex_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Exposure\ExposureAverage_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Exposure\ExposureMeasure_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Exposure\ExposureMinify_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Other\FullscreenQuad_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Other\SilhouetteOutline_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\DepthThreshold_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\ESMFilterErosion_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\ESMFilterMin_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\ESMGauss_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\ImgFilter_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\ImgFilterBlur_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\SSS\SSSFilterCopy_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\SSS\SSSFilterGauss2D_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\SSS\SSSFilterMin_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\ToneMap\ToneMap_PS.hlsl" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\Graphics\Direct3D\Renderer\Detail\ConstantData.h" />
+    <None Include="src\Graphics\D3D11\Renderer\Detail\ConstantData.h" />
   </ItemGroup>
 </Project>

@@ -229,6 +229,7 @@ namespace Comfy::Graphics
 		D3D_RenderTarget RenderTarget = { RenderTargetDefaultSize, RenderTargetLDRFormatRGBA };
 	};
 
+	// TODO: Move into Graphics/D3D11/
 	struct RenderData
 	{
 		MainRenderData Main;
