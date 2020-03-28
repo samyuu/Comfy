@@ -237,6 +237,7 @@ namespace Comfy::Graphics
 		UniquePtr<D3D_InputLayout> genericInputLayout = nullptr;
 		UniquePtr<D3D_InputLayout> shadowSilhouetteInputLayout = nullptr;
 
+		// TODO: Viewport renderdata instance data
 		D3D_OcclusionQuery sunOcclusionQuery = { "Renderer3D::SunOcclusionQuery" };
 
 		D3D_RasterizerState solidBackfaceCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_BACK, "Renderer3D::SolidBackfaceCulling" };
@@ -248,7 +249,9 @@ namespace Comfy::Graphics
 
 		D3D_BlendState lensFlareSunQueryBlendState = { D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_OP_ADD, D3D11_BLEND_OP_ADD, D3D11_COLOR_WRITE_ENABLE { } };
 
+		// TODO: Viewport renderdata instance data
 		TextureSamplerCache cachedTextureSamplers;
+		// TODO: Viewport renderdata instance data
 		BlendStateCache cachedBlendStates;
 
 		// NOTE: To avoid having to bind and clear render targets that won't be used this frame
@@ -261,6 +264,19 @@ namespace Comfy::Graphics
 			bool SilhouetteOutline;
 		} isAnyCommand = {};
 
+		// TODO:
+		/*
+		struct CachedD3DState
+		{
+			struct LastSetData
+			{
+				const D3D_VertexBuffer* VertexBuffer;
+				const D3D_IndexBuffer* IndexBuffer;
+				const D3D_ShaderPair* ShaderPair;
+			} LastSet;
+		} cachedD3DState = {};
+		*/
+
 		RenderPassCommandLists defaultCommandList, reflectionCommandList;
 
 		struct Statistics
@@ -272,6 +288,7 @@ namespace Comfy::Graphics
 			// size_t ObjectsCulled = 0, MeshesCulled = 0, SubMeshesCulled = 0;
 		} statistics, lastFrameStatistics;
 
+		// TODO: Viewport renderdata instance data
 		ToneMapData toneMapData;
 
 		struct BeginEndData
