@@ -1,4 +1,4 @@
-#include "D3D_RenderTarget.h"
+#include "RenderTarget.h"
 
 namespace Comfy::Graphics
 {

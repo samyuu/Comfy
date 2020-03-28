@@ -1,4 +1,4 @@
-#include "D3D_BlendState.h"
+#include "BlendState.h"
 #include "Graphics/GraphicTypesNames.h"
 
 namespace Comfy::Graphics

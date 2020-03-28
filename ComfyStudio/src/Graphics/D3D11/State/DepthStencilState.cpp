@@ -1,4 +1,4 @@
-#include "D3D_DepthStencilState.h"
+#include "DepthStencilState.h"
 
 namespace Comfy::Graphics
 {

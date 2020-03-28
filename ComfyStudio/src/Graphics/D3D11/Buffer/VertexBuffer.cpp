@@ -1,4 +1,4 @@
-#include "D3D_VertexBuffer.h"
+#include "VertexBuffer.h"
 
 namespace Comfy::Graphics
 {

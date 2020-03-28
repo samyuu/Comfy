@@ -1,4 +1,4 @@
-#include "D3D_Shader.h"
+#include "Shader.h"
 
 namespace Comfy::Graphics
 {

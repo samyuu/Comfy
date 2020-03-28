@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/D3D11/Shader/D3D_Shader.h"
+#include "Graphics/D3D11/Shader/Shader.h"
 
 #define DECLARE_BYTECODE_GETTER(shader)	BytecodeBlob shader();
 #define DEFINE_BYTECODE_GETTER(shader)	BytecodeBlob shader() { return { ::shader##_Bytecode, sizeof(::shader##_Bytecode) }; }

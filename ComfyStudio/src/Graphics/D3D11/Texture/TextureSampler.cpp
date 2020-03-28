@@ -1,4 +1,4 @@
-#include "D3D_TextureSampler.h"
+#include "TextureSampler.h"
 
 namespace Comfy::Graphics
 {

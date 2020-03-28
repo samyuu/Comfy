@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/D3D11/State/D3D_BlendState.h"
+#include "Graphics/D3D11/State/BlendState.h"
 #include "Graphics/Auth3D/ObjSet.h"
 
 namespace Comfy::Graphics

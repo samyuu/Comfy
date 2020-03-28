@@ -1,4 +1,4 @@
-#include "D3D_IndexBuffer.h"
+#include "IndexBuffer.h"
 
 namespace Comfy::Graphics
 {

@@ -1,5 +1,5 @@
 #include "Direct3D.h"
-#include "Texture/D3D_RenderTarget.h"
+#include "Texture/RenderTarget.h"
 #include "Core/Logger.h"
 
 namespace Comfy::Graphics

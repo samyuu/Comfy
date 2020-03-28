@@ -1,6 +1,6 @@
 #pragma once
 #include "../Direct3D.h"
-#include "../Shader/D3D_Shader.h"
+#include "../Shader/Shader.h"
 
 namespace Comfy::Graphics
 {

@@ -1,4 +1,4 @@
-#include "D3D_ConstantBuffer.h"
+#include "ConstantBuffer.h"
 
 namespace Comfy::Graphics
 {

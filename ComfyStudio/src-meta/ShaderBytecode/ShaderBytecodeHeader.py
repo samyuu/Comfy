@@ -8,7 +8,7 @@ with open(inputFileName, 'r') as inputFile:
 	shaderNamesToInclude = inputFile.read().splitlines()
 
 outputFileContent = "#pragma once\n"
-outputFileContent += "#include \"Graphics/D3D11/Shader/D3D_Shader.h\"\n"
+outputFileContent += "#include \"Graphics/D3D11/Shader/Shader.h\"\n"
 outputFileContent += "\n"
 outputFileContent += "#define DECLARE_BYTECODE_GETTER(shader)	BytecodeBlob shader();\n"
 outputFileContent += "#define DEFINE_BYTECODE_GETTER(shader)	BytecodeBlob shader() { return { ::shader##_Bytecode, sizeof(::shader##_Bytecode) }; }\n"

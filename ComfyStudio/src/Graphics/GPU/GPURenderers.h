@@ -2,8 +2,8 @@
 #include "Types.h"
 
 #ifdef COMFY_D3D11
-#include "Graphics/D3D11/Renderer/D3D_Renderer2D.h"
-#include "Graphics/D3D11/Renderer/D3D_Renderer3D.h"
+#include "Graphics/D3D11/Renderer/Renderer2D.h"
+#include "Graphics/D3D11/Renderer/Renderer3D.h"
 #endif
 
 namespace Comfy::Graphics

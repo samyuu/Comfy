@@ -1,4 +1,4 @@
-#include "D3D_OcclusionQuery.h"
+#include "OcclusionQuery.h"
 
 namespace Comfy::Graphics
 {

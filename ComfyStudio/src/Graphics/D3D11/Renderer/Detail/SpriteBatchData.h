@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "Graphics/D3D11/Texture/D3D_Texture.h"
+#include "Graphics/D3D11/Texture/Texture.h"
 
 namespace Comfy::Graphics
 {

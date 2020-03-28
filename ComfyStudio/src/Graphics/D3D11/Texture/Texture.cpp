@@ -1,4 +1,4 @@
-#include "D3D_Texture.h"
+#include "Texture.h"
 #include "Graphics/TxpSet.h"
 #include "Graphics/Auth3D/LightParam/IBLParameters.h"
 

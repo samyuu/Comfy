@@ -1,4 +1,4 @@
-#include "D3D_InputLayout.h"
+#include "InputLayout.h"
 
 namespace Comfy::Graphics
 {
