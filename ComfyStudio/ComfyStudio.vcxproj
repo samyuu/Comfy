@@ -95,7 +95,7 @@
       <VariableName>%(Filename)_Bytecode</VariableName>
     </FxCompile>
     <FxCompile>
-      <HeaderFileOutput>$(ProjectDir)src\Graphics\Direct3D\Shader\Bytecode\Intermediate\DXBC-Debug\%(Filename).h</HeaderFileOutput>
+      <HeaderFileOutput>$(ProjectDir)src\Graphics\D3D11\Shader\Bytecode\Intermediate\DXBC-Debug\%(Filename).h</HeaderFileOutput>
       <ShaderModel>4.0</ShaderModel>
       <TreatWarningAsError>false</TreatWarningAsError>
       <PreprocessorDefinitions>COMFY_DEBUG=1</PreprocessorDefinitions>
@@ -151,7 +151,7 @@
       <VariableName>%(Filename)_Bytecode</VariableName>
     </FxCompile>
     <FxCompile>
-      <HeaderFileOutput>$(ProjectDir)src\Graphics\Direct3D\Shader\Bytecode\Intermediate\DXBC-Release\%(Filename).h</HeaderFileOutput>
+      <HeaderFileOutput>$(ProjectDir)src\Graphics\D3D11\Shader\Bytecode\Intermediate\DXBC-Release\%(Filename).h</HeaderFileOutput>
       <ShaderModel>4.0</ShaderModel>
       <TreatWarningAsError>false</TreatWarningAsError>
       <PreprocessorDefinitions>COMFY_RELEASE=1</PreprocessorDefinitions>
