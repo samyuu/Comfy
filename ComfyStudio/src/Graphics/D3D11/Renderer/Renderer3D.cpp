@@ -1,4 +1,6 @@
 #include "Renderer3D.h"
+#include "Detail/GaussianBlur.h"
+#include "Detail/SubsurfaceScattering.h"
 #include "Core/TimeSpan.h"
 #include "ImGui/Gui.h"
 
@@ -11,10 +13,10 @@ namespace Comfy::Graphics::D3D11
 			vec4(0.199471f, 0.176033f, 0.120985f, 0.064759f),
 			vec4(0.026995f, 0.008764f, 0.002216f, 0.000436f),
 		};
+
 		constexpr float DefaultShadowAmbient = 0.4f;
 		constexpr float DefaultShadowExpontent = 80.0f * (9.95f * 2.0f) * 1.442695f;
 		constexpr float DefaultShadowTexelOffset = 0.05f / (9.95f * 2.0f);
-		constexpr float DefaultSSSParameter = 0.6f;
 
 		constexpr UINT RectangleVertexCount = 6;
 
@@ -145,22 +147,6 @@ namespace Comfy::Graphics::D3D11
 			return false;
 		}
 
-		bool UsesSSSSkin(const Material& material)
-		{
-			if (material.ShaderType == Material::ShaderIdentifiers::Skin || material.ShaderType == Material::ShaderIdentifiers::EyeBall || material.ShaderType == Material::ShaderIdentifiers::EyeLens)
-				return true;
-
-			return false;
-		}
-
-		bool UsesSSSSkinConst(const Material& material)
-		{
-			if (material.ShaderType == Material::ShaderIdentifiers::Hair || material.ShaderType == Material::ShaderIdentifiers::Cloth || material.ShaderType == Material::ShaderIdentifiers::Tights)
-				return true;
-
-			return false;
-		}
-
 		const Mesh* GetMorphMesh(const Obj& obj, const Obj* morphObj, const Mesh& mesh)
 		{
 			if (morphObj == nullptr)
@@ -178,141 +164,6 @@ namespace Comfy::Graphics::D3D11
 		vec4 GetPackedTextureSize(const RenderTargetBase& renderTarget)
 		{
 			return GetPackedTextureSize(vec2(renderTarget.GetSize()));
-		}
-
-		inline float RootMeanSquare(const vec3 value)
-		{
-			const vec3 squared = (value * value);
-			return glm::sqrt(squared.x + squared.y + squared.z);
-		}
-
-		double CalculateSSSCameraCoefficient(const vec3 viewPoint, const vec3 interest, const float fieldOfView, const std::array<std::optional<vec3>, 2>& characterHeadPositions)
-		{
-			std::array<float, 2> meanSquareRoots;
-			std::array<vec3, 2> headPositions;
-
-			for (size_t i = 0; i < meanSquareRoots.size(); i++)
-			{
-				if (characterHeadPositions[i].has_value())
-				{
-					headPositions[i] = characterHeadPositions[i].value();
-					meanSquareRoots[i] = RootMeanSquare(viewPoint - characterHeadPositions[i].value());
-				}
-				else
-				{
-					headPositions[i] = interest;
-					meanSquareRoots[i] = 999999.0f;
-				}
-			}
-
-			vec3 headPosition;
-			if (meanSquareRoots[0] <= meanSquareRoots[1])
-			{
-				headPosition = headPositions[0];
-			}
-			else
-			{
-				headPosition = headPositions[1];
-				headPositions[0] = headPositions[1];
-			}
-
-			const double result = 1.0f / std::clamp(
-				std::max(glm::tan(glm::radians(fieldOfView * 0.5f)) * 5.0f, 0.25f) *
-				std::max(RootMeanSquare(viewPoint - ((RootMeanSquare(interest - headPosition) > 1.25f) ? headPositions[0] : interest)), 0.25f),
-				0.25f, 100.0f);
-
-			return result;
-		}
-
-		std::array<vec4, 36> CalculateSSSFilterCoefficient(double cameraCoefficient)
-		{
-			constexpr std::array<std::array<double, 3>, 4> weights =
-			{
-				std::array { 1.0, 2.0, 5.0, },
-				std::array { 0.2, 0.4, 1.2, },
-				std::array { 0.3, 0.7, 2.0, },
-				std::array { 0.4, 0.3, 0.3, },
-			};
-			constexpr double expFactorIncrement = 1.0;
-
-			std::array<vec4, 36> coefficients = {};
-
-			for (int iteration = 0; iteration < 3; iteration++)
-			{
-				for (int component = 0; component < 3; component++)
-				{
-					const double reciprocalWeight = 1.0 / (cameraCoefficient * weights[component][iteration]);
-
-					double expSum = 0.0;
-					double expFactorSum = 0.0;
-
-					std::array<double, 6> exponentials;
-					for (double& exp : exponentials)
-					{
-						const double expResult = glm::exp(reciprocalWeight * expFactorSum * -0.5 * (reciprocalWeight * expFactorSum));
-						exp = expResult;
-
-						expSum += expResult;
-						expFactorSum += expFactorIncrement;
-					}
-
-					const double reciprocalExpSum = 1.0 / expSum;
-					for (double& exp : exponentials)
-						exp *= reciprocalExpSum;
-
-					for (int i = 0; i < 6; i++)
-					{
-						const double weight = weights.back()[iteration] * exponentials[i];
-						for (int j = 0; j < 6; j++)
-						{
-							float& coef = coefficients[(i * 6) + j][component];
-							coef = static_cast<float>(static_cast<double>(coef) + exponentials[j] * weight);
-						}
-					}
-				}
-			}
-
-			return coefficients;
-		}
-
-		void CalculateSSSCoefficients(const PerspectiveCamera& camera, SSSFilterConstantData& outData)
-		{
-			const std::array<std::optional<vec3>, 2> characterHeadPositions = { vec3(0.0f, 1.055f, 0.0f) };
-			const double cameraCoefficient = CalculateSSSCameraCoefficient(camera.ViewPoint, camera.Interest, camera.FieldOfView, characterHeadPositions);
-
-			outData.Coefficients = CalculateSSSFilterCoefficient(cameraCoefficient);
-		}
-
-		void CalculateGaussianBlurKernel(const GlowParameter& glow, PPGaussCoefConstantData& outData)
-		{
-			constexpr float powStart = 1.0f, powIncrement = 1.0f;
-			constexpr float sigmaFactor = 0.8f, intensityFactor = 1.0f;
-
-			const float firstCoef = (powStart - (powIncrement * 0.5f)) * 2.0f;
-
-			for (int channel = 0; channel < 3; channel++)
-			{
-				const float channelSigma = glow.Sigma[channel] * sigmaFactor;
-				const float reciprocalSigma = 1.0f / ((channelSigma * 2.0f) * channelSigma);
-
-				float accumilatedExpResult = firstCoef;
-				float accumilatingPow = powStart;
-
-				std::array<float, 8> results = { firstCoef };
-				for (int i = 1; i < 7; i++)
-				{
-					const float result = glm::exp(-((accumilatingPow * accumilatingPow) * reciprocalSigma)) * powIncrement;
-					accumilatingPow += powIncrement;
-
-					results[i] = result;
-					accumilatedExpResult += result;
-				}
-
-				const float channelIntensity = glow.Intensity[channel] * (intensityFactor * 0.5f);
-
-				for (int i = 0; i < outData.Coefficients.size(); i++)
-					outData.Coefficients[i][channel] = (results[i] / accumilatedExpResult) * channelIntensity;
-			}
 		}
 
 		void CalculateExposureSpotCoefficients(ExposureConstantData& outData)

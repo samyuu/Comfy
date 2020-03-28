@@ -1001,6 +1001,12 @@
     <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ShaderPairs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\SubsurfaceScattering.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\GaussianBlur.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="res\ComfyStudio.rc">
