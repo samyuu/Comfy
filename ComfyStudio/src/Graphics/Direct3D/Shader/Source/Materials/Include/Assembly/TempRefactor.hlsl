@@ -28,15 +28,43 @@ float3 ViewToInverseViewSpace(float3 viewSpace) { return mul((float3x3)CB_Scene.
 float2 VS_MorphAttribute(float2 attribute, float2 morphAttribute) { return mad(attribute, p_morph_weight.y, (morphAttribute * p_morph_weight.x)); }
 float4 VS_MorphAttribute(float4 attribute, float4 morphAttribute) { return mad(attribute, p_morph_weight.y, (morphAttribute * p_morph_weight.x)); }
 
+static const int InfluencingBones = 4;
+
+void VS_SetSkinModelSpaceAttributes(in float4 inPosition, in float4 boneIndex, in float4 boneWeight, inout float4 modelSpacePosition)
+{
+#if COMFY_DEBUG
+    // modelSpacePosition = 0.0;
+    // if (boneIndex.x >= 0) modelSpacePosition += mul(inPosition, CB_Skeleton.Bones[boneIndex.x]) * boneWeight.x;
+    // if (boneIndex.y >= 0) modelSpacePosition += mul(inPosition, CB_Skeleton.Bones[boneIndex.y]) * boneWeight.y;
+    // if (boneIndex.z >= 0) modelSpacePosition += mul(inPosition, CB_Skeleton.Bones[boneIndex.z]) * boneWeight.z;
+    // if (boneIndex.w >= 0) modelSpacePosition += mul(inPosition, CB_Skeleton.Bones[boneIndex.w]) * boneWeight.w;
+
+    modelSpacePosition = 0.0;
+    for (int component = 0; component < InfluencingBones; component++)
+    {
+        if (boneIndex[component] < 0)
+            break;
+        
+        modelSpacePosition += mul(inPosition, CB_Skeleton.Bones[boneIndex[component]]) * boneWeight[component];
+    }
+#endif
+}
+
 void VS_SetModelSpaceAttributes(VS_INPUT input, out float4 modelSpacePosition)
 {
     modelSpacePosition = a_position;
+    
+    if (FLAGS_SKINNING)
+        VS_SetSkinModelSpaceAttributes(a_position, input.BoneIndex, input.BoneWeight, modelSpacePosition);
 }
 
 void VS_SetModelSpaceAttributes(VS_INPUT input, out float4 modelSpacePosition, out float4 modelSpaceNormal)
 {
     modelSpacePosition = a_position;
     modelSpaceNormal = a_normal;
+    
+    if (FLAGS_SKINNING)
+        VS_SetSkinModelSpaceAttributes(a_position, input.BoneIndex, input.BoneWeight, modelSpacePosition);
 }
 
 void VS_SetModelSpaceAttributes(VS_INPUT input, out float4 modelSpacePosition, out float4 modelSpaceNormal, out float4 modelSpaceTangent)
@@ -44,6 +72,9 @@ void VS_SetModelSpaceAttributes(VS_INPUT input, out float4 modelSpacePosition, o
     modelSpacePosition = a_position;
     modelSpaceNormal = a_normal;
     modelSpaceTangent = a_tangent;
+    
+    if (FLAGS_SKINNING)
+        VS_SetSkinModelSpaceAttributes(a_position, input.BoneIndex, input.BoneWeight, modelSpacePosition);
 }
 
 void VS_SetMorphModelSpaceAttributes(VS_INPUT input, out float4 modelSpacePosition)
@@ -90,6 +121,33 @@ void VS_SetMorphTransformTextureCoordinates(VS_INPUT input, out float2 texCoord0
     texCoord0 = VS_TransformTextureCoordinates(VS_MorphAttribute(a_tex0, a_morph_texcoord).xy, state_matrix_texture0);
     texCoord1 = VS_TransformTextureCoordinates(VS_MorphAttribute(a_tex1, a_morph_texcoord1).xy, state_matrix_texture1);
 }
+
+
+#if 1
+void VS_SetModelSpaceAttributes(VS_INPUT_SHADOW input, out float4 modelSpacePosition)
+{
+    modelSpacePosition = a_position;
+    
+    if (FLAGS_SKINNING)
+        VS_SetSkinModelSpaceAttributes(a_position, input.BoneIndex, input.BoneWeight, modelSpacePosition);
+}
+
+void VS_SetMorphModelSpaceAttributes(VS_INPUT_SHADOW input, out float4 modelSpacePosition)
+{
+    modelSpacePosition = VS_MorphAttribute(a_position, a_morph_position);
+}
+
+void VS_SetTransformTextureCoordinates(VS_INPUT_SHADOW input, out float2 texCoord0)
+{
+    texCoord0 = VS_TransformTextureCoordinates(a_tex0.xy, state_matrix_texture0);
+}
+
+void VS_SetMorphTransformTextureCoordinates(VS_INPUT_SHADOW input, out float2 texCoord0)
+{
+    texCoord0 = VS_TransformTextureCoordinates(VS_MorphAttribute(a_tex0, a_morph_texcoord).xy, state_matrix_texture0);
+}
+#endif
+
 
 // NOTE: Assigned to o_fog
 float VS_GetFogFactor(float4 clipSpacePosition)
