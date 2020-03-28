@@ -9,9 +9,9 @@ VS_OUTPUT VS_main(VS_INPUT input)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
     
-    // TODO:
     output.Position = ModelToClipSpace(input.Position);
     output.TexCoord = input.TexCoord;
+    output.Color = input.Color;
     
     return output;
 }
