@@ -18,8 +18,6 @@ namespace Comfy::Graphics::D3D11
 		constexpr float DefaultShadowExpontent = 80.0f * (9.95f * 2.0f) * 1.442695f;
 		constexpr float DefaultShadowTexelOffset = 0.05f / (9.95f * 2.0f);
 
-		constexpr UINT RectangleVertexCount = 6;
-
 		constexpr uint32_t MorphVertexAttributeOffset = VertexAttribute_Count;
 
 		constexpr D3D11_PRIMITIVE_TOPOLOGY GetD3DPrimitiveTopolgy(PrimitiveType primitive)
@@ -72,8 +70,7 @@ namespace Comfy::Graphics::D3D11
 			if (InBounds(subMesh.MaterialIndex, parentObj.Materials))
 				return parentObj.Materials[subMesh.MaterialIndex];
 
-			// TODO: Make a member field to avoid static lock
-			static Material dummyMaterial = {};
+			static const Material dummyMaterial = {};
 			return dummyMaterial;
 		}
 
@@ -497,14 +494,19 @@ namespace Comfy::Graphics::D3D11
 		current.Viewport->Data.Main.Current().UnBind();
 		genericInputLayout->UnBind();
 
-		if (current.Viewport->Data.Main.MSAAEnabled())
-		{
-			auto& currentMain = current.Viewport->Data.Main.Current();
-			auto& currentMainResolved = current.Viewport->Data.Main.CurrentResolved();
+		InternalResolveMSAAIfNeeded();
+	}
 
-			currentMainResolved.ResizeIfDifferent(currentMain.GetSize());
-			D3D.Context->ResolveSubresource(currentMainResolved.GetResource(), 0, currentMain.GetResource(), 0, currentMain.GetBackBufferDescription().Format);
-		}
+	void Renderer3D::InternalResolveMSAAIfNeeded()
+	{
+		if (!current.Viewport->Data.Main.MSAAEnabled())
+			return;
+
+		auto& currentMain = current.Viewport->Data.Main.Current();
+		auto& currentMainResolved = current.Viewport->Data.Main.CurrentResolved();
+
+		currentMainResolved.ResizeIfDifferent(currentMain.GetSize());
+		D3D.Context->ResolveSubresource(currentMainResolved.GetResource(), 0, currentMain.GetResource(), 0, currentMain.GetBackBufferDescription().Format);
 	}
 
 	void Renderer3D::InternalSetSceneCB(SceneConstantData& outData)
@@ -696,14 +698,14 @@ namespace Comfy::Graphics::D3D11
 			constantBuffers.ESMFilter.Data.TextureStep = vec2(1.0f / fullResolution.x, 0.0f);
 			constantBuffers.ESMFilter.Data.FarTexelOffset = vec2(DefaultShadowTexelOffset, DefaultShadowTexelOffset);
 			constantBuffers.ESMFilter.UploadData();
-			D3D.Context->Draw(RectangleVertexCount, 0);
+			SubmitQuadDrawCall();
 			current.Viewport->Data.Shadow.ExponentialRenderTargets[0].UnBind();
 
 			current.Viewport->Data.Shadow.ExponentialRenderTargets[1].Bind();
 			current.Viewport->Data.Shadow.ExponentialRenderTargets[0].BindResource(0);
 			constantBuffers.ESMFilter.Data.TextureStep = vec2(0.0f, 1.0f / fullResolution.y);
 			constantBuffers.ESMFilter.UploadData();
-			D3D.Context->Draw(RectangleVertexCount, 0);
+			SubmitQuadDrawCall();
 			current.Viewport->Data.Shadow.ExponentialRenderTargets[1].UnBind();
 			current.Viewport->Data.Shadow.ExponentialRenderTargets[1].BindResource(TextureSlot_ESMFull);
 
@@ -715,7 +717,7 @@ namespace Comfy::Graphics::D3D11
 			current.Viewport->Data.Shadow.ExponentialRenderTargets[1].BindResource(0);
 			constantBuffers.ESMFilter.Data.TextureStep = vec2(1.0f) / vec2(fullResolution);
 			constantBuffers.ESMFilter.UploadData();
-			D3D.Context->Draw(RectangleVertexCount, 0);
+			SubmitQuadDrawCall();
 			current.Viewport->Data.Shadow.ExponentialBlurRenderTargets[0].UnBind();
 
 			shaders.ESMFilterErosion.Bind();
@@ -723,7 +725,7 @@ namespace Comfy::Graphics::D3D11
 			current.Viewport->Data.Shadow.ExponentialBlurRenderTargets[0].BindResource(0);
 			constantBuffers.ESMFilter.Data.TextureStep = vec2(0.75f) / vec2(blurResolution);
 			constantBuffers.ESMFilter.UploadData();
-			D3D.Context->Draw(RectangleVertexCount, 0);
+			SubmitQuadDrawCall();
 			current.Viewport->Data.Shadow.ExponentialBlurRenderTargets[1].UnBind();
 			current.Viewport->Data.Shadow.ExponentialBlurRenderTargets[1].BindResource(TextureSlot_ESMGauss);
 		}
@@ -735,7 +737,7 @@ namespace Comfy::Graphics::D3D11
 			current.Viewport->Data.Shadow.ThresholdRenderTarget.ResizeIfDifferent(halfResolution);
 			current.Viewport->Data.Shadow.ThresholdRenderTarget.BindSetViewport();
 			current.Viewport->Data.Shadow.RenderTarget.BindResource(0);
-			D3D.Context->Draw(RectangleVertexCount, 0);
+			SubmitQuadDrawCall();
 			current.Viewport->Data.Shadow.ThresholdRenderTarget.UnBind();
 
 			for (auto& renderTarget : current.Viewport->Data.Shadow.BlurRenderTargets)
@@ -760,7 +762,7 @@ namespace Comfy::Graphics::D3D11
 
 				sourceTarget.BindResource(0);
 				destinationTarget.Bind();
-				D3D.Context->Draw(RectangleVertexCount, 0);
+				SubmitQuadDrawCall();
 				destinationTarget.UnBind();
 
 				if (passIndex == (blurPasses - 1))
@@ -836,13 +838,13 @@ namespace Comfy::Graphics::D3D11
 		shaders.SSSFilterCopy.Bind();
 		current.Viewport->Data.SubsurfaceScattering.RenderTarget.BindResource(0);
 		current.Viewport->Data.SubsurfaceScattering.FilterRenderTargets[0].BindSetViewport();
-		D3D.Context->Draw(RectangleVertexCount, 0);
+		SubmitQuadDrawCall();
 		current.Viewport->Data.SubsurfaceScattering.FilterRenderTargets[0].UnBind();
 
 		shaders.SSSFilterMin.Bind();
 		current.Viewport->Data.SubsurfaceScattering.FilterRenderTargets[0].BindResource(0);
 		current.Viewport->Data.SubsurfaceScattering.FilterRenderTargets[1].BindSetViewport();
-		D3D.Context->Draw(RectangleVertexCount, 0);
+		SubmitQuadDrawCall();
 		current.Viewport->Data.SubsurfaceScattering.FilterRenderTargets[1].UnBind();
 
 		constantBuffers.SSSFilter.Data.TextureSize = GetPackedTextureSize(current.Viewport->Data.SubsurfaceScattering.FilterRenderTargets[1]);
@@ -852,7 +854,7 @@ namespace Comfy::Graphics::D3D11
 		shaders.SSSFilterGauss2D.Bind();
 		current.Viewport->Data.SubsurfaceScattering.FilterRenderTargets[1].BindResource(0);
 		current.Viewport->Data.SubsurfaceScattering.FilterRenderTargets[2].BindSetViewport();
-		D3D.Context->Draw(RectangleVertexCount, 0);
+		SubmitQuadDrawCall();
 		current.Viewport->Data.SubsurfaceScattering.FilterRenderTargets[2].UnBind();
 	}
 
@@ -928,7 +930,7 @@ namespace Comfy::Graphics::D3D11
 		current.Viewport->Data.Silhouette.RenderTarget.BindResource(0);
 
 		shaders.SilhouetteOutline.Bind();
-		D3D.Context->Draw(RectangleVertexCount, 0);
+		SubmitQuadDrawCall();
 	}
 
 	void Renderer3D::InternalQueryRenderLensFlare()
@@ -1042,7 +1044,7 @@ namespace Comfy::Graphics::D3D11
 
 		shaders.ToneMap.Bind();
 
-		D3D.Context->Draw(RectangleVertexCount, 0);
+		SubmitQuadDrawCall();
 
 		ShaderResourceView::BindArray<3>(0, { nullptr, nullptr, nullptr });
 		current.Viewport->Data.Main.AdvanceRenderTarget();
@@ -1070,7 +1072,7 @@ namespace Comfy::Graphics::D3D11
 			renderTarget.BindSetViewport();
 			lastRenderTarget.BindResource(0);
 
-			D3D.Context->Draw(RectangleVertexCount, 0);
+			SubmitQuadDrawCall();
 		}
 
 		if (current.Viewport->Parameters.AutoExposure && current.Scene->Glow.AutoExposure)
@@ -1102,7 +1104,7 @@ namespace Comfy::Graphics::D3D11
 
 				sourceTarget->BindResource(0);
 				destinationTarget->BindSetViewport();
-				D3D.Context->Draw(RectangleVertexCount, 0);
+				SubmitQuadDrawCall();
 				destinationTarget->UnBind();
 
 				// NOTE: Ping pong between them to avoid having to use additional render targets
@@ -1116,7 +1118,7 @@ namespace Comfy::Graphics::D3D11
 
 		bloom.BlurRenderTargets[0].BindSetViewport();
 		bloom.ReduceRenderTargets[0].BindResource(0);
-		D3D.Context->Draw(RectangleVertexCount, 0);
+		SubmitQuadDrawCall();
 
 		std::array<ShaderResourceView*, 4> combinedBlurInputTargets =
 		{
@@ -1137,7 +1139,7 @@ namespace Comfy::Graphics::D3D11
 		constantBuffers.ReduceTex.BindPixelShader();
 		shaders.ReduceTex.Bind();
 
-		D3D.Context->Draw(RectangleVertexCount, 0);
+		SubmitQuadDrawCall();
 
 		if (current.Viewport->Parameters.AutoExposure && current.Scene->Glow.AutoExposure)
 			InternalRenderExposurePostBloom();
@@ -1148,7 +1150,7 @@ namespace Comfy::Graphics::D3D11
 		shaders.ExposureMinify.Bind();
 		current.Viewport->Data.Bloom.ExposureRenderTargets[0].BindSetViewport();
 		current.Viewport->Data.Bloom.ReduceRenderTargets.back().BindResource(0);
-		D3D.Context->Draw(RectangleVertexCount, 0);
+		SubmitQuadDrawCall();
 		current.Viewport->Data.Bloom.ExposureRenderTargets[0].UnBind();
 	}
 
@@ -1161,13 +1163,13 @@ namespace Comfy::Graphics::D3D11
 		shaders.ExposureMeasure.Bind();
 		current.Viewport->Data.Bloom.ExposureRenderTargets[1].BindSetViewport();
 		current.Viewport->Data.Bloom.ExposureRenderTargets[0].BindResource(0);
-		D3D.Context->Draw(RectangleVertexCount, 0);
+		SubmitQuadDrawCall();
 		current.Viewport->Data.Bloom.ExposureRenderTargets[1].UnBind();
 
 		shaders.ExposureAverage.Bind();
 		current.Viewport->Data.Bloom.ExposureRenderTargets[2].BindSetViewport();
 		current.Viewport->Data.Bloom.ExposureRenderTargets[1].BindResource(0);
-		D3D.Context->Draw(RectangleVertexCount, 0);
+		SubmitQuadDrawCall();
 		current.Viewport->Data.Bloom.ExposureRenderTargets[2].UnBind();
 	}
 
@@ -1671,6 +1673,12 @@ namespace Comfy::Graphics::D3D11
 		D3D.Context->DrawIndexed(static_cast<UINT>(indexCount), 0, 0);
 
 		statistics.VerticesRendered += indexCount;
+	}
+
+	void Renderer3D::SubmitQuadDrawCall()
+	{
+		constexpr UINT quadVertexCount = 6;
+		D3D.Context->Draw(quadVertexCount, 0);
 	}
 
 	Sphere Renderer3D::CalculateShadowViewFrustumSphere() const

@@ -124,6 +124,7 @@ namespace Comfy::Graphics::D3D11
 
 		void InternalPrepareRenderCommands(RenderPassCommandLists& commandList);
 		void InternalRenderScene();
+		void InternalResolveMSAAIfNeeded();
 		void InternalSetSceneCB(SceneConstantData& outData);
 		void InternalBindUploadSceneCBs();
 		void InternalBindSceneTextures();
@@ -168,6 +169,7 @@ namespace Comfy::Graphics::D3D11
 		ShaderPair& GetSSSMaterialShader(const Material& material);
 
 		void SubmitSubMeshDrawCall(const SubMesh& subMesh);
+		void SubmitQuadDrawCall();
 
 		Sphere CalculateShadowViewFrustumSphere() const;
 
