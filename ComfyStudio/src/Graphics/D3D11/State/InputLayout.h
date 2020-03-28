@@ -2,7 +2,7 @@
 #include "../Direct3D.h"
 #include "../Shader/Shader.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
 	// TODO: Use easier more limited custom format enum instead of the DXGI format type
 	struct InputElement
@@ -14,11 +14,11 @@ namespace Comfy::Graphics
 		uint32_t InputSlot = 0;
 	};
 
-	class D3D_InputLayout final : ID3DGraphicsResource
+	class InputLayout final : IGraphicsResource
 	{
 	public:
-		D3D_InputLayout(const InputElement* elements, size_t elementCount, const D3D_VertexShader& vertexShader);
-		~D3D_InputLayout() = default;
+		InputLayout(const InputElement* elements, size_t elementCount, const VertexShader& vertexShader);
+		~InputLayout() = default;
 
 	public:
 		void Bind();

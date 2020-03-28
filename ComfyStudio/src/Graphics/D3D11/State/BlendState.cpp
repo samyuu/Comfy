@@ -1,7 +1,7 @@
 #include "BlendState.h"
 #include "Graphics/GraphicTypesNames.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
 	namespace
 	{
@@ -28,7 +28,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	D3D_BlendState::D3D_BlendState(AetBlendMode blendMode)
+	BlendState::BlendState(AetBlendMode blendMode)
 	{
 		auto[sourceBlend, destinationBlend, sourceAlphaBlend, destinationAlphaBlend] = GetBlendParameters(blendMode);
 
@@ -45,20 +45,20 @@ namespace Comfy::Graphics
 
 		D3D.Device->CreateBlendState(&blendStateDescription, &blendState);
 
-		D3D_SetObjectDebugName(GetBlendState(), "AetBlendMode: %s", AetBlendModeNames[static_cast<size_t>(blendMode)]);
+		D3D11_SetObjectDebugName(GetBlendState(), "AetBlendMode: %s", AetBlendModeNames[static_cast<size_t>(blendMode)]);
 	}
 
-	D3D_BlendState::D3D_BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend)
-		: D3D_BlendState(sourceBlend, destinationBlend, D3D11_BLEND_ZERO, D3D11_BLEND_ONE)
+	BlendState::BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend)
+		: BlendState(sourceBlend, destinationBlend, D3D11_BLEND_ZERO, D3D11_BLEND_ONE)
 	{
 	}
 
-	D3D_BlendState::D3D_BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend, D3D11_BLEND sourceAlpha, D3D11_BLEND destinationAlpha)
-		: D3D_BlendState(sourceBlend, destinationBlend, sourceAlpha, destinationAlpha, D3D11_BLEND_OP_ADD, D3D11_BLEND_OP_ADD)
+	BlendState::BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend, D3D11_BLEND sourceAlpha, D3D11_BLEND destinationAlpha)
+		: BlendState(sourceBlend, destinationBlend, sourceAlpha, destinationAlpha, D3D11_BLEND_OP_ADD, D3D11_BLEND_OP_ADD)
 	{
 	}
 
-	D3D_BlendState::D3D_BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend, D3D11_BLEND sourceAlphaBlend, D3D11_BLEND destinationAlphaBlend,
+	BlendState::BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend, D3D11_BLEND sourceAlphaBlend, D3D11_BLEND destinationAlphaBlend,
 		D3D11_BLEND_OP blendOp, D3D11_BLEND_OP blendAlphaOp, D3D11_COLOR_WRITE_ENABLE writeMask)
 	{
 		blendStateDescription.AlphaToCoverageEnable = false;
@@ -75,17 +75,17 @@ namespace Comfy::Graphics
 		D3D.Device->CreateBlendState(&blendStateDescription, &blendState);
 	}
 
-	void D3D_BlendState::Bind()
+	void BlendState::Bind()
 	{
 		D3D.Context->OMSetBlendState(blendState.Get(), nullptr, SampleMask);
 	}
 
-	void D3D_BlendState::UnBind()
+	void BlendState::UnBind()
 	{
 		D3D.Context->OMSetBlendState(nullptr, nullptr, SampleMask);
 	}
 
-	ID3D11BlendState* D3D_BlendState::GetBlendState()
+	ID3D11BlendState* BlendState::GetBlendState()
 	{
 		return blendState.Get();
 	}

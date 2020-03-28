@@ -2,7 +2,7 @@
 #include "Texture/RenderTarget.h"
 #include "Core/Logger.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
 	namespace
 	{
@@ -25,7 +25,7 @@ namespace Comfy::Graphics
 		if (!InternalCreateDeviceAndSwapchain(window))
 			return false;
 
-		WindowRenderTarget = MakeUnique<D3D_SwapChainRenderTarget>(SwapChain);
+		WindowRenderTarget = MakeUnique<SwapChainRenderTarget>(SwapChain);
 
 		return true;
 	}

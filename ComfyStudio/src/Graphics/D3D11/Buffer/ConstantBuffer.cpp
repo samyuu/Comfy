@@ -1,8 +1,8 @@
 #include "ConstantBuffer.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	D3D_ConstantBuffer::D3D_ConstantBuffer(uint32_t slot, size_t dataSize, D3D11_USAGE usage, UINT accessFlags)
+	ConstantBuffer::ConstantBuffer(uint32_t slot, size_t dataSize, D3D11_USAGE usage, UINT accessFlags)
 		: slot(slot)
 	{
 		assert(slot < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
@@ -17,7 +17,7 @@ namespace Comfy::Graphics
 		D3D.Device->CreateBuffer(&bufferDescription, nullptr, &buffer);
 	}
 
-	void D3D_ConstantBuffer::BindVertexShader()
+	void ConstantBuffer::BindVertexShader()
 	{
 		constexpr UINT bufferCount = 1;
 		std::array<ID3D11Buffer*, bufferCount> buffers = { buffer.Get() };
@@ -25,7 +25,7 @@ namespace Comfy::Graphics
 		D3D.Context->VSSetConstantBuffers(slot, bufferCount, buffers.data());
 	}
 
-	void D3D_ConstantBuffer::UnBindVertexShader()
+	void ConstantBuffer::UnBindVertexShader()
 	{
 		constexpr UINT bufferCount = 1;
 		std::array<ID3D11Buffer*, bufferCount> buffers = { nullptr };
@@ -33,7 +33,7 @@ namespace Comfy::Graphics
 		D3D.Context->VSSetConstantBuffers(slot, bufferCount, buffers.data());
 	}
 
-	void D3D_ConstantBuffer::BindPixelShader()
+	void ConstantBuffer::BindPixelShader()
 	{
 		constexpr UINT bufferCount = 1;
 		std::array<ID3D11Buffer*, bufferCount> buffers = { buffer.Get() };
@@ -41,7 +41,7 @@ namespace Comfy::Graphics
 		D3D.Context->PSSetConstantBuffers(slot, bufferCount, buffers.data());
 	}
 
-	void D3D_ConstantBuffer::UnBindPixelShader()
+	void ConstantBuffer::UnBindPixelShader()
 	{
 		constexpr UINT bufferCount = 1;
 		std::array<ID3D11Buffer*, bufferCount> buffers = { nullptr };
@@ -49,29 +49,29 @@ namespace Comfy::Graphics
 		D3D.Context->PSSetConstantBuffers(slot, bufferCount, buffers.data());
 	}
 
-	ID3D11Buffer* D3D_ConstantBuffer::GetBuffer()
+	ID3D11Buffer* ConstantBuffer::GetBuffer()
 	{
 		return buffer.Get();
 	}
 
-	D3D_DefaultConstantBuffer::D3D_DefaultConstantBuffer(uint32_t slot, size_t dataSize)
-		: D3D_ConstantBuffer(slot, dataSize, D3D11_USAGE_DEFAULT, 0)
+	DefaultConstantBuffer::DefaultConstantBuffer(uint32_t slot, size_t dataSize)
+		: ConstantBuffer(slot, dataSize, D3D11_USAGE_DEFAULT, 0)
 	{
 	}
 	
-	void D3D_DefaultConstantBuffer::UploadData(size_t dataSize, const void* data)
+	void DefaultConstantBuffer::UploadData(size_t dataSize, const void* data)
 	{
 		assert(dataSize == bufferDescription.ByteWidth);
 
 		D3D.Context->UpdateSubresource(buffer.Get(), 0, nullptr, data, 0, 0);
 	}
 
-	D3D_DynamicConstantBuffer::D3D_DynamicConstantBuffer(uint32_t slot, size_t dataSize)
-		: D3D_ConstantBuffer(slot, dataSize, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE)
+	DynamicConstantBuffer::DynamicConstantBuffer(uint32_t slot, size_t dataSize)
+		: ConstantBuffer(slot, dataSize, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE)
 	{
 	}
 
-	void D3D_DynamicConstantBuffer::UploadData(size_t dataSize, const void* data)
+	void DynamicConstantBuffer::UploadData(size_t dataSize, const void* data)
 	{
 		assert(dataSize == bufferDescription.ByteWidth);
 

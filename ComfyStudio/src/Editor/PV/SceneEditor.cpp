@@ -29,7 +29,7 @@ namespace Comfy::Editor
 	SceneEditor::SceneEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
 		auto txpGetter = [&](const Cached_TxpID* txpID) { return sceneGraph.TxpIDMap.Find(txpID); };
-		renderer3D = MakeUnique<D3D_Renderer3D>(txpGetter);
+		renderer3D = MakeUnique<D3D11::Renderer3D>(txpGetter);
 
 		renderWindow = MakeUnique<SceneRenderWindow>(sceneGraph, viewport, scene, cameraController, *renderer3D);
 	}

@@ -5,9 +5,9 @@
 #include "ImGui/Extensions/Theme.h"
 #include <functional>
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	class D3D_Texture2D;
+	class Texture2D;
 }
 
 #define BeginMenu WideBeginMenu
@@ -31,15 +31,15 @@ namespace ImGui
 	void PushItemDisabledAndTextColor();
 	void PopItemDisabledAndTextColor();
 
-	void AddTexture(ImDrawList* drawList, const Comfy::Graphics::D3D_Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0, const ImVec2& uv1);
-	void AddSprite(ImDrawList* drawList, const Comfy::Graphics::D3D_Texture2D* texture, const vec2& position, const vec4& sourceRegion, ImU32 color = IM_COL32_WHITE);
+	void AddTexture(ImDrawList* drawList, const Comfy::Graphics::D3D11::Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0, const ImVec2& uv1);
+	void AddSprite(ImDrawList* drawList, const Comfy::Graphics::D3D11::Texture2D* texture, const vec2& position, const vec4& sourceRegion, ImU32 color = IM_COL32_WHITE);
 
-	inline void AddTexture(ImDrawList* drawList, const Comfy::Graphics::D3D_Texture2D* texture, ImVec2 center, float scale, const ImVec2& uv0, const ImVec2& uv1)
+	inline void AddTexture(ImDrawList* drawList, const Comfy::Graphics::D3D11::Texture2D* texture, ImVec2 center, float scale, const ImVec2& uv0, const ImVec2& uv1)
 	{
 		AddTexture(drawList, texture, center, ImVec2(scale, scale), uv0, uv1);
 	}
 
-	inline void AddTexture(ImDrawList* drawList, const Comfy::Graphics::D3D_Texture2D* texture, ImVec2 center, float scale)
+	inline void AddTexture(ImDrawList* drawList, const Comfy::Graphics::D3D11::Texture2D* texture, ImVec2 center, float scale)
 	{
 		AddTexture(drawList, texture, center, ImVec2(scale, scale), UV0_R, UV1_R);
 	}

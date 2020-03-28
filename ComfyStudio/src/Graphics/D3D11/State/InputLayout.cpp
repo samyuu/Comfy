@@ -1,8 +1,8 @@
 #include "InputLayout.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	D3D_InputLayout::D3D_InputLayout(const InputElement* elements, size_t elementCount, const D3D_VertexShader& vertexShader)
+	InputLayout::InputLayout(const InputElement* elements, size_t elementCount, const VertexShader& vertexShader)
 		: usedElementCount(elementCount)
 	{
 		assert(usedElementCount <= maxElementCount);
@@ -29,17 +29,17 @@ namespace Comfy::Graphics
 			&layout);
 	}
 
-	void D3D_InputLayout::Bind()
+	void InputLayout::Bind()
 	{
 		D3D.Context->IASetInputLayout(layout.Get());
 	}
 	
-	void D3D_InputLayout::UnBind()
+	void InputLayout::UnBind()
 	{
 		D3D.Context->IASetInputLayout(nullptr);
 	}
 
-	ID3D11InputLayout* D3D_InputLayout::GetLayout()
+	ID3D11InputLayout* InputLayout::GetLayout()
 	{
 		return layout.Get();
 	}

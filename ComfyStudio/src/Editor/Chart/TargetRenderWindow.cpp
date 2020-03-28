@@ -9,7 +9,7 @@ namespace Comfy::Editor
 	{
 		spriteGetterFunction = [this](const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr) { return false; };
 
-		renderer = MakeUnique<D3D_Renderer2D>();
+		renderer = MakeUnique<D3D11::Renderer2D>();
 		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
 		aetRenderer->SetSpriteGetterFunction(&spriteGetterFunction);
 	}
@@ -61,7 +61,7 @@ namespace Comfy::Editor
 	{
 		owningRenderTarget->Bind();
 		{
-			D3D.SetViewport(owningRenderTarget->GetSize());
+			D3D11::D3D.SetViewport(owningRenderTarget->GetSize());
 			owningRenderTarget->Clear(GetColorVec4(EditorColor_DarkClear));
 
 			camera.UpdateMatrices();

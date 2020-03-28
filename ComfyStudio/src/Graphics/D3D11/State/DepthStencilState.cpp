@@ -1,8 +1,8 @@
 #include "DepthStencilState.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	D3D_DepthStencilState::D3D_DepthStencilState(bool depthEnabled, D3D11_DEPTH_WRITE_MASK depthWriteMask)
+	DepthStencilState::DepthStencilState(bool depthEnabled, D3D11_DEPTH_WRITE_MASK depthWriteMask)
 	{
 		depthStencilDescription.DepthEnable = depthEnabled;
 		depthStencilDescription.DepthWriteMask = depthWriteMask;
@@ -19,23 +19,23 @@ namespace Comfy::Graphics
 		D3D.Device->CreateDepthStencilState(&depthStencilDescription, &depthStencilState);
 	}
 
-	D3D_DepthStencilState::D3D_DepthStencilState(bool depthEnabled, D3D11_DEPTH_WRITE_MASK depthWriteMask, const char* debugName)
-		: D3D_DepthStencilState(depthEnabled, depthWriteMask)
+	DepthStencilState::DepthStencilState(bool depthEnabled, D3D11_DEPTH_WRITE_MASK depthWriteMask, const char* debugName)
+		: DepthStencilState(depthEnabled, depthWriteMask)
 	{
-		D3D_SetObjectDebugName(depthStencilState.Get(), debugName);
+		D3D11_SetObjectDebugName(depthStencilState.Get(), debugName);
 	}
 
-	void D3D_DepthStencilState::Bind()
+	void DepthStencilState::Bind()
 	{
 		D3D.Context->OMSetDepthStencilState(depthStencilState.Get(), 0);
 	}
 
-	void D3D_DepthStencilState::UnBind()
+	void DepthStencilState::UnBind()
 	{
 		D3D.Context->OMSetDepthStencilState(nullptr, 0);
 	}
 	
-	ID3D11DepthStencilState* D3D_DepthStencilState::GetDepthStencilState()
+	ID3D11DepthStencilState* DepthStencilState::GetDepthStencilState()
 	{
 		return depthStencilState.Get();
 	}

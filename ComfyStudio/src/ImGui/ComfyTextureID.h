@@ -3,11 +3,11 @@
 
 struct ID3D11ShaderResourceView;
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	class D3D_TextureResource;
-	class D3D_RenderTarget;
-	class D3D_DepthOnlyRenderTarget;
+	class TextureResource;
+	class RenderTarget;
+	class DepthOnlyRenderTarget;
 }
 
 namespace Comfy
@@ -47,9 +47,9 @@ namespace Comfy
 		DataLayout Data = {};
 
 		ComfyTextureID(const nullptr_t dummy = nullptr);
-		ComfyTextureID(const Graphics::D3D_TextureResource& texture);
-		ComfyTextureID(const Graphics::D3D_RenderTarget& renderTarget);
-		ComfyTextureID(const Graphics::D3D_DepthOnlyRenderTarget& renderTarget);
+		ComfyTextureID(const Graphics::D3D11::TextureResource& texture);
+		ComfyTextureID(const Graphics::D3D11::RenderTarget& renderTarget);
+		ComfyTextureID(const Graphics::D3D11::DepthOnlyRenderTarget& renderTarget);
 
 		inline ID3D11ShaderResourceView* GetResourceView() const { return reinterpret_cast<ID3D11ShaderResourceView*>(Data.ResourceView); }
 

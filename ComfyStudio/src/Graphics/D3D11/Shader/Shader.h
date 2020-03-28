@@ -1,7 +1,7 @@
 #pragma once
 #include "../Direct3D.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
 	struct BytecodeBlob
 	{
@@ -9,11 +9,11 @@ namespace Comfy::Graphics
 		const size_t Size;
 	};
 
-	class D3D_Shader : ID3DGraphicsResource
+	class Shader : IGraphicsResource
 	{
 	protected:
-		D3D_Shader(BytecodeBlob bytecodeBlob);
-		virtual ~D3D_Shader() = default;
+		Shader(BytecodeBlob bytecodeBlob);
+		virtual ~Shader() = default;
 
 	public:
 		BytecodeBlob GetBytecodeBlob() const;
@@ -22,11 +22,11 @@ namespace Comfy::Graphics
 		BytecodeBlob bytecodeBlob;
 	};
 
-	class D3D_VertexShader final : public D3D_Shader
+	class VertexShader final : public Shader
 	{
 	public:
-		D3D_VertexShader(BytecodeBlob bytecodeBlob);
-		~D3D_VertexShader() = default;
+		VertexShader(BytecodeBlob bytecodeBlob);
+		~VertexShader() = default;
 
 	public:
 		void Bind() const;
@@ -39,11 +39,11 @@ namespace Comfy::Graphics
 		ComPtr<ID3D11VertexShader> shader;
 	};
 
-	class D3D_PixelShader final : public D3D_Shader
+	class PixelShader final : public Shader
 	{
 	public:
-		D3D_PixelShader(BytecodeBlob bytecodeBlob);
-		~D3D_PixelShader() = default;
+		PixelShader(BytecodeBlob bytecodeBlob);
+		~PixelShader() = default;
 
 	public:
 		void Bind() const;
@@ -56,18 +56,18 @@ namespace Comfy::Graphics
 		ComPtr<ID3D11PixelShader> shader;
 	};
 
-	struct D3D_ShaderPair
+	struct ShaderPair
 	{
 	public:
-		D3D_ShaderPair(BytecodeBlob vsBytecode, BytecodeBlob psBytecode);
-		D3D_ShaderPair(BytecodeBlob vsBytecode, BytecodeBlob psBytecode, const char* debugName);
+		ShaderPair(BytecodeBlob vsBytecode, BytecodeBlob psBytecode);
+		ShaderPair(BytecodeBlob vsBytecode, BytecodeBlob psBytecode, const char* debugName);
 
 	public:
 		void Bind() const;
 		void UnBind() const;
 
 	public:
-		D3D_VertexShader VS;
-		D3D_PixelShader PS;
+		VertexShader VS;
+		PixelShader PS;
 	};
 }

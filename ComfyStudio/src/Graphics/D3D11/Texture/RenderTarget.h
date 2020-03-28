@@ -3,19 +3,19 @@
 #include "DepthBuffer.h"
 #include "Texture.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
 	// NOTE: Since the render target is stretched to the correct asspect ratio in the end it could easily be scaled down to improve performance
-	constexpr ivec2 RenderTargetDefaultSize = D3D_Texture2D::MinSize;
+	constexpr ivec2 RenderTargetDefaultSize = Texture2D::MinSize;
 
 	constexpr DXGI_FORMAT RenderTargetHDRFormatRGBA = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	constexpr DXGI_FORMAT RenderTargetLDRFormatRGBA = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-	class D3D_RenderTargetBase : ID3DGraphicsResource
+	class RenderTargetBase : IGraphicsResource
 	{
 	protected:
-		D3D_RenderTargetBase();
-		virtual ~D3D_RenderTargetBase() = default;
+		RenderTargetBase();
+		virtual ~RenderTargetBase() = default;
 
 	public:
 		virtual void Bind() const;
@@ -34,11 +34,11 @@ namespace Comfy::Graphics
 		ComPtr<ID3D11RenderTargetView> renderTargetView;
 	};
 
-	class D3D_SwapChainRenderTarget final : public D3D_RenderTargetBase
+	class SwapChainRenderTarget final : public RenderTargetBase
 	{
 	public:
-		D3D_SwapChainRenderTarget(IDXGISwapChain* swapChain);
-		~D3D_SwapChainRenderTarget() = default;
+		SwapChainRenderTarget(IDXGISwapChain* swapChain);
+		~SwapChainRenderTarget() = default;
 
 	public:
 		void Resize(ivec2 newSize) override;
@@ -49,12 +49,12 @@ namespace Comfy::Graphics
 		IDXGISwapChain* swapChain;
 	};
 
-	class D3D_RenderTarget : public D3D_RenderTargetBase, public D3D_ShaderResourceView
+	class RenderTarget : public RenderTargetBase, public ShaderResourceView
 	{
 	public:
-		D3D_RenderTarget(ivec2 size);
-		D3D_RenderTarget(ivec2 size, DXGI_FORMAT format, uint32_t multiSampleCount = 1);
-		~D3D_RenderTarget() = default;
+		RenderTarget(ivec2 size);
+		RenderTarget(ivec2 size, DXGI_FORMAT format, uint32_t multiSampleCount = 1);
+		~RenderTarget() = default;
 
 	public:
 		void BindResource(uint32_t textureSlot);
@@ -80,12 +80,12 @@ namespace Comfy::Graphics
 		ComPtr<ID3D11ShaderResourceView> shaderResourceView;
 	};
 
-	class D3D_DepthRenderTarget final : public D3D_RenderTarget
+	class DepthRenderTarget final : public RenderTarget
 	{
 	public:
-		D3D_DepthRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat);
-		D3D_DepthRenderTarget(ivec2 size, DXGI_FORMAT format, DXGI_FORMAT depthBufferFormat, uint32_t multiSampleCount = 1);
-		~D3D_DepthRenderTarget() = default;
+		DepthRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat);
+		DepthRenderTarget(ivec2 size, DXGI_FORMAT format, DXGI_FORMAT depthBufferFormat, uint32_t multiSampleCount = 1);
+		~DepthRenderTarget() = default;
 
 	public:
 		void Bind() const override;
@@ -97,17 +97,17 @@ namespace Comfy::Graphics
 		void SetMultiSampleCount(uint32_t multiSampleCount);
 		void SetMultiSampleCountIfDifferent(uint32_t multiSampleCount);
 
-		D3D_DepthBuffer* GetDepthBuffer();
+		DepthBuffer* GetDepthBuffer();
 
 	private:
-		D3D_DepthBuffer depthBuffer;
+		DepthBuffer depthBuffer;
 	};
 
-	class D3D_DepthOnlyRenderTarget final : public D3D_RenderTargetBase, public D3D_ShaderResourceView
+	class DepthOnlyRenderTarget final : public RenderTargetBase, public ShaderResourceView
 	{
 	public:
-		D3D_DepthOnlyRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat);
-		~D3D_DepthOnlyRenderTarget() = default;
+		DepthOnlyRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat);
+		~DepthOnlyRenderTarget() = default;
 
 	public:
 		void Bind() const override;
@@ -121,9 +121,9 @@ namespace Comfy::Graphics
 		void BindResource(uint32_t textureSlot);
 
 		ID3D11ShaderResourceView* GetResourceView() const override;
-		D3D_ResourceViewDepthBuffer* GetDepthBuffer();
+		ResourceViewDepthBuffer* GetDepthBuffer();
 
 	private:
-		D3D_ResourceViewDepthBuffer resourceViewDepthBuffer;
+		ResourceViewDepthBuffer resourceViewDepthBuffer;
 	};
 }

@@ -1,6 +1,6 @@
 #include "IndexBuffer.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
 	namespace
 	{
@@ -31,7 +31,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	D3D_IndexBuffer::D3D_IndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat, D3D11_USAGE usage, UINT accessFlags)
+	IndexBuffer::IndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat, D3D11_USAGE usage, UINT accessFlags)
 		: indexFormat(GetDXGIFormatFromIndexType(indexFormat))
 	{
 		bufferDescription.ByteWidth = static_cast<UINT>(dataSize);
@@ -45,34 +45,34 @@ namespace Comfy::Graphics
 		D3D.Device->CreateBuffer(&bufferDescription, (data == nullptr) ? nullptr : &initialResourceData, &buffer);
 	}
 
-	void D3D_IndexBuffer::Bind()
+	void IndexBuffer::Bind()
 	{
 		constexpr UINT offset = 0;
 		D3D.Context->IASetIndexBuffer(buffer.Get(), indexFormat, offset);
 	}
 
-	void D3D_IndexBuffer::UnBind()
+	void IndexBuffer::UnBind()
 	{
 		constexpr UINT offset = 0;
 		D3D.Context->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, offset);
 	}
 
-	ID3D11Buffer* D3D_IndexBuffer::GetBuffer()
+	ID3D11Buffer* IndexBuffer::GetBuffer()
 	{
 		return buffer.Get();
 	}
 
-	D3D_StaticIndexBuffer::D3D_StaticIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat)
-		: D3D_IndexBuffer(dataSize, data, indexFormat, D3D11_USAGE_IMMUTABLE, 0)
+	StaticIndexBuffer::StaticIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat)
+		: IndexBuffer(dataSize, data, indexFormat, D3D11_USAGE_IMMUTABLE, 0)
 	{
 	}
 
-	D3D_DynamicIndexBuffer::D3D_DynamicIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat)
-		: D3D_IndexBuffer(dataSize, data, indexFormat, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE)
+	DynamicIndexBuffer::DynamicIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat)
+		: IndexBuffer(dataSize, data, indexFormat, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE)
 	{
 	}
 
-	void D3D_DynamicIndexBuffer::UploadData(size_t dataSize, const void* data)
+	void DynamicIndexBuffer::UploadData(size_t dataSize, const void* data)
 	{
 		assert(dataSize == bufferDescription.ByteWidth);
 

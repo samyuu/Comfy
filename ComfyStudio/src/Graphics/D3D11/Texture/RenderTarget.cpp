@@ -1,6 +1,6 @@
 #include "RenderTarget.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
 	namespace
 	{
@@ -40,42 +40,42 @@ namespace Comfy::Graphics
 		}
 	}
 
-	D3D_RenderTargetBase::D3D_RenderTargetBase()
+	RenderTargetBase::RenderTargetBase()
 	{
 	}
 
-	void D3D_RenderTargetBase::Bind() const
+	void RenderTargetBase::Bind() const
 	{
 		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { renderTargetView.Get() };
 		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), nullptr);
 	}
 
-	void D3D_RenderTargetBase::BindSetViewport() const
+	void RenderTargetBase::BindSetViewport() const
 	{
 		Bind();
 		D3D.SetViewport(GetSize());
 	}
 
-	void D3D_RenderTargetBase::UnBind() const
+	void RenderTargetBase::UnBind() const
 	{
 		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { nullptr };
 		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), nullptr);
 	}
 
-	void D3D_RenderTargetBase::Clear(const vec4& color)
+	void RenderTargetBase::Clear(const vec4& color)
 	{
 		D3D.Context->ClearRenderTargetView(renderTargetView.Get(), glm::value_ptr(color));
 	}
 
-	void D3D_RenderTargetBase::ResizeIfDifferent(ivec2 newSize)
+	void RenderTargetBase::ResizeIfDifferent(ivec2 newSize)
 	{
-		newSize = glm::clamp(newSize, D3D_Texture2D::MinSize, D3D_Texture2D::MaxSize);
+		newSize = glm::clamp(newSize, Texture2D::MinSize, Texture2D::MaxSize);
 
 		if (newSize != GetSize())
 			Resize(newSize);
 	}
 
-	D3D_SwapChainRenderTarget::D3D_SwapChainRenderTarget(IDXGISwapChain* swapChain)
+	SwapChainRenderTarget::SwapChainRenderTarget(IDXGISwapChain* swapChain)
 		: swapChain(swapChain)
 	{
 		swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
@@ -88,7 +88,7 @@ namespace Comfy::Graphics
 		size.y = backBufferDescription.Height;
 	}
 
-	void D3D_SwapChainRenderTarget::Resize(ivec2 newSize)
+	void SwapChainRenderTarget::Resize(ivec2 newSize)
 	{
 		backBuffer = nullptr;
 		renderTargetView = nullptr;
@@ -100,17 +100,17 @@ namespace Comfy::Graphics
 		D3D.Device->CreateRenderTargetView(backBuffer.Get(), nullptr, &renderTargetView);
 	}
 
-	ivec2 D3D_SwapChainRenderTarget::GetSize() const
+	ivec2 SwapChainRenderTarget::GetSize() const
 	{
 		return size;
 	}
 
-	D3D_RenderTarget::D3D_RenderTarget(ivec2 size)
-		: D3D_RenderTarget(size, RenderTargetLDRFormatRGBA)
+	RenderTarget::RenderTarget(ivec2 size)
+		: RenderTarget(size, RenderTargetLDRFormatRGBA)
 	{
 	}
 
-	D3D_RenderTarget::D3D_RenderTarget(ivec2 size, DXGI_FORMAT format, uint32_t multiSampleCount)
+	RenderTarget::RenderTarget(ivec2 size, DXGI_FORMAT format, uint32_t multiSampleCount)
 	{
 		backBufferDescription.Width = size.x;
 		backBufferDescription.Height = size.y;
@@ -140,18 +140,18 @@ namespace Comfy::Graphics
 		D3D.Device->CreateShaderResourceView(backBuffer.Get(), &shaderResourceViewDescription, &shaderResourceView);
 	}
 
-	void D3D_RenderTarget::BindResource(uint32_t textureSlot)
+	void RenderTarget::BindResource(uint32_t textureSlot)
 	{
 		std::array<ID3D11ShaderResourceView*, 1> resourceViews = { GetResourceView() };
 		D3D.Context->PSSetShaderResources(textureSlot, static_cast<UINT>(resourceViews.size()), resourceViews.data());
 	}
 
-	ivec2 D3D_RenderTarget::GetSize() const
+	ivec2 RenderTarget::GetSize() const
 	{
 		return ivec2(backBufferDescription.Width, backBufferDescription.Height);
 	}
 
-	void D3D_RenderTarget::Resize(ivec2 newSize)
+	void RenderTarget::Resize(ivec2 newSize)
 	{
 		backBufferDescription.Width = newSize.x;
 		backBufferDescription.Height = newSize.y;
@@ -161,7 +161,7 @@ namespace Comfy::Graphics
 		D3D.Device->CreateShaderResourceView(backBuffer.Get(), &shaderResourceViewDescription, &shaderResourceView);
 	}
 
-	void D3D_RenderTarget::SetFormat(DXGI_FORMAT format)
+	void RenderTarget::SetFormat(DXGI_FORMAT format)
 	{
 		if (backBufferDescription.Format == format)
 			return;
@@ -174,66 +174,66 @@ namespace Comfy::Graphics
 		D3D.Device->CreateShaderResourceView(backBuffer.Get(), &shaderResourceViewDescription, &shaderResourceView);
 	}
 
-	uint32_t D3D_RenderTarget::GetMultiSampleCount() const
+	uint32_t RenderTarget::GetMultiSampleCount() const
 	{
 		return backBufferDescription.SampleDesc.Count;
 	}
 
-	ID3D11Resource* D3D_RenderTarget::GetResource() const
+	ID3D11Resource* RenderTarget::GetResource() const
 	{
 		return backBuffer.Get();
 	}
 
-	ID3D11ShaderResourceView* D3D_RenderTarget::GetResourceView() const
+	ID3D11ShaderResourceView* RenderTarget::GetResourceView() const
 	{
 		return shaderResourceView.Get();
 	}
 
-	const D3D11_TEXTURE2D_DESC& D3D_RenderTarget::GetBackBufferDescription() const
+	const D3D11_TEXTURE2D_DESC& RenderTarget::GetBackBufferDescription() const
 	{
 		return backBufferDescription;
 	}
 
-	UniquePtr<uint8_t[]> D3D_RenderTarget::StageAndCopyBackBuffer()
+	UniquePtr<uint8_t[]> RenderTarget::StageAndCopyBackBuffer()
 	{
 		return StageAndCopyD3DTexture2D(backBuffer.Get(), backBufferDescription);
 	}
 
-	D3D_DepthRenderTarget::D3D_DepthRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat)
-		: D3D_RenderTarget(size), depthBuffer(size, depthBufferFormat)
+	DepthRenderTarget::DepthRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat)
+		: RenderTarget(size), depthBuffer(size, depthBufferFormat)
 	{
 	}
 
-	D3D_DepthRenderTarget::D3D_DepthRenderTarget(ivec2 size, DXGI_FORMAT format, DXGI_FORMAT depthBufferFormat, uint32_t multiSampleCount)
-		: D3D_RenderTarget(size, format, multiSampleCount), depthBuffer(size, depthBufferFormat, multiSampleCount)
+	DepthRenderTarget::DepthRenderTarget(ivec2 size, DXGI_FORMAT format, DXGI_FORMAT depthBufferFormat, uint32_t multiSampleCount)
+		: RenderTarget(size, format, multiSampleCount), depthBuffer(size, depthBufferFormat, multiSampleCount)
 	{
 	}
 
-	void D3D_DepthRenderTarget::Bind() const
+	void DepthRenderTarget::Bind() const
 	{
 		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { renderTargetView.Get() };
 		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), depthBuffer.GetDepthStencilView());
 	}
 
-	void D3D_DepthRenderTarget::UnBind() const
+	void DepthRenderTarget::UnBind() const
 	{
 		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { nullptr };
 		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), nullptr);
 	}
 
-	void D3D_DepthRenderTarget::Clear(const vec4& color)
+	void DepthRenderTarget::Clear(const vec4& color)
 	{
-		D3D_RenderTarget::Clear(color);
+		RenderTarget::Clear(color);
 		depthBuffer.Clear();
 	}
 
-	void D3D_DepthRenderTarget::Resize(ivec2 newSize)
+	void DepthRenderTarget::Resize(ivec2 newSize)
 	{
-		D3D_RenderTarget::Resize(newSize);
+		RenderTarget::Resize(newSize);
 		depthBuffer.Resize(newSize);
 	}
 
-	void D3D_DepthRenderTarget::SetMultiSampleCount(uint32_t multiSampleCount)
+	void DepthRenderTarget::SetMultiSampleCount(uint32_t multiSampleCount)
 	{
 		backBufferDescription.SampleDesc.Count = multiSampleCount;
 		backBufferDescription.SampleDesc.Quality = 0;
@@ -252,61 +252,61 @@ namespace Comfy::Graphics
 		depthBuffer.SetMultiSampleCount(multiSampleCount);
 	}
 
-	void D3D_DepthRenderTarget::SetMultiSampleCountIfDifferent(uint32_t multiSampleCount)
+	void DepthRenderTarget::SetMultiSampleCountIfDifferent(uint32_t multiSampleCount)
 	{
 		if (multiSampleCount != GetMultiSampleCount())
 			SetMultiSampleCount(multiSampleCount);
 	}
 
-	D3D_DepthBuffer* D3D_DepthRenderTarget::GetDepthBuffer()
+	DepthBuffer* DepthRenderTarget::GetDepthBuffer()
 	{
 		return &depthBuffer;
 	}
 
-	D3D_DepthOnlyRenderTarget::D3D_DepthOnlyRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat)
+	DepthOnlyRenderTarget::DepthOnlyRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat)
 		: resourceViewDepthBuffer(size, depthBufferFormat)
 	{
 	}
 
-	void D3D_DepthOnlyRenderTarget::Bind() const
+	void DepthOnlyRenderTarget::Bind() const
 	{
 		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { nullptr };
 		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), resourceViewDepthBuffer.GetDepthStencilView());
 	}
 
-	void D3D_DepthOnlyRenderTarget::UnBind() const
+	void DepthOnlyRenderTarget::UnBind() const
 	{
 		std::array<ID3D11RenderTargetView*, 1> renderTargetViews = { nullptr };
 		D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargetViews.size()), renderTargetViews.data(), nullptr);
 	}
 
-	void D3D_DepthOnlyRenderTarget::Clear(const vec4& color)
+	void DepthOnlyRenderTarget::Clear(const vec4& color)
 	{
 		resourceViewDepthBuffer.Clear();
 	}
 
-	ivec2 D3D_DepthOnlyRenderTarget::GetSize() const
+	ivec2 DepthOnlyRenderTarget::GetSize() const
 	{
 		return resourceViewDepthBuffer.GetSize();
 	}
 
-	void D3D_DepthOnlyRenderTarget::Resize(ivec2 newSize)
+	void DepthOnlyRenderTarget::Resize(ivec2 newSize)
 	{
 		resourceViewDepthBuffer.Resize(newSize);
 	}
 
-	void D3D_DepthOnlyRenderTarget::BindResource(uint32_t textureSlot)
+	void DepthOnlyRenderTarget::BindResource(uint32_t textureSlot)
 	{
 		std::array<ID3D11ShaderResourceView*, 1> resourceViews = { GetResourceView() };
 		D3D.Context->PSSetShaderResources(textureSlot, static_cast<UINT>(resourceViews.size()), resourceViews.data());
 	}
 
-	ID3D11ShaderResourceView* D3D_DepthOnlyRenderTarget::GetResourceView() const
+	ID3D11ShaderResourceView* DepthOnlyRenderTarget::GetResourceView() const
 	{
 		return resourceViewDepthBuffer.GetResourceView();
 	}
 
-	D3D_ResourceViewDepthBuffer* D3D_DepthOnlyRenderTarget::GetDepthBuffer()
+	ResourceViewDepthBuffer* DepthOnlyRenderTarget::GetDepthBuffer()
 	{
 		return &resourceViewDepthBuffer;
 	}

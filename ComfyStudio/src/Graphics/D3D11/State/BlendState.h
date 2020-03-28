@@ -2,20 +2,20 @@
 #include "../Direct3D.h"
 #include "Graphics/GraphicTypes.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	class D3D_BlendState final : ID3DGraphicsResource
+	class BlendState final : IGraphicsResource
 	{
 	public:
-		D3D_BlendState(AetBlendMode blendMode);
+		BlendState(AetBlendMode blendMode);
 
-		D3D_BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend);
-		D3D_BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend, D3D11_BLEND sourceAlpha, D3D11_BLEND destinationAlpha);
+		BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend);
+		BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend, D3D11_BLEND sourceAlpha, D3D11_BLEND destinationAlpha);
 
-		D3D_BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend, D3D11_BLEND sourceAlphaBlend, D3D11_BLEND destinationAlphaBlend,
+		BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend, D3D11_BLEND sourceAlphaBlend, D3D11_BLEND destinationAlphaBlend,
 			D3D11_BLEND_OP blendOp, D3D11_BLEND_OP blendAlphaOp, D3D11_COLOR_WRITE_ENABLE writeMask = D3D11_COLOR_WRITE_ENABLE_ALL);
 
-		~D3D_BlendState() = default;
+		~BlendState() = default;
 
 	public:
 		void Bind();

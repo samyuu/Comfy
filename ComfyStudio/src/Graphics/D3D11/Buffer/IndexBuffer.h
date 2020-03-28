@@ -2,13 +2,13 @@
 #include "../Direct3D.h"
 #include "Graphics/GraphicTypes.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	class D3D_IndexBuffer : ID3DGraphicsResource
+	class IndexBuffer : IGraphicsResource
 	{
 	protected:
-		D3D_IndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat, D3D11_USAGE usage, UINT accessFlags);
-		virtual ~D3D_IndexBuffer() = default;
+		IndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat, D3D11_USAGE usage, UINT accessFlags);
+		virtual ~IndexBuffer() = default;
 
 	public:
 		virtual void Bind();
@@ -23,20 +23,20 @@ namespace Comfy::Graphics
 		ComPtr<ID3D11Buffer> buffer = nullptr;
 	};
 
-	class D3D_StaticIndexBuffer final : public D3D_IndexBuffer
+	class StaticIndexBuffer final : public IndexBuffer
 	{
 	public:
-		D3D_StaticIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat);
-		~D3D_StaticIndexBuffer() = default;
+		StaticIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat);
+		~StaticIndexBuffer() = default;
 
 	public:
 	};
 
-	class D3D_DynamicIndexBuffer final : public D3D_IndexBuffer
+	class DynamicIndexBuffer final : public IndexBuffer
 	{
 	public:
-		D3D_DynamicIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat);
-		~D3D_DynamicIndexBuffer() = default;
+		DynamicIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat);
+		~DynamicIndexBuffer() = default;
 
 	public:
 		void UploadData(size_t dataSize, const void* data);

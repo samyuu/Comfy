@@ -1,13 +1,13 @@
 #pragma once
 #include "../Direct3D.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	class D3D_VertexBuffer : ID3DGraphicsResource
+	class VertexBuffer : IGraphicsResource
 	{
 	protected:
-		D3D_VertexBuffer(size_t dataSize, const void* data, size_t stride, D3D11_USAGE usage, UINT accessFlags);
-		virtual ~D3D_VertexBuffer() = default;
+		VertexBuffer(size_t dataSize, const void* data, size_t stride, D3D11_USAGE usage, UINT accessFlags);
+		virtual ~VertexBuffer() = default;
 
 	public:
 		virtual void Bind();
@@ -22,20 +22,20 @@ namespace Comfy::Graphics
 		ComPtr<ID3D11Buffer> buffer = nullptr;
 	};
 
-	class D3D_StaticVertexBuffer final : public D3D_VertexBuffer
+	class StaticVertexBuffer final : public VertexBuffer
 	{
 	public:
-		D3D_StaticVertexBuffer(size_t dataSize, const void* data, size_t stride);
-		~D3D_StaticVertexBuffer() = default;
+		StaticVertexBuffer(size_t dataSize, const void* data, size_t stride);
+		~StaticVertexBuffer() = default;
 
 	public:
 	};
 
-	class D3D_DynamicVertexBuffer final : public D3D_VertexBuffer
+	class DynamicVertexBuffer final : public VertexBuffer
 	{
 	public:
-		D3D_DynamicVertexBuffer(size_t dataSize, const void* data, size_t stride);
-		~D3D_DynamicVertexBuffer() = default;
+		DynamicVertexBuffer(size_t dataSize, const void* data, size_t stride);
+		~DynamicVertexBuffer() = default;
 
 	public:
 		void UploadData(size_t dataSize, const void* data);

@@ -68,7 +68,7 @@ namespace Comfy
 
 		host.RegisterWindowResizeCallback([](ivec2 size)
 		{
-			Graphics::D3D.ResizeWindowRenderTarget(size);
+			Graphics::D3D11::D3D.ResizeWindowRenderTarget(size);
 		});
 
 		host.RegisterWindowClosingCallback([&]()
@@ -105,13 +105,13 @@ namespace Comfy
 		{
 			DrawGui();
 
-			Graphics::D3D.SetViewport(host.GetWindowSize());
-			Graphics::D3D.WindowRenderTarget->Bind();
-			Graphics::D3D.WindowRenderTarget->Clear(Editor::GetColorVec4(Editor::EditorColor_BaseClear));
+			Graphics::D3D11::D3D.SetViewport(host.GetWindowSize());
+			Graphics::D3D11::D3D.WindowRenderTarget->Bind();
+			Graphics::D3D11::D3D.WindowRenderTarget->Clear(Editor::GetColorVec4(Editor::EditorColor_BaseClear));
 		}
 		guiRenderer.EndFrame();
 
-		Graphics::D3D.EndOfFrameClearStaleDeviceObjects();
+		Graphics::D3D11::D3D.EndOfFrameClearStaleDeviceObjects();
 	}
 
 	void Application::BaseDispose()

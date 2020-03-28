@@ -1,7 +1,7 @@
 #include "Renderer2D.h"
 #include "../Shader/Bytecode/ShaderBytecode.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
 	namespace
 	{
@@ -18,12 +18,12 @@ namespace Comfy::Graphics
 				return position == nullptr ? DefaultProperties::Position : *position;
 			}
 
-			static vec4 SourceOrDefault(const vec4* source, const D3D_Texture2D* texture)
+			static vec4 SourceOrDefault(const vec4* source, const Texture2D* texture)
 			{
 				return source == nullptr ? vec4(0.0f, 0.0f, texture->GetSize()) : *source;
 			}
 
-			static vec2 SizeOrDefault(const D3D_Texture2D* texture, const vec4* source)
+			static vec2 SizeOrDefault(const Texture2D* texture, const vec4* source)
 			{
 				return texture != nullptr ? vec2(texture->GetSize()) : vec2(source->w, source->z);
 			}
@@ -51,20 +51,20 @@ namespace Comfy::Graphics
 		};
 	}
 
-	D3D_Renderer2D::D3D_Renderer2D()
+	Renderer2D::Renderer2D()
 		: spriteShader(Sprite_VS(), Sprite_PS(), "Renderer2D::Sprite")
 	{
-		D3D_SetObjectDebugName(cameraConstantBuffer.Buffer.GetBuffer(), "Renderer2D::CameraConstantBuffer");
-		D3D_SetObjectDebugName(spriteConstantBuffer.Buffer.GetBuffer(), "Renderer2D::SpriteConstantBuffer");
+		D3D11_SetObjectDebugName(cameraConstantBuffer.Buffer.GetBuffer(), "Renderer2D::CameraConstantBuffer");
+		D3D11_SetObjectDebugName(spriteConstantBuffer.Buffer.GetBuffer(), "Renderer2D::SpriteConstantBuffer");
 
-		D3D_SetObjectDebugName(rasterizerState.GetRasterizerState(), "Renderer2D::RasterizerState");
+		D3D11_SetObjectDebugName(rasterizerState.GetRasterizerState(), "Renderer2D::RasterizerState");
 
 		InternalCreateIndexBuffer();
 		InternalCreateVertexBuffer();
 		InternalCreateInputLayout();
 	}
 
-	void D3D_Renderer2D::InternalCreateIndexBuffer()
+	void Renderer2D::InternalCreateIndexBuffer()
 	{
 		std::array<SpriteIndices, MaxBatchItemSize> indexData;
 		for (uint16_t i = 0, offset = 0; i < indexData.size(); i++)
@@ -88,17 +88,17 @@ namespace Comfy::Graphics
 			offset += static_cast<uint16_t>(SpriteVertices::GetVertexCount());
 		}
 
-		indexBuffer = MakeUnique<D3D_StaticIndexBuffer>(indexData.size(), indexData.data(), IndexFormat::U16);
-		D3D_SetObjectDebugName(indexBuffer->GetBuffer(), "Renderer2D::IndexBuffer");
+		indexBuffer = MakeUnique<StaticIndexBuffer>(indexData.size(), indexData.data(), IndexFormat::U16);
+		D3D11_SetObjectDebugName(indexBuffer->GetBuffer(), "Renderer2D::IndexBuffer");
 	}
 
-	void D3D_Renderer2D::InternalCreateVertexBuffer()
+	void Renderer2D::InternalCreateVertexBuffer()
 	{
-		vertexBuffer = MakeUnique<D3D_DynamicVertexBuffer>(MaxBatchItemSize * sizeof(SpriteVertex), nullptr, sizeof(SpriteVertex));
-		D3D_SetObjectDebugName(vertexBuffer->GetBuffer(), "Renderer2D::VertexBuffer");
+		vertexBuffer = MakeUnique<DynamicVertexBuffer>(MaxBatchItemSize * sizeof(SpriteVertex), nullptr, sizeof(SpriteVertex));
+		D3D11_SetObjectDebugName(vertexBuffer->GetBuffer(), "Renderer2D::VertexBuffer");
 	}
 
-	void D3D_Renderer2D::InternalCreateInputLayout()
+	void Renderer2D::InternalCreateInputLayout()
 	{
 		static constexpr InputElement elements[] =
 		{
@@ -108,11 +108,11 @@ namespace Comfy::Graphics
 			{ "COLOR",		0, DXGI_FORMAT_R8G8B8A8_UNORM,	offsetof(SpriteVertex, Color)					},
 		};
 
-		inputLayout = MakeUnique<D3D_InputLayout>(elements, std::size(elements), spriteShader.VS);
-		D3D_SetObjectDebugName(inputLayout->GetLayout(), "Renderer2D::InputLayout");
+		inputLayout = MakeUnique<InputLayout>(elements, std::size(elements), spriteShader.VS);
+		D3D11_SetObjectDebugName(inputLayout->GetLayout(), "Renderer2D::InputLayout");
 	}
 
-	void D3D_Renderer2D::InternalCreateBatches()
+	void Renderer2D::InternalCreateBatches()
 	{
 		for (uint16_t i = 0; i < batchItems.size(); i++)
 		{
@@ -142,7 +142,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	void D3D_Renderer2D::InternalFlush()
+	void Renderer2D::InternalFlush()
 	{
 		rasterizerState.Bind();
 		D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -165,8 +165,8 @@ namespace Comfy::Graphics
 		InternalCreateBatches();
 		AetBlendMode lastBlendMode = AetBlendMode::Normal;
 
-		D3D_ShaderResourceView::BindArray<2>(0, { nullptr, nullptr });
-		D3D_TextureSampler::BindArray<2>(0, { &defaultTextureSampler, &defaultTextureSampler });
+		ShaderResourceView::BindArray<2>(0, { nullptr, nullptr });
+		TextureSampler::BindArray<2>(0, { &defaultTextureSampler, &defaultTextureSampler });
 
 		for (uint16_t i = 0; i < batches.size(); i++)
 		{
@@ -206,14 +206,14 @@ namespace Comfy::Graphics
 		InternalClearItems();
 	}
 
-	void D3D_Renderer2D::InternalCheckFlushItems()
+	void Renderer2D::InternalCheckFlushItems()
 	{
 		// TODO: Something isn't quite right here...
 		if (batchItems.size() >= MaxBatchItemSize / 12)
 			InternalFlush();
 	}
 
-	void D3D_Renderer2D::InternalSetBlendMode(AetBlendMode blendMode)
+	void Renderer2D::InternalSetBlendMode(AetBlendMode blendMode)
 	{
 		switch (blendMode)
 		{
@@ -236,13 +236,13 @@ namespace Comfy::Graphics
 		}
 	}
 
-	SpriteBatchPair D3D_Renderer2D::InternalCheckFlushAddItem()
+	SpriteBatchPair Renderer2D::InternalCheckFlushAddItem()
 	{
 		InternalCheckFlushItems();
 		return InternalAddItem();
 	}
 
-	SpriteBatchPair D3D_Renderer2D::InternalAddItem()
+	SpriteBatchPair Renderer2D::InternalAddItem()
 	{
 		batchItems.emplace_back();
 		vertices.emplace_back();
@@ -250,14 +250,14 @@ namespace Comfy::Graphics
 		return { &batchItems.back(), &vertices.back() };
 	}
 
-	void D3D_Renderer2D::InternalClearItems()
+	void Renderer2D::InternalClearItems()
 	{
 		batches.clear();
 		batchItems.clear();
 		vertices.clear();
 	}
 
-	void D3D_Renderer2D::InternalDraw(const D3D_Texture2D * texture, const vec4 * sourceRegion, const vec2 * position, const vec2 * origin, float rotation, const vec2 * scale, const vec4 * color, AetBlendMode blendMode)
+	void Renderer2D::InternalDraw(const Texture2D * texture, const vec4 * sourceRegion, const vec2 * position, const vec2 * origin, float rotation, const vec2 * scale, const vec4 * color, AetBlendMode blendMode)
 	{
 		SpriteBatchPair pair = InternalCheckFlushAddItem();
 
@@ -276,19 +276,19 @@ namespace Comfy::Graphics
 			DefaultProperties::ColorOrDefault(color));
 	}
 
-	void D3D_Renderer2D::Begin(const OrthographicCamera& camera)
+	void Renderer2D::Begin(const OrthographicCamera& camera)
 	{
 		drawCallCount = 0;
 		orthographicCamera = &camera;
 	}
 
-	void D3D_Renderer2D::Draw(vec2 position, vec2 size, vec4 color)
+	void Renderer2D::Draw(vec2 position, vec2 size, vec4 color)
 	{
 		const vec4 source = vec4(0.0f, 0.0f, size.x, size.y);
 		InternalDraw(nullptr, &source, &position, nullptr, DefaultProperties::Rotation, nullptr, &color);
 	}
 
-	void D3D_Renderer2D::Draw(vec2 position, vec2 size, const vec4 colors[4])
+	void Renderer2D::Draw(vec2 position, vec2 size, const vec4 colors[4])
 	{
 		const vec4 source = vec4(0.0f, 0.0f, size.x, size.y);
 
@@ -297,35 +297,35 @@ namespace Comfy::Graphics
 		pair.Vertices->SetValues(position, source, size, DefaultProperties::Origin, DefaultProperties::Rotation, DefaultProperties::Scale, colors);
 	}
 
-	void D3D_Renderer2D::Draw(vec2 position, vec2 size, vec2 origin, float rotation, vec2 scale, vec4 color)
+	void Renderer2D::Draw(vec2 position, vec2 size, vec2 origin, float rotation, vec2 scale, vec4 color)
 	{
 		const vec4 source = vec4(0.0f, 0.0f, size.x, size.y);
 		InternalDraw(nullptr, &source, &position, &origin, rotation, &scale, &color);
 	}
 
-	void D3D_Renderer2D::Draw(const D3D_Texture2D* texture, vec2 position, vec4 color)
+	void Renderer2D::Draw(const Texture2D* texture, vec2 position, vec4 color)
 	{
 		InternalDraw(texture, nullptr, &position, nullptr, DefaultProperties::Rotation, nullptr, &color);
 	}
 
-	void D3D_Renderer2D::Draw(const D3D_Texture2D* texture, vec4 sourceRegion, vec2 position, vec4 color)
+	void Renderer2D::Draw(const Texture2D* texture, vec4 sourceRegion, vec2 position, vec4 color)
 	{
 		InternalDraw(texture, &sourceRegion, &position, nullptr, 0.0f, nullptr, &color);
 	}
 
-	void D3D_Renderer2D::Draw(const D3D_Texture2D* texture, vec2 position, vec2 origin, float rotation, vec4 color)
+	void Renderer2D::Draw(const Texture2D* texture, vec2 position, vec2 origin, float rotation, vec4 color)
 	{
 		InternalDraw(texture, nullptr, &position, &origin, rotation, nullptr, &color);
 	}
 
-	void D3D_Renderer2D::Draw(const D3D_Texture2D* texture, vec4 sourceRegion, vec2 position, vec2 origin, float rotation, vec2 scale, vec4 color, AetBlendMode blendMode)
+	void Renderer2D::Draw(const Texture2D* texture, vec4 sourceRegion, vec2 position, vec2 origin, float rotation, vec2 scale, vec4 color, AetBlendMode blendMode)
 	{
 		InternalDraw(texture, &sourceRegion, &position, &origin, rotation, &scale, &color, blendMode);
 	}
 
-	void D3D_Renderer2D::Draw(
-		const D3D_Texture2D* maskTexture, vec4 maskSourceRegion, vec2 maskPosition, vec2 maskOrigin, float maskRotation, vec2 maskScale,
-		const D3D_Texture2D* texture, vec4 sourceRegion, vec2 position, vec2 origin, float rotation, vec2 scale, vec4 color,
+	void Renderer2D::Draw(
+		const Texture2D* maskTexture, vec4 maskSourceRegion, vec2 maskPosition, vec2 maskOrigin, float maskRotation, vec2 maskScale,
+		const Texture2D* texture, vec4 sourceRegion, vec2 position, vec2 origin, float rotation, vec2 scale, vec4 color,
 		AetBlendMode blendMode)
 	{
 		SpriteBatchPair pair = InternalCheckFlushAddItem();
@@ -357,7 +357,7 @@ namespace Comfy::Graphics
 			maskSourceRegion);
 	}
 
-	void D3D_Renderer2D::DrawLine(vec2 start, vec2 end, vec4 color, float thickness)
+	void Renderer2D::DrawLine(vec2 start, vec2 end, vec4 color, float thickness)
 	{
 		const vec2 edge = end - start;
 
@@ -370,7 +370,7 @@ namespace Comfy::Graphics
 		InternalDraw(nullptr, &source, &start, &origin, angle, nullptr, &color);
 	}
 
-	void D3D_Renderer2D::DrawLine(vec2 start, float angle, float length, vec4 color, float thickness)
+	void Renderer2D::DrawLine(vec2 start, float angle, float length, vec4 color, float thickness)
 	{
 		const vec4 source = vec4(0.0f, 0.0f, length, thickness);
 		const vec2 origin = vec2(0.0f, thickness / 2.0f);
@@ -378,7 +378,7 @@ namespace Comfy::Graphics
 		InternalDraw(nullptr, &source, &start, &origin, angle, nullptr, &color);
 	}
 
-	void D3D_Renderer2D::DrawRectangle(vec2 topLeft, vec2 topRight, vec2 bottomLeft, vec2 bottomRight, vec4 color, float thickness)
+	void Renderer2D::DrawRectangle(vec2 topLeft, vec2 topRight, vec2 bottomLeft, vec2 bottomRight, vec4 color, float thickness)
 	{
 		DrawLine(topLeft, topRight, color, thickness);
 		DrawLine(topRight, bottomRight, color, thickness);
@@ -386,7 +386,7 @@ namespace Comfy::Graphics
 		DrawLine(bottomLeft, topLeft, color, thickness);
 	}
 
-	void D3D_Renderer2D::DrawCheckerboardRectangle(vec2 position, vec2 size, vec2 origin, float rotation, vec2 scale, vec4 color, float precision)
+	void Renderer2D::DrawCheckerboardRectangle(vec2 position, vec2 size, vec2 origin, float rotation, vec2 scale, vec4 color, float precision)
 	{
 		// TODO: Use checkerboardTexture instead
 		const vec4 source = vec4(0.0f, 0.0f, size);
@@ -395,33 +395,33 @@ namespace Comfy::Graphics
 		batchItems.back().CheckerboardSize = size * scale * precision;
 	}
 
-	void D3D_Renderer2D::End()
+	void Renderer2D::End()
 	{
 		InternalFlush();
 		orthographicCamera = nullptr;
 	}
 
-	const SpriteVertices& D3D_Renderer2D::GetLastVertices() const
+	const SpriteVertices& Renderer2D::GetLastVertices() const
 	{
 		return vertices.back();
 	}
 
-	const OrthographicCamera* D3D_Renderer2D::GetCamera() const
+	const OrthographicCamera* Renderer2D::GetCamera() const
 	{
 		return orthographicCamera;
 	}
 
-	bool D3D_Renderer2D::GetDrawTextBorder() const
+	bool Renderer2D::GetDrawTextBorder() const
 	{
 		return drawTextBorder;
 	}
 
-	void D3D_Renderer2D::SetDrawTextBorder(bool value)
+	void Renderer2D::SetDrawTextBorder(bool value)
 	{
 		drawTextBorder = value;
 	}
 
-	uint32_t D3D_Renderer2D::GetDrawCallCount() const
+	uint32_t Renderer2D::GetDrawCallCount() const
 	{
 		return drawCallCount;
 	}

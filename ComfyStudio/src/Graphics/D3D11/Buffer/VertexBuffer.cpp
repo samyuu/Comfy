@@ -1,8 +1,8 @@
 #include "VertexBuffer.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	D3D_VertexBuffer::D3D_VertexBuffer(size_t dataSize, const void* data, size_t stride, D3D11_USAGE usage, UINT accessFlags)
+	VertexBuffer::VertexBuffer(size_t dataSize, const void* data, size_t stride, D3D11_USAGE usage, UINT accessFlags)
 	{
 		bufferDescription.ByteWidth = static_cast<UINT>(dataSize);
 		bufferDescription.Usage = usage;
@@ -15,7 +15,7 @@ namespace Comfy::Graphics
 		D3D.Device->CreateBuffer(&bufferDescription, (data == nullptr) ? nullptr : &initialResourceData, &buffer);
 	}
 
-	void D3D_VertexBuffer::Bind()
+	void VertexBuffer::Bind()
 	{
 		// TODO: Eventually this should be controlable as well to bind multiple buffers to different attributes
 
@@ -29,7 +29,7 @@ namespace Comfy::Graphics
 		D3D.Context->IASetVertexBuffers(startSlot, bufferCount, buffers.data(), strides.data(), offsets.data());
 	}
 
-	void D3D_VertexBuffer::UnBind()
+	void VertexBuffer::UnBind()
 	{
 		constexpr UINT startSlot = 0;
 		constexpr UINT bufferCount = 1;
@@ -41,27 +41,27 @@ namespace Comfy::Graphics
 		D3D.Context->IASetVertexBuffers(startSlot, bufferCount, buffers.data(), strides.data(), offsets.data());
 	}
 
-	ID3D11Buffer* D3D_VertexBuffer::GetBuffer()
+	ID3D11Buffer* VertexBuffer::GetBuffer()
 	{
 		return buffer.Get();
 	}
 
-	const D3D11_BUFFER_DESC& D3D_VertexBuffer::GetDescription()
+	const D3D11_BUFFER_DESC& VertexBuffer::GetDescription()
 	{
 		return bufferDescription;
 	}
 
-	D3D_StaticVertexBuffer::D3D_StaticVertexBuffer(size_t dataSize, const void* data, size_t stride)
-		: D3D_VertexBuffer(dataSize, data, stride, D3D11_USAGE_IMMUTABLE, 0)
+	StaticVertexBuffer::StaticVertexBuffer(size_t dataSize, const void* data, size_t stride)
+		: VertexBuffer(dataSize, data, stride, D3D11_USAGE_IMMUTABLE, 0)
 	{
 	}
 
-	D3D_DynamicVertexBuffer::D3D_DynamicVertexBuffer(size_t dataSize, const void* data, size_t stride)
-		: D3D_VertexBuffer(dataSize, data, stride, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE)
+	DynamicVertexBuffer::DynamicVertexBuffer(size_t dataSize, const void* data, size_t stride)
+		: VertexBuffer(dataSize, data, stride, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE)
 	{
 	}
 
-	void D3D_DynamicVertexBuffer::UploadData(size_t dataSize, const void* data)
+	void DynamicVertexBuffer::UploadData(size_t dataSize, const void* data)
 	{
 		assert(dataSize <= bufferDescription.ByteWidth);
 

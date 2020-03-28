@@ -10,8 +10,8 @@ namespace Comfy::Editor
 		if (auto externalRenderTarget = GetExternalRenderTarget(); externalRenderTarget == nullptr)
 		{
 			owningRenderTarget = GetShouldCreateDepthRenderTarget() ?
-				MakeUnique<D3D_DepthRenderTarget>(RenderTargetDefaultSize, DXGI_FORMAT_D32_FLOAT) :
-				MakeUnique<D3D_RenderTarget>(RenderTargetDefaultSize);
+				MakeUnique<D3D11::DepthRenderTarget>(D3D11::RenderTargetDefaultSize, DXGI_FORMAT_D32_FLOAT) :
+				MakeUnique<D3D11::RenderTarget>(D3D11::RenderTargetDefaultSize);
 			
 			renderRegion = lastRenderRegion = ImRect(vec2(0.0f, 0.0f), vec2(owningRenderTarget->GetSize()));
 		}

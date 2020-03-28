@@ -3,14 +3,14 @@
 #include "Core/TimeSpan.h"
 #include <optional>
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	class D3D_OcclusionQuery final : ID3DGraphicsResource
+	class OcclusionQuery final : IGraphicsResource
 	{
 	public:
-		D3D_OcclusionQuery();
-		D3D_OcclusionQuery(const char* debugName);
-		~D3D_OcclusionQuery() = default;
+		OcclusionQuery();
+		OcclusionQuery(const char* debugName);
+		~OcclusionQuery() = default;
 
 	public:
 		// NOTE: Call before issuing draw calls

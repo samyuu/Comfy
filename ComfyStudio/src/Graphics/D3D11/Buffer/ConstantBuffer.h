@@ -1,16 +1,16 @@
 #pragma once
 #include "../Direct3D.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	class D3D_ConstantBuffer : ID3DGraphicsResource
+	class ConstantBuffer : IGraphicsResource
 	{
 	public:
 		static constexpr size_t DataAlignmentRequirement = 16;
 
 	protected:
-		D3D_ConstantBuffer(uint32_t slot, size_t dataSize, D3D11_USAGE usage, UINT accessFlags);
-		virtual ~D3D_ConstantBuffer() = default;
+		ConstantBuffer(uint32_t slot, size_t dataSize, D3D11_USAGE usage, UINT accessFlags);
+		virtual ~ConstantBuffer() = default;
 
 	public:
 		// TODO: Static methods to bind multiple buffers at once and reduce API overhead
@@ -33,36 +33,36 @@ namespace Comfy::Graphics
 	};
 
 	// NOTE: Use for data that changes less than once per frame
-	class D3D_DefaultConstantBuffer final : public D3D_ConstantBuffer
+	class DefaultConstantBuffer final : public ConstantBuffer
 	{
 	public:
-		D3D_DefaultConstantBuffer(uint32_t slot, size_t dataSize);
-		~D3D_DefaultConstantBuffer() = default;
+		DefaultConstantBuffer(uint32_t slot, size_t dataSize);
+		~DefaultConstantBuffer() = default;
 
 	public:
 		void UploadData(size_t dataSize, const void* data) override;
 	};
 
 	// NOTE: Use for data that changes at least once per frame
-	class D3D_DynamicConstantBuffer final : public D3D_ConstantBuffer
+	class DynamicConstantBuffer final : public ConstantBuffer
 	{
 	public:
-		D3D_DynamicConstantBuffer(uint32_t slot, size_t dataSize);
-		~D3D_DynamicConstantBuffer() = default;
+		DynamicConstantBuffer(uint32_t slot, size_t dataSize);
+		~DynamicConstantBuffer() = default;
 
 	public:
 		void UploadData(size_t dataSize, const void* data) override;
 	};
 
 	template <typename CBType, typename DataType>
-	class D3D_ConstantBufferTemplate
+	class ConstantBufferTemplate
 	{
-		static_assert(std::is_base_of<D3D_ConstantBuffer, CBType>::value);
-		static_assert(sizeof(DataType) % D3D_ConstantBuffer::DataAlignmentRequirement == 0);
+		static_assert(std::is_base_of<ConstantBuffer, CBType>::value);
+		static_assert(sizeof(DataType) % ConstantBuffer::DataAlignmentRequirement == 0);
 
 	public:
-		D3D_ConstantBufferTemplate(uint32_t slot) : Data(), Buffer(slot, sizeof(DataType)) {};
-		D3D_ConstantBufferTemplate(uint32_t slot, const char* debugName) : Data(), Buffer(slot, sizeof(DataType)) { D3D_SetObjectDebugName(Buffer.GetBuffer(), debugName); };
+		ConstantBufferTemplate(uint32_t slot) : Data(), Buffer(slot, sizeof(DataType)) {};
+		ConstantBufferTemplate(uint32_t slot, const char* debugName) : Data(), Buffer(slot, sizeof(DataType)) { D3D11_SetObjectDebugName(Buffer.GetBuffer(), debugName); };
 
 	public:
 		inline void BindVertexShader() { Buffer.BindVertexShader(); };
@@ -82,8 +82,8 @@ namespace Comfy::Graphics
 	};
 
 	template <typename DataType>
-	using D3D_DefaultConstantBufferTemplate = D3D_ConstantBufferTemplate<D3D_DefaultConstantBuffer, DataType>;
+	using DefaultConstantBufferTemplate = ConstantBufferTemplate<DefaultConstantBuffer, DataType>;
 
 	template <typename DataType>
-	using D3D_DynamicConstantBufferTemplate = D3D_ConstantBufferTemplate<D3D_DynamicConstantBuffer, DataType>;
+	using DynamicConstantBufferTemplate = ConstantBufferTemplate<DynamicConstantBuffer, DataType>;
 }

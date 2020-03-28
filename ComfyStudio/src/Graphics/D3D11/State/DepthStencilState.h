@@ -1,14 +1,14 @@
 #pragma once
 #include "../Direct3D.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	class D3D_DepthStencilState final : ID3DGraphicsResource
+	class DepthStencilState final : IGraphicsResource
 	{
 	public:
-		D3D_DepthStencilState(bool depthEnabled, D3D11_DEPTH_WRITE_MASK depthWriteMask);
-		D3D_DepthStencilState(bool depthEnabled, D3D11_DEPTH_WRITE_MASK depthWriteMask, const char* debugName);
-		~D3D_DepthStencilState() = default;
+		DepthStencilState(bool depthEnabled, D3D11_DEPTH_WRITE_MASK depthWriteMask);
+		DepthStencilState(bool depthEnabled, D3D11_DEPTH_WRITE_MASK depthWriteMask, const char* debugName);
+		~DepthStencilState() = default;
 
 	public:
 		void Bind();

@@ -11,8 +11,8 @@ namespace Comfy::Graphics
 	// TODO: Hide renderers behind proper interfaces
 	
 #ifdef COMFY_D3D11
-	using GPU_Renderer2D = D3D_Renderer2D;
-	using GPU_Renderer3D = D3D_Renderer3D;
+	using GPU_Renderer2D = D3D11::Renderer2D;
+	using GPU_Renderer3D = D3D11::Renderer3D;
 #else
 	class GPU_Renderer2D {};
 	class GPU_Renderer3D {};

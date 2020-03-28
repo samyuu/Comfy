@@ -2,7 +2,7 @@
 #include "Graphics/TxpSet.h"
 #include "Graphics/Auth3D/LightParam/IBLParameters.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
 	namespace
 	{
@@ -338,17 +338,17 @@ namespace Comfy::Graphics
 		};
 	}
 
-	D3D_TextureResource::D3D_TextureResource()
+	TextureResource::TextureResource()
 		: lastBoundSlot(UnboundTextureSlot), textureFormat(TextureFormat::Unknown)
 	{
 	}
 
-	D3D_TextureResource::~D3D_TextureResource()
+	TextureResource::~TextureResource()
 	{
 		D3D.EnsureDeviceObjectLifetimeUntilRendering(resourceView.Get());
 	}
 
-	void D3D_TextureResource::Bind(uint32_t textureSlot) const
+	void TextureResource::Bind(uint32_t textureSlot) const
 	{
 		assert(textureSlot < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
 		lastBoundSlot = textureSlot;
@@ -359,7 +359,7 @@ namespace Comfy::Graphics
 		D3D.Context->PSSetShaderResources(textureSlot, textureCount, resourceViews.data());
 	}
 
-	void D3D_TextureResource::UnBind() const
+	void TextureResource::UnBind() const
 	{
 		assert(lastBoundSlot < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
 
@@ -371,27 +371,27 @@ namespace Comfy::Graphics
 		lastBoundSlot = UnboundTextureSlot;
 	}
 
-	ivec2 D3D_TextureResource::GetSize() const
+	ivec2 TextureResource::GetSize() const
 	{
 		return ivec2(textureDescription.Width, textureDescription.Height);
 	}
 
-	ID3D11Texture2D* D3D_TextureResource::GetTexture()
+	ID3D11Texture2D* TextureResource::GetTexture()
 	{
 		return texture.Get();
 	}
 
-	TextureFormat D3D_TextureResource::GetTextureFormat() const
+	TextureFormat TextureResource::GetTextureFormat() const
 	{
 		return textureFormat;
 	}
 
-	ID3D11ShaderResourceView* D3D_TextureResource::GetResourceView() const
+	ID3D11ShaderResourceView* TextureResource::GetResourceView() const
 	{
 		return resourceView.Get();
 	}
 
-	D3D_Texture1D::D3D_Texture1D(int32_t width, const void* pixelData, DXGI_FORMAT format)
+	Texture1D::Texture1D(int32_t width, const void* pixelData, DXGI_FORMAT format)
 	{
 		textureDescription.Width = width;
 		textureDescription.MipLevels = 1;
@@ -412,7 +412,7 @@ namespace Comfy::Graphics
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 
-	void D3D_Texture1D::UploadData(size_t dataSize, const void* pixelData)
+	void Texture1D::UploadData(size_t dataSize, const void* pixelData)
 	{
 		// assert(dataSize ...);
 
@@ -424,12 +424,12 @@ namespace Comfy::Graphics
 		D3D.Context->Unmap(texture.Get(), 0);
 	}
 
-	ID3D11ShaderResourceView* D3D_Texture1D::GetResourceView() const
+	ID3D11ShaderResourceView* Texture1D::GetResourceView() const
 	{
 		return resourceView.Get();
 	}
 
-	D3D_Texture2D::D3D_Texture2D(const Txp& txp)
+	Texture2D::Texture2D(const Txp& txp)
 	{
 		assert(txp.MipMapsArray.size() == GetArraySize() && txp.MipMapsArray.front().size() > 0 && txp.Signature.Type == TxpSig::Texture2D);
 
@@ -493,7 +493,7 @@ namespace Comfy::Graphics
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 
-	D3D_Texture2D::D3D_Texture2D(ivec2 size, const uint32_t* rgbaBuffer)
+	Texture2D::Texture2D(ivec2 size, const uint32_t* rgbaBuffer)
 	{
 		textureFormat = TextureFormat::RGBA8;
 		textureDescription.Width = size.x;
@@ -515,12 +515,12 @@ namespace Comfy::Graphics
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 
-	uint32_t D3D_Texture2D::GetArraySize() const
+	uint32_t Texture2D::GetArraySize() const
 	{
 		return 1;
 	}
 
-	D3D_CubeMap::D3D_CubeMap(const Txp& txp)
+	CubeMap::CubeMap(const Txp& txp)
 	{
 		assert(txp.MipMapsArray.size() == GetArraySize() && txp.MipMapsArray.front().size() > 0 && txp.Signature.Type == TxpSig::CubeMap);
 
@@ -560,7 +560,7 @@ namespace Comfy::Graphics
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 
-	D3D_CubeMap::D3D_CubeMap(const LightMapIBL& lightMap)
+	CubeMap::CubeMap(const LightMapIBL& lightMap)
 	{
 		uint32_t mipMapLevels = 1;
 		for (uint32_t i = 0; i < lightMap.DataPointers[0].size(); i++)
@@ -602,7 +602,7 @@ namespace Comfy::Graphics
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 
-	uint32_t D3D_CubeMap::GetArraySize() const
+	uint32_t CubeMap::GetArraySize() const
 	{
 		return CubeFaceCount;
 	}

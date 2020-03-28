@@ -2,7 +2,7 @@
 #include "Core/TimeSpan.h"
 #include "ImGui/Gui.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
 	namespace
 	{
@@ -70,6 +70,7 @@ namespace Comfy::Graphics
 			if (InBounds(subMesh.MaterialIndex, parentObj.Materials))
 				return parentObj.Materials[subMesh.MaterialIndex];
 
+			// TODO: Make a member field to avoid static lock
 			static Material dummyMaterial = {};
 			return dummyMaterial;
 		}
@@ -174,7 +175,7 @@ namespace Comfy::Graphics
 			return vec4(1.0f / size, size);
 		}
 
-		vec4 GetPackedTextureSize(const D3D_RenderTargetBase& renderTarget)
+		vec4 GetPackedTextureSize(const RenderTargetBase& renderTarget)
 		{
 			return GetPackedTextureSize(vec2(renderTarget.GetSize()));
 		}
@@ -383,7 +384,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	D3D_Renderer3D::D3D_Renderer3D(TxpGetterFunction txpGetter)
+	Renderer3D::Renderer3D(TxpGetterFunction txpGetter)
 	{
 		this->txpGetter = txpGetter;
 
@@ -411,8 +412,8 @@ namespace Comfy::Graphics
 			{ "COLOR",			3, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, MorphVertexAttributeOffset + VertexAttribute_Color1 },
 		};
 
-		genericInputLayout = MakeUnique<D3D_InputLayout>(genericElements, std::size(genericElements), shaders.DebugMaterial.VS);
-		D3D_SetObjectDebugName(genericInputLayout->GetLayout(), "Renderer3D::GenericInputLayout");
+		genericInputLayout = MakeUnique<InputLayout>(genericElements, std::size(genericElements), shaders.DebugMaterial.VS);
+		D3D11_SetObjectDebugName(genericInputLayout->GetLayout(), "Renderer3D::GenericInputLayout");
 
 		static constexpr InputElement silhouetteElements[] =
 		{
@@ -424,8 +425,8 @@ namespace Comfy::Graphics
 			{ "TEXCOORD",		4, DXGI_FORMAT_R32G32_FLOAT,		0, MorphVertexAttributeOffset + VertexAttribute_TextureCoordinate0 },
 		};
 
-		shadowSilhouetteInputLayout = MakeUnique<D3D_InputLayout>(silhouetteElements, std::size(silhouetteElements), shaders.Silhouette.VS);
-		D3D_SetObjectDebugName(shadowSilhouetteInputLayout->GetLayout(), "Renderer3D::ShadowSilhouetteInputLayout");
+		shadowSilhouetteInputLayout = MakeUnique<InputLayout>(silhouetteElements, std::size(silhouetteElements), shaders.Silhouette.VS);
+		D3D11_SetObjectDebugName(shadowSilhouetteInputLayout->GetLayout(), "Renderer3D::ShadowSilhouetteInputLayout");
 
 		constexpr size_t reasonableInitialCapacity = 64;
 
@@ -436,7 +437,7 @@ namespace Comfy::Graphics
 		reflectionCommandList.Transparent.reserve(reasonableInitialCapacity);
 	}
 
-	void D3D_Renderer3D::Begin(SceneViewport& viewport, const SceneParameters& scene)
+	void Renderer3D::Begin(SceneViewport& viewport, const SceneParameters& scene)
 	{
 		lastFrameStatistics = statistics;
 		statistics = {};
@@ -445,7 +446,7 @@ namespace Comfy::Graphics
 		current = { &viewport, &scene };
 	}
 
-	void D3D_Renderer3D::Draw(const RenderCommand& command)
+	void Renderer3D::Draw(const RenderCommand& command)
 	{
 		if (command.SourceObj == nullptr)
 			return;
@@ -473,7 +474,7 @@ namespace Comfy::Graphics
 		UpdateIsAnyCommandFlags(command);
 	}
 
-	void D3D_Renderer3D::End()
+	void Renderer3D::End()
 	{
 		assert(current.Scene != nullptr && current.Viewport != nullptr);
 
@@ -481,7 +482,7 @@ namespace Comfy::Graphics
 		current = {};
 	}
 
-	void D3D_Renderer3D::UpdateIsAnyCommandFlags(const RenderCommand& command)
+	void Renderer3D::UpdateIsAnyCommandFlags(const RenderCommand& command)
 	{
 		if (command.Flags.IsReflection)
 			isAnyCommand.ScreenReflection = true;
@@ -511,12 +512,12 @@ namespace Comfy::Graphics
 		}
 	}
 
-	const Txp* D3D_Renderer3D::GetTxpFromTextureID(const Cached_TxpID* textureID) const
+	const Txp* Renderer3D::GetTxpFromTextureID(const Cached_TxpID* textureID) const
 	{
 		return txpGetter(textureID);
 	}
 
-	void D3D_Renderer3D::InternalFlush()
+	void Renderer3D::InternalFlush()
 	{
 		InternalPrepareRenderCommands(defaultCommandList);
 		InternalPrepareRenderCommands(reflectionCommandList);
@@ -534,7 +535,7 @@ namespace Comfy::Graphics
 		reflectionCommandList.Transparent.clear();
 	}
 
-	void D3D_Renderer3D::InternalPrepareRenderCommands(RenderPassCommandLists& commandList)
+	void Renderer3D::InternalPrepareRenderCommands(RenderPassCommandLists& commandList)
 	{
 		if (commandList.OpaqueAndTransparent.empty())
 			return;
@@ -574,7 +575,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	void D3D_Renderer3D::InternalRenderScene()
+	void Renderer3D::InternalRenderScene()
 	{
 		InternalSetUploadSceneCB();
 
@@ -659,7 +660,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	void D3D_Renderer3D::InternalSetUploadSceneCB()
+	void Renderer3D::InternalSetUploadSceneCB()
 	{
 		sceneCB.Data.RenderResolution = GetPackedTextureSize(current.Viewport->Data.Main.Current());
 
@@ -707,9 +708,9 @@ namespace Comfy::Graphics
 		sceneCB.UploadData();
 	}
 
-	void D3D_Renderer3D::InternalBindSceneTextures()
+	void Renderer3D::InternalBindSceneTextures()
 	{
-		D3D_ShaderResourceView::BindArray<TextureSlot_Count>(TextureSlot_Diffuse,
+		ShaderResourceView::BindArray<TextureSlot_Count>(TextureSlot_Diffuse,
 			{
 				// NOTE: Diffuse = 0
 				nullptr,
@@ -762,7 +763,7 @@ namespace Comfy::Graphics
 			});
 	}
 
-	void D3D_Renderer3D::InternalPreRenderShadowMap()
+	void Renderer3D::InternalPreRenderShadowMap()
 	{
 		const auto& light = current.Scene->Light.Character;
 
@@ -814,14 +815,14 @@ namespace Comfy::Graphics
 		sceneCB.UploadData();
 	}
 
-	void D3D_Renderer3D::InternalPreRenderReduceFilterShadowMap()
+	void Renderer3D::InternalPreRenderReduceFilterShadowMap()
 	{
 		solidNoCullingRasterizerState.Bind();
 
 		D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
-		D3D_TextureSampler::BindArray<1>(0, { nullptr });
+		TextureSampler::BindArray<1>(0, { nullptr });
 
 		const ivec2 fullResolution = current.Viewport->Data.Shadow.RenderTarget.GetSize();
 		const ivec2 halfResolution = fullResolution / 2;
@@ -914,7 +915,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	void D3D_Renderer3D::InternalPreRenderScreenReflection()
+	void Renderer3D::InternalPreRenderScreenReflection()
 	{
 		current.Viewport->Data.Reflection.RenderTarget.ResizeIfDifferent(current.Viewport->Parameters.ReflectionRenderResolution);
 		current.Viewport->Data.Reflection.RenderTarget.BindSetViewport();
@@ -949,7 +950,7 @@ namespace Comfy::Graphics
 		current.Viewport->Data.Reflection.RenderTarget.UnBind();
 	}
 
-	void D3D_Renderer3D::InternalPreRenderSubsurfaceScattering()
+	void Renderer3D::InternalPreRenderSubsurfaceScattering()
 	{
 		current.Viewport->Data.SubsurfaceScattering.RenderTarget.ResizeIfDifferent(current.Viewport->Parameters.RenderResolution);
 
@@ -969,14 +970,14 @@ namespace Comfy::Graphics
 		current.Viewport->Data.SubsurfaceScattering.RenderTarget.UnBind();
 	}
 
-	void D3D_Renderer3D::InternalPreRenderReduceFilterSubsurfaceScattering()
+	void Renderer3D::InternalPreRenderReduceFilterSubsurfaceScattering()
 	{
 		solidNoCullingRasterizerState.Bind();
 
 		D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
-		D3D_TextureSampler::BindArray<1>(0, { nullptr });
+		TextureSampler::BindArray<1>(0, { nullptr });
 
 		shaders.SSSFilterCopy.Bind();
 		current.Viewport->Data.SubsurfaceScattering.RenderTarget.BindResource(0);
@@ -1001,7 +1002,7 @@ namespace Comfy::Graphics
 		current.Viewport->Data.SubsurfaceScattering.FilterRenderTargets[2].UnBind();
 	}
 
-	void D3D_Renderer3D::InternalRenderOpaqueObjCommand(ObjRenderCommand& command, RenderFlags flags)
+	void Renderer3D::InternalRenderOpaqueObjCommand(ObjRenderCommand& command, RenderFlags flags)
 	{
 		if (command.AreAllMeshesTransparent)
 			return;
@@ -1030,7 +1031,7 @@ namespace Comfy::Graphics
 		});
 	}
 
-	void D3D_Renderer3D::InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command)
+	void Renderer3D::InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command)
 	{
 		auto& objCommand = command.ObjCommand;
 		auto& transform = objCommand->SourceCommand.Transform;
@@ -1051,7 +1052,7 @@ namespace Comfy::Graphics
 		PrepareAndRenderSubMesh(*command.ObjCommand, mesh, subMesh, material);
 	}
 
-	void D3D_Renderer3D::InternalRenderSilhouette()
+	void Renderer3D::InternalRenderSilhouette()
 	{
 		current.Viewport->Data.Silhouette.RenderTarget.ResizeIfDifferent(current.Viewport->Parameters.RenderResolution);
 		current.Viewport->Data.Silhouette.RenderTarget.BindSetViewport();
@@ -1068,7 +1069,7 @@ namespace Comfy::Graphics
 		current.Viewport->Data.Silhouette.RenderTarget.UnBind();
 	}
 
-	void D3D_Renderer3D::InternalRenderSilhouetteOutlineOverlay()
+	void Renderer3D::InternalRenderSilhouetteOutlineOverlay()
 	{
 		current.Viewport->Data.Silhouette.RenderTarget.BindResource(0);
 
@@ -1076,7 +1077,7 @@ namespace Comfy::Graphics
 		D3D.Context->Draw(RectangleVertexCount, 0);
 	}
 
-	void D3D_Renderer3D::InternalQueryRenderLensFlare()
+	void Renderer3D::InternalQueryRenderLensFlare()
 	{
 		const Obj* sunObj = current.Scene->LensFlare.SunObj;
 		if (sunObj == nullptr)
@@ -1135,12 +1136,12 @@ namespace Comfy::Graphics
 #endif
 	}
 
-	void D3D_Renderer3D::InternalRenderLensFlare()
+	void Renderer3D::InternalRenderLensFlare()
 	{
 		shaders.LensFlare.Bind();
 	}
 
-	void D3D_Renderer3D::InternalRenderPostProcessing()
+	void Renderer3D::InternalRenderPostProcessing()
 	{
 		D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
@@ -1154,7 +1155,7 @@ namespace Comfy::Graphics
 		solidNoCullingRasterizerState.Bind();
 		D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
-		D3D_TextureSampler::BindArray<1>(0, { nullptr });
+		TextureSampler::BindArray<1>(0, { nullptr });
 
 		if (current.Viewport->Parameters.RenderBloom)
 			InternalRenderBloom();
@@ -1167,7 +1168,7 @@ namespace Comfy::Graphics
 
 		const bool autoExposureEnabled = (current.Viewport->Parameters.AutoExposure && current.Viewport->Parameters.RenderBloom && current.Scene->Glow.AutoExposure);
 
-		D3D_ShaderResourceView::BindArray<4>(0,
+		ShaderResourceView::BindArray<4>(0,
 			{
 				&current.Viewport->Data.Main.CurrentOrResolved(),
 				(current.Viewport->Parameters.RenderBloom) ? &current.Viewport->Data.Bloom.CombinedBlurRenderTarget : nullptr,
@@ -1189,11 +1190,11 @@ namespace Comfy::Graphics
 
 		D3D.Context->Draw(RectangleVertexCount, 0);
 
-		D3D_ShaderResourceView::BindArray<3>(0, { nullptr, nullptr, nullptr });
+		ShaderResourceView::BindArray<3>(0, { nullptr, nullptr, nullptr });
 		current.Viewport->Data.Main.AdvanceRenderTarget();
 	}
 
-	void D3D_Renderer3D::InternalRenderBloom()
+	void Renderer3D::InternalRenderBloom()
 	{
 		auto& bloom = current.Viewport->Data.Bloom;
 
@@ -1263,7 +1264,7 @@ namespace Comfy::Graphics
 		bloom.ReduceRenderTargets[0].BindResource(0);
 		D3D.Context->Draw(RectangleVertexCount, 0);
 
-		std::array<D3D_ShaderResourceView*, 4> combinedBlurInputTargets =
+		std::array<ShaderResourceView*, 4> combinedBlurInputTargets =
 		{
 			&bloom.BlurRenderTargets[0],
 			// NOTE: Use the reduce targets because of the ping pong blur rendering
@@ -1273,7 +1274,7 @@ namespace Comfy::Graphics
 		};
 
 		bloom.CombinedBlurRenderTarget.BindSetViewport();
-		D3D_ShaderResourceView::BindArray(0, combinedBlurInputTargets);
+		ShaderResourceView::BindArray(0, combinedBlurInputTargets);
 
 		reduceTexCB.Data.TextureSize = GetPackedTextureSize(bloom.ReduceRenderTargets[3]);
 		reduceTexCB.Data.ExtractBrightness = false;
@@ -1288,7 +1289,7 @@ namespace Comfy::Graphics
 			InternalRenderExposurePostBloom();
 	}
 
-	void D3D_Renderer3D::InternalRenderExposurePreBloom()
+	void Renderer3D::InternalRenderExposurePreBloom()
 	{
 		shaders.ExposureMinify.Bind();
 		current.Viewport->Data.Bloom.ExposureRenderTargets[0].BindSetViewport();
@@ -1297,7 +1298,7 @@ namespace Comfy::Graphics
 		current.Viewport->Data.Bloom.ExposureRenderTargets[0].UnBind();
 	}
 
-	void D3D_Renderer3D::InternalRenderExposurePostBloom()
+	void Renderer3D::InternalRenderExposurePostBloom()
 	{
 		CalculateExposureSpotCoefficients(exposureCB.Data);
 		exposureCB.UploadData();
@@ -1316,7 +1317,7 @@ namespace Comfy::Graphics
 		current.Viewport->Data.Bloom.ExposureRenderTargets[2].UnBind();
 	}
 
-	void D3D_Renderer3D::BindMeshVertexBuffers(const Mesh& primaryMesh, const Mesh* morphMesh)
+	void Renderer3D::BindMeshVertexBuffers(const Mesh& primaryMesh, const Mesh* morphMesh)
 	{
 		std::array<ID3D11Buffer*, VertexAttribute_Count> buffers;
 		std::array<UINT, VertexAttribute_Count> strides;
@@ -1328,7 +1329,7 @@ namespace Comfy::Graphics
 			const Mesh& mesh = (meshIndex == 0) ? primaryMesh : *morphMesh;;
 			for (VertexAttribute i = 0; i < VertexAttribute_Count; i++)
 			{
-				D3D_StaticVertexBuffer* vertexBuffer = mesh.GPU_VertexBuffers[i].get();
+				StaticVertexBuffer* vertexBuffer = mesh.GPU_VertexBuffers[i].get();
 
 				if (vertexBuffer != nullptr)
 				{
@@ -1349,7 +1350,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	void D3D_Renderer3D::PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, RenderFlags flags)
+	void Renderer3D::PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, RenderFlags flags)
 	{
 		if (flags & RenderFlags_SilhouetteOutlinePass)
 		{
@@ -1379,7 +1380,7 @@ namespace Comfy::Graphics
 		SubmitSubMeshDrawCall(subMesh);
 	}
 
-	uint32_t D3D_Renderer3D::MaterialTextureTypeToTextureSlot(MaterialTextureType textureType, bool secondColorMap)
+	uint32_t Renderer3D::MaterialTextureTypeToTextureSlot(MaterialTextureType textureType, bool secondColorMap)
 	{
 		switch (textureType)
 		{
@@ -1408,7 +1409,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	uint32_t D3D_Renderer3D::BindMaterialTextures(const ObjRenderCommand& command, const Material& material, RenderFlags flags)
+	uint32_t Renderer3D::BindMaterialTextures(const ObjRenderCommand& command, const Material& material, RenderFlags flags)
 	{
 		auto applyTextureTransform = [](mat4& outTransform, const ObjAnimationData::TextureTransform& textureTransform)
 		{
@@ -1428,8 +1429,8 @@ namespace Comfy::Graphics
 		objectCB.Data.DiffuseScreenTexture = false;
 		objectCB.Data.AmbientTextureType = 0;
 
-		std::array<D3D_ShaderResourceView*, TextureSlot_MaterialTextureCount> textureResources = {};
-		std::array<D3D_TextureSampler*, TextureSlot_MaterialTextureCount> textureSamplers = {};
+		std::array<ShaderResourceView*, TextureSlot_MaterialTextureCount> textureResources = {};
+		std::array<TextureSampler*, TextureSlot_MaterialTextureCount> textureSamplers = {};
 
 		for (auto& materialTexture : material.Textures)
 		{
@@ -1467,7 +1468,7 @@ namespace Comfy::Graphics
 			if (txp == nullptr)
 				continue;
 
-			textureResources[correspondingTextureSlot] = (txp->GPU_Texture2D != nullptr) ? static_cast<D3D_TextureResource*>(txp->GPU_Texture2D.get()) : (txp->GPU_CubeMap != nullptr) ? (txp->GPU_CubeMap.get()) : nullptr;
+			textureResources[correspondingTextureSlot] = (txp->GPU_Texture2D != nullptr) ? static_cast<TextureResource*>(txp->GPU_Texture2D.get()) : (txp->GPU_CubeMap != nullptr) ? (txp->GPU_CubeMap.get()) : nullptr;
 			textureSamplers[correspondingTextureSlot] = &cachedTextureSamplers.GetSampler(samplerFlags);
 
 			if (correspondingTextureSlot == TextureSlot_Diffuse)
@@ -1511,13 +1512,13 @@ namespace Comfy::Graphics
 
 		if (flags & RenderFlags_DiffuseTextureOnly)
 		{
-			D3D_ShaderResourceView::BindArray<1>(TextureSlot_Diffuse, { textureResources[TextureSlot_Diffuse] });
-			D3D_TextureSampler::BindArray<1>(TextureSlot_Diffuse, { textureSamplers[TextureSlot_Diffuse] });
+			ShaderResourceView::BindArray<1>(TextureSlot_Diffuse, { textureResources[TextureSlot_Diffuse] });
+			TextureSampler::BindArray<1>(TextureSlot_Diffuse, { textureSamplers[TextureSlot_Diffuse] });
 		}
 		else
 		{
-			D3D_ShaderResourceView::BindArray(TextureSlot_Diffuse, textureResources);
-			D3D_TextureSampler::BindArray(TextureSlot_Diffuse, textureSamplers);
+			ShaderResourceView::BindArray(TextureSlot_Diffuse, textureResources);
+			TextureSampler::BindArray(TextureSlot_Diffuse, textureSamplers);
 		}
 
 		uint32_t boundMaterialTexturesFlags = 0;
@@ -1529,7 +1530,7 @@ namespace Comfy::Graphics
 		return boundMaterialTexturesFlags;
 	}
 
-	bool D3D_Renderer3D::GetIsTextureSlotUsed(Material::ShaderTypeIdentifier shaderType, Material::MaterialUsedTextureFlags usedTextureFlags, uint32_t textureSlot)
+	bool Renderer3D::GetIsTextureSlotUsed(Material::ShaderTypeIdentifier shaderType, Material::MaterialUsedTextureFlags usedTextureFlags, uint32_t textureSlot)
 	{
 		switch (textureSlot)
 		{
@@ -1559,7 +1560,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	void D3D_Renderer3D::SetSubMeshRasterizerState(const Material& material)
+	void Renderer3D::SetSubMeshRasterizerState(const Material& material)
 	{
 		if (material.BlendFlags.DoubleSided)
 			solidNoCullingRasterizerState.Bind();
@@ -1567,7 +1568,7 @@ namespace Comfy::Graphics
 			solidBackfaceCullingRasterizerState.Bind();
 	}
 
-	void D3D_Renderer3D::SetObjectCBMaterialData(const Material& material, ObjectConstantData::MaterialData& outMaterialData) const
+	void Renderer3D::SetObjectCBMaterialData(const Material& material, ObjectConstantData::MaterialData& outMaterialData) const
 	{
 		const float fresnel = (((material.ShaderFlags.Fresnel == 0) ? 7.0f : static_cast<float>(material.ShaderFlags.Fresnel) - 1.0f) * 0.12f) * 0.82f;
 		const float lineLight = material.ShaderFlags.LineLight * 0.111f;
@@ -1588,7 +1589,7 @@ namespace Comfy::Graphics
 		outMaterialData.BumpDepth = material.BumpDepth;
 	}
 
-	void D3D_Renderer3D::SetObjectCBTransforms(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, ObjectConstantData& outData) const
+	void Renderer3D::SetObjectCBTransforms(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, ObjectConstantData& outData) const
 	{
 		mat4 modelMatrix;
 		if (current.Viewport->Parameters.ObjectBillboarding && (mesh.Flags.FaceCameraPosition || mesh.Flags.FaceCameraView))
@@ -1617,7 +1618,7 @@ namespace Comfy::Graphics
 #endif
 	}
 
-	vec4 D3D_Renderer3D::GetObjectCBMorphWeight(const ObjRenderCommand& command) const
+	vec4 Renderer3D::GetObjectCBMorphWeight(const ObjRenderCommand& command) const
 	{
 		if (command.SourceCommand.Animation != nullptr)
 		{
@@ -1630,7 +1631,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	uint32_t D3D_Renderer3D::GetObjectCBShaderFlags(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, uint32_t boundMaterialTexturesFlags) const
+	uint32_t Renderer3D::GetObjectCBShaderFlags(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, uint32_t boundMaterialTexturesFlags) const
 	{
 		uint32_t result = 0;
 
@@ -1722,7 +1723,7 @@ namespace Comfy::Graphics
 		return result;
 	}
 
-	D3D_ShaderPair& D3D_Renderer3D::GetMaterialShader(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material)
+	ShaderPair& Renderer3D::GetMaterialShader(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material)
 	{
 		if (current.Viewport->Parameters.AllowDebugShaderOverride)
 		{
@@ -1799,7 +1800,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	D3D_ShaderPair& D3D_Renderer3D::GetSSSMaterialShader(const Material& material)
+	ShaderPair& Renderer3D::GetSSSMaterialShader(const Material& material)
 	{
 		if (UsesSSSSkinConst(material))
 			return shaders.SSSSkinConst;
@@ -1807,7 +1808,7 @@ namespace Comfy::Graphics
 		return shaders.SSSSkin;
 	}
 
-	void D3D_Renderer3D::SubmitSubMeshDrawCall(const SubMesh& subMesh)
+	void Renderer3D::SubmitSubMeshDrawCall(const SubMesh& subMesh)
 	{
 		const size_t indexCount = subMesh.GetIndexCount();
 		subMesh.GPU_IndexBuffer->Bind();
@@ -1818,7 +1819,7 @@ namespace Comfy::Graphics
 		statistics.VerticesRendered += indexCount;
 	}
 
-	Sphere D3D_Renderer3D::CalculateShadowViewFrustumSphere() const
+	Sphere Renderer3D::CalculateShadowViewFrustumSphere() const
 	{
 		// TODO: If larger than some threshold, split into two (or more)
 		// TODO: Shadow casting objects which don't lie within the view frustum *nor* the light frustum should be ignored
@@ -1859,7 +1860,7 @@ namespace Comfy::Graphics
 		return Sphere { (min + size), (std::max(size.x, std::max(size.y, size.z))) + radiusPadding };
 	}
 
-	bool D3D_Renderer3D::IntersectsCameraFrustum(const ObjRenderCommand& command) const
+	bool Renderer3D::IntersectsCameraFrustum(const ObjRenderCommand& command) const
 	{
 		if (!current.Viewport->Parameters.FrustumCulling)
 			return true;
@@ -1867,7 +1868,7 @@ namespace Comfy::Graphics
 		return current.Viewport->Camera.IntersectsViewFrustum(command.TransformedBoundingSphere);
 	}
 
-	bool D3D_Renderer3D::IntersectsCameraFrustum(const Sphere& boundingSphere, const ObjRenderCommand& command) const
+	bool Renderer3D::IntersectsCameraFrustum(const Sphere& boundingSphere, const ObjRenderCommand& command) const
 	{
 		if (!current.Viewport->Parameters.FrustumCulling)
 			return true;
@@ -1875,12 +1876,12 @@ namespace Comfy::Graphics
 		return current.Viewport->Camera.IntersectsViewFrustum(boundingSphere * command.SourceCommand.Transform);
 	}
 
-	bool D3D_Renderer3D::IntersectsCameraFrustum(const Sphere& boundingSphere, const SubMeshRenderCommand& command) const
+	bool Renderer3D::IntersectsCameraFrustum(const Sphere& boundingSphere, const SubMeshRenderCommand& command) const
 	{
 		return IntersectsCameraFrustum(boundingSphere, *command.ObjCommand);
 	}
 
-	bool D3D_Renderer3D::IsDebugRenderFlagSet(int bitIndex) const
+	bool Renderer3D::IsDebugRenderFlagSet(int bitIndex) const
 	{
 		return current.Viewport->Parameters.DebugFlags & (1 << bitIndex);
 	}

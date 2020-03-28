@@ -1,6 +1,6 @@
 #include "TextureSamplerCache.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
 	namespace
 	{
@@ -18,8 +18,8 @@ namespace Comfy::Graphics
 			{
 				for (int v = 0; v < AddressMode_Count; v++)
 				{
-					samplers[u][v] = MakeUnique<D3D_TextureSampler>(filter, D3DAddressModes[u], D3DAddressModes[v], 0.0f, renderParameters.AnistropicFiltering);
-					D3D_SetObjectDebugName(samplers[u][v]->GetSampler(), "Renderer3D::Sampler::%s-%s", AddressModeNames[u], AddressModeNames[v]);
+					samplers[u][v] = MakeUnique<TextureSampler>(filter, D3DAddressModes[u], D3DAddressModes[v], 0.0f, renderParameters.AnistropicFiltering);
+					D3D11_SetObjectDebugName(samplers[u][v]->GetSampler(), "Renderer3D::Sampler::%s-%s", AddressModeNames[u], AddressModeNames[v]);
 				}
 			}
 
@@ -27,10 +27,10 @@ namespace Comfy::Graphics
 		}
 	}
 
-	D3D_TextureSampler& TextureSamplerCache::GetSampler(MaterialTextureData::TextureSamplerFlags flags)
+	TextureSampler& TextureSamplerCache::GetSampler(MaterialTextureData::TextureSamplerFlags flags)
 	{
-		auto u = flags.MirrorU ? Mirror : flags.RepeatU ? Repeat : Clamp;
-		auto v = flags.MirrorV ? Mirror : flags.RepeatV ? Repeat : Clamp;
+		const auto u = flags.MirrorU ? Mirror : flags.RepeatU ? Repeat : Clamp;
+		const auto v = flags.MirrorV ? Mirror : flags.RepeatV ? Repeat : Clamp;
 		return *samplers[u][v];
 	}
 }

@@ -78,7 +78,7 @@ namespace ImGui
 		PopItemFlag();
 	}
 
-	void AddTexture(ImDrawList* drawList, const D3D_Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0, const ImVec2& uv1)
+	void AddTexture(ImDrawList* drawList, const D3D11::Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0, const ImVec2& uv1)
 	{
 		vec2 size = vec2(texture->GetSize()) * scale;
 
@@ -88,7 +88,7 @@ namespace ImGui
 		drawList->AddImage(*texture, center, bottomRight, uv0, uv1);
 	}
 
-	void AddSprite(ImDrawList* drawList, const D3D_Texture2D* texture, const vec2& position, const vec4& sourceRegion, ImU32 color)
+	void AddSprite(ImDrawList* drawList, const D3D11::Texture2D* texture, const vec2& position, const vec4& sourceRegion, ImU32 color)
 	{
 		const vec2 textureSize = texture->GetSize();
 

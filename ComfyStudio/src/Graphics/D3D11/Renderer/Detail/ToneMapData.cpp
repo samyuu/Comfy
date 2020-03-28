@@ -1,6 +1,6 @@
 #include "ToneMapData.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
 	bool ToneMapData::NeedsUpdating(const GlowParameter& glow)
 	{
@@ -26,7 +26,7 @@ namespace Comfy::Graphics
 		UpdateTexture();
 	}
 
-	D3D_Texture1D* ToneMapData::GetLookupTexture()
+	Texture1D* ToneMapData::GetLookupTexture()
 	{
 		return lookupTexture.get();
 	}
@@ -56,7 +56,7 @@ namespace Comfy::Graphics
 	{
 		if (lookupTexture == nullptr)
 		{
-			lookupTexture = MakeUnique<D3D_Texture1D>(static_cast<int32_t>(textureData.size()), textureData.data(), DXGI_FORMAT_R32G32_FLOAT);
+			lookupTexture = MakeUnique<Texture1D>(static_cast<int32_t>(textureData.size()), textureData.data(), DXGI_FORMAT_R32G32_FLOAT);
 		}
 		else
 		{

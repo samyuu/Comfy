@@ -5,21 +5,27 @@
 
 namespace Comfy::Graphics
 {
-	class D3D_ShaderResourceView
+	struct Txp;
+	struct LightMapIBL;
+}
+
+namespace Comfy::Graphics::D3D11
+{
+	class ShaderResourceView
 	{
 	public:
 		virtual ID3D11ShaderResourceView* GetResourceView() const = 0;
 
 	public:
 		template <size_t Size>
-		static void BindArray(uint32_t startSlot, const std::array<D3D_ShaderResourceView*, Size>& resources);
+		static void BindArray(uint32_t startSlot, const std::array<ShaderResourceView*, Size>& resources);
 	};
 
-	class D3D_TextureResource : public D3D_ShaderResourceView, ID3DGraphicsResource
+	class TextureResource : public ShaderResourceView, IGraphicsResource
 	{
 	protected:
-		D3D_TextureResource();
-		virtual ~D3D_TextureResource();
+		TextureResource();
+		virtual ~TextureResource();
 
 	public:
 		void Bind(uint32_t textureSlot) const;
@@ -46,11 +52,11 @@ namespace Comfy::Graphics
 		ComPtr<ID3D11ShaderResourceView> resourceView;
 	};
 
-	class D3D_Texture1D final : public D3D_ShaderResourceView, NonCopyable
+	class Texture1D final : public ShaderResourceView, NonCopyable
 	{
 	public:
-		D3D_Texture1D(int32_t width, const void* pixelData, DXGI_FORMAT format);
-		~D3D_Texture1D() = default;
+		Texture1D(int32_t width, const void* pixelData, DXGI_FORMAT format);
+		~Texture1D() = default;
 
 	public:
 		void UploadData(size_t dataSize, const void* pixelData);
@@ -66,16 +72,16 @@ namespace Comfy::Graphics
 		ComPtr<ID3D11ShaderResourceView> resourceView;
 	};
 
-	class D3D_Texture2D final : public D3D_TextureResource
+	class Texture2D final : public TextureResource
 	{
 	public:
 		static constexpr ivec2 MinSize = { 1, 1 };
 		static constexpr ivec2 MaxSize = { D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION, D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION };
 
 	public:
-		D3D_Texture2D(const struct Txp& txp);
-		D3D_Texture2D(ivec2 size, const uint32_t* rgbaBuffer);
-		~D3D_Texture2D() = default;
+		Texture2D(const Txp& txp);
+		Texture2D(ivec2 size, const uint32_t* rgbaBuffer);
+		~Texture2D() = default;
 
 	public:
 		uint32_t GetArraySize() const override;
@@ -83,12 +89,12 @@ namespace Comfy::Graphics
 	private:
 	};
 
-	class D3D_CubeMap final : public D3D_TextureResource
+	class CubeMap final : public TextureResource
 	{
 	public:
-		D3D_CubeMap(const struct Txp& txp);
-		D3D_CubeMap(const struct LightMapIBL& lightMap);
-		~D3D_CubeMap() = default;
+		CubeMap(const Txp& txp);
+		CubeMap(const LightMapIBL& lightMap);
+		~CubeMap() = default;
 
 	public:
 		uint32_t GetArraySize() const override;
@@ -97,7 +103,7 @@ namespace Comfy::Graphics
 	};
 
 	template<size_t Size>
-	inline void D3D_ShaderResourceView::BindArray(uint32_t startSlot, const std::array<D3D_ShaderResourceView*, Size>& resources)
+	inline void ShaderResourceView::BindArray(uint32_t startSlot, const std::array<ShaderResourceView*, Size>& resources)
 	{
 		std::array<ID3D11ShaderResourceView*, Size> resourceViews;
 

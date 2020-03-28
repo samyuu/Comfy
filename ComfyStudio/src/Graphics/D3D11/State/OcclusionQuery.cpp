@@ -1,8 +1,8 @@
 #include "OcclusionQuery.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	D3D_OcclusionQuery::D3D_OcclusionQuery()
+	OcclusionQuery::OcclusionQuery()
 	{
 		queryDescription.Query = D3D11_QUERY_OCCLUSION;
 		queryDescription.MiscFlags = 0;
@@ -10,13 +10,13 @@ namespace Comfy::Graphics
 		D3D.Device->CreateQuery(&queryDescription, &query);
 	}
 
-	D3D_OcclusionQuery::D3D_OcclusionQuery(const char* debugName) 
-		: D3D_OcclusionQuery()
+	OcclusionQuery::OcclusionQuery(const char* debugName) 
+		: OcclusionQuery()
 	{
-		D3D_SetObjectDebugName(query.Get(), debugName);
+		D3D11_SetObjectDebugName(query.Get(), debugName);
 	}
 
-	void D3D_OcclusionQuery::BeginQuery()
+	void OcclusionQuery::BeginQuery()
 	{
 		if (isMidQuery)
 			return;
@@ -27,13 +27,13 @@ namespace Comfy::Graphics
 		isMidQuery = true;
 	}
 
-	void D3D_OcclusionQuery::EndQuery()
+	void OcclusionQuery::EndQuery()
 	{
 		isMidQuery = false;
 		D3D.Context->End(query.Get());
 	}
 
-	void D3D_OcclusionQuery::QueryData()
+	void OcclusionQuery::QueryData()
 	{
 		if (isMidQuery)
 			return;
@@ -67,17 +67,17 @@ namespace Comfy::Graphics
 		}
 	}
 
-	bool D3D_OcclusionQuery::IsFirstQuery() const
+	bool OcclusionQuery::IsFirstQuery() const
 	{
 		return isFirstQuery;
 	}
 
-	bool D3D_OcclusionQuery::HasCoveredPixelsReady() const
+	bool OcclusionQuery::HasCoveredPixelsReady() const
 	{
 		return lastCoveredPixels.has_value();
 	}
 
-	uint64_t D3D_OcclusionQuery::GetCoveredPixels() const
+	uint64_t OcclusionQuery::GetCoveredPixels() const
 	{
 		return lastCoveredPixels.value_or(0);
 	}

@@ -13,11 +13,11 @@ namespace Comfy::Graphics
 	// NOTE: GPU resource aliases to hide away the graphics API implementation without relying on virtual interfaces, for now
 
 #ifdef COMFY_D3D11
-	using GPU_Texture2D = D3D_Texture2D;
-	using GPU_CubeMap = D3D_CubeMap;
-	using GPU_RenderTarget = D3D_RenderTarget;
-	using GPU_IndexBuffer = D3D_StaticIndexBuffer;
-	using GPU_VertexBuffer = D3D_StaticVertexBuffer;
+	using GPU_Texture2D = D3D11::Texture2D;
+	using GPU_CubeMap = D3D11::CubeMap;
+	using GPU_RenderTarget = D3D11::RenderTarget;
+	using GPU_IndexBuffer = D3D11::StaticIndexBuffer;
+	using GPU_VertexBuffer = D3D11::StaticVertexBuffer;
 #else
 	class GPU_Texture2D {};
 	class GPU_CubeMap {};

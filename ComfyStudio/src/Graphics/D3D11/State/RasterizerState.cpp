@@ -1,8 +1,8 @@
 #include "RasterizerState.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	D3D_RasterizerState::D3D_RasterizerState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode, bool scissorEnabled)
+	RasterizerState::RasterizerState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode, bool scissorEnabled)
 	{
 		rasterizerDescription.FillMode = fillMode;
 		rasterizerDescription.CullMode = cullMode;
@@ -19,28 +19,28 @@ namespace Comfy::Graphics
 		D3D.Device->CreateRasterizerState(&rasterizerDescription, &rasterizerState);
 	}
 
-	D3D_RasterizerState::D3D_RasterizerState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode, const char* debugName)
-		: D3D_RasterizerState(fillMode, cullMode, false, debugName)
+	RasterizerState::RasterizerState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode, const char* debugName)
+		: RasterizerState(fillMode, cullMode, false, debugName)
 	{
 	}
 
-	D3D_RasterizerState::D3D_RasterizerState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode, bool scissorEnabled, const char* debugName)
-		: D3D_RasterizerState(fillMode, cullMode, scissorEnabled)
+	RasterizerState::RasterizerState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode, bool scissorEnabled, const char* debugName)
+		: RasterizerState(fillMode, cullMode, scissorEnabled)
 	{
-		D3D_SetObjectDebugName(rasterizerState.Get(), debugName);
+		D3D11_SetObjectDebugName(rasterizerState.Get(), debugName);
 	}
 
-	void D3D_RasterizerState::Bind()
+	void RasterizerState::Bind()
 	{
 		D3D.Context->RSSetState(rasterizerState.Get());
 	}
 
-	void D3D_RasterizerState::UnBind()
+	void RasterizerState::UnBind()
 	{
 		D3D.Context->RSSetState(nullptr);
 	}
 
-	ID3D11RasterizerState* D3D_RasterizerState::GetRasterizerState()
+	ID3D11RasterizerState* RasterizerState::GetRasterizerState()
 	{
 		return rasterizerState.Get();
 	}

@@ -1,23 +1,23 @@
 #include "TextureSampler.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
 	namespace
 	{
 		constexpr uint32_t UnboundSamplerSlot = 0xFFFFFFFF;
 	}
 
-	D3D_TextureSampler::D3D_TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeUV)
-		: D3D_TextureSampler(filter, addressModeUV, addressModeUV, 0.0f, D3D11_MIN_MAXANISOTROPY)
+	TextureSampler::TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeUV)
+		: TextureSampler(filter, addressModeUV, addressModeUV, 0.0f, D3D11_MIN_MAXANISOTROPY)
 	{
 	}
 	
-	D3D_TextureSampler::D3D_TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeU, D3D11_TEXTURE_ADDRESS_MODE addressModeV)
-		: D3D_TextureSampler(filter, addressModeU, addressModeV, 0.0f, D3D11_MIN_MAXANISOTROPY)
+	TextureSampler::TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeU, D3D11_TEXTURE_ADDRESS_MODE addressModeV)
+		: TextureSampler(filter, addressModeU, addressModeV, 0.0f, D3D11_MIN_MAXANISOTROPY)
 	{
 	}
 
-	D3D_TextureSampler::D3D_TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeU, D3D11_TEXTURE_ADDRESS_MODE addressModeV, float mipMapBias, int anisotropicFiltering)
+	TextureSampler::TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeU, D3D11_TEXTURE_ADDRESS_MODE addressModeV, float mipMapBias, int anisotropicFiltering)
 		: lastBoundSlot(UnboundSamplerSlot)
 	{
 		constexpr vec4 transparentBorderColor = vec4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -39,7 +39,7 @@ namespace Comfy::Graphics
 		D3D.Device->CreateSamplerState(&samplerDescription, &samplerState);
 	}
 
-	void D3D_TextureSampler::Bind(uint32_t samplerSlot) const
+	void TextureSampler::Bind(uint32_t samplerSlot) const
 	{
 		assert(samplerSlot < D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
 		lastBoundSlot = samplerSlot;
@@ -50,7 +50,7 @@ namespace Comfy::Graphics
 		D3D.Context->PSSetSamplers(samplerSlot, samplerCount, samplerStates.data());
 	}
 
-	void D3D_TextureSampler::UnBind() const
+	void TextureSampler::UnBind() const
 	{
 		assert(lastBoundSlot < D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
 
@@ -61,12 +61,12 @@ namespace Comfy::Graphics
 		lastBoundSlot = UnboundSamplerSlot;
 	}
 	
-	ID3D11SamplerState* D3D_TextureSampler::GetSampler()
+	ID3D11SamplerState* TextureSampler::GetSampler()
 	{
 		return samplerState.Get();
 	}
 	
-	const D3D11_SAMPLER_DESC& D3D_TextureSampler::GetDescription() const
+	const D3D11_SAMPLER_DESC& TextureSampler::GetDescription() const
 	{
 		return samplerDescription;
 	}

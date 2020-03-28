@@ -2,16 +2,16 @@
 #include "../Direct3D.h"
 #include "Texture.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	class D3D_DepthBuffer : ID3DGraphicsResource
+	class DepthBuffer : IGraphicsResource
 	{
 	protected:
-		D3D_DepthBuffer(ivec2 size, DXGI_FORMAT textureFormat, DXGI_FORMAT depthFormat, D3D11_BIND_FLAG bindFlags, uint32_t multiSampleCount);
+		DepthBuffer(ivec2 size, DXGI_FORMAT textureFormat, DXGI_FORMAT depthFormat, D3D11_BIND_FLAG bindFlags, uint32_t multiSampleCount);
 
 	public:
-		D3D_DepthBuffer(ivec2 size, DXGI_FORMAT format, uint32_t multiSampleCount = 1);
-		~D3D_DepthBuffer() = default;
+		DepthBuffer(ivec2 size, DXGI_FORMAT format, uint32_t multiSampleCount = 1);
+		~DepthBuffer() = default;
 
 	public:
 		void Clear(float value = 1.0f);
@@ -33,11 +33,11 @@ namespace Comfy::Graphics
 		ComPtr<ID3D11DepthStencilView> depthStencilView;
 	};
 
-	class D3D_ResourceViewDepthBuffer final : public D3D_ShaderResourceView, public D3D_DepthBuffer
+	class ResourceViewDepthBuffer final : public ShaderResourceView, public DepthBuffer
 	{
 	public:
-		D3D_ResourceViewDepthBuffer(ivec2 size, DXGI_FORMAT format);
-		~D3D_ResourceViewDepthBuffer() = default;
+		ResourceViewDepthBuffer(ivec2 size, DXGI_FORMAT format);
+		~ResourceViewDepthBuffer() = default;
 
 	public:
 		void Resize(ivec2 newSize) override;

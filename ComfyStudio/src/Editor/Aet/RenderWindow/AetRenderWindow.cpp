@@ -28,7 +28,7 @@ namespace Comfy::Editor
 		checkerboardBaseGrid.Color = baseColor;
 		checkerboardBaseGrid.ColorAlt = baseColor;
 
-		renderer = MakeUnique<D3D_Renderer2D>();
+		renderer = MakeUnique<D3D11::Renderer2D>();
 		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
 		aetRenderer->SetSpriteGetterFunction(spriteGetter);
 		aetRenderer->SetCallback([this](const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity) { return OnObjRender(obj, positionOffset, opacity); });
@@ -368,7 +368,7 @@ namespace Comfy::Editor
 
 	void AetRenderWindow::OnInitialize()
 	{
-		D3D_SetObjectDebugName(owningRenderTarget->GetResourceView(), "AetRenderWindow::RenderTarget");
+		D3D11_SetObjectDebugName(owningRenderTarget->GetResourceView(), "AetRenderWindow::RenderTarget");
 	}
 
 	void AetRenderWindow::RenderBackground()

@@ -1,15 +1,15 @@
 #pragma once
 #include "../Direct3D.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	class D3D_TextureSampler : ID3DGraphicsResource
+	class TextureSampler : IGraphicsResource
 	{
 	public:
-		D3D_TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeUV);
-		D3D_TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeU, D3D11_TEXTURE_ADDRESS_MODE addressModeV);
-		D3D_TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeU, D3D11_TEXTURE_ADDRESS_MODE addressModeV, float mipMapBias, int anisotropicFiltering);
-		virtual ~D3D_TextureSampler() = default;
+		TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeUV);
+		TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeU, D3D11_TEXTURE_ADDRESS_MODE addressModeV);
+		TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeU, D3D11_TEXTURE_ADDRESS_MODE addressModeV, float mipMapBias, int anisotropicFiltering);
+		virtual ~TextureSampler() = default;
 		
 	public:
 		virtual void Bind(uint32_t samplerSlot) const;
@@ -17,7 +17,7 @@ namespace Comfy::Graphics
 
 	public:
 		template <size_t Size>
-		static void BindArray(uint32_t startSlot, const std::array<D3D_TextureSampler*, Size>& samplers);
+		static void BindArray(uint32_t startSlot, const std::array<TextureSampler*, Size>& samplers);
 
 	public:
 		ID3D11SamplerState* GetSampler();
@@ -31,7 +31,7 @@ namespace Comfy::Graphics
 	};
 
 	template<size_t Size>
-	inline void D3D_TextureSampler::BindArray(uint32_t startSlot, const std::array<D3D_TextureSampler*, Size>& samplers)
+	inline void TextureSampler::BindArray(uint32_t startSlot, const std::array<TextureSampler*, Size>& samplers)
 	{
 		std::array<ID3D11SamplerState*, Size> samplerStates;
 

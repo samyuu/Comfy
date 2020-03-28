@@ -8,9 +8,9 @@
 
 using Microsoft::WRL::ComPtr;
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	class D3D_SwapChainRenderTarget;
+	class SwapChainRenderTarget;
 
 	class Direct3D
 	{
@@ -40,7 +40,7 @@ namespace Comfy::Graphics
 		ID3D11DeviceContext* Context = nullptr;
 
 		IDXGISwapChain* SwapChain = nullptr;
-		UniquePtr<D3D_SwapChainRenderTarget> WindowRenderTarget = nullptr;
+		UniquePtr<SwapChainRenderTarget> WindowRenderTarget = nullptr;
 
 	private:
 		bool InternalCreateDeviceAndSwapchain(HWND window);
@@ -58,6 +58,7 @@ namespace Comfy::Graphics
 
 	// NOTE: Global instance
 	extern Direct3D D3D;
+}
 
 #ifndef COMFY_D3D11_DEBUG_NAMES
 #ifdef COMFY_DEBUG
@@ -67,21 +68,19 @@ namespace Comfy::Graphics
 #endif /* COMFY_DEBUG */
 #endif /* COMFY_D3D11_DEBUG_NAMES */
 
-
 #if COMFY_D3D11_DEBUG_NAMES
-	inline void D3D_SetObjectDebugName(ID3D11DeviceChild* deviceChild, const char* format, ...)
-	{
-		char buffer[512];
+inline void D3D11_SetObjectDebugName(ID3D11DeviceChild* deviceChild, const char* format, ...)
+{
+	char buffer[512];
 
-		va_list arguments;
-		va_start(arguments, format);
-		int result = vsprintf_s(buffer, std::size(buffer), format, arguments);
-		va_end(arguments);
+	va_list arguments;
+	va_start(arguments, format);
+	int result = vsprintf_s(buffer, std::size(buffer), format, arguments);
+	va_end(arguments);
 
-		if (deviceChild != nullptr)
-			deviceChild->SetPrivateData(WKPDID_D3DDebugObjectName, result, buffer);
-	}
-#else
-#define D3D_SetObjectDebugName(deviceChild, format, ...) do {} while(false);
-#endif /* COMFY_D3D11_DEBUG_NAMES */
+	if (deviceChild != nullptr)
+		deviceChild->SetPrivateData(WKPDID_D3DDebugObjectName, result, buffer);
 }
+#else
+#define D3D11_SetObjectDebugName(deviceChild, format, ...) do {} while(false);
+#endif /* COMFY_D3D11_DEBUG_NAMES */

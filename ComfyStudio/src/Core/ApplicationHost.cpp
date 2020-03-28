@@ -59,7 +59,7 @@ namespace Comfy
 					::Sleep(static_cast<uint32_t>(powerSleepDuration.TotalMilliseconds()));
 				}
 
-				Graphics::D3D.SwapChain->Present(swapInterval, 0);
+				Graphics::D3D11::D3D.SwapChain->Present(swapInterval, 0);
 			}
 			InternalPostUpdateTick();
 		}
@@ -292,9 +292,9 @@ namespace Comfy
 			::SetWindowPlacement(windowHandle, &windowPlacement);
 		}
 
-		if (!Graphics::D3D.Initialize(windowHandle))
+		if (!Graphics::D3D11::D3D.Initialize(windowHandle))
 		{
-			Graphics::D3D.Dispose();
+			Graphics::D3D11::D3D.Dispose();
 			return false;
 		}
 
@@ -457,7 +457,7 @@ namespace Comfy
 	{
 		// TODO: Is this really necessary or should windows dispose of this itself?
 
-		Graphics::D3D.Dispose();
+		Graphics::D3D11::D3D.Dispose();
 
 		if (windowHandle != nullptr)
 		{

@@ -1,13 +1,13 @@
 #pragma once
 #include "Types.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::D3D11
 {
-	class ID3DGraphicsResource : NonCopyable
+	class IGraphicsResource : NonCopyable
 	{
 	protected:
-		ID3DGraphicsResource() = default;
-		virtual ~ID3DGraphicsResource() = default;
+		IGraphicsResource() = default;
+		virtual ~IGraphicsResource() = default;
 
 	protected:
 	};
