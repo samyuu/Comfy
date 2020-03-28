@@ -11,7 +11,7 @@ namespace Comfy::Graphics
 		{
 			switch (blendMode)
 			{
-			default: 
+			default:
 				assert(false);
 
 			case AetBlendMode::Normal:
@@ -58,7 +58,8 @@ namespace Comfy::Graphics
 	{
 	}
 
-	D3D_BlendState::D3D_BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend, D3D11_BLEND sourceAlphaBlend, D3D11_BLEND destinationAlphaBlend, D3D11_BLEND_OP blendOp, D3D11_BLEND_OP blendAlphaOp)
+	D3D_BlendState::D3D_BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend, D3D11_BLEND sourceAlphaBlend, D3D11_BLEND destinationAlphaBlend,
+		D3D11_BLEND_OP blendOp, D3D11_BLEND_OP blendAlphaOp, D3D11_COLOR_WRITE_ENABLE writeMask)
 	{
 		blendStateDescription.AlphaToCoverageEnable = false;
 		blendStateDescription.IndependentBlendEnable = false;
@@ -69,7 +70,7 @@ namespace Comfy::Graphics
 		blendStateDescription.RenderTarget[0].SrcBlendAlpha = sourceAlphaBlend;
 		blendStateDescription.RenderTarget[0].DestBlendAlpha = destinationAlphaBlend;
 		blendStateDescription.RenderTarget[0].BlendOpAlpha = blendAlphaOp;
-		blendStateDescription.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+		blendStateDescription.RenderTarget[0].RenderTargetWriteMask = writeMask;
 
 		D3D.Device->CreateBlendState(&blendStateDescription, &blendState);
 	}
