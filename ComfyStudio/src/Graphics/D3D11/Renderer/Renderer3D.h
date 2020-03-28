@@ -124,7 +124,8 @@ namespace Comfy::Graphics::D3D11
 
 		void InternalPrepareRenderCommands(RenderPassCommandLists& commandList);
 		void InternalRenderScene();
-		void InternalSetUploadSceneCB();
+		void InternalSetSceneCB(SceneConstantData& outData);
+		void InternalBindUploadSceneCBs();
 		void InternalBindSceneTextures();
 
 		void InternalPreRenderShadowMap();
@@ -177,20 +178,8 @@ namespace Comfy::Graphics::D3D11
 		bool IsDebugRenderFlagSet(int bitIndex) const;
 
 	private:
-		ShaderPairs shaders;
-
-		// TODO: Separate scene CB from ~~viewport~~ camera CB (camera view/projection/eye, SSS param & render resolution)
-		DefaultConstantBufferTemplate<SceneConstantData> sceneCB = { 0, "Renderer3D::SceneCB" };
-		DynamicConstantBufferTemplate<ObjectConstantData> objectCB = { 1, "Renderer3D::ObjectCB" };
-		DynamicConstantBufferTemplate<SkeletonConstantData> skeletonCB = { 2, "Renderer3D::SkeletonCB" };
-
-		DynamicConstantBufferTemplate<ESMFilterConstantData> esmFilterCB = { 4, "Renderer3D::ESMFilterCB" };
-		DynamicConstantBufferTemplate<SSSFilterConstantData> sssFilterCB = { 5, "Renderer3D::SSSFilterCB" };
-		DynamicConstantBufferTemplate<ReduceTexConstantData> reduceTexCB = { 6, "Renderer3D::ReduceTexCB" };
-		DynamicConstantBufferTemplate<PPGaussTexConstantData> ppGaussTexCB = { 7, "Renderer3D::PPGaussTexCB" };
-		DefaultConstantBufferTemplate<PPGaussCoefConstantData> ppGaussCoefCB = { 8, "Renderer3D::PPGaussCoefCB" };
-		DefaultConstantBufferTemplate<ExposureConstantData> exposureCB = { 9, "Renderer3D::ExposureCB" };
-		DefaultConstantBufferTemplate<ToneMapConstantData> toneMapCB = { 9, "Renderer3D::ToneMapCB" };
+		RendererShaderPairs shaders;
+		RendererConstantBuffers constantBuffers;
 
 		UniquePtr<InputLayout> genericInputLayout = nullptr;
 		UniquePtr<InputLayout> shadowSilhouetteInputLayout = nullptr;

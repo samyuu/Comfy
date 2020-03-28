@@ -3,7 +3,7 @@
 
 namespace Comfy::Graphics::D3D11
 {
-	struct ShaderPairs
+	struct RendererShaderPairs
 	{
 		ShaderPair DebugMaterial = { DebugMaterial_VS(), DebugMaterial_PS(), "Renderer3D::DebugMaterial" };
 		ShaderPair SilhouetteOutline = { FullscreenQuad_VS(), SilhouetteOutline_PS(), "Renderer3D::SilhouetteOutline" };

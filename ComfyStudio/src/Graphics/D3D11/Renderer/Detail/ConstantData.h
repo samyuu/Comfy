@@ -138,4 +138,19 @@ namespace Comfy::Graphics::D3D11
 		int AutoExposure;
 		int Padding[1];
 	};
+
+	struct RendererConstantBuffers
+	{
+		DefaultConstantBufferTemplate<SceneConstantData> Scene = { 0, "Renderer3D::SceneCB" };
+		DynamicConstantBufferTemplate<ObjectConstantData> Object = { 1, "Renderer3D::ObjectCB" };
+		DynamicConstantBufferTemplate<SkeletonConstantData> Skeleton = { 2, "Renderer3D::SkeletonCB" };
+
+		DynamicConstantBufferTemplate<ESMFilterConstantData> ESMFilter = { 4, "Renderer3D::ESMFilterCB" };
+		DynamicConstantBufferTemplate<SSSFilterConstantData> SSSFilter = { 5, "Renderer3D::SSSFilterCB" };
+		DynamicConstantBufferTemplate<ReduceTexConstantData> ReduceTex = { 6, "Renderer3D::ReduceTexCB" };
+		DynamicConstantBufferTemplate<PPGaussTexConstantData> PPGaussTex = { 7, "Renderer3D::PPGaussTexCB" };
+		DefaultConstantBufferTemplate<PPGaussCoefConstantData> PPGaussCoef = { 8, "Renderer3D::PPGaussCoefCB" };
+		DefaultConstantBufferTemplate<ExposureConstantData> Exposure = { 9, "Renderer3D::ExposureCB" };
+		DefaultConstantBufferTemplate<ToneMapConstantData> ToneMap = { 9, "Renderer3D::ToneMapCB" };
+	};
 }

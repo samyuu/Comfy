@@ -577,14 +577,10 @@ namespace Comfy::Graphics::D3D11
 
 	void Renderer3D::InternalRenderScene()
 	{
-		InternalSetUploadSceneCB();
-
-		sceneCB.BindShaders();
-		objectCB.BindShaders();
-		skeletonCB.BindVertexShader();
+		InternalSetSceneCB(constantBuffers.Scene.Data);
+		InternalBindUploadSceneCBs();
 
 		InternalBindSceneTextures();
-
 		cachedTextureSamplers.CreateIfNeeded(current.Viewport->Parameters);
 
 		if (current.Viewport->Parameters.ShadowMapping && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
@@ -660,52 +656,59 @@ namespace Comfy::Graphics::D3D11
 		}
 	}
 
-	void Renderer3D::InternalSetUploadSceneCB()
+	void Renderer3D::InternalSetSceneCB(SceneConstantData& outData)
 	{
-		sceneCB.Data.RenderResolution = GetPackedTextureSize(current.Viewport->Data.Main.Current());
+		outData.RenderResolution = GetPackedTextureSize(current.Viewport->Data.Main.Current());
 
 		const vec4 renderTimeNow = static_cast<float>(TimeSpan::GetTimeNow().TotalSeconds()) * SceneConstantData::RenderTime::Scales;
-		sceneCB.Data.RenderTime.Time = renderTimeNow;
-		sceneCB.Data.RenderTime.TimeSin = (glm::sin(renderTimeNow) + 1.0f) * 0.5f;
-		sceneCB.Data.RenderTime.TimeCos = (glm::cos(renderTimeNow) + 1.0f) * 0.5f;
+		outData.RenderTime.Time = renderTimeNow;
+		outData.RenderTime.TimeSin = (glm::sin(renderTimeNow) + 1.0f) * 0.5f;
+		outData.RenderTime.TimeCos = (glm::cos(renderTimeNow) + 1.0f) * 0.5f;
 
 		const auto& ibl = current.Scene->IBL;
 		for (size_t component = 0; component < ibl.Lights[1].IrradianceRGB.size(); component++)
-			sceneCB.Data.IBL.IrradianceRGB[component] = glm::transpose(ibl.Lights[1].IrradianceRGB[component]);
+			outData.IBL.IrradianceRGB[component] = glm::transpose(ibl.Lights[1].IrradianceRGB[component]);
 
 		for (size_t i = 0; i < ibl.Lights.size(); i++)
-			sceneCB.Data.IBL.LightColors[i] = vec4(ibl.Lights[i].LightColor, 1.0f);
+			outData.IBL.LightColors[i] = vec4(ibl.Lights[i].LightColor, 1.0f);
 
 		const auto& camera = current.Viewport->Camera;
-		sceneCB.Data.Scene.View = glm::transpose(camera.GetView());
-		sceneCB.Data.Scene.ViewProjection = glm::transpose(camera.GetViewProjection());
-		sceneCB.Data.Scene.EyePosition = vec4(camera.ViewPoint, 1.0f);
+		outData.Scene.View = glm::transpose(camera.GetView());
+		outData.Scene.ViewProjection = glm::transpose(camera.GetViewProjection());
+		outData.Scene.EyePosition = vec4(camera.ViewPoint, 1.0f);
 
 		const auto& light = current.Scene->Light;
-		sceneCB.Data.CharaLight.Ambient = vec4(light.Character.Ambient, 1.0f);
-		sceneCB.Data.CharaLight.Diffuse = vec4(light.Character.Diffuse, 1.0f);
-		sceneCB.Data.CharaLight.Specular = vec4(light.Character.Specular, 1.0f);
-		sceneCB.Data.CharaLight.Direction = vec4(glm::normalize(light.Character.Position), 1.0f);
+		outData.CharaLight.Ambient = vec4(light.Character.Ambient, 1.0f);
+		outData.CharaLight.Diffuse = vec4(light.Character.Diffuse, 1.0f);
+		outData.CharaLight.Specular = vec4(light.Character.Specular, 1.0f);
+		outData.CharaLight.Direction = vec4(glm::normalize(light.Character.Position), 1.0f);
 
-		sceneCB.Data.StageLight.Ambient = vec4(light.Stage.Ambient, 1.0f);
-		sceneCB.Data.StageLight.Diffuse = vec4(light.Stage.Diffuse, 1.0f);
-		sceneCB.Data.StageLight.Specular = vec4(light.Stage.Specular, 1.0f);
-		sceneCB.Data.StageLight.Direction = vec4(glm::normalize(light.Stage.Position), 1.0f);
+		outData.StageLight.Ambient = vec4(light.Stage.Ambient, 1.0f);
+		outData.StageLight.Diffuse = vec4(light.Stage.Diffuse, 1.0f);
+		outData.StageLight.Specular = vec4(light.Stage.Specular, 1.0f);
+		outData.StageLight.Direction = vec4(glm::normalize(light.Stage.Position), 1.0f);
 
 		const auto& depthFog = current.Scene->Fog.Depth;
-		sceneCB.Data.DepthFog.Parameters = vec4(current.Viewport->Parameters.RenderFog ? depthFog.Density : 0.0f, depthFog.Start, depthFog.End, 1.0f / (depthFog.End - depthFog.Start));
-		sceneCB.Data.DepthFog.Color = vec4(depthFog.Color, 1.0f);
+		outData.DepthFog.Parameters = vec4(current.Viewport->Parameters.RenderFog ? depthFog.Density : 0.0f, depthFog.Start, depthFog.End, 1.0f / (depthFog.End - depthFog.Start));
+		outData.DepthFog.Color = vec4(depthFog.Color, 1.0f);
 
-		sceneCB.Data.ShadowAmbient = vec4(DefaultShadowAmbient, DefaultShadowAmbient, DefaultShadowAmbient, 1.0);
-		sceneCB.Data.OneMinusShadowAmbient = vec4(1.0f) - sceneCB.Data.ShadowAmbient;
-		sceneCB.Data.ShadowExponent = DefaultShadowExpontent;
+		outData.ShadowAmbient = vec4(DefaultShadowAmbient, DefaultShadowAmbient, DefaultShadowAmbient, 1.0);
+		outData.OneMinusShadowAmbient = vec4(1.0f) - outData.ShadowAmbient;
+		outData.ShadowExponent = DefaultShadowExpontent;
 
-		sceneCB.Data.SubsurfaceScatteringParameter = current.Viewport->Parameters.RenderSubsurfaceScattering ? DefaultSSSParameter : 0.0f;
+		outData.SubsurfaceScatteringParameter = current.Viewport->Parameters.RenderSubsurfaceScattering ? DefaultSSSParameter : 0.0f;
 
-		sceneCB.Data.DebugFlags = current.Viewport->Parameters.ShaderDebugFlags;
-		sceneCB.Data.DebugValue = current.Viewport->Parameters.ShaderDebugValue;
+		outData.DebugFlags = current.Viewport->Parameters.ShaderDebugFlags;
+		outData.DebugValue = current.Viewport->Parameters.ShaderDebugValue;
+	}
 
-		sceneCB.UploadData();
+	void Renderer3D::InternalBindUploadSceneCBs()
+	{
+		constantBuffers.Scene.UploadData();
+		constantBuffers.Scene.BindShaders();
+
+		constantBuffers.Object.BindShaders();
+		constantBuffers.Skeleton.BindVertexShader();
 	}
 
 	void Renderer3D::InternalBindSceneTextures()
@@ -791,9 +794,9 @@ namespace Comfy::Graphics::D3D11
 			-frustumSphere.Radius, +frustumSphere.Radius,
 			nearFarPlane.x, nearFarPlane.y);
 
-		sceneCB.Data.Scene.View = glm::transpose(lightView);
-		sceneCB.Data.Scene.ViewProjection = glm::transpose(lightProjection * lightView);
-		sceneCB.UploadData();
+		constantBuffers.Scene.Data.Scene.View = glm::transpose(lightView);
+		constantBuffers.Scene.Data.Scene.ViewProjection = glm::transpose(lightProjection * lightView);
+		constantBuffers.Scene.UploadData();
 
 		current.Viewport->Data.Shadow.RenderTarget.ResizeIfDifferent(current.Viewport->Parameters.ShadowMapResolution);
 		current.Viewport->Data.Shadow.RenderTarget.BindSetViewport();
@@ -809,10 +812,10 @@ namespace Comfy::Graphics::D3D11
 
 		current.Viewport->Data.Shadow.RenderTarget.UnBind();
 
-		sceneCB.Data.Scene.View = glm::transpose(current.Viewport->Camera.GetView());
-		sceneCB.Data.Scene.ViewProjection = glm::transpose(current.Viewport->Camera.GetViewProjection());
-		sceneCB.Data.Scene.LightSpace = glm::transpose(lightProjection * lightView);
-		sceneCB.UploadData();
+		constantBuffers.Scene.Data.Scene.View = glm::transpose(current.Viewport->Camera.GetView());
+		constantBuffers.Scene.Data.Scene.ViewProjection = glm::transpose(current.Viewport->Camera.GetViewProjection());
+		constantBuffers.Scene.Data.Scene.LightSpace = glm::transpose(lightProjection * lightView);
+		constantBuffers.Scene.UploadData();
 	}
 
 	void Renderer3D::InternalPreRenderReduceFilterShadowMap()
@@ -830,7 +833,7 @@ namespace Comfy::Graphics::D3D11
 
 		// NOTE: ESM
 		{
-			esmFilterCB.BindPixelShader();
+			constantBuffers.ESMFilter.BindPixelShader();
 
 			for (auto& renderTarget : current.Viewport->Data.Shadow.ExponentialRenderTargets)
 				renderTarget.ResizeIfDifferent(fullResolution);
@@ -838,17 +841,17 @@ namespace Comfy::Graphics::D3D11
 			shaders.ESMGauss.Bind();
 			current.Viewport->Data.Shadow.ExponentialRenderTargets[0].BindSetViewport();
 			current.Viewport->Data.Shadow.RenderTarget.BindResource(0);
-			esmFilterCB.Data.Coefficients = DefaultShadowCoefficients;
-			esmFilterCB.Data.TextureStep = vec2(1.0f / fullResolution.x, 0.0f);
-			esmFilterCB.Data.FarTexelOffset = vec2(DefaultShadowTexelOffset, DefaultShadowTexelOffset);
-			esmFilterCB.UploadData();
+			constantBuffers.ESMFilter.Data.Coefficients = DefaultShadowCoefficients;
+			constantBuffers.ESMFilter.Data.TextureStep = vec2(1.0f / fullResolution.x, 0.0f);
+			constantBuffers.ESMFilter.Data.FarTexelOffset = vec2(DefaultShadowTexelOffset, DefaultShadowTexelOffset);
+			constantBuffers.ESMFilter.UploadData();
 			D3D.Context->Draw(RectangleVertexCount, 0);
 			current.Viewport->Data.Shadow.ExponentialRenderTargets[0].UnBind();
 
 			current.Viewport->Data.Shadow.ExponentialRenderTargets[1].Bind();
 			current.Viewport->Data.Shadow.ExponentialRenderTargets[0].BindResource(0);
-			esmFilterCB.Data.TextureStep = vec2(0.0f, 1.0f / fullResolution.y);
-			esmFilterCB.UploadData();
+			constantBuffers.ESMFilter.Data.TextureStep = vec2(0.0f, 1.0f / fullResolution.y);
+			constantBuffers.ESMFilter.UploadData();
 			D3D.Context->Draw(RectangleVertexCount, 0);
 			current.Viewport->Data.Shadow.ExponentialRenderTargets[1].UnBind();
 			current.Viewport->Data.Shadow.ExponentialRenderTargets[1].BindResource(TextureSlot_ESMFull);
@@ -859,16 +862,16 @@ namespace Comfy::Graphics::D3D11
 			shaders.ESMFilterMin.Bind();
 			current.Viewport->Data.Shadow.ExponentialBlurRenderTargets[0].BindSetViewport();
 			current.Viewport->Data.Shadow.ExponentialRenderTargets[1].BindResource(0);
-			esmFilterCB.Data.TextureStep = vec2(1.0f) / vec2(fullResolution);
-			esmFilterCB.UploadData();
+			constantBuffers.ESMFilter.Data.TextureStep = vec2(1.0f) / vec2(fullResolution);
+			constantBuffers.ESMFilter.UploadData();
 			D3D.Context->Draw(RectangleVertexCount, 0);
 			current.Viewport->Data.Shadow.ExponentialBlurRenderTargets[0].UnBind();
 
 			shaders.ESMFilterErosion.Bind();
 			current.Viewport->Data.Shadow.ExponentialBlurRenderTargets[1].Bind();
 			current.Viewport->Data.Shadow.ExponentialBlurRenderTargets[0].BindResource(0);
-			esmFilterCB.Data.TextureStep = vec2(0.75f) / vec2(blurResolution);
-			esmFilterCB.UploadData();
+			constantBuffers.ESMFilter.Data.TextureStep = vec2(0.75f) / vec2(blurResolution);
+			constantBuffers.ESMFilter.UploadData();
 			D3D.Context->Draw(RectangleVertexCount, 0);
 			current.Viewport->Data.Shadow.ExponentialBlurRenderTargets[1].UnBind();
 			current.Viewport->Data.Shadow.ExponentialBlurRenderTargets[1].BindResource(TextureSlot_ESMGauss);
@@ -991,10 +994,10 @@ namespace Comfy::Graphics::D3D11
 		D3D.Context->Draw(RectangleVertexCount, 0);
 		current.Viewport->Data.SubsurfaceScattering.FilterRenderTargets[1].UnBind();
 
-		sssFilterCB.Data.TextureSize = GetPackedTextureSize(current.Viewport->Data.SubsurfaceScattering.FilterRenderTargets[1]);
-		CalculateSSSCoefficients(current.Viewport->Camera, sssFilterCB.Data);
-		sssFilterCB.BindPixelShader();
-		sssFilterCB.UploadData();
+		constantBuffers.SSSFilter.Data.TextureSize = GetPackedTextureSize(current.Viewport->Data.SubsurfaceScattering.FilterRenderTargets[1]);
+		CalculateSSSCoefficients(current.Viewport->Camera, constantBuffers.SSSFilter.Data);
+		constantBuffers.SSSFilter.BindPixelShader();
+		constantBuffers.SSSFilter.UploadData();
 		shaders.SSSFilterGauss2D.Bind();
 		current.Viewport->Data.SubsurfaceScattering.FilterRenderTargets[1].BindResource(0);
 		current.Viewport->Data.SubsurfaceScattering.FilterRenderTargets[2].BindSetViewport();
@@ -1093,8 +1096,8 @@ namespace Comfy::Graphics::D3D11
 		const quat sunLookAt = glm::quatLookAt(glm::normalize(cameraViewPoint - sunPosition), OrthographicCamera::UpDirection);
 		const mat4 sunTransform = glm::translate(mat4(1.0f), sunPosition) * glm::mat4_cast(sunLookAt) * glm::scale(mat4(1.0f), vec3(sunScale));
 
-		objectCB.Data.ModelViewProjection = glm::transpose(current.Viewport->Camera.GetViewProjection() * sunTransform);
-		objectCB.UploadData();
+		constantBuffers.Object.Data.ModelViewProjection = glm::transpose(current.Viewport->Camera.GetViewProjection() * sunTransform);
+		constantBuffers.Object.UploadData();
 
 		if (!current.Viewport->Parameters.DebugVisualizeOcclusionQuery)
 			lensFlareSunQueryBlendState.Bind();
@@ -1176,15 +1179,15 @@ namespace Comfy::Graphics::D3D11
 				autoExposureEnabled ? &current.Viewport->Data.Bloom.ExposureRenderTargets.back() : nullptr
 			});
 
-		toneMapCB.Data.Exposure = current.Scene->Glow.Exposure;
-		toneMapCB.Data.Gamma = current.Scene->Glow.Gamma;
-		toneMapCB.Data.SaturatePower = static_cast<float>(current.Scene->Glow.SaturatePower);
-		toneMapCB.Data.SaturateCoefficient = current.Scene->Glow.SaturateCoefficient;
-		toneMapCB.Data.AlphaLerp = current.Viewport->Parameters.ToneMapPreserveAlpha ? 0.0f : 1.0f;
-		toneMapCB.Data.AlphaValue = 1.0f;
-		toneMapCB.Data.AutoExposure = autoExposureEnabled;
-		toneMapCB.UploadData();
-		toneMapCB.BindPixelShader();
+		constantBuffers.ToneMap.Data.Exposure = current.Scene->Glow.Exposure;
+		constantBuffers.ToneMap.Data.Gamma = current.Scene->Glow.Gamma;
+		constantBuffers.ToneMap.Data.SaturatePower = static_cast<float>(current.Scene->Glow.SaturatePower);
+		constantBuffers.ToneMap.Data.SaturateCoefficient = current.Scene->Glow.SaturateCoefficient;
+		constantBuffers.ToneMap.Data.AlphaLerp = current.Viewport->Parameters.ToneMapPreserveAlpha ? 0.0f : 1.0f;
+		constantBuffers.ToneMap.Data.AlphaValue = 1.0f;
+		constantBuffers.ToneMap.Data.AutoExposure = autoExposureEnabled;
+		constantBuffers.ToneMap.UploadData();
+		constantBuffers.ToneMap.BindPixelShader();
 
 		shaders.ToneMap.Bind();
 
@@ -1200,8 +1203,8 @@ namespace Comfy::Graphics::D3D11
 
 		bloom.BaseRenderTarget.ResizeIfDifferent(current.Viewport->Parameters.RenderResolution / 2);
 
-		reduceTexCB.Data.CombineBlurred = false;
-		reduceTexCB.BindPixelShader();
+		constantBuffers.ReduceTex.Data.CombineBlurred = false;
+		constantBuffers.ReduceTex.BindPixelShader();
 		shaders.ReduceTex.Bind();
 
 		for (int i = -1; i < static_cast<int>(bloom.ReduceRenderTargets.size()); i++)
@@ -1209,9 +1212,9 @@ namespace Comfy::Graphics::D3D11
 			auto& renderTarget = (i < 0) ? bloom.BaseRenderTarget : bloom.ReduceRenderTargets[i];
 			auto& lastRenderTarget = (i < 0) ? current.Viewport->Data.Main.CurrentOrResolved() : (i == 0) ? bloom.BaseRenderTarget : bloom.ReduceRenderTargets[i - 1];
 
-			reduceTexCB.Data.TextureSize = GetPackedTextureSize(lastRenderTarget);
-			reduceTexCB.Data.ExtractBrightness = (i == 0);
-			reduceTexCB.UploadData();
+			constantBuffers.ReduceTex.Data.TextureSize = GetPackedTextureSize(lastRenderTarget);
+			constantBuffers.ReduceTex.Data.ExtractBrightness = (i == 0);
+			constantBuffers.ReduceTex.UploadData();
 
 			renderTarget.BindSetViewport();
 			lastRenderTarget.BindResource(0);
@@ -1222,12 +1225,12 @@ namespace Comfy::Graphics::D3D11
 		if (current.Viewport->Parameters.AutoExposure && current.Scene->Glow.AutoExposure)
 			InternalRenderExposurePreBloom();
 
-		CalculateGaussianBlurKernel(current.Scene->Glow, ppGaussCoefCB.Data);
-		ppGaussCoefCB.UploadData();
-		ppGaussCoefCB.BindPixelShader();
+		CalculateGaussianBlurKernel(current.Scene->Glow, constantBuffers.PPGaussCoef.Data);
+		constantBuffers.PPGaussCoef.UploadData();
+		constantBuffers.PPGaussCoef.BindPixelShader();
 
-		ppGaussTexCB.Data.FinalPass = false;
-		ppGaussTexCB.BindPixelShader();
+		constantBuffers.PPGaussTex.Data.FinalPass = false;
+		constantBuffers.PPGaussTex.BindPixelShader();
 
 		shaders.PPGauss.Bind();
 
@@ -1236,15 +1239,15 @@ namespace Comfy::Graphics::D3D11
 			auto* sourceTarget = &bloom.ReduceRenderTargets[i];
 			auto* destinationTarget = &bloom.BlurRenderTargets[i];
 
-			ppGaussTexCB.Data.TextureSize = GetPackedTextureSize(*sourceTarget);
+			constantBuffers.PPGaussTex.Data.TextureSize = GetPackedTextureSize(*sourceTarget);
 
 			for (int j = 0; j < 2; j++)
 			{
 				constexpr vec4 horizontalOffsets = vec4(1.0f, 0.0f, 1.0f, 0.0f);
 				constexpr vec4 verticalOffsets = vec4(0.0f, 1.0f, 0.0f, 1.0f);
 
-				ppGaussTexCB.Data.TextureOffsets = (j % 2 == 0) ? horizontalOffsets : verticalOffsets;
-				ppGaussTexCB.UploadData();
+				constantBuffers.PPGaussTex.Data.TextureOffsets = (j % 2 == 0) ? horizontalOffsets : verticalOffsets;
+				constantBuffers.PPGaussTex.UploadData();
 
 				sourceTarget->BindResource(0);
 				destinationTarget->BindSetViewport();
@@ -1256,9 +1259,9 @@ namespace Comfy::Graphics::D3D11
 			}
 		}
 
-		ppGaussTexCB.Data.TextureSize = GetPackedTextureSize(bloom.ReduceRenderTargets[0]);
-		ppGaussTexCB.Data.FinalPass = true;
-		ppGaussTexCB.UploadData();
+		constantBuffers.PPGaussTex.Data.TextureSize = GetPackedTextureSize(bloom.ReduceRenderTargets[0]);
+		constantBuffers.PPGaussTex.Data.FinalPass = true;
+		constantBuffers.PPGaussTex.UploadData();
 
 		bloom.BlurRenderTargets[0].BindSetViewport();
 		bloom.ReduceRenderTargets[0].BindResource(0);
@@ -1276,11 +1279,11 @@ namespace Comfy::Graphics::D3D11
 		bloom.CombinedBlurRenderTarget.BindSetViewport();
 		ShaderResourceView::BindArray(0, combinedBlurInputTargets);
 
-		reduceTexCB.Data.TextureSize = GetPackedTextureSize(bloom.ReduceRenderTargets[3]);
-		reduceTexCB.Data.ExtractBrightness = false;
-		reduceTexCB.Data.CombineBlurred = true;
-		reduceTexCB.UploadData();
-		reduceTexCB.BindPixelShader();
+		constantBuffers.ReduceTex.Data.TextureSize = GetPackedTextureSize(bloom.ReduceRenderTargets[3]);
+		constantBuffers.ReduceTex.Data.ExtractBrightness = false;
+		constantBuffers.ReduceTex.Data.CombineBlurred = true;
+		constantBuffers.ReduceTex.UploadData();
+		constantBuffers.ReduceTex.BindPixelShader();
 		shaders.ReduceTex.Bind();
 
 		D3D.Context->Draw(RectangleVertexCount, 0);
@@ -1300,9 +1303,9 @@ namespace Comfy::Graphics::D3D11
 
 	void Renderer3D::InternalRenderExposurePostBloom()
 	{
-		CalculateExposureSpotCoefficients(exposureCB.Data);
-		exposureCB.UploadData();
-		exposureCB.BindPixelShader();
+		CalculateExposureSpotCoefficients(constantBuffers.Exposure.Data);
+		constantBuffers.Exposure.UploadData();
+		constantBuffers.Exposure.BindPixelShader();
 
 		shaders.ExposureMeasure.Bind();
 		current.Viewport->Data.Bloom.ExposureRenderTargets[1].BindSetViewport();
@@ -1369,13 +1372,13 @@ namespace Comfy::Graphics::D3D11
 		if (!current.Viewport->Parameters.Wireframe && !(flags & RenderFlags_NoRasterizerState))
 			SetSubMeshRasterizerState(material);
 
-		SetObjectCBMaterialData(material, objectCB.Data.Material);
-		SetObjectCBTransforms(command, mesh, subMesh, objectCB.Data);
+		SetObjectCBMaterialData(material, constantBuffers.Object.Data.Material);
+		SetObjectCBTransforms(command, mesh, subMesh, constantBuffers.Object.Data);
 
-		objectCB.Data.MorphWeight = GetObjectCBMorphWeight(command);
-		objectCB.Data.ShaderFlags = GetObjectCBShaderFlags(command, mesh, subMesh, material, boundMaterialTexturesFlags);
+		constantBuffers.Object.Data.MorphWeight = GetObjectCBMorphWeight(command);
+		constantBuffers.Object.Data.ShaderFlags = GetObjectCBShaderFlags(command, mesh, subMesh, material, boundMaterialTexturesFlags);
 
-		objectCB.UploadData();
+		constantBuffers.Object.UploadData();
 
 		SubmitSubMeshDrawCall(subMesh);
 	}
@@ -1425,9 +1428,9 @@ namespace Comfy::Graphics::D3D11
 
 		const ObjAnimationData* animation = command.SourceCommand.Animation;
 
-		objectCB.Data.DiffuseRGTC1 = false;
-		objectCB.Data.DiffuseScreenTexture = false;
-		objectCB.Data.AmbientTextureType = 0;
+		constantBuffers.Object.Data.DiffuseRGTC1 = false;
+		constantBuffers.Object.Data.DiffuseScreenTexture = false;
+		constantBuffers.Object.Data.AmbientTextureType = 0;
 
 		std::array<ShaderResourceView*, TextureSlot_MaterialTextureCount> textureResources = {};
 		std::array<TextureSampler*, TextureSlot_MaterialTextureCount> textureSamplers = {};
@@ -1473,40 +1476,40 @@ namespace Comfy::Graphics::D3D11
 
 			if (correspondingTextureSlot == TextureSlot_Diffuse)
 			{
-				objectCB.Data.Material.DiffuseTextureTransform = materialTexture.TextureCoordinateMatrix;
+				constantBuffers.Object.Data.Material.DiffuseTextureTransform = materialTexture.TextureCoordinateMatrix;
 
 				if (animation != nullptr)
 				{
 					for (auto& textureTransform : animation->TextureTransforms)
 						if (textureTransform.ID == *txpID)
-							applyTextureTransform(objectCB.Data.Material.DiffuseTextureTransform, textureTransform);
+							applyTextureTransform(constantBuffers.Object.Data.Material.DiffuseTextureTransform, textureTransform);
 
 					if (*txpID == animation->ScreenRenderTextureID)
 					{
-						objectCB.Data.DiffuseScreenTexture = true;
+						constantBuffers.Object.Data.DiffuseScreenTexture = true;
 						textureResources[correspondingTextureSlot] = &current.Viewport->Data.Main.PreviousOrResolved();
 
 						// HACK: Flip to adjust for the expected OpenGL texture coordinates, problematic because it also effects all other textures using the first TEXCOORD attribute
-						objectCB.Data.Material.DiffuseTextureTransform *= glm::scale(mat4(1.0f), vec3(1.0f, -1.0f, 1.0f));
+						constantBuffers.Object.Data.Material.DiffuseTextureTransform *= glm::scale(mat4(1.0f), vec3(1.0f, -1.0f, 1.0f));
 					}
 				}
 
 				if (txp->GetFormat() == TextureFormat::RGTC1)
-					objectCB.Data.DiffuseRGTC1 = true;
+					constantBuffers.Object.Data.DiffuseRGTC1 = true;
 			}
 			else if (correspondingTextureSlot == TextureSlot_Ambient)
 			{
-				objectCB.Data.Material.AmbientTextureTransform = materialTexture.TextureCoordinateMatrix;
+				constantBuffers.Object.Data.Material.AmbientTextureTransform = materialTexture.TextureCoordinateMatrix;
 
 				if (animation != nullptr)
 				{
 					for (auto& textureTransform : animation->TextureTransforms)
 						if (textureTransform.ID == *txpID)
-							applyTextureTransform(objectCB.Data.Material.AmbientTextureTransform, textureTransform);
+							applyTextureTransform(constantBuffers.Object.Data.Material.AmbientTextureTransform, textureTransform);
 				}
 
 				const auto blendFlags = materialTexture.SamplerFlags.Blend;
-				objectCB.Data.AmbientTextureType = (blendFlags == 0b100) ? 2 : (blendFlags == 0b110) ? 1 : (blendFlags != 0b10000) ? 0 : 3;
+				constantBuffers.Object.Data.AmbientTextureType = (blendFlags == 0b100) ? 2 : (blendFlags == 0b110) ? 1 : (blendFlags != 0b10000) ? 0 : 3;
 			}
 		}
 
@@ -1613,8 +1616,8 @@ namespace Comfy::Graphics::D3D11
 		outData.ModelView = glm::transpose(current.Viewport->Camera.GetView() * modelMatrix);
 		outData.ModelViewProjection = glm::transpose(current.Viewport->Camera.GetViewProjection() * modelMatrix);
 #else
-		outData.ModelView = glm::transpose(glm::transpose(sceneCB.Data.Scene.View) * modelMatrix);
-		outData.ModelViewProjection = glm::transpose(glm::transpose(sceneCB.Data.Scene.ViewProjection) * modelMatrix);
+		outData.ModelView = glm::transpose(glm::transpose(constantBuffers.Scene.Data.Scene.View) * modelMatrix);
+		outData.ModelViewProjection = glm::transpose(glm::transpose(constantBuffers.Scene.Data.Scene.ViewProjection) * modelMatrix);
 #endif
 	}
 
