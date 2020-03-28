@@ -1,7 +1,6 @@
 #pragma once
 #include "LightParam/Parameters.h"
 #include "Graphics/Camera.h"
-#include "Graphics/Direct3D/Texture/D3D_RenderTarget.h"
 #include "Resource/IDTypes.h"
 #include <optional>
 
@@ -18,6 +17,9 @@ namespace Comfy::Graphics
 		uint32_t ShaderDebugFlags = 0;
 		vec4 ShaderDebugValue = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		bool AllowDebugShaderOverride = true;
+
+		bool DebugVisualizeOcclusionQuery = true;
+		bool LastFrameOcclusionQueryOptimization = true;
 
 		// TODO: In the future (to then only enable for certain viewports)
 		// bool VisualizeNormals = false;
@@ -251,6 +253,7 @@ namespace Comfy::Graphics
 		{
 			// NOTE: Lens flare sun position
 			std::optional<vec3> SunPosition;
+			const class Obj* SunObj = nullptr;
 
 			struct Textures
 			{

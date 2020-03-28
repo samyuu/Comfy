@@ -1078,16 +1078,61 @@ namespace Comfy::Graphics
 
 	void D3D_Renderer3D::InternalQueryRenderLensFlare()
 	{
+		const Obj* sunObj = current.Scene->LensFlare.SunObj;
+		if (sunObj == nullptr)
+			return;
+
+		const vec3 cameraViewPoint = current.Viewport->Camera.ViewPoint;
+		const vec3 sunPosition = current.Scene->LensFlare.SunPosition.value();
+
+		constexpr float sunScaleDistanceFactor = 0.56f;
+		const float sunDistance = glm::distance(sunPosition, cameraViewPoint);
+		const float sunScale = sunDistance * sunScaleDistanceFactor;
+
+		const quat sunLookAt = glm::quatLookAt(glm::normalize(cameraViewPoint - sunPosition), OrthographicCamera::UpDirection);
+		const mat4 sunTransform = glm::translate(mat4(1.0f), sunPosition) * glm::mat4_cast(sunLookAt) * glm::scale(mat4(1.0f), vec3(sunScale));
+
+		objectCB.Data.ModelViewProjection = glm::transpose(current.Viewport->Camera.GetViewProjection() * sunTransform);
+		objectCB.UploadData();
+
+		if (!current.Viewport->Parameters.DebugVisualizeOcclusionQuery)
+			lensFlareSunQueryBlendState.Bind();
+
+		solidNoCullingRasterizerState.Bind();
 		shaders.Sun.Bind();
+
+		if (current.Viewport->Parameters.LastFrameOcclusionQueryOptimization && !sunOcclusionQuery.IsFirstQuery())
+			sunOcclusionQuery.QueryData();
 
 		sunOcclusionQuery.BeginQuery();
 		{
-			// TODO: 
+			for (auto& mesh : sunObj->Meshes)
+			{
+				BindMeshVertexBuffers(mesh, nullptr);
+				for (auto& subMesh : mesh.SubMeshes)
+					SubmitSubMeshDrawCall(subMesh);
+			}
 		}
 		sunOcclusionQuery.EndQuery();
 
-		sunOcclusionQuery.QueryData();
-		const auto coveredPixels = sunOcclusionQuery.GetCoveredPixels();
+		if (!current.Viewport->Parameters.LastFrameOcclusionQueryOptimization)
+			sunOcclusionQuery.QueryData();
+
+		const vec2 normalizedSunScreenPosition = current.Viewport->Camera.ProjectPointNormalizedScreen(sunPosition);
+
+#if COMFY_DEBUG
+		const vec2 sunScreenPos = Gui::GetWindowPos() + (normalizedSunScreenPosition * Gui::GetWindowSize());
+		const vec2 screenCenter = Gui::GetWindowPos() + (vec2(0.5f, 0.5f) * Gui::GetWindowSize());
+
+		char buffer[64]; sprintf_s(buffer, "{ x=%.2f, y=%.2f } ", sunScreenPos.x, sunScreenPos.y);
+		Gui::GetForegroundDrawList()->AddText(sunScreenPos, IM_COL32_BLACK, buffer);
+		Gui::GetForegroundDrawList()->AddLine(sunScreenPos, screenCenter, IM_COL32_BLACK);
+
+		Gui::DEBUG_NOSAVE_WINDOW(__FUNCTION__"(): Test", [&]
+		{
+			Gui::Text("sunOcclusionQuery.GetCoveredPixels(): %d", static_cast<int>(sunOcclusionQuery.GetCoveredPixels()));
+		});
+#endif
 	}
 
 	void D3D_Renderer3D::InternalRenderLensFlare()

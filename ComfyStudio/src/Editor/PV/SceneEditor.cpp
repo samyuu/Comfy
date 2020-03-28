@@ -414,6 +414,9 @@ namespace Comfy::Editor
 				GuiProperty::CheckboxFlags("ShaderDebugFlags_0", renderParameters.ShaderDebugFlags, (1 << 0));
 				GuiProperty::CheckboxFlags("ShaderDebugFlags_1", renderParameters.ShaderDebugFlags, (1 << 1));
 				GuiProperty::ColorEditHDR("ShaderDebugValue", renderParameters.ShaderDebugValue);
+
+				GuiProperty::Checkbox("Visualize Occlusion Query", renderParameters.DebugVisualizeOcclusionQuery);
+				GuiProperty::Checkbox("Occlusion Query Optimization", renderParameters.LastFrameOcclusionQueryOptimization);
 			});
 
 			GuiProperty::TreeNode("General", ImGuiTreeNodeFlags_DefaultOpen, [&]
@@ -474,6 +477,7 @@ namespace Comfy::Editor
 			{
 				GuiProperty::Checkbox("Punch Through", renderParameters.RenderPunchThrough);
 				GuiProperty::Checkbox("Render Fog", renderParameters.RenderFog);
+				GuiProperty::Checkbox("Object Billboarding", renderParameters.ObjectBillboarding);
 				GuiProperty::Checkbox("Object Morphing", renderParameters.ObjectMorphing);
 				GuiProperty::Checkbox("Object Skinning", renderParameters.ObjectSkinning);
 			});
