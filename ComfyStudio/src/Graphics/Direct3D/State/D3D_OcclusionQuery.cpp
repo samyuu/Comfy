@@ -18,25 +18,28 @@ namespace Comfy::Graphics
 
 	void D3D_OcclusionQuery::BeginQuery()
 	{
-		if (hasQueryStarted)
+		if (isMidQuery)
 			return;
 
+		isFirstQuery = false;
+
 		D3D.Context->Begin(query.Get());
-		hasQueryStarted = true;
+		isMidQuery = true;
 	}
 
 	void D3D_OcclusionQuery::EndQuery()
 	{
-		hasQueryStarted = false;
+		isMidQuery = false;
 		D3D.Context->End(query.Get());
 	}
 
 	void D3D_OcclusionQuery::QueryData()
 	{
-		if (hasQueryStarted)
+		if (isMidQuery)
 			return;
 
-		coveredPixels = 0;
+		lastCoveredPixels = coveredPixels;
+		coveredPixels.reset();
 
 		const auto startTime = TimeSpan::GetTimeNow();
 		size_t iterationsUntilSuccess = 0;
@@ -53,9 +56,10 @@ namespace Comfy::Graphics
 			}
 
 			// NOTE: Should hopefully never happen
-			if (const auto elapsedLoopTime = (startTime - TimeSpan::GetTimeNow()); elapsedLoopTime > getDataSafetyTimeout)
+			if (const auto elapsedLoopTime = (TimeSpan::GetTimeNow() - startTime); elapsedLoopTime > getDataSafetyTimeout)
 			{
 				assert(false);
+				lastCoveredPixels.reset();
 				return;
 			}
 
@@ -63,11 +67,18 @@ namespace Comfy::Graphics
 		}
 	}
 
+	bool D3D_OcclusionQuery::IsFirstQuery() const
+	{
+		return isFirstQuery;
+	}
+
+	bool D3D_OcclusionQuery::HasCoveredPixelsReady() const
+	{
+		return lastCoveredPixels.has_value();
+	}
+
 	uint64_t D3D_OcclusionQuery::GetCoveredPixels() const
 	{
-		if (hasQueryStarted)
-			return 0;
-
-		return coveredPixels;
+		return lastCoveredPixels.value_or(0);
 	}
 }
