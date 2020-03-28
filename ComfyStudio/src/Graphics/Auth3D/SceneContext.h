@@ -51,6 +51,7 @@ namespace Comfy::Graphics
 
 		bool RenderPunchThrough = true;
 		bool RenderFog = true;
+		bool ObjectBillboarding = true;
 		bool ObjectMorphing = true;
 		bool ObjectSkinning = true;
 

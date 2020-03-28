@@ -1546,7 +1546,7 @@ namespace Comfy::Graphics
 	void D3D_Renderer3D::SetObjectCBTransforms(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, ObjectConstantData& outData) const
 	{
 		mat4 modelMatrix;
-		if (mesh.Flags.FaceCameraPosition || mesh.Flags.FaceCameraView)
+		if (current.Viewport->Parameters.ObjectBillboarding && (mesh.Flags.FaceCameraPosition || mesh.Flags.FaceCameraView))
 		{
 			const auto& transform = command.SourceCommand.Transform;
 
