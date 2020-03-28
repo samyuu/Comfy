@@ -998,6 +998,9 @@
     <ClInclude Include="src\Graphics\D3D11\Texture\TextureSampler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ShaderPairs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="res\ComfyStudio.rc">
