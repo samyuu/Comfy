@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "ImGui/Gui.h"
-#include "Graphics/Auth2D/AetSet.h"
+#include "Graphics/Auth2D/Aet/AetSet.h"
 #include "Graphics/GPU/GPUResources.h"
 
 namespace Comfy::Editor

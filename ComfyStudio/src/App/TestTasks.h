@@ -1,8 +1,8 @@
 #pragma once
 #include "Task.h"
 #include "Types.h"
-#include "Graphics/Auth2D/AetMgr.h"
-#include "Graphics/Auth2D/AetSet.h"
+#include "Graphics/Auth2D/Aet/AetMgr.h"
+#include "Graphics/Auth2D/Aet/AetSet.h"
 #include "Graphics/Auth2D/SprSet.h"
 #include "FileSystem/FileLoader.h"
 

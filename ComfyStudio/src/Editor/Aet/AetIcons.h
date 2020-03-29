@@ -1,6 +1,6 @@
 #pragma once
 #include <FontIcons.h>
-#include "Graphics/Auth2D/AetSet.h"
+#include "Graphics/Auth2D/Aet/AetSet.h"
 
 #define ICON_SETLOADER		ICON_FA_FOLDER
 #define ICON_TREEVIEW		ICON_FA_LIST

@@ -1,6 +1,6 @@
 #pragma once
 #include "Graphics/Camera.h"
-#include "Graphics/Auth2D/AetMgr.h"
+#include "Graphics/Auth2D/Aet/AetMgr.h"
 #include "Editor/Aet/Command/AetCommandManager.h"
 #include "Input/KeyCode.h"
 #include "ImGui/Gui.h"

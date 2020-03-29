@@ -1,7 +1,7 @@
 #include "AetInspector.h"
 #include "Editor/Aet/Command/Commands.h"
 #include "Editor/Aet/AetIcons.h"
-#include "Graphics/Auth2D/AetMgr.h"
+#include "Graphics/Auth2D/Aet/AetMgr.h"
 #include "Graphics/GraphicTypesNames.h"
 #include "ImGui/Gui.h"
 

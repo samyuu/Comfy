@@ -3,7 +3,7 @@
 #include "Editor/Common/CheckerboardGrid.h"
 #include "FileSystem/FileLoader.h"
 #include "Graphics/Camera.h"
-#include "Graphics/Auth2D/AetRenderer.h"
+#include "Graphics/Auth2D/Aet/AetRenderer.h"
 
 namespace Comfy::Editor
 {

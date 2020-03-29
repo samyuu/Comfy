@@ -1,6 +1,6 @@
 #pragma once
 #include "AetCommand.h"
-#include "Graphics/Auth2D/AetMgr.h"
+#include "Graphics/Auth2D/Aet/AetMgr.h"
 
 #define Define_AetCommandStart(commandName, commandString) class commandName : public AetCommand { friend class AetCommandManager; const char* GetName() override { return commandString; } AetCommandType GetType() override { return AetCommandType::commandName; }
 #define Define_AetCommandEnd() }

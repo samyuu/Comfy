@@ -2,8 +2,8 @@
 #include "Editor/Aet/AetSelection.h"
 #include "Editor/Aet/IMutatingEditorComponent.h"
 #include "Editor/Aet/RenderWindow/AetRenderPreviewData.h"
-#include "Graphics/Auth2D/AetSet.h"
-#include "Graphics/Auth2D/AetRenderer.h"
+#include "Graphics/Auth2D/Aet/AetSet.h"
+#include "Graphics/Auth2D/Aet/AetRenderer.h"
 
 namespace Comfy::Editor
 {

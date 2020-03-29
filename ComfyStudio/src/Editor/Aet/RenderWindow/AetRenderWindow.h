@@ -8,7 +8,7 @@
 #include "Editor/Common/CameraController2D.h"
 #include "Editor/Common/CheckerboardGrid.h"
 #include "Graphics/Camera.h"
-#include "Graphics/Auth2D/AetRenderer.h"
+#include "Graphics/Auth2D/Aet/AetRenderer.h"
 
 namespace Comfy::Editor
 {

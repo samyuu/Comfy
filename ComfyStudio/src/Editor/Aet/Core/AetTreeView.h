@@ -2,7 +2,7 @@
 #include "Editor/Aet/IMutatingEditorComponent.h"
 #include "Editor/Aet/AetSelection.h"
 #include "Editor/Aet/AetIcons.h"
-#include "Graphics/Auth2D/AetSet.h"
+#include "Graphics/Auth2D/Aet/AetSet.h"
 #include "ImGui/Gui.h"
 #include <stack>
 

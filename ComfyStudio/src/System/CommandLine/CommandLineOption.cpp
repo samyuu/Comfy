@@ -2,7 +2,7 @@
 #include "Core/Logger.h"
 #include "System/Version/BuildVersion.h"
 #include "System/Version/BuildConfiguration.h"
-#include "Graphics/Auth2D/AetSet.h"
+#include "Graphics/Auth2D/Aet/AetSet.h"
 #include "FileSystem/Archive/Farc.h"
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"

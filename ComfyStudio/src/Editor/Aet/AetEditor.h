@@ -8,7 +8,7 @@
 #include "Command/AetHistoryWindow.h"
 #include "Command/AetCommandManager.h"
 #include "Editor/Core/IEditorComponent.h"
-#include "Graphics/Auth2D/AetRenderer.h"
+#include "Graphics/Auth2D/Aet/AetRenderer.h"
 #include "FileSystem/FileLoader.h"
 #include "ImGui/Widgets/FileViewer.h"
 
