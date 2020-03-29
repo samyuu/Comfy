@@ -57,12 +57,12 @@ namespace Comfy::Graphics
 		RenderCommand(const Obj& obj) : SourceObj(&obj) {}
 		RenderCommand(const Obj& obj, const vec3& position) : SourceObj(&obj), Transform(position) {}
 	};
+
+	using TxpGetterFunction = std::function<const Txp*(const Cached_TxpID* txpID)>;
 }
 
 namespace Comfy::Graphics::D3D11
 {
-	using TxpGetterFunction = std::function<const Txp*(const Cached_TxpID* txpID)>;
-
 	class Renderer3D : NonCopyable
 	{
 	public:
@@ -74,10 +74,6 @@ namespace Comfy::Graphics::D3D11
 		void Draw(const RenderCommand& command);
 		void End();
 
-	private:
-		void UpdateIsAnyCommandFlags(const RenderCommand& command);
-
-	public:
 		const Txp* GetTxpFromTextureID(const Cached_TxpID* textureID) const;
 
 	private:
@@ -120,38 +116,39 @@ namespace Comfy::Graphics::D3D11
 			RenderFlags_NoFrustumCulling = (1 << 6),
 		};
 
-		void InternalFlush();
+		void UpdateIsAnyCommandFlags(const RenderCommand& command);
+		void Flush();
 
-		void InternalPrepareRenderCommands(RenderPassCommandLists& commandList);
-		void InternalRenderScene();
-		void InternalResolveMSAAIfNeeded();
-		void InternalSetSceneCB(SceneConstantData& outData);
-		void InternalBindUploadSceneCBs();
-		void InternalBindSceneTextures();
+		void PrepareRenderCommands(RenderPassCommandLists& commandList);
+		void RenderScene();
+		void ResolveMSAAIfNeeded();
+		void SetSceneCBData(SceneConstantData& outData);
+		void BindUploadSceneCBs();
+		void BindSceneTextures();
 
-		void InternalPreRenderShadowMap();
-		void InternalPreRenderReduceFilterShadowMap();
+		void PreRenderShadowMap();
+		void PreRenderReduceFilterShadowMap();
 
-		void InternalPreRenderScreenReflection();
+		void PreRenderScreenReflection();
 
-		void InternalPreRenderSubsurfaceScattering();
-		void InternalPreRenderReduceFilterSubsurfaceScattering();
+		void PreRenderSubsurfaceScattering();
+		void PreRenderReduceFilterSubsurfaceScattering();
 
 		// TODO: Add wrapper function to loop over commnad list and add opaque and transparent to RenderFlags
-		void InternalRenderOpaqueObjCommand(ObjRenderCommand& command, RenderFlags flags = RenderFlags_None);
-		void InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command);
+		void RenderOpaqueObjCommand(ObjRenderCommand& command, RenderFlags flags = RenderFlags_None);
+		void RenderTransparentSubMeshCommand(SubMeshRenderCommand& command);
 
-		void InternalRenderSilhouette();
-		void InternalRenderSilhouetteOutlineOverlay();
+		void RenderSilhouette();
+		void RenderSilhouetteOutlineOverlay();
 
-		void InternalQueryRenderLensFlare();
-		void InternalRenderLensFlare();
+		void QueryRenderLensFlare();
+		void RenderLensFlare();
 
-		void InternalRenderPostProcessing();
-		void InternalRenderBloom();
+		void RenderPostProcessing();
+		void RenderBloom();
 
-		void InternalRenderExposurePreBloom();
-		void InternalRenderExposurePostBloom();
+		void RenderExposurePreBloom();
+		void RenderExposurePostBloom();
 
 		void BindMeshVertexBuffers(const Mesh& primaryMesh, const Mesh* morphMesh);
 		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, RenderFlags flags = RenderFlags_None);

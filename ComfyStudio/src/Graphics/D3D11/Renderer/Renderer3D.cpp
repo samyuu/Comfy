@@ -326,8 +326,13 @@ namespace Comfy::Graphics::D3D11
 	{
 		assert(current.Scene != nullptr && current.Viewport != nullptr);
 
-		InternalFlush();
+		Flush();
 		current = {};
+	}
+
+	const Txp* Renderer3D::GetTxpFromTextureID(const Cached_TxpID* textureID) const
+	{
+		return txpGetter(textureID);
 	}
 
 	void Renderer3D::UpdateIsAnyCommandFlags(const RenderCommand& command)
@@ -360,21 +365,16 @@ namespace Comfy::Graphics::D3D11
 		}
 	}
 
-	const Txp* Renderer3D::GetTxpFromTextureID(const Cached_TxpID* textureID) const
+	void Renderer3D::Flush()
 	{
-		return txpGetter(textureID);
-	}
+		PrepareRenderCommands(defaultCommandList);
+		PrepareRenderCommands(reflectionCommandList);
 
-	void Renderer3D::InternalFlush()
-	{
-		InternalPrepareRenderCommands(defaultCommandList);
-		InternalPrepareRenderCommands(reflectionCommandList);
-
-		InternalRenderScene();
-		InternalRenderPostProcessing();
+		RenderScene();
+		RenderPostProcessing();
 
 		if (isAnyCommand.SilhouetteOutline)
-			InternalRenderSilhouetteOutlineOverlay();
+			RenderSilhouetteOutlineOverlay();
 
 		defaultCommandList.OpaqueAndTransparent.clear();
 		defaultCommandList.Transparent.clear();
@@ -383,7 +383,7 @@ namespace Comfy::Graphics::D3D11
 		reflectionCommandList.Transparent.clear();
 	}
 
-	void Renderer3D::InternalPrepareRenderCommands(RenderPassCommandLists& commandList)
+	void Renderer3D::PrepareRenderCommands(RenderPassCommandLists& commandList)
 	{
 		if (commandList.OpaqueAndTransparent.empty())
 			return;
@@ -423,32 +423,32 @@ namespace Comfy::Graphics::D3D11
 		}
 	}
 
-	void Renderer3D::InternalRenderScene()
+	void Renderer3D::RenderScene()
 	{
-		InternalSetSceneCB(constantBuffers.Scene.Data);
-		InternalBindUploadSceneCBs();
+		SetSceneCBData(constantBuffers.Scene.Data);
+		BindUploadSceneCBs();
 
-		InternalBindSceneTextures();
+		BindSceneTextures();
 		cachedTextureSamplers.CreateIfNeeded(current.Viewport->Parameters);
 
 		if (current.Viewport->Parameters.ShadowMapping && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
 		{
-			InternalPreRenderShadowMap();
-			InternalPreRenderReduceFilterShadowMap();
+			PreRenderShadowMap();
+			PreRenderReduceFilterShadowMap();
 		}
 
 		genericInputLayout->Bind();
 
 		if (current.Viewport->Parameters.RenderReflection && isAnyCommand.ScreenReflection)
 		{
-			InternalPreRenderScreenReflection();
+			PreRenderScreenReflection();
 			current.Viewport->Data.Reflection.RenderTarget.BindResource(TextureSlot_ScreenReflection);
 		}
 
 		if (current.Viewport->Parameters.RenderSubsurfaceScattering && isAnyCommand.SubsurfaceScattering)
 		{
-			InternalPreRenderSubsurfaceScattering();
-			InternalPreRenderReduceFilterSubsurfaceScattering();
+			PreRenderSubsurfaceScattering();
+			PreRenderReduceFilterSubsurfaceScattering();
 			current.Viewport->Data.SubsurfaceScattering.FilterRenderTargets.back().BindResource(TextureSlot_SubsurfaceScattering);
 		}
 
@@ -469,10 +469,10 @@ namespace Comfy::Graphics::D3D11
 			D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
 			for (auto& command : defaultCommandList.OpaqueAndTransparent)
-				InternalRenderOpaqueObjCommand(command);
+				RenderOpaqueObjCommand(command);
 
 			if (current.Viewport->Parameters.RenderLensFlare && current.Scene->LensFlare.SunPosition.has_value())
-				InternalQueryRenderLensFlare();
+				QueryRenderLensFlare();
 		}
 
 		if (current.Viewport->Parameters.RenderTransparent && !defaultCommandList.Transparent.empty())
@@ -480,24 +480,24 @@ namespace Comfy::Graphics::D3D11
 			transparencyPassDepthStencilState.Bind();
 
 			for (auto& command : defaultCommandList.Transparent)
-				InternalRenderTransparentSubMeshCommand(command);
+				RenderTransparentSubMeshCommand(command);
 
 			if (current.Viewport->Parameters.RenderLensFlare && current.Scene->LensFlare.SunPosition.has_value())
-				InternalRenderLensFlare();
+				RenderLensFlare();
 
 			transparencyPassDepthStencilState.UnBind();
 		}
 
 		if (isAnyCommand.SilhouetteOutline)
-			InternalRenderSilhouette();
+			RenderSilhouette();
 
 		current.Viewport->Data.Main.Current().UnBind();
 		genericInputLayout->UnBind();
 
-		InternalResolveMSAAIfNeeded();
+		ResolveMSAAIfNeeded();
 	}
 
-	void Renderer3D::InternalResolveMSAAIfNeeded()
+	void Renderer3D::ResolveMSAAIfNeeded()
 	{
 		if (!current.Viewport->Data.Main.MSAAEnabled())
 			return;
@@ -509,7 +509,7 @@ namespace Comfy::Graphics::D3D11
 		D3D.Context->ResolveSubresource(currentMainResolved.GetResource(), 0, currentMain.GetResource(), 0, currentMain.GetBackBufferDescription().Format);
 	}
 
-	void Renderer3D::InternalSetSceneCB(SceneConstantData& outData)
+	void Renderer3D::SetSceneCBData(SceneConstantData& outData)
 	{
 		outData.RenderResolution = GetPackedTextureSize(current.Viewport->Data.Main.Current());
 
@@ -555,7 +555,7 @@ namespace Comfy::Graphics::D3D11
 		outData.DebugValue = current.Viewport->Parameters.ShaderDebugValue;
 	}
 
-	void Renderer3D::InternalBindUploadSceneCBs()
+	void Renderer3D::BindUploadSceneCBs()
 	{
 		constantBuffers.Scene.UploadData();
 		constantBuffers.Scene.BindShaders();
@@ -564,7 +564,7 @@ namespace Comfy::Graphics::D3D11
 		constantBuffers.Skeleton.BindVertexShader();
 	}
 
-	void Renderer3D::InternalBindSceneTextures()
+	void Renderer3D::BindSceneTextures()
 	{
 		ShaderResourceView::BindArray<TextureSlot_Count>(TextureSlot_Diffuse,
 			{
@@ -619,7 +619,7 @@ namespace Comfy::Graphics::D3D11
 			});
 	}
 
-	void Renderer3D::InternalPreRenderShadowMap()
+	void Renderer3D::PreRenderShadowMap()
 	{
 		const auto& light = current.Scene->Light.Character;
 
@@ -660,7 +660,7 @@ namespace Comfy::Graphics::D3D11
 		for (auto& command : defaultCommandList.OpaqueAndTransparent)
 		{
 			if (command.SourceCommand.Flags.CastsShadow)
-				InternalRenderOpaqueObjCommand(command, RenderFlags_NoMaterialShader | RenderFlags_NoRasterizerState | RenderFlags_NoFrustumCulling | RenderFlags_DiffuseTextureOnly);
+				RenderOpaqueObjCommand(command, RenderFlags_NoMaterialShader | RenderFlags_NoRasterizerState | RenderFlags_NoFrustumCulling | RenderFlags_DiffuseTextureOnly);
 		}
 
 		current.Viewport->Data.Shadow.RenderTarget.UnBind();
@@ -671,7 +671,7 @@ namespace Comfy::Graphics::D3D11
 		constantBuffers.Scene.UploadData();
 	}
 
-	void Renderer3D::InternalPreRenderReduceFilterShadowMap()
+	void Renderer3D::PreRenderReduceFilterShadowMap()
 	{
 		solidNoCullingRasterizerState.Bind();
 
@@ -771,7 +771,7 @@ namespace Comfy::Graphics::D3D11
 		}
 	}
 
-	void Renderer3D::InternalPreRenderScreenReflection()
+	void Renderer3D::PreRenderScreenReflection()
 	{
 		current.Viewport->Data.Reflection.RenderTarget.ResizeIfDifferent(current.Viewport->Parameters.ReflectionRenderResolution);
 		current.Viewport->Data.Reflection.RenderTarget.BindSetViewport();
@@ -789,7 +789,7 @@ namespace Comfy::Graphics::D3D11
 				D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
 				for (auto& command : reflectionCommandList.OpaqueAndTransparent)
-					InternalRenderOpaqueObjCommand(command);
+					RenderOpaqueObjCommand(command);
 			}
 
 			if (current.Viewport->Parameters.RenderTransparent && !reflectionCommandList.Transparent.empty())
@@ -797,7 +797,7 @@ namespace Comfy::Graphics::D3D11
 				transparencyPassDepthStencilState.Bind();
 
 				for (auto& command : reflectionCommandList.Transparent)
-					InternalRenderTransparentSubMeshCommand(command);
+					RenderTransparentSubMeshCommand(command);
 
 				transparencyPassDepthStencilState.UnBind();
 			}
@@ -806,7 +806,7 @@ namespace Comfy::Graphics::D3D11
 		current.Viewport->Data.Reflection.RenderTarget.UnBind();
 	}
 
-	void Renderer3D::InternalPreRenderSubsurfaceScattering()
+	void Renderer3D::PreRenderSubsurfaceScattering()
 	{
 		current.Viewport->Data.SubsurfaceScattering.RenderTarget.ResizeIfDifferent(current.Viewport->Parameters.RenderResolution);
 
@@ -818,7 +818,7 @@ namespace Comfy::Graphics::D3D11
 			D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
 			for (auto& command : defaultCommandList.OpaqueAndTransparent)
-				InternalRenderOpaqueObjCommand(command, RenderFlags_SSSPass);
+				RenderOpaqueObjCommand(command, RenderFlags_SSSPass);
 
 			// TODO: defaultCommandList.Transparent (?)
 		}
@@ -826,7 +826,7 @@ namespace Comfy::Graphics::D3D11
 		current.Viewport->Data.SubsurfaceScattering.RenderTarget.UnBind();
 	}
 
-	void Renderer3D::InternalPreRenderReduceFilterSubsurfaceScattering()
+	void Renderer3D::PreRenderReduceFilterSubsurfaceScattering()
 	{
 		solidNoCullingRasterizerState.Bind();
 
@@ -858,7 +858,7 @@ namespace Comfy::Graphics::D3D11
 		current.Viewport->Data.SubsurfaceScattering.FilterRenderTargets[2].UnBind();
 	}
 
-	void Renderer3D::InternalRenderOpaqueObjCommand(ObjRenderCommand& command, RenderFlags flags)
+	void Renderer3D::RenderOpaqueObjCommand(ObjRenderCommand& command, RenderFlags flags)
 	{
 		if (command.AreAllMeshesTransparent)
 			return;
@@ -887,7 +887,7 @@ namespace Comfy::Graphics::D3D11
 		});
 	}
 
-	void Renderer3D::InternalRenderTransparentSubMeshCommand(SubMeshRenderCommand& command)
+	void Renderer3D::RenderTransparentSubMeshCommand(SubMeshRenderCommand& command)
 	{
 		auto& objCommand = command.ObjCommand;
 		auto& transform = objCommand->SourceCommand.Transform;
@@ -908,7 +908,7 @@ namespace Comfy::Graphics::D3D11
 		PrepareAndRenderSubMesh(*command.ObjCommand, mesh, subMesh, material);
 	}
 
-	void Renderer3D::InternalRenderSilhouette()
+	void Renderer3D::RenderSilhouette()
 	{
 		current.Viewport->Data.Silhouette.RenderTarget.ResizeIfDifferent(current.Viewport->Parameters.RenderResolution);
 		current.Viewport->Data.Silhouette.RenderTarget.BindSetViewport();
@@ -919,13 +919,13 @@ namespace Comfy::Graphics::D3D11
 			D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
 			for (auto& command : defaultCommandList.OpaqueAndTransparent)
-				InternalRenderOpaqueObjCommand(command, RenderFlags_SilhouetteOutlinePass | RenderFlags_NoMaterialShader | RenderFlags_NoMaterialTextures);
+				RenderOpaqueObjCommand(command, RenderFlags_SilhouetteOutlinePass | RenderFlags_NoMaterialShader | RenderFlags_NoMaterialTextures);
 		}
 
 		current.Viewport->Data.Silhouette.RenderTarget.UnBind();
 	}
 
-	void Renderer3D::InternalRenderSilhouetteOutlineOverlay()
+	void Renderer3D::RenderSilhouetteOutlineOverlay()
 	{
 		current.Viewport->Data.Silhouette.RenderTarget.BindResource(0);
 
@@ -933,7 +933,7 @@ namespace Comfy::Graphics::D3D11
 		SubmitQuadDrawCall();
 	}
 
-	void Renderer3D::InternalQueryRenderLensFlare()
+	void Renderer3D::QueryRenderLensFlare()
 	{
 		const Obj* sunObj = current.Scene->LensFlare.SunObj;
 		if (sunObj == nullptr)
@@ -992,12 +992,12 @@ namespace Comfy::Graphics::D3D11
 #endif
 	}
 
-	void Renderer3D::InternalRenderLensFlare()
+	void Renderer3D::RenderLensFlare()
 	{
 		shaders.LensFlare.Bind();
 	}
 
-	void Renderer3D::InternalRenderPostProcessing()
+	void Renderer3D::RenderPostProcessing()
 	{
 		D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
@@ -1014,7 +1014,7 @@ namespace Comfy::Graphics::D3D11
 		TextureSampler::BindArray<1>(0, { nullptr });
 
 		if (current.Viewport->Parameters.RenderBloom)
-			InternalRenderBloom();
+			RenderBloom();
 
 		current.Viewport->Data.Output.RenderTarget.ResizeIfDifferent(current.Viewport->Parameters.RenderResolution);
 		current.Viewport->Data.Output.RenderTarget.BindSetViewport();
@@ -1050,7 +1050,7 @@ namespace Comfy::Graphics::D3D11
 		current.Viewport->Data.Main.AdvanceRenderTarget();
 	}
 
-	void Renderer3D::InternalRenderBloom()
+	void Renderer3D::RenderBloom()
 	{
 		auto& bloom = current.Viewport->Data.Bloom;
 
@@ -1076,7 +1076,7 @@ namespace Comfy::Graphics::D3D11
 		}
 
 		if (current.Viewport->Parameters.AutoExposure && current.Scene->Glow.AutoExposure)
-			InternalRenderExposurePreBloom();
+			RenderExposurePreBloom();
 
 		CalculateGaussianBlurKernel(current.Scene->Glow, constantBuffers.PPGaussCoef.Data);
 		constantBuffers.PPGaussCoef.UploadData();
@@ -1142,10 +1142,10 @@ namespace Comfy::Graphics::D3D11
 		SubmitQuadDrawCall();
 
 		if (current.Viewport->Parameters.AutoExposure && current.Scene->Glow.AutoExposure)
-			InternalRenderExposurePostBloom();
+			RenderExposurePostBloom();
 	}
 
-	void Renderer3D::InternalRenderExposurePreBloom()
+	void Renderer3D::RenderExposurePreBloom()
 	{
 		shaders.ExposureMinify.Bind();
 		current.Viewport->Data.Bloom.ExposureRenderTargets[0].BindSetViewport();
@@ -1154,7 +1154,7 @@ namespace Comfy::Graphics::D3D11
 		current.Viewport->Data.Bloom.ExposureRenderTargets[0].UnBind();
 	}
 
-	void Renderer3D::InternalRenderExposurePostBloom()
+	void Renderer3D::RenderExposurePostBloom()
 	{
 		CalculateExposureSpotCoefficients(constantBuffers.Exposure.Data);
 		constantBuffers.Exposure.UploadData();
