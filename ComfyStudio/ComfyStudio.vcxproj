@@ -311,6 +311,7 @@
     <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ShaderFlags.h" />
     <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ShaderPairs.h" />
     <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\SubsurfaceScattering.h" />
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\SunOcclusionData.h" />
     <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\TextureSamplerCache.h" />
     <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ToneMapData.h" />
     <ClInclude Include="src\Graphics\D3D11\Renderer\ViewportRenderData.h" />

@@ -2,6 +2,7 @@
 #include "../Texture/RenderTarget.h"
 #include "../Texture/DepthBuffer.h"
 #include "Detail/BlendStateCache.h"
+#include "Detail/SunOcclusionData.h"
 #include "Detail/TextureSamplerCache.h"
 #include "Detail/ToneMapData.h"
 #include "Graphics/Auth3D/SceneRenderParameters.h"
@@ -158,5 +159,6 @@ namespace Comfy::Graphics::D3D11
 		TextureSamplerCache TextureSamplers;
 		BlendStateCache BlendStates;
 		ToneMapData ToneMap;
+		SunOcclusionData Sun;
 	};
 }

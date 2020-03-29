@@ -189,9 +189,6 @@ namespace Comfy::Graphics::D3D11
 
 		BlendState lensFlareSunQueryBlendState = { D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_OP_ADD, D3D11_BLEND_OP_ADD, D3D11_COLOR_WRITE_ENABLE { } };
 
-		// TODO: Viewport renderdata instance data
-		OcclusionQuery sunOcclusionQuery = { "Renderer3D::SunOcclusionQuery" };
-
 		// NOTE: To avoid having to bind and clear render targets that won't be used this frame
 		struct IsAnyCommandFlags
 		{

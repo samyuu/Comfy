@@ -957,6 +957,7 @@ namespace Comfy::Graphics::D3D11
 		solidNoCullingRasterizerState.Bind();
 		shaders.Sun.Bind();
 
+		auto& sunOcclusionQuery = current.Viewport->Data.Sun.OcclusionQuery;
 		if (current.Viewport->Parameters.LastFrameOcclusionQueryOptimization && !sunOcclusionQuery.IsFirstQuery())
 			sunOcclusionQuery.QueryData();
 
