@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/Auth3D/SceneContext.h"
+#include "Graphics/Auth3D/SceneRenderParameters.h"
 #include "Graphics/Auth3D/ObjSet.h"
 
 namespace Comfy::Graphics::D3D11
@@ -7,7 +7,7 @@ namespace Comfy::Graphics::D3D11
 	struct TextureSamplerCache
 	{
 	public:
-		void CreateIfNeeded(const RenderParameters& renderParameters);
+		void CreateIfNeeded(const SceneRenderParameters& renderParameters);
 		TextureSampler& GetSampler(MaterialTextureData::TextureSamplerFlags flags);
 
 	private:

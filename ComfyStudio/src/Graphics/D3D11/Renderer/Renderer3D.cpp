@@ -429,7 +429,6 @@ namespace Comfy::Graphics::D3D11
 		BindUploadSceneCBs();
 
 		BindSceneTextures();
-		cachedTextureSamplers.CreateIfNeeded(current.Viewport->Parameters);
 
 		if (current.Viewport->Parameters.ShadowMapping && isAnyCommand.CastShadow && isAnyCommand.ReceiveShadow)
 		{
@@ -903,7 +902,7 @@ namespace Comfy::Graphics::D3D11
 		BindMeshVertexBuffers(mesh, GetMorphMesh(obj, objCommand->SourceCommand.SourceMorphObj, mesh));
 
 		auto& material = GetSubMeshMaterial(subMesh, command.ObjCommand->SourceCommand);
-		cachedBlendStates.GetState(material.BlendFlags.SrcBlendFactor, material.BlendFlags.DstBlendFactor).Bind();
+		current.Viewport->Data.BlendStates.GetState(material.BlendFlags.SrcBlendFactor, material.BlendFlags.DstBlendFactor).Bind();
 
 		PrepareAndRenderSubMesh(*command.ObjCommand, mesh, subMesh, material);
 	}
@@ -1019,8 +1018,7 @@ namespace Comfy::Graphics::D3D11
 		current.Viewport->Data.Output.RenderTarget.ResizeIfDifferent(current.Viewport->Parameters.RenderResolution);
 		current.Viewport->Data.Output.RenderTarget.BindSetViewport();
 
-		if (toneMapData.NeedsUpdating(current.Scene->Glow))
-			toneMapData.Update(current.Scene->Glow);
+		current.Viewport->Data.ToneMap.UpdateIfNeeded(current.Scene->Glow);
 
 		const bool autoExposureEnabled = (current.Viewport->Parameters.AutoExposure && current.Viewport->Parameters.RenderBloom && current.Scene->Glow.AutoExposure);
 
@@ -1028,7 +1026,7 @@ namespace Comfy::Graphics::D3D11
 			{
 				&current.Viewport->Data.Main.CurrentOrResolved(),
 				(current.Viewport->Parameters.RenderBloom) ? &current.Viewport->Data.Bloom.CombinedBlurRenderTarget : nullptr,
-				toneMapData.GetLookupTexture(),
+				current.Viewport->Data.ToneMap.GetLookupTexture(),
 				autoExposureEnabled ? &current.Viewport->Data.Bloom.ExposureRenderTargets.back() : nullptr
 			});
 
@@ -1324,8 +1322,10 @@ namespace Comfy::Graphics::D3D11
 			if (txp == nullptr)
 				continue;
 
+			current.Viewport->Data.TextureSamplers.CreateIfNeeded(current.Viewport->Parameters);
+
 			textureResources[correspondingTextureSlot] = (txp->GPU_Texture2D != nullptr) ? static_cast<TextureResource*>(txp->GPU_Texture2D.get()) : (txp->GPU_CubeMap != nullptr) ? (txp->GPU_CubeMap.get()) : nullptr;
-			textureSamplers[correspondingTextureSlot] = &cachedTextureSamplers.GetSampler(samplerFlags);
+			textureSamplers[correspondingTextureSlot] = &current.Viewport->Data.TextureSamplers.GetSampler(samplerFlags);
 
 			if (correspondingTextureSlot == TextureSlot_Diffuse)
 			{

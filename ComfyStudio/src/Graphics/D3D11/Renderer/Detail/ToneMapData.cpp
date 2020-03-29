@@ -2,6 +2,17 @@
 
 namespace Comfy::Graphics::D3D11
 {
+	void ToneMapData::UpdateIfNeeded(const GlowParameter& glow)
+	{
+		if (NeedsUpdating(glow))
+			Update(glow);
+	}
+
+	Texture1D* ToneMapData::GetLookupTexture()
+	{
+		return lookupTexture.get();
+	}
+
 	bool ToneMapData::NeedsUpdating(const GlowParameter& glow)
 	{
 		if (lookupTexture == nullptr)
@@ -24,11 +35,6 @@ namespace Comfy::Graphics::D3D11
 		lastSetGlow = glow;
 		GenerateLookupData(glow);
 		UpdateTexture();
-	}
-
-	Texture1D* ToneMapData::GetLookupTexture()
-	{
-		return lookupTexture.get();
 	}
 
 	void ToneMapData::GenerateLookupData(const GlowParameter& glow)

@@ -305,6 +305,7 @@
   <ItemGroup>
     <ClInclude Include="src\Editor\PV\MaterialEditor.h" />
     <ClInclude Include="src\Graphics\Auth3D\LightParam\Parameters.h" />
+    <ClInclude Include="src\Graphics\Auth3D\SceneRenderParameters.h" />
     <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\BlendStateCache.h" />
     <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\GaussianBlur.h" />
     <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ShaderFlags.h" />

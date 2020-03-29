@@ -13,9 +13,6 @@
 #include "Detail/ConstantData.h"
 #include "Detail/ShaderFlags.h"
 #include "Detail/ShaderPairs.h"
-#include "Detail/BlendStateCache.h"
-#include "Detail/TextureSamplerCache.h"
-#include "Detail/ToneMapData.h"
 #include "Graphics/Auth3D/Transform.h"
 #include "Graphics/Auth3D/ObjSet.h"
 #include "Graphics/Auth3D/ObjAnimationData.h"
@@ -183,9 +180,6 @@ namespace Comfy::Graphics::D3D11
 		UniquePtr<InputLayout> genericInputLayout = nullptr;
 		UniquePtr<InputLayout> shadowSilhouetteInputLayout = nullptr;
 
-		// TODO: Viewport renderdata instance data
-		OcclusionQuery sunOcclusionQuery = { "Renderer3D::SunOcclusionQuery" };
-
 		RasterizerState solidBackfaceCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_BACK, "Renderer3D::SolidBackfaceCulling" };
 		RasterizerState solidFrontfaceCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_FRONT, "Renderer3D::SolidFrontfaceCulling" };
 		RasterizerState solidNoCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_NONE, "Renderer3D::SolidNoCulling" };
@@ -196,9 +190,7 @@ namespace Comfy::Graphics::D3D11
 		BlendState lensFlareSunQueryBlendState = { D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_OP_ADD, D3D11_BLEND_OP_ADD, D3D11_COLOR_WRITE_ENABLE { } };
 
 		// TODO: Viewport renderdata instance data
-		TextureSamplerCache cachedTextureSamplers;
-		// TODO: Viewport renderdata instance data
-		BlendStateCache cachedBlendStates;
+		OcclusionQuery sunOcclusionQuery = { "Renderer3D::SunOcclusionQuery" };
 
 		// NOTE: To avoid having to bind and clear render targets that won't be used this frame
 		struct IsAnyCommandFlags
@@ -233,9 +225,6 @@ namespace Comfy::Graphics::D3D11
 			// size_t ObjectsRendered = 0, MeshesRendered = 0, SubMeshesRendered = 0;
 			// size_t ObjectsCulled = 0, MeshesCulled = 0, SubMeshesCulled = 0;
 		} statistics, lastFrameStatistics;
-
-		// TODO: Viewport renderdata instance data
-		ToneMapData toneMapData;
 
 		struct BeginEndData
 		{

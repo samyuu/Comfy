@@ -1,17 +1,19 @@
 #pragma once
-#include "Graphics/Auth3D/SceneContext.h"
+#include "Graphics/D3D11/Texture/Texture.h"
+#include "Graphics/Auth3D/LightParam/GlowParameter.h"
 
 namespace Comfy::Graphics::D3D11
 {
 	struct ToneMapData
 	{
 	public:
-		bool NeedsUpdating(const GlowParameter& glow);
-		void Update(const GlowParameter& glow);
-
+		void UpdateIfNeeded(const GlowParameter& glow);
 		Texture1D* GetLookupTexture();
 
 	private:
+		bool NeedsUpdating(const GlowParameter& glow);
+		void Update(const GlowParameter& glow);
+
 		void GenerateLookupData(const GlowParameter& glow);
 		void UpdateTexture();
 

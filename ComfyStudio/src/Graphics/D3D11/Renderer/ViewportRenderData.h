@@ -1,10 +1,13 @@
 #pragma once
+#include "../Texture/RenderTarget.h"
+#include "../Texture/DepthBuffer.h"
+#include "Detail/BlendStateCache.h"
+#include "Detail/TextureSamplerCache.h"
+#include "Detail/ToneMapData.h"
+#include "Graphics/Auth3D/SceneRenderParameters.h"
 
 namespace Comfy::Graphics::D3D11
 {
-	static constexpr ivec2 ShadowMapDefaultResolution = ivec2(2048, 2048);
-	static constexpr ivec2 ReflectionDefaultResolution = ivec2(512, 512);
-
 	struct MainRenderData
 	{
 		// NOTE: Main scene HRD render targets
@@ -151,5 +154,9 @@ namespace Comfy::Graphics::D3D11
 		SilhouetteRenderData Silhouette;
 		BloomRenderData Bloom;
 		OutputRenderData Output;
+
+		TextureSamplerCache TextureSamplers;
+		BlendStateCache BlendStates;
+		ToneMapData ToneMap;
 	};
 }

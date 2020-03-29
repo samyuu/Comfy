@@ -8,7 +8,7 @@ namespace Comfy::Graphics::D3D11
 		constexpr std::array AddressModeNames = { "Mirror", "Repeat", "Clamp" };
 	}
 
-	void TextureSamplerCache::CreateIfNeeded(const RenderParameters& renderParameters)
+	void TextureSamplerCache::CreateIfNeeded(const SceneRenderParameters& renderParameters)
 	{
 		if (samplers[0][0] == nullptr || lastAnistropicFiltering != renderParameters.AnistropicFiltering)
 		{
