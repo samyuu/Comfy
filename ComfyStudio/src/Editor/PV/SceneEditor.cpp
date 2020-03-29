@@ -1,8 +1,8 @@
 #include "SceneEditor.h"
 #include "Core/ComfyData.h"
 #include "Debug.h"
-#include "Graphics/Auth3D/A3D.h"
-#include "Graphics/Auth3D/A3DMgr.h"
+#include "Graphics/Auth3D/A3D/A3D.h"
+#include "Graphics/Auth3D/A3D/A3DMgr.h"
 #include "Graphics/Auth3D/DebugObj.h"
 #include "FileSystem/Archive/Farc.h"
 #include "ImGui/Extensions/TxpExtensions.h"
@@ -16,7 +16,7 @@ namespace Comfy::Editor
 {
 	using namespace Graphics;
 
-	constexpr const char* ScreenshotDirectoy = "dev_ram/ss";
+	static constexpr const char* ScreenshotDirectoy = "dev_ram/ss";
 
 	enum SceneEntityTag : EntityTag
 	{
@@ -787,7 +787,7 @@ namespace Comfy::Editor
 		if (selectedObj == nullptr)
 			return;
 
-		GuiProperty::TreeNode("Material Editor", [&]
+		GuiProperty::TreeNode("Material Editor", ImGuiTreeNodeFlags_DefaultOpen, [&]
 		{
 			if (!collectionComboDebugMaterialHover("Material", selectedObj->Materials, objTestData.MaterialIndex))
 				return;

@@ -170,8 +170,8 @@
     <ClCompile Include="src\Editor\PV\CameraAxisIndication.cpp" />
     <ClCompile Include="src\Editor\PV\ExternalProcess.cpp" />
     <ClCompile Include="src\Editor\PV\SceneEditor.cpp" />
-    <ClCompile Include="src\Graphics\Auth3D\A3D.cpp" />
-    <ClCompile Include="src\Graphics\Auth3D\A3DMgr.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\A3D\A3D.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\A3D\A3DMgr.cpp" />
     <ClCompile Include="src\Graphics\D3D11\Renderer\Detail\BlendStateCache.cpp" />
     <ClCompile Include="src\Graphics\D3D11\Renderer\Detail\TextureSamplerCache.cpp" />
     <ClCompile Include="src\Graphics\D3D11\Renderer\Detail\ToneMapData.cpp" />
@@ -336,8 +336,8 @@
     <ClInclude Include="src\Editor\PV\SceneGraph.h" />
     <ClInclude Include="src\Editor\PV\StageTest.h" />
     <ClInclude Include="src\Graphics\Auth2D\Transform2D.h" />
-    <ClInclude Include="src\Graphics\Auth3D\A3D.h" />
-    <ClInclude Include="src\Graphics\Auth3D\A3DMgr.h" />
+    <ClInclude Include="src\Graphics\Auth3D\A3D\A3D.h" />
+    <ClInclude Include="src\Graphics\Auth3D\A3D\A3DMgr.h" />
     <ClInclude Include="src\Graphics\Auth3D\ObjAnimationData.h" />
     <ClInclude Include="src\Graphics\Auth3D\RayIntersection.h" />
     <ClInclude Include="src\Graphics\Auth3D\Transform.h" />
