@@ -16,7 +16,7 @@ namespace Comfy::Editor
 
 		void Initialize();
 
-		void DrawContent(const AetTimeline* timeline, const Graphics::AetComposition* workingComp);
+		void DrawContent(const AetTimeline* timeline, const Graphics::Aet::Composition* workingComp);
 		vec2 GetCenteredTimelineRowScreenPosition(const AetTimeline* timeline, frame_t frame, int row);
 
 	private:
@@ -43,7 +43,7 @@ namespace Comfy::Editor
 		void DrawKeyFramePart(ImDrawList* drawList, vec2 position, KeyFramePart type, ImU32 color) const;
 		void DrawSingleKeyFrame(ImDrawList* drawList, const vec2& position, KeyFrameType type, float opacity = 1.0f) const;
 
-		static KeyFrameType GetKeyFrameType(const Graphics::AetKeyFrame& keyFrame, const Graphics::AetProperty1D& property);
-		static float GetKeyFrameOpacity(const Graphics::AetKeyFrame& keyFrame, bool opactiyKeyFrames);
+		static KeyFrameType GetKeyFrameType(const Graphics::Aet::KeyFrame& keyFrame, const Graphics::Aet::Property1D& property);
+		static float GetKeyFrameOpacity(const Graphics::Aet::KeyFrame& keyFrame, bool opactiyKeyFrames);
 	};
 }

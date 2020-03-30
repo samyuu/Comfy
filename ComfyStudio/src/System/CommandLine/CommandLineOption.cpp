@@ -37,7 +37,7 @@ namespace Comfy::System
 		std::string inputPath = arguments[index + 0];
 		std::string outputPath = arguments[index + 1];
 
-		Graphics::AetSet aetSet;
+		Graphics::Aet::AetSet aetSet;
 		aetSet.Load(inputPath);
 		aetSet.Save(outputPath);
 	}

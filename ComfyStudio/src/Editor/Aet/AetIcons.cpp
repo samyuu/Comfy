@@ -4,19 +4,19 @@ namespace Comfy::Editor
 {
 	using namespace Graphics;
 
-	const char* GetLayerTypeIcon(AetLayerType type)
+	const char* GetItemTypeIcon(Aet::ItemType type)
 	{
 		switch (type)
 		{
-		case AetLayerType::Pic:
-			return ICON_AETLAYERPIC;
-		case AetLayerType::Aif:
-			return ICON_AETLAYERAIF;
-		case AetLayerType::Eff:
-			return ICON_AETLAYEREFF;
-		case AetLayerType::Nop:
+		case Aet::ItemType::Video:
+			return ICON_AETITEMVIDEO;
+		case Aet::ItemType::Audio:
+			return ICON_AETITEMAUDIO;
+		case Aet::ItemType::Composition:
+			return ICON_AETITEMCOMP;
+		case Aet::ItemType::None:
 		default:
-			return ICON_AETLAYERNOP;
+			return ICON_AETITEMNONE;
 		}
 	}
 }

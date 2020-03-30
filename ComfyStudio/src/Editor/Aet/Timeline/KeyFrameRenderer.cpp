@@ -51,7 +51,7 @@ namespace Comfy::Editor
 		CreateKeyFrameTexture();
 	}
 
-	void KeyFrameRenderer::DrawContent(const AetTimeline* timeline, const AetComposition* workingComp)
+	void KeyFrameRenderer::DrawContent(const AetTimeline* timeline, const Aet::Composition* workingComp)
 	{
 		assert(workingComp != nullptr);
 
@@ -59,7 +59,7 @@ namespace Comfy::Editor
 		const frame_t cursorFrame = timeline->GetCursorFrame().Frames();
 
 		int currentRow = 0;
-		for (auto& layer : *workingComp)
+		for (auto& layer : workingComp->GetLayers())
 		{
 			const vec2 startPosition = GetCenteredTimelineRowScreenPosition(timeline, layer->StartFrame, currentRow);
 			const vec2 endPosition = GetCenteredTimelineRowScreenPosition(timeline, layer->EndFrame, currentRow);
@@ -75,12 +75,12 @@ namespace Comfy::Editor
 				continue;
 
 			// TODO: The same should happen for the info column
-			if (layer->AnimationData == nullptr)
+			if (layer->LayerVideo == nullptr)
 				continue;
 
 			for (Transform2DField i = 0; i < Transform2DField_Count; i++)
 			{
-				auto& property = layer->AnimationData->Transform[i];
+				auto& property = layer->LayerVideo->Transform[i];
 				for (const auto& keyFrame : property.Keys)
 				{
 					const vec2 keyFramePosition = GetCenteredTimelineRowScreenPosition(timeline, keyFrame.Frame, currentRow);
@@ -201,7 +201,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	KeyFrameRenderer::KeyFrameType KeyFrameRenderer::GetKeyFrameType(const AetKeyFrame& keyFrame, const AetProperty1D& property)
+	KeyFrameRenderer::KeyFrameType KeyFrameRenderer::GetKeyFrameType(const Aet::KeyFrame& keyFrame, const Aet::Property1D& property)
 	{
 		if (property->size() == 1)
 		{
@@ -221,7 +221,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	float KeyFrameRenderer::GetKeyFrameOpacity(const AetKeyFrame& keyFrame, bool opactiyKeyFrames)
+	float KeyFrameRenderer::GetKeyFrameOpacity(const Aet::KeyFrame& keyFrame, bool opactiyKeyFrames)
 	{
 		return opactiyKeyFrames ? keyFrame.Value : 1.0f;
 	}

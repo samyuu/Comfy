@@ -14,6 +14,7 @@
 namespace Comfy::Editor
 {
 	using namespace Graphics;
+	using namespace Graphics::Aet;
 
 	AetRenderWindow::AetRenderWindow(AetCommandManager* commandManager, SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem, AetRenderPreviewData* previewData)
 		: IMutatingEditorComponent(commandManager), selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem), previewData(previewData)
@@ -74,14 +75,14 @@ namespace Comfy::Editor
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(4.0f, 1.0f));
 		Gui::PushItemWidth(itemWidth);
 		{
-			if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::Layer && selectedAetItem->GetLayerRef()->AnimationData != nullptr)
+			if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::Layer && selectedAetItem->GetLayerRef()->LayerVideo != nullptr)
 			{
 				const auto& selctedLayer = selectedAetItem->GetLayerRef();
-				toolTransform = AetMgr::GetTransformAt(*selctedLayer->AnimationData, currentFrame);
+				toolTransform = AetMgr::GetTransformAt(*selctedLayer->LayerVideo, currentFrame);
 
 				// BUG: This is problematic because the tool ignores this offset when moving
 				int32_t recursionCount = 0;
-				AetMgr::ApplyParentTransform(toolTransform, selctedLayer->GetReferencedParentLayer().get(), currentFrame, recursionCount);
+				AetMgr::ApplyParentTransform(toolTransform, selctedLayer->GetRefParentLayer().get(), currentFrame, recursionCount);
 
 				toolSize = GetLayerBoundingSize(selctedLayer);
 			}
@@ -140,7 +141,7 @@ namespace Comfy::Editor
 			tool->SetSpaceConversionFunctions(worldToScreen, screenToWorld);
 			tool->UpdatePostDrawGui(&toolTransform, toolSize);
 
-			if (!isPlayback && selectedAetItem->GetLayerRef()->Type != AetLayerType::Aif)
+			if (!isPlayback && selectedAetItem->GetLayerRef()->ItemType != ItemType::Audio)
 			{
 				const auto& layer = selectedAetItem->GetLayerRef();
 				tool->ProcessCommands(GetCommandManager(), layer, currentFrame, toolTransform, previousTransform);
@@ -165,7 +166,7 @@ namespace Comfy::Editor
 			bool allowSelection = !cameraSelectedAetItem->IsNull() && cameraSelectedAetItem->Type() == AetItemType::Composition;
 			if (Gui::BeginMenu("Select", allowSelection))
 			{
-				for (const auto& layer : *cameraSelectedAetItem->GetAetCompositionRef())
+				for (const auto& layer : cameraSelectedAetItem->GetCompositionRef()->GetLayers())
 				{
 					bool alreadySelected = layer.get() == selectedAetItem->Ptrs.Layer;
 
@@ -207,8 +208,8 @@ namespace Comfy::Editor
 
 	void AetRenderWindow::OnRender()
 	{
-		if (!selectedAetItem->IsNull() && selectedAetItem->GetItemParentAet() != nullptr)
-			aetRegionSize = selectedAetItem->GetItemParentAet()->Resolution;
+		if (!selectedAetItem->IsNull() && selectedAetItem->GetItemParentScene() != nullptr)
+			aetRegionSize = selectedAetItem->GetItemParentScene()->Resolution;
 
 		const vec2 relativeMouse = GetRelativeMouse();
 		cameraController.Update(camera, relativeMouse);
@@ -231,8 +232,8 @@ namespace Comfy::Editor
 					case AetItemType::AetSet:
 						RenderAetSet(visibleItem->Ptrs.AetSet);
 						break;
-					case AetItemType::Aet:
-						RenderAet(visibleItem->Ptrs.Aet);
+					case AetItemType::Scene:
+						RenderScene(visibleItem->Ptrs.Scene);
 						break;
 					case AetItemType::Composition:
 						RenderComposition(visibleItem->Ptrs.Composition);
@@ -240,8 +241,8 @@ namespace Comfy::Editor
 					case AetItemType::Layer:
 						RenderLayer(visibleItem->Ptrs.Layer);
 						break;
-					case AetItemType::Surface:
-						RenderSurface(visibleItem->Ptrs.Surface);
+					case AetItemType::Video:
+						RenderVideo(visibleItem->Ptrs.Video);
 						break;
 					case AetItemType::None:
 					default:
@@ -299,7 +300,7 @@ namespace Comfy::Editor
 
 	void AetRenderWindow::DrawTooltipHeaderGui()
 	{
-		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::Layer && selectedAetItem->GetLayerRef()->AnimationData != nullptr)
+		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::Layer && selectedAetItem->GetLayerRef()->LayerVideo != nullptr)
 		{
 			// TODO: Tool specific widgets
 			// TODO: TransformTool could have a origin / position preset selection box here
@@ -394,20 +395,20 @@ namespace Comfy::Editor
 	{
 	}
 
-	void AetRenderWindow::RenderAet(const Aet* aet)
+	void AetRenderWindow::RenderScene(const Scene* scene)
 	{
 	}
 
-	void AetRenderWindow::RenderComposition(const AetComposition* comp)
+	void AetRenderWindow::RenderComposition(const Composition* comp)
 	{
 		objectCache.clear();
 		AetMgr::GetAddObjects(objectCache, comp, currentFrame);
 		aetRenderer->RenderObjCacheVector(objectCache);
 	}
 
-	void AetRenderWindow::RenderLayer(const AetLayer* layer)
+	void AetRenderWindow::RenderLayer(const Layer* layer)
 	{
-		if (layer->Type != AetLayerType::Pic && layer->Type != AetLayerType::Eff)
+		if (layer->ItemType != ItemType::Video && layer->ItemType != ItemType::Composition)
 			return;
 
 		objectCache.clear();
@@ -415,19 +416,19 @@ namespace Comfy::Editor
 		aetRenderer->RenderObjCacheVector(objectCache);
 	}
 
-	void AetRenderWindow::RenderSurface(const AetSurface* surface)
+	void AetRenderWindow::RenderVideo(const Video* video)
 	{
-		int32_t spriteIndex = glm::clamp(0, static_cast<int32_t>(currentFrame), surface->SpriteCount() - 1);
-		const AetSpriteIdentifier* aetSprite = surface->GetSprite(spriteIndex);
-		aetRenderer->RenderAetSprite(surface, aetSprite, vec2(0.0f, 0.0f));
+		const int spriteIndex = glm::clamp(0, static_cast<int>(currentFrame), static_cast<int>(video->Sources.size()) - 1);
+		const VideoSource* source = video->GetSource(spriteIndex);
+		aetRenderer->RenderAetSprite(video, source, vec2(0.0f, 0.0f));
 	}
 
-	vec2 AetRenderWindow::GetLayerBoundingSize(const RefPtr<AetLayer>& layer) const
+	vec2 AetRenderWindow::GetLayerBoundingSize(const RefPtr<Layer>& layer) const
 	{
-		const auto& surface = layer->GetReferencedSurface();
+		const auto& video = layer->GetVideoItem();
 
-		if (surface != nullptr)
-			return surface->Size;
+		if (video != nullptr)
+			return video->Size;
 
 		// TODO: Find bounding box (?), or maybe just disallow using the transform tool (?)
 		// NOTE: ~~Maybe this is sufficient already (?)~~
@@ -436,17 +437,17 @@ namespace Comfy::Editor
 
 	bool AetRenderWindow::OnObjRender(const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)
 	{
-		const bool visible = obj.Surface != nullptr && obj.Visible;
+		const bool visible = obj.Video != nullptr && obj.Visible;
 		const bool selected = selectedAetItem->Ptrs.Layer == obj.Source;
 
 		if (!visible || !selected)
 			return false;
 
-		const AetSurface* surface = (previewData->Surface != nullptr) ? previewData->Surface : obj.Surface;
+		const Video* video = (previewData->Video != nullptr) ? previewData->Video : obj.Video;
 
 		const Txp* txp;
 		const Spr* spr;
-		const bool validSprite = aetRenderer->GetSprite(surface->GetSprite(obj.SpriteIndex), &txp, &spr);
+		const bool validSprite = aetRenderer->GetSprite(video->GetSource(obj.SpriteIndex), &txp, &spr);
 
 		if (!validSprite)
 			return false;
@@ -466,7 +467,7 @@ namespace Comfy::Editor
 
 	bool AetRenderWindow::OnObjMaskRender(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)
 	{
-		const bool visible = maskObj.Surface != nullptr && obj.Surface != nullptr && obj.Visible;
+		const bool visible = maskObj.Video != nullptr && obj.Video != nullptr && obj.Visible;
 
 		if (!visible || selectedAetItem->IsNull())
 			return false;
@@ -477,16 +478,16 @@ namespace Comfy::Editor
 		if (!selected && !maskSelected)
 			return false;
 
-		const AetSurface* surface = (previewData->Surface != nullptr && selected) ? previewData->Surface : obj.Surface;
-		const AetSurface* maskSurface = (previewData->Surface != nullptr && maskSelected) ? previewData->Surface : maskObj.Surface;
+		const Video* video = (previewData->Video != nullptr && selected) ? previewData->Video : obj.Video;
+		const Video* maskVideo = (previewData->Video != nullptr && maskSelected) ? previewData->Video : maskObj.Video;
 
 		const Txp* maskTxp;
 		const Spr* maskSpr;
-		const bool validMaskSprite = aetRenderer->GetSprite(maskSurface->GetSprite(maskObj.SpriteIndex), &maskTxp, &maskSpr);
+		const bool validMaskSprite = aetRenderer->GetSprite(maskVideo->GetSource(maskObj.SpriteIndex), &maskTxp, &maskSpr);
 
 		const Txp* txp;
 		const Spr* spr;
-		const bool validSprite = aetRenderer->GetSprite(surface->GetSprite(obj.SpriteIndex), &txp, &spr);
+		const bool validSprite = aetRenderer->GetSprite(video->GetSource(obj.SpriteIndex), &txp, &spr);
 
 		if (!validMaskSprite || !validSprite)
 			return false;

@@ -10,7 +10,7 @@ namespace Comfy::Editor
 	class AetInspector : public IMutatingEditorComponent
 	{
 	public:
-		AetInspector(AetCommandManager* commandManager, Graphics::SpriteGetterFunction* spriteGetter, AetRenderPreviewData* previewData);
+		AetInspector(AetCommandManager* commandManager, Graphics::Aet::SpriteGetterFunction* spriteGetter, AetRenderPreviewData* previewData);
 		~AetInspector();
 
 		void Initialize();
@@ -28,7 +28,7 @@ namespace Comfy::Editor
 		char markerNameBuffer[255];
 		char spriteNameBuffer[255];
 		char compDataNameBuffer[255];
-		char surfaceDataNameBuffer[255];
+		char videoDataNameBuffer[255];
 
 		vec4 animatedPropertyColor, keyFramePropertyColor, staticPropertyColor;
 
@@ -36,29 +36,29 @@ namespace Comfy::Editor
 		bool isPlayback = false;
 		float currentFrame = 0.0f;
 
-		Graphics::SpriteGetterFunction* spriteGetter;
+		Graphics::Aet::SpriteGetterFunction* spriteGetter;
 		AetRenderPreviewData* previewData = nullptr;
 
 	private:
-		void DrawInspectorAetSet(const RefPtr<Graphics::AetSet>& aetSet);
-		void DrawInspectorAet(const RefPtr<Graphics::Aet>& aet);
+		void DrawInspectorAetSet(const RefPtr<Graphics::Aet::AetSet>& aetSet);
+		void DrawInspectorAet(const RefPtr<Graphics::Aet::Scene>& scene);
 		
-		void DrawInspectorComposition(Graphics::Aet* aet, const RefPtr<Graphics::AetComposition>& comp);
-		void DrawInspectorCompositionData(Graphics::Aet* aet, const RefPtr<Graphics::AetLayer>& layer, const RefPtr<Graphics::AetComposition>& comp);
+		void DrawInspectorComposition(Graphics::Aet::Scene* scene, const RefPtr<Graphics::Aet::Composition>& comp);
+		void DrawInspectorCompositionData(Graphics::Aet::Scene* scene, const RefPtr<Graphics::Aet::Layer>& layer, const RefPtr<Graphics::Aet::Composition>& comp);
 		
-		void DrawInspectorLayer(Graphics::Aet* aet, const RefPtr<Graphics::AetLayer>& layer);
-		void DrawInspectorSurfaceData(Graphics::Aet* aet, const RefPtr<Graphics::AetLayer>& layer, const RefPtr<Graphics::AetSurface>& surface);
+		void DrawInspectorLayer(Graphics::Aet::Scene* scene, const RefPtr<Graphics::Aet::Layer>& layer);
+		void DrawInspectorVideoData(Graphics::Aet::Scene* scene, const RefPtr<Graphics::Aet::Layer>& layer, const RefPtr<Graphics::Aet::Video>& video);
 		
-		void DrawInspectorAnimationData(const RefPtr<Graphics::AetAnimationData>& animationData, const RefPtr<Graphics::AetLayer>& layer);
-		void DrawInspectorDebugAnimationData(const RefPtr<Graphics::AetAnimationData>& animationData, const RefPtr<Graphics::AetLayer>& layer);
+		void DrawInspectorAnimationData(const RefPtr<Graphics::Aet::LayerVideo>& animationData, const RefPtr<Graphics::Aet::Layer>& layer);
+		void DrawInspectorDebugAnimationData(const RefPtr<Graphics::Aet::LayerVideo>& animationData, const RefPtr<Graphics::Aet::Layer>& layer);
 
-		void DrawInspectorAnimationDataProperty(const RefPtr<Graphics::AetLayer>& layer, const char* label, frame_t frame, float& value, Graphics::Transform2DField field);
-		void DrawInspectorAnimationDataPropertyVec2(const RefPtr<Graphics::AetLayer>& layer, const char* label, frame_t frame, vec2& value, Graphics::Transform2DField fieldX, Graphics::Transform2DField fieldY);
+		void DrawInspectorAnimationDataProperty(const RefPtr<Graphics::Aet::Layer>& layer, const char* label, frame_t frame, float& value, Graphics::Transform2DField field);
+		void DrawInspectorAnimationDataPropertyVec2(const RefPtr<Graphics::Aet::Layer>& layer, const char* label, frame_t frame, vec2& value, Graphics::Transform2DField fieldX, Graphics::Transform2DField fieldY);
 
-		void DrawInspectorLayerMarkers(const RefPtr<Graphics::AetLayer>& layer, std::vector<RefPtr<Graphics::AetMarker>>* markers);
-		void DrawInspectorLayerParent(Graphics::Aet* aet, const RefPtr<Graphics::AetLayer>& layer);
+		void DrawInspectorLayerMarkers(const RefPtr<Graphics::Aet::Layer>& layer, std::vector<RefPtr<Graphics::Aet::Marker>>* markers);
+		void DrawInspectorLayerParent(Graphics::Aet::Scene* scene, const RefPtr<Graphics::Aet::Layer>& layer);
 		
-		void DrawInspectorSurface(Graphics::Aet* aet, const RefPtr<Graphics::AetSurface>& surface);
+		void DrawInspectorVideo(Graphics::Aet::Scene* scene, const RefPtr<Graphics::Aet::Video>& video);
 
 	private:
 		void PushDisableItemFlagIfPlayback();

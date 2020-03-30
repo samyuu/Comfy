@@ -5,6 +5,7 @@
 namespace Comfy::Editor
 {
 	using namespace Graphics;
+	using namespace Graphics::Aet;
 
 	static_assert(sizeof(Transform2DField_Enum) == sizeof(int32_t) && sizeof(KeyFrameIndex::Pair) == sizeof(KeyFrameIndex::PackedValue));
 
@@ -29,7 +30,7 @@ namespace Comfy::Editor
 		selectedAetItem = value;
 
 		constexpr float defaultFrameRate = 60.0f;
-		const Aet* parentAet = value.GetItemParentAet();
+		const Scene* parentAet = value.GetItemParentScene();
 
 		frameRate = (parentAet != nullptr) ? parentAet->FrameRate : defaultFrameRate;
 	}
@@ -46,12 +47,12 @@ namespace Comfy::Editor
 
 	float AetTimeline::GetTimelineHeight() const
 	{
-		const AetComposition* workingComp = GetWorkingComposition();
+		const Composition* workingComp = GetWorkingComposition();
 		if (workingComp == nullptr)
 			return 0.0f;
 
-		int rowCount = static_cast<int>(workingComp->size());
-		for (const auto& layer : *workingComp)
+		int rowCount = static_cast<int>(workingComp->GetLayers().size());
+		for (const auto& layer : workingComp->GetLayers())
 		{
 			if (layer->GuiData.TimelineNodeOpen)
 				rowCount += Transform2DField_Count;
@@ -224,21 +225,21 @@ namespace Comfy::Editor
 		if (selectedAetItem.Type() != AetItemType::Layer && selectedAetItem.Type() != AetItemType::Composition)
 			return;
 
-		const AetComposition* workingComp = GetWorkingComposition();
-		const AetLayer* selectedLayer = (selectedAetItem.Type() == AetItemType::Layer) ? selectedAetItem.Ptrs.Layer : nullptr;
+		const Composition* workingComp = GetWorkingComposition();
+		const Layer* selectedLayer = (selectedAetItem.Type() == AetItemType::Layer) ? selectedAetItem.Ptrs.Layer : nullptr;
 
 		Gui::PushClipRect(infoColumnRegion.GetTL(), infoColumnRegion.GetBR(), true);
 		DrawTimelineInfoColumnComposition(workingComp, selectedLayer);
 		Gui::PopClipRect();
 	}
 
-	void AetTimeline::DrawTimelineInfoColumnComposition(const AetComposition* workingComp, const AetLayer* selectedLayer) const
+	void AetTimeline::DrawTimelineInfoColumnComposition(const Composition* workingComp, const Layer* selectedLayer) const
 	{
 		if (workingComp == nullptr)
 			return;
 
 #if 1 // DEBUG: Should be controlled by tree node expansion arrows
-		for (auto& layer : *workingComp)
+		for (auto& layer : workingComp->GetLayers())
 			layer->GuiData.TimelineNodeOpen = (layer.get() == selectedLayer);
 #endif
 
@@ -265,7 +266,7 @@ namespace Comfy::Editor
 		};
 
 		// TODO: Theses should probably be member functions
-		auto drawLayer = [&](int rowIndex, const RefPtr<AetLayer>& layer)
+		auto drawLayer = [&](int rowIndex, const RefPtr<Layer>& layer)
 		{
 			// TODO: Adjust spacing and implement tree node expansion arrow
 			constexpr float typeIconDistance = 20.0f;
@@ -284,13 +285,13 @@ namespace Comfy::Editor
 			Gui::RenderArrow(position + vec2(0.0f, GImGui->FontSize * 0.15f), layer->GuiData.TimelineNodeOpen ? ImGuiDir_Down : ImGuiDir_Right, 0.70f);
 			position.x += GImGui->FontSize + GImGui->Style.ItemSpacing.x - 5.0f;
 
-			Gui::GetWindowDrawList()->AddText(position, Gui::GetColorU32(ImGuiCol_Text), GetLayerTypeIcon(layer->Type));
+			Gui::GetWindowDrawList()->AddText(position, Gui::GetColorU32(ImGuiCol_Text), GetItemTypeIcon(layer->ItemType));
 			position.x += typeIconDistance;
 			
 			Gui::GetWindowDrawList()->AddText(position, Gui::GetColorU32(ImGuiCol_Text), layer->GetName().c_str());
 		};
 
-		auto drawLayerTransformProperties = [&](int& rowIndex, const RefPtr<AetLayer>& layer)
+		auto drawLayerTransformProperties = [&](int& rowIndex, const RefPtr<Layer>& layer)
 		{
 			for (Transform2DField i = 0; i < Transform2DField_Count; i++)
 			{
@@ -315,7 +316,7 @@ namespace Comfy::Editor
 		};
 
 		int rowIndex = 0;
-		for (const auto& layer : *workingComp)
+		for (const auto& layer : workingComp->GetLayers())
 		{
 			drawLayer(rowIndex, layer);
 			drawRowSeparator(++rowIndex);
@@ -327,7 +328,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	const AetComposition* AetTimeline::GetWorkingComposition() const
+	const Composition* AetTimeline::GetWorkingComposition() const
 	{
 		switch (selectedAetItem.Type())
 		{
@@ -344,14 +345,14 @@ namespace Comfy::Editor
 
 	int AetTimeline::GetTimelineRowCount() const
 	{
-		const AetComposition* workingComp = GetWorkingComposition();
+		const Composition* workingComp = GetWorkingComposition();
 
 		if (workingComp == nullptr)
 			return 1;
 
-		int rowCount = static_cast<int>(workingComp->size());
+		int rowCount = static_cast<int>(workingComp->GetLayers().size());
 		{
-			for (const auto& layer : *workingComp)
+			for (const auto& layer : workingComp->GetLayers())
 			{
 				if (layer->GuiData.TimelineNodeOpen)
 					rowCount += Transform2DField_Count;
@@ -438,10 +439,10 @@ namespace Comfy::Editor
 		Gui::PopStyleVar(1);
 	}
 
-	static frame_t GetCompositionLastFrame(const AetComposition* comp)
+	static frame_t GetCompositionLastFrame(const Composition* comp)
 	{
 		frame_t lastFrame = 0;
-		for (auto& layer : *comp)
+		for (auto& layer : comp->GetLayers())
 		{
 			if (layer->EndFrame > lastFrame)
 				lastFrame = layer->EndFrame;
@@ -453,20 +454,20 @@ namespace Comfy::Editor
 	{
 		if (!selectedAetItem.IsNull())
 		{
-			const auto parentAet = selectedAetItem.GetItemParentAet();
+			const auto parentAet = selectedAetItem.GetItemParentScene();
 			const auto itemType = selectedAetItem.Type();
 
-			if (itemType == AetItemType::Aet || (itemType == AetItemType::Composition && selectedAetItem.GetAetCompositionRef()->IsRootComposition()))
+			if (itemType == AetItemType::Scene || (itemType == AetItemType::Composition && selectedAetItem.GetCompositionRef()->IsRootComposition()))
 			{
 				loopStartFrame = parentAet->StartFrame;
 				loopEndFrame = parentAet->EndFrame;
 			}
-			else if (itemType == AetItemType::Surface)
+			else if (itemType == AetItemType::Video)
 			{
 				loopStartFrame = 0.0f;
-				loopEndFrame = glm::max(0.0f, selectedAetItem.Ptrs.Surface->SpriteCount() - 1.0f);
+				loopEndFrame = glm::max(0.0f, selectedAetItem.Ptrs.Video->Frames - 1.0f);
 			}
-			else if (const AetComposition* workingComp = GetWorkingComposition(); itemType == AetItemType::Composition || itemType == AetItemType::Layer && workingComp != nullptr)
+			else if (const Composition* workingComp = GetWorkingComposition(); itemType == AetItemType::Composition || itemType == AetItemType::Layer && workingComp != nullptr)
 			{
 				loopStartFrame = 0.0f;
 				loopEndFrame = GetCompositionLastFrame(workingComp);
@@ -527,8 +528,8 @@ namespace Comfy::Editor
 			switch (selectedAetItem.Type())
 			{
 			case AetItemType::AetSet:
-			case AetItemType::Aet:
-			case AetItemType::Surface:
+			case AetItemType::Scene:
+			case AetItemType::Video:
 				DrawTimelineContentNone();
 				break;
 

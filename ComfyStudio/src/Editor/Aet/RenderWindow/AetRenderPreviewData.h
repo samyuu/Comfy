@@ -6,7 +6,7 @@ namespace Comfy::Editor
 	// NOTE: To communicate and provide visual feedback between different components
 	struct AetRenderPreviewData
 	{
-		const Graphics::AetSurface* Surface = nullptr;
+		const Graphics::Aet::Video* Video = nullptr;
 		Graphics::AetBlendMode BlendMode = Graphics::AetBlendMode::Unknown;
 	};
 }

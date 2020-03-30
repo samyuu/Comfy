@@ -79,9 +79,9 @@ namespace Comfy::Editor
 		
 		void OnDrawTimelineInfoColumnHeader() override;
 		void OnDrawTimelineInfoColumn() override;
-		void DrawTimelineInfoColumnComposition(const Graphics::AetComposition* workingComp, const Graphics::AetLayer* selectedLayer) const;
+		void DrawTimelineInfoColumnComposition(const Graphics::Aet::Composition* workingComp, const Graphics::Aet::Layer* selectedLayer) const;
 
-		const Graphics::AetComposition* GetWorkingComposition() const;
+		const Graphics::Aet::Composition* GetWorkingComposition() const;
 		int GetTimelineRowCount() const;
 
 		void OnDrawTimlineRows() override;

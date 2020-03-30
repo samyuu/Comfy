@@ -33,7 +33,7 @@ namespace Comfy::App
 
 	protected:
 		UniquePtr<Graphics::GPU_Renderer2D> renderer;
-		UniquePtr<Graphics::AetRenderer> aetRenderer;
+		UniquePtr<Graphics::Aet::AetRenderer> aetRenderer;
 
 		Graphics::OrthographicCamera camera;
 		Editor::CameraController2D cameraController;

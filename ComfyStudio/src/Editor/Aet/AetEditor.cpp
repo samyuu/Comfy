@@ -14,11 +14,11 @@ namespace Comfy::Editor
 	{
 		commandManager = MakeUnique<AetCommandManager>();
 
-		spriteGetterFunction = [](const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr) { return false; };
+		spriteGetterFunction = [](const Aet::VideoSource* source, const Txp** outTxp, const Spr** outSpr) { return false; };
 
 		treeView = MakeUnique<AetTreeView>(commandManager.get(), &selectedAetItem, &cameraSelectedAetItem);
 		inspector = MakeUnique<AetInspector>(commandManager.get(), &spriteGetterFunction, &previewData);
-		//contentView = MakeUnique<AetContentView>();
+		// contentView = MakeUnique<AetContentView>();
 		timeline = MakeUnique<AetTimeline>();
 		renderWindow = MakeUnique<AetRenderWindow>(commandManager.get(), &spriteGetterFunction, &selectedAetItem, &cameraSelectedAetItem, &previewData);
 		historyWindow = MakeUnique<AetHistoryWindow>(commandManager.get());
@@ -32,7 +32,7 @@ namespace Comfy::Editor
 	{
 		treeView->Initialize();
 		inspector->Initialize();
-		//contentView->Initialize();
+		// contentView->Initialize();
 		timeline->Initialize();
 		renderWindow->Initialize();
 
@@ -161,7 +161,7 @@ namespace Comfy::Editor
 		if (!FileSystem::FileExists(widePath))
 			return false;
 
-		editorAetSet = MakeRef<AetSet>();
+		editorAetSet = MakeRef<Aet::AetSet>();
 		editorAetSet->Name = FileSystem::GetFileName(filePath, false);
 		editorAetSet->Load(widePath);
 
@@ -201,9 +201,9 @@ namespace Comfy::Editor
 		if (editorAetSet != nullptr)
 			editorAetSet->ClearSpriteCache();
 
-		spriteGetterFunction = [this](const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr)
+		spriteGetterFunction = [this](const Aet::VideoSource* source, const Txp** outTxp, const Spr** outSpr)
 		{
-			return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), identifier, outTxp, outSpr);
+			return Aet::AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), source, outTxp, outSpr);
 		};
 	}
 }

@@ -7,10 +7,10 @@ namespace Comfy::Editor
 
 	TargetRenderWindow::TargetRenderWindow()
 	{
-		spriteGetterFunction = [this](const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr) { return false; };
+		spriteGetterFunction = [this](const Aet::VideoSource* source, const Txp** outTxp, const Spr** outSpr) { return false; };
 
 		renderer = MakeUnique<D3D11::Renderer2D>();
-		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
+		aetRenderer = MakeUnique<Aet::AetRenderer>(renderer.get());
 		aetRenderer->SetSpriteGetterFunction(&spriteGetterFunction);
 	}
 
@@ -25,18 +25,18 @@ namespace Comfy::Editor
 
 		sprSetLoader.LoadAsync();
 
-		aetSet = MakeUnique<AetSet>();
+		aetSet = MakeUnique<Aet::AetSet>();
 		aetSetLoader.LoadSync();
 		aetSetLoader.Read(aetSet.get());
 		aetSetLoader.FreeData();
 
-		layerCache.FrameUp = aetSet->front()->FindLayer("frame_up_f");
-		layerCache.FrameBottom = aetSet->front()->FindLayer("frame_bottom_f");
-		layerCache.LifeGauge = aetSet->front()->FindLayer("life_gauge");
-		layerCache.SongEnergyBase = aetSet->front()->FindLayer("song_energy_base_f");
-		layerCache.SongIconLoop = aetSet->front()->FindLayer("song_icon_loop");
-		layerCache.LevelInfoEasy = aetSet->front()->FindLayer("level_info_easy");
-		layerCache.SongInfoLoop = aetSet->front()->FindLayer("song_icon_loop");
+		layerCache.FrameUp = aetSet->GetScenes().front()->FindLayer("frame_up_f");
+		layerCache.FrameBottom = aetSet->GetScenes().front()->FindLayer("frame_bottom_f");
+		layerCache.LifeGauge = aetSet->GetScenes().front()->FindLayer("life_gauge");
+		layerCache.SongEnergyBase = aetSet->GetScenes().front()->FindLayer("song_energy_base_f");
+		layerCache.SongIconLoop = aetSet->GetScenes().front()->FindLayer("song_icon_loop");
+		layerCache.LevelInfoEasy = aetSet->GetScenes().front()->FindLayer("level_info_easy");
+		layerCache.SongInfoLoop = aetSet->GetScenes().front()->FindLayer("song_icon_loop");
 	}
 
 	void TargetRenderWindow::OnDrawGui()
@@ -114,7 +114,10 @@ namespace Comfy::Editor
 			sprSet->TxpSet->UploadAll(sprSet.get());
 			sprSetLoader.FreeData();
 
-			spriteGetterFunction = [this](const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr) { return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), identifier, outTxp, outSpr); };
+			spriteGetterFunction = [this](const Aet::VideoSource* source, const Txp** outTxp, const Spr** outSpr) 
+			{ 
+				return Aet::AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), source, outTxp, outSpr); 
+			};
 			aetRenderer->SetSpriteGetterFunction(&spriteGetterFunction);
 		}
 	}

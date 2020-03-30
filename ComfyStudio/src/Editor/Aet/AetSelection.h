@@ -8,31 +8,30 @@ namespace Comfy::Editor
 	{
 		None,
 		AetSet,
-		Aet,
+		Scene,
 		Composition,
 		Layer,
-		Surface,
+		Video,
 	};
 
 	union AetItemPtrUnion
 	{
-		void* VoidPointer;
-
-		Graphics::AetSet* AetSet;
-		Graphics::Aet* Aet;
-		Graphics::AetComposition* Composition;
-		Graphics::AetLayer* Layer;
-		Graphics::AetSurface* Surface;
+		void* Void;
+		Graphics::Aet::AetSet* AetSet;
+		Graphics::Aet::Scene* Scene;
+		Graphics::Aet::Composition* Composition;
+		Graphics::Aet::Layer* Layer;
+		Graphics::Aet::Video* Video;
 	};
 
 	union AetItemReferencePtrUnion
 	{
-		const RefPtr<void*>* VoidReference;
-		const RefPtr<Graphics::AetSet>* AetSetRef;
-		const RefPtr<Graphics::Aet>* AetRef;
-		const RefPtr<Graphics::AetComposition>* CompositionRef;
-		const RefPtr<Graphics::AetLayer>* LayerRef;
-		const RefPtr<Graphics::AetSurface>* SurfaceRef;
+		const RefPtr<void*>* VoidRef;
+		const RefPtr<Graphics::Aet::AetSet>* AetSetRef;
+		const RefPtr<Graphics::Aet::Scene>* SceneRef;
+		const RefPtr<Graphics::Aet::Composition>* CompositionRef;
+		const RefPtr<Graphics::Aet::Layer>* LayerRef;
+		const RefPtr<Graphics::Aet::Video>* VideoRef;
 	};
 
 	struct AetItemTypePtr
@@ -42,17 +41,17 @@ namespace Comfy::Editor
 		inline void SetItem(const RefPtr<T>& value);
 
 		inline AetItemType Type() const { return type; };
-		inline void Reset() { type = AetItemType::None; Ptrs.VoidPointer = nullptr; refPtrs.VoidReference = nullptr; };
+		inline void Reset() { type = AetItemType::None; Ptrs.Void = nullptr; refPtrs.VoidRef = nullptr; };
 
 	public:
-		inline const RefPtr<Graphics::AetSet>& GetAetSetRef() const { return *refPtrs.AetSetRef; };
-		inline const RefPtr<Graphics::Aet>& GetAetRef() const { return *refPtrs.AetRef; };
-		inline const RefPtr<Graphics::AetComposition>& GetAetCompositionRef() const { return *refPtrs.CompositionRef; };
-		inline const RefPtr<Graphics::AetLayer>& GetLayerRef() const { return *refPtrs.LayerRef; };
-		inline const RefPtr<Graphics::AetSurface>& GetSurfaceRef() const { return *refPtrs.SurfaceRef; };
+		inline const RefPtr<Graphics::Aet::AetSet>& GetAetSetRef() const { return *refPtrs.AetSetRef; };
+		inline const RefPtr<Graphics::Aet::Scene>& GetSceneRef() const { return *refPtrs.SceneRef; };
+		inline const RefPtr<Graphics::Aet::Composition>& GetCompositionRef() const { return *refPtrs.CompositionRef; };
+		inline const RefPtr<Graphics::Aet::Layer>& GetLayerRef() const { return *refPtrs.LayerRef; };
+		inline const RefPtr<Graphics::Aet::Video>& GetVideoRef() const { return *refPtrs.VideoRef; };
 
-		inline bool IsNull() const { return Ptrs.VoidPointer == nullptr; };
-		inline Graphics::Aet* GetItemParentAet() const;
+		inline bool IsNull() const { return Ptrs.Void == nullptr; };
+		inline Graphics::Aet::Scene* GetItemParentScene() const;
 
 	public:
 		AetItemPtrUnion Ptrs;
@@ -62,46 +61,27 @@ namespace Comfy::Editor
 		AetItemReferencePtrUnion refPtrs;
 	};
 
-	template<class T>
+	template <typename T>
 	inline void AetItemTypePtr::SetItem(const RefPtr<T>& value)
 	{
-		if constexpr (std::is_same<T, Graphics::AetSet>::value)
-		{
+		if constexpr (std::is_same<T, Graphics::Aet::AetSet>::value)
 			type = AetItemType::AetSet;
-			Ptrs.AetSet = value.get();
-			refPtrs.AetSetRef = &value;
-		}
-		else if constexpr (std::is_same<T, Graphics::Aet>::value)
-		{
-			type = AetItemType::Aet;
-			Ptrs.Aet = value.get();
-			refPtrs.AetRef = &value;
-		}
-		else if constexpr (std::is_same<T, Graphics::AetComposition>::value)
-		{
+		else if constexpr (std::is_same<T, Graphics::Aet::Scene>::value)
+			type = AetItemType::Scene;
+		else if constexpr (std::is_same<T, Graphics::Aet::Composition>::value)
 			type = AetItemType::Composition;
-			Ptrs.Composition = value.get();
-			refPtrs.CompositionRef = &value;
-		}
-		else if constexpr (std::is_same<T, Graphics::AetLayer>::value)
-		{
+		else if constexpr (std::is_same<T, Graphics::Aet::Layer>::value)
 			type = AetItemType::Layer;
-			Ptrs.Layer = value.get();
-			refPtrs.LayerRef = &value;
-		}
-		else if constexpr (std::is_same<T, Graphics::AetSurface>::value)
-		{
-			type = AetItemType::Surface;
-			Ptrs.Surface = value.get();
-			refPtrs.SurfaceRef = &value;
-		}
+		else if constexpr (std::is_same<T, Graphics::Aet::Video>::value)
+			type = AetItemType::Video;
 		else
-		{
 			static_assert(false, "Invalid Type T");
-		}
+
+		Ptrs.Void = reinterpret_cast<void*>(value.get());
+		refPtrs.VoidRef = reinterpret_cast<const RefPtr<void*>*>(&value);
 	}
 
-	inline Graphics::Aet* AetItemTypePtr::GetItemParentAet() const
+	inline Graphics::Aet::Scene* AetItemTypePtr::GetItemParentScene() const
 	{
 		if (IsNull())
 			return nullptr;
@@ -112,15 +92,15 @@ namespace Comfy::Editor
 			return nullptr;
 		case AetItemType::AetSet:
 			return nullptr;
-		case AetItemType::Aet:
-			return Ptrs.Aet;
+		case AetItemType::Scene:
+			return Ptrs.Scene;
 		case AetItemType::Composition:
-			assert(Ptrs.Composition->GetParentAet() != nullptr);
-			return Ptrs.Composition->GetParentAet();
+			assert(Ptrs.Composition->GetParentScene() != nullptr);
+			return Ptrs.Composition->GetParentScene();
 		case AetItemType::Layer:
-			assert(Ptrs.Layer->GetParentAet() != nullptr);
-			return Ptrs.Layer->GetParentAet();
-		case AetItemType::Surface:
+			assert(Ptrs.Layer->GetParentScene() != nullptr);
+			return Ptrs.Layer->GetParentScene();
+		case AetItemType::Video:
 			return nullptr;
 		}
 		return nullptr;

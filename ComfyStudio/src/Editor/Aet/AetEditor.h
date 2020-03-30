@@ -25,7 +25,7 @@ namespace Comfy::Editor
 		const char* GetGuiName() const override;
 		ImGuiWindowFlags GetWindowFlags() const override;
 
-		inline Graphics::AetSet* GetAetSet() { return editorAetSet.get(); };
+		inline Graphics::Aet::AetSet* GetAetSet() { return editorAetSet.get(); };
 		inline Graphics::SprSet* GetSprSet() { return sprSet.get(); };
 
 	private:
@@ -41,7 +41,7 @@ namespace Comfy::Editor
 
 	private:
 		UniquePtr<AetCommandManager> commandManager = {};
-		Graphics::SpriteGetterFunction spriteGetterFunction;
+		Graphics::Aet::SpriteGetterFunction spriteGetterFunction;
 		
 		struct
 		{
@@ -59,7 +59,7 @@ namespace Comfy::Editor
 
 		struct
 		{
-			RefPtr<Graphics::AetSet> editorAetSet = nullptr;
+			RefPtr<Graphics::Aet::AetSet> editorAetSet = nullptr;
 			UniquePtr<Graphics::SprSet> sprSet = nullptr;
 		};
 

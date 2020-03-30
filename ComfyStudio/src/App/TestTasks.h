@@ -12,11 +12,11 @@ namespace Comfy::App
 
 	struct AetLayerSourceData
 	{
-		const AetLayer* Layer;
+		const Aet::Layer* Layer;
 		const char* Name;
 
-		inline const AetLayer* operator->() const { return Layer; };
-		inline operator const AetLayer*() { return Layer; };
+		inline const Aet::Layer* operator->() const { return Layer; };
+		inline operator const Aet::Layer*() { return Layer; };
 	};
 
 	struct Ps4MenuAetData
@@ -67,7 +67,7 @@ namespace Comfy::App
 		// SourceDataField(Dummy, "");
 #undef SourceDataField
 
-		void Initialize(const AetSet* aetSet);
+		void Initialize(const Aet::AetSet* aetSet);
 	};
 
 	enum class TaskPs4MenuStateType
@@ -101,16 +101,16 @@ namespace Comfy::App
 	public:
 		bool Initialize() override;
 		bool Update() override;
-		bool Render(GPU_Renderer2D* renderer, AetRenderer* aetRenderer) override;
+		bool Render(GPU_Renderer2D* renderer, Aet::AetRenderer* aetRenderer) override;
 		bool PostDrawGui() override;
 
 	protected:
-		SpriteGetterFunction spriteGetterFunction;
+		Aet::SpriteGetterFunction spriteGetterFunction;
 
 		FileSystem::FileLoader aetSetLoader = { "dev_rom/2d/aet_ps4_menu.bin" };
 		FileSystem::FileLoader sprSetLoader = { "dev_rom/2d/spr_ps4_menu.bin" };
 
-		UniquePtr<AetSet> aetSet;
+		UniquePtr<Aet::AetSet> aetSet;
 		UniquePtr<SprSet> sprSet;
 
 		float elapsedFrames;
@@ -121,8 +121,8 @@ namespace Comfy::App
 	private:
 		bool isLoading = true;
 
-		void RenderMenuBackground(AetRenderer* aetRenderer, float frame);
-		void RenderMainMenuChara(AetRenderer* aetRenderer, float frame);
-		void RenderMainMenuList(AetRenderer* aetRenderer, bool selectedComp, float menuListFrame, float menuPlateFrame);
+		void RenderMenuBackground(Aet::AetRenderer* aetRenderer, float frame);
+		void RenderMainMenuChara(Aet::AetRenderer* aetRenderer, float frame);
+		void RenderMainMenuList(Aet::AetRenderer* aetRenderer, bool selectedComp, float menuListFrame, float menuPlateFrame);
 	};
 }

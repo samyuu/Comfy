@@ -7,11 +7,11 @@ namespace Comfy::Editor
 	class ObjectMousePicker
 	{
 	public:
-		ObjectMousePicker(const std::vector<Graphics::AetMgr::ObjCache>& objectCache, const bool& windowHoveredOnMouseClick, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
+		ObjectMousePicker(const std::vector<Graphics::Aet::AetMgr::ObjCache>& objectCache, const bool& windowHoveredOnMouseClick, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
 	
 		void UpdateMouseInput(const vec2& mousePosition);
 
-		const RefPtr<Graphics::AetLayer>* FindObjectAtPosition(vec2 worldSpace);
+		const RefPtr<Graphics::Aet::Layer>* FindObjectAtPosition(vec2 worldSpace);
 		void TrySelectObjectAtPosition(vec2 worldSpace);
 
 	private:
@@ -26,10 +26,10 @@ namespace Comfy::Editor
 		const bool& windowHoveredOnMouseClick;
 
 		// NOTE: The object cache from the current frame, expected to be kept up to date by its parent
-		const std::vector<Graphics::AetMgr::ObjCache>& objectCache;
+		const std::vector<Graphics::Aet::AetMgr::ObjCache>& objectCache;
 
 		// NOTE: To compare with the object on mouse release before selecting the object and prevent accidental selection.
 		//		 This object is not guaranteed to stay alive and should only be used for a pointer comparison so don't try to dereference it
-		const Graphics::AetLayer* mousePickedObjectOnMouseClick = nullptr;
+		const Graphics::Aet::Layer* mousePickedObjectOnMouseClick = nullptr;
 	};
 }

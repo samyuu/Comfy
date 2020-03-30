@@ -1,6 +1,6 @@
 #include "AetMgr.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::Aet
 {
 	namespace
 	{
@@ -32,18 +32,18 @@ namespace Comfy::Graphics
 		}
 	}
 
-	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetComposition* comp, frame_t frame)
+	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const Composition* comp, frame_t frame)
 	{
-		for (int i = static_cast<int>(comp->size()) - 1; i >= 0; i--)
-			GetAddObjects(objects, comp->GetLayerAt(i), frame);
+		for (int i = static_cast<int>(comp->GetLayers().size()) - 1; i >= 0; i--)
+			GetAddObjects(objects, comp->GetLayers()[i].get(), frame);
 	}
 
-	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const AetLayer* layer, frame_t frame)
+	void AetMgr::GetAddObjects(std::vector<ObjCache>& objects, const Layer* layer, frame_t frame)
 	{
 		Transform2D transform = Transform2D(vec2(0.0f));
 		InternalAddObjects(objects, &transform, layer, frame);
 
-		if (layer->Type == AetLayerType::Eff)
+		if (layer->ItemType == ItemType::Composition)
 		{
 			for (auto& object : objects)
 			{
@@ -53,7 +53,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	float AetMgr::Interpolate(const AetKeyFrame* start, const AetKeyFrame* end, frame_t frame)
+	float AetMgr::Interpolate(const KeyFrame* start, const KeyFrame* end, frame_t frame)
 	{
 		float range = end->Frame - start->Frame;
 		float t = (frame - start->Frame) / range;
@@ -64,7 +64,7 @@ namespace Comfy::Graphics
 				+ ((((((t * t) * t) * 2.0f) - ((t * t) * 3.0f)) + 1.0f) * start->Value));
 	}
 
-	float AetMgr::GetValueAt(const std::vector<AetKeyFrame>& keyFrames, frame_t frame)
+	float AetMgr::GetValueAt(const std::vector<KeyFrame>& keyFrames, frame_t frame)
 	{
 		if (keyFrames.size() <= 0)
 			return 0.0f;
@@ -78,8 +78,8 @@ namespace Comfy::Graphics
 		if (frame >= last.Frame)
 			return last.Value;
 
-		const AetKeyFrame* start = &keyFrames[0];
-		const AetKeyFrame* end = start;
+		const KeyFrame* start = &keyFrames[0];
+		const KeyFrame* end = start;
 
 		for (int i = 1; i < keyFrames.size(); i++)
 		{
@@ -92,17 +92,17 @@ namespace Comfy::Graphics
 		return Interpolate(start, end, frame);
 	}
 
-	float AetMgr::GetValueAt(const AetProperty1D& property, frame_t frame)
+	float AetMgr::GetValueAt(const Property1D& property, frame_t frame)
 	{
 		return AetMgr::GetValueAt(property.Keys, frame);
 	}
 
-	vec2 AetMgr::GetValueAt(const AetProperty2D& property, frame_t frame)
+	vec2 AetMgr::GetValueAt(const Property2D& property, frame_t frame)
 	{
 		return vec2(AetMgr::GetValueAt(property.X, frame), AetMgr::GetValueAt(property.Y, frame));
 	}
 
-	Transform2D AetMgr::GetTransformAt(const AetTransform& transform, frame_t frame)
+	Transform2D AetMgr::GetTransformAt(const LayerVideo2D& transform, frame_t frame)
 	{
 		Transform2D result;
 		result.Origin = AetMgr::GetValueAt(transform.Origin, frame);
@@ -113,7 +113,7 @@ namespace Comfy::Graphics
 		return result;
 	}
 
-	Transform2D AetMgr::GetTransformAt(const AetAnimationData& animationData, frame_t frame)
+	Transform2D AetMgr::GetTransformAt(const LayerVideo& animationData, frame_t frame)
 	{
 		return AetMgr::GetTransformAt(animationData.Transform, frame);
 	}
@@ -126,7 +126,7 @@ namespace Comfy::Graphics
 		return std::abs(frameA - frameB) < frameComparisonThreshold;
 	}
 
-	AetKeyFrame* AetMgr::GetKeyFrameAt(AetProperty1D& property, frame_t frame)
+	KeyFrame* AetMgr::GetKeyFrameAt(Property1D& property, frame_t frame)
 	{
 		// NOTE: The aet editor should always try to prevent this itself
 		assert(property->size() > 0);
@@ -141,15 +141,15 @@ namespace Comfy::Graphics
 		return nullptr;
 	}
 
-	void AetMgr::InsertKeyFrameAt(std::vector<AetKeyFrame>& keyFrames, frame_t frame, float value)
+	void AetMgr::InsertKeyFrameAt(std::vector<KeyFrame>& keyFrames, frame_t frame, float value)
 	{
 		keyFrames.emplace_back(frame, value);
 		AetMgr::SortKeyFrames(keyFrames);
 	}
 
-	void AetMgr::DeleteKeyFrameAt(std::vector<AetKeyFrame>& keyFrames, frame_t frame)
+	void AetMgr::DeleteKeyFrameAt(std::vector<KeyFrame>& keyFrames, frame_t frame)
 	{
-		auto existing = std::find_if(keyFrames.begin(), keyFrames.end(), [frame](const AetKeyFrame& keyFrame)
+		auto existing = std::find_if(keyFrames.begin(), keyFrames.end(), [frame](const KeyFrame& keyFrame)
 		{
 			return AreFramesTheSame(keyFrame.Frame, frame);
 		});
@@ -164,15 +164,15 @@ namespace Comfy::Graphics
 		}
 	}
 
-	void AetMgr::SortKeyFrames(std::vector<AetKeyFrame>& keyFrames)
+	void AetMgr::SortKeyFrames(std::vector<KeyFrame>& keyFrames)
 	{
-		std::sort(keyFrames.begin(), keyFrames.end(), [](const AetKeyFrame& keyFrameA, const AetKeyFrame& keyFrameB)
+		std::sort(keyFrames.begin(), keyFrames.end(), [](const KeyFrame& keyFrameA, const KeyFrame& keyFrameB)
 		{
 			return keyFrameA.Frame < keyFrameB.Frame;
 		});
 	}
 
-	void AetMgr::OffsetAllKeyFrames(AetTransform& transform, frame_t frameIncrement)
+	void AetMgr::OffsetAllKeyFrames(LayerVideo2D& transform, frame_t frameIncrement)
 	{
 		for (Transform2DField i = 0; i < Transform2DField_Count; i++)
 		{
@@ -181,7 +181,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	void AetMgr::ApplyParentTransform(Transform2D& outTransform, const AetLayer* parent, frame_t frame, int32_t& recursionCount)
+	void AetMgr::ApplyParentTransform(Transform2D& outTransform, const Layer* parent, frame_t frame, int32_t& recursionCount)
 	{
 		assert(recursionCount < ParentRecursionLimit);
 		if (parent == nullptr || recursionCount > ParentRecursionLimit)
@@ -189,10 +189,10 @@ namespace Comfy::Graphics
 
 		recursionCount++;
 
-		const AetLayer* parentParent = parent->GetReferencedParentLayer();
+		const Layer* parentParent = parent->GetRefParentLayer();
 		assert(parentParent != parent);
 
-		const Transform2D parentTransform = AetMgr::GetTransformAt(*parent->AnimationData, frame);
+		const Transform2D parentTransform = AetMgr::GetTransformAt(*parent->LayerVideo, frame);
 
 		outTransform.Position += parentTransform.Position - parentTransform.Origin;
 		outTransform.Rotation += parentTransform.Rotation;
@@ -202,13 +202,13 @@ namespace Comfy::Graphics
 			ApplyParentTransform(outTransform, parentParent, frame, recursionCount);
 	}
 
-	void AetMgr::FindAddCompositionUsages(const RefPtr<Aet>& aetToSearch, const RefPtr<AetComposition>& compToFind, std::vector<RefPtr<AetLayer>*>& outObjects)
+	void AetMgr::FindAddCompositionUsages(const RefPtr<Scene>& aetToSearch, const RefPtr<Composition>& compToFind, std::vector<RefPtr<Layer>*>& outObjects)
 	{
-		const auto compSearchFunction = [&compToFind, &outObjects](const RefPtr<AetComposition>& compToSearch)
+		const auto compSearchFunction = [&compToFind, &outObjects](const RefPtr<Composition>& compToSearch)
 		{
-			for (RefPtr<AetLayer>& layer : *compToSearch)
+			for (auto& layer : compToSearch->GetLayers())
 			{
-				if (layer->GetReferencedComposition() == compToFind)
+				if (layer->GetCompItem() == compToFind)
 					outObjects.push_back(&layer);
 			}
 		};
@@ -219,21 +219,21 @@ namespace Comfy::Graphics
 			compSearchFunction(compToTest);
 	}
 
-	void AetMgr::InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Transform2D* parentTransform, const AetLayer* layer, frame_t frame)
+	void AetMgr::InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Transform2D* parentTransform, const Layer* layer, frame_t frame)
 	{
-		if (layer->Type == AetLayerType::Pic)
+		if (layer->ItemType == ItemType::Video)
 		{
 			InternalPicAddObjects(objects, parentTransform, layer, frame);
 		}
-		else if (layer->Type == AetLayerType::Eff)
+		else if (layer->ItemType == ItemType::Composition)
 		{
 			InternalEffAddObjects(objects, parentTransform, layer, frame);
 		}
 	}
 
-	void AetMgr::InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, const Transform2D* parentTransform, const AetLayer* layer, frame_t frame)
+	void AetMgr::InternalPicAddObjects(std::vector<AetMgr::ObjCache>& objects, const Transform2D* parentTransform, const Layer* layer, frame_t frame)
 	{
-		assert(layer->Type == AetLayerType::Pic);
+		assert(layer->ItemType == ItemType::Video);
 
 		if (frame < layer->StartFrame || frame >= layer->EndFrame)
 			return;
@@ -243,49 +243,49 @@ namespace Comfy::Graphics
 
 		objCache.FirstParent = nullptr;
 		objCache.Source = layer;
-		objCache.Surface = layer->GetReferencedSurface();
-		objCache.BlendMode = layer->AnimationData->BlendMode;
-		objCache.UseTextureMask = layer->AnimationData->UseTextureMask;
-		objCache.Visible = layer->Flags.Visible;
+		objCache.Video = layer->GetVideoItem();
+		objCache.BlendMode = layer->LayerVideo->TransferMode.BlendMode;
+		objCache.UseTextureMask = layer->LayerVideo->TransferMode.TrackMatte == TrackMatte::Alpha;
+		objCache.Visible = layer->GetIsVisible();
 
-		if (objCache.Surface != nullptr && objCache.Surface->SpriteCount() > 1)
+		if (objCache.Video != nullptr && objCache.Video->Sources.size() > 1)
 		{
 			// BUG: This should factor in the layer->StartFrame (?)
-			objCache.SpriteIndex = static_cast<int>(glm::round((frame + layer->StartOffset) * layer->PlaybackSpeed));
-			objCache.SpriteIndex = glm::clamp(objCache.SpriteIndex, 0, static_cast<int>(objCache.Surface->SpriteCount()) - 1);
+			objCache.SpriteIndex = static_cast<int>(glm::round((frame + layer->StartOffset) * layer->TimeScale));
+			objCache.SpriteIndex = glm::clamp(objCache.SpriteIndex, 0, static_cast<int>(objCache.Video->Sources.size()) - 1);
 		}
 		else
 		{
 			objCache.SpriteIndex = 0;
 		}
 
-		objCache.Transform = AetMgr::GetTransformAt(*layer->AnimationData, frame);
+		objCache.Transform = AetMgr::GetTransformAt(*layer->LayerVideo, frame);
 
 		int32_t recursionCount = 0;
-		AetMgr::ApplyParentTransform(objCache.Transform, layer->GetReferencedParentLayer(), frame, recursionCount);
+		AetMgr::ApplyParentTransform(objCache.Transform, layer->GetRefParentLayer(), frame, recursionCount);
 		TransformByParent(*parentTransform, objCache.Transform);
 	}
 
-	void AetMgr::InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, const Transform2D* parentTransform, const AetLayer* layer, frame_t frame)
+	void AetMgr::InternalEffAddObjects(std::vector<AetMgr::ObjCache>& objects, const Transform2D* parentTransform, const Layer* layer, frame_t frame)
 	{
-		assert(layer->Type == AetLayerType::Eff);
+		assert(layer->ItemType == ItemType::Composition);
 
-		if (frame < layer->StartFrame || frame >= layer->EndFrame || !layer->Flags.Visible)
+		if (frame < layer->StartFrame || frame >= layer->EndFrame || !layer->GetIsVisible())
 			return;
 
-		const AetComposition* comp = layer->GetReferencedComposition();
+		const Composition* comp = layer->GetCompItem();
 		if (comp == nullptr)
 			return;
 
-		Transform2D effTransform = AetMgr::GetTransformAt(*layer->AnimationData, frame);
+		Transform2D effTransform = AetMgr::GetTransformAt(*layer->LayerVideo, frame);
 
 		int32_t recursionCount = 0;
-		AetMgr::ApplyParentTransform(effTransform, layer->GetReferencedParentLayer(), frame, recursionCount);
+		AetMgr::ApplyParentTransform(effTransform, layer->GetRefParentLayer(), frame, recursionCount);
 		TransformByParent(*parentTransform, effTransform);
 
-		frame_t adjustedFrame = ((frame - layer->StartFrame) * layer->PlaybackSpeed) + layer->StartOffset;
+		frame_t adjustedFrame = ((frame - layer->StartFrame) * layer->TimeScale) + layer->StartOffset;
 
-		for (int i = static_cast<int>(comp->size()) - 1; i >= 0; i--)
-			InternalAddObjects(objects, &effTransform, comp->GetLayerAt(i), adjustedFrame);
+		for (int i = static_cast<int>(comp->GetLayers().size()) - 1; i >= 0; i--)
+			InternalAddObjects(objects, &effTransform, comp->GetLayers().at(i).get(), adjustedFrame);
 	}
 }

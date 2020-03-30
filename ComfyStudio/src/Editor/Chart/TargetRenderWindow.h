@@ -28,25 +28,25 @@ namespace Comfy::Editor
 		const vec2 renderSize = vec2(1920.0f, 1080.0f);
 		Graphics::OrthographicCamera camera;
 
-		Graphics::SpriteGetterFunction spriteGetterFunction;
+		Graphics::Aet::SpriteGetterFunction spriteGetterFunction;
 		UniquePtr<Graphics::GPU_Renderer2D> renderer;
-		UniquePtr<Graphics::AetRenderer> aetRenderer;
+		UniquePtr<Graphics::Aet::AetRenderer> aetRenderer;
 
 		// TODO: ps4_gam
 		FileSystem::FileLoader aetSetLoader = { "dev_rom/2d/aet_gam_cmn.bin" };
 		FileSystem::FileLoader sprSetLoader = { "dev_rom/2d/spr_gam_cmn.bin" };
 
-		UniquePtr<Graphics::AetSet> aetSet;
+		UniquePtr<Graphics::Aet::AetSet> aetSet;
 		UniquePtr<Graphics::SprSet> sprSet;
 
 		struct /* InternalLayerCache */
 		{
-			RefPtr<Graphics::AetLayer> FrameUp, FrameBottom;
-			RefPtr<Graphics::AetLayer> LifeGauge;
-			RefPtr<Graphics::AetLayer> SongEnergyBase;
-			RefPtr<Graphics::AetLayer> SongIconLoop;
-			RefPtr<Graphics::AetLayer> LevelInfoEasy;
-			RefPtr<Graphics::AetLayer> SongInfoLoop;
+			RefPtr<Graphics::Aet::Layer> FrameUp, FrameBottom;
+			RefPtr<Graphics::Aet::Layer> LifeGauge;
+			RefPtr<Graphics::Aet::Layer> SongEnergyBase;
+			RefPtr<Graphics::Aet::Layer> SongIconLoop;
+			RefPtr<Graphics::Aet::Layer> LevelInfoEasy;
+			RefPtr<Graphics::Aet::Layer> SongInfoLoop;
 		} layerCache;
 
 		void RenderBackground();

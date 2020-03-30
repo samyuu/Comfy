@@ -5,9 +5,9 @@
 #include <functional>
 #include <optional>
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::Aet
 {
-	typedef std::function<bool(const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr)> SpriteGetterFunction;
+	typedef std::function<bool(const VideoSource* source, const Txp** outTxp, const Spr** outSpr)> SpriteGetterFunction;
 
 	typedef std::function<bool(const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)> AetObjCallbackFunction;
 	typedef std::function<bool(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)> AetObjMaskCallbackFunction;
@@ -16,7 +16,7 @@ namespace Comfy::Graphics
 	{
 	public:
 		AetRenderer(GPU_Renderer2D* renderer);
-		~AetRenderer();
+		~AetRenderer() = default;
 
 	public:
 		GPU_Renderer2D* GetRenderer2D();
@@ -36,16 +36,16 @@ namespace Comfy::Graphics
 		
 		void RenderObjCacheVector(const std::vector<AetMgr::ObjCache>& objectCache, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
 
-		void RenderLayer(const AetLayer* layer, float frame, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
-		void RenderLayerLooped(const AetLayer* layer, float frame, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
-		void RenderLayerClamped(const AetLayer* layer, float frame, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
+		void RenderLayer(const Layer* layer, float frame, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
+		void RenderLayerLooped(const Layer* layer, float frame, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
+		void RenderLayerClamped(const Layer* layer, float frame, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
 	
-		void RenderAetSprite(const AetSurface* surface, const AetSpriteIdentifier* identifier, const vec2& position);
+		void RenderAetSprite(const Video* video, const VideoSource* source, const vec2& position);
 
-		static bool SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr);
+		static bool SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const VideoSource* source, const Txp** outTxp, const Spr** outSpr);
 
 	public:
-		bool GetSprite(const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr);
+		bool GetSprite(const VideoSource* source, const Txp** outTxp, const Spr** outSpr);
 
 	private:
 		GPU_Renderer2D* renderer2D = nullptr;

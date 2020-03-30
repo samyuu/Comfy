@@ -11,36 +11,36 @@ namespace Comfy::App
 		return static_cast<float>(time.TotalSeconds() / (1.0f / frameRate));
 	}
 
-	void Ps4MenuAetData::Initialize(const AetSet* aetSet)
+	void Ps4MenuAetData::Initialize(const Aet::AetSet* aetSet)
 	{
-		const Aet* mainAet = aetSet->front().get();
+		const Aet::Scene& mainAet = *aetSet->GetScenes().front();
 
 		AetLayerSourceData* layerSourcesBegin = reinterpret_cast<AetLayerSourceData*>(this);
 		AetLayerSourceData* layerSourcesEnd = reinterpret_cast<AetLayerSourceData*>(this + 1);
 
 		for (AetLayerSourceData* layerSource = layerSourcesBegin; layerSource < layerSourcesEnd; layerSource++)
 		{
-			layerSource->Layer = mainAet->FindLayer(layerSource->Name).get();
+			layerSource->Layer = mainAet.FindLayer(layerSource->Name).get();
 			assert(layerSource->Layer != nullptr);
 		}
 
-		p_MenuList01_c.Layer = MenuListIn02.Layer->GetReferencedComposition()->FindLayer(p_MenuList01_c.Name).get();
-		p_MenuList02_c.Layer = MenuListIn02.Layer->GetReferencedComposition()->FindLayer(p_MenuList02_c.Name).get();
-		p_MenuList03_c.Layer = MenuListIn02.Layer->GetReferencedComposition()->FindLayer(p_MenuList03_c.Name).get();
-		p_MenuList04_c.Layer = MenuListIn02.Layer->GetReferencedComposition()->FindLayer(p_MenuList04_c.Name).get();
-		p_MenuList05_c.Layer = MenuListIn02.Layer->GetReferencedComposition()->FindLayer(p_MenuList05_c.Name).get();
-		p_MenuList06_c.Layer = MenuListIn02.Layer->GetReferencedComposition()->FindLayer(p_MenuList06_c.Name).get();
+		p_MenuList01_c.Layer = MenuListIn02.Layer->GetCompItem()->FindLayer(p_MenuList01_c.Name).get();
+		p_MenuList02_c.Layer = MenuListIn02.Layer->GetCompItem()->FindLayer(p_MenuList02_c.Name).get();
+		p_MenuList03_c.Layer = MenuListIn02.Layer->GetCompItem()->FindLayer(p_MenuList03_c.Name).get();
+		p_MenuList04_c.Layer = MenuListIn02.Layer->GetCompItem()->FindLayer(p_MenuList04_c.Name).get();
+		p_MenuList05_c.Layer = MenuListIn02.Layer->GetCompItem()->FindLayer(p_MenuList05_c.Name).get();
+		p_MenuList06_c.Layer = MenuListIn02.Layer->GetCompItem()->FindLayer(p_MenuList06_c.Name).get();
 	}
 
-	void TaskPs4Menu::RenderMenuBackground(AetRenderer* aetRenderer, float frame)
+	void TaskPs4Menu::RenderMenuBackground(Aet::AetRenderer* aetRenderer, float frame)
 	{
 		aetRenderer->RenderLayerLooped(aetData.CommonBackground, frame);
 		aetRenderer->RenderLayerLooped(aetData.MenuDeco, frame);
 	}
 
-	void TaskPs4Menu::RenderMainMenuChara(AetRenderer* aetRenderer, float frame)
+	void TaskPs4Menu::RenderMainMenuChara(Aet::AetRenderer* aetRenderer, float frame)
 	{
-		struct { const AetLayer *MenuChara, *MenuText; } charaData[MainMenuItem_Count]
+		struct { const Aet::Layer *MenuChara, *MenuText; } charaData[MainMenuItem_Count]
 		{
 			{ aetData.MenuCharaGame, aetData.MenuTextGame },
 			{ aetData.MenuCharaCustom, aetData.MenuTextCustom },
@@ -57,9 +57,9 @@ namespace Comfy::App
 		aetRenderer->RenderLayerClamped(data.MenuText, inputFrame);
 	}
 
-	void TaskPs4Menu::RenderMainMenuList(AetRenderer* aetRenderer, bool selectedComp, float menuListFrame, float menuPlateFrame)
+	void TaskPs4Menu::RenderMainMenuList(Aet::AetRenderer* aetRenderer, bool selectedComp, float menuListFrame, float menuPlateFrame)
 	{
-		struct { const AetLayer *PointLayer, *MenuPlate, *MenuPlateSel; } listLayerData[MainMenuItem_Count]
+		struct { const Aet::Layer *PointLayer, *MenuPlate, *MenuPlateSel; } listLayerData[MainMenuItem_Count]
 		{
 			{ aetData.p_MenuList01_c, aetData.MenuPlateGame, aetData.MenuPlateGameSel },
 			{ aetData.p_MenuList02_c, aetData.MenuPlateCustom, aetData.MenuPlateCustomSel },
@@ -70,8 +70,8 @@ namespace Comfy::App
 		};
 
 		// TEMP:
-		static std::vector<AetMgr::ObjCache> objects; objects.clear();
-		AetMgr::GetAddObjects(objects, aetData.MenuListIn02, menuListFrame);
+		static std::vector<Aet::AetMgr::ObjCache> objects; objects.clear();
+		Aet::AetMgr::GetAddObjects(objects, aetData.MenuListIn02, menuListFrame);
 
 		for (auto& obj : objects)
 		{
@@ -106,7 +106,7 @@ namespace Comfy::App
 
 	bool TaskPs4Menu::Initialize()
 	{
-		spriteGetterFunction = [this](const AetSpriteIdentifier* identifier, const Txp** outTxp, const Spr** outSpr) { return AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), identifier, outTxp, outSpr); };
+		spriteGetterFunction = [this](const Aet::VideoSource* source, const Txp** outTxp, const Spr** outSpr) { return Aet::AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), source, outTxp, outSpr); };
 
 		return true;
 	}
@@ -119,7 +119,7 @@ namespace Comfy::App
 		{
 			if (aetSet == nullptr && aetSetLoader.GetIsLoaded())
 			{
-				aetSet = MakeUnique<AetSet>();
+				aetSet = MakeUnique<Aet::AetSet>();
 
 				aetSetLoader.Read(aetSet.get());
 				aetSetLoader.FreeData();
@@ -152,7 +152,7 @@ namespace Comfy::App
 		return true;
 	}
 
-	bool TaskPs4Menu::Render(GPU_Renderer2D* renderer, AetRenderer* aetRenderer)
+	bool TaskPs4Menu::Render(GPU_Renderer2D* renderer, Aet::AetRenderer* aetRenderer)
 	{
 		if (isLoading)
 			return true;

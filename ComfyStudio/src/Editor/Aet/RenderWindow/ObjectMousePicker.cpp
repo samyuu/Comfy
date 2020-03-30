@@ -6,7 +6,7 @@ namespace Comfy::Editor
 {
 	using namespace Graphics;
 
-	ObjectMousePicker::ObjectMousePicker(const std::vector<AetMgr::ObjCache>& objectCache, const bool& windowHoveredOnMouseClick, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem)
+	ObjectMousePicker::ObjectMousePicker(const std::vector<Aet::AetMgr::ObjCache>& objectCache, const bool& windowHoveredOnMouseClick, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem)
 		: objectCache(objectCache), windowHoveredOnMouseClick(windowHoveredOnMouseClick), selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem)
 	{
 	}
@@ -15,7 +15,7 @@ namespace Comfy::Editor
 	{
 		if (Gui::IsMouseClicked(mousePickButton))
 		{
-			const RefPtr<AetLayer>* foundObject = FindObjectAtPosition(mousePosition);
+			const RefPtr<Aet::Layer>* foundObject = FindObjectAtPosition(mousePosition);
 			mousePickedObjectOnMouseClick = (foundObject == nullptr) ? nullptr : foundObject->get();
 		}
 
@@ -25,18 +25,18 @@ namespace Comfy::Editor
 		}
 	}
 
-	const RefPtr<AetLayer>* ObjectMousePicker::FindObjectAtPosition(vec2 worldSpace)
+	const RefPtr<Aet::Layer>* ObjectMousePicker::FindObjectAtPosition(vec2 worldSpace)
 	{
-		const auto& selectedComp = cameraSelectedAetItem->GetAetCompositionRef();
-		RefPtr<AetLayer>* foundLayer = nullptr;
+		const auto& selectedComp = cameraSelectedAetItem->GetCompositionRef();
+		const RefPtr<Aet::Layer>* foundLayer = nullptr;
 
 		for (auto& obj : objectCache)
 		{
-			TransformBox box(obj.Transform, obj.Surface->Size);
+			TransformBox box(obj.Transform, obj.Video->Size);
 
 			if (obj.Visible && box.Contains(worldSpace))
 			{
-				for (auto& availableLayer : *selectedComp)
+				for (auto& availableLayer : selectedComp->GetLayers())
 				{
 					if (availableLayer.get() == obj.Source || availableLayer.get() == obj.FirstParent)
 						foundLayer = &availableLayer;
@@ -49,7 +49,7 @@ namespace Comfy::Editor
 
 	void ObjectMousePicker::TrySelectObjectAtPosition(vec2 worldSpace)
 	{
-		const RefPtr<AetLayer>* foundObject = FindObjectAtPosition(worldSpace);
+		const auto* foundObject = FindObjectAtPosition(worldSpace);
 
 		if (foundObject != nullptr && mousePickedObjectOnMouseClick == foundObject->get())
 		{
@@ -58,7 +58,7 @@ namespace Comfy::Editor
 		}
 		else
 		{
-			const auto& selectedComp = cameraSelectedAetItem->GetAetCompositionRef();
+			const auto& selectedComp = cameraSelectedAetItem->GetCompositionRef();
 			selectedAetItem->SetItem(selectedComp);
 		}
 	}

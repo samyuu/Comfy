@@ -6,7 +6,7 @@ namespace Comfy::App
 	EngineRenderWindow::EngineRenderWindow()
 	{
 		renderer = MakeUnique<Graphics::D3D11::Renderer2D>();
-		aetRenderer = MakeUnique<Graphics::AetRenderer>(renderer.get());
+		aetRenderer = MakeUnique<Graphics::Aet::AetRenderer>(renderer.get());
 
 		StartTask<TaskPs4Menu>();
 	}

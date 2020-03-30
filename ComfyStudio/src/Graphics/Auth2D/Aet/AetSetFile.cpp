@@ -4,10 +4,34 @@
 
 using namespace Comfy::FileSystem;
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::Aet
 {
 	namespace
 	{
+		template <typename FlagsStruct>
+		FlagsStruct ReadFlagsStruct(BinaryReader& reader)
+		{
+			if constexpr (sizeof(FlagsStruct) == sizeof(uint8_t))
+			{
+				const auto uintFlags = reader.ReadU8();
+				return *reinterpret_cast<const FlagsStruct*>(&uintFlags);
+			}
+			else if constexpr (sizeof(FlagsStruct) == sizeof(uint16_t))
+			{
+				const auto uintFlags = reader.ReadU16();
+				return *reinterpret_cast<const FlagsStruct*>(&uintFlags);
+			}
+			else if constexpr (sizeof(FlagsStruct) == sizeof(uint32_t))
+			{
+				const auto uintFlags = reader.ReadU32();
+				return *reinterpret_cast<const FlagsStruct*>(&uintFlags);
+			}
+			else
+			{
+				static_assert(false);
+			}
+		}
+
 		uint32_t ReadColor(BinaryReader& reader)
 		{
 			uint32_t value = 0;
@@ -18,7 +42,7 @@ namespace Comfy::Graphics
 			return value;
 		}
 
-		void ReadProperty1DPointer(AetProperty1D& property, BinaryReader& reader)
+		void ReadProperty1DPointer(Property1D& property, BinaryReader& reader)
 		{
 			size_t keyFrameCount = reader.ReadSize();
 			FileAddr keyFramesPointer = reader.ReadPtr();
@@ -48,13 +72,20 @@ namespace Comfy::Graphics
 			}
 		}
 
-		void ReadProperty2DPointer(AetProperty2D& property, BinaryReader& reader)
+		void ReadProperty2DPointer(Property2D& property, BinaryReader& reader)
 		{
 			ReadProperty1DPointer(property.X, reader);
 			ReadProperty1DPointer(property.Y, reader);
 		}
 
-		void ReadTransform(AetTransform& transform, BinaryReader& reader)
+		void ReadProperty3DPointer(Property3D& property, BinaryReader& reader)
+		{
+			ReadProperty1DPointer(property.X, reader);
+			ReadProperty1DPointer(property.Y, reader);
+			ReadProperty1DPointer(property.Z, reader);
+		}
+
+		void ReadLayerVideo2D(LayerVideo2D& transform, BinaryReader& reader)
 		{
 			ReadProperty2DPointer(transform.Origin, reader);
 			ReadProperty2DPointer(transform.Position, reader);
@@ -63,7 +94,29 @@ namespace Comfy::Graphics
 			ReadProperty1DPointer(transform.Opacity, reader);
 		}
 
-		void WriteProperty1DPointer(const AetProperty1D& property, BinaryWriter& writer)
+		void ReadLayerVideo3D(LayerVideo3D& transform, BinaryReader& reader)
+		{
+			ReadProperty1DPointer(transform.AnchorZ, reader);
+			ReadProperty1DPointer(transform.PositionZ, reader);
+			ReadProperty3DPointer(transform.Direction, reader);
+			ReadProperty2DPointer(transform.Rotation, reader);
+			ReadProperty1DPointer(transform.ScaleZ, reader);
+		}
+
+		template <typename FlagsStruct>
+		void WriteFlagsStruct(const FlagsStruct& flags, BinaryWriter& writer)
+		{
+			if constexpr (sizeof(FlagsStruct) == sizeof(uint8_t))
+				writer.WriteU8(*reinterpret_cast<const uint8_t*>(&flags));
+			else if constexpr (sizeof(FlagsStruct) == sizeof(uint16_t))
+				writer.WriteU16(*reinterpret_cast<const uint8_t*>(&flags));
+			else if constexpr (sizeof(FlagsStruct) == sizeof(uint32_t))
+				writer.WriteU32(*reinterpret_cast<const uint32_t*>(&flags));
+			else
+				static_assert(false);
+		}
+
+		void WriteProperty1DPointer(const Property1D& property, BinaryWriter& writer)
 		{
 			if (property->size() > 0)
 			{
@@ -94,13 +147,20 @@ namespace Comfy::Graphics
 			}
 		}
 
-		void WriteProperty2DPointer(const AetProperty2D& property, BinaryWriter& writer)
+		void WriteProperty2DPointer(const Property2D& property, BinaryWriter& writer)
 		{
 			WriteProperty1DPointer(property.X, writer);
 			WriteProperty1DPointer(property.Y, writer);
 		}
 
-		void WriteTransform(const AetTransform& transform, BinaryWriter& writer)
+		void WriteProperty3DPointer(const Property3D& property, BinaryWriter& writer)
+		{
+			WriteProperty1DPointer(property.X, writer);
+			WriteProperty1DPointer(property.Y, writer);
+			WriteProperty1DPointer(property.Z, writer);
+		}
+
+		void WriteTransform(const LayerVideo2D& transform, BinaryWriter& writer)
 		{
 			WriteProperty2DPointer(transform.Origin, writer);
 			WriteProperty2DPointer(transform.Position, writer);
@@ -109,66 +169,87 @@ namespace Comfy::Graphics
 			WriteProperty1DPointer(transform.Opacity, writer);
 		}
 
-		void ReadAnimationData(RefPtr<AetAnimationData>& animationData, BinaryReader& reader)
+		void WriteTransform(const LayerVideo3D& transform, BinaryWriter& writer)
 		{
-			animationData = MakeRef<AetAnimationData>();
-			animationData->BlendMode = static_cast<AetBlendMode>(reader.ReadU8());
-			reader.ReadU8();
-			animationData->UseTextureMask = reader.ReadBool();
+			WriteProperty1DPointer(transform.AnchorZ, writer);
+			WriteProperty1DPointer(transform.PositionZ, writer);
+			WriteProperty3DPointer(transform.Direction, writer);
+			WriteProperty2DPointer(transform.Rotation, writer);
+			WriteProperty1DPointer(transform.ScaleZ, writer);
+		}
+
+		void ReadLayerVideo(RefPtr<LayerVideo>& layerVideo, BinaryReader& reader)
+		{
+			layerVideo = MakeRef<LayerVideo>();
+			layerVideo->TransferMode.BlendMode = static_cast<AetBlendMode>(reader.ReadU8());
+			layerVideo->TransferMode.Flags = ReadFlagsStruct<TransferFlags>(reader);
+			layerVideo->TransferMode.TrackMatte = static_cast<TrackMatte>(reader.ReadU8());
 			reader.ReadU8();
 
 			if (reader.GetPointerMode() == PtrMode::Mode64Bit)
 				reader.ReadU32();
 
-			ReadTransform(animationData->Transform, reader);
+			ReadLayerVideo2D(layerVideo->Transform, reader);
 
 			FileAddr perspectivePropertiesPointer = reader.ReadPtr();
 			if (perspectivePropertiesPointer != FileAddr::NullPtr)
 			{
-				reader.ReadAt(perspectivePropertiesPointer, [animationData](BinaryReader& reader)
+				reader.ReadAt(perspectivePropertiesPointer, [layerVideo](BinaryReader& reader)
 				{
-					animationData->PerspectiveTransform = MakeRef<AetTransform>();
-					ReadTransform(*animationData->PerspectiveTransform, reader);
+					layerVideo->Transform3D = MakeRef<LayerVideo3D>();
+					ReadLayerVideo3D(*layerVideo->Transform3D, reader);
 				});
 			}
 		}
 
-		void SetTransformStartFrame(AetTransform& transform, frame_t startFrame)
+		void SetProperty1DStartFrame(Property1D& property, frame_t startFrame)
 		{
-			auto setProperty1DStartFrame = [](auto& property, frame_t startFrame)
-			{
-				if (property->size() == 1)
-					property->front().Frame = startFrame;
-			};
+			if (property->size() == 1)
+				property->front().Frame = startFrame;
+		}
 
-			setProperty1DStartFrame(transform.Origin.X, startFrame);
-			setProperty1DStartFrame(transform.Origin.Y, startFrame);
-			setProperty1DStartFrame(transform.Position.X, startFrame);
-			setProperty1DStartFrame(transform.Position.Y, startFrame);
-			setProperty1DStartFrame(transform.Rotation, startFrame);
-			setProperty1DStartFrame(transform.Scale.X, startFrame);
-			setProperty1DStartFrame(transform.Scale.Y, startFrame);
-			setProperty1DStartFrame(transform.Opacity, startFrame);
+		void SetLayerVideoStartFrame(LayerVideo2D& transform, frame_t startFrame)
+		{
+			SetProperty1DStartFrame(transform.Origin.X, startFrame);
+			SetProperty1DStartFrame(transform.Origin.Y, startFrame);
+			SetProperty1DStartFrame(transform.Position.X, startFrame);
+			SetProperty1DStartFrame(transform.Position.Y, startFrame);
+			SetProperty1DStartFrame(transform.Rotation, startFrame);
+			SetProperty1DStartFrame(transform.Scale.X, startFrame);
+			SetProperty1DStartFrame(transform.Scale.Y, startFrame);
+			SetProperty1DStartFrame(transform.Opacity, startFrame);
+		}
+
+		void SetLayerVideoStartFrame(LayerVideo3D& transform, frame_t startFrame)
+		{
+			SetProperty1DStartFrame(transform.AnchorZ, startFrame);
+			SetProperty1DStartFrame(transform.PositionZ, startFrame);
+			SetProperty1DStartFrame(transform.Direction.X, startFrame);
+			SetProperty1DStartFrame(transform.Direction.Y, startFrame);
+			SetProperty1DStartFrame(transform.Direction.Z, startFrame);
+			SetProperty1DStartFrame(transform.Rotation.X, startFrame);
+			SetProperty1DStartFrame(transform.Rotation.Y, startFrame);
+			SetProperty1DStartFrame(transform.ScaleZ, startFrame);
 		}
 	}
 
-	void AetLayer::Read(BinaryReader& reader)
+	void Layer::Read(BinaryReader& reader)
 	{
 		filePosition = reader.GetPosition();
 		name = reader.ReadStrPtr();
 		StartFrame = reader.ReadF32();
 		EndFrame = reader.ReadF32();
 		StartOffset = reader.ReadF32();
-		PlaybackSpeed = reader.ReadF32();
+		TimeScale = reader.ReadF32();
 
-		Flags.AllBits = reader.ReadU16();
-		TypePaddingByte = reader.ReadU8();
-		Type = static_cast<AetLayerType>(reader.ReadU8());
+		Flags = ReadFlagsStruct<LayerFlags>(reader);
+		Quality = static_cast<LayerQuality>(reader.ReadU8());
+		ItemType = static_cast<Aet::ItemType>(reader.ReadU8());
 
 		if (reader.GetPointerMode() == PtrMode::Mode64Bit)
 			reader.ReadU32();
 
-		dataFilePtr = reader.ReadPtr();
+		itemFilePtr = reader.ReadPtr();
 		parentFilePtr = reader.ReadPtr();
 
 		size_t markerCount = reader.ReadSize();
@@ -178,7 +259,7 @@ namespace Comfy::Graphics
 		{
 			Markers.reserve(markerCount);
 			for (size_t i = 0; i < markerCount; i++)
-				Markers.push_back(MakeRef<AetMarker>());
+				Markers.push_back(MakeRef<Marker>());
 
 			reader.ReadAt(markersPointer, [this](BinaryReader& reader)
 			{
@@ -192,40 +273,41 @@ namespace Comfy::Graphics
 			});
 		}
 
-		FileAddr animationDataPointer = reader.ReadPtr();
-		if (animationDataPointer != FileAddr::NullPtr)
+		FileAddr layerVideoPointer = reader.ReadPtr();
+		if (layerVideoPointer != FileAddr::NullPtr)
 		{
-			reader.ReadAt(animationDataPointer, [this](BinaryReader& reader)
+			reader.ReadAt(layerVideoPointer, [this](BinaryReader& reader)
 			{
-				ReadAnimationData(AnimationData, reader);
-
-				SetTransformStartFrame(AnimationData->Transform, StartFrame);
-				if (AnimationData->PerspectiveTransform != nullptr)
-					SetTransformStartFrame(*AnimationData->PerspectiveTransform, StartFrame);
+				ReadLayerVideo(this->LayerVideo, reader);
+				SetLayerVideoStartFrame(this->LayerVideo->Transform, StartFrame);
+				if (this->LayerVideo->Transform3D != nullptr)
+					SetLayerVideoStartFrame(*this->LayerVideo->Transform3D, StartFrame);
 			});
 		}
 
 		audioDataFilePtr = reader.ReadPtr();
 	}
 
-	void Aet::Read(BinaryReader& reader)
+	void Scene::Read(BinaryReader& reader)
 	{
 		Name = reader.ReadStrPtr();
 		StartFrame = reader.ReadF32();
 		EndFrame = reader.ReadF32();
 		FrameRate = reader.ReadF32();
 		BackgroundColor = ReadColor(reader);
-
-		Resolution.x = reader.ReadI32();
-		Resolution.y = reader.ReadI32();
+		Resolution = reader.ReadIV2();
 
 		FileAddr cameraOffsetPtr = reader.ReadPtr();
 		if (cameraOffsetPtr != FileAddr::NullPtr)
 		{
-			Camera = MakeRef<AetCamera>();
+			Camera = MakeRef<Aet::Camera>();
 			reader.ReadAt(cameraOffsetPtr, [this](BinaryReader& reader)
 			{
-				ReadProperty2DPointer(Camera->Position, reader);
+				ReadProperty3DPointer(Camera->Eye, reader);
+				ReadProperty3DPointer(Camera->Position, reader);
+				ReadProperty3DPointer(Camera->Direction, reader);
+				ReadProperty3DPointer(Camera->Rotation, reader);
+				ReadProperty1DPointer(Camera->Zoom, reader);
 			});
 		}
 
@@ -236,9 +318,9 @@ namespace Comfy::Graphics
 			Compositions.resize(compCount - 1);
 			reader.ReadAt(compsPtr, [this](BinaryReader& reader)
 			{
-				const auto readCompFunction = [](BinaryReader& reader, RefPtr<AetComposition>& comp)
+				const auto readCompFunction = [](BinaryReader& reader, RefPtr<Composition>& comp)
 				{
-					comp = MakeRef<AetComposition>();
+					comp = MakeRef<Composition>();
 					comp->filePosition = reader.GetPosition();
 
 					size_t layerCount = reader.ReadSize();
@@ -246,12 +328,12 @@ namespace Comfy::Graphics
 
 					if (layerCount > 0 && layersPointer != FileAddr::NullPtr)
 					{
-						comp->resize(layerCount);
+						comp->GetLayers().resize(layerCount);
 						reader.ReadAt(layersPointer, [&comp](BinaryReader& reader)
 						{
-							for (auto& layer : *comp)
+							for (auto& layer : comp->GetLayers())
 							{
-								layer = MakeRef<AetLayer>();
+								layer = MakeRef<Layer>();
 								layer->Read(reader);
 							}
 						});
@@ -265,34 +347,34 @@ namespace Comfy::Graphics
 			});
 		}
 
-		size_t surfaceCount = reader.ReadSize();
-		FileAddr surfacesPtr = reader.ReadPtr();
-		if (surfaceCount > 0 && surfacesPtr != FileAddr::NullPtr)
+		size_t videoCount = reader.ReadSize();
+		FileAddr videosPtr = reader.ReadPtr();
+		if (videoCount > 0 && videosPtr != FileAddr::NullPtr)
 		{
-			Surfaces.resize(surfaceCount);
-			reader.ReadAt(surfacesPtr, [this](BinaryReader& reader)
+			Videos.resize(videoCount);
+			reader.ReadAt(videosPtr, [this](BinaryReader& reader)
 			{
-				for (auto& surface : Surfaces)
+				for (auto& video : Videos)
 				{
-					surface = MakeRef<AetSurface>();
-					surface->filePosition = reader.GetPosition();
-					surface->Color = ReadColor(reader);
-					surface->Size.x = reader.ReadU16();
-					surface->Size.y = reader.ReadU16();
-					surface->Frames = reader.ReadF32();
+					video = MakeRef<Video>();
+					video->filePosition = reader.GetPosition();
+					video->Color = ReadColor(reader);
+					video->Size.x = reader.ReadU16();
+					video->Size.y = reader.ReadU16();
+					video->Frames = reader.ReadF32();
 
 					uint32_t spriteCount = reader.ReadU32();
 					FileAddr spritesPointer = reader.ReadPtr();
 
 					if (spriteCount > 0 && spritesPointer != FileAddr::NullPtr)
 					{
-						surface->sprites.resize(spriteCount);
-						reader.ReadAt(spritesPointer, [&surface](BinaryReader& reader)
+						video->Sources.resize(spriteCount);
+						reader.ReadAt(spritesPointer, [&video](BinaryReader& reader)
 						{
-							for (AetSpriteIdentifier& sprite : surface->sprites)
+							for (auto& source : video->Sources)
 							{
-								sprite.Name = reader.ReadStrPtr();
-								sprite.ID = SprID(reader.ReadU32());
+								source.Name = reader.ReadStrPtr();
+								source.ID = SprID(reader.ReadU32());
 							}
 						});
 					}
@@ -300,28 +382,28 @@ namespace Comfy::Graphics
 			});
 		}
 
-		size_t soundEffectCount = reader.ReadSize();
-		FileAddr soundEffectsPtr = reader.ReadPtr();
-		if (soundEffectCount > 0 && soundEffectsPtr != FileAddr::NullPtr)
+		size_t audioCount = reader.ReadSize();
+		FileAddr audiosPtr = reader.ReadPtr();
+		if (audioCount > 0 && audiosPtr != FileAddr::NullPtr)
 		{
-			SoundEffects.resize(soundEffectCount);
-			reader.ReadAt(soundEffectsPtr, [this](BinaryReader& reader)
+			Audios.resize(audioCount);
+			reader.ReadAt(audiosPtr, [this](BinaryReader& reader)
 			{
-				for (auto& soundEffect : SoundEffects)
+				for (auto& audio : Audios)
 				{
-					soundEffect = MakeRef<AetSoundEffect>();
-					soundEffect->filePosition = reader.GetPosition();
-					soundEffect->Data = reader.ReadU32();
+					audio = MakeRef<Audio>();
+					audio->filePosition = reader.GetPosition();
+					audio->SoundID = reader.ReadU32();
 				}
 			});
 		}
 	}
 
-	void Aet::Write(BinaryWriter& writer)
+	void Scene::Write(BinaryWriter& writer)
 	{
 		writer.WritePtr([this](BinaryWriter& writer)
 		{
-			FileAddr aetFilePosition = writer.GetPosition();
+			FileAddr sceneFilePosition = writer.GetPosition();
 			writer.WriteStrPtr(Name);
 			writer.WriteF32(StartFrame);
 			writer.WriteF32(EndFrame);
@@ -330,74 +412,77 @@ namespace Comfy::Graphics
 			writer.WriteI32(Resolution.x);
 			writer.WriteI32(Resolution.y);
 
-			if (Camera != nullptr)
+			if (this->Camera != nullptr)
 			{
 				writer.WritePtr([this](BinaryWriter& writer)
 				{
-					WriteProperty2DPointer(Camera->Position, writer);
+					WriteProperty3DPointer(Camera->Eye, writer);
+					WriteProperty3DPointer(Camera->Position, writer);
+					WriteProperty3DPointer(Camera->Position, writer);
+					WriteProperty3DPointer(Camera->Direction, writer);
+					WriteProperty3DPointer(Camera->Rotation, writer);
+					WriteProperty1DPointer(Camera->Zoom, writer);
 				});
 			}
 			else
 			{
-				writer.WritePtr(FileAddr::NullPtr); // AetCamera offset
+				writer.WritePtr(FileAddr::NullPtr); // camera offset
 			}
 
 			assert(RootComposition != nullptr);
 			writer.WriteU32(static_cast<uint32_t>(Compositions.size()) + 1);
 			writer.WritePtr([this](BinaryWriter& writer)
 			{
-				const auto writeCompFunction = [](BinaryWriter& writer, const RefPtr<AetComposition>& comp)
+				const auto writeCompFunction = [](BinaryWriter& writer, const RefPtr<Composition>& comp)
 				{
 					comp->filePosition = writer.GetPosition();
-					if (comp->size() > 0)
+					if (comp->GetLayers().size() > 0)
 					{
-						writer.WriteU32(static_cast<uint32_t>(comp->size()));
+						writer.WriteU32(static_cast<uint32_t>(comp->GetLayers().size()));
 						writer.WritePtr([&comp](BinaryWriter& writer)
 						{
-							for (auto& layer : *comp)
+							for (auto& layer : comp->GetLayers())
 							{
 								layer->filePosition = writer.GetPosition();
 								writer.WriteStrPtr(layer->name);
 								writer.WriteF32(layer->StartFrame);
 								writer.WriteF32(layer->EndFrame);
 								writer.WriteF32(layer->StartOffset);
-								writer.WriteF32(layer->PlaybackSpeed);
-								writer.WriteType<AetLayerFlags>(layer->Flags);
-								writer.WriteU8(layer->TypePaddingByte);
-								writer.WriteType<AetLayerType>(layer->Type);
+								writer.WriteF32(layer->TimeScale);
+								WriteFlagsStruct<LayerFlags>(layer->Flags, writer);
+								writer.WriteU8(static_cast<uint8_t>(layer->Quality));
+								writer.WriteU8(static_cast<uint8_t>(layer->ItemType));
 
-								bool hasData =
-									(layer->Type == AetLayerType::Pic && layer->GetReferencedSurface() != nullptr) ||
-									(layer->Type == AetLayerType::Aif && layer->GetReferencedSoundEffect() != nullptr) ||
-									(layer->Type == AetLayerType::Eff && layer->GetReferencedComposition() != nullptr);
+								FileAddr itemFilePosition = FileAddr::NullPtr;
+								if (layer->ItemType == ItemType::Video && layer->GetVideoItem() != nullptr)
+									itemFilePosition = layer->GetVideoItem()->filePosition;
+								else if (layer->ItemType == ItemType::Audio && layer->GetAudioItem() != nullptr)
+									itemFilePosition = layer->GetAudioItem()->filePosition;
+								else if (layer->ItemType == ItemType::Composition && layer->GetCompItem() != nullptr)
+									itemFilePosition = layer->GetCompItem()->filePosition;
 
-								if (hasData)
+								if (itemFilePosition != FileAddr::NullPtr)
 								{
-									writer.WriteDelayedPtr([&layer](BinaryWriter& writer)
+									writer.WriteDelayedPtr([itemFilePosition](BinaryWriter& writer)
 									{
-										FileAddr filePosition =
-											(layer->Type == AetLayerType::Pic) ? layer->GetReferencedSurface()->filePosition :
-											(layer->Type == AetLayerType::Aif) ? layer->GetReferencedSoundEffect()->filePosition :
-											layer->GetReferencedComposition()->filePosition;
-
-										writer.WritePtr(filePosition);
+										writer.WritePtr(itemFilePosition);
 									});
 								}
 								else
 								{
-									writer.WritePtr(FileAddr::NullPtr); // Data offset
+									writer.WritePtr(FileAddr::NullPtr); // item offset
 								}
 
-								if (layer->GetReferencedParentLayer() != nullptr)
+								if (layer->GetRefParentLayer() != nullptr)
 								{
 									writer.WriteDelayedPtr([&layer](BinaryWriter& writer)
 									{
-										writer.WritePtr(layer->GetReferencedParentLayer()->filePosition);
+										writer.WritePtr(layer->GetRefParentLayer()->filePosition);
 									});
 								}
 								else
 								{
-									writer.WritePtr(FileAddr::NullPtr); // Parent offset
+									writer.WritePtr(FileAddr::NullPtr); // parent offset
 								}
 
 								if (layer->Markers.size() > 0)
@@ -414,33 +499,33 @@ namespace Comfy::Graphics
 								}
 								else
 								{
-									writer.WriteU32(0x00000000);		// Markers size
-									writer.WritePtr(FileAddr::NullPtr); // Markers offset
+									writer.WriteU32(0x00000000);		// markers size
+									writer.WritePtr(FileAddr::NullPtr); // markers offset
 								}
 
-								if (layer->AnimationData != nullptr)
+								if (layer->LayerVideo != nullptr)
 								{
-									AetAnimationData& animationData = *layer->AnimationData.get();
-									writer.WritePtr([&animationData](BinaryWriter& writer)
+									LayerVideo& layerVideo = *layer->LayerVideo;
+									writer.WritePtr([&layerVideo](BinaryWriter& writer)
 									{
-										writer.WriteType<AetBlendMode>(animationData.BlendMode);
-										writer.WriteU8(0x00);
-										writer.WriteBool(animationData.UseTextureMask);
-										writer.WriteU8(0x00);
+										writer.WriteU8(static_cast<uint8_t>(layerVideo.TransferMode.BlendMode));
+										WriteFlagsStruct<TransferFlags>(layerVideo.TransferMode.Flags, writer);
+										writer.WriteU8(static_cast<uint8_t>(layerVideo.TransferMode.TrackMatte));
+										writer.WriteU8(0xCC);
 
-										WriteTransform(animationData.Transform, writer);
+										WriteTransform(layerVideo.Transform, writer);
 
-										if (animationData.PerspectiveTransform != nullptr)
+										if (layerVideo.Transform3D != nullptr)
 										{
-											writer.WritePtr([&animationData](BinaryWriter& writer)
+											writer.WritePtr([&layerVideo](BinaryWriter& writer)
 											{
-												WriteTransform(*animationData.PerspectiveTransform, writer);
+												WriteTransform(*layerVideo.Transform3D, writer);
 												writer.WriteAlignmentPadding(16);
 											});
 										}
 										else
 										{
-											writer.WritePtr(FileAddr::NullPtr); // PerspectiveProperties offset
+											writer.WritePtr(FileAddr::NullPtr); // LayerVideo3D offset
 										}
 
 										writer.WriteAlignmentPadding(16);
@@ -448,11 +533,11 @@ namespace Comfy::Graphics
 								}
 								else
 								{
-									writer.WritePtr(FileAddr::NullPtr); // AnimationData offset
+									writer.WritePtr(FileAddr::NullPtr); // LayerVideo offset
 								}
 
 								// TODO: audioDataFilePtr
-								writer.WritePtr(FileAddr::NullPtr); // AudioData offset
+								writer.WritePtr(FileAddr::NullPtr); // LayerAudio offset
 							}
 
 							writer.WriteAlignmentPadding(16);
@@ -460,8 +545,8 @@ namespace Comfy::Graphics
 					}
 					else
 					{
-						writer.WriteU32(0x00000000);		// AetComposition size
-						writer.WritePtr(FileAddr::NullPtr); // AetComposition offset
+						writer.WriteU32(0x00000000);		// compositions size
+						writer.WritePtr(FileAddr::NullPtr); // compositions offset
 					}
 				};
 
@@ -472,34 +557,34 @@ namespace Comfy::Graphics
 				writer.WriteAlignmentPadding(16);
 			});
 
-			if (Surfaces.size() > 0)
+			if (Videos.size() > 0)
 			{
-				writer.WriteU32(static_cast<uint32_t>(Surfaces.size()));
+				writer.WriteU32(static_cast<uint32_t>(Videos.size()));
 				writer.WritePtr([this](BinaryWriter& writer)
 				{
-					for (auto& surface : Surfaces)
+					for (auto& video : Videos)
 					{
-						surface->filePosition = writer.GetPosition();
-						writer.WriteU32(surface->Color);
-						writer.WriteI16(static_cast<int16_t>(surface->Size.x));
-						writer.WriteI16(static_cast<int16_t>(surface->Size.y));
-						writer.WriteF32(surface->Frames);
-						if (surface->SpriteCount() > 0)
+						video->filePosition = writer.GetPosition();
+						writer.WriteU32(video->Color);
+						writer.WriteI16(static_cast<int16_t>(video->Size.x));
+						writer.WriteI16(static_cast<int16_t>(video->Size.y));
+						writer.WriteF32(video->Frames);
+						if (!video->Sources.empty())
 						{
-							writer.WriteU32(static_cast<uint32_t>(surface->SpriteCount()));
-							writer.WritePtr([&surface](BinaryWriter& writer)
+							writer.WriteU32(static_cast<uint32_t>(video->Sources.size()));
+							writer.WritePtr([&video](BinaryWriter& writer)
 							{
-								for (AetSpriteIdentifier& sprite : surface->GetSprites())
+								for (auto& source : video->Sources)
 								{
-									writer.WriteStrPtr(sprite.Name);
-									writer.WriteU32(static_cast<uint32_t>(sprite.ID));
+									writer.WriteStrPtr(source.Name);
+									writer.WriteU32(static_cast<uint32_t>(source.ID));
 								}
 							});
 						}
 						else
 						{
-							writer.WriteU32(0x00000000);		// AetSprites size
-							writer.WritePtr(FileAddr::NullPtr); // AetSprites offset
+							writer.WriteU32(0x00000000);		// sources size
+							writer.WritePtr(FileAddr::NullPtr); // sources offset
 						}
 					}
 					writer.WriteAlignmentPadding(16);
@@ -507,27 +592,27 @@ namespace Comfy::Graphics
 			}
 			else
 			{
-				writer.WriteU32(0x00000000);		// AetSurfaces size
-				writer.WritePtr(FileAddr::NullPtr); // AetSurfaces offset
+				writer.WriteU32(0x00000000);		// videos size
+				writer.WritePtr(FileAddr::NullPtr); // videos offset
 			}
 
-			if (SoundEffects.size() > 0)
+			if (Audios.size() > 0)
 			{
-				writer.WriteU32(static_cast<uint32_t>(SoundEffects.size()));
+				writer.WriteU32(static_cast<uint32_t>(Audios.size()));
 				writer.WritePtr([this](BinaryWriter& writer)
 				{
-					for (auto& soundEffect : SoundEffects)
+					for (auto& audio : Audios)
 					{
-						soundEffect->filePosition = writer.GetPosition();
-						writer.WriteU32(soundEffect->Data);
+						audio->filePosition = writer.GetPosition();
+						writer.WriteU32(audio->SoundID);
 					}
 					writer.WriteAlignmentPadding(16);
 				});
 			}
 			else
 			{
-				writer.WriteU32(0x00000000);		// AetSoundEffects size
-				writer.WritePtr(FileAddr::NullPtr);	// AetSoundEffects offset
+				writer.WriteU32(0x00000000);		// audios size
+				writer.WritePtr(FileAddr::NullPtr);	// audios offset
 			}
 
 			writer.WriteAlignmentPadding(16);
@@ -562,36 +647,36 @@ namespace Comfy::Graphics
 
 		FileAddr startAddress = reader.GetPosition();
 
-		size_t aetCount = 0;
+		size_t sceneCount = 0;
 		while (reader.ReadPtr() != FileAddr::NullPtr)
-			aetCount++;
-		aets.reserve(aetCount);
+			sceneCount++;
+		scenes.reserve(sceneCount);
 
-		reader.ReadAt(startAddress, [this, aetCount](BinaryReader& reader)
+		reader.ReadAt(startAddress, [this, sceneCount](BinaryReader& reader)
 		{
-			for (size_t i = 0; i < aetCount; i++)
+			for (size_t i = 0; i < sceneCount; i++)
 			{
-				aets.push_back(MakeRef<Aet>());
-				auto& aet = aets.back();
+				scenes.push_back(MakeRef<Scene>());
+				auto& scene = scenes.back();
 
-				reader.ReadAt(reader.ReadPtr(), [&aet](BinaryReader& reader)
+				reader.ReadAt(reader.ReadPtr(), [&scene](BinaryReader& reader)
 				{
-					aet->Read(reader);
+					scene->Read(reader);
 				});
 
-				aet->UpdateParentPointers();
-				aet->InternalLinkPostRead();
-				aet->InternalUpdateCompositionNamesAfterLayerReferences();
+				scene->UpdateParentPointers();
+				scene->LinkPostRead();
+				scene->UpdateCompNamesAfterLayerItems();
 			}
 		});
 	}
 
 	void AetSet::Write(BinaryWriter& writer)
 	{
-		for (auto& aet : aets)
+		for (auto& scene : scenes)
 		{
-			assert(aet != nullptr);
-			aet->Write(writer);
+			assert(scene != nullptr);
+			scene->Write(writer);
 		}
 
 		writer.WritePtr(FileAddr::NullPtr);

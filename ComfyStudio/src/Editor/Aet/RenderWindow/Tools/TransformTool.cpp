@@ -261,7 +261,7 @@ namespace Comfy::Editor
 			DrawBoxNode(drawList, screenSpaceBox.GetNodePosition(scalingNode), ImColor(allowAction ? redColor : redPreColor), screenSpaceBox.Rotation());
 	}
 
-	void TransformTool::ProcessCommands(AetCommandManager* commandManager, const RefPtr<AetLayer>& layer, float frame, const Transform2D& transform, const Transform2D& previousTransform)
+	void TransformTool::ProcessCommands(AetCommandManager* commandManager, const RefPtr<Aet::Layer>& layer, float frame, const Transform2D& transform, const Transform2D& previousTransform)
 	{
 		if (transform == previousTransform)
 			return;

@@ -5,6 +5,7 @@
 #include "Resource/IDTypes.h"
 #include "FileSystem/FileInterface.h"
 #include "Graphics/GraphicTypes.h"
+#include <variant>
 
 namespace Comfy
 {
@@ -20,200 +21,265 @@ namespace Comfy
 		// NOTE: To try and prevent composition name ambiguity
 		int ThisIndex;
 	};
+
+	namespace Graphics
+	{
+		struct Spr;
+	}
 }
 
-namespace Comfy::Graphics
+namespace Comfy::Graphics::Aet
 {
-	// NOTE: Aet related types are prefixed with "Aet" but object instances of them should never use these prefixes as they are redundant.
-	//		 "Composition" should be abbreviated to "Comp" in parameters, locals temporaries but not in function names or important member fields
+	class Scene;
+	class Composition;
+	class Audio;
 
-	class Aet;
-	class AetComposition;
-	class AetSoundEffect;
-
-	enum class AetLayerType : uint8_t
+	class ILayerItem
 	{
-		// NOTE: None
-		Nop = 0,
-		// NOTE: Image (-sequence) / position template / placeholder
-		Pic = 1,
-		// NOTE: Sound effect
-		Aif = 2,
-		// NOTE: Composition
-		Eff = 3,
+	protected:
+		ILayerItem() = default;
 	};
 
-	struct AetSpriteIdentifier
+	class NullItem : public ILayerItem, NonCopyable
 	{
-		// NOTE: Sprite name
+	};
+
+	struct VideoSource
+	{
 		std::string Name;
-		// NOTE: Database ID
 		SprID ID;
 
-		// NOTE: Editor internal cache to avoid expensive string comparisons
-		mutable const struct Spr* SpriteCache;
+		// HACK: Editor internal cache to avoid expensive string comparisons
+		mutable const Spr* SpriteCache;
 	};
 
-	// TODO: Rename to reflect sprite / position templates, sprites and image sequences
-	class AetSurface : NonCopyable
+	class Video : public ILayerItem, NonCopyable
 	{
-		friend class Aet;
+		friend class Scene;
 
 	public:
-		AetSurface() = default;
-		~AetSurface() = default;
+		Video() = default;
+		~Video() = default;
 
 	public:
-		// NOTE: Editor internal color
 		uint32_t Color;
-		// NOTE: Only really used for sprite and position templates
 		ivec2 Size;
-		// TODO: Should be the frame count of the image sequence, should look into this further in the future
 		frame_t Frames;
+		std::vector<VideoSource> Sources;
 
 	public:
-		AetSpriteIdentifier* GetSprite(int32_t index);
-		const AetSpriteIdentifier* GetSprite(int32_t index) const;
+		VideoSource* GetSource(int index);
+		const VideoSource* GetSource(int index) const;
 
-		AetSpriteIdentifier* GetFrontSprite();
-		AetSpriteIdentifier* GetBackSprite();
-
-		int32_t SpriteCount() const;
-		std::vector<AetSpriteIdentifier>& GetSprites();
-		const std::vector<AetSpriteIdentifier>& GetSprites() const;
+		VideoSource* GetFront();
+		VideoSource* GetBack();
 
 	private:
-		std::vector<AetSpriteIdentifier> sprites;
 		FileAddr filePosition;
 	};
 
-	struct AetMarker
+	struct TransferFlags
 	{
-		AetMarker();
-		AetMarker(frame_t frame, const std::string& name);
-
-		// NOTE: Start frame
-		frame_t Frame;
-		// NOTE: Identifier
-		std::string Name;
+		uint8_t PreserveAlpha : 1;
+		uint8_t RandomizeDissolve : 1;
 	};
 
-	struct AetKeyFrame
+	enum class TrackMatte : uint8_t
 	{
-		AetKeyFrame();
-		AetKeyFrame(float value);
-		AetKeyFrame(frame_t frame, float value);
-		AetKeyFrame(frame_t frame, float value, float curve);
-
-		frame_t Frame;
-		float Value;
-		float Curve;
+		NoTrackMatte = 0,
+		Alpha = 1,
+		NotAlpha = 2,
+		Luma = 3,
+		NotLuma = 4,
 	};
 
-	struct AetProperty1D
+	struct LayerTransferMode
 	{
-		std::vector<AetKeyFrame> Keys;
-
-		inline std::vector<AetKeyFrame>* operator->() { return &Keys; }
-		inline const std::vector<AetKeyFrame>* operator->() const { return &Keys; }
+		AetBlendMode BlendMode;
+		TransferFlags Flags;
+		TrackMatte TrackMatte;
 	};
 
-	struct AetProperty2D
+	struct KeyFrame
 	{
-		AetProperty1D X, Y;
+		KeyFrame() = default;
+		KeyFrame(float value) : Value(value) {}
+		KeyFrame(frame_t frame, float value) : Frame(frame), Value(value) {}
+		KeyFrame(frame_t frame, float value, float curve) : Frame(frame), Value(value), Curve(curve) {}
+
+		frame_t Frame = 0.0f;
+		float Value = 0.0f;
+		float Curve = 0.0f;
 	};
 
-	struct AetTransform
+	struct Property1D
 	{
-		static const std::array<const char*, 8> FieldNames;
+		std::vector<KeyFrame> Keys;
 
-		AetProperty2D Origin;
-		AetProperty2D Position;
-		AetProperty1D Rotation;
-		AetProperty2D Scale;
-		AetProperty1D Opacity;
+		inline std::vector<KeyFrame>* operator->() { return &Keys; }
+		inline const std::vector<KeyFrame>* operator->() const { return &Keys; }
+	};
 
-		inline AetProperty1D& operator[](Transform2DField field)
+	struct Property2D
+	{
+		Property1D X, Y;
+	};
+
+	struct Property3D
+	{
+		Property1D X, Y, Z;
+	};
+
+	struct LayerVideo2D
+	{
+		static constexpr std::array<const char*, 8> FieldNames = 
+		{
+			"Origin X",
+			"Origin Y",
+			"Position X",
+			"Position Y",
+			"Rotation",
+			"Scale X",
+			"Scale Y",
+			"Opactiy",
+		};
+
+		Property2D Origin;
+		Property2D Position;
+		Property1D Rotation;
+		Property2D Scale;
+		Property1D Opacity;
+
+		inline Property1D& operator[](Transform2DField field)
 		{
 			assert(field >= Transform2DField_OriginX && field < Transform2DField_Count);
 			return (&Origin.X)[field];
 		}
 
-		inline const AetProperty1D& operator[](Transform2DField field) const
+		inline const Property1D& operator[](Transform2DField field) const
 		{
-			return (*const_cast<AetTransform*>(this))[field];
+			return (*const_cast<LayerVideo2D*>(this))[field];
 		}
 	};
 
-	struct AetAnimationData
+	struct LayerVideo3D
 	{
-		// NOTE: Pic only sprite blend mode enum
-		AetBlendMode BlendMode;
-		// NOTE: Pic only texture mask bool, if true this sprite will be masked by the upper layer
-		bool UseTextureMask;
-		// NOTE: Key frame animation data
-		AetTransform Transform;
-		// TODO: Perspective animation transform, not yet implemented by the editor
-		RefPtr<AetTransform> PerspectiveTransform;
+		Property1D AnchorZ;
+		Property1D PositionZ;
+		Property3D Direction;
+		Property2D Rotation;
+		Property1D ScaleZ;
 	};
 
-	union AetLayerFlags
+	struct LayerVideo
 	{
-		// TODO: This struct is not complete, most notable there seem to be ones related to image sequences
-		struct
-		{
-			// NOTE: Is the layer visible at all? Most commonly used for masks
-			uint16_t Visible : 1;
-			// NOTE: Is the aif layer audible? Seems to be falsely ignored ingame
-			uint16_t Audible : 1;
-		};
-		// NOTE: Convenient field for resetting all flagss
-		uint16_t AllBits;
+		LayerTransferMode TransferMode;
+		LayerVideo2D Transform;
+		RefPtr<LayerVideo3D> Transform3D;
+
+		inline bool GetUseTextureMask() const { return TransferMode.TrackMatte != TrackMatte::NoTrackMatte; }
+		inline void SetUseTextureMask(bool value) { TransferMode.TrackMatte = value ? TrackMatte::Alpha : TrackMatte::NoTrackMatte; }
 	};
 
-	class AetLayer : NonCopyable
+	struct LayerAudio
 	{
-		friend class Aet;
-		friend class AetComposition;
+		Property1D VolumeL;
+		Property1D VolumeR;
+		Property1D PanL;
+		Property1D PanR;
+	};
+
+	struct LayerFlags
+	{
+		uint16_t VideoActive : 1;
+		uint16_t AudioActive : 1;
+		uint16_t EffectsActive : 1;
+		uint16_t MotionBlur : 1;
+		uint16_t FrameBlending : 1;
+		uint16_t Locked : 1;
+		uint16_t Shy : 1;
+		uint16_t Collapse : 1;
+		uint16_t AutoOrientRotation : 1;
+		uint16_t AdjustmentLayer : 1;
+		uint16_t TimeRemapping : 1;
+		uint16_t LayerIs3D : 1;
+		uint16_t LookAtCamera : 1;
+		uint16_t LookAtPointOfInterest : 1;
+		uint16_t Solo : 1;
+		uint16_t MarkersLocked : 1;
+		// uint16_t NullLayer : 1;
+		// uint16_t HideLockedMasks : 1;
+		// uint16_t GuideLayer : 1;
+		// uint16_t AdvancedFrameBlending : 1;
+		// uint16_t SubLayersRenderSeparately : 1;
+		// uint16_t EnvironmentLayer : 1;
+	};
+
+	enum class LayerQuality : uint8_t
+	{
+		None = 0,
+		Wireframe = 1,
+		Draft = 2,
+		Best = 3,
+		Count,
+	};
+
+	static constexpr std::array<const char*, static_cast<size_t>(LayerQuality::Count)> LayerQualityNames =
+	{
+		"None",
+		"Wireframe",
+		"Draft",
+		"Best",
+	};
+
+	enum class ItemType : uint8_t
+	{
+		None = 0,
+		Video = 1,
+		Audio = 2,
+		Composition = 3,
+		Count,
+	};
+
+	static constexpr std::array<const char*, static_cast<size_t>(ItemType::Count)> ItemTypeNames =
+	{
+		"None",
+		"Video",
+		"Audio",
+		"Composition",
+	};
+
+	struct Marker
+	{
+		Marker() = default;
+		Marker(frame_t frame, std::string_view name) : Frame(frame), Name(name) {}
+
+		frame_t Frame;
+		std::string Name;
+	};
+
+	class Layer : NonCopyable
+	{
+		friend class Scene;
+		friend class Composition;
 
 	public:
-		static const std::array<const char*, 4> TypeNames;
-
-	public:
-		AetLayer();
-		AetLayer(AetLayerType type, const std::string& name, AetComposition* parentComp);
-		~AetLayer();
+		Layer() = default;
+		~Layer() = default;
 
 	public:
 		mutable GuiExtraData GuiData;
 
-		// NOTE: The first frame the layer starts becoming visible
 		frame_t StartFrame;
-
-		// NOTE: The last frame the layer is visible on
 		frame_t EndFrame;
-
-		// NOTE: The offset the underlying referenced content is offset by relative to the StartFrame. Also known as "time remapping".
-		//		 Strangely some pic layers sometimes use a non-zero value
 		frame_t StartOffset;
-
-		// NOTE: The factor the underlying referenced composition or image sequence is sped up by. Also known as "time stretching"
-		float PlaybackSpeed;
-
-		// NOTE: General flags
-		AetLayerFlags Flags;
-
-		// NOTE: Unknown and doesn't seem to be used anywhere. Not always 0x00 however so might be some internal editor state such as a color enum
-		unk8_t TypePaddingByte;
-
-		// NOTE: Type of the reference data
-		AetLayerType Type;
-
-		// NOTE: A list of named frame markers used for game internals
-		std::vector<RefPtr<AetMarker>> Markers;
-
-		// NOTE: Everything render and animation related. Optional field not used by audio layers
-		RefPtr<AetAnimationData> AnimationData;
+		float TimeScale;
+		LayerFlags Flags;
+		LayerQuality Quality;
+		ItemType ItemType;
+		std::vector<RefPtr<Marker>> Markers;
+		RefPtr<LayerVideo> LayerVideo;
+		RefPtr<LayerAudio> LayerAudio;
 
 	public:
 		const std::string& GetName() const;
@@ -225,124 +291,105 @@ namespace Comfy::Graphics
 		bool GetIsAudible() const;
 		void SetIsAudible(bool value);
 
-		const RefPtr<AetSurface>& GetReferencedSurface();
-		const AetSurface* GetReferencedSurface() const;
-		void SetReferencedSurface(const RefPtr<AetSurface>& value);
+		const RefPtr<Video>& GetVideoItem();
+		const RefPtr<Audio>& GetAudioItem();
+		const RefPtr<Composition>& GetCompItem();
 
-		const RefPtr<AetSoundEffect>& GetReferencedSoundEffect();
-		const AetSoundEffect* GetReferencedSoundEffect() const;
-		void SetReferencedSoundEffect(const RefPtr<AetSoundEffect>& value);
+		const Video* GetVideoItem() const;
+		const Audio* GetAudioItem() const;
+		const Composition* GetCompItem() const;
 
-		const RefPtr<AetComposition>& GetReferencedComposition();
-		const AetComposition* GetReferencedComposition() const;
-		void SetReferencedComposition(const RefPtr<AetComposition>& value);
+		void SetItem(const RefPtr<Video>& value);
+		void SetItem(const RefPtr<Audio>& value);
+		void SetItem(const RefPtr<Composition>& value);
 
-		const RefPtr<AetLayer>& GetReferencedParentLayer();
-		const AetLayer* GetReferencedParentLayer() const;
-		void SetReferencedParentLayer(const RefPtr<AetLayer>& value);
+		const RefPtr<Layer>& GetRefParentLayer();
+		const Layer* GetRefParentLayer() const;
+		void SetRefParentLayer(const RefPtr<Layer>& value);
 
 	public:
-		Aet* GetParentAet();
-		const Aet* GetParentAet() const;
+		Scene* GetParentScene();
+		const Scene* GetParentScene() const;
 
-		AetComposition* GetParentComposition();
-		const AetComposition* GetParentComposition() const;
+		Composition* GetParentComposition();
+		const Composition* GetParentComposition() const;
 
 	private:
 		std::string name;
-		AetComposition* parentComposition;
+		Composition* parentComposition;
 
-		struct AetLayerReferenceData
+		struct References
 		{
-			RefPtr<AetSurface> Surface;
-			RefPtr<AetSoundEffect> SoundEffect;
-			RefPtr<AetComposition> Composition;
-			RefPtr<AetLayer> ParentLayer;
+			RefPtr<Video> Video; 
+			RefPtr<Audio> Audio;
+			RefPtr<Composition> Composition;
+			RefPtr<Layer> ParentLayer;
 		} references;
 
 		FileAddr filePosition;
-		FileAddr dataFilePtr;
+		FileAddr itemFilePtr;
 		FileAddr parentFilePtr;
 		FileAddr audioDataFilePtr;
 
 		void Read(FileSystem::BinaryReader& reader);
 	};
 
-	class AetComposition : NonCopyable
+	class Composition : public ILayerItem, NonCopyable
 	{
-		friend class Aet;
+		friend class Scene;
 
 	public:
-		AetComposition() = default;
-		~AetComposition() = default;
+		Composition() = default;
+		~Composition() = default;
 
 	public:
 		mutable GuiExtraData GuiData;
 
 	public:
-		Aet* GetParentAet() const;
+		Scene* GetParentScene() const;
 		bool IsRootComposition() const;
 
-		inline auto begin() { return layers.begin(); };
-		inline auto end() { return layers.end(); };
-		inline auto begin() const { return layers.begin(); };
-		inline auto end() const { return layers.end(); };
-		inline auto cbegin() const { return layers.cbegin(); };
-		inline auto cend() const { return layers.cend(); };
-
-		inline RefPtr<AetLayer>& front() { return layers.front(); };
-		inline RefPtr<AetLayer>& back() { return layers.back(); };
-		inline const RefPtr<AetLayer>& front() const { return layers.front(); };
-		inline const RefPtr<AetLayer>& back() const { return layers.back(); };
-
-		inline void resize(size_t newSize) { layers.resize(newSize); };
-		inline void reserve(size_t newCapacity) { layers.reserve(newCapacity); };
-		inline size_t size() const { return layers.size(); };
-
-		inline RefPtr<AetLayer>& at(size_t index) { return layers.at(index); };
-		inline RefPtr<AetLayer>& operator[](size_t index) { return layers[index]; };
+		inline std::vector<RefPtr<Layer>>& GetLayers() { return layers; }
+		inline const std::vector<RefPtr<Layer>>& GetLayers() const { return layers; }
 
 	public:
-		const std::string& GetName() const;
-		void SetName(const std::string& value);
+		inline std::string_view GetName() const { return givenName; }
+		inline void SetName(std::string_view value) { givenName = value; }
 
-		inline AetLayer* GetLayerAt(int index) { return layers.at(index).get(); };
-		inline const AetLayer* GetLayerAt(int index) const { return layers[index].get(); };
-
-		RefPtr<AetLayer> FindLayer(const std::string& name);
-		RefPtr<const AetLayer> FindLayer(const std::string& name) const;
-
-	public:
-		void AddNewLayer(AetLayerType type, const std::string& name);
-		void DeleteLayer(AetLayer* value);
+		RefPtr<Layer> FindLayer(std::string_view name);
+		RefPtr<const Layer> FindLayer(std::string_view name) const;
 
 	private:
-		static const std::string rootCompositionName;
-		static const std::string unusedCompositionName;
+		static constexpr std::string_view rootCompositionName = "Root";
+		static constexpr std::string_view unusedCompositionName = "Unused Comp";
 
-		Aet* parentAet;
+		Scene* parentScene;
 		FileAddr filePosition;
 
 		// NOTE: The Name given to any new eff layer referencing this composition. Assigned on AetSet load to the last layer's name using it (= not saved if unused)
 		std::string givenName;
-		std::vector<RefPtr<AetLayer>> layers;
+		std::vector<RefPtr<Layer>> layers;
 	};
 
-	struct AetCamera
+	struct Camera
 	{
-		AetProperty2D Position;
+		Property3D Eye;
+		Property3D Position;
+		Property3D Direction;
+		Property3D Rotation;
+		Property1D Zoom;
 	};
 
-	class AetSoundEffect : NonCopyable
+	class Audio : public ILayerItem, NonCopyable
 	{
-		friend class Aet;
+		friend class Scene;
 
 	public:
-		AetSoundEffect() = default;
-		~AetSoundEffect() = default;
+		Audio() = default;
+		~Audio() = default;
 
 	public:
-		unk32_t Data;
+		unk32_t SoundID;
 
 	private:
 		// TODO:
@@ -351,57 +398,39 @@ namespace Comfy::Graphics
 		FileAddr filePosition;
 	};
 
-	class Aet : NonCopyable
+	class Scene : NonCopyable
 	{
 		friend class AetSet;
-		friend class AetComposition;
-		friend class AetLayer;
-
-	public:
-		Aet() = default;
-		~Aet() = default;
+		friend class Composition;
+		friend class Layer;
 
 	public:
 		// NOTE: Typically "MAIN", "TOUCH" or named after the display mode
 		std::string Name;
 
-		// NOTE: Start frame of the root composition
 		frame_t StartFrame;
-		// NOTE: End frame of the root composition
 		frame_t EndFrame;
-		// NOTE: Base framerate of the entire aet
 		frame_t FrameRate;
 
-		// NOTE: Editor internal background color
 		uint32_t BackgroundColor;
-		// NOTE: Editor internal base resolution
 		ivec2 Resolution;
 
-		// NOTE: Unused 2D camera for all compositions
-		RefPtr<AetCamera> Camera;
+		RefPtr<Camera> Camera;
 
-		// NOTE: Sub compositions referenced by eff layers
-		std::vector<RefPtr<AetComposition>> Compositions;
-		// NOTE: The root composition from which all other compositions will be referenced
-		RefPtr<AetComposition> RootComposition;
+		std::vector<RefPtr<Composition>> Compositions;
+		RefPtr<Composition> RootComposition;
 
-		// NOTE: Referenced by pic layers
-		std::vector<RefPtr<AetSurface>> Surfaces;
-		// NOTE: Referenced by pic layers
-		std::vector<RefPtr<AetSoundEffect>> SoundEffects;
+		std::vector<RefPtr<Video>> Videos;
+		std::vector<RefPtr<Audio>> Audios;
 
 	public:
-		AetComposition* GetRootComposition();
-		const AetComposition* GetRootComposition() const;
+		Composition* GetRootComposition();
+		const Composition* GetRootComposition() const;
 
-		RefPtr<AetLayer> FindLayer(const std::string& name);
-		RefPtr<const AetLayer> FindLayer(const std::string& name) const;
+		RefPtr<Layer> FindLayer(std::string_view name);
+		RefPtr<const Layer> FindLayer(std::string_view name) const;
 
-		int32_t FindLayerIndex(AetComposition& comp, const std::string& name) const;
-
-	public:
-		//void AddNewComposition();
-		//void DeleteComposition(const RefPtr<AetComposition>& value);
+		int FindLayerIndex(Composition& comp, std::string_view name) const;
 
 	public:
 		void UpdateParentPointers();
@@ -411,14 +440,11 @@ namespace Comfy::Graphics
 		void Write(FileSystem::BinaryWriter& writer);
 
 	private:
-		void InternalUpdateCompositionNamesAfterLayerReferences();
-		void InternalUpdateCompositionNamesAfterLayerReferences(RefPtr<AetComposition>& comp);
-		void InternalLinkPostRead();
-		void InternalLinkeCompositionContent(RefPtr<AetComposition>& comp);
-		void InternalFindLayerReferencedSurface(AetLayer* layer);
-		void InternalFindLayerReferencedSoundEffect(AetLayer* layer);
-		void InternalFindLayerReferencedComposition(AetLayer* layer);
-		void InternalFindLayerReferencedParent(AetLayer* layer);
+		void UpdateCompNamesAfterLayerItems();
+		void UpdateCompNamesAfterLayerItems(RefPtr<Composition>& comp);
+		void LinkPostRead();
+		void LinkCompItems(Composition& comp);
+		void FindSetLayerRefParentLayer(Layer& layer);
 	};
 
 	class AetSet final : public FileSystem::IBinaryReadWritable, NonCopyable
@@ -432,29 +458,9 @@ namespace Comfy::Graphics
 		std::string Name;
 
 	public:
-		inline auto begin() { return aets.begin(); };
-		inline auto end() { return aets.end(); };
-		inline auto begin() const { return aets.begin(); };
-		inline auto end() const { return aets.end(); };
-		inline auto cbegin() const { return aets.cbegin(); };
-		inline auto cend() const { return aets.cend(); };
+		inline std::vector<RefPtr<Scene>>& GetScenes() { return scenes; }
+		inline const std::vector<RefPtr<Scene>>& GetScenes() const { return scenes; }
 
-		inline RefPtr<Aet>& front() { return aets.front(); };
-		inline RefPtr<Aet>& back() { return aets.back(); };
-		inline const RefPtr<Aet>& front() const { return aets.front(); };
-		inline const RefPtr<Aet>& back() const { return aets.back(); };
-
-		inline void resize(size_t newSize) { aets.resize(newSize); };
-		inline void reserve(size_t newCapacity) { aets.reserve(newCapacity); };
-		inline size_t size() const { return aets.size(); };
-
-		inline RefPtr<Aet>& at(size_t index) { return aets.at(index); };
-		inline RefPtr<Aet>& operator[](size_t index) { return aets[index]; };
-
-		inline Aet* GetAetAt(int index) { return aets.at(index).get(); };
-		inline const Aet* GetAetAt(int index) const { return aets[index].get(); };
-
-	public:
 		void ClearSpriteCache();
 
 	public:
@@ -462,6 +468,6 @@ namespace Comfy::Graphics
 		void Write(FileSystem::BinaryWriter& writer) override;
 
 	private:
-		std::vector<RefPtr<Aet>> aets;
+		std::vector<RefPtr<Scene>> scenes;
 	};
 }

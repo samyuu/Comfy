@@ -15,7 +15,7 @@ namespace Comfy::Editor
 	class AetRenderWindow : public RenderWindowBase, IMutatingEditorComponent
 	{
 	public:
-		AetRenderWindow(AetCommandManager* commandManager, Graphics::SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem, AetRenderPreviewData* previewData);
+		AetRenderWindow(AetCommandManager* commandManager, Graphics::Aet::SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem, AetRenderPreviewData* previewData);
 		~AetRenderWindow();
 
 		void SetIsPlayback(bool value);
@@ -44,18 +44,18 @@ namespace Comfy::Editor
 		void OnInitialize() override;
 
 		void RenderBackground();
-		void RenderAetSet(const Graphics::AetSet* aetSet);
-		void RenderAet(const Graphics::Aet* aet);
-		void RenderComposition(const Graphics::AetComposition* comp);
-		void RenderLayer(const Graphics::AetLayer* layer);
-		void RenderSurface(const Graphics::AetSurface* surface);
+		void RenderAetSet(const Graphics::Aet::AetSet* aetSet);
+		void RenderScene(const Graphics::Aet::Scene* scene);
+		void RenderComposition(const Graphics::Aet::Composition* comp);
+		void RenderLayer(const Graphics::Aet::Layer* layer);
+		void RenderVideo(const Graphics::Aet::Video* video);
 
 	protected:
-		vec2 GetLayerBoundingSize(const RefPtr<Graphics::AetLayer>& layer) const;
+		vec2 GetLayerBoundingSize(const RefPtr<Graphics::Aet::Layer>& layer) const;
 
 	protected:
-		bool OnObjRender(const Graphics::AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity);
-		bool OnObjMaskRender(const Graphics::AetMgr::ObjCache& maskObj, const Graphics::AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity);
+		bool OnObjRender(const Graphics::Aet::AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity);
+		bool OnObjMaskRender(const Graphics::Aet::AetMgr::ObjCache& maskObj, const Graphics::Aet::AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity);
 
 	private:
 		// NOTE: Fill the rest of the background
@@ -83,7 +83,7 @@ namespace Comfy::Editor
 
 		// NOTE: General rendering
 		UniquePtr<Graphics::GPU_Renderer2D> renderer = nullptr;
-		UniquePtr<Graphics::AetRenderer> aetRenderer = nullptr;
+		UniquePtr<Graphics::Aet::AetRenderer> aetRenderer = nullptr;
 
 		AetRenderPreviewData* previewData = nullptr;
 		
@@ -91,7 +91,7 @@ namespace Comfy::Editor
 		UniquePtr<ObjectMousePicker> mousePicker = nullptr;;
 
 		// NOTE: To be filled during rendering and then used for mouse interactions
-		std::vector<Graphics::AetMgr::ObjCache> objectCache;
+		std::vector<Graphics::Aet::AetMgr::ObjCache> objectCache;
 
 		// NOTE: The variables that will be edited by the current tool before being turned into commands
 		vec2 toolSize = vec2(100.0f, 100.0f);

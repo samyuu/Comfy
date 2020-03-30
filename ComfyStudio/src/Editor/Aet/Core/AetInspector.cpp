@@ -8,10 +8,11 @@
 namespace Comfy::Editor
 {
 	using namespace Graphics;
+	using namespace Graphics::Aet;
 
 	namespace
 	{
-		void CopyStringIntoBuffer(const std::string& string, char* buffer, size_t bufferSize)
+		void CopyStringIntoBuffer(std::string_view string, char* buffer, size_t bufferSize)
 		{
 			size_t copySize = std::min(string.size(), bufferSize - 1);
 			string.copy(buffer, copySize);
@@ -65,11 +66,11 @@ namespace Comfy::Editor
 	{
 		lastSelectedItem = selected;
 
-		if (selected.Ptrs.VoidPointer == nullptr)
+		if (selected.Ptrs.Void == nullptr)
 			return false;
 
 		// NOTE: Safety clear so no invalid state stays around when deselecting a layer for example
-		previewData->Surface = nullptr;
+		previewData->Video = nullptr;
 		previewData->BlendMode = AetBlendMode::Unknown;
 
 		switch (selected.Type())
@@ -77,17 +78,17 @@ namespace Comfy::Editor
 		case AetItemType::AetSet:
 			DrawInspectorAetSet(selected.GetAetSetRef());
 			break;
-		case AetItemType::Aet:
-			DrawInspectorAet(selected.GetAetRef());
+		case AetItemType::Scene:
+			DrawInspectorAet(selected.GetSceneRef());
 			break;
 		case AetItemType::Composition:
-			DrawInspectorComposition(selected.GetItemParentAet(), selected.GetAetCompositionRef());
+			DrawInspectorComposition(selected.GetItemParentScene(), selected.GetCompositionRef());
 			break;
 		case AetItemType::Layer:
-			DrawInspectorLayer(selected.GetItemParentAet(), selected.GetLayerRef());
+			DrawInspectorLayer(selected.GetItemParentScene(), selected.GetLayerRef());
 			break;
-		case AetItemType::Surface:
-			DrawInspectorSurface(selected.GetItemParentAet(), selected.GetSurfaceRef());
+		case AetItemType::Video:
+			DrawInspectorVideo(selected.GetItemParentScene(), selected.GetVideoRef());
 			break;
 		default:
 			break;
@@ -110,14 +111,14 @@ namespace Comfy::Editor
 	{
 		if (Gui::WideTreeNodeEx(ICON_NAMES "  Aets:", DefaultOpenPropertiesNodeFlags))
 		{
-			for (const RefPtr<Aet>& aet : *aetSet)
-				Gui::BulletText(aet->Name.c_str());
+			for (auto& scene : aetSet->GetScenes())
+				Gui::BulletText(scene->Name.c_str());
 
 			Gui::TreePop();
 		}
 	}
 
-	void AetInspector::DrawInspectorAet(const RefPtr<Aet>& aet)
+	void AetInspector::DrawInspectorAet(const RefPtr<Scene>& aet)
 	{
 		if (Gui::WideTreeNodeEx("Aet", DefaultOpenPropertiesNodeFlags))
 		{
@@ -153,7 +154,7 @@ namespace Comfy::Editor
 		Gui::Separator();
 	}
 
-	void AetInspector::DrawInspectorComposition(Aet* aet, const RefPtr<AetComposition>& comp)
+	void AetInspector::DrawInspectorComposition(Scene* aet, const RefPtr<Composition>& comp)
 	{
 		if (Gui::WideTreeNodeEx(ICON_AETCOMP "  Composition", DefaultOpenPropertiesNodeFlags))
 		{
@@ -170,7 +171,7 @@ namespace Comfy::Editor
 				int thisIndex = comp->GuiData.ThisIndex;
 				Gui::ComfyIntTextWidget("Index", &thisIndex, 0, 0, ImGuiInputTextFlags_ReadOnly);
 
-				int layerCount = static_cast<int>(comp->size());
+				int layerCount = static_cast<int>(comp->GetLayers().size());
 				Gui::ComfyIntTextWidget("Layer Count", &layerCount, 0, 0, ImGuiInputTextFlags_ReadOnly);
 			}
 			Gui::PopItemFlag();
@@ -182,7 +183,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorCompositionData(Aet* aet, const RefPtr<AetLayer>& layer, const RefPtr<AetComposition>& comp)
+	void AetInspector::DrawInspectorCompositionData(Scene* aet, const RefPtr<Layer>& layer, const RefPtr<Composition>& comp)
 	{
 		// TODO: In the future you should not be able to change the composition after creating it because it would leave the previous composition "nameless" (?)
 
@@ -191,23 +192,23 @@ namespace Comfy::Editor
 		if (Gui::WideTreeNodeEx(ICON_AETCOMPS "  Comp Data", DefaultOpenPropertiesNodeFlags))
 		{
 			if (comp != nullptr)
-				sprintf_s(compDataNameBuffer, "%.*s (Comp %d)", availableCompNameBufferSize, comp->GetName().c_str(), comp->GuiData.ThisIndex);
+				sprintf_s(compDataNameBuffer, "%.*s (Comp %d)", availableCompNameBufferSize, comp->GetName().data(), comp->GuiData.ThisIndex);
 
 			PushDisableItemFlagIfPlayback();
 			if (Gui::ComfyBeginCombo("Composition", comp == nullptr ? "None (Comp)" : compDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
 				if (Gui::Selectable("None (Composition)", comp == nullptr))
-					ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeReferenceComposition, layer, nullptr);
+					ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeCompItem, layer, nullptr);
 
-				for (const RefPtr<AetComposition>& comp : aet->Compositions)
+				for (const RefPtr<Composition>& comp : aet->Compositions)
 				{
 					Gui::PushID(comp.get());
 
 					bool isSelected = (comp == comp);
-					sprintf_s(compDataNameBuffer, "%.*s (Comp %d)", availableCompNameBufferSize, comp->GetName().c_str(), comp->GuiData.ThisIndex);
+					sprintf_s(compDataNameBuffer, "%.*s (Comp %d)", availableCompNameBufferSize, comp->GetName().data(), comp->GuiData.ThisIndex);
 
 					if (Gui::Selectable(compDataNameBuffer, isSelected))
-						ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeReferenceComposition, layer, comp);
+						ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeCompItem, layer, comp);
 
 					if (isSelected)
 						Gui::SetItemDefaultFocus();
@@ -222,9 +223,9 @@ namespace Comfy::Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorLayer(Aet* aet, const RefPtr<AetLayer>& layer)
+	void AetInspector::DrawInspectorLayer(Scene* aet, const RefPtr<Layer>& layer)
 	{
-		if (Gui::WideTreeNodeEx(layer.get(), DefaultOpenPropertiesNodeFlags, "%s  Layer", GetLayerTypeIcon(layer->Type)))
+		if (Gui::WideTreeNodeEx(layer.get(), DefaultOpenPropertiesNodeFlags, "%s  Layer", GetItemTypeIcon(layer->ItemType)))
 		{
 			PushDisableItemFlagIfPlayback();
 			CopyStringIntoBuffer(layer->GetName(), layerNameBuffer, sizeof(layerNameBuffer));
@@ -243,47 +244,47 @@ namespace Comfy::Editor
 			if (Gui::ComfyFloatTextWidget("Start Offset", &startOffset, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
 				ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeStartOffset, layer, startOffset);
 
-			if (layer->Type != AetLayerType::Aif)
+			if (layer->ItemType != ItemType::Audio)
 			{
 				constexpr float percentageFactor = 100.0f;
-				float playbackPercentage = layer->PlaybackSpeed * percentageFactor;
+				float timeScale = layer->TimeScale * percentageFactor;
 
-				if (Gui::ComfyFloatTextWidget("Playback Speed", &playbackPercentage, 1.0f, 10.0f, 0.0f, 0.0f, "%.0f%%"))
-					ProcessUpdatingAetCommand(GetCommandManager(), LayerChangePlaybackSpeed, layer, playbackPercentage / percentageFactor);
+				if (Gui::ComfyFloatTextWidget("Playback Speed", &timeScale, 1.0f, 10.0f, 0.0f, 0.0f, "%.0f%%"))
+					ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeTimeScale, layer, timeScale / percentageFactor);
 			}
 
 			PopDisableItemFlagIfPlayback();
 			Gui::TreePop();
 		}
 
-		if (layer->Type == AetLayerType::Nop)
+		if (layer->ItemType == ItemType::None)
 			return;
 
-		if ((layer->Type == AetLayerType::Pic))
+		if ((layer->ItemType == ItemType::Video))
 		{
 			Gui::Separator();
-			DrawInspectorSurfaceData(aet, layer, layer->GetReferencedSurface());
+			DrawInspectorVideoData(aet, layer, layer->GetVideoItem());
 		}
 
-		if ((layer->Type == AetLayerType::Eff))
+		if ((layer->ItemType == ItemType::Composition))
 		{
 			Gui::Separator();
-			DrawInspectorCompositionData(aet, layer, layer->GetReferencedComposition());
+			DrawInspectorCompositionData(aet, layer, layer->GetCompItem());
 		}
 
-		if ((layer->Type == AetLayerType::Pic || layer->Type == AetLayerType::Eff))
+		if ((layer->ItemType == ItemType::Video || layer->ItemType == ItemType::Composition))
 		{
 			Gui::Separator();
-			DrawInspectorAnimationData(layer->AnimationData, layer);
+			DrawInspectorAnimationData(layer->LayerVideo, layer);
 
 			// DEBUG: Quick debug view to inspect individual keyframes
-			DrawInspectorDebugAnimationData(layer->AnimationData, layer);
+			DrawInspectorDebugAnimationData(layer->LayerVideo, layer);
 		}
 
 		Gui::Separator();
 		DrawInspectorLayerMarkers(layer, &layer->Markers);
 
-		if ((layer->Type == AetLayerType::Pic || layer->Type == AetLayerType::Eff))
+		if ((layer->ItemType == ItemType::Video || layer->ItemType == ItemType::Composition))
 		{
 			Gui::Separator();
 			DrawInspectorLayerParent(aet, layer);
@@ -292,57 +293,57 @@ namespace Comfy::Editor
 		Gui::Separator();
 	}
 
-	void AetInspector::DrawInspectorSurfaceData(Aet* aet, const RefPtr<AetLayer>& layer, const RefPtr<AetSurface>& surface)
+	void AetInspector::DrawInspectorVideoData(Scene* scene, const RefPtr<Layer>& layer, const RefPtr<Video>& video)
 	{
-		if (Gui::WideTreeNodeEx(ICON_AETSURFACES "  Surface Data", DefaultOpenPropertiesNodeFlags))
+		if (Gui::WideTreeNodeEx(ICON_AETVIDEOS "  Video Data", DefaultOpenPropertiesNodeFlags))
 		{
-			if (surface != nullptr)
+			if (video != nullptr)
 			{
-				AetSpriteIdentifier* frontSprite = surface->GetFrontSprite();
+				VideoSource* frontSource = video->GetFront();
 
-				if (frontSprite == nullptr)
-					sprintf_s(surfaceDataNameBuffer, "Null (%dx%d)", surface->Size.x, surface->Size.y);
+				if (frontSource == nullptr)
+					sprintf_s(videoDataNameBuffer, "Null (%dx%d)", video->Size.x, video->Size.y);
 				else
-					CopyStringIntoBuffer(frontSprite->Name, surfaceDataNameBuffer, sizeof(surfaceDataNameBuffer));
+					CopyStringIntoBuffer(frontSource->Name, videoDataNameBuffer, sizeof(videoDataNameBuffer));
 			}
 
 			const char* noSpriteString = "None (Sprite)";
 
 			PushDisableItemFlagIfPlayback();
-			if (Gui::ComfyBeginCombo("Sprite", surface == nullptr ? noSpriteString : surfaceDataNameBuffer, ImGuiComboFlags_HeightLarge))
+			if (Gui::ComfyBeginCombo("Sprite", video == nullptr ? noSpriteString : videoDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
-				if (Gui::Selectable(noSpriteString, surface == nullptr))
-					ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeReferenceSurface, layer, nullptr);
+				if (Gui::Selectable(noSpriteString, video == nullptr))
+					ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeVideoItem, layer, nullptr);
 
-				int32_t surfaceIndex = 0;
-				for (const RefPtr<AetSurface>& surface : aet->Surfaces)
+				int32_t videoIndex = 0;
+				for (auto& video : scene->Videos)
 				{
-					Gui::PushID(surface.get());
+					Gui::PushID(video.get());
 
-					bool isSelected = (surface == surface);
+					bool isSelected = (video == video);
 
-					AetSpriteIdentifier* frontSprite = surface->GetFrontSprite();
+					VideoSource* frontSprite = video->GetFront();
 					if (frontSprite == nullptr)
-						sprintf_s(surfaceDataNameBuffer, "Surface %d (%dx%d)", surfaceIndex, surface->Size.x, surface->Size.y);
+						sprintf_s(videoDataNameBuffer, "Video %d (%dx%d)", videoIndex, video->Size.x, video->Size.y);
 
-					if (Gui::Selectable(frontSprite == nullptr ? surfaceDataNameBuffer : frontSprite->Name.c_str(), isSelected))
-						ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeReferenceSurface, layer, surface);
+					if (Gui::Selectable(frontSprite == nullptr ? videoDataNameBuffer : frontSprite->Name.c_str(), isSelected))
+						ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeVideoItem, layer, video);
 
 					if (Gui::IsItemHovered())
-						previewData->Surface = surface.get();
+						previewData->Video = video.get();
 
 					if (isSelected)
 						Gui::SetItemDefaultFocus();
 					Gui::PopID();
-					surfaceIndex++;
+					videoIndex++;
 				}
 
 				Gui::ComfyEndCombo();
 			}
 
-			if (surface->SpriteCount() > 0)
+			if (video->Sources.size() > 0)
 			{
-				auto sprite = surface->GetFrontSprite();
+				auto sprite = video->GetFront();
 
 				const Txp* outTxp;
 				const Spr* outSpr;
@@ -364,7 +365,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAnimationData(const RefPtr<AetAnimationData>& animationData, const RefPtr<AetLayer>& layer)
+	void AetInspector::DrawInspectorAnimationData(const RefPtr<LayerVideo>& animationData, const RefPtr<Layer>& layer)
 	{
 		if (Gui::WideTreeNodeEx(ICON_ANIMATIONDATA "  Animation Data", DefaultOpenPropertiesNodeFlags))
 		{
@@ -385,19 +386,19 @@ namespace Comfy::Editor
 				DrawInspectorAnimationDataProperty(layer, "Opacity", currentFrame, currentTransform.Opacity, Transform2DField_Opacity);
 			}
 
-			if (layer->Type == AetLayerType::Pic)
+			if (layer->ItemType == ItemType::Video)
 			{
-				if (animationData->UseTextureMask)
+				if (animationData->GetUseTextureMask())
 					Gui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 
-				if (Gui::ComfyBeginCombo("Blend Mode", GetBlendModeName(animationData->BlendMode), ImGuiComboFlags_HeightLarge))
+				if (Gui::ComfyBeginCombo("Blend Mode", GetBlendModeName(animationData->TransferMode.BlendMode), ImGuiComboFlags_HeightLarge))
 				{
 					// NOTE: Increase the count in case of invalid blend modes
-					size_t blendModeCount = glm::max(static_cast<size_t>(animationData->BlendMode), static_cast<size_t>(AetBlendMode::Count));
+					size_t blendModeCount = glm::max(static_cast<size_t>(animationData->TransferMode.BlendMode), static_cast<size_t>(AetBlendMode::Count));
 
 					for (int32_t blendModeIndex = 0; blendModeIndex < blendModeCount; blendModeIndex++)
 					{
-						bool isBlendMode = (static_cast<AetBlendMode>(blendModeIndex) == animationData->BlendMode);
+						bool isBlendMode = (static_cast<AetBlendMode>(blendModeIndex) == animationData->TransferMode.BlendMode);
 						bool outOfBounds = blendModeIndex >= static_cast<size_t>(AetBlendMode::Count);
 
 						if (!isBlendMode && (outOfBounds || !IsBlendModeSupported(static_cast<AetBlendMode>(blendModeIndex))))
@@ -418,10 +419,10 @@ namespace Comfy::Editor
 					Gui::ComfyEndCombo();
 				}
 
-				if (animationData->UseTextureMask)
+				if (animationData->GetUseTextureMask())
 					Gui::PopItemFlag();
 
-				bool useTextureMask = animationData->UseTextureMask;
+				bool useTextureMask = animationData->GetUseTextureMask();
 				if (Gui::ComfyCheckbox("Use Texture Mask", &useTextureMask))
 					ProcessUpdatingAetCommand(GetCommandManager(), AnimationDataChangeUseTextureMask, animationData, useTextureMask);
 			}
@@ -431,7 +432,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorDebugAnimationData(const RefPtr<AetAnimationData>& animationData, const RefPtr<AetLayer>& layer)
+	void AetInspector::DrawInspectorDebugAnimationData(const RefPtr<LayerVideo>& animationData, const RefPtr<Layer>& layer)
 	{
 		// DEBUG:
 		static bool showDebugView = false;
@@ -449,7 +450,7 @@ namespace Comfy::Editor
 			{
 				for (Transform2DField i = 0; i < Transform2DField_Count; i++)
 				{
-					if (Gui::WideTreeNode(AetTransform::FieldNames[i++]))
+					if (Gui::WideTreeNode(LayerVideo2D::FieldNames[i++]))
 					{
 						for (auto& keyFrame : animationData->Transform[i].Keys)
 							Gui::Text("Frame: %f; Value: %f; Curve: %f", keyFrame.Frame, keyFrame.Value, keyFrame.Curve);
@@ -463,14 +464,14 @@ namespace Comfy::Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAnimationDataProperty(const RefPtr<AetLayer>& layer, const char* label, frame_t frame, float& value, Transform2DField field)
+	void AetInspector::DrawInspectorAnimationDataProperty(const RefPtr<Layer>& layer, const char* label, frame_t frame, float& value, Transform2DField field)
 	{
 		constexpr float percentFactor = 100.0f;
 
-		assert(layer->AnimationData.get() != nullptr);
-		const auto& animationData = layer->AnimationData;
+		assert(layer->LayerVideo.get() != nullptr);
+		const auto& animationData = layer->LayerVideo;
 
-		AetKeyFrame* keyFrame = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Transform[field], frame);
+		KeyFrame* keyFrame = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Transform[field], frame);
 
 		Gui::PushStyleColor(ImGuiCol_FrameBg, ((animationData->Transform[field]->size() > 1))
 			? (keyFrame != nullptr)
@@ -502,15 +503,15 @@ namespace Comfy::Editor
 		Gui::PopStyleColor();
 	}
 
-	void AetInspector::DrawInspectorAnimationDataPropertyVec2(const RefPtr<AetLayer>& Layer, const char* label, frame_t frame, vec2& value, Transform2DField fieldX, Transform2DField fieldY)
+	void AetInspector::DrawInspectorAnimationDataPropertyVec2(const RefPtr<Layer>& Layer, const char* label, frame_t frame, vec2& value, Transform2DField fieldX, Transform2DField fieldY)
 	{
 		constexpr float percentFactor = 100.0f;
 
-		assert(Layer->AnimationData.get() != nullptr);
-		const auto& animationData = Layer->AnimationData;
+		assert(Layer->LayerVideo.get() != nullptr);
+		const auto& animationData = Layer->LayerVideo;
 
-		const AetKeyFrame* keyFrameX = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Transform[fieldX], frame);
-		const AetKeyFrame* keyFrameY = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Transform[fieldY], frame);
+		const KeyFrame* keyFrameX = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Transform[fieldX], frame);
+		const KeyFrame* keyFrameY = isPlayback ? nullptr : AetMgr::GetKeyFrameAt(animationData->Transform[fieldY], frame);
 
 		Gui::PushStyleColor(ImGuiCol_FrameBg, ((animationData->Transform[fieldX]->size() > 1) || (animationData->Transform[fieldY]->size() > 1))
 			? (keyFrameX != nullptr || keyFrameY != nullptr)
@@ -554,13 +555,13 @@ namespace Comfy::Editor
 		Gui::PopStyleColor();
 	}
 
-	void AetInspector::DrawInspectorLayerMarkers(const RefPtr<AetLayer>& layer, std::vector<RefPtr<AetMarker>>* markers)
+	void AetInspector::DrawInspectorLayerMarkers(const RefPtr<Layer>& layer, std::vector<RefPtr<Marker>>* markers)
 	{
 		if (Gui::WideTreeNodeEx(ICON_MARKERS "  Markers", DefaultOpenPropertiesNodeFlags))
 		{
 			for (int i = 0; i < markers->size(); i++)
 			{
-				const RefPtr<AetMarker>& marker = markers->at(i);
+				const RefPtr<Marker>& marker = markers->at(i);
 
 				Gui::PushID(marker.get());
 
@@ -619,7 +620,7 @@ namespace Comfy::Editor
 			{
 				char newMarkerNameBuffer[32];
 				sprintf_s(newMarkerNameBuffer, "marker_%02zd", markers->size());
-				auto newMarker = MakeRef<AetMarker>(0.0f, newMarkerNameBuffer);
+				auto newMarker = MakeRef<Marker>(0.0f, newMarkerNameBuffer);
 				ProcessUpdatingAetCommand(GetCommandManager(), LayerAddMarker, layer, newMarker);
 			}
 			PopDisableItemFlagIfPlayback();
@@ -628,18 +629,18 @@ namespace Comfy::Editor
 		}
 	}
 
-	bool IsAnyParentRecursive(const AetLayer* newLayer, const AetLayer* layer)
+	bool IsAnyParentRecursive(const Layer* newLayer, const Layer* layer)
 	{
 		// TODO: Recursively check parent and maybe move this function into the AetMgr
-		return (newLayer->GetReferencedParentLayer() != nullptr && newLayer->GetReferencedParentLayer() == layer);
+		return (newLayer->GetRefParentLayer() != nullptr && newLayer->GetRefParentLayer() == layer);
 	}
 
-	void AetInspector::DrawInspectorLayerParent(Aet* aet, const RefPtr<AetLayer>& layer)
+	void AetInspector::DrawInspectorLayerParent(Scene* aet, const RefPtr<Layer>& layer)
 	{
 		if (Gui::WideTreeNodeEx(ICON_PARENT "  Parent", DefaultOpenPropertiesNodeFlags))
 		{
-			AetLayer* parentLayer = layer->GetReferencedParentLayer().get();
-			AetComposition* parentComp = layer->GetParentComposition();
+			Layer* parentLayer = layer->GetRefParentLayer().get();
+			Composition* parentComp = layer->GetParentComposition();
 
 			constexpr const char* noParentString = "None (Parent)";
 			PushDisableItemFlagIfPlayback();
@@ -649,9 +650,9 @@ namespace Comfy::Editor
 				if (Gui::Selectable(noParentString, parentLayer == nullptr))
 					ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeReferencedParentLayer, layer, nullptr);
 
-				for (int32_t layerIndex = 0; layerIndex < parentComp->size(); layerIndex++)
+				for (int32_t layerIndex = 0; layerIndex < parentComp->GetLayers().size(); layerIndex++)
 				{
-					const RefPtr<AetLayer>& iteratorLayer = parentComp->at(layerIndex);
+					const RefPtr<Layer>& iteratorLayer = parentComp->GetLayers().at(layerIndex);
 					bool isSelected = (iteratorLayer.get() == parentLayer);
 
 					bool isSame = (layer.get() == iteratorLayer.get());
@@ -673,19 +674,19 @@ namespace Comfy::Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorSurface(Aet* aet, const RefPtr<AetSurface>& surface)
+	void AetInspector::DrawInspectorVideo(Scene* aet, const RefPtr<Video>& video)
 	{
-		Gui::InputInt2("Dimensions", glm::value_ptr(surface->Size));
+		Gui::InputInt2("Dimensions", glm::value_ptr(video->Size));
 
-		ImVec4 color = Gui::ColorConvertU32ToFloat4(surface->Color);
-		if (Gui::ColorEdit3("Background##AetSurfaceColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
-			surface->Color = Gui::ColorConvertFloat4ToU32(color);
+		ImVec4 color = Gui::ColorConvertU32ToFloat4(video->Color);
+		if (Gui::ColorEdit3("Background##AetVideoColor", (float*)&color, ImGuiColorEditFlags_DisplayHex))
+			video->Color = Gui::ColorConvertFloat4ToU32(color);
 
 		if (Gui::WideTreeNodeEx("Sprites:", DefaultOpenPropertiesNodeFlags))
 		{
-			for (auto& sprite : surface->GetSprites())
+			for (auto& source : video->Sources)
 			{
-				sprintf_s(spriteNameBuffer, ICON_AETSURFACE "  %s", sprite.Name.c_str());
+				sprintf_s(spriteNameBuffer, ICON_AETVIDEO "  %s", source.Name.c_str());
 				Gui::Selectable(spriteNameBuffer);
 			}
 			Gui::TreePop();
