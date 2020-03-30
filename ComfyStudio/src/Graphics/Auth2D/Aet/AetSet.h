@@ -366,7 +366,7 @@ namespace Comfy::Graphics::Aet
 		Scene* parentScene;
 		FileAddr filePosition;
 
-		// NOTE: The Name given to any new eff layer referencing this composition. Assigned on AetSet load to the last layer's name using it (= not saved if unused)
+		// NOTE: The Name given to any new comp item layer referencing this comp. Assigned on AetSet load to the last layer's item name using it (= not saved if unused)
 		std::string givenName;
 		std::vector<RefPtr<Layer>> layers;
 	};
@@ -454,7 +454,6 @@ namespace Comfy::Graphics::Aet
 		~AetSet() = default;
 
 	public:
-		// TODO: File name, should probably be moved into the IReadable interface and be set OnLoad (?)
 		std::string Name;
 
 	public:
