@@ -998,7 +998,117 @@ namespace Comfy::Editor
 
 	void SceneEditor::DrawA3DTestGui()
 	{
+#if COMFY_DEBUG && 0 // DEBUG:
+#if 1
+		scene.LensFlare.SunPosition = vec3(11.017094f, 5.928364f, -57.304039f);
+		//scene.LensFlare.SunPosition = vec3(0.0f, 2.0f, 0.0f);
+#endif
+
+#if 1
+		static constexpr std::string_view effCmnObjSetPath = "dev_rom/objset/copy/effcmn/effcmn_obj.bin";
+		static constexpr std::string_view effCmnTxpSetPath = "dev_rom/objset/copy/effcmn/effcmn_tex.bin";
+
+		static UniquePtr<ObjSet> effCmnObjSet = nullptr;
+
+		if (effCmnObjSet == nullptr)
+		{
+			effCmnObjSet = ObjSet::MakeUniqueReadParseUpload(effCmnObjSetPath);
+			effCmnObjSet->TxpSet = TxpSet::MakeUniqueReadParseUpload(effCmnTxpSetPath, effCmnObjSet.get());
+
+			if (auto sunObj = std::find_if(effCmnObjSet->begin(), effCmnObjSet->end(), [&](const auto& obj) { return obj.Name == "effcmn_sun"; }); sunObj != effCmnObjSet->end())
+				scene.LensFlare.SunObj = &(*sunObj);
+		}
+#elif 1
+		scene.LensFlare.SunObj = nullptr;
+
+		for (auto& objSet : sceneGraph.LoadedObjSets)
+		{
+			for (auto& obj : *objSet.ObjSet)
+			{
+				if (Utilities::EndsWithInsensitive(obj.Name, "lensflare_0"))
+					scene.LensFlare.SunObj = &obj;
+			}
+		}
+#endif
+#endif /* COMFY_DEBUG */
+
+#if 1 // DEBUG:
 		// TODO:
+		struct TestViewport
+		{
+			CameraController3D CameraController;
+			SceneViewport Viewport;
+		};
+
+		static std::vector<UniquePtr<TestViewport>> testViewports;
+
+		if (Gui::Button("Add Viewport"))
+		{
+			testViewports.push_back(std::move(MakeUnique<TestViewport>()));
+			auto& testViewport = testViewports.back()->Viewport;
+			testViewport.Camera = this->viewport.Camera;
+			testViewport.Parameters = this->viewport.Parameters;
+			testViewport.Parameters.RenderResolution = ivec2(512, 288);
+		}
+
+		for (auto& testViewport : testViewports)
+		{
+			char viewportNameBuffer[64];
+			sprintf_s(viewportNameBuffer, "Test Viewport (0x%p)", testViewport.get());
+
+			bool isOpen = true;
+			Gui::SetNextWindowSize(vec2(testViewport->Viewport.Parameters.RenderResolution), ImGuiCond_FirstUseEver);
+			if (Gui::Begin(viewportNameBuffer, &isOpen, (ImGuiWindowFlags_NoSavedSettings)))
+			{
+				vec2 size = Gui::GetWindowSize();
+				testViewport->Viewport.Camera.AspectRatio = size.x / size.y;
+				testViewport->Viewport.Parameters.RenderResolution = size;
+				testViewport->Viewport.Parameters.AutoExposure = false;
+				testViewport->Viewport.Parameters.ToneMapPreserveAlpha = true;
+
+				GuiPropertyRAII::ID id(&testViewport->Viewport);
+				Gui::BeginChild("TestViewportChild");
+
+				if (Gui::IsWindowFocused())
+					testViewport->CameraController.Update(testViewport->Viewport.Camera);
+
+				testViewport->Viewport.Camera.UpdateMatrices();
+				renderer3D->Begin(testViewport->Viewport, scene);
+				{
+					for (const auto& entity : sceneGraph.Entities)
+					{
+						if (!entity->IsVisible)
+							continue;
+
+						RenderCommand renderCommand;
+						renderCommand.SourceObj = entity->Obj;
+						renderCommand.SourceMorphObj = entity->MorphObj;
+						renderCommand.Transform = entity->Transform;
+						renderCommand.Flags.IsReflection = entity->IsReflection;
+						renderCommand.Animation = entity->Animation.get();
+
+						if (entity->SilhouetteOutline)
+							renderCommand.Flags.SilhouetteOutline = true;
+						if (entity->Tag == 'chr' || entity->Tag == 'obj')
+							renderCommand.Flags.CastsShadow = true;
+
+						renderer3D->Draw(renderCommand);
+					}
+				}
+				renderer3D->End();
+
+				Gui::GetWindowDrawList()->AddImage(testViewport->Viewport.Data.Output.RenderTarget, Gui::GetWindowPos(), Gui::GetWindowPos() + size);
+				Gui::EndChild();
+			}
+			Gui::End();
+
+			if (!isOpen)
+			{
+				testViewports.erase(testViewports.begin() + std::distance(&testViewports.front(), &testViewport));
+				break;
+			}
+		}
+#endif
 	}
 
 	void SceneEditor::DrawExternalProcessTestGui()
