@@ -56,12 +56,12 @@ namespace Comfy::Graphics
 		std::string_view GetName() const;
 	};
 
-	class TxpSet : public FileSystem::IBufferParsable
+	class TxpSet : public FileSystem::IBufferParsable, NonCopyable
 	{
 	public:
 		TxpSig Signature;
 		std::vector<RefPtr<Txp>> Txps;
-		
+
 		void Parse(const uint8_t* buffer, size_t bufferSize) override;
 		void UploadAll(class SprSet* parentSprSet);
 

@@ -21,7 +21,7 @@ namespace Comfy::Graphics
 		vec2 GetSize() const;
 	};
 
-	class SprSet : public FileSystem::IBufferParsable
+	class SprSet : public FileSystem::IBufferParsable, NonCopyable
 	{
 	public:
 		std::string Name;
