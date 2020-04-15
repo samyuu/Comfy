@@ -44,7 +44,7 @@ namespace Comfy::Graphics
 		uint32_t packedCount = *(uint32_t*)(buffer + 8);
 		uint32_t* offsets = (uint32_t*)(buffer + 12);
 
-		assert(txpSet.Signature.Type == TxpSig::TxpSet);
+		assert(txpSet.Signature == TxpSig::TxpSet);
 
 		Txps.reserve(textureCount);
 		for (uint32_t i = 0; i < textureCount; i++)
@@ -63,16 +63,16 @@ namespace Comfy::Graphics
 #if COMFY_D3D11_DEBUG_NAMES
 			char debugNameBuffer[128];
 			sprintf_s(debugNameBuffer, "%s %s: %s",
-				(txp->Signature.Type == TxpSig::Texture2D) ? "Texture2D" : "CubeMap",
+				(txp->Signature == TxpSig::Texture2D) ? "Texture2D" : "CubeMap",
 				(parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet",
 				txp->GetName().data());
 
 			debugName = debugNameBuffer;
 #endif
 
-			if (txp->Signature.Type == TxpSig::Texture2D)
+			if (txp->Signature == TxpSig::Texture2D)
 				txp->GPU_Texture2D = GPU::MakeTexture2D(*txp, debugName);
-			else if (txp->Signature.Type == TxpSig::CubeMap)
+			else if (txp->Signature == TxpSig::CubeMap)
 				txp->GPU_CubeMap = GPU::MakeCubeMap(*txp, debugName);
 		}
 	}
@@ -116,7 +116,7 @@ namespace Comfy::Graphics
 		const uint8_t* mipMapBuffer = buffer + *offsets;
 		++offsets;
 
-		assert(txp.Signature.Type == TxpSig::Texture2D || txp.Signature.Type == TxpSig::CubeMap || txp.Signature.Type == TxpSig::Rectangle);
+		assert(txp.Signature == TxpSig::Texture2D || txp.Signature == TxpSig::CubeMap || txp.Signature == TxpSig::Rectangle);
 		// assert(mipMapCount == txp.MipLevels * txp.ArraySize);
 
 		txp.MipMapsArray.resize(txp.ArraySize);
@@ -135,7 +135,7 @@ namespace Comfy::Graphics
 				mipMap.ArrayIndex = *(uint8_t*)(mipMapBuffer + 17);
 
 				mipMap.DataSize = *(uint32_t*)(mipMapBuffer + 20);
-				mipMap.Data = MakeUnique<uint8_t[]>(mipMap.DataSize); 
+				mipMap.Data = MakeUnique<uint8_t[]>(mipMap.DataSize);
 				std::memcpy(mipMap.Data.get(), mipMapBuffer + 24, mipMap.DataSize);
 
 				mipMapBuffer = buffer + *offsets;

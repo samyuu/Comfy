@@ -9,19 +9,13 @@
 
 namespace Comfy::Graphics
 {
-	struct TxpSig
+	enum class TxpSig
 	{
-		enum TxpType : uint8_t
-		{
-			MipMap = 2,
-			TxpSet = 3,
-			Texture2D = 4,
-			CubeMap = 5,
-			Rectangle = 6,
-		};
-
-		std::array<char, 3> Txp;
-		TxpType Type;
+		MipMap = '\02PXT',
+		TxpSet = '\03PXT',
+		Texture2D = '\04PXT',
+		CubeMap = '\05PXT',
+		Rectangle = '\06PXT',
 	};
 
 	struct TxpMipMap
@@ -57,7 +51,7 @@ namespace Comfy::Graphics
 
 		ivec2 GetSize() const;
 		TextureFormat GetFormat() const;
-		
+
 		static constexpr std::string_view UnknownName = "F_COMFY_UNKNOWN";
 		std::string_view GetName() const;
 	};
