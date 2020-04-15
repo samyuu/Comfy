@@ -8,12 +8,15 @@ namespace Comfy::Graphics
 	struct Spr
 	{
 		int32_t TextureIndex;
-		float Unknown;
+		int32_t Rotate;
 		vec4 TexelRegion;
 		vec4 PixelRegion;
 		std::string Name;
-		unk32_t GraphicsReserved;
-		DisplayMode DisplayMode;
+		struct ExtraData
+		{
+			uint32_t Flags;
+			ScreenMode ScreenMode;
+		} Extra;
 
 		vec2 GetSize() const;
 	};
@@ -22,7 +25,7 @@ namespace Comfy::Graphics
 	{
 	public:
 		std::string Name;
-		uint32_t Signature;
+		uint32_t Flags;
 		UniquePtr<TxpSet> TxpSet;
 		std::vector<Spr> Sprites;
 

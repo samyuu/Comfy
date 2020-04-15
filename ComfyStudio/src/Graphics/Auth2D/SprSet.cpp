@@ -14,7 +14,7 @@ namespace Comfy::Graphics
 	{
 		SprSet* sprSet = this;
 
-		sprSet->Signature = *(uint32_t*)(buffer + 0);
+		sprSet->Flags = *(uint32_t*)(buffer + 0);
 		uint32_t txpSetOffset = *(uint32_t*)(buffer + 4);
 		uint32_t textureCount = *(uint32_t*)(buffer + 8);
 		uint32_t spritesCount = *(uint32_t*)(buffer + 12);
@@ -38,8 +38,8 @@ namespace Comfy::Graphics
 			{
 				Spr* sprite = &sprSet->Sprites[i];
 
-				sprite->TextureIndex = *(uint32_t*)(spritesBuffer + 0);
-				sprite->Unknown = *(float*)(spritesBuffer + 4);
+				sprite->TextureIndex = *(int32_t*)(spritesBuffer + 0);
+				sprite->Rotate = *(int32_t*)(spritesBuffer + 4);
 				sprite->TexelRegion = *(vec4*)(spritesBuffer + 8);
 				sprite->PixelRegion = *(vec4*)(spritesBuffer + 24);
 				spritesBuffer += 40;
@@ -53,8 +53,7 @@ namespace Comfy::Graphics
 			for (uint32_t i = 0; i < textureCount; i++)
 			{
 				uint32_t nameOffset = ((uint32_t*)textureNamesOffsetBuffer)[i];
-				char* name = (char*)(buffer + nameOffset);
-				sprSet->TxpSet->Txps[i]->Name = std::string(name);
+				sprSet->TxpSet->Txps[i]->Name = (const char*)(buffer + nameOffset);
 			}
 		}
 
@@ -65,8 +64,7 @@ namespace Comfy::Graphics
 			for (uint32_t i = 0; i < spritesCount; i++)
 			{
 				uint32_t nameOffset = ((uint32_t*)spriteNamesOffsetBuffer)[i];
-				char* name = (char*)(buffer + nameOffset);
-				sprSet->Sprites[i].Name = std::string(name);
+				sprSet->Sprites[i].Name = (const char*)(buffer + nameOffset);
 			}
 		}
 
@@ -74,10 +72,10 @@ namespace Comfy::Graphics
 		{
 			const uint8_t* extraDataBuffer = buffer + spriteExtraDataOffset;
 
-			for (Spr &sprite : sprSet->Sprites)
+			for (auto& sprite : sprSet->Sprites)
 			{
-				sprite.GraphicsReserved = *((uint32_t*)extraDataBuffer + 0);
-				sprite.DisplayMode = *((DisplayMode*)extraDataBuffer + 4);
+				sprite.Extra.Flags = *((uint32_t*)extraDataBuffer + 0);
+				sprite.Extra.ScreenMode = *((ScreenMode*)extraDataBuffer + 4);
 				extraDataBuffer += 8;
 			}
 		}
