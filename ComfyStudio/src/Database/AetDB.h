@@ -3,11 +3,10 @@
 
 namespace Comfy::Database
 {
-	struct AetEntry : BinaryDatabase::Entry
+	struct AetSceneEntry : BinaryDatabase::Entry
 	{
-		AetID ID;
+		AetSceneID ID;
 		std::string Name;
-		int32_t Index;
 	};
 
 	struct AetSetEntry : BinaryDatabase::Entry, BinaryDatabase::FileEntry
@@ -15,10 +14,10 @@ namespace Comfy::Database
 		AetSetID ID;
 		std::string Name;
 		SprSetID SprSetID;
-		std::vector<AetEntry> AetEntries;
+		std::vector<AetSceneEntry> SceneEntries;
 		std::string FileName;
 
-		AetEntry* GetAetEntry(const std::string& name);
+		AetSceneEntry* GetSceneEntry(std::string_view name);
 	};
 
 	class AetDB final : public BinaryDatabase
