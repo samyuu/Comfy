@@ -32,8 +32,8 @@ namespace Comfy::Graphics
 		uint8_t MipIndex;
 		uint8_t ArrayIndex;
 
-		const uint8_t* DataPointer;
-		uint32_t DataPointerSize;
+		uint32_t DataSize;
+		UniquePtr<uint8_t[]> Data;
 	};
 
 	struct Txp

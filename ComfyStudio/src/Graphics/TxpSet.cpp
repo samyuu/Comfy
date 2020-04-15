@@ -134,8 +134,9 @@ namespace Comfy::Graphics
 				mipMap.MipIndex = *(uint8_t*)(mipMapBuffer + 16);
 				mipMap.ArrayIndex = *(uint8_t*)(mipMapBuffer + 17);
 
-				mipMap.DataPointerSize = *(uint32_t*)(mipMapBuffer + 20);
-				mipMap.DataPointer = (mipMapBuffer + 24);
+				mipMap.DataSize = *(uint32_t*)(mipMapBuffer + 20);
+				mipMap.Data = MakeUnique<uint8_t[]>(mipMap.DataSize); 
+				std::memcpy(mipMap.Data.get(), mipMapBuffer + 24, mipMap.DataSize);
 
 				mipMapBuffer = buffer + *offsets;
 				++offsets;

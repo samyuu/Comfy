@@ -290,7 +290,7 @@ namespace Comfy::Graphics::D3D11
 		D3D11_SUBRESOURCE_DATA CreateMipMapSubresourceData(const TxpMipMap& mipMap, bool usesBlockCompression, UINT bitsPerPixel)
 		{
 			D3D11_SUBRESOURCE_DATA resource;
-			resource.pSysMem = mipMap.DataPointer;
+			resource.pSysMem = mipMap.Data.get();
 			resource.SysMemPitch = GetMemoryPitch(mipMap.Size, bitsPerPixel, usesBlockCompression);
 			resource.SysMemSlicePitch = 0;
 			return resource;
@@ -463,7 +463,7 @@ namespace Comfy::Graphics::D3D11
 				auto& mipMap = mipMaps[i];
 
 				rgbaBuffers[i] = new uint32_t[mipMap.Size.x * mipMap.Size.y];
-				PadRGBToRGBA(mipMap.Size, mipMap.DataPointer, rgbaBuffers[i]);
+				PadRGBToRGBA(mipMap.Size, mipMap.Data.get(), rgbaBuffers[i]);
 
 				resource.pSysMem = rgbaBuffers[i];
 				resource.SysMemPitch = GetMemoryPitch(mipMap.Size, GetBitsPerPixel(textureDescription.Format), false);
