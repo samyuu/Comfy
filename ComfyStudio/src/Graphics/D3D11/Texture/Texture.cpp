@@ -455,25 +455,22 @@ namespace Comfy::Graphics::D3D11
 		if (baseMipMap.Format == TextureFormat::RGB8)
 		{
 			textureDescription.Format = GetDxgiFormat(TextureFormat::RGBA8);
-			std::array<uint32_t*, MaxMipMaps> rgbaBuffers;
+			std::array<UniquePtr<uint32_t[]>, MaxMipMaps> rgbaBuffers;
 
 			for (size_t i = 0; i < mipMaps.size(); i++)
 			{
 				auto& resource = initialResourceData[i];
 				auto& mipMap = mipMaps[i];
 
-				rgbaBuffers[i] = new uint32_t[mipMap.Size.x * mipMap.Size.y];
-				PadRGBToRGBA(mipMap.Size, mipMap.Data.get(), rgbaBuffers[i]);
+				rgbaBuffers[i] = MakeUnique<uint32_t[]>(mipMap.Size.x * mipMap.Size.y);
+				PadRGBToRGBA(mipMap.Size, mipMap.Data.get(), rgbaBuffers[i].get());
 
-				resource.pSysMem = rgbaBuffers[i];
+				resource.pSysMem = rgbaBuffers[i].get();
 				resource.SysMemPitch = GetMemoryPitch(mipMap.Size, GetBitsPerPixel(textureDescription.Format), false);
 				resource.SysMemSlicePitch = 0;
 			}
 
 			D3D.Device->CreateTexture2D(&textureDescription, initialResourceData.data(), &texture);
-
-			for (size_t i = 0; i < mipMaps.size(); i++)
-				delete[] rgbaBuffers[i];
 		}
 		else
 		{
