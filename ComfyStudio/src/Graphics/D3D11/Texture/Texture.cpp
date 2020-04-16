@@ -431,7 +431,7 @@ namespace Comfy::Graphics::D3D11
 
 	Texture2D::Texture2D(const Tex& tex)
 	{
-		assert(tex.MipMapsArray.size() == GetArraySize() && tex.MipMapsArray.front().size() > 0 && tex.Signature == TxpSig::Texture2D);
+		assert(tex.MipMapsArray.size() == GetArraySize() && tex.MipMapsArray.front().size() > 0 && tex.GetSignature() == TxpSig::Texture2D);
 
 		auto& mipMaps = tex.MipMapsArray.front();
 		auto& baseMipMap = mipMaps.front();
@@ -519,7 +519,7 @@ namespace Comfy::Graphics::D3D11
 
 	CubeMap::CubeMap(const Tex& tex)
 	{
-		assert(tex.MipMapsArray.size() == GetArraySize() && tex.MipMapsArray.front().size() > 0 && tex.Signature == TxpSig::CubeMap);
+		assert(tex.MipMapsArray.size() == GetArraySize() && tex.MipMapsArray.front().size() > 0 && tex.GetSignature() == TxpSig::CubeMap);
 
 		auto& mipMaps = tex.MipMapsArray.front();
 		auto& baseMipMap = mipMaps.front();

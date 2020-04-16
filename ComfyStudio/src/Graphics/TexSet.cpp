@@ -15,6 +15,11 @@ namespace Comfy::Graphics
 		return MipMapsArray[arrayIndex];
 	}
 
+	TxpSig Tex::GetSignature() const
+	{
+		return (MipMapsArray.size() == 6) ? TxpSig::CubeMap : TxpSig::Texture2D;
+	}
+
 	ivec2 Tex::GetSize() const
 	{
 		if (MipMapsArray.size() < 1 || MipMapsArray.front().size() < 1)
@@ -42,7 +47,7 @@ namespace Comfy::Graphics
 		constexpr uint32_t packedMask = 0x01010100;
 
 		const FileAddr setBaseAddress = writer.GetPosition();
-		writer.WriteU32(static_cast<uint32_t>(Signature));
+		writer.WriteU32(static_cast<uint32_t>(TxpSig::TexSet));
 		writer.WriteU32(textureCount);
 		writer.WriteU32(textureCount | packedMask);
 
@@ -54,7 +59,7 @@ namespace Comfy::Graphics
 				const uint8_t arraySize = static_cast<uint8_t>(texture->MipMapsArray.size());
 				const uint8_t mipLevels = (arraySize > 0) ? static_cast<uint8_t>(texture->MipMapsArray.front().size()) : 0;
 
-				writer.WriteU32(static_cast<uint32_t>(texture->Signature));
+				writer.WriteU32(static_cast<uint32_t>(texture->GetSignature()));
 				writer.WriteU32(arraySize * mipLevels);
 				writer.WriteU8(mipLevels);
 				writer.WriteU8(arraySize);
@@ -68,7 +73,7 @@ namespace Comfy::Graphics
 						writer.WritePtr([arrayIndex, mipIndex, &texture](BinaryWriter& writer)
 						{
 							const auto& mipMap = texture->MipMapsArray[arrayIndex][mipIndex];
-							writer.WriteU32(static_cast<uint32_t>(mipMap.Signature));
+							writer.WriteU32(static_cast<uint32_t>(TxpSig::MipMap));
 							writer.WriteI32(mipMap.Size.x);
 							writer.WriteI32(mipMap.Size.y);
 							writer.WriteU32(static_cast<uint32_t>(mipMap.Format));
@@ -92,12 +97,12 @@ namespace Comfy::Graphics
 	{
 		TexSet& texSet = *this;
 
-		texSet.Signature = *(TxpSig*)(buffer + 0);
+		TxpSig signature = *(TxpSig*)(buffer + 0);
 		uint32_t textureCount = *(uint32_t*)(buffer + 4);
 		uint32_t packedCount = *(uint32_t*)(buffer + 8);
 		uint32_t* offsets = (uint32_t*)(buffer + 12);
 
-		assert(texSet.Signature == TxpSig::TexSet);
+		assert(signature == TxpSig::TexSet);
 
 		Textures.reserve(textureCount);
 		for (uint32_t i = 0; i < textureCount; i++)
@@ -112,20 +117,21 @@ namespace Comfy::Graphics
 		for (auto& tex : Textures)
 		{
 			const char* debugName = nullptr;
+			const auto signature = tex->GetSignature();
 
 #if COMFY_D3D11_DEBUG_NAMES
 			char debugNameBuffer[128];
 			sprintf_s(debugNameBuffer, "%s %s: %s",
-				(tex->Signature == TxpSig::Texture2D) ? "Texture2D" : "CubeMap",
+				(signature == TxpSig::Texture2D) ? "Texture2D" : "CubeMap",
 				(parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TexSet",
 				tex->GetName().data());
 
 			debugName = debugNameBuffer;
 #endif
 
-			if (tex->Signature == TxpSig::Texture2D)
+			if (signature == TxpSig::Texture2D)
 				tex->GPU_Texture2D = GPU::MakeTexture2D(*tex, debugName);
-			else if (tex->Signature == TxpSig::CubeMap)
+			else if (signature == TxpSig::CubeMap)
 				tex->GPU_CubeMap = GPU::MakeCubeMap(*tex, debugName);
 		}
 	}
@@ -160,7 +166,7 @@ namespace Comfy::Graphics
 
 	void TexSet::ParseTex(const uint8_t* buffer, Tex& tex)
 	{
-		tex.Signature = *(TxpSig*)(buffer + 0);
+		TxpSig signature = *(TxpSig*)(buffer + 0);
 		uint32_t mipMapCount = *(uint32_t*)(buffer + 4);
 		uint8_t mipLevels = *(uint8_t*)(buffer + 8);
 		uint8_t arraySize = *(uint8_t*)(buffer + 9);
@@ -169,7 +175,7 @@ namespace Comfy::Graphics
 		const uint8_t* mipMapBuffer = buffer + *offsets;
 		++offsets;
 
-		assert(tex.Signature == TxpSig::Texture2D || tex.Signature == TxpSig::CubeMap || tex.Signature == TxpSig::Rectangle);
+		assert(signature == TxpSig::Texture2D || signature == TxpSig::CubeMap || signature == TxpSig::Rectangle);
 		// assert(mipMapCount == tex.MipLevels * tex.ArraySize);
 
 		tex.MipMapsArray.resize(arraySize);
@@ -180,12 +186,12 @@ namespace Comfy::Graphics
 
 			for (auto& mipMap : mipMaps)
 			{
-				mipMap.Signature = *(TxpSig*)(mipMapBuffer + 0);
+				TxpSig signature = *(TxpSig*)(mipMapBuffer + 0);
 				mipMap.Size = *(ivec2*)(mipMapBuffer + 4);
 				mipMap.Format = *(TextureFormat*)(mipMapBuffer + 12);
 
-				mipMap.MipIndex = *(uint8_t*)(mipMapBuffer + 16);
-				mipMap.ArrayIndex = *(uint8_t*)(mipMapBuffer + 17);
+				uint8_t mipIndex = *(uint8_t*)(mipMapBuffer + 16);
+				uint8_t arrayIndex = *(uint8_t*)(mipMapBuffer + 17);
 
 				mipMap.DataSize = *(uint32_t*)(mipMapBuffer + 20);
 				mipMap.Data = MakeUnique<uint8_t[]>(mipMap.DataSize);

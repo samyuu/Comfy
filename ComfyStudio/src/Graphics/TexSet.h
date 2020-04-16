@@ -20,11 +20,8 @@ namespace Comfy::Graphics
 
 	struct TexMipMap
 	{
-		TxpSig Signature;
 		ivec2 Size;
 		TextureFormat Format;
-		uint8_t MipIndex;
-		uint8_t ArrayIndex;
 
 		uint32_t DataSize;
 		UniquePtr<uint8_t[]> Data;
@@ -32,7 +29,6 @@ namespace Comfy::Graphics
 
 	struct Tex
 	{
-		TxpSig Signature;
 		std::optional<std::string> Name;
 
 		// NOTE: Two dimensional array [CubeFace][MipMap]
@@ -46,6 +42,7 @@ namespace Comfy::Graphics
 	public:
 		const std::vector<TexMipMap>& GetMipMaps(uint32_t arrayIndex = 0) const;
 
+		TxpSig GetSignature() const;
 		ivec2 GetSize() const;
 		TextureFormat GetFormat() const;
 
@@ -56,7 +53,6 @@ namespace Comfy::Graphics
 	class TexSet : public FileSystem::IBinaryWritable, public FileSystem::IBufferParsable, NonCopyable
 	{
 	public:
-		TxpSig Signature;
 		std::vector<RefPtr<Tex>> Textures;
 
 		void Write(FileSystem::BinaryWriter& writer) override;
