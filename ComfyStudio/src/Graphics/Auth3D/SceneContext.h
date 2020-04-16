@@ -26,10 +26,10 @@ namespace Comfy::Graphics
 			struct Textures
 			{
 				// NOTE: Common sun texture from effcmn
-				Cached_TxpID Sun = TxpID::Invalid;
+				Cached_TexID Sun = TexID::Invalid;
 				// NOTE: Stage specific textures
-				std::array<Cached_TxpID, 2> Flares = { TxpID::Invalid, TxpID::Invalid };
-				Cached_TxpID Ghost = TxpID::Invalid;
+				std::array<Cached_TexID, 2> Flares = { TexID::Invalid, TexID::Invalid };
+				Cached_TexID Ghost = TexID::Invalid;
 			} Textures;
 		} LensFlare;
 

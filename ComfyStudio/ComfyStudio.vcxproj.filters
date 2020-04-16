@@ -153,9 +153,6 @@
     <ClCompile Include="src\ImGui\GuiRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\TxpSet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -306,9 +303,6 @@
     <ClCompile Include="src\ImGui\ComfyTextureID.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ImGui\Extensions\TxpExtensions.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Database\SprDB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -319,9 +313,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Editor\Common\CameraController3D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Database\TxpDB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Editor\PV\CameraAxisIndication.cpp">
@@ -433,6 +424,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Auth2D\Aet\AetSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\TexSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ImGui\Extensions\TexExtensions.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Database\TexDB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -606,9 +606,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\GuiRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\TxpSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Camera.h">
@@ -812,9 +809,6 @@
     <ClInclude Include="src\ImGui\ComfyTextureID.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ImGui\Extensions\TxpExtensions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Database\Database.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -846,9 +840,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Auth3D\RayIntersection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Database\TxpDB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Auth3D\ObjAnimationData.h">
@@ -1014,6 +1005,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Auth2D\Aet\AetSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\TexSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ImGui\Extensions\TexExtensions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Database\TexDB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

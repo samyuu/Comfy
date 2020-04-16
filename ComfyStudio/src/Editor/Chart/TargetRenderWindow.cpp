@@ -7,7 +7,7 @@ namespace Comfy::Editor
 
 	TargetRenderWindow::TargetRenderWindow()
 	{
-		spriteGetterFunction = [this](const Aet::VideoSource* source, const Txp** outTxp, const Spr** outSpr) { return false; };
+		spriteGetterFunction = [this](const Aet::VideoSource* source, const Tex** outTex, const Spr** outSpr) { return false; };
 
 		renderer = MakeUnique<D3D11::Renderer2D>();
 		aetRenderer = MakeUnique<Aet::AetRenderer>(renderer.get());
@@ -111,12 +111,12 @@ namespace Comfy::Editor
 		{
 			sprSet = MakeUnique<SprSet>();
 			sprSetLoader.Parse(sprSet.get());
-			sprSet->TxpSet->UploadAll(sprSet.get());
+			sprSet->TexSet->UploadAll(sprSet.get());
 			sprSetLoader.FreeData();
 
-			spriteGetterFunction = [this](const Aet::VideoSource* source, const Txp** outTxp, const Spr** outSpr) 
+			spriteGetterFunction = [this](const Aet::VideoSource* source, const Tex** outTex, const Spr** outSpr) 
 			{ 
-				return Aet::AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), source, outTxp, outSpr); 
+				return Aet::AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), source, outTex, outSpr); 
 			};
 			aetRenderer->SetSpriteGetterFunction(&spriteGetterFunction);
 		}

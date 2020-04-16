@@ -26,7 +26,7 @@ namespace Comfy::Editor
 		ImGuiWindowFlags GetWindowFlags() const override;
 
 	private:
-		bool LoadRegisterObjSet(std::string_view objSetPath, std::string_view txpSetPath, EntityTag tag);
+		bool LoadRegisterObjSet(std::string_view objSetPath, std::string_view texSetPath, EntityTag tag);
 		bool UnLoadUnRegisterObjSet(const Graphics::ObjSet* objSetToRemove);
 		
 		bool LoadStageObjects(StageType type, int id, int subID, bool loadLightParam = true);

@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "BoundingTypes.h"
 #include "FileSystem/FileInterface.h"
-#include "Graphics/TxpSet.h"
+#include "Graphics/TexSet.h"
 #include "Graphics/GPU/GPUResources.h"
 #include <optional>
 #include <variant>
@@ -207,7 +207,7 @@ namespace Comfy::Graphics
 			uint32_t AnsiFilters : 2;
 		} SamplerFlags;
 
-		Cached_TxpID TextureID;
+		Cached_TexID TextureID;
 
 		struct TextureDataFlags
 		{
@@ -487,8 +487,8 @@ namespace Comfy::Graphics
 
 	public:
 		std::string Name;
-		std::vector<TxpID> TextureIDs;
-		UniquePtr<TxpSet> TxpSet;
+		std::vector<TexID> TextureIDs;
+		UniquePtr<TexSet> TexSet;
 
 		auto begin() { return objects.begin(); }
 		auto end() { return objects.end(); }

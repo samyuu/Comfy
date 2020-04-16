@@ -45,9 +45,9 @@ namespace Comfy::Graphics::Aet
 		if (objCallback.has_value() && objCallback.value()(obj, positionOffset, opacity))
 			return;
 
-		const Txp* txp;
+		const Tex* tex;
 		const Spr* spr;
-		const bool validSprite = GetSprite(obj.Video->GetSource(obj.SpriteIndex), &txp, &spr);
+		const bool validSprite = GetSprite(obj.Video->GetSource(obj.SpriteIndex), &tex, &spr);
 
 		const vec2 finalPosition = obj.Transform.Position + positionOffset;
 		const float finalOpacity = obj.Transform.Opacity * opacity;
@@ -55,7 +55,7 @@ namespace Comfy::Graphics::Aet
 		if (validSprite)
 		{
 			renderer2D->Draw(
-				txp->GPU_Texture2D.get(),
+				tex->GPU_Texture2D.get(),
 				spr->PixelRegion,
 				finalPosition,
 				obj.Transform.Origin,
@@ -87,24 +87,24 @@ namespace Comfy::Graphics::Aet
 		if (objMaskCallback.has_value() && objMaskCallback.value()(maskObj, obj, positionOffset, opacity))
 			return;
 
-		const Txp* maskTxp;
+		const Tex* maskTex;
 		const Spr* maskSpr;
-		const bool validMaskSprite = GetSprite(maskObj.Video->GetSource(maskObj.SpriteIndex), &maskTxp, &maskSpr);
+		const bool validMaskSprite = GetSprite(maskObj.Video->GetSource(maskObj.SpriteIndex), &maskTex, &maskSpr);
 
-		const Txp* txp;
+		const Tex* tex;
 		const Spr* spr;
-		const bool validSprite = GetSprite(obj.Video->GetSource(obj.SpriteIndex), &txp, &spr);
+		const bool validSprite = GetSprite(obj.Video->GetSource(obj.SpriteIndex), &tex, &spr);
 
 		if (validMaskSprite && validSprite)
 		{
 			renderer2D->Draw(
-				maskTxp->GPU_Texture2D.get(),
+				maskTex->GPU_Texture2D.get(),
 				maskSpr->PixelRegion,
 				maskObj.Transform.Position,
 				maskObj.Transform.Origin,
 				maskObj.Transform.Rotation,
 				maskObj.Transform.Scale,
-				txp->GPU_Texture2D.get(),
+				tex->GPU_Texture2D.get(),
 				spr->PixelRegion,
 				obj.Transform.Position + positionOffset,
 				obj.Transform.Origin,
@@ -167,7 +167,7 @@ namespace Comfy::Graphics::Aet
 
 	void AetRenderer::RenderAetSprite(const Video* video, const VideoSource* source, const vec2& position)
 	{
-		const Txp* texture;
+		const Tex* texture;
 		const Spr* sprite;
 
 		if (video->Sources.size() < 1 || !GetSprite(source, &texture, &sprite))
@@ -180,7 +180,7 @@ namespace Comfy::Graphics::Aet
 		}
 	}
 
-	bool AetRenderer::SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const VideoSource* source, const Txp** outTxp, const Spr** outSpr)
+	bool AetRenderer::SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const VideoSource* source, const Tex** outTex, const Spr** outSpr)
 	{
 		if (source == nullptr)
 			return false;
@@ -188,7 +188,7 @@ namespace Comfy::Graphics::Aet
 		if (source->SpriteCache != nullptr)
 		{
 		from_sprite_cache:
-			*outTxp = sprSet->TxpSet->Txps[source->SpriteCache->TextureIndex].get();
+			*outTex = sprSet->TexSet->Textures[source->SpriteCache->TextureIndex].get();
 			*outSpr = source->SpriteCache;
 			return true;
 		}
@@ -206,9 +206,9 @@ namespace Comfy::Graphics::Aet
 		return false;
 	}
 
-	bool AetRenderer::GetSprite(const VideoSource* source, const Txp** outTxp, const Spr** outSpr)
+	bool AetRenderer::GetSprite(const VideoSource* source, const Tex** outTex, const Spr** outSpr)
 	{
 		assert(spriteGetter != nullptr);
-		return (*spriteGetter)(source, outTxp, outSpr);
+		return (*spriteGetter)(source, outTex, outSpr);
 	}
 }

@@ -1,7 +1,7 @@
 #include "MaterialEditor.h"
 #include "Graphics/Auth3D/DebugObj.h"
 #include "ImGui/Gui.h"
-#include "ImGui/Extensions/TxpExtensions.h"
+#include "ImGui/Extensions/TexExtensions.h"
 #include "ImGui/Extensions/PropertyEditor.h"
 
 namespace Comfy::Editor
@@ -27,7 +27,7 @@ namespace Comfy::Editor
 			std::make_pair("Floor", Material::ShaderIdentifiers::Floor),
 		};
 
-		constexpr vec2 TxpDisplaySize = vec2(96.0f);
+		constexpr vec2 TexDisplaySize = vec2(96.0f);
 	}
 
 	void MaterialEditor::DrawGui(GPU_Renderer3D& renderer, const SceneParameters& scene, Material& material)
@@ -145,16 +145,16 @@ namespace Comfy::Editor
 
 					auto tempID = static_cast<uint32_t>(texture.TextureID.ID);
 					if (GuiProperty::InputHex("Texture ID", tempID))
-						texture.TextureID = static_cast<TxpID>(tempID);
+						texture.TextureID = static_cast<TexID>(tempID);
 
-					auto txp = renderer.GetTxpFromTextureID(&texture.TextureID);
-					GuiProperty::PropertyLabelValueFunc((txp == nullptr) ? "(No Texture)" : txp->GetName(), [&]
+					auto tex = renderer.GetTexFromTextureID(&texture.TextureID);
+					GuiProperty::PropertyLabelValueFunc((tex == nullptr) ? "(No Texture)" : tex->GetName(), [&]
 					{
-						if (txp != nullptr)
+						if (tex != nullptr)
 						{
-							const float width = std::clamp(Gui::GetContentRegionAvailWidth(), 1.0f, TxpDisplaySize.x);
-							const float aspectRatio = static_cast<float>(txp->GetSize().x) / static_cast<float>(txp->GetSize().y);
-							Gui::ImageObjTxp(txp, vec2(width, width * aspectRatio));
+							const float width = std::clamp(Gui::GetContentRegionAvailWidth(), 1.0f, TexDisplaySize.x);
+							const float aspectRatio = static_cast<float>(tex->GetSize().x) / static_cast<float>(tex->GetSize().y);
+							Gui::ImageObjTex(tex, vec2(width, width * aspectRatio));
 						}
 						return false;
 					});

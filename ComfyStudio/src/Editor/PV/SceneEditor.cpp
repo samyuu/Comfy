@@ -5,7 +5,7 @@
 #include "Graphics/Auth3D/A3D/A3DMgr.h"
 #include "Graphics/Auth3D/DebugObj.h"
 #include "FileSystem/Archive/Farc.h"
-#include "ImGui/Extensions/TxpExtensions.h"
+#include "ImGui/Extensions/TexExtensions.h"
 #include "ImGui/Extensions/PropertyEditor.h"
 #include "Misc/ImageHelper.h"
 #include "Input/KeyCode.h"
@@ -28,8 +28,8 @@ namespace Comfy::Editor
 
 	SceneEditor::SceneEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
-		auto txpGetter = [&](const Cached_TxpID* txpID) { return sceneGraph.TxpIDMap.Find(txpID); };
-		renderer3D = MakeUnique<D3D11::Renderer3D>(txpGetter);
+		auto texGetter = [&](const Cached_TexID* texID) { return sceneGraph.TexIDMap.Find(texID); };
+		renderer3D = MakeUnique<D3D11::Renderer3D>(texGetter);
 
 		renderWindow = MakeUnique<SceneRenderWindow>(sceneGraph, viewport, scene, cameraController, *renderer3D);
 	}
@@ -134,37 +134,37 @@ namespace Comfy::Editor
 		return BaseWindow::GetNoWindowFlags();
 	}
 
-	bool SceneEditor::LoadRegisterObjSet(std::string_view objSetPath, std::string_view txpSetPath, EntityTag tag)
+	bool SceneEditor::LoadRegisterObjSet(std::string_view objSetPath, std::string_view texSetPath, EntityTag tag)
 	{
-		if (!FileSystem::FileExists(objSetPath) || !FileSystem::FileExists(txpSetPath))
+		if (!FileSystem::FileExists(objSetPath) || !FileSystem::FileExists(texSetPath))
 			return false;
 
-		if (objSetPath == txpSetPath)
+		if (objSetPath == texSetPath)
 			return false;
 
 		RefPtr<ObjSet> objSet = ObjSet::MakeUniqueReadParseUpload(objSetPath);
 		objSet->Name = FileSystem::GetFileName(objSetPath, false);
-		objSet->TxpSet = TxpSet::MakeUniqueReadParseUpload(txpSetPath, objSet.get());
+		objSet->TexSet = TexSet::MakeUniqueReadParseUpload(texSetPath, objSet.get());
 		sceneGraph.LoadObjSet(objSet, tag);
-		sceneGraph.RegisterTextures(objSet->TxpSet.get());
+		sceneGraph.RegisterTextures(objSet->TexSet.get());
 
-		if (sceneGraph.TxpDB == nullptr)
+		if (sceneGraph.TexDB == nullptr)
 		{
-			constexpr std::string_view txpDBPath = "dev_rom/db/tex_db.bin";
-			sceneGraph.TxpDB = MakeUnique<Database::TxpDB>();
+			constexpr std::string_view texDBPath = "dev_rom/db/tex_db.bin";
+			sceneGraph.TexDB = MakeUnique<Database::TexDB>();
 
-			if (FileSystem::FileExists(txpDBPath))
-				sceneGraph.TxpDB->Load(std::string(txpDBPath));
+			if (FileSystem::FileExists(texDBPath))
+				sceneGraph.TexDB->Load(std::string(texDBPath));
 		}
 
-		if (sceneGraph.TxpDB != nullptr && objSet->TxpSet != nullptr)
+		if (sceneGraph.TexDB != nullptr && objSet->TexSet != nullptr)
 		{
-			for (auto& txp : objSet->TxpSet->Txps)
+			for (auto& tex : objSet->TexSet->Textures)
 			{
 				// TODO: Linear search yikesydoodles
-				auto txpEntry = std::find_if(sceneGraph.TxpDB->Entries.begin(), sceneGraph.TxpDB->Entries.end(), [&](auto& e) { return e.ID == txp->ID; });
-				if (txpEntry != sceneGraph.TxpDB->Entries.end())
-					txp->Name.emplace(txpEntry->Name);
+				auto texEntry = std::find_if(sceneGraph.TexDB->Entries.begin(), sceneGraph.TexDB->Entries.end(), [&](auto& e) { return e.ID == tex->ID; });
+				if (texEntry != sceneGraph.TexDB->Entries.end())
+					tex->Name.emplace(texEntry->Name);
 			}
 		}
 
@@ -176,11 +176,11 @@ namespace Comfy::Editor
 		if (objSetToRemove == nullptr)
 			return false;
 
-		if (objSetToRemove->TxpSet != nullptr)
+		if (objSetToRemove->TexSet != nullptr)
 		{
-			sceneGraph.TxpIDMap.RemoveIf([&](auto& pair)
+			sceneGraph.TexIDMap.RemoveIf([&](auto& pair)
 			{
-				return std::any_of(objSetToRemove->TxpSet->Txps.begin(), objSetToRemove->TxpSet->Txps.end(), [&pair](auto& txp) { return txp->ID == pair.ID; });
+				return std::any_of(objSetToRemove->TexSet->Textures.begin(), objSetToRemove->TexSet->Textures.end(), [&pair](auto& tex) { return tex->ID == pair.ID; });
 			});
 		}
 
@@ -199,8 +199,8 @@ namespace Comfy::Editor
 			Debug::LoadStageLightParamFiles(scene, type, id, subID);
 
 		auto objPath = Debug::GetDebugFilePath(Debug::PathType::StageObj, type, id, subID);
-		auto txpPath = Debug::GetDebugFilePath(Debug::PathType::StageTxp, type, id, subID);
-		if (!LoadRegisterObjSet(objPath.data(), txpPath.data(), StageTag))
+		auto texPath = Debug::GetDebugFilePath(Debug::PathType::StageTex, type, id, subID);
+		if (!LoadRegisterObjSet(objPath.data(), texPath.data(), StageTag))
 			return false;
 
 		auto& newlyAddedStageObjSet = sceneGraph.LoadedObjSets.back();
@@ -213,9 +213,9 @@ namespace Comfy::Editor
 		if (type == StageType::STGPV && subID != 0)
 		{
 			objPath = Debug::GetDebugFilePath(Debug::PathType::StageObj, type, id, 0);
-			txpPath = Debug::GetDebugFilePath(Debug::PathType::StageTxp, type, id, 0);
+			texPath = Debug::GetDebugFilePath(Debug::PathType::StageTex, type, id, 0);
 
-			LoadRegisterObjSet(objPath.data(), txpPath.data(), StageTag);
+			LoadRegisterObjSet(objPath.data(), texPath.data(), StageTag);
 		}
 
 		return true;
@@ -257,15 +257,15 @@ namespace Comfy::Editor
 
 		if (flags & EraseFlags_ObjSets)
 		{
-			auto checkTagUnregisterTxp = [&](ObjSetResource& objSetResource)
+			auto checkTagUnregisterTex = [&](ObjSetResource& objSetResource)
 			{
 				if (objSetResource.Tag == tag)
 				{
-					if (objSetResource.ObjSet->TxpSet != nullptr)
+					if (objSetResource.ObjSet->TexSet != nullptr)
 					{
-						sceneGraph.TxpIDMap.RemoveIf([&](auto& pair)
+						sceneGraph.TexIDMap.RemoveIf([&](auto& pair)
 						{
-							return std::any_of(objSetResource.ObjSet->TxpSet->Txps.begin(), objSetResource.ObjSet->TxpSet->Txps.end(), [&pair](auto& txp) { return txp->ID == pair.ID; });
+							return std::any_of(objSetResource.ObjSet->TexSet->Textures.begin(), objSetResource.ObjSet->TexSet->Textures.end(), [&pair](auto& tex) { return tex->ID == pair.ID; });
 						});
 					}
 					return true;
@@ -275,7 +275,7 @@ namespace Comfy::Editor
 
 			sceneGraph.LoadedObjSets.erase(
 				std::remove_if(sceneGraph.LoadedObjSets.begin(), sceneGraph.LoadedObjSets.end(),
-					checkTagUnregisterTxp),
+					checkTagUnregisterTex),
 				sceneGraph.LoadedObjSets.end());
 		}
 	}
@@ -355,7 +355,7 @@ namespace Comfy::Editor
 		{
 			EraseByTag(ObjectTag, static_cast<EraseFlags>(EraseFlags_Entities | EraseFlags_ObjSets));
 
-			if (LoadRegisterObjSet(objSetFileViewer.GetFileToOpen(), Debug::GetTxpSetPathForObjSet(objSetFileViewer.GetFileToOpen()), ObjectTag))
+			if (LoadRegisterObjSet(objSetFileViewer.GetFileToOpen(), Debug::GetTexSetPathForObjSet(objSetFileViewer.GetFileToOpen()), ObjectTag))
 			{
 				auto& newlyAddedStageObjSet = sceneGraph.LoadedObjSets.back();
 				for (auto& obj : *newlyAddedStageObjSet.ObjSet)
@@ -914,14 +914,14 @@ namespace Comfy::Editor
 		{
 			auto loadPart = [&](int id, int exclusiveObjIndex = -1, bool isCommonItem = false)
 			{
-				auto[objPathType, txpPathType] = (isCommonItem) ?
-					std::make_pair(Debug::PathType::CmnItemObj, Debug::PathType::CmnItemTxp) :
-					std::make_pair(Debug::PathType::CharaItemObj, Debug::PathType::CharaItemTxp);
+				auto[objPathType, texPathType] = (isCommonItem) ?
+					std::make_pair(Debug::PathType::CmnItemObj, Debug::PathType::CmnItemTex) :
+					std::make_pair(Debug::PathType::CharaItemObj, Debug::PathType::CharaItemTex);
 
 				auto objSetPath = Debug::GetDebugFilePath(objPathType, StageType::STGTST, id, 0, charaTestData.IDs.Character.data());
-				auto txpSetPath = Debug::GetDebugFilePath(txpPathType, StageType::STGTST, id, 0, charaTestData.IDs.Character.data());
+				auto texSetPath = Debug::GetDebugFilePath(texPathType, StageType::STGTST, id, 0, charaTestData.IDs.Character.data());
 
-				if (LoadRegisterObjSet(objSetPath.data(), txpSetPath.data(), CharacterTag))
+				if (LoadRegisterObjSet(objSetPath.data(), texSetPath.data(), CharacterTag))
 				{
 					auto& loadedResource = sceneGraph.LoadedObjSets.back();
 
@@ -1006,14 +1006,14 @@ namespace Comfy::Editor
 
 #if 1
 		static constexpr std::string_view effCmnObjSetPath = "dev_rom/objset/copy/effcmn/effcmn_obj.bin";
-		static constexpr std::string_view effCmnTxpSetPath = "dev_rom/objset/copy/effcmn/effcmn_tex.bin";
+		static constexpr std::string_view effCmnTexSetPath = "dev_rom/objset/copy/effcmn/effcmn_tex.bin";
 
 		static UniquePtr<ObjSet> effCmnObjSet = nullptr;
 
 		if (effCmnObjSet == nullptr)
 		{
 			effCmnObjSet = ObjSet::MakeUniqueReadParseUpload(effCmnObjSetPath);
-			effCmnObjSet->TxpSet = TxpSet::MakeUniqueReadParseUpload(effCmnTxpSetPath, effCmnObjSet.get());
+			effCmnObjSet->TexSet = TexSet::MakeUniqueReadParseUpload(effCmnTexSetPath, effCmnObjSet.get());
 
 			if (auto sunObj = std::find_if(effCmnObjSet->begin(), effCmnObjSet->end(), [&](const auto& obj) { return obj.Name == "effcmn_sun"; }); sunObj != effCmnObjSet->end())
 				scene.LensFlare.SunObj = &(*sunObj);
@@ -1257,18 +1257,18 @@ namespace Comfy::Editor
 #if COMFY_DEBUG && 0
 		Gui::DEBUG_NOSAVE_WINDOW("Loaded Textures Test", [&]
 		{
-			sceneGraph.TxpIDMap.Iterate([&](ResourceIDMap<TxpID, Txp>::ResourceIDPair& resourceIDPair)
+			sceneGraph.TexIDMap.Iterate([&](ResourceIDMap<TexID, Tex>::ResourceIDPair& resourceIDPair)
 			{
-				TxpID id = resourceIDPair.ID;
-				Txp& txp = *resourceIDPair.Resource;
+				TexID id = resourceIDPair.ID;
+				Tex& tex = *resourceIDPair.Resource;
 
 				char buffer[64];
-				sprintf_s(buffer, "0x%X : %s", id, txp.GetName().data());
+				sprintf_s(buffer, "0x%X : %s", id, tex.GetName().data());
 				Gui::Selectable(buffer, false);
 				if (Gui::IsItemHovered())
 				{
 					Gui::BeginTooltip();
-					Gui::ImageObjTxp(&txp);
+					Gui::ImageObjTex(&tex);
 					Gui::EndTooltip();
 				}
 			});
@@ -1419,8 +1419,8 @@ namespace Comfy::Editor
 						return (found == a3d.Curves.end()) ? nullptr : &(*found);
 					};
 
-					// TODO: Instead of searching at the entire TxpDB for entries only the loaded ObjSets would have to be checked (?)
-					//		 As long as their Txps have been updated using a TxpDB before that is
+					// TODO: Instead of searching at the entire TexDB for entries only the loaded ObjSets would have to be checked (?)
+					//		 As long as their Texs have been updated using a TexDB before that is
 
 					if (!object.TexturePatterns.empty())
 					{
@@ -1447,19 +1447,19 @@ namespace Comfy::Editor
 										char nameBuffer[128];
 										sprintf_s(nameBuffer, "%.*s_%03d", static_cast<int>(a3dPattern.Name.size() - strlen("_000")), a3dPattern.Name.data(), cacheIndex);
 
-										auto txpEntry = sceneGraph.TxpDB->GetTxpEntry(nameBuffer);
-										if (txpEntry == nullptr)
+										auto texEntry = sceneGraph.TexDB->GetTexEntry(nameBuffer);
+										if (texEntry == nullptr)
 											break;
 
 										if (cacheIndex == 0)
-											entityPattern.ID = txpEntry->ID;
+											entityPattern.ID = texEntry->ID;
 
-										cachedIDs.push_back(txpEntry->ID);
+										cachedIDs.push_back(texEntry->ID);
 									}
 								}
 
 								const int index = A3DMgr::GetIntAt(pattern->CV, frame);
-								entityPattern.IDOverride = (InBounds(index, *entityPattern.CachedIDs)) ? entityPattern.CachedIDs->at(index) : TxpID::Invalid;
+								entityPattern.IDOverride = (InBounds(index, *entityPattern.CachedIDs)) ? entityPattern.CachedIDs->at(index) : TexID::Invalid;
 							}
 						}
 					}
@@ -1477,10 +1477,10 @@ namespace Comfy::Editor
 							auto& a3dTexTransform = a3dTexTransforms[i];
 							auto& entityTexTransform = entityTexTransforms[i];
 
-							if (entityTexTransform.ID == TxpID::Invalid)
+							if (entityTexTransform.ID == TexID::Invalid)
 							{
-								if (auto txpEntry = sceneGraph.TxpDB->GetTxpEntry(a3dTexTransform.Name); txpEntry != nullptr)
-									entityTexTransform.ID = txpEntry->ID;
+								if (auto texEntry = sceneGraph.TexDB->GetTexEntry(a3dTexTransform.Name); texEntry != nullptr)
+									entityTexTransform.ID = texEntry->ID;
 							}
 
 							// TODO: Might not be a single bool but different types
@@ -1608,9 +1608,9 @@ namespace Comfy::Editor
 						auto diffuseTexture = std::find_if(material.Textures.begin(), material.Textures.end(), [](auto& texture) { return texture.TextureFlags.Type == MaterialTextureType::ColorMap; });
 						if (diffuseTexture != material.Textures.end())
 						{
-							if (auto txp = renderer3D->GetTxpFromTextureID(&diffuseTexture->TextureID); txp != nullptr && txp->Name.has_value())
+							if (auto tex = renderer3D->GetTexFromTextureID(&diffuseTexture->TextureID); tex != nullptr && tex->Name.has_value())
 							{
-								if (auto& name = txp->Name.value();
+								if (auto& name = tex->Name.value();
 									EndsWithInsensitive(name, "_RENDER") ||
 									EndsWithInsensitive(name, "_MOVIE") ||
 									EndsWithInsensitive(name, "_TV") ||

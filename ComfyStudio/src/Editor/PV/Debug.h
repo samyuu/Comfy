@@ -10,11 +10,11 @@ namespace Comfy::Debug
 	enum class PathType
 	{
 		StageObj,
-		StageTxp,
+		StageTex,
 		CharaItemObj,
-		CharaItemTxp,
+		CharaItemTex,
 		CmnItemObj,
-		CmnItemTxp,
+		CmnItemTex,
 		Fog,
 		Glow,
 		Light,
@@ -53,18 +53,18 @@ namespace Comfy::Debug
 		};
 
 		const char* fileNameSuffix = (type == PathType::StageObj || type == PathType::CharaItemObj || type == PathType::CmnItemObj) ? "obj" : "tex";
-		if (type == PathType::StageObj || type == PathType::StageTxp)
+		if (type == PathType::StageObj || type == PathType::StageTex)
 		{
 			constexpr std::array stgTypeStrings = { "stgtst", "stgns", "stgd2ns", "stgpv" };
 			const char* stgTypeString = stgTypeStrings[static_cast<size_t>(stageType)];
 
 			sprintf_s(path.data(), path.size(), "dev_rom/objset/stg/%s/stg%s/stg%s_%s.bin", stgTypeString, fileName.data(), fileName.data(), fileNameSuffix);
 		}
-		else if (type == PathType::CharaItemObj || type == PathType::CharaItemTxp)
+		else if (type == PathType::CharaItemObj || type == PathType::CharaItemTex)
 		{
 			sprintf_s(path.data(), path.size(), "dev_rom/objset/chritm/%sitm/%sitm%03d/%sitm%03d_%s.bin", chara, chara, id, chara, id, fileNameSuffix);
 		}
-		else if (type == PathType::CmnItemObj || type == PathType::CmnItemTxp)
+		else if (type == PathType::CmnItemObj || type == PathType::CmnItemTex)
 		{
 			sprintf_s(path.data(), path.size(), "dev_rom/objset/chritm/cmnitm/cmnitm%04d/cmnitm%04d_%s.bin", id, id, fileNameSuffix);
 		}
@@ -119,20 +119,20 @@ namespace Comfy::Debug
 		}
 	}
 
-	inline std::string GetTxpSetPathForObjSet(std::string_view objSetPath)
+	inline std::string GetTexSetPathForObjSet(std::string_view objSetPath)
 	{
-		std::string txpSetPath;
-		txpSetPath.reserve(MAX_PATH);
+		std::string texSetPath;
+		texSetPath.reserve(MAX_PATH);
 
 		std::string_view fileName = FileSystem::GetFileName(objSetPath, false);
 		std::string_view objName = fileName.substr(0, fileName.length() - strlen("_obj"));
 
-		txpSetPath.append(FileSystem::GetDirectory(objSetPath));
-		txpSetPath.append("/");
-		txpSetPath.append(objName);
-		txpSetPath.append("_tex.bin");
+		texSetPath.append(FileSystem::GetDirectory(objSetPath));
+		texSetPath.append("/");
+		texSetPath.append(objName);
+		texSetPath.append("_tex.bin");
 
-		return txpSetPath;
+		return texSetPath;
 	}
 
 	inline bool IsGroundObj(const Graphics::Obj& obj)

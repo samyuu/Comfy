@@ -165,7 +165,7 @@
     <ClCompile Include="src\Editor\PV\MaterialEditor.cpp" />
     <ClCompile Include="src\Database\AetDB.cpp" />
     <ClCompile Include="src\Database\SprDB.cpp" />
-    <ClCompile Include="src\Database\TxpDB.cpp" />
+    <ClCompile Include="src\Database\TexDB.cpp" />
     <ClCompile Include="src\Editor\Common\CameraController3D.cpp" />
     <ClCompile Include="src\Editor\PV\CameraAxisIndication.cpp" />
     <ClCompile Include="src\Editor\PV\ExternalProcess.cpp" />
@@ -274,7 +274,7 @@
     <ClCompile Include="src\System\LibraryLoader.cpp" />
     <ClCompile Include="src\DataTest\IconTestWindow.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\SprSet.cpp" />
-    <ClCompile Include="src\Graphics\TxpSet.cpp" />
+    <ClCompile Include="src\Graphics\TexSet.cpp" />
     <ClCompile Include="src\ImGui\Widgets\FileViewer.cpp" />
     <ClCompile Include="src\License\LicenseWindow.cpp" />
     <ClCompile Include="src\Audio\SampleProvider\SilenceSampleProvider.cpp" />
@@ -326,7 +326,7 @@
     <ClInclude Include="src\Database\AetDB.h" />
     <ClInclude Include="src\Database\Database.h" />
     <ClInclude Include="src\Database\SprDB.h" />
-    <ClInclude Include="src\Database\TxpDB.h" />
+    <ClInclude Include="src\Database\TexDB.h" />
     <ClInclude Include="src\Editor\Common\CameraController3D.h" />
     <ClInclude Include="src\Editor\PV\CameraAxisIndication.h" />
     <ClInclude Include="src\Editor\PV\CharaTest.h" />
@@ -457,9 +457,9 @@
     <ClInclude Include="src\Graphics\D3D11\Direct3D.h" />
     <ClInclude Include="src\Graphics\GraphicTypes.h" />
     <ClInclude Include="src\Graphics\GraphicTypesNames.h" />
-    <ClCompile Include="src\ImGui\Extensions\TxpExtensions.cpp" />
+    <ClCompile Include="src\ImGui\Extensions\TexExtensions.cpp" />
     <ClInclude Include="src\ImGui\Core\imgui_user.h" />
-    <ClInclude Include="src\ImGui\Extensions\TxpExtensions.h" />
+    <ClInclude Include="src\ImGui\Extensions\TexExtensions.h" />
     <ClInclude Include="src\ImGui\GuiRenderer.h" />
     <ClInclude Include="src\ImGui\Implementation\ComfyD3D11.h" />
     <ClInclude Include="src\ImGui\Implementation\ComfyWin32.h" />
@@ -482,7 +482,7 @@
     <ClInclude Include="res\resource.h" />
     <ClInclude Include="src\DataTest\IconTestWindow.h" />
     <ClInclude Include="src\Graphics\Auth2D\SprSet.h" />
-    <ClInclude Include="src\Graphics\TxpSet.h" />
+    <ClInclude Include="src\Graphics\TexSet.h" />
     <ClInclude Include="src\Graphics\D3D11\IGraphicsResource.h" />
     <ClInclude Include="src\ImGui\Widgets\FileViewer.h" />
     <ClInclude Include="src\Input\KeyCode.h" />

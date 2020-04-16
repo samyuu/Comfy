@@ -15,7 +15,7 @@ namespace Comfy::Graphics
 		SprSet* sprSet = this;
 
 		sprSet->Flags = *(uint32_t*)(buffer + 0);
-		uint32_t txpSetOffset = *(uint32_t*)(buffer + 4);
+		uint32_t texSetOffset = *(uint32_t*)(buffer + 4);
 		uint32_t textureCount = *(uint32_t*)(buffer + 8);
 		uint32_t spritesCount = *(uint32_t*)(buffer + 12);
 		uint32_t spritesOffset = *(uint32_t*)(buffer + 16);
@@ -23,10 +23,10 @@ namespace Comfy::Graphics
 		uint32_t spriteNamesOffset = *(uint32_t*)(buffer + 24);
 		uint32_t spriteExtraDataOffset = *(uint32_t*)(buffer + 28);
 
-		if (txpSetOffset != 0)
+		if (texSetOffset != 0)
 		{
-			sprSet->TxpSet = MakeUnique<Graphics::TxpSet>();
-			sprSet->TxpSet->Parse(buffer + txpSetOffset, bufferSize - txpSetOffset);
+			sprSet->TexSet = MakeUnique<Graphics::TexSet>();
+			sprSet->TexSet->Parse(buffer + texSetOffset, bufferSize - texSetOffset);
 		}
 
 		if (spritesOffset != 0)
@@ -53,7 +53,7 @@ namespace Comfy::Graphics
 			for (uint32_t i = 0; i < textureCount; i++)
 			{
 				uint32_t nameOffset = ((uint32_t*)textureNamesOffsetBuffer)[i];
-				sprSet->TxpSet->Txps[i]->Name = (const char*)(buffer + nameOffset);
+				sprSet->TexSet->Textures[i]->Name = (const char*)(buffer + nameOffset);
 			}
 		}
 

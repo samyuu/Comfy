@@ -1,14 +1,14 @@
 #pragma once
-#include "TxpExtensions.h"
+#include "TexExtensions.h"
 #include "ImguiExtensions.h"
 
 using namespace Comfy::Graphics;
 
 namespace ImGui
 {
-	void ImageSprTxp(const Txp* txp, const ImVec2& size)
+	void ImageSprTex(const Tex* tex, const ImVec2& size)
 	{
-		D3D11::TextureResource* textureResource = txp->GPU_Texture2D.get();
+		D3D11::TextureResource* textureResource = tex->GPU_Texture2D.get();
 
 		if (textureResource == nullptr)
 			return;
@@ -19,12 +19,12 @@ namespace ImGui
 		Image(*textureResource, adjustedSize, UV0, UV1);
 	}
 
-	void ImageObjTxp(const Txp* txp, const ImVec2& size)
+	void ImageObjTex(const Tex* tex, const ImVec2& size)
 	{
-		D3D11::TextureResource* textureResource = txp->GPU_Texture2D.get();
+		D3D11::TextureResource* textureResource = tex->GPU_Texture2D.get();
 
 		if (textureResource == nullptr)
-			textureResource = txp->GPU_CubeMap.get();
+			textureResource = tex->GPU_CubeMap.get();
 
 		if (textureResource == nullptr)
 			return;
@@ -35,7 +35,7 @@ namespace ImGui
 		ImTextureID textureID = *textureResource;
 		textureID.Data.DecompressRGTC = false;
 
-		if (textureResource == txp->GPU_CubeMap.get())
+		if (textureResource == tex->GPU_CubeMap.get())
 			Image(textureID, adjustedSize, UV0, UV1);
 		else
 			Image(textureID, adjustedSize, UV0_R, UV1_R);

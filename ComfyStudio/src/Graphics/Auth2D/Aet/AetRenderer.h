@@ -7,7 +7,7 @@
 
 namespace Comfy::Graphics::Aet
 {
-	typedef std::function<bool(const VideoSource* source, const Txp** outTxp, const Spr** outSpr)> SpriteGetterFunction;
+	typedef std::function<bool(const VideoSource* source, const Tex** outTex, const Spr** outSpr)> SpriteGetterFunction;
 
 	typedef std::function<bool(const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)> AetObjCallbackFunction;
 	typedef std::function<bool(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)> AetObjMaskCallbackFunction;
@@ -42,10 +42,10 @@ namespace Comfy::Graphics::Aet
 	
 		void RenderAetSprite(const Video* video, const VideoSource* source, const vec2& position);
 
-		static bool SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const VideoSource* source, const Txp** outTxp, const Spr** outSpr);
+		static bool SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const VideoSource* source, const Tex** outTex, const Spr** outSpr);
 
 	public:
-		bool GetSprite(const VideoSource* source, const Txp** outTxp, const Spr** outSpr);
+		bool GetSprite(const VideoSource* source, const Tex** outTex, const Spr** outSpr);
 
 	private:
 		GPU_Renderer2D* renderer2D = nullptr;

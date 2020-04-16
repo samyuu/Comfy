@@ -14,7 +14,7 @@ namespace Comfy::Editor
 	{
 		commandManager = MakeUnique<AetCommandManager>();
 
-		spriteGetterFunction = [](const Aet::VideoSource* source, const Txp** outTxp, const Spr** outSpr) { return false; };
+		spriteGetterFunction = [](const Aet::VideoSource* source, const Tex** outTex, const Spr** outSpr) { return false; };
 
 		treeView = MakeUnique<AetTreeView>(commandManager.get(), &selectedAetItem, &cameraSelectedAetItem);
 		inspector = MakeUnique<AetInspector>(commandManager.get(), &spriteGetterFunction, &previewData);
@@ -128,7 +128,7 @@ namespace Comfy::Editor
 			sprSet = MakeUnique<SprSet>();
 			sprSetFileLoader->Parse(sprSet.get());
 			sprSet->Name = FileSystem::GetFileName(sprSetFileLoader->GetFilePath(), false);
-			sprSet->TxpSet->UploadAll(sprSet.get());
+			sprSet->TexSet->UploadAll(sprSet.get());
 
 			OnSprSetLoaded();
 			sprSetFileLoader.reset();
@@ -201,9 +201,9 @@ namespace Comfy::Editor
 		if (editorAetSet != nullptr)
 			editorAetSet->ClearSpriteCache();
 
-		spriteGetterFunction = [this](const Aet::VideoSource* source, const Txp** outTxp, const Spr** outSpr)
+		spriteGetterFunction = [this](const Aet::VideoSource* source, const Tex** outTex, const Spr** outSpr)
 		{
-			return Aet::AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), source, outTxp, outSpr);
+			return Aet::AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), source, outTex, outSpr);
 		};
 	}
 }

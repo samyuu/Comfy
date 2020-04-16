@@ -106,7 +106,7 @@ namespace Comfy::App
 
 	bool TaskPs4Menu::Initialize()
 	{
-		spriteGetterFunction = [this](const Aet::VideoSource* source, const Txp** outTxp, const Spr** outSpr) { return Aet::AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), source, outTxp, outSpr); };
+		spriteGetterFunction = [this](const Aet::VideoSource* source, const Tex** outTex, const Spr** outSpr) { return Aet::AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), source, outTex, outSpr); };
 
 		return true;
 	}
@@ -134,7 +134,7 @@ namespace Comfy::App
 			{
 				sprSet = MakeUnique<SprSet>();
 				sprSetLoader.Parse(sprSet.get());
-				sprSet->TxpSet->UploadAll(sprSet.get());
+				sprSet->TexSet->UploadAll(sprSet.get());
 				sprSetLoader.FreeData();
 			}
 			else

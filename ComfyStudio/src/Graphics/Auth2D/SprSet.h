@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "Graphics/TxpSet.h"
+#include "Graphics/TexSet.h"
 #include "Graphics/GraphicTypes.h"
 
 namespace Comfy::Graphics
@@ -26,7 +26,7 @@ namespace Comfy::Graphics
 	public:
 		std::string Name;
 		uint32_t Flags;
-		UniquePtr<TxpSet> TxpSet;
+		UniquePtr<TexSet> TexSet;
 		std::vector<Spr> Sprites;
 
 		void Parse(const uint8_t* buffer, size_t bufferSize) override;

@@ -12,13 +12,13 @@ namespace Comfy::Graphics
 	enum class TxpSig
 	{
 		MipMap = '\02PXT',
-		TxpSet = '\03PXT',
+		TexSet = '\03PXT',
 		Texture2D = '\04PXT',
 		CubeMap = '\05PXT',
 		Rectangle = '\06PXT',
 	};
 
-	struct TxpMipMap
+	struct TexMipMap
 	{
 		TxpSig Signature;
 		ivec2 Size;
@@ -30,7 +30,7 @@ namespace Comfy::Graphics
 		UniquePtr<uint8_t[]> Data;
 	};
 
-	struct Txp
+	struct Tex
 	{
 		TxpSig Signature;
 		std::optional<std::string> Name;
@@ -39,15 +39,15 @@ namespace Comfy::Graphics
 		uint8_t ArraySize;
 
 		// NOTE: Two dimensional array [CubeFace][MipMap]
-		std::vector<std::vector<TxpMipMap>> MipMapsArray;
+		std::vector<std::vector<TexMipMap>> MipMapsArray;
 
-		Cached_TxpID ID = TxpID::Invalid;
+		Cached_TexID ID = TexID::Invalid;
 
 		UniquePtr<GPU_Texture2D> GPU_Texture2D = nullptr;
 		UniquePtr<GPU_CubeMap> GPU_CubeMap = nullptr;
 
 	public:
-		const std::vector<TxpMipMap>& GetMipMaps(uint32_t arrayIndex = 0) const;
+		const std::vector<TexMipMap>& GetMipMaps(uint32_t arrayIndex = 0) const;
 
 		ivec2 GetSize() const;
 		TextureFormat GetFormat() const;
@@ -56,11 +56,11 @@ namespace Comfy::Graphics
 		std::string_view GetName() const;
 	};
 
-	class TxpSet : public FileSystem::IBufferParsable, NonCopyable
+	class TexSet : public FileSystem::IBufferParsable, NonCopyable
 	{
 	public:
 		TxpSig Signature;
-		std::vector<RefPtr<Txp>> Txps;
+		std::vector<RefPtr<Tex>> Textures;
 
 		void Parse(const uint8_t* buffer, size_t bufferSize) override;
 		void UploadAll(class SprSet* parentSprSet);
@@ -68,9 +68,9 @@ namespace Comfy::Graphics
 		void SetTextureIDs(const class ObjSet& objSet);
 
 	public:
-		static UniquePtr<TxpSet> MakeUniqueReadParseUpload(std::string_view filePath, const class ObjSet* objSet);
+		static UniquePtr<TexSet> MakeUniqueReadParseUpload(std::string_view filePath, const class ObjSet* objSet);
 
 	private:
-		void ParseTxp(const uint8_t* buffer, Txp& txp);
+		void ParseTex(const uint8_t* buffer, Tex& tex);
 	};
 }

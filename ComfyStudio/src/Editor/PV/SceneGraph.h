@@ -2,7 +2,7 @@
 #include "Graphics/Auth3D/Transform.h"
 #include "Graphics/Auth3D/ObjSet.h"
 #include "Graphics/Auth3D/ObjAnimationData.h"
-#include "Database/TxpDB.h"
+#include "Database/TexDB.h"
 #include "Resource/ResourceIDMap.h"
 
 namespace Comfy::Editor
@@ -39,8 +39,8 @@ namespace Comfy::Editor
 
 	struct SceneGraph
 	{
-		ResourceIDMap<TxpID, Graphics::Txp> TxpIDMap;
-		UniquePtr<Database::TxpDB> TxpDB = nullptr;
+		ResourceIDMap<TexID, Graphics::Tex> TexIDMap;
+		UniquePtr<Database::TexDB> TexDB = nullptr;
 
 		std::vector<ObjSetResource> LoadedObjSets;
 		std::vector<UniquePtr<ObjectEntity>> Entities;
@@ -50,13 +50,13 @@ namespace Comfy::Editor
 			return LoadedObjSets.emplace_back(ObjSetResource { objSet, tag });
 		}
 
-		inline void RegisterTextures(Graphics::TxpSet* txpSet)
+		inline void RegisterTextures(Graphics::TexSet* texSet)
 		{
-			if (txpSet != nullptr)
+			if (texSet != nullptr)
 			{
-				TxpIDMap.ReservedAdditional(txpSet->Txps.size());
-				for (auto& txp : txpSet->Txps)
-					TxpIDMap.Add(txp->ID, txp);
+				TexIDMap.ReservedAdditional(texSet->Textures.size());
+				for (auto& tex : texSet->Textures)
+					TexIDMap.Add(tex->ID, tex);
 			}
 		}
 

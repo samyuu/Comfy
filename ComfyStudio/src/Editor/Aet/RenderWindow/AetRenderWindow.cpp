@@ -445,15 +445,15 @@ namespace Comfy::Editor
 
 		const Video* video = (previewData->Video != nullptr) ? previewData->Video : obj.Video;
 
-		const Txp* txp;
+		const Tex* tex;
 		const Spr* spr;
-		const bool validSprite = aetRenderer->GetSprite(video->GetSource(obj.SpriteIndex), &txp, &spr);
+		const bool validSprite = aetRenderer->GetSprite(video->GetSource(obj.SpriteIndex), &tex, &spr);
 
 		if (!validSprite)
 			return false;
 
 		renderer->Draw(
-			txp->GPU_Texture2D.get(),
+			tex->GPU_Texture2D.get(),
 			spr->PixelRegion,
 			obj.Transform.Position + positionOffset,
 			obj.Transform.Origin,
@@ -481,25 +481,25 @@ namespace Comfy::Editor
 		const Video* video = (previewData->Video != nullptr && selected) ? previewData->Video : obj.Video;
 		const Video* maskVideo = (previewData->Video != nullptr && maskSelected) ? previewData->Video : maskObj.Video;
 
-		const Txp* maskTxp;
+		const Tex* maskTex;
 		const Spr* maskSpr;
-		const bool validMaskSprite = aetRenderer->GetSprite(maskVideo->GetSource(maskObj.SpriteIndex), &maskTxp, &maskSpr);
+		const bool validMaskSprite = aetRenderer->GetSprite(maskVideo->GetSource(maskObj.SpriteIndex), &maskTex, &maskSpr);
 
-		const Txp* txp;
+		const Tex* tex;
 		const Spr* spr;
-		const bool validSprite = aetRenderer->GetSprite(video->GetSource(obj.SpriteIndex), &txp, &spr);
+		const bool validSprite = aetRenderer->GetSprite(video->GetSource(obj.SpriteIndex), &tex, &spr);
 
 		if (!validMaskSprite || !validSprite)
 			return false;
 
 		renderer->Draw(
-			maskTxp->GPU_Texture2D.get(),
+			maskTex->GPU_Texture2D.get(),
 			maskSpr->PixelRegion,
 			maskObj.Transform.Position,
 			maskObj.Transform.Origin,
 			maskObj.Transform.Rotation,
 			maskObj.Transform.Scale,
-			txp->GPU_Texture2D.get(),
+			tex->GPU_Texture2D.get(),
 			spr->PixelRegion,
 			obj.Transform.Position + positionOffset,
 			obj.Transform.Origin,

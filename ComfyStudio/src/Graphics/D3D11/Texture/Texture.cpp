@@ -1,5 +1,5 @@
 #include "Texture.h"
-#include "Graphics/TxpSet.h"
+#include "Graphics/TexSet.h"
 #include "Graphics/Auth3D/LightParam/IBLParameters.h"
 
 namespace Comfy::Graphics::D3D11
@@ -287,7 +287,7 @@ namespace Comfy::Graphics::D3D11
 			}
 		}
 
-		D3D11_SUBRESOURCE_DATA CreateMipMapSubresourceData(const TxpMipMap& mipMap, bool usesBlockCompression, UINT bitsPerPixel)
+		D3D11_SUBRESOURCE_DATA CreateMipMapSubresourceData(const TexMipMap& mipMap, bool usesBlockCompression, UINT bitsPerPixel)
 		{
 			D3D11_SUBRESOURCE_DATA resource;
 			resource.pSysMem = mipMap.Data.get();
@@ -317,7 +317,7 @@ namespace Comfy::Graphics::D3D11
 			return resourceViewDescription;
 		}
 
-		constexpr std::array<D3D11_TEXTURECUBE_FACE, CubeFaceCount> TxpCubeFaceIndices =
+		constexpr std::array<D3D11_TEXTURECUBE_FACE, CubeFaceCount> TexCubeFaceIndices =
 		{
 			D3D11_TEXTURECUBE_FACE_POSITIVE_X,
 			D3D11_TEXTURECUBE_FACE_NEGATIVE_X,
@@ -429,18 +429,18 @@ namespace Comfy::Graphics::D3D11
 		return resourceView.Get();
 	}
 
-	Texture2D::Texture2D(const Txp& txp)
+	Texture2D::Texture2D(const Tex& tex)
 	{
-		assert(txp.MipMapsArray.size() == GetArraySize() && txp.MipMapsArray.front().size() > 0 && txp.Signature == TxpSig::Texture2D);
+		assert(tex.MipMapsArray.size() == GetArraySize() && tex.MipMapsArray.front().size() > 0 && tex.Signature == TxpSig::Texture2D);
 
-		auto& mipMaps = txp.MipMapsArray.front();
+		auto& mipMaps = tex.MipMapsArray.front();
 		auto& baseMipMap = mipMaps.front();
 
 		textureFormat = baseMipMap.Format;
 		textureDescription.Width = baseMipMap.Size.x;
 		textureDescription.Height = baseMipMap.Size.y;
 		textureDescription.MipLevels = static_cast<UINT>(mipMaps.size());
-		textureDescription.ArraySize = static_cast<UINT>(txp.MipMapsArray.size());
+		textureDescription.ArraySize = static_cast<UINT>(tex.MipMapsArray.size());
 		textureDescription.Format = GetDxgiFormat(baseMipMap.Format);
 		textureDescription.SampleDesc.Count = 1;
 		textureDescription.SampleDesc.Quality = 0;
@@ -517,18 +517,18 @@ namespace Comfy::Graphics::D3D11
 		return 1;
 	}
 
-	CubeMap::CubeMap(const Txp& txp)
+	CubeMap::CubeMap(const Tex& tex)
 	{
-		assert(txp.MipMapsArray.size() == GetArraySize() && txp.MipMapsArray.front().size() > 0 && txp.Signature == TxpSig::CubeMap);
+		assert(tex.MipMapsArray.size() == GetArraySize() && tex.MipMapsArray.front().size() > 0 && tex.Signature == TxpSig::CubeMap);
 
-		auto& mipMaps = txp.MipMapsArray.front();
+		auto& mipMaps = tex.MipMapsArray.front();
 		auto& baseMipMap = mipMaps.front();
 
 		textureFormat = baseMipMap.Format;
 		textureDescription.Width = baseMipMap.Size.x;
 		textureDescription.Height = baseMipMap.Size.y;
 		textureDescription.MipLevels = static_cast<UINT>(mipMaps.size());
-		textureDescription.ArraySize = static_cast<UINT>(txp.MipMapsArray.size());
+		textureDescription.ArraySize = static_cast<UINT>(tex.MipMapsArray.size());
 		textureDescription.Format = GetDxgiFormat(baseMipMap.Format);
 		textureDescription.SampleDesc.Count = 1;
 		textureDescription.SampleDesc.Quality = 0;
@@ -548,7 +548,7 @@ namespace Comfy::Graphics::D3D11
 		for (uint32_t faceIndex = 0; faceIndex < CubeFaceCount; faceIndex++)
 		{
 			for (uint32_t mipIndex = 0; mipIndex < textureDescription.MipLevels; mipIndex++)
-				initialResourceData[TxpCubeFaceIndices[faceIndex] * textureDescription.MipLevels + mipIndex] = CreateMipMapSubresourceData(txp.MipMapsArray[faceIndex][mipIndex], usesBlockCompression, bitsPerPixel);
+				initialResourceData[TexCubeFaceIndices[faceIndex] * textureDescription.MipLevels + mipIndex] = CreateMipMapSubresourceData(tex.MipMapsArray[faceIndex][mipIndex], usesBlockCompression, bitsPerPixel);
 		}
 
 		D3D.Device->CreateTexture2D(&textureDescription, initialResourceData.data(), &texture);

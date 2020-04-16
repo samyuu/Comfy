@@ -30,9 +30,9 @@ namespace Comfy::Graphics::GPU
 #endif
 	}
 
-	UniquePtr<GPU_Texture2D> MakeTexture2D(const Txp& txp, const char* debugName)
+	UniquePtr<GPU_Texture2D> MakeTexture2D(const Tex& tex, const char* debugName)
 	{
-		auto result = MakeUnique<D3D11::Texture2D>(txp);
+		auto result = MakeUnique<D3D11::Texture2D>(tex);
 		SetDebugName(*result, debugName);
 		return result;
 	}
@@ -44,9 +44,9 @@ namespace Comfy::Graphics::GPU
 		return result;
 	}
 
-	UniquePtr<GPU_CubeMap> MakeCubeMap(const Txp& txp, const char* debugName)
+	UniquePtr<GPU_CubeMap> MakeCubeMap(const Tex& tex, const char* debugName)
 	{
-		auto result = MakeUnique<D3D11::CubeMap>(txp);
+		auto result = MakeUnique<D3D11::CubeMap>(tex);
 		SetDebugName(*result, debugName);
 		return result;
 	}

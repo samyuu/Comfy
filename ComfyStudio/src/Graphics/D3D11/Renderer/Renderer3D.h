@@ -55,7 +55,7 @@ namespace Comfy::Graphics
 		RenderCommand(const Obj& obj, const vec3& position) : SourceObj(&obj), Transform(position) {}
 	};
 
-	using TxpGetterFunction = std::function<const Txp*(const Cached_TxpID* txpID)>;
+	using TexGetterFunction = std::function<const Tex*(const Cached_TexID* texID)>;
 }
 
 namespace Comfy::Graphics::D3D11
@@ -63,7 +63,7 @@ namespace Comfy::Graphics::D3D11
 	class Renderer3D : NonCopyable
 	{
 	public:
-		Renderer3D(TxpGetterFunction txpGetter);
+		Renderer3D(TexGetterFunction texGetter);
 		~Renderer3D() = default;
 
 	public:
@@ -71,7 +71,7 @@ namespace Comfy::Graphics::D3D11
 		void Draw(const RenderCommand& command);
 		void End();
 
-		const Txp* GetTxpFromTextureID(const Cached_TxpID* textureID) const;
+		const Tex* GetTexFromTextureID(const Cached_TexID* textureID) const;
 
 	private:
 		struct ObjRenderCommand
@@ -229,6 +229,6 @@ namespace Comfy::Graphics::D3D11
 			const SceneParameters* Scene;
 		} current = {};
 
-		TxpGetterFunction txpGetter = nullptr;
+		TexGetterFunction texGetter = nullptr;
 	};
 }

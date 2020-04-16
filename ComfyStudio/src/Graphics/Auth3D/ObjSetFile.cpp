@@ -189,7 +189,7 @@ namespace Comfy::Graphics
 					for (auto& texture : material.Textures)
 					{
 						texture.SamplerFlags = ReadFlagsStruct32<MaterialTextureData::TextureSamplerFlags>(reader);
-						texture.TextureID = TxpID(reader.ReadU32());
+						texture.TextureID = TexID(reader.ReadU32());
 						texture.TextureFlags = ReadFlagsStruct32<MaterialTextureData::TextureDataFlags>(reader);
 						
 						reader.ReadBuffer(texture.ExShader.data(), texture.ExShader.size());
@@ -329,7 +329,7 @@ namespace Comfy::Graphics
 			reader.ReadAt(textureIDsPtr, [this](BinaryReader& reader)
 			{
 				for (auto& textureID : TextureIDs)
-					textureID = TxpID(reader.ReadU32());
+					textureID = TexID(reader.ReadU32());
 			});
 		}
 	}

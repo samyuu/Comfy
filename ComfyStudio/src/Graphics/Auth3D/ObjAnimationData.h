@@ -10,16 +10,16 @@ namespace Comfy::Graphics
 	{
 		struct TexturePattern
 		{
-			Cached_TxpID ID = TxpID::Invalid;
-			Cached_TxpID IDOverride = TxpID::Invalid;
+			Cached_TexID ID = TexID::Invalid;
+			Cached_TexID IDOverride = TexID::Invalid;
 			
 			// NOTE: To easily index into and avoid needless searches
-			std::optional<std::vector<TxpID>> CachedIDs;
+			std::optional<std::vector<TexID>> CachedIDs;
 		};
 
 		struct TextureTransform
 		{
-			TxpID ID = TxpID::Invalid;
+			TexID ID = TexID::Invalid;
 
 			std::optional<bool> RepeatU, RepeatV;
 			float Rotation = 0.0f;
@@ -33,7 +33,7 @@ namespace Comfy::Graphics
 		};
 
 		float MorphWeight = 1.0f;
-		TxpID ScreenRenderTextureID = TxpID::Invalid;
+		TexID ScreenRenderTextureID = TexID::Invalid;
 		
 		// TODO: Transparency, automatically add to transparent command list
 		// std::optional<vec4> ColorTint;

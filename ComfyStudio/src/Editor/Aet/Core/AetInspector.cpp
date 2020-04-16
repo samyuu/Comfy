@@ -345,10 +345,10 @@ namespace Comfy::Editor
 			{
 				auto sprite = video->GetFront();
 
-				const Txp* outTxp;
+				const Tex* outTex;
 				const Spr* outSpr;
 
-				if ((*spriteGetter)(sprite, &outTxp, &outSpr))
+				if ((*spriteGetter)(sprite, &outTex, &outSpr))
 				{
 					vec2 uvTL = { outSpr->TexelRegion.x, -outSpr->TexelRegion.y };
 					vec2 uvBR = { outSpr->TexelRegion.z, -outSpr->TexelRegion.w };
@@ -356,7 +356,7 @@ namespace Comfy::Editor
 					vec2 size = vec2(100.0f, 100.0f);
 
 					// TODO: Something like this...
-					Gui::ImageButton(*outTxp->GPU_Texture2D, size, uvTL, uvBR);
+					Gui::ImageButton(*outTex->GPU_Texture2D, size, uvTL, uvBR);
 				}
 			}
 

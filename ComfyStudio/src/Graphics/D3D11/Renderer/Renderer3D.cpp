@@ -232,9 +232,9 @@ namespace Comfy::Graphics::D3D11
 		}
 	}
 
-	Renderer3D::Renderer3D(TxpGetterFunction txpGetter)
+	Renderer3D::Renderer3D(TexGetterFunction texGetter)
 	{
-		this->txpGetter = txpGetter;
+		this->texGetter = texGetter;
 
 		static constexpr InputElement genericElements[] =
 		{
@@ -330,9 +330,9 @@ namespace Comfy::Graphics::D3D11
 		current = {};
 	}
 
-	const Txp* Renderer3D::GetTxpFromTextureID(const Cached_TxpID* textureID) const
+	const Tex* Renderer3D::GetTexFromTextureID(const Cached_TexID* textureID) const
 	{
-		return txpGetter(textureID);
+		return texGetter(textureID);
 	}
 
 	void Renderer3D::UpdateIsAnyCommandFlags(const RenderCommand& command)
@@ -1298,14 +1298,14 @@ namespace Comfy::Graphics::D3D11
 			if (!GetIsTextureSlotUsed(material.ShaderType, material.UsedTexturesFlags, correspondingTextureSlot))
 				continue;
 
-			const Cached_TxpID* txpID = &materialTexture.TextureID;
+			const Cached_TexID* texID = &materialTexture.TextureID;
 			auto samplerFlags = materialTexture.SamplerFlags;
 
 			if (animation != nullptr)
 			{
 				for (auto& transform : animation->TextureTransforms)
 				{
-					if (*txpID == transform.ID)
+					if (*texID == transform.ID)
 					{
 						samplerFlags.RepeatU = transform.RepeatU.value_or<int>(samplerFlags.RepeatU);
 						samplerFlags.RepeatV = transform.RepeatU.value_or<int>(samplerFlags.RepeatV);
@@ -1314,18 +1314,18 @@ namespace Comfy::Graphics::D3D11
 
 				for (auto& pattern : animation->TexturePatterns)
 				{
-					if (*txpID == pattern.ID && pattern.IDOverride != TxpID::Invalid)
-						txpID = &pattern.IDOverride;
+					if (*texID == pattern.ID && pattern.IDOverride != TexID::Invalid)
+						texID = &pattern.IDOverride;
 				}
 			}
 
-			auto txp = GetTxpFromTextureID(txpID);
-			if (txp == nullptr)
+			auto tex = GetTexFromTextureID(texID);
+			if (tex == nullptr)
 				continue;
 
 			current.Viewport->Data.TextureSamplers.CreateIfNeeded(current.Viewport->Parameters);
 
-			textureResources[correspondingTextureSlot] = (txp->GPU_Texture2D != nullptr) ? static_cast<TextureResource*>(txp->GPU_Texture2D.get()) : (txp->GPU_CubeMap != nullptr) ? (txp->GPU_CubeMap.get()) : nullptr;
+			textureResources[correspondingTextureSlot] = (tex->GPU_Texture2D != nullptr) ? static_cast<TextureResource*>(tex->GPU_Texture2D.get()) : (tex->GPU_CubeMap != nullptr) ? (tex->GPU_CubeMap.get()) : nullptr;
 			textureSamplers[correspondingTextureSlot] = &current.Viewport->Data.TextureSamplers.GetSampler(samplerFlags);
 
 			if (correspondingTextureSlot == TextureSlot_Diffuse)
@@ -1335,10 +1335,10 @@ namespace Comfy::Graphics::D3D11
 				if (animation != nullptr)
 				{
 					for (auto& textureTransform : animation->TextureTransforms)
-						if (textureTransform.ID == *txpID)
+						if (textureTransform.ID == *texID)
 							applyTextureTransform(constantBuffers.Object.Data.Material.DiffuseTextureTransform, textureTransform);
 
-					if (*txpID == animation->ScreenRenderTextureID)
+					if (*texID == animation->ScreenRenderTextureID)
 					{
 						constantBuffers.Object.Data.DiffuseScreenTexture = true;
 						textureResources[correspondingTextureSlot] = &current.Viewport->Data.Main.PreviousOrResolved();
@@ -1348,7 +1348,7 @@ namespace Comfy::Graphics::D3D11
 					}
 				}
 
-				if (txp->GetFormat() == TextureFormat::RGTC1)
+				if (tex->GetFormat() == TextureFormat::RGTC1)
 					constantBuffers.Object.Data.DiffuseRGTC1 = true;
 			}
 			else if (correspondingTextureSlot == TextureSlot_Ambient)
@@ -1358,7 +1358,7 @@ namespace Comfy::Graphics::D3D11
 				if (animation != nullptr)
 				{
 					for (auto& textureTransform : animation->TextureTransforms)
-						if (textureTransform.ID == *txpID)
+						if (textureTransform.ID == *texID)
 							applyTextureTransform(constantBuffers.Object.Data.Material.AmbientTextureTransform, textureTransform);
 				}
 

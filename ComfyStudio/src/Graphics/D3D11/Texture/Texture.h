@@ -5,7 +5,7 @@
 
 namespace Comfy::Graphics
 {
-	struct Txp;
+	struct Tex;
 	struct LightMapIBL;
 }
 
@@ -79,7 +79,7 @@ namespace Comfy::Graphics::D3D11
 		static constexpr ivec2 MaxSize = { D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION, D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION };
 
 	public:
-		Texture2D(const Txp& txp);
+		Texture2D(const Tex& tex);
 		Texture2D(ivec2 size, const uint32_t* rgbaBuffer);
 		~Texture2D() = default;
 
@@ -92,7 +92,7 @@ namespace Comfy::Graphics::D3D11
 	class CubeMap final : public TextureResource
 	{
 	public:
-		CubeMap(const Txp& txp);
+		CubeMap(const Tex& tex);
 		CubeMap(const LightMapIBL& lightMap);
 		~CubeMap() = default;
 

@@ -1,4 +1,4 @@
-#include "TxpSet.h"
+#include "TexSet.h"
 #include "Auth2D/SprSet.h"
 #include "Auth3D/ObjSet.h"
 #include "FileSystem/FileInterface.h"
@@ -9,12 +9,12 @@ using namespace Comfy::FileSystem;
 
 namespace Comfy::Graphics
 {
-	const std::vector<TxpMipMap>& Txp::GetMipMaps(uint32_t arrayIndex) const
+	const std::vector<TexMipMap>& Tex::GetMipMaps(uint32_t arrayIndex) const
 	{
 		return MipMapsArray[arrayIndex];
 	}
 
-	ivec2 Txp::GetSize() const
+	ivec2 Tex::GetSize() const
 	{
 		if (MipMapsArray.size() < 1 || MipMapsArray.front().size() < 1)
 			return ivec2(0, 0);
@@ -22,7 +22,7 @@ namespace Comfy::Graphics
 		return MipMapsArray.front().front().Size;
 	}
 
-	TextureFormat Txp::GetFormat() const
+	TextureFormat Tex::GetFormat() const
 	{
 		if (MipMapsArray.size() < 1 || MipMapsArray.front().size() < 1)
 			return TextureFormat::Unknown;
@@ -30,63 +30,63 @@ namespace Comfy::Graphics
 		return MipMapsArray.front().front().Format;
 	}
 
-	std::string_view Txp::GetName() const
+	std::string_view Tex::GetName() const
 	{
 		return (Name.has_value()) ? Name.value() : UnknownName;
 	}
 
-	void TxpSet::Parse(const uint8_t* buffer, size_t bufferSize)
+	void TexSet::Parse(const uint8_t* buffer, size_t bufferSize)
 	{
-		TxpSet& txpSet = *this;
+		TexSet& texSet = *this;
 
-		txpSet.Signature = *(TxpSig*)(buffer + 0);
+		texSet.Signature = *(TxpSig*)(buffer + 0);
 		uint32_t textureCount = *(uint32_t*)(buffer + 4);
 		uint32_t packedCount = *(uint32_t*)(buffer + 8);
 		uint32_t* offsets = (uint32_t*)(buffer + 12);
 
-		assert(txpSet.Signature == TxpSig::TxpSet);
+		assert(texSet.Signature == TxpSig::TexSet);
 
-		Txps.reserve(textureCount);
+		Textures.reserve(textureCount);
 		for (uint32_t i = 0; i < textureCount; i++)
 		{
-			Txps.push_back(MakeRef<Txp>());
-			ParseTxp(buffer + offsets[i], *Txps[i]);
+			Textures.push_back(MakeRef<Tex>());
+			ParseTex(buffer + offsets[i], *Textures[i]);
 		}
 	}
 
-	void TxpSet::UploadAll(SprSet* parentSprSet)
+	void TexSet::UploadAll(SprSet* parentSprSet)
 	{
-		for (auto& txp : Txps)
+		for (auto& tex : Textures)
 		{
 			const char* debugName = nullptr;
 
 #if COMFY_D3D11_DEBUG_NAMES
 			char debugNameBuffer[128];
 			sprintf_s(debugNameBuffer, "%s %s: %s",
-				(txp->Signature == TxpSig::Texture2D) ? "Texture2D" : "CubeMap",
-				(parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TxpSet",
-				txp->GetName().data());
+				(tex->Signature == TxpSig::Texture2D) ? "Texture2D" : "CubeMap",
+				(parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TexSet",
+				tex->GetName().data());
 
 			debugName = debugNameBuffer;
 #endif
 
-			if (txp->Signature == TxpSig::Texture2D)
-				txp->GPU_Texture2D = GPU::MakeTexture2D(*txp, debugName);
-			else if (txp->Signature == TxpSig::CubeMap)
-				txp->GPU_CubeMap = GPU::MakeCubeMap(*txp, debugName);
+			if (tex->Signature == TxpSig::Texture2D)
+				tex->GPU_Texture2D = GPU::MakeTexture2D(*tex, debugName);
+			else if (tex->Signature == TxpSig::CubeMap)
+				tex->GPU_CubeMap = GPU::MakeCubeMap(*tex, debugName);
 		}
 	}
 
-	void TxpSet::SetTextureIDs(const ObjSet& objSet)
+	void TexSet::SetTextureIDs(const ObjSet& objSet)
 	{
 		const auto& textureIDs = objSet.TextureIDs;
-		assert(textureIDs.size() <= Txps.size());
+		assert(textureIDs.size() <= Textures.size());
 
 		for (size_t i = 0; i < textureIDs.size(); i++)
-			Txps[i]->ID = textureIDs[i];
+			Textures[i]->ID = textureIDs[i];
 	}
 
-	UniquePtr<TxpSet> TxpSet::MakeUniqueReadParseUpload(std::string_view filePath, const ObjSet* objSet)
+	UniquePtr<TexSet> TexSet::MakeUniqueReadParseUpload(std::string_view filePath, const ObjSet* objSet)
 	{
 		std::vector<uint8_t> fileContent;
 		FileSystem::FileReader::ReadEntireFile(filePath, &fileContent);
@@ -94,36 +94,36 @@ namespace Comfy::Graphics
 		if (fileContent.empty())
 			return nullptr;
 
-		auto txpSet = MakeUnique<TxpSet>();;
+		auto texSet = MakeUnique<TexSet>();;
 		{
-			txpSet->Parse(fileContent.data(), fileContent.size());
-			txpSet->UploadAll(nullptr);
+			texSet->Parse(fileContent.data(), fileContent.size());
+			texSet->UploadAll(nullptr);
 
 			if (objSet != nullptr)
-				txpSet->SetTextureIDs(*objSet);
+				texSet->SetTextureIDs(*objSet);
 		}
-		return txpSet;
+		return texSet;
 	}
 
-	void TxpSet::ParseTxp(const uint8_t* buffer, Txp& txp)
+	void TexSet::ParseTex(const uint8_t* buffer, Tex& tex)
 	{
-		txp.Signature = *(TxpSig*)(buffer + 0);
+		tex.Signature = *(TxpSig*)(buffer + 0);
 		uint32_t mipMapCount = *(uint32_t*)(buffer + 4);
-		txp.MipLevels = *(uint8_t*)(buffer + 8);
-		txp.ArraySize = *(uint8_t*)(buffer + 9);
+		tex.MipLevels = *(uint8_t*)(buffer + 8);
+		tex.ArraySize = *(uint8_t*)(buffer + 9);
 
 		uint32_t* offsets = (uint32_t*)(buffer + 12);
 		const uint8_t* mipMapBuffer = buffer + *offsets;
 		++offsets;
 
-		assert(txp.Signature == TxpSig::Texture2D || txp.Signature == TxpSig::CubeMap || txp.Signature == TxpSig::Rectangle);
-		// assert(mipMapCount == txp.MipLevels * txp.ArraySize);
+		assert(tex.Signature == TxpSig::Texture2D || tex.Signature == TxpSig::CubeMap || tex.Signature == TxpSig::Rectangle);
+		// assert(mipMapCount == tex.MipLevels * tex.ArraySize);
 
-		txp.MipMapsArray.resize(txp.ArraySize);
+		tex.MipMapsArray.resize(tex.ArraySize);
 
-		for (auto& mipMaps : txp.MipMapsArray)
+		for (auto& mipMaps : tex.MipMapsArray)
 		{
-			mipMaps.resize(txp.MipLevels);
+			mipMaps.resize(tex.MipLevels);
 
 			for (auto& mipMap : mipMaps)
 			{
