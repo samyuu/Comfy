@@ -21,13 +21,15 @@ namespace Comfy::Graphics
 		vec2 GetSize() const;
 	};
 
-	class SprSet : public FileSystem::IBufferParsable, NonCopyable
+	class SprSet : public FileSystem::IBinaryWritable, public FileSystem::IBufferParsable, NonCopyable
 	{
 	public:
 		std::string Name;
 		uint32_t Flags;
 		UniquePtr<TexSet> TexSet;
 		std::vector<Spr> Sprites;
+
+		void Write(FileSystem::BinaryWriter& writer) override;
 
 		void Parse(const uint8_t* buffer, size_t bufferSize) override;
 

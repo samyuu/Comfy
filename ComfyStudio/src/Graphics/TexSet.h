@@ -9,7 +9,7 @@
 
 namespace Comfy::Graphics
 {
-	enum class TxpSig
+	enum class TxpSig : uint32_t
 	{
 		MipMap = '\02PXT',
 		TexSet = '\03PXT',
@@ -35,9 +35,6 @@ namespace Comfy::Graphics
 		TxpSig Signature;
 		std::optional<std::string> Name;
 
-		uint8_t MipLevels;
-		uint8_t ArraySize;
-
 		// NOTE: Two dimensional array [CubeFace][MipMap]
 		std::vector<std::vector<TexMipMap>> MipMapsArray;
 
@@ -56,11 +53,13 @@ namespace Comfy::Graphics
 		std::string_view GetName() const;
 	};
 
-	class TexSet : public FileSystem::IBufferParsable, NonCopyable
+	class TexSet : public FileSystem::IBinaryWritable, public FileSystem::IBufferParsable, NonCopyable
 	{
 	public:
 		TxpSig Signature;
 		std::vector<RefPtr<Tex>> Textures;
+
+		void Write(FileSystem::BinaryWriter& writer) override;
 
 		void Parse(const uint8_t* buffer, size_t bufferSize) override;
 		void UploadAll(class SprSet* parentSprSet);
