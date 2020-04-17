@@ -6,20 +6,46 @@
 
 namespace Comfy::Graphics::Utilities
 {
-	using SpriteMarkupFlags = uint32_t;
-	enum SpriteMarkupFlagsEnum : SpriteMarkupFlags
+	enum class MergeType
 	{
-		SpriteMarkupFlags_None = 0,
-		SpriteMarkupFlags_NoMerge = (1 << 0),
+		NoMerge, Merge,
 	};
 
-	struct SpriteMarkup
+	enum class CompressionType
+	{
+		None, BC1, BC2, BC3, BC4, BC5, Unknown,
+	};
+
+	using SprMarkupFlags = uint32_t;
+	enum SprMarkupFlagsEnum : SprMarkupFlags
+	{
+		SprMarkupFlags_None = 0,
+		SprMarkupFlags_NoMerge = (1 << 0),
+	};
+
+	struct SprMarkup
 	{
 		std::string Name;
 		ivec2 Size;
 		const void* RGBAPixels;
 		ScreenMode ScreenMode;
-		SpriteMarkupFlags Flags;
+		SprMarkupFlags Flags;
+	};
+
+	struct SprMarkupBox
+	{
+		const SprMarkup* Markup;
+		ivec4 Box;
+	};
+
+	struct SprTexMarkup
+	{
+		std::string Name;
+		ivec2 Size;
+		TextureFormat Format;
+		MergeType Merge;
+		std::vector<SprMarkupBox> SpriteBoxes;
+		int RemainingFreePixels;
 	};
 
 	class SpriteCreator : NonCopyable
@@ -29,16 +55,23 @@ namespace Comfy::Graphics::Utilities
 		~SpriteCreator() = default;
 
 	public:
-		UniquePtr<SprSet> Create(const std::vector<SpriteMarkup>& spriteMarkups);
+		UniquePtr<SprSet> Create(const std::vector<SprMarkup>& sprMarkups);
 
 	protected:
-		Spr CreateSprFromMarkup(const SpriteMarkup& markup);
-		
-		RefPtr<Tex> CreateNoMergeTex(const Spr& spr, const SpriteMarkup& markup, size_t index);
+		struct SettingsData
+		{
+			ivec2 MaxTextureSize = ivec2(2048);
+			bool FlipY = true;
+		} settings;
+
+	protected:
+		std::vector<SprTexMarkup> MergeTextures(const std::vector<SprMarkup>& sprMarkups);
+		std::vector<const SprMarkup*> SortByArea(const std::vector<SprMarkup>& sprMarkups) const;
+
+		RefPtr<Tex> CreateTexFromMarkup(const SprTexMarkup& texMarkup);
+		UniquePtr<uint8_t[]> CreateMergedTexMarkupRGBAPixels(const SprTexMarkup& texMarkup);
 
 		const char* GetCompressionName(TextureFormat format) const;
-		std::string FormatTextureName(bool merge, TextureFormat format, size_t index) const;
-
-		ivec4 GetTexelRegionFromPixelRegion(const vec4& pixelRegion, vec2 textureSize);
+		std::string FormatTextureName(MergeType merge, TextureFormat format, size_t index) const;
 	};
 }
