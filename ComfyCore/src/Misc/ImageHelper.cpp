@@ -16,7 +16,7 @@ namespace
 
 		uLongf compressedSize = inDataSize;
 		int compressResult = compress2(outBuffer, &compressedSize, inData, inDataSize, inQuality);
-		
+
 		*outDataSize = static_cast<int>(compressedSize);
 
 		if (compressResult != Z_OK)
@@ -24,7 +24,7 @@ namespace
 			STBIW_FREE(outBuffer);
 			return nullptr;
 		}
-		
+
 		return outBuffer;
 	}
 }
@@ -32,8 +32,38 @@ namespace
 #define STBIW_ZLIB_COMPRESS CustomStbImageZLibCompress2
 #include <stb_image_write.h>
 
+// #define STBI_NO_JPEG
+// #define STBI_NO_PNG
+// #define STBI_NO_BMP
+// #define STBI_NO_PSD
+#define STBI_NO_TGA
+// #define STBI_NO_GIF
+#define STBI_NO_HDR
+#define STBI_NO_PIC
+#define STBI_NO_PNM
+#define STBI_WINDOWS_UTF8
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 namespace Comfy::Utilities
 {
+	void ReadImage(std::string_view filePath, ivec2& outSize, UniquePtr<uint8_t[]>& outRGBAPixels)
+	{
+		constexpr int rgbaComponents = 4;
+
+		int components;
+		stbi_uc* pixels = stbi_load(filePath.data(), &outSize.x, &outSize.y, &components, rgbaComponents);
+
+		if (pixels != nullptr)
+		{
+			const size_t dataSize = (outSize.x * outSize.y * rgbaComponents);
+			outRGBAPixels = MakeUnique<uint8_t[]>(dataSize);
+			std::memcpy(outRGBAPixels.get(), pixels, dataSize);
+		}
+
+		stbi_image_free(pixels);
+	}
+
 	void WritePNG(std::string_view filePath, ivec2 size, const void* rgbaPixels)
 	{
 		// TODO: Handle case of filePath not being null terminated
