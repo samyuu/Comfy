@@ -60,7 +60,13 @@ namespace Comfy::Graphics::Utilities
 	protected:
 		struct SettingsData
 		{
-			ivec2 MaxTextureSize = ivec2(2048);
+
+			ivec2 MaxTextureSize = ivec2(2048, 1024);
+
+			// NOTE: Numbers of pixels at each side
+			int SpritePadding = 2;
+
+			bool SetDummyColor = true;
 			bool FlipY = true;
 		} settings;
 
