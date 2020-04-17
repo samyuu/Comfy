@@ -34,7 +34,7 @@ namespace
 
 namespace Comfy::Utilities
 {
-	void WritePNG(std::string_view filePath, ivec2 size, const uint8_t* rgbaPixels)
+	void WritePNG(std::string_view filePath, ivec2 size, const void* rgbaPixels)
 	{
 		// TODO: Handle case of filePath not being null terminated
 		assert(rgbaPixels != nullptr && size.x > 0 && size.y > 0);
