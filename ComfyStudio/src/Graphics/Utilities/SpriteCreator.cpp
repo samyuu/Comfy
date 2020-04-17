@@ -27,6 +27,30 @@ namespace Comfy::Graphics::Utilities
 				(boxA.y <= boxB.y) && ((boxB.y + boxB.w) <= (boxA.y + boxA.w));
 		}
 
+		constexpr int GetBoxRight(const ivec4& box)
+		{
+			return box.x + box.z;
+		}
+
+		constexpr int GetBoxBottom(const ivec4& box)
+		{
+			return box.y + box.w;
+		}
+
+		uint32_t RoundToNearestPowerOfTwo(uint32_t x)
+		{
+			return (x <= 1 || x > ((std::numeric_limits<uint32_t>::max() / 2) + 1)) ? x : (1 << (32 - __lzcnt(x - 1)));
+		}
+
+		ivec2 RoundToNearestPowerOfTwo(ivec2 input)
+		{
+			return
+			{
+				static_cast<int>(RoundToNearestPowerOfTwo(static_cast<uint32_t>(input.x))),
+				static_cast<int>(RoundToNearestPowerOfTwo(static_cast<uint32_t>(input.y))),
+			};
+		}
+
 		bool FitsInsideTexture(const ivec4& textureBox, const std::vector<SprMarkupBox>& existingSprites, ivec4 spriteBox)
 		{
 			if (!Contains(textureBox, spriteBox))
@@ -169,7 +193,7 @@ namespace Comfy::Graphics::Utilities
 			auto addTexMarkup = [&](ivec2 texSize, const auto& sprMarkup, ivec2 sprSize, TextureFormat format, MergeType merge, size_t& inOutIndex)
 			{
 				auto& texMarkup = texMarkups.emplace_back();
-				texMarkup.Size = texSize;
+				texMarkup.Size = (settings.EnsurePowerTwo) ? RoundToNearestPowerOfTwo(texSize) : texSize;
 				texMarkup.Format = format;
 				texMarkup.Merge = merge;
 				texMarkup.SpriteBoxes.push_back({ &sprMarkup, ivec4(ivec2(0, 0), sprSize) });
@@ -230,6 +254,7 @@ namespace Comfy::Graphics::Utilities
 			}
 		}
 
+		AdjustTexMarkupSizes(texMarkups);
 		return texMarkups;
 	}
 
@@ -249,6 +274,31 @@ namespace Comfy::Graphics::Utilities
 		return result;
 	}
 
+	void SpriteCreator::AdjustTexMarkupSizes(std::vector<SprTexMarkup>& texMarkups)
+	{
+		for (auto& texMarkup : texMarkups)
+		{
+			if (texMarkup.Merge == MergeType::NoMerge)
+				continue;
+
+			const auto maxRight = std::max_element(
+				texMarkup.SpriteBoxes.begin(),
+				texMarkup.SpriteBoxes.end(),
+				[](const auto& sprBoxA, const auto& sprBoxB) { return GetBoxRight(sprBoxA.Box) < GetBoxRight(sprBoxB.Box); });
+
+			const auto maxBottom = std::max_element(
+				texMarkup.SpriteBoxes.begin(),
+				texMarkup.SpriteBoxes.end(),
+				[](const auto& sprBoxA, const auto& sprBoxB) { return GetBoxBottom(sprBoxA.Box) < GetBoxBottom(sprBoxB.Box); });
+
+			if (maxRight == texMarkup.SpriteBoxes.end() || maxBottom == texMarkup.SpriteBoxes.end())
+				continue;
+
+			const auto texNeededSize = ivec2(GetBoxRight(maxRight->Box), GetBoxBottom(maxBottom->Box));
+			texMarkup.Size = (settings.EnsurePowerTwo) ? RoundToNearestPowerOfTwo(texNeededSize) : texNeededSize;
+		}
+	}
+
 	RefPtr<Tex> SpriteCreator::CreateTexFromMarkup(const SprTexMarkup& texMarkup)
 	{
 		auto margedRGBAPixels = CreateMergedTexMarkupRGBAPixels(texMarkup);
@@ -260,7 +310,7 @@ namespace Comfy::Graphics::Utilities
 		baseMipMap.Format = TextureFormat::RGBA8;
 		baseMipMap.Size = texMarkup.Size;
 		baseMipMap.DataSize = Area(texMarkup.Size) * RGBABytesPerPixel;
-		// TODO: In the future only move once all mipmaps have been generated
+		// TODO: In the future only move once all mipmaps have been generated and the target format is RGBA8
 		baseMipMap.Data = std::move(margedRGBAPixels);
 
 		return tex;
@@ -286,8 +336,6 @@ namespace Comfy::Graphics::Utilities
 			for (const auto& sprBox : texMarkup.SpriteBoxes)
 				CopySprIntoTex(texMarkup, texData.get(), sprBox);
 		}
-
-		// TODO: Trim if possible and update texMarkup size (make arg non const)
 
 		if (settings.FlipY)
 			FlipTextureY(texMarkup.Size, texData.get());

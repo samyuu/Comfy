@@ -66,6 +66,7 @@ namespace Comfy::Graphics::Utilities
 			// NOTE: Numbers of pixels at each side
 			int SpritePadding = 2;
 
+			bool EnsurePowerTwo = true;
 			bool SetDummyColor = true;
 			bool FlipY = true;
 		} settings;
@@ -73,6 +74,7 @@ namespace Comfy::Graphics::Utilities
 	protected:
 		std::vector<SprTexMarkup> MergeTextures(const std::vector<SprMarkup>& sprMarkups);
 		std::vector<const SprMarkup*> SortByArea(const std::vector<SprMarkup>& sprMarkups) const;
+		void AdjustTexMarkupSizes(std::vector<SprTexMarkup>& texMarkups);
 
 		RefPtr<Tex> CreateTexFromMarkup(const SprTexMarkup& texMarkup);
 		UniquePtr<uint8_t[]> CreateMergedTexMarkupRGBAPixels(const SprTexMarkup& texMarkup);
