@@ -145,8 +145,15 @@ namespace Comfy::Graphics::Utilities
 		}
 	}
 
+	SpriteCreator::SpriteCreator(ProgressCallback callback)
+		: progressCallback(callback)
+	{
+	}
+
 	UniquePtr<SprSet> SpriteCreator::Create(const std::vector<SprMarkup>& sprMarkups)
 	{
+		currentProgress = {};
+
 		auto result = MakeUnique<SprSet>();
 		result->TexSet = MakeUnique<TexSet>();
 
@@ -181,8 +188,17 @@ namespace Comfy::Graphics::Utilities
 		return result;
 	}
 
+	void SpriteCreator::ReportCurrentProgress()
+	{
+		if (progressCallback)
+			progressCallback(*this, currentProgress);
+	}
+
 	std::vector<SprTexMarkup> SpriteCreator::MergeTextures(const std::vector<SprMarkup>& sprMarkups)
 	{
+		currentProgress.Sprites = 0;
+		currentProgress.SpritesTotal = static_cast<uint32_t>(sprMarkups.size());
+
 		const auto sizeSortedSprMarkups = SortByArea(sprMarkups);
 		std::vector<SprTexMarkup> texMarkups;
 
@@ -221,6 +237,9 @@ namespace Comfy::Graphics::Utilities
 					addNewTexMarkup(newTextureSize, sprMarkup, sprMarkup.Size + ivec2(settings.SpritePadding * 2), TextureFormat::RGBA8, MergeType::Merge, mergeIndex);
 				}
 			}
+
+			currentProgress.Sprites++;
+			ReportCurrentProgress();
 		}
 
 		AdjustTexMarkupSizes(texMarkups);

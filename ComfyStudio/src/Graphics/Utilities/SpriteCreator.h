@@ -3,6 +3,7 @@
 #include "CoreTypes.h"
 #include "Graphics/TexSet.h"
 #include "Graphics/Auth2D/SprSet.h"
+#include <functional>
 
 namespace Comfy::Graphics::Utilities
 {
@@ -51,7 +52,16 @@ namespace Comfy::Graphics::Utilities
 	class SpriteCreator : NonCopyable
 	{
 	public:
+		struct ProgressData
+		{
+			uint32_t Sprites, SpritesTotal;
+		};
+
+		using ProgressCallback = std::function<void(SpriteCreator&, ProgressData)>;
+
+	public:
 		SpriteCreator() = default;
+		SpriteCreator(ProgressCallback callback);
 		~SpriteCreator() = default;
 
 	public:
@@ -69,6 +79,12 @@ namespace Comfy::Graphics::Utilities
 			bool SetDummyColor = true;
 			bool FlipY = true;
 		} settings;
+
+	protected:
+		ProgressData currentProgress = {};
+		ProgressCallback progressCallback;
+
+		void ReportCurrentProgress();
 
 	protected:
 		std::vector<SprTexMarkup> MergeTextures(const std::vector<SprMarkup>& sprMarkups);
