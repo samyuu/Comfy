@@ -60,7 +60,6 @@ namespace Comfy::Graphics::Utilities
 	protected:
 		struct SettingsData
 		{
-
 			ivec2 MaxTextureSize = ivec2(2048, 1024);
 
 			// NOTE: Numbers of pixels at each side
@@ -74,6 +73,8 @@ namespace Comfy::Graphics::Utilities
 	protected:
 		std::vector<SprTexMarkup> MergeTextures(const std::vector<SprMarkup>& sprMarkups);
 		std::vector<const SprMarkup*> SortByArea(const std::vector<SprMarkup>& sprMarkups) const;
+
+		std::pair<SprTexMarkup*, ivec4> FindFittingTexMarkupToPlaceSprIn(const SprMarkup& sprToPlace, std::vector<SprTexMarkup>& existingTexMarkups);
 		void AdjustTexMarkupSizes(std::vector<SprTexMarkup>& texMarkups);
 
 		RefPtr<Tex> CreateTexFromMarkup(const SprTexMarkup& texMarkup);

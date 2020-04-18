@@ -51,12 +51,12 @@ namespace Comfy::Graphics::Utilities
 			};
 		}
 
-		bool FitsInsideTexture(const ivec4& textureBox, const std::vector<SprMarkupBox>& existingSprites, ivec4 spriteBox)
+		bool FitsInsideTexture(const ivec4& textureBox, const std::vector<SprMarkupBox>& existingSprites, const ivec4& spriteBox)
 		{
 			if (!Contains(textureBox, spriteBox))
 				return false;
 
-			for (auto& existingSprite : existingSprites)
+			for (const auto& existingSprite : existingSprites)
 			{
 				if (Intersects(existingSprite.Box, spriteBox))
 					return false;
@@ -190,7 +190,7 @@ namespace Comfy::Graphics::Utilities
 
 		for (const auto* sprMarkupPtr : sizeSortedSprMarkups)
 		{
-			auto addTexMarkup = [&](ivec2 texSize, const auto& sprMarkup, ivec2 sprSize, TextureFormat format, MergeType merge, size_t& inOutIndex)
+			auto addNewTexMarkup = [&](ivec2 texSize, const auto& sprMarkup, ivec2 sprSize, TextureFormat format, MergeType merge, size_t& inOutIndex)
 			{
 				auto& texMarkup = texMarkups.emplace_back();
 				texMarkup.Size = (settings.EnsurePowerTwo) ? RoundToNearestPowerOfTwo(texSize) : texSize;
@@ -206,50 +206,19 @@ namespace Comfy::Graphics::Utilities
 
 			if ((sprMarkup.Flags & SprMarkupFlags_NoMerge) || largerThanMax)
 			{
-				addTexMarkup(sprMarkup.Size, sprMarkup, sprMarkup.Size, TextureFormat::RGBA8, MergeType::NoMerge, noMergeIndex);
+				addNewTexMarkup(sprMarkup.Size, sprMarkup, sprMarkup.Size, TextureFormat::RGBA8, MergeType::NoMerge, noMergeIndex);
 			}
 			else
 			{
-				auto tryAddSpriteToExistingTexture = [&]() -> bool
+				if (const auto[fittingTex, fittingSprBox] = FindFittingTexMarkupToPlaceSprIn(sprMarkup, texMarkups); fittingTex != nullptr)
 				{
-					for (auto& existingTexMarkup : texMarkups)
-					{
-						if (existingTexMarkup.Merge == MergeType::NoMerge || existingTexMarkup.RemainingFreePixels < Area(sprMarkup.Size))
-							continue;
-
-						const ivec4 texBox = ivec4(ivec2(0, 0), existingTexMarkup.Size);
-						ivec4 sprBox = ivec4(ivec2(0, 0), sprMarkup.Size + ivec2(settings.SpritePadding * 2));
-
-						constexpr int stepSize = 4;
-						for (sprBox.y = 0; sprBox.y < existingTexMarkup.Size.y; sprBox.y += stepSize)
-						{
-							for (sprBox.x = 0; sprBox.x < existingTexMarkup.Size.x; sprBox.x += stepSize)
-							{
-								if (FitsInsideTexture(texBox, existingTexMarkup.SpriteBoxes, sprBox))
-								{
-									existingTexMarkup.SpriteBoxes.push_back({ &sprMarkup, sprBox });
-									existingTexMarkup.RemainingFreePixels -= Area(ivec2(sprBox.z, sprBox.w));
-									return true;
-								}
-							}
-						}
-					}
-
-					return false;
-				};
-
-				if (!tryAddSpriteToExistingTexture())
+					fittingTex->SpriteBoxes.push_back({ &sprMarkup, fittingSprBox });
+					fittingTex->RemainingFreePixels -= Area(ivec2(fittingSprBox.z, fittingSprBox.w));
+				}
+				else
 				{
-#if 1
 					const auto newTextureSize = settings.MaxTextureSize;
-#else
-					const auto newScale = 2;
-					const auto newTextureSize = ivec2(
-						std::min((sprMarkup.Size.x + settings.SpritePadding) * newScale, settings.MaxTextureSize.x),
-						std::min((sprMarkup.Size.y + settings.SpritePadding) * newScale, settings.MaxTextureSize.y));
-#endif
-
-					addTexMarkup(newTextureSize, sprMarkup, sprMarkup.Size + ivec2(settings.SpritePadding * 2), TextureFormat::RGBA8, MergeType::Merge, mergeIndex);
+					addNewTexMarkup(newTextureSize, sprMarkup, sprMarkup.Size + ivec2(settings.SpritePadding * 2), TextureFormat::RGBA8, MergeType::Merge, mergeIndex);
 				}
 			}
 		}
@@ -272,6 +241,68 @@ namespace Comfy::Graphics::Utilities
 		});
 
 		return result;
+	}
+
+	std::pair<SprTexMarkup*, ivec4> SpriteCreator::FindFittingTexMarkupToPlaceSprIn(const SprMarkup& sprToPlace, std::vector<SprTexMarkup>& existingTexMarkups)
+	{
+		// TODO: "Largest failed SprMarkupBox" to then compare with all future boxes (?)
+		constexpr int stepSize = 1;
+		constexpr int roughStepSize = 8;
+
+#if 1 // NOTE: Forward
+		for (auto& existingTexMarkup : existingTexMarkups)
+		{
+#else // NOTE: Backwards
+		for (int i = static_cast<int>(existingTexMarkups.size()) - 1; i >= 0; i--)
+		{
+			auto& existingTexMarkup = existingTexMarkups[i];
+#endif
+
+			if (existingTexMarkup.Merge == MergeType::NoMerge || existingTexMarkup.RemainingFreePixels < Area(sprToPlace.Size))
+				continue;
+
+			const ivec2 texBoxSize = existingTexMarkup.Size;
+			const ivec4 texBox = ivec4(ivec2(0, 0), texBoxSize);
+
+			const ivec2 sprBoxSize = sprToPlace.Size + ivec2(settings.SpritePadding * 2);
+			ivec4 sprBox = ivec4(ivec2(0, 0), sprBoxSize);
+
+#if 0 // NOTE: Precise step only
+			for (sprBox.y = 0; sprBox.y < texBoxSize.y - sprBoxSize.y; sprBox.y += stepSize)
+			{
+				for (sprBox.x = 0; sprBox.x < texBoxSize.x - sprBoxSize.x; sprBox.x += stepSize)
+				{
+					if (FitsInsideTexture(texBox, existingTexMarkup.SpriteBoxes, sprBox))
+						return std::make_pair(&existingTexMarkup, sprBox);
+				}
+			}
+#else // NOTE: Rough step first then precise adjust
+			for (sprBox.y = 0; sprBox.y < texBoxSize.y - sprBoxSize.y; sprBox.y += roughStepSize)
+			{
+				for (sprBox.x = 0; sprBox.x < texBoxSize.x - sprBoxSize.x; sprBox.x += roughStepSize)
+				{
+					if (!FitsInsideTexture(texBox, existingTexMarkup.SpriteBoxes, sprBox))
+						continue;
+
+					const auto roughSprBox = sprBox;
+
+					for (int preciseY = roughStepSize - 1; preciseY >= 0; preciseY--)
+					{
+						for (int preciseX = roughStepSize - 1; preciseX >= 0; preciseX--)
+						{
+							const auto preciseSprBox = ivec4(sprBox.x - preciseX, sprBox.y - preciseY, sprBox.z, sprBox.w);
+							if (FitsInsideTexture(texBox, existingTexMarkup.SpriteBoxes, preciseSprBox))
+								return std::make_pair(&existingTexMarkup, preciseSprBox);
+						}
+					}
+
+					return std::make_pair(&existingTexMarkup, roughSprBox);
+				}
+			}
+#endif
+		}
+
+		return std::make_pair(static_cast<SprTexMarkup*>(nullptr), ivec4(0, 0, 0, 0));
 	}
 
 	void SpriteCreator::AdjustTexMarkupSizes(std::vector<SprTexMarkup>& texMarkups)
