@@ -435,7 +435,7 @@
     <ClCompile Include="src\Database\TexDB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Utilities\SpriteCreator.cpp">
+    <ClCompile Include="src\Graphics\Utilities\SpritePacker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1019,7 +1019,7 @@
     <ClInclude Include="src\Database\TexDB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Utilities\SpriteCreator.h">
+    <ClInclude Include="src\Graphics\Utilities\SpritePacker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

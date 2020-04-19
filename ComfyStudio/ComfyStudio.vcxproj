@@ -178,7 +178,7 @@
     <ClCompile Include="src\Graphics\D3D11\Shader\Bytecode\ShaderBytecode.cpp" />
     <ClCompile Include="src\Graphics\D3D11\State\OcclusionQuery.cpp" />
     <ClCompile Include="src\Graphics\D3D11\D3DResources.cpp" />
-    <ClCompile Include="src\Graphics\Utilities\SpriteCreator.cpp" />
+    <ClCompile Include="src\Graphics\Utilities\SpritePacker.cpp" />
     <ClCompile Include="src\ImGui\ComfyTextureID.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
     <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp" />
@@ -320,7 +320,7 @@
     <ClInclude Include="src\Graphics\D3D11\State\OcclusionQuery.h" />
     <ClInclude Include="src\Graphics\GPU\GPURenderers.h" />
     <ClInclude Include="src\Graphics\GPU\GPUResources.h" />
-    <ClInclude Include="src\Graphics\Utilities\SpriteCreator.h" />
+    <ClInclude Include="src\Graphics\Utilities\SpritePacker.h" />
     <ClInclude Include="src\ImGui\Extensions\PropertyEditor.h" />
     <ClInclude Include="src\Resource\IDHash.h" />
     <ClInclude Include="src\Resource\Detail\IDTypeDeclarations.h" />

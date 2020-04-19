@@ -49,7 +49,7 @@ namespace Comfy::Graphics::Utilities
 		int RemainingFreePixels;
 	};
 
-	class SpriteCreator : NonCopyable
+	class SpritePacker : NonCopyable
 	{
 	public:
 		struct ProgressData
@@ -57,12 +57,12 @@ namespace Comfy::Graphics::Utilities
 			uint32_t Sprites, SpritesTotal;
 		};
 
-		using ProgressCallback = std::function<void(SpriteCreator&, ProgressData)>;
+		using ProgressCallback = std::function<void(SpritePacker&, ProgressData)>;
 
 	public:
-		SpriteCreator() = default;
-		SpriteCreator(ProgressCallback callback);
-		~SpriteCreator() = default;
+		SpritePacker() = default;
+		SpritePacker(ProgressCallback callback);
+		~SpritePacker() = default;
 
 	public:
 		UniquePtr<SprSet> Create(const std::vector<SprMarkup>& sprMarkups);

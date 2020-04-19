@@ -1,5 +1,6 @@
-#include "SpriteCreator.h"
+#include "SpritePacker.h"
 #include <numeric>
+#include <intrin.h>
 
 namespace Comfy::Graphics::Utilities
 {
@@ -145,12 +146,12 @@ namespace Comfy::Graphics::Utilities
 		}
 	}
 
-	SpriteCreator::SpriteCreator(ProgressCallback callback)
+	SpritePacker::SpritePacker(ProgressCallback callback)
 		: progressCallback(callback)
 	{
 	}
 
-	UniquePtr<SprSet> SpriteCreator::Create(const std::vector<SprMarkup>& sprMarkups)
+	UniquePtr<SprSet> SpritePacker::Create(const std::vector<SprMarkup>& sprMarkups)
 	{
 		currentProgress = {};
 
@@ -188,13 +189,13 @@ namespace Comfy::Graphics::Utilities
 		return result;
 	}
 
-	void SpriteCreator::ReportCurrentProgress()
+	void SpritePacker::ReportCurrentProgress()
 	{
 		if (progressCallback)
 			progressCallback(*this, currentProgress);
 	}
 
-	std::vector<SprTexMarkup> SpriteCreator::MergeTextures(const std::vector<SprMarkup>& sprMarkups)
+	std::vector<SprTexMarkup> SpritePacker::MergeTextures(const std::vector<SprMarkup>& sprMarkups)
 	{
 		currentProgress.Sprites = 0;
 		currentProgress.SpritesTotal = static_cast<uint32_t>(sprMarkups.size());
@@ -246,7 +247,7 @@ namespace Comfy::Graphics::Utilities
 		return texMarkups;
 	}
 
-	std::vector<const SprMarkup*> SpriteCreator::SortByArea(const std::vector<SprMarkup>& sprMarkups) const
+	std::vector<const SprMarkup*> SpritePacker::SortByArea(const std::vector<SprMarkup>& sprMarkups) const
 	{
 		std::vector<const SprMarkup*> result;
 		result.reserve(sprMarkups.size());
@@ -262,7 +263,7 @@ namespace Comfy::Graphics::Utilities
 		return result;
 	}
 
-	std::pair<SprTexMarkup*, ivec4> SpriteCreator::FindFittingTexMarkupToPlaceSprIn(const SprMarkup& sprToPlace, std::vector<SprTexMarkup>& existingTexMarkups)
+	std::pair<SprTexMarkup*, ivec4> SpritePacker::FindFittingTexMarkupToPlaceSprIn(const SprMarkup& sprToPlace, std::vector<SprTexMarkup>& existingTexMarkups)
 	{
 		// TODO: "Largest failed SprMarkupBox" to then compare with all future boxes (?)
 		constexpr int stepSize = 1;
@@ -324,7 +325,7 @@ namespace Comfy::Graphics::Utilities
 		return std::make_pair(static_cast<SprTexMarkup*>(nullptr), ivec4(0, 0, 0, 0));
 	}
 
-	void SpriteCreator::AdjustTexMarkupSizes(std::vector<SprTexMarkup>& texMarkups)
+	void SpritePacker::AdjustTexMarkupSizes(std::vector<SprTexMarkup>& texMarkups)
 	{
 		for (auto& texMarkup : texMarkups)
 		{
@@ -349,7 +350,7 @@ namespace Comfy::Graphics::Utilities
 		}
 	}
 
-	RefPtr<Tex> SpriteCreator::CreateTexFromMarkup(const SprTexMarkup& texMarkup)
+	RefPtr<Tex> SpritePacker::CreateTexFromMarkup(const SprTexMarkup& texMarkup)
 	{
 		auto margedRGBAPixels = CreateMergedTexMarkupRGBAPixels(texMarkup);
 
@@ -366,7 +367,7 @@ namespace Comfy::Graphics::Utilities
 		return tex;
 	}
 
-	UniquePtr<uint8_t[]> SpriteCreator::CreateMergedTexMarkupRGBAPixels(const SprTexMarkup& texMarkup)
+	UniquePtr<uint8_t[]> SpritePacker::CreateMergedTexMarkupRGBAPixels(const SprTexMarkup& texMarkup)
 	{
 		const size_t texDataSize = Area(texMarkup.Size) * RGBABytesPerPixel;
 		auto texData = MakeUnique<uint8_t[]>(texDataSize);
@@ -393,7 +394,7 @@ namespace Comfy::Graphics::Utilities
 		return texData;
 	}
 
-	const char* SpriteCreator::GetCompressionName(TextureFormat format) const
+	const char* SpritePacker::GetCompressionName(TextureFormat format) const
 	{
 		switch (format)
 		{
@@ -424,7 +425,7 @@ namespace Comfy::Graphics::Utilities
 		return nullptr;
 	}
 
-	std::string SpriteCreator::FormatTextureName(MergeType merge, TextureFormat format, size_t index) const
+	std::string SpritePacker::FormatTextureName(MergeType merge, TextureFormat format, size_t index) const
 	{
 		const char* mergeString = (merge == MergeType::Merge) ? "MERGE" : "NOMERGE";
 		const char* compressionString = GetCompressionName(format);
