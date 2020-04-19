@@ -65,9 +65,6 @@ namespace Comfy::Graphics::Utilities
 		~SpritePacker() = default;
 
 	public:
-		UniquePtr<SprSet> Create(const std::vector<SprMarkup>& sprMarkups);
-
-	protected:
 		struct SettingsData
 		{
 			ivec2 MaxTextureSize = ivec2(2048, 1024);
@@ -78,7 +75,9 @@ namespace Comfy::Graphics::Utilities
 			bool EnsurePowerTwo = true;
 			bool SetDummyColor = true;
 			bool FlipY = true;
-		} settings;
+		} Settings;
+
+		UniquePtr<SprSet> Create(const std::vector<SprMarkup>& sprMarkups);
 
 	protected:
 		ProgressData currentProgress = {};

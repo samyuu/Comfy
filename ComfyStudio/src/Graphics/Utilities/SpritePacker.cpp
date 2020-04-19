@@ -176,7 +176,7 @@ namespace Comfy::Graphics::Utilities
 				auto& spr = sprSet.Sprites.emplace_back();
 				spr.TextureIndex = texIndex;
 				spr.Rotate = 0;
-				spr.PixelRegion = ivec4(ivec2(spriteBox.Box) + settings.SpritePadding, sprMarkup.Size);
+				spr.PixelRegion = ivec4(ivec2(spriteBox.Box) + Settings.SpritePadding, sprMarkup.Size);
 				spr.TexelRegion = GetTexelRegionFromPixelRegion(spr.PixelRegion, texMarkup.Size);
 				spr.Name = sprMarkup.Name;
 				spr.Extra.Flags = 0;
@@ -210,7 +210,7 @@ namespace Comfy::Graphics::Utilities
 			auto addNewTexMarkup = [&](ivec2 texSize, const auto& sprMarkup, ivec2 sprSize, TextureFormat format, MergeType merge, size_t& inOutIndex)
 			{
 				auto& texMarkup = texMarkups.emplace_back();
-				texMarkup.Size = (settings.EnsurePowerTwo) ? RoundToNearestPowerOfTwo(texSize) : texSize;
+				texMarkup.Size = (Settings.EnsurePowerTwo) ? RoundToNearestPowerOfTwo(texSize) : texSize;
 				texMarkup.Format = format;
 				texMarkup.Merge = merge;
 				texMarkup.SpriteBoxes.push_back({ &sprMarkup, ivec4(ivec2(0, 0), sprSize) });
@@ -219,7 +219,7 @@ namespace Comfy::Graphics::Utilities
 			};
 
 			const auto& sprMarkup = *sprMarkupPtr;
-			const bool largerThanMax = (sprMarkup.Size.x > settings.MaxTextureSize.x || sprMarkup.Size.y > settings.MaxTextureSize.y);
+			const bool largerThanMax = (sprMarkup.Size.x > Settings.MaxTextureSize.x || sprMarkup.Size.y > Settings.MaxTextureSize.y);
 
 			if ((sprMarkup.Flags & SprMarkupFlags_NoMerge) || largerThanMax)
 			{
@@ -234,8 +234,8 @@ namespace Comfy::Graphics::Utilities
 				}
 				else
 				{
-					const auto newTextureSize = settings.MaxTextureSize;
-					addNewTexMarkup(newTextureSize, sprMarkup, sprMarkup.Size + ivec2(settings.SpritePadding * 2), TextureFormat::RGBA8, MergeType::Merge, mergeIndex);
+					const auto newTextureSize = Settings.MaxTextureSize;
+					addNewTexMarkup(newTextureSize, sprMarkup, sprMarkup.Size + ivec2(Settings.SpritePadding * 2), TextureFormat::RGBA8, MergeType::Merge, mergeIndex);
 				}
 			}
 
@@ -284,7 +284,7 @@ namespace Comfy::Graphics::Utilities
 			const ivec2 texBoxSize = existingTexMarkup.Size;
 			const ivec4 texBox = ivec4(ivec2(0, 0), texBoxSize);
 
-			const ivec2 sprBoxSize = sprToPlace.Size + ivec2(settings.SpritePadding * 2);
+			const ivec2 sprBoxSize = sprToPlace.Size + ivec2(Settings.SpritePadding * 2);
 			ivec4 sprBox = ivec4(ivec2(0, 0), sprBoxSize);
 
 #if 0 // NOTE: Precise step only
@@ -346,7 +346,7 @@ namespace Comfy::Graphics::Utilities
 				continue;
 
 			const auto texNeededSize = ivec2(GetBoxRight(maxRight->Box), GetBoxBottom(maxBottom->Box));
-			texMarkup.Size = (settings.EnsurePowerTwo) ? RoundToNearestPowerOfTwo(texNeededSize) : texNeededSize;
+			texMarkup.Size = (Settings.EnsurePowerTwo) ? RoundToNearestPowerOfTwo(texNeededSize) : texNeededSize;
 		}
 	}
 
@@ -378,7 +378,7 @@ namespace Comfy::Graphics::Utilities
 		}
 		else
 		{
-			if (settings.SetDummyColor)
+			if (Settings.SetDummyColor)
 			{
 				for (size_t i = 0; i < texDataSize / RGBABytesPerPixel; i++)
 					reinterpret_cast<uint32_t*>(texData.get())[i] = DummyColor;
@@ -388,7 +388,7 @@ namespace Comfy::Graphics::Utilities
 				CopySprIntoTex(texMarkup, texData.get(), sprBox);
 		}
 
-		if (settings.FlipY)
+		if (Settings.FlipY)
 			FlipTextureY(texMarkup.Size, texData.get());
 
 		return texData;
