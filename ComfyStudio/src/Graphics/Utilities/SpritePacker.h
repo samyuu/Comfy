@@ -4,6 +4,7 @@
 #include "Graphics/TexSet.h"
 #include "Graphics/Auth2D/SprSet.h"
 #include <functional>
+#include <optional>
 
 namespace Comfy::Graphics::Utilities
 {
@@ -69,12 +70,13 @@ namespace Comfy::Graphics::Utilities
 		{
 			ivec2 MaxTextureSize = ivec2(2048, 1024);
 
-			// NOTE: Numbers of pixels at each side
-			int SpritePadding = 2;
+			std::optional<uint32_t> BackgroundColor = 0x00000000; // 0xFFFF00FF;
 
-			bool EnsurePowerTwo = true;
-			bool SetDummyColor = true;
-			bool FlipY = true;
+			// NOTE: Number of pixels at each side
+			ivec2 SpritePadding = ivec2(2, 2);
+
+			bool PowerOfTwoTextures = true;
+			bool FlipTexturesY = true;
 		} Settings;
 
 		UniquePtr<SprSet> Create(const std::vector<SprMarkup>& sprMarkups);
