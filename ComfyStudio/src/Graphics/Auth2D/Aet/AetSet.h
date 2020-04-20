@@ -64,7 +64,7 @@ namespace Comfy::Graphics::Aet
 	public:
 		uint32_t Color;
 		ivec2 Size;
-		frame_t Frames;
+		frame_t FilesPerFrame;
 		std::vector<VideoSource> Sources;
 
 	public:

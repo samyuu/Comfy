@@ -465,7 +465,7 @@ namespace Comfy::Editor
 			else if (itemType == AetItemType::Video)
 			{
 				loopStartFrame = 0.0f;
-				loopEndFrame = glm::max(0.0f, selectedAetItem.Ptrs.Video->Frames - 1.0f);
+				loopEndFrame = glm::max(0.0f, static_cast<float>(selectedAetItem.Ptrs.Video->Sources.size()) - 1.0f);
 			}
 			else if (const Composition* workingComp = GetWorkingComposition(); itemType == AetItemType::Composition || itemType == AetItemType::Layer && workingComp != nullptr)
 			{
