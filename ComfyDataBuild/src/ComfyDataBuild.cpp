@@ -7,7 +7,8 @@
 #include <random>
 #include <time.h>
 
-using namespace FileSystem;
+using namespace Comfy;
+using namespace Comfy::FileSystem;
 
 namespace
 {
@@ -101,20 +102,20 @@ namespace
 	struct TempFilePtrData
 	{
 		Build_ComfyEntry* File;
-		void* ReturnAddress;
-		void* DataAddress;
+		FileAddr ReturnAddress;
+		FileAddr DataAddress;
 	};
 
 	std::vector<TempFilePtrData> FileDataToWrite;
 
 	void AppendWriteFileDataSizeAndPointer(BinaryWriter& writer, Build_ComfyEntry& file)
 	{
-		FileDataToWrite.push_back({ &file, writer.GetPositionPtr(), nullptr });
+		FileDataToWrite.push_back({ &file, writer.GetPosition(), FileAddr::NullPtr });
 
-		writer.WriteUInt32('ezis');
-		writer.WriteUInt32(0);
-		writer.WriteUInt32('trp');
-		writer.WriteUInt32(0);
+		writer.WriteU32('ezis');
+		writer.WriteU32(0);
+		writer.WriteU32('trp');
+		writer.WriteU32(0);
 	}
 
 	void WriteFileData(BinaryWriter& writer)
@@ -123,15 +124,15 @@ namespace
 		{
 			FileReader::ReadEntireFile(data.File->Build_OriginalPath.wstring(), &data.File->FileContent);
 
-			data.DataAddress = writer.GetPositionPtr();
-			writer.Write(data.File->FileContent.data(), data.File->FileContent.size());
+			data.DataAddress = writer.GetPosition();
+			writer.WriteBuffer(data.File->FileContent.data(), data.File->FileContent.size());
 			writer.WritePadding(16);
 		}
 
 		for (auto& data : FileDataToWrite)
 		{
 			writer.SetPosition(data.ReturnAddress);
-			writer.WriteUInt64(data.File->FileContent.size());
+			writer.WriteU64(data.File->FileContent.size());
 			writer.WritePtr(data.DataAddress);
 		}
 	}
@@ -158,45 +159,45 @@ namespace
 	void WriteHeaderBase(BinaryWriter& writer)
 	{
 		// NOTE: Magic
-		for (auto value : ComfyArchive::Magic)
-			writer.WriteUInt8(value);
+		for (const auto value : ComfyArchive::Magic)
+			writer.WriteU8(value);
 
 		// NOTE: Version
-		writer.WriteUInt8(ComfyArchive::Version.Major);
-		writer.WriteUInt8(ComfyArchive::Version.Minor);
+		writer.WriteU8(ComfyArchive::Version.Major);
+		writer.WriteU8(ComfyArchive::Version.Minor);
 
 		// NOTE: ReservedVersion
-		writer.WriteUInt16(0xCCCC);
+		writer.WriteU16(0xCCCC);
 
 		// NOTE: CreatorID
 		std::array<uint8_t, 4> creatorID = { 'c', 'm', 'f', 'y' };
-		writer.Write(creatorID);
+		writer.WriteType(creatorID);
 
 		// NOTE: ReservedID
 		std::array<uint8_t, 4> reservedID = { 0x90, 0x90, 0x90, 0x90 };
-		writer.Write(reservedID);
+		writer.WriteType(reservedID);
 
 		// NOTE: CreationDate
 		__time64_t creationDate = time(0);
-		writer.WriteUInt64(creationDate);
+		writer.WriteU64(creationDate);
 
 		// NOTE: Flags
-		writer.Write(ArchiveFlags);
+		writer.WriteType(ArchiveFlags);
 
 		// NOTE: IV
 		std::array<uint8_t, 16> iv = GetIV();
-		writer.Write(iv);
+		writer.WriteType(iv);
 	}
 
 	void WriteFileEntries(BinaryWriter& writer, Build_ComfyEntry& file)
 	{
 		// NOTE: Type
-		writer.Write(file.Type);
+		writer.WriteType(file.Type);
 		// NOTE: Flags
-		writer.Write(file.Flags);
+		writer.WriteType(file.Flags);
 
 		// NOTE: Name
-		writer.WriteStrPtr(&file.Build_FileName);
+		writer.WriteStrPtr(file.Build_FileName);
 
 		// NOTE: Size / Offset
 		AppendWriteFileDataSizeAndPointer(writer, file);
@@ -205,19 +206,19 @@ namespace
 	void WriteDirectoryEntry(BinaryWriter& writer, Build_ComfyDirectory& directory)
 	{
 		// NOTE: Type
-		writer.Write(directory.Type);
+		writer.WriteType(directory.Type);
 		// NOTE: Flags
-		writer.Write(directory.Flags);
+		writer.WriteType(directory.Flags);
 
 		// NOTE: Name
-		writer.WriteStrPtr(&directory.Build_FileName);
+		writer.WriteStrPtr(directory.Build_FileName);
 
 		// NOTE: EntryCount
-		writer.WriteUInt64(directory.Build_Entries.size());
+		writer.WriteU64(directory.Build_Entries.size());
 		// NOTE: Entries
 		if (directory.Build_Entries.empty())
 		{
-			writer.WritePtr(nullptr);
+			writer.WritePtr(FileAddr::NullPtr);
 		}
 		else
 		{
@@ -229,11 +230,11 @@ namespace
 		}
 
 		// NOTE: SubDirectoryCount
-		writer.WriteUInt64(directory.Build_Directories.size());
+		writer.WriteU64(directory.Build_Directories.size());
 		// NOTE: SubDirectories
 		if (directory.Build_Directories.empty())
 		{
-			writer.WritePtr(nullptr);
+			writer.WritePtr(FileAddr::NullPtr);
 		}
 		else
 		{
@@ -248,19 +249,19 @@ namespace
 	void WriteFileTreeRoot(BinaryWriter& writer)
 	{
 		// NOTE: Type
-		writer.Write(RootDirectory.Type);
+		writer.WriteType(RootDirectory.Type);
 		// NOTE: Flags
-		writer.Write(RootDirectory.Flags);
+		writer.WriteType(RootDirectory.Flags);
 
 		// NOTE: Name
-		writer.WriteStrPtr(&RootDirectory.Build_FileName);
+		writer.WriteStrPtr(RootDirectory.Build_FileName);
 
 		// NOTE: EntryCount
-		writer.WriteUInt64(RootDirectory.Build_Entries.size());
+		writer.WriteU64(RootDirectory.Build_Entries.size());
 		// NOTE: Entries
 		if (RootDirectory.Build_Entries.empty())
 		{
-			writer.WritePtr(nullptr);
+			writer.WritePtr(FileAddr::NullPtr);
 		}
 		else
 		{
@@ -272,11 +273,11 @@ namespace
 		}
 
 		// NOTE: SubDirectoryCount
-		writer.WriteUInt64(RootDirectory.Build_Directories.size());
+		writer.WriteU64(RootDirectory.Build_Directories.size());
 		// NOTE: SubDirectories
 		if (RootDirectory.Build_Directories.empty())
 		{
-			writer.WritePtr(nullptr);
+			writer.WritePtr(FileAddr::NullPtr);
 		}
 		else
 		{
@@ -292,12 +293,12 @@ namespace
 	{
 		writer.SetPointerMode(PtrMode::Mode64Bit);
 
-		writer.WriteUInt64(/*DataSize*/ 0x00);
-		const uint64_t dataOffset = writer.GetPosition() + sizeof(dataOffset);
-		writer.WriteUInt64(/*DataOffset*/ dataOffset);
+		writer.WriteU64(/*DataSize*/ 0x00);
+		const FileAddr dataOffset = writer.GetPosition() + static_cast<FileAddr>(sizeof(dataOffset));
+		writer.WritePtr(/*DataOffset*/ dataOffset);
 
 		WriteFileTreeRoot(writer);
-		writer.WritePtr(nullptr);
+		writer.WritePtr(FileAddr::NullPtr);
 		writer.WriteAlignmentPadding(16);
 
 		writer.FlushPointerPool();
@@ -310,8 +311,8 @@ namespace
 
 		writer.FlushStringPointerPool();
 
-		writer.SetPosition(offsetof(ComfyArchiveHeader, DataSize));
-		writer.WriteUInt64(writer.GetLength() - dataOffset);
+		writer.SetPosition(static_cast<FileAddr>(offsetof(ComfyArchiveHeader, DataSize)));
+		writer.WritePtr(writer.GetLength() - dataOffset);
 
 		writer.SetPosition(writer.GetLength());
 		writer.WriteAlignmentPadding(16);
@@ -326,7 +327,7 @@ namespace
 	{
 		FileStream stream;
 		stream.CreateWrite(outputArchivePath);
-		BinaryWriter writer(&stream);
+		BinaryWriter writer(stream);
 
 		ArchiveFlags.WideAddresses = true;
 		ArchiveFlags.EncryptedStrings = false;

@@ -12,19 +12,19 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{F0C8897F-0E30-4D4C-906D-DBEC75B77FC7}</ProjectGuid>
-    <RootNamespace>ComfyDataBuild</RootNamespace>
+    <ProjectGuid>{2EF29EEA-28DC-4FDD-84CF-317F07A3B8EB}</ProjectGuid>
+    <RootNamespace>rtaudio</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -33,7 +33,8 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="Shared" />
+  <ImportGroup Label="Shared">
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -42,12 +43,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)$(ProjectName)\bin\$(Platform)-$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)$(ProjectName)\bin-int\$(Platform)-$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)..\bin\$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)bin-int\$(Platform)-$(Configuration)\</IntDir>
+    <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)$(ProjectName)\bin\$(Platform)-$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)$(ProjectName)\bin-int\$(Platform)-$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)..\bin\$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)bin-int\$(Platform)-$(Configuration)\</IntDir>
+    <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -55,12 +58,14 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\zlib\include</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <AdditionalOptions>-D_HAS_EXCEPTIONS=0 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(SolutionDir)ComfyLib\bin\$(Platform)-$(Configuration)\ComfyLib.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -71,23 +76,35 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\zlib\include</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <AdditionalOptions>-D_HAS_EXCEPTIONS=0 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(SolutionDir)ComfyLib\bin\$(Platform)-$(Configuration)\ComfyLib.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\ComfyDataBuild.cpp" />
+    <ClCompile Include="src\asio.cpp" />
+    <ClCompile Include="src\asiodrivers.cpp" />
+    <ClCompile Include="src\asiolist.cpp" />
+    <ClCompile Include="src\iasiothiscallresolver.cpp" />
+    <ClCompile Include="src\RtAudio.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ComfyLib\ComfyLib.vcxproj">
-      <Project>{48bdf554-973b-4b4c-8da6-bbab03216cba}</Project>
-    </ProjectReference>
+    <ClInclude Include="include\RtAudio.h" />
+    <ClInclude Include="src\asio.h" />
+    <ClInclude Include="src\asiodrivers.h" />
+    <ClInclude Include="src\asiodrvr.h" />
+    <ClInclude Include="src\asiolist.h" />
+    <ClInclude Include="src\asiosys.h" />
+    <ClInclude Include="src\ginclude.h" />
+    <ClInclude Include="src\iasiodrv.h" />
+    <ClInclude Include="src\iasiothiscallresolver.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

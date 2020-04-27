@@ -7,24 +7,26 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfyStudio", "ComfyStudio\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfyVersion", "ComfyVersion\ComfyVersion.vcxproj", "{D85741DA-AF9C-41A3-A1A1-AB66860CF465}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfyFileSystem", "ComfyFileSystem\ComfyFileSystem.vcxitems", "{5CA21F77-37EA-47CA-B13D-650FAE2ECBDE}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfyData", "ComfyData\ComfyData.vcxitems", "{F9C19FAC-67A8-400C-AAD8-F5BE3767974C}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfyDataBuild", "ComfyDataBuild\ComfyDataBuild.vcxproj", "{F0C8897F-0E30-4D4C-906D-DBEC75B77FC7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfyCore", "ComfyCore\ComfyCore.vcxitems", "{4B56B297-6D2A-48A6-8914-B36B08C10F86}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfyLib", "ComfyLib\ComfyLib.vcxproj", "{48BDF554-973B-4B4C-8DA6-BBAB03216CBA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{86AA0493-F0AB-4D08-922C-98205271AC58} = {86AA0493-F0AB-4D08-922C-98205271AC58}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{5BFD0E19-85BC-4152-8040-DF48D951056B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlib", "Dependencies\zlib\zlib.vcxproj", "{86AA0493-F0AB-4D08-922C-98205271AC58}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rtaudio", "Dependencies\rtaudio\rtaudio.vcxproj", "{2EF29EEA-28DC-4FDD-84CF-317F07A3B8EB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Version", "Version", "{CEC613CB-1855-426D-A55C-1E621789FD92}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Data", "Data", "{8846421F-3682-4021-AE6F-4AAD27ABB275}"
 EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		ComfyCore\ComfyCore.vcxitems*{4b56b297-6d2a-48a6-8914-b36b08c10f86}*SharedItemsImports = 9
-		ComfyFileSystem\ComfyFileSystem.vcxitems*{5ca21f77-37ea-47ca-b13d-650fae2ecbde}*SharedItemsImports = 9
-		ComfyCore\ComfyCore.vcxitems*{7225ca33-8c76-4169-b50e-537de61175f2}*SharedItemsImports = 4
-		ComfyFileSystem\ComfyFileSystem.vcxitems*{7225ca33-8c76-4169-b50e-537de61175f2}*SharedItemsImports = 4
-		ComfyCore\ComfyCore.vcxitems*{f0c8897f-0e30-4d4c-906d-dbec75b77fc7}*SharedItemsImports = 4
-		ComfyFileSystem\ComfyFileSystem.vcxitems*{f0c8897f-0e30-4d4c-906d-dbec75b77fc7}*SharedItemsImports = 4
-		ComfyData\ComfyData.vcxitems*{f9c19fac-67a8-400c-aad8-f5be3767974c}*SharedItemsImports = 9
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Release|x64 = Release|x64
@@ -38,9 +40,28 @@ Global
 		{D85741DA-AF9C-41A3-A1A1-AB66860CF465}.Release|x64.ActiveCfg = Release|x64
 		{F0C8897F-0E30-4D4C-906D-DBEC75B77FC7}.Debug|x64.ActiveCfg = Debug|x64
 		{F0C8897F-0E30-4D4C-906D-DBEC75B77FC7}.Release|x64.ActiveCfg = Release|x64
+		{48BDF554-973B-4B4C-8DA6-BBAB03216CBA}.Debug|x64.ActiveCfg = Debug|x64
+		{48BDF554-973B-4B4C-8DA6-BBAB03216CBA}.Debug|x64.Build.0 = Debug|x64
+		{48BDF554-973B-4B4C-8DA6-BBAB03216CBA}.Release|x64.ActiveCfg = Release|x64
+		{48BDF554-973B-4B4C-8DA6-BBAB03216CBA}.Release|x64.Build.0 = Release|x64
+		{86AA0493-F0AB-4D08-922C-98205271AC58}.Debug|x64.ActiveCfg = Debug|x64
+		{86AA0493-F0AB-4D08-922C-98205271AC58}.Debug|x64.Build.0 = Debug|x64
+		{86AA0493-F0AB-4D08-922C-98205271AC58}.Release|x64.ActiveCfg = Release|x64
+		{86AA0493-F0AB-4D08-922C-98205271AC58}.Release|x64.Build.0 = Release|x64
+		{2EF29EEA-28DC-4FDD-84CF-317F07A3B8EB}.Debug|x64.ActiveCfg = Debug|x64
+		{2EF29EEA-28DC-4FDD-84CF-317F07A3B8EB}.Debug|x64.Build.0 = Debug|x64
+		{2EF29EEA-28DC-4FDD-84CF-317F07A3B8EB}.Release|x64.ActiveCfg = Release|x64
+		{2EF29EEA-28DC-4FDD-84CF-317F07A3B8EB}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D85741DA-AF9C-41A3-A1A1-AB66860CF465} = {CEC613CB-1855-426D-A55C-1E621789FD92}
+		{F9C19FAC-67A8-400C-AAD8-F5BE3767974C} = {8846421F-3682-4021-AE6F-4AAD27ABB275}
+		{F0C8897F-0E30-4D4C-906D-DBEC75B77FC7} = {8846421F-3682-4021-AE6F-4AAD27ABB275}
+		{86AA0493-F0AB-4D08-922C-98205271AC58} = {5BFD0E19-85BC-4152-8040-DF48D951056B}
+		{2EF29EEA-28DC-4FDD-84CF-317F07A3B8EB} = {5BFD0E19-85BC-4152-8040-DF48D951056B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FFA01E7C-932B-47BA-90FC-DB04C53BE51F}

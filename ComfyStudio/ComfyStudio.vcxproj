@@ -34,10 +34,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="Shared">
-    <Import Project="..\ComfyFileSystem\ComfyFileSystem.vcxitems" Label="Shared" />
-    <Import Project="..\ComfyCore\ComfyCore.vcxitems" Label="Shared" />
-  </ImportGroup>
+  <ImportGroup Label="Shared" />
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -58,7 +55,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyCore\src;$(SolutionDir)ComfyCore\lib\glm\include;$(SolutionDir)ComfyCore\lib\stb\include;$(SolutionDir)ComfyFileSystem\src;$(SolutionDir)ComfyFileSystem\lib\zlib\include;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\plusaes\include;$(ProjectDir)lib\rtaudio\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\zlib\include;$(SolutionDir)Dependencies\dr_libs\include;$(SolutionDir)Dependencies\iconfont\include;$(SolutionDir)Dependencies\rtaudio\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -78,7 +75,7 @@
       <DisableSpecificWarnings>4201;4458;4100</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>dxguid.lib;d3d11.lib;d3dcompiler.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)ComfyLib\bin\$(Platform)-$(Configuration)\ComfyLib.lib;dxguid.lib;d3d11.lib;d3dcompiler.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
@@ -112,7 +109,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyCore\src;$(SolutionDir)ComfyCore\lib\glm\include;$(SolutionDir)ComfyCore\lib\stb\include;$(SolutionDir)ComfyFileSystem\src;$(SolutionDir)ComfyFileSystem\lib\zlib\include;$(ProjectDir)lib\dr_libs\include;$(ProjectDir)lib\glfw\include;$(ProjectDir)lib\iconfont\include;$(ProjectDir)lib\plusaes\include;$(ProjectDir)lib\rtaudio\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\zlib\include;$(SolutionDir)Dependencies\dr_libs\include;$(SolutionDir)Dependencies\iconfont\include;$(SolutionDir)Dependencies\rtaudio\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -133,7 +130,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>dxguid.lib;d3d11.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)ComfyLib\bin\$(Platform)-$(Configuration)\ComfyLib.lib;dxguid.lib;d3d11.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -180,14 +177,6 @@
     <ClCompile Include="src\Graphics\D3D11\D3DResources.cpp" />
     <ClCompile Include="src\Graphics\Utilities\SpritePacker.cpp" />
     <ClCompile Include="src\ImGui\ComfyTextureID.cpp" />
-    <ClCompile Include="lib\dr_libs\src\dr_flac.cpp" />
-    <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp" />
-    <ClCompile Include="lib\dr_libs\src\dr_wav.cpp" />
-    <ClCompile Include="lib\rtaudio\src\asio.cpp" />
-    <ClCompile Include="lib\rtaudio\src\asiodrivers.cpp" />
-    <ClCompile Include="lib\rtaudio\src\asiolist.cpp" />
-    <ClCompile Include="lib\rtaudio\src\iasiothiscallresolver.cpp" />
-    <ClCompile Include="lib\rtaudio\src\RtAudio.cpp" />
     <ClCompile Include="src\App\Engine.cpp" />
     <ClCompile Include="src\App\TestTasks.cpp" />
     <ClCompile Include="src\Core\ApplicationHost.cpp" />
@@ -351,26 +340,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\Helper.hlsl">
-      <SubType>
-      </SubType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\ProgramEnvironment.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
     <ClInclude Include="src\ImGui\ComfyTextureID.h" />
-    <ClInclude Include="lib\rtaudio\src\asio.h" />
-    <ClInclude Include="lib\rtaudio\src\asiodrivers.h" />
-    <ClInclude Include="lib\rtaudio\src\asiodrvr.h" />
-    <ClInclude Include="lib\rtaudio\src\asiolist.h" />
-    <ClInclude Include="lib\rtaudio\src\asiosys.h" />
-    <ClInclude Include="lib\rtaudio\src\ginclude.h" />
-    <ClInclude Include="lib\rtaudio\src\iasiodrv.h" />
-    <ClInclude Include="lib\rtaudio\src\iasiothiscallresolver.h" />
     <ClInclude Include="src\App\Engine.h" />
     <ClInclude Include="src\App\Task.h" />
     <ClInclude Include="src\App\TestTasks.h" />
@@ -534,40 +504,6 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\InputOutput.hlsl">
-      <SubType>
-      </SubType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\Instructions.hlsl">
-      <SubType>
-      </SubType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\TempRefactor.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Defines\MathConstants.hlsl">
-      <SubType>
-      </SubType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Structs\ObjectData.hlsl">
-      <SubType>
-      </SubType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Structs\SkeletonData.hlsl">
-      <SubType>
-      </SubType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\LensFlare\LensFlare_PS.hlsl">
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -714,14 +650,6 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Include\BlendModes.hlsl">
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">XX_main</EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XX_main</EntryPointName>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\BlinnPerVert_VS.hlsl">
       <SubType>
       </SubType>
@@ -737,30 +665,6 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Include\Checkerboard.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">XX_main</EntryPointName>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XX_main</EntryPointName>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Include\CubeMapCommon.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\DebugInterface.hlsl">
-      <SubType>
-      </SubType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\TextureInputs.hlsl">
-      <SubType>
-      </SubType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\ItemBlinn_PS.hlsl">
       <SubType>
@@ -1016,12 +920,6 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\ConstantInputs.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">XX_main</EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XX_main</EntryPointName>
-    </FxCompile>
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Constant_PS.hlsl">
       <SubType>
       </SubType>
@@ -1054,10 +952,6 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
     </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\InputLayout.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Lambert_PS.hlsl">
       <SubType>
       </SubType>
@@ -1073,16 +967,6 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Structs\MaterialData.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Structs\SceneData.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">XX_main</EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XX_main</EntryPointName>
     </FxCompile>
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\DebugMaterial_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -1107,18 +991,6 @@
       </DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </DeploymentContent>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Defines\TextureFormats.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Include\UncompressRGTC.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Defines\ShaderFlags.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Water_PS.hlsl">
       <SubType>
@@ -1160,18 +1032,18 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Include\Font.hlsl">
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">XX_main</EntryPointName>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XX_main</EntryPointName>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-    </FxCompile>
+    <None Include="src\Graphics\D3D11\Renderer\Detail\ConstantData.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\Graphics\D3D11\Renderer\Detail\ConstantData.h" />
+    <ProjectReference Include="..\ComfyLib\ComfyLib.vcxproj">
+      <Project>{48bdf554-973b-4b4c-8da6-bbab03216cba}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Dependencies\rtaudio\rtaudio.vcxproj">
+      <Project>{2ef29eea-28dc-4fdd-84cf-317f07a3b8eb}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Dependencies\zlib\zlib.vcxproj">
+      <Project>{86aa0493-f0ab-4d08-922c-98205271ac58}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

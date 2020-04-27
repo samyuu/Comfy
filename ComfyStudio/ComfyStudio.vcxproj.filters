@@ -120,21 +120,6 @@
     <ClCompile Include="src\System\CommandLine\CommandLineOption.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="lib\rtaudio\src\RtAudio.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lib\rtaudio\src\asio.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lib\rtaudio\src\asiodrivers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lib\rtaudio\src\asiolist.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lib\rtaudio\src\iasiothiscallresolver.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Input\KeyCode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -151,15 +136,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ImGui\GuiRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lib\dr_libs\src\dr_flac.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lib\dr_libs\src\dr_mp3.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lib\dr_libs\src\dr_wav.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Editor\Core\IEditorComponent.cpp">
@@ -576,30 +552,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\System\CommandLine\CommandLineOption.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="lib\rtaudio\src\iasiothiscallresolver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="lib\rtaudio\src\asio.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="lib\rtaudio\src\asiodrivers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="lib\rtaudio\src\asiodrvr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="lib\rtaudio\src\asiolist.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="lib\rtaudio\src\asiosys.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="lib\rtaudio\src\ginclude.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="lib\rtaudio\src\iasiodrv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\System\Profiling\Profiler.h">
@@ -1034,11 +986,6 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Include\BlendModes.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Include\Checkerboard.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Include\CubeMapCommon.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Include\Font.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Include\UncompressRGTC.hlsl" />
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\ImGuiCustom_PS.hlsl" />
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\ImGuiDefault_PS.hlsl" />
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\ImGuiDefault_VS.hlsl" />
@@ -1065,22 +1012,6 @@
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\SSSSkinConst_PS.hlsl" />
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\Tights_PS.hlsl" />
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\Tights_VS.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\DebugInterface.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\Helper.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\InputOutput.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\Instructions.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\ProgramEnvironment.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Assembly\TempRefactor.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Defines\MathConstants.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Defines\ShaderFlags.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Defines\TextureFormats.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Structs\MaterialData.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Structs\ObjectData.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Structs\SceneData.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\Structs\SkeletonData.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\ConstantInputs.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\InputLayout.hlsl" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Include\TextureInputs.hlsl" />
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\LensFlare\LensFlare_PS.hlsl" />
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\LensFlare\LensFlare_VS.hlsl" />
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\LensFlare\Sun_PS.hlsl" />
@@ -1126,6 +1057,8 @@
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\ToneMap\ToneMap_PS.hlsl" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\Graphics\D3D11\Renderer\Detail\ConstantData.h" />
+    <None Include="src\Graphics\D3D11\Renderer\Detail\ConstantData.h">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

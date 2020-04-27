@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\CoreTypes.h" />
+    <ClInclude Include="src\Core\Algorithm.h" />
+    <ClInclude Include="src\Core\Logger.h" />
+    <ClInclude Include="src\Core\NonCopyable.h" />
+    <ClInclude Include="src\Core\SmartPointers.h" />
+    <ClInclude Include="src\Core\Win32\ComfyWindows.h" />
+    <ClInclude Include="src\FileAddr.h" />
+    <ClInclude Include="src\FileSystem\Archive\ComfyArchive.h" />
+    <ClInclude Include="src\FileSystem\Archive\Farc.h" />
+    <ClInclude Include="src\FileSystem\Archive\FileArchive.h" />
+    <ClInclude Include="src\FileSystem\Archive\Win32Crypto.h" />
+    <ClInclude Include="src\FileSystem\BinaryMode.h" />
+    <ClInclude Include="src\FileSystem\BinaryReader.h" />
+    <ClInclude Include="src\FileSystem\BinaryWriter.h" />
+    <ClInclude Include="src\FileSystem\FileHelper.h" />
+    <ClInclude Include="src\FileSystem\FileHelperInternal.h" />
+    <ClInclude Include="src\FileSystem\FileInterface.h" />
+    <ClInclude Include="src\FileSystem\FileLoader.h" />
+    <ClInclude Include="src\FileSystem\FileReader.h" />
+    <ClInclude Include="src\FileSystem\Stream\FileStream.h" />
+    <ClInclude Include="src\FileSystem\Stream\MemoryStream.h" />
+    <ClInclude Include="src\FileSystem\Stream\Stream.h" />
+    <ClInclude Include="src\IntegralTypes.h" />
+    <ClInclude Include="src\Misc\EndianHelper.h" />
+    <ClInclude Include="src\Misc\FileExtensionHelper.h" />
+    <ClInclude Include="src\Misc\ImageHelper.h" />
+    <ClInclude Include="src\Misc\StringHelper.h" />
+    <ClInclude Include="src\Misc\StringParseHelper.h" />
+    <ClInclude Include="src\Misc\TextDatabaseParser.h" />
+    <ClInclude Include="src\Types.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Core\Logger.cpp" />
+    <ClCompile Include="src\FileSystem\Archive\ComfyArchive.cpp" />
+    <ClCompile Include="src\FileSystem\Archive\Farc.cpp" />
+    <ClCompile Include="src\FileSystem\Archive\FileArchive.cpp" />
+    <ClCompile Include="src\FileSystem\Archive\Win32Crypto.cpp" />
+    <ClCompile Include="src\FileSystem\BinaryReader.cpp" />
+    <ClCompile Include="src\FileSystem\BinaryWriter.cpp" />
+    <ClCompile Include="src\FileSystem\FileHelper.cpp" />
+    <ClCompile Include="src\FileSystem\FileInterface.cpp" />
+    <ClCompile Include="src\FileSystem\FileLoader.cpp" />
+    <ClCompile Include="src\FileSystem\FileReader.cpp" />
+    <ClCompile Include="src\FileSystem\Stream\FileStream.cpp" />
+    <ClCompile Include="src\FileSystem\Stream\MemoryStream.cpp" />
+    <ClCompile Include="src\FileSystem\Stream\Stream.cpp" />
+    <ClCompile Include="src\Misc\FileExtensionHelper.cpp" />
+    <ClCompile Include="src\Misc\ImageHelper.cpp" />
+    <ClCompile Include="src\Misc\StringHelper.cpp" />
+    <ClCompile Include="src\Misc\StringParseHelper.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{48BDF554-973B-4B4C-8DA6-BBAB03216CBA}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>ComfyLib</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)$(ProjectName)\bin\$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)$(ProjectName)\bin-int\$(Platform)-$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)$(ProjectName)\bin\$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)$(ProjectName)\bin-int\$(Platform)-$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\zlib\include</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
+      <PreprocessorDefinitions>GLM_FORCE_DEPTH_ZERO_TO_ONE;COMFY_D3D11;COMFY_DEBUG;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OmitFramePointers>false</OmitFramePointers>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <StringPooling>true</StringPooling>
+      <SDLCheck>true</SDLCheck>
+      <ExceptionHandling>false</ExceptionHandling>
+      <AdditionalOptions>-D_HAS_EXCEPTIONS=0 -D_STATIC_CPPLIB %(AdditionalOptions)</AdditionalOptions>
+      <DisableSpecificWarnings>4201;4458;4100</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\zlib\include</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
+      <PreprocessorDefinitions>GLM_FORCE_DEPTH_ZERO_TO_ONE;COMFY_D3D11;COMFY_RELEASE;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OmitFramePointers>true</OmitFramePointers>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ExceptionHandling>false</ExceptionHandling>
+      <AdditionalOptions>-D_HAS_EXCEPTIONS=0 -D_STATIC_CPPLIB %(AdditionalOptions)</AdditionalOptions>
+      <DisableSpecificWarnings>4201;4458;4100</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
