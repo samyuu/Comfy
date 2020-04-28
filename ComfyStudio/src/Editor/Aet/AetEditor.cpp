@@ -157,13 +157,12 @@ namespace Comfy::Editor
 
 	bool AetEditor::LoadAetSet(const std::string& filePath)
 	{
-		const std::wstring widePath = Utf8ToUtf16(filePath);
-		if (!FileSystem::FileExists(widePath))
+		if (!FileSystem::FileExists(filePath))
 			return false;
 
 		editorAetSet = MakeRef<Aet::AetSet>();
 		editorAetSet->Name = FileSystem::GetFileName(filePath, false);
-		editorAetSet->Load(widePath);
+		editorAetSet->Load(filePath);
 
 		OnAetSetLoaded();
 		return true;
@@ -171,7 +170,7 @@ namespace Comfy::Editor
 
 	bool AetEditor::LoadSprSet(const std::string& filePath)
 	{
-		if (!FileSystem::FileExists(Utf8ToUtf16(filePath)))
+		if (!FileSystem::FileExists(filePath))
 			return false;
 
 		if (sprSetFileLoader != nullptr)

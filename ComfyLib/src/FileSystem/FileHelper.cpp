@@ -13,32 +13,6 @@ namespace Comfy::FileSystem
 {
 	namespace
 	{
-		template <typename T>
-		auto FileAttributesFromStringViewInternal(std::basic_string_view<T> path)
-		{
-			auto pathBuffer = NullTerminatedPathBufferInternal(path);
-
-			if constexpr (std::is_same<T, char>::value)
-				return ::GetFileAttributesA(pathBuffer.data());
-			else
-				return ::GetFileAttributesW(pathBuffer.data());
-		}
-
-		template <typename T>
-		auto IsFilePathInternal(std::basic_string_view<T> filePath)
-		{
-			for (int i = static_cast<int>(filePath.size()) - 1; i >= 0; i--)
-			{
-				auto character = filePath[i];
-
-				if (character == '/' || character == '\\')
-					break;
-				else if (character == '.')
-					return true;
-			}
-			return false;
-		}
-
 		std::wstring FilterVectorToStringInternal(const std::vector<std::string>& filterVector)
 		{
 			assert(filterVector.size() % 2 == 0);
@@ -46,10 +20,10 @@ namespace Comfy::FileSystem
 			std::wstring filterString;
 			for (size_t i = 0; i + 1 < filterVector.size(); i += 2)
 			{
-				filterString += Utf8ToUtf16(filterVector[i]);
+				filterString += UTF8::Widen(filterVector[i]);
 				filterString += L'\0';
 
-				filterString += Utf8ToUtf16(filterVector[i + 1]);
+				filterString += UTF8::Widen(filterVector[i + 1]);
 				filterString += L'\0';
 			}
 			filterString += L'\0';
@@ -58,19 +32,23 @@ namespace Comfy::FileSystem
 		}
 	}
 
-	bool CreateDirectoryFile(const std::wstring& filePath)
+	bool CreateDirectoryFile(std::string_view filePath)
 	{
-		return ::CreateDirectoryW(filePath.c_str(), NULL);
+		return ::CreateDirectoryW(UTF8::WideArg(filePath).c_str(), NULL);
 	}
 
 	bool IsFilePath(std::string_view filePath)
 	{
-		return IsFilePathInternal(filePath);
-	}
+		for (int i = static_cast<int>(filePath.size()) - 1; i >= 0; i--)
+		{
+			auto character = filePath[i];
 
-	bool IsFilePath(std::wstring_view filePath)
-	{
-		return IsFilePathInternal(filePath);
+			if (character == '/' || character == '\\')
+				break;
+			else if (character == '.')
+				return true;
+		}
+		return false;
 	}
 
 	bool IsDirectoryPath(std::string_view directory)
@@ -78,54 +56,32 @@ namespace Comfy::FileSystem
 		return !IsFilePath(directory);
 	}
 
-	bool IsDirectoryPath(std::wstring_view directory)
+	bool IsPathRelative(std::string_view path)
 	{
-		return !IsFilePath(directory);
-	}
-
-	bool IsPathRelative(const std::string& path)
-	{
-		return ::PathIsRelativeA(path.c_str());
-	}
-
-	bool IsPathRelative(const std::wstring& path)
-	{
-		return ::PathIsRelativeW(path.c_str());
+		return ::PathIsRelativeW(UTF8::WideArg(path).c_str());
 	}
 
 	bool FileExists(std::string_view filePath)
 	{
-		auto attributes = FileAttributesFromStringViewInternal(filePath);
-		return (attributes != INVALID_FILE_ATTRIBUTES && !(attributes & FILE_ATTRIBUTE_DIRECTORY));
-	}
-
-	bool FileExists(std::wstring_view filePath)
-	{
-		auto attributes = FileAttributesFromStringViewInternal(filePath);
+		auto attributes = ::GetFileAttributesW(UTF8::WideArg(filePath).c_str());
 		return (attributes != INVALID_FILE_ATTRIBUTES && !(attributes & FILE_ATTRIBUTE_DIRECTORY));
 	}
 
 	bool DirectoryExists(std::string_view direction)
 	{
-		auto attributes = FileAttributesFromStringViewInternal(direction);
+		auto attributes = ::GetFileAttributesW(UTF8::WideArg(direction).c_str());
 		return (attributes != INVALID_FILE_ATTRIBUTES && (attributes & FILE_ATTRIBUTE_DIRECTORY));
 	}
 
-	bool DirectoryExists(std::wstring_view direction)
+	bool CreateOpenFileDialog(std::string& outFilePath, const char* title, const char* directory, const std::vector<std::string>& filter)
 	{
-		auto attributes = FileAttributesFromStringViewInternal(direction);
-		return (attributes != INVALID_FILE_ATTRIBUTES && (attributes & FILE_ATTRIBUTE_DIRECTORY));
-	}
-
-	bool CreateOpenFileDialog(std::wstring& outFilePath, const char* title, const char* directory, const std::vector<std::string>& filter)
-	{
-		std::wstring currentDirectory = GetWorkingDirectoryW();
+		std::string currentDirectory = GetWorkingDirectory();
 		wchar_t filePathBuffer[MAX_PATH]; filePathBuffer[0] = '\0';
 
 		assert(!filter.empty());
 		std::wstring filterString = FilterVectorToStringInternal(filter);
-		std::wstring directoryString = (directory != nullptr) ? Utf8ToUtf16(directory) : L"";
-		std::wstring titleString = (title != nullptr) ? Utf8ToUtf16(title) : L"";
+		std::wstring directoryString = (directory != nullptr) ? UTF8::Widen(directory) : L"";
+		std::wstring titleString = (title != nullptr) ? UTF8::Widen(title) : L"";
 
 		OPENFILENAMEW openFileName = {};
 		openFileName.lStructSize = sizeof(OPENFILENAMEW);
@@ -140,21 +96,21 @@ namespace Comfy::FileSystem
 
 		bool fileSelected = ::GetOpenFileNameW(&openFileName);
 		if (fileSelected)
-			outFilePath = std::wstring(filePathBuffer);
+			outFilePath = UTF8::Narrow(filePathBuffer);
 
-		SetWorkingDirectoryW(currentDirectory);
+		SetWorkingDirectory(currentDirectory);
 		return fileSelected;
 	}
 
-	bool CreateSaveFileDialog(std::wstring& outFilePath, const char* title, const char* directory, const std::vector<std::string>& filter)
+	bool CreateSaveFileDialog(std::string& outFilePath, const char* title, const char* directory, const std::vector<std::string>& filter)
 	{
-		std::wstring currentDirectory = GetWorkingDirectoryW();
+		std::string currentDirectory = GetWorkingDirectory();
 		wchar_t filePathBuffer[MAX_PATH] = {};
 
 		assert(!filter.empty());
 		std::wstring filterString = FilterVectorToStringInternal(filter);
-		std::wstring directoryString = (directory != nullptr) ? Utf8ToUtf16(directory) : L"";
-		std::wstring titleString = (title != nullptr) ? Utf8ToUtf16(title) : L"";
+		std::wstring directoryString = (directory != nullptr) ? UTF8::Widen(directory) : L"";
+		std::wstring titleString = (title != nullptr) ? UTF8::Widen(title) : L"";
 
 		OPENFILENAMEW openFileName = {};
 		openFileName.lStructSize = sizeof(OPENFILENAMEW);
@@ -168,48 +124,47 @@ namespace Comfy::FileSystem
 
 		bool fileSelected = ::GetSaveFileNameW(&openFileName);
 		if (fileSelected)
-			outFilePath = std::wstring(filePathBuffer);
+			outFilePath = UTF8::Narrow(filePathBuffer);
 
-		SetWorkingDirectoryW(currentDirectory);
+		SetWorkingDirectory(currentDirectory);
 		return fileSelected;
 	}
 
-	void OpenWithDefaultProgram(const std::wstring& filePath)
+	void OpenWithDefaultProgram(std::string_view filePath)
 	{
-		::ShellExecuteW(NULL, L"open", filePath.c_str(), NULL, NULL, SW_SHOW);
+		::ShellExecuteW(NULL, L"open", UTF8::WideArg(filePath).c_str(), NULL, NULL, SW_SHOW);
 	}
 
-	void OpenInExplorer(const std::wstring& filePath)
+	void OpenInExplorer(std::string_view filePath)
 	{
 		if (IsPathRelative(filePath))
 		{
-			std::wstring currentDirectory = GetWorkingDirectoryW();
+			std::string currentDirectory = GetWorkingDirectory();
 			currentDirectory.reserve(currentDirectory.size() + filePath.size() + 2);
-			currentDirectory += L"/";
+			currentDirectory += "/";
 			currentDirectory += filePath;
-
-			::ShellExecuteW(NULL, L"open", currentDirectory.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+			::ShellExecuteW(NULL, L"open", UTF8::WideArg(currentDirectory).c_str(), NULL, NULL, SW_SHOWDEFAULT);
 		}
 		else
 		{
-			::ShellExecuteW(NULL, L"open", filePath.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+			::ShellExecuteW(NULL, L"open", UTF8::WideArg(filePath).c_str(), NULL, NULL, SW_SHOWDEFAULT);
 		}
 	}
 
-	void OpenExplorerProperties(const std::wstring& filePath)
+	void OpenExplorerProperties(std::string_view filePath)
 	{
-		SHELLEXECUTEINFOW info = { };
+		auto filePathArg = UTF8::WideArg(filePath);
 
+		SHELLEXECUTEINFOW info = {};
 		info.cbSize = sizeof info;
-		info.lpFile = filePath.c_str();
+		info.lpFile = filePathArg.c_str();
 		info.nShow = SW_SHOW;
 		info.fMask = SEE_MASK_INVOKEIDLIST;
 		info.lpVerb = L"properties";
-
 		::ShellExecuteExW(&info);
 	}
 
-	std::wstring ResolveFileLink(const std::wstring& filePath)
+	std::string ResolveFileLink(std::string_view filePath)
 	{
 #if 0
 		const struct RAII_CoInitialize
@@ -227,7 +182,7 @@ namespace Comfy::FileSystem
 			IPersistFile* persistFile;
 			if (SUCCEEDED(shellLink->QueryInterface(IID_IPersistFile, (void**)&persistFile)))
 			{
-				if (SUCCEEDED(persistFile->Load(filePath.c_str(), STGM_READ)))
+				if (SUCCEEDED(persistFile->Load(UTF8::WideArg(filePath).c_str(), STGM_READ)))
 				{
 					if (SUCCEEDED(shellLink->Resolve(NULL, 0)))
 					{
@@ -243,7 +198,7 @@ namespace Comfy::FileSystem
 			shellLink->Release();
 		}
 
-		return resolvedPath;
+		return UTF8::Narrow(resolvedPath);
 	}
 
 	void FuckUpWindowsPath(std::string& path)
@@ -251,63 +206,30 @@ namespace Comfy::FileSystem
 		std::replace(path.begin(), path.end(), '/', '\\');
 	}
 
-	void FuckUpWindowsPath(std::wstring& path)
-	{
-		std::replace(path.begin(), path.end(), L'/', L'\\');
-	}
-
 	void SanitizePath(std::string& path)
 	{
 		std::replace(path.begin(), path.end(), '\\', '/');
 	}
 
-	void SanitizePath(std::wstring& path)
-	{
-		std::replace(path.begin(), path.end(), L'\\', L'/');
-	}
-
 	std::string GetWorkingDirectory()
-	{
-		char buffer[MAX_PATH];
-		::GetCurrentDirectoryA(MAX_PATH, buffer);
-
-		return std::string(buffer);
-	}
-
-	std::wstring GetWorkingDirectoryW()
 	{
 		wchar_t buffer[MAX_PATH];
 		::GetCurrentDirectoryW(MAX_PATH, buffer);
 
-		return std::wstring(buffer);
+		return UTF8::Narrow(buffer);
 	}
 
 	void SetWorkingDirectory(std::string_view path)
 	{
-		auto pathBuffer = NullTerminatedPathBufferInternal(path);
-		::SetCurrentDirectoryA(pathBuffer.data());
+		::SetCurrentDirectoryW(UTF8::WideArg(path).c_str());
 	}
 
-	void SetWorkingDirectoryW(std::wstring_view path)
-	{
-		auto pathBuffer = NullTerminatedPathBufferInternal(path);
-		::SetCurrentDirectoryW(pathBuffer.data());
-	}
-
-	std::string Combine(const std::string& pathA, const std::string& pathB)
+	std::string Combine(std::string_view pathA, std::string_view pathB)
 	{
 		if (pathA.size() > 0 && pathA.back() == '/')
-			return pathA.substr(0, pathA.length() - 1) + '/' + pathB;
+			return std::string(pathA.substr(0, pathA.length() - 1)) + '/' + std::string(pathB);
 
-		return pathA + '/' + pathB;
-	}
-
-	std::wstring Combine(const std::wstring& pathA, const std::wstring& pathB)
-	{
-		if (pathA.size() > 0 && pathA.back() == L'/')
-			return pathA.substr(0, pathA.length() - 1) + L'/' + pathB;
-
-		return pathA + L'/' + pathB;
+		return std::string(pathA) + '/' + std::string(pathB);
 	}
 
 	std::string_view GetFileName(std::string_view filePath, bool extension)
@@ -316,20 +238,9 @@ namespace Comfy::FileSystem
 		return (last == std::string::npos) ? filePath.substr(0, 0) : (extension ? filePath.substr(last + 1) : filePath.substr(last + 1, filePath.length() - last - 1 - GetFileExtension(filePath).length()));
 	}
 
-	std::wstring_view GetFileName(std::wstring_view filePath, bool extension)
-	{
-		const auto last = filePath.find_last_of(L"/\\");
-		return (last == std::string::npos) ? filePath.substr(0, 0) : (extension ? filePath.substr(last + 1) : filePath.substr(last + 1, filePath.length() - last - 1 - GetFileExtension(filePath).length()));
-	}
-
 	std::string_view GetDirectory(std::string_view filePath)
 	{
 		return filePath.substr(0, filePath.find_last_of("/\\"));
-	}
-
-	std::wstring_view GetDirectory(std::wstring_view filePath)
-	{
-		return filePath.substr(0, filePath.find_last_of(L"/\\"));
 	}
 
 	std::string_view GetFileExtension(std::string_view filePath)
@@ -337,24 +248,11 @@ namespace Comfy::FileSystem
 		return filePath.substr(filePath.find_last_of("."));
 	}
 
-	std::wstring_view GetFileExtension(std::wstring_view filePath)
-	{
-		return filePath.substr(filePath.find_last_of(L"."));
-	}
-
 	std::vector<std::string> GetFiles(std::string_view directory)
 	{
 		std::vector<std::string> files;
 		for (const auto& file : std::filesystem::directory_iterator(directory))
 			files.push_back(file.path().u8string());
-		return files;
-	}
-
-	std::vector<std::wstring> GetFiles(std::wstring_view directory)
-	{
-		std::vector<std::wstring> files;
-		for (const auto& file : std::filesystem::directory_iterator(directory))
-			files.push_back(file.path().wstring());
 		return files;
 	}
 
@@ -373,7 +271,7 @@ namespace Comfy::FileSystem
 
 		::ReadFile(fileHandle, buffer, bytesToRead, &bytesRead, nullptr);
 		CloseFileHandleInternal(fileHandle);
-		
+
 		return (bytesRead == bytesToRead);
 	}
 
@@ -399,32 +297,9 @@ namespace Comfy::FileSystem
 		return result;
 	}
 
-	bool WriteAllBytes(std::wstring_view filePath, const std::vector<uint8_t>& buffer)
-	{
-		HANDLE fileHandle = CreateFileHandleInternal(filePath, false);
-		int error = ::GetLastError();
-
-		bool result = WriteAllBytesInternal(fileHandle, buffer.data(), buffer.size());
-		CloseFileHandleInternal(fileHandle);
-
-		return result;
-	}
-
 	bool ReadAllLines(std::string_view filePath, std::vector<std::string>* buffer)
 	{
 		std::ifstream file(filePath);
-		while (true)
-		{
-			buffer->emplace_back();
-			if (!std::getline(file, buffer->back()))
-				break;
-		}
-		return true;
-	}
-
-	bool ReadAllLines(std::wstring_view filePath, std::vector<std::wstring>* buffer)
-	{
-		std::wfstream file(filePath);
 		while (true)
 		{
 			buffer->emplace_back();

@@ -1645,7 +1645,7 @@ namespace Comfy::Editor
 		Gui::ItemContextMenu("TakeScreenshotContextMenu", [&]
 		{
 			if (Gui::MenuItem("Open Directory"))
-				FileSystem::OpenInExplorer(Utf8ToUtf16(ScreenshotDirectoy));
+				FileSystem::OpenInExplorer(ScreenshotDirectoy);
 		});
 
 		constexpr const char* renderPopupID = "RenderSequencePopup";

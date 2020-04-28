@@ -22,7 +22,7 @@ namespace Comfy::System
 			directory.append("\\");
 			directory.append(GetFileName(filePath, false));
 
-			CreateDirectoryFile(Utf8ToUtf16(directory));
+			CreateDirectoryFile(directory);
 
 			for (const ArchiveEntry& entry : *farc)
 			{

@@ -8,7 +8,7 @@ namespace Comfy::FileSystem
 	{
 	public:
 		FileStream();
-		FileStream(std::wstring_view filePath);
+		FileStream(std::string_view filePath);
 		~FileStream();
 
 		void Seek(FileAddr position) override;
@@ -22,11 +22,11 @@ namespace Comfy::FileSystem
 		size_t ReadBuffer(void* buffer, size_t size) override;
 		size_t WriteBuffer(const void* buffer, size_t size) override;
 
-		void OpenRead(std::wstring_view filePath);
-		void OpenWrite(std::wstring_view filePath);
-		void OpenReadWrite(std::wstring_view filePath);
-		void CreateWrite(std::wstring_view filePath);
-		void CreateReadWrite(std::wstring_view filePath);
+		void OpenRead(std::string_view filePath);
+		void OpenWrite(std::string_view filePath);
+		void OpenReadWrite(std::string_view filePath);
+		void CreateWrite(std::string_view filePath);
+		void CreateReadWrite(std::string_view filePath);
 		void Close() override;
 
 	protected:

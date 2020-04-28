@@ -16,11 +16,6 @@ namespace Comfy::FileSystem
 		FromFile(filePath);
 	}
 
-	MemoryStream::MemoryStream(std::wstring_view filePath) : MemoryStream()
-	{
-		FromFile(filePath);
-	}
-
 	MemoryStream::MemoryStream(IStream& stream) : MemoryStream()
 	{
 		FromStream(stream);
@@ -100,11 +95,6 @@ namespace Comfy::FileSystem
 	}
 
 	void MemoryStream::FromFile(std::string_view filePath)
-	{
-		FromFile(Utf8ToUtf16(filePath));
-	}
-
-	void MemoryStream::FromFile(std::wstring_view filePath)
 	{
 		FileStream fileStream(filePath);
 		FromStream(fileStream);

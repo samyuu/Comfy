@@ -13,15 +13,13 @@ namespace Comfy::FileSystem
 		UnMount();
 	}
 
-	void ComfyArchive::Mount(const std::string_view filePath)
+	void ComfyArchive::Mount(std::string_view filePath)
 	{
 		if (isMounted)
 			return;
 
 		isMounted = true;
-
-		const auto widePath = Utilities::Utf8ToUtf16(filePath);
-		dataStream = MakeUnique<FileStream>(widePath);
+		dataStream = MakeUnique<FileStream>(filePath);
 
 		if (!dataStream->IsOpen())
 			return;

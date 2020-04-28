@@ -19,8 +19,7 @@ namespace Comfy::Audio
 
 	RefPtr<MemorySampleProvider> AudioDecoderFactory::DecodeFile(std::string_view filePath)
 	{
-		const std::wstring widePath = Utf8ToUtf16(filePath);
-		if (!FileSystem::FileExists(widePath))
+		if (!FileSystem::FileExists(filePath))
 		{
 			Logger::LogErrorLine(__FUNCTION__"(): Input file %.*s not found", filePath.size(), filePath.data());
 			return nullptr;
@@ -35,7 +34,7 @@ namespace Comfy::Audio
 				continue;
 
 			std::vector<uint8_t> fileContent;
-			if (!FileSystem::FileReader::ReadEntireFile(widePath, &fileContent))
+			if (!FileSystem::FileReader::ReadEntireFile(filePath, &fileContent))
 			{
 				Logger::LogErrorLine(__FUNCTION__"(): Unable to read input file %.*s", filePath.size(), filePath.data());
 				return nullptr;

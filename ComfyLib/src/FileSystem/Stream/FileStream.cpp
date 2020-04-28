@@ -1,6 +1,7 @@
 #include "FileStream.h"
 #include "Core/Win32/ComfyWindows.h"
 #include "FileSystem/FileHelperInternal.h"
+#include "Misc/StringHelper.h"
 #include <assert.h>
 
 namespace Comfy::FileSystem
@@ -22,7 +23,7 @@ namespace Comfy::FileSystem
 	{
 	}
 
-	FileStream::FileStream(std::wstring_view filePath)
+	FileStream::FileStream(std::string_view filePath)
 	{
 		OpenReadWrite(filePath);
 	}
@@ -91,36 +92,30 @@ namespace Comfy::FileSystem
 		return bytesWritten;
 	}
 
-	void FileStream::OpenRead(std::wstring_view filePath)
+	void FileStream::OpenRead(std::string_view filePath)
 	{
-		auto pathBuffer = NullTerminatedPathBufferInternal(filePath);
-
 		assert(fileHandle == nullptr);
-		fileHandle = ::CreateFileW(pathBuffer.data(), (GENERIC_READ), GetWin32FileShareMode(), NULL, OPEN_EXISTING, GetWin32FileAttributes(), NULL);
+		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_READ), GetWin32FileShareMode(), NULL, OPEN_EXISTING, GetWin32FileAttributes(), NULL);
 
 		if (fileHandle != nullptr)
 			canRead = true;
 		UpdateFileSize();
 	}
 
-	void FileStream::OpenWrite(std::wstring_view filePath)
+	void FileStream::OpenWrite(std::string_view filePath)
 	{
-		auto pathBuffer = NullTerminatedPathBufferInternal(filePath);
-
 		assert(fileHandle == nullptr);
-		fileHandle = ::CreateFileW(pathBuffer.data(), (GENERIC_WRITE), GetWin32FileShareMode(), NULL, OPEN_EXISTING, GetWin32FileAttributes(), NULL);
+		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_WRITE), GetWin32FileShareMode(), NULL, OPEN_EXISTING, GetWin32FileAttributes(), NULL);
 
 		if (fileHandle != nullptr)
 			canWrite = true;
 		UpdateFileSize();
 	}
 
-	void FileStream::OpenReadWrite(std::wstring_view filePath)
+	void FileStream::OpenReadWrite(std::string_view filePath)
 	{
-		auto pathBuffer = NullTerminatedPathBufferInternal(filePath);
-
 		assert(fileHandle == nullptr);
-		fileHandle = ::CreateFileW(pathBuffer.data(), (GENERIC_READ | GENERIC_WRITE), GetWin32FileShareMode(), NULL, OPEN_EXISTING, GetWin32FileAttributes(), NULL);
+		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_READ | GENERIC_WRITE), GetWin32FileShareMode(), NULL, OPEN_EXISTING, GetWin32FileAttributes(), NULL);
 
 		if (fileHandle != nullptr)
 		{
@@ -130,24 +125,20 @@ namespace Comfy::FileSystem
 		UpdateFileSize();
 	}
 
-	void FileStream::CreateWrite(std::wstring_view filePath)
+	void FileStream::CreateWrite(std::string_view filePath)
 	{
-		auto pathBuffer = NullTerminatedPathBufferInternal(filePath);
-
 		assert(fileHandle == nullptr);
-		fileHandle = ::CreateFileW(pathBuffer.data(), (GENERIC_WRITE), GetWin32FileShareMode(), NULL, CREATE_ALWAYS, GetWin32FileAttributes(), NULL);
+		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_WRITE), GetWin32FileShareMode(), NULL, CREATE_ALWAYS, GetWin32FileAttributes(), NULL);
 
 		if (fileHandle != nullptr)
 			canWrite = true;
 		UpdateFileSize();
 	}
 
-	void FileStream::CreateReadWrite(std::wstring_view filePath)
+	void FileStream::CreateReadWrite(std::string_view filePath)
 	{
-		auto pathBuffer = NullTerminatedPathBufferInternal(filePath);
-
 		assert(fileHandle == nullptr);
-		fileHandle = ::CreateFileW(pathBuffer.data(), (GENERIC_READ | GENERIC_WRITE), GetWin32FileShareMode(), NULL, CREATE_ALWAYS, GetWin32FileAttributes(), NULL);
+		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_READ | GENERIC_WRITE), GetWin32FileShareMode(), NULL, CREATE_ALWAYS, GetWin32FileAttributes(), NULL);
 
 		if (fileHandle != nullptr)
 		{

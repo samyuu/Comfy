@@ -27,10 +27,8 @@ namespace Comfy::FileSystem
 
 	RefPtr<Farc> Farc::Open(std::string_view filePath)
 	{
-		const std::wstring widePath = Utf8ToUtf16(filePath);
-
-		RefPtr<Farc> farc = MakeRef<Farc>();
-		if (!farc->OpenStream(widePath))
+		auto farc = MakeRef<Farc>();
+		if (!farc->OpenStream(filePath))
 		{
 			Logger::LogErrorLine(__FUNCTION__"(): Unable to open '%s'", filePath.data());
 			return nullptr;
@@ -45,7 +43,7 @@ namespace Comfy::FileSystem
 		return farc;
 	}
 
-	bool Farc::OpenStream(std::wstring_view filePath)
+	bool Farc::OpenStream(std::string_view filePath)
 	{
 		stream.OpenRead(filePath);
 

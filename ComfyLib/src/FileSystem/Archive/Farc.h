@@ -53,7 +53,7 @@ namespace Comfy::FileSystem
 		std::array<uint8_t, IVSize> aesIV = {};
 
 	protected:
-		bool OpenStream(std::wstring_view filePath);
+		bool OpenStream(std::string_view filePath);
 		bool ParseEntries();
 
 		void ReadArchiveEntry(const ArchiveEntry& entry, void* fileContentOut) override;

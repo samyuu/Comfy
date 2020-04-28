@@ -11,12 +11,6 @@ namespace Comfy::FileSystem
 		return CreateFileHandleInternal(filePath, read);
 	}
 
-	void* FileReader::CreateFileHandle(std::wstring_view filePath, bool read)
-	{
-		assert(FileSystem::FileExists(filePath));
-		return CreateFileHandleInternal(filePath, read);
-	}
-
 	void FileReader::CloseFileHandle(void* fileHandle)
 	{
 		CloseFileHandleInternal(fileHandle);

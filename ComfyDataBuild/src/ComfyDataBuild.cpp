@@ -3,6 +3,7 @@
 #include "FileSystem/Stream/FileStream.h"
 #include "FileSystem/BinaryWriter.h"
 #include "Core/Logger.h"
+#include "Misc/StringHelper.h"
 #include <filesystem>
 #include <random>
 #include <time.h>
@@ -87,7 +88,7 @@ namespace
 		RootDirectory.Flags.Verified = true;
 		EncryptString(RootDirectory.Build_FileName);
 
-		for (auto& file : std::filesystem::directory_iterator(rootPath))
+		for (const auto& file : std::filesystem::directory_iterator(rootPath))
 		{
 			if (file.is_directory())
 				RegisterDirectory(RootDirectory, file);
@@ -122,7 +123,7 @@ namespace
 	{
 		for (auto& data : FileDataToWrite)
 		{
-			FileReader::ReadEntireFile(data.File->Build_OriginalPath.wstring(), &data.File->FileContent);
+			FileReader::ReadEntireFile(data.File->Build_OriginalPath.u8string(), &data.File->FileContent);
 
 			data.DataAddress = writer.GetPosition();
 			writer.WriteBuffer(data.File->FileContent.data(), data.File->FileContent.size());
@@ -323,7 +324,7 @@ namespace
 		writer.WriteAlignmentPadding(16);
 	}
 
-	int BuildArchive(const std::wstring& inputDirectoryPath, const std::wstring& outputArchivePath)
+	int BuildArchive(std::string_view inputDirectoryPath, std::string_view outputArchivePath)
 	{
 		FileStream stream;
 		stream.CreateWrite(outputArchivePath);
@@ -334,7 +335,7 @@ namespace
 		ArchiveFlags.Verified = true;
 
 		WriteHeaderBase(writer);
-		BuildUpDirectoryTree(inputDirectoryPath);
+		BuildUpDirectoryTree(UTF8::Widen(inputDirectoryPath));
 
 		WriteFileTree(writer);
 
@@ -350,8 +351,8 @@ int wmain(int argc, const wchar_t* argv[])
 		return EXIT_FAILURE;
 	}
 
-	const std::wstring inputDirectoryPath = argv[1];
-	const std::wstring outputArchivePath = argv[2];
+	const auto inputDirectoryPath = UTF8::Narrow(argv[1]);
+	const auto outputArchivePath = UTF8::Narrow(argv[2]);
 
 	if (!DirectoryExists(inputDirectoryPath))
 	{

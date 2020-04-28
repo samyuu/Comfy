@@ -94,7 +94,7 @@ namespace Comfy::FileSystem
 		~ComfyArchive();
 
 	public:
-		void Mount(const std::string_view filePath);
+		void Mount(std::string_view filePath);
 		void UnMount();
 
 		const ComfyArchiveHeader& GetHeader() const;

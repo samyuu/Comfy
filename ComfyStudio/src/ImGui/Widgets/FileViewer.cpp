@@ -184,8 +184,7 @@ namespace ImGui
 
 	void FileViewer::UpdateDirectoryInformation()
 	{
-		std::wstring widePath = Utf8ToUtf16(directory);
-		if (!FileSystem::DirectoryExists(widePath))
+		if (!FileSystem::DirectoryExists(directory))
 			return;
 
 		fileFilter.Clear();
@@ -193,7 +192,7 @@ namespace ImGui
 		std::vector<FilePathInfo> newDirectoryInfo;
 		newDirectoryInfo.reserve(8);
 
-		for (const auto& file : std::filesystem::directory_iterator(widePath))
+		for (const auto& file : std::filesystem::directory_iterator(UTF8::Widen(directory)))
 		{
 			if (!file.is_regular_file() && !file.is_directory())
 				continue;
@@ -251,17 +250,13 @@ namespace ImGui
 
 	void FileViewer::SetResolveFileLinke(const FilePathInfo& info)
 	{
-		std::wstring wideLinkPath = Utf8ToUtf16(info.FullPath);
-		
-		std::wstring wideResolvedPath = FileSystem::ResolveFileLink(wideLinkPath);
-		std::string resolvedPath = Utf16ToUtf8(wideResolvedPath);
-
+		std::string resolvedPath = FileSystem::ResolveFileLink(info.FullPath);
 		SetDirectory(resolvedPath);
 	}
 
 	void FileViewer::OpenDirectoryInExplorer()
 	{
-		FileSystem::OpenInExplorer(Utf8ToUtf16(directory));
+		FileSystem::OpenInExplorer(directory);
 	}
 
 	void FileViewer::OpenContextItemDefaultProgram()
@@ -270,7 +265,7 @@ namespace ImGui
 		{
 			std::string filePath = contextMenuFilePathInfo->FullPath;
 			FileSystem::FuckUpWindowsPath(filePath);
-			FileSystem::OpenWithDefaultProgram(Utf8ToUtf16(filePath));
+			FileSystem::OpenWithDefaultProgram(filePath);
 		}
 	}
 
@@ -278,7 +273,7 @@ namespace ImGui
 	{
 		std::string filePath = contextMenuFilePathInfo != nullptr ? contextMenuFilePathInfo->FullPath : directory;
 		FileSystem::FuckUpWindowsPath(filePath);
-		FileSystem::OpenExplorerProperties(Utf8ToUtf16(filePath));
+		FileSystem::OpenExplorerProperties(filePath);
 	}
 
 	FileType FileViewer::GetFileType(const std::string_view fileName)

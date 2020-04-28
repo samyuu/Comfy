@@ -45,7 +45,7 @@ namespace Comfy::FileSystem
 		if (!GetFileFound())
 			return;
 
-		if (FileReader::ReadEntireFile(Utf8ToUtf16(filePath), &fileContent))
+		if (FileReader::ReadEntireFile(filePath, &fileContent))
 		{
 			SetIsLoaded(true);
 		}
@@ -64,7 +64,7 @@ namespace Comfy::FileSystem
 		loaderThread = MakeUnique<std::thread>([this]()
 		{
 			threadRunning = true;
-			if (FileReader::ReadEntireFile(Utf8ToUtf16(filePath), &fileContent))
+			if (FileReader::ReadEntireFile(filePath, &fileContent))
 			{
 				SetIsLoaded(true);
 			}
@@ -127,7 +127,7 @@ namespace Comfy::FileSystem
 
 	void FileLoader::CheckFileLocation()
 	{
-		SetFileFound(FileExists(Utf8ToUtf16(filePath)));
+		SetFileFound(FileExists(filePath));
 
 		if (!GetFileFound())
 		{

@@ -9,7 +9,6 @@ namespace Comfy::FileSystem
 	public:
 		MemoryStream();
 		MemoryStream(std::string_view filePath);
-		MemoryStream(std::wstring_view filePath);
 		MemoryStream(IStream& stream);
 		MemoryStream(std::vector<uint8_t>& source);
 		~MemoryStream();
@@ -27,7 +26,6 @@ namespace Comfy::FileSystem
 
 		void FromStreamSource(std::vector<uint8_t>& source);
 		void FromFile(std::string_view filePath);
-		void FromFile(std::wstring_view filePath);
 		void FromStream(IStream& stream);
 		void Close() override;
 

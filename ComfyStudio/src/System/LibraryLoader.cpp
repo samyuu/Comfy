@@ -29,10 +29,10 @@ namespace Comfy::System
 		if (directory != nullptr)
 		{
 			::GetCurrentDirectoryW(MAX_PATH, previousWorkingDirectory);
-			::SetCurrentDirectoryW(Utf8ToUtf16(directory).c_str());
+			::SetCurrentDirectoryW(UTF8::WideArg(directory).c_str());
 		}
 
-		moduleHandle = ::LoadLibraryW(Utf8ToUtf16(libraryName).c_str());
+		moduleHandle = ::LoadLibraryW(UTF8::WideArg(libraryName).c_str());
 		bool success = moduleHandle != InvalidModuleHandle;
 
 		if (directory != nullptr)
