@@ -40,6 +40,7 @@
     <ClInclude Include="src\Misc\StringHelper.h" />
     <ClInclude Include="src\Misc\StringParseHelper.h" />
     <ClInclude Include="src\Misc\TextDatabaseParser.h" />
+    <ClInclude Include="src\Misc\UTF8.h" />
     <ClInclude Include="src\Types.h" />
   </ItemGroup>
   <ItemGroup>
@@ -61,6 +62,7 @@
     <ClCompile Include="src\Misc\ImageHelper.cpp" />
     <ClCompile Include="src\Misc\StringHelper.cpp" />
     <ClCompile Include="src\Misc\StringParseHelper.cpp" />
+    <ClCompile Include="src\Misc\UTF8.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
