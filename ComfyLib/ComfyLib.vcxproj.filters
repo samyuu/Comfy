@@ -33,12 +33,6 @@
     <ClInclude Include="src\FileSystem\Archive\ComfyArchive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\FileSystem\Archive\Farc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\FileSystem\Archive\FileArchive.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\FileSystem\Archive\Win32Crypto.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -108,18 +102,15 @@
     <ClInclude Include="src\Misc\UTF8.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\FileSystem\Archive\FArc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\FileSystem\Archive\ComfyArchive.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\FileSystem\Archive\Farc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\FileSystem\Archive\FileArchive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\FileSystem\Archive\Win32Crypto.cpp">
@@ -165,6 +156,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Misc\UTF8.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileSystem\Archive\FArc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

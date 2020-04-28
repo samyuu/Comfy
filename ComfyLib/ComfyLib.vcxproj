@@ -19,8 +19,7 @@
     <ClInclude Include="src\Core\Win32\ComfyWindows.h" />
     <ClInclude Include="src\FileAddr.h" />
     <ClInclude Include="src\FileSystem\Archive\ComfyArchive.h" />
-    <ClInclude Include="src\FileSystem\Archive\Farc.h" />
-    <ClInclude Include="src\FileSystem\Archive\FileArchive.h" />
+    <ClInclude Include="src\FileSystem\Archive\FArc.h" />
     <ClInclude Include="src\FileSystem\Archive\Win32Crypto.h" />
     <ClInclude Include="src\FileSystem\BinaryMode.h" />
     <ClInclude Include="src\FileSystem\BinaryReader.h" />
@@ -46,8 +45,7 @@
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp" />
     <ClCompile Include="src\FileSystem\Archive\ComfyArchive.cpp" />
-    <ClCompile Include="src\FileSystem\Archive\Farc.cpp" />
-    <ClCompile Include="src\FileSystem\Archive\FileArchive.cpp" />
+    <ClCompile Include="src\FileSystem\Archive\FArc.cpp" />
     <ClCompile Include="src\FileSystem\Archive\Win32Crypto.cpp" />
     <ClCompile Include="src\FileSystem\BinaryReader.cpp" />
     <ClCompile Include="src\FileSystem\BinaryWriter.cpp" />

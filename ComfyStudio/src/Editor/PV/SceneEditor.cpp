@@ -4,7 +4,7 @@
 #include "Graphics/Auth3D/A3D/A3D.h"
 #include "Graphics/Auth3D/A3D/A3DMgr.h"
 #include "Graphics/Auth3D/DebugObj.h"
-#include "FileSystem/Archive/Farc.h"
+#include "FileSystem/Archive/FArc.h"
 #include "ImGui/Extensions/TexExtensions.h"
 #include "ImGui/Extensions/PropertyEditor.h"
 #include "Misc/ImageHelper.h"
@@ -1363,12 +1363,12 @@ namespace Comfy::Editor
 			auto loadA3Ds = [](const char* farcPath)
 			{
 				std::vector<A3D> a3ds;
-				if (auto farc = FileSystem::Farc::Open(farcPath); farc != nullptr)
+				if (auto farc = FileSystem::FArc::Open(farcPath); farc != nullptr)
 				{
-					for (auto& file : *farc)
+					for (const auto& file : farc->GetEntries())
 					{
-						auto content = file.ReadVector();
-						a3ds.emplace_back().Parse(content.data(), content.size());
+						auto content = file.ReadArray();
+						a3ds.emplace_back().Parse(content.get(), file.OriginalSize);
 					}
 				}
 				return a3ds;

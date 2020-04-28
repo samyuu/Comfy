@@ -3,18 +3,18 @@
 #include "System/Version/BuildVersion.h"
 #include "System/Version/BuildConfiguration.h"
 #include "Graphics/Auth2D/Aet/AetSet.h"
-#include "FileSystem/Archive/Farc.h"
+#include "FileSystem/Archive/FArc.h"
 #include "FileSystem/FileHelper.h"
 #include "Misc/StringHelper.h"
 
 namespace Comfy::System
 {
-	static void FarcProcessor(int index, const char* arguments[])
+	static void FArcProcessor(int index, const char* arguments[])
 	{
 		using namespace FileSystem;
 
 		const std::string filePath = arguments[index];
-		RefPtr<Farc> farc = Farc::Open(filePath);
+		auto farc = FArc::Open(filePath);
 		if (farc)
 		{
 			std::string directory;
@@ -24,10 +24,10 @@ namespace Comfy::System
 
 			CreateDirectoryFile(directory);
 
-			for (const ArchiveEntry& entry : *farc)
+			for (const auto& entry : farc->GetEntries())
 			{
-				std::vector<uint8_t> data = entry.ReadVector();
-				WriteAllBytes(directory + std::string("\\") + entry.Name, data);
+				auto data = entry.ReadArray();
+				WriteAllBytes(directory + std::string("\\") + entry.Name, data.get(), entry.OriginalSize);
 			}
 		}
 	}
@@ -68,7 +68,7 @@ namespace Comfy::System
 			{ "-t",		"--test",			"Print a test message",				true,	0, [](int index, const char* arguments[]) { Logger::LogLine(">> Test Message"); } },
 			{ "-te",	"--test_echo",		"Echo the following argument",		false,	1, [](int index, const char* arguments[]) { Logger::LogLine(">> echo '%s'", arguments[index]); } },
 			{ "-e",		"--exit",			"Exit the application",				true,	0, [](int index, const char* arguments[]) {} },
-			{ "-f",		"--farc",			"Extract Farc",						true,	1, FarcProcessor },
+			{ "-f",		"--farc",			"Extract FArc",						true,	1, FArcProcessor },
 			{ "-aet",	"--aet_reformat",	"Reformat an AetSet",				true,	2, AetSetFormatProcessor },
 		};
 	}
