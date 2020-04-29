@@ -23,6 +23,7 @@ namespace Comfy::IO
 	public:
 		inline size_t WriteBuffer(const void* buffer, size_t size) { return underlyingStream->WriteBuffer(buffer, size); }
 
+		// TODO: Rename to WriteType_Native (?)
 		template <typename T>
 		void WriteType(T value) { WriteBuffer(&value, sizeof(T)); }
 
@@ -62,23 +63,23 @@ namespace Comfy::IO
 		inline void WriteSize_32(size_t value) { WriteU32(static_cast<u32>(value)); }
 		inline void WriteSize_64(size_t value) { WriteU64(static_cast<u64>(value)); }
 
-		inline void WriteI16_LE(i16 value) { WriteI16(value); }
-		inline void WriteU16_LE(u16 value) { WriteU16(value); }
-		inline void WriteI32_LE(i32 value) { WriteI32(value); }
-		inline void WriteU32_LE(u32 value) { WriteU32(value); }
-		inline void WriteI64_LE(i64 value) { WriteI64(value); }
-		inline void WriteU64_LE(u64 value) { WriteU64(value); }
-		inline void WriteF32_LE(f32 value) { WriteF32(value); }
-		inline void WriteF64_LE(f64 value) { WriteF64(value); }
+		inline void WriteI16_LE(i16 value) { WriteType<i16>(value); }
+		inline void WriteU16_LE(u16 value) { WriteType<u16>(value); }
+		inline void WriteI32_LE(i32 value) { WriteType<i32>(value); }
+		inline void WriteU32_LE(u32 value) { WriteType<u32>(value); }
+		inline void WriteI64_LE(i64 value) { WriteType<i64>(value); }
+		inline void WriteU64_LE(u64 value) { WriteType<u64>(value); }
+		inline void WriteF32_LE(f32 value) { WriteType<f32>(value); }
+		inline void WriteF64_LE(f64 value) { WriteType<f64>(value); }
 
-		inline void WriteI16_BE(i16 value) { WriteI16(Utilities::ByteSwapI16(value)); }
-		inline void WriteU16_BE(u16 value) { WriteU16(Utilities::ByteSwapU16(value)); }
-		inline void WriteI32_BE(i32 value) { WriteI32(Utilities::ByteSwapI32(value)); }
-		inline void WriteU32_BE(u32 value) { WriteU32(Utilities::ByteSwapU32(value)); }
-		inline void WriteI64_BE(i64 value) { WriteI64(Utilities::ByteSwapI64(value)); }
-		inline void WriteU64_BE(u64 value) { WriteU64(Utilities::ByteSwapU64(value)); }
-		inline void WriteF32_BE(f32 value) { WriteF32(Utilities::ByteSwapF32(value)); }
-		inline void WriteF64_BE(f64 value) { WriteF64(Utilities::ByteSwapF64(value)); }
+		inline void WriteI16_BE(i16 value) { WriteI16_LE(Utilities::ByteSwapI16(value)); }
+		inline void WriteU16_BE(u16 value) { WriteU16_LE(Utilities::ByteSwapU16(value)); }
+		inline void WriteI32_BE(i32 value) { WriteI32_LE(Utilities::ByteSwapI32(value)); }
+		inline void WriteU32_BE(u32 value) { WriteU32_LE(Utilities::ByteSwapU32(value)); }
+		inline void WriteI64_BE(i64 value) { WriteI64_LE(Utilities::ByteSwapI64(value)); }
+		inline void WriteU64_BE(u64 value) { WriteU64_LE(Utilities::ByteSwapU64(value)); }
+		inline void WriteF32_BE(f32 value) { WriteF32_LE(Utilities::ByteSwapF32(value)); }
+		inline void WriteF64_BE(f64 value) { WriteF64_LE(Utilities::ByteSwapF64(value)); }
 
 	protected:
 		void OnPointerModeChanged() override;
