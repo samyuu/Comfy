@@ -1,9 +1,9 @@
-#include "BinaryReader.h"
+#include "StreamReader.h"
 #include <assert.h>
 
 namespace Comfy::IO
 {
-	void BinaryReader::SetPointerMode(PtrMode value)
+	void StreamReader::SetPointerMode(PtrMode value)
 	{
 		pointerMode = value;
 
@@ -25,7 +25,7 @@ namespace Comfy::IO
 		}
 	}
 
-	void BinaryReader::SetEndianness(Endianness value)
+	void StreamReader::SetEndianness(Endianness value)
 	{
 		endianness = value;
 
@@ -59,7 +59,7 @@ namespace Comfy::IO
 		}
 	}
 
-	std::string BinaryReader::ReadStr()
+	std::string StreamReader::ReadStr()
 	{
 		// NOTE: Account for the ending null byte
 		size_t length = sizeof('\0');
@@ -80,15 +80,15 @@ namespace Comfy::IO
 		return result;
 	}
 
-	std::string BinaryReader::ReadStrAt(FileAddr position)
+	std::string StreamReader::ReadStrAt(FileAddr position)
 	{
-		return ReadAt<std::string>(position, [this](BinaryReader&)
+		return ReadAt<std::string>(position, [this](StreamReader&)
 		{
 			return ReadStr();
 		});
 	}
 
-	std::string BinaryReader::ReadStr(size_t size)
+	std::string StreamReader::ReadStr(size_t size)
 	{
 		std::string result(size, '\0');
 		ReadBuffer(result.data(), size * sizeof(char));

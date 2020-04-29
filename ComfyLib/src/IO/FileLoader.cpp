@@ -1,6 +1,6 @@
 #include "FileLoader.h"
 #include "FileHelper.h"
-#include "BinaryReader.h"
+#include "StreamReader.h"
 #include "Stream/MemoryStream.h"
 #include "Misc/StringHelper.h"
 #include "Core/Logger.h"
@@ -105,7 +105,7 @@ namespace Comfy::IO
 		assert(fileFound && isLoaded);
 
 		MemoryStream stream(const_cast<FileLoader*>(this)->fileContent);
-		BinaryReader reader(stream);
+		StreamReader reader(stream);
 		
 		readable->Read(reader);
 	}

@@ -9,23 +9,23 @@
 
 namespace Comfy::IO
 {
-	class BinaryWriter : NonCopyable
+	class StreamWriter : NonCopyable
 	{
 	public:
 		static constexpr u32 PaddingValue = 0xCCCCCCCC;
 
 	public:
-		BinaryWriter()
+		StreamWriter()
 		{
 			SetPointerMode(PtrMode::Mode32Bit);
 		}
 
-		BinaryWriter(IStream& stream) : BinaryWriter()
+		explicit StreamWriter(IStream& stream) : StreamWriter()
 		{
 			OpenStream(stream);
 		}
 
-		~BinaryWriter()
+		~StreamWriter()
 		{
 			Close();
 		}
@@ -68,8 +68,8 @@ namespace Comfy::IO
 		inline void WritePtr(FileAddr value) { writePtrFunc(*this, value); };
 		inline void WritePtr(nullptr_t) = delete;
 
-		void WritePtr(const std::function<void(BinaryWriter&)>& func, FileAddr baseAddress = FileAddr::NullPtr);
-		void WriteDelayedPtr(const std::function<void(BinaryWriter&)>& func);
+		void WritePtr(const std::function<void(StreamWriter&)>& func, FileAddr baseAddress = FileAddr::NullPtr);
+		void WriteDelayedPtr(const std::function<void(StreamWriter&)>& func);
 
 		void WritePadding(size_t size, u32 paddingValue = PaddingValue);
 		void WriteAlignmentPadding(i32 alignment, u32 paddingValue = PaddingValue);
@@ -92,7 +92,7 @@ namespace Comfy::IO
 		inline void WriteF64(double value) { return WriteType<double>(value); }
 
 	protected:
-		using WritePtrFunc_t = void(BinaryWriter&, FileAddr);
+		using WritePtrFunc_t = void(StreamWriter&, FileAddr);
 		WritePtrFunc_t* writePtrFunc = nullptr;
 
 		PtrMode pointerMode = {};
@@ -111,13 +111,13 @@ namespace Comfy::IO
 		{
 			FileAddr ReturnAddress;
 			FileAddr BaseAddress;
-			const std::function<void(BinaryWriter&)> Function;
+			const std::function<void(StreamWriter&)> Function;
 		};
 
 		struct DelayedWriteEntry
 		{
 			FileAddr ReturnAddress;
-			const std::function<void(BinaryWriter&)> Function;
+			const std::function<void(StreamWriter&)> Function;
 		};
 
 		std::unordered_map<std::string, FileAddr> writtenStringPool;
@@ -126,7 +126,7 @@ namespace Comfy::IO
 		std::vector<DelayedWriteEntry> delayedWritePool;
 
 	private:
-		static void WritePtr32(BinaryWriter& writer, FileAddr value) { writer.WriteI32(static_cast<i32>(value)); }
-		static void WritePtr64(BinaryWriter& writer, FileAddr value) { writer.WriteI64(static_cast<int64_t>(value)); }
+		static void WritePtr32(StreamWriter& writer, FileAddr value) { writer.WriteI32(static_cast<i32>(value)); }
+		static void WritePtr64(StreamWriter& writer, FileAddr value) { writer.WriteI64(static_cast<int64_t>(value)); }
 	};
 }

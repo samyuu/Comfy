@@ -4,8 +4,8 @@
 
 namespace Comfy::IO
 {
-	class BinaryReader;
-	class BinaryWriter;
+	class StreamReader;
+	class StreamWriter;
 
 	class IReadable
 	{
@@ -22,14 +22,14 @@ namespace Comfy::IO
 	class IBinaryReadable : public IReadable
 	{
 	public:
-		virtual void Read(BinaryReader& reader) = 0;
+		virtual void Read(StreamReader& reader) = 0;
 		void Load(std::string_view filePath) override;
 	};
 
 	class IBinaryWritable : public IWritable
 	{
 	public:
-		virtual void Write(BinaryWriter& writer) = 0;
+		virtual void Write(StreamWriter& writer) = 0;
 		void Save(std::string_view filePath) override;
 	};
 

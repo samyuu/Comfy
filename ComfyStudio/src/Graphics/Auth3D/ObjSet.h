@@ -476,7 +476,7 @@ namespace Comfy::Graphics
 		void Upload();
 
 	private:
-		void Read(IO::BinaryReader& reader);
+		void Read(IO::StreamReader& reader);
 	};
 
 	class ObjSet final : public IO::IBinaryReadable, NonCopyable
@@ -512,7 +512,7 @@ namespace Comfy::Graphics
 		inline const Obj* GetObjAt(int index) const { return &objects[index]; };
 
 	public:
-		void Read(IO::BinaryReader& reader) override;
+		void Read(IO::StreamReader& reader) override;
 		void UploadAll();
 
 	public:

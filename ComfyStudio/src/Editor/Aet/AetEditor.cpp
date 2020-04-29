@@ -1,6 +1,6 @@
 #include "AetEditor.h"
 #include "AetIcons.h"
-#include "IO/BinaryReader.h"
+#include "IO/StreamReader.h"
 #include "IO/FileHelper.h"
 #include "Misc/StringHelper.h"
 

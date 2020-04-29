@@ -1,7 +1,7 @@
 #include "IO/FileHelper.h"
 #include "IO/Archive/ComfyArchive.h"
 #include "IO/Stream/FileStream.h"
-#include "IO/BinaryWriter.h"
+#include "IO/StreamWriter.h"
 #include "Core/Logger.h"
 #include "Misc/StringHelper.h"
 #include <filesystem>
@@ -109,7 +109,7 @@ namespace
 
 	std::vector<TempFilePtrData> FileDataToWrite;
 
-	void AppendWriteFileDataSizeAndPointer(BinaryWriter& writer, Build_ComfyEntry& file)
+	void AppendWriteFileDataSizeAndPointer(StreamWriter& writer, Build_ComfyEntry& file)
 	{
 		FileDataToWrite.push_back({ &file, writer.GetPosition(), FileAddr::NullPtr });
 
@@ -119,7 +119,7 @@ namespace
 		writer.WriteU32(0);
 	}
 
-	void WriteFileData(BinaryWriter& writer)
+	void WriteFileData(StreamWriter& writer)
 	{
 		for (auto& data : FileDataToWrite)
 		{
@@ -157,7 +157,7 @@ namespace
 		return iv;
 	}
 
-	void WriteHeaderBase(BinaryWriter& writer)
+	void WriteHeaderBase(StreamWriter& writer)
 	{
 		// NOTE: Magic
 		for (const auto value : ComfyArchive::Magic)
@@ -190,7 +190,7 @@ namespace
 		writer.WriteType(iv);
 	}
 
-	void WriteFileEntries(BinaryWriter& writer, Build_ComfyEntry& file)
+	void WriteFileEntries(StreamWriter& writer, Build_ComfyEntry& file)
 	{
 		// NOTE: Type
 		writer.WriteType(file.Type);
@@ -204,7 +204,7 @@ namespace
 		AppendWriteFileDataSizeAndPointer(writer, file);
 	}
 
-	void WriteDirectoryEntry(BinaryWriter& writer, Build_ComfyDirectory& directory)
+	void WriteDirectoryEntry(StreamWriter& writer, Build_ComfyDirectory& directory)
 	{
 		// NOTE: Type
 		writer.WriteType(directory.Type);
@@ -223,7 +223,7 @@ namespace
 		}
 		else
 		{
-			writer.WritePtr([&](BinaryWriter& writer)
+			writer.WritePtr([&](StreamWriter& writer)
 			{
 				for (auto& entry : directory.Build_Entries)
 					WriteFileEntries(writer, entry);
@@ -239,7 +239,7 @@ namespace
 		}
 		else
 		{
-			writer.WritePtr([&](BinaryWriter& writer)
+			writer.WritePtr([&](StreamWriter& writer)
 			{
 				for (auto& entry : directory.Build_Directories)
 					WriteDirectoryEntry(writer, entry);
@@ -247,7 +247,7 @@ namespace
 		}
 	}
 
-	void WriteFileTreeRoot(BinaryWriter& writer)
+	void WriteFileTreeRoot(StreamWriter& writer)
 	{
 		// NOTE: Type
 		writer.WriteType(RootDirectory.Type);
@@ -266,7 +266,7 @@ namespace
 		}
 		else
 		{
-			writer.WritePtr([&](BinaryWriter& writer)
+			writer.WritePtr([&](StreamWriter& writer)
 			{
 				for (auto& entry : RootDirectory.Build_Entries)
 					WriteFileEntries(writer, entry);
@@ -282,7 +282,7 @@ namespace
 		}
 		else
 		{
-			writer.WritePtr([&](BinaryWriter& writer)
+			writer.WritePtr([&](StreamWriter& writer)
 			{
 				for (auto& entry : RootDirectory.Build_Directories)
 					WriteDirectoryEntry(writer, entry);
@@ -290,7 +290,7 @@ namespace
 		}
 	}
 
-	void WriteFileTree(BinaryWriter& writer)
+	void WriteFileTree(StreamWriter& writer)
 	{
 		writer.SetPointerMode(PtrMode::Mode64Bit);
 
@@ -328,7 +328,7 @@ namespace
 	{
 		FileStream stream;
 		stream.CreateWrite(outputArchivePath);
-		BinaryWriter writer(stream);
+		StreamWriter writer(stream);
 
 		ArchiveFlags.WideAddresses = true;
 		ArchiveFlags.EncryptedStrings = false;

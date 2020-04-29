@@ -1,12 +1,12 @@
 #include "TexDB.h"
-#include "IO/BinaryReader.h"
-#include "IO/BinaryWriter.h"
+#include "IO/StreamReader.h"
+#include "IO/StreamWriter.h"
 
 namespace Comfy::Database
 {
 	using namespace IO;
 
-	void TexDB::Read(BinaryReader& reader)
+	void TexDB::Read(StreamReader& reader)
 	{
 		u32 texEntryCount = reader.ReadU32();
 		FileAddr texOffset = reader.ReadPtr();
@@ -14,7 +14,7 @@ namespace Comfy::Database
 		if (texEntryCount > 0 && texOffset != FileAddr::NullPtr)
 		{
 			Entries.resize(texEntryCount);
-			reader.ReadAt(texOffset, [this](BinaryReader& reader)
+			reader.ReadAt(texOffset, [this](StreamReader& reader)
 			{
 				for (auto& texEntry : Entries)
 				{
@@ -25,10 +25,10 @@ namespace Comfy::Database
 		}
 	}
 
-	void TexDB::Write(BinaryWriter& writer)
+	void TexDB::Write(StreamWriter& writer)
 	{
 		writer.WriteU32(static_cast<u32>(Entries.size()));
-		writer.WritePtr([this](BinaryWriter& writer)
+		writer.WritePtr([this](StreamWriter& writer)
 		{
 			for (auto& texEntry : Entries)
 			{

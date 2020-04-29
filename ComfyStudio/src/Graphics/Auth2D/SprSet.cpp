@@ -1,6 +1,6 @@
 #include "SprSet.h"
-#include "IO/BinaryReader.h"
-#include "IO/BinaryWriter.h"
+#include "IO/StreamReader.h"
+#include "IO/StreamWriter.h"
 
 using namespace Comfy::IO;
 
@@ -11,7 +11,7 @@ namespace Comfy::Graphics
 		return vec2(PixelRegion.z, PixelRegion.w);
 	}
 
-	void SprSet::Write(BinaryWriter& writer)
+	void SprSet::Write(StreamWriter& writer)
 	{
 		writer.WriteU32(Flags);
 
@@ -20,7 +20,7 @@ namespace Comfy::Graphics
 		writer.WriteU32((TexSet != nullptr) ? static_cast<u32>(TexSet->Textures.size()) : 0);
 
 		writer.WriteU32(static_cast<u32>(Sprites.size()));
-		writer.WritePtr([&](BinaryWriter& writer)
+		writer.WritePtr([&](StreamWriter& writer)
 		{
 			for (const auto& sprite : Sprites)
 			{
@@ -37,7 +37,7 @@ namespace Comfy::Graphics
 			}
 		});
 
-		writer.WritePtr([&](BinaryWriter& writer)
+		writer.WritePtr([&](StreamWriter& writer)
 		{
 			if (this->TexSet == nullptr)
 				return;
@@ -51,13 +51,13 @@ namespace Comfy::Graphics
 			}
 		});
 
-		writer.WritePtr([&](BinaryWriter& writer)
+		writer.WritePtr([&](StreamWriter& writer)
 		{
 			for (const auto& sprite : Sprites)
 				writer.WriteStrPtr(sprite.Name);
 		});
 
-		writer.WritePtr([&](BinaryWriter& writer)
+		writer.WritePtr([&](StreamWriter& writer)
 		{
 			for (const auto& sprite : Sprites)
 			{

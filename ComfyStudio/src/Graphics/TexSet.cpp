@@ -2,8 +2,8 @@
 #include "Auth2D/SprSet.h"
 #include "Auth3D/ObjSet.h"
 #include "IO/FileInterface.h"
-#include "IO/BinaryReader.h"
-#include "IO/BinaryWriter.h"
+#include "IO/StreamReader.h"
+#include "IO/StreamWriter.h"
 #include "IO/FileReader.h"
 
 using namespace Comfy::IO;
@@ -41,7 +41,7 @@ namespace Comfy::Graphics
 		return (Name.has_value()) ? Name.value() : UnknownName;
 	}
 
-	void TexSet::Write(BinaryWriter& writer)
+	void TexSet::Write(StreamWriter& writer)
 	{
 		const u32 textureCount = static_cast<u32>(Textures.size());
 		constexpr u32 packedMask = 0x01010100;
@@ -53,7 +53,7 @@ namespace Comfy::Graphics
 
 		for (const auto& texture : Textures)
 		{
-			writer.WritePtr([&](BinaryWriter& writer)
+			writer.WritePtr([&](StreamWriter& writer)
 			{
 				const FileAddr texBaseAddress = writer.GetPosition();
 				const u8 arraySize = static_cast<u8>(texture->MipMapsArray.size());
@@ -70,7 +70,7 @@ namespace Comfy::Graphics
 				{
 					for (u8 mipIndex = 0; mipIndex < mipLevels; mipIndex++)
 					{
-						writer.WritePtr([arrayIndex, mipIndex, &texture](BinaryWriter& writer)
+						writer.WritePtr([arrayIndex, mipIndex, &texture](StreamWriter& writer)
 						{
 							const auto& mipMap = texture->MipMapsArray[arrayIndex][mipIndex];
 							writer.WriteU32(static_cast<u32>(TxpSig::MipMap));

@@ -1,6 +1,6 @@
 #include "AetDB.h"
-#include "IO/BinaryReader.h"
-#include "IO/BinaryWriter.h"
+#include "IO/StreamReader.h"
+#include "IO/StreamWriter.h"
 
 namespace Comfy::Database
 {
@@ -14,7 +14,7 @@ namespace Comfy::Database
 		return nullptr;
 	}
 
-	void AetDB::Read(BinaryReader& reader)
+	void AetDB::Read(StreamReader& reader)
 	{
 		u32 setEntryCount = reader.ReadU32();
 		FileAddr setOffset = reader.ReadPtr();
@@ -25,7 +25,7 @@ namespace Comfy::Database
 		if (setEntryCount > 0 && setOffset != FileAddr::NullPtr)
 		{
 			Entries.resize(setEntryCount);
-			reader.ReadAt(setOffset, [this](BinaryReader& reader)
+			reader.ReadAt(setOffset, [this](StreamReader& reader)
 			{
 				for (auto& setEntry : Entries)
 				{
@@ -40,7 +40,7 @@ namespace Comfy::Database
 
 		if (sceneCount > 0 && sceneOffset != FileAddr::NullPtr)
 		{
-			reader.ReadAt(sceneOffset, [this, sceneCount](BinaryReader& reader)
+			reader.ReadAt(sceneOffset, [this, sceneCount](StreamReader& reader)
 			{
 				for (u32 i = 0; i < sceneCount; i++)
 				{
@@ -61,10 +61,10 @@ namespace Comfy::Database
 		}
 	}
 
-	void AetDB::Write(BinaryWriter& writer)
+	void AetDB::Write(StreamWriter& writer)
 	{
 		writer.WriteU32(static_cast<u32>(Entries.size()));
-		writer.WritePtr([&](BinaryWriter& writer)
+		writer.WritePtr([&](StreamWriter& writer)
 		{
 			u32 setIndex = 0;
 			for (const auto& setEntry : Entries)
@@ -82,7 +82,7 @@ namespace Comfy::Database
 			sceneCount += setEntry.SceneEntries.size();
 
 		writer.WriteU32(static_cast<u32>(sceneCount));
-		writer.WritePtr([&](BinaryWriter& writer)
+		writer.WritePtr([&](StreamWriter& writer)
 		{
 			u16 setIndex = 0;
 			for (const auto& setEntry : Entries)

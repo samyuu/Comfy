@@ -1,9 +1,9 @@
-#include "BinaryWriter.h"
+#include "StreamWriter.h"
 #include <assert.h>
 
 namespace Comfy::IO
 {
-	void BinaryWriter::SetPointerMode(PtrMode mode)
+	void StreamWriter::SetPointerMode(PtrMode mode)
 	{
 		pointerMode = mode;
 
@@ -23,32 +23,32 @@ namespace Comfy::IO
 		}
 	}
 
-	void BinaryWriter::WriteStr(std::string_view value)
+	void StreamWriter::WriteStr(std::string_view value)
 	{
 		// NOTE: Manually write null terminator
 		WriteBuffer(value.data(), value.size());
 		WriteChar('\0');
 	}
 
-	void BinaryWriter::WriteStrPtr(std::string_view value, i32 alignment)
+	void StreamWriter::WriteStrPtr(std::string_view value, i32 alignment)
 	{
 		stringPointerPool.push_back({ GetPosition(), value, alignment });
 		WritePtr(FileAddr::NullPtr);
 	}
 
-	void BinaryWriter::WritePtr(const std::function<void(BinaryWriter&)>& func, FileAddr baseAddress)
+	void StreamWriter::WritePtr(const std::function<void(StreamWriter&)>& func, FileAddr baseAddress)
 	{
 		pointerPool.push_back({ GetPosition(), baseAddress, func });
 		WritePtr(FileAddr::NullPtr);
 	}
 
-	void BinaryWriter::WriteDelayedPtr(const std::function<void(BinaryWriter&)>& func)
+	void StreamWriter::WriteDelayedPtr(const std::function<void(StreamWriter&)>& func)
 	{
 		delayedWritePool.push_back({ GetPosition(), func });
 		WritePtr(FileAddr::NullPtr);
 	}
 
-	void BinaryWriter::WritePadding(size_t size, u32 paddingValue)
+	void StreamWriter::WritePadding(size_t size, u32 paddingValue)
 	{
 		if (size < 0)
 			return;
@@ -61,7 +61,7 @@ namespace Comfy::IO
 		WriteBuffer(paddingValues.data(), size);
 	}
 
-	void BinaryWriter::WriteAlignmentPadding(i32 alignment, u32 paddingValue)
+	void StreamWriter::WriteAlignmentPadding(i32 alignment, u32 paddingValue)
 	{
 		constexpr bool forceExtraPadding = false;
 		constexpr i32 maxAlignment = 32;
@@ -82,7 +82,7 @@ namespace Comfy::IO
 		}
 	}
 
-	void BinaryWriter::FlushStringPointerPool()
+	void StreamWriter::FlushStringPointerPool()
 	{
 		for (const auto& value : stringPointerPool)
 		{
@@ -125,7 +125,7 @@ namespace Comfy::IO
 		stringPointerPool.clear();
 	}
 
-	void BinaryWriter::FlushPointerPool()
+	void StreamWriter::FlushPointerPool()
 	{
 		for (const auto& value : pointerPool)
 		{
@@ -141,7 +141,7 @@ namespace Comfy::IO
 		pointerPool.clear();
 	}
 
-	void BinaryWriter::FlushDelayedWritePool()
+	void StreamWriter::FlushDelayedWritePool()
 	{
 		for (const auto& value : delayedWritePool)
 		{

@@ -331,7 +331,7 @@ namespace Comfy::Graphics::Aet
 		FileAddr parentFilePtr;
 		FileAddr audioDataFilePtr;
 
-		void Read(IO::BinaryReader& reader);
+		void Read(IO::StreamReader& reader);
 	};
 
 	class Composition : public ILayerItem, NonCopyable
@@ -436,8 +436,8 @@ namespace Comfy::Graphics::Aet
 		void UpdateParentPointers();
 
 	private:
-		void Read(IO::BinaryReader& reader);
-		void Write(IO::BinaryWriter& writer);
+		void Read(IO::StreamReader& reader);
+		void Write(IO::StreamWriter& writer);
 
 	private:
 		void UpdateCompNamesAfterLayerItems();
@@ -463,8 +463,8 @@ namespace Comfy::Graphics::Aet
 		void ClearSpriteCache();
 
 	public:
-		void Read(IO::BinaryReader& reader) override;
-		void Write(IO::BinaryWriter& writer) override;
+		void Read(IO::StreamReader& reader) override;
+		void Write(IO::StreamWriter& writer) override;
 
 	private:
 		std::vector<RefPtr<Scene>> scenes;

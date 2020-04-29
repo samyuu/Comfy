@@ -1,6 +1,6 @@
 #include "SprDB.h"
-#include "IO/BinaryReader.h"
-#include "IO/BinaryWriter.h"
+#include "IO/StreamReader.h"
+#include "IO/StreamWriter.h"
 
 namespace Comfy::Database
 {
@@ -30,7 +30,7 @@ namespace Comfy::Database
 		return nullptr;
 	}
 
-	void SprDB::Read(BinaryReader& reader)
+	void SprDB::Read(StreamReader& reader)
 	{
 		u32 sprSetEntryCount = reader.ReadU32();
 		FileAddr sprSetOffset = reader.ReadPtr();
@@ -41,7 +41,7 @@ namespace Comfy::Database
 		if (sprSetEntryCount > 0 && sprSetOffset != FileAddr::NullPtr)
 		{
 			Entries.resize(sprSetEntryCount);
-			reader.ReadAt(sprSetOffset, [this](BinaryReader& reader)
+			reader.ReadAt(sprSetOffset, [this](StreamReader& reader)
 			{
 				for (auto& sprSetEntry : Entries)
 				{
@@ -55,7 +55,7 @@ namespace Comfy::Database
 
 		if (sprEntryCount > 0 && sprOffset != FileAddr::NullPtr)
 		{
-			reader.ReadAt(sprOffset, [this, sprEntryCount](BinaryReader& reader)
+			reader.ReadAt(sprOffset, [this, sprEntryCount](StreamReader& reader)
 			{
 				for (u32 i = 0; i < sprEntryCount; i++)
 				{
@@ -81,7 +81,7 @@ namespace Comfy::Database
 		}
 	}
 
-	void SprDB::Write(BinaryWriter& writer)
+	void SprDB::Write(StreamWriter& writer)
 	{
 		const auto startPosition = writer.GetPosition();
 
@@ -91,7 +91,7 @@ namespace Comfy::Database
 		writer.WritePtr(FileAddr::NullPtr);
 
 		writer.SetPosition(startPosition + FileAddr(0xC));
-		writer.WritePtr([this](BinaryWriter& writer)
+		writer.WritePtr([this](StreamWriter& writer)
 		{
 			i16 sprSetIndex = 0;
 			for (auto& sprSetEntry : Entries)
@@ -122,7 +122,7 @@ namespace Comfy::Database
 		});
 
 		writer.SetPosition(startPosition + FileAddr(0x4));
-		writer.WritePtr([this](BinaryWriter& writer)
+		writer.WritePtr([this](StreamWriter& writer)
 		{
 			i32 index = 0;
 			for (auto& sprSetEntry : Entries)

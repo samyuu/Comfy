@@ -7,21 +7,21 @@
 
 namespace Comfy::IO
 {
-	class BinaryReader : NonCopyable
+	class StreamReader : NonCopyable
 	{
 	public:
-		BinaryReader()
+		StreamReader()
 		{
 			SetPointerMode(PtrMode::Mode32Bit);
 			SetEndianness(Endianness::Little);
 		}
 
-		BinaryReader(IStream& stream) : BinaryReader()
+		StreamReader(IStream& stream) : StreamReader()
 		{
 			OpenStream(stream);
 		}
 
-		~BinaryReader()
+		~StreamReader()
 		{
 			Close();
 		}
@@ -117,16 +117,16 @@ namespace Comfy::IO
 		inline ivec4 ReadIV4() { ivec4 result; result.x = ReadI32(); result.y = ReadI32(); result.z = ReadI32(); result.w = ReadI32(); return result; }
 
 	protected:
-		using ReadPtrFunc_t = FileAddr(BinaryReader&);
-		using ReadSizeFunc_t = size_t(BinaryReader&);
-		using ReadI16Func_t = i16(BinaryReader&);
-		using ReadU16Func_t = u16(BinaryReader&);
-		using ReadI32Func_t = i32(BinaryReader&);
-		using ReadU32Func_t = u32(BinaryReader&);
-		using ReadI64Func_t = int64_t(BinaryReader&);
-		using ReadU64Func_t = u64(BinaryReader&);
-		using ReadF32Func_t = float(BinaryReader&);
-		using ReadF64Func_t = double(BinaryReader&);
+		using ReadPtrFunc_t = FileAddr(StreamReader&);
+		using ReadSizeFunc_t = size_t(StreamReader&);
+		using ReadI16Func_t = i16(StreamReader&);
+		using ReadU16Func_t = u16(StreamReader&);
+		using ReadI32Func_t = i32(StreamReader&);
+		using ReadU32Func_t = u32(StreamReader&);
+		using ReadI64Func_t = int64_t(StreamReader&);
+		using ReadU64Func_t = u64(StreamReader&);
+		using ReadF32Func_t = float(StreamReader&);
+		using ReadF64Func_t = double(StreamReader&);
 
 		ReadPtrFunc_t* readPtrFunc = nullptr;
 		ReadSizeFunc_t* readSizeFunc = nullptr;
@@ -139,8 +139,8 @@ namespace Comfy::IO
 		ReadF32Func_t* readF32Func = nullptr;
 		ReadF64Func_t* readF64Func = nullptr;
 
-		PtrMode pointerMode = {};
-		Endianness endianness = {};
+		PtrMode pointerMode = PtrMode::Mode32Bit;
+		Endianness endianness = Endianness::Little;
 
 		bool leaveStreamOpen = false;
 		FileAddr streamSeekOffset = {};
@@ -155,28 +155,28 @@ namespace Comfy::IO
 			return value;
 		}
 
-		static FileAddr ReadPtr32(BinaryReader& reader) { return static_cast<FileAddr>(reader.ReadI32()); }
-		static FileAddr ReadPtr64(BinaryReader& reader) { return static_cast<FileAddr>(reader.ReadI64()); }
+		static FileAddr ReadPtr32(StreamReader& reader) { return static_cast<FileAddr>(reader.ReadI32()); }
+		static FileAddr ReadPtr64(StreamReader& reader) { return static_cast<FileAddr>(reader.ReadI64()); }
 
-		static size_t ReadSize32(BinaryReader& reader) { return static_cast<size_t>(reader.ReadU32()); }
-		static size_t ReadSize64(BinaryReader& reader) { return static_cast<size_t>(reader.ReadU64()); }
+		static size_t ReadSize32(StreamReader& reader) { return static_cast<size_t>(reader.ReadU32()); }
+		static size_t ReadSize64(StreamReader& reader) { return static_cast<size_t>(reader.ReadU64()); }
 
-		static i16 LE_ReadI16(BinaryReader& reader) { return reader.ReadType<i16>(); }
-		static u16 LE_ReadU16(BinaryReader& reader) { return reader.ReadType<u16>(); }
-		static i32 LE_ReadI32(BinaryReader& reader) { return reader.ReadType<i32>(); }
-		static u32 LE_ReadU32(BinaryReader& reader) { return reader.ReadType<u32>(); }
-		static int64_t LE_ReadI64(BinaryReader& reader) { return reader.ReadType<int64_t>(); }
-		static u64 LE_ReadU64(BinaryReader& reader) { return reader.ReadType<u64>(); }
-		static float LE_ReadF32(BinaryReader& reader) { return reader.ReadType<float>(); }
-		static double LE_ReadF64(BinaryReader& reader) { return reader.ReadType<double>(); }
+		static i16 LE_ReadI16(StreamReader& reader) { return reader.ReadType<i16>(); }
+		static u16 LE_ReadU16(StreamReader& reader) { return reader.ReadType<u16>(); }
+		static i32 LE_ReadI32(StreamReader& reader) { return reader.ReadType<i32>(); }
+		static u32 LE_ReadU32(StreamReader& reader) { return reader.ReadType<u32>(); }
+		static int64_t LE_ReadI64(StreamReader& reader) { return reader.ReadType<int64_t>(); }
+		static u64 LE_ReadU64(StreamReader& reader) { return reader.ReadType<u64>(); }
+		static float LE_ReadF32(StreamReader& reader) { return reader.ReadType<float>(); }
+		static double LE_ReadF64(StreamReader& reader) { return reader.ReadType<double>(); }
 
-		static i16 BE_ReadI16(BinaryReader& reader) { return Utilities::ByteSwapI16(reader.ReadType<i16>()); }
-		static u16 BE_ReadU16(BinaryReader& reader) { return Utilities::ByteSwapU16(reader.ReadType<u16>()); }
-		static i32 BE_ReadI32(BinaryReader& reader) { return Utilities::ByteSwapI32(reader.ReadType<i32>()); }
-		static u32 BE_ReadU32(BinaryReader& reader) { return Utilities::ByteSwapU32(reader.ReadType<u32>()); }
-		static int64_t BE_ReadI64(BinaryReader& reader) { return Utilities::ByteSwapI64(reader.ReadType<int64_t>()); }
-		static u64 BE_ReadU64(BinaryReader& reader) { return Utilities::ByteSwapU64(reader.ReadType<u64>()); }
-		static float BE_ReadF32(BinaryReader& reader) { return Utilities::ByteSwapF32(reader.ReadType<float>()); }
-		static double BE_ReadF64(BinaryReader& reader) { return Utilities::ByteSwapF64(reader.ReadType<double>()); }
+		static i16 BE_ReadI16(StreamReader& reader) { return Utilities::ByteSwapI16(reader.ReadType<i16>()); }
+		static u16 BE_ReadU16(StreamReader& reader) { return Utilities::ByteSwapU16(reader.ReadType<u16>()); }
+		static i32 BE_ReadI32(StreamReader& reader) { return Utilities::ByteSwapI32(reader.ReadType<i32>()); }
+		static u32 BE_ReadU32(StreamReader& reader) { return Utilities::ByteSwapU32(reader.ReadType<u32>()); }
+		static int64_t BE_ReadI64(StreamReader& reader) { return Utilities::ByteSwapI64(reader.ReadType<int64_t>()); }
+		static u64 BE_ReadU64(StreamReader& reader) { return Utilities::ByteSwapU64(reader.ReadType<u64>()); }
+		static float BE_ReadF32(StreamReader& reader) { return Utilities::ByteSwapF32(reader.ReadType<float>()); }
+		static double BE_ReadF64(StreamReader& reader) { return Utilities::ByteSwapF64(reader.ReadType<double>()); }
 	};
 }

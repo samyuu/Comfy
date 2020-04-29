@@ -1,5 +1,5 @@
 #include "ObjSet.h"
-#include "IO/BinaryReader.h"
+#include "IO/StreamReader.h"
 
 using namespace Comfy::IO;
 
@@ -7,7 +7,7 @@ namespace Comfy::Graphics
 {
 	namespace
 	{
-		Sphere ReadSphere(BinaryReader& reader)
+		Sphere ReadSphere(StreamReader& reader)
 		{
 			Sphere result;
 			result.Center = reader.ReadV3();
@@ -15,7 +15,7 @@ namespace Comfy::Graphics
 			return result;
 		}
 
-		Box ReadBox(BinaryReader& reader)
+		Box ReadBox(StreamReader& reader)
 		{
 			Box result;
 			result.Center = reader.ReadV3();
@@ -24,7 +24,7 @@ namespace Comfy::Graphics
 		}
 
 		template <typename FlagsStruct>
-		FlagsStruct ReadFlagsStruct32(BinaryReader& reader)
+		FlagsStruct ReadFlagsStruct32(StreamReader& reader)
 		{
 			static_assert(sizeof(FlagsStruct) == sizeof(u32));
 			
@@ -33,7 +33,7 @@ namespace Comfy::Graphics
 		}
 
 		template <typename T>
-		void CheckReadVertexData(BinaryReader& reader, Mesh& mesh, VertexAttribute_Enum attribute, std::vector<T>& vector, FileAddr* attributePointers, FileAddr baseAddress)
+		void CheckReadVertexData(StreamReader& reader, Mesh& mesh, VertexAttribute_Enum attribute, std::vector<T>& vector, FileAddr* attributePointers, FileAddr baseAddress)
 		{
 			FileAddr attributePointer = attributePointers[attribute];
 			if (attributePointer == FileAddr::NullPtr)
@@ -43,7 +43,7 @@ namespace Comfy::Graphics
 			if (!(mesh.AttributeFlags & attributeFlags))
 				return;
 
-			reader.ReadAt(attributePointer, baseAddress, [&vector, &mesh](BinaryReader& reader)
+			reader.ReadAt(attributePointer, baseAddress, [&vector, &mesh](StreamReader& reader)
 			{
 				vector.resize(mesh.VertexData.VertexCount);
 				reader.ReadBuffer(vector.data(), vector.size() * sizeof(T));
@@ -51,7 +51,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	void Obj::Read(BinaryReader& reader)
+	void Obj::Read(StreamReader& reader)
 	{
 		FileAddr objBaseAddress = reader.GetPosition();
 
@@ -64,7 +64,7 @@ namespace Comfy::Graphics
 		if (meshCount > 0 && meshesPtr != FileAddr::NullPtr)
 		{
 			Meshes.resize(meshCount);
-			reader.ReadAt(meshesPtr, objBaseAddress, [this, objBaseAddress](BinaryReader& reader)
+			reader.ReadAt(meshesPtr, objBaseAddress, [this, objBaseAddress](StreamReader& reader)
 			{
 				for (auto& mesh : Meshes)
 				{
@@ -76,7 +76,7 @@ namespace Comfy::Graphics
 					if (subMeshCount > 0 && subMeshesPtr != FileAddr::NullPtr)
 					{
 						mesh.SubMeshes.resize(subMeshCount);
-						reader.ReadAt(subMeshesPtr, objBaseAddress, [&mesh, objBaseAddress](BinaryReader& reader)
+						reader.ReadAt(subMeshesPtr, objBaseAddress, [&mesh, objBaseAddress](StreamReader& reader)
 						{
 							for (auto& subMesh : mesh.SubMeshes)
 							{
@@ -92,7 +92,7 @@ namespace Comfy::Graphics
 								{
 									subMesh.BoneIndices.resize(boneIndexCount);
 
-									reader.ReadAt(boneIndicesPtr, objBaseAddress, [&subMesh, boneIndexCount](BinaryReader& reader)
+									reader.ReadAt(boneIndicesPtr, objBaseAddress, [&subMesh, boneIndexCount](StreamReader& reader)
 									{
 										assert(reader.GetEndianness() == Endianness::Native);
 										reader.ReadBuffer(subMesh.BoneIndices.data(), boneIndexCount * sizeof(u16));
@@ -112,17 +112,17 @@ namespace Comfy::Graphics
 									if (indexFormat == IndexFormat::U8)
 									{
 										u8* data = subMesh.Indices.emplace<std::vector<u8>>(indexCount).data();
-										reader.ReadAt(indicesPtr, objBaseAddress, [&](BinaryReader& reader) { reader.ReadBuffer(data, indexCount * sizeof(u8)); });
+										reader.ReadAt(indicesPtr, objBaseAddress, [&](StreamReader& reader) { reader.ReadBuffer(data, indexCount * sizeof(u8)); });
 									}
 									else if (indexFormat == IndexFormat::U16)
 									{
 										u16* data = subMesh.Indices.emplace<std::vector<u16>>(indexCount).data();
-										reader.ReadAt(indicesPtr, objBaseAddress, [&](BinaryReader& reader) { reader.ReadBuffer(data, indexCount * sizeof(u16)); });
+										reader.ReadAt(indicesPtr, objBaseAddress, [&](StreamReader& reader) { reader.ReadBuffer(data, indexCount * sizeof(u16)); });
 									}
 									else if (indexFormat == IndexFormat::U32)
 									{
 										u32* data = subMesh.Indices.emplace<std::vector<u32>>(indexCount).data();
-										reader.ReadAt(indicesPtr, objBaseAddress, [&](BinaryReader& reader) { reader.ReadBuffer(data, indexCount * sizeof(u32)); });
+										reader.ReadAt(indicesPtr, objBaseAddress, [&](StreamReader& reader) { reader.ReadBuffer(data, indexCount * sizeof(u32)); });
 									}
 								}
 
@@ -176,7 +176,7 @@ namespace Comfy::Graphics
 		if (materialCount > 0 && materialsPtr != FileAddr::NullPtr)
 		{
 			Materials.resize(materialCount);
-			reader.ReadAt(materialsPtr, objBaseAddress, [this](BinaryReader& reader)
+			reader.ReadAt(materialsPtr, objBaseAddress, [this](StreamReader& reader)
 			{
 				for (auto& material : Materials)
 				{
@@ -223,7 +223,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	void ObjSet::Read(BinaryReader& reader)
+	void ObjSet::Read(StreamReader& reader)
 	{
 		u32 signature = reader.ReadU32();
 		u32 objectCount = reader.ReadU32();
@@ -233,11 +233,11 @@ namespace Comfy::Graphics
 		if (objectCount > 0 && objectsPtr != FileAddr::NullPtr)
 		{
 			objects.resize(objectCount);
-			reader.ReadAt(objectsPtr, [this](BinaryReader& reader)
+			reader.ReadAt(objectsPtr, [this](StreamReader& reader)
 			{
 				for (auto& obj : objects)
 				{
-					reader.ReadAt(reader.ReadPtr(), [&obj](BinaryReader& reader)
+					reader.ReadAt(reader.ReadPtr(), [&obj](StreamReader& reader)
 					{
 						obj.Read(reader);
 					});
@@ -247,13 +247,13 @@ namespace Comfy::Graphics
 
 		if (FileAddr skeletonsPtr = reader.ReadPtr(); objectCount > 0 && skeletonsPtr != FileAddr::NullPtr)
 		{
-			reader.ReadAt(skeletonsPtr, [this](BinaryReader& reader)
+			reader.ReadAt(skeletonsPtr, [this](StreamReader& reader)
 			{
 				for (auto& obj : objects)
 				{
 					if (FileAddr skeletonPtr = reader.ReadPtr(); skeletonPtr != FileAddr::NullPtr)
 					{
-						reader.ReadAt(skeletonPtr, [&obj](BinaryReader& reader)
+						reader.ReadAt(skeletonPtr, [&obj](StreamReader& reader)
 						{
 							FileAddr idsPtr = reader.ReadPtr();
 							FileAddr transformsPtr = reader.ReadPtr();
@@ -268,30 +268,30 @@ namespace Comfy::Graphics
 							auto& bones = obj.Skeleton.emplace().Bones;
 							bones.resize(count);
 
-							reader.ReadAt(idsPtr, [&bones](BinaryReader& reader)
+							reader.ReadAt(idsPtr, [&bones](StreamReader& reader)
 							{
 								for (auto& bone : bones)
 									bone.ID = BoneID(reader.ReadU32());
 							});
 
-							reader.ReadAt(transformsPtr, [&bones](BinaryReader& reader)
+							reader.ReadAt(transformsPtr, [&bones](StreamReader& reader)
 							{
 								for (auto& bone : bones)
 									bone.Transform = reader.ReadMat4();
 							});
 
-							reader.ReadAt(namesPtr, [&bones](BinaryReader& reader)
+							reader.ReadAt(namesPtr, [&bones](StreamReader& reader)
 							{
 								for (auto& bone : bones)
 									bone.Name = reader.ReadStrPtr();
 							});
 
-							reader.ReadAt(expressionBlocksPtr, [&bones](BinaryReader& reader)
+							reader.ReadAt(expressionBlocksPtr, [&bones](StreamReader& reader)
 							{
 								// TODO:
 							});
 
-							reader.ReadAt(parentIDsPtr, [&bones](BinaryReader& reader)
+							reader.ReadAt(parentIDsPtr, [&bones](StreamReader& reader)
 							{
 								for (auto& bone : bones)
 									bone.ParentID = BoneID(reader.ReadU32());
@@ -304,7 +304,7 @@ namespace Comfy::Graphics
 
 		if (FileAddr objectNamesPtr = reader.ReadPtr(); objectCount > 0 && objectNamesPtr != FileAddr::NullPtr)
 		{
-			reader.ReadAt(objectNamesPtr, [this](BinaryReader& reader)
+			reader.ReadAt(objectNamesPtr, [this](StreamReader& reader)
 			{
 				for (auto& obj : objects)
 					obj.Name = reader.ReadStrPtr();
@@ -313,7 +313,7 @@ namespace Comfy::Graphics
 
 		if (FileAddr objectIDsPtr = reader.ReadPtr(); objectCount > 0 && objectIDsPtr != FileAddr::NullPtr)
 		{
-			reader.ReadAt(objectIDsPtr, [this](BinaryReader& reader)
+			reader.ReadAt(objectIDsPtr, [this](StreamReader& reader)
 			{
 				for (auto& obj : objects)
 					obj.ID = ObjID(reader.ReadU32());
@@ -326,7 +326,7 @@ namespace Comfy::Graphics
 		if (textureIDsPtr != FileAddr::NullPtr && textureCount > 0)
 		{
 			TextureIDs.resize(textureCount);
-			reader.ReadAt(textureIDsPtr, [this](BinaryReader& reader)
+			reader.ReadAt(textureIDsPtr, [this](StreamReader& reader)
 			{
 				for (auto& textureID : TextureIDs)
 					textureID = TexID(reader.ReadU32());

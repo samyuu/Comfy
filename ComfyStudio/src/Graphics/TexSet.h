@@ -55,7 +55,7 @@ namespace Comfy::Graphics
 	public:
 		std::vector<RefPtr<Tex>> Textures;
 
-		void Write(IO::BinaryWriter& writer) override;
+		void Write(IO::StreamWriter& writer) override;
 
 		void Parse(const u8* buffer, size_t bufferSize) override;
 		void UploadAll(class SprSet* parentSprSet);
