@@ -7,12 +7,12 @@ namespace Comfy::Editor
 	{ 
 		RowStartIndex = RowEndIndex = -1; 
 		StartX = EndX = -1.0f; 
-	};
+	}
 	
 	bool MouseSelectionData::IsSelected() const 
 	{ 
 		return RowStartIndex >= 0 && RowEndIndex >= 0; 
-	};
+	}
 
 	AetTimelineController::AetTimelineController(AetTimeline* timeline) : timeline(timeline)
 	{

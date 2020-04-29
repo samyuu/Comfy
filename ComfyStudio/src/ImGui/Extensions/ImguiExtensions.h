@@ -93,9 +93,9 @@ namespace ImGui
 	{
 		ExtendedImGuiTextFilter(const char* default_filter = "");
 		bool Draw(const char* label, const char* hint, float width = 0.0f);
-		inline bool Draw(const char* label = "Filter (inc,-exc)", float width = 0.0f) { textFilter.Draw(label, width); };
-		inline bool PassFilter(const char* text, const char* text_end = NULL) { return textFilter.PassFilter(text, text_end); };
-		inline void Build() { textFilter.Build(); };
+		inline bool Draw(const char* label = "Filter (inc,-exc)", float width = 0.0f) { textFilter.Draw(label, width); }
+		inline bool PassFilter(const char* text, const char* text_end = NULL) { return textFilter.PassFilter(text, text_end); }
+		inline void Build() { textFilter.Build(); }
 		inline void Clear() { textFilter.Clear(); }
 		inline bool IsActive() const { return !textFilter.IsActive(); }
 

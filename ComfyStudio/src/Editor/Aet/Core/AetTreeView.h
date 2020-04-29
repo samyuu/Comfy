@@ -20,23 +20,23 @@ namespace Comfy::Editor
 		bool DrawGui(const RefPtr<Graphics::Aet::AetSet>& aetSet);
 
 		template <typename T>
-		inline void SetSelectedItems(const RefPtr<T>& value) 
+		void SetSelectedItems(const RefPtr<T>& value) 
 		{ 
 			selectedAetItem->SetItem(value);
 			cameraSelectedAetItem->SetItem(value);
-		};
+		}
 
 		inline void SetSelectedItems(const RefPtr<Graphics::Aet::Layer>& selectedLayer, const RefPtr<Graphics::Aet::Composition>& visibleComp)
 		{
 			selectedAetItem->SetItem(selectedLayer);
 			cameraSelectedAetItem->SetItem(visibleComp);
-		};
+		}
 
 		inline void ResetSelectedItems() 
 		{ 
 			selectedAetItem->Reset();
 			cameraSelectedAetItem->Reset();
-		};
+		}
 
 	private:
 		static constexpr const char* textureMaskIndicator = "  ( " ICON_FA_LINK " )";

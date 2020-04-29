@@ -24,8 +24,8 @@ namespace Comfy::Editor
 
 		TimelineFrame GetTimelineFrameAtMouseX() const;
 
-		inline TimelineFrame GetLoopStartFrame() const { return loopStartFrame; };
-		inline TimelineFrame GetLoopEndFrame() const { return loopEndFrame; };
+		inline TimelineFrame GetLoopStartFrame() const { return loopStartFrame; }
+		inline TimelineFrame GetLoopEndFrame() const { return loopEndFrame; }
 
 	protected:
 		const float timelineContentMarginWidth = 40.0f;

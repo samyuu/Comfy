@@ -27,7 +27,7 @@ namespace Comfy::Editor
 		else if (tick.TotalTicks() >= tickTimeCount) // NOTE: Tick is outside the defined tempo map
 		{
 			// NOTE: Take the last calculated time
-			TimeSpan lastTime = GetLastCalculatedTime();;
+			TimeSpan lastTime = GetLastCalculatedTime();
 
 			// NOTE: Calculate the duration of a TimelineTick at the last used tempo
 			TimeSpan lastTickDuration = TimeSpan::FromSeconds((60.0 / lastTempo.BeatsPerMinute) / TimelineTick::TicksPerBeat);

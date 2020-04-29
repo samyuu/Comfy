@@ -15,8 +15,8 @@ namespace Comfy::Editor
 		using CommandStack = std::vector<RefPtr<TCommand>>;
 
 	public:
-		CommandManager() {};
-		virtual ~CommandManager() {};
+		CommandManager() {}
+		virtual ~CommandManager() {}
 
 	public:
 		template<class TNewCommand, class... Types>
@@ -32,11 +32,11 @@ namespace Comfy::Editor
 		void Redo();
 		void Clear();
 
-		inline bool GetCanUndo() const { return !undoStack.empty(); };
-		inline bool GetCanRedo() const { return !redoStack.empty(); };
+		inline bool GetCanUndo() const { return !undoStack.empty(); }
+		inline bool GetCanRedo() const { return !redoStack.empty(); }
 
-		inline CommandStack& GetUndoStack() { return undoStack; };
-		inline CommandStack& GetRedoStack() { return redoStack; };
+		inline CommandStack& GetUndoStack() { return undoStack; }
+		inline CommandStack& GetRedoStack() { return redoStack; }
 
 	protected:
 		// Commands to be exectued at the end of the frame.

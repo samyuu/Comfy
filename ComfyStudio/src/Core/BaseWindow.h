@@ -12,13 +12,13 @@ namespace Comfy
 		virtual ~BaseWindow();
 
 		virtual const char* GetGuiName() const = 0;
-		virtual void DrawGui() {};
+		virtual void DrawGui() {}
 		virtual ImGuiWindowFlags GetWindowFlags() const;
 
-		inline bool* GetIsGuiOpenPtr() { return &isGuiOpen; };
-		inline Application* GetParent() const { return parentApplication; };
+		inline bool* GetIsGuiOpenPtr() { return &isGuiOpen; }
+		inline Application* GetParent() const { return parentApplication; }
 
-		inline void CloseWindow() { *GetIsGuiOpenPtr() = false; };
+		inline void CloseWindow() { *GetIsGuiOpenPtr() = false; }
 
 		static inline ImGuiWindowFlags GetNoWindowFlags()
 		{

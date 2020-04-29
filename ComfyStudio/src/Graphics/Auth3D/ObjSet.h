@@ -502,14 +502,14 @@ namespace Comfy::Graphics
 		const Obj& front() const { return objects.front(); }
 		const Obj& back() const { return objects.back(); }
 
-		inline size_t size() const { return objects.size(); };
-		inline bool empty() const { return objects.empty(); };
+		inline size_t size() const { return objects.size(); }
+		inline bool empty() const { return objects.empty(); }
 
-		inline Obj& at(size_t index) { return objects.at(index); };
-		inline Obj& operator[] (size_t index) { return objects[index]; };
+		inline Obj& at(size_t index) { return objects.at(index); }
+		inline Obj& operator[] (size_t index) { return objects[index]; }
 
-		inline Obj* GetObjAt(int index) { return &objects.at(index); };
-		inline const Obj* GetObjAt(int index) const { return &objects[index]; };
+		inline Obj* GetObjAt(int index) { return &objects.at(index); }
+		inline const Obj* GetObjAt(int index) const { return &objects[index]; }
 
 	public:
 		void Read(IO::StreamReader& reader) override;

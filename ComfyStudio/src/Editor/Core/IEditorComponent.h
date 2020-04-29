@@ -16,8 +16,8 @@ namespace Comfy::Editor
 
 		virtual void Initialize() = 0;
 
-		virtual void OnWindowBegin() {};
-		virtual void OnWindowEnd() {};
+		virtual void OnWindowBegin() {}
+		virtual void OnWindowEnd() {}
 
 	protected:
 		EditorManager* pvEditor;

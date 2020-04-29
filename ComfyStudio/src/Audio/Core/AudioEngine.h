@@ -70,21 +70,21 @@ namespace Comfy::Audio
 
 		RefPtr<MemorySampleProvider> LoadAudioFile(const std::string& filePath);
 
-		inline RtAudio* GetRtAudio() { return rtAudio.get(); };
-		inline u32 GetChannelCount() { return 2; };
-		inline u32 GetSampleRate() { return 44100; };
-		inline u32 GetBufferSize() { return bufferSize; };
-		inline RtAudioFormat GetStreamFormat() { return RTAUDIO_SINT16; };
+		inline RtAudio* GetRtAudio() { return rtAudio.get(); }
+		inline u32 GetChannelCount() { return 2; }
+		inline u32 GetSampleRate() { return 44100; }
+		inline u32 GetBufferSize() { return bufferSize; }
+		inline RtAudioFormat GetStreamFormat() { return RTAUDIO_SINT16; }
 
 		double GetStreamTime();
 		void SetStreamTime(double value);
 		double GetCallbackLatency();
 
-		inline AudioApi GetDefaultAudioApi() { return AudioApi::WASAPI; };
-		inline AudioApi GetActiveAudioApi() { return audioApi; };
+		inline AudioApi GetDefaultAudioApi() { return AudioApi::WASAPI; }
+		inline AudioApi GetActiveAudioApi() { return audioApi; }
 
-		inline bool GetIsStreamOpen() { return isStreamOpen; };
-		inline bool GetIsStreamRunning() { return isStreamRunning; };
+		inline bool GetIsStreamOpen() { return isStreamOpen; }
+		inline bool GetIsStreamRunning() { return isStreamRunning; }
 
 		float GetMasterVolume();
 		void SetMasterVolume(float value);
@@ -94,7 +94,7 @@ namespace Comfy::Audio
 		static void InitializeInstance();
 		static void DisposeInstance();
 		static void DeleteInstance();
-		static inline AudioEngine* GetInstance() { return engineInstance.get(); };
+		static inline AudioEngine* GetInstance() { return engineInstance.get(); }
 		// ----------------------
 
 	private:

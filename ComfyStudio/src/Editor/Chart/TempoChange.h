@@ -14,8 +14,8 @@ namespace Comfy::Editor
 
 		// Constructors / Deconstructors:
 		// ------------------------------
-		constexpr Tempo() : BeatsPerMinute(0.0f) {};
-		constexpr Tempo(float bpm) : BeatsPerMinute(bpm) {};
+		constexpr Tempo() : BeatsPerMinute(0.0f) {}
+		constexpr Tempo(float bpm) : BeatsPerMinute(bpm) {}
 	};
 
 	// TimelineTick + Tempo value struct
@@ -30,8 +30,8 @@ namespace Comfy::Editor
 		TimelineTick Tick;
 		Tempo Tempo;
 
-		inline bool operator==(const TempoChange &other) const { return (Tick == other.Tick); };
-		inline bool operator<(const TempoChange &other) const { return Tick < other.Tick; };
-		inline bool operator>(const TempoChange &other) const { return Tick > other.Tick; };
+		inline bool operator==(const TempoChange &other) const { return (Tick == other.Tick); }
+		inline bool operator<(const TempoChange &other) const { return Tick < other.Tick; }
+		inline bool operator>(const TempoChange &other) const { return Tick > other.Tick; }
 	};
 }

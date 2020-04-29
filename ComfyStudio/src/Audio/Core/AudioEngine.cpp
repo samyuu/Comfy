@@ -115,7 +115,7 @@ namespace Comfy::Audio
 	double AudioEngine::GetStreamTime()
 	{
 		return GetRtAudio() && GetIsStreamOpen() ? GetRtAudio()->getStreamTime() : 0.0;
-	};
+	}
 
 	void AudioEngine::SetStreamTime(double value)
 	{
@@ -123,12 +123,12 @@ namespace Comfy::Audio
 		{
 			GetRtAudio()->setStreamTime(value);
 		}
-	};
+	}
 
 	double AudioEngine::GetCallbackLatency()
 	{
 		return callbackLatency;
-	};
+	}
 
 	float AudioEngine::GetMasterVolume()
 	{
@@ -337,7 +337,7 @@ namespace Comfy::Audio
 	StreamParameters* AudioEngine::GetStreamOutputParameters()
 	{
 		streamOutputParameter.deviceId = GetDeviceId();
-		streamOutputParameter.nChannels = GetChannelCount();;
+		streamOutputParameter.nChannels = GetChannelCount();
 		streamOutputParameter.firstChannel = 0;
 
 		return &streamOutputParameter;

@@ -41,7 +41,7 @@ namespace Comfy::Editor
 		int GetRowIndexFromScreenY(float screenY) const;
 
 		// NOTE: Height per item
-		inline float GetRowItemHeight() const { return rowItemHeight; };
+		inline float GetRowItemHeight() const { return rowItemHeight; }
 
 	private:
 		enum class TimelineMode

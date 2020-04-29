@@ -53,7 +53,7 @@ namespace Comfy
 		void SetDefaultPositionWindow(bool value);
 		void SetDefaultResizeWindow(bool value);
 
-		inline HWND GetWindow() const { return windowHandle; };
+		inline HWND GetWindow() const { return windowHandle; }
 
 	public:
 		void RegisterWindowProcCallback(const std::function<bool(HWND, UINT, WPARAM, LPARAM)> onWindowProc);

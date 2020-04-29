@@ -16,34 +16,34 @@ namespace Comfy::Editor
 
 		vec2 GetRelativeMouse() const;
 
-		inline bool GetKeepAspectRatio() const { return keepAspectRatio; };
-		inline void SetKeepAspectRatio(bool value) { keepAspectRatio = value; };
+		inline bool GetKeepAspectRatio() const { return keepAspectRatio; }
+		inline void SetKeepAspectRatio(bool value) { keepAspectRatio = value; }
 
-		inline float GetTargetAspectRatio() const { return targetAspectRatio; };
-		inline void SetTargetAspectRatio(float value) { targetAspectRatio = value; };
+		inline float GetTargetAspectRatio() const { return targetAspectRatio; }
+		inline void SetTargetAspectRatio(float value) { targetAspectRatio = value; }
 
-		inline bool GetWasResized() const { return wasResized; };
-		inline const ImRect& GetRenderRegion() const { return renderRegion; };
+		inline bool GetWasResized() const { return wasResized; }
+		inline const ImRect& GetRenderRegion() const { return renderRegion; }
 
 	public:
-		static inline void PushWindowPadding() { Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(2.0f, 2.0f)); };
-		static inline void PopWindowPadding() { Gui::PopStyleVar(); };
+		static inline void PushWindowPadding() { Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(2.0f, 2.0f)); }
+		static inline void PopWindowPadding() { Gui::PopStyleVar(); }
 
 	protected:
 		UniquePtr<Graphics::GPU_RenderTarget> owningRenderTarget = nullptr;
 
-		virtual ImGuiWindowFlags GetChildWinodwFlags() const { return ImGuiWindowFlags_None; };
+		virtual ImGuiWindowFlags GetChildWinodwFlags() const { return ImGuiWindowFlags_None; }
 
-		virtual void OnInitialize() {};
-		virtual void OnDrawGui() {};
-		virtual void PostDrawGui() {};
+		virtual void OnInitialize() {}
+		virtual void OnDrawGui() {}
+		virtual void PostDrawGui() {}
 		virtual void OnUpdateInput() = 0;
 		virtual void OnUpdate() = 0;
 		virtual void OnRender() = 0;
 		virtual void OnResize(ivec2 size);
 
-		virtual bool GetShouldCreateDepthRenderTarget() const { return false; };
-		virtual Graphics::GPU_RenderTarget* GetExternalRenderTarget() { return nullptr; };
+		virtual bool GetShouldCreateDepthRenderTarget() const { return false; }
+		virtual Graphics::GPU_RenderTarget* GetExternalRenderTarget() { return nullptr; }
 
 	private:
 		ImRect renderRegion, lastRenderRegion;

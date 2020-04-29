@@ -17,8 +17,8 @@ namespace Comfy::App
 	class Task : public TaskInterface
 	{
 	public:
-		bool PreDrawGui() override { return true; };
-		bool PostDrawGui() override { return true; };
+		bool PreDrawGui() override { return true; }
+		bool PostDrawGui() override { return true; }
 
 	protected:
 		TimeSpan elapsedTime;

@@ -15,8 +15,8 @@ namespace Comfy::App
 		const Aet::Layer* Layer;
 		const char* Name;
 
-		inline const Aet::Layer* operator->() const { return Layer; };
-		inline operator const Aet::Layer*() { return Layer; };
+		inline const Aet::Layer* operator->() const { return Layer; }
+		inline operator const Aet::Layer*() { return Layer; }
 	};
 
 	struct Ps4MenuAetData

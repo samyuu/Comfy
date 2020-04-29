@@ -25,9 +25,9 @@ namespace Comfy
 
 	public:
 		static bool TryInitializeInstance();
-		static inline bool GetInstanceInitialized() { return instance != nullptr; };
-		static inline void DeleteInstance() { delete instance; instance = nullptr; };
-		static inline Keyboard* GetInstance() { return instance; };
+		static inline bool GetInstanceInitialized() { return instance != nullptr; }
+		static inline void DeleteInstance() { delete instance; instance = nullptr; }
+		static inline Keyboard* GetInstance() { return instance; }
 
 	private:
 		Keyboard();

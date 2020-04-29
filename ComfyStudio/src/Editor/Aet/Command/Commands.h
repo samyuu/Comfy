@@ -112,7 +112,7 @@ private:
 	RefPtr<Graphics::Aet::Layer> ref;
 	frame_t newValue, oldValue;
 	inline void OffsetKeyFrames(frame_t increment) { if (ref->LayerVideo != nullptr) Graphics::Aet::AetMgr::OffsetAllKeyFrames(ref->LayerVideo->Transform, increment); }
-	inline frame_t ClampValue(frame_t value) { return glm::min(value, ref->EndFrame - 1.0f); };
+	inline frame_t ClampValue(frame_t value) { return glm::min(value, ref->EndFrame - 1.0f); }
 
 public:
 	LayerChangeStartFrame(const RefPtr<Graphics::Aet::Layer>& ref, const frame_t& value) : ref(ref), newValue(ClampValue(value)) {}
@@ -152,7 +152,7 @@ public:
 private:
 	RefPtr<Graphics::Aet::Layer> ref;
 	float newValue, oldValue;
-	inline frame_t ClampValue(frame_t value) { return glm::max(value, ref->StartFrame + 1.0f); };
+	inline frame_t ClampValue(frame_t value) { return glm::max(value, ref->StartFrame + 1.0f); }
 public:
 	LayerChangeEndFrame(const RefPtr<Graphics::Aet::Layer>& ref, const frame_t& value) : ref(ref), newValue(ClampValue(value)) {}
 	void Do() override { oldValue = ref->EndFrame; ref->EndFrame = newValue; }

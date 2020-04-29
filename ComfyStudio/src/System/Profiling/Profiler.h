@@ -23,7 +23,7 @@ namespace Comfy::System
 		void PushEntry(const char* name);
 		void PopEntry();
 
-		static inline Profiler& Get() { return instance; };
+		static inline Profiler& Get() { return instance; }
 
 	protected:
 		struct Entry
@@ -39,7 +39,7 @@ namespace Comfy::System
 			// NOTE: Basically the "indentation" of this entry
 			i32 ParentCount;
 
-			inline TimeSpan Duration() const { return EndTime - StartTime; };
+			inline TimeSpan Duration() const { return EndTime - StartTime; }
 		};
 
 		i32 currentDepth = 0;
@@ -60,6 +60,6 @@ namespace Comfy::System
 		ProfilerRAII(const char* name);
 		~ProfilerRAII();
 
-		inline Profiler& GetProfiler() const { return Profiler::Get(); };
+		inline Profiler& GetProfiler() const { return Profiler::Get(); }
 	};
 }

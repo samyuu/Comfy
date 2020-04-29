@@ -18,8 +18,8 @@ namespace Comfy::Editor
 	class TimelineBase : public TimelineBaseRegions, public ITimelinePlaybackControllable
 	{
 	public:
-		TimelineBase() {};
-		virtual ~TimelineBase() {};
+		TimelineBase() {}
+		virtual ~TimelineBase() {}
 
 		virtual float GetTimelinePosition(TimeSpan time) const;
 		virtual TimeSpan GetTimelineTime(float position) const;
@@ -36,19 +36,19 @@ namespace Comfy::Editor
 		void Initialize();
 
 	public:
-		inline float GetMaxScrollX() const { return Gui::GetWindowScrollMaxX(baseWindow); };
-		inline float GetScrollX() const { return baseWindow->Scroll.x; };
+		inline float GetMaxScrollX() const { return Gui::GetWindowScrollMaxX(baseWindow); }
+		inline float GetScrollX() const { return baseWindow->Scroll.x; }
 
-		inline float GetMaxScrollY() const { return maxScrollY; };
-		inline float GetScrollY() const { return scrollY; };
+		inline float GetMaxScrollY() const { return maxScrollY; }
+		inline float GetScrollY() const { return scrollY; }
 
 	protected:
 		void SetCurorAwareZoom(float newZoom);
 
-		inline void SetScrollX(float value) { baseWindow->ScrollTarget.x = value; baseWindow->ScrollTargetCenterRatio.x = 0.0f; };
+		inline void SetScrollX(float value) { baseWindow->ScrollTarget.x = value; baseWindow->ScrollTargetCenterRatio.x = 0.0f; }
 
-		inline void SetMaxScrollY(float value) { maxScrollY = value; };
-		inline void SetScrollY(float value) { scrollY = value; };
+		inline void SetMaxScrollY(float value) { maxScrollY = value; }
+		inline void SetScrollY(float value) { scrollY = value; }
 
 	protected:
 		// TODO: Initialize in derived class, each derived class then exposes its own casted getter (?)
@@ -110,7 +110,7 @@ namespace Comfy::Editor
 		static constexpr float CURSOR_HEAD_HEIGHT = 8.0f;
 
 		// ----------------------
-		virtual void OnInitialize() {};
+		virtual void OnInitialize() {}
 		// ----------------------
 		void DrawTimelineBase();
 		void DrawTimelineZoomSlider();
@@ -125,7 +125,7 @@ namespace Comfy::Editor
 		virtual void OnDrawTimlineBackground() = 0;
 		virtual void DrawTimelineCursor();
 		// ----------------------
-		virtual void OnDrawTimelineScrollBarRegion() {};
+		virtual void OnDrawTimelineScrollBarRegion() {}
 		// ----------------------
 
 		void UpdateInfoColumnInput();
@@ -149,7 +149,7 @@ namespace Comfy::Editor
 		virtual void UpdateCursorAutoScroll();
 
 		virtual float GetTimelineSize() const = 0;
-		virtual float GetTimelineHeight() const { return 0.0f; };
+		virtual float GetTimelineHeight() const { return 0.0f; }
 
 		virtual void CenterCursor();
 		virtual bool IsCursorOnScreen() const;

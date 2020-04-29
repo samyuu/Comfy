@@ -101,8 +101,8 @@ namespace Comfy::Audio
 	protected:
 		// Used by AudioEngine
 		// -------------------
-		inline void SetHasBeenRemoved(bool value) { hasBeenRemoved = value; };
-		inline void IncrementFramePosition(i64 value) { SetFramePosition(GetFramePosition() + value); };
+		inline void SetHasBeenRemoved(bool value) { hasBeenRemoved = value; }
+		inline void IncrementFramePosition(i64 value) { SetFramePosition(GetFramePosition() + value); }
 
 	public:
 		// Conversion Helper Methods

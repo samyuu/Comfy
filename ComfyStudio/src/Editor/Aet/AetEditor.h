@@ -25,8 +25,8 @@ namespace Comfy::Editor
 		const char* GetGuiName() const override;
 		ImGuiWindowFlags GetWindowFlags() const override;
 
-		inline Graphics::Aet::AetSet* GetAetSet() { return editorAetSet.get(); };
-		inline Graphics::SprSet* GetSprSet() { return sprSet.get(); };
+		inline Graphics::Aet::AetSet* GetAetSet() { return editorAetSet.get(); }
+		inline Graphics::SprSet* GetSprSet() { return sprSet.get(); }
 
 	private:
 		void UpdateFileLoading();

@@ -62,20 +62,20 @@ namespace Comfy::Graphics::D3D11
 		static_assert(sizeof(DataType) % ConstantBuffer::DataAlignmentRequirement == 0);
 
 	public:
-		ConstantBufferTemplate(u32 slot) : Data(), Buffer(slot, sizeof(DataType)) {};
-		ConstantBufferTemplate(u32 slot, const char* debugName) : Data(), Buffer(slot, sizeof(DataType)) { D3D11_SetObjectDebugName(Buffer.GetBuffer(), debugName); };
+		ConstantBufferTemplate(u32 slot) : Data(), Buffer(slot, sizeof(DataType)) {}
+		ConstantBufferTemplate(u32 slot, const char* debugName) : Data(), Buffer(slot, sizeof(DataType)) { D3D11_SetObjectDebugName(Buffer.GetBuffer(), debugName); }
 
 	public:
-		inline void BindVertexShader() { Buffer.BindVertexShader(); };
-		inline void UnBindVertexShader() { Buffer.UnBindVertexShader(); };
+		inline void BindVertexShader() { Buffer.BindVertexShader(); }
+		inline void UnBindVertexShader() { Buffer.UnBindVertexShader(); }
 
-		inline void BindPixelShader() { Buffer.BindPixelShader(); };
-		inline void UnBindPixelShader() { Buffer.UnBindPixelShader(); };
+		inline void BindPixelShader() { Buffer.BindPixelShader(); }
+		inline void UnBindPixelShader() { Buffer.UnBindPixelShader(); }
 
-		inline void BindShaders() { BindVertexShader(); BindPixelShader(); };
-		inline void UnBindShaders() { UnBindVertexShader(); UnBindPixelShader(); };
+		inline void BindShaders() { BindVertexShader(); BindPixelShader(); }
+		inline void UnBindShaders() { UnBindVertexShader(); UnBindPixelShader(); }
 
-		inline void UploadData() { Buffer.UploadData(sizeof(DataType), &Data); };
+		inline void UploadData() { Buffer.UploadData(sizeof(DataType), &Data); }
 
 	public:
 		DataType Data;

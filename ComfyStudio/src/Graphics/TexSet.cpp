@@ -153,7 +153,7 @@ namespace Comfy::Graphics
 		if (fileContent.empty())
 			return nullptr;
 
-		auto texSet = MakeUnique<TexSet>();;
+		auto texSet = MakeUnique<TexSet>();
 		{
 			texSet->Parse(fileContent.data(), fileContent.size());
 			texSet->UploadAll(nullptr);

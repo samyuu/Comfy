@@ -86,9 +86,9 @@ namespace Comfy::Editor
 		UniquePtr<Graphics::Aet::AetRenderer> aetRenderer = nullptr;
 
 		AetRenderPreviewData* previewData = nullptr;
-		
+
 		// NOTE: To handle mouse inputs when no tool is active
-		UniquePtr<ObjectMousePicker> mousePicker = nullptr;;
+		UniquePtr<ObjectMousePicker> mousePicker = nullptr;
 
 		// NOTE: To be filled during rendering and then used for mouse interactions
 		std::vector<Graphics::Aet::AetMgr::ObjCache> objectCache;

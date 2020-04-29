@@ -75,6 +75,5 @@ namespace ImGui
 			std::make_pair(FileType::Audio, ".wav;.flac;.ogg;.mp3"),
 			std::make_pair(FileType::Application, ".exe;.dll"),
 		};
-
 	};
 }

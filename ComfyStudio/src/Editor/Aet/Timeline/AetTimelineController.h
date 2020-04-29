@@ -29,11 +29,11 @@ namespace Comfy::Editor
 		// TODO: Pass in list of keyframes, check collision (?)
 		void UpdateInput();
 
-		inline bool GetIsCursorDragging() const { return isCursorScrubbing; };
-		inline const MouseSelectionData& GetSelectionData() const { return selectionData; };
+		inline bool GetIsCursorDragging() const { return isCursorScrubbing; }
+		inline const MouseSelectionData& GetSelectionData() const { return selectionData; }
 
-		inline bool GetUpdateCursorTime() const { return updateCursorTime; };
-		inline TimeSpan GetNewCursorTime() const { return newCursorTime; };
+		inline bool GetUpdateCursorTime() const { return updateCursorTime; }
+		inline TimeSpan GetNewCursorTime() const { return newCursorTime; }
 
 	private:
 		// NOTE: Set when mouse clicked while inside timelineHeaderRegion, timeline cursor set to mouse cursor

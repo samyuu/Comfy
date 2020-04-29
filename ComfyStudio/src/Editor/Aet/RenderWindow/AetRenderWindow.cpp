@@ -260,7 +260,7 @@ namespace Comfy::Editor
 		RenderWindowBase::OnResize(size);
 
 		const vec2 newProjectionSize(size);
-		camera.Position += (camera.ProjectionSize - newProjectionSize) * 0.5f;;
+		camera.Position += (camera.ProjectionSize - newProjectionSize) * 0.5f;
 		camera.ProjectionSize = newProjectionSize;
 
 		// HACK: Hacky solution to center the camera on the first frame, might wanna center on AetSet load instead

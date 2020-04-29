@@ -52,7 +52,7 @@ namespace Comfy::IO
 		inline void SkipPosition(FileAddr increment) { return underlyingStream->Seek(GetPosition() + increment); }
 
 		inline FileAddr GetLength() const { return underlyingStream->GetLength(); }
-		inline bool EndOfFile() const { return underlyingStream->GetPosition() >= underlyingStream->GetLength();; }
+		inline bool EndOfFile() const { return underlyingStream->GetPosition() >= underlyingStream->GetLength(); }
 
 		inline PtrMode GetPointerMode() const { return pointerMode; }
 		void SetPointerMode(PtrMode mode);
@@ -65,7 +65,7 @@ namespace Comfy::IO
 		void WriteStr(std::string_view value);
 		void WriteStrPtr(std::string_view value, i32 alignment = 0);
 
-		inline void WritePtr(FileAddr value) { writePtrFunc(*this, value); };
+		inline void WritePtr(FileAddr value) { writePtrFunc(*this, value); }
 		inline void WritePtr(nullptr_t) = delete;
 
 		void WritePtr(const std::function<void(StreamWriter&)>& func, FileAddr baseAddress = FileAddr::NullPtr);

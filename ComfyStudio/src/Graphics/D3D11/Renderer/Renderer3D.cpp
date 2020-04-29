@@ -1181,7 +1181,7 @@ namespace Comfy::Graphics::D3D11
 		const int meshCount = (morphMesh == nullptr) ? 1 : 2;
 		for (int meshIndex = 0; meshIndex < meshCount; meshIndex++)
 		{
-			const Mesh& mesh = (meshIndex == 0) ? primaryMesh : *morphMesh;;
+			const Mesh& mesh = (meshIndex == 0) ? primaryMesh : *morphMesh;
 			for (VertexAttribute i = 0; i < VertexAttribute_Count; i++)
 			{
 				StaticVertexBuffer* vertexBuffer = mesh.GPU_VertexBuffers[i].get();

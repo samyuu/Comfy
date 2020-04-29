@@ -27,7 +27,7 @@ namespace Comfy::App
 
 			tasks.push_back(MakeRef<T>());
 			tasks.back()->Initialize();
-		};
+		}
 
 	protected:
 		void OnResize(ivec2 size) override;

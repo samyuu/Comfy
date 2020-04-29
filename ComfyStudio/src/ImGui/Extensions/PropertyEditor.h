@@ -23,10 +23,10 @@ namespace ImGui
 		{
 			struct ID : NonCopyable
 			{
-				ID(int intID) { PushID(intID); };
-				ID(const void* ptrID) { PushID(ptrID); };
-				ID(std::string_view strID) { PushID(StringViewStart(strID), StringViewEnd(strID)); };
-				~ID() { PopID(); };
+				ID(int intID) { PushID(intID); }
+				ID(const void* ptrID) { PushID(ptrID); }
+				ID(std::string_view strID) { PushID(StringViewStart(strID), StringViewEnd(strID)); }
+				~ID() { PopID(); }
 			};
 
 			struct ItemWidth : NonCopyable

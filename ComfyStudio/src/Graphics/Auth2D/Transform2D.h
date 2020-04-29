@@ -44,12 +44,12 @@ namespace Comfy::Graphics
 		constexpr Transform2D(vec2 position)
 			: Origin(0.0f), Position(position), Rotation(0.0f), Scale(1.0f), Opacity(1.0f)
 		{
-		};
+		}
 
 		constexpr Transform2D(vec2 origin, vec2 position, float rotation, vec2 scale, float opacity)
 			: Origin(origin), Position(position), Rotation(rotation), Scale(scale), Opacity(opacity)
 		{
-		};
+		}
 
 		inline Transform2D& operator=(const Transform2D& other)
 		{

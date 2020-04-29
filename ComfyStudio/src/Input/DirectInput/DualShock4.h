@@ -28,9 +28,9 @@ namespace Comfy
 
 	public:
 		static bool TryInitializeInstance();
-		static inline bool GetInstanceInitialized() { return instance != nullptr; };
-		static inline void DeleteInstance() { delete instance; instance = nullptr; };
-		static inline DualShock4* GetInstance() { return instance; };
+		static inline bool GetInstanceInitialized() { return instance != nullptr; }
+		static inline void DeleteInstance() { delete instance; instance = nullptr; }
+		static inline DualShock4* GetInstance() { return instance; }
 
 		static inline bool IsDown(Ds4Button button) { return GetInstanceInitialized() ? GetInstance()->Instance_IsDown(button) : false; }
 		static inline bool IsUp(Ds4Button button) { return GetInstanceInitialized() ? GetInstance()->Instance_IsUp(button) : true; }

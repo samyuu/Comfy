@@ -12,7 +12,7 @@ namespace Comfy::Audio
 	i64 SilenceSampleProvider::GetFrameCount() const
 	{
 		return 0;
-	};
+	}
 
 	u32 SilenceSampleProvider::GetChannelCount() const
 	{
