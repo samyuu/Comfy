@@ -16,7 +16,7 @@ namespace ImGui
 		~RAII_PopupWindowPadding() { PopStyleVar(); }
 	};
 
-#define RAII_POPUP_WINDOW_PADDING() RAII_PopupWindowPadding uniquename(__RAII_POPUP_WINDOW_PADDING)
+#define RAII_POPUP_WINDOW_PADDING() RAII_PopupWindowPadding COMFY_UNIQUENAME(__RAII_POPUP_WINDOW_PADDING)
 
 	void UpdateExtendedState()
 	{

@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\CoreMacros.h" />
     <ClInclude Include="src\CoreTypes.h" />
     <ClInclude Include="src\Core\Algorithm.h" />
     <ClInclude Include="src\Core\DebugStopwatch.h" />

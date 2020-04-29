@@ -137,15 +137,9 @@ namespace ImGui
 }
 
 #if COMFY_DEBUG || 1 // NOTE: For when typing 10 letters is too much for the task at hand
-#ifndef STRINGIZE_DETAIL
-#define STRINGIZE_DETAIL(value) #value
-#endif /* STRINGIZE_DETAIL */
-
-#ifndef STRINGIZE
-#define STRINGIZE(value) STRINGIZE_DETAIL(value)
-#endif /* STRINGIZE */
 
 #define GUI_DEBUG_DRAG_FLOAT_WINDOW(inOutFloat) Gui::DEBUG_NOSAVE_ONCE_PER_FRAME_WINDOW(	\
-	__FUNCTION__ "(l." STRINGIZE(__LINE__) "): Debug Drag Float",							\
-	[&] { Gui::DragFloat(STRINGIZE(inOutFloat), &inOutFloat); })
+	__FUNCTION__ "(l." COMFY_STRINGIFY(__LINE__) "): Debug Drag Float",							\
+	[&] { Gui::DragFloat(COMFY_STRINGIFY(inOutFloat), &inOutFloat); })
+
 #endif /* COMFY_DEBUG || 1 */

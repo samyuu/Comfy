@@ -1,10 +1,8 @@
 #pragma once
 #include "TimeSpan.h"
+#include "CoreMacros.h"
 
-#define CONCAT_(x,y) x##y
-#define CONCAT(x,y) CONCAT_(x,y)
-#define uniquename(prefix) CONCAT(prefix, __COUNTER__)
-#define DEBUG_STOPWATCH(description) DebugStopwatch uniquename(__DEBUG_STOPWATCH)(description)
+#define COMFY_DEBUG_STOPWATCH(description) DebugStopwatch COMFY_UNIQUENAME(__DEBUG_STOPWATCH)(description)
 
 namespace Comfy
 {

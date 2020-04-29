@@ -48,7 +48,7 @@ namespace Comfy::Audio
 
 	float Waveform::GetPcmForPixel(i64 pixel) const
 	{
-		return DEBUG_RELEASE_SWITCH(pixelPCMs.at(pixel), pixelPCMs[pixel]);
+		return pixelPCMs[pixel];
 	}
 
 	size_t Waveform::GetPixelCount() const
