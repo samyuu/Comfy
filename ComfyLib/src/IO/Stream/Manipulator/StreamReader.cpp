@@ -44,13 +44,13 @@ namespace Comfy::IO
 		switch (pointerMode)
 		{
 		case PtrMode::Mode32Bit:
-			readPtrFunc = &ReadPtr32;
-			readSizeFunc = &ReadSize32;
+			readPtrFunc = &StreamReader::ReadPtr_32;
+			readSizeFunc = &StreamReader::ReadSize_32;
 			return;
 
 		case PtrMode::Mode64Bit:
-			readPtrFunc = &ReadPtr64;
-			readSizeFunc = &ReadSize64;
+			readPtrFunc = &StreamReader::ReadPtr_64;
+			readSizeFunc = &StreamReader::ReadSize_64;
 			return;
 
 		default:
@@ -64,25 +64,25 @@ namespace Comfy::IO
 		switch (endianness)
 		{
 		case Endianness::Little:
-			readI16Func = &LE_ReadI16;
-			readU16Func = &LE_ReadU16;
-			readI32Func = &LE_ReadI32;
-			readU32Func = &LE_ReadU32;
-			readI64Func = &LE_ReadI64;
-			readU64Func = &LE_ReadU64;
-			readF32Func = &LE_ReadF32;
-			readF64Func = &LE_ReadF64;
+			readI16Func = &StreamReader::ReadI16_LE;
+			readU16Func = &StreamReader::ReadU16_LE;
+			readI32Func = &StreamReader::ReadI32_LE;
+			readU32Func = &StreamReader::ReadU32_LE;
+			readI64Func = &StreamReader::ReadI64_LE;
+			readU64Func = &StreamReader::ReadU64_LE;
+			readF32Func = &StreamReader::ReadF32_LE;
+			readF64Func = &StreamReader::ReadF64_LE;
 			return;
 
 		case Endianness::Big:
-			readI16Func = &BE_ReadI16;
-			readU16Func = &BE_ReadU16;
-			readI32Func = &BE_ReadI32;
-			readU32Func = &BE_ReadU32;
-			readI64Func = &BE_ReadI64;
-			readU64Func = &BE_ReadU64;
-			readF32Func = &BE_ReadF32;
-			readF64Func = &BE_ReadF64;
+			readI16Func = &StreamReader::ReadI16_BE;
+			readU16Func = &StreamReader::ReadU16_BE;
+			readI32Func = &StreamReader::ReadI32_BE;
+			readU32Func = &StreamReader::ReadU32_BE;
+			readI64Func = &StreamReader::ReadI64_BE;
+			readU64Func = &StreamReader::ReadU64_BE;
+			readF32Func = &StreamReader::ReadF32_BE;
+			readF64Func = &StreamReader::ReadF64_BE;
 			return;
 
 		default:

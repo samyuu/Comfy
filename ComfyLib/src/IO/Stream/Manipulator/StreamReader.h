@@ -20,6 +20,7 @@ namespace Comfy::IO
 	public:
 		inline size_t ReadBuffer(void* buffer, size_t size) { return underlyingStream->ReadBuffer(buffer, size); }
 
+		// TODO: Rename to ReadType_Native (?)
 		template <typename T>
 		T ReadType() { T value; ReadBuffer(&value, sizeof(value)); return value; }
 
@@ -57,20 +58,20 @@ namespace Comfy::IO
 
 		inline std::string ReadStrPtr() { return ReadStrAt(ReadPtr()); }
 
-		inline FileAddr ReadPtr() { return readPtrFunc(*this); }
-		inline size_t ReadSize() { return readSizeFunc(*this); }
+		inline FileAddr ReadPtr() { return (this->*readPtrFunc)(); }
+		inline size_t ReadSize() { return (this->*readSizeFunc)(); }
 		inline bool ReadBool() { return ReadType<bool>(); }
 		inline char ReadChar() { return ReadType<char>(); }
 		inline i8 ReadI8() { return ReadType<i8>(); }
 		inline u8 ReadU8() { return ReadType<u8>(); }
-		inline i16 ReadI16() { return readI16Func(*this); }
-		inline u16 ReadU16() { return readU16Func(*this); }
-		inline i32 ReadI32() { return readI32Func(*this); }
-		inline u32 ReadU32() { return readU32Func(*this); }
-		inline i64 ReadI64() { return readI64Func(*this); }
-		inline u64 ReadU64() { return readU64Func(*this); }
-		inline f32 ReadF32() { return readF32Func(*this); }
-		inline f64 ReadF64() { return readF64Func(*this); }
+		inline i16 ReadI16() { return (this->*readI16Func)(); }
+		inline u16 ReadU16() { return (this->*readU16Func)(); }
+		inline i32 ReadI32() { return (this->*readI32Func)(); }
+		inline u32 ReadU32() { return (this->*readU32Func)(); }
+		inline i64 ReadI64() { return (this->*readI64Func)(); }
+		inline u64 ReadU64() { return (this->*readU64Func)(); }
+		inline f32 ReadF32() { return (this->*readF32Func)(); }
+		inline f64 ReadF64() { return (this->*readF64Func)(); }
 
 		inline vec2 ReadV2() { vec2 result; result.x = ReadF32(); result.y = ReadF32(); return result; }
 		inline vec3 ReadV3() { vec3 result; result.x = ReadF32(); result.y = ReadF32(); result.z = ReadF32(); return result; }
@@ -81,59 +82,48 @@ namespace Comfy::IO
 		inline ivec3 ReadIV3() { ivec3 result; result.x = ReadI32(); result.y = ReadI32(); result.z = ReadI32(); return result; }
 		inline ivec4 ReadIV4() { ivec4 result; result.x = ReadI32(); result.y = ReadI32(); result.z = ReadI32(); result.w = ReadI32(); return result; }
 
+	public:
+		inline FileAddr ReadPtr_32() { return static_cast<FileAddr>(ReadI32()); }
+		inline FileAddr ReadPtr_64() { return static_cast<FileAddr>(ReadI64()); }
+
+		inline size_t ReadSize_32() { return static_cast<size_t>(ReadU32()); }
+		inline size_t ReadSize_64() { return static_cast<size_t>(ReadU64()); }
+
+		inline i16 ReadI16_LE() { return ReadType<i16>(); }
+		inline u16 ReadU16_LE() { return ReadType<u16>(); }
+		inline i32 ReadI32_LE() { return ReadType<i32>(); }
+		inline u32 ReadU32_LE() { return ReadType<u32>(); }
+		inline i64 ReadI64_LE() { return ReadType<i64>(); }
+		inline u64 ReadU64_LE() { return ReadType<u64>(); }
+		inline f32 ReadF32_LE() { return ReadType<f32>(); }
+		inline f64 ReadF64_LE() { return ReadType<f64>(); }
+
+		inline i16 ReadI16_BE() { return Utilities::ByteSwapI16(ReadI16_LE()); }
+		inline u16 ReadU16_BE() { return Utilities::ByteSwapU16(ReadU16_LE()); }
+		inline i32 ReadI32_BE() { return Utilities::ByteSwapI32(ReadI32_LE()); }
+		inline u32 ReadU32_BE() { return Utilities::ByteSwapU32(ReadU32_LE()); }
+		inline i64 ReadI64_BE() { return Utilities::ByteSwapI64(ReadI64_LE()); }
+		inline u64 ReadU64_BE() { return Utilities::ByteSwapU64(ReadU64_LE()); }
+		inline f32 ReadF32_BE() { return Utilities::ByteSwapF32(ReadF32_LE()); }
+		inline f64 ReadF64_BE() { return Utilities::ByteSwapF64(ReadF64_LE()); }
+
 	protected:
 		void OnPointerModeChanged() override;
 		void OnEndiannessChanged() override;
 
 	private:
-		using ReadPtrFunc = FileAddr(StreamReader&);
-		using ReadSizeFunc = size_t(StreamReader&);
-		using ReadI16Func = i16(StreamReader&);
-		using ReadU16Func = u16(StreamReader&);
-		using ReadI32Func = i32(StreamReader&);
-		using ReadU32Func = u32(StreamReader&);
-		using ReadI64Func = i64(StreamReader&);
-		using ReadU64Func = u64(StreamReader&);
-		using ReadF32Func = f32(StreamReader&);
-		using ReadF64Func = f64(StreamReader&);
-
-		ReadPtrFunc* readPtrFunc = nullptr;
-		ReadSizeFunc* readSizeFunc = nullptr;
-		ReadI16Func* readI16Func = nullptr;
-		ReadU16Func* readU16Func = nullptr;
-		ReadI32Func* readI32Func = nullptr;
-		ReadU32Func* readU32Func = nullptr;
-		ReadI64Func* readI64Func = nullptr;
-		ReadU64Func* readU64Func = nullptr;
-		ReadF32Func* readF32Func = nullptr;
-		ReadF64Func* readF64Func = nullptr;
+		FileAddr(StreamReader::*readPtrFunc)() = nullptr;
+		size_t(StreamReader::*readSizeFunc)() = nullptr;
+		i16(StreamReader::*readI16Func)() = nullptr;
+		u16(StreamReader::*readU16Func)() = nullptr;
+		i32(StreamReader::*readI32Func)() = nullptr;
+		u32(StreamReader::*readU32Func)() = nullptr;
+		i64(StreamReader::*readI64Func)() = nullptr;
+		u64(StreamReader::*readU64Func)() = nullptr;
+		f32(StreamReader::*readF32Func)() = nullptr;
+		f64(StreamReader::*readF64Func)() = nullptr;
 
 		// TODO: Remove (?)
 		FileAddr streamSeekOffset = {};
-
-	private:
-		static FileAddr ReadPtr32(StreamReader& reader) { return static_cast<FileAddr>(reader.ReadI32()); }
-		static FileAddr ReadPtr64(StreamReader& reader) { return static_cast<FileAddr>(reader.ReadI64()); }
-
-		static size_t ReadSize32(StreamReader& reader) { return static_cast<size_t>(reader.ReadU32()); }
-		static size_t ReadSize64(StreamReader& reader) { return static_cast<size_t>(reader.ReadU64()); }
-
-		static i16 LE_ReadI16(StreamReader& reader) { return reader.ReadType<i16>(); }
-		static u16 LE_ReadU16(StreamReader& reader) { return reader.ReadType<u16>(); }
-		static i32 LE_ReadI32(StreamReader& reader) { return reader.ReadType<i32>(); }
-		static u32 LE_ReadU32(StreamReader& reader) { return reader.ReadType<u32>(); }
-		static i64 LE_ReadI64(StreamReader& reader) { return reader.ReadType<i64>(); }
-		static u64 LE_ReadU64(StreamReader& reader) { return reader.ReadType<u64>(); }
-		static f32 LE_ReadF32(StreamReader& reader) { return reader.ReadType<f32>(); }
-		static f64 LE_ReadF64(StreamReader& reader) { return reader.ReadType<f64>(); }
-
-		static i16 BE_ReadI16(StreamReader& reader) { return Utilities::ByteSwapI16(reader.ReadType<i16>()); }
-		static u16 BE_ReadU16(StreamReader& reader) { return Utilities::ByteSwapU16(reader.ReadType<u16>()); }
-		static i32 BE_ReadI32(StreamReader& reader) { return Utilities::ByteSwapI32(reader.ReadType<i32>()); }
-		static u32 BE_ReadU32(StreamReader& reader) { return Utilities::ByteSwapU32(reader.ReadType<u32>()); }
-		static i64 BE_ReadI64(StreamReader& reader) { return Utilities::ByteSwapI64(reader.ReadType<i64>()); }
-		static u64 BE_ReadU64(StreamReader& reader) { return Utilities::ByteSwapU64(reader.ReadType<u64>()); }
-		static f32 BE_ReadF32(StreamReader& reader) { return Utilities::ByteSwapF32(reader.ReadType<f32>()); }
-		static f64 BE_ReadF64(StreamReader& reader) { return Utilities::ByteSwapF64(reader.ReadType<f64>()); }
 	};
 }
