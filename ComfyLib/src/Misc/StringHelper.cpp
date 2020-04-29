@@ -55,7 +55,8 @@ namespace Comfy::Utilities
 
 	bool StartsWithInsensitive(std::string_view string, std::string_view prefix)
 	{
-		return std::equal(prefix.begin(), prefix.end(), string.begin());
+		// return std::equal(prefix.begin(), prefix.end(), string.begin());
+		return (string.size() >= prefix.size() && MatchesInsensitive(string.substr(0, prefix.size()), prefix));
 	}
 
 	bool EndsWith(std::string_view string, char suffix)
