@@ -20,7 +20,8 @@ namespace Comfy::App
 		void OnRender() override;
 		void PostDrawGui() override;
 
-		template <typename T> void StartTask() 
+		template <typename T>
+		void StartTask()
 		{
 			static_assert(std::is_base_of<Task, T>::value, "T must inherit from Task");
 

@@ -38,19 +38,19 @@ namespace Comfy::Editor
 	{
 	public:
 		template <typename T>
-		inline void SetItem(const RefPtr<T>& value);
+		void SetItem(const RefPtr<T>& value);
 
-		inline AetItemType Type() const { return type; };
-		inline void Reset() { type = AetItemType::None; Ptrs.Void = nullptr; refPtrs.VoidRef = nullptr; };
+		inline AetItemType Type() const { return type; }
+		inline void Reset() { type = AetItemType::None; Ptrs.Void = nullptr; refPtrs.VoidRef = nullptr; }
 
 	public:
-		inline const RefPtr<Graphics::Aet::AetSet>& GetAetSetRef() const { return *refPtrs.AetSetRef; };
-		inline const RefPtr<Graphics::Aet::Scene>& GetSceneRef() const { return *refPtrs.SceneRef; };
-		inline const RefPtr<Graphics::Aet::Composition>& GetCompositionRef() const { return *refPtrs.CompositionRef; };
-		inline const RefPtr<Graphics::Aet::Layer>& GetLayerRef() const { return *refPtrs.LayerRef; };
-		inline const RefPtr<Graphics::Aet::Video>& GetVideoRef() const { return *refPtrs.VideoRef; };
+		inline const RefPtr<Graphics::Aet::AetSet>& GetAetSetRef() const { return *refPtrs.AetSetRef; }
+		inline const RefPtr<Graphics::Aet::Scene>& GetSceneRef() const { return *refPtrs.SceneRef; }
+		inline const RefPtr<Graphics::Aet::Composition>& GetCompositionRef() const { return *refPtrs.CompositionRef; }
+		inline const RefPtr<Graphics::Aet::Layer>& GetLayerRef() const { return *refPtrs.LayerRef; }
+		inline const RefPtr<Graphics::Aet::Video>& GetVideoRef() const { return *refPtrs.VideoRef; }
 
-		inline bool IsNull() const { return Ptrs.Void == nullptr; };
+		inline bool IsNull() const { return Ptrs.Void == nullptr; }
 		inline Graphics::Aet::Scene* GetItemParentScene() const;
 
 	public:
@@ -62,7 +62,7 @@ namespace Comfy::Editor
 	};
 
 	template <typename T>
-	inline void AetItemTypePtr::SetItem(const RefPtr<T>& value)
+	void AetItemTypePtr::SetItem(const RefPtr<T>& value)
 	{
 		if constexpr (std::is_same<T, Graphics::Aet::AetSet>::value)
 			type = AetItemType::AetSet;
@@ -81,7 +81,7 @@ namespace Comfy::Editor
 		refPtrs.VoidRef = reinterpret_cast<const RefPtr<void*>*>(&value);
 	}
 
-	inline Graphics::Aet::Scene* AetItemTypePtr::GetItemParentScene() const
+	Graphics::Aet::Scene* AetItemTypePtr::GetItemParentScene() const
 	{
 		if (IsNull())
 			return nullptr;

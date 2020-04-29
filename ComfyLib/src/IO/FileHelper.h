@@ -42,12 +42,12 @@ namespace Comfy::IO
 	bool ReadAllBytes(std::string_view filePath, void* buffer, size_t bufferSize);
 
 	template <typename T>
-	inline bool ReadAllBytes(std::string_view filePath, T* buffer) { return ReadAllBytes(filePath, buffer, sizeof(T)); };
+	bool ReadAllBytes(std::string_view filePath, T* buffer) { return ReadAllBytes(filePath, buffer, sizeof(T)); }
 
 	bool WriteAllBytes(std::string_view filePath, const void* buffer, size_t bufferSize);
 
 	template <typename T>
-	inline bool WriteAllBytes(std::string_view filePath, const T& buffer) { return WriteAllBytes(filePath, &buffer, sizeof(T)); };
+	bool WriteAllBytes(std::string_view filePath, const T& buffer) { return WriteAllBytes(filePath, &buffer, sizeof(T)); }
 
 	bool WriteAllBytes(std::string_view filePath, const std::vector<u8>& buffer);
 	bool ReadAllLines(std::string_view filePath, std::vector<std::string>* buffer);

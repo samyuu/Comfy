@@ -11,7 +11,7 @@ namespace Comfy::Editor
 	{
 	public:
 		template <typename TCommand, typename TRef, typename TValue>
-		inline void AddOrUpdateCommand(Command::AetCommandType commandType, const RefPtr<TRef>& ref, const TValue& value)
+		void AddOrUpdateCommand(Command::AetCommandType commandType, const RefPtr<TRef>& ref, const TValue& value)
 		{
 			AetCommand* lastStackCommand = !undoStack.empty() ? undoStack.back().get() : nullptr;
 			TCommand* lastCommand = (lastStackCommand != nullptr && lastStackCommand->GetType() == commandType) ? static_cast<TCommand*>(lastStackCommand) : nullptr;

@@ -41,7 +41,7 @@ namespace Comfy::Editor
 
 		// NOTE: Little helper function
 		template <typename T>
-		static inline T Snap(T value, T precision)
+		static T Snap(T value, T precision)
 		{
 			return glm::round(value / precision) * precision;
 		}

@@ -23,7 +23,7 @@ namespace Comfy::Audio
 		std::vector<UniquePtr<IAudioDecoder>> availableDecoders;
 	
 		template <typename T>
-		inline void RegisterDecoder()
+		void RegisterDecoder()
 		{
 			static_assert(std::is_base_of<IAudioDecoder, T>::value, "T must inherit from IAudioDecoder");
 			availableDecoders.push_back(MakeUnique<T>());

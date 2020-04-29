@@ -49,14 +49,14 @@ namespace Comfy::Editor
 
 	template<class TCommand>
 	template<class TNewCommand, class... Types>
-	inline void CommandManager<TCommand>::EnqueueCommand(Types&&... args)
+	void CommandManager<TCommand>::EnqueueCommand(Types&&... args)
 	{
 		static_assert(std::is_base_of<TCommand, TNewCommand>::value, "TNewCommand must inherit from TCommand");
 		commandQueue.push(MakeRef<TNewCommand>(std::forward<Types>(args)...));
 	}
 
 	template<class TCommand>
-	inline void CommandManager<TCommand>::ExecuteClearCommandQueue()
+	void CommandManager<TCommand>::ExecuteClearCommandQueue()
 	{
 		while (!commandQueue.empty())
 		{
@@ -66,7 +66,7 @@ namespace Comfy::Editor
 	}
 
 	template<class TCommand>
-	inline void CommandManager<TCommand>::Execute(const RefPtr<TCommand>& command)
+	void CommandManager<TCommand>::Execute(const RefPtr<TCommand>& command)
 	{
 		redoStack.clear();
 
@@ -75,7 +75,7 @@ namespace Comfy::Editor
 	}
 
 	template<class TCommand>
-	inline void CommandManager<TCommand>::Undo()
+	void CommandManager<TCommand>::Undo()
 	{
 		if (undoStack.empty())
 			return;
@@ -88,7 +88,7 @@ namespace Comfy::Editor
 	}
 
 	template<class TCommand>
-	inline void CommandManager<TCommand>::Redo()
+	void CommandManager<TCommand>::Redo()
 	{
 		if (redoStack.empty())
 			return;
@@ -101,7 +101,7 @@ namespace Comfy::Editor
 	}
 
 	template<class TCommand>
-	inline void CommandManager<TCommand>::Clear()
+	void CommandManager<TCommand>::Clear()
 	{
 		if (!commandQueue.empty())
 			commandQueue = {};

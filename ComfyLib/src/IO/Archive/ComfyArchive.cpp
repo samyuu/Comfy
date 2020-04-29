@@ -188,13 +188,13 @@ namespace Comfy::IO
 	namespace
 	{
 		template <typename T>
-		inline void RemapFileSpacePointer(u8* dataBuffer, T*& fileSpacePointer)
+		void RemapFileSpacePointer(u8* dataBuffer, T*& fileSpacePointer)
 		{
 			fileSpacePointer = reinterpret_cast<T*>(&dataBuffer[reinterpret_cast<uintptr_t>(fileSpacePointer)]);
 		}
 
 		template <typename T>
-		inline void RemapFileSpacePointerIfNotNull(u8* dataBuffer, T*& fileSpacePointer)
+		void RemapFileSpacePointerIfNotNull(u8* dataBuffer, T*& fileSpacePointer)
 		{
 			if (fileSpacePointer != nullptr)
 				RemapFileSpacePointer(dataBuffer, fileSpacePointer);

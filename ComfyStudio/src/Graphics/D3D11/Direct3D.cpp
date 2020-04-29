@@ -7,7 +7,7 @@ namespace Comfy::Graphics::D3D11
 	namespace
 	{
 		template <typename T>
-		inline void DisposeReleaseSetNullIfNotNull(T*& resourcePointerReference)
+		void DisposeReleaseSetNullIfNotNull(T*& resourcePointerReference)
 		{
 			if (resourcePointerReference == nullptr)
 				return;

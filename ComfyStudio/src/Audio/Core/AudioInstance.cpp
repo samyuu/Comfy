@@ -170,12 +170,12 @@ namespace Comfy::Audio
 		return TimeSpanToFrames(time, GetSampleRate());
 	}
 
-	inline TimeSpan AudioInstance::FramesToTimeSpan(double frames, double sampleRate)
+	TimeSpan AudioInstance::FramesToTimeSpan(double frames, double sampleRate)
 	{
 		return TimeSpan::FromSeconds(frames / sampleRate);
 	}
 
-	inline i64 AudioInstance::TimeSpanToFrames(TimeSpan time, double sampleRate)
+	i64 AudioInstance::TimeSpanToFrames(TimeSpan time, double sampleRate)
 	{
 		return static_cast<i64>(time.TotalSeconds() * sampleRate);
 	}

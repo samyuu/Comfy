@@ -10,7 +10,7 @@ namespace Comfy::IO
 
 	public:
 		template<typename T>
-		static inline bool ReadEntireFile(std::string_view filePath, std::vector<T>* buffer)
+		static bool ReadEntireFile(std::string_view filePath, std::vector<T>* buffer)
 		{
 			auto fileHandle = CreateFileHandle(filePath, true);
 			bool isValidHandle = reinterpret_cast<int64_t>(fileHandle) > 0;

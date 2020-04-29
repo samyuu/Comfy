@@ -99,7 +99,7 @@ namespace ImGui
 			}
 
 			template <typename Func>
-			inline bool TreeNode(std::string_view label, std::string_view valueLabel, ImGuiTreeNodeFlags flags, Func func)
+			bool TreeNode(std::string_view label, std::string_view valueLabel, ImGuiTreeNodeFlags flags, Func func)
 			{
 				Detail::PerItemSeparator();
 				RAII::TreeNode treeNode(label, flags, valueLabel);
@@ -109,7 +109,7 @@ namespace ImGui
 			}
 
 			template <typename Func>
-			inline bool TreeNode(std::string_view label, ImGuiTreeNodeFlags flags, Func func)
+			bool TreeNode(std::string_view label, ImGuiTreeNodeFlags flags, Func func)
 			{
 				Detail::PerItemSeparator();
 				RAII::TreeNode treeNode(label, flags);
@@ -119,13 +119,13 @@ namespace ImGui
 			}
 
 			template <typename Func>
-			inline bool TreeNode(std::string_view label, Func func)
+			bool TreeNode(std::string_view label, Func func)
 			{
 				return TreeNode(label, ImGuiTreeNodeFlags_None, func);
 			}
 
 			template <typename PropertyFunc, typename ValueFunc>
-			inline bool PropertyFuncValueFunc(PropertyFunc propertyGuiFunc, ValueFunc valueGuiFunc)
+			bool PropertyFuncValueFunc(PropertyFunc propertyGuiFunc, ValueFunc valueGuiFunc)
 			{
 				Detail::PerItemSeparator();
 				AlignTextToFramePadding();
@@ -140,7 +140,7 @@ namespace ImGui
 			}
 
 			template <typename Func>
-			inline bool PropertyLabelValueFunc(std::string_view label, Func valueGuiFunc)
+			bool PropertyLabelValueFunc(std::string_view label, Func valueGuiFunc)
 			{
 				RAII::ID id(label);
 				return PropertyFuncValueFunc([&]
@@ -197,7 +197,7 @@ namespace ImGui
 				}
 
 				template <typename T>
-				inline bool DragTextT(std::string_view label, T& inOutValue, float speed, T* min, T* max, float width)
+				bool DragTextT(std::string_view label, T& inOutValue, float speed, T* min, T* max, float width)
 				{
 					ImGuiWindow* window = GetCurrentWindow();
 					const ImGuiID id = window->GetID(&inOutValue);
@@ -249,7 +249,7 @@ namespace ImGui
 				}
 
 				template <typename ValueType>
-				inline bool InputVec1DragBase(std::string_view label, ValueType& inOutValue, float dragSpeed, std::optional<glm::vec<2, ValueType>> dragRange)
+				bool InputVec1DragBase(std::string_view label, ValueType& inOutValue, float dragSpeed, std::optional<glm::vec<2, ValueType>> dragRange)
 				{
 					RAII::ID id(label);
 					return PropertyFuncValueFunc([&]
@@ -277,7 +277,7 @@ namespace ImGui
 				}
 
 				template <typename VecType, typename ValueType>
-				inline bool InputVecNDragPropertyBase(VecType& inOutValue, float dragSpeed, std::optional<glm::vec<2, ValueType>> dragRange, ComponentFlags disabledComponents)
+				bool InputVecNDragPropertyBase(VecType& inOutValue, float dragSpeed, std::optional<glm::vec<2, ValueType>> dragRange, ComponentFlags disabledComponents)
 				{
 					static constexpr std::array<std::string_view, 4> componentLabels = { "  X  ", "  Y  ", "  Z  ", "  W  " };
 
@@ -416,7 +416,7 @@ namespace ImGui
 
 			// NOTE: IndexToStringFunc should handle index validation itself (range checking for arrays), nullptr returns will be skipped
 			template <typename IndexToStringFunc>
-			inline bool Combo(std::string_view label, int& inOutIndex, int startRange, int endRange, ImGuiComboFlags flags, IndexToStringFunc indexToString, ComboResult* outResult = nullptr)
+			bool Combo(std::string_view label, int& inOutIndex, int startRange, int endRange, ImGuiComboFlags flags, IndexToStringFunc indexToString, ComboResult* outResult = nullptr)
 			{
 				return PropertyLabelValueFunc(label, [&]
 				{
@@ -462,13 +462,13 @@ namespace ImGui
 			}
 
 			template <typename IndexToStringFunc>
-			inline bool Combo(std::string_view label, int& inOutIndex, int startRange, int endRange, IndexToStringFunc indexToString)
+			bool Combo(std::string_view label, int& inOutIndex, int startRange, int endRange, IndexToStringFunc indexToString)
 			{
 				return Combo(label, inOutIndex, startRange, endRange, ImGuiComboFlags_None, indexToString);
 			}
 
 			template <typename EnumType, size_t ArraySize>
-			inline bool Combo(std::string_view label, EnumType& inOutEnum, const std::array<const char*, ArraySize>& nameLookup, ImGuiComboFlags flags = ImGuiComboFlags_None)
+			bool Combo(std::string_view label, EnumType& inOutEnum, const std::array<const char*, ArraySize>& nameLookup, ImGuiComboFlags flags = ImGuiComboFlags_None)
 			{
 				static_assert(sizeof(EnumType) <= sizeof(int));
 

@@ -14,7 +14,7 @@ namespace Comfy::Graphics
 		private:
 			// NOTE: Use a template so the A3DKeyFrameType check can be done outside the keyFrameCount loop as a constexpr if without duplicating code
 			template <typename TValue, A3DKeyFrameType TType>
-			inline void ParseProperty1DRawDataValueList(A3DProperty1D& output)
+			void ParseProperty1DRawDataValueList(A3DProperty1D& output)
 			{
 				constexpr std::array<size_t, static_cast<size_t>(A3DKeyFrameType::Count)> valuesPerKeyFramePerType = { 1, 2, 3, 4 };
 				constexpr size_t valuesPerKeyFrame = valuesPerKeyFramePerType[static_cast<size_t>(TType)];

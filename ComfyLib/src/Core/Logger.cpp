@@ -46,12 +46,12 @@ namespace Comfy
 		putchar('\n');
 	}
 
-	inline FILE* Logger::GetStream()
+	FILE* Logger::GetStream()
 	{
 		return stdout;
 	}
 
-	inline FILE* Logger::GetErrorStream()
+	FILE* Logger::GetErrorStream()
 	{
 		return stderr;
 	}

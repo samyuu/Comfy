@@ -44,13 +44,13 @@ namespace Comfy::Utilities::StringParsing
 		}
 
 		template <typename T>
-		inline T ParseValueString()
+		T ParseValueString()
 		{
 			return StringParsing::ParseType<T>(ParseValueString());
 		}
 
 		template <typename T>
-		inline T ParseEnumValueString()
+		T ParseEnumValueString()
 		{
 			return static_cast<T>(StringParsing::ParseType<u32>(ParseValueString()));
 		}
@@ -77,7 +77,7 @@ namespace Comfy::Utilities::StringParsing
 		}
 
 		template <typename T>
-		inline bool TryParseLength(std::vector<T>& vector, std::string_view lengthIdentifier = "length")
+		bool TryParseLength(std::vector<T>& vector, std::string_view lengthIdentifier = "length")
 		{
 			if (CompareProperty(lengthIdentifier))
 			{
@@ -96,7 +96,7 @@ namespace Comfy::Utilities::StringParsing
 		}
 
 		template <typename T>
-		inline void ParseCommaSeparatedArray(std::string_view commaSeparatedData, T* outputValues, size_t valueCount)
+		void ParseCommaSeparatedArray(std::string_view commaSeparatedData, T* outputValues, size_t valueCount)
 		{
 			size_t dataIndex = 0, lastCommaIndex = 0;
 			for (int64_t i = 0; i < static_cast<int64_t>(commaSeparatedData.size()); i++)
@@ -114,13 +114,13 @@ namespace Comfy::Utilities::StringParsing
 		}
 
 		template <typename T>
-		inline void ParseCommaSeparatedArray(T* outputValues, size_t valueCount)
+		void ParseCommaSeparatedArray(T* outputValues, size_t valueCount)
 		{
 			return ParseCommaSeparatedArray<T>(state.CurrentValueString, outputValues, valueCount);
 		}
 
 		template <typename T>
-		inline T ParseAdvanceCommaSeparatedValueString()
+		T ParseAdvanceCommaSeparatedValueString()
 		{
 			auto valueSubString = state.CurrentValueString;
 			for (int64_t i = 0; i < static_cast<int64_t>(valueSubString.size()); i++)
@@ -145,7 +145,7 @@ namespace Comfy::Utilities::StringParsing
 		}
 
 		template <typename T, size_t TSize, bool TParentheses = true>
-		inline std::array<T, TSize> ParseCommaSeparatedArray()
+		std::array<T, TSize> ParseCommaSeparatedArray()
 		{
 			// NOTE: Optionally remove surrounding parentheses
 			std::string_view commaSeparatedData = TParentheses ? (state.CurrentValueString.substr(1, state.CurrentValueString.size() - 2)) : state.CurrentValueString;

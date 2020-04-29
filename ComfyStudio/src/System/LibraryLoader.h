@@ -16,7 +16,7 @@ namespace Comfy::System
 		void* GetFunctionAddress(const char* functionName) const;
 		
 		template <typename T>
-		inline T* GetFunctionAddress(const char* functionName) const
+		T* GetFunctionAddress(const char* functionName) const
 		{
 			static_assert(std::is_function<T>::value, "T must be a function type");
 			return reinterpret_cast<T*>(GetFunctionAddress(functionName));

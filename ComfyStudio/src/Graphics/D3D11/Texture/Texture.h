@@ -104,7 +104,7 @@ namespace Comfy::Graphics::D3D11
 	};
 
 	template<size_t Size>
-	inline void ShaderResourceView::BindArray(u32 startSlot, const std::array<ShaderResourceView*, Size>& resources)
+	void ShaderResourceView::BindArray(u32 startSlot, const std::array<ShaderResourceView*, Size>& resources)
 	{
 		std::array<ID3D11ShaderResourceView*, Size> resourceViews;
 

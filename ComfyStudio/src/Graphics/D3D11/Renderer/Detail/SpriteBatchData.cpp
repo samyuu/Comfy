@@ -4,17 +4,17 @@ namespace Comfy::Graphics::D3D11
 {
 	namespace
 	{
-		inline u32 FloatToUInt32Sat(float value)
+		constexpr u32 FloatToUInt32Sat(float value)
 		{
 			return static_cast<u32>(((value < 0.0f) ? 0.0f : (value > 1.0f) ? 1.0f : value) * 255.0f + 0.5f);
 		};
 
-		inline u32 Vec4ToUInt32(const vec4& value)
+		constexpr u32 Vec4ToUInt32(const vec4& value)
 		{
 			return ((FloatToUInt32Sat(value.x)) << 0) | ((FloatToUInt32Sat(value.y)) << 8) | ((FloatToUInt32Sat(value.z)) << 16) | ((FloatToUInt32Sat(value.w)) << 24);
 		}
 
-		inline void RotateVec2(vec2& point, float sin, float cos)
+		constexpr void RotateVec2(vec2& point, float sin, float cos)
 		{
 			point = vec2(point.x * cos - point.y * sin, point.x * sin + point.y * cos);
 		}

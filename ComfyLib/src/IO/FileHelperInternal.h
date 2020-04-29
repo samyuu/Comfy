@@ -4,7 +4,7 @@
 namespace Comfy::IO
 {
 	template <typename T>
-	inline auto NullTerminatedPathBufferInternal(std::basic_string_view<T> path)
+	auto NullTerminatedPathBufferInternal(std::basic_string_view<T> path)
 	{
 		const size_t pathCharacterCount = std::clamp(path.size(), static_cast<size_t>(1), MAX_PATH * sizeof(T));
 
@@ -17,7 +17,7 @@ namespace Comfy::IO
 	}
 
 	template <typename T>
-	inline auto CreateFileHandleInternal(std::basic_string_view<T> path, bool read)
+	auto CreateFileHandleInternal(std::basic_string_view<T> path, bool read)
 	{
 		auto pathBuffer = NullTerminatedPathBufferInternal(path);
 

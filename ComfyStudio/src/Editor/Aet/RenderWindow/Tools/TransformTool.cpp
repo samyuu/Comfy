@@ -42,7 +42,7 @@ namespace Comfy::Editor
 			DrawBoxNode(drawList, box.Left(), nodeColor, rotation);
 		}
 
-		inline float AngleBetween(const vec2& pointA, const vec2& pointB)
+		float AngleBetween(const vec2& pointA, const vec2& pointB)
 		{
 			return glm::degrees(glm::atan(pointA.y - pointB.y, pointA.x - pointB.x));
 		}

@@ -109,7 +109,7 @@ namespace ImGui
 	}
 
 	template <typename Func>
-	inline void DEBUG_NOSAVE_WINDOW(const char* windowName, Func function, ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysAutoResize)
+	void DEBUG_NOSAVE_WINDOW(const char* windowName, Func function, ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysAutoResize)
 	{
 		constexpr ImGuiWindowFlags defaultFlags = (ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking);
 		if (Begin(windowName, nullptr, flags | defaultFlags))
@@ -118,7 +118,7 @@ namespace ImGui
 	}
 
 	template <typename Func>
-	inline void DEBUG_NOSAVE_ONCE_PER_FRAME_WINDOW(const char* windowName, Func function, ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysAutoResize)
+	void DEBUG_NOSAVE_ONCE_PER_FRAME_WINDOW(const char* windowName, Func function, ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysAutoResize)
 	{
 		constexpr ImGuiWindowFlags defaultFlags = (ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking);
 		if (Begin(windowName, nullptr, flags | defaultFlags))

@@ -68,7 +68,7 @@ namespace Comfy::Editor
 		return -1;
 	}
 
-	inline i64 TargetList::Count()
+	i64 TargetList::Count()
 	{
 		return collection.size();
 	}

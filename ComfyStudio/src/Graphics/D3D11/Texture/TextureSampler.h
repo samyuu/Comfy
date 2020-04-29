@@ -32,7 +32,7 @@ namespace Comfy::Graphics::D3D11
 	};
 
 	template<size_t Size>
-	inline void TextureSampler::BindArray(u32 startSlot, const std::array<TextureSampler*, Size>& samplers)
+	void TextureSampler::BindArray(u32 startSlot, const std::array<TextureSampler*, Size>& samplers)
 	{
 		std::array<ID3D11SamplerState*, Size> samplerStates;
 
