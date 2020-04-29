@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
-#include "IO/Stream/Stream.h"
+#include "IO/Stream/IStream.h"
 
 namespace Comfy::IO
 {

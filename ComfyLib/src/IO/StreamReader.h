@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
-#include "Stream/Stream.h"
+#include "Stream/IStream.h"
 #include "BinaryMode.h"
 #include "Misc/EndianHelper.h"
 
@@ -48,7 +48,7 @@ namespace Comfy::IO
 		inline void SetPosition(FileAddr position) { return underlyingStream->Seek(position + streamSeekOffset); }
 
 		inline FileAddr GetLength() const { return underlyingStream->GetLength(); }
-		inline bool EndOfFile() const { return underlyingStream->EndOfFile(); }
+		inline bool EndOfFile() const { return underlyingStream->GetPosition() >= underlyingStream->GetLength(); }
 
 		inline FileAddr GetStreamSeekOffset() const { return streamSeekOffset; }
 		inline void SetStreamSeekOffset(FileAddr value) { streamSeekOffset = value; }

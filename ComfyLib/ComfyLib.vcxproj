@@ -32,7 +32,7 @@
     <ClInclude Include="src\IO\FileReader.h" />
     <ClInclude Include="src\IO\Stream\FileStream.h" />
     <ClInclude Include="src\IO\Stream\MemoryStream.h" />
-    <ClInclude Include="src\IO\Stream\Stream.h" />
+    <ClInclude Include="src\IO\Stream\IStream.h" />
     <ClInclude Include="src\IntegralTypes.h" />
     <ClInclude Include="src\Misc\EndianHelper.h" />
     <ClInclude Include="src\Misc\FileExtensionHelper.h" />
@@ -57,7 +57,6 @@
     <ClCompile Include="src\IO\FileReader.cpp" />
     <ClCompile Include="src\IO\Stream\FileStream.cpp" />
     <ClCompile Include="src\IO\Stream\MemoryStream.cpp" />
-    <ClCompile Include="src\IO\Stream\Stream.cpp" />
     <ClCompile Include="src\Misc\FileExtensionHelper.cpp" />
     <ClCompile Include="src\Misc\ImageHelper.cpp" />
     <ClCompile Include="src\Misc\StringHelper.cpp" />

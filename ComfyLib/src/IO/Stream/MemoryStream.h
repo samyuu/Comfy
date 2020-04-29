@@ -1,10 +1,10 @@
 #pragma once
-#include "Stream.h"
+#include "IStream.h"
 #include "CoreTypes.h"
 
 namespace Comfy::IO
 {
-	class MemoryStream final : public StreamBase
+	class MemoryStream final : public IStream, NonCopyable
 	{
 	public:
 		MemoryStream();

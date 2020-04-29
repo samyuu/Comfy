@@ -65,7 +65,9 @@ namespace Comfy::IO
 	size_t MemoryStream::ReadBuffer(void* buffer, size_t size)
 	{
 		assert(canRead);
-		i64 bytesRead = std::min(static_cast<i64>(size), static_cast<i64>(RemainingBytes()));
+
+		const auto remainingSize = (GetLength() - GetPosition());
+		const i64 bytesRead = std::min(static_cast<i64>(size), static_cast<i64>(remainingSize));
 
 		void* source = &(*dataSource)[static_cast<size_t>(position)];
 		memcpy(buffer, source, bytesRead);
@@ -105,7 +107,7 @@ namespace Comfy::IO
 		assert(stream.CanRead());
 
 		canRead = true;
-		dataSize = stream.RemainingBytes();
+		dataSize = stream.GetLength() - stream.GetPosition();
 		dataSource->resize(static_cast<size_t>(dataSize));
 
 		const auto prePos = stream.GetPosition();

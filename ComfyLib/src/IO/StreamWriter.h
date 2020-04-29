@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
-#include "Stream/Stream.h"
+#include "Stream/IStream.h"
 #include "BinaryMode.h"
 #include <list>
 #include <map>
@@ -52,7 +52,7 @@ namespace Comfy::IO
 		inline void SkipPosition(FileAddr increment) { return underlyingStream->Seek(GetPosition() + increment); }
 
 		inline FileAddr GetLength() const { return underlyingStream->GetLength(); }
-		inline bool EndOfFile() const { return underlyingStream->EndOfFile(); }
+		inline bool EndOfFile() const { return underlyingStream->GetPosition() >= underlyingStream->GetLength();; }
 
 		inline PtrMode GetPointerMode() const { return pointerMode; }
 		void SetPointerMode(PtrMode mode);

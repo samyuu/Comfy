@@ -1,10 +1,10 @@
 #pragma once
-#include "Stream.h"
+#include "IStream.h"
 #include "CoreTypes.h"
 
 namespace Comfy::IO
 {
-	class FileStream final : public StreamBase
+	class FileStream final : public IStream, NonCopyable
 	{
 	public:
 		FileStream() = default;
@@ -30,13 +30,14 @@ namespace Comfy::IO
 		void Close() override;
 
 	protected:
+		void UpdateFileSize();
+
+	protected:
 		bool canRead = false;
 		bool canWrite = false;
 		FileAddr position = {};
 		FileAddr fileSize = {};
 
 		void* fileHandle = nullptr;
-
-		void UpdateFileSize();
 	};
 }
