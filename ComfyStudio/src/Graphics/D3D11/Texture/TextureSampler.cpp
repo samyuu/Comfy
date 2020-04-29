@@ -4,7 +4,7 @@ namespace Comfy::Graphics::D3D11
 {
 	namespace
 	{
-		constexpr uint32_t UnboundSamplerSlot = 0xFFFFFFFF;
+		constexpr u32 UnboundSamplerSlot = 0xFFFFFFFF;
 	}
 
 	TextureSampler::TextureSampler(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressModeUV)
@@ -39,7 +39,7 @@ namespace Comfy::Graphics::D3D11
 		D3D.Device->CreateSamplerState(&samplerDescription, &samplerState);
 	}
 
-	void TextureSampler::Bind(uint32_t samplerSlot) const
+	void TextureSampler::Bind(u32 samplerSlot) const
 	{
 		assert(samplerSlot < D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
 		lastBoundSlot = samplerSlot;

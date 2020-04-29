@@ -105,7 +105,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	void LightParameter::Parse(const uint8_t* buffer, size_t bufferSize)
+	void LightParameter::Parse(const u8* buffer, size_t bufferSize)
 	{
 		const char* textBuffer = reinterpret_cast<const char*>(buffer);
 		const char* endOfTextBuffer = reinterpret_cast<const char*>(buffer + bufferSize);
@@ -125,11 +125,11 @@ namespace Comfy::Graphics
 			if (tag == GroupStartTag || tag == GroupEndTag)
 			{
 				// TODO: ... (?)
-				auto groupID = StringParsing::ParseType<uint32_t>(tagData);
+				auto groupID = StringParsing::ParseType<u32>(tagData);
 			}
 			else if (tag == IDStartTag)
 			{
-				auto lightType = static_cast<LightTargetType>(StringParsing::ParseType<uint32_t>(tagData));
+				auto lightType = static_cast<LightTargetType>(StringParsing::ParseType<u32>(tagData));
 				currentLight = GetLight(lightType);
 			}
 			else if (tag == IDEndTag)
@@ -142,7 +142,7 @@ namespace Comfy::Graphics
 			}
 			else if (tag == TypeTag)
 			{
-				currentLight->Type = static_cast<LightSourceType>(StringParsing::ParseType<uint32_t>(tagData));
+				currentLight->Type = static_cast<LightSourceType>(StringParsing::ParseType<u32>(tagData));
 			}
 			else if (tag == AmbientTag)
 			{

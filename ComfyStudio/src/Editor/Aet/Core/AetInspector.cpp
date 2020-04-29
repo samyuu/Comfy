@@ -315,7 +315,7 @@ namespace Comfy::Editor
 				if (Gui::Selectable(noSpriteString, video == nullptr))
 					ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeVideoItem, layer, nullptr);
 
-				int32_t videoIndex = 0;
+				i32 videoIndex = 0;
 				for (auto& video : scene->Videos)
 				{
 					Gui::PushID(video.get());
@@ -396,7 +396,7 @@ namespace Comfy::Editor
 					// NOTE: Increase the count in case of invalid blend modes
 					size_t blendModeCount = glm::max(static_cast<size_t>(animationData->TransferMode.BlendMode), static_cast<size_t>(AetBlendMode::Count));
 
-					for (int32_t blendModeIndex = 0; blendModeIndex < blendModeCount; blendModeIndex++)
+					for (i32 blendModeIndex = 0; blendModeIndex < blendModeCount; blendModeIndex++)
 					{
 						bool isBlendMode = (static_cast<AetBlendMode>(blendModeIndex) == animationData->TransferMode.BlendMode);
 						bool outOfBounds = blendModeIndex >= static_cast<size_t>(AetBlendMode::Count);
@@ -650,7 +650,7 @@ namespace Comfy::Editor
 				if (Gui::Selectable(noParentString, parentLayer == nullptr))
 					ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeReferencedParentLayer, layer, nullptr);
 
-				for (int32_t layerIndex = 0; layerIndex < parentComp->GetLayers().size(); layerIndex++)
+				for (i32 layerIndex = 0; layerIndex < parentComp->GetLayers().size(); layerIndex++)
 				{
 					const RefPtr<Layer>& iteratorLayer = parentComp->GetLayers().at(layerIndex);
 					bool isSelected = (iteratorLayer.get() == parentLayer);

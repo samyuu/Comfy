@@ -8,17 +8,17 @@ namespace Comfy
 	{
 		struct ComfyHeader
 		{
-			std::array<uint8_t, 4> Magic = { 0xCF, 0xCC, 0xAC, 0x90 };
+			std::array<u8, 4> Magic = { 0xCF, 0xCC, 0xAC, 0x90 };
 
 			struct ComfyVersion
 			{
-				uint8_t Major = 0x01;
-				uint8_t Minor = 0x00;
-				uint16_t Reserved = 0xCCCC;
+				u8 Major = 0x01;
+				u8 Minor = 0x00;
+				u16 Reserved = 0xCCCC;
 			} Version;
 
-			std::array<uint8_t, 4> CreatorID = { 'c', 'm', 'f', 'y' };
-			std::array<uint8_t, 4> ReservedID = { 0x90, 0x90, 0x90, 0x90 };
+			std::array<u8, 4> CreatorID = { 'c', 'm', 'f', 'y' };
+			std::array<u8, 4> ReservedID = { 0x90, 0x90, 0x90, 0x90 };
 
 		} Header;
 
@@ -36,7 +36,7 @@ namespace Comfy
 
 			struct ReservedData
 			{
-				std::array<int32_t, 3> Padding = { -1, -1, -1 };
+				std::array<i32, 3> Padding = { -1, -1, -1 };
 			} Reserved;
 
 		} Data;

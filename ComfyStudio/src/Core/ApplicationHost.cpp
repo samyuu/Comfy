@@ -56,7 +56,7 @@ namespace Comfy
 				if (!windowFocused)
 				{
 					// NOTE: Arbitrary sleep to drastically reduce power usage. This could really use a better solution for final release builds
-					::Sleep(static_cast<uint32_t>(powerSleepDuration.TotalMilliseconds()));
+					::Sleep(static_cast<u32>(powerSleepDuration.TotalMilliseconds()));
 				}
 
 				Graphics::D3D11::D3D.SwapChain->Present(swapInterval, 0);

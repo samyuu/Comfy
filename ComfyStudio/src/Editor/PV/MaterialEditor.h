@@ -16,7 +16,7 @@ namespace Comfy::Editor
 		void DrawGui(Graphics::GPU_Renderer3D& renderer, const Graphics::SceneParameters& scene, Graphics::Material& material);
 
 	private:
-		void DrawUsedTexturesFlagsGui(uint32_t& usedTexturesCount, Graphics::Material::MaterialUsedTextureFlags& texturesFlags);
+		void DrawUsedTexturesFlagsGui(u32& usedTexturesCount, Graphics::Material::MaterialUsedTextureFlags& texturesFlags);
 		void DrawShaderFlagsGui(Graphics::Material::ShaderTypeIdentifier& shaderType, Graphics::Material::MaterialShaderFlags& shaderFlags);
 		void DrawTextureDataGui(Graphics::GPU_Renderer3D& renderer, Graphics::Material& material);
 		void DrawBlendFlagsGui(Graphics::Material::MaterialBlendFlags& blendFlags);

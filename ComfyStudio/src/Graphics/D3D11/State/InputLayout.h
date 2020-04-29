@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "../Direct3D.h"
 #include "../Shader/Shader.h"
 
@@ -8,10 +9,10 @@ namespace Comfy::Graphics::D3D11
 	struct InputElement
 	{
 		const char* SemanticName;
-		uint32_t SemanticIndex;
+		u32 SemanticIndex;
 		DXGI_FORMAT Format;
-		uint32_t ByteOffset;
-		uint32_t InputSlot = 0;
+		u32 ByteOffset;
+		u32 InputSlot = 0;
 	};
 
 	class InputLayout final : IGraphicsResource

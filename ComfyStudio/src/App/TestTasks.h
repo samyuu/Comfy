@@ -1,6 +1,6 @@
 #pragma once
-#include "Task.h"
 #include "Types.h"
+#include "Task.h"
 #include "Graphics/Auth2D/Aet/AetMgr.h"
 #include "Graphics/Auth2D/Aet/AetSet.h"
 #include "Graphics/Auth2D/SprSet.h"
@@ -77,7 +77,7 @@ namespace Comfy::App
 		MainMenuLoop,
 	};
 
-	typedef int32_t MainMenuItem;
+	typedef i32 MainMenuItem;
 	enum MainMenuItem_Enum : MainMenuItem
 	{
 		MainMenuItem_Game,

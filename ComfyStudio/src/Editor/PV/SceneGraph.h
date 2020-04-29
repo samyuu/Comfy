@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "Graphics/Auth3D/Transform.h"
 #include "Graphics/Auth3D/ObjSet.h"
 #include "Graphics/Auth3D/ObjAnimationData.h"
@@ -7,7 +8,7 @@
 
 namespace Comfy::Editor
 {
-	using EntityTag = int64_t;
+	using EntityTag = i64;
 
 	struct Entity
 	{

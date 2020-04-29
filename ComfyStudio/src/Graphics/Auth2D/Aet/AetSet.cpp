@@ -172,7 +172,7 @@ namespace Comfy::Graphics::Aet
 		if (rootFoundLayer != nullptr)
 			return rootFoundLayer;
 
-		for (int32_t i = static_cast<int32_t>(Compositions.size()) - 1; i >= 0; i--)
+		for (i32 i = static_cast<i32>(Compositions.size()) - 1; i >= 0; i--)
 		{
 			const RefPtr<Layer>& layer = Compositions[i]->FindLayer(name);
 			if (layer != nullptr)

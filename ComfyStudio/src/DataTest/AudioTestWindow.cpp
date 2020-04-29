@@ -132,7 +132,7 @@ namespace Comfy::DataTest
 			if (newBufferSize < 0)
 				newBufferSize = engine->GetBufferSize();
 
-			const uint32_t slowStep = 8, fastStep = 64;
+			const u32 slowStep = 8, fastStep = 64;
 			Gui::InputScalar("Buffer Size", ImGuiDataType_U32, &newBufferSize, &slowStep, &fastStep, "%u");
 
 			if (newBufferSize > Audio::AudioEngine::MAX_BUFFER_SIZE)

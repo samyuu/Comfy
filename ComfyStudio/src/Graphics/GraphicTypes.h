@@ -15,7 +15,7 @@ namespace Comfy::Graphics
 		U32 = 2,
 	};
 
-	enum class PrimitiveType : uint32_t
+	enum class PrimitiveType : u32
 	{
 		// NOTE: D3D11_PRIMITIVE_TOPOLOGY_POINTLIST / GL_POINTS
 		Points = 0,
@@ -41,7 +41,7 @@ namespace Comfy::Graphics
 		Count
 	};
 
-	typedef uint32_t VertexAttribute;
+	typedef u32 VertexAttribute;
 
 	// NOTE: Bit index of each attribute
 	enum VertexAttribute_Enum : VertexAttribute
@@ -74,7 +74,7 @@ namespace Comfy::Graphics
 		VertexAttribute_Count,
 	};
 
-	typedef uint32_t VertexAttributeFlags;
+	typedef u32 VertexAttributeFlags;
 
 	// NOTE: Bit flag of each attribute
 	enum VertexAttributeFlags_Enum : VertexAttributeFlags
@@ -93,7 +93,7 @@ namespace Comfy::Graphics
 		VertexAttributeFlags_BoneIndex = (1 << VertexAttribute_BoneIndex),
 	};
 
-	enum class AetBlendMode : uint8_t
+	enum class AetBlendMode : u8
 	{
 		Unknown = 0,
 
@@ -184,7 +184,7 @@ namespace Comfy::Graphics
 	};
 
 	// TODO: The DXGI comments are only guesses for now
-	enum class TextureFormat : int32_t
+	enum class TextureFormat : i32
 	{
 		Unknown = -1,
 		// NOTE: DXGI_FORMAT_R8_UINT / GL_ALPHA8
@@ -219,7 +219,7 @@ namespace Comfy::Graphics
 		Count
 	};
 
-	enum class ScreenMode : uint32_t
+	enum class ScreenMode : u32
 	{
 		// NOTE:  320 x  240
 		QVGA = 0,
@@ -261,7 +261,7 @@ namespace Comfy::Graphics
 		Custom = 18,
 	};
 
-	enum class ToneMapMethod : uint32_t
+	enum class ToneMapMethod : u32
 	{
 		YCC_Exponent = 0,
 		RGB_Linear = 1,
@@ -270,7 +270,7 @@ namespace Comfy::Graphics
 		Count
 	};
 
-	enum class FogType : uint32_t
+	enum class FogType : u32
 	{
 		None = 0,
 		Linear = 1,
@@ -280,7 +280,7 @@ namespace Comfy::Graphics
 		Count
 	};
 
-	enum class LightSourceType : uint32_t
+	enum class LightSourceType : u32
 	{
 		None = 0,
 		Parallel = 1,
@@ -290,7 +290,7 @@ namespace Comfy::Graphics
 		Count
 	};
 
-	enum class LightTargetType : uint32_t
+	enum class LightTargetType : u32
 	{
 		Character = 0,
 		Stage = 1,

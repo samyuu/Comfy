@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "../Direct3D.h"
 #include "Graphics/GraphicTypes.h"
 #include "TextureSampler.h"
@@ -18,7 +19,7 @@ namespace Comfy::Graphics::D3D11
 
 	public:
 		template <size_t Size>
-		static void BindArray(uint32_t startSlot, const std::array<ShaderResourceView*, Size>& resources);
+		static void BindArray(u32 startSlot, const std::array<ShaderResourceView*, Size>& resources);
 	};
 
 	class TextureResource : public ShaderResourceView, IGraphicsResource
@@ -28,11 +29,11 @@ namespace Comfy::Graphics::D3D11
 		virtual ~TextureResource();
 
 	public:
-		void Bind(uint32_t textureSlot) const;
+		void Bind(u32 textureSlot) const;
 		void UnBind() const;
 
 	public:
-		virtual uint32_t GetArraySize() const = 0;
+		virtual u32 GetArraySize() const = 0;
 
 		ivec2 GetSize() const;
 		TextureFormat GetTextureFormat() const;
@@ -42,7 +43,7 @@ namespace Comfy::Graphics::D3D11
 		ID3D11ShaderResourceView* GetResourceView() const override;
 
 	protected:
-		mutable uint32_t lastBoundSlot;
+		mutable u32 lastBoundSlot;
 		TextureFormat textureFormat;
 
 		D3D11_TEXTURE2D_DESC textureDescription;
@@ -55,7 +56,7 @@ namespace Comfy::Graphics::D3D11
 	class Texture1D final : public ShaderResourceView, NonCopyable
 	{
 	public:
-		Texture1D(int32_t width, const void* pixelData, DXGI_FORMAT format);
+		Texture1D(i32 width, const void* pixelData, DXGI_FORMAT format);
 		~Texture1D() = default;
 
 	public:
@@ -80,11 +81,11 @@ namespace Comfy::Graphics::D3D11
 
 	public:
 		Texture2D(const Tex& tex);
-		Texture2D(ivec2 size, const uint32_t* rgbaBuffer);
+		Texture2D(ivec2 size, const u32* rgbaBuffer);
 		~Texture2D() = default;
 
 	public:
-		uint32_t GetArraySize() const override;
+		u32 GetArraySize() const override;
 
 	private:
 	};
@@ -97,13 +98,13 @@ namespace Comfy::Graphics::D3D11
 		~CubeMap() = default;
 
 	public:
-		uint32_t GetArraySize() const override;
+		u32 GetArraySize() const override;
 
 	private:
 	};
 
 	template<size_t Size>
-	inline void ShaderResourceView::BindArray(uint32_t startSlot, const std::array<ShaderResourceView*, Size>& resources)
+	inline void ShaderResourceView::BindArray(u32 startSlot, const std::array<ShaderResourceView*, Size>& resources)
 	{
 		std::array<ID3D11ShaderResourceView*, Size> resourceViews;
 

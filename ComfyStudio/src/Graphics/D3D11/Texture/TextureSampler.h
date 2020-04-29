@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "../Direct3D.h"
 
 namespace Comfy::Graphics::D3D11
@@ -12,26 +13,26 @@ namespace Comfy::Graphics::D3D11
 		virtual ~TextureSampler() = default;
 		
 	public:
-		virtual void Bind(uint32_t samplerSlot) const;
+		virtual void Bind(u32 samplerSlot) const;
 		virtual void UnBind() const;
 
 	public:
 		template <size_t Size>
-		static void BindArray(uint32_t startSlot, const std::array<TextureSampler*, Size>& samplers);
+		static void BindArray(u32 startSlot, const std::array<TextureSampler*, Size>& samplers);
 
 	public:
 		ID3D11SamplerState* GetSampler();
 		const D3D11_SAMPLER_DESC& GetDescription() const;
 
 	protected:
-		mutable uint32_t lastBoundSlot;
+		mutable u32 lastBoundSlot;
 		D3D11_SAMPLER_DESC samplerDescription;
 
 		ComPtr<ID3D11SamplerState> samplerState;
 	};
 
 	template<size_t Size>
-	inline void TextureSampler::BindArray(uint32_t startSlot, const std::array<TextureSampler*, Size>& samplers)
+	inline void TextureSampler::BindArray(u32 startSlot, const std::array<TextureSampler*, Size>& samplers)
 	{
 		std::array<ID3D11SamplerState*, Size> samplerStates;
 

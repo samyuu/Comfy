@@ -62,7 +62,7 @@ namespace Comfy::Graphics::Aet
 		~Video() = default;
 
 	public:
-		uint32_t Color;
+		u32 Color;
 		ivec2 Size;
 		frame_t FilesPerFrame;
 		std::vector<VideoSource> Sources;
@@ -80,11 +80,11 @@ namespace Comfy::Graphics::Aet
 
 	struct TransferFlags
 	{
-		uint8_t PreserveAlpha : 1;
-		uint8_t RandomizeDissolve : 1;
+		u8 PreserveAlpha : 1;
+		u8 RandomizeDissolve : 1;
 	};
 
-	enum class TrackMatte : uint8_t
+	enum class TrackMatte : u8
 	{
 		NoTrackMatte = 0,
 		Alpha = 1,
@@ -191,31 +191,31 @@ namespace Comfy::Graphics::Aet
 
 	struct LayerFlags
 	{
-		uint16_t VideoActive : 1;
-		uint16_t AudioActive : 1;
-		uint16_t EffectsActive : 1;
-		uint16_t MotionBlur : 1;
-		uint16_t FrameBlending : 1;
-		uint16_t Locked : 1;
-		uint16_t Shy : 1;
-		uint16_t Collapse : 1;
-		uint16_t AutoOrientRotation : 1;
-		uint16_t AdjustmentLayer : 1;
-		uint16_t TimeRemapping : 1;
-		uint16_t LayerIs3D : 1;
-		uint16_t LookAtCamera : 1;
-		uint16_t LookAtPointOfInterest : 1;
-		uint16_t Solo : 1;
-		uint16_t MarkersLocked : 1;
-		// uint16_t NullLayer : 1;
-		// uint16_t HideLockedMasks : 1;
-		// uint16_t GuideLayer : 1;
-		// uint16_t AdvancedFrameBlending : 1;
-		// uint16_t SubLayersRenderSeparately : 1;
-		// uint16_t EnvironmentLayer : 1;
+		u16 VideoActive : 1;
+		u16 AudioActive : 1;
+		u16 EffectsActive : 1;
+		u16 MotionBlur : 1;
+		u16 FrameBlending : 1;
+		u16 Locked : 1;
+		u16 Shy : 1;
+		u16 Collapse : 1;
+		u16 AutoOrientRotation : 1;
+		u16 AdjustmentLayer : 1;
+		u16 TimeRemapping : 1;
+		u16 LayerIs3D : 1;
+		u16 LookAtCamera : 1;
+		u16 LookAtPointOfInterest : 1;
+		u16 Solo : 1;
+		u16 MarkersLocked : 1;
+		// u16 NullLayer : 1;
+		// u16 HideLockedMasks : 1;
+		// u16 GuideLayer : 1;
+		// u16 AdvancedFrameBlending : 1;
+		// u16 SubLayersRenderSeparately : 1;
+		// u16 EnvironmentLayer : 1;
 	};
 
-	enum class LayerQuality : uint8_t
+	enum class LayerQuality : u8
 	{
 		None = 0,
 		Wireframe = 1,
@@ -232,7 +232,7 @@ namespace Comfy::Graphics::Aet
 		"Best",
 	};
 
-	enum class ItemType : uint8_t
+	enum class ItemType : u8
 	{
 		None = 0,
 		Video = 1,
@@ -412,7 +412,7 @@ namespace Comfy::Graphics::Aet
 		frame_t EndFrame;
 		frame_t FrameRate;
 
-		uint32_t BackgroundColor;
+		u32 BackgroundColor;
 		ivec2 Resolution;
 
 		RefPtr<Camera> Camera;

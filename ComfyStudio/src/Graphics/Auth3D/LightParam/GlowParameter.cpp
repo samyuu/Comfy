@@ -39,7 +39,7 @@ namespace Comfy::Graphics
 	{
 	}
 
-	void GlowParameter::Parse(const uint8_t* buffer, size_t bufferSize)
+	void GlowParameter::Parse(const u8* buffer, size_t bufferSize)
 	{
 		const char* textBuffer = reinterpret_cast<const char*>(buffer);
 		const char* endOfTextBuffer = reinterpret_cast<const char*>(buffer + bufferSize);
@@ -64,7 +64,7 @@ namespace Comfy::Graphics
 			}
 			else if (tag == SaturatePowerTag)
 			{
-				SaturatePower = StringParsing::ParseType<int32_t>(tagData);
+				SaturatePower = StringParsing::ParseType<i32>(tagData);
 			}
 			else if (tag == SaturateCoefficientTag)
 			{
@@ -89,11 +89,11 @@ namespace Comfy::Graphics
 			}
 			else if (tag == AutoExposureTag)
 			{
-				AutoExposure = StringParsing::ParseType<int32_t>(tagData);
+				AutoExposure = StringParsing::ParseType<i32>(tagData);
 			}
 			else if (tag == ToneMapMethodTag)
 			{
-				ToneMapMethod = static_cast<Graphics::ToneMapMethod>(StringParsing::ParseType<uint32_t>(tagData));
+				ToneMapMethod = static_cast<Graphics::ToneMapMethod>(StringParsing::ParseType<u32>(tagData));
 			}
 			else if (tag == FadeColorTag)
 			{

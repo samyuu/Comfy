@@ -20,7 +20,7 @@ namespace Comfy::Graphics
 
 		LightMapFormat Format;
 		ivec2 Size;
-		std::array<std::array<const uint8_t*, MipMaps>, Faces> DataPointers;
+		std::array<std::array<const u8*, MipMaps>, Faces> DataPointers;
 
 		UniquePtr<GPU_CubeMap> GPU_CubeMap;
 	};
@@ -39,7 +39,7 @@ namespace Comfy::Graphics
 		~IBLParameters() = default;
 
 	public:
-		uint32_t Version;
+		u32 Version;
 
 		union
 		{
@@ -52,7 +52,7 @@ namespace Comfy::Graphics
 		std::array<LightMapIBL, 3> LightMaps;
 
 	public:
-		void Parse(const uint8_t* buffer, size_t bufferSize) override;
+		void Parse(const u8* buffer, size_t bufferSize) override;
 		void UploadAll();
 	};
 }

@@ -81,7 +81,7 @@ namespace Comfy::Editor
 				toolTransform = AetMgr::GetTransformAt(*selctedLayer->LayerVideo, currentFrame);
 
 				// BUG: This is problematic because the tool ignores this offset when moving
-				int32_t recursionCount = 0;
+				i32 recursionCount = 0;
 				AetMgr::ApplyParentTransform(toolTransform, selctedLayer->GetRefParentLayer().get(), currentFrame, recursionCount);
 
 				toolSize = GetLayerBoundingSize(selctedLayer);

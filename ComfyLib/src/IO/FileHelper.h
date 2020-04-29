@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "FileReader.h"
 
 namespace Comfy::IO
@@ -48,6 +49,6 @@ namespace Comfy::IO
 	template <typename T>
 	inline bool WriteAllBytes(std::string_view filePath, const T& buffer) { return WriteAllBytes(filePath, &buffer, sizeof(T)); };
 
-	bool WriteAllBytes(std::string_view filePath, const std::vector<uint8_t>& buffer);
+	bool WriteAllBytes(std::string_view filePath, const std::vector<u8>& buffer);
 	bool ReadAllLines(std::string_view filePath, std::vector<std::string>* buffer);
 }

@@ -488,7 +488,7 @@ namespace Comfy::Editor
 		{
 			auto renderTargetGui = [&](const char* name, auto& renderTarget, int index)
 			{
-				const uint32_t openMask = (1 << index);
+				const u32 openMask = (1 << index);
 				Gui::Selectable(name);
 
 				if (Gui::IsItemHovered() && Gui::IsMouseDoubleClicked(0))
@@ -1119,7 +1119,7 @@ namespace Comfy::Editor
 			{
 				externalProcessTest.ShouldReadConfigFile = false;
 
-				std::vector<uint8_t> fileBuffer;
+				std::vector<u8> fileBuffer;
 				if (ComfyData->ReadFileIntoBuffer("process/external_process.bin", fileBuffer))
 					externalProcessTest.ExternalProcess.ParseConfig(fileBuffer.data(), fileBuffer.size());
 				else
@@ -1702,7 +1702,7 @@ namespace Comfy::Editor
 		lastScreenshotTaskFuture = std::async(std::launch::async, [&renderTarget, data = std::move(pixelData)]
 			{
 				char fileName[MAX_PATH];
-				sprintf_s(fileName, "%s/scene_%I64d.png", ScreenshotDirectoy, static_cast<int64_t>(time(nullptr)));
+				sprintf_s(fileName, "%s/scene_%I64d.png", ScreenshotDirectoy, static_cast<i64>(time(nullptr)));
 
 				Utilities::WritePNG(fileName, renderTarget.GetSize(), data.get());
 			});

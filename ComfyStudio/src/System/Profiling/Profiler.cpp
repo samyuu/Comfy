@@ -47,7 +47,7 @@ namespace Comfy::System
 		--currentDepth;
 	}
 	
-	Profiler::Entry::Entry(const char* name, TimeSpan startTime, int32_t parentCount)
+	Profiler::Entry::Entry(const char* name, TimeSpan startTime, i32 parentCount)
 		: Name(name), StartTime(startTime), EndTime(0.0), ParentCount(parentCount)
 	{
 	}

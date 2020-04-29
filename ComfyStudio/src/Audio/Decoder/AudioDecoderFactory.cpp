@@ -33,7 +33,7 @@ namespace Comfy::Audio
 			if (!FileExtensionHelper::DoesAnyExtensionMatch(extension, decoderExtensions))
 				continue;
 
-			std::vector<uint8_t> fileContent;
+			std::vector<u8> fileContent;
 			if (!IO::FileReader::ReadEntireFile(filePath, &fileContent))
 			{
 				Logger::LogErrorLine(__FUNCTION__"(): Unable to read input file %.*s", filePath.size(), filePath.data());

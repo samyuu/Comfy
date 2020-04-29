@@ -9,12 +9,12 @@ namespace Comfy::Graphics::Aet
 	{
 	public:
 		// NOTE: Arbitrary safety limit, prevent stack overflows no matter the input
-		static constexpr int32_t ParentRecursionLimit = 0x100;
+		static constexpr i32 ParentRecursionLimit = 0x100;
 
 		struct ObjCache
 		{
 			Transform2D Transform;
-			int32_t SpriteIndex;
+			i32 SpriteIndex;
 			const Video* Video;
 			AetBlendMode BlendMode;
 			const Layer* FirstParent;
@@ -50,7 +50,7 @@ namespace Comfy::Graphics::Aet
 		static void OffsetAllKeyFrames(LayerVideo2D& transform, frame_t frameIncrement);
 
 		// NOTE: Recursively add the properties of the parent layer to the input properties if there is one
-		static void ApplyParentTransform(Transform2D& outTransform, const Layer* parent, frame_t frame, int32_t& recursionCount);
+		static void ApplyParentTransform(Transform2D& outTransform, const Layer* parent, frame_t frame, i32& recursionCount);
 
 		// NOTE: To easily navigate between composition references in the tree view
 		static void FindAddCompositionUsages(const RefPtr<Scene>& aetToSearch, const RefPtr<Composition>& compToFind, std::vector<RefPtr<Layer>*>& outObjects);

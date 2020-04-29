@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Auth3D/ObjSet.h"
 
@@ -7,7 +8,7 @@ namespace Comfy::Editor
 	class CameraController3D
 	{
 	public:
-		enum class ControlMode : int32_t
+		enum class ControlMode : i32
 		{
 			// NOTE: Disable
 			None,

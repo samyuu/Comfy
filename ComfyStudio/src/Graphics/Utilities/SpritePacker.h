@@ -18,7 +18,7 @@ namespace Comfy::Graphics::Utilities
 		None, BC1, BC2, BC3, BC4, BC5, Unknown,
 	};
 
-	using SprMarkupFlags = uint32_t;
+	using SprMarkupFlags = u32;
 	enum SprMarkupFlagsEnum : SprMarkupFlags
 	{
 		SprMarkupFlags_None = 0,
@@ -55,7 +55,7 @@ namespace Comfy::Graphics::Utilities
 	public:
 		struct ProgressData
 		{
-			uint32_t Sprites, SpritesTotal;
+			u32 Sprites, SpritesTotal;
 		};
 
 		using ProgressCallback = std::function<void(SpritePacker&, ProgressData)>;
@@ -70,7 +70,7 @@ namespace Comfy::Graphics::Utilities
 		{
 			ivec2 MaxTextureSize = ivec2(2048, 1024);
 
-			std::optional<uint32_t> BackgroundColor = 0x00000000; // 0xFFFF00FF;
+			std::optional<u32> BackgroundColor = 0x00000000; // 0xFFFF00FF;
 
 			// NOTE: Number of pixels at each side
 			ivec2 SpritePadding = ivec2(2, 2);
@@ -95,7 +95,7 @@ namespace Comfy::Graphics::Utilities
 		void AdjustTexMarkupSizes(std::vector<SprTexMarkup>& texMarkups);
 
 		RefPtr<Tex> CreateTexFromMarkup(const SprTexMarkup& texMarkup);
-		UniquePtr<uint8_t[]> CreateMergedTexMarkupRGBAPixels(const SprTexMarkup& texMarkup);
+		UniquePtr<u8[]> CreateMergedTexMarkupRGBAPixels(const SprTexMarkup& texMarkup);
 
 		const char* GetCompressionName(TextureFormat format) const;
 		std::string FormatTextureName(MergeType merge, TextureFormat format, size_t index) const;

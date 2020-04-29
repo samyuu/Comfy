@@ -47,17 +47,17 @@ namespace Comfy::Graphics::Utilities
 			return ivec2(box.z, box.w);
 		}
 
-		uint32_t RoundToNearestPowerOfTwo(uint32_t x)
+		u32 RoundToNearestPowerOfTwo(u32 x)
 		{
-			return (x <= 1 || x > ((std::numeric_limits<uint32_t>::max() / 2) + 1)) ? x : (1 << (32 - __lzcnt(x - 1)));
+			return (x <= 1 || x > ((std::numeric_limits<u32>::max() / 2) + 1)) ? x : (1 << (32 - __lzcnt(x - 1)));
 		}
 
 		ivec2 RoundToNearestPowerOfTwo(ivec2 input)
 		{
 			return
 			{
-				static_cast<int>(RoundToNearestPowerOfTwo(static_cast<uint32_t>(input.x))),
-				static_cast<int>(RoundToNearestPowerOfTwo(static_cast<uint32_t>(input.y))),
+				static_cast<int>(RoundToNearestPowerOfTwo(static_cast<u32>(input.x))),
+				static_cast<int>(RoundToNearestPowerOfTwo(static_cast<u32>(input.y))),
 			};
 		}
 
@@ -87,14 +87,14 @@ namespace Comfy::Graphics::Utilities
 			return texelRegion;
 		}
 
-		uint32_t& GetPixel(int width, void* rgbaPixels, int x, int y)
+		u32& GetPixel(int width, void* rgbaPixels, int x, int y)
 		{
-			return reinterpret_cast<uint32_t*>(rgbaPixels)[(width * y) + x];
+			return reinterpret_cast<u32*>(rgbaPixels)[(width * y) + x];
 		}
 
-		const uint32_t& GetPixel(int width, const void* rgbaPixels, int x, int y)
+		const u32& GetPixel(int width, const void* rgbaPixels, int x, int y)
 		{
-			return reinterpret_cast<const uint32_t*>(rgbaPixels)[(width * y) + x];
+			return reinterpret_cast<const u32*>(rgbaPixels)[(width * y) + x];
 		}
 
 		void CopySprIntoTex(const SprTexMarkup& texMarkup, void* texData, const SprMarkupBox& sprBox)
@@ -149,8 +149,8 @@ namespace Comfy::Graphics::Utilities
 			{
 				for (int y = 0; y < sprSize.y; y++)
 				{
-					const uint32_t& sprPixel = GetPixel(sprSize.x, sprData, x, y);
-					uint32_t& texPixel = GetPixel(texSize.x, texData, x + sprOffset.x, y + sprOffset.y);
+					const u32& sprPixel = GetPixel(sprSize.x, sprData, x, y);
+					u32& texPixel = GetPixel(texSize.x, texData, x + sprOffset.x, y + sprOffset.y);
 
 					texPixel = sprPixel;
 				}
@@ -163,8 +163,8 @@ namespace Comfy::Graphics::Utilities
 			{
 				for (int x = 0; x < size.x; x++)
 				{
-					uint32_t& pixel = GetPixel(size.x, rgbaPixels, x, y);
-					uint32_t& flippedPixel = GetPixel(size.x, rgbaPixels, x, size.y - 1 - y);
+					u32& pixel = GetPixel(size.x, rgbaPixels, x, y);
+					u32& flippedPixel = GetPixel(size.x, rgbaPixels, x, size.y - 1 - y);
 
 					std::swap(pixel, flippedPixel);
 				}
@@ -226,7 +226,7 @@ namespace Comfy::Graphics::Utilities
 	std::vector<SprTexMarkup> SpritePacker::MergeTextures(const std::vector<SprMarkup>& sprMarkups)
 	{
 		currentProgress.Sprites = 0;
-		currentProgress.SpritesTotal = static_cast<uint32_t>(sprMarkups.size());
+		currentProgress.SpritesTotal = static_cast<u32>(sprMarkups.size());
 
 		const auto sizeSortedSprMarkups = SortByArea(sprMarkups);
 		std::vector<SprTexMarkup> texMarkups;
@@ -394,10 +394,10 @@ namespace Comfy::Graphics::Utilities
 		return tex;
 	}
 
-	UniquePtr<uint8_t[]> SpritePacker::CreateMergedTexMarkupRGBAPixels(const SprTexMarkup& texMarkup)
+	UniquePtr<u8[]> SpritePacker::CreateMergedTexMarkupRGBAPixels(const SprTexMarkup& texMarkup)
 	{
 		const size_t texDataSize = Area(texMarkup.Size) * RGBABytesPerPixel;
-		auto texData = MakeUnique<uint8_t[]>(texDataSize);
+		auto texData = MakeUnique<u8[]>(texDataSize);
 
 		if (texMarkup.SpriteBoxes.size() == 1 && texMarkup.SpriteBoxes.front().Markup->Size == texMarkup.Size)
 		{
@@ -409,7 +409,7 @@ namespace Comfy::Graphics::Utilities
 			{
 				const auto backgroundColor = Settings.BackgroundColor.value();
 				for (size_t i = 0; i < texDataSize / RGBABytesPerPixel; i++)
-					reinterpret_cast<uint32_t*>(texData.get())[i] = backgroundColor;
+					reinterpret_cast<u32*>(texData.get())[i] = backgroundColor;
 			}
 
 			for (const auto& sprBox : texMarkup.SpriteBoxes)

@@ -4,7 +4,7 @@
 
 namespace Comfy::Graphics
 {
-	enum class A3DFormat : uint32_t
+	enum class A3DFormat : u32
 	{
 		Unknown = 0,
 		Text = 'A3DA',
@@ -15,12 +15,12 @@ namespace Comfy::Graphics
 
 	struct A3DConverter
 	{
-		uint32_t Version = 0x00000000;
+		u32 Version = 0x00000000;
 	};
 
 	struct A3DProperty
 	{
-		uint32_t Version = 0x00000000;
+		u32 Version = 0x00000000;
 	};
 
 	struct A3DMetadata
@@ -40,7 +40,7 @@ namespace Comfy::Graphics
 		frame_t FrameRate = 0.0f;
 	};
 
-	enum class A3DKeyFrameType : uint32_t
+	enum class A3DKeyFrameType : u32
 	{
 		Frame = 0,
 		FrameValue = 1,
@@ -58,7 +58,7 @@ namespace Comfy::Graphics
 		float EndCurve;
 	};
 
-	enum class A3DInterpolationType : uint32_t
+	enum class A3DInterpolationType : u32
 	{
 		None = 0,
 		Static = 1,
@@ -68,7 +68,7 @@ namespace Comfy::Graphics
 		Count,
 	};
 
-	enum class A3DValueType : uint32_t
+	enum class A3DValueType : u32
 	{
 		Unknown, Float,
 	};
@@ -80,7 +80,7 @@ namespace Comfy::Graphics
 		size_t ValueListSize;
 	};
 
-	enum class EPType : uint32_t
+	enum class EPType : u32
 	{
 		// TODO:
 		None = 0,
@@ -169,7 +169,7 @@ namespace Comfy::Graphics
 
 	struct A3DLight
 	{
-		uint32_t ID;
+		u32 ID;
 		std::string Name;
 		A3DLightColor Color;
 		A3DTransform Position;
@@ -179,7 +179,7 @@ namespace Comfy::Graphics
 
 	struct A3DFog
 	{
-		uint32_t ID;
+		u32 ID;
 		A3DProperty1D Density;
 		A3DProperty1D Start;
 		A3DProperty1D End;
@@ -215,7 +215,7 @@ namespace Comfy::Graphics
 	{
 		std::string Name;
 		std::string Pattern;
-		uint32_t PatternOffset;
+		u32 PatternOffset;
 	};
 
 	struct A3DTextureTransform
@@ -241,10 +241,10 @@ namespace Comfy::Graphics
 		A3DTransform Transform;
 
 		std::string Pat;
-		uint32_t PatOffset;
+		u32 PatOffset;
 
 		std::string Morph;
-		uint32_t MorphOffset;
+		u32 MorphOffset;
 
 		std::string ParentName;
 
@@ -256,7 +256,7 @@ namespace Comfy::Graphics
 	{
 		std::string Name;
 		A3DTransform Transform;
-		uint32_t Parent;
+		u32 Parent;
 	};
 
 	struct A3DObjectHRC
@@ -267,7 +267,7 @@ namespace Comfy::Graphics
 		std::string UIDName;
 	};
 
-	enum class A3DEventType : uint32_t
+	enum class A3DEventType : u32
 	{
 		Misc = 0,
 		Filter = 1,
@@ -328,6 +328,6 @@ namespace Comfy::Graphics
 		std::vector<A3DEvent> Events;
 
 	public:
-		void Parse(const uint8_t* buffer, size_t bufferSize) override;
+		void Parse(const u8* buffer, size_t bufferSize) override;
 	};
 }

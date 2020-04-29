@@ -7,6 +7,6 @@ namespace Comfy::IO::Crypto
 	static constexpr size_t IVSize = 16;
 	static constexpr size_t KeySize = 16;
 
-	bool Win32DecryptAesEcb(const uint8_t* encryptedData, uint8_t* decryptedData, size_t dataSize, std::array<uint8_t, KeySize> key);
-	bool Win32DecryptAesCbc(const uint8_t* encryptedData, uint8_t* decryptedData, size_t dataSize, std::array<uint8_t, KeySize> key, std::array<uint8_t, IVSize> iv);
+	bool Win32DecryptAesEcb(const u8* encryptedData, u8* decryptedData, size_t dataSize, std::array<u8, KeySize> key);
+	bool Win32DecryptAesCbc(const u8* encryptedData, u8* decryptedData, size_t dataSize, std::array<u8, KeySize> key, std::array<u8, IVSize> iv);
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "Graphics/Auth2D/Aet/AetMgr.h"
 
 namespace Comfy::Editor
@@ -8,7 +9,7 @@ namespace Comfy::Editor
 		point = vec2(point.x * cos - point.y * sin, point.x * sin + point.y * cos);
 	}
 
-	enum BoxNode : int32_t
+	enum BoxNode : i32
 	{
 		BoxNode_Invalid = -1,
 

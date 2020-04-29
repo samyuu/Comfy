@@ -11,17 +11,17 @@ namespace Comfy::Graphics::Aet
 		template <typename FlagsStruct>
 		FlagsStruct ReadFlagsStruct(BinaryReader& reader)
 		{
-			if constexpr (sizeof(FlagsStruct) == sizeof(uint8_t))
+			if constexpr (sizeof(FlagsStruct) == sizeof(u8))
 			{
 				const auto uintFlags = reader.ReadU8();
 				return *reinterpret_cast<const FlagsStruct*>(&uintFlags);
 			}
-			else if constexpr (sizeof(FlagsStruct) == sizeof(uint16_t))
+			else if constexpr (sizeof(FlagsStruct) == sizeof(u16))
 			{
 				const auto uintFlags = reader.ReadU16();
 				return *reinterpret_cast<const FlagsStruct*>(&uintFlags);
 			}
-			else if constexpr (sizeof(FlagsStruct) == sizeof(uint32_t))
+			else if constexpr (sizeof(FlagsStruct) == sizeof(u32))
 			{
 				const auto uintFlags = reader.ReadU32();
 				return *reinterpret_cast<const FlagsStruct*>(&uintFlags);
@@ -32,12 +32,12 @@ namespace Comfy::Graphics::Aet
 			}
 		}
 
-		uint32_t ReadColor(BinaryReader& reader)
+		u32 ReadColor(BinaryReader& reader)
 		{
-			uint32_t value = 0;
-			*(reinterpret_cast<uint8_t*>(&value) + 0) = reader.ReadU8();
-			*(reinterpret_cast<uint8_t*>(&value) + 1) = reader.ReadU8();
-			*(reinterpret_cast<uint8_t*>(&value) + 2) = reader.ReadU8();
+			u32 value = 0;
+			*(reinterpret_cast<u8*>(&value) + 0) = reader.ReadU8();
+			*(reinterpret_cast<u8*>(&value) + 1) = reader.ReadU8();
+			*(reinterpret_cast<u8*>(&value) + 2) = reader.ReadU8();
 			const auto padding = reader.ReadU8();
 			return value;
 		}
@@ -106,12 +106,12 @@ namespace Comfy::Graphics::Aet
 		template <typename FlagsStruct>
 		void WriteFlagsStruct(const FlagsStruct& flags, BinaryWriter& writer)
 		{
-			if constexpr (sizeof(FlagsStruct) == sizeof(uint8_t))
-				writer.WriteU8(*reinterpret_cast<const uint8_t*>(&flags));
-			else if constexpr (sizeof(FlagsStruct) == sizeof(uint16_t))
-				writer.WriteU16(*reinterpret_cast<const uint8_t*>(&flags));
-			else if constexpr (sizeof(FlagsStruct) == sizeof(uint32_t))
-				writer.WriteU32(*reinterpret_cast<const uint32_t*>(&flags));
+			if constexpr (sizeof(FlagsStruct) == sizeof(u8))
+				writer.WriteU8(*reinterpret_cast<const u8*>(&flags));
+			else if constexpr (sizeof(FlagsStruct) == sizeof(u16))
+				writer.WriteU16(*reinterpret_cast<const u8*>(&flags));
+			else if constexpr (sizeof(FlagsStruct) == sizeof(u32))
+				writer.WriteU32(*reinterpret_cast<const u32*>(&flags));
 			else
 				static_assert(false);
 		}
@@ -120,7 +120,7 @@ namespace Comfy::Graphics::Aet
 		{
 			if (property->size() > 0)
 			{
-				writer.WriteU32(static_cast<uint32_t>(property->size()));
+				writer.WriteU32(static_cast<u32>(property->size()));
 				writer.WritePtr([&property](BinaryWriter& writer)
 				{
 					if (property->size() == 1)
@@ -363,7 +363,7 @@ namespace Comfy::Graphics::Aet
 					video->Size.y = reader.ReadU16();
 					video->FilesPerFrame = reader.ReadF32();
 
-					uint32_t spriteCount = reader.ReadU32();
+					u32 spriteCount = reader.ReadU32();
 					FileAddr spritesPointer = reader.ReadPtr();
 
 					if (spriteCount > 0 && spritesPointer != FileAddr::NullPtr)
@@ -430,7 +430,7 @@ namespace Comfy::Graphics::Aet
 			}
 
 			assert(RootComposition != nullptr);
-			writer.WriteU32(static_cast<uint32_t>(Compositions.size()) + 1);
+			writer.WriteU32(static_cast<u32>(Compositions.size()) + 1);
 			writer.WritePtr([this](BinaryWriter& writer)
 			{
 				const auto writeCompFunction = [](BinaryWriter& writer, const RefPtr<Composition>& comp)
@@ -438,7 +438,7 @@ namespace Comfy::Graphics::Aet
 					comp->filePosition = writer.GetPosition();
 					if (comp->GetLayers().size() > 0)
 					{
-						writer.WriteU32(static_cast<uint32_t>(comp->GetLayers().size()));
+						writer.WriteU32(static_cast<u32>(comp->GetLayers().size()));
 						writer.WritePtr([&comp](BinaryWriter& writer)
 						{
 							for (auto& layer : comp->GetLayers())
@@ -450,8 +450,8 @@ namespace Comfy::Graphics::Aet
 								writer.WriteF32(layer->StartOffset);
 								writer.WriteF32(layer->TimeScale);
 								WriteFlagsStruct<LayerFlags>(layer->Flags, writer);
-								writer.WriteU8(static_cast<uint8_t>(layer->Quality));
-								writer.WriteU8(static_cast<uint8_t>(layer->ItemType));
+								writer.WriteU8(static_cast<u8>(layer->Quality));
+								writer.WriteU8(static_cast<u8>(layer->ItemType));
 
 								FileAddr itemFilePosition = FileAddr::NullPtr;
 								if (layer->ItemType == ItemType::Video && layer->GetVideoItem() != nullptr)
@@ -487,7 +487,7 @@ namespace Comfy::Graphics::Aet
 
 								if (layer->Markers.size() > 0)
 								{
-									writer.WriteU32(static_cast<uint32_t>(layer->Markers.size()));
+									writer.WriteU32(static_cast<u32>(layer->Markers.size()));
 									writer.WritePtr([&layer](BinaryWriter& writer)
 									{
 										for (auto& marker : layer->Markers)
@@ -508,9 +508,9 @@ namespace Comfy::Graphics::Aet
 									LayerVideo& layerVideo = *layer->LayerVideo;
 									writer.WritePtr([&layerVideo](BinaryWriter& writer)
 									{
-										writer.WriteU8(static_cast<uint8_t>(layerVideo.TransferMode.BlendMode));
+										writer.WriteU8(static_cast<u8>(layerVideo.TransferMode.BlendMode));
 										WriteFlagsStruct<TransferFlags>(layerVideo.TransferMode.Flags, writer);
-										writer.WriteU8(static_cast<uint8_t>(layerVideo.TransferMode.TrackMatte));
+										writer.WriteU8(static_cast<u8>(layerVideo.TransferMode.TrackMatte));
 										writer.WriteU8(0xCC);
 
 										WriteTransform(layerVideo.Transform, writer);
@@ -559,25 +559,25 @@ namespace Comfy::Graphics::Aet
 
 			if (Videos.size() > 0)
 			{
-				writer.WriteU32(static_cast<uint32_t>(Videos.size()));
+				writer.WriteU32(static_cast<u32>(Videos.size()));
 				writer.WritePtr([this](BinaryWriter& writer)
 				{
 					for (auto& video : Videos)
 					{
 						video->filePosition = writer.GetPosition();
 						writer.WriteU32(video->Color);
-						writer.WriteI16(static_cast<int16_t>(video->Size.x));
-						writer.WriteI16(static_cast<int16_t>(video->Size.y));
+						writer.WriteI16(static_cast<i16>(video->Size.x));
+						writer.WriteI16(static_cast<i16>(video->Size.y));
 						writer.WriteF32(video->FilesPerFrame);
 						if (!video->Sources.empty())
 						{
-							writer.WriteU32(static_cast<uint32_t>(video->Sources.size()));
+							writer.WriteU32(static_cast<u32>(video->Sources.size()));
 							writer.WritePtr([&video](BinaryWriter& writer)
 							{
 								for (auto& source : video->Sources)
 								{
 									writer.WriteStrPtr(source.Name);
-									writer.WriteU32(static_cast<uint32_t>(source.ID));
+									writer.WriteU32(static_cast<u32>(source.ID));
 								}
 							});
 						}
@@ -598,7 +598,7 @@ namespace Comfy::Graphics::Aet
 
 			if (Audios.size() > 0)
 			{
-				writer.WriteU32(static_cast<uint32_t>(Audios.size()));
+				writer.WriteU32(static_cast<u32>(Audios.size()));
 				writer.WritePtr([this](BinaryWriter& writer)
 				{
 					for (auto& audio : Audios)
@@ -621,13 +621,13 @@ namespace Comfy::Graphics::Aet
 
 	void AetSet::Read(BinaryReader& reader)
 	{
-		uint32_t signature = reader.ReadU32();
+		u32 signature = reader.ReadU32();
 		if (signature == 'AETC' || signature == 'CTEA')
 		{
 			reader.SetEndianness(Endianness::Little);
-			uint32_t dataSize = reader.ReadU32();
-			uint32_t dataOffset = reader.ReadU32();
-			uint32_t endianSignaure = reader.ReadU32();
+			u32 dataSize = reader.ReadU32();
+			u32 dataOffset = reader.ReadU32();
+			u32 endianSignaure = reader.ReadU32();
 
 			enum { LittleEndian = 0x10000000, BigEndian = 0x18000000 };
 

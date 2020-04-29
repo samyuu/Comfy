@@ -11,10 +11,10 @@ namespace Comfy::Audio
 
 	AudioDecoderResult FlacDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, AudioDecoderOutputData* outputData)
 	{
-		uint32_t channels, sampleRate;
-		uint64_t totalSampleCount;
+		u32 channels, sampleRate;
+		u64 totalSampleCount;
 
-		int16_t* data = drflac_open_memory_and_read_pcm_frames_s16(fileData, fileSize, &channels, &sampleRate, &totalSampleCount);
+		i16* data = drflac_open_memory_and_read_pcm_frames_s16(fileData, fileSize, &channels, &sampleRate, &totalSampleCount);
 
 		if (data == nullptr)
 			return AudioDecoderResult::Failure;

@@ -135,27 +135,27 @@ namespace Comfy::Audio
 		onFinishedAction = value;
 	}
 
-	int64_t AudioInstance::GetFramePosition() const
+	i64 AudioInstance::GetFramePosition() const
 	{
 		return framePosition;
 	}
 
-	void AudioInstance::SetFramePosition(int64_t value)
+	void AudioInstance::SetFramePosition(i64 value)
 	{
 		framePosition = value;
 	}
 
-	int64_t AudioInstance::GetFrameCount() const
+	i64 AudioInstance::GetFrameCount() const
 	{
 		return sampleProvider->GetFrameCount();
 	}
 
-	uint32_t AudioInstance::GetSampleRate() const
+	u32 AudioInstance::GetSampleRate() const
 	{
 		return sampleProvider->GetSampleRate();
 	}
 
-	uint32_t AudioInstance::GetChannelCount() const
+	u32 AudioInstance::GetChannelCount() const
 	{
 		return sampleProvider->GetChannelCount();
 	}
@@ -165,7 +165,7 @@ namespace Comfy::Audio
 		return FramesToTimeSpan(frames, GetSampleRate());
 	}
 
-	int64_t AudioInstance::TimeSpanToFrames(TimeSpan time) const
+	i64 AudioInstance::TimeSpanToFrames(TimeSpan time) const
 	{
 		return TimeSpanToFrames(time, GetSampleRate());
 	}
@@ -175,8 +175,8 @@ namespace Comfy::Audio
 		return TimeSpan::FromSeconds(frames / sampleRate);
 	}
 
-	inline int64_t AudioInstance::TimeSpanToFrames(TimeSpan time, double sampleRate)
+	inline i64 AudioInstance::TimeSpanToFrames(TimeSpan time, double sampleRate)
 	{
-		return static_cast<int64_t>(time.TotalSeconds() * sampleRate);
+		return static_cast<i64>(time.TotalSeconds() * sampleRate);
 	}
 }

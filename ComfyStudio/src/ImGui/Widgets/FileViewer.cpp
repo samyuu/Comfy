@@ -352,12 +352,12 @@ namespace ImGui
 		}
 	}
 
-	void FileViewer::FormatReadableFileSize(std::string& value, uint64_t fileSize)
+	void FileViewer::FormatReadableFileSize(std::string& value, u64 fileSize)
 	{
 		if (fileSize <= 0)
 			return;
 
-		constexpr uint64_t unitFactor = 1024;
+		constexpr u64 unitFactor = 1024;
 		constexpr const char* narrowUnitsString = "B  KB MB GB TB PB EB ZB YB";
 
 		int unitIndex = 0;

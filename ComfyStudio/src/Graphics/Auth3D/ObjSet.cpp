@@ -45,7 +45,7 @@ namespace Comfy::Graphics
 			InitializeBufferIfAttribute(mesh, VertexAttribute_BoneWeight, mesh.VertexData.BoneWeights, Name.c_str(), "BoneWeight");
 			InitializeBufferIfAttribute(mesh, VertexAttribute_BoneIndex, mesh.VertexData.BoneIndices, Name.c_str(), "BoneIndex");
 
-			uint32_t subMeshIndex = 0;
+			u32 subMeshIndex = 0;
 			for (auto& subMesh : mesh.SubMeshes)
 			{
 				const char* debugName = nullptr;
@@ -80,34 +80,34 @@ namespace Comfy::Graphics
 		return static_cast<IndexFormat>(Indices.index());
 	}
 
-	std::vector<uint8_t>* SubMesh::GetIndicesU8()
+	std::vector<u8>* SubMesh::GetIndicesU8()
 	{
-		return std::get_if<std::vector<uint8_t>>(&Indices);
+		return std::get_if<std::vector<u8>>(&Indices);
 	}
 
-	const std::vector<uint8_t>* SubMesh::GetIndicesU8() const
+	const std::vector<u8>* SubMesh::GetIndicesU8() const
 	{
-		return std::get_if<std::vector<uint8_t>>(&Indices);
+		return std::get_if<std::vector<u8>>(&Indices);
 	}
 
-	std::vector<uint16_t>* SubMesh::GetIndicesU16()
+	std::vector<u16>* SubMesh::GetIndicesU16()
 	{
-		return std::get_if<std::vector<uint16_t>>(&Indices);
+		return std::get_if<std::vector<u16>>(&Indices);
 	}
 
-	const std::vector<uint16_t>* SubMesh::GetIndicesU16() const
+	const std::vector<u16>* SubMesh::GetIndicesU16() const
 	{
-		return std::get_if<std::vector<uint16_t>>(&Indices);
+		return std::get_if<std::vector<u16>>(&Indices);
 	}
 
-	std::vector<uint32_t>* SubMesh::GetIndicesU32()
+	std::vector<u32>* SubMesh::GetIndicesU32()
 	{
-		return std::get_if<std::vector<uint32_t>>(&Indices);
+		return std::get_if<std::vector<u32>>(&Indices);
 	}
 
-	const std::vector<uint32_t>* SubMesh::GetIndicesU32() const
+	const std::vector<u32>* SubMesh::GetIndicesU32() const
 	{
-		return std::get_if<std::vector<uint32_t>>(&Indices);
+		return std::get_if<std::vector<u32>>(&Indices);
 	}
 
 	const size_t SubMesh::GetIndexCount() const
@@ -141,13 +141,13 @@ namespace Comfy::Graphics
 	size_t SubMesh::GetRawIndicesByteSize() const
 	{
 		if (auto indices = GetIndicesU8(); indices != nullptr)
-			return indices->size() * sizeof(uint8_t);
+			return indices->size() * sizeof(u8);
 
 		if (auto indices = GetIndicesU16(); indices != nullptr)
-			return indices->size() * sizeof(uint16_t);
+			return indices->size() * sizeof(u16);
 
 		if (auto indices = GetIndicesU32(); indices != nullptr)
-			return indices->size() * sizeof(uint32_t);
+			return indices->size() * sizeof(u32);
 
 		return 0;
 	}

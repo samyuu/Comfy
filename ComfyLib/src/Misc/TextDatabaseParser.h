@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "Misc/StringParseHelper.h"
 
 namespace Comfy::Utilities::StringParsing
@@ -51,7 +52,7 @@ namespace Comfy::Utilities::StringParsing
 		template <typename T>
 		inline T ParseEnumValueString()
 		{
-			return static_cast<T>(StringParsing::ParseType<uint32_t>(ParseValueString()));
+			return static_cast<T>(StringParsing::ParseType<u32>(ParseValueString()));
 		}
 
 		inline void AdvanceProperty()
@@ -80,16 +81,16 @@ namespace Comfy::Utilities::StringParsing
 		{
 			if (CompareProperty(lengthIdentifier))
 			{
-				vector.resize(ParseValueString<uint32_t>());
+				vector.resize(ParseValueString<u32>());
 				return true;
 			}
 
 			return false;
 		}
 
-		inline uint32_t ParseAdvanceIndexProperty()
+		inline u32 ParseAdvanceIndexProperty()
 		{
-			auto index = StringParsing::ParseType<uint32_t>(state.CurrentProperty);
+			auto index = StringParsing::ParseType<u32>(state.CurrentProperty);
 			AdvanceProperty();
 			return index;
 		}

@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "../Texture/RenderTarget.h"
 #include "../Texture/DepthBuffer.h"
 #include "Detail/BlendStateCache.h"
@@ -42,7 +43,7 @@ namespace Comfy::Graphics::D3D11
 
 	private:
 		// NOTE: Index of the currently active render target, keep switching to allow for last->current frame post processing effects and screen textures
-		int32_t currentIndex = 0;
+		i32 currentIndex = 0;
 	};
 
 	struct ShadowMappingRenderData

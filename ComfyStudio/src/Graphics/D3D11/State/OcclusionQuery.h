@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "../Direct3D.h"
 #include "Core/TimeSpan.h"
 #include <optional>
@@ -23,7 +24,7 @@ namespace Comfy::Graphics::D3D11
 
 		bool IsFirstQuery() const;
 		bool HasCoveredPixelsReady() const;
-		uint64_t GetCoveredPixels() const;
+		u64 GetCoveredPixels() const;
 
 	private:
 		// NOTE: In case requersting the data takes too long or worst case never succeeds at all
@@ -32,7 +33,7 @@ namespace Comfy::Graphics::D3D11
 		bool isMidQuery = false;
 		bool isFirstQuery = true;
 
-		std::optional<uint64_t> coveredPixels, lastCoveredPixels;
+		std::optional<u64> coveredPixels, lastCoveredPixels;
 
 		D3D11_QUERY_DESC queryDescription;
 		ComPtr<ID3D11Query> query;

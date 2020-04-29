@@ -3,7 +3,7 @@
 
 namespace Comfy::Graphics::D3D11
 {
-	enum ShaderFlags : uint32_t
+	enum ShaderFlags : u32
 	{
 		ShaderFlags_VertexColor = 1 << 0,
 

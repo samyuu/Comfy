@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "../Direct3D.h"
 
 namespace Comfy::Graphics::D3D11
@@ -9,7 +10,7 @@ namespace Comfy::Graphics::D3D11
 		static constexpr size_t DataAlignmentRequirement = 16;
 
 	protected:
-		ConstantBuffer(uint32_t slot, size_t dataSize, D3D11_USAGE usage, UINT accessFlags);
+		ConstantBuffer(u32 slot, size_t dataSize, D3D11_USAGE usage, UINT accessFlags);
 		virtual ~ConstantBuffer() = default;
 
 	public:
@@ -26,7 +27,7 @@ namespace Comfy::Graphics::D3D11
 		ID3D11Buffer* GetBuffer();
 
 	protected:
-		uint32_t slot;
+		u32 slot;
 
 		D3D11_BUFFER_DESC bufferDescription;
 		ComPtr<ID3D11Buffer> buffer = nullptr;
@@ -36,7 +37,7 @@ namespace Comfy::Graphics::D3D11
 	class DefaultConstantBuffer final : public ConstantBuffer
 	{
 	public:
-		DefaultConstantBuffer(uint32_t slot, size_t dataSize);
+		DefaultConstantBuffer(u32 slot, size_t dataSize);
 		~DefaultConstantBuffer() = default;
 
 	public:
@@ -47,7 +48,7 @@ namespace Comfy::Graphics::D3D11
 	class DynamicConstantBuffer final : public ConstantBuffer
 	{
 	public:
-		DynamicConstantBuffer(uint32_t slot, size_t dataSize);
+		DynamicConstantBuffer(u32 slot, size_t dataSize);
 		~DynamicConstantBuffer() = default;
 
 	public:
@@ -61,8 +62,8 @@ namespace Comfy::Graphics::D3D11
 		static_assert(sizeof(DataType) % ConstantBuffer::DataAlignmentRequirement == 0);
 
 	public:
-		ConstantBufferTemplate(uint32_t slot) : Data(), Buffer(slot, sizeof(DataType)) {};
-		ConstantBufferTemplate(uint32_t slot, const char* debugName) : Data(), Buffer(slot, sizeof(DataType)) { D3D11_SetObjectDebugName(Buffer.GetBuffer(), debugName); };
+		ConstantBufferTemplate(u32 slot) : Data(), Buffer(slot, sizeof(DataType)) {};
+		ConstantBufferTemplate(u32 slot, const char* debugName) : Data(), Buffer(slot, sizeof(DataType)) { D3D11_SetObjectDebugName(Buffer.GetBuffer(), debugName); };
 
 	public:
 		inline void BindVertexShader() { Buffer.BindVertexShader(); };

@@ -2,7 +2,7 @@
 
 namespace Comfy::Graphics::D3D11
 {
-	ConstantBuffer::ConstantBuffer(uint32_t slot, size_t dataSize, D3D11_USAGE usage, UINT accessFlags)
+	ConstantBuffer::ConstantBuffer(u32 slot, size_t dataSize, D3D11_USAGE usage, UINT accessFlags)
 		: slot(slot)
 	{
 		assert(slot < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
@@ -54,7 +54,7 @@ namespace Comfy::Graphics::D3D11
 		return buffer.Get();
 	}
 
-	DefaultConstantBuffer::DefaultConstantBuffer(uint32_t slot, size_t dataSize)
+	DefaultConstantBuffer::DefaultConstantBuffer(u32 slot, size_t dataSize)
 		: ConstantBuffer(slot, dataSize, D3D11_USAGE_DEFAULT, 0)
 	{
 	}
@@ -66,7 +66,7 @@ namespace Comfy::Graphics::D3D11
 		D3D.Context->UpdateSubresource(buffer.Get(), 0, nullptr, data, 0, 0);
 	}
 
-	DynamicConstantBuffer::DynamicConstantBuffer(uint32_t slot, size_t dataSize)
+	DynamicConstantBuffer::DynamicConstantBuffer(u32 slot, size_t dataSize)
 		: ConstantBuffer(slot, dataSize, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE)
 	{
 	}

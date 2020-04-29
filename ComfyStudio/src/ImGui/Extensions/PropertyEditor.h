@@ -6,7 +6,7 @@ namespace ImGui
 {
 	namespace PropertyEditor
 	{
-		using ComponentFlags = uint8_t;
+		using ComponentFlags = u8;
 		enum ComponentFlagsEnum : ComponentFlags
 		{
 			ComponentFlags_None = 0,
@@ -169,7 +169,7 @@ namespace ImGui
 						static constexpr ImGuiInputTextFlags InputTextFlags = ImGuiInputTextFlags_None;
 					};
 					template<>
-					struct DataType<uint32_t>
+					struct DataType<u32>
 					{
 						static constexpr const char* Format = nullptr;
 						static constexpr ImGuiDataType TypeEnum = ImGuiDataType_U32;
@@ -340,12 +340,12 @@ namespace ImGui
 				return Detail::InputVec1DragBase(label, inOutValue, dragSpeed, dragRange);
 			}
 
-			inline bool Input(std::string_view label, uint32_t& inOutValue, float dragSpeed = 1.0f, std::optional<uvec2> dragRange = {})
+			inline bool Input(std::string_view label, u32& inOutValue, float dragSpeed = 1.0f, std::optional<uvec2> dragRange = {})
 			{
 				return Detail::InputVec1DragBase(label, inOutValue, dragSpeed, dragRange);
 			}
 
-			inline bool InputHex(std::string_view label, uint32_t& inOutValue)
+			inline bool InputHex(std::string_view label, u32& inOutValue)
 			{
 				using InputType = std::remove_reference<decltype(inOutValue)>::type;
 
@@ -355,7 +355,7 @@ namespace ImGui
 					return Detail::DragTextT<InputType>(label, inOutValue, 0.1f, nullptr, nullptr, 0.0f);
 				}, [&]
 				{
-					constexpr uint32_t step = 1, fastStep = 16;
+					constexpr u32 step = 1, fastStep = 16;
 					RAII::ItemWidth width(-1.0f);
 					return Gui::InputScalar(Detail::DummyLabel, Detail::TypeLookup::DataType<InputType>::TypeEnum, &inOutValue, &step, &fastStep, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
 				});
@@ -393,7 +393,7 @@ namespace ImGui
 				});
 			}
 
-			inline bool CheckboxFlags(std::string_view label, uint32_t& inOutValue, uint32_t flagsMask)
+			inline bool CheckboxFlags(std::string_view label, u32& inOutValue, u32 flagsMask)
 			{
 				bool isChecked = ((inOutValue & flagsMask) == flagsMask);
 				if (bool valueChanged = Checkbox(label, isChecked); valueChanged)

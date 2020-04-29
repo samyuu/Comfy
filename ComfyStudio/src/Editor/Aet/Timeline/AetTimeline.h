@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "Editor/Aet/AetSelection.h"
 #include "KeyFrameRenderer.h"
 #include "AetTimelineController.h"
@@ -17,9 +18,9 @@ namespace Comfy::Editor
 			struct PropertyKeyFrameIndexPair
 			{
 				Graphics::Transform2DField_Enum FieldType;
-				int32_t KeyFrame;
+				i32 KeyFrame;
 			} Pair;
-			int64_t PackedValue;
+			i64 PackedValue;
 		};
 	};
 

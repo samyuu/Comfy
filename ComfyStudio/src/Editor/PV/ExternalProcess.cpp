@@ -53,7 +53,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	void ExternalProcess::ParseConfig(const uint8_t* buffer, size_t size)
+	void ExternalProcess::ParseConfig(const u8* buffer, size_t size)
 	{
 		constexpr size_t processNameMaxLength = 64;
 

@@ -3,7 +3,7 @@
 
 namespace Comfy
 {
-	enum class Direction : int32_t
+	enum class Direction : i32
 	{
 		Up,
 		Right,
@@ -11,7 +11,7 @@ namespace Comfy
 		Left
 	};
 
-	enum class Ds4Button : int32_t
+	enum class Ds4Button : i32
 	{
 		Square = 0,
 		Cross = 1,

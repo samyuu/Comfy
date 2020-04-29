@@ -13,7 +13,7 @@ namespace Comfy::DataTest { class AudioTestWindow; }
 
 namespace Comfy::Audio
 {
-	enum class AudioApi : int32_t
+	enum class AudioApi : i32
 	{
 		Invalid = -1,
 		ASIO = 0,
@@ -39,8 +39,8 @@ namespace Comfy::Audio
 		static constexpr float MinVolume = 0.0f;
 		static constexpr float MaxVolume = 1.0f;
 
-		static constexpr uint32_t DEFAULT_BUFFER_SIZE = 64;
-		static constexpr uint32_t MAX_BUFFER_SIZE = 0x2000;
+		static constexpr u32 DEFAULT_BUFFER_SIZE = 64;
+		static constexpr u32 MAX_BUFFER_SIZE = 0x2000;
 
 	public:
 		~AudioEngine();
@@ -59,9 +59,9 @@ namespace Comfy::Audio
 
 		// ----------------------
 		size_t GetDeviceCount();
-		RtAudio::DeviceInfo GetDeviceInfo(uint32_t device);
+		RtAudio::DeviceInfo GetDeviceInfo(u32 device);
 
-		void SetBufferSize(uint32_t bufferSize);
+		void SetBufferSize(u32 bufferSize);
 		void AddAudioInstance(const RefPtr<AudioInstance>& audioInstance);
 		void PlaySound(const RefPtr<ISampleProvider>& sampleProvider, float volume = MaxVolume, const char* name = nullptr);
 		void ShowControlPanel();
@@ -71,9 +71,9 @@ namespace Comfy::Audio
 		RefPtr<MemorySampleProvider> LoadAudioFile(const std::string& filePath);
 
 		inline RtAudio* GetRtAudio() { return rtAudio.get(); };
-		inline uint32_t GetChannelCount() { return 2; };
-		inline uint32_t GetSampleRate() { return 44100; };
-		inline uint32_t GetBufferSize() { return bufferSize; };
+		inline u32 GetChannelCount() { return 2; };
+		inline u32 GetSampleRate() { return 44100; };
+		inline u32 GetBufferSize() { return bufferSize; };
 		inline RtAudioFormat GetStreamFormat() { return RTAUDIO_SINT16; };
 
 		double GetStreamTime();
@@ -105,8 +105,8 @@ namespace Comfy::Audio
 		std::vector<RefPtr<AudioInstance>> audioInstances;
 		std::vector<ICallbackReceiver*> callbackReceivers;
 
-		std::vector<int16_t> tempOutputBuffer;
-		uint32_t bufferSize = DEFAULT_BUFFER_SIZE;
+		std::vector<i16> tempOutputBuffer;
+		u32 bufferSize = DEFAULT_BUFFER_SIZE;
 
 		bool isStreamOpen = false, isStreamRunning = false;
 		float masterVolume = AudioEngine::MaxVolume;
@@ -128,14 +128,14 @@ namespace Comfy::Audio
 			RtAudio::WINDOWS_WASAPI,	// AudioApi::WASAPI
 		};
 
-		AudioCallbackResult InternalAudioCallback(int16_t* outputBuffer, uint32_t bufferFrameCount, double streamTime);
+		AudioCallbackResult InternalAudioCallback(i16* outputBuffer, u32 bufferFrameCount, double streamTime);
 
-		uint32_t GetDeviceId();
+		u32 GetDeviceId();
 		StreamParameters* GetStreamOutputParameters();
 		StreamParameters* GetStreamInputParameters();
 
 		static UniquePtr<AudioEngine> engineInstance;
 
-		static int InternalStaticAudioCallback(void*, void*, uint32_t, double, RtAudioStreamStatus, void*);
+		static int InternalStaticAudioCallback(void*, void*, u32, double, RtAudioStreamStatus, void*);
 	};
 }

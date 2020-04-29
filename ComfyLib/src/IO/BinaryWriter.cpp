@@ -30,7 +30,7 @@ namespace Comfy::IO
 		WriteChar('\0');
 	}
 
-	void BinaryWriter::WriteStrPtr(std::string_view value, int32_t alignment)
+	void BinaryWriter::WriteStrPtr(std::string_view value, i32 alignment)
 	{
 		stringPointerPool.push_back({ GetPosition(), value, alignment });
 		WritePtr(FileAddr::NullPtr);
@@ -48,29 +48,29 @@ namespace Comfy::IO
 		WritePtr(FileAddr::NullPtr);
 	}
 
-	void BinaryWriter::WritePadding(size_t size, uint32_t paddingValue)
+	void BinaryWriter::WritePadding(size_t size, u32 paddingValue)
 	{
 		if (size < 0)
 			return;
 
 		constexpr size_t maxSize = 32;
 		assert(size <= maxSize);
-		std::array<uint8_t, maxSize> paddingValues;
+		std::array<u8, maxSize> paddingValues;
 
 		std::memset(paddingValues.data(), paddingValue, size);
 		WriteBuffer(paddingValues.data(), size);
 	}
 
-	void BinaryWriter::WriteAlignmentPadding(int32_t alignment, uint32_t paddingValue)
+	void BinaryWriter::WriteAlignmentPadding(i32 alignment, u32 paddingValue)
 	{
 		constexpr bool forceExtraPadding = false;
-		constexpr int32_t maxAlignment = 32;
+		constexpr i32 maxAlignment = 32;
 
 		assert(alignment <= maxAlignment);
-		std::array<uint8_t, maxAlignment> paddingValues;
+		std::array<u8, maxAlignment> paddingValues;
 
-		const int32_t value = static_cast<int32_t>(GetPosition());
-		int32_t paddingSize = ((value + (alignment - 1)) & ~(alignment - 1)) - value;
+		const i32 value = static_cast<i32>(GetPosition());
+		i32 paddingSize = ((value + (alignment - 1)) & ~(alignment - 1)) - value;
 
 		if (forceExtraPadding && paddingSize <= 0)
 			paddingSize = alignment;

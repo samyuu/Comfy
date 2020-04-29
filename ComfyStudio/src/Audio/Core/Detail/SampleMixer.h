@@ -22,9 +22,9 @@ namespace Comfy::Audio
 				return static_cast<TSampleBase>(result);
 		}
 
-		static inline int16_t MixSamples(int16_t sampleA, int16_t sampleB)
+		static inline i16 MixSamples(i16 sampleA, i16 sampleB)
 		{
-			return MixSamples<int16_t, int32_t>(sampleA, sampleB);
+			return MixSamples<i16, i32>(sampleA, sampleB);
 		}
 	};
 }

@@ -4,12 +4,12 @@ namespace Comfy::Graphics::D3D11
 {
 	namespace
 	{
-		inline uint32_t FloatToUInt32Sat(float value)
+		inline u32 FloatToUInt32Sat(float value)
 		{
-			return static_cast<uint32_t>(((value < 0.0f) ? 0.0f : (value > 1.0f) ? 1.0f : value) * 255.0f + 0.5f);
+			return static_cast<u32>(((value < 0.0f) ? 0.0f : (value > 1.0f) ? 1.0f : value) * 255.0f + 0.5f);
 		};
 
-		inline uint32_t Vec4ToUInt32(const vec4& value)
+		inline u32 Vec4ToUInt32(const vec4& value)
 		{
 			return ((FloatToUInt32Sat(value.x)) << 0) | ((FloatToUInt32Sat(value.y)) << 8) | ((FloatToUInt32Sat(value.z)) << 16) | ((FloatToUInt32Sat(value.w)) << 24);
 		}
@@ -154,7 +154,7 @@ namespace Comfy::Graphics::D3D11
 
 	void SpriteVertices::SetColors(const vec4& color)
 	{
-		const uint32_t packedColor = Vec4ToUInt32(color);
+		const u32 packedColor = Vec4ToUInt32(color);
 		TopLeft.Color = packedColor;
 		TopRight.Color = packedColor;
 		BottomLeft.Color = packedColor;

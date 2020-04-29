@@ -49,8 +49,8 @@ namespace Comfy::Graphics::D3D11
 		float ShadowExponent;
 		float SubsurfaceScatteringParameter;
 
-		uint32_t DebugFlags;
-		uint32_t Padding[1];
+		u32 DebugFlags;
+		u32 Padding[1];
 		vec4 DebugValue;
 	};
 
@@ -75,10 +75,10 @@ namespace Comfy::Graphics::D3D11
 			float BumpDepth;
 		} Material;
 		vec4 MorphWeight;
-		uint32_t ShaderFlags;
-		uint32_t DiffuseRGTC1;
-		uint32_t DiffuseScreenTexture;
-		uint32_t AmbientTextureType;
+		u32 ShaderFlags;
+		u32 DiffuseRGTC1;
+		u32 DiffuseScreenTexture;
+		u32 AmbientTextureType;
 	};
 
 	struct SkeletonConstantData

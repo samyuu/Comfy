@@ -126,7 +126,7 @@ namespace Comfy
 		int swapInterval = 1;
 		TimeSpan elapsedTime = TimeSpan::FromSeconds(0.0f);
 		TimeSpan currentTime, lastTime;
-		uint64_t elapsedFrames = 0;
+		u64 elapsedFrames = 0;
 
 		const TimeSpan powerSleepDuration = TimeSpan::FromMilliseconds(10.0);
 

@@ -14,22 +14,22 @@ namespace Comfy::Audio
 		};
 
 	public:
-		int64_t MixChannels(ISampleProvider* sampleProvider, int16_t bufferToFill[], int64_t frameOffset, int64_t framesToRead);
+		i64 MixChannels(ISampleProvider* sampleProvider, i16 bufferToFill[], i64 frameOffset, i64 framesToRead);
 
 		MixingBehavior GetMixingBehavior() const;
 		void SetMixingBehavior(MixingBehavior value);
 
-		uint32_t GetSourceChannels() const;
-		void SetSourceChannels(uint32_t value);
+		u32 GetSourceChannels() const;
+		void SetSourceChannels(u32 value);
 		
-		uint32_t GetTargetChannels() const;
-		void SetTargetChannels(uint32_t value);
+		u32 GetTargetChannels() const;
+		void SetTargetChannels(u32 value);
 
 	protected:
 		MixingBehavior mixingBehavior = MixingBehavior::Ignore;
-		std::vector<int16_t> sampleSwapBuffer;
+		std::vector<i16> sampleSwapBuffer;
 		
-		uint32_t sourceChannels = 0;
-		uint32_t targetChannels = 0;
+		u32 sourceChannels = 0;
+		u32 targetChannels = 0;
 	};
 }

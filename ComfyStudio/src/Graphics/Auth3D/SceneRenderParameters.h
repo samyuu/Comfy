@@ -11,8 +11,8 @@ namespace Comfy::Graphics
 	struct SceneRenderParameters
 	{
 		// DEBUG: Non specific debug flags for quick testing
-		uint32_t DebugFlags = 0;
-		uint32_t ShaderDebugFlags = 0;
+		u32 DebugFlags = 0;
+		u32 ShaderDebugFlags = 0;
 		vec4 ShaderDebugValue = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		bool AllowDebugShaderOverride = true;
 
@@ -29,7 +29,7 @@ namespace Comfy::Graphics
 		// bool OverrideSimpleShader = false;
 
 		// NOTE: Used by all newly created texture samplers
-		int32_t AnistropicFiltering = 16;
+		i32 AnistropicFiltering = 16;
 
 		bool FrustumCulling = true;
 		bool Wireframe = false;
@@ -61,16 +61,16 @@ namespace Comfy::Graphics
 		ivec2 RenderResolution = D3D11::RenderTargetDefaultSize;
 
 #if COMFY_DEBUG
-		uint32_t MultiSampleCount = 1;
+		u32 MultiSampleCount = 1;
 #else
-		uint32_t MultiSampleCount = 4;
+		u32 MultiSampleCount = 4;
 #endif
 
 		bool ShadowMapping = true;
 		bool SelfShadowing = true;
 
 		ivec2 ShadowMapResolution = ShadowMapDefaultResolution;
-		uint32_t ShadowBlurPasses = 1;
+		u32 ShadowBlurPasses = 1;
 
 		bool RenderSubsurfaceScattering = true;
 

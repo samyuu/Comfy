@@ -11,7 +11,7 @@ namespace Comfy::Audio
 	{
 	}
 
-	int64_t MemorySampleProvider::ReadSamples(int16_t bufferToFill[], int64_t frameOffset, int64_t framesToRead, uint32_t channelsToFill)
+	i64 MemorySampleProvider::ReadSamples(i16 bufferToFill[], i64 frameOffset, i64 framesToRead, u32 channelsToFill)
 	{
 		std::fill(bufferToFill, bufferToFill + (framesToRead * channelsToFill), 0);
 
@@ -23,8 +23,8 @@ namespace Comfy::Audio
 
 		if (frameOffset < 0 && (frameOffset + framesToRead) > 0)
 		{
-			const int64_t nonSilentSamples = (framesToRead + frameOffset) * channelsToFill;
-			int16_t* nonSilentBuffer = (bufferToFill - (frameOffset * channelsToFill));
+			const i64 nonSilentSamples = (framesToRead + frameOffset) * channelsToFill;
+			i16* nonSilentBuffer = (bufferToFill - (frameOffset * channelsToFill));
 
 			// NOTE: Fill a portion of the buffer
 			std::copy(sampleData.data(), sampleData.data() + nonSilentSamples, nonSilentBuffer);
@@ -33,24 +33,24 @@ namespace Comfy::Audio
 		}
 
 		// NOTE: Fill the whole buffer
-		const int16_t* sampleSource = &sampleData[frameOffset * channelsToFill];
-		const int64_t framesRead = ((frameOffset + framesToRead) > GetFrameCount()) ? (GetFrameCount() - frameOffset) : framesToRead;
+		const i16* sampleSource = &sampleData[frameOffset * channelsToFill];
+		const i64 framesRead = ((frameOffset + framesToRead) > GetFrameCount()) ? (GetFrameCount() - frameOffset) : framesToRead;
 		
 		std::copy(sampleSource, sampleSource + (framesRead * channelsToFill), bufferToFill);
 		return framesToRead;
 	}
 
-	int64_t MemorySampleProvider::GetFrameCount() const
+	i64 MemorySampleProvider::GetFrameCount() const
 	{
-		return static_cast<int64_t>(sampleData.size()) / channelCount;
+		return static_cast<i64>(sampleData.size()) / channelCount;
 	}
 
-	uint32_t MemorySampleProvider::GetChannelCount() const
+	u32 MemorySampleProvider::GetChannelCount() const
 	{
 		return channelCount;
 	}
 
-	uint32_t MemorySampleProvider::GetSampleRate() const
+	u32 MemorySampleProvider::GetSampleRate() const
 	{
 		return sampleRate;
 	}

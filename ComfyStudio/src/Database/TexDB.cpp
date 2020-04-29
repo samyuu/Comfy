@@ -8,7 +8,7 @@ namespace Comfy::Database
 
 	void TexDB::Read(BinaryReader& reader)
 	{
-		uint32_t texEntryCount = reader.ReadU32();
+		u32 texEntryCount = reader.ReadU32();
 		FileAddr texOffset = reader.ReadPtr();
 
 		if (texEntryCount > 0 && texOffset != FileAddr::NullPtr)
@@ -27,12 +27,12 @@ namespace Comfy::Database
 
 	void TexDB::Write(BinaryWriter& writer)
 	{
-		writer.WriteU32(static_cast<uint32_t>(Entries.size()));
+		writer.WriteU32(static_cast<u32>(Entries.size()));
 		writer.WritePtr([this](BinaryWriter& writer)
 		{
 			for (auto& texEntry : Entries)
 			{
-				writer.WriteU32(static_cast<uint32_t>(texEntry.ID));
+				writer.WriteU32(static_cast<u32>(texEntry.ID));
 				writer.WriteStrPtr(texEntry.Name);
 			}
 

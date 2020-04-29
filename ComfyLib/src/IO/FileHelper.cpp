@@ -286,7 +286,7 @@ namespace Comfy::IO
 		return result;
 	}
 
-	bool WriteAllBytes(std::string_view filePath, const std::vector<uint8_t>& buffer)
+	bool WriteAllBytes(std::string_view filePath, const std::vector<u8>& buffer)
 	{
 		HANDLE fileHandle = CreateFileHandleInternal(filePath, false);
 		int error = ::GetLastError();

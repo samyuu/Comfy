@@ -3,8 +3,8 @@
 
 namespace Comfy::Graphics
 {
-	using Transform2DField = int32_t;
-	using Transform2DFieldFlags = int32_t;
+	using Transform2DField = i32;
+	using Transform2DFieldFlags = i32;
 
 	enum Transform2DField_Enum : Transform2DField
 	{

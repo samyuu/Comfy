@@ -7,14 +7,14 @@ namespace Comfy::Graphics
 {
 	struct Spr
 	{
-		int32_t TextureIndex;
-		int32_t Rotate;
+		i32 TextureIndex;
+		i32 Rotate;
 		vec4 TexelRegion;
 		vec4 PixelRegion;
 		std::string Name;
 		struct ExtraData
 		{
-			uint32_t Flags;
+			u32 Flags;
 			ScreenMode ScreenMode;
 		} Extra;
 
@@ -25,13 +25,13 @@ namespace Comfy::Graphics
 	{
 	public:
 		std::string Name;
-		uint32_t Flags;
+		u32 Flags;
 		UniquePtr<TexSet> TexSet;
 		std::vector<Spr> Sprites;
 
 		void Write(IO::BinaryWriter& writer) override;
 
-		void Parse(const uint8_t* buffer, size_t bufferSize) override;
+		void Parse(const u8* buffer, size_t bufferSize) override;
 
 	private:
 	};

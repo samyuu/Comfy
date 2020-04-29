@@ -4,20 +4,20 @@
 
 namespace Comfy::Audio
 {
-	int64_t ChannelMixer::MixChannels(ISampleProvider* sampleProvider, int16_t bufferToFill[], int64_t frameOffset, int64_t framesToRead)
+	i64 ChannelMixer::MixChannels(ISampleProvider* sampleProvider, i16 bufferToFill[], i64 frameOffset, i64 framesToRead)
 	{
-		uint64_t samplesToRead = framesToRead * sourceChannels;
+		u64 samplesToRead = framesToRead * sourceChannels;
 		if (sampleSwapBuffer.size() < samplesToRead)
 			sampleSwapBuffer.resize(samplesToRead);
 
-		int64_t framesRead = sampleProvider->ReadSamples(sampleSwapBuffer.data(), frameOffset, framesToRead, sourceChannels);
-		int64_t samplesRead = framesRead * sourceChannels;
+		i64 framesRead = sampleProvider->ReadSamples(sampleSwapBuffer.data(), frameOffset, framesToRead, sourceChannels);
+		i64 samplesRead = framesRead * sourceChannels;
 
 		if (sourceChannels < targetChannels)
 		{
 			// Duplicate existing channel(s)
 			size_t targetIndex = 0;
-			for (int64_t i = 0; i < samplesRead; i++)
+			for (i64 i = 0; i < samplesRead; i++)
 			{
 				for (size_t c = 0; c < targetChannels; c++)
 					bufferToFill[targetIndex++] = sampleSwapBuffer[i];
@@ -39,7 +39,7 @@ namespace Comfy::Audio
 			case MixingBehavior::Ignore:
 			{
 				// Remove extra channel(s)
-				for (int64_t i = 0; i < framesRead * targetChannels;)
+				for (i64 i = 0; i < framesRead * targetChannels;)
 				{
 					bufferToFill[i++] = sampleSwapBuffer[swapBufferIndex + 0];
 					bufferToFill[i++] = sampleSwapBuffer[swapBufferIndex + 1];
@@ -51,7 +51,7 @@ namespace Comfy::Audio
 			case MixingBehavior::Mix:
 			{
 				// Mix extra channel(s)
-				for (int64_t i = 0; i < framesRead * targetChannels;)
+				for (i64 i = 0; i < framesRead * targetChannels;)
 				{
 					bufferToFill[i++] = SampleMixer::MixSamples(sampleSwapBuffer[swapBufferIndex + 0], sampleSwapBuffer[swapBufferIndex + 2]);
 					bufferToFill[i++] = SampleMixer::MixSamples(sampleSwapBuffer[swapBufferIndex + 1], sampleSwapBuffer[swapBufferIndex + 3]);
@@ -79,22 +79,22 @@ namespace Comfy::Audio
 		mixingBehavior = value;
 	}
 
-	uint32_t ChannelMixer::GetSourceChannels() const
+	u32 ChannelMixer::GetSourceChannels() const
 	{
 		return sourceChannels;
 	}
 
-	void ChannelMixer::SetSourceChannels(uint32_t value)
+	void ChannelMixer::SetSourceChannels(u32 value)
 	{
 		sourceChannels = value;
 	}
 
-	uint32_t ChannelMixer::GetTargetChannels() const
+	u32 ChannelMixer::GetTargetChannels() const
 	{
 		return targetChannels;
 	}
 
-	void ChannelMixer::SetTargetChannels(uint32_t value)
+	void ChannelMixer::SetTargetChannels(u32 value)
 	{
 		targetChannels = value;
 	}

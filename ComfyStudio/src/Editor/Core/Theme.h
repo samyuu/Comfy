@@ -32,12 +32,12 @@ namespace Comfy::Editor
 		EditorColor_Count,
 	};
 
-	extern std::array<uint32_t, EditorColor_Count> EditorColors;
+	extern std::array<u32, EditorColor_Count> EditorColors;
 
 	vec4 GetColorVec4(EditorColor color);
-	uint32_t GetColor(EditorColor color);
-	uint32_t GetColor(EditorColor color, float alpha);
-	void SetColor(EditorColor color, uint32_t value);
+	u32 GetColor(EditorColor color);
+	u32 GetColor(EditorColor color, float alpha);
+	void SetColor(EditorColor color, u32 value);
 
 	void UpdateEditorColors();
 }

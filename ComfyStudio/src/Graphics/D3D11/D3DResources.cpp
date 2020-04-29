@@ -1,4 +1,3 @@
-#pragma once
 #include "Graphics/GPU/GPUResources.h"
 
 namespace Comfy::Graphics::GPU
@@ -37,7 +36,7 @@ namespace Comfy::Graphics::GPU
 		return result;
 	}
 
-	UniquePtr<GPU_Texture2D> MakeTexture2D(ivec2 size, const uint32_t* rgbaBuffer, const char* debugName)
+	UniquePtr<GPU_Texture2D> MakeTexture2D(ivec2 size, const u32* rgbaBuffer, const char* debugName)
 	{
 		auto result = MakeUnique<D3D11::Texture2D>(size, rgbaBuffer);
 		SetDebugName(*result, debugName);

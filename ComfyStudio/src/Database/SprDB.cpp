@@ -32,10 +32,10 @@ namespace Comfy::Database
 
 	void SprDB::Read(BinaryReader& reader)
 	{
-		uint32_t sprSetEntryCount = reader.ReadU32();
+		u32 sprSetEntryCount = reader.ReadU32();
 		FileAddr sprSetOffset = reader.ReadPtr();
 
-		uint32_t sprEntryCount = reader.ReadU32();
+		u32 sprEntryCount = reader.ReadU32();
 		FileAddr sprOffset = reader.ReadPtr();
 
 		if (sprSetEntryCount > 0 && sprSetOffset != FileAddr::NullPtr)
@@ -48,7 +48,7 @@ namespace Comfy::Database
 					sprSetEntry.ID = SprSetID(reader.ReadU32());
 					sprSetEntry.Name = reader.ReadStrPtr();
 					sprSetEntry.FileName = reader.ReadStrPtr();
-					uint32_t index = reader.ReadI32();
+					u32 index = reader.ReadI32();
 				}
 			});
 		}
@@ -57,16 +57,16 @@ namespace Comfy::Database
 		{
 			reader.ReadAt(sprOffset, [this, sprEntryCount](BinaryReader& reader)
 			{
-				for (uint32_t i = 0; i < sprEntryCount; i++)
+				for (u32 i = 0; i < sprEntryCount; i++)
 				{
-					constexpr uint16_t packedDataMask = 0x1000;
+					constexpr u16 packedDataMask = 0x1000;
 
 					SprID id = SprID(reader.ReadU32());
 					FileAddr nameOffset = reader.ReadPtr();
-					int16_t index = reader.ReadI16();
-					uint16_t packedData = reader.ReadU16();
+					i16 index = reader.ReadI16();
+					u16 packedData = reader.ReadU16();
 
-					int32_t sprSetEntryIndex = (packedData & ~packedDataMask);
+					i32 sprSetEntryIndex = (packedData & ~packedDataMask);
 					SprSetEntry& sprSetEntry = Entries[sprSetEntryIndex];
 
 					std::vector<SprEntry>& sprEntries = (packedData & packedDataMask) ? sprSetEntry.SprTexEntries : sprSetEntry.SprEntries;
@@ -93,23 +93,23 @@ namespace Comfy::Database
 		writer.SetPosition(startPosition + FileAddr(0xC));
 		writer.WritePtr([this](BinaryWriter& writer)
 		{
-			int16_t sprSetIndex = 0;
+			i16 sprSetIndex = 0;
 			for (auto& sprSetEntry : Entries)
 			{
-				constexpr uint16_t packedDataMask = 0x1000;
+				constexpr u16 packedDataMask = 0x1000;
 
 				for (auto& sprTexEntry : sprSetEntry.SprTexEntries)
 				{
-					writer.WriteU32(static_cast<uint32_t>(sprTexEntry.ID));
+					writer.WriteU32(static_cast<u32>(sprTexEntry.ID));
 					writer.WriteStrPtr(sprTexEntry.Name);
 					writer.WriteI16(sprTexEntry.Index);
 					writer.WriteU16(sprSetIndex | packedDataMask);
 				}
 
-				int16_t sprIndex = 0;
+				i16 sprIndex = 0;
 				for (auto& sprEntry : sprSetEntry.SprEntries)
 				{
-					writer.WriteU32(static_cast<uint32_t>(sprEntry.ID));
+					writer.WriteU32(static_cast<u32>(sprEntry.ID));
 					writer.WriteStrPtr(sprEntry.Name);
 					writer.WriteI16(sprEntry.Index);
 					writer.WriteU16(sprSetIndex);
@@ -124,10 +124,10 @@ namespace Comfy::Database
 		writer.SetPosition(startPosition + FileAddr(0x4));
 		writer.WritePtr([this](BinaryWriter& writer)
 		{
-			int32_t index = 0;
+			i32 index = 0;
 			for (auto& sprSetEntry : Entries)
 			{
-				writer.WriteU32(static_cast<uint32_t>(sprSetEntry.ID));
+				writer.WriteU32(static_cast<u32>(sprSetEntry.ID));
 				writer.WriteStrPtr(sprSetEntry.Name);
 				writer.WriteStrPtr(sprSetEntry.FileName);
 				writer.WriteI32(index++);
@@ -154,16 +154,16 @@ namespace Comfy::Database
 		return nullptr;
 	}
 
-	uint32_t SprDB::GetSprSetEntryCount()
+	u32 SprDB::GetSprSetEntryCount()
 	{
-		return static_cast<uint32_t>(Entries.size());
+		return static_cast<u32>(Entries.size());
 	}
 
-	uint32_t SprDB::GetSprEntryCount()
+	u32 SprDB::GetSprEntryCount()
 	{
-		uint32_t sprEntryCount = 0;
+		u32 sprEntryCount = 0;
 		for (auto& sprSetEntry : Entries)
-			sprEntryCount += static_cast<uint32_t>(sprSetEntry.SprEntries.size() + sprSetEntry.SprTexEntries.size());
+			sprEntryCount += static_cast<u32>(sprSetEntry.SprEntries.size() + sprSetEntry.SprTexEntries.size());
 		return sprEntryCount;
 	}
 }

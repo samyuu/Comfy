@@ -3,7 +3,7 @@
 
 namespace Comfy
 {
-	typedef int32_t KeyState;
+	typedef i32 KeyState;
 	enum KeyState_Enum : KeyState
 	{
 		KeyState_Release = 0,
@@ -11,7 +11,7 @@ namespace Comfy
 		KeyState_Repeat = 2,
 	};
 
-	typedef int32_t KeyCode;
+	typedef i32 KeyCode;
 	enum KeyCode_Enum : KeyCode
 	{
 		KeyCode_Unknown = -1,

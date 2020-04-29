@@ -51,7 +51,7 @@ namespace Comfy::Editor
 		});
 	}
 
-	void MaterialEditor::DrawUsedTexturesFlagsGui(uint32_t& usedTexturesCount, Material::MaterialUsedTextureFlags& texturesFlags)
+	void MaterialEditor::DrawUsedTexturesFlagsGui(u32& usedTexturesCount, Material::MaterialUsedTextureFlags& texturesFlags)
 	{
 		GuiProperty::TreeNode("Used Textures Flags", ImGuiTreeNodeFlags_None, [&]
 		{
@@ -121,7 +121,7 @@ namespace Comfy::Editor
 				sprintf_s(nodePropertyNameBuffer, "Textures[%zu]", i);
 
 				char nodeValueNameBuffer[32];
-				sprintf_s(nodeValueNameBuffer, "(%s)", MaterialTextureTypeNames[static_cast<uint32_t>(texture.TextureFlags.Type)]);
+				sprintf_s(nodeValueNameBuffer, "(%s)", MaterialTextureTypeNames[static_cast<u32>(texture.TextureFlags.Type)]);
 
 				GuiProperty::TreeNode(nodePropertyNameBuffer, nodeValueNameBuffer, ImGuiTreeNodeFlags_None, [&]
 				{
@@ -143,7 +143,7 @@ namespace Comfy::Editor
 						GuiPropertyBitFieldInputInt("Ansi Filters", samplerFlags.AnsiFilters);
 					});
 
-					auto tempID = static_cast<uint32_t>(texture.TextureID.ID);
+					auto tempID = static_cast<u32>(texture.TextureID.ID);
 					if (GuiProperty::InputHex("Texture ID", tempID))
 						texture.TextureID = static_cast<TexID>(tempID);
 

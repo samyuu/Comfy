@@ -28,7 +28,7 @@ namespace Comfy::System
 	protected:
 		struct Entry
 		{
-			Entry(const char* name, TimeSpan startTime, int32_t parentCount);
+			Entry(const char* name, TimeSpan startTime, i32 parentCount);
 
 			// NOTE: Should be set using a function name macro
 			const char* Name;
@@ -37,12 +37,12 @@ namespace Comfy::System
 			TimeSpan StartTime, EndTime;
 
 			// NOTE: Basically the "indentation" of this entry
-			int32_t ParentCount;
+			i32 ParentCount;
 
 			inline TimeSpan Duration() const { return EndTime - StartTime; };
 		};
 
-		int32_t currentDepth = 0;
+		i32 currentDepth = 0;
 
 		// NOTE: Time set by StartFrame / EndFrame
 		TimeSpan frameStartTime, frameEndTime;

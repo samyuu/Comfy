@@ -11,11 +11,11 @@ namespace Comfy::Audio
 
 	AudioDecoderResult WavDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, AudioDecoderOutputData* outputData)
 	{
-		uint32_t channels, sampleRate;
-		uint64_t totalSampleCount;
+		u32 channels, sampleRate;
+		u64 totalSampleCount;
 
 		// drwav_open_memory_and_read_s16_into_vector(fileData, fileSize, &channels, &sampleRate, &totalSampleCount, outputData->SampleData);
-		int16_t* data = drwav_open_memory_and_read_s16(fileData, fileSize, &channels, &sampleRate, &totalSampleCount);
+		i16* data = drwav_open_memory_and_read_s16(fileData, fileSize, &channels, &sampleRate, &totalSampleCount);
 
 		if (data == nullptr)
 			return AudioDecoderResult::Failure;

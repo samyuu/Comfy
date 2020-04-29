@@ -93,7 +93,7 @@ namespace Comfy::IO
 		return fileFound && threadRunning && !isLoaded;
 	}
 
-	const std::vector<uint8_t>& FileLoader::GetFileContent() const
+	const std::vector<u8>& FileLoader::GetFileContent() const
 	{
 		assert(fileFound && isLoaded);
 		return fileContent;

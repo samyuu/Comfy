@@ -170,7 +170,7 @@ namespace Comfy::Audio
 		return (audioApi > AudioApi::Invalid && audioApi < AudioApi::Count) ? audioApis.at(static_cast<int>(audioApi)) : RtAudio::UNSPECIFIED;
 	}
 
-	AudioEngine::AudioCallbackResult AudioEngine::InternalAudioCallback(int16_t* outputBuffer, uint32_t bufferFrameCount, double streamTime)
+	AudioEngine::AudioCallbackResult AudioEngine::InternalAudioCallback(i16* outputBuffer, u32 bufferFrameCount, double streamTime)
 	{
 		bufferSize = bufferFrameCount;
 		callbackStreamTime = streamTime;
@@ -185,12 +185,12 @@ namespace Comfy::Audio
 		}
 
 		// need to clear out the buffer from the previous call
-		uint32_t targetChannels = GetChannelCount();
+		u32 targetChannels = GetChannelCount();
 		std::fill(outputBuffer, outputBuffer + bufferFrameCount * targetChannels, 0);
 
 		audioInstancesMutex.lock();
 		{
-			// 2 channels * 64 frames * sizeof(int16_t) -> 256 bytes inside the outputBuffer
+			// 2 channels * 64 frames * sizeof(i16) -> 256 bytes inside the outputBuffer
 			// 64 samples for each ear
 
 			size_t audioInstancesSize = audioInstances.size();
@@ -221,8 +221,8 @@ namespace Comfy::Audio
 						continue;
 				}
 
-				int64_t framesRead = 0;
-				uint32_t sourceChannels = audioInstance->GetChannelCount();
+				i64 framesRead = 0;
+				u32 sourceChannels = audioInstance->GetChannelCount();
 
 				if (sourceChannels != targetChannels)
 				{
@@ -240,14 +240,14 @@ namespace Comfy::Audio
 				if (!audioInstance->GetPlayPastEnd() && audioInstance->GetHasReachedEnd())
 					audioInstance->SetFramePosition(audioInstance->GetFrameCount());
 
-				for (int64_t i = 0; i < framesRead * targetChannels; i++)
-					outputBuffer[i] = SampleMixer::MixSamples(outputBuffer[i], static_cast<int16_t>(tempOutputBuffer[i] * audioInstance->GetVolume()));
+				for (i64 i = 0; i < framesRead * targetChannels; i++)
+					outputBuffer[i] = SampleMixer::MixSamples(outputBuffer[i], static_cast<i16>(tempOutputBuffer[i] * audioInstance->GetVolume()));
 			}
 		}
 		audioInstancesMutex.unlock();
 
-		for (int64_t i = 0; i < bufferFrameCount * targetChannels; i++)
-			outputBuffer[i] = static_cast<int16_t>(outputBuffer[i] * GetMasterVolume());
+		for (i64 i = 0; i < bufferFrameCount * targetChannels; i++)
+			outputBuffer[i] = static_cast<i16>(outputBuffer[i] * GetMasterVolume());
 
 		return AudioCallbackResult::Continue;
 	}
@@ -257,12 +257,12 @@ namespace Comfy::Audio
 		return GetRtAudio() == nullptr ? -1 : GetRtAudio()->getDeviceCount();
 	}
 
-	RtAudio::DeviceInfo AudioEngine::GetDeviceInfo(uint32_t device)
+	RtAudio::DeviceInfo AudioEngine::GetDeviceInfo(u32 device)
 	{
 		return GetRtAudio()->getDeviceInfo(device);
 	}
 
-	void AudioEngine::SetBufferSize(uint32_t bufferSize)
+	void AudioEngine::SetBufferSize(u32 bufferSize)
 	{
 		assert(bufferSize <= MAX_BUFFER_SIZE);
 
@@ -328,7 +328,7 @@ namespace Comfy::Audio
 		return AudioDecoderFactory::GetInstance()->DecodeFile(filePath);
 	}
 
-	uint32_t AudioEngine::GetDeviceId()
+	u32 AudioEngine::GetDeviceId()
 	{
 		// TODO: store user preference
 		return GetRtAudio()->getDefaultOutputDevice();
@@ -348,8 +348,8 @@ namespace Comfy::Audio
 		return nullptr;
 	}
 
-	int AudioEngine::InternalStaticAudioCallback(void* outputBuffer, void*, uint32_t bufferFrames, double streamTime, RtAudioStreamStatus, void*)
+	int AudioEngine::InternalStaticAudioCallback(void* outputBuffer, void*, u32 bufferFrames, double streamTime, RtAudioStreamStatus, void*)
 	{
-		return static_cast<int>(GetInstance()->InternalAudioCallback(static_cast<int16_t*>(outputBuffer), bufferFrames, streamTime));
+		return static_cast<int>(GetInstance()->InternalAudioCallback(static_cast<i16*>(outputBuffer), bufferFrames, streamTime));
 	}
 }

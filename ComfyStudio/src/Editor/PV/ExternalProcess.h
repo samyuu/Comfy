@@ -10,7 +10,7 @@ namespace Comfy::Editor
 	public:
 		struct ProcessData
 		{
-			uint32_t ID;
+			u32 ID;
 			void* Handle;
 		};
 
@@ -69,7 +69,7 @@ namespace Comfy::Editor
 		};
 
 	public:
-		void ParseConfig(const uint8_t* buffer, size_t size);
+		void ParseConfig(const u8* buffer, size_t size);
 
 		bool IsAttached() const;
 		void Attach();

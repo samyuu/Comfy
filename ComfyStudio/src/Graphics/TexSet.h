@@ -9,7 +9,7 @@
 
 namespace Comfy::Graphics
 {
-	enum class TxpSig : uint32_t
+	enum class TxpSig : u32
 	{
 		MipMap = '\02PXT',
 		TexSet = '\03PXT',
@@ -23,8 +23,8 @@ namespace Comfy::Graphics
 		ivec2 Size;
 		TextureFormat Format;
 
-		uint32_t DataSize;
-		UniquePtr<uint8_t[]> Data;
+		u32 DataSize;
+		UniquePtr<u8[]> Data;
 	};
 
 	struct Tex
@@ -40,7 +40,7 @@ namespace Comfy::Graphics
 		UniquePtr<GPU_CubeMap> GPU_CubeMap = nullptr;
 
 	public:
-		const std::vector<TexMipMap>& GetMipMaps(uint32_t arrayIndex = 0) const;
+		const std::vector<TexMipMap>& GetMipMaps(u32 arrayIndex = 0) const;
 
 		TxpSig GetSignature() const;
 		ivec2 GetSize() const;
@@ -57,7 +57,7 @@ namespace Comfy::Graphics
 
 		void Write(IO::BinaryWriter& writer) override;
 
-		void Parse(const uint8_t* buffer, size_t bufferSize) override;
+		void Parse(const u8* buffer, size_t bufferSize) override;
 		void UploadAll(class SprSet* parentSprSet);
 
 		void SetTextureIDs(const class ObjSet& objSet);
@@ -66,6 +66,6 @@ namespace Comfy::Graphics
 		static UniquePtr<TexSet> MakeUniqueReadParseUpload(std::string_view filePath, const class ObjSet* objSet);
 
 	private:
-		void ParseTex(const uint8_t* buffer, Tex& tex);
+		void ParseTex(const u8* buffer, Tex& tex);
 	};
 }

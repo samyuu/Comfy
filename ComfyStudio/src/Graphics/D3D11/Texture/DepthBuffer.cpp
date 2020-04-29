@@ -41,7 +41,7 @@ namespace Comfy::Graphics::D3D11
 		}
 	}
 
-	DepthBuffer::DepthBuffer(ivec2 size, DXGI_FORMAT textureFormat, DXGI_FORMAT depthFormat, D3D11_BIND_FLAG bindFlags, uint32_t multiSampleCount)
+	DepthBuffer::DepthBuffer(ivec2 size, DXGI_FORMAT textureFormat, DXGI_FORMAT depthFormat, D3D11_BIND_FLAG bindFlags, u32 multiSampleCount)
 	{
 		textureDescription.Width = size.x;
 		textureDescription.Height = size.y;
@@ -65,7 +65,7 @@ namespace Comfy::Graphics::D3D11
 		D3D.Device->CreateDepthStencilView(depthTexture.Get(), &depthStencilDescription, &depthStencilView);
 	}
 
-	DepthBuffer::DepthBuffer(ivec2 size, DXGI_FORMAT format, uint32_t multiSampleCount)
+	DepthBuffer::DepthBuffer(ivec2 size, DXGI_FORMAT format, u32 multiSampleCount)
 		: DepthBuffer(size, format, format, D3D11_BIND_FLAG {}, multiSampleCount)
 	{
 	}
@@ -87,7 +87,7 @@ namespace Comfy::Graphics::D3D11
 		D3D.Device->CreateDepthStencilView(depthTexture.Get(), &depthStencilDescription, &depthStencilView);
 	}
 
-	void DepthBuffer::SetMultiSampleCount(uint32_t multiSampleCount)
+	void DepthBuffer::SetMultiSampleCount(u32 multiSampleCount)
 	{
 		textureDescription.SampleDesc.Count = multiSampleCount;
 		textureDescription.SampleDesc.Quality = 0;
@@ -101,7 +101,7 @@ namespace Comfy::Graphics::D3D11
 		D3D.Device->CreateDepthStencilView(depthTexture.Get(), &depthStencilDescription, &depthStencilView);
 	}
 
-	uint32_t DepthBuffer::GetMultiSampleCount() const
+	u32 DepthBuffer::GetMultiSampleCount() const
 	{
 		return textureDescription.SampleDesc.Count;
 	}

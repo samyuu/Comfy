@@ -10,7 +10,7 @@ using namespace Comfy::IO;
 
 namespace Comfy::Graphics
 {
-	const std::vector<TexMipMap>& Tex::GetMipMaps(uint32_t arrayIndex) const
+	const std::vector<TexMipMap>& Tex::GetMipMaps(u32 arrayIndex) const
 	{
 		return MipMapsArray[arrayIndex];
 	}
@@ -43,11 +43,11 @@ namespace Comfy::Graphics
 
 	void TexSet::Write(BinaryWriter& writer)
 	{
-		const uint32_t textureCount = static_cast<uint32_t>(Textures.size());
-		constexpr uint32_t packedMask = 0x01010100;
+		const u32 textureCount = static_cast<u32>(Textures.size());
+		constexpr u32 packedMask = 0x01010100;
 
 		const FileAddr setBaseAddress = writer.GetPosition();
-		writer.WriteU32(static_cast<uint32_t>(TxpSig::TexSet));
+		writer.WriteU32(static_cast<u32>(TxpSig::TexSet));
 		writer.WriteU32(textureCount);
 		writer.WriteU32(textureCount | packedMask);
 
@@ -56,27 +56,27 @@ namespace Comfy::Graphics
 			writer.WritePtr([&](BinaryWriter& writer)
 			{
 				const FileAddr texBaseAddress = writer.GetPosition();
-				const uint8_t arraySize = static_cast<uint8_t>(texture->MipMapsArray.size());
-				const uint8_t mipLevels = (arraySize > 0) ? static_cast<uint8_t>(texture->MipMapsArray.front().size()) : 0;
+				const u8 arraySize = static_cast<u8>(texture->MipMapsArray.size());
+				const u8 mipLevels = (arraySize > 0) ? static_cast<u8>(texture->MipMapsArray.front().size()) : 0;
 
-				writer.WriteU32(static_cast<uint32_t>(texture->GetSignature()));
+				writer.WriteU32(static_cast<u32>(texture->GetSignature()));
 				writer.WriteU32(arraySize * mipLevels);
 				writer.WriteU8(mipLevels);
 				writer.WriteU8(arraySize);
 				writer.WriteU8(0x01);
 				writer.WriteU8(0x01);
 
-				for (uint8_t arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
+				for (u8 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
 				{
-					for (uint8_t mipIndex = 0; mipIndex < mipLevels; mipIndex++)
+					for (u8 mipIndex = 0; mipIndex < mipLevels; mipIndex++)
 					{
 						writer.WritePtr([arrayIndex, mipIndex, &texture](BinaryWriter& writer)
 						{
 							const auto& mipMap = texture->MipMapsArray[arrayIndex][mipIndex];
-							writer.WriteU32(static_cast<uint32_t>(TxpSig::MipMap));
+							writer.WriteU32(static_cast<u32>(TxpSig::MipMap));
 							writer.WriteI32(mipMap.Size.x);
 							writer.WriteI32(mipMap.Size.y);
-							writer.WriteU32(static_cast<uint32_t>(mipMap.Format));
+							writer.WriteU32(static_cast<u32>(mipMap.Format));
 							writer.WriteU8(mipIndex);
 							writer.WriteU8(arrayIndex);
 							writer.WriteU8(0x00);
@@ -93,19 +93,19 @@ namespace Comfy::Graphics
 		writer.WriteAlignmentPadding(16);
 	}
 
-	void TexSet::Parse(const uint8_t* buffer, size_t bufferSize)
+	void TexSet::Parse(const u8* buffer, size_t bufferSize)
 	{
 		TexSet& texSet = *this;
 
 		TxpSig signature = *(TxpSig*)(buffer + 0);
-		uint32_t textureCount = *(uint32_t*)(buffer + 4);
-		uint32_t packedCount = *(uint32_t*)(buffer + 8);
-		uint32_t* offsets = (uint32_t*)(buffer + 12);
+		u32 textureCount = *(u32*)(buffer + 4);
+		u32 packedCount = *(u32*)(buffer + 8);
+		u32* offsets = (u32*)(buffer + 12);
 
 		assert(signature == TxpSig::TexSet);
 
 		Textures.reserve(textureCount);
-		for (uint32_t i = 0; i < textureCount; i++)
+		for (u32 i = 0; i < textureCount; i++)
 		{
 			Textures.push_back(MakeRef<Tex>());
 			ParseTex(buffer + offsets[i], *Textures[i]);
@@ -147,7 +147,7 @@ namespace Comfy::Graphics
 
 	UniquePtr<TexSet> TexSet::MakeUniqueReadParseUpload(std::string_view filePath, const ObjSet* objSet)
 	{
-		std::vector<uint8_t> fileContent;
+		std::vector<u8> fileContent;
 		FileReader::ReadEntireFile(filePath, &fileContent);
 
 		if (fileContent.empty())
@@ -164,15 +164,15 @@ namespace Comfy::Graphics
 		return texSet;
 	}
 
-	void TexSet::ParseTex(const uint8_t* buffer, Tex& tex)
+	void TexSet::ParseTex(const u8* buffer, Tex& tex)
 	{
 		TxpSig signature = *(TxpSig*)(buffer + 0);
-		uint32_t mipMapCount = *(uint32_t*)(buffer + 4);
-		uint8_t mipLevels = *(uint8_t*)(buffer + 8);
-		uint8_t arraySize = *(uint8_t*)(buffer + 9);
+		u32 mipMapCount = *(u32*)(buffer + 4);
+		u8 mipLevels = *(u8*)(buffer + 8);
+		u8 arraySize = *(u8*)(buffer + 9);
 
-		uint32_t* offsets = (uint32_t*)(buffer + 12);
-		const uint8_t* mipMapBuffer = buffer + *offsets;
+		u32* offsets = (u32*)(buffer + 12);
+		const u8* mipMapBuffer = buffer + *offsets;
 		++offsets;
 
 		assert(signature == TxpSig::Texture2D || signature == TxpSig::CubeMap || signature == TxpSig::Rectangle);
@@ -190,11 +190,11 @@ namespace Comfy::Graphics
 				mipMap.Size = *(ivec2*)(mipMapBuffer + 4);
 				mipMap.Format = *(TextureFormat*)(mipMapBuffer + 12);
 
-				uint8_t mipIndex = *(uint8_t*)(mipMapBuffer + 16);
-				uint8_t arrayIndex = *(uint8_t*)(mipMapBuffer + 17);
+				u8 mipIndex = *(u8*)(mipMapBuffer + 16);
+				u8 arrayIndex = *(u8*)(mipMapBuffer + 17);
 
-				mipMap.DataSize = *(uint32_t*)(mipMapBuffer + 20);
-				mipMap.Data = MakeUnique<uint8_t[]>(mipMap.DataSize);
+				mipMap.DataSize = *(u32*)(mipMapBuffer + 20);
+				mipMap.Data = MakeUnique<u8[]>(mipMap.DataSize);
 				std::memcpy(mipMap.Data.get(), mipMapBuffer + 24, mipMap.DataSize);
 
 				mipMapBuffer = buffer + *offsets;

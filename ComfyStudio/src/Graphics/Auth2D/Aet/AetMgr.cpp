@@ -181,7 +181,7 @@ namespace Comfy::Graphics::Aet
 		}
 	}
 
-	void AetMgr::ApplyParentTransform(Transform2D& outTransform, const Layer* parent, frame_t frame, int32_t& recursionCount)
+	void AetMgr::ApplyParentTransform(Transform2D& outTransform, const Layer* parent, frame_t frame, i32& recursionCount)
 	{
 		assert(recursionCount < ParentRecursionLimit);
 		if (parent == nullptr || recursionCount > ParentRecursionLimit)
@@ -261,7 +261,7 @@ namespace Comfy::Graphics::Aet
 
 		objCache.Transform = AetMgr::GetTransformAt(*layer->LayerVideo, frame);
 
-		int32_t recursionCount = 0;
+		i32 recursionCount = 0;
 		AetMgr::ApplyParentTransform(objCache.Transform, layer->GetRefParentLayer(), frame, recursionCount);
 		TransformByParent(*parentTransform, objCache.Transform);
 	}
@@ -279,7 +279,7 @@ namespace Comfy::Graphics::Aet
 
 		Transform2D effTransform = AetMgr::GetTransformAt(*layer->LayerVideo, frame);
 
-		int32_t recursionCount = 0;
+		i32 recursionCount = 0;
 		AetMgr::ApplyParentTransform(effTransform, layer->GetRefParentLayer(), frame, recursionCount);
 		TransformByParent(*parentTransform, effTransform);
 

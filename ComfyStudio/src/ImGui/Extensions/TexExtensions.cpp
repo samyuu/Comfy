@@ -1,4 +1,3 @@
-#pragma once
 #include "TexExtensions.h"
 #include "ImguiExtensions.h"
 

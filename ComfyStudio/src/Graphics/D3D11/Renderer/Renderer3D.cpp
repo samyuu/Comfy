@@ -18,7 +18,7 @@ namespace Comfy::Graphics::D3D11
 		constexpr float DefaultShadowExpontent = 80.0f * (9.95f * 2.0f) * 1.442695f;
 		constexpr float DefaultShadowTexelOffset = 0.05f / (9.95f * 2.0f);
 
-		constexpr uint32_t MorphVertexAttributeOffset = VertexAttribute_Count;
+		constexpr u32 MorphVertexAttributeOffset = VertexAttribute_Count;
 
 		constexpr D3D11_PRIMITIVE_TOPOLOGY GetD3DPrimitiveTopolgy(PrimitiveType primitive)
 		{
@@ -179,7 +179,7 @@ namespace Comfy::Graphics::D3D11
 			};
 		}
 
-		enum Renderer3DTextureSlot : int32_t
+		enum Renderer3DTextureSlot : i32
 		{
 			// NOTE: Material Textures
 			TextureSlot_Diffuse = 0,
@@ -1001,8 +1001,8 @@ namespace Comfy::Graphics::D3D11
 	{
 		D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-		constexpr uint32_t morphAttrbutesFactor = 2;
-		constexpr uint32_t attributesToReset = (VertexAttribute_Count * morphAttrbutesFactor);
+		constexpr u32 morphAttrbutesFactor = 2;
+		constexpr u32 attributesToReset = (VertexAttribute_Count * morphAttrbutesFactor);
 
 		std::array<ID3D11Buffer*, attributesToReset> buffers = {};
 		std::array<UINT, attributesToReset> strides = {}, offsets = {};
@@ -1219,7 +1219,7 @@ namespace Comfy::Graphics::D3D11
 			((flags & RenderFlags_SSSPass) ? GetSSSMaterialShader(material) : GetMaterialShader(command, mesh, subMesh, material)).Bind();
 		}
 
-		const uint32_t boundMaterialTexturesFlags = (flags & RenderFlags_NoMaterialTextures) ? 0 : BindMaterialTextures(command, material, flags);
+		const u32 boundMaterialTexturesFlags = (flags & RenderFlags_NoMaterialTextures) ? 0 : BindMaterialTextures(command, material, flags);
 
 		if (!current.Viewport->Parameters.Wireframe && !(flags & RenderFlags_NoRasterizerState))
 			SetSubMeshRasterizerState(material);
@@ -1235,7 +1235,7 @@ namespace Comfy::Graphics::D3D11
 		SubmitSubMeshDrawCall(subMesh);
 	}
 
-	uint32_t Renderer3D::MaterialTextureTypeToTextureSlot(MaterialTextureType textureType, bool secondColorMap)
+	u32 Renderer3D::MaterialTextureTypeToTextureSlot(MaterialTextureType textureType, bool secondColorMap)
 	{
 		switch (textureType)
 		{
@@ -1264,7 +1264,7 @@ namespace Comfy::Graphics::D3D11
 		}
 	}
 
-	uint32_t Renderer3D::BindMaterialTextures(const ObjRenderCommand& command, const Material& material, RenderFlags flags)
+	u32 Renderer3D::BindMaterialTextures(const ObjRenderCommand& command, const Material& material, RenderFlags flags)
 	{
 		auto applyTextureTransform = [](mat4& outTransform, const ObjAnimationData::TextureTransform& textureTransform)
 		{
@@ -1378,7 +1378,7 @@ namespace Comfy::Graphics::D3D11
 			TextureSampler::BindArray(TextureSlot_Diffuse, textureSamplers);
 		}
 
-		uint32_t boundMaterialTexturesFlags = 0;
+		u32 boundMaterialTexturesFlags = 0;
 		for (size_t textureSlot = 0; textureSlot < textureResources.size(); textureSlot++)
 		{
 			if (textureResources[textureSlot] != nullptr)
@@ -1387,7 +1387,7 @@ namespace Comfy::Graphics::D3D11
 		return boundMaterialTexturesFlags;
 	}
 
-	bool Renderer3D::GetIsTextureSlotUsed(Material::ShaderTypeIdentifier shaderType, Material::MaterialUsedTextureFlags usedTextureFlags, uint32_t textureSlot)
+	bool Renderer3D::GetIsTextureSlotUsed(Material::ShaderTypeIdentifier shaderType, Material::MaterialUsedTextureFlags usedTextureFlags, u32 textureSlot)
 	{
 		switch (textureSlot)
 		{
@@ -1488,9 +1488,9 @@ namespace Comfy::Graphics::D3D11
 		}
 	}
 
-	uint32_t Renderer3D::GetObjectCBShaderFlags(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, uint32_t boundMaterialTexturesFlags) const
+	u32 Renderer3D::GetObjectCBShaderFlags(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, u32 boundMaterialTexturesFlags) const
 	{
-		uint32_t result = 0;
+		u32 result = 0;
 
 		const bool hasVertexTangents = (mesh.AttributeFlags & VertexAttributeFlags_Tangent);
 		const bool hasVertexTexCoords0 = (mesh.AttributeFlags & VertexAttributeFlags_TextureCoordinate0);

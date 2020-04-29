@@ -115,7 +115,7 @@ namespace Comfy::IO
 		return FindNestedDirectory(rootDirectory, directoryPath);
 	}
 
-	bool ComfyArchive::ReadFileIntoBuffer(std::string_view filePath, std::vector<uint8_t>& buffer)
+	bool ComfyArchive::ReadFileIntoBuffer(std::string_view filePath, std::vector<u8>& buffer)
 	{
 		auto fileEntry = FindFile(filePath);
 		if (fileEntry == nullptr)
@@ -179,7 +179,7 @@ namespace Comfy::IO
 		// TODO: Extensive validation checking
 		assert(header.Magic == ComfyArchive::Magic);
 
-		dataBuffer = MakeUnique<uint8_t[]>(header.DataSize);
+		dataBuffer = MakeUnique<u8[]>(header.DataSize);
 
 		dataStream->Seek(static_cast<FileAddr>(header.DataOffset));
 		dataStream->ReadBuffer(dataBuffer.get(), header.DataSize);
@@ -188,19 +188,19 @@ namespace Comfy::IO
 	namespace
 	{
 		template <typename T>
-		inline void RemapFileSpacePointer(uint8_t* dataBuffer, T*& fileSpacePointer)
+		inline void RemapFileSpacePointer(u8* dataBuffer, T*& fileSpacePointer)
 		{
 			fileSpacePointer = reinterpret_cast<T*>(&dataBuffer[reinterpret_cast<uintptr_t>(fileSpacePointer)]);
 		}
 
 		template <typename T>
-		inline void RemapFileSpacePointerIfNotNull(uint8_t* dataBuffer, T*& fileSpacePointer)
+		inline void RemapFileSpacePointerIfNotNull(u8* dataBuffer, T*& fileSpacePointer)
 		{
 			if (fileSpacePointer != nullptr)
 				RemapFileSpacePointer(dataBuffer, fileSpacePointer);
 		}
 
-		void LinkDirectoryEntry(ComfyDirectory* directory, uint8_t* dataBuffer)
+		void LinkDirectoryEntry(ComfyDirectory* directory, u8* dataBuffer)
 		{
 			RemapFileSpacePointerIfNotNull(dataBuffer, directory->Name);
 			RemapFileSpacePointerIfNotNull(dataBuffer, directory->Entries);
@@ -216,7 +216,7 @@ namespace Comfy::IO
 
 	void ComfyArchive::LinkRemapPointers()
 	{
-		uint8_t* offsetDataBuffer = dataBuffer.get() - header.DataOffset;
+		u8* offsetDataBuffer = dataBuffer.get() - header.DataOffset;
 
 		rootDirectory = reinterpret_cast<ComfyDirectory*>(dataBuffer.get());
 		LinkDirectoryEntry(rootDirectory, offsetDataBuffer);

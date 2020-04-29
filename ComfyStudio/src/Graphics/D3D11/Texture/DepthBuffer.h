@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "../Direct3D.h"
 #include "Texture.h"
 
@@ -7,20 +8,20 @@ namespace Comfy::Graphics::D3D11
 	class DepthBuffer : IGraphicsResource
 	{
 	protected:
-		DepthBuffer(ivec2 size, DXGI_FORMAT textureFormat, DXGI_FORMAT depthFormat, D3D11_BIND_FLAG bindFlags, uint32_t multiSampleCount);
+		DepthBuffer(ivec2 size, DXGI_FORMAT textureFormat, DXGI_FORMAT depthFormat, D3D11_BIND_FLAG bindFlags, u32 multiSampleCount);
 
 	public:
-		DepthBuffer(ivec2 size, DXGI_FORMAT format, uint32_t multiSampleCount = 1);
+		DepthBuffer(ivec2 size, DXGI_FORMAT format, u32 multiSampleCount = 1);
 		~DepthBuffer() = default;
 
 	public:
 		void Clear(float value = 1.0f);
 		virtual void Resize(ivec2 newSize);
 
-		void SetMultiSampleCount(uint32_t multiSampleCount);
+		void SetMultiSampleCount(u32 multiSampleCount);
 
 	public:
-		uint32_t GetMultiSampleCount() const;
+		u32 GetMultiSampleCount() const;
 		ivec2 GetSize() const;
 
 		ID3D11DepthStencilView* GetDepthStencilView() const;

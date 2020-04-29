@@ -36,9 +36,9 @@ namespace Comfy::Graphics
 				switch (format)
 				{
 				case LightMapFormat::RGBA8_CUBE:
-					return sizeof(uint8_t);
+					return sizeof(u8);
 				case LightMapFormat::RGBA16F_CUBE:
-					return sizeof(uint16_t);
+					return sizeof(u16);
 				case LightMapFormat::RGBA32F_CUBE:
 					return sizeof(float);
 				default:
@@ -56,7 +56,7 @@ namespace Comfy::Graphics
 	{
 	}
 
-	void IBLParameters::Parse(const uint8_t* buffer, size_t bufferSize)
+	void IBLParameters::Parse(const u8* buffer, size_t bufferSize)
 	{
 		const char* textBuffer = reinterpret_cast<const char*>(buffer);
 		const char* endOfTextBuffer = reinterpret_cast<const char*>(buffer + bufferSize);
@@ -72,7 +72,7 @@ namespace Comfy::Graphics
 		if (versionTag == VersionTag)
 		{
 			auto versionLine = StringParsing::GetLineAdvanceToNonCommentLine(textBuffer);
-			Version = StringParsing::ParseType<uint32_t>(versionLine);
+			Version = StringParsing::ParseType<u32>(versionLine);
 		}
 
 		while (textBuffer < endOfTextBuffer)
@@ -82,7 +82,7 @@ namespace Comfy::Graphics
 			if (tag == BinaryDataTag || tag.empty())
 				break;
 
-			auto lightIndex = StringParsing::ParseType<uint32_t>(StringParsing::GetLineAdvanceToNonCommentLine(textBuffer));
+			auto lightIndex = StringParsing::ParseType<u32>(StringParsing::GetLineAdvanceToNonCommentLine(textBuffer));
 			LightDataIBL* lightData = (lightIndex < Lights.size()) ? &Lights[lightIndex] : nullptr;
 
 			if (tag == LightDirectionTag)
@@ -116,7 +116,7 @@ namespace Comfy::Graphics
 			else if (tag == LightMapTag)
 			{
 				auto lightMapFormat = ParseLightMapFormat(StringParsing::GetLineAdvanceToNonCommentLine(textBuffer));
-				auto size = StringParsing::ParseTypeArray<int32_t, 2>(StringParsing::GetLineAdvanceToNonCommentLine(textBuffer));
+				auto size = StringParsing::ParseTypeArray<i32, 2>(StringParsing::GetLineAdvanceToNonCommentLine(textBuffer));
 
 				// NOTE: Skip odd LightMaps as they will be stored as mipmaps instead
 				if (lightIndex % 2 != 0)
@@ -136,7 +136,7 @@ namespace Comfy::Graphics
 			}
 		}
 
-		const uint8_t* binaryBuffer = reinterpret_cast<const uint8_t*>(textBuffer);
+		const u8* binaryBuffer = reinterpret_cast<const u8*>(textBuffer);
 
 		for (auto& lightMap : LightMaps)
 		{

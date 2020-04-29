@@ -55,8 +55,8 @@ namespace Comfy::Graphics
 				mesh.Flags = {};
 				sprintf_s(mesh.Name.data(), mesh.Name.size(), "%.*s::Mesh", static_cast<int>(name.size()), name.data());
 
-				mesh.VertexData.Stride = static_cast<uint32_t>(mesh.VertexData.Positions.size() * sizeof(vec3));
-				mesh.VertexData.VertexCount = static_cast<uint32_t>(mesh.VertexData.Positions.size());
+				mesh.VertexData.Stride = static_cast<u32>(mesh.VertexData.Positions.size() * sizeof(vec3));
+				mesh.VertexData.VertexCount = static_cast<u32>(mesh.VertexData.Positions.size());
 			}
 
 			Material material = {};
@@ -190,16 +190,16 @@ namespace Comfy::Graphics
 					{  9,  8,  1 },
 				};
 
-				std::unordered_map<int64_t, IndexType> middlePointIndexCache;
+				std::unordered_map<i64, IndexType> middlePointIndexCache;
 
 				auto addGetMiddlePointIndex = [&middlePointIndexCache, &positions](IndexType indexA, IndexType indexB)
 				{
 					bool firstIsSmaller = indexA < indexB;
 
-					int64_t smallerIndex = static_cast<int64_t>(firstIsSmaller ? indexA : indexB);
-					int64_t greaterIndex = static_cast<int64_t>(firstIsSmaller ? indexB : indexA);
+					i64 smallerIndex = static_cast<i64>(firstIsSmaller ? indexA : indexB);
+					i64 greaterIndex = static_cast<i64>(firstIsSmaller ? indexB : indexA);
 
-					int64_t hashKey = (smallerIndex << 32) + greaterIndex;
+					i64 hashKey = (smallerIndex << 32) + greaterIndex;
 
 					auto cachedIndex = middlePointIndexCache.find(hashKey);
 					if (cachedIndex != middlePointIndexCache.end())
@@ -280,7 +280,7 @@ namespace Comfy::Graphics
 
 			GenerateDebugObj("DebugBox", *obj, sphere, box, color, [&](Mesh& mesh, SubMesh& subMesh)
 			{
-				GenerateUnitBoxMesh(mesh.VertexData.Positions, subMesh.Indices.emplace<std::vector<uint8_t>>());
+				GenerateUnitBoxMesh(mesh.VertexData.Positions, subMesh.Indices.emplace<std::vector<u8>>());
 
 				for (auto& position : mesh.VertexData.Positions)
 				{
@@ -303,7 +303,7 @@ namespace Comfy::Graphics
 			Box box = { sphere.Center, vec3(sphere.Radius) };
 			GenerateDebugObj("DebugSphere", *obj, sphere, box, color, [&](Mesh& mesh, SubMesh& subMesh)
 			{
-				GenerateUnitIcosahedronMesh(mesh.VertexData.Positions, subMesh.Indices.emplace<std::vector<uint16_t>>(), detailLevel);
+				GenerateUnitIcosahedronMesh(mesh.VertexData.Positions, subMesh.Indices.emplace<std::vector<u16>>(), detailLevel);
 
 				for (auto& position : mesh.VertexData.Positions)
 				{
@@ -326,9 +326,9 @@ namespace Comfy::Graphics
 			Box box = { boundingSphere.Center, vec3(boundingSphere.Radius) };
 			GenerateDebugObj("MaterialTestSphere", *obj, boundingSphere, box, vec4(1.0f, 0.0f, 1.0f, 1.0f), [&](Mesh& mesh, SubMesh& subMesh)
 			{
-				GenerateUnitIcosahedronMesh(mesh.VertexData.Positions, subMesh.Indices.emplace<std::vector<uint16_t>>(), detailLevel);
+				GenerateUnitIcosahedronMesh(mesh.VertexData.Positions, subMesh.Indices.emplace<std::vector<u16>>(), detailLevel);
 
-				mesh.VertexData.VertexCount = static_cast<uint32_t>(mesh.VertexData.Positions.size());
+				mesh.VertexData.VertexCount = static_cast<u32>(mesh.VertexData.Positions.size());
 
 				mesh.VertexData.Normals.resize(mesh.VertexData.VertexCount);
 				mesh.VertexData.Tangents.resize(mesh.VertexData.VertexCount);

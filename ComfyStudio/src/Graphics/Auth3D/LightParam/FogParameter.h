@@ -26,6 +26,6 @@ namespace Comfy::Graphics
 		Fog Bump;
 
 	public:
-		void Parse(const uint8_t* buffer, size_t bufferSize) override;
+		void Parse(const u8* buffer, size_t bufferSize) override;
 	};
 }

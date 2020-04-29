@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "ISampleProvider.h"
 
 namespace Comfy::Audio
@@ -6,10 +7,10 @@ namespace Comfy::Audio
 	class SilenceSampleProvider : public ISampleProvider
 	{
 	public:
-		int64_t ReadSamples(int16_t bufferToFill[], int64_t frameOffset, int64_t framesToRead, uint32_t channelsToFill) override;
-		int64_t GetFrameCount() const override;
+		i64 ReadSamples(i16 bufferToFill[], i64 frameOffset, i64 framesToRead, u32 channelsToFill) override;
+		i64 GetFrameCount() const override;
 
-		uint32_t GetChannelCount() const override;
-		uint32_t GetSampleRate() const override;
+		u32 GetChannelCount() const override;
+		u32 GetSampleRate() const override;
 	};
 }

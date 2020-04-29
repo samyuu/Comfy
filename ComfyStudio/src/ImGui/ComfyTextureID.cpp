@@ -8,23 +8,23 @@ namespace Comfy
 
 	ComfyTextureID::ComfyTextureID(const nullptr_t dummy)
 	{
-		Data.ResourceView = reinterpret_cast<uint64_t>(dummy);
+		Data.ResourceView = reinterpret_cast<u64>(dummy);
 	}
 
 	ComfyTextureID::ComfyTextureID(const D3D11::TextureResource& texture)
 	{
-		Data.ResourceView = reinterpret_cast<uint64_t>(texture.GetResourceView());
+		Data.ResourceView = reinterpret_cast<u64>(texture.GetResourceView());
 		Data.DecompressRGTC = texture.GetTextureFormat() == TextureFormat::RGTC2;
 		Data.IsCubeMap = texture.GetArraySize() == 6;
 	}
 
 	ComfyTextureID::ComfyTextureID(const D3D11::RenderTarget& renderTarget)
 	{
-		Data.ResourceView = reinterpret_cast<uint64_t>(renderTarget.GetResourceView());
+		Data.ResourceView = reinterpret_cast<u64>(renderTarget.GetResourceView());
 	}
 
 	ComfyTextureID::ComfyTextureID(const D3D11::DepthOnlyRenderTarget& renderTarget)
 	{
-		Data.ResourceView = reinterpret_cast<uint64_t>(renderTarget.GetResourceView());
+		Data.ResourceView = reinterpret_cast<u64>(renderTarget.GetResourceView());
 	}
 }

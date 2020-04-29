@@ -5,7 +5,7 @@
 
 namespace Comfy::Editor
 {
-	typedef int16_t TargetType;
+	typedef i16 TargetType;
 	enum TargetType_Enum : TargetType
 	{
 		TargetType_Sankaku,
@@ -17,7 +17,7 @@ namespace Comfy::Editor
 		TargetType_Max,
 	};
 
-	typedef int16_t TargetFlags;
+	typedef i16 TargetFlags;
 	enum TargetFlags_Enum : TargetFlags
 	{
 		// NOTE: Subject to change
@@ -73,10 +73,10 @@ namespace Comfy::Editor
 		// Access Methods:
 		// ---------------
 		void Add(TimelineTick, TargetType);
-		void Remove(int64_t index);
+		void Remove(i64 index);
 		void Remove(TimelineTick, TargetType);
-		int64_t FindIndex(TimelineTick, TargetType);
-		int64_t Count();
+		i64 FindIndex(TimelineTick, TargetType);
+		i64 Count();
 		// ---------------
 
 		// Iterators:
@@ -92,7 +92,7 @@ namespace Comfy::Editor
 	private:
 		std::vector<TimelineTarget> collection;
 
-		void SetTargetSyncFlagsAround(int64_t index);
-		void SetTargetSyncFlags(int64_t start = -1, int64_t end = -1);
+		void SetTargetSyncFlagsAround(i64 index);
+		void SetTargetSyncFlags(i64 start = -1, i64 end = -1);
 	};
 }

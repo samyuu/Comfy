@@ -17,9 +17,9 @@ namespace Comfy::Graphics
 
 		const FileAddr texSetPtrAddress = writer.GetPosition();
 		writer.WriteU32(0x00000000);
-		writer.WriteU32((TexSet != nullptr) ? static_cast<uint32_t>(TexSet->Textures.size()) : 0);
+		writer.WriteU32((TexSet != nullptr) ? static_cast<u32>(TexSet->Textures.size()) : 0);
 
-		writer.WriteU32(static_cast<uint32_t>(Sprites.size()));
+		writer.WriteU32(static_cast<u32>(Sprites.size()));
 		writer.WritePtr([&](BinaryWriter& writer)
 		{
 			for (const auto& sprite : Sprites)
@@ -62,7 +62,7 @@ namespace Comfy::Graphics
 			for (const auto& sprite : Sprites)
 			{
 				writer.WriteU32(sprite.Extra.Flags);
-				writer.WriteU32(static_cast<uint32_t>(sprite.Extra.ScreenMode));
+				writer.WriteU32(static_cast<u32>(sprite.Extra.ScreenMode));
 			}
 		});
 
@@ -82,18 +82,18 @@ namespace Comfy::Graphics
 		}
 	}
 
-	void SprSet::Parse(const uint8_t* buffer, size_t bufferSize)
+	void SprSet::Parse(const u8* buffer, size_t bufferSize)
 	{
 		SprSet* sprSet = this;
 
-		sprSet->Flags = *(uint32_t*)(buffer + 0);
-		uint32_t texSetOffset = *(uint32_t*)(buffer + 4);
-		uint32_t textureCount = *(uint32_t*)(buffer + 8);
-		uint32_t spritesCount = *(uint32_t*)(buffer + 12);
-		uint32_t spritesOffset = *(uint32_t*)(buffer + 16);
-		uint32_t textureNamesOffset = *(uint32_t*)(buffer + 20);
-		uint32_t spriteNamesOffset = *(uint32_t*)(buffer + 24);
-		uint32_t spriteExtraDataOffset = *(uint32_t*)(buffer + 28);
+		sprSet->Flags = *(u32*)(buffer + 0);
+		u32 texSetOffset = *(u32*)(buffer + 4);
+		u32 textureCount = *(u32*)(buffer + 8);
+		u32 spritesCount = *(u32*)(buffer + 12);
+		u32 spritesOffset = *(u32*)(buffer + 16);
+		u32 textureNamesOffset = *(u32*)(buffer + 20);
+		u32 spriteNamesOffset = *(u32*)(buffer + 24);
+		u32 spriteExtraDataOffset = *(u32*)(buffer + 28);
 
 		if (texSetOffset != 0)
 		{
@@ -103,15 +103,15 @@ namespace Comfy::Graphics
 
 		if (spritesOffset != 0)
 		{
-			const uint8_t* spritesBuffer = buffer + spritesOffset;
+			const u8* spritesBuffer = buffer + spritesOffset;
 
 			sprSet->Sprites.resize(spritesCount);
-			for (uint32_t i = 0; i < spritesCount; i++)
+			for (u32 i = 0; i < spritesCount; i++)
 			{
 				Spr* sprite = &sprSet->Sprites[i];
 
-				sprite->TextureIndex = *(int32_t*)(spritesBuffer + 0);
-				sprite->Rotate = *(int32_t*)(spritesBuffer + 4);
+				sprite->TextureIndex = *(i32*)(spritesBuffer + 0);
+				sprite->Rotate = *(i32*)(spritesBuffer + 4);
 				sprite->TexelRegion = *(vec4*)(spritesBuffer + 8);
 				sprite->PixelRegion = *(vec4*)(spritesBuffer + 24);
 				spritesBuffer += 40;
@@ -120,33 +120,33 @@ namespace Comfy::Graphics
 
 		if (textureNamesOffset != 0)
 		{
-			const uint8_t* textureNamesOffsetBuffer = buffer + textureNamesOffset;
+			const u8* textureNamesOffsetBuffer = buffer + textureNamesOffset;
 
-			for (uint32_t i = 0; i < textureCount; i++)
+			for (u32 i = 0; i < textureCount; i++)
 			{
-				uint32_t nameOffset = ((uint32_t*)textureNamesOffsetBuffer)[i];
+				u32 nameOffset = ((u32*)textureNamesOffsetBuffer)[i];
 				sprSet->TexSet->Textures[i]->Name = (const char*)(buffer + nameOffset);
 			}
 		}
 
 		if (spriteNamesOffset != 0)
 		{
-			const uint8_t* spriteNamesOffsetBuffer = buffer + spriteNamesOffset;
+			const u8* spriteNamesOffsetBuffer = buffer + spriteNamesOffset;
 
-			for (uint32_t i = 0; i < spritesCount; i++)
+			for (u32 i = 0; i < spritesCount; i++)
 			{
-				uint32_t nameOffset = ((uint32_t*)spriteNamesOffsetBuffer)[i];
+				u32 nameOffset = ((u32*)spriteNamesOffsetBuffer)[i];
 				sprSet->Sprites[i].Name = (const char*)(buffer + nameOffset);
 			}
 		}
 
 		if (spriteExtraDataOffset != 0)
 		{
-			const uint8_t* extraDataBuffer = buffer + spriteExtraDataOffset;
+			const u8* extraDataBuffer = buffer + spriteExtraDataOffset;
 
 			for (auto& sprite : sprSet->Sprites)
 			{
-				sprite.Extra.Flags = *((uint32_t*)extraDataBuffer + 0);
+				sprite.Extra.Flags = *((u32*)extraDataBuffer + 0);
 				sprite.Extra.ScreenMode = *((ScreenMode*)extraDataBuffer + 4);
 				extraDataBuffer += 8;
 			}

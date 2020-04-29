@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "Editor/Aet/IMutatingEditorComponent.h"
 #include "Editor/Aet/AetSelection.h"
 #include "Editor/Aet/AetIcons.h"
@@ -72,7 +73,7 @@ namespace Comfy::Editor
 		void DrawTreeNodeLayerCameraSelectableButton(const RefPtr<Graphics::Aet::Composition>& comp, const RefPtr<Graphics::Aet::Layer>& layer);
 		void DrawTreeNodeLayerActivityButton(const RefPtr<Graphics::Aet::Layer>& layer);
 
-		void DrawTreeNodeVideo(const RefPtr<Graphics::Aet::Scene>& scene, const RefPtr<Graphics::Aet::Video>& video, int32_t index);
+		void DrawTreeNodeVideo(const RefPtr<Graphics::Aet::Scene>& scene, const RefPtr<Graphics::Aet::Video>& video, i32 index);
 
 		bool DrawCompositionContextMenu(const RefPtr<Graphics::Aet::Scene>& scene, const RefPtr<Graphics::Aet::Composition>& comp, bool isRoot);
 		bool DrawLayerContextMenu(const RefPtr<Graphics::Aet::Composition>& comp, const RefPtr<Graphics::Aet::Layer>& layer);
@@ -81,7 +82,7 @@ namespace Comfy::Editor
 		void DrawTreeNodeCameraIcon(const vec2& treeNodeCursorPos) const;
 
 	private:
-		const char* FormatVideoNodeName(const RefPtr<Graphics::Aet::Video>& video, int32_t index);
+		const char* FormatVideoNodeName(const RefPtr<Graphics::Aet::Video>& video, i32 index);
 
 	private:
 		void UpdateScrollButtonInput();

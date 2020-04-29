@@ -16,10 +16,10 @@ namespace Comfy::Database
 
 	void AetDB::Read(BinaryReader& reader)
 	{
-		uint32_t setEntryCount = reader.ReadU32();
+		u32 setEntryCount = reader.ReadU32();
 		FileAddr setOffset = reader.ReadPtr();
 
-		uint32_t sceneCount = reader.ReadU32();
+		u32 sceneCount = reader.ReadU32();
 		FileAddr sceneOffset = reader.ReadPtr();
 
 		if (setEntryCount > 0 && setOffset != FileAddr::NullPtr)
@@ -32,7 +32,7 @@ namespace Comfy::Database
 					setEntry.ID = AetSetID(reader.ReadU32());
 					setEntry.Name = reader.ReadStrPtr();
 					setEntry.FileName = reader.ReadStrPtr();
-					uint32_t index = reader.ReadU32();
+					u32 index = reader.ReadU32();
 					setEntry.SprSetID = SprSetID(reader.ReadU32());
 				}
 			});
@@ -42,12 +42,12 @@ namespace Comfy::Database
 		{
 			reader.ReadAt(sceneOffset, [this, sceneCount](BinaryReader& reader)
 			{
-				for (uint32_t i = 0; i < sceneCount; i++)
+				for (u32 i = 0; i < sceneCount; i++)
 				{
 					AetSceneID id = AetSceneID(reader.ReadU32());
 					FileAddr nameOffset = reader.ReadPtr();
-					uint16_t sceneIndex = reader.ReadU16();
-					uint16_t setIndex = reader.ReadU16();
+					u16 sceneIndex = reader.ReadU16();
+					u16 setIndex = reader.ReadU16();
 
 					AetSetEntry& setEntry = Entries[setIndex];
 
@@ -63,17 +63,17 @@ namespace Comfy::Database
 
 	void AetDB::Write(BinaryWriter& writer)
 	{
-		writer.WriteU32(static_cast<uint32_t>(Entries.size()));
+		writer.WriteU32(static_cast<u32>(Entries.size()));
 		writer.WritePtr([&](BinaryWriter& writer)
 		{
-			uint32_t setIndex = 0;
+			u32 setIndex = 0;
 			for (const auto& setEntry : Entries)
 			{
-				writer.WriteU32(static_cast<uint32_t>(setEntry.ID));
+				writer.WriteU32(static_cast<u32>(setEntry.ID));
 				writer.WriteStrPtr(setEntry.Name);
 				writer.WriteStrPtr(setEntry.FileName);
 				writer.WriteU32(setIndex++);
-				writer.WriteU32(static_cast<uint32_t>(setEntry.SprSetID));
+				writer.WriteU32(static_cast<u32>(setEntry.SprSetID));
 			}
 		});
 
@@ -81,16 +81,16 @@ namespace Comfy::Database
 		for (const auto& setEntry : Entries)
 			sceneCount += setEntry.SceneEntries.size();
 
-		writer.WriteU32(static_cast<uint32_t>(sceneCount));
+		writer.WriteU32(static_cast<u32>(sceneCount));
 		writer.WritePtr([&](BinaryWriter& writer)
 		{
-			uint16_t setIndex = 0;
+			u16 setIndex = 0;
 			for (const auto& setEntry : Entries)
 			{
-				uint16_t sceneIndex = 0;
+				u16 sceneIndex = 0;
 				for (const auto& sceneEntry : setEntry.SceneEntries)
 				{
-					writer.WriteU32(static_cast<uint32_t>(sceneEntry.ID));
+					writer.WriteU32(static_cast<u32>(sceneEntry.ID));
 					writer.WriteStrPtr(sceneEntry.Name);
 					writer.WriteU16(sceneIndex);
 					writer.WriteU16(setIndex);

@@ -59,7 +59,7 @@ namespace Comfy::IO::Crypto
 
 		struct SymmetricKey
 		{
-			SymmetricKey(AlgorithmProvider& algorithm, std::array<uint8_t, KeySize>& key)
+			SymmetricKey(AlgorithmProvider& algorithm, std::array<u8, KeySize>& key)
 			{
 				if (!algorithm.Handle)
 				{
@@ -94,10 +94,10 @@ namespace Comfy::IO::Crypto
 			}
 
 			BCRYPT_KEY_HANDLE Handle = NULL;
-			std::vector<uint8_t> KeyObject;
+			std::vector<u8> KeyObject;
 		};
 
-		bool Win32DecryptInternal(SymmetricKey& key, uint8_t* encryptedData, uint8_t* decryptedData, size_t dataSize, std::array<uint8_t, IVSize>* iv)
+		bool Win32DecryptInternal(SymmetricKey& key, u8* encryptedData, u8* decryptedData, size_t dataSize, std::array<u8, IVSize>* iv)
 		{
 			if (!key.Handle)
 			{
@@ -120,19 +120,19 @@ namespace Comfy::IO::Crypto
 		}
 	}
 
-	bool Win32DecryptAesEcb(const uint8_t* encryptedData, uint8_t* decryptedData, size_t dataSize, std::array<uint8_t, KeySize> key)
+	bool Win32DecryptAesEcb(const u8* encryptedData, u8* decryptedData, size_t dataSize, std::array<u8, KeySize> key)
 	{
 		AlgorithmProvider algorithmProvider = { BlockCipherMode::ECB };
 		SymmetricKey symmetricKey = { algorithmProvider, key };
 
-		return Win32DecryptInternal(symmetricKey, const_cast<uint8_t*>(encryptedData), decryptedData, dataSize, nullptr);
+		return Win32DecryptInternal(symmetricKey, const_cast<u8*>(encryptedData), decryptedData, dataSize, nullptr);
 	}
 
-	bool Win32DecryptAesCbc(const uint8_t* encryptedData, uint8_t* decryptedData, size_t dataSize, std::array<uint8_t, KeySize> key, std::array<uint8_t, IVSize> iv)
+	bool Win32DecryptAesCbc(const u8* encryptedData, u8* decryptedData, size_t dataSize, std::array<u8, KeySize> key, std::array<u8, IVSize> iv)
 	{
 		AlgorithmProvider algorithmProvider = { BlockCipherMode::CBC };
 		SymmetricKey symmetricKey = { algorithmProvider, key };
 
-		return Win32DecryptInternal(symmetricKey, const_cast<uint8_t*>(encryptedData), decryptedData, dataSize, &iv);
+		return Win32DecryptInternal(symmetricKey, const_cast<u8*>(encryptedData), decryptedData, dataSize, &iv);
 	}
 }

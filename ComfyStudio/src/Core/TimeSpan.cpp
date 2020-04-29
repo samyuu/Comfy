@@ -10,10 +10,10 @@ namespace Comfy
 	{
 		struct TimingData
 		{
-			int64_t StartTime;
-			int64_t Frequency;
+			i64 StartTime;
+			i64 Frequency;
 
-			static int64_t QueryTime()
+			static i64 QueryTime()
 			{
 				LARGE_INTEGER time;
 				{
@@ -23,7 +23,7 @@ namespace Comfy
 				return time.QuadPart;
 			}
 
-			static int64_t QueryFrequency()
+			static i64 QueryFrequency()
 			{
 				LARGE_INTEGER frequency;
 				{
@@ -66,13 +66,13 @@ namespace Comfy
 
 	TimeSpan TimeSpan::GetTimeNow()
 	{
-		const int64_t relativeTime = TimingData::QueryTime() - GlobalTimingData.StartTime;
+		const i64 relativeTime = TimingData::QueryTime() - GlobalTimingData.StartTime;
 		return TimeSpan::FromSeconds(static_cast<double>(relativeTime) / static_cast<double>(GlobalTimingData.Frequency));
 	}
 
 	TimeSpan TimeSpan::GetTimeNowAbsolute()
 	{
-		const int64_t absoluteTime = TimingData::QueryTime();
+		const i64 absoluteTime = TimingData::QueryTime();
 		return TimeSpan::FromSeconds(static_cast<double>(absoluteTime) / static_cast<double>(GlobalTimingData.Frequency));
 	}
 

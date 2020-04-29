@@ -67,7 +67,7 @@ namespace Comfy::Graphics::D3D11
 	void Renderer2D::InternalCreateIndexBuffer()
 	{
 		std::array<SpriteIndices, MaxBatchItemSize> indexData;
-		for (uint16_t i = 0, offset = 0; i < indexData.size(); i++)
+		for (u16 i = 0, offset = 0; i < indexData.size(); i++)
 		{
 			// [0] TopLeft	  - [1] TopRight
 			// [2] BottomLeft - [3] BottomRight;
@@ -76,16 +76,16 @@ namespace Comfy::Graphics::D3D11
 			indexData[i] =
 			{
 				// NOTE: Used to be counter clockwise for OpenGL but D3D's winding order is clockwise by default
-				static_cast<uint16_t>(offset + TopLeft),
-				static_cast<uint16_t>(offset + TopRight),
-				static_cast<uint16_t>(offset + BottomRight),
+				static_cast<u16>(offset + TopLeft),
+				static_cast<u16>(offset + TopRight),
+				static_cast<u16>(offset + BottomRight),
 
-				static_cast<uint16_t>(offset + BottomRight),
-				static_cast<uint16_t>(offset + BottomLeft),
-				static_cast<uint16_t>(offset + TopLeft),
+				static_cast<u16>(offset + BottomRight),
+				static_cast<u16>(offset + BottomLeft),
+				static_cast<u16>(offset + TopLeft),
 			};
 
-			offset += static_cast<uint16_t>(SpriteVertices::GetVertexCount());
+			offset += static_cast<u16>(SpriteVertices::GetVertexCount());
 		}
 
 		indexBuffer = MakeUnique<StaticIndexBuffer>(indexData.size(), indexData.data(), IndexFormat::U16);
@@ -114,7 +114,7 @@ namespace Comfy::Graphics::D3D11
 
 	void Renderer2D::InternalCreateBatches()
 	{
-		for (uint16_t i = 0; i < batchItems.size(); i++)
+		for (u16 i = 0; i < batchItems.size(); i++)
 		{
 			bool first = i == 0;
 
@@ -168,7 +168,7 @@ namespace Comfy::Graphics::D3D11
 		ShaderResourceView::BindArray<2>(0, { nullptr, nullptr });
 		TextureSampler::BindArray<2>(0, { &defaultTextureSampler, &defaultTextureSampler });
 
-		for (uint16_t i = 0; i < batches.size(); i++)
+		for (u16 i = 0; i < batches.size(); i++)
 		{
 			const SpriteBatch& batch = batches[i];
 			const SpriteBatchItem& item = batchItems[batch.Index];
@@ -421,7 +421,7 @@ namespace Comfy::Graphics::D3D11
 		drawTextBorder = value;
 	}
 
-	uint32_t Renderer2D::GetDrawCallCount() const
+	u32 Renderer2D::GetDrawCallCount() const
 	{
 		return drawCallCount;
 	}

@@ -7,7 +7,7 @@ namespace Comfy::Editor
 
 #define _ 0x00000000
 #define X 0xFFFFFFFF
-	const uint32_t KeyFrameRenderer::keyFrameTexturePixels[keyFrameTextureSize.x * keyFrameTextureSize.y] =
+	const u32 KeyFrameRenderer::keyFrameTexturePixels[keyFrameTextureSize.x * keyFrameTextureSize.y] =
 	{
 		////////////////////////////////////////////////////////
 		/**/_,_,_,_,_,X,_,_,_,_,_,/**/_,_,_,_,_,_,_,_,_,_,_,/**/

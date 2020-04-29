@@ -3,13 +3,13 @@
 
 namespace Comfy::IO
 {
-	enum class PtrMode : uint8_t
+	enum class PtrMode : u8
 	{
 		Mode32Bit,
 		Mode64Bit,
 	};
 
-	enum class Endianness : uint16_t
+	enum class Endianness : u16
 	{
 		Little = 'LE',
 		Big = 'BE',

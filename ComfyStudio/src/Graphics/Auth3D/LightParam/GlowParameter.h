@@ -14,7 +14,7 @@ namespace Comfy::Graphics
 	public:
 		float Exposure;
 		float Gamma;
-		int32_t SaturatePower;
+		i32 SaturatePower;
 		float SaturateCoefficient;
 		float FlareA;
 		float ShaftA;
@@ -27,6 +27,6 @@ namespace Comfy::Graphics
 		vec4 ToneTransform;
 
 	public:
-		void Parse(const uint8_t* buffer, size_t bufferSize) override;
+		void Parse(const u8* buffer, size_t bufferSize) override;
 	};
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "CoreTypes.h"
 
 namespace Comfy::Audio
@@ -11,9 +12,9 @@ namespace Comfy::Audio
 
 	struct AudioDecoderOutputData
 	{
-		uint32_t* ChannelCount;
-		uint32_t* SampleRate;
-		std::vector<int16_t>* SampleData;
+		u32* ChannelCount;
+		u32* SampleRate;
+		std::vector<i16>* SampleData;
 	};
 
 	class IAudioDecoder

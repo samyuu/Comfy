@@ -215,7 +215,7 @@ namespace Comfy::Editor
 			const auto sprFileEntry = ComfyData->FindFile("spr/spr_comfy_editor.bin");
 			assert(sprFileEntry != nullptr);
 
-			UniquePtr<uint8_t[]> sprFileBuffer = MakeUnique<uint8_t[]>(sprFileEntry->Size);
+			UniquePtr<u8[]> sprFileBuffer = MakeUnique<u8[]>(sprFileEntry->Size);
 			ComfyData->ReadEntryIntoBuffer(sprFileEntry, sprFileBuffer.get());
 
 			sprSet.Parse(sprFileBuffer.get(), sprFileEntry->Size);
@@ -460,20 +460,20 @@ namespace Comfy::Editor
 
 		float scrollXStartOffset = GetScrollX() + GetTimelinePosition(chart->GetStartOffset());
 
-		int64_t leftMostVisiblePixel = static_cast<int64_t>(GetTimelinePosition(TimelineTick(0)));
-		int64_t rightMostVisiblePixel = leftMostVisiblePixel + static_cast<int64_t>(timelineContentRegion.GetWidth());
-		int64_t waveformPixelCount = static_cast<int64_t>(songWaveform.GetPixelCount());
+		i64 leftMostVisiblePixel = static_cast<i64>(GetTimelinePosition(TimelineTick(0)));
+		i64 rightMostVisiblePixel = leftMostVisiblePixel + static_cast<i64>(timelineContentRegion.GetWidth());
+		i64 waveformPixelCount = static_cast<i64>(songWaveform.GetPixelCount());
 
 		float timelineX = timelineContentRegion.GetTL().x;
 		float timelineHeight = (TargetType_Max * ROW_HEIGHT);
 		float timelineCenterY = timelineContentRegion.GetTL().y + (timelineHeight * 0.5f);
 
-		int64_t waveformPixelsDrawn = 0;
+		i64 waveformPixelsDrawn = 0;
 		ImU32 waveformColor = GetColor(EditorColor_GridAlt);
 
-		for (int64_t screenPixel = leftMostVisiblePixel; screenPixel < waveformPixelCount && screenPixel < rightMostVisiblePixel; screenPixel++)
+		for (i64 screenPixel = leftMostVisiblePixel; screenPixel < waveformPixelCount && screenPixel < rightMostVisiblePixel; screenPixel++)
 		{
-			int64_t timelinePixel = std::min(static_cast<int64_t>(screenPixel + scrollXStartOffset), static_cast<int64_t>(waveformPixelCount - 1));
+			i64 timelinePixel = std::min(static_cast<i64>(screenPixel + scrollXStartOffset), static_cast<i64>(waveformPixelCount - 1));
 
 			if (timelinePixel < 0)
 				continue;
@@ -784,7 +784,7 @@ namespace Comfy::Editor
 
 	void TargetTimeline::PlaceOrRemoveTarget(TimelineTick tick, TargetType type)
 	{
-		int64_t existingTargetIndex = chart->GetTargets().FindIndex(tick, type);
+		i64 existingTargetIndex = chart->GetTargets().FindIndex(tick, type);
 
 		if (existingTargetIndex > -1)
 		{

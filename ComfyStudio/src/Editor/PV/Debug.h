@@ -86,7 +86,7 @@ namespace Comfy::Debug
 		if (!IO::FileExists(filePath))
 			return false;
 
-		std::vector<uint8_t> fileContent;
+		std::vector<u8> fileContent;
 		IO::FileReader::ReadEntireFile(filePath, &fileContent);
 
 		param.Parse(fileContent.data(), fileContent.size());

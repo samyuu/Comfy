@@ -77,7 +77,7 @@ namespace Comfy::Graphics::D3D11
 		return lastCoveredPixels.has_value();
 	}
 
-	uint64_t OcclusionQuery::GetCoveredPixels() const
+	u64 OcclusionQuery::GetCoveredPixels() const
 	{
 		return lastCoveredPixels.value_or(0);
 	}

@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "SceneGraph.h"
 #include "SceneRenderWindow.h"
 #include "Editor/Core/IEditorComponent.h"
@@ -100,7 +101,7 @@ namespace Comfy::Editor
 		std::array<char, MAX_PATH> iblPathBuffer = { "dev_rom/ibl/tst.ibl" };
 
 		// NOTE: To keep track of the open and closed render target debug windows
-		uint32_t openRenderTargetsFlags = 0;
+		u32 openRenderTargetsFlags = 0;
 
 		struct EntityInspector
 		{

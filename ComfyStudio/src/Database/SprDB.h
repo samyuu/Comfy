@@ -7,7 +7,7 @@ namespace Comfy::Database
 	{
 		SprID ID;
 		std::string Name;
-		int16_t Index;
+		i16 Index;
 	};
 
 	struct SprSetEntry : BinaryDatabase::Entry, BinaryDatabase::FileEntry
@@ -33,8 +33,8 @@ namespace Comfy::Database
 		void Write(IO::BinaryWriter& writer) override;
 		SprSetEntry* GetSprSetEntry(std::string_view name);
 
-		uint32_t GetSprSetEntryCount();
-		uint32_t GetSprEntryCount();
+		u32 GetSprSetEntryCount();
+		u32 GetSprEntryCount();
 
 	private:
 	};

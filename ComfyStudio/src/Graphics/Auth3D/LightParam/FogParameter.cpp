@@ -46,7 +46,7 @@ namespace Comfy::Graphics
 	{
 	}
 	
-	void FogParameter::Parse(const uint8_t* buffer, size_t bufferSize)
+	void FogParameter::Parse(const u8* buffer, size_t bufferSize)
 	{
 		const char* textBuffer = reinterpret_cast<const char*>(buffer);
 		const char* endOfTextBuffer = reinterpret_cast<const char*>(buffer + bufferSize);
@@ -65,7 +65,7 @@ namespace Comfy::Graphics
 
 			if (tag == GroupStartTag || tag == GroupEndTag)
 			{
-				auto groupID = StringParsing::ParseType<uint32_t>(tagData);
+				auto groupID = StringParsing::ParseType<u32>(tagData);
 				currentFog = (groupID <= 3) ? (&Depth + groupID) : nullptr;
 			}
 			else if (tag == GroupEndTag)
@@ -78,7 +78,7 @@ namespace Comfy::Graphics
 			}
 			else if (tag == TypeTag)
 			{
-				currentFog->Type = static_cast<FogType>(StringParsing::ParseType<uint32_t>(tagData));
+				currentFog->Type = static_cast<FogType>(StringParsing::ParseType<u32>(tagData));
 			}
 			else if (tag == DensityTag)
 			{

@@ -3,23 +3,23 @@
 
 namespace Comfy::Audio
 {
-	int64_t SilenceSampleProvider::ReadSamples(int16_t bufferToFill[], int64_t frameOffset, int64_t framesToRead, uint32_t channelsToFill)
+	i64 SilenceSampleProvider::ReadSamples(i16 bufferToFill[], i64 frameOffset, i64 framesToRead, u32 channelsToFill)
 	{
 		std::fill(bufferToFill, bufferToFill + (framesToRead * channelsToFill), 0);
 		return framesToRead;
 	}
 
-	int64_t SilenceSampleProvider::GetFrameCount() const
+	i64 SilenceSampleProvider::GetFrameCount() const
 	{
 		return 0;
 	};
 
-	uint32_t SilenceSampleProvider::GetChannelCount() const
+	u32 SilenceSampleProvider::GetChannelCount() const
 	{
 		return AudioEngine::GetInstance()->GetChannelCount();
 	}
 
-	uint32_t SilenceSampleProvider::GetSampleRate() const
+	u32 SilenceSampleProvider::GetSampleRate() const
 	{
 		return AudioEngine::GetInstance()->GetSampleRate();
 	}

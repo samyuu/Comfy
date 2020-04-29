@@ -7,7 +7,7 @@ namespace Comfy::Editor
 	using namespace Graphics;
 	using namespace Graphics::Aet;
 
-	static_assert(sizeof(Transform2DField_Enum) == sizeof(int32_t) && sizeof(KeyFrameIndex::Pair) == sizeof(KeyFrameIndex::PackedValue));
+	static_assert(sizeof(Transform2DField_Enum) == sizeof(i32) && sizeof(KeyFrameIndex::Pair) == sizeof(KeyFrameIndex::PackedValue));
 
 	AetTimeline::AetTimeline()
 	{

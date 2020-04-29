@@ -16,20 +16,20 @@ namespace Comfy
 	{
 		struct Default
 		{
-			uint64_t ResourceView;
-			uint8_t DecompressRGTC;
-			uint8_t IsCubeMap;
-			uint8_t CubeMapMipLevel;
-			uint8_t Padding[5];
+			u64 ResourceView;
+			u8 DecompressRGTC;
+			u8 IsCubeMap;
+			u8 CubeMapMipLevel;
+			u8 Padding[5];
 		};
 
 		struct Packed
 		{
 			// NOTE: This should be valid according to https://en.wikipedia.org/wiki/Intel_5-level_paging
-			uint64_t ResourceView : 58;
-			uint64_t DecompressRGTC : 1;
-			uint64_t IsCubeMap : 1;
-			uint64_t CubeMapMipLevel : 4;
+			u64 ResourceView : 58;
+			u64 DecompressRGTC : 1;
+			u64 IsCubeMap : 1;
+			u64 CubeMapMipLevel : 4;
 		};
 	}
 

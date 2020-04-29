@@ -7,20 +7,20 @@
 
 namespace Comfy::Editor
 {
-	std::array<uint32_t, EditorColor_Count> EditorColors;
+	std::array<u32, EditorColor_Count> EditorColors;
 
 	vec4 GetColorVec4(EditorColor color)
 	{
 		return ImColor(GetColor(color)).Value;
 	}
 
-	uint32_t GetColor(EditorColor color)
+	u32 GetColor(EditorColor color)
 	{
 		assert(color >= 0 && color < EditorColor_Count);
 		return EditorColors[color];
 	}
 
-	uint32_t GetColor(EditorColor color, float alpha)
+	u32 GetColor(EditorColor color, float alpha)
 	{
 		ImVec4 colorVector = Gui::ColorConvertU32ToFloat4(GetColor(color));
 		colorVector.w *= alpha;
@@ -28,7 +28,7 @@ namespace Comfy::Editor
 		return Gui::ColorConvertFloat4ToU32(colorVector);
 	}
 
-	void SetColor(EditorColor color, uint32_t value)
+	void SetColor(EditorColor color, u32 value)
 	{
 		EditorColors[color] = value;
 	}

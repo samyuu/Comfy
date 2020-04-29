@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "../Direct3D.h"
 #include "../Buffer/ConstantBuffer.h"
 #include "../Buffer/IndexBuffer.h"
@@ -16,7 +17,7 @@ namespace Comfy::Graphics::D3D11
 	class Renderer2D : NonCopyable
 	{
 	public:
-		static constexpr uint32_t MaxBatchItemSize = 2048;
+		static constexpr u32 MaxBatchItemSize = 2048;
 
 	public:
 		Renderer2D();
@@ -54,7 +55,7 @@ namespace Comfy::Graphics::D3D11
 		bool GetDrawTextBorder() const;
 		void SetDrawTextBorder(bool value);
 
-		uint32_t GetDrawCallCount() const;
+		u32 GetDrawCallCount() const;
 
 	private:
 		struct CameraConstantData
@@ -68,7 +69,7 @@ namespace Comfy::Graphics::D3D11
 			TextureFormat MaskFormat;
 
 			AetBlendMode BlendMode;
-			uint8_t Padding[3];
+			u8 Padding[3];
 
 			int Flags;
 			int DrawTextBorder;
@@ -81,7 +82,7 @@ namespace Comfy::Graphics::D3D11
 		bool drawTextBorder = false;
 		bool batchSprites = true;
 
-		uint32_t drawCallCount = 0;
+		u32 drawCallCount = 0;
 
 		ShaderPair spriteShader;
 
@@ -100,7 +101,7 @@ namespace Comfy::Graphics::D3D11
 
 		/*
 		// TODO: Offload checkerboard rendering from shader
-		static constexpr std::array<uint32_t, 4> checkerboardTexturePixels = 
+		static constexpr std::array<u32, 4> checkerboardTexturePixels = 
 		{
 			0xFFFFFFFF, 0x00000000, 
 			0x00000000, 0xFFFFFFFF,

@@ -33,7 +33,7 @@ namespace
 		std::filesystem::path Build_OriginalPath;
 		std::string Build_FileName;
 
-		std::vector<uint8_t> FileContent;
+		std::vector<u8> FileContent;
 	};
 
 	struct Build_ComfyDirectory : ComfyDirectory
@@ -141,17 +141,17 @@ namespace
 
 namespace
 {
-	std::array<uint8_t, 16> GetIV()
+	std::array<u8, 16> GetIV()
 	{
 		std::random_device randomDevice;
 		std::mt19937 numberGenerator(randomDevice());
 
-		constexpr uint8_t min = std::numeric_limits<uint8_t>::min();
-		constexpr uint8_t max = std::numeric_limits<uint8_t>::max();
+		constexpr u8 min = std::numeric_limits<u8>::min();
+		constexpr u8 max = std::numeric_limits<u8>::max();
 
 		std::uniform_int_distribution<std::mt19937::result_type> distribution(min, max);
 
-		std::array<uint8_t, 16> iv;
+		std::array<u8, 16> iv;
 		for (auto& value : iv)
 			value = distribution(numberGenerator);
 		return iv;
@@ -171,11 +171,11 @@ namespace
 		writer.WriteU16(0xCCCC);
 
 		// NOTE: CreatorID
-		std::array<uint8_t, 4> creatorID = { 'c', 'm', 'f', 'y' };
+		std::array<u8, 4> creatorID = { 'c', 'm', 'f', 'y' };
 		writer.WriteType(creatorID);
 
 		// NOTE: ReservedID
-		std::array<uint8_t, 4> reservedID = { 0x90, 0x90, 0x90, 0x90 };
+		std::array<u8, 4> reservedID = { 0x90, 0x90, 0x90, 0x90 };
 		writer.WriteType(reservedID);
 
 		// NOTE: CreationDate
@@ -186,7 +186,7 @@ namespace
 		writer.WriteType(ArchiveFlags);
 
 		// NOTE: IV
-		std::array<uint8_t, 16> iv = GetIV();
+		std::array<u8, 16> iv = GetIV();
 		writer.WriteType(iv);
 	}
 

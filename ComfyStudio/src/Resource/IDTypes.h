@@ -3,9 +3,9 @@
 
 namespace Comfy
 {
-	constexpr uint32_t InvalidResourceID = 0xFFFFFFFF;
+	constexpr u32 InvalidResourceID = 0xFFFFFFFF;
 
-#define DECLARE_ID_TYPE(typeName) enum class typeName : uint32_t { Invalid = InvalidResourceID };
+#define DECLARE_ID_TYPE(typeName) enum class typeName : u32 { Invalid = InvalidResourceID };
 #include "Detail/IDTypeDeclarations.h"
 #undef DECLARE_ID_TYPE
 
@@ -16,7 +16,7 @@ namespace Comfy
 		CachedResourceID(IDType id) : ID(id) {};
 
 		IDType ID;
-		mutable uint32_t CachedIndex;
+		mutable u32 CachedIndex;
 
 		operator IDType() const { return ID; };
 	};

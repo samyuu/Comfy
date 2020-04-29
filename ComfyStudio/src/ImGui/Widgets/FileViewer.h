@@ -1,11 +1,12 @@
 #pragma once
+#include "Types.h"
 #include "CoreTypes.h"
 #include "ImGui/Gui.h"
 #include <FontIcons.h>
 
 namespace ImGui
 {
-	enum class FileType : uint16_t
+	enum class FileType : u16
 	{
 		Default, Link, Text, Config, Binary, Image, Code, Archive, Video, Audio, Application, Count
 	};
@@ -29,7 +30,7 @@ namespace ImGui
 			bool IsDirectory;
 			bool IsHovered;
 			FileType FileType;
-			uint64_t FileSize;
+			u64 FileSize;
 			std::string ReadableFileSize;
 		};
 
@@ -58,7 +59,7 @@ namespace ImGui
 		static FileType GetFileType(const std::string_view fileName);
 		static const char* GetFileInfoFormatString(const FilePathInfo& info);
 		static const char* FormatFileType(FileType type);
-		static void FormatReadableFileSize(std::string& value, uint64_t fileSize);
+		static void FormatReadableFileSize(std::string& value, u64 fileSize);
 
 		static constexpr std::array<std::pair<FileType, const char*>, static_cast<size_t>(FileType::Count)> fileTypeDictionary =
 		{

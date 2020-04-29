@@ -16,8 +16,8 @@ namespace Comfy::Audio
 		config.outputChannels = AudioEngine::GetInstance()->GetChannelCount();
 		config.outputSampleRate = AudioEngine::GetInstance()->GetSampleRate();
 
-		uint64_t frameCount;
-		int16_t* data = drmp3_open_memory_and_read_s16(fileData, fileSize, &config, &frameCount);
+		u64 frameCount;
+		i16* data = drmp3_open_memory_and_read_s16(fileData, fileSize, &config, &frameCount);
 
 		if (data == nullptr)
 			return AudioDecoderResult::Failure;

@@ -10,8 +10,8 @@ namespace Comfy::Graphics::D3D11
 		constexpr size_t MaxMipMaps = 16;
 		constexpr size_t CubeFaceCount = 6;
 
-		constexpr uint32_t BlockCompressionAlignment = 4;
-		constexpr uint32_t UnboundTextureSlot = 0xFFFFFFFF;
+		constexpr u32 BlockCompressionAlignment = 4;
+		constexpr u32 UnboundTextureSlot = 0xFFFFFFFF;
 
 		constexpr DXGI_FORMAT GetDxgiFormat(TextureFormat format)
 		{
@@ -270,19 +270,19 @@ namespace Comfy::Graphics::D3D11
 			}
 		}
 
-		void PadRGBToRGBA(const ivec2 size, const uint8_t* inputRGB, uint32_t* outputRGBA)
+		void PadRGBToRGBA(const ivec2 size, const u8* inputRGB, u32* outputRGBA)
 		{
-			const uint8_t* currentRGBPixel = inputRGB;
+			const u8* currentRGBPixel = inputRGB;
 
-			for (int32_t i = 0; i < (size.x * size.y); i++)
+			for (i32 i = 0; i < (size.x * size.y); i++)
 			{
-				const uint8_t r = currentRGBPixel[0];
-				const uint8_t g = currentRGBPixel[1];
-				const uint8_t b = currentRGBPixel[2];
-				const uint8_t a = std::numeric_limits<uint8_t>::max();
+				const u8 r = currentRGBPixel[0];
+				const u8 g = currentRGBPixel[1];
+				const u8 b = currentRGBPixel[2];
+				const u8 a = std::numeric_limits<u8>::max();
 				currentRGBPixel += 3;
 
-				const uint32_t rgba = (r << 0) | (g << 8) | (b << 16) | (a << 24);
+				const u32 rgba = (r << 0) | (g << 8) | (b << 16) | (a << 24);
 				outputRGBA[i] = rgba;
 			}
 		}
@@ -348,7 +348,7 @@ namespace Comfy::Graphics::D3D11
 		D3D.EnsureDeviceObjectLifetimeUntilRendering(resourceView.Get());
 	}
 
-	void TextureResource::Bind(uint32_t textureSlot) const
+	void TextureResource::Bind(u32 textureSlot) const
 	{
 		assert(textureSlot < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
 		lastBoundSlot = textureSlot;
@@ -391,7 +391,7 @@ namespace Comfy::Graphics::D3D11
 		return resourceView.Get();
 	}
 
-	Texture1D::Texture1D(int32_t width, const void* pixelData, DXGI_FORMAT format)
+	Texture1D::Texture1D(i32 width, const void* pixelData, DXGI_FORMAT format)
 	{
 		textureDescription.Width = width;
 		textureDescription.MipLevels = 1;
@@ -455,14 +455,14 @@ namespace Comfy::Graphics::D3D11
 		if (baseMipMap.Format == TextureFormat::RGB8)
 		{
 			textureDescription.Format = GetDxgiFormat(TextureFormat::RGBA8);
-			std::array<UniquePtr<uint32_t[]>, MaxMipMaps> rgbaBuffers;
+			std::array<UniquePtr<u32[]>, MaxMipMaps> rgbaBuffers;
 
 			for (size_t i = 0; i < mipMaps.size(); i++)
 			{
 				auto& resource = initialResourceData[i];
 				auto& mipMap = mipMaps[i];
 
-				rgbaBuffers[i] = MakeUnique<uint32_t[]>(mipMap.Size.x * mipMap.Size.y);
+				rgbaBuffers[i] = MakeUnique<u32[]>(mipMap.Size.x * mipMap.Size.y);
 				PadRGBToRGBA(mipMap.Size, mipMap.Data.get(), rgbaBuffers[i].get());
 
 				resource.pSysMem = rgbaBuffers[i].get();
@@ -490,7 +490,7 @@ namespace Comfy::Graphics::D3D11
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 
-	Texture2D::Texture2D(ivec2 size, const uint32_t* rgbaBuffer)
+	Texture2D::Texture2D(ivec2 size, const u32* rgbaBuffer)
 	{
 		textureFormat = TextureFormat::RGBA8;
 		textureDescription.Width = size.x;
@@ -512,7 +512,7 @@ namespace Comfy::Graphics::D3D11
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 
-	uint32_t Texture2D::GetArraySize() const
+	u32 Texture2D::GetArraySize() const
 	{
 		return 1;
 	}
@@ -545,9 +545,9 @@ namespace Comfy::Graphics::D3D11
 
 		std::array<D3D11_SUBRESOURCE_DATA, CubeFaceCount * MaxMipMaps> initialResourceData;
 
-		for (uint32_t faceIndex = 0; faceIndex < CubeFaceCount; faceIndex++)
+		for (u32 faceIndex = 0; faceIndex < CubeFaceCount; faceIndex++)
 		{
-			for (uint32_t mipIndex = 0; mipIndex < textureDescription.MipLevels; mipIndex++)
+			for (u32 mipIndex = 0; mipIndex < textureDescription.MipLevels; mipIndex++)
 				initialResourceData[TexCubeFaceIndices[faceIndex] * textureDescription.MipLevels + mipIndex] = CreateMipMapSubresourceData(tex.MipMapsArray[faceIndex][mipIndex], usesBlockCompression, bitsPerPixel);
 		}
 
@@ -559,8 +559,8 @@ namespace Comfy::Graphics::D3D11
 
 	CubeMap::CubeMap(const LightMapIBL& lightMap)
 	{
-		uint32_t mipMapLevels = 1;
-		for (uint32_t i = 0; i < lightMap.DataPointers[0].size(); i++)
+		u32 mipMapLevels = 1;
+		for (u32 i = 0; i < lightMap.DataPointers[0].size(); i++)
 		{
 			if (lightMap.DataPointers[0][i] == nullptr)
 				break;
@@ -584,11 +584,11 @@ namespace Comfy::Graphics::D3D11
 
 		std::array<D3D11_SUBRESOURCE_DATA, CubeFaceCount * MaxMipMaps> initialResourceData = {};
 
-		for (uint32_t faceIndex = 0; faceIndex < CubeFaceCount; faceIndex++)
+		for (u32 faceIndex = 0; faceIndex < CubeFaceCount; faceIndex++)
 		{
-			for (uint32_t mipIndex = 0; mipIndex < textureDescription.MipLevels; mipIndex++)
+			for (u32 mipIndex = 0; mipIndex < textureDescription.MipLevels; mipIndex++)
 			{
-				const ivec2 mipMapSize = (lightMap.Size >> static_cast<int32_t>(mipIndex));
+				const ivec2 mipMapSize = (lightMap.Size >> static_cast<i32>(mipIndex));
 				initialResourceData[LightMapCubeFaceIndices[faceIndex] * textureDescription.MipLevels + mipIndex] = { lightMap.DataPointers[faceIndex][mipIndex], GetMemoryPitch(mipMapSize, bitsPerPixel, false), 0 };
 			}
 		}
@@ -599,7 +599,7 @@ namespace Comfy::Graphics::D3D11
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 
-	uint32_t CubeMap::GetArraySize() const
+	u32 CubeMap::GetArraySize() const
 	{
 		return CubeFaceCount;
 	}

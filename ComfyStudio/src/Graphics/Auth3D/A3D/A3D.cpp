@@ -87,7 +87,7 @@ namespace Comfy::Graphics
 					}
 					else if (CompareProperty("value_list_size"))
 					{
-						output.RawData.ValueListSize = ParseValueString<uint32_t>();
+						output.RawData.ValueListSize = ParseValueString<u32>();
 					}
 					else if (CompareProperty("value_list"))
 					{
@@ -267,7 +267,7 @@ namespace Comfy::Graphics
 							if (!TryParseTransformProperties(node.Transform))
 							{
 								if (CompareProperty("parent"))
-									node.Parent = ParseValueString<uint32_t>();
+									node.Parent = ParseValueString<u32>();
 								else if (CompareProperty("name"))
 									node.Name = ParseValueString();
 							}
@@ -295,7 +295,7 @@ namespace Comfy::Graphics
 					if (CompareProperty("property"))
 					{
 						if (CompareProperty("version"))
-							a3d.Metadata.Property.Version = ParseValueString<uint32_t>();
+							a3d.Metadata.Property.Version = ParseValueString<u32>();
 					}
 					else if (CompareProperty("file_name"))
 					{
@@ -304,7 +304,7 @@ namespace Comfy::Graphics
 					else if (CompareProperty("converter"))
 					{
 						if (CompareProperty("version"))
-							a3d.Metadata.Converter.Version = ParseValueString<uint32_t>();
+							a3d.Metadata.Converter.Version = ParseValueString<u32>();
 					}
 				}
 				else if (CompareProperty("play_control"))
@@ -396,7 +396,7 @@ namespace Comfy::Graphics
 							else if (CompareProperty("name"))
 								light.Name = ParseValueString();
 							else if (CompareProperty("id"))
-								light.ID = ParseValueString<uint32_t>();
+								light.ID = ParseValueString<u32>();
 						}
 					}
 				}
@@ -407,7 +407,7 @@ namespace Comfy::Graphics
 						auto& fog = a3d.Fog[ParseAdvanceIndexProperty()];
 
 						if (CompareProperty("type"))
-							fog.ID = ParseValueString<uint32_t>();
+							fog.ID = ParseValueString<u32>();
 						else if (CompareProperty("density"))
 							TryParseProperty1D(fog.Density);
 						else if (CompareProperty("start"))
@@ -481,11 +481,11 @@ namespace Comfy::Graphics
 							else if (CompareProperty("pat"))
 								object.Pat = ParseValueString();
 							else if (CompareProperty("pat_offset"))
-								object.PatOffset = ParseValueString<uint32_t>();
+								object.PatOffset = ParseValueString<u32>();
 							else if (CompareProperty("morph"))
 								object.Morph = ParseValueString();
 							else if (CompareProperty("morph_offset"))
-								object.MorphOffset = ParseValueString<uint32_t>();
+								object.MorphOffset = ParseValueString<u32>();
 							else if (CompareProperty("parent_name"))
 								object.ParentName = ParseValueString();
 							else if (CompareProperty("tex_pat"))
@@ -499,7 +499,7 @@ namespace Comfy::Graphics
 									else if (CompareProperty("pat"))
 										texturePat.Pattern = ParseValueString();
 									else if (CompareProperty("pat_offset"))
-										texturePat.PatternOffset = ParseValueString<uint32_t>();
+										texturePat.PatternOffset = ParseValueString<u32>();
 								}
 							}
 							else if (CompareProperty("tex_transform"))
@@ -627,7 +627,7 @@ namespace Comfy::Graphics
 	{
 	}
 
-	void A3D::Parse(const uint8_t* buffer, size_t bufferSize)
+	void A3D::Parse(const u8* buffer, size_t bufferSize)
 	{
 		const char* startOfTextBuffer = reinterpret_cast<const char*>(buffer);
 		const char* endOfTextBuffer = reinterpret_cast<const char*>(buffer + bufferSize);

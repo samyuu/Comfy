@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "CoreTypes.h"
 #include "Stream/Stream.h"
 #include "BinaryMode.h"
@@ -11,7 +12,7 @@ namespace Comfy::IO
 	class BinaryWriter : NonCopyable
 	{
 	public:
-		static constexpr uint32_t PaddingValue = 0xCCCCCCCC;
+		static constexpr u32 PaddingValue = 0xCCCCCCCC;
 
 	public:
 		BinaryWriter()
@@ -62,7 +63,7 @@ namespace Comfy::IO
 		void WriteType(T value) { WriteBuffer(&value, sizeof(T)); }
 
 		void WriteStr(std::string_view value);
-		void WriteStrPtr(std::string_view value, int32_t alignment = 0);
+		void WriteStrPtr(std::string_view value, i32 alignment = 0);
 
 		inline void WritePtr(FileAddr value) { writePtrFunc(*this, value); };
 		inline void WritePtr(nullptr_t) = delete;
@@ -70,8 +71,8 @@ namespace Comfy::IO
 		void WritePtr(const std::function<void(BinaryWriter&)>& func, FileAddr baseAddress = FileAddr::NullPtr);
 		void WriteDelayedPtr(const std::function<void(BinaryWriter&)>& func);
 
-		void WritePadding(size_t size, uint32_t paddingValue = PaddingValue);
-		void WriteAlignmentPadding(int32_t alignment, uint32_t paddingValue = PaddingValue);
+		void WritePadding(size_t size, u32 paddingValue = PaddingValue);
+		void WriteAlignmentPadding(i32 alignment, u32 paddingValue = PaddingValue);
 
 		void FlushStringPointerPool();
 		void FlushPointerPool();
@@ -79,14 +80,14 @@ namespace Comfy::IO
 
 		inline void WriteBool(bool value) { return WriteType<bool>(value); }
 		inline void WriteChar(char value) { return WriteType<char>(value); }
-		inline void WriteI8(uint8_t value) { return WriteType<int8_t>(value); }
-		inline void WriteU8(uint8_t value) { return WriteType<uint8_t>(value); }
-		inline void WriteI16(int16_t value) { return WriteType<int16_t>(value); }
-		inline void WriteU16(uint16_t value) { return WriteType<uint16_t>(value); }
-		inline void WriteI32(int32_t value) { return WriteType<int32_t>(value); }
-		inline void WriteU32(uint32_t value) { return WriteType<uint32_t>(value); }
+		inline void WriteI8(i8 value) { return WriteType<i8>(value); }
+		inline void WriteU8(u8 value) { return WriteType<u8>(value); }
+		inline void WriteI16(i16 value) { return WriteType<i16>(value); }
+		inline void WriteU16(u16 value) { return WriteType<u16>(value); }
+		inline void WriteI32(i32 value) { return WriteType<i32>(value); }
+		inline void WriteU32(u32 value) { return WriteType<u32>(value); }
 		inline void WriteI64(int64_t value) { return WriteType<int64_t>(value); }
-		inline void WriteU64(uint64_t value) { return WriteType<uint64_t>(value); }
+		inline void WriteU64(u64 value) { return WriteType<u64>(value); }
 		inline void WriteF32(float value) { return WriteType<float>(value); }
 		inline void WriteF64(double value) { return WriteType<double>(value); }
 
@@ -103,7 +104,7 @@ namespace Comfy::IO
 		{
 			FileAddr ReturnAddress;
 			std::string_view String;
-			int32_t Alignment;
+			i32 Alignment;
 		};
 
 		struct FunctionPointerEntry
@@ -125,7 +126,7 @@ namespace Comfy::IO
 		std::vector<DelayedWriteEntry> delayedWritePool;
 
 	private:
-		static void WritePtr32(BinaryWriter& writer, FileAddr value) { writer.WriteI32(static_cast<int32_t>(value)); }
+		static void WritePtr32(BinaryWriter& writer, FileAddr value) { writer.WriteI32(static_cast<i32>(value)); }
 		static void WritePtr64(BinaryWriter& writer, FileAddr value) { writer.WriteI64(static_cast<int64_t>(value)); }
 	};
 }

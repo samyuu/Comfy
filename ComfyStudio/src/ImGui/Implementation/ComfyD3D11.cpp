@@ -77,11 +77,11 @@ namespace ImGui
 				D3D11_SetObjectDebugName(FontSampler.GetSampler(), "ComfyD3D11::FontSampler");
 				D3D11_SetObjectDebugName(BlendState.GetBlendState(), "ComfyD3D11::BlendState");
 
-				uint8_t* rgbaPixels;
+				u8* rgbaPixels;
 				ivec2 textureSize;
 				GetIO().Fonts->GetTexDataAsRGBA32(&rgbaPixels, &textureSize.x, &textureSize.y);
 
-				FontTexture = MakeUnique<D3D11::Texture2D>(textureSize, reinterpret_cast<uint32_t*>(rgbaPixels));
+				FontTexture = MakeUnique<D3D11::Texture2D>(textureSize, reinterpret_cast<u32*>(rgbaPixels));
 				D3D11_SetObjectDebugName(FontTexture->GetTexture(), "ComfyD3D11::FontTexture");
 				D3D11_SetObjectDebugName(FontTexture->GetResourceView(), "ComfyD3D11::FontTextureView");
 

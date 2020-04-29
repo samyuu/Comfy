@@ -21,9 +21,9 @@ namespace Comfy::Graphics::D3D11
 		{
 			switch (indexFormat)
 			{
-			case IndexFormat::U8:	return sizeof(uint8_t);
-			case IndexFormat::U16:	return sizeof(uint16_t);
-			case IndexFormat::U32:	return sizeof(uint32_t);
+			case IndexFormat::U8:	return sizeof(u8);
+			case IndexFormat::U16:	return sizeof(u16);
+			case IndexFormat::U32:	return sizeof(u32);
 			}
 
 			assert(false);

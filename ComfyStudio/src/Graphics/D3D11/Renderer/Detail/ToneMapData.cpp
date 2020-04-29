@@ -62,7 +62,7 @@ namespace Comfy::Graphics::D3D11
 	{
 		if (lookupTexture == nullptr)
 		{
-			lookupTexture = MakeUnique<Texture1D>(static_cast<int32_t>(textureData.size()), textureData.data(), DXGI_FORMAT_R32G32_FLOAT);
+			lookupTexture = MakeUnique<Texture1D>(static_cast<i32>(textureData.size()), textureData.data(), DXGI_FORMAT_R32G32_FLOAT);
 		}
 		else
 		{

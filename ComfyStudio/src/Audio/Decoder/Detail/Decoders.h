@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "Audio/Decoder/IAudioDecoder.h"
 
 namespace Comfy::Audio

@@ -153,7 +153,7 @@ namespace Comfy::Editor
 				scene->RootComposition->GuiData.ThisIndex = -1;
 				DrawTreeNodeComposition(scene, scene->RootComposition, true);
 
-				for (int32_t i = static_cast<int32_t>(scene->Compositions.size()) - 1; i >= 0; i--)
+				for (i32 i = static_cast<i32>(scene->Compositions.size()) - 1; i >= 0; i--)
 				{
 					const auto& comp = scene->Compositions[i];
 
@@ -169,7 +169,7 @@ namespace Comfy::Editor
 				if (Gui::IsItemClicked())
 					ResetSelectedItems();
 
-				for (int32_t i = 0; i < static_cast<int32_t>(scene->Videos.size()); i++)
+				for (i32 i = 0; i < static_cast<i32>(scene->Videos.size()); i++)
 				{
 					DrawTreeNodeVideo(scene, scene->Videos[i], i);
 				}
@@ -358,7 +358,7 @@ namespace Comfy::Editor
 		Gui::PopStyleVar(1);
 	}
 
-	void AetTreeView::DrawTreeNodeVideo(const RefPtr<Scene>& scene, const RefPtr<Video>& video, int32_t index)
+	void AetTreeView::DrawTreeNodeVideo(const RefPtr<Scene>& scene, const RefPtr<Video>& video, i32 index)
 	{
 		Gui::PushID(video.get());
 
@@ -485,7 +485,7 @@ namespace Comfy::Editor
 		GImGui->CurrentWindow->DrawList->AddText(textPosition, Gui::GetColorU32(ImGuiCol_Text), ICON_CAMERA);
 	}
 
-	const char* AetTreeView::FormatVideoNodeName(const RefPtr<Video>& video, int32_t index)
+	const char* AetTreeView::FormatVideoNodeName(const RefPtr<Video>& video, i32 index)
 	{
 		if (video->Sources.size() >= 1)
 		{

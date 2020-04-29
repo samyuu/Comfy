@@ -32,7 +32,7 @@ namespace Comfy::Graphics
 	namespace GPU
 	{
 		UniquePtr<GPU_Texture2D> MakeTexture2D(const Tex& tex, const char* debugName = nullptr);
-		UniquePtr<GPU_Texture2D> MakeTexture2D(ivec2 size, const uint32_t* rgbaBuffer, const char* debugName = nullptr);
+		UniquePtr<GPU_Texture2D> MakeTexture2D(ivec2 size, const u32* rgbaBuffer, const char* debugName = nullptr);
 
 		UniquePtr<GPU_CubeMap> MakeCubeMap(const Tex& tex, const char* debugName = nullptr);
 		UniquePtr<GPU_CubeMap> MakeCubeMap(const LightMapIBL& lightMap, const char* debugName = nullptr);

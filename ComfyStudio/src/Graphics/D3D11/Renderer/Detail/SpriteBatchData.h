@@ -6,15 +6,15 @@ namespace Comfy::Graphics::D3D11
 {
 	struct SpriteIndices
 	{
-		uint16_t TopLeft;
-		uint16_t BottomLeft;
-		uint16_t BottomRight;
-		uint16_t BottomRightCopy;
-		uint16_t TopRight;
-		uint16_t TopLeftCopy;
+		u16 TopLeft;
+		u16 BottomLeft;
+		u16 BottomRight;
+		u16 BottomRightCopy;
+		u16 TopRight;
+		u16 TopLeftCopy;
 
 	public:
-		static inline constexpr uint32_t GetIndexCount() { return sizeof(SpriteIndices) / sizeof(uint16_t); };
+		static inline constexpr u32 GetIndexCount() { return sizeof(SpriteIndices) / sizeof(u16); };
 	};
 	
 	struct SpriteVertex
@@ -23,7 +23,7 @@ namespace Comfy::Graphics::D3D11
 		vec2 Position;
 		vec2 TextureCoordinates;
 		vec2 TextureMaskCoordinates;
-		uint32_t Color;
+		u32 Color;
 	};
 
 	struct SpriteVertices
@@ -36,7 +36,7 @@ namespace Comfy::Graphics::D3D11
 	public:
 		void SetValues(const vec2& position, const vec4& sourceRegion, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4& color);
 		void SetValues(const vec2& position, const vec4& sourceRegion, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4 colors[4]);
-		static inline constexpr uint32_t GetVertexCount() { return sizeof(SpriteVertices) / sizeof(SpriteVertex); };
+		static inline constexpr u32 GetVertexCount() { return sizeof(SpriteVertices) / sizeof(SpriteVertex); };
 
 	public:
 		void SetPositions(const vec2& position, const vec2& size);
@@ -51,10 +51,10 @@ namespace Comfy::Graphics::D3D11
 
 	struct SpriteBatch
 	{
-		uint16_t Index;
-		uint16_t Count;
+		u16 Index;
+		u16 Count;
 
-		SpriteBatch(uint16_t index, uint16_t count) : Index(index), Count(count) {};
+		SpriteBatch(u16 index, u16 count) : Index(index), Count(count) {};
 	};
 
 	struct SpriteBatchItem

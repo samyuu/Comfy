@@ -21,7 +21,7 @@ namespace Comfy::IO
 		FromStream(stream);
 	}
 
-	MemoryStream::MemoryStream(std::vector<uint8_t>& source)
+	MemoryStream::MemoryStream(std::vector<u8>& source)
 	{
 		FromStreamSource(source);
 	}
@@ -79,14 +79,14 @@ namespace Comfy::IO
 		assert(canRead);
 		dataSource->resize(dataSource->size() + size);
 
-		const uint8_t* bufferStart = reinterpret_cast<const uint8_t*>(buffer);
-		const uint8_t* bufferEnd = &bufferStart[size];
+		const u8* bufferStart = reinterpret_cast<const u8*>(buffer);
+		const u8* bufferEnd = &bufferStart[size];
 		std::copy(bufferStart, bufferEnd, std::back_inserter(*dataSource));
 
 		return size;
 	}
 
-	void MemoryStream::FromStreamSource(std::vector<uint8_t>& source)
+	void MemoryStream::FromStreamSource(std::vector<u8>& source)
 	{
 		dataSource = &source;
 

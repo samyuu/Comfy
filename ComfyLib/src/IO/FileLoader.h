@@ -27,7 +27,7 @@ namespace Comfy::IO
 		virtual bool GetFileFound() const = 0;
 		virtual bool GetIsLoading() const = 0;
 
-		virtual const std::vector<uint8_t>& GetFileContent() const = 0;
+		virtual const std::vector<u8>& GetFileContent() const = 0;
 		virtual void Read(IBinaryReadable* readable) const = 0;
 		virtual void Parse(IBufferParsable* parsable) const = 0;
 
@@ -56,7 +56,7 @@ namespace Comfy::IO
 		bool GetFileFound() const override;
 		bool GetIsLoading() const override;
 
-		const std::vector<uint8_t>& GetFileContent() const override;
+		const std::vector<u8>& GetFileContent() const override;
 		void Read(IBinaryReadable* readable) const override;
 		void Parse(IBufferParsable* parsable) const override;
 
@@ -67,7 +67,7 @@ namespace Comfy::IO
 
 		bool isLoaded = false;
 		bool fileFound = false;
-		std::vector<uint8_t> fileContent;
+		std::vector<u8> fileContent;
 
 		std::atomic_bool threadRunning = false;
 		UniquePtr<std::thread> loaderThread = nullptr;

@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "../Direct3D.h"
 #include "DepthBuffer.h"
 #include "Texture.h"
@@ -53,24 +54,24 @@ namespace Comfy::Graphics::D3D11
 	{
 	public:
 		RenderTarget(ivec2 size);
-		RenderTarget(ivec2 size, DXGI_FORMAT format, uint32_t multiSampleCount = 1);
+		RenderTarget(ivec2 size, DXGI_FORMAT format, u32 multiSampleCount = 1);
 		~RenderTarget() = default;
 
 	public:
-		void BindResource(uint32_t textureSlot);
+		void BindResource(u32 textureSlot);
 
 		ivec2 GetSize() const override;
 		void Resize(ivec2 newSize) override;
 		void SetFormat(DXGI_FORMAT format);
 
-		uint32_t GetMultiSampleCount() const;
+		u32 GetMultiSampleCount() const;
 
 		ID3D11Resource* GetResource() const;
 		ID3D11ShaderResourceView* GetResourceView() const override;
 
 		const D3D11_TEXTURE2D_DESC& GetBackBufferDescription() const;
 
-		UniquePtr<uint8_t[]> StageAndCopyBackBuffer();
+		UniquePtr<u8[]> StageAndCopyBackBuffer();
 
 	protected:
 		D3D11_TEXTURE2D_DESC backBufferDescription;
@@ -84,7 +85,7 @@ namespace Comfy::Graphics::D3D11
 	{
 	public:
 		DepthRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat);
-		DepthRenderTarget(ivec2 size, DXGI_FORMAT format, DXGI_FORMAT depthBufferFormat, uint32_t multiSampleCount = 1);
+		DepthRenderTarget(ivec2 size, DXGI_FORMAT format, DXGI_FORMAT depthBufferFormat, u32 multiSampleCount = 1);
 		~DepthRenderTarget() = default;
 
 	public:
@@ -94,8 +95,8 @@ namespace Comfy::Graphics::D3D11
 		void Clear(const vec4& color) override;
 		void Resize(ivec2 newSize) override;
 
-		void SetMultiSampleCount(uint32_t multiSampleCount);
-		void SetMultiSampleCountIfDifferent(uint32_t multiSampleCount);
+		void SetMultiSampleCount(u32 multiSampleCount);
+		void SetMultiSampleCountIfDifferent(u32 multiSampleCount);
 
 		DepthBuffer* GetDepthBuffer();
 
@@ -118,7 +119,7 @@ namespace Comfy::Graphics::D3D11
 		ivec2 GetSize() const override;
 		void Resize(ivec2 newSize) override;
 
-		void BindResource(uint32_t textureSlot);
+		void BindResource(u32 textureSlot);
 
 		ID3D11ShaderResourceView* GetResourceView() const override;
 		ResourceViewDepthBuffer* GetDepthBuffer();

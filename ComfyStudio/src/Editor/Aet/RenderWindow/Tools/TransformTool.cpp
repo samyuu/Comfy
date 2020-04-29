@@ -295,9 +295,9 @@ namespace Comfy::Editor
 
 		struct NudgeBinding
 		{
-			int16_t Key;
-			enum Component : uint8_t { X, Y } Component;
-			enum Direction : uint8_t { Increment, Decrement } Direction;
+			i16 Key;
+			enum Component : u8 { X, Y } Component;
+			enum Direction : u8 { Increment, Decrement } Direction;
 		};
 
 		constexpr NudgeBinding bindings[] =

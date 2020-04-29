@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "Audio/SampleProvider/ISampleProvider.h"
 #include "AudioEngine.h"
 #include "Core/TimeSpan.h"
@@ -72,12 +73,12 @@ namespace Comfy::Audio
 		void SetOnFinishedAction(AudioFinishedAction value);
 
 		// FramePosition
-		int64_t GetFramePosition() const;
-		void SetFramePosition(int64_t value);
+		i64 GetFramePosition() const;
+		void SetFramePosition(i64 value);
 
-		int64_t GetFrameCount() const;
-		uint32_t GetSampleRate() const;
-		uint32_t GetChannelCount() const;
+		i64 GetFrameCount() const;
+		u32 GetSampleRate() const;
+		u32 GetChannelCount() const;
 
 	private:
 		// Members Variables
@@ -92,7 +93,7 @@ namespace Comfy::Audio
 		bool hasBeenRemoved = false;
 		bool appendRemove = false;
 
-		int64_t framePosition = 0;
+		i64 framePosition = 0;
 		AudioFinishedAction onFinishedAction = AudioFinishedAction::None;
 		RefPtr<ISampleProvider> sampleProvider = nullptr;
 		// -----------------
@@ -101,18 +102,18 @@ namespace Comfy::Audio
 		// Used by AudioEngine
 		// -------------------
 		inline void SetHasBeenRemoved(bool value) { hasBeenRemoved = value; };
-		inline void IncrementFramePosition(int64_t value) { SetFramePosition(GetFramePosition() + value); };
+		inline void IncrementFramePosition(i64 value) { SetFramePosition(GetFramePosition() + value); };
 
 	public:
 		// Conversion Helper Methods
 		// -------------------------
 		TimeSpan FramesToTimeSpan(double frames) const;
-		int64_t TimeSpanToFrames(TimeSpan time) const;
+		i64 TimeSpanToFrames(TimeSpan time) const;
 
 	protected:
 		// Conversion Helper Functions
 		// ---------------------------
 		static TimeSpan FramesToTimeSpan(double frames, double sampleRate);
-		static int64_t TimeSpanToFrames(TimeSpan time, double sampleRate);
+		static i64 TimeSpanToFrames(TimeSpan time, double sampleRate);
 	};
 }

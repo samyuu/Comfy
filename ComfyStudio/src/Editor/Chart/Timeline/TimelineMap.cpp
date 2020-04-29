@@ -14,7 +14,7 @@ namespace Comfy::Editor
 
 	TimeSpan TimelineMap::GetTimeAt(TimelineTick tick) const
 	{
-		const int32_t tickTimeCount = static_cast<int32_t>(tickTimes.size());
+		const i32 tickTimeCount = static_cast<i32>(tickTimes.size());
 
 		if (tick.TotalTicks() < 0) // NOTE: Negative tick
 		{
@@ -50,7 +50,7 @@ namespace Comfy::Editor
 
 	TimelineTick TimelineMap::GetTickAt(TimeSpan time) const
 	{
-		const int32_t tickTimeCount = static_cast<int32_t>(tickTimes.size());
+		const i32 tickTimeCount = static_cast<i32>(tickTimes.size());
 		const TimeSpan lastTime = GetLastCalculatedTime();
 
 		if (time < TimeSpan::FromSeconds(0.0)) // NOTE: Negative time
@@ -59,7 +59,7 @@ namespace Comfy::Editor
 			const TimeSpan firstTickDuration = TimeSpan::FromSeconds((60.0 / firstTempo.BeatsPerMinute) / TimelineTick::TicksPerBeat);
 
 			// NOTE: Then the time by the negative tick, this is assuming all tempo changes happen on positive ticks
-			return TimelineTick(static_cast<int32_t>(time / firstTickDuration));
+			return TimelineTick(static_cast<i32>(time / firstTickDuration));
 		}
 		else if (time >= lastTime) // NOTE: Tick is outside the defined tempo map
 		{
@@ -71,7 +71,7 @@ namespace Comfy::Editor
 			// NOTE: So we just have to divide the remaining ticks by the duration
 			const double ticks = timePastLast / lastTickDuration;
 			// NOTE: And add it to the last tick
-			return TimelineTick(static_cast<int32_t>(tickTimeCount + ticks));
+			return TimelineTick(static_cast<i32>(tickTimeCount + ticks));
 		}
 		else // NOTE: Perform a binary search
 		{

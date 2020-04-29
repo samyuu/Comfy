@@ -21,7 +21,7 @@ namespace Comfy::Editor
 
 	void TargetList::Add(TimelineTick tick, TargetType type)
 	{
-		int64_t insertionIndex;
+		i64 insertionIndex;
 		for (insertionIndex = 0; insertionIndex < Count(); insertionIndex++)
 		{
 			if (collection[insertionIndex].Tick >= tick)
@@ -32,7 +32,7 @@ namespace Comfy::Editor
 		SetTargetSyncFlagsAround(insertionIndex);
 	}
 
-	void TargetList::Remove(int64_t index)
+	void TargetList::Remove(i64 index)
 	{
 		if (index < 0 || index >= Count())
 			return;
@@ -43,7 +43,7 @@ namespace Comfy::Editor
 
 	void TargetList::Remove(TimelineTick tick, TargetType type)
 	{
-		for (int64_t i = 0; i < Count(); i++)
+		for (i64 i = 0; i < Count(); i++)
 		{
 			const TimelineTarget& target = collection[i];
 
@@ -55,9 +55,9 @@ namespace Comfy::Editor
 		}
 	}
 
-	int64_t TargetList::FindIndex(TimelineTick tick, TargetType type)
+	i64 TargetList::FindIndex(TimelineTick tick, TargetType type)
 	{
-		for (int64_t i = 0; i < Count(); i++)
+		for (i64 i = 0; i < Count(); i++)
 		{
 			const TimelineTarget& target = collection[i];
 
@@ -68,17 +68,17 @@ namespace Comfy::Editor
 		return -1;
 	}
 
-	inline int64_t TargetList::Count()
+	inline i64 TargetList::Count()
 	{
 		return collection.size();
 	}
 
-	void TargetList::SetTargetSyncFlagsAround(int64_t index)
+	void TargetList::SetTargetSyncFlagsAround(i64 index)
 	{
 		SetTargetSyncFlags(index - TargetType_Max, index + TargetType_Max);
 	}
 
-	void TargetList::SetTargetSyncFlags(int64_t start, int64_t end)
+	void TargetList::SetTargetSyncFlags(i64 start, i64 end)
 	{
 		if (start < 0)
 			start = 0;
@@ -86,7 +86,7 @@ namespace Comfy::Editor
 		if (end < 0 || end > Count())
 			end = Count();
 
-		for (int64_t i = start; i < end; i++)
+		for (i64 i = start; i < end; i++)
 		{
 			TimelineTarget* target = &collection[i];
 			TimelineTarget* nextTarget = (i + 1 < Count()) ? &collection[i + 1] : nullptr;

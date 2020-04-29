@@ -4,7 +4,7 @@ namespace Comfy::Graphics::D3D11
 {
 	namespace
 	{
-		UniquePtr<uint8_t[]> StageAndCopyD3DTexture2D(ID3D11Texture2D* sourceTexture, D3D11_TEXTURE2D_DESC textureDescription)
+		UniquePtr<u8[]> StageAndCopyD3DTexture2D(ID3D11Texture2D* sourceTexture, D3D11_TEXTURE2D_DESC textureDescription)
 		{
 			assert(sourceTexture != nullptr && textureDescription.Format == DXGI_FORMAT_R8G8B8A8_UNORM);
 
@@ -27,7 +27,7 @@ namespace Comfy::Graphics::D3D11
 			const size_t strideSize = textureDescription.Width + (bitsPerPixel - (textureDescription.Width % bitsPerPixel));
 			const size_t paddedDataSize = (strideSize * textureDescription.Height * bytesPerPixel);
 
-			auto data = MakeUnique<uint8_t[]>(paddedDataSize);
+			auto data = MakeUnique<u8[]>(paddedDataSize);
 
 			D3D11_MAPPED_SUBRESOURCE mappedResource;
 			if (FAILED(D3D.Context->Map(stagingTexture.Get(), 0, D3D11_MAP_READ, 0, &mappedResource)))
@@ -110,7 +110,7 @@ namespace Comfy::Graphics::D3D11
 	{
 	}
 
-	RenderTarget::RenderTarget(ivec2 size, DXGI_FORMAT format, uint32_t multiSampleCount)
+	RenderTarget::RenderTarget(ivec2 size, DXGI_FORMAT format, u32 multiSampleCount)
 	{
 		backBufferDescription.Width = size.x;
 		backBufferDescription.Height = size.y;
@@ -140,7 +140,7 @@ namespace Comfy::Graphics::D3D11
 		D3D.Device->CreateShaderResourceView(backBuffer.Get(), &shaderResourceViewDescription, &shaderResourceView);
 	}
 
-	void RenderTarget::BindResource(uint32_t textureSlot)
+	void RenderTarget::BindResource(u32 textureSlot)
 	{
 		std::array<ID3D11ShaderResourceView*, 1> resourceViews = { GetResourceView() };
 		D3D.Context->PSSetShaderResources(textureSlot, static_cast<UINT>(resourceViews.size()), resourceViews.data());
@@ -174,7 +174,7 @@ namespace Comfy::Graphics::D3D11
 		D3D.Device->CreateShaderResourceView(backBuffer.Get(), &shaderResourceViewDescription, &shaderResourceView);
 	}
 
-	uint32_t RenderTarget::GetMultiSampleCount() const
+	u32 RenderTarget::GetMultiSampleCount() const
 	{
 		return backBufferDescription.SampleDesc.Count;
 	}
@@ -194,7 +194,7 @@ namespace Comfy::Graphics::D3D11
 		return backBufferDescription;
 	}
 
-	UniquePtr<uint8_t[]> RenderTarget::StageAndCopyBackBuffer()
+	UniquePtr<u8[]> RenderTarget::StageAndCopyBackBuffer()
 	{
 		return StageAndCopyD3DTexture2D(backBuffer.Get(), backBufferDescription);
 	}
@@ -204,7 +204,7 @@ namespace Comfy::Graphics::D3D11
 	{
 	}
 
-	DepthRenderTarget::DepthRenderTarget(ivec2 size, DXGI_FORMAT format, DXGI_FORMAT depthBufferFormat, uint32_t multiSampleCount)
+	DepthRenderTarget::DepthRenderTarget(ivec2 size, DXGI_FORMAT format, DXGI_FORMAT depthBufferFormat, u32 multiSampleCount)
 		: RenderTarget(size, format, multiSampleCount), depthBuffer(size, depthBufferFormat, multiSampleCount)
 	{
 	}
@@ -233,7 +233,7 @@ namespace Comfy::Graphics::D3D11
 		depthBuffer.Resize(newSize);
 	}
 
-	void DepthRenderTarget::SetMultiSampleCount(uint32_t multiSampleCount)
+	void DepthRenderTarget::SetMultiSampleCount(u32 multiSampleCount)
 	{
 		backBufferDescription.SampleDesc.Count = multiSampleCount;
 		backBufferDescription.SampleDesc.Quality = 0;
@@ -252,7 +252,7 @@ namespace Comfy::Graphics::D3D11
 		depthBuffer.SetMultiSampleCount(multiSampleCount);
 	}
 
-	void DepthRenderTarget::SetMultiSampleCountIfDifferent(uint32_t multiSampleCount)
+	void DepthRenderTarget::SetMultiSampleCountIfDifferent(u32 multiSampleCount)
 	{
 		if (multiSampleCount != GetMultiSampleCount())
 			SetMultiSampleCount(multiSampleCount);
@@ -295,7 +295,7 @@ namespace Comfy::Graphics::D3D11
 		resourceViewDepthBuffer.Resize(newSize);
 	}
 
-	void DepthOnlyRenderTarget::BindResource(uint32_t textureSlot)
+	void DepthOnlyRenderTarget::BindResource(u32 textureSlot)
 	{
 		std::array<ID3D11ShaderResourceView*, 1> resourceViews = { GetResourceView() };
 		D3D.Context->PSSetShaderResources(textureSlot, static_cast<UINT>(resourceViews.size()), resourceViews.data());

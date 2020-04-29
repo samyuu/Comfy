@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "SampleProvider/MemorySampleProvider.h"
 #include "Core/TimeSpan.h"
 
@@ -11,7 +12,7 @@ namespace Comfy::Audio
 		~Waveform();
 
 		void Calculate(MemorySampleProvider* audioStream, TimeSpan timePerPixel);
-		float GetPcmForPixel(int64_t pixel) const;
+		float GetPcmForPixel(i64 pixel) const;
 		size_t GetPixelCount() const;
 
 	protected:

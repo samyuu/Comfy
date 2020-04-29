@@ -23,26 +23,26 @@ namespace Comfy::Graphics
 	{
 		mutable DebugData Debug;
 
-		uint32_t ReservedFlags;
+		u32 ReservedFlags;
 		Sphere BoundingSphere;
 		std::optional<Box> BoundingBox;
 
-		uint32_t MaterialIndex;
-		std::array<uint8_t, 8> UVIndices;
+		u32 MaterialIndex;
+		std::array<u8, 8> UVIndices;
 
-		std::vector<uint16_t> BoneIndices;
-		uint32_t BonesPerVertex;
+		std::vector<u16> BoneIndices;
+		u32 BonesPerVertex;
 
 		PrimitiveType Primitive;
 
 		// NOTE: IndexFormat IndexFormat; (Stored as part of the std::variant)
-		std::variant<std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>> Indices;
+		std::variant<std::vector<u8>, std::vector<u16>, std::vector<u32>> Indices;
 
 		struct SubMeshFlags
 		{
-			uint32_t ReceivesShadows : 1;
-			uint32_t CastsShadows : 1;
-			uint32_t Transparent : 1;
+			u32 ReceivesShadows : 1;
+			u32 CastsShadows : 1;
+			u32 Transparent : 1;
 		} Flags;
 
 		UniquePtr<GPU_IndexBuffer> GPU_IndexBuffer;
@@ -50,14 +50,14 @@ namespace Comfy::Graphics
 		// NOTE: IndexFormat wrapper around the Indices variant
 		IndexFormat GetIndexFormat() const;
 
-		std::vector<uint8_t>* GetIndicesU8();
-		const std::vector<uint8_t>* GetIndicesU8() const;
+		std::vector<u8>* GetIndicesU8();
+		const std::vector<u8>* GetIndicesU8() const;
 
-		std::vector<uint16_t>* GetIndicesU16();
-		const std::vector<uint16_t>* GetIndicesU16() const;
+		std::vector<u16>* GetIndicesU16();
+		const std::vector<u16>* GetIndicesU16() const;
 
-		std::vector<uint32_t>* GetIndicesU32();
-		const std::vector<uint32_t>* GetIndicesU32() const;
+		std::vector<u32>* GetIndicesU32();
+		const std::vector<u32>* GetIndicesU32() const;
 
 		// NOTE: Index count of the current valid index format
 		const size_t GetIndexCount() const;
@@ -72,26 +72,26 @@ namespace Comfy::Graphics
 	{
 		mutable DebugData Debug;
 
-		uint32_t ReservedFlags;
+		u32 ReservedFlags;
 		Sphere BoundingSphere;
 		std::vector<SubMesh> SubMeshes;
 		VertexAttributeFlags AttributeFlags;
 
 		struct MeshFlags
 		{
-			uint32_t Unknown0 : 1;
-			uint32_t FaceCameraPosition : 1;
-			uint32_t Unknown1 : 1;
-			uint32_t FaceCameraView : 1;
+			u32 Unknown0 : 1;
+			u32 FaceCameraPosition : 1;
+			u32 Unknown1 : 1;
+			u32 FaceCameraView : 1;
 		} Flags;
 
-		std::array<uint32_t, 7> ReservedData;
+		std::array<u32, 7> ReservedData;
 		std::array<char, 64> Name;
 
 		struct VertexData
 		{
-			uint32_t Stride;
-			uint32_t VertexCount;
+			u32 Stride;
+			u32 VertexCount;
 
 			std::vector<vec3> Positions;
 			std::vector<vec3> Normals;
@@ -106,7 +106,7 @@ namespace Comfy::Graphics
 		std::array<UniquePtr<GPU_VertexBuffer>, VertexAttribute_Count> GPU_VertexBuffers;
 	};
 
-	enum class MaterialTextureType : uint32_t
+	enum class MaterialTextureType : u32
 	{
 		None = 0,
 		ColorMap = 1,
@@ -135,7 +135,7 @@ namespace Comfy::Graphics
 		"Environment Map (Cube)",
 	};
 
-	enum class MaterialTextureUVIndex : uint32_t
+	enum class MaterialTextureUVIndex : u32
 	{
 		Index_0 = 0,
 		Index_1 = 1,
@@ -168,7 +168,7 @@ namespace Comfy::Graphics
 		"None",
 	};
 
-	enum class MaterialTextureUVTranslationType : uint32_t
+	enum class MaterialTextureUVTranslationType : u32
 	{
 		None = 0,
 		UV = 1,
@@ -189,22 +189,22 @@ namespace Comfy::Graphics
 	{
 		struct TextureSamplerFlags
 		{
-			uint32_t RepeatU : 1;
-			uint32_t RepeatV : 1;
-			uint32_t MirrorU : 1;
-			uint32_t MirrorV : 1;
+			u32 RepeatU : 1;
+			u32 RepeatV : 1;
+			u32 MirrorU : 1;
+			u32 MirrorV : 1;
 
-			uint32_t IgnoreAlpha : 1;
-			uint32_t Blend : 5;
-			uint32_t AlphaBlend : 5;
+			u32 IgnoreAlpha : 1;
+			u32 Blend : 5;
+			u32 AlphaBlend : 5;
 
-			uint32_t Border : 1;
-			uint32_t ClampToEdge : 1;
-			uint32_t Filter : 3;
+			u32 Border : 1;
+			u32 ClampToEdge : 1;
+			u32 Filter : 3;
 
-			uint32_t MipMap : 2;
-			uint32_t MipMapBias : 8;
-			uint32_t AnsiFilters : 2;
+			u32 MipMap : 2;
+			u32 MipMapBias : 8;
+			u32 AnsiFilters : 2;
 		} SamplerFlags;
 
 		Cached_TexID TextureID;
@@ -214,7 +214,7 @@ namespace Comfy::Graphics
 			MaterialTextureType Type : 4;
 			MaterialTextureUVIndex UVIndex : 4;
 			MaterialTextureUVTranslationType UVTranslationType : 3;
-			uint32_t Reserved : 21;
+			u32 Reserved : 21;
 		} TextureFlags;
 
 		std::array<char, 8> ExShader;
@@ -224,7 +224,7 @@ namespace Comfy::Graphics
 		std::array<float, 8> ReservedData;
 	};
 
-	enum class VertexTranslationType : uint32_t
+	enum class VertexTranslationType : u32
 	{
 		Default = 0,
 		Envelope = 1,
@@ -239,7 +239,7 @@ namespace Comfy::Graphics
 		"Morphing",
 	};
 
-	enum class ColorSourceType : uint32_t
+	enum class ColorSourceType : u32
 	{
 		MaterialColor = 0,
 		VertexColor = 1,
@@ -254,7 +254,7 @@ namespace Comfy::Graphics
 		"Vertex Morph",
 	};
 
-	enum class BumpMapType : uint32_t
+	enum class BumpMapType : u32
 	{
 		None = 0,
 		Dot = 1,
@@ -269,7 +269,7 @@ namespace Comfy::Graphics
 		"Env",
 	};
 
-	enum class SpecularQuality : uint32_t
+	enum class SpecularQuality : u32
 	{
 		Low = 0,
 		High = 1,
@@ -282,7 +282,7 @@ namespace Comfy::Graphics
 		"Hight",
 	};
 
-	enum class AnisoDirection : uint32_t
+	enum class AnisoDirection : u32
 	{
 		Normal = 0,
 		U = 1,
@@ -299,7 +299,7 @@ namespace Comfy::Graphics
 		"Radial",
 	};
 
-	enum class BlendFactor : uint32_t
+	enum class BlendFactor : u32
 	{
 		Zero = 0,
 		One = 1,
@@ -353,26 +353,26 @@ namespace Comfy::Graphics
 
 		mutable DebugData Debug;
 
-		uint32_t UsedTexturesCount;
+		u32 UsedTexturesCount;
 		struct MaterialUsedTextureFlags
 		{
-			uint32_t Color : 1;
-			uint32_t ColorA : 1;
-			uint32_t ColorL1 : 1;
-			uint32_t ColorL1A : 1;
-			uint32_t ColorL2 : 1;
-			uint32_t ColorL2A : 1;
-			uint32_t Transparency : 1;
-			uint32_t Specular : 1;
-			uint32_t Normal : 1;
-			uint32_t NormalAlt : 1;
-			uint32_t Environment : 1;
-			uint32_t ColorL3 : 1;
-			uint32_t ColorL3A : 1;
-			uint32_t Translucency : 1;
-			uint32_t Unknown0 : 1;
-			uint32_t OverrideIBLCubeMap : 1;
-			uint32_t Reserved : 16;
+			u32 Color : 1;
+			u32 ColorA : 1;
+			u32 ColorL1 : 1;
+			u32 ColorL1A : 1;
+			u32 ColorL2 : 1;
+			u32 ColorL2A : 1;
+			u32 Transparency : 1;
+			u32 Specular : 1;
+			u32 Normal : 1;
+			u32 NormalAlt : 1;
+			u32 Environment : 1;
+			u32 ColorL3 : 1;
+			u32 ColorL3A : 1;
+			u32 Translucency : 1;
+			u32 Unknown0 : 1;
+			u32 OverrideIBLCubeMap : 1;
+			u32 Reserved : 16;
 		} UsedTexturesFlags;
 
 		ShaderTypeIdentifier ShaderType;
@@ -381,45 +381,45 @@ namespace Comfy::Graphics
 			VertexTranslationType VertexTranslationType : 2;
 			ColorSourceType ColorSourceType : 2;
 
-			uint32_t LambertShading : 1;
-			uint32_t PhongShading : 1;
-			uint32_t PerPixelShading : 1;
-			uint32_t DoubleShading : 1;
+			u32 LambertShading : 1;
+			u32 PhongShading : 1;
+			u32 PerPixelShading : 1;
+			u32 DoubleShading : 1;
 
 			BumpMapType BumpMapType : 2;
-			uint32_t Fresnel : 4;
-			uint32_t LineLight : 4;
+			u32 Fresnel : 4;
+			u32 LineLight : 4;
 
-			uint32_t ReceivesShadows : 1;
-			uint32_t CastsShadows : 1;
+			u32 ReceivesShadows : 1;
+			u32 CastsShadows : 1;
 
 			SpecularQuality SpecularQuality : 1;
 			AnisoDirection AnisoDirection : 3;
 
-			uint32_t Reserved : 8;
+			u32 Reserved : 8;
 		} ShaderFlags;
 
 		std::array<MaterialTextureData, 8> Textures;
 
 		struct MaterialBlendFlags
 		{
-			uint32_t AlphaTexture : 1;
-			uint32_t AlphaMaterial : 1;
-			uint32_t PunchThrough : 1;
+			u32 AlphaTexture : 1;
+			u32 AlphaMaterial : 1;
+			u32 PunchThrough : 1;
 
-			uint32_t DoubleSided : 1;
-			uint32_t NormalDirectionLight : 1;
+			u32 DoubleSided : 1;
+			u32 NormalDirectionLight : 1;
 
 			BlendFactor SrcBlendFactor : 4;
 			BlendFactor DstBlendFactor : 4;
-			uint32_t BlendOperation : 3;
+			u32 BlendOperation : 3;
 
-			uint32_t ZBias : 4;
-			uint32_t NoFog : 1;
+			u32 ZBias : 4;
+			u32 NoFog : 1;
 
-			uint32_t Unknown0 : 7;
-			uint32_t Unknown1 : 1;
-			uint32_t Reserved : 3;
+			u32 Unknown0 : 7;
+			u32 Unknown1 : 1;
+			u32 Reserved : 3;
 		} BlendFlags;
 
 		struct MaterialColor
@@ -465,8 +465,8 @@ namespace Comfy::Graphics
 		std::string Name;
 		ObjID ID;
 
-		uint32_t Version;
-		uint32_t ReservedFlags;
+		u32 Version;
+		u32 ReservedFlags;
 		Sphere BoundingSphere;
 		std::vector<Mesh> Meshes;
 		std::vector<Material> Materials;

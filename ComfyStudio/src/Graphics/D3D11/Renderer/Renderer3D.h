@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "../Direct3D.h"
 #include "../Buffer/ConstantBuffer.h"
 #include "../Buffer/IndexBuffer.h"
@@ -100,7 +101,7 @@ namespace Comfy::Graphics::D3D11
 			std::vector<SubMeshRenderCommand> Transparent;
 		};
 
-		using RenderFlags = uint32_t;
+		using RenderFlags = u32;
 		enum RenderFlagsEnum : RenderFlags
 		{
 			RenderFlags_None = 0,
@@ -150,14 +151,14 @@ namespace Comfy::Graphics::D3D11
 		void BindMeshVertexBuffers(const Mesh& primaryMesh, const Mesh* morphMesh);
 		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, RenderFlags flags = RenderFlags_None);
 
-		uint32_t MaterialTextureTypeToTextureSlot(MaterialTextureType textureType, bool secondColorMap);
-		uint32_t BindMaterialTextures(const ObjRenderCommand& command, const Material& material, RenderFlags flags);
-		bool GetIsTextureSlotUsed(Material::ShaderTypeIdentifier shaderType, Material::MaterialUsedTextureFlags usedTextureFlags, uint32_t textureSlot);
+		u32 MaterialTextureTypeToTextureSlot(MaterialTextureType textureType, bool secondColorMap);
+		u32 BindMaterialTextures(const ObjRenderCommand& command, const Material& material, RenderFlags flags);
+		bool GetIsTextureSlotUsed(Material::ShaderTypeIdentifier shaderType, Material::MaterialUsedTextureFlags usedTextureFlags, u32 textureSlot);
 		void SetSubMeshRasterizerState(const Material& material);
 		void SetObjectCBMaterialData(const Material& material, ObjectConstantData::MaterialData& outMaterialData) const;
 		void SetObjectCBTransforms(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, ObjectConstantData& outData) const;
 		vec4 GetObjectCBMorphWeight(const ObjRenderCommand& command) const;
-		uint32_t GetObjectCBShaderFlags(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, uint32_t boundMaterialTexturesFlags) const;
+		u32 GetObjectCBShaderFlags(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, u32 boundMaterialTexturesFlags) const;
 
 		ShaderPair& GetMaterialShader(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material);
 		ShaderPair& GetSSSMaterialShader(const Material& material);

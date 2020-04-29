@@ -41,6 +41,6 @@ namespace Comfy::IO
 	class IBufferParsable
 	{
 	public:
-		virtual void Parse(const uint8_t* buffer, size_t bufferSize) = 0;
+		virtual void Parse(const u8* buffer, size_t bufferSize) = 0;
 	};
 }

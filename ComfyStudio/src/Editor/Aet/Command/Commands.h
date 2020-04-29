@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "AetCommand.h"
 #include "Graphics/Auth2D/Aet/AetMgr.h"
 
@@ -84,7 +85,7 @@ namespace Comfy::Editor::Command
 	Define_PropertyCommand(AetChangeStartFrame, "Aet Start Frame Change", Graphics::Aet::Scene, frame_t, StartFrame);
 	Define_PropertyCommand(AetChangeEndFrame, "Aet End Frame Change", Graphics::Aet::Scene, frame_t, EndFrame);
 	Define_PropertyCommand(AetChangeFrameRate, "Aet Frame Rate Change", Graphics::Aet::Scene, frame_t, FrameRate);
-	Define_PropertyCommand(AetChangeBackgroundColor, "Aet Background Color Change", Graphics::Aet::Scene, uint32_t, BackgroundColor);
+	Define_PropertyCommand(AetChangeBackgroundColor, "Aet Background Color Change", Graphics::Aet::Scene, u32, BackgroundColor);
 
 	Define_AccessorCommand(CompositionChangeName, "Composition Name Change", Graphics::Aet::Composition, std::string, GetName, SetName);
 

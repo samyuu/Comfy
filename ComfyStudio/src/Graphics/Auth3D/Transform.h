@@ -4,15 +4,15 @@
 
 namespace Comfy::Graphics
 {
-	enum class VectorComponent : uint32_t { X, Y, Z };
+	enum class VectorComponent : u32 { X, Y, Z };
 
 	constexpr std::array<VectorComponent, vec3::length()> RotationModeComponentsOrder = { VectorComponent::Z, VectorComponent::Y, VectorComponent::X };
 
 	template <size_t Index>
-	constexpr uint32_t GetRotationModeIndex()
+	constexpr u32 GetRotationModeIndex()
 	{
 		static_assert(Index < RotationModeComponentsOrder.size());
-		return static_cast<uint32_t>(RotationModeComponentsOrder[Index]);
+		return static_cast<u32>(RotationModeComponentsOrder[Index]);
 	}
 
 	struct Transform

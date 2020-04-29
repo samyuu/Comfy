@@ -23,7 +23,7 @@ namespace Comfy::Editor
 		static constexpr float keyFrameSize = 5.5f;
 
 		static constexpr ivec2 keyFrameTextureSize = ivec2(22, 22);
-		static const uint32_t keyFrameTexturePixels[keyFrameTextureSize.x * keyFrameTextureSize.y];
+		static const u32 keyFrameTexturePixels[keyFrameTextureSize.x * keyFrameTextureSize.y];
 
 		UniquePtr<Graphics::GPU_Texture2D> keyFrameTexture = nullptr;
 
