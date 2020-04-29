@@ -1,8 +1,8 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
-#include "Stream/IStream.h"
-#include "BinaryMode.h"
+#include "IO/BinaryMode.h"
+#include "IO/Stream/IStream.h"
 #include <list>
 #include <map>
 #include <functional>

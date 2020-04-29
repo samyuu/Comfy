@@ -1,8 +1,8 @@
 #include "FileInterface.h"
 #include "Stream/MemoryStream.h"
 #include "Stream/FileStream.h"
-#include "StreamReader.h"
-#include "StreamWriter.h"
+#include "Stream/Manipulator/StreamReader.h"
+#include "Stream/Manipulator/StreamWriter.h"
 #include "Misc/StringHelper.h"
 
 namespace Comfy::IO

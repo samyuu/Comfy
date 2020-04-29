@@ -23,8 +23,8 @@
     <ClInclude Include="src\IO\Crypto\Crypto.h" />
     <ClInclude Include="src\IO\Crypto\Detail\Win32Crypto.h" />
     <ClInclude Include="src\IO\BinaryMode.h" />
-    <ClInclude Include="src\IO\StreamReader.h" />
-    <ClInclude Include="src\IO\StreamWriter.h" />
+    <ClInclude Include="src\IO\Stream\Manipulator\StreamReader.h" />
+    <ClInclude Include="src\IO\Stream\Manipulator\StreamWriter.h" />
     <ClInclude Include="src\IO\FileHelper.h" />
     <ClInclude Include="src\IO\FileHelperInternal.h" />
     <ClInclude Include="src\IO\FileInterface.h" />
@@ -49,8 +49,8 @@
     <ClCompile Include="src\IO\Archive\FArc.cpp" />
     <ClCompile Include="src\IO\Crypto\Crypto.cpp" />
     <ClCompile Include="src\IO\Crypto\Detail\Win32Crypto.cpp" />
-    <ClCompile Include="src\IO\StreamReader.cpp" />
-    <ClCompile Include="src\IO\StreamWriter.cpp" />
+    <ClCompile Include="src\IO\Stream\Manipulator\StreamReader.cpp" />
+    <ClCompile Include="src\IO\Stream\Manipulator\StreamWriter.cpp" />
     <ClCompile Include="src\IO\FileHelper.cpp" />
     <ClCompile Include="src\IO\FileInterface.cpp" />
     <ClCompile Include="src\IO\FileLoader.cpp" />

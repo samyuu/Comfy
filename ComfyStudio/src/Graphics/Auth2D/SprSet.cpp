@@ -1,6 +1,6 @@
 #include "SprSet.h"
-#include "IO/StreamReader.h"
-#include "IO/StreamWriter.h"
+#include "IO/Stream/Manipulator/StreamReader.h"
+#include "IO/Stream/Manipulator/StreamWriter.h"
 
 using namespace Comfy::IO;
 

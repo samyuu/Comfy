@@ -1,6 +1,6 @@
 #include "FileLoader.h"
 #include "FileHelper.h"
-#include "StreamReader.h"
+#include "Stream/Manipulator/StreamReader.h"
 #include "Stream/MemoryStream.h"
 #include "Misc/StringHelper.h"
 #include "Core/Logger.h"

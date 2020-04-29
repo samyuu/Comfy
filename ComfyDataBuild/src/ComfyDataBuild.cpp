@@ -1,7 +1,7 @@
 #include "IO/FileHelper.h"
 #include "IO/Archive/ComfyArchive.h"
 #include "IO/Stream/FileStream.h"
-#include "IO/StreamWriter.h"
+#include "IO/Stream/Manipulator/StreamWriter.h"
 #include "Core/Logger.h"
 #include "Misc/StringHelper.h"
 #include <filesystem>

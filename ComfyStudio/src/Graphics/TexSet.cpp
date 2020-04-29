@@ -2,8 +2,8 @@
 #include "Auth2D/SprSet.h"
 #include "Auth3D/ObjSet.h"
 #include "IO/FileInterface.h"
-#include "IO/StreamReader.h"
-#include "IO/StreamWriter.h"
+#include "IO/Stream/Manipulator/StreamReader.h"
+#include "IO/Stream/Manipulator/StreamWriter.h"
 #include "IO/FileReader.h"
 
 using namespace Comfy::IO;

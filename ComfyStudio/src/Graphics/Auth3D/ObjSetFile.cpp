@@ -1,5 +1,5 @@
 #include "ObjSet.h"
-#include "IO/StreamReader.h"
+#include "IO/Stream/Manipulator/StreamReader.h"
 
 using namespace Comfy::IO;
 
