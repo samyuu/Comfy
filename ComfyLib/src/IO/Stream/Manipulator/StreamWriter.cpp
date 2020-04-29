@@ -141,11 +141,13 @@ namespace Comfy::IO
 		switch (pointerMode)
 		{
 		case PtrMode::Mode32Bit:
-			writePtrFunc = &WritePtr32;
+			writePtrFunc = &StreamWriter::WritePtr_32;
+			writeSizeFunc = &StreamWriter::WriteSize_32;
 			return;
 
 		case PtrMode::Mode64Bit:
-			writePtrFunc = &WritePtr64;
+			writePtrFunc = &StreamWriter::WritePtr_64;
+			writeSizeFunc = &StreamWriter::WriteSize_64;
 			return;
 
 		default:
@@ -156,6 +158,33 @@ namespace Comfy::IO
 
 	void StreamWriter::OnEndiannessChanged()
 	{
-		// TODO:
+		switch (endianness)
+		{
+		case Endianness::Little:
+			writeI16Func = &StreamWriter::WriteI16_LE;
+			writeU16Func = &StreamWriter::WriteU16_LE;
+			writeI32Func = &StreamWriter::WriteI32_LE;
+			writeU32Func = &StreamWriter::WriteU32_LE;
+			writeI64Func = &StreamWriter::WriteI64_LE;
+			writeU64Func = &StreamWriter::WriteU64_LE;
+			writeF32Func = &StreamWriter::WriteF32_LE;
+			writeF64Func = &StreamWriter::WriteF64_LE;
+			return;
+
+		case Endianness::Big:
+			writeI16Func = &StreamWriter::WriteI16_BE;
+			writeU16Func = &StreamWriter::WriteU16_BE;
+			writeI32Func = &StreamWriter::WriteI32_BE;
+			writeU32Func = &StreamWriter::WriteU32_BE;
+			writeI64Func = &StreamWriter::WriteI64_BE;
+			writeU64Func = &StreamWriter::WriteU64_BE;
+			writeF32Func = &StreamWriter::WriteF32_BE;
+			writeF64Func = &StreamWriter::WriteF64_BE;
+			return;
+
+		default:
+			assert(false);
+			return;
+		}
 	}
 }

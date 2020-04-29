@@ -3,6 +3,7 @@
 #include "CoreTypes.h"
 #include "IO/BinaryMode.h"
 #include "IO/Stream/IStream.h"
+#include "Misc/EndianHelper.h"
 
 namespace Comfy::IO
 {

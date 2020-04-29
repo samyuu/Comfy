@@ -29,9 +29,7 @@ namespace Comfy::IO
 		void WriteStr(std::string_view value);
 		void WriteStrPtr(std::string_view value, i32 alignment = 0);
 
-		inline void WritePtr(FileAddr value) { writePtrFunc(*this, value); }
-		inline void WritePtr(nullptr_t) = delete;
-
+		// TODO: Rename to WritePtrFunc / WriteFuncPtr (?)
 		void WritePtr(const std::function<void(StreamWriter&)>& func, FileAddr baseAddress = FileAddr::NullPtr);
 		void WriteDelayedPtr(const std::function<void(StreamWriter&)>& func);
 
@@ -42,28 +40,61 @@ namespace Comfy::IO
 		void FlushPointerPool();
 		void FlushDelayedWritePool();
 
-		inline void WriteBool(bool value) { return WriteType<bool>(value); }
-		inline void WriteChar(char value) { return WriteType<char>(value); }
-		inline void WriteI8(i8 value) { return WriteType<i8>(value); }
-		inline void WriteU8(u8 value) { return WriteType<u8>(value); }
-		inline void WriteI16(i16 value) { return WriteType<i16>(value); }
-		inline void WriteU16(u16 value) { return WriteType<u16>(value); }
-		inline void WriteI32(i32 value) { return WriteType<i32>(value); }
-		inline void WriteU32(u32 value) { return WriteType<u32>(value); }
-		inline void WriteI64(i64 value) { return WriteType<i64>(value); }
-		inline void WriteU64(u64 value) { return WriteType<u64>(value); }
-		inline void WriteF32(f32 value) { return WriteType<f32>(value); }
-		inline void WriteF64(f64 value) { return WriteType<f64>(value); }
+		inline void WritePtr(FileAddr value) { (this->*writePtrFunc)(value); }
+		inline void WriteSize(size_t value) { (this->*writeSizeFunc)(value); }
+		inline void WriteBool(bool value) { WriteType<bool>(value); }
+		inline void WriteChar(char value) { WriteType<char>(value); }
+		inline void WriteI8(i8 value) { WriteType<i8>(value); }
+		inline void WriteU8(u8 value) { WriteType<u8>(value); }
+		inline void WriteI16(i16 value) { (this->*writeI16Func)(value); }
+		inline void WriteU16(u16 value) { (this->*writeU16Func)(value); }
+		inline void WriteI32(i32 value) { (this->*writeI32Func)(value); }
+		inline void WriteU32(u32 value) { (this->*writeU32Func)(value); }
+		inline void WriteI64(i64 value) { (this->*writeI64Func)(value); }
+		inline void WriteU64(u64 value) { (this->*writeU64Func)(value); }
+		inline void WriteF32(f32 value) { (this->*writeF32Func)(value); }
+		inline void WriteF64(f64 value) { (this->*writeF64Func)(value); }
+
+	public:
+		inline void WritePtr_32(FileAddr value) { WriteI32(static_cast<i32>(value)); }
+		inline void WritePtr_64(FileAddr value) { WriteI64(static_cast<i64>(value)); }
+
+		inline void WriteSize_32(size_t value) { WriteU32(static_cast<u32>(value)); }
+		inline void WriteSize_64(size_t value) { WriteU64(static_cast<u64>(value)); }
+
+		inline void WriteI16_LE(i16 value) { WriteI16(value); }
+		inline void WriteU16_LE(u16 value) { WriteU16(value); }
+		inline void WriteI32_LE(i32 value) { WriteI32(value); }
+		inline void WriteU32_LE(u32 value) { WriteU32(value); }
+		inline void WriteI64_LE(i64 value) { WriteI64(value); }
+		inline void WriteU64_LE(u64 value) { WriteU64(value); }
+		inline void WriteF32_LE(f32 value) { WriteF32(value); }
+		inline void WriteF64_LE(f64 value) { WriteF64(value); }
+
+		inline void WriteI16_BE(i16 value) { WriteI16(Utilities::ByteSwapI16(value)); }
+		inline void WriteU16_BE(u16 value) { WriteU16(Utilities::ByteSwapU16(value)); }
+		inline void WriteI32_BE(i32 value) { WriteI32(Utilities::ByteSwapI32(value)); }
+		inline void WriteU32_BE(u32 value) { WriteU32(Utilities::ByteSwapU32(value)); }
+		inline void WriteI64_BE(i64 value) { WriteI64(Utilities::ByteSwapI64(value)); }
+		inline void WriteU64_BE(u64 value) { WriteU64(Utilities::ByteSwapU64(value)); }
+		inline void WriteF32_BE(f32 value) { WriteF32(Utilities::ByteSwapF32(value)); }
+		inline void WriteF64_BE(f64 value) { WriteF64(Utilities::ByteSwapF64(value)); }
 
 	protected:
 		void OnPointerModeChanged() override;
 		void OnEndiannessChanged() override;
 
 	private:
-		// TODO: LE/BE and Size-32/64
-		using WritePtrFunc = void(StreamWriter&, FileAddr);
-
-		WritePtrFunc* writePtrFunc = nullptr;
+		void(StreamWriter::*writePtrFunc)(FileAddr) = nullptr;
+		void(StreamWriter::*writeSizeFunc)(size_t) = nullptr;
+		void(StreamWriter::*writeI16Func)(i16) = nullptr;
+		void(StreamWriter::*writeU16Func)(u16) = nullptr;
+		void(StreamWriter::*writeI32Func)(i32) = nullptr;
+		void(StreamWriter::*writeU32Func)(u32) = nullptr;
+		void(StreamWriter::*writeI64Func)(i64) = nullptr;
+		void(StreamWriter::*writeU64Func)(u64) = nullptr;
+		void(StreamWriter::*writeF32Func)(f32) = nullptr;
+		void(StreamWriter::*writeF64Func)(f64) = nullptr;
 
 		struct Settings
 		{
@@ -97,9 +128,5 @@ namespace Comfy::IO
 
 		// NOTE: Using std::list to avoid invalidating previous entries while executing recursive pointer writes
 		std::list<FunctionPointerEntry> pointerPool;
-
-	private:
-		static void WritePtr32(StreamWriter& writer, FileAddr value) { writer.WriteI32(static_cast<i32>(value)); }
-		static void WritePtr64(StreamWriter& writer, FileAddr value) { writer.WriteI64(static_cast<i64>(value)); }
 	};
 }

@@ -2,7 +2,6 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "StreamManipulator.h"
-#include "Misc/EndianHelper.h"
 
 namespace Comfy::IO
 {
@@ -20,7 +19,7 @@ namespace Comfy::IO
 
 	public:
 		inline size_t ReadBuffer(void* buffer, size_t size) { return underlyingStream->ReadBuffer(buffer, size); }
-		
+
 		template <typename T>
 		T ReadType() { T value; ReadBuffer(&value, sizeof(value)); return value; }
 
