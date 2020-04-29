@@ -41,7 +41,7 @@ namespace Comfy::Graphics
 		Count
 	};
 
-	typedef u32 VertexAttribute;
+	using VertexAttribute = u32;
 
 	// NOTE: Bit index of each attribute
 	enum VertexAttribute_Enum : VertexAttribute
@@ -74,7 +74,7 @@ namespace Comfy::Graphics
 		VertexAttribute_Count,
 	};
 
-	typedef u32 VertexAttributeFlags;
+	using VertexAttributeFlags = u32;
 
 	// NOTE: Bit flag of each attribute
 	enum VertexAttributeFlags_Enum : VertexAttributeFlags

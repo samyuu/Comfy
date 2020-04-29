@@ -5,7 +5,7 @@
 
 namespace Comfy::Editor
 {
-	typedef i16 TargetType;
+	using TargetType = i16;
 	enum TargetType_Enum : TargetType
 	{
 		TargetType_Sankaku,
@@ -17,7 +17,7 @@ namespace Comfy::Editor
 		TargetType_Max,
 	};
 
-	typedef i16 TargetFlags;
+	using TargetFlags = i16;
 	enum TargetFlags_Enum : TargetFlags
 	{
 		// NOTE: Subject to change

@@ -12,7 +12,7 @@ namespace Comfy::Audio
 		static inline TSampleBase MixSamples(TSampleBase sampleA, TSampleBase sampleB)
 		{
 			const TSampleTemp result = static_cast<TSampleTemp>(sampleA) + static_cast<TSampleTemp>(sampleB);
-			typedef std::numeric_limits<TSampleBase> SampleTypeRange;
+			using SampleTypeRange = std::numeric_limits<TSampleBase>;
 
 			if (SampleTypeRange::max() < result)
 				return SampleTypeRange::max();

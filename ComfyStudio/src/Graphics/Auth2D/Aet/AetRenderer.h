@@ -7,10 +7,10 @@
 
 namespace Comfy::Graphics::Aet
 {
-	typedef std::function<bool(const VideoSource* source, const Tex** outTex, const Spr** outSpr)> SpriteGetterFunction;
+	using SpriteGetterFunction = std::function<bool(const VideoSource* source, const Tex** outTex, const Spr** outSpr)>;
 
-	typedef std::function<bool(const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)> AetObjCallbackFunction;
-	typedef std::function<bool(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)> AetObjMaskCallbackFunction;
+	using AetObjCallbackFunction = std::function<bool(const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)>;
+	using AetObjMaskCallbackFunction = std::function<bool(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)>;
 
 	class AetRenderer
 	{

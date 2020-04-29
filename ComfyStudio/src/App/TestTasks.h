@@ -77,7 +77,7 @@ namespace Comfy::App
 		MainMenuLoop,
 	};
 
-	typedef i32 MainMenuItem;
+	using MainMenuItem = i32;
 	enum MainMenuItem_Enum : MainMenuItem
 	{
 		MainMenuItem_Game,
