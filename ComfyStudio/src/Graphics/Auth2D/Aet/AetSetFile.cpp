@@ -121,7 +121,7 @@ namespace Comfy::Graphics::Aet
 			if (property->size() > 0)
 			{
 				writer.WriteU32(static_cast<u32>(property->size()));
-				writer.WritePtr([&property](StreamWriter& writer)
+				writer.WriteFuncPtr([&property](StreamWriter& writer)
 				{
 					if (property->size() == 1)
 					{
@@ -401,7 +401,7 @@ namespace Comfy::Graphics::Aet
 
 	void Scene::Write(StreamWriter& writer)
 	{
-		writer.WritePtr([this](StreamWriter& writer)
+		writer.WriteFuncPtr([this](StreamWriter& writer)
 		{
 			FileAddr sceneFilePosition = writer.GetPosition();
 			writer.WriteStrPtr(Name);
@@ -414,7 +414,7 @@ namespace Comfy::Graphics::Aet
 
 			if (this->Camera != nullptr)
 			{
-				writer.WritePtr([this](StreamWriter& writer)
+				writer.WriteFuncPtr([this](StreamWriter& writer)
 				{
 					WriteProperty3DPointer(Camera->Eye, writer);
 					WriteProperty3DPointer(Camera->Position, writer);
@@ -431,7 +431,7 @@ namespace Comfy::Graphics::Aet
 
 			assert(RootComposition != nullptr);
 			writer.WriteU32(static_cast<u32>(Compositions.size()) + 1);
-			writer.WritePtr([this](StreamWriter& writer)
+			writer.WriteFuncPtr([this](StreamWriter& writer)
 			{
 				const auto writeCompFunction = [](StreamWriter& writer, const RefPtr<Composition>& comp)
 				{
@@ -439,7 +439,7 @@ namespace Comfy::Graphics::Aet
 					if (comp->GetLayers().size() > 0)
 					{
 						writer.WriteU32(static_cast<u32>(comp->GetLayers().size()));
-						writer.WritePtr([&comp](StreamWriter& writer)
+						writer.WriteFuncPtr([&comp](StreamWriter& writer)
 						{
 							for (auto& layer : comp->GetLayers())
 							{
@@ -488,7 +488,7 @@ namespace Comfy::Graphics::Aet
 								if (layer->Markers.size() > 0)
 								{
 									writer.WriteU32(static_cast<u32>(layer->Markers.size()));
-									writer.WritePtr([&layer](StreamWriter& writer)
+									writer.WriteFuncPtr([&layer](StreamWriter& writer)
 									{
 										for (auto& marker : layer->Markers)
 										{
@@ -506,7 +506,7 @@ namespace Comfy::Graphics::Aet
 								if (layer->LayerVideo != nullptr)
 								{
 									LayerVideo& layerVideo = *layer->LayerVideo;
-									writer.WritePtr([&layerVideo](StreamWriter& writer)
+									writer.WriteFuncPtr([&layerVideo](StreamWriter& writer)
 									{
 										writer.WriteU8(static_cast<u8>(layerVideo.TransferMode.BlendMode));
 										WriteFlagsStruct<TransferFlags>(layerVideo.TransferMode.Flags, writer);
@@ -517,7 +517,7 @@ namespace Comfy::Graphics::Aet
 
 										if (layerVideo.Transform3D != nullptr)
 										{
-											writer.WritePtr([&layerVideo](StreamWriter& writer)
+											writer.WriteFuncPtr([&layerVideo](StreamWriter& writer)
 											{
 												WriteTransform(*layerVideo.Transform3D, writer);
 												writer.WriteAlignmentPadding(16);
@@ -560,7 +560,7 @@ namespace Comfy::Graphics::Aet
 			if (Videos.size() > 0)
 			{
 				writer.WriteU32(static_cast<u32>(Videos.size()));
-				writer.WritePtr([this](StreamWriter& writer)
+				writer.WriteFuncPtr([this](StreamWriter& writer)
 				{
 					for (auto& video : Videos)
 					{
@@ -572,7 +572,7 @@ namespace Comfy::Graphics::Aet
 						if (!video->Sources.empty())
 						{
 							writer.WriteU32(static_cast<u32>(video->Sources.size()));
-							writer.WritePtr([&video](StreamWriter& writer)
+							writer.WriteFuncPtr([&video](StreamWriter& writer)
 							{
 								for (auto& source : video->Sources)
 								{
@@ -599,7 +599,7 @@ namespace Comfy::Graphics::Aet
 			if (Audios.size() > 0)
 			{
 				writer.WriteU32(static_cast<u32>(Audios.size()));
-				writer.WritePtr([this](StreamWriter& writer)
+				writer.WriteFuncPtr([this](StreamWriter& writer)
 				{
 					for (auto& audio : Audios)
 					{

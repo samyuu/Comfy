@@ -64,7 +64,7 @@ namespace Comfy::Database
 	void AetDB::Write(StreamWriter& writer)
 	{
 		writer.WriteU32(static_cast<u32>(Entries.size()));
-		writer.WritePtr([&](StreamWriter& writer)
+		writer.WriteFuncPtr([&](StreamWriter& writer)
 		{
 			u32 setIndex = 0;
 			for (const auto& setEntry : Entries)
@@ -82,7 +82,7 @@ namespace Comfy::Database
 			sceneCount += setEntry.SceneEntries.size();
 
 		writer.WriteU32(static_cast<u32>(sceneCount));
-		writer.WritePtr([&](StreamWriter& writer)
+		writer.WriteFuncPtr([&](StreamWriter& writer)
 		{
 			u16 setIndex = 0;
 			for (const auto& setEntry : Entries)

@@ -20,7 +20,7 @@ namespace Comfy::Graphics
 		writer.WriteU32((TexSet != nullptr) ? static_cast<u32>(TexSet->Textures.size()) : 0);
 
 		writer.WriteU32(static_cast<u32>(Sprites.size()));
-		writer.WritePtr([&](StreamWriter& writer)
+		writer.WriteFuncPtr([&](StreamWriter& writer)
 		{
 			for (const auto& sprite : Sprites)
 			{
@@ -37,7 +37,7 @@ namespace Comfy::Graphics
 			}
 		});
 
-		writer.WritePtr([&](StreamWriter& writer)
+		writer.WriteFuncPtr([&](StreamWriter& writer)
 		{
 			if (this->TexSet == nullptr)
 				return;
@@ -51,13 +51,13 @@ namespace Comfy::Graphics
 			}
 		});
 
-		writer.WritePtr([&](StreamWriter& writer)
+		writer.WriteFuncPtr([&](StreamWriter& writer)
 		{
 			for (const auto& sprite : Sprites)
 				writer.WriteStrPtr(sprite.Name);
 		});
 
-		writer.WritePtr([&](StreamWriter& writer)
+		writer.WriteFuncPtr([&](StreamWriter& writer)
 		{
 			for (const auto& sprite : Sprites)
 			{

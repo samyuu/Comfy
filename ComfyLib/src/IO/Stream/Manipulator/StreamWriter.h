@@ -23,30 +23,28 @@ namespace Comfy::IO
 	public:
 		inline size_t WriteBuffer(const void* buffer, size_t size) { return underlyingStream->WriteBuffer(buffer, size); }
 
-		// TODO: Rename to WriteType_Native (?)
-		template <typename T>
-		void WriteType(T value) { WriteBuffer(&value, sizeof(T)); }
-
+	public:
 		void WriteStr(std::string_view value);
 		void WriteStrPtr(std::string_view value, i32 alignment = 0);
 
-		// TODO: Rename to WritePtrFunc / WriteFuncPtr (?)
-		void WritePtr(const std::function<void(StreamWriter&)>& func, FileAddr baseAddress = FileAddr::NullPtr);
+		void WriteFuncPtr(const std::function<void(StreamWriter&)>& func, FileAddr baseAddress = FileAddr::NullPtr);
 		void WriteDelayedPtr(const std::function<void(StreamWriter&)>& func);
 
 		void WritePadding(size_t size, u32 paddingValue = PaddingValue);
 		void WriteAlignmentPadding(i32 alignment, u32 paddingValue = PaddingValue);
 
+	public:
 		void FlushStringPointerPool();
 		void FlushPointerPool();
 		void FlushDelayedWritePool();
 
+	public:
 		inline void WritePtr(FileAddr value) { (this->*writePtrFunc)(value); }
 		inline void WriteSize(size_t value) { (this->*writeSizeFunc)(value); }
-		inline void WriteBool(bool value) { WriteType<bool>(value); }
-		inline void WriteChar(char value) { WriteType<char>(value); }
-		inline void WriteI8(i8 value) { WriteType<i8>(value); }
-		inline void WriteU8(u8 value) { WriteType<u8>(value); }
+		inline void WriteBool(bool value) { WriteType_Native<bool>(value); }
+		inline void WriteChar(char value) { WriteType_Native<char>(value); }
+		inline void WriteI8(i8 value) { WriteType_Native<i8>(value); }
+		inline void WriteU8(u8 value) { WriteType_Native<u8>(value); }
 		inline void WriteI16(i16 value) { (this->*writeI16Func)(value); }
 		inline void WriteU16(u16 value) { (this->*writeU16Func)(value); }
 		inline void WriteI32(i32 value) { (this->*writeI32Func)(value); }
@@ -57,20 +55,23 @@ namespace Comfy::IO
 		inline void WriteF64(f64 value) { (this->*writeF64Func)(value); }
 
 	public:
+		template <typename T>
+		void WriteType_Native(T value) { WriteBuffer(&value, sizeof(T)); }
+
 		inline void WritePtr_32(FileAddr value) { WriteI32(static_cast<i32>(value)); }
 		inline void WritePtr_64(FileAddr value) { WriteI64(static_cast<i64>(value)); }
 
 		inline void WriteSize_32(size_t value) { WriteU32(static_cast<u32>(value)); }
 		inline void WriteSize_64(size_t value) { WriteU64(static_cast<u64>(value)); }
 
-		inline void WriteI16_LE(i16 value) { WriteType<i16>(value); }
-		inline void WriteU16_LE(u16 value) { WriteType<u16>(value); }
-		inline void WriteI32_LE(i32 value) { WriteType<i32>(value); }
-		inline void WriteU32_LE(u32 value) { WriteType<u32>(value); }
-		inline void WriteI64_LE(i64 value) { WriteType<i64>(value); }
-		inline void WriteU64_LE(u64 value) { WriteType<u64>(value); }
-		inline void WriteF32_LE(f32 value) { WriteType<f32>(value); }
-		inline void WriteF64_LE(f64 value) { WriteType<f64>(value); }
+		inline void WriteI16_LE(i16 value) { WriteType_Native<i16>(value); }
+		inline void WriteU16_LE(u16 value) { WriteType_Native<u16>(value); }
+		inline void WriteI32_LE(i32 value) { WriteType_Native<i32>(value); }
+		inline void WriteU32_LE(u32 value) { WriteType_Native<u32>(value); }
+		inline void WriteI64_LE(i64 value) { WriteType_Native<i64>(value); }
+		inline void WriteU64_LE(u64 value) { WriteType_Native<u64>(value); }
+		inline void WriteF32_LE(f32 value) { WriteType_Native<f32>(value); }
+		inline void WriteF64_LE(f64 value) { WriteType_Native<f64>(value); }
 
 		inline void WriteI16_BE(i16 value) { WriteI16_LE(Utilities::ByteSwapI16(value)); }
 		inline void WriteU16_BE(u16 value) { WriteU16_LE(Utilities::ByteSwapU16(value)); }

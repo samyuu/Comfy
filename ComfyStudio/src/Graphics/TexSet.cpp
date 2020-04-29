@@ -53,7 +53,7 @@ namespace Comfy::Graphics
 
 		for (const auto& texture : Textures)
 		{
-			writer.WritePtr([&](StreamWriter& writer)
+			writer.WriteFuncPtr([&](StreamWriter& writer)
 			{
 				const FileAddr texBaseAddress = writer.GetPosition();
 				const u8 arraySize = static_cast<u8>(texture->MipMapsArray.size());
@@ -70,7 +70,7 @@ namespace Comfy::Graphics
 				{
 					for (u8 mipIndex = 0; mipIndex < mipLevels; mipIndex++)
 					{
-						writer.WritePtr([arrayIndex, mipIndex, &texture](StreamWriter& writer)
+						writer.WriteFuncPtr([arrayIndex, mipIndex, &texture](StreamWriter& writer)
 						{
 							const auto& mipMap = texture->MipMapsArray[arrayIndex][mipIndex];
 							writer.WriteU32(static_cast<u32>(TxpSig::MipMap));

@@ -91,7 +91,7 @@ namespace Comfy::Database
 		writer.WritePtr(FileAddr::NullPtr);
 
 		writer.SetPosition(startPosition + FileAddr(0xC));
-		writer.WritePtr([this](StreamWriter& writer)
+		writer.WriteFuncPtr([this](StreamWriter& writer)
 		{
 			i16 sprSetIndex = 0;
 			for (auto& sprSetEntry : Entries)
@@ -122,7 +122,7 @@ namespace Comfy::Database
 		});
 
 		writer.SetPosition(startPosition + FileAddr(0x4));
-		writer.WritePtr([this](StreamWriter& writer)
+		writer.WriteFuncPtr([this](StreamWriter& writer)
 		{
 			i32 index = 0;
 			for (auto& sprSetEntry : Entries)

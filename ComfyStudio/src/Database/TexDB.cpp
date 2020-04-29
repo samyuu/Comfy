@@ -28,7 +28,7 @@ namespace Comfy::Database
 	void TexDB::Write(StreamWriter& writer)
 	{
 		writer.WriteU32(static_cast<u32>(Entries.size()));
-		writer.WritePtr([this](StreamWriter& writer)
+		writer.WriteFuncPtr([this](StreamWriter& writer)
 		{
 			for (auto& texEntry : Entries)
 			{

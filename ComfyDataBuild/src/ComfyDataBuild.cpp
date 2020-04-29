@@ -266,7 +266,7 @@ namespace
 		}
 		else
 		{
-			writer.WritePtr([&](StreamWriter& writer)
+			writer.WriteFuncPtr([&](StreamWriter& writer)
 			{
 				for (auto& entry : RootDirectory.Build_Entries)
 					WriteFileEntries(writer, entry);
@@ -282,7 +282,7 @@ namespace
 		}
 		else
 		{
-			writer.WritePtr([&](StreamWriter& writer)
+			writer.WriteFuncPtr([&](StreamWriter& writer)
 			{
 				for (auto& entry : RootDirectory.Build_Directories)
 					WriteDirectoryEntry(writer, entry);

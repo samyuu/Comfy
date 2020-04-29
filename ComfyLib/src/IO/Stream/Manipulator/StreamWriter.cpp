@@ -16,7 +16,7 @@ namespace Comfy::IO
 		WritePtr(FileAddr::NullPtr);
 	}
 
-	void StreamWriter::WritePtr(const std::function<void(StreamWriter&)>& func, FileAddr baseAddress)
+	void StreamWriter::WriteFuncPtr(const std::function<void(StreamWriter&)>& func, FileAddr baseAddress)
 	{
 		pointerPool.push_back({ GetPosition(), baseAddress, func });
 		WritePtr(FileAddr::NullPtr);
