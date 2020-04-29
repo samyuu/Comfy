@@ -13,10 +13,16 @@
   <ItemGroup>
     <ClInclude Include="src\CoreTypes.h" />
     <ClInclude Include="src\Core\Algorithm.h" />
+    <ClInclude Include="src\Core\DebugStopwatch.h" />
     <ClInclude Include="src\Core\Logger.h" />
     <ClInclude Include="src\Core\NonCopyable.h" />
     <ClInclude Include="src\Core\SmartPointers.h" />
+    <ClInclude Include="src\Core\TimeSpan.h" />
     <ClInclude Include="src\Core\Win32\ComfyWindows.h" />
+    <ClInclude Include="src\Database\AetDB.h" />
+    <ClInclude Include="src\Database\Database.h" />
+    <ClInclude Include="src\Database\SprDB.h" />
+    <ClInclude Include="src\Database\TexDB.h" />
     <ClInclude Include="src\FileAddr.h" />
     <ClInclude Include="src\IO\Archive\ComfyArchive.h" />
     <ClInclude Include="src\IO\Archive\FArc.h" />
@@ -42,10 +48,18 @@
     <ClInclude Include="src\Misc\StringParseHelper.h" />
     <ClInclude Include="src\Misc\TextDatabaseParser.h" />
     <ClInclude Include="src\Misc\UTF8.h" />
+    <ClInclude Include="src\Resource\Detail\IDTypeDeclarations.h" />
+    <ClInclude Include="src\Resource\IDHash.h" />
+    <ClInclude Include="src\Resource\IDTypes.h" />
+    <ClInclude Include="src\Resource\ResourceIDMap.h" />
     <ClInclude Include="src\Types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp" />
+    <ClCompile Include="src\Core\TimeSpan.cpp" />
+    <ClCompile Include="src\Database\AetDB.cpp" />
+    <ClCompile Include="src\Database\SprDB.cpp" />
+    <ClCompile Include="src\Database\TexDB.cpp" />
     <ClCompile Include="src\IO\Archive\ComfyArchive.cpp" />
     <ClCompile Include="src\IO\Archive\FArc.cpp" />
     <ClCompile Include="src\IO\Crypto\Crypto.cpp" />

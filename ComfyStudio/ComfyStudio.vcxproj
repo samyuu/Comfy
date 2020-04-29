@@ -160,9 +160,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Editor\PV\MaterialEditor.cpp" />
-    <ClCompile Include="src\Database\AetDB.cpp" />
-    <ClCompile Include="src\Database\SprDB.cpp" />
-    <ClCompile Include="src\Database\TexDB.cpp" />
     <ClCompile Include="src\Editor\Common\CameraController3D.cpp" />
     <ClCompile Include="src\Editor\PV\CameraAxisIndication.cpp" />
     <ClCompile Include="src\Editor\PV\ExternalProcess.cpp" />
@@ -289,7 +286,6 @@
     <ClCompile Include="src\ImGui\Core\imgui_widgets.cpp" />
     <ClCompile Include="src\EntryPoint.cpp" />
     <ClCompile Include="src\Audio\Waveform.cpp" />
-    <ClCompile Include="src\Core\TimeSpan.cpp" />
     <ClCompile Include="src\System\Profiling\Profiler.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -311,13 +307,6 @@
     <ClInclude Include="src\Graphics\GPU\GPUResources.h" />
     <ClInclude Include="src\Graphics\Utilities\SpritePacker.h" />
     <ClInclude Include="src\ImGui\Extensions\PropertyEditor.h" />
-    <ClInclude Include="src\Resource\IDHash.h" />
-    <ClInclude Include="src\Resource\Detail\IDTypeDeclarations.h" />
-    <ClInclude Include="src\Resource\IDTypes.h" />
-    <ClInclude Include="src\Database\AetDB.h" />
-    <ClInclude Include="src\Database\Database.h" />
-    <ClInclude Include="src\Database\SprDB.h" />
-    <ClInclude Include="src\Database\TexDB.h" />
     <ClInclude Include="src\Editor\Common\CameraController3D.h" />
     <ClInclude Include="src\Editor\PV\CameraAxisIndication.h" />
     <ClInclude Include="src\Editor\PV\CharaTest.h" />
@@ -435,13 +424,11 @@
     <ClInclude Include="src\ImGui\GuiRenderer.h" />
     <ClInclude Include="src\ImGui\Implementation\ComfyD3D11.h" />
     <ClInclude Include="src\ImGui\Implementation\ComfyWin32.h" />
-    <ClInclude Include="src\Resource\ResourceIDMap.h" />
     <ClInclude Include="src\System\CommandLine\CommandLine.h" />
     <ClInclude Include="src\Audio\Core\Detail\SampleMixer.h" />
     <ClInclude Include="src\Audio\Decoder\AudioDecoderFactory.h" />
     <ClInclude Include="src\Audio\Decoder\Detail\Decoders.h" />
     <ClInclude Include="src\Audio\Decoder\IAudioDecoder.h" />
-    <ClInclude Include="src\Core\DebugStopwatch.h" />
     <ClInclude Include="src\ImGui\Gui.h" />
     <ClInclude Include="src\ImGui\Extensions\Theme.h" />
     <ClInclude Include="src\ImGui\Widgets\ComfyWidgets.h" />
@@ -486,7 +473,6 @@
     <ClInclude Include="src\ImGui\Core\imstb_rectpack.h" />
     <ClInclude Include="src\ImGui\Core\imstb_textedit.h" />
     <ClInclude Include="src\ImGui\Core\imstb_truetype.h" />
-    <ClInclude Include="src\Core\TimeSpan.h" />
     <ClInclude Include="src\Audio\Waveform.h" />
   </ItemGroup>
   <ItemGroup>

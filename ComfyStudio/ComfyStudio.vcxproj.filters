@@ -51,9 +51,6 @@
     <ClCompile Include="src\System\LibraryLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Core\TimeSpan.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Core\BaseWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -279,12 +276,6 @@
     <ClCompile Include="src\ImGui\ComfyTextureID.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Database\SprDB.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Database\AetDB.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Editor\PV\SceneEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -408,9 +399,6 @@
     <ClCompile Include="src\ImGui\Extensions\TexExtensions.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Database\TexDB.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\Utilities\SpritePacker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -464,16 +452,10 @@
     <ClInclude Include="src\System\LibraryLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Core\TimeSpan.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Core\BaseWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\Application.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\DebugStopwatch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\Widgets\ComfyWidgets.h">
@@ -764,15 +746,6 @@
     <ClInclude Include="src\ImGui\ComfyTextureID.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Database\Database.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Database\SprDB.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Database\AetDB.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\PV\SceneEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -816,18 +789,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\GraphicTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Resource\ResourceIDMap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Resource\IDHash.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Resource\IDTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Resource\Detail\IDTypeDeclarations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\PV\MaterialEditor.h">
@@ -966,9 +927,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\Extensions\TexExtensions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Database\TexDB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Utilities\SpritePacker.h">
