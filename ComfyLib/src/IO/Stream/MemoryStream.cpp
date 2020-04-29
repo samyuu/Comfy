@@ -65,7 +65,7 @@ namespace Comfy::IO
 	size_t MemoryStream::ReadBuffer(void* buffer, size_t size)
 	{
 		assert(canRead);
-		int64_t bytesRead = std::min(static_cast<int64_t>(size), static_cast<int64_t>(RemainingBytes()));
+		i64 bytesRead = std::min(static_cast<i64>(size), static_cast<i64>(RemainingBytes()));
 
 		void* source = &(*dataSource)[static_cast<size_t>(position)];
 		memcpy(buffer, source, bytesRead);

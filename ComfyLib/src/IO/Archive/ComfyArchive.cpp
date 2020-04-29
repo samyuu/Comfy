@@ -65,7 +65,7 @@ namespace Comfy::IO
 			return nullptr;
 
 		size_t lastSeparatorIndex = filePath.size();
-		for (int64_t i = static_cast<int64_t>(filePath.size()) - 1; i >= 0; i--)
+		for (i64 i = static_cast<i64>(filePath.size()) - 1; i >= 0; i--)
 		{
 			if (filePath[i] == DirectorySeparator)
 			{

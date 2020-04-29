@@ -102,7 +102,7 @@ namespace Comfy::IO
 		inline u16 ReadU16() { return readU16Func(*this); }
 		inline i32 ReadI32() { return readI32Func(*this); }
 		inline u32 ReadU32() { return readU32Func(*this); }
-		inline int64_t ReadI64() { return readI64Func(*this); }
+		inline i64 ReadI64() { return readI64Func(*this); }
 		inline u64 ReadU64() { return readU64Func(*this); }
 		inline float ReadF32() { return readF32Func(*this); }
 		inline double ReadF64() { return readF64Func(*this); }
@@ -123,7 +123,7 @@ namespace Comfy::IO
 		using ReadU16Func_t = u16(StreamReader&);
 		using ReadI32Func_t = i32(StreamReader&);
 		using ReadU32Func_t = u32(StreamReader&);
-		using ReadI64Func_t = int64_t(StreamReader&);
+		using ReadI64Func_t = i64(StreamReader&);
 		using ReadU64Func_t = u64(StreamReader&);
 		using ReadF32Func_t = float(StreamReader&);
 		using ReadF64Func_t = double(StreamReader&);
@@ -165,7 +165,7 @@ namespace Comfy::IO
 		static u16 LE_ReadU16(StreamReader& reader) { return reader.ReadType<u16>(); }
 		static i32 LE_ReadI32(StreamReader& reader) { return reader.ReadType<i32>(); }
 		static u32 LE_ReadU32(StreamReader& reader) { return reader.ReadType<u32>(); }
-		static int64_t LE_ReadI64(StreamReader& reader) { return reader.ReadType<int64_t>(); }
+		static i64 LE_ReadI64(StreamReader& reader) { return reader.ReadType<i64>(); }
 		static u64 LE_ReadU64(StreamReader& reader) { return reader.ReadType<u64>(); }
 		static float LE_ReadF32(StreamReader& reader) { return reader.ReadType<float>(); }
 		static double LE_ReadF64(StreamReader& reader) { return reader.ReadType<double>(); }
@@ -174,7 +174,7 @@ namespace Comfy::IO
 		static u16 BE_ReadU16(StreamReader& reader) { return Utilities::ByteSwapU16(reader.ReadType<u16>()); }
 		static i32 BE_ReadI32(StreamReader& reader) { return Utilities::ByteSwapI32(reader.ReadType<i32>()); }
 		static u32 BE_ReadU32(StreamReader& reader) { return Utilities::ByteSwapU32(reader.ReadType<u32>()); }
-		static int64_t BE_ReadI64(StreamReader& reader) { return Utilities::ByteSwapI64(reader.ReadType<int64_t>()); }
+		static i64 BE_ReadI64(StreamReader& reader) { return Utilities::ByteSwapI64(reader.ReadType<i64>()); }
 		static u64 BE_ReadU64(StreamReader& reader) { return Utilities::ByteSwapU64(reader.ReadType<u64>()); }
 		static float BE_ReadF32(StreamReader& reader) { return Utilities::ByteSwapF32(reader.ReadType<float>()); }
 		static double BE_ReadF64(StreamReader& reader) { return Utilities::ByteSwapF64(reader.ReadType<double>()); }

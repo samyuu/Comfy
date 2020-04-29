@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "CoreTypes.h"
 
 namespace Comfy::IO
@@ -13,7 +14,7 @@ namespace Comfy::IO
 		static bool ReadEntireFile(std::string_view filePath, std::vector<T>* buffer)
 		{
 			auto fileHandle = CreateFileHandle(filePath, true);
-			bool isValidHandle = reinterpret_cast<int64_t>(fileHandle) > 0;
+			bool isValidHandle = reinterpret_cast<i64>(fileHandle) > 0;
 
 			if (isValidHandle)
 			{

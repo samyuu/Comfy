@@ -99,7 +99,7 @@ namespace Comfy::Utilities::StringParsing
 		void ParseCommaSeparatedArray(std::string_view commaSeparatedData, T* outputValues, size_t valueCount)
 		{
 			size_t dataIndex = 0, lastCommaIndex = 0;
-			for (int64_t i = 0; i < static_cast<int64_t>(commaSeparatedData.size()); i++)
+			for (i64 i = 0; i < static_cast<i64>(commaSeparatedData.size()); i++)
 			{
 				if (commaSeparatedData[i] == ',')
 				{
@@ -123,7 +123,7 @@ namespace Comfy::Utilities::StringParsing
 		T ParseAdvanceCommaSeparatedValueString()
 		{
 			auto valueSubString = state.CurrentValueString;
-			for (int64_t i = 0; i < static_cast<int64_t>(valueSubString.size()); i++)
+			for (i64 i = 0; i < static_cast<i64>(valueSubString.size()); i++)
 			{
 				if ((i + 1) == valueSubString.size())
 					break;

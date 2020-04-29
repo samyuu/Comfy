@@ -86,7 +86,7 @@ namespace Comfy::IO
 		inline void WriteU16(u16 value) { return WriteType<u16>(value); }
 		inline void WriteI32(i32 value) { return WriteType<i32>(value); }
 		inline void WriteU32(u32 value) { return WriteType<u32>(value); }
-		inline void WriteI64(int64_t value) { return WriteType<int64_t>(value); }
+		inline void WriteI64(i64 value) { return WriteType<i64>(value); }
 		inline void WriteU64(u64 value) { return WriteType<u64>(value); }
 		inline void WriteF32(float value) { return WriteType<float>(value); }
 		inline void WriteF64(double value) { return WriteType<double>(value); }
@@ -127,6 +127,6 @@ namespace Comfy::IO
 
 	private:
 		static void WritePtr32(StreamWriter& writer, FileAddr value) { writer.WriteI32(static_cast<i32>(value)); }
-		static void WritePtr64(StreamWriter& writer, FileAddr value) { writer.WriteI64(static_cast<int64_t>(value)); }
+		static void WritePtr64(StreamWriter& writer, FileAddr value) { writer.WriteI64(static_cast<i64>(value)); }
 	};
 }

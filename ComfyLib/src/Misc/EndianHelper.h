@@ -10,7 +10,7 @@ namespace Comfy::Utilities
 	inline i32 ByteSwapI32(i32 value) { return _byteswap_ulong(value); }
 	inline u32 ByteSwapU32(u32 value) { return _byteswap_ulong(value); }
 
-	inline int64_t ByteSwapI64(int64_t value) { return _byteswap_uint64(value); }
+	inline i64 ByteSwapI64(i64 value) { return _byteswap_uint64(value); }
 	inline u64 ByteSwapU64(u64 value) { return _byteswap_uint64(value); }
 
 	inline float ByteSwapF32(float value) { u32 result = ByteSwapU32(*reinterpret_cast<u32*>(&value)); return *reinterpret_cast<float*>(&result); }

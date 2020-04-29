@@ -3,7 +3,7 @@
 #include <type_traits>
 
 // NOTE: Any address, offset or pointer in file space
-enum class FileAddr : int64_t { NullPtr = 0 };
+enum class FileAddr : i64 { NullPtr = 0 };
 
 inline FileAddr operator+(FileAddr left, FileAddr right)
 { 
