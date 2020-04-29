@@ -90,7 +90,7 @@ namespace Comfy::IO
 		static constexpr char DirectorySeparator = '/';
 
 	public:
-		ComfyArchive();
+		ComfyArchive() = default;
 		~ComfyArchive();
 
 	public:
@@ -104,7 +104,7 @@ namespace Comfy::IO
 		const ComfyEntry* FindFileInDirectory(const ComfyDirectory* directory, std::string_view fileName) const;
 
 		const ComfyDirectory* FindDirectory(std::string_view directoryPath) const;
-		
+
 		bool ReadFileIntoBuffer(std::string_view filePath, std::vector<u8>& buffer);
 
 		bool ReadEntryIntoBuffer(const ComfyEntry* entry, void* outputBuffer);
@@ -123,7 +123,7 @@ namespace Comfy::IO
 
 		ComfyArchiveHeader header = {};
 		ComfyDirectory* rootDirectory = nullptr;
-		
+
 		UniquePtr<u8[]> dataBuffer = nullptr;
 		UniquePtr<IStream> dataStream = nullptr;
 	};

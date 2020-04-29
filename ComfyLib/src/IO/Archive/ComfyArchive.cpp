@@ -4,10 +4,6 @@
 
 namespace Comfy::IO
 {
-	ComfyArchive::ComfyArchive()
-	{
-	}
-
 	ComfyArchive::~ComfyArchive()
 	{
 		UnMount();

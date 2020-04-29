@@ -19,10 +19,6 @@ namespace Comfy::IO
 		}
 	}
 
-	FileStream::FileStream()
-	{
-	}
-
 	FileStream::FileStream(std::string_view filePath)
 	{
 		OpenReadWrite(filePath);

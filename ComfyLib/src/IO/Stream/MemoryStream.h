@@ -8,9 +8,9 @@ namespace Comfy::IO
 	{
 	public:
 		MemoryStream();
-		MemoryStream(std::string_view filePath);
-		MemoryStream(IStream& stream);
-		MemoryStream(std::vector<u8>& source);
+		explicit MemoryStream(std::string_view filePath);
+		explicit MemoryStream(IStream& stream);
+		explicit MemoryStream(std::vector<u8>& source);
 		~MemoryStream();
 
 		void Seek(FileAddr position) override;

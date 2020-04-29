@@ -7,8 +7,8 @@ namespace Comfy::IO
 	class FileStream final : public StreamBase
 	{
 	public:
-		FileStream();
-		FileStream(std::string_view filePath);
+		FileStream() = default;
+		explicit FileStream(std::string_view filePath);
 		~FileStream();
 
 		void Seek(FileAddr position) override;

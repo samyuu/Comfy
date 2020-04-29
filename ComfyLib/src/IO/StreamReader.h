@@ -16,7 +16,7 @@ namespace Comfy::IO
 			SetEndianness(Endianness::Little);
 		}
 
-		StreamReader(IStream& stream) : StreamReader()
+		explicit StreamReader(IStream& stream) : StreamReader()
 		{
 			OpenStream(stream);
 		}
