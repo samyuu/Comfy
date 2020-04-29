@@ -1,7 +1,7 @@
 #include "FArc.h"
 #include "Core/Logger.h"
 #include "Misc/EndianHelper.h"
-#include "Win32Crypto.h"
+#include "IO/Crypto/Crypto.h"
 #include <zlib.h>
 #include <assert.h>
 
@@ -360,11 +360,11 @@ namespace Comfy::IO
 	{
 		if (encryptionFormat == FArcEncryptionFormat::Classic)
 		{
-			return Crypto::Win32DecryptAesEcb(encryptedData, decryptedData, dataSize, FArcEncryption::ClassicKey);
+			return Crypto::DecryptAesEcb(encryptedData, decryptedData, dataSize, FArcEncryption::ClassicKey);
 		}
 		else if (encryptionFormat == FArcEncryptionFormat::Modern)
 		{
-			return Crypto::Win32DecryptAesCbc(encryptedData, decryptedData, dataSize, FArcEncryption::ModernKey, aesIV);
+			return Crypto::DecryptAesCbc(encryptedData, decryptedData, dataSize, FArcEncryption::ModernKey, aesIV);
 		}
 		else
 		{

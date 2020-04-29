@@ -20,7 +20,8 @@
     <ClInclude Include="src\FileAddr.h" />
     <ClInclude Include="src\IO\Archive\ComfyArchive.h" />
     <ClInclude Include="src\IO\Archive\FArc.h" />
-    <ClInclude Include="src\IO\Archive\Win32Crypto.h" />
+    <ClInclude Include="src\IO\Crypto\Crypto.h" />
+    <ClInclude Include="src\IO\Crypto\Detail\Win32Crypto.h" />
     <ClInclude Include="src\IO\BinaryMode.h" />
     <ClInclude Include="src\IO\StreamReader.h" />
     <ClInclude Include="src\IO\StreamWriter.h" />
@@ -46,7 +47,8 @@
     <ClCompile Include="src\Core\Logger.cpp" />
     <ClCompile Include="src\IO\Archive\ComfyArchive.cpp" />
     <ClCompile Include="src\IO\Archive\FArc.cpp" />
-    <ClCompile Include="src\IO\Archive\Win32Crypto.cpp" />
+    <ClCompile Include="src\IO\Crypto\Crypto.cpp" />
+    <ClCompile Include="src\IO\Crypto\Detail\Win32Crypto.cpp" />
     <ClCompile Include="src\IO\StreamReader.cpp" />
     <ClCompile Include="src\IO\StreamWriter.cpp" />
     <ClCompile Include="src\IO\FileHelper.cpp" />
