@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "Graphics/GraphicTypes.h"
-#include "FileSystem/FileInterface.h"
+#include "IO/FileInterface.h"
 
 namespace Comfy::Graphics
 {
@@ -29,7 +29,7 @@ namespace Comfy::Graphics
 		float AttenuationQuadratic;
 	};
 
-	class LightParameter final : public FileSystem::IBufferParsable
+	class LightParameter final : public IO::IBufferParsable
 	{
 	public:
 		LightParameter();

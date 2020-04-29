@@ -4,7 +4,7 @@
 #include "Graphics/Auth3D/A3D/A3D.h"
 #include "Graphics/Auth3D/A3D/A3DMgr.h"
 #include "Graphics/Auth3D/DebugObj.h"
-#include "FileSystem/Archive/FArc.h"
+#include "IO/Archive/FArc.h"
 #include "ImGui/Extensions/TexExtensions.h"
 #include "ImGui/Extensions/PropertyEditor.h"
 #include "Misc/ImageHelper.h"
@@ -136,14 +136,14 @@ namespace Comfy::Editor
 
 	bool SceneEditor::LoadRegisterObjSet(std::string_view objSetPath, std::string_view texSetPath, EntityTag tag)
 	{
-		if (!FileSystem::FileExists(objSetPath) || !FileSystem::FileExists(texSetPath))
+		if (!IO::FileExists(objSetPath) || !IO::FileExists(texSetPath))
 			return false;
 
 		if (objSetPath == texSetPath)
 			return false;
 
 		RefPtr<ObjSet> objSet = ObjSet::MakeUniqueReadParseUpload(objSetPath);
-		objSet->Name = FileSystem::GetFileName(objSetPath, false);
+		objSet->Name = IO::GetFileName(objSetPath, false);
 		objSet->TexSet = TexSet::MakeUniqueReadParseUpload(texSetPath, objSet.get());
 		sceneGraph.LoadObjSet(objSet, tag);
 		sceneGraph.RegisterTextures(objSet->TexSet.get());
@@ -153,7 +153,7 @@ namespace Comfy::Editor
 			constexpr std::string_view texDBPath = "dev_rom/db/tex_db.bin";
 			sceneGraph.TexDB = MakeUnique<Database::TexDB>();
 
-			if (FileSystem::FileExists(texDBPath))
+			if (IO::FileExists(texDBPath))
 				sceneGraph.TexDB->Load(std::string(texDBPath));
 		}
 
@@ -1363,7 +1363,7 @@ namespace Comfy::Editor
 			auto loadA3Ds = [](const char* farcPath)
 			{
 				std::vector<A3D> a3ds;
-				if (auto farc = FileSystem::FArc::Open(farcPath); farc != nullptr)
+				if (auto farc = IO::FArc::Open(farcPath); farc != nullptr)
 				{
 					for (const auto& file : farc->GetEntries())
 					{
@@ -1645,7 +1645,7 @@ namespace Comfy::Editor
 		Gui::ItemContextMenu("TakeScreenshotContextMenu", [&]
 		{
 			if (Gui::MenuItem("Open Directory"))
-				FileSystem::OpenInExplorer(ScreenshotDirectoy);
+				IO::OpenInExplorer(ScreenshotDirectoy);
 		});
 
 		constexpr const char* renderPopupID = "RenderSequencePopup";

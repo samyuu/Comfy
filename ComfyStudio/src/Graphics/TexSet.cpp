@@ -1,12 +1,12 @@
 #include "TexSet.h"
 #include "Auth2D/SprSet.h"
 #include "Auth3D/ObjSet.h"
-#include "FileSystem/FileInterface.h"
-#include "FileSystem/BinaryReader.h"
-#include "FileSystem/BinaryWriter.h"
-#include "FileSystem/FileReader.h"
+#include "IO/FileInterface.h"
+#include "IO/BinaryReader.h"
+#include "IO/BinaryWriter.h"
+#include "IO/FileReader.h"
 
-using namespace Comfy::FileSystem;
+using namespace Comfy::IO;
 
 namespace Comfy::Graphics
 {

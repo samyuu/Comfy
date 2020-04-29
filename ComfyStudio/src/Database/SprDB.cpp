@@ -1,10 +1,10 @@
 #include "SprDB.h"
-#include "FileSystem/BinaryReader.h"
-#include "FileSystem/BinaryWriter.h"
+#include "IO/BinaryReader.h"
+#include "IO/BinaryWriter.h"
 
 namespace Comfy::Database
 {
-	using namespace FileSystem;
+	using namespace IO;
 
 	SprEntry* SprSetEntry::GetSprEntry(SprID id)
 	{

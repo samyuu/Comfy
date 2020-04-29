@@ -1,7 +1,7 @@
 #include "Application.h"
 #include "App/Engine.h"
 #include "Graphics/D3D11/Direct3D.h"
-#include "FileSystem/FileHelper.h"
+#include "IO/FileHelper.h"
 #include "DataTest/AudioTestWindow.h"
 #include "DataTest/IconTestWindow.h"
 #include "DataTest/InputTestWindow.h"
@@ -139,8 +139,8 @@ namespace Comfy
 		if (!LoadComfyConfig)
 			return true;
 
-		bool fileExists = FileSystem::FileExists(ComfyConfigFileName);
-		bool fileRead = !fileExists ? false : FileSystem::ReadAllBytes(ComfyConfigFileName, &ComfyConfig);
+		bool fileExists = IO::FileExists(ComfyConfigFileName);
+		bool fileRead = !fileExists ? false : IO::ReadAllBytes(ComfyConfigFileName, &ComfyConfig);
 
 		if (!fileExists)
 			Logger::LogErrorLine(__FUNCTION__"(): Unable to locate config file");
@@ -168,13 +168,13 @@ namespace Comfy
 
 	bool Application::InitializeMountRomData()
 	{
-		if (!FileSystem::FileExists(ComfyDataFileName))
+		if (!IO::FileExists(ComfyDataFileName))
 		{
 			Logger::LogErrorLine(__FUNCTION__"(): Unable to locate data file");
 			return false;
 		}
 
-		ComfyData = MakeUnique<ComfyArchive>();
+		ComfyData = MakeUnique<IO::ComfyArchive>();
 		if (ComfyData == nullptr)
 			return false;
 
@@ -536,7 +536,7 @@ namespace Comfy
 		ComfyConfig.Data.Window.Fullscreen = host.GetIsFullscreen();
 		ComfyConfig.Data.Window.Maximized = host.GetIsMaximized();
 
-		bool success = FileSystem::WriteAllBytes(ComfyConfigFileName, ComfyConfig);
+		bool success = IO::WriteAllBytes(ComfyConfigFileName, ComfyConfig);
 
 		if (!success)
 			Logger::LogErrorLine(__FUNCTION__"(): Unable to write config file");

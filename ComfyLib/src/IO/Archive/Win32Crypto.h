@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 
-namespace Comfy::FileSystem::Crypto
+namespace Comfy::IO::Crypto
 {
 	static constexpr size_t IVSize = 16;
 	static constexpr size_t KeySize = 16;

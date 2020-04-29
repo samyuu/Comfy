@@ -3,15 +3,15 @@
 #include "System/Version/BuildVersion.h"
 #include "System/Version/BuildConfiguration.h"
 #include "Graphics/Auth2D/Aet/AetSet.h"
-#include "FileSystem/Archive/FArc.h"
-#include "FileSystem/FileHelper.h"
+#include "IO/Archive/FArc.h"
+#include "IO/FileHelper.h"
 #include "Misc/StringHelper.h"
 
 namespace Comfy::System
 {
 	static void FArcProcessor(int index, const char* arguments[])
 	{
-		using namespace FileSystem;
+		using namespace IO;
 
 		const std::string filePath = arguments[index];
 		auto farc = FArc::Open(filePath);
@@ -27,7 +27,7 @@ namespace Comfy::System
 			for (const auto& entry : farc->GetEntries())
 			{
 				auto data = entry.ReadArray();
-				WriteAllBytes(directory + std::string("\\") + entry.Name, data.get(), entry.OriginalSize);
+				WriteAllBytes(directory + "\\" + entry.Name, data.get(), entry.OriginalSize);
 			}
 		}
 	}

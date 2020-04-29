@@ -1,10 +1,10 @@
 #include "FileStream.h"
 #include "Core/Win32/ComfyWindows.h"
-#include "FileSystem/FileHelperInternal.h"
+#include "IO/FileHelperInternal.h"
 #include "Misc/StringHelper.h"
 #include <assert.h>
 
-namespace Comfy::FileSystem
+namespace Comfy::IO
 {
 	namespace
 	{

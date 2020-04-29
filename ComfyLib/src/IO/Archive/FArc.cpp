@@ -5,7 +5,7 @@
 #include <zlib.h>
 #include <assert.h>
 
-namespace Comfy::FileSystem
+namespace Comfy::IO
 {
 	void FArcEntry::ReadIntoBuffer(void* outFileContent) const
 	{

@@ -1,8 +1,8 @@
 #include "SprSet.h"
-#include "FileSystem/BinaryReader.h"
-#include "FileSystem/BinaryWriter.h"
+#include "IO/BinaryReader.h"
+#include "IO/BinaryWriter.h"
 
-using namespace Comfy::FileSystem;
+using namespace Comfy::IO;
 
 namespace Comfy::Graphics
 {

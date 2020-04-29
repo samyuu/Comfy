@@ -1,11 +1,11 @@
 #pragma once
 #include "Types.h"
 #include "Graphics/GraphicTypes.h"
-#include "FileSystem/FileInterface.h"
+#include "IO/FileInterface.h"
 
 namespace Comfy::Graphics
 {
-	class GlowParameter final : public FileSystem::IBufferParsable
+	class GlowParameter final : public IO::IBufferParsable
 	{
 	public:
 		GlowParameter();

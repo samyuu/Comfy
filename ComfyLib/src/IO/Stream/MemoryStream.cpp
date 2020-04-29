@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <algorithm>
 
-namespace Comfy::FileSystem
+namespace Comfy::IO
 {
 	MemoryStream::MemoryStream()
 	{

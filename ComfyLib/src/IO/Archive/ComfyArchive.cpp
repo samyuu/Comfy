@@ -1,8 +1,8 @@
 #include "ComfyArchive.h"
-#include "FileSystem/Stream/FileStream.h"
+#include "IO/Stream/FileStream.h"
 #include "Misc/StringHelper.h"
 
-namespace Comfy::FileSystem
+namespace Comfy::IO
 {
 	ComfyArchive::ComfyArchive()
 	{

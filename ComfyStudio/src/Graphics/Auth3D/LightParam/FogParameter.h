@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "Graphics/GraphicTypes.h"
-#include "FileSystem/FileInterface.h"
+#include "IO/FileInterface.h"
 
 namespace Comfy::Graphics
 {
@@ -14,7 +14,7 @@ namespace Comfy::Graphics
 		vec3 Color;
 	};
 
-	class FogParameter final : public FileSystem::IBufferParsable
+	class FogParameter final : public IO::IBufferParsable
 	{
 	public:
 		FogParameter();

@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "FileSystem/FileInterface.h"
+#include "IO/FileInterface.h"
 
 namespace Comfy::Graphics
 {
@@ -289,7 +289,7 @@ namespace Comfy::Graphics
 		std::array<std::string, 1> Parameters;
 	};
 
-	class A3D final : public FileSystem::IBufferParsable
+	class A3D final : public IO::IBufferParsable
 	{
 	public:
 		A3D();

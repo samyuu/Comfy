@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 
-namespace Comfy::FileSystem
+namespace Comfy::IO
 {
 	class BinaryReader;
 	class BinaryWriter;

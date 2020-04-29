@@ -1,10 +1,10 @@
 #include "AetDB.h"
-#include "FileSystem/BinaryReader.h"
-#include "FileSystem/BinaryWriter.h"
+#include "IO/BinaryReader.h"
+#include "IO/BinaryWriter.h"
 
 namespace Comfy::Database
 {
-	using namespace FileSystem;
+	using namespace IO;
 
 	AetSceneEntry* AetSetEntry::GetSceneEntry(std::string_view name)
 	{

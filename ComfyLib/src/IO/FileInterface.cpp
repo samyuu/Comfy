@@ -5,7 +5,7 @@
 #include "BinaryWriter.h"
 #include "Misc/StringHelper.h"
 
-namespace Comfy::FileSystem
+namespace Comfy::IO
 {
 	void IBinaryReadable::Load(std::string_view filePath)
 	{

@@ -3,7 +3,7 @@
 #include "CoreTypes.h"
 #include "Graphics/GraphicTypes.h"
 #include "Graphics/GPU/GPUResources.h"
-#include "FileSystem/FileInterface.h"
+#include "IO/FileInterface.h"
 
 namespace Comfy::Graphics
 {
@@ -32,7 +32,7 @@ namespace Comfy::Graphics
 		std::array<mat4, 3> IrradianceRGB;
 	};
 
-	class IBLParameters final : public FileSystem::IBufferParsable
+	class IBLParameters final : public IO::IBufferParsable
 	{
 	public:
 		IBLParameters();

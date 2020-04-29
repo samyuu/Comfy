@@ -1,7 +1,7 @@
 #include "ObjSet.h"
-#include "FileSystem/BinaryReader.h"
+#include "IO/BinaryReader.h"
 
-using namespace Comfy::FileSystem;
+using namespace Comfy::IO;
 
 namespace Comfy::Graphics
 {

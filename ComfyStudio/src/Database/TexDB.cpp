@@ -1,10 +1,10 @@
 #include "TexDB.h"
-#include "FileSystem/BinaryReader.h"
-#include "FileSystem/BinaryWriter.h"
+#include "IO/BinaryReader.h"
+#include "IO/BinaryWriter.h"
 
 namespace Comfy::Database
 {
-	using namespace FileSystem;
+	using namespace IO;
 
 	void TexDB::Read(BinaryReader& reader)
 	{

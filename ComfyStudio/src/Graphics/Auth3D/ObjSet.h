@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "BoundingTypes.h"
-#include "FileSystem/FileInterface.h"
+#include "IO/FileInterface.h"
 #include "Graphics/TexSet.h"
 #include "Graphics/GPU/GPUResources.h"
 #include <optional>
@@ -476,10 +476,10 @@ namespace Comfy::Graphics
 		void Upload();
 
 	private:
-		void Read(FileSystem::BinaryReader& reader);
+		void Read(IO::BinaryReader& reader);
 	};
 
-	class ObjSet final : public FileSystem::IBinaryReadable, NonCopyable
+	class ObjSet final : public IO::IBinaryReadable, NonCopyable
 	{
 	public:
 		ObjSet() = default;
@@ -512,7 +512,7 @@ namespace Comfy::Graphics
 		inline const Obj* GetObjAt(int index) const { return &objects[index]; };
 
 	public:
-		void Read(FileSystem::BinaryReader& reader) override;
+		void Read(IO::BinaryReader& reader) override;
 		void UploadAll();
 
 	public:

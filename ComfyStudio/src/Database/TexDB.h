@@ -14,8 +14,8 @@ namespace Comfy::Database
 	public:
 		std::vector<TexEntry> Entries;
 
-		void Read(FileSystem::BinaryReader& reader) override;
-		void Write(FileSystem::BinaryWriter& writer) override;
+		void Read(IO::BinaryReader& reader) override;
+		void Write(IO::BinaryWriter& writer) override;
 
 		const TexEntry* GetTexEntry(TexID id) const;
 		const TexEntry* GetTexEntry(std::string_view name) const;

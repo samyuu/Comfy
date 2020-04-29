@@ -5,7 +5,7 @@
 
 #define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
 
-namespace Comfy::FileSystem::Crypto
+namespace Comfy::IO::Crypto
 {
 	namespace
 	{

@@ -25,8 +25,8 @@ namespace Comfy::Database
 	public:
 		std::vector<AetSetEntry> Entries;
 
-		void Read(FileSystem::BinaryReader& reader) override;
-		void Write(FileSystem::BinaryWriter& writer) override;
+		void Read(IO::BinaryReader& reader) override;
+		void Write(IO::BinaryWriter& writer) override;
 		AetSetEntry* GetAetSetEntry(std::string_view name);
 
 	private:

@@ -1,7 +1,7 @@
 #pragma once
 #include "Editor/Core/RenderWindowBase.h"
 #include "Editor/Common/CheckerboardGrid.h"
-#include "FileSystem/FileLoader.h"
+#include "IO/FileLoader.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Auth2D/Aet/AetRenderer.h"
 
@@ -33,8 +33,8 @@ namespace Comfy::Editor
 		UniquePtr<Graphics::Aet::AetRenderer> aetRenderer;
 
 		// TODO: ps4_gam
-		FileSystem::FileLoader aetSetLoader = { "dev_rom/2d/aet_gam_cmn.bin" };
-		FileSystem::FileLoader sprSetLoader = { "dev_rom/2d/spr_gam_cmn.bin" };
+		IO::FileLoader aetSetLoader = { "dev_rom/2d/aet_gam_cmn.bin" };
+		IO::FileLoader sprSetLoader = { "dev_rom/2d/spr_gam_cmn.bin" };
 
 		UniquePtr<Graphics::Aet::AetSet> aetSet;
 		UniquePtr<Graphics::SprSet> sprSet;

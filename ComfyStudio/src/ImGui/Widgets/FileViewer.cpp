@@ -1,5 +1,5 @@
 #include "FileViewer.h"
-#include "FileSystem/FileHelper.h"
+#include "IO/FileHelper.h"
 #include "Misc/FileExtensionHelper.h"
 #include "Misc/StringHelper.h"
 #include <filesystem>
@@ -59,7 +59,7 @@ namespace ImGui
 			{
 				if (clickedInfo->IsDirectory)
 				{
-					SetDirectory(FileSystem::Combine(directory, clickedInfo->ChildName));
+					SetDirectory(IO::Combine(directory, clickedInfo->ChildName));
 				}
 				else
 				{
@@ -104,7 +104,7 @@ namespace ImGui
 
 	void FileViewer::SetDirectory(std::string directory)
 	{
-		FileSystem::SanitizePath(directory);
+		IO::SanitizePath(directory);
 
 		bool endingSlash = EndsWith(directory, '/');
 		auto adjustedDirectory = endingSlash ? directory.substr(0, directory.length() - 1) : directory;
@@ -184,7 +184,7 @@ namespace ImGui
 
 	void FileViewer::UpdateDirectoryInformation()
 	{
-		if (!FileSystem::DirectoryExists(directory))
+		if (!IO::DirectoryExists(directory))
 			return;
 
 		fileFilter.Clear();
@@ -206,7 +206,7 @@ namespace ImGui
 			info.IsDirectory = file.is_directory();
 			info.FileSize = file.file_size();
 
-			FileSystem::SanitizePath(info.FullPath);
+			IO::SanitizePath(info.FullPath);
 			FormatReadableFileSize(info.ReadableFileSize, info.FileSize);
 
 			if (info.IsDirectory)
@@ -243,20 +243,20 @@ namespace ImGui
 	void FileViewer::SetParentDirectory(const std::string& directory)
 	{
 		if (EndsWith(directory, '/') || EndsWith(directory, '\\'))
-			SetDirectory(std::string(FileSystem::GetDirectory(directory.substr(0, directory.length() - 1))));
+			SetDirectory(std::string(IO::GetDirectory(directory.substr(0, directory.length() - 1))));
 		else
-			SetDirectory(std::string(FileSystem::GetDirectory(directory)));
+			SetDirectory(std::string(IO::GetDirectory(directory)));
 	}
 
 	void FileViewer::SetResolveFileLinke(const FilePathInfo& info)
 	{
-		std::string resolvedPath = FileSystem::ResolveFileLink(info.FullPath);
+		std::string resolvedPath = IO::ResolveFileLink(info.FullPath);
 		SetDirectory(resolvedPath);
 	}
 
 	void FileViewer::OpenDirectoryInExplorer()
 	{
-		FileSystem::OpenInExplorer(directory);
+		IO::OpenInExplorer(directory);
 	}
 
 	void FileViewer::OpenContextItemDefaultProgram()
@@ -264,16 +264,16 @@ namespace ImGui
 		if (contextMenuFilePathInfo != nullptr)
 		{
 			std::string filePath = contextMenuFilePathInfo->FullPath;
-			FileSystem::FuckUpWindowsPath(filePath);
-			FileSystem::OpenWithDefaultProgram(filePath);
+			IO::FuckUpWindowsPath(filePath);
+			IO::OpenWithDefaultProgram(filePath);
 		}
 	}
 
 	void FileViewer::OpenContextItemProperties()
 	{
 		std::string filePath = contextMenuFilePathInfo != nullptr ? contextMenuFilePathInfo->FullPath : directory;
-		FileSystem::FuckUpWindowsPath(filePath);
-		FileSystem::OpenExplorerProperties(filePath);
+		IO::FuckUpWindowsPath(filePath);
+		IO::OpenExplorerProperties(filePath);
 	}
 
 	FileType FileViewer::GetFileType(const std::string_view fileName)

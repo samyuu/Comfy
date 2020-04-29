@@ -1,7 +1,7 @@
-#include "FileSystem/FileHelper.h"
-#include "FileSystem/Archive/ComfyArchive.h"
-#include "FileSystem/Stream/FileStream.h"
-#include "FileSystem/BinaryWriter.h"
+#include "IO/FileHelper.h"
+#include "IO/Archive/ComfyArchive.h"
+#include "IO/Stream/FileStream.h"
+#include "IO/BinaryWriter.h"
 #include "Core/Logger.h"
 #include "Misc/StringHelper.h"
 #include <filesystem>
@@ -9,7 +9,7 @@
 #include <time.h>
 
 using namespace Comfy;
-using namespace Comfy::FileSystem;
+using namespace Comfy::IO;
 
 namespace
 {

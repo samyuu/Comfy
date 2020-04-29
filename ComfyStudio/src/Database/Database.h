@@ -1,11 +1,11 @@
 #pragma once
 #include "Types.h"
 #include "Resource/IDTypes.h"
-#include "FileSystem/FileInterface.h"
+#include "IO/FileInterface.h"
 
 namespace Comfy::Database
 {
-	class BinaryDatabase : public FileSystem::IBinaryReadable, public FileSystem::IBinaryWritable
+	class BinaryDatabase : public IO::IBinaryReadable, public IO::IBinaryWritable
 	{
 	public:
 		struct Entry
@@ -18,7 +18,7 @@ namespace Comfy::Database
 	};
 
 	// TODO:
-	class TextDatabase : public FileSystem::IBufferParsable
+	class TextDatabase : public IO::IBufferParsable
 	{
 	public:
 		TextDatabase() = delete;

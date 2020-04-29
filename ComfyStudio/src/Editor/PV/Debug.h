@@ -2,7 +2,7 @@
 #include "StageTest.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Auth3D/DebugObj.h"
-#include "FileSystem/FileHelper.h"
+#include "IO/FileHelper.h"
 #include "Misc/StringHelper.h"
 
 namespace Comfy::Debug
@@ -43,7 +43,7 @@ namespace Comfy::Debug
 		{
 			sprintf_s(path.data(), path.size(), formatPath, fileName.data());
 
-			if (!FileSystem::FileExists(path.data()))
+			if (!IO::FileExists(path.data()))
 			{
 				strcpy_s(path.data(), path.size(), defaultPath);
 
@@ -83,11 +83,11 @@ namespace Comfy::Debug
 	template <typename T>
 	bool LoadParseUploadLightParamFile(std::string_view filePath, T& param)
 	{
-		if (!FileSystem::FileExists(filePath))
+		if (!IO::FileExists(filePath))
 			return false;
 
 		std::vector<uint8_t> fileContent;
-		FileSystem::FileReader::ReadEntireFile(filePath, &fileContent);
+		IO::FileReader::ReadEntireFile(filePath, &fileContent);
 
 		param.Parse(fileContent.data(), fileContent.size());
 
@@ -124,10 +124,10 @@ namespace Comfy::Debug
 		std::string texSetPath;
 		texSetPath.reserve(MAX_PATH);
 
-		std::string_view fileName = FileSystem::GetFileName(objSetPath, false);
+		std::string_view fileName = IO::GetFileName(objSetPath, false);
 		std::string_view objName = fileName.substr(0, fileName.length() - strlen("_obj"));
 
-		texSetPath.append(FileSystem::GetDirectory(objSetPath));
+		texSetPath.append(IO::GetDirectory(objSetPath));
 		texSetPath.append("/");
 		texSetPath.append(objName);
 		texSetPath.append("_tex.bin");

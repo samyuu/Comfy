@@ -3,7 +3,7 @@
 #include "CoreTypes.h"
 #include "../Transform2D.h"
 #include "Resource/IDTypes.h"
-#include "FileSystem/FileInterface.h"
+#include "IO/FileInterface.h"
 #include "Graphics/GraphicTypes.h"
 #include <variant>
 
@@ -331,7 +331,7 @@ namespace Comfy::Graphics::Aet
 		FileAddr parentFilePtr;
 		FileAddr audioDataFilePtr;
 
-		void Read(FileSystem::BinaryReader& reader);
+		void Read(IO::BinaryReader& reader);
 	};
 
 	class Composition : public ILayerItem, NonCopyable
@@ -436,8 +436,8 @@ namespace Comfy::Graphics::Aet
 		void UpdateParentPointers();
 
 	private:
-		void Read(FileSystem::BinaryReader& reader);
-		void Write(FileSystem::BinaryWriter& writer);
+		void Read(IO::BinaryReader& reader);
+		void Write(IO::BinaryWriter& writer);
 
 	private:
 		void UpdateCompNamesAfterLayerItems();
@@ -447,7 +447,7 @@ namespace Comfy::Graphics::Aet
 		void FindSetLayerRefParentLayer(Layer& layer);
 	};
 
-	class AetSet final : public FileSystem::IBinaryReadWritable, NonCopyable
+	class AetSet final : public IO::IBinaryReadWritable, NonCopyable
 	{
 	public:
 		AetSet() = default;
@@ -463,8 +463,8 @@ namespace Comfy::Graphics::Aet
 		void ClearSpriteCache();
 
 	public:
-		void Read(FileSystem::BinaryReader& reader) override;
-		void Write(FileSystem::BinaryWriter& writer) override;
+		void Read(IO::BinaryReader& reader) override;
+		void Write(IO::BinaryWriter& writer) override;
 
 	private:
 		std::vector<RefPtr<Scene>> scenes;

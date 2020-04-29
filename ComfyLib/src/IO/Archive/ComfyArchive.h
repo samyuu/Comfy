@@ -1,9 +1,9 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
-#include "FileSystem/Stream/Stream.h"
+#include "IO/Stream/Stream.h"
 
-namespace Comfy::FileSystem
+namespace Comfy::IO
 {
 	enum class EntryType : uint32_t
 	{
@@ -105,7 +105,7 @@ namespace Comfy::FileSystem
 
 		const ComfyDirectory* FindDirectory(std::string_view directoryPath) const;
 		
-		bool ReadFileIntoBuffer(std::string_view filePath, std::vector<uint8_t> &buffer);
+		bool ReadFileIntoBuffer(std::string_view filePath, std::vector<uint8_t>& buffer);
 
 		bool ReadEntryIntoBuffer(const ComfyEntry* entry, void* outputBuffer);
 

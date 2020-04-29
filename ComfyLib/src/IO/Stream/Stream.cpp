@@ -1,6 +1,6 @@
 #include "Stream.h"
 
-namespace Comfy::FileSystem
+namespace Comfy::IO
 {
 	FileAddr StreamBase::RemainingBytes() const
 	{

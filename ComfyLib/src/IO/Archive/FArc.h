@@ -1,9 +1,9 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
-#include "FileSystem/Stream/FileStream.h"
+#include "IO/Stream/FileStream.h"
 
-namespace Comfy::FileSystem
+namespace Comfy::IO
 {
 	namespace FArcEncryption
 	{

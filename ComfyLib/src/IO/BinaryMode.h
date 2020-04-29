@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 
-namespace Comfy::FileSystem
+namespace Comfy::IO
 {
 	enum class PtrMode : uint8_t
 	{

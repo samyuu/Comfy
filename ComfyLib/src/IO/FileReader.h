@@ -1,7 +1,7 @@
 #pragma once
 #include "CoreTypes.h"
 
-namespace Comfy::FileSystem
+namespace Comfy::IO
 {
 	class FileReader
 	{

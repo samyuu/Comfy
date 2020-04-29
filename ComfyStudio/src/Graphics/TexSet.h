@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "Resource/IDTypes.h"
-#include "FileSystem/FileInterface.h"
+#include "IO/FileInterface.h"
 #include "Graphics/GraphicTypes.h"
 #include "Graphics/GPU/GPUResources.h"
 #include <optional>
@@ -50,12 +50,12 @@ namespace Comfy::Graphics
 		std::string_view GetName() const;
 	};
 
-	class TexSet : public FileSystem::IBinaryWritable, public FileSystem::IBufferParsable, NonCopyable
+	class TexSet : public IO::IBinaryWritable, public IO::IBufferParsable, NonCopyable
 	{
 	public:
 		std::vector<RefPtr<Tex>> Textures;
 
-		void Write(FileSystem::BinaryWriter& writer) override;
+		void Write(IO::BinaryWriter& writer) override;
 
 		void Parse(const uint8_t* buffer, size_t bufferSize) override;
 		void UploadAll(class SprSet* parentSprSet);

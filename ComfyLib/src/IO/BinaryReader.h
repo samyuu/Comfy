@@ -4,7 +4,7 @@
 #include "BinaryMode.h"
 #include "Misc/EndianHelper.h"
 
-namespace Comfy::FileSystem
+namespace Comfy::IO
 {
 	class BinaryReader : NonCopyable
 	{

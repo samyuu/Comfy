@@ -6,7 +6,7 @@
 #include <map>
 #include <functional>
 
-namespace Comfy::FileSystem
+namespace Comfy::IO
 {
 	class BinaryWriter : NonCopyable
 	{

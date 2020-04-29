@@ -5,7 +5,7 @@
 #include <atomic>
 #include <thread>
 
-namespace Comfy::FileSystem
+namespace Comfy::IO
 {
 	class ISynchronousFileLoader
 	{

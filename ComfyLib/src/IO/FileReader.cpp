@@ -3,11 +3,11 @@
 #include "FileHelper.h"
 #include <assert.h>
 
-namespace Comfy::FileSystem
+namespace Comfy::IO
 {
 	void* FileReader::CreateFileHandle(std::string_view filePath, bool read)
 	{
-		assert(FileSystem::FileExists(filePath));
+		assert(IO::FileExists(filePath));
 		return CreateFileHandleInternal(filePath, read);
 	}
 

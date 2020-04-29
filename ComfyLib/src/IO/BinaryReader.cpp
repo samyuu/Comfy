@@ -1,7 +1,7 @@
 #include "BinaryReader.h"
 #include <assert.h>
 
-namespace Comfy::FileSystem
+namespace Comfy::IO
 {
 	void BinaryReader::SetPointerMode(PtrMode value)
 	{

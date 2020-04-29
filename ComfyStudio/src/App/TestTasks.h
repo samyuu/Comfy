@@ -4,7 +4,7 @@
 #include "Graphics/Auth2D/Aet/AetMgr.h"
 #include "Graphics/Auth2D/Aet/AetSet.h"
 #include "Graphics/Auth2D/SprSet.h"
-#include "FileSystem/FileLoader.h"
+#include "IO/FileLoader.h"
 
 namespace Comfy::App
 {
@@ -107,8 +107,8 @@ namespace Comfy::App
 	protected:
 		Aet::SpriteGetterFunction spriteGetterFunction;
 
-		FileSystem::FileLoader aetSetLoader = { "dev_rom/2d/aet_ps4_menu.bin" };
-		FileSystem::FileLoader sprSetLoader = { "dev_rom/2d/spr_ps4_menu.bin" };
+		IO::FileLoader aetSetLoader = { "dev_rom/2d/aet_ps4_menu.bin" };
+		IO::FileLoader sprSetLoader = { "dev_rom/2d/spr_ps4_menu.bin" };
 
 		UniquePtr<Aet::AetSet> aetSet;
 		UniquePtr<SprSet> sprSet;

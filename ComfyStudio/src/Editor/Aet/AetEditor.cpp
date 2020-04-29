@@ -1,7 +1,7 @@
 #include "AetEditor.h"
 #include "AetIcons.h"
-#include "FileSystem/BinaryReader.h"
-#include "FileSystem/FileHelper.h"
+#include "IO/BinaryReader.h"
+#include "IO/FileHelper.h"
 #include "Misc/StringHelper.h"
 
 namespace Comfy::Editor
@@ -37,9 +37,9 @@ namespace Comfy::Editor
 		renderWindow->Initialize();
 
 		// DEBUG: Auto load specified files
-		if (debugAetPath != nullptr && FileSystem::FileExists(debugAetPath))
+		if (debugAetPath != nullptr && IO::FileExists(debugAetPath))
 			LoadAetSet(debugAetPath);
-		if (debugSprPath != nullptr && FileSystem::FileExists(debugSprPath))
+		if (debugSprPath != nullptr && IO::FileExists(debugSprPath))
 			LoadSprSet(debugSprPath);
 	}
 
@@ -127,7 +127,7 @@ namespace Comfy::Editor
 		{
 			sprSet = MakeUnique<SprSet>();
 			sprSetFileLoader->Parse(sprSet.get());
-			sprSet->Name = FileSystem::GetFileName(sprSetFileLoader->GetFilePath(), false);
+			sprSet->Name = IO::GetFileName(sprSetFileLoader->GetFilePath(), false);
 			sprSet->TexSet->UploadAll(sprSet.get());
 
 			OnSprSetLoaded();
@@ -140,7 +140,7 @@ namespace Comfy::Editor
 		if (aetFileViewer.DrawGui())
 		{
 			const std::string& aetPath = aetFileViewer.GetFileToOpen();
-			if (StartsWithInsensitive(FileSystem::GetFileName(aetPath), "aet_") && (EndsWithInsensitive(aetPath, ".bin") || EndsWithInsensitive(aetPath, ".aec")))
+			if (StartsWithInsensitive(IO::GetFileName(aetPath), "aet_") && (EndsWithInsensitive(aetPath, ".bin") || EndsWithInsensitive(aetPath, ".aec")))
 				LoadAetSet(aetPath);
 		}
 	}
@@ -150,18 +150,18 @@ namespace Comfy::Editor
 		if (sprFileViewer.DrawGui())
 		{
 			const std::string& sprPath = sprFileViewer.GetFileToOpen();
-			if (StartsWithInsensitive(FileSystem::GetFileName(sprPath), "spr_") && EndsWithInsensitive(sprPath, ".bin"))
+			if (StartsWithInsensitive(IO::GetFileName(sprPath), "spr_") && EndsWithInsensitive(sprPath, ".bin"))
 				LoadSprSet(sprPath);
 		}
 	}
 
 	bool AetEditor::LoadAetSet(const std::string& filePath)
 	{
-		if (!FileSystem::FileExists(filePath))
+		if (!IO::FileExists(filePath))
 			return false;
 
 		editorAetSet = MakeRef<Aet::AetSet>();
-		editorAetSet->Name = FileSystem::GetFileName(filePath, false);
+		editorAetSet->Name = IO::GetFileName(filePath, false);
 		editorAetSet->Load(filePath);
 
 		OnAetSetLoaded();
@@ -170,13 +170,13 @@ namespace Comfy::Editor
 
 	bool AetEditor::LoadSprSet(const std::string& filePath)
 	{
-		if (!FileSystem::FileExists(filePath))
+		if (!IO::FileExists(filePath))
 			return false;
 
 		if (sprSetFileLoader != nullptr)
 			return false;
 
-		sprSetFileLoader = MakeUnique<FileSystem::FileLoader>(filePath);
+		sprSetFileLoader = MakeUnique<IO::FileLoader>(filePath);
 		if (asyncFileLoading)
 		{
 			sprSetFileLoader->LoadAsync();

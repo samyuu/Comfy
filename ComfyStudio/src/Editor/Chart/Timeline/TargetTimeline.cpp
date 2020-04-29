@@ -2,7 +2,7 @@
 #include "Editor/Chart/ChartEditor.h"
 #include "Editor/Chart/TempoMap.h"
 #include "Audio/Core/AudioEngine.h"
-#include "FileSystem/FileHelper.h"
+#include "IO/FileHelper.h"
 #include "Core/ComfyData.h"
 #include "Core/TimeSpan.h"
 #include <FontIcons.h>
