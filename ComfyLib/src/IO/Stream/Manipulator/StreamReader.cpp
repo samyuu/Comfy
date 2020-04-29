@@ -39,6 +39,11 @@ namespace Comfy::IO
 		return result;
 	}
 
+	std::string StreamReader::ReadStrPtr()
+	{
+		return ReadStrAt(ReadPtr());
+	}
+
 	void StreamReader::OnPointerModeChanged()
 	{
 		switch (pointerMode)

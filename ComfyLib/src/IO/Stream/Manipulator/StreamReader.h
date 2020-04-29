@@ -18,14 +18,17 @@ namespace Comfy::IO
 		~StreamReader() = default;
 
 	public:
-		inline size_t ReadBuffer(void* buffer, size_t size) { return underlyingStream->ReadBuffer(buffer, size); }
-
-		// TODO: Rename to ReadType_Native (?)
-		template <typename T>
-		T ReadType() { T value; ReadBuffer(&value, sizeof(value)); return value; }
-
 		inline FileAddr GetStreamSeekOffset() const { return streamSeekOffset; }
 		inline void SetStreamSeekOffset(FileAddr value) { streamSeekOffset = value; }
+
+	public:
+		inline size_t ReadBuffer(void* buffer, size_t size) { return underlyingStream->ReadBuffer(buffer, size); }
+
+	public:
+		std::string ReadStr();
+		std::string ReadStrAt(FileAddr position);
+		std::string ReadStr(size_t size);
+		std::string ReadStrPtr();
 
 		template <typename Func>
 		void ReadAt(FileAddr position, const Func func)
@@ -52,18 +55,13 @@ namespace Comfy::IO
 			return value;
 		}
 
-		std::string ReadStr();
-		std::string ReadStrAt(FileAddr position);
-		std::string ReadStr(size_t size);
-
-		inline std::string ReadStrPtr() { return ReadStrAt(ReadPtr()); }
-
+	public:
 		inline FileAddr ReadPtr() { return (this->*readPtrFunc)(); }
 		inline size_t ReadSize() { return (this->*readSizeFunc)(); }
-		inline bool ReadBool() { return ReadType<bool>(); }
-		inline char ReadChar() { return ReadType<char>(); }
-		inline i8 ReadI8() { return ReadType<i8>(); }
-		inline u8 ReadU8() { return ReadType<u8>(); }
+		inline bool ReadBool() { return ReadType_Native<bool>(); }
+		inline char ReadChar() { return ReadType_Native<char>(); }
+		inline i8 ReadI8() { return ReadType_Native<i8>(); }
+		inline u8 ReadU8() { return ReadType_Native<u8>(); }
 		inline i16 ReadI16() { return (this->*readI16Func)(); }
 		inline u16 ReadU16() { return (this->*readU16Func)(); }
 		inline i32 ReadI32() { return (this->*readI32Func)(); }
@@ -73,30 +71,34 @@ namespace Comfy::IO
 		inline f32 ReadF32() { return (this->*readF32Func)(); }
 		inline f64 ReadF64() { return (this->*readF64Func)(); }
 
+	public:
 		inline vec2 ReadV2() { vec2 result; result.x = ReadF32(); result.y = ReadF32(); return result; }
 		inline vec3 ReadV3() { vec3 result; result.x = ReadF32(); result.y = ReadF32(); result.z = ReadF32(); return result; }
 		inline vec4 ReadV4() { vec4 result; result.x = ReadF32(); result.y = ReadF32(); result.z = ReadF32(); result.w = ReadF32(); return result; }
-		inline mat3 ReadMat3() { assert(GetEndianness() == Endianness::Native); return ReadType<mat3>(); }
-		inline mat4 ReadMat4() { assert(GetEndianness() == Endianness::Native); return ReadType<mat4>(); }
+		inline mat3 ReadMat3() { assert(GetEndianness() == Endianness::Native); return ReadType_Native<mat3>(); }
+		inline mat4 ReadMat4() { assert(GetEndianness() == Endianness::Native); return ReadType_Native<mat4>(); }
 		inline ivec2 ReadIV2() { ivec2 result; result.x = ReadI32(); result.y = ReadI32(); return result; }
 		inline ivec3 ReadIV3() { ivec3 result; result.x = ReadI32(); result.y = ReadI32(); result.z = ReadI32(); return result; }
 		inline ivec4 ReadIV4() { ivec4 result; result.x = ReadI32(); result.y = ReadI32(); result.z = ReadI32(); result.w = ReadI32(); return result; }
 
 	public:
+		template <typename T>
+		T ReadType_Native() { T value; ReadBuffer(&value, sizeof(value)); return value; }
+
 		inline FileAddr ReadPtr_32() { return static_cast<FileAddr>(ReadI32()); }
 		inline FileAddr ReadPtr_64() { return static_cast<FileAddr>(ReadI64()); }
 
 		inline size_t ReadSize_32() { return static_cast<size_t>(ReadU32()); }
 		inline size_t ReadSize_64() { return static_cast<size_t>(ReadU64()); }
 
-		inline i16 ReadI16_LE() { return ReadType<i16>(); }
-		inline u16 ReadU16_LE() { return ReadType<u16>(); }
-		inline i32 ReadI32_LE() { return ReadType<i32>(); }
-		inline u32 ReadU32_LE() { return ReadType<u32>(); }
-		inline i64 ReadI64_LE() { return ReadType<i64>(); }
-		inline u64 ReadU64_LE() { return ReadType<u64>(); }
-		inline f32 ReadF32_LE() { return ReadType<f32>(); }
-		inline f64 ReadF64_LE() { return ReadType<f64>(); }
+		inline i16 ReadI16_LE() { return ReadType_Native<i16>(); }
+		inline u16 ReadU16_LE() { return ReadType_Native<u16>(); }
+		inline i32 ReadI32_LE() { return ReadType_Native<i32>(); }
+		inline u32 ReadU32_LE() { return ReadType_Native<u32>(); }
+		inline i64 ReadI64_LE() { return ReadType_Native<i64>(); }
+		inline u64 ReadU64_LE() { return ReadType_Native<u64>(); }
+		inline f32 ReadF32_LE() { return ReadType_Native<f32>(); }
+		inline f64 ReadF64_LE() { return ReadType_Native<f64>(); }
 
 		inline i16 ReadI16_BE() { return Utilities::ByteSwapI16(ReadI16_LE()); }
 		inline u16 ReadU16_BE() { return Utilities::ByteSwapU16(ReadU16_LE()); }
