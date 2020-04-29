@@ -16,19 +16,9 @@ namespace Comfy::IO
 		{
 		}
 
+		~StreamManipulator() = default;
+
 	public:
-		~StreamManipulator()
-		{
-			if (underlyingStream == nullptr || leaveStreamOpen)
-				return;
-
-			underlyingStream->Close();
-			underlyingStream = nullptr;
-		}
-
-		inline bool GetLeaveStreamOpen() const { return leaveStreamOpen; }
-		inline void SetLeaveStreamOpen(bool value) { leaveStreamOpen = value; }
-
 		inline FileAddr GetPosition() const { return underlyingStream->GetPosition(); }
 		inline void SetPosition(FileAddr position) { return underlyingStream->Seek(position); }
 
@@ -51,7 +41,6 @@ namespace Comfy::IO
 		PtrMode pointerMode = PtrMode::Mode32Bit;
 		Endianness endianness = Endianness::Little;
 
-		bool leaveStreamOpen = false;
 		IStream* underlyingStream = nullptr;
 	};
 }
