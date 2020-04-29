@@ -69,10 +69,13 @@ namespace Comfy::FileSystem
 		if (outFileContent == nullptr || !stream.IsOpen())
 			return;
 
-		stream.Seek(entry.Offset);
+		// NOTE: Could this be related to the IV size?
+		const size_t dataOffset = (encryptionFormat == FArcEncryptionFormat::Modern) ? 16 : 0;
 
 		if (flags & FArcFlags_Compressed)
 		{
+			stream.Seek(entry.Offset);
+
 			// NOTE: Since the farc file size is only stored in a 32bit integer, decompressing it as a single block should be safe enough (?)
 			const auto paddedSize = FArcEncryption::GetPaddedSize(entry.CompressedSize) + 16;
 
@@ -91,9 +94,6 @@ namespace Comfy::FileSystem
 				stream.ReadBuffer(compressedData.get(), entry.CompressedSize);
 			}
 
-			// NOTE: Could this be related to the IV size?
-			const uint32_t dataOffset = (encryptionFormat == FArcEncryptionFormat::OrbisFutureTone) ? 16 : 0;
-
 			z_stream zStream;
 			zStream.zalloc = Z_NULL;
 			zStream.zfree = Z_NULL;
@@ -107,7 +107,7 @@ namespace Comfy::FileSystem
 			assert(initResult == Z_OK);
 
 			// NOTE: This will sometimes fail with Z_DATA_ERROR "incorrect data check" which I believe to be caused by alignment issues with the very last data block of the file
-			// NOTE: The file content should however still have been inflated correctly
+			//		 The file content should however still have been inflated correctly
 			const int inflateResult = inflate(&zStream, Z_FINISH);
 			// assert(inflateResult == Z_STREAM_END && zStream.msg == nullptr);
 
@@ -116,10 +116,12 @@ namespace Comfy::FileSystem
 		}
 		else if (flags & FArcFlags_Encrypted)
 		{
-			const auto paddedSize = FArcEncryption::GetPaddedSize(entry.CompressedSize);
+			stream.Seek(entry.Offset);
+
+			const auto paddedSize = FArcEncryption::GetPaddedSize(entry.OriginalSize) + dataOffset;
 			auto encryptedData = MakeUnique<uint8_t[]>(paddedSize);
 
-			stream.ReadBuffer(encryptedData.get(), entry.OriginalSize);
+			stream.ReadBuffer(encryptedData.get(), paddedSize);
 			uint8_t* fileOutput = reinterpret_cast<uint8_t*>(outFileContent);
 
 			if (paddedSize == entry.OriginalSize)
@@ -132,11 +134,14 @@ namespace Comfy::FileSystem
 				auto decryptedData = MakeUnique<uint8_t[]>(paddedSize);
 
 				DecryptFileContent(encryptedData.get(), decryptedData.get(), paddedSize);
-				std::copy(decryptedData.get(), decryptedData.get() + entry.OriginalSize, fileOutput);
+
+				const uint8_t* decryptedOffsetData = decryptedData.get() + dataOffset;
+				std::copy(decryptedOffsetData, decryptedOffsetData + entry.OriginalSize, fileOutput);
 			}
 		}
 		else
 		{
+			stream.Seek(entry.Offset);
 			stream.ReadBuffer(outFileContent, entry.OriginalSize);
 		}
 	}
@@ -149,13 +154,17 @@ namespace Comfy::FileSystem
 		std::array<uint32_t, 2> parsedSignatureData;
 		stream.ReadBuffer(parsedSignatureData.data(), sizeof(parsedSignatureData));
 
-		const auto parsedSignature = static_cast<FArcSignature>(Utilities::ByteSwapU32(parsedSignatureData[0]));
-		auto parsedHeaderSize = Utilities::ByteSwapU32(parsedSignatureData[1]);
+		signature = static_cast<FArcSignature>(Utilities::ByteSwapU32(parsedSignatureData[0]));
+		const auto parsedHeaderSize = Utilities::ByteSwapU32(parsedSignatureData[1]);
+
+		// NOTE: Empty but valid FArc
+		if (signature == FArcSignature::UnCompressed && parsedHeaderSize <= sizeof(uint32_t))
+			return true;
 
 		if (stream.GetLength() <= (stream.GetPosition() + static_cast<FileAddr>(parsedHeaderSize)))
 			return false;
 
-		if (parsedSignature == FArcSignature::Uncompressed || parsedSignature == FArcSignature::Compressed)
+		if (signature == FArcSignature::UnCompressed || signature == FArcSignature::Compressed)
 		{
 			encryptionFormat = FArcEncryptionFormat::None;
 
@@ -163,38 +172,41 @@ namespace Comfy::FileSystem
 			stream.ReadBuffer(&parsedAlignment, sizeof(parsedAlignment));
 
 			alignment = Utilities::ByteSwapU32(parsedAlignment);
-			flags = (parsedSignature == FArcSignature::Compressed) ? FArcFlags_Compressed : FArcFlags_None;
+			flags = (signature == FArcSignature::Compressed) ? FArcFlags_Compressed : FArcFlags_None;
 
-			parsedHeaderSize -= sizeof(alignment);
+			const auto headerSize = (parsedHeaderSize - sizeof(alignment));
 
-			auto headerData = MakeUnique<uint8_t[]>(parsedHeaderSize);
-			stream.ReadBuffer(headerData.get(), parsedHeaderSize);
+			auto headerData = MakeUnique<uint8_t[]>(headerSize);
+			stream.ReadBuffer(headerData.get(), headerSize);
 
 			uint8_t* currentHeaderPosition = headerData.get();
-			uint8_t* headerEnd = headerData.get() + parsedHeaderSize;
+			const uint8_t* headerEnd = headerData.get() + headerSize;
 
 			ParseAllEntriesByRange(currentHeaderPosition, headerEnd);
 		}
-		else if (parsedSignature == FArcSignature::Encrypted)
+		else if (signature == FArcSignature::Extended)
 		{
 			std::array<uint32_t, 2> parsedFormatData;
 			stream.ReadBuffer(parsedFormatData.data(), sizeof(parsedFormatData));
 
 			flags = static_cast<FArcFlags>(Utilities::ByteSwapU32(parsedFormatData[0]));
-			alignment = Utilities::ByteSwapU32(parsedFormatData[1]);
 
 			// NOTE: Peek at the next 8 bytes which are either the alignment value followed by padding or the start of the AES IV
 			std::array<uint32_t, 2> parsedNextData;
 			stream.ReadBuffer(parsedNextData.data(), sizeof(parsedNextData));
-			stream.Seek(stream.GetPosition() - FileAddr(sizeof(parsedNextData)));
+
+			alignment = Utilities::ByteSwapU32(parsedNextData[0]);
+			isModern = (parsedNextData[1] != 0);
 
 			// NOTE: If the padding is not zero and the potential alignment value is unreasonably high we treat it as an encrypted entry table
 			constexpr uint32_t reasonableAlignmentThreshold = 0x1000;
-			const bool encryptedEntries = (flags & FArcFlags_Encrypted) && (parsedNextData[1] != 0) && (Utilities::ByteSwapU32(parsedNextData[0]) >= reasonableAlignmentThreshold);
+			const bool encryptedEntries = (flags & FArcFlags_Encrypted) && isModern && (alignment >= reasonableAlignmentThreshold);
+
+			encryptionFormat = (flags & FArcFlags_Encrypted) ? (encryptedEntries ? FArcEncryptionFormat::Modern : FArcEncryptionFormat::Classic) : FArcEncryptionFormat::None;
 
 			if (encryptedEntries)
 			{
-				encryptionFormat = FArcEncryptionFormat::OrbisFutureTone;
+				stream.Seek(stream.GetPosition() - FileAddr(sizeof(parsedNextData)));
 				stream.ReadBuffer(aesIV.data(), aesIV.size());
 
 				const auto paddedHeaderSize = FArcEncryption::GetPaddedSize(parsedHeaderSize);
@@ -210,73 +222,98 @@ namespace Comfy::FileSystem
 				DecryptFileContent(encryptedHeaderData, decryptedHeaderData, paddedHeaderSize);
 
 				uint8_t* currentHeaderPosition = decryptedHeaderData;
-				uint8_t* headerEnd = decryptedHeaderData + parsedHeaderSize;
+				const uint8_t* headerEnd = decryptedHeaderData + parsedHeaderSize;
 
+				// NOTE: Example data: 00 00 00 10 | 00 00 00 01 | 00 00 00 01 | 00 00 00 10
 				alignment = Utilities::ByteSwapU32(*reinterpret_cast<uint32_t*>(currentHeaderPosition));
 				currentHeaderPosition += sizeof(uint32_t);
 				currentHeaderPosition += sizeof(uint32_t);
 
-				uint32_t entryCount = Utilities::ByteSwapU32(*reinterpret_cast<uint32_t*>(currentHeaderPosition));
+				const uint32_t entryCount = Utilities::ByteSwapU32(*reinterpret_cast<uint32_t*>(currentHeaderPosition));
 				currentHeaderPosition += sizeof(uint32_t);
 				currentHeaderPosition += sizeof(uint32_t);
 
-				ParseAllEntriesByCount(currentHeaderPosition, entryCount);
+				ParseAllEntriesByCount(currentHeaderPosition, entryCount, headerEnd);
+				assert(entries.size() == entryCount);
 			}
 			else
 			{
-				encryptionFormat = FArcEncryptionFormat::ProjectDivaBin;
+				stream.Seek(stream.GetPosition() - FileAddr(sizeof(uint32_t)));
 
-				parsedHeaderSize -= sizeof(parsedFormatData);
+				const auto headerSize = (parsedHeaderSize - 12);
 
-				auto headerData = MakeUnique<uint8_t[]>(parsedHeaderSize);
-				stream.ReadBuffer(headerData.get(), parsedHeaderSize);
+				auto headerData = MakeUnique<uint8_t[]>(headerSize);
+				stream.ReadBuffer(headerData.get(), headerSize);
 
 				uint8_t* currentHeaderPosition = headerData.get();
-				uint8_t* headerEnd = headerData.get() + parsedHeaderSize;
+				const uint8_t* headerEnd = currentHeaderPosition + headerSize;
 
-				alignment = Utilities::ByteSwapU32(*reinterpret_cast<uint32_t*>(currentHeaderPosition));
-				currentHeaderPosition += sizeof(uint32_t);
+				if (isModern)
+				{
+					// NOTE: Example data: 00 00 00 01 | 00 00 00 01 | 00 00 00 10
+					const uint32_t reserved = Utilities::ByteSwapU32(*reinterpret_cast<uint32_t*>(currentHeaderPosition));
+					currentHeaderPosition += sizeof(uint32_t);
 
-				// NOTE: Padding (?)
-				currentHeaderPosition += sizeof(uint32_t);
-				currentHeaderPosition += sizeof(uint32_t);
+					const uint32_t entryCount = Utilities::ByteSwapU32(*reinterpret_cast<uint32_t*>(currentHeaderPosition));
+					currentHeaderPosition += sizeof(uint32_t);
 
-				ParseAllEntriesByRange(currentHeaderPosition, headerEnd);
+					alignment = Utilities::ByteSwapU32(*reinterpret_cast<uint32_t*>(currentHeaderPosition));
+					currentHeaderPosition += sizeof(uint32_t);
+
+					ParseAllEntriesByCount(currentHeaderPosition, entryCount, headerEnd);
+					assert(entries.size() == entryCount);
+				}
+				else
+				{
+					const uint32_t reserved0 = Utilities::ByteSwapU32(*reinterpret_cast<uint32_t*>(currentHeaderPosition));
+					currentHeaderPosition += sizeof(uint32_t);
+
+					const uint32_t reserved1 = Utilities::ByteSwapU32(*reinterpret_cast<uint32_t*>(currentHeaderPosition));
+					currentHeaderPosition += sizeof(uint32_t);
+
+					ParseAllEntriesByRange(currentHeaderPosition, headerEnd);
+				}
 			}
 		}
 		else
 		{
-			// NOTE: Not a farc file or invalid format, might wanna add some error logging
+			// NOTE: Not a FArc file or invalid format, might wanna add some error logging
 			return false;
 		}
 
 		return true;
 	}
 
-	bool FArc::ParseAdvanceSingleEntry(const uint8_t*& headerDataPointer)
+	bool FArc::ParseAdvanceSingleEntry(const uint8_t*& headerDataPointer, const uint8_t* const headerEnd)
 	{
 		auto newEntry = FArcEntry(*this);
 
 		newEntry.Name = std::string(reinterpret_cast<const char*>(headerDataPointer));
+		assert(!newEntry.Name.empty());
+
 		headerDataPointer += newEntry.Name.size() + sizeof(char);
+		assert(headerDataPointer <= headerEnd);
 
 		newEntry.Offset = static_cast<FileAddr>(Utilities::ByteSwapU32(*reinterpret_cast<const uint32_t*>(headerDataPointer)));
-		headerDataPointer += sizeof(uint32_t);
 
-		const uint32_t parsedFileSize = Utilities::ByteSwapU32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
 		headerDataPointer += sizeof(uint32_t);
+		assert(headerDataPointer <= headerEnd);
 
-		if (flags & FArcFlags_Compressed)
+		newEntry.CompressedSize = Utilities::ByteSwapU32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
+
+		headerDataPointer += sizeof(uint32_t);
+		assert(headerDataPointer <= headerEnd);
+
+		if (signature == FArcSignature::UnCompressed)
 		{
-			newEntry.CompressedSize = parsedFileSize;
-			newEntry.OriginalSize = Utilities::ByteSwapU32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
-
-			headerDataPointer += sizeof(uint32_t);
+			newEntry.OriginalSize = newEntry.CompressedSize;
 		}
 		else
 		{
-			newEntry.CompressedSize = parsedFileSize;
-			newEntry.OriginalSize = parsedFileSize;
+			newEntry.OriginalSize = Utilities::ByteSwapU32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
+
+			headerDataPointer += sizeof(uint32_t);
+			assert(headerDataPointer <= headerEnd);
 		}
 
 		if (newEntry.Offset + static_cast<FileAddr>(newEntry.CompressedSize) > stream.GetLength())
@@ -285,10 +322,11 @@ namespace Comfy::FileSystem
 			false;
 		}
 
-		if (encryptionFormat == FArcEncryptionFormat::OrbisFutureTone)
+		if (isModern)
 		{
 			const uint32_t parsedReserved = Utilities::ByteSwapU32(*reinterpret_cast<const uint32_t*>(headerDataPointer));
 			headerDataPointer += sizeof(uint32_t);
+			assert(headerDataPointer <= headerEnd);
 		}
 
 		entries.push_back(std::move(newEntry));
@@ -299,19 +337,19 @@ namespace Comfy::FileSystem
 	{
 		while (headerStart < headerEnd)
 		{
-			if (!ParseAdvanceSingleEntry(headerStart))
+			if (!ParseAdvanceSingleEntry(headerStart, headerEnd))
 				break;
 		}
 
 		return true;
 	}
 
-	bool FArc::ParseAllEntriesByCount(const uint8_t* headerData, size_t entryCount)
+	bool FArc::ParseAllEntriesByCount(const uint8_t* headerData, size_t entryCount, const uint8_t* const headerEnd)
 	{
 		entries.reserve(entryCount);
 		for (size_t i = 0; i < entryCount; i++)
 		{
-			if (!ParseAdvanceSingleEntry(headerData))
+			if (!ParseAdvanceSingleEntry(headerData, headerEnd))
 				break;
 		}
 
@@ -320,13 +358,13 @@ namespace Comfy::FileSystem
 
 	bool FArc::DecryptFileContent(const uint8_t* encryptedData, uint8_t* decryptedData, size_t dataSize)
 	{
-		if (encryptionFormat == FArcEncryptionFormat::ProjectDivaBin)
+		if (encryptionFormat == FArcEncryptionFormat::Classic)
 		{
-			return Crypto::Win32DecryptAesEcb(encryptedData, decryptedData, dataSize, FArcEncryption::ProjectDivaBinKey);
+			return Crypto::Win32DecryptAesEcb(encryptedData, decryptedData, dataSize, FArcEncryption::ClassicKey);
 		}
-		else if (encryptionFormat == FArcEncryptionFormat::OrbisFutureTone)
+		else if (encryptionFormat == FArcEncryptionFormat::Modern)
 		{
-			return Crypto::Win32DecryptAesCbc(encryptedData, decryptedData, dataSize, FArcEncryption::OrbisFutureToneKey, aesIV);
+			return Crypto::Win32DecryptAesCbc(encryptedData, decryptedData, dataSize, FArcEncryption::ModernKey, aesIV);
 		}
 		else
 		{
