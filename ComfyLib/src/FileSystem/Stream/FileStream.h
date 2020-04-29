@@ -4,7 +4,7 @@
 
 namespace Comfy::FileSystem
 {
-	class FileStream : public StreamBase
+	class FileStream final : public StreamBase
 	{
 	public:
 		FileStream();

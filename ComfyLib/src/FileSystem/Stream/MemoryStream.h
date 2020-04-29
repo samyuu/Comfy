@@ -4,7 +4,7 @@
 
 namespace Comfy::FileSystem
 {
-	class MemoryStream : public StreamBase
+	class MemoryStream final : public StreamBase
 	{
 	public:
 		MemoryStream();
