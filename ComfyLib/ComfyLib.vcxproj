@@ -23,6 +23,7 @@
     <ClInclude Include="src\IO\Crypto\Crypto.h" />
     <ClInclude Include="src\IO\Crypto\Detail\Win32Crypto.h" />
     <ClInclude Include="src\IO\BinaryMode.h" />
+    <ClInclude Include="src\IO\Stream\Manipulator\StreamManipulator.h" />
     <ClInclude Include="src\IO\Stream\Manipulator\StreamReader.h" />
     <ClInclude Include="src\IO\Stream\Manipulator\StreamWriter.h" />
     <ClInclude Include="src\IO\FileHelper.h" />

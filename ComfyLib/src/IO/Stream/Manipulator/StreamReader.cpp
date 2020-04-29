@@ -3,10 +3,44 @@
 
 namespace Comfy::IO
 {
-	void StreamReader::SetPointerMode(PtrMode value)
+	std::string StreamReader::ReadStr()
 	{
-		pointerMode = value;
+		// NOTE: Account for the ending null byte
+		size_t length = sizeof('\0');
 
+		const auto prePos = GetPosition();
+		{
+			while (ReadChar() != '\0' && !EndOfFile())
+				length++;
+		}
+		SetPosition(prePos);
+
+		if (length == sizeof(char))
+			return "";
+
+		auto result = std::string(length - sizeof(char), '\0');
+		ReadBuffer(result.data(), length * sizeof(char) - 1);
+		SetPosition(GetPosition() + static_cast<FileAddr>(sizeof(char)));
+		return result;
+	}
+
+	std::string StreamReader::ReadStrAt(FileAddr position)
+	{
+		return ReadAt<std::string>(position, [this](StreamReader&)
+		{
+			return ReadStr();
+		});
+	}
+
+	std::string StreamReader::ReadStr(size_t size)
+	{
+		auto result = std::string(size, '\0');
+		ReadBuffer(result.data(), size * sizeof(char));
+		return result;
+	}
+
+	void StreamReader::OnPointerModeChanged()
+	{
 		switch (pointerMode)
 		{
 		case PtrMode::Mode32Bit:
@@ -25,11 +59,9 @@ namespace Comfy::IO
 		}
 	}
 
-	void StreamReader::SetEndianness(Endianness value)
+	void StreamReader::OnEndiannessChanged()
 	{
-		endianness = value;
-
-		switch (value)
+		switch (endianness)
 		{
 		case Endianness::Little:
 			readI16Func = &LE_ReadI16;
@@ -57,41 +89,5 @@ namespace Comfy::IO
 			assert(false);
 			return;
 		}
-	}
-
-	std::string StreamReader::ReadStr()
-	{
-		// NOTE: Account for the ending null byte
-		size_t length = sizeof('\0');
-
-		const auto prePos = GetPosition();
-		{
-			while (ReadChar() != '\0' && !EndOfFile())
-				length++;
-		}
-		SetPosition(prePos);
-
-		if (length == sizeof(char))
-			return "";
-
-		std::string result(length - sizeof(char), '\0');
-		ReadBuffer(result.data(), length * sizeof(char) - 1);
-		SetPosition(GetPosition() + static_cast<FileAddr>(sizeof(char)));
-		return result;
-	}
-
-	std::string StreamReader::ReadStrAt(FileAddr position)
-	{
-		return ReadAt<std::string>(position, [this](StreamReader&)
-		{
-			return ReadStr();
-		});
-	}
-
-	std::string StreamReader::ReadStr(size_t size)
-	{
-		std::string result(size, '\0');
-		ReadBuffer(result.data(), size * sizeof(char));
-		return result;
 	}
 }

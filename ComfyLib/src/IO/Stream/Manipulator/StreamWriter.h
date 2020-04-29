@@ -1,62 +1,26 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
-#include "IO/BinaryMode.h"
-#include "IO/Stream/IStream.h"
+#include "StreamManipulator.h"
 #include <list>
 #include <map>
 #include <functional>
 
 namespace Comfy::IO
 {
-	class StreamWriter : NonCopyable
+	class StreamWriter final : public StreamManipulator, NonCopyable
 	{
 	public:
-		static constexpr u32 PaddingValue = 0xCCCCCCCC;
+		explicit StreamWriter(IStream& stream) : StreamManipulator(stream)
+		{
+			assert(stream.CanWrite());
+			OnPointerModeChanged();
+			OnEndiannessChanged();
+		}
+
+		~StreamWriter() = default;
 
 	public:
-		StreamWriter()
-		{
-			SetPointerMode(PtrMode::Mode32Bit);
-		}
-
-		explicit StreamWriter(IStream& stream) : StreamWriter()
-		{
-			OpenStream(stream);
-		}
-
-		~StreamWriter()
-		{
-			Close();
-		}
-
-		inline void OpenStream(IStream& stream)
-		{
-			assert(stream.CanWrite() && underlyingStream == nullptr);
-			underlyingStream = &stream;
-		}
-
-		inline void Close()
-		{
-			if (underlyingStream != nullptr && !leaveStreamOpen)
-				underlyingStream->Close();
-			underlyingStream = nullptr;
-		}
-
-		inline bool IsOpen() const { return underlyingStream != nullptr; }
-		inline bool GetLeaveStreamOpen() const { return leaveStreamOpen; }
-
-		inline FileAddr GetPosition() const { return underlyingStream->GetPosition(); }
-		inline void SetPosition(FileAddr position) { return underlyingStream->Seek(position); }
-
-		inline void SkipPosition(FileAddr increment) { return underlyingStream->Seek(GetPosition() + increment); }
-
-		inline FileAddr GetLength() const { return underlyingStream->GetLength(); }
-		inline bool EndOfFile() const { return underlyingStream->GetPosition() >= underlyingStream->GetLength(); }
-
-		inline PtrMode GetPointerMode() const { return pointerMode; }
-		void SetPointerMode(PtrMode mode);
-
 		inline size_t WriteBuffer(const void* buffer, size_t size) { return underlyingStream->WriteBuffer(buffer, size); }
 
 		template <typename T>
@@ -88,23 +52,35 @@ namespace Comfy::IO
 		inline void WriteU32(u32 value) { return WriteType<u32>(value); }
 		inline void WriteI64(i64 value) { return WriteType<i64>(value); }
 		inline void WriteU64(u64 value) { return WriteType<u64>(value); }
-		inline void WriteF32(float value) { return WriteType<float>(value); }
-		inline void WriteF64(double value) { return WriteType<double>(value); }
+		inline void WriteF32(f32 value) { return WriteType<f32>(value); }
+		inline void WriteF64(f64 value) { return WriteType<f64>(value); }
 
 	protected:
-		using WritePtrFunc_t = void(StreamWriter&, FileAddr);
-		WritePtrFunc_t* writePtrFunc = nullptr;
+		void OnPointerModeChanged() override;
+		void OnEndiannessChanged() override;
 
-		PtrMode pointerMode = {};
-		bool leaveStreamOpen = false;
-		bool poolStrings = true;
-		IStream* underlyingStream = nullptr;
+	private:
+		// TODO: LE/BE and Size-32/64
+		using WritePtrFunc = void(StreamWriter&, FileAddr);
+
+		WritePtrFunc* writePtrFunc = nullptr;
+
+		struct Settings
+		{
+			bool PoolStrings = true;
+		} settings;
 
 		struct StringPointerEntry
 		{
 			FileAddr ReturnAddress;
 			std::string_view String;
 			i32 Alignment;
+		};
+
+		struct DelayedWriteEntry
+		{
+			FileAddr ReturnAddress;
+			const std::function<void(StreamWriter&)> Function;
 		};
 
 		struct FunctionPointerEntry
@@ -114,16 +90,13 @@ namespace Comfy::IO
 			const std::function<void(StreamWriter&)> Function;
 		};
 
-		struct DelayedWriteEntry
-		{
-			FileAddr ReturnAddress;
-			const std::function<void(StreamWriter&)> Function;
-		};
-
 		std::unordered_map<std::string, FileAddr> writtenStringPool;
 		std::vector<StringPointerEntry> stringPointerPool;
-		std::list<FunctionPointerEntry> pointerPool;
+
 		std::vector<DelayedWriteEntry> delayedWritePool;
+
+		// NOTE: Using std::list to avoid invalidating previous entries while executing recursive pointer writes
+		std::list<FunctionPointerEntry> pointerPool;
 
 	private:
 		static void WritePtr32(StreamWriter& writer, FileAddr value) { writer.WriteI32(static_cast<i32>(value)); }

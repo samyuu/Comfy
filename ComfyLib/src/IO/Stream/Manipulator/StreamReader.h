@@ -1,65 +1,31 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
-#include "IO/BinaryMode.h"
-#include "IO/Stream/IStream.h"
+#include "StreamManipulator.h"
 #include "Misc/EndianHelper.h"
 
 namespace Comfy::IO
 {
-	class StreamReader : NonCopyable
+	class StreamReader final : public StreamManipulator, NonCopyable
 	{
 	public:
-		StreamReader()
+		StreamReader(IStream& stream) : StreamManipulator(stream)
 		{
-			SetPointerMode(PtrMode::Mode32Bit);
-			SetEndianness(Endianness::Little);
+			assert(stream.CanRead());
+			OnPointerModeChanged();
+			OnEndiannessChanged();
 		}
 
-		explicit StreamReader(IStream& stream) : StreamReader()
-		{
-			OpenStream(stream);
-		}
+		~StreamReader() = default;
 
-		~StreamReader()
-		{
-			Close();
-		}
-
-		inline void OpenStream(IStream& stream)
-		{
-			assert(stream.CanRead() && underlyingStream == nullptr);
-			underlyingStream = &stream;
-		}
-
-		inline void Close()
-		{
-			if (underlyingStream != nullptr && !leaveStreamOpen)
-				underlyingStream->Close();
-			underlyingStream = nullptr;
-		}
-
-		inline bool IsOpen() const { return underlyingStream != nullptr; }
-
-		inline void SetLeaveStreamOpen(bool value) { leaveStreamOpen = value; }
-		inline bool GetLeaveStreamOpen() const { return leaveStreamOpen; }
-
-		inline FileAddr GetPosition() const { return underlyingStream->GetPosition() - streamSeekOffset; }
-		inline void SetPosition(FileAddr position) { return underlyingStream->Seek(position + streamSeekOffset); }
-
-		inline FileAddr GetLength() const { return underlyingStream->GetLength(); }
-		inline bool EndOfFile() const { return underlyingStream->GetPosition() >= underlyingStream->GetLength(); }
+	public:
+		inline size_t ReadBuffer(void* buffer, size_t size) { return underlyingStream->ReadBuffer(buffer, size); }
+		
+		template <typename T>
+		T ReadType() { T value; ReadBuffer(&value, sizeof(value)); return value; }
 
 		inline FileAddr GetStreamSeekOffset() const { return streamSeekOffset; }
 		inline void SetStreamSeekOffset(FileAddr value) { streamSeekOffset = value; }
-
-		inline PtrMode GetPointerMode() const { return pointerMode; }
-		void SetPointerMode(PtrMode value);
-
-		inline Endianness GetEndianness() const { return endianness; }
-		void SetEndianness(Endianness value);
-
-		inline size_t ReadBuffer(void* buffer, size_t size) { return underlyingStream->ReadBuffer(buffer, size); }
 
 		template <typename Func>
 		void ReadAt(FileAddr position, const Func func)
@@ -104,8 +70,8 @@ namespace Comfy::IO
 		inline u32 ReadU32() { return readU32Func(*this); }
 		inline i64 ReadI64() { return readI64Func(*this); }
 		inline u64 ReadU64() { return readU64Func(*this); }
-		inline float ReadF32() { return readF32Func(*this); }
-		inline double ReadF64() { return readF64Func(*this); }
+		inline f32 ReadF32() { return readF32Func(*this); }
+		inline f64 ReadF64() { return readF64Func(*this); }
 
 		inline vec2 ReadV2() { vec2 result; result.x = ReadF32(); result.y = ReadF32(); return result; }
 		inline vec3 ReadV3() { vec3 result; result.x = ReadF32(); result.y = ReadF32(); result.z = ReadF32(); return result; }
@@ -117,44 +83,36 @@ namespace Comfy::IO
 		inline ivec4 ReadIV4() { ivec4 result; result.x = ReadI32(); result.y = ReadI32(); result.z = ReadI32(); result.w = ReadI32(); return result; }
 
 	protected:
-		using ReadPtrFunc_t = FileAddr(StreamReader&);
-		using ReadSizeFunc_t = size_t(StreamReader&);
-		using ReadI16Func_t = i16(StreamReader&);
-		using ReadU16Func_t = u16(StreamReader&);
-		using ReadI32Func_t = i32(StreamReader&);
-		using ReadU32Func_t = u32(StreamReader&);
-		using ReadI64Func_t = i64(StreamReader&);
-		using ReadU64Func_t = u64(StreamReader&);
-		using ReadF32Func_t = float(StreamReader&);
-		using ReadF64Func_t = double(StreamReader&);
-
-		ReadPtrFunc_t* readPtrFunc = nullptr;
-		ReadSizeFunc_t* readSizeFunc = nullptr;
-		ReadI16Func_t* readI16Func = nullptr;
-		ReadU16Func_t* readU16Func = nullptr;
-		ReadI32Func_t* readI32Func = nullptr;
-		ReadU32Func_t* readU32Func = nullptr;
-		ReadI64Func_t* readI64Func = nullptr;
-		ReadU64Func_t* readU64Func = nullptr;
-		ReadF32Func_t* readF32Func = nullptr;
-		ReadF64Func_t* readF64Func = nullptr;
-
-		PtrMode pointerMode = PtrMode::Mode32Bit;
-		Endianness endianness = Endianness::Little;
-
-		bool leaveStreamOpen = false;
-		FileAddr streamSeekOffset = {};
-		IStream* underlyingStream = nullptr;
+		void OnPointerModeChanged() override;
+		void OnEndiannessChanged() override;
 
 	private:
-		template <typename T>
-		T ReadType()
-		{
-			T value;
-			ReadBuffer(&value, sizeof(value));
-			return value;
-		}
+		using ReadPtrFunc = FileAddr(StreamReader&);
+		using ReadSizeFunc = size_t(StreamReader&);
+		using ReadI16Func = i16(StreamReader&);
+		using ReadU16Func = u16(StreamReader&);
+		using ReadI32Func = i32(StreamReader&);
+		using ReadU32Func = u32(StreamReader&);
+		using ReadI64Func = i64(StreamReader&);
+		using ReadU64Func = u64(StreamReader&);
+		using ReadF32Func = f32(StreamReader&);
+		using ReadF64Func = f64(StreamReader&);
 
+		ReadPtrFunc* readPtrFunc = nullptr;
+		ReadSizeFunc* readSizeFunc = nullptr;
+		ReadI16Func* readI16Func = nullptr;
+		ReadU16Func* readU16Func = nullptr;
+		ReadI32Func* readI32Func = nullptr;
+		ReadU32Func* readU32Func = nullptr;
+		ReadI64Func* readI64Func = nullptr;
+		ReadU64Func* readU64Func = nullptr;
+		ReadF32Func* readF32Func = nullptr;
+		ReadF64Func* readF64Func = nullptr;
+
+		// TODO: Remove (?)
+		FileAddr streamSeekOffset = {};
+
+	private:
 		static FileAddr ReadPtr32(StreamReader& reader) { return static_cast<FileAddr>(reader.ReadI32()); }
 		static FileAddr ReadPtr64(StreamReader& reader) { return static_cast<FileAddr>(reader.ReadI64()); }
 
@@ -167,8 +125,8 @@ namespace Comfy::IO
 		static u32 LE_ReadU32(StreamReader& reader) { return reader.ReadType<u32>(); }
 		static i64 LE_ReadI64(StreamReader& reader) { return reader.ReadType<i64>(); }
 		static u64 LE_ReadU64(StreamReader& reader) { return reader.ReadType<u64>(); }
-		static float LE_ReadF32(StreamReader& reader) { return reader.ReadType<float>(); }
-		static double LE_ReadF64(StreamReader& reader) { return reader.ReadType<double>(); }
+		static f32 LE_ReadF32(StreamReader& reader) { return reader.ReadType<f32>(); }
+		static f64 LE_ReadF64(StreamReader& reader) { return reader.ReadType<f64>(); }
 
 		static i16 BE_ReadI16(StreamReader& reader) { return Utilities::ByteSwapI16(reader.ReadType<i16>()); }
 		static u16 BE_ReadU16(StreamReader& reader) { return Utilities::ByteSwapU16(reader.ReadType<u16>()); }
@@ -176,7 +134,7 @@ namespace Comfy::IO
 		static u32 BE_ReadU32(StreamReader& reader) { return Utilities::ByteSwapU32(reader.ReadType<u32>()); }
 		static i64 BE_ReadI64(StreamReader& reader) { return Utilities::ByteSwapI64(reader.ReadType<i64>()); }
 		static u64 BE_ReadU64(StreamReader& reader) { return Utilities::ByteSwapU64(reader.ReadType<u64>()); }
-		static float BE_ReadF32(StreamReader& reader) { return Utilities::ByteSwapF32(reader.ReadType<float>()); }
-		static double BE_ReadF64(StreamReader& reader) { return Utilities::ByteSwapF64(reader.ReadType<double>()); }
+		static f32 BE_ReadF32(StreamReader& reader) { return Utilities::ByteSwapF32(reader.ReadType<f32>()); }
+		static f64 BE_ReadF64(StreamReader& reader) { return Utilities::ByteSwapF64(reader.ReadType<f64>()); }
 	};
 }

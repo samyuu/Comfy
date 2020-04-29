@@ -3,26 +3,6 @@
 
 namespace Comfy::IO
 {
-	void StreamWriter::SetPointerMode(PtrMode mode)
-	{
-		pointerMode = mode;
-
-		switch (pointerMode)
-		{
-		case PtrMode::Mode32Bit:
-			writePtrFunc = &WritePtr32;
-			return;
-
-		case PtrMode::Mode64Bit:
-			writePtrFunc = &WritePtr64;
-			return;
-
-		default:
-			assert(false);
-			return;
-		}
-	}
-
 	void StreamWriter::WriteStr(std::string_view value)
 	{
 		// NOTE: Manually write null terminator
@@ -90,7 +70,7 @@ namespace Comfy::IO
 			auto stringOffset = originalStringOffset;
 
 			bool pooledStringFound = false;
-			if (poolStrings)
+			if (settings.PoolStrings)
 			{
 				if (auto pooledString = writtenStringPool.find(std::string(value.String)); pooledString != writtenStringPool.end())
 				{
@@ -115,11 +95,11 @@ namespace Comfy::IO
 				SetPosition(originalStringOffset);
 			}
 
-			if (poolStrings && !pooledStringFound)
+			if (settings.PoolStrings && !pooledStringFound)
 				writtenStringPool.insert(std::make_pair(value.String, stringOffset));
 		}
 
-		if (poolStrings)
+		if (settings.PoolStrings)
 			writtenStringPool.clear();
 
 		stringPointerPool.clear();
@@ -154,5 +134,28 @@ namespace Comfy::IO
 		}
 
 		delayedWritePool.clear();
+	}
+
+	void StreamWriter::OnPointerModeChanged()
+	{
+		switch (pointerMode)
+		{
+		case PtrMode::Mode32Bit:
+			writePtrFunc = &WritePtr32;
+			return;
+
+		case PtrMode::Mode64Bit:
+			writePtrFunc = &WritePtr64;
+			return;
+
+		default:
+			assert(false);
+			return;
+		}
+	}
+
+	void StreamWriter::OnEndiannessChanged()
+	{
+		// TODO:
 	}
 }

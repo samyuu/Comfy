@@ -108,6 +108,9 @@
     <ClInclude Include="src\IO\Stream\Manipulator\StreamReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\IO\Stream\Manipulator\StreamManipulator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp">
