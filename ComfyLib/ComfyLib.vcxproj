@@ -14,11 +14,11 @@
     <ClInclude Include="src\CoreMacros.h" />
     <ClInclude Include="src\CoreTypes.h" />
     <ClInclude Include="src\Core\Algorithm.h" />
-    <ClInclude Include="src\Core\DebugStopwatch.h" />
+    <ClInclude Include="src\Time\Stopwatch.h" />
     <ClInclude Include="src\Core\Logger.h" />
     <ClInclude Include="src\Core\NonCopyable.h" />
     <ClInclude Include="src\Core\SmartPointers.h" />
-    <ClInclude Include="src\Core\TimeSpan.h" />
+    <ClInclude Include="src\Time\TimeSpan.h" />
     <ClInclude Include="src\Core\Win32\ComfyWindows.h" />
     <ClInclude Include="src\Database\AetDB.h" />
     <ClInclude Include="src\Database\Database.h" />
@@ -57,7 +57,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp" />
-    <ClCompile Include="src\Core\TimeSpan.cpp" />
+    <ClCompile Include="src\Time\Stopwatch.cpp" />
+    <ClCompile Include="src\Time\TimeSpan.cpp" />
     <ClCompile Include="src\Database\AetDB.cpp" />
     <ClCompile Include="src\Database\SprDB.cpp" />
     <ClCompile Include="src\Database\TexDB.cpp" />

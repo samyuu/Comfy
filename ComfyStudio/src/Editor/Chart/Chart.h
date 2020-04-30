@@ -2,7 +2,7 @@
 #include "TargetList.h"
 #include "TempoMap.h"
 #include "Timeline/TimelineMap.h"
-#include "Core/TimeSpan.h"
+#include "Time/TimeSpan.h"
 
 namespace Comfy::Editor
 {

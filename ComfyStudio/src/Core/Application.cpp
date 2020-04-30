@@ -58,7 +58,7 @@ namespace Comfy
 			return false;
 
 		hasBeenInitialized = true;
-		TimeSpan::Initialize();
+		TimeSpan::InitializeClock();
 
 		if (!InitializeLoadConfig())
 			return false;

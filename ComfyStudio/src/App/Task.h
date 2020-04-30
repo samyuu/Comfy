@@ -1,6 +1,6 @@
 #pragma once
 #include "Graphics/Auth2D/Aet/AetRenderer.h"
-#include "Core/TimeSpan.h"
+#include "Time/TimeSpan.h"
 
 namespace Comfy::App
 {

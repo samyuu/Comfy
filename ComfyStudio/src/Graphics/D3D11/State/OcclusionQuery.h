@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "../Direct3D.h"
-#include "Core/TimeSpan.h"
+#include "Time/TimeSpan.h"
 #include <optional>
 
 namespace Comfy::Graphics::D3D11

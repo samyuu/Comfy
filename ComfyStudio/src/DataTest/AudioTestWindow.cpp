@@ -188,8 +188,8 @@ namespace Comfy::DataTest
 					{
 						Gui::TextDisabled("%s | (%s / %s) | (%d%%) | %s",
 							instance->GetName(),
-							instance->GetPosition().FormatTime().c_str(),
-							instance->GetDuration().FormatTime().c_str(),
+							instance->GetPosition().ToString().c_str(),
+							instance->GetDuration().ToString().c_str(),
 							static_cast<int>(instance->GetVolume() * 100.0f),
 							instance->GetIsPlaying() ? "Play" : "Pause");
 					}
@@ -239,9 +239,9 @@ namespace Comfy::DataTest
 					audioInstance->SetPosition(TimeSpan::FromSeconds(position));
 
 				Gui::Separator();
-				Gui::Text("audioInstance->GetDuration(): %s", audioInstance->GetDuration().FormatTime().c_str());
+				Gui::Text("audioInstance->GetDuration(): %s", audioInstance->GetDuration().ToString().c_str());
 				Gui::Separator();
-				Gui::Text("audioInstance->GetPosition(): %s", audioInstance->GetPosition().FormatTime().c_str());
+				Gui::Text("audioInstance->GetPosition(): %s", audioInstance->GetPosition().ToString().c_str());
 				Gui::Separator();
 
 				float volume = audioInstance->GetVolume();

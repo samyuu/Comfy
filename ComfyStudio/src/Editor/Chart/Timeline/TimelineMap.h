@@ -1,6 +1,6 @@
 #pragma once
 #include "Editor/Chart/TempoMap.h"
-#include "Core/TimeSpan.h"
+#include "Time/TimeSpan.h"
 
 namespace Comfy::Editor
 {

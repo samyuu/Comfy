@@ -9,7 +9,7 @@
 #include "IO/FileHelper.h"
 #include "Misc/StringHelper.h"
 #include "Input/KeyCode.h"
-#include "Core/TimeSpan.h"
+#include "Time/TimeSpan.h"
 
 namespace Comfy::Editor
 {

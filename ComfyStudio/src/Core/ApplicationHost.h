@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
-#include "Core/TimeSpan.h"
+#include "Time/TimeSpan.h"
 #include "Core/Win32/ComfyWindows.h"
 #include <functional>
 #include <optional>

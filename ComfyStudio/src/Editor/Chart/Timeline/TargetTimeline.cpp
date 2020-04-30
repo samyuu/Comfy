@@ -4,7 +4,7 @@
 #include "Audio/Core/AudioEngine.h"
 #include "IO/FileHelper.h"
 #include "Core/ComfyData.h"
-#include "Core/TimeSpan.h"
+#include "Time/TimeSpan.h"
 #include <FontIcons.h>
 
 namespace Comfy::Editor
@@ -528,7 +528,7 @@ namespace Comfy::Editor
 				//windowDrawList->AddRectFilled(buttonPosition, buttonPosition + buttonSize, TEMPO_MAP_BAR_COLOR);
 				if (Gui::IsItemHovered() && Gui::IsWindowHovered())
 				{
-					Gui::WideSetTooltip("TIME: %s", GetTimelineTime(tempoChange.Tick).FormatTime().c_str());
+					Gui::WideSetTooltip("TIME: %s", GetTimelineTime(tempoChange.Tick).ToString().c_str());
 
 					baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, Gui::GetColorU32(ImGuiCol_ChildBg));
 					if (Gui::IsMouseDoubleClicked(0))

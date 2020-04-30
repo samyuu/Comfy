@@ -1,7 +1,7 @@
 #include "Renderer3D.h"
 #include "Detail/GaussianBlur.h"
 #include "Detail/SubsurfaceScattering.h"
-#include "Core/TimeSpan.h"
+#include "Time/TimeSpan.h"
 #include "ImGui/Gui.h"
 
 namespace Comfy::Graphics::D3D11

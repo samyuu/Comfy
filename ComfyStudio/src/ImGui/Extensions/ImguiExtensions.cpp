@@ -1,6 +1,6 @@
 #include "ImGuiExtensions.h"
 #include "Graphics/D3D11/Texture/Texture.h"
-#include "Core/DebugStopwatch.h"
+#include "Time/Stopwatch.h"
 #include "FontIcons.h"
 
 using namespace Comfy::Graphics;

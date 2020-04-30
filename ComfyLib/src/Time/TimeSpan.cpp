@@ -1,6 +1,5 @@
 #include "Types.h"
 #include "TimeSpan.h"
-#include "DebugStopwatch.h"
 #include "Core/Win32/ComfyWindows.h"
 #include "Core/Logger.h"
 
@@ -49,16 +48,14 @@ namespace Comfy
 		sprintf_s(buffer, bufferSize, "%s%02d:%02d.%03d", signCharacter, static_cast<int>(minutes), static_cast<int>(seconds), static_cast<int>(milliseconds));
 	}
 
-	std::string TimeSpan::FormatTime() const
+	std::string TimeSpan::ToString() const
 	{
-		std::string stringBuffer(RequiredFormatBufferSize, '\0');
-		{
-			FormatTime(stringBuffer.data(), RequiredFormatBufferSize);
-		}
+		auto stringBuffer = std::string(RequiredFormatBufferSize, '\0');
+		FormatTime(stringBuffer.data(), RequiredFormatBufferSize);
 		return stringBuffer;
 	}
 
-	void TimeSpan::Initialize()
+	void TimeSpan::InitializeClock()
 	{
 		GlobalTimingData.StartTime = TimingData::QueryTime();
 		GlobalTimingData.Frequency = TimingData::QueryFrequency();
@@ -74,18 +71,5 @@ namespace Comfy
 	{
 		const i64 absoluteTime = TimingData::QueryTime();
 		return TimeSpan::FromSeconds(static_cast<double>(absoluteTime) / static_cast<double>(GlobalTimingData.Frequency));
-	}
-
-	DebugStopwatch::DebugStopwatch(const char* description)
-		: Description(description), TimeOnStart(TimeSpan::GetTimeNow())
-	{
-	}
-
-	DebugStopwatch::~DebugStopwatch()
-	{
-		const TimeSpan endTime = TimeSpan::GetTimeNow();
-		const TimeSpan elapsed = endTime - TimeOnStart;
-
-		Logger::Log("[DEBUG_STOPWATCH] %s : %.2f MS\n", Description, elapsed.TotalMilliseconds());
 	}
 }

@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "Audio/SampleProvider/ISampleProvider.h"
 #include "AudioEngine.h"
-#include "Core/TimeSpan.h"
+#include "Time/TimeSpan.h"
 
 namespace Comfy::Audio
 {

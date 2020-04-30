@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
-#include "Core/TimeSpan.h"
-#include "Core/DebugStopwatch.h"
+#include "Time/TimeSpan.h"
+#include "Time/Stopwatch.h"
 
 #define COMFY_PROFILER_ENABLED 0
 

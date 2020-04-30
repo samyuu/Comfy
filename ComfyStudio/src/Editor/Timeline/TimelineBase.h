@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/TimeSpan.h"
+#include "Time/TimeSpan.h"
 #include "TimelineBaseRegions.h"
 #include "ITimelinePlaybackControllable.h"
 #include "ITimelineUnitConverter.h"
