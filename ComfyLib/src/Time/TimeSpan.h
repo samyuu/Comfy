@@ -17,6 +17,7 @@ namespace Comfy
 		static constexpr TimeSpan FromMinutes(double value) { return TimeSpan(value * 60.0); }
 		static constexpr TimeSpan FromSeconds(double value) { return TimeSpan(value); }
 		static constexpr TimeSpan FromMilliseconds(double value) { return TimeSpan(value / 1000.0); }
+		static constexpr TimeSpan Zero() { return TimeSpan(0.0); }
 
 	public:
 		constexpr double TotalMinutes() const { return TotalSeconds() / 60.0; }
@@ -27,7 +28,7 @@ namespace Comfy
 		// NOTE: Enough to store "(-)mm:ss:fff"
 		static constexpr size_t RequiredFormatBufferSize = 12;
 
-		void FormatTime(char* buffer, size_t bufferSize) const;		
+		void FormatTime(char* buffer, size_t bufferSize) const;
 
 		// NOTE: Should be small enough for SSO and not allocate additional memory
 		std::string ToString() const;
