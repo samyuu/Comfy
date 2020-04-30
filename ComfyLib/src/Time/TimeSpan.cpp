@@ -9,8 +9,9 @@ namespace Comfy
 	{
 		struct TimingData
 		{
-			i64 StartTime;
-			i64 Frequency;
+			bool Initialized = false;
+			i64 StartTime = 0;
+			i64 Frequency = 0;
 
 			static i64 QueryTime()
 			{
@@ -57,18 +58,22 @@ namespace Comfy
 
 	void TimeSpan::InitializeClock()
 	{
+		assert(!GlobalTimingData.Initialized);
 		GlobalTimingData.StartTime = TimingData::QueryTime();
 		GlobalTimingData.Frequency = TimingData::QueryFrequency();
+		GlobalTimingData.Initialized = true;
 	}
 
 	TimeSpan TimeSpan::GetTimeNow()
 	{
+		assert(GlobalTimingData.Initialized);
 		const i64 relativeTime = TimingData::QueryTime() - GlobalTimingData.StartTime;
 		return TimeSpan::FromSeconds(static_cast<double>(relativeTime) / static_cast<double>(GlobalTimingData.Frequency));
 	}
 
 	TimeSpan TimeSpan::GetTimeNowAbsolute()
 	{
+		assert(GlobalTimingData.Initialized);
 		const i64 absoluteTime = TimingData::QueryTime();
 		return TimeSpan::FromSeconds(static_cast<double>(absoluteTime) / static_cast<double>(GlobalTimingData.Frequency));
 	}
