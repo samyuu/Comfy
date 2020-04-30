@@ -55,7 +55,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\zlib\include;$(SolutionDir)Dependencies\dr_libs\include;$(SolutionDir)Dependencies\iconfont\include;$(SolutionDir)Dependencies\rtaudio\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)ComfyEngine\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\zlib\include;$(SolutionDir)Dependencies\dr_libs\include;$(SolutionDir)Dependencies\iconfont\include;$(SolutionDir)Dependencies\rtaudio\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -75,7 +75,7 @@
       <DisableSpecificWarnings>4201;4458;4100</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(SolutionDir)ComfyLib\bin\$(Platform)-$(Configuration)\ComfyLib.lib;dxguid.lib;d3d11.lib;d3dcompiler.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;d3d11.lib;d3dcompiler.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
@@ -109,7 +109,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\zlib\include;$(SolutionDir)Dependencies\dr_libs\include;$(SolutionDir)Dependencies\iconfont\include;$(SolutionDir)Dependencies\rtaudio\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)ComfyEngine\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\zlib\include;$(SolutionDir)Dependencies\dr_libs\include;$(SolutionDir)Dependencies\iconfont\include;$(SolutionDir)Dependencies\rtaudio\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -130,7 +130,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(SolutionDir)ComfyLib\bin\$(Platform)-$(Configuration)\ComfyLib.lib;dxguid.lib;d3d11.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;d3d11.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -1021,14 +1021,14 @@
     <None Include="src\Graphics\D3D11\Renderer\Detail\ConstantData.h" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ComfyEngine\ComfyEngine.vcxproj">
+      <Project>{d4459561-4b36-48e0-ac0c-e57900ed4782}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\ComfyLib\ComfyLib.vcxproj">
       <Project>{48bdf554-973b-4b4c-8da6-bbab03216cba}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Dependencies\rtaudio\rtaudio.vcxproj">
       <Project>{2ef29eea-28dc-4fdd-84cf-317f07a3b8eb}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Dependencies\zlib\zlib.vcxproj">
-      <Project>{86aa0493-f0ab-4d08-922c-98205271ac58}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

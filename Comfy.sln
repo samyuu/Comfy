@@ -5,8 +5,7 @@ VisualStudioVersion = 15.0.28307.572
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfyStudio", "ComfyStudio\ComfyStudio.vcxproj", "{7225CA33-8C76-4169-B50E-537DE61175F2}"
 	ProjectSection(ProjectDependencies) = postProject
-		{F0C8897F-0E30-4D4C-906D-DBEC75B77FC7} = {F0C8897F-0E30-4D4C-906D-DBEC75B77FC7}
-		{D85741DA-AF9C-41A3-A1A1-AB66860CF465} = {D85741DA-AF9C-41A3-A1A1-AB66860CF465}
+		{D4459561-4B36-48E0-AC0C-E57900ED4782} = {D4459561-4B36-48E0-AC0C-E57900ED4782}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfyVersion", "ComfyVersion\ComfyVersion.vcxproj", "{D85741DA-AF9C-41A3-A1A1-AB66860CF465}"
@@ -25,6 +24,12 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rtaudio", "Dependencies\rtaudio\rtaudio.vcxproj", "{2EF29EEA-28DC-4FDD-84CF-317F07A3B8EB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Version", "Version", "{CEC613CB-1855-426D-A55C-1E621789FD92}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfyEngine", "ComfyEngine\ComfyEngine.vcxproj", "{D4459561-4B36-48E0-AC0C-E57900ED4782}"
+	ProjectSection(ProjectDependencies) = postProject
+		{48BDF554-973B-4B4C-8DA6-BBAB03216CBA} = {48BDF554-973B-4B4C-8DA6-BBAB03216CBA}
+		{2EF29EEA-28DC-4FDD-84CF-317F07A3B8EB} = {2EF29EEA-28DC-4FDD-84CF-317F07A3B8EB}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,6 +57,10 @@ Global
 		{2EF29EEA-28DC-4FDD-84CF-317F07A3B8EB}.Debug|x64.Build.0 = Debug|x64
 		{2EF29EEA-28DC-4FDD-84CF-317F07A3B8EB}.Release|x64.ActiveCfg = Release|x64
 		{2EF29EEA-28DC-4FDD-84CF-317F07A3B8EB}.Release|x64.Build.0 = Release|x64
+		{D4459561-4B36-48E0-AC0C-E57900ED4782}.Debug|x64.ActiveCfg = Debug|x64
+		{D4459561-4B36-48E0-AC0C-E57900ED4782}.Debug|x64.Build.0 = Debug|x64
+		{D4459561-4B36-48E0-AC0C-E57900ED4782}.Release|x64.ActiveCfg = Release|x64
+		{D4459561-4B36-48E0-AC0C-E57900ED4782}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
