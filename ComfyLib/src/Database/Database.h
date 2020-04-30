@@ -5,7 +5,7 @@
 
 namespace Comfy::Database
 {
-	class BinaryDatabase : public IO::IBinaryReadable, public IO::IBinaryWritable
+	class BinaryDatabase : public IO::IStreamReadable, public IO::IStreamWritable
 	{
 	public:
 		struct Entry

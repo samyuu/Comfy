@@ -28,7 +28,7 @@ namespace Comfy::IO
 		virtual bool GetIsLoading() const = 0;
 
 		virtual const std::vector<u8>& GetFileContent() const = 0;
-		virtual void Read(IBinaryReadable* readable) const = 0;
+		virtual void Read(IStreamReadable* readable) const = 0;
 		virtual void Parse(IBufferParsable* parsable) const = 0;
 
 		virtual void FreeData() = 0;
@@ -57,7 +57,7 @@ namespace Comfy::IO
 		bool GetIsLoading() const override;
 
 		const std::vector<u8>& GetFileContent() const override;
-		void Read(IBinaryReadable* readable) const override;
+		void Read(IStreamReadable* readable) const override;
 		void Parse(IBufferParsable* parsable) const override;
 
 		void FreeData() override;

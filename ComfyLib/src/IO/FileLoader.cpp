@@ -99,7 +99,7 @@ namespace Comfy::IO
 		return fileContent;
 	}
 
-	void FileLoader::Read(IBinaryReadable* readable) const
+	void FileLoader::Read(IStreamReadable* readable) const
 	{
 		assert(readable != nullptr);
 		assert(fileFound && isLoaded);

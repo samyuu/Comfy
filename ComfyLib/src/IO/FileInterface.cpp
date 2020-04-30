@@ -7,14 +7,14 @@
 
 namespace Comfy::IO
 {
-	void IBinaryReadable::Load(std::string_view filePath)
+	void IStreamReadable::Load(std::string_view filePath)
 	{
 		MemoryStream stream(filePath);
 		StreamReader reader(stream);
 		Read(reader);
 	}
 
-	void IBinaryWritable::Save(std::string_view filePath)
+	void IStreamWritable::Save(std::string_view filePath)
 	{
 		FileStream stream;
 		stream.CreateReadWrite(filePath);

@@ -50,7 +50,7 @@ namespace Comfy::Graphics
 		std::string_view GetName() const;
 	};
 
-	class TexSet : public IO::IBinaryWritable, public IO::IBufferParsable, NonCopyable
+	class TexSet : public IO::IStreamWritable, public IO::IBufferParsable, NonCopyable
 	{
 	public:
 		std::vector<RefPtr<Tex>> Textures;

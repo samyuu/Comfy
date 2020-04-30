@@ -479,7 +479,7 @@ namespace Comfy::Graphics
 		void Read(IO::StreamReader& reader);
 	};
 
-	class ObjSet final : public IO::IBinaryReadable, NonCopyable
+	class ObjSet final : public IO::IStreamReadable, NonCopyable
 	{
 	public:
 		ObjSet() = default;

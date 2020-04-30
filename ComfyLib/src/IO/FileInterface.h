@@ -7,35 +7,22 @@ namespace Comfy::IO
 	class StreamReader;
 	class StreamWriter;
 
-	class IReadable
-	{
-	public:
-		virtual void Load(std::string_view filePath) = 0;
-	};
-
-	class IWritable
-	{
-	public:
-		virtual void Save(std::string_view filePath) = 0;
-	};
-
-	class IBinaryReadable : public IReadable
+	class IStreamReadable
 	{
 	public:
 		virtual void Read(StreamReader& reader) = 0;
-		void Load(std::string_view filePath) override;
+
+		// TODO: Make free standing function
+		void Load(std::string_view filePath);
 	};
 
-	class IBinaryWritable : public IWritable
+	class IStreamWritable
 	{
 	public:
 		virtual void Write(StreamWriter& writer) = 0;
-		void Save(std::string_view filePath) override;
-	};
 
-	class IBinaryReadWritable : public IBinaryReadable, public IBinaryWritable
-	{
-	public:
+		// TODO: Make free standing function
+		void Save(std::string_view filePath);
 	};
 
 	class IBufferParsable

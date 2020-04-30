@@ -447,7 +447,7 @@ namespace Comfy::Graphics::Aet
 		void FindSetLayerRefParentLayer(Layer& layer);
 	};
 
-	class AetSet final : public IO::IBinaryReadWritable, NonCopyable
+	class AetSet final : public IO::IStreamReadable, public IO::IStreamWritable, NonCopyable
 	{
 	public:
 		AetSet() = default;

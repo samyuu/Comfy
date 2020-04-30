@@ -21,7 +21,7 @@ namespace Comfy::Graphics
 		vec2 GetSize() const;
 	};
 
-	class SprSet : public IO::IBinaryWritable, public IO::IBufferParsable, NonCopyable
+	class SprSet : public IO::IStreamWritable, public IO::IBufferParsable, NonCopyable
 	{
 	public:
 		std::string Name;
