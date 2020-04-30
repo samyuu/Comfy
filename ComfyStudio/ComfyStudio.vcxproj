@@ -83,7 +83,7 @@
       <Message>Generating BuildVersion header file...</Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>$(SolutionDir)ComfyDataBuild\build\build.bat</Command>
+      <Command>$(SolutionDir)ComfyData\build\build.bat</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Building comfy data archive...</Message>
@@ -139,7 +139,7 @@
       <Message>Generating BuildVersion header file...</Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>$(SolutionDir)ComfyDataBuild\build\build.bat</Command>
+      <Command>$(SolutionDir)ComfyData\build\build.bat</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Building comfy data archive...</Message>

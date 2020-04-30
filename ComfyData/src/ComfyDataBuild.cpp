@@ -172,30 +172,30 @@ namespace
 
 		// NOTE: CreatorID
 		std::array<u8, 4> creatorID = { 'c', 'm', 'f', 'y' };
-		writer.WriteType(creatorID);
+		writer.WriteType_Native(creatorID);
 
 		// NOTE: ReservedID
 		std::array<u8, 4> reservedID = { 0x90, 0x90, 0x90, 0x90 };
-		writer.WriteType(reservedID);
+		writer.WriteType_Native(reservedID);
 
 		// NOTE: CreationDate
 		__time64_t creationDate = time(0);
 		writer.WriteU64(creationDate);
 
 		// NOTE: Flags
-		writer.WriteType(ArchiveFlags);
+		writer.WriteType_Native(ArchiveFlags);
 
 		// NOTE: IV
 		std::array<u8, 16> iv = GetIV();
-		writer.WriteType(iv);
+		writer.WriteType_Native(iv);
 	}
 
 	void WriteFileEntries(StreamWriter& writer, Build_ComfyEntry& file)
 	{
 		// NOTE: Type
-		writer.WriteType(file.Type);
+		writer.WriteType_Native(file.Type);
 		// NOTE: Flags
-		writer.WriteType(file.Flags);
+		writer.WriteType_Native(file.Flags);
 
 		// NOTE: Name
 		writer.WriteStrPtr(file.Build_FileName);
@@ -207,9 +207,9 @@ namespace
 	void WriteDirectoryEntry(StreamWriter& writer, Build_ComfyDirectory& directory)
 	{
 		// NOTE: Type
-		writer.WriteType(directory.Type);
+		writer.WriteType_Native(directory.Type);
 		// NOTE: Flags
-		writer.WriteType(directory.Flags);
+		writer.WriteType_Native(directory.Flags);
 
 		// NOTE: Name
 		writer.WriteStrPtr(directory.Build_FileName);
@@ -223,7 +223,7 @@ namespace
 		}
 		else
 		{
-			writer.WritePtr([&](StreamWriter& writer)
+			writer.WriteFuncPtr([&](StreamWriter& writer)
 			{
 				for (auto& entry : directory.Build_Entries)
 					WriteFileEntries(writer, entry);
@@ -239,7 +239,7 @@ namespace
 		}
 		else
 		{
-			writer.WritePtr([&](StreamWriter& writer)
+			writer.WriteFuncPtr([&](StreamWriter& writer)
 			{
 				for (auto& entry : directory.Build_Directories)
 					WriteDirectoryEntry(writer, entry);
@@ -250,9 +250,9 @@ namespace
 	void WriteFileTreeRoot(StreamWriter& writer)
 	{
 		// NOTE: Type
-		writer.WriteType(RootDirectory.Type);
+		writer.WriteType_Native(RootDirectory.Type);
 		// NOTE: Flags
-		writer.WriteType(RootDirectory.Flags);
+		writer.WriteType_Native(RootDirectory.Flags);
 
 		// NOTE: Name
 		writer.WriteStrPtr(RootDirectory.Build_FileName);
