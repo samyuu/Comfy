@@ -2,13 +2,13 @@
 #include "TimeSpan.h"
 #include "CoreMacros.h"
 
-#define COMFY_DEBUG_STOPWATCH(description) Comfy::DebugStopwatch COMFY_UNIQUENAME(__DEBUG_STOPWATCH)(description)
+#define COMFY_DEBUG_STOPWATCH(description) auto COMFY_UNIQUENAME(__DEBUG_STOPWATCH) = ::Comfy::DebugStopwatch(description)
 
 namespace Comfy
 {
 	struct DebugStopwatch
 	{
-		DebugStopwatch(const char* description) 
+		explicit DebugStopwatch(const char* description) 
 			: description(description), timeOnStart(TimeSpan::GetTimeNow())
 		{
 		}
