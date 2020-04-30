@@ -6,23 +6,44 @@
 
 namespace Comfy
 {
+	struct Stopwatch
+	{
+	public:
+		Stopwatch() = default;
+		~Stopwatch() = default;
+
+	public:
+		static Stopwatch StartNew();
+
+	public:
+		void Start();
+		TimeSpan Restart();
+		TimeSpan Stop();
+
+		bool IsRunning() const;
+		TimeSpan GetElapsed();
+
+	private:
+		bool isRunning = false;
+		TimeSpan timeOnStart;
+	};
+
 	struct DebugStopwatch
 	{
-		explicit DebugStopwatch(const char* description) 
-			: description(description), timeOnStart(TimeSpan::GetTimeNow())
+		explicit DebugStopwatch(const char* description)
+			: description(description), stopwatch(Stopwatch::StartNew())
 		{
 		}
 
 		~DebugStopwatch()
 		{
-			const auto endTime = TimeSpan::GetTimeNow();
-			const auto elapsed = endTime - timeOnStart;
+			const auto elapsed = stopwatch.GetElapsed();
 			DebugLogOnDestruction(elapsed);
 		}
 
 	private:
 		const char* description;
-		TimeSpan timeOnStart;
+		Stopwatch stopwatch;
 
 		void DebugLogOnDestruction(TimeSpan elapsed);
 	};
