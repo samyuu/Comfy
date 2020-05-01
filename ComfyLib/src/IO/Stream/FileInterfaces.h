@@ -11,20 +11,15 @@ namespace Comfy::IO
 	{
 	public:
 		virtual void Read(StreamReader& reader) = 0;
-
-		// TODO: Make free standing function
-		void Load(std::string_view filePath);
 	};
 
 	class IStreamWritable
 	{
 	public:
 		virtual void Write(StreamWriter& writer) = 0;
-
-		// TODO: Make free standing function
-		void Save(std::string_view filePath);
 	};
 
+	// TODO: Get rid of this interface in favor of IStreamReadable, then rename and move file
 	class IBufferParsable
 	{
 	public:

@@ -20,10 +20,10 @@ namespace Comfy::Editor
 		const char* GetGuiName() const override;
 		ImGuiWindowFlags GetWindowFlags() const override;
 
-		bool IsAudioFile(const std::string& filePath);
+		bool IsAudioFile(std::string_view filePath);
 		bool OnFileDropped(const std::string& filePath) override;
 
-		bool LoadSong(const std::string& filePath);
+		bool LoadSong(std::string_view filePath);
 
 		void ResumePlayback();
 		void PausePlayback();

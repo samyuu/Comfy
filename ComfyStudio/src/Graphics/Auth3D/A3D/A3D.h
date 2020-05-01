@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "IO/FileInterface.h"
+#include "IO/Stream/FileInterfaces.h"
 
 namespace Comfy::Graphics
 {

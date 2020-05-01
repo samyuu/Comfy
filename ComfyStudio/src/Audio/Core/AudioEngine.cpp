@@ -323,7 +323,7 @@ namespace Comfy::Audio
 		}
 	}
 
-	RefPtr<MemorySampleProvider> AudioEngine::LoadAudioFile(const std::string& filePath)
+	RefPtr<MemorySampleProvider> AudioEngine::LoadAudioFile(std::string_view filePath)
 	{
 		return AudioDecoderFactory::GetInstance()->DecodeFile(filePath);
 	}

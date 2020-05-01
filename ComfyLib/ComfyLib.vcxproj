@@ -15,6 +15,10 @@
     <ClInclude Include="src\CoreTypes.h" />
     <ClInclude Include="src\Core\Algorithm.h" />
     <ClInclude Include="src\Core\ScopeExitFunc.h" />
+    <ClInclude Include="src\IO\Directory.h" />
+    <ClInclude Include="src\IO\File.h" />
+    <ClInclude Include="src\IO\Path.h" />
+    <ClInclude Include="src\IO\Shell.h" />
     <ClInclude Include="src\Time\Stopwatch.h" />
     <ClInclude Include="src\Core\Logger.h" />
     <ClInclude Include="src\Core\NonCopyable.h" />
@@ -30,15 +34,12 @@
     <ClInclude Include="src\IO\Archive\FArc.h" />
     <ClInclude Include="src\IO\Crypto\Crypto.h" />
     <ClInclude Include="src\IO\Crypto\Detail\Win32Crypto.h" />
-    <ClInclude Include="src\IO\BinaryMode.h" />
+    <ClInclude Include="src\IO\Stream\BinaryMode.h" />
     <ClInclude Include="src\IO\Stream\Manipulator\StreamManipulator.h" />
     <ClInclude Include="src\IO\Stream\Manipulator\StreamReader.h" />
     <ClInclude Include="src\IO\Stream\Manipulator\StreamWriter.h" />
-    <ClInclude Include="src\IO\FileHelper.h" />
-    <ClInclude Include="src\IO\FileHelperInternal.h" />
-    <ClInclude Include="src\IO\FileInterface.h" />
-    <ClInclude Include="src\IO\FileLoader.h" />
-    <ClInclude Include="src\IO\FileReader.h" />
+    <ClInclude Include="src\IO\Stream\FileInterfaces.h" />
+    <ClInclude Include="src\IO\AsyncFileLoader.h" />
     <ClInclude Include="src\IO\Stream\FileStream.h" />
     <ClInclude Include="src\IO\Stream\MemoryStream.h" />
     <ClInclude Include="src\IO\Stream\IStream.h" />
@@ -58,6 +59,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp" />
+    <ClCompile Include="src\IO\Directory.cpp" />
+    <ClCompile Include="src\IO\File.cpp" />
+    <ClCompile Include="src\IO\Path.cpp" />
+    <ClCompile Include="src\IO\Shell.cpp" />
     <ClCompile Include="src\Time\Stopwatch.cpp" />
     <ClCompile Include="src\Time\TimeSpan.cpp" />
     <ClCompile Include="src\Database\AetDB.cpp" />
@@ -69,10 +74,7 @@
     <ClCompile Include="src\IO\Crypto\Detail\Win32Crypto.cpp" />
     <ClCompile Include="src\IO\Stream\Manipulator\StreamReader.cpp" />
     <ClCompile Include="src\IO\Stream\Manipulator\StreamWriter.cpp" />
-    <ClCompile Include="src\IO\FileHelper.cpp" />
-    <ClCompile Include="src\IO\FileInterface.cpp" />
-    <ClCompile Include="src\IO\FileLoader.cpp" />
-    <ClCompile Include="src\IO\FileReader.cpp" />
+    <ClCompile Include="src\IO\AsyncFileLoader.cpp" />
     <ClCompile Include="src\IO\Stream\FileStream.cpp" />
     <ClCompile Include="src\IO\Stream\MemoryStream.cpp" />
     <ClCompile Include="src\Misc\FileExtensionHelper.cpp" />
@@ -85,6 +87,9 @@
     <ProjectReference Include="..\Dependencies\zlib\zlib.vcxproj">
       <Project>{86aa0493-f0ab-4d08-922c-98205271ac58}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

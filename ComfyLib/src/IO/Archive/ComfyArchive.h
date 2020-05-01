@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
-#include "IO/Stream/IStream.h"
+#include "IO/Stream/FileStream.h"
 
 namespace Comfy::IO
 {
@@ -125,6 +125,6 @@ namespace Comfy::IO
 		ComfyDirectory* rootDirectory = nullptr;
 
 		UniquePtr<u8[]> dataBuffer = nullptr;
-		UniquePtr<IStream> dataStream = nullptr;
+		FileStream dataStream;
 	};
 }

@@ -27,7 +27,7 @@ namespace Comfy::Editor
 
 		aetSet = MakeUnique<Aet::AetSet>();
 		aetSetLoader.LoadSync();
-		aetSetLoader.Read(aetSet.get());
+		aetSetLoader.Read(*aetSet);
 		aetSetLoader.FreeData();
 
 		layerCache.FrameUp = aetSet->GetScenes().front()->FindLayer("frame_up_f");
@@ -110,7 +110,7 @@ namespace Comfy::Editor
 		if (sprSet == nullptr && sprSetLoader.GetIsLoaded())
 		{
 			sprSet = MakeUnique<SprSet>();
-			sprSetLoader.Parse(sprSet.get());
+			sprSetLoader.Parse(*sprSet);
 			sprSet->TexSet->UploadAll(sprSet.get());
 			sprSetLoader.FreeData();
 

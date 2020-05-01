@@ -3,7 +3,7 @@
 #include "CoreTypes.h"
 #include "Graphics/GraphicTypes.h"
 #include "Graphics/GPU/GPUResources.h"
-#include "IO/FileInterface.h"
+#include "IO/Stream/FileInterfaces.h"
 
 namespace Comfy::Graphics
 {

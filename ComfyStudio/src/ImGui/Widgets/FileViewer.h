@@ -14,13 +14,13 @@ namespace ImGui
 	class FileViewer
 	{
 	public:
-		FileViewer(const std::string_view directory);
+		FileViewer(std::string_view directory);
 		~FileViewer();
 
 		bool DrawGui();
-		void SetDirectory(std::string directory);
-		const std::string& GetDirectory() const;
-		const std::string& GetFileToOpen() const;
+		void SetDirectory(std::string_view newDirectory);
+		std::string_view GetDirectory() const;
+		std::string_view GetFileToOpen() const;
 
 	private:
 		struct FilePathInfo

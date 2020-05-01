@@ -1,7 +1,7 @@
 #include "Application.h"
 #include "App/Engine.h"
 #include "Graphics/D3D11/Direct3D.h"
-#include "IO/FileHelper.h"
+#include "IO/File.h"
 #include "DataTest/AudioTestWindow.h"
 #include "DataTest/IconTestWindow.h"
 #include "DataTest/InputTestWindow.h"
@@ -60,8 +60,7 @@ namespace Comfy
 		hasBeenInitialized = true;
 		TimeSpan::InitializeClock();
 
-		if (!InitializeLoadConfig())
-			return false;
+		InitializeLoadConfig();
 
 		if (!host.Initialize())
 			return false;
@@ -137,38 +136,39 @@ namespace Comfy
 	bool Application::InitializeLoadConfig()
 	{
 		if (!LoadComfyConfig)
-			return true;
+			return false;
 
-		bool fileExists = IO::FileExists(ComfyConfigFileName);
-		bool fileRead = !fileExists ? false : IO::ReadAllBytes(ComfyConfigFileName, &ComfyConfig);
-
-		if (!fileExists)
+		if (!IO::File::Exists(ComfyConfigFileName))
+		{
 			Logger::LogErrorLine(__FUNCTION__"(): Unable to locate config file");
-		else if (!fileRead)
+			return false;
+		}
+
+		const auto[fileContent, fileSize] = IO::File::ReadAllBytes(ComfyConfigFileName);
+		if (fileContent == nullptr || fileSize != sizeof(ComfyConfig))
+		{
 			Logger::LogErrorLine(__FUNCTION__"(): Unable to read config file");
 
-		if (!fileExists || !fileRead)
-		{
 			ComfyConfig = {};
 			host.SetDefaultPositionWindow(true);
 			host.SetDefaultResizeWindow(true);
-
-			// NOTE: Don't need to terminate the application
+			return false;
+		}
+		else
+		{
+			std::memcpy(&ComfyConfig, fileContent.get(), sizeof(ComfyConfig));
+			host.SetWindowRestoreRegion(ComfyConfig.Data.Window.RestoreRegion);
+			host.SetWindowPosition(ComfyConfig.Data.Window.Position);
+			host.SetWindowSize(ComfyConfig.Data.Window.Size);
+			host.SetIsFullscreen(ComfyConfig.Data.Window.Fullscreen);
+			host.SetIsMaximized(ComfyConfig.Data.Window.Maximized);
 			return true;
 		}
-
-		host.SetWindowRestoreRegion(ComfyConfig.Data.Window.RestoreRegion);
-		host.SetWindowPosition(ComfyConfig.Data.Window.Position);
-		host.SetWindowSize(ComfyConfig.Data.Window.Size);
-		host.SetIsFullscreen(ComfyConfig.Data.Window.Fullscreen);
-		host.SetIsMaximized(ComfyConfig.Data.Window.Maximized);
-
-		return true;
 	}
 
 	bool Application::InitializeMountRomData()
 	{
-		if (!IO::FileExists(ComfyDataFileName))
+		if (!IO::File::Exists(ComfyDataFileName))
 		{
 			Logger::LogErrorLine(__FUNCTION__"(): Unable to locate data file");
 			return false;
@@ -275,7 +275,7 @@ namespace Comfy
 						Exit();
 
 					Gui::EndMenu();
-				}
+			}
 
 				// Editor Menus Items
 				// ------------------
@@ -377,9 +377,9 @@ namespace Comfy
 				Gui::TextUnformatted(infoBuffer);
 
 				Gui::EndMainMenuBar();
-			}
-			Gui::PopStyleColor(1);
 		}
+			Gui::PopStyleColor(1);
+	}
 
 		// Window Dockspace
 		// ----------------
@@ -470,7 +470,7 @@ namespace Comfy
 			DrawGuiBaseWindowWindows(dataTestComponents);
 		}
 
-	}
+}
 
 	void Application::DrawAppEngineWindow()
 	{
@@ -536,8 +536,7 @@ namespace Comfy
 		ComfyConfig.Data.Window.Fullscreen = host.GetIsFullscreen();
 		ComfyConfig.Data.Window.Maximized = host.GetIsMaximized();
 
-		bool success = IO::WriteAllBytes(ComfyConfigFileName, ComfyConfig);
-
+		const bool success = IO::File::WriteAllBytes(ComfyConfigFileName, &ComfyConfig, sizeof(ComfyConfig));
 		if (!success)
 			Logger::LogErrorLine(__FUNCTION__"(): Unable to write config file");
 	}

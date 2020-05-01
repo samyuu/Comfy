@@ -1,6 +1,7 @@
 #include "AudioDecoderFactory.h"
 #include "Detail/Decoders.h"
-#include "IO/FileHelper.h"
+#include "IO/File.h"
+#include "IO/Path.h"
 #include "Misc/FileExtensionHelper.h"
 #include "Misc/StringHelper.h"
 #include "Core/Logger.h"
@@ -19,13 +20,13 @@ namespace Comfy::Audio
 
 	RefPtr<MemorySampleProvider> AudioDecoderFactory::DecodeFile(std::string_view filePath)
 	{
-		if (!IO::FileExists(filePath))
+		if (!IO::File::Exists(filePath))
 		{
 			Logger::LogErrorLine(__FUNCTION__"(): Input file %.*s not found", filePath.size(), filePath.data());
 			return nullptr;
 		}
 
-		auto extension = IO::GetFileExtension(filePath);
+		auto extension = IO::Path::GetExtension(filePath);
 
 		for (auto& decoder : availableDecoders)
 		{
@@ -34,7 +35,7 @@ namespace Comfy::Audio
 				continue;
 
 			std::vector<u8> fileContent;
-			if (!IO::FileReader::ReadEntireFile(filePath, &fileContent))
+			if (!IO::File::ReadAllBytes(filePath, fileContent))
 			{
 				Logger::LogErrorLine(__FUNCTION__"(): Unable to read input file %.*s", filePath.size(), filePath.data());
 				return nullptr;

@@ -1,7 +1,8 @@
 #include "AetTreeView.h"
 #include "Editor/Aet/Command/Commands.h"
+#include "IO/File.h"
+#include "IO/Shell.h"
 #include "Input/KeyCode.h"
-#include "IO/FileHelper.h"
 #include "Misc/StringHelper.h"
 #include "Core/Logger.h"
 
@@ -111,8 +112,8 @@ namespace Comfy::Editor
 			if (Gui::MenuItem("Save As..."))
 			{
 				std::string filePath;
-				if (IO::CreateSaveFileDialog(filePath, "Save AetSet file", "dev_ram/aetset", { "AetSet (*.bin)", "*.bin", "All Files (*.*)", "*", }))
-					aetSet->Save(filePath);
+				if (IO::Shell::CreateSaveFileDialog(filePath, "Save AetSet file", "dev_ram/aetset", { "AetSet (*.bin)", "*.bin", "All Files (*.*)", "*", }))
+					IO::File::Save(filePath, *aetSet);
 			}
 		});
 

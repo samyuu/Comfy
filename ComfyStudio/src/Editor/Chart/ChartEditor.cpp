@@ -85,9 +85,9 @@ namespace Comfy::Editor
 		return BaseWindow::GetNoWindowFlags();
 	}
 
-	bool ChartEditor::IsAudioFile(const std::string& filePath)
+	bool ChartEditor::IsAudioFile(std::string_view filePath)
 	{
-		for (auto& fileExtension : audioFileExtensions)
+		for (const auto& fileExtension : audioFileExtensions)
 		{
 			if (EndsWithInsensitive(filePath, fileExtension))
 				return true;
@@ -101,13 +101,13 @@ namespace Comfy::Editor
 		return (IsAudioFile(filePath) && LoadSong(filePath));
 	}
 
-	bool ChartEditor::LoadSong(const std::string& filePath)
+	bool ChartEditor::LoadSong(std::string_view filePath)
 	{
-		bool success;
+		bool success = false;
 
 		TimeSpan playbackTime = GetPlaybackTime();
 		{
-			RefPtr<Audio::MemorySampleProvider> newSongStream = Audio::AudioEngine::GetInstance()->LoadAudioFile(filePath);
+			auto newSongStream = Audio::AudioEngine::GetInstance()->LoadAudioFile(filePath);
 			success = newSongStream != nullptr;
 
 			if (success)

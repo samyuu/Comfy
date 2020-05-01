@@ -68,7 +68,7 @@ namespace Comfy::Audio
 		void AddCallbackReceiver(ICallbackReceiver* callbackReceiver);
 		void RemoveCallbackReceiver(ICallbackReceiver* callbackReceiver);
 
-		RefPtr<MemorySampleProvider> LoadAudioFile(const std::string& filePath);
+		RefPtr<MemorySampleProvider> LoadAudioFile(std::string_view filePath);
 
 		inline RtAudio* GetRtAudio() { return rtAudio.get(); }
 		inline u32 GetChannelCount() { return 2; }

@@ -5,6 +5,7 @@
 #include "Graphics/Auth3D/A3D/A3DMgr.h"
 #include "Graphics/Auth3D/DebugObj.h"
 #include "IO/Archive/FArc.h"
+#include "IO/Shell.h"
 #include "ImGui/Extensions/TexExtensions.h"
 #include "ImGui/Extensions/PropertyEditor.h"
 #include "Misc/ImageHelper.h"
@@ -136,14 +137,14 @@ namespace Comfy::Editor
 
 	bool SceneEditor::LoadRegisterObjSet(std::string_view objSetPath, std::string_view texSetPath, EntityTag tag)
 	{
-		if (!IO::FileExists(objSetPath) || !IO::FileExists(texSetPath))
+		if (!IO::File::Exists(objSetPath) || !IO::File::Exists(texSetPath))
 			return false;
 
 		if (objSetPath == texSetPath)
 			return false;
 
 		RefPtr<ObjSet> objSet = ObjSet::MakeUniqueReadParseUpload(objSetPath);
-		objSet->Name = IO::GetFileName(objSetPath, false);
+		objSet->Name = IO::Path::GetFileName(objSetPath, false);
 		objSet->TexSet = TexSet::MakeUniqueReadParseUpload(texSetPath, objSet.get());
 		sceneGraph.LoadObjSet(objSet, tag);
 		sceneGraph.RegisterTextures(objSet->TexSet.get());
@@ -151,10 +152,7 @@ namespace Comfy::Editor
 		if (sceneGraph.TexDB == nullptr)
 		{
 			constexpr std::string_view texDBPath = "dev_rom/db/tex_db.bin";
-			sceneGraph.TexDB = MakeUnique<Database::TexDB>();
-
-			if (IO::FileExists(texDBPath))
-				sceneGraph.TexDB->Load(std::string(texDBPath));
+			sceneGraph.TexDB = IO::File::Load<Database::TexDB>(texDBPath);
 		}
 
 		if (sceneGraph.TexDB != nullptr && objSet->TexSet != nullptr)
@@ -1645,7 +1643,7 @@ namespace Comfy::Editor
 		Gui::ItemContextMenu("TakeScreenshotContextMenu", [&]
 		{
 			if (Gui::MenuItem("Open Directory"))
-				IO::OpenInExplorer(ScreenshotDirectoy);
+				IO::Shell::OpenInExplorer(ScreenshotDirectoy);
 		});
 
 		constexpr const char* renderPopupID = "RenderSequencePopup";

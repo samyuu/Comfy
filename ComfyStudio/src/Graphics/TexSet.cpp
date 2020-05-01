@@ -1,10 +1,9 @@
 #include "TexSet.h"
 #include "Auth2D/SprSet.h"
 #include "Auth3D/ObjSet.h"
-#include "IO/FileInterface.h"
 #include "IO/Stream/Manipulator/StreamReader.h"
 #include "IO/Stream/Manipulator/StreamWriter.h"
-#include "IO/FileReader.h"
+#include "IO/File.h"
 
 using namespace Comfy::IO;
 
@@ -148,7 +147,8 @@ namespace Comfy::Graphics
 	UniquePtr<TexSet> TexSet::MakeUniqueReadParseUpload(std::string_view filePath, const ObjSet* objSet)
 	{
 		std::vector<u8> fileContent;
-		FileReader::ReadEntireFile(filePath, &fileContent);
+		if (!File::ReadAllBytes(filePath, fileContent))
+			return nullptr;
 
 		if (fileContent.empty())
 			return nullptr;

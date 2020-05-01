@@ -3,8 +3,8 @@
 #include "CoreTypes.h"
 #include "../Transform2D.h"
 #include "Resource/IDTypes.h"
-#include "IO/FileInterface.h"
 #include "Graphics/GraphicTypes.h"
+#include "IO/Stream/FileInterfaces.h"
 #include <variant>
 
 namespace Comfy

@@ -1,6 +1,6 @@
 #include "LicenseWindow.h"
 #include "ImGui/Gui.h"
-#include "IO/FileHelper.h"
+#include "IO/File.h"
 #include "Misc/StringParseHelper.h"
 #include "Core/ComfyData.h"
 

@@ -1,6 +1,8 @@
 #pragma once
 #include "Core/ScopeExitFunc.h"
 
+#define COMFY_NODISCARD [[nodiscard]]
+
 #define COMFY_CONCAT_DETAIL(x,y) x##y
 #define COMFY_CONCAT(x,y) COMFY_CONCAT_DETAIL(x,y)
 

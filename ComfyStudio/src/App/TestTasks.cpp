@@ -1,6 +1,6 @@
 #include "TestTasks.h"
 #include "ImGui/Gui.h"
-#include "IO/FileHelper.h"
+#include "IO/File.h"
 #include "Misc/StringHelper.h"
 #include "Input/KeyCode.h"
 
@@ -121,7 +121,7 @@ namespace Comfy::App
 			{
 				aetSet = MakeUnique<Aet::AetSet>();
 
-				aetSetLoader.Read(aetSet.get());
+				aetSetLoader.Read(*aetSet);
 				aetSetLoader.FreeData();
 				aetData.Initialize(aetSet.get());
 			}
@@ -133,7 +133,7 @@ namespace Comfy::App
 			if (sprSet == nullptr && sprSetLoader.GetIsLoaded())
 			{
 				sprSet = MakeUnique<SprSet>();
-				sprSetLoader.Parse(sprSet.get());
+				sprSetLoader.Parse(*sprSet);
 				sprSet->TexSet->UploadAll(sprSet.get());
 				sprSetLoader.FreeData();
 			}

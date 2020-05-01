@@ -1,9 +1,9 @@
 #pragma once
 #include "Types.h"
 #include "BoundingTypes.h"
-#include "IO/FileInterface.h"
 #include "Graphics/TexSet.h"
 #include "Graphics/GPU/GPUResources.h"
+#include "IO/Stream/FileInterfaces.h"
 #include <optional>
 #include <variant>
 

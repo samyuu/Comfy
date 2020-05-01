@@ -4,13 +4,12 @@
 
 namespace Comfy::IO
 {
+	// TODO: Update and correctly handle writing
 	class MemoryStream final : public IStream, NonCopyable
 	{
 	public:
 		MemoryStream();
-		explicit MemoryStream(std::string_view filePath);
-		explicit MemoryStream(IStream& stream);
-		explicit MemoryStream(std::vector<u8>& source);
+		MemoryStream(MemoryStream&& other);
 		~MemoryStream();
 
 		void Seek(FileAddr position) override;
@@ -20,12 +19,12 @@ namespace Comfy::IO
 		bool IsOpen() const override;
 		bool CanRead() const override;
 		bool CanWrite() const override;
+		bool IsOwning() const;
 
 		size_t ReadBuffer(void* buffer, size_t size) override;
 		size_t WriteBuffer(const void* buffer, size_t size) override;
 
 		void FromStreamSource(std::vector<u8>& source);
-		void FromFile(std::string_view filePath);
 		void FromStream(IStream& stream);
 		void Close() override;
 
@@ -35,7 +34,8 @@ namespace Comfy::IO
 		FileAddr position = {};
 		FileAddr dataSize = {};
 
-		std::vector<u8>* dataSource;
-		std::vector<u8> dataVector;
+		// TODO: Refactor this, consider using u8[] unique ptr instead
+		std::vector<u8>* dataVectorPtr = nullptr;
+		std::vector<u8> owningDataVector;
 	};
 }

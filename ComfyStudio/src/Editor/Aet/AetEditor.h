@@ -9,7 +9,7 @@
 #include "Command/AetCommandManager.h"
 #include "Editor/Core/IEditorComponent.h"
 #include "Graphics/Auth2D/Aet/AetRenderer.h"
-#include "IO/FileLoader.h"
+#include "IO/AsyncFileLoader.h"
 #include "ImGui/Widgets/FileViewer.h"
 
 namespace Comfy::Editor
@@ -34,8 +34,8 @@ namespace Comfy::Editor
 		void DrawAetSetLoader();
 		void DrawSprSetLoader();
 
-		bool LoadAetSet(const std::string& filePath);
-		bool LoadSprSet(const std::string& filePath);
+		bool LoadAetSet(std::string_view filePath);
+		bool LoadSprSet(std::string_view filePath);
 		void OnAetSetLoaded();
 		void OnSprSetLoaded();
 
@@ -69,7 +69,7 @@ namespace Comfy::Editor
 
 		// DEBUG: Disabled for now to remove one possible case of failure
 		const bool asyncFileLoading = false;
-		UniquePtr<IO::FileLoader> sprSetFileLoader;
+		UniquePtr<IO::AsyncFileLoader> sprSetFileLoader;
 
 		static constexpr const char* debugAetPath = "dev_ram/aetset/aet_gam/aet_gam_cmn.bin";
 		static constexpr const char* debugSprPath = "dev_ram/sprset/spr_gam/spr_gam_cmn.bin";

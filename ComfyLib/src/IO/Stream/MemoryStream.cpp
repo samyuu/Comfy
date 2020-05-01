@@ -8,22 +8,17 @@ namespace Comfy::IO
 {
 	MemoryStream::MemoryStream()
 	{
-		dataSource = &dataVector;
+		dataVectorPtr = &owningDataVector;
 	}
 
-	MemoryStream::MemoryStream(std::string_view filePath) : MemoryStream()
+	MemoryStream::MemoryStream(MemoryStream&& other) : MemoryStream()
 	{
-		FromFile(filePath);
-	}
+		if (other.IsOwning())
+			owningDataVector = std::move(other.owningDataVector);
+		else
+			dataVectorPtr = other.dataVectorPtr;
 
-	MemoryStream::MemoryStream(IStream& stream) : MemoryStream()
-	{
-		FromStream(stream);
-	}
-
-	MemoryStream::MemoryStream(std::vector<u8>& source)
-	{
-		FromStreamSource(source);
+		other.dataVectorPtr = nullptr;
 	}
 
 	MemoryStream::~MemoryStream()
@@ -49,7 +44,7 @@ namespace Comfy::IO
 
 	bool MemoryStream::IsOpen() const
 	{
-		return true;
+		return (dataVectorPtr != nullptr);
 	}
 
 	bool MemoryStream::CanRead() const
@@ -62,6 +57,11 @@ namespace Comfy::IO
 		return false;
 	}
 
+	bool MemoryStream::IsOwning() const
+	{
+		return (dataVectorPtr == &owningDataVector);
+	}
+
 	size_t MemoryStream::ReadBuffer(void* buffer, size_t size)
 	{
 		assert(canRead);
@@ -69,8 +69,8 @@ namespace Comfy::IO
 		const auto remainingSize = (GetLength() - GetPosition());
 		const i64 bytesRead = std::min(static_cast<i64>(size), static_cast<i64>(remainingSize));
 
-		void* source = &(*dataSource)[static_cast<size_t>(position)];
-		memcpy(buffer, source, bytesRead);
+		void* source = &(*dataVectorPtr)[static_cast<size_t>(position)];
+		std::memcpy(buffer, source, bytesRead);
 
 		position += static_cast<FileAddr>(bytesRead);
 		return bytesRead;
@@ -79,27 +79,21 @@ namespace Comfy::IO
 	size_t MemoryStream::WriteBuffer(const void* buffer, size_t size)
 	{
 		assert(canRead);
-		dataSource->resize(dataSource->size() + size);
+		dataVectorPtr->resize(dataVectorPtr->size() + size);
 
 		const u8* bufferStart = reinterpret_cast<const u8*>(buffer);
 		const u8* bufferEnd = &bufferStart[size];
-		std::copy(bufferStart, bufferEnd, std::back_inserter(*dataSource));
+		std::copy(bufferStart, bufferEnd, std::back_inserter(*dataVectorPtr));
 
 		return size;
 	}
 
 	void MemoryStream::FromStreamSource(std::vector<u8>& source)
 	{
-		dataSource = &source;
+		dataVectorPtr = &source;
 
 		canRead = true;
 		dataSize = static_cast<FileAddr>(source.size());
-	}
-
-	void MemoryStream::FromFile(std::string_view filePath)
-	{
-		FileStream fileStream(filePath);
-		FromStream(fileStream);
 	}
 
 	void MemoryStream::FromStream(IStream& stream)
@@ -108,14 +102,18 @@ namespace Comfy::IO
 
 		canRead = true;
 		dataSize = stream.GetLength() - stream.GetPosition();
-		dataSource->resize(static_cast<size_t>(dataSize));
+		dataVectorPtr->resize(static_cast<size_t>(dataSize));
 
 		const auto prePos = stream.GetPosition();
-		stream.ReadBuffer(dataSource->data(), static_cast<size_t>(dataSize));
+		stream.ReadBuffer(dataVectorPtr->data(), static_cast<size_t>(dataSize));
 		stream.Seek(prePos);
 	}
 
 	void MemoryStream::Close()
 	{
+		canRead = false;
+		position = {};
+		dataSize = {};
+		dataVectorPtr = nullptr;
 	}
 }

@@ -1,4 +1,4 @@
-#include "IO/FileHelper.h"
+#include "IO/File.h"
 #include "IO/Archive/ComfyArchive.h"
 #include "IO/Stream/FileStream.h"
 #include "IO/Stream/Manipulator/StreamWriter.h"
@@ -123,7 +123,12 @@ namespace
 	{
 		for (auto& data : FileDataToWrite)
 		{
-			FileReader::ReadEntireFile(data.File->Build_OriginalPath.u8string(), &data.File->FileContent);
+			auto stream = IO::File::OpenRead(data.File->Build_OriginalPath.u8string());
+			if (!stream.IsOpen() || !stream.CanRead())
+				continue;
+
+			data.File->FileContent.resize(static_cast<size_t>(stream.GetLength()));
+			stream.ReadBuffer(data.File->FileContent.data(), data.File->FileContent.size());
 
 			data.DataAddress = writer.GetPosition();
 			writer.WriteBuffer(data.File->FileContent.data(), data.File->FileContent.size());
@@ -354,7 +359,7 @@ int wmain(int argc, const wchar_t* argv[])
 	const auto inputDirectoryPath = UTF8::Narrow(argv[1]);
 	const auto outputArchivePath = UTF8::Narrow(argv[2]);
 
-	if (!DirectoryExists(inputDirectoryPath))
+	if (!Directory::Exists(inputDirectoryPath))
 	{
 		Logger::LogErrorLine("Invalid directory input path");
 		return EXIT_FAILURE;

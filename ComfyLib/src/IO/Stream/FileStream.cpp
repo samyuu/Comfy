@@ -1,27 +1,23 @@
 #include "FileStream.h"
 #include "Core/Win32/ComfyWindows.h"
-#include "IO/FileHelperInternal.h"
 #include "Misc/StringHelper.h"
 #include <assert.h>
 
 namespace Comfy::IO
 {
-	namespace
+	FileStream::FileStream(FileStream&& other) : FileStream()
 	{
-		constexpr unsigned long GetWin32FileShareMode()
-		{
-			return (FILE_SHARE_READ | FILE_SHARE_WRITE);
-		}
+		canRead = other.canRead;
+		canWrite = other.canWrite;
+		position = other.position;
+		fileSize = other.fileSize;
+		fileHandle = other.fileHandle;
 
-		unsigned long GetWin32FileAttributes()
-		{
-			return (FILE_ATTRIBUTE_NORMAL);
-		}
-	}
-
-	FileStream::FileStream(std::string_view filePath)
-	{
-		OpenReadWrite(filePath);
+		other.canRead = false;
+		other.canWrite = false;
+		other.position = {};
+		other.fileSize = {};
+		other.fileHandle = nullptr;
 	}
 
 	FileStream::~FileStream()
@@ -91,7 +87,7 @@ namespace Comfy::IO
 	void FileStream::OpenRead(std::string_view filePath)
 	{
 		assert(fileHandle == nullptr);
-		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_READ), GetWin32FileShareMode(), NULL, OPEN_EXISTING, GetWin32FileAttributes(), NULL);
+		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_READ), (FILE_SHARE_READ | FILE_SHARE_WRITE), NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 		if (fileHandle != nullptr)
 			canRead = true;
@@ -101,7 +97,7 @@ namespace Comfy::IO
 	void FileStream::OpenWrite(std::string_view filePath)
 	{
 		assert(fileHandle == nullptr);
-		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_WRITE), GetWin32FileShareMode(), NULL, OPEN_EXISTING, GetWin32FileAttributes(), NULL);
+		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_WRITE), (FILE_SHARE_READ | FILE_SHARE_WRITE), NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 		if (fileHandle != nullptr)
 			canWrite = true;
@@ -111,7 +107,7 @@ namespace Comfy::IO
 	void FileStream::OpenReadWrite(std::string_view filePath)
 	{
 		assert(fileHandle == nullptr);
-		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_READ | GENERIC_WRITE), GetWin32FileShareMode(), NULL, OPEN_EXISTING, GetWin32FileAttributes(), NULL);
+		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_READ | GENERIC_WRITE), (FILE_SHARE_READ | FILE_SHARE_WRITE), NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 		if (fileHandle != nullptr)
 		{
@@ -124,7 +120,7 @@ namespace Comfy::IO
 	void FileStream::CreateWrite(std::string_view filePath)
 	{
 		assert(fileHandle == nullptr);
-		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_WRITE), GetWin32FileShareMode(), NULL, CREATE_ALWAYS, GetWin32FileAttributes(), NULL);
+		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_WRITE), (FILE_SHARE_READ | FILE_SHARE_WRITE), NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 		if (fileHandle != nullptr)
 			canWrite = true;
@@ -134,7 +130,7 @@ namespace Comfy::IO
 	void FileStream::CreateReadWrite(std::string_view filePath)
 	{
 		assert(fileHandle == nullptr);
-		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_READ | GENERIC_WRITE), GetWin32FileShareMode(), NULL, CREATE_ALWAYS, GetWin32FileAttributes(), NULL);
+		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_READ | GENERIC_WRITE), (FILE_SHARE_READ | FILE_SHARE_WRITE), NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 		if (fileHandle != nullptr)
 		{

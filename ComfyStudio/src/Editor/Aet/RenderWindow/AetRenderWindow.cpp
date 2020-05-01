@@ -6,7 +6,6 @@
 #include "Tools/TransformTool.h"
 #include "Editor/Aet/AetIcons.h"
 #include "Editor/Core/Theme.h"
-#include "IO/FileHelper.h"
 #include "Misc/StringHelper.h"
 #include "Input/KeyCode.h"
 #include "Time/TimeSpan.h"

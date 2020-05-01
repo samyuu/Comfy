@@ -7,8 +7,9 @@ namespace Comfy::IO
 	class FileStream final : public IStream, NonCopyable
 	{
 	public:
+		// TODO: Implement move constructor (?)
 		FileStream() = default;
-		explicit FileStream(std::string_view filePath);
+		FileStream(FileStream&& other);
 		~FileStream();
 
 		void Seek(FileAddr position) override;

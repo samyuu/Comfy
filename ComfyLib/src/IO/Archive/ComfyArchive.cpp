@@ -15,9 +15,9 @@ namespace Comfy::IO
 			return;
 
 		isMounted = true;
-		dataStream = MakeUnique<FileStream>(filePath);
+		dataStream.OpenRead(filePath);
 
-		if (!dataStream->IsOpen())
+		if (!dataStream.IsOpen())
 			return;
 
 		ParseEntries();
@@ -32,11 +32,8 @@ namespace Comfy::IO
 		if (!isMounted)
 			return;
 
-		if (dataStream != nullptr)
-		{
-			dataStream->Close();
-			dataStream = nullptr;
-		}
+		if (dataStream.IsOpen())
+			dataStream.Close();
 
 		dataBuffer = nullptr;
 	}
@@ -44,14 +41,12 @@ namespace Comfy::IO
 	const ComfyArchiveHeader& ComfyArchive::GetHeader() const
 	{
 		assert(isMounted);
-		
 		return header;
 	}
 
 	const ComfyDirectory& ComfyArchive::GetRootDirectory() const
 	{
 		assert(isMounted && rootDirectory != nullptr);
-		
 		return *rootDirectory;
 	}
 
@@ -125,12 +120,14 @@ namespace Comfy::IO
 
 	bool ComfyArchive::ReadEntryIntoBuffer(const ComfyEntry* entry, void* outputBuffer)
 	{
-		assert(entry != nullptr && isMounted && dataStream != nullptr && dataStream->CanRead());
-		if (entry == nullptr || !isMounted || dataStream == nullptr || !dataStream->CanRead())
+		if (entry == nullptr || !isMounted || !dataStream.IsOpen() || !dataStream.CanRead())
+		{
+			assert(false);
 			return false;
-		
-		dataStream->Seek(static_cast<FileAddr>(entry->Offset));
-		dataStream->ReadBuffer(outputBuffer, entry->Size);
+		}
+
+		dataStream.Seek(static_cast<FileAddr>(entry->Offset));
+		dataStream.ReadBuffer(outputBuffer, entry->Size);
 
 		return true;
 	}
@@ -170,15 +167,15 @@ namespace Comfy::IO
 
 	void ComfyArchive::ParseEntries()
 	{
-		dataStream->ReadBuffer(&header, sizeof(header));
+		dataStream.ReadBuffer(&header, sizeof(header));
 
 		// TODO: Extensive validation checking
 		assert(header.Magic == ComfyArchive::Magic);
 
 		dataBuffer = MakeUnique<u8[]>(header.DataSize);
 
-		dataStream->Seek(static_cast<FileAddr>(header.DataOffset));
-		dataStream->ReadBuffer(dataBuffer.get(), header.DataSize);
+		dataStream.Seek(static_cast<FileAddr>(header.DataOffset));
+		dataStream.ReadBuffer(dataBuffer.get(), header.DataSize);
 	}
 
 	namespace

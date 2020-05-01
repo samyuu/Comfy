@@ -1,4 +1,5 @@
 #include "ObjSet.h"
+#include "IO/File.h"
 
 namespace Comfy::Graphics
 {
@@ -69,9 +70,9 @@ namespace Comfy::Graphics
 
 	UniquePtr<ObjSet> ObjSet::MakeUniqueReadParseUpload(std::string_view filePath)
 	{
-		auto objSet = MakeUnique<ObjSet>();
-		objSet->Load(std::string(filePath));
-		objSet->UploadAll();
+		auto objSet = IO::File::Load<ObjSet>(filePath);
+		if (objSet != nullptr)
+			objSet->UploadAll();
 		return objSet;
 	}
 
