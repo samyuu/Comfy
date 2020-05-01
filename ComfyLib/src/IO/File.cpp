@@ -22,6 +22,8 @@ namespace Comfy::IO
 		MemoryStream OpenReadMemory(std::string_view filePath)
 		{
 			FileStream fileStream = OpenRead(filePath);
+			if (!fileStream.IsOpen() || !fileStream.CanRead())
+				return MemoryStream();
 
 			MemoryStream result;
 			result.FromStream(fileStream);
