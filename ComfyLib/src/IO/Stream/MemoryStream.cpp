@@ -18,7 +18,10 @@ namespace Comfy::IO
 		else
 			dataVectorPtr = other.dataVectorPtr;
 
-		other.dataVectorPtr = nullptr;
+		position = other.position;
+		dataSize = other.dataSize;
+
+		other.Close();
 	}
 
 	MemoryStream::~MemoryStream()
@@ -49,7 +52,7 @@ namespace Comfy::IO
 
 	bool MemoryStream::CanRead() const
 	{
-		return canRead;
+		return (dataVectorPtr != nullptr);
 	}
 
 	bool MemoryStream::CanWrite() const
@@ -64,7 +67,7 @@ namespace Comfy::IO
 
 	size_t MemoryStream::ReadBuffer(void* buffer, size_t size)
 	{
-		assert(canRead);
+		assert(dataVectorPtr != nullptr);
 
 		const auto remainingSize = (GetLength() - GetPosition());
 		const i64 bytesRead = std::min(static_cast<i64>(size), static_cast<i64>(remainingSize));
@@ -78,7 +81,7 @@ namespace Comfy::IO
 
 	size_t MemoryStream::WriteBuffer(const void* buffer, size_t size)
 	{
-		assert(canRead);
+		assert(dataVectorPtr != nullptr);
 		dataVectorPtr->resize(dataVectorPtr->size() + size);
 
 		const u8* bufferStart = reinterpret_cast<const u8*>(buffer);
@@ -91,16 +94,12 @@ namespace Comfy::IO
 	void MemoryStream::FromStreamSource(std::vector<u8>& source)
 	{
 		dataVectorPtr = &source;
-
-		canRead = true;
 		dataSize = static_cast<FileAddr>(source.size());
 	}
 
 	void MemoryStream::FromStream(IStream& stream)
 	{
 		assert(stream.CanRead());
-
-		canRead = true;
 		dataSize = stream.GetLength() - stream.GetPosition();
 		dataVectorPtr->resize(static_cast<size_t>(dataSize));
 
@@ -111,9 +110,9 @@ namespace Comfy::IO
 
 	void MemoryStream::Close()
 	{
-		canRead = false;
 		position = {};
 		dataSize = {};
 		dataVectorPtr = nullptr;
+		owningDataVector.clear();
 	}
 }

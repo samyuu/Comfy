@@ -29,8 +29,6 @@ namespace Comfy::IO
 		void Close() override;
 
 	protected:
-		bool canRead = false;
-
 		FileAddr position = {};
 		FileAddr dataSize = {};
 
