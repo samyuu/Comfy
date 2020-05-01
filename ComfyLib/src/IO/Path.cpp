@@ -48,3 +48,45 @@ namespace Comfy::IO
 		}
 	}
 }
+
+// #define COMFY_STATIC_ASSERT_STRCMP(stringA, stringB) static_assert((stringA) == (stringB))
+#define COMFY_STATIC_ASSERT_STRCMP(stringA, stringB) static_assert(ConstexprStrCmp((stringA), (stringB)))
+
+namespace Comfy::IO::Path::ConstexprTest
+{
+	constexpr bool ConstexprStrCmp(std::string_view stringA, std::string_view stringB)
+	{
+		if (stringA.size() != stringB.size())
+			return false;
+
+		for (size_t i = 0; i < stringA.size(); i++)
+			if (stringA[i] != stringB[i])
+				return false;
+
+		return true;
+	}
+
+	COMFY_STATIC_ASSERT_STRCMP(GetExtension("C:/MyDir/MySubDir/MyFile"), "");
+	COMFY_STATIC_ASSERT_STRCMP(GetExtension("C:/MyDir/MySubDir"), "");
+	COMFY_STATIC_ASSERT_STRCMP(GetExtension("C:/MyDir/MyFile.ext"), ".ext");
+	COMFY_STATIC_ASSERT_STRCMP(GetExtension("C:/MyDir/MyFile."), ".");
+	COMFY_STATIC_ASSERT_STRCMP(GetExtension("C:/MyFile.ext"), ".ext");
+	COMFY_STATIC_ASSERT_STRCMP(GetExtension("MyFile.ext"), ".ext");
+	COMFY_STATIC_ASSERT_STRCMP(GetExtension("MyFile"), "");
+	COMFY_STATIC_ASSERT_STRCMP(GetExtension("C:/.ext"), ".ext");
+	COMFY_STATIC_ASSERT_STRCMP(GetExtension("C:/"), "");
+	COMFY_STATIC_ASSERT_STRCMP(GetExtension(""), "");
+
+	COMFY_STATIC_ASSERT_STRCMP(GetFileName("C:/MyDir/MySubDir/MyFile.ext"), "MyFile.ext");
+
+	COMFY_STATIC_ASSERT_STRCMP(TrimTrailingPathSeparators("C:/MyDir/MySubDir/"), "C:/MyDir/MySubDir");
+	COMFY_STATIC_ASSERT_STRCMP(TrimTrailingPathSeparators("C:/MyDir//"), "C:/MyDir");
+	COMFY_STATIC_ASSERT_STRCMP(TrimTrailingPathSeparators("C:/MyDir"), "C:/MyDir");
+	COMFY_STATIC_ASSERT_STRCMP(TrimTrailingPathSeparators(""), "");
+
+	COMFY_STATIC_ASSERT_STRCMP(GetDirectoryName("C:/MyDir/MySubDir/MyFile.ext"), "C:/MyDir/MySubDir");
+	COMFY_STATIC_ASSERT_STRCMP(GetDirectoryName("C:/MyDir/MySubDir"), "C:/MyDir");
+	COMFY_STATIC_ASSERT_STRCMP(GetDirectoryName("C:/MyDir/"), "C:/MyDir/");
+	COMFY_STATIC_ASSERT_STRCMP(GetDirectoryName("C:/MyDir"), "C:");
+	COMFY_STATIC_ASSERT_STRCMP(GetDirectoryName("C:/"), "C:/");
+}

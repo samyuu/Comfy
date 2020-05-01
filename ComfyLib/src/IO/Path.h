@@ -36,14 +36,14 @@ namespace Comfy::IO
 		COMFY_NODISCARD constexpr std::string_view GetFileName(std::string_view filePath, bool includeExtension = true)
 		{
 			const auto lastIndex = filePath.find_last_of(DirectorySeparators);
-			const auto fileName = (lastIndex == std::string_view::npos) ? filePath : filePath.substr(lastIndex);
+			const auto fileName = (lastIndex == std::string_view::npos) ? filePath : filePath.substr(lastIndex + 1);
 			return (includeExtension) ? fileName : TrimExtension(fileName);
 		}
 
 		COMFY_NODISCARD constexpr std::string_view GetDirectoryName(std::string_view filePath)
 		{
 			const auto fileName = GetFileName(filePath);
-			return fileName.empty() ? filePath : filePath.substr(0, filePath.size() - fileName.size());
+			return fileName.empty() ? filePath : filePath.substr(0, filePath.size() - fileName.size() - 1);
 		}
 
 		COMFY_NODISCARD bool IsRelative(std::string_view filePath);
@@ -58,33 +58,5 @@ namespace Comfy::IO
 
 		// NOTE: Replace '/' -> '\\' etc.
 		COMFY_NODISCARD std::string NormalizeWin32(std::string_view filePath);
-
-		namespace ConstexprTest
-		{
-			/*
-			static_assert(GetExtension("C:/MyDir/MySubDir/MyFile.ext") == ".ext");
-			static_assert(GetExtension("C:/MyDir/MySubDir/MyFile") == "");
-			static_assert(GetExtension("C:/MyDir/MySubDir") == "");
-			static_assert(GetExtension("C:/MyDir/MyFile.ext") == ".ext");
-			static_assert(GetExtension("C:/MyDir/MyFile.") == ".");
-			static_assert(GetExtension("C:/MyFile.ext") == ".ext");
-			static_assert(GetExtension("MyFile.ext") == ".ext");
-			static_assert(GetExtension("MyFile") == "");
-			static_assert(GetExtension("C:/.ext") == ".ext");
-			static_assert(GetExtension("C:/") == "");
-			static_assert(GetExtension("") == "");
-
-			static_assert(TrimTrailingPathSeparators("C:/MyDir/MySubDir/") == "C:/MyDir/MySubDir");
-			static_assert(TrimTrailingPathSeparators("C:/MyDir//") == "C:/MyDir");
-			static_assert(TrimTrailingPathSeparators("C:/MyDir") == "C:/MyDir");
-			static_assert(TrimTrailingPathSeparators("") == "");
-
-			static_assert(GetDirectoryName("C:/MyDir/MySubDir/MyFile.ext") == "C:/MyDir/MySubDir");
-			static_assert(GetDirectoryName("C:/MyDir/MySubDir") == "C:/MyDir");
-			static_assert(GetDirectoryName("C:/MyDir/") == "C:/MyDir");
-			static_assert(GetDirectoryName("C:/MyDir") == "C:");
-			static_assert(GetDirectoryName("C:/") == "C:");
-			*/
-		}
 	}
 }
