@@ -37,19 +37,22 @@ namespace ImGui
 		const FilePathInfo* contextMenuFilePathInfo = nullptr;
 		ExtendedImGuiTextFilter fileFilter;
 
+		// TODO: bool allowArchiveDirectory = true;
 		bool resizeColumns = true;
-		bool appendDirectorySlash = false;
+		bool appendDirectoryChildNameSlash = false;
 		bool useFileTypeIcons = true;
 		char currentDirectoryBuffer[260];
 
-		std::vector<FilePathInfo> directoryInfo;
-		std::string currentDirectoryOrArchive, previousDirectory;
+		std::vector<FilePathInfo> currentDirectoryInfo;
+		
+		bool currentDirectoryIsArchive = false;
+		std::string currentDirectoryOrArchive, previousDirectoryOrArchive;
+		
 		std::string fileToOpen;
 
 		FilePathInfo* DrawFileListGui();
 
 		void UpdateDirectoryInformation();
-		void SetDirectoryInternal(const std::string& newDirectory);
 		void SetParentDirectory(const std::string& directory);
 		void SetResolveFileLinke(const FilePathInfo& info);
 		void OpenDirectoryInExplorer();
