@@ -107,7 +107,7 @@ namespace ImGui
 	void FileViewer::SetDirectory(std::string_view newDirectory)
 	{
 		previousDirectoryOrArchive = currentDirectoryOrArchive;
-		currentDirectoryOrArchive = IO::Path::TrimTrailingPathSeparators(IO::Path::Normalize(newDirectory));
+		currentDirectoryOrArchive = IO::Path::TrimTrailingPathSeparators(IO::Path::Normalize(IO::Path::TrimQuotes(newDirectory)));
 
 		if (currentDirectoryOrArchive.size() > std::size(currentDirectoryBuffer) + 2)
 			currentDirectoryOrArchive = currentDirectoryOrArchive.substr(0, std::size(currentDirectoryBuffer) - 2);

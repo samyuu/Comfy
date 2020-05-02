@@ -33,6 +33,13 @@ namespace Comfy::IO
 			return (lastNotIndex == std::string_view::npos) ? filePath : filePath.substr(0, lastNotIndex + 1);
 		}
 
+		COMFY_NODISCARD constexpr std::string_view TrimQuotes(std::string_view filePath)
+		{
+			if (filePath.size() >= 2 && filePath.front() == '\"' && filePath.back() == '\"')
+				return filePath.substr(1, filePath.size() - 2);
+			return filePath;
+		}
+
 		COMFY_NODISCARD constexpr std::string_view GetFileName(std::string_view filePath, bool includeExtension = true)
 		{
 			if (const auto internalFile = FolderFile::ParsePath(filePath).second; !internalFile.empty())
