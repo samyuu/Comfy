@@ -40,10 +40,10 @@ namespace ImGui
 		bool resizeColumns = true;
 		bool appendDirectorySlash = false;
 		bool useFileTypeIcons = true;
-		char currentDirectoryBuffer[_MAX_PATH];
+		char currentDirectoryBuffer[260];
 
 		std::vector<FilePathInfo> directoryInfo;
-		std::string directory, previousDirectory;
+		std::string currentDirectoryOrArchive, previousDirectory;
 		std::string fileToOpen;
 
 		FilePathInfo* DrawFileListGui();

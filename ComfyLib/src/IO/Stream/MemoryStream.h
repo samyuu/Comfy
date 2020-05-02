@@ -26,6 +26,15 @@ namespace Comfy::IO
 
 		void FromStreamSource(std::vector<u8>& source);
 		void FromStream(IStream& stream);
+		
+		template <typename Func>
+		void FromBuffer(size_t size, Func fromBufferFunc)
+		{
+			owningDataVector.resize(size);
+			fromBufferFunc(static_cast<void*>(owningDataVector.data()), size);
+			dataSize = static_cast<FileAddr>(size);
+		}
+
 		void Close() override;
 
 	protected:

@@ -122,18 +122,20 @@ namespace Comfy::Debug
 
 	inline std::string GetTexSetPathForObjSet(std::string_view objSetPath)
 	{
-		std::string texSetPath;
-		texSetPath.reserve(MAX_PATH);
+		const auto fileName = IO::Path::GetFileName(objSetPath, false);
+		const auto setName = std::string(fileName.substr(0, fileName.length() - strlen("_obj")));
+		const auto texName = setName + "_tex";
 
-		std::string_view fileName = IO::Path::GetFileName(objSetPath, false);
-		std::string_view objName = fileName.substr(0, fileName.length() - strlen("_obj"));
-
-		texSetPath.append(IO::Path::GetDirectoryName(objSetPath));
-		texSetPath.append("/");
-		texSetPath.append(objName);
-		texSetPath.append("_tex.bin");
-
-		return texSetPath;
+		if (const auto[basePath, internalFile] = IO::FolderFile::ParsePath(objSetPath); !internalFile.empty())
+		{
+			const auto texFarcName = IO::Path::ChangeExtension(setName, IO::Path::GetExtension(basePath));
+			const auto texFarcPath = IO::Path::Combine(IO::Path::GetDirectoryName(basePath), texFarcName);
+			return IO::FolderFile::CombinePath(texFarcPath, IO::Path::ChangeExtension(texName, ".bin"));
+		}
+		else
+		{
+			return IO::Path::Combine(IO::Path::GetDirectoryName(objSetPath), IO::Path::ChangeExtension(texName, ".bin"));
+		}
 	}
 
 	inline bool IsGroundObj(const Graphics::Obj& obj)

@@ -42,14 +42,8 @@ namespace Comfy::IO
 		if (!fileFound)
 			return;
 
-		auto stream = File::OpenRead(filePath);
-		if (!stream.IsOpen() || !stream.CanRead())
-			return;
-
-		fileContent.resize(static_cast<size_t>(stream.GetLength()));
-		stream.ReadBuffer(fileContent.data(), fileContent.size());
-
-		SetIsLoaded(true);
+		if (File::ReadAllBytes(filePath, fileContent))
+			SetIsLoaded(true);
 	}
 
 	void AsyncFileLoader::LoadAsync()
@@ -64,13 +58,8 @@ namespace Comfy::IO
 		{
 			threadRunning = true;
 
-			if (auto stream = File::OpenRead(filePath); stream.IsOpen() && stream.CanRead())
-			{
-				fileContent.resize(static_cast<size_t>(stream.GetLength()));
-				stream.ReadBuffer(fileContent.data(), fileContent.size());
-
+			if (File::ReadAllBytes(filePath, fileContent))
 				SetIsLoaded(true);
-			}
 
 			threadRunning = false;
 		});

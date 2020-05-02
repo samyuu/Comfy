@@ -141,7 +141,8 @@ namespace Comfy::Editor
 		if (aetFileViewer.DrawGui())
 		{
 			const auto aetPath = aetFileViewer.GetFileToOpen();
-			if (StartsWithInsensitive(IO::Path::GetFileName(aetPath), "aet_") && (EndsWithInsensitive(aetPath, ".bin") || EndsWithInsensitive(aetPath, ".aec")))
+			const auto fileName = IO::Path::GetFileName(aetPath);
+			if (StartsWithInsensitive(fileName, "aet_") && (EndsWithInsensitive(fileName, ".bin") || EndsWithInsensitive(fileName, ".aec")))
 				LoadAetSet(aetPath);
 		}
 	}
@@ -151,7 +152,8 @@ namespace Comfy::Editor
 		if (sprFileViewer.DrawGui())
 		{
 			const auto sprPath = sprFileViewer.GetFileToOpen();
-			if (StartsWithInsensitive(IO::Path::GetFileName(sprPath), "spr_") && EndsWithInsensitive(sprPath, ".bin"))
+			const auto fileName = IO::Path::GetFileName(sprPath);
+			if (StartsWithInsensitive(fileName, "spr_") && EndsWithInsensitive(fileName, ".bin"))
 				LoadSprSet(sprPath);
 		}
 	}

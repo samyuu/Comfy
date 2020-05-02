@@ -2,13 +2,13 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "CoreMacros.h"
+#include "File.h"
 
 namespace Comfy::IO
 {
 	namespace Path
 	{
-		constexpr char DirectorySeparator = '/';
-		constexpr char DirectorySeparatorAlt = '\\';
+		constexpr char DirectorySeparator = '/', DirectorySeparatorAlt = '\\';
 		constexpr const char* DirectorySeparators = "/\\";
 
 		constexpr std::array InvalidPathCharacters = { '\"', '<', '>', '|', '\0', };
@@ -35,6 +35,9 @@ namespace Comfy::IO
 
 		COMFY_NODISCARD constexpr std::string_view GetFileName(std::string_view filePath, bool includeExtension = true)
 		{
+			if (const auto internalFile = FolderFile::ParsePath(filePath).second; !internalFile.empty())
+				return (includeExtension) ? internalFile : TrimExtension(internalFile);
+
 			const auto lastIndex = filePath.find_last_of(DirectorySeparators);
 			const auto fileName = (lastIndex == std::string_view::npos) ? filePath : filePath.substr(lastIndex + 1);
 			return (includeExtension) ? fileName : TrimExtension(fileName);
@@ -42,6 +45,9 @@ namespace Comfy::IO
 
 		COMFY_NODISCARD constexpr std::string_view GetDirectoryName(std::string_view filePath)
 		{
+			if (const auto parsed = FolderFile::ParsePath(filePath); !parsed.second.empty())
+				filePath = parsed.first;
+
 			const auto fileName = GetFileName(filePath);
 			return fileName.empty() ? filePath : filePath.substr(0, filePath.size() - fileName.size() - 1);
 		}
