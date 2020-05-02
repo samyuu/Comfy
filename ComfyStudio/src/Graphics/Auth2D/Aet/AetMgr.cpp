@@ -202,9 +202,9 @@ namespace Comfy::Graphics::Aet
 			ApplyParentTransform(outTransform, parentParent, frame, recursionCount);
 	}
 
-	void AetMgr::FindAddCompositionUsages(const RefPtr<Scene>& aetToSearch, const RefPtr<Composition>& compToFind, std::vector<RefPtr<Layer>*>& outObjects)
+	void AetMgr::FindAddCompositionUsages(const std::shared_ptr<Scene>& aetToSearch, const std::shared_ptr<Composition>& compToFind, std::vector<std::shared_ptr<Layer>*>& outObjects)
 	{
-		const auto compSearchFunction = [&compToFind, &outObjects](const RefPtr<Composition>& compToSearch)
+		const auto compSearchFunction = [&compToFind, &outObjects](const std::shared_ptr<Composition>& compToSearch)
 		{
 			for (auto& layer : compToSearch->GetLayers())
 			{

@@ -51,7 +51,7 @@ namespace Comfy::Editor
 		void RenderVideo(const Graphics::Aet::Video* video);
 
 	protected:
-		vec2 GetLayerBoundingSize(const RefPtr<Graphics::Aet::Layer>& layer) const;
+		vec2 GetLayerBoundingSize(const std::shared_ptr<Graphics::Aet::Layer>& layer) const;
 
 	protected:
 		bool OnObjRender(const Graphics::Aet::AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity);
@@ -82,13 +82,13 @@ namespace Comfy::Editor
 		};
 
 		// NOTE: General rendering
-		UniquePtr<Graphics::GPU_Renderer2D> renderer = nullptr;
-		UniquePtr<Graphics::Aet::AetRenderer> aetRenderer = nullptr;
+		std::unique_ptr<Graphics::GPU_Renderer2D> renderer = nullptr;
+		std::unique_ptr<Graphics::Aet::AetRenderer> aetRenderer = nullptr;
 
 		AetRenderPreviewData* previewData = nullptr;
 
 		// NOTE: To handle mouse inputs when no tool is active
-		UniquePtr<ObjectMousePicker> mousePicker = nullptr;
+		std::unique_ptr<ObjectMousePicker> mousePicker = nullptr;
 
 		// NOTE: To be filled during rendering and then used for mouse interactions
 		std::vector<Graphics::Aet::AetMgr::ObjCache> objectCache;
@@ -97,7 +97,7 @@ namespace Comfy::Editor
 		vec2 toolSize = vec2(100.0f, 100.0f);
 		Graphics::Transform2D toolTransform = Graphics::Transform2D(vec2(0.0f));
 
-		std::array<UniquePtr<AetTool>, AetToolType_Count> tools;
+		std::array<std::unique_ptr<AetTool>, AetToolType_Count> tools;
 		AetToolType currentToolType = AetToolType_Transform;
 
 		Graphics::OrthographicCamera camera;

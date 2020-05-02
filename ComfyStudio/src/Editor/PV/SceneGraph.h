@@ -29,24 +29,24 @@ namespace Comfy::Editor
 		bool IsReflection = false;
 		bool SilhouetteOutline = false;
 
-		UniquePtr<Graphics::ObjAnimationData> Animation = nullptr;
+		std::unique_ptr<Graphics::ObjAnimationData> Animation = nullptr;
 	};
 
 	struct ObjSetResource
 	{
-		RefPtr<Graphics::ObjSet> ObjSet;
+		std::shared_ptr<Graphics::ObjSet> ObjSet;
 		EntityTag Tag;
 	};
 
 	struct SceneGraph
 	{
 		ResourceIDMap<TexID, Graphics::Tex> TexIDMap;
-		UniquePtr<Database::TexDB> TexDB = nullptr;
+		std::unique_ptr<Database::TexDB> TexDB = nullptr;
 
 		std::vector<ObjSetResource> LoadedObjSets;
-		std::vector<UniquePtr<ObjectEntity>> Entities;
+		std::vector<std::unique_ptr<ObjectEntity>> Entities;
 
-		inline ObjSetResource& LoadObjSet(const RefPtr<Graphics::ObjSet>& objSet, EntityTag tag)
+		inline ObjSetResource& LoadObjSet(const std::shared_ptr<Graphics::ObjSet>& objSet, EntityTag tag)
 		{
 			return LoadedObjSets.emplace_back(ObjSetResource { objSet, tag });
 		}
@@ -63,7 +63,7 @@ namespace Comfy::Editor
 
 		inline ObjectEntity& AddEntityFromObj(const Graphics::Obj& obj, EntityTag tag)
 		{
-			auto entity = MakeUnique<ObjectEntity>();
+			auto entity = std::make_unique<ObjectEntity>();
 			entity->Name = obj.Name;
 			entity->Tag = tag;
 			entity->IsVisible = true;

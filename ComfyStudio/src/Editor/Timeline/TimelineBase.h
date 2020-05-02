@@ -52,7 +52,7 @@ namespace Comfy::Editor
 
 	protected:
 		// TODO: Initialize in derived class, each derived class then exposes its own casted getter (?)
-		// UniquePtr<ITimelineUnitConverter> unitConverter;
+		// std::unique_ptr<ITimelineUnitConverter> unitConverter;
 
 		TimeSpan cursorTime;
 

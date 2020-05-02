@@ -40,7 +40,7 @@ namespace Comfy::Graphics::D3D11
 		ID3D11DeviceContext* Context = nullptr;
 
 		IDXGISwapChain* SwapChain = nullptr;
-		UniquePtr<SwapChainRenderTarget> WindowRenderTarget = nullptr;
+		std::unique_ptr<SwapChainRenderTarget> WindowRenderTarget = nullptr;
 
 	private:
 		bool InternalCreateDeviceAndSwapchain(HWND window);

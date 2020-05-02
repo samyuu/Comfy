@@ -31,10 +31,10 @@ namespace Comfy::Editor
 			void UpdateCameraView();
 			void RenderMaterial(Graphics::GPU_Renderer3D& renderer, const Graphics::SceneParameters& scene, Graphics::Material& material);
 
-			UniquePtr<Graphics::SceneViewport> viewport = nullptr;
+			std::unique_ptr<Graphics::SceneViewport> viewport = nullptr;
 			CameraController3D cameraController;
 
-			UniquePtr<Graphics::Obj> sphereObj;
+			std::unique_ptr<Graphics::Obj> sphereObj;
 			Graphics::ObjAnimationData overrideAnimation;
 
 			float targetRenderHeight = 120.0f;

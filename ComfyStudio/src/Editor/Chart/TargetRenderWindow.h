@@ -29,24 +29,24 @@ namespace Comfy::Editor
 		Graphics::OrthographicCamera camera;
 
 		Graphics::Aet::SpriteGetterFunction spriteGetterFunction;
-		UniquePtr<Graphics::GPU_Renderer2D> renderer;
-		UniquePtr<Graphics::Aet::AetRenderer> aetRenderer;
+		std::unique_ptr<Graphics::GPU_Renderer2D> renderer;
+		std::unique_ptr<Graphics::Aet::AetRenderer> aetRenderer;
 
 		// TODO: ps4_gam
 		IO::AsyncFileLoader aetSetLoader = { "dev_rom/2d/aet_gam_cmn.bin" };
 		IO::AsyncFileLoader sprSetLoader = { "dev_rom/2d/spr_gam_cmn.bin" };
 
-		UniquePtr<Graphics::Aet::AetSet> aetSet;
-		UniquePtr<Graphics::SprSet> sprSet;
+		std::unique_ptr<Graphics::Aet::AetSet> aetSet;
+		std::unique_ptr<Graphics::SprSet> sprSet;
 
 		struct /* InternalLayerCache */
 		{
-			RefPtr<Graphics::Aet::Layer> FrameUp, FrameBottom;
-			RefPtr<Graphics::Aet::Layer> LifeGauge;
-			RefPtr<Graphics::Aet::Layer> SongEnergyBase;
-			RefPtr<Graphics::Aet::Layer> SongIconLoop;
-			RefPtr<Graphics::Aet::Layer> LevelInfoEasy;
-			RefPtr<Graphics::Aet::Layer> SongInfoLoop;
+			std::shared_ptr<Graphics::Aet::Layer> FrameUp, FrameBottom;
+			std::shared_ptr<Graphics::Aet::Layer> LifeGauge;
+			std::shared_ptr<Graphics::Aet::Layer> SongEnergyBase;
+			std::shared_ptr<Graphics::Aet::Layer> SongIconLoop;
+			std::shared_ptr<Graphics::Aet::Layer> LevelInfoEasy;
+			std::shared_ptr<Graphics::Aet::Layer> SongInfoLoop;
 		} layerCache;
 
 		void RenderBackground();

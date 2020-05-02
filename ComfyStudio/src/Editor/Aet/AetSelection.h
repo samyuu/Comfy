@@ -26,29 +26,29 @@ namespace Comfy::Editor
 
 	union AetItemReferencePtrUnion
 	{
-		const RefPtr<void*>* VoidRef;
-		const RefPtr<Graphics::Aet::AetSet>* AetSetRef;
-		const RefPtr<Graphics::Aet::Scene>* SceneRef;
-		const RefPtr<Graphics::Aet::Composition>* CompositionRef;
-		const RefPtr<Graphics::Aet::Layer>* LayerRef;
-		const RefPtr<Graphics::Aet::Video>* VideoRef;
+		const std::shared_ptr<void*>* VoidRef;
+		const std::shared_ptr<Graphics::Aet::AetSet>* AetSetRef;
+		const std::shared_ptr<Graphics::Aet::Scene>* SceneRef;
+		const std::shared_ptr<Graphics::Aet::Composition>* CompositionRef;
+		const std::shared_ptr<Graphics::Aet::Layer>* LayerRef;
+		const std::shared_ptr<Graphics::Aet::Video>* VideoRef;
 	};
 
 	struct AetItemTypePtr
 	{
 	public:
 		template <typename T>
-		void SetItem(const RefPtr<T>& value);
+		void SetItem(const std::shared_ptr<T>& value);
 
 		inline AetItemType Type() const { return type; }
 		inline void Reset() { type = AetItemType::None; Ptrs.Void = nullptr; refPtrs.VoidRef = nullptr; }
 
 	public:
-		inline const RefPtr<Graphics::Aet::AetSet>& GetAetSetRef() const { return *refPtrs.AetSetRef; }
-		inline const RefPtr<Graphics::Aet::Scene>& GetSceneRef() const { return *refPtrs.SceneRef; }
-		inline const RefPtr<Graphics::Aet::Composition>& GetCompositionRef() const { return *refPtrs.CompositionRef; }
-		inline const RefPtr<Graphics::Aet::Layer>& GetLayerRef() const { return *refPtrs.LayerRef; }
-		inline const RefPtr<Graphics::Aet::Video>& GetVideoRef() const { return *refPtrs.VideoRef; }
+		inline const std::shared_ptr<Graphics::Aet::AetSet>& GetAetSetRef() const { return *refPtrs.AetSetRef; }
+		inline const std::shared_ptr<Graphics::Aet::Scene>& GetSceneRef() const { return *refPtrs.SceneRef; }
+		inline const std::shared_ptr<Graphics::Aet::Composition>& GetCompositionRef() const { return *refPtrs.CompositionRef; }
+		inline const std::shared_ptr<Graphics::Aet::Layer>& GetLayerRef() const { return *refPtrs.LayerRef; }
+		inline const std::shared_ptr<Graphics::Aet::Video>& GetVideoRef() const { return *refPtrs.VideoRef; }
 
 		inline bool IsNull() const { return Ptrs.Void == nullptr; }
 		inline Graphics::Aet::Scene* GetItemParentScene() const;
@@ -62,7 +62,7 @@ namespace Comfy::Editor
 	};
 
 	template <typename T>
-	void AetItemTypePtr::SetItem(const RefPtr<T>& value)
+	void AetItemTypePtr::SetItem(const std::shared_ptr<T>& value)
 	{
 		if constexpr (std::is_same<T, Graphics::Aet::AetSet>::value)
 			type = AetItemType::AetSet;
@@ -78,7 +78,7 @@ namespace Comfy::Editor
 			static_assert(false, "Invalid Type T");
 
 		Ptrs.Void = reinterpret_cast<void*>(value.get());
-		refPtrs.VoidRef = reinterpret_cast<const RefPtr<void*>*>(&value);
+		refPtrs.VoidRef = reinterpret_cast<const std::shared_ptr<void*>*>(&value);
 	}
 
 	Graphics::Aet::Scene* AetItemTypePtr::GetItemParentScene() const

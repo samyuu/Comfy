@@ -178,8 +178,8 @@ namespace Comfy::Graphics::D3D11
 		RendererShaderPairs shaders;
 		RendererConstantBuffers constantBuffers;
 
-		UniquePtr<InputLayout> genericInputLayout = nullptr;
-		UniquePtr<InputLayout> shadowSilhouetteInputLayout = nullptr;
+		std::unique_ptr<InputLayout> genericInputLayout = nullptr;
+		std::unique_ptr<InputLayout> shadowSilhouetteInputLayout = nullptr;
 
 		RasterizerState solidBackfaceCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_BACK, "Renderer3D::SolidBackfaceCulling" };
 		RasterizerState solidFrontfaceCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_FRONT, "Renderer3D::SolidFrontfaceCulling" };

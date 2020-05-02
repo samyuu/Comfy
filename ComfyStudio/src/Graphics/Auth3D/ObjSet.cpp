@@ -68,7 +68,7 @@ namespace Comfy::Graphics
 			obj.Upload();
 	}
 
-	UniquePtr<ObjSet> ObjSet::MakeUniqueReadParseUpload(std::string_view filePath)
+	std::unique_ptr<ObjSet> ObjSet::MakeUniqueReadParseUpload(std::string_view filePath)
 	{
 		auto objSet = IO::File::Load<ObjSet>(filePath);
 		if (objSet != nullptr)

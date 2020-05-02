@@ -31,13 +31,13 @@ namespace Comfy::Graphics
 
 	namespace GPU
 	{
-		UniquePtr<GPU_Texture2D> MakeTexture2D(const Tex& tex, const char* debugName = nullptr);
-		UniquePtr<GPU_Texture2D> MakeTexture2D(ivec2 size, const u32* rgbaBuffer, const char* debugName = nullptr);
+		std::unique_ptr<GPU_Texture2D> MakeTexture2D(const Tex& tex, const char* debugName = nullptr);
+		std::unique_ptr<GPU_Texture2D> MakeTexture2D(ivec2 size, const u32* rgbaBuffer, const char* debugName = nullptr);
 
-		UniquePtr<GPU_CubeMap> MakeCubeMap(const Tex& tex, const char* debugName = nullptr);
-		UniquePtr<GPU_CubeMap> MakeCubeMap(const LightMapIBL& lightMap, const char* debugName = nullptr);
+		std::unique_ptr<GPU_CubeMap> MakeCubeMap(const Tex& tex, const char* debugName = nullptr);
+		std::unique_ptr<GPU_CubeMap> MakeCubeMap(const LightMapIBL& lightMap, const char* debugName = nullptr);
 
-		UniquePtr<GPU_IndexBuffer> MakeIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat, const char* debugName = nullptr);
-		UniquePtr<GPU_VertexBuffer> MakeVertexBuffer(size_t dataSize, const void* data, size_t stride, const char* debugName = nullptr);
+		std::unique_ptr<GPU_IndexBuffer> MakeIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat, const char* debugName = nullptr);
+		std::unique_ptr<GPU_VertexBuffer> MakeVertexBuffer(size_t dataSize, const void* data, size_t stride, const char* debugName = nullptr);
 	}
 }

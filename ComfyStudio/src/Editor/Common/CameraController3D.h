@@ -61,7 +61,7 @@ namespace Comfy::Editor
 
 			Graphics::Sphere InterestSphere = { vec3(0.0f), 0.3f };
 			vec4 InterestSphereColor = vec4(0.66f, 1.00f, 0.32f, 0.25f);
-			UniquePtr<Graphics::Obj> InterestSphereObj = nullptr;
+			std::unique_ptr<Graphics::Obj> InterestSphereObj = nullptr;
 		} Visualization;
 
 	public:

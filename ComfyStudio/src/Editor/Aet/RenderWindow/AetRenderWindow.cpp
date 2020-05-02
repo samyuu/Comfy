@@ -28,19 +28,19 @@ namespace Comfy::Editor
 		checkerboardBaseGrid.Color = baseColor;
 		checkerboardBaseGrid.ColorAlt = baseColor;
 
-		renderer = MakeUnique<D3D11::Renderer2D>();
-		aetRenderer = MakeUnique<AetRenderer>(renderer.get());
+		renderer = std::make_unique<D3D11::Renderer2D>();
+		aetRenderer = std::make_unique<AetRenderer>(renderer.get());
 		aetRenderer->SetSpriteGetterFunction(spriteGetter);
 		aetRenderer->SetCallback([this](const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity) { return OnObjRender(obj, positionOffset, opacity); });
 		aetRenderer->SetMaskCallback([this](const AetMgr::ObjCache& objMask, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity) { return OnObjMaskRender(objMask, obj, positionOffset, opacity); });
 
-		mousePicker = MakeUnique<ObjectMousePicker>(objectCache, windowHoveredOnMouseClick, selectedAetItem, cameraSelectedAetItem);
+		mousePicker = std::make_unique<ObjectMousePicker>(objectCache, windowHoveredOnMouseClick, selectedAetItem, cameraSelectedAetItem);
 
-		tools[AetToolType_Hand] = MakeUnique<HandTool>();
-		tools[AetToolType_Move] = MakeUnique<MoveTool>();
-		tools[AetToolType_Rotate] = MakeUnique<RotateTool>();
-		tools[AetToolType_Scale] = MakeUnique<ScaleTool>();
-		tools[AetToolType_Transform] = MakeUnique<TransformTool>();
+		tools[AetToolType_Hand] = std::make_unique<HandTool>();
+		tools[AetToolType_Move] = std::make_unique<MoveTool>();
+		tools[AetToolType_Rotate] = std::make_unique<RotateTool>();
+		tools[AetToolType_Scale] = std::make_unique<ScaleTool>();
+		tools[AetToolType_Transform] = std::make_unique<TransformTool>();
 	}
 
 	AetRenderWindow::~AetRenderWindow()
@@ -422,7 +422,7 @@ namespace Comfy::Editor
 		aetRenderer->RenderAetSprite(video, source, vec2(0.0f, 0.0f));
 	}
 
-	vec2 AetRenderWindow::GetLayerBoundingSize(const RefPtr<Layer>& layer) const
+	vec2 AetRenderWindow::GetLayerBoundingSize(const std::shared_ptr<Layer>& layer) const
 	{
 		const auto& video = layer->GetVideoItem();
 

@@ -53,7 +53,7 @@ namespace Comfy::Graphics::Aet
 		static void ApplyParentTransform(Transform2D& outTransform, const Layer* parent, frame_t frame, i32& recursionCount);
 
 		// NOTE: To easily navigate between composition references in the tree view
-		static void FindAddCompositionUsages(const RefPtr<Scene>& aetToSearch, const RefPtr<Composition>& compToFind, std::vector<RefPtr<Layer>*>& outObjects);
+		static void FindAddCompositionUsages(const std::shared_ptr<Scene>& aetToSearch, const std::shared_ptr<Composition>& compToFind, std::vector<std::shared_ptr<Layer>*>& outObjects);
 
 	private:
 		static void InternalAddObjects(std::vector<AetMgr::ObjCache>& objects, const Transform2D* parentTransform, const Layer* layer, frame_t frame);

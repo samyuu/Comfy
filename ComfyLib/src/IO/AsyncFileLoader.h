@@ -41,7 +41,7 @@ namespace Comfy::IO
 
 		// TODO: Implement using std::async / std::future
 		std::atomic_bool threadRunning = false;
-		UniquePtr<std::thread> loaderThread = nullptr;
+		std::unique_ptr<std::thread> loaderThread = nullptr;
 
 		void CheckFileLocation();
 

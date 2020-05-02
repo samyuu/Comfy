@@ -20,7 +20,7 @@ namespace Comfy::UTF8
 		const wchar_t* c_str() const;
 
 	private:
-		UniquePtr<wchar_t[]> heapBuffer;
+		std::unique_ptr<wchar_t[]> heapBuffer;
 		std::array<wchar_t, 260> stackBuffer;
 		int convertedLength;
 	};

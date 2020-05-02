@@ -44,15 +44,15 @@ namespace Comfy::Editor
 		std::array<const char*, 4> audioFileExtensions = { ".wav", ".flac", ".ogg", ".mp3" };
 		Gui::FileViewer songFileViewer = { "dev_ram/sound/song" };
 
-		UniquePtr<Chart> chart;
+		std::unique_ptr<Chart> chart;
 
-		UniquePtr<TargetTimeline> timeline;
-		UniquePtr<SyncWindow> syncWindow;
-		UniquePtr<TargetRenderWindow> renderWindow;
+		std::unique_ptr<TargetTimeline> timeline;
+		std::unique_ptr<SyncWindow> syncWindow;
+		std::unique_ptr<TargetRenderWindow> renderWindow;
 
-		RefPtr<Audio::SilenceSampleProvider> dummySampleProvider;
-		RefPtr<Audio::MemorySampleProvider> songStream;
-		RefPtr<Audio::AudioInstance> songInstance;
+		std::shared_ptr<Audio::SilenceSampleProvider> dummySampleProvider;
+		std::shared_ptr<Audio::MemorySampleProvider> songStream;
+		std::shared_ptr<Audio::AudioInstance> songInstance;
 		
 		bool isPlaying = false;
 		TimeSpan playbackTimeOnPlaybackStart;

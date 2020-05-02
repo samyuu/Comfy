@@ -3,12 +3,12 @@
 
 namespace Comfy::Audio
 {
-	AudioInstance::AudioInstance(RefPtr<ISampleProvider> sampleProvider, bool playing, const char* name) 
+	AudioInstance::AudioInstance(std::shared_ptr<ISampleProvider> sampleProvider, bool playing, const char* name) 
 		: AudioInstance(sampleProvider, playing, AudioFinishedAction::None, AudioEngine::MaxVolume, name)
 	{
 	}
 	
-	AudioInstance::AudioInstance(RefPtr<ISampleProvider> sampleProvider, bool playing, AudioFinishedAction finishedAction, float volume, const char* name) 
+	AudioInstance::AudioInstance(std::shared_ptr<ISampleProvider> sampleProvider, bool playing, AudioFinishedAction finishedAction, float volume, const char* name) 
 		: sampleProvider(sampleProvider), isPlaying(playing), onFinishedAction(finishedAction), volume(volume), name(name)
 	{
 	}
@@ -18,12 +18,12 @@ namespace Comfy::Audio
 
 	}
 
-	const RefPtr<ISampleProvider>& AudioInstance::GetSampleProvider() const
+	const std::shared_ptr<ISampleProvider>& AudioInstance::GetSampleProvider() const
 	{
 		return sampleProvider;
 	}
 
-	void AudioInstance::SetSampleProvider(const RefPtr<ISampleProvider>& value)
+	void AudioInstance::SetSampleProvider(const std::shared_ptr<ISampleProvider>& value)
 	{
 		assert(value != nullptr);
 		sampleProvider = value;

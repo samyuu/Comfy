@@ -8,7 +8,7 @@
 
 namespace Comfy::Audio
 {
-	UniquePtr<AudioDecoderFactory> AudioDecoderFactory::instance = nullptr;
+	std::unique_ptr<AudioDecoderFactory> AudioDecoderFactory::instance = nullptr;
 
 	AudioDecoderFactory* AudioDecoderFactory::GetInstance()
 	{
@@ -18,7 +18,7 @@ namespace Comfy::Audio
 		return instance.get();
 	}
 
-	RefPtr<MemorySampleProvider> AudioDecoderFactory::DecodeFile(std::string_view filePath)
+	std::shared_ptr<MemorySampleProvider> AudioDecoderFactory::DecodeFile(std::string_view filePath)
 	{
 		if (!IO::File::Exists(filePath))
 		{
@@ -41,7 +41,7 @@ namespace Comfy::Audio
 				return nullptr;
 			}
 
-			RefPtr<MemorySampleProvider> sampleProvider = MakeRef<MemorySampleProvider>();
+			std::shared_ptr<MemorySampleProvider> sampleProvider = std::make_shared<MemorySampleProvider>();
 
 			AudioDecoderOutputData outputData;
 			outputData.ChannelCount = &sampleProvider->channelCount;

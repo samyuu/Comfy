@@ -57,8 +57,8 @@ namespace Comfy
 		void DrawAppEngineWindow();
 		void DrawAppEngineMenus(const char* header);
 
-		void DrawGuiBaseWindowMenus(const char* header, const std::vector<UniquePtr<BaseWindow>>& components);
-		void DrawGuiBaseWindowWindows(const std::vector<UniquePtr<BaseWindow>>& components);
+		void DrawGuiBaseWindowMenus(const char* header, const std::vector<std::unique_ptr<BaseWindow>>& components);
+		void DrawGuiBaseWindowWindows(const std::vector<std::unique_ptr<BaseWindow>>& components);
 
 		// NOTE: Dispose methods
 		void DisposeUnmountRomData();
@@ -86,8 +86,8 @@ namespace Comfy
 		bool showDemoWindow = false;
 		bool versionWindowOpen = false;
 
-		UniquePtr<App::Engine> appEngine = nullptr;
-		UniquePtr<Editor::EditorManager> editorManager = nullptr;
-		std::vector<UniquePtr<BaseWindow>> dataTestComponents;
+		std::unique_ptr<App::Engine> appEngine = nullptr;
+		std::unique_ptr<Editor::EditorManager> editorManager = nullptr;
+		std::vector<std::unique_ptr<BaseWindow>> dataTestComponents;
 	};
 }

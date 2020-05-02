@@ -455,14 +455,14 @@ namespace Comfy::Graphics::D3D11
 		if (baseMipMap.Format == TextureFormat::RGB8)
 		{
 			textureDescription.Format = GetDxgiFormat(TextureFormat::RGBA8);
-			std::array<UniquePtr<u32[]>, MaxMipMaps> rgbaBuffers;
+			std::array<std::unique_ptr<u32[]>, MaxMipMaps> rgbaBuffers;
 
 			for (size_t i = 0; i < mipMaps.size(); i++)
 			{
 				auto& resource = initialResourceData[i];
 				auto& mipMap = mipMaps[i];
 
-				rgbaBuffers[i] = MakeUnique<u32[]>(mipMap.Size.x * mipMap.Size.y);
+				rgbaBuffers[i] = std::make_unique<u32[]>(mipMap.Size.x * mipMap.Size.y);
 				PadRGBToRGBA(mipMap.Size, mipMap.Data.get(), rgbaBuffers[i].get());
 
 				resource.pSysMem = rgbaBuffers[i].get();

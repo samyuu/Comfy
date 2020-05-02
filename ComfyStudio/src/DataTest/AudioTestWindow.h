@@ -31,9 +31,9 @@ namespace Comfy::DataTest
 
 		std::vector<ExtendedDeviceInfo> deviceInfoList;
 
-		RefPtr<Audio::MemorySampleProvider> songTestStream = nullptr;
-		RefPtr<Audio::MemorySampleProvider> buttonTestStream = nullptr;
-		RefPtr<Audio::AudioInstance> songAudioInstance = nullptr;
+		std::shared_ptr<Audio::MemorySampleProvider> songTestStream = nullptr;
+		std::shared_ptr<Audio::MemorySampleProvider> buttonTestStream = nullptr;
+		std::shared_ptr<Audio::AudioInstance> songAudioInstance = nullptr;
 
 		float testButtonVolume = Audio::AudioEngine::MaxVolume;
 

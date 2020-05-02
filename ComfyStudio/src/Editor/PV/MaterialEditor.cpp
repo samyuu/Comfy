@@ -212,7 +212,7 @@ namespace Comfy::Editor
 
 		if (viewport == nullptr)
 		{
-			viewport = MakeUnique<SceneViewport>();
+			viewport = std::make_unique<SceneViewport>();
 			viewport->Parameters.AllowDebugShaderOverride = false;
 			viewport->Parameters.FrustumCulling = false;
 			viewport->Parameters.AlphaSort = false;

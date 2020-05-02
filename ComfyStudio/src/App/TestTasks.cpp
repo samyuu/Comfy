@@ -119,7 +119,7 @@ namespace Comfy::App
 		{
 			if (aetSet == nullptr && aetSetLoader.GetIsLoaded())
 			{
-				aetSet = MakeUnique<Aet::AetSet>();
+				aetSet = std::make_unique<Aet::AetSet>();
 
 				aetSetLoader.Read(*aetSet);
 				aetSetLoader.FreeData();
@@ -132,7 +132,7 @@ namespace Comfy::App
 
 			if (sprSet == nullptr && sprSetLoader.GetIsLoaded())
 			{
-				sprSet = MakeUnique<SprSet>();
+				sprSet = std::make_unique<SprSet>();
 				sprSetLoader.Parse(*sprSet);
 				sprSet->TexSet->UploadAll(sprSet.get());
 				sprSetLoader.FreeData();

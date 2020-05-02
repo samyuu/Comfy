@@ -45,7 +45,7 @@ namespace Comfy::Graphics
 			u32 Transparent : 1;
 		} Flags;
 
-		UniquePtr<GPU_IndexBuffer> GPU_IndexBuffer;
+		std::unique_ptr<GPU_IndexBuffer> GPU_IndexBuffer;
 
 		// NOTE: IndexFormat wrapper around the Indices variant
 		IndexFormat GetIndexFormat() const;
@@ -103,7 +103,7 @@ namespace Comfy::Graphics
 			std::vector<vec4> BoneIndices;
 		} VertexData;
 
-		std::array<UniquePtr<GPU_VertexBuffer>, VertexAttribute_Count> GPU_VertexBuffers;
+		std::array<std::unique_ptr<GPU_VertexBuffer>, VertexAttribute_Count> GPU_VertexBuffers;
 	};
 
 	enum class MaterialTextureType : u32
@@ -488,7 +488,7 @@ namespace Comfy::Graphics
 	public:
 		std::string Name;
 		std::vector<TexID> TextureIDs;
-		UniquePtr<TexSet> TexSet;
+		std::unique_ptr<TexSet> TexSet;
 
 		auto begin() { return objects.begin(); }
 		auto end() { return objects.end(); }
@@ -516,7 +516,7 @@ namespace Comfy::Graphics
 		void UploadAll();
 
 	public:
-		static UniquePtr<ObjSet> MakeUniqueReadParseUpload(std::string_view filePath);
+		static std::unique_ptr<ObjSet> MakeUniqueReadParseUpload(std::string_view filePath);
 
 	private:
 		std::vector<Obj> objects;

@@ -13,16 +13,16 @@ namespace Comfy::Editor
 
 	AetEditor::AetEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
-		commandManager = MakeUnique<AetCommandManager>();
+		commandManager = std::make_unique<AetCommandManager>();
 
 		spriteGetterFunction = [](const Aet::VideoSource* source, const Tex** outTex, const Spr** outSpr) { return false; };
 
-		treeView = MakeUnique<AetTreeView>(commandManager.get(), &selectedAetItem, &cameraSelectedAetItem);
-		inspector = MakeUnique<AetInspector>(commandManager.get(), &spriteGetterFunction, &previewData);
-		// contentView = MakeUnique<AetContentView>();
-		timeline = MakeUnique<AetTimeline>();
-		renderWindow = MakeUnique<AetRenderWindow>(commandManager.get(), &spriteGetterFunction, &selectedAetItem, &cameraSelectedAetItem, &previewData);
-		historyWindow = MakeUnique<AetHistoryWindow>(commandManager.get());
+		treeView = std::make_unique<AetTreeView>(commandManager.get(), &selectedAetItem, &cameraSelectedAetItem);
+		inspector = std::make_unique<AetInspector>(commandManager.get(), &spriteGetterFunction, &previewData);
+		// contentView = std::make_unique<AetContentView>();
+		timeline = std::make_unique<AetTimeline>();
+		renderWindow = std::make_unique<AetRenderWindow>(commandManager.get(), &spriteGetterFunction, &selectedAetItem, &cameraSelectedAetItem, &previewData);
+		historyWindow = std::make_unique<AetHistoryWindow>(commandManager.get());
 	}
 
 	AetEditor::~AetEditor()
@@ -126,7 +126,7 @@ namespace Comfy::Editor
 	{
 		if (sprSetFileLoader != nullptr && sprSetFileLoader->GetIsLoaded())
 		{
-			sprSet = MakeUnique<SprSet>();
+			sprSet = std::make_unique<SprSet>();
 			sprSetFileLoader->Parse(*sprSet);
 			sprSet->Name = IO::Path::GetFileName(sprSetFileLoader->GetFilePath(), false);
 			sprSet->TexSet->UploadAll(sprSet.get());
@@ -179,7 +179,7 @@ namespace Comfy::Editor
 		if (sprSetFileLoader != nullptr)
 			return false;
 
-		sprSetFileLoader = MakeUnique<IO::AsyncFileLoader>(filePath);
+		sprSetFileLoader = std::make_unique<IO::AsyncFileLoader>(filePath);
 		if (asyncFileLoading)
 			sprSetFileLoader->LoadAsync();
 		else

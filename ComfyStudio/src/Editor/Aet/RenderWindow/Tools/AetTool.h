@@ -58,7 +58,7 @@ namespace Comfy::Editor
 		virtual void UpdatePostDrawGui(Graphics::Transform2D* transform, vec2 dimensions) {};
 		
 		// NOTE: Turn the updated properties into a set of AetCommands
-		virtual void ProcessCommands(AetCommandManager* commandManager, const RefPtr<Graphics::Aet::Layer>& layer, float frame, const Graphics::Transform2D& transform, const Graphics::Transform2D& previousTransform) {}
+		virtual void ProcessCommands(AetCommandManager* commandManager, const std::shared_ptr<Graphics::Aet::Layer>& layer, float frame, const Graphics::Transform2D& transform, const Graphics::Transform2D& previousTransform) {}
 		
 		// NOTE: Tool specific context menu items
 		virtual void DrawContextMenu() = 0;

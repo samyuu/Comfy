@@ -15,6 +15,6 @@ namespace Comfy::Graphics::D3D11
 		enum AddressMode { Mirror, Repeat, Clamp, AddressMode_Count };
 
 		i32 lastAnistropicFiltering = -1;
-		std::array<std::array<UniquePtr<TextureSampler>, AddressMode_Count>, AddressMode_Count> samplers;
+		std::array<std::array<std::unique_ptr<TextureSampler>, AddressMode_Count>, AddressMode_Count> samplers;
 	};
 }

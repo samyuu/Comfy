@@ -25,7 +25,7 @@ namespace Comfy::App
 		{
 			static_assert(std::is_base_of<Task, T>::value, "T must inherit from Task");
 
-			tasks.push_back(MakeRef<T>());
+			tasks.push_back(std::make_shared<T>());
 			tasks.back()->Initialize();
 		}
 
@@ -33,13 +33,13 @@ namespace Comfy::App
 		void OnResize(ivec2 size) override;
 
 	protected:
-		UniquePtr<Graphics::GPU_Renderer2D> renderer;
-		UniquePtr<Graphics::Aet::AetRenderer> aetRenderer;
+		std::unique_ptr<Graphics::GPU_Renderer2D> renderer;
+		std::unique_ptr<Graphics::Aet::AetRenderer> aetRenderer;
 
 		Graphics::OrthographicCamera camera;
 		Editor::CameraController2D cameraController;
 
-		std::vector<RefPtr<Task>> tasks;
+		std::vector<std::shared_ptr<Task>> tasks;
 
 		ImGuiWindow* guiWindow;
 	};

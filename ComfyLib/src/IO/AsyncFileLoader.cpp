@@ -54,7 +54,7 @@ namespace Comfy::IO
 		if (!fileFound)
 			return;
 
-		loaderThread = MakeUnique<std::thread>([this]()
+		loaderThread = std::make_unique<std::thread>([this]()
 		{
 			threadRunning = true;
 

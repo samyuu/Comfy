@@ -11,8 +11,8 @@ namespace Comfy::Editor
 	{
 		static_assert(std::is_base_of<ICommand, TCommand>::value, "TCommand must inherit from ICommand");
 
-		using CommandQueue = std::queue<RefPtr<TCommand>>;
-		using CommandStack = std::vector<RefPtr<TCommand>>;
+		using CommandQueue = std::queue<std::shared_ptr<TCommand>>;
+		using CommandStack = std::vector<std::shared_ptr<TCommand>>;
 
 	public:
 		CommandManager() {}
@@ -25,7 +25,7 @@ namespace Comfy::Editor
 		void ExecuteClearCommandQueue();
 
 	protected:
-		void Execute(const RefPtr<TCommand>& command);
+		void Execute(const std::shared_ptr<TCommand>& command);
 
 	public:
 		void Undo();
@@ -52,7 +52,7 @@ namespace Comfy::Editor
 	void CommandManager<TCommand>::EnqueueCommand(Types&&... args)
 	{
 		static_assert(std::is_base_of<TCommand, TNewCommand>::value, "TNewCommand must inherit from TCommand");
-		commandQueue.push(MakeRef<TNewCommand>(std::forward<Types>(args)...));
+		commandQueue.push(std::make_shared<TNewCommand>(std::forward<Types>(args)...));
 	}
 
 	template<class TCommand>
@@ -66,7 +66,7 @@ namespace Comfy::Editor
 	}
 
 	template<class TCommand>
-	void CommandManager<TCommand>::Execute(const RefPtr<TCommand>& command)
+	void CommandManager<TCommand>::Execute(const std::shared_ptr<TCommand>& command)
 	{
 		redoStack.clear();
 
@@ -80,7 +80,7 @@ namespace Comfy::Editor
 		if (undoStack.empty())
 			return;
 
-		RefPtr<TCommand> undoCommand = undoStack.back();
+		std::shared_ptr<TCommand> undoCommand = undoStack.back();
 		undoStack.erase(undoStack.begin() + undoStack.size() - 1);
 
 		undoCommand->Undo();
@@ -93,7 +93,7 @@ namespace Comfy::Editor
 		if (redoStack.empty())
 			return;
 
-		RefPtr<TCommand> redoCommand = redoStack.back();
+		std::shared_ptr<TCommand> redoCommand = redoStack.back();
 		redoStack.erase(redoStack.begin() + redoStack.size() - 1);
 
 		redoCommand->Redo();

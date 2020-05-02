@@ -214,7 +214,7 @@ namespace Comfy::Editor
 			const auto sprFileEntry = ComfyData->FindFile("spr/spr_comfy_editor.bin");
 			assert(sprFileEntry != nullptr);
 
-			UniquePtr<u8[]> sprFileBuffer = MakeUnique<u8[]>(sprFileEntry->Size);
+			std::unique_ptr<u8[]> sprFileBuffer = std::make_unique<u8[]>(sprFileEntry->Size);
 			ComfyData->ReadEntryIntoBuffer(sprFileEntry, sprFileBuffer.get());
 
 			sprSet.Parse(sprFileBuffer.get(), sprFileEntry->Size);

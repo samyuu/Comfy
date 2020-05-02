@@ -40,25 +40,25 @@ namespace Comfy::Editor
 		AetRenderPreviewData* previewData = nullptr;
 
 	private:
-		void DrawInspectorAetSet(const RefPtr<Graphics::Aet::AetSet>& aetSet);
-		void DrawInspectorAet(const RefPtr<Graphics::Aet::Scene>& scene);
+		void DrawInspectorAetSet(const std::shared_ptr<Graphics::Aet::AetSet>& aetSet);
+		void DrawInspectorAet(const std::shared_ptr<Graphics::Aet::Scene>& scene);
 		
-		void DrawInspectorComposition(Graphics::Aet::Scene* scene, const RefPtr<Graphics::Aet::Composition>& comp);
-		void DrawInspectorCompositionData(Graphics::Aet::Scene* scene, const RefPtr<Graphics::Aet::Layer>& layer, const RefPtr<Graphics::Aet::Composition>& comp);
+		void DrawInspectorComposition(Graphics::Aet::Scene* scene, const std::shared_ptr<Graphics::Aet::Composition>& comp);
+		void DrawInspectorCompositionData(Graphics::Aet::Scene* scene, const std::shared_ptr<Graphics::Aet::Layer>& layer, const std::shared_ptr<Graphics::Aet::Composition>& comp);
 		
-		void DrawInspectorLayer(Graphics::Aet::Scene* scene, const RefPtr<Graphics::Aet::Layer>& layer);
-		void DrawInspectorVideoData(Graphics::Aet::Scene* scene, const RefPtr<Graphics::Aet::Layer>& layer, const RefPtr<Graphics::Aet::Video>& video);
+		void DrawInspectorLayer(Graphics::Aet::Scene* scene, const std::shared_ptr<Graphics::Aet::Layer>& layer);
+		void DrawInspectorVideoData(Graphics::Aet::Scene* scene, const std::shared_ptr<Graphics::Aet::Layer>& layer, const std::shared_ptr<Graphics::Aet::Video>& video);
 		
-		void DrawInspectorAnimationData(const RefPtr<Graphics::Aet::LayerVideo>& animationData, const RefPtr<Graphics::Aet::Layer>& layer);
-		void DrawInspectorDebugAnimationData(const RefPtr<Graphics::Aet::LayerVideo>& animationData, const RefPtr<Graphics::Aet::Layer>& layer);
+		void DrawInspectorAnimationData(const std::shared_ptr<Graphics::Aet::LayerVideo>& animationData, const std::shared_ptr<Graphics::Aet::Layer>& layer);
+		void DrawInspectorDebugAnimationData(const std::shared_ptr<Graphics::Aet::LayerVideo>& animationData, const std::shared_ptr<Graphics::Aet::Layer>& layer);
 
-		void DrawInspectorAnimationDataProperty(const RefPtr<Graphics::Aet::Layer>& layer, const char* label, frame_t frame, float& value, Graphics::Transform2DField field);
-		void DrawInspectorAnimationDataPropertyVec2(const RefPtr<Graphics::Aet::Layer>& layer, const char* label, frame_t frame, vec2& value, Graphics::Transform2DField fieldX, Graphics::Transform2DField fieldY);
+		void DrawInspectorAnimationDataProperty(const std::shared_ptr<Graphics::Aet::Layer>& layer, const char* label, frame_t frame, float& value, Graphics::Transform2DField field);
+		void DrawInspectorAnimationDataPropertyVec2(const std::shared_ptr<Graphics::Aet::Layer>& layer, const char* label, frame_t frame, vec2& value, Graphics::Transform2DField fieldX, Graphics::Transform2DField fieldY);
 
-		void DrawInspectorLayerMarkers(const RefPtr<Graphics::Aet::Layer>& layer, std::vector<RefPtr<Graphics::Aet::Marker>>* markers);
-		void DrawInspectorLayerParent(Graphics::Aet::Scene* scene, const RefPtr<Graphics::Aet::Layer>& layer);
+		void DrawInspectorLayerMarkers(const std::shared_ptr<Graphics::Aet::Layer>& layer, std::vector<std::shared_ptr<Graphics::Aet::Marker>>* markers);
+		void DrawInspectorLayerParent(Graphics::Aet::Scene* scene, const std::shared_ptr<Graphics::Aet::Layer>& layer);
 		
-		void DrawInspectorVideo(Graphics::Aet::Scene* scene, const RefPtr<Graphics::Aet::Video>& video);
+		void DrawInspectorVideo(Graphics::Aet::Scene* scene, const std::shared_ptr<Graphics::Aet::Video>& video);
 
 	private:
 		void PushDisableItemFlagIfPlayback();

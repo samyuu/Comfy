@@ -27,7 +27,7 @@ namespace Comfy::Editor
 
 		for (auto& instance : buttonSoundInstancePool)
 		{
-			instance = MakeRef<Audio::AudioInstance>(nullptr, false, "AudioController::ButtonSoundInstance");
+			instance = std::make_shared<Audio::AudioInstance>(nullptr, false, "AudioController::ButtonSoundInstance");
 			audioEngine->AddAudioInstance(instance);
 		}
 
@@ -65,7 +65,7 @@ namespace Comfy::Editor
 			PlayButtonSound(longestRunningInstance);
 	}
 
-	const RefPtr<Audio::MemorySampleProvider>& AudioController::GetButtonSoundSource(int index)
+	const std::shared_ptr<Audio::MemorySampleProvider>& AudioController::GetButtonSoundSource(int index)
 	{
 		return buttonSoundSources[buttonSoundIndex];
 	}

@@ -24,7 +24,7 @@ namespace Comfy::Editor
 		struct ComponentEntry
 		{
 			bool HasBeenInitialized;
-			UniquePtr<IEditorComponent> Component;
+			std::unique_ptr<IEditorComponent> Component;
 		};
 
 		std::vector<ComponentEntry> editorComponents;

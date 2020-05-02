@@ -15,7 +15,7 @@ namespace Comfy::Editor
 	{
 		if (Gui::IsMouseClicked(mousePickButton))
 		{
-			const RefPtr<Aet::Layer>* foundObject = FindObjectAtPosition(mousePosition);
+			const std::shared_ptr<Aet::Layer>* foundObject = FindObjectAtPosition(mousePosition);
 			mousePickedObjectOnMouseClick = (foundObject == nullptr) ? nullptr : foundObject->get();
 		}
 
@@ -25,10 +25,10 @@ namespace Comfy::Editor
 		}
 	}
 
-	const RefPtr<Aet::Layer>* ObjectMousePicker::FindObjectAtPosition(vec2 worldSpace)
+	const std::shared_ptr<Aet::Layer>* ObjectMousePicker::FindObjectAtPosition(vec2 worldSpace)
 	{
 		const auto& selectedComp = cameraSelectedAetItem->GetCompositionRef();
-		const RefPtr<Aet::Layer>* foundLayer = nullptr;
+		const std::shared_ptr<Aet::Layer>* foundLayer = nullptr;
 
 		for (auto& obj : objectCache)
 		{

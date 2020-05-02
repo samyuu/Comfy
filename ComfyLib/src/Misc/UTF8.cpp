@@ -49,7 +49,7 @@ namespace Comfy::UTF8
 		}
 		else
 		{
-			heapBuffer = MakeUnique<wchar_t[]>(convertedLength + 1);
+			heapBuffer = std::make_unique<wchar_t[]>(convertedLength + 1);
 			::MultiByteToWideChar(CP_UTF8, 0, inputString.data(), static_cast<int>(inputString.size()), heapBuffer.get(), convertedLength);
 			heapBuffer[convertedLength] = L'\0';
 		}

@@ -260,7 +260,7 @@ namespace Comfy::Graphics::D3D11
 			{ "COLOR",			3, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, MorphVertexAttributeOffset + VertexAttribute_Color1 },
 		};
 
-		genericInputLayout = MakeUnique<InputLayout>(genericElements, std::size(genericElements), shaders.DebugMaterial.VS);
+		genericInputLayout = std::make_unique<InputLayout>(genericElements, std::size(genericElements), shaders.DebugMaterial.VS);
 		D3D11_SetObjectDebugName(genericInputLayout->GetLayout(), "Renderer3D::GenericInputLayout");
 
 		static constexpr InputElement silhouetteElements[] =
@@ -273,7 +273,7 @@ namespace Comfy::Graphics::D3D11
 			{ "TEXCOORD",		4, DXGI_FORMAT_R32G32_FLOAT,		0, MorphVertexAttributeOffset + VertexAttribute_TextureCoordinate0 },
 		};
 
-		shadowSilhouetteInputLayout = MakeUnique<InputLayout>(silhouetteElements, std::size(silhouetteElements), shaders.Silhouette.VS);
+		shadowSilhouetteInputLayout = std::make_unique<InputLayout>(silhouetteElements, std::size(silhouetteElements), shaders.Silhouette.VS);
 		D3D11_SetObjectDebugName(shadowSilhouetteInputLayout->GetLayout(), "Renderer3D::ShadowSilhouetteInputLayout");
 
 		constexpr size_t reasonableInitialCapacity = 64;

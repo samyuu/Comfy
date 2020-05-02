@@ -4,7 +4,7 @@ namespace Comfy::Graphics::D3D11
 {
 	namespace
 	{
-		UniquePtr<u8[]> StageAndCopyD3DTexture2D(ID3D11Texture2D* sourceTexture, D3D11_TEXTURE2D_DESC textureDescription)
+		std::unique_ptr<u8[]> StageAndCopyD3DTexture2D(ID3D11Texture2D* sourceTexture, D3D11_TEXTURE2D_DESC textureDescription)
 		{
 			assert(sourceTexture != nullptr && textureDescription.Format == DXGI_FORMAT_R8G8B8A8_UNORM);
 
@@ -27,7 +27,7 @@ namespace Comfy::Graphics::D3D11
 			const size_t strideSize = textureDescription.Width + (bitsPerPixel - (textureDescription.Width % bitsPerPixel));
 			const size_t paddedDataSize = (strideSize * textureDescription.Height * bytesPerPixel);
 
-			auto data = MakeUnique<u8[]>(paddedDataSize);
+			auto data = std::make_unique<u8[]>(paddedDataSize);
 
 			D3D11_MAPPED_SUBRESOURCE mappedResource;
 			if (FAILED(D3D.Context->Map(stagingTexture.Get(), 0, D3D11_MAP_READ, 0, &mappedResource)))
@@ -194,7 +194,7 @@ namespace Comfy::Graphics::D3D11
 		return backBufferDescription;
 	}
 
-	UniquePtr<u8[]> RenderTarget::StageAndCopyBackBuffer()
+	std::unique_ptr<u8[]> RenderTarget::StageAndCopyBackBuffer()
 	{
 		return StageAndCopyD3DTexture2D(backBuffer.Get(), backBufferDescription);
 	}

@@ -11,7 +11,7 @@ namespace Comfy::Editor
 	
 		void UpdateMouseInput(const vec2& mousePosition);
 
-		const RefPtr<Graphics::Aet::Layer>* FindObjectAtPosition(vec2 worldSpace);
+		const std::shared_ptr<Graphics::Aet::Layer>* FindObjectAtPosition(vec2 worldSpace);
 		void TrySelectObjectAtPosition(vec2 worldSpace);
 
 	private:

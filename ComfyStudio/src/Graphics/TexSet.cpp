@@ -106,7 +106,7 @@ namespace Comfy::Graphics
 		Textures.reserve(textureCount);
 		for (u32 i = 0; i < textureCount; i++)
 		{
-			Textures.push_back(MakeRef<Tex>());
+			Textures.push_back(std::make_shared<Tex>());
 			ParseTex(buffer + offsets[i], *Textures[i]);
 		}
 	}
@@ -144,7 +144,7 @@ namespace Comfy::Graphics
 			Textures[i]->ID = textureIDs[i];
 	}
 
-	UniquePtr<TexSet> TexSet::MakeUniqueReadParseUpload(std::string_view filePath, const ObjSet* objSet)
+	std::unique_ptr<TexSet> TexSet::MakeUniqueReadParseUpload(std::string_view filePath, const ObjSet* objSet)
 	{
 		std::vector<u8> fileContent;
 		if (!File::ReadAllBytes(filePath, fileContent))
@@ -153,7 +153,7 @@ namespace Comfy::Graphics
 		if (fileContent.empty())
 			return nullptr;
 
-		auto texSet = MakeUnique<TexSet>();
+		auto texSet = std::make_unique<TexSet>();
 		{
 			texSet->Parse(fileContent.data(), fileContent.size());
 			texSet->UploadAll(nullptr);
@@ -194,7 +194,7 @@ namespace Comfy::Graphics
 				u8 arrayIndex = *(u8*)(mipMapBuffer + 17);
 
 				mipMap.DataSize = *(u32*)(mipMapBuffer + 20);
-				mipMap.Data = MakeUnique<u8[]>(mipMap.DataSize);
+				mipMap.Data = std::make_unique<u8[]>(mipMap.DataSize);
 				std::memcpy(mipMap.Data.get(), mipMapBuffer + 24, mipMap.DataSize);
 
 				mipMapBuffer = buffer + *offsets;

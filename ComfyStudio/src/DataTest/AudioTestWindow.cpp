@@ -212,7 +212,7 @@ namespace Comfy::DataTest
 				if (songAudioInstance != nullptr)
 					songAudioInstance->SetAppendRemove(true);
 
-				songAudioInstance = MakeRef<Audio::AudioInstance>(songTestStream, true, "AudioTestWindow::TestSongInstance");
+				songAudioInstance = std::make_shared<Audio::AudioInstance>(songTestStream, true, "AudioTestWindow::TestSongInstance");
 				engine->AddAudioInstance(songAudioInstance);
 			}
 

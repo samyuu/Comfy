@@ -177,12 +177,12 @@ namespace Comfy::Graphics::Utilities
 	{
 	}
 
-	UniquePtr<SprSet> SpritePacker::Create(const std::vector<SprMarkup>& sprMarkups)
+	std::unique_ptr<SprSet> SpritePacker::Create(const std::vector<SprMarkup>& sprMarkups)
 	{
 		currentProgress = {};
 
-		auto result = MakeUnique<SprSet>();
-		result->TexSet = MakeUnique<TexSet>();
+		auto result = std::make_unique<SprSet>();
+		result->TexSet = std::make_unique<TexSet>();
 
 		SprSet& sprSet = *result;
 		TexSet& texSet = *sprSet.TexSet;
@@ -377,11 +377,11 @@ namespace Comfy::Graphics::Utilities
 		}
 	}
 
-	RefPtr<Tex> SpritePacker::CreateTexFromMarkup(const SprTexMarkup& texMarkup)
+	std::shared_ptr<Tex> SpritePacker::CreateTexFromMarkup(const SprTexMarkup& texMarkup)
 	{
 		auto margedRGBAPixels = CreateMergedTexMarkupRGBAPixels(texMarkup);
 
-		auto tex = MakeRef<Tex>();
+		auto tex = std::make_shared<Tex>();
 		tex->Name = texMarkup.Name;
 		auto& mipMaps = tex->MipMapsArray.emplace_back();
 		auto& baseMipMap = mipMaps.emplace_back();
@@ -394,10 +394,10 @@ namespace Comfy::Graphics::Utilities
 		return tex;
 	}
 
-	UniquePtr<u8[]> SpritePacker::CreateMergedTexMarkupRGBAPixels(const SprTexMarkup& texMarkup)
+	std::unique_ptr<u8[]> SpritePacker::CreateMergedTexMarkupRGBAPixels(const SprTexMarkup& texMarkup)
 	{
 		const size_t texDataSize = Area(texMarkup.Size) * RGBABytesPerPixel;
-		auto texData = MakeUnique<u8[]>(texDataSize);
+		auto texData = std::make_unique<u8[]>(texDataSize);
 
 		if (texMarkup.SpriteBoxes.size() == 1 && texMarkup.SpriteBoxes.front().Markup->Size == texMarkup.Size)
 		{

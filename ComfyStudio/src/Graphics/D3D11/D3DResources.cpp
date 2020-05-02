@@ -29,44 +29,44 @@ namespace Comfy::Graphics::GPU
 #endif
 	}
 
-	UniquePtr<GPU_Texture2D> MakeTexture2D(const Tex& tex, const char* debugName)
+	std::unique_ptr<GPU_Texture2D> MakeTexture2D(const Tex& tex, const char* debugName)
 	{
-		auto result = MakeUnique<D3D11::Texture2D>(tex);
+		auto result = std::make_unique<D3D11::Texture2D>(tex);
 		SetDebugName(*result, debugName);
 		return result;
 	}
 
-	UniquePtr<GPU_Texture2D> MakeTexture2D(ivec2 size, const u32* rgbaBuffer, const char* debugName)
+	std::unique_ptr<GPU_Texture2D> MakeTexture2D(ivec2 size, const u32* rgbaBuffer, const char* debugName)
 	{
-		auto result = MakeUnique<D3D11::Texture2D>(size, rgbaBuffer);
+		auto result = std::make_unique<D3D11::Texture2D>(size, rgbaBuffer);
 		SetDebugName(*result, debugName);
 		return result;
 	}
 
-	UniquePtr<GPU_CubeMap> MakeCubeMap(const Tex& tex, const char* debugName)
+	std::unique_ptr<GPU_CubeMap> MakeCubeMap(const Tex& tex, const char* debugName)
 	{
-		auto result = MakeUnique<D3D11::CubeMap>(tex);
+		auto result = std::make_unique<D3D11::CubeMap>(tex);
 		SetDebugName(*result, debugName);
 		return result;
 	}
 
-	UniquePtr<GPU_CubeMap> MakeCubeMap(const LightMapIBL& lightMap, const char* debugName)
+	std::unique_ptr<GPU_CubeMap> MakeCubeMap(const LightMapIBL& lightMap, const char* debugName)
 	{
-		auto result = MakeUnique<D3D11::CubeMap>(lightMap);
+		auto result = std::make_unique<D3D11::CubeMap>(lightMap);
 		SetDebugName(*result, debugName);
 		return result;
 	}
 
-	UniquePtr<GPU_IndexBuffer> MakeIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat, const char* debugName)
+	std::unique_ptr<GPU_IndexBuffer> MakeIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat, const char* debugName)
 	{
-		auto result = MakeUnique<D3D11::StaticIndexBuffer>(dataSize, data, indexFormat);
+		auto result = std::make_unique<D3D11::StaticIndexBuffer>(dataSize, data, indexFormat);
 		SetDebugName(*result, debugName);
 		return result;
 	}
 
-	UniquePtr<GPU_VertexBuffer> MakeVertexBuffer(size_t dataSize, const void* data, size_t stride, const char* debugName)
+	std::unique_ptr<GPU_VertexBuffer> MakeVertexBuffer(size_t dataSize, const void* data, size_t stride, const char* debugName)
 	{
-		auto result = MakeUnique<D3D11::StaticVertexBuffer>(dataSize, data, stride);
+		auto result = std::make_unique<D3D11::StaticVertexBuffer>(dataSize, data, stride);
 		SetDebugName(*result, debugName);
 		return result;
 	}

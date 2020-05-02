@@ -110,8 +110,8 @@ namespace Comfy::App
 		IO::AsyncFileLoader aetSetLoader = { "dev_rom/2d/aet_ps4_menu.bin" };
 		IO::AsyncFileLoader sprSetLoader = { "dev_rom/2d/spr_ps4_menu.bin" };
 
-		UniquePtr<Aet::AetSet> aetSet;
-		UniquePtr<SprSet> sprSet;
+		std::unique_ptr<Aet::AetSet> aetSet;
+		std::unique_ptr<SprSet> sprSet;
 
 		float elapsedFrames;
 		Ps4MenuAetData aetData;

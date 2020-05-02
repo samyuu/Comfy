@@ -2,8 +2,8 @@
 #include "IntegralTypes.h"
 #include "FileAddr.h"
 #include "Core/NonCopyable.h"
-#include "Core/SmartPointers.h"
 #include <glm/gtc/type_ptr.hpp>
+#include <memory>
 
 // NOTE: Measure a frame unit / frame rate
 using frame_t = float;

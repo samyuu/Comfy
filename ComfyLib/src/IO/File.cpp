@@ -44,9 +44,9 @@ namespace Comfy::IO
 			return result;
 		}
 
-		std::pair<UniquePtr<u8[]>, size_t> ReadAllBytes(std::string_view filePath)
+		std::pair<std::unique_ptr<u8[]>, size_t> ReadAllBytes(std::string_view filePath)
 		{
-			std::pair<UniquePtr<u8[]>, size_t> result = {};
+			std::pair<std::unique_ptr<u8[]>, size_t> result = {};
 			auto&[fileContent, fileSize] = result;
 
 			auto fileStream = OpenRead(filePath);
@@ -54,7 +54,7 @@ namespace Comfy::IO
 				return std::make_pair(nullptr, 0);
 
 			fileSize = static_cast<size_t>(fileStream.GetLength());
-			fileContent = MakeUnique<u8[]>(fileSize);
+			fileContent = std::make_unique<u8[]>(fileSize);
 
 			if (fileContent == nullptr)
 				return std::make_pair(nullptr, 0);

@@ -30,7 +30,7 @@ namespace Comfy::Editor
 	{
 	}
 
-	bool AetTreeView::DrawGui(const RefPtr<AetSet>& aetSet)
+	bool AetTreeView::DrawGui(const std::shared_ptr<AetSet>& aetSet)
 	{
 		treeViewWindow = Gui::GetCurrentWindow();
 
@@ -95,7 +95,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	void AetTreeView::DrawTreeNodeAetSet(const RefPtr<AetSet>& aetSet)
+	void AetTreeView::DrawTreeNodeAetSet(const std::shared_ptr<AetSet>& aetSet)
 	{
 		const bool aetSetNodeOpen = Gui::WideTreeNodeEx(aetSet.get(), HeaderTreeNodeFlags, "AetSet: %s", aetSet->Name.c_str());
 		Gui::ItemContextMenu("AetSettAetContextMenu##AetTreeView", [this, &aetSet]()
@@ -133,7 +133,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	void AetTreeView::DrawTreeNodeAet(const RefPtr<Scene>& scene)
+	void AetTreeView::DrawTreeNodeAet(const std::shared_ptr<Scene>& scene)
 	{
 		ImGuiTreeNodeFlags aetNodeFlags = HeaderTreeNodeFlags;
 		if (scene.get() == selectedAetItem->Ptrs.Scene || scene.get() == lastHoveredAetItem.Ptrs.Scene)
@@ -181,7 +181,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	void AetTreeView::DrawTreeNodeComposition(const RefPtr<Scene>& scene, const RefPtr<Composition>& comp, bool isRoot)
+	void AetTreeView::DrawTreeNodeComposition(const std::shared_ptr<Scene>& scene, const std::shared_ptr<Composition>& comp, bool isRoot)
 	{
 		Gui::PushID(comp.get());
 
@@ -249,7 +249,7 @@ namespace Comfy::Editor
 		Gui::PopID();
 	}
 
-	void AetTreeView::DrawTreeNodeLayer(const RefPtr<Scene>& scene, const RefPtr<Composition>& comp, const RefPtr<Layer>& layer)
+	void AetTreeView::DrawTreeNodeLayer(const std::shared_ptr<Scene>& scene, const std::shared_ptr<Composition>& comp, const std::shared_ptr<Layer>& layer)
 	{
 		Gui::PushID(layer.get());
 		{
@@ -306,7 +306,7 @@ namespace Comfy::Editor
 		Gui::PopID();
 	}
 
-	void AetTreeView::DrawTreeNodeLayerCameraSelectableButton(const RefPtr<Composition>& comp, const RefPtr<Layer>& layer)
+	void AetTreeView::DrawTreeNodeLayerCameraSelectableButton(const std::shared_ptr<Composition>& comp, const std::shared_ptr<Layer>& layer)
 	{
 		// TODO: Does not work 100% correctly with all style settings but should be fine for now
 
@@ -333,7 +333,7 @@ namespace Comfy::Editor
 		Gui::SetCursorScreenPos(cursorPos);
 	}
 
-	void AetTreeView::DrawTreeNodeLayerActivityButton(const RefPtr<Layer>& layer)
+	void AetTreeView::DrawTreeNodeLayerActivityButton(const std::shared_ptr<Layer>& layer)
 	{
 		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(3.0f, 0.0f));
 
@@ -359,7 +359,7 @@ namespace Comfy::Editor
 		Gui::PopStyleVar(1);
 	}
 
-	void AetTreeView::DrawTreeNodeVideo(const RefPtr<Scene>& scene, const RefPtr<Video>& video, i32 index)
+	void AetTreeView::DrawTreeNodeVideo(const std::shared_ptr<Scene>& scene, const std::shared_ptr<Video>& video, i32 index)
 	{
 		Gui::PushID(video.get());
 
@@ -374,7 +374,7 @@ namespace Comfy::Editor
 		Gui::PopID();
 	}
 
-	bool AetTreeView::DrawCompositionContextMenu(const RefPtr<Scene>& scene, const RefPtr<Composition>& comp, bool isRoot)
+	bool AetTreeView::DrawCompositionContextMenu(const std::shared_ptr<Scene>& scene, const std::shared_ptr<Composition>& comp, bool isRoot)
 	{
 		const auto& compName = comp->GetName();
 		if (isRoot)
@@ -404,7 +404,7 @@ namespace Comfy::Editor
 			// NOTE: Usage menu items
 			for (const auto& compUsingLayerPointer : compositionUsagesBuffer)
 			{
-				const RefPtr<Layer>& compUsingLayer = *compUsingLayerPointer;
+				const std::shared_ptr<Layer>& compUsingLayer = *compUsingLayerPointer;
 
 				sprintf_s(nodeNameFormatBuffer,
 					ICON_AETCOMP "  %.*s,   %s  %s",
@@ -433,7 +433,7 @@ namespace Comfy::Editor
 		return false;
 	}
 
-	bool AetTreeView::DrawLayerContextMenu(const RefPtr<Composition>& comp, const RefPtr<Layer>& layer)
+	bool AetTreeView::DrawLayerContextMenu(const std::shared_ptr<Composition>& comp, const std::shared_ptr<Layer>& layer)
 	{
 		Gui::Text("%s  %s", GetItemTypeIcon(layer->ItemType), layer->GetName().c_str());
 
@@ -458,7 +458,7 @@ namespace Comfy::Editor
 		return false;
 	}
 
-	void AetTreeView::DrawCompositionPreviewTooltip(const RefPtr<Composition>& comp)
+	void AetTreeView::DrawCompositionPreviewTooltip(const std::shared_ptr<Composition>& comp)
 	{
 		Gui::WideTooltip([this, &comp]()
 		{
@@ -486,7 +486,7 @@ namespace Comfy::Editor
 		GImGui->CurrentWindow->DrawList->AddText(textPosition, Gui::GetColorU32(ImGuiCol_Text), ICON_CAMERA);
 	}
 
-	const char* AetTreeView::FormatVideoNodeName(const RefPtr<Video>& video, i32 index)
+	const char* AetTreeView::FormatVideoNodeName(const std::shared_ptr<Video>& video, i32 index)
 	{
 		if (video->Sources.size() >= 1)
 		{

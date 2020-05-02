@@ -53,17 +53,17 @@ namespace Comfy::Graphics::Aet
 		Flags.AudioActive = value;
 	}
 
-	const RefPtr<Video>& Layer::GetVideoItem()
+	const std::shared_ptr<Video>& Layer::GetVideoItem()
 	{
 		return references.Video;
 	}
 
-	const RefPtr<Audio>& Layer::GetAudioItem()
+	const std::shared_ptr<Audio>& Layer::GetAudioItem()
 	{
 		return references.Audio;
 	}
 
-	const RefPtr<Composition>& Layer::GetCompItem()
+	const std::shared_ptr<Composition>& Layer::GetCompItem()
 	{
 		return references.Composition;
 	}
@@ -83,22 +83,22 @@ namespace Comfy::Graphics::Aet
 		return references.Composition.get();
 	}
 
-	void Layer::SetItem(const RefPtr<Video>& value)
+	void Layer::SetItem(const std::shared_ptr<Video>& value)
 	{
 		references.Video = value;
 	}
 
-	void Layer::SetItem(const RefPtr<Audio>& value)
+	void Layer::SetItem(const std::shared_ptr<Audio>& value)
 	{
 		references.Audio = value;
 	}
 
-	void Layer::SetItem(const RefPtr<Composition>& value)
+	void Layer::SetItem(const std::shared_ptr<Composition>& value)
 	{
 		references.Composition = value;
 	}
 
-	const RefPtr<Layer>& Layer::GetRefParentLayer()
+	const std::shared_ptr<Layer>& Layer::GetRefParentLayer()
 	{
 		return references.ParentLayer;
 	}
@@ -108,7 +108,7 @@ namespace Comfy::Graphics::Aet
 		return references.ParentLayer.get();
 	}
 
-	void Layer::SetRefParentLayer(const RefPtr<Layer>& value)
+	void Layer::SetRefParentLayer(const std::shared_ptr<Layer>& value)
 	{
 		references.ParentLayer = value;
 	}
@@ -145,13 +145,13 @@ namespace Comfy::Graphics::Aet
 		return this == parentScene->RootComposition.get();
 	}
 
-	RefPtr<Layer> Composition::FindLayer(std::string_view name)
+	std::shared_ptr<Layer> Composition::FindLayer(std::string_view name)
 	{
 		auto result = std::find_if(layers.begin(), layers.end(), [&](auto& layer) { return layer->GetName() == name; });
 		return (result != layers.end()) ? *result : nullptr;
 	}
 
-	RefPtr<const Layer> Composition::FindLayer(std::string_view name) const
+	std::shared_ptr<const Layer> Composition::FindLayer(std::string_view name) const
 	{
 		return const_cast<Composition*>(this)->FindLayer(name);
 	}
@@ -166,15 +166,15 @@ namespace Comfy::Graphics::Aet
 		return RootComposition.get();
 	}
 
-	RefPtr<Layer> Scene::FindLayer(std::string_view name)
+	std::shared_ptr<Layer> Scene::FindLayer(std::string_view name)
 	{
-		const RefPtr<Layer>& rootFoundLayer = RootComposition->FindLayer(name);
+		const std::shared_ptr<Layer>& rootFoundLayer = RootComposition->FindLayer(name);
 		if (rootFoundLayer != nullptr)
 			return rootFoundLayer;
 
 		for (i32 i = static_cast<i32>(Compositions.size()) - 1; i >= 0; i--)
 		{
-			const RefPtr<Layer>& layer = Compositions[i]->FindLayer(name);
+			const std::shared_ptr<Layer>& layer = Compositions[i]->FindLayer(name);
 			if (layer != nullptr)
 				return layer;
 		}
@@ -182,7 +182,7 @@ namespace Comfy::Graphics::Aet
 		return nullptr;
 	}
 
-	RefPtr<const Layer> Scene::FindLayer(std::string_view name) const
+	std::shared_ptr<const Layer> Scene::FindLayer(std::string_view name) const
 	{
 		return const_cast<Scene*>(this)->FindLayer(name);
 	}
@@ -223,7 +223,7 @@ namespace Comfy::Graphics::Aet
 			UpdateCompNamesAfterLayerItems(comp);
 	}
 
-	void Scene::UpdateCompNamesAfterLayerItems(RefPtr<Composition>& comp)
+	void Scene::UpdateCompNamesAfterLayerItems(std::shared_ptr<Composition>& comp)
 	{
 		for (auto& layer : comp->GetLayers())
 		{

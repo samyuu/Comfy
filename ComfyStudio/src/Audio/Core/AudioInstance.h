@@ -20,16 +20,16 @@ namespace Comfy::Audio
 
 		// Constructors
 		// ------------
-		AudioInstance(RefPtr<ISampleProvider> sampleProvider, bool playing, const char* name = nullptr);
-		AudioInstance(RefPtr<ISampleProvider> sampleProvider, bool playing, AudioFinishedAction finishedAction, float volume = AudioEngine::MaxVolume, const char* name = nullptr);
+		AudioInstance(std::shared_ptr<ISampleProvider> sampleProvider, bool playing, const char* name = nullptr);
+		AudioInstance(std::shared_ptr<ISampleProvider> sampleProvider, bool playing, AudioFinishedAction finishedAction, float volume = AudioEngine::MaxVolume, const char* name = nullptr);
 
 		// Destructors
 		// -----------
 		~AudioInstance();
 
 		// Sample Provider
-		const RefPtr<ISampleProvider>& GetSampleProvider() const;
-		void SetSampleProvider(const RefPtr<ISampleProvider>& value);
+		const std::shared_ptr<ISampleProvider>& GetSampleProvider() const;
+		void SetSampleProvider(const std::shared_ptr<ISampleProvider>& value);
 		bool HasSampleProvider();
 
 		// Position
@@ -95,7 +95,7 @@ namespace Comfy::Audio
 
 		i64 framePosition = 0;
 		AudioFinishedAction onFinishedAction = AudioFinishedAction::None;
-		RefPtr<ISampleProvider> sampleProvider = nullptr;
+		std::shared_ptr<ISampleProvider> sampleProvider = nullptr;
 		// -----------------
 
 	protected:

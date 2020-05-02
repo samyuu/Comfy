@@ -124,7 +124,7 @@ namespace Comfy::IO
 		ComfyArchiveHeader header = {};
 		ComfyDirectory* rootDirectory = nullptr;
 
-		UniquePtr<u8[]> dataBuffer = nullptr;
+		std::unique_ptr<u8[]> dataBuffer = nullptr;
 		FileStream dataStream;
 	};
 }

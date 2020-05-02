@@ -47,7 +47,7 @@ namespace
 
 namespace Comfy::Utilities
 {
-	void ReadImage(std::string_view filePath, ivec2& outSize, UniquePtr<u8[]>& outRGBAPixels)
+	void ReadImage(std::string_view filePath, ivec2& outSize, std::unique_ptr<u8[]>& outRGBAPixels)
 	{
 		constexpr int rgbaComponents = 4;
 
@@ -57,7 +57,7 @@ namespace Comfy::Utilities
 		if (pixels != nullptr)
 		{
 			const size_t dataSize = (outSize.x * outSize.y * rgbaComponents);
-			outRGBAPixels = MakeUnique<u8[]>(dataSize);
+			outRGBAPixels = std::make_unique<u8[]>(dataSize);
 			std::memcpy(outRGBAPixels.get(), pixels, dataSize);
 		}
 

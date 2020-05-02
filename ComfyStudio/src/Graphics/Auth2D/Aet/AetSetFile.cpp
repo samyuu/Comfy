@@ -178,9 +178,9 @@ namespace Comfy::Graphics::Aet
 			WriteProperty1DPointer(transform.ScaleZ, writer);
 		}
 
-		void ReadLayerVideo(RefPtr<LayerVideo>& layerVideo, StreamReader& reader)
+		void ReadLayerVideo(std::shared_ptr<LayerVideo>& layerVideo, StreamReader& reader)
 		{
-			layerVideo = MakeRef<LayerVideo>();
+			layerVideo = std::make_shared<LayerVideo>();
 			layerVideo->TransferMode.BlendMode = static_cast<AetBlendMode>(reader.ReadU8());
 			layerVideo->TransferMode.Flags = ReadFlagsStruct<TransferFlags>(reader);
 			layerVideo->TransferMode.TrackMatte = static_cast<TrackMatte>(reader.ReadU8());
@@ -196,7 +196,7 @@ namespace Comfy::Graphics::Aet
 			{
 				reader.ReadAt(perspectivePropertiesPointer, [layerVideo](StreamReader& reader)
 				{
-					layerVideo->Transform3D = MakeRef<LayerVideo3D>();
+					layerVideo->Transform3D = std::make_shared<LayerVideo3D>();
 					ReadLayerVideo3D(*layerVideo->Transform3D, reader);
 				});
 			}
@@ -259,7 +259,7 @@ namespace Comfy::Graphics::Aet
 		{
 			Markers.reserve(markerCount);
 			for (size_t i = 0; i < markerCount; i++)
-				Markers.push_back(MakeRef<Marker>());
+				Markers.push_back(std::make_shared<Marker>());
 
 			reader.ReadAt(markersPointer, [this](StreamReader& reader)
 			{
@@ -300,7 +300,7 @@ namespace Comfy::Graphics::Aet
 		FileAddr cameraOffsetPtr = reader.ReadPtr();
 		if (cameraOffsetPtr != FileAddr::NullPtr)
 		{
-			Camera = MakeRef<Aet::Camera>();
+			Camera = std::make_shared<Aet::Camera>();
 			reader.ReadAt(cameraOffsetPtr, [this](StreamReader& reader)
 			{
 				ReadProperty3DPointer(Camera->Eye, reader);
@@ -318,9 +318,9 @@ namespace Comfy::Graphics::Aet
 			Compositions.resize(compCount - 1);
 			reader.ReadAt(compsPtr, [this](StreamReader& reader)
 			{
-				const auto readCompFunction = [](StreamReader& reader, RefPtr<Composition>& comp)
+				const auto readCompFunction = [](StreamReader& reader, std::shared_ptr<Composition>& comp)
 				{
-					comp = MakeRef<Composition>();
+					comp = std::make_shared<Composition>();
 					comp->filePosition = reader.GetPosition();
 
 					size_t layerCount = reader.ReadSize();
@@ -333,7 +333,7 @@ namespace Comfy::Graphics::Aet
 						{
 							for (auto& layer : comp->GetLayers())
 							{
-								layer = MakeRef<Layer>();
+								layer = std::make_shared<Layer>();
 								layer->Read(reader);
 							}
 						});
@@ -356,7 +356,7 @@ namespace Comfy::Graphics::Aet
 			{
 				for (auto& video : Videos)
 				{
-					video = MakeRef<Video>();
+					video = std::make_shared<Video>();
 					video->filePosition = reader.GetPosition();
 					video->Color = ReadColor(reader);
 					video->Size.x = reader.ReadU16();
@@ -391,7 +391,7 @@ namespace Comfy::Graphics::Aet
 			{
 				for (auto& audio : Audios)
 				{
-					audio = MakeRef<Audio>();
+					audio = std::make_shared<Audio>();
 					audio->filePosition = reader.GetPosition();
 					audio->SoundID = reader.ReadU32();
 				}
@@ -433,7 +433,7 @@ namespace Comfy::Graphics::Aet
 			writer.WriteU32(static_cast<u32>(Compositions.size()) + 1);
 			writer.WriteFuncPtr([this](StreamWriter& writer)
 			{
-				const auto writeCompFunction = [](StreamWriter& writer, const RefPtr<Composition>& comp)
+				const auto writeCompFunction = [](StreamWriter& writer, const std::shared_ptr<Composition>& comp)
 				{
 					comp->filePosition = writer.GetPosition();
 					if (comp->GetLayers().size() > 0)
@@ -656,7 +656,7 @@ namespace Comfy::Graphics::Aet
 		{
 			for (size_t i = 0; i < sceneCount; i++)
 			{
-				scenes.push_back(MakeRef<Scene>());
+				scenes.push_back(std::make_shared<Scene>());
 				auto& scene = scenes.back();
 
 				reader.ReadAt(reader.ReadPtr(), [&scene](StreamReader& reader)

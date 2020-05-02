@@ -89,9 +89,9 @@ namespace Comfy::Graphics::D3D11
 		DefaultConstantBufferTemplate<CameraConstantData> cameraConstantBuffer = { 0 };
 		DynamicConstantBufferTemplate<SpriteConstantData> spriteConstantBuffer = { 0 };
 
-		UniquePtr<StaticIndexBuffer> indexBuffer = nullptr;
-		UniquePtr<DynamicVertexBuffer> vertexBuffer = nullptr;
-		UniquePtr<InputLayout> inputLayout = nullptr;
+		std::unique_ptr<StaticIndexBuffer> indexBuffer = nullptr;
+		std::unique_ptr<DynamicVertexBuffer> vertexBuffer = nullptr;
+		std::unique_ptr<InputLayout> inputLayout = nullptr;
 
 		// NOTE: Disable backface culling for negatively scaled sprites
 		RasterizerState rasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_NONE };

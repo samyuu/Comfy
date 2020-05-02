@@ -5,8 +5,8 @@ namespace Comfy::App
 {
 	EngineRenderWindow::EngineRenderWindow()
 	{
-		renderer = MakeUnique<Graphics::D3D11::Renderer2D>();
-		aetRenderer = MakeUnique<Graphics::Aet::AetRenderer>(renderer.get());
+		renderer = std::make_unique<Graphics::D3D11::Renderer2D>();
+		aetRenderer = std::make_unique<Graphics::Aet::AetRenderer>(renderer.get());
 
 		StartTask<TaskPs4Menu>();
 	}

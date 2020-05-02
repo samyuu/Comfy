@@ -172,7 +172,7 @@ namespace Comfy::IO
 		// TODO: Extensive validation checking
 		assert(header.Magic == ComfyArchive::Magic);
 
-		dataBuffer = MakeUnique<u8[]>(header.DataSize);
+		dataBuffer = std::make_unique<u8[]>(header.DataSize);
 
 		dataStream.Seek(static_cast<FileAddr>(header.DataOffset));
 		dataStream.ReadBuffer(dataBuffer.get(), header.DataSize);

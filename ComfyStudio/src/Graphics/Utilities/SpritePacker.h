@@ -79,7 +79,7 @@ namespace Comfy::Graphics::Utilities
 			bool FlipTexturesY = true;
 		} Settings;
 
-		UniquePtr<SprSet> Create(const std::vector<SprMarkup>& sprMarkups);
+		std::unique_ptr<SprSet> Create(const std::vector<SprMarkup>& sprMarkups);
 
 	protected:
 		ProgressData currentProgress = {};
@@ -94,8 +94,8 @@ namespace Comfy::Graphics::Utilities
 		std::pair<SprTexMarkup*, ivec4> FindFittingTexMarkupToPlaceSprIn(const SprMarkup& sprToPlace, std::vector<SprTexMarkup>& existingTexMarkups);
 		void AdjustTexMarkupSizes(std::vector<SprTexMarkup>& texMarkups);
 
-		RefPtr<Tex> CreateTexFromMarkup(const SprTexMarkup& texMarkup);
-		UniquePtr<u8[]> CreateMergedTexMarkupRGBAPixels(const SprTexMarkup& texMarkup);
+		std::shared_ptr<Tex> CreateTexFromMarkup(const SprTexMarkup& texMarkup);
+		std::unique_ptr<u8[]> CreateMergedTexMarkupRGBAPixels(const SprTexMarkup& texMarkup);
 
 		const char* GetCompressionName(TextureFormat format) const;
 		std::string FormatTextureName(MergeType merge, TextureFormat format, size_t index) const;

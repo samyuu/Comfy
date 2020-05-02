@@ -26,7 +26,7 @@ namespace Comfy::Graphics
 	public:
 		std::string Name;
 		u32 Flags;
-		UniquePtr<TexSet> TexSet;
+		std::unique_ptr<TexSet> TexSet;
 		std::vector<Spr> Sprites;
 
 		void Write(IO::StreamWriter& writer) override;

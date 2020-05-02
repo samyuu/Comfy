@@ -72,9 +72,9 @@ namespace Comfy::Editor
 
 		CameraController3D cameraController;
 		
-		UniquePtr<Graphics::GPU_Renderer3D> renderer3D = nullptr;
+		std::unique_ptr<Graphics::GPU_Renderer3D> renderer3D = nullptr;
 
-		UniquePtr<SceneRenderWindow> renderWindow = nullptr;
+		std::unique_ptr<SceneRenderWindow> renderWindow = nullptr;
 
 		Gui::FileViewer objSetFileViewer = { "dev_rom/objset/" };
 		Graphics::Transform objSetTransform = Graphics::Transform(vec3(0.0f));

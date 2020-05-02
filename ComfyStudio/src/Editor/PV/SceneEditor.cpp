@@ -30,9 +30,9 @@ namespace Comfy::Editor
 	SceneEditor::SceneEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
 		auto texGetter = [&](const Cached_TexID* texID) { return sceneGraph.TexIDMap.Find(texID); };
-		renderer3D = MakeUnique<D3D11::Renderer3D>(texGetter);
+		renderer3D = std::make_unique<D3D11::Renderer3D>(texGetter);
 
-		renderWindow = MakeUnique<SceneRenderWindow>(sceneGraph, viewport, scene, cameraController, *renderer3D);
+		renderWindow = std::make_unique<SceneRenderWindow>(sceneGraph, viewport, scene, cameraController, *renderer3D);
 	}
 
 	void SceneEditor::Initialize()
@@ -143,7 +143,7 @@ namespace Comfy::Editor
 		if (objSetPath == texSetPath)
 			return false;
 
-		RefPtr<ObjSet> objSet = ObjSet::MakeUniqueReadParseUpload(objSetPath);
+		std::shared_ptr<ObjSet> objSet = ObjSet::MakeUniqueReadParseUpload(objSetPath);
 		objSet->Name = IO::Path::GetFileName(objSetPath, false);
 		objSet->TexSet = TexSet::MakeUniqueReadParseUpload(texSetPath, objSet.get());
 		sceneGraph.LoadObjSet(objSet, tag);
@@ -1006,7 +1006,7 @@ namespace Comfy::Editor
 		static constexpr std::string_view effCmnObjSetPath = "dev_rom/objset/copy/effcmn/effcmn_obj.bin";
 		static constexpr std::string_view effCmnTexSetPath = "dev_rom/objset/copy/effcmn/effcmn_tex.bin";
 
-		static UniquePtr<ObjSet> effCmnObjSet = nullptr;
+		static std::unique_ptr<ObjSet> effCmnObjSet = nullptr;
 
 		if (effCmnObjSet == nullptr)
 		{
@@ -1038,11 +1038,11 @@ namespace Comfy::Editor
 			SceneViewport Viewport;
 		};
 
-		static std::vector<UniquePtr<TestViewport>> testViewports;
+		static std::vector<std::unique_ptr<TestViewport>> testViewports;
 
 		if (Gui::Button("Add Viewport"))
 		{
-			testViewports.push_back(std::move(MakeUnique<TestViewport>()));
+			testViewports.push_back(std::move(std::make_unique<TestViewport>()));
 			auto& testViewport = testViewports.back()->Viewport;
 			testViewport.Camera = this->viewport.Camera;
 			testViewport.Parameters = this->viewport.Parameters;
@@ -1323,7 +1323,7 @@ namespace Comfy::Editor
 					continue;
 
 				if (entity->Animation == nullptr)
-					entity->Animation = MakeUnique<ObjAnimationData>();
+					entity->Animation = std::make_unique<ObjAnimationData>();
 
 				entity->MorphObj = nextEntity->Obj;
 				entity->Animation->MorphWeight = debug.MorphWeight;
@@ -1405,7 +1405,7 @@ namespace Comfy::Editor
 						DebugData::ApplyA3DParentTransform(a3d, *parent, entity->Transform, frame);
 
 					if (entity->Animation == nullptr)
-						entity->Animation = MakeUnique<ObjAnimationData>();
+						entity->Animation = std::make_unique<ObjAnimationData>();
 
 					auto findCurve = [&](auto& name) -> const A3DCurve*
 					{
@@ -1617,7 +1617,7 @@ namespace Comfy::Editor
 									EndsWithInsensitive(name, "_FB03"))
 								{
 									if (entity->Animation == nullptr)
-										entity->Animation = MakeUnique<ObjAnimationData>();
+										entity->Animation = std::make_unique<ObjAnimationData>();
 
 									entity->Animation->ScreenRenderTextureID = diffuseTexture->TextureID;
 								}

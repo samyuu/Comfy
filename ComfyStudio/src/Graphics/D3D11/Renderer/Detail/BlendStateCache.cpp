@@ -13,7 +13,7 @@ namespace Comfy::Graphics::D3D11
 		{
 			for (int dst = 0; dst < static_cast<int>(BlendFactor::Count); dst++)
 			{
-				states[src][dst] = MakeUnique<BlendState>(D3DBlendFactors[src], D3DBlendFactors[dst], D3D11_BLEND_INV_DEST_ALPHA, D3D11_BLEND_ONE);
+				states[src][dst] = std::make_unique<BlendState>(D3DBlendFactors[src], D3DBlendFactors[dst], D3D11_BLEND_INV_DEST_ALPHA, D3D11_BLEND_ONE);
 				D3D11_SetObjectDebugName(states[src][dst]->GetBlendState(), "Renderer3D::BlendState::%s-%s", BlendFactorNames[src], BlendFactorNames[dst]);
 			}
 		}

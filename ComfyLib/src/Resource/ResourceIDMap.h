@@ -16,7 +16,7 @@ namespace Comfy
 		struct ResourceIDPair
 		{
 			IDType ID;
-			RefPtr<ResourceType> Resource;
+			std::shared_ptr<ResourceType> Resource;
 		};
 
 		bool Contains(IDType id) const
@@ -29,7 +29,7 @@ namespace Comfy
 			sortedResources.reserve(sortedResources.size() + count);
 		}
 
-		void Add(IDType id, const RefPtr<ResourceType>& resource)
+		void Add(IDType id, const std::shared_ptr<ResourceType>& resource)
 		{
 			if (id == IDType::Invalid)
 				return;

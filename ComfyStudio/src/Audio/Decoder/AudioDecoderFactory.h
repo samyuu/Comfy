@@ -8,25 +8,25 @@ namespace Comfy::Audio
 {
 	class AudioDecoderFactory : NonCopyable
 	{
-		static UniquePtr<AudioDecoderFactory> instance;
+		static std::unique_ptr<AudioDecoderFactory> instance;
 
 	public:
 		~AudioDecoderFactory();
 
-		RefPtr<MemorySampleProvider> DecodeFile(std::string_view filePath);
+		std::shared_ptr<MemorySampleProvider> DecodeFile(std::string_view filePath);
 		static AudioDecoderFactory* GetInstance();
 
 	private:
 		AudioDecoderFactory();
 
 	protected:
-		std::vector<UniquePtr<IAudioDecoder>> availableDecoders;
+		std::vector<std::unique_ptr<IAudioDecoder>> availableDecoders;
 	
 		template <typename T>
 		void RegisterDecoder()
 		{
 			static_assert(std::is_base_of<IAudioDecoder, T>::value, "T must inherit from IAudioDecoder");
-			availableDecoders.push_back(MakeUnique<T>());
+			availableDecoders.push_back(std::make_unique<T>());
 		}
 
 		void RegisterAllDecoders();

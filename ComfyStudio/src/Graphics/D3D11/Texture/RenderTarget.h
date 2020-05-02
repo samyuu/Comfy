@@ -71,7 +71,7 @@ namespace Comfy::Graphics::D3D11
 
 		const D3D11_TEXTURE2D_DESC& GetBackBufferDescription() const;
 
-		UniquePtr<u8[]> StageAndCopyBackBuffer();
+		std::unique_ptr<u8[]> StageAndCopyBackBuffer();
 
 	protected:
 		D3D11_TEXTURE2D_DESC backBufferDescription;

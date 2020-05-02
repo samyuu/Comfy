@@ -19,7 +19,7 @@ namespace Comfy::IO
 		COMFY_NODISCARD MemoryStream OpenReadMemory(std::string_view filePath);
 		COMFY_NODISCARD FileStream CreateWrite(std::string_view filePath);
 
-		COMFY_NODISCARD std::pair<UniquePtr<u8[]>, size_t> ReadAllBytes(std::string_view filePath);
+		COMFY_NODISCARD std::pair<std::unique_ptr<u8[]>, size_t> ReadAllBytes(std::string_view filePath);
 		bool ReadAllBytes(std::string_view filePath, std::vector<u8>& outFileContent);
 
 		COMFY_NODISCARD std::string ReadAllText(std::string_view filePath);
@@ -28,7 +28,7 @@ namespace Comfy::IO
 		bool WriteAllText(std::string_view filePath, std::string_view text);
 
 		template <typename Readable>
-		COMFY_NODISCARD UniquePtr<Readable> Load(std::string_view filePath)
+		COMFY_NODISCARD std::unique_ptr<Readable> Load(std::string_view filePath)
 		{
 			static_assert(std::is_base_of_v<IStreamReadable, Readable>);
 
@@ -36,7 +36,7 @@ namespace Comfy::IO
 			if (!stream.IsOpen() || !stream.CanRead())
 				return nullptr;
 
-			auto result = MakeUnique<Readable>();
+			auto result = std::make_unique<Readable>();
 			if (result == nullptr)
 				return nullptr;
 

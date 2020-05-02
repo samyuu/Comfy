@@ -22,7 +22,6 @@
     <ClInclude Include="src\Time\Stopwatch.h" />
     <ClInclude Include="src\Core\Logger.h" />
     <ClInclude Include="src\Core\NonCopyable.h" />
-    <ClInclude Include="src\Core\SmartPointers.h" />
     <ClInclude Include="src\Time\TimeSpan.h" />
     <ClInclude Include="src\Core\Win32\ComfyWindows.h" />
     <ClInclude Include="src\Database\AetDB.h" />

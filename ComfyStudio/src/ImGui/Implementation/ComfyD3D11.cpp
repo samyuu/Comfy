@@ -44,8 +44,8 @@ namespace ImGui
 
 		struct ComfyD3D11DeviceObjects
 		{
-			UniquePtr<D3D11::DynamicVertexBuffer> VertexBuffer = nullptr;
-			UniquePtr<D3D11::DynamicIndexBuffer> IndexBuffer = nullptr;
+			std::unique_ptr<D3D11::DynamicVertexBuffer> VertexBuffer = nullptr;
+			std::unique_ptr<D3D11::DynamicIndexBuffer> IndexBuffer = nullptr;
 
 			D3D11::ShaderPair DefaultShader = { D3D11::ImGuiDefault_VS(), D3D11::ImGuiDefault_PS(), "ComfyD3D11::ImGuiDefault" };
 			D3D11::ShaderPair CustomShader = { D3D11::ImGuiDefault_VS(), D3D11::ImGuiCustom_PS(), "ComfyD3D11::ImGuiCustom" };
@@ -53,10 +53,10 @@ namespace ImGui
 			D3D11::DefaultConstantBufferTemplate<MatrixConstantData> MatrixCB = { 0, "ComfyD3D11::MatrixCB" };
 			D3D11::DynamicConstantBufferTemplate<DynamicConstantData> DynamicCB = { 0, "ComfyD3D11::DynamicCB" };
 
-			UniquePtr<D3D11::InputLayout> InputLayout = nullptr;
+			std::unique_ptr<D3D11::InputLayout> InputLayout = nullptr;
 
 			D3D11::TextureSampler FontSampler = { D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP };
-			UniquePtr<D3D11::Texture2D> FontTexture = nullptr;
+			std::unique_ptr<D3D11::Texture2D> FontTexture = nullptr;
 
 			D3D11::BlendState BlendState = { D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_ZERO };
 			D3D11::RasterizerState RasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_NONE, true, "ComfyD3D11::RasterizerState" };
@@ -71,7 +71,7 @@ namespace ImGui
 					{ "COLOR",		0, DXGI_FORMAT_R8G8B8A8_UNORM,	offsetof(ImDrawVert, col)	},
 				};
 
-				InputLayout = MakeUnique<D3D11::InputLayout>(elements, std::size(elements), DefaultShader.VS);
+				InputLayout = std::make_unique<D3D11::InputLayout>(elements, std::size(elements), DefaultShader.VS);
 				D3D11_SetObjectDebugName(InputLayout->GetLayout(), "ComfyD3D11::InputLayout");
 
 				D3D11_SetObjectDebugName(FontSampler.GetSampler(), "ComfyD3D11::FontSampler");
@@ -81,7 +81,7 @@ namespace ImGui
 				ivec2 textureSize;
 				GetIO().Fonts->GetTexDataAsRGBA32(&rgbaPixels, &textureSize.x, &textureSize.y);
 
-				FontTexture = MakeUnique<D3D11::Texture2D>(textureSize, reinterpret_cast<u32*>(rgbaPixels));
+				FontTexture = std::make_unique<D3D11::Texture2D>(textureSize, reinterpret_cast<u32*>(rgbaPixels));
 				D3D11_SetObjectDebugName(FontTexture->GetTexture(), "ComfyD3D11::FontTexture");
 				D3D11_SetObjectDebugName(FontTexture->GetResourceView(), "ComfyD3D11::FontTextureView");
 
@@ -98,7 +98,7 @@ namespace ImGui
 		{
 			ComPtr<IDXGIFactory> Factory = nullptr;
 
-			UniquePtr<ComfyD3D11DeviceObjects> DeviceObjects = nullptr;
+			std::unique_ptr<ComfyD3D11DeviceObjects> DeviceObjects = nullptr;
 
 			int VertexBufferSize = 5000;
 			int IndexBufferSize = 10000;
@@ -147,7 +147,7 @@ namespace ImGui
 
 		bool CreateDeviceObjects()
 		{
-			Data.DeviceObjects = MakeUnique<ComfyD3D11DeviceObjects>();
+			Data.DeviceObjects = std::make_unique<ComfyD3D11DeviceObjects>();
 			return true;
 		}
 
@@ -171,7 +171,7 @@ namespace ImGui
 			if (Data.DeviceObjects->VertexBuffer == nullptr || Data.VertexBufferSize < drawData->TotalVtxCount)
 			{
 				Data.VertexBufferSize = drawData->TotalVtxCount + 5000;
-				Data.DeviceObjects->VertexBuffer = MakeUnique<D3D11::DynamicVertexBuffer>(Data.VertexBufferSize * sizeof(ImDrawVert), nullptr, sizeof(ImDrawVert));
+				Data.DeviceObjects->VertexBuffer = std::make_unique<D3D11::DynamicVertexBuffer>(Data.VertexBufferSize * sizeof(ImDrawVert), nullptr, sizeof(ImDrawVert));
 
 				D3D11_SetObjectDebugName(Data.DeviceObjects->VertexBuffer->GetBuffer(), "ComfyD3D11::VertexBuffer");
 			}
@@ -179,7 +179,7 @@ namespace ImGui
 			if (Data.DeviceObjects->IndexBuffer == nullptr || Data.IndexBufferSize < drawData->TotalIdxCount)
 			{
 				Data.IndexBufferSize = drawData->TotalIdxCount + 10000;
-				Data.DeviceObjects->IndexBuffer = MakeUnique<D3D11::DynamicIndexBuffer>(Data.IndexBufferSize * sizeof(ImDrawIdx), nullptr, IndexFormat::U16);
+				Data.DeviceObjects->IndexBuffer = std::make_unique<D3D11::DynamicIndexBuffer>(Data.IndexBufferSize * sizeof(ImDrawIdx), nullptr, IndexFormat::U16);
 
 				D3D11_SetObjectDebugName(Data.DeviceObjects->IndexBuffer->GetBuffer(), "ComfyD3D11::IndexBuffer");
 			}

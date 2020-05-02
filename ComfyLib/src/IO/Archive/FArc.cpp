@@ -12,16 +12,16 @@ namespace Comfy::IO
 		parentFArc.ReadEntryContent(*this, outFileContent);
 	}
 
-	UniquePtr<u8[]> FArcEntry::ReadArray() const
+	std::unique_ptr<u8[]> FArcEntry::ReadArray() const
 	{
-		auto result = MakeUnique<u8[]>(OriginalSize);
+		auto result = std::make_unique<u8[]>(OriginalSize);
 		ReadIntoBuffer(result.get());
 		return result;
 	}
 
-	UniquePtr<FArc> FArc::Open(std::string_view filePath)
+	std::unique_ptr<FArc> FArc::Open(std::string_view filePath)
 	{
-		auto farc = MakeUnique<FArc>();
+		auto farc = std::make_unique<FArc>();
 		if (!farc->OpenStream(filePath))
 		{
 			Logger::LogErrorLine(__FUNCTION__"(): Unable to open '%s'", filePath.data());
@@ -79,12 +79,12 @@ namespace Comfy::IO
 			// NOTE: Since the farc file size is only stored in a 32bit integer, decompressing it as a single block should be safe enough (?)
 			const auto paddedSize = std::min(FArcEncryption::GetPaddedSize(entry.CompressedSize, alignment) + 16, static_cast<size_t>(stream.GetLength()));
 
-			UniquePtr<u8[]> encryptedData = nullptr;
-			UniquePtr<u8[]> compressedData = MakeUnique<u8[]>(paddedSize);
+			std::unique_ptr<u8[]> encryptedData = nullptr;
+			std::unique_ptr<u8[]> compressedData = std::make_unique<u8[]>(paddedSize);
 
 			if (flags & FArcFlags_Encrypted)
 			{
-				encryptedData = MakeUnique<u8[]>(paddedSize);
+				encryptedData = std::make_unique<u8[]>(paddedSize);
 				stream.ReadBuffer(encryptedData.get(), paddedSize);
 
 				DecryptFileContent(encryptedData.get(), compressedData.get(), paddedSize);
@@ -119,7 +119,7 @@ namespace Comfy::IO
 			stream.Seek(entry.Offset);
 
 			const auto paddedSize = FArcEncryption::GetPaddedSize(entry.OriginalSize) + dataOffset;
-			auto encryptedData = MakeUnique<u8[]>(paddedSize);
+			auto encryptedData = std::make_unique<u8[]>(paddedSize);
 
 			stream.ReadBuffer(encryptedData.get(), paddedSize);
 			u8* fileOutput = reinterpret_cast<u8*>(outFileContent);
@@ -131,7 +131,7 @@ namespace Comfy::IO
 			else
 			{
 				// NOTE: Suboptimal temporary file copy to avoid AES padding issues. All encrypted farcs should however always be either compressed or have correct alignment
-				auto decryptedData = MakeUnique<u8[]>(paddedSize);
+				auto decryptedData = std::make_unique<u8[]>(paddedSize);
 
 				DecryptFileContent(encryptedData.get(), decryptedData.get(), paddedSize);
 
@@ -176,7 +176,7 @@ namespace Comfy::IO
 
 			const auto headerSize = (parsedHeaderSize - sizeof(alignment));
 
-			auto headerData = MakeUnique<u8[]>(headerSize);
+			auto headerData = std::make_unique<u8[]>(headerSize);
 			stream.ReadBuffer(headerData.get(), headerSize);
 
 			u8* currentHeaderPosition = headerData.get();
@@ -212,7 +212,7 @@ namespace Comfy::IO
 				const auto paddedHeaderSize = FArcEncryption::GetPaddedSize(parsedHeaderSize);
 
 				// NOTE: Allocate encrypted and decrypted data as a continuous block
-				auto headerData = MakeUnique<u8[]>(paddedHeaderSize * 2);
+				auto headerData = std::make_unique<u8[]>(paddedHeaderSize * 2);
 
 				u8* encryptedHeaderData = headerData.get();
 				u8* decryptedHeaderData = headerData.get() + paddedHeaderSize;
@@ -242,7 +242,7 @@ namespace Comfy::IO
 
 				const auto headerSize = (parsedHeaderSize - 12);
 
-				auto headerData = MakeUnique<u8[]>(headerSize);
+				auto headerData = std::make_unique<u8[]>(headerSize);
 				stream.ReadBuffer(headerData.get(), headerSize);
 
 				u8* currentHeaderPosition = headerData.get();

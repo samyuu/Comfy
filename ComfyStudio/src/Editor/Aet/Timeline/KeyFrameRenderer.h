@@ -25,7 +25,7 @@ namespace Comfy::Editor
 		static constexpr ivec2 keyFrameTextureSize = ivec2(22, 22);
 		static const u32 keyFrameTexturePixels[keyFrameTextureSize.x * keyFrameTextureSize.y];
 
-		UniquePtr<Graphics::GPU_Texture2D> keyFrameTexture = nullptr;
+		std::unique_ptr<Graphics::GPU_Texture2D> keyFrameTexture = nullptr;
 
 		enum class KeyFrameType
 		{

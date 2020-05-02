@@ -266,7 +266,7 @@ namespace Comfy::Editor
 		};
 
 		// TODO: Theses should probably be member functions
-		auto drawLayer = [&](int rowIndex, const RefPtr<Layer>& layer)
+		auto drawLayer = [&](int rowIndex, const std::shared_ptr<Layer>& layer)
 		{
 			// TODO: Adjust spacing and implement tree node expansion arrow
 			constexpr float typeIconDistance = 20.0f;
@@ -291,7 +291,7 @@ namespace Comfy::Editor
 			Gui::GetWindowDrawList()->AddText(position, Gui::GetColorU32(ImGuiCol_Text), layer->GetName().c_str());
 		};
 
-		auto drawLayerTransformProperties = [&](int& rowIndex, const RefPtr<Layer>& layer)
+		auto drawLayerTransformProperties = [&](int& rowIndex, const std::shared_ptr<Layer>& layer)
 		{
 			for (Transform2DField i = 0; i < Transform2DField_Count; i++)
 			{

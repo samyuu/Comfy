@@ -97,7 +97,7 @@ namespace Comfy::Graphics
 
 		if (texSetOffset != 0)
 		{
-			sprSet->TexSet = MakeUnique<Graphics::TexSet>();
+			sprSet->TexSet = std::make_unique<Graphics::TexSet>();
 			sprSet->TexSet->Parse(buffer + texSetOffset, bufferSize - texSetOffset);
 		}
 

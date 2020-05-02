@@ -21,6 +21,6 @@ namespace Comfy::Graphics::D3D11
 		GlowParameter lastSetGlow;
 
 		std::array<vec2, 512> textureData;
-		UniquePtr<Texture1D> lookupTexture = nullptr;
+		std::unique_ptr<Texture1D> lookupTexture = nullptr;
 	};
 }

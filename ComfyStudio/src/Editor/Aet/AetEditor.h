@@ -40,7 +40,7 @@ namespace Comfy::Editor
 		void OnSprSetLoaded();
 
 	private:
-		UniquePtr<AetCommandManager> commandManager = {};
+		std::unique_ptr<AetCommandManager> commandManager = {};
 		Graphics::Aet::SpriteGetterFunction spriteGetterFunction;
 		
 		struct
@@ -50,17 +50,17 @@ namespace Comfy::Editor
 			AetRenderPreviewData previewData;
 		};
 
-		UniquePtr<AetTreeView> treeView;
-		UniquePtr<AetInspector> inspector;
-		UniquePtr<AetContentView> contentView;
-		UniquePtr<AetTimeline> timeline;
-		UniquePtr<AetRenderWindow> renderWindow;
-		UniquePtr<AetHistoryWindow> historyWindow;
+		std::unique_ptr<AetTreeView> treeView;
+		std::unique_ptr<AetInspector> inspector;
+		std::unique_ptr<AetContentView> contentView;
+		std::unique_ptr<AetTimeline> timeline;
+		std::unique_ptr<AetRenderWindow> renderWindow;
+		std::unique_ptr<AetHistoryWindow> historyWindow;
 
 		struct
 		{
-			RefPtr<Graphics::Aet::AetSet> editorAetSet = nullptr;
-			UniquePtr<Graphics::SprSet> sprSet = nullptr;
+			std::shared_ptr<Graphics::Aet::AetSet> editorAetSet = nullptr;
+			std::unique_ptr<Graphics::SprSet> sprSet = nullptr;
 		};
 
 	private:
@@ -69,7 +69,7 @@ namespace Comfy::Editor
 
 		// DEBUG: Disabled for now to remove one possible case of failure
 		const bool asyncFileLoading = false;
-		UniquePtr<IO::AsyncFileLoader> sprSetFileLoader;
+		std::unique_ptr<IO::AsyncFileLoader> sprSetFileLoader;
 
 		static constexpr const char* debugAetPath = "dev_ram/aetset/aet_gam/aet_gam_cmn.bin";
 		static constexpr const char* debugSprPath = "dev_ram/sprset/spr_gam/spr_gam_cmn.bin";

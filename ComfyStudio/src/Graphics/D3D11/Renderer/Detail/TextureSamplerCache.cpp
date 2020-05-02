@@ -18,7 +18,7 @@ namespace Comfy::Graphics::D3D11
 			{
 				for (int v = 0; v < AddressMode_Count; v++)
 				{
-					samplers[u][v] = MakeUnique<TextureSampler>(filter, D3DAddressModes[u], D3DAddressModes[v], 0.0f, renderParameters.AnistropicFiltering);
+					samplers[u][v] = std::make_unique<TextureSampler>(filter, D3DAddressModes[u], D3DAddressModes[v], 0.0f, renderParameters.AnistropicFiltering);
 					D3D11_SetObjectDebugName(samplers[u][v]->GetSampler(), "Renderer3D::Sampler::%s-%s", AddressModeNames[u], AddressModeNames[v]);
 				}
 			}

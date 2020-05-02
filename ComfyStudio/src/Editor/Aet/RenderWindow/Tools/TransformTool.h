@@ -14,7 +14,7 @@ namespace Comfy::Editor
 
 		// TODO: Rename to 'UpdateProperties' (?)
 		void UpdatePostDrawGui(Graphics::Transform2D* transform, vec2 dimensions) override;
-		void ProcessCommands(AetCommandManager* commandManager, const RefPtr<Graphics::Aet::Layer>& layer, float frame, const Graphics::Transform2D& transform, const Graphics::Transform2D& previousTransform) override;
+		void ProcessCommands(AetCommandManager* commandManager, const std::shared_ptr<Graphics::Aet::Layer>& layer, float frame, const Graphics::Transform2D& transform, const Graphics::Transform2D& previousTransform) override;
 
 		void DrawContextMenu() override;
 		bool MouseFocusCaptured() const override;

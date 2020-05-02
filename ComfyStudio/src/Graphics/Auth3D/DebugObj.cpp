@@ -271,9 +271,9 @@ namespace Comfy::Graphics
 		return MaxSphereMeshDetailLevel;
 	}
 
-	UniquePtr<Obj> GenerateUploadDebugBoxObj(const Box& box, const vec4& color)
+	std::unique_ptr<Obj> GenerateUploadDebugBoxObj(const Box& box, const vec4& color)
 	{
-		auto obj = MakeUnique<Obj>();
+		auto obj = std::make_unique<Obj>();
 		{
 			float maxSize = std::max({ box.Size.x, box.Size.y, box.Size.z });
 			Sphere sphere = { box.Center, maxSize };
@@ -293,12 +293,12 @@ namespace Comfy::Graphics
 		return obj;
 	}
 
-	UniquePtr<Obj> GenerateUploadDebugSphereObj(const Sphere& sphere, const vec4& color, int detailLevel)
+	std::unique_ptr<Obj> GenerateUploadDebugSphereObj(const Sphere& sphere, const vec4& color, int detailLevel)
 	{
 		if (detailLevel < MinSphereMeshDetailLevel)
 			detailLevel = GetSphereMeshDetailLevelForRadius(sphere);
 
-		auto obj = MakeUnique<Obj>();
+		auto obj = std::make_unique<Obj>();
 		{
 			Box box = { sphere.Center, vec3(sphere.Radius) };
 			GenerateDebugObj("DebugSphere", *obj, sphere, box, color, [&](Mesh& mesh, SubMesh& subMesh)
@@ -316,12 +316,12 @@ namespace Comfy::Graphics
 		return obj;
 	}
 
-	UniquePtr<Obj> GenerateUploadMaterialTestSphereObj()
+	std::unique_ptr<Obj> GenerateUploadMaterialTestSphereObj()
 	{
 		constexpr Sphere boundingSphere = { vec3(0.0f), 1.0f };
 		const int detailLevel = GetSphereMeshDetailLevelForRadius(boundingSphere);
 
-		auto obj = MakeUnique<Obj>();
+		auto obj = std::make_unique<Obj>();
 		{
 			Box box = { boundingSphere.Center, vec3(boundingSphere.Radius) };
 			GenerateDebugObj("MaterialTestSphere", *obj, boundingSphere, box, vec4(1.0f, 0.0f, 1.0f, 1.0f), [&](Mesh& mesh, SubMesh& subMesh)

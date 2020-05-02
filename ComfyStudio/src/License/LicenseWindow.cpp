@@ -85,7 +85,7 @@ namespace Comfy
 		{
 			const auto licenseFileEntry = licenseDirectoryEntry->Entries[i];
 
-			UniquePtr<char[]> fileContent = MakeUnique<char[]>(licenseFileEntry.Size + 1);
+			std::unique_ptr<char[]> fileContent = std::make_unique<char[]>(licenseFileEntry.Size + 1);
 			ComfyData->ReadEntryIntoBuffer(&licenseFileEntry, fileContent.get());
 
 			const char* textBuffer = fileContent.get();

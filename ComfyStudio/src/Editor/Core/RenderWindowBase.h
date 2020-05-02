@@ -30,7 +30,7 @@ namespace Comfy::Editor
 		static inline void PopWindowPadding() { Gui::PopStyleVar(); }
 
 	protected:
-		UniquePtr<Graphics::GPU_RenderTarget> owningRenderTarget = nullptr;
+		std::unique_ptr<Graphics::GPU_RenderTarget> owningRenderTarget = nullptr;
 
 		virtual ImGuiWindowFlags GetChildWinodwFlags() const { return ImGuiWindowFlags_None; }
 

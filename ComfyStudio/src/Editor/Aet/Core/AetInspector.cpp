@@ -107,7 +107,7 @@ namespace Comfy::Editor
 		return currentFrame = value;
 	}
 
-	void AetInspector::DrawInspectorAetSet(const RefPtr<AetSet>& aetSet)
+	void AetInspector::DrawInspectorAetSet(const std::shared_ptr<AetSet>& aetSet)
 	{
 		if (Gui::WideTreeNodeEx(ICON_NAMES "  Aets:", DefaultOpenPropertiesNodeFlags))
 		{
@@ -118,7 +118,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAet(const RefPtr<Scene>& aet)
+	void AetInspector::DrawInspectorAet(const std::shared_ptr<Scene>& aet)
 	{
 		if (Gui::WideTreeNodeEx("Aet", DefaultOpenPropertiesNodeFlags))
 		{
@@ -154,7 +154,7 @@ namespace Comfy::Editor
 		Gui::Separator();
 	}
 
-	void AetInspector::DrawInspectorComposition(Scene* aet, const RefPtr<Composition>& comp)
+	void AetInspector::DrawInspectorComposition(Scene* aet, const std::shared_ptr<Composition>& comp)
 	{
 		if (Gui::WideTreeNodeEx(ICON_AETCOMP "  Composition", DefaultOpenPropertiesNodeFlags))
 		{
@@ -183,7 +183,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorCompositionData(Scene* aet, const RefPtr<Layer>& layer, const RefPtr<Composition>& comp)
+	void AetInspector::DrawInspectorCompositionData(Scene* aet, const std::shared_ptr<Layer>& layer, const std::shared_ptr<Composition>& comp)
 	{
 		// TODO: In the future you should not be able to change the composition after creating it because it would leave the previous composition "nameless" (?)
 
@@ -200,7 +200,7 @@ namespace Comfy::Editor
 				if (Gui::Selectable("None (Composition)", comp == nullptr))
 					ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeCompItem, layer, nullptr);
 
-				for (const RefPtr<Composition>& comp : aet->Compositions)
+				for (const std::shared_ptr<Composition>& comp : aet->Compositions)
 				{
 					Gui::PushID(comp.get());
 
@@ -223,7 +223,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorLayer(Scene* aet, const RefPtr<Layer>& layer)
+	void AetInspector::DrawInspectorLayer(Scene* aet, const std::shared_ptr<Layer>& layer)
 	{
 		if (Gui::WideTreeNodeEx(layer.get(), DefaultOpenPropertiesNodeFlags, "%s  Layer", GetItemTypeIcon(layer->ItemType)))
 		{
@@ -293,7 +293,7 @@ namespace Comfy::Editor
 		Gui::Separator();
 	}
 
-	void AetInspector::DrawInspectorVideoData(Scene* scene, const RefPtr<Layer>& layer, const RefPtr<Video>& video)
+	void AetInspector::DrawInspectorVideoData(Scene* scene, const std::shared_ptr<Layer>& layer, const std::shared_ptr<Video>& video)
 	{
 		if (Gui::WideTreeNodeEx(ICON_AETVIDEOS "  Video Data", DefaultOpenPropertiesNodeFlags))
 		{
@@ -365,7 +365,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAnimationData(const RefPtr<LayerVideo>& animationData, const RefPtr<Layer>& layer)
+	void AetInspector::DrawInspectorAnimationData(const std::shared_ptr<LayerVideo>& animationData, const std::shared_ptr<Layer>& layer)
 	{
 		if (Gui::WideTreeNodeEx(ICON_ANIMATIONDATA "  Animation Data", DefaultOpenPropertiesNodeFlags))
 		{
@@ -432,7 +432,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorDebugAnimationData(const RefPtr<LayerVideo>& animationData, const RefPtr<Layer>& layer)
+	void AetInspector::DrawInspectorDebugAnimationData(const std::shared_ptr<LayerVideo>& animationData, const std::shared_ptr<Layer>& layer)
 	{
 		// DEBUG:
 		static bool showDebugView = false;
@@ -464,7 +464,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorAnimationDataProperty(const RefPtr<Layer>& layer, const char* label, frame_t frame, float& value, Transform2DField field)
+	void AetInspector::DrawInspectorAnimationDataProperty(const std::shared_ptr<Layer>& layer, const char* label, frame_t frame, float& value, Transform2DField field)
 	{
 		constexpr float percentFactor = 100.0f;
 
@@ -503,7 +503,7 @@ namespace Comfy::Editor
 		Gui::PopStyleColor();
 	}
 
-	void AetInspector::DrawInspectorAnimationDataPropertyVec2(const RefPtr<Layer>& Layer, const char* label, frame_t frame, vec2& value, Transform2DField fieldX, Transform2DField fieldY)
+	void AetInspector::DrawInspectorAnimationDataPropertyVec2(const std::shared_ptr<Layer>& Layer, const char* label, frame_t frame, vec2& value, Transform2DField fieldX, Transform2DField fieldY)
 	{
 		constexpr float percentFactor = 100.0f;
 
@@ -555,13 +555,13 @@ namespace Comfy::Editor
 		Gui::PopStyleColor();
 	}
 
-	void AetInspector::DrawInspectorLayerMarkers(const RefPtr<Layer>& layer, std::vector<RefPtr<Marker>>* markers)
+	void AetInspector::DrawInspectorLayerMarkers(const std::shared_ptr<Layer>& layer, std::vector<std::shared_ptr<Marker>>* markers)
 	{
 		if (Gui::WideTreeNodeEx(ICON_MARKERS "  Markers", DefaultOpenPropertiesNodeFlags))
 		{
 			for (int i = 0; i < markers->size(); i++)
 			{
-				const RefPtr<Marker>& marker = markers->at(i);
+				const std::shared_ptr<Marker>& marker = markers->at(i);
 
 				Gui::PushID(marker.get());
 
@@ -620,7 +620,7 @@ namespace Comfy::Editor
 			{
 				char newMarkerNameBuffer[32];
 				sprintf_s(newMarkerNameBuffer, "marker_%02zd", markers->size());
-				auto newMarker = MakeRef<Marker>(0.0f, newMarkerNameBuffer);
+				auto newMarker = std::make_shared<Marker>(0.0f, newMarkerNameBuffer);
 				ProcessUpdatingAetCommand(GetCommandManager(), LayerAddMarker, layer, newMarker);
 			}
 			PopDisableItemFlagIfPlayback();
@@ -635,7 +635,7 @@ namespace Comfy::Editor
 		return (newLayer->GetRefParentLayer() != nullptr && newLayer->GetRefParentLayer() == layer);
 	}
 
-	void AetInspector::DrawInspectorLayerParent(Scene* aet, const RefPtr<Layer>& layer)
+	void AetInspector::DrawInspectorLayerParent(Scene* aet, const std::shared_ptr<Layer>& layer)
 	{
 		if (Gui::WideTreeNodeEx(ICON_PARENT "  Parent", DefaultOpenPropertiesNodeFlags))
 		{
@@ -652,7 +652,7 @@ namespace Comfy::Editor
 
 				for (i32 layerIndex = 0; layerIndex < parentComp->GetLayers().size(); layerIndex++)
 				{
-					const RefPtr<Layer>& iteratorLayer = parentComp->GetLayers().at(layerIndex);
+					const std::shared_ptr<Layer>& iteratorLayer = parentComp->GetLayers().at(layerIndex);
 					bool isSelected = (iteratorLayer.get() == parentLayer);
 
 					bool isSame = (layer.get() == iteratorLayer.get());
@@ -674,7 +674,7 @@ namespace Comfy::Editor
 		}
 	}
 
-	void AetInspector::DrawInspectorVideo(Scene* aet, const RefPtr<Video>& video)
+	void AetInspector::DrawInspectorVideo(Scene* aet, const std::shared_ptr<Video>& video)
 	{
 		Gui::InputInt2("Dimensions", glm::value_ptr(video->Size));
 

@@ -24,7 +24,7 @@ namespace Comfy::Graphics
 		TextureFormat Format;
 
 		u32 DataSize;
-		UniquePtr<u8[]> Data;
+		std::unique_ptr<u8[]> Data;
 	};
 
 	struct Tex
@@ -36,8 +36,8 @@ namespace Comfy::Graphics
 
 		Cached_TexID ID = TexID::Invalid;
 
-		UniquePtr<GPU_Texture2D> GPU_Texture2D = nullptr;
-		UniquePtr<GPU_CubeMap> GPU_CubeMap = nullptr;
+		std::unique_ptr<GPU_Texture2D> GPU_Texture2D = nullptr;
+		std::unique_ptr<GPU_CubeMap> GPU_CubeMap = nullptr;
 
 	public:
 		const std::vector<TexMipMap>& GetMipMaps(u32 arrayIndex = 0) const;
@@ -53,7 +53,7 @@ namespace Comfy::Graphics
 	class TexSet : public IO::IStreamWritable, public IO::IBufferParsable, NonCopyable
 	{
 	public:
-		std::vector<RefPtr<Tex>> Textures;
+		std::vector<std::shared_ptr<Tex>> Textures;
 
 		void Write(IO::StreamWriter& writer) override;
 
@@ -63,7 +63,7 @@ namespace Comfy::Graphics
 		void SetTextureIDs(const class ObjSet& objSet);
 
 	public:
-		static UniquePtr<TexSet> MakeUniqueReadParseUpload(std::string_view filePath, const class ObjSet* objSet);
+		static std::unique_ptr<TexSet> MakeUniqueReadParseUpload(std::string_view filePath, const class ObjSet* objSet);
 
 	private:
 		void ParseTex(const u8* buffer, Tex& tex);

@@ -16,7 +16,7 @@ namespace Comfy::Editor
 		void Initialize();
 		void PlayButtonSound();
 
-		const RefPtr<Audio::MemorySampleProvider>& GetButtonSoundSource(int index);
+		const std::shared_ptr<Audio::MemorySampleProvider>& GetButtonSoundSource(int index);
 
 	private:
 		static constexpr const char* buttonSoundPath = "dev_rom/sound/button/01_button1.wav";
@@ -25,8 +25,8 @@ namespace Comfy::Editor
 		float buttonSoundVolume = 0.75f;
 		
 		int buttonSoundIndex = -1;
-		std::vector<RefPtr<Audio::MemorySampleProvider>> buttonSoundSources;
-		std::array<RefPtr<Audio::AudioInstance>, 16> buttonSoundInstancePool;
+		std::vector<std::shared_ptr<Audio::MemorySampleProvider>> buttonSoundSources;
+		std::array<std::shared_ptr<Audio::AudioInstance>, 16> buttonSoundInstancePool;
 
 		void PlayButtonSound(Audio::AudioInstance* audioInstance);
 	};

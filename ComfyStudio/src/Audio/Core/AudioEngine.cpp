@@ -8,7 +8,7 @@
 
 namespace Comfy::Audio
 {
-	UniquePtr<AudioEngine> AudioEngine::engineInstance = nullptr;
+	std::unique_ptr<AudioEngine> AudioEngine::engineInstance = nullptr;
 
 	AudioEngine::AudioEngine()
 	{
@@ -47,7 +47,7 @@ namespace Comfy::Audio
 		if (GetIsStreamOpen())
 			CloseStream();
 
-		rtAudio = MakeUnique<RtAudio>(GetRtAudioApi(audioApi));
+		rtAudio = std::make_unique<RtAudio>(GetRtAudioApi(audioApi));
 
 		if (wasStreamRunning)
 		{
@@ -196,7 +196,7 @@ namespace Comfy::Audio
 			size_t audioInstancesSize = audioInstances.size();
 			for (size_t i = 0; i < audioInstancesSize; i++)
 			{
-				const RefPtr<AudioInstance>& audioInstance = audioInstances[i];
+				const std::shared_ptr<AudioInstance>& audioInstance = audioInstances[i];
 
 				if (audioInstance->GetAppendRemove() || (audioInstance->HasSampleProvider() && audioInstance->GetHasReachedEnd() && audioInstance->GetOnFinishedAction() == AudioFinishedAction::Remove))
 				{
@@ -284,7 +284,7 @@ namespace Comfy::Audio
 			StartStream();
 	}
 
-	void AudioEngine::AddAudioInstance(const RefPtr<AudioInstance>& audioInstance)
+	void AudioEngine::AddAudioInstance(const std::shared_ptr<AudioInstance>& audioInstance)
 	{
 		audioInstancesMutex.lock();
 		{
@@ -293,9 +293,9 @@ namespace Comfy::Audio
 		audioInstancesMutex.unlock();
 	}
 
-	void AudioEngine::PlaySound(const RefPtr<ISampleProvider>& sampleProvider, float volume, const char* name)
+	void AudioEngine::PlaySound(const std::shared_ptr<ISampleProvider>& sampleProvider, float volume, const char* name)
 	{
-		AddAudioInstance(MakeRef<AudioInstance>(sampleProvider, true, AudioFinishedAction::Remove, volume, name));
+		AddAudioInstance(std::make_shared<AudioInstance>(sampleProvider, true, AudioFinishedAction::Remove, volume, name));
 	}
 
 	void AudioEngine::ShowControlPanel()
@@ -323,7 +323,7 @@ namespace Comfy::Audio
 		}
 	}
 
-	RefPtr<MemorySampleProvider> AudioEngine::LoadAudioFile(std::string_view filePath)
+	std::shared_ptr<MemorySampleProvider> AudioEngine::LoadAudioFile(std::string_view filePath)
 	{
 		return AudioDecoderFactory::GetInstance()->DecodeFile(filePath);
 	}

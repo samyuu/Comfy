@@ -174,7 +174,7 @@ namespace Comfy
 			return false;
 		}
 
-		ComfyData = MakeUnique<IO::ComfyArchive>();
+		ComfyData = std::make_unique<IO::ComfyArchive>();
 		if (ComfyData == nullptr)
 			return false;
 
@@ -190,12 +190,12 @@ namespace Comfy
 
 	bool Application::InitializeEditorComponents()
 	{
-		editorManager = MakeUnique<Editor::EditorManager>(this);
+		editorManager = std::make_unique<Editor::EditorManager>(this);
 
 		dataTestComponents.reserve(3);
-		dataTestComponents.push_back(std::move(MakeUnique<DataTest::InputTestWindow>(this)));
-		dataTestComponents.push_back(std::move(MakeUnique<DataTest::AudioTestWindow>(this)));
-		dataTestComponents.push_back(std::move(MakeUnique<DataTest::IconTestWindow>(this)));
+		dataTestComponents.push_back(std::move(std::make_unique<DataTest::InputTestWindow>(this)));
+		dataTestComponents.push_back(std::move(std::make_unique<DataTest::AudioTestWindow>(this)));
+		dataTestComponents.push_back(std::move(std::make_unique<DataTest::IconTestWindow>(this)));
 
 		return true;
 	}
@@ -475,7 +475,7 @@ namespace Comfy
 	void Application::DrawAppEngineWindow()
 	{
 		if (appEngine == nullptr)
-			appEngine = MakeUnique<App::Engine>();
+			appEngine = std::make_unique<App::Engine>();
 
 		appEngine->Tick();
 	}
@@ -489,7 +489,7 @@ namespace Comfy
 		}
 	}
 
-	void Application::DrawGuiBaseWindowMenus(const char* header, const std::vector<UniquePtr<BaseWindow>>& components)
+	void Application::DrawGuiBaseWindowMenus(const char* header, const std::vector<std::unique_ptr<BaseWindow>>& components)
 	{
 		if (Gui::BeginMenu(header))
 		{
@@ -503,7 +503,7 @@ namespace Comfy
 		}
 	}
 
-	void Application::DrawGuiBaseWindowWindows(const std::vector<UniquePtr<BaseWindow>>& components)
+	void Application::DrawGuiBaseWindowWindows(const std::vector<std::unique_ptr<BaseWindow>>& components)
 	{
 		for (const auto& component : components)
 		{

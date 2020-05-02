@@ -25,7 +25,7 @@ namespace Comfy::Graphics::D3D11
 		if (!InternalCreateDeviceAndSwapchain(window))
 			return false;
 
-		WindowRenderTarget = MakeUnique<SwapChainRenderTarget>(SwapChain);
+		WindowRenderTarget = std::make_unique<SwapChainRenderTarget>(SwapChain);
 
 		return true;
 	}

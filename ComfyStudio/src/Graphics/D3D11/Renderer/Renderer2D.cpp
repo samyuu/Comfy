@@ -88,13 +88,13 @@ namespace Comfy::Graphics::D3D11
 			offset += static_cast<u16>(SpriteVertices::GetVertexCount());
 		}
 
-		indexBuffer = MakeUnique<StaticIndexBuffer>(indexData.size(), indexData.data(), IndexFormat::U16);
+		indexBuffer = std::make_unique<StaticIndexBuffer>(indexData.size(), indexData.data(), IndexFormat::U16);
 		D3D11_SetObjectDebugName(indexBuffer->GetBuffer(), "Renderer2D::IndexBuffer");
 	}
 
 	void Renderer2D::InternalCreateVertexBuffer()
 	{
-		vertexBuffer = MakeUnique<DynamicVertexBuffer>(MaxBatchItemSize * sizeof(SpriteVertex), nullptr, sizeof(SpriteVertex));
+		vertexBuffer = std::make_unique<DynamicVertexBuffer>(MaxBatchItemSize * sizeof(SpriteVertex), nullptr, sizeof(SpriteVertex));
 		D3D11_SetObjectDebugName(vertexBuffer->GetBuffer(), "Renderer2D::VertexBuffer");
 	}
 
@@ -108,7 +108,7 @@ namespace Comfy::Graphics::D3D11
 			{ "COLOR",		0, DXGI_FORMAT_R8G8B8A8_UNORM,	offsetof(SpriteVertex, Color)					},
 		};
 
-		inputLayout = MakeUnique<InputLayout>(elements, std::size(elements), spriteShader.VS);
+		inputLayout = std::make_unique<InputLayout>(elements, std::size(elements), spriteShader.VS);
 		D3D11_SetObjectDebugName(inputLayout->GetLayout(), "Renderer2D::InputLayout");
 	}
 

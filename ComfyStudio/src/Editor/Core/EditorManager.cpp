@@ -110,7 +110,7 @@ namespace Comfy::Editor
 	void EditorManager::AddEditorComponent(bool opened)
 	{
 		static_assert(std::is_base_of<IEditorComponent, T>::value, "T must inherit from IEditorComponent");
-		editorComponents.push_back({ false, std::move(MakeUnique<T>(parent, this)) });
+		editorComponents.push_back({ false, std::move(std::make_unique<T>(parent, this)) });
 	
 		if (!opened)
 			editorComponents.back().Component->CloseWindow();

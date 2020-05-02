@@ -175,7 +175,7 @@ namespace Comfy::Graphics::Aet
 	{
 		LayerTransferMode TransferMode;
 		LayerVideo2D Transform;
-		RefPtr<LayerVideo3D> Transform3D;
+		std::shared_ptr<LayerVideo3D> Transform3D;
 
 		inline bool GetUseTextureMask() const { return TransferMode.TrackMatte != TrackMatte::NoTrackMatte; }
 		inline void SetUseTextureMask(bool value) { TransferMode.TrackMatte = value ? TrackMatte::Alpha : TrackMatte::NoTrackMatte; }
@@ -277,9 +277,9 @@ namespace Comfy::Graphics::Aet
 		LayerFlags Flags;
 		LayerQuality Quality;
 		ItemType ItemType;
-		std::vector<RefPtr<Marker>> Markers;
-		RefPtr<LayerVideo> LayerVideo;
-		RefPtr<LayerAudio> LayerAudio;
+		std::vector<std::shared_ptr<Marker>> Markers;
+		std::shared_ptr<LayerVideo> LayerVideo;
+		std::shared_ptr<LayerAudio> LayerAudio;
 
 	public:
 		const std::string& GetName() const;
@@ -291,21 +291,21 @@ namespace Comfy::Graphics::Aet
 		bool GetIsAudible() const;
 		void SetIsAudible(bool value);
 
-		const RefPtr<Video>& GetVideoItem();
-		const RefPtr<Audio>& GetAudioItem();
-		const RefPtr<Composition>& GetCompItem();
+		const std::shared_ptr<Video>& GetVideoItem();
+		const std::shared_ptr<Audio>& GetAudioItem();
+		const std::shared_ptr<Composition>& GetCompItem();
 
 		const Video* GetVideoItem() const;
 		const Audio* GetAudioItem() const;
 		const Composition* GetCompItem() const;
 
-		void SetItem(const RefPtr<Video>& value);
-		void SetItem(const RefPtr<Audio>& value);
-		void SetItem(const RefPtr<Composition>& value);
+		void SetItem(const std::shared_ptr<Video>& value);
+		void SetItem(const std::shared_ptr<Audio>& value);
+		void SetItem(const std::shared_ptr<Composition>& value);
 
-		const RefPtr<Layer>& GetRefParentLayer();
+		const std::shared_ptr<Layer>& GetRefParentLayer();
 		const Layer* GetRefParentLayer() const;
-		void SetRefParentLayer(const RefPtr<Layer>& value);
+		void SetRefParentLayer(const std::shared_ptr<Layer>& value);
 
 	public:
 		Scene* GetParentScene();
@@ -320,10 +320,10 @@ namespace Comfy::Graphics::Aet
 
 		struct References
 		{
-			RefPtr<Video> Video; 
-			RefPtr<Audio> Audio;
-			RefPtr<Composition> Composition;
-			RefPtr<Layer> ParentLayer;
+			std::shared_ptr<Video> Video; 
+			std::shared_ptr<Audio> Audio;
+			std::shared_ptr<Composition> Composition;
+			std::shared_ptr<Layer> ParentLayer;
 		} references;
 
 		FileAddr filePosition;
@@ -349,15 +349,15 @@ namespace Comfy::Graphics::Aet
 		Scene* GetParentScene() const;
 		bool IsRootComposition() const;
 
-		inline std::vector<RefPtr<Layer>>& GetLayers() { return layers; }
-		inline const std::vector<RefPtr<Layer>>& GetLayers() const { return layers; }
+		inline std::vector<std::shared_ptr<Layer>>& GetLayers() { return layers; }
+		inline const std::vector<std::shared_ptr<Layer>>& GetLayers() const { return layers; }
 
 	public:
 		inline std::string_view GetName() const { return givenName; }
 		inline void SetName(std::string_view value) { givenName = value; }
 
-		RefPtr<Layer> FindLayer(std::string_view name);
-		RefPtr<const Layer> FindLayer(std::string_view name) const;
+		std::shared_ptr<Layer> FindLayer(std::string_view name);
+		std::shared_ptr<const Layer> FindLayer(std::string_view name) const;
 
 	private:
 		static constexpr std::string_view rootCompositionName = "Root";
@@ -368,7 +368,7 @@ namespace Comfy::Graphics::Aet
 
 		// NOTE: The Name given to any new comp item layer referencing this comp. Assigned on AetSet load to the last layer's item name using it (= not saved if unused)
 		std::string givenName;
-		std::vector<RefPtr<Layer>> layers;
+		std::vector<std::shared_ptr<Layer>> layers;
 	};
 
 	struct Camera
@@ -415,20 +415,20 @@ namespace Comfy::Graphics::Aet
 		u32 BackgroundColor;
 		ivec2 Resolution;
 
-		RefPtr<Camera> Camera;
+		std::shared_ptr<Camera> Camera;
 
-		std::vector<RefPtr<Composition>> Compositions;
-		RefPtr<Composition> RootComposition;
+		std::vector<std::shared_ptr<Composition>> Compositions;
+		std::shared_ptr<Composition> RootComposition;
 
-		std::vector<RefPtr<Video>> Videos;
-		std::vector<RefPtr<Audio>> Audios;
+		std::vector<std::shared_ptr<Video>> Videos;
+		std::vector<std::shared_ptr<Audio>> Audios;
 
 	public:
 		Composition* GetRootComposition();
 		const Composition* GetRootComposition() const;
 
-		RefPtr<Layer> FindLayer(std::string_view name);
-		RefPtr<const Layer> FindLayer(std::string_view name) const;
+		std::shared_ptr<Layer> FindLayer(std::string_view name);
+		std::shared_ptr<const Layer> FindLayer(std::string_view name) const;
 
 		int FindLayerIndex(Composition& comp, std::string_view name) const;
 
@@ -441,7 +441,7 @@ namespace Comfy::Graphics::Aet
 
 	private:
 		void UpdateCompNamesAfterLayerItems();
-		void UpdateCompNamesAfterLayerItems(RefPtr<Composition>& comp);
+		void UpdateCompNamesAfterLayerItems(std::shared_ptr<Composition>& comp);
 		void LinkPostRead();
 		void LinkCompItems(Composition& comp);
 		void FindSetLayerRefParentLayer(Layer& layer);
@@ -457,8 +457,8 @@ namespace Comfy::Graphics::Aet
 		std::string Name;
 
 	public:
-		inline std::vector<RefPtr<Scene>>& GetScenes() { return scenes; }
-		inline const std::vector<RefPtr<Scene>>& GetScenes() const { return scenes; }
+		inline std::vector<std::shared_ptr<Scene>>& GetScenes() { return scenes; }
+		inline const std::vector<std::shared_ptr<Scene>>& GetScenes() const { return scenes; }
 
 		void ClearSpriteCache();
 
@@ -467,6 +467,6 @@ namespace Comfy::Graphics::Aet
 		void Write(IO::StreamWriter& writer) override;
 
 	private:
-		std::vector<RefPtr<Scene>> scenes;
+		std::vector<std::shared_ptr<Scene>> scenes;
 	};
 }

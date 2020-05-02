@@ -11,14 +11,14 @@ namespace Comfy::Editor
 	{
 	public:
 		template <typename TCommand, typename TRef, typename TValue>
-		void AddOrUpdateCommand(Command::AetCommandType commandType, const RefPtr<TRef>& ref, const TValue& value)
+		void AddOrUpdateCommand(Command::AetCommandType commandType, const std::shared_ptr<TRef>& ref, const TValue& value)
 		{
 			AetCommand* lastStackCommand = !undoStack.empty() ? undoStack.back().get() : nullptr;
 			TCommand* lastCommand = (lastStackCommand != nullptr && lastStackCommand->GetType() == commandType) ? static_cast<TCommand*>(lastStackCommand) : nullptr;
 
 			if (lastCommand != nullptr && lastCommand->ref == ref)
 			{
-				const RefPtr<TCommand> newCommand = MakeRef<TCommand>(ref, value);
+				const std::shared_ptr<TCommand> newCommand = std::make_shared<TCommand>(ref, value);
 				if (lastCommand->CanUpdate(newCommand.get()))
 				{
 					lastCommand->Update(value);

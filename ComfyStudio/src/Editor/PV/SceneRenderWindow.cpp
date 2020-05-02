@@ -12,7 +12,7 @@ namespace Comfy::Editor
 	{
 		const Obj& GetDebugBoundingSphereObj(int subMeshIndex)
 		{
-			static std::array<UniquePtr<Obj>, 8> sphereObjs;
+			static std::array<std::unique_ptr<Obj>, 8> sphereObjs;
 			constexpr std::array sphereColors =
 			{
 				vec4(0.00f, 0.00f, 0.75f, 0.50f),

@@ -27,9 +27,6 @@
     <ClInclude Include="src\Core\NonCopyable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Core\SmartPointers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Misc\EndianHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>

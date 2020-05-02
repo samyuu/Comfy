@@ -6,11 +6,11 @@ namespace Comfy::Editor
 {
 	ChartEditor::ChartEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
-		chart = MakeUnique<Chart>();
+		chart = std::make_unique<Chart>();
 
-		timeline = MakeUnique<TargetTimeline>(this);
-		syncWindow = MakeUnique<SyncWindow>();
-		renderWindow = MakeUnique<TargetRenderWindow>();
+		timeline = std::make_unique<TargetTimeline>(this);
+		syncWindow = std::make_unique<SyncWindow>();
+		renderWindow = std::make_unique<TargetRenderWindow>();
 	}
 
 	ChartEditor::~ChartEditor()
@@ -19,9 +19,9 @@ namespace Comfy::Editor
 
 	void ChartEditor::Initialize()
 	{
-		dummySampleProvider = MakeRef<Audio::SilenceSampleProvider>();
+		dummySampleProvider = std::make_shared<Audio::SilenceSampleProvider>();
 
-		songInstance = MakeRef<Audio::AudioInstance>(dummySampleProvider, true, "ChartEditor::SongInstance");
+		songInstance = std::make_shared<Audio::AudioInstance>(dummySampleProvider, true, "ChartEditor::SongInstance");
 		songInstance->SetPlayPastEnd(true);
 		songInstance->SetVolume(0.75f);
 

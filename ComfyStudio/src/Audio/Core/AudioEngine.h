@@ -62,13 +62,13 @@ namespace Comfy::Audio
 		RtAudio::DeviceInfo GetDeviceInfo(u32 device);
 
 		void SetBufferSize(u32 bufferSize);
-		void AddAudioInstance(const RefPtr<AudioInstance>& audioInstance);
-		void PlaySound(const RefPtr<ISampleProvider>& sampleProvider, float volume = MaxVolume, const char* name = nullptr);
+		void AddAudioInstance(const std::shared_ptr<AudioInstance>& audioInstance);
+		void PlaySound(const std::shared_ptr<ISampleProvider>& sampleProvider, float volume = MaxVolume, const char* name = nullptr);
 		void ShowControlPanel();
 		void AddCallbackReceiver(ICallbackReceiver* callbackReceiver);
 		void RemoveCallbackReceiver(ICallbackReceiver* callbackReceiver);
 
-		RefPtr<MemorySampleProvider> LoadAudioFile(std::string_view filePath);
+		std::shared_ptr<MemorySampleProvider> LoadAudioFile(std::string_view filePath);
 
 		inline RtAudio* GetRtAudio() { return rtAudio.get(); }
 		inline u32 GetChannelCount() { return 2; }
@@ -102,7 +102,7 @@ namespace Comfy::Audio
 
 		std::mutex audioInstancesMutex;
 
-		std::vector<RefPtr<AudioInstance>> audioInstances;
+		std::vector<std::shared_ptr<AudioInstance>> audioInstances;
 		std::vector<ICallbackReceiver*> callbackReceivers;
 
 		std::vector<i16> tempOutputBuffer;
@@ -115,7 +115,7 @@ namespace Comfy::Audio
 		double callbackStreamTime, lastCallbackStreamTime;
 
 		AudioApi audioApi = AudioApi::Invalid;
-		UniquePtr<RtAudio> rtAudio = nullptr;
+		std::unique_ptr<RtAudio> rtAudio = nullptr;
 
 		StreamParameters streamOutputParameter;
 		ChannelMixer channelMixer;
@@ -134,7 +134,7 @@ namespace Comfy::Audio
 		StreamParameters* GetStreamOutputParameters();
 		StreamParameters* GetStreamInputParameters();
 
-		static UniquePtr<AudioEngine> engineInstance;
+		static std::unique_ptr<AudioEngine> engineInstance;
 
 		static int InternalStaticAudioCallback(void*, void*, u32, double, RtAudioStreamStatus, void*);
 	};

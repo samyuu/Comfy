@@ -63,7 +63,7 @@ namespace Comfy::IO
 
 		// NOTE: Has to be sufficiently large to store all of OriginalSize
 		void ReadIntoBuffer(void* outFileContent) const;
-		UniquePtr<u8[]> ReadArray() const;
+		std::unique_ptr<u8[]> ReadArray() const;
 
 	private:
 		FArc& parentFArc;
@@ -74,7 +74,7 @@ namespace Comfy::IO
 		friend class FArcEntry;
 
 	public:
-		static UniquePtr<FArc> Open(std::string_view filePath);
+		static std::unique_ptr<FArc> Open(std::string_view filePath);
 
 	public:
 		FArc() = default;
