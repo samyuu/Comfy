@@ -22,8 +22,8 @@ namespace ImGui
 
 	bool FileViewer::DrawGui()
 	{
-		bool parentFocused = IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && IsWindowHovered(ImGuiFocusedFlags_RootAndChildWindows);
-		vec2 windowSize = vec2(GetWindowWidth(), 0.0f);
+		const bool parentFocused = IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && IsWindowHovered(ImGuiFocusedFlags_RootAndChildWindows);
+		const auto windowSize = vec2(GetWindowWidth(), 0.0f);
 
 		PushID(this);
 		PushStyleVar(ImGuiStyleVar_ButtonTextAlign, vec2(0.0f, 0.5f));
@@ -288,10 +288,7 @@ namespace ImGui
 	void FileViewer::OpenContextItemDefaultProgram()
 	{
 		if (contextMenuFilePathInfo != nullptr)
-		{
-			std::string_view filePath = contextMenuFilePathInfo->FullPath;
-			IO::Shell::OpenWithDefaultProgram(IO::Path::NormalizeWin32(filePath));
-		}
+			IO::Shell::OpenWithDefaultProgram(IO::Path::NormalizeWin32(contextMenuFilePathInfo->FullPath));
 	}
 
 	void FileViewer::OpenContextItemProperties()
