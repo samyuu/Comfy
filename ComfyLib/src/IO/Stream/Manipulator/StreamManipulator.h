@@ -7,6 +7,7 @@
 
 namespace Comfy::IO
 {
+	// TODO: Store error state and implement error handling for Read()/Write() implementations
 	class StreamManipulator
 	{
 	public:

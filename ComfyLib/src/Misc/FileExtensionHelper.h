@@ -3,6 +3,7 @@
 
 namespace Comfy::Utilities
 {
+	// TODO: Move to IO::Path
 	class FileExtensionHelper
 	{
 	public:

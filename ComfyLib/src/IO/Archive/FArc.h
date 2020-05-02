@@ -18,7 +18,7 @@ namespace Comfy::IO
 
 		static constexpr std::array<u8, IVSize> DummyIV = { 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC };
 
-		constexpr size_t GetPaddedSize(const size_t dataSize, const u32 alignment = 16)
+		constexpr size_t GetPaddedSize(const size_t dataSize, const size_t alignment = 16)
 		{
 			return (dataSize + (alignment - 1)) & ~(alignment - 1);
 		}
