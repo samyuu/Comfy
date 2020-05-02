@@ -9,7 +9,6 @@ namespace Comfy::IO
 	{
 		static constexpr size_t IVSize = 16;
 		static constexpr size_t KeySize = 16;
-		static constexpr u32 DataAlignment = 16;
 
 		// NOTE: project_diva.bin
 		static constexpr std::array<u8, KeySize>  ClassicKey = { 'p', 'r', 'o', 'j', 'e', 'c', 't', '_', 'd', 'i', 'v', 'a', '.', 'b', 'i', 'n' };
@@ -19,9 +18,9 @@ namespace Comfy::IO
 
 		static constexpr std::array<u8, IVSize> DummyIV = { 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC };
 
-		constexpr size_t GetPaddedSize(const size_t dataSize)
+		constexpr size_t GetPaddedSize(const size_t dataSize, const u32 alignment = 16)
 		{
-			return (dataSize + (DataAlignment - 1)) & ~(DataAlignment - 1);
+			return (dataSize + (alignment - 1)) & ~(alignment - 1);
 		}
 	}
 

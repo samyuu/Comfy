@@ -77,7 +77,7 @@ namespace Comfy::IO
 			stream.Seek(entry.Offset);
 
 			// NOTE: Since the farc file size is only stored in a 32bit integer, decompressing it as a single block should be safe enough (?)
-			const auto paddedSize = FArcEncryption::GetPaddedSize(entry.CompressedSize) + 16;
+			const auto paddedSize = std::min(FArcEncryption::GetPaddedSize(entry.CompressedSize, alignment) + 16, static_cast<size_t>(stream.GetLength()));
 
 			UniquePtr<u8[]> encryptedData = nullptr;
 			UniquePtr<u8[]> compressedData = MakeUnique<u8[]>(paddedSize);
@@ -85,20 +85,20 @@ namespace Comfy::IO
 			if (flags & FArcFlags_Encrypted)
 			{
 				encryptedData = MakeUnique<u8[]>(paddedSize);
-				stream.ReadBuffer(encryptedData.get(), entry.CompressedSize);
+				stream.ReadBuffer(encryptedData.get(), paddedSize);
 
 				DecryptFileContent(encryptedData.get(), compressedData.get(), paddedSize);
 			}
 			else
 			{
-				stream.ReadBuffer(compressedData.get(), entry.CompressedSize);
+				stream.ReadBuffer(compressedData.get(), paddedSize);
 			}
 
 			z_stream zStream;
 			zStream.zalloc = Z_NULL;
 			zStream.zfree = Z_NULL;
 			zStream.opaque = Z_NULL;
-			zStream.avail_in = static_cast<uInt>(entry.CompressedSize);
+			zStream.avail_in = static_cast<uInt>(paddedSize);
 			zStream.next_in = reinterpret_cast<Bytef*>(compressedData.get() + dataOffset);
 			zStream.avail_out = static_cast<uInt>(entry.OriginalSize);
 			zStream.next_out = reinterpret_cast<Bytef*>(outFileContent);
