@@ -22,6 +22,7 @@ namespace Comfy::Debug
 		IBL,
 	};
 
+	// TODO: Return dev_rom/objset farc paths instead
 	std::array<char, MAX_PATH> GetDebugFilePath(PathType type, Editor::StageType stageType, int id, int subID = 0, const char* chara = nullptr, bool* outIsDefault = nullptr)
 	{
 		constexpr std::array fileNameFormatStrings = { "tst%03d", "ns%03d", "d2ns%03d", "pv%03ds%02d" };
@@ -128,7 +129,7 @@ namespace Comfy::Debug
 
 		if (const auto[basePath, internalFile] = IO::FolderFile::ParsePath(objSetPath); !internalFile.empty())
 		{
-			const auto texFarcName = IO::Path::ChangeExtension(setName, IO::Path::GetExtension(basePath));
+			const auto texFarcName = IO::Path::GetFileName(basePath);
 			const auto texFarcPath = IO::Path::Combine(IO::Path::GetDirectoryName(basePath), texFarcName);
 			return IO::FolderFile::CombinePath(texFarcPath, IO::Path::ChangeExtension(texName, ".bin"));
 		}
