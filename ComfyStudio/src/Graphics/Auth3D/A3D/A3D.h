@@ -214,7 +214,8 @@ namespace Comfy::Graphics
 	struct A3DTexturePattern
 	{
 		std::string Name;
-		std::string Pattern;
+		std::string PatternName;
+		A3DCurve* Pattern = nullptr;
 		u32 PatternOffset;
 	};
 
@@ -243,10 +244,13 @@ namespace Comfy::Graphics
 		std::string Pat;
 		u32 PatOffset;
 
-		std::string Morph;
+		std::string MorphName;
+		A3DCurve* Morph = nullptr;
+
 		u32 MorphOffset;
 
 		std::string ParentName;
+		A3DObject* Parent = nullptr;
 
 		std::vector<A3DTexturePattern> TexturePatterns;
 		std::vector<A3DTextureTransform> TextureTransforms;
@@ -329,5 +333,8 @@ namespace Comfy::Graphics
 
 	public:
 		void Parse(const u8* buffer, size_t bufferSize) override;
+		
+		// NOTE: Needs to be called every time any of the vector iterators have been invalidated
+		void UpdateReferencePointers();
 	};
 }

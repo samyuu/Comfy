@@ -483,7 +483,7 @@ namespace Comfy::Graphics
 							else if (CompareProperty("pat_offset"))
 								object.PatOffset = ParseValueString<u32>();
 							else if (CompareProperty("morph"))
-								object.Morph = ParseValueString();
+								object.MorphName = ParseValueString();
 							else if (CompareProperty("morph_offset"))
 								object.MorphOffset = ParseValueString<u32>();
 							else if (CompareProperty("parent_name"))
@@ -497,7 +497,7 @@ namespace Comfy::Graphics
 									if (CompareProperty("name"))
 										texturePat.Name = ParseValueString();
 									else if (CompareProperty("pat"))
-										texturePat.Pattern = ParseValueString();
+										texturePat.PatternName = ParseValueString();
 									else if (CompareProperty("pat_offset"))
 										texturePat.PatternOffset = ParseValueString<u32>();
 								}
@@ -634,5 +634,26 @@ namespace Comfy::Graphics
 
 		A3DParser parser;
 		parser.Parse(*this, startOfTextBuffer, endOfTextBuffer);
+
+		UpdateReferencePointers();
+	}
+
+	void A3D::UpdateReferencePointers()
+	{
+		auto findReferenceByName = [](const auto& refName, auto& collectionToSearch)
+		{
+			return refName.empty() ? nullptr : FindIfOrNull(collectionToSearch, [&](const auto& item) { return MatchesInsensitive(item.Name, refName); });
+		};
+
+		std::for_each(Objects.begin(), Objects.end(), [&](A3DObject& object) 
+		{ 
+			object.Parent = findReferenceByName(object.ParentName, Objects); 
+			object.Morph = findReferenceByName(object.MorphName, Curves);
+
+			std::for_each(object.TexturePatterns.begin(), object.TexturePatterns.end(), [&](A3DTexturePattern& texturePattern) 
+			{ 
+				texturePattern.Pattern = findReferenceByName(texturePattern.PatternName, Curves); 
+			});
+		});
 	}
 }

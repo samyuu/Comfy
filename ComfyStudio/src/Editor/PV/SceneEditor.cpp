@@ -1274,31 +1274,19 @@ namespace Comfy::Editor
 
 		static struct DebugData
 		{
-			static const A3DObject* FindA3DObjectParent(const A3D& a3d, const A3DObject& object)
+			static void ApplyA3DParentTransform(const A3DObject& parentObject, Transform& output, frame_t frame)
 			{
-				if (object.ParentName.empty())
-					return nullptr;
-
-				// TODO: Search object name list instead (?)
-				auto parent = std::find_if(a3d.Objects.begin(), a3d.Objects.end(), [&](auto& o) { return o.Name == object.ParentName; });
-				return (parent == a3d.Objects.end()) ? nullptr : &(*parent);
-			}
-
-			static void ApplyA3DParentTransform(const A3D& a3d, const A3DObject& parentObject, Transform& output, frame_t frame)
-			{
-				auto& a3dObjects = a3d.Objects;
-
 				Transform parentTransform = A3DMgr::GetTransformAt(parentObject.Transform, frame);
 
-				if (auto nestedParent = FindA3DObjectParent(a3d, parentObject); nestedParent != nullptr)
-					ApplyA3DParentTransform(a3d, *nestedParent, parentTransform, frame);
+				if (parentObject.Parent != nullptr)
+					ApplyA3DParentTransform(*parentObject.Parent, parentTransform, frame);
 
 				output.ApplyParent(parentTransform);
 			}
 
 			float MorphWeight = 0.0f, PlaybackSpeed = 0.0f, Elapsed = 0.0f;
 
-			std::vector<A3D> StageEffA3Ds, CamPVA3Ds;
+			std::vector<std::unique_ptr<A3D>> StageEffA3Ds, CamPVA3Ds;
 			int StageEffIndex = -1, CamPVIndex = -1;
 
 			frame_t Frame = 0.0f, Duration = 1.0f, FrameRate = 60.0f;
@@ -1359,13 +1347,13 @@ namespace Comfy::Editor
 		{
 			auto loadA3Ds = [](const char* farcPath)
 			{
-				std::vector<A3D> a3ds;
+				std::vector<std::unique_ptr<A3D>> a3ds;
 				if (auto farc = IO::FArc::Open(farcPath); farc != nullptr)
 				{
 					for (const auto& file : farc->GetEntries())
 					{
 						auto content = file.ReadArray();
-						a3ds.emplace_back().Parse(content.get(), file.OriginalSize);
+						a3ds.emplace_back(std::make_unique<A3D>())->Parse(content.get(), file.OriginalSize);
 					}
 				}
 				return a3ds;
@@ -1390,38 +1378,26 @@ namespace Comfy::Editor
 				{
 					auto& entities = sceneGraph.Entities;
 					auto correspondingEntity = std::find_if(entities.begin(), entities.end(), [&](auto& e) { return MatchesInsensitive(e->Name, object.UIDName); });
-					//auto correspondingEntity = std::find_if(entities.begin(), entities.end(), [&](auto& e) { return e->Name == object.UIDName; });
 
 					if (correspondingEntity == entities.end())
 						continue;
 
-					auto& entity = (*correspondingEntity);
-
+					auto& entity = *(correspondingEntity);
 					entity->Transform = A3DMgr::GetTransformAt(object.Transform, frame);
 					entity->IsVisible = A3DMgr::GetBoolAt(object.Transform.Visibility, frame);
 
-					if (auto parent = DebugData::FindA3DObjectParent(a3d, object); parent != nullptr)
-						DebugData::ApplyA3DParentTransform(a3d, *parent, entity->Transform, frame);
+					if (object.Parent != nullptr)
+						DebugData::ApplyA3DParentTransform(*object.Parent, entity->Transform, frame);
 
 					if (entity->Animation == nullptr)
 						entity->Animation = std::make_unique<ObjAnimationData>();
-
-					auto findCurve = [&](auto& name) -> const A3DCurve*
-					{
-						if (name.empty())
-							return nullptr;
-
-						auto found = std::find_if(a3d.Curves.begin(), a3d.Curves.end(), [&](auto& curve) { return MatchesInsensitive(curve.Name, name); });
-						//auto found = std::find_if(a3d.Curves.begin(), a3d.Curves.end(), [&](auto& curve) { return curve.Name == name; });
-						return (found == a3d.Curves.end()) ? nullptr : &(*found);
-					};
 
 					// TODO: Instead of searching at the entire TexDB for entries only the loaded ObjSets would have to be checked (?)
 					//		 As long as their Texs have been updated using a TexDB before that is
 
 					if (!object.TexturePatterns.empty())
 					{
-						auto& a3dPatterns = object.TexturePatterns;
+						const auto& a3dPatterns = object.TexturePatterns;
 						auto& entityPatterns = entity->Animation->TexturePatterns;
 
 						if (entityPatterns.size() != a3dPatterns.size())
@@ -1429,10 +1405,10 @@ namespace Comfy::Editor
 
 						for (size_t i = 0; i < a3dPatterns.size(); i++)
 						{
-							auto& a3dPattern = a3dPatterns[i];
+							const auto& a3dPattern = a3dPatterns[i];
 							auto& entityPattern = entityPatterns[i];
 
-							if (auto pattern = findCurve(a3dPattern.Pattern); pattern != nullptr)
+							if (a3dPattern.Pattern != nullptr)
 							{
 								if (!entityPattern.CachedIDs.has_value())
 								{
@@ -1455,7 +1431,7 @@ namespace Comfy::Editor
 									}
 								}
 
-								const int index = A3DMgr::GetIntAt(pattern->CV, frame);
+								const int index = A3DMgr::GetIntAt(a3dPattern.Pattern->CV, frame);
 								entityPattern.IDOverride = (InBounds(index, *entityPattern.CachedIDs)) ? entityPattern.CachedIDs->at(index) : TexID::Invalid;
 							}
 						}
@@ -1493,11 +1469,11 @@ namespace Comfy::Editor
 						}
 					}
 
-					if (auto morphCurve = findCurve(object.Morph); morphCurve != nullptr)
+					if (object.Morph != nullptr)
 					{
 						size_t morphEntityIndex = static_cast<size_t>(std::distance(entities.begin(), correspondingEntity)) + 1;
 
-						entity->Animation->MorphWeight = A3DMgr::GetValueAt(morphCurve->CV, frame);
+						entity->Animation->MorphWeight = A3DMgr::GetValueAt(object.Morph->CV, frame);
 						entity->MorphObj = (morphEntityIndex >= entities.size()) ? nullptr : entities[morphEntityIndex]->Obj;
 					}
 				}
@@ -1510,15 +1486,15 @@ namespace Comfy::Editor
 				}
 			};
 
-			auto iterateA3Ds = [](std::vector<A3D>& a3ds, int index, auto func)
+			auto iterateA3Ds = [](std::vector<std::unique_ptr<A3D>>& a3ds, int index, auto func)
 			{
 				if (a3ds.empty())
 					return;
 				else if (index < 0)
 					for (auto& a3d : a3ds)
-						func(a3d);
+						func(*a3d);
 				else if (index < a3ds.size())
-					func(a3ds[index]);
+					func(*a3ds[index]);
 			};
 
 			const float availWidth = Gui::GetContentRegionAvailWidth();
