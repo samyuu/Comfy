@@ -83,18 +83,16 @@ namespace Comfy::Debug
 	}
 
 	template <typename T>
-	bool LoadParseUploadLightParamFile(std::string_view filePath, T& param)
+	bool LoadParseUploadLightParamFile(std::string_view filePath, T& outParam)
 	{
-		if (!IO::File::Exists(filePath))
+		const auto[fileContent, fileSize] = IO::File::ReadAllBytes(filePath);
+		if (fileContent == nullptr)
 			return false;
 
-		std::vector<u8> fileContent;
-		IO::File::ReadAllBytes(filePath, fileContent);
-
-		param.Parse(fileContent.data(), fileContent.size());
+		outParam.Parse(fileContent.get(), fileSize);
 
 		if constexpr (std::is_same<T, Graphics::IBLParameters>::value)
-			param.UploadAll();
+			outParam.UploadAll();
 
 		return true;
 	}

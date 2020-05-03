@@ -37,6 +37,10 @@ namespace Comfy::IO
 
 		bool isLoaded = false;
 		bool fileFound = false;
+
+		// TODO:
+		// std::unique_ptr<u8[]> fileContent = nullptr;
+		// size_t fileSize = {};
 		std::vector<u8> fileContent;
 
 		// TODO: Implement using std::async / std::future

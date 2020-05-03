@@ -19,6 +19,7 @@ namespace Comfy::IO
 		COMFY_NODISCARD MemoryStream OpenReadMemory(std::string_view filePath);
 		COMFY_NODISCARD FileStream CreateWrite(std::string_view filePath);
 
+		// NOTE: Prefer unique_ptr overload to avoid having to zero clear the vector when resizing
 		COMFY_NODISCARD std::pair<std::unique_ptr<u8[]>, size_t> ReadAllBytes(std::string_view filePath);
 		bool ReadAllBytes(std::string_view filePath, std::vector<u8>& outFileContent);
 
@@ -42,6 +43,23 @@ namespace Comfy::IO
 
 			auto reader = StreamReader(stream);
 			result->Read(reader);
+			return result;
+		}
+
+		template <typename Parsable>
+		COMFY_NODISCARD std::unique_ptr<Parsable> LoadParse(std::string_view filePath)
+		{
+			static_assert(std::is_base_of_v<IBufferParsable, Parsable>);
+
+			const auto[fileContent, fileSize] = ReadAllBytes(filePath);
+			if (fileContent == nullptr)
+				return nullptr;
+
+			auto result = std::make_unique<Parsable>();
+			if (result == nullptr)
+				return nullptr;
+
+			result->Parse(fileContent.get(), fileSize);
 			return result;
 		}
 
