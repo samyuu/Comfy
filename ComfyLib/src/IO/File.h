@@ -118,6 +118,8 @@ namespace Comfy::IO
 
 		COMFY_NODISCARD MemoryStream OpenReadInternalFileMemory(std::string_view basePath, std::string_view internalFile);
 		
+		COMFY_NODISCARD std::pair<std::unique_ptr<u8[]>, size_t> ReadAllBytesInternalFileMemory(std::string_view basePath, std::string_view internalFile);
+		
 		COMFY_NODISCARD bool ReadAllBytesInternalFileMemory(std::string_view basePath, std::string_view internalFile, std::vector<u8>& outFileContent);
 
 		COMFY_NODISCARD std::vector<FileEntry> GetFileEntries(std::string_view basePath);

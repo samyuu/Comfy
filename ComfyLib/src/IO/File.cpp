@@ -46,6 +46,9 @@ namespace Comfy::IO
 
 		std::pair<std::unique_ptr<u8[]>, size_t> ReadAllBytes(std::string_view filePath)
 		{
+			if (const auto[basePath, internalFile] = FolderFile::ParsePath(filePath); !internalFile.empty())
+				return FolderFile::ReadAllBytesInternalFileMemory(basePath, internalFile);
+
 			std::pair<std::unique_ptr<u8[]>, size_t> result = {};
 			auto&[fileContent, fileSize] = result;
 
@@ -134,6 +137,28 @@ namespace Comfy::IO
 				{
 					if (const auto file = farc->FindFile(internalFile); file != nullptr)
 						result.FromBuffer(file->OriginalSize, [&](void* outContent, size_t size) { file->ReadIntoBuffer(outContent); });
+				}
+			}
+			return result;
+		}
+
+		std::pair<std::unique_ptr<u8[]>, size_t> ReadAllBytesInternalFileMemory(std::string_view basePath, std::string_view internalFile)
+		{
+			std::pair<std::unique_ptr<u8[]>, size_t> result = {};
+			auto&[fileContent, fileSize] = result;
+
+			if (Path::GetExtension(basePath) == ".farc")
+			{
+				if (auto farc = FArc::Open(basePath); farc)
+				{
+					if (const auto file = farc->FindFile(internalFile); file != nullptr)
+					{
+						fileContent = std::make_unique<u8[]>(file->OriginalSize);
+						fileSize = file->OriginalSize;
+						
+						file->ReadIntoBuffer(fileContent.get());
+						return result;
+					}
 				}
 			}
 			return result;
