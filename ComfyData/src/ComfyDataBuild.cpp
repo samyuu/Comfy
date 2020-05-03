@@ -1,4 +1,5 @@
 #include "IO/File.h"
+#include "IO/Directory.h"
 #include "IO/Archive/ComfyArchive.h"
 #include "IO/Stream/FileStream.h"
 #include "IO/Stream/Manipulator/StreamWriter.h"
@@ -359,7 +360,7 @@ int wmain(int argc, const wchar_t* argv[])
 	const auto inputDirectoryPath = UTF8::Narrow(argv[1]);
 	const auto outputArchivePath = UTF8::Narrow(argv[2]);
 
-	if (!Directory::Exists(inputDirectoryPath))
+	if (!IO::Directory::Exists(inputDirectoryPath))
 	{
 		Logger::LogErrorLine("Invalid directory input path");
 		return EXIT_FAILURE;
