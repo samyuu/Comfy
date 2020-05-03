@@ -55,7 +55,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)Dependencies\glm\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\dr_libs\include;$(SolutionDir)Dependencies\rtaudio\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -86,7 +86,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)Dependencies\glm\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\dr_libs\include;$(SolutionDir)Dependencies\rtaudio\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -115,11 +115,40 @@
     <ProjectReference Include="..\ComfyLib\ComfyLib.vcxproj">
       <Project>{48bdf554-973b-4b4c-8da6-bbab03216cba}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Dependencies\rtaudio\rtaudio.vcxproj">
+      <Project>{2ef29eea-28dc-4fdd-84cf-317f07a3b8eb}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Audio\Core\AudioEngine.h" />
+    <ClInclude Include="src\Audio\Core\AudioInstance.h" />
+    <ClInclude Include="src\Audio\Core\Detail\ChannelMixer.h" />
+    <ClInclude Include="src\Audio\Core\Detail\Resampler.h" />
+    <ClInclude Include="src\Audio\Core\Detail\SampleMixer.h" />
+    <ClInclude Include="src\Audio\Core\ICallbackReceiver.h" />
+    <ClInclude Include="src\Audio\Decoder\AudioDecoderFactory.h" />
+    <ClInclude Include="src\Audio\Decoder\Detail\Decoders.h" />
+    <ClInclude Include="src\Audio\Decoder\IAudioDecoder.h" />
+    <ClInclude Include="src\Audio\SampleProvider\ISampleProvider.h" />
+    <ClInclude Include="src\Audio\SampleProvider\MemorySampleProvider.h" />
+    <ClInclude Include="src\Audio\SampleProvider\SilenceSampleProvider.h" />
+    <ClInclude Include="src\Audio\Waveform.h" />
     <ClInclude Include="src\ComfyEngineTest.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Audio\Core\AudioEngine.cpp" />
+    <ClCompile Include="src\Audio\Core\AudioInstance.cpp" />
+    <ClCompile Include="src\Audio\Core\Detail\ChannelMixer.cpp" />
+    <ClCompile Include="src\Audio\Core\Detail\Resampler.cpp" />
+    <ClCompile Include="src\Audio\Decoder\AudioDecoderFactory.cpp" />
+    <ClCompile Include="src\Audio\Decoder\Detail\FlacDecoder.cpp" />
+    <ClCompile Include="src\Audio\Decoder\Detail\HevagDecoder.cpp" />
+    <ClCompile Include="src\Audio\Decoder\Detail\Mp3Decoder.cpp" />
+    <ClCompile Include="src\Audio\Decoder\Detail\VorbisDecoder.cpp" />
+    <ClCompile Include="src\Audio\Decoder\Detail\WavDecoder.cpp" />
+    <ClCompile Include="src\Audio\SampleProvider\MemorySampleProvider.cpp" />
+    <ClCompile Include="src\Audio\SampleProvider\SilenceSampleProvider.cpp" />
+    <ClCompile Include="src\Audio\Waveform.cpp" />
     <ClCompile Include="src\ComfyEngineTest.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

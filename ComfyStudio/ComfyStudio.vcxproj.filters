@@ -33,9 +33,6 @@
     <ClCompile Include="src\DataTest\InputTestWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Audio\Waveform.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -73,42 +70,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ImGui\Core\imgui.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Audio\Core\AudioEngine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Audio\Core\AudioInstance.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Audio\SampleProvider\MemorySampleProvider.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Audio\Decoder\AudioDecoderFactory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Audio\Decoder\Detail\FlacDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Audio\Decoder\Detail\HevagDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Audio\Decoder\Detail\Mp3Decoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Audio\Decoder\Detail\VorbisDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Audio\Decoder\Detail\WavDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Audio\SampleProvider\SilenceSampleProvider.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Audio\Core\Detail\ChannelMixer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Audio\Core\Detail\Resampler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\System\CommandLine\CommandLine.cpp">
@@ -431,9 +392,6 @@
     <ClInclude Include="src\DataTest\InputTestWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Audio\Waveform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\ImGui\Widgets\FileViewer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -486,42 +444,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\Extensions\InternalExtensions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Audio\Core\AudioEngine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Audio\Core\ICallbackReceiver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Audio\Core\AudioInstance.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Audio\SampleProvider\ISampleProvider.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Audio\SampleProvider\MemorySampleProvider.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Audio\Decoder\AudioDecoderFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Audio\Decoder\IAudioDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Audio\Decoder\Detail\Decoders.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Audio\SampleProvider\SilenceSampleProvider.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Audio\Core\Detail\ChannelMixer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Audio\Core\Detail\Resampler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Audio\Core\Detail\SampleMixer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\System\Version\BuildConfiguration.h">

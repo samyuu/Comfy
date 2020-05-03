@@ -1,5 +1,4 @@
 #include "Waveform.h"
-#include "System/Version/BuildConfiguration.h"
 
 namespace Comfy::Audio
 {

@@ -2,8 +2,8 @@
 #include "AudioInstance.h"
 #include "Audio/Decoder/AudioDecoderFactory.h"
 #include "Core/Logger.h"
-#include <functional>
 #include <RtAudio.h>
+#include <functional>
 #include <assert.h>
 
 namespace Comfy::Audio
@@ -328,7 +328,7 @@ namespace Comfy::Audio
 		return AudioDecoderFactory::GetInstance()->DecodeFile(filePath);
 	}
 
-	u32 AudioEngine::GetDeviceId()
+	u32 AudioEngine::GetDeviceID()
 	{
 		// TODO: store user preference
 		return GetRtAudio()->getDefaultOutputDevice();
@@ -336,7 +336,7 @@ namespace Comfy::Audio
 
 	StreamParameters* AudioEngine::GetStreamOutputParameters()
 	{
-		streamOutputParameter.deviceId = GetDeviceId();
+		streamOutputParameter.deviceId = GetDeviceID();
 		streamOutputParameter.nChannels = GetChannelCount();
 		streamOutputParameter.firstChannel = 0;
 

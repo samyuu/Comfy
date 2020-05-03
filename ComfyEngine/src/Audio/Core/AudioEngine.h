@@ -9,8 +9,6 @@
 #include <algorithm>
 #include <mutex>
 
-namespace Comfy::DataTest { class AudioTestWindow; }
-
 namespace Comfy::Audio
 {
 	enum class AudioApi : i32
@@ -140,7 +138,7 @@ namespace Comfy::Audio
 
 		AudioCallbackResult InternalAudioCallback(i16* outputBuffer, u32 bufferFrameCount, double streamTime);
 
-		u32 GetDeviceId();
+		u32 GetDeviceID();
 		StreamParameters* GetStreamOutputParameters();
 		StreamParameters* GetStreamInputParameters();
 
