@@ -160,9 +160,8 @@ namespace Comfy::Editor
 			for (auto& tex : objSet->TexSet->Textures)
 			{
 				// TODO: Linear search yikesydoodles
-				auto texEntry = std::find_if(sceneGraph.TexDB->Entries.begin(), sceneGraph.TexDB->Entries.end(), [&](auto& e) { return e.ID == tex->ID; });
-				if (texEntry != sceneGraph.TexDB->Entries.end())
-					tex->Name.emplace(texEntry->Name);
+				if (const auto matchingEntry = FindIfOrNull(sceneGraph.TexDB->Entries, [&](const auto& e) { return e.ID == tex->ID; }); matchingEntry != nullptr)
+					tex->Name.emplace(matchingEntry->Name);
 			}
 		}
 
@@ -1603,24 +1602,24 @@ namespace Comfy::Editor
 				{
 					for (const auto& material : entity->Obj->Materials)
 					{
-						auto diffuseTexture = std::find_if(material.Textures.begin(), material.Textures.end(), [](auto& texture) { return texture.TextureFlags.Type == MaterialTextureType::ColorMap; });
-						if (diffuseTexture != material.Textures.end())
-						{
-							if (auto tex = renderer3D->GetTexFromTextureID(&diffuseTexture->TextureID); tex != nullptr && tex->Name.has_value())
-							{
-								if (auto& name = tex->Name.value();
-									EndsWithInsensitive(name, "_RENDER") ||
-									EndsWithInsensitive(name, "_MOVIE") ||
-									EndsWithInsensitive(name, "_TV") ||
-									EndsWithInsensitive(name, "_FB01") ||
-									EndsWithInsensitive(name, "_FB02") ||
-									EndsWithInsensitive(name, "_FB03"))
-								{
-									if (entity->Animation == nullptr)
-										entity->Animation = std::make_unique<ObjAnimationData>();
+						const auto diffuseTexture = FindIfOrNull(material.Textures, [&](const auto& t) { return t.TextureFlags.Type == MaterialTextureType::ColorMap; });
+						if (diffuseTexture == nullptr)
+							continue;
 
-									entity->Animation->ScreenRenderTextureID = diffuseTexture->TextureID;
-								}
+						if (const auto* tex = renderer3D->GetTexFromTextureID(&diffuseTexture->TextureID); tex != nullptr && tex->Name.has_value())
+						{
+							if (const auto& name = tex->Name.value();
+								EndsWithInsensitive(name, "_RENDER") ||
+								EndsWithInsensitive(name, "_MOVIE") ||
+								EndsWithInsensitive(name, "_TV") ||
+								EndsWithInsensitive(name, "_FB01") ||
+								EndsWithInsensitive(name, "_FB02") ||
+								EndsWithInsensitive(name, "_FB03"))
+							{
+								if (entity->Animation == nullptr)
+									entity->Animation = std::make_unique<ObjAnimationData>();
+
+								entity->Animation->ScreenRenderTextureID = diffuseTexture->TextureID;
 							}
 						}
 					}

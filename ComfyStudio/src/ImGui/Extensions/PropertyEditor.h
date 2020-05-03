@@ -473,7 +473,7 @@ namespace ImGui
 				static_assert(sizeof(EnumType) <= sizeof(int));
 
 				int tempIndex = static_cast<int>(inOutEnum);
-				if (Combo(label, tempIndex, 0, static_cast<int>(ArraySize), flags, [&](int index) { return InBounds(index, nameLookup) ? nameLookup[index] : nullptr; }))
+				if (Combo(label, tempIndex, 0, static_cast<int>(ArraySize), flags, [&](int index) { return Comfy::InBounds(index, nameLookup) ? nameLookup[index] : nullptr; }))
 				{
 					inOutEnum = static_cast<EnumType>(tempIndex);
 					return true;
