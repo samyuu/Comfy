@@ -146,10 +146,10 @@ namespace Comfy::DataTest
 		if (Gui::CollapsingHeader("Audio Mixing"))
 		{
 			if (static_cast<int>(selectedMixingBehavior) < 0)
-				selectedMixingBehavior = engine->channelMixer.GetMixingBehavior();
+				selectedMixingBehavior = engine->GetChannelMixer().GetMixingBehavior();
 
 			if (Gui::Combo("Mixing Behavior##Combo", reinterpret_cast<int*>(&selectedMixingBehavior), mixingBehaviorNames.data(), static_cast<int>(mixingBehaviorNames.size())))
-				engine->channelMixer.SetMixingBehavior(selectedMixingBehavior);
+				engine->GetChannelMixer().SetMixingBehavior(selectedMixingBehavior);
 		}
 		Gui::Separator();
 
@@ -173,8 +173,7 @@ namespace Comfy::DataTest
 		{
 			Gui::BeginChild("##AudioInstanceChilds", vec2(0.0f, audioInstancesChildHeight), true);
 			{
-				engine->audioInstancesMutex.lock();
-				for (auto &instance : engine->audioInstances)
+				engine->DebugIterateAudioInstances([&](const auto& instance)
 				{
 					if (instance == nullptr)
 					{
@@ -193,8 +192,7 @@ namespace Comfy::DataTest
 							static_cast<int>(instance->GetVolume() * 100.0f),
 							instance->GetIsPlaying() ? "Play" : "Pause");
 					}
-				}
-				engine->audioInstancesMutex.unlock();
+				});
 			}
 			Gui::EndChild();
 		}
@@ -363,7 +361,7 @@ namespace Comfy::DataTest
 
 				size_t totalContainedFlags = 0;
 
-				for (const auto& [format, name] : audioFormatDescriptions)
+				for (const auto&[format, name] : audioFormatDescriptions)
 				{
 					if ((nativeFormats & format) != 0)
 						totalContainedFlags++;

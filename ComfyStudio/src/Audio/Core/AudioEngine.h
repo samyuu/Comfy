@@ -27,8 +27,6 @@ namespace Comfy::Audio
 
 	class AudioEngine : NonCopyable
 	{
-		friend DataTest::AudioTestWindow;
-
 	private:
 		enum class AudioCallbackResult
 		{
@@ -85,6 +83,18 @@ namespace Comfy::Audio
 
 		inline bool GetIsStreamOpen() { return isStreamOpen; }
 		inline bool GetIsStreamRunning() { return isStreamRunning; }
+
+		inline ChannelMixer& GetChannelMixer() { return channelMixer; }
+
+		// NOTE: Only use for displaying debug info such as in the AudioTestWindow
+		template <typename Func>
+		void DebugIterateAudioInstances(Func func)
+		{
+			audioInstancesMutex.lock();
+			for (const auto& instance : audioInstances)
+				func(instance);
+			audioInstancesMutex.unlock();
+		}
 
 		float GetMasterVolume();
 		void SetMasterVolume(float value);
