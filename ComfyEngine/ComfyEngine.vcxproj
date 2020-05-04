@@ -120,6 +120,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Audio\Audio.h" />
     <ClInclude Include="src\Audio\Core\AudioEngine.h" />
     <ClInclude Include="src\Audio\Core\AudioInstance.h" />
     <ClInclude Include="src\Audio\Core\Detail\ChannelMixer.h" />
@@ -132,7 +133,7 @@
     <ClInclude Include="src\Audio\SampleProvider\ISampleProvider.h" />
     <ClInclude Include="src\Audio\SampleProvider\MemorySampleProvider.h" />
     <ClInclude Include="src\Audio\SampleProvider\SilenceSampleProvider.h" />
-    <ClInclude Include="src\Audio\Waveform.h" />
+    <ClInclude Include="src\Audio\Misc\Waveform.h" />
     <ClInclude Include="src\ComfyEngineTest.h" />
   </ItemGroup>
   <ItemGroup>
@@ -148,7 +149,7 @@
     <ClCompile Include="src\Audio\Decoder\Detail\WavDecoder.cpp" />
     <ClCompile Include="src\Audio\SampleProvider\MemorySampleProvider.cpp" />
     <ClCompile Include="src\Audio\SampleProvider\SilenceSampleProvider.cpp" />
-    <ClCompile Include="src\Audio\Waveform.cpp" />
+    <ClCompile Include="src\Audio\Misc\Waveform.cpp" />
     <ClCompile Include="src\ComfyEngineTest.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

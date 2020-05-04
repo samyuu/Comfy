@@ -54,7 +54,10 @@
     <ClInclude Include="src\Audio\SampleProvider\SilenceSampleProvider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Audio\Waveform.h">
+    <ClInclude Include="src\Audio\Audio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Audio\Misc\Waveform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -98,7 +101,7 @@
     <ClCompile Include="src\Audio\SampleProvider\SilenceSampleProvider.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Audio\Waveform.cpp">
+    <ClCompile Include="src\Audio\Misc\Waveform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -5,145 +5,164 @@
 #include "Detail/SampleMixer.h"
 #include "Audio/SampleProvider/ISampleProvider.h"
 #include "Audio/SampleProvider/MemorySampleProvider.h"
-#include <RtAudio.h>
+#include "Time/TimeSpan.h"
 #include <algorithm>
 #include <mutex>
 
 namespace Comfy::Audio
 {
-	enum class AudioApi : i32
+#if 0
+	inline void TestUsage()
 	{
-		Invalid = -1,
-		ASIO = 0,
-		WASAPI = 1,
-		Count,
+		auto& audioEngine = AudioEngine::GetInstance();
+		SourceHandle source = audioEngine.LoadAudioSource("Test.wav");
+		// audioEngine.UnloadSource(source);
+		audioEngine.AddVoice(source, "test", true, 1.0f, false);
+	}
+#endif
+
+	// NOTE: Sample: Raw PCM
+	// NOTE: Frame: Pair of samples for each channel
+	// NOTE: Source: ISampleProvider
+	// NOTE: Voice: Instance of a source
+
+	// NOTE: Opaque types for referncing data stored in the AudioEngine, internally interpreted as in index
+	using HandleBaseType = u16;
+	enum class VoiceHandle : HandleBaseType { Invalid = 0xFFFF };
+	enum class SourceHandle : HandleBaseType { Invalid = 0xFFFF };
+
+	// NOTE: Lightweight and safe wrapper around a VoiceHandle providing a convenient OOP interface
+	struct Voice
+	{
+		Voice() : Handle(VoiceHandle::Invalid) {}
+		Voice(VoiceHandle handle) : Handle(handle) {}
+
+		VoiceHandle Handle;
+
+	public:
+		f32 GetVoiceVolume(VoiceHandle handle);
+		void SetVoiceVolume(VoiceHandle handle, f32 value);
+
+		TimeSpan GetVoicePosition(VoiceHandle handle);
+		void SetVoicePosition(VoiceHandle handle, TimeSpan value);
+
+		SourceHandle GetSource(VoiceHandle handle);
+		void SetSource(VoiceHandle handle, SourceHandle value);
+
+		TimeSpan GetVoiceDuration(VoiceHandle handle);
+
+		bool GetVoiceIsPlaying(VoiceHandle handle);
+		void SetVoiceIsPlaying(VoiceHandle handle, bool value);
+
+		bool GetVoiceIsLooping(VoiceHandle handle);
+		void SetVoiceIsLooping(VoiceHandle handle, bool value);
+
+		bool GetVoicePlayPastEnd(VoiceHandle handle);
+		void SetVoicePlayPastEnd(VoiceHandle handle, bool value);
+
+		bool GetVoiceRemoveOnEnd(VoiceHandle handle);
+		void SetVoiceRemoveOnEnd(VoiceHandle handle, bool value);
+
+		std::string_view GetVoiceName(VoiceHandle voice);
 	};
-
-	using StreamParameters = RtAudio::StreamParameters;
-
-	class AudioInstance;
 
 	class AudioEngine : NonCopyable
 	{
-	private:
-		enum class AudioCallbackResult
+		friend Voice;
+
+	public:
+		static constexpr f32 MinVolume = 0.0f, MaxVolume = 1.0f;
+		static constexpr size_t MaxSimultaneousVoices = 64;
+
+		static constexpr u32 OutputChannelCount = 2;
+		static constexpr u32 OutputSampleRate = 44100;
+
+		static constexpr u32 DefaultSampleBufferSize = 64;
+		static constexpr u32 MaxSampleBufferSize = 0x2000;
+
+		enum class AudioAPI : u32
 		{
-			Continue = 0, Stop = 1,
+			Invalid,
+			ASIO,
+			WASAPI,
+			Default = WASAPI,
 		};
 
 	public:
-		static constexpr float MinVolume = 0.0f;
-		static constexpr float MaxVolume = 1.0f;
-
-		static constexpr u32 DEFAULT_BUFFER_SIZE = 64;
-		static constexpr u32 MAX_BUFFER_SIZE = 0x2000;
-
-	public:
+		AudioEngine();
 		~AudioEngine();
 
-		// ----------------------
-		void Initialize();
-		void Dispose();
+	public:
+		static void CreateInstance();
+		static void DeleteInstance();
+		static AudioEngine& GetInstance();
 
-		void SetAudioApi(AudioApi value);
+	public:
 		void OpenStream();
 		void CloseStream();
 
 		void StartStream();
 		void StopStream();
-		// ----------------------
 
-		// ----------------------
-		size_t GetDeviceCount();
-		RtAudio::DeviceInfo GetDeviceInfo(u32 device);
+	public:
+		COMFY_NODISCARD SourceHandle LoadAudioSource(std::string_view filePath);
+		COMFY_NODISCARD SourceHandle LoadAudioSource(std::unique_ptr<ISampleProvider> sampleProvider);
+		void UnloadSource(SourceHandle source);
 
-		void SetBufferSize(u32 bufferSize);
-		void AddAudioInstance(const std::shared_ptr<AudioInstance>& audioInstance);
-		void PlaySound(const std::shared_ptr<ISampleProvider>& sampleProvider, float volume = MaxVolume, const char* name = nullptr);
-		void ShowControlPanel();
-		void AddCallbackReceiver(ICallbackReceiver* callbackReceiver);
-		void RemoveCallbackReceiver(ICallbackReceiver* callbackReceiver);
+		VoiceHandle AddVoice(SourceHandle source, std::string_view name, bool playing, f32 volume = MaxVolume, bool playPastEnd = false);
+		void RemoveVoice(VoiceHandle voice);
 
-		std::shared_ptr<MemorySampleProvider> LoadAudioFile(std::string_view filePath);
+	public:
+		void RegisterCallbackReceiver(ICallbackReceiver* callbackReceiver);
+		void UnregisterCallbackReceiver(ICallbackReceiver* callbackReceiver);
 
-		inline RtAudio* GetRtAudio() { return rtAudio.get(); }
-		inline u32 GetChannelCount() { return 2; }
-		inline u32 GetSampleRate() { return 44100; }
-		inline u32 GetBufferSize() { return bufferSize; }
-		inline RtAudioFormat GetStreamFormat() { return RTAUDIO_SINT16; }
+	public:
+		AudioAPI GetAudioAPI() const;
+		void SetAudioAPI(AudioAPI value);
 
-		double GetStreamTime();
-		void SetStreamTime(double value);
-		double GetCallbackLatency();
+		bool GetIsStreamOpen() const;
+		bool GetIsStreamRunning() const;
 
-		inline AudioApi GetDefaultAudioApi() { return AudioApi::WASAPI; }
-		inline AudioApi GetActiveAudioApi() { return audioApi; }
+		f32 GetMasterVolume() const;
+		void SetMasterVolume(f32 value);
 
-		inline bool GetIsStreamOpen() { return isStreamOpen; }
-		inline bool GetIsStreamRunning() { return isStreamRunning; }
+		u32 GetChannelCount() const;
+		u32 GetSampleRate() const;
 
-		inline ChannelMixer& GetChannelMixer() { return channelMixer; }
+		u32 GetBufferFrameSize() const;
+		void SetBufferFrameSize(u32 bufferFrameSize);
 
+		TimeSpan GetStreamTime() const;
+		void SetStreamTime(TimeSpan value);
+
+		bool GetIsExclusiveMode() const;
+		TimeSpan GetCallbackLatency() const;
+
+		ChannelMixer& GetChannelMixer();
+
+	public:
+		// size_t GetDeviceCount() const;
+		// RtAudio::DeviceInfo GetDeviceInfo(u32 device);
+
+		void DebugShowControlPanel() const;
+
+		/*
 		// NOTE: Only use for displaying debug info such as in the AudioTestWindow
 		template <typename Func>
 		void DebugIterateAudioInstances(Func func)
 		{
-			audioInstancesMutex.lock();
-			for (const auto& instance : audioInstances)
+			const auto lock = std::scoped_lock(GetAudioInstancesMutex());
+			for (const auto& instance : GetAudioInstances())
 				func(instance);
-			audioInstancesMutex.unlock();
 		}
-
-		float GetMasterVolume();
-		void SetMasterVolume(float value);
-		bool GetIsExclusiveMode();
-
-		static void CreateInstance();
-		static void InitializeInstance();
-		static void DisposeInstance();
-		static void DeleteInstance();
-		static inline AudioEngine* GetInstance() { return engineInstance.get(); }
-		// ----------------------
+		*/
 
 	private:
-		AudioEngine();
+		struct Impl;
+		std::unique_ptr<Impl> impl;
 
-		std::mutex audioInstancesMutex;
-
-		std::vector<std::shared_ptr<AudioInstance>> audioInstances;
-		std::vector<ICallbackReceiver*> callbackReceivers;
-
-		std::vector<i16> tempOutputBuffer;
-		u32 bufferSize = DEFAULT_BUFFER_SIZE;
-
-		bool isStreamOpen = false, isStreamRunning = false;
-		float masterVolume = AudioEngine::MaxVolume;
-
-		double callbackLatency;
-		double callbackStreamTime, lastCallbackStreamTime;
-
-		AudioApi audioApi = AudioApi::Invalid;
-		std::unique_ptr<RtAudio> rtAudio = nullptr;
-
-		StreamParameters streamOutputParameter;
-		ChannelMixer channelMixer;
-
-		static RtAudio::Api GetRtAudioApi(AudioApi audioApi);
-
-		static constexpr std::array<RtAudio::Api, static_cast<size_t>(AudioApi::Count)> audioApis =
-		{
-			RtAudio::WINDOWS_ASIO,		// AudioApi::ASIO
-			RtAudio::WINDOWS_WASAPI,	// AudioApi::WASAPI
-		};
-
-		AudioCallbackResult InternalAudioCallback(i16* outputBuffer, u32 bufferFrameCount, double streamTime);
-
-		u32 GetDeviceID();
-		StreamParameters* GetStreamOutputParameters();
-		StreamParameters* GetStreamInputParameters();
-
-		static std::unique_ptr<AudioEngine> engineInstance;
-
-		static int InternalStaticAudioCallback(void*, void*, u32, double, RtAudioStreamStatus, void*);
+	private:
+		// std::mutex& GetAudioInstancesMutex();
+		// std::vector<std::shared_ptr<AudioInstance>>& GetAudioInstances();
 	};
 }

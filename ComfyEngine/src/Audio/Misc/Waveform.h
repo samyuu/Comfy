@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "SampleProvider/MemorySampleProvider.h"
+#include "Audio/SampleProvider/MemorySampleProvider.h"
 #include "Time/TimeSpan.h"
 
 namespace Comfy::Audio

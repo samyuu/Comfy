@@ -16,11 +16,11 @@ namespace Comfy::Audio
 
 	u32 SilenceSampleProvider::GetChannelCount() const
 	{
-		return AudioEngine::GetInstance()->GetChannelCount();
+		return AudioEngine::GetInstance().GetChannelCount();
 	}
 
 	u32 SilenceSampleProvider::GetSampleRate() const
 	{
-		return AudioEngine::GetInstance()->GetSampleRate();
+		return AudioEngine::GetInstance().GetSampleRate();
 	}
 }
