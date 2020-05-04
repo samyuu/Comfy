@@ -15,6 +15,12 @@ namespace Comfy
 			return (index < array.size());
 	}
 
+	template <typename IndexType, typename ArrayType>
+	COMFY_NODISCARD constexpr __forceinline auto IndexOrNull(const IndexType& index, ArrayType& array) -> auto*
+	{
+		return InBounds(index, array) ? &array[index] : nullptr;
+	}
+
 	template <typename CollectionType, typename Func>
 	COMFY_NODISCARD auto FindIfOrNull(CollectionType& collection, Func predicate) -> typename CollectionType::value_type*
 	{
