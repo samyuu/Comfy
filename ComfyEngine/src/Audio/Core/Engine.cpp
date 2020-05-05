@@ -194,10 +194,16 @@ namespace Comfy::Audio
 					framesRead = sampleProvider->ReadSamples(TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount, OutputChannelCount);
 				voiceData.FramePosition += framesRead;
 
-				const float adjustedVoiceVolume = (voiceData.Volume * MasterVolume);
 				for (i64 i = 0; i < (framesRead * OutputChannelCount); i++)
-					outputBuffer[i] = SampleMixer::MixSamples(outputBuffer[i], static_cast<i16>(TempOutputBuffer[i] * adjustedVoiceVolume));
+					outputBuffer[i] = SampleMixer::MixSamples(outputBuffer[i], static_cast<i16>(TempOutputBuffer[i] * voiceData.Volume));
 			}
+		}
+
+		void AudioCallbackAdjustBufferMasterVolume(i16* outputBuffer, size_t sampleCount)
+		{
+			const auto bufferSampleCount = (CurrentBufferFrameSize * OutputChannelCount);
+			for (auto i = 0; i < sampleCount; i++)
+				outputBuffer[i] = static_cast<i16>(outputBuffer[i] * MasterVolume);
 		}
 
 		AudioCallbackResult AudioCallback(i16* outputBuffer, u32 bufferFrameCount, double streamTime)
@@ -214,6 +220,7 @@ namespace Comfy::Audio
 			AudioCallbackNotifyCallbackReceivers();
 			AudioCallbackClearOutPreviousCallBuffer(outputBuffer, bufferSampleCount);
 			AudioCallbackProcessVoices(outputBuffer, bufferFrameCount, bufferSampleCount);
+			AudioCallbackAdjustBufferMasterVolume(outputBuffer, bufferSampleCount);
 
 			if (CallbackDurationRingIndex++ >= (CallbackDurationsRingBuffer.size() - 1))
 				CallbackDurationRingIndex = 0;
@@ -605,8 +612,7 @@ namespace Comfy::Audio
 	void Engine::DebugGetCallbackDurations(TimeSpan* outputDurations)
 	{
 		assert(outputDurations != nullptr);
-		for (size_t i = 0; i < impl->CallbackDurationsRingBuffer.size(); i++)
-			outputDurations[i] = impl->CallbackDurationsRingBuffer[i];
+		std::copy(impl->CallbackDurationsRingBuffer.begin(), impl->CallbackDurationsRingBuffer.end(), outputDurations);
 	}
 
 	bool Voice::IsValid() const
