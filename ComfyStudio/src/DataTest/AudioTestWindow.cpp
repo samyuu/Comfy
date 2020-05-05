@@ -63,7 +63,7 @@ namespace Comfy::DataTest
 
 		if (Gui::CollapsingHeader("Stream Control"))
 		{
-			const vec2 buttonSize(Gui::GetWindowWidth() / 4.0f, 0.0);
+			const auto buttonSize = vec2(Gui::GetWindowWidth() / 4.0f, 0.0);
 
 			Gui::PushItemWidth(buttonSize.x);
 			{

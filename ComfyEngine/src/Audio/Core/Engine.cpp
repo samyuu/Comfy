@@ -83,7 +83,7 @@ namespace Comfy::Audio
 		static constexpr size_t TempOutputBufferSize = (MaxSampleBufferSize * OutputChannelCount);
 
 		std::array<i16, TempOutputBufferSize> TempOutputBuffer = {};
-		u32 CurrentBufferFrameSize = DefaultSampleBufferSize;
+		u32 CurrentBufferFrameSize = DefaultFrameBufferSize;
 
 		size_t CallbackDurationRingIndex = 0;
 		std::array<TimeSpan, Engine::CallbackDurationRingBufferSize> CallbackDurationsRingBuffer = {};
@@ -145,7 +145,7 @@ namespace Comfy::Audio
 
 		void AudioCallbackClearOutPreviousCallBuffer(i16* outputBuffer, size_t sampleCount)
 		{
-			std::fill(outputBuffer, outputBuffer + sampleCount - 2, 0);
+			std::fill(outputBuffer, outputBuffer + sampleCount, 0);
 		}
 
 		void AudioCallbackProcessVoices(i16* outputBuffer, const u32 bufferFrameCount, const u32 bufferSampleCount)

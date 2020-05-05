@@ -72,7 +72,7 @@ namespace Comfy::Audio
 		static constexpr u32 OutputChannelCount = 2;
 		static constexpr u32 OutputSampleRate = 44100;
 
-		static constexpr u32 DefaultSampleBufferSize = 64;
+		static constexpr u32 DefaultFrameBufferSize = 64;
 		static constexpr u32 MaxSampleBufferSize = 0x2000;
 
 		static constexpr size_t CallbackDurationRingBufferSize = 64;

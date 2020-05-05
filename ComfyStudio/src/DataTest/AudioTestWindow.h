@@ -39,7 +39,7 @@ namespace Comfy::DataTest
 		Audio::Engine::AudioAPI selectedAudioApi = Audio::Engine::AudioAPI::Invalid;
 		Audio::ChannelMixer::MixingBehavior selectedMixingBehavior = static_cast<Audio::ChannelMixer::MixingBehavior>(-1);
 
-		u32 newBufferSize = 4;
+		u32 newBufferSize = Audio::Engine::DefaultFrameBufferSize;
 
 		static constexpr std::array<const char*, static_cast<size_t>(Audio::ChannelMixer::MixingBehavior::Count)> mixingBehaviorNames =
 		{
