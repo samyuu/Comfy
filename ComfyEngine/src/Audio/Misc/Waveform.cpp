@@ -2,22 +2,23 @@
 
 namespace Comfy::Audio
 {
-	Waveform::Waveform()
+	void Waveform::Calculate(ISampleProvider& sampleProvider, TimeSpan timePerPixel)
 	{
-	}
+		const size_t sampleCount = sampleProvider.GetFrameCount() * sampleProvider.GetChannelCount();
+		const u32 sampleRate = sampleProvider.GetSampleRate();
+		const size_t channelCount = sampleProvider.GetChannelCount();
+		const i16* sampleData = sampleProvider.GetRawSampleView();
 
-	Waveform::~Waveform()
-	{
-	}
+		std::unique_ptr<i16[]> tempOwningSampleBuffer = nullptr;
+		if (sampleData == nullptr)
+		{
+			tempOwningSampleBuffer = std::make_unique<i16[]>(sampleCount);
+			sampleData = tempOwningSampleBuffer.get();
+			
+			sampleProvider.ReadSamples(tempOwningSampleBuffer.get(), 0, sampleProvider.GetFrameCount(), sampleProvider.GetChannelCount());
+		}
 
-	void Waveform::Calculate(MemorySampleProvider* audioStream, TimeSpan timePerPixel)
-	{
-		const i16* sampleData = audioStream->GetSampleData();
-		const size_t sampleCount = audioStream->GetFrameCount() * audioStream->GetChannelCount();
-		const u32 sampleRate = audioStream->GetSampleRate();
-		const size_t channelCount = audioStream->GetChannelCount();
-
-		// NOTE: Calculate how many samples per pixel at the current zoom
+		// TODO: This should probably be calculated as floating points
 		const i64 samplesPerPixel = static_cast<i64>(timePerPixel.TotalSeconds() * sampleRate * channelCount);
 		const i64 samplesPerChannelPixel = static_cast<i64>(samplesPerPixel / channelCount);
 
@@ -43,6 +44,11 @@ namespace Comfy::Audio
 			
 			pixelPCMs.push_back(floatPcm);
 		}
+	}
+
+	void Waveform::Clear()
+	{
+		pixelPCMs.clear();
 	}
 
 	float Waveform::GetPcmForPixel(i64 pixel) const

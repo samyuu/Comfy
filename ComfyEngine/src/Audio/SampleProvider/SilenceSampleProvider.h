@@ -12,5 +12,6 @@ namespace Comfy::Audio
 
 		u32 GetChannelCount() const override;
 		u32 GetSampleRate() const override;
+		const i16* GetRawSampleView() const override;
 	};
 }

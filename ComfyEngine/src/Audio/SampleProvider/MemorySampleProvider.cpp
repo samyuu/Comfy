@@ -27,7 +27,7 @@ namespace Comfy::Audio
 			i16* nonSilentBuffer = (bufferToFill - (frameOffset * channelsToFill));
 
 			// NOTE: Fill a portion of the buffer
-			std::copy(sampleData.data(), sampleData.data() + nonSilentSamples, nonSilentBuffer);
+			std::copy(sampleData.get(), sampleData.get() + nonSilentSamples, nonSilentBuffer);
 
 			return framesToRead;
 		}
@@ -42,7 +42,7 @@ namespace Comfy::Audio
 
 	i64 MemorySampleProvider::GetFrameCount() const
 	{
-		return static_cast<i64>(sampleData.size()) / channelCount;
+		return static_cast<i64>(sampleCount) / channelCount;
 	}
 
 	u32 MemorySampleProvider::GetChannelCount() const
@@ -53,5 +53,10 @@ namespace Comfy::Audio
 	u32 MemorySampleProvider::GetSampleRate() const
 	{
 		return sampleRate;
+	}
+
+	const i16* MemorySampleProvider::GetRawSampleView() const
+	{
+		return sampleData.get();
 	}
 }

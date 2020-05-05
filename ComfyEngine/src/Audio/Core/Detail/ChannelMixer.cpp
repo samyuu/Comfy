@@ -4,14 +4,16 @@
 
 namespace Comfy::Audio
 {
-	i64 ChannelMixer::MixChannels(ISampleProvider* sampleProvider, i16 bufferToFill[], i64 frameOffset, i64 framesToRead)
+	i64 ChannelMixer::MixChannels(ISampleProvider& sampleProvider, i16 bufferToFill[], i64 frameOffset, i64 framesToRead)
 	{
-		u64 samplesToRead = framesToRead * sourceChannels;
+		const auto sourceChannels = sampleProvider.GetChannelCount();
+
+		const u64 samplesToRead = framesToRead * sourceChannels;
 		if (sampleSwapBuffer.size() < samplesToRead)
 			sampleSwapBuffer.resize(samplesToRead);
 
-		i64 framesRead = sampleProvider->ReadSamples(sampleSwapBuffer.data(), frameOffset, framesToRead, sourceChannels);
-		i64 samplesRead = framesRead * sourceChannels;
+		const i64 framesRead = sampleProvider.ReadSamples(sampleSwapBuffer.data(), frameOffset, framesToRead, sourceChannels);
+		const i64 samplesRead = framesRead * sourceChannels;
 
 		if (sourceChannels < targetChannels)
 		{
@@ -77,16 +79,6 @@ namespace Comfy::Audio
 	void ChannelMixer::SetMixingBehavior(ChannelMixer::MixingBehavior value)
 	{
 		mixingBehavior = value;
-	}
-
-	u32 ChannelMixer::GetSourceChannels() const
-	{
-		return sourceChannels;
-	}
-
-	void ChannelMixer::SetSourceChannels(u32 value)
-	{
-		sourceChannels = value;
 	}
 
 	u32 ChannelMixer::GetTargetChannels() const

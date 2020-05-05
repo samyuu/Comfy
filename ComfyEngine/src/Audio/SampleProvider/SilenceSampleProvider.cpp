@@ -23,4 +23,9 @@ namespace Comfy::Audio
 	{
 		return AudioEngine::GetInstance().GetSampleRate();
 	}
+
+	const i16* SilenceSampleProvider::GetRawSampleView() const
+	{
+		return nullptr;
+	}
 }

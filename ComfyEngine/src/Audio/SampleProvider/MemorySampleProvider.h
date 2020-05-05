@@ -18,13 +18,13 @@ namespace Comfy::Audio
 
 		u32 GetChannelCount() const override;
 		u32 GetSampleRate() const override;
-
-		inline i16* GetSampleData() { return sampleData.data(); }
+		const i16* GetRawSampleView() const override;
 
 	private:
 		u32 channelCount;
 		u32 sampleRate;
 
-		std::vector<i16> sampleData;
+		size_t sampleCount;
+		std::unique_ptr<i16[]> sampleData;
 	};
 }

@@ -14,7 +14,8 @@ namespace Comfy::Audio
 	{
 		u32* ChannelCount;
 		u32* SampleRate;
-		std::vector<i16>* SampleData;
+		size_t* SampleCount;
+		std::unique_ptr<i16[]>* SampleData;
 	};
 
 	class IAudioDecoder

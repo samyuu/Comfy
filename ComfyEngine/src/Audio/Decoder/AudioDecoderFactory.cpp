@@ -51,6 +51,7 @@ namespace Comfy::Audio
 			AudioDecoderOutputData outputData;
 			outputData.ChannelCount = &resultSampleProvider->channelCount;
 			outputData.SampleRate = &resultSampleProvider->sampleRate;
+			outputData.SampleCount = &resultSampleProvider->sampleCount;
 			outputData.SampleData = &resultSampleProvider->sampleData;
 
 			if (decoder->DecodeParseAudio(fileContent.get(), fileSize, &outputData) == AudioDecoderResult::Failure)

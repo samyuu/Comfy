@@ -11,5 +11,8 @@ namespace Comfy::Audio
 
 		virtual u32 GetChannelCount() const = 0;
 		virtual u32 GetSampleRate() const = 0;
+
+		// NOTE: Optional raw view for optimization purposes
+		virtual const i16* GetRawSampleView() const = 0;
 	};
 }

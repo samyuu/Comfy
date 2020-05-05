@@ -1,9 +1,12 @@
 #include "AudioEngine.h"
 #include "AudioInstance.h"
 #include "Audio/Decoder/AudioDecoderFactory.h"
+#include "Detail/SampleMixer.h"
 #include "Core/Logger.h"
+#include "Time/Stopwatch.h"
 #include <RtAudio.h>
 #include <functional>
+#include <mutex>
 #include <assert.h>
 
 namespace Comfy::Audio
@@ -18,6 +21,14 @@ namespace Comfy::Audio
 		constexpr i64 TimeSpanToFrames(TimeSpan time, i64 sampleRate)
 		{
 			return static_cast<i64>(time.TotalSeconds() * static_cast<f64>(sampleRate));
+		}
+
+		void CopyStringIntoBuffer(char* outputBuffer, const size_t bufferSize, const std::string_view stringToCopy)
+		{
+			const auto copyLength = std::min(stringToCopy.size() + 1, bufferSize) - 1;
+
+			std::copy(stringToCopy.data(), stringToCopy.data() + copyLength, outputBuffer);
+			outputBuffer[copyLength] = '\0';
 		}
 	}
 
@@ -76,8 +87,11 @@ namespace Comfy::Audio
 		std::array<i16, TempOutputBufferSize> TempOutputBuffer = {};
 		u32 CurrentBufferFrameSize = DefaultSampleBufferSize;
 
-		TimeSpan CallbackLatency;
-		TimeSpan CallbackStreamTime, LastCallbackStreamTime;
+		size_t CallbackDurationRingIndex = 0;
+		std::array<TimeSpan, AudioEngine::CallbackDurationRingBufferSize> CallbackDurationsRingBuffer = {};
+
+		TimeSpan CallbackFrequency = {};
+		TimeSpan CallbackStreamTime = {}, LastCallbackStreamTime = {};
 
 		// NOTE: nullptr = free space
 		std::vector<ICallbackReceiver*> RegisteredCallbackReceivers;
@@ -149,15 +163,13 @@ namespace Comfy::Audio
 					continue;
 
 				auto sampleProvider = GetSource(voiceData.Source);
-				if (sampleProvider == nullptr)
-					continue;
 
 				const bool isPlaying = (voiceData.Flags & VoiceFlags_Playing);
 				const bool isLooping = (voiceData.Flags & VoiceFlags_Looping);
 				const bool playPastEnd = (voiceData.Flags & VoiceFlags_PlayPastEnd);
 				const bool removeOnEnd = (voiceData.Flags & VoiceFlags_RemoveOnEnd);
 
-				const bool hasReachedEnd = (voiceData.FramePosition >= sampleProvider->GetFrameCount());
+				const bool hasReachedEnd = (sampleProvider == nullptr) ? false : (voiceData.FramePosition >= sampleProvider->GetFrameCount());
 
 				if (!playPastEnd && removeOnEnd && hasReachedEnd)
 				{
@@ -165,25 +177,23 @@ namespace Comfy::Audio
 					continue;
 				}
 
-				if (!isPlaying || voiceData.Volume <= 0.0f)
+				if (!isPlaying)
 					continue;
+
+				if (sampleProvider == nullptr)
+				{
+					voiceData.FramePosition += bufferFrameCount;
+					continue;
+				}
 
 				if (hasReachedEnd && !playPastEnd)
 					voiceData.FramePosition = isLooping ? 0 : sampleProvider->GetFrameCount();
 
 				i64 framesRead = 0;
-				const auto sampleproviderChannels = sampleProvider->GetChannelCount();
-
-				if (sampleproviderChannels != OutputChannelCount)
-				{
-					ActiveChannelMixer.SetSourceChannels(sampleproviderChannels);
-					framesRead = ActiveChannelMixer.MixChannels(sampleProvider, TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount);
-				}
+				if (sampleProvider->GetChannelCount() != OutputChannelCount)
+					framesRead = ActiveChannelMixer.MixChannels(*sampleProvider, TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount);
 				else
-				{
 					framesRead = sampleProvider->ReadSamples(TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount, OutputChannelCount);
-				}
-
 				voiceData.FramePosition += framesRead;
 
 				for (i64 i = 0; i < (framesRead * OutputChannelCount); i++)
@@ -200,30 +210,36 @@ namespace Comfy::Audio
 
 		AudioCallbackResult AudioCallback(i16* outputBuffer, u32 bufferFrameCount, double streamTime)
 		{
+			auto stopwatch = Stopwatch::StartNew();;
+
 			const auto bufferSampleCount = (bufferFrameCount * OutputChannelCount);
 			CurrentBufferFrameSize = bufferFrameCount;
 
 			CallbackStreamTime = TimeSpan::FromSeconds(streamTime);
+			CallbackFrequency = (CallbackStreamTime - LastCallbackStreamTime);
 			LastCallbackStreamTime = CallbackStreamTime;
-
-			CallbackLatency = (CallbackStreamTime - LastCallbackStreamTime);
 
 			AudioCallbackNotifyCallbackReceivers();
 			AudioCallbackClearOutPreviousCallBuffer(outputBuffer, bufferSampleCount);
 			AudioCallbackProcessVoices(outputBuffer, bufferFrameCount, bufferSampleCount);
 			AudioCallbackAdjustBufferMasterVolume(outputBuffer, bufferSampleCount);
 
+			if (CallbackDurationRingIndex++ >= (CallbackDurationsRingBuffer.size() - 1))
+				CallbackDurationRingIndex = 0;
+
+			CallbackDurationsRingBuffer[CallbackDurationRingIndex] = stopwatch.Stop();
+
 			return AudioCallbackResult::Continue;
 		}
 
-		static int StaticAudioCallback(void* outputBuffer, void* userData, u32 bufferFrames, double streamTime, RtAudioStreamStatus, void*)
+		static int StaticAudioCallback(void* outputBuffer, void*, u32 bufferFrames, double streamTime, RtAudioStreamStatus, void* userData)
 		{
-			auto implInstance = static_cast<Impl*>(userData);
+			auto implInstance = static_cast<AudioEngine*>(userData)->impl.get();
 			return static_cast<int>(implInstance->AudioCallback(static_cast<i16*>(outputBuffer), bufferFrames, streamTime));
 		}
 	};
 
-	AudioEngine::AudioEngine()
+	AudioEngine::AudioEngine() : impl(std::make_unique<Impl>())
 	{
 		SetAudioAPI(AudioAPI::Default);
 
@@ -249,6 +265,11 @@ namespace Comfy::Audio
 	void AudioEngine::DeleteInstance()
 	{
 		AudioEngineInstance = nullptr;
+	}
+
+	bool AudioEngine::InstanceValid()
+	{
+		return (AudioEngineInstance != nullptr);
 	}
 
 	AudioEngine& AudioEngine::GetInstance()
@@ -360,7 +381,7 @@ namespace Comfy::Audio
 		for (auto& voice : impl->ActiveVoices)
 		{
 			if ((voice.Flags & VoiceFlags_Alive) && voice.Source == source)
-				voice.Source == SourceHandle::Invalid;
+				voice.Source = SourceHandle::Invalid;
 		}
 	}
 
@@ -381,10 +402,7 @@ namespace Comfy::Audio
 			voiceToUpdate.Source = source;
 			voiceToUpdate.Volume = volume;
 			voiceToUpdate.FramePosition = 0;
-
-			const auto adjustedNameLength = std::min(name.size() + 1, voiceToUpdate.Name.size()) - 1;
-			std::copy(name.data(), name.data() + adjustedNameLength, voiceToUpdate.Name.data());
-			voiceToUpdate.Name[adjustedNameLength] = '\0';
+			CopyStringIntoBuffer(voiceToUpdate.Name.data(), voiceToUpdate.Name.size(), name);
 
 			return static_cast<VoiceHandle>(i);
 		}
@@ -399,6 +417,29 @@ namespace Comfy::Audio
 
 		if (auto voicePtr = IndexOrNull(static_cast<HandleBaseType>(voice), impl->ActiveVoices); voicePtr != nullptr)
 			voicePtr->Flags = VoiceFlags_Dead;
+	}
+
+	void AudioEngine::PlaySound(SourceHandle source, std::string_view name, f32 volume)
+	{
+		const auto lock = std::scoped_lock(impl->CallbackMutex);
+
+		for (auto& voiceToUpdate : impl->ActiveVoices)
+		{
+			if (voiceToUpdate.Flags & VoiceFlags_Alive)
+				continue;
+
+			voiceToUpdate.Flags = VoiceFlags_Alive | VoiceFlags_Playing | VoiceFlags_RemoveOnEnd;
+			voiceToUpdate.Source = source;
+			voiceToUpdate.Volume = volume;
+			voiceToUpdate.FramePosition = 0;
+			CopyStringIntoBuffer(voiceToUpdate.Name.data(), voiceToUpdate.Name.size(), name);
+			return;
+		}
+	}
+
+	ISampleProvider* AudioEngine::GetRawSource(SourceHandle handle)
+	{
+		return impl->GetSource(handle);
 	}
 
 	void AudioEngine::RegisterCallbackReceiver(ICallbackReceiver* callbackReceiver)
@@ -525,9 +566,9 @@ namespace Comfy::Audio
 		return impl->CurrentAudioAPI == AudioAPI::ASIO;
 	}
 
-	TimeSpan AudioEngine::GetCallbackLatency() const
+	TimeSpan AudioEngine::GetCallbackFrequency() const
 	{
-		return impl->CallbackLatency;
+		return impl->CallbackFrequency;
 	}
 
 	ChannelMixer& AudioEngine::GetChannelMixer()
@@ -546,68 +587,99 @@ namespace Comfy::Audio
 		ASIOControlPanel();
 	}
 
-	f32 Voice::GetVoiceVolume(VoiceHandle handle)
+	void AudioEngine::DebugGetAllVoices(Voice* outputVoices, size_t* outputVoiceCount)
+	{
+		assert(outputVoices != nullptr && outputVoiceCount != nullptr);
+		size_t voiceCount = 0;
+
+		for (size_t i = 0; i < impl->ActiveVoices.size(); i++)
+		{
+			const auto& voice = impl->ActiveVoices[i];
+
+			if (voice.Flags & VoiceFlags_Alive)
+				outputVoices[voiceCount++] = static_cast<VoiceHandle>(i);
+		}
+
+		*outputVoiceCount = voiceCount;
+	}
+
+	void AudioEngine::DebugGetCallbackDurations(TimeSpan* outputDurations)
+	{
+		assert(outputDurations != nullptr);
+		for (size_t i = 0; i < impl->CallbackDurationsRingBuffer.size(); i++)
+			outputDurations[i] = impl->CallbackDurationsRingBuffer[i];
+	}
+
+	bool Voice::IsValid() const
+	{
+		auto& impl = AudioEngineInstance->impl;
+		return (impl->GetVoiceData(Handle) != nullptr);
+	}
+
+	f32 Voice::GetVolume() const
 	{
 		auto& impl = AudioEngineInstance->impl;
 
-		if (auto voice = impl->GetVoiceData(handle); voice != nullptr)
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			return voice->Volume;
 		return 0.0f;
 	}
 
-	void Voice::SetVoiceVolume(VoiceHandle handle, f32 value)
+	void Voice::SetVolume(f32 value)
 	{
 		auto& impl = AudioEngineInstance->impl;
 
-		if (auto voice = impl->GetVoiceData(handle); voice != nullptr)
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			voice->Volume = value;
 	}
 
-	TimeSpan Voice::GetVoicePosition(VoiceHandle handle)
+	TimeSpan Voice::GetPosition() const
 	{
 		auto& impl = AudioEngineInstance->impl;
 
-		if (auto voice = impl->GetVoiceData(handle); voice != nullptr)
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 		{
-			if (auto source = impl->GetSource(voice->Source); source != nullptr)
-				return FramesToTimeSpan(voice->FramePosition, source->GetSampleRate());
+			const auto source = impl->GetSource(voice->Source);
+			const auto sampleRate = (source != nullptr) ? source->GetSampleRate() : AudioEngine::OutputSampleRate;
+			return FramesToTimeSpan(voice->FramePosition, sampleRate);
 		}
 		return TimeSpan::Zero();
 	}
 
-	void Voice::SetVoicePosition(VoiceHandle handle, TimeSpan value)
+	void Voice::SetPosition(TimeSpan value)
 	{
 		auto& impl = AudioEngineInstance->impl;
 
-		if (auto voice = impl->GetVoiceData(handle); voice != nullptr)
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 		{
-			if (auto source = impl->GetSource(voice->Source); source != nullptr)
-				voice->FramePosition = TimeSpanToFrames(value, source->GetSampleRate());
+			const auto source = impl->GetSource(voice->Source);
+			const auto sampleRate = (source != nullptr) ? source->GetSampleRate() : AudioEngine::OutputSampleRate;
+			voice->FramePosition = TimeSpanToFrames(value, sampleRate);
 		}
 	}
 
-	SourceHandle Voice::GetSource(VoiceHandle handle)
+	SourceHandle Voice::GetSource() const
 	{
 		auto& impl = AudioEngineInstance->impl;
 
-		if (auto voice = impl->GetVoiceData(handle); voice != nullptr)
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			return voice->Source;
 		return SourceHandle::Invalid;
 	}
 
-	void Voice::SetSource(VoiceHandle handle, SourceHandle value)
+	void Voice::SetSource(SourceHandle value)
 	{
 		auto& impl = AudioEngineInstance->impl;
 
-		if (auto voice = impl->GetVoiceData(handle); voice != nullptr)
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			voice->Source = value;
 	}
 
-	TimeSpan Voice::GetVoiceDuration(VoiceHandle handle)
+	TimeSpan Voice::GetDuration() const
 	{
 		auto& impl = AudioEngineInstance->impl;
 
-		if (auto voice = impl->GetVoiceData(handle); voice != nullptr)
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 		{
 			if (auto source = impl->GetSource(voice->Source); source != nullptr)
 				return FramesToTimeSpan(source->GetFrameCount(), source->GetSampleRate());
@@ -615,79 +687,79 @@ namespace Comfy::Audio
 		return TimeSpan::Zero();
 	}
 
-	bool Voice::GetVoiceIsPlaying(VoiceHandle handle)
+	bool Voice::GetIsPlaying() const
 	{
 		auto& impl = AudioEngineInstance->impl;
 
-		if (auto voice = impl->GetVoiceData(handle); voice != nullptr)
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			return (voice->Flags & VoiceFlags_Playing);
 		return false;
 	}
 
-	void Voice::SetVoiceIsPlaying(VoiceHandle handle, bool value)
+	void Voice::SetIsPlaying(bool value)
 	{
 		auto& impl = AudioEngineInstance->impl;
 
-		if (auto voice = impl->GetVoiceData(handle); voice != nullptr)
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			voice->Flags = value ? (voice->Flags | VoiceFlags_Playing) : (voice->Flags & ~VoiceFlags_Playing);
 	}
 
-	bool Voice::GetVoiceIsLooping(VoiceHandle handle)
+	bool Voice::GetIsLooping() const
 	{
 		auto& impl = AudioEngineInstance->impl;
 
-		if (auto voice = impl->GetVoiceData(handle); voice != nullptr)
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			return (voice->Flags & VoiceFlags_Looping);
 		return false;
 	}
 
-	void Voice::SetVoiceIsLooping(VoiceHandle handle, bool value)
+	void Voice::SetIsLooping(bool value)
 	{
 		auto& impl = AudioEngineInstance->impl;
 
-		if (auto voice = impl->GetVoiceData(handle); voice != nullptr)
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			voice->Flags = value ? (voice->Flags | VoiceFlags_Looping) : (voice->Flags & ~VoiceFlags_Looping);
 	}
 
-	bool Voice::GetVoicePlayPastEnd(VoiceHandle handle)
+	bool Voice::GetPlayPastEnd() const
 	{
 		auto& impl = AudioEngineInstance->impl;
 
-		if (auto voice = impl->GetVoiceData(handle); voice != nullptr)
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			return (voice->Flags & VoiceFlags_PlayPastEnd);
 		return false;
 	}
 
-	void Voice::SetVoicePlayPastEnd(VoiceHandle handle, bool value)
+	void Voice::SetPlayPastEnd(bool value)
 	{
 		auto& impl = AudioEngineInstance->impl;
 
-		if (auto voice = impl->GetVoiceData(handle); voice != nullptr)
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			voice->Flags = value ? (voice->Flags | VoiceFlags_PlayPastEnd) : (voice->Flags & ~VoiceFlags_PlayPastEnd);
 	}
 
-	bool Voice::GetVoiceRemoveOnEnd(VoiceHandle handle)
+	bool Voice::GetRemoveOnEnd() const
 	{
 		auto& impl = AudioEngineInstance->impl;
 
-		if (auto voice = impl->GetVoiceData(handle); voice != nullptr)
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			return (voice->Flags & VoiceFlags_RemoveOnEnd);
 		return false;
 	}
 
-	void Voice::SetVoiceRemoveOnEnd(VoiceHandle handle, bool value)
+	void Voice::SetRemoveOnEnd(bool value)
 	{
 		auto& impl = AudioEngineInstance->impl;
 
-		if (auto voice = impl->GetVoiceData(handle); voice != nullptr)
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			voice->Flags = value ? (voice->Flags | VoiceFlags_RemoveOnEnd) : (voice->Flags & ~VoiceFlags_RemoveOnEnd);
 	}
 
-	std::string_view Voice::GetVoiceName(VoiceHandle handle)
+	std::string_view Voice::GetName() const
 	{
 		auto& impl = AudioEngineInstance->impl;
 
-		if (auto voice = impl->GetVoiceData(handle); voice != nullptr)
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			return voice->Name.data();
 		return "VoiceHandle::Invalid";
 	}

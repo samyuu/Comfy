@@ -2,25 +2,11 @@
 #include "Types.h"
 #include "ICallbackReceiver.h"
 #include "Detail/ChannelMixer.h"
-#include "Detail/SampleMixer.h"
 #include "Audio/SampleProvider/ISampleProvider.h"
-#include "Audio/SampleProvider/MemorySampleProvider.h"
 #include "Time/TimeSpan.h"
-#include <algorithm>
-#include <mutex>
 
 namespace Comfy::Audio
 {
-#if 0
-	inline void TestUsage()
-	{
-		auto& audioEngine = AudioEngine::GetInstance();
-		SourceHandle source = audioEngine.LoadAudioSource("Test.wav");
-		// audioEngine.UnloadSource(source);
-		audioEngine.AddVoice(source, "test", true, 1.0f, false);
-	}
-#endif
-
 	// NOTE: Sample: Raw PCM
 	// NOTE: Frame: Pair of samples for each channel
 	// NOTE: Source: ISampleProvider
@@ -39,33 +25,43 @@ namespace Comfy::Audio
 
 		VoiceHandle Handle;
 
+		inline operator VoiceHandle() const { return Handle; }
+
 	public:
-		f32 GetVoiceVolume(VoiceHandle handle);
-		void SetVoiceVolume(VoiceHandle handle, f32 value);
+		bool IsValid() const;
 
-		TimeSpan GetVoicePosition(VoiceHandle handle);
-		void SetVoicePosition(VoiceHandle handle, TimeSpan value);
+		f32 GetVolume() const;
+		void SetVolume(f32 value);
 
-		SourceHandle GetSource(VoiceHandle handle);
-		void SetSource(VoiceHandle handle, SourceHandle value);
+		TimeSpan GetPosition() const;
+		void SetPosition(TimeSpan value);
 
-		TimeSpan GetVoiceDuration(VoiceHandle handle);
+		SourceHandle GetSource() const;
+		void SetSource(SourceHandle value);
 
-		bool GetVoiceIsPlaying(VoiceHandle handle);
-		void SetVoiceIsPlaying(VoiceHandle handle, bool value);
+		TimeSpan GetDuration() const;
 
-		bool GetVoiceIsLooping(VoiceHandle handle);
-		void SetVoiceIsLooping(VoiceHandle handle, bool value);
+		bool GetIsPlaying() const;
+		void SetIsPlaying(bool value);
 
-		bool GetVoicePlayPastEnd(VoiceHandle handle);
-		void SetVoicePlayPastEnd(VoiceHandle handle, bool value);
+		bool GetIsLooping() const;
+		void SetIsLooping(bool value);
 
-		bool GetVoiceRemoveOnEnd(VoiceHandle handle);
-		void SetVoiceRemoveOnEnd(VoiceHandle handle, bool value);
+		bool GetPlayPastEnd() const;
+		void SetPlayPastEnd(bool value);
 
-		std::string_view GetVoiceName(VoiceHandle voice);
+		bool GetRemoveOnEnd() const;
+		void SetRemoveOnEnd(bool value);
+
+		std::string_view GetName() const;
 	};
 
+	// TODO:
+	struct DeviceInfo
+	{
+	};
+
+	// TODO: Remove "Audio" prefix since it's implied by the namespace
 	class AudioEngine : NonCopyable
 	{
 		friend Voice;
@@ -79,6 +75,8 @@ namespace Comfy::Audio
 
 		static constexpr u32 DefaultSampleBufferSize = 64;
 		static constexpr u32 MaxSampleBufferSize = 0x2000;
+
+		static constexpr size_t CallbackDurationRingBufferSize = 64;
 
 		enum class AudioAPI : u32
 		{
@@ -95,6 +93,8 @@ namespace Comfy::Audio
 	public:
 		static void CreateInstance();
 		static void DeleteInstance();
+
+		static bool InstanceValid();
 		static AudioEngine& GetInstance();
 
 	public:
@@ -109,8 +109,15 @@ namespace Comfy::Audio
 		COMFY_NODISCARD SourceHandle LoadAudioSource(std::unique_ptr<ISampleProvider> sampleProvider);
 		void UnloadSource(SourceHandle source);
 
-		VoiceHandle AddVoice(SourceHandle source, std::string_view name, bool playing, f32 volume = MaxVolume, bool playPastEnd = false);
+		// NOTE: Add a voice and keep a handle to it
+		COMFY_NODISCARD VoiceHandle AddVoice(SourceHandle source, std::string_view name, bool playing, f32 volume = MaxVolume, bool playPastEnd = false);
 		void RemoveVoice(VoiceHandle voice);
+
+		// NOTE: Add a voice, play it once then discard
+		void PlaySound(SourceHandle source, std::string_view name, f32 volume = MaxVolume);
+
+		// NOTE: Underlying source pointer may be deleted at any time using UnloadSource or be invalided using LoadAudioSource
+		ISampleProvider* GetRawSource(SourceHandle handle);
 
 	public:
 		void RegisterCallbackReceiver(ICallbackReceiver* callbackReceiver);
@@ -136,33 +143,24 @@ namespace Comfy::Audio
 		void SetStreamTime(TimeSpan value);
 
 		bool GetIsExclusiveMode() const;
-		TimeSpan GetCallbackLatency() const;
+		TimeSpan GetCallbackFrequency() const;
 
 		ChannelMixer& GetChannelMixer();
 
 	public:
 		// size_t GetDeviceCount() const;
-		// RtAudio::DeviceInfo GetDeviceInfo(u32 device);
+		// DeviceInfo GetDeviceInfo(u32 device);
 
 		void DebugShowControlPanel() const;
 
-		/*
-		// NOTE: Only use for displaying debug info such as in the AudioTestWindow
-		template <typename Func>
-		void DebugIterateAudioInstances(Func func)
-		{
-			const auto lock = std::scoped_lock(GetAudioInstancesMutex());
-			for (const auto& instance : GetAudioInstances())
-				func(instance);
-		}
-		*/
+		// NOTE: Has to be large enough to store AudioEngine::MaxSimultaneousVoices
+		void DebugGetAllVoices(Voice* outputVoices, size_t* outputVoiceCount);
+
+		// NOTE: Has to be large enough to store AudioEngine::CallbackDurationRingBufferSize
+		void DebugGetCallbackDurations(TimeSpan* outputDurations);
 
 	private:
 		struct Impl;
 		std::unique_ptr<Impl> impl;
-
-	private:
-		// std::mutex& GetAudioInstancesMutex();
-		// std::vector<std::shared_ptr<AudioInstance>>& GetAudioInstances();
 	};
 }
