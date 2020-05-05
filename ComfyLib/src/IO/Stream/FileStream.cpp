@@ -46,7 +46,7 @@ namespace Comfy::IO
 
 	bool FileStream::IsOpen() const
 	{
-		return fileHandle != nullptr;
+		return fileHandle != INVALID_HANDLE_VALUE;
 	}
 
 	bool FileStream::CanRead() const
@@ -89,7 +89,7 @@ namespace Comfy::IO
 		assert(fileHandle == nullptr);
 		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_READ), (FILE_SHARE_READ | FILE_SHARE_WRITE), NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
-		if (fileHandle != nullptr)
+		if (fileHandle != INVALID_HANDLE_VALUE)
 			canRead = true;
 		UpdateFileSize();
 	}
@@ -99,7 +99,7 @@ namespace Comfy::IO
 		assert(fileHandle == nullptr);
 		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_WRITE), (FILE_SHARE_READ | FILE_SHARE_WRITE), NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
-		if (fileHandle != nullptr)
+		if (fileHandle != INVALID_HANDLE_VALUE)
 			canWrite = true;
 		UpdateFileSize();
 	}
@@ -109,7 +109,7 @@ namespace Comfy::IO
 		assert(fileHandle == nullptr);
 		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_READ | GENERIC_WRITE), (FILE_SHARE_READ | FILE_SHARE_WRITE), NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
-		if (fileHandle != nullptr)
+		if (fileHandle != INVALID_HANDLE_VALUE)
 		{
 			canRead = true;
 			canWrite = true;
@@ -122,7 +122,7 @@ namespace Comfy::IO
 		assert(fileHandle == nullptr);
 		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_WRITE), (FILE_SHARE_READ | FILE_SHARE_WRITE), NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
-		if (fileHandle != nullptr)
+		if (fileHandle != INVALID_HANDLE_VALUE)
 			canWrite = true;
 		UpdateFileSize();
 	}
@@ -132,7 +132,7 @@ namespace Comfy::IO
 		assert(fileHandle == nullptr);
 		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_READ | GENERIC_WRITE), (FILE_SHARE_READ | FILE_SHARE_WRITE), NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
-		if (fileHandle != nullptr)
+		if (fileHandle != INVALID_HANDLE_VALUE)
 		{
 			canRead = true;
 			canWrite = true;
@@ -142,14 +142,14 @@ namespace Comfy::IO
 
 	void FileStream::Close()
 	{
-		if (fileHandle != nullptr)
+		if (fileHandle != INVALID_HANDLE_VALUE)
 			::CloseHandle(fileHandle);
 		fileHandle = nullptr;
 	}
 
 	void FileStream::UpdateFileSize()
 	{
-		if (fileHandle != nullptr)
+		if (fileHandle != INVALID_HANDLE_VALUE)
 		{
 			::LARGE_INTEGER largeIntegerFileSize = {};
 			::GetFileSizeEx(fileHandle, &largeIntegerFileSize);
