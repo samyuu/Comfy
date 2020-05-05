@@ -40,7 +40,7 @@ namespace Comfy::IO
 		FileStream CreateWrite(std::string_view filePath)
 		{
 			FileStream result;
-			result.OpenWrite(filePath);
+			result.CreateWrite(filePath);
 			return result;
 		}
 
