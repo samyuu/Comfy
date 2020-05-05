@@ -68,6 +68,11 @@ namespace ImGui
 		DestroyContext();
 	}
 
+	bool GuiRenderer::IsAnyViewportFocused() const
+	{
+		return ImGui_ImplWin32_IsAnyViewportFocused();
+	}
+
 	bool GuiRenderer::InitializeCreateContext()
 	{
 		if (CreateContext() == nullptr)
@@ -89,8 +94,17 @@ namespace ImGui
 		io.ConfigFlags |= ImGuiConfigFlags_NavNoCaptureKeyboard;
 #endif
 
+#if 1
+		io.ConfigViewportsNoAutoMerge = true;
+		io.ConfigViewportsNoTaskBarIcon = false;
+		io.ConfigViewportsNoDecoration = false;
+		io.ConfigViewportsNoDefaultParent = false;
 		io.ConfigDockingWithShift = false;
+#else
 		io.ConfigViewportsNoDecoration = true;
+		io.ConfigDockingWithShift = false;
+#endif
+
 		io.KeyRepeatDelay = 0.250f;
 		io.KeyRepeatRate = 0.050f;
 		io.ConfigWindowsMoveFromTitleBarOnly = true;

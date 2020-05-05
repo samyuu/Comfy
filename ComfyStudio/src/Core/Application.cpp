@@ -78,7 +78,6 @@ namespace Comfy
 		});
 
 		Audio::AudioEngine::CreateInstance();
-		Audio::AudioEngine::InitializeInstance();
 
 		if (!InitializeMountRomData())
 			return false;
@@ -103,6 +102,7 @@ namespace Comfy
 		guiRenderer.BeginFrame();
 		{
 			DrawGui();
+			host.SetMainLoopPowerSleep(!host.IsWindowFocused() && !guiRenderer.IsAnyViewportFocused());
 
 			Graphics::D3D11::D3D.SetViewport(host.GetWindowSize());
 			Graphics::D3D11::D3D.WindowRenderTarget->Bind();
@@ -123,7 +123,6 @@ namespace Comfy
 		if (skipApplicationCleanup)
 			return;
 
-		Audio::AudioEngine::DisposeInstance();
 		Audio::AudioEngine::DeleteInstance();
 
 		// NOTE: Force deletion before the graphics context is destroyed
@@ -543,9 +542,7 @@ namespace Comfy
 
 	void Application::DisposeShutdownAudioEngine()
 	{
-		Audio::AudioEngine* audioEngine = Audio::AudioEngine::GetInstance();
-
-		if (audioEngine != nullptr)
-			audioEngine->StopStream();
+		if (Audio::AudioEngine::InstanceValid())
+			Audio::AudioEngine::GetInstance().StopStream();
 	}
 }

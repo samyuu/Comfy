@@ -9,6 +9,7 @@
 //  [X] Platform: Multi-viewport support (multiple windows). Enable with 'io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable'.
 
 #include "ImGui/Core/imgui.h"
+#include "ImGui/Core/imgui_internal.h"
 #include "ImGui/Implementation/ComfyWin32.h"
 
 #undef NOGDI
@@ -453,10 +454,11 @@ namespace ImGui
 	{
 		HWND    Hwnd;
 		bool    HwndOwned;
+		bool	WindowFocused;
 		DWORD   DwStyle;
 		DWORD   DwExStyle;
 
-		ImGuiViewportDataWin32() { Hwnd = NULL; HwndOwned = false;  DwStyle = DwExStyle = 0; }
+		ImGuiViewportDataWin32() { Hwnd = NULL; HwndOwned = false; WindowFocused = false; DwStyle = DwExStyle = 0; }
 		~ImGuiViewportDataWin32() { IM_ASSERT(Hwnd == NULL); }
 	};
 
@@ -670,8 +672,10 @@ namespace ImGui
 		if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
 			return true;
 
-		if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle((void*)hWnd))
+		if (ImGuiViewport* viewport = ImGui::FindViewportByPlatformHandle(static_cast<void*>(hWnd)))
 		{
+			auto userData = static_cast<ImGuiViewportDataWin32*>(viewport->PlatformUserData);
+
 			switch (msg)
 			{
 			case WM_CLOSE:
@@ -687,6 +691,16 @@ namespace ImGui
 				if (viewport->Flags & ImGuiViewportFlags_NoFocusOnClick)
 					return MA_NOACTIVATE;
 				break;
+
+			case WM_SETFOCUS:
+				if (userData != nullptr)
+					userData->WindowFocused = true;
+				break;
+			case WM_KILLFOCUS:
+				if (userData != nullptr)
+					userData->WindowFocused = false;
+				break;
+
 			case WM_NCHITTEST:
 				// Let mouse pass-through the window. This will allow the back-end to set io.MouseHoveredViewport properly (which is OPTIONAL).
 				// The ImGuiViewportFlags_NoInputs flag is set while dragging a viewport, as want to detect the window behind the one we are dragging.
@@ -780,5 +794,20 @@ namespace ImGui
 	static void ImGui_ImplWin32_ShutdownPlatformInterface()
 	{
 		::UnregisterClassA(ImGuiWindowClassName, ::GetModuleHandleA(NULL));
+	}
+
+
+	bool ImGui_ImplWin32_IsAnyViewportFocused()
+	{
+		ImGuiContext* context = ImGui::GetCurrentContext();
+
+		for (int i = 0; i != context->Viewports.Size; i++)
+		{
+			auto userData = static_cast<ImGuiViewportDataWin32*>(context->Viewports[i]->PlatformUserData);
+			if (userData != nullptr && userData->WindowFocused)
+				return true;
+		}
+
+		return false;
 	}
 }

@@ -53,7 +53,7 @@ namespace Comfy
 			{
 				updateFunction();
 
-				if (!windowFocused)
+				if (mainLoopLowPowerSleep)
 				{
 					// NOTE: Arbitrary sleep to drastically reduce power usage. This could really use a better solution for final release builds
 					::Sleep(static_cast<u32>(powerSleepDuration.TotalMilliseconds()));
@@ -146,6 +146,21 @@ namespace Comfy
 	bool ApplicationHost::HasFocusBeenLost() const
 	{
 		return focusLostThisFrame;
+	}
+
+	bool ApplicationHost::IsWindowFocused() const
+	{
+		return windowFocused;
+	}
+
+	bool ApplicationHost::GetMainLoopPowerSleep() const
+	{
+		return mainLoopLowPowerSleep;
+	}
+
+	void ApplicationHost::SetMainLoopPowerSleep(bool value)
+	{
+		mainLoopLowPowerSleep = value;
 	}
 
 	ivec2 ApplicationHost::GetWindowPosition() const

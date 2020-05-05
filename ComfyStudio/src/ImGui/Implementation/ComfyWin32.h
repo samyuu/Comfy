@@ -23,4 +23,6 @@ namespace ImGui
 	void  ImGui_ImplWin32_EnableDpiAwareness();
 	float ImGui_ImplWin32_GetDpiScaleForHwnd(void* hwnd);       // HWND hwnd
 	float ImGui_ImplWin32_GetDpiScaleForMonitor(void* monitor); // HMONITOR monitor
+
+	bool ImGui_ImplWin32_IsAnyViewportFocused();
 }

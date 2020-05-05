@@ -15,6 +15,8 @@ namespace ImGui
 		void EndFrame();
 		void Dispose();
 
+		bool IsAnyViewportFocused() const;
+
 	private:
 		bool InitializeCreateContext();
 		bool InitializeSetStartupIoState();

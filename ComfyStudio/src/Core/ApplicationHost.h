@@ -41,6 +41,11 @@ namespace Comfy
 		bool HasFocusBeenGained() const;
 		bool HasFocusBeenLost() const;
 
+		bool IsWindowFocused() const;
+		
+		bool GetMainLoopPowerSleep() const;
+		void SetMainLoopPowerSleep(bool value);
+
 		ivec2 GetWindowPosition() const;
 		void SetWindowPosition(ivec2 value);
 
@@ -112,7 +117,6 @@ namespace Comfy
 
 		ivec2 preFullScreenWindowPosition = StartupWindowPosition;
 		ivec2 preFullScreenWindowSize = StartupWindowSize;
-		const bool mainLoopLowPowerSleep = false;
 
 		bool windowFocused = true, lastWindowFocused = false;
 		bool focusLostThisFrame = false, focusGainedThisFrame = false;
@@ -128,6 +132,7 @@ namespace Comfy
 		TimeSpan currentTime, lastTime;
 		u64 elapsedFrames = 0;
 
+		bool mainLoopLowPowerSleep = false;
 		const TimeSpan powerSleepDuration = TimeSpan::FromMilliseconds(10.0);
 
 		// NOTE: File drop dispatching
