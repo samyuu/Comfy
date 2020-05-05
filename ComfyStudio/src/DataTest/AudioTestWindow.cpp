@@ -3,7 +3,7 @@
 #include "Audio/Core/AudioInstance.h"
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
-#include <sstream>
+#include <numeric>
 
 namespace Comfy::DataTest
 {
@@ -18,17 +18,17 @@ namespace Comfy::DataTest
 
 	void AudioTestWindow::DrawGui()
 	{
-		Audio::AudioEngine* engine = Audio::AudioEngine::GetInstance();
+		auto& engine = Audio::AudioEngine::GetInstance();
 
 		auto checkStartStream = [&engine]()
 		{
 			static bool checkStartStream = true;
 			if (checkStartStream)
 			{
-				if (!engine->GetIsStreamOpen())
-					engine->OpenStream();
-				if (!engine->GetIsStreamRunning())
-					engine->StartStream();
+				if (!engine.GetIsStreamOpen())
+					engine.OpenStream();
+				if (!engine.GetIsStreamRunning())
+					engine.StartStream();
 				checkStartStream = false;
 			}
 		};
@@ -36,9 +36,9 @@ namespace Comfy::DataTest
 		Gui::TextUnformatted("Audio Test:");
 		Gui::Separator();
 
-		float masterVolume = engine->GetMasterVolume();
+		float masterVolume = engine.GetMasterVolume();
 		if (Gui::SliderFloat("Master Volume", &masterVolume, Audio::AudioEngine::MinVolume, Audio::AudioEngine::MaxVolume))
-			engine->SetMasterVolume(masterVolume);
+			engine.SetMasterVolume(masterVolume);
 		Gui::Separator();
 
 		if (Gui::CollapsingHeader("Device List"))
@@ -62,8 +62,8 @@ namespace Comfy::DataTest
 		}
 		Gui::Separator();
 
-		const ImVec4 onColor = ImVec4(0.14f, 0.78f, 0.21f, 1.00f);
-		const ImVec4 offColor = ImVec4(0.95f, 0.12f, 0.12f, 1.00f);
+		const auto onColor = ImVec4(0.14f, 0.78f, 0.21f, 1.00f);
+		const auto offColor = ImVec4(0.95f, 0.12f, 0.12f, 1.00f);
 
 		if (Gui::CollapsingHeader("Stream Control"))
 		{
@@ -71,88 +71,109 @@ namespace Comfy::DataTest
 
 			Gui::PushItemWidth(buttonSize.x);
 			{
-				if (Gui::Button("engine->OpenStream()", buttonSize))
-					engine->OpenStream();
+				if (Gui::Button("OpenStream()", buttonSize))
+					engine.OpenStream();
 				Gui::SameLine();
-				if (Gui::Button("engine->CloseStream()", buttonSize))
-					engine->CloseStream();
+				if (Gui::Button("CloseStream()", buttonSize))
+					engine.CloseStream();
 
-				bool isStreamOpen = engine->GetIsStreamOpen();
+				bool isStreamOpen = engine.GetIsStreamOpen();
 
 				Gui::SameLine();
-				Gui::Text("engine->GetIsStreamOpen():");
+				Gui::Text("%-24s:", "GetIsStreamOpen()");
 				Gui::SameLine();
 				Gui::TextColored(isStreamOpen ? onColor : offColor, isStreamOpen ? "Open" : "Closed");
 			}
-
 			{
-				if (Gui::Button("engine->StartStream()", buttonSize))
-					engine->StartStream();
+				if (Gui::Button("StartStream()", buttonSize))
+					engine.StartStream();
 				Gui::SameLine();
-				if (Gui::Button("engine->StopStream()", buttonSize))
-					engine->StopStream();
+				if (Gui::Button("StopStream()", buttonSize))
+					engine.StopStream();
 
-				bool isStreamRunning = engine->GetIsStreamRunning();
+				bool isStreamRunning = engine.GetIsStreamRunning();
 
 				Gui::SameLine();
-				Gui::Text("engine->GetIsStreamRunning():");
+				Gui::Text("%-21s:", "GetIsStreamRunning()");
 				Gui::SameLine();
 				Gui::TextColored(isStreamRunning ? onColor : offColor, isStreamRunning ? "Running" : "Stopped");
 			}
 			Gui::PopItemWidth();
 
-			Gui::Text("engine->GetStreamTime(): %.3f s", engine->GetStreamTime());
-			Gui::Text("engine->GetCallbackLatency(): %.3f ms", engine->GetCallbackLatency() * 1000.0);
-			Gui::Text("engine->GetBufferSize(): %d", engine->GetBufferSize());
+			Gui::Text("%-24s: %.3f s", "GetStreamTime()", engine.GetStreamTime().TotalSeconds());
+			Gui::Text("%-21s: %.3f ms", "GetCallbackFrequency()", engine.GetCallbackFrequency().TotalMilliseconds());
+
+			std::array<TimeSpan, Audio::AudioEngine::CallbackDurationRingBufferSize> durations;
+			engine.DebugGetCallbackDurations(durations.data());
+
+			std::array<float, durations.size()> durationsMS;
+			for (size_t i = 0; i < durations.size(); i++)
+				durationsMS[i] = static_cast<float>(durations[i].TotalMilliseconds());
+
+			const float totalBufferProcessTimeMS = std::accumulate(durationsMS.begin(), durationsMS.end(), 0.0f);
+			const float averageProcessTimeMS = (totalBufferProcessTimeMS / static_cast<float>(durationsMS.size()));
+
+			char overlayTextBuffer[32];
+			sprintf_s(overlayTextBuffer, "Average: %.6f ms", averageProcessTimeMS);
+
+			Gui::PlotLines("Callback Process Duration", durationsMS.data(), static_cast<int>(durationsMS.size()), 0, overlayTextBuffer);
+
+			Gui::Text("%-21s: %d", "GetBufferFrameSize()", engine.GetBufferFrameSize());
+
+			constexpr u32 slowStep = 8, fastStep = 64;
+			Gui::InputScalar("Buffer Size", ImGuiDataType_U32, &newBufferSize, &slowStep, &fastStep, "%u");
+
+			newBufferSize = std::clamp(newBufferSize, 1u, Audio::AudioEngine::MaxSampleBufferSize * engine.GetChannelCount());
+
+			if (Gui::Button("SetBufferFrameSize()", vec2(Gui::CalcItemWidth(), 0.0f)))
+				engine.SetBufferFrameSize(newBufferSize);
 		}
 		Gui::Separator();
 
 		if (Gui::CollapsingHeader("Audio API"))
 		{
-			Gui::TextDisabled("(engine->GetActiveAudioApi(): %s)", audioApiNames[static_cast<int>(engine->GetActiveAudioApi())]);
+			auto getAudioAPIName = [](Audio::AudioEngine::AudioAPI api)
+			{
+				switch (api)
+				{
+				case Audio::AudioEngine::AudioAPI::ASIO:
+					return "AudioAPI::ASIO";
+				case Audio::AudioEngine::AudioAPI::WASAPI:
+					return "AudioAPI::ASIO";
+				default:
+					return "AudioAPI::Invalid";
+				}
+			};
 
-			if (selectedAudioApi == Audio::AudioApi::Invalid)
-				selectedAudioApi = engine->GetActiveAudioApi();
+#if 0
+			Gui::TextDisabled("(engine.GetAudioAPI(): %s)", getAudioAPIName(engine.GetAudioAPI()));
+
+			if (selectedAudioApi == Audio::AudioEngine::AudioAPI::Invalid)
+				selectedAudioApi = engine.GetAudioAPI();
 
 			Gui::Combo("Audio API##Combo", reinterpret_cast<int*>(&selectedAudioApi), audioApiNames.data(), static_cast<int>(audioApiNames.size()));
 			Gui::Separator();
 
-			if (Gui::Button("engine->SetAudioApi()", vec2(Gui::CalcItemWidth(), 0.0f)))
-				engine->SetAudioApi(selectedAudioApi);
+			if (Gui::Button("SetAudioApi()", vec2(Gui::CalcItemWidth(), 0.0f)))
+				engine.SetAudioApi(selectedAudioApi);
 
-			if (Gui::Button("engine->ShowControlPanel()", vec2(Gui::CalcItemWidth(), 0.0f)))
-				engine->ShowControlPanel();
-		}
-		Gui::Separator();
-
-		if (Gui::CollapsingHeader("Audio Buffer"))
-		{
-			Gui::TextDisabled("(engine->GetBufferSize(): %d)", engine->GetBufferSize());
-
-			if (newBufferSize < 0)
-				newBufferSize = engine->GetBufferSize();
-
-			const u32 slowStep = 8, fastStep = 64;
-			Gui::InputScalar("Buffer Size", ImGuiDataType_U32, &newBufferSize, &slowStep, &fastStep, "%u");
-
-			if (newBufferSize > Audio::AudioEngine::MAX_BUFFER_SIZE)
-				newBufferSize = Audio::AudioEngine::MAX_BUFFER_SIZE;
-
-			if (Gui::Button("engine->SetBufferSize()", vec2(Gui::CalcItemWidth(), 0.0f)))
-				engine->SetBufferSize(newBufferSize);
+			if (Gui::Button("ShowControlPanel()", vec2(Gui::CalcItemWidth(), 0.0f)))
+				engine.ShowControlPanel();
+#endif
 		}
 		Gui::Separator();
 
 		if (Gui::CollapsingHeader("Audio Mixing"))
 		{
 			if (static_cast<int>(selectedMixingBehavior) < 0)
-				selectedMixingBehavior = engine->GetChannelMixer().GetMixingBehavior();
+				selectedMixingBehavior = engine.GetChannelMixer().GetMixingBehavior();
 
 			if (Gui::Combo("Mixing Behavior##Combo", reinterpret_cast<int*>(&selectedMixingBehavior), mixingBehaviorNames.data(), static_cast<int>(mixingBehaviorNames.size())))
-				engine->GetChannelMixer().SetMixingBehavior(selectedMixingBehavior);
+				engine.GetChannelMixer().SetMixingBehavior(selectedMixingBehavior);
 		}
 		Gui::Separator();
 
+		/*
 		if (Gui::CollapsingHeader("Audio Data"))
 		{
 			Gui::TextDisabled("(Dummy)");
@@ -163,36 +184,41 @@ namespace Comfy::DataTest
 			// Gui::PlotLines("Frame Times", arr, IM_ARRAYSIZE(arr));
 
 			//float floatBuffer[MAX_BUFFER_SIZE];
-			//for (size_t i = 0; i < engine->GetBufferSize(); i++)
-			//	floatBuffer[i] = (float)(engine->SAMPLE_BUFFER_PTR[i]);
-			//Gui::PlotLines("engine->SAMPLE_BUFFER_PTR", floatBuffer, engine->GetBufferSize());
+			//for (size_t i = 0; i < engine.GetBufferSize(); i++)
+			//	floatBuffer[i] = (float)(engine.SAMPLE_BUFFER_PTR[i]);
+			//Gui::PlotLines("SAMPLE_BUFFER_PTR", floatBuffer, engine.GetBufferSize());
 		}
 		Gui::Separator();
+		*/
 
-		if (Gui::CollapsingHeader("Audio Instances"))
+		if (Gui::CollapsingHeader("Audio Voices"))
 		{
 			Gui::BeginChild("##AudioInstanceChilds", vec2(0.0f, audioInstancesChildHeight), true);
 			{
-				engine->DebugIterateAudioInstances([&](const auto& instance)
+				std::array<Audio::Voice, Audio::AudioEngine::MaxSimultaneousVoices> allVoices;
+				size_t voiceCount;
+
+				engine.DebugGetAllVoices(allVoices.data(), &voiceCount);
+
+				for (size_t i = 0; i < voiceCount; i++)
 				{
-					if (instance == nullptr)
-					{
-						Gui::TextDisabled("Null (Instance)");
-					}
-					else if (instance->GetSampleProvider() == nullptr)
-					{
-						Gui::TextDisabled("%s (Null Sample Provider)", instance->GetName());
-					}
-					else
-					{
-						Gui::TextDisabled("%s | (%s / %s) | (%d%%) | %s",
-							instance->GetName(),
-							instance->GetPosition().ToString().c_str(),
-							instance->GetDuration().ToString().c_str(),
-							static_cast<int>(instance->GetVolume() * 100.0f),
-							instance->GetIsPlaying() ? "Play" : "Pause");
-					}
-				});
+					const auto voice = allVoices[i];
+					const auto voiceName = voice.GetName();
+					const auto voiceSource = voice.GetSource();
+
+					char sourceNameBuffer[32] = "SourceHandle::Invalid";
+					if (voiceSource != Audio::SourceHandle::Invalid)
+						sprintf_s(sourceNameBuffer, "SourceHandle { 0x%X }", static_cast<Audio::HandleBaseType>(voiceSource));
+
+					Gui::TextDisabled("%.*s | (%s / %s) | (%d%%) | %s [%s]",
+						static_cast<int>(voiceName.size()),
+						voiceName.data(),
+						voice.GetPosition().ToString().c_str(),
+						voice.GetDuration().ToString().c_str(),
+						static_cast<int>(voice.GetVolume() * 100.0f),
+						voice.GetIsPlaying() ? "Play" : "Pause",
+						sourceNameBuffer);
+				}
 			}
 			Gui::EndChild();
 		}
@@ -202,49 +228,38 @@ namespace Comfy::DataTest
 		{
 			checkStartStream();
 
-			if (songTestStream == nullptr)
-				songTestStream = engine->LoadAudioFile(testSongPath);
+			if (testSongSource == Audio::SourceHandle::Invalid)
+				testSongSource = engine.LoadAudioSource(testSongPath);
 
-			if (Gui::Button("engine->AddAudioInstance()"))
+			if (Gui::Button("AddVoice()"))
 			{
-				if (songAudioInstance != nullptr)
-					songAudioInstance->SetAppendRemove(true);
+				if (testSongVoice.IsValid())
+					engine.RemoveVoice(testSongVoice);
 
-				songAudioInstance = std::make_shared<Audio::AudioInstance>(songTestStream, true, "AudioTestWindow::TestSongInstance");
-				engine->AddAudioInstance(songAudioInstance);
+				testSongVoice = engine.AddVoice(testSongSource, "AudioTestWindow::TestSongVoice", true);
 			}
 
-			if (songAudioInstance != nullptr)
+			if (testSongVoice != Audio::VoiceHandle::Invalid)
 			{
-				if (songAudioInstance->GetHasBeenRemoved())
+				if (!testSongVoice.IsValid())
 					return;
 
-				Audio::AudioInstance* audioInstance = songAudioInstance.get();
-
-				Gui::Separator();
-				Gui::Text("audioInstance->GetChannelCount(): %u", audioInstance->GetChannelCount());
-				Gui::Text("audioInstance->GetFrameCount(): %u", audioInstance->GetFrameCount());
-				Gui::Text("audioInstance->GetSampleRate(): %u", audioInstance->GetSampleRate());
-
-				int framePosition = static_cast<int>(audioInstance->GetFramePosition());
-				int frameCount = static_cast<int>(audioInstance->GetFrameCount());
-				if (Gui::SliderInt("audioInstance->FramePosition", &framePosition, 0, frameCount))
-					audioInstance->SetFramePosition(framePosition);
-
-				float position = static_cast<float>(audioInstance->GetPosition().TotalSeconds());
-				float duration = static_cast<float>(audioInstance->GetDuration().TotalSeconds());
-				if (Gui::SliderFloat("audioInstance->Position", &position, 0, duration, "%f"))
-					audioInstance->SetPosition(TimeSpan::FromSeconds(position));
-
-				Gui::Separator();
-				Gui::Text("audioInstance->GetDuration(): %s", audioInstance->GetDuration().ToString().c_str());
-				Gui::Separator();
-				Gui::Text("audioInstance->GetPosition(): %s", audioInstance->GetPosition().ToString().c_str());
 				Gui::Separator();
 
-				float volume = audioInstance->GetVolume();
-				if (Gui::SliderFloat("volume", &volume, Audio::AudioEngine::MinVolume, Audio::AudioEngine::MaxVolume))
-					audioInstance->SetVolume(volume);
+				float position = static_cast<float>(testSongVoice.GetPosition().TotalSeconds());
+				float duration = static_cast<float>(testSongVoice.GetDuration().TotalSeconds());
+				if (Gui::SliderFloat("TestSongVoice::Position", &position, 0, duration, "%f s"))
+					testSongVoice.SetPosition(TimeSpan::FromSeconds(position));
+
+				Gui::Separator();
+				Gui::Text("TestSongVoice::GetDuration(): %s", testSongVoice.GetDuration().ToString().c_str());
+				Gui::Separator();
+				Gui::Text("TestSongVoice::GetPosition(): %s", testSongVoice.GetPosition().ToString().c_str());
+				Gui::Separator();
+
+				float volume = testSongVoice.GetVolume();
+				if (Gui::SliderFloat("Volume", &volume, Audio::AudioEngine::MinVolume, Audio::AudioEngine::MaxVolume))
+					testSongVoice.SetVolume(volume);
 
 				auto boolColorText = [&onColor, &offColor](const char* label, bool value)
 				{
@@ -252,17 +267,15 @@ namespace Comfy::DataTest
 					Gui::TextColored(value ? onColor : offColor, value ? "true" : "false");
 				};
 
-				boolColorText("audioInstance->GetIsPlaying(): ", audioInstance->GetIsPlaying());
-				boolColorText("audioInstance->GetHasReachedEnd(): ", audioInstance->GetHasReachedEnd());
-				boolColorText("audioInstance->GetHasBeenRemoved(): ", audioInstance->GetHasBeenRemoved());
+				boolColorText("TestSongVoice::GetIsPlaying(): ", testSongVoice.GetIsPlaying());
 
-				bool isPlaying = audioInstance->GetIsPlaying();
-				if (Gui::Checkbox("audioInstance->IsPlaying", &isPlaying))
-					audioInstance->SetIsPlaying(isPlaying);
+				bool isPlaying = testSongVoice.GetIsPlaying();
+				if (Gui::Checkbox("testSongVoice::IsPlaying", &isPlaying))
+					testSongVoice.SetIsPlaying(isPlaying);
 
-				bool isLooping = audioInstance->GetIsLooping();
-				if (Gui::Checkbox("audioInstance->IsLooping", &isLooping))
-					audioInstance->SetIsLooping(isLooping);
+				bool isLooping = testSongVoice.GetIsLooping();
+				if (Gui::Checkbox("TestSongVoice::IsLooping", &isLooping))
+					testSongVoice.SetIsLooping(isLooping);
 			}
 		}
 		Gui::Separator();
@@ -271,10 +284,10 @@ namespace Comfy::DataTest
 		{
 			checkStartStream();
 
-			if (buttonTestStream == nullptr)
-				buttonTestStream = engine->LoadAudioFile(testButtonSoundPath);
+			if (buttonTestSource == Audio::SourceHandle::Invalid)
+				buttonTestSource = engine.LoadAudioSource(testButtonSoundPath);
 
-			Gui::Button("PlaySound(TestButtonSound)");
+			Gui::Button("PlaySound(TestButtonSource)");
 			bool addButtonSound = Gui::IsItemHovered() && Gui::IsMouseClicked(0);
 
 			Gui::SliderFloat("Button Volume", &testButtonVolume, Audio::AudioEngine::MinVolume, Audio::AudioEngine::MaxVolume);
@@ -291,7 +304,7 @@ namespace Comfy::DataTest
 					KeyCode_I,
 					KeyCode_J,
 					KeyCode_K,
-					KeyCode_L
+					KeyCode_L,
 				};
 
 				for (const auto& keyCode : keys)
@@ -316,14 +329,14 @@ namespace Comfy::DataTest
 			}
 
 			if (addButtonSound)
-				engine->PlaySound(buttonTestStream, testButtonVolume, "AudioTestWindow::TestButtonSound");
+				engine.PlaySound(buttonTestSource, "AudioTestWindow::TestButtonSound", testButtonVolume);
 		}
 		Gui::Separator();
 	}
 
 	const char* AudioTestWindow::GetGuiName() const
 	{
-		return u8"Audio Test";
+		return "Audio Test";
 	}
 
 	ImGuiWindowFlags AudioTestWindow::GetWindowFlags() const
@@ -333,15 +346,16 @@ namespace Comfy::DataTest
 
 	void AudioTestWindow::RefreshDeviceInfoList()
 	{
-		Audio::AudioEngine* engine = Audio::AudioEngine::GetInstance();
-		size_t deviceCount = engine->GetDeviceCount();
+		auto& engine = Audio::AudioEngine::GetInstance();
+#if 0
+		size_t deviceCount = engine.GetDeviceCount();
 
 		deviceInfoList.clear();
 		deviceInfoList.reserve(deviceCount);
 
 		for (int i = 0; i < deviceCount; i++)
 		{
-			deviceInfoList.push_back({ engine->GetDeviceInfo(i) });
+			deviceInfoList.push_back({ engine.GetDeviceInfo(i) });
 
 			std::stringstream stringStream;
 			{
@@ -383,12 +397,14 @@ namespace Comfy::DataTest
 				deviceInfoList[i].NativeFormatsString = stringStream.str();
 			}
 		}
+#endif
 	}
 
 	void AudioTestWindow::ShowDeviceInfoProperties(const ExtendedDeviceInfo& deviceInfo, int uid)
 	{
 		Gui::PushID(uid);
 
+#if 0
 		Gui::AlignTextToFramePadding();
 
 		bool nodeOpen = Gui::TreeNode("DeviceInfo", "%s", deviceInfo.Info.name.c_str(), uid);
@@ -434,6 +450,7 @@ namespace Comfy::DataTest
 		}
 
 		Gui::TreePop();
+#endif
 
 		Gui::PopID();
 	}

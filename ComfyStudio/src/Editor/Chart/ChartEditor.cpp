@@ -19,14 +19,7 @@ namespace Comfy::Editor
 
 	void ChartEditor::Initialize()
 	{
-		dummySampleProvider = std::make_shared<Audio::SilenceSampleProvider>();
-
-		songInstance = std::make_shared<Audio::AudioInstance>(dummySampleProvider, true, "ChartEditor::SongInstance");
-		songInstance->SetPlayPastEnd(true);
-		songInstance->SetVolume(0.75f);
-
-		Audio::AudioEngine* audioEngine = Audio::AudioEngine::GetInstance();
-		audioEngine->AddAudioInstance(songInstance);
+		songVoice = Audio::AudioEngine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor::SongVoice", false, 0.75f, true);
 
 		timeline->Initialize();
 		syncWindow->Initialize();
@@ -107,18 +100,14 @@ namespace Comfy::Editor
 
 		TimeSpan playbackTime = GetPlaybackTime();
 		{
-			auto newSongStream = Audio::AudioEngine::GetInstance()->LoadAudioFile(filePath);
-			success = newSongStream != nullptr;
+			auto newSongStream = Audio::AudioEngine::GetInstance().LoadAudioSource(filePath);
+			success = true;
 
 			if (success)
 			{
-				songInstance->SetSampleProvider(newSongStream);
+				songVoice.SetSource(newSongStream);
 				songStream = newSongStream;
-				chart->SetDuration(songInstance->GetDuration());
-			}
-			else
-			{
-				songInstance->SetSampleProvider(dummySampleProvider);
+				chart->SetDuration(songVoice.GetDuration());
 			}
 
 			timeline->OnSongLoaded();
@@ -130,12 +119,12 @@ namespace Comfy::Editor
 
 	TimeSpan ChartEditor::GetPlaybackTime() const
 	{
-		return songInstance->GetPosition() - chart->GetStartOffset();
+		return songVoice.GetPosition() - chart->GetStartOffset();
 	}
 
 	void ChartEditor::SetPlaybackTime(TimeSpan value)
 	{
-		songInstance->SetPosition(value + chart->GetStartOffset());
+		songVoice.SetPosition(value + chart->GetStartOffset());
 	}
 
 	Chart* ChartEditor::GetChart()
@@ -158,14 +147,14 @@ namespace Comfy::Editor
 		playbackTimeOnPlaybackStart = GetPlaybackTime();
 
 		isPlaying = true;
-		songInstance->SetIsPlaying(true);
+		songVoice.SetIsPlaying(true);
 
 		timeline->OnPlaybackResumed();
 	}
 
 	void ChartEditor::PausePlayback()
 	{
-		songInstance->SetIsPlaying(false);
+		songVoice.SetIsPlaying(false);
 		isPlaying = false;
 
 		timeline->OnPlaybackPaused();
@@ -179,13 +168,13 @@ namespace Comfy::Editor
 		timeline->OnPlaybackStopped();
 	}
 
-	Audio::MemorySampleProvider* ChartEditor::GetSongStream()
+	Audio::SourceHandle ChartEditor::GetSongSource()
 	{
-		return songStream.get();
+		return songStream;
 	}
 
-	Audio::AudioInstance* ChartEditor::GetSongInstance()
+	Audio::Voice ChartEditor::GetSongVoice()
 	{
-		return songInstance.get();
+		return songVoice;
 	}
 }

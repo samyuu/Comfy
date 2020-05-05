@@ -31,8 +31,8 @@ namespace Comfy::Editor
 
 		bool GetIsPlayback() const;
 
-		Audio::MemorySampleProvider* GetSongStream();
-		Audio::AudioInstance* GetSongInstance();
+		Audio::SourceHandle GetSongSource();
+		Audio::Voice GetSongVoice();
 
 		TimeSpan GetPlaybackTime() const;
 		void SetPlaybackTime(TimeSpan value);
@@ -50,10 +50,9 @@ namespace Comfy::Editor
 		std::unique_ptr<SyncWindow> syncWindow;
 		std::unique_ptr<TargetRenderWindow> renderWindow;
 
-		std::shared_ptr<Audio::SilenceSampleProvider> dummySampleProvider;
-		std::shared_ptr<Audio::MemorySampleProvider> songStream;
-		std::shared_ptr<Audio::AudioInstance> songInstance;
-		
+		Audio::SourceHandle songStream = Audio::SourceHandle::Invalid;
+		Audio::Voice songVoice = Audio::VoiceHandle::Invalid;
+
 		bool isPlaying = false;
 		TimeSpan playbackTimeOnPlaybackStart;
 	};

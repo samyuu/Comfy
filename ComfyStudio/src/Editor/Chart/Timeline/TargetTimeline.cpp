@@ -12,12 +12,12 @@ namespace Comfy::Editor
 	{
 		void EnsureStreamOpenAndRunning()
 		{
-			auto audioEngine = Audio::AudioEngine::GetInstance();
+			auto& audioEngine = Audio::AudioEngine::GetInstance();
 
-			if (!audioEngine->GetIsStreamOpen())
-				audioEngine->OpenStream();
-			if (!audioEngine->GetIsStreamRunning())
-				audioEngine->StartStream();
+			if (!audioEngine.GetIsStreamOpen())
+				audioEngine.OpenStream();
+			if (!audioEngine.GetIsStreamRunning())
+				audioEngine.StartStream();
 		}
 	}
 
@@ -28,11 +28,13 @@ namespace Comfy::Editor
 
 		chartEditor = parentChartEditor;
 		chart = chartEditor->GetChart();
+
+		Audio::AudioEngine::GetInstance().RegisterCallbackReceiver(this);
 	}
 
 	TargetTimeline::~TargetTimeline()
 	{
-		Audio::AudioEngine::GetInstance()->RemoveCallbackReceiver(this);
+		Audio::AudioEngine::GetInstance().UnregisterCallbackReceiver(this);
 	}
 
 	TimelineTick TargetTimeline::GetGridTick() const
@@ -156,7 +158,6 @@ namespace Comfy::Editor
 
 	void TargetTimeline::OnInitialize()
 	{
-		Audio::AudioEngine::GetInstance()->AddCallbackReceiver(this);
 		audioController.Initialize();
 
 		InitializeButtonIcons();
@@ -242,7 +243,7 @@ namespace Comfy::Editor
 		EnsureStreamOpenAndRunning();
 
 		buttonSoundTimesList.clear();
-		for (const auto &target : chart->GetTargets())
+		for (const auto& target : chart->GetTargets())
 		{
 			TimeSpan buttonTime = GetTimelineTime(target.Tick);
 			if (buttonTime >= chartEditor->GetPlaybackTime())
@@ -444,16 +445,21 @@ namespace Comfy::Editor
 
 	void TargetTimeline::DrawWaveform()
 	{
-		if (chartEditor->GetSongStream() == nullptr)
-			return;
-
 		if (zoomLevelChanged)
 			updateWaveform = true;
 
 		if (updateWaveform)
 		{
-			TimeSpan timePerPixel = GetTimelineTime(2.0f) - GetTimelineTime(1.0f);
-			songWaveform.Calculate(chartEditor->GetSongStream(), timePerPixel);
+			if (auto sampleProvider = Audio::AudioEngine::GetInstance().GetRawSource(chartEditor->GetSongSource()); sampleProvider != nullptr)
+			{
+				const TimeSpan timePerPixel = GetTimelineTime(2.0f) - GetTimelineTime(1.0f);
+				songWaveform.Calculate(*sampleProvider, timePerPixel);
+			}
+			else
+			{
+				songWaveform.Clear();
+			}
+
 			updateWaveform = false;
 		}
 
@@ -477,6 +483,7 @@ namespace Comfy::Editor
 			if (timelinePixel < 0)
 				continue;
 
+			// TODO: Try visualizing by interpolating inbetween pixels (2x AA)
 			float amplitude = songWaveform.GetPcmForPixel(timelinePixel) * timelineHeight;
 
 			float x = screenPixel + timelineX;
@@ -839,7 +846,7 @@ namespace Comfy::Editor
 	{
 		const auto& io = Gui::GetIO();
 
-		if (GetIsPlayback()) // seek through song
+		if (GetIsPlayback()) // NOTE: Seek through song
 		{
 			const TimeSpan increment = TimeSpan((io.KeyShift ? 1.0 : 0.5) * io.MouseWheel);
 

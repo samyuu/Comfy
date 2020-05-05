@@ -24,29 +24,23 @@ namespace Comfy::DataTest
 	private:
 		struct ExtendedDeviceInfo
 		{
-			RtAudio::DeviceInfo Info;
+			Audio::DeviceInfo Info;
 			std::string SampleRatesString;
 			std::string NativeFormatsString;
 		};
 
 		std::vector<ExtendedDeviceInfo> deviceInfoList;
 
-		std::shared_ptr<Audio::MemorySampleProvider> songTestStream = nullptr;
-		std::shared_ptr<Audio::MemorySampleProvider> buttonTestStream = nullptr;
-		std::shared_ptr<Audio::AudioInstance> songAudioInstance = nullptr;
+		Audio::SourceHandle testSongSource = Audio::SourceHandle::Invalid;
+		Audio::SourceHandle buttonTestSource = Audio::SourceHandle::Invalid;
+		Audio::Voice testSongVoice = Audio::VoiceHandle::Invalid;
 
 		float testButtonVolume = Audio::AudioEngine::MaxVolume;
 
-		Audio::AudioApi selectedAudioApi = Audio::AudioApi::Invalid;
+		Audio::AudioEngine::AudioAPI selectedAudioApi = Audio::AudioEngine::AudioAPI::Invalid;
 		Audio::ChannelMixer::MixingBehavior selectedMixingBehavior = static_cast<Audio::ChannelMixer::MixingBehavior>(-1);
 
-		int newBufferSize = -1;
-
-		static constexpr std::array<const char*, static_cast<size_t>(Audio::AudioApi::Count)> audioApiNames =
-		{
-			"AudioApi::ASIO",
-			"AudioApi::WASAPI",
-		};
+		u32 newBufferSize = 4;
 
 		static constexpr std::array<const char*, static_cast<size_t>(Audio::ChannelMixer::MixingBehavior::Count)> mixingBehaviorNames =
 		{
@@ -64,16 +58,6 @@ namespace Comfy::DataTest
 			"Default Input",
 			"Sample Rates",
 			"Native Formats",
-		};
-
-		static constexpr std::array<std::pair<RtAudioFormat, const char*>, 6> audioFormatDescriptions =
-		{
-			std::make_pair(RTAUDIO_SINT8,	"SINT8"),
-			std::make_pair(RTAUDIO_SINT16,	"SINT16"),
-			std::make_pair(RTAUDIO_SINT24,	"SINT24"),
-			std::make_pair(RTAUDIO_SINT32,	"SINT32"),
-			std::make_pair(RTAUDIO_FLOAT32,	"FLOAT32"),
-			std::make_pair(RTAUDIO_FLOAT64,	"FLOAT64"),
 		};
 
 		void RefreshDeviceInfoList();

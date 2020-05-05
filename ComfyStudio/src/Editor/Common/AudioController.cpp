@@ -1,7 +1,6 @@
 #include "AudioController.h"
 #include "Audio/Core/AudioEngine.h"
 #include "Audio/Decoder/AudioDecoderFactory.h"
-#include <assert.h>
 
 namespace Comfy::Editor
 {
@@ -11,28 +10,19 @@ namespace Comfy::Editor
 
 	AudioController::~AudioController()
 	{
-		for (const auto &instance : buttonSoundInstancePool)
-		{
-			if (instance == nullptr)
-				continue;
-			
-			instance->SetIsPlaying(false);
-			instance->SetAppendRemove(true);
-		}
+		for (auto& voice : buttonSoundVoicePool)
+			Audio::AudioEngine::GetInstance().RemoveVoice(voice);
 	}
 
 	void AudioController::Initialize()
 	{
-		auto audioEngine = Audio::AudioEngine::GetInstance();
+		auto& audioEngine = Audio::AudioEngine::GetInstance();
 
-		for (auto& instance : buttonSoundInstancePool)
-		{
-			instance = std::make_shared<Audio::AudioInstance>(nullptr, false, "AudioController::ButtonSoundInstance");
-			audioEngine->AddAudioInstance(instance);
-		}
+		for (auto& voice : buttonSoundVoicePool)
+			voice = audioEngine.AddVoice(Audio::SourceHandle::Invalid, "AudioController::ButtonSoundVoice", false);
 
-		// only load the default button sound for now
-		buttonSoundSources.push_back(audioEngine->LoadAudioFile(buttonSoundPath));
+		// NOTE: Only load the default button sound for now
+		buttonSoundSources.push_back(audioEngine.LoadAudioSource(buttonSoundPath));
 		buttonSoundIndex = 0;
 	}
 
@@ -45,46 +35,45 @@ namespace Comfy::Editor
 		buttonSoundTime = TimeSpan::GetTimeNow();
 		timeSinceLastButtonSound = buttonSoundTime - lastButtonSoundTime;
 
-		Audio::AudioInstance* longestRunningInstance = nullptr;
-		for (const auto &instance : buttonSoundInstancePool)
+		Audio::Voice* longestRunningVoice = nullptr;
+		for (auto& voice : buttonSoundVoicePool)
 		{
-			if (instance == nullptr)
-				continue;
+			const auto voicePosition = voice.GetPosition();
 
-			if (!instance->GetIsPlaying() || instance->GetHasReachedEnd())
+			if (!voice.GetIsPlaying() || (voicePosition >= voice.GetDuration()))
 			{
-				PlayButtonSound(instance.get());
+				PlayButtonSound(voice);
 				return;
 			}
 
-			if (longestRunningInstance == nullptr || instance->GetPosition() > longestRunningInstance->GetPosition())
-				longestRunningInstance = instance.get();
+			if (longestRunningVoice == nullptr || voicePosition > longestRunningVoice->GetPosition())
+				longestRunningVoice = &voice;
 		}
 
-		if (longestRunningInstance != nullptr)
-			PlayButtonSound(longestRunningInstance);
+		if (longestRunningVoice != nullptr)
+			PlayButtonSound(*longestRunningVoice);
 	}
 
-	const std::shared_ptr<Audio::MemorySampleProvider>& AudioController::GetButtonSoundSource(int index)
+	Audio::SourceHandle AudioController::GetButtonSoundSource(int index)
 	{
 		return buttonSoundSources[buttonSoundIndex];
 	}
 
-	void AudioController::PlayButtonSound(Audio::AudioInstance* audioInstance)
+	void AudioController::PlayButtonSound(Audio::Voice voice)
 	{
 		float volume = buttonSoundVolume;
 
 		// NOTE: Subject to change
-		float threshold = 50.0f;
+		constexpr float threshold = 50.0f;
 		if (timeSinceLastButtonSound.TotalMilliseconds() < threshold)
 		{
 			const float elapsed = static_cast<float>(timeSinceLastButtonSound.TotalMilliseconds() / threshold);
 			volume *= (0.0f + elapsed * (1.0f - 0.0f));
 		}
 
-		audioInstance->SetVolume(volume);
-		audioInstance->SetSampleProvider(GetButtonSoundSource(buttonSoundIndex));
-		audioInstance->Restart();
-		audioInstance->SetIsPlaying(true);
+		voice.SetVolume(volume);
+		voice.SetSource(GetButtonSoundSource(buttonSoundIndex));
+		voice.SetPosition(TimeSpan::Zero());
+		voice.SetIsPlaying(true);
 	}
 }
