@@ -1,11 +1,9 @@
-#include "AudioEngine.h"
-#include "AudioInstance.h"
-#include "Audio/Decoder/AudioDecoderFactory.h"
+#include "Engine.h"
+#include "Audio/Decoder/DecoderFactory.h"
 #include "Detail/SampleMixer.h"
 #include "Core/Logger.h"
 #include "Time/Stopwatch.h"
 #include <RtAudio.h>
-#include <functional>
 #include <mutex>
 #include <assert.h>
 
@@ -32,7 +30,7 @@ namespace Comfy::Audio
 		}
 	}
 
-	std::unique_ptr<AudioEngine> AudioEngineInstance = nullptr;
+	std::unique_ptr<Engine> EngineInstance = nullptr;
 
 	enum class AudioCallbackResult
 	{
@@ -66,11 +64,11 @@ namespace Comfy::Audio
 
 	static_assert(std::is_pod_v<VoiceData>);
 
-	struct AudioEngine::Impl
+	struct Engine::Impl
 	{
 	public:
 		bool IsStreamOpen = false, IsStreamRunning = false;
-		f32 MasterVolume = AudioEngine::MaxVolume;
+		f32 MasterVolume = Engine::MaxVolume;
 
 	public:
 		std::mutex CallbackMutex;
@@ -88,7 +86,7 @@ namespace Comfy::Audio
 		u32 CurrentBufferFrameSize = DefaultSampleBufferSize;
 
 		size_t CallbackDurationRingIndex = 0;
-		std::array<TimeSpan, AudioEngine::CallbackDurationRingBufferSize> CallbackDurationsRingBuffer = {};
+		std::array<TimeSpan, Engine::CallbackDurationRingBufferSize> CallbackDurationsRingBuffer = {};
 
 		TimeSpan CallbackFrequency = {};
 		TimeSpan CallbackStreamTime = {}, LastCallbackStreamTime = {};
@@ -147,7 +145,7 @@ namespace Comfy::Audio
 
 		void AudioCallbackClearOutPreviousCallBuffer(i16* outputBuffer, size_t sampleCount)
 		{
-			std::fill(outputBuffer, outputBuffer + sampleCount, 0);
+			std::fill(outputBuffer, outputBuffer + sampleCount - 2, 0);
 		}
 
 		void AudioCallbackProcessVoices(i16* outputBuffer, const u32 bufferFrameCount, const u32 bufferSampleCount)
@@ -196,16 +194,10 @@ namespace Comfy::Audio
 					framesRead = sampleProvider->ReadSamples(TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount, OutputChannelCount);
 				voiceData.FramePosition += framesRead;
 
+				const float adjustedVoiceVolume = (voiceData.Volume * MasterVolume);
 				for (i64 i = 0; i < (framesRead * OutputChannelCount); i++)
-					outputBuffer[i] = SampleMixer::MixSamples(outputBuffer[i], static_cast<i16>(TempOutputBuffer[i] * voiceData.Volume));
+					outputBuffer[i] = SampleMixer::MixSamples(outputBuffer[i], static_cast<i16>(TempOutputBuffer[i] * adjustedVoiceVolume));
 			}
-		}
-
-		void AudioCallbackAdjustBufferMasterVolume(i16* outputBuffer, size_t sampleCount)
-		{
-			const auto bufferSampleCount = (CurrentBufferFrameSize * OutputChannelCount);
-			for (auto i = 0; i < sampleCount; i++)
-				outputBuffer[i] = static_cast<i16>(outputBuffer[i] * MasterVolume);
 		}
 
 		AudioCallbackResult AudioCallback(i16* outputBuffer, u32 bufferFrameCount, double streamTime)
@@ -222,7 +214,6 @@ namespace Comfy::Audio
 			AudioCallbackNotifyCallbackReceivers();
 			AudioCallbackClearOutPreviousCallBuffer(outputBuffer, bufferSampleCount);
 			AudioCallbackProcessVoices(outputBuffer, bufferFrameCount, bufferSampleCount);
-			AudioCallbackAdjustBufferMasterVolume(outputBuffer, bufferSampleCount);
 
 			if (CallbackDurationRingIndex++ >= (CallbackDurationsRingBuffer.size() - 1))
 				CallbackDurationRingIndex = 0;
@@ -234,51 +225,50 @@ namespace Comfy::Audio
 
 		static int StaticAudioCallback(void* outputBuffer, void*, u32 bufferFrames, double streamTime, RtAudioStreamStatus, void* userData)
 		{
-			auto implInstance = static_cast<AudioEngine*>(userData)->impl.get();
+			auto implInstance = static_cast<Engine*>(userData)->impl.get();
 			return static_cast<int>(implInstance->AudioCallback(static_cast<i16*>(outputBuffer), bufferFrames, streamTime));
 		}
 	};
 
-	AudioEngine::AudioEngine() : impl(std::make_unique<Impl>())
+	Engine::Engine() : impl(std::make_unique<Impl>())
 	{
 		SetAudioAPI(AudioAPI::Default);
 
 		impl->ActiveChannelMixer.SetTargetChannels(OutputChannelCount);
 		impl->ActiveChannelMixer.SetMixingBehavior(ChannelMixer::MixingBehavior::Mix);
 
-		// TODO: Uncomment once this is all working correctly
-		// constexpr size_t initialCapacity = 64;
-		// impl->LoadedSources.reserve(initialCapacity);
+		constexpr size_t reasonableInitialCapacity = 64;
+		impl->LoadedSources.reserve(reasonableInitialCapacity);
 	}
 
-	AudioEngine::~AudioEngine()
+	Engine::~Engine()
 	{
 		if (impl->IsStreamOpen)
 			StopStream();
 	}
 
-	void AudioEngine::CreateInstance()
+	void Engine::CreateInstance()
 	{
-		AudioEngineInstance = std::make_unique<AudioEngine>();
+		EngineInstance = std::make_unique<Engine>();
 	}
 
-	void AudioEngine::DeleteInstance()
+	void Engine::DeleteInstance()
 	{
-		AudioEngineInstance = nullptr;
+		EngineInstance = nullptr;
 	}
 
-	bool AudioEngine::InstanceValid()
+	bool Engine::InstanceValid()
 	{
-		return (AudioEngineInstance != nullptr);
+		return (EngineInstance != nullptr);
 	}
 
-	AudioEngine& AudioEngine::GetInstance()
+	Engine& Engine::GetInstance()
 	{
-		assert(AudioEngineInstance != nullptr);
-		return *AudioEngineInstance;
+		assert(EngineInstance != nullptr);
+		return *EngineInstance;
 	}
 
-	void AudioEngine::OpenStream()
+	void Engine::OpenStream()
 	{
 		if (impl->IsStreamOpen)
 			return;
@@ -316,7 +306,7 @@ namespace Comfy::Audio
 #endif
 	}
 
-	void AudioEngine::CloseStream()
+	void Engine::CloseStream()
 	{
 		if (!impl->IsStreamOpen)
 			return;
@@ -326,7 +316,7 @@ namespace Comfy::Audio
 		impl->RtAudio.Context->closeStream();
 	}
 
-	void AudioEngine::StartStream()
+	void Engine::StartStream()
 	{
 		if (!impl->IsStreamOpen || impl->IsStreamRunning)
 			return;
@@ -335,7 +325,7 @@ namespace Comfy::Audio
 		impl->RtAudio.Context->startStream();
 	}
 
-	void AudioEngine::StopStream()
+	void Engine::StopStream()
 	{
 		if (!impl->IsStreamOpen || !impl->IsStreamRunning)
 			return;
@@ -344,12 +334,21 @@ namespace Comfy::Audio
 		impl->RtAudio.Context->stopStream();
 	}
 
-	SourceHandle AudioEngine::LoadAudioSource(std::string_view filePath)
+	void Engine::EnsureStreamRunning()
 	{
-		return LoadAudioSource(AudioDecoderFactory::GetInstance().DecodeFile(filePath));
+		if (!GetIsStreamOpen())
+			OpenStream();
+
+		if (!GetIsStreamRunning())
+			StartStream();
 	}
 
-	SourceHandle AudioEngine::LoadAudioSource(std::unique_ptr<ISampleProvider> sampleProvider)
+	SourceHandle Engine::LoadAudioSource(std::string_view filePath)
+	{
+		return LoadAudioSource(DecoderFactory::GetInstance().DecodeFile(filePath));
+	}
+
+	SourceHandle Engine::LoadAudioSource(std::unique_ptr<ISampleProvider> sampleProvider)
 	{
 		if (sampleProvider == nullptr)
 			return SourceHandle::Invalid;
@@ -368,7 +367,7 @@ namespace Comfy::Audio
 		return static_cast<SourceHandle>(impl->LoadedSources.size() - 1);
 	}
 
-	void AudioEngine::UnloadSource(SourceHandle source)
+	void Engine::UnloadSource(SourceHandle source)
 	{
 		const auto lock = std::scoped_lock(impl->CallbackMutex);
 
@@ -385,7 +384,7 @@ namespace Comfy::Audio
 		}
 	}
 
-	VoiceHandle AudioEngine::AddVoice(SourceHandle source, std::string_view name, bool playing, f32 volume, bool playPastEnd)
+	VoiceHandle Engine::AddVoice(SourceHandle source, std::string_view name, bool playing, f32 volume, bool playPastEnd)
 	{
 		const auto lock = std::scoped_lock(impl->CallbackMutex);
 
@@ -410,7 +409,7 @@ namespace Comfy::Audio
 		return VoiceHandle::Invalid;
 	}
 
-	void AudioEngine::RemoveVoice(VoiceHandle voice)
+	void Engine::RemoveVoice(VoiceHandle voice)
 	{
 		// TODO: Think these locks through again
 		const auto lock = std::scoped_lock(impl->CallbackMutex);
@@ -419,7 +418,7 @@ namespace Comfy::Audio
 			voicePtr->Flags = VoiceFlags_Dead;
 	}
 
-	void AudioEngine::PlaySound(SourceHandle source, std::string_view name, f32 volume)
+	void Engine::PlaySound(SourceHandle source, std::string_view name, f32 volume)
 	{
 		const auto lock = std::scoped_lock(impl->CallbackMutex);
 
@@ -437,12 +436,12 @@ namespace Comfy::Audio
 		}
 	}
 
-	ISampleProvider* AudioEngine::GetRawSource(SourceHandle handle)
+	ISampleProvider* Engine::GetRawSource(SourceHandle handle)
 	{
 		return impl->GetSource(handle);
 	}
 
-	void AudioEngine::RegisterCallbackReceiver(ICallbackReceiver* callbackReceiver)
+	void Engine::RegisterCallbackReceiver(ICallbackReceiver* callbackReceiver)
 	{
 		for (auto& receiver : impl->RegisteredCallbackReceivers)
 		{
@@ -456,7 +455,7 @@ namespace Comfy::Audio
 		impl->RegisteredCallbackReceivers.push_back(callbackReceiver);
 	}
 
-	void AudioEngine::UnregisterCallbackReceiver(ICallbackReceiver* callbackReceiver)
+	void Engine::UnregisterCallbackReceiver(ICallbackReceiver* callbackReceiver)
 	{
 		for (auto& receiver : impl->RegisteredCallbackReceivers)
 		{
@@ -465,12 +464,12 @@ namespace Comfy::Audio
 		}
 	}
 
-	AudioEngine::AudioAPI AudioEngine::GetAudioAPI() const
+	Engine::AudioAPI Engine::GetAudioAPI() const
 	{
 		return impl->CurrentAudioAPI;
 	}
 
-	void AudioEngine::SetAudioAPI(AudioAPI value)
+	void Engine::SetAudioAPI(AudioAPI value)
 	{
 		impl->CurrentAudioAPI = value;
 		const bool wasStreamRunning = (impl->IsStreamOpen && impl->IsStreamRunning);
@@ -490,42 +489,42 @@ namespace Comfy::Audio
 		}
 	}
 
-	bool AudioEngine::GetIsStreamOpen() const
+	bool Engine::GetIsStreamOpen() const
 	{
 		return impl->IsStreamOpen;
 	}
 
-	bool AudioEngine::GetIsStreamRunning() const
+	bool Engine::GetIsStreamRunning() const
 	{
 		return impl->IsStreamRunning;
 	}
 
-	f32 AudioEngine::GetMasterVolume() const
+	f32 Engine::GetMasterVolume() const
 	{
 		return impl->MasterVolume;
 	}
 
-	void AudioEngine::SetMasterVolume(f32 value)
+	void Engine::SetMasterVolume(f32 value)
 	{
 		impl->MasterVolume = std::clamp(value, MinVolume, MaxVolume);
 	}
 
-	u32 AudioEngine::GetChannelCount() const
+	u32 Engine::GetChannelCount() const
 	{
 		return OutputChannelCount;
 	}
 
-	u32 AudioEngine::GetSampleRate() const
+	u32 Engine::GetSampleRate() const
 	{
 		return OutputSampleRate;
 	}
 
-	u32 AudioEngine::GetBufferFrameSize() const
+	u32 Engine::GetBufferFrameSize() const
 	{
 		return impl->CurrentBufferFrameSize;
 	}
 
-	void AudioEngine::SetBufferFrameSize(u32 bufferFrameSize)
+	void Engine::SetBufferFrameSize(u32 bufferFrameSize)
 	{
 		bufferFrameSize = std::min(bufferFrameSize, MaxSampleBufferSize * OutputChannelCount);
 
@@ -547,12 +546,12 @@ namespace Comfy::Audio
 			StartStream();
 	}
 
-	TimeSpan AudioEngine::GetStreamTime() const
+	TimeSpan Engine::GetStreamTime() const
 	{
 		return impl->CallbackStreamTime;
 	}
 
-	void AudioEngine::SetStreamTime(TimeSpan value)
+	void Engine::SetStreamTime(TimeSpan value)
 	{
 		if (impl->IsStreamOpen)
 		{
@@ -561,22 +560,22 @@ namespace Comfy::Audio
 		}
 	}
 
-	bool AudioEngine::GetIsExclusiveMode() const
+	bool Engine::GetIsExclusiveMode() const
 	{
 		return impl->CurrentAudioAPI == AudioAPI::ASIO;
 	}
 
-	TimeSpan AudioEngine::GetCallbackFrequency() const
+	TimeSpan Engine::GetCallbackFrequency() const
 	{
 		return impl->CallbackFrequency;
 	}
 
-	ChannelMixer& AudioEngine::GetChannelMixer()
+	ChannelMixer& Engine::GetChannelMixer()
 	{
 		return impl->ActiveChannelMixer;
 	}
 
-	void AudioEngine::DebugShowControlPanel() const
+	void Engine::DebugShowControlPanel() const
 	{
 		if (impl->CurrentAudioAPI != AudioAPI::ASIO)
 			return;
@@ -587,7 +586,7 @@ namespace Comfy::Audio
 		ASIOControlPanel();
 	}
 
-	void AudioEngine::DebugGetAllVoices(Voice* outputVoices, size_t* outputVoiceCount)
+	void Engine::DebugGetAllVoices(Voice* outputVoices, size_t* outputVoiceCount)
 	{
 		assert(outputVoices != nullptr && outputVoiceCount != nullptr);
 		size_t voiceCount = 0;
@@ -603,7 +602,7 @@ namespace Comfy::Audio
 		*outputVoiceCount = voiceCount;
 	}
 
-	void AudioEngine::DebugGetCallbackDurations(TimeSpan* outputDurations)
+	void Engine::DebugGetCallbackDurations(TimeSpan* outputDurations)
 	{
 		assert(outputDurations != nullptr);
 		for (size_t i = 0; i < impl->CallbackDurationsRingBuffer.size(); i++)
@@ -612,13 +611,13 @@ namespace Comfy::Audio
 
 	bool Voice::IsValid() const
 	{
-		auto& impl = AudioEngineInstance->impl;
+		auto& impl = EngineInstance->impl;
 		return (impl->GetVoiceData(Handle) != nullptr);
 	}
 
 	f32 Voice::GetVolume() const
 	{
-		auto& impl = AudioEngineInstance->impl;
+		auto& impl = EngineInstance->impl;
 
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			return voice->Volume;
@@ -627,7 +626,7 @@ namespace Comfy::Audio
 
 	void Voice::SetVolume(f32 value)
 	{
-		auto& impl = AudioEngineInstance->impl;
+		auto& impl = EngineInstance->impl;
 
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			voice->Volume = value;
@@ -635,12 +634,12 @@ namespace Comfy::Audio
 
 	TimeSpan Voice::GetPosition() const
 	{
-		auto& impl = AudioEngineInstance->impl;
+		auto& impl = EngineInstance->impl;
 
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 		{
 			const auto source = impl->GetSource(voice->Source);
-			const auto sampleRate = (source != nullptr) ? source->GetSampleRate() : AudioEngine::OutputSampleRate;
+			const auto sampleRate = (source != nullptr) ? source->GetSampleRate() : Engine::OutputSampleRate;
 			return FramesToTimeSpan(voice->FramePosition, sampleRate);
 		}
 		return TimeSpan::Zero();
@@ -648,19 +647,19 @@ namespace Comfy::Audio
 
 	void Voice::SetPosition(TimeSpan value)
 	{
-		auto& impl = AudioEngineInstance->impl;
+		auto& impl = EngineInstance->impl;
 
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 		{
 			const auto source = impl->GetSource(voice->Source);
-			const auto sampleRate = (source != nullptr) ? source->GetSampleRate() : AudioEngine::OutputSampleRate;
+			const auto sampleRate = (source != nullptr) ? source->GetSampleRate() : Engine::OutputSampleRate;
 			voice->FramePosition = TimeSpanToFrames(value, sampleRate);
 		}
 	}
 
 	SourceHandle Voice::GetSource() const
 	{
-		auto& impl = AudioEngineInstance->impl;
+		auto& impl = EngineInstance->impl;
 
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			return voice->Source;
@@ -669,7 +668,7 @@ namespace Comfy::Audio
 
 	void Voice::SetSource(SourceHandle value)
 	{
-		auto& impl = AudioEngineInstance->impl;
+		auto& impl = EngineInstance->impl;
 
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			voice->Source = value;
@@ -677,7 +676,7 @@ namespace Comfy::Audio
 
 	TimeSpan Voice::GetDuration() const
 	{
-		auto& impl = AudioEngineInstance->impl;
+		auto& impl = EngineInstance->impl;
 
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 		{
@@ -689,7 +688,7 @@ namespace Comfy::Audio
 
 	bool Voice::GetIsPlaying() const
 	{
-		auto& impl = AudioEngineInstance->impl;
+		auto& impl = EngineInstance->impl;
 
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			return (voice->Flags & VoiceFlags_Playing);
@@ -698,7 +697,7 @@ namespace Comfy::Audio
 
 	void Voice::SetIsPlaying(bool value)
 	{
-		auto& impl = AudioEngineInstance->impl;
+		auto& impl = EngineInstance->impl;
 
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			voice->Flags = value ? (voice->Flags | VoiceFlags_Playing) : (voice->Flags & ~VoiceFlags_Playing);
@@ -706,7 +705,7 @@ namespace Comfy::Audio
 
 	bool Voice::GetIsLooping() const
 	{
-		auto& impl = AudioEngineInstance->impl;
+		auto& impl = EngineInstance->impl;
 
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			return (voice->Flags & VoiceFlags_Looping);
@@ -715,7 +714,7 @@ namespace Comfy::Audio
 
 	void Voice::SetIsLooping(bool value)
 	{
-		auto& impl = AudioEngineInstance->impl;
+		auto& impl = EngineInstance->impl;
 
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			voice->Flags = value ? (voice->Flags | VoiceFlags_Looping) : (voice->Flags & ~VoiceFlags_Looping);
@@ -723,7 +722,7 @@ namespace Comfy::Audio
 
 	bool Voice::GetPlayPastEnd() const
 	{
-		auto& impl = AudioEngineInstance->impl;
+		auto& impl = EngineInstance->impl;
 
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			return (voice->Flags & VoiceFlags_PlayPastEnd);
@@ -732,7 +731,7 @@ namespace Comfy::Audio
 
 	void Voice::SetPlayPastEnd(bool value)
 	{
-		auto& impl = AudioEngineInstance->impl;
+		auto& impl = EngineInstance->impl;
 
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			voice->Flags = value ? (voice->Flags | VoiceFlags_PlayPastEnd) : (voice->Flags & ~VoiceFlags_PlayPastEnd);
@@ -740,7 +739,7 @@ namespace Comfy::Audio
 
 	bool Voice::GetRemoveOnEnd() const
 	{
-		auto& impl = AudioEngineInstance->impl;
+		auto& impl = EngineInstance->impl;
 
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			return (voice->Flags & VoiceFlags_RemoveOnEnd);
@@ -749,7 +748,7 @@ namespace Comfy::Audio
 
 	void Voice::SetRemoveOnEnd(bool value)
 	{
-		auto& impl = AudioEngineInstance->impl;
+		auto& impl = EngineInstance->impl;
 
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			voice->Flags = value ? (voice->Flags | VoiceFlags_RemoveOnEnd) : (voice->Flags & ~VoiceFlags_RemoveOnEnd);
@@ -757,7 +756,7 @@ namespace Comfy::Audio
 
 	std::string_view Voice::GetName() const
 	{
-		auto& impl = AudioEngineInstance->impl;
+		auto& impl = EngineInstance->impl;
 
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			return voice->Name.data();

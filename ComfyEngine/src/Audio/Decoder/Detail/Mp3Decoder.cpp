@@ -1,5 +1,5 @@
 #include "Decoders.h"
-#include "Audio/Core/AudioEngine.h"
+#include "Audio/Core/Engine.h"
 #define DR_MP3_IMPLEMENTATION
 #include "dr_mp3.h"
 
@@ -10,18 +10,18 @@ namespace Comfy::Audio
 		return ".mp3";
 	}
 
-	AudioDecoderResult Mp3Decoder::DecodeParseAudio(const void* fileData, size_t fileSize, AudioDecoderOutputData* outputData)
+	DecoderResult Mp3Decoder::DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData* outputData)
 	{
 		drmp3_config config;
-		config.outputChannels = AudioEngine::GetInstance().GetChannelCount();
-		config.outputSampleRate = AudioEngine::GetInstance().GetSampleRate();
+		config.outputChannels = Engine::GetInstance().GetChannelCount();
+		config.outputSampleRate = Engine::GetInstance().GetSampleRate();
 
 		u64 frameCount;
 		i16* data = drmp3_open_memory_and_read_s16(fileData, fileSize, &config, &frameCount);
 		COMFY_SCOPE_EXIT([&] { drmp3_free(data); });
 
 		if (data == nullptr)
-			return AudioDecoderResult::Failure;
+			return DecoderResult::Failure;
 
 		*outputData->ChannelCount = config.outputChannels;
 		*outputData->SampleRate = config.outputSampleRate;
@@ -35,6 +35,6 @@ namespace Comfy::Audio
 			std::copy(data, data + sampleCount, outputData->SampleData->get());
 		}
 
-		return AudioDecoderResult::Success;
+		return DecoderResult::Success;
 	}
 }

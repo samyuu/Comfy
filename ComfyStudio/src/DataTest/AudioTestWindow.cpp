@@ -1,6 +1,5 @@
 #include "AudioTestWindow.h"
 #include "Core/Application.h"
-#include "Audio/Core/AudioInstance.h"
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
 #include <numeric>
@@ -18,17 +17,14 @@ namespace Comfy::DataTest
 
 	void AudioTestWindow::DrawGui()
 	{
-		auto& engine = Audio::AudioEngine::GetInstance();
+		auto& engine = Audio::Engine::GetInstance();
 
-		auto checkStartStream = [&engine]()
+		auto checkStartStream = [&]()
 		{
 			static bool checkStartStream = true;
 			if (checkStartStream)
 			{
-				if (!engine.GetIsStreamOpen())
-					engine.OpenStream();
-				if (!engine.GetIsStreamRunning())
-					engine.StartStream();
+				engine.EnsureStreamRunning();
 				checkStartStream = false;
 			}
 		};
@@ -37,7 +33,7 @@ namespace Comfy::DataTest
 		Gui::Separator();
 
 		float masterVolume = engine.GetMasterVolume();
-		if (Gui::SliderFloat("Master Volume", &masterVolume, Audio::AudioEngine::MinVolume, Audio::AudioEngine::MaxVolume))
+		if (Gui::SliderFloat("Master Volume", &masterVolume, Audio::Engine::MinVolume, Audio::Engine::MaxVolume))
 			engine.SetMasterVolume(masterVolume);
 		Gui::Separator();
 
@@ -103,7 +99,7 @@ namespace Comfy::DataTest
 			Gui::Text("%-24s: %.3f s", "GetStreamTime()", engine.GetStreamTime().TotalSeconds());
 			Gui::Text("%-21s: %.3f ms", "GetCallbackFrequency()", engine.GetCallbackFrequency().TotalMilliseconds());
 
-			std::array<TimeSpan, Audio::AudioEngine::CallbackDurationRingBufferSize> durations;
+			std::array<TimeSpan, Audio::Engine::CallbackDurationRingBufferSize> durations;
 			engine.DebugGetCallbackDurations(durations.data());
 
 			std::array<float, durations.size()> durationsMS;
@@ -123,7 +119,7 @@ namespace Comfy::DataTest
 			constexpr u32 slowStep = 8, fastStep = 64;
 			Gui::InputScalar("Buffer Size", ImGuiDataType_U32, &newBufferSize, &slowStep, &fastStep, "%u");
 
-			newBufferSize = std::clamp(newBufferSize, 1u, Audio::AudioEngine::MaxSampleBufferSize * engine.GetChannelCount());
+			newBufferSize = std::clamp(newBufferSize, 1u, Audio::Engine::MaxSampleBufferSize * engine.GetChannelCount());
 
 			if (Gui::Button("SetBufferFrameSize()", vec2(Gui::CalcItemWidth(), 0.0f)))
 				engine.SetBufferFrameSize(newBufferSize);
@@ -132,13 +128,13 @@ namespace Comfy::DataTest
 
 		if (Gui::CollapsingHeader("Audio API"))
 		{
-			auto getAudioAPIName = [](Audio::AudioEngine::AudioAPI api)
+			auto getAudioAPIName = [](Audio::Engine::AudioAPI api)
 			{
 				switch (api)
 				{
-				case Audio::AudioEngine::AudioAPI::ASIO:
+				case Audio::Engine::AudioAPI::ASIO:
 					return "AudioAPI::ASIO";
-				case Audio::AudioEngine::AudioAPI::WASAPI:
+				case Audio::Engine::AudioAPI::WASAPI:
 					return "AudioAPI::ASIO";
 				default:
 					return "AudioAPI::Invalid";
@@ -195,7 +191,7 @@ namespace Comfy::DataTest
 		{
 			Gui::BeginChild("##AudioInstanceChilds", vec2(0.0f, audioInstancesChildHeight), true);
 			{
-				std::array<Audio::Voice, Audio::AudioEngine::MaxSimultaneousVoices> allVoices;
+				std::array<Audio::Voice, Audio::Engine::MaxSimultaneousVoices> allVoices;
 				size_t voiceCount;
 
 				engine.DebugGetAllVoices(allVoices.data(), &voiceCount);
@@ -258,7 +254,7 @@ namespace Comfy::DataTest
 				Gui::Separator();
 
 				float volume = testSongVoice.GetVolume();
-				if (Gui::SliderFloat("Volume", &volume, Audio::AudioEngine::MinVolume, Audio::AudioEngine::MaxVolume))
+				if (Gui::SliderFloat("Volume", &volume, Audio::Engine::MinVolume, Audio::Engine::MaxVolume))
 					testSongVoice.SetVolume(volume);
 
 				auto boolColorText = [&onColor, &offColor](const char* label, bool value)
@@ -290,7 +286,7 @@ namespace Comfy::DataTest
 			Gui::Button("PlaySound(TestButtonSource)");
 			bool addButtonSound = Gui::IsItemHovered() && Gui::IsMouseClicked(0);
 
-			Gui::SliderFloat("Button Volume", &testButtonVolume, Audio::AudioEngine::MinVolume, Audio::AudioEngine::MaxVolume);
+			Gui::SliderFloat("Button Volume", &testButtonVolume, Audio::Engine::MinVolume, Audio::Engine::MaxVolume);
 
 			if (Gui::IsWindowFocused())
 			{
@@ -346,7 +342,7 @@ namespace Comfy::DataTest
 
 	void AudioTestWindow::RefreshDeviceInfoList()
 	{
-		auto& engine = Audio::AudioEngine::GetInstance();
+		auto& engine = Audio::Engine::GetInstance();
 #if 0
 		size_t deviceCount = engine.GetDeviceCount();
 

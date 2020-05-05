@@ -1,41 +1,41 @@
 #pragma once
 #include "Types.h"
-#include "Audio/Decoder/IAudioDecoder.h"
+#include "Audio/Decoder/IDecoder.h"
 
 namespace Comfy::Audio
 {
-	class FlacDecoder : public IAudioDecoder
+	class FlacDecoder : public IDecoder
 	{
 	public:
 		const char* GetFileExtensions() const override;
-		AudioDecoderResult DecodeParseAudio(const void* fileData, size_t fileSize, AudioDecoderOutputData* outputData) override;
+		DecoderResult DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData* outputData) override;
 	};
 
-	class HevagDecoder : public IAudioDecoder
+	class HevagDecoder : public IDecoder
 	{
 	public:
 		const char* GetFileExtensions() const override;
-		AudioDecoderResult DecodeParseAudio(const void* fileData, size_t fileSize, AudioDecoderOutputData* outputData) override;
+		DecoderResult DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData* outputData) override;
 	};
 
-	class Mp3Decoder : public IAudioDecoder
+	class Mp3Decoder : public IDecoder
 	{
 	public:
 		const char* GetFileExtensions() const override;
-		AudioDecoderResult DecodeParseAudio(const void* fileData, size_t fileSize, AudioDecoderOutputData* outputData) override;
+		DecoderResult DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData* outputData) override;
 	};
 
-	class VorbisDecoder : public IAudioDecoder
+	class VorbisDecoder : public IDecoder
 	{
 	public:
 		const char* GetFileExtensions() const override;
-		AudioDecoderResult DecodeParseAudio(const void* fileData, size_t fileSize, AudioDecoderOutputData* outputData) override;
+		DecoderResult DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData* outputData) override;
 	};
 
-	class WavDecoder : public IAudioDecoder
+	class WavDecoder : public IDecoder
 	{
 	public:
 		const char* GetFileExtensions() const override;
-		AudioDecoderResult DecodeParseAudio(const void* fileData, size_t fileSize, AudioDecoderOutputData* outputData) override;
+		DecoderResult DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData* outputData) override;
 	};
 }

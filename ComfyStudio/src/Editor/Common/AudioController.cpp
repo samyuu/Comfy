@@ -1,6 +1,4 @@
 #include "AudioController.h"
-#include "Audio/Core/AudioEngine.h"
-#include "Audio/Decoder/AudioDecoderFactory.h"
 
 namespace Comfy::Editor
 {
@@ -11,12 +9,12 @@ namespace Comfy::Editor
 	AudioController::~AudioController()
 	{
 		for (auto& voice : buttonSoundVoicePool)
-			Audio::AudioEngine::GetInstance().RemoveVoice(voice);
+			Audio::Engine::GetInstance().RemoveVoice(voice);
 	}
 
 	void AudioController::Initialize()
 	{
-		auto& audioEngine = Audio::AudioEngine::GetInstance();
+		auto& audioEngine = Audio::Engine::GetInstance();
 
 		for (auto& voice : buttonSoundVoicePool)
 			voice = audioEngine.AddVoice(Audio::SourceHandle::Invalid, "AudioController::ButtonSoundVoice", false);

@@ -1,8 +1,7 @@
 #pragma once
 #include "CoreTypes.h"
 #include "Core/BaseWindow.h"
-#include "Audio/Core/AudioEngine.h"
-#include "Audio/SampleProvider/MemorySampleProvider.h"
+#include "Audio/Audio.h"
 
 namespace Comfy::DataTest
 {
@@ -35,9 +34,9 @@ namespace Comfy::DataTest
 		Audio::SourceHandle buttonTestSource = Audio::SourceHandle::Invalid;
 		Audio::Voice testSongVoice = Audio::VoiceHandle::Invalid;
 
-		float testButtonVolume = Audio::AudioEngine::MaxVolume;
+		float testButtonVolume = Audio::Engine::MaxVolume;
 
-		Audio::AudioEngine::AudioAPI selectedAudioApi = Audio::AudioEngine::AudioAPI::Invalid;
+		Audio::Engine::AudioAPI selectedAudioApi = Audio::Engine::AudioAPI::Invalid;
 		Audio::ChannelMixer::MixingBehavior selectedMixingBehavior = static_cast<Audio::ChannelMixer::MixingBehavior>(-1);
 
 		u32 newBufferSize = 4;

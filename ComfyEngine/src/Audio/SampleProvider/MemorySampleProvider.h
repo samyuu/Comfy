@@ -7,7 +7,7 @@ namespace Comfy::Audio
 {
 	class MemorySampleProvider : public ISampleProvider, NonCopyable
 	{
-		friend class AudioDecoderFactory;
+		friend class DecoderFactory;
 
 	public:
 		MemorySampleProvider();

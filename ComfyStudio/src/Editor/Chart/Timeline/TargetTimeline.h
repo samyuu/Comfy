@@ -3,9 +3,9 @@
 #include "Editor/Timeline/TimelineBase.h"
 #include "Editor/Common/AudioController.h"
 #include "Editor/Chart/Chart.h"
-#include "Audio/Misc/Waveform.h"
 #include "Graphics/Auth2D/SprSet.h"
 #include "Graphics/GPU/GPUResources.h"
+#include "Audio/Audio.h"
 #include "Input/KeyCode.h"
 
 namespace Comfy::Editor

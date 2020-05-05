@@ -1,5 +1,5 @@
 #include "SilenceSampleProvider.h"
-#include "Audio/Core/AudioEngine.h"
+#include "Audio/Core/Engine.h"
 
 namespace Comfy::Audio
 {
@@ -16,12 +16,12 @@ namespace Comfy::Audio
 
 	u32 SilenceSampleProvider::GetChannelCount() const
 	{
-		return AudioEngine::GetInstance().GetChannelCount();
+		return Engine::GetInstance().GetChannelCount();
 	}
 
 	u32 SilenceSampleProvider::GetSampleRate() const
 	{
-		return AudioEngine::GetInstance().GetSampleRate();
+		return Engine::GetInstance().GetSampleRate();
 	}
 
 	const i16* SilenceSampleProvider::GetRawSampleView() const

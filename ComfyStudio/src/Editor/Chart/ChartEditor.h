@@ -4,7 +4,6 @@
 #include "SyncWindow.h"
 #include "Timeline/TargetTimeline.h"
 #include "TargetRenderWindow.h"
-#include "Audio/SampleProvider/SilenceSampleProvider.h"
 #include "ImGui/Widgets/FileViewer.h"
 
 namespace Comfy::Editor

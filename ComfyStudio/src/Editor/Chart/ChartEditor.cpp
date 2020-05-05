@@ -19,7 +19,7 @@ namespace Comfy::Editor
 
 	void ChartEditor::Initialize()
 	{
-		songVoice = Audio::AudioEngine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor::SongVoice", false, 0.75f, true);
+		songVoice = Audio::Engine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor::SongVoice", false, 0.75f, true);
 
 		timeline->Initialize();
 		syncWindow->Initialize();
@@ -100,7 +100,7 @@ namespace Comfy::Editor
 
 		TimeSpan playbackTime = GetPlaybackTime();
 		{
-			auto newSongStream = Audio::AudioEngine::GetInstance().LoadAudioSource(filePath);
+			auto newSongStream = Audio::Engine::GetInstance().LoadAudioSource(filePath);
 			success = true;
 
 			if (success)

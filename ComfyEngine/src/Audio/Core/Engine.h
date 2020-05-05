@@ -61,8 +61,7 @@ namespace Comfy::Audio
 	{
 	};
 
-	// TODO: Remove "Audio" prefix since it's implied by the namespace
-	class AudioEngine : NonCopyable
+	class Engine : NonCopyable
 	{
 		friend Voice;
 
@@ -87,15 +86,15 @@ namespace Comfy::Audio
 		};
 
 	public:
-		AudioEngine();
-		~AudioEngine();
+		Engine();
+		~Engine();
 
 	public:
 		static void CreateInstance();
 		static void DeleteInstance();
 
 		static bool InstanceValid();
-		static AudioEngine& GetInstance();
+		static Engine& GetInstance();
 
 	public:
 		void OpenStream();
@@ -103,6 +102,9 @@ namespace Comfy::Audio
 
 		void StartStream();
 		void StopStream();
+
+		// NOTE: Little helper to easily delay opening and starting of the stream until it's necessary
+		void EnsureStreamRunning();
 
 	public:
 		COMFY_NODISCARD SourceHandle LoadAudioSource(std::string_view filePath);
@@ -153,10 +155,10 @@ namespace Comfy::Audio
 
 		void DebugShowControlPanel() const;
 
-		// NOTE: Has to be large enough to store AudioEngine::MaxSimultaneousVoices
+		// NOTE: Has to be large enough to store Engine::MaxSimultaneousVoices
 		void DebugGetAllVoices(Voice* outputVoices, size_t* outputVoiceCount);
 
-		// NOTE: Has to be large enough to store AudioEngine::CallbackDurationRingBufferSize
+		// NOTE: Has to be large enough to store Engine::CallbackDurationRingBufferSize
 		void DebugGetCallbackDurations(TimeSpan* outputDurations);
 
 	private:

@@ -8,8 +8,8 @@ namespace Comfy::Audio
 		return ".vag";
 	}
 
-	AudioDecoderResult HevagDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, AudioDecoderOutputData* outputData)
+	DecoderResult HevagDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData* outputData)
 	{
-		return AudioDecoderResult::Failure;
+		return DecoderResult::Failure;
 	}
 }

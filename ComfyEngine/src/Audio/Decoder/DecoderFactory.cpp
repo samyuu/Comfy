@@ -1,5 +1,6 @@
-#include "AudioDecoderFactory.h"
+#include "DecoderFactory.h"
 #include "Detail/Decoders.h"
+#include "Audio/SampleProvider/MemorySampleProvider.h"
 #include "IO/File.h"
 #include "IO/Path.h"
 #include "Misc/FileExtensionHelper.h"
@@ -8,22 +9,22 @@
 
 namespace Comfy::Audio
 {
-	std::unique_ptr<AudioDecoderFactory> AudioDecoderFactoryInstance = nullptr;
+	std::unique_ptr<DecoderFactory> DecoderFactoryInstance = nullptr;
 
-	AudioDecoderFactory::AudioDecoderFactory()
+	DecoderFactory::DecoderFactory()
 	{
 		RegisterAllDecoders();
 	}
 
-	AudioDecoderFactory& AudioDecoderFactory::GetInstance()
+	DecoderFactory& DecoderFactory::GetInstance()
 	{
-		if (AudioDecoderFactoryInstance == nullptr)
-			AudioDecoderFactoryInstance = std::make_unique<AudioDecoderFactory>();
+		if (DecoderFactoryInstance == nullptr)
+			DecoderFactoryInstance = std::make_unique<DecoderFactory>();
 
-		return *AudioDecoderFactoryInstance;
+		return *DecoderFactoryInstance;
 	}
 
-	std::unique_ptr<ISampleProvider> AudioDecoderFactory::DecodeFile(std::string_view filePath)
+	std::unique_ptr<ISampleProvider> DecoderFactory::DecodeFile(std::string_view filePath)
 	{
 		if (!IO::File::Exists(filePath))
 		{
@@ -48,23 +49,23 @@ namespace Comfy::Audio
 
 			auto resultSampleProvider = std::make_unique<MemorySampleProvider>();
 
-			AudioDecoderOutputData outputData;
+			DecoderOutputData outputData;
 			outputData.ChannelCount = &resultSampleProvider->channelCount;
 			outputData.SampleRate = &resultSampleProvider->sampleRate;
 			outputData.SampleCount = &resultSampleProvider->sampleCount;
 			outputData.SampleData = &resultSampleProvider->sampleData;
 
-			if (decoder->DecodeParseAudio(fileContent.get(), fileSize, &outputData) == AudioDecoderResult::Failure)
+			if (decoder->DecodeParseAudio(fileContent.get(), fileSize, &outputData) == DecoderResult::Failure)
 				continue;
 
 			return resultSampleProvider;
 		}
 
-		Logger::LogErrorLine(__FUNCTION__"(): No compatible IAudioDecoder found for the input file %.*s", filePath.size(), filePath.data());
+		Logger::LogErrorLine(__FUNCTION__"(): No compatible IDecoder found for the input file %.*s", filePath.size(), filePath.data());
 		return nullptr;
 	}
 
-	void AudioDecoderFactory::RegisterAllDecoders()
+	void DecoderFactory::RegisterAllDecoders()
 	{
 		availableDecoders.reserve(5);
 		RegisterDecoder<FlacDecoder>();

@@ -77,7 +77,7 @@ namespace Comfy
 			DisposeShutdownAudioEngine();
 		});
 
-		Audio::AudioEngine::CreateInstance();
+		Audio::Engine::CreateInstance();
 
 		if (!InitializeMountRomData())
 			return false;
@@ -123,7 +123,7 @@ namespace Comfy
 		if (skipApplicationCleanup)
 			return;
 
-		Audio::AudioEngine::DeleteInstance();
+		Audio::Engine::DeleteInstance();
 
 		// NOTE: Force deletion before the graphics context is destroyed
 		editorManager.reset();
@@ -542,7 +542,7 @@ namespace Comfy
 
 	void Application::DisposeShutdownAudioEngine()
 	{
-		if (Audio::AudioEngine::InstanceValid())
-			Audio::AudioEngine::GetInstance().StopStream();
+		if (Audio::Engine::InstanceValid())
+			Audio::Engine::GetInstance().StopStream();
 	}
 }

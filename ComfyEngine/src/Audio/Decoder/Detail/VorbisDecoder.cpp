@@ -7,8 +7,8 @@ namespace Comfy::Audio
 		return ".ogg";
 	}
 
-	AudioDecoderResult VorbisDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, AudioDecoderOutputData* outputData)
+	DecoderResult VorbisDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData* outputData)
 	{
-		return AudioDecoderResult::Failure;
+		return DecoderResult::Failure;
 	}
 }

@@ -9,7 +9,7 @@ namespace Comfy::Audio
 		return ".wav";
 	}
 
-	AudioDecoderResult WavDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, AudioDecoderOutputData* outputData)
+	DecoderResult WavDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData* outputData)
 	{
 		u32 channels, sampleRate;
 		u64 totalSampleCount;
@@ -19,7 +19,7 @@ namespace Comfy::Audio
 		COMFY_SCOPE_EXIT([&] { drwav_free(data); });
 
 		if (data == nullptr)
-			return AudioDecoderResult::Failure;
+			return DecoderResult::Failure;
 
 		*outputData->ChannelCount = channels;
 		*outputData->SampleRate = sampleRate;
@@ -33,6 +33,6 @@ namespace Comfy::Audio
 			std::copy(data, data + sampleCount, outputData->SampleData->get());
 		}
 
-		return AudioDecoderResult::Success;
+		return DecoderResult::Success;
 	}
 }

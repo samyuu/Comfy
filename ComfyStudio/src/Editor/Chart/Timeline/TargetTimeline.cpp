@@ -1,26 +1,12 @@
 #include "TargetTimeline.h"
 #include "Editor/Chart/ChartEditor.h"
 #include "Editor/Chart/TempoMap.h"
-#include "Audio/Core/AudioEngine.h"
 #include "Core/ComfyData.h"
 #include "Time/TimeSpan.h"
 #include <FontIcons.h>
 
 namespace Comfy::Editor
 {
-	namespace
-	{
-		void EnsureStreamOpenAndRunning()
-		{
-			auto& audioEngine = Audio::AudioEngine::GetInstance();
-
-			if (!audioEngine.GetIsStreamOpen())
-				audioEngine.OpenStream();
-			if (!audioEngine.GetIsStreamRunning())
-				audioEngine.StartStream();
-		}
-	}
-
 	TargetTimeline::TargetTimeline(ChartEditor* parentChartEditor)
 	{
 		scrollSpeed = 2.5f;
@@ -29,12 +15,12 @@ namespace Comfy::Editor
 		chartEditor = parentChartEditor;
 		chart = chartEditor->GetChart();
 
-		Audio::AudioEngine::GetInstance().RegisterCallbackReceiver(this);
+		Audio::Engine::GetInstance().RegisterCallbackReceiver(this);
 	}
 
 	TargetTimeline::~TargetTimeline()
 	{
-		Audio::AudioEngine::GetInstance().UnregisterCallbackReceiver(this);
+		Audio::Engine::GetInstance().UnregisterCallbackReceiver(this);
 	}
 
 	TimelineTick TargetTimeline::GetGridTick() const
@@ -201,7 +187,7 @@ namespace Comfy::Editor
 
 			if (buttonPlacementKeyStates[i].Down && !buttonPlacementKeyStates[i].WasDown)
 			{
-				EnsureStreamOpenAndRunning();
+				Audio::Engine::GetInstance().EnsureStreamRunning();
 				audioController.PlayButtonSound();
 			}
 		}
@@ -240,7 +226,7 @@ namespace Comfy::Editor
 
 	void TargetTimeline::OnPlaybackResumed()
 	{
-		EnsureStreamOpenAndRunning();
+		Audio::Engine::GetInstance().EnsureStreamRunning();
 
 		buttonSoundTimesList.clear();
 		for (const auto& target : chart->GetTargets())
@@ -450,7 +436,7 @@ namespace Comfy::Editor
 
 		if (updateWaveform)
 		{
-			if (auto sampleProvider = Audio::AudioEngine::GetInstance().GetRawSource(chartEditor->GetSongSource()); sampleProvider != nullptr)
+			if (auto sampleProvider = Audio::Engine::GetInstance().GetRawSource(chartEditor->GetSongSource()); sampleProvider != nullptr)
 			{
 				const TimeSpan timePerPixel = GetTimelineTime(2.0f) - GetTimelineTime(1.0f);
 				songWaveform.Calculate(*sampleProvider, timePerPixel);
@@ -722,7 +708,7 @@ namespace Comfy::Editor
 				{
 					if (target.Tick == cursorMouseTick)
 					{
-						EnsureStreamOpenAndRunning();
+						Audio::Engine::GetInstance().EnsureStreamRunning();
 						audioController.PlayButtonSound();
 
 						buttonAnimations[target.Type].Tick = target.Tick;
@@ -780,7 +766,7 @@ namespace Comfy::Editor
 			{
 				if (!checkHitsoundsInCallback)
 				{
-					EnsureStreamOpenAndRunning();
+					Audio::Engine::GetInstance().EnsureStreamRunning();
 					audioController.PlayButtonSound();
 				}
 				PlaceOrRemoveTarget(cursorTick, buttonPlacementMapping[i].Type);
