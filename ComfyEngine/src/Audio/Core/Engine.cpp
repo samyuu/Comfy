@@ -126,7 +126,8 @@ namespace Comfy::Audio
 		struct RtAudioData
 		{
 			std::unique_ptr<RtAudio> Context = nullptr;
-			RtAudio::StreamParameters StreamOutputParameter;
+			RtAudio::StreamParameters OutputParameters = {};
+			RtAudio::StreamParameters* InputParameters = nullptr;
 
 			RtAudio::Api GetRtAudioAPI(AudioAPI inputAPI)
 			{
@@ -335,10 +336,9 @@ namespace Comfy::Audio
 		// TODO: Store user preference via string name
 		const auto deviceID = impl->RtAudio.Context->getDefaultOutputDevice();
 
-		RtAudio::StreamParameters outputParameters;
-		outputParameters.deviceId = deviceID;
-		outputParameters.nChannels = OutputChannelCount;
-		outputParameters.firstChannel = 0;
+		impl->RtAudio.OutputParameters.deviceId = deviceID;
+		impl->RtAudio.OutputParameters.nChannels = OutputChannelCount;
+		impl->RtAudio.OutputParameters.firstChannel = 0;
 
 		RtAudio::StreamParameters* inputParameters = nullptr;
 
@@ -350,7 +350,7 @@ namespace Comfy::Audio
 #if 0
 		try
 		{
-			impl->RtAudio.Context->openStream(&outputParameters, inputParameters, format, sampleRate, &bufferFrames, &Impl::StaticAudioCallback, userData);
+			impl->RtAudio.Context->openStream(&impl->RtAudio.OutputParameters, impl->RtAudio.InputParameters, format, sampleRate, &bufferFrames, &Impl::StaticAudioCallback, userData);
 			impl->IsStreamOpen = true;
 		}
 		catch (const RtAudioError& exception)
@@ -359,7 +359,7 @@ namespace Comfy::Audio
 			return;
 		}
 #else
-		impl->RtAudio.Context->openStream(&outputParameters, inputParameters, format, sampleRate, &bufferFrames, &Impl::StaticAudioCallback, userData);
+		impl->RtAudio.Context->openStream(&impl->RtAudio.OutputParameters, impl->RtAudio.InputParameters, format, sampleRate, &bufferFrames, &Impl::StaticAudioCallback, userData);
 		impl->IsStreamOpen = true;
 #endif
 	}
