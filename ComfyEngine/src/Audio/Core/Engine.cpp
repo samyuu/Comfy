@@ -34,7 +34,7 @@ namespace Comfy::Audio
 
 	std::unique_ptr<Engine> EngineInstance = nullptr;
 
-	enum class AudioCallbackResult
+	enum class CallbackResult
 	{
 		Continue = 0,
 		Stop = 1,
@@ -73,7 +73,7 @@ namespace Comfy::Audio
 		f32 MasterVolume = Engine::MaxVolume;
 
 	public:
-		AudioAPI CurrentAudioAPI = AudioAPI::Invalid;
+		AudioAPI CurrentAPI = AudioAPI::Invalid;
 		ChannelMixer ActiveChannelMixer;
 
 	public:
@@ -86,13 +86,18 @@ namespace Comfy::Audio
 		std::vector<std::unique_ptr<ISampleProvider>> LoadedSources;
 
 	public:
-		static constexpr size_t TempOutputBufferSize = (MaxSampleBufferSize * OutputChannelCount);
+		static constexpr size_t TempOutputBufferSize = (MaxBufferSampleCount * OutputChannelCount);
 
 		std::array<i16, TempOutputBufferSize> TempOutputBuffer = {};
-		u32 CurrentBufferFrameSize = DefaultFrameBufferSize;
+		u32 CurrentBufferFrameSize = DefaultBufferFrameCount;
 
+		// NOTE: For measuring performance
 		size_t CallbackDurationRingIndex = 0;
 		std::array<TimeSpan, Engine::CallbackDurationRingBufferSize> CallbackDurationsRingBuffer = {};
+
+		// NOTE: For visualizing the current audio output
+		size_t LastPlayedSamplesRingIndex = 0;
+		std::array<i16, Engine::LastPlayedSamplesRingBufferSampleCount> LastPlayedSamplesRingBuffer = {};
 
 		TimeSpan CallbackFrequency = {};
 		TimeSpan CallbackStreamTime = {}, LastCallbackStreamTime = {};
@@ -153,7 +158,7 @@ namespace Comfy::Audio
 			return (sourcePtr != nullptr && *sourcePtr != nullptr) ? sourcePtr->get() : nullptr;
 		}
 
-		void AudioCallbackNotifyCallbackReceivers()
+		void CallbackNotifyCallbackReceivers()
 		{
 			for (auto* callbackReceiver : RegisteredCallbackReceivers)
 			{
@@ -162,12 +167,12 @@ namespace Comfy::Audio
 			}
 		}
 
-		void AudioCallbackClearOutPreviousCallBuffer(i16* outputBuffer, size_t sampleCount)
+		void CallbackClearOutPreviousCallBuffer(i16* outputBuffer, const size_t sampleCount)
 		{
 			std::fill(outputBuffer, outputBuffer + sampleCount, 0);
 		}
 
-		void AudioCallbackProcessVoices(i16* outputBuffer, const u32 bufferFrameCount, const u32 bufferSampleCount)
+		void CallbackProcessVoices(i16* outputBuffer, const u32 bufferFrameCount, const u32 bufferSampleCount)
 		{
 			const auto lock = std::scoped_lock(CallbackMutex);
 
@@ -218,14 +223,14 @@ namespace Comfy::Audio
 			}
 		}
 
-		void AudioCallbackAdjustBufferMasterVolume(i16* outputBuffer, size_t sampleCount)
+		void CallbackAdjustBufferMasterVolume(i16* outputBuffer, const size_t sampleCount)
 		{
 			const auto bufferSampleCount = (CurrentBufferFrameSize * OutputChannelCount);
 			for (auto i = 0; i < sampleCount; i++)
 				outputBuffer[i] = static_cast<i16>(outputBuffer[i] * MasterVolume);
 		}
 
-		void AudioCallbackDebugRecordOutput(i16* outputBuffer, size_t sampleCount)
+		void CallbackDebugRecordOutput(i16* outputBuffer, const size_t sampleCount)
 		{
 			if (!DebugCapture.RecordOutput)
 				return;
@@ -235,35 +240,49 @@ namespace Comfy::Audio
 				DebugCapture.RecordedSamples.push_back(outputBuffer[i]);
 		}
 
-		AudioCallbackResult AudioCallback(i16* outputBuffer, u32 bufferFrameCount, double streamTime)
+		void CallbackUpdateLastPlayedSamplesRingBuffer(i16* outputBuffer, const size_t sampleCount)
+		{
+			for (size_t i = 0; i < sampleCount; i++)
+			{
+				LastPlayedSamplesRingBuffer[LastPlayedSamplesRingIndex] = outputBuffer[i];
+				if (LastPlayedSamplesRingIndex++ >= (LastPlayedSamplesRingBuffer.size() - 1))
+					LastPlayedSamplesRingIndex = 0;
+			}
+		}
+
+		void CallbackUpdateCallbackDurationRingBuffer(const TimeSpan duration)
+		{
+			CallbackDurationsRingBuffer[CallbackDurationRingIndex] = duration;
+			if (CallbackDurationRingIndex++ >= (CallbackDurationsRingBuffer.size() - 1))
+				CallbackDurationRingIndex = 0;
+		}
+
+		CallbackResult AudioCallback(i16* outputBuffer, u32 bufferFrameCount, TimeSpan streamTime)
 		{
 			auto stopwatch = Stopwatch::StartNew();;
 
 			const auto bufferSampleCount = (bufferFrameCount * OutputChannelCount);
 			CurrentBufferFrameSize = bufferFrameCount;
 
-			CallbackStreamTime = TimeSpan::FromSeconds(streamTime);
+			CallbackStreamTime = streamTime;
 			CallbackFrequency = (CallbackStreamTime - LastCallbackStreamTime);
 			LastCallbackStreamTime = CallbackStreamTime;
 
-			AudioCallbackNotifyCallbackReceivers();
-			AudioCallbackClearOutPreviousCallBuffer(outputBuffer, bufferSampleCount);
-			AudioCallbackProcessVoices(outputBuffer, bufferFrameCount, bufferSampleCount);
-			AudioCallbackAdjustBufferMasterVolume(outputBuffer, bufferSampleCount);
-			AudioCallbackDebugRecordOutput(outputBuffer, bufferSampleCount);
+			CallbackNotifyCallbackReceivers();
+			CallbackClearOutPreviousCallBuffer(outputBuffer, bufferSampleCount);
+			CallbackProcessVoices(outputBuffer, bufferFrameCount, bufferSampleCount);
+			CallbackAdjustBufferMasterVolume(outputBuffer, bufferSampleCount);
+			CallbackDebugRecordOutput(outputBuffer, bufferSampleCount);
+			CallbackUpdateLastPlayedSamplesRingBuffer(outputBuffer, bufferSampleCount);
+			CallbackUpdateCallbackDurationRingBuffer(stopwatch.Stop());
 
-			if (CallbackDurationRingIndex++ >= (CallbackDurationsRingBuffer.size() - 1))
-				CallbackDurationRingIndex = 0;
-
-			CallbackDurationsRingBuffer[CallbackDurationRingIndex] = stopwatch.Stop();
-
-			return AudioCallbackResult::Continue;
+			return CallbackResult::Continue;
 		}
 
 		static int StaticAudioCallback(void* outputBuffer, void*, u32 bufferFrames, double streamTime, RtAudioStreamStatus, void* userData)
 		{
 			auto implInstance = static_cast<Engine*>(userData)->impl.get();
-			return static_cast<int>(implInstance->AudioCallback(static_cast<i16*>(outputBuffer), bufferFrames, streamTime));
+			return static_cast<int>(implInstance->AudioCallback(static_cast<i16*>(outputBuffer), bufferFrames, TimeSpan::FromSeconds(streamTime)));
 		}
 	};
 
@@ -505,12 +524,12 @@ namespace Comfy::Audio
 
 	Engine::AudioAPI Engine::GetAudioAPI() const
 	{
-		return impl->CurrentAudioAPI;
+		return impl->CurrentAPI;
 	}
 
 	void Engine::SetAudioAPI(AudioAPI value)
 	{
-		impl->CurrentAudioAPI = value;
+		impl->CurrentAPI = value;
 		const bool wasStreamRunning = (impl->IsStreamOpen && impl->IsStreamRunning);
 
 		if (impl->IsStreamRunning)
@@ -563,14 +582,14 @@ namespace Comfy::Audio
 		return impl->CurrentBufferFrameSize;
 	}
 
-	void Engine::SetBufferFrameSize(u32 bufferFrameSize)
+	void Engine::SetBufferFrameSize(u32 bufferFrameCount)
 	{
-		bufferFrameSize = std::min(bufferFrameSize, MaxSampleBufferSize * OutputChannelCount);
+		bufferFrameCount = std::clamp(bufferFrameCount, MinBufferFrameCount, MaxBufferFrameCount);
 
-		if (bufferFrameSize == impl->CurrentBufferFrameSize)
+		if (bufferFrameCount == impl->CurrentBufferFrameSize)
 			return;
 
-		impl->CurrentBufferFrameSize = bufferFrameSize;
+		impl->CurrentBufferFrameSize = bufferFrameCount;
 
 		const bool wasStreamOpen = impl->IsStreamOpen;
 		const bool wasStreamRunning = impl->IsStreamRunning;
@@ -601,7 +620,7 @@ namespace Comfy::Audio
 
 	bool Engine::GetIsExclusiveMode() const
 	{
-		return impl->CurrentAudioAPI == AudioAPI::ASIO;
+		return impl->CurrentAPI == AudioAPI::ASIO;
 	}
 
 	TimeSpan Engine::GetCallbackFrequency() const
@@ -616,7 +635,7 @@ namespace Comfy::Audio
 
 	void Engine::DebugShowControlPanel() const
 	{
-		if (impl->CurrentAudioAPI != AudioAPI::ASIO)
+		if (impl->CurrentAPI != AudioAPI::ASIO)
 			return;
 
 		// NOTE: Defined in <rtaudio/asio.cpp>
@@ -645,6 +664,12 @@ namespace Comfy::Audio
 	{
 		assert(outputDurations != nullptr);
 		std::copy(impl->CallbackDurationsRingBuffer.begin(), impl->CallbackDurationsRingBuffer.end(), outputDurations);
+	}
+
+	void Engine::DebugGetLastPlayedSamples(i16* outputSamples)
+	{
+		assert(outputSamples != nullptr);
+		std::copy(impl->LastPlayedSamplesRingBuffer.begin(), impl->LastPlayedSamplesRingBuffer.end(), outputSamples);
 	}
 
 	bool Engine::DebugGetEnableOutputCapture() const

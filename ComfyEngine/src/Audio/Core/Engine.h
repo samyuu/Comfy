@@ -72,10 +72,16 @@ namespace Comfy::Audio
 		static constexpr u32 OutputChannelCount = 2;
 		static constexpr u32 OutputSampleRate = 44100;
 
-		static constexpr u32 DefaultFrameBufferSize = 64;
-		static constexpr u32 MaxSampleBufferSize = 0x2000;
+		static constexpr u32 DefaultBufferFrameCount = 64;
+		static constexpr u32 MinBufferSampleCount = 8;
+		static constexpr u32 MinBufferFrameCount = (MinBufferSampleCount / OutputChannelCount);
+		static constexpr u32 MaxBufferSampleCount = 2048;
+		static constexpr u32 MaxBufferFrameCount = (MaxBufferSampleCount / OutputChannelCount);
 
 		static constexpr size_t CallbackDurationRingBufferSize = 64;
+		
+		static constexpr size_t LastPlayedSamplesRingBufferSampleCount = MaxBufferSampleCount;
+		static constexpr size_t LastPlayedSamplesRingBufferFrameCount = (LastPlayedSamplesRingBufferSampleCount / OutputChannelCount);
 
 		enum class AudioAPI : u32
 		{
@@ -160,6 +166,9 @@ namespace Comfy::Audio
 
 		// NOTE: Has to be large enough to store Engine::CallbackDurationRingBufferSize
 		void DebugGetCallbackDurations(TimeSpan* outputDurations);
+
+		// NOTE: Has to be large enough to store Engine::LastPlayedSamplesRingBufferSampleCount
+		void DebugGetLastPlayedSamples(i16* outputSamples);
 
 		bool DebugGetEnableOutputCapture() const;
 		void DebugSetEnableOutputCapture(bool value);
