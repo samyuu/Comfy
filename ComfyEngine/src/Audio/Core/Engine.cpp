@@ -316,23 +316,22 @@ namespace Comfy::Audio
 		// TODO: Store user preference via string name
 		const auto deviceID = impl->RtAudio.Context->getDefaultOutputDevice();
 
-		RtAudio::StreamParameters streamParameters;
-		streamParameters.deviceId = deviceID;
-		streamParameters.nChannels = GetChannelCount();
-		streamParameters.firstChannel = 0;
+		RtAudio::StreamParameters outputParameters;
+		outputParameters.deviceId = deviceID;
+		outputParameters.nChannels = OutputChannelCount;
+		outputParameters.firstChannel = 0;
 
-		auto& outputParameters = streamParameters;
-		auto& inputParameters = streamParameters;
+		RtAudio::StreamParameters* inputParameters = nullptr;
 
 		auto format = RTAUDIO_SINT16;
-		auto sampleRate = GetSampleRate();
+		auto sampleRate = OutputSampleRate;
 		auto bufferFrames = impl->CurrentBufferFrameSize;
 		void* userData = this;
 
 #if 0
 		try
 		{
-			impl->RtAudio.Context->openStream(&outputParameters, &inputParameters, format, sampleRate, &bufferFrames, &Impl::StaticAudioCallback, userData);
+			impl->RtAudio.Context->openStream(&outputParameters, inputParameters, format, sampleRate, &bufferFrames, &Impl::StaticAudioCallback, userData);
 			impl->IsStreamOpen = true;
 		}
 		catch (const RtAudioError& exception)
@@ -341,7 +340,7 @@ namespace Comfy::Audio
 			return;
 		}
 #else
-		impl->RtAudio.Context->openStream(&outputParameters, &inputParameters, format, sampleRate, &bufferFrames, &Impl::StaticAudioCallback, userData);
+		impl->RtAudio.Context->openStream(&outputParameters, inputParameters, format, sampleRate, &bufferFrames, &Impl::StaticAudioCallback, userData);
 		impl->IsStreamOpen = true;
 #endif
 	}
