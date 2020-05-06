@@ -35,4 +35,35 @@ namespace Comfy::Audio
 
 		return DecoderResult::Success;
 	}
+
+	std::pair<std::unique_ptr<u8[]>, size_t> WavDecoder::Encode(const i16* samples, size_t sampleCount, u32 sampleRate, u32 channelCount)
+	{
+		drwav_data_format format;
+		format.container = drwav_container_riff;
+		format.format = DR_WAVE_FORMAT_PCM;
+		format.channels = channelCount;
+		format.sampleRate = sampleRate;
+		format.bitsPerSample = sizeof(i16) * CHAR_BIT;
+
+		void* memoryData = nullptr;
+		size_t memoryDataSize = 0;
+
+		drwav* wavContext = drwav_open_memory_write_sequential(&memoryData, &memoryDataSize, &format, sampleCount);
+		COMFY_SCOPE_EXIT([&] { drwav_close(wavContext); drwav_free(memoryData); });
+
+		if (wavContext == nullptr)
+			return std::make_pair(nullptr, 0);
+
+		const auto samplesWritten = drwav_write(wavContext, sampleCount, samples);
+		if (samplesWritten != sampleCount)
+			return std::make_pair(nullptr, 0);
+
+		auto outFileContent = std::make_unique<u8[]>(memoryDataSize);
+		if (outFileContent == nullptr)
+			return std::make_pair(nullptr, 0);
+
+		std::memcpy(outFileContent.get(), memoryData, memoryDataSize);
+
+		return std::make_pair(std::move(outFileContent), memoryDataSize);
+	}
 }
