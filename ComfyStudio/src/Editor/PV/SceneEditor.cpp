@@ -9,9 +9,9 @@
 #include "ImGui/Extensions/TexExtensions.h"
 #include "ImGui/Extensions/PropertyEditor.h"
 #include "Misc/ImageHelper.h"
+#include "Time/TimeUtilities.h"
 #include "Input/KeyCode.h"
 #include <FontIcons.h>
-#include <time.h>
 
 namespace Comfy::Editor
 {
@@ -1674,10 +1674,8 @@ namespace Comfy::Editor
 
 		lastScreenshotTaskFuture = std::async(std::launch::async, [&renderTarget, data = std::move(pixelData)]
 			{
-				char fileName[MAX_PATH];
-				sprintf_s(fileName, "%s/scene_%I64d.png", ScreenshotDirectoy, static_cast<i64>(time(nullptr)));
-
-				Utilities::WritePNG(fileName, renderTarget.GetSize(), data.get());
+				const auto filePath = IO::Path::Combine(ScreenshotDirectoy, IO::Path::ChangeExtension("scene_" + FormatFileNameDateTimeNow(), ".png"));
+				Utilities::WritePNG(filePath, renderTarget.GetSize(), data.get());
 			});
 	}
 }

@@ -54,6 +54,7 @@
     <ClInclude Include="src\Resource\IDHash.h" />
     <ClInclude Include="src\Resource\IDTypes.h" />
     <ClInclude Include="src\Resource\ResourceIDMap.h" />
+    <ClInclude Include="src\Time\TimeUtilities.h" />
     <ClInclude Include="src\Types.h" />
   </ItemGroup>
   <ItemGroup>
@@ -81,6 +82,7 @@
     <ClCompile Include="src\Misc\StringHelper.cpp" />
     <ClCompile Include="src\Misc\StringParseHelper.cpp" />
     <ClCompile Include="src\Misc\UTF8.cpp" />
+    <ClCompile Include="src\Time\TimeUtilities.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Dependencies\zlib\zlib.vcxproj">
