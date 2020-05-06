@@ -36,10 +36,10 @@ namespace Comfy::DataTest
 
 		float testButtonVolume = Audio::Engine::MaxVolume;
 
-		Audio::Engine::AudioAPI selectedAudioApi = Audio::Engine::AudioAPI::Invalid;
+		Audio::Engine::AudioAPI selectedAudioAPI = Audio::Engine::AudioAPI::Invalid;
 		Audio::ChannelMixer::MixingBehavior selectedMixingBehavior = static_cast<Audio::ChannelMixer::MixingBehavior>(-1);
 
-		u32 newBufferSize = Audio::Engine::DefaultFrameBufferSize;
+		u32 newBufferFrameCount = Audio::Engine::DefaultBufferFrameCount;
 
 		static constexpr std::array<const char*, static_cast<size_t>(Audio::ChannelMixer::MixingBehavior::Count)> mixingBehaviorNames =
 		{

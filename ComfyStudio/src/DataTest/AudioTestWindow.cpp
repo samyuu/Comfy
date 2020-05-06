@@ -2,6 +2,8 @@
 #include "Core/Application.h"
 #include "Input/DirectInput/DualShock4.h"
 #include "Input/Keyboard.h"
+#include "Time/TimeUtilities.h"
+#include "IO/Path.h"
 #include <numeric>
 
 namespace Comfy::DataTest
@@ -96,7 +98,7 @@ namespace Comfy::DataTest
 			}
 			Gui::PopItemWidth();
 
-			Gui::Text("%-24s: %.3f s", "GetStreamTime()", engine.GetStreamTime().TotalSeconds());
+			Gui::Text("%-24s: %.3f sec", "GetStreamTime()", engine.GetStreamTime().TotalSeconds());
 			Gui::Text("%-21s: %.3f ms", "GetCallbackFrequency()", engine.GetCallbackFrequency().TotalMilliseconds());
 
 			std::array<TimeSpan, Audio::Engine::CallbackDurationRingBufferSize> durations;
@@ -112,62 +114,113 @@ namespace Comfy::DataTest
 			char overlayTextBuffer[32];
 			sprintf_s(overlayTextBuffer, "Average: %.6f ms", averageProcessTimeMS);
 
-			Gui::PlotLines("Callback Process Duration", durationsMS.data(), static_cast<int>(durationsMS.size()), 0, overlayTextBuffer);
+			Gui::PlotLines("Callback Process Duration", durationsMS.data(), static_cast<int>(durationsMS.size()), 0, overlayTextBuffer, FLT_MAX, FLT_MAX, vec2(0.0f, 32.0f));
+
+			Gui::Separator();
+
+			{
+				Gui::PushStyleColor(ImGuiCol_PlotLines, Gui::GetStyleColorVec4(ImGuiCol_PlotHistogram));
+				Gui::PushStyleColor(ImGuiCol_PlotLinesHovered, Gui::GetStyleColorVec4(ImGuiCol_PlotHistogramHovered));
+
+				std::array<i16, Audio::Engine::LastPlayedSamplesRingBufferSampleCount> lastPlayedSamples;
+				engine.DebugGetLastPlayedSamples(lastPlayedSamples.data());
+
+				for (size_t channel = 0; channel < Audio::Engine::OutputChannelCount; channel++)
+				{
+					std::array<float, Audio::Engine::LastPlayedSamplesRingBufferFrameCount> normalizedFrames;
+
+					const auto channelIndexOffset = channel + 1;
+
+					constexpr float i16ToF32Factor = (1.0f / static_cast<float>(std::numeric_limits<i16>::max()));
+					for (size_t frame = 0; frame < normalizedFrames.size(); frame++)
+						normalizedFrames[frame] = static_cast<float>(lastPlayedSamples[channelIndexOffset * frame]) * i16ToF32Factor;
+
+					char plotName[32];
+					sprintf_s(plotName, "Channel Output [%zu]", channel);
+
+					Gui::PlotLines(plotName, normalizedFrames.data(), static_cast<int>(normalizedFrames.size()), 0, nullptr, -1.0f, 1.0f, vec2(0.0f, 32.0f));
+				}
+
+				Gui::PopStyleColor(2);
+			}
+
+			Gui::Separator();
 
 			Gui::Text("%-21s: %d", "GetBufferFrameSize()", engine.GetBufferFrameSize());
 
 			constexpr u32 slowStep = 8, fastStep = 64;
-			Gui::InputScalar("Buffer Size", ImGuiDataType_U32, &newBufferSize, &slowStep, &fastStep, "%u");
+			Gui::InputScalar("Buffer Size", ImGuiDataType_U32, &newBufferFrameCount, &slowStep, &fastStep, "%u");
 
-			newBufferSize = std::clamp(newBufferSize, 1u, Audio::Engine::MaxSampleBufferSize * engine.GetChannelCount());
+			newBufferFrameCount = std::clamp(newBufferFrameCount, Audio::Engine::MinBufferFrameCount, Audio::Engine::MaxBufferFrameCount);
 
 			if (Gui::Button("SetBufferFrameSize()", vec2(Gui::CalcItemWidth(), 0.0f)))
-				engine.SetBufferFrameSize(newBufferSize);
-		}
-		Gui::Separator();
+				engine.SetBufferFrameSize(newBufferFrameCount);
 
-		if (Gui::CollapsingHeader("Audio API"))
-		{
-			auto getAudioAPIName = [](Audio::Engine::AudioAPI api)
+			if (!engine.DebugGetEnableOutputCapture())
+			{
+				Gui::PushStyleColor(ImGuiCol_Text, onColor);
+				if (Gui::Button("Start Recording", vec2(Gui::CalcItemWidth(), 0.0f)))
+					engine.DebugSetEnableOutputCapture(true);
+			}
+			else
+			{
+				Gui::PushStyleColor(ImGuiCol_Text, offColor);
+				if (Gui::Button("Stop Recording (Dump)", vec2(Gui::CalcItemWidth(), 0.0f)))
+				{
+					engine.DebugSetEnableOutputCapture(false);
+					const auto filePath = IO::Path::Combine("dev_ram/audio_dump", IO::Path::ChangeExtension("engine_output_" + FormatFileNameDateTimeNow(), ".wav"));
+					engine.DebugFlushCaptureToWaveFile(filePath);
+				}
+			}
+			Gui::PopStyleColor();
+
+			Gui::Separator();
+
+			constexpr auto getAudioAPIName = [](Audio::Engine::AudioAPI api)
 			{
 				switch (api)
 				{
 				case Audio::Engine::AudioAPI::ASIO:
 					return "AudioAPI::ASIO";
 				case Audio::Engine::AudioAPI::WASAPI:
-					return "AudioAPI::ASIO";
+					return "AudioAPI::WASAPI";
 				default:
 					return "AudioAPI::Invalid";
 				}
 			};
 
-#if 0
-			Gui::TextDisabled("(engine.GetAudioAPI(): %s)", getAudioAPIName(engine.GetAudioAPI()));
+			Gui::Text("GetAudioAPI(): %s", getAudioAPIName(engine.GetAudioAPI()));
 
-			if (selectedAudioApi == Audio::AudioEngine::AudioAPI::Invalid)
-				selectedAudioApi = engine.GetAudioAPI();
+			if (selectedAudioAPI == Audio::Engine::AudioAPI::Invalid)
+				selectedAudioAPI = engine.GetAudioAPI();
 
-			Gui::Combo("Audio API##Combo", reinterpret_cast<int*>(&selectedAudioApi), audioApiNames.data(), static_cast<int>(audioApiNames.size()));
+			if (Gui::BeginCombo("Audio API##Combo", getAudioAPIName(selectedAudioAPI)))
+			{
+				for (const auto availableAPI : std::array { Audio::Engine::AudioAPI::WASAPI, Audio::Engine::AudioAPI::ASIO })
+				{
+					if (Gui::Selectable(getAudioAPIName(availableAPI), (selectedAudioAPI == availableAPI)))
+						selectedAudioAPI = availableAPI;
+				}
+
+				Gui::EndCombo();
+			}
+
 			Gui::Separator();
 
-			if (Gui::Button("SetAudioApi()", vec2(Gui::CalcItemWidth(), 0.0f)))
-				engine.SetAudioApi(selectedAudioApi);
+			if (Gui::Button("SetAudioAPI()", vec2(Gui::CalcItemWidth(), 0.0f)))
+				engine.SetAudioAPI(selectedAudioAPI);
 
 			if (Gui::Button("ShowControlPanel()", vec2(Gui::CalcItemWidth(), 0.0f)))
-				engine.ShowControlPanel();
-#endif
-		}
-		Gui::Separator();
+				engine.DebugShowControlPanel();
 
-		if (Gui::CollapsingHeader("Audio Mixing"))
-		{
+			Gui::Separator();
+
 			if (static_cast<int>(selectedMixingBehavior) < 0)
 				selectedMixingBehavior = engine.GetChannelMixer().GetMixingBehavior();
 
 			if (Gui::Combo("Mixing Behavior##Combo", reinterpret_cast<int*>(&selectedMixingBehavior), mixingBehaviorNames.data(), static_cast<int>(mixingBehaviorNames.size())))
 				engine.GetChannelMixer().SetMixingBehavior(selectedMixingBehavior);
 		}
-		Gui::Separator();
 
 		/*
 		if (Gui::CollapsingHeader("Audio Data"))
@@ -244,7 +297,7 @@ namespace Comfy::DataTest
 
 				float position = static_cast<float>(testSongVoice.GetPosition().TotalSeconds());
 				float duration = static_cast<float>(testSongVoice.GetDuration().TotalSeconds());
-				if (Gui::SliderFloat("TestSongVoice::Position", &position, 0, duration, "%f s"))
+				if (Gui::SliderFloat("TestSongVoice::Position", &position, 0, duration, "%f sec"))
 					testSongVoice.SetPosition(TimeSpan::FromSeconds(position));
 
 				Gui::Separator();
