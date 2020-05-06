@@ -161,6 +161,10 @@ namespace Comfy::Audio
 		// NOTE: Has to be large enough to store Engine::CallbackDurationRingBufferSize
 		void DebugGetCallbackDurations(TimeSpan* outputDurations);
 
+		bool DebugGetEnableOutputCapture() const;
+		void DebugSetEnableOutputCapture(bool value);
+		void DebugFlushCaptureToWaveFile(std::string_view filePath);
+
 	private:
 		struct Impl;
 		std::unique_ptr<Impl> impl;

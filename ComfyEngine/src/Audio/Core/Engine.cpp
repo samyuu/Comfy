@@ -1,8 +1,10 @@
 #include "Engine.h"
 #include "Audio/Decoder/DecoderFactory.h"
+#include "Audio/Decoder/Detail/Decoders.h"
 #include "Detail/SampleMixer.h"
 #include "Core/Logger.h"
 #include "Time/Stopwatch.h"
+#include "IO/File.h"
 #include <RtAudio.h>
 #include <mutex>
 #include <assert.h>
@@ -71,6 +73,10 @@ namespace Comfy::Audio
 		f32 MasterVolume = Engine::MaxVolume;
 
 	public:
+		AudioAPI CurrentAudioAPI = AudioAPI::Invalid;
+		ChannelMixer ActiveChannelMixer;
+
+	public:
 		std::mutex CallbackMutex;
 
 		// NOTE: Indexed into by VoiceHandle, nullptr = free space
@@ -95,8 +101,21 @@ namespace Comfy::Audio
 		std::vector<ICallbackReceiver*> RegisteredCallbackReceivers;
 
 	public:
-		AudioAPI CurrentAudioAPI = AudioAPI::Invalid;
-		ChannelMixer ActiveChannelMixer;
+		struct DebugCaptureData
+		{
+			bool RecordOutput = false;
+			std::mutex Mutex;
+			std::vector<i16> RecordedSamples;
+
+			void DumpSamplesToWaveFile(std::string_view filePath)
+			{
+				const auto[fileContent, fileSize] = WavDecoder::Encode(RecordedSamples.data(), RecordedSamples.size(), OutputSampleRate, OutputChannelCount);
+				if (fileContent == nullptr)
+					return;
+
+				IO::File::WriteAllBytes(filePath, fileContent.get(), fileSize);
+			}
+		} DebugCapture;
 
 	public:
 		struct RtAudioData
@@ -184,15 +203,15 @@ namespace Comfy::Audio
 					continue;
 				}
 
-				if (hasReachedEnd && !playPastEnd)
-					voiceData.FramePosition = isLooping ? 0 : sampleProvider->GetFrameCount();
-
 				i64 framesRead = 0;
 				if (sampleProvider->GetChannelCount() != OutputChannelCount)
 					framesRead = ActiveChannelMixer.MixChannels(*sampleProvider, TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount);
 				else
 					framesRead = sampleProvider->ReadSamples(TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount, OutputChannelCount);
 				voiceData.FramePosition += framesRead;
+
+				if (hasReachedEnd && !playPastEnd)
+					voiceData.FramePosition = isLooping ? 0 : sampleProvider->GetFrameCount();
 
 				for (i64 i = 0; i < (framesRead * OutputChannelCount); i++)
 					outputBuffer[i] = SampleMixer::MixSamples(outputBuffer[i], static_cast<i16>(TempOutputBuffer[i] * voiceData.Volume));
@@ -204,6 +223,16 @@ namespace Comfy::Audio
 			const auto bufferSampleCount = (CurrentBufferFrameSize * OutputChannelCount);
 			for (auto i = 0; i < sampleCount; i++)
 				outputBuffer[i] = static_cast<i16>(outputBuffer[i] * MasterVolume);
+		}
+
+		void AudioCallbackDebugRecordOutput(i16* outputBuffer, size_t sampleCount)
+		{
+			if (!DebugCapture.RecordOutput)
+				return;
+
+			const auto lock = std::scoped_lock(DebugCapture.Mutex);
+			for (size_t i = 0; i < sampleCount; i++)
+				DebugCapture.RecordedSamples.push_back(outputBuffer[i]);
 		}
 
 		AudioCallbackResult AudioCallback(i16* outputBuffer, u32 bufferFrameCount, double streamTime)
@@ -221,6 +250,7 @@ namespace Comfy::Audio
 			AudioCallbackClearOutPreviousCallBuffer(outputBuffer, bufferSampleCount);
 			AudioCallbackProcessVoices(outputBuffer, bufferFrameCount, bufferSampleCount);
 			AudioCallbackAdjustBufferMasterVolume(outputBuffer, bufferSampleCount);
+			AudioCallbackDebugRecordOutput(outputBuffer, bufferSampleCount);
 
 			if (CallbackDurationRingIndex++ >= (CallbackDurationsRingBuffer.size() - 1))
 				CallbackDurationRingIndex = 0;
@@ -244,8 +274,11 @@ namespace Comfy::Audio
 		impl->ActiveChannelMixer.SetTargetChannels(OutputChannelCount);
 		impl->ActiveChannelMixer.SetMixingBehavior(ChannelMixer::MixingBehavior::Mix);
 
-		constexpr size_t reasonableInitialCapacity = 64;
-		impl->LoadedSources.reserve(reasonableInitialCapacity);
+		constexpr size_t reasonableInitialSourceCapacity = 64;
+		impl->LoadedSources.reserve(reasonableInitialSourceCapacity);
+
+		constexpr size_t reasonableInitialCallbackReceiverCapacity = 4;
+		impl->RegisteredCallbackReceivers.reserve(reasonableInitialCallbackReceiverCapacity);
 	}
 
 	Engine::~Engine()
@@ -613,6 +646,30 @@ namespace Comfy::Audio
 	{
 		assert(outputDurations != nullptr);
 		std::copy(impl->CallbackDurationsRingBuffer.begin(), impl->CallbackDurationsRingBuffer.end(), outputDurations);
+	}
+
+	bool Engine::DebugGetEnableOutputCapture() const
+	{
+		return impl->DebugCapture.RecordOutput;
+	}
+
+	void Engine::DebugSetEnableOutputCapture(bool value)
+	{
+		if (value && !impl->DebugCapture.RecordOutput)
+		{
+			constexpr size_t reasonableInitialCapacity = (OutputSampleRate * OutputChannelCount * 30);
+			if (impl->DebugCapture.RecordedSamples.capacity() < reasonableInitialCapacity)
+				impl->DebugCapture.RecordedSamples.reserve(reasonableInitialCapacity);
+		}
+
+		impl->DebugCapture.RecordOutput = value;
+	}
+
+	void Engine::DebugFlushCaptureToWaveFile(std::string_view filePath)
+	{
+		const auto lock = std::scoped_lock(impl->DebugCapture.Mutex);
+		impl->DebugCapture.DumpSamplesToWaveFile(filePath);
+		impl->DebugCapture.RecordedSamples.clear();
 	}
 
 	bool Voice::IsValid() const
