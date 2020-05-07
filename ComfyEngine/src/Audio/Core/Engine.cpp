@@ -93,6 +93,7 @@ namespace Comfy::Audio
 		// NOTE: Indexed into by VoiceHandle, nullptr = free space
 		std::array<VoiceData, MaxSimultaneousVoices> ActiveVoices;
 
+		// TODO: Switch to using shared_ptr to avoid ownership issues for cases like the Waveform class
 		// NOTE: Indexed into by SourceHandle, nullptr = free space
 		std::vector<std::unique_ptr<ISampleProvider>> LoadedSources;
 
@@ -108,7 +109,7 @@ namespace Comfy::Audio
 
 		// NOTE: For visualizing the current audio output
 		size_t LastPlayedSamplesRingIndex = 0;
-		std::array<i16, Engine::LastPlayedSamplesRingBufferSampleCount> LastPlayedSamplesRingBuffer = {};
+		std::array<std::array<i16, Engine::LastPlayedSamplesRingBufferFrameCount>, OutputChannelCount> LastPlayedSamplesRingBuffer = {};
 
 		TimeSpan CallbackFrequency = {};
 		TimeSpan CallbackStreamTime = {}, LastCallbackStreamTime = {};
@@ -252,12 +253,14 @@ namespace Comfy::Audio
 				DebugCapture.RecordedSamples.push_back(outputBuffer[i]);
 		}
 
-		void CallbackUpdateLastPlayedSamplesRingBuffer(i16* outputBuffer, const size_t sampleCount)
+		void CallbackUpdateLastPlayedSamplesRingBuffer(i16* outputBuffer, const size_t frameCount)
 		{
-			for (size_t i = 0; i < sampleCount; i++)
+			for (size_t f = 0; f < frameCount; f++)
 			{
-				LastPlayedSamplesRingBuffer[LastPlayedSamplesRingIndex] = outputBuffer[i];
-				if (LastPlayedSamplesRingIndex++ >= (LastPlayedSamplesRingBuffer.size() - 1))
+				for (u32 c = 0; c < OutputChannelCount; c++)
+					LastPlayedSamplesRingBuffer[c][LastPlayedSamplesRingIndex] = outputBuffer[f];
+
+				if (LastPlayedSamplesRingIndex++ >= (LastPlayedSamplesRingBuffer[0].size() - 1))
 					LastPlayedSamplesRingIndex = 0;
 			}
 		}
@@ -285,7 +288,7 @@ namespace Comfy::Audio
 			CallbackProcessVoices(outputBuffer, bufferFrameCount, bufferSampleCount);
 			CallbackAdjustBufferMasterVolume(outputBuffer, bufferSampleCount);
 			CallbackDebugRecordOutput(outputBuffer, bufferSampleCount);
-			CallbackUpdateLastPlayedSamplesRingBuffer(outputBuffer, bufferSampleCount);
+			CallbackUpdateLastPlayedSamplesRingBuffer(outputBuffer, bufferFrameCount);
 			CallbackUpdateCallbackDurationRingBuffer(stopwatch.Stop());
 
 			return CallbackResult::Continue;
@@ -674,16 +677,14 @@ namespace Comfy::Audio
 		*outputVoiceCount = voiceCount;
 	}
 
-	void Engine::DebugGetCallbackDurations(TimeSpan* outputDurations)
+	std::array<TimeSpan, Engine::CallbackDurationRingBufferSize> Engine::DebugGetCallbackDurations()
 	{
-		assert(outputDurations != nullptr);
-		std::copy(impl->CallbackDurationsRingBuffer.begin(), impl->CallbackDurationsRingBuffer.end(), outputDurations);
+		return impl->CallbackDurationsRingBuffer;
 	}
 
-	void Engine::DebugGetLastPlayedSamples(i16* outputSamples)
+	std::array<std::array<i16, Engine::LastPlayedSamplesRingBufferFrameCount>, Engine::OutputChannelCount> Engine::DebugGetLastPlayedSamples()
 	{
-		assert(outputSamples != nullptr);
-		std::copy(impl->LastPlayedSamplesRingBuffer.begin(), impl->LastPlayedSamplesRingBuffer.end(), outputSamples);
+		return impl->LastPlayedSamplesRingBuffer;
 	}
 
 	bool Engine::DebugGetEnableOutputCapture() const
