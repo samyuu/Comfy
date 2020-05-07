@@ -63,7 +63,7 @@ namespace Comfy::DataTest
 		const auto onColor = ImVec4(0.14f, 0.78f, 0.21f, 1.00f);
 		const auto offColor = ImVec4(0.95f, 0.12f, 0.12f, 1.00f);
 
-		if (Gui::CollapsingHeader("Stream Control"))
+		if (Gui::CollapsingHeader("Stream Control", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			const auto buttonSize = vec2(Gui::GetWindowWidth() / 4.0f, 0.0);
 
@@ -98,11 +98,12 @@ namespace Comfy::DataTest
 			}
 			Gui::PopItemWidth();
 
-			Gui::Text("%-24s: %.3f sec", "GetStreamTime()", engine.GetStreamTime().TotalSeconds());
-			Gui::Text("%-21s: %.3f ms", "GetCallbackFrequency()", engine.GetCallbackFrequency().TotalMilliseconds());
+			Gui::Text("%-25s: %u", "GetChannelCount()", engine.GetChannelCount());
+			Gui::Text("%-28s: %u Hz", "GetSampleRate()", engine.GetSampleRate());
+			Gui::Text("%-28s: %.3f sec", "GetStreamTime()", engine.GetStreamTime().TotalSeconds());
+			Gui::Text("%-23s: %.3f ms", "GetCallbackFrequency()", engine.GetCallbackFrequency().TotalMilliseconds());
 
-			std::array<TimeSpan, Audio::Engine::CallbackDurationRingBufferSize> durations;
-			engine.DebugGetCallbackDurations(durations.data());
+			const auto durations = engine.DebugGetCallbackDurations();
 
 			std::array<float, durations.size()> durationsMS;
 			for (size_t i = 0; i < durations.size(); i++)
@@ -122,23 +123,17 @@ namespace Comfy::DataTest
 				Gui::PushStyleColor(ImGuiCol_PlotLines, Gui::GetStyleColorVec4(ImGuiCol_PlotHistogram));
 				Gui::PushStyleColor(ImGuiCol_PlotLinesHovered, Gui::GetStyleColorVec4(ImGuiCol_PlotHistogramHovered));
 
-				std::array<i16, Audio::Engine::LastPlayedSamplesRingBufferSampleCount> lastPlayedSamples;
-				engine.DebugGetLastPlayedSamples(lastPlayedSamples.data());
-
-				for (size_t channel = 0; channel < Audio::Engine::OutputChannelCount; channel++)
+				const auto lastPlayedSamples = engine.DebugGetLastPlayedSamples();
+				for (size_t channel = 0; channel < lastPlayedSamples.size(); channel++)
 				{
-					std::array<float, Audio::Engine::LastPlayedSamplesRingBufferFrameCount> normalizedFrames;
+					std::array<float, lastPlayedSamples[0].size()> normalizedSamples;
 
-					const auto channelIndexOffset = channel + 1;
-
-					constexpr float i16ToF32Factor = (1.0f / static_cast<float>(std::numeric_limits<i16>::max()));
-					for (size_t frame = 0; frame < normalizedFrames.size(); frame++)
-						normalizedFrames[frame] = static_cast<float>(lastPlayedSamples[channelIndexOffset * frame]) * i16ToF32Factor;
+					for (size_t sample = 0; sample < normalizedSamples.size(); sample++)
+						normalizedSamples[sample] = static_cast<float>(lastPlayedSamples[channel][sample]) / static_cast<float>(std::numeric_limits<i16>::max());
 
 					char plotName[32];
 					sprintf_s(plotName, "Channel Output [%zu]", channel);
-
-					Gui::PlotLines(plotName, normalizedFrames.data(), static_cast<int>(normalizedFrames.size()), 0, nullptr, -1.0f, 1.0f, vec2(0.0f, 32.0f));
+					Gui::PlotLines(plotName, normalizedSamples.data(), static_cast<int>(normalizedSamples.size()), 0, nullptr, -1.0f, 1.0f, vec2(0.0f, 32.0f));
 				}
 
 				Gui::PopStyleColor(2);
