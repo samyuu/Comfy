@@ -1,6 +1,6 @@
 #include "Decoders.h"
 #define DR_FLAC_IMPLEMENTATION
-#include "dr_flac.h"
+#include <dr_flac.h>
 
 namespace Comfy::Audio
 {
