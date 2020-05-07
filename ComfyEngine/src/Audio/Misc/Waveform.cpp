@@ -64,7 +64,7 @@ namespace Comfy::Audio
 
 	float Waveform::GetPCMForPixel(i64 pixel)
 	{
-		assert(pixel >= 0 && pixel < pixelCount);
+		assert(pixel >= 0 && static_cast<size_t>(pixel) < pixelCount);
 
 		if (cachedPixelBits[pixel])
 			return cachedPixelPCMs[pixel];

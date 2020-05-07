@@ -7,7 +7,7 @@ namespace Comfy::Audio
 	{
 		struct NearestNeighbor
 		{
-			static constexpr double Interpolate(double startValue, double endValue, double inbetween)
+			static constexpr f64 Interpolate(f64 startValue, f64 endValue, f64 inbetween)
 			{
 				return (inbetween <= 0.5) ? startValue : endValue;
 			}
@@ -15,7 +15,7 @@ namespace Comfy::Audio
 
 		struct Linear
 		{
-			static constexpr double Interpolate(double startValue, double endValue, double inbetween)
+			static constexpr f64 Interpolate(f64 startValue, f64 endValue, f64 inbetween)
 			{
 				return ((1.0 - inbetween) * startValue) + (inbetween * endValue);
 			}
@@ -23,9 +23,9 @@ namespace Comfy::Audio
 
 		struct Cosine
 		{
-			static double Interpolate(double startValue, double endValue, double inbetween)
+			static f64 Interpolate(f64 startValue, f64 endValue, f64 inbetween)
 			{
-				const auto temp = (1.0 - std::cos(inbetween * glm::pi<double>())) * 0.5;
+				const auto temp = (1.0 - std::cos(inbetween * glm::pi<f64>())) * 0.5;
 				return (startValue * (1.0 - temp) + endValue * temp);
 			}
 		};
@@ -41,20 +41,20 @@ namespace Comfy::Audio
 	}
 
 	template <typename SampleType, typename InterpolationType>
-	constexpr SampleType SampleAtTime(double atSecond, u32 atChannel, const SampleType* samples, size_t sampleCount, double sampleRate, u32 channelCount)
+	constexpr SampleType SampleAtTime(f64 atSecond, u32 atChannel, const SampleType* samples, size_t sampleCount, f64 sampleRate, u32 channelCount)
 	{
-		const double frameFaction = (atSecond * sampleRate);
+		const f64 frameFaction = (atSecond * sampleRate);
 
 		const i64 startFrame = static_cast<i64>(frameFaction);
 		const i64 endFrame = (startFrame + 1);
 
 		const auto startValue = SampleAtFrame<SampleType>(startFrame, atChannel, samples, sampleCount, channelCount);
 		const auto endValue = SampleAtFrame<SampleType>(endFrame, atChannel, samples, sampleCount, channelCount);
-		const auto inbetween = (frameFaction - static_cast<double>(startFrame));
+		const auto inbetween = (frameFaction - static_cast<f64>(startFrame));
 
-		constexpr auto maxFloatSampleValue = static_cast<double>(std::numeric_limits<SampleType>::max());
-		const auto normalizedStart = static_cast<double>(startValue / maxFloatSampleValue);
-		const auto normalizedEnd = static_cast<double>(endValue / maxFloatSampleValue);
+		constexpr auto maxFloatSampleValue = static_cast<f64>(std::numeric_limits<SampleType>::max());
+		const auto normalizedStart = static_cast<f64>(startValue / maxFloatSampleValue);
+		const auto normalizedEnd = static_cast<f64>(endValue / maxFloatSampleValue);
 
 		const auto normalizedResult = InterpolationType::template Interpolate(normalizedStart, normalizedEnd, inbetween);
 		const auto clampedResult = std::clamp(normalizedResult, -1.0, 1.0);
@@ -71,8 +71,8 @@ namespace Comfy::Audio
 		const auto inSamples = inOutSamples.get();
 		const auto inSampleCount = inOutSampleCount;
 
-		const auto sourceRate = static_cast<double>(inOutSampleRate);
-		const auto targetRate = static_cast<double>(targetSampleRate);
+		const auto sourceRate = static_cast<f64>(inOutSampleRate);
+		const auto targetRate = static_cast<f64>(targetSampleRate);
 
 		const auto inFrameCount = (inSampleCount * channelCount);
 		const auto outFrameCount = static_cast<size_t>(inFrameCount * targetRate / sourceRate + 0.5);
@@ -80,12 +80,12 @@ namespace Comfy::Audio
 		const auto outSampleCount = (outFrameCount * channelCount);
 		auto outSamples = std::make_unique<SampleType[]>(outSampleCount);
 
-		const double outFrameToSecond = (1.0 / targetRate);
+		const f64 outFrameToSecond = (1.0 / targetRate);
 		SampleType* outSampleWriteHead = outSamples.get();
 
 		for (size_t frame = 0; frame < outFrameCount; frame++)
 		{
-			const double second = (static_cast<double>(frame) * outFrameToSecond);
+			const f64 second = (static_cast<f64>(frame) * outFrameToSecond);
 
 			for (u32 channel = 0; channel < channelCount; channel++)
 				outSampleWriteHead[channel] = SampleAtTime<SampleType, InterpolationType>(second, channel, inSamples, inSampleCount, sourceRate, channelCount);

@@ -49,7 +49,7 @@ namespace Comfy::Editor
 		std::unique_ptr<SyncWindow> syncWindow;
 		std::unique_ptr<TargetRenderWindow> renderWindow;
 
-		Audio::SourceHandle songStream = Audio::SourceHandle::Invalid;
+		Audio::SourceHandle songSource = Audio::SourceHandle::Invalid;
 		Audio::Voice songVoice = Audio::VoiceHandle::Invalid;
 
 		bool isPlaying = false;

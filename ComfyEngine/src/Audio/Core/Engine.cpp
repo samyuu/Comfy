@@ -51,6 +51,13 @@ namespace Comfy::Audio
 		VoiceFlags_RemoveOnEnd = 1 << 4,
 	};
 
+	// TODO: Strong i64 typedefs for Frame and Sample units
+
+	struct FrameRange
+	{
+		i64 Start, End;
+	};
+
 	// NOTE: POD reusable voice instance internal data
 	struct VoiceData
 	{
@@ -61,7 +68,11 @@ namespace Comfy::Audio
 		i64 FramePosition;
 		std::array<char, 64> Name;
 
-		// TODO: TimeSpan FadeInTime, FadeOutTime;
+		// TODO: Loop between
+		// FrameRange LoopFrames;
+		// TODO: Automatically interpolate volume towards / from 0.0
+		// FrameRange FadeInFrames;
+		// FrameRange FadeOutFrames;
 	};
 
 	static_assert(std::is_pod_v<VoiceData>);
@@ -427,6 +438,9 @@ namespace Comfy::Audio
 
 	void Engine::UnloadSource(SourceHandle source)
 	{
+		if (source == SourceHandle::Invalid)
+			return;
+
 		const auto lock = std::scoped_lock(impl->CallbackMutex);
 
 		auto sourcePtr = IndexOrNull(static_cast<HandleBaseType>(source), impl->LoadedSources);

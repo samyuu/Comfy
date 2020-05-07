@@ -105,8 +105,10 @@ namespace Comfy::Editor
 
 			if (success)
 			{
+				Audio::Engine::GetInstance().UnloadSource(songSource);
+
 				songVoice.SetSource(newSongStream);
-				songStream = newSongStream;
+				songSource = newSongStream;
 				chart->SetDuration(songVoice.GetDuration());
 			}
 
@@ -170,7 +172,7 @@ namespace Comfy::Editor
 
 	Audio::SourceHandle ChartEditor::GetSongSource()
 	{
-		return songStream;
+		return songSource;
 	}
 
 	Audio::Voice ChartEditor::GetSongVoice()
