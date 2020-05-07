@@ -17,7 +17,7 @@ namespace Comfy::Audio
 
 		if (sourceChannels < targetChannels)
 		{
-			// Duplicate existing channel(s)
+			// NOTE: Duplicate existing channel(s)
 			size_t targetIndex = 0;
 			for (i64 i = 0; i < samplesRead; i++)
 			{
@@ -29,7 +29,7 @@ namespace Comfy::Audio
 		{
 			if (sourceChannels < 4 || targetChannels != 2)
 			{
-				// TODO: implement a more generic solution (?)
+				// TODO: Implement a more generic solution (?)
 				std::fill(bufferToFill, bufferToFill + (framesToRead * targetChannels), 0);
 				return framesToRead;
 			}
@@ -40,7 +40,7 @@ namespace Comfy::Audio
 			{
 			case MixingBehavior::Ignore:
 			{
-				// Remove extra channel(s)
+				// NOTE: Remove extra channel(s)
 				for (i64 i = 0; i < framesRead * targetChannels;)
 				{
 					bufferToFill[i++] = sampleSwapBuffer[swapBufferIndex + 0];
@@ -50,9 +50,9 @@ namespace Comfy::Audio
 
 				break;
 			}
-			case MixingBehavior::Mix:
+			case MixingBehavior::Combine:
 			{
-				// Mix extra channel(s)
+				// NOTE: Mix extra channel(s)
 				for (i64 i = 0; i < framesRead * targetChannels;)
 				{
 					bufferToFill[i++] = SampleMixer::MixSamples(sampleSwapBuffer[swapBufferIndex + 0], sampleSwapBuffer[swapBufferIndex + 2]);

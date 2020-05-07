@@ -10,7 +10,7 @@ namespace Comfy::Audio
 	public:
 		enum class MixingBehavior
 		{
-			Ignore, Mix, Count
+			Ignore, Combine, Count
 		};
 
 	public:

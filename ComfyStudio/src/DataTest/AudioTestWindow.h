@@ -44,7 +44,7 @@ namespace Comfy::DataTest
 		static constexpr std::array<const char*, static_cast<size_t>(Audio::ChannelMixer::MixingBehavior::Count)> mixingBehaviorNames =
 		{
 			"ChannelMixer::MixingBehavior::Ignore",
-			"ChannelMixer::MixingBehavior::Mix",
+			"ChannelMixer::MixingBehavior::Combine",
 		};
 
 		static constexpr std::array<const char*, 8> deviceInfoFieldNames =

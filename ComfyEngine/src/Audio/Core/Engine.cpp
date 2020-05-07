@@ -292,7 +292,7 @@ namespace Comfy::Audio
 		SetAudioAPI(AudioAPI::Default);
 
 		impl->ActiveChannelMixer.SetTargetChannels(OutputChannelCount);
-		impl->ActiveChannelMixer.SetMixingBehavior(ChannelMixer::MixingBehavior::Mix);
+		impl->ActiveChannelMixer.SetMixingBehavior(ChannelMixer::MixingBehavior::Combine);
 
 		constexpr size_t reasonableInitialSourceCapacity = 64;
 		impl->LoadedSources.reserve(reasonableInitialSourceCapacity);
