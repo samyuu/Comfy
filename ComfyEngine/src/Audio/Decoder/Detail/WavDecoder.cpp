@@ -12,10 +12,10 @@ namespace Comfy::Audio
 	DecoderResult WavDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData* outputData)
 	{
 		u32 channels, sampleRate;
-		u64 totalSampleCount;
+		u64 sampleCount;
 
-		// drwav_open_memory_and_read_s16_into_vector(fileData, fileSize, &channels, &sampleRate, &totalSampleCount, outputData->SampleData);
-		i16* data = drwav_open_memory_and_read_s16(fileData, fileSize, &channels, &sampleRate, &totalSampleCount);
+		// drwav_open_memory_and_read_s16_into_vector(fileData, fileSize, &channels, &sampleRate, &sampleCount, outputData->SampleData);
+		i16* data = drwav_open_memory_and_read_s16(fileData, fileSize, &channels, &sampleRate, &sampleCount);
 		COMFY_SCOPE_EXIT([&] { drwav_free(data); });
 
 		if (data == nullptr)
@@ -23,8 +23,6 @@ namespace Comfy::Audio
 
 		*outputData->ChannelCount = channels;
 		*outputData->SampleRate = sampleRate;
-
-		const auto sampleCount = (totalSampleCount * channels);
 		*outputData->SampleCount = sampleCount;
 
 		// TEMP:
