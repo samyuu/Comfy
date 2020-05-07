@@ -1,5 +1,7 @@
 #include "DecoderFactory.h"
 #include "Detail/Decoders.h"
+#include "Audio/Core/Engine.h"
+#include "Audio/Core/Resample.h"
 #include "Audio/SampleProvider/MemorySampleProvider.h"
 #include "IO/File.h"
 #include "IO/Path.h"
@@ -57,6 +59,9 @@ namespace Comfy::Audio
 
 			if (decoder->DecodeParseAudio(fileContent.get(), fileSize, &outputData) == DecoderResult::Failure)
 				continue;
+
+			if (*outputData.SampleRate != Engine::OutputSampleRate)
+				Resample<i16>(*outputData.SampleData, *outputData.SampleCount, *outputData.SampleRate, Engine::OutputSampleRate, *outputData.ChannelCount);
 
 			return resultSampleProvider;
 		}
