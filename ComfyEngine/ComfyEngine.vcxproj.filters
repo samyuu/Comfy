@@ -21,9 +21,6 @@
     <ClInclude Include="src\Audio\Core\Detail\ChannelMixer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Audio\Core\Detail\Resampler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Audio\Core\Detail\SampleMixer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -57,15 +54,15 @@
     <ClInclude Include="src\Audio\Decoder\DecoderFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Audio\Core\Resample.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ComfyEngineTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Audio\Core\Detail\ChannelMixer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Audio\Core\Detail\Resampler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Audio\Decoder\Detail\FlacDecoder.cpp">

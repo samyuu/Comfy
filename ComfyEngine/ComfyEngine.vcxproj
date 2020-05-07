@@ -123,9 +123,9 @@
     <ClInclude Include="src\Audio\Audio.h" />
     <ClInclude Include="src\Audio\Core\Engine.h" />
     <ClInclude Include="src\Audio\Core\Detail\ChannelMixer.h" />
-    <ClInclude Include="src\Audio\Core\Detail\Resampler.h" />
     <ClInclude Include="src\Audio\Core\Detail\SampleMixer.h" />
     <ClInclude Include="src\Audio\Core\ICallbackReceiver.h" />
+    <ClInclude Include="src\Audio\Core\Resample.h" />
     <ClInclude Include="src\Audio\Decoder\DecoderFactory.h" />
     <ClInclude Include="src\Audio\Decoder\Detail\Decoders.h" />
     <ClInclude Include="src\Audio\Decoder\IDecoder.h" />
@@ -138,7 +138,6 @@
   <ItemGroup>
     <ClCompile Include="src\Audio\Core\Engine.cpp" />
     <ClCompile Include="src\Audio\Core\Detail\ChannelMixer.cpp" />
-    <ClCompile Include="src\Audio\Core\Detail\Resampler.cpp" />
     <ClCompile Include="src\Audio\Decoder\DecoderFactory.cpp" />
     <ClCompile Include="src\Audio\Decoder\Detail\FlacDecoder.cpp" />
     <ClCompile Include="src\Audio\Decoder\Detail\HevagDecoder.cpp" />
