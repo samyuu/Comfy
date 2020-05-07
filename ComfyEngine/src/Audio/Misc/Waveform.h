@@ -1,11 +1,11 @@
 #pragma once
 #include "Types.h"
 #include "Audio/SampleProvider/ISampleProvider.h"
-#include "Audio/SampleProvider/MemorySampleProvider.h"
 #include "Time/TimeSpan.h"
 
 namespace Comfy::Audio
 {
+	// TODO: Optimally this should calculate a cached pixel PCM representation async and while processing return dynamic results instead
 	class Waveform
 	{
 	public:
@@ -20,6 +20,7 @@ namespace Comfy::Audio
 
 	protected:
 		// NOTE: Mapping of pixel <-> averaged PCM
-		std::vector<float> pixelPCMs;
+		std::unique_ptr<float[]> pixelPCMs = nullptr;
+		i64 pixelCount = 0;
 	};
 }
