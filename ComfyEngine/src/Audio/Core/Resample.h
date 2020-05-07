@@ -74,7 +74,7 @@ namespace Comfy::Audio
 		const auto sourceRate = static_cast<f64>(inOutSampleRate);
 		const auto targetRate = static_cast<f64>(targetSampleRate);
 
-		const auto inFrameCount = (inSampleCount * channelCount);
+		const auto inFrameCount = (inSampleCount / channelCount);
 		const auto outFrameCount = static_cast<size_t>(inFrameCount * targetRate / sourceRate + 0.5);
 
 		const auto outSampleCount = (outFrameCount * channelCount);
