@@ -5,22 +5,22 @@ namespace Comfy::Audio
 {
 	namespace
 	{
-		constexpr float AveragePCMAtPixel(double atPixel, u32 atChannel, const i16* samples, size_t sampleCount, u32 sampleRate, u32 channelCount, double secondsPerPixel)
+		constexpr float AveragePCMAtPixel(double atPixel, u32 atChannel, const i16* samples, size_t sampleCount, f64 sampleRate, u32 channelCount, f64 secondsPerPixel)
 		{
-			const double pixelStartTime = (atPixel * secondsPerPixel);
-			const double pixelEndTime = ((atPixel + 1.0) * secondsPerPixel);
+			const f64 pixelStartTime = (atPixel * secondsPerPixel);
+			const f64 pixelEndTime = ((atPixel + 1.0) * secondsPerPixel);
 
-			const double secondsPerSample = 1.0 / static_cast<double>(sampleRate);
+			const f64 secondsPerSample = 1.0 / sampleRate;
 
 			i32 pcmSum = 0, pcmCount = 0;
-			for (double time = pixelStartTime; time < pixelEndTime; time += secondsPerSample)
+			for (f64 time = pixelStartTime; time < pixelEndTime; time += secondsPerSample)
 			{
 				pcmSum += glm::abs(SampleAtTime<i16, Interpolation::Linear>(time, atChannel, samples, sampleCount, sampleRate, channelCount));
 				pcmCount++;
 			}
 
 			const i32 averagePCM = (pcmSum / pcmCount);
-			const float normalizedPCM = averagePCM / static_cast<float>(std::numeric_limits<i16>::max());
+			const f32 normalizedPCM = averagePCM / static_cast<f32>(std::numeric_limits<i16>::max());
 
 			return normalizedPCM;
 		}
@@ -28,43 +28,52 @@ namespace Comfy::Audio
 
 	void Waveform::Calculate(ISampleProvider& sampleProvider, TimeSpan timePerPixel)
 	{
-		const size_t sampleCount = sampleProvider.GetFrameCount() * sampleProvider.GetChannelCount();
-		const u32 sampleRate = sampleProvider.GetSampleRate();
-		const u32 channelCount = sampleProvider.GetChannelCount();
-		const i16* sampleData = sampleProvider.GetRawSampleView();
+		const auto frameCount = sampleProvider.GetFrameCount();
+		channelCount = sampleProvider.GetChannelCount();
+		sampleCount = (frameCount * channelCount);
+		sampleRate = static_cast<f64>(sampleProvider.GetSampleRate());
+		secondsPerPixel = timePerPixel.TotalSeconds();
 
-		std::unique_ptr<i16[]> tempOwningSampleBuffer = nullptr;
-		if (sampleData == nullptr)
+		if (&sampleProvider != lastSampleProvider)
 		{
-			tempOwningSampleBuffer = std::make_unique<i16[]>(sampleCount);
-			sampleData = tempOwningSampleBuffer.get();
+			sampleDataCopy = std::make_unique<i16[]>(sampleCount);
+			sampleProvider.ReadSamples(sampleDataCopy.get(), 0, frameCount, channelCount);
 
-			sampleProvider.ReadSamples(tempOwningSampleBuffer.get(), 0, sampleProvider.GetFrameCount(), sampleProvider.GetChannelCount());
+			lastSampleProvider = &sampleProvider;
 		}
 
-		const double samplesPerPixel = (timePerPixel.TotalSeconds() * sampleRate * channelCount);
-		const double framesPixel = (samplesPerPixel / channelCount);
+		const f64 samplesPerPixel = (secondsPerPixel * sampleRate * channelCount);
+		const auto newPixelCount = static_cast<size_t>(sampleCount / samplesPerPixel);
 
-		const i64 totalPixels = static_cast<i64>(sampleCount / samplesPerPixel);
+		if (cachedPixelPCMs == nullptr || newPixelCount > pixelCount)
+		{
+			cachedPixelPCMs = std::make_unique<f32[]>(newPixelCount);
+			cachedPixelBits.resize(newPixelCount);
+		}
 
-		if (pixelCount < totalPixels)
-			pixelPCMs = std::make_unique<float[]>(totalPixels);
-		pixelCount = totalPixels;
+		std::fill(cachedPixelBits.begin(), cachedPixelBits.end(), 0);
 
-		for (i64 pixel = 0; pixel < totalPixels; pixel++)
-			pixelPCMs[pixel] = AveragePCMAtPixel(static_cast<double>(pixel), 0, sampleData, sampleCount, sampleRate, channelCount, timePerPixel.TotalSeconds());
+		pixelCount = newPixelCount;
 	}
 
 	void Waveform::Clear()
 	{
-		pixelPCMs = nullptr;
+		cachedPixelPCMs = nullptr;
 		pixelCount = 0;
 	}
 
-	float Waveform::GetPcmForPixel(i64 pixel) const
+	float Waveform::GetPCMForPixel(i64 pixel)
 	{
 		assert(pixel >= 0 && pixel < pixelCount);
-		return pixelPCMs[pixel];
+
+		if (cachedPixelBits[pixel])
+			return cachedPixelPCMs[pixel];
+
+		const auto result = AveragePCMAtPixel(static_cast<double>(pixel), 0, sampleDataCopy.get(), sampleCount, sampleRate, channelCount, secondsPerPixel);;
+		cachedPixelBits[pixel] = true;
+		cachedPixelPCMs[pixel] = result;
+
+		return result;
 	}
 
 	size_t Waveform::GetPixelCount() const

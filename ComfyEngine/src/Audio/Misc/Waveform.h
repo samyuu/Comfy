@@ -1,26 +1,38 @@
 #pragma once
 #include "Types.h"
+#include "CoreTypes.h"
 #include "Audio/SampleProvider/ISampleProvider.h"
 #include "Time/TimeSpan.h"
 
 namespace Comfy::Audio
 {
-	// TODO: Optimally this should calculate a cached pixel PCM representation async and while processing return dynamic results instead
 	class Waveform
 	{
 	public:
 		Waveform() = default;
 		~Waveform() = default;
 
+		// TODO: Different methods to set source provider and change timePerPixel scale
 		void Calculate(ISampleProvider& sampleProvider, TimeSpan timePerPixel);
 		void Clear();
 
-		float GetPcmForPixel(i64 pixel) const;
+		float GetPCMForPixel(i64 pixel);
 		size_t GetPixelCount() const;
 
-	protected:
-		// NOTE: Mapping of pixel <-> averaged PCM
-		std::unique_ptr<float[]> pixelPCMs = nullptr;
-		i64 pixelCount = 0;
+	private:
+		// TODO: Implement implement shared ownership to avoid copying all samples
+		ISampleProvider* lastSampleProvider = nullptr;
+
+		size_t sampleCount = 0;
+		u32 channelCount = 0;
+		f64 sampleRate = 0.0;
+		f64 secondsPerPixel = 0.0;
+		
+		// NOTE: Copy to avoid any ownership issues with ISampleProvider becoming unavailable
+		std::unique_ptr<i16[]> sampleDataCopy = nullptr;
+
+		size_t pixelCount = 0;
+		std::vector<bool> cachedPixelBits;
+		std::unique_ptr<f32[]> cachedPixelPCMs = nullptr;
 	};
 }

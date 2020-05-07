@@ -470,7 +470,7 @@ namespace Comfy::Editor
 				continue;
 
 			// TODO: Try visualizing by interpolating inbetween pixels (2x AA)
-			float amplitude = songWaveform.GetPcmForPixel(timelinePixel) * timelineHeight;
+			float amplitude = songWaveform.GetPCMForPixel(timelinePixel) * timelineHeight;
 
 			float x = screenPixel + timelineX;
 			float halfAmplitude = amplitude * 0.5f;
