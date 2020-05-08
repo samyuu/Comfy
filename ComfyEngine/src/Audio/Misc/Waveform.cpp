@@ -69,12 +69,12 @@ namespace Comfy::Audio
 		if (cachedPixelBits[pixel])
 			return cachedPixelPCMs[pixel];
 
-		float result;
+		float result = 0.0f;
 		if (channelCount >= 2)
 		{
 			// NOTE: Purposly ignore all but the first two channels to avoid a potentially noisy waveform and improve performance slightly
-			for (size_t c = 0; c < 2; c++)
-				result =+ AveragePCMAtPixel(static_cast<double>(pixel), c, sampleDataCopy.get(), sampleCount, sampleRate, channelCount, secondsPerPixel);
+			for (u32 c = 0; c < 2; c++)
+				result += AveragePCMAtPixel(static_cast<double>(pixel), c, sampleDataCopy.get(), sampleCount, sampleRate, channelCount, secondsPerPixel);
 			result /= 2.0f;
 		}
 		else

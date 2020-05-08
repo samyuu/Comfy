@@ -1,7 +1,7 @@
 #include "Engine.h"
+#include "SampleMix.h"
 #include "Audio/Decoder/DecoderFactory.h"
 #include "Audio/Decoder/Detail/Decoders.h"
-#include "Detail/SampleMixer.h"
 #include "Core/Logger.h"
 #include "Time/Stopwatch.h"
 #include "IO/File.h"
@@ -232,7 +232,7 @@ namespace Comfy::Audio
 					voiceData.FramePosition = isLooping ? 0 : sampleProvider->GetFrameCount();
 
 				for (i64 i = 0; i < (framesRead * OutputChannelCount); i++)
-					outputBuffer[i] = SampleMixer::MixSamples(outputBuffer[i], static_cast<i16>(TempOutputBuffer[i] * voiceData.Volume));
+					outputBuffer[i] = MixSamples(outputBuffer[i], static_cast<i16>(TempOutputBuffer[i] * voiceData.Volume));
 			}
 		}
 

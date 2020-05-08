@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
+#include "ChannelMixer.h"
 #include "ICallbackReceiver.h"
-#include "Detail/ChannelMixer.h"
 #include "Audio/SampleProvider/ISampleProvider.h"
 #include "Time/TimeSpan.h"
 

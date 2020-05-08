@@ -22,7 +22,7 @@ namespace Comfy::Audio
 		u32 GetTargetChannels() const;
 		void SetTargetChannels(u32 value);
 
-	protected:
+	private:
 		MixingBehavior mixingBehavior = MixingBehavior::Ignore;
 		std::vector<i16> sampleSwapBuffer;
 		

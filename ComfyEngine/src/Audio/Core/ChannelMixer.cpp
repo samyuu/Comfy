@@ -1,5 +1,5 @@
 #include "ChannelMixer.h"
-#include "SampleMixer.h"
+#include "SampleMix.h"
 #include <assert.h>
 
 namespace Comfy::Audio
@@ -55,8 +55,8 @@ namespace Comfy::Audio
 				// NOTE: Mix extra channel(s)
 				for (i64 i = 0; i < framesRead * targetChannels;)
 				{
-					bufferToFill[i++] = SampleMixer::MixSamples(sampleSwapBuffer[swapBufferIndex + 0], sampleSwapBuffer[swapBufferIndex + 2]);
-					bufferToFill[i++] = SampleMixer::MixSamples(sampleSwapBuffer[swapBufferIndex + 1], sampleSwapBuffer[swapBufferIndex + 3]);
+					bufferToFill[i++] = MixSamples(sampleSwapBuffer[swapBufferIndex + 0], sampleSwapBuffer[swapBufferIndex + 2]);
+					bufferToFill[i++] = MixSamples(sampleSwapBuffer[swapBufferIndex + 1], sampleSwapBuffer[swapBufferIndex + 3]);
 					swapBufferIndex += sourceChannels;
 				}
 
