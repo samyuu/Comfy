@@ -5,6 +5,8 @@ namespace Comfy::Editor
 	class ITimelinePlaybackControllable
 	{
 	public:
+		virtual ~ITimelinePlaybackControllable() = default;
+
 		virtual bool GetIsPlayback() const = 0;
 
 	protected:

@@ -9,7 +9,7 @@ namespace Comfy
 	{
 	public:
 		BaseWindow(Application* parent);
-		virtual ~BaseWindow();
+		virtual ~BaseWindow() = default;
 
 		virtual const char* GetGuiName() const = 0;
 		virtual void DrawGui() {}

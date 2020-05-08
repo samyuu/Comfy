@@ -6,10 +6,6 @@ namespace Comfy
 	{
 	}
 
-	BaseWindow::~BaseWindow()
-	{
-	}
-
 	ImGuiWindowFlags BaseWindow::GetWindowFlags() const
 	{
 		return ImGuiWindowFlags_None;

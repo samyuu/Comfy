@@ -12,7 +12,7 @@ namespace Comfy::Graphics::D3D11
 
 	public:
 		DepthBuffer(ivec2 size, DXGI_FORMAT format, u32 multiSampleCount = 1);
-		~DepthBuffer() = default;
+		virtual ~DepthBuffer() = default;
 
 	public:
 		void Clear(float value = 1.0f);

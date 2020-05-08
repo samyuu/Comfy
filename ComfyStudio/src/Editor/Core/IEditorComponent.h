@@ -13,6 +13,7 @@ namespace Comfy::Editor
 	{
 	public:
 		IEditorComponent(Application* parent, EditorManager* editor);
+		virtual ~IEditorComponent() = default;
 
 		virtual void Initialize() = 0;
 

@@ -7,6 +7,8 @@ namespace Comfy::App
 	class TaskInterface
 	{
 	public:
+		virtual ~TaskInterface() = default;
+
 		virtual bool Initialize() = 0;
 		virtual bool Update() = 0;
 		virtual bool Render(Graphics::GPU_Renderer2D* renderer, Graphics::Aet::AetRenderer* aetRenderer) = 0;

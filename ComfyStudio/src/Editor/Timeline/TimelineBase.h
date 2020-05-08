@@ -18,8 +18,8 @@ namespace Comfy::Editor
 	class TimelineBase : public TimelineBaseRegions, public ITimelinePlaybackControllable
 	{
 	public:
-		TimelineBase() {}
-		virtual ~TimelineBase() {}
+		TimelineBase() = default;
+		virtual ~TimelineBase() = default;
 
 		virtual float GetTimelinePosition(TimeSpan time) const;
 		virtual TimeSpan GetTimelineTime(float position) const;

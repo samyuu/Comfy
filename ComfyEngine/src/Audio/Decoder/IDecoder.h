@@ -21,6 +21,8 @@ namespace Comfy::Audio
 	class IDecoder
 	{
 	public:
+		virtual ~IDecoder() = default;
+
 		virtual const char* GetFileExtensions() const = 0;
 		virtual DecoderResult DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData* outputData) = 0;
 	};

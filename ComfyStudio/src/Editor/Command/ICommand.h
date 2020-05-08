@@ -14,6 +14,8 @@ namespace Comfy::Editor
 	class ICommand : public INamedCommand
 	{
 	public:
+		virtual ~ICommand() = default;
+
 		virtual void Do() = 0;
 		virtual void Undo() = 0;
 		virtual void Redo() = 0;

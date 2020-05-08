@@ -15,8 +15,8 @@ namespace Comfy::Editor
 		using CommandStack = std::vector<std::shared_ptr<TCommand>>;
 
 	public:
-		CommandManager() {}
-		virtual ~CommandManager() {}
+		CommandManager() = default;
+		virtual ~CommandManager() = default;
 
 	public:
 		template<class TNewCommand, class... Types>
