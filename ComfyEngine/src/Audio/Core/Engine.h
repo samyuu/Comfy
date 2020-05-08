@@ -112,7 +112,7 @@ namespace Comfy::Audio
 
 	public:
 		COMFY_NODISCARD SourceHandle LoadAudioSource(std::string_view filePath);
-		COMFY_NODISCARD SourceHandle LoadAudioSource(std::unique_ptr<ISampleProvider> sampleProvider);
+		COMFY_NODISCARD SourceHandle LoadAudioSource(std::shared_ptr<ISampleProvider> sampleProvider);
 		void UnloadSource(SourceHandle source);
 
 		// NOTE: Add a voice and keep a handle to it
@@ -122,8 +122,7 @@ namespace Comfy::Audio
 		// NOTE: Add a voice, play it once then discard
 		void PlaySound(SourceHandle source, std::string_view name, f32 volume = MaxVolume);
 
-		// NOTE: Underlying source pointer may be deleted at any time using UnloadSource or be invalided using LoadAudioSource
-		ISampleProvider* GetRawSource(SourceHandle handle);
+		std::shared_ptr<ISampleProvider> GetSharedSource(SourceHandle handle);
 
 	public:
 		void RegisterCallbackReceiver(ICallbackReceiver* callbackReceiver);

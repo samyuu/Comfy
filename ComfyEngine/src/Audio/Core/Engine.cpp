@@ -93,9 +93,8 @@ namespace Comfy::Audio
 		// NOTE: Indexed into by VoiceHandle, nullptr = free space
 		std::array<VoiceData, MaxSimultaneousVoices> ActiveVoices;
 
-		// TODO: Switch to using shared_ptr to avoid ownership issues for cases like the Waveform class
 		// NOTE: Indexed into by SourceHandle, nullptr = free space
-		std::vector<std::unique_ptr<ISampleProvider>> LoadedSources;
+		std::vector<std::shared_ptr<ISampleProvider>> LoadedSources;
 
 	public:
 		static constexpr size_t TempOutputBufferSize = (MaxBufferSampleCount * OutputChannelCount);
@@ -169,6 +168,12 @@ namespace Comfy::Audio
 		{
 			auto sourcePtr = IndexOrNull(static_cast<HandleBaseType>(handle), LoadedSources);
 			return (sourcePtr != nullptr && *sourcePtr != nullptr) ? sourcePtr->get() : nullptr;
+		}
+
+		std::shared_ptr<ISampleProvider> GetSharedSource(SourceHandle handle)
+		{
+			auto sourcePtr = IndexOrNull(static_cast<HandleBaseType>(handle), LoadedSources);
+			return (sourcePtr != nullptr && *sourcePtr != nullptr) ? *sourcePtr : nullptr;
 		}
 
 		void CallbackNotifyCallbackReceivers()
@@ -420,7 +425,7 @@ namespace Comfy::Audio
 		return LoadAudioSource(DecoderFactory::GetInstance().DecodeFile(filePath));
 	}
 
-	SourceHandle Engine::LoadAudioSource(std::unique_ptr<ISampleProvider> sampleProvider)
+	SourceHandle Engine::LoadAudioSource(std::shared_ptr<ISampleProvider> sampleProvider)
 	{
 		if (sampleProvider == nullptr)
 			return SourceHandle::Invalid;
@@ -431,11 +436,11 @@ namespace Comfy::Audio
 			if (impl->LoadedSources[i] != nullptr)
 				continue;
 
-			impl->LoadedSources[i] = std::move(sampleProvider);
+			impl->LoadedSources[i] = sampleProvider;
 			return static_cast<SourceHandle>(i);
 		}
 
-		impl->LoadedSources.push_back(std::move(sampleProvider));
+		impl->LoadedSources.push_back(sampleProvider);
 		return static_cast<SourceHandle>(impl->LoadedSources.size() - 1);
 	}
 
@@ -511,9 +516,9 @@ namespace Comfy::Audio
 		}
 	}
 
-	ISampleProvider* Engine::GetRawSource(SourceHandle handle)
+	std::shared_ptr<ISampleProvider> Engine::GetSharedSource(SourceHandle handle)
 	{
-		return impl->GetSource(handle);
+		return impl->GetSharedSource(handle);
 	}
 
 	void Engine::RegisterCallbackReceiver(ICallbackReceiver* callbackReceiver)
