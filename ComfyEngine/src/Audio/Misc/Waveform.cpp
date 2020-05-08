@@ -3,63 +3,55 @@
 
 namespace Comfy::Audio
 {
-	namespace
+	void Waveform::SetSource(std::shared_ptr<ISampleProvider> sampleProvider)
 	{
-		constexpr float AveragePCMAtPixel(double atPixel, u32 atChannel, const i16* samples, size_t sampleCount, f64 sampleRate, u32 channelCount, f64 secondsPerPixel)
+		if (sampleProvider == nullptr || sampleProvider->GetRawSampleView() == nullptr)
 		{
-			const f64 pixelStartTime = (atPixel * secondsPerPixel);
-			const f64 pixelEndTime = ((atPixel + 1.0) * secondsPerPixel);
-
-			const f64 secondsPerSample = 1.0 / sampleRate;
-
-			i32 pcmSum = 0, pcmCount = 0;
-			for (f64 time = pixelStartTime; time < pixelEndTime; time += secondsPerSample)
-			{
-				pcmSum += glm::abs(SampleAtTime<i16, Interpolation::Linear>(time, atChannel, samples, sampleCount, sampleRate, channelCount));
-				pcmCount++;
-			}
-
-			const i32 averagePCM = (pcmSum / pcmCount);
-			const f32 normalizedPCM = averagePCM / static_cast<f32>(std::numeric_limits<i16>::max());
-
-			return normalizedPCM;
+			source = {};
+		}
+		else
+		{
+			source.SampleProvider = sampleProvider;
+			source.Samples = sampleProvider->GetRawSampleView();
+			source.SampleCount = sampleProvider->GetFrameCount() * sampleProvider->GetChannelCount();
+			source.ChannelCount = sampleProvider->GetChannelCount();
+			source.SampleRate = static_cast<f64>(sampleProvider->GetSampleRate());
 		}
 	}
 
-	void Waveform::Calculate(ISampleProvider& sampleProvider, TimeSpan timePerPixel)
+	void Waveform::SetScale(TimeSpan timePerPixel)
 	{
-		const auto frameCount = sampleProvider.GetFrameCount();
-		channelCount = sampleProvider.GetChannelCount();
-		sampleCount = (frameCount * channelCount);
-		sampleRate = static_cast<f64>(sampleProvider.GetSampleRate());
-		secondsPerPixel = timePerPixel.TotalSeconds();
-
-		if (&sampleProvider != lastSampleProvider)
+		if (source.SampleProvider == nullptr)
 		{
-			sampleDataCopy = std::make_unique<i16[]>(sampleCount);
-			sampleProvider.ReadSamples(sampleDataCopy.get(), 0, frameCount, channelCount);
-
-			lastSampleProvider = &sampleProvider;
+			pixelCount = 0;
+			return;
 		}
 
-		const f64 samplesPerPixel = (secondsPerPixel * sampleRate * channelCount);
-		const auto newPixelCount = static_cast<size_t>(sampleCount / samplesPerPixel);
+		secondsPerPixel = timePerPixel.TotalSeconds();
+		secondsPerSample = 1.0 / (source.SampleRate);
 
-		if (cachedPixelPCMs == nullptr || newPixelCount > pixelCount)
+		const auto samplesPerPixel = static_cast<f64>(secondsPerPixel * source.SampleRate * source.ChannelCount);
+		const auto newPixelCount = static_cast<size_t>(source.SampleCount / samplesPerPixel);
+
+		if (cachedPixelPCMs == nullptr || pixelCount > cachedPixelBits.size())
 		{
 			cachedPixelPCMs = std::make_unique<f32[]>(newPixelCount);
 			cachedPixelBits.resize(newPixelCount);
 		}
 
 		std::fill(cachedPixelBits.begin(), cachedPixelBits.end(), 0);
-
 		pixelCount = newPixelCount;
 	}
 
 	void Waveform::Clear()
 	{
-		cachedPixelPCMs = nullptr;
+		source = {};
+		secondsPerPixel = 0.0;
+		secondsPerSample = 0.0;
 		pixelCount = 0;
+		cachedPixelBits.clear();
+		cachedPixelBits.shrink_to_fit();
+		cachedPixelPCMs = nullptr;
 	}
 
 	float Waveform::GetPCMForPixel(i64 pixel)
@@ -70,16 +62,16 @@ namespace Comfy::Audio
 			return cachedPixelPCMs[pixel];
 
 		float result = 0.0f;
-		if (channelCount >= 2)
+		if (source.ChannelCount >= 2)
 		{
 			// NOTE: Purposly ignore all but the first two channels to avoid a potentially noisy waveform and improve performance slightly
-			for (u32 c = 0; c < 2; c++)
-				result += AveragePCMAtPixel(static_cast<double>(pixel), c, sampleDataCopy.get(), sampleCount, sampleRate, channelCount, secondsPerPixel);
+			for (u32 channel = 0; channel < 2; channel++)
+				result += AveragePCMAtPixel(static_cast<double>(pixel), channel);
 			result /= 2.0f;
 		}
 		else
 		{
-			result = AveragePCMAtPixel(static_cast<double>(pixel), 0, sampleDataCopy.get(), sampleCount, sampleRate, channelCount, secondsPerPixel);
+			result = AveragePCMAtPixel(static_cast<double>(pixel), 0);
 		}
 
 		cachedPixelBits[pixel] = true;
@@ -91,5 +83,25 @@ namespace Comfy::Audio
 	size_t Waveform::GetPixelCount() const
 	{
 		return pixelCount;
+	}
+
+	float Waveform::AveragePCMAtPixel(double atPixel, u32 atChannel) const
+	{
+		assert(source.SampleProvider != nullptr);
+
+		const f64 pixelStartTime = (atPixel * secondsPerPixel);
+		const f64 pixelEndTime = ((atPixel + 1.0) * secondsPerPixel);
+
+		i32 pcmSum = 0, pcmCount = 0;
+		for (f64 time = pixelStartTime; time < pixelEndTime; time += secondsPerSample)
+		{
+			pcmSum += glm::abs(SampleAtTime<i16, Interpolation::Linear>(time, atChannel, source.Samples, source.SampleCount, source.SampleRate, source.ChannelCount));
+			pcmCount++;
+		}
+
+		const i32 averagePCM = (pcmSum / pcmCount);
+		const f32 normalizedPCM = averagePCM / static_cast<f32>(std::numeric_limits<i16>::max());
+
+		return normalizedPCM;
 	}
 }

@@ -256,6 +256,11 @@ namespace Comfy::Editor
 
 	void TargetTimeline::OnSongLoaded()
 	{
+		if (auto sampleProvider = Audio::Engine::GetInstance().GetSharedSource(chartEditor->GetSongSource()); sampleProvider != nullptr)
+			songWaveform.SetSource(sampleProvider);
+		else
+			songWaveform.Clear();
+
 		updateWaveform = true;
 	}
 
@@ -436,15 +441,8 @@ namespace Comfy::Editor
 
 		if (updateWaveform)
 		{
-			if (auto sampleProvider = Audio::Engine::GetInstance().GetRawSource(chartEditor->GetSongSource()); sampleProvider != nullptr)
-			{
-				const TimeSpan timePerPixel = GetTimelineTime(2.0f) - GetTimelineTime(1.0f);
-				songWaveform.Calculate(*sampleProvider, timePerPixel);
-			}
-			else
-			{
-				songWaveform.Clear();
-			}
+			const TimeSpan timePerPixel = GetTimelineTime(2.0f) - GetTimelineTime(1.0f);
+			songWaveform.SetScale(timePerPixel);
 
 			updateWaveform = false;
 		}
