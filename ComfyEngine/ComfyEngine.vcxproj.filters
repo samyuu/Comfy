@@ -54,6 +54,30 @@
     <ClInclude Include="src\Audio\Core\ChannelMixer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Input\DirectInput\DirectInput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input\DirectInput\DirectInputDevice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input\DirectInput\Ds4Button.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input\DirectInput\Ds4State.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input\DirectInput\DualShock4.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input\IInputDevice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input\Keyboard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input\KeyCode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Audio\Decoder\Detail\FlacDecoder.cpp">
@@ -87,6 +111,24 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Audio\Core\ChannelMixer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input\DirectInput\DirectInput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input\DirectInput\DirectInputDevice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input\DirectInput\Ds4State.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input\DirectInput\DualShock4.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input\Keyboard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input\KeyCode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

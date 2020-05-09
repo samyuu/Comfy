@@ -133,6 +133,14 @@
     <ClInclude Include="src\Audio\SampleProvider\MemorySampleProvider.h" />
     <ClInclude Include="src\Audio\SampleProvider\SilenceSampleProvider.h" />
     <ClInclude Include="src\Audio\Misc\Waveform.h" />
+    <ClInclude Include="src\Input\DirectInput\DirectInput.h" />
+    <ClInclude Include="src\Input\DirectInput\DirectInputDevice.h" />
+    <ClInclude Include="src\Input\DirectInput\Ds4Button.h" />
+    <ClInclude Include="src\Input\DirectInput\Ds4State.h" />
+    <ClInclude Include="src\Input\DirectInput\DualShock4.h" />
+    <ClInclude Include="src\Input\IInputDevice.h" />
+    <ClInclude Include="src\Input\Keyboard.h" />
+    <ClInclude Include="src\Input\KeyCode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Audio\Core\Engine.cpp" />
@@ -146,6 +154,12 @@
     <ClCompile Include="src\Audio\SampleProvider\MemorySampleProvider.cpp" />
     <ClCompile Include="src\Audio\SampleProvider\SilenceSampleProvider.cpp" />
     <ClCompile Include="src\Audio\Misc\Waveform.cpp" />
+    <ClCompile Include="src\Input\DirectInput\DirectInput.cpp" />
+    <ClCompile Include="src\Input\DirectInput\DirectInputDevice.cpp" />
+    <ClCompile Include="src\Input\DirectInput\Ds4State.cpp" />
+    <ClCompile Include="src\Input\DirectInput\DualShock4.cpp" />
+    <ClCompile Include="src\Input\Keyboard.cpp" />
+    <ClCompile Include="src\Input\KeyCode.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

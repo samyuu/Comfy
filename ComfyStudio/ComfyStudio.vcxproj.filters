@@ -18,18 +18,6 @@
     <ClCompile Include="src\DataTest\AudioTestWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Input\DirectInput\DirectInput.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Input\DirectInput\DirectInputDevice.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Input\DirectInput\Ds4State.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Input\DirectInput\DualShock4.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\DataTest\InputTestWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -78,16 +66,10 @@
     <ClCompile Include="src\System\CommandLine\CommandLineOption.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Input\KeyCode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\System\Profiling\Profiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\EntryPoint.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Input\Keyboard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\ApplicationHost.cpp">
@@ -368,27 +350,6 @@
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Input\DirectInput\DirectInput.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Input\DirectInput\DirectInputDevice.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Input\IInputDevice.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Input\DirectInput\DualShock4.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Input\DirectInput\Ds4Button.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Input\DirectInput\Ds4State.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Input\Keyboard.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\DataTest\InputTestWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -402,9 +363,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\DataTest\IconTestWindow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Input\KeyCode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\System\LibraryLoader.h">
