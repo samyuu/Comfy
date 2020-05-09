@@ -1,6 +1,6 @@
 #include "Application.h"
-#include "App/Engine.h"
 #include "Graphics/D3D11/Direct3D.h"
+#include "Editor/Core/RenderWindowBase.h"
 #include "IO/File.h"
 #include "DataTest/AudioTestWindow.h"
 #include "DataTest/IconTestWindow.h"
@@ -474,10 +474,12 @@ namespace Comfy
 
 	void Application::DrawAppEngineWindow()
 	{
+		/*
 		if (appEngine == nullptr)
 			appEngine = std::make_unique<App::Engine>();
 
 		appEngine->Tick();
+		*/
 	}
 
 	void Application::DrawAppEngineMenus(const char* header)

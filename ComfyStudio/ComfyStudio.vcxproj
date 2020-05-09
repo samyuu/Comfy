@@ -174,8 +174,6 @@
     <ClCompile Include="src\Graphics\D3D11\D3DResources.cpp" />
     <ClCompile Include="src\Graphics\Utilities\SpritePacker.cpp" />
     <ClCompile Include="src\ImGui\ComfyTextureID.cpp" />
-    <ClCompile Include="src\App\Engine.cpp" />
-    <ClCompile Include="src\App\TestTasks.cpp" />
     <ClCompile Include="src\Core\ApplicationHost.cpp" />
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
     <ClCompile Include="src\Editor\Aet\AetIcons.cpp" />
@@ -311,9 +309,6 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
     </FxCompile>
     <ClInclude Include="src\ImGui\ComfyTextureID.h" />
-    <ClInclude Include="src\App\Engine.h" />
-    <ClInclude Include="src\App\Task.h" />
-    <ClInclude Include="src\App\TestTasks.h" />
     <ClInclude Include="src\Core\ApplicationHost.h" />
     <ClInclude Include="src\Core\ComfyConfig.h" />
     <ClInclude Include="src\Core\ComfyData.h" />

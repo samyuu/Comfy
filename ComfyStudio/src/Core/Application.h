@@ -6,9 +6,6 @@
 #include "License/LicenseWindow.h"
 #include "ImGui/GuiRenderer.h"
 
-// NOTE: Forward declare to avoid include polution
-namespace Comfy::App { class Engine; }
-
 namespace Comfy
 {
 	class Application : NonCopyable
@@ -86,7 +83,6 @@ namespace Comfy
 		bool showDemoWindow = false;
 		bool versionWindowOpen = false;
 
-		std::unique_ptr<App::Engine> appEngine = nullptr;
 		std::unique_ptr<Editor::EditorManager> editorManager = nullptr;
 		std::vector<std::unique_ptr<BaseWindow>> dataTestComponents;
 	};
