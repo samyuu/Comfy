@@ -83,21 +83,21 @@ namespace Comfy::Editor
 
 		bool checkHitsoundsInCallback = false;
 		struct { bool Down, WasDown; } buttonPlacementKeyStates[12];
-		static constexpr struct { TargetType Type; KeyCode Key; } buttonPlacementMapping[12]
+		static constexpr struct { TargetType Type; Input::KeyCode Key; } buttonPlacementMapping[12]
 		{
-			{ TargetType_Sankaku, KeyCode_W },
-			{ TargetType_Shikaku, KeyCode_A },
-			{ TargetType_Batsu, KeyCode_S },
-			{ TargetType_Maru, KeyCode_D },
-			{ TargetType_SlideL, KeyCode_Q },
-			{ TargetType_SlideR, KeyCode_E },
+			{ TargetType_Sankaku, Input::KeyCode_W },
+			{ TargetType_Shikaku, Input::KeyCode_A },
+			{ TargetType_Batsu, Input::KeyCode_S },
+			{ TargetType_Maru, Input::KeyCode_D },
+			{ TargetType_SlideL, Input::KeyCode_Q },
+			{ TargetType_SlideR, Input::KeyCode_E },
 
-			{ TargetType_Sankaku, KeyCode_I },
-			{ TargetType_Shikaku, KeyCode_J },
-			{ TargetType_Batsu, KeyCode_K },
-			{ TargetType_Maru, KeyCode_L },
-			{ TargetType_SlideL, KeyCode_U },
-			{ TargetType_SlideR, KeyCode_O },
+			{ TargetType_Sankaku, Input::KeyCode_I },
+			{ TargetType_Shikaku, Input::KeyCode_J },
+			{ TargetType_Batsu, Input::KeyCode_K },
+			{ TargetType_Maru, Input::KeyCode_L },
+			{ TargetType_SlideL, Input::KeyCode_U },
+			{ TargetType_SlideR, Input::KeyCode_O },
 		};
 		// ----------------------
 

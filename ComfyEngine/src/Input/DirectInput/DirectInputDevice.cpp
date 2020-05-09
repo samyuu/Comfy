@@ -1,6 +1,6 @@
 #include "DirectInputDevice.h"
 
-namespace Comfy
+namespace Comfy::Input
 {
 	HRESULT DirectInputDevice::DI_CreateDevice(const GUID& guid)
 	{

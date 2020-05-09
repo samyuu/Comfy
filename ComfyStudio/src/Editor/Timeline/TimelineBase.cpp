@@ -177,7 +177,7 @@ namespace Comfy::Editor
 
 		// NOTE: Focus control
 		{
-			if (Gui::IsWindowFocused() && Gui::IsKeyPressed(KeyCode_Escape))
+			if (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Escape))
 				CenterCursor();
 		}
 
@@ -207,7 +207,7 @@ namespace Comfy::Editor
 		if (!Gui::IsWindowFocused())
 			return;
 
-		if (Gui::IsKeyPressed(KeyCode_Space))
+		if (Gui::IsKeyPressed(Input::KeyCode_Space))
 		{
 			if (GetIsPlayback())
 				PausePlayback();
@@ -215,7 +215,7 @@ namespace Comfy::Editor
 				ResumePlayback();
 		}
 
-		if (Gui::IsKeyPressed(KeyCode_Escape) && GetIsPlayback())
+		if (Gui::IsKeyPressed(Input::KeyCode_Escape) && GetIsPlayback())
 		{
 			if (GetIsPlayback())
 				StopPlayback();

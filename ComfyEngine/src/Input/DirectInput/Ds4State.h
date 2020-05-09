@@ -3,7 +3,7 @@
 #include "DirectInput.h"
 #include "Ds4Button.h"
 
-namespace Comfy
+namespace Comfy::Input
 {
 	inline constexpr vec2 GetDirection(const float degrees)
 	{

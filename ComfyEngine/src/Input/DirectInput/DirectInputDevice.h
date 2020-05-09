@@ -1,7 +1,7 @@
 #pragma once
 #include "DirectInput.h"
 
-namespace Comfy
+namespace Comfy::Input
 {
 	class DirectInputDevice
 	{

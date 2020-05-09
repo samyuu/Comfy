@@ -1,7 +1,7 @@
 #include "DirectInput.h"
 #include "Core/Logger.h"
 
-namespace Comfy
+namespace Comfy::Input
 {
 	IDirectInput8A* IDirectInputInstance = nullptr;
 

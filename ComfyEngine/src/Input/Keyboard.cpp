@@ -1,7 +1,7 @@
 #include "Keyboard.h"
 #include "Core/Win32/ComfyWindows.h"
 
-namespace Comfy
+namespace Comfy::Input
 {
 	Keyboard* Keyboard::instance = nullptr;
 

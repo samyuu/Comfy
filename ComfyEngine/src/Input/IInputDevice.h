@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Comfy
+namespace Comfy::Input
 {
 	class IInputDevice
 	{

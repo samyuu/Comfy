@@ -18,9 +18,9 @@ namespace Comfy::Editor
 		return AetToolType_Rotate;
 	}
 
-	KeyCode RotateTool::GetShortcutKey() const
+	Input::KeyCode RotateTool::GetShortcutKey() const
 	{
-		return KeyCode_E;
+		return Input::KeyCode_E;
 	}
 
 	void RotateTool::DrawContextMenu()

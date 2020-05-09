@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 
-namespace Comfy
+namespace Comfy::Input
 {
 	using KeyState = i32;
 	enum KeyState_Enum : KeyState

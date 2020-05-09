@@ -34,19 +34,19 @@ namespace Comfy::DataTest
 
 		if (Gui::CollapsingHeader("Keyboard", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			Keyboard* keyboard = Keyboard::GetInstance();
+			Input::Keyboard* keyboard = Input::Keyboard::GetInstance();
 
-			bool initialized = Keyboard::GetInstanceInitialized();
+			bool initialized = Input::Keyboard::GetInstanceInitialized();
 			boolColoredText("KEYBOARD : ", "OK", "NG", initialized);
 
 			if (initialized)
 			{
-				constexpr KeyCode firstKeyboardKey = KeyCode_Backspace;
-				for (KeyCode key = firstKeyboardKey; key < KeyCode_Count; key++)
+				constexpr auto firstKeyboardKey = Input::KeyCode_Backspace;
+				for (Input::KeyCode key = firstKeyboardKey; key < Input::KeyCode_Count; key++)
 				{
 					if (keyboard->IsDown(key))
 					{
-						const char* keyName = GetKeyCodeName(key);
+						const char* keyName = Input::GetKeyCodeName(key);
 						if (keyName != nullptr)
 							Gui::BulletText(keyName);
 					}
@@ -57,16 +57,16 @@ namespace Comfy::DataTest
 
 		if (Gui::CollapsingHeader("DualShock4", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			DualShock4* ds4 = DualShock4::GetInstance();
+			Input::DualShock4* ds4 = Input::DualShock4::GetInstance();
 
-			bool initialized = DualShock4::GetInstanceInitialized();
+			bool initialized = Input::DualShock4::GetInstanceInitialized();
 			boolColoredText("DUALSHOCK4 : ", "OK", "NG", initialized);
 
 			if (initialized)
 			{
-				for (size_t button = 0; button < static_cast<size_t>(Ds4Button::Count); button++)
+				for (size_t button = 0; button < static_cast<size_t>(Input::Ds4Button::Count); button++)
 				{
-					if (ds4->IsDown((Ds4Button)button))
+					if (ds4->IsDown(static_cast<Input::Ds4Button>(button)))
 						Gui::BulletText(ds4ButtonNames[button]);
 				}
 			}
@@ -86,10 +86,10 @@ namespace Comfy::DataTest
 
 	void InputTestWindow::RefreshDevices()
 	{
-		if (!Keyboard::GetInstanceInitialized())
-			Keyboard::TryInitializeInstance(/*GetParent()->GetHost().GetWindow()*/);
+		if (!Input::Keyboard::GetInstanceInitialized())
+			Input::Keyboard::TryInitializeInstance(/*GetParent()->GetHost().GetWindow()*/);
 
-		if (!DualShock4::GetInstanceInitialized())
-			DualShock4::TryInitializeInstance();
+		if (!Input::DualShock4::GetInstanceInitialized())
+			Input::DualShock4::TryInitializeInstance();
 	}
 }

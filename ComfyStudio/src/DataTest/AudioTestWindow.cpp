@@ -340,36 +340,36 @@ namespace Comfy::DataTest
 			{
 				static constexpr std::array keys =
 				{
-					KeyCode_W,
-					KeyCode_W,
-					KeyCode_A,
-					KeyCode_S,
-					KeyCode_D,
-					KeyCode_I,
-					KeyCode_J,
-					KeyCode_K,
-					KeyCode_L,
+					Input::KeyCode_W,
+					Input::KeyCode_W,
+					Input::KeyCode_A,
+					Input::KeyCode_S,
+					Input::KeyCode_D,
+					Input::KeyCode_I,
+					Input::KeyCode_J,
+					Input::KeyCode_K,
+					Input::KeyCode_L,
 				};
 
 				for (const auto& keyCode : keys)
-					addButtonSound |= Keyboard::IsTapped(keyCode);
+					addButtonSound |= Input::Keyboard::IsTapped(keyCode);
 
 				static constexpr std::array buttons =
 				{
-					Ds4Button::DPad_Up,
-					Ds4Button::DPad_Down,
-					Ds4Button::DPad_Left,
-					Ds4Button::DPad_Right,
-					Ds4Button::Triangle,
-					Ds4Button::Circle,
-					Ds4Button::Cross,
-					Ds4Button::Square,
-					Ds4Button::L_Trigger,
-					Ds4Button::R_Trigger,
+					Input::Ds4Button::DPad_Up,
+					Input::Ds4Button::DPad_Down,
+					Input::Ds4Button::DPad_Left,
+					Input::Ds4Button::DPad_Right,
+					Input::Ds4Button::Triangle,
+					Input::Ds4Button::Circle,
+					Input::Ds4Button::Cross,
+					Input::Ds4Button::Square,
+					Input::Ds4Button::L_Trigger,
+					Input::Ds4Button::R_Trigger,
 				};
 
 				for (const auto& button : buttons)
-					addButtonSound |= DualShock4::IsTapped(button);
+					addButtonSound |= Input::DualShock4::IsTapped(button);
 			}
 
 			if (addButtonSound)

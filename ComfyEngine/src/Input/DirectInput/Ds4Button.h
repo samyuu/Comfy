@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 
-namespace Comfy
+namespace Comfy::Input
 {
 	enum class Direction : i32
 	{

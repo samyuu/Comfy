@@ -1,6 +1,6 @@
 #include "DualShock4.h"
 
-namespace Comfy
+namespace Comfy::Input
 {
 	DualShock4* DualShock4::instance = nullptr;
 

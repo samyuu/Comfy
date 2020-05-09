@@ -27,9 +27,9 @@ namespace Comfy::Editor
 		return AetToolType_Hand;
 	}
 
-	KeyCode HandTool::GetShortcutKey() const
+	Input::KeyCode HandTool::GetShortcutKey() const
 	{
-		return KeyCode_Q;
+		return Input::KeyCode_Q;
 	}
 
 	void HandTool::UpdatePostDrawGui(Graphics::Transform2D* transform, vec2 dimensions)

@@ -37,9 +37,9 @@ namespace Comfy::Editor
 		return AetToolType_Scale;
 	}
 
-	KeyCode ScaleTool::GetShortcutKey() const
+	Input::KeyCode ScaleTool::GetShortcutKey() const
 	{
-		return KeyCode_R;
+		return Input::KeyCode_R;
 	}
 
 	void ScaleTool::UpdatePostDrawGui(Graphics::Transform2D* transform, vec2 dimensions)

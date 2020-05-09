@@ -4,7 +4,7 @@
 #include "DirectInputDevice.h"
 #include "Ds4State.h"
 
-namespace Comfy
+namespace Comfy::Input
 {
 	class DualShock4 : public DirectInputDevice, public IInputDevice
 	{

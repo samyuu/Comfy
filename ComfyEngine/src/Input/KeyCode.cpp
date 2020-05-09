@@ -1,7 +1,7 @@
 #include "KeyCode.h"
 #include "CoreTypes.h"
 
-namespace Comfy
+namespace Comfy::Input
 {
 	const char* GetKeyCodeName(const KeyCode keyCode)
 	{

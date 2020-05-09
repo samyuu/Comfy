@@ -1537,7 +1537,7 @@ namespace Comfy::Editor
 
 			Gui::Checkbox("Apply Stage Auth", &debug.ApplyStageAuth);
 
-			if (Gui::IsWindowFocused() && Gui::IsKeyPressed(KeyCode_Space))
+			if (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Space))
 				debug.Playback ^= true;
 
 			Gui::Checkbox("Playback", &debug.Playback);

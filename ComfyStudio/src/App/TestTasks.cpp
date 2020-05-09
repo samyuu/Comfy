@@ -166,7 +166,7 @@ namespace Comfy::App
 
 		if (IsWindowFocused())
 		{
-			if (IsKeyPressed(KeyCode_1))
+			if (IsKeyPressed(Input::KeyCode_1))
 				stateType = TaskPs4MenuStateType::MainMenuInitialize;
 		}
 
@@ -213,7 +213,7 @@ namespace Comfy::App
 
 			if (IsWindowFocused())
 			{
-				if (IsKeyPressed(KeyCode_Up))
+				if (IsKeyPressed(Input::KeyCode_Up))
 				{
 					mainMenuState.FramesSinceItemSwitch = 0.0f;
 					mainMenuState.selectedItem--;
@@ -222,7 +222,7 @@ namespace Comfy::App
 						mainMenuState.selectedItem = MainMenuItem_Count - 1;
 				}
 
-				if (IsKeyPressed(KeyCode_Down))
+				if (IsKeyPressed(Input::KeyCode_Down))
 				{
 					mainMenuState.FramesSinceItemSwitch = 0.0f;
 					mainMenuState.selectedItem++;
@@ -231,7 +231,7 @@ namespace Comfy::App
 						mainMenuState.selectedItem = 0;
 				}
 
-				if (IsKeyPressed(KeyCode_Enter))
+				if (IsKeyPressed(Input::KeyCode_Enter))
 				{
 
 				}

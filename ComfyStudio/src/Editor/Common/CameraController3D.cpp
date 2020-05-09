@@ -11,8 +11,8 @@ namespace Comfy::Editor
 
 		const auto& io = Gui::GetIO();
 
-		const bool fastCamera = Gui::IsKeyDown(KeyCode_Shift);
-		const bool slowCamera = Gui::IsKeyDown(KeyCode_Alt);
+		const bool fastCamera = Gui::IsKeyDown(Input::KeyCode_Shift);
+		const bool slowCamera = Gui::IsKeyDown(Input::KeyCode_Alt);
 
 		const float scrollStep = slowCamera ? 0.5f : (fastCamera ? 12.5f : 1.5f);
 		const float cameraSpeed = (slowCamera ? 0.25f : (fastCamera ? 25.5f : 2.25f)) * io.DeltaTime;
@@ -97,18 +97,18 @@ namespace Comfy::Editor
 	{
 		constexpr vec3 upDirection = Graphics::PerspectiveCamera::UpDirection;
 
-		if (Gui::IsKeyDown(KeyCode_W))
+		if (Gui::IsKeyDown(Input::KeyCode_W))
 			pointToChange += frontDirection * cameraSpeed;
-		if (Gui::IsKeyDown(KeyCode_S))
+		if (Gui::IsKeyDown(Input::KeyCode_S))
 			pointToChange -= frontDirection * cameraSpeed;
-		if (Gui::IsKeyDown(KeyCode_A))
+		if (Gui::IsKeyDown(Input::KeyCode_A))
 			pointToChange -= glm::normalize(glm::cross(frontDirection, upDirection)) * cameraSpeed;
-		if (Gui::IsKeyDown(KeyCode_D))
+		if (Gui::IsKeyDown(Input::KeyCode_D))
 			pointToChange += glm::normalize(glm::cross(frontDirection, upDirection)) * cameraSpeed;
 
-		if (Gui::IsKeyDown(KeyCode_Space))
+		if (Gui::IsKeyDown(Input::KeyCode_Space))
 			pointToChange += upDirection * cameraSpeed;
-		if (Gui::IsKeyDown(KeyCode_Control))
+		if (Gui::IsKeyDown(Input::KeyCode_Control))
 			pointToChange -= upDirection * cameraSpeed;
 	}
 }

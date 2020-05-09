@@ -2,7 +2,7 @@
 #include "IInputDevice.h"
 #include "KeyCode.h"
 
-namespace Comfy
+namespace Comfy::Input
 {
 	class Keyboard final : public IInputDevice
 	{

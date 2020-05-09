@@ -10,7 +10,7 @@ namespace Comfy::Editor
 		const char* GetIcon() const override;
 		const char* GetName() const override;
 		AetToolType GetType() const override;
-		KeyCode GetShortcutKey() const override;
+		Input::KeyCode GetShortcutKey() const override;
 
 		// TODO: Rename to 'UpdateProperties' (?)
 		void UpdatePostDrawGui(Graphics::Transform2D* transform, vec2 dimensions) override;

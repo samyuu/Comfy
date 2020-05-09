@@ -117,9 +117,9 @@ namespace Comfy::Editor
 		return AetToolType_Transform;
 	}
 
-	KeyCode TransformTool::GetShortcutKey() const
+	Input::KeyCode TransformTool::GetShortcutKey() const
 	{
-		return KeyCode_T;
+		return Input::KeyCode_T;
 	}
 
 	void TransformTool::UpdatePostDrawGui(Transform2D* transform, vec2 dimensions)
@@ -302,10 +302,10 @@ namespace Comfy::Editor
 
 		constexpr NudgeBinding bindings[] =
 		{
-			{ KeyCode_Up,	 NudgeBinding::Y, NudgeBinding::Decrement },
-			{ KeyCode_Down,	 NudgeBinding::Y, NudgeBinding::Increment },
-			{ KeyCode_Left,	 NudgeBinding::X, NudgeBinding::Decrement },
-			{ KeyCode_Right, NudgeBinding::X, NudgeBinding::Increment },
+			{ Input::KeyCode_Up,	NudgeBinding::Y, NudgeBinding::Decrement },
+			{ Input::KeyCode_Down,	NudgeBinding::Y, NudgeBinding::Increment },
+			{ Input::KeyCode_Left,	NudgeBinding::X, NudgeBinding::Decrement },
+			{ Input::KeyCode_Right, NudgeBinding::X, NudgeBinding::Increment },
 		};
 
 		for (auto& binding : bindings)

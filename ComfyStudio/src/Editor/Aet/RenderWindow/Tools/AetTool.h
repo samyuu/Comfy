@@ -24,11 +24,11 @@ namespace Comfy::Editor
 		virtual ~AetTool() = default;
 
 		// TODO: Should be implement by all components
-		static constexpr KeyCode GridSnapModifierKey = KeyCode_Control;
+		static constexpr Input::KeyCode GridSnapModifierKey = Input::KeyCode_Control;
 		
 		// TODO: Implement by the RectangleTool
 		// NOTE: For scaling both axes at the same time
-		static constexpr KeyCode AxesLinkModifierKey = KeyCode_Shift;
+		static constexpr Input::KeyCode AxesLinkModifierKey = Input::KeyCode_Shift;
 
 		// TODO: These should probably be set by the parent component (maybe inside the context menu (?))
 		static constexpr vec2 PositionSnapPrecision = vec2(10.0f);
@@ -36,7 +36,7 @@ namespace Comfy::Editor
 		static constexpr float RotationSnapPrecision = 15.0f;
 
 		// NOTE: For keyboard based movement
-		static constexpr KeyCode FastNudgeModifierKey = KeyCode_Shift;
+		static constexpr Input::KeyCode FastNudgeModifierKey = Input::KeyCode_Shift;
 
 		static constexpr float NudgeStepDistance = 1.0f;
 		static constexpr float NudgeFastStepDistance = 10.0f;
@@ -51,7 +51,7 @@ namespace Comfy::Editor
 		virtual const char* GetIcon() const = 0;
 		virtual const char* GetName() const = 0;
 		virtual AetToolType GetType() const = 0;
-		virtual KeyCode GetShortcutKey() const = 0;
+		virtual Input::KeyCode GetShortcutKey() const = 0;
 
 		// TODO: virtual void OnSelect() {};
 		// TODO: virtual void OnDeselect() {};

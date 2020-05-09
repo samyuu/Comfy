@@ -203,7 +203,7 @@ namespace Comfy
 	{
 		const auto& io = Gui::GetIO();
 
-		if (Gui::IsKeyPressed(KeyCode_F11) || (io.KeyAlt && Gui::IsKeyPressed(KeyCode_Enter)))
+		if (Gui::IsKeyPressed(Input::KeyCode_F11) || (io.KeyAlt && Gui::IsKeyPressed(Input::KeyCode_Enter)))
 			host.ToggleFullscreen();
 	}
 
@@ -218,7 +218,7 @@ namespace Comfy
 		//if (Gui::IsKeyPressed(KeyCode_F9))
 		//	showMainMenuBar ^= true;
 
-		if (Gui::IsKeyPressed(KeyCode_F10))
+		if (Gui::IsKeyPressed(Input::KeyCode_F10))
 		{
 			showMainAppEngineWindow = true;
 			exclusiveAppEngineWindow ^= true;
@@ -314,7 +314,7 @@ namespace Comfy
 
 					licenseWindow.DrawGui();
 
-					if (Gui::IsKeyPressed(KeyCode_Escape))
+					if (Gui::IsKeyPressed(Input::KeyCode_Escape))
 						Gui::CloseCurrentPopup();
 
 					Gui::EndPopup();

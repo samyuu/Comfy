@@ -3,7 +3,7 @@
 #include "Core/Win32/ComfyWindows.h"
 #include <dinput.h>
 
-namespace Comfy
+namespace Comfy::Input
 {
 	extern IDirectInput8A* IDirectInputInstance;
 

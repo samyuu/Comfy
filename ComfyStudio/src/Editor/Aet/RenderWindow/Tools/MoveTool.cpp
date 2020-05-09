@@ -18,9 +18,9 @@ namespace Comfy::Editor
 		return AetToolType_Move;
 	}
 
-	KeyCode MoveTool::GetShortcutKey() const
+	Input::KeyCode MoveTool::GetShortcutKey() const
 	{
-		return KeyCode_W;
+		return Input::KeyCode_W;
 	}
 
 	void MoveTool::DrawContextMenu()

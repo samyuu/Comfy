@@ -29,7 +29,7 @@ namespace Comfy
 		if (!InternalCreateWindow())
 			return false;
 
-		InitializeDirectInput(GlobalModuleHandle);
+		Input::InitializeDirectInput(GlobalModuleHandle);
 		InternalCheckConnectedDevices();
 
 		return true;
@@ -73,8 +73,8 @@ namespace Comfy
 
 	void ApplicationHost::Dispose()
 	{
-		Keyboard::DeleteInstance();
-		DualShock4::DeleteInstance();
+		Input::Keyboard::DeleteInstance();
+		Input::DualShock4::DeleteInstance();
 
 		InternalDisposeWindow();
 	}
@@ -399,17 +399,17 @@ namespace Comfy
 
 	void ApplicationHost::InternalCheckConnectedDevices()
 	{
-		if (!Keyboard::GetInstanceInitialized())
+		if (!Input::Keyboard::GetInstanceInitialized())
 		{
-			if (Keyboard::TryInitializeInstance())
+			if (Input::Keyboard::TryInitializeInstance())
 			{
 				// Logger::LogLine(__FUNCTION__"(): Keyboard connected and initialized");
 			}
 		}
 
-		if (!DualShock4::GetInstanceInitialized())
+		if (!Input::DualShock4::GetInstanceInitialized())
 		{
-			if (DualShock4::TryInitializeInstance())
+			if (Input::DualShock4::TryInitializeInstance())
 			{
 				// Logger::LogLine(__FUNCTION__"(): DualShock4 connected and initialized");
 			}
@@ -455,14 +455,14 @@ namespace Comfy
 		mouseScrolledDown = lastMouseWheel > mouseWheel;
 		lastMouseWheel = mouseWheel;
 
-		if (Keyboard::GetInstanceInitialized())
-			Keyboard::GetInstance()->PollInput();
+		if (Input::Keyboard::GetInstanceInitialized())
+			Input::Keyboard::GetInstance()->PollInput();
 
-		if (DualShock4::GetInstanceInitialized())
+		if (Input::DualShock4::GetInstanceInitialized())
 		{
-			if (!DualShock4::GetInstance()->PollInput())
+			if (!Input::DualShock4::GetInstance()->PollInput())
 			{
-				DualShock4::DeleteInstance();
+				Input::DualShock4::DeleteInstance();
 				Logger::LogLine(__FUNCTION__"(): DualShock4 connection lost");
 			}
 		}

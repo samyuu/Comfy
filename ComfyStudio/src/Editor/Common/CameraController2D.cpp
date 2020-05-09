@@ -39,16 +39,16 @@ namespace Comfy::Editor
 			return;
 
 		constexpr float step = 25.0f;
-		if (Gui::IsKeyPressed(KeyCode_W, true))
+		if (Gui::IsKeyPressed(Input::KeyCode_W, true))
 			camera.Position.y -= step;
-		if (Gui::IsKeyPressed(KeyCode_S, true))
+		if (Gui::IsKeyPressed(Input::KeyCode_S, true))
 			camera.Position.y += step;
-		if (Gui::IsKeyPressed(KeyCode_A, true))
+		if (Gui::IsKeyPressed(Input::KeyCode_A, true))
 			camera.Position.x -= step;
-		if (Gui::IsKeyPressed(KeyCode_D, true))
+		if (Gui::IsKeyPressed(Input::KeyCode_D, true))
 			camera.Position.x += step;
 
-		if (Gui::IsKeyPressed(KeyCode_Escape, true))
+		if (Gui::IsKeyPressed(Input::KeyCode_Escape, true))
 		{
 			camera.Position = vec2(0.0f);
 			camera.Zoom = 1.0f;

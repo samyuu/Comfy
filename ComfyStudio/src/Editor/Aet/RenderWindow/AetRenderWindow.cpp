@@ -284,7 +284,7 @@ namespace Comfy::Editor
 
 			if (Gui::IsItemHoveredDelayed())
 			{
-				const char* shortcutString = GetKeyCodeName(tool->GetShortcutKey());
+				const char* shortcutString = Input::GetKeyCodeName(tool->GetShortcutKey());
 				char shortcutChar = shortcutString ? static_cast<char>(toupper(shortcutString[0])) : '?';
 
 				Gui::WideSetTooltip("%s (%c)", tool->GetName(), shortcutChar);

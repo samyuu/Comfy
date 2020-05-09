@@ -515,7 +515,7 @@ namespace Comfy::Editor
 		if (!Gui::IsWindowFocused())
 			return;
 
-		if (Gui::IsKeyPressed(KeyCode_Escape))
+		if (Gui::IsKeyPressed(Input::KeyCode_Escape))
 		{
 			if (!selectedAetItem->IsNull())
 			{
