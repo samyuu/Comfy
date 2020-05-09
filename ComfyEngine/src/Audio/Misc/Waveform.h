@@ -16,8 +16,7 @@ namespace Comfy::Audio
 		void SetScale(TimeSpan timePerPixel);
 		void Clear();
 
-		// NOTE: Performs *no* bounds checking
-		float GetPCMForPixel(i64 pixel);
+		float GetNormalizedPCMForPixel(i64 pixel);
 		size_t GetPixelCount() const;
 
 	private:
