@@ -4,7 +4,6 @@
 #include "File.h"
 #include "Misc/StringHelper.h"
 #include "Core/Logger.h"
-#include <assert.h>
 
 namespace Comfy::IO
 {

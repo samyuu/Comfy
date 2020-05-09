@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/ScopeExitFunc.h"
+#include <assert.h>
 
 #define COMFY_NODISCARD [[nodiscard]]
 

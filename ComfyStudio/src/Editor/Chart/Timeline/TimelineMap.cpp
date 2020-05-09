@@ -1,6 +1,5 @@
 #include "TimelineMap.h"
 #include "Input/Input.h"
-#include <assert.h>
 
 namespace Comfy::Editor
 {

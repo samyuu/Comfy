@@ -1,5 +1,4 @@
 #include "StreamWriter.h"
-#include <assert.h>
 
 namespace Comfy::IO
 {

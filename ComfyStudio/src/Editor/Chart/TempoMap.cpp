@@ -1,6 +1,5 @@
 #include "TempoMap.h"
 #include <algorithm>
-#include <assert.h>
 
 namespace Comfy::Editor
 {

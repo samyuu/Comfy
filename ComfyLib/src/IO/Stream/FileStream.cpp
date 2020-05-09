@@ -1,7 +1,6 @@
 #include "FileStream.h"
 #include "Core/Win32/ComfyWindows.h"
 #include "Misc/StringHelper.h"
-#include <assert.h>
 
 namespace Comfy::IO
 {

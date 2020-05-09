@@ -1,5 +1,4 @@
 #include "AetSet.h"
-#include <assert.h>
 
 namespace Comfy::Graphics::Aet
 {

@@ -1,7 +1,6 @@
 #include "MemoryStream.h"
 #include "FileStream.h"
 #include "Misc/StringHelper.h"
-#include <assert.h>
 #include <algorithm>
 
 namespace Comfy::IO

@@ -1,6 +1,5 @@
 #include "FileExtensionHelper.h"
 #include "StringHelper.h"
-#include <assert.h>
 
 namespace Comfy::Utilities
 {

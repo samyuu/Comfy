@@ -3,7 +3,6 @@
 #include "Misc/EndianHelper.h"
 #include "IO/Crypto/Crypto.h"
 #include <zlib.h>
-#include <assert.h>
 
 namespace Comfy::IO
 {

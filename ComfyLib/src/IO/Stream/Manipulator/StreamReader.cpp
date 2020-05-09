@@ -1,5 +1,4 @@
 #include "StreamReader.h"
-#include <assert.h>
 
 namespace Comfy::IO
 {

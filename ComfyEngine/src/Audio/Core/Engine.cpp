@@ -7,7 +7,6 @@
 #include "IO/File.h"
 #include <RtAudio.h>
 #include <mutex>
-#include <assert.h>
 
 namespace Comfy::Audio
 {

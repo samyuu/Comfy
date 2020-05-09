@@ -1,6 +1,5 @@
 #include "ChannelMixer.h"
 #include "SampleMix.h"
-#include <assert.h>
 
 namespace Comfy::Audio
 {
