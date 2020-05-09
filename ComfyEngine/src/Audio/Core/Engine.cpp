@@ -263,7 +263,7 @@ namespace Comfy::Audio
 			for (size_t f = 0; f < frameCount; f++)
 			{
 				for (u32 c = 0; c < OutputChannelCount; c++)
-					LastPlayedSamplesRingBuffer[c][LastPlayedSamplesRingIndex] = outputBuffer[f];
+					LastPlayedSamplesRingBuffer[c][LastPlayedSamplesRingIndex] = outputBuffer[(f * OutputChannelCount) + c];
 
 				if (LastPlayedSamplesRingIndex++ >= (LastPlayedSamplesRingBuffer[0].size() - 1))
 					LastPlayedSamplesRingIndex = 0;
