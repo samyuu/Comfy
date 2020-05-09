@@ -133,7 +133,6 @@
     <ClInclude Include="src\Audio\SampleProvider\MemorySampleProvider.h" />
     <ClInclude Include="src\Audio\SampleProvider\SilenceSampleProvider.h" />
     <ClInclude Include="src\Audio\Misc\Waveform.h" />
-    <ClInclude Include="src\ComfyEngineTest.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Audio\Core\Engine.cpp" />
@@ -147,7 +146,6 @@
     <ClCompile Include="src\Audio\SampleProvider\MemorySampleProvider.cpp" />
     <ClCompile Include="src\Audio\SampleProvider\SilenceSampleProvider.cpp" />
     <ClCompile Include="src\Audio\Misc\Waveform.cpp" />
-    <ClCompile Include="src\ComfyEngineTest.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
