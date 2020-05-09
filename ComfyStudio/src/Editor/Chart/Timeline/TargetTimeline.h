@@ -6,7 +6,7 @@
 #include "Graphics/Auth2D/SprSet.h"
 #include "Graphics/GPU/GPUResources.h"
 #include "Audio/Audio.h"
-#include "Input/KeyCode.h"
+#include "Input/Input.h"
 
 namespace Comfy::Editor
 {

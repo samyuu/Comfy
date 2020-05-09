@@ -1,7 +1,6 @@
 #include "ApplicationHost.h"
 #include "Graphics/D3D11/Direct3D.h"
-#include "Input/DirectInput/DualShock4.h"
-#include "Input/Keyboard.h"
+#include "Input/Input.h"
 #include "Core/Logger.h"
 #include "Core/Win32/ComfyWindows.h"
 #include "Misc/StringHelper.h"

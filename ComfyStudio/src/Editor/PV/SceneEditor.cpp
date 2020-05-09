@@ -10,7 +10,7 @@
 #include "ImGui/Extensions/PropertyEditor.h"
 #include "Misc/ImageHelper.h"
 #include "Time/TimeUtilities.h"
-#include "Input/KeyCode.h"
+#include "Input/Input.h"
 #include <FontIcons.h>
 
 namespace Comfy::Editor

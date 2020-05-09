@@ -69,13 +69,16 @@
     <ClInclude Include="src\Input\DirectInput\DualShock4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Input\IInputDevice.h">
+    <ClInclude Include="src\Input\Input.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Input\Keyboard.h">
+    <ClInclude Include="src\Input\Core\IInputDevice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Input\KeyCode.h">
+    <ClInclude Include="src\Input\Core\Keyboard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input\Core\KeyCode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -125,7 +128,7 @@
     <ClCompile Include="src\Input\DirectInput\DualShock4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Input\Keyboard.cpp">
+    <ClCompile Include="src\Input\Core\Keyboard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

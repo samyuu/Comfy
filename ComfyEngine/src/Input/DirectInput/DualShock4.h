@@ -1,6 +1,7 @@
 #pragma once
+#include "Types.h"
 #include "CoreTypes.h"
-#include "Input/IInputDevice.h"
+#include "Input/Core/IInputDevice.h"
 #include "DirectInputDevice.h"
 #include "Ds4State.h"
 

@@ -1,7 +1,6 @@
 #include "AudioTestWindow.h"
 #include "Core/Application.h"
-#include "Input/DirectInput/DualShock4.h"
-#include "Input/Keyboard.h"
+#include "Input/Input.h"
 #include "Time/TimeUtilities.h"
 #include "IO/Path.h"
 #include <numeric>

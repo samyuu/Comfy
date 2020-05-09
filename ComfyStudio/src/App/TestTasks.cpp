@@ -2,7 +2,7 @@
 #include "ImGui/Gui.h"
 #include "IO/File.h"
 #include "Misc/StringHelper.h"
-#include "Input/KeyCode.h"
+#include "Input/Input.h"
 
 namespace Comfy::App
 {

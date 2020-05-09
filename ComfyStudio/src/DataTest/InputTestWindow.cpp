@@ -1,6 +1,6 @@
 #include "InputTestWindow.h"
 #include "Core/Application.h"
-#include "Input/Keyboard.h"
+#include "Input/Input.h"
 
 namespace Comfy::DataTest
 {

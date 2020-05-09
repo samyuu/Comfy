@@ -7,7 +7,7 @@
 #include "Editor/Aet/AetIcons.h"
 #include "Editor/Core/Theme.h"
 #include "Misc/StringHelper.h"
-#include "Input/KeyCode.h"
+#include "Input/Input.h"
 #include "Time/TimeSpan.h"
 
 namespace Comfy::Editor

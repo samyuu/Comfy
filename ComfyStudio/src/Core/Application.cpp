@@ -8,7 +8,7 @@
 #include "System/Profiling/Profiler.h"
 #include "System/Version/BuildConfiguration.h"
 #include "System/Version/BuildVersion.h"
-#include "Input/KeyCode.h"
+#include "Input/Input.h"
 #include "Core/ComfyConfig.h"
 #include "Core/ComfyData.h"
 #include "Core/Logger.h"

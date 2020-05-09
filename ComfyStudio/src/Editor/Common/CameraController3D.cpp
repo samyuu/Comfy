@@ -1,6 +1,6 @@
 #include "CameraController3D.h"
 #include "ImGui/Gui.h"
-#include "Input/KeyCode.h"
+#include "Input/Input.h"
 
 namespace Comfy::Editor
 {
