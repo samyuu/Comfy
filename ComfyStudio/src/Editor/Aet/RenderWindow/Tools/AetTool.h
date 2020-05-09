@@ -21,6 +21,8 @@ namespace Comfy::Editor
 	class AetTool
 	{
 	public:
+		virtual ~AetTool() = default;
+
 		// TODO: Should be implement by all components
 		static constexpr KeyCode GridSnapModifierKey = KeyCode_Control;
 		
