@@ -187,8 +187,12 @@ namespace Comfy::Editor
 			{
 				if (io.KeyAlt) // NOTE: Zoom timeline
 				{
-					constexpr float amount = 0.5f;
-					SetCurorAwareZoom(zoomLevel + amount * io.MouseWheel);
+					// TODO: Rework all of this, zoom input should be checked before anything is rendered and there should be a zoom min / max in the timeline base class
+					// constexpr float amount = 0.5f;
+					// SetCurorAwareZoom(zoomLevel + amount * io.MouseWheel);
+
+					const float factor = (io.MouseWheel > 0.0f) ? 1.1f : 0.9f;
+					SetCurorAwareZoom(zoomLevel * factor);
 				}
 				else if (!io.KeyCtrl) // NOTE: Scroll timeline
 				{

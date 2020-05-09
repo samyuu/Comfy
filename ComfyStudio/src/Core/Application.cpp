@@ -369,6 +369,7 @@ namespace Comfy
 					Gui::End();
 				}
 
+				// TODO: Popup window on hover (+ double click to create overlay) showing a frametime plot
 				char infoBuffer[32];
 				sprintf_s(infoBuffer, sizeof(infoBuffer), "%.3f ms (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 
