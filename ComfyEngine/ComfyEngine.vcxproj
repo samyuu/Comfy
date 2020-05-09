@@ -159,7 +159,6 @@
     <ClCompile Include="src\Input\DirectInput\Ds4State.cpp" />
     <ClCompile Include="src\Input\DirectInput\DualShock4.cpp" />
     <ClCompile Include="src\Input\Keyboard.cpp" />
-    <ClCompile Include="src\Input\KeyCode.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
