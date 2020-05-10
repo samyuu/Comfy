@@ -15,6 +15,7 @@ namespace Comfy::Graphics
 		return static_cast<u32>(RotationModeComponentsOrder[Index]);
 	}
 
+	// TODO: Rename to Transform3D
 	struct Transform
 	{
 		vec3 Translation;
@@ -33,7 +34,7 @@ namespace Comfy::Graphics
 		}
 
 		inline bool operator==(const Transform& other) const
-		{
+		{	
 			return Translation == other.Translation && Scale == other.Scale && Rotation == other.Rotation;
 		}
 

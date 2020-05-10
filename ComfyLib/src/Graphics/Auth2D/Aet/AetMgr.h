@@ -5,6 +5,7 @@
 
 namespace Comfy::Graphics::Aet
 {
+	// TODO: Rename to AetUtil and turn into a namespace
 	class AetMgr
 	{
 	public:

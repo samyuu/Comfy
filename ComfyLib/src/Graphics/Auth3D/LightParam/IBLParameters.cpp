@@ -1,5 +1,4 @@
 #include "IBLParameters.h"
-#include "Graphics/GraphicTypesNames.h"
 #include "Misc/StringParseHelper.h"
 
 namespace Comfy::Graphics
@@ -151,6 +150,7 @@ namespace Comfy::Graphics
 		}
 	}
 
+	/* // TODO: Move upload responsibility to Comfy::Graphics::Render
 	void IBLParameters::UploadAll()
 	{
 		for (size_t i = 0; i < LightMaps.size(); i++)
@@ -169,4 +169,5 @@ namespace Comfy::Graphics
 			}
 		}
 	}
+	*/
 }

@@ -75,7 +75,7 @@
       <DisableSpecificWarnings>4201;4458;4100</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>dxguid.lib;d3d11.lib;d3dcompiler.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
@@ -130,7 +130,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>dxguid.lib;d3d11.lib;dinput8.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -164,15 +164,28 @@
     <ClCompile Include="src\Editor\PV\CameraAxisIndication.cpp" />
     <ClCompile Include="src\Editor\PV\ExternalProcess.cpp" />
     <ClCompile Include="src\Editor\PV\SceneEditor.cpp" />
-    <ClCompile Include="src\Graphics\Auth3D\A3D\A3D.cpp" />
-    <ClCompile Include="src\Graphics\Auth3D\A3D\A3DMgr.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\Buffer\ConstantBuffer.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\Buffer\IndexBuffer.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\Buffer\VertexBuffer.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\D3DResources.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\Direct3D.cpp" />
     <ClCompile Include="src\Graphics\D3D11\Renderer\Detail\BlendStateCache.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\Renderer\Detail\SpriteBatchData.cpp" />
     <ClCompile Include="src\Graphics\D3D11\Renderer\Detail\TextureSamplerCache.cpp" />
     <ClCompile Include="src\Graphics\D3D11\Renderer\Detail\ToneMapData.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\Renderer\Renderer2D.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\Renderer\Renderer3D.cpp" />
     <ClCompile Include="src\Graphics\D3D11\Shader\Bytecode\ShaderBytecode.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\Shader\Shader.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\State\BlendState.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\State\DepthStencilState.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\State\InputLayout.cpp" />
     <ClCompile Include="src\Graphics\D3D11\State\OcclusionQuery.cpp" />
-    <ClCompile Include="src\Graphics\D3D11\D3DResources.cpp" />
-    <ClCompile Include="src\Graphics\Utilities\SpritePacker.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\State\RasterizerState.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\Texture\DepthBuffer.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\Texture\RenderTarget.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\Texture\Texture.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\Texture\TextureSampler.cpp" />
     <ClCompile Include="src\ImGui\ComfyTextureID.cpp" />
     <ClCompile Include="src\Core\ApplicationHost.cpp" />
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
@@ -214,33 +227,6 @@
     <ClCompile Include="src\Editor\Timeline\FrameTimeline.cpp" />
     <ClCompile Include="src\Editor\Timeline\TimelineBase.cpp" />
     <ClCompile Include="src\Editor\Timeline\TimelineScrollbar.cpp" />
-    <ClCompile Include="src\Graphics\Auth2D\Aet\AetMgr.cpp" />
-    <ClCompile Include="src\Graphics\Auth2D\Aet\AetRenderer.cpp" />
-    <ClCompile Include="src\Graphics\Auth2D\Aet\AetSet.cpp" />
-    <ClCompile Include="src\Graphics\Auth2D\Aet\AetSetFile.cpp" />
-    <ClCompile Include="src\Graphics\D3D11\Renderer\Detail\SpriteBatchData.cpp" />
-    <ClCompile Include="src\Graphics\Auth3D\LightParam\FogParameter.cpp" />
-    <ClCompile Include="src\Graphics\Auth3D\LightParam\GlowParameter.cpp" />
-    <ClCompile Include="src\Graphics\Auth3D\LightParam\IBLParameters.cpp" />
-    <ClCompile Include="src\Graphics\Auth3D\LightParam\LightParameters.cpp" />
-    <ClCompile Include="src\Graphics\Auth3D\ObjSet.cpp" />
-    <ClCompile Include="src\Graphics\Auth3D\ObjSetFile.cpp" />
-    <ClCompile Include="src\Graphics\Auth3D\DebugObj.cpp" />
-    <ClCompile Include="src\Graphics\D3D11\State\BlendState.cpp" />
-    <ClCompile Include="src\Graphics\D3D11\Buffer\ConstantBuffer.cpp" />
-    <ClCompile Include="src\Graphics\D3D11\Texture\DepthBuffer.cpp" />
-    <ClCompile Include="src\Graphics\D3D11\State\DepthStencilState.cpp" />
-    <ClCompile Include="src\Graphics\D3D11\Buffer\IndexBuffer.cpp" />
-    <ClCompile Include="src\Graphics\D3D11\State\InputLayout.cpp" />
-    <ClCompile Include="src\Graphics\D3D11\State\RasterizerState.cpp" />
-    <ClCompile Include="src\Graphics\D3D11\Renderer\Renderer2D.cpp" />
-    <ClCompile Include="src\Graphics\D3D11\Renderer\Renderer3D.cpp" />
-    <ClCompile Include="src\Graphics\D3D11\Texture\RenderTarget.cpp" />
-    <ClCompile Include="src\Graphics\D3D11\Shader\Shader.cpp" />
-    <ClCompile Include="src\Graphics\D3D11\Texture\Texture.cpp" />
-    <ClCompile Include="src\Graphics\D3D11\Texture\TextureSampler.cpp" />
-    <ClCompile Include="src\Graphics\D3D11\Buffer\VertexBuffer.cpp" />
-    <ClCompile Include="src\Graphics\D3D11\Direct3D.cpp" />
     <ClCompile Include="src\ImGui\GuiRenderer.cpp" />
     <ClCompile Include="src\ImGui\Implementation\ComfyD3D11.cpp" />
     <ClCompile Include="src\ImGui\Implementation\ComfyWin32.cpp" />
@@ -250,8 +236,6 @@
     <ClCompile Include="src\System\CommandLine\CommandLineOption.cpp" />
     <ClCompile Include="src\System\LibraryLoader.cpp" />
     <ClCompile Include="src\DataTest\IconTestWindow.cpp" />
-    <ClCompile Include="src\Graphics\Auth2D\SprSet.cpp" />
-    <ClCompile Include="src\Graphics\TexSet.cpp" />
     <ClCompile Include="src\ImGui\Widgets\FileViewer.cpp" />
     <ClCompile Include="src\License\LicenseWindow.cpp" />
     <ClCompile Include="src\DataTest\InputTestWindow.cpp" />
@@ -259,7 +243,6 @@
     <ClCompile Include="src\Core\BaseWindow.cpp" />
     <ClCompile Include="src\ImGui\Extensions\ImGuiExtensions.cpp" />
     <ClCompile Include="src\Core\Application.cpp" />
-    <ClCompile Include="src\Graphics\Camera.cpp" />
     <ClCompile Include="src\ImGui\Core\imgui.cpp" />
     <ClCompile Include="src\ImGui\Core\imgui_demo.cpp" />
     <ClCompile Include="src\ImGui\Core\imgui_draw.cpp" />
@@ -269,22 +252,35 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Editor\PV\MaterialEditor.h" />
-    <ClInclude Include="src\Graphics\Auth3D\LightParam\Parameters.h" />
-    <ClInclude Include="src\Graphics\Auth3D\SceneRenderParameters.h" />
+    <ClInclude Include="src\Graphics\D3D11\Buffer\ConstantBuffer.h" />
+    <ClInclude Include="src\Graphics\D3D11\Buffer\IndexBuffer.h" />
+    <ClInclude Include="src\Graphics\D3D11\Buffer\VertexBuffer.h" />
+    <ClInclude Include="src\Graphics\D3D11\Direct3D.h" />
+    <ClInclude Include="src\Graphics\D3D11\IGraphicsResource.h" />
     <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\BlendStateCache.h" />
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ConstantData.h" />
     <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\GaussianBlur.h" />
     <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ShaderFlags.h" />
     <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ShaderPairs.h" />
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\SpriteBatchData.h" />
     <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\SubsurfaceScattering.h" />
     <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\SunOcclusionData.h" />
     <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\TextureSamplerCache.h" />
     <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ToneMapData.h" />
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Renderer2D.h" />
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Renderer3D.h" />
     <ClInclude Include="src\Graphics\D3D11\Renderer\ViewportRenderData.h" />
     <ClInclude Include="src\Graphics\D3D11\Shader\Bytecode\ShaderBytecode.h" />
+    <ClInclude Include="src\Graphics\D3D11\Shader\Shader.h" />
+    <ClInclude Include="src\Graphics\D3D11\State\BlendState.h" />
+    <ClInclude Include="src\Graphics\D3D11\State\DepthStencilState.h" />
+    <ClInclude Include="src\Graphics\D3D11\State\InputLayout.h" />
     <ClInclude Include="src\Graphics\D3D11\State\OcclusionQuery.h" />
-    <ClInclude Include="src\Graphics\GPU\GPURenderers.h" />
-    <ClInclude Include="src\Graphics\GPU\GPUResources.h" />
-    <ClInclude Include="src\Graphics\Utilities\SpritePacker.h" />
+    <ClInclude Include="src\Graphics\D3D11\State\RasterizerState.h" />
+    <ClInclude Include="src\Graphics\D3D11\Texture\DepthBuffer.h" />
+    <ClInclude Include="src\Graphics\D3D11\Texture\RenderTarget.h" />
+    <ClInclude Include="src\Graphics\D3D11\Texture\Texture.h" />
+    <ClInclude Include="src\Graphics\D3D11\Texture\TextureSampler.h" />
     <ClInclude Include="src\ImGui\Extensions\PropertyEditor.h" />
     <ClInclude Include="src\Editor\Common\CameraController3D.h" />
     <ClInclude Include="src\Editor\PV\CameraAxisIndication.h" />
@@ -294,20 +290,6 @@
     <ClInclude Include="src\Editor\PV\SceneEditor.h" />
     <ClInclude Include="src\Editor\PV\SceneGraph.h" />
     <ClInclude Include="src\Editor\PV\StageTest.h" />
-    <ClInclude Include="src\Graphics\Auth2D\Transform2D.h" />
-    <ClInclude Include="src\Graphics\Auth3D\A3D\A3D.h" />
-    <ClInclude Include="src\Graphics\Auth3D\A3D\A3DMgr.h" />
-    <ClInclude Include="src\Graphics\Auth3D\ObjAnimationData.h" />
-    <ClInclude Include="src\Graphics\Auth3D\RayIntersection.h" />
-    <ClInclude Include="src\Graphics\Auth3D\Transform.h" />
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\SSSSkinConst_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-    </FxCompile>
     <ClInclude Include="src\ImGui\ComfyTextureID.h" />
     <ClInclude Include="src\Core\ApplicationHost.h" />
     <ClInclude Include="src\Core\ComfyConfig.h" />
@@ -365,35 +347,6 @@
     <ClInclude Include="src\Editor\Timeline\TimelineBaseRegions.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineFrame.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineScrollbar.h" />
-    <ClInclude Include="src\Graphics\Auth2D\Aet\AetMgr.h" />
-    <ClInclude Include="src\Graphics\Auth2D\Aet\AetRenderer.h" />
-    <ClInclude Include="src\Graphics\Auth2D\Aet\AetSet.h" />
-    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\SpriteBatchData.h" />
-    <ClInclude Include="src\Graphics\Auth3D\BoundingTypes.h" />
-    <ClInclude Include="src\Graphics\Auth3D\LightParam\FogParameter.h" />
-    <ClInclude Include="src\Graphics\Auth3D\LightParam\GlowParameter.h" />
-    <ClInclude Include="src\Graphics\Auth3D\LightParam\IBLParameters.h" />
-    <ClInclude Include="src\Graphics\Auth3D\LightParam\LightParameters.h" />
-    <ClInclude Include="src\Graphics\Auth3D\ObjSet.h" />
-    <ClInclude Include="src\Graphics\Auth3D\SceneContext.h" />
-    <ClInclude Include="src\Graphics\Auth3D\DebugObj.h" />
-    <ClInclude Include="src\Graphics\D3D11\State\BlendState.h" />
-    <ClInclude Include="src\Graphics\D3D11\Buffer\ConstantBuffer.h" />
-    <ClInclude Include="src\Graphics\D3D11\Texture\DepthBuffer.h" />
-    <ClInclude Include="src\Graphics\D3D11\State\DepthStencilState.h" />
-    <ClInclude Include="src\Graphics\D3D11\Buffer\IndexBuffer.h" />
-    <ClInclude Include="src\Graphics\D3D11\State\InputLayout.h" />
-    <ClInclude Include="src\Graphics\D3D11\State\RasterizerState.h" />
-    <ClInclude Include="src\Graphics\D3D11\Renderer\Renderer2D.h" />
-    <ClInclude Include="src\Graphics\D3D11\Renderer\Renderer3D.h" />
-    <ClInclude Include="src\Graphics\D3D11\Texture\RenderTarget.h" />
-    <ClInclude Include="src\Graphics\D3D11\Texture\TextureSampler.h" />
-    <ClInclude Include="src\Graphics\D3D11\Shader\Shader.h" />
-    <ClInclude Include="src\Graphics\D3D11\Texture\Texture.h" />
-    <ClInclude Include="src\Graphics\D3D11\Buffer\VertexBuffer.h" />
-    <ClInclude Include="src\Graphics\D3D11\Direct3D.h" />
-    <ClInclude Include="src\Graphics\GraphicTypes.h" />
-    <ClInclude Include="src\Graphics\GraphicTypesNames.h" />
     <ClCompile Include="src\ImGui\Extensions\TexExtensions.cpp" />
     <ClInclude Include="src\ImGui\Core\imgui_user.h" />
     <ClInclude Include="src\ImGui\Extensions\TexExtensions.h" />
@@ -412,9 +365,6 @@
     <ClInclude Include="src\System\LibraryLoader.h" />
     <ClInclude Include="res\resource.h" />
     <ClInclude Include="src\DataTest\IconTestWindow.h" />
-    <ClInclude Include="src\Graphics\Auth2D\SprSet.h" />
-    <ClInclude Include="src\Graphics\TexSet.h" />
-    <ClInclude Include="src\Graphics\D3D11\IGraphicsResource.h" />
     <ClInclude Include="src\ImGui\Widgets\FileViewer.h" />
     <ClInclude Include="src\License\LicenseWindow.h" />
     <ClInclude Include="src\DataTest\InputTestWindow.h" />
@@ -422,7 +372,6 @@
     <ClInclude Include="src\Core\BaseWindow.h" />
     <ClInclude Include="src\ImGui\Extensions\ImGuiExtensions.h" />
     <ClInclude Include="src\Core\Application.h" />
-    <ClInclude Include="src\Graphics\Camera.h" />
     <ClInclude Include="src\ImGui\Core\imconfig.h" />
     <ClInclude Include="src\ImGui\Core\imgui.h" />
     <ClInclude Include="src\ImGui\Core\imgui_internal.h" />
@@ -437,551 +386,83 @@
     <Image Include="res\ComfyIcon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\ImGuiCustom_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\LensFlare\LensFlare_PS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\LensFlare\LensFlare_VS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\LensFlare\Sun_PS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\BlinnPerFrag_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\BlinnPerFrag_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\ClothAniso_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\ClothDefault_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\ClothDefault_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\EyeBall_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\EyeBall_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\EyeLens_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\EyeLens_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Floor_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Floor_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\GlassEye_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\GlassEye_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\HairAniso_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\HairDefault_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\HairDefault_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\BlinnPerVert_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\BlinnPerVert_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\ItemBlinn_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\ItemBlinn_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\PositionTransform_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\Silhouette_PS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\Silhouette_VS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\SolidBlack_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\SolidWhite_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\SSSSkin_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\SSSSkin_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Exposure\ExposureMinify_PS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Exposure\ExposureMeasure_PS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Exposure\ExposureAverage_PS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\DepthThreshold_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\ESMFilterMin_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\ESMFilterErosion_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\ESMGauss_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\ImgFilterBlur_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\ImgFilter_PS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Other\FullscreenQuad_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Other\SilhouetteOutline_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Bloom\PPGauss_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Bloom\ReduceTex_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\SkinDefault_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\SkinDefault_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\SkyDefault_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\SkyDefault_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\StageBlinn_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\StageBlinn_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\Tights_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\Tights_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\SSS\SSSFilterCopy_PS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\SSS\SSSFilterGauss2D_PS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\SSS\SSSFilterMin_PS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\ToneMap\ToneMap_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Constant_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Constant_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\ImGuiDefault_PS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\ImGuiDefault_VS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Lambert_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Lambert_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\DebugMaterial_PS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </DeploymentContent>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </DeploymentContent>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\DebugMaterial_VS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </DeploymentContent>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </DeploymentContent>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Water_PS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Water_VS.hlsl">
-      <SubType>
-      </SubType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_main</EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_main</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Sprite_PS.hlsl">
-      <FileType>Document</FileType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_main</EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_main</EntryPointName>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-    </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Sprite_VS.hlsl">
-      <FileType>Document</FileType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="src\Graphics\D3D11\Renderer\Detail\ConstantData.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\ComfyEngine\ComfyEngine.vcxproj">
       <Project>{d4459561-4b36-48e0-ac0c-e57900ed4782}</Project>
     </ProjectReference>
     <ProjectReference Include="..\ComfyLib\ComfyLib.vcxproj">
       <Project>{48bdf554-973b-4b4c-8da6-bbab03216cba}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\ImGuiCustom_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\ImGuiDefault_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\ImGuiDefault_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Sprite_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Comfy\Sprite_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\ClothAniso_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\ClothDefault_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\ClothDefault_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\EyeBall_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\EyeBall_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\EyeLens_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\EyeLens_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\GlassEye_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\GlassEye_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\HairAniso_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\HairDefault_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\HairDefault_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\ItemBlinn_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\ItemBlinn_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\SkinDefault_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\SkinDefault_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\SSSSkinConst_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\SSSSkin_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\SSSSkin_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\Tights_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Chara\Tights_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\LensFlare\LensFlare_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\LensFlare\LensFlare_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\LensFlare\Sun_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\DebugMaterial_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\DebugMaterial_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\PositionTransform_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\Silhouette_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\Silhouette_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\SolidBlack_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Other\SolidWhite_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\BlinnPerFrag_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\BlinnPerFrag_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\BlinnPerVert_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\BlinnPerVert_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Constant_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Constant_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Floor_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Floor_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Lambert_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Lambert_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\SkyDefault_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\SkyDefault_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\StageBlinn_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\StageBlinn_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Water_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\Materials\Stage\Water_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Bloom\PPGauss_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Bloom\ReduceTex_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Exposure\ExposureAverage_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Exposure\ExposureMeasure_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Exposure\ExposureMinify_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Other\FullscreenQuad_VS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Other\SilhouetteOutline_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\DepthThreshold_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\ESMFilterErosion_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\ESMFilterMin_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\ESMGauss_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\ImgFilterBlur_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\Shadow\ImgFilter_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\SSS\SSSFilterCopy_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\SSS\SSSFilterGauss2D_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\SSS\SSSFilterMin_PS.hlsl" />
+    <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\ToneMap\ToneMap_PS.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

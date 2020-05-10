@@ -1,20 +1,20 @@
 from io import open
 
 inputFileName = "ShaderList.txt"
-outputFileName = "../../src/Graphics/D3D11/Shader/Bytecode/ShaderBytecode.h"
+outputFileName = "../../src/Render/D3D11/Shader/Bytecode/ShaderBytecode.h"
 
 shaderNamesToInclude = []
 with open(inputFileName, 'r') as inputFile:
 	shaderNamesToInclude = inputFile.read().splitlines()
 
 outputFileContent = "#pragma once\n"
-outputFileContent += "#include \"Graphics/D3D11/Shader/Shader.h\"\n"
+outputFileContent += "#include \"Render/D3D11/Shader/Shader.h\"\n"
 outputFileContent += "\n"
 outputFileContent += "#define DECLARE_BYTECODE_GETTER(shader)	BytecodeBlob shader();\n"
 outputFileContent += "#define DEFINE_BYTECODE_GETTER(shader)	BytecodeBlob shader() { return { ::shader##_Bytecode, sizeof(::shader##_Bytecode) }; }\n"
 outputFileContent += "\n"
 outputFileContent += "// NOTE: Public interface\n"
-outputFileContent += "namespace Comfy::Graphics::D3D11\n"
+outputFileContent += "namespace Comfy::Graphics::Render::D3D11\n"
 outputFileContent += "{\n"
 for name in shaderNamesToInclude:
 	outputFileContent += f"\tDECLARE_BYTECODE_GETTER({name});\n"
@@ -26,7 +26,7 @@ outputFileContent += "\n"
 for name in shaderNamesToInclude:
 	outputFileContent += f"#include SHADER_BYTECODE_FILE({name}.h)\n"
 outputFileContent += "\n"
-outputFileContent += "namespace Comfy::Graphics::D3D11\n"
+outputFileContent += "namespace Comfy::Graphics::Render::D3D11\n"
 outputFileContent += "{\n"
 for name in shaderNamesToInclude:
 	outputFileContent += f"\tDEFINE_BYTECODE_GETTER({name});\n"

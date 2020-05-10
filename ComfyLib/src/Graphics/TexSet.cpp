@@ -40,6 +40,25 @@ namespace Comfy::Graphics
 		return (Name.has_value()) ? Name.value() : UnknownName;
 	}
 
+	void TexSet::Parse(const u8* buffer, size_t bufferSize)
+	{
+		TexSet& texSet = *this;
+
+		TxpSig signature = *(TxpSig*)(buffer + 0);
+		u32 textureCount = *(u32*)(buffer + 4);
+		u32 packedCount = *(u32*)(buffer + 8);
+		u32* offsets = (u32*)(buffer + 12);
+
+		assert(signature == TxpSig::TexSet);
+
+		Textures.reserve(textureCount);
+		for (u32 i = 0; i < textureCount; i++)
+		{
+			Textures.push_back(std::make_shared<Tex>());
+			ParseTex(buffer + offsets[i], *Textures[i]);
+		}
+	}
+
 	void TexSet::Write(StreamWriter& writer)
 	{
 		const u32 textureCount = static_cast<u32>(Textures.size());
@@ -92,25 +111,16 @@ namespace Comfy::Graphics
 		writer.WriteAlignmentPadding(16);
 	}
 
-	void TexSet::Parse(const u8* buffer, size_t bufferSize)
+	void TexSet::SetTextureIDs(const ObjSet& objSet)
 	{
-		TexSet& texSet = *this;
+		const auto& textureIDs = objSet.TextureIDs;
+		assert(textureIDs.size() <= Textures.size());
 
-		TxpSig signature = *(TxpSig*)(buffer + 0);
-		u32 textureCount = *(u32*)(buffer + 4);
-		u32 packedCount = *(u32*)(buffer + 8);
-		u32* offsets = (u32*)(buffer + 12);
-
-		assert(signature == TxpSig::TexSet);
-
-		Textures.reserve(textureCount);
-		for (u32 i = 0; i < textureCount; i++)
-		{
-			Textures.push_back(std::make_shared<Tex>());
-			ParseTex(buffer + offsets[i], *Textures[i]);
-		}
+		for (size_t i = 0; i < textureIDs.size(); i++)
+			Textures[i]->ID = textureIDs[i];
 	}
 
+	/* // TODO: Move upload responsibility to Comfy::Graphics::Render
 	void TexSet::UploadAll(SprSet* parentSprSet)
 	{
 		for (auto& tex : Textures)
@@ -134,22 +144,14 @@ namespace Comfy::Graphics
 				tex->GPU_CubeMap = GPU::MakeCubeMap(*tex, debugName);
 		}
 	}
-
-	void TexSet::SetTextureIDs(const ObjSet& objSet)
-	{
-		const auto& textureIDs = objSet.TextureIDs;
-		assert(textureIDs.size() <= Textures.size());
-
-		for (size_t i = 0; i < textureIDs.size(); i++)
-			Textures[i]->ID = textureIDs[i];
-	}
+	*/
 
 	std::unique_ptr<TexSet> TexSet::MakeUniqueReadParseUpload(std::string_view filePath, const ObjSet* objSet)
 	{
 		auto texSet = IO::File::LoadParse<TexSet>(filePath);
 		if (texSet != nullptr)
 		{
-			texSet->UploadAll(nullptr);
+			// texSet->UploadAll(nullptr);
 			if (objSet != nullptr)
 				texSet->SetTextureIDs(*objSet);
 		}

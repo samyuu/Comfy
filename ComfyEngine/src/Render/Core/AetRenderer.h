@@ -12,6 +12,7 @@ namespace Comfy::Graphics::Aet
 	using AetObjCallbackFunction = std::function<bool(const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)>;
 	using AetObjMaskCallbackFunction = std::function<bool(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)>;
 
+	// TODO: Should this be combined into the Renderer2D (?)
 	class AetRenderer
 	{
 	public:

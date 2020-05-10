@@ -3,6 +3,7 @@
 
 namespace Comfy::Graphics
 {
+	/* // TODO: Move upload responsibility to Comfy::Graphics::Render
 	namespace
 	{
 		template <typename T>
@@ -61,18 +62,13 @@ namespace Comfy::Graphics
 			}
 		}
 	}
-
-	void ObjSet::UploadAll()
-	{
-		for (auto& obj : objects)
-			obj.Upload();
-	}
+	*/
 
 	std::unique_ptr<ObjSet> ObjSet::MakeUniqueReadParseUpload(std::string_view filePath)
 	{
 		auto objSet = IO::File::Load<ObjSet>(filePath);
-		if (objSet != nullptr)
-			objSet->UploadAll();
+		// if (objSet != nullptr)
+		// 	objSet->UploadAll();
 		return objSet;
 	}
 

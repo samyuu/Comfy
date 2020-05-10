@@ -15,6 +15,24 @@
     <ClInclude Include="src\CoreTypes.h" />
     <ClInclude Include="src\Core\Algorithm.h" />
     <ClInclude Include="src\Core\ScopeExitFunc.h" />
+    <ClInclude Include="src\Graphics\Auth2D\Aet\AetMgr.h" />
+    <ClInclude Include="src\Graphics\Auth2D\Aet\AetSet.h" />
+    <ClInclude Include="src\Graphics\Auth2D\SprSet.h" />
+    <ClInclude Include="src\Graphics\Auth2D\Transform2D.h" />
+    <ClInclude Include="src\Graphics\Auth3D\A3D\A3D.h" />
+    <ClInclude Include="src\Graphics\Auth3D\A3D\A3DMgr.h" />
+    <ClInclude Include="src\Graphics\Auth3D\BoundingTypes.h" />
+    <ClInclude Include="src\Graphics\Auth3D\LightParam\FogParameter.h" />
+    <ClInclude Include="src\Graphics\Auth3D\LightParam\GlowParameter.h" />
+    <ClInclude Include="src\Graphics\Auth3D\LightParam\IBLParameters.h" />
+    <ClInclude Include="src\Graphics\Auth3D\LightParam\LightParameters.h" />
+    <ClInclude Include="src\Graphics\Auth3D\LightParam\Parameters.h" />
+    <ClInclude Include="src\Graphics\Auth3D\ObjSet.h" />
+    <ClInclude Include="src\Graphics\Auth3D\Transform.h" />
+    <ClInclude Include="src\Graphics\GraphicTypes.h" />
+    <ClInclude Include="src\Graphics\GPUResource.h" />
+    <ClInclude Include="src\Graphics\TexSet.h" />
+    <ClInclude Include="src\Graphics\Utilities\SpritePacker.h" />
     <ClInclude Include="src\IO\Directory.h" />
     <ClInclude Include="src\IO\File.h" />
     <ClInclude Include="src\IO\Path.h" />
@@ -59,6 +77,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp" />
+    <ClCompile Include="src\Graphics\Auth2D\Aet\AetMgr.cpp" />
+    <ClCompile Include="src\Graphics\Auth2D\Aet\AetSet.cpp" />
+    <ClCompile Include="src\Graphics\Auth2D\Aet\AetSetFile.cpp" />
+    <ClCompile Include="src\Graphics\Auth2D\SprSet.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\A3D\A3D.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\A3D\A3DMgr.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\LightParam\FogParameter.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\LightParam\GlowParameter.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\LightParam\IBLParameters.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\LightParam\LightParameters.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\ObjSet.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\ObjSetFile.cpp" />
+    <ClCompile Include="src\Graphics\TexSet.cpp" />
+    <ClCompile Include="src\Graphics\Utilities\SpritePacker.cpp" />
     <ClCompile Include="src\IO\Directory.cpp" />
     <ClCompile Include="src\IO\File.cpp" />
     <ClCompile Include="src\IO\Path.cpp" />
@@ -192,6 +224,9 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalDependencies>bcrypt.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

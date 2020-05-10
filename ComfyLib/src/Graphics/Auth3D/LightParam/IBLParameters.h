@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "Graphics/GraphicTypes.h"
-#include "Graphics/GPU/GPUResources.h"
+#include "Graphics/GPUResource.h"
 #include "IO/Stream/FileInterfaces.h"
 
 namespace Comfy::Graphics
@@ -22,7 +22,7 @@ namespace Comfy::Graphics
 		ivec2 Size;
 		std::array<std::array<const u8*, MipMaps>, Faces> DataPointers;
 
-		std::unique_ptr<GPU_CubeMap> GPU_CubeMap;
+		std::unique_ptr<GPUResource> GPU_CubeMap;
 	};
 
 	struct LightDataIBL
@@ -53,6 +53,5 @@ namespace Comfy::Graphics
 
 	public:
 		void Parse(const u8* buffer, size_t bufferSize) override;
-		void UploadAll();
 	};
 }

@@ -1,9 +1,9 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
+#include "GPUResource.h"
 #include "Resource/IDTypes.h"
 #include "Graphics/GraphicTypes.h"
-#include "Graphics/GPU/GPUResources.h"
 #include "IO/Stream/FileInterfaces.h"
 #include <optional>
 
@@ -36,8 +36,8 @@ namespace Comfy::Graphics
 
 		Cached_TexID ID = TexID::Invalid;
 
-		std::unique_ptr<GPU_Texture2D> GPU_Texture2D = nullptr;
-		std::unique_ptr<GPU_CubeMap> GPU_CubeMap = nullptr;
+		std::unique_ptr<GPUResource> GPU_Texture2D = nullptr;
+		std::unique_ptr<GPUResource> GPU_CubeMap = nullptr;
 
 	public:
 		const std::vector<TexMipMap>& GetMipMaps(u32 arrayIndex = 0) const;
@@ -55,14 +55,13 @@ namespace Comfy::Graphics
 	public:
 		std::vector<std::shared_ptr<Tex>> Textures;
 
-		void Write(IO::StreamWriter& writer) override;
-
 		void Parse(const u8* buffer, size_t bufferSize) override;
-		void UploadAll(class SprSet* parentSprSet);
+		void Write(IO::StreamWriter& writer) override;
 
 		void SetTextureIDs(const class ObjSet& objSet);
 
 	public:
+		// TODO: Rename and or refactor
 		static std::unique_ptr<TexSet> MakeUniqueReadParseUpload(std::string_view filePath, const class ObjSet* objSet);
 
 	private:

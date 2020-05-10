@@ -2,7 +2,6 @@
 #include "Types.h"
 #include "BoundingTypes.h"
 #include "Graphics/TexSet.h"
-#include "Graphics/GPU/GPUResources.h"
 #include "IO/Stream/FileInterfaces.h"
 #include <optional>
 #include <variant>
@@ -45,7 +44,7 @@ namespace Comfy::Graphics
 			u32 Transparent : 1;
 		} Flags;
 
-		std::unique_ptr<GPU_IndexBuffer> GPU_IndexBuffer;
+		std::unique_ptr<GPUResource> GPU_IndexBuffer;
 
 		// NOTE: IndexFormat wrapper around the Indices variant
 		IndexFormat GetIndexFormat() const;
@@ -103,7 +102,7 @@ namespace Comfy::Graphics
 			std::vector<vec4> BoneIndices;
 		} VertexData;
 
-		std::array<std::unique_ptr<GPU_VertexBuffer>, VertexAttribute_Count> GPU_VertexBuffers;
+		std::array<std::unique_ptr<GPUResource>, VertexAttribute_Count> GPU_VertexBuffers;
 	};
 
 	enum class MaterialTextureType : u32
@@ -490,6 +489,7 @@ namespace Comfy::Graphics
 		std::vector<TexID> TextureIDs;
 		std::unique_ptr<TexSet> TexSet;
 
+		// TODO: Remove these and directly expose Obj vector
 		auto begin() { return objects.begin(); }
 		auto end() { return objects.end(); }
 		auto begin() const { return objects.begin(); }
@@ -513,9 +513,9 @@ namespace Comfy::Graphics
 
 	public:
 		void Read(IO::StreamReader& reader) override;
-		void UploadAll();
 
 	public:
+		// TODO: Rename and or refactor
 		static std::unique_ptr<ObjSet> MakeUniqueReadParseUpload(std::string_view filePath);
 
 	private:

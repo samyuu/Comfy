@@ -110,6 +110,9 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalDependencies>dxguid.lib;d3d11.lib;d3dcompiler.lib;dinput8.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ProjectReference Include="..\ComfyLib\ComfyLib.vcxproj">
@@ -142,6 +145,15 @@
     <ClInclude Include="src\Input\Input.h" />
     <ClInclude Include="src\Input\Core\Keyboard.h" />
     <ClInclude Include="src\Input\Core\KeyCode.h" />
+    <ClInclude Include="src\Render\Core\AetRenderer.h" />
+    <ClInclude Include="src\Render\Core\Camera.h" />
+    <ClInclude Include="src\Render\Core\DebugObj.h" />
+    <ClInclude Include="src\Render\GPUResources.h" />
+    <ClInclude Include="src\Render\Core\ObjAnimationData.h" />
+    <ClInclude Include="src\Render\Core\RayIntersection.h" />
+    <ClInclude Include="src\Render\Core\SceneContext.h" />
+    <ClInclude Include="src\Render\Core\SceneRenderParameters.h" />
+    <ClInclude Include="src\Render\Render.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Audio\Core\Engine.cpp" />
@@ -160,6 +172,9 @@
     <ClCompile Include="src\Input\DirectInput\Ds4State.cpp" />
     <ClCompile Include="src\Input\DirectInput\DualShock4.cpp" />
     <ClCompile Include="src\Input\Core\Keyboard.cpp" />
+    <ClCompile Include="src\Render\Core\AetRenderer.cpp" />
+    <ClCompile Include="src\Render\Core\Camera.cpp" />
+    <ClCompile Include="src\Render\Core\DebugObj.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,3 +1,4 @@
+// GPUResources.h
 #pragma once
 #include "Types.h"
 
@@ -40,4 +41,27 @@ namespace Comfy::Graphics
 		std::unique_ptr<GPU_IndexBuffer> MakeIndexBuffer(size_t dataSize, const void* data, IndexFormat indexFormat, const char* debugName = nullptr);
 		std::unique_ptr<GPU_VertexBuffer> MakeVertexBuffer(size_t dataSize, const void* data, size_t stride, const char* debugName = nullptr);
 	}
+}
+
+
+// GPURenderers.h
+#pragma once
+#include "Types.h"
+
+#ifdef COMFY_D3D11
+#include "Graphics/D3D11/Renderer/Renderer2D.h"
+#include "Graphics/D3D11/Renderer/Renderer3D.h"
+#endif
+
+namespace Comfy::Graphics
+{
+	// TODO: Hide renderers behind proper interfaces
+
+#ifdef COMFY_D3D11
+	using GPU_Renderer2D = D3D11::Renderer2D;
+	using GPU_Renderer3D = D3D11::Renderer3D;
+#else
+	class GPU_Renderer2D {};
+	class GPU_Renderer3D {};
+#endif
 }

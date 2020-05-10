@@ -21,9 +21,6 @@
     <ClCompile Include="src\DataTest\InputTestWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\ImGui\Widgets\FileViewer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -189,19 +186,10 @@
     <ClCompile Include="src\Editor\Timeline\TimelineScrollbar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Auth3D\ObjSet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Auth3D\ObjSetFile.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Editor\Core\EditorManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Editor\PV\SceneRenderWindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Auth3D\DebugObj.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ImGui\Implementation\ComfyD3D11.cpp">
@@ -231,19 +219,16 @@
     <ClCompile Include="src\Editor\PV\MaterialEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Auth3D\LightParam\FogParameter.cpp">
+    <ClCompile Include="src\ImGui\Extensions\TexExtensions.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\Buffer\ConstantBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Auth3D\LightParam\GlowParameter.cpp">
+    <ClCompile Include="src\Graphics\D3D11\Buffer\IndexBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Auth3D\LightParam\IBLParameters.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Auth3D\LightParam\LightParameters.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Auth2D\SprSet.cpp">
+    <ClCompile Include="src\Graphics\D3D11\Buffer\VertexBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\D3D11\Renderer\Detail\BlendStateCache.cpp">
@@ -258,28 +243,13 @@
     <ClCompile Include="src\Graphics\D3D11\Renderer\Detail\ToneMapData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\D3D11\Shader\Bytecode\ShaderBytecode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\D3D11\D3DResources.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\D3D11\Direct3D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\D3D11\Buffer\ConstantBuffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\D3D11\Buffer\IndexBuffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\D3D11\Buffer\VertexBuffer.cpp">
+    <ClCompile Include="src\Graphics\D3D11\Renderer\Renderer2D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\D3D11\Renderer\Renderer3D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\D3D11\Renderer\Renderer2D.cpp">
+    <ClCompile Include="src\Graphics\D3D11\Shader\Bytecode\ShaderBytecode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\D3D11\Shader\Shader.cpp">
@@ -312,31 +282,10 @@
     <ClCompile Include="src\Graphics\D3D11\Texture\TextureSampler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Auth3D\A3D\A3D.cpp">
+    <ClCompile Include="src\Graphics\D3D11\D3DResources.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Auth3D\A3D\A3DMgr.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Auth2D\Aet\AetSetFile.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Auth2D\Aet\AetMgr.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Auth2D\Aet\AetRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Auth2D\Aet\AetSet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\TexSet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ImGui\Extensions\TexExtensions.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Utilities\SpritePacker.cpp">
+    <ClCompile Include="src\Graphics\D3D11\Direct3D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -417,9 +366,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\GuiRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\ComfyData.h">
@@ -578,22 +524,10 @@
     <ClInclude Include="src\Editor\Timeline\TimelineScrollbar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Auth3D\ObjSet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\Core\EditorManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\PV\SceneRenderWindow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Auth3D\SceneContext.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Auth3D\BoundingTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Auth3D\DebugObj.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\ComfyConfig.h">
@@ -617,9 +551,6 @@
     <ClInclude Include="src\Editor\PV\Debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Auth3D\Transform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\PV\StageTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -632,16 +563,7 @@
     <ClInclude Include="src\Editor\Common\CameraController3D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Auth3D\RayIntersection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Auth3D\ObjAnimationData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\PV\CameraAxisIndication.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Auth2D\Transform2D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\Extensions\ImGuiExtensions.h">
@@ -650,64 +572,13 @@
     <ClInclude Include="src\Editor\PV\ExternalProcess.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\GraphicTypesNames.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\GraphicTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\PV\MaterialEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\Extensions\PropertyEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Auth3D\LightParam\Parameters.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Auth3D\LightParam\FogParameter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Auth3D\LightParam\GlowParameter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Auth3D\LightParam\IBLParameters.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Auth3D\LightParam\LightParameters.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Auth2D\SprSet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\GPU\GPUResources.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\GPU\GPURenderers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\BlendStateCache.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ShaderFlags.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\SpriteBatchData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\TextureSamplerCache.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ToneMapData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\D3D11\Shader\Bytecode\ShaderBytecode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\D3D11\Direct3D.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\D3D11\IGraphicsResource.h">
+    <ClInclude Include="src\ImGui\Extensions\TexExtensions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\D3D11\Buffer\ConstantBuffer.h">
@@ -719,19 +590,52 @@
     <ClInclude Include="src\Graphics\D3D11\Buffer\VertexBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\D3D11\Renderer\Renderer3D.h">
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\BlendStateCache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ConstantData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\GaussianBlur.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ShaderFlags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ShaderPairs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\SpriteBatchData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\SubsurfaceScattering.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\SunOcclusionData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\TextureSamplerCache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ToneMapData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\D3D11\Renderer\Renderer2D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\Renderer3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Renderer\ViewportRenderData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\Shader\Bytecode\ShaderBytecode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\D3D11\Shader\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\D3D11\State\BlendState.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\D3D11\State\RasterizerState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\D3D11\State\DepthStencilState.h">
@@ -741,6 +645,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\D3D11\State\OcclusionQuery.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\D3D11\State\RasterizerState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\D3D11\Texture\DepthBuffer.h">
@@ -755,46 +662,10 @@
     <ClInclude Include="src\Graphics\D3D11\Texture\TextureSampler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\ShaderPairs.h">
+    <ClInclude Include="src\Graphics\D3D11\Direct3D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\SubsurfaceScattering.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\GaussianBlur.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\D3D11\Renderer\ViewportRenderData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Auth3D\SceneRenderParameters.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\D3D11\Renderer\Detail\SunOcclusionData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Auth3D\A3D\A3DMgr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Auth3D\A3D\A3D.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Auth2D\Aet\AetMgr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Auth2D\Aet\AetRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Auth2D\Aet\AetSet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\TexSet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ImGui\Extensions\TexExtensions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\Utilities\SpritePacker.h">
+    <ClInclude Include="src\Graphics\D3D11\IGraphicsResource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -878,10 +749,5 @@
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\SSS\SSSFilterGauss2D_PS.hlsl" />
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\SSS\SSSFilterMin_PS.hlsl" />
     <FxCompile Include="src\Graphics\D3D11\Shader\Source\PostProcessing\ToneMap\ToneMap_PS.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="src\Graphics\D3D11\Renderer\Detail\ConstantData.h">
-      <Filter>Source Files</Filter>
-    </None>
   </ItemGroup>
 </Project>
