@@ -2,7 +2,7 @@
 #include <unordered_map>
 #include <optional>
 
-namespace Comfy::Graphics
+namespace Comfy::Render
 {
 	namespace
 	{

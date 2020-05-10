@@ -120,7 +120,7 @@ namespace Comfy::Graphics
 			Textures[i]->ID = textureIDs[i];
 	}
 
-	/* // TODO: Move upload responsibility to Comfy::Graphics::Render
+	/* // TODO: Move upload responsibility to Comfy::Render
 	void TexSet::UploadAll(SprSet* parentSprSet)
 	{
 		for (auto& tex : Textures)

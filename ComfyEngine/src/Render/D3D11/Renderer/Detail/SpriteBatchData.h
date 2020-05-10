@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "Graphics/D3D11/Texture/Texture.h"
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	struct SpriteIndices
 	{

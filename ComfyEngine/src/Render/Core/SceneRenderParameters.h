@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "Graphics/D3D11/Texture/RenderTarget.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Render
 {
 	static constexpr ivec2 ShadowMapDefaultResolution = ivec2(2048, 2048);
 	static constexpr ivec2 ReflectionDefaultResolution = ivec2(512, 512);

@@ -1,6 +1,6 @@
 #include "ConstantBuffer.h"
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	ConstantBuffer::ConstantBuffer(u32 slot, size_t dataSize, D3D11_USAGE usage, UINT accessFlags)
 		: slot(slot)

@@ -1,6 +1,6 @@
 #include "ToneMapData.h"
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	void ToneMapData::UpdateIfNeeded(const GlowParameter& glow)
 	{

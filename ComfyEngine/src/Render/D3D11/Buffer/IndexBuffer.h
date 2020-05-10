@@ -2,7 +2,7 @@
 #include "../Direct3D.h"
 #include "Graphics/GraphicTypes.h"
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	class IndexBuffer : IGraphicsResource
 	{

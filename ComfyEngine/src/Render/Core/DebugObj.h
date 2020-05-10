@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "ObjSet.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Render
 {
 	constexpr int MinSphereMeshDetailLevel = 0;
 	constexpr int MaxSphereMeshDetailLevel = 6;

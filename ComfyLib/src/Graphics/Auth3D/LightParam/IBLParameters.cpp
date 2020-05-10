@@ -150,7 +150,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	/* // TODO: Move upload responsibility to Comfy::Graphics::Render
+	/* // TODO: Move upload responsibility to Comfy::Render
 	void IBLParameters::UploadAll()
 	{
 		for (size_t i = 0; i < LightMaps.size(); i++)

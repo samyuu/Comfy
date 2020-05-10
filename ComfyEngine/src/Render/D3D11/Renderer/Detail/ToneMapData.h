@@ -2,7 +2,7 @@
 #include "Graphics/D3D11/Texture/Texture.h"
 #include "Graphics/Auth3D/LightParam/GlowParameter.h"
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	struct ToneMapData
 	{

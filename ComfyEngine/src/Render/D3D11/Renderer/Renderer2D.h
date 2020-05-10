@@ -12,7 +12,7 @@
 #include "Detail/SpriteBatchData.h"
 #include "Graphics/Camera.h"
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	class Renderer2D : NonCopyable
 	{

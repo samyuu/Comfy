@@ -4,7 +4,7 @@
 #include "DepthBuffer.h"
 #include "Texture.h"
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	// NOTE: Since the render target is stretched to the correct asspect ratio in the end it could easily be scaled down to improve performance
 	constexpr ivec2 RenderTargetDefaultSize = Texture2D::MinSize;

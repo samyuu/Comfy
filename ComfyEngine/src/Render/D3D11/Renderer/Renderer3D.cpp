@@ -4,7 +4,7 @@
 #include "Time/TimeSpan.h"
 #include "ImGui/Gui.h"
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	namespace
 	{

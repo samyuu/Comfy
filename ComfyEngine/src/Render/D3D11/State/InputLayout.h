@@ -3,7 +3,7 @@
 #include "../Direct3D.h"
 #include "../Shader/Shader.h"
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	// TODO: Use easier more limited custom format enum instead of the DXGI format type
 	struct InputElement

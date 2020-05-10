@@ -4,13 +4,13 @@
 #include "Graphics/GraphicTypes.h"
 #include "TextureSampler.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Render
 {
 	struct Tex;
 	struct LightMapIBL;
 }
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	class ShaderResourceView
 	{

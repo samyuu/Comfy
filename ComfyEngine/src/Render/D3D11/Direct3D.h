@@ -8,7 +8,7 @@
 
 using Microsoft::WRL::ComPtr;
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	class SwapChainRenderTarget;
 

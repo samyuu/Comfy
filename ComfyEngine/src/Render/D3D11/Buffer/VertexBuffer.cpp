@@ -1,6 +1,6 @@
 #include "VertexBuffer.h"
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	VertexBuffer::VertexBuffer(size_t dataSize, const void* data, size_t stride, D3D11_USAGE usage, UINT accessFlags)
 	{

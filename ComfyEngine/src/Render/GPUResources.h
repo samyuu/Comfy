@@ -9,7 +9,7 @@
 #include "Graphics/D3D11/Buffer/VertexBuffer.h"
 #endif
 
-namespace Comfy::Graphics
+namespace Comfy::Render
 {
 	// NOTE: GPU resource aliases to hide away the graphics API implementation without relying on virtual interfaces, for now
 
@@ -53,7 +53,7 @@ namespace Comfy::Graphics
 #include "Graphics/D3D11/Renderer/Renderer3D.h"
 #endif
 
-namespace Comfy::Graphics
+namespace Comfy::Render
 {
 	// TODO: Hide renderers behind proper interfaces
 

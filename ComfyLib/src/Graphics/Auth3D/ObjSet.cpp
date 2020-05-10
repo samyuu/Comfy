@@ -3,7 +3,7 @@
 
 namespace Comfy::Graphics
 {
-	/* // TODO: Move upload responsibility to Comfy::Graphics::Render
+	/* // TODO: Move upload responsibility to Comfy::Render
 	namespace
 	{
 		template <typename T>

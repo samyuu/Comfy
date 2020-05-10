@@ -3,7 +3,7 @@
 #include "Graphics/Auth3D/SceneRenderParameters.h"
 #include "Graphics/Auth3D/ObjSet.h"
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	struct TextureSamplerCache
 	{

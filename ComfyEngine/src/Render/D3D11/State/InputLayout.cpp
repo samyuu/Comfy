@@ -1,6 +1,6 @@
 #include "InputLayout.h"
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	InputLayout::InputLayout(const InputElement* elements, size_t elementCount, const VertexShader& vertexShader)
 		: usedElementCount(elementCount)

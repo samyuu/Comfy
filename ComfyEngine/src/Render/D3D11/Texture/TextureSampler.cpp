@@ -1,6 +1,6 @@
 #include "TextureSampler.h"
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	namespace
 	{

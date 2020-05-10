@@ -2,7 +2,7 @@
 
 namespace Comfy::Graphics
 {
-	// NOTE: Opaque type for any GPU resource. Initialized and used internally by the Comfy::Graphics::Render library
+	// NOTE: Opaque type for any GPU resource. Initialized and used internally by the Comfy::Render library
 	class GPUResource
 	{
 	public:

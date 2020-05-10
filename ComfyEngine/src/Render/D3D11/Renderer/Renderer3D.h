@@ -20,7 +20,7 @@
 #include "Graphics/Auth3D/SceneContext.h"
 #include <functional>
 
-namespace Comfy::Graphics
+namespace Comfy::Render
 {
 	struct RenderCommand
 	{
@@ -59,7 +59,7 @@ namespace Comfy::Graphics
 	using TexGetterFunction = std::function<const Tex*(const Cached_TexID* texID)>;
 }
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	class Renderer3D : NonCopyable
 	{

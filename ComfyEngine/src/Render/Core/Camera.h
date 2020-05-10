@@ -3,7 +3,7 @@
 #include "CoreTypes.h"
 #include "Auth3D/BoundingTypes.h"
 
-namespace Comfy::Graphics
+namespace Comfy::Render
 {
 	class ICamera
 	{

@@ -2,7 +2,7 @@
 #include "Graphics/D3D11/State/BlendState.h"
 #include "Graphics/Auth3D/ObjSet.h"
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	struct BlendStateCache
 	{

@@ -1,6 +1,6 @@
 #include "Graphics/GPU/GPUResources.h"
 
-namespace Comfy::Graphics::GPU
+namespace Comfy::Render::GPU
 {
 	namespace
 	{

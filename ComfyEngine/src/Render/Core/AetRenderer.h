@@ -5,7 +5,7 @@
 #include <functional>
 #include <optional>
 
-namespace Comfy::Graphics::Aet
+namespace Comfy::Render::Aet
 {
 	using SpriteGetterFunction = std::function<bool(const VideoSource* source, const Tex** outTex, const Spr** outSpr)>;
 

@@ -1,7 +1,7 @@
 #pragma once
 #include "../Direct3D.h"
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	class RasterizerState final : IGraphicsResource
 	{

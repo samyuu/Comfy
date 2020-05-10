@@ -2,7 +2,7 @@
 #include "Texture/RenderTarget.h"
 #include "Core/Logger.h"
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Render::D3D11
 {
 	namespace
 	{
