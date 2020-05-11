@@ -4,7 +4,7 @@
 #include "Graphics/GraphicTypes.h"
 #include "TextureSampler.h"
 
-namespace Comfy::Render
+namespace Comfy::Graphics
 {
 	struct Tex;
 	struct LightMapIBL;
@@ -22,7 +22,7 @@ namespace Comfy::Render::D3D11
 		static void BindArray(u32 startSlot, const std::array<ShaderResourceView*, Size>& resources);
 	};
 
-	class TextureResource : public ShaderResourceView, IGraphicsResource
+	class TextureResource : public ShaderResourceView, public IGraphicsResource
 	{
 	protected:
 		TextureResource();
@@ -36,7 +36,7 @@ namespace Comfy::Render::D3D11
 		virtual u32 GetArraySize() const = 0;
 
 		ivec2 GetSize() const;
-		TextureFormat GetTextureFormat() const;
+		Graphics::TextureFormat GetTextureFormat() const;
 
 		ID3D11Texture2D* GetTexture();
 
@@ -44,7 +44,7 @@ namespace Comfy::Render::D3D11
 
 	protected:
 		mutable u32 lastBoundSlot;
-		TextureFormat textureFormat;
+		Graphics::TextureFormat textureFormat;
 
 		D3D11_TEXTURE2D_DESC textureDescription;
 		D3D11_SHADER_RESOURCE_VIEW_DESC resourceViewDescription;
@@ -80,7 +80,7 @@ namespace Comfy::Render::D3D11
 		static constexpr ivec2 MaxSize = { D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION, D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION };
 
 	public:
-		Texture2D(const Tex& tex);
+		Texture2D(const Graphics::Tex& tex);
 		Texture2D(ivec2 size, const u32* rgbaBuffer);
 		~Texture2D() = default;
 
@@ -93,8 +93,8 @@ namespace Comfy::Render::D3D11
 	class CubeMap final : public TextureResource
 	{
 	public:
-		CubeMap(const Tex& tex);
-		CubeMap(const LightMapIBL& lightMap);
+		CubeMap(const Graphics::Tex& tex);
+		CubeMap(const Graphics::LightMapIBL& lightMap);
 		~CubeMap() = default;
 
 	public:

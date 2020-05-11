@@ -1,30 +1,28 @@
 #include "BlendState.h"
-#include "Graphics/GraphicTypesNames.h"
 
 namespace Comfy::Render::D3D11
 {
-	namespace
+	using namespace Graphics;
+
+	constexpr UINT SampleMask = 0xFFFFFFFF;
+
+	constexpr std::array<D3D11_BLEND, 4> GetBlendParameters(AetBlendMode blendMode)
 	{
-		constexpr UINT SampleMask = 0xFFFFFFFF;
-
-		constexpr std::array<D3D11_BLEND, 4> GetBlendParameters(AetBlendMode blendMode)
+		switch (blendMode)
 		{
-			switch (blendMode)
-			{
-			default:
-				assert(false);
+		default:
+			assert(false);
 
-			case AetBlendMode::Normal:
-				return { D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_ZERO, D3D11_BLEND_ONE };
-			case AetBlendMode::Add:
-				return { D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_ONE, D3D11_BLEND_ZERO, D3D11_BLEND_ONE };
-			case AetBlendMode::Multiply:
-				return { D3D11_BLEND_DEST_COLOR, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ONE };
-			case AetBlendMode::LinearDodge:
-				return { D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_COLOR, D3D11_BLEND_ZERO, D3D11_BLEND_ONE };
-			case AetBlendMode::Overlay:
-				return { D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_ZERO, D3D11_BLEND_ONE };
-			}
+		case AetBlendMode::Normal:
+			return { D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_ZERO, D3D11_BLEND_ONE };
+		case AetBlendMode::Add:
+			return { D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_ONE, D3D11_BLEND_ZERO, D3D11_BLEND_ONE };
+		case AetBlendMode::Multiply:
+			return { D3D11_BLEND_DEST_COLOR, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ONE };
+		case AetBlendMode::LinearDodge:
+			return { D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_COLOR, D3D11_BLEND_ZERO, D3D11_BLEND_ONE };
+		case AetBlendMode::Overlay:
+			return { D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_ZERO, D3D11_BLEND_ONE };
 		}
 	}
 

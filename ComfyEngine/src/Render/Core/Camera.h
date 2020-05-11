@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
-#include "Auth3D/BoundingTypes.h"
+#include "Graphics/Auth3D/BoundingTypes.h"
 
 namespace Comfy::Render
 {
@@ -10,7 +10,6 @@ namespace Comfy::Render
 	public:
 		static constexpr vec3 UpDirection = vec3(0.0f, 1.0f, 0.0f);
 
-	public:
 		virtual void UpdateMatrices() = 0;
 
 		virtual const mat4& GetView() const = 0;
@@ -41,7 +40,7 @@ namespace Comfy::Render
 		vec2 ProjectPointNormalizedScreen(vec3 worldPosition) const;
 		vec3 CalculateRayDirection(vec2 normalizeScreenPosition) const;
 		
-		bool IntersectsViewFrustum(const Sphere& worldSpaceSphere) const;
+		bool IntersectsViewFrustum(const Graphics::Sphere& worldSpaceSphere) const;
 
 	public:
 		static vec3 ScreenToWorldSpace(const mat4& matrix, const vec3& screenSpace);

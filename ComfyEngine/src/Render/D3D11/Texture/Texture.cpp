@@ -4,6 +4,8 @@
 
 namespace Comfy::Render::D3D11
 {
+	using namespace Graphics;
+
 	namespace
 	{
 		// NOTE: This doesn't seem to be defined anywhere but this should cover even the largest supported textures

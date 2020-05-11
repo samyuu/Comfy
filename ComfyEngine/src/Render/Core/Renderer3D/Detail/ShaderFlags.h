@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 
-namespace Comfy::Render::D3D11
+namespace Comfy::Render::Detail
 {
 	enum ShaderFlags : u32
 	{

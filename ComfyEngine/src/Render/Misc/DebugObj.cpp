@@ -4,6 +4,8 @@
 
 namespace Comfy::Render
 {
+	using namespace Graphics;
+
 	namespace
 	{
 		template <typename IndexType>

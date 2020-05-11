@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "Graphics/D3D11/Texture/Texture.h"
+#include "Render/D3D11/Texture/Texture.h"
 
 namespace Comfy::Render::D3D11
 {
@@ -61,10 +61,10 @@ namespace Comfy::Render::D3D11
 	{
 		const Texture2D* Texture;
 		const Texture2D* MaskTexture;
-		AetBlendMode BlendMode;
+		Graphics::AetBlendMode BlendMode;
 		vec2 CheckerboardSize;
 
-		void SetValues(const Texture2D* texture, const Texture2D* alphaMask = nullptr, AetBlendMode blendMode = AetBlendMode::Normal);
+		void SetValues(const Texture2D* texture, const Texture2D* alphaMask = nullptr, Graphics::AetBlendMode blendMode = Graphics::AetBlendMode::Normal);
 	};
 
 	struct SpriteBatchPair

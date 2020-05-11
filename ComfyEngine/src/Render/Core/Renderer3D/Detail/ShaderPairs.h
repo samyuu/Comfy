@@ -1,8 +1,10 @@
 #pragma once
-#include "Graphics/D3D11/Shader/Bytecode/ShaderBytecode.h"
+#include "Render/D3D11/Shader/Bytecode/ShaderBytecode.h"
 
-namespace Comfy::Render::D3D11
+namespace Comfy::Render::Detail
 {
+	using namespace D3D11;
+
 	struct RendererShaderPairs
 	{
 		ShaderPair DebugMaterial = { DebugMaterial_VS(), DebugMaterial_PS(), "Renderer3D::DebugMaterial" };

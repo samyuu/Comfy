@@ -9,6 +9,7 @@ namespace Comfy::Render::D3D11
 		const size_t Size;
 	};
 
+	// TODO: Add constructor overloads to compile from source files
 	class Shader : IGraphicsResource
 	{
 	protected:

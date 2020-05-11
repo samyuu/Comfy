@@ -1,27 +1,28 @@
 #pragma once
+#include "Types.h"
+#include "Render/Core/Camera.h"
 #include "ConstantData.h"
 #include "Graphics/Auth3D/ObjSet.h"
-#include "Graphics/Camera.h"
 
-namespace Comfy::Render::D3D11
+namespace Comfy::Render::Detail
 {
 	constexpr float DefaultSSSParameter = 0.6f;
 
-	inline bool UsesSSSSkin(const Material& material)
+	inline bool UsesSSSSkin(const Graphics::Material& material)
 	{
-		if (material.ShaderType == Material::ShaderIdentifiers::Skin || 
-			material.ShaderType == Material::ShaderIdentifiers::EyeBall || 
-			material.ShaderType == Material::ShaderIdentifiers::EyeLens)
+		if (material.ShaderType == Graphics::Material::ShaderIdentifiers::Skin ||
+			material.ShaderType == Graphics::Material::ShaderIdentifiers::EyeBall ||
+			material.ShaderType == Graphics::Material::ShaderIdentifiers::EyeLens)
 			return true;
 
 		return false;
 	}
 
-	inline bool UsesSSSSkinConst(const Material& material)
+	inline bool UsesSSSSkinConst(const Graphics::Material& material)
 	{
-		if (material.ShaderType == Material::ShaderIdentifiers::Hair || 
-			material.ShaderType == Material::ShaderIdentifiers::Cloth || 
-			material.ShaderType == Material::ShaderIdentifiers::Tights)
+		if (material.ShaderType == Graphics::Material::ShaderIdentifiers::Hair ||
+			material.ShaderType == Graphics::Material::ShaderIdentifiers::Cloth ||
+			material.ShaderType == Graphics::Material::ShaderIdentifiers::Tights)
 			return true;
 
 		return false;

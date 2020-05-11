@@ -7,7 +7,7 @@ namespace Comfy::Render::D3D11
 	class BlendState final : IGraphicsResource
 	{
 	public:
-		BlendState(AetBlendMode blendMode);
+		BlendState(Graphics::AetBlendMode blendMode);
 
 		BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend);
 		BlendState(D3D11_BLEND sourceBlend, D3D11_BLEND destinationBlend, D3D11_BLEND sourceAlpha, D3D11_BLEND destinationAlpha);

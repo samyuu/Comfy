@@ -4,11 +4,6 @@
 
 namespace Comfy::Render
 {
-	namespace
-	{
-		static constexpr mat4 IdentityMatrix = glm::identity<mat4>();
-	}
-
 	void PerspectiveCamera::UpdateMatrices()
 	{
 		view = glm::lookAt(ViewPoint, Interest, UpDirection);
@@ -69,7 +64,7 @@ namespace Comfy::Render
 		return rayDirection;
 	}
 
-	bool PerspectiveCamera::IntersectsViewFrustum(const Sphere& worldSpaceSphere) const
+	bool PerspectiveCamera::IntersectsViewFrustum(const Graphics::Sphere& worldSpaceSphere) const
 	{
 		for (const auto& plane : frustum.Planes)
 		{
@@ -85,7 +80,7 @@ namespace Comfy::Render
 		constexpr float projectionLeft = 0.0f;
 		constexpr float projectionTop = 0.0f;
 
-		view = glm::translate(IdentityMatrix, vec3(-Position.x, -Position.y, 0.0f)) * glm::scale(IdentityMatrix, vec3(Zoom, Zoom, 1.0f));
+		view = glm::translate(mat4(1.0f), vec3(-Position.x, -Position.y, 0.0f)) * glm::scale(mat4(1.0f), vec3(Zoom, Zoom, 1.0f));
 		projection = glm::ortho(projectionLeft, ProjectionSize.x, ProjectionSize.y, projectionTop, NearPlane, FarPlane);
 
 		viewProjection = projection * view;

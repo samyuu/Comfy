@@ -1,8 +1,9 @@
 #pragma once
 #include "Types.h"
 #include "Graphics/Auth3D/ObjSet.h"
+#include "Render/D3D11/Buffer/ConstantBuffer.h"
 
-namespace Comfy::Render::D3D11
+namespace Comfy::Render::Detail
 {
 	struct SceneConstantData
 	{
@@ -84,7 +85,7 @@ namespace Comfy::Render::D3D11
 	struct SkeletonConstantData
 	{
 		// NOTE: Model space final bone transforms
-		std::array<mat4, Skeleton::MaxBoneCount> FinalBoneTransforms;
+		std::array<mat4, Graphics::Skeleton::MaxBoneCount> FinalBoneTransforms;
 	};
 
 	struct ESMFilterConstantData
@@ -141,16 +142,16 @@ namespace Comfy::Render::D3D11
 
 	struct RendererConstantBuffers
 	{
-		DefaultConstantBufferTemplate<SceneConstantData> Scene = { 0, "Renderer3D::SceneCB" };
-		DynamicConstantBufferTemplate<ObjectConstantData> Object = { 1, "Renderer3D::ObjectCB" };
-		DynamicConstantBufferTemplate<SkeletonConstantData> Skeleton = { 2, "Renderer3D::SkeletonCB" };
+		D3D11::DefaultConstantBufferTemplate<SceneConstantData> Scene = { 0, "Renderer3D::SceneCB" };
+		D3D11::DynamicConstantBufferTemplate<ObjectConstantData> Object = { 1, "Renderer3D::ObjectCB" };
+		D3D11::DynamicConstantBufferTemplate<SkeletonConstantData> Skeleton = { 2, "Renderer3D::SkeletonCB" };
 
-		DynamicConstantBufferTemplate<ESMFilterConstantData> ESMFilter = { 4, "Renderer3D::ESMFilterCB" };
-		DynamicConstantBufferTemplate<SSSFilterConstantData> SSSFilter = { 5, "Renderer3D::SSSFilterCB" };
-		DynamicConstantBufferTemplate<ReduceTexConstantData> ReduceTex = { 6, "Renderer3D::ReduceTexCB" };
-		DynamicConstantBufferTemplate<PPGaussTexConstantData> PPGaussTex = { 7, "Renderer3D::PPGaussTexCB" };
-		DefaultConstantBufferTemplate<PPGaussCoefConstantData> PPGaussCoef = { 8, "Renderer3D::PPGaussCoefCB" };
-		DefaultConstantBufferTemplate<ExposureConstantData> Exposure = { 9, "Renderer3D::ExposureCB" };
-		DefaultConstantBufferTemplate<ToneMapConstantData> ToneMap = { 9, "Renderer3D::ToneMapCB" };
+		D3D11::DynamicConstantBufferTemplate<ESMFilterConstantData> ESMFilter = { 4, "Renderer3D::ESMFilterCB" };
+		D3D11::DynamicConstantBufferTemplate<SSSFilterConstantData> SSSFilter = { 5, "Renderer3D::SSSFilterCB" };
+		D3D11::DynamicConstantBufferTemplate<ReduceTexConstantData> ReduceTex = { 6, "Renderer3D::ReduceTexCB" };
+		D3D11::DynamicConstantBufferTemplate<PPGaussTexConstantData> PPGaussTex = { 7, "Renderer3D::PPGaussTexCB" };
+		D3D11::DefaultConstantBufferTemplate<PPGaussCoefConstantData> PPGaussCoef = { 8, "Renderer3D::PPGaussCoefCB" };
+		D3D11::DefaultConstantBufferTemplate<ExposureConstantData> Exposure = { 9, "Renderer3D::ExposureCB" };
+		D3D11::DefaultConstantBufferTemplate<ToneMapConstantData> ToneMap = { 9, "Renderer3D::ToneMapCB" };
 	};
 }

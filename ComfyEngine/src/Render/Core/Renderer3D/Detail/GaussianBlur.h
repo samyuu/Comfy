@@ -2,9 +2,9 @@
 #include "ConstantData.h"
 #include "Graphics/Auth3D/LightParam/GlowParameter.h"
 
-namespace Comfy::Render::D3D11
+namespace Comfy::Render::Detail
 {
-	inline void CalculateGaussianBlurKernel(const GlowParameter& glow, PPGaussCoefConstantData& outData)
+	inline void CalculateGaussianBlurKernel(const Graphics::GlowParameter& glow, PPGaussCoefConstantData& outData)
 	{
 		constexpr float powStart = 1.0f, powIncrement = 1.0f;
 		constexpr float sigmaFactor = 0.8f, intensityFactor = 1.0f;

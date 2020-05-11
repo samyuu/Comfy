@@ -169,7 +169,7 @@ namespace Comfy::Render::D3D11
 		BottomRight.Color = Vec4ToUInt32(colors[3]);
 	}
 
-	void SpriteBatchItem::SetValues(const Texture2D* texture, const Texture2D* alphaMask, AetBlendMode blendMode)
+	void SpriteBatchItem::SetValues(const Texture2D* texture, const Texture2D* alphaMask, Graphics::AetBlendMode blendMode)
 	{
 		Texture = texture;
 		MaskTexture = alphaMask;

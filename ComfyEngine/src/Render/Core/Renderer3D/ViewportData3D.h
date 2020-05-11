@@ -1,29 +1,28 @@
 #pragma once
 #include "Types.h"
-#include "../Texture/RenderTarget.h"
-#include "../Texture/DepthBuffer.h"
-#include "Detail/BlendStateCache.h"
-#include "Detail/SunOcclusionData.h"
+#include "Renderer3D.h"
 #include "Detail/TextureSamplerCache.h"
+#include "Detail/BlendStateCache.h"
 #include "Detail/ToneMapData.h"
-#include "Graphics/Auth3D/SceneRenderParameters.h"
+#include "Detail/SunOcclusionData.h"
+#include "Render/D3D11/Texture/RenderTarget.h"
 
-namespace Comfy::Render::D3D11
+namespace Comfy::Render
 {
 	struct MainRenderData
 	{
 		// NOTE: Main scene HRD render targets
 		std::array<D3D11::DepthRenderTarget, 2> RenderTargets =
 		{
-			D3D11::DepthRenderTarget { RenderTargetDefaultSize, RenderTargetHDRFormatRGBA, DXGI_FORMAT_D32_FLOAT, 1 },
-			D3D11::DepthRenderTarget { RenderTargetDefaultSize, RenderTargetHDRFormatRGBA, DXGI_FORMAT_D32_FLOAT, 1 },
+			D3D11::DepthRenderTarget { D3D11::RenderTargetDefaultSize, D3D11::RenderTargetHDRFormatRGBA, DXGI_FORMAT_D32_FLOAT, 1 },
+			D3D11::DepthRenderTarget { D3D11::RenderTargetDefaultSize, D3D11::RenderTargetHDRFormatRGBA, DXGI_FORMAT_D32_FLOAT, 1 },
 		};
 
 		// NOTE: Optional MSAA resolved copies
 		std::array<D3D11::RenderTarget, 2> ResolvedRenderTargets =
 		{
-			D3D11::RenderTarget { RenderTargetDefaultSize, RenderTargetHDRFormatRGBA },
-			D3D11::RenderTarget { RenderTargetDefaultSize, RenderTargetHDRFormatRGBA },
+			D3D11::RenderTarget { D3D11::RenderTargetDefaultSize, D3D11::RenderTargetHDRFormatRGBA },
+			D3D11::RenderTarget { D3D11::RenderTargetDefaultSize, D3D11::RenderTargetHDRFormatRGBA },
 		};
 
 	public:
@@ -81,73 +80,73 @@ namespace Comfy::Render::D3D11
 	struct SubsurfaceScatteringRenderData
 	{
 		// NOTE: Main render target, same size as the main rendering
-		D3D11::DepthRenderTarget RenderTarget = { RenderTargetDefaultSize, RenderTargetHDRFormatRGBA, DXGI_FORMAT_D32_FLOAT };
+		D3D11::DepthRenderTarget RenderTarget = { D3D11::RenderTargetDefaultSize, D3D11::RenderTargetHDRFormatRGBA, DXGI_FORMAT_D32_FLOAT };
 
 		// NOTE: Further reduction and filtering
 		std::array<D3D11::RenderTarget, 3> FilterRenderTargets =
 		{
-			D3D11::RenderTarget { ivec2(640, 360), RenderTargetHDRFormatRGBA },
-			D3D11::RenderTarget { ivec2(320, 180), RenderTargetHDRFormatRGBA },
-			D3D11::RenderTarget { ivec2(320, 180), RenderTargetHDRFormatRGBA },
+			D3D11::RenderTarget { ivec2(640, 360), D3D11::RenderTargetHDRFormatRGBA },
+			D3D11::RenderTarget { ivec2(320, 180), D3D11::RenderTargetHDRFormatRGBA },
+			D3D11::RenderTarget { ivec2(320, 180), D3D11::RenderTargetHDRFormatRGBA },
 		};
 	};
 
 	struct ScreenReflectionRenderData
 	{
 		// NOTE: Stage reflection render target primarily used by floor materials
-		D3D11::DepthRenderTarget RenderTarget = { ReflectionDefaultResolution, RenderTargetLDRFormatRGBA, DXGI_FORMAT_D32_FLOAT };
+		D3D11::DepthRenderTarget RenderTarget = { ReflectionDefaultResolution, D3D11::RenderTargetLDRFormatRGBA, DXGI_FORMAT_D32_FLOAT };
 	};
 
 	struct SilhouetteRenderData
 	{
 		// NOTE: Mostly for debugging, render black and white rendering to outline and overlay on the main render target
-		D3D11::DepthRenderTarget RenderTarget = { RenderTargetDefaultSize, DXGI_FORMAT_R8_UNORM, DXGI_FORMAT_D32_FLOAT };
+		D3D11::DepthRenderTarget RenderTarget = { D3D11::RenderTargetDefaultSize, DXGI_FORMAT_R8_UNORM, DXGI_FORMAT_D32_FLOAT };
 	};
 
 	struct BloomRenderData
 	{
 		// NOTE: Base half reduction of the main scene render target
-		D3D11::RenderTarget BaseRenderTarget = { RenderTargetDefaultSize, RenderTargetHDRFormatRGBA };
+		D3D11::RenderTarget BaseRenderTarget = { D3D11::RenderTargetDefaultSize, D3D11::RenderTargetHDRFormatRGBA };
 
 		// NOTE: Final blurred render target, combination of ReduceRenderTargets / BlurRenderTargets
-		D3D11::RenderTarget CombinedBlurRenderTarget = { ivec2(256, 144), RenderTargetHDRFormatRGBA };
+		D3D11::RenderTarget CombinedBlurRenderTarget = { ivec2(256, 144), D3D11::RenderTargetHDRFormatRGBA };
 
 		// NOTE: BaseRenderTarget -> 256x144 -> ... -> 32x18
 		std::array<D3D11::RenderTarget, 4> ReduceRenderTargets =
 		{
-			D3D11::RenderTarget { ivec2(256, 144), RenderTargetHDRFormatRGBA },
-			D3D11::RenderTarget { ivec2(128, 72), RenderTargetHDRFormatRGBA },
-			D3D11::RenderTarget { ivec2(64, 36), RenderTargetHDRFormatRGBA },
-			D3D11::RenderTarget { ivec2(32, 18), RenderTargetHDRFormatRGBA },
+			D3D11::RenderTarget { ivec2(256, 144), D3D11::RenderTargetHDRFormatRGBA },
+			D3D11::RenderTarget { ivec2(128, 72), D3D11::RenderTargetHDRFormatRGBA },
+			D3D11::RenderTarget { ivec2(64, 36), D3D11::RenderTargetHDRFormatRGBA },
+			D3D11::RenderTarget { ivec2(32, 18), D3D11::RenderTargetHDRFormatRGBA },
 		};
 
 		std::array<D3D11::RenderTarget, 4> BlurRenderTargets =
 		{
-			D3D11::RenderTarget { ivec2(256, 144), RenderTargetHDRFormatRGBA },
-			D3D11::RenderTarget { ivec2(128, 72), RenderTargetHDRFormatRGBA },
-			D3D11::RenderTarget { ivec2(64, 36), RenderTargetHDRFormatRGBA },
-			D3D11::RenderTarget { ivec2(32, 18), RenderTargetHDRFormatRGBA },
+			D3D11::RenderTarget { ivec2(256, 144), D3D11::RenderTargetHDRFormatRGBA },
+			D3D11::RenderTarget { ivec2(128, 72), D3D11::RenderTargetHDRFormatRGBA },
+			D3D11::RenderTarget { ivec2(64, 36), D3D11::RenderTargetHDRFormatRGBA },
+			D3D11::RenderTarget { ivec2(32, 18), D3D11::RenderTargetHDRFormatRGBA },
 		};
 
 		// NOTE: Auto Exposure
 		std::array<D3D11::RenderTarget, 3> ExposureRenderTargets =
 		{
 			// NOTE: 32 x 18 ->  8 x  8
-			D3D11::RenderTarget { ivec2(8, 8), RenderTargetHDRFormatRGBA },
+			D3D11::RenderTarget { ivec2(8, 8), D3D11::RenderTargetHDRFormatRGBA },
 			// NOTE:  8 x  8 -> 32 x  1
-			D3D11::RenderTarget { ivec2(32, 1), RenderTargetHDRFormatRGBA },
+			D3D11::RenderTarget { ivec2(32, 1), D3D11::RenderTargetHDRFormatRGBA },
 			// NOTE: 32 x  1 ->  1 x  1
-			D3D11::RenderTarget { ivec2(1, 1), RenderTargetHDRFormatRGBA },
+			D3D11::RenderTarget { ivec2(1, 1), D3D11::RenderTargetHDRFormatRGBA },
 		};
 	};
 
 	struct OutputRenderData
 	{
 		// NOTE: Where the post processed final image gets rendered to
-		D3D11::RenderTarget RenderTarget = { RenderTargetDefaultSize, RenderTargetLDRFormatRGBA };
+		D3D11::RenderTarget RenderTarget = { D3D11::RenderTargetDefaultSize, D3D11::RenderTargetLDRFormatRGBA };
 	};
 
-	struct ViewportRenderData
+	struct ViewportData3D
 	{
 		MainRenderData Main;
 		ShadowMappingRenderData Shadow;
@@ -157,9 +156,9 @@ namespace Comfy::Render::D3D11
 		BloomRenderData Bloom;
 		OutputRenderData Output;
 
-		TextureSamplerCache TextureSamplers;
-		BlendStateCache BlendStates;
-		ToneMapData ToneMap;
-		SunOcclusionData Sun;
+		Detail::TextureSamplerCache TextureSamplers;
+		Detail::BlendStateCache BlendStates;
+		Detail::ToneMapData ToneMap;
+		Detail::SunOcclusionData Sun;
 	};
 }

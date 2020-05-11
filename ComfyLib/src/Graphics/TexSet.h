@@ -36,8 +36,8 @@ namespace Comfy::Graphics
 
 		Cached_TexID ID = TexID::Invalid;
 
-		std::unique_ptr<GPUResource> GPU_Texture2D = nullptr;
-		std::unique_ptr<GPUResource> GPU_CubeMap = nullptr;
+		mutable std::unique_ptr<GPUResource> GPU_Texture2D = nullptr;
+		mutable std::unique_ptr<GPUResource> GPU_CubeMap = nullptr;
 
 	public:
 		const std::vector<TexMipMap>& GetMipMaps(u32 arrayIndex = 0) const;

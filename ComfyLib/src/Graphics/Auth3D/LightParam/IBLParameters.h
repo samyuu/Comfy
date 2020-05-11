@@ -22,7 +22,7 @@ namespace Comfy::Graphics
 		ivec2 Size;
 		std::array<std::array<const u8*, MipMaps>, Faces> DataPointers;
 
-		std::unique_ptr<GPUResource> GPU_CubeMap;
+		mutable std::unique_ptr<GPUResource> GPU_CubeMap;
 	};
 
 	struct LightDataIBL
