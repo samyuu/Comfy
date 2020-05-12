@@ -12,6 +12,7 @@ namespace Comfy::Render
 	{
 	public:
 		RenderCommand2D() = default;
+		// TODO: Constructors
 
 	public:
 		const Graphics::Tex* Texture = nullptr;
@@ -59,13 +60,24 @@ namespace Comfy::Render
 		*/
 
 		// TODO:
-		void DrawLine(vec2 start, vec2 end, vec4 color, float thickness = 1.0f);
-		void DrawLine(vec2 start, float angle, float length, vec4 color, float thickness = 1.0f);
+		void DrawLine(vec2 start, vec2 end, const vec4& color, float thickness = 1.0f);
+		void DrawLine(vec2 start, float angle, float length, const vec4& color, float thickness = 1.0f);
 
-		void DrawRect(vec2 topLeft, vec2 topRight, vec2 bottomLeft, vec2 bottomRight, vec4 color, float thickness = 1.0f);
-		void DrawRectCheckerboard(vec2 position, vec2 size, vec2 origin, float rotation, vec2 scale, vec4 color, float precision = 1.0f);
+		void DrawRect(vec2 topLeft, vec2 topRight, vec2 bottomLeft, vec2 bottomRight, const vec4& color, float thickness = 1.0f);
+		void DrawRectCheckerboard(vec2 position, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4& color, float precision = 1.0f);
 
 		void End();
+
+		/*
+	public:
+		const SpriteVertices& GetLastVertices() const;
+		const OrthographicCamera* GetCamera() const;
+
+		bool GetDrawTextBorder() const;
+		void SetDrawTextBorder(bool value);
+
+		u32 GetDrawCallCount() const;
+		*/
 
 	private:
 		struct Impl;

@@ -16,44 +16,10 @@ namespace Comfy::Render
 {
 	using namespace Graphics;
 
-	namespace DefaultProperties
+	vec2 TextureOrRegionSize(const D3D11::Texture2D* texture, const vec4& source)
 	{
-		static constexpr vec2 Position = { 0.0f, 0.0f };
-		static constexpr vec2 Origin = { 0.0f, 0.0f };
-		static constexpr vec2 Scale = { 1.0f, 1.0f };
-		static constexpr vec4 Color = { 1.0f, 1.0f, 1.0f, 1.0f };
-		static constexpr float Rotation = 0.0f;
-
-		vec2 PositionOrDefault(const vec2* position)
-		{
-			return position == nullptr ? DefaultProperties::Position : *position;
-		}
-
-		vec4 SourceOrDefault(const vec4* source, const D3D11::Texture2D* texture)
-		{
-			return source == nullptr ? vec4(0.0f, 0.0f, texture->GetSize()) : *source;
-		}
-
-		vec2 SizeOrDefault(const D3D11::Texture2D* texture, const vec4* source)
-		{
-			return texture != nullptr ? vec2(texture->GetSize()) : vec2(source->w, source->z);
-		}
-
-		vec2 OriginOrDefault(const vec2* origin)
-		{
-			return origin == nullptr ? DefaultProperties::Origin : -*origin;
-		}
-
-		vec2 ScaleOrDefault(const vec2* scale)
-		{
-			return scale == nullptr ? DefaultProperties::Scale : *scale;
-		}
-
-		vec4 ColorOrDefault(const vec4* color)
-		{
-			return color == nullptr ? DefaultProperties::Color : *color;
-		}
-	};
+		return (texture != nullptr) ? vec2(texture->GetSize()) : vec2(source.z, source.w);
+	}
 
 	enum SpriteShaderTextureSlot
 	{
@@ -350,7 +316,7 @@ namespace Comfy::Render
 			pair.Vertices->SetValues(
 				command.Position,
 				command.SourceRegion,
-				DefaultProperties::SourceOrDefault(&command.SourceRegion, D3D11::GetTexture2D(command.Texture)),
+				TextureOrRegionSize(D3D11::GetTexture2D(command.Texture), command.SourceRegion),
 				-command.Origin,
 				command.Rotation,
 				command.Scale,
@@ -369,17 +335,17 @@ namespace Comfy::Render
 			pair.Vertices->SetValues(
 				commandMask.Position,
 				commandMask.SourceRegion,
-				DefaultProperties::SourceOrDefault(&commandMask.SourceRegion, D3D11::GetTexture2D(commandMask.Texture)),
+				TextureOrRegionSize(D3D11::GetTexture2D(commandMask.Texture), commandMask.SourceRegion),
 				-commandMask.Origin,
 				commandMask.Rotation,
 				commandMask.Scale,
 				commandMask.CornerColors.data());
 
 			pair.Vertices->SetTexMaskCoords(
-				D3D11::GetTexture2D(command.Texture), 
-				command.Position, 
-				command.Scale, 
-				command.Origin + vec2(command.SourceRegion.x, command.SourceRegion.y), 
+				D3D11::GetTexture2D(command.Texture),
+				command.Position,
+				command.Scale,
+				command.Origin + vec2(command.SourceRegion.x, command.SourceRegion.y),
 				command.Rotation,
 				commandMask.Position,
 				commandMask.Scale,
@@ -387,26 +353,6 @@ namespace Comfy::Render
 				commandMask.Rotation,
 				commandMask.SourceRegion);
 		}
-
-		void InternalDraw(const D3D11::Texture2D* texture, const vec4* sourceRegion, const vec2* position, const vec2* origin, float rotation, const vec2* scale, const vec4* color, AetBlendMode blendMode)
-		{
-			Detail::SpriteBatchPair pair = InternalCheckFlushAddItem();
-
-			pair.Item->SetValues(
-				texture,
-				nullptr,
-				blendMode);
-
-			pair.Vertices->SetValues(
-				DefaultProperties::PositionOrDefault(position),
-				DefaultProperties::SourceOrDefault(sourceRegion, texture),
-				DefaultProperties::SizeOrDefault(texture, sourceRegion),
-				DefaultProperties::OriginOrDefault(origin),
-				rotation,
-				DefaultProperties::ScaleOrDefault(scale),
-				DefaultProperties::ColorOrDefault(color));
-		}
-
 	};
 
 	Renderer2D::Renderer2D() : impl(std::make_unique<Impl>())
@@ -431,7 +377,7 @@ namespace Comfy::Render
 		impl->InternalDraw(command, commandMask);
 	}
 
-	void Renderer2D::DrawLine(vec2 start, vec2 end, vec4 color, float thickness)
+	void Renderer2D::DrawLine(vec2 start, vec2 end, const vec4& color, float thickness)
 	{
 		const vec2 edge = end - start;
 
@@ -444,7 +390,7 @@ namespace Comfy::Render
 		impl->InternalDraw(command);
 	}
 
-	void Renderer2D::DrawLine(vec2 start, float angle, float length, vec4 color, float thickness)
+	void Renderer2D::DrawLine(vec2 start, float angle, float length, const vec4& color, float thickness)
 	{
 		RenderCommand2D command;
 		command.SourceRegion = vec4(0.0f, 0.0f, length, thickness);
@@ -455,7 +401,7 @@ namespace Comfy::Render
 		impl->InternalDraw(command);
 	}
 
-	void Renderer2D::DrawRect(vec2 topLeft, vec2 topRight, vec2 bottomLeft, vec2 bottomRight, vec4 color, float thickness)
+	void Renderer2D::DrawRect(vec2 topLeft, vec2 topRight, vec2 bottomLeft, vec2 bottomRight, const vec4& color, float thickness)
 	{
 		DrawLine(topLeft, topRight, color, thickness);
 		DrawLine(topRight, bottomRight, color, thickness);
@@ -463,7 +409,7 @@ namespace Comfy::Render
 		DrawLine(bottomLeft, topLeft, color, thickness);
 	}
 
-	void Renderer2D::DrawRectCheckerboard(vec2 position, vec2 size, vec2 origin, float rotation, vec2 scale, vec4 color, float precision)
+	void Renderer2D::DrawRectCheckerboard(vec2 position, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4& color, float precision)
 	{
 		RenderCommand2D command;
 		command.SourceRegion = vec4(0.0f, 0.0f, size);
