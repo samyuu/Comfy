@@ -150,7 +150,6 @@
     <ClInclude Include="src\Render\Core\Renderer3D\Renderer3D.h" />
     <ClInclude Include="src\Render\D3D11\GraphicsResourceUtil.h" />
     <ClInclude Include="src\Render\D3D11\Shader\Shader.h" />
-    <ClInclude Include="src\Render\Misc\DebugObj.h" />
     <ClInclude Include="src\Render\D3D11\Buffer\ConstantBuffer.h" />
     <ClInclude Include="src\Render\D3D11\Buffer\IndexBuffer.h" />
     <ClInclude Include="src\Render\D3D11\Buffer\VertexBuffer.h" />
@@ -200,7 +199,6 @@
     <ClCompile Include="src\Render\Core\Renderer2D\Renderer2D.cpp" />
     <ClCompile Include="src\Render\Core\Renderer3D\Renderer3D.cpp" />
     <ClCompile Include="src\Render\D3D11\Shader\Shader.cpp" />
-    <ClCompile Include="src\Render\Misc\DebugObj.cpp" />
     <ClCompile Include="src\Render\D3D11\Buffer\ConstantBuffer.cpp" />
     <ClCompile Include="src\Render\D3D11\Buffer\IndexBuffer.cpp" />
     <ClCompile Include="src\Render\D3D11\Buffer\VertexBuffer.cpp" />

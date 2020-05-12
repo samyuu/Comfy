@@ -2,10 +2,8 @@
 #include <unordered_map>
 #include <optional>
 
-namespace Comfy::Render
+namespace Comfy::Graphics
 {
-	using namespace Graphics;
-
 	namespace
 	{
 		template <typename IndexType>

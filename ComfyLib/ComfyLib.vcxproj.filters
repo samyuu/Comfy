@@ -204,6 +204,9 @@
     <ClInclude Include="src\Graphics\Auth3D\Transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\Auth3D\Misc\DebugObj.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp">
@@ -321,6 +324,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Auth3D\ObjSetFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Auth3D\Misc\DebugObj.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

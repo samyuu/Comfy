@@ -27,6 +27,7 @@
     <ClInclude Include="src\Graphics\Auth3D\LightParam\IBLParameters.h" />
     <ClInclude Include="src\Graphics\Auth3D\LightParam\LightParameters.h" />
     <ClInclude Include="src\Graphics\Auth3D\LightParam\Parameters.h" />
+    <ClInclude Include="src\Graphics\Auth3D\Misc\DebugObj.h" />
     <ClInclude Include="src\Graphics\Auth3D\ObjSet.h" />
     <ClInclude Include="src\Graphics\Auth3D\Transform.h" />
     <ClInclude Include="src\Graphics\GraphicTypes.h" />
@@ -87,6 +88,7 @@
     <ClCompile Include="src\Graphics\Auth3D\LightParam\GlowParameter.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\LightParam\IBLParameters.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\LightParam\LightParameters.cpp" />
+    <ClCompile Include="src\Graphics\Auth3D\Misc\DebugObj.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\ObjSet.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\ObjSetFile.cpp" />
     <ClCompile Include="src\Graphics\TexSet.cpp" />
