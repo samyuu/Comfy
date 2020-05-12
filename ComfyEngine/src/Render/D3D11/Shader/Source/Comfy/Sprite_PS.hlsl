@@ -1,7 +1,7 @@
-#include "Include/BlendModes.hlsl"
-#include "Include/Checkerboard.hlsl"
-#include "Include/UncompressRGTC.hlsl"
-#include "Include/Font.hlsl"
+#include "../Include/Comfy/BlendModes.hlsl"
+#include "../Include/Comfy/Checkerboard.hlsl"
+#include "../Include/Comfy/UncompressRGTC.hlsl"
+#include "../Include/Comfy/Font.hlsl"
 
 struct VS_OUTPUT
 {

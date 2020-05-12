@@ -24,7 +24,7 @@ float2 FlipTextureCoordinates(float2 texCoord)
     return float2(texCoord.x, 1.0 - texCoord.y);
 }
 
-VS_OUTPUT VS_MAIN(VS_INPUT input)
+VS_OUTPUT VS_main(VS_INPUT input)
 {
     VS_OUTPUT output;
     

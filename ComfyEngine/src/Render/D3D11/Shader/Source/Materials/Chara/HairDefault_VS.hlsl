@@ -1,9 +1,9 @@
-#include "../Include/InputLayout.hlsl"
-#include "../Include/ConstantInputs.hlsl"
+#include "../../Include/InputLayout.hlsl"
+#include "../../Include/ConstantInputs.hlsl"
 
 #define COMFY_VS
-#include "../Include/Assembly/DebugInterface.hlsl"
-#include "../Include/Assembly/TempRefactor.hlsl"
+#include "../../Include/Assembly/DebugInterface.hlsl"
+#include "../../Include/Assembly/TempRefactor.hlsl"
 
 VS_OUTPUT VS_main(VS_INPUT input)
 {

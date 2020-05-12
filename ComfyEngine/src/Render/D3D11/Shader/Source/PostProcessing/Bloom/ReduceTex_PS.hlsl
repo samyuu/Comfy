@@ -1,5 +1,5 @@
 #define COMFY_PS
-#include "../../Materials/Include/Assembly/DebugInterface.hlsl"
+#include "../../Include/Assembly/DebugInterface.hlsl"
 
 struct VS_OUTPUT
 {

@@ -1,7 +1,7 @@
-#include "../Include/InputLayout.hlsl"
-#include "../Include/ConstantInputs.hlsl"
-#include "../Include/TextureInputs.hlsl"
-#include "../../Comfy/Include/UncompressRGTC.hlsl"
+#include "../../Include/InputLayout.hlsl"
+#include "../../Include/ConstantInputs.hlsl"
+#include "../../Include/TextureInputs.hlsl"
+#include "../../Include/Comfy/UncompressRGTC.hlsl"
 
 static const float MaxAlpha = 1.0;
 

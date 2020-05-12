@@ -1,7 +1,7 @@
 #ifndef UNCOMPRESSRGTC_HLSL
 #define UNCOMPRESSRGTC_HLSL
 
-#include "../../Materials/Include/Defines/TextureFormats.hlsl"
+#include "../Defines/TextureFormats.hlsl"
 
 // NOTE: MipMap[0]: Luma, Alpha
 //       MipMap[1]: Chroma blue, Chroma red

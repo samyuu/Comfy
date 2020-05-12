@@ -1,10 +1,10 @@
-#include "../Include/InputLayout.hlsl"
-#include "../Include/ConstantInputs.hlsl"
-#include "../Include/TextureInputs.hlsl"
+#include "../../Include/InputLayout.hlsl"
+#include "../../Include/ConstantInputs.hlsl"
+#include "../../Include/TextureInputs.hlsl"
 
 #define COMFY_PS
 #define ARB_PROGRAM_ACCURATE 1
-#include "../Include/Assembly/DebugInterface.hlsl"
+#include "../../Include/Assembly/DebugInterface.hlsl"
 
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {

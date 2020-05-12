@@ -1,7 +1,7 @@
 #ifndef CUBEMAPCOMMON_HLSL
 #define CUBEMAPCOMMON_HLSL
 
-#include "../../Materials/Include/Defines/MathConstants.hlsl"
+#include "../Defines/MathConstants.hlsl"
 
 bool IsInRange(const float input, const float rangeMin, const float rangeMax)
 {

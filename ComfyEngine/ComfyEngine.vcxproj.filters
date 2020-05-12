@@ -177,6 +177,9 @@
     <ClInclude Include="src\Render\Misc\RayIntersection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Render\D3D11\Shader\Bytecode\ShaderBytecode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Audio\Decoder\Detail\FlacDecoder.cpp">
@@ -281,5 +284,79 @@
     <ClCompile Include="src\Render\Core\Renderer2D\Renderer2D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Render\D3D11\Shader\Bytecode\ShaderBytecode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\ImGuiCustom_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\ImGuiDefault_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\ImGuiDefault_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\Sprite_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\Sprite_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\LensFlare\LensFlare_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\LensFlare\LensFlare_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\LensFlare\Sun_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\ClothAniso_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\ClothDefault_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\ClothDefault_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\EyeBall_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\EyeBall_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\EyeLens_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\EyeLens_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\GlassEye_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\GlassEye_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\HairAniso_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\HairDefault_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\HairDefault_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\ItemBlinn_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\ItemBlinn_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\SkinDefault_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\SkinDefault_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\SSSSkin_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\SSSSkin_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\SSSSkinConst_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\Tights_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Chara\Tights_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Stage\BlinnPerFrag_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Stage\BlinnPerFrag_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Stage\BlinnPerVert_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Stage\BlinnPerVert_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Stage\Constant_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Stage\Constant_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Stage\Floor_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Stage\Floor_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Stage\Lambert_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Stage\Lambert_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Stage\SkyDefault_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Stage\SkyDefault_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Stage\StageBlinn_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Stage\StageBlinn_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Stage\Water_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Materials\Stage\Water_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Other\DebugMaterial_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Other\DebugMaterial_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Other\PositionTransform_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Other\Silhouette_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Other\Silhouette_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Other\SolidBlack_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Other\SolidWhite_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\Bloom\PPGauss_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\Bloom\ReduceTex_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\Exposure\ExposureAverage_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\Exposure\ExposureMeasure_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\Exposure\ExposureMinify_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\Other\FullscreenQuad_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\Other\SilhouetteOutline_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\Shadow\DepthThreshold_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\Shadow\ESMFilterErosion_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\Shadow\ESMFilterMin_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\Shadow\ESMGauss_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\Shadow\ImgFilter_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\Shadow\ImgFilterBlur_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\SSS\SSSFilterCopy_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\SSS\SSSFilterGauss2D_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\SSS\SSSFilterMin_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\ToneMap\ToneMap_PS.hlsl" />
   </ItemGroup>
 </Project>
