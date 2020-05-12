@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "Render/D3D11/Texture/Texture.h"
 
-namespace Comfy::Render::D3D11
+namespace Comfy::Render::Detail
 {
 	struct SpriteIndices
 	{
@@ -13,13 +13,11 @@ namespace Comfy::Render::D3D11
 		u16 TopRight;
 		u16 TopLeftCopy;
 
-	public:
-		static inline constexpr u32 GetIndexCount() { return sizeof(SpriteIndices) / sizeof(u16); };
+		static constexpr u32 GetIndexCount() { return sizeof(SpriteIndices) / sizeof(u16); };
 	};
 	
 	struct SpriteVertex
 	{
-		// TODO: Consider using 16-bit texture coordinates
 		vec2 Position;
 		vec2 TextureCoordinates;
 		vec2 TextureMaskCoordinates;
@@ -43,7 +41,7 @@ namespace Comfy::Render::D3D11
 		void SetPositions(const vec2& position, const vec2& size, const vec2& origin, float rotation);
 		void SetTexCoords(const vec2& topLeft, const vec2& bottomRight);
 		void SetTexMaskCoords(
-			const Texture2D* texture, const vec2& position, const vec2& scale, const vec2& origin, float rotation,
+			const D3D11::Texture2D* texture, const vec2& position, const vec2& scale, const vec2& origin, float rotation,
 			const vec2& maskPosition, const vec2& maskScale, const vec2& maskOrigin, float maskRotation, const vec4& maskSourceRegion);
 		void SetColors(const vec4& color);
 		void SetColorArray(const vec4 colors[4]);
@@ -59,12 +57,12 @@ namespace Comfy::Render::D3D11
 
 	struct SpriteBatchItem
 	{
-		const Texture2D* Texture;
-		const Texture2D* MaskTexture;
+		const D3D11::Texture2D* Texture;
+		const D3D11::Texture2D* MaskTexture;
 		Graphics::AetBlendMode BlendMode;
 		vec2 CheckerboardSize;
 
-		void SetValues(const Texture2D* texture, const Texture2D* alphaMask = nullptr, Graphics::AetBlendMode blendMode = Graphics::AetBlendMode::Normal);
+		void SetValues(const D3D11::Texture2D* texture, const D3D11::Texture2D* alphaMask = nullptr, Graphics::AetBlendMode blendMode = Graphics::AetBlendMode::Normal);
 	};
 
 	struct SpriteBatchPair

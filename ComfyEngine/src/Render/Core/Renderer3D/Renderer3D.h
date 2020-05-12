@@ -219,6 +219,9 @@ namespace Comfy::Render
 	public:
 		void Begin(PerspectiveCamera& camera, ViewportData3D& viewportData, const ViewportParam3D& viewportParam, const SceneParam3D& sceneParam);
 		void Draw(const RenderCommand3D& command);
+		
+		// TODO: DrawRect(), DrawCircle(), DrawCylinder(), DrawLine(), DrawSpriteBillboard(), etc.
+
 		void End();
 
 		const Graphics::Tex* GetTexFromTextureID(const Cached_TexID* textureID) const;

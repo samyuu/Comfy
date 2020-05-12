@@ -1,6 +1,6 @@
 #include "SpriteBatchData.h"
 
-namespace Comfy::Render::D3D11
+namespace Comfy::Render::Detail
 {
 	namespace
 	{
@@ -99,7 +99,7 @@ namespace Comfy::Render::D3D11
 	}
 
 	void SpriteVertices::SetTexMaskCoords(
-		const Texture2D* texture, const vec2& position, const vec2& scale, const vec2& origin, float rotation,
+		const D3D11::Texture2D* texture, const vec2& position, const vec2& scale, const vec2& origin, float rotation,
 		const vec2& maskPosition, const vec2& maskScale, const vec2& maskOrigin, float maskRotation, const vec4& maskSourceRegion)
 	{
 		const vec2 maskOffset = maskPosition - (maskOrigin * maskScale);
@@ -169,7 +169,7 @@ namespace Comfy::Render::D3D11
 		BottomRight.Color = Vec4ToUInt32(colors[3]);
 	}
 
-	void SpriteBatchItem::SetValues(const Texture2D* texture, const Texture2D* alphaMask, Graphics::AetBlendMode blendMode)
+	void SpriteBatchItem::SetValues(const D3D11::Texture2D* texture, const D3D11::Texture2D* alphaMask, Graphics::AetBlendMode blendMode)
 	{
 		Texture = texture;
 		MaskTexture = alphaMask;

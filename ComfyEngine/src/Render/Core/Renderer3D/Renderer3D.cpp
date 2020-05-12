@@ -9,7 +9,6 @@
 #include "Render/D3D11/Buffer/ConstantBuffer.h"
 #include "Render/D3D11/Buffer/IndexBuffer.h"
 #include "Render/D3D11/Buffer/VertexBuffer.h"
-#include "Render/D3D11/Buffer/VertexBuffer.h"
 #include "Render/D3D11/State/BlendState.h"
 #include "Render/D3D11/State/DepthStencilState.h"
 #include "Render/D3D11/State/InputLayout.h"

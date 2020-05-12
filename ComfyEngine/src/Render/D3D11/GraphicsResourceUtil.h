@@ -5,37 +5,15 @@
 #include "Graphics/Auth2D/SprSet.h"
 #include "Graphics/Auth3D/ObjSet.h"
 #include "Graphics/Auth3D/LightParam/IBLParameters.h"
-
 #include "Texture/Texture.h"
 #include "Buffer/IndexBuffer.h"
 #include "Buffer/VertexBuffer.h"
 
 namespace Comfy::Render::D3D11
 {
-	inline Texture2D* GetTexture2D(const Graphics::Tex& tex)
-	{
-		if (tex.GetSignature() == Graphics::TxpSig::Texture2D && tex.GPU_Texture2D == nullptr)
-			tex.GPU_Texture2D = std::make_unique<Texture2D>(tex);
+	// TODO: Debug object names
 
-		return static_cast<Texture2D*>(tex.GPU_Texture2D.get());
-	}
-
-	inline CubeMap* GetCubeMap(const Graphics::Tex& tex)
-	{
-		if (tex.GetSignature() == Graphics::TxpSig::CubeMap && tex.GPU_CubeMap == nullptr)
-			tex.GPU_CubeMap = std::make_unique<CubeMap>(tex);
-
-		return static_cast<CubeMap*>(tex.GPU_CubeMap.get());
-	}
-
-	inline CubeMap* GetCubeMap(const Graphics::LightMapIBL& lightMap)
-	{
-		if (lightMap.GPU_CubeMap == nullptr)
-			lightMap.GPU_CubeMap = std::make_unique<CubeMap>(lightMap);
-
-		return static_cast<CubeMap*>(lightMap.GPU_CubeMap.get());
-	}
-
+#if 0
 	/*
 	namespace
 	{
@@ -96,6 +74,63 @@ namespace Comfy::Render::D3D11
 		}
 	}
 	*/
+
+	namespace
+	{
+#if COMFY_D3D11_DEBUG_NAMES
+		template <typename T>
+		void SetDebugName(T& resource, const char* debugName)
+		{
+			if (debugName == nullptr)
+				return;
+
+			if constexpr (std::is_base_of<D3D11::TextureResource, T>::value)
+			{
+				char viewDebugName[128];
+				sprintf_s(viewDebugName, "%s (RV)", debugName);
+
+				D3D11_SetObjectDebugName(resource.GetTexture(), debugName);
+				D3D11_SetObjectDebugName(resource.GetResourceView(), viewDebugName);
+			}
+			else
+			{
+				D3D11_SetObjectDebugName(resource.GetBuffer(), debugName);
+			}
+		}
+#else
+#define SetDebugName(...) /* ... */
+#endif
+	}
+#endif
+
+	inline Texture2D* GetTexture2D(const Graphics::Tex& tex)
+	{
+		if (tex.GetSignature() == Graphics::TxpSig::Texture2D && tex.GPU_Texture2D == nullptr)
+			tex.GPU_Texture2D = std::make_unique<Texture2D>(tex);
+
+		return static_cast<Texture2D*>(tex.GPU_Texture2D.get());
+	}
+
+	inline Texture2D* GetTexture2D(const Graphics::Tex* tex)
+	{
+		return (tex != nullptr) ? GetTexture2D(*tex) : nullptr;
+	}
+
+	inline CubeMap* GetCubeMap(const Graphics::Tex& tex)
+	{
+		if (tex.GetSignature() == Graphics::TxpSig::CubeMap && tex.GPU_CubeMap == nullptr)
+			tex.GPU_CubeMap = std::make_unique<CubeMap>(tex);
+
+		return static_cast<CubeMap*>(tex.GPU_CubeMap.get());
+	}
+
+	inline CubeMap* GetCubeMap(const Graphics::LightMapIBL& lightMap)
+	{
+		if (lightMap.GPU_CubeMap == nullptr)
+			lightMap.GPU_CubeMap = std::make_unique<CubeMap>(lightMap);
+
+		return static_cast<CubeMap*>(lightMap.GPU_CubeMap.get());
+	}
 
 	inline IndexBuffer* GetIndexBuffer(const Graphics::SubMesh& subMesh)
 	{

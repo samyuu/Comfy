@@ -146,6 +146,7 @@
     <ClInclude Include="src\Input\Core\Keyboard.h" />
     <ClInclude Include="src\Input\Core\KeyCode.h" />
     <ClInclude Include="src\Render\Core\Camera.h" />
+    <ClInclude Include="src\Render\Core\Renderer2D\Renderer2D.h" />
     <ClInclude Include="src\Render\Core\Renderer3D\Renderer3D.h" />
     <ClInclude Include="src\Render\D3D11\GraphicsResourceUtil.h" />
     <ClInclude Include="src\Render\D3D11\Shader\Shader.h" />
@@ -196,6 +197,7 @@
     <ClCompile Include="src\Input\DirectInput\DualShock4.cpp" />
     <ClCompile Include="src\Input\Core\Keyboard.cpp" />
     <ClCompile Include="src\Render\Core\Camera.cpp" />
+    <ClCompile Include="src\Render\Core\Renderer2D\Renderer2D.cpp" />
     <ClCompile Include="src\Render\Core\Renderer3D\Renderer3D.cpp" />
     <ClCompile Include="src\Render\D3D11\Shader\Shader.cpp" />
     <ClCompile Include="src\Render\Misc\DebugObj.cpp" />

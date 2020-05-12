@@ -1,0 +1,486 @@
+#include "Renderer2D.h"
+#include "Detail/SpriteBatchData.h"
+#include "Render/D3D11/GraphicsResourceUtil.h"
+#include "Render/D3D11/Buffer/ConstantBuffer.h"
+#include "Render/D3D11/Buffer/IndexBuffer.h"
+#include "Render/D3D11/Buffer/VertexBuffer.h"
+#include "Render/D3D11/Shader/Bytecode/ShaderBytecode.h"
+#include "Render/D3D11/State/BlendState.h"
+#include "Render/D3D11/State/DepthStencilState.h"
+#include "Render/D3D11/State/InputLayout.h"
+#include "Render/D3D11/State/RasterizerState.h"
+#include "Render/D3D11/Texture/RenderTarget.h"
+#include "Render/D3D11/Texture/TextureSampler.h"
+
+namespace Comfy::Render
+{
+	using namespace Graphics;
+
+	namespace DefaultProperties
+	{
+		static constexpr vec2 Position = { 0.0f, 0.0f };
+		static constexpr vec2 Origin = { 0.0f, 0.0f };
+		static constexpr vec2 Scale = { 1.0f, 1.0f };
+		static constexpr vec4 Color = { 1.0f, 1.0f, 1.0f, 1.0f };
+		static constexpr float Rotation = 0.0f;
+
+		vec2 PositionOrDefault(const vec2* position)
+		{
+			return position == nullptr ? DefaultProperties::Position : *position;
+		}
+
+		vec4 SourceOrDefault(const vec4* source, const D3D11::Texture2D* texture)
+		{
+			return source == nullptr ? vec4(0.0f, 0.0f, texture->GetSize()) : *source;
+		}
+
+		vec2 SizeOrDefault(const D3D11::Texture2D* texture, const vec4* source)
+		{
+			return texture != nullptr ? vec2(texture->GetSize()) : vec2(source->w, source->z);
+		}
+
+		vec2 OriginOrDefault(const vec2* origin)
+		{
+			return origin == nullptr ? DefaultProperties::Origin : -*origin;
+		}
+
+		vec2 ScaleOrDefault(const vec2* scale)
+		{
+			return scale == nullptr ? DefaultProperties::Scale : *scale;
+		}
+
+		vec4 ColorOrDefault(const vec4* color)
+		{
+			return color == nullptr ? DefaultProperties::Color : *color;
+		}
+	};
+
+	enum SpriteShaderTextureSlot
+	{
+		TextureSpriteSlot = 0,
+		TextureMaskSlot = 1
+	};
+
+	struct Renderer2D::Impl
+	{
+	public:
+		// TODO: Move to Detail namespace and directory
+		struct CameraConstantData
+		{
+			mat4 ViewProjection;
+		};
+
+		struct SpriteConstantData
+		{
+			TextureFormat Format;
+			TextureFormat MaskFormat;
+
+			AetBlendMode BlendMode;
+			u8 Padding[3];
+
+			int Flags;
+			int DrawTextBorder;
+
+			int DrawCheckerboard;
+			vec2 CheckerboardSize;
+		};
+
+	public:
+		bool DrawTextBorder = false;
+		bool BatchSprites = true;
+
+		u32 DrawCallCount = 0;
+
+		D3D11::ShaderPair SpriteShader = { D3D11::Sprite_VS(), D3D11::Sprite_PS(), "Renderer2D::Sprite" };
+
+		D3D11::DefaultConstantBufferTemplate<CameraConstantData> CameraConstantBuffer = { 0 };
+		D3D11::DynamicConstantBufferTemplate<SpriteConstantData> SpriteConstantBuffer = { 0 };
+
+		std::unique_ptr<D3D11::StaticIndexBuffer> IndexBuffer = nullptr;
+		std::unique_ptr<D3D11::DynamicVertexBuffer> VertexBuffer = nullptr;
+		std::unique_ptr<D3D11::InputLayout> InputLayout = nullptr;
+
+		// NOTE: Disable backface culling for negatively scaled sprites
+		D3D11::RasterizerState RasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_NONE };
+
+		// TODO: Once needed the Renderer2D should expose optional wrapped address modes
+		D3D11::TextureSampler DefaultTextureSampler = { D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER };
+
+		/*
+		// TODO: Implement using CheckerboardTexture instead (?)
+		static constexpr std::array<u32, 4> CheckerboardTexturePixels =
+		{
+			0xFFFFFFFF, 0x00000000,
+			0x00000000, 0xFFFFFFFF,
+		};
+
+		ImmutableTexture2D CheckerboardTexture = { ivec2(2, 2), checkerboardTexturePixels.data(), D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_WRAP };
+		*/
+
+		struct AetBlendStates
+		{
+			D3D11::BlendState Normal = { AetBlendMode::Normal };
+			D3D11::BlendState Add = { AetBlendMode::Add };
+			D3D11::BlendState Multiply = { AetBlendMode::Multiply };
+			D3D11::BlendState LinearDodge = { AetBlendMode::LinearDodge };
+			D3D11::BlendState Overlay = { AetBlendMode::Overlay };
+		} AetBlendStates;
+
+		std::vector<Detail::SpriteBatch> Batches;
+		std::vector<Detail::SpriteBatchItem> BatchItems;
+		std::vector<Detail::SpriteVertices> Vertices;
+
+		const OrthographicCamera* OrthographicCamera = nullptr;
+
+	public:
+		Impl()
+		{
+			D3D11_SetObjectDebugName(CameraConstantBuffer.Buffer.GetBuffer(), "Renderer2D::CameraConstantBuffer");
+			D3D11_SetObjectDebugName(SpriteConstantBuffer.Buffer.GetBuffer(), "Renderer2D::SpriteConstantBuffer");
+
+			D3D11_SetObjectDebugName(RasterizerState.GetRasterizerState(), "Renderer2D::RasterizerState");
+
+			InternalCreateIndexBuffer();
+			InternalCreateVertexBuffer();
+			InternalCreateInputLayout();
+		}
+
+		void InternalCreateIndexBuffer()
+		{
+			std::array<Detail::SpriteIndices, Renderer2D::MaxBatchItemSize> indexData;
+			for (u16 i = 0, offset = 0; i < indexData.size(); i++)
+			{
+				// [0] TopLeft	  - [1] TopRight
+				// [2] BottomLeft - [3] BottomRight;
+				enum { TopLeft = 0, TopRight = 1, BottomLeft = 2, BottomRight = 3 };
+
+				indexData[i] =
+				{
+					// NOTE: Used to be counter clockwise for OpenGL but D3D's winding order is clockwise by default
+					static_cast<u16>(offset + TopLeft),
+					static_cast<u16>(offset + TopRight),
+					static_cast<u16>(offset + BottomRight),
+
+					static_cast<u16>(offset + BottomRight),
+					static_cast<u16>(offset + BottomLeft),
+					static_cast<u16>(offset + TopLeft),
+				};
+
+				offset += static_cast<u16>(Detail::SpriteVertices::GetVertexCount());
+			}
+
+			IndexBuffer = std::make_unique<D3D11::StaticIndexBuffer>(indexData.size(), indexData.data(), IndexFormat::U16);
+			D3D11_SetObjectDebugName(IndexBuffer->GetBuffer(), "Renderer2D::IndexBuffer");
+		}
+
+		void InternalCreateVertexBuffer()
+		{
+			VertexBuffer = std::make_unique<D3D11::DynamicVertexBuffer>(Renderer2D::MaxBatchItemSize * sizeof(Detail::SpriteVertex), nullptr, sizeof(Detail::SpriteVertex));
+			D3D11_SetObjectDebugName(VertexBuffer->GetBuffer(), "Renderer2D::VertexBuffer");
+		}
+
+		void InternalCreateInputLayout()
+		{
+			static constexpr D3D11::InputElement elements[] =
+			{
+				{ "POSITION",	0, DXGI_FORMAT_R32G32_FLOAT,	offsetof(Detail::SpriteVertex, Position)				},
+				{ "TEXCOORD",	0, DXGI_FORMAT_R32G32_FLOAT,	offsetof(Detail::SpriteVertex, TextureCoordinates)		},
+				{ "TEXCOORD",	1, DXGI_FORMAT_R32G32_FLOAT,	offsetof(Detail::SpriteVertex, TextureMaskCoordinates)	},
+				{ "COLOR",		0, DXGI_FORMAT_R8G8B8A8_UNORM,	offsetof(Detail::SpriteVertex, Color)					},
+			};
+
+			InputLayout = std::make_unique<D3D11::InputLayout>(elements, std::size(elements), SpriteShader.VS);
+			D3D11_SetObjectDebugName(InputLayout->GetLayout(), "Renderer2D::InputLayout");
+		}
+
+		void InternalCreateBatches()
+		{
+			for (u16 i = 0; i < BatchItems.size(); i++)
+			{
+				bool first = i == 0;
+
+				Detail::SpriteBatchItem* item = &BatchItems[i];
+				Detail::SpriteBatchItem* lastItem = first ? nullptr : &BatchItems[Batches.back().Index];
+
+				constexpr vec2 sizeZero = vec2(0.0f);
+				bool newBatch = first ||
+					(item->BlendMode != lastItem->BlendMode) ||
+					(item->Texture != lastItem->Texture) ||
+					(item->CheckerboardSize != sizeZero || lastItem->CheckerboardSize != sizeZero) ||
+					(item->MaskTexture != nullptr);
+
+				if (!BatchSprites)
+					newBatch = true;
+
+				if (newBatch)
+				{
+					Batches.emplace_back(i, 1);
+				}
+				else
+				{
+					Batches.back().Count++;
+				}
+			}
+		}
+
+		void InternalFlush()
+		{
+			RasterizerState.Bind();
+			D3D11::D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+			SpriteShader.Bind();
+
+			VertexBuffer->Bind();
+			VertexBuffer->UploadData(Vertices.size() * sizeof(Detail::SpriteVertices), Vertices.data());
+
+			InputLayout->Bind();
+			IndexBuffer->Bind();
+
+			CameraConstantBuffer.Data.ViewProjection = glm::transpose(OrthographicCamera->GetViewProjection());
+			CameraConstantBuffer.UploadData();
+			CameraConstantBuffer.BindVertexShader();
+
+			SpriteConstantBuffer.Data.DrawTextBorder = DrawTextBorder;
+			SpriteConstantBuffer.BindPixelShader();
+
+			InternalCreateBatches();
+			AetBlendMode lastBlendMode = AetBlendMode::Normal;
+
+			D3D11::ShaderResourceView::BindArray<2>(0, { nullptr, nullptr });
+			D3D11::TextureSampler::BindArray<2>(0, { &DefaultTextureSampler, &DefaultTextureSampler });
+
+			for (u16 i = 0; i < Batches.size(); i++)
+			{
+				const Detail::SpriteBatch& batch = Batches[i];
+				const Detail::SpriteBatchItem& item = BatchItems[batch.Index];
+
+				const bool firstItem = i == 0;
+				if (firstItem || lastBlendMode != item.BlendMode)
+				{
+					InternalSetBlendMode(item.BlendMode);
+					lastBlendMode = item.BlendMode;
+				}
+
+				if (item.Texture != nullptr)
+					item.Texture->Bind(TextureSpriteSlot);
+
+				if (item.MaskTexture != nullptr)
+					item.MaskTexture->Bind(TextureMaskSlot);
+
+				SpriteConstantBuffer.Data.Format = (item.Texture == nullptr) ? TextureFormat::Unknown : item.Texture->GetTextureFormat();
+				SpriteConstantBuffer.Data.MaskFormat = (item.MaskTexture == nullptr) ? TextureFormat::Unknown : item.MaskTexture->GetTextureFormat();
+				SpriteConstantBuffer.Data.BlendMode = item.BlendMode;
+				SpriteConstantBuffer.Data.DrawCheckerboard = item.CheckerboardSize != vec2(0.0f, 0.0f);
+				SpriteConstantBuffer.Data.CheckerboardSize = item.CheckerboardSize;
+
+				SpriteConstantBuffer.UploadData();
+
+				D3D11::D3D.Context->DrawIndexed(
+					batch.Count * Detail::SpriteIndices::GetIndexCount(),
+					batch.Index * Detail::SpriteIndices::GetIndexCount(),
+					0);
+
+				DrawCallCount++;
+			}
+
+			RasterizerState.UnBind();
+			InternalClearItems();
+		}
+
+		void InternalCheckFlushItems()
+		{
+			// TODO: Something isn't quite right here...
+			if (BatchItems.size() >= Renderer2D::MaxBatchItemSize / 12)
+				InternalFlush();
+		}
+
+		void InternalSetBlendMode(AetBlendMode blendMode)
+		{
+			switch (blendMode)
+			{
+			default:
+			case AetBlendMode::Normal:
+				AetBlendStates.Normal.Bind();
+				break;
+			case AetBlendMode::Add:
+				AetBlendStates.Add.Bind();
+				break;
+			case AetBlendMode::Multiply:
+				AetBlendStates.Multiply.Bind();
+				break;
+			case AetBlendMode::LinearDodge:
+				AetBlendStates.LinearDodge.Bind();
+				break;
+			case AetBlendMode::Overlay:
+				AetBlendStates.Overlay.Bind();
+				break;
+			}
+		}
+
+		Detail::SpriteBatchPair InternalCheckFlushAddItem()
+		{
+			InternalCheckFlushItems();
+			return InternalAddItem();
+		}
+
+		Detail::SpriteBatchPair InternalAddItem()
+		{
+			BatchItems.emplace_back();
+			Vertices.emplace_back();
+
+			return { &BatchItems.back(), &Vertices.back() };
+		}
+
+		void InternalClearItems()
+		{
+			Batches.clear();
+			BatchItems.clear();
+			Vertices.clear();
+		}
+
+		void InternalDraw(const RenderCommand2D& command)
+		{
+			Detail::SpriteBatchPair pair = InternalCheckFlushAddItem();
+
+			pair.Item->SetValues(
+				D3D11::GetTexture2D(command.Texture),
+				nullptr,
+				command.BlendMode);
+
+			pair.Vertices->SetValues(
+				command.Position,
+				command.SourceRegion,
+				DefaultProperties::SourceOrDefault(&command.SourceRegion, D3D11::GetTexture2D(command.Texture)),
+				-command.Origin,
+				command.Rotation,
+				command.Scale,
+				command.CornerColors.data());
+		}
+
+		void InternalDraw(const RenderCommand2D& command, const RenderCommand2D& commandMask)
+		{
+			Detail::SpriteBatchPair pair = InternalCheckFlushAddItem();
+
+			pair.Item->SetValues(
+				D3D11::GetTexture2D(command.Texture),
+				D3D11::GetTexture2D(commandMask.Texture),
+				command.BlendMode); // TODO: Or should this be commandMask.BlendMode (?)
+
+			pair.Vertices->SetValues(
+				commandMask.Position,
+				commandMask.SourceRegion,
+				DefaultProperties::SourceOrDefault(&commandMask.SourceRegion, D3D11::GetTexture2D(commandMask.Texture)),
+				-commandMask.Origin,
+				commandMask.Rotation,
+				commandMask.Scale,
+				commandMask.CornerColors.data());
+
+			pair.Vertices->SetTexMaskCoords(
+				D3D11::GetTexture2D(command.Texture), 
+				command.Position, 
+				command.Scale, 
+				command.Origin + vec2(command.SourceRegion.x, command.SourceRegion.y), 
+				command.Rotation,
+				commandMask.Position,
+				commandMask.Scale,
+				commandMask.Origin,
+				commandMask.Rotation,
+				commandMask.SourceRegion);
+		}
+
+		void InternalDraw(const D3D11::Texture2D* texture, const vec4* sourceRegion, const vec2* position, const vec2* origin, float rotation, const vec2* scale, const vec4* color, AetBlendMode blendMode)
+		{
+			Detail::SpriteBatchPair pair = InternalCheckFlushAddItem();
+
+			pair.Item->SetValues(
+				texture,
+				nullptr,
+				blendMode);
+
+			pair.Vertices->SetValues(
+				DefaultProperties::PositionOrDefault(position),
+				DefaultProperties::SourceOrDefault(sourceRegion, texture),
+				DefaultProperties::SizeOrDefault(texture, sourceRegion),
+				DefaultProperties::OriginOrDefault(origin),
+				rotation,
+				DefaultProperties::ScaleOrDefault(scale),
+				DefaultProperties::ColorOrDefault(color));
+		}
+
+	};
+
+	Renderer2D::Renderer2D() : impl(std::make_unique<Impl>())
+	{
+	}
+
+	void Renderer2D::Begin(const OrthographicCamera& camera)
+	{
+		assert(impl->OrthographicCamera == nullptr);
+
+		impl->DrawCallCount = 0;
+		impl->OrthographicCamera = &camera;
+	}
+
+	void Renderer2D::Draw(const RenderCommand2D& command)
+	{
+		impl->InternalDraw(command);
+	}
+
+	void Renderer2D::Draw(const RenderCommand2D& command, const RenderCommand2D& commandMask)
+	{
+		impl->InternalDraw(command, commandMask);
+	}
+
+	void Renderer2D::DrawLine(vec2 start, vec2 end, vec4 color, float thickness)
+	{
+		const vec2 edge = end - start;
+
+		RenderCommand2D command;
+		command.SourceRegion = vec4(0.0f, 0.0f, glm::distance(start, end), thickness);
+		command.Position = start;
+		command.Origin = vec2(0.0f, thickness / 2.0f);
+		command.Rotation = glm::degrees(glm::atan(edge.y, edge.x));
+		command.CornerColors = { color, color, color, color };
+		impl->InternalDraw(command);
+	}
+
+	void Renderer2D::DrawLine(vec2 start, float angle, float length, vec4 color, float thickness)
+	{
+		RenderCommand2D command;
+		command.SourceRegion = vec4(0.0f, 0.0f, length, thickness);
+		command.Position = start;
+		command.Origin = vec2(0.0f, thickness / 2.0f);
+		command.Rotation = angle;
+		command.CornerColors = { color, color, color, color };
+		impl->InternalDraw(command);
+	}
+
+	void Renderer2D::DrawRect(vec2 topLeft, vec2 topRight, vec2 bottomLeft, vec2 bottomRight, vec4 color, float thickness)
+	{
+		DrawLine(topLeft, topRight, color, thickness);
+		DrawLine(topRight, bottomRight, color, thickness);
+		DrawLine(bottomRight, bottomLeft, color, thickness);
+		DrawLine(bottomLeft, topLeft, color, thickness);
+	}
+
+	void Renderer2D::DrawRectCheckerboard(vec2 position, vec2 size, vec2 origin, float rotation, vec2 scale, vec4 color, float precision)
+	{
+		RenderCommand2D command;
+		command.SourceRegion = vec4(0.0f, 0.0f, size);
+		command.Position = position;
+		command.Origin = origin;
+		command.Rotation = rotation;
+		command.Scale = scale;
+		command.CornerColors = { color, color, color, color };
+		impl->InternalDraw(command);
+		impl->BatchItems.back().CheckerboardSize = (size * scale * precision);
+	}
+
+	void Renderer2D::End()
+	{
+		assert(impl->OrthographicCamera != nullptr);
+
+		impl->InternalFlush();
+		impl->OrthographicCamera = nullptr;
+	}
+}
