@@ -6,7 +6,7 @@
 
 namespace Comfy::Graphics
 {
-	struct Tex;
+	class Tex;
 	struct LightMapIBL;
 }
 

@@ -27,8 +27,9 @@ namespace Comfy::Graphics
 		std::unique_ptr<u8[]> Data;
 	};
 
-	struct Tex
+	class Tex
 	{
+	public:
 		std::optional<std::string> Name;
 
 		// NOTE: Two dimensional array [CubeFace][MipMap]
