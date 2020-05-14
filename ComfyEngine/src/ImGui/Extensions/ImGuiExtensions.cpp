@@ -1,7 +1,6 @@
 #include "ImGuiExtensions.h"
-#include "Graphics/D3D11/Texture/Texture.h"
+#include "Graphics/TexSet.h"
 #include "Time/Stopwatch.h"
-#include "FontIcons.h"
 
 using namespace Comfy::Graphics;
 
@@ -78,19 +77,19 @@ namespace ImGui
 		PopItemFlag();
 	}
 
-	void AddTexture(ImDrawList* drawList, const D3D11::Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0, const ImVec2& uv1)
+	void AddTexture(ImDrawList* drawList, const Tex* tex, vec2 center, vec2 scale, vec2 uv0, vec2 uv1)
 	{
-		vec2 size = vec2(texture->GetSize()) * scale;
+		vec2 size = vec2(tex->GetSize()) * scale;
 
 		center -= size * 0.5f;
 		vec2 bottomRight = center + size;
 
-		drawList->AddImage(*texture, center, bottomRight, uv0, uv1);
+		drawList->AddImage(*tex, center, bottomRight, uv0, uv1);
 	}
 
-	void AddSprite(ImDrawList* drawList, const D3D11::Texture2D* texture, const vec2& position, const vec4& sourceRegion, ImU32 color)
+	void AddSprite(ImDrawList* drawList, const Tex* tex, vec2 position, const vec4& sourceRegion, ImU32 color)
 	{
-		const vec2 textureSize = texture->GetSize();
+		const vec2 textureSize = tex->GetSize();
 
 		vec2 uv0, uv1;
 		uv0.x = (sourceRegion.x / textureSize.x);
@@ -99,7 +98,7 @@ namespace ImGui
 		uv0.y = 1.0f - (sourceRegion.y / textureSize.y);
 		uv1.y = uv0.y + (sourceRegion.w / textureSize.y);
 
-		drawList->AddImage(*texture, position, position + vec2(sourceRegion.z, sourceRegion.w), uv0, uv1, color);
+		drawList->AddImage(*tex, position, position + vec2(sourceRegion.z, sourceRegion.w), uv0, uv1, color);
 	}
 
 	void AddLine(ImDrawList* drawList, vec2 start, vec2 end, ImU32 color, float thickness)
@@ -168,7 +167,7 @@ namespace ImGui
 		// We vertically grow up to current line height up the typical widget height.
 		float text_base_offset_y = ImMax(padding.y, window->DC.CurrentLineTextBaseOffset); // Latch before ItemSize changes it
 		const float frame_height = ImMax(ImMin(window->DC.CurrentLineSize.y, g.FontSize + style.FramePadding.y * 2), label_size.y + padding.y * 2);
-		ImRect frame_bb = ImRect(ImVec2(window->Pos.x, window->DC.CursorPos.y), ImVec2(window->Pos.x + GetContentRegionMax().x, window->DC.CursorPos.y + frame_height));
+		ImRect frame_bb = ImRect(vec2(window->Pos.x, window->DC.CursorPos.y), vec2(window->Pos.x + GetContentRegionMax().x, window->DC.CursorPos.y + frame_height));
 
 		// Selectables are tightly packed together so we extend the box to cover spacing between selectable.
 		{
@@ -197,7 +196,7 @@ namespace ImGui
 
 		const float text_offset_x = no_arrow ? padding.x * 2 : (g.FontSize + (display_frame ? padding.x * 3 : padding.x * 2));   // Collapser arrow width + Spacing
 		const float text_width = g.FontSize + (label_size.x > 0.0f ? label_size.x + padding.x * 2 : 0.0f);   // Include collapser
-		ItemSize(ImVec2(text_width, frame_height), text_base_offset_y);
+		ItemSize(vec2(text_width, frame_height), text_base_offset_y);
 
 		// Always use the hit test up to the right side of the content
 		//const ImRect interact_bb = ImRect(frame_bb.Min.x, frame_bb.Min.y, frame_bb.Min.x + text_width + style.ItemSpacing.x * 2, frame_bb.Max.y);
@@ -248,7 +247,7 @@ namespace ImGui
 			{
 				toggled = !(flags & (ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick)) || (g.NavActivateId == id);
 				if (flags & ImGuiTreeNodeFlags_OpenOnArrow)
-					toggled |= IsMouseHoveringRect(indended_frame_bb.Min, ImVec2(indended_frame_bb.Min.x + text_offset_x, indended_frame_bb.Max.y)) && (!g.NavDisableMouseHover);
+					toggled |= IsMouseHoveringRect(indended_frame_bb.Min, vec2(indended_frame_bb.Min.x + text_offset_x, indended_frame_bb.Max.y)) && (!g.NavDisableMouseHover);
 				if (flags & ImGuiTreeNodeFlags_OpenOnDoubleClick)
 					toggled |= g.IO.MouseDoubleClicked[0];
 				if (g.DragDropActive && is_open) // When using Drag and Drop "hold to open" we keep the node highlighted after opening, but never close it again.
@@ -281,7 +280,7 @@ namespace ImGui
 
 		// Render
 		const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
-		const ImVec2 text_pos = indended_frame_bb.Min + ImVec2(text_offset_x, text_base_offset_y);
+		const ImVec2 text_pos = indended_frame_bb.Min + vec2(text_offset_x, text_base_offset_y);
 		ImGuiNavHighlightFlags nav_highlight_flags = ImGuiNavHighlightFlags_TypeThin;
 		if (display_frame)
 		{
@@ -289,7 +288,7 @@ namespace ImGui
 			RenderFrame(frame_bb.Min, frame_bb.Max, col, true, style.FrameRounding);
 			RenderNavHighlight(frame_bb, id, nav_highlight_flags);
 			if (!no_arrow)
-				RenderArrow(indended_frame_bb.Min + ImVec2(padding.x, text_base_offset_y), is_open ? ImGuiDir_Down : ImGuiDir_Right, 1.0f);
+				RenderArrow(indended_frame_bb.Min + vec2(padding.x, text_base_offset_y), is_open ? ImGuiDir_Down : ImGuiDir_Right, 1.0f);
 			if (g.LogEnabled)
 			{
 				// NB: '##' is normally used to hide text (as a library-wide feature), so we need to specify the text range to make sure the ## aren't stripped out here.
@@ -316,9 +315,9 @@ namespace ImGui
 			if (!no_arrow)
 			{
 				if (flags & ImGuiTreeNodeFlags_Bullet)
-					RenderBullet(indended_frame_bb.Min + ImVec2(text_offset_x * 0.5f, g.FontSize*0.50f + text_base_offset_y));
+					RenderBullet(indended_frame_bb.Min + vec2(text_offset_x * 0.5f, g.FontSize*0.50f + text_base_offset_y));
 				else if (!is_leaf)
-					RenderArrow(indended_frame_bb.Min + ImVec2(padding.x, g.FontSize*0.15f + text_base_offset_y), is_open ? ImGuiDir_Down : ImGuiDir_Right, 0.70f);
+					RenderArrow(indended_frame_bb.Min + vec2(padding.x, g.FontSize*0.15f + text_base_offset_y), is_open ? ImGuiDir_Down : ImGuiDir_Right, 0.70f);
 			}
 			if (g.LogEnabled)
 				LogRenderedText(&text_pos, ">");
@@ -515,9 +514,9 @@ namespace ImGui
 
 		float y1 = window->DC.CursorPos.y;
 		float y2 = window->DC.CursorPos.y + window->DC.CurrentLineSize.y;
-		const ImRect bb(ImVec2(window->DC.CursorPos.x, y1), ImVec2(window->DC.CursorPos.x + spacing + 1.0f, y2));
+		const ImRect bb(vec2(window->DC.CursorPos.x, y1), vec2(window->DC.CursorPos.x + spacing + 1.0f, y2));
 
-		ItemSize(ImVec2(bb.GetWidth(), 0.0f));
+		ItemSize(vec2(bb.GetWidth(), 0.0f));
 		SameLine();
 
 		if (!ItemAdd(bb, 0))
@@ -526,7 +525,7 @@ namespace ImGui
 		float line_height = 1.0f;
 		float line_x = bb.Min.x + (spacing * 0.5f);
 
-		window->DrawList->AddLine(ImVec2(line_x, bb.Min.y - line_height), ImVec2(line_x, bb.Max.y + line_height), GetColorU32(ImGuiCol_Separator));
+		window->DrawList->AddLine(vec2(line_x, bb.Min.y - line_height), vec2(line_x, bb.Max.y + line_height), GetColorU32(ImGuiCol_Separator));
 	}
 
 	ExtendedImGuiTextFilter::ExtendedImGuiTextFilter(const char* default_filter) : textFilter(default_filter)

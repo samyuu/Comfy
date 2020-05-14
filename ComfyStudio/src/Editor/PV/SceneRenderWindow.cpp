@@ -106,7 +106,7 @@ namespace Comfy::Editor
 					renderCommand.Transform = entity->Transform;
 					renderCommand.Flags.IsReflection = entity->IsReflection;
 
-					renderCommand.Animation = entity->Animation.get();
+					renderCommand.Animation = entity->Dynamic.get();
 
 					if (entity->SilhouetteOutline)
 						renderCommand.Flags.SilhouetteOutline = true;

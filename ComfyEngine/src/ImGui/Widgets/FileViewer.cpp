@@ -5,6 +5,7 @@
 #include "IO/Shell.h"
 #include "Misc/FileExtensionHelper.h"
 #include "Misc/StringHelper.h"
+#include <FontIcons.h>
 #include <filesystem>
 
 using namespace Comfy;

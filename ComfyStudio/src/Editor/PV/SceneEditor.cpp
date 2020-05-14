@@ -30,7 +30,7 @@ namespace Comfy::Editor
 	SceneEditor::SceneEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{
 		auto texGetter = [&](const Cached_TexID* texID) { return sceneGraph.TexIDMap.Find(texID); };
-		renderer3D = std::make_unique<D3D11::Renderer3D>(texGetter);
+		renderer3D = std::make_unique<Render::D3D11::Renderer3D>(texGetter);
 
 		renderWindow = std::make_unique<SceneRenderWindow>(sceneGraph, viewport, scene, cameraController, *renderer3D);
 	}
@@ -1082,7 +1082,7 @@ namespace Comfy::Editor
 						renderCommand.SourceMorphObj = entity->MorphObj;
 						renderCommand.Transform = entity->Transform;
 						renderCommand.Flags.IsReflection = entity->IsReflection;
-						renderCommand.Animation = entity->Animation.get();
+						renderCommand.Animation = entity->Dynamic.get();
 
 						if (entity->SilhouetteOutline)
 							renderCommand.Flags.SilhouetteOutline = true;
@@ -1309,11 +1309,11 @@ namespace Comfy::Editor
 				if (!EndsWith(entity->Name, "000") || nextEntity == nullptr)
 					continue;
 
-				if (entity->Animation == nullptr)
-					entity->Animation = std::make_unique<ObjAnimationData>();
+				if (entity->Dynamic == nullptr)
+					entity->Dynamic = std::make_unique<ObjAnimationData>();
 
 				entity->MorphObj = nextEntity->Obj;
-				entity->Animation->MorphWeight = debug.MorphWeight;
+				entity->Dynamic->MorphWeight = debug.MorphWeight;
 
 				int lastMorphIndex = 0;
 				while ((entity = ((i + 1) < sceneGraph.Entities.size()) ? sceneGraph.Entities[++i].get() : nullptr) != nullptr)
@@ -1592,10 +1592,10 @@ namespace Comfy::Editor
 								EndsWithInsensitive(name, "_FB02") ||
 								EndsWithInsensitive(name, "_FB03"))
 							{
-								if (entity->Animation == nullptr)
-									entity->Animation = std::make_unique<ObjAnimationData>();
+								if (entity->Dynamic == nullptr)
+									entity->Dynamic = std::make_unique<ObjAnimationData>();
 
-								entity->Animation->ScreenRenderTextureID = diffuseTexture->TextureID;
+								entity->Dynamic->ScreenRenderTextureID = diffuseTexture->TextureID;
 							}
 						}
 					}

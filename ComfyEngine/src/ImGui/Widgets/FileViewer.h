@@ -2,7 +2,6 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "ImGui/Gui.h"
-#include <FontIcons.h>
 
 namespace ImGui
 {

@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "Graphics/Camera.h"
+#include "Render/Core/Camera.h"
 #include "Graphics/Auth3D/ObjSet.h"
 
 namespace Comfy::Editor
@@ -65,7 +65,7 @@ namespace Comfy::Editor
 		} Visualization;
 
 	public:
-		void Update(Graphics::PerspectiveCamera& camera);
+		void Update(Render::PerspectiveCamera& camera);
 
 	private:
 		void UpdateKeyboardInput(vec3& pointToChange, const vec3& frontDirection, float cameraSpeed);

@@ -4,7 +4,7 @@
 
 namespace Comfy::Editor
 {
-	void CameraController3D::Update(Graphics::PerspectiveCamera& camera)
+	void CameraController3D::Update(Render::PerspectiveCamera& camera)
 	{
 		if (Mode == ControlMode::None)
 			return;
@@ -95,7 +95,7 @@ namespace Comfy::Editor
 
 	void CameraController3D::UpdateKeyboardInput(vec3& pointToChange, const vec3& frontDirection, float cameraSpeed)
 	{
-		constexpr vec3 upDirection = Graphics::PerspectiveCamera::UpDirection;
+		constexpr vec3 upDirection = Render::PerspectiveCamera::UpDirection;
 
 		if (Gui::IsKeyDown(Input::KeyCode_W))
 			pointToChange += frontDirection * cameraSpeed;

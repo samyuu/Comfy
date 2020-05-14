@@ -1,18 +1,18 @@
 #include "ApplicationHost.h"
-#include "Graphics/D3D11/Direct3D.h"
+#include "Render/D3D11/Direct3D.h"
 #include "Input/Input.h"
 #include "Core/Logger.h"
 #include "Core/Win32/ComfyWindows.h"
 #include "Misc/StringHelper.h"
-#include "../res/resource.h"
+#include "System/Profiling/Profiler.h"
+
+// TODO:
+// #include "../res/resource.h"
 
 namespace Comfy
 {
-	namespace
-	{
-		HMODULE GlobalModuleHandle = NULL;
-		HICON GlobalIconHandle = NULL;
-	}
+	HMODULE GlobalModuleHandle = NULL;
+	HICON GlobalIconHandle = NULL;
 
 	ApplicationHost::ApplicationHost()
 	{
@@ -50,7 +50,9 @@ namespace Comfy
 
 			InternalPreUpdateTick();
 			{
+				System::Profiler::Get().StartFrame();
 				updateFunction();
+				System::Profiler::Get().EndFrame();
 
 				if (mainLoopLowPowerSleep)
 				{
@@ -58,7 +60,7 @@ namespace Comfy
 					::Sleep(static_cast<u32>(powerSleepDuration.TotalMilliseconds()));
 				}
 
-				Graphics::D3D11::D3D.SwapChain->Present(swapInterval, 0);
+				Render::D3D11::D3D.SwapChain->Present(swapInterval, 0);
 			}
 			InternalPostUpdateTick();
 		}
@@ -244,7 +246,8 @@ namespace Comfy
 	void ApplicationHost::LoadComfyWindowIcon()
 	{
 		assert(GlobalIconHandle == NULL);
-		GlobalIconHandle = ::LoadIconA(GlobalModuleHandle, MAKEINTRESOURCEA(COMFY_ICON));
+		// TODO:
+		// GlobalIconHandle = ::LoadIconA(GlobalModuleHandle, MAKEINTRESOURCEA(COMFY_ICON));
 	}
 
 	HICON ApplicationHost::GetComfyWindowIcon()
@@ -306,9 +309,9 @@ namespace Comfy
 			::SetWindowPlacement(windowHandle, &windowPlacement);
 		}
 
-		if (!Graphics::D3D11::D3D.Initialize(windowHandle))
+		if (!Render::D3D11::D3D.Initialize(windowHandle))
 		{
-			Graphics::D3D11::D3D.Dispose();
+			Render::D3D11::D3D.Dispose();
 			return false;
 		}
 
@@ -359,6 +362,8 @@ namespace Comfy
 		{
 			if (windowResizeCallback.has_value())
 				windowResizeCallback.value()(windowSize);
+
+			Render::D3D11::D3D.ResizeWindowRenderTarget(size);
 		}
 	}
 
@@ -471,7 +476,7 @@ namespace Comfy
 	{
 		// TODO: Is this really necessary or should windows dispose of this itself?
 
-		Graphics::D3D11::D3D.Dispose();
+		Render::D3D11::D3D.Dispose();
 
 		if (windowHandle != nullptr)
 		{

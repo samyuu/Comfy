@@ -1,18 +1,19 @@
 #include "ComfyD3D11.h"
-#include "Graphics/D3D11/Direct3D.h"
-#include "Graphics/D3D11/Buffer/ConstantBuffer.h"
-#include "Graphics/D3D11/Buffer/IndexBuffer.h"
-#include "Graphics/D3D11/Buffer/VertexBuffer.h"
-#include "Graphics/D3D11/State/BlendState.h"
-#include "Graphics/D3D11/State/DepthStencilState.h"
-#include "Graphics/D3D11/State/InputLayout.h"
-#include "Graphics/D3D11/State/RasterizerState.h"
-#include "Graphics/D3D11/Texture/DepthBuffer.h"
-#include "Graphics/D3D11/Texture/Texture.h"
-#include "Graphics/D3D11/Texture/TextureSampler.h"
-#include "Graphics/D3D11/Shader/Bytecode/ShaderBytecode.h"
+#include "Render/D3D11/Direct3D.h"
+#include "Render/D3D11/Buffer/ConstantBuffer.h"
+#include "Render/D3D11/Buffer/IndexBuffer.h"
+#include "Render/D3D11/Buffer/VertexBuffer.h"
+#include "Render/D3D11/State/BlendState.h"
+#include "Render/D3D11/State/DepthStencilState.h"
+#include "Render/D3D11/State/InputLayout.h"
+#include "Render/D3D11/State/RasterizerState.h"
+#include "Render/D3D11/Texture/DepthBuffer.h"
+#include "Render/D3D11/Texture/Texture.h"
+#include "Render/D3D11/Texture/TextureSampler.h"
+#include "Render/D3D11/Shader/Bytecode/ShaderBytecode.h"
 
 using namespace Comfy::Graphics;
+using namespace Comfy::Render;
 
 namespace ImGui
 {

@@ -18,6 +18,7 @@ namespace Comfy
 
 		static constexpr const char* ComfyWindowClassName = "ComfyWindowClass";
 		static constexpr const char* ComfyStudioWindowTitle = "Comfy Studio";
+		static constexpr const char* MainDockSpaceID = "MainDockSpace";
 
 	public:
 		ApplicationHost();

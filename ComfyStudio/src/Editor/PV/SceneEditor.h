@@ -5,7 +5,6 @@
 #include "Editor/Core/IEditorComponent.h"
 #include "Editor/Common/CameraController3D.h"
 #include "Graphics/Auth2D/SprSet.h"
-#include "Graphics/GPU/GPURenderers.h"
 #include "ImGui/Widgets/FileViewer.h"
 #include "StageTest.h"
 #include "CharaTest.h"

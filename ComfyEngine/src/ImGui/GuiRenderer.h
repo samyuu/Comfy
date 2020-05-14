@@ -1,6 +1,6 @@
 #pragma once
 #include "Gui.h"
-#include "Core/ApplicationHost.h"
+#include "Window/ApplicationHost.h"
 
 namespace ImGui
 {

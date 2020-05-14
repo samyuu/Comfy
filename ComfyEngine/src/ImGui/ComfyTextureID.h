@@ -10,6 +10,11 @@ namespace Comfy::Render::D3D11
 	class DepthOnlyRenderTarget;
 }
 
+namespace Comfy::Graphics
+{
+	class Tex;
+}
+
 namespace Comfy
 {
 	namespace ComfyTextureIDLayouts
@@ -47,6 +52,7 @@ namespace Comfy
 		DataLayout Data = {};
 
 		ComfyTextureID(const nullptr_t dummy = nullptr);
+		ComfyTextureID(const Graphics::Tex& tex);
 		ComfyTextureID(const Render::D3D11::TextureResource& texture);
 		ComfyTextureID(const Render::D3D11::RenderTarget& renderTarget);
 		ComfyTextureID(const Render::D3D11::DepthOnlyRenderTarget& renderTarget);

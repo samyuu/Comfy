@@ -1,6 +1,6 @@
 #include "GuiRenderer.h"
-#include "Core/Application.h"
-#include "Core/ComfyData.h"
+#include "Window/ApplicationHost.h"
+#include "System/ComfyData.h"
 #include "ImGui/Implementation/ComfyWin32.h"
 #include "ImGui/Implementation/ComfyD3D11.h"
 #include "FontIcons.h"
@@ -116,7 +116,7 @@ namespace ImGui
 
 			if (restoreConfigWindowSize)
 			{
-				const ImGuiID mainDockspaceID = ImHashStr(Application::MainDockSpaceID, 0);
+				const ImGuiID mainDockspaceID = ImHashStr(ApplicationHost::MainDockSpaceID, 0);
 				const ImGuiWindowSettings* settings = FindWindowSettings(mainDockspaceID);
 
 				if (settings != nullptr)

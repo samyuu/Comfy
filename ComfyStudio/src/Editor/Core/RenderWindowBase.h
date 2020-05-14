@@ -1,6 +1,5 @@
 #pragma once
 #include "ImGui/Gui.h"
-#include "Graphics/GPU/GPUResources.h"
 
 namespace Comfy::Editor
 {

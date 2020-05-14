@@ -1,5 +1,4 @@
 #include "Application.h"
-#include "Graphics/D3D11/Direct3D.h"
 #include "Editor/Core/RenderWindowBase.h"
 #include "IO/File.h"
 #include "DataTest/AudioTestWindow.h"
@@ -9,8 +8,8 @@
 #include "System/Version/BuildConfiguration.h"
 #include "System/Version/BuildVersion.h"
 #include "Input/Input.h"
+#include "System/ComfyData.h"
 #include "Core/ComfyConfig.h"
-#include "Core/ComfyData.h"
 #include "Core/Logger.h"
 
 namespace Comfy
@@ -29,14 +28,10 @@ namespace Comfy
 		if (!BaseInitialize())
 			return;
 
-		System::Profiler& profiler = System::Profiler::Get();
-
 		host.EnterProgramLoop([&]()
 		{
-			profiler.StartFrame();
 			BaseUpdate();
 			BaseDraw();
-			profiler.EndFrame();
 		});
 
 		BaseDispose();
@@ -67,7 +62,6 @@ namespace Comfy
 
 		host.RegisterWindowResizeCallback([](ivec2 size)
 		{
-			Graphics::D3D11::D3D.ResizeWindowRenderTarget(size);
 		});
 
 		host.RegisterWindowClosingCallback([&]()
@@ -400,8 +394,8 @@ namespace Comfy
 			if (showMainMenuBar)
 				dockspaceWindowFlags |= ImGuiWindowFlags_MenuBar;
 
-			Gui::Begin(MainDockSpaceID, nullptr, dockspaceWindowFlags);
-			ImGuiID dockspaceID = Gui::GetID(MainDockSpaceID);
+			Gui::Begin(ApplicationHost::MainDockSpaceID, nullptr, dockspaceWindowFlags);
+			ImGuiID dockspaceID = Gui::GetID(ApplicationHost::MainDockSpaceID);
 			Gui::DockSpace(dockspaceID, vec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 			Gui::End();
 

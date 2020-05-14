@@ -1,7 +1,6 @@
 #pragma once
 #include "StageTest.h"
-#include "Graphics/Camera.h"
-#include "Graphics/Auth3D/DebugObj.h"
+#include "Render/Render.h"
 #include "IO/File.h"
 #include "IO/Path.h"
 #include "Misc/StringHelper.h"
@@ -23,7 +22,7 @@ namespace Comfy::Debug
 	};
 
 	// TODO: Return dev_rom/objset farc paths instead
-	std::array<char, MAX_PATH> GetDebugFilePath(PathType type, Editor::StageType stageType, int id, int subID = 0, const char* chara = nullptr, bool* outIsDefault = nullptr)
+	std::array<char, 260> GetDebugFilePath(PathType type, Editor::StageType stageType, int id, int subID = 0, const char* chara = nullptr, bool* outIsDefault = nullptr)
 	{
 		constexpr std::array fileNameFormatStrings = { "tst%03d", "ns%03d", "d2ns%03d", "pv%03ds%02d" };
 		const char* fileNameFormatString = fileNameFormatStrings[static_cast<size_t>(stageType)];
@@ -36,7 +35,7 @@ namespace Comfy::Debug
 		else if (subID == 0 && stageType == Editor::StageType::STGPV)
 			fileNameFormatString = "pv%03d";
 
-		std::array<char, MAX_PATH> path = {};
+		std::array<char, 260> path = {};
 
 		std::array<char, 16> fileName = {};
 		sprintf_s(fileName.data(), fileName.size(), fileNameFormatString, id, subID);

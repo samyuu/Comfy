@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "Graphics/Auth3D/Transform.h"
 #include "Graphics/Auth3D/ObjSet.h"
-#include "Graphics/Auth3D/ObjAnimationData.h"
+#include "Render/Core/Renderer3D/Renderer3D.h"
 #include "Database/TexDB.h"
 #include "Resource/ResourceIDMap.h"
 
@@ -29,7 +29,7 @@ namespace Comfy::Editor
 		bool IsReflection = false;
 		bool SilhouetteOutline = false;
 
-		std::unique_ptr<Graphics::ObjAnimationData> Animation = nullptr;
+		std::unique_ptr<Render::RenderCommand3D::DynamicData> Dynamic = nullptr;
 	};
 
 	struct ObjSetResource

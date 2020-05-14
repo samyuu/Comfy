@@ -16,7 +16,7 @@
 #undef NOVIRTUALKEYCODES
 #include <Windows.h>
 
-#include "Core/ApplicationHost.h"
+#include "Window/ApplicationHost.h"
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)

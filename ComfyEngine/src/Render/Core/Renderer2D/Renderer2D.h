@@ -20,7 +20,7 @@ namespace Comfy::Render
 		vec2 Position = { 0.0f, 0.0f };
 		float Rotation = 0.0f;
 		vec2 Scale = { 1.0f, 1.0f };
-		vec4 SourceRegion;
+		vec4 SourceRegion = { 0.0f, 0.0f, 0.0f, 0.0f };
 		Graphics::AetBlendMode BlendMode = Graphics::AetBlendMode::Normal;
 		std::array<vec4, 4> CornerColors = { vec4(1.0f), vec4(1.0f), vec4(1.0f), vec4(1.0f) };
 

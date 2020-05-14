@@ -55,7 +55,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\dr_libs\include;$(SolutionDir)Dependencies\rtaudio\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\dr_libs\include;$(SolutionDir)Dependencies\rtaudio\include;$(SolutionDir)Dependencies\iconfont\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -94,7 +94,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\dr_libs\include;$(SolutionDir)Dependencies\rtaudio\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\dr_libs\include;$(SolutionDir)Dependencies\rtaudio\include;$(SolutionDir)Dependencies\iconfont\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -151,6 +151,25 @@
     <ClInclude Include="src\Audio\SampleProvider\MemorySampleProvider.h" />
     <ClInclude Include="src\Audio\SampleProvider\SilenceSampleProvider.h" />
     <ClInclude Include="src\Audio\Misc\Waveform.h" />
+    <ClInclude Include="src\ImGui\ComfyTextureID.h" />
+    <ClInclude Include="src\ImGui\Core\imconfig.h" />
+    <ClInclude Include="src\ImGui\Core\imgui.h" />
+    <ClInclude Include="src\ImGui\Core\imgui_internal.h" />
+    <ClInclude Include="src\ImGui\Core\imgui_user.h" />
+    <ClInclude Include="src\ImGui\Core\imstb_rectpack.h" />
+    <ClInclude Include="src\ImGui\Core\imstb_textedit.h" />
+    <ClInclude Include="src\ImGui\Core\imstb_truetype.h" />
+    <ClInclude Include="src\ImGui\Extensions\ImGuiExtensions.h" />
+    <ClInclude Include="src\ImGui\Extensions\InternalExtensions.h" />
+    <ClInclude Include="src\ImGui\Extensions\PropertyEditor.h" />
+    <ClInclude Include="src\ImGui\Extensions\TexExtensions.h" />
+    <ClInclude Include="src\ImGui\Extensions\Theme.h" />
+    <ClInclude Include="src\ImGui\Gui.h" />
+    <ClInclude Include="src\ImGui\GuiRenderer.h" />
+    <ClInclude Include="src\ImGui\Implementation\ComfyD3D11.h" />
+    <ClInclude Include="src\ImGui\Implementation\ComfyWin32.h" />
+    <ClInclude Include="src\ImGui\Widgets\ComfyWidgets.h" />
+    <ClInclude Include="src\ImGui\Widgets\FileViewer.h" />
     <ClInclude Include="src\Input\DirectInput\DirectInput.h" />
     <ClInclude Include="src\Input\DirectInput\DirectInputDevice.h" />
     <ClInclude Include="src\Input\DirectInput\Ds4Button.h" />
@@ -193,6 +212,9 @@
     <ClInclude Include="src\Render\D3D11\Texture\TextureSampler.h" />
     <ClInclude Include="src\Render\Misc\RayIntersection.h" />
     <ClInclude Include="src\Render\Render.h" />
+    <ClInclude Include="src\System\ComfyData.h" />
+    <ClInclude Include="src\System\Profiling\Profiler.h" />
+    <ClInclude Include="src\Window\ApplicationHost.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Audio\Core\Engine.cpp" />
@@ -206,6 +228,19 @@
     <ClCompile Include="src\Audio\SampleProvider\MemorySampleProvider.cpp" />
     <ClCompile Include="src\Audio\SampleProvider\SilenceSampleProvider.cpp" />
     <ClCompile Include="src\Audio\Misc\Waveform.cpp" />
+    <ClCompile Include="src\ImGui\ComfyTextureID.cpp" />
+    <ClCompile Include="src\ImGui\Core\imgui.cpp" />
+    <ClCompile Include="src\ImGui\Core\imgui_demo.cpp" />
+    <ClCompile Include="src\ImGui\Core\imgui_draw.cpp" />
+    <ClCompile Include="src\ImGui\Core\imgui_widgets.cpp" />
+    <ClCompile Include="src\ImGui\Extensions\ImGuiExtensions.cpp" />
+    <ClCompile Include="src\ImGui\Extensions\TexExtensions.cpp" />
+    <ClCompile Include="src\ImGui\Extensions\Theme.cpp" />
+    <ClCompile Include="src\ImGui\GuiRenderer.cpp" />
+    <ClCompile Include="src\ImGui\Implementation\ComfyD3D11.cpp" />
+    <ClCompile Include="src\ImGui\Implementation\ComfyWin32.cpp" />
+    <ClCompile Include="src\ImGui\Widgets\ComfyWidgets.cpp" />
+    <ClCompile Include="src\ImGui\Widgets\FileViewer.cpp" />
     <ClCompile Include="src\Input\DirectInput\DirectInput.cpp" />
     <ClCompile Include="src\Input\DirectInput\DirectInputDevice.cpp" />
     <ClCompile Include="src\Input\DirectInput\Ds4State.cpp" />
@@ -230,6 +265,8 @@
     <ClCompile Include="src\Render\D3D11\Texture\RenderTarget.cpp" />
     <ClCompile Include="src\Render\D3D11\Texture\Texture.cpp" />
     <ClCompile Include="src\Render\D3D11\Texture\TextureSampler.cpp" />
+    <ClCompile Include="src\System\Profiling\Profiler.cpp" />
+    <ClCompile Include="src\Window\ApplicationHost.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\ImGuiCustom_PS.hlsl">

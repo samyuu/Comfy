@@ -5,17 +5,17 @@
 #include "ImGui/Extensions/Theme.h"
 #include <functional>
 
-namespace Comfy::Graphics::D3D11
+namespace Comfy::Graphics
 {
-	class Texture2D;
+	class Tex;
 }
 
 #define BeginMenu WideBeginMenu
 
 namespace ImGui
 {
-	const ImVec2 UV0 = ImVec2(0.0f, 0.0f), UV1 = ImVec2(1.0f, 1.0f);
-	const ImVec2 UV0_R = ImVec2(0.0f, 1.0f), UV1_R = ImVec2(1.0f, 0.0f);
+	constexpr vec2 UV0 = vec2(0.0f, 0.0f), UV1 = vec2(1.0f, 1.0f);
+	constexpr vec2 UV0_R = vec2(0.0f, 1.0f), UV1_R = vec2(1.0f, 0.0f);
 
 	void UpdateExtendedState();
 
@@ -31,22 +31,22 @@ namespace ImGui
 	void PushItemDisabledAndTextColor();
 	void PopItemDisabledAndTextColor();
 
-	void AddTexture(ImDrawList* drawList, const Comfy::Graphics::D3D11::Texture2D* texture, ImVec2 center, ImVec2 scale, const ImVec2& uv0, const ImVec2& uv1);
-	void AddSprite(ImDrawList* drawList, const Comfy::Graphics::D3D11::Texture2D* texture, const vec2& position, const vec4& sourceRegion, ImU32 color = IM_COL32_WHITE);
+	void AddTexture(ImDrawList* drawList, const Comfy::Graphics::Tex* tex, vec2 center, vec2 scale, vec2 uv0, vec2 uv1);
+	void AddSprite(ImDrawList* drawList, const Comfy::Graphics::Tex* tex, vec2 position, const vec4& sourceRegion, ImU32 color = IM_COL32_WHITE);
 
-	inline void AddTexture(ImDrawList* drawList, const Comfy::Graphics::D3D11::Texture2D* texture, ImVec2 center, float scale, const ImVec2& uv0, const ImVec2& uv1)
+	inline void AddTexture(ImDrawList* drawList, const Comfy::Graphics::Tex* tex, vec2 center, float scale, vec2 uv0, vec2 uv1)
 	{
-		AddTexture(drawList, texture, center, ImVec2(scale, scale), uv0, uv1);
+		AddTexture(drawList, tex, center, vec2(scale, scale), uv0, uv1);
 	}
 
-	inline void AddTexture(ImDrawList* drawList, const Comfy::Graphics::D3D11::Texture2D* texture, ImVec2 center, float scale)
+	inline void AddTexture(ImDrawList* drawList, const Comfy::Graphics::Tex* tex, vec2 center, float scale)
 	{
-		AddTexture(drawList, texture, center, ImVec2(scale, scale), UV0_R, UV1_R);
+		AddTexture(drawList, tex, center, vec2(scale, scale), UV0_R, UV1_R);
 	}
 
-	inline void AddDot(ImDrawList* drawList, const ImVec2& position, ImU32 color)
+	inline void AddDot(ImDrawList* drawList, vec2 position, ImU32 color)
 	{
-		ImVec2 bottomRight = position;
+		vec2 bottomRight = position;
 		++bottomRight.x; ++bottomRight.y;
 		drawList->AddRectFilled(position, bottomRight, color);
 	}
@@ -57,7 +57,7 @@ namespace ImGui
 	}
 
 	void AddLine(ImDrawList* drawList, vec2 start, vec2 end, ImU32 color, float thickness = 1.0f);
-	void AddQuadFilled(ImDrawList* drawList, vec2 position, vec2 size, vec2 origin, float rotation, const vec2& scale, ImU32 color);
+	void AddQuadFilled(ImDrawList* drawList, vec2 position, vec2 size, vec2 origin, float rotation, vec2 scale, ImU32 color);
 	
 	bool IsItemHoveredDelayed(ImGuiHoveredFlags flags = ImGuiHoveredFlags_None, float threshold = 0.5f);
 

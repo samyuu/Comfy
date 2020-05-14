@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "ApplicationHost.h"
+#include "Window/ApplicationHost.h"
 #include "BaseWindow.h"
 #include "Editor/Core/EditorManager.h"
 #include "License/LicenseWindow.h"
@@ -22,9 +22,6 @@ namespace Comfy
 
 	public:
 		ApplicationHost& GetHost();
-
-	public:
-		static constexpr const char* MainDockSpaceID = "MainDockSpace##Application";
 
 	private:
 		// NOTE: Initialize the application
