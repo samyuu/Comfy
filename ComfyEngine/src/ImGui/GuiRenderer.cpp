@@ -175,7 +175,7 @@ namespace ImGui
 
 	bool GuiRenderer::InitializeBackend()
 	{
-		if (!ImGui_ImplWin32_Init(host.GetWindow()))
+		if (!ImGui_ImplWin32_Init(host.GetWindowHandle()))
 			return false;
 
 		//if (!ImGui_ImplDX11_Init())

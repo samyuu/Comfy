@@ -22,8 +22,9 @@ namespace Comfy
 
 	public:
 		ApplicationHost();
-		~ApplicationHost();
+		~ApplicationHost() = default;
 
+		// NOTE: Explicit Initialize() / Dispose() methods beaucse they could potentially fail
 		bool Initialize();
 		void EnterProgramLoop(const std::function<void()> updateFunction);
 		void Exit();
@@ -43,7 +44,7 @@ namespace Comfy
 		bool HasFocusBeenLost() const;
 
 		bool IsWindowFocused() const;
-		
+
 		bool GetMainLoopPowerSleep() const;
 		void SetMainLoopPowerSleep(bool value);
 
@@ -59,7 +60,7 @@ namespace Comfy
 		void SetDefaultPositionWindow(bool value);
 		void SetDefaultResizeWindow(bool value);
 
-		inline HWND GetWindow() const { return windowHandle; }
+		void* GetWindowHandle() const;
 
 	public:
 		void RegisterWindowProcCallback(const std::function<bool(HWND, UINT, WPARAM, LPARAM)> onWindowProc);
@@ -75,81 +76,7 @@ namespace Comfy
 		static HICON GetComfyWindowIcon();
 
 	private:
-		// NOTE: Initialization
-		bool InternalCreateWindow();
-
-		// NOTE: Helpers
-		void InternalSnycMoveWindow();
-
-		// NOTE: Callbacks
-		void InternalMouseMoveCallback(ivec2 position);
-		void InternalMouseScrollCallback(float offset);
-		void InternalWindowMoveCallback(ivec2 position);
-		void InternalWindowResizeCallback(bool minimized, bool maximized, ivec2 size);
-		void InternalWindowDropCallback(size_t count, const char* paths[]);
-		void InternalWindowPaintCallback();
-		void InternalWindowFocusCallback(bool focused);
-		void InternalWindowClosingCallback();
-		void InternalCheckConnectedDevices();
-
-		void InternalPreUpdateTick();
-		void InternalPostUpdateTick();
-		void InternalPreUpdatePollInput();
-
-		void InternalDisposeWindow();
-
-	private:
-		LRESULT InternalProcessWindowMessage(const UINT message, const WPARAM wParam, const LPARAM lParam);
-
-	private:
-		// NOTE: Window management
-		HWND windowHandle = nullptr;
-		bool isRunning = false;
-		bool isFullscreen = false;
-		bool isMaximized = false;
-
-		ivec2 windowPosition = StartupWindowPosition;
-		ivec2 windowSize = StartupWindowSize;
-
-		ivec4 windowRestoreRegion = { StartupWindowPosition, StartupWindowSize };
-
-		bool defaultPositionWindow = false;
-		bool defaultResizeWindow = false;
-
-		ivec2 preFullScreenWindowPosition = StartupWindowPosition;
-		ivec2 preFullScreenWindowSize = StartupWindowSize;
-
-		bool windowFocused = true, lastWindowFocused = false;
-		bool focusLostThisFrame = false, focusGainedThisFrame = false;
-
-		// NOTE: Callbacks
-		std::optional<std::function<bool(HWND, UINT, WPARAM, LPARAM)>> windowProcCallback = {};
-		std::optional<std::function<void(ivec2 size)>> windowResizeCallback = {};
-		std::optional<std::function<void()>> windowClosingCallback = {};
-
-		// NOTE: Program timing
-		int swapInterval = 1;
-		TimeSpan elapsedTime = TimeSpan::FromSeconds(0.0f);
-		TimeSpan currentTime, lastTime;
-		u64 elapsedFrames = 0;
-
-		bool mainLoopLowPowerSleep = false;
-		const TimeSpan powerSleepDuration = TimeSpan::FromMilliseconds(10.0);
-
-		// NOTE: File drop dispatching
-		std::vector<std::string> droppedFiles;
-
-		bool filesDroppedThisFrame = false, filesDropped = false;
-		bool filesLastDropped = false, fileDropDispatched = false;
-
-		// NOTE: Input management
-		ivec2 mousePosition = ivec2(0, 0), lastMousePosition = ivec2(0, 0);
-		ivec2 mouseDelta = ivec2(0, 0);
-
-		float mouseWheel = 0.0f, lastMouseWheel = 0.0f;
-		bool mouseScrolledUp = false, mouseScrolledDown = false;
-
-	private:
-		static LRESULT ProcessWindowMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
+		struct Impl;
+		std::unique_ptr<Impl> impl;
 	};
 }
