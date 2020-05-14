@@ -22,7 +22,7 @@ namespace Comfy
 
 	public:
 		ApplicationHost();
-		~ApplicationHost() = default;
+		~ApplicationHost();
 
 		// NOTE: Explicit Initialize() / Dispose() methods beaucse they could potentially fail
 		bool Initialize();

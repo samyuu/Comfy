@@ -17,6 +17,10 @@ namespace Comfy
 	struct ApplicationHost::Impl
 	{
 	public:
+		Impl() = default;
+		~Impl() = default;
+
+	public:
 		struct WindowData
 		{
 			HWND Handle = nullptr;
@@ -499,6 +503,8 @@ namespace Comfy
 	ApplicationHost::ApplicationHost() : impl(std::make_unique<Impl>())
 	{
 	}
+
+	ApplicationHost::~ApplicationHost() = default;
 
 	bool ApplicationHost::Initialize()
 	{

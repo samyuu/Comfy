@@ -86,6 +86,9 @@
       <HeaderFileOutput>$(ProjectDir)src\Render\D3D11\Shader\Bytecode\Intermediate\DXBC-Debug\%(Filename).h</HeaderFileOutput>
       <ObjectFileOutput />
     </FxCompile>
+    <Lib>
+      <AdditionalDependencies>dxguid.lib;d3d11.lib;d3dcompiler.lib;dinput8.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
