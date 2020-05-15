@@ -31,6 +31,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfyEngine", "ComfyEngine\
 		{2EF29EEA-28DC-4FDD-84CF-317F07A3B8EB} = {2EF29EEA-28DC-4FDD-84CF-317F07A3B8EB}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfySandbox", "ComfySandbox\ComfySandbox.vcxproj", "{71677AF2-DF0F-4155-B74E-A22D1A68F37A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -61,6 +63,10 @@ Global
 		{D4459561-4B36-48E0-AC0C-E57900ED4782}.Debug|x64.Build.0 = Debug|x64
 		{D4459561-4B36-48E0-AC0C-E57900ED4782}.Release|x64.ActiveCfg = Release|x64
 		{D4459561-4B36-48E0-AC0C-E57900ED4782}.Release|x64.Build.0 = Release|x64
+		{71677AF2-DF0F-4155-B74E-A22D1A68F37A}.Debug|x64.ActiveCfg = Debug|x64
+		{71677AF2-DF0F-4155-B74E-A22D1A68F37A}.Debug|x64.Build.0 = Debug|x64
+		{71677AF2-DF0F-4155-B74E-A22D1A68F37A}.Release|x64.ActiveCfg = Release|x64
+		{71677AF2-DF0F-4155-B74E-A22D1A68F37A}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
