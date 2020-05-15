@@ -17,20 +17,24 @@ namespace Comfy
 		static constexpr ivec2 WindowSizeRestraints = ivec2(640, 360);
 
 		static constexpr const char* ComfyWindowClassName = "ComfyWindowClass";
-		static constexpr const char* ComfyStudioWindowTitle = "Comfy Studio";
-		static constexpr const char* MainDockSpaceID = "MainDockSpace";
 
 	public:
-		ApplicationHost();
+		struct ConstructionParam
+		{
+			std::string_view WindowTitle;
+			void* IconHandle;
+		};
+
+		ApplicationHost(const ConstructionParam& param);
 		~ApplicationHost();
 
-		// NOTE: Explicit Initialize() / Dispose() methods beaucse they could potentially fail
-		bool Initialize();
 		void EnterProgramLoop(const std::function<void()> updateFunction);
 		void Exit();
-		void Dispose();
 
 	public:
+		std::string_view GetWindowTitle() const;
+		void SetWindowTitle(std::string_view value);
+
 		bool GetIsFullscreen() const;
 		void SetIsFullscreen(bool value);
 		void ToggleFullscreen();

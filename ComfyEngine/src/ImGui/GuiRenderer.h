@@ -7,6 +7,10 @@ namespace ImGui
 	class GuiRenderer
 	{
 	public:
+		// NOTE: Used for setting the initial window size and position
+		static constexpr const char* MainDockSpaceID = "MainDockSpace";
+
+	public:
 		GuiRenderer(Comfy::ApplicationHost& host);
 		~GuiRenderer();
 

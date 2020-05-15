@@ -116,7 +116,7 @@ namespace ImGui
 
 			if (restoreConfigWindowSize)
 			{
-				const ImGuiID mainDockspaceID = ImHashStr(ApplicationHost::MainDockSpaceID, 0);
+				const ImGuiID mainDockspaceID = ImHashStr(MainDockSpaceID, 0);
 				const ImGuiWindowSettings* settings = FindWindowSettings(mainDockspaceID);
 
 				if (settings != nullptr)

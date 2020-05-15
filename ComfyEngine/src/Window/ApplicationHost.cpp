@@ -1,10 +1,15 @@
 #include "ApplicationHost.h"
 #include "Render/D3D11/Direct3D.h"
+#include "Render/D3D11/Texture/RenderTarget.h"
+#include "Audio/Audio.h"
 #include "Input/Input.h"
 #include "Core/Logger.h"
 #include "Core/Win32/ComfyWindows.h"
-#include "Misc/StringHelper.h"
+#include "IO/File.h"
 #include "System/Profiling/Profiler.h"
+#include "System/ComfyData.h"
+#include "ImGui/GuiRenderer.h"
+#include "Misc/StringHelper.h"
 
 // TODO:
 // #include "../res/resource.h"
@@ -17,12 +22,20 @@ namespace Comfy
 	struct ApplicationHost::Impl
 	{
 	public:
-		Impl() = default;
+		Impl(ApplicationHost& parent) : Parent(parent)
+		{
+		}
+
 		~Impl() = default;
 
 	public:
+		ApplicationHost& Parent;
+		bool FailedToInitialize = false;
+
 		struct WindowData
 		{
+			std::string Title;
+
 			HWND Handle = nullptr;
 			bool IsRunning = false;
 			bool IsFullscreen = false;
@@ -41,6 +54,8 @@ namespace Comfy
 
 			bool Focused = true, LastFocused = false;
 			bool FocusLostThisFrame = false, FocusGainedThisFrame = false;
+
+			vec4 ClearColor = vec4(0.16f, 0.16f, 0.16f, 0.0f);
 
 		} Window;
 
@@ -79,15 +94,29 @@ namespace Comfy
 			bool MouseScrolledUp = false, MouseScrolledDown = false;
 		} Input;
 
+		Gui::GuiRenderer GuiRenderer = { Parent };
+
 	public:
 		bool Initialize()
 		{
 			GlobalModuleHandle = ::GetModuleHandleA(nullptr);
+			TimeSpan::InitializeClock();
+
 			if (!InternalCreateWindow())
 				return false;
 
 			Input::InitializeDirectInput(GlobalModuleHandle);
-			InternalCheckConnectedDevices();
+
+			if (!CheckConnectedDevices())
+				return false;
+
+			Audio::Engine::CreateInstance();
+
+			if (!InitializeMountRomData())
+				return false;
+
+			if (!GuiRenderer.Initialize())
+				return false;
 
 			return true;
 		}
@@ -110,9 +139,10 @@ namespace Comfy
 				PreUpdatePollInput();
 				{
 					System::Profiler::Get().StartFrame();
-					updateFunction();
+					UserUpdateTick(updateFunction);
 					System::Profiler::Get().EndFrame();
 
+					Timing.MainLoopLowPowerSleep = (!Window.Focused && !GuiRenderer.IsAnyViewportFocused());
 					if (Timing.MainLoopLowPowerSleep)
 					{
 						// NOTE: Arbitrary sleep to drastically reduce power usage. This could really use a better solution for final release builds
@@ -133,8 +163,14 @@ namespace Comfy
 
 		void Dispose()
 		{
+			GuiRenderer.Dispose();
+
 			Input::Keyboard::DeleteInstance();
 			Input::DualShock4::DeleteInstance();
+
+			if (Audio::Engine::InstanceValid())
+				Audio::Engine::GetInstance().StopStream();
+			Audio::Engine::DeleteInstance();
 
 			Render::D3D11::D3D.Dispose();
 			DisposeWindow();
@@ -145,8 +181,11 @@ namespace Comfy
 		{
 			ApplicationHost::LoadComfyWindowIcon();
 
-			WNDCLASSEX windowClass = {};
-			windowClass.cbSize = sizeof(WNDCLASSEX);
+			const auto windowClassName = UTF8::WideArg(ApplicationHost::ComfyWindowClassName);
+			const auto windowTitle = UTF8::WideArg(Window.Title);
+
+			WNDCLASSEXW windowClass = {};
+			windowClass.cbSize = sizeof(WNDCLASSEXW);
 			windowClass.style = CS_HREDRAW | CS_VREDRAW;
 			windowClass.lpfnWndProc = &StaticProcessWindowMessage;
 			windowClass.cbClsExtra = 0;
@@ -156,16 +195,16 @@ namespace Comfy
 			windowClass.hCursor = ::LoadCursorA(NULL, IDC_ARROW);
 			windowClass.hbrBackground = NULL;
 			windowClass.lpszMenuName = NULL;
-			windowClass.lpszClassName = ApplicationHost::ComfyWindowClassName;
+			windowClass.lpszClassName = windowClassName.c_str();
 			windowClass.hIconSm = ApplicationHost::GetComfyWindowIcon();
 
-			if (!::RegisterClassExA(&windowClass))
+			if (!::RegisterClassExW(&windowClass))
 				return false;
 
-			Window.Handle = ::CreateWindowExA(
+			Window.Handle = ::CreateWindowExW(
 				NULL,
-				ApplicationHost::ComfyWindowClassName,
-				ApplicationHost::ComfyStudioWindowTitle,
+				windowClassName.c_str(),
+				windowTitle.c_str(),
 				WS_OVERLAPPEDWINDOW,
 				Window.UseDefaultPosition ? CW_USEDEFAULT : Window.Position.x,
 				Window.UseDefaultPosition ? CW_USEDEFAULT : Window.Position.y,
@@ -208,7 +247,6 @@ namespace Comfy
 			}
 
 			::UpdateWindow(Window.Handle);
-
 			return true;
 		}
 
@@ -285,7 +323,7 @@ namespace Comfy
 				Callback.WindowClosing.value()();
 		}
 
-		void InternalCheckConnectedDevices()
+		bool CheckConnectedDevices()
 		{
 			if (!Input::Keyboard::GetInstanceInitialized())
 			{
@@ -302,6 +340,25 @@ namespace Comfy
 					Logger::LogLine(__FUNCTION__"(): DualShock4 connected and initialized");
 				}
 			}
+
+			return true;
+		}
+
+		bool InitializeMountRomData()
+		{
+			if (!IO::File::Exists(ComfyDataFileName))
+			{
+				Logger::LogErrorLine(__FUNCTION__"(): Unable to locate data file");
+				assert(false);
+				return false;
+			}
+
+			ComfyData = std::make_unique<IO::ComfyArchive>();
+			if (ComfyData == nullptr)
+				return false;
+
+			ComfyData->Mount(ComfyDataFileName);
+			return true;
 		}
 
 	public:
@@ -317,6 +374,56 @@ namespace Comfy
 				Window.FocusGainedThisFrame = !Window.LastFocused && Window.Focused;
 			}
 			Window.LastFocused = Window.Focused;
+		}
+
+		void GuiMainDockSpace()
+		{
+			Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(0.0f, 0.0f));
+			Gui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+			Gui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+			ImGuiViewport* viewport = Gui::GetMainViewport();
+			Gui::SetNextWindowPos(viewport->Pos);
+			Gui::SetNextWindowSize(viewport->Size);
+			Gui::SetNextWindowViewport(viewport->ID);
+
+			ImGuiWindowFlags dockspaceWindowFlags = ImGuiWindowFlags_NoDocking;
+			dockspaceWindowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+			dockspaceWindowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+			dockspaceWindowFlags |= ImGuiWindowFlags_NoBackground;
+
+			Gui::Begin(Gui::GuiRenderer::MainDockSpaceID, nullptr, dockspaceWindowFlags);
+			Gui::DockSpace(Gui::GetID(Gui::GuiRenderer::MainDockSpaceID), vec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+			Gui::End();
+
+			Gui::PopStyleVar(3);
+
+			/* // NOTE: An exclusive window can then be created on top using
+				const ImGuiViewport* viewport = Gui::GetMainViewport();
+				Gui::SetNextWindowPos(viewport->Pos);
+				Gui::SetNextWindowSize(viewport->Size);
+				Gui::SetNextWindowViewport(viewport->ID);
+
+				ImGuiWindowFlags fullscreenFlags = ImGuiWindowFlags_None;
+				fullscreenFlags |= ImGuiWindowFlags_NoDocking;
+				fullscreenFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+				fullscreenFlags |= ImGuiWindowFlags_NoNavFocus;
+				fullscreenFlags |= ImGuiWindowFlags_NoSavedSettings;
+			*/
+		}
+
+		void UserUpdateTick(const std::function<void()>& updateFunction)
+		{
+			Render::D3D11::D3D.SetViewport(Window.Size);
+			Render::D3D11::D3D.WindowRenderTarget->Bind();
+			Render::D3D11::D3D.WindowRenderTarget->Clear(Window.ClearColor);
+			GuiRenderer.BeginFrame();
+			{
+				GuiMainDockSpace();
+				updateFunction();
+			}
+			GuiRenderer.EndFrame();
+			Render::D3D11::D3D.EndOfFrameClearStaleDeviceObjects();
 		}
 
 		void PostUpdateElapsedTime()
@@ -426,7 +533,7 @@ namespace Comfy
 
 			case WM_DEVICECHANGE:
 			{
-				InternalCheckConnectedDevices();
+				CheckConnectedDevices();
 				return 0;
 			}
 
@@ -473,46 +580,50 @@ namespace Comfy
 				break;
 			}
 
-			return ::DefWindowProcA(Window.Handle, message, wParam, lParam);
+			return ::DefWindowProcW(Window.Handle, message, wParam, lParam);
 		}
 
 		static LRESULT StaticProcessWindowMessage(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
 		{
-			ApplicationHost* receiver = nullptr;
+			Impl* receiver = nullptr;
 
 			if (message == WM_NCCREATE)
 			{
 				LPCREATESTRUCT createStruct = reinterpret_cast<LPCREATESTRUCT>(lParam);
-				receiver = reinterpret_cast<ApplicationHost*>(createStruct->lpCreateParams);
+				receiver = reinterpret_cast<Impl*>(createStruct->lpCreateParams);
 
-				receiver->impl->Window.Handle = windowHandle;
-				::SetWindowLongPtrA(windowHandle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(receiver));
+				receiver->Window.Handle = windowHandle;
+				::SetWindowLongPtrW(windowHandle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(receiver));
 			}
 			else
 			{
-				receiver = reinterpret_cast<ApplicationHost*>(::GetWindowLongPtrA(windowHandle, GWLP_USERDATA));
+				receiver = reinterpret_cast<Impl*>(::GetWindowLongPtrA(windowHandle, GWLP_USERDATA));
 			}
 
 			if (receiver != nullptr)
-				return receiver->impl->ProcessWindowMessage(message, wParam, lParam);
+				return receiver->ProcessWindowMessage(message, wParam, lParam);
 
-			return ::DefWindowProcA(windowHandle, message, wParam, lParam);
+			return ::DefWindowProcW(windowHandle, message, wParam, lParam);
 		}
 	};
 
-	ApplicationHost::ApplicationHost() : impl(std::make_unique<Impl>())
+	ApplicationHost::ApplicationHost(const ConstructionParam& param) : impl(std::make_unique<Impl>(*this))
 	{
+		impl->Window.Title = param.WindowTitle;
+		if (!impl->Initialize())
+			impl->FailedToInitialize = true;
 	}
 
-	ApplicationHost::~ApplicationHost() = default;
-
-	bool ApplicationHost::Initialize()
+	ApplicationHost::~ApplicationHost()
 	{
-		return impl->Initialize();
+		impl->Dispose();
 	}
 
 	void ApplicationHost::EnterProgramLoop(const std::function<void()> updateFunction)
 	{
+		if (impl->FailedToInitialize)
+			return;
+
 		impl->EnterProgramLoop(updateFunction);
 	}
 
@@ -521,9 +632,17 @@ namespace Comfy
 		impl->Exit();
 	}
 
-	void ApplicationHost::Dispose()
+	std::string_view ApplicationHost::GetWindowTitle() const
 	{
-		impl->Dispose();
+		return impl->Window.Title;
+	}
+
+	void ApplicationHost::SetWindowTitle(std::string_view value)
+	{
+		impl->Window.Title = value;
+
+		if (impl->Window.Handle != nullptr)
+			::SetWindowTextW(impl->Window.Handle, UTF8::WideArg(value).c_str());
 	}
 
 	bool ApplicationHost::GetIsFullscreen() const
