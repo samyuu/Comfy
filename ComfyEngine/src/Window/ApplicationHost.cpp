@@ -128,10 +128,10 @@ namespace Comfy
 			MSG message = {};
 			while (Window.IsRunning && message.message != WM_QUIT)
 			{
-				if (::PeekMessageA(&message, NULL, 0, 0, PM_REMOVE))
+				if (::PeekMessageW(&message, NULL, 0, 0, PM_REMOVE))
 				{
 					::TranslateMessage(&message);
-					::DispatchMessageA(&message);
+					::DispatchMessageW(&message);
 					continue;
 				}
 
@@ -382,15 +382,20 @@ namespace Comfy
 			Gui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 			Gui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
-			ImGuiViewport* viewport = Gui::GetMainViewport();
+			const ImGuiViewport* viewport = Gui::GetMainViewport();
 			Gui::SetNextWindowPos(viewport->Pos);
 			Gui::SetNextWindowSize(viewport->Size);
 			Gui::SetNextWindowViewport(viewport->ID);
 
-			ImGuiWindowFlags dockspaceWindowFlags = ImGuiWindowFlags_NoDocking;
-			dockspaceWindowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-			dockspaceWindowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-			dockspaceWindowFlags |= ImGuiWindowFlags_NoBackground;
+			constexpr ImGuiWindowFlags dockspaceWindowFlags =
+				ImGuiWindowFlags_NoDocking |
+				ImGuiWindowFlags_NoTitleBar |
+				ImGuiWindowFlags_NoCollapse |
+				ImGuiWindowFlags_NoResize |
+				ImGuiWindowFlags_NoMove |
+				ImGuiWindowFlags_NoBringToFrontOnFocus |
+				ImGuiWindowFlags_NoNavFocus |
+				ImGuiWindowFlags_NoBackground;
 
 			Gui::Begin(Gui::GuiRenderer::MainDockSpaceID, nullptr, dockspaceWindowFlags);
 			Gui::DockSpace(Gui::GetID(Gui::GuiRenderer::MainDockSpaceID), vec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
@@ -404,23 +409,25 @@ namespace Comfy
 				Gui::SetNextWindowSize(viewport->Size);
 				Gui::SetNextWindowViewport(viewport->ID);
 
-				ImGuiWindowFlags fullscreenFlags = ImGuiWindowFlags_None;
-				fullscreenFlags |= ImGuiWindowFlags_NoDocking;
-				fullscreenFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-				fullscreenFlags |= ImGuiWindowFlags_NoNavFocus;
-				fullscreenFlags |= ImGuiWindowFlags_NoSavedSettings;
+				constexpr ImGuiWindowFlags fullscreenFlags =
+					ImGuiWindowFlags_NoDocking |
+					ImGuiWindowFlags_NoTitleBar |
+					ImGuiWindowFlags_NoCollapse |
+					ImGuiWindowFlags_NoResize |
+					ImGuiWindowFlags_NoMove |
+					ImGuiWindowFlags_NoNavFocus |
+					ImGuiWindowFlags_NoSavedSettings;
 			*/
 		}
 
 		void UserUpdateTick(const std::function<void()>& updateFunction)
 		{
-			Render::D3D11::D3D.SetViewport(Window.Size);
-			Render::D3D11::D3D.WindowRenderTarget->Bind();
-			Render::D3D11::D3D.WindowRenderTarget->Clear(Window.ClearColor);
 			GuiRenderer.BeginFrame();
 			{
 				GuiMainDockSpace();
 				updateFunction();
+				Render::D3D11::D3D.WindowRenderTarget->BindSetViewport();
+				Render::D3D11::D3D.WindowRenderTarget->Clear(Window.ClearColor);
 			}
 			GuiRenderer.EndFrame();
 			Render::D3D11::D3D.EndOfFrameClearStaleDeviceObjects();
