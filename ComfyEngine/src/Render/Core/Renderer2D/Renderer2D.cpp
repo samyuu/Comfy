@@ -52,9 +52,7 @@ namespace Comfy::Render
 		};
 
 	public:
-		bool DrawTextBorder = false;
-		bool BatchSprites = true;
-
+		static constexpr bool EnableSpriteBatching = true;
 		u32 DrawCallCount = 0;
 
 		D3D11::ShaderPair SpriteShader = { D3D11::Sprite_VS(), D3D11::Sprite_PS(), "Renderer2D::Sprite" };
@@ -163,29 +161,22 @@ namespace Comfy::Render
 		{
 			for (u16 i = 0; i < BatchItems.size(); i++)
 			{
-				bool first = i == 0;
-
+				const bool isFirst = (i == 0);
 				Detail::SpriteBatchItem* item = &BatchItems[i];
-				Detail::SpriteBatchItem* lastItem = first ? nullptr : &BatchItems[Batches.back().Index];
+				Detail::SpriteBatchItem* lastItem = isFirst ? nullptr : &BatchItems[Batches.back().Index];
 
-				constexpr vec2 sizeZero = vec2(0.0f);
-				bool newBatch = first ||
+				constexpr vec2 zeroSize = vec2(0.0f);
+				bool newBatch = isFirst ||
 					(item->BlendMode != lastItem->BlendMode) ||
+					(item->DrawTextBorder != lastItem->DrawTextBorder) ||
 					(item->Texture != lastItem->Texture) ||
-					(item->CheckerboardSize != sizeZero || lastItem->CheckerboardSize != sizeZero) ||
+					(item->CheckerboardSize != zeroSize || lastItem->CheckerboardSize != zeroSize) ||
 					(item->MaskTexture != nullptr);
 
-				if (!BatchSprites)
-					newBatch = true;
-
-				if (newBatch)
-				{
+				if (newBatch || !EnableSpriteBatching)
 					Batches.emplace_back(i, 1);
-				}
 				else
-				{
 					Batches.back().Count++;
-				}
 			}
 		}
 
@@ -207,7 +198,6 @@ namespace Comfy::Render
 			CameraConstantBuffer.UploadData();
 			CameraConstantBuffer.BindVertexShader();
 
-			SpriteConstantBuffer.Data.DrawTextBorder = DrawTextBorder;
 			SpriteConstantBuffer.BindPixelShader();
 
 			InternalCreateBatches();
@@ -221,8 +211,8 @@ namespace Comfy::Render
 				const Detail::SpriteBatch& batch = Batches[i];
 				const Detail::SpriteBatchItem& item = BatchItems[batch.Index];
 
-				const bool firstItem = i == 0;
-				if (firstItem || lastBlendMode != item.BlendMode)
+				const bool isFirstItem = (i == 0);
+				if (isFirstItem || lastBlendMode != item.BlendMode)
 				{
 					InternalSetBlendMode(item.BlendMode);
 					lastBlendMode = item.BlendMode;
@@ -237,6 +227,7 @@ namespace Comfy::Render
 				SpriteConstantBuffer.Data.Format = (item.Texture == nullptr) ? TextureFormat::Unknown : item.Texture->GetTextureFormat();
 				SpriteConstantBuffer.Data.MaskFormat = (item.MaskTexture == nullptr) ? TextureFormat::Unknown : item.MaskTexture->GetTextureFormat();
 				SpriteConstantBuffer.Data.BlendMode = item.BlendMode;
+				SpriteConstantBuffer.Data.DrawTextBorder = item.DrawTextBorder;
 				SpriteConstantBuffer.Data.DrawCheckerboard = item.CheckerboardSize != vec2(0.0f, 0.0f);
 				SpriteConstantBuffer.Data.CheckerboardSize = item.CheckerboardSize;
 
@@ -309,10 +300,10 @@ namespace Comfy::Render
 		{
 			Detail::SpriteBatchPair pair = InternalCheckFlushAddItem();
 
-			pair.Item->SetValues(
-				D3D11::GetTexture2D(command.Texture),
-				nullptr,
-				command.BlendMode);
+			pair.Item->Texture = D3D11::GetTexture2D(command.Texture);
+			pair.Item->MaskTexture = nullptr;
+			pair.Item->BlendMode = command.BlendMode;
+			pair.Item->DrawTextBorder = command.DrawTextBorder;
 
 			pair.Vertices->SetValues(
 				command.Position,
@@ -328,10 +319,10 @@ namespace Comfy::Render
 		{
 			Detail::SpriteBatchPair pair = InternalCheckFlushAddItem();
 
-			pair.Item->SetValues(
-				D3D11::GetTexture2D(command.Texture),
-				D3D11::GetTexture2D(commandMask.Texture),
-				command.BlendMode); // TODO: Or should this be commandMask.BlendMode (?)
+			pair.Item->Texture = D3D11::GetTexture2D(command.Texture);
+			pair.Item->MaskTexture = D3D11::GetTexture2D(commandMask.Texture);
+			pair.Item->BlendMode = command.BlendMode;
+			pair.Item->DrawTextBorder = command.DrawTextBorder;
 
 			pair.Vertices->SetValues(
 				commandMask.Position,

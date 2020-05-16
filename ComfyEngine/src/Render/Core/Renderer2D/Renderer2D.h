@@ -22,12 +22,14 @@ namespace Comfy::Render
 		vec2 Position = { 0.0f, 0.0f };
 		float Rotation = 0.0f;
 		vec2 Scale = { 1.0f, 1.0f };
-		vec4 SourceRegion = { 0.0f, 0.0f, 0.0f, 0.0f };
+		vec4 SourceRegion = { 0.0f, 0.0f, 1.0f, 1.0f };
 		Graphics::AetBlendMode BlendMode = Graphics::AetBlendMode::Normal;
+		
+		// NOTE: Top left, top right, bottom left, bottom right
 		std::array<vec4, 4> CornerColors = { vec4(1.0f), vec4(1.0f), vec4(1.0f), vec4(1.0f) };
 
 		// TODO: Extra flags, texture filter, wrap, etc.
-		// bool DrawTextBorder = false;
+		bool DrawTextBorder = false;
 	};
 
 	class Renderer2D : NonCopyable

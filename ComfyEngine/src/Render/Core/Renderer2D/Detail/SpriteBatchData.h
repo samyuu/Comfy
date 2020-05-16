@@ -60,9 +60,8 @@ namespace Comfy::Render::Detail
 		const D3D11::Texture2D* Texture;
 		const D3D11::Texture2D* MaskTexture;
 		Graphics::AetBlendMode BlendMode;
+		bool DrawTextBorder;
 		vec2 CheckerboardSize;
-
-		void SetValues(const D3D11::Texture2D* texture, const D3D11::Texture2D* alphaMask = nullptr, Graphics::AetBlendMode blendMode = Graphics::AetBlendMode::Normal);
 	};
 
 	struct SpriteBatchPair
