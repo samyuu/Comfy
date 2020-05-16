@@ -591,7 +591,9 @@ namespace Comfy::Render
 			for (size_t i = 0; i < ibl.Lights.size(); i++)
 				outData.IBL.LightColors[i] = vec4(ibl.Lights[i].LightColor, 1.0f);
 
-			const auto& camera = *Current.Camera;
+			auto& camera = *Current.Camera;
+			camera.UpdateMatrices();
+
 			outData.Scene.View = glm::transpose(camera.GetView());
 			outData.Scene.ViewProjection = glm::transpose(camera.GetViewProjection());
 			outData.Scene.EyePosition = vec4(camera.ViewPoint, 1.0f);
@@ -1738,8 +1740,8 @@ namespace Comfy::Render
 		void SubmitSubMeshDrawCall(const SubMesh& subMesh)
 		{
 			const size_t indexCount = subMesh.GetIndexCount();
-			
-			if (auto* indexBuffer = D3D11::GetIndexBuffer(subMesh); 
+
+			if (auto* indexBuffer = D3D11::GetIndexBuffer(subMesh);
 				indexBuffer != nullptr) indexBuffer->Bind();
 
 			D3D11::D3D.Context->IASetPrimitiveTopology(GetD3DPrimitiveTopolgy(subMesh.Primitive));
@@ -1825,6 +1827,10 @@ namespace Comfy::Render
 	Renderer3D::Renderer3D(TexGetter texGetter) : impl(std::make_unique<Impl>())
 	{
 		impl->TexGetter = texGetter;
+	}
+
+	Renderer3D::~Renderer3D()
+	{
 	}
 
 	void Renderer3D::Begin(PerspectiveCamera& camera, ViewportData3D& viewportData, const ViewportParam3D& viewportParam, const SceneParam3D& sceneParam)

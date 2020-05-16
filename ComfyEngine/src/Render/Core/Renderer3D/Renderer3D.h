@@ -214,12 +214,12 @@ namespace Comfy::Render
 	{
 	public:
 		Renderer3D(TexGetter texGetter);
-		~Renderer3D() = default;
+		~Renderer3D();
 
 	public:
 		void Begin(PerspectiveCamera& camera, ViewportData3D& viewportData, const ViewportParam3D& viewportParam, const SceneParam3D& sceneParam);
 		void Draw(const RenderCommand3D& command);
-		
+
 		// TODO: DrawRect(), DrawCircle(), DrawCylinder(), DrawLine(), DrawSpriteBillboard(), etc.
 
 		void End();

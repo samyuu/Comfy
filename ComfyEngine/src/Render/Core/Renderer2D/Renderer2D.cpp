@@ -96,7 +96,7 @@ namespace Comfy::Render
 		std::vector<Detail::SpriteBatchItem> BatchItems;
 		std::vector<Detail::SpriteVertices> Vertices;
 
-		const OrthographicCamera* OrthographicCamera = nullptr;
+		OrthographicCamera* OrthographicCamera = nullptr;
 
 	public:
 		Impl()
@@ -202,6 +202,7 @@ namespace Comfy::Render
 			InputLayout->Bind();
 			IndexBuffer->Bind();
 
+			OrthographicCamera->UpdateMatrices();
 			CameraConstantBuffer.Data.ViewProjection = glm::transpose(OrthographicCamera->GetViewProjection());
 			CameraConstantBuffer.UploadData();
 			CameraConstantBuffer.BindVertexShader();
@@ -359,7 +360,11 @@ namespace Comfy::Render
 	{
 	}
 
-	void Renderer2D::Begin(const OrthographicCamera& camera)
+	Renderer2D::~Renderer2D()
+	{
+	}
+
+	void Renderer2D::Begin(OrthographicCamera& camera)
 	{
 		assert(impl->OrthographicCamera == nullptr);
 

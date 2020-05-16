@@ -15,7 +15,9 @@ namespace Comfy::Render
 		// TODO: Constructors
 
 	public:
+		// NOTE: Can be null to draw a solid color rectangle instead
 		const Graphics::Tex* Texture = nullptr;
+
 		vec2 Origin = { 0.0f, 0.0f };
 		vec2 Position = { 0.0f, 0.0f };
 		float Rotation = 0.0f;
@@ -35,10 +37,10 @@ namespace Comfy::Render
 
 	public:
 		Renderer2D();
-		~Renderer2D() = default;
+		~Renderer2D();
 
 	public:
-		void Begin(const OrthographicCamera& camera);
+		void Begin(OrthographicCamera& camera);
 		void Draw(const RenderCommand2D& command);
 		void Draw(const RenderCommand2D& command, const RenderCommand2D& commandMask);
 
