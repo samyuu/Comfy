@@ -246,6 +246,9 @@
     <ClInclude Include="src\System\Profiling\Profiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Window\RenderWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Audio\Decoder\Detail\FlacDecoder.cpp">
@@ -396,6 +399,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\System\Profiling\Profiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Window\RenderWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Window\RenderWindow2D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Window\RenderWindow3D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

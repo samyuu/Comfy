@@ -228,6 +228,7 @@
     <ClInclude Include="src\System\ComfyData.h" />
     <ClInclude Include="src\System\Profiling\Profiler.h" />
     <ClInclude Include="src\Window\ApplicationHost.h" />
+    <ClInclude Include="src\Window\RenderWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Audio\Core\Engine.cpp" />
@@ -280,6 +281,9 @@
     <ClCompile Include="src\Render\D3D11\Texture\TextureSampler.cpp" />
     <ClCompile Include="src\System\Profiling\Profiler.cpp" />
     <ClCompile Include="src\Window\ApplicationHost.cpp" />
+    <ClCompile Include="src\Window\RenderWindow.cpp" />
+    <ClCompile Include="src\Window\RenderWindow2D.cpp" />
+    <ClCompile Include="src\Window\RenderWindow3D.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\ImGuiCustom_PS.hlsl">
