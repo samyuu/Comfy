@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/ScopeExitFunc.h"
+#include "Core/StartupFuncWrapper.h"
 #include <assert.h>
 
 #define COMFY_NODISCARD [[nodiscard]]
@@ -14,6 +15,9 @@
 
 // NOTE: Example: COMFY_SCOPE_EXIT([&] { DoCleanup(); });
 #define COMFY_SCOPE_EXIT(lambda) auto COMFY_UNIQUENAME(__SCOPE_EXIT) = ::Comfy::ScopeExitFunc(lambda)
+
+// NOTE: Example: COMFY_CALL_ON_STARTUP([] { StaticInit(); });
+#define COMFY_CALL_ON_STARTUP(lambda) static inline auto COMFY_UNIQUENAME(__STARTUP_FUNC) = ::Comfy::WrapStartupFunc(lambda)
 
 #if defined(COMFY_DEBUG)
 #define COMFY_DEBUG_ONLY(expression) expression

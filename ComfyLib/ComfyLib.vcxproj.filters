@@ -207,6 +207,9 @@
     <ClInclude Include="src\Graphics\Auth3D\Misc\DebugObj.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Core\StartupFuncWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp">
