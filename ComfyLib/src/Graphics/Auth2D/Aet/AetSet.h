@@ -64,7 +64,7 @@ namespace Comfy::Graphics::Aet
 	public:
 		u32 Color;
 		ivec2 Size;
-		frame_t FilesPerFrame;
+		f32 FilesPerFrame;
 		std::vector<VideoSource> Sources;
 
 	public:
@@ -431,6 +431,20 @@ namespace Comfy::Graphics::Aet
 		std::shared_ptr<const Layer> FindLayer(std::string_view name) const;
 
 		int FindLayerIndex(Composition& comp, std::string_view name) const;
+
+		template <typename Func>
+		void ForEachComp(Func func) 
+		{
+			std::for_each(Compositions.begin(), Compositions.end(), func);
+			func(RootComposition);
+		}
+
+		template <typename Func>
+		void ForEachComp(Func func) const
+		{
+			std::for_each(Compositions.begin(), Compositions.end(), func);
+			func(RootComposition);
+		}
 
 	public:
 		void UpdateParentPointers();

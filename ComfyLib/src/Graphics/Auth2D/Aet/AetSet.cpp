@@ -199,18 +199,13 @@ namespace Comfy::Graphics::Aet
 
 	void Scene::UpdateParentPointers()
 	{
-		const auto updateParentPointers = [this](Composition& comp)
+		ForEachComp([&](auto& comp)
 		{
-			comp.parentScene = this;
+			comp->parentScene = this;
 
-			for (auto& layer : comp.GetLayers())
-				layer->parentComposition = &comp;
-		};
-
-		for (auto& comp : Compositions)
-			updateParentPointers(*comp);
-
-		updateParentPointers(*RootComposition);
+			for (auto& layer : comp->GetLayers())
+				layer->parentComposition = comp.get();
+		});
 	}
 
 	void Scene::UpdateCompNamesAfterLayerItems()
@@ -238,10 +233,7 @@ namespace Comfy::Graphics::Aet
 	{
 		assert(RootComposition != nullptr);
 
-		for (auto& comp : Compositions)
-			LinkCompItems(*comp);
-
-		LinkCompItems(*RootComposition);
+		ForEachComp([&](auto& comp) { LinkCompItems(*comp); });
 	}
 
 	void Scene::LinkCompItems(Composition& comp)

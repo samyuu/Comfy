@@ -159,9 +159,6 @@
     <ClInclude Include="src\Graphics\GraphicTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Auth2D\Aet\AetMgr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Graphics\Auth2D\Aet\AetSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -208,6 +205,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\StartupFuncWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Auth2D\Aet\AetUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -293,9 +293,6 @@
     <ClCompile Include="src\Graphics\TexSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Auth2D\Aet\AetMgr.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\Auth2D\Aet\AetSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -330,6 +327,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Auth3D\Misc\DebugObj.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Auth2D\Aet\AetUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

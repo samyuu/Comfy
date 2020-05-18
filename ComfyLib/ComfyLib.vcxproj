@@ -16,7 +16,7 @@
     <ClInclude Include="src\Core\Algorithm.h" />
     <ClInclude Include="src\Core\ScopeExitFunc.h" />
     <ClInclude Include="src\Core\StartupFuncWrapper.h" />
-    <ClInclude Include="src\Graphics\Auth2D\Aet\AetMgr.h" />
+    <ClInclude Include="src\Graphics\Auth2D\Aet\AetUtil.h" />
     <ClInclude Include="src\Graphics\Auth2D\Aet\AetSet.h" />
     <ClInclude Include="src\Graphics\Auth2D\SprSet.h" />
     <ClInclude Include="src\Graphics\Auth2D\Transform2D.h" />
@@ -79,7 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp" />
-    <ClCompile Include="src\Graphics\Auth2D\Aet\AetMgr.cpp" />
+    <ClCompile Include="src\Graphics\Auth2D\Aet\AetUtil.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\Aet\AetSet.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\Aet\AetSetFile.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\SprSet.cpp" />
