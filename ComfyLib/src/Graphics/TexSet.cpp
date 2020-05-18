@@ -148,7 +148,7 @@ namespace Comfy::Graphics
 
 	std::unique_ptr<TexSet> TexSet::MakeUniqueReadParseUpload(std::string_view filePath, const ObjSet* objSet)
 	{
-		auto texSet = IO::File::LoadParse<TexSet>(filePath);
+		auto texSet = IO::File::LoadBufferParsable<TexSet>(filePath);
 		if (texSet != nullptr)
 		{
 			// texSet->UploadAll(nullptr);

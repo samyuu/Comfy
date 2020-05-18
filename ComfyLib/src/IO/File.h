@@ -29,7 +29,7 @@ namespace Comfy::IO
 		bool WriteAllText(std::string_view filePath, std::string_view text);
 
 		template <typename Readable>
-		COMFY_NODISCARD std::unique_ptr<Readable> Load(std::string_view filePath)
+		COMFY_NODISCARD std::unique_ptr<Readable> LoadStreamReadable(std::string_view filePath)
 		{
 			static_assert(std::is_base_of_v<IStreamReadable, Readable>);
 
@@ -47,7 +47,7 @@ namespace Comfy::IO
 		}
 
 		template <typename Parsable>
-		COMFY_NODISCARD std::unique_ptr<Parsable> LoadParse(std::string_view filePath)
+		COMFY_NODISCARD std::unique_ptr<Parsable> LoadBufferParsable(std::string_view filePath)
 		{
 			static_assert(std::is_base_of_v<IBufferParsable, Parsable>);
 
@@ -61,6 +61,17 @@ namespace Comfy::IO
 
 			result->Parse(fileContent.get(), fileSize);
 			return result;
+		}
+
+		template <typename Loadable>
+		COMFY_NODISCARD std::unique_ptr<Loadable> Load(std::string_view filePath)
+		{
+			if constexpr (std::is_base_of_v<IStreamReadable, Loadable>)
+				return LoadStreamReadable<Loadable>(filePath);
+			else if constexpr (std::is_base_of_v<IBufferParsable, Loadable>)
+				return LoadBufferParsable<Loadable>(filePath);
+			else
+				static_assert(false, "Unable to load class type");
 		}
 
 		template <typename Writable>
@@ -117,9 +128,9 @@ namespace Comfy::IO
 		COMFY_NODISCARD bool IsValidFolderFile(std::string_view basePath);
 
 		COMFY_NODISCARD MemoryStream OpenReadInternalFileMemory(std::string_view basePath, std::string_view internalFile);
-		
+
 		COMFY_NODISCARD std::pair<std::unique_ptr<u8[]>, size_t> ReadAllBytesInternalFileMemory(std::string_view basePath, std::string_view internalFile);
-		
+
 		COMFY_NODISCARD bool ReadAllBytesInternalFileMemory(std::string_view basePath, std::string_view internalFile, std::vector<u8>& outFileContent);
 
 		COMFY_NODISCARD std::vector<FileEntry> GetFileEntries(std::string_view basePath);
