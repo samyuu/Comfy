@@ -2,6 +2,7 @@
 #include "Graphics/TexSet.h"
 #include "Render/D3D11/Texture/RenderTarget.h"
 #include "Render/D3D11/Texture/Texture.h"
+#include "Render/D3D11/GraphicsResourceUtil.h"
 
 namespace Comfy
 {
@@ -14,7 +15,10 @@ namespace Comfy
 
 	ComfyTextureID::ComfyTextureID(const Tex& tex)
 	{
-		auto resourceView = tex.GetSignature() == TxpSig::Texture2D ? tex.GPU_Texture2D.get() : tex.GPU_CubeMap.get();
+		auto getResourceView = [&](auto* texture) { return (texture != nullptr) ? texture->GetResourceView() : nullptr; };
+		auto resourceView = (tex.GetSignature() == TxpSig::Texture2D) ?
+			getResourceView(Render::D3D11::GetTexture2D(tex)) :
+			getResourceView(Render::D3D11::GetCubeMap(tex));
 
 		Data.ResourceView = reinterpret_cast<u64>(resourceView);
 		Data.DecompressRGTC = tex.GetFormat() == TextureFormat::RGTC2;
