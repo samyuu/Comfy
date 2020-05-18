@@ -107,6 +107,13 @@
   <ItemGroup>
     <ClCompile Include="src\EntryPoint.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Tests\AetRendererTest.cpp" />
+    <ClCompile Include="src\Tests\AudioTest.cpp" />
+    <ClCompile Include="src\Tests\Renderer2DTest.cpp" />
+    <ClCompile Include="src\Tests\Renderer3DTest.cpp" />
+    <ClInclude Include="src\Tests\TestTask.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
