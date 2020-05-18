@@ -9,7 +9,7 @@ namespace Comfy::Sandbox::Tests
 
 		Renderer2DTest()
 		{
-			renderWindow.SetKeepAspectRatio(true);
+			// renderWindow.SetKeepAspectRatio(true);
 			testCommand.SourceRegion = vec4(0, 0, 2048, 2048);
 
 			renderWindow.OnRenderDebugFunc = [&]
@@ -41,7 +41,6 @@ namespace Comfy::Sandbox::Tests
 				if (Gui::Begin("RenderCommand2D Test"))
 				{
 					auto columns = GuiPropertyRAII::PropertyValueColumns();
-					GuiProperty::Input("Texture Index", textureIndex);
 					GuiProperty::Input("Origin", testCommand.Origin);
 					GuiProperty::Input("Position", testCommand.Position);
 					GuiProperty::Input("Rotation", testCommand.Rotation);
@@ -55,9 +54,37 @@ namespace Comfy::Sandbox::Tests
 				}
 				Gui::End();
 
+				if (Gui::Begin("Texture Selection") && sprSet != nullptr)
+				{
+					int texIndex = 0;
+					for (auto& tex : sprSet->TexSet->Textures)
+					{
+						if (Gui::Selectable(tex->GetName().data(), (texIndex == textureIndex)))
+							textureIndex = texIndex;
+
+						if (Gui::IsItemHovered())
+						{
+							Gui::BeginTooltip();
+
+							constexpr float targetSize = 512.0f;
+							const auto texSize = vec2(tex->GetSize());
+
+							const auto imageSize = (texSize.x > texSize.y) ?
+								vec2(targetSize, targetSize * (texSize.y / texSize.x)) :
+								vec2(targetSize * (texSize.x / texSize.y), targetSize);
+
+							Gui::Image(*tex, imageSize, Gui::UV0_R, Gui::UV1_R);
+							Gui::EndTooltip();
+						}
+
+						texIndex++;
+					}
+				}
+				Gui::End();
+
 				if (Gui::Begin("Test SprSet Loader"))
 				{
-					if (sprFileViewer.DrawGui() && IO::Path::GetExtension(sprFileViewer.GetFileToOpen()) == ".bin")
+					if (sprFileViewer.DrawGui() && IO::Path::GetExtension(IO::Path::GetFileName(sprFileViewer.GetFileToOpen())) == ".bin")
 						sprSet = IO::File::Load<Graphics::SprSet>(sprFileViewer.GetFileToOpen());
 				}
 				Gui::End();
