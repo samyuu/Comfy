@@ -21,6 +21,13 @@ namespace Comfy::Sandbox::Tests
 				Input::KeyCode_I, Input::KeyCode_J, Input::KeyCode_K, Input::KeyCode_L, })
 				if (Gui::IsKeyPressed(keyCode, false))
 					Audio::Engine::GetInstance().PlaySound(buttonSound, "TestSound");
+
+			if (Gui::Begin("Test Audio Control"))
+			{
+				if (Gui::Button("WASAPI")) Audio::Engine::GetInstance().SetAudioAPI(Audio::Engine::AudioAPI::WASAPI);
+				if (Gui::Button("ASIO")) Audio::Engine::GetInstance().SetAudioAPI(Audio::Engine::AudioAPI::ASIO);
+			}
+			Gui::End();
 		}
 
 	private:
