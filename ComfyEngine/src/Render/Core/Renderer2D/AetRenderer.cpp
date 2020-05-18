@@ -1,4 +1,5 @@
 #include "AetRenderer.h"
+#include "Renderer2D.h"
 #include "Misc/StringHelper.h"
 
 namespace Comfy::Render
@@ -106,12 +107,12 @@ namespace Comfy::Render
 			const auto maskCommand = RenderCommand2D(
 				maskTex,
 				maskObj.Transform.Origin,
-				maskObj.Transform.Position,
+				maskObj.Transform.Position + positionOffset,
 				maskObj.Transform.Rotation,
 				maskObj.Transform.Scale,
 				maskSpr->PixelRegion,
 				maskObj.BlendMode,
-				1.0f);
+				finalOpacity);
 
 			renderer2D.Draw(command, maskCommand);
 		}
@@ -227,5 +228,10 @@ namespace Comfy::Render
 			((video.Color >> (CHAR_BIT * 1)) & 0xFF) / 255.0f,
 			((video.Color >> (CHAR_BIT * 2)) & 0xFF) / 255.0f,
 			opacity);
+	}
+
+	const Graphics::Aet::Util::ObjCache& AetRenderer::GetLastObjCache() const
+	{
+		return objCache;
 	}
 }

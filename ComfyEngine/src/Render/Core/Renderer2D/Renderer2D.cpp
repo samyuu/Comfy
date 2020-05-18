@@ -52,6 +52,8 @@ namespace Comfy::Render
 		};
 
 	public:
+		AetRenderer AetRenderer;
+
 		static constexpr bool EnableSpriteBatching = true;
 		u32 DrawCallCount = 0;
 
@@ -97,7 +99,7 @@ namespace Comfy::Render
 		OrthographicCamera* OrthographicCamera = nullptr;
 
 	public:
-		Impl()
+		Impl(Renderer2D& parent) : AetRenderer(parent)
 		{
 			D3D11_SetObjectDebugName(CameraConstantBuffer.Buffer.GetBuffer(), "Renderer2D::CameraConstantBuffer");
 			D3D11_SetObjectDebugName(SpriteConstantBuffer.Buffer.GetBuffer(), "Renderer2D::SpriteConstantBuffer");
@@ -347,7 +349,7 @@ namespace Comfy::Render
 		}
 	};
 
-	Renderer2D::Renderer2D() : impl(std::make_unique<Impl>())
+	Renderer2D::Renderer2D() : impl(std::make_unique<Impl>(*this))
 	{
 	}
 
@@ -416,6 +418,11 @@ namespace Comfy::Render
 		command.CornerColors = { color, color, color, color };
 		impl->InternalDraw(command);
 		impl->BatchItems.back().CheckerboardSize = (size * scale * precision);
+	}
+
+	AetRenderer& Renderer2D::Aet()
+	{
+		return impl->AetRenderer;
 	}
 
 	void Renderer2D::End()

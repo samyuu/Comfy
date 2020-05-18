@@ -193,6 +193,7 @@
     <ClInclude Include="src\Input\Core\Keyboard.h" />
     <ClInclude Include="src\Input\Core\KeyCode.h" />
     <ClInclude Include="src\Render\Core\Camera.h" />
+    <ClInclude Include="src\Render\Core\Renderer2D\RenderCommand2D.h" />
     <ClInclude Include="src\Render\Core\Renderer2D\AetRenderer.h" />
     <ClInclude Include="src\Render\Core\Renderer2D\Renderer2D.h" />
     <ClInclude Include="src\Render\Core\Renderer3D\Renderer3D.h" />

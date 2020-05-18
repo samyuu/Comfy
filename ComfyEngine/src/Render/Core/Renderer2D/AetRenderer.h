@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "Renderer2D.h"
+#include "RenderCommand2D.h"
 #include "Graphics/Auth2D/Aet/AetUtil.h"
 #include "Graphics/Auth2D/SprSet.h"
 #include <functional>
@@ -22,11 +22,9 @@ namespace Comfy::Render
 
 	TexSpr NullSprGetter(const Graphics::Aet::VideoSource& source);
 
-	// TODO: Should this be combined into the Renderer2D (?)
-	//		 Considering the Renderer3D operates on ObjSet directly...
-	//		 but doesn't on A3D...
-
 	// TODO: AetCommand2D (?)
+
+	class Renderer2D;
 
 	class AetRenderer : NonCopyable
 	{
@@ -59,6 +57,9 @@ namespace Comfy::Render
 
 		vec4 GetSolidVideoColor(const Graphics::Aet::Video& video, float opacity = 1.0f);
 
+	public:
+		const Graphics::Aet::Util::ObjCache& GetLastObjCache() const;
+
 	private:
 		Renderer2D& renderer2D;
 
@@ -68,15 +69,4 @@ namespace Comfy::Render
 
 		Graphics::Aet::Util::ObjCache objCache;
 	};
-
-	// TODO: Maybe something along the lines of... instead (?)
-	//struct AetRenderContext
-	//{
-	//	std::vector<Graphics::Aet::Util::ObjCache> Cache;
-	//};
-
-	// TODO: Or a proper AetManager which also supports multiple layers
-	// class AetManager {};
-	// ... to transform Aet::Util::ObjCache into draw calls
-	// for convenience sake maybe Renderer2D should own its own AetManager (?)
 }
