@@ -1,214 +1,231 @@
 #include "AetRenderer.h"
 #include "Misc/StringHelper.h"
 
-namespace Comfy::Render::Aet
+namespace Comfy::Render
 {
-	AetRenderer::AetRenderer(GPU_Renderer2D* renderer) : renderer2D(renderer)
+	using namespace Graphics::Aet;
+
+	TexSpr SprSetNameStringSprGetter(const VideoSource& source, const Graphics::SprSet* sprSetToSearch)
 	{
+		if (sprSetToSearch == nullptr)
+			return { nullptr, nullptr };
+
+		if (source.SpriteCache != nullptr)
+			return { sprSetToSearch->TexSet->Textures[source.SpriteCache->TextureIndex].get(), source.SpriteCache };
+
+		// TEMP: Temporary solution, check for IDs in the future
+		auto matchingSpr = std::find_if(sprSetToSearch->Sprites.begin(), sprSetToSearch->Sprites.end(), [&](const auto& spr)
+		{
+			return EndsWith(source.Name, spr.Name);
+		});
+
+		if (matchingSpr != sprSetToSearch->Sprites.end())
+		{
+			source.SpriteCache = &(*matchingSpr);
+			return { sprSetToSearch->TexSet->Textures[source.SpriteCache->TextureIndex].get(), source.SpriteCache };
+		}
+
+		return { nullptr, nullptr };
 	}
 
-	GPU_Renderer2D* AetRenderer::GetRenderer2D()
+	TexSpr NullSprGetter(const VideoSource& source)
 	{
-		return renderer2D;
+		return { nullptr, nullptr };
 	}
 
-	void AetRenderer::SetRenderer2D(GPU_Renderer2D* value)
+	AetRenderer::AetRenderer(Renderer2D& renderer) : renderer2D(renderer)
 	{
-		renderer2D = value;
+		sprGetter = NullSprGetter;
 	}
 
-	SpriteGetterFunction* AetRenderer::GetSpriteGetterFunction()
+	void AetRenderer::DrawObj(const Util::Obj& obj, vec2 positionOffset, float opacity)
 	{
-		return spriteGetter;
+		if (obj.Video == nullptr || !obj.IsVisible)
+			return;
+
+		if (objCallback && objCallback(obj, positionOffset, opacity))
+			return;
+
+		auto[tex, spr] = GetSprite(obj.Video, obj.SpriteFrame);
+		const auto finalPosition = obj.Transform.Position + positionOffset;
+		const auto finalOpacity = obj.Transform.Opacity * opacity;
+
+		if (tex != nullptr && spr != nullptr)
+		{
+			const auto command = RenderCommand2D(
+				tex,
+				obj.Transform.Origin,
+				finalPosition,
+				obj.Transform.Rotation,
+				obj.Transform.Scale,
+				spr->PixelRegion,
+				obj.BlendMode,
+				finalOpacity);
+
+			renderer2D.Draw(command);
+		}
+		else
+		{
+			auto command = RenderCommand2D();
+			command.Origin = obj.Transform.Origin;
+			command.Position = finalPosition;
+			command.Rotation = obj.Transform.Rotation;
+			command.Scale = obj.Transform.Scale * vec2(obj.Video->Size);
+			command.BlendMode = obj.BlendMode;
+			command.SetColor(GetSolidVideoColor(*obj.Video, finalOpacity));
+
+			renderer2D.Draw(command);
+		}
 	}
 
-	void AetRenderer::SetSpriteGetterFunction(SpriteGetterFunction* value)
+	void AetRenderer::DrawObjMask(const Util::Obj& maskObj, const Util::Obj& obj, vec2 positionOffset, float opacity)
 	{
-		spriteGetter = value;
+		if (maskObj.Video == nullptr || obj.Video == nullptr || !obj.IsVisible)
+			return;
+
+		if (objMaskCallback && objMaskCallback(maskObj, obj, positionOffset, opacity))
+			return;
+
+		auto[maskTex, maskSpr] = GetSprite(maskObj.Video, maskObj.SpriteFrame);
+		auto[tex, spr] = GetSprite(obj.Video, obj.SpriteFrame);
+
+		const auto finalOpacity = maskObj.Transform.Opacity * obj.Transform.Opacity * opacity;
+
+		if (maskTex != nullptr && maskSpr != nullptr && tex != nullptr && spr != nullptr)
+		{
+			const auto command = RenderCommand2D(
+				tex,
+				obj.Transform.Origin,
+				obj.Transform.Position + positionOffset,
+				obj.Transform.Rotation,
+				obj.Transform.Scale,
+				spr->PixelRegion,
+				obj.BlendMode,
+				finalOpacity);
+
+			const auto maskCommand = RenderCommand2D(
+				maskTex,
+				maskObj.Transform.Origin,
+				maskObj.Transform.Position,
+				maskObj.Transform.Rotation,
+				maskObj.Transform.Scale,
+				maskSpr->PixelRegion,
+				maskObj.BlendMode,
+				1.0f);
+
+			renderer2D.Draw(command, maskCommand);
+		}
+		else
+		{
+			auto command = RenderCommand2D();
+			command.Origin = obj.Transform.Origin;
+			command.Position = obj.Transform.Position + positionOffset;
+			command.Rotation = obj.Transform.Rotation;
+			command.Scale = obj.Transform.Scale * vec2(obj.Video->Size);
+			command.BlendMode = obj.BlendMode;
+			command.SetColor(GetSolidVideoColor(*obj.Video, finalOpacity));
+
+			renderer2D.Draw(command);
+		}
 	}
 
-	void AetRenderer::SetCallback(const AetObjCallbackFunction& value)
+	void AetRenderer::DrawObjCache(const Util::ObjCache& objCache, vec2 position, float opacity)
+	{
+		for (size_t i = 0; i < objCache.size(); i++)
+		{
+			const auto& obj = objCache[i];
+			if (obj.UseTrackMatte && InBounds(i + 1, objCache))
+				DrawObjMask(objCache[++i], obj, position, opacity);
+			else
+				DrawObj(obj, position, opacity);
+		}
+	}
+
+	void AetRenderer::DrawLayer(const Layer& layer, frame_t frame, vec2 position, float opacity)
+	{
+		objCache.clear();
+		Util::GetAddObjectsAt(objCache, layer, frame);
+
+		DrawObjCache(objCache, position, opacity);
+	}
+
+	void AetRenderer::DrawLayerLooped(const Layer& layer, frame_t frame, vec2 position, float opacity)
+	{
+		DrawLayer(layer, glm::mod(frame, layer.EndFrame - 1.0f), position, opacity);
+	}
+
+	void AetRenderer::DrawLayerClamped(const Layer& layer, frame_t frame, vec2 position, float opacity)
+	{
+		DrawLayer(layer, (frame >= layer.EndFrame ? layer.EndFrame : frame), position, opacity);
+	}
+
+	void AetRenderer::DrawVideo(const Video& video, i32 frameIndex, vec2 position)
+	{
+		auto[tex, spr] = GetSprite(video, frameIndex);
+		if (tex != nullptr && spr != nullptr)
+		{
+			RenderCommand2D command;
+			command.Texture = tex;
+			command.Position = position;
+			command.SourceRegion = spr->PixelRegion;
+			renderer2D.Draw(command);
+		}
+		else
+		{
+			RenderCommand2D command;
+			command.Position = position;
+			command.Scale = vec2(video.Size);
+			command.SetColor(GetSolidVideoColor(video));
+			renderer2D.Draw(command);
+		}
+	}
+
+	void AetRenderer::SetSprGetter(SprGetter value)
+	{
+		sprGetter = value;
+	}
+
+	void AetRenderer::SetObjCallback(AetObjCallback value)
 	{
 		objCallback = value;
 	}
 
-	void AetRenderer::SetMaskCallback(const AetObjMaskCallbackFunction& value)
+	void AetRenderer::SetObjMaskCallback(AetObjMaskCallback value)
 	{
 		objMaskCallback = value;
 	}
 
-	void AetRenderer::RenderObjCache(const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)
+	TexSpr AetRenderer::GetSprite(const VideoSource& source) const
 	{
-		if (obj.Video == nullptr || !obj.Visible)
-			return;
-
-		if (objCallback.has_value() && objCallback.value()(obj, positionOffset, opacity))
-			return;
-
-		const Tex* tex;
-		const Spr* spr;
-		const bool validSprite = GetSprite(obj.Video->GetSource(obj.SpriteIndex), &tex, &spr);
-
-		const vec2 finalPosition = obj.Transform.Position + positionOffset;
-		const float finalOpacity = obj.Transform.Opacity * opacity;
-
-		if (validSprite)
-		{
-			renderer2D->Draw(
-				tex->GPU_Texture2D.get(),
-				spr->PixelRegion,
-				finalPosition,
-				obj.Transform.Origin,
-				obj.Transform.Rotation,
-				obj.Transform.Scale,
-				vec4(1.0f, 1.0f, 1.0f, finalOpacity),
-				obj.BlendMode);
-		}
-		else
-		{
-			// TODO: Only render optionally
-			renderer2D->Draw(
-				nullptr,
-				vec4(0.0f, 0.0f, obj.Video->Size),
-				finalPosition,
-				obj.Transform.Origin,
-				obj.Transform.Rotation,
-				obj.Transform.Scale,
-				vec4(DummyColor.r, DummyColor.g, DummyColor.b, DummyColor.a * finalOpacity),
-				obj.BlendMode);
-		}
+		return sprGetter(source);
 	}
 
-	void AetRenderer::RenderObjCacheMask(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)
+	TexSpr AetRenderer::GetSprite(const Graphics::Aet::VideoSource* source) const
 	{
-		if (maskObj.Video == nullptr || obj.Video == nullptr || !obj.Visible)
-			return;
-
-		if (objMaskCallback.has_value() && objMaskCallback.value()(maskObj, obj, positionOffset, opacity))
-			return;
-
-		const Tex* maskTex;
-		const Spr* maskSpr;
-		const bool validMaskSprite = GetSprite(maskObj.Video->GetSource(maskObj.SpriteIndex), &maskTex, &maskSpr);
-
-		const Tex* tex;
-		const Spr* spr;
-		const bool validSprite = GetSprite(obj.Video->GetSource(obj.SpriteIndex), &tex, &spr);
-
-		if (validMaskSprite && validSprite)
-		{
-			renderer2D->Draw(
-				maskTex->GPU_Texture2D.get(),
-				maskSpr->PixelRegion,
-				maskObj.Transform.Position,
-				maskObj.Transform.Origin,
-				maskObj.Transform.Rotation,
-				maskObj.Transform.Scale,
-				tex->GPU_Texture2D.get(),
-				spr->PixelRegion,
-				obj.Transform.Position + positionOffset,
-				obj.Transform.Origin,
-				obj.Transform.Rotation,
-				obj.Transform.Scale,
-				vec4(1.0f, 1.0f, 1.0f, maskObj.Transform.Opacity * obj.Transform.Opacity * opacity),
-				maskObj.BlendMode);
-		}
-		else
-		{
-			renderer2D->Draw(
-				nullptr,
-				vec4(0.0f, 0.0f, obj.Video->Size),
-				obj.Transform.Position + positionOffset,
-				obj.Transform.Origin,
-				obj.Transform.Rotation,
-				obj.Transform.Scale,
-				vec4(DummyColor.r, DummyColor.g, DummyColor.b, DummyColor.a * maskObj.Transform.Opacity * obj.Transform.Opacity * opacity),
-				maskObj.BlendMode);
-		}
+		return (source != nullptr) ? GetSprite(*source) : TexSpr { nullptr, nullptr };
 	}
 
-	void AetRenderer::RenderObjCacheVector(const std::vector<AetMgr::ObjCache>& objectCache, const vec2& position, float opacity)
+	TexSpr AetRenderer::GetSprite(const Graphics::Aet::Video& video, i32 frameIndex) const
 	{
-		bool singleObject = objectCache.size() == 1;
-
-		for (size_t i = 0; i < objectCache.size(); i++)
-		{
-			const AetMgr::ObjCache& obj = objectCache[i];
-
-			if (obj.UseTextureMask && !singleObject && (i + 1 < objectCache.size()))
-			{
-				RenderObjCacheMask(objectCache[i + 1], obj, position, opacity);
-				i++;
-			}
-			else
-			{
-				RenderObjCache(obj, position, opacity);
-			}
-		}
+		return InBounds(frameIndex, video.Sources) ? GetSprite(video.Sources[frameIndex]) : TexSpr { nullptr, nullptr };
 	}
 
-	void AetRenderer::RenderLayer(const Layer* layer, float frame, const vec2& position, float opacity)
+	TexSpr AetRenderer::GetSprite(const Graphics::Aet::Video* video, i32 frameIndex) const
 	{
-		objectCache.clear();
-
-		AetMgr::GetAddObjects(objectCache, layer, frame);
-		RenderObjCacheVector(objectCache, position, opacity);
+		return (video != nullptr) ? GetSprite(*video, frameIndex) : TexSpr { nullptr, nullptr };
 	}
 
-	void AetRenderer::RenderLayerLooped(const Layer* layer, float frame, const vec2& position, float opacity)
+	vec4 AetRenderer::GetSolidVideoColor(const Graphics::Aet::Video& video, float opacity)
 	{
-		RenderLayer(layer, fmod(frame, layer->EndFrame - 1.0f), position, opacity);
-	}
+		static constexpr vec4 dummyColor = vec4(0.79f, 0.90f, 0.57f, 0.50f);
 
-	void AetRenderer::RenderLayerClamped(const Layer* layer, float frame, const vec2& position, float opacity)
-	{
-		RenderLayer(layer, (frame >= layer->EndFrame ? layer->EndFrame : frame), position, opacity);
-	}
+		if (true)
+			return vec4(dummyColor.r, dummyColor.g, dummyColor.b, dummyColor.a * opacity);
 
-	void AetRenderer::RenderAetSprite(const Video* video, const VideoSource* source, const vec2& position)
-	{
-		const Tex* texture;
-		const Spr* sprite;
-
-		if (video->Sources.size() < 1 || !GetSprite(source, &texture, &sprite))
-		{
-			renderer2D->Draw(nullptr, vec4(0.0f, 0.0f, video->Size), vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), AetRenderer::DummyColor);
-		}
-		else
-		{
-			renderer2D->Draw(texture->GPU_Texture2D.get(), sprite->PixelRegion, vec2(0.0f), vec2(0.0f), 0.0f, vec2(1.0f), vec4(1.0f));
-		}
-	}
-
-	bool AetRenderer::SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const VideoSource* source, const Tex** outTex, const Spr** outSpr)
-	{
-		if (source == nullptr)
-			return false;
-
-		if (source->SpriteCache != nullptr)
-		{
-		from_sprite_cache:
-			*outTex = sprSet->TexSet->Textures[source->SpriteCache->TextureIndex].get();
-			*outSpr = source->SpriteCache;
-			return true;
-		}
-
-		for (auto& sprite : sprSet->Sprites)
-		{
-			if (EndsWith(source->Name, sprite.Name))
-			{
-				// TEMP: Temporary solution, check for IDs in the future
-				source->SpriteCache = &sprite;
-				goto from_sprite_cache;
-			}
-		}
-
-		return false;
-	}
-
-	bool AetRenderer::GetSprite(const VideoSource* source, const Tex** outTex, const Spr** outSpr)
-	{
-		assert(spriteGetter != nullptr);
-		return (*spriteGetter)(source, outTex, outSpr);
+		return vec4(
+			((video.Color >> (CHAR_BIT * 0)) & 0xFF) / 255.0f,
+			((video.Color >> (CHAR_BIT * 1)) & 0xFF) / 255.0f,
+			((video.Color >> (CHAR_BIT * 2)) & 0xFF) / 255.0f,
+			opacity);
 	}
 }

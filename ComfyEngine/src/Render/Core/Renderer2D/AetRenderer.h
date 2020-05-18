@@ -1,60 +1,82 @@
 #pragma once
-#include "AetMgr.h"
+#include "Types.h"
+#include "Renderer2D.h"
+#include "Graphics/Auth2D/Aet/AetUtil.h"
 #include "Graphics/Auth2D/SprSet.h"
-#include "Graphics/GPU/GPURenderers.h"
 #include <functional>
-#include <optional>
 
-namespace Comfy::Render::Aet
+namespace Comfy::Render
 {
-	using SpriteGetterFunction = std::function<bool(const VideoSource* source, const Tex** outTex, const Spr** outSpr)>;
+	struct TexSpr
+	{
+		const Graphics::Tex* Tex;
+		const Graphics::Spr* Spr;
+	};
 
-	using AetObjCallbackFunction = std::function<bool(const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)>;
-	using AetObjMaskCallbackFunction = std::function<bool(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)>;
+	using SprGetter = std::function<TexSpr(const Graphics::Aet::VideoSource& source)>;
+
+	using AetObjCallback = std::function<bool(const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity)>;
+	using AetObjMaskCallback = std::function<bool(const Graphics::Aet::Util::Obj& maskObj, const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity)>;
+
+	TexSpr SprSetNameStringSprGetter(const Graphics::Aet::VideoSource& source, const Graphics::SprSet* sprSetToSearch);
+
+	TexSpr NullSprGetter(const Graphics::Aet::VideoSource& source);
 
 	// TODO: Should this be combined into the Renderer2D (?)
-	class AetRenderer
+	//		 Considering the Renderer3D operates on ObjSet directly...
+	//		 but doesn't on A3D...
+
+	// TODO: AetCommand2D (?)
+
+	class AetRenderer : NonCopyable
 	{
 	public:
-		AetRenderer(GPU_Renderer2D* renderer);
+		AetRenderer(Renderer2D& renderer);
 		~AetRenderer() = default;
 
+		// NOTE: All of these are only valid between a Rendere2D Being() and End() block
 	public:
-		GPU_Renderer2D* GetRenderer2D();
-		void SetRenderer2D(GPU_Renderer2D* value);
-		
-		SpriteGetterFunction* GetSpriteGetterFunction();
-		void SetSpriteGetterFunction(SpriteGetterFunction* value);
-		
-		void SetCallback(const AetObjCallbackFunction& value);
-		void SetMaskCallback(const AetObjMaskCallbackFunction& value);
+		void DrawObj(const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity = 1.0f);
+		void DrawObjMask(const Graphics::Aet::Util::Obj& maskObj, const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity = 1.0f);
+		void DrawObjCache(const Graphics::Aet::Util::ObjCache& objCache, vec2 position = vec2(0.0f, 0.0f), float opacity = 1.0f);
 
-	public:
-		static constexpr vec4 DummyColor = vec4(0.79f, 0.90f, 0.57f, 0.50f);
+		void DrawLayer(const Graphics::Aet::Layer& layer, frame_t frame, vec2 position = vec2(0.0f, 0.0f), float opacity = 1.0f);
+		void DrawLayerLooped(const Graphics::Aet::Layer& layer, frame_t frame, vec2 position = vec2(0.0f, 0.0f), float opacity = 1.0f);
+		void DrawLayerClamped(const Graphics::Aet::Layer& layer, frame_t frame, vec2 position = vec2(0.0f, 0.0f), float opacity = 1.0f);
 
-		void RenderObjCache(const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity = 1.0f);
-		void RenderObjCacheMask(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity = 1.0f);
-		
-		void RenderObjCacheVector(const std::vector<AetMgr::ObjCache>& objectCache, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
-
-		void RenderLayer(const Layer* layer, float frame, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
-		void RenderLayerLooped(const Layer* layer, float frame, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
-		void RenderLayerClamped(const Layer* layer, float frame, const vec2& position = vec2(0.0f, 0.0f), float opacity = 1.0f);
-	
-		void RenderAetSprite(const Video* video, const VideoSource* source, const vec2& position);
-
-		static bool SpriteNameSprSetSpriteGetter(const SprSet* sprSet, const VideoSource* source, const Tex** outTex, const Spr** outSpr);
+		void DrawVideo(const Graphics::Aet::Video& video, i32 frameIndex, vec2 position);
 
 	public:
-		bool GetSprite(const VideoSource* source, const Tex** outTex, const Spr** outSpr);
+		void SetSprGetter(SprGetter value);
+		void SetObjCallback(AetObjCallback value);
+		void SetObjMaskCallback(AetObjMaskCallback value);
+
+		TexSpr GetSprite(const Graphics::Aet::VideoSource& source) const;
+		TexSpr GetSprite(const Graphics::Aet::VideoSource* source) const;
+
+		TexSpr GetSprite(const Graphics::Aet::Video& video, i32 frameIndex) const;
+		TexSpr GetSprite(const Graphics::Aet::Video* video, i32 frameIndex) const;
+
+		vec4 GetSolidVideoColor(const Graphics::Aet::Video& video, float opacity = 1.0f);
 
 	private:
-		GPU_Renderer2D* renderer2D = nullptr;
-		SpriteGetterFunction* spriteGetter = nullptr;
+		Renderer2D& renderer2D;
 
-		std::optional<AetObjCallbackFunction> objCallback;
-		std::optional<AetObjMaskCallbackFunction> objMaskCallback;
+		SprGetter sprGetter;
+		AetObjCallback objCallback;
+		AetObjMaskCallback objMaskCallback;
 
-		std::vector<AetMgr::ObjCache> objectCache;
+		Graphics::Aet::Util::ObjCache objCache;
 	};
+
+	// TODO: Maybe something along the lines of... instead (?)
+	//struct AetRenderContext
+	//{
+	//	std::vector<Graphics::Aet::Util::ObjCache> Cache;
+	//};
+
+	// TODO: Or a proper AetManager which also supports multiple layers
+	// class AetManager {};
+	// ... to transform Aet::Util::ObjCache into draw calls
+	// for convenience sake maybe Renderer2D should own its own AetManager (?)
 }

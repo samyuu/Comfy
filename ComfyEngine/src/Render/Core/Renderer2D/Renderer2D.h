@@ -11,8 +11,21 @@ namespace Comfy::Render
 	struct RenderCommand2D
 	{
 	public:
+		// TODO: Various constructors
 		RenderCommand2D() = default;
-		// TODO: Constructors
+
+		RenderCommand2D(const Graphics::Tex* texture, vec2 origin, vec2 position, float rotation, vec2 scale, vec4 sourceRegion, Graphics::AetBlendMode blendMode, float opacity)
+			: Texture(texture), Origin(origin), Position(position), Rotation(rotation), Scale(scale), SourceRegion(sourceRegion), BlendMode(blendMode)
+		{
+			for (auto& color : CornerColors)
+				color.a = opacity;
+		}
+
+		void SetColor(const vec4& newColor)
+		{
+			for (auto& color : CornerColors)
+				color = newColor;
+		}
 
 	public:
 		// NOTE: Can be null to draw a solid color rectangle instead
@@ -24,11 +37,11 @@ namespace Comfy::Render
 		vec2 Scale = { 1.0f, 1.0f };
 		vec4 SourceRegion = { 0.0f, 0.0f, 1.0f, 1.0f };
 		Graphics::AetBlendMode BlendMode = Graphics::AetBlendMode::Normal;
-		
+
 		// NOTE: Top left, top right, bottom left, bottom right
 		std::array<vec4, 4> CornerColors = { vec4(1.0f), vec4(1.0f), vec4(1.0f), vec4(1.0f) };
 
-		// TODO: Extra flags, texture filter, wrap, etc.
+		// TODO: Extra flags, texture filter, wrap (problematic with atlases), etc.
 		bool DrawTextBorder = false;
 	};
 
@@ -46,24 +59,6 @@ namespace Comfy::Render
 		void Draw(const RenderCommand2D& command);
 		void Draw(const RenderCommand2D& command, const RenderCommand2D& commandMask);
 
-		/*
-		void Draw(vec2 position, vec2 size, vec4 color);
-		void Draw(vec2 position, vec2 size, const vec4 colors[4]);
-		void Draw(vec2 position, vec2 size, vec2 origin, float rotation, vec2 scale, vec4 color);
-
-		void Draw(const Texture2D* texture, vec2 position, vec4 color);
-		void Draw(const Texture2D* texture, vec4 sourceRegion, vec2 position, vec4 color);
-
-		void Draw(const Texture2D* texture, vec2 position, vec2 origin, float rotation, vec4 color);
-		void Draw(const Texture2D* texture, vec4 sourceRegion, vec2 position, vec2 origin, float rotation, vec2 scale, vec4 color, AetBlendMode blendMode = AetBlendMode::Normal);
-
-		void Draw(
-			const Texture2D* maskTexture, vec4 maskSourceRegion, vec2 maskPosition, vec2 maskOrigin, float maskRotation, vec2 maskScale,
-			const Texture2D* texture, vec4 sourceRegion, vec2 position, vec2 origin, float rotation, vec2 scale, vec4 color,
-			AetBlendMode blendMode);
-		*/
-
-		// TODO:
 		void DrawLine(vec2 start, vec2 end, const vec4& color, float thickness = 1.0f);
 		void DrawLine(vec2 start, float angle, float length, const vec4& color, float thickness = 1.0f);
 
