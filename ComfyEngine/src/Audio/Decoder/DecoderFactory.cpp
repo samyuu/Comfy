@@ -34,8 +34,7 @@ namespace Comfy::Audio
 			return nullptr;
 		}
 
-		const auto[basePath, internalFile] = IO::FolderFile::ParsePath(filePath);
-		const auto extension = IO::Path::GetExtension(basePath);
+		const auto extension = IO::Path::GetExtension(filePath);
 
 		for (auto& decoder : availableDecoders)
 		{

@@ -124,10 +124,10 @@ namespace Comfy::Debug
 		const auto setName = std::string(fileName.substr(0, fileName.length() - strlen("_obj")));
 		const auto texName = setName + "_tex";
 
-		if (const auto[basePath, internalFile] = IO::FolderFile::ParsePath(objSetPath); !internalFile.empty())
+		if (const auto archivePath = IO::FolderFile::ParsePath(objSetPath); !archivePath.FileName.empty())
 		{
-			const auto texFarcName = IO::Path::GetFileName(basePath);
-			const auto texFarcPath = IO::Path::Combine(IO::Path::GetDirectoryName(basePath), texFarcName);
+			const auto texFarcName = IO::Path::GetFileName(archivePath.BasePath);
+			const auto texFarcPath = IO::Path::Combine(IO::Path::GetDirectoryName(archivePath.BasePath), texFarcName);
 			return IO::FolderFile::CombinePath(texFarcPath, IO::Path::ChangeExtension(texName, ".bin"));
 		}
 		else

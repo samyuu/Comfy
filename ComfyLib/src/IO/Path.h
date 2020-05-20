@@ -15,10 +15,18 @@ namespace Comfy::IO
 		constexpr std::array InvalidFileNameCharacters = { '\"', '<', '>', '|', ':', '*', '?', '\\', '/', '\0', };
 
 		// NOTE: Includes extension '.' character
-		COMFY_NODISCARD constexpr std::string_view GetExtension(std::string_view filePath)
+		COMFY_NODISCARD constexpr std::string_view GetExtensionBase(std::string_view filePath)
 		{
 			const auto lastIndex = filePath.find_last_of('.');
 			return (lastIndex == std::string_view::npos) ? "" : filePath.substr(lastIndex);
+		}
+
+		COMFY_NODISCARD constexpr std::string_view GetExtension(std::string_view filePath)
+		{
+			if (const auto archivePath = Archive::ParsePath(filePath); !archivePath.FileName.empty())
+				return GetExtensionBase(archivePath.FileName);
+
+			return GetExtensionBase(filePath);
 		}
 
 		COMFY_NODISCARD constexpr std::string_view TrimExtension(std::string_view filePath)
@@ -42,8 +50,8 @@ namespace Comfy::IO
 
 		COMFY_NODISCARD constexpr std::string_view GetFileName(std::string_view filePath, bool includeExtension = true)
 		{
-			if (const auto internalFile = FolderFile::ParsePath(filePath).second; !internalFile.empty())
-				return (includeExtension) ? internalFile : TrimExtension(internalFile);
+			if (const auto archivePath = Archive::ParsePath(filePath); !archivePath.FileName.empty())
+				return (includeExtension) ? archivePath.FileName : TrimExtension(archivePath.FileName);
 
 			const auto lastIndex = filePath.find_last_of(DirectorySeparators);
 			const auto fileName = (lastIndex == std::string_view::npos) ? filePath : filePath.substr(lastIndex + 1);
@@ -52,8 +60,8 @@ namespace Comfy::IO
 
 		COMFY_NODISCARD constexpr std::string_view GetDirectoryName(std::string_view filePath)
 		{
-			if (const auto parsed = FolderFile::ParsePath(filePath); !parsed.second.empty())
-				filePath = parsed.first;
+			if (const auto archivePath = Archive::ParsePath(filePath); !archivePath.FileName.empty())
+				filePath = archivePath.BasePath;
 
 			const auto fileName = GetFileName(filePath);
 			return fileName.empty() ? filePath : filePath.substr(0, filePath.size() - fileName.size() - 1);

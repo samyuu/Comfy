@@ -10,9 +10,9 @@ namespace Comfy::IO
 	{
 		bool Exists(std::string_view filePath)
 		{
-			const auto[basePath, internalFile] = FolderFile::ParsePath(filePath);
+			const auto archivePath = Archive::ParsePath(filePath);
 
-			const auto attributes = ::GetFileAttributesW(UTF8::WideArg(basePath).c_str());
+			const auto attributes = ::GetFileAttributesW(UTF8::WideArg(archivePath.BasePath).c_str());
 			return (attributes != INVALID_FILE_ATTRIBUTES && !(attributes & FILE_ATTRIBUTE_DIRECTORY));
 		}
 
@@ -25,8 +25,8 @@ namespace Comfy::IO
 
 		MemoryStream OpenReadMemory(std::string_view filePath)
 		{
-			if (const auto[basePath, internalFile] = FolderFile::ParsePath(filePath); !internalFile.empty())
-				return FolderFile::OpenReadInternalFileMemory(basePath, internalFile);
+			if (const auto archivePath = Archive::ParsePath(filePath); !archivePath.FileName.empty())
+				return Archive::Detail::ToMemoryStream(archivePath.BasePath, archivePath.FileName);
 
 			FileStream fileStream = OpenRead(filePath);
 			if (!fileStream.IsOpen() || !fileStream.CanRead())
@@ -46,8 +46,8 @@ namespace Comfy::IO
 
 		std::pair<std::unique_ptr<u8[]>, size_t> ReadAllBytes(std::string_view filePath)
 		{
-			if (const auto[basePath, internalFile] = FolderFile::ParsePath(filePath); !internalFile.empty())
-				return FolderFile::ReadAllBytesInternalFileMemory(basePath, internalFile);
+			if (const auto archivePath = Archive::ParsePath(filePath); !archivePath.FileName.empty())
+				return Archive::Detail::ReadAllBytes(archivePath.BasePath, archivePath.FileName);
 
 			std::pair<std::unique_ptr<u8[]>, size_t> result = {};
 			auto&[fileContent, fileSize] = result;
@@ -68,8 +68,8 @@ namespace Comfy::IO
 
 		bool ReadAllBytes(std::string_view filePath, std::vector<u8>& outFileContent)
 		{
-			if (const auto[basePath, internalFile] = FolderFile::ParsePath(filePath); !internalFile.empty())
-				return FolderFile::ReadAllBytesInternalFileMemory(basePath, internalFile, outFileContent);
+			if (const auto archivePath = Archive::ParsePath(filePath); !archivePath.FileName.empty())
+				return Archive::Detail::ReadAllBytes(archivePath.BasePath, archivePath.FileName, outFileContent);
 
 			auto fileStream = OpenRead(filePath);
 			if (!fileStream.IsOpen() || !fileStream.CanRead())
@@ -108,96 +108,126 @@ namespace Comfy::IO
 		}
 	}
 
-	namespace FolderFile
+	namespace Archive
 	{
-		std::string CombinePath(std::string_view basePath, std::string_view internalFile)
+		namespace Detail
 		{
-			auto result = std::string(basePath);
-			if (internalFile.empty())
-				return result;
-
-			result.reserve(basePath.size() + internalFile.size() + 2);
-			result += InternalFileStartMarker;
-			result += internalFile;
-			result += InternalFileEndMarker;
-			return result;
-		}
-
-		bool IsValidFolderFile(std::string_view basePath)
-		{
-			return Path::GetExtension(basePath) == ".farc";
-		}
-
-		MemoryStream OpenReadInternalFileMemory(std::string_view basePath, std::string_view internalFile)
-		{
-			MemoryStream result;
-			if (Path::GetExtension(basePath) == ".farc")
+			namespace FArcImpl
 			{
-				if (auto farc = FArc::Open(basePath); farc)
+				bool IsValidPath(std::string_view basePath)
 				{
-					if (const auto file = farc->FindFile(internalFile); file != nullptr)
-						result.FromBuffer(file->OriginalSize, [&](void* outContent, size_t size) { file->ReadIntoBuffer(outContent); });
+					return Path::GetExtension(basePath) == ".farc";
 				}
-			}
-			return result;
-		}
 
-		std::pair<std::unique_ptr<u8[]>, size_t> ReadAllBytesInternalFileMemory(std::string_view basePath, std::string_view internalFile)
-		{
-			std::pair<std::unique_ptr<u8[]>, size_t> result = {};
-			auto&[fileContent, fileSize] = result;
-
-			if (Path::GetExtension(basePath) == ".farc")
-			{
-				if (auto farc = FArc::Open(basePath); farc)
+				bool ToMemoryStream(std::string_view basePath, std::string_view fileName, MemoryStream& outStream)
 				{
-					if (const auto file = farc->FindFile(internalFile); file != nullptr)
-					{
-						fileContent = std::make_unique<u8[]>(file->OriginalSize);
-						fileSize = file->OriginalSize;
-						
-						file->ReadIntoBuffer(fileContent.get());
-						return result;
-					}
+					auto farc = FArc::Open(basePath);
+					if (farc == nullptr)
+						return false;
+
+					const auto file = farc->FindFile(fileName);
+					if (file == nullptr)
+						return false;
+
+					outStream.FromBuffer(file->OriginalSize, [&](void* outContent, size_t size) { file->ReadIntoBuffer(outContent); });
+					return true;
 				}
-			}
-			return result;
-		}
 
-		bool ReadAllBytesInternalFileMemory(std::string_view basePath, std::string_view internalFile, std::vector<u8>& outFileContent)
-		{
-			if (Path::GetExtension(basePath) == ".farc")
-			{
-				if (auto farc = FArc::Open(basePath); farc)
+				template <typename SizeCallback, typename BufferGetter>
+				bool ReadFile(std::string_view basePath, std::string_view fileName, SizeCallback sizeCallback, BufferGetter bufferGetter)
 				{
-					if (const auto file = farc->FindFile(internalFile); file != nullptr)
-					{
-						outFileContent.resize(file->OriginalSize);
-						file->ReadIntoBuffer(outFileContent.data());
-						return true;
-					}
+					auto farc = FArc::Open(basePath);
+					if (farc == nullptr)
+						return false;
+
+					const auto file = farc->FindFile(fileName);
+					if (file == nullptr)
+						return false;
+
+					sizeCallback(file->OriginalSize);
+					void* outContent = bufferGetter();
+
+					if (outContent == nullptr)
+						return false;
+
+					file->ReadIntoBuffer(outContent);
+					return true;
 				}
-			}
-			return false;
-		}
 
-		std::vector<FileEntry> GetFileEntries(std::string_view basePath)
-		{
-			auto result = std::vector<FileEntry>();
-			if (Path::GetExtension(basePath) == ".farc")
-			{
-				if (auto farc = FArc::Open(basePath); farc)
+				bool GetFileEntries(std::string_view basePath, std::vector<Detail::FileEntry>& outEntries)
 				{
-					result.reserve(farc->GetEntries().size());
+					auto farc = FArc::Open(basePath);
+					if (farc == nullptr)
+						return false;
+
+					outEntries.reserve(farc->GetEntries().size());
 					for (auto file : farc->GetEntries())
 					{
-						auto& newEntry = result.emplace_back();
+						auto& newEntry = outEntries.emplace_back();
 						newEntry.FullPath = std::move(CombinePath(basePath, file.Name));
 						newEntry.FileSize = file.OriginalSize;
 					}
+
+					return true;
 				}
 			}
+
+			MemoryStream ToMemoryStream(std::string_view basePath, std::string_view fileName)
+			{
+				MemoryStream result;
+				if (FArcImpl::IsValidPath(basePath))
+					FArcImpl::ToMemoryStream(basePath, fileName, result);
+				return result;
+			}
+
+			std::pair<std::unique_ptr<u8[]>, size_t> ReadAllBytes(std::string_view basePath, std::string_view fileName)
+			{
+				std::pair<std::unique_ptr<u8[]>, size_t> result = {};
+				if (FArcImpl::IsValidPath(basePath))
+				{
+					FArcImpl::ReadFile(basePath, fileName,
+						[&](size_t fileSize) { result.first = std::make_unique<u8[]>(result.second = fileSize); },
+						[&]() { return result.first.get(); });
+				}
+				return result;
+			}
+
+			bool ReadAllBytes(std::string_view basePath, std::string_view fileName, std::vector<u8>& outFileContent)
+			{
+				if (FArcImpl::IsValidPath(basePath))
+				{
+					FArcImpl::ReadFile(basePath, fileName,
+						[&](size_t fileSize) { outFileContent.resize(fileSize); },
+						[&]() { return outFileContent.data(); });
+				}
+				return false;
+			}
+
+			std::vector<FileEntry> GetFileEntries(std::string_view basePath)
+			{
+				auto result = std::vector<FileEntry>();
+				if (FArcImpl::IsValidPath(basePath))
+					FArcImpl::GetFileEntries(basePath, result);
+				return result;
+			}
+		}
+
+		std::string CombinePath(std::string_view basePath, std::string_view fileName)
+		{
+			auto result = std::string(basePath);
+			if (fileName.empty())
+				return result;
+
+			result.reserve(basePath.size() + fileName.size() + 2);
+			result += FileStartMarker;
+			result += fileName;
+			result += FileEndMarker;
 			return result;
+		}
+
+		bool IsValidPath(std::string_view basePath)
+		{
+			return Detail::FArcImpl::IsValidPath(basePath);
 		}
 	}
 }

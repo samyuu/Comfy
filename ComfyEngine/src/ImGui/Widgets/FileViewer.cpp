@@ -60,7 +60,7 @@ namespace ImGui
 		{
 			if (FilePathInfo* clickedInfo = DrawFileListGui(); clickedInfo != nullptr)
 			{
-				if (clickedInfo->IsDirectory || IO::FolderFile::IsValidFolderFile(clickedInfo->FullPath))
+				if (clickedInfo->IsDirectory || IO::Archive::IsValidPath(clickedInfo->FullPath))
 				{
 					SetDirectory(IO::Path::Combine(currentDirectoryOrArchive, clickedInfo->ChildName));
 				}
@@ -113,7 +113,7 @@ namespace ImGui
 		if (currentDirectoryOrArchive.size() > std::size(currentDirectoryBuffer) + 2)
 			currentDirectoryOrArchive = currentDirectoryOrArchive.substr(0, std::size(currentDirectoryBuffer) - 2);
 
-		currentDirectoryIsArchive = IO::FolderFile::IsValidFolderFile(currentDirectoryOrArchive);
+		currentDirectoryIsArchive = IO::Archive::IsValidPath(currentDirectoryOrArchive);
 
 		std::memcpy(currentDirectoryBuffer, currentDirectoryOrArchive.data(), currentDirectoryOrArchive.size());
 		if (!currentDirectoryIsArchive)
@@ -195,7 +195,7 @@ namespace ImGui
 	{
 		fileFilter.Clear();
 
-		const bool isArchiveDirectory = IO::FolderFile::IsValidFolderFile(currentDirectoryOrArchive);
+		const bool isArchiveDirectory = IO::Archive::IsValidPath(currentDirectoryOrArchive);
 		if (isArchiveDirectory)
 		{
 			if (!IO::File::Exists(currentDirectoryOrArchive))
@@ -212,14 +212,14 @@ namespace ImGui
 
 		if (isArchiveDirectory)
 		{
-			const auto filePaths = IO::FolderFile::GetFileEntries(currentDirectoryOrArchive);
+			const auto filePaths = IO::Archive::Detail::GetFileEntries(currentDirectoryOrArchive);
 			for (const auto& fileEntry : filePaths)
 			{
-				const auto[basePath, internalFile] = IO::FolderFile::ParsePath(fileEntry.FullPath);
+				const auto archivePath = IO::Archive::ParsePath(fileEntry.FullPath);
 
 				FilePathInfo& info = newDirectoryInfo.emplace_back();
 				info.FullPath = IO::Path::Normalize(fileEntry.FullPath);
-				info.ChildName = internalFile;
+				info.ChildName = archivePath.FileName;
 				info.IsDirectory = false;
 				info.FileSize = fileEntry.FileSize;
 				info.FileType = useFileTypeIcons ? GetFileType(info.ChildName) : FileType::Default;
