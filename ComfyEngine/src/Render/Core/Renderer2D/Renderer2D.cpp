@@ -184,11 +184,14 @@ namespace Comfy::Render
 			}
 		}
 
-		void InternalFlush()
+		void InternalFlush(bool finalFlush)
 		{
-			RenderTarget->Main->ResizeIfDifferent(RenderTarget->Param.Resolution);
-			RenderTarget->Main->BindSetViewport();
-			RenderTarget->Main->Clear(RenderTarget->Param.ClearColor);
+			RenderTarget->Main.ResizeIfDifferent(RenderTarget->Param.Resolution);
+			RenderTarget->Main.SetMultiSampleCountIfDifferent(RenderTarget->Param.MultiSampleCount);
+			RenderTarget->Main.BindSetViewport();
+
+			if (const bool isFirstFlush = (DrawCallCount == 0); isFirstFlush)
+				RenderTarget->Main.Clear(RenderTarget->Param.ClearColor);
 
 			RasterizerState.Bind();
 			D3D11::D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -252,14 +255,20 @@ namespace Comfy::Render
 			RasterizerState.UnBind();
 			InternalClearItems();
 
-			RenderTarget->Main->UnBind();
+			RenderTarget->Main.UnBind();
+
+			if (finalFlush && RenderTarget->Param.MultiSampleCount > 1)
+			{
+				RenderTarget->ResolvedMain.ResizeIfDifferent(RenderTarget->Param.Resolution);
+				D3D11::D3D.Context->ResolveSubresource(RenderTarget->ResolvedMain.GetResource(), 0, RenderTarget->Main.GetResource(), 0, RenderTarget->Main.GetBackBufferDescription().Format);
+			}
 		}
 
 		void InternalCheckFlushItems()
 		{
 			// TODO: Something isn't quite right here...
 			if (BatchItems.size() >= Renderer2D::MaxBatchItemSize / 12)
-				InternalFlush();
+				InternalFlush(false);
 		}
 
 		void InternalSetBlendMode(AetBlendMode blendMode)
@@ -443,7 +452,7 @@ namespace Comfy::Render
 	{
 		assert(impl->OrthographicCamera != nullptr);
 
-		impl->InternalFlush();
+		impl->InternalFlush(true);
 		impl->OrthographicCamera = nullptr;
 		impl->RenderTarget = nullptr;
 	}

@@ -1,5 +1,6 @@
 #pragma once
 #include "Render/Core/Renderer2D/RenderTarget2D.h"
+#include "Render/D3D11/Texture/RenderTarget.h"
 
 namespace Comfy::Render::Detail
 {
@@ -12,10 +13,11 @@ namespace Comfy::Render::Detail
 	public:
 		ComfyTextureID GetTextureID() const override
 		{
-			return (Main != nullptr) ? (*Main) : ComfyTextureID(nullptr);
+			return (Main.GetMultiSampleCount() > 1) ? ResolvedMain : Main;
 		}
 
 	public:
-		std::unique_ptr<D3D11::RenderTarget> Main = std::make_unique<D3D11::RenderTarget>(Param.Resolution);
+		D3D11::RenderTarget Main = D3D11::RenderTarget(Param.Resolution);
+		D3D11::RenderTarget ResolvedMain = D3D11::RenderTarget(Param.Resolution);
 	};
 }
