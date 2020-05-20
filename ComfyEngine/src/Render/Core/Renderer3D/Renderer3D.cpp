@@ -1,7 +1,7 @@
 #include "Renderer3D.h"
-#include "ViewportData3D.h"
 #include "Detail/ConstantData.h"
 #include "Detail/GaussianBlur.h"
+#include "Detail/RenderTarget3DImpl.h"
 #include "Detail/ShaderFlags.h"
 #include "Detail/ShaderPairs.h"
 #include "Detail/SubsurfaceScattering.h"
@@ -346,8 +346,7 @@ namespace Comfy::Render
 		struct BeginEndData
 		{
 			PerspectiveCamera* Camera;
-			ViewportData3D* ViewportData;
-			const ViewportParam3D* ViewportParam;
+			Detail::RenderTarget3DImpl* RenderTarget;
 			const SceneParam3D* SceneParam;
 		} Current = {};
 
@@ -475,7 +474,7 @@ namespace Comfy::Render
 				});
 			}
 
-			if (Current.ViewportParam->AlphaSort)
+			if (Current.RenderTarget->Param.AlphaSort)
 			{
 				std::sort(commandList.Transparent.begin(), commandList.Transparent.end(), [](SubMeshRenderCommand& a, SubMeshRenderCommand& b)
 				{
@@ -497,7 +496,7 @@ namespace Comfy::Render
 
 			BindSceneTextures();
 
-			if (Current.ViewportParam->ShadowMapping && IsAnyCommand.CastShadow && IsAnyCommand.ReceiveShadow)
+			if (Current.RenderTarget->Param.ShadowMapping && IsAnyCommand.CastShadow && IsAnyCommand.ReceiveShadow)
 			{
 				PreRenderShadowMap();
 				PreRenderReduceFilterShadowMap();
@@ -505,50 +504,50 @@ namespace Comfy::Render
 
 			GenericInputLayout->Bind();
 
-			if (Current.ViewportParam->RenderReflection && IsAnyCommand.ScreenReflection)
+			if (Current.RenderTarget->Param.RenderReflection && IsAnyCommand.ScreenReflection)
 			{
 				PreRenderScreenReflection();
-				Current.ViewportData->Reflection.RenderTarget.BindResource(TextureSlot_ScreenReflection);
+				Current.RenderTarget->Reflection.RenderTarget.BindResource(TextureSlot_ScreenReflection);
 			}
 
-			if (Current.ViewportParam->RenderSubsurfaceScattering && IsAnyCommand.SubsurfaceScattering)
+			if (Current.RenderTarget->Param.RenderSubsurfaceScattering && IsAnyCommand.SubsurfaceScattering)
 			{
 				PreRenderSubsurfaceScattering();
 				PreRenderReduceFilterSubsurfaceScattering();
-				Current.ViewportData->SubsurfaceScattering.FilterRenderTargets.back().BindResource(TextureSlot_SubsurfaceScattering);
+				Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets.back().BindResource(TextureSlot_SubsurfaceScattering);
 			}
 
-			Current.ViewportData->Main.Current().SetMultiSampleCountIfDifferent(Current.ViewportParam->MultiSampleCount);
-			Current.ViewportData->Main.Current().ResizeIfDifferent(Current.ViewportParam->RenderResolution);
-			Current.ViewportData->Main.Current().BindSetViewport();
+			Current.RenderTarget->Main.Current().SetMultiSampleCountIfDifferent(Current.RenderTarget->Param.MultiSampleCount);
+			Current.RenderTarget->Main.Current().ResizeIfDifferent(Current.RenderTarget->Param.RenderResolution);
+			Current.RenderTarget->Main.Current().BindSetViewport();
 
-			if (Current.ViewportParam->Clear)
-				Current.ViewportData->Main.Current().Clear(Current.ViewportParam->ClearColor);
+			if (Current.RenderTarget->Param.Clear)
+				Current.RenderTarget->Main.Current().Clear(Current.RenderTarget->Param.ClearColor);
 			else
-				Current.ViewportData->Main.Current().GetDepthBuffer()->Clear();
+				Current.RenderTarget->Main.Current().GetDepthBuffer()->Clear();
 
-			if (Current.ViewportParam->Wireframe)
+			if (Current.RenderTarget->Param.Wireframe)
 				WireframeRasterizerState.Bind();
 
-			if (Current.ViewportParam->RenderOpaque && !DefaultCommandList.OpaqueAndTransparent.empty())
+			if (Current.RenderTarget->Param.RenderOpaque && !DefaultCommandList.OpaqueAndTransparent.empty())
 			{
 				D3D11::D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
 				for (auto& command : DefaultCommandList.OpaqueAndTransparent)
 					RenderOpaqueObjCommand(command);
 
-				if (Current.ViewportParam->RenderLensFlare && Current.SceneParam->LensFlare.SunPosition.has_value())
+				if (Current.RenderTarget->Param.RenderLensFlare && Current.SceneParam->LensFlare.SunPosition.has_value())
 					QueryRenderLensFlare();
 			}
 
-			if (Current.ViewportParam->RenderTransparent && !DefaultCommandList.Transparent.empty())
+			if (Current.RenderTarget->Param.RenderTransparent && !DefaultCommandList.Transparent.empty())
 			{
 				TransparencyPassDepthStencilState.Bind();
 
 				for (auto& command : DefaultCommandList.Transparent)
 					RenderTransparentSubMeshCommand(command);
 
-				if (Current.ViewportParam->RenderLensFlare && Current.SceneParam->LensFlare.SunPosition.has_value())
+				if (Current.RenderTarget->Param.RenderLensFlare && Current.SceneParam->LensFlare.SunPosition.has_value())
 					RenderLensFlare();
 
 				TransparencyPassDepthStencilState.UnBind();
@@ -557,7 +556,7 @@ namespace Comfy::Render
 			if (IsAnyCommand.SilhouetteOutline)
 				RenderSilhouette();
 
-			Current.ViewportData->Main.Current().UnBind();
+			Current.RenderTarget->Main.Current().UnBind();
 			GenericInputLayout->UnBind();
 
 			ResolveMSAAIfNeeded();
@@ -565,11 +564,11 @@ namespace Comfy::Render
 
 		void ResolveMSAAIfNeeded()
 		{
-			if (!Current.ViewportData->Main.MSAAEnabled())
+			if (!Current.RenderTarget->Main.MSAAEnabled())
 				return;
 
-			auto& currentMain = Current.ViewportData->Main.Current();
-			auto& currentMainResolved = Current.ViewportData->Main.CurrentResolved();
+			auto& currentMain = Current.RenderTarget->Main.Current();
+			auto& currentMainResolved = Current.RenderTarget->Main.CurrentResolved();
 
 			currentMainResolved.ResizeIfDifferent(currentMain.GetSize());
 			D3D11::D3D.Context->ResolveSubresource(currentMainResolved.GetResource(), 0, currentMain.GetResource(), 0, currentMain.GetBackBufferDescription().Format);
@@ -577,7 +576,7 @@ namespace Comfy::Render
 
 		void SetSceneCBData(Detail::SceneConstantData& outData)
 		{
-			outData.RenderResolution = GetPackedTextureSize(Current.ViewportData->Main.Current());
+			outData.RenderResolution = GetPackedTextureSize(Current.RenderTarget->Main.Current());
 
 			const vec4 renderTimeNow = static_cast<float>(TimeSpan::GetTimeNow().TotalSeconds()) * Detail::SceneConstantData::RenderTime::Scales;
 			outData.RenderTime.Time = renderTimeNow;
@@ -610,17 +609,17 @@ namespace Comfy::Render
 			outData.StageLight.Direction = vec4(glm::normalize(light.Stage.Position), 1.0f);
 
 			const auto& depthFog = Current.SceneParam->Fog.Depth;
-			outData.DepthFog.Parameters = vec4(Current.ViewportParam->RenderFog ? depthFog.Density : 0.0f, depthFog.Start, depthFog.End, 1.0f / (depthFog.End - depthFog.Start));
+			outData.DepthFog.Parameters = vec4(Current.RenderTarget->Param.RenderFog ? depthFog.Density : 0.0f, depthFog.Start, depthFog.End, 1.0f / (depthFog.End - depthFog.Start));
 			outData.DepthFog.Color = vec4(depthFog.Color, 1.0f);
 
 			outData.ShadowAmbient = vec4(DefaultShadowAmbient, DefaultShadowAmbient, DefaultShadowAmbient, 1.0);
 			outData.OneMinusShadowAmbient = vec4(1.0f) - outData.ShadowAmbient;
 			outData.ShadowExponent = DefaultShadowExpontent;
 
-			outData.SubsurfaceScatteringParameter = Current.ViewportParam->RenderSubsurfaceScattering ? Detail::DefaultSSSParameter : 0.0f;
+			outData.SubsurfaceScatteringParameter = Current.RenderTarget->Param.RenderSubsurfaceScattering ? Detail::DefaultSSSParameter : 0.0f;
 
-			outData.DebugFlags = Current.ViewportParam->ShaderDebugFlags;
-			outData.DebugValue = Current.ViewportParam->ShaderDebugValue;
+			outData.DebugFlags = Current.RenderTarget->Param.ShaderDebugFlags;
+			outData.DebugValue = Current.RenderTarget->Param.ShaderDebugValue;
 		}
 
 		void BindUploadSceneCBs()
@@ -719,9 +718,9 @@ namespace Comfy::Render
 			ConstantBuffers.Scene.Data.Scene.ViewProjection = glm::transpose(lightProjection * lightView);
 			ConstantBuffers.Scene.UploadData();
 
-			Current.ViewportData->Shadow.RenderTarget.ResizeIfDifferent(Current.ViewportParam->ShadowMapResolution);
-			Current.ViewportData->Shadow.RenderTarget.BindSetViewport();
-			Current.ViewportData->Shadow.RenderTarget.Clear(vec4(0.0f));
+			Current.RenderTarget->Shadow.RenderTarget.ResizeIfDifferent(Current.RenderTarget->Param.ShadowMapResolution);
+			Current.RenderTarget->Shadow.RenderTarget.BindSetViewport();
+			Current.RenderTarget->Shadow.RenderTarget.Clear(vec4(0.0f));
 			D3D11::D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
 			Shaders.Silhouette.Bind();
@@ -731,7 +730,7 @@ namespace Comfy::Render
 					RenderOpaqueObjCommand(command, RenderFlags_NoMaterialShader | RenderFlags_NoRasterizerState | RenderFlags_NoFrustumCulling | RenderFlags_DiffuseTextureOnly);
 			}
 
-			Current.ViewportData->Shadow.RenderTarget.UnBind();
+			Current.RenderTarget->Shadow.RenderTarget.UnBind();
 
 			ConstantBuffers.Scene.Data.Scene.View = glm::transpose(Current.Camera->GetView());
 			ConstantBuffers.Scene.Data.Scene.ViewProjection = glm::transpose(Current.Camera->GetViewProjection());
@@ -748,7 +747,7 @@ namespace Comfy::Render
 
 			D3D11::TextureSampler::BindArray<1>(0, { nullptr });
 
-			const ivec2 fullResolution = Current.ViewportData->Shadow.RenderTarget.GetSize();
+			const ivec2 fullResolution = Current.RenderTarget->Shadow.RenderTarget.GetSize();
 			const ivec2 halfResolution = fullResolution / 2;
 			const ivec2 blurResolution = fullResolution / 4;
 
@@ -756,63 +755,63 @@ namespace Comfy::Render
 			{
 				ConstantBuffers.ESMFilter.BindPixelShader();
 
-				for (auto& renderTarget : Current.ViewportData->Shadow.ExponentialRenderTargets)
+				for (auto& renderTarget : Current.RenderTarget->Shadow.ExponentialRenderTargets)
 					renderTarget.ResizeIfDifferent(fullResolution);
 
 				Shaders.ESMGauss.Bind();
-				Current.ViewportData->Shadow.ExponentialRenderTargets[0].BindSetViewport();
-				Current.ViewportData->Shadow.RenderTarget.BindResource(0);
+				Current.RenderTarget->Shadow.ExponentialRenderTargets[0].BindSetViewport();
+				Current.RenderTarget->Shadow.RenderTarget.BindResource(0);
 				ConstantBuffers.ESMFilter.Data.Coefficients = DefaultShadowCoefficients;
 				ConstantBuffers.ESMFilter.Data.TextureStep = vec2(1.0f / fullResolution.x, 0.0f);
 				ConstantBuffers.ESMFilter.Data.FarTexelOffset = vec2(DefaultShadowTexelOffset, DefaultShadowTexelOffset);
 				ConstantBuffers.ESMFilter.UploadData();
 				SubmitQuadDrawCall();
-				Current.ViewportData->Shadow.ExponentialRenderTargets[0].UnBind();
+				Current.RenderTarget->Shadow.ExponentialRenderTargets[0].UnBind();
 
-				Current.ViewportData->Shadow.ExponentialRenderTargets[1].Bind();
-				Current.ViewportData->Shadow.ExponentialRenderTargets[0].BindResource(0);
+				Current.RenderTarget->Shadow.ExponentialRenderTargets[1].Bind();
+				Current.RenderTarget->Shadow.ExponentialRenderTargets[0].BindResource(0);
 				ConstantBuffers.ESMFilter.Data.TextureStep = vec2(0.0f, 1.0f / fullResolution.y);
 				ConstantBuffers.ESMFilter.UploadData();
 				SubmitQuadDrawCall();
-				Current.ViewportData->Shadow.ExponentialRenderTargets[1].UnBind();
-				Current.ViewportData->Shadow.ExponentialRenderTargets[1].BindResource(TextureSlot_ESMFull);
+				Current.RenderTarget->Shadow.ExponentialRenderTargets[1].UnBind();
+				Current.RenderTarget->Shadow.ExponentialRenderTargets[1].BindResource(TextureSlot_ESMFull);
 
-				for (auto& renderTarget : Current.ViewportData->Shadow.ExponentialBlurRenderTargets)
+				for (auto& renderTarget : Current.RenderTarget->Shadow.ExponentialBlurRenderTargets)
 					renderTarget.ResizeIfDifferent(blurResolution);
 
 				Shaders.ESMFilterMin.Bind();
-				Current.ViewportData->Shadow.ExponentialBlurRenderTargets[0].BindSetViewport();
-				Current.ViewportData->Shadow.ExponentialRenderTargets[1].BindResource(0);
+				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[0].BindSetViewport();
+				Current.RenderTarget->Shadow.ExponentialRenderTargets[1].BindResource(0);
 				ConstantBuffers.ESMFilter.Data.TextureStep = vec2(1.0f) / vec2(fullResolution);
 				ConstantBuffers.ESMFilter.UploadData();
 				SubmitQuadDrawCall();
-				Current.ViewportData->Shadow.ExponentialBlurRenderTargets[0].UnBind();
+				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[0].UnBind();
 
 				Shaders.ESMFilterErosion.Bind();
-				Current.ViewportData->Shadow.ExponentialBlurRenderTargets[1].Bind();
-				Current.ViewportData->Shadow.ExponentialBlurRenderTargets[0].BindResource(0);
+				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[1].Bind();
+				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[0].BindResource(0);
 				ConstantBuffers.ESMFilter.Data.TextureStep = vec2(0.75f) / vec2(blurResolution);
 				ConstantBuffers.ESMFilter.UploadData();
 				SubmitQuadDrawCall();
-				Current.ViewportData->Shadow.ExponentialBlurRenderTargets[1].UnBind();
-				Current.ViewportData->Shadow.ExponentialBlurRenderTargets[1].BindResource(TextureSlot_ESMGauss);
+				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[1].UnBind();
+				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[1].BindResource(TextureSlot_ESMGauss);
 			}
 
 			{
 				// NOTE: This is the alternative to rendering to a depth and color buffer, is this more performant though, I'm not sure
 				Shaders.DepthThreshold.Bind();
 
-				Current.ViewportData->Shadow.ThresholdRenderTarget.ResizeIfDifferent(halfResolution);
-				Current.ViewportData->Shadow.ThresholdRenderTarget.BindSetViewport();
-				Current.ViewportData->Shadow.RenderTarget.BindResource(0);
+				Current.RenderTarget->Shadow.ThresholdRenderTarget.ResizeIfDifferent(halfResolution);
+				Current.RenderTarget->Shadow.ThresholdRenderTarget.BindSetViewport();
+				Current.RenderTarget->Shadow.RenderTarget.BindResource(0);
 				SubmitQuadDrawCall();
-				Current.ViewportData->Shadow.ThresholdRenderTarget.UnBind();
+				Current.RenderTarget->Shadow.ThresholdRenderTarget.UnBind();
 
-				for (auto& renderTarget : Current.ViewportData->Shadow.BlurRenderTargets)
+				for (auto& renderTarget : Current.RenderTarget->Shadow.BlurRenderTargets)
 					renderTarget.ResizeIfDifferent(blurResolution);
 
-				const int blurTargets = static_cast<int>(Current.ViewportData->Shadow.BlurRenderTargets.size());
-				const int blurPasses = Current.ViewportParam->ShadowBlurPasses + 1;
+				const int blurTargets = static_cast<int>(Current.RenderTarget->Shadow.BlurRenderTargets.size());
+				const int blurPasses = Current.RenderTarget->Param.ShadowBlurPasses + 1;
 
 				D3D11::D3D.SetViewport(blurResolution);
 				Shaders.ImgFilter.Bind();
@@ -822,8 +821,8 @@ namespace Comfy::Render
 					const int blurIndex = (passIndex % blurTargets);
 					const int previousBlurIndex = ((passIndex - 1) + blurTargets) % blurTargets;
 
-					auto& sourceTarget = (passIndex == 0) ? Current.ViewportData->Shadow.ThresholdRenderTarget : Current.ViewportData->Shadow.BlurRenderTargets[previousBlurIndex];
-					auto& destinationTarget = Current.ViewportData->Shadow.BlurRenderTargets[blurIndex];
+					auto& sourceTarget = (passIndex == 0) ? Current.RenderTarget->Shadow.ThresholdRenderTarget : Current.RenderTarget->Shadow.BlurRenderTargets[previousBlurIndex];
+					auto& destinationTarget = Current.RenderTarget->Shadow.BlurRenderTargets[blurIndex];
 
 					if (passIndex == 1)
 						Shaders.ImgFilterBlur.Bind();
@@ -841,18 +840,18 @@ namespace Comfy::Render
 
 		void PreRenderScreenReflection()
 		{
-			Current.ViewportData->Reflection.RenderTarget.ResizeIfDifferent(Current.ViewportParam->ReflectionRenderResolution);
-			Current.ViewportData->Reflection.RenderTarget.BindSetViewport();
+			Current.RenderTarget->Reflection.RenderTarget.ResizeIfDifferent(Current.RenderTarget->Param.ReflectionRenderResolution);
+			Current.RenderTarget->Reflection.RenderTarget.BindSetViewport();
 
-			if (Current.ViewportParam->ClearReflection)
-				Current.ViewportData->Reflection.RenderTarget.Clear(Current.ViewportParam->ClearColor);
+			if (Current.RenderTarget->Param.ClearReflection)
+				Current.RenderTarget->Reflection.RenderTarget.Clear(Current.RenderTarget->Param.ClearColor);
 			else
-				Current.ViewportData->Reflection.RenderTarget.GetDepthBuffer()->Clear();
+				Current.RenderTarget->Reflection.RenderTarget.GetDepthBuffer()->Clear();
 
 			if (!ReflectionCommandList.OpaqueAndTransparent.empty())
 			{
 				// TODO: Render using cheaper reflection shaders
-				if (Current.ViewportParam->RenderOpaque)
+				if (Current.RenderTarget->Param.RenderOpaque)
 				{
 					D3D11::D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
@@ -860,7 +859,7 @@ namespace Comfy::Render
 						RenderOpaqueObjCommand(command);
 				}
 
-				if (Current.ViewportParam->RenderTransparent && !ReflectionCommandList.Transparent.empty())
+				if (Current.RenderTarget->Param.RenderTransparent && !ReflectionCommandList.Transparent.empty())
 				{
 					TransparencyPassDepthStencilState.Bind();
 
@@ -871,15 +870,15 @@ namespace Comfy::Render
 				}
 			}
 
-			Current.ViewportData->Reflection.RenderTarget.UnBind();
+			Current.RenderTarget->Reflection.RenderTarget.UnBind();
 		}
 
 		void PreRenderSubsurfaceScattering()
 		{
-			Current.ViewportData->SubsurfaceScattering.RenderTarget.ResizeIfDifferent(Current.ViewportParam->RenderResolution);
+			Current.RenderTarget->SubsurfaceScattering.RenderTarget.ResizeIfDifferent(Current.RenderTarget->Param.RenderResolution);
 
-			Current.ViewportData->SubsurfaceScattering.RenderTarget.BindSetViewport();
-			Current.ViewportData->SubsurfaceScattering.RenderTarget.Clear(vec4(0.0f));
+			Current.RenderTarget->SubsurfaceScattering.RenderTarget.BindSetViewport();
+			Current.RenderTarget->SubsurfaceScattering.RenderTarget.Clear(vec4(0.0f));
 
 			if (!DefaultCommandList.OpaqueAndTransparent.empty())
 			{
@@ -891,7 +890,7 @@ namespace Comfy::Render
 				// TODO: DefaultCommandList.Transparent (?)
 			}
 
-			Current.ViewportData->SubsurfaceScattering.RenderTarget.UnBind();
+			Current.RenderTarget->SubsurfaceScattering.RenderTarget.UnBind();
 		}
 
 		void PreRenderReduceFilterSubsurfaceScattering()
@@ -904,26 +903,26 @@ namespace Comfy::Render
 			D3D11::TextureSampler::BindArray<1>(0, { nullptr });
 
 			Shaders.SSSFilterCopy.Bind();
-			Current.ViewportData->SubsurfaceScattering.RenderTarget.BindResource(0);
-			Current.ViewportData->SubsurfaceScattering.FilterRenderTargets[0].BindSetViewport();
+			Current.RenderTarget->SubsurfaceScattering.RenderTarget.BindResource(0);
+			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[0].BindSetViewport();
 			SubmitQuadDrawCall();
-			Current.ViewportData->SubsurfaceScattering.FilterRenderTargets[0].UnBind();
+			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[0].UnBind();
 
 			Shaders.SSSFilterMin.Bind();
-			Current.ViewportData->SubsurfaceScattering.FilterRenderTargets[0].BindResource(0);
-			Current.ViewportData->SubsurfaceScattering.FilterRenderTargets[1].BindSetViewport();
+			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[0].BindResource(0);
+			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[1].BindSetViewport();
 			SubmitQuadDrawCall();
-			Current.ViewportData->SubsurfaceScattering.FilterRenderTargets[1].UnBind();
+			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[1].UnBind();
 
-			ConstantBuffers.SSSFilter.Data.TextureSize = GetPackedTextureSize(Current.ViewportData->SubsurfaceScattering.FilterRenderTargets[1]);
+			ConstantBuffers.SSSFilter.Data.TextureSize = GetPackedTextureSize(Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[1]);
 			Detail::CalculateSSSCoefficients(*Current.Camera, ConstantBuffers.SSSFilter.Data);
 			ConstantBuffers.SSSFilter.BindPixelShader();
 			ConstantBuffers.SSSFilter.UploadData();
 			Shaders.SSSFilterGauss2D.Bind();
-			Current.ViewportData->SubsurfaceScattering.FilterRenderTargets[1].BindResource(0);
-			Current.ViewportData->SubsurfaceScattering.FilterRenderTargets[2].BindSetViewport();
+			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[1].BindResource(0);
+			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[2].BindSetViewport();
 			SubmitQuadDrawCall();
-			Current.ViewportData->SubsurfaceScattering.FilterRenderTargets[2].UnBind();
+			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[2].UnBind();
 		}
 
 		void RenderOpaqueObjCommand(ObjRenderCommand& command, RenderFlags flags = RenderFlags_None)
@@ -971,16 +970,16 @@ namespace Comfy::Render
 			BindMeshVertexBuffers(mesh, GetMorphMesh(obj, objCommand->SourceCommand, mesh));
 
 			auto& material = GetSubMeshMaterial(subMesh, command.ObjCommand->SourceCommand);
-			Current.ViewportData->BlendStates.GetState(material.BlendFlags.SrcBlendFactor, material.BlendFlags.DstBlendFactor).Bind();
+			Current.RenderTarget->BlendStates.GetState(material.BlendFlags.SrcBlendFactor, material.BlendFlags.DstBlendFactor).Bind();
 
 			PrepareAndRenderSubMesh(*command.ObjCommand, mesh, subMesh, material);
 		}
 
 		void RenderSilhouette()
 		{
-			Current.ViewportData->Silhouette.RenderTarget.ResizeIfDifferent(Current.ViewportParam->RenderResolution);
-			Current.ViewportData->Silhouette.RenderTarget.BindSetViewport();
-			Current.ViewportData->Silhouette.RenderTarget.Clear(vec4(0.0f));
+			Current.RenderTarget->Silhouette.RenderTarget.ResizeIfDifferent(Current.RenderTarget->Param.RenderResolution);
+			Current.RenderTarget->Silhouette.RenderTarget.BindSetViewport();
+			Current.RenderTarget->Silhouette.RenderTarget.Clear(vec4(0.0f));
 
 			if (!DefaultCommandList.OpaqueAndTransparent.empty())
 			{
@@ -990,12 +989,12 @@ namespace Comfy::Render
 					RenderOpaqueObjCommand(command, RenderFlags_SilhouetteOutlinePass | RenderFlags_NoMaterialShader | RenderFlags_NoMaterialTextures);
 			}
 
-			Current.ViewportData->Silhouette.RenderTarget.UnBind();
+			Current.RenderTarget->Silhouette.RenderTarget.UnBind();
 		}
 
 		void RenderSilhouetteOutlineOverlay()
 		{
-			Current.ViewportData->Silhouette.RenderTarget.BindResource(0);
+			Current.RenderTarget->Silhouette.RenderTarget.BindResource(0);
 
 			Shaders.SilhouetteOutline.Bind();
 			SubmitQuadDrawCall();
@@ -1020,14 +1019,14 @@ namespace Comfy::Render
 			ConstantBuffers.Object.Data.ModelViewProjection = glm::transpose(Current.Camera->GetViewProjection() * sunTransform);
 			ConstantBuffers.Object.UploadData();
 
-			if (!Current.ViewportParam->DebugVisualizeOcclusionQuery)
+			if (!Current.RenderTarget->Param.DebugVisualizeOcclusionQuery)
 				LensFlareSunQueryBlendState.Bind();
 
 			SolidNoCullingRasterizerState.Bind();
 			Shaders.Sun.Bind();
 
-			auto& sunOcclusionQuery = Current.ViewportData->Sun.OcclusionQuery;
-			if (Current.ViewportParam->LastFrameOcclusionQueryOptimization && !sunOcclusionQuery.IsFirstQuery())
+			auto& sunOcclusionQuery = Current.RenderTarget->Sun.OcclusionQuery;
+			if (Current.RenderTarget->Param.LastFrameOcclusionQueryOptimization && !sunOcclusionQuery.IsFirstQuery())
 				sunOcclusionQuery.QueryData();
 
 			sunOcclusionQuery.BeginQuery();
@@ -1041,7 +1040,7 @@ namespace Comfy::Render
 			}
 			sunOcclusionQuery.EndQuery();
 
-			if (!Current.ViewportParam->LastFrameOcclusionQueryOptimization)
+			if (!Current.RenderTarget->Param.LastFrameOcclusionQueryOptimization)
 				sunOcclusionQuery.QueryData();
 
 			const vec2 normalizedSunScreenPosition = Current.Camera->ProjectPointNormalizedScreen(sunPosition);
@@ -1082,29 +1081,29 @@ namespace Comfy::Render
 
 			D3D11::TextureSampler::BindArray<1>(0, { nullptr });
 
-			if (Current.ViewportParam->RenderBloom)
+			if (Current.RenderTarget->Param.RenderBloom)
 				RenderBloom();
 
-			Current.ViewportData->Output.RenderTarget.ResizeIfDifferent(Current.ViewportParam->RenderResolution);
-			Current.ViewportData->Output.RenderTarget.BindSetViewport();
+			Current.RenderTarget->Output.RenderTarget.ResizeIfDifferent(Current.RenderTarget->Param.RenderResolution);
+			Current.RenderTarget->Output.RenderTarget.BindSetViewport();
 
-			Current.ViewportData->ToneMap.UpdateIfNeeded(Current.SceneParam->Glow);
+			Current.RenderTarget->ToneMap.UpdateIfNeeded(Current.SceneParam->Glow);
 
-			const bool autoExposureEnabled = (Current.ViewportParam->AutoExposure && Current.ViewportParam->RenderBloom && Current.SceneParam->Glow.AutoExposure);
+			const bool autoExposureEnabled = (Current.RenderTarget->Param.AutoExposure && Current.RenderTarget->Param.RenderBloom && Current.SceneParam->Glow.AutoExposure);
 
 			D3D11::ShaderResourceView::BindArray<4>(0,
 				{
-					&Current.ViewportData->Main.CurrentOrResolved(),
-					(Current.ViewportParam->RenderBloom) ? &Current.ViewportData->Bloom.CombinedBlurRenderTarget : nullptr,
-					Current.ViewportData->ToneMap.GetLookupTexture(),
-					autoExposureEnabled ? &Current.ViewportData->Bloom.ExposureRenderTargets.back() : nullptr
+					&Current.RenderTarget->Main.CurrentOrResolved(),
+					(Current.RenderTarget->Param.RenderBloom) ? &Current.RenderTarget->Bloom.CombinedBlurRenderTarget : nullptr,
+					Current.RenderTarget->ToneMap.GetLookupTexture(),
+					autoExposureEnabled ? &Current.RenderTarget->Bloom.ExposureRenderTargets.back() : nullptr
 				});
 
 			ConstantBuffers.ToneMap.Data.Exposure = Current.SceneParam->Glow.Exposure;
 			ConstantBuffers.ToneMap.Data.Gamma = Current.SceneParam->Glow.Gamma;
 			ConstantBuffers.ToneMap.Data.SaturatePower = static_cast<float>(Current.SceneParam->Glow.SaturatePower);
 			ConstantBuffers.ToneMap.Data.SaturateCoefficient = Current.SceneParam->Glow.SaturateCoefficient;
-			ConstantBuffers.ToneMap.Data.AlphaLerp = Current.ViewportParam->ToneMapPreserveAlpha ? 0.0f : 1.0f;
+			ConstantBuffers.ToneMap.Data.AlphaLerp = Current.RenderTarget->Param.ToneMapPreserveAlpha ? 0.0f : 1.0f;
 			ConstantBuffers.ToneMap.Data.AlphaValue = 1.0f;
 			ConstantBuffers.ToneMap.Data.AutoExposure = autoExposureEnabled;
 			ConstantBuffers.ToneMap.UploadData();
@@ -1115,14 +1114,14 @@ namespace Comfy::Render
 			SubmitQuadDrawCall();
 
 			D3D11::ShaderResourceView::BindArray<3>(0, { nullptr, nullptr, nullptr });
-			Current.ViewportData->Main.AdvanceRenderTarget();
+			Current.RenderTarget->Main.AdvanceRenderTarget();
 		}
 
 		void RenderBloom()
 		{
-			auto& bloom = Current.ViewportData->Bloom;
+			auto& bloom = Current.RenderTarget->Bloom;
 
-			bloom.BaseRenderTarget.ResizeIfDifferent(Current.ViewportParam->RenderResolution / 2);
+			bloom.BaseRenderTarget.ResizeIfDifferent(Current.RenderTarget->Param.RenderResolution / 2);
 
 			ConstantBuffers.ReduceTex.Data.CombineBlurred = false;
 			ConstantBuffers.ReduceTex.BindPixelShader();
@@ -1131,7 +1130,7 @@ namespace Comfy::Render
 			for (int i = -1; i < static_cast<int>(bloom.ReduceRenderTargets.size()); i++)
 			{
 				auto& renderTarget = (i < 0) ? bloom.BaseRenderTarget : bloom.ReduceRenderTargets[i];
-				auto& lastRenderTarget = (i < 0) ? Current.ViewportData->Main.CurrentOrResolved() : (i == 0) ? bloom.BaseRenderTarget : bloom.ReduceRenderTargets[i - 1];
+				auto& lastRenderTarget = (i < 0) ? Current.RenderTarget->Main.CurrentOrResolved() : (i == 0) ? bloom.BaseRenderTarget : bloom.ReduceRenderTargets[i - 1];
 
 				ConstantBuffers.ReduceTex.Data.TextureSize = GetPackedTextureSize(lastRenderTarget);
 				ConstantBuffers.ReduceTex.Data.ExtractBrightness = (i == 0);
@@ -1143,7 +1142,7 @@ namespace Comfy::Render
 				SubmitQuadDrawCall();
 			}
 
-			if (Current.ViewportParam->AutoExposure && Current.SceneParam->Glow.AutoExposure)
+			if (Current.RenderTarget->Param.AutoExposure && Current.SceneParam->Glow.AutoExposure)
 				RenderExposurePreBloom();
 
 			CalculateGaussianBlurKernel(Current.SceneParam->Glow, ConstantBuffers.PPGaussCoef.Data);
@@ -1209,17 +1208,17 @@ namespace Comfy::Render
 
 			SubmitQuadDrawCall();
 
-			if (Current.ViewportParam->AutoExposure && Current.SceneParam->Glow.AutoExposure)
+			if (Current.RenderTarget->Param.AutoExposure && Current.SceneParam->Glow.AutoExposure)
 				RenderExposurePostBloom();
 		}
 
 		void RenderExposurePreBloom()
 		{
 			Shaders.ExposureMinify.Bind();
-			Current.ViewportData->Bloom.ExposureRenderTargets[0].BindSetViewport();
-			Current.ViewportData->Bloom.ReduceRenderTargets.back().BindResource(0);
+			Current.RenderTarget->Bloom.ExposureRenderTargets[0].BindSetViewport();
+			Current.RenderTarget->Bloom.ReduceRenderTargets.back().BindResource(0);
 			SubmitQuadDrawCall();
-			Current.ViewportData->Bloom.ExposureRenderTargets[0].UnBind();
+			Current.RenderTarget->Bloom.ExposureRenderTargets[0].UnBind();
 		}
 
 		void RenderExposurePostBloom()
@@ -1229,16 +1228,16 @@ namespace Comfy::Render
 			ConstantBuffers.Exposure.BindPixelShader();
 
 			Shaders.ExposureMeasure.Bind();
-			Current.ViewportData->Bloom.ExposureRenderTargets[1].BindSetViewport();
-			Current.ViewportData->Bloom.ExposureRenderTargets[0].BindResource(0);
+			Current.RenderTarget->Bloom.ExposureRenderTargets[1].BindSetViewport();
+			Current.RenderTarget->Bloom.ExposureRenderTargets[0].BindResource(0);
 			SubmitQuadDrawCall();
-			Current.ViewportData->Bloom.ExposureRenderTargets[1].UnBind();
+			Current.RenderTarget->Bloom.ExposureRenderTargets[1].UnBind();
 
 			Shaders.ExposureAverage.Bind();
-			Current.ViewportData->Bloom.ExposureRenderTargets[2].BindSetViewport();
-			Current.ViewportData->Bloom.ExposureRenderTargets[1].BindResource(0);
+			Current.RenderTarget->Bloom.ExposureRenderTargets[2].BindSetViewport();
+			Current.RenderTarget->Bloom.ExposureRenderTargets[1].BindResource(0);
 			SubmitQuadDrawCall();
-			Current.ViewportData->Bloom.ExposureRenderTargets[2].UnBind();
+			Current.RenderTarget->Bloom.ExposureRenderTargets[2].UnBind();
 		}
 
 		void BindMeshVertexBuffers(const Mesh& primaryMesh, const Mesh* morphMesh)
@@ -1289,7 +1288,7 @@ namespace Comfy::Render
 
 			const u32 boundMaterialTexturesFlags = (flags & RenderFlags_NoMaterialTextures) ? 0 : BindMaterialTextures(command, material, flags);
 
-			if (!Current.ViewportParam->Wireframe && !(flags & RenderFlags_NoRasterizerState))
+			if (!Current.RenderTarget->Param.Wireframe && !(flags & RenderFlags_NoRasterizerState))
 				SetSubMeshRasterizerState(material);
 
 			SetObjectCBMaterialData(material, ConstantBuffers.Object.Data.Material);
@@ -1391,14 +1390,14 @@ namespace Comfy::Render
 				if (tex == nullptr)
 					continue;
 
-				Current.ViewportData->TextureSamplers.CreateIfNeeded(Current.ViewportParam->AnistropicFiltering);
+				Current.RenderTarget->TextureSamplers.CreateIfNeeded(Current.RenderTarget->Param.AnistropicFiltering);
 
 				if (tex->GetSignature() == TxpSig::Texture2D)
 					textureResources[correspondingTextureSlot] = D3D11::GetTexture2D(*tex);
 				else
 					textureResources[correspondingTextureSlot] = D3D11::GetCubeMap(*tex);
 
-				textureSamplers[correspondingTextureSlot] = &Current.ViewportData->TextureSamplers.GetSampler(samplerFlags);
+				textureSamplers[correspondingTextureSlot] = &Current.RenderTarget->TextureSamplers.GetSampler(samplerFlags);
 
 				if (correspondingTextureSlot == TextureSlot_Diffuse)
 				{
@@ -1413,7 +1412,7 @@ namespace Comfy::Render
 						if (*texID == dynamic->ScreenRenderTextureID)
 						{
 							ConstantBuffers.Object.Data.DiffuseScreenTexture = true;
-							textureResources[correspondingTextureSlot] = &Current.ViewportData->Main.PreviousOrResolved();
+							textureResources[correspondingTextureSlot] = &Current.RenderTarget->Main.PreviousOrResolved();
 
 							// HACK: Flip to adjust for the expected OpenGL texture coordinates, problematic because it also effects all other textures using the first TEXCOORD attribute
 							ConstantBuffers.Object.Data.Material.DiffuseTextureTransform *= glm::scale(mat4(1.0f), vec3(1.0f, -1.0f, 1.0f));
@@ -1521,7 +1520,7 @@ namespace Comfy::Render
 		void SetObjectCBTransforms(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, Detail::ObjectConstantData& outData) const
 		{
 			mat4 modelMatrix;
-			if (Current.ViewportParam->ObjectBillboarding && (mesh.Flags.FaceCameraPosition || mesh.Flags.FaceCameraView))
+			if (Current.RenderTarget->Param.ObjectBillboarding && (mesh.Flags.FaceCameraPosition || mesh.Flags.FaceCameraView))
 			{
 				const auto& transform = command.SourceCommand.Transform;
 
@@ -1568,67 +1567,67 @@ namespace Comfy::Render
 			const bool hasVertexTexCoords0 = (mesh.AttributeFlags & VertexAttributeFlags_TextureCoordinate0);
 			const bool hasVertexTexCoords1 = (mesh.AttributeFlags & VertexAttributeFlags_TextureCoordinate1);
 
-			if (Current.ViewportParam->VertexColoring)
+			if (Current.RenderTarget->Param.VertexColoring)
 			{
 				if (mesh.AttributeFlags & VertexAttributeFlags_Color0)
 					result |= Detail::ShaderFlags_VertexColor;
 			}
 
-			if (Current.ViewportParam->DiffuseMapping)
+			if (Current.RenderTarget->Param.DiffuseMapping)
 			{
 				if (hasVertexTexCoords0 && (boundMaterialTexturesFlags & (1 << TextureSlot_Diffuse)))
 					result |= Detail::ShaderFlags_DiffuseTexture;
 			}
 
-			if (Current.ViewportParam->AmbientOcclusionMapping)
+			if (Current.RenderTarget->Param.AmbientOcclusionMapping)
 			{
 				if (hasVertexTexCoords1 && (boundMaterialTexturesFlags & (1 << TextureSlot_Ambient)))
 					result |= Detail::ShaderFlags_AmbientTexture;
 			}
 
-			if (Current.ViewportParam->NormalMapping)
+			if (Current.RenderTarget->Param.NormalMapping)
 			{
 				if (hasVertexTangents && (boundMaterialTexturesFlags & (1 << TextureSlot_Normal)))
 					result |= Detail::ShaderFlags_NormalTexture;
 			}
 
-			if (Current.ViewportParam->SpecularMapping)
+			if (Current.RenderTarget->Param.SpecularMapping)
 			{
 				if (hasVertexTexCoords0 && (boundMaterialTexturesFlags & (1 << TextureSlot_Specular)))
 					result |= Detail::ShaderFlags_SpecularTexture;
 			}
 
-			if (Current.ViewportParam->TransparencyMapping)
+			if (Current.RenderTarget->Param.TransparencyMapping)
 			{
 				if (hasVertexTexCoords0 && (boundMaterialTexturesFlags & (1 << TextureSlot_Transparency)))
 					result |= Detail::ShaderFlags_TransparencyTexture;
 			}
 
-			if (Current.ViewportParam->EnvironmentMapping)
+			if (Current.RenderTarget->Param.EnvironmentMapping)
 			{
 				if (boundMaterialTexturesFlags & (1 << TextureSlot_Environment))
 					result |= Detail::ShaderFlags_EnvironmentTexture;
 			}
 
-			if (Current.ViewportParam->TranslucencyMapping)
+			if (Current.RenderTarget->Param.TranslucencyMapping)
 			{
 				if (hasVertexTexCoords0 && (boundMaterialTexturesFlags & (1 << TextureSlot_Translucency)))
 					result |= Detail::ShaderFlags_TranslucencyTexture;
 			}
 
-			if (Current.ViewportParam->RenderPunchThrough)
+			if (Current.RenderTarget->Param.RenderPunchThrough)
 			{
 				if (material.BlendFlags.AlphaTexture && !IsMeshTransparent(mesh, subMesh, material))
 					result |= Detail::ShaderFlags_PunchThrough;
 			}
 
-			if (Current.ViewportParam->RenderFog)
+			if (Current.RenderTarget->Param.RenderFog)
 			{
 				if (!material.BlendFlags.NoFog && Current.SceneParam->Fog.Depth.Density > 0.0f)
 					result |= Detail::ShaderFlags_LinearFog;
 			}
 
-			if (Current.ViewportParam->ObjectMorphing)
+			if (Current.RenderTarget->Param.ObjectMorphing)
 			{
 				if (command.SourceCommand.Dynamic != nullptr && command.SourceCommand.Dynamic->MorphObj != nullptr)
 				{
@@ -1637,13 +1636,13 @@ namespace Comfy::Render
 				}
 			}
 
-			if (Current.ViewportParam->ShadowMapping && IsAnyCommand.CastShadow && IsAnyCommand.ReceiveShadow)
+			if (Current.RenderTarget->Param.ShadowMapping && IsAnyCommand.CastShadow && IsAnyCommand.ReceiveShadow)
 			{
 				if (ReceivesShadows(command.SourceCommand, mesh, subMesh))
 					result |= Detail::ShaderFlags_Shadow;
 			}
 
-			if (Current.ViewportParam->ShadowMapping && Current.ViewportParam->SelfShadowing && IsAnyCommand.CastShadow && IsAnyCommand.ReceiveShadow)
+			if (Current.RenderTarget->Param.ShadowMapping && Current.RenderTarget->Param.SelfShadowing && IsAnyCommand.CastShadow && IsAnyCommand.ReceiveShadow)
 			{
 				if (ReceivesSelfShadow(command.SourceCommand, mesh, subMesh))
 					result |= Detail::ShaderFlags_SelfShadow;
@@ -1654,7 +1653,7 @@ namespace Comfy::Render
 
 		D3D11::ShaderPair& GetMaterialShader(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material)
 		{
-			if (Current.ViewportParam->AllowDebugShaderOverride)
+			if (Current.RenderTarget->Param.AllowDebugShaderOverride)
 			{
 				if (command.SourceCommand.SourceObj->Debug.UseDebugMaterial || mesh.Debug.UseDebugMaterial || subMesh.Debug.UseDebugMaterial || material.Debug.UseDebugMaterial)
 					return Shaders.DebugMaterial;
@@ -1799,7 +1798,7 @@ namespace Comfy::Render
 
 		bool IntersectsCameraFrustum(const ObjRenderCommand& command) const
 		{
-			if (!Current.ViewportParam->FrustumCulling)
+			if (!Current.RenderTarget->Param.FrustumCulling)
 				return true;
 
 			return Current.Camera->IntersectsViewFrustum(command.TransformedBoundingSphere);
@@ -1807,7 +1806,7 @@ namespace Comfy::Render
 
 		bool IntersectsCameraFrustum(const Sphere& boundingSphere, const ObjRenderCommand& command) const
 		{
-			if (!Current.ViewportParam->FrustumCulling)
+			if (!Current.RenderTarget->Param.FrustumCulling)
 				return true;
 
 			return Current.Camera->IntersectsViewFrustum(boundingSphere * command.SourceCommand.Transform);
@@ -1820,7 +1819,7 @@ namespace Comfy::Render
 
 		bool IsDebugRenderFlagSet(int bitIndex) const
 		{
-			return Current.ViewportParam->DebugFlags & (1 << bitIndex);
+			return Current.RenderTarget->Param.DebugFlags & (1 << bitIndex);
 		}
 	};
 
@@ -1833,7 +1832,7 @@ namespace Comfy::Render
 	{
 	}
 
-	void Renderer3D::Begin(PerspectiveCamera& camera, ViewportData3D& viewportData, const ViewportParam3D& viewportParam, const SceneParam3D& sceneParam)
+	void Renderer3D::Begin(PerspectiveCamera& camera, RenderTarget3D& renderTarget, const SceneParam3D& sceneParam)
 	{
 		assert(impl->Current.Camera == nullptr);
 
@@ -1841,7 +1840,7 @@ namespace Comfy::Render
 		impl->Statistics = {};
 
 		impl->IsAnyCommand = {};
-		impl->Current = { &camera, &viewportData, &viewportParam, &sceneParam };
+		impl->Current = { &camera, static_cast<Detail::RenderTarget3DImpl*>(&renderTarget), &sceneParam };
 	}
 
 	void Renderer3D::Draw(const RenderCommand3D& command)
@@ -1884,5 +1883,10 @@ namespace Comfy::Render
 	const Graphics::Tex* Renderer3D::GetTexFromTextureID(const Cached_TexID* textureID) const
 	{
 		return impl->TexGetter(textureID);
+	}
+
+	std::unique_ptr<RenderTarget3D> Renderer3D::CreateRenderTarget()
+	{
+		return std::make_unique<Detail::RenderTarget3DImpl>();
 	}
 }

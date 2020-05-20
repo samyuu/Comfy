@@ -252,13 +252,16 @@
     <ClInclude Include="src\Render\Core\Renderer2D\RenderCommand2D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Render\Core\Renderer3D\ViewportData3D.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Render\Core\Renderer2D\RenderTarget2D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Render\Core\Renderer2D\Detail\RenderTarget2DImpl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Render\Core\Renderer3D\RenderTarget3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Render\Core\Renderer3D\Detail\RenderTarget3DImpl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

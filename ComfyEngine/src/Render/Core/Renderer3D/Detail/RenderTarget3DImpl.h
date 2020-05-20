@@ -1,13 +1,12 @@
 #pragma once
-#include "Types.h"
-#include "Renderer3D.h"
-#include "Detail/TextureSamplerCache.h"
-#include "Detail/BlendStateCache.h"
-#include "Detail/ToneMapData.h"
-#include "Detail/SunOcclusionData.h"
+#include "Render/Core/Renderer3D/RenderTarget3D.h"
+#include "TextureSamplerCache.h"
+#include "BlendStateCache.h"
+#include "ToneMapData.h"
+#include "SunOcclusionData.h"
 #include "Render/D3D11/Texture/RenderTarget.h"
 
-namespace Comfy::Render
+namespace Comfy::Render::Detail
 {
 	struct MainRenderData
 	{
@@ -146,8 +145,16 @@ namespace Comfy::Render
 		D3D11::RenderTarget RenderTarget = { D3D11::RenderTargetDefaultSize, D3D11::RenderTargetLDRFormatRGBA };
 	};
 
-	struct ViewportData3D
+	class RenderTarget3DImpl : public RenderTarget3D
 	{
+	public:
+		RenderTarget3DImpl() = default;
+		~RenderTarget3DImpl() = default;
+
+	public:
+		ComfyTextureID GetTextureID() const override { return Output.RenderTarget; }
+
+	public:
 		MainRenderData Main;
 		ShadowMappingRenderData Shadow;
 		ScreenReflectionRenderData Reflection;
@@ -156,9 +163,9 @@ namespace Comfy::Render
 		BloomRenderData Bloom;
 		OutputRenderData Output;
 
-		Detail::TextureSamplerCache TextureSamplers;
-		Detail::BlendStateCache BlendStates;
-		Detail::ToneMapData ToneMap;
-		Detail::SunOcclusionData Sun;
+		TextureSamplerCache TextureSamplers;
+		BlendStateCache BlendStates;
+		ToneMapData ToneMap;
+		SunOcclusionData Sun;
 	};
 }
