@@ -80,6 +80,9 @@ namespace Comfy::Render
 		vec2 WorldToScreenSpace(const vec2& worldSpace) const;
 
 	public:
+		void CenterAndZoomToFit(vec2 targetSize);
+
+	public:
 		static vec2 ScreenToWorldSpace(const mat4& matrix, const vec2& screenSpace);
 		static vec2 WorldToScreenSpace(const mat4& matrix, const vec2& worldSpace);
 

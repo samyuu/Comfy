@@ -126,6 +126,23 @@ namespace Comfy::Render
 		return OrthographicCamera::WorldToScreenSpace(view, worldSpace);
 	}
 
+	void OrthographicCamera::CenterAndZoomToFit(vec2 targetSize)
+	{
+		const float targetAspectRatio = (targetSize.x / targetSize.y);
+		const float projectionAspectRatio = (ProjectionSize.x / ProjectionSize.y);
+
+		if (targetAspectRatio < projectionAspectRatio)
+		{
+			Zoom = (ProjectionSize.y / targetSize.y);
+			Position = vec2((targetSize.x * Zoom - ProjectionSize.x) / 2.0f, 0.0f);
+		}
+		else
+		{
+			Zoom = (ProjectionSize.x / targetSize.x);
+			Position = vec2(0.0f, (targetSize.y * Zoom - ProjectionSize.y) / 2.0f);
+		}
+	}
+
 	vec2 OrthographicCamera::ScreenToWorldSpace(const mat4& matrix, const vec2& screenSpace)
 	{
 		return (glm::inverse(matrix) * vec4(screenSpace, 0.0f, 1.0f)).xy;
