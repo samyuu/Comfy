@@ -199,6 +199,7 @@
     <ClInclude Include="src\Render\Core\Renderer2D\Renderer2D.h" />
     <ClInclude Include="src\Render\Core\Renderer2D\RenderTarget2D.h" />
     <ClInclude Include="src\Render\Core\Renderer3D\Detail\RenderTarget3DImpl.h" />
+    <ClInclude Include="src\Render\Core\Renderer3D\RenderCommand3D.h" />
     <ClInclude Include="src\Render\Core\Renderer3D\Renderer3D.h" />
     <ClInclude Include="src\Render\Core\Renderer3D\RenderTarget3D.h" />
     <ClInclude Include="src\Render\D3D11\GraphicsResourceUtil.h" />

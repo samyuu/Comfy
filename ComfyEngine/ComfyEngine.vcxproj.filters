@@ -264,6 +264,9 @@
     <ClInclude Include="src\Render\Core\Renderer3D\Detail\RenderTarget3DImpl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Render\Core\Renderer3D\RenderCommand3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Audio\Decoder\Detail\FlacDecoder.cpp">
