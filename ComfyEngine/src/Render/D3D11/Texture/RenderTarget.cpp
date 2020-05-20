@@ -179,6 +179,29 @@ namespace Comfy::Render::D3D11
 		return backBufferDescription.SampleDesc.Count;
 	}
 
+	void RenderTarget::SetMultiSampleCount(u32 multiSampleCount)
+	{
+		backBufferDescription.SampleDesc.Count = multiSampleCount;
+		backBufferDescription.SampleDesc.Quality = 0;
+		if (FAILED(D3D.Device->CreateTexture2D(&backBufferDescription, nullptr, &backBuffer)))
+		{
+			backBufferDescription.SampleDesc.Count = multiSampleCount = 1;
+			D3D.Device->CreateTexture2D(&backBufferDescription, nullptr, &backBuffer);
+		}
+
+		renderTargetViewDescription.ViewDimension = (multiSampleCount == 1) ? D3D11_RTV_DIMENSION_TEXTURE2D : D3D11_RTV_DIMENSION_TEXTURE2DMS;
+		D3D.Device->CreateRenderTargetView(backBuffer.Get(), &renderTargetViewDescription, &renderTargetView);
+
+		shaderResourceViewDescription.ViewDimension = (multiSampleCount == 1) ? D3D11_SRV_DIMENSION_TEXTURE2D : D3D11_SRV_DIMENSION_TEXTURE2DMS;
+		D3D.Device->CreateShaderResourceView(backBuffer.Get(), &shaderResourceViewDescription, &shaderResourceView);
+	}
+
+	void RenderTarget::SetMultiSampleCountIfDifferent(u32 multiSampleCount)
+	{
+		if (multiSampleCount != GetMultiSampleCount())
+			SetMultiSampleCount(multiSampleCount);
+	}
+
 	ID3D11Resource* RenderTarget::GetResource() const
 	{
 		return backBuffer.Get();
@@ -231,31 +254,6 @@ namespace Comfy::Render::D3D11
 	{
 		RenderTarget::Resize(newSize);
 		depthBuffer.Resize(newSize);
-	}
-
-	void DepthRenderTarget::SetMultiSampleCount(u32 multiSampleCount)
-	{
-		backBufferDescription.SampleDesc.Count = multiSampleCount;
-		backBufferDescription.SampleDesc.Quality = 0;
-		if FAILED(D3D.Device->CreateTexture2D(&backBufferDescription, nullptr, &backBuffer))
-		{
-			backBufferDescription.SampleDesc.Count = multiSampleCount = 1;
-			D3D.Device->CreateTexture2D(&backBufferDescription, nullptr, &backBuffer);
-		}
-
-		renderTargetViewDescription.ViewDimension = (multiSampleCount == 1) ? D3D11_RTV_DIMENSION_TEXTURE2D : D3D11_RTV_DIMENSION_TEXTURE2DMS;
-		D3D.Device->CreateRenderTargetView(backBuffer.Get(), &renderTargetViewDescription, &renderTargetView);
-
-		shaderResourceViewDescription.ViewDimension = (multiSampleCount == 1) ? D3D11_SRV_DIMENSION_TEXTURE2D : D3D11_SRV_DIMENSION_TEXTURE2DMS;
-		D3D.Device->CreateShaderResourceView(backBuffer.Get(), &shaderResourceViewDescription, &shaderResourceView);
-
-		depthBuffer.SetMultiSampleCount(multiSampleCount);
-	}
-
-	void DepthRenderTarget::SetMultiSampleCountIfDifferent(u32 multiSampleCount)
-	{
-		if (multiSampleCount != GetMultiSampleCount())
-			SetMultiSampleCount(multiSampleCount);
 	}
 
 	DepthBuffer* DepthRenderTarget::GetDepthBuffer()
