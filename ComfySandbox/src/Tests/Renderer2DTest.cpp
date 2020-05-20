@@ -12,11 +12,11 @@ namespace Comfy::Sandbox::Tests
 			// renderWindow.SetKeepAspectRatio(true);
 			testCommand.SourceRegion = vec4(0, 0, 2048, 2048);
 
-			renderWindow.OnRenderDebugFunc = [&]
+			renderWindow.OnRenderCallback = [&]
 			{
-				camera.ProjectionSize = renderWindow.GetRenderRegion().GetSize();
+				renderWindow.RenderTarget->Param.Resolution = camera.ProjectionSize = renderWindow.GetRenderRegion().GetSize();
 
-				renderer.Begin(camera);
+				renderer.Begin(camera, *renderWindow.RenderTarget);
 				{
 					testCommand.Texture = (sprSet == nullptr || !InBounds(textureIndex, sprSet->TexSet->Textures)) ? nullptr : sprSet->TexSet->Textures[textureIndex].get();
 					renderer.Draw(testCommand);
@@ -93,10 +93,9 @@ namespace Comfy::Sandbox::Tests
 
 	private:
 		Render::Renderer2D renderer = {};
-
 		Render::OrthographicCamera camera = {};
 
-		Comfy::RenderWindow2D renderWindow = {};
+		Comfy::CallbackRenderWindow2D renderWindow = {};
 		bool fullscreen = false;
 
 		Gui::FileViewer sprFileViewer = { "dev_ram/sprset" };

@@ -11,11 +11,11 @@ namespace Comfy::Sandbox::Tests
 		{
 			renderWindow.SetKeepAspectRatio(true);
 
-			renderWindow.OnRenderDebugFunc = [&]
+			renderWindow.OnRenderCallback = [&]
 			{
-				camera.ProjectionSize = renderWindow.GetRenderRegion().GetSize();
+				renderWindow.RenderTarget->Param.Resolution = camera.ProjectionSize = renderWindow.GetRenderRegion().GetSize();
 
-				renderer.Begin(camera);
+				renderer.Begin(camera, *renderWindow.RenderTarget);
 				if (const auto selectedLayer = GetSelectedLayer(); selectedLayer != nullptr)
 					renderer.Aet().DrawLayerLooped(*selectedLayer, playback.CurrentFrame, playback.Position, playback.Opacity);
 				renderer.End();
@@ -164,7 +164,7 @@ namespace Comfy::Sandbox::Tests
 		Render::Renderer2D renderer = {};
 		Render::OrthographicCamera camera = {};
 
-		Comfy::RenderWindow2D renderWindow = {};
+		Comfy::CallbackRenderWindow2D renderWindow = {};
 		bool fullscreen = false;
 
 		Gui::FileViewer sprFileViewer = { "dev_ram/sprset/" };
