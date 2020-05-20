@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "ImGui/Gui.h"
-// #include "Render/Render.h"
+#include "Render/Render.h"
 #include <functional>
 
 namespace Comfy
@@ -62,49 +62,25 @@ namespace Comfy
 		float targetAspectRatio = (16.0f / 9.0f);
 	};
 
-	class RenderWindow2D : public RenderWindow
+	class CallbackRenderWindow2D : public RenderWindow
 	{
 	public:
-		RenderWindow2D();
-		~RenderWindow2D();
-
-		std::function<void()> OnRenderDebugFunc;
+		CallbackRenderWindow2D() = default;
+		~CallbackRenderWindow2D() = default;
 
 	public:
-		ImTextureID GetTextureID() const override;
+		ImTextureID GetTextureID() const override { return (RenderTarget != nullptr) ? RenderTarget->GetTextureID() : nullptr; }
 
 	protected:
-		ImGuiWindowFlags GetRenderTextureChildWindowFlags() const override;
-		void OnFirstFrame() override;
-		void PreRenderTextureGui() override;
-		void PostRenderTextureGui() override;
-		void OnResize(ivec2 newSize) override;
-		void OnRender() override;
-
-	private:
-		struct Impl;
-		std::unique_ptr<Impl> impl;
-	};
-
-	class RenderWindow3D : public RenderWindow
-	{
-	public:
-		RenderWindow3D();
-		~RenderWindow3D();
+		ImGuiWindowFlags GetRenderTextureChildWindowFlags() const override { return ImGuiWindowFlags_None; }
+		void OnFirstFrame() override {}
+		void PreRenderTextureGui() override {}
+		void PostRenderTextureGui() override {}
+		void OnResize(ivec2 newSize) override {}
+		void OnRender() override { OnRenderCallback(); }
 
 	public:
-		ImTextureID GetTextureID() const override;
-
-	protected:
-		ImGuiWindowFlags GetRenderTextureChildWindowFlags() const override;
-		void OnFirstFrame() override;
-		void PreRenderTextureGui() override;
-		void PostRenderTextureGui() override;
-		void OnResize(ivec2 newSize) override;
-		void OnRender() override;
-
-	private:
-		struct Impl;
-		std::unique_ptr<Impl> impl;
+		std::function<void()> OnRenderCallback;
+		std::unique_ptr<Render::RenderTarget2D> RenderTarget = Render::Renderer2D::CreateRenderTarget();
 	};
 }

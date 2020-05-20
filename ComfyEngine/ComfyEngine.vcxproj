@@ -193,10 +193,13 @@
     <ClInclude Include="src\Input\Core\Keyboard.h" />
     <ClInclude Include="src\Input\Core\KeyCode.h" />
     <ClInclude Include="src\Render\Core\Camera.h" />
+    <ClInclude Include="src\Render\Core\Renderer2D\Detail\RenderTarget2DImpl.h" />
     <ClInclude Include="src\Render\Core\Renderer2D\RenderCommand2D.h" />
     <ClInclude Include="src\Render\Core\Renderer2D\AetRenderer.h" />
     <ClInclude Include="src\Render\Core\Renderer2D\Renderer2D.h" />
+    <ClInclude Include="src\Render\Core\Renderer2D\RenderTarget2D.h" />
     <ClInclude Include="src\Render\Core\Renderer3D\Renderer3D.h" />
+    <ClInclude Include="src\Render\Core\Renderer3D\ViewportData3D.h" />
     <ClInclude Include="src\Render\D3D11\GraphicsResourceUtil.h" />
     <ClInclude Include="src\Render\D3D11\Shader\Bytecode\ShaderBytecode.h" />
     <ClInclude Include="src\Render\D3D11\Shader\Shader.h" />
@@ -215,7 +218,6 @@
     <ClInclude Include="src\Render\Core\Renderer3D\Detail\SunOcclusionData.h" />
     <ClInclude Include="src\Render\Core\Renderer3D\Detail\TextureSamplerCache.h" />
     <ClInclude Include="src\Render\Core\Renderer3D\Detail\ToneMapData.h" />
-    <ClInclude Include="src\Render\Core\Renderer3D\ViewportData3D.h" />
     <ClInclude Include="src\Render\D3D11\State\BlendState.h" />
     <ClInclude Include="src\Render\D3D11\State\DepthStencilState.h" />
     <ClInclude Include="src\Render\D3D11\State\InputLayout.h" />
@@ -285,8 +287,6 @@
     <ClCompile Include="src\System\Profiling\Profiler.cpp" />
     <ClCompile Include="src\Window\ApplicationHost.cpp" />
     <ClCompile Include="src\Window\RenderWindow.cpp" />
-    <ClCompile Include="src\Window\RenderWindow2D.cpp" />
-    <ClCompile Include="src\Window\RenderWindow3D.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\ImGuiCustom_PS.hlsl">

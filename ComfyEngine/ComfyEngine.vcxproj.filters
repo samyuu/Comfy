@@ -165,9 +165,6 @@
     <ClInclude Include="src\Render\D3D11\Shader\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Render\Core\Renderer3D\ViewportData3D.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Render\D3D11\GraphicsResourceUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -253,6 +250,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Render\Core\Renderer2D\RenderCommand2D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Render\Core\Renderer3D\ViewportData3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Render\Core\Renderer2D\RenderTarget2D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Render\Core\Renderer2D\Detail\RenderTarget2DImpl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -408,12 +414,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Window\RenderWindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Window\RenderWindow2D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Window\RenderWindow3D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Render\Core\Renderer2D\AetRenderer.cpp">

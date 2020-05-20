@@ -1,4 +1,5 @@
 #include "Renderer2D.h"
+#include "Detail/RenderTarget2DImpl.h"
 #include "Detail/SpriteBatchData.h"
 #include "Render/D3D11/GraphicsResourceUtil.h"
 #include "Render/D3D11/Buffer/ConstantBuffer.h"
@@ -97,6 +98,7 @@ namespace Comfy::Render
 		std::vector<Detail::SpriteVertices> Vertices;
 
 		OrthographicCamera* OrthographicCamera = nullptr;
+		Detail::RenderTarget2DImpl* RenderTarget = nullptr;
 
 	public:
 		Impl(Renderer2D& parent) : AetRenderer(parent)
@@ -184,6 +186,10 @@ namespace Comfy::Render
 
 		void InternalFlush()
 		{
+			RenderTarget->Main->ResizeIfDifferent(RenderTarget->Param.Resolution);
+			RenderTarget->Main->BindSetViewport();
+			RenderTarget->Main->Clear(RenderTarget->Param.ClearColor);
+
 			RasterizerState.Bind();
 			D3D11::D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -245,6 +251,8 @@ namespace Comfy::Render
 
 			RasterizerState.UnBind();
 			InternalClearItems();
+
+			RenderTarget->Main->UnBind();
 		}
 
 		void InternalCheckFlushItems()
@@ -357,12 +365,13 @@ namespace Comfy::Render
 	{
 	}
 
-	void Renderer2D::Begin(OrthographicCamera& camera)
+	void Renderer2D::Begin(OrthographicCamera& camera, RenderTarget2D& renderTarget)
 	{
 		assert(impl->OrthographicCamera == nullptr);
 
 		impl->DrawCallCount = 0;
 		impl->OrthographicCamera = &camera;
+		impl->RenderTarget = static_cast<Detail::RenderTarget2DImpl*>(&renderTarget);
 	}
 
 	void Renderer2D::Draw(const RenderCommand2D& command)
@@ -377,7 +386,7 @@ namespace Comfy::Render
 
 	void Renderer2D::DrawLine(vec2 start, vec2 end, const vec4& color, float thickness)
 	{
-		const vec2 edge = end - start;
+		const auto edge = (end - start);
 
 		RenderCommand2D command;
 		command.SourceRegion = vec4(0.0f, 0.0f, glm::distance(start, end), thickness);
@@ -425,11 +434,17 @@ namespace Comfy::Render
 		return impl->AetRenderer;
 	}
 
+	std::unique_ptr<RenderTarget2D> Renderer2D::CreateRenderTarget()
+	{
+		return std::make_unique<Detail::RenderTarget2DImpl>();
+	}
+
 	void Renderer2D::End()
 	{
 		assert(impl->OrthographicCamera != nullptr);
 
 		impl->InternalFlush();
 		impl->OrthographicCamera = nullptr;
+		impl->RenderTarget = nullptr;
 	}
 }

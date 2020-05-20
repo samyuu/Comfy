@@ -1,6 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "RenderCommand2D.h"
+#include "RenderTarget2D.h"
 #include "AetRenderer.h"
 #include "Render/Core/Camera.h"
 #include "Resource/IDTypes.h"
@@ -18,7 +19,7 @@ namespace Comfy::Render
 		~Renderer2D();
 
 	public:
-		void Begin(OrthographicCamera& camera);
+		void Begin(OrthographicCamera& camera, RenderTarget2D& renderTarget);
 		void Draw(const RenderCommand2D& command);
 		void Draw(const RenderCommand2D& command, const RenderCommand2D& commandMask);
 
@@ -33,8 +34,11 @@ namespace Comfy::Render
 	public:
 		AetRenderer& Aet();
 
-		/*
 	public:
+		static std::unique_ptr<RenderTarget2D> CreateRenderTarget();
+
+	public:
+		/*
 		const SpriteVertices& GetLastVertices() const;
 		const OrthographicCamera* GetCamera() const;
 
