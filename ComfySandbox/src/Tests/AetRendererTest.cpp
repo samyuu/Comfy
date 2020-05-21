@@ -9,11 +9,13 @@ namespace Comfy::Sandbox::Tests
 
 		AetRendererTest()
 		{
-			renderWindow.SetKeepAspectRatio(true);
-
+			// renderWindow.SetKeepAspectRatio(true);
 			renderWindow.OnRenderCallback = [&]
 			{
 				renderWindow.RenderTarget->Param.Resolution = camera.ProjectionSize = renderWindow.GetRenderRegion().GetSize();
+				
+				if (auto selectedScene = GetSelectedScene(); selectedScene != nullptr)
+					camera.CenterAndZoomToFit(selectedScene->Resolution);
 
 				renderer.Begin(camera, *renderWindow.RenderTarget);
 				if (const auto selectedLayer = GetSelectedLayer(); selectedLayer != nullptr)
@@ -51,6 +53,7 @@ namespace Comfy::Sandbox::Tests
 
 					GuiProperty::Input("Frame", playback.CurrentFrame);
 					GuiProperty::Checkbox("Playback", playback.Playback);
+					GuiProperty::Input("MSAA", renderWindow.RenderTarget->Param.MultiSampleCount);
 				}
 				Gui::End();
 
@@ -115,7 +118,27 @@ namespace Comfy::Sandbox::Tests
 								selected.LayerIndex = layerIndex;
 
 							if (Gui::IsItemHovered())
+							{
 								selected.LayerHoverIndex = layerIndex;
+								if (auto previewLayer = GetPreviewLayer(); previewLayer != nullptr)
+								{
+									constexpr float targetSize = 360.0f;
+									const auto sceneSize = vec2(GetSelectedScene()->Resolution);
+									const auto size = vec2(targetSize, targetSize * (sceneSize.y / sceneSize.x));
+
+									preview.Camera.ProjectionSize = size;
+									preview.RenderTarget->Param.Resolution = size;
+									preview.Camera.Zoom = (targetSize / sceneSize.x);
+
+									renderer.Begin(preview.Camera, *preview.RenderTarget);
+									renderer.Aet().DrawLayerLooped(*previewLayer, playback.CurrentFrame, playback.Position, playback.Opacity);
+									renderer.End();
+
+									Gui::BeginTooltip();
+									Gui::Image(preview.RenderTarget->GetTextureID(), size);
+									Gui::EndTooltip();
+								}
+							}
 
 							Gui::PopID();
 							layerIndex++;
@@ -154,10 +177,16 @@ namespace Comfy::Sandbox::Tests
 			if (selectedComp == nullptr)
 				return nullptr;
 
-			if (InBounds(selected.LayerHoverIndex, selectedComp->GetLayers()))
-				return selectedComp->GetLayers()[selected.LayerHoverIndex].get();
-
 			return InBounds(selected.LayerIndex, selectedComp->GetLayers()) ? selectedComp->GetLayers()[selected.LayerIndex].get() : nullptr;
+		}
+
+		Graphics::Aet::Layer* GetPreviewLayer() const
+		{
+			auto selectedComp = GetSelectedComp();
+			if (selectedComp == nullptr)
+				return nullptr;
+
+			return (InBounds(selected.LayerHoverIndex, selectedComp->GetLayers())) ? selectedComp->GetLayers()[selected.LayerHoverIndex].get() : nullptr;
 		}
 
 	private:
@@ -166,6 +195,12 @@ namespace Comfy::Sandbox::Tests
 
 		Comfy::CallbackRenderWindow2D renderWindow = {};
 		bool fullscreen = false;
+
+		struct PreviewData
+		{
+			Render::OrthographicCamera Camera = {};
+			std::unique_ptr<Render::RenderTarget2D> RenderTarget = Render::Renderer2D::CreateRenderTarget();
+		} preview;
 
 		Gui::FileViewer sprFileViewer = { "dev_ram/sprset/" };
 		Gui::FileViewer aetFileViewer = { "dev_ram/aetset/" };
