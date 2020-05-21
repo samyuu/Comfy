@@ -51,6 +51,7 @@ namespace Comfy::Sandbox::Tests
 					GuiProperty::ColorEdit("CornerColors[2]", testCommand.CornerColors[2]);
 					GuiProperty::ColorEdit("CornerColors[3]", testCommand.CornerColors[3]);
 					GuiProperty::Checkbox("Draw Text Border", testCommand.DrawTextBorder);
+					GuiProperty::Input("MSAA", renderWindow.RenderTarget->Param.MultiSampleCount);
 				}
 				Gui::End();
 
