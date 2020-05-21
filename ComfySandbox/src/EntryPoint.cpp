@@ -109,6 +109,27 @@ namespace Comfy::Sandbox
 
 		host.EnterProgramLoop([&]
 		{
+			bool showMenuBar = !false;
+
+			if (showMenuBar && Gui::BeginMainMenuBar())
+			{
+				if (Gui::BeginMenu("YEP"))
+				{
+					Gui::MenuItem("COCK");
+					Gui::EndMenu();
+				}
+
+				if (Gui::BeginMenu("NOP"))
+				{
+					Gui::MenuItem("COCK");
+					Gui::EndMenu();
+				}
+
+				Gui::EndMainMenuBar();
+			}
+
+			host.GuiMainDockspace(showMenuBar);
+
 			constexpr auto returnKey = Input::KeyCode_Escape;
 			if (Gui::IsKeyPressed(returnKey, false))
 				currentTestTask = nullptr;
