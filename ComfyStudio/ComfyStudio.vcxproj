@@ -205,7 +205,6 @@
     <ClCompile Include="src\Editor\Timeline\TimelineScrollbar.cpp" />
     <ClCompile Include="src\System\CommandLine\CommandLine.cpp" />
     <ClCompile Include="src\System\CommandLine\CommandLineOption.cpp" />
-    <ClCompile Include="src\System\LibraryLoader.cpp" />
     <ClCompile Include="src\DataTest\IconTestWindow.cpp" />
     <ClCompile Include="src\License\LicenseWindow.cpp" />
     <ClCompile Include="src\DataTest\InputTestWindow.cpp" />
@@ -282,7 +281,6 @@
     <ClInclude Include="src\System\CommandLine\CommandLineOption.h" />
     <ClInclude Include="src\System\Version\BuildConfiguration.h" />
     <ClInclude Include="src\System\Version\BuildVersion.h" />
-    <ClInclude Include="src\System\LibraryLoader.h" />
     <ClInclude Include="res\resource.h" />
     <ClInclude Include="src\DataTest\IconTestWindow.h" />
     <ClInclude Include="src\License\LicenseWindow.h" />
