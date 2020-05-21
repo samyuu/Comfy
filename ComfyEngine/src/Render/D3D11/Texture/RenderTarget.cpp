@@ -256,6 +256,12 @@ namespace Comfy::Render::D3D11
 		depthBuffer.Resize(newSize);
 	}
 
+	void DepthRenderTarget::SetMultiSampleCount(u32 multiSampleCount)
+	{
+		RenderTarget::SetMultiSampleCount(multiSampleCount);
+		depthBuffer.SetMultiSampleCount(multiSampleCount);
+	}
+
 	DepthBuffer* DepthRenderTarget::GetDepthBuffer()
 	{
 		return &depthBuffer;

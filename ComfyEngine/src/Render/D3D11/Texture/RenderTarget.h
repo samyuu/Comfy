@@ -66,7 +66,7 @@ namespace Comfy::Render::D3D11
 
 		u32 GetMultiSampleCount() const;
 
-		void SetMultiSampleCount(u32 multiSampleCount);
+		virtual void SetMultiSampleCount(u32 multiSampleCount);
 		void SetMultiSampleCountIfDifferent(u32 multiSampleCount);
 
 		ID3D11Resource* GetResource() const;
@@ -97,6 +97,8 @@ namespace Comfy::Render::D3D11
 
 		void Clear(const vec4& color) override;
 		void Resize(ivec2 newSize) override;
+
+		void SetMultiSampleCount(u32 multiSampleCount) override;
 
 		DepthBuffer* GetDepthBuffer();
 
