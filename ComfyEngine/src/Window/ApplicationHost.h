@@ -29,6 +29,10 @@ namespace Comfy
 		~ApplicationHost();
 
 		void EnterProgramLoop(const std::function<void()> updateFunction);
+		
+		// NOTE: Should be called after the MainMenuBar but before any other gui windows
+		void GuiMainDockspace(bool hasMenuBar);
+
 		void Exit();
 
 	public:

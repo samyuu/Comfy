@@ -376,7 +376,7 @@ namespace Comfy
 			Window.LastFocused = Window.Focused;
 		}
 
-		void GuiMainDockSpace()
+		void GuiMainDockSpace(bool hasMenuBar)
 		{
 			Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(0.0f, 0.0f));
 			Gui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
@@ -397,7 +397,9 @@ namespace Comfy
 				ImGuiWindowFlags_NoNavFocus |
 				ImGuiWindowFlags_NoBackground;
 
-			Gui::Begin(Gui::GuiRenderer::MainDockSpaceID, nullptr, dockspaceWindowFlags);
+			const ImGuiWindowFlags menuBarFlag = (hasMenuBar) ? ImGuiWindowFlags_MenuBar : ImGuiWindowFlags_None;
+
+			Gui::Begin(Gui::GuiRenderer::MainDockSpaceID, nullptr, dockspaceWindowFlags | menuBarFlag);
 			Gui::DockSpace(Gui::GetID(Gui::GuiRenderer::MainDockSpaceID), vec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 			Gui::End();
 
@@ -424,7 +426,6 @@ namespace Comfy
 		{
 			GuiRenderer.BeginFrame();
 			{
-				GuiMainDockSpace();
 				updateFunction();
 				Render::D3D11::D3D.WindowRenderTarget->BindSetViewport();
 				Render::D3D11::D3D.WindowRenderTarget->Clear(Window.ClearColor);
@@ -632,6 +633,11 @@ namespace Comfy
 			return;
 
 		impl->EnterProgramLoop(updateFunction);
+	}
+
+	void ApplicationHost::GuiMainDockspace(bool hasMenuBar)
+	{
+		impl->GuiMainDockSpace(hasMenuBar);
 	}
 
 	void ApplicationHost::Exit()
