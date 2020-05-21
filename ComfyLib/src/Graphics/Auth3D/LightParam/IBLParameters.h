@@ -14,6 +14,7 @@ namespace Comfy::Graphics
 		RGBA32F_CUBE,
 	};
 
+	// TODO: Replace with Tex to seemlessly integrate into the rest of the render APIs, add LightMapFormat to TextureFormats as special negative values
 	struct LightMapIBL
 	{
 		static constexpr size_t Faces = 6, MipMaps = 2;
