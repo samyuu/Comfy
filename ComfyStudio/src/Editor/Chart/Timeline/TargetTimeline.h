@@ -8,7 +8,7 @@
 #include "Audio/Audio.h"
 #include "Input/Input.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	enum EditorColor;
 	class ChartEditor;

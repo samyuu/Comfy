@@ -2,7 +2,7 @@
 #include "Misc/StringHelper.h"
 #include <FontIcons.h>
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	ChartEditor::ChartEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
 	{

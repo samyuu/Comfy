@@ -5,7 +5,7 @@
 #include "Time/TimeSpan.h"
 #include <FontIcons.h>
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	TargetTimeline::TargetTimeline(ChartEditor* parentChartEditor)
 	{

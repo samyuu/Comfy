@@ -5,7 +5,7 @@
 // NOTE: Use messy macros to automatically handle the command type enum
 #define ProcessUpdatingAetCommand(commandManager, type, ref, value) commandManager->AddOrUpdateCommand<Editor::Command::type>(Editor::Command::AetCommandType::type, ref, value)
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class AetCommandManager : public CommandManager<AetCommand>
 	{

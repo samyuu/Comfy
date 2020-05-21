@@ -6,7 +6,7 @@
 #include "TimelineScrollbar.h"
 #include "ImGui/Gui.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	enum class TimelineVisibility
 	{

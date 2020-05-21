@@ -1,7 +1,7 @@
 #pragma once
 #include "Editor/Timeline/FrameTimeline.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class AetTimeline;
 

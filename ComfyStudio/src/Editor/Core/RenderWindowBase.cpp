@@ -1,7 +1,7 @@
 #include "RenderWindowBase.h"
 #include "Theme.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	using namespace Graphics;
 

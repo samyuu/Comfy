@@ -1,7 +1,7 @@
 #pragma once
 #include "ImGui/Gui.h"
 
-namespace Comfy
+namespace Comfy::Studio
 {
 	class Application;
 

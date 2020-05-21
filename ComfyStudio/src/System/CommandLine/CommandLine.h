@@ -1,7 +1,7 @@
 #pragma once
 #include "CommandLineOption.h"
 
-namespace Comfy::System
+namespace Comfy::Studio::System
 {
 	enum class CommandLineResult
 	{

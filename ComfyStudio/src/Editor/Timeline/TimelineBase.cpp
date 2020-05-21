@@ -3,7 +3,7 @@
 #include "Input/Input.h"
 #include <FontIcons.h>
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	float TimelineBase::GetTimelinePosition(TimeSpan time) const
 	{

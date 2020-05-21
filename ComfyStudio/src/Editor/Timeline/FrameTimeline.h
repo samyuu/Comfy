@@ -2,7 +2,7 @@
 #include "TimelineBase.h"
 #include "TimelineFrame.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class FrameTimeline : public TimelineBase
 	{

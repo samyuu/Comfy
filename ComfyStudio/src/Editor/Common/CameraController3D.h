@@ -3,7 +3,7 @@
 #include "Render/Core/Camera.h"
 #include "Graphics/Auth3D/ObjSet.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class CameraController3D
 	{

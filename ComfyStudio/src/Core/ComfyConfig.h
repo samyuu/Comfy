@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 
-namespace Comfy
+namespace Comfy::Studio
 {
 	struct ComfyConfigData
 	{

@@ -1,7 +1,7 @@
 #include "TimelineMap.h"
 #include "Input/Input.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	TimelineMap::TimelineMap()
 	{

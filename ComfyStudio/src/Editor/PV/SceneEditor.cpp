@@ -13,7 +13,7 @@
 #include "Input/Input.h"
 #include <FontIcons.h>
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	using namespace Graphics;
 

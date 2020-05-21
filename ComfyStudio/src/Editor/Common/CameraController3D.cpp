@@ -2,7 +2,7 @@
 #include "ImGui/Gui.h"
 #include "Input/Input.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	void CameraController3D::Update(Render::PerspectiveCamera& camera)
 	{

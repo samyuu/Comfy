@@ -4,7 +4,7 @@
 #include "Graphics/Auth3D/ObjSet.h"
 #include "Graphics/Auth3D/Transform.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	struct CharacterTestData
 	{

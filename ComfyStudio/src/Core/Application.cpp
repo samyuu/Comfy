@@ -12,7 +12,7 @@
 #include "Core/ComfyConfig.h"
 #include "Core/Logger.h"
 
-namespace Comfy
+namespace Comfy::Studio
 {
 	Application::Application()
 	{

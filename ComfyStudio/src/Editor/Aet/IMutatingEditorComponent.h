@@ -1,7 +1,7 @@
 #pragma once
 #include "Command/AetCommandManager.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class IMutatingEditorComponent : NonCopyable
 	{

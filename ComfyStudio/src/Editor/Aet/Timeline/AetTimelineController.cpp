@@ -1,7 +1,7 @@
 #include "AetTimelineController.h"
 #include "AetTimeline.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	void MouseSelectionData::Reset() 
 	{ 

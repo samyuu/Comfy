@@ -1,6 +1,6 @@
 #include "AudioController.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	AudioController::AudioController()
 	{

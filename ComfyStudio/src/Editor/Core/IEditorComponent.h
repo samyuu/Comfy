@@ -3,9 +3,9 @@
 #include "IFileDropReceiver.h"
 #include "Theme.h"
 
-namespace Comfy { class Application; }
+namespace Comfy::Studio { class Application; }
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class EditorManager;
 

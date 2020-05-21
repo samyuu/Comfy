@@ -1,7 +1,7 @@
 #pragma once
 #include "Graphics/GPU/GPURenderers.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class CheckerboardGrid
 	{

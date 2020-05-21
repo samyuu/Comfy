@@ -12,7 +12,7 @@
 #include "MaterialEditor.h"
 #include <future>
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class SceneEditor : public IEditorComponent
 	{

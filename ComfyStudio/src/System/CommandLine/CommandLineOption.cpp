@@ -9,7 +9,7 @@
 #include "IO/Path.h"
 #include "Misc/StringHelper.h"
 
-namespace Comfy::System
+namespace Comfy::Studio::System
 {
 	static void FArcProcessor(int index, const char* arguments[])
 	{

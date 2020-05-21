@@ -4,7 +4,7 @@
 #include "Graphics/Auth2D/Aet/AetSet.h"
 #include "Graphics/GPU/GPUResources.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class AetTimeline;
 

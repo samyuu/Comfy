@@ -3,7 +3,7 @@
 #include "Core/BaseWindow.h"
 #include "Audio/Audio.h"
 
-namespace Comfy::DataTest
+namespace Comfy::Studio::DataTest
 {
 	class AudioTestWindow : public BaseWindow
 	{

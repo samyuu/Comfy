@@ -2,7 +2,7 @@
 #include "Editor/Aet/AetEditor.h"
 #include "Editor/Aet/AetIcons.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	using namespace Graphics;
 	using namespace Graphics::Aet;

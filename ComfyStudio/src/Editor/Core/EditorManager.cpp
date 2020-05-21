@@ -5,7 +5,7 @@
 #include "Editor/PV/SceneEditor.h"
 #include "Misc/StringHelper.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	std::array<u32, EditorColor_Count> EditorColors;
 

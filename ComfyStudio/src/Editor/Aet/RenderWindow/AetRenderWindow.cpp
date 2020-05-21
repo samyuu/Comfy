@@ -10,7 +10,7 @@
 #include "Input/Input.h"
 #include "Time/TimeSpan.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	using namespace Graphics;
 	using namespace Graphics::Aet;

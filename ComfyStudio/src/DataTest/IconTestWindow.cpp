@@ -2,7 +2,7 @@
 #include "Core/Application.h"
 #include "ImGui/Gui.h"
 
-namespace Comfy::DataTest
+namespace Comfy::Studio::DataTest
 {
 	IconTestWindow::IconTestWindow(Application* parent) : BaseWindow(parent)
 	{

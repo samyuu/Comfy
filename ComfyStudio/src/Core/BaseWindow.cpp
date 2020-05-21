@@ -1,6 +1,6 @@
 #include "BaseWindow.h"
 
-namespace Comfy
+namespace Comfy::Studio
 {
 	BaseWindow::BaseWindow(Application* parent) : parentApplication(parent)
 	{

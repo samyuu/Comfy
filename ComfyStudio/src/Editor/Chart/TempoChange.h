@@ -1,7 +1,7 @@
 #pragma once
 #include "Timeline/TimelineTick.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	constexpr float MIN_BPM = 2.0f;
 	constexpr float MAX_BPM = 960.0f;

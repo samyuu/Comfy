@@ -7,7 +7,7 @@
 #include "Graphics/Auth2D/Aet/AetMgr.h"
 #include "Graphics/Auth2D/Aet/AetSet.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class AetEditor;
 

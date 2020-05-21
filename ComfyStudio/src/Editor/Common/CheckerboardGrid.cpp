@@ -1,6 +1,6 @@
 #include "CheckerboardGrid.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	void CheckerboardGrid::Render(Graphics::GPU_Renderer2D& renderer) const
 	{

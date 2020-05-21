@@ -2,7 +2,7 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	namespace
 	{

@@ -2,7 +2,7 @@
 #include "Tools/TransformBox.h"
 #include "ImGui/Gui.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	using namespace Graphics;
 

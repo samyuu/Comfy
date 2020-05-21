@@ -5,7 +5,7 @@
 #include "IO/Path.h"
 #include "Misc/StringHelper.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	using namespace Graphics;
 

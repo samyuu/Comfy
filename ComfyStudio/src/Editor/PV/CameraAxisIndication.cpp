@@ -1,6 +1,6 @@
 #include "CameraAxisIndication.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	namespace
 	{

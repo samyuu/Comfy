@@ -3,7 +3,7 @@
 #include "Input/Input.h"
 #include <algorithm>
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	void CameraController2D::Update(Graphics::OrthographicCamera& camera, vec2 relativeMouse)
 	{

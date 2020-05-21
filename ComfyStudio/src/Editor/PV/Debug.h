@@ -5,7 +5,7 @@
 #include "IO/Path.h"
 #include "Misc/StringHelper.h"
 
-namespace Comfy::Debug
+namespace Comfy::Studio::Debug
 {
 	enum class PathType
 	{

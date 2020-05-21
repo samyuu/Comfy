@@ -4,7 +4,7 @@
 #include "Misc/StringParseHelper.h"
 #include "Core/ComfyData.h"
 
-namespace Comfy
+namespace Comfy::Studio
 {
 	bool LicenseWindow::DrawGui()
 	{

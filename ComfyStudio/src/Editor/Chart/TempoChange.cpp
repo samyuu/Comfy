@@ -1,6 +1,6 @@
 #include "TempoChange.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	TempoChange::TempoChange() : Tick(0), Tempo(0.0f)
 	{

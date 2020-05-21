@@ -5,7 +5,7 @@
 #include "Graphics/Auth2D/Aet/AetSet.h"
 #include "Graphics/Auth2D/Aet/AetRenderer.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class AetInspector : public IMutatingEditorComponent
 	{

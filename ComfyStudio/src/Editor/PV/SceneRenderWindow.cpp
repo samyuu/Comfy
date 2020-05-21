@@ -4,7 +4,7 @@
 #include "Graphics/Auth3D/RayIntersection.h"
 #include "Editor/Core/Theme.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	using namespace Graphics;
 

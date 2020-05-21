@@ -2,7 +2,7 @@
 #include "Core/BaseWindow.h"
 #include <FontIcons.h>
 
-namespace Comfy::DataTest
+namespace Comfy::Studio::DataTest
 {
 	class IconTestWindow : public BaseWindow
 	{

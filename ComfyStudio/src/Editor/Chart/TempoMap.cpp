@@ -1,7 +1,7 @@
 #include "TempoMap.h"
 #include <algorithm>
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	TempoMap::TempoMap()
 	{

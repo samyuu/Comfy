@@ -6,7 +6,7 @@
 #include "License/LicenseWindow.h"
 #include "ImGui/GuiRenderer.h"
 
-namespace Comfy
+namespace Comfy::Studio
 {
 	class Application : NonCopyable
 	{

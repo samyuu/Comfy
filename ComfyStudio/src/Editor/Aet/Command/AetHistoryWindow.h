@@ -1,7 +1,7 @@
 #pragma once
 #include "Editor/Aet/IMutatingEditorComponent.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class AetHistoryWindow : public IMutatingEditorComponent
 	{

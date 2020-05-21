@@ -1,7 +1,7 @@
 #pragma once
 #include "CoreTypes.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class IFileDropReceiver
 	{

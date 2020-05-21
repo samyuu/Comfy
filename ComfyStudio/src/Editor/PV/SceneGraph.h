@@ -6,7 +6,7 @@
 #include "Database/TexDB.h"
 #include "Resource/ResourceIDMap.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	using EntityTag = i64;
 

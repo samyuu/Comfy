@@ -1,7 +1,7 @@
 #include "RotateTool.h"
 #include "Editor/Aet/AetIcons.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	const char* RotateTool::GetIcon() const
 	{

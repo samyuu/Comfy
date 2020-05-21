@@ -5,7 +5,7 @@
 #include "IO/Path.h"
 #include <numeric>
 
-namespace Comfy::DataTest
+namespace Comfy::Studio::DataTest
 {
 	AudioTestWindow::AudioTestWindow(Application* parent) : BaseWindow(parent)
 	{

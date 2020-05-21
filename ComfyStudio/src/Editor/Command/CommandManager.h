@@ -4,7 +4,7 @@
 #include "ICommand.h"
 #include <queue>
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	template <typename TCommand>
 	class CommandManager

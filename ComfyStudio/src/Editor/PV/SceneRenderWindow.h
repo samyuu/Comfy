@@ -4,7 +4,7 @@
 #include "Editor/Common/CameraController3D.h"
 #include "Graphics/GPU/GPURenderers.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class SceneRenderWindow : public RenderWindowBase
 	{

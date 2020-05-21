@@ -3,7 +3,7 @@
 #include "Timeline/TimelineTick.h"
 #include "ImGui/Gui.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	SyncWindow::SyncWindow()
 	{

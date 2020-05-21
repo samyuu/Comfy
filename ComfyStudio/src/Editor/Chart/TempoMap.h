@@ -2,7 +2,7 @@
 #include "CoreTypes.h"
 #include "TempoChange.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	// Collection of tempo changes always kept in TimelineTick order
 	// -------------------------------------------------------------

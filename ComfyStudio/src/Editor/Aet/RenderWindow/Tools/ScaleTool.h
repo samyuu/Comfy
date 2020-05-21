@@ -1,7 +1,7 @@
 #pragma once
 #include "AetTool.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	enum ScaleNode
 	{

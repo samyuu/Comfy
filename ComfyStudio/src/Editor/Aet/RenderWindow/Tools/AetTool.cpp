@@ -1,6 +1,6 @@
 #include "AetTool.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	void AetTool::SetSpaceConversionFunctions(const std::function<vec2(vec2)>& worldToScreenSpace, const std::function<vec2(vec2)>& screenToWorldSpace)
 	{

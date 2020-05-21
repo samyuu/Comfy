@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "Graphics/Auth2D/Aet/AetMgr.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	inline void RotatePointSinCos(vec2& point, float sin, float cos)
 	{

@@ -2,7 +2,7 @@
 #include "AetTool.h"
 #include "TransformBox.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class TransformTool : public AetTool
 	{

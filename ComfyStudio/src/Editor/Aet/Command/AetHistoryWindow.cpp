@@ -1,7 +1,7 @@
 #include "AetHistoryWindow.h"
 #include "ImGui/Gui.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	AetHistoryWindow::AetHistoryWindow(AetCommandManager* commandManager) : IMutatingEditorComponent(commandManager)
 	{

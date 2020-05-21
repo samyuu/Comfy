@@ -3,7 +3,7 @@
 #include "CoreTypes.h"
 #include <optional>
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class ExternalProcess
 	{

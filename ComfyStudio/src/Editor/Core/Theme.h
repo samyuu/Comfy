@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	enum EditorColor
 	{

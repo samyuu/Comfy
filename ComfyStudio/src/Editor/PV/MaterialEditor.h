@@ -4,7 +4,7 @@
 #include "Graphics/GPU/GPURenderers.h"
 #include "Editor/Common/CameraController3D.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class MaterialEditor
 	{

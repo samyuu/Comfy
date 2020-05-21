@@ -1,7 +1,7 @@
 #pragma once
 #include "Graphics/Auth2D/Aet/AetSet.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	// NOTE: To communicate and provide visual feedback between different components
 	struct AetRenderPreviewData

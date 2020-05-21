@@ -1,6 +1,6 @@
 #include "AetIcons.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	using namespace Graphics;
 

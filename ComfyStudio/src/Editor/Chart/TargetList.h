@@ -3,7 +3,7 @@
 #include "CoreTypes.h"
 #include "Timeline/TimelineTick.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	using TargetType = i16;
 	enum TargetType_Enum : TargetType

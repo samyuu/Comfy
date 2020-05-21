@@ -12,7 +12,7 @@
 #include "IO/AsyncFileLoader.h"
 #include "ImGui/Widgets/FileViewer.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	class AetEditor : public IEditorComponent
 	{
