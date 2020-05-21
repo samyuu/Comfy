@@ -16,9 +16,6 @@ namespace ImGui
 			ComponentFlags_W = (1 << 3),
 		};
 
-		constexpr const char* StringViewStart(std::string_view stringView) { return &stringView.front(); }
-		constexpr const char* StringViewEnd(std::string_view stringView) { return &stringView.back() + 1; }
-
 		namespace RAII
 		{
 			struct ID : NonCopyable

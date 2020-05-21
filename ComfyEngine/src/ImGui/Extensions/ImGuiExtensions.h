@@ -17,6 +17,9 @@ namespace ImGui
 	constexpr vec2 UV0 = vec2(0.0f, 0.0f), UV1 = vec2(1.0f, 1.0f);
 	constexpr vec2 UV0_R = vec2(0.0f, 1.0f), UV1_R = vec2(1.0f, 0.0f);
 
+	constexpr const char* StringViewStart(std::string_view stringView) { return &stringView.front(); }
+	constexpr const char* StringViewEnd(std::string_view stringView) { return &stringView.back() + 1; }
+
 	void UpdateExtendedState();
 
 	bool WasActiveWindowFocusedOnMouseClicked(int button);
