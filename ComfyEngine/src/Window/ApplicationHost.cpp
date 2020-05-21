@@ -11,9 +11,6 @@
 #include "ImGui/GuiRenderer.h"
 #include "Misc/StringHelper.h"
 
-// TODO:
-// #include "../res/resource.h"
-
 namespace Comfy
 {
 	HMODULE GlobalModuleHandle = NULL;
@@ -174,13 +171,13 @@ namespace Comfy
 
 			Render::D3D11::D3D.Dispose();
 			DisposeWindow();
+
+			ComfyData = nullptr;
 		}
 
 	public:
 		bool InternalCreateWindow()
 		{
-			ApplicationHost::LoadComfyWindowIcon();
-
 			const auto windowClassName = UTF8::WideArg(ApplicationHost::ComfyWindowClassName);
 			const auto windowTitle = UTF8::WideArg(Window.Title);
 
@@ -618,6 +615,8 @@ namespace Comfy
 	ApplicationHost::ApplicationHost(const ConstructionParam& param) : impl(std::make_unique<Impl>(*this))
 	{
 		impl->Window.Title = param.WindowTitle;
+		GlobalIconHandle = static_cast<HICON>(param.IconHandle);
+
 		if (!impl->Initialize())
 			impl->FailedToInitialize = true;
 	}
@@ -811,13 +810,6 @@ namespace Comfy
 	const std::vector<std::string>& ApplicationHost::GetDroppedFiles() const
 	{
 		return impl->FileDrop.DroppedFiles;
-	}
-
-	void ApplicationHost::LoadComfyWindowIcon()
-	{
-		assert(GlobalIconHandle == NULL);
-		// TODO:
-		// GlobalIconHandle = ::LoadIconA(GlobalModuleHandle, MAKEINTRESOURCEA(COMFY_ICON));
 	}
 
 	HICON ApplicationHost::GetComfyWindowIcon()

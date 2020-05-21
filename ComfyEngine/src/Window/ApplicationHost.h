@@ -29,7 +29,7 @@ namespace Comfy
 		~ApplicationHost();
 
 		void EnterProgramLoop(const std::function<void()> updateFunction);
-		
+
 		// NOTE: Should be called after the MainMenuBar but before any other gui windows
 		void GuiMainDockspace(bool hasMenuBar);
 
@@ -80,7 +80,6 @@ namespace Comfy
 		void SetFileDropDispatched(bool value = true);
 		const std::vector<std::string>& GetDroppedFiles() const;
 
-		static void LoadComfyWindowIcon();
 		static HICON GetComfyWindowIcon();
 
 	private:
