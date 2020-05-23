@@ -3,22 +3,6 @@
 
 namespace Comfy::Studio::Editor
 {
-	TimelineTarget::TimelineTarget() : Tick(0), Type(static_cast<TargetType>(0)), Flags(TargetFlags_None)
-	{
-	}
-
-	TimelineTarget::TimelineTarget(TimelineTick tick, TargetType type) : Tick(tick), Type(type), Flags(TargetFlags_None)
-	{
-	}
-
-	TimelineTarget::TimelineTarget(const TimelineTarget& other) : Tick(other.Tick), Type(other.Type), Flags(other.Flags)
-	{
-	}
-
-	TargetList::TargetList() : collection()
-	{
-	}
-
 	void TargetList::Add(TimelineTick tick, TargetType type)
 	{
 		i64 insertionIndex;

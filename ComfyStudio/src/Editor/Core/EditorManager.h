@@ -2,40 +2,35 @@
 #include "CoreTypes.h"
 #include "IEditorComponent.h"
 
-namespace Comfy::Studio { class Application; }
-
 namespace Comfy::Studio::Editor
 {
-	class EditorManager
+	class EditorManager : NonCopyable
 	{
 	public:
-		// NOTE: Constructors / Destructors:
-		EditorManager(Application* parent);
-		~EditorManager();
+		EditorManager(Application& parent);
+		~EditorManager() = default;
 
-		// NOTE: Application methods:
-		void DrawGuiMenuItems();
-		void DrawGuiWindows();
+	public:
+		void GuiMenuItems();
+		void GuiWindows();
 
 	private:
-		// NOTE: Base members
-		Application* parent = nullptr;
+		Application& parent;
 
 		struct ComponentEntry
 		{
-			bool HasBeenInitialized;
+			bool IsFirstFrame;
 			std::unique_ptr<IEditorComponent> Component;
 		};
 
 		std::vector<ComponentEntry> editorComponents;
-		bool hasBeenInitialized = false;
+		bool isFirstFrame = false;
 
 	private:
-		// NOTE: Base methods
 		template <typename T> 
 		void AddEditorComponent(bool opened);
 
-		void Initialize();
+		void OnFirstFrame();
 		void Update();
 		void DrawGui();
 		void UpdateFileDrop();

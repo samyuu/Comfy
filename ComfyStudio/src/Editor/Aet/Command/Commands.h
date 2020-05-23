@@ -1,18 +1,18 @@
 #pragma once
 #include "Types.h"
 #include "AetCommand.h"
-#include "Graphics/Auth2D/Aet/AetMgr.h"
+#include "Graphics/Auth2D/Aet/AetUtil.h"
 
 #define Define_AetCommandStart(commandName, commandString) class commandName : public AetCommand { friend class AetCommandManager; const char* GetName() override { return commandString; } AetCommandType GetType() override { return AetCommandType::commandName; }
 #define Define_AetCommandEnd() }
 
 #define Define_PropertyCommand(commandName, commandString, refType, valueType, propertyName)							\
 		Define_AetCommandStart(commandName, commandString)																\
-			std::shared_ptr<refType> ref;																						\
+			std::shared_ptr<refType> ref;																				\
 			valueType newValue, oldValue;																				\
 																														\
 		public:																											\
-			commandName(const std::shared_ptr<refType>& ref, const valueType& value) : ref(ref), newValue(value) {}				\
+			commandName(const std::shared_ptr<refType>& ref, const valueType& value) : ref(ref), newValue(value) {}		\
 			void Do()	override { oldValue = ref->propertyName; ref->propertyName = newValue; }						\
 			void Undo() override { ref->propertyName = oldValue; }														\
 			void Redo() override { ref->propertyName = newValue; }														\
@@ -22,7 +22,7 @@
 
 #define Define_AccessorCommand(commandName, commandString, refType, valueType, getter, setter)				\
 		Define_AetCommandStart(commandName, commandString)													\
-			std::shared_ptr<refType> ref;																			\
+			std::shared_ptr<refType> ref;																	\
 			valueType newValue, oldValue;																	\
 																											\
 		public:																								\
@@ -111,7 +111,7 @@ namespace Comfy::Studio::Editor::Command
 private:
 	std::shared_ptr<Graphics::Aet::Layer> ref;
 	frame_t newValue, oldValue;
-	inline void OffsetKeyFrames(frame_t increment) { if (ref->LayerVideo != nullptr) Graphics::Aet::AetMgr::OffsetAllKeyFrames(ref->LayerVideo->Transform, increment); }
+	inline void OffsetKeyFrames(frame_t increment) { if (ref->LayerVideo != nullptr) Graphics::Aet::Util::OffsetAllKeyFrames(ref->LayerVideo->Transform, increment); }
 	inline frame_t ClampValue(frame_t value) { return glm::min(value, ref->EndFrame - 1.0f); }
 
 public:
@@ -227,7 +227,7 @@ private:
 	inline Graphics::Aet::Property1D& GetProperty() { return ref->LayerVideo->Transform[std::get<0>(newValue)]; }
 	inline frame_t GetFrame() { return std::get<1>(newValue); }
 	inline float GetNewValue() { return std::get<2>(newValue); }
-	inline Graphics::Aet::KeyFrame* FindExistingKeyFrame() { return Graphics::Aet::AetMgr::GetKeyFrameAt(GetProperty(), GetFrame()); }
+	inline Graphics::Aet::KeyFrame* FindExistingKeyFrame() { return Graphics::Aet::Util::GetKeyFrameAt(GetProperty(), GetFrame()); }
 
 	inline void DoRedoInternal(bool writeOldValue)
 	{
@@ -246,7 +246,7 @@ private:
 			if (writeOldValue)
 				oldValue = GetNewValue();
 
-			Graphics::Aet::AetMgr::InsertKeyFrameAt(GetProperty().Keys, GetFrame(), GetNewValue());
+			Graphics::Aet::Util::InsertKeyFrameAt(GetProperty().Keys, GetFrame(), GetNewValue());
 		}
 	}
 
@@ -267,7 +267,7 @@ public:
 		}
 		else
 		{
-			Graphics::Aet::AetMgr::DeleteKeyFrameAt(GetProperty().Keys, GetFrame());
+			Graphics::Aet::Util::DeleteKeyFrameAt(GetProperty().Keys, GetFrame());
 		}
 	}
 	void Redo() override

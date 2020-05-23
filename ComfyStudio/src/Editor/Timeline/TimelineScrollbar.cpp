@@ -3,13 +3,13 @@
 
 namespace Comfy::Studio::Editor
 {
-	TimelineScrollbar::TimelineScrollbar(ImGuiAxis axis, const vec2 timelineScrollbarSize)
+	TimelineScrollbar::TimelineScrollbar(ImGuiAxis axis, vec2 timelineScrollbarSize)
 		: axis(axis), timelineScrollbarSize(timelineScrollbarSize)
 	{
 		assert(axis == ImGuiAxis_X || axis == ImGuiAxis_Y);
 	}
 
-	void TimelineScrollbar::DrawGui(const float scroll, const float maxScroll, const ImRect scrollbarRegion)
+	void TimelineScrollbar::Gui(float scroll, float maxScroll, ImRect scrollbarRegion)
 	{
 		auto drawList = Gui::GetWindowDrawList();
 		const auto& style = Gui::GetStyle();

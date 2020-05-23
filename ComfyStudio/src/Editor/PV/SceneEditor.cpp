@@ -125,7 +125,7 @@ namespace Comfy::Studio::Editor
 		Gui::End();
 	}
 
-	const char* SceneEditor::GetGuiName() const
+	const char* SceneEditor::GetIsOpen() const
 	{
 		return "Scene Editor";
 	}

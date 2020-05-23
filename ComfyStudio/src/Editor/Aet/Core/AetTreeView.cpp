@@ -22,15 +22,11 @@ namespace Comfy::Studio::Editor
 		assert(cameraSelectedAetItem);
 	}
 
-	AetTreeView::~AetTreeView()
+	void AetTreeView::OnFirstFrame()
 	{
 	}
 
-	void AetTreeView::Initialize()
-	{
-	}
-
-	bool AetTreeView::DrawGui(const std::shared_ptr<AetSet>& aetSet)
+	bool AetTreeView::Gui(const std::shared_ptr<AetSet>& aetSet)
 	{
 		treeViewWindow = Gui::GetCurrentWindow();
 

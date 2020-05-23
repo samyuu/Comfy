@@ -4,16 +4,22 @@
 
 namespace Comfy::Studio::DataTest
 {
-	IconTestWindow::IconTestWindow(Application* parent) : BaseWindow(parent)
+	IconTestWindow::IconTestWindow(Application& parent) : BaseWindow(parent)
 	{
-		CloseWindow();
+		Close();
 	}
 
-	IconTestWindow::~IconTestWindow()
+	const char* IconTestWindow::GetName() const
 	{
+		return "Icon Test";
 	}
 
-	void IconTestWindow::DrawGui()
+	ImGuiWindowFlags IconTestWindow::GetFlags() const
+	{
+		return ImGuiWindowFlags_None;
+	}
+
+	void IconTestWindow::Gui()
 	{
 		Gui::Text("Icon Name Filter:");
 		iconFilter.Draw();
@@ -43,15 +49,5 @@ namespace Comfy::Studio::DataTest
 		}
 		Gui::Columns(1);
 		Gui::EndChild();
-	}
-
-	const char* IconTestWindow::GetGuiName() const
-	{
-		return u8"Icon Test";
-	}
-
-	ImGuiWindowFlags IconTestWindow::GetWindowFlags() const
-	{
-		return ImGuiWindowFlags_None;
 	}
 }

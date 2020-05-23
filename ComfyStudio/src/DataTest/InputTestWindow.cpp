@@ -4,16 +4,22 @@
 
 namespace Comfy::Studio::DataTest
 {
-	InputTestWindow::InputTestWindow(Application* parent) : BaseWindow(parent)
+	InputTestWindow::InputTestWindow(Application& parent) : BaseWindow(parent)
 	{
-		CloseWindow();
+		Close();
 	}
 
-	InputTestWindow::~InputTestWindow()
+	const char* InputTestWindow::GetName() const
 	{
+		return "Input Test";
 	}
 
-	void InputTestWindow::DrawGui()
+	ImGuiWindowFlags InputTestWindow::GetFlags() const
+	{
+		return ImGuiWindowFlags_None;
+	}
+
+	void InputTestWindow::Gui()
 	{
 		static const ImVec4 onColor = ImVec4(0.14f, 0.78f, 0.21f, 1.00f);
 		static const ImVec4 offColor = ImVec4(0.95f, 0.12f, 0.12f, 1.00f);
@@ -72,16 +78,6 @@ namespace Comfy::Studio::DataTest
 			}
 		}
 		Gui::Separator();
-	}
-
-	const char* InputTestWindow::GetGuiName() const
-	{
-		return u8"Input Test";
-	}
-
-	ImGuiWindowFlags InputTestWindow::GetWindowFlags() const
-	{
-		return ImGuiWindowFlags_None;
 	}
 
 	void InputTestWindow::RefreshDevices()

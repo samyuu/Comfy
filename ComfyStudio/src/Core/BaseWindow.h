@@ -8,31 +8,30 @@ namespace Comfy::Studio
 	class BaseWindow
 	{
 	public:
-		BaseWindow(Application* parent);
+		static constexpr ImGuiWindowFlags NoWindowFlags =
+			ImGuiWindowFlags_NoTitleBar |
+			ImGuiWindowFlags_NoResize |
+			ImGuiWindowFlags_NoScrollbar |
+			ImGuiWindowFlags_NoInputs |
+			ImGuiWindowFlags_NoSavedSettings |
+			ImGuiWindowFlags_NoFocusOnAppearing |
+			ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+	public:
+		BaseWindow(Application& parent) : parentApplication(parent) {}
 		virtual ~BaseWindow() = default;
 
-		virtual const char* GetGuiName() const = 0;
-		virtual void DrawGui() {}
-		virtual ImGuiWindowFlags GetWindowFlags() const;
+	public:
+		virtual const char* GetName() const = 0;
+		virtual ImGuiWindowFlags GetFlags() const { return ImGuiWindowFlags_None; }
+		virtual void Gui() = 0;
 
-		inline bool* GetIsGuiOpenPtr() { return &isGuiOpen; }
-		inline Application* GetParent() const { return parentApplication; }
+	public:
+		inline bool& GetIsOpen() { return isOpen; }
+		inline void Close() { isOpen = false; }
 
-		inline void CloseWindow() { *GetIsGuiOpenPtr() = false; }
-
-		static inline ImGuiWindowFlags GetNoWindowFlags()
-		{
-			return ImGuiWindowFlags_NoTitleBar |
-				ImGuiWindowFlags_NoResize |
-				ImGuiWindowFlags_NoScrollbar |
-				ImGuiWindowFlags_NoInputs |
-				ImGuiWindowFlags_NoSavedSettings |
-				ImGuiWindowFlags_NoFocusOnAppearing |
-				ImGuiWindowFlags_NoBringToFrontOnFocus;
-		}
-
-	private:
-		bool isGuiOpen = true;
-		Application* parentApplication = nullptr;
+	protected:
+		bool isOpen = true;
+		Application& parentApplication;
 	};
 }

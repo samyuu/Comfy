@@ -1,6 +1,6 @@
 #pragma once
-#include <FontIcons.h>
 #include "Graphics/Auth2D/Aet/AetSet.h"
+#include <FontIcons.h>
 
 #define ICON_SETLOADER		ICON_FA_FOLDER
 #define ICON_TREEVIEW		ICON_FA_LIST
@@ -14,7 +14,7 @@
 #define ICON_AETCOMPS		ICON_FA_LAYER_GROUP
 #define ICON_AETCOMP		ICON_FA_FOLDER
 #define ICON_AETCOMP_OPEN	ICON_FA_FOLDER_OPEN
-#define ICON_AETVIDEOS	ICON_FA_IMAGES
+#define ICON_AETVIDEOS		ICON_FA_IMAGES
 #define ICON_AETVIDEO		ICON_FA_IMAGE
 #define ICON_AETPLACEHOLDER	ICON_FA_EXPAND
 #define ICON_AETITEMNONE	ICON_FA_QUESTION_CIRCLE
@@ -37,5 +37,19 @@
 
 namespace Comfy::Studio::Editor
 {
-	const char* GetItemTypeIcon(Graphics::Aet::ItemType type);
+	constexpr const char* GetItemTypeIcon(Graphics::Aet::ItemType type)
+	{
+		switch (type)
+		{
+		case Graphics::Aet::ItemType::Video:
+			return ICON_AETITEMVIDEO;
+		case Graphics::Aet::ItemType::Audio:
+			return ICON_AETITEMAUDIO;
+		case Graphics::Aet::ItemType::Composition:
+			return ICON_AETITEMCOMP;
+		case Graphics::Aet::ItemType::None:
+		default:
+			return ICON_AETITEMNONE;
+		}
+	}
 }

@@ -39,8 +39,8 @@ namespace Comfy::Studio::Editor
 		inline CommandStack& GetRedoStack() { return redoStack; }
 
 	protected:
-		// Commands to be exectued at the end of the frame.
-		// This is to prevent deletion of layers mid-frame that are still being referenced by other layers.
+		// NOTE: Commands to be exectued at the end of the frame.
+		//		 This is to prevent deletion of layers mid-frame that are still being referenced by other layers.
 		CommandQueue commandQueue;
 
 		CommandStack undoStack;

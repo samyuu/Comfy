@@ -3,11 +3,8 @@
 
 namespace Comfy::Studio::Editor
 {
-	TimelineMap::TimelineMap()
-	{
-	}
-
-	TimelineMap::TimelineMap(std::vector<TimeSpan>& times, Tempo firstTempo, Tempo lastTempo) : tickTimes(times), firstTempo(firstTempo), lastTempo(lastTempo)
+	TimelineMap::TimelineMap(std::vector<TimeSpan>& times, Tempo firstTempo, Tempo lastTempo)
+		: tickTimes(times), firstTempo(firstTempo), lastTempo(lastTempo)
 	{
 	}
 
@@ -32,7 +29,7 @@ namespace Comfy::Studio::Editor
 			TimeSpan lastTickDuration = TimeSpan::FromSeconds((60.0 / lastTempo.BeatsPerMinute) / TimelineTick::TicksPerBeat);
 
 			// NOTE: Then scale by the remaining ticks
-			int remainingTicks = tick.TotalTicks() - tickTimeCount;
+			i32 remainingTicks = tick.TotalTicks() - tickTimeCount;
 			return lastTime + (lastTickDuration * remainingTicks);
 		}
 		else // NOTE: Use the pre calculated lookup table
@@ -74,11 +71,11 @@ namespace Comfy::Studio::Editor
 		}
 		else // NOTE: Perform a binary search
 		{
-			int left = 0, right = tickTimeCount - 1;
+			i32 left = 0, right = tickTimeCount - 1;
 
 			while (left <= right)
 			{
-				int mid = (left + right) / 2;
+				const i32 mid = (left + right) / 2;
 
 				if (time < tickTimes[mid])
 					right = mid - 1;

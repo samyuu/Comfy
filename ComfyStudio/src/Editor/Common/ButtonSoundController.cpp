@@ -1,30 +1,26 @@
-#include "AudioController.h"
+#include "ButtonSoundController.h"
 
 namespace Comfy::Studio::Editor
 {
-	AudioController::AudioController()
-	{
-	}
-
-	AudioController::~AudioController()
-	{
-		for (auto& voice : buttonSoundVoicePool)
-			Audio::Engine::GetInstance().RemoveVoice(voice);
-	}
-
-	void AudioController::Initialize()
+	ButtonSoundController::ButtonSoundController()
 	{
 		auto& audioEngine = Audio::Engine::GetInstance();
 
 		for (auto& voice : buttonSoundVoicePool)
-			voice = audioEngine.AddVoice(Audio::SourceHandle::Invalid, "AudioController::ButtonSoundVoice", false);
+			voice = audioEngine.AddVoice(Audio::SourceHandle::Invalid, "ButtonSoundController::ButtonSoundVoice", false);
 
 		// NOTE: Only load the default button sound for now
 		buttonSoundSources.push_back(audioEngine.LoadAudioSource(buttonSoundPath));
 		buttonSoundIndex = 0;
 	}
 
-	void AudioController::PlayButtonSound()
+	ButtonSoundController::~ButtonSoundController()
+	{
+		for (auto& voice : buttonSoundVoicePool)
+			Audio::Engine::GetInstance().RemoveVoice(voice);
+	}
+
+	void ButtonSoundController::PlayButtonSound()
 	{
 		if (buttonSoundIndex < 0)
 			return;
@@ -52,12 +48,12 @@ namespace Comfy::Studio::Editor
 			PlayButtonSound(*longestRunningVoice);
 	}
 
-	Audio::SourceHandle AudioController::GetButtonSoundSource(int index)
+	Audio::SourceHandle ButtonSoundController::GetButtonSoundSource(int index)
 	{
 		return buttonSoundSources[buttonSoundIndex];
 	}
 
-	void AudioController::PlayButtonSound(Audio::Voice voice)
+	void ButtonSoundController::PlayButtonSound(Audio::Voice voice)
 	{
 		float volume = buttonSoundVolume;
 

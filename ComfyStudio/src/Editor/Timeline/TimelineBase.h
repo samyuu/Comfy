@@ -21,6 +21,7 @@ namespace Comfy::Studio::Editor
 		TimelineBase() = default;
 		virtual ~TimelineBase() = default;
 
+	public:
 		virtual float GetTimelinePosition(TimeSpan time) const;
 		virtual TimeSpan GetTimelineTime(float position) const;
 
@@ -109,29 +110,33 @@ namespace Comfy::Studio::Editor
 		static constexpr float CURSOR_HEAD_WIDTH = 17.0f;
 		static constexpr float CURSOR_HEAD_HEIGHT = 8.0f;
 
-		// ----------------------
+	protected:
 		virtual void OnInitialize() {}
-		// ----------------------
+
+	protected:
 		void DrawTimelineBase();
 		void DrawTimelineZoomSlider();
-		// ----------------------
+
+	protected:
 		virtual void OnDrawTimelineHeaderWidgets() = 0;
 		virtual void OnDrawTimelineInfoColumnHeader();
 		virtual void OnDrawTimelineInfoColumn();
-		// ----------------------
+
+	protected:
 		virtual void OnDrawTimlineTempoMap();
 		virtual void OnDrawTimlineRows() = 0;
 		virtual void OnDrawTimlineDivisors() = 0;
 		virtual void OnDrawTimlineBackground() = 0;
 		virtual void DrawTimelineCursor();
-		// ----------------------
-		virtual void OnDrawTimelineScrollBarRegion() {}
-		// ----------------------
 
+	protected:
+		virtual void OnDrawTimelineScrollBarRegion() {}
+
+	protected:
 		void UpdateInfoColumnInput();
 		void UpdateTimelineBaseState();
 
-		// ----------------------
+	protected:
 		virtual void UpdateTimelineBase();
 		virtual void OnUpdate() = 0;
 		virtual void OnUpdateInput() = 0;

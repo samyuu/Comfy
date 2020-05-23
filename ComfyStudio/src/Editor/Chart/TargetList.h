@@ -40,54 +40,41 @@ namespace Comfy::Studio::Editor
 
 	struct TimelineTarget
 	{
-		// Members:
-		// --------
-		TimelineTick Tick;
-		TargetType Type;
-		TargetFlags Flags;
-		// TargetProperties Properties;
-		// --------
+	public:
+		TimelineTarget() = default;
+		TimelineTarget(TimelineTick tick, TargetType type) : Tick(tick), Type(type), Flags(TargetFlags_None) {}
 
-		// Constructors:
-		// -------------
-		TimelineTarget();
-		TimelineTarget(TimelineTick, TargetType);
-		TimelineTarget(const TimelineTarget&);
-		// -------------
+	public:
+		TimelineTick Tick = {};
+		TargetType Type = {};
+		TargetFlags Flags = TargetFlags_None;
 
-		// Operators:
-		// ----------
-		inline bool operator==(const TimelineTarget &other) const { return (Type == other.Type) && (Tick == other.Tick); }
-		inline bool operator<(const TimelineTarget &other) const { return Tick < other.Tick; }
-		inline bool operator>(const TimelineTarget &other) const { return Tick > other.Tick; }
-		// ----------
+	public:
+		bool operator==(const TimelineTarget &other) const { return (Type == other.Type) && (Tick == other.Tick); }
+		bool operator<(const TimelineTarget &other) const { return Tick < other.Tick; }
+		bool operator>(const TimelineTarget &other) const { return Tick > other.Tick; }
 	};
 
 	class TargetList
 	{
 	public:
-		// Constructors:
-		// -------------
-		TargetList();
+		TargetList() = default;
+		~TargetList() = default;
 
-		// Access Methods:
-		// ---------------
+	public:
 		void Add(TimelineTick, TargetType);
 		void Remove(i64 index);
 		void Remove(TimelineTick, TargetType);
 		i64 FindIndex(TimelineTick, TargetType);
 		i64 Count();
-		// ---------------
 
-		// Iterators:
-		// ----------
+	public:
 		auto begin() { return collection.begin(); }
 		auto end() { return collection.end(); }
 		auto begin() const { return collection.begin(); }
 		auto end() const { return collection.end(); }
 		auto cbegin() const { return collection.cbegin(); }
 		auto cend() const { return collection.cend(); }
-		// ----------
 
 	private:
 		std::vector<TimelineTarget> collection;

@@ -1,8 +1,9 @@
 #include "EditorManager.h"
 #include "Core/Application.h"
-#include "Editor/Aet/AetEditor.h"
+// TODO:
+// #include "Editor/Aet/AetEditor.h"
 #include "Editor/Chart/ChartEditor.h"
-#include "Editor/PV/SceneEditor.h"
+// #include "Editor/PV/SceneEditor.h"
 #include "Misc/StringHelper.h"
 
 namespace Comfy::Studio::Editor
@@ -64,7 +65,7 @@ namespace Comfy::Studio::Editor
 		SetColor(EditorColor_KeyFrameBorder, 0xFF1A1B1B);
 	}
 
-	EditorManager::EditorManager(Application* parent) : parent(parent)
+	EditorManager::EditorManager(Application& parent) : parent(parent)
 	{
 		editorComponents.reserve(3);
 #if 0
@@ -73,33 +74,29 @@ namespace Comfy::Studio::Editor
 		AddEditorComponent<SceneEditor>(false);
 #else
 		AddEditorComponent<ChartEditor>(false);
-		AddEditorComponent<AetEditor>(false);
-		AddEditorComponent<SceneEditor>(true);
+		// TODO:
+		// AddEditorComponent<AetEditor>(false);
+		// AddEditorComponent<SceneEditor>(true);
 #endif
 	}
 
-	EditorManager::~EditorManager()
-	{
-
-	}
-
-	void EditorManager::DrawGuiMenuItems()
+	void EditorManager::GuiMenuItems()
 	{
 		if (Gui::BeginMenu("Editor"))
 		{
 			for (auto& component : editorComponents)
-				Gui::MenuItem(component.Component->GetGuiName(), nullptr, component.Component->GetIsGuiOpenPtr());
+				Gui::MenuItem(component.Component->GetName(), nullptr, &component.Component->GetIsOpen());
 
 			Gui::EndMenu();
 		}
 	}
 
-	void EditorManager::DrawGuiWindows()
+	void EditorManager::GuiWindows()
 	{
-		if (!hasBeenInitialized)
+		if (!isFirstFrame)
 		{
-			Initialize();
-			hasBeenInitialized = true;
+			OnFirstFrame();
+			isFirstFrame = true;
 		}
 
 		Update();
@@ -110,13 +107,13 @@ namespace Comfy::Studio::Editor
 	void EditorManager::AddEditorComponent(bool opened)
 	{
 		static_assert(std::is_base_of<IEditorComponent, T>::value, "T must inherit from IEditorComponent");
-		editorComponents.push_back({ false, std::move(std::make_unique<T>(parent, this)) });
+		editorComponents.push_back({ false, std::move(std::make_unique<T>(parent, *this)) });
 	
 		if (!opened)
-			editorComponents.back().Component->CloseWindow();
+			editorComponents.back().Component->Close();
 	}
 
-	void EditorManager::Initialize()
+	void EditorManager::OnFirstFrame()
 	{
 		return;
 	}
@@ -139,22 +136,22 @@ namespace Comfy::Studio::Editor
 
 	void EditorManager::DrawGui()
 	{
-		for (auto& component : editorComponents)
+		for (auto& entry : editorComponents)
 		{
-			if (*component.Component->GetIsGuiOpenPtr())
+			if (entry.Component->GetIsOpen())
 			{
-				if (!component.HasBeenInitialized)
+				if (!entry.IsFirstFrame)
 				{
-					component.Component->Initialize();
-					component.HasBeenInitialized = true;
+					entry.Component->OnFirstFrame();
+					entry.IsFirstFrame = true;
 				}
 
-				component.Component->OnWindowBegin();
+				entry.Component->OnWindowBegin();
 				{
-					if (Gui::Begin(component.Component->GetGuiName(), component.Component->GetIsGuiOpenPtr(), component.Component->GetWindowFlags()))
-						component.Component->DrawGui();
+					if (Gui::Begin(entry.Component->GetName(), &entry.Component->GetIsOpen(), entry.Component->GetFlags()))
+						entry.Component->Gui();
 				}
-				component.Component->OnWindowEnd();
+				entry.Component->OnWindowEnd();
 				Gui::End();
 			}
 		}
@@ -162,17 +159,17 @@ namespace Comfy::Studio::Editor
 
 	void EditorManager::UpdateFileDrop()
 	{
-		if (parent->GetHost().GetDispatchFileDrop())
+		if (parent.GetHost().GetDispatchFileDrop())
 		{
-			const auto& droppedFiles = parent->GetHost().GetDroppedFiles();
+			const auto& droppedFiles = parent.GetHost().GetDroppedFiles();
 
-			for (const auto &component : editorComponents)
+			for (const auto& component : editorComponents)
 			{
-				for (const std::string& filePath : droppedFiles)
+				for (const auto& filePath : droppedFiles)
 				{
 					if (component.Component->OnFileDropped(filePath))
 					{
-						parent->GetHost().SetFileDropDispatched();
+						parent.GetHost().SetFileDropDispatched();
 						break;
 					}
 				}

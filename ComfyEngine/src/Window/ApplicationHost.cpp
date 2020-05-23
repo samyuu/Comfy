@@ -763,7 +763,6 @@ namespace Comfy
 
 	void ApplicationHost::SetWindowRestoreRegion(ivec4 value)
 	{
-		assert(impl->Window.Handle == nullptr);
 		impl->Window.RestoreRegion = value;
 	}
 

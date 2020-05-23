@@ -1,7 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "Render/Core/Camera.h"
-#include "Graphics/Auth3D/ObjSet.h"
+#include "Render/Render.h"
 
 namespace Comfy::Studio::Editor
 {

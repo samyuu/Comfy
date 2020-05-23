@@ -4,15 +4,13 @@
 
 namespace Comfy::Studio::Editor
 {
-	// This class stores a pool of button sound instances.
-	// It controls their volume levels and exposes a public play method.
-	class AudioController
+	class ButtonSoundController
 	{
 	public:
-		AudioController();
-		~AudioController();
+		ButtonSoundController();
+		~ButtonSoundController();
 
-		void Initialize();
+	public:
 		void PlayButtonSound();
 
 		Audio::SourceHandle GetButtonSoundSource(int index);
@@ -22,7 +20,7 @@ namespace Comfy::Studio::Editor
 
 		TimeSpan buttonSoundTime, lastButtonSoundTime, timeSinceLastButtonSound;
 		float buttonSoundVolume = 0.75f;
-		
+
 		int buttonSoundIndex = -1;
 		std::vector<Audio::SourceHandle> buttonSoundSources;
 		std::array<Audio::Voice, 16> buttonSoundVoicePool;

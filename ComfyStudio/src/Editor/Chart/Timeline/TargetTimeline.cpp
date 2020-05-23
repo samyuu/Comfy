@@ -1,26 +1,28 @@
 #include "TargetTimeline.h"
 #include "Editor/Chart/ChartEditor.h"
 #include "Editor/Chart/TempoMap.h"
-#include "Core/ComfyData.h"
 #include "Time/TimeSpan.h"
+#include "System/ComfyData.h"
 #include <FontIcons.h>
 
 namespace Comfy::Studio::Editor
 {
-	TargetTimeline::TargetTimeline(ChartEditor* parentChartEditor)
+	TargetTimeline::TargetTimeline(ChartEditor& parent) : chartEditor(parent)
 	{
 		scrollSpeed = 2.5f;
 		scrollSpeedFast = 5.5f;
 
-		chartEditor = parentChartEditor;
-		chart = chartEditor->GetChart();
+		workingChart = chartEditor.GetChart();
 
-		Audio::Engine::GetInstance().RegisterCallbackReceiver(this);
-	}
+		callbackReceiver = nullptr;
 
-	TargetTimeline::~TargetTimeline()
-	{
-		Audio::Engine::GetInstance().UnregisterCallbackReceiver(this);
+		callbackReceiver = std::make_unique<Audio::CallbackReceiver>([&]()
+		{
+			UpdateOnCallbackSounds();
+
+			if (checkHitsoundsInCallback && updateInput)
+				UpdateOnCallbackPlacementSounds();
+		});
 	}
 
 	TimelineTick TargetTimeline::GetGridTick() const
@@ -30,13 +32,13 @@ namespace Comfy::Studio::Editor
 
 	TimelineTick TargetTimeline::FloorToGrid(TimelineTick tick) const
 	{
-		int gridTicks = GetGridTick().TotalTicks();
+		const int gridTicks = GetGridTick().TotalTicks();
 		return static_cast<int>(glm::floor(tick.TotalTicks() / static_cast<float>(gridTicks)) * gridTicks);
 	}
 
 	TimelineTick TargetTimeline::RoundToGrid(TimelineTick tick) const
 	{
-		int gridTicks = GetGridTick().TotalTicks();
+		const int gridTicks = GetGridTick().TotalTicks();
 		return static_cast<int>(glm::round(tick.TotalTicks() / static_cast<float>(gridTicks)) * gridTicks);
 	}
 
@@ -52,7 +54,7 @@ namespace Comfy::Studio::Editor
 
 	TimelineTick TargetTimeline::GetTimelineTick(TimeSpan time) const
 	{
-		return chart->GetTimelineMap().GetTickAt(time);
+		return workingChart->GetTimelineMap().GetTickAt(time);
 	}
 
 	TimelineTick TargetTimeline::GetTimelineTick(float position) const
@@ -62,7 +64,7 @@ namespace Comfy::Studio::Editor
 
 	TimeSpan TargetTimeline::GetTimelineTime(TimelineTick tick) const
 	{
-		return chart->GetTimelineMap().GetTimeAt(tick);
+		return workingChart->GetTimelineMap().GetTimeAt(tick);
 	}
 
 	TimeSpan TargetTimeline::GetTimelineTime(float position) const
@@ -134,7 +136,8 @@ namespace Comfy::Studio::Editor
 		ImRect textureCoordinates = buttonIconsTextureCoordinates[GetButtonIconIndex(target)];
 
 		const ImU32 color = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF * transparency);
-		drawList->AddImage(*buttonIconsTexture, position, bottomRight, textureCoordinates.GetBL(), textureCoordinates.GetTR(), color);
+		if (buttonIconsTexture != nullptr)
+			drawList->AddImage(*buttonIconsTexture, position, bottomRight, textureCoordinates.GetBL(), textureCoordinates.GetTR(), color);
 
 		if ((target.Flags & TargetFlags_Hold))
 		{
@@ -144,8 +147,6 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnInitialize()
 	{
-		audioController.Initialize();
-
 		InitializeButtonIcons();
 		UpdateTimelineMap();
 	}
@@ -156,7 +157,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::UpdateTimelineMap()
 	{
-		chart->GetTimelineMap().CalculateMapTimes(chart->GetTempoMap());
+		workingChart->GetTimelineMap().CalculateMapTimes(workingChart->GetTempoMap());
 	}
 
 	void TargetTimeline::UpdateOnCallbackSounds()
@@ -166,9 +167,9 @@ namespace Comfy::Studio::Editor
 
 		for (int i = 0; i < buttonSoundTimesList.size(); ++i)
 		{
-			if (chartEditor->GetPlaybackTime() >= buttonSoundTimesList[i])
+			if (chartEditor.GetPlaybackTime() >= buttonSoundTimesList[i])
 			{
-				audioController.PlayButtonSound();
+				buttonSoundController.PlayButtonSound();
 				buttonSoundTimesList.erase(buttonSoundTimesList.begin() + (i--));
 			}
 			else
@@ -188,26 +189,26 @@ namespace Comfy::Studio::Editor
 			if (buttonPlacementKeyStates[i].Down && !buttonPlacementKeyStates[i].WasDown)
 			{
 				Audio::Engine::GetInstance().EnsureStreamRunning();
-				audioController.PlayButtonSound();
+				buttonSoundController.PlayButtonSound();
 			}
 		}
 	}
 
 	void TargetTimeline::InitializeButtonIcons()
 	{
+		// NOTE:
 		// sankaku		| shikaku		| batsu		 | maru		 | slide_l		| slide_r	   | slide_chain_l		| slide_chain_r
 		// sankaku_sync | shikaku_sync  | batsu_sync | maru_sync | slide_l_sync | slide_r_sync | slide_chain_l_sync | slide_chain_r_sync
+		if (const auto sprFileEntry = ComfyData->FindFile("spr/spr_comfy_editor.bin"); sprFileEntry != nullptr)
 		{
-			const auto sprFileEntry = ComfyData->FindFile("spr/spr_comfy_editor.bin");
-			assert(sprFileEntry != nullptr);
-
-			std::unique_ptr<u8[]> sprFileBuffer = std::make_unique<u8[]>(sprFileEntry->Size);
+			auto sprFileBuffer = std::make_unique<u8[]>(sprFileEntry->Size);
 			ComfyData->ReadEntryIntoBuffer(sprFileEntry, sprFileBuffer.get());
 
-			sprSet.Parse(sprFileBuffer.get(), sprFileEntry->Size);
-			sprSet.TexSet->UploadAll(&sprSet);
+			sprSet = std::make_unique<Graphics::SprSet>();
+			sprSet->Parse(sprFileBuffer.get(), sprFileEntry->Size);
 
-			buttonIconsTexture = sprSet.TexSet->Textures.front()->GPU_Texture2D.get();
+			if (sprSet != nullptr && !sprSet->TexSet->Textures.empty())
+				buttonIconsTexture = sprSet->TexSet->Textures.front();
 		}
 
 		const vec2 texelSize = vec2(1.0f, 1.0f) / vec2(buttonIconsTexture->GetSize());
@@ -217,8 +218,8 @@ namespace Comfy::Studio::Editor
 
 		for (size_t i = 0; i < buttonIconsTextureCoordinates.size(); i++)
 		{
-			float x = (buttonIconWidth * (i % buttonIconsTypeCount)) * texelSize.x;
-			float y = (buttonIconWidth * (i / buttonIconsTypeCount)) * texelSize.y;
+			const float x = (buttonIconWidth * (i % buttonIconsTypeCount)) * texelSize.x;
+			const float y = (buttonIconWidth * (i / buttonIconsTypeCount)) * texelSize.y;
 
 			buttonIconsTextureCoordinates[i] = ImRect(x, y, x + width, y + height);
 		}
@@ -229,10 +230,10 @@ namespace Comfy::Studio::Editor
 		Audio::Engine::GetInstance().EnsureStreamRunning();
 
 		buttonSoundTimesList.clear();
-		for (const auto& target : chart->GetTargets())
+		for (const auto& target : workingChart->GetTargets())
 		{
 			TimeSpan buttonTime = GetTimelineTime(target.Tick);
-			if (buttonTime >= chartEditor->GetPlaybackTime())
+			if (buttonTime >= chartEditor.GetPlaybackTime())
 				buttonSoundTimesList.push_back(buttonTime);
 		}
 	}
@@ -246,17 +247,9 @@ namespace Comfy::Studio::Editor
 		CenterCursor();
 	}
 
-	void TargetTimeline::OnAudioCallback()
-	{
-		UpdateOnCallbackSounds();
-
-		if (checkHitsoundsInCallback && updateInput)
-			UpdateOnCallbackPlacementSounds();
-	}
-
 	void TargetTimeline::OnSongLoaded()
 	{
-		if (auto sampleProvider = Audio::Engine::GetInstance().GetSharedSource(chartEditor->GetSongSource()); sampleProvider != nullptr)
+		if (auto sampleProvider = Audio::Engine::GetInstance().GetSharedSource(chartEditor.GetSongSource()); sampleProvider != nullptr)
 			songWaveform.SetSource(sampleProvider);
 		else
 			songWaveform.Clear();
@@ -349,15 +342,15 @@ namespace Comfy::Studio::Editor
 		auto drawList = Gui::GetWindowDrawList();
 		for (int i = 0; i < TargetType_Max; i++)
 		{
-			float y = i * ROW_HEIGHT;
+			float y = i * rowHeight;
 			auto start = vec2(0.0f, y) + infoColumnRegion.GetTL();
-			auto end = vec2(infoColumnWidth, y + ROW_HEIGHT) + infoColumnRegion.GetTL();
+			auto end = vec2(infoColumnWidth, y + rowHeight) + infoColumnRegion.GetTL();
 
 			auto center = vec2((start.x + end.x) / 2.0f, (start.y + end.y) / 2.0f);
 			targetYPositions[i] = center.y;
 
 			TimelineTarget target(0, static_cast<TargetType>(i));
-			DrawButtonIcon(drawList, target, center, ICON_SCALE);
+			DrawButtonIcon(drawList, target, center, iconScale);
 		}
 	}
 
@@ -372,7 +365,7 @@ namespace Comfy::Studio::Editor
 		// ---------------------------
 		for (int t = 0; t <= TargetType_Max; t++)
 		{
-			vec2 start = timelineTL + vec2(0.0f, t * ROW_HEIGHT);
+			vec2 start = timelineTL + vec2(0.0f, t * rowHeight);
 			vec2 end = start + timelineWidth;
 
 			baseDrawList->AddLine(start, end, rowColor);
@@ -391,7 +384,7 @@ namespace Comfy::Studio::Editor
 			char barStrBuffer[16];
 			int barCount = -1;
 
-			const int totalTicks = GetTimelineTick(chart->GetDuration()).TotalTicks();
+			const int totalTicks = GetTimelineTick(workingChart->GetDuration()).TotalTicks();
 			const int tickStep = GetGridTick().TotalTicks();
 
 			const float scrollX = GetScrollX();
@@ -447,14 +440,17 @@ namespace Comfy::Studio::Editor
 			updateWaveform = false;
 		}
 
-		float scrollXStartOffset = GetScrollX() + GetTimelinePosition(chart->GetStartOffset());
+		if (songWaveform.GetPixelCount() < 1)
+			return;
+
+		float scrollXStartOffset = GetScrollX() + GetTimelinePosition(workingChart->GetStartOffset());
 
 		i64 leftMostVisiblePixel = static_cast<i64>(GetTimelinePosition(TimelineTick(0)));
 		i64 rightMostVisiblePixel = leftMostVisiblePixel + static_cast<i64>(timelineContentRegion.GetWidth());
 		i64 waveformPixelCount = static_cast<i64>(songWaveform.GetPixelCount());
 
 		float timelineX = timelineContentRegion.GetTL().x;
-		float timelineHeight = (TargetType_Max * ROW_HEIGHT);
+		float timelineHeight = (TargetType_Max * rowHeight);
 		float timelineCenterY = timelineContentRegion.GetTL().y + (timelineHeight * 0.5f);
 
 		i64 waveformPixelsDrawn = 0;
@@ -489,9 +485,9 @@ namespace Comfy::Studio::Editor
 			char tempoStr[16];
 			static int tempoPopupIndex = -1;
 
-			for (size_t i = 0; i < chart->GetTempoMap().TempoChangeCount(); i++)
+			for (size_t i = 0; i < workingChart->GetTempoMap().TempoChangeCount(); i++)
 			{
-				TempoChange& tempoChange = chart->GetTempoMap().GetTempoChangeAt(i);
+				TempoChange& tempoChange = workingChart->GetTempoMap().GetTempoChangeAt(i);
 
 				float screenX = glm::round(GetTimelinePosition(tempoChange.Tick) - GetScrollX());
 
@@ -546,10 +542,10 @@ namespace Comfy::Studio::Editor
 
 				if (tempoPopupIndex >= 0)
 				{
-					TempoChange& tempoChange = chart->GetTempoMap().GetTempoChangeAt(tempoPopupIndex);
+					TempoChange& tempoChange = workingChart->GetTempoMap().GetTempoChangeAt(tempoPopupIndex);
 					float bpm = tempoChange.Tempo.BeatsPerMinute;
 
-					if (Gui::DragFloat("##TempoDragFloat", &bpm, 1.0f, MIN_BPM, MAX_BPM, "%.2f BPM"))
+					if (Gui::DragFloat("##TempoDragFloat", &bpm, 1.0f, Tempo::MinBPM, Tempo::MaxBPM, "%.2f BPM"))
 					{
 						tempoChange.Tempo = bpm;
 						UpdateTimelineMap();
@@ -567,7 +563,7 @@ namespace Comfy::Studio::Editor
 		ImGuiWindow* window = Gui::GetCurrentWindow();
 		ImDrawList* windowDrawList = window->DrawList;
 
-		for (const auto& target : chart->GetTargets())
+		for (const auto& target : workingChart->GetTargets())
 		{
 			TimeSpan buttonTime = GetTimelineTime(target.Tick);
 			float screenX = GetTimelinePosition(buttonTime) - GetScrollX();
@@ -580,7 +576,7 @@ namespace Comfy::Studio::Editor
 
 			vec2 center = vec2(screenX + timelineContentRegion.GetTL().x, targetYPositions[target.Type]);
 
-			float scale = ICON_SCALE;
+			float scale = iconScale;
 
 			if (GetIsPlayback())
 			{
@@ -614,7 +610,7 @@ namespace Comfy::Studio::Editor
 	{
 		if (GetIsPlayback())
 		{
-			float prePlaybackX = glm::round(GetTimelinePosition(chartEditor->GetPlaybackTimeOnPlaybackStart()) - GetScrollX());
+			float prePlaybackX = glm::round(GetTimelinePosition(chartEditor.GetPlaybackTimeOnPlaybackStart()) - GetScrollX());
 
 			vec2 start = timelineHeaderRegion.GetTL() + vec2(prePlaybackX, 0.0f);
 			vec2 end = timelineContentRegion.GetBL() + vec2(prePlaybackX, 0.0f);
@@ -679,13 +675,12 @@ namespace Comfy::Studio::Editor
 
 		const auto& io = Gui::GetIO();
 
-		// Cursor Mouse Click:
-		// -------------------
+		// NOTE: Cursor Mouse Click:
 		if (Gui::IsMouseClicked(0) && !io.KeyShift) // Gui::IsMouseReleased(0)
 		{
 			const bool wasPlaying = GetIsPlayback();
 			if (wasPlaying)
-				chartEditor->PausePlayback();
+				chartEditor.PausePlayback();
 
 			const TimelineTick cursorMouseTick = GetCursorMouseXTick();
 			TimeSpan previousTime = GetCursorTime();
@@ -694,20 +689,20 @@ namespace Comfy::Studio::Editor
 			if (previousTime == newTime)
 				return;
 
-			chartEditor->SetPlaybackTime(newTime);
+			chartEditor.SetPlaybackTime(newTime);
 
 			if (wasPlaying)
 			{
-				chartEditor->ResumePlayback();
+				chartEditor.ResumePlayback();
 			}
-			else // play a button sound if a target exists at the cursor tick
+			else // NOTE: Play a button sound if a target exists at the cursor tick
 			{
-				for (const auto& target : chart->GetTargets())
+				for (const auto& target : workingChart->GetTargets())
 				{
 					if (target.Tick == cursorMouseTick)
 					{
 						Audio::Engine::GetInstance().EnsureStreamRunning();
-						audioController.PlayButtonSound();
+						buttonSoundController.PlayButtonSound();
 
 						buttonAnimations[target.Type].Tick = target.Tick;
 						buttonAnimations[target.Type].ElapsedTime = TimeSpan::FromSeconds(0.0);
@@ -716,8 +711,7 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
-		// Cursor Mouse Drag:
-		// ------------------
+		// NOTE: Cursor Mouse Drag:
 		if (!GetIsPlayback() && false)
 		{
 			if (Gui::IsMouseClicked(0))
@@ -740,7 +734,6 @@ namespace Comfy::Studio::Editor
 				timeSelectionEnd = GetCursorMouseXTick();
 			}
 		}
-		// ------------------
 	}
 
 	void TargetTimeline::UpdateInputTargetPlacement()
@@ -765,7 +758,7 @@ namespace Comfy::Studio::Editor
 				if (!checkHitsoundsInCallback)
 				{
 					Audio::Engine::GetInstance().EnsureStreamRunning();
-					audioController.PlayButtonSound();
+					buttonSoundController.PlayButtonSound();
 				}
 				PlaceOrRemoveTarget(cursorTick, buttonPlacementMapping[i].Type);
 			}
@@ -774,16 +767,16 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::PlaceOrRemoveTarget(TimelineTick tick, TargetType type)
 	{
-		i64 existingTargetIndex = chart->GetTargets().FindIndex(tick, type);
+		i64 existingTargetIndex = workingChart->GetTargets().FindIndex(tick, type);
 
 		if (existingTargetIndex > -1)
 		{
 			if (!GetIsPlayback())
-				chart->GetTargets().Remove(existingTargetIndex);
+				workingChart->GetTargets().Remove(existingTargetIndex);
 		}
 		else
 		{
-			chart->GetTargets().Add(tick, type);
+			workingChart->GetTargets().Add(tick, type);
 		}
 
 		buttonAnimations[type].Tick = tick;
@@ -798,32 +791,32 @@ namespace Comfy::Studio::Editor
 
 	TimeSpan TargetTimeline::GetCursorTime() const
 	{
-		return chartEditor->GetPlaybackTime();
+		return chartEditor.GetPlaybackTime();
 	}
 
 	bool TargetTimeline::GetIsPlayback() const
 	{
-		return chartEditor->GetIsPlayback();
+		return chartEditor.GetIsPlayback();
 	}
 
 	void TargetTimeline::PausePlayback()
 	{
-		chartEditor->PausePlayback();
+		chartEditor.PausePlayback();
 	}
 
 	void TargetTimeline::ResumePlayback()
 	{
-		chartEditor->ResumePlayback();
+		chartEditor.ResumePlayback();
 	}
 
 	void TargetTimeline::StopPlayback()
 	{
-		chartEditor->StopPlayback();
+		chartEditor.StopPlayback();
 	}
 
 	float TargetTimeline::GetTimelineSize() const
 	{
-		return GetTimelinePosition(chart->GetDuration());
+		return GetTimelinePosition(workingChart->GetDuration());
 	}
 
 	void TargetTimeline::OnTimelineBaseScroll()
@@ -834,13 +827,13 @@ namespace Comfy::Studio::Editor
 		{
 			const TimeSpan increment = TimeSpan((io.KeyShift ? 1.0 : 0.5) * io.MouseWheel);
 
-			chartEditor->PausePlayback();
-			chartEditor->SetPlaybackTime(chartEditor->GetPlaybackTime() + increment);
+			chartEditor.PausePlayback();
+			chartEditor.SetPlaybackTime(chartEditor.GetPlaybackTime() + increment);
 
-			if (chartEditor->GetPlaybackTime() < TimeSpan::FromSeconds(0.0))
-				chartEditor->SetPlaybackTime(TimeSpan::FromSeconds(0.0));
+			if (chartEditor.GetPlaybackTime() < TimeSpan::FromSeconds(0.0))
+				chartEditor.SetPlaybackTime(TimeSpan::FromSeconds(0.0));
 
-			chartEditor->ResumePlayback();
+			chartEditor.ResumePlayback();
 
 			CenterCursor();
 		}

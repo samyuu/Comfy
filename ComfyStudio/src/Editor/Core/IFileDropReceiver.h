@@ -8,6 +8,7 @@ namespace Comfy::Studio::Editor
 	public:
 		virtual ~IFileDropReceiver() = default;
 
+	public:
 		virtual bool OnFileDropped(const std::string& filePath) { return false; }
 	};
 }

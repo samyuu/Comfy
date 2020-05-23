@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "Editor/Aet/IMutatingEditorComponent.h"
+#include "Editor/Aet/MutatingEditorComponent.h"
 #include "Editor/Aet/AetSelection.h"
 #include "Editor/Aet/AetIcons.h"
 #include "Graphics/Auth2D/Aet/AetSet.h"
@@ -9,16 +9,17 @@
 
 namespace Comfy::Studio::Editor
 {
-	class AetTreeView : public IMutatingEditorComponent
+	class AetTreeView : public MutatingEditorComponent
 	{
 	public:
 		AetTreeView(AetCommandManager* commandManager, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
-		~AetTreeView();
+		~AetTreeView() = default;
 
 	public:
-		void Initialize();
-		bool DrawGui(const std::shared_ptr<Graphics::Aet::AetSet>& aetSet);
+		void OnFirstFrame();
+		bool Gui(const std::shared_ptr<Graphics::Aet::AetSet>& aetSet);
 
+	public:
 		template <typename T>
 		void SetSelectedItems(const std::shared_ptr<T>& value) 
 		{ 

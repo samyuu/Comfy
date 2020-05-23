@@ -7,12 +7,13 @@ namespace Comfy::Studio::DataTest
 	class IconTestWindow : public BaseWindow
 	{
 	public:
-		IconTestWindow(Application*);
-		~IconTestWindow();
+		IconTestWindow(Application&);
+		~IconTestWindow() = default;
 
-		void DrawGui() override;
-		const char* GetGuiName() const override;
-		ImGuiWindowFlags GetWindowFlags() const override;
+	public:
+		const char* GetName() const override;
+		ImGuiWindowFlags GetFlags() const override;
+		void Gui() override;
 
 	private:
 		ImGuiTextFilter iconFilter;

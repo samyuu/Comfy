@@ -15,24 +15,23 @@ namespace Comfy::Studio::Editor
 	using namespace Graphics;
 	using namespace Graphics::Aet;
 
-	AetRenderWindow::AetRenderWindow(AetCommandManager* commandManager, SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem, AetRenderPreviewData* previewData)
-		: IMutatingEditorComponent(commandManager), selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem), previewData(previewData)
+	AetRenderWindow::AetRenderWindow(AetCommandManager& commandManager, Render::Renderer2D& renderer, AetItemTypePtr& selectedAetItem, AetItemTypePtr& cameraSelectedAetItem, AetRenderPreviewData& previewData)
+		: MutatingEditorComponent(commandManager), renderer(renderer), selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem), previewData(previewData)
 	{
-		assert(spriteGetter != nullptr);
-		assert(selectedAetItem != nullptr);
-		assert(cameraSelectedAetItem != nullptr);
-		assert(previewData != nullptr);
-
 		// NOTE: The checkerboard pattern is still visible because of the framebuffer clear color blend
-		const vec4 baseColor = checkerboardGrid.ColorAlt * 0.5f;
+		const vec4 baseColor = (checkerboardGrid.ColorAlt * 0.5f);
 		checkerboardBaseGrid.Color = baseColor;
 		checkerboardBaseGrid.ColorAlt = baseColor;
 
-		renderer = std::make_unique<D3D11::Renderer2D>();
-		aetRenderer = std::make_unique<AetRenderer>(renderer.get());
-		aetRenderer->SetSpriteGetterFunction(spriteGetter);
-		aetRenderer->SetCallback([this](const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity) { return OnObjRender(obj, positionOffset, opacity); });
-		aetRenderer->SetMaskCallback([this](const AetMgr::ObjCache& objMask, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity) { return OnObjMaskRender(objMask, obj, positionOffset, opacity); });
+		renderer.Aet().SetObjCallback([&](const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity) -> bool
+		{
+			return OnObjRender(obj, positionOffset, opacity);
+		});
+
+		renderer.Aet().SetObjMaskCallback([&](const Graphics::Aet::Util::Obj& maskObj, const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity) -> bool
+		{
+			return OnObjMaskRender(maskObj, obj, positionOffset, opacity);
+		});
 
 		mousePicker = std::make_unique<ObjectMousePicker>(objectCache, windowHoveredOnMouseClick, selectedAetItem, cameraSelectedAetItem);
 
@@ -41,10 +40,6 @@ namespace Comfy::Studio::Editor
 		tools[AetToolType_Rotate] = std::make_unique<RotateTool>();
 		tools[AetToolType_Scale] = std::make_unique<ScaleTool>();
 		tools[AetToolType_Transform] = std::make_unique<TransformTool>();
-	}
-
-	AetRenderWindow::~AetRenderWindow()
-	{
 	}
 
 	void AetRenderWindow::SetIsPlayback(bool value)
@@ -57,36 +52,63 @@ namespace Comfy::Studio::Editor
 		return currentFrame = value;
 	}
 
-	ImGuiWindowFlags AetRenderWindow::GetChildWinodwFlags() const
+	ImTextureID AetRenderWindow::GetTextureID() const
+	{
+		return (renderTarget != nullptr) ? renderTarget->GetTextureID() : nullptr;
+	}
+
+	void AetRenderWindow::UpdateMousePickControls()
+	{
+		if (cameraSelectedAetItem.IsNull() || cameraSelectedAetItem.Type() != AetItemType::Composition)
+		{
+			allowedMousePickerInputLastFrame = allowMousePickerInput = false;
+			return;
+		}
+
+		allowedMousePickerInputLastFrame = allowMousePickerInput;
+		allowMousePickerInput = Gui::IsWindowHovered() && !GetCurrentTool()->MouseFocusCaptured();
+
+		if (allowMousePickerInput && allowedMousePickerInputLastFrame)
+		{
+			const vec2 mouseWorldSpace = camera.ScreenToWorldSpace(GetRelativeMouse());
+			mousePicker->UpdateMouseInput(mouseWorldSpace);
+		}
+	}
+
+	ImGuiWindowFlags AetRenderWindow::GetRenderTextureChildWindowFlags() const
 	{
 		return ImGuiWindowFlags_None;
 	}
 
-	void AetRenderWindow::OnDrawGui()
+	void AetRenderWindow::OnFirstFrame()
+	{
+	}
+
+	void AetRenderWindow::PreRenderTextureGui()
 	{
 		constexpr float percentFactor = 100.0f;
 		constexpr float itemWidth = 74.0f;
 		constexpr float rulerSize = 18.0f;
 
-		DrawToolSelectionHeaderGui();
+		ToolSelectionHeaderGui();
 
 		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(2.0f, 3.0f));
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(4.0f, 1.0f));
 		Gui::PushItemWidth(itemWidth);
 		{
-			if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::Layer && selectedAetItem->GetLayerRef()->LayerVideo != nullptr)
+			if (!selectedAetItem.IsNull() && selectedAetItem.Type() == AetItemType::Layer && selectedAetItem.GetLayerRef()->LayerVideo != nullptr)
 			{
-				const auto& selctedLayer = selectedAetItem->GetLayerRef();
-				toolTransform = AetMgr::GetTransformAt(*selctedLayer->LayerVideo, currentFrame);
+				const auto& selctedLayer = selectedAetItem.GetLayerRef();
+				toolTransform = Aet::Util::GetTransformAt(*selctedLayer->LayerVideo, currentFrame);
 
 				// BUG: This is problematic because the tool ignores this offset when moving
 				i32 recursionCount = 0;
-				AetMgr::ApplyParentTransform(toolTransform, selctedLayer->GetRefParentLayer().get(), currentFrame, recursionCount);
+				Aet::Util::ApplyParentTransform(toolTransform, selctedLayer->GetRefParentLayer().get(), currentFrame, recursionCount);
 
 				toolSize = GetLayerBoundingSize(selctedLayer);
 			}
 
-			DrawTooltipHeaderGui();
+			TooltipHeaderGui();
 
 			Gui::SetCursorPosX(Gui::GetWindowWidth() - itemWidth - 2);
 
@@ -127,10 +149,10 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void AetRenderWindow::PostDrawGui()
+	void AetRenderWindow::PostRenderTextureGui()
 	{
 		AetTool* tool = GetCurrentTool();
-		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::Layer)
+		if (!selectedAetItem.IsNull() && selectedAetItem.Type() == AetItemType::Layer)
 		{
 			const auto worldToScreen = [this](vec2 value) { return (camera.WorldToScreenSpace(value) + GetRenderRegion().GetTL()); };
 			const auto screenToWorld = [this](vec2 value) { return (camera.ScreenToWorldSpace(value - GetRenderRegion().GetTL())); };
@@ -140,10 +162,10 @@ namespace Comfy::Studio::Editor
 			tool->SetSpaceConversionFunctions(worldToScreen, screenToWorld);
 			tool->UpdatePostDrawGui(&toolTransform, toolSize);
 
-			if (!isPlayback && selectedAetItem->GetLayerRef()->ItemType != ItemType::Audio)
+			if (!isPlayback && selectedAetItem.GetLayerRef()->ItemType != ItemType::Audio)
 			{
-				const auto& layer = selectedAetItem->GetLayerRef();
-				tool->ProcessCommands(GetCommandManager(), layer, currentFrame, toolTransform, previousTransform);
+				const auto& layer = selectedAetItem.GetLayerRef();
+				tool->ProcessCommands(commandManager, layer, currentFrame, toolTransform, previousTransform);
 			}
 		}
 
@@ -162,16 +184,16 @@ namespace Comfy::Studio::Editor
 			tool->DrawContextMenu();
 			Gui::Separator();
 
-			bool allowSelection = !cameraSelectedAetItem->IsNull() && cameraSelectedAetItem->Type() == AetItemType::Composition;
+			bool allowSelection = !cameraSelectedAetItem.IsNull() && cameraSelectedAetItem.Type() == AetItemType::Composition;
 			if (Gui::BeginMenu("Select", allowSelection))
 			{
-				for (const auto& layer : cameraSelectedAetItem->GetCompositionRef()->GetLayers())
+				for (const auto& layer : cameraSelectedAetItem.GetCompositionRef()->GetLayers())
 				{
-					bool alreadySelected = layer.get() == selectedAetItem->Ptrs.Layer;
+					bool alreadySelected = layer.get() == selectedAetItem.Ptrs.Layer;
 
 					Gui::PushID(layer.get());
 					if (Gui::MenuItem(layer->GetName().c_str(), nullptr, nullptr, !alreadySelected))
-						selectedAetItem->SetItem(layer);
+						selectedAetItem.SetItem(layer);
 					Gui::PopID();
 				}
 				Gui::EndMenu();
@@ -192,73 +214,11 @@ namespace Comfy::Studio::Editor
 		});
 	}
 
-	void AetRenderWindow::OnUpdateInput()
+	void AetRenderWindow::OnResize(ivec2 newSize)
 	{
-		for (int i = 0; i < AetToolType_Count; i++)
-		{
-			if (Gui::IsKeyPressed(tools[i]->GetShortcutKey(), false))
-				currentToolType = static_cast<AetToolType>(i);
-		}
-	}
+		renderTarget->Param.Resolution = newSize;
 
-	void AetRenderWindow::OnUpdate()
-	{
-	}
-
-	void AetRenderWindow::OnRender()
-	{
-		if (!selectedAetItem->IsNull() && selectedAetItem->GetItemParentScene() != nullptr)
-			aetRegionSize = selectedAetItem->GetItemParentScene()->Resolution;
-
-		const vec2 relativeMouse = GetRelativeMouse();
-		cameraController.Update(camera, relativeMouse);
-		GetCurrentTool()->UpdateCamera(camera, relativeMouse);
-
-		owningRenderTarget->BindSetViewport();
-		{
-			owningRenderTarget->Clear(GetColorVec4(EditorColor_DarkClear));
-
-			camera.UpdateMatrices();
-			renderer->Begin(camera);
-			{
-				RenderBackground();
-
-				const AetItemTypePtr* visibleItem = cameraSelectedAetItem;
-				if (!visibleItem->IsNull())
-				{
-					switch (visibleItem->Type())
-					{
-					case AetItemType::AetSet:
-						RenderAetSet(visibleItem->Ptrs.AetSet);
-						break;
-					case AetItemType::Scene:
-						RenderScene(visibleItem->Ptrs.Scene);
-						break;
-					case AetItemType::Composition:
-						RenderComposition(visibleItem->Ptrs.Composition);
-						break;
-					case AetItemType::Layer:
-						RenderLayer(visibleItem->Ptrs.Layer);
-						break;
-					case AetItemType::Video:
-						RenderVideo(visibleItem->Ptrs.Video);
-						break;
-					case AetItemType::None:
-					default:
-						break;
-					}
-				}
-			}
-			renderer->End();
-		}
-		owningRenderTarget->UnBind();
-	}
-
-	void AetRenderWindow::OnResize(ivec2 size)
-	{
-		RenderWindowBase::OnResize(size);
-
-		const vec2 newProjectionSize(size);
+		const auto newProjectionSize = vec2(newSize);
 		camera.Position += (camera.ProjectionSize - newProjectionSize) * 0.5f;
 		camera.ProjectionSize = newProjectionSize;
 
@@ -267,27 +227,79 @@ namespace Comfy::Studio::Editor
 			CenterFitCamera();
 	}
 
-	void AetRenderWindow::DrawToolSelectionHeaderGui()
+	void AetRenderWindow::OnRender()
+	{
+		if (Gui::IsWindowFocused())
+		{
+			for (int i = 0; i < AetToolType_Count; i++)
+			{
+				if (Gui::IsKeyPressed(tools[i]->GetShortcutKey(), false))
+					currentToolType = static_cast<AetToolType>(i);
+			}
+		}
+
+		if (!selectedAetItem.IsNull() && selectedAetItem.GetItemParentScene() != nullptr)
+			aetRegionSize = selectedAetItem.GetItemParentScene()->Resolution;
+
+		const vec2 relativeMouse = GetRelativeMouse();
+		cameraController.Update(camera, relativeMouse);
+		GetCurrentTool()->UpdateCamera(camera, relativeMouse);
+
+		renderTarget->Param.ClearColor = GetColorVec4(EditorColor_DarkClear);
+		renderer.Begin(camera, *renderTarget);
+		{
+			RenderBackground();
+
+			const AetItemTypePtr& visibleItem = cameraSelectedAetItem;
+			if (!visibleItem.IsNull())
+			{
+				switch (visibleItem.Type())
+				{
+				case AetItemType::AetSet:
+					RenderAetSet(visibleItem.Ptrs.AetSet);
+					break;
+				case AetItemType::Scene:
+					RenderScene(visibleItem.Ptrs.Scene);
+					break;
+				case AetItemType::Composition:
+					RenderComposition(visibleItem.Ptrs.Composition);
+					break;
+				case AetItemType::Layer:
+					RenderLayer(visibleItem.Ptrs.Layer);
+					break;
+				case AetItemType::Video:
+					RenderVideo(visibleItem.Ptrs.Video);
+					break;
+				case AetItemType::None:
+				default:
+					break;
+				}
+			}
+		}
+		renderer.End();
+	}
+
+	void AetRenderWindow::ToolSelectionHeaderGui()
 	{
 		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f, 0.0f));
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(6.0f, 1.0f));
 
 		for (int i = 0; i < AetToolType_Count; i++)
 		{
-			const AetTool* tool = tools[i].get();
-			const bool isSelected = (tool == GetCurrentTool());
+			const AetTool& tool = *tools[i];
+			const bool isSelected = (&tool == GetCurrentTool());
 
 			Gui::PushStyleColor(ImGuiCol_Button, Gui::GetStyleColorVec4(isSelected ? ImGuiCol_Button : ImGuiCol_DockingEmptyBg));
 
-			if (Gui::Button(tool->GetIcon()))
+			if (Gui::Button(tool.GetIcon()))
 				currentToolType = static_cast<AetToolType>(i);
 
 			if (Gui::IsItemHoveredDelayed())
 			{
-				const char* shortcutString = Input::GetKeyCodeName(tool->GetShortcutKey());
+				const char* shortcutString = Input::GetKeyCodeName(tool.GetShortcutKey());
 				char shortcutChar = shortcutString ? static_cast<char>(toupper(shortcutString[0])) : '?';
 
-				Gui::WideSetTooltip("%s (%c)", tool->GetName(), shortcutChar);
+				Gui::WideSetTooltip("%s (%c)", tool.GetName(), shortcutChar);
 			}
 
 			Gui::PopStyleColor();
@@ -297,9 +309,9 @@ namespace Comfy::Studio::Editor
 		Gui::PopStyleVar(2);
 	}
 
-	void AetRenderWindow::DrawTooltipHeaderGui()
+	void AetRenderWindow::TooltipHeaderGui()
 	{
-		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::Layer && selectedAetItem->GetLayerRef()->LayerVideo != nullptr)
+		if (!selectedAetItem.IsNull() && selectedAetItem.Type() == AetItemType::Layer && selectedAetItem.GetLayerRef()->LayerVideo != nullptr)
 		{
 			// TODO: Tool specific widgets
 			// TODO: TransformTool could have a origin / position preset selection box here
@@ -307,7 +319,7 @@ namespace Comfy::Studio::Editor
 
 			/*
 			Gui::ExtendedVerticalSeparator();
-			Gui::Text("  <%s> ", selectedAetItem->GetLayerRef()->GetName().c_str());
+			Gui::Text("  <%s> ", selectedAetItem.GetLayerRef()->GetName().c_str());
 			Gui::SameLine();
 			*/
 		}
@@ -348,46 +360,23 @@ namespace Comfy::Studio::Editor
 		cameraController.SetUpdateCameraZoom(camera, camera.Zoom / cameraFitZoomMargin, camera.GetProjectionCenter());
 	}
 
-	void AetRenderWindow::UpdateMousePickControls()
-	{
-		if (cameraSelectedAetItem->IsNull() || cameraSelectedAetItem->Type() != AetItemType::Composition)
-		{
-			allowedMousePickerInputLastFrame = allowMousePickerInput = false;
-			return;
-		}
-
-		allowedMousePickerInputLastFrame = allowMousePickerInput;
-		allowMousePickerInput = Gui::IsWindowHovered() && !GetCurrentTool()->MouseFocusCaptured();
-
-		if (allowMousePickerInput && allowedMousePickerInputLastFrame)
-		{
-			const vec2 mouseWorldSpace = camera.ScreenToWorldSpace(GetRelativeMouse());
-			mousePicker->UpdateMouseInput(mouseWorldSpace);
-		}
-	}
-
-	void AetRenderWindow::OnInitialize()
-	{
-		D3D11_SetObjectDebugName(owningRenderTarget->GetResourceView(), "AetRenderWindow::RenderTarget");
-	}
-
 	void AetRenderWindow::RenderBackground()
 	{
 		checkerboardBaseGrid.GridSize = CheckerboardGrid::DefaultGridSize * 1.2f;
 		checkerboardBaseGrid.Position = camera.Position / camera.Zoom;
-		checkerboardBaseGrid.Size = vec2(owningRenderTarget->GetSize()) / camera.Zoom;
-		checkerboardBaseGrid.Render(*renderer);
+		checkerboardBaseGrid.Size = vec2(renderTarget->Param.Resolution) / camera.Zoom;
+		checkerboardBaseGrid.Render(renderer);
 
 		const vec2 shadowOffset = vec2(3.5f, 2.5f) / camera.Zoom * 0.5f;
 		const vec2 shadowMargin = vec2(2.5f) / camera.Zoom;
 		const vec2 shadowPosition = checkerboardGrid.Position + shadowOffset;
 		const vec2 shadowSize = aetRegionSize + shadowMargin;
 		constexpr vec4 shadowColor(0.0f, 0.0f, 0.0f, 0.15f);
-		renderer->Draw(shadowPosition, shadowSize, shadowColor);
+		renderer.Draw(Render::RenderCommand2D(shadowPosition, shadowSize, shadowColor));
 
 		checkerboardGrid.GridSize = CheckerboardGrid::DefaultGridSize;
 		checkerboardGrid.Size = aetRegionSize;
-		checkerboardGrid.Render(*renderer);
+		checkerboardGrid.Render(renderer);
 	}
 
 	void AetRenderWindow::RenderAetSet(const AetSet* aetSet)
@@ -401,8 +390,8 @@ namespace Comfy::Studio::Editor
 	void AetRenderWindow::RenderComposition(const Composition* comp)
 	{
 		objectCache.clear();
-		AetMgr::GetAddObjects(objectCache, comp, currentFrame);
-		aetRenderer->RenderObjCacheVector(objectCache);
+		Aet::Util::GetAddObjectsAt(objectCache, *comp, currentFrame);
+		renderer.Aet().DrawObjCache(objectCache);
 	}
 
 	void AetRenderWindow::RenderLayer(const Layer* layer)
@@ -411,15 +400,14 @@ namespace Comfy::Studio::Editor
 			return;
 
 		objectCache.clear();
-		AetMgr::GetAddObjects(objectCache, layer, currentFrame);
-		aetRenderer->RenderObjCacheVector(objectCache);
+		Aet::Util::GetAddObjectsAt(objectCache, *layer, currentFrame);
+		renderer.Aet().DrawObjCache(objectCache);
 	}
 
 	void AetRenderWindow::RenderVideo(const Video* video)
 	{
 		const int spriteIndex = glm::clamp(0, static_cast<int>(currentFrame), static_cast<int>(video->Sources.size()) - 1);
-		const VideoSource* source = video->GetSource(spriteIndex);
-		aetRenderer->RenderAetSprite(video, source, vec2(0.0f, 0.0f));
+		renderer.Aet().DrawVideo(*video, spriteIndex, vec2(0.0f, 0.0f));
 	}
 
 	vec2 AetRenderWindow::GetLayerBoundingSize(const std::shared_ptr<Layer>& layer) const
@@ -434,79 +422,77 @@ namespace Comfy::Studio::Editor
 		return aetRegionSize;
 	}
 
-	bool AetRenderWindow::OnObjRender(const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)
+	bool AetRenderWindow::OnObjRender(const Aet::Util::Obj& obj, vec2 positionOffset, float opacity)
 	{
-		const bool visible = obj.Video != nullptr && obj.Visible;
-		const bool selected = selectedAetItem->Ptrs.Layer == obj.Source;
+		if (obj.Video == nullptr || !obj.IsVisible)
+			return;
 
-		if (!visible || !selected)
+		const auto* video = (previewData.Video != nullptr) ? previewData.Video : obj.Video;
+		auto[tex, spr] = renderer.Aet().GetSprite(video, obj.SpriteFrame);
+
+		const auto finalPosition = obj.Transform.Position + positionOffset;
+		const auto finalOpacity = obj.Transform.Opacity * opacity;
+
+		if (tex == nullptr || spr == nullptr)
 			return false;
 
-		const Video* video = (previewData->Video != nullptr) ? previewData->Video : obj.Video;
-
-		const Tex* tex;
-		const Spr* spr;
-		const bool validSprite = aetRenderer->GetSprite(video->GetSource(obj.SpriteIndex), &tex, &spr);
-
-		if (!validSprite)
-			return false;
-
-		renderer->Draw(
-			tex->GPU_Texture2D.get(),
-			spr->PixelRegion,
-			obj.Transform.Position + positionOffset,
+		const auto command = Render::RenderCommand2D(
+			tex,
 			obj.Transform.Origin,
+			finalPosition,
 			obj.Transform.Rotation,
 			obj.Transform.Scale,
-			vec4(1.0f, 1.0f, 1.0f, obj.Transform.Opacity * opacity),
-			(previewData->BlendMode != AetBlendMode::Unknown) ? previewData->BlendMode : obj.BlendMode);
+			spr->PixelRegion,
+			(previewData.BlendMode != AetBlendMode::Unknown) ? previewData.BlendMode : obj.BlendMode,
+			finalOpacity);
 
+		renderer.Draw(command);
 		return true;
 	}
 
-	bool AetRenderWindow::OnObjMaskRender(const AetMgr::ObjCache& maskObj, const AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity)
+	bool AetRenderWindow::OnObjMaskRender(const Aet::Util::Obj& maskObj, const Aet::Util::Obj& obj, vec2 positionOffset, float opacity)
 	{
-		const bool visible = maskObj.Video != nullptr && obj.Video != nullptr && obj.Visible;
+		if (maskObj.Video == nullptr || obj.Video == nullptr || !obj.IsVisible)
+			return;
 
-		if (!visible || selectedAetItem->IsNull())
+		const bool isSelected = (obj.SourceLayer == selectedAetItem.Ptrs.Layer);
+		const bool isMaskSelected = (maskObj.SourceLayer == selectedAetItem.Ptrs.Layer);
+
+		if (!isSelected && !isMaskSelected)
 			return false;
 
-		const bool selected = obj.Source == selectedAetItem->Ptrs.Layer;
-		const bool maskSelected = maskObj.Source == selectedAetItem->Ptrs.Layer;
+		const auto* maskVideo = (isMaskSelected && previewData.Video != nullptr) ? previewData.Video : maskObj.Video;
+		const auto* video = (isSelected && previewData.Video != nullptr) ? previewData.Video : obj.Video;
 
-		if (!selected && !maskSelected)
+		auto[maskTex, maskSpr] = renderer.Aet().GetSprite(maskObj.Video, maskObj.SpriteFrame);
+		auto[tex, spr] = renderer.Aet().GetSprite(obj.Video, obj.SpriteFrame);
+
+		const auto finalOpacity = maskObj.Transform.Opacity * obj.Transform.Opacity * opacity;
+
+		if (maskTex == nullptr || maskSpr == nullptr || tex == nullptr || spr == nullptr)
 			return false;
 
-		const Video* video = (previewData->Video != nullptr && selected) ? previewData->Video : obj.Video;
-		const Video* maskVideo = (previewData->Video != nullptr && maskSelected) ? previewData->Video : maskObj.Video;
-
-		const Tex* maskTex;
-		const Spr* maskSpr;
-		const bool validMaskSprite = aetRenderer->GetSprite(maskVideo->GetSource(maskObj.SpriteIndex), &maskTex, &maskSpr);
-
-		const Tex* tex;
-		const Spr* spr;
-		const bool validSprite = aetRenderer->GetSprite(video->GetSource(obj.SpriteIndex), &tex, &spr);
-
-		if (!validMaskSprite || !validSprite)
-			return false;
-
-		renderer->Draw(
-			maskTex->GPU_Texture2D.get(),
-			maskSpr->PixelRegion,
-			maskObj.Transform.Position,
-			maskObj.Transform.Origin,
-			maskObj.Transform.Rotation,
-			maskObj.Transform.Scale,
-			tex->GPU_Texture2D.get(),
-			spr->PixelRegion,
-			obj.Transform.Position + positionOffset,
+		const auto command = Render::RenderCommand2D(
+			tex,
 			obj.Transform.Origin,
+			obj.Transform.Position + positionOffset,
 			obj.Transform.Rotation,
 			obj.Transform.Scale,
-			vec4(1.0f, 1.0f, 1.0f, maskObj.Transform.Opacity * obj.Transform.Opacity * opacity),
-			(maskSelected && previewData->BlendMode != AetBlendMode::Unknown) ? previewData->BlendMode : maskObj.BlendMode);
+			spr->PixelRegion,
+			obj.BlendMode,
+			finalOpacity);
 
+		const auto maskCommand = Render::RenderCommand2D(
+			maskTex,
+			maskObj.Transform.Origin,
+			maskObj.Transform.Position + positionOffset,
+			maskObj.Transform.Rotation,
+			maskObj.Transform.Scale,
+			maskSpr->PixelRegion,
+			(previewData.BlendMode != AetBlendMode::Unknown) ? previewData.BlendMode : maskObj.BlendMode,
+			finalOpacity);
+
+		renderer.Draw(command, maskCommand);
 		return true;
 	}
 }

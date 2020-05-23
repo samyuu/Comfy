@@ -3,8 +3,6 @@
 #include "IFileDropReceiver.h"
 #include "Theme.h"
 
-namespace Comfy::Studio { class Application; }
-
 namespace Comfy::Studio::Editor
 {
 	class EditorManager;
@@ -12,15 +10,16 @@ namespace Comfy::Studio::Editor
 	class IEditorComponent : public BaseWindow, public IFileDropReceiver
 	{
 	public:
-		IEditorComponent(Application* parent, EditorManager* editor);
+		IEditorComponent(Application& parentApplication, EditorManager& parentEditor) : BaseWindow(parentApplication), parentEditor(parentEditor) {}
 		virtual ~IEditorComponent() = default;
 
-		virtual void Initialize() = 0;
+	public:
+		virtual void OnFirstFrame() = 0;
 
 		virtual void OnWindowBegin() {}
 		virtual void OnWindowEnd() {}
 
 	protected:
-		EditorManager* pvEditor;
+		EditorManager& parentEditor;
 	};
 }

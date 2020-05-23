@@ -1,5 +1,4 @@
 #include "Application.h"
-#include "Editor/Core/RenderWindowBase.h"
 #include "IO/File.h"
 #include "DataTest/AudioTestWindow.h"
 #include "DataTest/IconTestWindow.h"
@@ -12,26 +11,25 @@
 #include "Core/ComfyConfig.h"
 #include "Core/Logger.h"
 
+#include "../res/resource.h"
+
 namespace Comfy::Studio
 {
-	Application::Application()
-	{
-	}
-
-	Application::~Application()
-	{
-		BaseDispose();
-	}
-
 	void Application::Run()
 	{
+		const auto comfyIcon = ::LoadIconA(::GetModuleHandleA(nullptr), MAKEINTRESOURCEA(COMFY_ICON));
+
+		ApplicationHost::ConstructionParam hostParam;
+		hostParam.WindowTitle = ComfyStudioWindowTitle;
+		hostParam.IconHandle = comfyIcon;
+		host = std::make_unique<ApplicationHost>(hostParam);
+
 		if (!BaseInitialize())
 			return;
 
-		host.EnterProgramLoop([&]()
+		host->EnterProgramLoop([&]()
 		{
-			BaseUpdate();
-			BaseDraw();
+			Gui();
 		});
 
 		BaseDispose();
@@ -39,91 +37,31 @@ namespace Comfy::Studio
 
 	void Application::Exit()
 	{
-		host.Exit();
+		host->Exit();
 	}
 
 	ApplicationHost& Application::GetHost()
 	{
-		return host;
+		return *host;
 	}
 
 	bool Application::BaseInitialize()
 	{
-		if (hasBeenInitialized)
-			return false;
-
-		hasBeenInitialized = true;
-		TimeSpan::InitializeClock();
-
 		InitializeLoadConfig();
 
-		if (!host.Initialize())
-			return false;
-
-		host.RegisterWindowResizeCallback([](ivec2 size)
+		host->RegisterWindowResizeCallback([&](ivec2 size)
 		{
 		});
 
-		host.RegisterWindowClosingCallback([&]()
+		host->RegisterWindowClosingCallback([&]()
 		{
-			DisposeUnmountRomData();
 			DisposeSaveConfig();
-			DisposeShutdownAudioEngine();
 		});
-
-		Audio::Engine::CreateInstance();
-
-		if (!InitializeMountRomData())
-			return false;
-
-		if (!InitializeGuiRenderer())
-			return false;
 
 		if (!InitializeEditorComponents())
 			return false;
 
 		return true;
-	}
-
-	void Application::BaseUpdate()
-	{
-		ProcessInput();
-		ProcessTasks();
-	}
-
-	void Application::BaseDraw()
-	{
-		guiRenderer.BeginFrame();
-		{
-			DrawGui();
-			host.SetMainLoopPowerSleep(!host.IsWindowFocused() && !guiRenderer.IsAnyViewportFocused());
-
-			Graphics::D3D11::D3D.SetViewport(host.GetWindowSize());
-			Graphics::D3D11::D3D.WindowRenderTarget->Bind();
-			Graphics::D3D11::D3D.WindowRenderTarget->Clear(Editor::GetColorVec4(Editor::EditorColor_BaseClear));
-		}
-		guiRenderer.EndFrame();
-
-		Graphics::D3D11::D3D.EndOfFrameClearStaleDeviceObjects();
-	}
-
-	void Application::BaseDispose()
-	{
-		if (hasBeenDisposed)
-			return;
-
-		hasBeenDisposed = true;
-
-		if (skipApplicationCleanup)
-			return;
-
-		Audio::Engine::DeleteInstance();
-
-		// NOTE: Force deletion before the graphics context is destroyed
-		editorManager.reset();
-
-		guiRenderer.Dispose();
-		host.Dispose();
 	}
 
 	bool Application::InitializeLoadConfig()
@@ -143,267 +81,55 @@ namespace Comfy::Studio
 			Logger::LogErrorLine(__FUNCTION__"(): Unable to read config file");
 
 			ComfyConfig = {};
-			host.SetDefaultPositionWindow(true);
-			host.SetDefaultResizeWindow(true);
+			host->SetDefaultPositionWindow(true);
+			host->SetDefaultResizeWindow(true);
 			return false;
 		}
 		else
 		{
+			// TODO: Have this set the ApplicationHost::ConstructionParam
 			std::memcpy(&ComfyConfig, fileContent.get(), sizeof(ComfyConfig));
-			host.SetWindowRestoreRegion(ComfyConfig.Data.Window.RestoreRegion);
-			host.SetWindowPosition(ComfyConfig.Data.Window.Position);
-			host.SetWindowSize(ComfyConfig.Data.Window.Size);
-			host.SetIsFullscreen(ComfyConfig.Data.Window.Fullscreen);
-			host.SetIsMaximized(ComfyConfig.Data.Window.Maximized);
+			host->SetWindowRestoreRegion(ComfyConfig.Data.Window.RestoreRegion);
+			host->SetWindowPosition(ComfyConfig.Data.Window.Position);
+			host->SetWindowSize(ComfyConfig.Data.Window.Size);
+			host->SetIsFullscreen(ComfyConfig.Data.Window.Fullscreen);
+			host->SetIsMaximized(ComfyConfig.Data.Window.Maximized);
 			return true;
 		}
 	}
 
-	bool Application::InitializeMountRomData()
-	{
-		if (!IO::File::Exists(ComfyDataFileName))
-		{
-			Logger::LogErrorLine(__FUNCTION__"(): Unable to locate data file");
-			return false;
-		}
-
-		ComfyData = std::make_unique<IO::ComfyArchive>();
-		if (ComfyData == nullptr)
-			return false;
-
-		ComfyData->Mount(ComfyDataFileName);
-
-		return true;
-	}
-
-	bool Application::InitializeGuiRenderer()
-	{
-		return guiRenderer.Initialize();
-	}
-
 	bool Application::InitializeEditorComponents()
 	{
-		editorManager = std::make_unique<Editor::EditorManager>(this);
+		editorManager = std::make_unique<Editor::EditorManager>(*this);
 
 		dataTestComponents.reserve(3);
-		dataTestComponents.push_back(std::move(std::make_unique<DataTest::InputTestWindow>(this)));
-		dataTestComponents.push_back(std::move(std::make_unique<DataTest::AudioTestWindow>(this)));
-		dataTestComponents.push_back(std::move(std::make_unique<DataTest::IconTestWindow>(this)));
+		dataTestComponents.push_back(std::move(std::make_unique<DataTest::InputTestWindow>(*this)));
+		dataTestComponents.push_back(std::move(std::make_unique<DataTest::AudioTestWindow>(*this)));
+		dataTestComponents.push_back(std::move(std::make_unique<DataTest::IconTestWindow>(*this)));
 
 		return true;
 	}
 
-	void Application::ProcessInput()
+	void Application::Gui()
 	{
 		const auto& io = Gui::GetIO();
 
-		if (Gui::IsKeyPressed(Input::KeyCode_F11) || (io.KeyAlt && Gui::IsKeyPressed(Input::KeyCode_Enter)))
-			host.ToggleFullscreen();
-	}
-
-	void Application::ProcessTasks()
-	{
-	}
-
-	void Application::DrawGui()
-	{
-		const auto& io = Gui::GetIO();
-
-		//if (Gui::IsKeyPressed(KeyCode_F9))
-		//	showMainMenuBar ^= true;
+		if (io.KeyCtrl && io.KeyAlt && Gui::IsKeyPressed(Input::KeyCode_B, false))
+			showMainMenuBar ^= true;
 
 		if (Gui::IsKeyPressed(Input::KeyCode_F10))
 		{
-			showMainAppEngineWindow = true;
 			exclusiveAppEngineWindow ^= true;
+			showMainAppEngineWindow = exclusiveAppEngineWindow;
 		}
 
-		// Main Menu Bar
-		// -------------
-		if (showMainMenuBar && !exclusiveAppEngineWindow)
-		{
-			Gui::PushStyleColor(ImGuiCol_MenuBarBg, Gui::GetStyleColorVec4(ImGuiCol_TitleBg));
-			if (Gui::BeginMainMenuBar())
-			{
-				if (Gui::BeginMenu("Debug"))
-				{
-#if 0
-					Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(ImGuiCol_PlotHistogramHovered));
-					if (Gui::MenuItem("Recompile Shaders", nullptr))
-						Graphics::GL_ShaderProgram::RecompileAllShaders();
-					Gui::PopStyleColor();
-#endif
+		const bool menuBarVisible = showMainMenuBar && !exclusiveAppEngineWindow;
 
-					if (Gui::MenuItem("Toggle Fullscreen", nullptr))
-						host.ToggleFullscreen();
+		if (menuBarVisible)
+			GuiMainMenuBar();
 
-					if (Gui::BeginMenu("Swap Interval"))
-					{
-						if (Gui::MenuItem("SwapInterval(0)", nullptr))
-							host.SetSwapInterval(0);
+		host->GuiMainDockspace(menuBarVisible);
 
-						if (Gui::MenuItem("SwapInterval(1)", nullptr))
-							host.SetSwapInterval(1);
-
-						Gui::EndMenu();
-					}
-
-					if (Gui::BeginMenu("ImGui Config"))
-					{
-						if (Gui::MenuItem("Refresh", nullptr))
-							Gui::SaveIniSettingsToMemory();
-
-						if (Gui::MenuItem("Save To Disk", nullptr))
-							Gui::SaveIniSettingsToDisk(io.IniFilename);
-
-						Gui::EndMenu();
-					}
-
-					if (Gui::MenuItem("Test Print", nullptr))
-						Logger::LogLine(__FUNCTION__"(): Test");
-
-					Gui::Separator();
-
-					if (Gui::MenuItem("Exit...", nullptr))
-						Exit();
-
-					Gui::EndMenu();
-			}
-
-				// Editor Menus Items
-				// ------------------
-				editorManager->DrawGuiMenuItems();
-
-				// App Engine Menu Items
-				// ---------------------
-				DrawAppEngineMenus("Engine");
-
-				// Data Test Menus
-				// ---------------
-				DrawGuiBaseWindowMenus("Data Test", dataTestComponents);
-
-				bool openLicensePopup = false;
-				if (Gui::BeginMenu("Help"))
-				{
-					Gui::TextUnformatted("Copyright (C) 2020 Samyuu");
-					if (Gui::MenuItem("License"))
-						openLicensePopup = true;
-					if (Gui::MenuItem("Version"))
-						versionWindowOpen = true;
-					Gui::EndMenu();
-				}
-
-				if (openLicensePopup)
-				{
-					*licenseWindow.GetIsWindowOpen() = true;
-					Gui::OpenPopup(licenseWindow.GetWindowName());
-				}
-
-				if (Gui::BeginPopupModal(licenseWindow.GetWindowName(), licenseWindow.GetIsWindowOpen(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
-				{
-					ImGuiViewport* viewport = Gui::GetMainViewport();
-					ImGuiWindow* window = Gui::FindWindowByName(licenseWindow.GetWindowName());
-					Gui::SetWindowPos(window, viewport->Pos + viewport->Size / 8, ImGuiCond_Always);
-					Gui::SetWindowSize(window, viewport->Size * .75f, ImGuiCond_Always);
-
-					licenseWindow.DrawGui();
-
-					if (Gui::IsKeyPressed(Input::KeyCode_Escape))
-						Gui::CloseCurrentPopup();
-
-					Gui::EndPopup();
-				}
-
-				// TODO: Make window class and use undockable window instead of popup window since it doesn't need to block input
-				if (versionWindowOpen)
-				{
-					ImGuiViewport* viewport = ImGui::GetMainViewport();
-					Gui::SetNextWindowPos(viewport->Pos + viewport->Size * 0.5f, ImGuiCond_Appearing, vec2(0.5f, 0.5f));
-
-					if (Gui::Begin("About - Version##Application", &versionWindowOpen, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking))
-					{
-						const vec2 windowSize = vec2(640, 320);
-
-						Gui::BeginChild("AboutWindowChild", windowSize, true);
-						Gui::Columns(2);
-						{
-							Gui::TextUnformatted("Property"); Gui::NextColumn();
-							Gui::TextUnformatted("Value"); Gui::NextColumn();
-							Gui::Separator();
-
-							const char* buildVersionClassName = "BuildVersion";
-							const char* buildVersionFormatStrin = "%s::%s";
-
-							Gui::TextUnformatted("BuildConfiguration");
-							Gui::NextColumn(); Gui::TextUnformatted(BuildConfiguration::Debug ? "Debug" : BuildConfiguration::Release ? "Release" : "Unknown");
-							Gui::NextColumn();
-							Gui::Text(buildVersionFormatStrin, buildVersionClassName, "Author");
-							Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::Author);
-							Gui::NextColumn();
-							Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CommitHash");
-							Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitHash);
-							Gui::NextColumn();
-							Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CommitTime");
-							Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitTime);
-							Gui::NextColumn();
-							Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CommitNumber");
-							Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CommitNumber);
-							Gui::NextColumn();
-							Gui::Text(buildVersionFormatStrin, buildVersionClassName, "Branch");
-							Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::Branch);
-							Gui::NextColumn();
-							Gui::Text(buildVersionFormatStrin, buildVersionClassName, "CompileTime");
-							Gui::NextColumn(); Gui::TextUnformatted(BuildVersion::CompileTime);
-							Gui::NextColumn();
-						}
-						Gui::Columns(1);
-						Gui::EndChild();
-
-					}
-					Gui::End();
-				}
-
-				// TODO: Popup window on hover (+ double click to create overlay) showing a frametime plot
-				char infoBuffer[32];
-				sprintf_s(infoBuffer, sizeof(infoBuffer), "%.3f ms (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-
-				Gui::SetCursorPosX(Gui::GetWindowWidth() - Gui::CalcTextSize(infoBuffer).x - Gui::GetStyle().WindowPadding.x);
-				Gui::TextUnformatted(infoBuffer);
-
-				Gui::EndMainMenuBar();
-		}
-			Gui::PopStyleColor(1);
-	}
-
-		// Window Dockspace
-		// ----------------
-		{
-			Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(0.0f, 0.0f));
-			Gui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-			Gui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-
-			ImGuiViewport* viewport = Gui::GetMainViewport();
-			Gui::SetNextWindowPos(viewport->Pos);
-			Gui::SetNextWindowSize(viewport->Size);
-			Gui::SetNextWindowViewport(viewport->ID);
-
-			ImGuiWindowFlags dockspaceWindowFlags = ImGuiWindowFlags_NoDocking;
-			dockspaceWindowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-			dockspaceWindowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-			dockspaceWindowFlags |= ImGuiWindowFlags_NoBackground;
-			if (showMainMenuBar)
-				dockspaceWindowFlags |= ImGuiWindowFlags_MenuBar;
-
-			Gui::Begin(ApplicationHost::MainDockSpaceID, nullptr, dockspaceWindowFlags);
-			ImGuiID dockspaceID = Gui::GetID(ApplicationHost::MainDockSpaceID);
-			Gui::DockSpace(dockspaceID, vec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
-			Gui::End();
-
-			Gui::PopStyleVar(3);
-		}
-
-		// App Engine Window
-		// -----------------
 		if (exclusiveAppEngineWindow)
 		{
 			ImGuiViewport* viewport = Gui::GetMainViewport();
@@ -418,107 +144,236 @@ namespace Comfy::Studio
 			engineWindowFlags |= ImGuiWindowFlags_NoSavedSettings;
 
 			if (showMainAppEngineWindow)
-			{
-				Editor::RenderWindowBase::PushWindowPadding();
-				if (Gui::Begin("App::Engine::Window##Application", &showMainAppEngineWindow, engineWindowFlags))
-					DrawAppEngineWindow();
-				Gui::End();
-				Editor::RenderWindowBase::PopWindowPadding();
-			}
+				GuiAppEngineWindow();
 		}
 		else
 		{
-			// App Engine Window
-			// -----------------
 			if (showMainAppEngineWindow)
-			{
-				Editor::RenderWindowBase::PushWindowPadding();
-				if (Gui::Begin("Engine Window##Application", &showMainAppEngineWindow, ImGuiWindowFlags_None))
-					DrawAppEngineWindow();
-				Gui::End();
-				Editor::RenderWindowBase::PopWindowPadding();
-			}
+				GuiAppEngineWindow();
 
-			// Style Editor
-			// ------------
 			if (showStyleEditor)
 			{
-				Gui::Begin("Style Editor##Application", &showStyleEditor);
-				Gui::ShowStyleEditor();
+				if (Gui::Begin("Style Editor##Application", &showStyleEditor))
+					Gui::ShowStyleEditor();
 				Gui::End();
 			}
 
-			// Demo Window
-			// -----------
 			if (showDemoWindow)
-			{
 				Gui::ShowDemoWindow(&showDemoWindow);
-			}
 
-			// Editor Windows
-			// --------------
-			editorManager->DrawGuiWindows();
-
-			// Data Test Windows
-			// -----------------
-			DrawGuiBaseWindowWindows(dataTestComponents);
+			editorManager->GuiWindows();
+			GuiBaseWindowWindows(dataTestComponents);
 		}
 
-}
+	}
 
-	void Application::DrawAppEngineWindow()
+	void Application::GuiMainMenuBar()
+	{
+		Gui::PushStyleColor(ImGuiCol_MenuBarBg, Gui::GetStyleColorVec4(ImGuiCol_TitleBg));
+		if (Gui::BeginMainMenuBar())
+		{
+			GuiDebugMenu();
+			editorManager->GuiMenuItems();
+			GuiAppEngineMenus();
+			GuiBaseWindowMenus(dataTestComponents);
+			GuiHelpMenus();
+			GuiMenuBarPerformanceDisplay();
+			Gui::EndMainMenuBar();
+		}
+		Gui::PopStyleColor(1);
+	}
+
+	void Application::GuiDebugMenu()
+	{
+		if (Gui::BeginMenu("Debug"))
+		{
+			if (Gui::MenuItem("Toggle Fullscreen", nullptr))
+				host->ToggleFullscreen();
+
+			if (Gui::BeginMenu("Swap Interval"))
+			{
+				if (Gui::MenuItem("SwapInterval(0)", nullptr))
+					host->SetSwapInterval(0);
+
+				if (Gui::MenuItem("SwapInterval(1)", nullptr))
+					host->SetSwapInterval(1);
+
+				Gui::EndMenu();
+			}
+
+			if (Gui::BeginMenu("ImGui Config"))
+			{
+				if (Gui::MenuItem("Refresh", nullptr))
+					Gui::SaveIniSettingsToMemory();
+
+				if (Gui::MenuItem("Save To Disk", nullptr))
+					Gui::SaveIniSettingsToDisk(Gui::GetIO().IniFilename);
+
+				Gui::EndMenu();
+			}
+
+			if (Gui::MenuItem("Test Print", nullptr))
+				Logger::LogLine(__FUNCTION__"(): Test");
+
+			Gui::Separator();
+
+			if (Gui::MenuItem("Exit...", nullptr))
+				Exit();
+
+			Gui::EndMenu();
+		}
+	}
+
+	void Application::GuiAppEngineWindow()
 	{
 		/*
 		if (appEngine == nullptr)
 			appEngine = std::make_unique<App::Engine>();
 
+		appEngine->BeginEndGui();
 		appEngine->Tick();
 		*/
 	}
 
-	void Application::DrawAppEngineMenus(const char* header)
+	void Application::GuiAppEngineMenus()
 	{
-		if (Gui::BeginMenu(header))
+		if (Gui::BeginMenu("Engine"))
 		{
 			Gui::MenuItem("Engine Window", nullptr, &showMainAppEngineWindow);
 			Gui::EndMenu();
 		}
 	}
 
-	void Application::DrawGuiBaseWindowMenus(const char* header, const std::vector<std::unique_ptr<BaseWindow>>& components)
+	void Application::GuiBaseWindowMenus(const std::vector<std::unique_ptr<BaseWindow>>& components)
 	{
-		if (Gui::BeginMenu(header))
+		if (Gui::BeginMenu("Data Test"))
 		{
 			Gui::MenuItem("Style Editor", nullptr, &showStyleEditor, BuildConfiguration::Debug);
 			Gui::MenuItem("Demo Window", nullptr, &showDemoWindow, BuildConfiguration::Debug);
 
 			for (const auto& component : components)
-				Gui::MenuItem(component->GetGuiName(), nullptr, component->GetIsGuiOpenPtr());
+				Gui::MenuItem(component->GetName(), nullptr, &component->GetIsOpen());
 
 			Gui::EndMenu();
 		}
 	}
 
-	void Application::DrawGuiBaseWindowWindows(const std::vector<std::unique_ptr<BaseWindow>>& components)
+	void Application::GuiBaseWindowWindows(const std::vector<std::unique_ptr<BaseWindow>>& components)
 	{
 		for (const auto& component : components)
 		{
-			if (*component->GetIsGuiOpenPtr())
+			if (component->GetIsOpen())
 			{
-				if (Gui::Begin(component->GetGuiName(), component->GetIsGuiOpenPtr(), component->GetWindowFlags()))
-					component->DrawGui();
+				if (Gui::Begin(component->GetName(), &component->GetIsOpen(), component->GetFlags()))
+					component->Gui();
 				Gui::End();
 			}
 		}
 	}
 
-	void Application::DisposeUnmountRomData()
+	void Application::GuiHelpMenus()
 	{
-		if (ComfyData == nullptr)
+		bool openLicensePopup = false;
+
+		if (Gui::BeginMenu("Help"))
+		{
+			Gui::TextUnformatted(Gui::StringViewStart(CopyrightNotice), Gui::StringViewEnd(CopyrightNotice));
+			if (Gui::MenuItem("License"))
+				openLicensePopup = true;
+			if (Gui::MenuItem("Version"))
+				versionWindowOpen = true;
+			Gui::EndMenu();
+		}
+
+		if (openLicensePopup)
+		{
+			*licenseWindow.GetIsWindowOpen() = true;
+			Gui::OpenPopup(licenseWindow.GetWindowName());
+		}
+
+		if (Gui::BeginPopupModal(licenseWindow.GetWindowName(), licenseWindow.GetIsWindowOpen(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+		{
+			const auto viewport = Gui::GetMainViewport();
+			const auto window = Gui::FindWindowByName(licenseWindow.GetWindowName());
+			Gui::SetWindowPos(window, viewport->Pos + viewport->Size / 8, ImGuiCond_Always);
+			Gui::SetWindowSize(window, viewport->Size * .75f, ImGuiCond_Always);
+
+			licenseWindow.DrawGui();
+
+			if (Gui::IsKeyPressed(Input::KeyCode_Escape, false))
+				Gui::CloseCurrentPopup();
+
+			Gui::EndPopup();
+		}
+
+		if (versionWindowOpen)
+			GuiHelpVersionWindow();
+	}
+
+	void Application::GuiHelpVersionWindow()
+	{
+		// TODO: Make window class and use undockable window instead of popup window since it doesn't need to block input
+		const auto viewport = ImGui::GetMainViewport();
+		Gui::SetNextWindowPos(viewport->Pos + viewport->Size * 0.5f, ImGuiCond_Appearing, vec2(0.5f, 0.5f));
+
+		if (Gui::Begin("About - Version##Application", &versionWindowOpen, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking))
+		{
+			const vec2 windowSize = vec2(680, 280);
+
+			Gui::BeginChild("AboutWindowChild", windowSize, true);
+			Gui::Columns(2);
+			{
+				auto guiPropertyValue = [&](const char* property, const char* value)
+				{
+					Gui::TextUnformatted(property);
+					Gui::NextColumn();
+					Gui::Text("%s::%s", "BuildVersion", value);
+					Gui::NextColumn();
+				};
+
+				Gui::TextUnformatted("Property");
+				Gui::NextColumn();
+				Gui::TextUnformatted("Value");
+				Gui::NextColumn();
+
+				Gui::Separator();
+
+				guiPropertyValue("BuildConfiguration", BuildConfiguration::Debug ? "Debug" : BuildConfiguration::Release ? "Release" : "Unknown");
+				guiPropertyValue("Author", BuildVersion::Author);
+				guiPropertyValue("CommitHash", BuildVersion::CommitHash);
+				guiPropertyValue("CommitTime", BuildVersion::CommitTime);
+				guiPropertyValue("CommitNumber", BuildVersion::CommitNumber);
+				guiPropertyValue("Branch", BuildVersion::Branch);
+				guiPropertyValue("CompileTime", BuildVersion::CompileTime);
+			}
+			Gui::Columns(1);
+			Gui::EndChild();
+		}
+		Gui::End();
+	}
+
+	void Application::GuiMenuBarPerformanceDisplay()
+	{
+		const auto frameRate = Gui::GetIO().Framerate;
+
+		// TODO: Popup window on hover (+ double click to create overlay) showing a frametime plot
+		char infoBuffer[32];
+		sprintf_s(infoBuffer, sizeof(infoBuffer), "%.3f ms (%.1f FPS)", (1000.0f / frameRate), frameRate);
+
+		Gui::SetCursorPosX(Gui::GetWindowWidth() - Gui::CalcTextSize(infoBuffer).x - Gui::GetStyle().WindowPadding.x);
+		Gui::TextUnformatted(infoBuffer);
+	}
+
+	void Application::BaseDispose()
+	{
+		if (skipApplicationCleanup)
 			return;
 
-		ComfyData->UnMount();
-		ComfyData = nullptr;
+		DisposeSaveConfig();
+
+		// NOTE: Force deletion before the graphics context is destroyed
+		editorManager = nullptr;
+		host = nullptr;
 	}
 
 	void Application::DisposeSaveConfig()
@@ -526,20 +381,14 @@ namespace Comfy::Studio
 		if (!SaveComfyConfig)
 			return;
 
-		ComfyConfig.Data.Window.RestoreRegion = host.GetWindowRestoreRegion();
-		ComfyConfig.Data.Window.Position = host.GetWindowPosition();
-		ComfyConfig.Data.Window.Size = host.GetWindowSize();
-		ComfyConfig.Data.Window.Fullscreen = host.GetIsFullscreen();
-		ComfyConfig.Data.Window.Maximized = host.GetIsMaximized();
+		ComfyConfig.Data.Window.RestoreRegion = host->GetWindowRestoreRegion();
+		ComfyConfig.Data.Window.Position = host->GetWindowPosition();
+		ComfyConfig.Data.Window.Size = host->GetWindowSize();
+		ComfyConfig.Data.Window.Fullscreen = host->GetIsFullscreen();
+		ComfyConfig.Data.Window.Maximized = host->GetIsMaximized();
 
 		const bool success = IO::File::WriteAllBytes(ComfyConfigFileName, &ComfyConfig, sizeof(ComfyConfig));
 		if (!success)
 			Logger::LogErrorLine(__FUNCTION__"(): Unable to write config file");
-	}
-
-	void Application::DisposeShutdownAudioEngine()
-	{
-		if (Audio::Engine::InstanceValid())
-			Audio::Engine::GetInstance().StopStream();
 	}
 }

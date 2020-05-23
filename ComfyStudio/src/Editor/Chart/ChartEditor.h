@@ -11,14 +11,18 @@ namespace Comfy::Studio::Editor
 	class ChartEditor : public IEditorComponent
 	{
 	public:
-		ChartEditor(Application* parent, EditorManager* editor);
-		~ChartEditor();
+		ChartEditor(Application& parent, EditorManager& editor);
+		~ChartEditor() = default;
 
-		void Initialize() override;
-		void DrawGui() override;
-		const char* GetGuiName() const override;
-		ImGuiWindowFlags GetWindowFlags() const override;
+	public:
+		void OnFirstFrame() override;
+		
+	public:
+		const char* GetName() const override;
+		ImGuiWindowFlags GetFlags() const override;
+		void Gui() override;
 
+	public:
 		bool IsAudioFile(std::string_view filePath);
 		bool OnFileDropped(const std::string& filePath) override;
 

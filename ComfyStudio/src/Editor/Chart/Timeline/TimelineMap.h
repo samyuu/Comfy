@@ -7,9 +7,10 @@ namespace Comfy::Studio::Editor
 	class TimelineMap
 	{
 	public:
-		TimelineMap();
+		TimelineMap() = default;
 		TimelineMap(std::vector<TimeSpan>& times, Tempo firstTempo, Tempo lastTempo);
 
+	public:
 		TimeSpan GetTimeAt(TimelineTick tick) const;
 		TimeSpan GetLastCalculatedTime() const;
 		TimelineTick GetTickAt(TimeSpan time) const;

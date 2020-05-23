@@ -1,17 +1,17 @@
 #pragma once
 #include "Editor/Aet/AetSelection.h"
-#include "Editor/Aet/IMutatingEditorComponent.h"
+#include "Editor/Aet/MutatingEditorComponent.h"
 #include "Editor/Aet/RenderWindow/AetRenderPreviewData.h"
 #include "Graphics/Auth2D/Aet/AetSet.h"
-#include "Graphics/Auth2D/Aet/AetRenderer.h"
+#include "Render/Render.h"
 
 namespace Comfy::Studio::Editor
 {
-	class AetInspector : public IMutatingEditorComponent
+	class AetInspector : public MutatingEditorComponent
 	{
 	public:
-		AetInspector(AetCommandManager* commandManager, Graphics::Aet::SpriteGetterFunction* spriteGetter, AetRenderPreviewData* previewData);
-		~AetInspector();
+		AetInspector(AetCommandManager& commandManager, Render::Renderer2D& renderer, AetRenderPreviewData& previewData);
+		~AetInspector() = default;
 
 		void Initialize();
 		bool DrawGui(const AetItemTypePtr& selected);
@@ -36,12 +36,12 @@ namespace Comfy::Studio::Editor
 		bool isPlayback = false;
 		float currentFrame = 0.0f;
 
-		Graphics::Aet::SpriteGetterFunction* spriteGetter;
-		AetRenderPreviewData* previewData = nullptr;
+		Render::Renderer2D& renderer;
+		AetRenderPreviewData& previewData;
 
 	private:
 		void DrawInspectorAetSet(const std::shared_ptr<Graphics::Aet::AetSet>& aetSet);
-		void DrawInspectorAet(const std::shared_ptr<Graphics::Aet::Scene>& scene);
+		void DrawInspectorScene(const std::shared_ptr<Graphics::Aet::Scene>& scene);
 		
 		void DrawInspectorComposition(Graphics::Aet::Scene* scene, const std::shared_ptr<Graphics::Aet::Composition>& comp);
 		void DrawInspectorCompositionData(Graphics::Aet::Scene* scene, const std::shared_ptr<Graphics::Aet::Layer>& layer, const std::shared_ptr<Graphics::Aet::Composition>& comp);

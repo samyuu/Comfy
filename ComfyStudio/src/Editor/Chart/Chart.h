@@ -6,8 +6,12 @@
 
 namespace Comfy::Studio::Editor
 {
-	class Chart
+	class Chart : NonCopyable
 	{
+	public:
+		Chart() = default;
+		~Chart() = default;
+
 	public:
 		TargetList& GetTargets();
 		TempoMap& GetTempoMap();

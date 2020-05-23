@@ -8,12 +8,13 @@ namespace Comfy::Studio::DataTest
 	class InputTestWindow : public BaseWindow
 	{
 	public:
-		InputTestWindow(Application*);
-		~InputTestWindow();
+		InputTestWindow(Application&);
+		~InputTestWindow() = default;
 
-		void DrawGui() override;
-		const char* GetGuiName() const override;
-		ImGuiWindowFlags GetWindowFlags() const override;
+	public:
+		const char* GetName() const override;
+		ImGuiWindowFlags GetFlags() const override;
+		void Gui() override;
 
 	private:
 		static constexpr std::array<const char*, static_cast<size_t>(Input::Ds4Button::Count)> ds4ButtonNames =

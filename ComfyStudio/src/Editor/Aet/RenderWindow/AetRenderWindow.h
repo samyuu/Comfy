@@ -2,38 +2,38 @@
 #include "Tools/AetTool.h"
 #include "AetRenderPreviewData.h"
 #include "ObjectMousePicker.h"
-#include "Editor/Aet/IMutatingEditorComponent.h"
+#include "Window/RenderWindow.h"
+#include "Editor/Aet/MutatingEditorComponent.h"
 #include "Editor/Aet/AetSelection.h"
-#include "Editor/Core/RenderWindowBase.h"
 #include "Editor/Common/CameraController2D.h"
 #include "Editor/Common/CheckerboardGrid.h"
-#include "Graphics/Camera.h"
-#include "Graphics/Auth2D/Aet/AetRenderer.h"
+#include "Render/Render.h"
 
 namespace Comfy::Studio::Editor
 {
-	class AetRenderWindow : public RenderWindowBase, IMutatingEditorComponent
+	class AetRenderWindow : public RenderWindow, public MutatingEditorComponent, NonCopyable
 	{
 	public:
-		AetRenderWindow(AetCommandManager* commandManager, Graphics::Aet::SpriteGetterFunction* spriteGetter, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem, AetRenderPreviewData* previewData);
-		~AetRenderWindow();
+		AetRenderWindow(AetCommandManager& commandManager, Render::Renderer2D& renderer, AetItemTypePtr& selectedAetItem, AetItemTypePtr& cameraSelectedAetItem, AetRenderPreviewData& previewData);
+		~AetRenderWindow() = default;
 
 		void SetIsPlayback(bool value);
 		float SetCurrentFrame(float value);
 
-	protected:
-		ImGuiWindowFlags GetChildWinodwFlags() const override;
+	public:
+		ImTextureID GetTextureID() const override;
 
-		void OnDrawGui() override;
-		void PostDrawGui() override;
-		void OnUpdateInput() override;
-		void OnUpdate() override;
+	protected:
+		ImGuiWindowFlags GetRenderTextureChildWindowFlags() const override;
+		void OnFirstFrame() override;
+		void PreRenderTextureGui() override;
+		void PostRenderTextureGui() override;
+		void OnResize(ivec2 newSize) override;
 		void OnRender() override;
-		void OnResize(ivec2 size) override;
 
 	protected:
-		void DrawToolSelectionHeaderGui();
-		void DrawTooltipHeaderGui();
+		void ToolSelectionHeaderGui();
+		void TooltipHeaderGui();
 
 		AetTool* GetCurrentTool();
 		void CenterFitCamera();
@@ -41,8 +41,6 @@ namespace Comfy::Studio::Editor
 		void UpdateMousePickControls();
 
 	protected:
-		void OnInitialize() override;
-
 		void RenderBackground();
 		void RenderAetSet(const Graphics::Aet::AetSet* aetSet);
 		void RenderScene(const Graphics::Aet::Scene* scene);
@@ -54,8 +52,8 @@ namespace Comfy::Studio::Editor
 		vec2 GetLayerBoundingSize(const std::shared_ptr<Graphics::Aet::Layer>& layer) const;
 
 	protected:
-		bool OnObjRender(const Graphics::Aet::AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity);
-		bool OnObjMaskRender(const Graphics::Aet::AetMgr::ObjCache& maskObj, const Graphics::Aet::AetMgr::ObjCache& obj, const vec2& positionOffset, float opacity);
+		bool OnObjRender(const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity);
+		bool OnObjMaskRender(const Graphics::Aet::Util::Obj& maskObj, const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity);
 
 	private:
 		// NOTE: Fill the rest of the background
@@ -77,21 +75,21 @@ namespace Comfy::Studio::Editor
 		// NOTE: Pointers to the AetEditor owned selection
 		struct
 		{
-			AetItemTypePtr* selectedAetItem = nullptr;
-			AetItemTypePtr* cameraSelectedAetItem = nullptr;
+			AetItemTypePtr& selectedAetItem;
+			AetItemTypePtr& cameraSelectedAetItem;
 		};
 
 		// NOTE: General rendering
-		std::unique_ptr<Graphics::GPU_Renderer2D> renderer = nullptr;
-		std::unique_ptr<Graphics::Aet::AetRenderer> aetRenderer = nullptr;
+		Render::Renderer2D& renderer;
+		std::unique_ptr<Render::RenderTarget2D> renderTarget = nullptr;
 
-		AetRenderPreviewData* previewData = nullptr;
+		AetRenderPreviewData& previewData;
 
 		// NOTE: To handle mouse inputs when no tool is active
 		std::unique_ptr<ObjectMousePicker> mousePicker = nullptr;
 
 		// NOTE: To be filled during rendering and then used for mouse interactions
-		std::vector<Graphics::Aet::AetMgr::ObjCache> objectCache;
+		Graphics::Aet::Util::ObjCache objectCache;
 
 		// NOTE: The variables that will be edited by the current tool before being turned into commands
 		vec2 toolSize = vec2(100.0f, 100.0f);
@@ -100,7 +98,7 @@ namespace Comfy::Studio::Editor
 		std::array<std::unique_ptr<AetTool>, AetToolType_Count> tools;
 		AetToolType currentToolType = AetToolType_Transform;
 
-		Graphics::OrthographicCamera camera;
+		Render::OrthographicCamera camera;
 		CameraController2D cameraController;
 	};
 }

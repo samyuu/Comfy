@@ -7,16 +7,22 @@
 
 namespace Comfy::Studio::DataTest
 {
-	AudioTestWindow::AudioTestWindow(Application* parent) : BaseWindow(parent)
+	AudioTestWindow::AudioTestWindow(Application& parent) : BaseWindow(parent)
 	{
-		CloseWindow();
+		Close();
 	}
 
-	AudioTestWindow::~AudioTestWindow()
+	const char* AudioTestWindow::GetName() const
 	{
+		return "Audio Test";
 	}
 
-	void AudioTestWindow::DrawGui()
+	ImGuiWindowFlags AudioTestWindow::GetFlags() const
+	{
+		return ImGuiWindowFlags_None;
+	}
+
+	void AudioTestWindow::Gui()
 	{
 		auto& engine = Audio::Engine::GetInstance();
 
@@ -375,16 +381,6 @@ namespace Comfy::Studio::DataTest
 				engine.PlaySound(buttonTestSource, "AudioTestWindow::TestButtonSound", testButtonVolume);
 		}
 		Gui::Separator();
-	}
-
-	const char* AudioTestWindow::GetGuiName() const
-	{
-		return "Audio Test";
-	}
-
-	ImGuiWindowFlags AudioTestWindow::GetWindowFlags() const
-	{
-		return ImGuiWindowFlags_None;
 	}
 
 	void AudioTestWindow::RefreshDeviceInfoList()

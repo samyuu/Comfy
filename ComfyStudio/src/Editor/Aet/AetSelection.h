@@ -34,6 +34,7 @@ namespace Comfy::Studio::Editor
 		const std::shared_ptr<Graphics::Aet::Video>* VideoRef;
 	};
 
+	// TODO: This should be implemented using an std::variant
 	struct AetItemTypePtr
 	{
 	public:

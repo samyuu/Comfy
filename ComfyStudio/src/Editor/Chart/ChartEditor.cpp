@@ -4,29 +4,34 @@
 
 namespace Comfy::Studio::Editor
 {
-	ChartEditor::ChartEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
+	ChartEditor::ChartEditor(Application& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
 		chart = std::make_unique<Chart>();
 
-		timeline = std::make_unique<TargetTimeline>(this);
+		timeline = std::make_unique<TargetTimeline>(*this);
 		syncWindow = std::make_unique<SyncWindow>();
 		renderWindow = std::make_unique<TargetRenderWindow>();
 	}
 
-	ChartEditor::~ChartEditor()
-	{
-	}
-
-	void ChartEditor::Initialize()
+	void ChartEditor::OnFirstFrame()
 	{
 		songVoice = Audio::Engine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor::SongVoice", false, 0.75f, true);
 
 		timeline->Initialize();
-		syncWindow->Initialize();
-		renderWindow->Initialize();
+		syncWindow->OnFirstFrame();
 	}
 
-	void ChartEditor::DrawGui()
+	const char* ChartEditor::GetName() const
+	{
+		return "Chart Editor";
+	}
+
+	ImGuiWindowFlags ChartEditor::GetFlags() const
+	{
+		return BaseWindow::NoWindowFlags;
+	}
+
+	void ChartEditor::Gui()
 	{
 		Gui::GetCurrentWindow()->Hidden = true;
 
@@ -51,31 +56,15 @@ namespace Comfy::Studio::Editor
 		if (Gui::Begin(ICON_FA_SYNC "  Sync Window##ChartEditor", nullptr, ImGuiWindowFlags_None))
 		{
 			Gui::BeginChild("SyncWindowChild##ChartEditor", vec2(0.0f, 0.0f), true);
-			syncWindow->DrawGui(chart.get(), timeline.get());
+			syncWindow->Gui(*chart, *timeline);
 			Gui::EndChild();
 		}
 		Gui::End();
 
-		RenderWindowBase::PushWindowPadding();
-		if (Gui::Begin(ICON_FA_CHART_BAR "  Target Window##ChartEditor", nullptr, ImGuiWindowFlags_None))
-		{
-			//renderWindow->SetActive(treeView->GetActiveAet(), treeView->GetSelected());
-			//renderWindow->SetIsPlayback(timeline->GetIsPlayback());
-			//renderWindow->SetCurrentFrame(timeline->GetFrame().Frames());
-			renderWindow->DrawGui();
-		}
-		Gui::End();
-		RenderWindowBase::PopWindowPadding();
-	}
-
-	const char* ChartEditor::GetGuiName() const
-	{
-		return u8"Chart Editor";
-	}
-
-	ImGuiWindowFlags ChartEditor::GetWindowFlags() const
-	{
-		return BaseWindow::GetNoWindowFlags();
+		// renderWindow->SetActive(treeView->GetActiveAet(), treeView->GetSelected());
+		// renderWindow->SetIsPlayback(timeline->GetIsPlayback());
+		// renderWindow->SetCurrentFrame(timeline->GetFrame().Frames());
+		renderWindow->BeginEndGui(ICON_FA_CHART_BAR "  Target Window##ChartEditor");
 	}
 
 	bool ChartEditor::IsAudioFile(std::string_view filePath)

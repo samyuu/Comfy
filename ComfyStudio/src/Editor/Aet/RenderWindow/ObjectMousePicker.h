@@ -7,8 +7,10 @@ namespace Comfy::Studio::Editor
 	class ObjectMousePicker
 	{
 	public:
-		ObjectMousePicker(const std::vector<Graphics::Aet::AetMgr::ObjCache>& objectCache, const bool& windowHoveredOnMouseClick, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
-	
+		ObjectMousePicker(const Graphics::Aet::Util::ObjCache& objectCache, const bool& windowHoveredOnMouseClick, AetItemTypePtr& selectedAetItem, AetItemTypePtr& cameraSelectedAetItem);
+		~ObjectMousePicker() = default;
+
+	public:
 		void UpdateMouseInput(const vec2& mousePosition);
 
 		const std::shared_ptr<Graphics::Aet::Layer>* FindObjectAtPosition(vec2 worldSpace);

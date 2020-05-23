@@ -28,6 +28,10 @@ namespace Comfy::Studio::Editor
 		inline TimelineFrame GetLoopEndFrame() const { return loopEndFrame; }
 
 	protected:
+		void OnDrawTimlineDivisors() override;
+		void DrawTimelineCursor() override;
+
+	protected:
 		const float timelineContentMarginWidth = 40.0f;
 
 		TimelineFrame loopStartFrame = 0.0f;
@@ -35,7 +39,5 @@ namespace Comfy::Studio::Editor
 		float frameRate = 60.0f;
 		float gridDivision = 1.0f;
 
-		void OnDrawTimlineDivisors() override;
-		void DrawTimelineCursor() override;
 	};
 }

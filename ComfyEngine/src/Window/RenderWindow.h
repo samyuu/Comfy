@@ -62,6 +62,7 @@ namespace Comfy
 		float targetAspectRatio = (16.0f / 9.0f);
 	};
 
+	// DEBUG:
 	class CallbackRenderWindow2D : public RenderWindow
 	{
 	public:

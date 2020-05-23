@@ -1,36 +1,36 @@
 #pragma once
-#include "Editor/Core/RenderWindowBase.h"
+#include "Window/RenderWindow.h"
 #include "Editor/Common/CheckerboardGrid.h"
 #include "IO/AsyncFileLoader.h"
-#include "Graphics/Camera.h"
-#include "Graphics/Auth2D/Aet/AetRenderer.h"
+#include "Render/Render.h"
 
 namespace Comfy::Studio::Editor
 {
-	class TargetRenderWindow : public RenderWindowBase
+	class TargetRenderWindow : public RenderWindow
 	{
 	public:
-		TargetRenderWindow();
-		~TargetRenderWindow();
+		TargetRenderWindow() = default;
+		~TargetRenderWindow() = default;
+
+	public:
+		ImTextureID GetTextureID() const override;
 
 	protected:
-		void OnInitialize() override;
-		void OnDrawGui() override;
-		void PostDrawGui() override;
-		void OnUpdateInput() override;
-		void OnUpdate() override;
+		ImGuiWindowFlags GetRenderTextureChildWindowFlags() const override;
+		void OnFirstFrame() override;
+		void PreRenderTextureGui() override;
+		void PostRenderTextureGui() override;
+		void OnResize(ivec2 newSize) override;
 		void OnRender() override;
-		void OnResize(ivec2 size) override;
 
 	protected:
 		CheckerboardGrid checkerboardGrid;
 
 		const vec2 renderSize = vec2(1920.0f, 1080.0f);
-		Graphics::OrthographicCamera camera;
+		Render::OrthographicCamera camera;
 
-		Graphics::Aet::SpriteGetterFunction spriteGetterFunction;
-		std::unique_ptr<Graphics::GPU_Renderer2D> renderer;
-		std::unique_ptr<Graphics::Aet::AetRenderer> aetRenderer;
+		std::unique_ptr<Render::Renderer2D> renderer;
+		std::unique_ptr<Render::RenderTarget2D> renderTarget;
 
 		// TODO: ps4_gam
 		IO::AsyncFileLoader aetSetLoader = { "dev_rom/2d/aet_gam_cmn.bin" };
@@ -39,7 +39,7 @@ namespace Comfy::Studio::Editor
 		std::unique_ptr<Graphics::Aet::AetSet> aetSet;
 		std::unique_ptr<Graphics::SprSet> sprSet;
 
-		struct /* InternalLayerCache */
+		struct LayerCacheData
 		{
 			std::shared_ptr<Graphics::Aet::Layer> FrameUp, FrameBottom;
 			std::shared_ptr<Graphics::Aet::Layer> LifeGauge;
@@ -50,6 +50,7 @@ namespace Comfy::Studio::Editor
 		} layerCache;
 
 		void RenderBackground();
+		void RenderTestAet();
 
 	private:
 		bool loadingContent = true;

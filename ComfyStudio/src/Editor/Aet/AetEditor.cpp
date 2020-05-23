@@ -11,11 +11,9 @@ namespace Comfy::Studio::Editor
 
 	constexpr ImGuiTreeNodeFlags LeafTreeNodeFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet;
 
-	AetEditor::AetEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
+	AetEditor::AetEditor(Application& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
 		commandManager = std::make_unique<AetCommandManager>();
-
-		spriteGetterFunction = [](const Aet::VideoSource* source, const Tex** outTex, const Spr** outSpr) { return false; };
 
 		treeView = std::make_unique<AetTreeView>(commandManager.get(), &selectedAetItem, &cameraSelectedAetItem);
 		inspector = std::make_unique<AetInspector>(commandManager.get(), &spriteGetterFunction, &previewData);
@@ -25,17 +23,13 @@ namespace Comfy::Studio::Editor
 		historyWindow = std::make_unique<AetHistoryWindow>(commandManager.get());
 	}
 
-	AetEditor::~AetEditor()
+	void AetEditor::OnFirstFrame()
 	{
-	}
-
-	void AetEditor::Initialize()
-	{
-		treeView->Initialize();
-		inspector->Initialize();
-		// contentView->Initialize();
-		timeline->Initialize();
-		renderWindow->Initialize();
+		treeView->OnFirstFrame();
+		inspector->OnFirstFrame();
+		// contentView->OnFirstFrame();
+		timeline->OnFirstFrame();
+		renderWindow->OnFirstFrame();
 
 		// DEBUG: Auto load specified files
 		if (debugAetPath != nullptr && IO::File::Exists(debugAetPath))
@@ -44,7 +38,17 @@ namespace Comfy::Studio::Editor
 			LoadSprSet(debugSprPath);
 	}
 
-	void AetEditor::DrawGui()
+	const char* AetEditor::GetName() const
+	{
+		return "Aet Editor";
+	}
+
+	ImGuiWindowFlags AetEditor::GetFlags() const
+	{
+		return BaseWindow::NoWindowFlags;
+	}
+
+	void AetEditor::Gui()
 	{
 		Gui::GetCurrentWindow()->Hidden = true;
 
@@ -72,16 +76,9 @@ namespace Comfy::Studio::Editor
 		}
 		Gui::End();
 
-		// HACK: The way the window padding works here is far from optimal
-		RenderWindowBase::PushWindowPadding();
-		if (Gui::Begin(ICON_RENDERWINDOW "  Aet Window##AetEditor"))
-		{
-			renderWindow->SetIsPlayback(timeline->GetIsPlayback());
-			renderWindow->SetCurrentFrame(timeline->GetCursorFrame().Frames());
-			renderWindow->DrawGui();
-		}
-		Gui::End();
-		RenderWindowBase::PopWindowPadding();
+		renderWindow->SetIsPlayback(timeline->GetIsPlayback());
+		renderWindow->SetCurrentFrame(timeline->GetCursorFrame().Frames());
+		renderWindow->BeginEndGui(ICON_RENDERWINDOW "  Aet Window##AetEditor");
 
 		if (Gui::Begin(ICON_INSPECTOR "  Aet Inspector##AetEditor"))
 		{
@@ -112,16 +109,6 @@ namespace Comfy::Studio::Editor
 		commandManager->ExecuteClearCommandQueue();
 	}
 
-	const char* AetEditor::GetGuiName() const
-	{
-		return u8"Aet Editor";
-	}
-
-	ImGuiWindowFlags AetEditor::GetWindowFlags() const
-	{
-		return BaseWindow::GetNoWindowFlags();
-	}
-
 	void AetEditor::UpdateFileLoading()
 	{
 		if (sprSetFileLoader != nullptr && sprSetFileLoader->GetIsLoaded())
@@ -129,7 +116,6 @@ namespace Comfy::Studio::Editor
 			sprSet = std::make_unique<SprSet>();
 			sprSetFileLoader->Parse(*sprSet);
 			sprSet->Name = IO::Path::GetFileName(sprSetFileLoader->GetFilePath(), false);
-			sprSet->TexSet->UploadAll(sprSet.get());
 
 			OnSprSetLoaded();
 			sprSetFileLoader.reset();
@@ -199,9 +185,9 @@ namespace Comfy::Studio::Editor
 		if (editorAetSet != nullptr)
 			editorAetSet->ClearSpriteCache();
 
-		spriteGetterFunction = [this](const Aet::VideoSource* source, const Tex** outTex, const Spr** outSpr)
+		renderer->Aet().SetSprGetter([&](const Aet::VideoSource& source) -> Render::TexSpr
 		{
-			return Aet::AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), source, outTex, outSpr);
-		};
+			Render::SprSetNameStringSprGetter(source, sprSet.get());
+		});
 	}
 }

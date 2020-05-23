@@ -5,23 +5,23 @@ namespace Comfy::Studio::Editor
 {
 	using namespace Graphics;
 
-	TargetRenderWindow::TargetRenderWindow()
+	ImTextureID TargetRenderWindow::GetTextureID() const
 	{
-		spriteGetterFunction = [this](const Aet::VideoSource* source, const Tex** outTex, const Spr** outSpr) { return false; };
-
-		renderer = std::make_unique<D3D11::Renderer2D>();
-		aetRenderer = std::make_unique<Aet::AetRenderer>(renderer.get());
-		aetRenderer->SetSpriteGetterFunction(&spriteGetterFunction);
+		return (renderTarget != nullptr) ? renderTarget->GetTextureID() : nullptr;
 	}
 
-	TargetRenderWindow::~TargetRenderWindow()
+	ImGuiWindowFlags TargetRenderWindow::GetRenderTextureChildWindowFlags() const
 	{
+		return ImGuiWindowFlags_None;
 	}
 
-	void TargetRenderWindow::OnInitialize()
+	void TargetRenderWindow::OnFirstFrame()
 	{
 		SetKeepAspectRatio(true);
 		SetTargetAspectRatio(renderSize.x / renderSize.y);
+
+		renderer = std::make_unique<Render::Renderer2D>();
+		renderTarget = Render::Renderer2D::CreateRenderTarget();
 
 		sprSetLoader.LoadAsync();
 
@@ -39,56 +39,35 @@ namespace Comfy::Studio::Editor
 		layerCache.SongInfoLoop = aetSet->GetScenes().front()->FindLayer("song_icon_loop");
 	}
 
-	void TargetRenderWindow::OnDrawGui()
+	void TargetRenderWindow::PreRenderTextureGui()
 	{
 	}
 
-	void TargetRenderWindow::PostDrawGui()
+	void TargetRenderWindow::PostRenderTextureGui()
 	{
 	}
 
-	void TargetRenderWindow::OnUpdateInput()
+	void TargetRenderWindow::OnResize(ivec2 newSize)
 	{
-	}
+		renderTarget->Param.Resolution = newSize;
+		renderTarget->Param.ClearColor = GetColorVec4(EditorColor_DarkClear);
 
-	void TargetRenderWindow::OnUpdate()
-	{
-		if (loadingContent)
-			UpdateContentLoading();
+		camera.ProjectionSize = vec2(newSize);
+		camera.Position = vec2(0.0f, 0.0f);
+		camera.Zoom = camera.ProjectionSize.x / renderSize.x;
 	}
 
 	void TargetRenderWindow::OnRender()
 	{
-		owningRenderTarget->Bind();
+		if (loadingContent)
+			UpdateContentLoading();
+
+		renderer->Begin(camera, *renderTarget);
 		{
-			D3D11::D3D.SetViewport(owningRenderTarget->GetSize());
-			owningRenderTarget->Clear(GetColorVec4(EditorColor_DarkClear));
-
-			camera.UpdateMatrices();
-			renderer->Begin(camera);
-			{
-				RenderBackground();
-
-				aetRenderer->RenderLayer(layerCache.FrameUp.get(), 0.0f);
-				aetRenderer->RenderLayer(layerCache.FrameBottom.get(), 0.0f);
-				aetRenderer->RenderLayer(layerCache.LifeGauge.get(), 0.0f);
-				aetRenderer->RenderLayer(layerCache.SongEnergyBase.get(), 100.0f);
-				aetRenderer->RenderLayer(layerCache.SongIconLoop.get(), 0.0f);
-				aetRenderer->RenderLayer(layerCache.LevelInfoEasy.get(), 0.0f);
-				aetRenderer->RenderLayer(layerCache.SongIconLoop.get(), 0.0f);
-			}
-			renderer->End();
+			RenderBackground();
+			RenderTestAet();
 		}
-		owningRenderTarget->UnBind();
-	}
-
-	void TargetRenderWindow::OnResize(ivec2 size)
-	{
-		RenderWindowBase::OnResize(size);
-
-		camera.ProjectionSize = vec2(size);
-		camera.Position = vec2(0.0f, 0.0f);
-		camera.Zoom = camera.ProjectionSize.x / renderSize.x;
+		renderer->End();
 	}
 
 	void TargetRenderWindow::RenderBackground()
@@ -96,10 +75,24 @@ namespace Comfy::Studio::Editor
 		checkerboardGrid.Size = renderSize;
 		checkerboardGrid.Render(*renderer);
 
-		renderer->Draw(
-			vec2(0.0f),
-			renderSize,
-			vec4(0.0f, 0.0f, 0.0f, .25f));
+		renderer->Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), renderSize, vec4(0.0f, 0.0f, 0.0f, 0.25f)));
+	}
+
+	void TargetRenderWindow::RenderTestAet()
+	{
+		auto tryDrawLayer = [&](const auto& layer, frame_t frame)
+		{
+			if (layer != nullptr)
+				renderer->Aet().DrawLayer(*layer, frame);
+		};
+
+		tryDrawLayer(layerCache.FrameUp, 0.0f);
+		tryDrawLayer(layerCache.FrameBottom, 0.0f);
+		tryDrawLayer(layerCache.LifeGauge, 0.0f);
+		tryDrawLayer(layerCache.SongEnergyBase, 100.0f);
+		tryDrawLayer(layerCache.SongIconLoop, 0.0f);
+		tryDrawLayer(layerCache.LevelInfoEasy, 0.0f);
+		tryDrawLayer(layerCache.SongIconLoop, 0.0f);
 	}
 
 	void TargetRenderWindow::UpdateContentLoading()
@@ -111,14 +104,12 @@ namespace Comfy::Studio::Editor
 		{
 			sprSet = std::make_unique<SprSet>();
 			sprSetLoader.Parse(*sprSet);
-			sprSet->TexSet->UploadAll(sprSet.get());
 			sprSetLoader.FreeData();
 
-			spriteGetterFunction = [this](const Aet::VideoSource* source, const Tex** outTex, const Spr** outSpr) 
-			{ 
-				return Aet::AetRenderer::SpriteNameSprSetSpriteGetter(sprSet.get(), source, outTex, outSpr); 
-			};
-			aetRenderer->SetSpriteGetterFunction(&spriteGetterFunction);
+			renderer->Aet().SetSprGetter([&](const Graphics::Aet::VideoSource& source) -> Render::TexSpr
+			{
+				return Render::SprSetNameStringSprGetter(source, sprSet.get());
+			});
 		}
 	}
 }

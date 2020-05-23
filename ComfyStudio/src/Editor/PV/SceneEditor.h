@@ -22,7 +22,7 @@ namespace Comfy::Studio::Editor
 
 		void Initialize() override;
 		void DrawGui() override;
-		const char* GetGuiName() const override;
+		const char* GetIsOpen() const override;
 		ImGuiWindowFlags GetWindowFlags() const override;
 
 	private:

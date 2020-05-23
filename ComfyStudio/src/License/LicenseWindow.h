@@ -7,42 +7,31 @@ namespace Comfy::Studio
 {
 	struct LicenseInfo
 	{
-		union
+		std::string Name;
+		std::string Description;
+		std::string LicenseName;
+		std::string License;
+		std::string Remark;
+
+		std::array<std::string*, 5> GetStrings()
 		{
-			struct
-			{
-				std::string Name;
-				std::string Description;
-				std::string LicenseName;
-				std::string License;
-				std::string Remark;
-			};
-			std::string Strings[5];
-		};
+			return { &Name, &Description, &LicenseName, &License, &Remark };
+		}
 
 		LicenseInfo() : LicenseInfo("", "", "", "", "")
 		{
 		}
 
-		LicenseInfo(const char* name, const char* description, const char* licenseName, const char* license, const char* remark)
+		LicenseInfo(std::string_view name, std::string_view description, std::string_view licenseName, std::string_view license, std::string_view remark)
 			: Name(name), Description(description), LicenseName(licenseName), License(license), Remark(remark)
 		{
 			TrimAllEnds();
 		}
 
-		LicenseInfo(const LicenseInfo& other)
-		{
-			*Strings = *other.Strings;
-		}
-
-		~LicenseInfo()
-		{
-		}
-
 		void TrimAllEnds()
 		{
-			for (auto& string : Strings)
-				Trim(string);
+			for (auto& string : GetStrings())
+				Trim(*string);
 		}
 	};
 

@@ -1,10 +1,9 @@
 #pragma once
 #include "Editor/Core/IEditorComponent.h"
 #include "Editor/Timeline/TimelineBase.h"
-#include "Editor/Common/AudioController.h"
+#include "Editor/Common/ButtonSoundController.h"
 #include "Editor/Chart/Chart.h"
 #include "Graphics/Auth2D/SprSet.h"
-#include "Graphics/GPU/GPUResources.h"
 #include "Audio/Audio.h"
 #include "Input/Input.h"
 
@@ -13,21 +12,19 @@ namespace Comfy::Studio::Editor
 	enum EditorColor;
 	class ChartEditor;
 
-	class TargetTimeline : public TimelineBase, public Audio::ICallbackReceiver
+	class TargetTimeline : public TimelineBase
 	{
 	public:
-		TargetTimeline(ChartEditor* parentChartEditor);
-		~TargetTimeline();
+		TargetTimeline(ChartEditor& parent);
+		~TargetTimeline() = default;
 
+	public:
 		void OnSongLoaded();
 		void OnPlaybackResumed();
 		void OnPlaybackPaused();
 		void OnPlaybackStopped();
 
-		virtual void OnAudioCallback() override;
-
-		// Conversion Methods:
-		// -------------------
+	public:
 		TimelineTick GetGridTick() const;
 		TimelineTick FloorToGrid(TimelineTick tick) const;
 		TimelineTick RoundToGrid(TimelineTick tick) const;
@@ -44,42 +41,43 @@ namespace Comfy::Studio::Editor
 		TimelineTick GetCursorTick() const;
 		TimelineTick GetCursorMouseXTick() const;
 
+	public:
 		int GetGridDivisionIndex() const;
-		// -------------------
 
+	public:
 		void UpdateTimelineMap();
-		// -------------------
 
 	protected:
-		Chart* chart;
-		ChartEditor* chartEditor;
+		Chart* workingChart;
+		ChartEditor& chartEditor;
 
-		// ----------------------
+	protected:
+		std::unique_ptr<Audio::CallbackReceiver> callbackReceiver = nullptr;
+
 		std::vector<TimeSpan> buttonSoundTimesList;
-		AudioController audioController;
+		ButtonSoundController buttonSoundController;
 
 		bool updateWaveform;
 		Audio::Waveform songWaveform;
-		// ----------------------
 
-		// Timeline:
-		// ---------
+	protected:
 		static constexpr std::array<const char*, 10> gridDivisionStrings = { "1/1", "1/2", "1/4", "1/8", "1/12", "1/16", "1/24", "1/32", "1/48", "1/64" };
 		static constexpr std::array<int, 10> gridDivisions = { 1, 2, 4, 8, 12, 16, 24, 32, 48, 64 };
 
 		int gridDivisionIndex = 0;
 		int gridDivision = 16;
-		// ----------------------
 
+	protected:
 		std::array<float, TargetType_Max> targetYPositions;
 
-		// sankaku | shikaku | batsu | maru | slide_l | slide_r | slide_chain_l | slide_chain_r
+		// NOTE: sankaku | shikaku | batsu | maru | slide_l | slide_r | slide_chain_l | slide_chain_r
 		static constexpr int buttonIconsTypeCount = 8;
 		static constexpr int buttonIconWidth = 52;
 
 		std::array<ImRect, buttonIconsTypeCount * 2> buttonIconsTextureCoordinates;
-		Graphics::SprSet sprSet;
-		Graphics::GPU_Texture2D* buttonIconsTexture = nullptr;
+
+		std::unique_ptr<Graphics::SprSet> sprSet;
+		std::shared_ptr<Graphics::Tex> buttonIconsTexture = nullptr;
 
 		bool checkHitsoundsInCallback = false;
 		struct { bool Down, WasDown; } buttonPlacementKeyStates[12];
@@ -99,17 +97,15 @@ namespace Comfy::Studio::Editor
 			{ TargetType_SlideL, Input::KeyCode_U },
 			{ TargetType_SlideR, Input::KeyCode_O },
 		};
-		// ----------------------
 
-		// --------------
+	protected:
 		char timeInputBuffer[TimeSpan::RequiredFormatBufferSize] = "00:00.000";
-		// --------------
+
+	protected:
 		bool timeSelectionActive = false;
 		TimelineTick timeSelectionStart, timeSelectionEnd;
-		// --------------
 
-		// Timeline Button Animation:
-		// --------------------------
+	protected:
 		const TimeSpan buttonAnimationStartTime = TimeSpan::FromMilliseconds(15.0);
 		const TimeSpan buttonAnimationDuration = TimeSpan::FromMilliseconds(60.0);
 		const float buttonAnimationScale = 1.5f;
@@ -118,32 +114,28 @@ namespace Comfy::Studio::Editor
 			TimelineTick Tick;
 			TimeSpan ElapsedTime;
 		} buttonAnimations[TargetType_Max];
-		// --------------------------
 
-		// ----------------------
-		const float ICON_SCALE = 1.0f;
-		const float ROW_HEIGHT = 36;
-		// ----------------------
+	protected:
+		const float iconScale = 1.0f;
+		const float rowHeight = 36;
 
 	protected:
 		void OnInitialize() override;
 		void InitializeButtonIcons();
 
-		// ----------------
+	protected:
 		void OnUpdate() override;
 		void UpdateOnCallbackSounds();
 		void UpdateOnCallbackPlacementSounds();
-		// ----------------
 
-		// Timeline Widgets:
-		// -----------------
+	protected:
 		void OnDrawTimelineHeaderWidgets() override;
-		// Timeline Column:
-		// ----------------
+
+	protected:
 		void OnDrawTimelineInfoColumnHeader() override;
 		void OnDrawTimelineInfoColumn() override;
-		// Timeline Base:
-		// --------------
+
+	protected:
 		void OnDrawTimlineRows() override;
 		void OnDrawTimlineDivisors() override;
 		void OnDrawTimlineBackground() override;
@@ -156,16 +148,12 @@ namespace Comfy::Studio::Editor
 		void OnDrawTimelineContents() override;
 		void UpdateInputCursorClick();
 		void UpdateInputTargetPlacement();
-		// --------------
 
-		// Timeline Actions:
-		// -----------------
+	protected:
 		void PlaceOrRemoveTarget(TimelineTick tick, TargetType type);
 		void SelectNextGridDivision(int direction);
-		// -----------------
 
-		// Timeline Control:
-		// -----------------
+	protected:
 		TimeSpan GetCursorTime() const override;
 		bool GetIsPlayback() const override;
 		void PausePlayback() override;
@@ -174,12 +162,10 @@ namespace Comfy::Studio::Editor
 
 		float GetTimelineSize() const override;
 		void OnTimelineBaseScroll() override;
-		// -----------------
 
-		// -------------------
+	protected:
 		float GetButtonTransparency(float screenX) const;
 		int GetButtonIconIndex(const TimelineTarget& target) const;
 		void DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, vec2 position, float scale, float transparency = 1.0f);
-		// -------------------
 	};
 }

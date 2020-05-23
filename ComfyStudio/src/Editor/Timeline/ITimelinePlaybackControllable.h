@@ -7,6 +7,7 @@ namespace Comfy::Studio::Editor
 	public:
 		virtual ~ITimelinePlaybackControllable() = default;
 
+	public:
 		virtual bool GetIsPlayback() const = 0;
 
 	protected:

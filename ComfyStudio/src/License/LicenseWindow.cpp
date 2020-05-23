@@ -2,7 +2,7 @@
 #include "ImGui/Gui.h"
 #include "IO/File.h"
 #include "Misc/StringParseHelper.h"
-#include "Core/ComfyData.h"
+#include "System/ComfyData.h"
 
 namespace Comfy::Studio
 {
@@ -118,7 +118,7 @@ namespace Comfy::Studio
 					continue;
 				}
 
-				std::string& stringToAppend = info->Strings[type];
+				std::string& stringToAppend = *info->GetStrings()[type];
 				stringToAppend.reserve(stringToAppend.size() + line.size() + 1);
 				stringToAppend.append(line);
 				stringToAppend.append("\n");

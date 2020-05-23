@@ -1,6 +1,6 @@
 #pragma once
-#include "Graphics/Camera.h"
-#include "Graphics/Auth2D/Aet/AetMgr.h"
+#include "Types.h"
+#include "Render/Render.h"
 #include "Editor/Aet/Command/AetCommandManager.h"
 #include "Input/Input.h"
 #include "ImGui/Gui.h"
@@ -21,8 +21,10 @@ namespace Comfy::Studio::Editor
 	class AetTool
 	{
 	public:
+		AetTool() = default;
 		virtual ~AetTool() = default;
 
+	public:
 		// TODO: Should be implement by all components
 		static constexpr Input::KeyCode GridSnapModifierKey = Input::KeyCode_Control;
 		
@@ -60,13 +62,13 @@ namespace Comfy::Studio::Editor
 		virtual void UpdatePostDrawGui(Graphics::Transform2D* transform, vec2 dimensions) {};
 		
 		// NOTE: Turn the updated properties into a set of AetCommands
-		virtual void ProcessCommands(AetCommandManager* commandManager, const std::shared_ptr<Graphics::Aet::Layer>& layer, float frame, const Graphics::Transform2D& transform, const Graphics::Transform2D& previousTransform) {}
+		virtual void ProcessCommands(AetCommandManager& commandManager, const std::shared_ptr<Graphics::Aet::Layer>& layer, frame_t frame, const Graphics::Transform2D& transform, const Graphics::Transform2D& previousTransform) {}
 		
 		// NOTE: Tool specific context menu items
 		virtual void DrawContextMenu() = 0;
 		
 		// NOTE: Special case for the HandTool
-		virtual void UpdateCamera(Graphics::OrthographicCamera& camera, vec2 relativeMouse) {}
+		virtual void UpdateCamera(Render::OrthographicCamera& camera, vec2 relativeMouse) {}
 
 		// NOTE: So we know if we can mouse pick an object of the current composition without interfering with the tool
 		// TODO: Default return false for now but should be abstract in the future

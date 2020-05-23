@@ -1,7 +1,7 @@
 #pragma once
-#include "Editor/Aet/IMutatingEditorComponent.h"
+#include "Editor/Aet/MutatingEditorComponent.h"
 
-namespace Comfy::Editor
+namespace Comfy::Studio::Editor
 {
 	// TODO: - Set AetItemType::Surface
 	//		 - Should work both horizontally and vertically (?)
@@ -9,12 +9,12 @@ namespace Comfy::Editor
 	//		 - Keep aspect ratio for preview "boxes" (write helper function to also be used by RenderWindowBase)
 	//		 - 
 
-	class AetContentView : public IMutatingEditorComponent
+	class AetContentView : public MutatingEditorComponent
 	{
 	public:
-		//AetContentView(AetCommandManager* commandManager, AetItemTypePtr* selectedAetItem);
+		// AetContentView(AetCommandManager* commandManager, AetItemTypePtr* selectedAetItem);
 		AetContentView(const AetTreeView&) = delete;
-		//~AetContentView();
+		// ~AetContentView();
 
 	public:
 	};

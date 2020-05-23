@@ -1,5 +1,6 @@
 #pragma once
-#include "Graphics/GPU/GPURenderers.h"
+#include "Types.h"
+#include "Render/Render.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -8,6 +9,7 @@ namespace Comfy::Studio::Editor
 	public:
 		static constexpr float DefaultGridSize = 5.0f;
 
+	public:
 		// NOTE: Pixels between each cell
 		float GridSize = DefaultGridSize;
 
@@ -21,7 +23,22 @@ namespace Comfy::Studio::Editor
 		// NOTE: Secondary color
 		vec4 ColorAlt = vec4(0.32f, 0.32f, 0.32f, 1.0f);
 
-		void Render(Graphics::GPU_Renderer2D& renderer) const;
+		inline void Render(Render::Renderer2D& renderer) const
+		{
+			renderer.Draw(Render::RenderCommand2D(
+				Position,
+				Size,
+				Color));
+
+			renderer.DrawRectCheckerboard(
+				Position,
+				vec2(1.0f),
+				vec2(0.0f),
+				0.0f,
+				Size,
+				ColorAlt,
+				renderer.GetCamera().Zoom / GridSize);
+		}
 
 	private:
 	};

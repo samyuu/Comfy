@@ -364,7 +364,7 @@ namespace Comfy::Studio::Editor
 
 			const ImRect scrollbarRegion = ImRect(timelineContentRegion.GetTR(), timelineContentRegion.GetBR() + vec2(timelineScrollbarSize.x, 0.0f));
 
-			verticalScrollbar.DrawGui(GetScrollY(), GetMaxScrollY(), scrollbarRegion);
+			verticalScrollbar.Gui(GetScrollY(), GetMaxScrollY(), scrollbarRegion);
 		}
 		Gui::EndChild();
 
@@ -384,7 +384,7 @@ namespace Comfy::Studio::Editor
 				GImGui->CurrentWindow->Pos + positionOffset,
 				GImGui->CurrentWindow->Pos + GImGui->CurrentWindow->Size);
 
-			horizontalScrollbar.DrawGui(GetScrollX(), GetMaxScrollX(), scrollbarRegion);
+			horizontalScrollbar.Gui(GetScrollX(), GetMaxScrollX(), scrollbarRegion);
 		}
 		Gui::EndChild();
 

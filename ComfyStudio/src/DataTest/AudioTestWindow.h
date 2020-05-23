@@ -8,12 +8,13 @@ namespace Comfy::Studio::DataTest
 	class AudioTestWindow : public BaseWindow
 	{
 	public:
-		AudioTestWindow(Application*);
-		~AudioTestWindow();
+		AudioTestWindow(Application&);
+		~AudioTestWindow() = default;
 
-		void DrawGui() override;
-		const char* GetGuiName() const override;
-		ImGuiWindowFlags GetWindowFlags() const override;
+	public:
+		const char* GetName() const override;
+		ImGuiWindowFlags GetFlags() const override;
+		void Gui() override;
 
 	private:
 		static constexpr const float audioInstancesChildHeight = 240;

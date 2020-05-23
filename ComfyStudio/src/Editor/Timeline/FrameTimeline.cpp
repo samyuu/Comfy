@@ -65,8 +65,6 @@ namespace Comfy::Studio::Editor
 	{
 		constexpr int framesPerBar = 10;
 
-		char barStringBuffer[16];
-		
 		const int startFrame = static_cast<int>(loopStartFrame.Frames());
 		const int endFrame = static_cast<int>(loopEndFrame.Frames());
 		const int frameStep = static_cast<int>(gridDivision);
@@ -93,6 +91,7 @@ namespace Comfy::Studio::Editor
 
 			if (isBar)
 			{
+				char barStringBuffer[16];
 				sprintf_s(barStringBuffer, sizeof(barStringBuffer), "%d", frame);
 
 				start += vec2(3.0f, -1.0f);

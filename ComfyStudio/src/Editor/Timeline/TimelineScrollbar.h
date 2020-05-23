@@ -6,17 +6,20 @@ namespace Comfy::Studio::Editor
 	class TimelineScrollbar
 	{
 	public:
-		TimelineScrollbar(ImGuiAxis axis, const vec2 timelineScrollbarSize);
+		TimelineScrollbar(ImGuiAxis axis, vec2 timelineScrollbarSize);
+		TimelineScrollbar() = default;
 
-		void DrawGui(const float scroll, const float maxScroll, const ImRect scrollbarRegion);
+	public:
+		void Gui(float scroll, float maxScroll, ImRect scrollbarRegion);
+
+	private:
+		ImU32 GetGrabColor() const;
 
 	private:
 		ImGuiAxis axis;
 		const vec2 timelineScrollbarSize;
-		
+
 		// TODO:
 		bool held = false, hovered = false;
-	
-		ImU32 GetGrabColor() const;
 	};
 }

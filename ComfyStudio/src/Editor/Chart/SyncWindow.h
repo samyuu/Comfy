@@ -7,11 +7,12 @@ namespace Comfy::Studio::Editor
 	class SyncWindow
 	{
 	public:
-		SyncWindow();
-		~SyncWindow();
+		SyncWindow() = default;
+		~SyncWindow() = default;
 
-		void Initialize();
-		void DrawGui(Chart* chart, TargetTimeline* timeline);
+	public:
+		void OnFirstFrame();
+		void Gui(Chart& chart, TargetTimeline& timeline);
 
 	private:
 		Tempo newTempo = TempoChange::DefaultTempo;

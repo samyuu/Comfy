@@ -15,6 +15,9 @@ namespace Comfy::Studio::Editor
 		inline const ImRect& GetTimelineContentRegion() const { return timelineContentRegion; }
 
 	protected:
+		virtual void UpdateTimelineRegions() = 0;
+
+	protected:
 		ImRect timelineRegion;
 		ImRect infoColumnHeaderRegion;
 		ImRect infoColumnRegion;
@@ -22,7 +25,5 @@ namespace Comfy::Studio::Editor
 		ImRect tempoMapRegion;
 		ImRect timelineHeaderRegion;
 		ImRect timelineContentRegion;
-
-		virtual void UpdateTimelineRegions() = 0;
 	};
 }

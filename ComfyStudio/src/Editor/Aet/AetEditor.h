@@ -8,7 +8,6 @@
 #include "Command/AetHistoryWindow.h"
 #include "Command/AetCommandManager.h"
 #include "Editor/Core/IEditorComponent.h"
-#include "Graphics/Auth2D/Aet/AetRenderer.h"
 #include "IO/AsyncFileLoader.h"
 #include "ImGui/Widgets/FileViewer.h"
 
@@ -17,14 +16,18 @@ namespace Comfy::Studio::Editor
 	class AetEditor : public IEditorComponent
 	{
 	public:
-		AetEditor(Application* parent, EditorManager* editor);
-		~AetEditor();
+		AetEditor(Application& parent, EditorManager& editor);
+		~AetEditor() = default;
 
-		void Initialize() override;
-		void DrawGui() override;
-		const char* GetGuiName() const override;
-		ImGuiWindowFlags GetWindowFlags() const override;
+	public:
+		void OnFirstFrame() override;
 
+	public:
+		const char* GetName() const override;
+		ImGuiWindowFlags GetFlags() const override;
+		void Gui() override;
+
+	public:
 		inline Graphics::Aet::AetSet* GetAetSet() { return editorAetSet.get(); }
 		inline Graphics::SprSet* GetSprSet() { return sprSet.get(); }
 
@@ -41,8 +44,9 @@ namespace Comfy::Studio::Editor
 
 	private:
 		std::unique_ptr<AetCommandManager> commandManager = {};
-		Graphics::Aet::SpriteGetterFunction spriteGetterFunction;
-		
+
+		std::unique_ptr<Render::Renderer2D> renderer = nullptr;
+
 		struct
 		{
 			AetItemTypePtr selectedAetItem = {};

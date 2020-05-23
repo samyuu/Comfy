@@ -3,35 +3,36 @@
 
 namespace Comfy::Studio::Editor
 {
-	constexpr float MIN_BPM = 2.0f;
-	constexpr float MAX_BPM = 960.0f;
-
-	// Wrapper struct around a BPM value
-	// ---------------------------------
 	struct Tempo
 	{
-		float BeatsPerMinute;
+	public:
+		static constexpr float MinBPM = 2.0f;
+		static constexpr float MaxBPM = 960.0f;
 
-		// Constructors / Deconstructors:
-		// ------------------------------
+	public:
 		constexpr Tempo() : BeatsPerMinute(0.0f) {}
 		constexpr Tempo(float bpm) : BeatsPerMinute(bpm) {}
+
+	public:
+		float BeatsPerMinute;
 	};
 
-	// TimelineTick + Tempo value struct
-	// ---------------------------------
 	struct TempoChange
 	{
+	public:
 		static constexpr Tempo DefaultTempo = Tempo(160.0f);
 
-		TempoChange();
-		TempoChange(TimelineTick tick, Editor::Tempo tempo);
+	public:
+		TempoChange() = default;
+		TempoChange(TimelineTick tick, Tempo tempo) : Tick(tick), Tempo(tempo) {}
 
-		TimelineTick Tick;
-		Tempo Tempo;
+		bool operator==(const TempoChange& other) const { return (Tick == other.Tick); }
+		bool operator!=(const TempoChange& other) const { return (Tick != other.Tick); }
+		bool operator<(const TempoChange& other) const { return (Tick < other.Tick); }
+		bool operator>(const TempoChange& other) const { return (Tick > other.Tick); }
 
-		inline bool operator==(const TempoChange &other) const { return (Tick == other.Tick); }
-		inline bool operator<(const TempoChange &other) const { return Tick < other.Tick; }
-		inline bool operator>(const TempoChange &other) const { return Tick > other.Tick; }
+	public:
+		TimelineTick Tick = {};
+		Tempo Tempo = {};
 	};
 }
