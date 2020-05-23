@@ -38,9 +38,11 @@ namespace Comfy::Render
 		static std::unique_ptr<RenderTarget2D> CreateRenderTarget();
 
 	public:
+		// NOTE: Only valid between a Begin() / End() call
+		const OrthographicCamera& GetCamera() const;
+
 		/*
 		const SpriteVertices& GetLastVertices() const;
-		const OrthographicCamera* GetCamera() const;
 
 		bool GetDrawTextBorder() const;
 		void SetDrawTextBorder(bool value);

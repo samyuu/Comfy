@@ -5,6 +5,7 @@
 
 namespace Comfy::Render
 {
+	// TODO: Should this be renamed to Viewport2D to clearly separate from the D3D11::RenderTargets (?)
 	class RenderTarget2D : NonCopyable
 	{
 	public:

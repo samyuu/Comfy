@@ -11,17 +11,22 @@ namespace Comfy::Render
 		// TODO: Various constructors
 		RenderCommand2D() = default;
 
+		RenderCommand2D(vec2 position, vec2 size, vec4 color) : Position(position), Scale(size)
+		{
+			SetColor(color);
+		}
+
 		RenderCommand2D(const Graphics::Tex* texture, vec2 origin, vec2 position, float rotation, vec2 scale, vec4 sourceRegion, Graphics::AetBlendMode blendMode, float opacity)
 			: Texture(texture), Origin(origin), Position(position), Rotation(rotation), Scale(scale), SourceRegion(sourceRegion), BlendMode(blendMode)
 		{
-			for (auto& color : CornerColors)
-				color.a = opacity;
+			for (auto& cornerColor : CornerColors)
+				cornerColor.a = opacity;
 		}
 
 		void SetColor(const vec4& newColor)
 		{
-			for (auto& color : CornerColors)
-				color = newColor;
+			for (auto& cornerColor : CornerColors)
+				cornerColor = newColor;
 		}
 
 	public:
