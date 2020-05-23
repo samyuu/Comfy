@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Audio\Core\ICallbackReceiver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Audio\Decoder\Detail\Decoders.h">
       <Filter>Header Files</Filter>
     </ClInclude>

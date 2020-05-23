@@ -113,7 +113,7 @@ namespace Comfy::Audio
 		TimeSpan CallbackStreamTime = {}, LastCallbackStreamTime = {};
 
 		// NOTE: nullptr = free space
-		std::vector<ICallbackReceiver*> RegisteredCallbackReceivers;
+		std::vector<CallbackReceiver*> RegisteredCallbackReceivers;
 
 	public:
 		struct DebugCaptureData
@@ -520,29 +520,6 @@ namespace Comfy::Audio
 		return impl->GetSharedSource(handle);
 	}
 
-	void Engine::RegisterCallbackReceiver(ICallbackReceiver* callbackReceiver)
-	{
-		for (auto& receiver : impl->RegisteredCallbackReceivers)
-		{
-			if (receiver != nullptr)
-				continue;
-
-			receiver = callbackReceiver;
-			return;
-		}
-
-		impl->RegisteredCallbackReceivers.push_back(callbackReceiver);
-	}
-
-	void Engine::UnregisterCallbackReceiver(ICallbackReceiver* callbackReceiver)
-	{
-		for (auto& receiver : impl->RegisteredCallbackReceivers)
-		{
-			if (receiver == callbackReceiver)
-				receiver = nullptr;
-		}
-	}
-
 	Engine::AudioAPI Engine::GetAudioAPI() const
 	{
 		return impl->CurrentAPI;
@@ -867,5 +844,32 @@ namespace Comfy::Audio
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			return voice->Name.data();
 		return "VoiceHandle::Invalid";
+	}
+
+	CallbackReceiver::CallbackReceiver(std::function<void(void)> callback) : OnAudioCallback(std::move(callback))
+	{
+		auto& impl = EngineInstance->impl;
+
+		for (auto& receiver : impl->RegisteredCallbackReceivers)
+		{
+			if (receiver != nullptr)
+				continue;
+
+			receiver = this;
+			return;
+		}
+
+		impl->RegisteredCallbackReceivers.push_back(this);
+	}
+
+	CallbackReceiver::~CallbackReceiver()
+	{
+		auto& impl = EngineInstance->impl;
+
+		for (auto& receiver : impl->RegisteredCallbackReceivers)
+		{
+			if (receiver == this)
+				receiver = nullptr;
+		}
 	}
 }

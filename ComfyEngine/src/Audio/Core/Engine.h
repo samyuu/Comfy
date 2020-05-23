@@ -1,9 +1,9 @@
 #pragma once
 #include "Types.h"
 #include "ChannelMixer.h"
-#include "ICallbackReceiver.h"
 #include "Audio/SampleProvider/ISampleProvider.h"
 #include "Time/TimeSpan.h"
+#include <functional>
 
 namespace Comfy::Audio
 {
@@ -56,6 +56,14 @@ namespace Comfy::Audio
 		std::string_view GetName() const;
 	};
 
+	struct CallbackReceiver : NonCopyable
+	{
+		CallbackReceiver(std::function<void(void)> callback);
+		~CallbackReceiver();
+
+		std::function<void(void)> OnAudioCallback;
+	};
+
 	// TODO:
 	struct DeviceInfo
 	{
@@ -64,6 +72,7 @@ namespace Comfy::Audio
 	class Engine : NonCopyable
 	{
 		friend Voice;
+		friend CallbackReceiver;
 
 	public:
 		static constexpr f32 MinVolume = 0.0f, MaxVolume = 1.0f;
@@ -123,10 +132,6 @@ namespace Comfy::Audio
 		void PlaySound(SourceHandle source, std::string_view name, f32 volume = MaxVolume);
 
 		std::shared_ptr<ISampleProvider> GetSharedSource(SourceHandle handle);
-
-	public:
-		void RegisterCallbackReceiver(ICallbackReceiver* callbackReceiver);
-		void UnregisterCallbackReceiver(ICallbackReceiver* callbackReceiver);
 
 	public:
 		AudioAPI GetAudioAPI() const;

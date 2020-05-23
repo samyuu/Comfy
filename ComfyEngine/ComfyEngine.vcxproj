@@ -155,7 +155,6 @@
     <ClInclude Include="src\Audio\Core\Engine.h" />
     <ClInclude Include="src\Audio\Core\ChannelMixer.h" />
     <ClInclude Include="src\Audio\Core\SampleMix.h" />
-    <ClInclude Include="src\Audio\Core\ICallbackReceiver.h" />
     <ClInclude Include="src\Audio\Core\Resample.h" />
     <ClInclude Include="src\Audio\Decoder\DecoderFactory.h" />
     <ClInclude Include="src\Audio\Decoder\Detail\Decoders.h" />
