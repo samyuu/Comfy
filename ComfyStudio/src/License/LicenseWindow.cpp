@@ -77,7 +77,8 @@ namespace Comfy::Studio
 	void LicenseWindow::LoadLicenseData()
 	{
 		const auto licenseDirectoryEntry = ComfyData->FindDirectory(licenseDirectory);
-		assert(licenseDirectoryEntry != nullptr);
+		if (licenseDirectoryEntry == nullptr)
+			return;
 
 		licenseData.reserve(licenseDirectoryEntry->EntryCount);
 
@@ -86,7 +87,7 @@ namespace Comfy::Studio
 			const auto licenseFileEntry = licenseDirectoryEntry->Entries[i];
 
 			std::unique_ptr<char[]> fileContent = std::make_unique<char[]>(licenseFileEntry.Size + 1);
-			ComfyData->ReadEntryIntoBuffer(&licenseFileEntry, fileContent.get());
+			ComfyData->ReadEntryIntoBuffer(licenseFileEntry, fileContent.get());
 
 			const char* textBuffer = fileContent.get();
 			const char* textBufferEnd = textBuffer + licenseFileEntry.Size;

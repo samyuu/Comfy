@@ -16,10 +16,6 @@ namespace ImGui
 	{
 	}
 
-	GuiRenderer::~GuiRenderer()
-	{
-	}
-
 	bool GuiRenderer::Initialize()
 	{
 		if (!InitializeCreateContext())
@@ -28,8 +24,7 @@ namespace ImGui
 		if (!InitializeSetStartupIoState())
 			return false;
 
-		if (!InitializeLoadFontData())
-			return false;
+		InitializeLoadFontData();
 
 		if (!InitializeSetStyle())
 			return false;
@@ -137,10 +132,10 @@ namespace ImGui
 			return false;
 
 		const auto& io = GetIO();
-		if (const auto textFontEntry = ComfyData->FindFileInDirectory(fontDirectory, fontFileName); textFontEntry != nullptr)
+		if (const auto textFontEntry = ComfyData->FindFileInDirectory(*fontDirectory, fontFileName); textFontEntry != nullptr)
 		{
 			void* fileContent = IM_ALLOC(textFontEntry->Size);
-			ComfyData->ReadEntryIntoBuffer(textFontEntry, fileContent);
+			ComfyData->ReadEntryIntoBuffer(*textFontEntry, fileContent);
 
 			if (io.Fonts->AddFontFromMemoryTTF(fileContent, static_cast<int>(textFontEntry->Size), fontSize, nullptr, GetFontGlyphRange()) == nullptr)
 				return false;
@@ -150,10 +145,10 @@ namespace ImGui
 			return false;
 		}
 
-		if (const auto iconFontEntry = ComfyData->FindFileInDirectory(fontDirectory, FONT_ICON_FILE_NAME_FAS); iconFontEntry != nullptr)
+		if (const auto iconFontEntry = ComfyData->FindFileInDirectory(*fontDirectory, FONT_ICON_FILE_NAME_FAS); iconFontEntry != nullptr)
 		{
 			void* fileContent = IM_ALLOC(iconFontEntry->Size);
-			ComfyData->ReadEntryIntoBuffer(iconFontEntry, fileContent);
+			ComfyData->ReadEntryIntoBuffer(*iconFontEntry, fileContent);
 
 			const ImFontConfig config = GetIconFontConfig();
 			if (io.Fonts->AddFontFromMemoryTTF(fileContent, static_cast<int>(iconFontEntry->Size), iconFontSize, &config, GetIconGlyphRange()) == nullptr)
@@ -186,7 +181,7 @@ namespace ImGui
 
 		if (!ComfyD3D11::Initialize())
 			return false;
-		
+
 		host.RegisterWindowProcCallback(ImGui_ImplWin32_WndProcHandler);
 
 		return true;

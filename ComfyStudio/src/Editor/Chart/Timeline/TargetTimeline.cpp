@@ -202,7 +202,7 @@ namespace Comfy::Studio::Editor
 		if (const auto sprFileEntry = ComfyData->FindFile("spr/spr_comfy_editor.bin"); sprFileEntry != nullptr)
 		{
 			auto sprFileBuffer = std::make_unique<u8[]>(sprFileEntry->Size);
-			ComfyData->ReadEntryIntoBuffer(sprFileEntry, sprFileBuffer.get());
+			ComfyData->ReadEntryIntoBuffer(*sprFileEntry, sprFileBuffer.get());
 
 			sprSet = std::make_unique<Graphics::SprSet>();
 			sprSet->Parse(sprFileBuffer.get(), sprFileEntry->Size);
@@ -210,8 +210,12 @@ namespace Comfy::Studio::Editor
 			if (sprSet != nullptr && !sprSet->TexSet->Textures.empty())
 				buttonIconsTexture = sprSet->TexSet->Textures.front();
 		}
+		else
+		{
+			return;
+		}
 
-		const vec2 texelSize = vec2(1.0f, 1.0f) / vec2(buttonIconsTexture->GetSize());
+		const auto texelSize = vec2(1.0f, 1.0f) / vec2(buttonIconsTexture->GetSize());
 
 		const float width = buttonIconWidth * texelSize.x;
 		const float height = buttonIconWidth * texelSize.y;

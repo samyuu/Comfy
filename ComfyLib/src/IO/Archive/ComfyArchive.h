@@ -94,24 +94,24 @@ namespace Comfy::IO
 		~ComfyArchive();
 
 	public:
-		void Mount(std::string_view filePath);
+		bool Mount(std::string_view filePath);
 		void UnMount();
 
 		const ComfyArchiveHeader& GetHeader() const;
 		const ComfyDirectory& GetRootDirectory() const;
 
 		const ComfyEntry* FindFile(std::string_view filePath) const;
-		const ComfyEntry* FindFileInDirectory(const ComfyDirectory* directory, std::string_view fileName) const;
+		const ComfyEntry* FindFileInDirectory(const ComfyDirectory& directory, std::string_view fileName) const;
 
 		const ComfyDirectory* FindDirectory(std::string_view directoryPath) const;
 
 		bool ReadFileIntoBuffer(std::string_view filePath, std::vector<u8>& buffer);
 
-		bool ReadEntryIntoBuffer(const ComfyEntry* entry, void* outputBuffer);
+		bool ReadEntryIntoBuffer(const ComfyEntry& entry, void* outputBuffer);
 
 	private:
-		const ComfyDirectory* FindNestedDirectory(const ComfyDirectory* parent, std::string_view directory) const;
-		const ComfyDirectory* FindDirectory(const ComfyDirectory* parent, std::string_view directoryName) const;
+		const ComfyDirectory* FindNestedDirectory(const ComfyDirectory& parent, std::string_view directory) const;
+		const ComfyDirectory* FindDirectory(const ComfyDirectory& parent, std::string_view directoryName) const;
 
 	private:
 		void ParseEntries();

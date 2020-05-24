@@ -9,16 +9,16 @@ namespace Comfy::IO
 		UnMount();
 	}
 
-	void ComfyArchive::Mount(std::string_view filePath)
+	bool ComfyArchive::Mount(std::string_view filePath)
 	{
 		if (isMounted)
-			return;
+			return true;
 
 		isMounted = true;
 		dataStream.OpenRead(filePath);
 
 		if (!dataStream.IsOpen())
-			return;
+			return false;
 
 		ParseEntries();
 		LinkRemapPointers();
@@ -52,7 +52,7 @@ namespace Comfy::IO
 
 	const ComfyEntry* ComfyArchive::FindFile(std::string_view filePath) const
 	{
-		if (filePath.size() < 1)
+		if (rootDirectory == nullptr || filePath.size() < 1)
 			return nullptr;
 
 		size_t lastSeparatorIndex = filePath.size();
@@ -66,10 +66,10 @@ namespace Comfy::IO
 		}
 
 		if (lastSeparatorIndex == filePath.size())
-			return FindFileInDirectory(rootDirectory, filePath);
+			return FindFileInDirectory(*rootDirectory, filePath);
 
 		std::string_view directory = filePath.substr(0, lastSeparatorIndex);
-		const ComfyDirectory* parentDirectory = FindNestedDirectory(rootDirectory, directory);
+		const ComfyDirectory* parentDirectory = FindNestedDirectory(*rootDirectory, directory);
 
 		if (parentDirectory == nullptr)
 			return nullptr;
@@ -88,11 +88,11 @@ namespace Comfy::IO
 		return nullptr;
 	}
 
-	const ComfyEntry* ComfyArchive::FindFileInDirectory(const ComfyDirectory* directory, std::string_view fileName) const
+	const ComfyEntry* ComfyArchive::FindFileInDirectory(const ComfyDirectory& directory, std::string_view fileName) const
 	{
-		for (size_t i = 0; i < directory->EntryCount; i++)
+		for (size_t i = 0; i < directory.EntryCount; i++)
 		{
-			auto& entry = directory->Entries[i];
+			auto& entry = directory.Entries[i];
 
 			if (entry.Name == fileName)
 				return &entry;
@@ -103,7 +103,10 @@ namespace Comfy::IO
 
 	const ComfyDirectory* ComfyArchive::FindDirectory(std::string_view directoryPath) const
 	{
-		return FindNestedDirectory(rootDirectory, directoryPath);
+		if (rootDirectory == nullptr)
+			return nullptr;
+
+		return FindNestedDirectory(*rootDirectory, directoryPath);
 	}
 
 	bool ComfyArchive::ReadFileIntoBuffer(std::string_view filePath, std::vector<u8>& buffer)
@@ -113,26 +116,25 @@ namespace Comfy::IO
 			return false;
 
 		buffer.resize(fileEntry->Size);
-		ReadEntryIntoBuffer(fileEntry, buffer.data());
+		ReadEntryIntoBuffer(*fileEntry, buffer.data());
 
 		return true;
 	}
 
-	bool ComfyArchive::ReadEntryIntoBuffer(const ComfyEntry* entry, void* outputBuffer)
+	bool ComfyArchive::ReadEntryIntoBuffer(const ComfyEntry& entry, void* outputBuffer)
 	{
-		if (entry == nullptr || !isMounted || !dataStream.IsOpen() || !dataStream.CanRead())
+		if (!isMounted || !dataStream.IsOpen() || !dataStream.CanRead())
 		{
 			assert(false);
 			return false;
 		}
 
-		dataStream.Seek(static_cast<FileAddr>(entry->Offset));
-		dataStream.ReadBuffer(outputBuffer, entry->Size);
-
+		dataStream.Seek(static_cast<FileAddr>(entry.Offset));
+		dataStream.ReadBuffer(outputBuffer, entry.Size);
 		return true;
 	}
 
-	const ComfyDirectory* ComfyArchive::FindNestedDirectory(const ComfyDirectory* parent, std::string_view directory) const
+	const ComfyDirectory* ComfyArchive::FindNestedDirectory(const ComfyDirectory& parent, std::string_view directory) const
 	{
 		for (size_t i = 0; i < directory.size(); i++)
 		{
@@ -145,18 +147,18 @@ namespace Comfy::IO
 				if (result == nullptr)
 					return nullptr;
 
-				return FindNestedDirectory(result, subDirectory);
+				return FindNestedDirectory(*result, subDirectory);
 			}
 		}
 
 		return FindDirectory(parent, directory);
 	}
 
-	const ComfyDirectory* ComfyArchive::FindDirectory(const ComfyDirectory* parent, std::string_view directoryName) const
+	const ComfyDirectory* ComfyArchive::FindDirectory(const ComfyDirectory& parent, std::string_view directoryName) const
 	{
-		for (size_t i = 0; i < parent->SubDirectoryCount; i++)
+		for (size_t i = 0; i < parent.SubDirectoryCount; i++)
 		{
-			auto& subDirectory = parent->SubDirectories[i];
+			auto& subDirectory = parent.SubDirectories[i];
 
 			if (subDirectory.Name == directoryName)
 				return &subDirectory;

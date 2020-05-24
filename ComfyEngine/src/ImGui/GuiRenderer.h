@@ -12,8 +12,9 @@ namespace ImGui
 
 	public:
 		GuiRenderer(Comfy::ApplicationHost& host);
-		~GuiRenderer();
+		~GuiRenderer() = default;
 
+	public:
 		bool Initialize();
 		void BeginFrame();
 		void EndFrame();
