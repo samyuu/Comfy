@@ -95,9 +95,8 @@ namespace Comfy::Sandbox
 
 	void Main()
 	{
-		ApplicationHost::ConstructionParam param = {};
-		param.WindowTitle = "YEP COCK";
-		param.IconHandle = nullptr;
+		ApplicationHost::ConstructionParam param;
+		param.StartupWindowState.Title = "YEP COCK";
 
 		auto host = ApplicationHost(param);
 		host.SetSwapInterval(1);
