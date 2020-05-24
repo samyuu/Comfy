@@ -136,6 +136,7 @@ namespace Comfy::Graphics
 		}
 
 		const size_t remainingBytes = static_cast<ptrdiff_t>(endOfTextBuffer - textBuffer);
+		assert(remainingBytes < bufferSize);
 
 		LightMapBinaryData = std::make_unique<u8[]>(remainingBytes);
 		std::memcpy(LightMapBinaryData.get(), textBuffer, remainingBytes);
@@ -143,6 +144,9 @@ namespace Comfy::Graphics
 		const u8* binaryBuffer = LightMapBinaryData.get();
 		for (auto& lightMap : LightMaps)
 		{
+			// HACK: This could be problematic because cleanup has to happen inside the render thread
+			lightMap.GPU_CubeMap = nullptr;
+
 			for (int mipMap = 0; mipMap < LightMapIBL::MipMaps; mipMap++)
 			{
 				for (int cubeFace = 0; cubeFace < LightMapIBL::Faces; cubeFace++)

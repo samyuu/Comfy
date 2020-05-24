@@ -22,10 +22,10 @@ namespace Comfy::Graphics
 		LightMapFormat Format;
 		ivec2 Size;
 
-		// TEMP: Point into IBLParameters::LightMapBinaryData
+		// HACK: Point into IBLParameters::LightMapBinaryData
 		std::array<std::array<const u8*, MipMaps>, Faces> DataPointers;
 
-		mutable std::unique_ptr<GPUResource> GPU_CubeMap;
+		mutable std::unique_ptr<GPUResource> GPU_CubeMap = nullptr;
 	};
 
 	struct LightDataIBL
@@ -54,7 +54,7 @@ namespace Comfy::Graphics
 
 		std::array<LightMapIBL, 3> LightMaps;
 
-		// TEMP: Owning binary data pointed into by LightMapIBL::DataPointers
+		// HACK: Owning binary data pointed into by LightMapIBL::DataPointers
 		std::unique_ptr<u8[]> LightMapBinaryData;
 
 	public:
