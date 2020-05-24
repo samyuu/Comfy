@@ -13,6 +13,7 @@ namespace Comfy::Render::D3D11
 namespace Comfy::Graphics
 {
 	class Tex;
+	struct LightMapIBL;
 }
 
 namespace Comfy
@@ -53,6 +54,7 @@ namespace Comfy
 
 		ComfyTextureID(const nullptr_t dummy = nullptr);
 		ComfyTextureID(const Graphics::Tex& tex);
+		ComfyTextureID(const Graphics::LightMapIBL& lightMap);
 		ComfyTextureID(const Render::D3D11::TextureResource& texture);
 		ComfyTextureID(const Render::D3D11::RenderTarget& renderTarget);
 		ComfyTextureID(const Render::D3D11::DepthOnlyRenderTarget& renderTarget);

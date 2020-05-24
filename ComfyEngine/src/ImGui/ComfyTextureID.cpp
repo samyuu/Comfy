@@ -1,5 +1,6 @@
 #include "ComfyTextureID.h"
 #include "Graphics/TexSet.h"
+#include "Graphics/Auth3D/LightParam/IBLParameters.h"
 #include "Render/D3D11/Texture/RenderTarget.h"
 #include "Render/D3D11/Texture/Texture.h"
 #include "Render/D3D11/GraphicsResourceUtil.h"
@@ -23,6 +24,13 @@ namespace Comfy
 		Data.ResourceView = reinterpret_cast<u64>(resourceView);
 		Data.DecompressRGTC = tex.GetFormat() == TextureFormat::RGTC2;
 		Data.IsCubeMap = tex.GetSignature() == TxpSig::CubeMap;
+	}
+
+	ComfyTextureID::ComfyTextureID(const LightMapIBL& lightMap)
+	{
+		auto cubeMap = Render::D3D11::GetCubeMap(lightMap);
+		Data.ResourceView = (cubeMap != nullptr) ? reinterpret_cast<u64>(cubeMap->GetResourceView()) : 0;
+		Data.IsCubeMap = true;
 	}
 
 	ComfyTextureID::ComfyTextureID(const Render::D3D11::TextureResource& texture)
