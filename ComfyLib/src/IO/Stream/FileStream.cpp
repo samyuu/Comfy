@@ -85,7 +85,7 @@ namespace Comfy::IO
 
 	void FileStream::OpenRead(std::string_view filePath)
 	{
-		assert(fileHandle == nullptr);
+		assert(fileHandle == nullptr || fileHandle == INVALID_HANDLE_VALUE);
 		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_READ), (FILE_SHARE_READ | FILE_SHARE_WRITE), NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 		if (fileHandle != INVALID_HANDLE_VALUE)
@@ -95,7 +95,7 @@ namespace Comfy::IO
 
 	void FileStream::OpenWrite(std::string_view filePath)
 	{
-		assert(fileHandle == nullptr);
+		assert(fileHandle == nullptr || fileHandle == INVALID_HANDLE_VALUE);
 		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_WRITE), (FILE_SHARE_READ | FILE_SHARE_WRITE), NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 		if (fileHandle != INVALID_HANDLE_VALUE)
@@ -105,7 +105,7 @@ namespace Comfy::IO
 
 	void FileStream::OpenReadWrite(std::string_view filePath)
 	{
-		assert(fileHandle == nullptr);
+		assert(fileHandle == nullptr || fileHandle == INVALID_HANDLE_VALUE);
 		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_READ | GENERIC_WRITE), (FILE_SHARE_READ | FILE_SHARE_WRITE), NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 		if (fileHandle != INVALID_HANDLE_VALUE)
@@ -118,7 +118,7 @@ namespace Comfy::IO
 
 	void FileStream::CreateWrite(std::string_view filePath)
 	{
-		assert(fileHandle == nullptr);
+		assert(fileHandle == nullptr || fileHandle == INVALID_HANDLE_VALUE);
 		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_WRITE), (FILE_SHARE_READ | FILE_SHARE_WRITE), NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 		if (fileHandle != INVALID_HANDLE_VALUE)
@@ -128,7 +128,7 @@ namespace Comfy::IO
 
 	void FileStream::CreateReadWrite(std::string_view filePath)
 	{
-		assert(fileHandle == nullptr);
+		assert(fileHandle == nullptr || fileHandle == INVALID_HANDLE_VALUE);
 		fileHandle = ::CreateFileW(UTF8::WideArg(filePath).c_str(), (GENERIC_READ | GENERIC_WRITE), (FILE_SHARE_READ | FILE_SHARE_WRITE), NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 		if (fileHandle != INVALID_HANDLE_VALUE)
@@ -157,7 +157,6 @@ namespace Comfy::IO
 		}
 		else
 		{
-			assert(false);
 			fileSize = {};
 			canRead = false;
 			canWrite = false;
