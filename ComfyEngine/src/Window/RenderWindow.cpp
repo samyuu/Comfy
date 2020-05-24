@@ -16,8 +16,8 @@ namespace Comfy
 			PreRenderTextureGui();
 			Gui::BeginChild("RenderTextureChild##RenderWindow", vec2(0.0f, 0.0f), false, GetRenderTextureChildWindowFlags());
 			RenderTextureGui();
-			Gui::EndChild();
 			PostRenderTextureGui();
+			Gui::EndChild();
 
 			Gui::PopID();
 			Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, windowPadding);
