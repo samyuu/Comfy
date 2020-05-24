@@ -21,6 +21,8 @@ namespace Comfy::Graphics
 
 		LightMapFormat Format;
 		ivec2 Size;
+
+		// TEMP: Point into IBLParameters::LightMapBinaryData
 		std::array<std::array<const u8*, MipMaps>, Faces> DataPointers;
 
 		mutable std::unique_ptr<GPUResource> GPU_CubeMap;
@@ -51,6 +53,9 @@ namespace Comfy::Graphics
 		};
 
 		std::array<LightMapIBL, 3> LightMaps;
+
+		// TEMP: Owning binary data pointed into by LightMapIBL::DataPointers
+		std::unique_ptr<u8[]> LightMapBinaryData;
 
 	public:
 		void Parse(const u8* buffer, size_t bufferSize) override;

@@ -135,8 +135,12 @@ namespace Comfy::Graphics
 			}
 		}
 
-		const u8* binaryBuffer = reinterpret_cast<const u8*>(textBuffer);
+		const size_t remainingBytes = static_cast<ptrdiff_t>(endOfTextBuffer - textBuffer);
 
+		LightMapBinaryData = std::make_unique<u8[]>(remainingBytes);
+		std::memcpy(LightMapBinaryData.get(), textBuffer, remainingBytes);
+
+		const u8* binaryBuffer = LightMapBinaryData.get();
 		for (auto& lightMap : LightMaps)
 		{
 			for (int mipMap = 0; mipMap < LightMapIBL::MipMaps; mipMap++)
