@@ -471,9 +471,6 @@ namespace Comfy::Graphics
 		std::vector<Material> Materials;
 		std::optional<Skeleton> Skeleton;
 
-	public:
-		void Upload();
-
 	private:
 		void Read(IO::StreamReader& reader);
 	};

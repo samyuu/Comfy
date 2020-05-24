@@ -4,7 +4,7 @@
 
 namespace Comfy::Graphics
 {
-	// TODO: Rename to A3DUtil and turn into a namespace
+	// TODO: Rename to A3D::Util and turn into a namespace
 	class A3DMgr
 	{
 	public:

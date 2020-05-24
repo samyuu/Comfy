@@ -271,7 +271,7 @@ namespace Comfy::Graphics
 		return MaxSphereMeshDetailLevel;
 	}
 
-	std::unique_ptr<Obj> GenerateUploadDebugBoxObj(const Box& box, const vec4& color)
+	std::unique_ptr<Obj> GenerateDebugBoxObj(const Box& box, const vec4& color)
 	{
 		auto obj = std::make_unique<Obj>();
 		{
@@ -289,11 +289,10 @@ namespace Comfy::Graphics
 				}
 			});
 		}
-		obj->Upload();
 		return obj;
 	}
 
-	std::unique_ptr<Obj> GenerateUploadDebugSphereObj(const Sphere& sphere, const vec4& color, int detailLevel)
+	std::unique_ptr<Obj> GenerateDebugSphereObj(const Sphere& sphere, const vec4& color, int detailLevel)
 	{
 		if (detailLevel < MinSphereMeshDetailLevel)
 			detailLevel = GetSphereMeshDetailLevelForRadius(sphere);
@@ -312,11 +311,10 @@ namespace Comfy::Graphics
 				}
 			});
 		}
-		obj->Upload();
 		return obj;
 	}
 
-	std::unique_ptr<Obj> GenerateUploadMaterialTestSphereObj()
+	std::unique_ptr<Obj> GenerateMaterialTestSphereObj()
 	{
 		constexpr Sphere boundingSphere = { vec3(0.0f), 1.0f };
 		const int detailLevel = GetSphereMeshDetailLevelForRadius(boundingSphere);
@@ -355,7 +353,6 @@ namespace Comfy::Graphics
 				}
 			});
 		}
-		obj->Upload();
 		return obj;
 	}
 }
