@@ -1,9 +1,8 @@
 #include "SceneEditor.h"
-#include "Core/ComfyData.h"
 #include "Debug.h"
 #include "Graphics/Auth3D/A3D/A3D.h"
 #include "Graphics/Auth3D/A3D/A3DMgr.h"
-#include "Graphics/Auth3D/DebugObj.h"
+#include "Graphics/Auth3D/Misc/DebugObj.h"
 #include "IO/Archive/FArc.h"
 #include "IO/Shell.h"
 #include "ImGui/Extensions/TexExtensions.h"
@@ -11,6 +10,7 @@
 #include "Misc/ImageHelper.h"
 #include "Time/TimeUtilities.h"
 #include "Input/Input.h"
+#include "System/ComfyData.h"
 #include <FontIcons.h>
 
 namespace Comfy::Studio::Editor
@@ -27,22 +27,18 @@ namespace Comfy::Studio::Editor
 		ObjectTag = 'obj',
 	};
 
-	SceneEditor::SceneEditor(Application* parent, EditorManager* editor) : IEditorComponent(parent, editor)
+	SceneEditor::SceneEditor(Application& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
 		auto texGetter = [&](const Cached_TexID* texID) { return sceneGraph.TexIDMap.Find(texID); };
-		renderer3D = std::make_unique<Render::D3D11::Renderer3D>(texGetter);
-
-		renderWindow = std::make_unique<SceneRenderWindow>(sceneGraph, viewport, scene, cameraController, *renderer3D);
+		renderer3D = std::make_unique<Render::Renderer3D>(texGetter);
+		renderWindow = std::make_unique<SceneRenderWindow>(sceneGraph, camera, *renderer3D, scene, cameraController);
 	}
 
-	void SceneEditor::Initialize()
+	void SceneEditor::OnFirstFrame()
 	{
-		renderWindow->Initialize();
-
-		viewport.Camera.FieldOfView = 90.0f;
-
-		viewport.Camera.ViewPoint = vec3(0.0f, 1.1f, 1.5f);
-		viewport.Camera.Interest = vec3(0.0f, 1.0f, 0.0f);
+		camera.FieldOfView = 90.0f;
+		camera.ViewPoint = vec3(0.0f, 1.1f, 1.5f);
+		camera.Interest = vec3(0.0f, 1.0f, 0.0f);
 
 		cameraController.FirstPersonData.TargetPitch = -11.0f;
 		cameraController.FirstPersonData.TargetYaw = -90.000f;
@@ -54,15 +50,21 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void SceneEditor::DrawGui()
+	const char* SceneEditor::GetName() const
+	{
+		return "Scene Editor";
+	}
+
+	ImGuiWindowFlags SceneEditor::GetFlags() const
+	{
+		return BaseWindow::NoWindowFlags;
+	}
+
+	void SceneEditor::Gui()
 	{
 		Gui::GetCurrentWindow()->Hidden = true;
 
-		RenderWindowBase::PushWindowPadding();
-		if (Gui::Begin(ICON_FA_TREE "  Scene Window##SceneEditor"))
-			renderWindow->DrawGui();
-		Gui::End();
-		RenderWindowBase::PopWindowPadding();
+		renderWindow->BeginEndGui(ICON_FA_TREE "  Scene Window##SceneEditor");
 
 		if (Gui::Begin(ICON_FA_CAMERA "  Camera"))
 			DrawCameraGui();
@@ -123,16 +125,6 @@ namespace Comfy::Studio::Editor
 		if (Gui::Begin(ICON_FA_BUG "  Debug Test"))
 			DrawDebugTestGui();
 		Gui::End();
-	}
-
-	const char* SceneEditor::GetIsOpen() const
-	{
-		return "Scene Editor";
-	}
-
-	ImGuiWindowFlags SceneEditor::GetWindowFlags() const
-	{
-		return BaseWindow::GetNoWindowFlags();
 	}
 
 	bool SceneEditor::LoadRegisterObjSet(std::string_view objSetPath, std::string_view texSetPath, EntityTag tag)
@@ -279,8 +271,6 @@ namespace Comfy::Studio::Editor
 
 	void SceneEditor::DrawCameraGui()
 	{
-		auto& camera = viewport.Camera;
-
 		GuiPropertyRAII::PropertyValueColumns columns;
 		GuiPropertyRAII::ID id(&camera);
 
@@ -326,7 +316,7 @@ namespace Comfy::Studio::Editor
 		GuiProperty::Checkbox("Visualize Interest", cameraController.Visualization.VisualizeInterest);
 
 		if (cameraController.Visualization.VisualizeInterest && cameraController.Visualization.InterestSphereObj == nullptr)
-			cameraController.Visualization.InterestSphereObj = GenerateUploadDebugSphereObj(cameraController.Visualization.InterestSphere, cameraController.Visualization.InterestSphereColor);
+			cameraController.Visualization.InterestSphereObj = GenerateDebugSphereObj(cameraController.Visualization.InterestSphere, cameraController.Visualization.InterestSphereColor);
 	}
 
 	void SceneEditor::DrawObjSetLoaderGui()
@@ -364,8 +354,11 @@ namespace Comfy::Studio::Editor
 
 	void SceneEditor::DrawRenderingGui()
 	{
-		auto& renderParameters = viewport.Parameters;
-		GuiPropertyRAII::ID id(&renderParameters);
+		if (renderWindow->GetRenderTarget() == nullptr)
+			return;
+
+		auto& renderParam = renderWindow->GetRenderTarget()->Param;
+		GuiPropertyRAII::ID id(&renderParam);
 
 		TakeScreenshotGui();
 
@@ -373,7 +366,7 @@ namespace Comfy::Studio::Editor
 		{
 			auto resolutionGui = [&](const char* label, const char* contextMenu, ivec2& inOutResolution)
 			{
-				auto clampValidTextureSize = [](ivec2 size) { return glm::clamp(size, GPU_Texture2D::MinSize, GPU_Texture2D::MaxSize); };
+				auto clampValidTextureSize = [](ivec2 size) { return glm::clamp(size, Render::RenderTargetMinSize, Render::RenderTargetMaxSize); };
 
 				if (GuiProperty::Input(label, inOutResolution))
 					inOutResolution = clampValidTextureSize(inOutResolution);
@@ -406,99 +399,105 @@ namespace Comfy::Studio::Editor
 			GuiPropertyRAII::PropertyValueColumns columns;
 			GuiProperty::TreeNode("Debug", [&]
 			{
-				GuiProperty::CheckboxFlags("DebugFlags_0", renderParameters.DebugFlags, (1 << 0));
-				GuiProperty::CheckboxFlags("DebugFlags_1", renderParameters.DebugFlags, (1 << 1));
-				GuiProperty::CheckboxFlags("ShaderDebugFlags_0", renderParameters.ShaderDebugFlags, (1 << 0));
-				GuiProperty::CheckboxFlags("ShaderDebugFlags_1", renderParameters.ShaderDebugFlags, (1 << 1));
-				GuiProperty::ColorEditHDR("ShaderDebugValue", renderParameters.ShaderDebugValue);
+				GuiProperty::CheckboxFlags("DebugFlags_0", renderParam.DebugFlags, (1 << 0));
+				GuiProperty::CheckboxFlags("DebugFlags_1", renderParam.DebugFlags, (1 << 1));
+				GuiProperty::CheckboxFlags("ShaderDebugFlags_0", renderParam.ShaderDebugFlags, (1 << 0));
+				GuiProperty::CheckboxFlags("ShaderDebugFlags_1", renderParam.ShaderDebugFlags, (1 << 1));
+				GuiProperty::ColorEditHDR("ShaderDebugValue", renderParam.ShaderDebugValue);
 
-				GuiProperty::Checkbox("Visualize Occlusion Query", renderParameters.DebugVisualizeOcclusionQuery);
-				GuiProperty::Checkbox("Occlusion Query Optimization", renderParameters.LastFrameOcclusionQueryOptimization);
+				GuiProperty::Checkbox("Visualize Occlusion Query", renderParam.DebugVisualizeOcclusionQuery);
+				GuiProperty::Checkbox("Occlusion Query Optimization", renderParam.LastFrameOcclusionQueryOptimization);
 			});
 
 			GuiProperty::TreeNode("General", ImGuiTreeNodeFlags_DefaultOpen, [&]
 			{
-				resolutionGui("Main Scene", "RenderResolutionContextMenu", renderParameters.RenderResolution);
-				resolutionGui("Reflection", "ReflectionResolutionContextMenu", renderParameters.ReflectionRenderResolution);
+				resolutionGui("Main Scene", "RenderResolutionContextMenu", renderParam.RenderResolution);
+				resolutionGui("Reflection", "ReflectionResolutionContextMenu", renderParam.ReflectionRenderResolution);
 
-				if (GuiProperty::Input("Multi Sample Count", renderParameters.MultiSampleCount))
-					renderParameters.MultiSampleCount = std::clamp(renderParameters.MultiSampleCount, 1u, 16u);
+				if (GuiProperty::Input("Multi Sample Count", renderParam.MultiSampleCount))
+					renderParam.MultiSampleCount = std::clamp(renderParam.MultiSampleCount, 1u, 16u);
 
-				if (GuiProperty::Input("Anistropic Filtering", renderParameters.AnistropicFiltering))
-					renderParameters.AnistropicFiltering = std::clamp(renderParameters.AnistropicFiltering, D3D11_MIN_MAXANISOTROPY, D3D11_MAX_MAXANISOTROPY);
+				if (GuiProperty::Input("Anistropic Filtering", renderParam.AnistropicFiltering))
+					renderParam.AnistropicFiltering = std::clamp(renderParam.AnistropicFiltering, Render::AnistropicFilteringMin, Render::AnistropicFilteringMax);
 
-				GuiProperty::ColorEdit("Clear Color", renderParameters.ClearColor);
-				GuiProperty::Checkbox("Clear", renderParameters.Clear);
-				GuiProperty::Checkbox("Preserve Alpha", renderParameters.ToneMapPreserveAlpha);
+				GuiProperty::ColorEdit("Clear Color", renderParam.ClearColor);
+				GuiProperty::Checkbox("Clear", renderParam.Clear);
+				GuiProperty::Checkbox("Preserve Alpha", renderParam.ToneMapPreserveAlpha);
 
-				GuiProperty::Checkbox("Frustum Culling", renderParameters.FrustumCulling);
-				GuiProperty::Checkbox("Alpha Sort", renderParameters.AlphaSort);
-				GuiProperty::Checkbox("Wireframe", renderParameters.Wireframe);
+				GuiProperty::Checkbox("Frustum Culling", renderParam.FrustumCulling);
+				GuiProperty::Checkbox("Alpha Sort", renderParam.AlphaSort);
+				GuiProperty::Checkbox("Wireframe", renderParam.Wireframe);
 			});
 
 			GuiProperty::TreeNode("Shadow Mapping", ImGuiTreeNodeFlags_DefaultOpen, [&]
 			{
-				GuiProperty::Checkbox("Shadow Mapping", renderParameters.ShadowMapping);
-				GuiProperty::Checkbox("Self Shadowing", renderParameters.SelfShadowing);
+				GuiProperty::Checkbox("Shadow Mapping", renderParam.ShadowMapping);
+				GuiProperty::Checkbox("Self Shadowing", renderParam.SelfShadowing);
 
-				resolutionGui("Resolution", "ShadowMapResolutionContextMenu", renderParameters.ShadowMapResolution);
+				resolutionGui("Resolution", "ShadowMapResolutionContextMenu", renderParam.ShadowMapResolution);
 
-				if (GuiProperty::Input("Blur Passes", renderParameters.ShadowBlurPasses))
-					renderParameters.ShadowBlurPasses = std::clamp(renderParameters.ShadowBlurPasses, 0u, 10u);
+				if (GuiProperty::Input("Blur Passes", renderParam.ShadowBlurPasses))
+					renderParam.ShadowBlurPasses = std::clamp(renderParam.ShadowBlurPasses, 0u, 10u);
 			});
 
 			GuiProperty::TreeNode("Render Passes", ImGuiTreeNodeFlags_DefaultOpen, [&]
 			{
-				GuiProperty::Checkbox("Reflection", renderParameters.RenderReflection);
-				GuiProperty::Checkbox("Subsurface Scattering", renderParameters.RenderSubsurfaceScattering);
-				GuiProperty::Checkbox("Opaque", renderParameters.RenderOpaque);
-				GuiProperty::Checkbox("Transparent", renderParameters.RenderTransparent);
-				GuiProperty::Checkbox("Bloom", renderParameters.RenderBloom);
-				GuiProperty::Checkbox("Lens Flare", renderParameters.RenderLensFlare);
-				GuiProperty::Checkbox("Auto Exposure", renderParameters.AutoExposure);
+				GuiProperty::Checkbox("Reflection", renderParam.RenderReflection);
+				GuiProperty::Checkbox("Subsurface Scattering", renderParam.RenderSubsurfaceScattering);
+				GuiProperty::Checkbox("Opaque", renderParam.RenderOpaque);
+				GuiProperty::Checkbox("Transparent", renderParam.RenderTransparent);
+				GuiProperty::Checkbox("Bloom", renderParam.RenderBloom);
+				GuiProperty::Checkbox("Lens Flare", renderParam.RenderLensFlare);
+				GuiProperty::Checkbox("Auto Exposure", renderParam.AutoExposure);
 			});
 
 			GuiProperty::TreeNode("Shader", ImGuiTreeNodeFlags_DefaultOpen, [&]
 			{
-				GuiProperty::Checkbox("Vertex Coloring", renderParameters.VertexColoring);
-				GuiProperty::Checkbox("Diffuse Mapping", renderParameters.DiffuseMapping);
-				GuiProperty::Checkbox("Ambient Occlusion Mapping", renderParameters.AmbientOcclusionMapping);
-				GuiProperty::Checkbox("Normal Mapping", renderParameters.NormalMapping);
-				GuiProperty::Checkbox("Specular Mapping", renderParameters.SpecularMapping);
-				GuiProperty::Checkbox("Transparency Mapping", renderParameters.TransparencyMapping);
-				GuiProperty::Checkbox("Environment Mapping", renderParameters.EnvironmentMapping);
-				GuiProperty::Checkbox("Translucency Mapping", renderParameters.TranslucencyMapping);
+				GuiProperty::Checkbox("Vertex Coloring", renderParam.VertexColoring);
+				GuiProperty::Checkbox("Diffuse Mapping", renderParam.DiffuseMapping);
+				GuiProperty::Checkbox("Ambient Occlusion Mapping", renderParam.AmbientOcclusionMapping);
+				GuiProperty::Checkbox("Normal Mapping", renderParam.NormalMapping);
+				GuiProperty::Checkbox("Specular Mapping", renderParam.SpecularMapping);
+				GuiProperty::Checkbox("Transparency Mapping", renderParam.TransparencyMapping);
+				GuiProperty::Checkbox("Environment Mapping", renderParam.EnvironmentMapping);
+				GuiProperty::Checkbox("Translucency Mapping", renderParam.TranslucencyMapping);
 			});
 
 			GuiProperty::TreeNode("Other", ImGuiTreeNodeFlags_DefaultOpen, [&]
 			{
-				GuiProperty::Checkbox("Punch Through", renderParameters.RenderPunchThrough);
-				GuiProperty::Checkbox("Render Fog", renderParameters.RenderFog);
-				GuiProperty::Checkbox("Object Billboarding", renderParameters.ObjectBillboarding);
-				GuiProperty::Checkbox("Object Morphing", renderParameters.ObjectMorphing);
-				GuiProperty::Checkbox("Object Skinning", renderParameters.ObjectSkinning);
+				GuiProperty::Checkbox("Punch Through", renderParam.RenderPunchThrough);
+				GuiProperty::Checkbox("Render Fog", renderParam.RenderFog);
+				GuiProperty::Checkbox("Object Billboarding", renderParam.ObjectBillboarding);
+				GuiProperty::Checkbox("Object Morphing", renderParam.ObjectMorphing);
+				GuiProperty::Checkbox("Object Skinning", renderParam.ObjectSkinning);
 			});
 
 		});
 
 		GuiProperty::TreeNode("Render Targets", ImGuiTreeNodeFlags_NoTreePushOnOpen, [&]
 		{
-			auto renderTargetGui = [&](const char* name, auto& renderTarget, int index)
+			if (renderWindow->GetRenderTarget() == nullptr)
+				return;
+
+			const auto subTargets = renderWindow->GetRenderTarget()->GetSubTargets();
+			for (int index = 0; index < static_cast<int>(subTargets.Count); index++)
 			{
+				const auto& subTarget = subTargets.Targets[index];
+
 				const u32 openMask = (1 << index);
-				Gui::Selectable(name);
+				Gui::Selectable(subTarget.Name);
 
 				if (Gui::IsItemHovered() && Gui::IsMouseDoubleClicked(0))
 					openRenderTargetsFlags ^= openMask;
 
-				const float aspectRatio = (static_cast<float>(renderTarget.GetSize().y) / static_cast<float>(renderTarget.GetSize().x));
+				const float aspectRatio = (static_cast<float>(subTarget.Size.y) / static_cast<float>(subTarget.Size.x));
 				if (openRenderTargetsFlags & openMask)
 				{
 					constexpr float desiredWidth = 512.0f;
 
 					bool open = true;
-					if (Gui::Begin(name, &open, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoDocking))
-						Gui::Image(renderTarget, vec2(desiredWidth, desiredWidth * aspectRatio));
+					if (Gui::Begin(subTarget.Name, &open, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoDocking))
+						Gui::Image(subTarget.TextureID, vec2(desiredWidth, desiredWidth * aspectRatio));
 					Gui::End();
 					if (!open)
 						openRenderTargetsFlags &= ~openMask;
@@ -508,47 +507,10 @@ namespace Comfy::Studio::Editor
 					constexpr float desiredWidth = 256.0f;
 
 					Gui::BeginTooltip();
-					Gui::Image(renderTarget, vec2(desiredWidth, desiredWidth * aspectRatio));
+					Gui::Image(subTarget.TextureID, vec2(desiredWidth, desiredWidth * aspectRatio));
 					Gui::EndTooltip();
 				}
-			};
-
-			auto& renderData = viewport.Data;
-			int index = 0;
-
-			renderTargetGui("Main Current", renderData.Main.CurrentOrResolved(), index++);
-			renderTargetGui("Main Previous", renderData.Main.PreviousOrResolved(), index++);
-
-			renderTargetGui("Shadow Map", renderData.Shadow.RenderTarget, index++);
-
-			renderTargetGui("Exponential Shadow Map [0]", renderData.Shadow.ExponentialRenderTargets[0], index++);
-			renderTargetGui("Exponential Shadow Map [1]", renderData.Shadow.ExponentialRenderTargets[1], index++);
-			renderTargetGui("Exponential Shadow Map Blur [0]", renderData.Shadow.ExponentialBlurRenderTargets[0], index++);
-			renderTargetGui("Exponential Shadow Map Blur [1]", renderData.Shadow.ExponentialBlurRenderTargets[1], index++);
-
-			renderTargetGui("Shadow Map Threshold", renderData.Shadow.ThresholdRenderTarget, index++);
-			renderTargetGui("Shadow Map Blur [0]", renderData.Shadow.BlurRenderTargets[0], index++);
-			renderTargetGui("Shadow Map Blur [1]", renderData.Shadow.BlurRenderTargets[1], index++);
-
-			renderTargetGui("Screen Reflection", renderData.Reflection.RenderTarget, index++);
-
-			renderTargetGui("SSS Main", renderData.SubsurfaceScattering.RenderTarget, index++);
-			renderTargetGui("SSS Filter [0]", renderData.SubsurfaceScattering.FilterRenderTargets[0], index++);
-			renderTargetGui("SSS Filter [1]", renderData.SubsurfaceScattering.FilterRenderTargets[1], index++);
-			renderTargetGui("SSS Filter [2]", renderData.SubsurfaceScattering.FilterRenderTargets[2], index++);
-
-			renderTargetGui("Bloom Base", renderData.Bloom.BaseRenderTarget, index++);
-			renderTargetGui("Bloom Combined", renderData.Bloom.CombinedBlurRenderTarget, index++);
-			renderTargetGui("Bloom Reduce->Blur [0]", renderData.Bloom.ReduceRenderTargets[0], index++);
-			renderTargetGui("Bloom Reduce->Blur [1]", renderData.Bloom.ReduceRenderTargets[1], index++);
-			renderTargetGui("Bloom Reduce->Blur [2]", renderData.Bloom.ReduceRenderTargets[2], index++);
-			renderTargetGui("Bloom Reduce->Blur [3]", renderData.Bloom.ReduceRenderTargets[3], index++);
-
-			renderTargetGui("Exposure [0]", renderData.Bloom.ExposureRenderTargets[0], index++);
-			renderTargetGui("Exposure [1]", renderData.Bloom.ExposureRenderTargets[1], index++);
-			renderTargetGui("Exposure [2]", renderData.Bloom.ExposureRenderTargets[2], index++);
-
-			renderTargetGui("Output", renderData.Output.RenderTarget, index++);
+			}
 		});
 	}
 
@@ -647,6 +609,8 @@ namespace Comfy::Studio::Editor
 				GuiPropertyRAII::ID id(&lightMap);
 				GuiProperty::PropertyLabelValueFunc(nameBuffer, [&]
 				{
+					// TODO:
+#if 0
 					if (lightMap.GPU_CubeMap != nullptr)
 					{
 						constexpr vec2 cubeMapDisplaySize = vec2(96.0f, 96.0f);
@@ -661,6 +625,7 @@ namespace Comfy::Studio::Editor
 						textureID.Data.CubeMapMipLevel = 1;
 						Gui::Image(textureID, size);
 					}
+#endif
 					return false;
 				});
 			}
@@ -675,7 +640,7 @@ namespace Comfy::Studio::Editor
 		{
 			const Sphere transformedSphere = boundingSphere * entity->Transform;
 
-			viewport.Camera.Interest = viewport.Camera.ViewPoint = transformedSphere.Center;
+			camera.Interest = camera.ViewPoint = transformedSphere.Center;
 			cameraController.OrbitData.Distance = transformedSphere.Radius;
 
 			inspector.EntityIndex = static_cast<int>(std::distance(&sceneGraph.Entities.front(), &entity));
@@ -790,7 +755,7 @@ namespace Comfy::Studio::Editor
 				return;
 
 			Material& material = selectedObj->Materials[objTestData.MaterialIndex];
-			materialEditor.DrawGui(*renderer3D, scene, material);
+			materialEditor.Gui(*renderer3D, scene, material);
 		});
 
 		GuiProperty::TreeNode("Mesh Flags Editor", [&]
@@ -1029,7 +994,7 @@ namespace Comfy::Studio::Editor
 #endif
 #endif /* COMFY_DEBUG */
 
-#if 1 // DEBUG:
+#if 0 // DEBUG:
 		// TODO:
 		struct TestViewport
 		{
@@ -1043,7 +1008,7 @@ namespace Comfy::Studio::Editor
 		{
 			testViewports.push_back(std::move(std::make_unique<TestViewport>()));
 			auto& testViewport = testViewports.back()->Viewport;
-			testViewport.Camera = this->viewport.Camera;
+			testViewport.Camera = this->camera;
 			testViewport.Parameters = this->viewport.Parameters;
 			testViewport.Parameters.RenderResolution = ivec2(512, 288);
 		}
@@ -1106,7 +1071,7 @@ namespace Comfy::Studio::Editor
 			}
 		}
 #endif
-	}
+		}
 
 	void SceneEditor::DrawExternalProcessTestGui()
 	{
@@ -1199,13 +1164,13 @@ namespace Comfy::Studio::Editor
 		if (externalProcessTest.SyncReadCamera && tryAttach())
 		{
 			const auto cameraData = externalProcessTest.ExternalProcess.ReadCamera();
-			viewport.Camera.ViewPoint = cameraData.ViewPoint;
-			viewport.Camera.Interest = cameraData.Interest;
-			viewport.Camera.FieldOfView = cameraData.FieldOfView;
+			camera.ViewPoint = cameraData.ViewPoint;
+			camera.Interest = cameraData.Interest;
+			camera.FieldOfView = cameraData.FieldOfView;
 		}
 		else if (externalProcessTest.SyncWriteCamera && tryAttach())
 		{
-			externalProcessTest.ExternalProcess.WriteCamera({ viewport.Camera.ViewPoint, viewport.Camera.Interest, 0.0f, viewport.Camera.FieldOfView });
+			externalProcessTest.ExternalProcess.WriteCamera({ camera.ViewPoint, camera.Interest, 0.0f, camera.FieldOfView });
 		}
 
 		if (externalProcessTest.SyncReadLightParam && tryAttach())
@@ -1268,7 +1233,7 @@ namespace Comfy::Studio::Editor
 					Gui::ImageObjTex(&tex);
 					Gui::EndTooltip();
 				}
-			});
+				});
 		});
 #endif
 
@@ -1310,9 +1275,9 @@ namespace Comfy::Studio::Editor
 					continue;
 
 				if (entity->Dynamic == nullptr)
-					entity->Dynamic = std::make_unique<ObjAnimationData>();
+					entity->Dynamic = std::make_unique<Render::RenderCommand3D::DynamicData>();
 
-				entity->MorphObj = nextEntity->Obj;
+				entity->Dynamic->MorphObj = nextEntity->Obj;
 				entity->Dynamic->MorphWeight = debug.MorphWeight;
 
 				int lastMorphIndex = 0;
@@ -1335,11 +1300,11 @@ namespace Comfy::Studio::Editor
 
 			for (auto& entity : sceneGraph.Entities)
 			{
-				if (entity->MorphObj == nullptr)
+				if (entity->Dynamic == nullptr || entity->Dynamic->MorphObj == nullptr)
 					continue;
 
-				if (entity->Obj->Meshes.size() != entity->MorphObj->Meshes.size())
-					entity->MorphObj = nullptr;
+				if (entity->Obj->Meshes.size() != entity->Dynamic->MorphObj->Meshes.size())
+					entity->Dynamic->MorphObj = nullptr;
 			}
 		}
 
@@ -1389,8 +1354,8 @@ namespace Comfy::Studio::Editor
 					if (object.Parent != nullptr)
 						DebugData::ApplyA3DParentTransform(*object.Parent, entity->Transform, frame);
 
-					if (entity->Animation == nullptr)
-						entity->Animation = std::make_unique<ObjAnimationData>();
+					if (entity->Dynamic == nullptr)
+						entity->Dynamic = std::make_unique<Render::RenderCommand3D::DynamicData>();
 
 					// TODO: Instead of searching at the entire TexDB for entries only the loaded ObjSets would have to be checked (?)
 					//		 As long as their Texs have been updated using a TexDB before that is
@@ -1398,7 +1363,7 @@ namespace Comfy::Studio::Editor
 					if (!object.TexturePatterns.empty())
 					{
 						const auto& a3dPatterns = object.TexturePatterns;
-						auto& entityPatterns = entity->Animation->TexturePatterns;
+						auto& entityPatterns = entity->Dynamic->TexturePatterns;
 
 						if (entityPatterns.size() != a3dPatterns.size())
 							entityPatterns.resize(a3dPatterns.size());
@@ -1425,14 +1390,14 @@ namespace Comfy::Studio::Editor
 											break;
 
 										if (cacheIndex == 0)
-											entityPattern.ID = texEntry->ID;
+											entityPattern.OverrideID = texEntry->ID;
 
 										cachedIDs.push_back(texEntry->ID);
 									}
 								}
 
 								const int index = A3DMgr::GetIntAt(a3dPattern.Pattern->CV, frame);
-								entityPattern.IDOverride = (InBounds(index, *entityPattern.CachedIDs)) ? entityPattern.CachedIDs->at(index) : TexID::Invalid;
+								entityPattern.OverrideID = (InBounds(index, *entityPattern.CachedIDs)) ? entityPattern.CachedIDs->at(index) : TexID::Invalid;
 							}
 						}
 					}
@@ -1440,7 +1405,7 @@ namespace Comfy::Studio::Editor
 					if (!object.TextureTransforms.empty())
 					{
 						auto& a3dTexTransforms = object.TextureTransforms;
-						auto& entityTexTransforms = entity->Animation->TextureTransforms;
+						auto& entityTexTransforms = entity->Dynamic->TextureTransforms;
 
 						if (entityTexTransforms.size() != a3dTexTransforms.size())
 							entityTexTransforms.resize(a3dTexTransforms.size());
@@ -1450,10 +1415,10 @@ namespace Comfy::Studio::Editor
 							auto& a3dTexTransform = a3dTexTransforms[i];
 							auto& entityTexTransform = entityTexTransforms[i];
 
-							if (entityTexTransform.ID == TexID::Invalid)
+							if (entityTexTransform.SourceID == TexID::Invalid)
 							{
 								if (auto texEntry = sceneGraph.TexDB->GetTexEntry(a3dTexTransform.Name); texEntry != nullptr)
-									entityTexTransform.ID = texEntry->ID;
+									entityTexTransform.SourceID = texEntry->ID;
 							}
 
 							// TODO: Might not be a single bool but different types
@@ -1473,8 +1438,8 @@ namespace Comfy::Studio::Editor
 					{
 						size_t morphEntityIndex = static_cast<size_t>(std::distance(entities.begin(), correspondingEntity)) + 1;
 
-						entity->Animation->MorphWeight = A3DMgr::GetValueAt(object.Morph->CV, frame);
-						entity->MorphObj = (morphEntityIndex >= entities.size()) ? nullptr : entities[morphEntityIndex]->Obj;
+						entity->Dynamic->MorphObj = (morphEntityIndex >= entities.size()) ? nullptr : entities[morphEntityIndex]->Obj;
+						entity->Dynamic->MorphWeight = A3DMgr::GetValueAt(object.Morph->CV, frame);
 					}
 				}
 
@@ -1563,12 +1528,12 @@ namespace Comfy::Studio::Editor
 			}
 
 			if (debug.ApplyStageAuth)
-				iterateA3Ds(debug.StageEffA3Ds, debug.StageEffIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, scene, viewport.Camera); });
+				iterateA3Ds(debug.StageEffA3Ds, debug.StageEffIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, scene, camera); });
 
 			if (cameraController.Mode == CameraController3D::ControlMode::None)
-				iterateA3Ds(debug.CamPVA3Ds, debug.CamPVIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, scene, viewport.Camera); });
+				iterateA3Ds(debug.CamPVA3Ds, debug.CamPVIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, scene, camera); });
 
-			if (Gui::Button("Camera Mode Orbit")) { viewport.Camera.FieldOfView = 90.0f; cameraController.Mode = CameraController3D::ControlMode::Orbit; }
+			if (Gui::Button("Camera Mode Orbit")) { camera.FieldOfView = 90.0f; cameraController.Mode = CameraController3D::ControlMode::Orbit; }
 			Gui::SameLine();
 			if (Gui::Button("Camera Mode None")) { cameraController.Mode = CameraController3D::ControlMode::None; }
 
@@ -1593,7 +1558,7 @@ namespace Comfy::Studio::Editor
 								EndsWithInsensitive(name, "_FB03"))
 							{
 								if (entity->Dynamic == nullptr)
-									entity->Dynamic = std::make_unique<ObjAnimationData>();
+									entity->Dynamic = std::make_unique<Render::RenderCommand3D::DynamicData>();
 
 								entity->Dynamic->ScreenRenderTextureID = diffuseTexture->TextureID;
 							}
@@ -1611,8 +1576,8 @@ namespace Comfy::Studio::Editor
 
 		if (isScreenshotSaving)
 			Gui::PushStyleColor(ImGuiCol_Text, loadingColor);
-		if (Gui::Button("Take Screenshot", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
-			TakeSceneRenderTargetScreenshot(viewport.Data.Output.RenderTarget);
+		if (Gui::Button("Take Screenshot", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)) && renderWindow->GetRenderTarget() != nullptr)
+			TakeSceneRenderTargetScreenshot(*renderWindow->GetRenderTarget());
 		if (isScreenshotSaving)
 			Gui::PopStyleColor(1);
 		Gui::ItemContextMenu("TakeScreenshotContextMenu", [&]
@@ -1638,9 +1603,9 @@ namespace Comfy::Studio::Editor
 			Gui::InputInt("Frams To Render", &data.FramesToRender);
 			Gui::InputFloat("Rotation Step", &data.RotationXStep);
 
-			if (Gui::Button("Render!", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+			if (Gui::Button("Render!", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)) && renderWindow->GetRenderTarget() != nullptr)
 			{
-				auto& renderTarget = viewport.Data.Output.RenderTarget;
+				auto& renderTarget = *renderWindow->GetRenderTarget();
 
 				data.Futures.clear();
 				data.Futures.reserve(data.FramesToRender);
@@ -1649,7 +1614,7 @@ namespace Comfy::Studio::Editor
 				{
 					cameraController.Mode = CameraController3D::ControlMode::Orbit;
 					cameraController.OrbitData.TargetRotation.x = static_cast<float>(i) * data.RotationXStep;
-					cameraController.Update(viewport.Camera);
+					cameraController.Update(camera);
 
 					renderWindow->RenderScene();
 
@@ -1657,7 +1622,7 @@ namespace Comfy::Studio::Editor
 						{
 							char fileName[MAX_PATH];
 							sprintf_s(fileName, "%s/sequence/scene_%04d.png", ScreenshotDirectoy, i);
-							Utilities::WritePNG(fileName, renderTarget.GetSize(), data.get());
+							Utilities::WritePNG(fileName, renderTarget.Param.RenderResolution, data.get());
 						}));
 				}
 			}
@@ -1665,7 +1630,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void SceneEditor::TakeSceneRenderTargetScreenshot(GPU_RenderTarget& renderTarget)
+	void SceneEditor::TakeSceneRenderTargetScreenshot(Render::RenderTarget3D& renderTarget)
 	{
 		auto pixelData = renderTarget.StageAndCopyBackBuffer();
 
@@ -1675,7 +1640,7 @@ namespace Comfy::Studio::Editor
 		lastScreenshotTaskFuture = std::async(std::launch::async, [&renderTarget, data = std::move(pixelData)]
 			{
 				const auto filePath = IO::Path::Combine(ScreenshotDirectoy, IO::Path::ChangeExtension("scene_" + FormatFileNameDateTimeNow(), ".png"));
-				Utilities::WritePNG(filePath, renderTarget.GetSize(), data.get());
+				Utilities::WritePNG(filePath, renderTarget.Param.RenderResolution, data.get());
 			});
 	}
-}
+	}

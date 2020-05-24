@@ -89,14 +89,10 @@ namespace Comfy::Studio::Debug
 			return false;
 
 		outParam.Parse(fileContent.get(), fileSize);
-
-		if constexpr (std::is_same<T, Graphics::IBLParameters>::value)
-			outParam.UploadAll();
-
 		return true;
 	}
 
-	inline void LoadStageLightParamFiles(Graphics::SceneParameters& scene, Editor::StageType stageType, int stageID, int stageSubID = 0)
+	inline void LoadStageLightParamFiles(Render::SceneParam3D& scene, Editor::StageType stageType, int stageID, int stageSubID = 0)
 	{
 		auto pathBuffer = GetDebugFilePath(PathType::Fog, stageType, stageID, stageSubID);
 		LoadParseUploadLightParamFile(pathBuffer.data(), scene.Fog);
@@ -124,11 +120,11 @@ namespace Comfy::Studio::Debug
 		const auto setName = std::string(fileName.substr(0, fileName.length() - strlen("_obj")));
 		const auto texName = setName + "_tex";
 
-		if (const auto archivePath = IO::FolderFile::ParsePath(objSetPath); !archivePath.FileName.empty())
+		if (const auto archivePath = IO::Archive::ParsePath(objSetPath); !archivePath.FileName.empty())
 		{
 			const auto texFarcName = IO::Path::GetFileName(archivePath.BasePath);
 			const auto texFarcPath = IO::Path::Combine(IO::Path::GetDirectoryName(archivePath.BasePath), texFarcName);
-			return IO::FolderFile::CombinePath(texFarcPath, IO::Path::ChangeExtension(texName, ".bin"));
+			return IO::Archive::CombinePath(texFarcPath, IO::Path::ChangeExtension(texName, ".bin"));
 		}
 		else
 		{

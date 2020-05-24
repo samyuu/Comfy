@@ -1,5 +1,5 @@
 #include "MaterialEditor.h"
-#include "Graphics/Auth3D/DebugObj.h"
+#include "Graphics/Auth3D/Misc/DebugObj.h"
 #include "ImGui/Gui.h"
 #include "ImGui/Extensions/TexExtensions.h"
 #include "ImGui/Extensions/PropertyEditor.h"
@@ -30,7 +30,7 @@ namespace Comfy::Studio::Editor
 		constexpr vec2 TexDisplaySize = vec2(96.0f);
 	}
 
-	void MaterialEditor::DrawGui(GPU_Renderer3D& renderer, const SceneParameters& scene, Material& material)
+	void MaterialEditor::Gui(Render::Renderer3D& renderer, const Render::SceneParam3D& scene, Material& material)
 	{
 		GuiPropertyRAII::ID id(&material);
 		GuiPropertyRAII::PropertyValueColumns rootColumns;
@@ -38,20 +38,20 @@ namespace Comfy::Studio::Editor
 		GuiProperty::TreeNode("Material", material.Name.data(), ImGuiTreeNodeFlags_DefaultOpen, [&]
 		{
 			GuiProperty::Checkbox("Use Debug Material", material.Debug.UseDebugMaterial);
-			DrawUsedTexturesFlagsGui(material.UsedTexturesCount, material.UsedTexturesFlags);
-			DrawShaderFlagsGui(material.ShaderType, material.ShaderFlags);
-			DrawTextureDataGui(renderer, material);
-			DrawBlendFlagsGui(material.BlendFlags);
-			DrawColorGui(material.Color);
+			GuiUsedTexturesFlags(material.UsedTexturesCount, material.UsedTexturesFlags);
+			GuiShaderFlags(material.ShaderType, material.ShaderFlags);
+			GuiTextureData(renderer, material);
+			GuiBlendFlags(material.BlendFlags);
+			GuiColor(material.Color);
 
 			GuiProperty::TreeNode("Preview", ImGuiTreeNodeFlags_DefaultOpen, [&]
 			{
-				preview.DrawGui(renderer, scene, material);
+				preview.Gui(renderer, scene, material);
 			});
 		});
 	}
 
-	void MaterialEditor::DrawUsedTexturesFlagsGui(u32& usedTexturesCount, Material::MaterialUsedTextureFlags& texturesFlags)
+	void MaterialEditor::GuiUsedTexturesFlags(u32& usedTexturesCount, Material::MaterialUsedTextureFlags& texturesFlags)
 	{
 		GuiProperty::TreeNode("Used Textures Flags", ImGuiTreeNodeFlags_None, [&]
 		{
@@ -75,7 +75,7 @@ namespace Comfy::Studio::Editor
 		});
 	}
 
-	void MaterialEditor::DrawShaderFlagsGui(Material::ShaderTypeIdentifier& shaderType, Material::MaterialShaderFlags& shaderFlags)
+	void MaterialEditor::GuiShaderFlags(Material::ShaderTypeIdentifier& shaderType, Material::MaterialShaderFlags& shaderFlags)
 	{
 		GuiProperty::TreeNode("Shader Flags", ImGuiTreeNodeFlags_None, [&]
 		{
@@ -107,7 +107,7 @@ namespace Comfy::Studio::Editor
 		});
 	}
 
-	void MaterialEditor::DrawTextureDataGui(GPU_Renderer3D& renderer, Material& material)
+	void MaterialEditor::GuiTextureData(Render::Renderer3D& renderer, Material& material)
 	{
 		GuiPropertyRAII::ID id(&material.Textures);
 
@@ -171,7 +171,7 @@ namespace Comfy::Studio::Editor
 		});
 	}
 
-	void MaterialEditor::DrawBlendFlagsGui(Material::MaterialBlendFlags& blendFlags)
+	void MaterialEditor::GuiBlendFlags(Material::MaterialBlendFlags& blendFlags)
 	{
 		GuiProperty::TreeNode("Blend Flags", ImGuiTreeNodeFlags_None, [&]
 		{
@@ -190,7 +190,7 @@ namespace Comfy::Studio::Editor
 		});
 	}
 
-	void MaterialEditor::DrawColorGui(Material::MaterialColor& materialColor)
+	void MaterialEditor::GuiColor(Material::MaterialColor& materialColor)
 	{
 		GuiPropertyRAII::ID id(&materialColor);
 		GuiProperty::TreeNode("Color", ImGuiTreeNodeFlags_None, [&]
@@ -206,47 +206,47 @@ namespace Comfy::Studio::Editor
 		});
 	}
 
-	void MaterialEditor::MaterialPreview::DrawGui(GPU_Renderer3D& renderer, const SceneParameters& scene, Material& material)
+	void MaterialEditor::MaterialPreview::Gui(Render::Renderer3D& renderer, const Render::SceneParam3D& scene, Material& material)
 	{
 		Gui::Columns(1);
 
-		if (viewport == nullptr)
+		if (renderTarget == nullptr)
 		{
-			viewport = std::make_unique<SceneViewport>();
-			viewport->Parameters.AllowDebugShaderOverride = false;
-			viewport->Parameters.FrustumCulling = false;
-			viewport->Parameters.AlphaSort = false;
-			viewport->Parameters.RenderBloom = true;
-			viewport->Parameters.RenderLensFlare = false;
-			viewport->Parameters.AutoExposure = false;
-			viewport->Parameters.RenderFog = false;
-			viewport->Parameters.ObjectMorphing = false;
-			viewport->Parameters.ObjectSkinning = false;
-			viewport->Parameters.ToneMapPreserveAlpha = true;
-			viewport->Parameters.ShadowMapping = true;
-			viewport->Parameters.RenderReflection = false;
-			viewport->Parameters.MultiSampleCount = 2;
-			viewport->Parameters.ClearColor = vec4(vec3(vec4(Gui::GetStyleColorVec4(ImGuiCol_ChildBg))), 0.0f);
+			renderTarget = Render::Renderer3D::CreateRenderTarget();
+			renderTarget->Param.AllowDebugShaderOverride = false;
+			renderTarget->Param.FrustumCulling = false;
+			renderTarget->Param.AlphaSort = false;
+			renderTarget->Param.RenderBloom = true;
+			renderTarget->Param.RenderLensFlare = false;
+			renderTarget->Param.AutoExposure = false;
+			renderTarget->Param.RenderFog = false;
+			renderTarget->Param.ObjectMorphing = false;
+			renderTarget->Param.ObjectSkinning = false;
+			renderTarget->Param.ToneMapPreserveAlpha = true;
+			renderTarget->Param.ShadowMapping = true;
+			renderTarget->Param.RenderReflection = false;
+			renderTarget->Param.MultiSampleCount = 2;
+			renderTarget->Param.ClearColor = vec4(vec3(vec4(Gui::GetStyleColorVec4(ImGuiCol_ChildBg))), 0.0f);
 
-			sphereObj = GenerateUploadMaterialTestSphereObj();
+			sphereObj = GenerateMaterialTestSphereObj();
 		}
 
 		const vec2 cursorPos = Gui::GetCursorScreenPos();
 		renderSize = vec2(Gui::GetContentRegionAvailWidth(), targetRenderHeight);
-		viewport->Parameters.RenderResolution = renderSize;
+		renderTarget->Param.RenderResolution = renderSize;
 
 		Gui::BeginChild("MaterialPreviewChid", renderSize, false, ImGuiWindowFlags_None);
 		UpdateCameraView();
 		RenderMaterial(renderer, scene, material);
-		Gui::GetWindowDrawList()->AddImage(viewport->Data.Output.RenderTarget, cursorPos, cursorPos + renderSize);
+		Gui::GetWindowDrawList()->AddImage(renderTarget->GetTextureID(), cursorPos, cursorPos + renderSize);
 		Gui::ItemSize(renderSize);
 		Gui::EndChild();
 	}
 
 	void MaterialEditor::MaterialPreview::UpdateCameraView()
 	{
-		viewport->Camera.FieldOfView = 90.0f;
-		viewport->Camera.AspectRatio = (renderSize.x / renderSize.y);
+		camera.FieldOfView = 90.0f;
+		camera.AspectRatio = (renderSize.x / renderSize.y);
 
 		cameraController.Settings.OrbitMouseScrollDistance = false;
 		cameraController.OrbitData.Distance = cameraDistance;
@@ -254,21 +254,20 @@ namespace Comfy::Studio::Editor
 		if (rotateCamera)
 			cameraController.OrbitData.TargetRotation += (rotationSpeed * Gui::GetIO().DeltaTime);
 
-		cameraController.Update(viewport->Camera);
+		cameraController.Update(camera);
 	}
 
-	void MaterialEditor::MaterialPreview::RenderMaterial(GPU_Renderer3D& renderer, const SceneParameters& scene, Material& material)
+	void MaterialEditor::MaterialPreview::RenderMaterial(Render::Renderer3D& renderer, const Render::SceneParam3D& scene, Material& material)
 	{
-		viewport->Camera.UpdateMatrices();
-		renderer.Begin(*viewport, scene);
+		renderer.Begin(camera, *renderTarget, scene);
 		{
-			overrideAnimation.MaterialOverrides.clear();
-			overrideAnimation.MaterialOverrides.push_back({ &sphereObj->Meshes.front().SubMeshes.front(), &material });
+			overrideDynamic.MaterialOverrides.clear();
+			overrideDynamic.MaterialOverrides.push_back({ &sphereObj->Meshes.front().SubMeshes.front(), &material });
 
-			RenderCommand renderCommand;
+			Render::RenderCommand3D renderCommand;
 			renderCommand.SourceObj = sphereObj.get();
-			renderCommand.Transform = Transform(viewport->Camera.Interest);
-			renderCommand.Animation = &overrideAnimation;
+			renderCommand.Transform = Transform(camera.Interest);
+			renderCommand.Dynamic = &overrideDynamic;
 			renderer.Draw(renderCommand);
 		}
 		renderer.End();

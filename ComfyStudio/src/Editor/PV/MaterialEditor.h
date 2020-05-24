@@ -1,41 +1,43 @@
 #pragma once
 #include "Types.h"
 #include "Graphics/Auth3D/ObjSet.h"
-#include "Graphics/GPU/GPURenderers.h"
+#include "Render/Render.h"
 #include "Editor/Common/CameraController3D.h"
 
 namespace Comfy::Studio::Editor
 {
-	class MaterialEditor
+	class MaterialEditor : NonCopyable
 	{
 	public:
 		MaterialEditor() = default;
 		~MaterialEditor() = default;
 
 	public:
-		void DrawGui(Graphics::GPU_Renderer3D& renderer, const Graphics::SceneParameters& scene, Graphics::Material& material);
+		void Gui(Render::Renderer3D& renderer, const Render::SceneParam3D& scene, Graphics::Material& material);
 
 	private:
-		void DrawUsedTexturesFlagsGui(u32& usedTexturesCount, Graphics::Material::MaterialUsedTextureFlags& texturesFlags);
-		void DrawShaderFlagsGui(Graphics::Material::ShaderTypeIdentifier& shaderType, Graphics::Material::MaterialShaderFlags& shaderFlags);
-		void DrawTextureDataGui(Graphics::GPU_Renderer3D& renderer, Graphics::Material& material);
-		void DrawBlendFlagsGui(Graphics::Material::MaterialBlendFlags& blendFlags);
-		void DrawColorGui(Graphics::Material::MaterialColor& materialColor);
+		void GuiUsedTexturesFlags(u32& usedTexturesCount, Graphics::Material::MaterialUsedTextureFlags& texturesFlags);
+		void GuiShaderFlags(Graphics::Material::ShaderTypeIdentifier& shaderType, Graphics::Material::MaterialShaderFlags& shaderFlags);
+		void GuiTextureData(Render::Renderer3D& renderer, Graphics::Material& material);
+		void GuiBlendFlags(Graphics::Material::MaterialBlendFlags& blendFlags);
+		void GuiColor(Graphics::Material::MaterialColor& materialColor);
 
 		class MaterialPreview
 		{
 		public:
-			void DrawGui(Graphics::GPU_Renderer3D& renderer, const Graphics::SceneParameters& scene, Graphics::Material& material);
+			void Gui(Render::Renderer3D& renderer, const Render::SceneParam3D& scene, Graphics::Material& material);
 
 		private:
 			void UpdateCameraView();
-			void RenderMaterial(Graphics::GPU_Renderer3D& renderer, const Graphics::SceneParameters& scene, Graphics::Material& material);
+			void RenderMaterial(Render::Renderer3D& renderer, const Render::SceneParam3D& scene, Graphics::Material& material);
 
-			std::unique_ptr<Graphics::SceneViewport> viewport = nullptr;
+			std::unique_ptr<Render::RenderTarget3D> renderTarget = nullptr;
+
+			Render::PerspectiveCamera camera;
 			CameraController3D cameraController;
 
 			std::unique_ptr<Graphics::Obj> sphereObj;
-			Graphics::ObjAnimationData overrideAnimation;
+			Render::RenderCommand3D::DynamicData overrideDynamic;
 
 			float targetRenderHeight = 120.0f;
 			vec2 renderSize = vec2(targetRenderHeight, 0.0f);

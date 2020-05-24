@@ -171,6 +171,11 @@
     <ClCompile Include="src\Editor\Common\ButtonSoundController.cpp" />
     <ClCompile Include="src\Editor\Common\CameraController2D.cpp" />
     <ClCompile Include="src\Editor\Core\EditorManager.cpp" />
+    <ClCompile Include="src\Editor\PV\CameraAxisIndication.cpp" />
+    <ClCompile Include="src\Editor\PV\ExternalProcess.cpp" />
+    <ClCompile Include="src\Editor\PV\MaterialEditor.cpp" />
+    <ClCompile Include="src\Editor\PV\SceneEditor.cpp" />
+    <ClCompile Include="src\Editor\PV\SceneRenderWindow.cpp" />
     <ClCompile Include="src\Editor\Timeline\FrameTimeline.cpp" />
     <ClCompile Include="src\Editor\Timeline\TimelineBase.cpp" />
     <ClCompile Include="src\Editor\Timeline\TimelineScrollbar.cpp" />
@@ -206,6 +211,15 @@
     <ClInclude Include="src\Editor\Core\IEditorComponent.h" />
     <ClInclude Include="src\Editor\Core\IFileDropReceiver.h" />
     <ClInclude Include="src\Editor\Core\Theme.h" />
+    <ClInclude Include="src\Editor\PV\CameraAxisIndication.h" />
+    <ClInclude Include="src\Editor\PV\CharaTest.h" />
+    <ClInclude Include="src\Editor\PV\Debug.h" />
+    <ClInclude Include="src\Editor\PV\ExternalProcess.h" />
+    <ClInclude Include="src\Editor\PV\MaterialEditor.h" />
+    <ClInclude Include="src\Editor\PV\SceneEditor.h" />
+    <ClInclude Include="src\Editor\PV\SceneGraph.h" />
+    <ClInclude Include="src\Editor\PV\SceneRenderWindow.h" />
+    <ClInclude Include="src\Editor\PV\StageTest.h" />
     <ClInclude Include="src\Editor\Timeline\FrameTimeline.h" />
     <ClInclude Include="src\Editor\Timeline\ITimelinePlaybackControllable.h" />
     <ClInclude Include="src\Editor\Timeline\ITimelineUnitConverter.h" />

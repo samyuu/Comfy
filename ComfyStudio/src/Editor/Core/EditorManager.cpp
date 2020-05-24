@@ -3,7 +3,7 @@
 // TODO:
 // #include "Editor/Aet/AetEditor.h"
 #include "Editor/Chart/ChartEditor.h"
-// #include "Editor/PV/SceneEditor.h"
+#include "Editor/PV/SceneEditor.h"
 #include "Misc/StringHelper.h"
 
 namespace Comfy::Studio::Editor
@@ -76,7 +76,7 @@ namespace Comfy::Studio::Editor
 		AddEditorComponent<ChartEditor>(false);
 		// TODO:
 		// AddEditorComponent<AetEditor>(false);
-		// AddEditorComponent<SceneEditor>(true);
+		AddEditorComponent<SceneEditor>(true);
 #endif
 	}
 
@@ -108,7 +108,7 @@ namespace Comfy::Studio::Editor
 	{
 		static_assert(std::is_base_of<IEditorComponent, T>::value, "T must inherit from IEditorComponent");
 		editorComponents.push_back({ false, std::move(std::make_unique<T>(parent, *this)) });
-	
+
 		if (!opened)
 			editorComponents.back().Component->Close();
 	}

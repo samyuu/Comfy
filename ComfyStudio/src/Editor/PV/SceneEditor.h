@@ -17,18 +17,21 @@ namespace Comfy::Studio::Editor
 	class SceneEditor : public IEditorComponent
 	{
 	public:
-		SceneEditor(Application* parent, EditorManager* editor);
+		SceneEditor(Application& parent, EditorManager& editor);
 		~SceneEditor() = default;
 
-		void Initialize() override;
-		void DrawGui() override;
-		const char* GetIsOpen() const override;
-		ImGuiWindowFlags GetWindowFlags() const override;
+	public:
+		void OnFirstFrame() override;
+
+	public:
+		const char* GetName() const override;
+		ImGuiWindowFlags GetFlags() const override;
+		void Gui() override;
 
 	private:
 		bool LoadRegisterObjSet(std::string_view objSetPath, std::string_view texSetPath, EntityTag tag);
 		bool UnLoadUnRegisterObjSet(const Graphics::ObjSet* objSetToRemove);
-		
+
 		bool LoadStageObjects(StageType type, int id, int subID, bool loadLightParam = true);
 		bool UnLoadStageObjects();
 
@@ -61,17 +64,17 @@ namespace Comfy::Studio::Editor
 
 	private:
 		void TakeScreenshotGui();
-		void TakeSceneRenderTargetScreenshot(Graphics::GPU_RenderTarget& renderTarget);
+		void TakeSceneRenderTargetScreenshot(Render::RenderTarget3D& renderTarget);
 
 	private:
 		SceneGraph sceneGraph;
 
-		Graphics::SceneViewport viewport;
-		Graphics::SceneParameters scene;
+		Render::PerspectiveCamera camera;
+		Render::SceneParam3D scene;
 
 		CameraController3D cameraController;
-		
-		std::unique_ptr<Graphics::GPU_Renderer3D> renderer3D = nullptr;
+
+		std::unique_ptr<Render::Renderer3D> renderer3D = nullptr;
 
 		std::unique_ptr<SceneRenderWindow> renderWindow = nullptr;
 
@@ -81,7 +84,7 @@ namespace Comfy::Studio::Editor
 		StageTestData stageTestData;
 		CharacterTestData charaTestData;
 		MaterialEditor materialEditor;
-		
+
 		struct ExternalProcessTest
 		{
 			ExternalProcess ExternalProcess;
@@ -94,10 +97,10 @@ namespace Comfy::Studio::Editor
 		// NOTE: To asyncronously take screenshots 
 		std::future<void> lastScreenshotTaskFuture;
 
-		std::array<char, MAX_PATH> lightPathBuffer = { "dev_rom/light_param/light_tst.txt" };
-		std::array<char, MAX_PATH> glowPathBuffer = { "dev_rom/light_param/glow_tst.txt" };
-		std::array<char, MAX_PATH> fogPathBuffer = { "dev_rom/light_param/fog_tst.txt" };
-		std::array<char, MAX_PATH> iblPathBuffer = { "dev_rom/ibl/tst.ibl" };
+		std::array<char, 260> lightPathBuffer = { "dev_rom/light_param/light_tst.txt" };
+		std::array<char, 260> glowPathBuffer = { "dev_rom/light_param/glow_tst.txt" };
+		std::array<char, 260> fogPathBuffer = { "dev_rom/light_param/fog_tst.txt" };
+		std::array<char, 260> iblPathBuffer = { "dev_rom/ibl/tst.ibl" };
 
 		// NOTE: To keep track of the open and closed render target debug windows
 		u32 openRenderTargetsFlags = 0;

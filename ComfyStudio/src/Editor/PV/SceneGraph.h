@@ -10,8 +10,9 @@ namespace Comfy::Studio::Editor
 {
 	using EntityTag = i64;
 
-	struct Entity
+	struct ObjectEntity
 	{
+	public:
 		std::string Name;
 
 		// NOTE: Store user data for identification
@@ -19,12 +20,9 @@ namespace Comfy::Studio::Editor
 
 		bool IsVisible;
 		Graphics::Transform Transform;
-	};
 
-	struct ObjectEntity : public Entity
-	{
+	public:
 		const Graphics::Obj* Obj = nullptr;
-		const Graphics::Obj* MorphObj = nullptr;
 
 		bool IsReflection = false;
 		bool SilhouetteOutline = false;
@@ -69,11 +67,9 @@ namespace Comfy::Studio::Editor
 			entity->IsVisible = true;
 			entity->Transform = Graphics::Transform(vec3(0.0f));
 			entity->Obj = &obj;
-			entity->MorphObj = nullptr;
 			entity->IsReflection = false;
-			
-			Entities.push_back(std::move(entity));
-			return *Entities.back();
+
+			return *Entities.emplace_back(std::move(entity));
 		}
 	};
 }
