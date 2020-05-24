@@ -12,17 +12,27 @@ namespace Comfy
 	class ApplicationHost
 	{
 	public:
-		static constexpr ivec2 StartupWindowPosition = ivec2(0, 0);
-		static constexpr ivec2 StartupWindowSize = ivec2(1280, 720);
+		static constexpr ivec2 DefaultStartupWindowPosition = ivec2(0, 0);
+		static constexpr ivec2 DefaultStartupWindowSize = ivec2(1280, 720);
 		static constexpr ivec2 WindowSizeRestraints = ivec2(640, 360);
 
-		static constexpr const char* ComfyWindowClassName = "ComfyWindowClass";
+		static constexpr std::string_view UnnamedWindowName = "Application Host Window";
+		static constexpr std::string_view ComfyWindowClassName = "ComfyWindowClass";
 
 	public:
 		struct ConstructionParam
 		{
-			std::string_view WindowTitle;
-			void* IconHandle;
+			std::optional<void*> IconHandle;
+
+			struct WindowStateData
+			{
+				std::optional<std::string_view> Title;
+				std::optional<ivec4> RestoreRegion;
+				std::optional<ivec2> Position;
+				std::optional<ivec2> Size;
+				std::optional<bool> IsFullscreen;
+				std::optional<bool> IsMaximized;
+			} StartupWindowState;
 		};
 
 		ApplicationHost(const ConstructionParam& param);

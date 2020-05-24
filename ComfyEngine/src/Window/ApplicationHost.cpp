@@ -38,16 +38,16 @@ namespace Comfy
 			bool IsFullscreen = false;
 			bool IsMaximized = false;
 
-			ivec2 Position = StartupWindowPosition;
-			ivec2 Size = StartupWindowSize;
+			ivec2 Position = DefaultStartupWindowPosition;
+			ivec2 Size = DefaultStartupWindowSize;
 
-			ivec4 RestoreRegion = { StartupWindowPosition, StartupWindowSize };
+			ivec4 RestoreRegion = { DefaultStartupWindowPosition, DefaultStartupWindowSize };
 
 			bool UseDefaultPosition = false;
 			bool UseDefaultSize = false;
 
-			ivec2 PreFullScreenPosition = StartupWindowPosition;
-			ivec2 PreFullScreenSize = StartupWindowSize;
+			ivec2 PreFullScreenPosition = DefaultStartupWindowPosition;
+			ivec2 PreFullScreenSize = DefaultStartupWindowSize;
 
 			bool Focused = true, LastFocused = false;
 			bool FocusLostThisFrame = false, FocusGainedThisFrame = false;
@@ -58,9 +58,9 @@ namespace Comfy
 
 		struct CallbackData
 		{
-			std::optional<std::function<bool(HWND, UINT, WPARAM, LPARAM)>> WindowProc = {};
-			std::optional<std::function<void(ivec2 size)>> WindowResize = {};
-			std::optional<std::function<void()>> WindowClosing = {};
+			std::function<bool(HWND, UINT, WPARAM, LPARAM)> WindowProc = {};
+			std::function<void(ivec2 size)> WindowResize = {};
+			std::function<void()> WindowClosing = {};
 		} Callback;
 
 		struct TimingData
@@ -96,7 +96,7 @@ namespace Comfy
 	public:
 		bool Initialize()
 		{
-			GlobalModuleHandle = ::GetModuleHandleA(nullptr);
+			GlobalModuleHandle = ::GetModuleHandleW(nullptr);
 			TimeSpan::InitializeClock();
 
 			if (!InternalCreateWindow())
@@ -279,10 +279,11 @@ namespace Comfy
 			}
 			else
 			{
-				if (Callback.WindowResize.has_value())
-					Callback.WindowResize.value()(Window.Size);
+				if (Callback.WindowResize)
+					Callback.WindowResize(Window.Size);
 
-				Render::D3D11::D3D.ResizeWindowRenderTarget(size);
+				if (Render::D3D11::D3D.WindowRenderTarget != nullptr)
+					Render::D3D11::D3D.ResizeWindowRenderTarget(size);
 			}
 		}
 
@@ -316,8 +317,8 @@ namespace Comfy
 
 		void InternalWindowClosingCallback()
 		{
-			if (Callback.WindowClosing.has_value())
-				Callback.WindowClosing.value()();
+			if (Callback.WindowClosing)
+				Callback.WindowClosing();
 		}
 
 		bool CheckConnectedDevices()
@@ -476,13 +477,13 @@ namespace Comfy
 				Window.Handle = nullptr;
 			}
 
-			::UnregisterClassA(ApplicationHost::ComfyWindowClassName, GlobalModuleHandle);
+			::UnregisterClassW(UTF8::WideArg(ApplicationHost::ComfyWindowClassName).c_str(), GlobalModuleHandle);
 		}
 
 	public:
 		LRESULT ProcessWindowMessage(const UINT message, const WPARAM wParam, const LPARAM lParam)
 		{
-			if (Callback.WindowProc.has_value() && Callback.WindowProc.value()(Window.Handle, message, wParam, lParam))
+			if (Callback.WindowProc && Callback.WindowProc(Window.Handle, message, wParam, lParam))
 				return 0;
 
 			switch (message)
@@ -602,7 +603,7 @@ namespace Comfy
 			}
 			else
 			{
-				receiver = reinterpret_cast<Impl*>(::GetWindowLongPtrA(windowHandle, GWLP_USERDATA));
+				receiver = reinterpret_cast<Impl*>(::GetWindowLongPtrW(windowHandle, GWLP_USERDATA));
 			}
 
 			if (receiver != nullptr)
@@ -614,11 +615,19 @@ namespace Comfy
 
 	ApplicationHost::ApplicationHost(const ConstructionParam& param) : impl(std::make_unique<Impl>(*this))
 	{
-		impl->Window.Title = param.WindowTitle;
-		GlobalIconHandle = static_cast<HICON>(param.IconHandle);
+		auto setIfHasValue = [](auto& valueToBeSet, const auto& optional) { if (optional.has_value()) { valueToBeSet = optional.value(); } };
 
-		if (!impl->Initialize())
-			impl->FailedToInitialize = true;
+		if (param.IconHandle.has_value())
+			GlobalIconHandle = static_cast<HICON>(param.IconHandle.value());
+
+		impl->Window.Title = param.StartupWindowState.Title.value_or(UnnamedWindowName);
+		setIfHasValue(impl->Window.RestoreRegion, param.StartupWindowState.RestoreRegion);
+		setIfHasValue(impl->Window.Position, param.StartupWindowState.Position);
+		setIfHasValue(impl->Window.Size, param.StartupWindowState.Size);
+		setIfHasValue(impl->Window.IsFullscreen, param.StartupWindowState.IsFullscreen);
+		setIfHasValue(impl->Window.IsMaximized, param.StartupWindowState.IsMaximized);
+
+		impl->FailedToInitialize = !(impl->Initialize());
 	}
 
 	ApplicationHost::~ApplicationHost()
