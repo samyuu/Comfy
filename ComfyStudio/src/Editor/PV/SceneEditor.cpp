@@ -609,23 +609,18 @@ namespace Comfy::Studio::Editor
 				GuiPropertyRAII::ID id(&lightMap);
 				GuiProperty::PropertyLabelValueFunc(nameBuffer, [&]
 				{
-					// TODO:
-#if 0
-					if (lightMap.GPU_CubeMap != nullptr)
-					{
-						constexpr vec2 cubeMapDisplaySize = vec2(96.0f, 96.0f);
+					constexpr vec2 cubeMapDisplaySize = vec2(96.0f, 96.0f);
 
-						const float width = std::clamp(Gui::GetContentRegionAvailWidth(), 1.0f, cubeMapDisplaySize.x);
-						const vec2 size = vec2(width, width * (3.0f / 4.0f));
+					const float width = std::clamp(Gui::GetContentRegionAvailWidth(), 1.0f, cubeMapDisplaySize.x);
+					const vec2 size = vec2(width, width * (3.0f / 4.0f));
 
-						ImTextureID textureID = *lightMap.GPU_CubeMap;
-						textureID.Data.CubeMapMipLevel = 0;
-						Gui::Image(textureID, size);
-						Gui::SameLine();
-						textureID.Data.CubeMapMipLevel = 1;
-						Gui::Image(textureID, size);
-					}
-#endif
+					ImTextureID textureID = lightMap;
+					textureID.Data.CubeMapMipLevel = 0;
+					Gui::Image(textureID, size);
+					Gui::SameLine();
+					textureID.Data.CubeMapMipLevel = 1;
+					Gui::Image(textureID, size);
+
 					return false;
 				});
 			}
@@ -1071,7 +1066,7 @@ namespace Comfy::Studio::Editor
 			}
 		}
 #endif
-		}
+	}
 
 	void SceneEditor::DrawExternalProcessTestGui()
 	{
@@ -1233,7 +1228,7 @@ namespace Comfy::Studio::Editor
 					Gui::ImageObjTex(&tex);
 					Gui::EndTooltip();
 				}
-				});
+			});
 		});
 #endif
 
@@ -1643,4 +1638,4 @@ namespace Comfy::Studio::Editor
 				Utilities::WritePNG(filePath, renderTarget.Param.RenderResolution, data.get());
 			});
 	}
-	}
+}
