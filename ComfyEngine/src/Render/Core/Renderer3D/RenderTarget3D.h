@@ -14,6 +14,9 @@ namespace Comfy::Render
 	static constexpr ivec2 ShadowMapDefaultResolution = ivec2(2048, 2048);
 	static constexpr ivec2 ReflectionDefaultResolution = ivec2(512, 512);
 
+	// TODO: Additional class to store the final result of the RenderTarget2D/3D without duplicating all of the sub render targets
+	//		 to for example efficiently preview multiple materials or obj renders at once
+
 	class RenderTarget3D : NonCopyable
 	{
 	public:
@@ -40,11 +43,11 @@ namespace Comfy::Render
 			size_t Count;
 		};
 
-		// NOTE: For debug disaplying the different render stages
+		// NOTE: For debug displaying the different render stages
 		virtual SubTargetView GetSubTargets() = 0;
 
 	public:
-		// NOTE: Settings used by the Renderer3D
+		// NOTE: Settings used by the Renderer3D for rendering specific features and managing the sub targets
 		struct RenderParam
 		{
 			// DEBUG: Non specific debug flags for quick testing
