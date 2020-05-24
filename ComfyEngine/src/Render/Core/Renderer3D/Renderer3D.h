@@ -12,6 +12,7 @@ namespace Comfy::Render
 {
 	using TexGetter = std::function<const Graphics::Tex*(const Cached_TexID* texID)>;
 
+	// TODO: Rename to Environment3D / EnvironmentParam (?), change owning fields to pointers and renaming Graphics/LightParam to Graphics/Environment
 	struct SceneParam3D
 	{
 		struct LensFlareParam

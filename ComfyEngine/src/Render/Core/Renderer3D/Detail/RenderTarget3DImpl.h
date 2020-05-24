@@ -154,6 +154,44 @@ namespace Comfy::Render::Detail
 	public:
 		ComfyTextureID GetTextureID() const override { return Output.RenderTarget; }
 
+		std::unique_ptr<u8[]> StageAndCopyBackBuffer() override { return Output.RenderTarget.StageAndCopyBackBuffer(); }
+
+		SubTargetView GetSubTargets() override 
+		{
+			auto create = [](const char* name, auto& renderTarget) -> SubTarget { return SubTarget { name, renderTarget.GetSize(), ComfyTextureID(renderTarget) }; };
+
+			tempSubTargets = 
+			{
+				create("Main Current", Main.CurrentOrResolved()),
+				create("Main Previous", Main.PreviousOrResolved()),
+				create("Shadow Map", Shadow.RenderTarget),
+				create("Exponential Shadow Map [0]", Shadow.ExponentialRenderTargets[0]),
+				create("Exponential Shadow Map [1]", Shadow.ExponentialRenderTargets[1]),
+				create("Exponential Shadow Map Blur [0]", Shadow.ExponentialBlurRenderTargets[0]),
+				create("Exponential Shadow Map Blur [1]", Shadow.ExponentialBlurRenderTargets[1]),
+				create("Shadow Map Threshold", Shadow.ThresholdRenderTarget),
+				create("Shadow Map Blur [0]", Shadow.BlurRenderTargets[0]),
+				create("Shadow Map Blur [1]", Shadow.BlurRenderTargets[1]),
+				create("Screen Reflection", Reflection.RenderTarget),
+				create("SSS Main", SubsurfaceScattering.RenderTarget),
+				create("SSS Filter [0]", SubsurfaceScattering.FilterRenderTargets[0]),
+				create("SSS Filter [1]", SubsurfaceScattering.FilterRenderTargets[1]),
+				create("SSS Filter [2]", SubsurfaceScattering.FilterRenderTargets[2]),
+				create("Bloom Base", Bloom.BaseRenderTarget),
+				create("Bloom Combined", Bloom.CombinedBlurRenderTarget),
+				create("Bloom Reduce->Blur [0]", Bloom.ReduceRenderTargets[0]),
+				create("Bloom Reduce->Blur [1]", Bloom.ReduceRenderTargets[1]),
+				create("Bloom Reduce->Blur [2]", Bloom.ReduceRenderTargets[2]),
+				create("Bloom Reduce->Blur [3]", Bloom.ReduceRenderTargets[3]),
+				create("Exposure [0]", Bloom.ExposureRenderTargets[0]),
+				create("Exposure [1]", Bloom.ExposureRenderTargets[1]),
+				create("Exposure [2]", Bloom.ExposureRenderTargets[2]),
+				create("Output", Output.RenderTarget),
+			};
+			
+			return SubTargetView { tempSubTargets.data(), tempSubTargets.size() };
+		}
+
 	public:
 		MainRenderData Main;
 		ShadowMappingRenderData Shadow;
@@ -167,5 +205,8 @@ namespace Comfy::Render::Detail
 		BlendStateCache BlendStates;
 		ToneMapData ToneMap;
 		SunOcclusionData Sun;
+
+	private:
+		std::array<SubTarget, 25> tempSubTargets = {};
 	};
 }

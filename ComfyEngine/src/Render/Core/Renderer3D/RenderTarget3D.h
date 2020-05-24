@@ -5,6 +5,12 @@
 
 namespace Comfy::Render
 {
+	static constexpr ivec2 RenderTargetMinSize = ivec2(1, 1);
+	static constexpr ivec2 RenderTargetMaxSize = ivec2(16384, 16384);
+
+	static constexpr i32 AnistropicFilteringMin = 0;
+	static constexpr i32 AnistropicFilteringMax = 16;
+
 	static constexpr ivec2 ShadowMapDefaultResolution = ivec2(2048, 2048);
 	static constexpr ivec2 ReflectionDefaultResolution = ivec2(512, 512);
 
@@ -15,8 +21,27 @@ namespace Comfy::Render
 		virtual ~RenderTarget3D() = default;
 
 	public:
-		// TODO: Expose all the other render targets
 		virtual ComfyTextureID GetTextureID() const = 0;
+
+	public:
+		// NOTE: For taking screenshots of the main output render target
+		virtual std::unique_ptr<u8[]> StageAndCopyBackBuffer() = 0;
+
+		struct SubTarget
+		{
+			const char* Name;
+			ivec2 Size;
+			ComfyTextureID TextureID;
+		};
+
+		struct SubTargetView
+		{
+			const SubTarget* Targets;
+			size_t Count;
+		};
+
+		// NOTE: For debug disaplying the different render stages
+		virtual SubTargetView GetSubTargets() = 0;
 
 	public:
 		// NOTE: Settings used by the Renderer3D
