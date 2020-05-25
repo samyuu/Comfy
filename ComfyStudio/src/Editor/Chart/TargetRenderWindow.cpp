@@ -27,8 +27,15 @@ namespace Comfy::Studio::Editor
 
 		aetSet = std::make_unique<Aet::AetSet>();
 		aetSetLoader.LoadSync();
-		aetSetLoader.Read(*aetSet);
-		aetSetLoader.FreeData();
+
+		if (aetSetLoader.GetIsLoaded())
+		{
+			aetSetLoader.Read(*aetSet);
+			aetSetLoader.FreeData();
+		}
+
+		if (aetSet == nullptr || aetSet->GetScenes().empty())
+			return;
 
 		layerCache.FrameUp = aetSet->GetScenes().front()->FindLayer("frame_up_f");
 		layerCache.FrameBottom = aetSet->GetScenes().front()->FindLayer("frame_bottom_f");
