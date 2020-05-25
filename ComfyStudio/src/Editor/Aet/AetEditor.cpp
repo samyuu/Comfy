@@ -13,23 +13,24 @@ namespace Comfy::Studio::Editor
 
 	AetEditor::AetEditor(Application& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
-		commandManager = std::make_unique<AetCommandManager>();
-
-		treeView = std::make_unique<AetTreeView>(commandManager.get(), &selectedAetItem, &cameraSelectedAetItem);
-		inspector = std::make_unique<AetInspector>(commandManager.get(), &spriteGetterFunction, &previewData);
-		// contentView = std::make_unique<AetContentView>();
-		timeline = std::make_unique<AetTimeline>();
-		renderWindow = std::make_unique<AetRenderWindow>(commandManager.get(), &spriteGetterFunction, &selectedAetItem, &cameraSelectedAetItem, &previewData);
-		historyWindow = std::make_unique<AetHistoryWindow>(commandManager.get());
 	}
 
 	void AetEditor::OnFirstFrame()
 	{
+		commandManager = std::make_unique<AetCommandManager>();
+		renderer = std::make_unique<Render::Renderer2D>();
+
+		treeView = std::make_unique<AetTreeView>(*commandManager, selectedAetItem, cameraSelectedAetItem);
+		inspector = std::make_unique<AetInspector>(*commandManager, *renderer, previewData);
+		// contentView = std::make_unique<AetContentView>();
+		timeline = std::make_unique<AetTimeline>();
+		renderWindow = std::make_unique<AetRenderWindow>(*commandManager, *renderer, selectedAetItem, cameraSelectedAetItem, previewData);
+		historyWindow = std::make_unique<AetHistoryWindow>(*commandManager);
+
 		treeView->OnFirstFrame();
-		inspector->OnFirstFrame();
+		inspector->Initialize();
 		// contentView->OnFirstFrame();
-		timeline->OnFirstFrame();
-		renderWindow->OnFirstFrame();
+		timeline->Initialize();
 
 		// DEBUG: Auto load specified files
 		if (debugAetPath != nullptr && IO::File::Exists(debugAetPath))
@@ -71,7 +72,7 @@ namespace Comfy::Studio::Editor
 		if (Gui::Begin(ICON_TREEVIEW "  Aet Tree View##AetEditor"))
 		{
 			Gui::BeginChild("AetTreeViewChild##AetEditor", vec2(0.0f, 0.0f), false, ImGuiWindowFlags_HorizontalScrollbar);
-			treeView->DrawGui(editorAetSet);
+			treeView->Gui(editorAetSet);
 			Gui::EndChild();
 		}
 		Gui::End();
@@ -101,7 +102,7 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::Begin(ICON_HISTORY "  Aet Editor History##AetEditor"))
 		{
-			historyWindow->DrawGui();
+			historyWindow->Gui();
 		}
 		Gui::End();
 
@@ -187,7 +188,7 @@ namespace Comfy::Studio::Editor
 
 		renderer->Aet().SetSprGetter([&](const Aet::VideoSource& source) -> Render::TexSpr
 		{
-			Render::SprSetNameStringSprGetter(source, sprSet.get());
+			return Render::SprSetNameStringSprGetter(source, sprSet.get());
 		});
 	}
 }

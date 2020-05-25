@@ -23,6 +23,8 @@ namespace Comfy::Studio::Editor
 		checkerboardBaseGrid.Color = baseColor;
 		checkerboardBaseGrid.ColorAlt = baseColor;
 
+		renderTarget = Render::Renderer2D::CreateRenderTarget();
+
 		renderer.Aet().SetObjCallback([&](const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity) -> bool
 		{
 			return OnObjRender(obj, positionOffset, opacity);
@@ -425,7 +427,7 @@ namespace Comfy::Studio::Editor
 	bool AetRenderWindow::OnObjRender(const Aet::Util::Obj& obj, vec2 positionOffset, float opacity)
 	{
 		if (obj.Video == nullptr || !obj.IsVisible)
-			return;
+			return false;
 
 		const auto* video = (previewData.Video != nullptr) ? previewData.Video : obj.Video;
 		auto[tex, spr] = renderer.Aet().GetSprite(video, obj.SpriteFrame);
@@ -453,7 +455,7 @@ namespace Comfy::Studio::Editor
 	bool AetRenderWindow::OnObjMaskRender(const Aet::Util::Obj& maskObj, const Aet::Util::Obj& obj, vec2 positionOffset, float opacity)
 	{
 		if (maskObj.Video == nullptr || obj.Video == nullptr || !obj.IsVisible)
-			return;
+			return false;
 
 		const bool isSelected = (obj.SourceLayer == selectedAetItem.Ptrs.Layer);
 		const bool isMaskSelected = (maskObj.SourceLayer == selectedAetItem.Ptrs.Layer);

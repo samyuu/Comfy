@@ -12,7 +12,7 @@ namespace Comfy::Studio::Editor
 	class AetTreeView : public MutatingEditorComponent
 	{
 	public:
-		AetTreeView(AetCommandManager* commandManager, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem);
+		AetTreeView(AetCommandManager& commandManager, AetItemTypePtr& selectedAetItem, AetItemTypePtr& cameraSelectedAetItem);
 		~AetTreeView() = default;
 
 	public:
@@ -23,20 +23,20 @@ namespace Comfy::Studio::Editor
 		template <typename T>
 		void SetSelectedItems(const std::shared_ptr<T>& value) 
 		{ 
-			selectedAetItem->SetItem(value);
-			cameraSelectedAetItem->SetItem(value);
+			selectedAetItem.SetItem(value);
+			cameraSelectedAetItem.SetItem(value);
 		}
 
 		inline void SetSelectedItems(const std::shared_ptr<Graphics::Aet::Layer>& selectedLayer, const std::shared_ptr<Graphics::Aet::Composition>& visibleComp)
 		{
-			selectedAetItem->SetItem(selectedLayer);
-			cameraSelectedAetItem->SetItem(visibleComp);
+			selectedAetItem.SetItem(selectedLayer);
+			cameraSelectedAetItem.SetItem(visibleComp);
 		}
 
 		inline void ResetSelectedItems() 
 		{ 
-			selectedAetItem->Reset();
-			cameraSelectedAetItem->Reset();
+			selectedAetItem.Reset();
+			cameraSelectedAetItem.Reset();
 		}
 
 	private:
@@ -55,8 +55,8 @@ namespace Comfy::Studio::Editor
 
 		struct
 		{
-			AetItemTypePtr* selectedAetItem;
-			AetItemTypePtr* cameraSelectedAetItem;
+			AetItemTypePtr& selectedAetItem;
+			AetItemTypePtr& cameraSelectedAetItem;
 			AetItemTypePtr hoveredAetItem, lastHoveredAetItem;
 		};
 

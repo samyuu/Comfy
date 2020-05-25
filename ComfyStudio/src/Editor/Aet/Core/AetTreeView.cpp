@@ -15,11 +15,9 @@ namespace Comfy::Studio::Editor
 	constexpr ImGuiTreeNodeFlags HeaderTreeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | SelectableTreeNodeFlags;
 	constexpr ImGuiTreeNodeFlags TreeNodeLeafFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
 
-	AetTreeView::AetTreeView(AetCommandManager* commandManager, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem)
-		: IMutatingEditorComponent(commandManager), selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem)
+	AetTreeView::AetTreeView(AetCommandManager& commandManager, AetItemTypePtr& selectedAetItem, AetItemTypePtr& cameraSelectedAetItem)
+		: MutatingEditorComponent(commandManager), selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem)
 	{
-		assert(selectedAetItem);
-		assert(cameraSelectedAetItem);
 	}
 
 	void AetTreeView::OnFirstFrame()
@@ -42,7 +40,7 @@ namespace Comfy::Studio::Editor
 		hoveredAetItem.Reset();
 
 		// DEBUG: For developement only
-		if (selectedAetItem->IsNull() && GetDebugLayerName() != nullptr)
+		if (selectedAetItem.IsNull() && GetDebugLayerName() != nullptr)
 			SetSelectedItems(aetSet->GetScenes().front()->FindLayer(GetDebugLayerName()));
 
 		UpdateScrollButtonInput();
@@ -132,7 +130,7 @@ namespace Comfy::Studio::Editor
 	void AetTreeView::DrawTreeNodeAet(const std::shared_ptr<Scene>& scene)
 	{
 		ImGuiTreeNodeFlags aetNodeFlags = HeaderTreeNodeFlags;
-		if (scene.get() == selectedAetItem->Ptrs.Scene || scene.get() == lastHoveredAetItem.Ptrs.Scene)
+		if (scene.get() == selectedAetItem.Ptrs.Scene || scene.get() == lastHoveredAetItem.Ptrs.Scene)
 			aetNodeFlags |= ImGuiTreeNodeFlags_Selected;
 
 		const bool aetNodeOpen = Gui::WideTreeNodeEx(scene.get(), aetNodeFlags, "Aet: %s", scene->Name.c_str());
@@ -182,7 +180,7 @@ namespace Comfy::Studio::Editor
 		Gui::PushID(comp.get());
 
 		ImGuiTreeNodeFlags compNodeFlags = SelectableTreeNodeFlags;
-		if (comp.get() == selectedAetItem->Ptrs.Composition)
+		if (comp.get() == selectedAetItem.Ptrs.Composition)
 			compNodeFlags |= ImGuiTreeNodeFlags_Selected;
 		if (comp->GetLayers().size() < 1)
 			compNodeFlags |= ImGuiTreeNodeFlags_Leaf;
@@ -204,8 +202,8 @@ namespace Comfy::Studio::Editor
 			SetSelectedItems(comp);
 
 		bool textHightlighted = false;
-		if (!selectedAetItem->IsNull() && selectedAetItem->Type() == AetItemType::Layer)
-			textHightlighted = (comp.get() == selectedAetItem->GetLayerRef()->GetCompItem().get());
+		if (!selectedAetItem.IsNull() && selectedAetItem.Type() == AetItemType::Layer)
+			textHightlighted = (comp.get() == selectedAetItem.GetLayerRef()->GetCompItem().get());
 
 		if (textHightlighted)
 			Gui::PushStyleColor(ImGuiCol_Text, GetColor(EditorColor_TreeViewTextHighlight));
@@ -231,7 +229,7 @@ namespace Comfy::Studio::Editor
 		if (textHightlighted)
 			Gui::PopStyleColor();
 
-		if (cameraSelectedAetItem->Ptrs.Composition == comp.get())
+		if (cameraSelectedAetItem.Ptrs.Composition == comp.get())
 			DrawTreeNodeCameraIcon(treeNodeCursorPos);
 
 		if (comp->GuiData.TreeViewNodeOpen)
@@ -252,8 +250,8 @@ namespace Comfy::Studio::Editor
 			DrawTreeNodeLayerCameraSelectableButton(comp, layer);
 			DrawTreeNodeLayerActivityButton(layer);
 
-			const bool isSelected = layer.get() == selectedAetItem->Ptrs.Layer || layer.get() == hoveredAetItem.Ptrs.Layer;
-			const bool isCameraSelected = layer.get() == cameraSelectedAetItem->Ptrs.Layer;
+			const bool isSelected = layer.get() == selectedAetItem.Ptrs.Layer || layer.get() == hoveredAetItem.Ptrs.Layer;
+			const bool isCameraSelected = layer.get() == cameraSelectedAetItem.Ptrs.Layer;
 
 			const vec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
 
@@ -288,7 +286,7 @@ namespace Comfy::Studio::Editor
 				}
 			}
 
-			if (cameraSelectedAetItem->Ptrs.Layer == layer.get())
+			if (cameraSelectedAetItem.Ptrs.Layer == layer.get())
 				DrawTreeNodeCameraIcon(treeNodeCursorPos);
 
 			if (layer->ItemType == ItemType::Composition && Gui::IsItemHoveredDelayed(ImGuiHoveredFlags_None, compPreviewTooltipHoverDelay) && layer->GetCompItem())
@@ -296,7 +294,7 @@ namespace Comfy::Studio::Editor
 
 			layer->GuiData.TreeViewScrollY = Gui::GetCursorPos().y;
 
-			if (layer->ItemType == ItemType::Composition && (Gui::IsItemHovered() || layer.get() == selectedAetItem->Ptrs.Layer))
+			if (layer->ItemType == ItemType::Composition && (Gui::IsItemHovered() || layer.get() == selectedAetItem.Ptrs.Layer))
 				hoveredAetItem.SetItem(layer->GetCompItem());
 		}
 		Gui::PopID();
@@ -309,7 +307,7 @@ namespace Comfy::Studio::Editor
 		const vec2 cursorPos = Gui::GetCursorScreenPos();
 		Gui::SetCursorScreenPos(vec2(GImGui->CurrentWindow->Pos.x + GImGui->Style.FramePadding.x - GImGui->CurrentWindow->Scroll.x, cursorPos.y - 1.0f));
 		{
-			bool isCameraSelected = layer.get() == cameraSelectedAetItem->Ptrs.Layer;
+			bool isCameraSelected = layer.get() == cameraSelectedAetItem.Ptrs.Layer;
 
 			const vec2 smallButtonPosition = Gui::GetCursorScreenPos();
 			const vec2 smallButtonSize = vec2(cursorPos.x - smallButtonPosition.x, GImGui->FontSize + GImGui->Style.ItemSpacing.y);
@@ -342,12 +340,12 @@ namespace Comfy::Studio::Editor
 		if (layer->ItemType == ItemType::Audio)
 		{
 			if (Gui::ComfySmallButton(layer->GetIsAudible() ? ICON_AUDIBLE : ICON_INAUDIBLE, smallButtonSize))
-				ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeFlagsAudible, layer, !layer->GetIsAudible());
+				ProcessUpdatingAetCommand(LayerChangeFlagsAudible, layer, !layer->GetIsAudible());
 		}
 		else
 		{
 			if (Gui::ComfySmallButton(layer->GetIsVisible() ? ICON_VISIBLE : ICON_INVISIBLE, smallButtonSize))
-				ProcessUpdatingAetCommand(GetCommandManager(), LayerChangeFlagsVisible, layer, !layer->GetIsVisible());
+				ProcessUpdatingAetCommand(LayerChangeFlagsVisible, layer, !layer->GetIsVisible());
 		}
 		Gui::SameLine();
 
@@ -359,7 +357,7 @@ namespace Comfy::Studio::Editor
 	{
 		Gui::PushID(video.get());
 
-		bool isSelected = video.get() == selectedAetItem->Ptrs.Video;
+		bool isSelected = video.get() == selectedAetItem.Ptrs.Video;
 
 		if (Gui::WideTreeNodeEx(FormatVideoNodeName(video, index), TreeNodeLeafFlags | (isSelected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None)))
 		{
@@ -392,7 +390,10 @@ namespace Comfy::Studio::Editor
 		if (Gui::BeginMenu(ICON_FA_EXTERNAL_LINK_ALT "  Used by...", !isRoot))
 		{
 			compositionUsagesBuffer.clear();
-			AetMgr::FindAddCompositionUsages(scene, comp, compositionUsagesBuffer);
+			Aet::Util::FindCompositionLayerUsages(*scene, *comp, [&](auto& layer)
+			{
+				compositionUsagesBuffer.push_back(&layer);
+			});
 
 			// NOTE: Count menu item
 			Gui::Text("Usage Count: %zu", compositionUsagesBuffer.size());
@@ -513,15 +514,15 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::IsKeyPressed(Input::KeyCode_Escape))
 		{
-			if (!selectedAetItem->IsNull())
+			if (!selectedAetItem.IsNull())
 			{
-				switch (selectedAetItem->Type())
+				switch (selectedAetItem.Type())
 				{
 				case AetItemType::Composition:
-					ScrollToGuiData(selectedAetItem->GetCompositionRef()->GuiData);
+					ScrollToGuiData(selectedAetItem.GetCompositionRef()->GuiData);
 					break;
 				case AetItemType::Layer:
-					ScrollToGuiData(selectedAetItem->GetLayerRef()->GuiData);
+					ScrollToGuiData(selectedAetItem.GetLayerRef()->GuiData);
 					break;
 				default:
 					break;

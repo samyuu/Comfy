@@ -28,10 +28,6 @@ namespace Comfy::Studio::Editor
 		return {};
 	}
 
-	TransformBox::TransformBox()
-	{
-	}
-
 	TransformBox::TransformBox(const Graphics::Transform2D& transform, const vec2& dimensions)
 	{
 		vec2 size = dimensions * transform.Scale;

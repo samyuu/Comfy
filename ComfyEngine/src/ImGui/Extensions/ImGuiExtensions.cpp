@@ -106,7 +106,7 @@ namespace ImGui
 		drawList->AddLine(glm::round(start), glm::round(end), color, thickness);
 	}
 
-	void AddQuadFilled(ImDrawList * drawList, vec2 position, vec2 size, vec2 origin, float rotation, const vec2 & scale, ImU32 color)
+	void AddQuadFilled(ImDrawList* drawList, vec2 position, vec2 size, vec2 origin, float rotation, vec2 scale, ImU32 color)
 	{
 		size *= scale;
 		origin *= -scale;

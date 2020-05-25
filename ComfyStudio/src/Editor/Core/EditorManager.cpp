@@ -1,7 +1,6 @@
 #include "EditorManager.h"
 #include "Core/Application.h"
-// TODO:
-// #include "Editor/Aet/AetEditor.h"
+#include "Editor/Aet/AetEditor.h"
 #include "Editor/Chart/ChartEditor.h"
 #include "Editor/PV/SceneEditor.h"
 #include "Misc/StringHelper.h"
@@ -74,8 +73,7 @@ namespace Comfy::Studio::Editor
 		AddEditorComponent<SceneEditor>(false);
 #else
 		AddEditorComponent<ChartEditor>(false);
-		// TODO:
-		// AddEditorComponent<AetEditor>(false);
+		AddEditorComponent<AetEditor>(false);
 		AddEditorComponent<SceneEditor>(true);
 #endif
 	}

@@ -16,7 +16,7 @@ namespace Comfy::Studio::Editor
 
 	public:
 		void OnFirstFrame() override;
-		
+
 	public:
 		const char* GetName() const override;
 		ImGuiWindowFlags GetFlags() const override;

@@ -40,7 +40,7 @@ namespace Comfy::Studio::Editor
 	{
 	}
 
-	void HandTool::UpdateCamera(Graphics::OrthographicCamera& camera, vec2 relativeMouse)
+	void HandTool::UpdateCamera(Render::OrthographicCamera& camera, vec2 relativeMouse)
 	{
 		// NOTE: Hacky way of preventing moving the camera by two camera controllers at once
 		if (Gui::IsMouseDown(1))

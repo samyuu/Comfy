@@ -6,7 +6,7 @@ namespace Comfy::Studio::Editor
 {
 	using namespace Graphics;
 
-	ObjectMousePicker::ObjectMousePicker(const std::vector<Aet::AetMgr::ObjCache>& objectCache, const bool& windowHoveredOnMouseClick, AetItemTypePtr* selectedAetItem, AetItemTypePtr* cameraSelectedAetItem)
+	ObjectMousePicker::ObjectMousePicker(const Graphics::Aet::Util::ObjCache& objectCache, const bool& windowHoveredOnMouseClick, AetItemTypePtr& selectedAetItem, AetItemTypePtr& cameraSelectedAetItem)
 		: objectCache(objectCache), windowHoveredOnMouseClick(windowHoveredOnMouseClick), selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem)
 	{
 	}
@@ -27,18 +27,18 @@ namespace Comfy::Studio::Editor
 
 	const std::shared_ptr<Aet::Layer>* ObjectMousePicker::FindObjectAtPosition(vec2 worldSpace)
 	{
-		const auto& selectedComp = cameraSelectedAetItem->GetCompositionRef();
+		const auto& selectedComp = cameraSelectedAetItem.GetCompositionRef();
 		const std::shared_ptr<Aet::Layer>* foundLayer = nullptr;
 
 		for (auto& obj : objectCache)
 		{
 			TransformBox box(obj.Transform, obj.Video->Size);
 
-			if (obj.Visible && box.Contains(worldSpace))
+			if (obj.IsVisible && box.Contains(worldSpace))
 			{
 				for (auto& availableLayer : selectedComp->GetLayers())
 				{
-					if (availableLayer.get() == obj.Source || availableLayer.get() == obj.FirstParent)
+					if (availableLayer.get() == obj.SourceLayer || availableLayer.get() == obj.FirstParent)
 						foundLayer = &availableLayer;
 				}
 			}
@@ -53,13 +53,13 @@ namespace Comfy::Studio::Editor
 
 		if (foundObject != nullptr && mousePickedObjectOnMouseClick == foundObject->get())
 		{
-			selectedAetItem->SetItem(*foundObject);
+			selectedAetItem.SetItem(*foundObject);
 			(*foundObject)->GetParentComposition()->GuiData.TreeViewNodeOpen = true;
 		}
 		else
 		{
-			const auto& selectedComp = cameraSelectedAetItem->GetCompositionRef();
-			selectedAetItem->SetItem(selectedComp);
+			const auto& selectedComp = cameraSelectedAetItem.GetCompositionRef();
+			selectedAetItem.SetItem(selectedComp);
 		}
 	}
 }

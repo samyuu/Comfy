@@ -1,5 +1,6 @@
 #include "KeyFrameRenderer.h"
 #include "AetTimeline.h"
+#include "Graphics/TexSet.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -7,7 +8,8 @@ namespace Comfy::Studio::Editor
 
 #define _ 0x00000000
 #define X 0xFFFFFFFF
-	const u32 KeyFrameRenderer::keyFrameTexturePixels[keyFrameTextureSize.x * keyFrameTextureSize.y] =
+	constexpr ivec2 AetKeyFrameTextureSize = ivec2(22, 22);
+	const std::array<u32, (AetKeyFrameTextureSize.x * AetKeyFrameTextureSize.y)> AetKeyFrameTexturePixels =
 	{
 		////////////////////////////////////////////////////////
 		/**/_,_,_,_,_,X,_,_,_,_,_,/**/_,_,_,_,_,_,_,_,_,_,_,/**/
@@ -37,14 +39,6 @@ namespace Comfy::Studio::Editor
 	};
 #undef X
 #undef _
-
-	KeyFrameRenderer::KeyFrameRenderer()
-	{
-	}
-
-	KeyFrameRenderer::~KeyFrameRenderer()
-	{
-	}
 
 	void KeyFrameRenderer::Initialize()
 	{
@@ -115,7 +109,14 @@ namespace Comfy::Studio::Editor
 
 	void KeyFrameRenderer::CreateKeyFrameTexture()
 	{
-		keyFrameTexture = GPU::MakeTexture2D(keyFrameTextureSize, keyFrameTexturePixels, "KeyFrameRenderer::KeyFrameTexture");
+		keyFrameTexture = std::make_unique<Tex>();
+		auto& baseMipMap = keyFrameTexture->MipMapsArray.emplace_back().emplace_back();
+
+		baseMipMap.Size = AetKeyFrameTextureSize;
+		baseMipMap.Format = TextureFormat::RGBA8;
+		baseMipMap.DataSize = sizeof(AetKeyFrameTexturePixels);
+		baseMipMap.Data = std::make_unique<u8[]>(baseMipMap.DataSize);
+		std::memcpy(baseMipMap.Data.get(), AetKeyFrameTexturePixels.data(), baseMipMap.DataSize);
 	}
 
 	void KeyFrameRenderer::DrawKeyFrameConnection(ImDrawList* drawList, const vec2& start, const vec2& end, bool active) const
@@ -139,7 +140,7 @@ namespace Comfy::Studio::Editor
 
 	void KeyFrameRenderer::DrawKeyFramePart(ImDrawList* drawList, vec2 position, KeyFramePart type, ImU32 color) const
 	{
-		static_assert(keyFrameTextureSize == ivec2(22.0, 22.0));
+		static_assert(AetKeyFrameTextureSize == ivec2(22.0, 22.0));
 
 		vec2 topLeft = position - vec2(5.0f, 5.5f);
 		vec4 sourceRegion;

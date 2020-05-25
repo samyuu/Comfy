@@ -63,7 +63,7 @@ namespace Comfy::Graphics::Aet
 			{
 				for (auto& layer : comp->GetLayers())
 				{
-					if (layer->GetCompItem() == compToFind)
+					if (layer->GetCompItem().get() == &compToFind)
 						func(layer);
 				}
 			});

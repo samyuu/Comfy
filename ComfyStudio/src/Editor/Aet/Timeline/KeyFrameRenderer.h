@@ -2,7 +2,6 @@
 #include "Types.h"
 #include "ImGui/Gui.h"
 #include "Graphics/Auth2D/Aet/AetSet.h"
-#include "Graphics/GPU/GPUResources.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -11,8 +10,8 @@ namespace Comfy::Studio::Editor
 	class KeyFrameRenderer
 	{
 	public:
-		KeyFrameRenderer();
-		~KeyFrameRenderer();
+		KeyFrameRenderer() = default;
+		~KeyFrameRenderer() = default;
 
 		void Initialize();
 
@@ -22,23 +21,20 @@ namespace Comfy::Studio::Editor
 	private:
 		static constexpr float keyFrameSize = 5.5f;
 
-		static constexpr ivec2 keyFrameTextureSize = ivec2(22, 22);
-		static const u32 keyFrameTexturePixels[keyFrameTextureSize.x * keyFrameTextureSize.y];
-
-		std::unique_ptr<Graphics::GPU_Texture2D> keyFrameTexture = nullptr;
+		std::unique_ptr<Graphics::Tex> keyFrameTexture = nullptr;
 
 		enum class KeyFrameType
 		{
 			Single, First, Last, InBetween
 		};
 
-		enum class KeyFramePart 
-		{ 
-			Border, FillFull, FillLeft, FillRight, SquareBorder, Square 
+		enum class KeyFramePart
+		{
+			Border, FillFull, FillLeft, FillRight, SquareBorder, Square
 		};
 
 		void CreateKeyFrameTexture();
-		
+
 		void DrawKeyFrameConnection(ImDrawList* drawList, const vec2& start, const vec2& end, bool active) const;
 		void DrawKeyFramePart(ImDrawList* drawList, vec2 position, KeyFramePart type, ImU32 color) const;
 		void DrawSingleKeyFrame(ImDrawList* drawList, const vec2& position, KeyFrameType type, float opacity = 1.0f) const;

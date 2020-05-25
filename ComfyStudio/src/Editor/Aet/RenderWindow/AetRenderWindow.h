@@ -11,7 +11,7 @@
 
 namespace Comfy::Studio::Editor
 {
-	class AetRenderWindow : public RenderWindow, public MutatingEditorComponent, NonCopyable
+	class AetRenderWindow : public RenderWindow, public MutatingEditorComponent
 	{
 	public:
 		AetRenderWindow(AetCommandManager& commandManager, Render::Renderer2D& renderer, AetItemTypePtr& selectedAetItem, AetItemTypePtr& cameraSelectedAetItem, AetRenderPreviewData& previewData);

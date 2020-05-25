@@ -3,7 +3,7 @@
 #include "Editor/Command/CommandManager.h"
 
 // NOTE: Use messy macros to automatically handle the command type enum
-#define ProcessUpdatingAetCommand(commandManager, type, ref, value) commandManager->AddOrUpdateCommand<Editor::Command::type>(Editor::Command::AetCommandType::type, ref, value)
+#define ProcessUpdatingAetCommand(type, ref, value) commandManager.AddOrUpdateCommand<Editor::Command::type>(Editor::Command::AetCommandType::type, ref, value)
 
 namespace Comfy::Studio::Editor
 {

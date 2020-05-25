@@ -8,7 +8,7 @@ namespace Comfy::Studio::Editor
 
 	namespace
 	{
-		void DrawBoxNode(ImDrawList* drawList, const vec2& position, ImU32 color, float rotation)
+		void DrawBoxNode(ImDrawList* drawList, vec2 position, ImU32 color, float rotation)
 		{
 			Gui::AddQuadFilled(drawList, position, vec2(TransformBox::NodeRadius), vec2(TransformBox::NodeRadius * 0.5f), rotation, vec2(2.0f), color);
 		}
@@ -261,7 +261,7 @@ namespace Comfy::Studio::Editor
 			DrawBoxNode(drawList, screenSpaceBox.GetNodePosition(scalingNode), ImColor(allowAction ? redColor : redPreColor), screenSpaceBox.Rotation());
 	}
 
-	void TransformTool::ProcessCommands(AetCommandManager* commandManager, const std::shared_ptr<Aet::Layer>& layer, float frame, const Transform2D& transform, const Transform2D& previousTransform)
+	void TransformTool::ProcessCommands(AetCommandManager& commandManager, const std::shared_ptr<Aet::Layer>& layer, float frame, const Transform2D& transform, const Transform2D& previousTransform)
 	{
 		if (transform == previousTransform)
 			return;
@@ -270,12 +270,12 @@ namespace Comfy::Studio::Editor
 		if (transform.Scale == previousTransform.Scale)
 		{
 			const auto tuple = std::make_tuple(frame, transform.Position);
-			ProcessUpdatingAetCommand(commandManager, AnimationDataChangePosition, layer, tuple);
+			ProcessUpdatingAetCommand(AnimationDataChangePosition, layer, tuple);
 		}
 		else
 		{
 			const auto tuple = std::make_tuple(frame, transform.Position, transform.Scale);
-			ProcessUpdatingAetCommand(commandManager, AnimationDataChangeTransform, layer, tuple);
+			ProcessUpdatingAetCommand(AnimationDataChangeTransform, layer, tuple);
 		}
 	}
 

@@ -1,10 +1,10 @@
 #pragma once
 #include "Types.h"
-#include "Graphics/Auth2D/Aet/AetMgr.h"
+#include "Graphics/Auth2D/Aet/AetUtil.h"
 
 namespace Comfy::Studio::Editor
 {
-	inline void RotatePointSinCos(vec2& point, float sin, float cos)
+	constexpr void RotatePointSinCos(vec2& point, float sin, float cos)
 	{
 		point = vec2(point.x * cos - point.y * sin, point.x * sin + point.y * cos);
 	}
@@ -35,7 +35,7 @@ namespace Comfy::Studio::Editor
 
 		static BoxNode GetOpositeNode(BoxNode node);
 
-		TransformBox();
+		TransformBox() = default;
 		TransformBox(const Graphics::Transform2D& transform, const vec2& dimensions);
 
 		union

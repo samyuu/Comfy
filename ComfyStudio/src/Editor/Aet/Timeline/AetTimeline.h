@@ -4,8 +4,8 @@
 #include "KeyFrameRenderer.h"
 #include "AetTimelineController.h"
 #include "Editor/Timeline/FrameTimeline.h"
-#include "Graphics/Auth2D/Aet/AetMgr.h"
 #include "Graphics/Auth2D/Aet/AetSet.h"
+#include "Graphics/Auth2D/Aet/AetUtil.h"
 
 namespace Comfy::Studio::Editor
 {

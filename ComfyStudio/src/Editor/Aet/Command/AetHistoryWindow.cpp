@@ -3,34 +3,32 @@
 
 namespace Comfy::Studio::Editor
 {
-	AetHistoryWindow::AetHistoryWindow(AetCommandManager* commandManager) : IMutatingEditorComponent(commandManager)
+	AetHistoryWindow::AetHistoryWindow(AetCommandManager& commandManager) : MutatingEditorComponent(commandManager)
 	{
 	}
 
-	bool AetHistoryWindow::DrawGui()
+	bool AetHistoryWindow::Gui()
 	{
-		AetCommandManager* commandManager = GetCommandManager();
-
 		// TODO: Implement single column, clickable, grayed out if undone, PS-like history window
 		Gui::Columns(2, nullptr, false);
 
-		if (Gui::MenuItem("AetCommandManager::Undo()", nullptr, nullptr, commandManager->GetCanUndo()))
-			commandManager->Undo();
+		if (Gui::MenuItem("AetCommandManager::Undo()", nullptr, nullptr, commandManager.GetCanUndo()))
+			commandManager.Undo();
 		Gui::NextColumn();
 
-		if (Gui::MenuItem("AetCommandManager::Redo()", nullptr, nullptr, commandManager->GetCanRedo()))
-			commandManager->Redo();
+		if (Gui::MenuItem("AetCommandManager::Redo()", nullptr, nullptr, commandManager.GetCanRedo()))
+			commandManager.Redo();
 		Gui::NextColumn();
 
 		if (Gui::ListBoxHeader("##AetHistoryWindow::UndoListBox", Gui::GetContentRegionAvail()))
 		{
-			if (commandManager->GetUndoStack().empty())
+			if (commandManager.GetUndoStack().empty())
 			{
 				Gui::Selectable("Empty", false, ImGuiSelectableFlags_Disabled);
 			}
 			else
 			{
-				for (auto& undoCommand : commandManager->GetUndoStack())
+				for (const auto& undoCommand : commandManager.GetUndoStack())
 					Gui::Selectable(undoCommand->GetName());
 			}
 			Gui::ListBoxFooter();
@@ -39,13 +37,13 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::ListBoxHeader("##AetHistoryWindow::RedoListBox", Gui::GetContentRegionAvail()))
 		{
-			if (commandManager->GetRedoStack().empty())
+			if (commandManager.GetRedoStack().empty())
 			{
 				Gui::Selectable("Empty", false, ImGuiSelectableFlags_Disabled);
 			}
 			else
 			{
-				for (auto& redoCommand : commandManager->GetRedoStack())
+				for (const auto& redoCommand : commandManager.GetRedoStack())
 					Gui::Selectable(redoCommand->GetName());
 			}
 			Gui::ListBoxFooter();

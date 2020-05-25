@@ -16,7 +16,7 @@ namespace Comfy::Studio::Editor
 
 		void UpdatePostDrawGui(Graphics::Transform2D* transform, vec2 dimensions) override;
 		void DrawContextMenu() override;
-		void UpdateCamera(Graphics::OrthographicCamera& camera, vec2 relativeMouse) override;
+		void UpdateCamera(Render::OrthographicCamera& camera, vec2 relativeMouse) override;
 
 	private:
 		CameraController2D cameraController;
