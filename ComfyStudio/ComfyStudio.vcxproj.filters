@@ -209,9 +209,6 @@
     <ClInclude Include="src\Editor\Core\EditorManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Core\ComfyConfig.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\Common\CameraController3D.h">
       <Filter>Header Files</Filter>
     </ClInclude>

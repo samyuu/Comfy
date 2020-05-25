@@ -127,15 +127,15 @@ namespace ImGui
 
 	bool GuiRenderer::InitializeLoadFontData()
 	{
-		const auto fontDirectory = ComfyData->FindDirectory(fontDirectoryName);
+		const auto fontDirectory = System::Data.FindDirectory(fontDirectoryName);
 		if (fontDirectory == nullptr)
 			return false;
 
 		const auto& io = GetIO();
-		if (const auto textFontEntry = ComfyData->FindFileInDirectory(*fontDirectory, fontFileName); textFontEntry != nullptr)
+		if (const auto textFontEntry = System::Data.FindFileInDirectory(*fontDirectory, fontFileName); textFontEntry != nullptr)
 		{
 			void* fileContent = IM_ALLOC(textFontEntry->Size);
-			ComfyData->ReadEntryIntoBuffer(*textFontEntry, fileContent);
+			System::Data.ReadEntryIntoBuffer(*textFontEntry, fileContent);
 
 			if (io.Fonts->AddFontFromMemoryTTF(fileContent, static_cast<int>(textFontEntry->Size), fontSize, nullptr, GetFontGlyphRange()) == nullptr)
 				return false;
@@ -145,10 +145,10 @@ namespace ImGui
 			return false;
 		}
 
-		if (const auto iconFontEntry = ComfyData->FindFileInDirectory(*fontDirectory, FONT_ICON_FILE_NAME_FAS); iconFontEntry != nullptr)
+		if (const auto iconFontEntry = System::Data.FindFileInDirectory(*fontDirectory, FONT_ICON_FILE_NAME_FAS); iconFontEntry != nullptr)
 		{
 			void* fileContent = IM_ALLOC(iconFontEntry->Size);
-			ComfyData->ReadEntryIntoBuffer(*iconFontEntry, fileContent);
+			System::Data.ReadEntryIntoBuffer(*iconFontEntry, fileContent);
 
 			const ImFontConfig config = GetIconFontConfig();
 			if (io.Fonts->AddFontFromMemoryTTF(fileContent, static_cast<int>(iconFontEntry->Size), iconFontSize, &config, GetIconGlyphRange()) == nullptr)

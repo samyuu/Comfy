@@ -199,10 +199,10 @@ namespace Comfy::Studio::Editor
 		// NOTE:
 		// sankaku		| shikaku		| batsu		 | maru		 | slide_l		| slide_r	   | slide_chain_l		| slide_chain_r
 		// sankaku_sync | shikaku_sync  | batsu_sync | maru_sync | slide_l_sync | slide_r_sync | slide_chain_l_sync | slide_chain_r_sync
-		if (const auto sprFileEntry = ComfyData->FindFile("spr/spr_comfy_editor.bin"); sprFileEntry != nullptr)
+		if (const auto sprFileEntry = System::Data.FindFile("spr/spr_comfy_editor.bin"); sprFileEntry != nullptr)
 		{
 			auto sprFileBuffer = std::make_unique<u8[]>(sprFileEntry->Size);
-			ComfyData->ReadEntryIntoBuffer(*sprFileEntry, sprFileBuffer.get());
+			System::Data.ReadEntryIntoBuffer(*sprFileEntry, sprFileBuffer.get());
 
 			sprSet = std::make_unique<Graphics::SprSet>();
 			sprSet->Parse(sprFileBuffer.get(), sprFileEntry->Size);

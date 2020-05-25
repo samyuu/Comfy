@@ -109,9 +109,6 @@ namespace Comfy
 
 			Audio::Engine::CreateInstance();
 
-			if (!InitializeMountRomData())
-				return false;
-
 			if (!GuiRenderer.Initialize())
 				return false;
 
@@ -171,8 +168,6 @@ namespace Comfy
 
 			Render::D3D11::D3D.Dispose();
 			DisposeWindow();
-
-			ComfyData = nullptr;
 		}
 
 	public:
@@ -339,23 +334,6 @@ namespace Comfy
 				}
 			}
 
-			return true;
-		}
-
-		bool InitializeMountRomData()
-		{
-			if (!IO::File::Exists(ComfyDataFileName))
-			{
-				Logger::LogErrorLine(__FUNCTION__"(): Unable to locate data file");
-				assert(false);
-				return false;
-			}
-
-			ComfyData = std::make_unique<IO::ComfyArchive>();
-			if (ComfyData == nullptr)
-				return false;
-
-			ComfyData->Mount(ComfyDataFileName);
 			return true;
 		}
 

@@ -136,6 +136,9 @@ namespace Comfy::Studio::Editor
 			return false;
 
 		std::shared_ptr<ObjSet> objSet = ObjSet::MakeUniqueReadParseUpload(objSetPath);
+		if (objSet == nullptr)
+			return false;
+
 		objSet->Name = IO::Path::GetFileName(objSetPath, false);
 		objSet->TexSet = TexSet::MakeUniqueReadParseUpload(texSetPath, objSet.get());
 		sceneGraph.LoadObjSet(objSet, tag);
@@ -1077,7 +1080,7 @@ namespace Comfy::Studio::Editor
 				externalProcessTest.ShouldReadConfigFile = false;
 
 				std::vector<u8> fileBuffer;
-				if (ComfyData->ReadFileIntoBuffer("process/external_process.bin", fileBuffer))
+				if (System::Data.ReadFileIntoBuffer("process/external_process.bin", fileBuffer))
 					externalProcessTest.ExternalProcess.ParseConfig(fileBuffer.data(), fileBuffer.size());
 				else
 					externalProcessTest.WasConfigInvalid = true;

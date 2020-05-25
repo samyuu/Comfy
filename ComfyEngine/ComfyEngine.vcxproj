@@ -286,6 +286,7 @@
     <ClCompile Include="src\Render\D3D11\Texture\RenderTarget.cpp" />
     <ClCompile Include="src\Render\D3D11\Texture\Texture.cpp" />
     <ClCompile Include="src\Render\D3D11\Texture\TextureSampler.cpp" />
+    <ClCompile Include="src\System\ComfyData.cpp" />
     <ClCompile Include="src\System\Library\LibraryLoader.cpp" />
     <ClCompile Include="src\System\Profiling\Profiler.cpp" />
     <ClCompile Include="src\Window\ApplicationHost.cpp" />

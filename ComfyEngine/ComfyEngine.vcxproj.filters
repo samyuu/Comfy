@@ -428,6 +428,9 @@
     <ClCompile Include="src\System\Library\LibraryLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\System\ComfyData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\ImGuiCustom_PS.hlsl" />
