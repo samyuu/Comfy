@@ -286,6 +286,10 @@ namespace Comfy
 
 				if (Render::D3D11::D3D.WindowRenderTarget != nullptr)
 					Render::D3D11::D3D.ResizeWindowRenderTarget(size);
+
+				// HACK: Far from perfect and might cause issues in the future but fixes the ugly freeze frame while resizing for now
+				if (Window.IsRunning && Callback.UpdateFunction && Render::D3D11::D3D.SwapChain != nullptr)
+					ProgramLoopTick();
 			}
 		}
 
