@@ -30,6 +30,7 @@ namespace Comfy::IO
 		template <typename Func>
 		void FromBuffer(size_t size, Func fromBufferFunc)
 		{
+			isOpen = true;
 			owningDataVector.resize(size);
 			fromBufferFunc(static_cast<void*>(owningDataVector.data()), size);
 			dataSize = static_cast<FileAddr>(size);
