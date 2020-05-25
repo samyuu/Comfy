@@ -3,6 +3,7 @@
 #include "CoreMacros.h"
 #include "Window/ApplicationHost.h"
 #include "Tests/TestTask.h"
+#include "System/ComfyData.h"
 #include <numeric>
 #include <atomic>
 
@@ -95,6 +96,9 @@ namespace Comfy::Sandbox
 
 	void Main()
 	{
+		System::MountComfyData();
+		System::LoadComfyConfig();
+
 		ApplicationHost::ConstructionParam param;
 		param.StartupWindowState.Title = "YEP COCK";
 
