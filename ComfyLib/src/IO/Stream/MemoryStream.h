@@ -38,6 +38,8 @@ namespace Comfy::IO
 		void Close() override;
 
 	protected:
+		bool isOpen = false;
+
 		FileAddr position = {};
 		FileAddr dataSize = {};
 

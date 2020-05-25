@@ -17,6 +17,7 @@ namespace Comfy::IO
 		else
 			dataVectorPtr = other.dataVectorPtr;
 
+		isOpen = other.isOpen;
 		position = other.position;
 		dataSize = other.dataSize;
 
@@ -46,12 +47,12 @@ namespace Comfy::IO
 
 	bool MemoryStream::IsOpen() const
 	{
-		return (dataVectorPtr != nullptr);
+		return (isOpen && dataVectorPtr != nullptr);
 	}
 
 	bool MemoryStream::CanRead() const
 	{
-		return (dataVectorPtr != nullptr);
+		return (isOpen && dataVectorPtr != nullptr);
 	}
 
 	bool MemoryStream::CanWrite() const
@@ -92,13 +93,16 @@ namespace Comfy::IO
 
 	void MemoryStream::FromStreamSource(std::vector<u8>& source)
 	{
-		dataVectorPtr = &source;
+		isOpen = true;
 		dataSize = static_cast<FileAddr>(source.size());
+		dataVectorPtr = &source;
 	}
 
 	void MemoryStream::FromStream(IStream& stream)
 	{
 		assert(stream.CanRead());
+
+		isOpen = true;
 		dataSize = stream.GetLength() - stream.GetPosition();
 		dataVectorPtr->resize(static_cast<size_t>(dataSize));
 
@@ -109,6 +113,7 @@ namespace Comfy::IO
 
 	void MemoryStream::Close()
 	{
+		isOpen = false;
 		position = {};
 		dataSize = {};
 		dataVectorPtr = nullptr;
