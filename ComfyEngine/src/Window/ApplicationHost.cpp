@@ -61,6 +61,7 @@ namespace Comfy
 			std::function<bool(HWND, UINT, WPARAM, LPARAM)> WindowProc = {};
 			std::function<void(ivec2 size)> WindowResize = {};
 			std::function<void()> WindowClosing = {};
+			std::function<void()> UpdateFunction = {};
 		} Callback;
 
 		struct TimingData
@@ -115,8 +116,9 @@ namespace Comfy
 			return true;
 		}
 
-		void EnterProgramLoop(const std::function<void()>& updateFunction)
+		void EnterProgramLoop(std::function<void()> updateFunction)
 		{
+			Callback.UpdateFunction = std::move(updateFunction);
 			Window.IsRunning = true;
 
 			MSG message = {};
@@ -129,24 +131,29 @@ namespace Comfy
 					continue;
 				}
 
-				PreUpdateFrameChangeState();
-				PreUpdatePollInput();
-				{
-					System::Profiler::Get().StartFrame();
-					UserUpdateTick(updateFunction);
-					System::Profiler::Get().EndFrame();
-
-					Timing.MainLoopLowPowerSleep = (!Window.Focused && !GuiRenderer.IsAnyViewportFocused());
-					if (Timing.MainLoopLowPowerSleep)
-					{
-						// NOTE: Arbitrary sleep to drastically reduce power usage. This could really use a better solution for final release builds
-						::Sleep(static_cast<u32>(Timing.PowerSleepDuration.TotalMilliseconds()));
-					}
-
-					Render::D3D11::D3D.SwapChain->Present(Timing.SwapInterval, 0);
-				}
-				PostUpdateElapsedTime();
+				ProgramLoopTick();
 			}
+		}
+
+		void ProgramLoopTick()
+		{
+			PreUpdateFrameChangeState();
+			PreUpdatePollInput();
+			{
+				System::Profiler::Get().StartFrame();
+				UserUpdateTick();
+				System::Profiler::Get().EndFrame();
+
+				Timing.MainLoopLowPowerSleep = (!Window.Focused && !GuiRenderer.IsAnyViewportFocused());
+				if (Timing.MainLoopLowPowerSleep)
+				{
+					// NOTE: Arbitrary sleep to drastically reduce power usage. This could really use a better solution for final release builds
+					::Sleep(static_cast<u32>(Timing.PowerSleepDuration.TotalMilliseconds()));
+				}
+
+				Render::D3D11::D3D.SwapChain->Present(Timing.SwapInterval, 0);
+			}
+			PostUpdateElapsedTime();
 		}
 
 		void Exit()
@@ -178,7 +185,7 @@ namespace Comfy
 
 			WNDCLASSEXW windowClass = {};
 			windowClass.cbSize = sizeof(WNDCLASSEXW);
-			windowClass.style = CS_HREDRAW | CS_VREDRAW;
+			windowClass.style = (CS_HREDRAW | CS_VREDRAW);
 			windowClass.lpfnWndProc = &StaticProcessWindowMessage;
 			windowClass.cbClsExtra = 0;
 			windowClass.cbWndExtra = 0;
@@ -398,11 +405,11 @@ namespace Comfy
 			*/
 		}
 
-		void UserUpdateTick(const std::function<void()>& updateFunction)
+		void UserUpdateTick()
 		{
 			GuiRenderer.BeginFrame();
 			{
-				updateFunction();
+				Callback.UpdateFunction();
 				Render::D3D11::D3D.WindowRenderTarget->BindSetViewport();
 				Render::D3D11::D3D.WindowRenderTarget->Clear(Window.ClearColor);
 			}
@@ -613,12 +620,12 @@ namespace Comfy
 		impl->Dispose();
 	}
 
-	void ApplicationHost::EnterProgramLoop(const std::function<void()> updateFunction)
+	void ApplicationHost::EnterProgramLoop(std::function<void()> updateFunction)
 	{
 		if (impl->FailedToInitialize)
 			return;
 
-		impl->EnterProgramLoop(updateFunction);
+		impl->EnterProgramLoop(std::move(updateFunction));
 	}
 
 	void ApplicationHost::GuiMainDockspace(bool hasMenuBar)
