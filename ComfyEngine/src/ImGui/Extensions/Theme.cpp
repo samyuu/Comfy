@@ -1,4 +1,5 @@
 #include "Theme.h"
+#include "Core/Win32/ComfyWindows.h"
 
 namespace ImGui
 {
@@ -16,6 +17,13 @@ namespace ImGui
 
 		// NOTE: Not sure if this is a good idea yet but this is to prevent newly created windows from being too small to move without manually resizing them first
 		// style->WindowMinSize = ImVec2(192.0f, 96.0f);
+
+		// NOTE: To prevent render glitches for free floating windows
+		if (const int minWindowWidth = ::GetSystemMetrics(SM_CXMIN); minWindowWidth != 0)
+			style->WindowMinSize = ImVec2(static_cast<float>(minWindowWidth), 32.0f);
+
+		// NOTE: Otherwise a reasonable limit would be
+		// style->WindowMinSize = ImVec2(120.0f, 32.0f);
 
 		ImVec4* colors = style->Colors;
 		colors[ImGuiCol_Text] = ImVec4(0.88f, 0.88f, 0.88f, 1.00f);

@@ -12,7 +12,7 @@
 // NOTE: WS_*, CS_*, ES_*, LBS_*, SBS_*, CBS_*
 // #define NOWINSTYLES
 // NOTE: SM_*
-#define NOSYSMETRICS
+// #define NOSYSMETRICS
 // NOTE: MF_*
 #define NOMENUS
 // NOTE: IDI_*
