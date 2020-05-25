@@ -5344,7 +5344,10 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
     const bool window_is_fallback = (g.CurrentWindowStack.Size == 0);
     if (window_just_created)
     {
-        ImVec2 size_on_first_use = (g.NextWindowData.SizeCond != 0) ? g.NextWindowData.SizeVal : ImVec2(0.0f, 0.0f); // Any condition flag will do since we are creating a new window here.
+		// HACK: Added 2020/05/25: To avoid creating windows that are too small to move by dragging the title bar if io.ConfigViewportsNoAutoMerge is set
+		static const ImVec2 startupDefaultWindowSize = ImVec2(256.0f, 192.0f);
+
+        ImVec2 size_on_first_use = (g.NextWindowData.SizeCond != 0) ? g.NextWindowData.SizeVal : startupDefaultWindowSize; // Any condition flag will do since we are creating a new window here.
         window = CreateNewWindow(name, size_on_first_use, flags);
     }
 

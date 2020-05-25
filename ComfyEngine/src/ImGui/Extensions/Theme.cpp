@@ -15,7 +15,7 @@ namespace ImGui
 		style->GrabMinSize = 12.0f;
 
 		// NOTE: Not sure if this is a good idea yet but this is to prevent newly created windows from being too small to move without manually resizing them first
-		style->WindowMinSize = ImVec2(192.0f, 96.0f);
+		// style->WindowMinSize = ImVec2(192.0f, 96.0f);
 
 		ImVec4* colors = style->Colors;
 		colors[ImGuiCol_Text] = ImVec4(0.88f, 0.88f, 0.88f, 1.00f);
