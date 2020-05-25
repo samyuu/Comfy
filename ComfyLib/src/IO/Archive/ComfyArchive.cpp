@@ -25,6 +25,8 @@ namespace Comfy::IO
 
 		if (header.Flags.EncryptedStrings)
 			DecryptStrings();
+
+		return true;
 	}
 
 	void ComfyArchive::UnMount()
