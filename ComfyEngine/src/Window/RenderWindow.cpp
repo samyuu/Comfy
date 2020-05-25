@@ -10,7 +10,6 @@ namespace Comfy
 		if (Gui::Begin(windowName, isOpen, flags))
 		{
 			Gui::PopStyleVar();
-			Gui::PushID(this);
 
 			CheckUpdateOnFirstFrame();
 			PreRenderTextureGui();
@@ -19,7 +18,6 @@ namespace Comfy
 			PostRenderTextureGui();
 			Gui::EndChild();
 
-			Gui::PopID();
 			Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, windowPadding);
 		}
 		Gui::End();
