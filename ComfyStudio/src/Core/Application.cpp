@@ -8,20 +8,27 @@
 #include "System/Version/BuildVersion.h"
 #include "Input/Input.h"
 #include "System/ComfyData.h"
-#include "Core/ComfyConfig.h"
 #include "Core/Logger.h"
 
 #include "../res/resource.h"
 
 namespace Comfy::Studio
 {
+	namespace ApplicationConfigIDs
+	{
+		constexpr std::string_view RestoreRegion = "Comfy::Studio::Application::RestoreRegion";
+		constexpr std::string_view Position = "Comfy::Studio::Application::Position";
+		constexpr std::string_view Size = "Comfy::Studio::Application::Size";
+		constexpr std::string_view IsFullscreen = "Comfy::Studio::Application::IsFullscreen";
+		constexpr std::string_view IsMaximized = "Comfy::Studio::Application::IsMaximized";
+	}
+
 	void Application::Run()
 	{
-		const auto comfyIcon = ::LoadIconA(::GetModuleHandleA(nullptr), MAKEINTRESOURCEA(COMFY_ICON));
+		System::MountComfyData();
+		System::LoadComfyConfig();
 
-		ApplicationHost::ConstructionParam hostParam;
-		hostParam.WindowTitle = ComfyStudioWindowTitle;
-		hostParam.IconHandle = comfyIcon;
+		const auto hostParam = CreateHostParam();
 		host = std::make_unique<ApplicationHost>(hostParam);
 
 		if (!BaseInitialize())
@@ -47,8 +54,6 @@ namespace Comfy::Studio
 
 	bool Application::BaseInitialize()
 	{
-		InitializeLoadConfig();
-
 		host->RegisterWindowResizeCallback([&](ivec2 size)
 		{
 		});
@@ -64,38 +69,19 @@ namespace Comfy::Studio
 		return true;
 	}
 
-	bool Application::InitializeLoadConfig()
+	ApplicationHost::ConstructionParam Application::CreateHostParam()
 	{
-		if (!LoadComfyConfig)
-			return false;
+		const auto comfyIcon = ::LoadIconA(::GetModuleHandleA(nullptr), MAKEINTRESOURCEA(COMFY_ICON));
 
-		if (!IO::File::Exists(ComfyConfigFileName))
-		{
-			Logger::LogErrorLine(__FUNCTION__"(): Unable to locate config file");
-			return false;
-		}
-
-		const auto[fileContent, fileSize] = IO::File::ReadAllBytes(ComfyConfigFileName);
-		if (fileContent == nullptr || fileSize != sizeof(ComfyConfig))
-		{
-			Logger::LogErrorLine(__FUNCTION__"(): Unable to read config file");
-
-			ComfyConfig = {};
-			host->SetDefaultPositionWindow(true);
-			host->SetDefaultResizeWindow(true);
-			return false;
-		}
-		else
-		{
-			// TODO: Have this set the ApplicationHost::ConstructionParam
-			std::memcpy(&ComfyConfig, fileContent.get(), sizeof(ComfyConfig));
-			host->SetWindowRestoreRegion(ComfyConfig.Data.Window.RestoreRegion);
-			host->SetWindowPosition(ComfyConfig.Data.Window.Position);
-			host->SetWindowSize(ComfyConfig.Data.Window.Size);
-			host->SetIsFullscreen(ComfyConfig.Data.Window.Fullscreen);
-			host->SetIsMaximized(ComfyConfig.Data.Window.Maximized);
-			return true;
-		}
+		ApplicationHost::ConstructionParam hostParam;
+		hostParam.StartupWindowState.Title = ComfyStudioWindowTitle;
+		hostParam.IconHandle = comfyIcon;
+		hostParam.StartupWindowState.RestoreRegion = System::Config.GetIVec4(ApplicationConfigIDs::RestoreRegion);
+		hostParam.StartupWindowState.Position = System::Config.GetIVec2(ApplicationConfigIDs::Position);
+		hostParam.StartupWindowState.Size = System::Config.GetIVec2(ApplicationConfigIDs::Size);
+		hostParam.StartupWindowState.IsFullscreen = System::Config.GetBool(ApplicationConfigIDs::IsFullscreen);
+		hostParam.StartupWindowState.IsMaximized = System::Config.GetBool(ApplicationConfigIDs::IsMaximized);
+		return hostParam;
 	}
 
 	bool Application::InitializeEditorComponents()
@@ -378,17 +364,11 @@ namespace Comfy::Studio
 
 	void Application::DisposeSaveConfig()
 	{
-		if (!SaveComfyConfig)
-			return;
-
-		ComfyConfig.Data.Window.RestoreRegion = host->GetWindowRestoreRegion();
-		ComfyConfig.Data.Window.Position = host->GetWindowPosition();
-		ComfyConfig.Data.Window.Size = host->GetWindowSize();
-		ComfyConfig.Data.Window.Fullscreen = host->GetIsFullscreen();
-		ComfyConfig.Data.Window.Maximized = host->GetIsMaximized();
-
-		const bool success = IO::File::WriteAllBytes(ComfyConfigFileName, &ComfyConfig, sizeof(ComfyConfig));
-		if (!success)
-			Logger::LogErrorLine(__FUNCTION__"(): Unable to write config file");
+		System::Config.SetIVec4(ApplicationConfigIDs::RestoreRegion, host->GetWindowRestoreRegion());
+		System::Config.SetIVec2(ApplicationConfigIDs::Position, host->GetWindowPosition());
+		System::Config.SetIVec2(ApplicationConfigIDs::Size, host->GetWindowSize());
+		System::Config.SetBool(ApplicationConfigIDs::IsFullscreen, host->GetIsFullscreen());
+		System::Config.SetBool(ApplicationConfigIDs::IsMaximized, host->GetIsMaximized());
+		System::SaveComfyConfig();
 	}
 }

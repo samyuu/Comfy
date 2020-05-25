@@ -27,8 +27,10 @@ namespace Comfy::Studio
 		ApplicationHost& GetHost();
 
 	private:
+		ApplicationHost::ConstructionParam CreateHostParam();
+
+	public:
 		bool BaseInitialize();
-		bool InitializeLoadConfig();
 		bool InitializeEditorComponents();
 
 	private:
