@@ -37,6 +37,7 @@ namespace Comfy
 
 	protected:
 		virtual ImGuiWindowFlags GetRenderTextureChildWindowFlags() const = 0;
+		virtual void PreBeginWindow() {};
 		virtual void OnFirstFrame() = 0;
 		virtual void PreRenderTextureGui() = 0;
 		virtual void PostRenderTextureGui() = 0;

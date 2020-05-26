@@ -7,6 +7,7 @@ namespace Comfy
 		constexpr vec2 windowPadding = vec2(2.0f, 2.0f);
 
 		Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, windowPadding);
+		PreBeginWindow();
 		if (Gui::Begin(windowName, isOpen, flags))
 		{
 			Gui::PopStyleVar();
