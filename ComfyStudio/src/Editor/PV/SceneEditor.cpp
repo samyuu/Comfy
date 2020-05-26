@@ -133,15 +133,15 @@ namespace Comfy::Studio::Editor
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_SYNC_ALT "  A3D Test"))
-			DrawA3DTestGui();
+			DrawA3DTestGui(mainViewport);
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_PROJECT_DIAGRAM "  External Process"))
-			DrawExternalProcessTestGui(/*activeViewport*/mainViewport);
+			DrawExternalProcessTestGui(mainViewport);
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_BUG "  Debug Test"))
-			DrawDebugTestGui(/*activeViewport*/mainViewport);
+			DrawDebugTestGui(mainViewport);
 		Gui::End();
 	}
 
@@ -1002,41 +1002,286 @@ namespace Comfy::Studio::Editor
 		});
 	}
 
-	void SceneEditor::DrawA3DTestGui()
+	void SceneEditor::DrawA3DTestGui(ViewportContext& activeViewport)
 	{
-#if COMFY_DEBUG && 0 // DEBUG:
-#if 1
-		scene.LensFlare.SunPosition = vec3(11.017094f, 5.928364f, -57.304039f);
-		//scene.LensFlare.SunPosition = vec3(0.0f, 2.0f, 0.0f);
-#endif
-
-#if 1
-		static constexpr std::string_view effCmnObjSetPath = "dev_rom/objset/copy/effcmn/effcmn_obj.bin";
-		static constexpr std::string_view effCmnTexSetPath = "dev_rom/objset/copy/effcmn/effcmn_tex.bin";
-
-		static std::unique_ptr<ObjSet> effCmnObjSet = nullptr;
-
-		if (effCmnObjSet == nullptr)
+		static struct DebugData
 		{
-			effCmnObjSet = ObjSet::MakeUniqueReadParseUpload(effCmnObjSetPath);
-			effCmnObjSet->TexSet = TexSet::MakeUniqueReadParseUpload(effCmnTexSetPath, effCmnObjSet.get());
-
-			if (auto sunObj = std::find_if(effCmnObjSet->begin(), effCmnObjSet->end(), [&](const auto& obj) { return obj.Name == "effcmn_sun"; }); sunObj != effCmnObjSet->end())
-				scene.LensFlare.SunObj = &(*sunObj);
-		}
-#elif 1
-		scene.LensFlare.SunObj = nullptr;
-
-		for (auto& objSet : sceneGraph.LoadedObjSets)
-		{
-			for (auto& obj : *objSet.ObjSet)
+			static void ApplyA3DParentTransform(const A3DObject& parentObject, Transform& output, frame_t frame)
 			{
-				if (Utilities::EndsWithInsensitive(obj.Name, "lensflare_0"))
-					scene.LensFlare.SunObj = &obj;
+				Transform parentTransform = A3DMgr::GetTransformAt(parentObject.Transform, frame);
+
+				if (parentObject.Parent != nullptr)
+					ApplyA3DParentTransform(*parentObject.Parent, parentTransform, frame);
+
+				output.ApplyParent(parentTransform);
+			}
+
+			float MorphWeight = 0.0f, PlaybackSpeed = 0.0f, Elapsed = 0.0f;
+
+			std::vector<std::unique_ptr<A3D>> StageEffA3Ds, CamPVA3Ds;
+			int StageEffIndex = -1, CamPVIndex = -1;
+
+			frame_t Frame = 0.0f, Duration = 1.0f, FrameRate = 60.0f;
+			bool Playback = true, SetLongestDuration = true, Repeat = true, ApplyStageAuth = true;
+
+		} debug;
+
+		auto loadA3Ds = [](const char* farcPath)
+		{
+			std::vector<std::unique_ptr<A3D>> a3ds;
+			if (auto farc = IO::FArc::Open(farcPath); farc != nullptr)
+			{
+				for (const auto& file : farc->GetEntries())
+				{
+					auto content = file.ReadArray();
+					a3ds.emplace_back(std::make_unique<A3D>())->Parse(content.get(), file.OriginalSize);
+				}
+			}
+			return a3ds;
+		};
+
+		auto loadCamPVA3Ds = [loadA3Ds](int pvID)
+		{
+			char path[MAX_PATH]; sprintf_s(path, "dev_rom/auth_3d/CAMPV%03d.farc", pvID);
+			return loadA3Ds(path);
+		};
+
+		auto loadStgEffA3Ds = [loadA3Ds](StageType type, int id)
+		{
+			char path[MAX_PATH]; sprintf_s(path, "dev_rom/auth_3d/EFFSTG%s%03d.farc", std::array { "TST", "NS", "D2NS", "PV" }[static_cast<int>(type)], id);
+			return loadA3Ds(path);
+		};
+
+		// TODO: Optimize and refactor into its own A3DSceneManager (?) class
+		auto applyA3D = [](auto& a3d, frame_t frame, auto& sceneGraph, auto& scene, auto& camera)
+		{
+			for (auto& object : a3d.Objects)
+			{
+				auto& entities = sceneGraph.Entities;
+				auto correspondingEntity = std::find_if(entities.begin(), entities.end(), [&](auto& e) { return MatchesInsensitive(e->Name, object.UIDName); });
+
+				if (correspondingEntity == entities.end())
+					continue;
+
+				auto& entity = *(correspondingEntity);
+				entity->Transform = A3DMgr::GetTransformAt(object.Transform, frame);
+				entity->IsVisible = A3DMgr::GetBoolAt(object.Transform.Visibility, frame);
+
+				if (object.Parent != nullptr)
+					DebugData::ApplyA3DParentTransform(*object.Parent, entity->Transform, frame);
+
+				if (entity->Dynamic == nullptr)
+					entity->Dynamic = std::make_unique<Render::RenderCommand3D::DynamicData>();
+
+				// TODO: Instead of searching at the entire TexDB for entries only the loaded ObjSets would have to be checked (?)
+				//		 As long as their Texs have been updated using a TexDB before that is
+
+				if (!object.TexturePatterns.empty())
+				{
+					const auto& a3dPatterns = object.TexturePatterns;
+					auto& entityPatterns = entity->Dynamic->TexturePatterns;
+
+					if (entityPatterns.size() != a3dPatterns.size())
+						entityPatterns.resize(a3dPatterns.size());
+
+					for (size_t i = 0; i < a3dPatterns.size(); i++)
+					{
+						const auto& a3dPattern = a3dPatterns[i];
+						auto& entityPattern = entityPatterns[i];
+
+						if (a3dPattern.Pattern != nullptr)
+						{
+							if (!entityPattern.CachedIDs.has_value())
+							{
+								auto& cachedIDs = entityPattern.CachedIDs.emplace();
+								cachedIDs.reserve(16);
+
+								for (int cacheIndex = 0; cacheIndex < 999; cacheIndex++)
+								{
+									char nameBuffer[128];
+									sprintf_s(nameBuffer, "%.*s_%03d", static_cast<int>(a3dPattern.Name.size() - strlen("_000")), a3dPattern.Name.data(), cacheIndex);
+
+									auto texEntry = sceneGraph.TexDB->GetTexEntry(nameBuffer);
+									if (texEntry == nullptr)
+										break;
+
+									if (cacheIndex == 0)
+										entityPattern.OverrideID = texEntry->ID;
+
+									cachedIDs.push_back(texEntry->ID);
+								}
+							}
+
+							const int index = A3DMgr::GetIntAt(a3dPattern.Pattern->CV, frame);
+							entityPattern.OverrideID = (InBounds(index, *entityPattern.CachedIDs)) ? entityPattern.CachedIDs->at(index) : TexID::Invalid;
+						}
+					}
+				}
+
+				if (!object.TextureTransforms.empty())
+				{
+					auto& a3dTexTransforms = object.TextureTransforms;
+					auto& entityTexTransforms = entity->Dynamic->TextureTransforms;
+
+					if (entityTexTransforms.size() != a3dTexTransforms.size())
+						entityTexTransforms.resize(a3dTexTransforms.size());
+
+					for (size_t i = 0; i < a3dTexTransforms.size(); i++)
+					{
+						auto& a3dTexTransform = a3dTexTransforms[i];
+						auto& entityTexTransform = entityTexTransforms[i];
+
+						if (entityTexTransform.SourceID == TexID::Invalid)
+						{
+							if (auto texEntry = sceneGraph.TexDB->GetTexEntry(a3dTexTransform.Name); texEntry != nullptr)
+								entityTexTransform.SourceID = texEntry->ID;
+						}
+
+						// TODO: Might not be a single bool but different types
+						if (a3dTexTransform.RepeatU.Enabled)
+							entityTexTransform.RepeatU.emplace(A3DMgr::GetBoolAt(a3dTexTransform.RepeatU, frame));
+						if (a3dTexTransform.RepeatV.Enabled)
+							entityTexTransform.RepeatV.emplace(A3DMgr::GetBoolAt(a3dTexTransform.RepeatV, frame));
+
+						entityTexTransform.Rotation = A3DMgr::GetRotationAt(a3dTexTransform.Rotate, frame) + A3DMgr::GetRotationAt(a3dTexTransform.RotateFrame, frame);
+
+						entityTexTransform.Translation.x = A3DMgr::GetValueAt(a3dTexTransform.OffsetU, frame) - A3DMgr::GetValueAt(a3dTexTransform.TranslateFrameU, frame);
+						entityTexTransform.Translation.y = A3DMgr::GetValueAt(a3dTexTransform.OffsetV, frame) - A3DMgr::GetValueAt(a3dTexTransform.TranslateFrameV, frame);
+					}
+				}
+
+				if (object.Morph != nullptr)
+				{
+					size_t morphEntityIndex = static_cast<size_t>(std::distance(entities.begin(), correspondingEntity)) + 1;
+
+					entity->Dynamic->MorphObj = (morphEntityIndex >= entities.size()) ? nullptr : entities[morphEntityIndex]->Obj;
+					entity->Dynamic->MorphWeight = A3DMgr::GetValueAt(object.Morph->CV, frame);
+				}
+			}
+
+			for (auto& a3dCamera : a3d.CameraRoot)
+			{
+				camera.ViewPoint = A3DMgr::GetValueAt(a3dCamera.ViewPoint.Transform.Translation, frame);
+				camera.Interest = A3DMgr::GetValueAt(a3dCamera.Interest.Translation, frame);
+				camera.FieldOfView = A3DMgr::GetFieldOfViewAt(a3dCamera.ViewPoint, frame);
+			}
+		};
+
+		auto iterateA3Ds = [](std::vector<std::unique_ptr<A3D>>& a3ds, int index, auto func)
+		{
+			if (a3ds.empty())
+				return;
+			else if (index < 0)
+				for (auto& a3d : a3ds)
+					func(*a3d);
+			else if (index < a3ds.size())
+				func(*a3ds[index]);
+		};
+
+		const float availWidth = Gui::GetContentRegionAvailWidth();
+
+		if (Gui::Button("Load STG EFF", vec2(availWidth * 0.25f, 0.0f)) && stageTestData.lastSetStage.has_value())
+			debug.StageEffA3Ds = loadStgEffA3Ds(stageTestData.lastSetStage->Type, stageTestData.lastSetStage->ID);
+		Gui::SameLine();
+		if (Gui::Button("Unload EFF", vec2(availWidth * 0.25f, 0.0f)))
+		{
+			debug.StageEffA3Ds.clear();
+			debug.StageEffIndex = -1;
+		}
+
+		if (Gui::Button("Load CAM PV ", vec2(availWidth * 0.25f, 0.0f)) && stageTestData.lastSetStage.has_value() && stageTestData.lastSetStage.value().Type == StageType::STGPV)
+			debug.CamPVA3Ds = loadCamPVA3Ds(stageTestData.lastSetStage->ID);
+		Gui::SameLine();
+		if (Gui::Button("Unload CAM", vec2(availWidth * 0.25f, 0.0f)))
+		{
+			debug.CamPVA3Ds.clear();
+			debug.CamPVIndex = -1;
+		}
+
+		if (Gui::InputInt("STGEFF Index", &debug.StageEffIndex))
+			debug.StageEffIndex = std::clamp(debug.StageEffIndex, -1, static_cast<int>(debug.StageEffA3Ds.size()));
+		if (Gui::IsItemHovered())
+		{
+			Gui::BeginTooltip();
+			iterateA3Ds(debug.StageEffA3Ds, debug.StageEffIndex, [](auto& a3d) { Gui::Selectable(a3d.Metadata.FileName.c_str()); });
+			Gui::EndTooltip();
+		}
+
+		if (Gui::InputInt("CAMPV Index", &debug.CamPVIndex))
+			debug.CamPVIndex = std::clamp(debug.CamPVIndex, -1, static_cast<int>(debug.CamPVA3Ds.size()));
+		if (Gui::IsItemHovered())
+		{
+			Gui::BeginTooltip();
+			iterateA3Ds(debug.CamPVA3Ds, debug.CamPVIndex, [](auto& a3d) { Gui::Selectable(a3d.Metadata.FileName.c_str()); });
+			Gui::EndTooltip();
+		}
+
+		Gui::Checkbox("Apply Stage Auth", &debug.ApplyStageAuth);
+
+		if (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Space))
+			debug.Playback ^= true;
+
+		Gui::Checkbox("Playback", &debug.Playback);
+		Gui::SameLine();
+		Gui::Checkbox("Repeat", &debug.Repeat);
+
+		Gui::InputFloat("Frame", &debug.Frame, 1.0f, 100.0f);
+		Gui::InputFloat("Duration", &debug.Duration, 1.0f, 100.0f);
+
+		if (debug.SetLongestDuration)
+		{
+			debug.Duration = 0.0f;
+			iterateA3Ds(debug.StageEffA3Ds, debug.StageEffIndex, [&](auto& a3d) { debug.Duration = std::max(debug.Duration, a3d.PlayControl.Duration); });
+			iterateA3Ds(debug.CamPVA3Ds, debug.CamPVIndex, [&](auto& a3d) { debug.Duration = std::max(debug.Duration, a3d.PlayControl.Duration); });
+		}
+
+		if (debug.Playback)
+		{
+			debug.Frame += 1.0f * (Gui::GetIO().DeltaTime * debug.FrameRate);
+			if (debug.Repeat && debug.Frame >= debug.Duration)
+				debug.Frame = 0.0f;
+			debug.Frame = std::clamp(debug.Frame, 0.0f, debug.Duration);
+		}
+
+		if (debug.ApplyStageAuth)
+			iterateA3Ds(debug.StageEffA3Ds, debug.StageEffIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, scene, activeViewport.Camera); });
+
+		if (activeViewport.CameraController.Mode == CameraController3D::ControlMode::None)
+			iterateA3Ds(debug.CamPVA3Ds, debug.CamPVIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, scene, activeViewport.Camera); });
+
+		if (Gui::Button("Camera Mode Orbit")) { activeViewport.Camera.FieldOfView = 90.0f; activeViewport.CameraController.Mode = CameraController3D::ControlMode::Orbit; }
+		Gui::SameLine();
+		if (Gui::Button("Camera Mode None")) { activeViewport.CameraController.Mode = CameraController3D::ControlMode::None; }
+
+		if (Gui::Button("Set Screen Render IDs"))
+		{
+			for (auto& entity : sceneGraph.Entities)
+			{
+				for (const auto& material : entity->Obj->Materials)
+				{
+					const auto diffuseTexture = FindIfOrNull(material.Textures, [&](const auto& t) { return t.TextureFlags.Type == MaterialTextureType::ColorMap; });
+					if (diffuseTexture == nullptr)
+						continue;
+
+					if (const auto* tex = renderer3D->GetTexFromTextureID(&diffuseTexture->TextureID); tex != nullptr && tex->Name.has_value())
+					{
+						if (const auto& name = tex->Name.value();
+							EndsWithInsensitive(name, "_RENDER") ||
+							EndsWithInsensitive(name, "_MOVIE") ||
+							EndsWithInsensitive(name, "_TV") ||
+							EndsWithInsensitive(name, "_FB01") ||
+							EndsWithInsensitive(name, "_FB02") ||
+							EndsWithInsensitive(name, "_FB03"))
+						{
+							if (entity->Dynamic == nullptr)
+								entity->Dynamic = std::make_unique<Render::RenderCommand3D::DynamicData>();
+
+							entity->Dynamic->ScreenRenderTextureID = diffuseTexture->TextureID;
+						}
+					}
+				}
 			}
 		}
-#endif
-#endif /* COMFY_DEBUG */
 	}
 
 	void SceneEditor::DrawExternalProcessTestGui(ViewportContext& activeViewport)
@@ -1203,28 +1448,41 @@ namespace Comfy::Studio::Editor
 		});
 #endif
 
-		static struct DebugData
+#if COMFY_DEBUG && 0 // DEBUG:
+#if 1
+		scene.LensFlare.SunPosition = vec3(11.017094f, 5.928364f, -57.304039f);
+		//scene.LensFlare.SunPosition = vec3(0.0f, 2.0f, 0.0f);
+#endif
+
+#if 1
+		static constexpr std::string_view effCmnObjSetPath = "dev_rom/objset/copy/effcmn/effcmn_obj.bin";
+		static constexpr std::string_view effCmnTexSetPath = "dev_rom/objset/copy/effcmn/effcmn_tex.bin";
+
+		static std::unique_ptr<ObjSet> effCmnObjSet = nullptr;
+
+		if (effCmnObjSet == nullptr)
 		{
-			static void ApplyA3DParentTransform(const A3DObject& parentObject, Transform& output, frame_t frame)
+			effCmnObjSet = ObjSet::MakeUniqueReadParseUpload(effCmnObjSetPath);
+			effCmnObjSet->TexSet = TexSet::MakeUniqueReadParseUpload(effCmnTexSetPath, effCmnObjSet.get());
+
+			if (auto sunObj = std::find_if(effCmnObjSet->begin(), effCmnObjSet->end(), [&](const auto& obj) { return obj.Name == "effcmn_sun"; }); sunObj != effCmnObjSet->end())
+				scene.LensFlare.SunObj = &(*sunObj);
+		}
+#elif 1
+		scene.LensFlare.SunObj = nullptr;
+
+		for (auto& objSet : sceneGraph.LoadedObjSets)
+		{
+			for (auto& obj : *objSet.ObjSet)
 			{
-				Transform parentTransform = A3DMgr::GetTransformAt(parentObject.Transform, frame);
-
-				if (parentObject.Parent != nullptr)
-					ApplyA3DParentTransform(*parentObject.Parent, parentTransform, frame);
-
-				output.ApplyParent(parentTransform);
+				if (Utilities::EndsWithInsensitive(obj.Name, "lensflare_0"))
+					scene.LensFlare.SunObj = &obj;
 			}
+		}
+#endif
+#endif /* COMFY_DEBUG */
 
-			float MorphWeight = 0.0f, PlaybackSpeed = 0.0f, Elapsed = 0.0f;
-
-			std::vector<std::unique_ptr<A3D>> StageEffA3Ds, CamPVA3Ds;
-			int StageEffIndex = -1, CamPVIndex = -1;
-
-			frame_t Frame = 0.0f, Duration = 1.0f, FrameRate = 60.0f;
-			bool Playback = true, SetLongestDuration = true, Repeat = true, ApplyStageAuth = true;
-
-		} debug;
-
+#if 0
 		if (Gui::CollapsingHeader("Morph Weight Test", ImGuiTreeNodeFlags_None))
 		{
 			if (debug.PlaybackSpeed > 0.0f)
@@ -1273,266 +1531,7 @@ namespace Comfy::Studio::Editor
 					entity->Dynamic->MorphObj = nullptr;
 			}
 		}
-
-		if (Gui::CollapsingHeader("A3D Test", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			auto loadA3Ds = [](const char* farcPath)
-			{
-				std::vector<std::unique_ptr<A3D>> a3ds;
-				if (auto farc = IO::FArc::Open(farcPath); farc != nullptr)
-				{
-					for (const auto& file : farc->GetEntries())
-					{
-						auto content = file.ReadArray();
-						a3ds.emplace_back(std::make_unique<A3D>())->Parse(content.get(), file.OriginalSize);
-					}
-				}
-				return a3ds;
-			};
-
-			auto loadCamPVA3Ds = [loadA3Ds](int pvID)
-			{
-				char path[MAX_PATH]; sprintf_s(path, "dev_rom/auth_3d/CAMPV%03d.farc", pvID);
-				return loadA3Ds(path);
-			};
-
-			auto loadStgEffA3Ds = [loadA3Ds](StageType type, int id)
-			{
-				char path[MAX_PATH]; sprintf_s(path, "dev_rom/auth_3d/EFFSTG%s%03d.farc", std::array { "TST", "NS", "D2NS", "PV" }[static_cast<int>(type)], id);
-				return loadA3Ds(path);
-			};
-
-			// TODO: Optimize and refactor into its own A3DSceneManager (?) class
-			auto applyA3D = [](auto& a3d, frame_t frame, auto& sceneGraph, auto& scene, auto& camera)
-			{
-				for (auto& object : a3d.Objects)
-				{
-					auto& entities = sceneGraph.Entities;
-					auto correspondingEntity = std::find_if(entities.begin(), entities.end(), [&](auto& e) { return MatchesInsensitive(e->Name, object.UIDName); });
-
-					if (correspondingEntity == entities.end())
-						continue;
-
-					auto& entity = *(correspondingEntity);
-					entity->Transform = A3DMgr::GetTransformAt(object.Transform, frame);
-					entity->IsVisible = A3DMgr::GetBoolAt(object.Transform.Visibility, frame);
-
-					if (object.Parent != nullptr)
-						DebugData::ApplyA3DParentTransform(*object.Parent, entity->Transform, frame);
-
-					if (entity->Dynamic == nullptr)
-						entity->Dynamic = std::make_unique<Render::RenderCommand3D::DynamicData>();
-
-					// TODO: Instead of searching at the entire TexDB for entries only the loaded ObjSets would have to be checked (?)
-					//		 As long as their Texs have been updated using a TexDB before that is
-
-					if (!object.TexturePatterns.empty())
-					{
-						const auto& a3dPatterns = object.TexturePatterns;
-						auto& entityPatterns = entity->Dynamic->TexturePatterns;
-
-						if (entityPatterns.size() != a3dPatterns.size())
-							entityPatterns.resize(a3dPatterns.size());
-
-						for (size_t i = 0; i < a3dPatterns.size(); i++)
-						{
-							const auto& a3dPattern = a3dPatterns[i];
-							auto& entityPattern = entityPatterns[i];
-
-							if (a3dPattern.Pattern != nullptr)
-							{
-								if (!entityPattern.CachedIDs.has_value())
-								{
-									auto& cachedIDs = entityPattern.CachedIDs.emplace();
-									cachedIDs.reserve(16);
-
-									for (int cacheIndex = 0; cacheIndex < 999; cacheIndex++)
-									{
-										char nameBuffer[128];
-										sprintf_s(nameBuffer, "%.*s_%03d", static_cast<int>(a3dPattern.Name.size() - strlen("_000")), a3dPattern.Name.data(), cacheIndex);
-
-										auto texEntry = sceneGraph.TexDB->GetTexEntry(nameBuffer);
-										if (texEntry == nullptr)
-											break;
-
-										if (cacheIndex == 0)
-											entityPattern.OverrideID = texEntry->ID;
-
-										cachedIDs.push_back(texEntry->ID);
-									}
-								}
-
-								const int index = A3DMgr::GetIntAt(a3dPattern.Pattern->CV, frame);
-								entityPattern.OverrideID = (InBounds(index, *entityPattern.CachedIDs)) ? entityPattern.CachedIDs->at(index) : TexID::Invalid;
-							}
-						}
-					}
-
-					if (!object.TextureTransforms.empty())
-					{
-						auto& a3dTexTransforms = object.TextureTransforms;
-						auto& entityTexTransforms = entity->Dynamic->TextureTransforms;
-
-						if (entityTexTransforms.size() != a3dTexTransforms.size())
-							entityTexTransforms.resize(a3dTexTransforms.size());
-
-						for (size_t i = 0; i < a3dTexTransforms.size(); i++)
-						{
-							auto& a3dTexTransform = a3dTexTransforms[i];
-							auto& entityTexTransform = entityTexTransforms[i];
-
-							if (entityTexTransform.SourceID == TexID::Invalid)
-							{
-								if (auto texEntry = sceneGraph.TexDB->GetTexEntry(a3dTexTransform.Name); texEntry != nullptr)
-									entityTexTransform.SourceID = texEntry->ID;
-							}
-
-							// TODO: Might not be a single bool but different types
-							if (a3dTexTransform.RepeatU.Enabled)
-								entityTexTransform.RepeatU.emplace(A3DMgr::GetBoolAt(a3dTexTransform.RepeatU, frame));
-							if (a3dTexTransform.RepeatV.Enabled)
-								entityTexTransform.RepeatV.emplace(A3DMgr::GetBoolAt(a3dTexTransform.RepeatV, frame));
-
-							entityTexTransform.Rotation = A3DMgr::GetRotationAt(a3dTexTransform.Rotate, frame) + A3DMgr::GetRotationAt(a3dTexTransform.RotateFrame, frame);
-
-							entityTexTransform.Translation.x = A3DMgr::GetValueAt(a3dTexTransform.OffsetU, frame) - A3DMgr::GetValueAt(a3dTexTransform.TranslateFrameU, frame);
-							entityTexTransform.Translation.y = A3DMgr::GetValueAt(a3dTexTransform.OffsetV, frame) - A3DMgr::GetValueAt(a3dTexTransform.TranslateFrameV, frame);
-						}
-					}
-
-					if (object.Morph != nullptr)
-					{
-						size_t morphEntityIndex = static_cast<size_t>(std::distance(entities.begin(), correspondingEntity)) + 1;
-
-						entity->Dynamic->MorphObj = (morphEntityIndex >= entities.size()) ? nullptr : entities[morphEntityIndex]->Obj;
-						entity->Dynamic->MorphWeight = A3DMgr::GetValueAt(object.Morph->CV, frame);
-					}
-				}
-
-				for (auto& a3dCamera : a3d.CameraRoot)
-				{
-					camera.ViewPoint = A3DMgr::GetValueAt(a3dCamera.ViewPoint.Transform.Translation, frame);
-					camera.Interest = A3DMgr::GetValueAt(a3dCamera.Interest.Translation, frame);
-					camera.FieldOfView = A3DMgr::GetFieldOfViewAt(a3dCamera.ViewPoint, frame);
-				}
-			};
-
-			auto iterateA3Ds = [](std::vector<std::unique_ptr<A3D>>& a3ds, int index, auto func)
-			{
-				if (a3ds.empty())
-					return;
-				else if (index < 0)
-					for (auto& a3d : a3ds)
-						func(*a3d);
-				else if (index < a3ds.size())
-					func(*a3ds[index]);
-			};
-
-			const float availWidth = Gui::GetContentRegionAvailWidth();
-
-			if (Gui::Button("Load STG EFF", vec2(availWidth * 0.25f, 0.0f)) && stageTestData.lastSetStage.has_value())
-				debug.StageEffA3Ds = loadStgEffA3Ds(stageTestData.lastSetStage->Type, stageTestData.lastSetStage->ID);
-			Gui::SameLine();
-			if (Gui::Button("Unload EFF", vec2(availWidth * 0.25f, 0.0f)))
-			{
-				debug.StageEffA3Ds.clear();
-				debug.StageEffIndex = -1;
-			}
-
-			if (Gui::Button("Load CAM PV ", vec2(availWidth * 0.25f, 0.0f)) && stageTestData.lastSetStage.has_value() && stageTestData.lastSetStage.value().Type == StageType::STGPV)
-				debug.CamPVA3Ds = loadCamPVA3Ds(stageTestData.lastSetStage->ID);
-			Gui::SameLine();
-			if (Gui::Button("Unload CAM", vec2(availWidth * 0.25f, 0.0f)))
-			{
-				debug.CamPVA3Ds.clear();
-				debug.CamPVIndex = -1;
-			}
-
-			if (Gui::InputInt("STGEFF Index", &debug.StageEffIndex))
-				debug.StageEffIndex = std::clamp(debug.StageEffIndex, -1, static_cast<int>(debug.StageEffA3Ds.size()));
-			if (Gui::IsItemHovered())
-			{
-				Gui::BeginTooltip();
-				iterateA3Ds(debug.StageEffA3Ds, debug.StageEffIndex, [](auto& a3d) { Gui::Selectable(a3d.Metadata.FileName.c_str()); });
-				Gui::EndTooltip();
-			}
-
-			if (Gui::InputInt("CAMPV Index", &debug.CamPVIndex))
-				debug.CamPVIndex = std::clamp(debug.CamPVIndex, -1, static_cast<int>(debug.CamPVA3Ds.size()));
-			if (Gui::IsItemHovered())
-			{
-				Gui::BeginTooltip();
-				iterateA3Ds(debug.CamPVA3Ds, debug.CamPVIndex, [](auto& a3d) { Gui::Selectable(a3d.Metadata.FileName.c_str()); });
-				Gui::EndTooltip();
-			}
-
-			Gui::Checkbox("Apply Stage Auth", &debug.ApplyStageAuth);
-
-			if (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Space))
-				debug.Playback ^= true;
-
-			Gui::Checkbox("Playback", &debug.Playback);
-			Gui::SameLine();
-			Gui::Checkbox("Repeat", &debug.Repeat);
-
-			Gui::InputFloat("Frame", &debug.Frame, 1.0f, 100.0f);
-			Gui::InputFloat("Duration", &debug.Duration, 1.0f, 100.0f);
-
-			if (debug.SetLongestDuration)
-			{
-				debug.Duration = 0.0f;
-				iterateA3Ds(debug.StageEffA3Ds, debug.StageEffIndex, [&](auto& a3d) { debug.Duration = std::max(debug.Duration, a3d.PlayControl.Duration); });
-				iterateA3Ds(debug.CamPVA3Ds, debug.CamPVIndex, [&](auto& a3d) { debug.Duration = std::max(debug.Duration, a3d.PlayControl.Duration); });
-			}
-
-			if (debug.Playback)
-			{
-				debug.Frame += 1.0f * (Gui::GetIO().DeltaTime * debug.FrameRate);
-				if (debug.Repeat && debug.Frame >= debug.Duration)
-					debug.Frame = 0.0f;
-				debug.Frame = std::clamp(debug.Frame, 0.0f, debug.Duration);
-			}
-
-			if (debug.ApplyStageAuth)
-				iterateA3Ds(debug.StageEffA3Ds, debug.StageEffIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, scene, activeViewport.Camera); });
-
-			if (activeViewport.CameraController.Mode == CameraController3D::ControlMode::None)
-				iterateA3Ds(debug.CamPVA3Ds, debug.CamPVIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, scene, activeViewport.Camera); });
-
-			if (Gui::Button("Camera Mode Orbit")) { activeViewport.Camera.FieldOfView = 90.0f; activeViewport.CameraController.Mode = CameraController3D::ControlMode::Orbit; }
-			Gui::SameLine();
-			if (Gui::Button("Camera Mode None")) { activeViewport.CameraController.Mode = CameraController3D::ControlMode::None; }
-
-			if (Gui::Button("Set Screen Render IDs"))
-			{
-				for (auto& entity : sceneGraph.Entities)
-				{
-					for (const auto& material : entity->Obj->Materials)
-					{
-						const auto diffuseTexture = FindIfOrNull(material.Textures, [&](const auto& t) { return t.TextureFlags.Type == MaterialTextureType::ColorMap; });
-						if (diffuseTexture == nullptr)
-							continue;
-
-						if (const auto* tex = renderer3D->GetTexFromTextureID(&diffuseTexture->TextureID); tex != nullptr && tex->Name.has_value())
-						{
-							if (const auto& name = tex->Name.value();
-								EndsWithInsensitive(name, "_RENDER") ||
-								EndsWithInsensitive(name, "_MOVIE") ||
-								EndsWithInsensitive(name, "_TV") ||
-								EndsWithInsensitive(name, "_FB01") ||
-								EndsWithInsensitive(name, "_FB02") ||
-								EndsWithInsensitive(name, "_FB03"))
-							{
-								if (entity->Dynamic == nullptr)
-									entity->Dynamic = std::make_unique<Render::RenderCommand3D::DynamicData>();
-
-								entity->Dynamic->ScreenRenderTextureID = diffuseTexture->TextureID;
-							}
-						}
-					}
-				}
-			}
-		}
+#endif
 	}
 
 	void SceneEditor::TakeScreenshotGui(ViewportContext& activeViewport)

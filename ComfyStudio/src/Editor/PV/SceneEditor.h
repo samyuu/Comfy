@@ -70,7 +70,7 @@ namespace Comfy::Studio::Editor
 		void DrawObjectTestGui();
 		void DrawStageTestGui();
 		void DrawCharaTestGui();
-		void DrawA3DTestGui();
+		void DrawA3DTestGui(ViewportContext& activeViewport);
 		void DrawExternalProcessTestGui(ViewportContext& activeViewport);
 		void DrawDebugTestGui(ViewportContext& activeViewport);
 
