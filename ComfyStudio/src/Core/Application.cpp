@@ -223,7 +223,7 @@ namespace Comfy::Studio
 
 	void Application::GuiAppEngineMenus()
 	{
-		if (Gui::BeginMenu("Engine"))
+		if (Gui::BeginMenu("Engine", false))
 		{
 			Gui::MenuItem("Engine Window", nullptr, &showMainAppEngineWindow);
 			Gui::EndMenu();
