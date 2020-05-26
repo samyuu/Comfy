@@ -29,19 +29,21 @@ namespace Comfy::Studio::Editor
 
 	SceneEditor::SceneEditor(Application& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
-		auto texGetter = [&](const Cached_TexID* texID) { return sceneGraph.TexIDMap.Find(texID); };
-		renderer3D = std::make_unique<Render::Renderer3D>(texGetter);
-		renderWindow = std::make_unique<SceneRenderWindow>(sceneGraph, camera, *renderer3D, scene, cameraController);
 	}
 
 	void SceneEditor::OnFirstFrame()
 	{
-		camera.FieldOfView = 90.0f;
-		camera.ViewPoint = vec3(0.0f, 1.1f, 1.5f);
-		camera.Interest = vec3(0.0f, 1.0f, 0.0f);
+		auto texGetter = [&](const Cached_TexID* texID) { return sceneGraph.TexIDMap.Find(texID); };
+		renderer3D = std::make_unique<Render::Renderer3D>(texGetter);
 
-		cameraController.FirstPersonData.TargetPitch = -11.0f;
-		cameraController.FirstPersonData.TargetYaw = -90.000f;
+		mainViewport.RenderWindow = std::make_unique<SceneRenderWindow>(sceneGraph, mainViewport.Camera, *renderer3D, scene, mainViewport.CameraController);
+
+		mainViewport.Camera.FieldOfView = 90.0f;
+		mainViewport.Camera.ViewPoint = vec3(0.0f, 1.1f, 1.5f);
+		mainViewport.Camera.Interest = vec3(0.0f, 1.0f, 0.0f);
+
+		mainViewport.CameraController.FirstPersonData.TargetPitch = -11.0f;
+		mainViewport.CameraController.FirstPersonData.TargetYaw = -90.000f;
 
 		if (sceneGraph.LoadedObjSets.empty())
 		{
@@ -64,10 +66,26 @@ namespace Comfy::Studio::Editor
 	{
 		Gui::GetCurrentWindow()->Hidden = true;
 
-		renderWindow->BeginEndGui(ICON_FA_TREE "  Scene Window##SceneEditor");
+		auto viewportGui = [&](ViewportContext& viewport, const char* name)
+		{
+			viewport.RenderWindow->BeginEndGui(name, &viewport.IsOpen);
+			if (viewport.RenderWindow->GetRequestsDuplication())
+				AddViewport(&viewport);
+		};
+
+		viewportGui(mainViewport, ICON_FA_TREE "  Scene Viewport Main##SceneEditor");
+
+		additionalViewports.erase(std::remove_if(additionalViewports.begin(), additionalViewports.end(), [](const auto& viewport) { return !viewport->IsOpen; }), additionalViewports.end());
+		for (size_t i = 0; i < additionalViewports.size(); i++)
+		{
+			char nameBuffer[64]; sprintf_s(nameBuffer, ICON_FA_TREE "  Scene Viewport [%zu]##SceneEditor", i);
+			viewportGui(*additionalViewports[i], nameBuffer);
+		}
+
+		auto& activeViewport = FindActiveViewport();
 
 		if (Gui::Begin(ICON_FA_CAMERA "  Camera"))
-			DrawCameraGui();
+			DrawCameraGui(activeViewport);
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_FOLDER "  ObjSet Loader"))
@@ -75,7 +93,7 @@ namespace Comfy::Studio::Editor
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_WRENCH "  Rendering"))
-			DrawRenderingGui();
+			DrawRenderingGui(activeViewport);
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_CLOUD_SUN "  Fog"))
@@ -95,7 +113,7 @@ namespace Comfy::Studio::Editor
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_LIST "  Scene Entities"))
-			DrawSceneGraphGui();
+			DrawSceneGraphGui(activeViewport);
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_INFO_CIRCLE "  Entity Inspector"))
@@ -119,11 +137,11 @@ namespace Comfy::Studio::Editor
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_PROJECT_DIAGRAM "  External Process"))
-			DrawExternalProcessTestGui();
+			DrawExternalProcessTestGui(/*activeViewport*/mainViewport);
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_BUG "  Debug Test"))
-			DrawDebugTestGui();
+			DrawDebugTestGui(/*activeViewport*/mainViewport);
 		Gui::End();
 	}
 
@@ -272,8 +290,35 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void SceneEditor::DrawCameraGui()
+	void SceneEditor::AddViewport(ViewportContext* baseViewport)
 	{
+		auto& newViewport = *additionalViewports.emplace_back(std::move(std::make_unique<ViewportContext>()));
+		newViewport.RenderWindow = std::make_unique<SceneRenderWindow>(sceneGraph, newViewport.Camera, *renderer3D, scene, newViewport.CameraController);
+
+		if (baseViewport != nullptr)
+		{
+			newViewport.Camera = baseViewport->Camera;
+			newViewport.RenderWindow->GetRenderTarget()->Param = baseViewport->RenderWindow->GetRenderTarget()->Param;
+		}
+	}
+
+	SceneEditor::ViewportContext& SceneEditor::FindActiveViewport()
+	{
+		ViewportContext* newestFocusedViewport = &mainViewport;
+		for (auto& viewport : additionalViewports)
+		{
+			if (viewport->RenderWindow != nullptr && viewport->RenderWindow->GetLastFocusedFrameCount() > newestFocusedViewport->RenderWindow->GetLastFocusedFrameCount())
+				newestFocusedViewport = viewport.get();
+		}
+
+		return *newestFocusedViewport;
+	}
+
+	void SceneEditor::DrawCameraGui(ViewportContext& activeViewport)
+	{
+		auto& camera = activeViewport.Camera;
+		auto& cameraController = activeViewport.CameraController;
+
 		GuiPropertyRAII::PropertyValueColumns columns;
 		GuiPropertyRAII::ID id(&camera);
 
@@ -355,15 +400,16 @@ namespace Comfy::Studio::Editor
 		Gui::EndChild();
 	}
 
-	void SceneEditor::DrawRenderingGui()
+	void SceneEditor::DrawRenderingGui(ViewportContext& activeViewport)
 	{
-		if (renderWindow->GetRenderTarget() == nullptr)
+		auto& activeRenderWindow = *activeViewport.RenderWindow;
+		if (activeRenderWindow.GetRenderTarget() == nullptr)
 			return;
 
-		auto& renderParam = renderWindow->GetRenderTarget()->Param;
+		auto& renderParam = activeRenderWindow.GetRenderTarget()->Param;
 		GuiPropertyRAII::ID id(&renderParam);
 
-		TakeScreenshotGui();
+		TakeScreenshotGui(activeViewport);
 
 		GuiProperty::TreeNode("Render Parameters", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen, [&]
 		{
@@ -394,7 +440,7 @@ namespace Comfy::Studio::Editor
 					{
 						sprintf_s(nameBuffer, "Render Region x%.2f", factor);
 						if (Gui::MenuItem(nameBuffer))
-							inOutResolution = clampValidTextureSize(ivec2(vec2(renderWindow->GetRenderRegion().GetSize()) * factor));
+							inOutResolution = clampValidTextureSize(ivec2(vec2(activeRenderWindow.GetRenderRegion().GetSize()) * factor));
 					}
 				});
 			};
@@ -479,10 +525,10 @@ namespace Comfy::Studio::Editor
 
 		GuiProperty::TreeNode("Render Targets", ImGuiTreeNodeFlags_NoTreePushOnOpen, [&]
 		{
-			if (renderWindow->GetRenderTarget() == nullptr)
+			if (activeRenderWindow.GetRenderTarget() == nullptr)
 				return;
 
-			const auto subTargets = renderWindow->GetRenderTarget()->GetSubTargets();
+			const auto subTargets = activeRenderWindow.GetRenderTarget()->GetSubTargets();
 			for (int index = 0; index < static_cast<int>(subTargets.Count); index++)
 			{
 				const auto& subTarget = subTargets.Targets[index];
@@ -630,7 +676,7 @@ namespace Comfy::Studio::Editor
 		});
 	}
 
-	void SceneEditor::DrawSceneGraphGui()
+	void SceneEditor::DrawSceneGraphGui(ViewportContext& activeViewport)
 	{
 		Gui::BeginChild("SceneGraphEntiriesListChild");
 
@@ -638,8 +684,8 @@ namespace Comfy::Studio::Editor
 		{
 			const Sphere transformedSphere = boundingSphere * entity->Transform;
 
-			camera.Interest = camera.ViewPoint = transformedSphere.Center;
-			cameraController.OrbitData.Distance = transformedSphere.Radius;
+			activeViewport.Camera.Interest = activeViewport.Camera.ViewPoint = transformedSphere.Center;
+			activeViewport.CameraController.OrbitData.Distance = transformedSphere.Radius;
 
 			inspector.EntityIndex = static_cast<int>(std::distance(&sceneGraph.Entities.front(), &entity));
 		};
@@ -991,87 +1037,9 @@ namespace Comfy::Studio::Editor
 		}
 #endif
 #endif /* COMFY_DEBUG */
-
-#if 0 // DEBUG:
-		// TODO:
-		struct TestViewport
-		{
-			CameraController3D CameraController;
-			SceneViewport Viewport;
-		};
-
-		static std::vector<std::unique_ptr<TestViewport>> testViewports;
-
-		if (Gui::Button("Add Viewport"))
-		{
-			testViewports.push_back(std::move(std::make_unique<TestViewport>()));
-			auto& testViewport = testViewports.back()->Viewport;
-			testViewport.Camera = this->camera;
-			testViewport.Parameters = this->viewport.Parameters;
-			testViewport.Parameters.RenderResolution = ivec2(512, 288);
-		}
-
-		for (auto& testViewport : testViewports)
-		{
-			char viewportNameBuffer[64];
-			sprintf_s(viewportNameBuffer, "Test Viewport (0x%p)", testViewport.get());
-
-			bool isOpen = true;
-			Gui::SetNextWindowSize(vec2(testViewport->Viewport.Parameters.RenderResolution), ImGuiCond_FirstUseEver);
-			if (Gui::Begin(viewportNameBuffer, &isOpen, (ImGuiWindowFlags_NoSavedSettings)))
-			{
-				vec2 size = Gui::GetWindowSize();
-				testViewport->Viewport.Camera.AspectRatio = size.x / size.y;
-				testViewport->Viewport.Parameters.RenderResolution = size;
-				testViewport->Viewport.Parameters.AutoExposure = false;
-				testViewport->Viewport.Parameters.ToneMapPreserveAlpha = true;
-
-				GuiPropertyRAII::ID id(&testViewport->Viewport);
-				Gui::BeginChild("TestViewportChild");
-
-				if (Gui::IsWindowFocused())
-					testViewport->CameraController.Update(testViewport->Viewport.Camera);
-
-				testViewport->Viewport.Camera.UpdateMatrices();
-				renderer3D->Begin(testViewport->Viewport, scene);
-				{
-					for (const auto& entity : sceneGraph.Entities)
-					{
-						if (!entity->IsVisible)
-							continue;
-
-						RenderCommand renderCommand;
-						renderCommand.SourceObj = entity->Obj;
-						renderCommand.SourceMorphObj = entity->MorphObj;
-						renderCommand.Transform = entity->Transform;
-						renderCommand.Flags.IsReflection = entity->IsReflection;
-						renderCommand.Animation = entity->Dynamic.get();
-
-						if (entity->SilhouetteOutline)
-							renderCommand.Flags.SilhouetteOutline = true;
-						if (entity->Tag == 'chr' || entity->Tag == 'obj')
-							renderCommand.Flags.CastsShadow = true;
-
-						renderer3D->Draw(renderCommand);
-					}
-				}
-				renderer3D->End();
-
-				Gui::GetWindowDrawList()->AddImage(testViewport->Viewport.Data.Output.RenderTarget, Gui::GetWindowPos(), Gui::GetWindowPos() + size);
-				Gui::EndChild();
-			}
-			Gui::End();
-
-			if (!isOpen)
-			{
-				testViewports.erase(testViewports.begin() + std::distance(&testViewports.front(), &testViewport));
-				break;
-			}
-		}
-#endif
 	}
 
-	void SceneEditor::DrawExternalProcessTestGui()
+	void SceneEditor::DrawExternalProcessTestGui(ViewportContext& activeViewport)
 	{
 		auto tryAttach = [&]
 		{
@@ -1132,10 +1100,10 @@ namespace Comfy::Studio::Editor
 				Gui::BeginColumns("CameraColumns", 2, ImGuiColumnsFlags_NoBorder);
 				{
 					if (Gui::Checkbox("Sync Read Camera", &externalProcessTest.SyncReadCamera) && externalProcessTest.SyncReadCamera)
-						cameraController.Mode = CameraController3D::ControlMode::None;
+						activeViewport.CameraController.Mode = CameraController3D::ControlMode::None;
 					Gui::NextColumn();
 					if (Gui::Checkbox("Sync Write Camera", &externalProcessTest.SyncWriteCamera) && externalProcessTest.SyncWriteCamera)
-						cameraController.Mode = CameraController3D::ControlMode::Orbit;
+						activeViewport.CameraController.Mode = CameraController3D::ControlMode::Orbit;
 					Gui::NextColumn();
 				}
 				Gui::EndColumns();
@@ -1162,13 +1130,13 @@ namespace Comfy::Studio::Editor
 		if (externalProcessTest.SyncReadCamera && tryAttach())
 		{
 			const auto cameraData = externalProcessTest.ExternalProcess.ReadCamera();
-			camera.ViewPoint = cameraData.ViewPoint;
-			camera.Interest = cameraData.Interest;
-			camera.FieldOfView = cameraData.FieldOfView;
+			activeViewport.Camera.ViewPoint = cameraData.ViewPoint;
+			activeViewport.Camera.Interest = cameraData.Interest;
+			activeViewport.Camera.FieldOfView = cameraData.FieldOfView;
 		}
 		else if (externalProcessTest.SyncWriteCamera && tryAttach())
 		{
-			externalProcessTest.ExternalProcess.WriteCamera({ camera.ViewPoint, camera.Interest, 0.0f, camera.FieldOfView });
+			externalProcessTest.ExternalProcess.WriteCamera({ activeViewport.Camera.ViewPoint, activeViewport.Camera.Interest, 0.0f, activeViewport.Camera.FieldOfView });
 		}
 
 		if (externalProcessTest.SyncReadLightParam && tryAttach())
@@ -1212,7 +1180,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void SceneEditor::DrawDebugTestGui()
+	void SceneEditor::DrawDebugTestGui(ViewportContext& activeViewport)
 	{
 #if COMFY_DEBUG && 0
 		Gui::DEBUG_NOSAVE_WINDOW("Loaded Textures Test", [&]
@@ -1526,14 +1494,14 @@ namespace Comfy::Studio::Editor
 			}
 
 			if (debug.ApplyStageAuth)
-				iterateA3Ds(debug.StageEffA3Ds, debug.StageEffIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, scene, camera); });
+				iterateA3Ds(debug.StageEffA3Ds, debug.StageEffIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, scene, activeViewport.Camera); });
 
-			if (cameraController.Mode == CameraController3D::ControlMode::None)
-				iterateA3Ds(debug.CamPVA3Ds, debug.CamPVIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, scene, camera); });
+			if (activeViewport.CameraController.Mode == CameraController3D::ControlMode::None)
+				iterateA3Ds(debug.CamPVA3Ds, debug.CamPVIndex, [&](auto& a3d) { applyA3D(a3d, debug.Frame, sceneGraph, scene, activeViewport.Camera); });
 
-			if (Gui::Button("Camera Mode Orbit")) { camera.FieldOfView = 90.0f; cameraController.Mode = CameraController3D::ControlMode::Orbit; }
+			if (Gui::Button("Camera Mode Orbit")) { activeViewport.Camera.FieldOfView = 90.0f; activeViewport.CameraController.Mode = CameraController3D::ControlMode::Orbit; }
 			Gui::SameLine();
-			if (Gui::Button("Camera Mode None")) { cameraController.Mode = CameraController3D::ControlMode::None; }
+			if (Gui::Button("Camera Mode None")) { activeViewport.CameraController.Mode = CameraController3D::ControlMode::None; }
 
 			if (Gui::Button("Set Screen Render IDs"))
 			{
@@ -1567,15 +1535,15 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void SceneEditor::TakeScreenshotGui()
+	void SceneEditor::TakeScreenshotGui(ViewportContext& activeViewport)
 	{
 		const bool isScreenshotSaving = lastScreenshotTaskFuture.valid() && !lastScreenshotTaskFuture._Is_ready();
 		const vec4 loadingColor = vec4(0.83f, 0.75f, 0.42f, 1.00f);
 
 		if (isScreenshotSaving)
 			Gui::PushStyleColor(ImGuiCol_Text, loadingColor);
-		if (Gui::Button("Take Screenshot", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)) && renderWindow->GetRenderTarget() != nullptr)
-			TakeSceneRenderTargetScreenshot(*renderWindow->GetRenderTarget());
+		if (Gui::Button("Take Screenshot", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+			TakeSceneRenderTargetScreenshot(*activeViewport.RenderWindow->GetRenderTarget());
 		if (isScreenshotSaving)
 			Gui::PopStyleColor(1);
 		Gui::ItemContextMenu("TakeScreenshotContextMenu", [&]
@@ -1601,20 +1569,21 @@ namespace Comfy::Studio::Editor
 			Gui::InputInt("Frams To Render", &data.FramesToRender);
 			Gui::InputFloat("Rotation Step", &data.RotationXStep);
 
-			if (Gui::Button("Render!", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)) && renderWindow->GetRenderTarget() != nullptr)
+			if (Gui::Button("Render!", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
 			{
-				auto& renderTarget = *renderWindow->GetRenderTarget();
+				auto& activeRenderWindow = *activeViewport.RenderWindow;
+				auto& renderTarget = *activeRenderWindow.GetRenderTarget();
 
 				data.Futures.clear();
 				data.Futures.reserve(data.FramesToRender);
 
 				for (int i = 0; i < data.FramesToRender; i += 1)
 				{
-					cameraController.Mode = CameraController3D::ControlMode::Orbit;
-					cameraController.OrbitData.TargetRotation.x = static_cast<float>(i) * data.RotationXStep;
-					cameraController.Update(camera);
+					activeViewport.CameraController.Mode = CameraController3D::ControlMode::Orbit;
+					activeViewport.CameraController.OrbitData.TargetRotation.x = static_cast<float>(i) * data.RotationXStep;
+					activeViewport.CameraController.Update(activeViewport.Camera);
 
-					renderWindow->RenderScene();
+					activeRenderWindow.RenderScene();
 
 					data.Futures.push_back(std::async(std::launch::async, [&renderTarget, i, data = std::move(renderTarget.StageAndCopyBackBuffer())]
 						{

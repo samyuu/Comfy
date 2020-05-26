@@ -65,6 +65,7 @@ namespace Comfy::Studio::Editor
 	SceneRenderWindow::SceneRenderWindow(SceneGraph& sceneGraph, Render::PerspectiveCamera& camera, Render::Renderer3D& renderer, Render::SceneParam3D& sceneParam, CameraController3D& cameraController)
 		: sceneGraph(sceneGraph), camera(camera), renderer(renderer), sceneParam(sceneParam), cameraController(cameraController)
 	{
+		renderTarget = Renderer3D::CreateRenderTarget();
 	}
 
 	ImTextureID SceneRenderWindow::GetTextureID() const
@@ -130,14 +131,29 @@ namespace Comfy::Studio::Editor
 		return renderTarget.get();
 	}
 
+	i64 SceneRenderWindow::GetLastFocusedFrameCount() const
+	{
+		return lastFocusedFrameCount;
+	}
+
+	bool SceneRenderWindow::GetRequestsDuplication() const
+	{
+		return requestsDuplication;
+	}
+
 	ImGuiWindowFlags SceneRenderWindow::GetRenderTextureChildWindowFlags() const
 	{
 		return ImGuiWindowFlags_None;
 	}
 
+	void SceneRenderWindow::PreBeginWindow()
+	{
+		hasInputFocus = false;
+		requestsDuplication = false;
+	}
+
 	void SceneRenderWindow::OnFirstFrame()
 	{
-		renderTarget = Renderer3D::CreateRenderTarget();
 	}
 
 	void SceneRenderWindow::PreRenderTextureGui()
@@ -147,6 +163,12 @@ namespace Comfy::Studio::Editor
 
 	void SceneRenderWindow::PostRenderTextureGui()
 	{
+		Gui::WindowContextMenu("ContextMenu##SceneRenderWindow", [&]
+		{
+			if (Gui::MenuItem("Duplicate Viewport"))
+				requestsDuplication = true;
+		});
+
 		if (drawCameraAxisIndicator)
 		{
 			constexpr float indicatorSize = 12.0f;
@@ -169,6 +191,9 @@ namespace Comfy::Studio::Editor
 
 	void SceneRenderWindow::OnRender()
 	{
+		if (hasInputFocus = Gui::IsWindowFocused())
+			lastFocusedFrameCount = Gui::GetFrameCount();
+
 		UpdateInputRayTest();
 		RenderScene();
 	}

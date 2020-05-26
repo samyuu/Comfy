@@ -19,8 +19,13 @@ namespace Comfy::Studio::Editor
 
 		Render::RenderTarget3D* GetRenderTarget();
 
+	public:
+		i64 GetLastFocusedFrameCount() const;
+		bool GetRequestsDuplication() const;
+
 	protected:
 		ImGuiWindowFlags GetRenderTextureChildWindowFlags() const;
+		void PreBeginWindow() override;
 		void OnFirstFrame() override;
 		void PreRenderTextureGui() override;
 		void PostRenderTextureGui() override;
@@ -31,6 +36,10 @@ namespace Comfy::Studio::Editor
 		void UpdateInputRayTest();
 
 	private:
+		bool hasInputFocus = false;
+		bool requestsDuplication = false;
+		i64 lastFocusedFrameCount = 0;
+
 		bool drawCameraAxisIndicator = true;
 
 		std::unique_ptr<Render::RenderTarget3D> renderTarget = nullptr;

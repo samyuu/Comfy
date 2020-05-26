@@ -46,37 +46,47 @@ namespace Comfy::Studio::Editor
 		void EraseByTag(EntityTag tag, EraseFlags flags);
 
 	private:
-		void DrawCameraGui();
+		struct ViewportContext
+		{
+			Render::PerspectiveCamera Camera;
+			CameraController3D CameraController;
+			std::unique_ptr<SceneRenderWindow> RenderWindow = nullptr;
+			bool IsOpen = true;
+		};
+
+		void AddViewport(ViewportContext* baseViewport);
+		ViewportContext& FindActiveViewport();
+
+	private:
+		void DrawCameraGui(ViewportContext& activeViewport);
 		void DrawObjSetLoaderGui();
-		void DrawRenderingGui();
+		void DrawRenderingGui(ViewportContext& activeViewport);
 		void DrawFogGui();
 		void DrawPostProcessingGui();
 		void DrawLightGui();
 		void DrawIBLGui();
-		void DrawSceneGraphGui();
+		void DrawSceneGraphGui(ViewportContext& activeViewport);
 		void DrawEntityInspectorGui();
 		void DrawObjectTestGui();
 		void DrawStageTestGui();
 		void DrawCharaTestGui();
 		void DrawA3DTestGui();
-		void DrawExternalProcessTestGui();
-		void DrawDebugTestGui();
+		void DrawExternalProcessTestGui(ViewportContext& activeViewport);
+		void DrawDebugTestGui(ViewportContext& activeViewport);
 
 	private:
-		void TakeScreenshotGui();
+		void TakeScreenshotGui(ViewportContext& activeViewport);
 		void TakeSceneRenderTargetScreenshot(Render::RenderTarget3D& renderTarget);
 
 	private:
 		SceneGraph sceneGraph;
 
-		Render::PerspectiveCamera camera;
 		Render::SceneParam3D scene;
-
-		CameraController3D cameraController;
-
 		std::unique_ptr<Render::Renderer3D> renderer3D = nullptr;
 
-		std::unique_ptr<SceneRenderWindow> renderWindow = nullptr;
+		// NOTE: Store additional viewports as unique_ptrs to never invalidate their camera / controller references
+		ViewportContext mainViewport;
+		std::vector<std::unique_ptr<ViewportContext>> additionalViewports;
 
 		Gui::FileViewer objSetFileViewer = { "dev_rom/objset/" };
 		Graphics::Transform objSetTransform = Graphics::Transform(vec3(0.0f));
