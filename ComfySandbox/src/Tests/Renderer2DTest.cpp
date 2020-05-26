@@ -96,7 +96,7 @@ namespace Comfy::Sandbox::Tests
 		Render::Renderer2D renderer = {};
 		Render::OrthographicCamera camera = {};
 
-		Comfy::CallbackRenderWindow2D renderWindow = {};
+		CallbackRenderWindow2D renderWindow = {};
 		bool fullscreen = false;
 
 		Gui::FileViewer sprFileViewer = { "dev_ram/sprset" };

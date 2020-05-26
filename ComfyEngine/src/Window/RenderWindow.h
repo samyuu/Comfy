@@ -62,27 +62,4 @@ namespace Comfy
 		bool keepAspectRatio = false;
 		float targetAspectRatio = (16.0f / 9.0f);
 	};
-
-	// DEBUG:
-	class CallbackRenderWindow2D : public RenderWindow
-	{
-	public:
-		CallbackRenderWindow2D() = default;
-		~CallbackRenderWindow2D() = default;
-
-	public:
-		ImTextureID GetTextureID() const override { return (RenderTarget != nullptr) ? RenderTarget->GetTextureID() : nullptr; }
-
-	protected:
-		ImGuiWindowFlags GetRenderTextureChildWindowFlags() const override { return ImGuiWindowFlags_None; }
-		void OnFirstFrame() override {}
-		void PreRenderTextureGui() override {}
-		void PostRenderTextureGui() override {}
-		void OnResize(ivec2 newSize) override {}
-		void OnRender() override { OnRenderCallback(); }
-
-	public:
-		std::function<void()> OnRenderCallback;
-		std::unique_ptr<Render::RenderTarget2D> RenderTarget = Render::Renderer2D::CreateRenderTarget();
-	};
 }
