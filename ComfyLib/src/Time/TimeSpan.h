@@ -10,6 +10,9 @@ namespace Comfy
 	struct TimeSpan
 	{
 	public:
+		static constexpr frame_t DefaultFrameRate = 60.0f;
+
+	public:
 		constexpr TimeSpan() : timeInSeconds(0.0) {}
 		explicit constexpr TimeSpan(double seconds) : timeInSeconds(seconds) {}
 
@@ -18,11 +21,13 @@ namespace Comfy
 		static constexpr TimeSpan FromSeconds(double value) { return TimeSpan(value); }
 		static constexpr TimeSpan FromMilliseconds(double value) { return TimeSpan(value / 1000.0); }
 		static constexpr TimeSpan Zero() { return TimeSpan(0.0); }
+		static constexpr TimeSpan FromFrames(frame_t frames, frame_t frameRate = DefaultFrameRate) { return FromSeconds(frames / frameRate); }
 
 	public:
 		constexpr double TotalMinutes() const { return TotalSeconds() / 60.0; }
 		constexpr double TotalSeconds() const { return timeInSeconds; }
 		constexpr double TotalMilliseconds() const { return TotalSeconds() * 1000.0; }
+		constexpr frame_t ToFrames(frame_t frameRate = DefaultFrameRate) const { return static_cast<frame_t>(TotalSeconds() * frameRate); }
 
 	public:
 		// NOTE: Enough to store "(-)mm:ss:fff"
