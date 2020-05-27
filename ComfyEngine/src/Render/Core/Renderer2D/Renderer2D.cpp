@@ -449,6 +449,12 @@ namespace Comfy::Render
 		return *impl->OrthographicCamera;
 	}
 
+	RenderTarget2D& Renderer2D::GetRenderTarget() const
+	{
+		assert(impl->RenderTarget != nullptr);
+		return *impl->RenderTarget;
+	}
+
 	std::unique_ptr<RenderTarget2D> Renderer2D::CreateRenderTarget()
 	{
 		return std::make_unique<Detail::RenderTarget2DImpl>();

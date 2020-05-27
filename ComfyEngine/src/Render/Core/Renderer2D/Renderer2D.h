@@ -40,6 +40,7 @@ namespace Comfy::Render
 	public:
 		// NOTE: Only valid between a Begin() / End() call
 		const OrthographicCamera& GetCamera() const;
+		RenderTarget2D& GetRenderTarget() const;
 
 		/*
 		const SpriteVertices& GetLastVertices() const;
