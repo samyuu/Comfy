@@ -5,6 +5,7 @@
 #include "Resource/IDTypes.h"
 #include "Graphics/GraphicTypes.h"
 #include "IO/Stream/FileInterfaces.h"
+#include <optional>
 #include <variant>
 
 namespace Comfy
@@ -306,6 +307,9 @@ namespace Comfy::Graphics::Aet
 		const std::shared_ptr<Layer>& GetRefParentLayer();
 		const Layer* GetRefParentLayer() const;
 		void SetRefParentLayer(const std::shared_ptr<Layer>& value);
+
+	public:
+		std::optional<frame_t> FindMarkerFrame(std::string_view markerName) const;
 
 	public:
 		Scene* GetParentScene();

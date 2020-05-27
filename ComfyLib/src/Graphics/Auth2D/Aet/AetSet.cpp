@@ -112,6 +112,12 @@ namespace Comfy::Graphics::Aet
 		references.ParentLayer = value;
 	}
 
+	std::optional<frame_t> Layer::FindMarkerFrame(std::string_view markerName) const
+	{
+		auto result = std::find_if(Markers.begin(), Markers.end(), [&](auto& marker) { return marker->Name == markerName; });
+		return (result != Markers.end()) ? (*result)->Frame : std::optional<frame_t> {};
+	}
+
 	Scene* Layer::GetParentScene()
 	{
 		assert(parentComposition != nullptr);
