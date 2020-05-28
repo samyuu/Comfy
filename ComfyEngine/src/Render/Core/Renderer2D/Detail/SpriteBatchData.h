@@ -22,7 +22,7 @@ namespace Comfy::Render::Detail
 
 		static constexpr u32 GetIndexCount() { return sizeof(SpriteIndices) / sizeof(u16); };
 	};
-	
+
 	/*
 	constexpr u32 PackTextureIndices(i16 spriteIndex, i16 maskIndex)
 	{
@@ -77,6 +77,9 @@ namespace Comfy::Render::Detail
 	{
 		u16 Index;
 		u16 Count;
+#if !defined(COMFY_ENGINE_RENDERER2D_IMPL_FIXED_TEX)
+		std::array<const D3D11::Texture2D*, SpriteTextureSlots> Textures;
+#endif
 
 		SpriteBatch(u16 index, u16 count) : Index(index), Count(count) {};
 	};

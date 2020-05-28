@@ -20,6 +20,7 @@ namespace Comfy::Render::Detail
 		}
 	}
 
+#if !defined(COMFY_ENGINE_RENDERER2D_IMPL_FIXED_TEX)
 	void SpriteVertices::SetTextureIndices(ivec2 textureIndices)
 	{
 		TopLeft.TextureIndices = textureIndices;
@@ -27,6 +28,7 @@ namespace Comfy::Render::Detail
 		BottomLeft.TextureIndices = textureIndices;
 		BottomRight.TextureIndices = textureIndices;
 	}
+#endif
 
 	void SpriteVertices::SetValues(vec2 position, const vec4& sourceRegion, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4& color)
 	{

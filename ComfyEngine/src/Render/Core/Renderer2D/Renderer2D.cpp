@@ -60,7 +60,9 @@ namespace Comfy::Render
 			int DrawCheckerboard;
 			vec2 CheckerboardSize;
 			
+#if !defined(COMFY_ENGINE_RENDERER2D_IMPL_FIXED_TEX)
 			u8 TrailingPadding[8];
+#endif
 		};
 
 	public:
