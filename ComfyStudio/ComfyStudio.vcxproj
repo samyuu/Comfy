@@ -162,7 +162,6 @@
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
     <ClCompile Include="src\Editor\Aet\Command\AetCommand.cpp" />
     <ClCompile Include="src\Editor\Aet\Command\AetHistoryWindow.cpp" />
-    <ClCompile Include="src\Editor\Aet\Command\Commands.cpp" />
     <ClCompile Include="src\Editor\Aet\Core\AetInspector.cpp" />
     <ClCompile Include="src\Editor\Aet\Core\AetTreeView.cpp" />
     <ClCompile Include="src\Editor\Aet\RenderWindow\AetRenderWindow.cpp" />

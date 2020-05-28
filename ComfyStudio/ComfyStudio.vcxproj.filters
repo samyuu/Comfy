@@ -105,9 +105,6 @@
     <ClCompile Include="src\Editor\Aet\Command\AetHistoryWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Editor\Aet\Command\Commands.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Editor\Aet\Core\AetInspector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
