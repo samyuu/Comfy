@@ -213,6 +213,9 @@
     <ClInclude Include="src\IO\Config\ComfyBinaryConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Core\Hacks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp">

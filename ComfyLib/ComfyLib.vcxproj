@@ -14,6 +14,7 @@
     <ClInclude Include="src\CoreMacros.h" />
     <ClInclude Include="src\CoreTypes.h" />
     <ClInclude Include="src\Core\Algorithm.h" />
+    <ClInclude Include="src\Core\Hacks.h" />
     <ClInclude Include="src\Core\ScopeExitFunc.h" />
     <ClInclude Include="src\Core\StartupFuncWrapper.h" />
     <ClInclude Include="src\Graphics\Auth2D\Aet\AetUtil.h" />
