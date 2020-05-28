@@ -42,7 +42,8 @@ namespace Comfy::Render
 		void DrawLayerLooped(const Graphics::Aet::Layer& layer, frame_t frame, vec2 position = vec2(0.0f, 0.0f), float opacity = 1.0f);
 		void DrawLayerClamped(const Graphics::Aet::Layer& layer, frame_t frame, vec2 position = vec2(0.0f, 0.0f), float opacity = 1.0f);
 
-		void DrawVideo(const Graphics::Aet::Video& video, i32 frameIndex, vec2 position);
+		void DrawVideo(const Graphics::Aet::Video& video, i32 frameIndex, const Graphics::Transform2D& transform, Graphics::AetBlendMode blendMode = Graphics::AetBlendMode::Normal);
+		void DrawSpr(const Graphics::Tex& tex, const Graphics::Spr& spr, const Graphics::Transform2D& transform, Graphics::AetBlendMode blendMode = Graphics::AetBlendMode::Normal);
 
 	public:
 		void SetSprGetter(SprGetter value);

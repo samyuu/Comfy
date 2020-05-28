@@ -160,25 +160,45 @@ namespace Comfy::Render
 		DrawLayer(layer, (frame >= layer.EndFrame ? layer.EndFrame : frame), position, opacity);
 	}
 
-	void AetRenderer::DrawVideo(const Video& video, i32 frameIndex, vec2 position)
+	void AetRenderer::DrawVideo(const Video& video, i32 frameIndex, const Graphics::Transform2D& transform, Graphics::AetBlendMode blendMode)
 	{
 		auto[tex, spr] = GetSprite(video, frameIndex);
+
+		RenderCommand2D command;
+		command.Origin = transform.Origin;
+		command.Position = transform.Position;
+		command.Rotation = transform.Rotation;
+		command.Scale = transform.Scale;
+		command.BlendMode = blendMode;
+
 		if (tex != nullptr && spr != nullptr)
 		{
-			RenderCommand2D command;
 			command.Texture = tex;
-			command.Position = position;
 			command.SourceRegion = spr->PixelRegion;
-			renderer2D.Draw(command);
+			command.SetColor(vec4(1.0f, 1.0f, 1.0f, transform.Opacity));
 		}
 		else
 		{
-			RenderCommand2D command;
-			command.Position = position;
-			command.Scale = vec2(video.Size);
+			command.Scale *= vec2(video.Size);
 			command.SetColor(GetSolidVideoColor(video));
-			renderer2D.Draw(command);
 		}
+
+		renderer2D.Draw(command);
+	}
+
+	void AetRenderer::DrawSpr(const Graphics::Tex& tex, const Graphics::Spr& spr, const Graphics::Transform2D& transform, Graphics::AetBlendMode blendMode)
+	{
+		RenderCommand2D command;
+		command.Texture = &tex;
+		command.Origin = transform.Origin;
+		command.Position = transform.Position;
+		command.Rotation = transform.Rotation;
+		command.Scale = transform.Scale;
+		command.SourceRegion = spr.PixelRegion;
+		command.BlendMode = blendMode;
+		command.SetColor(vec4(1.0f, 1.0f, 1.0f, transform.Opacity));
+
+		renderer2D.Draw(command);
 	}
 
 	void AetRenderer::SetSprGetter(SprGetter value)
