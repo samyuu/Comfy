@@ -20,7 +20,15 @@ namespace Comfy::Render::Detail
 		}
 	}
 
-	void SpriteVertices::SetValues(const vec2& position, const vec4& sourceRegion, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4& color)
+	void SpriteVertices::SetTextureIndices(ivec2 textureIndices)
+	{
+		TopLeft.TextureIndices = textureIndices;
+		TopRight.TextureIndices = textureIndices;
+		BottomLeft.TextureIndices = textureIndices;
+		BottomRight.TextureIndices = textureIndices;
+	}
+
+	void SpriteVertices::SetValues(vec2 position, const vec4& sourceRegion, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4& color)
 	{
 		SetPositions(position, vec2(sourceRegion.z, sourceRegion.w) * scale, origin * scale, rotation);
 
@@ -31,7 +39,7 @@ namespace Comfy::Render::Detail
 		SetColors(color);
 	}
 
-	void SpriteVertices::SetValues(const vec2& position, const vec4& sourceRegion, const vec2& size, const vec2& origin, float rotation, const vec2& scale, const vec4 colors[4])
+	void SpriteVertices::SetValues(vec2 position, const vec4& sourceRegion, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4 colors[4])
 	{
 		SetPositions(position, vec2(sourceRegion.z, sourceRegion.w) * scale, origin * scale, rotation);
 
@@ -42,7 +50,7 @@ namespace Comfy::Render::Detail
 		SetColorArray(colors);
 	}
 
-	void SpriteVertices::SetPositions(const vec2& position, const vec2& size)
+	void SpriteVertices::SetPositions(vec2 position, vec2 size)
 	{
 		TopLeft.Position.x = position.x;
 		TopLeft.Position.y = position.y;
@@ -57,7 +65,7 @@ namespace Comfy::Render::Detail
 		BottomRight.Position.y = position.y + size.y;
 	}
 
-	void SpriteVertices::SetPositions(const vec2& position, const vec2& size, const vec2& origin, float rotation)
+	void SpriteVertices::SetPositions(vec2 position, vec2 size, vec2 origin, float rotation)
 	{
 		if (rotation == 0.0f)
 		{
@@ -83,7 +91,7 @@ namespace Comfy::Render::Detail
 		}
 	}
 
-	void SpriteVertices::SetTexCoords(const vec2& topLeft, const vec2& bottomRight)
+	void SpriteVertices::SetTexCoords(vec2 topLeft, vec2 bottomRight)
 	{
 		TopLeft.TextureCoordinates.x = topLeft.x;
 		TopLeft.TextureCoordinates.y = topLeft.y;
@@ -99,8 +107,8 @@ namespace Comfy::Render::Detail
 	}
 
 	void SpriteVertices::SetTexMaskCoords(
-		const D3D11::Texture2D* texture, const vec2& position, const vec2& scale, const vec2& origin, float rotation,
-		const vec2& maskPosition, const vec2& maskScale, const vec2& maskOrigin, float maskRotation, const vec4& maskSourceRegion)
+		const D3D11::Texture2D* texture, vec2 position, vec2 scale, vec2 origin, float rotation,
+		vec2 maskPosition, vec2 maskScale, vec2 maskOrigin, float maskRotation, const vec4& maskSourceRegion)
 	{
 		const vec2 maskOffset = maskPosition - (maskOrigin * maskScale);
 		const vec2 maskRectSize = vec2(maskScale.x * maskSourceRegion.z, maskScale.y * maskSourceRegion.w);
