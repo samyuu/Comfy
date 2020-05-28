@@ -108,11 +108,19 @@ namespace Comfy::Sandbox
 		bool showPerformanceOverlay = true;
 		PerformanceOverlay performanceOverlay = {};
 
-		std::unique_ptr<Tests::ITestTask> currentTestTask = nullptr; // std::make_unique<Tests::AetRendererTest>();
+		std::unique_ptr<Tests::ITestTask> currentTestTask = nullptr;
+
+#if 1
+		Tests::TestTaskInitializer::IterateRegistered([&](const auto& initializer)
+		{
+			if (std::strcmp(initializer.DerivedName, "Comfy::Sandbox::Tests::MenuTest") == 0)
+				currentTestTask = initializer.Function();
+		});
+#endif
 
 		host.EnterProgramLoop([&]
 		{
-			bool showMenuBar = !false;
+			bool showMenuBar = false;
 
 			if (showMenuBar && Gui::BeginMainMenuBar())
 			{
@@ -133,7 +141,7 @@ namespace Comfy::Sandbox
 
 			host.GuiMainDockspace(showMenuBar);
 
-			constexpr auto returnKey = Input::KeyCode_Escape;
+			constexpr auto returnKey = Input::KeyCode_F4;
 			if (Gui::IsKeyPressed(returnKey, false))
 				currentTestTask = nullptr;
 

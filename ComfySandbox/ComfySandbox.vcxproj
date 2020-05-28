@@ -110,6 +110,7 @@
   <ItemGroup>
     <ClCompile Include="src\Tests\AetRendererTest.cpp" />
     <ClCompile Include="src\Tests\AudioTest.cpp" />
+    <ClCompile Include="src\Tests\MenuTest.cpp" />
     <ClCompile Include="src\Tests\Renderer2DTest.cpp" />
     <ClCompile Include="src\Tests\Renderer3DTest.cpp" />
     <ClInclude Include="src\Tests\TestTask.h" />
