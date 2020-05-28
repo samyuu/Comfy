@@ -624,18 +624,21 @@ namespace Comfy::Studio::Editor
 
 	void SceneEditor::DrawIBLGui()
 	{
-		GuiPropertyRAII::ID id(&scene.IBL);
+		GuiPropertyRAII::ID id(scene.IBL.get());
 		GuiPropertyRAII::PropertyValueColumns columns;
 
 		if (GuiProperty::Input("Load IBL File", iblPathBuffer.data(), iblPathBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
-			Debug::LoadParseUploadLightParamFile(iblPathBuffer.data(), scene.IBL);
+			scene.IBL = IO::File::Load<Graphics::IBLParameters>(iblPathBuffer.data());
+
+		if (scene.IBL == nullptr)
+			return;
 
 		GuiProperty::TreeNode("Lights", ImGuiTreeNodeFlags_DefaultOpen, [&]
 		{
 			char nameBuffer[32];
-			for (size_t i = 0; i < scene.IBL.Lights.size(); i++)
+			for (size_t i = 0; i < scene.IBL->Lights.size(); i++)
 			{
-				auto& lightData = scene.IBL.Lights[i];
+				auto& lightData = scene.IBL->Lights[i];
 				sprintf_s(nameBuffer, "Lights[%zu]", i);
 
 				GuiPropertyRAII::ID id(&lightData);
@@ -650,9 +653,9 @@ namespace Comfy::Studio::Editor
 		GuiProperty::TreeNode("Light Maps", ImGuiTreeNodeFlags_DefaultOpen, [&]
 		{
 			char nameBuffer[32];
-			for (size_t i = 0; i < scene.IBL.LightMaps.size(); i++)
+			for (size_t i = 0; i < scene.IBL->LightMaps.size(); i++)
 			{
-				const auto& lightMap = scene.IBL.LightMaps[i];
+				const auto& lightMap = scene.IBL->LightMaps[i];
 				sprintf_s(nameBuffer, "Light Maps[%zu]", i);
 
 				GuiPropertyRAII::ID id(&lightMap);
@@ -1398,10 +1401,13 @@ namespace Comfy::Studio::Editor
 			scene.Light.Stage.Specular = lightData.Stage.Specular;
 			scene.Light.Stage.Position = lightData.Stage.Position;
 
-			scene.IBL.Lights[0].LightColor = lightData.IBL0.LightColor;
-			scene.IBL.Lights[0].IrradianceRGB = lightData.IBL0.IrradianceRGB;
-			scene.IBL.Lights[1].LightColor = lightData.IBL1.LightColor;
-			scene.IBL.Lights[1].IrradianceRGB = lightData.IBL1.IrradianceRGB;
+			if (scene.IBL != nullptr)
+			{
+				scene.IBL->Lights[0].LightColor = lightData.IBL0.LightColor;
+				scene.IBL->Lights[0].IrradianceRGB = lightData.IBL0.IrradianceRGB;
+				scene.IBL->Lights[1].LightColor = lightData.IBL1.LightColor;
+				scene.IBL->Lights[1].IrradianceRGB = lightData.IBL1.IrradianceRGB;
+			}
 		}
 		else if (externalProcessTest.SyncWriteLightParam && tryAttach())
 		{
@@ -1417,10 +1423,10 @@ namespace Comfy::Studio::Editor
 					vec4(scene.Light.Stage.Specular, 1.0f),
 					scene.Light.Stage.Position,
 
-					scene.IBL.Lights[0].LightColor,
-					scene.IBL.Lights[0].IrradianceRGB,
-					scene.IBL.Lights[1].LightColor,
-					scene.IBL.Lights[1].IrradianceRGB,
+					(scene.IBL == nullptr) ? vec4 {} : scene.IBL->Lights[0].LightColor,
+					(scene.IBL == nullptr) ? std::array<mat4, 3> {} : scene.IBL->Lights[0].IrradianceRGB,
+					(scene.IBL == nullptr) ? vec4 {} : scene.IBL->Lights[1].LightColor,
+					(scene.IBL == nullptr) ? std::array<mat4, 3> {} : scene.IBL->Lights[1].IrradianceRGB,
 				});
 		}
 	}

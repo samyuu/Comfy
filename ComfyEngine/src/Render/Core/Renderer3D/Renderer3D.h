@@ -34,7 +34,7 @@ namespace Comfy::Render
 		Graphics::FogParameter Fog;
 		Graphics::GlowParameter Glow;
 		Graphics::LightParameter Light;
-		Graphics::IBLParameters IBL;
+		std::unique_ptr<Graphics::IBLParameters> IBL;
 	};
 
 	class Renderer3D : NonCopyable

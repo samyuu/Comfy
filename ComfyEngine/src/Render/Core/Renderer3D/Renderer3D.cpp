@@ -583,12 +583,15 @@ namespace Comfy::Render
 			outData.RenderTime.TimeSin = (glm::sin(renderTimeNow) + 1.0f) * 0.5f;
 			outData.RenderTime.TimeCos = (glm::cos(renderTimeNow) + 1.0f) * 0.5f;
 
-			const auto& ibl = Current.SceneParam->IBL;
-			for (size_t component = 0; component < ibl.Lights[1].IrradianceRGB.size(); component++)
-				outData.IBL.IrradianceRGB[component] = glm::transpose(ibl.Lights[1].IrradianceRGB[component]);
+			if (Current.SceneParam->IBL != nullptr)
+			{
+				const auto& ibl = *Current.SceneParam->IBL;
+				for (size_t component = 0; component < ibl.Lights[1].IrradianceRGB.size(); component++)
+					outData.IBL.IrradianceRGB[component] = glm::transpose(ibl.Lights[1].IrradianceRGB[component]);
 
-			for (size_t i = 0; i < ibl.Lights.size(); i++)
-				outData.IBL.LightColors[i] = vec4(ibl.Lights[i].LightColor, 1.0f);
+				for (size_t i = 0; i < ibl.Lights.size(); i++)
+					outData.IBL.LightColors[i] = vec4(ibl.Lights[i].LightColor, 1.0f);
+			}
 
 			auto& camera = *Current.Camera;
 			camera.UpdateMatrices();
@@ -656,11 +659,11 @@ namespace Comfy::Render
 					nullptr,
 
 					// NOTE: IBLLightMaps_0 = 9
-					D3D11::GetCubeMap(Current.SceneParam->IBL.LightMaps[0]),
+					(Current.SceneParam->IBL == nullptr) ? nullptr : D3D11::GetCubeMap(Current.SceneParam->IBL->LightMaps[0]),
 					// NOTE: IBLLightMaps_1 = 10
-					D3D11::GetCubeMap(Current.SceneParam->IBL.LightMaps[1]),
+					(Current.SceneParam->IBL == nullptr) ? nullptr : D3D11::GetCubeMap(Current.SceneParam->IBL->LightMaps[1]),
 					// NOTE: IBLLightMaps_2 = 11
-					D3D11::GetCubeMap(Current.SceneParam->IBL.LightMaps[2]),
+					(Current.SceneParam->IBL == nullptr) ? nullptr : D3D11::GetCubeMap(Current.SceneParam->IBL->LightMaps[2]),
 
 					// NOTE: ---
 					nullptr,

@@ -144,9 +144,6 @@ namespace Comfy::Graphics
 		const u8* binaryBuffer = LightMapBinaryData.get();
 		for (auto& lightMap : LightMaps)
 		{
-			// HACK: This could be problematic because cleanup has to happen inside the render thread
-			lightMap.GPU_CubeMap = nullptr;
-
 			for (int mipMap = 0; mipMap < LightMapIBL::MipMaps; mipMap++)
 			{
 				for (int cubeFace = 0; cubeFace < LightMapIBL::Faces; cubeFace++)

@@ -105,12 +105,12 @@ namespace Comfy::Studio::Debug
 		LoadParseUploadLightParamFile(pathBuffer.data(), scene.Light);
 
 		pathBuffer = GetDebugFilePath(PathType::IBL, stageType, stageID, stageSubID, nullptr, &iblFallbackUsed);
-		LoadParseUploadLightParamFile(pathBuffer.data(), scene.IBL);
+		scene.IBL = IO::File::Load<Graphics::IBLParameters>(pathBuffer.data());
 
-		if (lightFallbackUsed && !iblFallbackUsed)
+		if (lightFallbackUsed && !iblFallbackUsed && scene.IBL != nullptr)
 		{
-			scene.Light.Character.Position = scene.IBL.Lights[0].LightDirection;
-			scene.Light.Stage.Position = scene.IBL.Lights[1].LightDirection;
+			scene.Light.Character.Position = scene.IBL->Lights[0].LightDirection;
+			scene.Light.Stage.Position = scene.IBL->Lights[1].LightDirection;
 		}
 	}
 

@@ -10,9 +10,7 @@ namespace Comfy::Sandbox::Tests
 
 		Renderer3DTest()
 		{
-			const auto[fileContent, fileSize] = IO::File::ReadAllBytes("dev_rom/ibl/tst007.ibl");
-			if (fileContent != nullptr)
-				sceneParam.IBL.Parse(fileContent.get(), fileSize);
+			sceneParam.IBL = IO::File::Load<Graphics::IBLParameters>("dev_rom/ibl/tst007.ibl");
 
 			if (objSet != nullptr && texSet != nullptr)
 			{

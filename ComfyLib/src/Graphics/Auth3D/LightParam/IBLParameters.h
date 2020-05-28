@@ -35,7 +35,7 @@ namespace Comfy::Graphics
 		std::array<mat4, 3> IrradianceRGB;
 	};
 
-	class IBLParameters final : public IO::IBufferParsable
+	class IBLParameters final : public IO::IBufferParsable, NonCopyable
 	{
 	public:
 		IBLParameters();
