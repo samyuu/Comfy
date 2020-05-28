@@ -22,6 +22,7 @@ namespace Comfy::Render
 		return (texture != nullptr) ? vec2(texture->GetSize()) : vec2(source.z, source.w);
 	}
 
+	// TODO: Implement using bound textures array + per vertex sprite / mask indices to allow for multi texture sprite batching
 	enum SpriteShaderTextureSlot
 	{
 		TextureSpriteSlot = 0,
