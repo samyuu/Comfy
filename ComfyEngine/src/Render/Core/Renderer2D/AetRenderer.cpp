@@ -71,7 +71,8 @@ namespace Comfy::Render
 			command.Origin = obj.Transform.Origin;
 			command.Position = finalPosition;
 			command.Rotation = obj.Transform.Rotation;
-			command.Scale = obj.Transform.Scale * vec2(obj.Video->Size);
+			command.Scale = obj.Transform.Scale;
+			command.SourceRegion = vec4(0.0f, 0.0f, obj.Video->Size);
 			command.BlendMode = obj.BlendMode;
 			command.SetColor(GetSolidVideoColor(*obj.Video, finalOpacity));
 
@@ -122,7 +123,8 @@ namespace Comfy::Render
 			command.Origin = obj.Transform.Origin;
 			command.Position = obj.Transform.Position + positionOffset;
 			command.Rotation = obj.Transform.Rotation;
-			command.Scale = obj.Transform.Scale * vec2(obj.Video->Size);
+			command.Scale = obj.Transform.Scale;
+			command.SourceRegion = vec4(0.0f, 0.0f, obj.Video->Size);
 			command.BlendMode = obj.BlendMode;
 			command.SetColor(GetSolidVideoColor(*obj.Video, finalOpacity));
 
@@ -179,7 +181,7 @@ namespace Comfy::Render
 		}
 		else
 		{
-			command.Scale *= vec2(video.Size);
+			command.SourceRegion = vec4(0.0f, 0.0f, video.Size);
 			command.SetColor(GetSolidVideoColor(video));
 		}
 
