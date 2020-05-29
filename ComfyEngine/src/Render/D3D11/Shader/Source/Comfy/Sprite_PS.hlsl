@@ -3,7 +3,7 @@
 #include "../Include/Comfy/UncompressRGTC.hlsl"
 #include "../Include/Comfy/Font.hlsl"
 
-#define COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH
+// #define COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH
 
 struct VS_OUTPUT
 {
@@ -24,7 +24,6 @@ cbuffer SpriteConstantData : register(b0)
 #if defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
     int CB_TextureFormat;
     int CB_TextureMaskFormat;
-#else
 #endif
 
     int CB_BlendMode;
@@ -48,7 +47,7 @@ Texture2D SpriteMaskTexture     : register(t1);
 #else
 SamplerState SpriteSampler : register(s0);
 
-Texture2D MaskTexture                           : register(t0);
+Texture2D SpriteMaskTexture                     : register(t0);
 Texture2D SpriteTextures[SpriteTextureSlots]    : register(t1);
 #endif
 
@@ -87,8 +86,6 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     {
         if (CB_DrawTextBorder)
         {
-            // outputColor = SampleFontWithBorder(IndexTexture(spriteIndex), SpriteSampler, input.TexCoord, input.Color);
-            
             [unroll]
             for (uint i = 0; i < SpriteTextureSlots; i++) 
             { 
@@ -101,16 +98,13 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
         }
         else if (textureMaskFormat > TextureFormat_Unknown)
         {
-            // outputColor.rgba *= FormatAwareSampleTexture_RGBA(IndexTexture(spriteIndex), SpriteSampler, input.TexMaskCoord, textureFormat);
-            // outputColor.a *= FormatAwareSampleTexture_Alpha(MaskTexture, SpriteSampler, input.TexCoord, CB_TextureMaskFormat);
-            
             [unroll]
             for (uint i = 0; i < SpriteTextureSlots; i++) 
             { 
                 if (i == spriteIndex) 
                 {
                     outputColor.rgba *= FormatAwareSampleTexture_RGBA(SpriteTextures[i], SpriteSampler, input.TexMaskCoord, textureFormat);
-                    outputColor.a *= FormatAwareSampleTexture_Alpha(MaskTexture, SpriteSampler, input.TexCoord, textureMaskFormat);
+                    outputColor.a *= FormatAwareSampleTexture_Alpha(SpriteMaskTexture, SpriteSampler, input.TexCoord, textureMaskFormat);
                     break;
                 }
             }
@@ -126,8 +120,6 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
                     break;
                 }
             }
-            
-            // outputColor *= FormatAwareSampleTexture_RGBA(IndexTexture(spriteIndex), SpriteSampler, input.TexCoord, textureFormat);
         }
     }
 #endif

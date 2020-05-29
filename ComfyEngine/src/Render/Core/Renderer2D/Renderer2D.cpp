@@ -13,9 +13,6 @@
 #include "Render/D3D11/Texture/RenderTarget.h"
 #include "Render/D3D11/Texture/TextureSampler.h"
 
-// TODO: Implement using bound textures array + per vertex sprite / mask indices to allow for multi texture sprite batching
-// #define COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH
-
 namespace Comfy::Render
 {
 	using namespace Graphics;
@@ -49,8 +46,6 @@ namespace Comfy::Render
 #if defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
 			TextureFormat Format;
 			TextureFormat MaskFormat;
-#else
-			//u32 ArrayPadding[3];
 #endif
 			AetBlendMode BlendMode;
 			u8 BlendModePadding[3];
@@ -61,12 +56,10 @@ namespace Comfy::Render
 			vec4 CheckerboardSize;
 
 #if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
-			//u32 TrailingPadding[4];
-
 			ArrayPaddedTextureFormat TextureMaskFormat;
 			std::array<ArrayPaddedTextureFormat, SpriteTextureSlots> TextureFormats;
 #else
-			u32 PADDING[2];
+			u32 TrailingPadding[2];
 #endif
 		};
 
@@ -234,7 +227,6 @@ namespace Comfy::Render
 				const bool requiresNewBatch =
 					(item.BlendMode != lastItem.BlendMode) ||
 					(item.DrawTextBorder != lastItem.DrawTextBorder) ||
-					// (item.Texture != lastItem.Texture) ||
 					(item.MaskTexture != lastItem.MaskTexture) ||
 					(item.CheckerboardSize != zeroSize || lastItem.CheckerboardSize != zeroSize);
 

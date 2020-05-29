@@ -2,15 +2,11 @@
 #include "Types.h"
 #include "Render/D3D11/Texture/Texture.h"
 
-#define COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH
+// #define COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH
 
 #if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
 namespace Comfy::Render
 {
-	// TODO: 7 sprite textures and 1 mask texture, always new batch for masks
-	//		 then manually switch on the sprite texture
-	//		 also only use a single sampler
-
 	constexpr size_t SpriteTextureSlots = 7;
 }
 #endif
@@ -28,13 +24,6 @@ namespace Comfy::Render::Detail
 
 		static constexpr u32 GetIndexCount() { return sizeof(SpriteIndices) / sizeof(u16); };
 	};
-
-	/*
-	constexpr u32 PackTextureIndices(i16 spriteIndex, i16 maskIndex)
-	{
-		return static_cast<u32>((spriteIndex) | (maskIndex << 16));
-	}
-	*/
 
 	struct SpriteVertex
 	{
@@ -82,7 +71,6 @@ namespace Comfy::Render::Detail
 
 #if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
 		std::array<const D3D11::Texture2D*, SpriteTextureSlots> Textures = {};
-		// const D3D11::Texture2D* MaskTexture = {};
 #endif
 
 		SpriteBatch(u16 index, u16 count) : Index(index), Count(count) {};
