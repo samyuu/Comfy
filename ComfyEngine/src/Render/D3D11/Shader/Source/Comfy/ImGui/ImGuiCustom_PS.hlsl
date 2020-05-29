@@ -1,5 +1,5 @@
-#include "../Include/Comfy/UncompressRGTC.hlsl"
-#include "../Include/Comfy/CubeMapCommon.hlsl"
+#include "../../Include/Comfy/UncompressRGTC.hlsl"
+#include "../../Include/Comfy/CubeMapCommon.hlsl"
 
 struct VS_OUTPUT
 {

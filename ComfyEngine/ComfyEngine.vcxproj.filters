@@ -433,9 +433,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\ImGuiCustom_PS.hlsl" />
-    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\ImGuiDefault_PS.hlsl" />
-    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\ImGuiDefault_VS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\Sprite_PS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\Sprite_VS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\LensFlare\LensFlare_PS.hlsl" />
@@ -502,5 +499,8 @@
     <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\SSS\SSSFilterGauss2D_PS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\SSS\SSSFilterMin_PS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\PostProcessing\ToneMap\ToneMap_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\ImGui\ImGuiCustom_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\ImGui\ImGuiDefault_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\ImGui\ImGuiDefault_VS.hlsl" />
   </ItemGroup>
 </Project>
