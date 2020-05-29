@@ -1,8 +1,14 @@
 ImGuiDefault_VS
 ImGuiDefault_PS
 ImGuiCustom_PS
-Sprite_VS
-Sprite_PS
+SpriteMultiTexture_VS
+SpriteMultiTextureBatch_PS
+SpriteMultiTextureBatchBlend_PS
+SpriteSingleTexture_VS
+SpriteSingleTextureCheckerboard_PS
+SpriteSingleTextureFont_PS
+SpriteSingleTextureMask_PS
+SpriteSingleTextureMaskBlend_PS
 DebugMaterial_VS
 DebugMaterial_PS
 FullscreenQuad_VS

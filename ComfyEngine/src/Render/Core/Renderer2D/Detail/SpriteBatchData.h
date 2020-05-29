@@ -1,15 +1,12 @@
 #pragma once
 #include "Types.h"
 #include "Render/D3D11/Texture/Texture.h"
+#include <optional>
 
-#define COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH
-
-#if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
 namespace Comfy::Render
 {
 	constexpr size_t SpriteTextureSlots = 7;
 }
-#endif
 
 namespace Comfy::Render::Detail
 {
@@ -31,9 +28,7 @@ namespace Comfy::Render::Detail
 		vec2 TextureCoordinates;
 		vec2 TextureMaskCoordinates;
 		u32 Color;
-#if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
 		u32 TextureIndex;
-#endif
 	};
 
 	struct SpriteVertices
@@ -44,24 +39,22 @@ namespace Comfy::Render::Detail
 		SpriteVertex BottomRight;
 
 	public:
-		void SetValues(vec2 position, const vec4& sourceRegion, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4& color);
-		void SetValues(vec2 position, const vec4& sourceRegion, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4 colors[4]);
+		void SetValues(vec2 position, const vec4& sourceRegion, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4 colors[4], bool setTexCoords);
 		static constexpr u32 GetVertexCount() { return sizeof(SpriteVertices) / sizeof(SpriteVertex); };
 
 	public:
-		void SetPositions(vec2 position, vec2 size);
+		void SetPositionsNoRotation(vec2 position, vec2 size);
 		void SetPositions(vec2 position, vec2 size, vec2 origin, float rotation);
 		void SetTexCoords(vec2 topLeft, vec2 bottomRight);
+		void SetNullTexCoords();
 		void SetTexMaskCoords(
 			const D3D11::Texture2D* texture, vec2 position, vec2 scale, vec2 origin, float rotation,
 			vec2 maskPosition, vec2 maskScale, vec2 maskOrigin, float maskRotation, const vec4& maskSourceRegion);
 		void SetColors(const vec4& color);
 		void SetColorArray(const vec4 colors[4]);
 
-#if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
 	public:
 		void SetTextureIndices(u32 textureIndex);
-#endif
 	};
 
 	struct SpriteBatch
@@ -69,20 +62,23 @@ namespace Comfy::Render::Detail
 		u16 Index;
 		u16 Count;
 
-#if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
 		std::array<const D3D11::Texture2D*, SpriteTextureSlots> Textures = {};
-#endif
 
 		SpriteBatch(u16 index, u16 count) : Index(index), Count(count) {};
 	};
 
 	struct SpriteBatchItem
 	{
+		// NOTE: Never nullptr (WhiteTexture used as a backup)
 		const D3D11::Texture2D* Texture;
+
+		// NOTE: May be nullptr
 		const D3D11::Texture2D* MaskTexture;
+
 		Graphics::AetBlendMode BlendMode;
 		bool DrawTextBorder;
-		vec2 CheckerboardSize;
+
+		std::optional<vec2> CheckerboardSize;
 	};
 
 	struct SpriteBatchPair

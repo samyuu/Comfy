@@ -22,55 +22,45 @@ namespace Comfy::Render
 		return (texture != nullptr) ? vec2(texture->GetSize()) : vec2(source.z, source.w);
 	}
 
-#if defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
-	enum SpriteShaderTextureSlot
-	{
-		TextureSpriteSlot = 0,
-		TextureMaskSlot = 1
-	};
-#endif
-
 	struct Renderer2D::Impl
 	{
 	public:
-		// TODO: Move to Detail namespace and directory
+		static constexpr u32 MaxBatchItemSize = 2048;
+
+	public:
 		struct CameraConstantData
 		{
 			mat4 ViewProjection;
 		};
 
-		struct ArrayPaddedTextureFormat { TextureFormat Value; i32 Padding[3]; };
-
 		struct SpriteConstantData
 		{
-#if defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
-			TextureFormat Format;
-			TextureFormat MaskFormat;
-#endif
 			AetBlendMode BlendMode;
 			u8 BlendModePadding[3];
-			int Flags;
-			int DrawTextBorder;
-			int DrawCheckerboard;
+
+			TextureFormat Format;
+			TextureFormat MaskFormat;
+			u32 FormatFlags;
 
 			vec4 CheckerboardSize;
-
-#if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
-			ArrayPaddedTextureFormat TextureMaskFormat;
-			std::array<ArrayPaddedTextureFormat, SpriteTextureSlots> TextureFormats;
-#else
-			u32 TrailingPadding[2];
-#endif
 		};
 
-		static inline const auto test = offsetof(SpriteConstantData, BlendMode);
+		static_assert(SpriteTextureSlots <= (sizeof(SpriteConstantData::FormatFlags) * CHAR_BIT));
 
 	public:
 		AetRenderer AetRenderer;
 
 		u32 DrawCallCount = 0;
 
-		D3D11::ShaderPair SpriteShader = { D3D11::Sprite_VS(), D3D11::Sprite_PS(), "Renderer2D::Sprite" };
+		struct RendererShaderPairs
+		{
+			D3D11::ShaderPair MultiTextureBatch = { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_PS(), "Renderer2D::SpriteMultiTextureBatch" };
+			D3D11::ShaderPair MultiTextureBatchMultiply = { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatchBlend_PS(), "Renderer2D::SpriteMultiTextureBatchBlend" };
+			D3D11::ShaderPair SingleTextureCheckerboard = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureCheckerboard_PS(), "Renderer2D::SpriteSingleTextureCheckerboard" };
+			D3D11::ShaderPair SingleTextureFont = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureFont_PS(), "Renderer2D::SpriteSingleTextureFont" };
+			D3D11::ShaderPair SingleTextureMask = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureMask_PS(), "Renderer2D::SpriteSingleTextureMask" };
+			D3D11::ShaderPair SingleTextureMaskMultiply = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureMaskBlend_PS(), "Renderer2D::SpriteSingleTextureMaskBlend" };
+		} Shaders;
 
 		D3D11::DefaultConstantBufferTemplate<CameraConstantData> CameraConstantBuffer = { 0 };
 		D3D11::DynamicConstantBufferTemplate<SpriteConstantData> SpriteConstantBuffer = { 0 };
@@ -96,6 +86,10 @@ namespace Comfy::Render
 		ImmutableTexture2D CheckerboardTexture = { ivec2(2, 2), checkerboardTexturePixels.data(), D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_WRAP };
 		*/
 
+		// NOTE: Avoid additional branches by using a 1x1 white fallback texture for rendering solid color
+		static constexpr std::array<u32, 1> WhiteTexturePixels = { 0xFFFFFFFF };
+		D3D11::Texture2D WhiteTexture = { ivec2(1, 1), WhiteTexturePixels.data() };
+
 		struct AetBlendStates
 		{
 			D3D11::BlendState Normal = { AetBlendMode::Normal };
@@ -119,6 +113,7 @@ namespace Comfy::Render
 			D3D11_SetObjectDebugName(SpriteConstantBuffer.Buffer.GetBuffer(), "Renderer2D::SpriteConstantBuffer");
 
 			D3D11_SetObjectDebugName(RasterizerState.GetRasterizerState(), "Renderer2D::RasterizerState");
+			D3D11_SetObjectDebugName(WhiteTexture.GetTexture(), "Renderer2D::WhiteTexture");
 
 			InternalCreateIndexBuffer();
 			InternalCreateVertexBuffer();
@@ -127,7 +122,9 @@ namespace Comfy::Render
 
 		void InternalCreateIndexBuffer()
 		{
-			std::array<Detail::SpriteIndices, Renderer2D::MaxBatchItemSize> indexData;
+			constexpr size_t totalIndices = ((MaxBatchItemSize + Detail::SpriteVertices::GetVertexCount()) * Detail::SpriteIndices::GetIndexCount());
+			std::array<Detail::SpriteIndices, totalIndices> indexData;
+
 			for (u16 i = 0, offset = 0; i < indexData.size(); i++)
 			{
 				// [0] TopLeft	  - [1] TopRight
@@ -155,7 +152,7 @@ namespace Comfy::Render
 
 		void InternalCreateVertexBuffer()
 		{
-			VertexBuffer = std::make_unique<D3D11::DynamicVertexBuffer>(Renderer2D::MaxBatchItemSize * sizeof(Detail::SpriteVertex), nullptr, sizeof(Detail::SpriteVertex));
+			VertexBuffer = std::make_unique<D3D11::DynamicVertexBuffer>(MaxBatchItemSize * sizeof(Detail::SpriteVertices), nullptr, sizeof(Detail::SpriteVertex));
 			D3D11_SetObjectDebugName(VertexBuffer->GetBuffer(), "Renderer2D::VertexBuffer");
 		}
 
@@ -167,17 +164,14 @@ namespace Comfy::Render
 				{ "TEXCOORD",	0, DXGI_FORMAT_R32G32_FLOAT,	offsetof(Detail::SpriteVertex, TextureCoordinates)		},
 				{ "TEXCOORD",	1, DXGI_FORMAT_R32G32_FLOAT,	offsetof(Detail::SpriteVertex, TextureMaskCoordinates)	},
 				{ "COLOR",		0, DXGI_FORMAT_R8G8B8A8_UNORM,	offsetof(Detail::SpriteVertex, Color)					},
-#if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
 				{ "TEXINDEX",	0, DXGI_FORMAT_R32_UINT,		offsetof(Detail::SpriteVertex, TextureIndex)			},
-#endif
 			};
 
-			InputLayout = std::make_unique<D3D11::InputLayout>(elements, std::size(elements), SpriteShader.VS);
+			InputLayout = std::make_unique<D3D11::InputLayout>(elements, std::size(elements), Shaders.MultiTextureBatch.VS);
 			D3D11_SetObjectDebugName(InputLayout->GetLayout(), "Renderer2D::InputLayout");
 		}
 
-#if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
-		int FindAvailableTextureArrayIndex(Detail::SpriteBatch& currentBatch, const D3D11::Texture2D* texture) const
+		int FindAvailableTextureSlot(Detail::SpriteBatch& currentBatch, const D3D11::Texture2D* texture) const
 		{
 			for (int i = 0; i < static_cast<int>(SpriteTextureSlots); i++)
 			{
@@ -187,59 +181,29 @@ namespace Comfy::Render
 
 			return -1;
 		}
-#endif
 
-		void InternalCreateBatches()
+		void InternalCreateBatchesFromItems()
 		{
-#if defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
-			for (u16 i = 0; i < BatchItems.size(); i++)
-			{
-				const bool isFirst = (i == 0);
-				const Detail::SpriteBatchItem* item = &BatchItems[i];
-				const Detail::SpriteBatchItem* lastItem = isFirst ? nullptr : &BatchItems[Batches.back().Index];
-
-				constexpr vec2 zeroSize = vec2(0.0f);
-				const bool newBatch = isFirst ||
-					(item->BlendMode != lastItem->BlendMode) ||
-					(item->DrawTextBorder != lastItem->DrawTextBorder) ||
-					(item->Texture != lastItem->Texture) ||
-					(item->MaskTexture != nullptr) ||
-					(item->CheckerboardSize != zeroSize || lastItem->CheckerboardSize != zeroSize);
-
-				if (newBatch)
-					Batches.emplace_back(i, 1);
-				else
-					Batches.back().Count++;
-			}
-#else
-			if (BatchItems.empty())
-				return;
+			assert(!BatchItems.empty());
 
 			Batches.emplace_back(0, 1).Textures[0] = BatchItems.front().Texture;
-			Vertices.front().SetTextureIndices((BatchItems.front().Texture == nullptr) ? -1 : 0);
+			Vertices.front().SetTextureIndices(0);
 
 			for (u16 i = 1; i < BatchItems.size(); i++)
 			{
 				const Detail::SpriteBatchItem& item = BatchItems[i];
 				const Detail::SpriteBatchItem& lastItem = BatchItems[Batches.back().Index];
 
-				constexpr vec2 zeroSize = vec2(0.0f);
+				const bool textureWasChanged = (item.Texture != lastItem.Texture);
+
+				// BUG:
 				const bool requiresNewBatch =
 					(item.BlendMode != lastItem.BlendMode) ||
-					(item.DrawTextBorder != lastItem.DrawTextBorder) ||
-					(item.MaskTexture != lastItem.MaskTexture) ||
-					(item.CheckerboardSize != zeroSize || lastItem.CheckerboardSize != zeroSize);
+					(item.DrawTextBorder != lastItem.DrawTextBorder && textureWasChanged) ||
+					(item.MaskTexture != lastItem.MaskTexture && textureWasChanged) ||
+					(item.CheckerboardSize.has_value() != lastItem.CheckerboardSize.has_value());
 
-				if (item.Texture == nullptr)
-				{
-					if (requiresNewBatch)
-						Batches.emplace_back(i, 1);
-					else
-						Batches.back().Count++;
-
-					Vertices[i].SetTextureIndices(-1);
-				}
-				else if (const int availableTextureIndex = FindAvailableTextureArrayIndex(Batches.back(), item.Texture); availableTextureIndex >= 0)
+				if (const int availableTextureIndex = FindAvailableTextureSlot(Batches.back(), item.Texture); availableTextureIndex >= 0)
 				{
 					if (requiresNewBatch)
 						Batches.emplace_back(i, 1);
@@ -257,46 +221,39 @@ namespace Comfy::Render
 					Batches.back().Textures[0] = item.Texture;
 				}
 			}
-#endif
 		}
 
-		void InternalFlush(bool finalFlush)
+		const D3D11::ShaderPair& GetBatchItemShader(const Detail::SpriteBatchItem& item)
 		{
-			InternalCreateBatches();
+			if (item.DrawTextBorder)
+				return Shaders.SingleTextureFont;
 
-			RenderTarget->Main.ResizeIfDifferent(RenderTarget->Param.Resolution);
-			RenderTarget->Main.SetMultiSampleCountIfDifferent(RenderTarget->Param.MultiSampleCount);
-			RenderTarget->Main.BindSetViewport();
+			if (item.MaskTexture != nullptr)
+				return (item.BlendMode == AetBlendMode::Multiply) ? Shaders.SingleTextureMaskMultiply : Shaders.SingleTextureMask;
 
-			if (const bool isFirstFlush = (DrawCallCount == 0); isFirstFlush)
-				RenderTarget->Main.Clear(RenderTarget->Param.ClearColor);
+			if (item.CheckerboardSize.has_value())
+				return Shaders.SingleTextureCheckerboard;
 
-			RasterizerState.Bind();
-			D3D11::D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			return (item.BlendMode == AetBlendMode::Multiply) ? Shaders.MultiTextureBatchMultiply : Shaders.MultiTextureBatch;
+		}
 
-			SpriteShader.Bind();
+		void InternalFlushRenderBatches()
+		{
+			if (BatchItems.empty())
+				return;
 
-			VertexBuffer->Bind();
+			InternalCreateBatchesFromItems();
+
 			VertexBuffer->UploadData(Vertices.size() * sizeof(Detail::SpriteVertices), Vertices.data());
-
-			InputLayout->Bind();
-			IndexBuffer->Bind();
 
 			OrthographicCamera->UpdateMatrices();
 			CameraConstantBuffer.Data.ViewProjection = glm::transpose(OrthographicCamera->GetViewProjection());
 			CameraConstantBuffer.UploadData();
-			CameraConstantBuffer.BindVertexShader();
 
-			SpriteConstantBuffer.BindPixelShader();
-
+			const D3D11::ShaderPair* lastShader = nullptr;
 			AetBlendMode lastBlendMode = AetBlendMode::Count;
 
-#if defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
-			D3D11::ShaderResourceView::BindArray<2>(0, { nullptr, nullptr });
-			D3D11::TextureSampler::BindArray<2>(0, { &DefaultTextureSampler, &DefaultTextureSampler });
-#else
 			DefaultTextureSampler.Bind(0);
-#endif
 
 			for (u16 i = 0; i < Batches.size(); i++)
 			{
@@ -309,34 +266,47 @@ namespace Comfy::Render
 					lastBlendMode = item.BlendMode;
 				}
 
-#if defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
-				if (item.Texture != nullptr)
-					item.Texture->Bind(TextureSpriteSlot);
+				if (const auto& itemShader = GetBatchItemShader(item); lastShader != &itemShader)
+				{
+					itemShader.Bind();
+					lastShader = &itemShader;
+				}
 
-				if (item.MaskTexture != nullptr)
-					item.MaskTexture->Bind(TextureMaskSlot);
-#else
-				std::array<const D3D11::ShaderResourceView*, SpriteTextureSlots + 1> textureResourceViews;
-				textureResourceViews.front() = item.MaskTexture;
-				for (size_t i = 0; i < SpriteTextureSlots; i++)
-					textureResourceViews[i + 1] = batch.Textures[i];
-
-				D3D11::ShaderResourceView::BindArray(0, textureResourceViews);
-#endif
-
-#if defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
-				SpriteConstantBuffer.Data.Format = (item.Texture == nullptr) ? TextureFormat::Unknown : item.Texture->GetTextureFormat();
-				SpriteConstantBuffer.Data.MaskFormat = (item.MaskTexture == nullptr) ? TextureFormat::Unknown : item.MaskTexture->GetTextureFormat();
-#else
-				SpriteConstantBuffer.Data.TextureMaskFormat.Value = (item.MaskTexture == nullptr) ? TextureFormat::Unknown : item.MaskTexture->GetTextureFormat();
-				for (size_t i = 0; i < SpriteTextureSlots; i++)
-					SpriteConstantBuffer.Data.TextureFormats[i].Value = (batch.Textures[i] == nullptr) ? TextureFormat::Unknown : batch.Textures[i]->GetTextureFormat();
-#endif
+				if (item.DrawTextBorder)
+				{
+					std::array<const D3D11::ShaderResourceView*, 1> textureResourceViews =
+					{
+						item.Texture,
+					};
+					D3D11::ShaderResourceView::BindArray(0, textureResourceViews);
+				}
+				else if (item.MaskTexture != nullptr)
+				{
+					std::array<const D3D11::ShaderResourceView*, 2> textureResourceViews =
+					{
+						item.Texture,
+						item.MaskTexture,
+					};
+					D3D11::ShaderResourceView::BindArray(0, textureResourceViews);
+				}
+				else
+				{
+					std::array<const D3D11::ShaderResourceView*, SpriteTextureSlots> textureResourceViews;
+					for (size_t i = 0; i < SpriteTextureSlots; i++)
+						textureResourceViews[i] = batch.Textures[i];
+					D3D11::ShaderResourceView::BindArray(0, textureResourceViews);
+				}
 
 				SpriteConstantBuffer.Data.BlendMode = item.BlendMode;
-				SpriteConstantBuffer.Data.DrawTextBorder = item.DrawTextBorder;
-				SpriteConstantBuffer.Data.DrawCheckerboard = item.CheckerboardSize != vec2(0.0f, 0.0f);
-				SpriteConstantBuffer.Data.CheckerboardSize = vec4(item.CheckerboardSize, 0.0f, 0.0f);
+				SpriteConstantBuffer.Data.Format = item.Texture->GetTextureFormat();
+				SpriteConstantBuffer.Data.MaskFormat = (item.MaskTexture == nullptr) ? TextureFormat::Unknown : item.MaskTexture->GetTextureFormat();
+				SpriteConstantBuffer.Data.FormatFlags = 0;
+				for (u32 i = 0; i < static_cast<u32>(SpriteTextureSlots); i++)
+				{
+					const bool isYCbCr = (batch.Textures[i] != nullptr) && (batch.Textures[i]->GetTextureFormat() == TextureFormat::RGTC2);
+					SpriteConstantBuffer.Data.FormatFlags |= (static_cast<u32>(isYCbCr) << i);
+				}
+				SpriteConstantBuffer.Data.CheckerboardSize = vec4(item.CheckerboardSize.value_or(vec2(0.0f, 0.0f)), 0.0f, 0.0f);
 
 				SpriteConstantBuffer.UploadData();
 
@@ -348,12 +318,43 @@ namespace Comfy::Render
 				DrawCallCount++;
 			}
 
-			RasterizerState.UnBind();
 			InternalClearItems();
+		}
 
+		// NOTE: This assumes that the D3D11 context does **not** change externally between the Begin() / End() call
+		void InternalSetBeginState()
+		{
+			RenderTarget->Main.ResizeIfDifferent(RenderTarget->Param.Resolution);
+			RenderTarget->Main.SetMultiSampleCountIfDifferent(RenderTarget->Param.MultiSampleCount);
+			RenderTarget->Main.BindSetViewport();
+
+			if (RenderTarget->Param.Clear)
+				RenderTarget->Main.Clear(RenderTarget->Param.ClearColor);
+
+			RasterizerState.Bind();
+			D3D11::D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+			InputLayout->Bind();
+			VertexBuffer->Bind();
+			IndexBuffer->Bind();
+
+			CameraConstantBuffer.BindVertexShader();
+			SpriteConstantBuffer.BindPixelShader();
+		}
+
+		void InternalSetEndState()
+		{
+			SpriteConstantBuffer.UnBindPixelShader();
+			CameraConstantBuffer.UnBindVertexShader();
+
+			IndexBuffer->UnBind();
+			VertexBuffer->UnBind();
+			InputLayout->UnBind();
+
+			RasterizerState.UnBind();
 			RenderTarget->Main.UnBind();
 
-			if (finalFlush && RenderTarget->Param.MultiSampleCount > 1)
+			if (RenderTarget->Param.MultiSampleCount > 1)
 			{
 				RenderTarget->ResolvedMain.ResizeIfDifferent(RenderTarget->Param.Resolution);
 				D3D11::D3D.Context->ResolveSubresource(RenderTarget->ResolvedMain.GetResource(), 0, RenderTarget->Main.GetResource(), 0, RenderTarget->Main.GetBackBufferDescription().Format);
@@ -385,9 +386,8 @@ namespace Comfy::Render
 
 		Detail::SpriteBatchPair InternalCheckFlushAddItem()
 		{
-			// TODO: Something isn't quite right here...
-			if (BatchItems.size() >= Renderer2D::MaxBatchItemSize / 12)
-				InternalFlush(false);
+			if (BatchItems.size() >= Renderer2D::Impl::MaxBatchItemSize)
+				InternalFlushRenderBatches();
 
 			return InternalAddItem();
 		}
@@ -407,11 +407,11 @@ namespace Comfy::Render
 			Vertices.clear();
 		}
 
-		void InternalDraw(const RenderCommand2D& command)
+		void InternalDraw(const RenderCommand2D& command, bool alwaysSetTexCoords = false)
 		{
 			Detail::SpriteBatchPair pair = InternalCheckFlushAddItem();
 
-			pair.Item->Texture = D3D11::GetTexture2D(command.Texture);
+			pair.Item->Texture = (command.Texture != nullptr) ? D3D11::GetTexture2D(*command.Texture) : &WhiteTexture;
 			pair.Item->MaskTexture = nullptr;
 			pair.Item->BlendMode = command.BlendMode;
 			pair.Item->DrawTextBorder = command.DrawTextBorder;
@@ -423,15 +423,16 @@ namespace Comfy::Render
 				-command.Origin,
 				command.Rotation,
 				command.Scale,
-				command.CornerColors.data());
+				command.CornerColors.data(),
+				(command.Texture != nullptr) || alwaysSetTexCoords);
 		}
 
 		void InternalDraw(const RenderCommand2D& command, const RenderCommand2D& commandMask)
 		{
 			Detail::SpriteBatchPair pair = InternalCheckFlushAddItem();
 
-			pair.Item->Texture = D3D11::GetTexture2D(command.Texture);
-			pair.Item->MaskTexture = D3D11::GetTexture2D(commandMask.Texture);
+			pair.Item->Texture = (command.Texture != nullptr) ? D3D11::GetTexture2D(*command.Texture) : &WhiteTexture;
+			pair.Item->MaskTexture = (commandMask.Texture != nullptr) ? D3D11::GetTexture2D(*commandMask.Texture) : &WhiteTexture;
 			pair.Item->BlendMode = command.BlendMode;
 			pair.Item->DrawTextBorder = command.DrawTextBorder;
 
@@ -442,8 +443,10 @@ namespace Comfy::Render
 				-commandMask.Origin,
 				commandMask.Rotation,
 				commandMask.Scale,
-				commandMask.CornerColors.data());
+				commandMask.CornerColors.data(),
+				commandMask.Texture != nullptr);
 
+			// TODO: Null mask texture (?)
 			pair.Vertices->SetTexMaskCoords(
 				D3D11::GetTexture2D(command.Texture),
 				command.Position,
@@ -473,6 +476,7 @@ namespace Comfy::Render
 		impl->DrawCallCount = 0;
 		impl->OrthographicCamera = &camera;
 		impl->RenderTarget = static_cast<Detail::RenderTarget2DImpl*>(&renderTarget);
+		impl->InternalSetBeginState();
 	}
 
 	void Renderer2D::Draw(const RenderCommand2D& command)
@@ -490,10 +494,10 @@ namespace Comfy::Render
 		const auto edge = (end - start);
 
 		RenderCommand2D command;
-		command.SourceRegion = vec4(0.0f, 0.0f, glm::distance(start, end), thickness);
-		command.Position = start;
 		command.Origin = vec2(0.0f, thickness / 2.0f);
+		command.Position = start;
 		command.Rotation = glm::degrees(glm::atan(edge.y, edge.x));
+		command.SourceRegion = vec4(0.0f, 0.0f, glm::distance(start, end), thickness);
 		command.CornerColors = { color, color, color, color };
 		impl->InternalDraw(command);
 	}
@@ -501,10 +505,10 @@ namespace Comfy::Render
 	void Renderer2D::DrawLine(vec2 start, float angle, float length, const vec4& color, float thickness)
 	{
 		RenderCommand2D command;
-		command.SourceRegion = vec4(0.0f, 0.0f, length, thickness);
-		command.Position = start;
 		command.Origin = vec2(0.0f, thickness / 2.0f);
+		command.Position = start;
 		command.Rotation = angle;
+		command.SourceRegion = vec4(0.0f, 0.0f, length, thickness);
 		command.CornerColors = { color, color, color, color };
 		impl->InternalDraw(command);
 	}
@@ -520,13 +524,13 @@ namespace Comfy::Render
 	void Renderer2D::DrawRectCheckerboard(vec2 position, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4& color, float precision)
 	{
 		RenderCommand2D command;
-		command.SourceRegion = vec4(0.0f, 0.0f, size);
-		command.Position = position;
 		command.Origin = origin;
+		command.Position = position;
 		command.Rotation = rotation;
 		command.Scale = scale;
+		command.SourceRegion = vec4(0.0f, 0.0f, size);
 		command.CornerColors = { color, color, color, color };
-		impl->InternalDraw(command);
+		impl->InternalDraw(command, true);
 		impl->BatchItems.back().CheckerboardSize = (size * scale * precision);
 	}
 
@@ -556,7 +560,9 @@ namespace Comfy::Render
 	{
 		assert(impl->OrthographicCamera != nullptr);
 
-		impl->InternalFlush(true);
+		impl->InternalFlushRenderBatches();
+		impl->InternalSetEndState();
+
 		impl->OrthographicCamera = nullptr;
 		impl->RenderTarget = nullptr;
 	}

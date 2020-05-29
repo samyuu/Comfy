@@ -20,7 +20,6 @@ namespace Comfy::Render::Detail
 		}
 	}
 
-#if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
 	void SpriteVertices::SetTextureIndices(u32 textureIndex)
 	{
 		TopLeft.TextureIndex = textureIndex;
@@ -28,31 +27,26 @@ namespace Comfy::Render::Detail
 		BottomLeft.TextureIndex = textureIndex;
 		BottomRight.TextureIndex = textureIndex;
 	}
-#endif
 
-	void SpriteVertices::SetValues(vec2 position, const vec4& sourceRegion, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4& color)
+	void SpriteVertices::SetValues(vec2 position, const vec4& sourceRegion, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4 colors[4], bool setTexCoords)
 	{
 		SetPositions(position, vec2(sourceRegion.z, sourceRegion.w) * scale, origin * scale, rotation);
 
-		const vec2 topLeft = vec2(sourceRegion.x / size.x, sourceRegion.y / size.y);
-		const vec2 bottomRight = vec2((sourceRegion.x + sourceRegion.z) / size.x, (sourceRegion.y + sourceRegion.w) / size.y);
+		if (setTexCoords)
+		{
+			const auto topLeft = vec2(sourceRegion.x / size.x, sourceRegion.y / size.y);
+			const auto bottomRight = vec2((sourceRegion.x + sourceRegion.z) / size.x, (sourceRegion.y + sourceRegion.w) / size.y);
+			SetTexCoords(topLeft, bottomRight);
+		}
+		else
+		{
+			SetNullTexCoords();
+		}
 
-		SetTexCoords(topLeft, bottomRight);
-		SetColors(color);
-	}
-
-	void SpriteVertices::SetValues(vec2 position, const vec4& sourceRegion, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4 colors[4])
-	{
-		SetPositions(position, vec2(sourceRegion.z, sourceRegion.w) * scale, origin * scale, rotation);
-
-		const vec2 topLeft = vec2(sourceRegion.x / size.x, sourceRegion.y / size.y);
-		const vec2 bottomRight = vec2((sourceRegion.x + sourceRegion.z) / size.x, (sourceRegion.y + sourceRegion.w) / size.y);
-
-		SetTexCoords(topLeft, bottomRight);
 		SetColorArray(colors);
 	}
 
-	void SpriteVertices::SetPositions(vec2 position, vec2 size)
+	void SpriteVertices::SetPositionsNoRotation(vec2 position, vec2 size)
 	{
 		TopLeft.Position.x = position.x;
 		TopLeft.Position.y = position.y;
@@ -71,7 +65,7 @@ namespace Comfy::Render::Detail
 	{
 		if (rotation == 0.0f)
 		{
-			SetPositions(position + origin, size);
+			SetPositionsNoRotation(position + origin, size);
 		}
 		else
 		{
@@ -106,6 +100,16 @@ namespace Comfy::Render::Detail
 
 		BottomRight.TextureCoordinates.x = bottomRight.x;
 		BottomRight.TextureCoordinates.y = bottomRight.y;
+	}
+
+	void SpriteVertices::SetNullTexCoords()
+	{
+		constexpr auto center = vec2(0.5f, 0.5f);
+
+		TopLeft.TextureCoordinates = center;
+		TopRight.TextureCoordinates = center;
+		BottomLeft.TextureCoordinates = center;
+		BottomRight.TextureCoordinates = center;
 	}
 
 	void SpriteVertices::SetTexMaskCoords(

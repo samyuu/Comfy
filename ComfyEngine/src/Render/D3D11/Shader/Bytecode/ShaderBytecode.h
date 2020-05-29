@@ -10,8 +10,14 @@ namespace Comfy::Render::D3D11
 	DECLARE_BYTECODE_GETTER(ImGuiDefault_VS);
 	DECLARE_BYTECODE_GETTER(ImGuiDefault_PS);
 	DECLARE_BYTECODE_GETTER(ImGuiCustom_PS);
-	DECLARE_BYTECODE_GETTER(Sprite_VS);
-	DECLARE_BYTECODE_GETTER(Sprite_PS);
+	DECLARE_BYTECODE_GETTER(SpriteMultiTexture_VS);
+	DECLARE_BYTECODE_GETTER(SpriteMultiTextureBatch_PS);
+	DECLARE_BYTECODE_GETTER(SpriteMultiTextureBatchBlend_PS);
+	DECLARE_BYTECODE_GETTER(SpriteSingleTexture_VS);
+	DECLARE_BYTECODE_GETTER(SpriteSingleTextureCheckerboard_PS);
+	DECLARE_BYTECODE_GETTER(SpriteSingleTextureFont_PS);
+	DECLARE_BYTECODE_GETTER(SpriteSingleTextureMask_PS);
+	DECLARE_BYTECODE_GETTER(SpriteSingleTextureMaskBlend_PS);
 	DECLARE_BYTECODE_GETTER(DebugMaterial_VS);
 	DECLARE_BYTECODE_GETTER(DebugMaterial_PS);
 	DECLARE_BYTECODE_GETTER(FullscreenQuad_VS);
@@ -84,8 +90,14 @@ namespace Comfy::Render::D3D11
 #include SHADER_BYTECODE_FILE(ImGuiDefault_VS.h)
 #include SHADER_BYTECODE_FILE(ImGuiDefault_PS.h)
 #include SHADER_BYTECODE_FILE(ImGuiCustom_PS.h)
-#include SHADER_BYTECODE_FILE(Sprite_VS.h)
-#include SHADER_BYTECODE_FILE(Sprite_PS.h)
+#include SHADER_BYTECODE_FILE(SpriteMultiTexture_VS.h)
+#include SHADER_BYTECODE_FILE(SpriteMultiTextureBatch_PS.h)
+#include SHADER_BYTECODE_FILE(SpriteMultiTextureBatchBlend_PS.h)
+#include SHADER_BYTECODE_FILE(SpriteSingleTexture_VS.h)
+#include SHADER_BYTECODE_FILE(SpriteSingleTextureCheckerboard_PS.h)
+#include SHADER_BYTECODE_FILE(SpriteSingleTextureFont_PS.h)
+#include SHADER_BYTECODE_FILE(SpriteSingleTextureMask_PS.h)
+#include SHADER_BYTECODE_FILE(SpriteSingleTextureMaskBlend_PS.h)
 #include SHADER_BYTECODE_FILE(DebugMaterial_VS.h)
 #include SHADER_BYTECODE_FILE(DebugMaterial_PS.h)
 #include SHADER_BYTECODE_FILE(FullscreenQuad_VS.h)
@@ -156,8 +168,14 @@ namespace Comfy::Render::D3D11
 	DEFINE_BYTECODE_GETTER(ImGuiDefault_VS);
 	DEFINE_BYTECODE_GETTER(ImGuiDefault_PS);
 	DEFINE_BYTECODE_GETTER(ImGuiCustom_PS);
-	DEFINE_BYTECODE_GETTER(Sprite_VS);
-	DEFINE_BYTECODE_GETTER(Sprite_PS);
+	DEFINE_BYTECODE_GETTER(SpriteMultiTexture_VS);
+	DEFINE_BYTECODE_GETTER(SpriteMultiTextureBatch_PS);
+	DEFINE_BYTECODE_GETTER(SpriteMultiTextureBatchBlend_PS);
+	DEFINE_BYTECODE_GETTER(SpriteSingleTexture_VS);
+	DEFINE_BYTECODE_GETTER(SpriteSingleTextureCheckerboard_PS);
+	DEFINE_BYTECODE_GETTER(SpriteSingleTextureFont_PS);
+	DEFINE_BYTECODE_GETTER(SpriteSingleTextureMask_PS);
+	DEFINE_BYTECODE_GETTER(SpriteSingleTextureMaskBlend_PS);
 	DEFINE_BYTECODE_GETTER(DebugMaterial_VS);
 	DEFINE_BYTECODE_GETTER(DebugMaterial_PS);
 	DEFINE_BYTECODE_GETTER(FullscreenQuad_VS);

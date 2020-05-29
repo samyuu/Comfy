@@ -12,9 +12,6 @@ namespace Comfy::Render
 	class Renderer2D : NonCopyable
 	{
 	public:
-		static constexpr u32 MaxBatchItemSize = 2048;
-
-	public:
 		Renderer2D();
 		~Renderer2D();
 

@@ -22,6 +22,7 @@ namespace Comfy::Render
 			ivec2 Resolution = { 1, 1 };
 			u32 MultiSampleCount = 1;
 
+			bool Clear = true;
 			vec4 ClearColor = { 0.84, 0.67, 0.41, 1.0f };
 		} Param;
 	};

@@ -433,8 +433,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\Sprite_PS.hlsl" />
-    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\Sprite_VS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\LensFlare\LensFlare_PS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\LensFlare\LensFlare_VS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\LensFlare\Sun_PS.hlsl" />
@@ -502,5 +500,13 @@
     <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\ImGui\ImGuiCustom_PS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\ImGui\ImGuiDefault_PS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\ImGui\ImGuiDefault_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\Renderer2D\SpriteMultiTexture_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\Renderer2D\SpriteMultiTextureBatch_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\Renderer2D\SpriteMultiTextureBatchBlend_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\Renderer2D\SpriteSingleTexture_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\Renderer2D\SpriteSingleTextureCheckerboard_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\Renderer2D\SpriteSingleTextureFont_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\Renderer2D\SpriteSingleTextureMask_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Comfy\Renderer2D\SpriteSingleTextureMaskBlend_PS.hlsl" />
   </ItemGroup>
 </Project>
