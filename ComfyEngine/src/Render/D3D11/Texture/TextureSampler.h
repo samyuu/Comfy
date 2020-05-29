@@ -18,10 +18,10 @@ namespace Comfy::Render::D3D11
 
 	public:
 		template <size_t Size>
-		static void BindArray(u32 startSlot, const std::array<TextureSampler*, Size>& samplers);
+		static void BindArray(u32 startSlot, const std::array<const TextureSampler*, Size>& samplers);
 
 	public:
-		ID3D11SamplerState* GetSampler();
+		ID3D11SamplerState* GetSampler() const;
 		const D3D11_SAMPLER_DESC& GetDescription() const;
 
 	protected:
@@ -32,7 +32,7 @@ namespace Comfy::Render::D3D11
 	};
 
 	template<size_t Size>
-	void TextureSampler::BindArray(u32 startSlot, const std::array<TextureSampler*, Size>& samplers)
+	void TextureSampler::BindArray(u32 startSlot, const std::array<const TextureSampler*, Size>& samplers)
 	{
 		std::array<ID3D11SamplerState*, Size> samplerStates;
 

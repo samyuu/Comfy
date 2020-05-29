@@ -19,7 +19,7 @@ namespace Comfy::Render::D3D11
 
 	public:
 		template <size_t Size>
-		static void BindArray(u32 startSlot, const std::array<ShaderResourceView*, Size>& resources);
+		static void BindArray(u32 startSlot, const std::array<const ShaderResourceView*, Size>& resources);
 	};
 
 	class TextureResource : public ShaderResourceView, public IGraphicsResource
@@ -104,7 +104,7 @@ namespace Comfy::Render::D3D11
 	};
 
 	template<size_t Size>
-	void ShaderResourceView::BindArray(u32 startSlot, const std::array<ShaderResourceView*, Size>& resources)
+	void ShaderResourceView::BindArray(u32 startSlot, const std::array<const ShaderResourceView*, Size>& resources)
 	{
 		std::array<ID3D11ShaderResourceView*, Size> resourceViews;
 

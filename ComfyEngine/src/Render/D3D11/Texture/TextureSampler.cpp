@@ -61,7 +61,7 @@ namespace Comfy::Render::D3D11
 		lastBoundSlot = UnboundSamplerSlot;
 	}
 	
-	ID3D11SamplerState* TextureSampler::GetSampler()
+	ID3D11SamplerState* TextureSampler::GetSampler() const
 	{
 		return samplerState.Get();
 	}

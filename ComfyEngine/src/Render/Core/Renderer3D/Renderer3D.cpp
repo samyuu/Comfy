@@ -1190,7 +1190,7 @@ namespace Comfy::Render
 			bloom.ReduceRenderTargets[0].BindResource(0);
 			SubmitQuadDrawCall();
 
-			std::array<D3D11::ShaderResourceView*, 4> combinedBlurInputTargets =
+			std::array<const D3D11::ShaderResourceView*, 4> combinedBlurInputTargets =
 			{
 				&bloom.BlurRenderTargets[0],
 				// NOTE: Use the reduce targets because of the ping pong blur rendering
@@ -1354,8 +1354,8 @@ namespace Comfy::Render
 			ConstantBuffers.Object.Data.DiffuseScreenTexture = false;
 			ConstantBuffers.Object.Data.AmbientTextureType = 0;
 
-			std::array<D3D11::ShaderResourceView*, TextureSlot_MaterialTextureCount> textureResources = {};
-			std::array<D3D11::TextureSampler*, TextureSlot_MaterialTextureCount> textureSamplers = {};
+			std::array<const D3D11::ShaderResourceView*, TextureSlot_MaterialTextureCount> textureResources = {};
+			std::array<const D3D11::TextureSampler*, TextureSlot_MaterialTextureCount> textureSamplers = {};
 
 			for (auto& materialTexture : material.Textures)
 			{
