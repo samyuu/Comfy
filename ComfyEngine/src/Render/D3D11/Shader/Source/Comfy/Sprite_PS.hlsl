@@ -3,7 +3,7 @@
 #include "../Include/Comfy/UncompressRGTC.hlsl"
 #include "../Include/Comfy/Font.hlsl"
 
-// #define COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH
+#define COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH
 
 struct VS_OUTPUT
 {

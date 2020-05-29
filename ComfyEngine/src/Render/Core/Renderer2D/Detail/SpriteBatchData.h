@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "Render/D3D11/Texture/Texture.h"
 
-// #define COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH
+#define COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH
 
 #if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
 namespace Comfy::Render
