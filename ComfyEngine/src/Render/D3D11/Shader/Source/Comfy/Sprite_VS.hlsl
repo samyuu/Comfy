@@ -1,3 +1,5 @@
+#define COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH
+
 struct VS_INPUT
 {
     float2 Position         : POSITION;
@@ -5,8 +7,8 @@ struct VS_INPUT
     float2 TexMaskCoord     : TEXCOORD1;
     float4 Color            : COLOR;
 
-#if !defined(COMFY_ENGINE_RENDERER2D_IMPL_FIXED_TEX)
-    uint2 TextureIndices    : TEXINDEX;
+#if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
+    uint TextureIndex      : TEXINDEX;
 #endif
 };
 
@@ -17,8 +19,8 @@ struct VS_OUTPUT
     float2 TexMaskCoord     : TEXCOORD1;
     float4 Color            : COLOR;
     
-#if !defined(COMFY_ENGINE_RENDERER2D_IMPL_FIXED_TEX)
-    uint2 TextureIndices    : TEXINDEX;
+#if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
+    uint TextureIndex      : TEXINDEX;
 #endif
 };
 
@@ -42,8 +44,8 @@ VS_OUTPUT VS_main(VS_INPUT input)
     output.TexCoord = FlipTextureCoordinates(input.TexCoord);
     output.TexMaskCoord = FlipTextureCoordinates(input.TexMaskCoord);
 
-#if !defined(COMFY_ENGINE_RENDERER2D_IMPL_FIXED_TEX)
-    output.TextureIndices = input.TextureIndices;
+#if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
+    output.TextureIndex = input.TextureIndex;
 #endif
     
     return output;

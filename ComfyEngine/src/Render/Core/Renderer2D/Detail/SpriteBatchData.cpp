@@ -20,13 +20,13 @@ namespace Comfy::Render::Detail
 		}
 	}
 
-#if !defined(COMFY_ENGINE_RENDERER2D_IMPL_FIXED_TEX)
-	void SpriteVertices::SetTextureIndices(ivec2 textureIndices)
+#if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
+	void SpriteVertices::SetTextureIndices(u32 textureIndex)
 	{
-		TopLeft.TextureIndices = textureIndices;
-		TopRight.TextureIndices = textureIndices;
-		BottomLeft.TextureIndices = textureIndices;
-		BottomRight.TextureIndices = textureIndices;
+		TopLeft.TextureIndex = textureIndex;
+		TopRight.TextureIndex = textureIndex;
+		BottomLeft.TextureIndex = textureIndex;
+		BottomRight.TextureIndex = textureIndex;
 	}
 #endif
 

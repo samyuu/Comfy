@@ -2,10 +2,16 @@
 #include "Types.h"
 #include "Render/D3D11/Texture/Texture.h"
 
-#if !defined(COMFY_ENGINE_RENDERER2D_IMPL_FIXED_TEX)
+#define COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH
+
+#if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
 namespace Comfy::Render
 {
-	constexpr size_t SpriteTextureSlots = D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
+	// TODO: 7 sprite textures and 1 mask texture, always new batch for masks
+	//		 then manually switch on the sprite texture
+	//		 also only use a single sampler
+
+	constexpr size_t SpriteTextureSlots = 7;
 }
 #endif
 
@@ -36,12 +42,8 @@ namespace Comfy::Render::Detail
 		vec2 TextureCoordinates;
 		vec2 TextureMaskCoordinates;
 		u32 Color;
-
-#if !defined(COMFY_ENGINE_RENDERER2D_IMPL_FIXED_TEX)
-		// NOTE: Sprite and mask index 16 bit each
-		// u32 PackedTextureIndices;
-
-		ivec2 TextureIndices;
+#if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
+		u32 TextureIndex;
 #endif
 	};
 
@@ -51,11 +53,6 @@ namespace Comfy::Render::Detail
 		SpriteVertex TopRight;
 		SpriteVertex BottomLeft;
 		SpriteVertex BottomRight;
-
-#if !defined(COMFY_ENGINE_RENDERER2D_IMPL_FIXED_TEX)
-	public:
-		void SetTextureIndices(ivec2 textureIndices);
-#endif
 
 	public:
 		void SetValues(vec2 position, const vec4& sourceRegion, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4& color);
@@ -71,14 +68,21 @@ namespace Comfy::Render::Detail
 			vec2 maskPosition, vec2 maskScale, vec2 maskOrigin, float maskRotation, const vec4& maskSourceRegion);
 		void SetColors(const vec4& color);
 		void SetColorArray(const vec4 colors[4]);
+
+#if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
+	public:
+		void SetTextureIndices(u32 textureIndex);
+#endif
 	};
 
 	struct SpriteBatch
 	{
 		u16 Index;
 		u16 Count;
-#if !defined(COMFY_ENGINE_RENDERER2D_IMPL_FIXED_TEX)
-		std::array<const D3D11::Texture2D*, SpriteTextureSlots> Textures;
+
+#if !defined(COMFY_RENDERER2D_SINGLE_TEXTURE_BATCH)
+		std::array<const D3D11::Texture2D*, SpriteTextureSlots> Textures = {};
+		// const D3D11::Texture2D* MaskTexture = {};
 #endif
 
 		SpriteBatch(u16 index, u16 count) : Index(index), Count(count) {};
@@ -86,12 +90,8 @@ namespace Comfy::Render::Detail
 
 	struct SpriteBatchItem
 	{
-#if defined(COMFY_ENGINE_RENDERER2D_IMPL_FIXED_TEX)
 		const D3D11::Texture2D* Texture;
 		const D3D11::Texture2D* MaskTexture;
-#else
-		std::array<const D3D11::Texture2D*, SpriteTextureSlots> Textures;
-#endif
 		Graphics::AetBlendMode BlendMode;
 		bool DrawTextBorder;
 		vec2 CheckerboardSize;
