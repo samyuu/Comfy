@@ -2,7 +2,7 @@
 #define OBJECTDATA_HLSL
 
 #include "MaterialData.hlsl"
-#include "../Defines/ShaderFlags.hlsl"
+#include "../ShaderFlags.hlsl"
 
 struct ObjectData
 {

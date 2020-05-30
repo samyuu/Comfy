@@ -1,5 +1,4 @@
-#include "../../Include/Comfy/BlendModes.hlsl"
-#include "../../Include/Comfy/UncompressRGTC.hlsl"
+#include "../../Common/YCbCr.hlsl"
 
 struct VS_OUTPUT
 {
@@ -34,13 +33,13 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
         if (i == input.TextureIndex) 
         {
             if (CB_TextureFormatFlags & (1 << i))
-                outputColor *= UncompressRGTC_RGBA(SpriteTextures[i], SpriteSampler, input.TexCoord);
+                outputColor *= RGTC2_ConvertYACbCrToRGBA(SpriteTextures[i], SpriteSampler, input.TexCoord);
             else
                 outputColor *= SpriteTextures[i].Sample(SpriteSampler, input.TexCoord);
             
             break;
         }
     }
-
-    return AdjustMultiplyBlending(outputColor);
+    
+    return outputColor;
 }

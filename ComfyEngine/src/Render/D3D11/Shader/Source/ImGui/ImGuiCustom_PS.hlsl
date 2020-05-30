@@ -1,5 +1,5 @@
-#include "../../Include/Comfy/UncompressRGTC.hlsl"
-#include "../../Include/Comfy/CubeMapCommon.hlsl"
+#include "../Common/CubeMapNet.hlsl"
+#include "../Common/YCbCr.hlsl"
 
 struct VS_OUTPUT
 {
@@ -43,7 +43,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     }
     else if (CB_DecompressRGTC)
     {
-        textureColor = UncompressRGTC_RGBA(SpriteTexture, TextureSampler, input.TexCoord);
+        textureColor = RGTC2_ConvertYACbCrToRGBA(SpriteTexture, TextureSampler, input.TexCoord);
     }
     else
     {

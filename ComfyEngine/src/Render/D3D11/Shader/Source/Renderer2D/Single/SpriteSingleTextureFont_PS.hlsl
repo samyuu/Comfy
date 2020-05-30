@@ -1,4 +1,4 @@
-#include "../../Include/Comfy/Font.hlsl"
+#include "../../Common/Font.hlsl"
 
 struct VS_OUTPUT
 {

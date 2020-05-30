@@ -1,5 +1,4 @@
-#include "../../Include/Comfy/BlendModes.hlsl"
-#include "../../Include/Comfy/UncompressRGTC.hlsl"
+#include "../../Common/YCbCr.hlsl"
 
 struct VS_OUTPUT
 {
@@ -26,8 +25,8 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
 {
     float4 outputColor = input.Color;
     
-    outputColor.rgba *= FormatAwareSampleTexture_RGBA(SpriteTexture, SpriteSampler, input.TexMaskCoord, CB_TextureFormat);
-    outputColor.a *= FormatAwareSampleTexture_Alpha(SpriteMaskTexture, SpriteSampler, input.TexCoord, CB_TextureMaskFormat);
+    outputColor.rgba *= FormatAwareSampleTextureRGBA(SpriteTexture, SpriteSampler, input.TexMaskCoord, CB_TextureFormat);
+    outputColor.a *= FormatAwareSampleTextureAlpha(SpriteMaskTexture, SpriteSampler, input.TexCoord, CB_TextureMaskFormat);
     
-    return AdjustMultiplyBlending(outputColor);
+    return outputColor;
 }

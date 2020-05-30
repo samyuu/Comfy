@@ -1,7 +1,7 @@
 #ifndef PROGRAMENVIRONMENT_HLSL
 #define PROGRAMENVIRONMENT_HLSL
 
-#include "../Defines/MathConstants.hlsl"
+#include "../../../Common/MathConstants.hlsl"
 
 // --------------------------------------------------------------------------------------------------------------------------
 // NOTE: Program environment:

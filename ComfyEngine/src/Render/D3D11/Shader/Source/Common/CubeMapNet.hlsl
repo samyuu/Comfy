@@ -1,7 +1,7 @@
-#ifndef CUBEMAPCOMMON_HLSL
-#define CUBEMAPCOMMON_HLSL
+#ifndef CUBEMAPNET_HLSL
+#define CUBEMAPNET_HLSL
 
-#include "../Defines/MathConstants.hlsl"
+#include "MathConstants.hlsl"
 
 bool IsInRange(const float input, const float rangeMin, const float rangeMax)
 {
@@ -86,4 +86,4 @@ float3 GetCubeMapNetTextureCoordinates(float2 inputTexCoord)
 	return float3(0.0, 0.0, 0.0);
 }
 
-#endif /* CUBEMAPCOMMON_HLSL */
+#endif /* CUBEMAPNET_HLSL */

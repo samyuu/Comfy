@@ -1,4 +1,4 @@
-#include "../../Include/Comfy/Checkerboard.hlsl"
+#include "../../Common/Checkerboard.hlsl"
 
 struct VS_OUTPUT
 {

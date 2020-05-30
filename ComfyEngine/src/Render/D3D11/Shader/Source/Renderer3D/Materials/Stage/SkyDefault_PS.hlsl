@@ -1,7 +1,7 @@
 #include "../../Include/InputLayout.hlsl"
 #include "../../Include/ConstantInputs.hlsl"
 #include "../../Include/TextureInputs.hlsl"
-#include "../../Include/Comfy/UncompressRGTC.hlsl"
+#include "../../../Common/YCbCr.hlsl"
 
 static const float MaxAlpha = 1.0;
 
@@ -11,7 +11,8 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     
     if (CB_Object.DiffuseRGTC1)
     {
-        outputColor = UncompressRGTC1_RGBA(DiffuseTexture, DiffuseSampler, input.TexCoord);
+        outputColor.rgb = RGTC1_ConvertYCbCrToRGB(DiffuseTexture, DiffuseSampler, input.TexCoord);
+		outputColor.a = 1.0;
     }
     else
     {

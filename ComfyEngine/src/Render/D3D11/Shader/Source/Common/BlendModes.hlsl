@@ -42,11 +42,11 @@ static const int BlendMode_DarkerColor = 37;
 static const int BlendMode_Subtract = 38;
 static const int BlendMode_Divide = 39;
 
-static const float4 COLOR_MASK = { 1.0, 1.0, 1.0, 0.0 };
+static const float4 MULTIPLY_BLEND_COLOR_MASK = { 1.0, 1.0, 1.0, 0.0 };
 
 float4 AdjustMultiplyBlending(float4 inputColor)
 {
-    return ((inputColor - COLOR_MASK) * inputColor.aaaa) + COLOR_MASK;
+    return ((inputColor - MULTIPLY_BLEND_COLOR_MASK) * inputColor.aaaa) + MULTIPLY_BLEND_COLOR_MASK;
 }
 
 #endif /* BLENDMODES_HLSL */
