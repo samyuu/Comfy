@@ -5,7 +5,7 @@
 
 namespace Comfy::Render
 {
-	constexpr size_t SpriteTextureSlots = 7;
+	constexpr size_t MaxSpriteTextureSlots = 8;
 }
 
 namespace Comfy::Render::Detail
@@ -62,7 +62,7 @@ namespace Comfy::Render::Detail
 		u16 Index;
 		u16 Count;
 
-		std::array<const D3D11::Texture2D*, SpriteTextureSlots> Textures = {};
+		std::array<const D3D11::Texture2D*, MaxSpriteTextureSlots> Textures = {};
 
 		SpriteBatch(u16 index, u16 count) : Index(index), Count(count) {};
 	};

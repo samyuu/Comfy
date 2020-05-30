@@ -40,6 +40,9 @@ namespace Comfy::Render::Detail
 		}
 		else
 		{
+			// TODO: Avoid this by binding texture samplers ~~for each texture~~ and render the WhiteTexture using D3D11_TEXTURE_ADDRESS_WRAP
+			//		 because different texture addresses are so rare it might be better to handle them the same way as BlendMode (what about masks(?))
+			//		 but then the white texture still requires null tex coords
 			SetNullTexCoords();
 		}
 

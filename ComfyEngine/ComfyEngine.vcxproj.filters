@@ -501,12 +501,21 @@
     <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer3D\PostProcessing\SSS\SSSFilterMin_PS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer3D\PostProcessing\ToneMap\ToneMap_PS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Multi\SpriteMultiTexture_VS.hlsl" />
-    <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Multi\SpriteMultiTextureBatch_PS.hlsl" />
-    <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Multi\SpriteMultiTextureBatchBlend_PS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Single\SpriteSingleTexture_VS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Single\SpriteSingleTextureCheckerboard_PS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Single\SpriteSingleTextureFont_PS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Single\SpriteSingleTextureMask_PS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Single\SpriteSingleTextureMaskBlend_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Multi\SpriteMultiTextureBatch_01_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Multi\SpriteMultiTextureBatchBlend_08_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Multi\SpriteMultiTextureBatch_08_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Multi\SpriteMultiTextureBatch_02_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Multi\SpriteMultiTextureBatch_03_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Multi\SpriteMultiTextureBatch_04_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Multi\SpriteMultiTextureBatch_05_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Multi\SpriteMultiTextureBatch_06_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Multi\SpriteMultiTextureBatch_07_PS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Uber\SpriteMultiTexture_Uber.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Uber\SpriteSingleTexture_Uber.hlsl" />
   </ItemGroup>
 </Project>

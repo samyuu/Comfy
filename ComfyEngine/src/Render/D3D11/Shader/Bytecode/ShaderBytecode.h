@@ -11,8 +11,15 @@ namespace Comfy::Render::D3D11
 	DECLARE_BYTECODE_GETTER(ImGuiDefault_PS);
 	DECLARE_BYTECODE_GETTER(ImGuiCustom_PS);
 	DECLARE_BYTECODE_GETTER(SpriteMultiTexture_VS);
-	DECLARE_BYTECODE_GETTER(SpriteMultiTextureBatch_PS);
-	DECLARE_BYTECODE_GETTER(SpriteMultiTextureBatchBlend_PS);
+	DECLARE_BYTECODE_GETTER(SpriteMultiTextureBatch_01_PS);
+	DECLARE_BYTECODE_GETTER(SpriteMultiTextureBatch_02_PS);
+	DECLARE_BYTECODE_GETTER(SpriteMultiTextureBatch_03_PS);
+	DECLARE_BYTECODE_GETTER(SpriteMultiTextureBatch_04_PS);
+	DECLARE_BYTECODE_GETTER(SpriteMultiTextureBatch_05_PS);
+	DECLARE_BYTECODE_GETTER(SpriteMultiTextureBatch_06_PS);
+	DECLARE_BYTECODE_GETTER(SpriteMultiTextureBatch_07_PS);
+	DECLARE_BYTECODE_GETTER(SpriteMultiTextureBatch_08_PS);
+	DECLARE_BYTECODE_GETTER(SpriteMultiTextureBatchBlend_08_PS);
 	DECLARE_BYTECODE_GETTER(SpriteSingleTexture_VS);
 	DECLARE_BYTECODE_GETTER(SpriteSingleTextureCheckerboard_PS);
 	DECLARE_BYTECODE_GETTER(SpriteSingleTextureFont_PS);
@@ -91,8 +98,15 @@ namespace Comfy::Render::D3D11
 #include SHADER_BYTECODE_FILE(ImGuiDefault_PS.h)
 #include SHADER_BYTECODE_FILE(ImGuiCustom_PS.h)
 #include SHADER_BYTECODE_FILE(SpriteMultiTexture_VS.h)
-#include SHADER_BYTECODE_FILE(SpriteMultiTextureBatch_PS.h)
-#include SHADER_BYTECODE_FILE(SpriteMultiTextureBatchBlend_PS.h)
+#include SHADER_BYTECODE_FILE(SpriteMultiTextureBatch_01_PS.h)
+#include SHADER_BYTECODE_FILE(SpriteMultiTextureBatch_02_PS.h)
+#include SHADER_BYTECODE_FILE(SpriteMultiTextureBatch_03_PS.h)
+#include SHADER_BYTECODE_FILE(SpriteMultiTextureBatch_04_PS.h)
+#include SHADER_BYTECODE_FILE(SpriteMultiTextureBatch_05_PS.h)
+#include SHADER_BYTECODE_FILE(SpriteMultiTextureBatch_06_PS.h)
+#include SHADER_BYTECODE_FILE(SpriteMultiTextureBatch_07_PS.h)
+#include SHADER_BYTECODE_FILE(SpriteMultiTextureBatch_08_PS.h)
+#include SHADER_BYTECODE_FILE(SpriteMultiTextureBatchBlend_08_PS.h)
 #include SHADER_BYTECODE_FILE(SpriteSingleTexture_VS.h)
 #include SHADER_BYTECODE_FILE(SpriteSingleTextureCheckerboard_PS.h)
 #include SHADER_BYTECODE_FILE(SpriteSingleTextureFont_PS.h)
@@ -169,8 +183,15 @@ namespace Comfy::Render::D3D11
 	DEFINE_BYTECODE_GETTER(ImGuiDefault_PS);
 	DEFINE_BYTECODE_GETTER(ImGuiCustom_PS);
 	DEFINE_BYTECODE_GETTER(SpriteMultiTexture_VS);
-	DEFINE_BYTECODE_GETTER(SpriteMultiTextureBatch_PS);
-	DEFINE_BYTECODE_GETTER(SpriteMultiTextureBatchBlend_PS);
+	DEFINE_BYTECODE_GETTER(SpriteMultiTextureBatch_01_PS);
+	DEFINE_BYTECODE_GETTER(SpriteMultiTextureBatch_02_PS);
+	DEFINE_BYTECODE_GETTER(SpriteMultiTextureBatch_03_PS);
+	DEFINE_BYTECODE_GETTER(SpriteMultiTextureBatch_04_PS);
+	DEFINE_BYTECODE_GETTER(SpriteMultiTextureBatch_05_PS);
+	DEFINE_BYTECODE_GETTER(SpriteMultiTextureBatch_06_PS);
+	DEFINE_BYTECODE_GETTER(SpriteMultiTextureBatch_07_PS);
+	DEFINE_BYTECODE_GETTER(SpriteMultiTextureBatch_08_PS);
+	DEFINE_BYTECODE_GETTER(SpriteMultiTextureBatchBlend_08_PS);
 	DEFINE_BYTECODE_GETTER(SpriteSingleTexture_VS);
 	DEFINE_BYTECODE_GETTER(SpriteSingleTextureCheckerboard_PS);
 	DEFINE_BYTECODE_GETTER(SpriteSingleTextureFont_PS);

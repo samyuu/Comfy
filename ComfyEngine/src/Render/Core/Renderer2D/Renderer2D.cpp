@@ -45,7 +45,7 @@ namespace Comfy::Render
 			vec4 CheckerboardSize;
 		};
 
-		static_assert(SpriteTextureSlots <= (sizeof(SpriteConstantData::FormatFlags) * CHAR_BIT));
+		static_assert(MaxSpriteTextureSlots <= (sizeof(SpriteConstantData::FormatFlags) * CHAR_BIT));
 
 	public:
 		AetRenderer AetRenderer;
@@ -54,12 +54,29 @@ namespace Comfy::Render
 
 		struct RendererShaderPairs
 		{
-			D3D11::ShaderPair MultiTextureBatch = { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_PS(), "Renderer2D::SpriteMultiTextureBatch" };
-			D3D11::ShaderPair MultiTextureBatchMultiply = { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatchBlend_PS(), "Renderer2D::SpriteMultiTextureBatchBlend" };
-			D3D11::ShaderPair SingleTextureCheckerboard = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureCheckerboard_PS(), "Renderer2D::SpriteSingleTextureCheckerboard" };
-			D3D11::ShaderPair SingleTextureFont = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureFont_PS(), "Renderer2D::SpriteSingleTextureFont" };
-			D3D11::ShaderPair SingleTextureMask = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureMask_PS(), "Renderer2D::SpriteSingleTextureMask" };
-			D3D11::ShaderPair SingleTextureMaskMultiply = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureMaskBlend_PS(), "Renderer2D::SpriteSingleTextureMaskBlend" };
+			struct MultiTextureShaders
+			{
+				std::array<D3D11::ShaderPair, MaxSpriteTextureSlots> TextureBatch =
+				{
+					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_01_PS(), "Renderer2D::SpriteMultiTextureBatch_01_PS" },
+					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_02_PS(), "Renderer2D::SpriteMultiTextureBatch_02_PS" },
+					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_03_PS(), "Renderer2D::SpriteMultiTextureBatch_03_PS" },
+					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_04_PS(), "Renderer2D::SpriteMultiTextureBatch_04_PS" },
+					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_05_PS(), "Renderer2D::SpriteMultiTextureBatch_05_PS" },
+					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_06_PS(), "Renderer2D::SpriteMultiTextureBatch_06_PS" },
+					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_07_PS(), "Renderer2D::SpriteMultiTextureBatch_07_PS" },
+					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_08_PS(), "Renderer2D::SpriteMultiTextureBatch_08_PS" },
+				};
+				D3D11::ShaderPair TextureBatchMultiply = { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatchBlend_08_PS(), "Renderer2D::SpriteMultiTextureBatchBlend_08" };
+			} Multi;
+
+			struct SingleTextureShaders
+			{
+				D3D11::ShaderPair TextureCheckerboard = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureCheckerboard_PS(), "Renderer2D::SpriteSingleTextureCheckerboard" };
+				D3D11::ShaderPair TextureFont = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureFont_PS(), "Renderer2D::SpriteSingleTextureFont" };
+				D3D11::ShaderPair TextureMask = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureMask_PS(), "Renderer2D::SpriteSingleTextureMask" };
+				D3D11::ShaderPair TextureMaskMultiply = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureMaskBlend_PS(), "Renderer2D::SpriteSingleTextureMaskBlend" };
+			} Single;
 		} Shaders;
 
 		D3D11::DefaultConstantBufferTemplate<CameraConstantData> CameraConstantBuffer = { 0 };
@@ -122,8 +139,7 @@ namespace Comfy::Render
 
 		void InternalCreateIndexBuffer()
 		{
-			constexpr size_t totalIndices = ((MaxBatchItemSize + Detail::SpriteVertices::GetVertexCount()) * Detail::SpriteIndices::GetIndexCount());
-			std::array<Detail::SpriteIndices, totalIndices> indexData;
+			std::array<Detail::SpriteIndices, MaxBatchItemSize> indexData;
 
 			for (u16 i = 0, offset = 0; i < indexData.size(); i++)
 			{
@@ -146,7 +162,7 @@ namespace Comfy::Render
 				offset += static_cast<u16>(Detail::SpriteVertices::GetVertexCount());
 			}
 
-			IndexBuffer = std::make_unique<D3D11::StaticIndexBuffer>(indexData.size(), indexData.data(), IndexFormat::U16);
+			IndexBuffer = std::make_unique<D3D11::StaticIndexBuffer>(indexData.size() * sizeof(Detail::SpriteIndices), indexData.data(), IndexFormat::U16);
 			D3D11_SetObjectDebugName(IndexBuffer->GetBuffer(), "Renderer2D::IndexBuffer");
 		}
 
@@ -167,13 +183,13 @@ namespace Comfy::Render
 				{ "TEXINDEX",	0, DXGI_FORMAT_R32_UINT,		offsetof(Detail::SpriteVertex, TextureIndex)			},
 			};
 
-			InputLayout = std::make_unique<D3D11::InputLayout>(elements, std::size(elements), Shaders.MultiTextureBatch.VS);
+			InputLayout = std::make_unique<D3D11::InputLayout>(elements, std::size(elements), Shaders.Multi.TextureBatch[0].VS);
 			D3D11_SetObjectDebugName(InputLayout->GetLayout(), "Renderer2D::InputLayout");
 		}
 
 		int FindAvailableTextureSlot(Detail::SpriteBatch& currentBatch, const D3D11::Texture2D* texture) const
 		{
-			for (int i = 0; i < static_cast<int>(SpriteTextureSlots); i++)
+			for (int i = 0; i < static_cast<int>(MaxSpriteTextureSlots); i++)
 			{
 				if (currentBatch.Textures[i] == nullptr || currentBatch.Textures[i] == texture)
 					return i;
@@ -214,12 +230,17 @@ namespace Comfy::Render
 				const auto& item = BatchItems[i];
 				const auto& lastItem = BatchItems[Batches.back().Index];
 
-				if (const int availableTextureIndex = FindAvailableTextureSlot(Batches.back(), item.Texture); availableTextureIndex >= 0)
+				if (int availableTextureIndex = FindAvailableTextureSlot(Batches.back(), item.Texture); availableTextureIndex >= 0)
 				{
 					if (!AreBatchItemsCompatible(item, lastItem))
+					{
 						Batches.emplace_back(i, 1);
+						availableTextureIndex = 0;
+					}
 					else
+					{
 						Batches.back().Count++;
+					}
 
 					Vertices[i].SetTextureIndices(availableTextureIndex);
 					Batches.back().Textures[availableTextureIndex] = item.Texture;
@@ -231,21 +252,38 @@ namespace Comfy::Render
 					Vertices[i].SetTextureIndices(0);
 					Batches.back().Textures[0] = item.Texture;
 				}
+
+				assert(GetUsedSpriteTextureSlotsCount(Batches.back()) > 0);
 			}
 		}
 
-		const D3D11::ShaderPair& GetBatchItemShader(const Detail::SpriteBatchItem& item) const
+		const D3D11::ShaderPair& GetBatchItemShader(const Detail::SpriteBatchItem& item, int usedTextureSlots) const
 		{
 			if (item.DrawTextBorder)
-				return Shaders.SingleTextureFont;
+				return Shaders.Single.TextureFont;
 
 			if (item.MaskTexture != nullptr)
-				return (item.BlendMode == AetBlendMode::Multiply) ? Shaders.SingleTextureMaskMultiply : Shaders.SingleTextureMask;
+				return (item.BlendMode == AetBlendMode::Multiply) ? Shaders.Single.TextureMaskMultiply : Shaders.Single.TextureMask;
 
 			if (item.CheckerboardSize.has_value())
-				return Shaders.SingleTextureCheckerboard;
+				return Shaders.Single.TextureCheckerboard;
 
-			return (item.BlendMode == AetBlendMode::Multiply) ? Shaders.MultiTextureBatchMultiply : Shaders.MultiTextureBatch;
+			assert(usedTextureSlots > 0 && (usedTextureSlots - 1) < Shaders.Multi.TextureBatch.size());
+			if (item.BlendMode == AetBlendMode::Multiply)
+				return Shaders.Multi.TextureBatchMultiply;
+			else
+				return Shaders.Multi.TextureBatch[usedTextureSlots - 1];
+		}
+
+		int GetUsedSpriteTextureSlotsCount(const Detail::SpriteBatch& batch) const
+		{
+			for (int i = 0; i < static_cast<int>(MaxSpriteTextureSlots); i++)
+			{
+				if (batch.Textures[i] == nullptr)
+					return i;
+			}
+
+			return MaxSpriteTextureSlots;
 		}
 
 		void InternalFlushRenderBatches()
@@ -277,7 +315,8 @@ namespace Comfy::Render
 					lastBlendMode = item.BlendMode;
 				}
 
-				if (const auto& itemShader = GetBatchItemShader(item); lastShader != &itemShader)
+				const auto usedTextureSlots = GetUsedSpriteTextureSlotsCount(batch);
+				if (const auto& itemShader = GetBatchItemShader(item, usedTextureSlots); lastShader != &itemShader)
 				{
 					itemShader.Bind();
 					lastShader = &itemShader;
@@ -300,19 +339,19 @@ namespace Comfy::Render
 					};
 					D3D11::ShaderResourceView::BindArray(0, textureResourceViews);
 				}
-				else
+				else // NOTE: Multi texture batch
 				{
-					std::array<const D3D11::ShaderResourceView*, SpriteTextureSlots> textureResourceViews;
-					for (size_t i = 0; i < SpriteTextureSlots; i++)
-						textureResourceViews[i] = batch.Textures[i];
-					D3D11::ShaderResourceView::BindArray(0, textureResourceViews);
+					std::array<ID3D11ShaderResourceView*, MaxSpriteTextureSlots> textureResourceViews;
+					for (size_t i = 0; i < usedTextureSlots; i++)
+						textureResourceViews[i] = (batch.Textures[i] != nullptr) ? batch.Textures[i]->GetResourceView() : nullptr;
+					D3D11::D3D.Context->PSSetShaderResources(0, static_cast<UINT>(usedTextureSlots), textureResourceViews.data());
 				}
 
 				SpriteConstantBuffer.Data.BlendMode = item.BlendMode;
 				SpriteConstantBuffer.Data.Format = item.Texture->GetTextureFormat();
 				SpriteConstantBuffer.Data.MaskFormat = (item.MaskTexture == nullptr) ? TextureFormat::Unknown : item.MaskTexture->GetTextureFormat();
 				SpriteConstantBuffer.Data.FormatFlags = 0;
-				for (u32 i = 0; i < static_cast<u32>(SpriteTextureSlots); i++)
+				for (u32 i = 0; i < static_cast<u32>(MaxSpriteTextureSlots); i++)
 				{
 					const bool isYCbCr = (batch.Textures[i] != nullptr) && (batch.Textures[i]->GetTextureFormat() == TextureFormat::RGTC2);
 					SpriteConstantBuffer.Data.FormatFlags |= (static_cast<u32>(isYCbCr) << i);
