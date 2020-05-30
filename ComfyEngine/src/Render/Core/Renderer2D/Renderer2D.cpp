@@ -182,6 +182,26 @@ namespace Comfy::Render
 			return -1;
 		}
 
+		bool AreBatchItemsCompatible(const Detail::SpriteBatchItem& item, const Detail::SpriteBatchItem& lastItem) const
+		{
+			const bool textureChanged = (item.Texture != lastItem.Texture);
+			const bool textureMaskChanged = (item.MaskTexture != lastItem.MaskTexture);
+
+			if (item.BlendMode != lastItem.BlendMode)
+				return false;
+
+			if ((item.DrawTextBorder || lastItem.DrawTextBorder) && textureChanged)
+				return false;
+
+			if ((item.MaskTexture != nullptr || lastItem.MaskTexture != nullptr) && (textureChanged || textureMaskChanged))
+				return false;
+
+			if (item.CheckerboardSize.has_value() != lastItem.CheckerboardSize.has_value())
+				return false;
+
+			return true;
+		}
+
 		void InternalCreateBatchesFromItems()
 		{
 			assert(!BatchItems.empty());
@@ -189,23 +209,14 @@ namespace Comfy::Render
 			Batches.emplace_back(0, 1).Textures[0] = BatchItems.front().Texture;
 			Vertices.front().SetTextureIndices(0);
 
-			for (u16 i = 1; i < BatchItems.size(); i++)
+			for (u16 i = 1; i < static_cast<u16>(BatchItems.size()); i++)
 			{
-				const Detail::SpriteBatchItem& item = BatchItems[i];
-				const Detail::SpriteBatchItem& lastItem = BatchItems[Batches.back().Index];
-
-				const bool textureWasChanged = (item.Texture != lastItem.Texture);
-
-				// BUG:
-				const bool requiresNewBatch =
-					(item.BlendMode != lastItem.BlendMode) ||
-					(item.DrawTextBorder != lastItem.DrawTextBorder && textureWasChanged) ||
-					(item.MaskTexture != lastItem.MaskTexture && textureWasChanged) ||
-					(item.CheckerboardSize.has_value() != lastItem.CheckerboardSize.has_value());
+				const auto& item = BatchItems[i];
+				const auto& lastItem = BatchItems[Batches.back().Index];
 
 				if (const int availableTextureIndex = FindAvailableTextureSlot(Batches.back(), item.Texture); availableTextureIndex >= 0)
 				{
-					if (requiresNewBatch)
+					if (!AreBatchItemsCompatible(item, lastItem))
 						Batches.emplace_back(i, 1);
 					else
 						Batches.back().Count++;
@@ -223,7 +234,7 @@ namespace Comfy::Render
 			}
 		}
 
-		const D3D11::ShaderPair& GetBatchItemShader(const Detail::SpriteBatchItem& item)
+		const D3D11::ShaderPair& GetBatchItemShader(const Detail::SpriteBatchItem& item) const
 		{
 			if (item.DrawTextBorder)
 				return Shaders.SingleTextureFont;
