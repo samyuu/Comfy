@@ -49,7 +49,7 @@ namespace Comfy::Render
 		Render::RenderCommand2D command;
 
 		auto shadowTransform = transform;
-		shadowTransform.Position += offset;
+		shadowTransform.Origin -= offset;
 
 		shadowColor.a *= transform.Opacity;
 		command.SetColor(shadowColor);
