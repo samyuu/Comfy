@@ -3,6 +3,7 @@
 #include "RenderCommand2D.h"
 #include "RenderTarget2D.h"
 #include "AetRenderer.h"
+#include "FontRenderer.h"
 #include "Render/Core/Camera.h"
 #include "Resource/IDTypes.h"
 #include <optional>
@@ -30,6 +31,7 @@ namespace Comfy::Render
 
 	public:
 		AetRenderer& Aet();
+		FontRenderer& Font();
 
 	public:
 		static std::unique_ptr<RenderTarget2D> CreateRenderTarget();

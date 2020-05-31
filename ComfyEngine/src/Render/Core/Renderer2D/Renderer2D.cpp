@@ -49,6 +49,7 @@ namespace Comfy::Render
 
 	public:
 		AetRenderer AetRenderer;
+		FontRenderer FontRenderer;
 
 		u32 DrawCallCount = 0;
 
@@ -124,7 +125,7 @@ namespace Comfy::Render
 		Detail::RenderTarget2DImpl* RenderTarget = nullptr;
 
 	public:
-		Impl(Renderer2D& parent) : AetRenderer(parent)
+		Impl(Renderer2D& parent) : AetRenderer(parent), FontRenderer(parent)
 		{
 			D3D11_SetObjectDebugName(CameraConstantBuffer.Buffer.GetBuffer(), "Renderer2D::CameraConstantBuffer");
 			D3D11_SetObjectDebugName(SpriteConstantBuffer.Buffer.GetBuffer(), "Renderer2D::SpriteConstantBuffer");
@@ -587,6 +588,11 @@ namespace Comfy::Render
 	AetRenderer& Renderer2D::Aet()
 	{
 		return impl->AetRenderer;
+	}
+
+	FontRenderer& Renderer2D::Font()
+	{
+		return impl->FontRenderer;
 	}
 
 	const OrthographicCamera& Renderer2D::GetCamera() const
