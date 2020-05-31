@@ -100,7 +100,7 @@ namespace Comfy::Sandbox
 		System::LoadComfyConfig();
 
 		ApplicationHost::ConstructionParam param;
-		param.StartupWindowState.Title = "YEP COCK";
+		param.StartupWindowState.Title = "ComfySandbox - YEP COCK";
 
 		auto host = ApplicationHost(param);
 		host.SetSwapInterval(1);
