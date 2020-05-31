@@ -33,6 +33,9 @@
     <ClCompile Include="src\Tests\MenuTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Tests\FontRendererTest.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Tests\TestTask.h">
