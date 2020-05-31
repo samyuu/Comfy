@@ -193,6 +193,7 @@
     <ClInclude Include="src\Input\Core\KeyCode.h" />
     <ClInclude Include="src\Render\Core\Camera.h" />
     <ClInclude Include="src\Render\Core\Renderer2D\Detail\RenderTarget2DImpl.h" />
+    <ClInclude Include="src\Render\Core\Renderer2D\FontRenderer.h" />
     <ClInclude Include="src\Render\Core\Renderer2D\RenderCommand2D.h" />
     <ClInclude Include="src\Render\Core\Renderer2D\AetRenderer.h" />
     <ClInclude Include="src\Render\Core\Renderer2D\Renderer2D.h" />
@@ -268,6 +269,7 @@
     <ClCompile Include="src\Input\Core\Keyboard.cpp" />
     <ClCompile Include="src\Render\Core\Camera.cpp" />
     <ClCompile Include="src\Render\Core\Renderer2D\AetRenderer.cpp" />
+    <ClCompile Include="src\Render\Core\Renderer2D\FontRenderer.cpp" />
     <ClCompile Include="src\Render\Core\Renderer2D\Renderer2D.cpp" />
     <ClCompile Include="src\Render\Core\Renderer3D\Renderer3D.cpp" />
     <ClCompile Include="src\Render\D3D11\Shader\Bytecode\ShaderBytecode.cpp" />
