@@ -89,6 +89,14 @@ namespace Comfy::Sandbox::Tests
 
 						render.Transform.Position -= positionOffset;
 						{
+							if (render.VisualizeOrigin)
+							{
+								auto command = Render::RenderCommand2D(render.Transform.Position, vec2(6.0f), vec4(0.35f, 0.79f, 0.69f, 0.75f));
+								command.Origin = vec2(command.SourceRegion.z, command.SourceRegion.w) * 0.5f;
+								command.Rotation = render.Transform.Rotation;
+								renderer.Draw(command);
+							}
+
 							if (render.Border)
 								renderer.Font().DrawBorder(*selectedFont, textToRender, render.Transform, render.Color);
 							else if (render.Shadow)
@@ -143,6 +151,9 @@ namespace Comfy::Sandbox::Tests
 
 					GuiProperty::Checkbox("No Camera Zoom", render.NoCameraZoom);
 					GuiProperty::Input("Camera Zoom Target Size", render.CameraZoomTargetSize);
+
+					GuiProperty::Checkbox("Checkerboard Background", render.CheckerboardBackground);
+					GuiProperty::Checkbox("Visualize Origin", render.VisualizeOrigin);
 				}
 				Gui::End();
 
@@ -293,10 +304,12 @@ namespace Comfy::Sandbox::Tests
 
 			bool RightAlign = false;
 			bool BottomAlign = false;
-			bool CheckerboardBackground = true;
 
 			bool NoCameraZoom = true;
 			vec2 CameraZoomTargetSize = { 1920.0f, 1080.0f };
+
+			bool CheckerboardBackground = true;
+			bool VisualizeOrigin = true;
 
 		} render;
 
