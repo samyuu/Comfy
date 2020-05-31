@@ -89,6 +89,13 @@ namespace Comfy::Sandbox::Tests
 
 						render.Transform.Position -= positionOffset;
 						{
+							if (render.VisualizeBounds)
+							{
+								auto command = Render::RenderCommand2D(nullptr, render.Transform.Origin, render.Transform.Position, render.Transform.Rotation, render.Transform.Scale, vec4(0.0f, 0.0f, measuredTextSize), Graphics::AetBlendMode::Normal, 1.0f);
+								command.SetColor(vec4(0.15f, 0.15f, 0.15f, 0.5f));
+								renderer.Draw(command);
+							}
+
 							if (render.VisualizeOrigin)
 							{
 								auto command = Render::RenderCommand2D(render.Transform.Position, vec2(6.0f), vec4(0.35f, 0.79f, 0.69f, 0.75f));
@@ -154,6 +161,7 @@ namespace Comfy::Sandbox::Tests
 
 					GuiProperty::Checkbox("Checkerboard Background", render.CheckerboardBackground);
 					GuiProperty::Checkbox("Visualize Origin", render.VisualizeOrigin);
+					GuiProperty::Checkbox("Visualize Bounds", render.VisualizeBounds);
 				}
 				Gui::End();
 
@@ -310,6 +318,7 @@ namespace Comfy::Sandbox::Tests
 
 			bool CheckerboardBackground = true;
 			bool VisualizeOrigin = true;
+			bool VisualizeBounds = true;
 
 		} render;
 
