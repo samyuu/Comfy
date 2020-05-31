@@ -216,6 +216,9 @@
     <ClInclude Include="src\Core\Hacks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\Auth2D\Font\FontMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp">
@@ -339,6 +342,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\IO\Config\ComfyBinaryConfig.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Auth2D\Font\FontMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

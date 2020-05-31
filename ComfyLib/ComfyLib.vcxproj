@@ -19,6 +19,7 @@
     <ClInclude Include="src\Core\StartupFuncWrapper.h" />
     <ClInclude Include="src\Graphics\Auth2D\Aet\AetUtil.h" />
     <ClInclude Include="src\Graphics\Auth2D\Aet\AetSet.h" />
+    <ClInclude Include="src\Graphics\Auth2D\Font\FontMap.h" />
     <ClInclude Include="src\Graphics\Auth2D\SprSet.h" />
     <ClInclude Include="src\Graphics\Auth2D\Transform2D.h" />
     <ClInclude Include="src\Graphics\Auth3D\A3D\A3D.h" />
@@ -84,6 +85,7 @@
     <ClCompile Include="src\Graphics\Auth2D\Aet\AetUtil.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\Aet\AetSet.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\Aet\AetSetFile.cpp" />
+    <ClCompile Include="src\Graphics\Auth2D\Font\FontMap.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\SprSet.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\A3D\A3D.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\A3D\A3DMgr.cpp" />
