@@ -18,6 +18,22 @@ namespace Comfy::Sandbox::Tests
 		{
 			&SprPS4Menu,
 		};
+
+		std::unique_ptr<Graphics::FontMap> FontMap = []
+		{
+			auto fontMap = IO::File::Load<Graphics::FontMap>("dev_ram/font/fontmap/fontmap.bin");
+			if (fontMap != nullptr)
+			{
+				auto sprSet36 = IO::File::Load<Graphics::SprSet>("dev_ram/sprset/spr_fnt/spr_fnt_36.bin");
+
+				const auto font36 = std::find_if(fontMap->Fonts.begin(), fontMap->Fonts.end(), [&](const auto& font) { return (font.GetFontSize() == ivec2(36)); });
+				if (font36 != fontMap->Fonts.end() && sprSet36 != nullptr)
+					font36->Texture = sprSet36->TexSet->Textures[0];
+			}
+			return fontMap;
+		}();
+
+		const Graphics::BitmapFont* Font36 = (FontMap == nullptr) ? nullptr : FontMap->FindFont(ivec2(36));
 	};
 
 	namespace
@@ -479,6 +495,11 @@ namespace Comfy::Sandbox::Tests
 					const auto slideSpr = FindSpr(isSelected ? "ICON_SLIDE_SEL" : "ICON_SLIDE");
 					const auto transform = Aet::Util::GetTransformAt(*layerData.IconSlide->LayerVideo, gameMenuListTime.ToFrames());
 					context.Renderer.Aet().DrawSpr(*slideSpr.Tex, *slideSpr.Spr, transform);
+				}
+
+				{
+					const auto transform = Aet::Util::GetTransformAt(*layerData.SongName->LayerVideo, gameMenuListTime.ToFrames());
+					context.Renderer.Font().DrawBorder(*context.Font36, u8"YEP COCKÅ@éÄÇ…ÇΩÇ¢", transform);
 				}
 			}
 		}

@@ -9,6 +9,7 @@
 #include "Input/Input.h"
 #include "Render/Render.h"
 #include "Graphics/Auth2D/SprSet.h"
+#include "Graphics/Auth2D/Font/FontMap.h"
 #include "Time/Stopwatch.h"
 
 #include "IO/Path.h"
