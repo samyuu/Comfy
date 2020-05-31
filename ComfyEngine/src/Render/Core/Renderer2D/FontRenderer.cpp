@@ -7,6 +7,9 @@ namespace Comfy::Render
 	template <typename Func>
 	void ForEachUTF8Char32(std::string_view inputText, Func func)
 	{
+		if (inputText.empty())
+			return;
+
 		const char* textStart = ImGui::StringViewStart(inputText);
 		const char* textEnd = ImGui::StringViewEnd(inputText);
 
@@ -82,7 +85,7 @@ namespace Comfy::Render
 			return true;
 		});
 
-		return textSize;
+		return vec2(textSize.x, textSize.y + fontSize.y);
 	}
 
 	void FontRenderer::DrawInternal(const Graphics::BitmapFont& font, std::string_view text, const Graphics::Transform2D& transform, RenderCommand2D& command)
