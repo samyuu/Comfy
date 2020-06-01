@@ -115,6 +115,11 @@
     <ClCompile Include="src\Tests\Renderer3DTest.cpp" />
     <ClCompile Include="src\Tests\FontRendererTest.cpp" />
     <ClInclude Include="src\PerformanceOverlay.h" />
+    <ClInclude Include="src\Tests\Game\GameContext.h" />
+    <ClInclude Include="src\Tests\Game\Helper.h" />
+    <ClInclude Include="src\Tests\Game\FilePaths.h" />
+    <ClInclude Include="src\Tests\Game\PS4Menu.h" />
+    <ClInclude Include="src\Tests\Game\PS4MenuAetInterface.h" />
     <ClInclude Include="src\Tests\TestTask.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

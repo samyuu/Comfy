@@ -41,6 +41,21 @@
     <ClInclude Include="src\Tests\TestTask.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Tests\Game\PS4Menu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Tests\Game\PS4MenuAetInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Tests\Game\GameContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Tests\Game\Helper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Tests\Game\FilePaths.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\PerformanceOverlay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
