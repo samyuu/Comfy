@@ -78,6 +78,7 @@ namespace Comfy::Graphics
 	public:
 		void Read(IO::StreamReader& reader) override;
 
+		BitmapFont* FindFont(ivec2 fontSize);
 		const BitmapFont* FindFont(ivec2 fontSize) const;
 
 	public:

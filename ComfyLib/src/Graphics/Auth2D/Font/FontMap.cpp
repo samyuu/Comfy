@@ -110,6 +110,11 @@ namespace Comfy::Graphics
 		});
 	}
 
+	BitmapFont* FontMap::FindFont(ivec2 fontSize)
+	{
+		return FindIfOrNull(Fonts, [fontSize](auto& font) { return font.GetFontSize() == fontSize; });
+	}
+
 	const BitmapFont* FontMap::FindFont(ivec2 fontSize) const
 	{
 		return FindIfOrNull(Fonts, [fontSize](const auto& font) { return font.GetFontSize() == fontSize; });
