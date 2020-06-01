@@ -114,6 +114,7 @@
     <ClCompile Include="src\Tests\Renderer2DTest.cpp" />
     <ClCompile Include="src\Tests\Renderer3DTest.cpp" />
     <ClCompile Include="src\Tests\FontRendererTest.cpp" />
+    <ClInclude Include="src\Application.h" />
     <ClInclude Include="src\PerformanceOverlay.h" />
     <ClInclude Include="src\Tests\Game\GameContext.h" />
     <ClInclude Include="src\Tests\Game\Helper.h" />
