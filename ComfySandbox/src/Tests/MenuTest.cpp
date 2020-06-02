@@ -1,6 +1,5 @@
 #include "TestTask.h"
-#include "Game/GameContext.h"
-#include "Game/PS4Menu.h"
+#include "Game/Core/GameStateManager.h"
 
 namespace Comfy::Sandbox::Tests
 {
@@ -14,12 +13,12 @@ namespace Comfy::Sandbox::Tests
 			renderWindow.OnRenderCallback = [&]
 			{
 				renderWindow.RenderTarget->Param.Resolution = camera.ProjectionSize = renderWindow.GetRenderRegion().GetSize();
-				camera.CenterAndZoomToFit((context.AetPS4MenuMain != nullptr) ? context.AetPS4MenuMain->Resolution : ivec2(1920, 1080));
+				camera.CenterAndZoomToFit(context.VirtualResolution);
 
 				context.Renderer.Begin(camera, *renderWindow.RenderTarget);
 				{
 					if (context.AetPS4MenuMain != nullptr && context.SprPS4Menu != nullptr)
-						ps4Menu->Tick();
+						gameStateManager->Tick();
 				}
 				context.Renderer.End();
 			};
@@ -28,12 +27,13 @@ namespace Comfy::Sandbox::Tests
 		void Update() override
 		{
 			context.Elapsed = (stopwatch.Restart() * MenuTimeFactor);
+			context.VirtualResolution = (context.AetPS4MenuMain != nullptr) ? context.AetPS4MenuMain->Resolution : ivec2(1920, 1080);
 
 			if (Gui::IsKeyPressed(Input::KeyCode_F11, false))
 				fullscreen ^= true;
 
-			if (Gui::IsKeyPressed(Input::KeyCode_Escape))
-				ps4Menu = std::make_unique<Game::PS4Menu>(context);
+			if (Gui::IsKeyPressed(Input::KeyCode_F5))
+				gameStateManager = std::make_unique<Game::GameStateManager>(context);
 
 			if (fullscreen)
 			{
@@ -43,13 +43,14 @@ namespace Comfy::Sandbox::Tests
 			{
 				renderWindow.BeginEndGui("Menu Test##Windowed");
 
-				if (Gui::Begin("Menu Test Control"))
+				if (Gui::Begin("Debug Control"))
 				{
 					if (Gui::Button("Reset", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
-						ps4Menu = std::make_unique<Game::PS4Menu>(context);
+						gameStateManager = std::make_unique<Game::GameStateManager>(context);
 
 					Gui::SliderFloat("Time Factor", &MenuTimeFactor, 0.0f, 4.0f);
 
+					gameStateManager->DebugGui();
 					Gui::End();
 				}
 			}
@@ -65,6 +66,6 @@ namespace Comfy::Sandbox::Tests
 		Stopwatch stopwatch;
 		Game::GameContext context;
 
-		std::unique_ptr<Game::PS4Menu> ps4Menu = std::make_unique<Game::PS4Menu>(context);
+		std::unique_ptr<Game::GameStateManager> gameStateManager = std::make_unique<Game::GameStateManager>(context);
 	};
 }

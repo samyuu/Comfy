@@ -110,17 +110,23 @@
   <ItemGroup>
     <ClCompile Include="src\Tests\AetRendererTest.cpp" />
     <ClCompile Include="src\Tests\AudioTest.cpp" />
+    <ClCompile Include="src\Tests\Game\Core\GameState.cpp" />
     <ClCompile Include="src\Tests\MenuTest.cpp" />
     <ClCompile Include="src\Tests\Renderer2DTest.cpp" />
     <ClCompile Include="src\Tests\Renderer3DTest.cpp" />
     <ClCompile Include="src\Tests\FontRendererTest.cpp" />
     <ClInclude Include="src\Application.h" />
     <ClInclude Include="src\PerformanceOverlay.h" />
-    <ClInclude Include="src\Tests\Game\GameContext.h" />
-    <ClInclude Include="src\Tests\Game\Helper.h" />
-    <ClInclude Include="src\Tests\Game\FilePaths.h" />
-    <ClInclude Include="src\Tests\Game\PS4Menu.h" />
-    <ClInclude Include="src\Tests\Game\PS4MenuAetInterface.h" />
+    <ClInclude Include="src\Tests\Game\Core\GameContext.h" />
+    <ClInclude Include="src\Tests\Game\States\PS4GameMenu.h" />
+    <ClInclude Include="src\Tests\Game\Core\GameState.h" />
+    <ClInclude Include="src\Tests\Game\Core\GameStateManager.h" />
+    <ClInclude Include="src\Tests\Game\Common\Helper.h" />
+    <ClInclude Include="src\Tests\Game\Common\FilePaths.h" />
+    <ClInclude Include="src\Tests\Game\States\DebugGameStates.h" />
+    <ClInclude Include="src\Tests\Game\Core\GameStateTransition.h" />
+    <ClInclude Include="src\Tests\Game\Common\PS4MenuAetInterface.h" />
+    <ClInclude Include="src\Tests\Game\States\PS4MainMenu.h" />
     <ClInclude Include="src\Tests\TestTask.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

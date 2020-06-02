@@ -1,6 +1,6 @@
 #pragma once
 #include "Tests/TestTask.h"
-#include "FilePaths.h"
+#include "Tests/Game/Common/FilePaths.h"
 
 namespace Comfy::Sandbox::Tests::Game
 {
@@ -25,6 +25,7 @@ namespace Comfy::Sandbox::Tests::Game
 
 	public:
 		TimeSpan Elapsed = TimeSpan::Zero();
+		vec2 VirtualResolution = vec2(1920.0f, 1080.0f);
 
 	public:
 		Render::Renderer2D Renderer = {};
@@ -41,6 +42,34 @@ namespace Comfy::Sandbox::Tests::Game
 		std::unique_ptr<FontMap> FontMap = IO::File::Load<Graphics::FontMap>(FilePaths::FontMap);
 		const BitmapFont* Font36 = FindFont36();
 
+	public:
+		inline const Aet::Layer* FindLayer(const Aet::Scene& scene, std::string_view layerName) const
+		{
+			return scene.FindLayer(layerName).get();
+		}
+
+		inline const Aet::Video* FindVideo(const Aet::Scene& scene, std::string_view sourceName) const
+		{
+			for (const auto& video : scene.Videos)
+			{
+				if (!video->Sources.empty() && video->Sources.front().Name == sourceName)
+					return video.get();
+			}
+
+			return nullptr;
+		}
+
+		inline const Render::TexSpr FindSpr(const SprSet& sprSet, std::string_view spriteName) const
+		{
+			for (const auto& spr : sprSet.Sprites)
+			{
+				if (spr.Name == spriteName)
+					return { sprSet.TexSet->Textures[spr.TextureIndex].get(), &spr };
+			}
+
+			return { nullptr, nullptr };
+		}
+
 	private:
 		std::array<std::unique_ptr<SprSet>*, 1> allAetAccessibleSprSets
 		{
@@ -48,7 +77,7 @@ namespace Comfy::Sandbox::Tests::Game
 		};
 
 	private:
-		const BitmapFont* FindFont36() const
+		inline const BitmapFont* FindFont36() const
 		{
 			if (FontMap == nullptr)
 				return nullptr;
