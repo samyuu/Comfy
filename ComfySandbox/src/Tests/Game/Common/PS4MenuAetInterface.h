@@ -91,8 +91,198 @@ namespace Comfy::Sandbox::Tests::Game
 		SongListItem_12,
 		SongListItem_Count,
 
-		SongListItem_Selected = SongListItem_05,
+		SongListItem_Center = SongListItem_05,
 	};
+
+	namespace
+	{
+		static constexpr std::array<std::string_view, SongListItem_Count> SongListItemIconSlideLayerNames =
+		{
+			"p_icon_slide00_c",
+			"p_icon_slide01_c",
+			"p_icon_slide02_c",
+			"p_icon_slide03_c",
+			"p_icon_slide04_c",
+			"p_icon_slide05_c",
+			"p_icon_slide06_c",
+			"p_icon_slide07_c",
+			"p_icon_slide08_c",
+			"p_icon_slide09_c",
+			"p_icon_slide10_c",
+			"p_icon_slide11_c",
+			"p_icon_slide12_c",
+		};
+
+		static constexpr std::array<std::string_view, SongListItem_Count> SongListItemAchieveLayerNames =
+		{
+			"p_achieve_00",
+			"p_achieve_01",
+			"p_achieve_02",
+			"p_achieve_03",
+			"p_achieve_04",
+			"p_achieve_05",
+			"p_achieve_06",
+			"p_achieve_07",
+			"p_achieve_08",
+			"p_achieve_09",
+			"p_achieve_10",
+			"p_achieve_11",
+			"p_achieve_12",
+		};
+
+		static constexpr std::array<std::string_view, SongListItem_Count> SongListItemIconDuelLayerNames =
+		{
+			"p_icon_duet00_c",
+			"p_icon_duet01_c",
+			"p_icon_duet02_c",
+			"p_icon_duet03_c",
+			"p_icon_duet04_c",
+			"p_icon_duet05_c",
+			"p_icon_duet06_c",
+			"p_icon_duet07_c",
+			"p_icon_duet08_c",
+			"p_icon_duet09_c",
+			"p_icon_duet10_c",
+			"p_icon_duet11_c",
+			"p_icon_duet12_c",
+		};
+
+		static constexpr std::array<std::string_view, SongListItem_Count> SongListItemSongNameLayerNames =
+		{
+			"p_song_name00_lt",
+			"p_song_name01_lt",
+			"p_song_name02_lt",
+			"p_song_name03_lt",
+			"p_song_name04_lt",
+			"p_song_name05_lt",
+			"p_song_name06_lt",
+			"p_song_name07_lt",
+			"p_song_name08_lt",
+			"p_song_name09_lt",
+			"p_song_name10_lt",
+			"p_song_name11_lt",
+			"p_song_name12_lt",
+		};
+
+		static constexpr std::array<std::string_view, SongListItem_Count> SongListItemSongClearLayerNames =
+		{
+			"p_song_clear00_c",
+			"p_song_clear01_c",
+			"p_song_clear02_c",
+			"p_song_clear03_c",
+			"p_song_clear04_c",
+			"p_song_clear05_c",
+			"p_song_clear06_c",
+			"p_song_clear07_c",
+			"p_song_clear08_c",
+			"p_song_clear09_c",
+			"p_song_clear10_c",
+			"p_song_clear11_c",
+			"p_song_clear12_c",
+		};
+
+		static constexpr std::array<std::string_view, SongListItem_Count> SongListItemSongLevelLayerNames =
+		{
+			"p_song_level00_c",
+			"p_song_level01_c",
+			"p_song_level02_c",
+			"p_song_level03_c",
+			"p_song_level04_c",
+			"p_song_level05_c",
+			"p_song_level06_c",
+			"p_song_level07_c",
+			"p_song_level08_c",
+			"p_song_level09_c",
+			"p_song_level10_c",
+			"p_song_level11_c",
+			"p_song_level12_c",
+		};
+
+		static constexpr std::array<std::string_view, SongListItem_Count> SongListItemIconNewLayerNames =
+		{
+			"p_icon_new00_c",
+			"p_icon_new01_c",
+			"p_icon_new02_c",
+			"p_icon_new03_c",
+			"p_icon_new04_c",
+			"p_icon_new05_c",
+			"p_icon_new06_c",
+			"p_icon_new07_c",
+			"p_icon_new08_c",
+			"p_icon_new09_c",
+			"p_icon_new10_c",
+			"p_icon_new11_c",
+			"p_icon_new12_c",
+		};
+
+		static constexpr std::array<std::string_view, SongListItem_Count> SongListItemIconFavoriteLayerNames =
+		{
+			"p_icon_fav00_c",
+			"p_icon_fav01_c",
+			"p_icon_fav02_c",
+			"p_icon_fav03_c",
+			"p_icon_fav04_c",
+			"p_icon_fav05_c",
+			"p_icon_fav06_c",
+			"p_icon_fav07_c",
+			"p_icon_fav08_c",
+			"p_icon_fav09_c",
+			"p_icon_fav10_c",
+			"p_icon_fav11_c",
+			"p_icon_fav12_c",
+		};
+
+		static constexpr std::array<std::string_view, SongListItem_Count> SongListItemOptionLayerNames =
+		{
+			"p_option_00",
+			"p_option_01",
+			"p_option_02",
+			"p_option_03",
+			"p_option_04",
+			"p_option_05",
+			"p_option_06",
+			"p_option_07",
+			"p_option_08",
+			"p_option_09",
+			"p_option_10",
+			"p_option_11",
+			"p_option_12",
+		};
+
+		static constexpr std::array<std::string_view, SongListItem_Count> SongListItemIconPackLayerNames =
+		{
+			"p_icon_pack00_c",
+			"p_icon_pack01_c",
+			"p_icon_pack02_c",
+			"p_icon_pack03_c",
+			"p_icon_pack04_c",
+			"p_icon_pack05_c",
+			"p_icon_pack06_c",
+			"p_icon_pack07_c",
+			"p_icon_pack08_c",
+			"p_icon_pack09_c",
+			"p_icon_pack10_c",
+			"p_icon_pack11_c",
+			"p_icon_pack12_c",
+		};
+
+		static constexpr std::array<std::string_view, SongListItem_Count> SongListItemBaseLayerNames =
+		{
+			"p_song_list_base00_c",
+			"p_song_list_base01_c",
+			"p_song_list_base02_c",
+			"p_song_list_base03_c",
+			"p_song_list_base04_c",
+			"p_song_list_base05_c",
+			"p_song_list_base06_c",
+			"p_song_list_base07_c",
+			"p_song_list_base08_c",
+			"p_song_list_base09_c",
+			"p_song_list_base10_c",
+			"p_song_list_base11_c",
+			"p_song_list_base12_c",
+		};
+	}
 
 	enum SongListState
 	{

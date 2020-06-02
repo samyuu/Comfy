@@ -14,6 +14,10 @@ namespace Comfy::Sandbox::Tests::Game
 	public:
 		void OnFocusGained(std::optional<GameStateType> previousState)
 		{
+			backgroundTime = TimeSpan::Zero();
+			headerFooterTime = TimeSpan::Zero();
+
+			songListTime = TimeSpan::Zero();
 		}
 
 		void OnFocusLost(std::optional<GameStateType> newState)
@@ -63,28 +67,21 @@ namespace Comfy::Sandbox::Tests::Game
 		SongItemPointLayerData GetSongMenuItemTransforms(SongListItem item, LoopState loop)
 		{
 			const auto layerName = std::array { "song_list_in", "song_list_loop", "song_list_out" }[loop];
-			const auto layer = FindLayer(layerName);
-			const auto compItem = layer->GetCompItem();
-
-			char pointLayerNameBuffer[64];
-			auto findPointLayer = [&](const char* formatString)
-			{
-				sprintf_s(pointLayerNameBuffer, formatString, static_cast<int>(item));
-				return compItem->FindLayer(pointLayerNameBuffer).get();
-			};
+			const auto compItem = FindLayer(layerName)->GetCompItem();
 
 			SongItemPointLayerData result;
-			result.IconSlide = findPointLayer("p_icon_slide%02d_c");
-			result.Achieve = findPointLayer("p_achieve_%02d");
-			result.IconDuel = findPointLayer("p_icon_duet%02d_c");
-			result.SongName = findPointLayer("p_song_name%02d_lt");
-			result.SongClear = findPointLayer("p_song_clear%02d_c");
-			result.SongLevel = findPointLayer("p_song_level%02d_c");
-			result.IconNew = findPointLayer("p_icon_new%02d_c");
-			result.IconFavorite = findPointLayer("p_icon_fav%02d_c");
-			result.Option = findPointLayer("p_option_%02d");
-			result.IconPack = findPointLayer("p_icon_pack%02d_c");
-			result.Base = findPointLayer("p_song_list_base%02d_c");
+			result.IconSlide = compItem->FindLayer(SongListItemIconSlideLayerNames[item]).get();
+			result.Achieve = compItem->FindLayer(SongListItemAchieveLayerNames[item]).get();
+			result.IconDuel = compItem->FindLayer(SongListItemIconDuelLayerNames[item]).get();
+			result.SongName = compItem->FindLayer(SongListItemSongNameLayerNames[item]).get();
+			result.SongClear = compItem->FindLayer(SongListItemSongClearLayerNames[item]).get();
+			result.SongLevel = compItem->FindLayer(SongListItemSongLevelLayerNames[item]).get();
+			result.IconNew = compItem->FindLayer(SongListItemIconNewLayerNames[item]).get();
+			result.IconFavorite = compItem->FindLayer(SongListItemIconFavoriteLayerNames[item]).get();
+			result.Option = compItem->FindLayer(SongListItemOptionLayerNames[item]).get();
+			result.IconSlide = compItem->FindLayer(SongListItemIconSlideLayerNames[item]).get();
+			result.IconPack = compItem->FindLayer(SongListItemIconPackLayerNames[item]).get();
+			result.Base = compItem->FindLayer(SongListItemBaseLayerNames[item]).get();
 			return result;
 		}
 
@@ -109,10 +106,10 @@ namespace Comfy::Sandbox::Tests::Game
 			for (int i = 0; i < SongListItem_Count; i++)
 			{
 				const auto loop = LoopState_Loop;
-				const bool isSelected = (i == SongListItem_Selected);
+				const bool isSelected = (i == SongListItem_Center);
 
 				const auto layerData = GetSongMenuItemTransforms(static_cast<SongListItem>(i), loop);
-				const auto entry = songList.GetEntry(i - SongListItem_Selected);
+				const auto entry = songList.GetEntry(i - SongListItem_Center);
 
 				if (entry == nullptr)
 				{
@@ -179,10 +176,8 @@ namespace Comfy::Sandbox::Tests::Game
 		}
 
 	private:
-		TimeSpan backgroundTime = TimeSpan::Zero();
-		TimeSpan headerFooterTime = TimeSpan::Zero();
-
-		TimeSpan songListTime = TimeSpan::Zero();
+		TimeSpan backgroundTime, headerFooterTime;
+		TimeSpan songListTime;
 
 		struct SongList
 		{
