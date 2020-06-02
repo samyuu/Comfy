@@ -52,9 +52,10 @@ namespace Comfy::Sandbox::Tests::Game
 			}
 
 			if (!activeGameStateTypeAfterFadedEnded.has_value())
+			{
 				activeState->OnUpdateInput();
-
-			activeState->OnDraw();
+				activeState->OnDraw();
+			}
 
 			if (const auto changeRequest = activeState->ChangeRequest; !activeGameStateTypeAfterFadedEnded.has_value() && changeRequest.has_value())
 			{
