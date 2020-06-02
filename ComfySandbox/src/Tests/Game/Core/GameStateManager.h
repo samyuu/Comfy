@@ -4,6 +4,7 @@
 #include "GameContext.h"
 #include "GameState.h"
 #include "GameStateTransition.h"
+#include "Core/Logger.h"
 
 namespace Comfy::Sandbox::Tests::Game
 {
@@ -17,75 +18,108 @@ namespace Comfy::Sandbox::Tests::Game
 
 			assert(std::all_of(allGameStates.begin(), allGameStates.end(), [](const auto& gameState) { return (gameState != nullptr); }));
 
-			ChangeGameState(startupGameStateType);
+			ChangeNotifyGameStateInternal(startupGameStateType);
 		}
 
 	public:
 		void Tick()
 		{
-			if (activeGameStateTypeAfterFadedEnded.has_value() && gameStateTransition.HasFadedIn())
-			{
-				if (fadeLoopElapsed >= fadeLoopDuration)
-				{
-					fadeLoopElapsed = TimeSpan::Zero();
-					ChangeGameState(activeGameStateTypeAfterFadedEnded);
-					activeGameStateTypeAfterFadedEnded = {};
-					gameStateTransition.StartFadeOut(fadeOutDuration);
-				}
-				else
-				{
-					fadeLoopElapsed += context.Elapsed;
-				}
-			}
-
 			if (!activeGameStateType.has_value())
 			{
-				context.Renderer.Font().DrawShadow(*context.Font36, "<NULL_GAME_STATE>", Transform2D(vec2(0.0f, 0.0f)));
-				return;
+				DrawNullGameState();
+				UpdateGameStateChangesRequest(nullptr);
 			}
-
-			GameStateBase* activeState = GetGameStateByType(activeGameStateType.value());
-			if (activeState == nullptr)
+			else if (auto activeState = GetGameStateByType(activeGameStateType.value()); activeState == nullptr)
 			{
-				context.Renderer.Font().DrawShadow(*context.Font36, "<INVALID_GAME_STATE>", Transform2D(vec2(0.0f, 0.0f)));
-				return;
+				DrawInvalidGameState();
+				UpdateGameStateChangesRequest(nullptr);
 			}
-
-			if (!activeGameStateTypeAfterFadedEnded.has_value())
+			else
 			{
-				activeState->OnUpdateInput();
-				activeState->OnDraw();
+				UpdateActiveGameState(*activeState);
+				UpdateGameStateChangesRequest(activeState);
 			}
 
-			if (const auto changeRequest = activeState->ChangeRequest; !activeGameStateTypeAfterFadedEnded.has_value() && changeRequest.has_value())
-			{
-				if (changeRequest->Fade)
-				{
-					gameStateTransition.StartFadeIn(fadeInDuration);
-					activeGameStateTypeAfterFadedEnded = changeRequest->NewState;
-				}
-				else
-				{
-					ChangeGameState(changeRequest->NewState);
-				}
-
-				activeState->ChangeRequest = {};
-			}
-
-			gameStateTransition.Tick(context.Renderer, context.Elapsed, context.VirtualResolution);
+			UpdateDrawGameStateTransition();
 		}
 
 		void DebugGui()
 		{
-			Gui::TextUnformatted("ChangeGameState()");
-			for (size_t i = 0; i < static_cast<size_t>(GameStateType::Count); i++)
+			Gui::TextUnformatted("Game State Selection:");
+
+			for (size_t i = 0; i <= static_cast<size_t>(GameStateType::Count); i++)
 			{
-				if (Gui::Selectable(GameStateTypeNames[i].data()))
-					ChangeGameState(static_cast<GameStateType>(i));
+				const auto type = static_cast<GameStateType>(i);
+
+				if (Gui::Selectable(GetGameStateTypeName(type).data()))
+					ChangeGameState(GameStateChangeRequest { type, true });
+				if (Gui::IsItemClicked(1))
+					ChangeGameState(GameStateChangeRequest { type, false });
 			}
 		}
 
 	private:
+		void DrawNullGameState()
+		{
+			context.Renderer.Font().DrawShadow(*context.Font36, "<NULL_GAME_STATE>", Transform2D(vec2(0.0f, 0.0f)));
+		}
+
+		void DrawInvalidGameState()
+		{
+			context.Renderer.Font().DrawShadow(*context.Font36, "<INVALID_GAME_STATE>", Transform2D(vec2(0.0f, 0.0f)));
+		}
+
+		void UpdateActiveGameState(GameStateBase& activeState)
+		{
+			// TODO: Remove this check (?) for OnDraw() at least
+			if (!gameStateTransition.HasFadedIn())
+			{
+				if (!gameStateTypeAfterFadeEnded.has_value())
+					activeState.OnUpdateInput();
+
+				activeState.OnDraw();
+			}
+		}
+
+		void UpdateGameStateChangesRequest(GameStateBase* activeState)
+		{
+			if (gameStateTypeAfterFadeEnded.has_value())
+			{
+				if (gameStateTransition.HasFadedIn())
+				{
+					if (fadeLoopElapsed >= fadeLoopDuration)
+					{
+						fadeLoopElapsed = TimeSpan::Zero();
+						ChangeNotifyGameStateInternal(gameStateTypeAfterFadeEnded.value());
+						gameStateTypeAfterFadeEnded = {};
+						gameStateTransition.StartFadeOut(fadeOutDuration);
+					}
+					else
+					{
+						fadeLoopElapsed += context.Elapsed;
+					}
+				}
+				else if (activeState != nullptr)
+				{
+					// NOTE: Explicitly ignore all requests if a request is already ongoing
+					activeState->ChangeRequest = {};
+				}
+			}
+			else if (activeState != nullptr)
+			{
+				if (const auto changeRequest = activeState->ChangeRequest; changeRequest.has_value())
+				{
+					ChangeGameState(changeRequest.value());
+					activeState->ChangeRequest = {};
+				}
+			}
+		}
+
+		void UpdateDrawGameStateTransition()
+		{
+			gameStateTransition.Tick(context.Renderer, context.Elapsed, context.VirtualResolution);
+		}
+
 		GameStateBase* GetGameStateByType(std::optional<GameStateType> type) const
 		{
 			return (type.has_value()) ? GetGameStateByType(type.value()) : nullptr;
@@ -97,7 +131,23 @@ namespace Comfy::Sandbox::Tests::Game
 			return (index < allGameStates.size()) ? allGameStates[index].get() : nullptr;
 		}
 
-		void ChangeGameState(std::optional<GameStateType> newStateType)
+		void ChangeGameState(GameStateChangeRequest change)
+		{
+			if (change.Fade)
+			{
+				gameStateTransition.StartFadeIn(fadeInDuration);
+				gameStateTypeAfterFadeEnded = change.NewState;
+			}
+			else
+			{
+				ChangeNotifyGameStateInternal(change.NewState);
+				gameStateTypeAfterFadeEnded = {};
+				fadeLoopElapsed = TimeSpan::Zero();
+				gameStateTransition.Reset();
+			}
+		}
+
+		void ChangeNotifyGameStateInternal(GameStateType newStateType)
 		{
 			const auto previousStateType = activeGameStateType;
 			activeGameStateType = newStateType;
@@ -107,16 +157,22 @@ namespace Comfy::Sandbox::Tests::Game
 
 			if (auto newState = GetGameStateByType(newStateType); newState != nullptr)
 				newState->OnFocusGained(previousStateType);
+
+			Logger::LogLine(__FUNCTION__"(): [%s] -> [%s]", GetGameStateTypeName(previousStateType).data(), GetGameStateTypeName(newStateType).data());
 		}
 
 	private:
 		GameContext& context;
 
 	private:
-		const TimeSpan fadeInDuration = TimeSpan::FromSeconds(0.1f);
-		const TimeSpan fadeLoopDuration = TimeSpan::FromSeconds(0.25f);
-		const TimeSpan fadeOutDuration = TimeSpan::FromSeconds(0.1f);
-		const std::optional<GameStateType> startupGameStateType = static_cast<GameStateType>(0);
+#if 0
+		const TimeSpan fadeInDuration = {}, fadeLoopDuration = {}, fadeOutDuration = {};
+#else
+		const TimeSpan fadeInDuration = TimeSpan::FromSeconds(0.12f);
+		const TimeSpan fadeLoopDuration = TimeSpan::FromSeconds(0.24f);
+		const TimeSpan fadeOutDuration = TimeSpan::FromSeconds(0.12f);
+#endif
+		const GameStateType startupGameStateType = static_cast<GameStateType>(0);
 
 	private:
 		TimeSpan fadeLoopElapsed = TimeSpan::Zero();
@@ -124,7 +180,7 @@ namespace Comfy::Sandbox::Tests::Game
 
 	private:
 		std::optional<GameStateType> activeGameStateType = {};
-		std::optional<GameStateType> activeGameStateTypeAfterFadedEnded = {};
+		std::optional<GameStateType> gameStateTypeAfterFadeEnded = {};
 		std::array<std::unique_ptr<GameStateBase>, static_cast<size_t>(GameStateType::Count)> allGameStates = {};
 	};
 }

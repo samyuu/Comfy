@@ -37,8 +37,25 @@ namespace Comfy::Sandbox::Tests::Game
 		}
 
 	public:
-		void StartFadeIn(TimeSpan duration) { fadeInDuration = duration; AdvanceFadeState(FadeState::In); }
-		void StartFadeOut(TimeSpan duration) { fadeOutDuration = duration; AdvanceFadeState(FadeState::Out); }
+		void StartFadeIn(TimeSpan duration)
+		{
+			fadeInDuration = duration;
+			AdvanceFadeState(FadeState::In);
+		}
+
+		void StartFadeOut(TimeSpan duration)
+		{
+			fadeOutDuration = duration;
+			AdvanceFadeState(FadeState::Out);
+		}
+
+		void Reset()
+		{
+			currentState = FadeState::None;
+			elapsedFadeTime = TimeSpan::Zero();
+			fadeInDuration = TimeSpan::Zero();
+			fadeOutDuration = TimeSpan::Zero();
+		}
 
 		bool HasFadedIn() const { return (currentState == FadeState::Loop); }
 

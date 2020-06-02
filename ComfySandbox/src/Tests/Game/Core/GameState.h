@@ -25,6 +25,17 @@ namespace Comfy::Sandbox::Tests::Game
 		"DEBUG_TextCustomMenu",
 	};
 
+	constexpr std::string_view GetGameStateTypeName(GameStateType gameStateType)
+	{
+		const auto index = static_cast<size_t>(gameStateType);
+		return InBounds(index, GameStateTypeNames) ? GameStateTypeNames[index] : "Invalid";
+	}
+
+	constexpr std::string_view GetGameStateTypeName(std::optional<GameStateType> gameStateType)
+	{
+		return GetGameStateTypeName(gameStateType.value_or(GameStateType::Count));
+	}
+
 	struct GameStateChangeRequest
 	{
 		GameStateType NewState;
