@@ -116,6 +116,14 @@ namespace Comfy::Render
 		return ProjectionSize * 0.5f;
 	}
 
+	std::pair<vec2, vec2> OrthographicCamera::GetFullScreenCoveringQuad() const
+	{
+		const vec2 position = (Position / Zoom);
+		const vec2 size = (ProjectionSize / Zoom);
+
+		return std::make_pair(position, size);
+	}
+
 	vec2 OrthographicCamera::ScreenToWorldSpace(const vec2& screenSpace) const
 	{
 		return OrthographicCamera::ScreenToWorldSpace(view, screenSpace);

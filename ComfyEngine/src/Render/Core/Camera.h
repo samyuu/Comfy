@@ -75,6 +75,7 @@ namespace Comfy::Render
 
 	public:
 		vec2 GetProjectionCenter() const;
+		std::pair<vec2, vec2> GetFullScreenCoveringQuad() const;
 
 		vec2 ScreenToWorldSpace(const vec2& screenSpace) const;
 		vec2 WorldToScreenSpace(const vec2& worldSpace) const;
