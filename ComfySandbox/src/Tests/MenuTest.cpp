@@ -26,7 +26,15 @@ namespace Comfy::Sandbox::Tests
 
 		void Update() override
 		{
-			context.Elapsed = (stopwatch.Restart() * MenuTimeFactor);
+			const auto stopwatchElapsed = stopwatch.Restart();
+			context.Elapsed = (UseFixedMenuTimeStep ? TimeSpan::FromFrames(1.0f, FixedMenuTimeStepFPS) : stopwatchElapsed) * MenuTimeFactor;
+
+			if (StepSingleFrame)
+			{
+				context.Elapsed = TimeSpan::FromFrames(1.0f, FixedMenuTimeStepFPS);
+				StepSingleFrame = false;
+			}
+
 			context.VirtualResolution = (context.AetPS4MenuMain != nullptr) ? context.AetPS4MenuMain->Resolution : ivec2(1920, 1080);
 
 			if (Gui::IsKeyPressed(Input::KeyCode_F11, false))
@@ -45,11 +53,18 @@ namespace Comfy::Sandbox::Tests
 
 				if (Gui::Begin("Debug Control"))
 				{
-					if (Gui::Button("Reset", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+					if (Gui::Button("Reset State Manager", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
 						gameStateManager = std::make_unique<Game::GameStateManager>(context);
 
+					Gui::Separator();
 					Gui::SliderFloat("Time Factor", &MenuTimeFactor, 0.0f, 4.0f);
+					Gui::Separator();
+					Gui::Checkbox("Use Fixed Time Step", &UseFixedMenuTimeStep);
+					Gui::SliderFloat("Fixed Time Step", &FixedMenuTimeStepFPS, 1.0f, 300.0f, "%.3f FPS");
+					if (Gui::Button("Step Single Frame", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+						StepSingleFrame = true;
 
+					Gui::Separator();
 					gameStateManager->DebugGui();
 					Gui::End();
 				}
@@ -63,6 +78,11 @@ namespace Comfy::Sandbox::Tests
 		Render::OrthographicCamera camera = {};
 
 		float MenuTimeFactor = 1.0f;
+
+		bool UseFixedMenuTimeStep = false;
+		frame_t FixedMenuTimeStepFPS = 60.0f;
+		bool StepSingleFrame = false;
+
 		Stopwatch stopwatch;
 		Game::GameContext context;
 
