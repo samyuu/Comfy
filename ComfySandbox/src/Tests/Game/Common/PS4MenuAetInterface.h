@@ -290,6 +290,7 @@ namespace Comfy::Sandbox::Tests::Game
 		SongListState_ScrollUp,
 		SongListState_ScrollDown,
 		SongListState_Still,
+		SongListState_Disappear,
 		SongListState_Count
 	};
 

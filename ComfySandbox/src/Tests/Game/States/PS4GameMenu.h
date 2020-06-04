@@ -28,13 +28,16 @@ namespace Comfy::Sandbox::Tests::Game
 		{
 			if (Gui::IsKeyPressed(Input::KeyCode_Escape, false))
 				ChangeRequest = { GameStateType::PS4MainMenu, true };
+
+			if (Gui::IsKeyPressed(Input::KeyCode_Up, true)) ScrollSongList(-1);
+			if (Gui::IsKeyPressed(Input::KeyCode_Down, true)) ScrollSongList(+1);
 		}
 
 		void OnDraw() override
 		{
-			DrawGameMenuBackground();
-			DrawGameMenuSongList();
-			DrawGameMenuHeaderFooter();
+			DrawBackground();
+			DrawSongList();
+			DrawHeaderFooter();
 		}
 
 	private:
@@ -43,7 +46,7 @@ namespace Comfy::Sandbox::Tests::Game
 		const Render::TexSpr FindSpr(std::string_view spriteName) const { return context.FindSpr(*context.SprPS4Menu, spriteName); }
 
 	private:
-		void DrawGameMenuBackground()
+		void DrawBackground()
 		{
 			backgroundTime += context.Elapsed;
 			context.Renderer.Aet().DrawLayerLooped(*FindLayer("menu_bg_t__f"), backgroundTime.ToFrames());
@@ -64,10 +67,27 @@ namespace Comfy::Sandbox::Tests::Game
 			const Aet::Layer* Base;
 		};
 
-		SongItemPointLayerData GetSongMenuItemTransforms(SongListItem item, LoopState loop)
+		const Aet::Layer* GetSongListLayer()
 		{
-			const auto layerName = std::array { "song_list_in", "song_list_loop", "song_list_out" }[loop];
-			const auto compItem = FindLayer(layerName)->GetCompItem();
+			const auto layerName = [&]()
+			{
+				if (songList.CurrentState == SongListState_Appear)
+					return "song_list_in";
+				if (songList.CurrentState == SongListState_Disappear)
+					return "song_list_out";
+				if (songList.CurrentState == SongListState_ScrollUp)
+					return "song_list_up";
+				if (songList.CurrentState == SongListState_ScrollDown)
+					return "song_list_down";
+				return "song_list_loop";
+			}();
+
+			return FindLayer(layerName);
+		}
+
+		SongItemPointLayerData GetSongMenuItemTransforms(SongListItem item)
+		{
+			const auto compItem = GetSongListLayer()->GetCompItem();
 
 			SongItemPointLayerData result;
 			result.IconSlide = compItem->FindLayer(SongListItemIconSlideLayerNames[item]).get();
@@ -93,23 +113,62 @@ namespace Comfy::Sandbox::Tests::Game
 			return FindLayer(layerName);
 		}
 
-		void DrawGameMenuSongList()
+		void DrawSongList()
 		{
 			songListTime += context.Elapsed;
 
-			DrawGameMenuSongListSongBackground();
-			DrawGameMenuSongListSongBases();
+			UpdateSongListScroll();
+			DrawSongListSongBackground();
+			DrawSongListSongBases();
 		}
 
-		void DrawGameMenuSongListSongBases()
+		void UpdateSongListScroll()
+		{
+			//if (songList.EntriesToScroll != 0)
+			//{
+			//	songList.EntriesToScrollElapsed += context.Elapsed;
+			//	songList.SelectedIndex += songList.EntriesToScroll;
+			//	songList.EntriesToScroll = 0;
+			//}
+
+			if (songList.CurrentState == SongListState_Appear)
+			{
+				const auto songListLayer = GetSongListLayer();
+				const auto inDuration = TimeSpan::FromFrames(songListLayer->FindMarkerFrame("ed_in").value_or(0.0f));
+
+				if (songListTime > inDuration)
+				{
+					songListTime -= inDuration;
+					songList.CurrentState = SongListState_Still;
+				}
+			}
+			else if (songList.CurrentState == SongListState_ScrollUp || songList.CurrentState == SongListState_ScrollDown)
+			{
+				const auto songListLayer = GetSongListLayer();
+				const auto scrollDuration = TimeSpan::FromFrames(songListLayer->EndFrame);
+				if (songListTime > scrollDuration && songList.EntriesToScroll != 0)
+				{
+					songListTime -= scrollDuration;
+
+					const auto scrollDirection = (songList.EntriesToScroll > 0) ? 1 : -1;
+					songList.SelectedIndex += scrollDirection;
+					songList.EntriesToScroll -= scrollDirection;
+
+					if (songList.EntriesToScroll == 0)
+						songList.CurrentState = SongListState_Still;
+				}
+			}
+		}
+
+		void DrawSongListSongBases()
 		{
 			for (int i = 0; i < SongListItem_Count; i++)
 			{
 				const auto loop = LoopState_Loop;
 				const bool isSelected = (i == SongListItem_Center);
 
-				const auto layerData = GetSongMenuItemTransforms(static_cast<SongListItem>(i), loop);
-				const auto entry = songList.GetEntry(i - SongListItem_Center);
+				const auto layerData = GetSongMenuItemTransforms(static_cast<SongListItem>(i));
+				const auto entry = songList.GetEntry(i - SongListItem_Center + songList.SelectedIndex);
 
 				if (entry == nullptr)
 				{
@@ -150,17 +209,17 @@ namespace Comfy::Sandbox::Tests::Game
 			}
 		}
 
-		void DrawGameMenuSongListSongBackground(LoopState loop = LoopState_Loop)
+		void DrawSongListSongBackground(LoopState loop = LoopState_Loop)
 		{
 			const auto drawLayer = [&](std::string_view layerName)
 			{
 				const auto layer = FindLayer(layerName);
 
 				const auto loopInFrame = layer->FindMarkerFrame(LoopEndMarkerNames[LoopState_In]).value_or(0.0f);
-				if (loop == LoopState_Loop && songListTime < TimeSpan::FromFrames(loopInFrame - 1.0f))
+				if (loop == LoopState_Loop && backgroundTime < TimeSpan::FromFrames(loopInFrame - 1.0f))
 					loop = LoopState_In;
 
-				context.Renderer.Aet().DrawLayerLooped(*layer, LoopMarkers(*layer, songListTime, loop).ToFrames());
+				context.Renderer.Aet().DrawLayerLooped(*layer, LoopMarkers(*layer, backgroundTime, loop).ToFrames());
 			};
 
 			drawLayer("song_bg");
@@ -168,11 +227,26 @@ namespace Comfy::Sandbox::Tests::Game
 			drawLayer("song_logo");
 		}
 
-		void DrawGameMenuHeaderFooter()
+		void DrawHeaderFooter()
 		{
 			headerFooterTime += context.Elapsed;
 			context.Renderer.Aet().DrawLayerLooped(*FindLayer("game_header_ft"), headerFooterTime.ToFrames());
 			context.Renderer.Aet().DrawLayerLooped(*FindLayer("game_footer"), headerFooterTime.ToFrames());
+		}
+
+		void ScrollSongList(int entriesToScrollBy)
+		{
+			if (entriesToScrollBy == 0)
+				return;
+
+			const bool scrollUp = (entriesToScrollBy > 0);
+			const bool scrollDown = (entriesToScrollBy < 0);
+
+			if (songList.EntriesToScroll == 0)
+				songListTime = TimeSpan::Zero();
+			
+			songList.CurrentState = (scrollUp) ? SongListState_ScrollUp : SongListState_ScrollDown;
+			songList.EntriesToScroll += entriesToScrollBy;
 		}
 
 	private:
@@ -190,9 +264,21 @@ namespace Comfy::Sandbox::Tests::Game
 
 			std::vector<Entry> Entries =
 			{
-				Entry { u8"YEP COCK", true, LevelStar_10, },
-				Entry { u8"死にたい", true, LevelStar_09, },
-				Entry { u8"NOP", true, LevelStar_08, },
+				// Entry { u8"YEP COCK", true, LevelStar_10, },
+				// Entry { u8"死にたい", true, LevelStar_09, },
+				// Entry { u8"NOP", true, LevelStar_08, },
+				// Entry { u8"NOP", true, LevelStar_08, },
+
+				Entry { u8"わたしを御食べ", true, LevelStar_08, },
+				Entry { u8"月飼い", true, LevelStar_08, },
+				Entry { u8"魔女狩り", true, LevelStar_08, },
+				Entry { u8"はいかぶり", true, LevelStar_08, },
+				Entry { u8"十三番開放口", true, LevelStar_08, },
+				Entry { u8"曲芸団のゆめ", true, LevelStar_08, },
+				Entry { u8"まつげうさぎと踊り子の旅", true, LevelStar_08, },
+				Entry { u8"ラプンツヱル", true, LevelStar_08, },
+				Entry { u8"幸福なおばけ", true, LevelStar_08, },
+				Entry { u8"暗やみ動物園", true, LevelStar_08, },
 			};
 
 			const Entry* GetEntry(int index) const
@@ -201,7 +287,10 @@ namespace Comfy::Sandbox::Tests::Game
 			}
 
 			int SelectedIndex = 0;
-			SongListState CurrentScroll = SongListState_Appear;
+			SongListState CurrentState = SongListState_Appear;
+
+			// TimeSpan EntriesToScrollElapsed = TimeSpan::Zero();
+			int EntriesToScroll = 0;
 
 		} songList;
 	};

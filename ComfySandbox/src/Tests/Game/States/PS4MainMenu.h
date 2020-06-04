@@ -167,7 +167,8 @@ namespace Comfy::Sandbox::Tests::Game
 
 			if (isDisappearing)
 			{
-				context.Renderer.Aet().DrawLayer(*layer, LoopMarkersOnce(*layer, fadeOutTime, "st_sp", "ed_sp").ToFrames(), position, opacity);
+				// BUG: This should only be played once
+				context.Renderer.Aet().DrawLayer(*layer, ClampMarkers(*layer, fadeOutTime, "st_sp", "ed_sp").ToFrames(), position, opacity);
 			}
 			else
 			{

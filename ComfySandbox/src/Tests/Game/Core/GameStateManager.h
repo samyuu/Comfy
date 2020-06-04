@@ -74,7 +74,7 @@ namespace Comfy::Sandbox::Tests::Game
 			// TODO: Remove this check (?) for OnDraw() at least
 			if (!gameStateTransition.HasFadedIn())
 			{
-				if (!gameStateTypeAfterFadeEnded.has_value())
+				if (!gameStateTypeAfterFadeEnded.has_value() && Gui::IsWindowFocused())
 					activeState.OnUpdateInput();
 
 				activeState.OnDraw();
@@ -165,14 +165,19 @@ namespace Comfy::Sandbox::Tests::Game
 		GameContext& context;
 
 	private:
-#if 0
+#if 0 // DEBUG:
 		const TimeSpan fadeInDuration = {}, fadeLoopDuration = {}, fadeOutDuration = {};
 #else
 		const TimeSpan fadeInDuration = TimeSpan::FromSeconds(0.12f);
 		const TimeSpan fadeLoopDuration = TimeSpan::FromSeconds(0.24f);
 		const TimeSpan fadeOutDuration = TimeSpan::FromSeconds(0.12f);
 #endif
+
+#if 1 // DEBUG:
+		const GameStateType startupGameStateType = GameStateType::PS4GameMenu;
+#else
 		const GameStateType startupGameStateType = static_cast<GameStateType>(0);
+#endif
 
 	private:
 		TimeSpan fadeLoopElapsed = TimeSpan::Zero();

@@ -15,7 +15,12 @@ namespace Comfy::Sandbox::Tests::Game
 			if (currentState == FadeState::None)
 				return;
 
-			auto checkAdvance = [&](auto stateToCheck, auto nextState, auto duration) { if (currentState == stateToCheck && elapsedFadeTime > duration) { AdvanceFadeState(nextState); } };
+			auto checkAdvance = [&](auto stateToCheck, auto nextState, auto duration)
+			{
+				if (currentState == stateToCheck && elapsedFadeTime > duration)
+					AdvanceFadeState(nextState, duration);
+			};
+
 			checkAdvance(FadeState::In, FadeState::Loop, fadeInDuration);
 			checkAdvance(FadeState::Out, FadeState::None, fadeOutDuration);
 
@@ -33,20 +38,29 @@ namespace Comfy::Sandbox::Tests::Game
 			elapsedFadeTime += elapsed;
 
 			if (currentState != FadeState::None && fadeAlpha > 0.0f)
-				renderer.Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), size, vec4(fadeBaseColor, fadeAlpha)));
+			{
+				if (constexpr bool coverAll = false; !coverAll)
+				{
+					renderer.Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), size, vec4(fadeBaseColor, fadeAlpha)));
+				}
+				else
+				{
+					auto[pos, size] = renderer.GetCamera().GetFullScreenCoveringQuad();
+					renderer.Draw(Render::RenderCommand2D(pos, size, vec4(fadeBaseColor, fadeAlpha)));
+				}
+			}
 		}
 
-	public:
 		void StartFadeIn(TimeSpan duration)
 		{
 			fadeInDuration = duration;
-			AdvanceFadeState(FadeState::In);
+			SetFadeState(FadeState::In);
 		}
 
 		void StartFadeOut(TimeSpan duration)
 		{
 			fadeOutDuration = duration;
-			AdvanceFadeState(FadeState::Out);
+			SetFadeState(FadeState::Out);
 		}
 
 		void Reset()
@@ -57,15 +71,24 @@ namespace Comfy::Sandbox::Tests::Game
 			fadeOutDuration = TimeSpan::Zero();
 		}
 
-		bool HasFadedIn() const { return (currentState == FadeState::Loop); }
+		bool HasFadedIn() const
+		{
+			return (currentState == FadeState::Loop);
+		}
 
 	private:
 		enum class FadeState { None, In, Loop, Out };
 
-		void AdvanceFadeState(FadeState newState)
+		void SetFadeState(FadeState newState)
 		{
 			currentState = newState;
 			elapsedFadeTime = TimeSpan::Zero();
+		}
+
+		void AdvanceFadeState(FadeState newState, TimeSpan duration)
+		{
+			currentState = newState;
+			elapsedFadeTime -= duration;
 		}
 
 	private:
