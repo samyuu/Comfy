@@ -7,11 +7,11 @@ namespace Comfy::IO
 	class FileStream final : public IStream, NonCopyable
 	{
 	public:
-		// TODO: Implement move constructor (?)
 		FileStream() = default;
 		FileStream(FileStream&& other);
 		~FileStream();
 
+	public:
 		void Seek(FileAddr position) override;
 		FileAddr GetPosition() const override;
 		FileAddr GetLength() const override;

@@ -12,6 +12,7 @@ namespace Comfy::IO
 		MemoryStream(MemoryStream&& other);
 		~MemoryStream();
 
+	public:
 		void Seek(FileAddr position) override;
 		FileAddr GetPosition() const override;
 		FileAddr GetLength() const override;

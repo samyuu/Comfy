@@ -12,6 +12,7 @@ namespace Comfy::IO
 	public:
 		virtual ~IStreamReadable() = default;
 
+	public:
 		virtual void Read(StreamReader& reader) = 0;
 	};
 
@@ -20,6 +21,7 @@ namespace Comfy::IO
 	public:
 		virtual ~IStreamWritable() = default;
 
+	public:
 		virtual void Write(StreamWriter& writer) = 0;
 	};
 
@@ -29,6 +31,7 @@ namespace Comfy::IO
 	public:
 		virtual ~IBufferParsable() = default;
 
+	public:
 		virtual void Parse(const u8* buffer, size_t bufferSize) = 0;
 	};
 }

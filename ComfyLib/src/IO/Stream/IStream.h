@@ -8,6 +8,7 @@ namespace Comfy::IO
 	public:
 		virtual ~IStream() = default;
 
+	public:
 		virtual void Seek(FileAddr position) = 0;
 		virtual FileAddr GetPosition() const = 0;
 		virtual FileAddr GetLength() const = 0;
