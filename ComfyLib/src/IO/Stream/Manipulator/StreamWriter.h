@@ -73,14 +73,14 @@ namespace Comfy::IO
 		inline void WriteF32_LE(f32 value) { WriteType_Native<f32>(value); }
 		inline void WriteF64_LE(f64 value) { WriteType_Native<f64>(value); }
 
-		inline void WriteI16_BE(i16 value) { WriteI16_LE(Utilities::ByteSwapI16(value)); }
-		inline void WriteU16_BE(u16 value) { WriteU16_LE(Utilities::ByteSwapU16(value)); }
-		inline void WriteI32_BE(i32 value) { WriteI32_LE(Utilities::ByteSwapI32(value)); }
-		inline void WriteU32_BE(u32 value) { WriteU32_LE(Utilities::ByteSwapU32(value)); }
-		inline void WriteI64_BE(i64 value) { WriteI64_LE(Utilities::ByteSwapI64(value)); }
-		inline void WriteU64_BE(u64 value) { WriteU64_LE(Utilities::ByteSwapU64(value)); }
-		inline void WriteF32_BE(f32 value) { WriteF32_LE(Utilities::ByteSwapF32(value)); }
-		inline void WriteF64_BE(f64 value) { WriteF64_LE(Utilities::ByteSwapF64(value)); }
+		inline void WriteI16_BE(i16 value) { WriteI16_LE(Util::ByteSwapI16(value)); }
+		inline void WriteU16_BE(u16 value) { WriteU16_LE(Util::ByteSwapU16(value)); }
+		inline void WriteI32_BE(i32 value) { WriteI32_LE(Util::ByteSwapI32(value)); }
+		inline void WriteU32_BE(u32 value) { WriteU32_LE(Util::ByteSwapU32(value)); }
+		inline void WriteI64_BE(i64 value) { WriteI64_LE(Util::ByteSwapI64(value)); }
+		inline void WriteU64_BE(u64 value) { WriteU64_LE(Util::ByteSwapU64(value)); }
+		inline void WriteF32_BE(f32 value) { WriteF32_LE(Util::ByteSwapF32(value)); }
+		inline void WriteF64_BE(f64 value) { WriteF64_LE(Util::ByteSwapF64(value)); }
 
 	protected:
 		void OnPointerModeChanged() override;

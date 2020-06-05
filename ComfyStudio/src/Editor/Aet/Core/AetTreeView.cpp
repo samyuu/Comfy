@@ -3,8 +3,8 @@
 #include "IO/File.h"
 #include "IO/Shell.h"
 #include "Input/Input.h"
-#include "Misc/StringHelper.h"
 #include "Core/Logger.h"
+#include "Misc/StringUtil.h"
 
 namespace Comfy::Studio::Editor
 {

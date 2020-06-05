@@ -1,10 +1,10 @@
 #include "GlowParameter.h"
-#include "Misc/StringHelper.h"
+#include "Misc/StringUtil.h"
 #include "Misc/StringParseHelper.h"
 
 namespace Comfy::Graphics
 {
-	using namespace Utilities;
+	using namespace Util;
 
 	namespace
 	{

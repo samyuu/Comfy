@@ -153,8 +153,8 @@ namespace Comfy::IO
 		std::array<u32, 2> parsedSignatureData;
 		stream.ReadBuffer(parsedSignatureData.data(), sizeof(parsedSignatureData));
 
-		signature = static_cast<FArcSignature>(Utilities::ByteSwapU32(parsedSignatureData[0]));
-		const auto parsedHeaderSize = Utilities::ByteSwapU32(parsedSignatureData[1]);
+		signature = static_cast<FArcSignature>(Util::ByteSwapU32(parsedSignatureData[0]));
+		const auto parsedHeaderSize = Util::ByteSwapU32(parsedSignatureData[1]);
 
 		// NOTE: Empty but valid FArc
 		if (signature == FArcSignature::UnCompressed && parsedHeaderSize <= sizeof(u32))
@@ -170,7 +170,7 @@ namespace Comfy::IO
 			u32 parsedAlignment;
 			stream.ReadBuffer(&parsedAlignment, sizeof(parsedAlignment));
 
-			alignment = Utilities::ByteSwapU32(parsedAlignment);
+			alignment = Util::ByteSwapU32(parsedAlignment);
 			flags = (signature == FArcSignature::Compressed) ? FArcFlags_Compressed : FArcFlags_None;
 
 			const auto headerSize = (parsedHeaderSize - sizeof(alignment));
@@ -188,13 +188,13 @@ namespace Comfy::IO
 			std::array<u32, 2> parsedFormatData;
 			stream.ReadBuffer(parsedFormatData.data(), sizeof(parsedFormatData));
 
-			flags = static_cast<FArcFlags>(Utilities::ByteSwapU32(parsedFormatData[0]));
+			flags = static_cast<FArcFlags>(Util::ByteSwapU32(parsedFormatData[0]));
 
 			// NOTE: Peek at the next 8 bytes which are either the alignment value followed by padding or the start of the AES IV
 			std::array<u32, 2> parsedNextData;
 			stream.ReadBuffer(parsedNextData.data(), sizeof(parsedNextData));
 
-			alignment = Utilities::ByteSwapU32(parsedNextData[0]);
+			alignment = Util::ByteSwapU32(parsedNextData[0]);
 			isModern = (parsedNextData[1] != 0);
 
 			// NOTE: If the padding is not zero and the potential alignment value is unreasonably high we treat it as an encrypted entry table
@@ -224,11 +224,11 @@ namespace Comfy::IO
 				const u8* headerEnd = decryptedHeaderData + parsedHeaderSize;
 
 				// NOTE: Example data: 00 00 00 10 | 00 00 00 01 | 00 00 00 01 | 00 00 00 10
-				alignment = Utilities::ByteSwapU32(*reinterpret_cast<u32*>(currentHeaderPosition));
+				alignment = Util::ByteSwapU32(*reinterpret_cast<u32*>(currentHeaderPosition));
 				currentHeaderPosition += sizeof(u32);
 				currentHeaderPosition += sizeof(u32);
 
-				const u32 entryCount = Utilities::ByteSwapU32(*reinterpret_cast<u32*>(currentHeaderPosition));
+				const u32 entryCount = Util::ByteSwapU32(*reinterpret_cast<u32*>(currentHeaderPosition));
 				currentHeaderPosition += sizeof(u32);
 				currentHeaderPosition += sizeof(u32);
 
@@ -250,13 +250,13 @@ namespace Comfy::IO
 				if (isModern)
 				{
 					// NOTE: Example data: 00 00 00 01 | 00 00 00 01 | 00 00 00 10
-					const u32 reserved = Utilities::ByteSwapU32(*reinterpret_cast<u32*>(currentHeaderPosition));
+					const u32 reserved = Util::ByteSwapU32(*reinterpret_cast<u32*>(currentHeaderPosition));
 					currentHeaderPosition += sizeof(u32);
 
-					const u32 entryCount = Utilities::ByteSwapU32(*reinterpret_cast<u32*>(currentHeaderPosition));
+					const u32 entryCount = Util::ByteSwapU32(*reinterpret_cast<u32*>(currentHeaderPosition));
 					currentHeaderPosition += sizeof(u32);
 
-					alignment = Utilities::ByteSwapU32(*reinterpret_cast<u32*>(currentHeaderPosition));
+					alignment = Util::ByteSwapU32(*reinterpret_cast<u32*>(currentHeaderPosition));
 					currentHeaderPosition += sizeof(u32);
 
 					ParseAllEntriesByCount(currentHeaderPosition, entryCount, headerEnd);
@@ -264,10 +264,10 @@ namespace Comfy::IO
 				}
 				else
 				{
-					const u32 reserved0 = Utilities::ByteSwapU32(*reinterpret_cast<u32*>(currentHeaderPosition));
+					const u32 reserved0 = Util::ByteSwapU32(*reinterpret_cast<u32*>(currentHeaderPosition));
 					currentHeaderPosition += sizeof(u32);
 
-					const u32 reserved1 = Utilities::ByteSwapU32(*reinterpret_cast<u32*>(currentHeaderPosition));
+					const u32 reserved1 = Util::ByteSwapU32(*reinterpret_cast<u32*>(currentHeaderPosition));
 					currentHeaderPosition += sizeof(u32);
 
 					ParseAllEntriesByRange(currentHeaderPosition, headerEnd);
@@ -293,12 +293,12 @@ namespace Comfy::IO
 		headerDataPointer += newEntry.Name.size() + sizeof(char);
 		assert(headerDataPointer <= headerEnd);
 
-		newEntry.Offset = static_cast<FileAddr>(Utilities::ByteSwapU32(*reinterpret_cast<const u32*>(headerDataPointer)));
+		newEntry.Offset = static_cast<FileAddr>(Util::ByteSwapU32(*reinterpret_cast<const u32*>(headerDataPointer)));
 
 		headerDataPointer += sizeof(u32);
 		assert(headerDataPointer <= headerEnd);
 
-		newEntry.CompressedSize = Utilities::ByteSwapU32(*reinterpret_cast<const u32*>(headerDataPointer));
+		newEntry.CompressedSize = Util::ByteSwapU32(*reinterpret_cast<const u32*>(headerDataPointer));
 
 		headerDataPointer += sizeof(u32);
 		assert(headerDataPointer <= headerEnd);
@@ -309,7 +309,7 @@ namespace Comfy::IO
 		}
 		else
 		{
-			newEntry.OriginalSize = Utilities::ByteSwapU32(*reinterpret_cast<const u32*>(headerDataPointer));
+			newEntry.OriginalSize = Util::ByteSwapU32(*reinterpret_cast<const u32*>(headerDataPointer));
 
 			headerDataPointer += sizeof(u32);
 			assert(headerDataPointer <= headerEnd);
@@ -323,7 +323,7 @@ namespace Comfy::IO
 
 		if (isModern)
 		{
-			const u32 parsedReserved = Utilities::ByteSwapU32(*reinterpret_cast<const u32*>(headerDataPointer));
+			const u32 parsedReserved = Util::ByteSwapU32(*reinterpret_cast<const u32*>(headerDataPointer));
 			headerDataPointer += sizeof(u32);
 			assert(headerDataPointer <= headerEnd);
 		}

@@ -2,7 +2,6 @@
 #include "Stream/Manipulator/StreamReader.h"
 #include "Stream/MemoryStream.h"
 #include "File.h"
-#include "Misc/StringHelper.h"
 #include "Core/Logger.h"
 
 namespace Comfy::IO

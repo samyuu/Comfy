@@ -1,5 +1,5 @@
 #include "FogParameter.h"
-#include "Misc/StringHelper.h"
+#include "Misc/StringUtil.h"
 #include "Misc/StringParseHelper.h"
 
 namespace Comfy::Graphics
@@ -55,17 +55,17 @@ namespace Comfy::Graphics
 
 		while (textBuffer < endOfTextBuffer)
 		{
-			auto line = StringParsing::GetLineAdvanceToNextLine(textBuffer);
+			auto line = Util::StringParsing::GetLineAdvanceToNextLine(textBuffer);
 
-			if (StartsWith(line, EndOfFileTag) || line.empty())
+			if (Util::StartsWith(line, EndOfFileTag) || line.empty())
 				break;
 
-			auto tag = StringParsing::GetWord(line.data());
-			auto tagData = line.substr(tag.size() + 1);
+			const auto tag = Util::StringParsing::GetWord(line.data());
+			const auto tagData = line.substr(tag.size() + 1);
 
 			if (tag == GroupStartTag || tag == GroupEndTag)
 			{
-				auto groupID = StringParsing::ParseType<u32>(tagData);
+				const auto groupID = Util::StringParsing::ParseType<u32>(tagData);
 				currentFog = (groupID <= 3) ? (&Depth + groupID) : nullptr;
 			}
 			else if (tag == GroupEndTag)
@@ -78,21 +78,21 @@ namespace Comfy::Graphics
 			}
 			else if (tag == TypeTag)
 			{
-				currentFog->Type = static_cast<FogType>(StringParsing::ParseType<u32>(tagData));
+				currentFog->Type = static_cast<FogType>(Util::StringParsing::ParseType<u32>(tagData));
 			}
 			else if (tag == DensityTag)
 			{
-				currentFog->Density = StringParsing::ParseType<float>(tagData);
+				currentFog->Density = Util::StringParsing::ParseType<float>(tagData);
 			}
 			else if (tag == LinearTag)
 			{
-				auto data = StringParsing::ParseTypeArray<float, 2>(tagData);
+				const auto data = Util::StringParsing::ParseTypeArray<float, 2>(tagData);
 				currentFog->Start = data[0];
 				currentFog->End = data[1];
 			}
 			else if (tag == ColorTag)
 			{
-				auto data = StringParsing::ParseTypeArray<float, 4>(tagData);
+				const auto data = Util::StringParsing::ParseTypeArray<float, 4>(tagData);
 				currentFog->Color = { data[0], data[1], data[2] };
 			}
 		}

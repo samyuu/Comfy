@@ -14,8 +14,9 @@ namespace ImGui
 	{
 	public:
 		FileViewer(std::string_view directory);
-		~FileViewer();
+		~FileViewer() = default;
 
+	public:
 		bool DrawGui();
 		void SetDirectory(std::string_view newDirectory);
 		std::string_view GetDirectory() const;

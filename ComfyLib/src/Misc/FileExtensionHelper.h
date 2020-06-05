@@ -1,7 +1,7 @@
 #pragma once
 #include "CoreTypes.h"
 
-namespace Comfy::Utilities
+namespace Comfy::Util
 {
 	// TODO: Move to IO::Path
 	class FileExtensionHelper

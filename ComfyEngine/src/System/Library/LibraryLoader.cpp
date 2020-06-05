@@ -1,7 +1,8 @@
 #include "LibraryLoader.h"
-#include "Misc/StringHelper.h"
+#include "IO/Directory.h"
 #include "Core/Logger.h"
 #include "Core/Win32/ComfyWindows.h"
+#include "Misc/StringUtil.h"
 
 namespace Comfy::System
 {
@@ -25,20 +26,18 @@ namespace Comfy::System
 			return false;
 		}
 
-		wchar_t previousWorkingDirectory[MAX_PATH];
+		std::string previousWorkingDirectory;
 		if (directory != nullptr)
 		{
-			::GetCurrentDirectoryW(MAX_PATH, previousWorkingDirectory);
-			::SetCurrentDirectoryW(UTF8::WideArg(directory).c_str());
+			previousWorkingDirectory = IO::Directory::GetWorkingDirectory();
+			IO::Directory::SetWorkingDirectory(directory);
 		}
 
 		moduleHandle = ::LoadLibraryW(UTF8::WideArg(libraryName).c_str());
-		bool success = moduleHandle != InvalidModuleHandle;
+		const bool success = (moduleHandle != InvalidModuleHandle);
 
 		if (directory != nullptr)
-		{
-			::SetCurrentDirectoryW(previousWorkingDirectory);
-		}
+			IO::Directory::SetWorkingDirectory(previousWorkingDirectory);
 
 		if (!success)
 		{

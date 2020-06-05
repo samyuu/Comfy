@@ -3,7 +3,7 @@
 #include "Render/Render.h"
 #include "IO/File.h"
 #include "IO/Path.h"
-#include "Misc/StringHelper.h"
+#include "Misc/StringUtil.h"
 
 namespace Comfy::Studio::Debug
 {
@@ -134,17 +134,18 @@ namespace Comfy::Studio::Debug
 
 	inline bool IsGroundObj(const Graphics::Obj& obj)
 	{
-		return EndsWithInsensitive(obj.Name, "_gnd");
+		return Util::EndsWithInsensitive(obj.Name, "_gnd");
 	}
 
 	inline bool IsGroundOrSkyObj(const Graphics::Obj& obj)
 	{
-		return IsGroundObj(obj) || Contains(obj.Name, "_sky");
+		return IsGroundObj(obj) || Util::Contains(obj.Name, "_sky");
 	}
 
 	inline bool IsReflectionObj(const Graphics::Obj& obj)
 	{
-		return EndsWithInsensitive(obj.Name, "_reflect") || EndsWithInsensitive(obj.Name, "_ref") || (obj.Name.length() > strlen("_reflect_000") && EndsWithInsensitive(obj.Name.substr(0, obj.Name.length() - strlen("_000")), "_reflect"));
+		return Util::EndsWithInsensitive(obj.Name, "_reflect") || Util::EndsWithInsensitive(obj.Name, "_ref") ||
+			(obj.Name.length() > strlen("_reflect_000") && Util::EndsWithInsensitive(obj.Name.substr(0, obj.Name.length() - strlen("_000")), "_reflect"));
 	}
 
 	inline int FindGroundObj(Graphics::ObjSet* objSet)

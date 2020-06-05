@@ -1,5 +1,5 @@
 #include "ChartEditor.h"
-#include "Misc/StringHelper.h"
+#include "Misc/StringUtil.h"
 #include <FontIcons.h>
 
 namespace Comfy::Studio::Editor
@@ -71,7 +71,7 @@ namespace Comfy::Studio::Editor
 	{
 		for (const auto& fileExtension : audioFileExtensions)
 		{
-			if (EndsWithInsensitive(filePath, fileExtension))
+			if (Util::EndsWithInsensitive(filePath, fileExtension))
 				return true;
 		}
 

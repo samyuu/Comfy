@@ -4,7 +4,7 @@
 #include "IO/Path.h"
 #include "IO/Shell.h"
 #include "Misc/FileExtensionHelper.h"
-#include "Misc/StringHelper.h"
+#include "Misc/StringUtil.h"
 #include <FontIcons.h>
 #include <filesystem>
 
@@ -15,10 +15,6 @@ namespace ImGui
 	FileViewer::FileViewer(std::string_view directory)
 	{
 		SetDirectory(directory);
-	}
-
-	FileViewer::~FileViewer()
-	{
 	}
 
 	bool FileViewer::DrawGui()
@@ -266,7 +262,7 @@ namespace ImGui
 
 	void FileViewer::SetParentDirectory(const std::string& directory)
 	{
-		if (EndsWith(directory, IO::Path::DirectorySeparator) || EndsWith(directory, IO::Path::DirectorySeparatorAlt))
+		if (Util::EndsWith(directory, IO::Path::DirectorySeparator) || Util::EndsWith(directory, IO::Path::DirectorySeparatorAlt))
 			SetDirectory(IO::Path::GetDirectoryName(directory.substr(0, directory.length() - 1)));
 		else
 			SetDirectory(IO::Path::GetDirectoryName(directory));
@@ -300,12 +296,12 @@ namespace ImGui
 
 	FileType FileViewer::GetFileType(const std::string_view fileName)
 	{
-		const auto inputExtension = FileExtensionHelper::GetExtensionSubstring(fileName);
+		const auto inputExtension = Util::FileExtensionHelper::GetExtensionSubstring(fileName);
 		if (!inputExtension.empty())
 		{
 			for (const auto&[fileType, packedExtensions] : fileTypeDictionary)
 			{
-				if (FileExtensionHelper::DoesAnyExtensionMatch(inputExtension, packedExtensions))
+				if (Util::FileExtensionHelper::DoesAnyExtensionMatch(inputExtension, packedExtensions))
 					return fileType;
 			}
 		}

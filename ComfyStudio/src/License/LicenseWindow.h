@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "Misc/StringHelper.h"
+#include "Misc/StringUtil.h"
 #include "CoreTypes.h"
 
 namespace Comfy::Studio
@@ -30,8 +30,8 @@ namespace Comfy::Studio
 
 		void TrimAllEnds()
 		{
-			for (auto& string : GetStrings())
-				Trim(*string);
+			for (auto* string : GetStrings())
+				*string = std::string(Util::Trim(*string));
 		}
 	};
 

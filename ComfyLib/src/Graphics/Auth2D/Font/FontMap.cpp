@@ -41,7 +41,7 @@ namespace Comfy::Graphics
 	void FontMap::Read(IO::StreamReader& reader)
 	{
 		const u32 magic = reader.ReadU32();
-		if (magic != Utilities::ByteSwapU32('FMH3'))
+		if (magic != Util::ByteSwapU32('FMH3'))
 			return;
 
 		const u32 reserved = reader.ReadU32();

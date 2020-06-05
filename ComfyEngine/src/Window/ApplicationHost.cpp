@@ -8,8 +8,8 @@
 #include "IO/File.h"
 #include "System/Profiling/Profiler.h"
 #include "System/ComfyData.h"
+#include "Misc/StringUtil.h"
 #include "ImGui/GuiRenderer.h"
-#include "Misc/StringHelper.h"
 
 namespace Comfy
 {

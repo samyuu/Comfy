@@ -100,14 +100,14 @@ namespace Comfy::IO
 		inline f32 ReadF32_LE() { return ReadType_Native<f32>(); }
 		inline f64 ReadF64_LE() { return ReadType_Native<f64>(); }
 
-		inline i16 ReadI16_BE() { return Utilities::ByteSwapI16(ReadI16_LE()); }
-		inline u16 ReadU16_BE() { return Utilities::ByteSwapU16(ReadU16_LE()); }
-		inline i32 ReadI32_BE() { return Utilities::ByteSwapI32(ReadI32_LE()); }
-		inline u32 ReadU32_BE() { return Utilities::ByteSwapU32(ReadU32_LE()); }
-		inline i64 ReadI64_BE() { return Utilities::ByteSwapI64(ReadI64_LE()); }
-		inline u64 ReadU64_BE() { return Utilities::ByteSwapU64(ReadU64_LE()); }
-		inline f32 ReadF32_BE() { return Utilities::ByteSwapF32(ReadF32_LE()); }
-		inline f64 ReadF64_BE() { return Utilities::ByteSwapF64(ReadF64_LE()); }
+		inline i16 ReadI16_BE() { return Util::ByteSwapI16(ReadI16_LE()); }
+		inline u16 ReadU16_BE() { return Util::ByteSwapU16(ReadU16_LE()); }
+		inline i32 ReadI32_BE() { return Util::ByteSwapI32(ReadI32_LE()); }
+		inline u32 ReadU32_BE() { return Util::ByteSwapU32(ReadU32_LE()); }
+		inline i64 ReadI64_BE() { return Util::ByteSwapI64(ReadI64_LE()); }
+		inline u64 ReadU64_BE() { return Util::ByteSwapU64(ReadU64_LE()); }
+		inline f32 ReadF32_BE() { return Util::ByteSwapF32(ReadF32_LE()); }
+		inline f64 ReadF64_BE() { return Util::ByteSwapF64(ReadF64_LE()); }
 
 	protected:
 		void OnPointerModeChanged() override;

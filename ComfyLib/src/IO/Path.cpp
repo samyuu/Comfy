@@ -1,5 +1,6 @@
 #include "Path.h"
 #include "Misc/UTF8.h"
+#include "Misc/StringUtil.h"
 #include <Shlwapi.h>
 
 namespace Comfy::IO
@@ -50,22 +51,10 @@ namespace Comfy::IO
 }
 
 // #define COMFY_STATIC_ASSERT_STRCMP(stringA, stringB) static_assert((stringA) == (stringB))
-#define COMFY_STATIC_ASSERT_STRCMP(stringA, stringB) static_assert(ConstexprStrCmp((stringA), (stringB)))
+#define COMFY_STATIC_ASSERT_STRCMP(stringA, stringB) static_assert(Util::Matches((stringA), (stringB)))
 
 namespace Comfy::IO::Path::ConstexprTest
 {
-	constexpr bool ConstexprStrCmp(std::string_view stringA, std::string_view stringB)
-	{
-		if (stringA.size() != stringB.size())
-			return false;
-
-		for (size_t i = 0; i < stringA.size(); i++)
-			if (stringA[i] != stringB[i])
-				return false;
-
-		return true;
-	}
-
 	COMFY_STATIC_ASSERT_STRCMP(GetExtension("C:/MyDir/MySubDir/MyFile"), "");
 	COMFY_STATIC_ASSERT_STRCMP(GetExtension("C:/MyDir/MySubDir"), "");
 	COMFY_STATIC_ASSERT_STRCMP(GetExtension("C:/MyDir/MyFile.ext"), ".ext");

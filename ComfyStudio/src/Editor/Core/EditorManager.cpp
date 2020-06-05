@@ -3,7 +3,7 @@
 #include "Editor/Aet/AetEditor.h"
 #include "Editor/Chart/ChartEditor.h"
 #include "Editor/PV/SceneEditor.h"
-#include "Misc/StringHelper.h"
+#include "Misc/StringUtil.h"
 
 namespace Comfy::Studio::Editor
 {

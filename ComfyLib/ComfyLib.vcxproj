@@ -42,6 +42,7 @@
     <ClInclude Include="src\IO\File.h" />
     <ClInclude Include="src\IO\Path.h" />
     <ClInclude Include="src\IO\Shell.h" />
+    <ClInclude Include="src\Misc\ASCII.h" />
     <ClInclude Include="src\Time\Stopwatch.h" />
     <ClInclude Include="src\Core\Logger.h" />
     <ClInclude Include="src\Core\NonCopyable.h" />
@@ -69,7 +70,7 @@
     <ClInclude Include="src\Misc\EndianHelper.h" />
     <ClInclude Include="src\Misc\FileExtensionHelper.h" />
     <ClInclude Include="src\Misc\ImageHelper.h" />
-    <ClInclude Include="src\Misc\StringHelper.h" />
+    <ClInclude Include="src\Misc\StringUtil.h" />
     <ClInclude Include="src\Misc\StringParseHelper.h" />
     <ClInclude Include="src\Misc\TextDatabaseParser.h" />
     <ClInclude Include="src\Misc\UTF8.h" />
@@ -119,7 +120,6 @@
     <ClCompile Include="src\IO\Stream\MemoryStream.cpp" />
     <ClCompile Include="src\Misc\FileExtensionHelper.cpp" />
     <ClCompile Include="src\Misc\ImageHelper.cpp" />
-    <ClCompile Include="src\Misc\StringHelper.cpp" />
     <ClCompile Include="src\Misc\StringParseHelper.cpp" />
     <ClCompile Include="src\Misc\UTF8.cpp" />
     <ClCompile Include="src\Time\TimeUtilities.cpp" />

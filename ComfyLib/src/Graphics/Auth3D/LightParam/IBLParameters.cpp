@@ -3,7 +3,7 @@
 
 namespace Comfy::Graphics
 {
-	using namespace Utilities;
+	using namespace Util;
 
 	namespace
 	{

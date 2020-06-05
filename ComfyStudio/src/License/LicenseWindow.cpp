@@ -102,9 +102,8 @@ namespace Comfy::Studio
 				if (textBuffer >= textBufferEnd || textBuffer[0] == '\0')
 					break;
 
-				auto line = StringParsing::GetLineAdvanceToNextLine(textBuffer);
-
-				if (StartsWith(line, '#'))
+				const auto line = Util::StringParsing::GetLineAdvanceToNextLine(textBuffer);
+				if (Util::StartsWith(line, '#'))
 				{
 					if (line == "#name")
 						type = name;

@@ -45,7 +45,7 @@ namespace
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-namespace Comfy::Utilities
+namespace Comfy::Util
 {
 	void ReadImage(std::string_view filePath, ivec2& outSize, std::unique_ptr<u8[]>& outRGBAPixels)
 	{

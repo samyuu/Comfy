@@ -1,6 +1,6 @@
 #include "MemoryStream.h"
 #include "FileStream.h"
-#include "Misc/StringHelper.h"
+#include "Misc/StringUtil.h"
 #include <algorithm>
 
 namespace Comfy::IO

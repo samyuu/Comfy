@@ -7,7 +7,7 @@
 #include "IO/Directory.h"
 #include "IO/File.h"
 #include "IO/Path.h"
-#include "Misc/StringHelper.h"
+#include "Misc/StringUtil.h"
 
 namespace Comfy::Studio::System
 {

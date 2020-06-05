@@ -1,11 +1,11 @@
 #include "A3D.h"
-#include "Misc/StringHelper.h"
+#include "Misc/StringUtil.h"
 #include "Misc/StringParseHelper.h"
 #include "Misc/TextDatabaseParser.h"
 
 namespace Comfy::Graphics
 {
-	using namespace Utilities;
+	using namespace Util;
 
 	namespace
 	{

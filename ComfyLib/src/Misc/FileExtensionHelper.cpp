@@ -1,7 +1,7 @@
 #include "FileExtensionHelper.h"
-#include "StringHelper.h"
+#include "StringUtil.h"
 
-namespace Comfy::Utilities
+namespace Comfy::Util
 {
 	bool FileExtensionHelper::DoesAnyExtensionMatch(const std::string_view inputExtension, const std::string_view packedExtensions, const char packedSeparator)
 	{

@@ -1061,7 +1061,7 @@ namespace Comfy::Studio::Editor
 			for (auto& object : a3d.Objects)
 			{
 				auto& entities = sceneGraph.Entities;
-				auto correspondingEntity = std::find_if(entities.begin(), entities.end(), [&](auto& e) { return MatchesInsensitive(e->Name, object.UIDName); });
+				auto correspondingEntity = std::find_if(entities.begin(), entities.end(), [&](auto& e) { return Util::MatchesInsensitive(e->Name, object.UIDName); });
 
 				if (correspondingEntity == entities.end())
 					continue;
@@ -1269,12 +1269,12 @@ namespace Comfy::Studio::Editor
 					if (const auto* tex = renderer3D->GetTexFromTextureID(&diffuseTexture->TextureID); tex != nullptr && tex->Name.has_value())
 					{
 						if (const auto& name = tex->Name.value();
-							EndsWithInsensitive(name, "_RENDER") ||
-							EndsWithInsensitive(name, "_MOVIE") ||
-							EndsWithInsensitive(name, "_TV") ||
-							EndsWithInsensitive(name, "_FB01") ||
-							EndsWithInsensitive(name, "_FB02") ||
-							EndsWithInsensitive(name, "_FB03"))
+							Util::EndsWithInsensitive(name, "_RENDER") ||
+							Util::EndsWithInsensitive(name, "_MOVIE") ||
+							Util::EndsWithInsensitive(name, "_TV") ||
+							Util::EndsWithInsensitive(name, "_FB01") ||
+							Util::EndsWithInsensitive(name, "_FB02") ||
+							Util::EndsWithInsensitive(name, "_FB03"))
 						{
 							if (entity->Dynamic == nullptr)
 								entity->Dynamic = std::make_unique<Render::RenderCommand3D::DynamicData>();
@@ -1481,7 +1481,7 @@ namespace Comfy::Studio::Editor
 		{
 			for (auto& obj : *objSet.ObjSet)
 			{
-				if (Utilities::EndsWithInsensitive(obj.Name, "lensflare_0"))
+				if (Util::EndsWithInsensitive(obj.Name, "lensflare_0"))
 					scene.LensFlare.SunObj = &obj;
 			}
 		}
@@ -1594,7 +1594,7 @@ namespace Comfy::Studio::Editor
 						{
 							char fileName[MAX_PATH];
 							sprintf_s(fileName, "%s/sequence/scene_%04d.png", ScreenshotDirectoy, i);
-							Utilities::WritePNG(fileName, renderTarget.Param.RenderResolution, data.get());
+							Util::WritePNG(fileName, renderTarget.Param.RenderResolution, data.get());
 						}));
 				}
 			}
@@ -1612,7 +1612,7 @@ namespace Comfy::Studio::Editor
 		lastScreenshotTaskFuture = std::async(std::launch::async, [&renderTarget, data = std::move(pixelData)]
 			{
 				const auto filePath = IO::Path::Combine(ScreenshotDirectoy, IO::Path::ChangeExtension("scene_" + FormatFileNameDateTimeNow(), ".png"));
-				Utilities::WritePNG(filePath, renderTarget.Param.RenderResolution, data.get());
+				Util::WritePNG(filePath, renderTarget.Param.RenderResolution, data.get());
 			});
 	}
 }

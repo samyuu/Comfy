@@ -1,10 +1,11 @@
 #include "AetRenderer.h"
 #include "Renderer2D.h"
-#include "Misc/StringHelper.h"
+#include "Misc/StringUtil.h"
 
 namespace Comfy::Render
 {
 	using namespace Graphics::Aet;
+	namespace AetUtil = Graphics::Aet::Util;
 
 	TexSpr SprSetNameStringSprGetter(const VideoSource& source, const Graphics::SprSet* sprSetToSearch)
 	{
@@ -17,7 +18,7 @@ namespace Comfy::Render
 		// TEMP: Temporary solution, check for IDs in the future
 		auto matchingSpr = std::find_if(sprSetToSearch->Sprites.begin(), sprSetToSearch->Sprites.end(), [&](const auto& spr)
 		{
-			return EndsWith(source.Name, spr.Name);
+			return ::Comfy::Util::EndsWith(source.Name, spr.Name);
 		});
 
 		if (matchingSpr != sprSetToSearch->Sprites.end())
@@ -39,7 +40,7 @@ namespace Comfy::Render
 		sprGetter = NullSprGetter;
 	}
 
-	void AetRenderer::DrawObj(const Util::Obj& obj, vec2 positionOffset, float opacity)
+	void AetRenderer::DrawObj(const AetUtil::Obj& obj, vec2 positionOffset, float opacity)
 	{
 		if (obj.Video == nullptr || !obj.IsVisible)
 			return;
@@ -80,7 +81,7 @@ namespace Comfy::Render
 		}
 	}
 
-	void AetRenderer::DrawObjMask(const Util::Obj& maskObj, const Util::Obj& obj, vec2 positionOffset, float opacity)
+	void AetRenderer::DrawObjMask(const AetUtil::Obj& maskObj, const AetUtil::Obj& obj, vec2 positionOffset, float opacity)
 	{
 		if (maskObj.Video == nullptr || obj.Video == nullptr || !obj.IsVisible)
 			return;
@@ -132,7 +133,7 @@ namespace Comfy::Render
 		}
 	}
 
-	void AetRenderer::DrawObjCache(const Util::ObjCache& objCache, vec2 position, float opacity)
+	void AetRenderer::DrawObjCache(const AetUtil::ObjCache& objCache, vec2 position, float opacity)
 	{
 		for (size_t i = 0; i < objCache.size(); i++)
 		{
@@ -147,7 +148,7 @@ namespace Comfy::Render
 	void AetRenderer::DrawLayer(const Layer& layer, frame_t frame, vec2 position, float opacity)
 	{
 		objCache.clear();
-		Util::GetAddObjectsAt(objCache, layer, frame);
+		AetUtil::GetAddObjectsAt(objCache, layer, frame);
 
 		DrawObjCache(objCache, position, opacity);
 	}
@@ -252,7 +253,7 @@ namespace Comfy::Render
 			opacity);
 	}
 
-	const Graphics::Aet::Util::ObjCache& AetRenderer::GetLastObjCache() const
+	const AetUtil::ObjCache& AetRenderer::GetLastObjCache() const
 	{
 		return objCache;
 	}

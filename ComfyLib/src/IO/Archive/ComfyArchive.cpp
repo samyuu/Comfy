@@ -1,6 +1,6 @@
 #include "ComfyArchive.h"
 #include "IO/Stream/FileStream.h"
-#include "Misc/StringHelper.h"
+#include "Misc/StringUtil.h"
 
 namespace Comfy::IO
 {

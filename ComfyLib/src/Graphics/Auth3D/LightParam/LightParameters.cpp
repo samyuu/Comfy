@@ -1,11 +1,9 @@
 #include "LightParameters.h"
-#include "Misc/StringHelper.h"
+#include "Misc/StringUtil.h"
 #include "Misc/StringParseHelper.h"
 
 namespace Comfy::Graphics
 {
-	using namespace Utilities;
-
 	namespace
 	{
 		constexpr std::string_view EndOfFileTag = "EOF";
@@ -114,22 +112,22 @@ namespace Comfy::Graphics
 
 		while (textBuffer < endOfTextBuffer)
 		{
-			auto line = StringParsing::GetLineAdvanceToNextLine(textBuffer);
+			auto line = Util::StringParsing::GetLineAdvanceToNextLine(textBuffer);
 
-			if (StartsWith(line, EndOfFileTag) || line.empty())
+			if (Util::StartsWith(line, EndOfFileTag) || line.empty())
 				break;
 
-			auto tag = StringParsing::GetWord(line.data());
+			auto tag = Util::StringParsing::GetWord(line.data());
 			auto tagData = line.substr(tag.size() + 1);
 
 			if (tag == GroupStartTag || tag == GroupEndTag)
 			{
 				// TODO: ... (?)
-				auto groupID = StringParsing::ParseType<u32>(tagData);
+				auto groupID = Util::StringParsing::ParseType<u32>(tagData);
 			}
 			else if (tag == IDStartTag)
 			{
-				auto lightType = static_cast<LightTargetType>(StringParsing::ParseType<u32>(tagData));
+				auto lightType = static_cast<LightTargetType>(Util::StringParsing::ParseType<u32>(tagData));
 				currentLight = GetLight(lightType);
 			}
 			else if (tag == IDEndTag)
@@ -142,51 +140,51 @@ namespace Comfy::Graphics
 			}
 			else if (tag == TypeTag)
 			{
-				currentLight->Type = static_cast<LightSourceType>(StringParsing::ParseType<u32>(tagData));
+				currentLight->Type = static_cast<LightSourceType>(Util::StringParsing::ParseType<u32>(tagData));
 			}
 			else if (tag == AmbientTag)
 			{
-				auto data = StringParsing::ParseTypeArray<float, 4>(tagData);
+				auto data = Util::StringParsing::ParseTypeArray<float, 4>(tagData);
 				currentLight->Ambient = { data[0], data[1], data[2] };
 			}
 			else if (tag == DiffuseTag)
 			{
-				auto data = StringParsing::ParseTypeArray<float, 4>(tagData);
+				auto data = Util::StringParsing::ParseTypeArray<float, 4>(tagData);
 				currentLight->Diffuse = { data[0], data[1], data[2] };
 			}
 			else if (tag == SpecularTag)
 			{
-				auto data = StringParsing::ParseTypeArray<float, 4>(tagData);
+				auto data = Util::StringParsing::ParseTypeArray<float, 4>(tagData);
 				currentLight->Specular = { data[0], data[1], data[2] };
 			}
 			else if (tag == PositionTag)
 			{
-				auto data = StringParsing::ParseTypeArray<float, 4>(tagData);
+				auto data = Util::StringParsing::ParseTypeArray<float, 4>(tagData);
 				currentLight->Position = { data[0], data[1], data[2] };
 			}
 			else if (tag == ToneCurveTag)
 			{
-				auto data = StringParsing::ParseTypeArray<float, 3>(tagData);
+				auto data = Util::StringParsing::ParseTypeArray<float, 3>(tagData);
 				currentLight->ToneCurveBegin = data[0];
 				currentLight->ToneCurveEnd = data[1];
 				currentLight->ToneCurveBlendRate = data[2];
 			}
 			else if (tag == SpotDirectionTag)
 			{
-				auto data = StringParsing::ParseTypeArray<float, 3>(tagData);
+				auto data = Util::StringParsing::ParseTypeArray<float, 3>(tagData);
 				currentLight->SpotDirection = { data[0], data[1], data[2] };
 			}
 			else if (tag == SpotExponentTag)
 			{
-				currentLight->SpotExponent = StringParsing::ParseType<float>(tagData);
+				currentLight->SpotExponent = Util::StringParsing::ParseType<float>(tagData);
 			}
 			else if (tag == SpotCutoffTag)
 			{
-				currentLight->SpotCuttoff = StringParsing::ParseType<float>(tagData);
+				currentLight->SpotCuttoff = Util::StringParsing::ParseType<float>(tagData);
 			}
 			else if (tag == AttenuationTag)
 			{
-				auto data = StringParsing::ParseTypeArray<float, 3>(tagData);
+				auto data = Util::StringParsing::ParseTypeArray<float, 3>(tagData);
 				currentLight->AttenuationConstant = data[0];
 				currentLight->AttenuationLinear = data[1];
 				currentLight->AttenuationQuadratic = data[2];
@@ -194,7 +192,7 @@ namespace Comfy::Graphics
 			else if (tag == ClipPlaneTag)
 			{
 				// TODO: ... (?)
-				auto data = StringParsing::ParseTypeArray<int, 4>(tagData);
+				auto data = Util::StringParsing::ParseTypeArray<int, 4>(tagData);
 			}
 		}
 	}

@@ -3,7 +3,7 @@
 #include "IO/Stream/Manipulator/StreamReader.h"
 #include "IO/File.h"
 #include "IO/Path.h"
-#include "Misc/StringHelper.h"
+#include "Misc/StringUtil.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -129,7 +129,7 @@ namespace Comfy::Studio::Editor
 		{
 			const auto aetPath = aetFileViewer.GetFileToOpen();
 			const auto fileName = IO::Path::GetFileName(aetPath);
-			if (StartsWithInsensitive(fileName, "aet_") && (EndsWithInsensitive(fileName, ".bin") || EndsWithInsensitive(fileName, ".aec")))
+			if (Util::StartsWithInsensitive(fileName, "aet_") && (Util::EndsWithInsensitive(fileName, ".bin") || Util::EndsWithInsensitive(fileName, ".aec")))
 				LoadAetSet(aetPath);
 		}
 	}
@@ -140,7 +140,7 @@ namespace Comfy::Studio::Editor
 		{
 			const auto sprPath = sprFileViewer.GetFileToOpen();
 			const auto fileName = IO::Path::GetFileName(sprPath);
-			if (StartsWithInsensitive(fileName, "spr_") && EndsWithInsensitive(fileName, ".bin"))
+			if (Util::StartsWithInsensitive(fileName, "spr_") && Util::EndsWithInsensitive(fileName, ".bin"))
 				LoadSprSet(sprPath);
 		}
 	}
