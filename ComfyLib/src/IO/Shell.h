@@ -7,16 +7,59 @@ namespace Comfy::IO
 {
 	namespace Shell
 	{
-		const std::vector<std::string> AllFilesFilter = { "All Files (*.*)", "*.*" };
-
 		COMFY_NODISCARD std::string ResolveFileLink(std::string_view lnkFilePath);
 
 		void OpenInExplorer(std::string_view filePath);
+
 		void OpenExplorerProperties(std::string_view filePath);
 
 		void OpenWithDefaultProgram(std::string_view filePath);
 
-		bool CreateOpenFileDialog(std::string& outFilePath, const char* title = nullptr, const char* directory = nullptr, const std::vector<std::string>& filter = AllFilesFilter);
-		bool CreateSaveFileDialog(std::string& outFilePath, const char* title = nullptr, const char* directory = nullptr, const std::vector<std::string>& filter = AllFilesFilter);
+		namespace Custom
+		{
+			constexpr uint32_t ItemBaseID = 0x666;
+
+			enum class ItemType
+			{
+				VisualGroupStart,
+				VisualGroupEnd,
+				Checkbox,
+			};
+
+			struct Item
+			{
+				ItemType Type;
+				std::string_view Label;
+				union DataUnion
+				{
+					bool* CheckboxChecked;
+				} Data;
+			};
+		}
+
+		struct FileDialog
+		{
+			static constexpr std::string_view AllFilesFilterName = "All Files (*.*)";
+			static constexpr std::string_view AllFilesFilterSpec = "*.*";
+
+			struct FileFilter
+			{
+				std::string Name;
+				std::string Spec;
+			};
+
+			std::string FileName;
+			std::string DefaultExtension;
+			std::vector<FileFilter> Filters;
+			u32 FilterIndex = 0;
+			void* ParentWindowHandle = nullptr;
+			std::vector<Custom::Item> CustomizeItems;
+			std::string OutFilePath;
+
+			// TODO:
+			// COMFY_NODISCARD bool OpenRead();
+
+			COMFY_NODISCARD bool OpenSave();
+		};
 	}
 }
