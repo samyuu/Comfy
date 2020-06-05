@@ -68,7 +68,6 @@
     <ClInclude Include="src\IO\Stream\IStream.h" />
     <ClInclude Include="src\IntegralTypes.h" />
     <ClInclude Include="src\Misc\EndianHelper.h" />
-    <ClInclude Include="src\Misc\FileExtensionHelper.h" />
     <ClInclude Include="src\Misc\ImageHelper.h" />
     <ClInclude Include="src\Misc\StringUtil.h" />
     <ClInclude Include="src\Misc\StringParseHelper.h" />
@@ -118,7 +117,6 @@
     <ClCompile Include="src\IO\AsyncFileLoader.cpp" />
     <ClCompile Include="src\IO\Stream\FileStream.cpp" />
     <ClCompile Include="src\IO\Stream\MemoryStream.cpp" />
-    <ClCompile Include="src\Misc\FileExtensionHelper.cpp" />
     <ClCompile Include="src\Misc\ImageHelper.cpp" />
     <ClCompile Include="src\Misc\StringParseHelper.cpp" />
     <ClCompile Include="src\Misc\UTF8.cpp" />

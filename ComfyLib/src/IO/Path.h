@@ -8,14 +8,16 @@ namespace Comfy::IO
 {
 	namespace Path
 	{
+		constexpr char ExtensionSeparator = '.';
+
 		constexpr char DirectorySeparator = '/', DirectorySeparatorAlt = '\\';
 		constexpr const char* DirectorySeparators = "/\\";
 
 		constexpr std::array InvalidPathCharacters = { '\"', '<', '>', '|', '\0', };
 		constexpr std::array InvalidFileNameCharacters = { '\"', '<', '>', '|', ':', '*', '?', '\\', '/', '\0', };
 
-		// NOTE: Includes extension '.' character
-		COMFY_NODISCARD constexpr std::string_view GetExtensionBase(std::string_view filePath)
+		// NOTE: Includes extension '.' separator character
+		COMFY_NODISCARD constexpr std::string_view GetExtensionDetail(std::string_view filePath)
 		{
 			const auto lastIndex = filePath.find_last_of('.');
 			return (lastIndex == std::string_view::npos) ? "" : filePath.substr(lastIndex);
@@ -24,10 +26,13 @@ namespace Comfy::IO
 		COMFY_NODISCARD constexpr std::string_view GetExtension(std::string_view filePath)
 		{
 			if (const auto archivePath = Archive::ParsePath(filePath); !archivePath.FileName.empty())
-				return GetExtensionBase(archivePath.FileName);
+				return GetExtensionDetail(archivePath.FileName);
 
-			return GetExtensionBase(filePath);
+			return GetExtensionDetail(filePath);
 		}
+
+		// NOTE: Example packed extensions: ".wav;.flac;.ogg;.mp3"
+		COMFY_NODISCARD bool DoesAnyPackedExtensionMatch(std::string_view extensionToCheck, std::string_view packedExtensions, char packedSeparator = ';');
 
 		COMFY_NODISCARD constexpr std::string_view TrimExtension(std::string_view filePath)
 		{

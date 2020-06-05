@@ -3,7 +3,6 @@
 #include "IO/File.h"
 #include "IO/Path.h"
 #include "IO/Shell.h"
-#include "Misc/FileExtensionHelper.h"
 #include "Misc/StringUtil.h"
 #include <FontIcons.h>
 #include <filesystem>
@@ -296,12 +295,12 @@ namespace ImGui
 
 	FileType FileViewer::GetFileType(const std::string_view fileName)
 	{
-		const auto inputExtension = Util::FileExtensionHelper::GetExtensionSubstring(fileName);
+		const auto inputExtension = IO::Path::GetExtension(fileName);
 		if (!inputExtension.empty())
 		{
 			for (const auto&[fileType, packedExtensions] : fileTypeDictionary)
 			{
-				if (Util::FileExtensionHelper::DoesAnyExtensionMatch(inputExtension, packedExtensions))
+				if (IO::Path::DoesAnyPackedExtensionMatch(inputExtension, packedExtensions))
 					return fileType;
 			}
 		}

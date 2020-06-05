@@ -5,7 +5,6 @@
 #include "Audio/SampleProvider/MemorySampleProvider.h"
 #include "IO/File.h"
 #include "IO/Path.h"
-#include "Misc/FileExtensionHelper.h"
 #include "Misc/StringUtil.h"
 #include "Core/Logger.h"
 
@@ -38,7 +37,7 @@ namespace Comfy::Audio
 
 		for (auto& decoder : availableDecoders)
 		{
-			if (!Util::FileExtensionHelper::DoesAnyExtensionMatch(extension, decoder->GetFileExtensions()))
+			if (!IO::Path::DoesAnyPackedExtensionMatch(extension, decoder->GetFileExtensions()))
 				continue;
 
 			const auto[fileContent, fileSize] = IO::File::ReadAllBytes(filePath);
