@@ -26,6 +26,9 @@ namespace Comfy::Studio
 	public:
 		ApplicationHost& GetHost();
 
+		// NOTE: Specifically to be used as a parent for file dialogs, dialog boxes etc.
+		static void* GetGlobalWindowFocusHandle();
+
 	private:
 		ApplicationHost::ConstructionParam CreateHostParam();
 

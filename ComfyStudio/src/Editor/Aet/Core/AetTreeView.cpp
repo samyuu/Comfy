@@ -3,6 +3,7 @@
 #include "IO/File.h"
 #include "IO/Shell.h"
 #include "Input/Input.h"
+#include "Core/Application.h"
 #include "Core/Logger.h"
 #include "Misc/StringUtil.h"
 
@@ -105,9 +106,14 @@ namespace Comfy::Studio::Editor
 
 			if (Gui::MenuItem("Save As..."))
 			{
-				std::string filePath;
-				if (IO::Shell::CreateSaveFileDialog(filePath, "Save AetSet file", "dev_ram/aetset", { "AetSet (*.bin)", "*.bin", "All Files (*.*)", "*", }))
-					IO::File::Save(filePath, *aetSet);
+				IO::Shell::FileDialog fileDialog;
+				fileDialog.FileName = aetSet->Name;
+				fileDialog.DefaultExtension = ".bin";
+				fileDialog.Filters = { { "Project DIVA AetSet (*.bin)", "*.bin" }, };
+				fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
+
+				if (fileDialog.OpenSave())
+					IO::File::Save(fileDialog.OutFilePath, *aetSet);
 			}
 		});
 

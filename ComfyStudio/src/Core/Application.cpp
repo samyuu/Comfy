@@ -23,8 +23,12 @@ namespace Comfy::Studio
 		constexpr std::string_view IsMaximized = "Comfy::Studio::Application::IsMaximized";
 	}
 
+	static Application* GlobalLastCreatedApplication = nullptr;
+
 	void Application::Run()
 	{
+		GlobalLastCreatedApplication = this;
+
 		System::MountComfyData();
 		System::LoadComfyConfig();
 
@@ -50,6 +54,11 @@ namespace Comfy::Studio
 	ApplicationHost& Application::GetHost()
 	{
 		return *host;
+	}
+
+	void* Application::GetGlobalWindowFocusHandle()
+	{
+		return (GlobalLastCreatedApplication != nullptr) ? GlobalLastCreatedApplication->GetHost().GetWindowHandle() : nullptr;
 	}
 
 	bool Application::BaseInitialize()
