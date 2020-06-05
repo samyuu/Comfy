@@ -219,6 +219,9 @@
     <ClInclude Include="src\Misc\ASCII.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\IO\Archive\FArcPacker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\IO\Stream\MemoryWriteStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -345,6 +348,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\IO\Stream\MemoryWriteStream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IO\Archive\FArcPacker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

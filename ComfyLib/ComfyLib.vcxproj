@@ -37,6 +37,7 @@
     <ClInclude Include="src\Graphics\GPUResource.h" />
     <ClInclude Include="src\Graphics\TexSet.h" />
     <ClInclude Include="src\Graphics\Utilities\SpritePacker.h" />
+    <ClInclude Include="src\IO\Archive\FArcPacker.h" />
     <ClInclude Include="src\IO\Config\ComfyBinaryConfig.h" />
     <ClInclude Include="src\IO\Directory.h" />
     <ClInclude Include="src\IO\File.h" />
@@ -99,6 +100,7 @@
     <ClCompile Include="src\Graphics\Auth3D\ObjSetFile.cpp" />
     <ClCompile Include="src\Graphics\TexSet.cpp" />
     <ClCompile Include="src\Graphics\Utilities\SpritePacker.cpp" />
+    <ClCompile Include="src\IO\Archive\FArcPacker.cpp" />
     <ClCompile Include="src\IO\Config\ComfyBinaryConfig.cpp" />
     <ClCompile Include="src\IO\Directory.cpp" />
     <ClCompile Include="src\IO\File.cpp" />
