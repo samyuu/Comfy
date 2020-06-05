@@ -7,6 +7,9 @@
 
 namespace Comfy::Util
 {
+	constexpr std::string_view HexPrefix = "0x";
+	constexpr std::string_view BinaryPrefix = "0b";
+
 	COMFY_NODISCARD constexpr bool CaseInsenitiveComparison(char characterA, char characterB)
 	{
 		// NOTE: Because tolower() isn't constexpr. None of this is properly unicode compliant but that shouldn't be an issue for now
