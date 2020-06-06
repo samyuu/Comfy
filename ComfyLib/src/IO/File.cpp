@@ -196,7 +196,7 @@ namespace Comfy::IO
 			{
 				if (FArcImpl::IsValidPath(basePath))
 				{
-					FArcImpl::ReadFile(basePath, fileName,
+					return FArcImpl::ReadFile(basePath, fileName,
 						[&](size_t fileSize) { outFileContent.resize(fileSize); },
 						[&]() { return outFileContent.data(); });
 				}
