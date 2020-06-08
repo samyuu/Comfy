@@ -98,8 +98,8 @@ namespace Comfy::Graphics::Aet
 		{
 			ReadProperty1DPointer(transform.OriginZ, reader);
 			ReadProperty1DPointer(transform.PositionZ, reader);
-			ReadProperty3DPointer(transform.Direction, reader);
-			ReadProperty2DPointer(transform.Rotation, reader);
+			ReadProperty3DPointer(transform.DirectionXYZ, reader);
+			ReadProperty2DPointer(transform.RotationXY, reader);
 			ReadProperty1DPointer(transform.ScaleZ, reader);
 		}
 
@@ -173,8 +173,8 @@ namespace Comfy::Graphics::Aet
 		{
 			WriteProperty1DPointer(transform.OriginZ, writer);
 			WriteProperty1DPointer(transform.PositionZ, writer);
-			WriteProperty3DPointer(transform.Direction, writer);
-			WriteProperty2DPointer(transform.Rotation, writer);
+			WriteProperty3DPointer(transform.DirectionXYZ, writer);
+			WriteProperty2DPointer(transform.RotationXY, writer);
 			WriteProperty1DPointer(transform.ScaleZ, writer);
 		}
 
@@ -224,11 +224,11 @@ namespace Comfy::Graphics::Aet
 		{
 			SetProperty1DStartFrame(transform.OriginZ, startFrame);
 			SetProperty1DStartFrame(transform.PositionZ, startFrame);
-			SetProperty1DStartFrame(transform.Direction.X, startFrame);
-			SetProperty1DStartFrame(transform.Direction.Y, startFrame);
-			SetProperty1DStartFrame(transform.Direction.Z, startFrame);
-			SetProperty1DStartFrame(transform.Rotation.X, startFrame);
-			SetProperty1DStartFrame(transform.Rotation.Y, startFrame);
+			SetProperty1DStartFrame(transform.DirectionXYZ.X, startFrame);
+			SetProperty1DStartFrame(transform.DirectionXYZ.Y, startFrame);
+			SetProperty1DStartFrame(transform.DirectionXYZ.Z, startFrame);
+			SetProperty1DStartFrame(transform.RotationXY.X, startFrame);
+			SetProperty1DStartFrame(transform.RotationXY.Y, startFrame);
 			SetProperty1DStartFrame(transform.ScaleZ, startFrame);
 		}
 	}

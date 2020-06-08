@@ -167,8 +167,8 @@ namespace Comfy::Graphics::Aet
 	{
 		Property1D OriginZ;
 		Property1D PositionZ;
-		Property3D Direction;
-		Property2D Rotation;
+		Property3D DirectionXYZ;
+		Property2D RotationXY;
 		Property1D ScaleZ;
 	};
 
