@@ -32,6 +32,7 @@ namespace Comfy::Render
 	void FontRenderer::Draw(const Graphics::BitmapFont& font, std::string_view text, const Graphics::Transform2D& transform, vec3 color)
 	{
 		Render::RenderCommand2D command;
+		command.BlendMode = currentBlendMode;
 		command.SetColor(vec4(color, transform.Opacity));
 		DrawInternal(font, text, transform, command);
 	}
@@ -39,6 +40,7 @@ namespace Comfy::Render
 	void FontRenderer::DrawBorder(const Graphics::BitmapFont& font, std::string_view text, const Graphics::Transform2D& transform, vec3 color)
 	{
 		Render::RenderCommand2D command;
+		command.BlendMode = currentBlendMode;
 		command.DrawTextBorder = true;
 		command.SetColor(vec4(color, transform.Opacity));
 		DrawInternal(font, text, transform, command);
@@ -47,6 +49,7 @@ namespace Comfy::Render
 	void FontRenderer::DrawShadow(const Graphics::BitmapFont& font, std::string_view text, const Graphics::Transform2D& transform, vec3 color, vec4 shadowColor, vec2 offset)
 	{
 		Render::RenderCommand2D command;
+		command.BlendMode = currentBlendMode;
 
 		auto shadowTransform = transform;
 		shadowTransform.Origin -= offset;
@@ -57,6 +60,16 @@ namespace Comfy::Render
 
 		command.SetColor(vec4(color, transform.Opacity));
 		DrawInternal(font, text, transform, command);
+	}
+
+	Graphics::AetBlendMode FontRenderer::GetBlendMode() const
+	{
+		return currentBlendMode;
+	}
+
+	void FontRenderer::SetBlendMode(Graphics::AetBlendMode value)
+	{
+		currentBlendMode = value;
 	}
 
 	vec2 FontRenderer::Measure(const Graphics::BitmapFont& font, std::string_view text) const

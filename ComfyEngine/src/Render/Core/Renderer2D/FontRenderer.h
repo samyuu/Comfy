@@ -27,6 +27,10 @@ namespace Comfy::Render
 		void DrawShadow(const Graphics::BitmapFont& font, std::string_view text, const Graphics::Transform2D& transform, vec3 color = DefaultColor, vec4 shadowColor = DefaultShadowColor, vec2 offset = DefaultShadowOffset);
 
 	public:
+		// NOTE: The blend mode almost never changes so having it be a stateful variable avoids needlessly many draw parameters
+		Graphics::AetBlendMode GetBlendMode() const;
+		void SetBlendMode(Graphics::AetBlendMode value);
+
 		vec2 Measure(const Graphics::BitmapFont& font, std::string_view text) const;
 
 	private:
@@ -35,5 +39,6 @@ namespace Comfy::Render
 
 	private:
 		Renderer2D& renderer2D;
+		Graphics::AetBlendMode currentBlendMode = Graphics::AetBlendMode::Normal;
 	};
 }
