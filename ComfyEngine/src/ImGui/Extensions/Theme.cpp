@@ -15,9 +15,6 @@ namespace ImGui
 		style->IndentSpacing = 14.0f;
 		style->GrabMinSize = 12.0f;
 
-		// NOTE: Not sure if this is a good idea yet but this is to prevent newly created windows from being too small to move without manually resizing them first
-		// style->WindowMinSize = ImVec2(192.0f, 96.0f);
-
 		// NOTE: To prevent render glitches for free floating windows
 		if (const int minWindowWidth = ::GetSystemMetrics(SM_CXMIN); minWindowWidth != 0)
 			style->WindowMinSize = ImVec2(static_cast<float>(minWindowWidth), 32.0f);
