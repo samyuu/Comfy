@@ -416,6 +416,9 @@ namespace Comfy::Render
 		{
 			switch (blendMode)
 			{
+			case AetBlendMode::Unknown:
+				AetBlendStates.Normal.UnBind();
+				break;
 			default:
 			case AetBlendMode::Normal:
 				AetBlendStates.Normal.Bind();
