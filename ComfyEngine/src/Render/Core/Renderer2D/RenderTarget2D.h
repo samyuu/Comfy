@@ -16,6 +16,9 @@ namespace Comfy::Render
 		virtual ComfyTextureID GetTextureID() const = 0;
 
 	public:
+		virtual std::unique_ptr<u8[]> TakeScreenshot() = 0;
+
+	public:
 		// NOTE: Settings used by the Renderer2D
 		struct RenderParam
 		{

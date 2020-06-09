@@ -27,8 +27,7 @@ namespace Comfy::Render
 		virtual ComfyTextureID GetTextureID() const = 0;
 
 	public:
-		// NOTE: For taking screenshots of the main output render target
-		virtual std::unique_ptr<u8[]> StageAndCopyBackBuffer() = 0;
+		virtual std::unique_ptr<u8[]> TakeScreenshot() = 0;
 
 		struct SubTarget
 		{

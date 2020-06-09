@@ -1590,7 +1590,7 @@ namespace Comfy::Studio::Editor
 
 					activeRenderWindow.RenderScene();
 
-					data.Futures.push_back(std::async(std::launch::async, [&renderTarget, i, data = std::move(renderTarget.StageAndCopyBackBuffer())]
+					data.Futures.push_back(std::async(std::launch::async, [&renderTarget, i, data = std::move(renderTarget.TakeScreenshot())]
 						{
 							char fileName[MAX_PATH];
 							sprintf_s(fileName, "%s/sequence/scene_%04d.png", ScreenshotDirectoy, i);
@@ -1604,7 +1604,7 @@ namespace Comfy::Studio::Editor
 
 	void SceneEditor::TakeSceneRenderTargetScreenshot(Render::RenderTarget3D& renderTarget)
 	{
-		auto pixelData = renderTarget.StageAndCopyBackBuffer();
+		auto pixelData = renderTarget.TakeScreenshot();
 
 		if (lastScreenshotTaskFuture.valid())
 			lastScreenshotTaskFuture.wait();

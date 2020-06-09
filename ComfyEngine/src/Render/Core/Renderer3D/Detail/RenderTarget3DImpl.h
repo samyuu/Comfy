@@ -154,7 +154,8 @@ namespace Comfy::Render::Detail
 	public:
 		ComfyTextureID GetTextureID() const override { return Output.RenderTarget; }
 
-		std::unique_ptr<u8[]> StageAndCopyBackBuffer() override { return Output.RenderTarget.StageAndCopyBackBuffer(); }
+	public:
+		std::unique_ptr<u8[]> TakeScreenshot() override { return Output.RenderTarget.StageAndCopyBackBuffer(); }
 
 		SubTargetView GetSubTargets() override 
 		{

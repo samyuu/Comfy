@@ -17,6 +17,12 @@ namespace Comfy::Render::Detail
 		}
 
 	public:
+		std::unique_ptr<u8[]> TakeScreenshot() override
+		{
+			return (Main.GetMultiSampleCount() > 1) ? ResolvedMain.StageAndCopyBackBuffer() : Main.StageAndCopyBackBuffer();
+		}
+
+	public:
 		D3D11::RenderTarget Main = D3D11::RenderTarget(Param.Resolution);
 		D3D11::RenderTarget ResolvedMain = D3D11::RenderTarget(Param.Resolution);
 	};
