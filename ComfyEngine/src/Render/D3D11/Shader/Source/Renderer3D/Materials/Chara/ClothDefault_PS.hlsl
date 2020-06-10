@@ -17,11 +17,12 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     TEMP normal = (TEMP)0;
     TEMP eye, reflect;
     TEMP org_normal, org_eye;
-    TEMP lc, spec, diff, luce, env;
+    TEMP lc, spec, diff, luce, env = (TEMP)0;
     TEMP spec_ratio, fres;
     TEMP col0;
     TEMP tmp;
     TEMP ndote;
+    
     TEX2D_00(col0, a_tex_color0);
     MUL(col0.xyz, col0.xyz, p_texcol_coef.x);
     MAX(o_color.w, col0.w, p_max_alpha.w);
@@ -76,8 +77,10 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MUL(tmp.w, tmp.w, fres.w);
     MUL(luce.w, tmp.w, 0.5);
     MOV(spec_ratio, state_material_specular);
+    
     TEX2D_03(tmp, a_tex_specular);
     MUL(spec_ratio, spec_ratio, tmp);
+    
     DP3(tmp.w, spec_ratio, float3(1, 1, 1));
     MAD_SAT(tmp.w, tmp.w, -3.0, 1.3);
     MUL(luce, luce, tmp.w);
@@ -87,7 +90,12 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MUL(tmp.w, p_fres_coef.x, 10.0);
     MAD(tmp.w, tmp.w, tmp.y, 1);
     MAD(spec_ratio, spec_ratio, tmp.xxxw, p_texcol_coef.w);
-    TEXCUBE_05(env, reflect);
+    
+    if (FLAGS_ENVIRONMENT_CUBE)
+    {
+        TEXCUBE_05(env, reflect);
+    }
+    
     MOV(normal.w, 0);
     TXLCUBE_09(diff, normal);
     MOV(normal.w, 1);
@@ -113,10 +121,15 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MUL(spec.xyz, spec.xyz, state_light0_specular.xyz);
     MUL(diff.xyz, diff.xyz, 0.96);
     MAD(diff.xyz, spec.xyz, spec_ratio.xyz, diff.xyz);
-    MAD(env.w, lc.z, 0.5, 0.5);
-    MUL(env.w, env.w, state_light0_specular.w);
-    MUL(env.xyz, env.xyz, env.w);
-    MAD(diff.xyz, env.xyz, spec_ratio.w, diff.xyz);
+    
+    if (FLAGS_ENVIRONMENT_CUBE)
+    {
+        MAD(env.w, lc.z, 0.5, 0.5);
+        MUL(env.w, env.w, state_light0_specular.w);
+        MUL(env.xyz, env.xyz, env.w);
+        MAD(diff.xyz, env.xyz, spec_ratio.w, diff.xyz);
+    }
+    
     ADD(diff.xyz, diff.xyz, luce.w);
     MOV(diff.xyz, diff.xyz);
     
