@@ -18,10 +18,6 @@ namespace Comfy::IO
 		~StreamReader() = default;
 
 	public:
-		inline FileAddr GetStreamSeekOffset() const { return streamSeekOffset; }
-		inline void SetStreamSeekOffset(FileAddr value) { streamSeekOffset = value; }
-
-	public:
 		inline size_t ReadBuffer(void* buffer, size_t size) { return underlyingStream->ReadBuffer(buffer, size); }
 
 	public:
@@ -124,8 +120,5 @@ namespace Comfy::IO
 		u64(StreamReader::*readU64Func)() = nullptr;
 		f32(StreamReader::*readF32Func)() = nullptr;
 		f64(StreamReader::*readF64Func)() = nullptr;
-
-		// TODO: Remove (?)
-		FileAddr streamSeekOffset = {};
 	};
 }

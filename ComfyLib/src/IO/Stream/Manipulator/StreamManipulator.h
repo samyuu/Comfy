@@ -7,22 +7,26 @@
 
 namespace Comfy::IO
 {
-	// TODO: Store error state and implement error handling for Read()/Write() implementations
+	// TODO: Store error state and implement error handling for Read() / Write() implementations
 	class StreamManipulator
 	{
 	public:
 		static constexpr u32 PaddingValue = 0xCCCCCCCC;
 
 	protected:
-		StreamManipulator(IStream& stream) : underlyingStream(&stream) 
+		StreamManipulator(IStream& stream) : underlyingStream(&stream)
 		{
 		}
 
 		~StreamManipulator() = default;
 
 	public:
-		inline FileAddr GetPosition() const { return underlyingStream->GetPosition(); }
-		inline void SetPosition(FileAddr position) { return underlyingStream->Seek(position); }
+		inline FileAddr GetStreamSeekOffset() const { return streamSeekOffset; }
+		inline void SetStreamSeekOffset(FileAddr value) { streamSeekOffset = value; }
+
+	public:
+		inline FileAddr GetPosition() const { return underlyingStream->GetPosition() - streamSeekOffset; }
+		inline void SetPosition(FileAddr position) { return underlyingStream->Seek(position + streamSeekOffset); }
 
 		inline FileAddr GetLength() const { return underlyingStream->GetLength(); }
 		inline bool EndOfFile() const { return underlyingStream->GetPosition() >= underlyingStream->GetLength(); }
@@ -44,5 +48,6 @@ namespace Comfy::IO
 		Endianness endianness = Endianness::Little;
 
 		IStream* underlyingStream = nullptr;
+		FileAddr streamSeekOffset = FileAddr::NullPtr;
 	};
 }
