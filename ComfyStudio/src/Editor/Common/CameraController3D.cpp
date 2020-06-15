@@ -63,9 +63,8 @@ namespace Comfy::Studio::Editor
 		{
 			if (Gui::IsWindowFocused())
 			{
-				vec3 frontDirection;
-				frontDirection = glm::normalize(camera.Interest - camera.ViewPoint);
-				frontDirection.y = 0.0f;
+				auto frontDirection = (camera.Interest - camera.ViewPoint);
+				frontDirection = glm::normalize(vec3(frontDirection.x, 0.0f, frontDirection.z));
 
 				if (Gui::IsMouseDown(0))
 				{
