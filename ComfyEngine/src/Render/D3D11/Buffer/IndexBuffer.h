@@ -18,7 +18,7 @@ namespace Comfy::Render::D3D11
 		ID3D11Buffer* GetBuffer();
 
 	protected:
-		const DXGI_FORMAT indexFormat;
+		DXGI_FORMAT indexFormat;
 		D3D11_BUFFER_DESC bufferDescription;
 		ComPtr<ID3D11Buffer> buffer = nullptr;
 	};

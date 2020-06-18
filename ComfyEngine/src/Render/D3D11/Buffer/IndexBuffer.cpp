@@ -31,6 +31,25 @@ namespace Comfy::Render::D3D11
 	IndexBuffer::IndexBuffer(size_t dataSize, const void* data, Graphics::IndexFormat indexFormat, D3D11_USAGE usage, UINT accessFlags)
 		: indexFormat(GetDXGIFormatFromIndexFormat(indexFormat))
 	{
+		std::unique_ptr<u16[]> convertedIndices = nullptr;
+
+		// NOTE: It seems D3D11 doesn't officially support 8-bit indices despite the NVIDIA drivers supporting them
+		if (indexFormat == Graphics::IndexFormat::U8 && data != nullptr)
+		{
+			indexFormat = Graphics::IndexFormat::U16;
+			this->indexFormat = GetDXGIFormatFromIndexFormat(indexFormat);
+
+			const auto indexCount = (dataSize / sizeof(u8));
+			const u8* inputIndices = static_cast<const u8*>(data);
+
+			convertedIndices = std::make_unique<u16[]>(indexCount);
+			for (size_t i = 0; i < indexCount; i++)
+				convertedIndices[i] = static_cast<u16>(inputIndices[i]);
+
+			dataSize = (indexCount * sizeof(u16));
+			data = convertedIndices.get();
+		}
+
 		bufferDescription.ByteWidth = static_cast<UINT>(dataSize);
 		bufferDescription.Usage = usage;
 		bufferDescription.BindFlags = D3D11_BIND_INDEX_BUFFER;
