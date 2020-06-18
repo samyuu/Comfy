@@ -35,7 +35,7 @@ namespace Comfy::Render::D3D11
 
 	void OcclusionQuery::QueryData()
 	{
-		if (isMidQuery)
+		if (isFirstQuery || isMidQuery)
 			return;
 
 		lastCoveredPixels = coveredPixels;
