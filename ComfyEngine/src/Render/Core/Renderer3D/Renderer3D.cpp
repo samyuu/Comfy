@@ -1012,8 +1012,7 @@ namespace Comfy::Render
 			SubmitQuadDrawCall();
 		}
 
-#if 1 // DEBUG:
-		enum class LensGhostType
+		enum class LensFlareGhostType
 		{
 			TL, // NOTE: Orange sphere
 			TR, // NOTE: Yellow sphere
@@ -1027,35 +1026,34 @@ namespace Comfy::Render
 			Rainbow = BR,
 		};
 
-		struct LensGhostInfo
+		struct LensFlareGhostInfo
 		{
 			float CenterDistance, Scale, Opacity;
-			LensGhostType Type;
+			LensFlareGhostType Type;
 		};
 
-		static constexpr std::array<LensGhostInfo, 16> LensGhostLayout
+		static constexpr std::array<LensFlareGhostInfo, 16> LensFlareGhostLayout
 		{
-			LensGhostInfo { -0.17f, 0.70f, 0.60f, LensGhostType::Pentagon },
-			LensGhostInfo { -0.10f, 0.40f, 0.70f, LensGhostType::Rainbow },
-			LensGhostInfo { +0.06f, 0.35f, 0.80f, LensGhostType::Orange },
-			LensGhostInfo { +0.10f, 0.50f, 0.70f, LensGhostType::Yellow },
+			LensFlareGhostInfo { -0.17f, 0.70f, 0.60f, LensFlareGhostType::Pentagon },
+			LensFlareGhostInfo { -0.10f, 0.40f, 0.70f, LensFlareGhostType::Rainbow },
+			LensFlareGhostInfo { +0.06f, 0.35f, 0.80f, LensFlareGhostType::Orange },
+			LensFlareGhostInfo { +0.10f, 0.50f, 0.70f, LensFlareGhostType::Yellow },
 
-			LensGhostInfo { +0.14f, 0.40f, 0.80f, LensGhostType::Pentagon },
-			LensGhostInfo { +0.04f, 0.30f, 0.70f, LensGhostType::Rainbow },
-			LensGhostInfo { -0.13f, 0.60f, 0.60f, LensGhostType::Orange },
-			LensGhostInfo { -0.22f, 0.40f, 0.80f, LensGhostType::Yellow },
+			LensFlareGhostInfo { +0.14f, 0.40f, 0.80f, LensFlareGhostType::Pentagon },
+			LensFlareGhostInfo { +0.04f, 0.30f, 0.70f, LensFlareGhostType::Rainbow },
+			LensFlareGhostInfo { -0.13f, 0.60f, 0.60f, LensFlareGhostType::Orange },
+			LensFlareGhostInfo { -0.22f, 0.40f, 0.80f, LensFlareGhostType::Yellow },
 
-			LensGhostInfo { -0.45f, 2.50f, 0.40f, LensGhostType::Pentagon },
-			LensGhostInfo { -0.80f, 0.80f, 0.50f, LensGhostType::Rainbow },
-			LensGhostInfo { +0.20f, 0.50f, 0.80f, LensGhostType::Orange },
-			LensGhostInfo { +0.41f, 0.50f, 0.80f, LensGhostType::Yellow },
+			LensFlareGhostInfo { -0.45f, 2.50f, 0.40f, LensFlareGhostType::Pentagon },
+			LensFlareGhostInfo { -0.80f, 0.80f, 0.50f, LensFlareGhostType::Rainbow },
+			LensFlareGhostInfo { +0.20f, 0.50f, 0.80f, LensFlareGhostType::Orange },
+			LensFlareGhostInfo { +0.41f, 0.50f, 0.80f, LensFlareGhostType::Yellow },
 
-			LensGhostInfo { -0.70f, 1.30f, 0.80f, LensGhostType::Pentagon },
-			LensGhostInfo { -0.30f, 1.50f, 1.00f, LensGhostType::Rainbow },
-			LensGhostInfo { +0.35f, 1.00f, 1.00f, LensGhostType::Orange },
-			LensGhostInfo { +0.50f, 1.10f, 1.00f, LensGhostType::Yellow },
+			LensFlareGhostInfo { -0.70f, 1.30f, 0.80f, LensFlareGhostType::Pentagon },
+			LensFlareGhostInfo { -0.30f, 1.50f, 1.00f, LensFlareGhostType::Rainbow },
+			LensFlareGhostInfo { +0.35f, 1.00f, 1.00f, LensFlareGhostType::Orange },
+			LensFlareGhostInfo { +0.50f, 1.10f, 1.00f, LensFlareGhostType::Yellow },
 		};
-#endif
 
 		void QueryRenderLensFlare()
 		{
@@ -1063,18 +1061,8 @@ namespace Comfy::Render
 			if (sunObj == nullptr)
 				return;
 
-			const vec3 cameraViewPoint = Current.Camera->ViewPoint;
-			const vec3 sunPosition = Current.SceneParam->LensFlare.SunPosition.value();
-
-			constexpr float sunScaleDistanceFactor = 0.56f;
-			const float sunDistance = glm::distance(sunPosition, cameraViewPoint);
-			const float sunScale = sunDistance * sunScaleDistanceFactor;
-
-			const quat sunLookAt = glm::quatLookAt(glm::normalize(cameraViewPoint - sunPosition), OrthographicCamera::UpDirection);
-			const mat4 sunTransform = glm::translate(mat4(1.0f), sunPosition) * glm::mat4_cast(sunLookAt) * glm::scale(mat4(1.0f), vec3(sunScale));
-
-			//ConstantBuffers.Object.Data.ModelViewProjection = glm::transpose(Current.Camera->GetViewProjection() * sunTransform);
-			//ConstantBuffers.Object.UploadData();
+			const vec3 sunWorldPosition = Current.SceneParam->LensFlare.SunPosition.value();
+			const float sunCameraeWorldDistance = glm::distance(sunWorldPosition, Current.Camera->ViewPoint);
 
 			if (!Current.RenderTarget->Param.DebugVisualizeOcclusionQuery)
 				LensFlareSunQueryBlendState.Bind();
@@ -1082,19 +1070,36 @@ namespace Comfy::Render
 			SolidNoCullingRasterizerState.Bind();
 			Shaders.Sun.Bind();
 
+			const auto& viewMatrix = Current.Camera->GetView();
+			auto viewAlignedTranslation = glm::translate(mat4(1.0f), sunWorldPosition);
+			viewAlignedTranslation[0][0] = viewMatrix[0][0];
+			viewAlignedTranslation[0][1] = viewMatrix[1][0];
+			viewAlignedTranslation[0][2] = viewMatrix[2][0];
+
+			viewAlignedTranslation[1][0] = viewMatrix[0][1];
+			viewAlignedTranslation[1][1] = viewMatrix[1][1];
+			viewAlignedTranslation[1][2] = viewMatrix[2][1];
+
+			viewAlignedTranslation[2][0] = viewMatrix[0][2];
+			viewAlignedTranslation[2][1] = viewMatrix[1][2];
+			viewAlignedTranslation[2][2] = viewMatrix[2][2];
+
 			auto renderBeginEndQuerySun = [&](auto& occlusionQuery, float scale = 1.0f)
 			{
 				occlusionQuery.QueryData();
 				occlusionQuery.BeginQuery();
 				{
-					//SetObjectCBTransforms(command, mesh, subMesh, ConstantBuffers.Object.Data);
-
 					// TODO: Draw 2D quad with orthographic camera
 					//		 Replace sun obj ptr with TexID
 					//		 Avoid total pixel count query by calculating pixels CPU side
 
-					const auto scaleMatrix = glm::scale(mat4(1.0f), vec3(scale));
-					ConstantBuffers.Object.Data.ModelViewProjection = glm::transpose(Current.Camera->GetViewProjection() * sunTransform * scaleMatrix);
+					constexpr float distanceScaleFactor = 0.3f;
+					const auto scaleMatrix = glm::scale(mat4(1.0f), vec3(scale * sunCameraeWorldDistance * distanceScaleFactor));
+
+					auto mvpMatrix = Current.Camera->GetViewProjection() * viewAlignedTranslation * scaleMatrix;
+
+					ConstantBuffers.Object.Data.ModelViewProjection = glm::transpose(mvpMatrix);
+
 					ConstantBuffers.Object.UploadData();
 
 					BindMaterialTextures({}, sunObj->Materials.front(), {});
@@ -1110,69 +1115,14 @@ namespace Comfy::Render
 				occlusionQuery.EndQuery();
 			};
 
-			static float DEBUG_sunObjScale = 1.0f;
-			//static float DEBUG_sunObjOffScreenScale = 1.0f;
+			constexpr float sunObjScreenScale = 1.5f;
 
 			LensFlareReadDepthDepthStencilState.Bind();
-			renderBeginEndQuerySun(Current.RenderTarget->Sun.OcclusionQuery, DEBUG_sunObjScale);
-			//renderBeginEndQuerySun(Current.RenderTarget->Sun.OffScreenOcclusionQuery, DEBUG_sunObjOffScreenScale);
+			renderBeginEndQuerySun(Current.RenderTarget->Sun.OcclusionQuery, sunObjScreenScale);
+			// renderBeginEndQuerySun(Current.RenderTarget->Sun.OffScreenOcclusionQuery, sunObjOffScreenScale);
+
 			LensFlareIgnoreDepthDepthStencilState.Bind();
-			renderBeginEndQuerySun(Current.RenderTarget->Sun.NoDepthOcclusionQuery, DEBUG_sunObjScale);
-
-#if COMFY_DEBUG && 0 // TODO:
-			const vec2 normalizedSunScreenPosition = Current.Camera->ProjectPointNormalizedScreen(sunPosition);
-
-			const vec2 sunScreenPos = Gui::GetWindowPos() + (normalizedSunScreenPosition * Gui::GetWindowSize());
-			const vec2 screenCenter = Gui::GetWindowPos() + (vec2(0.5f, 0.5f) * Gui::GetWindowSize());
-
-			char buffer[64]; sprintf_s(buffer, "{ x=%.2f, y=%.2f } ", sunScreenPos.x, sunScreenPos.y);
-			Gui::GetForegroundDrawList()->AddText(sunScreenPos, IM_COL32_BLACK, buffer);
-			Gui::GetForegroundDrawList()->AddLine(sunScreenPos, screenCenter, IM_COL32_BLACK);
-
-			auto foregroundDrawList = Gui::GetForegroundDrawList();
-			Gui::DEBUG_NOSAVE_WINDOW(__FUNCTION__"(): Test", [&]
-			{
-				Gui::DragFloat("DEBUG_sunObjScale", &DEBUG_sunObjScale, 0.1f);
-				Gui::DragFloat("DEBUG_sunObjOffScreenScale", &DEBUG_sunObjOffScreenScale, 0.1f);
-
-				const auto coveredPixels = Current.RenderTarget->Sun.OcclusionQuery.GetCoveredPixels();
-				const auto coveredNoDepthPixels = Current.RenderTarget->Sun.NoDepthOcclusionQuery.GetCoveredPixels();
-
-				if (auto ghostTex = TexGetter(&Current.SceneParam->LensFlare.Textures.Ghost); ghostTex != nullptr)
-				{
-					const vec2 sunDirection = glm::normalize(screenCenter - sunScreenPos);
-					const float distanceStep = glm::distance(screenCenter, sunScreenPos) / 16.0f;
-					float distance = 0.0f;
-
-					for (const auto ghostType : LensGhostOrder)
-					{
-						constexpr auto size = 50.0f;
-						constexpr auto centeroffset = vec2(size / 2.0f);
-
-						const auto position = screenCenter - (sunDirection * distance);
-						distance += distanceStep;
-
-						const auto texCoords = LensGhostTexCoord[static_cast<size_t>(ghostType)];
-
-						const float coveredPercentage = (static_cast<float>(coveredPixels) / static_cast<float>(coveredNoDepthPixels));
-						const float alpha = (distanceStep / distance) * (coveredPercentage * 0.5f);
-
-						// foregroundDrawList->AddImage(*ghostTex, position - centeroffset, position + centeroffset, texCoords[0], texCoords[2], ImColor(1.0f, 1.0f, 1.0f, alpha));
-					}
-
-					//struct PositionTextureVertex
-					//{
-					//	vec3 Position;
-					//	vec2 TextureCoordinates;
-					//};
-
-					//D3D11::StaticVertexBuffer vertexBuffer;
-				}
-
-				Gui::Text("Current.RenderTarget->Sun.OcclusionQuery.GetCoveredPixels(): %d", static_cast<int>(coveredPixels));
-				Gui::Text("Current.RenderTarget->Sun.NoDepthOcclusionQuery.GetCoveredPixels(): %d", static_cast<int>(coveredNoDepthPixels));
-			});
-#endif
+			renderBeginEndQuerySun(Current.RenderTarget->Sun.NoDepthOcclusionQuery, sunObjScreenScale);
 		}
 
 		void RenderLensFlareGhost()
@@ -1192,7 +1142,7 @@ namespace Comfy::Render
 				Mesh mesh = {};
 				mesh.AttributeFlags = (VertexAttributeFlags_Position | VertexAttributeFlags_TextureCoordinate0);
 				mesh.VertexData.Stride = sizeof(vec3) + sizeof(vec2);
-				mesh.VertexData.VertexCount = 4 * static_cast<u32>(LensGhostType::Count);
+				mesh.VertexData.VertexCount = 4 * static_cast<u32>(LensFlareGhostType::Count);
 				mesh.VertexData.Positions =
 				{
 					vec3(-0.5f, +0.5f, 0.0f), vec3(-0.5f, -0.5f, 0.0f), vec3(+0.5f, -0.5f, 0.0f), vec3(+0.5f, +0.5f, 0.0f),
@@ -1208,7 +1158,7 @@ namespace Comfy::Render
 					vec2(0.5f, 0.5f), vec2(0.5f, 0.0f), vec2(1.0f, 0.0f), vec2(1.0f, 0.5f),
 				};
 
-				for (u16 i = 0; i < static_cast<u16>(LensGhostType::Count); i++)
+				for (u16 i = 0; i < static_cast<u16>(LensFlareGhostType::Count); i++)
 				{
 					auto& subMesh = mesh.SubMeshes.emplace_back();
 					subMesh.Primitive = PrimitiveType::Triangles;
@@ -1232,7 +1182,7 @@ namespace Comfy::Render
 			BindMeshVertexBuffers(mesh, nullptr);
 			D3D11::ShaderResourceView::BindArray<1>(TextureSlot_Diffuse, { D3D11::GetTexture2D(*ghostTex) });
 
-			auto renderGhost = [&](LensGhostType type, vec2 normalizedScreenPos, float scale, float rotation, float opacity = 1.0f)
+			auto renderGhost = [&](LensFlareGhostType type, vec2 normalizedScreenPos, float scale, float rotation, float opacity = 1.0f)
 			{
 				const auto translation = vec2((normalizedScreenPos.x * 2.0f - 1.0f), (1.0f - normalizedScreenPos.y * 2.0f));
 
@@ -1261,7 +1211,7 @@ namespace Comfy::Render
 
 				constexpr float baseScale = 1.7f, ghostA = 0.4f;
 
-				for (const auto& info : LensGhostLayout)
+				for (const auto& info : LensFlareGhostLayout)
 				{
 					const vec2 ghostPosition = getGhostPositionFromCenterDistance(info.CenterDistance);
 					const float distancePercentage = (1.1f - glm::distance(ghostPosition, normalizedCenter)) * coveredPercentage;
@@ -1510,6 +1460,12 @@ namespace Comfy::Render
 			ConstantBuffers.Object.Data.ShaderFlags = GetObjectCBShaderFlags(command, mesh, subMesh, material, boundMaterialTexturesFlags);
 
 			ConstantBuffers.Object.UploadData();
+
+			// DEBUG:
+			{
+				// subMesh.BoneIndices;
+				// ConstantBuffers.Skeleton.UploadData();
+			}
 
 			SubmitSubMeshDrawCall(subMesh);
 		}
@@ -1764,12 +1720,12 @@ namespace Comfy::Render
 			{
 				const float morphWeight = command.SourceCommand.Dynamic->MorphWeight;
 				return vec4(morphWeight, 1.0f - morphWeight, 0.0f, 0.0f);
-			}
+		}
 			else
 			{
 				return vec4(0.0f, 0.0f, 0.0f, 0.0f);
 			}
-		}
+	}
 
 		u32 GetObjectCBShaderFlags(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, u32 boundMaterialTexturesFlags) const
 		{
@@ -2033,7 +1989,7 @@ namespace Comfy::Render
 		{
 			return Current.RenderTarget->Param.DebugFlags & (1 << bitIndex);
 		}
-	};
+};
 
 	Renderer3D::Renderer3D(TexGetter texGetter) : impl(std::make_unique<Impl>())
 	{
