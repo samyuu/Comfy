@@ -1115,7 +1115,7 @@ namespace Comfy::Render
 			const auto& sunOcclusionData = Current.RenderTarget->Sun;
 			const float coveredPercentage = (static_cast<float>(sunOcclusionData.OcclusionQuery.GetCoveredPixels()) / static_cast<float>(sunOcclusionData.NoDepthOcclusionQuery.GetCoveredPixels()));
 
-			constexpr float baseScale = 1.7f, ghostA = 0.4f;
+			constexpr float baseScale = 1.7f;
 			const float ghostRotation = (glm::atan(sunDirection.x, sunDirection.y));
 
 			for (const auto& info : Detail::LensFlareGhostLayout)
@@ -1123,7 +1123,7 @@ namespace Comfy::Render
 				const vec2 ghostPosition = Detail::GetLensFlareGhostPosition(info, normalizedCenter, normalizedSunScreenPosition);
 				const float distancePercentage = (1.1f - glm::distance(ghostPosition, normalizedCenter)) * coveredPercentage;
 				const float ghostScale = (((distancePercentage * distancePercentage) * 0.03f) + 0.02f) * info.Scale * baseScale;
-				const float ghostOpacity = distancePercentage * info.Opacity * ghostA;
+				const float ghostOpacity = distancePercentage * info.Opacity * Current.SceneParam->Glow.GhostA;
 
 				if (!glm::isnan(ghostOpacity))
 					renderGhost(info.Type, ghostPosition, ghostScale, ghostRotation, ghostOpacity);
