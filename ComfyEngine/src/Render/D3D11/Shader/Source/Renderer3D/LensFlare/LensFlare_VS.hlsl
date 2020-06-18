@@ -12,6 +12,6 @@ VS_OUTPUT VS_main(VS_INPUT input)
     output.Position = ModelToClipSpace(input.Position);
     output.TexCoord = input.TexCoord;
     output.Color = input.Color;
-    
+
     return output;
 }

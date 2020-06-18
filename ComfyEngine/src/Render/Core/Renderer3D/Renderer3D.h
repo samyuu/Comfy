@@ -21,12 +21,13 @@ namespace Comfy::Render
 			std::optional<vec3> SunPosition;
 			const Graphics::Obj* SunObj = nullptr;
 
-			struct Textures
+			struct TextureData
 			{
 				// NOTE: Common sun texture from effcmn
 				Cached_TexID Sun = TexID::Invalid;
 				// NOTE: Stage specific textures
 				std::array<Cached_TexID, 2> Flares = { TexID::Invalid, TexID::Invalid };
+				// NOTE: 2x2 packed lens ghost textures
 				Cached_TexID Ghost = TexID::Invalid;
 			} Textures;
 		} LensFlare;

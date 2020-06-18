@@ -8,9 +8,12 @@ static const float4 DebugColorEnd = float4(25.0, 0.0, 25.0, 1.0);
 
 float4 PS_main(VS_OUTPUT input) : SV_Target
 {
+    // TODO:
+    // float4 textureColor = DiffuseTexture.Sample(DiffuseSampler, input.TexCoord);
+    // return textureColor;
+    
     return float4(1.0, 0.0, 1.0, 1.0);
     
-    // TODO:
     const float timeFactor = CB_Scene.RenderTime.TimeCos.w;
     return lerp(DebugColorStart, DebugColorEnd, timeFactor);
 }

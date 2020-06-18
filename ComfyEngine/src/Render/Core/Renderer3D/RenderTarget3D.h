@@ -56,7 +56,6 @@ namespace Comfy::Render
 			bool AllowDebugShaderOverride = true;
 
 			bool DebugVisualizeOcclusionQuery = true;
-			bool LastFrameOcclusionQueryOptimization = true;
 
 			// TODO: In the future (to then only enable for certain viewports)
 			// bool VisualizeNormals = false;

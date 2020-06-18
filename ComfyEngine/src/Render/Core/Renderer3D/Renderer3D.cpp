@@ -18,6 +18,8 @@
 #include "Render/D3D11/Texture/RenderTarget.h"
 #include "Render/D3D11/Texture/TextureSampler.h"
 
+#include "ImGui/Gui.h"
+
 namespace Comfy::Render
 {
 	using namespace Graphics;
@@ -304,6 +306,13 @@ namespace Comfy::Render
 
 		D3D11::DepthStencilState TransparencyPassDepthStencilState = { true, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::Transparency" };
 
+		//D3D11::DepthStencilState DepthNoWriteDepthStencilState = { true, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::DepthNoWrite" };
+		//D3D11::DepthStencilState NoDepthNoWriteDepthStencilState = { false, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::NoDepthNoWrite" };
+		D3D11::DepthStencilState LensFlareReadDepthDepthStencilState = { true, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::LensFlareReadDepth" };
+		D3D11::DepthStencilState LensFlareIgnoreDepthDepthStencilState = { false, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::LensFlareIgnoreDepth" };
+
+		// D3D11::DepthStencilState LensFlareNoDepthStencilState = { false, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::LensFlareNoDepth" };
+
 		D3D11::BlendState LensFlareSunQueryBlendState = { D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_OP_ADD, D3D11_BLEND_OP_ADD, D3D11_COLOR_WRITE_ENABLE { } };
 
 		// NOTE: To avoid having to bind and clear render targets that won't be used this frame
@@ -547,11 +556,11 @@ namespace Comfy::Render
 				for (auto& command : DefaultCommandList.Transparent)
 					RenderTransparentSubMeshCommand(command);
 
-				if (Current.RenderTarget->Param.RenderLensFlare && Current.SceneParam->LensFlare.SunPosition.has_value())
-					RenderLensFlare();
-
 				TransparencyPassDepthStencilState.UnBind();
 			}
+
+			if (Current.RenderTarget->Param.RenderLensFlare && Current.SceneParam->LensFlare.SunPosition.has_value())
+				RenderLensFlareGhost();
 
 			if (IsAnyCommand.SilhouetteOutline)
 				RenderSilhouette();
@@ -1003,6 +1012,51 @@ namespace Comfy::Render
 			SubmitQuadDrawCall();
 		}
 
+#if 1 // DEBUG:
+		enum class LensGhostType
+		{
+			TL, // NOTE: Orange sphere
+			TR, // NOTE: Yellow sphere
+			BL, // NOTE: Pentagon
+			BR, // NOTE: Rainbow
+			Count,
+
+			Orange = TL,
+			Yellow = TR,
+			Pentagon = BL,
+			Rainbow = BR,
+		};
+
+		struct LensGhostInfo
+		{
+			float CenterDistance, Scale, Opacity;
+			LensGhostType Type;
+		};
+
+		static constexpr std::array<LensGhostInfo, 16> LensGhostLayout
+		{
+			LensGhostInfo { -0.17f, 0.70f, 0.60f, LensGhostType::Pentagon },
+			LensGhostInfo { -0.10f, 0.40f, 0.70f, LensGhostType::Rainbow },
+			LensGhostInfo { +0.06f, 0.35f, 0.80f, LensGhostType::Orange },
+			LensGhostInfo { +0.10f, 0.50f, 0.70f, LensGhostType::Yellow },
+
+			LensGhostInfo { +0.14f, 0.40f, 0.80f, LensGhostType::Pentagon },
+			LensGhostInfo { +0.04f, 0.30f, 0.70f, LensGhostType::Rainbow },
+			LensGhostInfo { -0.13f, 0.60f, 0.60f, LensGhostType::Orange },
+			LensGhostInfo { -0.22f, 0.40f, 0.80f, LensGhostType::Yellow },
+
+			LensGhostInfo { -0.45f, 2.50f, 0.40f, LensGhostType::Pentagon },
+			LensGhostInfo { -0.80f, 0.80f, 0.50f, LensGhostType::Rainbow },
+			LensGhostInfo { +0.20f, 0.50f, 0.80f, LensGhostType::Orange },
+			LensGhostInfo { +0.41f, 0.50f, 0.80f, LensGhostType::Yellow },
+
+			LensGhostInfo { -0.70f, 1.30f, 0.80f, LensGhostType::Pentagon },
+			LensGhostInfo { -0.30f, 1.50f, 1.00f, LensGhostType::Rainbow },
+			LensGhostInfo { +0.35f, 1.00f, 1.00f, LensGhostType::Orange },
+			LensGhostInfo { +0.50f, 1.10f, 1.00f, LensGhostType::Yellow },
+		};
+#endif
+
 		void QueryRenderLensFlare()
 		{
 			const Obj* sunObj = Current.SceneParam->LensFlare.SunObj;
@@ -1019,8 +1073,8 @@ namespace Comfy::Render
 			const quat sunLookAt = glm::quatLookAt(glm::normalize(cameraViewPoint - sunPosition), OrthographicCamera::UpDirection);
 			const mat4 sunTransform = glm::translate(mat4(1.0f), sunPosition) * glm::mat4_cast(sunLookAt) * glm::scale(mat4(1.0f), vec3(sunScale));
 
-			ConstantBuffers.Object.Data.ModelViewProjection = glm::transpose(Current.Camera->GetViewProjection() * sunTransform);
-			ConstantBuffers.Object.UploadData();
+			//ConstantBuffers.Object.Data.ModelViewProjection = glm::transpose(Current.Camera->GetViewProjection() * sunTransform);
+			//ConstantBuffers.Object.UploadData();
 
 			if (!Current.RenderTarget->Param.DebugVisualizeOcclusionQuery)
 				LensFlareSunQueryBlendState.Bind();
@@ -1028,27 +1082,46 @@ namespace Comfy::Render
 			SolidNoCullingRasterizerState.Bind();
 			Shaders.Sun.Bind();
 
-			auto& sunOcclusionQuery = Current.RenderTarget->Sun.OcclusionQuery;
-			if (Current.RenderTarget->Param.LastFrameOcclusionQueryOptimization && !sunOcclusionQuery.IsFirstQuery())
-				sunOcclusionQuery.QueryData();
-
-			sunOcclusionQuery.BeginQuery();
+			auto renderBeginEndQuerySun = [&](auto& occlusionQuery, float scale = 1.0f)
 			{
-				for (auto& mesh : sunObj->Meshes)
+				occlusionQuery.QueryData();
+				occlusionQuery.BeginQuery();
 				{
-					BindMeshVertexBuffers(mesh, nullptr);
-					for (auto& subMesh : mesh.SubMeshes)
-						SubmitSubMeshDrawCall(subMesh);
+					//SetObjectCBTransforms(command, mesh, subMesh, ConstantBuffers.Object.Data);
+
+					// TODO: Draw 2D quad with orthographic camera
+					//		 Replace sun obj ptr with TexID
+					//		 Avoid total pixel count query by calculating pixels CPU side
+
+					const auto scaleMatrix = glm::scale(mat4(1.0f), vec3(scale));
+					ConstantBuffers.Object.Data.ModelViewProjection = glm::transpose(Current.Camera->GetViewProjection() * sunTransform * scaleMatrix);
+					ConstantBuffers.Object.UploadData();
+
+					BindMaterialTextures({}, sunObj->Materials.front(), {});
+
+					for (const auto& mesh : sunObj->Meshes)
+					{
+						BindMeshVertexBuffers(mesh, nullptr);
+
+						for (const auto& subMesh : mesh.SubMeshes)
+							SubmitSubMeshDrawCall(subMesh);
+					}
 				}
-			}
-			sunOcclusionQuery.EndQuery();
+				occlusionQuery.EndQuery();
+			};
 
-			if (!Current.RenderTarget->Param.LastFrameOcclusionQueryOptimization)
-				sunOcclusionQuery.QueryData();
+			static float DEBUG_sunObjScale = 1.0f;
+			//static float DEBUG_sunObjOffScreenScale = 1.0f;
 
-			const vec2 normalizedSunScreenPosition = Current.Camera->ProjectPointNormalizedScreen(sunPosition);
+			LensFlareReadDepthDepthStencilState.Bind();
+			renderBeginEndQuerySun(Current.RenderTarget->Sun.OcclusionQuery, DEBUG_sunObjScale);
+			//renderBeginEndQuerySun(Current.RenderTarget->Sun.OffScreenOcclusionQuery, DEBUG_sunObjOffScreenScale);
+			LensFlareIgnoreDepthDepthStencilState.Bind();
+			renderBeginEndQuerySun(Current.RenderTarget->Sun.NoDepthOcclusionQuery, DEBUG_sunObjScale);
 
 #if COMFY_DEBUG && 0 // TODO:
+			const vec2 normalizedSunScreenPosition = Current.Camera->ProjectPointNormalizedScreen(sunPosition);
+
 			const vec2 sunScreenPos = Gui::GetWindowPos() + (normalizedSunScreenPosition * Gui::GetWindowSize());
 			const vec2 screenCenter = Gui::GetWindowPos() + (vec2(0.5f, 0.5f) * Gui::GetWindowSize());
 
@@ -1056,16 +1129,152 @@ namespace Comfy::Render
 			Gui::GetForegroundDrawList()->AddText(sunScreenPos, IM_COL32_BLACK, buffer);
 			Gui::GetForegroundDrawList()->AddLine(sunScreenPos, screenCenter, IM_COL32_BLACK);
 
+			auto foregroundDrawList = Gui::GetForegroundDrawList();
 			Gui::DEBUG_NOSAVE_WINDOW(__FUNCTION__"(): Test", [&]
 			{
-				Gui::Text("sunOcclusionQuery.GetCoveredPixels(): %d", static_cast<int>(SunOcclusionQuery.GetCoveredPixels()));
+				Gui::DragFloat("DEBUG_sunObjScale", &DEBUG_sunObjScale, 0.1f);
+				Gui::DragFloat("DEBUG_sunObjOffScreenScale", &DEBUG_sunObjOffScreenScale, 0.1f);
+
+				const auto coveredPixels = Current.RenderTarget->Sun.OcclusionQuery.GetCoveredPixels();
+				const auto coveredNoDepthPixels = Current.RenderTarget->Sun.NoDepthOcclusionQuery.GetCoveredPixels();
+
+				if (auto ghostTex = TexGetter(&Current.SceneParam->LensFlare.Textures.Ghost); ghostTex != nullptr)
+				{
+					const vec2 sunDirection = glm::normalize(screenCenter - sunScreenPos);
+					const float distanceStep = glm::distance(screenCenter, sunScreenPos) / 16.0f;
+					float distance = 0.0f;
+
+					for (const auto ghostType : LensGhostOrder)
+					{
+						constexpr auto size = 50.0f;
+						constexpr auto centeroffset = vec2(size / 2.0f);
+
+						const auto position = screenCenter - (sunDirection * distance);
+						distance += distanceStep;
+
+						const auto texCoords = LensGhostTexCoord[static_cast<size_t>(ghostType)];
+
+						const float coveredPercentage = (static_cast<float>(coveredPixels) / static_cast<float>(coveredNoDepthPixels));
+						const float alpha = (distanceStep / distance) * (coveredPercentage * 0.5f);
+
+						// foregroundDrawList->AddImage(*ghostTex, position - centeroffset, position + centeroffset, texCoords[0], texCoords[2], ImColor(1.0f, 1.0f, 1.0f, alpha));
+					}
+
+					//struct PositionTextureVertex
+					//{
+					//	vec3 Position;
+					//	vec2 TextureCoordinates;
+					//};
+
+					//D3D11::StaticVertexBuffer vertexBuffer;
+				}
+
+				Gui::Text("Current.RenderTarget->Sun.OcclusionQuery.GetCoveredPixels(): %d", static_cast<int>(coveredPixels));
+				Gui::Text("Current.RenderTarget->Sun.NoDepthOcclusionQuery.GetCoveredPixels(): %d", static_cast<int>(coveredNoDepthPixels));
 			});
 #endif
 		}
 
-		void RenderLensFlare()
+		void RenderLensFlareGhost()
 		{
+			const auto ghostTex = TexGetter(&Current.SceneParam->LensFlare.Textures.Ghost);
+			if (ghostTex == nullptr)
+				return;
+
+			TransparencyPassDepthStencilState.Bind();
+
+			Current.RenderTarget->BlendStates.GetState(BlendFactor::One, BlendFactor::One).Bind();
+
 			Shaders.LensFlare.Bind();
+
+			auto createFlatPlaneMesh = []()
+			{
+				Mesh mesh = {};
+				mesh.AttributeFlags = (VertexAttributeFlags_Position | VertexAttributeFlags_TextureCoordinate0);
+				mesh.VertexData.Stride = sizeof(vec3) + sizeof(vec2);
+				mesh.VertexData.VertexCount = 4 * static_cast<u32>(LensGhostType::Count);
+				mesh.VertexData.Positions =
+				{
+					vec3(-0.5f, +0.5f, 0.0f), vec3(-0.5f, -0.5f, 0.0f), vec3(+0.5f, -0.5f, 0.0f), vec3(+0.5f, +0.5f, 0.0f),
+					vec3(-0.5f, +0.5f, 0.0f), vec3(-0.5f, -0.5f, 0.0f), vec3(+0.5f, -0.5f, 0.0f), vec3(+0.5f, +0.5f, 0.0f),
+					vec3(-0.5f, +0.5f, 0.0f), vec3(-0.5f, -0.5f, 0.0f), vec3(+0.5f, -0.5f, 0.0f), vec3(+0.5f, +0.5f, 0.0f),
+					vec3(-0.5f, +0.5f, 0.0f), vec3(-0.5f, -0.5f, 0.0f), vec3(+0.5f, -0.5f, 0.0f), vec3(+0.5f, +0.5f, 0.0f),
+				};
+				mesh.VertexData.TextureCoordinates[0] =
+				{
+					vec2(0.0f, 1.0f), vec2(0.0f, 0.5f), vec2(0.5f, 0.5f), vec2(0.5f, 1.0f),
+					vec2(0.5f, 1.0f), vec2(0.5f, 0.5f), vec2(1.0f, 0.5f), vec2(1.0f, 1.0f),
+					vec2(0.0f, 0.5f), vec2(0.0f, 0.0f), vec2(0.5f, 0.0f), vec2(0.5f, 0.5f),
+					vec2(0.5f, 0.5f), vec2(0.5f, 0.0f), vec2(1.0f, 0.0f), vec2(1.0f, 0.5f),
+				};
+
+				for (u16 i = 0; i < static_cast<u16>(LensGhostType::Count); i++)
+				{
+					auto& subMesh = mesh.SubMeshes.emplace_back();
+					subMesh.Primitive = PrimitiveType::Triangles;
+
+					const u16 indexOffset = (i * 4);
+					auto& indices = subMesh.Indices.emplace<std::vector<u16>>();
+					indices.reserve(6);
+					indices.push_back(0 + indexOffset);
+					indices.push_back(1 + indexOffset);
+					indices.push_back(3 + indexOffset);
+					indices.push_back(1 + indexOffset);
+					indices.push_back(2 + indexOffset);
+					indices.push_back(3 + indexOffset);
+				}
+
+				return mesh;
+			};
+
+			static auto mesh = createFlatPlaneMesh();
+
+			BindMeshVertexBuffers(mesh, nullptr);
+			D3D11::ShaderResourceView::BindArray<1>(TextureSlot_Diffuse, { D3D11::GetTexture2D(*ghostTex) });
+
+			auto renderGhost = [&](LensGhostType type, vec2 normalizedScreenPos, float scale, float rotation, float opacity = 1.0f)
+			{
+				const auto translation = vec2((normalizedScreenPos.x * 2.0f - 1.0f), (1.0f - normalizedScreenPos.y * 2.0f));
+
+				ConstantBuffers.Object.Data.Material.Transparency = opacity;
+				ConstantBuffers.Object.Data.ModelViewProjection = glm::transpose(
+					glm::scale(mat4(1.0f), vec3(1.0f, Current.Camera->AspectRatio, 1.0f)) *
+					glm::translate(mat4(1.0f), vec3(translation.x, translation.y / Current.Camera->AspectRatio, 0.0f)) *
+					glm::rotate(mat4(1.0f), rotation, vec3(0.0f, 0.0f, 1.0f)) *
+					glm::scale(mat4(1.0f), vec3(scale))
+				);
+
+				ConstantBuffers.Object.UploadData();
+
+				SubmitSubMeshDrawCall(mesh.SubMeshes[static_cast<size_t>(type)]);
+			};
+
+			constexpr vec2 normalizedCenter = vec2(0.5f, 0.5f);
+			const vec2 normalizedSunScreenPosition = Current.Camera->ProjectPointNormalizedScreen(Current.SceneParam->LensFlare.SunPosition.value());
+			const vec2 sunDirection = glm::normalize(normalizedCenter - normalizedSunScreenPosition);
+
+			{
+				auto getGhostPositionFromCenterDistance = [&](float distance) -> vec2 { return (1.0f - distance) * normalizedCenter + distance * normalizedSunScreenPosition; };
+
+				const auto& sunOcclusionData = Current.RenderTarget->Sun;
+				const float coveredPercentage = (static_cast<float>(sunOcclusionData.OcclusionQuery.GetCoveredPixels()) / static_cast<float>(sunOcclusionData.NoDepthOcclusionQuery.GetCoveredPixels()));
+
+				constexpr float baseScale = 1.7f, ghostA = 0.4f;
+
+				for (const auto& info : LensGhostLayout)
+				{
+					const vec2 ghostPosition = getGhostPositionFromCenterDistance(info.CenterDistance);
+					const float distancePercentage = (1.1f - glm::distance(ghostPosition, normalizedCenter)) * coveredPercentage;
+					const float ghostScale = (((distancePercentage * distancePercentage) * 0.03f) + 0.02f) * info.Scale * baseScale;
+					const float ghostRotation = (glm::atan(sunDirection.x, sunDirection.y));
+					const float ghostOpacity = distancePercentage * info.Opacity * ghostA;
+
+					if (!glm::isnan(ghostOpacity))
+						renderGhost(info.Type, ghostPosition, ghostScale, ghostRotation, ghostOpacity);
+				}
+			}
+
+			TransparencyPassDepthStencilState.UnBind();
 		}
 
 		void RenderPostProcessing()
@@ -1743,8 +1952,8 @@ namespace Comfy::Render
 		{
 			const size_t indexCount = subMesh.GetIndexCount();
 
-			if (auto* indexBuffer = D3D11::GetIndexBuffer(subMesh);
-				indexBuffer != nullptr) indexBuffer->Bind();
+			if (auto* indexBuffer = D3D11::GetIndexBuffer(subMesh); indexBuffer != nullptr)
+				indexBuffer->Bind();
 
 			D3D11::D3D.Context->IASetPrimitiveTopology(GetD3DPrimitiveTopolgy(subMesh.Primitive));
 			D3D11::D3D.Context->DrawIndexed(static_cast<UINT>(indexCount), 0, 0);
