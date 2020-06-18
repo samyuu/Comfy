@@ -455,7 +455,6 @@ namespace Comfy::Studio::Editor
 				GuiProperty::ColorEditHDR("ShaderDebugValue", renderParam.ShaderDebugValue);
 
 				GuiProperty::Checkbox("Visualize Occlusion Query", renderParam.DebugVisualizeOcclusionQuery);
-				GuiProperty::Checkbox("Occlusion Query Optimization", renderParam.LastFrameOcclusionQueryOptimization);
 			});
 
 			GuiProperty::TreeNode("General", ImGuiTreeNodeFlags_DefaultOpen, [&]
@@ -595,6 +594,9 @@ namespace Comfy::Studio::Editor
 		GuiProperty::Input("Bloom Sigma", scene.Glow.Sigma, 0.005f, vec2(0.0f, 3.0f));
 		GuiProperty::Input("Bloom Intensity", scene.Glow.Intensity, 0.005f, vec2(0.0f, 2.0f));
 		GuiProperty::Checkbox("Auto Exposure", scene.Glow.AutoExposure);
+		GuiProperty::Input("Flare Alpha", scene.Glow.FlareA, 0.005f, vec2(0.0f, 1.0f));
+		GuiProperty::Input("Shaft Alpha", scene.Glow.ShaftA, 0.005f, vec2(0.0f, 1.0f));
+		GuiProperty::Input("Ghost Alpha", scene.Glow.GhostA, 0.005f, vec2(0.0f, 1.0f));
 	}
 
 	void SceneEditor::DrawLightGui()
@@ -1456,7 +1458,8 @@ namespace Comfy::Studio::Editor
 
 #if COMFY_DEBUG && 0 // DEBUG:
 #if 1
-		scene.LensFlare.SunPosition = vec3(11.017094f, 5.928364f, -57.304039f);
+		//scene.LensFlare.SunPosition = vec3(11.017094f, 5.928364f, -57.304039f);
+		scene.LensFlare.SunPosition = vec3(43.4f, 5.0f, -36.4f);
 		//scene.LensFlare.SunPosition = vec3(0.0f, 2.0f, 0.0f);
 #endif
 
@@ -1471,9 +1474,27 @@ namespace Comfy::Studio::Editor
 			effCmnObjSet = ObjSet::MakeUniqueReadParseUpload(effCmnObjSetPath);
 			effCmnObjSet->TexSet = TexSet::MakeUniqueReadParseUpload(effCmnTexSetPath, effCmnObjSet.get());
 
+			sceneGraph.RegisterTextures(effCmnObjSet->TexSet.get());
+
 			if (auto sunObj = std::find_if(effCmnObjSet->begin(), effCmnObjSet->end(), [&](const auto& obj) { return obj.Name == "effcmn_sun"; }); sunObj != effCmnObjSet->end())
+			{
 				scene.LensFlare.SunObj = &(*sunObj);
+				scene.LensFlare.Textures.Sun = sunObj->Materials.front().Textures.front().TextureID;
+			}
 		}
+
+		for (const auto& objSet : sceneGraph.LoadedObjSets)
+		{
+			for (const auto& obj : *objSet.ObjSet)
+			{
+				if (obj.Materials.empty())
+					continue;
+
+				if (Util::EndsWithInsensitive(obj.Name, "lensghost_0"))
+					scene.LensFlare.Textures.Ghost.ID = obj.Materials.front().Textures[0].TextureID;
+			}
+		}
+
 #elif 1
 		scene.LensFlare.SunObj = nullptr;
 
