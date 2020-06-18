@@ -198,6 +198,7 @@
     <ClInclude Include="src\Render\Core\Renderer2D\AetRenderer.h" />
     <ClInclude Include="src\Render\Core\Renderer2D\Renderer2D.h" />
     <ClInclude Include="src\Render\Core\Renderer2D\RenderTarget2D.h" />
+    <ClInclude Include="src\Render\Core\Renderer3D\Detail\LensFlare.h" />
     <ClInclude Include="src\Render\Core\Renderer3D\Detail\RenderTarget3DImpl.h" />
     <ClInclude Include="src\Render\Core\Renderer3D\RenderCommand3D.h" />
     <ClInclude Include="src\Render\Core\Renderer3D\Renderer3D.h" />
