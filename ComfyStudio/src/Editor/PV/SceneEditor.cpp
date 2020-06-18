@@ -607,10 +607,25 @@ namespace Comfy::Studio::Editor
 
 			GuiProperty::TreeNode(name, flags, [&]
 			{
+				GuiProperty::Combo("Type", light.Type, LightSourceTypeNames);
+
+				if (light.Type == LightSourceType::None)
+					return;
+
 				GuiProperty::Input("Position", light.Position, 0.01f);
 				GuiProperty::ColorEditHDR("Ambient", light.Ambient);
 				GuiProperty::ColorEditHDR("Diffuse", light.Diffuse);
 				GuiProperty::ColorEditHDR("Specular", light.Specular);
+
+				if (light.Type == LightSourceType::Spot)
+				{
+					GuiProperty::Input("Spot Direction", light.SpotDirection, 0.01f);
+					GuiProperty::Input("Spot Exponent", light.SpotExponent, 0.01f);
+					GuiProperty::Input("Spot Cuttoff", light.SpotCuttoff, 0.01f);
+					GuiProperty::Input("Attenuation Constant", light.AttenuationConstant, 0.01f);
+					GuiProperty::Input("Attenuation Linear", light.AttenuationLinear, 0.01f);
+					GuiProperty::Input("Attenuation Quadratic", light.AttenuationQuadratic, 0.01f);
+				}
 			});
 		};
 
@@ -622,6 +637,7 @@ namespace Comfy::Studio::Editor
 
 		lightGui("Character Light", scene.Light.Character, ImGuiTreeNodeFlags_DefaultOpen);
 		lightGui("Stage Light", scene.Light.Stage, ImGuiTreeNodeFlags_DefaultOpen);
+		lightGui("Sun", scene.Light.Sun, ImGuiTreeNodeFlags_DefaultOpen);
 	}
 
 	void SceneEditor::DrawIBLGui()
@@ -1456,13 +1472,6 @@ namespace Comfy::Studio::Editor
 		});
 #endif
 
-#if COMFY_DEBUG && 0 // DEBUG:
-#if 1
-		//scene.LensFlare.SunPosition = vec3(11.017094f, 5.928364f, -57.304039f);
-		scene.LensFlare.SunPosition = vec3(43.4f, 5.0f, -36.4f);
-		//scene.LensFlare.SunPosition = vec3(0.0f, 2.0f, 0.0f);
-#endif
-
 #if 1
 		static constexpr std::string_view effCmnObjSetPath = "dev_rom/objset/copy/effcmn/effcmn_obj.bin";
 		static constexpr std::string_view effCmnTexSetPath = "dev_rom/objset/copy/effcmn/effcmn_tex.bin";
@@ -1506,7 +1515,6 @@ namespace Comfy::Studio::Editor
 					scene.LensFlare.SunObj = &obj;
 			}
 		}
-#endif
 #endif /* COMFY_DEBUG */
 
 #if 0
