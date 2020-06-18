@@ -17,8 +17,6 @@ namespace Comfy::Render
 	{
 		struct LensFlareParam
 		{
-			// NOTE: Lens flare sun position
-			std::optional<vec3> SunPosition;
 			const Graphics::Obj* SunObj = nullptr;
 
 			struct TextureData

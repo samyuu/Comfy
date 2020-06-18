@@ -547,7 +547,7 @@ namespace Comfy::Render
 				for (auto& command : DefaultCommandList.OpaqueAndTransparent)
 					RenderOpaqueObjCommand(command);
 
-				if (Current.RenderTarget->Param.RenderLensFlare && Current.SceneParam->LensFlare.SunPosition.has_value())
+				if (Current.RenderTarget->Param.RenderLensFlare && Current.SceneParam->Light.Sun.Type == LightSourceType::Parallel)
 					QueryRenderLensFlareSun();
 			}
 
@@ -561,7 +561,7 @@ namespace Comfy::Render
 				TransparencyPassDepthStencilState.UnBind();
 			}
 
-			if (Current.RenderTarget->Param.RenderLensFlare && Current.SceneParam->LensFlare.SunPosition.has_value())
+			if (Current.RenderTarget->Param.RenderLensFlare && Current.SceneParam->Light.Sun.Type == LightSourceType::Parallel)
 				RenderLensFlareGhosts();
 
 			if (IsAnyCommand.SilhouetteOutline)
@@ -1018,7 +1018,7 @@ namespace Comfy::Render
 		{
 			auto* sunTexture = D3D11::GetTexture2D(TexGetter(&Current.SceneParam->LensFlare.Textures.Sun));
 
-			const vec3 sunWorldPosition = Current.SceneParam->LensFlare.SunPosition.value();
+			const vec3 sunWorldPosition = Current.SceneParam->Light.Sun.Position;
 			const float sunCameraeWorldDistance = glm::distance(sunWorldPosition, Current.Camera->ViewPoint);
 
 			if (!Current.RenderTarget->Param.DebugVisualizeOcclusionQuery)
@@ -1109,7 +1109,7 @@ namespace Comfy::Render
 			};
 
 			constexpr vec2 normalizedCenter = vec2(0.5f, 0.5f);
-			const vec2 normalizedSunScreenPosition = Current.Camera->ProjectPointNormalizedScreen(Current.SceneParam->LensFlare.SunPosition.value());
+			const vec2 normalizedSunScreenPosition = Current.Camera->ProjectPointNormalizedScreen(Current.SceneParam->Light.Sun.Position);
 			const vec2 sunDirection = glm::normalize(normalizedCenter - normalizedSunScreenPosition);
 
 			const auto& sunOcclusionData = Current.RenderTarget->Sun;
