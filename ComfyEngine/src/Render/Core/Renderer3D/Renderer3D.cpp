@@ -31,7 +31,7 @@ namespace Comfy::Render
 		vec4(0.026995f, 0.008764f, 0.002216f, 0.000436f),
 	};
 
-	constexpr float DefaultShadowAmbient = 0.4f;
+	constexpr vec3 DefaultShadowAmbient = vec3(0.4f);
 	constexpr float DefaultShadowExpontent = 80.0f * (9.95f * 2.0f) * 1.442695f;
 	constexpr float DefaultShadowTexelOffset = 0.05f / (9.95f * 2.0f);
 
@@ -614,19 +614,21 @@ namespace Comfy::Render
 			const auto& light = Current.SceneParam->Light;
 			outData.CharaLight.Ambient = vec4(light.Character.Ambient, 1.0f);
 			outData.CharaLight.Diffuse = vec4(light.Character.Diffuse, 1.0f);
-			outData.CharaLight.Specular = vec4(light.Character.Specular, 1.0f);
+			outData.CharaLight.Specular = light.Character.Specular;
 			outData.CharaLight.Direction = vec4(glm::normalize(light.Character.Position), 1.0f);
 
 			outData.StageLight.Ambient = vec4(light.Stage.Ambient, 1.0f);
 			outData.StageLight.Diffuse = vec4(light.Stage.Diffuse, 1.0f);
-			outData.StageLight.Specular = vec4(light.Stage.Specular, 1.0f);
+			outData.StageLight.Specular = light.Stage.Specular;
 			outData.StageLight.Direction = vec4(glm::normalize(light.Stage.Position), 1.0f);
 
 			const auto& depthFog = Current.SceneParam->Fog.Depth;
 			outData.DepthFog.Parameters = vec4(Current.RenderTarget->Param.RenderFog ? depthFog.Density : 0.0f, depthFog.Start, depthFog.End, 1.0f / (depthFog.End - depthFog.Start));
 			outData.DepthFog.Color = vec4(depthFog.Color, 1.0f);
 
-			outData.ShadowAmbient = vec4(DefaultShadowAmbient, DefaultShadowAmbient, DefaultShadowAmbient, 1.0);
+			outData.ShadowAmbient = (Current.SceneParam->Light.Shadow.Type == LightSourceType::Parallel) ? 
+				vec4(Current.SceneParam->Light.Shadow.Ambient, 1.0f) : 
+				vec4(DefaultShadowAmbient, 1.0);
 			outData.OneMinusShadowAmbient = vec4(1.0f) - outData.ShadowAmbient;
 			outData.ShadowExponent = DefaultShadowExpontent;
 
