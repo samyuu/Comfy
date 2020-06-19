@@ -28,7 +28,7 @@ namespace Comfy::Graphics
 			LightSourceType::Parallel,
 			vec3(0.0f, 0.0f, 0.0f),
 			vec3(1.0f, 1.0f, 1.0f),
-			vec3(1.0f, 1.0f, 1.0f),
+			vec4(1.0f, 1.0f, 1.0f, 1.0f),
 			vec3(-0.594598f, 0.392729f, 0.701582f),
 
 			0.0f,
@@ -48,7 +48,7 @@ namespace Comfy::Graphics
 			LightSourceType::None,
 			vec3(0.0f, 0.0f, 0.0f),
 			vec3(1.0f, 1.0f, 1.0f),
-			vec3(1.0f, 1.0f, 1.0f),
+			vec4(1.0f, 1.0f, 1.0f, 1.0f),
 			vec3(0.0f, 0.0f, 0.0f),
 
 			0.0f,
@@ -155,7 +155,7 @@ namespace Comfy::Graphics
 			else if (tag == SpecularTag)
 			{
 				auto data = Util::StringParsing::ParseTypeArray<float, 4>(tagData);
-				currentLight->Specular = { data[0], data[1], data[2] };
+				currentLight->Specular = { data[0], data[1], data[2], data[3] };
 			}
 			else if (tag == PositionTag)
 			{

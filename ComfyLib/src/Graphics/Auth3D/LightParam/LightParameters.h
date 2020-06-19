@@ -12,7 +12,7 @@ namespace Comfy::Graphics
 		// NOTE: All light types
 		vec3 Ambient;
 		vec3 Diffuse;
-		vec3 Specular;
+		vec4 Specular;
 		vec3 Position;
 
 		// NOTE: Character light only
