@@ -601,23 +601,43 @@ namespace Comfy::Studio::Editor
 
 	void SceneEditor::DrawLightGui()
 	{
-		auto lightGui = [](std::string_view name, Light& light, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None)
+		using LightGuiFlags = u32;
+		enum LightGuiFlags_Enum : LightGuiFlags
+		{
+			LightGuiFlags_None = 0,
+			LightGuiFlags_Position = 1 << 0,
+			LightGuiFlags_Ambient = 1 << 1,
+			LightGuiFlags_Diffuse = 1 << 2,
+			LightGuiFlags_Specular = 1 << 3,
+			LightGuiFlags_Spot = 1 << 4,
+
+			LightGuiFlags_All = 0xFFFFFFFF,
+		};
+
+		auto lightGui = [](std::string_view name, Light& light, ImGuiTreeNodeFlags nodeFlags, LightGuiFlags guiFlags)
 		{
 			GuiPropertyRAII::ID id(&light);
 
-			GuiProperty::TreeNode(name, flags, [&]
+			GuiProperty::TreeNode(name, nodeFlags, [&]
 			{
 				GuiProperty::Combo("Type", light.Type, LightSourceTypeNames);
 
 				if (light.Type == LightSourceType::None)
 					return;
 
-				GuiProperty::Input("Position", light.Position, 0.01f);
-				GuiProperty::ColorEditHDR("Ambient", light.Ambient);
-				GuiProperty::ColorEditHDR("Diffuse", light.Diffuse);
-				GuiProperty::ColorEditHDR("Specular", light.Specular);
+				if (guiFlags & LightGuiFlags_Position)
+					GuiProperty::Input("Position", light.Position, 0.01f);
 
-				if (light.Type == LightSourceType::Spot)
+				if (guiFlags & LightGuiFlags_Ambient)
+					GuiProperty::ColorEditHDR("Ambient", light.Ambient);
+
+				if (guiFlags & LightGuiFlags_Diffuse)
+					GuiProperty::ColorEditHDR("Diffuse", light.Diffuse);
+
+				if (guiFlags & LightGuiFlags_Specular)
+					GuiProperty::ColorEditHDR("Specular", light.Specular);
+
+				if (light.Type == LightSourceType::Spot && guiFlags & LightGuiFlags_Spot)
 				{
 					GuiProperty::Input("Spot Direction", light.SpotDirection, 0.01f);
 					GuiProperty::Input("Spot Exponent", light.SpotExponent, 0.01f);
@@ -635,9 +655,10 @@ namespace Comfy::Studio::Editor
 		if (GuiProperty::Input("Load Light File", lightPathBuffer.data(), lightPathBuffer.size(), ImGuiInputTextFlags_EnterReturnsTrue))
 			Debug::LoadParseUploadLightParamFile(lightPathBuffer.data(), scene.Light);
 
-		lightGui("Character Light", scene.Light.Character, ImGuiTreeNodeFlags_DefaultOpen);
-		lightGui("Stage Light", scene.Light.Stage, ImGuiTreeNodeFlags_DefaultOpen);
-		lightGui("Sun", scene.Light.Sun, ImGuiTreeNodeFlags_DefaultOpen);
+		lightGui("Character Light", scene.Light.Character, ImGuiTreeNodeFlags_DefaultOpen, LightGuiFlags_All & ~LightGuiFlags_Ambient);
+		lightGui("Stage Light", scene.Light.Stage, ImGuiTreeNodeFlags_DefaultOpen, LightGuiFlags_All & ~LightGuiFlags_Ambient);
+		lightGui("Stage Sun", scene.Light.Sun, ImGuiTreeNodeFlags_DefaultOpen, LightGuiFlags_Position | LightGuiFlags_Diffuse);
+		lightGui("Character Shadow", scene.Light.Shadow, ImGuiTreeNodeFlags_DefaultOpen, LightGuiFlags_Ambient);
 	}
 
 	void SceneEditor::DrawIBLGui()
@@ -1433,12 +1454,12 @@ namespace Comfy::Studio::Editor
 				{
 					vec4(scene.Light.Character.Ambient, 1.0f),
 					vec4(scene.Light.Character.Diffuse, 1.0f),
-					vec4(scene.Light.Character.Specular, 1.0f),
+					scene.Light.Character.Specular,
 					scene.Light.Character.Position,
 
 					vec4(scene.Light.Stage.Ambient, 1.0f),
 					vec4(scene.Light.Stage.Diffuse, 1.0f),
-					vec4(scene.Light.Stage.Specular, 1.0f),
+					scene.Light.Stage.Specular,
 					scene.Light.Stage.Position,
 
 					(scene.IBL == nullptr) ? vec4 {} : scene.IBL->Lights[0].LightColor,
