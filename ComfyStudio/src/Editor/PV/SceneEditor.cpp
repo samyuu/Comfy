@@ -454,7 +454,7 @@ namespace Comfy::Studio::Editor
 				GuiProperty::CheckboxFlags("ShaderDebugFlags_1", renderParam.ShaderDebugFlags, (1 << 1));
 				GuiProperty::ColorEditHDR("ShaderDebugValue", renderParam.ShaderDebugValue);
 
-				GuiProperty::Checkbox("Visualize Occlusion Query", renderParam.DebugVisualizeOcclusionQuery);
+				GuiProperty::Checkbox("Visualize Sun Occlusion Query", renderParam.DebugVisualizeSunOcclusionQuery);
 			});
 
 			GuiProperty::TreeNode("General", ImGuiTreeNodeFlags_DefaultOpen, [&]

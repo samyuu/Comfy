@@ -55,7 +55,7 @@ namespace Comfy::Render
 			vec4 ShaderDebugValue = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 			bool AllowDebugShaderOverride = true;
 
-			bool DebugVisualizeOcclusionQuery = true;
+			bool DebugVisualizeSunOcclusionQuery = false;
 
 			// TODO: In the future (to then only enable for certain viewports)
 			// bool VisualizeNormals = false;

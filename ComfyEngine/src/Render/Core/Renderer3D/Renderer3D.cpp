@@ -313,7 +313,7 @@ namespace Comfy::Render
 		D3D11::DepthStencilState LensFlareIgnoreDepthDepthStencilState = { false, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::LensFlareIgnoreDepth" };
 
 		// D3D11::DepthStencilState LensFlareNoDepthStencilState = { false, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::LensFlareNoDepth" };
-		D3D11::BlendState LensFlareSunQueryBlendState = { D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_OP_ADD, D3D11_BLEND_OP_ADD, D3D11_COLOR_WRITE_ENABLE { } };
+		D3D11::BlendState LensFlareSunQueryNoColorWriteBlendState = { D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_OP_ADD, D3D11_BLEND_OP_ADD, D3D11_COLOR_WRITE_ENABLE { } };
 
 		Detail::LensFlareMesh LensFlareMesh;
 
@@ -626,8 +626,8 @@ namespace Comfy::Render
 			outData.DepthFog.Parameters = vec4(Current.RenderTarget->Param.RenderFog ? depthFog.Density : 0.0f, depthFog.Start, depthFog.End, 1.0f / (depthFog.End - depthFog.Start));
 			outData.DepthFog.Color = vec4(depthFog.Color, 1.0f);
 
-			outData.ShadowAmbient = (Current.SceneParam->Light.Shadow.Type == LightSourceType::Parallel) ? 
-				vec4(Current.SceneParam->Light.Shadow.Ambient, 1.0f) : 
+			outData.ShadowAmbient = (Current.SceneParam->Light.Shadow.Type == LightSourceType::Parallel) ?
+				vec4(Current.SceneParam->Light.Shadow.Ambient, 1.0f) :
 				vec4(DefaultShadowAmbient, 1.0);
 			outData.OneMinusShadowAmbient = vec4(1.0f) - outData.ShadowAmbient;
 			outData.ShadowExponent = DefaultShadowExpontent;
@@ -1018,19 +1018,15 @@ namespace Comfy::Render
 
 		void QueryRenderLensFlareSun()
 		{
-			auto* sunTexture = D3D11::GetTexture2D(TexGetter(&Current.SceneParam->LensFlare.Textures.Sun));
-
 			const vec3 sunWorldPosition = Current.SceneParam->Light.Sun.Position;
+
+			constexpr float sunScreenScaleFactor = 0.045f;
 			const float sunCameraeWorldDistance = glm::distance(sunWorldPosition, Current.Camera->ViewPoint);
-
-			if (!Current.RenderTarget->Param.DebugVisualizeOcclusionQuery)
-				LensFlareSunQueryBlendState.Bind();
-
-			SolidNoCullingRasterizerState.Bind();
-			Shaders.Sun.Bind();
+			const float sunDistanceScaleFactor = (sunCameraeWorldDistance * sunScreenScaleFactor);
 
 			const auto& viewMatrix = Current.Camera->GetView();
 			auto viewAlignedTranslation = glm::translate(mat4(1.0f), sunWorldPosition);
+
 			viewAlignedTranslation[0][0] = viewMatrix[0][0];
 			viewAlignedTranslation[0][1] = viewMatrix[1][0];
 			viewAlignedTranslation[0][2] = viewMatrix[2][0];
@@ -1043,39 +1039,53 @@ namespace Comfy::Render
 			viewAlignedTranslation[2][1] = viewMatrix[1][2];
 			viewAlignedTranslation[2][2] = viewMatrix[2][2];
 
-			D3D11::Texture2D::BindArray<1>(TextureSlot_Diffuse, { sunTexture });
+			auto renderSun = [&](float scale)
+			{
+				// NOTE: Unfortunately no constexpr cosine; = 1.0 / (1.0 - glm::cos(glm::radians(3.0)));
+				constexpr float diffuseFactor = 729.67921174026924f;
+
+				const auto scaleMatrix = glm::scale(mat4(1.0f), vec3(scale * sunDistanceScaleFactor));
+				ConstantBuffers.Object.Data.ModelViewProjection = glm::transpose(Current.Camera->GetViewProjection() * viewAlignedTranslation * scaleMatrix);
+				ConstantBuffers.Object.Data.Material.Diffuse = vec4(Current.SceneParam->Light.Sun.Diffuse * diffuseFactor, 1.0f);
+				ConstantBuffers.Object.UploadData();
+
+				SubmitSubMeshDrawCall(LensFlareMesh.GetSunSubMesh());
+			};
+
+			auto queryRenderSun = [&](auto& occlusionQuery, float scale = 1.0f)
+			{
+				occlusionQuery.QueryData();
+				occlusionQuery.BeginQuery();
+				renderSun(scale);
+				occlusionQuery.EndQuery();
+			};
+
+			SolidNoCullingRasterizerState.Bind();
+			Shaders.Sun.Bind();
+
+			D3D11::Texture2D::BindArray<1>(TextureSlot_Diffuse, { D3D11::GetTexture2D(TexGetter(&Current.SceneParam->LensFlare.Textures.Sun)) });
 			D3D11::TextureSampler::BindArray<1>(TextureSlot_Diffuse, { nullptr });
 
 			BindMeshVertexBuffers(LensFlareMesh.GetVertexBufferMesh(), nullptr);
 
-			auto renderBeginEndQuerySun = [&](auto& occlusionQuery, float scale = 1.0f)
-			{
-				occlusionQuery.QueryData();
-				occlusionQuery.BeginQuery();
-				{
-					// TODO: Draw 2D quad with orthographic camera
-					//		 Replace sun obj ptr with TexID
-					//		 Avoid total pixel count query by calculating pixels CPU side
-
-					constexpr float distanceScaleFactor = 0.03f;
-					const auto scaleMatrix = glm::scale(mat4(1.0f), vec3(scale * sunCameraeWorldDistance * distanceScaleFactor));
-
-					ConstantBuffers.Object.Data.ModelViewProjection = glm::transpose(Current.Camera->GetViewProjection() * viewAlignedTranslation * scaleMatrix);
-					ConstantBuffers.Object.UploadData();
-
-					SubmitSubMeshDrawCall(LensFlareMesh.GetSunSubMesh());
-				}
-				occlusionQuery.EndQuery();
-			};
-
-			constexpr float sunObjScreenScale = 1.5f;
-
 			LensFlareReadDepthDepthStencilState.Bind();
-			renderBeginEndQuerySun(Current.RenderTarget->Sun.OcclusionQuery, sunObjScreenScale);
-			// renderBeginEndQuerySun(Current.RenderTarget->Sun.OffScreenOcclusionQuery, sunObjOffScreenScale);
 
+			queryRenderSun(Current.RenderTarget->Sun.OcclusionQuery, 1.0f);
+			// queryRenderSun(Current.RenderTarget->Sun.OffScreenOcclusionQuery, 1.5f);
+
+			LensFlareSunQueryNoColorWriteBlendState.Bind();
 			LensFlareIgnoreDepthDepthStencilState.Bind();
-			renderBeginEndQuerySun(Current.RenderTarget->Sun.NoDepthOcclusionQuery, sunObjScreenScale);
+
+			queryRenderSun(Current.RenderTarget->Sun.NoDepthOcclusionQuery, 1.0f);
+
+			if (Current.RenderTarget->Param.DebugVisualizeSunOcclusionQuery)
+			{
+				LensFlareSunQueryNoColorWriteBlendState.UnBind();
+				LensFlareIgnoreDepthDepthStencilState.Bind();
+
+				Shaders.DebugMaterial.Bind();
+				renderSun(1.0f);
+			}
 		}
 
 		void RenderLensFlareGhosts()
@@ -1132,6 +1142,8 @@ namespace Comfy::Render
 			}
 
 			TransparencyPassDepthStencilState.UnBind();
+
+			// TODO: Render lens flare flare and shaft textures at sun screen position
 		}
 
 		void RenderPostProcessing()
