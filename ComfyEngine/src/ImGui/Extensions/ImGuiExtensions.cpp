@@ -17,6 +17,38 @@ namespace ImGui
 
 #define RAII_POPUP_WINDOW_PADDING() RAII_PopupWindowPadding COMFY_UNIQUENAME(__RAII_POPUP_WINDOW_PADDING)
 
+	ImRect FitFixedAspectRatio(ImRect sourceRegion, float targetAspectRatio)
+	{
+		const auto sourceSize = vec2(sourceRegion.GetSize());
+		const auto sourceAspectRatio = sourceSize.x / sourceSize.y;
+
+		if (sourceAspectRatio <= targetAspectRatio) // NOTE: Taller than wide, bars on top / bottom
+		{
+			const auto presentHeight = glm::round((sourceSize.x / targetAspectRatio) + 0.5f);
+			const auto barHeight = glm::round((sourceSize.y - presentHeight) / 2.0f);
+
+			sourceRegion.Min.y += barHeight;
+			sourceRegion.Max.y += barHeight;
+			sourceRegion.Max.y = sourceRegion.Min.y + presentHeight;
+		}
+		else // NOTE: Wider than tall, bars on left / right
+		{
+			const auto presentWidth = static_cast<int>((sourceSize.y * targetAspectRatio) + 0.5f);
+			const auto barWidth = static_cast<int>((sourceSize.x - presentWidth) / 2.0f);
+
+			sourceRegion.Min.x += barWidth;
+			sourceRegion.Max.x += barWidth;
+			sourceRegion.Max.x = sourceRegion.Min.x + presentWidth;
+		}
+
+		return sourceRegion;
+	}
+
+	ImRect FitFixedAspectRatioImage(ImRect sourceRegion, vec2 imageDimensions)
+	{
+		return FitFixedAspectRatio(sourceRegion, (imageDimensions.x / imageDimensions.y));
+	}
+
 	void UpdateExtendedState()
 	{
 		for (int i = 0; i < 5; i++)

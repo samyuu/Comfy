@@ -104,7 +104,9 @@ namespace Comfy
 	void RenderWindow::RenderTextureGui()
 	{
 		UpdateRenderRegion();
-		AdjustSizeToTargetAspectRatio();
+		
+		if (keepAspectRatio)
+			renderRegion = Gui::FitFixedAspectRatio(renderRegion, targetAspectRatio);
 
 		const auto renderRegionSize = ivec2(vec2(renderRegion.GetSize()));
 		const auto lastRenderRegionSize = ivec2(vec2(lastRenderRegion.GetSize()));
@@ -151,33 +153,5 @@ namespace Comfy
 		renderRegion.Max = renderRegion.Min + Gui::GetWindowSize();
 
 		fullRenderRegion = renderRegion;
-	}
-
-	void RenderWindow::AdjustSizeToTargetAspectRatio()
-	{
-		if (!keepAspectRatio)
-			return;
-
-		const auto renderRegionSize = vec2(renderRegion.GetSize());
-		const auto renderRegionAspectRatio = renderRegionSize.x / renderRegionSize.y;
-
-		if (renderRegionAspectRatio <= targetAspectRatio) // NOTE: Taller than wide, bars on top / bottom
-		{
-			const auto presentHeight = glm::round((renderRegionSize.x / targetAspectRatio) + 0.5f);
-			const auto barHeight = glm::round((renderRegionSize.y - presentHeight) / 2.0f);
-
-			renderRegion.Min.y += barHeight;
-			renderRegion.Max.y += barHeight;
-			renderRegion.Max.y = renderRegion.Min.y + presentHeight;
-		}
-		else // NOTE: Wider than tall, bars on left / right
-		{
-			const auto presentWidth = static_cast<int>((renderRegionSize.y * targetAspectRatio) + 0.5f);
-			const auto barWidth = static_cast<int>((renderRegionSize.x - presentWidth) / 2.0f);
-
-			renderRegion.Min.x += barWidth;
-			renderRegion.Max.x += barWidth;
-			renderRegion.Max.x = renderRegion.Min.x + presentWidth;
-		}
 	}
 }

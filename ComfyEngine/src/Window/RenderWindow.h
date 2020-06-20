@@ -48,7 +48,6 @@ namespace Comfy
 		void CheckUpdateOnFirstFrame();
 		void RenderTextureGui();
 		void UpdateRenderRegion();
-		void AdjustSizeToTargetAspectRatio();
 
 	private:
 		bool isFirstFrame = true;

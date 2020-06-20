@@ -20,6 +20,9 @@ namespace ImGui
 	constexpr const char* StringViewStart(std::string_view stringView) { return &stringView.front(); }
 	constexpr const char* StringViewEnd(std::string_view stringView) { return &stringView.back() + 1; }
 
+	ImRect FitFixedAspectRatio(ImRect sourceRegion, float targetAspectRatio);
+	ImRect FitFixedAspectRatioImage(ImRect sourceRegion, vec2 imageDimensions);
+
 	void UpdateExtendedState();
 
 	bool WasActiveWindowFocusedOnMouseClicked(int button);
