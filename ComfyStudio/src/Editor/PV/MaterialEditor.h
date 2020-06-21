@@ -3,6 +3,7 @@
 #include "Graphics/Auth3D/ObjSet.h"
 #include "Render/Render.h"
 #include "Editor/Common/CameraController3D.h"
+#include "ImGui/Extensions/CheckerboardTexture.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -21,6 +22,8 @@ namespace Comfy::Studio::Editor
 		void GuiTextureData(Render::Renderer3D& renderer, Graphics::Material& material);
 		void GuiBlendFlags(Graphics::Material::MaterialBlendFlags& blendFlags);
 		void GuiColor(Graphics::Material::MaterialColor& materialColor);
+
+		Gui::CheckerboardTexture checkerboard;
 
 		class MaterialPreview
 		{

@@ -171,6 +171,7 @@
     <ClInclude Include="src\ImGui\Core\imstb_rectpack.h" />
     <ClInclude Include="src\ImGui\Core\imstb_textedit.h" />
     <ClInclude Include="src\ImGui\Core\imstb_truetype.h" />
+    <ClInclude Include="src\ImGui\Extensions\CheckerboardTexture.h" />
     <ClInclude Include="src\ImGui\Extensions\ImGuiExtensions.h" />
     <ClInclude Include="src\ImGui\Extensions\InternalExtensions.h" />
     <ClInclude Include="src\ImGui\Extensions\PropertyEditor.h" />
@@ -255,6 +256,7 @@
     <ClCompile Include="src\ImGui\Core\imgui_demo.cpp" />
     <ClCompile Include="src\ImGui\Core\imgui_draw.cpp" />
     <ClCompile Include="src\ImGui\Core\imgui_widgets.cpp" />
+    <ClCompile Include="src\ImGui\Extensions\CheckerboardTexture.cpp" />
     <ClCompile Include="src\ImGui\Extensions\ImGuiExtensions.cpp" />
     <ClCompile Include="src\ImGui\Extensions\TexExtensions.cpp" />
     <ClCompile Include="src\ImGui\Extensions\Theme.cpp" />

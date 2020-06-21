@@ -150,6 +150,8 @@ namespace Comfy::Studio::Editor
 					auto tex = renderer.GetTexFromTextureID(&texture.TextureID);
 					GuiProperty::PropertyLabelValueFunc((tex == nullptr) ? "(No Texture)" : tex->GetName(), [&]
 					{
+						checkerboard.AddToDrawList(Gui::GetWindowDrawList(), ImRect(Gui::GetCursorScreenPos(), Gui::GetCursorScreenPos() + TexDisplaySize));
+
 						Gui::ImageObjTex(tex, TexDisplaySize);
 						return false;
 					});
@@ -230,7 +232,7 @@ namespace Comfy::Studio::Editor
 		renderSize = vec2(Gui::GetContentRegionAvailWidth(), targetRenderHeight);
 		renderTarget->Param.RenderResolution = renderSize;
 
-		Gui::BeginChild("MaterialPreviewChid", renderSize, false, ImGuiWindowFlags_None);
+		Gui::BeginChild("MaterialPreviewChid", renderSize, false, ImGuiWindowFlags_NoScrollWithMouse);
 		UpdateCameraView();
 		RenderMaterial(renderer, scene, material);
 		Gui::GetWindowDrawList()->AddImage(renderTarget->GetTextureID(), cursorPos, cursorPos + renderSize);

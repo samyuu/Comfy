@@ -273,6 +273,9 @@
     <ClInclude Include="src\Render\Core\Renderer3D\Detail\LensFlare.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\ImGui\Extensions\CheckerboardTexture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Audio\Decoder\Detail\FlacDecoder.cpp">
@@ -438,6 +441,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Render\Core\Renderer2D\FontRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ImGui\Extensions\CheckerboardTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
