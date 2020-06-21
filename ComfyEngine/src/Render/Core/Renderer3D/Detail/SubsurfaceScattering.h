@@ -12,6 +12,7 @@ namespace Comfy::Render::Detail
 	{
 		if (material.ShaderType == Graphics::Material::ShaderIdentifiers::Skin ||
 			material.ShaderType == Graphics::Material::ShaderIdentifiers::EyeBall ||
+			material.ShaderType == Graphics::Material::ShaderIdentifiers::Cloth ||
 			material.ShaderType == Graphics::Material::ShaderIdentifiers::EyeLens)
 			return true;
 
@@ -21,8 +22,11 @@ namespace Comfy::Render::Detail
 	inline bool UsesSSSSkinConst(const Graphics::Material& material)
 	{
 		if (material.ShaderType == Graphics::Material::ShaderIdentifiers::Hair ||
-			material.ShaderType == Graphics::Material::ShaderIdentifiers::Cloth ||
 			material.ShaderType == Graphics::Material::ShaderIdentifiers::Tights)
+			return true;
+
+		// NOTE: The Ambient alpha is used to determine the SSS strength so this is really just an optimization to avoid using the more expensive non cost shader
+		if (material.ShaderType == Graphics::Material::ShaderIdentifiers::Cloth && material.Color.Ambient.a >= 1.0f)
 			return true;
 
 		return false;
