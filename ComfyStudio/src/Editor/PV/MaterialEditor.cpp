@@ -150,12 +150,7 @@ namespace Comfy::Studio::Editor
 					auto tex = renderer.GetTexFromTextureID(&texture.TextureID);
 					GuiProperty::PropertyLabelValueFunc((tex == nullptr) ? "(No Texture)" : tex->GetName(), [&]
 					{
-						if (tex != nullptr)
-						{
-							const float width = std::clamp(Gui::GetContentRegionAvailWidth(), 1.0f, TexDisplaySize.x);
-							const float aspectRatio = static_cast<float>(tex->GetSize().x) / static_cast<float>(tex->GetSize().y);
-							Gui::ImageObjTex(tex, vec2(width, width * aspectRatio));
-						}
+						Gui::ImageObjTex(tex, TexDisplaySize);
 						return false;
 					});
 

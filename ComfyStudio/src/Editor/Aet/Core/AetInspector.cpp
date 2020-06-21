@@ -3,6 +3,7 @@
 #include "Editor/Aet/AetIcons.h"
 #include "Graphics/Auth2D/Aet/AetUtil.h"
 #include "ImGui/Gui.h"
+#include "ImGui/Extensions/TexExtensions.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -340,13 +341,8 @@ namespace Comfy::Studio::Editor
 			{
 				if (auto[tex, spr] = renderer.Aet().GetSprite(*video, 0); (tex != nullptr && spr != nullptr))
 				{
-					const vec2 uvTL = { spr->TexelRegion.x, -spr->TexelRegion.y };
-					const vec2 uvBR = { spr->TexelRegion.z, -spr->TexelRegion.w };
-					// const vec2 size = spr->GetSize();
-					const vec2 size = vec2(100.0f, 100.0f);
-
-					// TODO: Something like this...
-					Gui::ImageButton(*tex, size, uvTL, uvBR);
+					constexpr vec2 size = vec2(100.0f, 100.0f);
+					Gui::ImageSprTex(tex, spr, size);
 				}
 			}
 
