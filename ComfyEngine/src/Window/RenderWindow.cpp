@@ -82,6 +82,16 @@ namespace Comfy
 		targetAspectRatio = value;
 	}
 
+	bool RenderWindow::GetRenderBackgroundCheckerboard() const
+	{
+		return renderBackgroundCheckerboard;
+	}
+
+	void RenderWindow::SetRenderBackgroundCheckerboard(bool value)
+	{
+		renderBackgroundCheckerboard = value;
+	}
+
 	bool RenderWindow::GetWasResized() const
 	{
 		return wasResized;
@@ -134,6 +144,14 @@ namespace Comfy
 				fullRenderRegion.Min,
 				fullRenderRegion.Max,
 				Gui::GetColorU32(ImGuiCol_WindowBg));
+		}
+
+		if (renderBackgroundCheckerboard)
+		{
+			if (!backgroundCheckerboard.has_value())
+				backgroundCheckerboard.emplace(vec4(0.18f, 0.18f, 0.18f, 1.0f), vec4(0.15f, 0.15f, 0.15f, 1.0f), 8);
+
+			backgroundCheckerboard->AddToDrawList(currentWindow->DrawList, renderRegion);
 		}
 
 		if (const auto textureID = GetTextureID(); textureID != nullptr)

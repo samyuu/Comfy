@@ -2,6 +2,7 @@
 #include "Types.h"
 #include "ImGui/Gui.h"
 #include "Render/Render.h"
+#include "ImGui/Extensions/CheckerboardTexture.h"
 #include <functional>
 
 namespace Comfy
@@ -28,6 +29,9 @@ namespace Comfy
 
 		float GetTargetAspectRatio() const;
 		void SetTargetAspectRatio(float value);
+
+		bool GetRenderBackgroundCheckerboard() const;
+		void SetRenderBackgroundCheckerboard(bool value);
 
 		bool GetWasResized() const;
 		ImRect GetRenderRegion() const;
@@ -60,5 +64,8 @@ namespace Comfy
 
 		bool keepAspectRatio = false;
 		float targetAspectRatio = (16.0f / 9.0f);
+
+		bool renderBackgroundCheckerboard = false;
+		std::optional<Gui::CheckerboardTexture> backgroundCheckerboard = {};
 	};
 }
