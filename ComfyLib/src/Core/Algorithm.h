@@ -42,4 +42,17 @@ namespace Comfy
 		}
 		return nullptr;
 	}
+
+	template <typename CollectionType, typename Func>
+	COMFY_NODISCARD auto FindIndexOf(CollectionType& collection, Func predicate) -> size_t
+	{
+		size_t index = 0;
+		for (auto it = std::begin(collection); it != std::end(collection); it++)
+		{
+			if (predicate(*it))
+				return index;
+			index++;
+		}
+		return index;
+	}
 }
