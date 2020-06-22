@@ -1,48 +1,101 @@
-#include "TestTask.h"
+ï»¿#include "TestTask.h"
+#include "Misc/ImageHelper.h"
+#include "Time/TimeUtilities.h"
+#include <future>
 
 namespace Comfy::Sandbox::Tests
 {
 	static constexpr std::string_view FontTestText = u8R"(Test Lyrics:
-u–‚—ë‚èv
+ã€Œé­”å¥³ç‹©ã‚Šã€
 
-•Ò‹ÈAƒ~ƒbƒNƒXF’Ë‰z—Yˆê˜N
-ì‹ÈAìŒA‰Ì¥F•‚X‚©‚âq
+ç·¨æ›²ã€ãƒŸãƒƒã‚¯ã‚¹ï¼šå¡šè¶Šé›„ä¸€æœ—
+ä½œæ›²ã€ä½œè©ã€æ­Œå”±ï¼šæµ®æ£®ã‹ã‚„å­
 
-”Ş—‚Í¡“ú‚àí‚ğ‚Ü‚­
+å½¼å¥³ã¯ä»Šæ—¥ã‚‚ç¨®ã‚’ã¾ã
 
-ˆ¤‚µ‚¢l‚ª‹‚è‚Ü‚µ‚½
-”Ş‚Ìl‚à¡‚Í•æ‚Ì‰º
-‚í‚½‚µ‚ğ’u‚¢‚Ä•æ‚Ì‰º
-‚Ü‚İ‚¦‚é‚±‚Æ‚à‚©‚È‚í‚È‚¢
+æ„›ã—ã„äººãŒå±…ã‚Šã¾ã—ãŸ
+å½¼ã®äººã‚‚ä»Šã¯å¢“ã®ä¸‹
+ã‚ãŸã—ã‚’ç½®ã„ã¦å¢“ã®ä¸‹
+ã¾ã¿ãˆã‚‹ã“ã¨ã‚‚ã‹ãªã‚ãªã„
 
-l‚à¢ŠE‚àF‚ğ•Ï‚¦@‚í‚½‚µ‚¾‚¯‚ª•Ï‚í‚ç‚È‚¢
-‹ğ‚©‚Å–²Œ©‚ª‚¿‚È˜Ô@‚Ó‚é‚Ñ‚½—ö•ç‚àÌ‚Ä‚ç‚ê‚¸
+äººã‚‚ä¸–ç•Œã‚‚è‰²ã‚’å¤‰ãˆã€€ã‚ãŸã—ã ã‘ãŒå¤‰ã‚ã‚‰ãªã„
+æ„šã‹ã§å¤¢è¦‹ãŒã¡ãªå„˜ã€€ãµã‚‹ã³ãŸæ‹æ…•ã‚‚æ¨ã¦ã‚‰ã‚Œãš
 
-”—‚è—ˆ‚é‘«‰¹@–Ø’Y‚ÆK‚Ì“õ‚¢
-•Ï‚í‚ç‚Ê”Ş—‚ğÙ‚­ˆ×@¢ŠE‚ª—h‚ê‚é
+è¿«ã‚Šæ¥ã‚‹è¶³éŸ³ã€€æœ¨ç‚­ã¨éŒ†ã®åŒ‚ã„
+å¤‰ã‚ã‚‰ã¬å½¼å¥³ã‚’è£ãç‚ºã€€ä¸–ç•ŒãŒæºã‚Œã‚‹
 
-‰Ô‰Œ‚ét@‘–ØŒq‚é‰Ä@ŠÃ‚­À‚éH@X‚ª–°‚é“~
-¢ŠE‚Í‹}‚¬‘«@•à‚ß‚È‚¢”Ş—
-lX‚Í‹©‚ñ‚¾@g‚ ‚¢‚Â‚Í–‚—‚¾Ih
+èŠ±ç…™ã‚‹æ˜¥ã€€è‰æœ¨ç¹‹ã‚‹å¤ã€€ç”˜ãå®Ÿã‚‹ç§‹ã€€æ£®ãŒçœ ã‚‹å†¬
+ä¸–ç•Œã¯æ€¥ãè¶³ã€€æ­©ã‚ãªã„å½¼å¥³
+äººã€…ã¯å«ã‚“ã ã€€â€œã‚ã„ã¤ã¯é­”å¥³ã ï¼â€
 
-”§‚É‹ò‚¢‚Ş½
-_—l‚Ì‰Š‚ÉÄ‚©‚ê‚Ä‚à
-‚ ‚È‚½‚Ì‚à‚Æ‚Ö‚¢‚¯‚È‚¢‚Ì‚Å‚·‚©
+è‚Œã«å–°ã„è¾¼ã‚€é–
+ç¥æ§˜ã®ç‚ã«ç„¼ã‹ã‚Œã¦ã‚‚
+ã‚ãªãŸã®ã‚‚ã¨ã¸ã„ã‘ãªã„ã®ã§ã™ã‹
 
-”lº‚Ì‹¿‚­Lê@”R‚¦‚³‚©‚éLê
-‰äæ‚Æ‰Î‚ğ’‚®@‘ã‚Ì‘€‚èlŒ`
-b‚‚¢‹©‚Ñ‚ª@°‚ê‚½‹ó‚ÉÁ‚¦‚é
-‰Îí‚ª‚È‚­‚È‚ê‚Î@g‚à‚¤’N‚à‹‚È‚¢h
+ç½µå£°ã®éŸ¿ãåºƒå ´ã€€ç‡ƒãˆã•ã‹ã‚‹åºƒå ´
+æˆ‘å…ˆã¨ç«ã‚’æ³¨ãã€€æ™‚ä»£ã®æ“ã‚Šäººå½¢
+ç”²é«˜ã„å«ã³ãŒã€€æ™´ã‚ŒãŸç©ºã«æ¶ˆãˆã‚‹
+ç«ç¨®ãŒãªããªã‚Œã°ã€€â€œã‚‚ã†èª°ã‚‚å±…ãªã„â€
 
-“ñ“xO“x@‚Ü‚Î‚½‚­@‚¤‚Â‚ë‚ÈáÊ–Ñ‚Ì‰H‰¹
-l“xŒÜ“x@‚«‚µ‚ñ‚¾@˜c‚Èœ‚Ì—¥“®
-_‚ç‚©‚ÈŠD‚ğ‘Ş‚¯@”’‚­L‚Ñ‚½˜r
-”Ş—‚Ìº‚ª–Â‚¢‚½@g‚í‚½‚µ‚Í¶‚«‚Ä‚¢‚éh
+äºŒåº¦ä¸‰åº¦ã€€ã¾ã°ãŸãã€€ã†ã¤ã‚ãªç«æ¯›ã®ç¾½éŸ³
+å››åº¦äº”åº¦ã€€ãã—ã‚“ã ã€€æ­ªãªéª¨ã®å¾‹å‹•
+æŸ”ã‚‰ã‹ãªç°ã‚’é€€ã‘ã€€ç™½ãä¼¸ã³ãŸè…•
+å½¼å¥³ã®å£°ãŒé³´ã„ãŸã€€â€œã‚ãŸã—ã¯ç”Ÿãã¦ã„ã‚‹â€
 
-”Ş—‚Í¡“ú‚àí‚ğ‚Ü‚­
-ˆ¤‚µ‚¢‹Gß‚ğŒ©‘—‚Á‚Ä
-•Ï‚í‚ç‚Ê”Ş—‚Ì•¨Œê
-‚¢‚Â‚¢‚Â‚Ü‚Å‚à@‘±‚­‚Å‚µ‚å‚¤)";
+å½¼å¥³ã¯ä»Šæ—¥ã‚‚ç¨®ã‚’ã¾ã
+æ„›ã—ã„å­£ç¯€ã‚’è¦‹é€ã£ã¦
+å¤‰ã‚ã‚‰ã¬å½¼å¥³ã®ç‰©èª
+ã„ã¤ã„ã¤ã¾ã§ã‚‚ã€€ç¶šãã§ã—ã‚‡ã†)";
+
+	class TextOfflineRenderer
+	{
+	public:
+		void RenderTakeScreenshot(const Graphics::BitmapFont& font, std::string_view text, std::string filePath, bool border = true)
+		{
+			constexpr float padding = 16.0f;
+			const auto measuredSize = renderer.Font().Measure(font, text) + vec2(padding);
+
+			camera.ProjectionSize = measuredSize;
+
+			renderTarget->Param.Resolution = measuredSize;
+			renderTarget->Param.ClearColor = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+
+			renderer.Begin(camera, *renderTarget);
+			{
+				renderer.Font().SetBlendMode(Graphics::AetBlendMode::Unknown);
+
+				if (border)
+					renderer.Font().DrawBorder(font, text, Graphics::Transform2D(vec2(padding / 2.0f)));
+				else
+					renderer.Font().Draw(font, text, Graphics::Transform2D(vec2(padding / 2.0f)));
+			}
+			renderer.End();
+
+			auto pixelData = renderTarget->TakeScreenshot();
+
+#if 1
+			Util::WritePNG(filePath, renderTarget->Param.Resolution, pixelData.get());
+#else
+			for (const auto& future : saveImageFutures)
+				future.wait();
+			saveImageFutures.clear();
+
+			saveImageFutures.push_back(std::async(std::launch::async, [this, prefix = std::string(fileNamePrefix), data = std::move(pixelData)]
+				{
+					const auto filePath = IO::Path::Combine("dev_ram/ss/font/offline_render", IO::Path::ChangeExtension(prefix + FormatFileNameDateTimeNow(), ".png"));
+					Util::WritePNG(filePath, renderTarget->Param.Resolution, data.get());
+				}));
+#endif
+		}
+
+	private:
+		std::vector<std::future<void>> saveImageFutures;
+
+		Render::OrthographicCamera camera;
+
+		Render::Renderer2D renderer;
+		std::unique_ptr<Render::RenderTarget2D> renderTarget = Render::Renderer2D::CreateRenderTarget();
+	};
 
 	class FontRendererTest : public ITestTask
 	{
@@ -104,6 +157,8 @@ namespace Comfy::Sandbox::Tests
 								renderer.Draw(command);
 							}
 
+							renderer.Font().SetBlendMode(render.BlendMode);
+
 							if (render.Border)
 								renderer.Font().DrawBorder(*selectedFont, textToRender, render.Transform, render.Color);
 							else if (render.Shadow)
@@ -130,6 +185,82 @@ namespace Comfy::Sandbox::Tests
 			else
 			{
 				renderWindow.BeginEndGui("RenderWindow2D Font Test");
+
+				if (Gui::Begin("Offline Render Test", nullptr, ImGuiWindowFlags_NoSavedSettings))
+				{
+					static TextOfflineRenderer offlineRenderer;
+					static char textBuffer[255] = "YEP COCK";
+
+					const auto selecedFont = GetSelectedFont();
+					if (selecedFont == nullptr)
+						return;
+
+					Gui::InputText("Text", textBuffer, sizeof(textBuffer));
+					if (Gui::Button("YEP COCK!"))
+						offlineRenderer.RenderTakeScreenshot(*selecedFont, textBuffer, ("dev_ram/ss/font/offline_render/" + FormatFileNameDateTimeNow() + ".png"));
+					Gui::Separator();
+
+					static char songNameBuffer[255] = u8"SLoWMoTIoN", creatorBuffer[255] = u8"ä½œè©ãƒ»ä½œæ›²ï¼šãƒ”ãƒã‚­ã‚ªãƒ”ãƒ¼";
+					Gui::InputText("Song Name", songNameBuffer, sizeof(songNameBuffer));
+					Gui::InputText("Creator", creatorBuffer, sizeof(creatorBuffer));
+
+					if (Gui::Button("Render!"))
+					{
+						offlineRenderer.RenderTakeScreenshot(*selecedFont, songNameBuffer, ("dev_ram/ss/font/offline_render/song_" + FormatFileNameDateTimeNow() + ".png"));
+						offlineRenderer.RenderTakeScreenshot(*selecedFont, creatorBuffer, ("dev_ram/ss/font/offline_render/creator_" + FormatFileNameDateTimeNow() + ".png"));
+					}
+
+					Gui::Separator();
+					if (Gui::Button("Render All X Titles!"))
+					{
+						struct SongInfo
+						{
+							i32 ID;
+							std::string_view Title;
+							std::array<std::string_view, 3> Info;
+						};
+
+						static constexpr std::array allPVs =
+						{
+							SongInfo { 801, u8"Strangers", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šHeavenz" } },
+							SongInfo { 802, u8"æ„›Dee", { u8"ä½œè©ï¼šCotoriãƒ»Mitchie M", u8"ä½œæ›²ï¼šMitchie M" } },
+							SongInfo { 803, u8"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ãƒãƒ¼ãƒˆ", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šDECO*27", u8"ç·¨æ›²ï¼šDECO*27ãƒ»kous" } },
+							SongInfo { 804, u8"ãƒãƒ“ãƒ­ãƒ³", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šãƒˆãƒ¼ãƒ" } },
+							SongInfo { 805, u8"ãƒ­ã‚¹ãƒˆãƒ¯ãƒ³ã®å·å“­", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šNeru" } },
+							SongInfo { 806, u8"ã™ã‚ã‰ã‚‚ã‰ã—ã‚‡ã‚“", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šãƒ”ãƒã‚­ã‚ªãƒ”ãƒ¼" } },
+							SongInfo { 807, u8"ã‚¦ãƒŸãƒ¦ãƒªæµ·åº•è­š", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šn-buna" } },
+							SongInfo { 808, u8"æ‹æ„›è£åˆ¤", { u8"ä½œè©ãƒ»ä½œæ›²ï¼š40mP" } },
+							SongInfo { 809, u8"æ„›ã®è©©", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šãƒ©ãƒãƒ¼ã‚ºP" } },
+							SongInfo { 810, u8"ãƒã‚¸ãƒ¡ãƒ†ãƒã‚ªãƒˆ", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šmalo" } },
+							SongInfo { 811, u8"LOL -lots of laugh-", { u8"ä½œè©ï¼šã‚¨ãƒ³ãƒ‰ã‚±ã‚¤ãƒ—", u8"ä½œæ›²ï¼šKeN" } },
+							SongInfo { 812, u8"ãƒ„ã‚®ãƒã‚®ã‚¹ã‚¿ãƒƒã‚«ãƒ¼ãƒˆ", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šã¨ã‚" } },
+							SongInfo { 813, u8"ã‚¯ãƒã‚¤ãƒã§ã‚‚æ‹ãŒã—ãŸã„", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šã¿ãã¨P" } },
+							SongInfo { 814, u8"Calc.", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šã‚¸ãƒŸãƒ¼ã‚µãƒ P" } },
+							SongInfo { 815, u8"ç´…ä¸€è‘‰", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šé»’ã†ã•" } },
+							SongInfo { 816, u8"è–æ§çˆ†è£‚ãƒœãƒ¼ã‚¤", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šã‚Œã‚‹ã‚Šã‚Šãƒ»ã‚‚ã˜ã‚ƒ" } },
+							SongInfo { 817, u8"å‘æ€¯æˆ¦éšŠã†ã‚ãŸã‚“ã ãƒ¼", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šã‚·ãƒ³P" } },
+							SongInfo { 818, u8"Mrs.Pumpkinã®æ»‘ç¨½ãªå¤¢", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šãƒãƒ" } },
+							SongInfo { 819, u8"ç‹¬ã‚Šã‚“ã¼ã‚¨ãƒ³ãƒ´ã‚£ãƒ¼", { u8"ä½œè©ãƒ»ä½œæ›²ï¼škoyori" } },
+							SongInfo { 820, u8"ãƒ©ã‚ºãƒ™ãƒªãƒ¼ï¼Šãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼", { u8"ä½œè©ï¼šGom&shito", u8"ä½œæ›²ï¼šGom", u8"ç·¨æ›²ï¼šHoneyWorks" } },
+							SongInfo { 821, u8"è„³å†…é©å‘½ã‚¬ãƒ¼ãƒ«", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šMARETU" } },
+							SongInfo { 822, u8"Amazing Dolce", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šã²ã¨ã—ãšãP", u8"ç·¨æ›²ï¼šã‚„ã¾â–³" } },
+							SongInfo { 823, u8"ç½ªã®åå‰", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šryo (supercell)" } },
+							SongInfo { 824, u8"Satisfaction", { u8"ä½œè©ãƒ»ä½œæ›²ï¼škz" } },
+							SongInfo { 831, u8"Sharing The World", { u8"ä½œè©ãƒ»ä½œæ›²ï¼šBIGHEAD", u8"ç·¨æ›²ï¼šBIGHEAD" } },
+							SongInfo { 832, u8"Hand in Hand", { u8"ä½œè©ãƒ»ä½œæ›²ï¼škz" } },
+						};
+
+						for (const auto& pv : allPVs)
+						{
+							offlineRenderer.RenderTakeScreenshot(*selecedFont, pv.Title, "dev_ram/ss/font/offline_render/pv_tit/pv_" + std::to_string(pv.ID) + "_song.png");
+
+							for (size_t i = 0; i < pv.Info.size() && !pv.Info[i].empty(); i++)
+								offlineRenderer.RenderTakeScreenshot(*selecedFont, pv.Info[i], "dev_ram/ss/font/offline_render/pv_tit/pv_" + std::to_string(pv.ID) + "_txt" + std::to_string(i) + ".png");
+						}
+					}
+
+					Gui::End();
+				}
 
 				if (Gui::Begin("Font Control Test"))
 				{
@@ -162,6 +293,22 @@ namespace Comfy::Sandbox::Tests
 					GuiProperty::Checkbox("Checkerboard Background", render.CheckerboardBackground);
 					GuiProperty::Checkbox("Visualize Origin", render.VisualizeOrigin);
 					GuiProperty::Checkbox("Visualize Bounds", render.VisualizeBounds);
+
+					GuiProperty::ColorEdit("Clear Color", renderWindow.RenderTarget->Param.ClearColor);
+					GuiProperty::Combo("Blend Mode", render.BlendMode, Graphics::AetBlendModeNames);
+					if (Gui::Button("Take Screenshot", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+					{
+						auto pixelData = renderWindow.RenderTarget->TakeScreenshot();
+
+						if (saveScreenshotFuture.valid())
+							saveScreenshotFuture.wait();
+
+						saveScreenshotFuture = std::async(std::launch::async, [this, data = std::move(pixelData)]
+							{
+								const auto filePath = IO::Path::Combine("dev_ram/ss/font", IO::Path::ChangeExtension("scene_" + FormatFileNameDateTimeNow(), ".png"));
+								Util::WritePNG(filePath, renderWindow.RenderTarget->Param.Resolution, data.get());
+							});
+					}
 				}
 				Gui::End();
 
@@ -285,6 +432,8 @@ namespace Comfy::Sandbox::Tests
 		std::unique_ptr<Graphics::SprSet> sprSet = IO::File::Load<Graphics::SprSet>("dev_ram/sprset/spr_fnt/spr_fnt_36.bin");
 		std::unique_ptr<Graphics::FontMap> fontMap = IO::File::Load<Graphics::FontMap>("dev_ram/font/fontmap/fontmap.bin");
 
+		std::future<void> saveScreenshotFuture;
+
 		struct RenderData
 		{
 			static constexpr size_t TextBufferSize = (8192);
@@ -319,6 +468,8 @@ namespace Comfy::Sandbox::Tests
 			bool CheckerboardBackground = true;
 			bool VisualizeOrigin = true;
 			bool VisualizeBounds = true;
+
+			Graphics::AetBlendMode BlendMode = Graphics::AetBlendMode::Normal;
 
 		} render;
 
