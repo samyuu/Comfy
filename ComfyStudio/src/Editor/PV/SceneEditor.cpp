@@ -327,7 +327,10 @@ namespace Comfy::Studio::Editor
 		GuiProperty::Input("Far Plane", camera.FarPlane, 10.0f);
 		GuiProperty::Input("View Point", camera.ViewPoint, 0.01f);
 		GuiProperty::Input("Interest", camera.Interest, 0.01f);
-		GuiProperty::Combo("Control Mode", cameraController.Mode, CameraController3D::ControlModeNames, ImGuiComboFlags_None);
+		
+		auto controlMode = cameraController.Mode;
+		if (GuiProperty::Combo("Control Mode", controlMode, CameraController3D::ControlModeNames, ImGuiComboFlags_None))
+			cameraController.SetControlModePreserveOrientation(camera, controlMode);
 
 		Gui::ItemContextMenu("ControlModeContextMenu", [&]()
 		{
@@ -351,8 +354,8 @@ namespace Comfy::Studio::Editor
 
 		if (cameraController.Mode == CameraController3D::ControlMode::FirstPerson)
 		{
-			GuiProperty::Input("Camera Pitch", cameraController.FirstPersonData.TargetPitch, 1.0f);
 			GuiProperty::Input("Camera Yaw", cameraController.FirstPersonData.TargetYaw, 1.0f);
+			GuiProperty::Input("Camera Pitch", cameraController.FirstPersonData.TargetPitch, 1.0f);
 		}
 		else if (cameraController.Mode == CameraController3D::ControlMode::Orbit)
 		{

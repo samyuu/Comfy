@@ -37,12 +37,11 @@ namespace Comfy::Studio::Editor
 
 		struct FirstPersonData
 		{
-			float Pitch = 0.0f;
 			float Yaw = 0.0f;
-			float Roll = 0.0f;
+			float Pitch = 0.0f;
 
-			float TargetPitch = 0.0f;
 			float TargetYaw = 0.0f;
+			float TargetPitch = 0.0f;
 		} FirstPersonData;
 
 		struct OrbitData
@@ -65,6 +64,8 @@ namespace Comfy::Studio::Editor
 
 	public:
 		void Update(Render::PerspectiveCamera& camera);
+
+		void SetControlModePreserveOrientation(Render::PerspectiveCamera& camera, ControlMode newMode);
 
 	private:
 		void UpdateKeyboardInput(vec3& pointToChange, const vec3& frontDirection, float cameraSpeed);

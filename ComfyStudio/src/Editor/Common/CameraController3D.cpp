@@ -4,6 +4,9 @@
 
 namespace Comfy::Studio::Editor
 {
+	constexpr float YawDegreesMin = -89.0f;
+	constexpr float YawDegreesMax = +89.0f;
+
 	void CameraController3D::Update(Render::PerspectiveCamera& camera)
 	{
 		if (Mode == ControlMode::None)
@@ -19,22 +22,17 @@ namespace Comfy::Studio::Editor
 
 		if (Mode == ControlMode::FirstPerson)
 		{
-			const float pitchRadians = glm::radians(FirstPersonData.Pitch);
-			const float yawRadians = glm::radians(FirstPersonData.Yaw);
-
-			vec3 frontDirection;
-			frontDirection.x = glm::cos(yawRadians) * glm::cos(pitchRadians);
-			frontDirection.y = glm::sin(pitchRadians);
-			frontDirection.z = glm::sin(yawRadians) * glm::cos(pitchRadians);
+			const mat4 rotationY = glm::rotate(mat4(1.0f), glm::radians(FirstPersonData.Pitch), vec3(1.0f, 0.0f, 0.0f));
+			const mat4 rotationX = glm::rotate(mat4(1.0f), glm::radians(FirstPersonData.Yaw), vec3(0.0f, 1.0f, 0.0f));
+			const vec3 frontDirection = glm::normalize(vec4(0.0f, 0.0f, -1.0f, 1.0f) * rotationY * rotationX);
 
 			if (Gui::IsWindowFocused())
 			{
 				if (Gui::IsMouseDown(0))
 				{
 					FirstPersonData.TargetYaw += io.MouseDelta.x * Settings.MouseSensitivity;
-					FirstPersonData.TargetPitch -= io.MouseDelta.y * Settings.MouseSensitivity;
-
-					FirstPersonData.TargetPitch = glm::clamp(FirstPersonData.TargetPitch, -89.0f, +89.0f);
+					FirstPersonData.TargetPitch += io.MouseDelta.y * Settings.MouseSensitivity;
+					FirstPersonData.TargetPitch = glm::clamp(FirstPersonData.TargetPitch, YawDegreesMin, YawDegreesMax);
 				}
 
 				if (Gui::IsWindowHovered())
@@ -57,7 +55,7 @@ namespace Comfy::Studio::Editor
 				FirstPersonData.Pitch = FirstPersonData.TargetPitch;
 			}
 
-			camera.Interest = camera.ViewPoint + glm::normalize(frontDirection);
+			camera.Interest = (camera.ViewPoint + frontDirection);
 		}
 		else if (Mode == ControlMode::Orbit)
 		{
@@ -70,8 +68,7 @@ namespace Comfy::Studio::Editor
 				{
 					OrbitData.TargetRotation.x += io.MouseDelta.x * Settings.MouseSensitivity;
 					OrbitData.TargetRotation.y += io.MouseDelta.y * Settings.MouseSensitivity;
-
-					OrbitData.TargetRotation.y = glm::clamp(OrbitData.TargetRotation.y, -89.0f, +89.0f);
+					OrbitData.TargetRotation.y = glm::clamp(OrbitData.TargetRotation.y, YawDegreesMin, YawDegreesMax);
 				}
 
 				if (Settings.OrbitMouseScrollDistance && Gui::IsWindowHovered())
@@ -89,6 +86,40 @@ namespace Comfy::Studio::Editor
 			orbitPosition = vec4(orbitPosition, 1.0f) * rotationY * rotationX;
 
 			camera.ViewPoint = camera.Interest + orbitPosition;
+		}
+	}
+
+	void CameraController3D::SetControlModePreserveOrientation(Render::PerspectiveCamera& camera, ControlMode newMode)
+	{
+		Mode = newMode;
+
+		if (newMode == ControlMode::None)
+			return;
+
+		const auto cameraDirection = glm::quatLookAt(glm::normalize(camera.Interest - camera.ViewPoint), camera.UpDirection);
+
+		// BUG: Applying these directly isn't always correct in case of above 90 degrees pitch etc. but it's better than nothing for now
+		const float cameraYaw = glm::yaw(cameraDirection);
+		const float cameraPitch = glm::pitch(cameraDirection);
+
+		switch (newMode)
+		{
+		case ControlMode::FirstPerson:
+		{
+			FirstPersonData.Pitch = FirstPersonData.TargetPitch = glm::degrees(-cameraPitch);
+			FirstPersonData.Yaw = FirstPersonData.TargetYaw = glm::degrees(-cameraYaw);
+		}
+		break;
+
+		case ControlMode::Orbit:
+		{
+			OrbitData.Distance = glm::distance(camera.Interest, camera.ViewPoint);
+			OrbitData.TargetRotation = glm::degrees(vec2(-glm::yaw(cameraDirection), -glm::pitch(cameraDirection)));
+		}
+		break;
+
+		default:
+			assert(false);
 		}
 	}
 
