@@ -7,76 +7,117 @@
 
 namespace Comfy::Render
 {
-	inline bool Intersects(const vec3& viewPoint, const vec3& ray, const vec3* trianglePoints, float& outIntersectionDistance)
+	inline bool RayIntersectsTriangle(const vec3& viewPoint, const vec3& ray, const vec3* trianglePoints, float& outIntersectionDistance)
 	{
 		vec2 baryPosition;
 		return glm::intersectRayTriangle(viewPoint, ray, trianglePoints[0], trianglePoints[1], trianglePoints[2], baryPosition, outIntersectionDistance);
 	}
 
-	inline bool Intersects(const vec3& viewPoint, const vec3& ray, const Graphics::Sphere& sphere, float& outIntesectionDistance)
+	inline bool RayIntersectsTriangleSingleSided(const vec3& viewPoint, const vec3& ray, const vec3* trianglePoints, float& outIntersectionDistance)
+	{
+		const auto normal = glm::normalize(glm::cross(trianglePoints[1] - trianglePoints[0], trianglePoints[2] - trianglePoints[0]));
+		if (glm::dot(ray, normal) > 0.0f)
+			return false;
+
+		return RayIntersectsTriangle(viewPoint, ray, trianglePoints, outIntersectionDistance);
+	}
+
+	inline bool RayIntersectsSphere(const vec3& viewPoint, const vec3& ray, const Graphics::Sphere& sphere, float& outIntesectionDistance)
 	{
 		return glm::intersectRaySphere(viewPoint, ray, sphere.Center, (sphere.Radius * sphere.Radius), outIntesectionDistance);
 	}
 
-	inline bool Intersects(const vec3& viewPoint, const vec3& ray, const Graphics::Obj& obj, const Graphics::Transform& transform, float& outIntersectionDistance)
+	struct RayObjIntersectionResult
+	{
+		float Distance;
+		const Graphics::Mesh* Mesh;
+		const Graphics::SubMesh* SubMesh;
+	};
+
+	template <typename IndexType, typename Func>
+	void ForEachIndexedTriangle(const std::vector<vec3>& vertexPositions, Graphics::PrimitiveType primitiveType, const std::vector<IndexType>& indices, Func perTriangleFunc)
+	{
+		if (primitiveType == Graphics::PrimitiveType::TriangleStrip)
+		{
+			for (size_t i = 0; i < indices.size() - 2; i += 1)
+			{
+				auto triangle = (i % 2 == 0) ?
+					std::array<vec3, 3> { vertexPositions[indices[i + 0]], vertexPositions[indices[i + 1]], vertexPositions[indices[i + 2]], } :
+					std::array<vec3, 3> { vertexPositions[indices[i + 2]], vertexPositions[indices[i + 1]], vertexPositions[indices[i + 0]], };
+
+				perTriangleFunc(triangle);
+			}
+		}
+		else if (primitiveType == Graphics::PrimitiveType::Triangles)
+		{
+			for (size_t i = 0; i < indices.size() - 2; i += 3)
+			{
+				auto triangle = std::array<vec3, 3> { vertexPositions[indices[i + 0]], vertexPositions[indices[i + 1]], vertexPositions[indices[i + 2]], };
+				perTriangleFunc(triangle);
+			}
+		}
+	}
+
+	template <typename Func>
+	void ForEachSubMeshTriangle(const Graphics::Mesh& mesh, const Graphics::SubMesh& subMesh, Func perTriangleFunc)
+	{
+		if (subMesh.Primitive != Graphics::PrimitiveType::Triangles && subMesh.Primitive != Graphics::PrimitiveType::TriangleStrip)
+			return;
+
+		// NOTE: Check in order of likeliness
+		if (auto indices = subMesh.GetIndicesU16(); indices != nullptr)
+			ForEachIndexedTriangle(mesh.VertexData.Positions, subMesh.Primitive, *indices, perTriangleFunc);
+		else if (auto indices = subMesh.GetIndicesU32(); indices != nullptr)
+			ForEachIndexedTriangle(mesh.VertexData.Positions, subMesh.Primitive, *indices, perTriangleFunc);
+		else if (auto indices = subMesh.GetIndicesU8(); indices != nullptr)
+			ForEachIndexedTriangle(mesh.VertexData.Positions, subMesh.Primitive, *indices, perTriangleFunc);
+	}
+
+	inline RayObjIntersectionResult RayIntersectsObj(const vec3& viewPoint, const vec3& ray, const Graphics::Obj& obj, const Graphics::Transform& transform)
 	{
 		float intersectionDistance = 0.0f;
-		if (!Intersects(viewPoint, ray, obj.BoundingSphere * transform, intersectionDistance))
-			return false;
+		if (!RayIntersectsSphere(viewPoint, ray, obj.BoundingSphere * transform, intersectionDistance))
+			return RayObjIntersectionResult { 0.0f, nullptr, nullptr };
 
+		// TODO: Can all of the triangle transform multiplication be avoided by inverse transforming the ray / viewpoint instead (?)
 		const mat4 transformMatrix = transform.CalculateMatrix();
 
-		float closestDistance = intersectionDistance;
+		float closestDistance = std::numeric_limits<float>::max();
+		const Graphics::Mesh* closestMesh = nullptr;
 		const Graphics::SubMesh* closestSubMesh = nullptr;
 
 		for (const auto& mesh : obj.Meshes)
 		{
-			if (!Intersects(viewPoint, ray, mesh.BoundingSphere * transform, intersectionDistance))
+			if (!RayIntersectsSphere(viewPoint, ray, mesh.BoundingSphere * transform, intersectionDistance))
 				continue;
 
 			for (const auto& subMesh : mesh.SubMeshes)
 			{
-				if (!Intersects(viewPoint, ray, subMesh.BoundingSphere * transform, intersectionDistance))
+				if (!RayIntersectsSphere(viewPoint, ray, subMesh.BoundingSphere * transform, intersectionDistance))
 					continue;
 
-				const Graphics::PrimitiveType primitive = subMesh.Primitive;
-				if (primitive == Graphics::PrimitiveType::TriangleStrip || primitive == Graphics::PrimitiveType::Triangles || primitive == Graphics::PrimitiveType::TriangleFan)
+				const auto& material = IndexOrNull(subMesh.MaterialIndex, obj.Materials);
+				auto triangleIntersectionFunc = (material != nullptr && material->BlendFlags.DoubleSided) ? RayIntersectsTriangle : RayIntersectsTriangleSingleSided;
+
+				// BUG: It seems something here still isn't quite right, observed when trying to ray pick the character hair backside at low angles
+				ForEachSubMeshTriangle(mesh, subMesh, [&](auto& triangle)
 				{
-					if (subMesh.GetIndexFormat() != Graphics::IndexFormat::U16)
-						continue;
+					for (size_t i = 0; i < std::size(triangle); i++)
+						triangle[i] = transformMatrix * vec4(triangle[i], 1.0f);
 
-					const auto& indices = *subMesh.GetIndicesU16();
+					if (!triangleIntersectionFunc(viewPoint, ray, triangle.data(), intersectionDistance))
+						return;
 
-					const size_t triangleIndexStep = (primitive == Graphics::PrimitiveType::Triangles) ? 3 : 1;
-					for (size_t i = 0; i < indices.size() - 2; i += triangleIndexStep)
+					if (intersectionDistance < closestDistance)
 					{
-						// TODO: Store last two positions so to avoid transforming them multiple times
-						const std::array<vec3, 3> triangle =
-						{
-							transformMatrix * vec4(mesh.VertexData.Positions[indices[i + 0]], 1.0f),
-							transformMatrix * vec4(mesh.VertexData.Positions[indices[i + 1]], 1.0f),
-							transformMatrix * vec4(mesh.VertexData.Positions[indices[i + 2]], 1.0f),
-						};
-
-						if (!Intersects(viewPoint, ray, triangle.data(), intersectionDistance))
-							continue;
-
-						if (intersectionDistance < closestDistance || closestSubMesh == nullptr)
-						{
-							closestDistance = intersectionDistance;
-							closestSubMesh = &subMesh;
-						}
+						closestDistance = intersectionDistance;
+						closestSubMesh = &subMesh;
+						closestMesh = &mesh;
 					}
-				}
-				else if (intersectionDistance < closestDistance || closestSubMesh == nullptr)
-				{
-					closestDistance = intersectionDistance;
-					closestSubMesh = &subMesh;
-				}
+				});
 			}
 		}
 
-		outIntersectionDistance = closestDistance;
-		return (closestSubMesh != nullptr);
+		return RayObjIntersectionResult { closestDistance, closestMesh, closestSubMesh };
 	}
 }
