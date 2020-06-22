@@ -29,8 +29,8 @@ namespace Comfy::Sandbox::Tests::Game
 			if (Gui::IsKeyPressed(Input::KeyCode_Escape, false))
 				ChangeRequest = { GameStateType::PS4MainMenu, true };
 
-			if (Gui::IsKeyPressed(Input::KeyCode_Up, true)) ScrollSongList(-1);
-			if (Gui::IsKeyPressed(Input::KeyCode_Down, true)) ScrollSongList(+1);
+			if (Gui::IsKeyDown(Input::KeyCode_Up) && songList.EntriesToScroll == 0) ScrollSongList(-1);
+			if (Gui::IsKeyDown(Input::KeyCode_Down) && songList.EntriesToScroll == 0) ScrollSongList(+1);
 		}
 
 		void OnDraw() override
@@ -162,6 +162,12 @@ namespace Comfy::Sandbox::Tests::Game
 
 		void DrawSongListSongBases()
 		{
+			Gui::DEBUG_NOSAVE_ONCE_PER_FRAME_WINDOW("YEP COCK", [&] 
+			{
+				if (auto songListLayer = GetSongListLayer(); songListLayer != nullptr)
+					Gui::TextUnformatted(songListLayer->GetName().c_str());
+			});
+
 			for (int i = 0; i < SongListItem_Count; i++)
 			{
 				const auto loop = LoopState_Loop;
