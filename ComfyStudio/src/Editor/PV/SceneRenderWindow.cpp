@@ -66,6 +66,7 @@ namespace Comfy::Studio::Editor
 		: sceneGraph(sceneGraph), camera(camera), renderer(renderer), sceneParam(sceneParam), cameraController(cameraController)
 	{
 		renderTarget = Renderer3D::CreateRenderTarget();
+		SetRenderBackgroundCheckerboard(true);
 	}
 
 	ImTextureID SceneRenderWindow::GetTextureID() const
@@ -131,6 +132,34 @@ namespace Comfy::Studio::Editor
 		return renderTarget.get();
 	}
 
+	SceneRenderWindow::RayPickResult SceneRenderWindow::RayPickScene(vec2 relativeMousePosition) const
+	{
+		const vec3 ray = camera.CalculateRayDirection(relativeMousePosition / GetRenderRegion().GetSize());
+		const vec3 viewPoint = camera.ViewPoint;
+		const float nearPlane = camera.NearPlane;
+
+		ObjectEntity* closestEntity = nullptr;
+		RayObjIntersectionResult closestIntersection = {};
+
+		for (auto& entity : sceneGraph.Entities)
+		{
+			if (!entity->IsVisible || entity->IsReflection)
+				continue;
+
+			const auto intersectionResult = RayIntersectsObj(viewPoint, ray, nearPlane, *entity->Obj, entity->Transform);
+			if (intersectionResult.SubMesh == nullptr)
+				continue;
+
+			if (intersectionResult.Distance < closestIntersection.Distance || closestEntity == nullptr)
+			{
+				closestEntity = entity.get();
+				closestIntersection = intersectionResult;
+			}
+		}
+
+		return RayPickResult { closestEntity, closestIntersection.Mesh, closestIntersection.SubMesh };
+	}
+
 	i64 SceneRenderWindow::GetLastFocusedFrameCount() const
 	{
 		return lastFocusedFrameCount;
@@ -139,6 +168,11 @@ namespace Comfy::Studio::Editor
 	bool SceneRenderWindow::GetRequestsDuplication() const
 	{
 		return requestsDuplication;
+	}
+
+	std::optional<SceneRenderWindow::RayPickResult> SceneRenderWindow::GetRayPickRequest() const
+	{
+		return rayPickRequest;
 	}
 
 	ImGuiWindowFlags SceneRenderWindow::GetRenderTextureChildWindowFlags() const
@@ -150,6 +184,7 @@ namespace Comfy::Studio::Editor
 	{
 		hasInputFocus = false;
 		requestsDuplication = false;
+		rayPickRequest = {};
 	}
 
 	void SceneRenderWindow::OnFirstFrame()
@@ -165,6 +200,11 @@ namespace Comfy::Studio::Editor
 	{
 		Gui::WindowContextMenu("ContextMenu##SceneRenderWindow", [&]
 		{
+			const auto relativeMouse = Gui::GetWindowPos() - GetRenderRegion().Min; // GetRelativeMouse();
+
+			if (Gui::MenuItem("Ray Pick"))
+				rayPickRequest = RayPickScene(relativeMouse);
+
 			if (Gui::MenuItem("Duplicate Viewport"))
 				requestsDuplication = true;
 		});
@@ -200,48 +240,31 @@ namespace Comfy::Studio::Editor
 
 	void SceneRenderWindow::UpdateInputRayTest()
 	{
-#if 0
+#if 0 // DEBUG:
 		if (!Gui::IsWindowFocused() || !Gui::IsWindowHovered())
 			return;
 
+		//for (auto& entity : sceneGraph.Entities)
+		//	entity->SilhouetteOutline = false;
+
 		for (auto& entity : sceneGraph.Entities)
-			entity->SilhouetteOutline = false;
-
-		if (Gui::IsMouseDown(1))
 		{
-			const vec3 ray = camera.CalculateRayDirection(GetRelativeMouse() / GetRenderRegion().GetSize());
-			const vec3 viewPoint = camera.ViewPoint;
-
-			float closestDistance = 0.0f;
-			ObjectEntity* closestEntity = nullptr;
-
-			for (auto& entity : sceneGraph.Entities)
+			for (auto& mesh : entity->Obj->Meshes)
 			{
-				if (!entity->IsVisible || entity->IsReflection)
-					continue;
-
-				// NOTE: Optionally ignore *all* camera intersecting entities
-				// if ((entity->Obj->BoundingSphere * entity->Transform).Contains(viewPoint))
-				// 	continue;
-
-				float intersectionDistance = 0.0f;
-				if (!Intersects(viewPoint, ray, *entity->Obj, entity->Transform, intersectionDistance))
-					continue;
-
-				// NOTE: Add a bias to camera intersecting entities so the stage ground / sky only get picked if nothing else is in between
-				const Sphere transformedSphere = (entity->Obj->BoundingSphere * entity->Transform);
-				if (transformedSphere.Contains(viewPoint))
-					intersectionDistance += transformedSphere.Radius;
-
-				if (intersectionDistance < closestDistance || closestEntity == nullptr)
-				{
-					closestDistance = intersectionDistance;
-					closestEntity = entity.get();
-				}
+				for (auto& subMesh : mesh.SubMeshes)
+					subMesh.Debug.UseDebugMaterial = false;
 			}
+		}
 
-			if (closestEntity != nullptr)
-				closestEntity->SilhouetteOutline = true;
+		if (Gui::IsMouseDown(2))
+		{
+			const auto result = RayPickScene(GetRelativeMouse());
+
+			//if (result.Entity != nullptr)
+			//	result.Entity->SilhouetteOutline = true;
+
+			if (result.SubMesh != nullptr)
+				result.SubMesh->Debug.UseDebugMaterial = true;
 		}
 #endif
 	}

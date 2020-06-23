@@ -57,6 +57,8 @@ namespace Comfy::Studio::Editor
 		void AddViewport(ViewportContext* baseViewport);
 		ViewportContext& FindActiveViewport();
 
+		void HandleRayPickRequest(const ViewportContext& viewport, const SceneRenderWindow::RayPickResult& rayPick);
+
 	private:
 		void DrawCameraGui(ViewportContext& activeViewport);
 		void DrawObjSetLoaderGui();

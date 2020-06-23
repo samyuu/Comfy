@@ -69,8 +69,12 @@ namespace Comfy::Studio::Editor
 		auto viewportGui = [&](ViewportContext& viewport, const char* name)
 		{
 			viewport.RenderWindow->BeginEndGui(name, &viewport.IsOpen);
+
 			if (viewport.RenderWindow->GetRequestsDuplication())
 				AddViewport(&viewport);
+
+			if (const auto rayPickRequest = viewport.RenderWindow->GetRayPickRequest(); rayPickRequest.has_value())
+				HandleRayPickRequest(viewport, *rayPickRequest);
 		};
 
 		viewportGui(mainViewport, ICON_FA_TREE "  Scene Viewport Main##SceneEditor");
@@ -314,6 +318,45 @@ namespace Comfy::Studio::Editor
 		return *newestFocusedViewport;
 	}
 
+	void SceneEditor::HandleRayPickRequest(const ViewportContext& viewport, const SceneRenderWindow::RayPickResult& rayPick)
+	{
+		if (rayPick.Entity == nullptr)
+		{
+			inspector.EntityIndex = -1;
+			objTestData.ObjSetIndex = -1;
+			objTestData.ObjIndex = -1;
+			objTestData.MeshIndex = -1;
+			objTestData.MaterialIndex = -1;
+			return;
+		}
+
+		inspector.EntityIndex = static_cast<int>(FindIndexOf(sceneGraph.Entities, [&](const auto& entity) { return (entity.get() == rayPick.Entity); }));
+
+		for (size_t setIndex = 0; setIndex < sceneGraph.LoadedObjSets.size(); setIndex++)
+		{
+			const auto& resource = sceneGraph.LoadedObjSets[setIndex];
+			for (size_t objIndex = 0; objIndex < resource.ObjSet->size(); objIndex++)
+			{
+				const auto& obj = resource.ObjSet->GetObjAt(static_cast<int>(objIndex));
+				for (size_t meshIndex = 0; meshIndex < obj->Meshes.size(); meshIndex++)
+				{
+					const auto& mesh = obj->Meshes[meshIndex];
+					for (size_t subMeshIndex = 0; subMeshIndex < mesh.SubMeshes.size(); subMeshIndex++)
+					{
+						const auto& subMesh = mesh.SubMeshes[subMeshIndex];
+						if (&subMesh != rayPick.SubMesh)
+							continue;
+
+						objTestData.ObjSetIndex = static_cast<int>(setIndex);
+						objTestData.ObjIndex = static_cast<int>(objIndex);
+						objTestData.MeshIndex = static_cast<int>(meshIndex);
+						objTestData.MaterialIndex = static_cast<int>(subMesh.MaterialIndex);
+					}
+				}
+			}
+		}
+	}
+
 	void SceneEditor::DrawCameraGui(ViewportContext& activeViewport)
 	{
 		auto& camera = activeViewport.Camera;
@@ -327,7 +370,7 @@ namespace Comfy::Studio::Editor
 		GuiProperty::Input("Far Plane", camera.FarPlane, 10.0f);
 		GuiProperty::Input("View Point", camera.ViewPoint, 0.01f);
 		GuiProperty::Input("Interest", camera.Interest, 0.01f);
-		
+
 		auto controlMode = cameraController.Mode;
 		if (GuiProperty::Combo("Control Mode", controlMode, CameraController3D::ControlModeNames, ImGuiComboFlags_None))
 			cameraController.SetControlModePreserveOrientation(camera, controlMode);

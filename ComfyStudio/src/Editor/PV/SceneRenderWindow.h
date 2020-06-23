@@ -2,6 +2,7 @@
 #include "SceneGraph.h"
 #include "Window/RenderWindow.h"
 #include "Editor/Common/CameraController3D.h"
+#include <optional>
 
 namespace Comfy::Studio::Editor
 {
@@ -19,9 +20,20 @@ namespace Comfy::Studio::Editor
 
 		Render::RenderTarget3D* GetRenderTarget();
 
+		struct RayPickResult
+		{
+			ObjectEntity* Entity;
+			const Graphics::Mesh* Mesh;
+			const Graphics::SubMesh* SubMesh;
+		};
+
+		RayPickResult RayPickScene(vec2 relativeMousePosition) const;
+
 	public:
 		i64 GetLastFocusedFrameCount() const;
 		bool GetRequestsDuplication() const;
+
+		std::optional<RayPickResult> GetRayPickRequest() const;
 
 	protected:
 		ImGuiWindowFlags GetRenderTextureChildWindowFlags() const;
@@ -36,11 +48,13 @@ namespace Comfy::Studio::Editor
 		void UpdateInputRayTest();
 
 	private:
+		bool drawCameraAxisIndicator = true;
+		
 		bool hasInputFocus = false;
 		bool requestsDuplication = false;
 		i64 lastFocusedFrameCount = 0;
 
-		bool drawCameraAxisIndicator = true;
+		std::optional<RayPickResult> rayPickRequest = {};
 
 		std::unique_ptr<Render::RenderTarget3D> renderTarget = nullptr;
 
