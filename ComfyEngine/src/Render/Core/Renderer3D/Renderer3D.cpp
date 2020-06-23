@@ -587,7 +587,7 @@ namespace Comfy::Render
 
 		void SetSceneCBData(Detail::SceneConstantData& outData)
 		{
-			outData.RenderResolution = GetPackedTextureSize(Current.RenderTarget->Main.Current());
+			outData.RenderResolution = GetPackedTextureSize(Current.RenderTarget->Param.RenderResolution);
 
 			const vec4 renderTimeNow = static_cast<float>(TimeSpan::GetTimeNow().TotalSeconds()) * Detail::SceneConstantData::RenderTime::Scales;
 			outData.RenderTime.Time = renderTimeNow;
@@ -902,8 +902,6 @@ namespace Comfy::Render
 
 				for (auto& command : DefaultCommandList.OpaqueAndTransparent)
 					RenderOpaqueObjCommand(command, RenderFlags_SSSPass);
-
-				// TODO: DefaultCommandList.Transparent (?)
 			}
 
 			Current.RenderTarget->SubsurfaceScattering.RenderTarget.UnBind();
@@ -958,7 +956,7 @@ namespace Comfy::Render
 
 				IterateCommandSubMeshes(command.SourceCommand, mesh, [&](auto& subMesh, auto& material)
 				{
-					if (IsMeshTransparent(mesh, subMesh, material))
+					if (IsMeshTransparent(mesh, subMesh, material) && !(flags & RenderFlags_SSSPass))
 						return;
 					if ((flags & RenderFlags_SSSPass) && !(Detail::UsesSSSSkin(material) || Detail::UsesSSSSkinConst(material)))
 						return;
