@@ -34,16 +34,16 @@ namespace Comfy::Render
 		const Graphics::SubMesh* SubMesh;
 	};
 
-	template <typename IndexType, typename Func>
-	void ForEachIndexedTriangle(const std::vector<vec3>& vertexPositions, Graphics::PrimitiveType primitiveType, const std::vector<IndexType>& indices, Func perTriangleFunc)
+	template <typename AttributeType, typename IndexType, typename Func>
+	void ForEachIndexedTriangle(const std::vector<AttributeType>& vertices, Graphics::PrimitiveType primitiveType, const std::vector<IndexType>& indices, Func perTriangleFunc)
 	{
 		if (primitiveType == Graphics::PrimitiveType::TriangleStrip)
 		{
 			for (size_t i = 0; i < indices.size() - 2; i += 1)
 			{
 				auto triangle = (i % 2 == 0) ?
-					std::array<vec3, 3> { vertexPositions[indices[i + 0]], vertexPositions[indices[i + 1]], vertexPositions[indices[i + 2]], } :
-					std::array<vec3, 3> { vertexPositions[indices[i + 2]], vertexPositions[indices[i + 1]], vertexPositions[indices[i + 0]], };
+					std::array { vertices[indices[i + 0]], vertices[indices[i + 1]], vertices[indices[i + 2]], } :
+					std::array { vertices[indices[i + 2]], vertices[indices[i + 1]], vertices[indices[i + 0]], };
 
 				perTriangleFunc(triangle);
 			}
@@ -52,7 +52,7 @@ namespace Comfy::Render
 		{
 			for (size_t i = 0; i < indices.size() - 2; i += 3)
 			{
-				auto triangle = std::array<vec3, 3> { vertexPositions[indices[i + 0]], vertexPositions[indices[i + 1]], vertexPositions[indices[i + 2]], };
+				auto triangle = std::array { vertices[indices[i + 0]], vertices[indices[i + 1]], vertices[indices[i + 2]], };
 				perTriangleFunc(triangle);
 			}
 		}
@@ -73,14 +73,15 @@ namespace Comfy::Render
 			ForEachIndexedTriangle(mesh.VertexData.Positions, subMesh.Primitive, *indices, perTriangleFunc);
 	}
 
-	inline RayObjIntersectionResult RayIntersectsObj(const vec3& viewPoint, const vec3& ray, const Graphics::Obj& obj, const Graphics::Transform& transform)
+	inline RayObjIntersectionResult RayIntersectsObj(const vec3& viewPoint, const vec3& ray, float nearPlane, const Graphics::Obj& obj, const Graphics::Transform& transform)
 	{
-		float intersectionDistance = 0.0f;
-		if (!RayIntersectsSphere(viewPoint, ray, obj.BoundingSphere * transform, intersectionDistance))
-			return RayObjIntersectionResult { 0.0f, nullptr, nullptr };
+		const mat4 inverseTransform = glm::inverse(transform.CalculateMatrix());
+		const vec3 inverseViewPoint = inverseTransform * vec4(viewPoint, 1.0f);
+		const vec3 inverseRay = glm::normalize(inverseTransform * vec4(ray, 0.0f));
 
-		// TODO: Can all of the triangle transform multiplication be avoided by inverse transforming the ray / viewpoint instead (?)
-		const mat4 transformMatrix = transform.CalculateMatrix();
+		float intersectionDistance = 0.0f;
+		if (!RayIntersectsSphere(inverseViewPoint, inverseRay, obj.BoundingSphere, intersectionDistance))
+			return RayObjIntersectionResult { 0.0f, nullptr, nullptr };
 
 		float closestDistance = std::numeric_limits<float>::max();
 		const Graphics::Mesh* closestMesh = nullptr;
@@ -88,24 +89,20 @@ namespace Comfy::Render
 
 		for (const auto& mesh : obj.Meshes)
 		{
-			if (!RayIntersectsSphere(viewPoint, ray, mesh.BoundingSphere * transform, intersectionDistance))
+			if (!RayIntersectsSphere(inverseViewPoint, inverseRay, mesh.BoundingSphere, intersectionDistance))
 				continue;
 
 			for (const auto& subMesh : mesh.SubMeshes)
 			{
-				if (!RayIntersectsSphere(viewPoint, ray, subMesh.BoundingSphere * transform, intersectionDistance))
+				if (!RayIntersectsSphere(inverseViewPoint, inverseRay, subMesh.BoundingSphere, intersectionDistance))
 					continue;
 
 				const auto& material = IndexOrNull(subMesh.MaterialIndex, obj.Materials);
 				auto triangleIntersectionFunc = (material != nullptr && material->BlendFlags.DoubleSided) ? RayIntersectsTriangle : RayIntersectsTriangleSingleSided;
 
-				// BUG: It seems something here still isn't quite right, observed when trying to ray pick the character hair backside at low angles
 				ForEachSubMeshTriangle(mesh, subMesh, [&](auto& triangle)
 				{
-					for (size_t i = 0; i < std::size(triangle); i++)
-						triangle[i] = transformMatrix * vec4(triangle[i], 1.0f);
-
-					if (!triangleIntersectionFunc(viewPoint, ray, triangle.data(), intersectionDistance))
+					if (!triangleIntersectionFunc(inverseViewPoint, inverseRay, triangle.data(), intersectionDistance) || (intersectionDistance < nearPlane))
 						return;
 
 					if (intersectionDistance < closestDistance)
