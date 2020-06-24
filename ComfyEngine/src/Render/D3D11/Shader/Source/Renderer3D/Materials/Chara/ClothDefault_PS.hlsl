@@ -25,7 +25,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     
     TEX2D_00(col0, a_tex_color0);
     MUL(col0.xyz, col0.xyz, p_texcol_coef.x);
-    MAX(o_color.w, col0.w, p_max_alpha.w);
+    MOV (o_color.w, col0.w);
     TEX2D_02(tmp, a_tex_normal0);
     MAD(tmp.xy, tmp.wy, 2.0, -1.0);
     MUL(tmp.zw, tmp.xy, tmp.xy);
@@ -78,8 +78,11 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     MUL(luce.w, tmp.w, 0.5);
     MOV(spec_ratio, state_material_specular);
     
-    TEX2D_03(tmp, a_tex_specular);
-    MUL(spec_ratio, spec_ratio, tmp);
+    if (FLAGS_SPECULAR_TEX2D)
+    {
+        TEX2D_03(tmp, a_tex_specular);
+        MUL(spec_ratio, spec_ratio, tmp);
+    }
     
     DP3(tmp.w, spec_ratio, float3(1, 1, 1));
     MAD_SAT(tmp.w, tmp.w, -3.0, 1.3);
@@ -131,7 +134,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     }
     
     ADD(diff.xyz, diff.xyz, luce.w);
-    MOV(diff.xyz, diff.xyz);
+    // MOV(diff.xyz, diff.xyz);
     
     if (FLAGS_LINEAR_FOG)
     {

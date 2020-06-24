@@ -27,6 +27,7 @@
 #define p_bump_depth                (CB_Object.Material.BumpDepth)
 
 #define p_sss_param                 (CB_Scene.SubsurfaceScatteringParameter)
+#define p_skin_color                (float4(0.97, 0.84, 0.78, 1.0))
 
 // TODO: Should this be the same as p_fres_coef (?)
 #define fres_coef                   (CB_Object.Material.FresnelCoefficient)

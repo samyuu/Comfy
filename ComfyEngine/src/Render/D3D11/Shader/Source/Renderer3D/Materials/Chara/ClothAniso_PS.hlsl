@@ -31,7 +31,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
         MOV(col0.w, tmp.w);
     }
 
-    MAX(o_color.w, col0.w, p_max_alpha.w);
+    MOV(o_color.w, col0.w);
     TEX2D_02(tmp, a_tex_normal0);
     MAD(tmp.xy, tmp.wy, 2.0, -1.0);
     MUL(tmp.zw, tmp.xy, tmp.xy);
@@ -137,6 +137,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     if (FLAGS_ENVIRONMENT_CUBE)
     {
         MAD(env.w, lc.z, 0.5, 0.5);
+        MUL(env.w, env.w, state_light0_specular.w);
         MUL(env.xyz, env.xyz, env.w);
         MAD(diff.xyz, env.xyz, spec_ratio.w, diff.xyz);
     }
@@ -152,6 +153,8 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     {
         MOV(o_color.xyz, diff.xyz);
     }
+    
+    PS_ALPHA_TEST;
     
 #endif
     
