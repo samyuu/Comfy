@@ -1045,6 +1045,42 @@ namespace Comfy::Studio::Editor
 
 		GuiProperty::Input("Character", charaTestData.IDs.Character.data(), charaTestData.IDs.Character.size());
 
+		Gui::ItemContextMenu("CharacterContextMenu", [&]
+		{
+			static constexpr std::array<decltype(charaTestData.IDs.Character), 3> avilableCharacters = { "rin", "mik", "luk" };
+
+			Gui::TextUnformatted("Character Names:");
+
+			char labelBuffer[260];
+			for (const auto& characterName : avilableCharacters)
+			{
+				sprintf_s(labelBuffer, "Set: { \"%.*s\" }", static_cast<int>(characterName.size()), characterName.data());
+
+				const bool enabled = (charaTestData.IDs.Character != characterName);
+				if (Gui::MenuItem(labelBuffer, nullptr, false, enabled))
+				{
+					charaTestData.IDs.Character = characterName;
+					loadCharaItems();
+				}
+			}
+
+			Gui::Separator();
+			Gui::TextUnformatted("ID Presets:");
+
+			for (const auto& preset : CharacterTestItemPresets)
+			{
+				sprintf_s(labelBuffer, "Set: { %d, %d, %d, %d, %d, %d, %d { \"%.*s\" } }", 
+					preset.CommonItem, preset.Face, preset.FaceIndex, preset.Overhead, preset.Hair, preset.Outer, preset.Hands, static_cast<int>(preset.Character.size()), preset.Character.data());
+				
+				const bool enabled = (std::memcmp(&charaTestData.IDs, &preset, sizeof(charaTestData.IDs)) != 0);
+				if (Gui::MenuItem(labelBuffer, nullptr, false, enabled))
+				{
+					charaTestData.IDs = preset;
+					loadCharaItems();
+				}
+			}
+		});
+
 		if (GuiProperty::Input("Item", charaTestData.IDs.CommonItem))
 			loadCharaItems();
 
