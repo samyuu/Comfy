@@ -47,10 +47,24 @@ namespace Comfy::Graphics::Utilities
 			return ivec2(box.z, box.w);
 		}
 
+#if 0 // NOTE: Only supported by Intel Haswell CPUs
 		u32 RoundToNearestPowerOfTwo(u32 x)
 		{
 			return (x <= 1 || x > ((std::numeric_limits<u32>::max() / 2) + 1)) ? x : (1 << (32 - __lzcnt(x - 1)));
 		}
+#else
+		u32 RoundToNearestPowerOfTwo(u32 x)
+		{
+			x--;
+			x |= x >> 1;
+			x |= x >> 2;
+			x |= x >> 4;
+			x |= x >> 8;
+			x |= x >> 16;
+			x++;
+			return x;
+		}
+#endif
 
 		ivec2 RoundToNearestPowerOfTwo(ivec2 input)
 		{
