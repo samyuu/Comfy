@@ -1069,9 +1069,9 @@ namespace Comfy::Studio::Editor
 
 			for (const auto& preset : CharacterTestItemPresets)
 			{
-				sprintf_s(labelBuffer, "Set: { %d, %d, %d, %d, %d, %d, %d { \"%.*s\" } }", 
+				sprintf_s(labelBuffer, "Set: { %d, %d, %d, %d, %d, %d, %d { \"%.*s\" } }",
 					preset.CommonItem, preset.Face, preset.FaceIndex, preset.Overhead, preset.Hair, preset.Outer, preset.Hands, static_cast<int>(preset.Character.size()), preset.Character.data());
-				
+
 				const bool enabled = (std::memcmp(&charaTestData.IDs, &preset, sizeof(charaTestData.IDs)) != 0);
 				if (Gui::MenuItem(labelBuffer, nullptr, false, enabled))
 				{

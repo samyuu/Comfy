@@ -25,9 +25,11 @@ namespace Comfy::Studio::Editor
 			ObjectEntity* Entity;
 			const Graphics::Mesh* Mesh;
 			const Graphics::SubMesh* SubMesh;
+			float Distance;
 		};
 
-		RayPickResult RayPickScene(vec2 relativeMousePosition) const;
+		RayPickResult RayPickSceneRay(vec3 viewPoint, vec3 ray, float nearPlane) const;
+		RayPickResult RayPickSceneMouse(vec2 relativeMousePosition) const;
 
 	public:
 		i64 GetLastFocusedFrameCount() const;

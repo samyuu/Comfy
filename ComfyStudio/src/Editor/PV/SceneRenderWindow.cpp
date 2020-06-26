@@ -132,12 +132,8 @@ namespace Comfy::Studio::Editor
 		return renderTarget.get();
 	}
 
-	SceneRenderWindow::RayPickResult SceneRenderWindow::RayPickScene(vec2 relativeMousePosition) const
+	SceneRenderWindow::RayPickResult SceneRenderWindow::RayPickSceneRay(vec3 viewPoint, vec3 ray, float nearPlane) const
 	{
-		const vec3 ray = camera.CalculateRayDirection(relativeMousePosition / GetRenderRegion().GetSize());
-		const vec3 viewPoint = camera.ViewPoint;
-		const float nearPlane = camera.NearPlane;
-
 		ObjectEntity* closestEntity = nullptr;
 		RayObjIntersectionResult closestIntersection = {};
 
@@ -157,7 +153,12 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
-		return RayPickResult { closestEntity, closestIntersection.Mesh, closestIntersection.SubMesh };
+		return RayPickResult { closestEntity, closestIntersection.Mesh, closestIntersection.SubMesh, closestIntersection.Distance };
+	}
+
+	SceneRenderWindow::RayPickResult SceneRenderWindow::RayPickSceneMouse(vec2 relativeMousePosition) const
+	{
+		return RayPickSceneRay(camera.ViewPoint, camera.CalculateRayDirection(relativeMousePosition / GetRenderRegion().GetSize()), camera.NearPlane);
 	}
 
 	i64 SceneRenderWindow::GetLastFocusedFrameCount() const
@@ -203,7 +204,7 @@ namespace Comfy::Studio::Editor
 			const auto relativeMouse = Gui::GetWindowPos() - GetRenderRegion().Min; // GetRelativeMouse();
 
 			if (Gui::MenuItem("Ray Pick"))
-				rayPickRequest = RayPickScene(relativeMouse);
+				rayPickRequest = RayPickSceneMouse(relativeMouse);
 
 			if (Gui::MenuItem("Duplicate Viewport"))
 				requestsDuplication = true;
@@ -258,13 +259,16 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::IsMouseDown(2))
 		{
-			const auto result = RayPickScene(GetRelativeMouse());
+			const auto result = RayPickSceneMouse(GetRelativeMouse());
 
 			//if (result.Entity != nullptr)
 			//	result.Entity->SilhouetteOutline = true;
 
 			if (result.SubMesh != nullptr)
 				result.SubMesh->Debug.UseDebugMaterial = true;
+
+			// DEBUG:
+			rayPickRequest = result;
 		}
 #endif
 	}
