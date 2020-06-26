@@ -40,6 +40,8 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
     if (CB_RenderCubeMap)
     {
         textureColor = SpriteCubeTexture.SampleLevel(TextureSampler, CB_GetCubeMapTextureCoordinates(input.TexCoord), CB_CubeMapMipLevel);
+        // NOTE: Not quite sure about this one
+        textureColor.a = 1.0;
     }
     else if (CB_DecompressRGTC)
     {
