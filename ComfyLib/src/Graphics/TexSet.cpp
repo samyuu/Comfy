@@ -42,8 +42,6 @@ namespace Comfy::Graphics
 
 	void TexSet::Parse(const u8* buffer, size_t bufferSize)
 	{
-		TexSet& texSet = *this;
-
 		TxpSig signature = *(TxpSig*)(buffer + 0);
 		u32 textureCount = *(u32*)(buffer + 4);
 		u32 packedCount = *(u32*)(buffer + 8);
@@ -116,7 +114,8 @@ namespace Comfy::Graphics
 		const auto& textureIDs = objSet.TextureIDs;
 		assert(textureIDs.size() <= Textures.size());
 
-		for (size_t i = 0; i < textureIDs.size(); i++)
+		const auto textureCount = std::min(Textures.size(), textureIDs.size());
+		for (size_t i = 0; i < textureCount; i++)
 			Textures[i]->ID = textureIDs[i];
 	}
 
@@ -168,6 +167,13 @@ namespace Comfy::Graphics
 		u32* offsets = (u32*)(buffer + 12);
 		const u8* mipMapBuffer = buffer + *offsets;
 		++offsets;
+
+		const auto expectedMipLevels = (mipMapCount / arraySize);
+		if (arraySize == 6 && expectedMipLevels != mipLevels)
+		{
+			// NOTE: Appears to be the case for cube maps inside emcs files
+			mipLevels = expectedMipLevels;
+		}
 
 		assert(signature == TxpSig::Texture2D || signature == TxpSig::CubeMap || signature == TxpSig::Rectangle);
 		// assert(mipMapCount == tex.MipLevels * tex.ArraySize);
