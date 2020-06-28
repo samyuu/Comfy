@@ -52,6 +52,17 @@ namespace Comfy::Graphics
 			std::array<LightDataIBL, 3> Lights;
 		};
 
+		/* // NOTE: Storage layout:
+			
+			LightMaps[0].MipMaps[0] = Diffuse Irradiance
+			LightMaps[0].MipMaps[1] = Diffuse Irradiance (Shadow)
+
+			LightMaps[1].MipMaps[0] = Specular Radiance Shiny
+			LightMaps[1].MipMaps[1] = Specular Radiance Rough
+			
+			LightMaps[2].MipMaps[0] = Specular Radiance Shiny (Shadow)
+			LightMaps[2].MipMaps[1] = Specular Radiance Rough (Shadow)
+		*/
 		std::array<LightMapIBL, 3> LightMaps;
 
 		// HACK: Owning binary data pointed into by LightMapIBL::DataPointers
