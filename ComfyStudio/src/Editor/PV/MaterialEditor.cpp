@@ -3,6 +3,7 @@
 #include "ImGui/Gui.h"
 #include "ImGui/Extensions/TexExtensions.h"
 #include "ImGui/Extensions/PropertyEditor.h"
+#include <glm/gtx/matrix_decompose.hpp>
 
 namespace Comfy::Studio::Editor
 {
@@ -77,9 +78,12 @@ namespace Comfy::Studio::Editor
 
 	void MaterialEditor::GuiShaderFlags(Material::ShaderTypeIdentifier& shaderType, Material::MaterialShaderFlags& shaderFlags)
 	{
-		GuiProperty::TreeNode("Shader Flags", ImGuiTreeNodeFlags_None, [&]
+		char nodeValueBuffer[32];
+		const auto valueLength = sprintf_s(nodeValueBuffer, "(%.*s)", static_cast<int>(strnlen_s(shaderType.data(), shaderType.size())), shaderType.data());
+
+		GuiProperty::TreeNode("Shader Flags", std::string_view(nodeValueBuffer, valueLength), ImGuiTreeNodeFlags_None, [&]
 		{
-			if (GuiProperty::Input("Shader Type", shaderType.data(), shaderType.size(), ImGuiInputTextFlags_None))
+			if (GuiProperty::Input("Shader Type", shaderType.data(), shaderType.size() + sizeof('\0'), ImGuiInputTextFlags_None))
 				std::fill(std::find(shaderType.begin(), shaderType.end(), '\0'), shaderType.end(), '\0');
 
 			Gui::ItemContextMenu("ShaderTypeContextMenu", [&]
@@ -118,12 +122,12 @@ namespace Comfy::Studio::Editor
 				auto& texture = material.Textures[i];
 
 				char nodePropertyNameBuffer[32];
-				sprintf_s(nodePropertyNameBuffer, "Textures[%zu]", i);
+				const auto propertyLength = sprintf_s(nodePropertyNameBuffer, "Textures[%zu]", i);
 
 				char nodeValueNameBuffer[32];
-				sprintf_s(nodeValueNameBuffer, "(%s)", MaterialTextureTypeNames[static_cast<u32>(texture.TextureFlags.Type)]);
+				const auto valueLength = sprintf_s(nodeValueNameBuffer, "(%s)", IndexOr(static_cast<u32>(texture.TextureFlags.Type), MaterialTextureTypeNames, "Unknown"));
 
-				GuiProperty::TreeNode(nodePropertyNameBuffer, nodeValueNameBuffer, ImGuiTreeNodeFlags_None, [&]
+				GuiProperty::TreeNode(std::string_view(nodePropertyNameBuffer, propertyLength), std::string_view(nodeValueNameBuffer, valueLength), ImGuiTreeNodeFlags_None, [&]
 				{
 					GuiProperty::TreeNode("Sampler Flags", ImGuiTreeNodeFlags_None, [&]
 					{
@@ -163,6 +167,32 @@ namespace Comfy::Studio::Editor
 						GuiPropertyBitFieldComboEnum("UV Index", textureFlags.UVIndex, MaterialTextureUVIndexNames);
 						GuiPropertyBitFieldComboEnum("UV Translation Type", textureFlags.UVTranslationType, MaterialTextureUVTranslationTypeNames);
 					});
+
+					// NOTE: This is quite computationally expensive so it'd be a bad idea to expand this node by default
+					GuiProperty::TreeNode("Coordinate Transform", ImGuiTreeNodeFlags_None, [&]
+					{
+						GuiProperty::Input("Matrix[0]", texture.TextureCoordinateMatrix[0]);
+						GuiProperty::Input("Matrix[1]", texture.TextureCoordinateMatrix[1]);
+						GuiProperty::Input("Matrix[3]", texture.TextureCoordinateMatrix[2]);
+						GuiProperty::Input("Matrix[4]", texture.TextureCoordinateMatrix[3]);
+
+						vec3 scale, translation, skew;
+						quat orientation;
+						vec4 perspective;
+						glm::decompose(texture.TextureCoordinateMatrix, scale, orientation, translation, skew, perspective);
+
+						auto reconstructMatrix = [&]
+						{
+							// NOTE: This is of course a lossy reconstruction but in practice these matrices usually only consist of a translation and scale
+							texture.TextureCoordinateMatrix = glm::translate(mat4(1.0f), translation) * glm::scale(mat4(1.0f), scale);
+						};
+
+						if (GuiProperty::Input("Translation", translation, 0.01f))
+							reconstructMatrix();
+
+						if (GuiProperty::Input("Scale", scale, 0.01f))
+							reconstructMatrix();
+					});
 				});
 			}
 		});
@@ -183,7 +213,7 @@ namespace Comfy::Studio::Editor
 			GuiPropertyBitFieldInputInt("Z Bias", blendFlags.ZBias);
 			GuiPropertyBitFieldCheckbox("No Fog", blendFlags.NoFog);
 			GuiPropertyBitFieldInputInt("Unknown0", blendFlags.Unknown0);
-			GuiPropertyBitFieldInputInt("Unknown1", blendFlags.Unknown1);
+			GuiPropertyBitFieldCheckbox("Force Opaque", blendFlags.ForceOpaque);
 		});
 	}
 
