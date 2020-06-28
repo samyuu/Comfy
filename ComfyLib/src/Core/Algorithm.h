@@ -15,6 +15,12 @@ namespace Comfy
 			return (index < array.size());
 	}
 
+	template <typename IndexType, typename ArrayType, typename DefaultType>
+	COMFY_NODISCARD constexpr __forceinline auto IndexOr(const IndexType& index, ArrayType& array, DefaultType defaultValue) -> auto&
+	{
+		return InBounds(index, array) ? array[index] : defaultValue;
+	}
+
 	template <typename IndexType, typename ArrayType>
 	COMFY_NODISCARD constexpr __forceinline auto IndexOrNull(const IndexType& index, ArrayType& array) -> auto*
 	{
