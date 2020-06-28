@@ -771,9 +771,7 @@ namespace Comfy::Studio::Editor
 		auto setCamera = [&](auto& entity, const Sphere& boundingSphere)
 		{
 			const Sphere transformedSphere = boundingSphere * entity->Transform;
-
-			activeViewport.Camera.Interest = activeViewport.Camera.ViewPoint = transformedSphere.Center;
-			activeViewport.CameraController.OrbitData.Distance = transformedSphere.Radius;
+			activeViewport.CameraController.FitOrbitAroundSphere(activeViewport.Camera, transformedSphere);
 
 			inspector.EntityIndex = static_cast<int>(std::distance(&sceneGraph.Entities.front(), &entity));
 		};

@@ -3,6 +3,7 @@
 #include "Graphics/Auth3D/Misc/DebugObj.h"
 #include "Render/Misc/RayIntersection.h"
 #include "Editor/Core/Theme.h"
+#include "Input/Input.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -269,6 +270,9 @@ namespace Comfy::Studio::Editor
 
 			// DEBUG:
 			rayPickRequest = result;
+
+			if (result.SubMesh != nullptr && Gui::IsKeyPressed(Input::KeyCode_F, false))
+				cameraController.FitOrbitAroundSphere(camera, result.SubMesh->BoundingSphere * result.Entity->Transform);
 		}
 #endif
 	}

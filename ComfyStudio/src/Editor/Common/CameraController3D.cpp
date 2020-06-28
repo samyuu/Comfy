@@ -89,11 +89,23 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
+	void CameraController3D::FitOrbitAroundSphere(Render::PerspectiveCamera& camera, const Graphics::Sphere& sphere)
+	{
+		const float cameraView = 2.0f * glm::tan(glm::radians(camera.FieldOfView) * 0.5f);
+		const float distance = (sphere.Radius / cameraView) + sphere.Radius;
+
+		camera.Interest = camera.ViewPoint = sphere.Center;
+		OrbitData.Distance = distance;
+
+		SetControlModePreserveOrientation(camera, ControlMode::Orbit);
+	}
+
 	void CameraController3D::SetControlModePreserveOrientation(Render::PerspectiveCamera& camera, ControlMode newMode)
 	{
+		const auto oldMode = Mode;
 		Mode = newMode;
 
-		if (newMode == ControlMode::None)
+		if (newMode == ControlMode::None || newMode == oldMode)
 			return;
 
 		const auto cameraDirection = glm::quatLookAt(glm::normalize(camera.Interest - camera.ViewPoint), camera.UpDirection);

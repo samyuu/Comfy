@@ -65,6 +65,7 @@ namespace Comfy::Studio::Editor
 	public:
 		void Update(Render::PerspectiveCamera& camera);
 
+		void FitOrbitAroundSphere(Render::PerspectiveCamera& camera, const Graphics::Sphere& sphere);
 		void SetControlModePreserveOrientation(Render::PerspectiveCamera& camera, ControlMode newMode);
 
 	private:
