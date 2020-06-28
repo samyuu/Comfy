@@ -417,7 +417,7 @@ namespace Comfy::Graphics
 			u32 NoFog : 1;
 
 			u32 Unknown0 : 7;
-			u32 Unknown1 : 1;
+			u32 ForceOpaque : 1;
 			u32 Reserved : 3;
 		} BlendFlags;
 
