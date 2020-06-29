@@ -78,13 +78,14 @@ namespace Comfy::Render::Detail
 
 	inline std::array<vec4, 36> CalculateSSSFilterCoefficient(double cameraCoefficient)
 	{
-		constexpr std::array<std::array<double, 3>, 4> weights =
+		static constexpr std::array<std::array<double, 3>, 4> weights =
 		{
 			std::array { 1.0, 2.0, 5.0, },
 			std::array { 0.2, 0.4, 1.2, },
 			std::array { 0.3, 0.7, 2.0, },
 			std::array { 0.4, 0.3, 0.3, },
 		};
+
 		constexpr double expFactorIncrement = 1.0;
 
 		std::array<vec4, 36> coefficients = {};

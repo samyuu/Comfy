@@ -1,7 +1,9 @@
 #include "Renderer3D.h"
+#include "CoreMacros.h"
 #include "Detail/ConstantData.h"
 #include "Detail/GaussianBlur.h"
 #include "Detail/LensFlare.h"
+#include "Detail/MeshTransparency.h"
 #include "Detail/RenderTarget3DImpl.h"
 #include "Detail/ShaderFlags.h"
 #include "Detail/ShaderPairs.h"
@@ -147,20 +149,6 @@ namespace Comfy::Render
 		return (command.Flags.ReceivesShadow);
 	}
 
-	constexpr bool IsMeshTransparent(const Mesh& mesh, const SubMesh& subMesh, const Material& material)
-	{
-		if (material.BlendFlags.AlphaMaterial)
-			return true;
-
-		if (material.BlendFlags.AlphaTexture && !material.BlendFlags.PunchThrough)
-			return true;
-
-		if (subMesh.Flags.Transparent)
-			return true;
-
-		return false;
-	}
-
 	const Mesh* GetMorphMesh(const Obj& obj, const Obj* morphObj, const Mesh& mesh)
 	{
 		if (morphObj == nullptr)
@@ -260,13 +248,14 @@ namespace Comfy::Render
 	enum RenderFlags_Enum : RenderFlags
 	{
 		RenderFlags_None = 0,
-		RenderFlags_SSSPass = (1 << 0),
-		RenderFlags_SilhouetteOutlinePass = (1 << 1),
-		RenderFlags_NoMaterialShader = (1 << 2),
-		RenderFlags_NoMaterialTextures = (1 << 3),
-		RenderFlags_DiffuseTextureOnly = (1 << 4),
-		RenderFlags_NoRasterizerState = (1 << 5),
-		RenderFlags_NoFrustumCulling = (1 << 6),
+		RenderFlags_ShadowPass = (1 << 0),
+		RenderFlags_SSSPass = (1 << 1),
+		RenderFlags_SilhouetteOutlinePass = (1 << 2),
+		RenderFlags_NoMaterialShader = (1 << 3),
+		RenderFlags_NoMaterialTextures = (1 << 4),
+		RenderFlags_DiffuseTextureOnly = (1 << 5),
+		RenderFlags_NoRasterizerState = (1 << 6),
+		RenderFlags_NoFrustumCulling = (1 << 7),
 	};
 
 	struct ObjRenderCommand
@@ -471,7 +460,7 @@ namespace Comfy::Render
 
 				IterateCommandMeshesAndSubMeshes(command.SourceCommand, [&](auto& mesh, auto& subMesh, auto& material)
 				{
-					if (IsMeshTransparent(mesh, subMesh, material))
+					if (Detail::IsMeshTransparent(mesh, subMesh, material))
 					{
 						const auto boundingSphere = (subMesh.BoundingSphere * command.SourceCommand.Transform);
 						const float cameraDistance = glm::distance(boundingSphere.Center, Current.Camera->ViewPoint);
@@ -743,7 +732,7 @@ namespace Comfy::Render
 			for (auto& command : DefaultCommandList.OpaqueAndTransparent)
 			{
 				if (command.SourceCommand.Flags.CastsShadow)
-					RenderOpaqueObjCommand(command, RenderFlags_NoMaterialShader | RenderFlags_NoRasterizerState | RenderFlags_NoFrustumCulling | RenderFlags_DiffuseTextureOnly);
+					RenderOpaqueObjCommand(command, RenderFlags_ShadowPass | RenderFlags_NoMaterialShader | RenderFlags_NoRasterizerState | RenderFlags_NoFrustumCulling | RenderFlags_DiffuseTextureOnly);
 			}
 
 			Current.RenderTarget->Shadow.RenderTarget.UnBind();
@@ -941,7 +930,7 @@ namespace Comfy::Render
 
 		void RenderOpaqueObjCommand(ObjRenderCommand& command, RenderFlags flags = RenderFlags_None)
 		{
-			if (command.AreAllMeshesTransparent)
+			if (command.AreAllMeshesTransparent && !(flags & RenderFlags_ShadowPass) && !(flags & RenderFlags_SSSPass))
 				return;
 
 			if (!(flags & RenderFlags_NoFrustumCulling) && !IntersectsCameraFrustum(command.SourceCommand.SourceObj->BoundingSphere, command))
@@ -956,10 +945,15 @@ namespace Comfy::Render
 
 				IterateCommandSubMeshes(command.SourceCommand, mesh, [&](auto& subMesh, auto& material)
 				{
-					if (IsMeshTransparent(mesh, subMesh, material) && !(flags & RenderFlags_SSSPass))
-						return;
+					if (!(flags & RenderFlags_ShadowPass) && !(flags & RenderFlags_SSSPass))
+					{
+						if (Detail::IsMeshTransparent(mesh, subMesh, material))
+							return;
+					}
+
 					if ((flags & RenderFlags_SSSPass) && !(Detail::UsesSSSSkin(material) || Detail::UsesSSSSkinConst(material)))
 						return;
+
 					if (!(flags & RenderFlags_NoFrustumCulling) && !IntersectsCameraFrustum(subMesh.BoundingSphere, command))
 						return;
 
@@ -1374,7 +1368,7 @@ namespace Comfy::Render
 			SetObjectCBTransforms(command, mesh, subMesh, ConstantBuffers.Object.Data);
 
 			ConstantBuffers.Object.Data.MorphWeight = GetObjectCBMorphWeight(command);
-			ConstantBuffers.Object.Data.ShaderFlags = GetObjectCBShaderFlags(command, mesh, subMesh, material, boundMaterialTexturesFlags);
+			ConstantBuffers.Object.Data.ShaderFlags = GetObjectCBShaderFlags(command, mesh, subMesh, material, boundMaterialTexturesFlags, flags);
 
 			ConstantBuffers.Object.UploadData();
 
@@ -1411,7 +1405,7 @@ namespace Comfy::Render
 				return TextureSlot_MaterialTextureCount;
 
 			default:
-				assert(false);
+				// assert(false);
 				return TextureSlot_MaterialTextureCount;
 			}
 		}
@@ -1644,7 +1638,7 @@ namespace Comfy::Render
 			}
 		}
 
-		u32 GetObjectCBShaderFlags(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, u32 boundMaterialTexturesFlags) const
+		u32 GetObjectCBShaderFlags(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, u32 boundMaterialTexturesFlags, RenderFlags flags) const
 		{
 			u32 result = 0;
 
@@ -1702,7 +1696,7 @@ namespace Comfy::Render
 
 			if (Current.RenderTarget->Param.RenderPunchThrough)
 			{
-				if (material.BlendFlags.AlphaTexture && !IsMeshTransparent(mesh, subMesh, material))
+				if ((flags & RenderFlags_ShadowPass) ? Detail::IsMeshShadowPunchThrough(mesh, subMesh, material) : Detail::IsMeshPunchThrough(mesh, subMesh, material))
 					result |= Detail::ShaderFlags_PunchThrough;
 			}
 
@@ -1747,70 +1741,51 @@ namespace Comfy::Render
 			if (material.ShaderType == Material::ShaderIdentifiers::Blinn)
 			{
 				if (material.ShaderFlags.PhongShading)
-				{
 					return (material.UsedTexturesFlags.Normal) ? Shaders.BlinnPerFrag : Shaders.BlinnPerVert;
-				}
-				else if (material.ShaderFlags.LambertShading)
-				{
+
+				if (material.ShaderFlags.LambertShading)
 					return Shaders.Lambert;
-				}
-				else
-				{
-					return Shaders.Constant;
-				}
+
+				return Shaders.Constant;
 			}
-			else if (material.ShaderType == Material::ShaderIdentifiers::Item)
-			{
+
+			if (material.ShaderType == Material::ShaderIdentifiers::Item)
 				return Shaders.ItemBlinn;
-			}
-			else if (material.ShaderType == Material::ShaderIdentifiers::Stage)
-			{
+
+			if (material.ShaderType == Material::ShaderIdentifiers::Stage)
 				return Shaders.StageBlinn;
-			}
-			else if (material.ShaderType == Material::ShaderIdentifiers::Skin)
-			{
+
+			if (material.ShaderType == Material::ShaderIdentifiers::Skin)
 				return Shaders.SkinDefault;
-			}
-			else if (material.ShaderType == Material::ShaderIdentifiers::Hair)
-			{
+
+			if (material.ShaderType == Material::ShaderIdentifiers::Hair)
 				return (material.ShaderFlags.AnisoDirection != AnisoDirection::Normal) ? Shaders.HairAniso : Shaders.HairDefault;
-			}
-			else if (material.ShaderType == Material::ShaderIdentifiers::Cloth)
-			{
+
+			if (material.ShaderType == Material::ShaderIdentifiers::Cloth)
 				return (material.ShaderFlags.AnisoDirection != AnisoDirection::Normal) ? Shaders.ClothAniso : Shaders.ClothDefault;
-			}
-			else if (material.ShaderType == Material::ShaderIdentifiers::Tights)
-			{
+
+			if (material.ShaderType == Material::ShaderIdentifiers::Tights)
 				return Shaders.Tights;
-			}
-			else if (material.ShaderType == Material::ShaderIdentifiers::Sky)
-			{
+
+			if (material.ShaderType == Material::ShaderIdentifiers::Sky)
 				return Shaders.SkyDefault;
-			}
-			else if (material.ShaderType == Material::ShaderIdentifiers::EyeBall)
-			{
+
+			if (material.ShaderType == Material::ShaderIdentifiers::EyeBall)
 				return (true) ? Shaders.GlassEye : Shaders.EyeBall;
-			}
-			else if (material.ShaderType == Material::ShaderIdentifiers::EyeLens)
-			{
+
+			if (material.ShaderType == Material::ShaderIdentifiers::EyeLens)
 				return Shaders.EyeLens;
-			}
-			else if (material.ShaderType == Material::ShaderIdentifiers::GlassEye)
-			{
+
+			if (material.ShaderType == Material::ShaderIdentifiers::GlassEye)
 				return Shaders.GlassEye;
-			}
-			else if (material.ShaderType == Material::ShaderIdentifiers::Water01 || material.ShaderType == Material::ShaderIdentifiers::Water02)
-			{
+
+			if (material.ShaderType == Material::ShaderIdentifiers::Water01 || material.ShaderType == Material::ShaderIdentifiers::Water02)
 				return Shaders.Water;
-			}
-			else if (material.ShaderType == Material::ShaderIdentifiers::Floor)
-			{
+
+			if (material.ShaderType == Material::ShaderIdentifiers::Floor)
 				return Shaders.Floor;
-			}
-			else
-			{
-				return Shaders.DebugMaterial;
-			}
+
+			return Shaders.DebugMaterial;
 		}
 
 		D3D11::ShaderPair& GetSSSMaterialShader(const Material& material)
