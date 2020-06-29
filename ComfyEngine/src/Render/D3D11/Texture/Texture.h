@@ -12,6 +12,8 @@ namespace Comfy::Graphics
 
 namespace Comfy::Render::D3D11
 {
+	class RenderTarget;
+
 	class ShaderResourceView
 	{
 	public:
@@ -82,10 +84,13 @@ namespace Comfy::Render::D3D11
 	public:
 		Texture2D(const Graphics::Tex& tex);
 		Texture2D(ivec2 size, const u32* rgbaBuffer);
+		Texture2D(const RenderTarget& sourceRenderTargetToCopy);
 		~Texture2D() = default;
 
 	public:
 		u32 GetArraySize() const override;
+
+		void CreateCopy(const RenderTarget& sourceRenderTargetToCopy);
 
 	private:
 	};

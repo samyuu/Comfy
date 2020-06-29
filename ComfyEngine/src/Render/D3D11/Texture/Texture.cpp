@@ -1,4 +1,5 @@
 #include "Texture.h"
+#include "RenderTarget.h"
 #include "Graphics/TexSet.h"
 #include "Graphics/Auth3D/LightParam/IBLParameters.h"
 
@@ -514,9 +515,28 @@ namespace Comfy::Render::D3D11
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 
+	Texture2D::Texture2D(const RenderTarget& sourceRenderTargetToCopy)
+	{
+		CreateCopy(sourceRenderTargetToCopy);
+	}
+
 	u32 Texture2D::GetArraySize() const
 	{
 		return 1;
+	}
+
+	void Texture2D::CreateCopy(const RenderTarget& sourceRenderTargetToCopy)
+	{
+		textureFormat = TextureFormat::RGBA8;
+		textureDescription = sourceRenderTargetToCopy.GetBackBufferDescription();
+
+		if (texture == nullptr)
+			D3D.Device->CreateTexture2D(&textureDescription, nullptr, &texture);
+
+		D3D.Context->CopyResource(texture.Get(), sourceRenderTargetToCopy.GetResource());
+
+		resourceViewDescription = CreateTextureResourceViewDescription(textureDescription);
+		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 
 	CubeMap::CubeMap(const Tex& tex)
