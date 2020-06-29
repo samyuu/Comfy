@@ -37,6 +37,16 @@ namespace Comfy::Render
 	template <typename AttributeType, typename IndexType, typename Func>
 	void ForEachIndexedTriangle(const std::vector<AttributeType>& vertices, Graphics::PrimitiveType primitiveType, const std::vector<IndexType>& indices, Func perTriangleFunc)
 	{
+#if 0 
+		// TODO: Safety bounds check, should probably only be done once on load (?)
+		if (std::any_of(indices.begin(), indices.end(), [&](auto index) { return !InBounds(index, vertices); }))
+			return;
+#else 
+		// NOTE: Otherwise specifically check for empty vertices as is the case for a few rare models
+		if (vertices.empty())
+			return;
+#endif
+
 		if (primitiveType == Graphics::PrimitiveType::TriangleStrip)
 		{
 			for (size_t i = 0; i < indices.size() - 2; i += 1)
