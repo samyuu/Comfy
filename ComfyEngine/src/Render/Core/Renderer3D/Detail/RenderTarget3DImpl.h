@@ -153,6 +153,7 @@ namespace Comfy::Render::Detail
 
 	public:
 		ComfyTextureID GetTextureID() const override { return Output.RenderTarget; }
+		const D3D11::RenderTarget& GetRenderTarget() const { return Output.RenderTarget; }
 
 	public:
 		std::unique_ptr<u8[]> TakeScreenshot() override { return Output.RenderTarget.StageAndCopyBackBuffer(); }

@@ -205,6 +205,7 @@
     <ClInclude Include="src\Render\Core\Renderer3D\RenderCommand3D.h" />
     <ClInclude Include="src\Render\Core\Renderer3D\Renderer3D.h" />
     <ClInclude Include="src\Render\Core\Renderer3D\RenderTarget3D.h" />
+    <ClInclude Include="src\Render\Core\RenderSnapshot.h" />
     <ClInclude Include="src\Render\D3D11\GraphicsResourceUtil.h" />
     <ClInclude Include="src\Render\D3D11\Shader\Bytecode\ShaderBytecode.h" />
     <ClInclude Include="src\Render\D3D11\Shader\Shader.h" />
@@ -276,6 +277,7 @@
     <ClCompile Include="src\Render\Core\Renderer2D\FontRenderer.cpp" />
     <ClCompile Include="src\Render\Core\Renderer2D\Renderer2D.cpp" />
     <ClCompile Include="src\Render\Core\Renderer3D\Renderer3D.cpp" />
+    <ClCompile Include="src\Render\Core\RenderSnapshot.cpp" />
     <ClCompile Include="src\Render\D3D11\Shader\Bytecode\ShaderBytecode.cpp" />
     <ClCompile Include="src\Render\D3D11\Shader\Shader.cpp" />
     <ClCompile Include="src\Render\D3D11\Buffer\ConstantBuffer.cpp" />

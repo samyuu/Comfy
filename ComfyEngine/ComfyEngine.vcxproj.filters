@@ -279,6 +279,9 @@
     <ClInclude Include="src\Render\Core\Renderer3D\Detail\MeshTransparency.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Render\Core\RenderSnapshot.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Audio\Decoder\Detail\FlacDecoder.cpp">
@@ -447,6 +450,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ImGui\Extensions\CheckerboardTexture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Render\Core\RenderSnapshot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

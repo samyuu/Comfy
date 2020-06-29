@@ -14,8 +14,7 @@ namespace Comfy::Render
 	static constexpr ivec2 ShadowMapDefaultResolution = ivec2(2048, 2048);
 	static constexpr ivec2 ReflectionDefaultResolution = ivec2(512, 512);
 
-	// TODO: Additional class to store the final result of the RenderTarget2D/3D without duplicating all of the sub render targets
-	//		 to for example efficiently preview multiple materials or obj renders at once
+	// TODO: Rename to RenderContext3D (?)
 
 	class RenderTarget3D : NonCopyable
 	{
@@ -25,6 +24,7 @@ namespace Comfy::Render
 
 	public:
 		virtual ComfyTextureID GetTextureID() const = 0;
+		virtual const D3D11::RenderTarget& GetRenderTarget() const = 0;
 
 	public:
 		virtual std::unique_ptr<u8[]> TakeScreenshot() = 0;
