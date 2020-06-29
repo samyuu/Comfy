@@ -2,6 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "CoreMacros.h"
+#include "Path.h"
 #include "Misc/UTF8.h"
 #include <filesystem>
 
@@ -29,6 +30,9 @@ namespace Comfy::IO
 							func(it.path().u8string());
 					}
 				};
+
+				if (!Path::GetExtension(directoryPath).empty())
+					return;
 
 				if constexpr (IterateRecursive)
 					iterateGeneric(std::filesystem::recursive_directory_iterator(UTF8::WideArg(directoryPath).c_str()));
