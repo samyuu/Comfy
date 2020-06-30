@@ -92,16 +92,13 @@ namespace Comfy::Studio::Editor
 				renderCommand.SourceObj = entity->Obj;
 				renderCommand.Transform = entity->Transform;
 				renderCommand.Flags.IsReflection = entity->IsReflection;
+				renderCommand.Flags.CastsShadow = entity->CastsShadow;
+				renderCommand.Flags.IgnoreShadowCastObjFlags = entity->IgnoreShadowCastObjFlags;
 
 				renderCommand.Dynamic = entity->Dynamic.get();
 
 				if (entity->SilhouetteOutline)
 					renderCommand.Flags.SilhouetteOutline = true;
-
-#if 1 // DEBUG:
-				if (entity->Tag == 'chr' || entity->Tag == 'obj')
-					renderCommand.Flags.CastsShadow = true;
-#endif
 
 				renderer.Draw(renderCommand);
 

@@ -440,7 +440,10 @@ namespace Comfy::Studio::Editor
 			{
 				auto& newlyAddedStageObjSet = sceneGraph.LoadedObjSets.back();
 				for (auto& obj : *newlyAddedStageObjSet.ObjSet)
-					sceneGraph.AddEntityFromObj(obj, ObjectTag);
+				{
+					auto& entity = sceneGraph.AddEntityFromObj(obj, ObjectTag);
+					entity.CastsShadow = true;
+				}
 			}
 		}
 		Gui::EndChild();
@@ -830,6 +833,8 @@ namespace Comfy::Studio::Editor
 
 			GuiProperty::Checkbox("Is Visible", entity.IsVisible);
 			GuiProperty::Checkbox("Is Reflection", entity.IsReflection);
+			GuiProperty::Checkbox("Casts Shadow", entity.CastsShadow);
+			GuiProperty::Checkbox("Ignore Shadow Cast Obj Flags", entity.IgnoreShadowCastObjFlags);
 			GuiProperty::Checkbox("Silhouette Outline", entity.SilhouetteOutline);
 
 			GuiProperty::Input("Translation", entity.Transform.Translation, 0.1f);
@@ -1019,12 +1024,18 @@ namespace Comfy::Studio::Editor
 
 					if (InBounds(exclusiveObjIndex, *loadedResource.ObjSet))
 					{
-						sceneGraph.AddEntityFromObj(loadedResource.ObjSet->at(exclusiveObjIndex), CharacterTag);
+						auto& entity = sceneGraph.AddEntityFromObj(loadedResource.ObjSet->at(exclusiveObjIndex), CharacterTag);
+						entity.CastsShadow = true;
+						entity.IgnoreShadowCastObjFlags = true;
 					}
 					else
 					{
 						for (auto& obj : *loadedResource.ObjSet)
-							sceneGraph.AddEntityFromObj(obj, CharacterTag);
+						{
+							auto& entity = sceneGraph.AddEntityFromObj(obj, CharacterTag);
+							entity.CastsShadow = true;
+							entity.IgnoreShadowCastObjFlags = true;
+						}
 					}
 				}
 			};

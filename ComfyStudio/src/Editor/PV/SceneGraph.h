@@ -24,6 +24,9 @@ namespace Comfy::Studio::Editor
 	public:
 		const Graphics::Obj* Obj = nullptr;
 
+		bool CastsShadow = false;
+		bool IgnoreShadowCastObjFlags = true;
+
 		bool IsReflection = false;
 		bool SilhouetteOutline = false;
 
