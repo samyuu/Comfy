@@ -211,51 +211,93 @@ namespace Comfy::Sandbox::Tests
 					}
 
 					Gui::Separator();
-					if (Gui::Button("Render All X Titles!"))
+					if (Gui::Button("Render All X Titles"))
 					{
 						struct SongInfo
 						{
-							i32 ID;
+							i32 ID, SubIndex;
 							std::string_view Title;
 							std::array<std::string_view, 3> Info;
 						};
 
 						static constexpr std::array allPVs =
 						{
-							SongInfo { 801, u8"Strangers", { u8"作詞・作曲：Heavenz" } },
-							SongInfo { 802, u8"愛Dee", { u8"作詞：Cotori・Mitchie M", u8"作曲：Mitchie M" } },
-							SongInfo { 803, u8"ストリーミングハート", { u8"作詞・作曲：DECO*27", u8"編曲：DECO*27・kous" } },
-							SongInfo { 804, u8"バビロン", { u8"作詞・作曲：トーマ" } },
-							SongInfo { 805, u8"ロストワンの号哭", { u8"作詞・作曲：Neru" } },
-							SongInfo { 806, u8"すろぉもぉしょん", { u8"作詞・作曲：ピノキオピー" } },
-							SongInfo { 807, u8"ウミユリ海底譚", { u8"作詞・作曲：n-buna" } },
-							SongInfo { 808, u8"恋愛裁判", { u8"作詞・作曲：40mP" } },
-							SongInfo { 809, u8"愛の詩", { u8"作詞・作曲：ラマーズP" } },
-							SongInfo { 810, u8"ハジメテノオト", { u8"作詞・作曲：malo" } },
-							SongInfo { 811, u8"LOL -lots of laugh-", { u8"作詞：エンドケイプ", u8"作曲：KeN" } },
-							SongInfo { 812, u8"ツギハギスタッカート", { u8"作詞・作曲：とあ" } },
-							SongInfo { 813, u8"クノイチでも恋がしたい", { u8"作詞・作曲：みきとP" } },
-							SongInfo { 814, u8"Calc.", { u8"作詞・作曲：ジミーサムP" } },
-							SongInfo { 815, u8"紅一葉", { u8"作詞・作曲：黒うさ" } },
-							SongInfo { 816, u8"聖槍爆裂ボーイ", { u8"作詞・作曲：れるりり・もじゃ" } },
-							SongInfo { 817, u8"卑怯戦隊うろたんだー", { u8"作詞・作曲：シンP" } },
-							SongInfo { 818, u8"Mrs.Pumpkinの滑稽な夢", { u8"作詞・作曲：ハチ" } },
-							SongInfo { 819, u8"独りんぼエンヴィー", { u8"作詞・作曲：koyori" } },
-							SongInfo { 820, u8"ラズベリー＊モンスター", { u8"作詞：Gom&shito", u8"作曲：Gom", u8"編曲：HoneyWorks" } },
-							SongInfo { 821, u8"脳内革命ガール", { u8"作詞・作曲：MARETU" } },
-							SongInfo { 822, u8"Amazing Dolce", { u8"作詞・作曲：ひとしずくP", u8"編曲：やま△" } },
-							SongInfo { 823, u8"罪の名前", { u8"作詞・作曲：ryo (supercell)" } },
-							SongInfo { 824, u8"Satisfaction", { u8"作詞・作曲：kz" } },
-							SongInfo { 831, u8"Sharing The World", { u8"作詞・作曲：BIGHEAD", u8"編曲：BIGHEAD" } },
-							SongInfo { 832, u8"Hand in Hand", { u8"作詞・作曲：kz" } },
+							SongInfo { 801, -1, u8"Strangers", { u8"作詞・作曲：Heavenz" } },
+							SongInfo { 802, -1, u8"愛Dee", { u8"作詞：Cotori・Mitchie M", u8"作曲：Mitchie M" } },
+							SongInfo { 803, -1, u8"ストリーミングハート", { u8"作詞・作曲：DECO*27", u8"編曲：DECO*27・kous" } },
+							SongInfo { 804, -1, u8"バビロン", { u8"作詞・作曲：トーマ" } },
+							SongInfo { 805, -1, u8"ロストワンの号哭", { u8"作詞・作曲：Neru" } },
+							SongInfo { 806, -1, u8"すろぉもぉしょん", { u8"作詞・作曲：ピノキオピー" } },
+							SongInfo { 807, -1, u8"ウミユリ海底譚", { u8"作詞・作曲：n-buna" } },
+							SongInfo { 808, -1, u8"恋愛裁判", { u8"作詞・作曲：40mP" } },
+							SongInfo { 809, -1, u8"愛の詩", { u8"作詞・作曲：ラマーズP" } },
+							SongInfo { 810, -1, u8"ハジメテノオト", { u8"作詞・作曲：malo" } },
+							SongInfo { 811, -1, u8"LOL -lots of laugh-", { u8"作詞：エンドケイプ", u8"作曲：KeN" } },
+							SongInfo { 812, -1, u8"ツギハギスタッカート", { u8"作詞・作曲：とあ" } },
+							SongInfo { 813, -1, u8"クノイチでも恋がしたい", { u8"作詞・作曲：みきとP" } },
+							SongInfo { 814, -1, u8"Calc.", { u8"作詞・作曲：ジミーサムP" } },
+							SongInfo { 815, -1, u8"紅一葉", { u8"作詞・作曲：黒うさ" } },
+							SongInfo { 816, -1, u8"聖槍爆裂ボーイ", { u8"作詞・作曲：れるりり・もじゃ" } },
+							SongInfo { 817, -1, u8"卑怯戦隊うろたんだー", { u8"作詞・作曲：シンP" } },
+							SongInfo { 818, -1, u8"Mrs.Pumpkinの滑稽な夢", { u8"作詞・作曲：ハチ" } },
+							SongInfo { 819, -1, u8"独りんぼエンヴィー", { u8"作詞・作曲：koyori" } },
+							SongInfo { 820, -1, u8"ラズベリー＊モンスター", { u8"作詞：Gom&shito", u8"作曲：Gom", u8"編曲：HoneyWorks" } },
+							SongInfo { 821, -1, u8"脳内革命ガール", { u8"作詞・作曲：MARETU" } },
+							SongInfo { 822, -1, u8"Amazing Dolce", { u8"作詞・作曲：ひとしずくP", u8"編曲：やま△" } },
+							SongInfo { 823, -1, u8"罪の名前", { u8"作詞・作曲：ryo (supercell)" } },
+							SongInfo { 824, -1, u8"Satisfaction", { u8"作詞・作曲：kz" } },
+							SongInfo { 831, -1, u8"Sharing The World", { u8"作詞・作曲：BIGHEAD", u8"編曲：BIGHEAD" } },
+							SongInfo { 832, -1, u8"Hand in Hand", { u8"作詞・作曲：kz" } },
+
+							// キュート・メドレー ～アイドル サウンズ～
+							SongInfo { 825, 0, u8"イージーデンス", { u8"作詞：ЯIRE", u8"作曲：Mitchie M" } },
+							SongInfo { 825, 1, u8"FREELY TOMORROW", { u8"作詞：Mitchie M/ЯIRE", u8"作曲：Mitchie M" } },
+							SongInfo { 825, 2, u8"ビバハピ", { u8"作詞・作曲：Mitchie M" } },
+							SongInfo { 825, 3, u8"アゲアゲアゲイン", { u8"作詞・作曲：Mitchie M" } },
+							SongInfo { 825, 3, u8"アイドルを咲かせ", { u8"作詞・作曲：Mitchie M" } },
+
+							// 始まりのメドレー 〜プライマリーカラーズ〜
+							SongInfo { 826, 0, u8"恋スルVOC@LOID", { u8"作詞・作曲：OSTER project" } },
+							SongInfo { 826, 1, u8"Dreaming Leaf -ユメミルコトノハ-", { u8"作詞・作曲：OSTER project" } },
+							SongInfo { 826, 2, u8"フキゲンワルツ", { u8"作詞・作曲：OSTER project" } },
+							SongInfo { 826, 3, u8"ミラクルペイント", { u8"作詞・作曲：OSTER project" } },
+
+							// クール・メドレー 〜サイバーロックジャム〜
+							SongInfo { 827, 0, u8"アンハッピーリフレイン", { u8"作詞・作曲：wowaka" } },
+							SongInfo { 827, 1, u8"マイリスダメー！", { u8"作詞・作曲：ライブP" } },
+							SongInfo { 827, 2, u8"天樂", { u8"作詞・作曲：ゆうゆ" } },
+							SongInfo { 827, 3, u8"Palette", { u8"作詞・作曲：ゆよゆっぺ" } },
+							SongInfo { 827, 4, u8"このふざけた素晴らしき世界は、僕の為にある", { u8"作詞・作曲：n.k" } },
+
+
+							// ビューティ・メドレー 〜Glossy Mixture〜
+							SongInfo { 828, 0, u8"Dependence Intension", { u8"作詞：NaturaLe", u8"作詞：Treow"} },
+							SongInfo { 828, 1, u8"Sweet Devil", { u8"作詞：q*Left", u8"作詞：八王子P"} },
+							SongInfo { 828, 2, u8"Nebula", { u8"作詞・作曲：Tripshots"} },
+							SongInfo { 828, 3, u8"Chaining Intention", { u8"作詞：NaturaLe", u8"作詞：Treow"} },
+
+							// カオスメドレー 〜ギガリミックス〜
+							SongInfo { 829, 0, u8"ぴんこすてぃっくLuv", { u8"作詞：れをる", u8"作曲：ギガＰ" } },
+							SongInfo { 829, 1, u8"ギガンティックO.T.N", { u8"作詞：れをる", u8"作曲：ギガＰ" } },
+							SongInfo { 829, 2, u8"おこちゃま戦争", { u8"作詞：れをる", u8"作曲：ギガＰ" } },
+							SongInfo { 829, 3, u8"いーあるふぁんくらぶ", { u8"作詞・作曲：みことＰ" } },
+
+							// 終極のメドレー ～超絶技巧暴走組曲～
+							SongInfo { 830, 0, u8"初音ミクの消失", { u8"作詞・作曲：cosMo@暴走P" } },
+							SongInfo { 830, 1, u8"裏表ラバーズ", { u8"作詞・作曲：wowaka" } },
+							SongInfo { 830, 2, u8"Sadistic.Music∞Factory", { u8"作詞・作曲：cosMo@暴走P" } },
+							SongInfo { 830, 3, u8"二次元ドリームフィーバー", { u8"作詞・作曲：PolyphonicBranch" } },
+							SongInfo { 830, 4, u8"初音ミクの激唱", { u8"作詞・作曲：Storyteller" } },
 						};
 
 						for (const auto& pv : allPVs)
 						{
-							offlineRenderer.RenderTakeScreenshot(*selecedFont, pv.Title, "dev_ram/ss/font/offline_render/pv_tit/pv_" + std::to_string(pv.ID) + "_song.png");
+							const auto indexString = (pv.SubIndex >= 0) ? std::string("_" + std::to_string(pv.SubIndex)) : "";
+
+							offlineRenderer.RenderTakeScreenshot(*selecedFont, pv.Title, "dev_ram/ss/font/offline_render/pv_tit/pv_" + std::to_string(pv.ID) + indexString + "_song.png");
 
 							for (size_t i = 0; i < pv.Info.size() && !pv.Info[i].empty(); i++)
-								offlineRenderer.RenderTakeScreenshot(*selecedFont, pv.Info[i], "dev_ram/ss/font/offline_render/pv_tit/pv_" + std::to_string(pv.ID) + "_txt" + std::to_string(i) + ".png");
+								offlineRenderer.RenderTakeScreenshot(*selecedFont, pv.Info[i], "dev_ram/ss/font/offline_render/pv_tit/pv_" + std::to_string(pv.ID) + indexString + "_txt" + std::to_string(i) + ".png");
 						}
 					}
 
