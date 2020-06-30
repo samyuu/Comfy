@@ -19,6 +19,8 @@ namespace Comfy::Render
 			bool SilhouetteOutline = false;
 
 			bool CastsShadow = false;
+			bool IgnoreShadowCastObjFlags = true;
+			
 			bool ReceivesShadow = true;
 
 			// TODO:

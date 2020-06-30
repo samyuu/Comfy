@@ -139,6 +139,36 @@ namespace Comfy::Render
 		});
 	}
 
+	constexpr bool CastsShadow(const RenderCommand3D& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material)
+	{
+		if (!command.Flags.CastsShadow)
+			return false;
+
+		if (command.Flags.IgnoreShadowCastObjFlags)
+			return true;
+
+		if (subMesh.Flags.CastsShadows || material.ShaderFlags.CastsShadows)
+			return true;
+
+		return false;
+	}
+
+	bool AllSubMeshesCastShadows(const RenderCommand3D& command)
+	{
+		if (!command.Flags.CastsShadow)
+			return false;
+
+		if (command.Flags.IgnoreShadowCastObjFlags)
+			return true;
+
+		bool allCastShaows = true;
+		IterateCommandMeshesAndSubMeshes(command, [&](auto& mesh, auto& subMesh, auto& material)
+		{
+			allCastShaows &= (subMesh.Flags.CastsShadows || material.ShaderFlags.CastsShadows);
+		});
+		return allCastShaows;
+	}
+
 	constexpr bool ReceivesShadows(const RenderCommand3D& command, const Mesh& mesh, const SubMesh& subMesh)
 	{
 		return (command.Flags.ReceivesShadow && subMesh.Flags.ReceivesShadows);
@@ -311,7 +341,7 @@ namespace Comfy::Render
 		{
 			bool ScreenReflection;
 			bool SubsurfaceScattering;
-			bool CastShadow;
+			bool CastsShadow;
 			bool ReceiveShadow;
 			bool SilhouetteOutline;
 		} IsAnyCommand = {};
@@ -409,8 +439,14 @@ namespace Comfy::Render
 			if (command.Flags.SilhouetteOutline)
 				IsAnyCommand.SilhouetteOutline = true;
 
-			if (command.Flags.CastsShadow)
-				IsAnyCommand.CastShadow = true;
+			if (!IsAnyCommand.CastsShadow)
+			{
+				IterateCommandMeshesAndSubMeshes(command, [&](auto& mesh, auto& subMesh, auto& material)
+				{
+					if (CastsShadow(command, mesh, subMesh, material))
+						IsAnyCommand.CastsShadow = true;
+				});
+			}
 
 			if (!IsAnyCommand.ReceiveShadow)
 			{
@@ -496,7 +532,7 @@ namespace Comfy::Render
 
 			BindSceneTextures();
 
-			if (Current.RenderTarget->Param.ShadowMapping && IsAnyCommand.CastShadow && IsAnyCommand.ReceiveShadow)
+			if (Current.RenderTarget->Param.ShadowMapping && IsAnyCommand.CastsShadow && IsAnyCommand.ReceiveShadow)
 			{
 				PreRenderShadowMap();
 				PreRenderReduceFilterShadowMap();
@@ -731,8 +767,7 @@ namespace Comfy::Render
 			Shaders.Silhouette.Bind();
 			for (auto& command : DefaultCommandList.OpaqueAndTransparent)
 			{
-				if (command.SourceCommand.Flags.CastsShadow)
-					RenderOpaqueObjCommand(command, RenderFlags_ShadowPass | RenderFlags_NoMaterialShader | RenderFlags_NoRasterizerState | RenderFlags_NoFrustumCulling | RenderFlags_DiffuseTextureOnly);
+				RenderOpaqueObjCommand(command, RenderFlags_ShadowPass | RenderFlags_NoMaterialShader | RenderFlags_NoRasterizerState | RenderFlags_NoFrustumCulling | RenderFlags_DiffuseTextureOnly);
 			}
 
 			Current.RenderTarget->Shadow.RenderTarget.UnBind();
@@ -950,6 +985,9 @@ namespace Comfy::Render
 						if (Detail::IsMeshTransparent(mesh, subMesh, material))
 							return;
 					}
+
+					if ((flags & RenderFlags_ShadowPass) && !CastsShadow(command.SourceCommand, mesh, subMesh, material))
+						return;
 
 					if ((flags & RenderFlags_SSSPass) && !(Detail::UsesSSSSkin(material) || Detail::UsesSSSSkinConst(material)))
 						return;
@@ -1715,13 +1753,13 @@ namespace Comfy::Render
 				}
 			}
 
-			if (Current.RenderTarget->Param.ShadowMapping && IsAnyCommand.CastShadow && IsAnyCommand.ReceiveShadow)
+			if (Current.RenderTarget->Param.ShadowMapping && IsAnyCommand.CastsShadow && IsAnyCommand.ReceiveShadow)
 			{
 				if (ReceivesShadows(command.SourceCommand, mesh, subMesh))
 					result |= Detail::ShaderFlags_Shadow;
 			}
 
-			if (Current.RenderTarget->Param.ShadowMapping && Current.RenderTarget->Param.SelfShadowing && IsAnyCommand.CastShadow && IsAnyCommand.ReceiveShadow)
+			if (Current.RenderTarget->Param.ShadowMapping && Current.RenderTarget->Param.SelfShadowing && IsAnyCommand.CastsShadow && IsAnyCommand.ReceiveShadow)
 			{
 				if (ReceivesSelfShadow(command.SourceCommand, mesh, subMesh))
 					result |= Detail::ShaderFlags_SelfShadow;
@@ -1820,34 +1858,60 @@ namespace Comfy::Render
 			// TODO: If larger than some threshold, split into two (or more)
 			// TODO: Shadow casting objects which don't lie within the view frustum *nor* the light frustum should be ignored
 
-			if (!IsAnyCommand.CastShadow)
+			if (!IsAnyCommand.CastsShadow)
 				return Sphere { vec3(0.0f), 1.0f };
 
-			vec3 min, max;
+			bool firstShadowCaster = true;
+			vec3 min = {}, max = {};
+
+			auto updateMinMax = [&](const auto& boundingSphere)
+			{
+				if (firstShadowCaster)
+				{
+					min.x = (boundingSphere.Center.x - boundingSphere.Radius);
+					min.y = (boundingSphere.Center.y - boundingSphere.Radius);
+					min.z = (boundingSphere.Center.z - boundingSphere.Radius);
+
+					max.x = (boundingSphere.Center.x + boundingSphere.Radius);
+					max.y = (boundingSphere.Center.y + boundingSphere.Radius);
+					max.z = (boundingSphere.Center.z + boundingSphere.Radius);
+					firstShadowCaster = false;
+				}
+				else
+				{
+					min.x = std::min(min.x, boundingSphere.Center.x - boundingSphere.Radius);
+					min.y = std::min(min.y, boundingSphere.Center.y - boundingSphere.Radius);
+					min.z = std::min(min.z, boundingSphere.Center.z - boundingSphere.Radius);
+
+					max.x = std::max(max.x, boundingSphere.Center.x + boundingSphere.Radius);
+					max.y = std::max(max.y, boundingSphere.Center.y + boundingSphere.Radius);
+					max.z = std::max(max.z, boundingSphere.Center.z + boundingSphere.Radius);
+				}
+			};
+
 			for (auto& command : DefaultCommandList.OpaqueAndTransparent)
 			{
 				if (!command.SourceCommand.Flags.CastsShadow)
 					continue;
 
-				min = max = command.TransformedBoundingSphere.Center;
-				break;
-			}
+				// NOTE: Performance optimization to avoid transforming all sub mesh bounding spheres
+				if (AllSubMeshesCastShadows(command.SourceCommand))
+				{
+					updateMinMax(command.TransformedBoundingSphere);
+				}
+				else
+				{
+					IterateCommandMeshesAndSubMeshes(command.SourceCommand, [&](auto& mesh, auto& subMesh, auto& material)
+					{
+						if (!CastsShadow(command.SourceCommand, mesh, subMesh, material))
+							return;
 
-			for (auto& command : DefaultCommandList.OpaqueAndTransparent)
-			{
-				if (!command.SourceCommand.Flags.CastsShadow)
-					continue;
+						auto transformedBoundingSphere = subMesh.BoundingSphere;
+						transformedBoundingSphere.Transform(command.ModelMatrix, command.SourceCommand.Transform.Scale);
 
-				const auto sphere = command.TransformedBoundingSphere;
-				const float radius = sphere.Radius;
-
-				min.x = std::min(min.x, sphere.Center.x - radius);
-				min.y = std::min(min.y, sphere.Center.y - radius);
-				min.z = std::min(min.z, sphere.Center.z - radius);
-
-				max.x = std::max(max.x, sphere.Center.x + radius);
-				max.y = std::max(max.y, sphere.Center.y + radius);
-				max.z = std::max(max.z, sphere.Center.z + radius);
+						updateMinMax(transformedBoundingSphere);
+					});
+				}
 			}
 
 			constexpr float radiusPadding = 0.05f;
