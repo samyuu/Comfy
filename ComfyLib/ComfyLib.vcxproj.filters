@@ -225,6 +225,9 @@
     <ClInclude Include="src\IO\Stream\MemoryWriteStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\Utilities\TextureCompression.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp">
@@ -351,6 +354,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\IO\Archive\FArcPacker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Utilities\TextureCompression.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
