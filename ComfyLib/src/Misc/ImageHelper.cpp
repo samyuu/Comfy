@@ -1,4 +1,6 @@
 #include "ImageHelper.h"
+#include "IO/Path.h"
+#include "Misc/StringUtil.h"
 
 #include <zlib.h>
 #define STBIW_MALLOC(sz)        malloc(sz)
@@ -64,15 +66,30 @@ namespace Comfy::Util
 		stbi_image_free(pixels);
 	}
 
-	void WritePNG(std::string_view filePath, ivec2 size, const void* rgbaPixels)
+	void WriteImage(std::string_view filePath, ivec2 size, const void* rgbaPixels)
 	{
-		// TODO: Handle case of filePath not being null terminated
-		assert(rgbaPixels != nullptr && size.x > 0 && size.y > 0);
+		if (rgbaPixels == nullptr || size.x <= 0 || size.y <= 0)
+			return;
 
-		constexpr int channels = 4;
-		constexpr int bitsPerPixel = channels * CHAR_BIT;
+		constexpr int channelCount = 4;
 
-		const auto pixelsPerLine = (size.x % bitsPerPixel != 0) ? (size.x + (bitsPerPixel - (size.x % bitsPerPixel))) : (size.x);
-		stbi_write_png(filePath.data(), size.x, size.y, channels, rgbaPixels, pixelsPerLine * channels);
+		const auto extension = IO::Path::GetExtension(filePath);
+		const auto nullTerminatedFilePath = std::string(filePath);
+
+		if (Util::MatchesInsensitive(extension, ".bmp"))
+		{
+			stbi_write_bmp(nullTerminatedFilePath.data(), size.x, size.y, channelCount, rgbaPixels);
+		}
+		else if (Util::MatchesInsensitive(extension, ".tga"))
+		{
+			stbi_write_tga(nullTerminatedFilePath.data(), size.x, size.y, channelCount, rgbaPixels);
+		}
+		else
+		{
+			constexpr int bitsPerPixel = channelCount * CHAR_BIT;
+			const auto pixelsPerLine = (size.x % bitsPerPixel != 0) ? (size.x + (bitsPerPixel - (size.x % bitsPerPixel))) : (size.x);
+
+			stbi_write_png(nullTerminatedFilePath.data(), size.x, size.y, channelCount, rgbaPixels, pixelsPerLine * channelCount);
+		}
 	}
 }

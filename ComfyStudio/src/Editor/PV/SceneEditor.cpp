@@ -1735,7 +1735,7 @@ namespace Comfy::Studio::Editor
 						{
 							char fileName[MAX_PATH];
 							sprintf_s(fileName, "%s/sequence/scene_%04d.png", ScreenshotDirectoy, i);
-							Util::WritePNG(fileName, renderTarget.Param.RenderResolution, data.get());
+							Util::WriteImage(fileName, renderTarget.Param.RenderResolution, data.get());
 						}));
 				}
 			}
@@ -1753,7 +1753,7 @@ namespace Comfy::Studio::Editor
 		lastScreenshotTaskFuture = std::async(std::launch::async, [&renderTarget, data = std::move(pixelData)]
 			{
 				const auto filePath = IO::Path::Combine(ScreenshotDirectoy, IO::Path::ChangeExtension("scene_" + FormatFileNameDateTimeNow(), ".png"));
-				Util::WritePNG(filePath, renderTarget.Param.RenderResolution, data.get());
+				Util::WriteImage(filePath, renderTarget.Param.RenderResolution, data.get());
 			});
 	}
 }

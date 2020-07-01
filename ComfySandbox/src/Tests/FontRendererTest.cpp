@@ -74,7 +74,7 @@ namespace Comfy::Sandbox::Tests
 			auto pixelData = renderTarget->TakeScreenshot();
 
 #if 1
-			Util::WritePNG(filePath, renderTarget->Param.Resolution, pixelData.get());
+			Util::WriteImage(filePath, renderTarget->Param.Resolution, pixelData.get());
 #else
 			for (const auto& future : saveImageFutures)
 				future.wait();
@@ -348,7 +348,7 @@ namespace Comfy::Sandbox::Tests
 						saveScreenshotFuture = std::async(std::launch::async, [this, data = std::move(pixelData)]
 							{
 								const auto filePath = IO::Path::Combine("dev_ram/ss/font", IO::Path::ChangeExtension("scene_" + FormatFileNameDateTimeNow(), ".png"));
-								Util::WritePNG(filePath, renderWindow.RenderTarget->Param.Resolution, data.get());
+								Util::WriteImage(filePath, renderWindow.RenderTarget->Param.Resolution, data.get());
 							});
 					}
 				}
