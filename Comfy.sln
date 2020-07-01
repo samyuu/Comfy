@@ -33,6 +33,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfyEngine", "ComfyEngine\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComfySandbox", "ComfySandbox\ComfySandbox.vcxproj", "{71677AF2-DF0F-4155-B74E-A22D1A68F37A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTex", "Dependencies\DirectXTex\DirectXTex.vcxproj", "{9F3380AA-8244-440A-9F63-F0774928732F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -67,6 +69,10 @@ Global
 		{71677AF2-DF0F-4155-B74E-A22D1A68F37A}.Debug|x64.Build.0 = Debug|x64
 		{71677AF2-DF0F-4155-B74E-A22D1A68F37A}.Release|x64.ActiveCfg = Release|x64
 		{71677AF2-DF0F-4155-B74E-A22D1A68F37A}.Release|x64.Build.0 = Release|x64
+		{9F3380AA-8244-440A-9F63-F0774928732F}.Debug|x64.ActiveCfg = Debug|x64
+		{9F3380AA-8244-440A-9F63-F0774928732F}.Debug|x64.Build.0 = Debug|x64
+		{9F3380AA-8244-440A-9F63-F0774928732F}.Release|x64.ActiveCfg = Release|x64
+		{9F3380AA-8244-440A-9F63-F0774928732F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -75,6 +81,7 @@ Global
 		{D85741DA-AF9C-41A3-A1A1-AB66860CF465} = {CEC613CB-1855-426D-A55C-1E621789FD92}
 		{86AA0493-F0AB-4D08-922C-98205271AC58} = {5BFD0E19-85BC-4152-8040-DF48D951056B}
 		{2EF29EEA-28DC-4FDD-84CF-317F07A3B8EB} = {5BFD0E19-85BC-4152-8040-DF48D951056B}
+		{9F3380AA-8244-440A-9F63-F0774928732F} = {5BFD0E19-85BC-4152-8040-DF48D951056B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FFA01E7C-932B-47BA-90FC-DB04C53BE51F}
