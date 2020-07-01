@@ -239,7 +239,7 @@ namespace Comfy::Studio::Editor
 
 	void SceneRenderWindow::UpdateInputRayTest()
 	{
-#if 0 // DEBUG:
+#if 1 // DEBUG:
 		if (!Gui::IsWindowFocused() || !Gui::IsWindowHovered())
 			return;
 
