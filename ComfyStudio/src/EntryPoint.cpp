@@ -2,7 +2,12 @@
 #include "System/CommandLine/CommandLine.h"
 
 #define COMFY_RUN_MAIN_TEST 0
+
+#if (COMFY_DEBUG)
+#define COMFY_USE_WIN_MAIN 0
+#else
 #define COMFY_USE_WIN_MAIN 1
+#endif /* COMFY_DEBUG */
 
 #if (COMFY_RUN_MAIN_TEST)
 #include "MainTest.cpp"
