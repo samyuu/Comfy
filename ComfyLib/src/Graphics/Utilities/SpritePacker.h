@@ -10,7 +10,9 @@ namespace Comfy::Graphics::Utilities
 {
 	enum class MergeType
 	{
-		NoMerge, Merge,
+		NoMerge,
+		Merge,
+		Count
 	};
 
 	enum class CompressionType
@@ -23,6 +25,7 @@ namespace Comfy::Graphics::Utilities
 	{
 		SprMarkupFlags_None = 0,
 		SprMarkupFlags_NoMerge = (1 << 0),
+		SprMarkupFlags_Compress = (1 << 1),
 	};
 
 	struct SprMarkup
@@ -44,7 +47,7 @@ namespace Comfy::Graphics::Utilities
 	{
 		std::string Name;
 		ivec2 Size;
-		TextureFormat Format;
+		TextureFormat OutputFormat;
 		MergeType Merge;
 		std::vector<SprMarkupBox> SpriteBoxes;
 		int RemainingFreePixels;
@@ -68,12 +71,15 @@ namespace Comfy::Graphics::Utilities
 	public:
 		struct SettingsData
 		{
-			ivec2 MaxTextureSize = ivec2(2048, 1024);
-
 			std::optional<u32> BackgroundColor = 0x00000000; // 0xFFFF00FF;
+
+			ivec2 MaxTextureSize = ivec2(2048, 1024);
 
 			// NOTE: Number of pixels at each side
 			ivec2 SpritePadding = ivec2(2, 2);
+
+			bool AllowYCbCrTextures = true;
+			bool GenerateMipMaps = false;
 
 			bool PowerOfTwoTextures = true;
 			bool FlipTexturesY = true;
@@ -88,10 +94,12 @@ namespace Comfy::Graphics::Utilities
 		void ReportCurrentProgress();
 
 	protected:
+		TextureFormat DetermineSprOutputFormat(const SprMarkup& sprMarkup) const;
+
 		std::vector<SprTexMarkup> MergeTextures(const std::vector<SprMarkup>& sprMarkups);
 		std::vector<const SprMarkup*> SortByArea(const std::vector<SprMarkup>& sprMarkups) const;
 
-		std::pair<SprTexMarkup*, ivec4> FindFittingTexMarkupToPlaceSprIn(const SprMarkup& sprToPlace, std::vector<SprTexMarkup>& existingTexMarkups);
+		std::pair<SprTexMarkup*, ivec4> FindFittingTexMarkupToPlaceSprIn(const SprMarkup& sprToPlace, TextureFormat sprOutputFormat, std::vector<SprTexMarkup>& existingTexMarkups);
 		void AdjustTexMarkupSizes(std::vector<SprTexMarkup>& texMarkups);
 
 		std::shared_ptr<Tex> CreateTexFromMarkup(const SprTexMarkup& texMarkup);

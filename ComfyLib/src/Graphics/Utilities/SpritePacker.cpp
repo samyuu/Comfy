@@ -1,4 +1,5 @@
 #include "SpritePacker.h"
+#include "Graphics/Utilities/TextureCompression.h"
 #include <numeric>
 #include <intrin.h>
 
@@ -159,9 +160,9 @@ namespace Comfy::Graphics::Utilities
 				}
 			}
 
-			for (int x = 0; x < sprSize.x; x++)
+			for (int y = 0; y < sprSize.y; y++)
 			{
-				for (int y = 0; y < sprSize.y; y++)
+				for (int x = 0; x < sprSize.x; x++)
 				{
 					const u32& sprPixel = GetPixel(sprSize.x, sprData, x, y);
 					u32& texPixel = GetPixel(texSize.x, texData, x + sprOffset.x, y + sprOffset.y);
@@ -183,6 +184,23 @@ namespace Comfy::Graphics::Utilities
 					std::swap(pixel, flippedPixel);
 				}
 			}
+		}
+
+		constexpr bool MakesUseOfAlphaChannel(const SprMarkup& sprMarkup)
+		{
+			for (int y = 0; y < sprMarkup.Size.y; y++)
+			{
+				for (int x = 0; x < sprMarkup.Size.x; x++)
+				{
+					constexpr u32 alphaMask = 0xFF000000;
+					const u32 pixel = GetPixel(sprMarkup.Size.x, sprMarkup.RGBAPixels, x, y);
+
+					if ((pixel & alphaMask) != alphaMask)
+						return true;
+				}
+			}
+
+			return false;
 		}
 	}
 
@@ -237,6 +255,17 @@ namespace Comfy::Graphics::Utilities
 			progressCallback(*this, currentProgress);
 	}
 
+	TextureFormat SpritePacker::DetermineSprOutputFormat(const SprMarkup& sprMarkup) const
+	{
+		if (!(sprMarkup.Flags & SprMarkupFlags_Compress) || !Settings.PowerOfTwoTextures)
+			return TextureFormat::RGBA8;
+
+		if (Settings.AllowYCbCrTextures)
+			return TextureFormat::RGTC2;
+
+		return MakesUseOfAlphaChannel(sprMarkup) ? TextureFormat::DXT5 : TextureFormat::DXT1;
+	}
+
 	std::vector<SprTexMarkup> SpritePacker::MergeTextures(const std::vector<SprMarkup>& sprMarkups)
 	{
 		currentProgress.Sprites = 0;
@@ -245,33 +274,37 @@ namespace Comfy::Graphics::Utilities
 		const auto sizeSortedSprMarkups = SortByArea(sprMarkups);
 		std::vector<SprTexMarkup> texMarkups;
 
-		size_t noMergeIndex = 0, mergeIndex = 0;
+		std::array<std::array<u16, static_cast<size_t>(TextureFormat::Count)>, static_cast<size_t>(MergeType::Count)> formanceTypeIndices = {};
 
 		for (const auto* sprMarkupPtr : sizeSortedSprMarkups)
 		{
-			auto addNewTexMarkup = [&](ivec2 texSize, const auto& sprMarkup, ivec2 sprSize, TextureFormat format, MergeType merge, size_t& inOutIndex)
+			auto addNewTexMarkup = [&](ivec2 texSize, const auto& sprMarkup, ivec2 sprSize, TextureFormat format, MergeType merge)
 			{
+				auto& formatTypeIndex = formanceTypeIndices[static_cast<size_t>(merge)][static_cast<size_t>(format)];
+
 				auto& texMarkup = texMarkups.emplace_back();
 				texMarkup.Size = (Settings.PowerOfTwoTextures) ? RoundToNearestPowerOfTwo(texSize) : texSize;
-				texMarkup.Format = format;
+				texMarkup.OutputFormat = format;
 				texMarkup.Merge = merge;
 				texMarkup.SpriteBoxes.push_back({ &sprMarkup, ivec4(ivec2(0, 0), sprSize) });
-				texMarkup.Name = FormatTextureName(texMarkup.Merge, texMarkup.Format, inOutIndex++);
+				texMarkup.Name = FormatTextureName(texMarkup.Merge, texMarkup.OutputFormat, formatTypeIndex++);
 				texMarkup.RemainingFreePixels = Area(texMarkup.Size) - Area(sprSize);
 			};
 
 			const auto& sprMarkup = *sprMarkupPtr;
+			const auto sprOutputFormat = DetermineSprOutputFormat(sprMarkup);
+
 			if (sprMarkup.Flags & SprMarkupFlags_NoMerge)
 			{
-				addNewTexMarkup(sprMarkup.Size, sprMarkup, sprMarkup.Size, TextureFormat::RGBA8, MergeType::NoMerge, noMergeIndex);
+				addNewTexMarkup(sprMarkup.Size, sprMarkup, sprMarkup.Size, sprOutputFormat, MergeType::NoMerge);
 			}
 			else if (sprMarkup.Size.x > Settings.MaxTextureSize.x || sprMarkup.Size.y > Settings.MaxTextureSize.y)
 			{
-				addNewTexMarkup(sprMarkup.Size, sprMarkup, sprMarkup.Size + (Settings.SpritePadding * 2), TextureFormat::RGBA8, MergeType::Merge, mergeIndex);
+				addNewTexMarkup(sprMarkup.Size, sprMarkup, sprMarkup.Size + (Settings.SpritePadding * 2), sprOutputFormat, MergeType::Merge);
 			}
 			else
 			{
-				if (const auto[fittingTex, fittingSprBox] = FindFittingTexMarkupToPlaceSprIn(sprMarkup, texMarkups); fittingTex != nullptr)
+				if (const auto[fittingTex, fittingSprBox] = FindFittingTexMarkupToPlaceSprIn(sprMarkup, sprOutputFormat, texMarkups); fittingTex != nullptr)
 				{
 					fittingTex->SpriteBoxes.push_back({ &sprMarkup, fittingSprBox });
 					fittingTex->RemainingFreePixels -= Area(GetBoxSize(fittingSprBox));
@@ -279,7 +312,7 @@ namespace Comfy::Graphics::Utilities
 				else
 				{
 					const auto newTextureSize = Settings.MaxTextureSize;
-					addNewTexMarkup(newTextureSize, sprMarkup, sprMarkup.Size + (Settings.SpritePadding * 2), TextureFormat::RGBA8, MergeType::Merge, mergeIndex);
+					addNewTexMarkup(newTextureSize, sprMarkup, sprMarkup.Size + (Settings.SpritePadding * 2), sprOutputFormat, MergeType::Merge);
 				}
 			}
 
@@ -307,20 +340,16 @@ namespace Comfy::Graphics::Utilities
 		return result;
 	}
 
-	std::pair<SprTexMarkup*, ivec4> SpritePacker::FindFittingTexMarkupToPlaceSprIn(const SprMarkup& sprToPlace, std::vector<SprTexMarkup>& existingTexMarkups)
+	std::pair<SprTexMarkup*, ivec4> SpritePacker::FindFittingTexMarkupToPlaceSprIn(const SprMarkup& sprToPlace, TextureFormat sprOutputFormat, std::vector<SprTexMarkup>& existingTexMarkups)
 	{
 		// TODO: "Largest failed SprMarkupBox" to then compare with all future boxes (?)
 		constexpr int stepSize = 1;
 		constexpr int roughStepSize = 8;
 
-#if 1 // NOTE: Forward
 		for (auto& existingTexMarkup : existingTexMarkups)
 		{
-#else // NOTE: Backwards
-		for (int i = static_cast<int>(existingTexMarkups.size()) - 1; i >= 0; i--)
-		{
-			auto& existingTexMarkup = existingTexMarkups[i];
-#endif
+			if (existingTexMarkup.OutputFormat != sprOutputFormat)
+				continue;
 
 			if (existingTexMarkup.Merge == MergeType::NoMerge || existingTexMarkup.RemainingFreePixels < Area(sprToPlace.Size))
 				continue;
@@ -393,17 +422,53 @@ namespace Comfy::Graphics::Utilities
 
 	std::shared_ptr<Tex> SpritePacker::CreateTexFromMarkup(const SprTexMarkup& texMarkup)
 	{
-		auto margedRGBAPixels = CreateMergedTexMarkupRGBAPixels(texMarkup);
+		auto mergedRGBAPixels = CreateMergedTexMarkupRGBAPixels(texMarkup);
+		const auto mergedByteSize = Area(texMarkup.Size) * RGBABytesPerPixel;
 
 		auto tex = std::make_shared<Tex>();
 		tex->Name = texMarkup.Name;
+
+		auto createUncompressedTexture = [&]
+		{
+			auto& mipMaps = tex->MipMapsArray.emplace_back();
+			auto& baseMipMap = mipMaps.emplace_back();
+			baseMipMap.Format = TextureFormat::RGBA8;
+			baseMipMap.Size = texMarkup.Size;
+			baseMipMap.DataSize = static_cast<u32>(mergedByteSize);
+			baseMipMap.Data = std::move(mergedRGBAPixels);
+		};
+
+		if (texMarkup.OutputFormat == TextureFormat::RGBA8)
+		{
+			createUncompressedTexture();
+			return tex;
+		}
+
+		if (texMarkup.OutputFormat == TextureFormat::RGTC2)
+		{
+			if (!Utilities::CreateYACbCrTexture(texMarkup.Size, mergedRGBAPixels.get(), TextureFormat::RGBA8, mergedByteSize, *tex))
+				createUncompressedTexture();
+
+			return tex;
+		}
+
 		auto& mipMaps = tex->MipMapsArray.emplace_back();
 		auto& baseMipMap = mipMaps.emplace_back();
-		baseMipMap.Format = TextureFormat::RGBA8;
+		baseMipMap.Format = texMarkup.OutputFormat;
 		baseMipMap.Size = texMarkup.Size;
-		baseMipMap.DataSize = Area(texMarkup.Size) * RGBABytesPerPixel;
-		// TODO: In the future only move once all mipmaps have been generated and the target format is RGBA8
-		baseMipMap.Data = std::move(margedRGBAPixels);
+		baseMipMap.DataSize = static_cast<u32>(Utilities::TextureFormatByteSize(texMarkup.Size, texMarkup.OutputFormat));
+		baseMipMap.Data = std::make_unique<u8[]>(baseMipMap.DataSize);
+
+		if (!Utilities::CompressTextureData(texMarkup.Size, mergedRGBAPixels.get(), TextureFormat::RGBA8, mergedByteSize, baseMipMap.Data.get(), texMarkup.OutputFormat, baseMipMap.DataSize))
+		{
+			createUncompressedTexture();
+			return tex;
+		}
+
+		if (Settings.GenerateMipMaps)
+		{
+			// TODO:
+		}
 
 		return tex;
 	}
