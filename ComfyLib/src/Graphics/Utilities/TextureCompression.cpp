@@ -1,4 +1,5 @@
 #include "TextureCompression.h"
+#include "IO/Path.h"
 #include "Misc/UTF8.h"
 #include "Core/Win32/ComfyWindows.h"
 #include <DirectXTex.h>
@@ -55,6 +56,45 @@ namespace Comfy::Graphics::Utilities
 
 			default:
 				return DXGI_FORMAT_UNKNOWN;
+			}
+		}
+
+		constexpr TextureFormat DXGIFormatToTextureFormat(DXGI_FORMAT format)
+		{
+			switch (format)
+			{
+			case DXGI_FORMAT_R8_UINT:
+				return TextureFormat::A8;
+
+			case DXGI_FORMAT_R8G8B8A8_UNORM:
+				return TextureFormat::RGBA8;
+
+			case DXGI_FORMAT_BC1_UNORM:
+				return TextureFormat::DXT1;
+
+			case DXGI_FORMAT_BC1_UNORM_SRGB:
+				return TextureFormat::DXT1a;
+
+			case DXGI_FORMAT_BC2_UNORM:
+				return TextureFormat::DXT3;
+
+			case DXGI_FORMAT_BC3_UNORM:
+				return TextureFormat::DXT5;
+
+			case DXGI_FORMAT_BC4_UNORM:
+				return TextureFormat::RGTC1;
+
+			case DXGI_FORMAT_BC5_UNORM:
+				return TextureFormat::RGTC2;
+
+			case DXGI_FORMAT_A8_UNORM:
+				return TextureFormat::L8;
+
+			case DXGI_FORMAT_A8P8:
+				return TextureFormat::L8A8;
+
+			default:
+				return TextureFormat::Unknown;
 			}
 		}
 	}
@@ -505,7 +545,43 @@ namespace Comfy::Graphics::Utilities
 		return true;
 	}
 
-	bool WriteTextureToDDS(std::string_view filePath, const Tex& inTexture)
+	bool LoadDDSToTexture(std::string_view filePath, Tex& outTexture)
+	{
+		auto outMetadata = ::DirectX::TexMetadata {};
+		auto outImage = ::DirectX::ScratchImage {};
+
+		if (FAILED(::DirectX::LoadFromDDSFile(UTF8::WideArg(filePath).c_str(), ::DirectX::DDS_FLAGS_NONE, &outMetadata, outImage)))
+			return false;
+
+		outTexture.Name = std::string(IO::Path::GetFileName(filePath, false));
+		outTexture.MipMapsArray.resize(outMetadata.arraySize);
+
+		for (size_t arrayIndex = 0; arrayIndex < outTexture.MipMapsArray.size(); arrayIndex++)
+		{
+			auto& mipMaps = outTexture.MipMapsArray[arrayIndex];
+			mipMaps.resize(outMetadata.mipLevels);
+
+			for (size_t mipIndex = 0; mipIndex < mipMaps.size(); mipIndex++)
+			{
+				const auto* image = outImage.GetImage(mipIndex, arrayIndex, 0);
+
+				auto& mip = mipMaps[mipIndex];
+				mip.Size = ivec2(image->width, image->height);
+				mip.Format = DXGIFormatToTextureFormat(image->format);
+
+				if (mip.Format == TextureFormat::Unknown)
+					return false;
+
+				mip.DataSize = static_cast<u32>(image->slicePitch);
+				mip.Data = std::make_unique<u8[]>(mip.DataSize);
+				std::memcpy(mip.Data.get(), image->pixels, mip.DataSize);
+			}
+		}
+
+		return true;
+	}
+
+	bool SaveTextureToDDS(std::string_view filePath, const Tex& inTexture)
 	{
 		if (inTexture.MipMapsArray.empty() || inTexture.MipMapsArray.front().empty())
 			return false;

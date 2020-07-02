@@ -31,6 +31,6 @@ namespace Comfy::Graphics::Utilities
 	// NOTE: In place texture flip, in most cases it's probably more optimal to flip during reading or writing of the pixel data instead
 	bool FlipTextureBufferY(ivec2 size, u8* inOutData, TextureFormat inFormat, size_t inByteSize);
 
-	// bool ReadDDSToTexture(std::string_view filePath, Tex& outTexture);
-	bool WriteTextureToDDS(std::string_view filePath, const Tex& inTexture);
+	bool LoadDDSToTexture(std::string_view filePath, Tex& outTexture);
+	bool SaveTextureToDDS(std::string_view filePath, const Tex& inTexture);
 }
