@@ -4,6 +4,8 @@
 #include "Core/Win32/ComfyWindows.h"
 #include <DirectXTex.h>
 
+#pragma comment(lib, "DirectXTex.lib")
+
 namespace Comfy::Graphics::Utilities
 {
 	namespace
