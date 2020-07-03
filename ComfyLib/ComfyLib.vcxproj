@@ -36,6 +36,7 @@
     <ClInclude Include="src\Graphics\GraphicTypes.h" />
     <ClInclude Include="src\Graphics\GPUResource.h" />
     <ClInclude Include="src\Graphics\TexSet.h" />
+    <ClInclude Include="src\Graphics\Utilities\SpriteExtraction.h" />
     <ClInclude Include="src\Graphics\Utilities\SpritePacker.h" />
     <ClInclude Include="src\Graphics\Utilities\TextureCompression.h" />
     <ClInclude Include="src\IO\Archive\FArcPacker.h" />
@@ -100,6 +101,7 @@
     <ClCompile Include="src\Graphics\Auth3D\ObjSet.cpp" />
     <ClCompile Include="src\Graphics\Auth3D\ObjSetFile.cpp" />
     <ClCompile Include="src\Graphics\TexSet.cpp" />
+    <ClCompile Include="src\Graphics\Utilities\SpriteExtraction.cpp" />
     <ClCompile Include="src\Graphics\Utilities\SpritePacker.cpp" />
     <ClCompile Include="src\Graphics\Utilities\TextureCompression.cpp" />
     <ClCompile Include="src\IO\Archive\FArcPacker.cpp" />
