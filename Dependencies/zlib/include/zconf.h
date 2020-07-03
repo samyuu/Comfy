@@ -8,6 +8,11 @@
 #ifndef ZCONF_H
 #define ZCONF_H
 
+// NOTE: Comfy defines
+#ifndef ZLIB_CONST
+#define ZLIB_CONST
+#endif /* ZLIB_CONST */
+
 /*
  * If you *really* need a unique prefix for all types and library functions,
  * compile with -DZ_PREFIX. The "standard" zlib should be compiled without it.
