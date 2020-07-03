@@ -26,7 +26,7 @@ namespace Comfy::Graphics::Utilities
 
 		constexpr bool SpriteFitsInTexture(ivec2 sprPos, ivec2 sprSize, ivec2 texSize)
 		{
-			return (sprPos.x >= 0 && sprPos.x + sprSize.x < texSize.x && sprPos.y >= 0 && sprPos.y + sprSize.y < texSize.y);
+			return (sprPos.x >= 0 && sprPos.x + sprSize.x <= texSize.x && sprPos.y >= 0 && sprPos.y + sprSize.y <= texSize.y);
 		}
 	}
 
