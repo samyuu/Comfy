@@ -86,8 +86,9 @@ namespace Comfy::Util
 		}
 		else
 		{
-			constexpr int bitsPerPixel = channelCount * CHAR_BIT;
-			const auto pixelsPerLine = (size.x % bitsPerPixel != 0) ? (size.x + (bitsPerPixel - (size.x % bitsPerPixel))) : (size.x);
+			// constexpr int bitsPerPixel = channelCount * CHAR_BIT;
+			// const auto pixelsPerLine = (size.x % bitsPerPixel != 0) ? (size.x + (bitsPerPixel - (size.x % bitsPerPixel))) : (size.x);
+			const auto pixelsPerLine = size.x;
 
 			stbi_write_png(nullTerminatedFilePath.data(), size.x, size.y, channelCount, rgbaPixels, pixelsPerLine * channelCount);
 		}
