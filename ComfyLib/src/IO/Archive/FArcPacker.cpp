@@ -3,9 +3,64 @@
 #include "IO/Stream/FileStream.h"
 #include "IO/Stream/MemoryWriteStream.h"
 #include "IO/Stream/Manipulator/StreamWriter.h"
+#include <zlib.h>
 
 namespace Comfy::IO
 {
+	namespace
+	{
+		size_t CompressBufferIntoStream(const void* inData, size_t inDataSize, StreamWriter& outWriter)
+		{
+			constexpr size_t chunkStepSize = 0x4000;
+
+			z_stream zStream = {};
+			zStream.zalloc = Z_NULL;
+			zStream.zfree = Z_NULL;
+			zStream.opaque = Z_NULL;
+
+			int errorCode = deflateInit2(&zStream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 31, 8, Z_DEFAULT_STRATEGY);
+			assert(errorCode == Z_OK);
+
+			const u8* inDataReadHeader = static_cast<const u8*>(inData);
+			size_t remainingSize = inDataSize;
+			size_t compressedSize = 0;
+
+			while (remainingSize > 0)
+			{
+				const size_t chunkSize = std::min(remainingSize, chunkStepSize);
+
+				zStream.avail_in = static_cast<uInt>(chunkSize);
+				zStream.next_in = reinterpret_cast<const Bytef*>(inDataReadHeader);
+
+				inDataReadHeader += chunkSize;
+				remainingSize -= chunkSize;
+
+				do
+				{
+					std::array<u8, chunkStepSize> outputBuffer;
+
+					zStream.avail_out = chunkStepSize;
+					zStream.next_out = outputBuffer.data();
+
+					errorCode = deflate(&zStream, remainingSize == 0 ? Z_FINISH : Z_NO_FLUSH);
+					assert(errorCode != Z_STREAM_ERROR);
+
+					const auto compressedChunkSize = chunkStepSize - zStream.avail_out;
+					outWriter.WriteBuffer(outputBuffer.data(), compressedChunkSize);
+
+					compressedSize += compressedChunkSize;
+				}
+				while (zStream.avail_out == 0);
+				assert(zStream.avail_in == 0);
+			}
+
+			deflateEnd(&zStream);
+
+			assert(errorCode == Z_STREAM_END);
+			return compressedSize;
+		}
+	}
+
 	struct FArcPacker::Impl
 	{
 		struct EntryBase
@@ -21,6 +76,7 @@ namespace Comfy::IO
 
 			IStreamWritable& Writable;
 			size_t FileSizeOnceWritten;
+			size_t CompressedFileSizeOnceWritten;
 		};
 
 		struct DataPointerEntry : EntryBase
@@ -29,21 +85,24 @@ namespace Comfy::IO
 
 			const void* Data;
 			size_t DataSize;
+			size_t CompressedFileSizeOnceWritten;
 		};
 
 		std::vector<StreamWritableEntry> WritableEntries;
 		std::vector<DataPointerEntry> DataPointerEntries;
 
-		void CreateFArc(std::string_view filePath, u32 alignment = 16, bool compressed = false)
+		bool CreateFArc(std::string_view filePath, bool compressed, u32 alignment = 16)
 		{
-			assert(!compressed);
-
 			auto outputFileStream = File::CreateWrite(filePath);
+
+			if (!outputFileStream.IsOpen())
+				return false;
+
 			auto farcWriter = StreamWriter(outputFileStream);
 			farcWriter.SetEndianness(Endianness::Big);
 			farcWriter.SetPointerMode(PtrMode::Mode32Bit);
 
-			farcWriter.WriteU32(static_cast<u32>(FArcSignature::UnCompressed));
+			farcWriter.WriteU32(static_cast<u32>(compressed ? FArcSignature::Compressed : FArcSignature::UnCompressed));
 			u32 delayedHeaderSize = 0;
 			farcWriter.WriteDelayedPtr([&delayedHeaderSize](StreamWriter& writer) {writer.WriteU32(delayedHeaderSize); });
 			farcWriter.WriteU32(alignment);
@@ -59,10 +118,24 @@ namespace Comfy::IO
 
 					entry.Writable.Write(fileWriter);
 					entry.FileSizeOnceWritten = static_cast<size_t>(fileWriteMemoryStream.GetLength());
+					entry.CompressedFileSizeOnceWritten = entry.FileSizeOnceWritten;
 
-					farcWriter.WriteBuffer(fileDataBuffer.get(), entry.FileSizeOnceWritten);
+					if (compressed)
+						entry.CompressedFileSizeOnceWritten = CompressBufferIntoStream(fileDataBuffer.get(), entry.FileSizeOnceWritten, writer);
+					else
+						farcWriter.WriteBuffer(fileDataBuffer.get(), entry.FileSizeOnceWritten);
+
 					farcWriter.WriteAlignmentPadding(alignment);
 				});
+
+				if (compressed)
+				{
+					farcWriter.WriteDelayedPtr([&](StreamWriter& writer)
+					{
+						writer.WriteSize(entry.CompressedFileSizeOnceWritten);
+					});
+				}
+
 				farcWriter.WriteDelayedPtr([&](StreamWriter& writer)
 				{
 					writer.WriteSize(entry.FileSizeOnceWritten);
@@ -74,9 +147,22 @@ namespace Comfy::IO
 				farcWriter.WriteStr(entry.FileName);
 				farcWriter.WriteFuncPtr([&](StreamWriter& writer)
 				{
-					farcWriter.WriteBuffer(entry.Data, entry.DataSize);
+					if (compressed)
+						entry.CompressedFileSizeOnceWritten = CompressBufferIntoStream(entry.Data, entry.DataSize, writer);
+					else
+						farcWriter.WriteBuffer(entry.Data, entry.DataSize);
+
 					farcWriter.WriteAlignmentPadding(alignment);
 				});
+
+				if (compressed)
+				{
+					farcWriter.WriteDelayedPtr([&](StreamWriter& writer)
+					{
+						writer.WriteSize(entry.CompressedFileSizeOnceWritten);
+					});
+				}
+
 				farcWriter.WriteSize(entry.DataSize);
 			}
 
@@ -86,6 +172,8 @@ namespace Comfy::IO
 			farcWriter.FlushPointerPool();
 			farcWriter.FlushDelayedWritePool();
 			farcWriter.WriteAlignmentPadding(alignment);
+
+			return true;
 		}
 
 		void ClearAll()
@@ -116,9 +204,10 @@ namespace Comfy::IO
 			impl->DataPointerEntries.emplace_back(fileName, fileContent, fileSize);
 	}
 
-	void FArcPacker::CreateFlushFArc(std::string_view filePath)
+	bool FArcPacker::CreateFlushFArc(std::string_view filePath, bool compressed)
 	{
-		impl->CreateFArc(filePath);
+		const bool result = impl->CreateFArc(filePath, compressed);
 		impl->ClearAll();
+		return result;
 	}
 }

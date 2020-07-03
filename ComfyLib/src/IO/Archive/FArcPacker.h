@@ -18,7 +18,7 @@ namespace Comfy::IO
 		void AddFile(std::string_view fileName, const void* fileContent, size_t fileSize);
 
 	public:
-		void CreateFlushFArc(std::string_view filePath);
+		bool CreateFlushFArc(std::string_view filePath, bool compressed);
 
 	private:
 		struct Impl;
