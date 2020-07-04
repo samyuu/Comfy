@@ -4,12 +4,20 @@
 
 namespace Comfy
 {
+	// NOTE: Assumes the enum class EnumType { ..., Count }; convention to be used everywhere
+	template <typename EnumType>
+	COMFY_NODISCARD constexpr size_t EnumCount()
+	{
+		static_assert(std::is_enum_v<EnumType>);
+		return static_cast<size_t>(EnumType::Count);
+	}
+
 	template <typename IndexType, typename ArrayType>
 	COMFY_NODISCARD constexpr __forceinline auto InBounds(const IndexType& index, const ArrayType& array) -> bool
 	{
-		static_assert(std::is_integral<IndexType>::value);
+		static_assert(std::is_integral_v<IndexType>);
 
-		if constexpr (std::is_signed<IndexType>::value)
+		if constexpr (std::is_signed_v<IndexType>)
 			return (index >= 0 && index < array.size());
 		else
 			return (index < array.size());
