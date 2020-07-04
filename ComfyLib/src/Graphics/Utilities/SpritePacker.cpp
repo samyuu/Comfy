@@ -1,7 +1,6 @@
 #include "SpritePacker.h"
 #include "Graphics/Utilities/TextureCompression.h"
 #include <numeric>
-#include <intrin.h>
 
 namespace Comfy::Graphics::Utilities
 {
@@ -46,34 +45,6 @@ namespace Comfy::Graphics::Utilities
 		constexpr ivec2 GetBoxSize(const ivec4& box)
 		{
 			return ivec2(box.z, box.w);
-		}
-
-#if 0 // NOTE: Only supported by Intel Haswell CPUs
-		u32 RoundToNearestPowerOfTwo(u32 x)
-		{
-			return (x <= 1 || x > ((std::numeric_limits<u32>::max() / 2) + 1)) ? x : (1 << (32 - __lzcnt(x - 1)));
-		}
-#else
-		u32 RoundToNearestPowerOfTwo(u32 x)
-		{
-			x--;
-			x |= x >> 1;
-			x |= x >> 2;
-			x |= x >> 4;
-			x |= x >> 8;
-			x |= x >> 16;
-			x++;
-			return x;
-		}
-#endif
-
-		ivec2 RoundToNearestPowerOfTwo(ivec2 input)
-		{
-			return
-			{
-				static_cast<int>(RoundToNearestPowerOfTwo(static_cast<u32>(input.x))),
-				static_cast<int>(RoundToNearestPowerOfTwo(static_cast<u32>(input.y))),
-			};
 		}
 
 		bool FitsInsideTexture(const ivec4& textureBox, const std::vector<SprMarkupBox>& existingSprites, const ivec4& spriteBox)

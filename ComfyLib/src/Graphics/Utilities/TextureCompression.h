@@ -5,6 +5,25 @@
 
 namespace Comfy::Graphics::Utilities
 {
+	COMFY_NODISCARD constexpr u32 RoundToNearestPowerOfTwo(u32 input)
+	{
+		input--;
+		input |= input >> 1;
+		input |= input >> 2;
+		input |= input >> 4;
+		input |= input >> 8;
+		input |= input >> 16;
+		input++;
+		return input;
+	}
+
+	COMFY_NODISCARD constexpr ivec2 RoundToNearestPowerOfTwo(ivec2 input)
+	{
+		return ivec2(
+			static_cast<i32>(RoundToNearestPowerOfTwo(static_cast<u32>(std::max(input.x, 1)))),
+			static_cast<i32>(RoundToNearestPowerOfTwo(static_cast<u32>(std::max(input.y, 1)))));
+	}
+
 	COMFY_NODISCARD size_t TextureFormatBlockSize(TextureFormat format);
 	COMFY_NODISCARD size_t TextureFormatChannelCount(TextureFormat format);
 	COMFY_NODISCARD size_t TextureFormatByteSize(ivec2 size, TextureFormat format);
