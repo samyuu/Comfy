@@ -17,7 +17,12 @@ namespace Comfy::Graphics::Utilities
 
 	enum class CompressionType
 	{
-		None, BC1, BC2, BC3, BC4, BC5, Unknown,
+		NoComp,
+		D5Comp,
+		BC4Comp,
+		BC5Comp,
+		UnkComp,
+		Count
 	};
 
 	using SprMarkupFlags = u32;
@@ -71,18 +76,29 @@ namespace Comfy::Graphics::Utilities
 	public:
 		struct SettingsData
 		{
-			std::optional<u32> BackgroundColor = 0x00000000; // 0xFFFF00FF;
+			// NOTE: Set to 0xFFFF00FF for debugging but fully transparent by default to avoid cross sprite boundary block compression artifacts
+			std::optional<u32> BackgroundColor = 0x00000000;
 
+			// NOTE: If any of the input sprites is larger than this threshold the size of the texture will be set to match that of the sprite
 			ivec2 MaxTextureSize = ivec2(2048, 1024);
 
 			// NOTE: Number of pixels at each side
 			ivec2 SpritePadding = ivec2(2, 2);
 
+			// NOTE: Generally higher quallity than block compression on its own at the cost of additional encoding and decoding time
 			bool AllowYCbCrTextures = true;
+
+			// TODO: Do mip maps even make sense for sprites...?
 			bool GenerateMipMaps = false;
 
+			// NOTE: Required for texture block compression, textures will stay uncompressed if not set
 			bool PowerOfTwoTextures = true;
+
+			// NOTE: Flip to follow the OpenGL texture convention
 			bool FlipTexturesY = true;
+
+			// NOTE: Unless the host application wants to run multiple object instances on separate threads itself...?
+			bool Multithreaded = true;
 		} Settings;
 
 		std::unique_ptr<SprSet> Create(const std::vector<SprMarkup>& sprMarkups);
@@ -102,10 +118,12 @@ namespace Comfy::Graphics::Utilities
 		std::pair<SprTexMarkup*, ivec4> FindFittingTexMarkupToPlaceSprIn(const SprMarkup& sprToPlace, TextureFormat sprOutputFormat, std::vector<SprTexMarkup>& existingTexMarkups);
 		void AdjustTexMarkupSizes(std::vector<SprTexMarkup>& texMarkups);
 
-		std::shared_ptr<Tex> CreateTexFromMarkup(const SprTexMarkup& texMarkup);
+		std::shared_ptr<Tex> CreateCompressTexFromMarkup(const SprTexMarkup& texMarkup);
 		std::unique_ptr<u8[]> CreateMergedTexMarkupRGBAPixels(const SprTexMarkup& texMarkup);
 
-		const char* GetCompressionName(TextureFormat format) const;
-		std::string FormatTextureName(MergeType merge, TextureFormat format, size_t index) const;
+		CompressionType GetCompressionType(TextureFormat format) const;
+		const char* GetMergeName(MergeType merge) const;
+		const char* GetCompressionName(CompressionType compression) const;
+		std::string FormatTextureName(MergeType merge, CompressionType compression, size_t index) const;
 	};
 }
