@@ -254,7 +254,7 @@ namespace Comfy::Sandbox::Tests
 							SongInfo { 825, 1, u8"FREELY TOMORROW", { u8"作詞：Mitchie M/ЯIRE", u8"作曲：Mitchie M" } },
 							SongInfo { 825, 2, u8"ビバハピ", { u8"作詞・作曲：Mitchie M" } },
 							SongInfo { 825, 3, u8"アゲアゲアゲイン", { u8"作詞・作曲：Mitchie M" } },
-							SongInfo { 825, 3, u8"アイドルを咲かせ", { u8"作詞・作曲：Mitchie M" } },
+							SongInfo { 825, 4, u8"アイドルを咲かせ", { u8"作詞・作曲：Mitchie M" } },
 
 							// 始まりのメドレー 〜プライマリーカラーズ〜
 							SongInfo { 826, 0, u8"恋スルVOC@LOID", { u8"作詞・作曲：OSTER project" } },
@@ -268,7 +268,6 @@ namespace Comfy::Sandbox::Tests
 							SongInfo { 827, 2, u8"天樂", { u8"作詞・作曲：ゆうゆ" } },
 							SongInfo { 827, 3, u8"Palette", { u8"作詞・作曲：ゆよゆっぺ" } },
 							SongInfo { 827, 4, u8"このふざけた素晴らしき世界は、僕の為にある", { u8"作詞・作曲：n.k" } },
-
 
 							// ビューティ・メドレー 〜Glossy Mixture〜
 							SongInfo { 828, 0, u8"Dependence Intension", { u8"作詞：NaturaLe", u8"作詞：Treow"} },
