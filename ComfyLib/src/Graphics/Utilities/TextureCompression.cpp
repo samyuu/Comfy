@@ -287,21 +287,19 @@ namespace Comfy::Graphics::Utilities
 			vec3(-0.114568502f, -0.385435730f, +0.5000042320f),
 		};
 
-		constexpr __forceinline float PixelU8ToF32(u8 pixel)
+		constexpr float PixelU8ToF32(u8 pixel)
 		{
 			constexpr auto factor = 1.0f / static_cast<float>(std::numeric_limits<u8>::max());
 			return static_cast<float>(pixel) * factor;
 		}
 
-		constexpr __forceinline u8 PixelF32ToU8(float pixel)
+		constexpr u8 PixelF32ToU8(float pixel)
 		{
 			constexpr auto factor = static_cast<float>(std::numeric_limits<u8>::max());
-
-			const auto clamped = std::clamp(pixel, 0.0f, 1.0f);
-			return static_cast<u8>(clamped * factor);
+			return static_cast<u8>(std::clamp(pixel, 0.0f, 1.0f) * factor);
 		}
 
-		constexpr __forceinline u32 PackU8RGBA(u8 r, u8 g, u8 b, u8 a)
+		constexpr u32 PackU8RGBA(u8 r, u8 g, u8 b, u8 a)
 		{
 			return
 				(static_cast<u32>(a) << 24) |
@@ -310,9 +308,9 @@ namespace Comfy::Graphics::Utilities
 				(static_cast<u32>(r) << 0);
 		}
 
-		__forceinline u32 ConvertSinglePixelYACbCrToRGBA(const u8 inYA[2], const u8 inCbCr[2])
+		inline u32 ConvertSinglePixelYACbCrToRGBA(const u8 inYA[2], const u8 inCbCr[2])
 		{
-			const vec3 yCbCr = vec3(
+			const auto yCbCr = vec3(
 				(PixelU8ToF32(inCbCr[1]) * CbCrFactor) - CbCrOffset,
 				(PixelU8ToF32(inYA[0])),
 				(PixelU8ToF32(inCbCr[0]) * CbCrFactor) - CbCrOffset);
@@ -324,14 +322,15 @@ namespace Comfy::Graphics::Utilities
 				inYA[1]);
 		}
 
-		__forceinline void ConvertSinglePixelRGBAToYACbCr(const u32 inRGBA, u8 outYA[2], u8 outCbCr[2])
+		inline void ConvertSinglePixelRGBAToYACbCr(const u32 inRGBA, u8 outYA[2], u8 outCbCr[2])
 		{
-			const vec3 rgb = vec3(
+			constexpr float cbCrFactor = 1.0f / CbCrFactor;
+
+			const auto rgb = vec3(
 				PixelU8ToF32((inRGBA & 0x0000FF)),
 				PixelU8ToF32((inRGBA & 0x00FF00) >> 8),
 				PixelU8ToF32((inRGBA & 0xFF0000) >> 16));
 
-			constexpr float cbCrFactor = 1.0f / CbCrFactor;
 			outCbCr[0] = PixelF32ToU8((glm::dot(rgb, RGBToYCbCrTransform[2]) + CbCrOffset) * cbCrFactor);
 			outCbCr[1] = PixelF32ToU8((glm::dot(rgb, RGBToYCbCrTransform[0]) + CbCrOffset) * cbCrFactor);
 
