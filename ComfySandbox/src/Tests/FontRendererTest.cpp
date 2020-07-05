@@ -52,7 +52,7 @@ namespace Comfy::Sandbox::Tests
 	public:
 		void RenderTakeScreenshot(const Graphics::BitmapFont& font, std::string_view text, std::string filePath, bool border = true)
 		{
-			constexpr float padding = 16.0f;
+			constexpr float padding = 0.0f /*16.0f*/;
 			const auto measuredSize = renderer.Font().Measure(font, text) + vec2(padding);
 
 			camera.ProjectionSize = measuredSize;
