@@ -88,6 +88,8 @@ namespace Comfy::Util
 		{
 			// constexpr int bitsPerPixel = channelCount * CHAR_BIT;
 			// const auto pixelsPerLine = (size.x % bitsPerPixel != 0) ? (size.x + (bitsPerPixel - (size.x % bitsPerPixel))) : (size.x);
+
+			// NOTE: For simplicity sake proper 16 byte stride alignment will be ignored for now
 			const auto pixelsPerLine = size.x;
 
 			stbi_write_png(nullTerminatedFilePath.data(), size.x, size.y, channelCount, rgbaPixels, pixelsPerLine * channelCount);
