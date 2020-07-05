@@ -2,6 +2,7 @@
 #include "RenderTarget.h"
 #include "Graphics/TexSet.h"
 #include "Graphics/Auth3D/LightParam/IBLParameters.h"
+#include <DirectXTex.h>
 
 namespace Comfy::Render::D3D11
 {
@@ -16,7 +17,7 @@ namespace Comfy::Render::D3D11
 		constexpr u32 BlockCompressionAlignment = 4;
 		constexpr u32 UnboundTextureSlot = 0xFFFFFFFF;
 
-		constexpr DXGI_FORMAT GetDxgiFormat(TextureFormat format)
+		constexpr DXGI_FORMAT GetDXGIFormat(TextureFormat format)
 		{
 			switch (format)
 			{
@@ -41,7 +42,7 @@ namespace Comfy::Render::D3D11
 			return DXGI_FORMAT_UNKNOWN;
 		}
 
-		constexpr DXGI_FORMAT GetDxgiFormat(LightMapFormat format)
+		constexpr DXGI_FORMAT GetDXGIFormat(LightMapFormat format)
 		{
 			switch (format)
 			{
@@ -54,213 +55,19 @@ namespace Comfy::Render::D3D11
 			return DXGI_FORMAT_UNKNOWN;
 		}
 
-		constexpr UINT GetFormatDimensionsAlignmentRestriction(TextureFormat format)
+		constexpr size_t PadTextureDimension(const size_t dimension, const size_t alignment)
 		{
-			switch (format)
-			{
-			case TextureFormat::DXT1:
-			case TextureFormat::DXT1a:
-			case TextureFormat::DXT3:
-			case TextureFormat::DXT5:
-			case TextureFormat::RGTC1:
-			case TextureFormat::RGTC2:
-
-			default:
-				return 0;
-			}
-		}
-
-		constexpr UINT GetBitsPerPixel(DXGI_FORMAT format)
-		{
-			switch (format)
-			{
-			case DXGI_FORMAT_R32G32B32A32_TYPELESS:
-			case DXGI_FORMAT_R32G32B32A32_FLOAT:
-			case DXGI_FORMAT_R32G32B32A32_UINT:
-			case DXGI_FORMAT_R32G32B32A32_SINT:
-				return 128;
-
-			case DXGI_FORMAT_R32G32B32_TYPELESS:
-			case DXGI_FORMAT_R32G32B32_FLOAT:
-			case DXGI_FORMAT_R32G32B32_UINT:
-			case DXGI_FORMAT_R32G32B32_SINT:
-				return 96;
-
-			case DXGI_FORMAT_R16G16B16A16_TYPELESS:
-			case DXGI_FORMAT_R16G16B16A16_FLOAT:
-			case DXGI_FORMAT_R16G16B16A16_UNORM:
-			case DXGI_FORMAT_R16G16B16A16_UINT:
-			case DXGI_FORMAT_R16G16B16A16_SNORM:
-			case DXGI_FORMAT_R16G16B16A16_SINT:
-			case DXGI_FORMAT_R32G32_TYPELESS:
-			case DXGI_FORMAT_R32G32_FLOAT:
-			case DXGI_FORMAT_R32G32_UINT:
-			case DXGI_FORMAT_R32G32_SINT:
-			case DXGI_FORMAT_R32G8X24_TYPELESS:
-			case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-			case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
-			case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
-			case DXGI_FORMAT_Y416:
-			case DXGI_FORMAT_Y210:
-			case DXGI_FORMAT_Y216:
-				return 64;
-
-			case DXGI_FORMAT_R10G10B10A2_TYPELESS:
-			case DXGI_FORMAT_R10G10B10A2_UNORM:
-			case DXGI_FORMAT_R10G10B10A2_UINT:
-			case DXGI_FORMAT_R11G11B10_FLOAT:
-			case DXGI_FORMAT_R8G8B8A8_TYPELESS:
-			case DXGI_FORMAT_R8G8B8A8_UNORM:
-			case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-			case DXGI_FORMAT_R8G8B8A8_UINT:
-			case DXGI_FORMAT_R8G8B8A8_SNORM:
-			case DXGI_FORMAT_R8G8B8A8_SINT:
-			case DXGI_FORMAT_R16G16_TYPELESS:
-			case DXGI_FORMAT_R16G16_FLOAT:
-			case DXGI_FORMAT_R16G16_UNORM:
-			case DXGI_FORMAT_R16G16_UINT:
-			case DXGI_FORMAT_R16G16_SNORM:
-			case DXGI_FORMAT_R16G16_SINT:
-			case DXGI_FORMAT_R32_TYPELESS:
-			case DXGI_FORMAT_D32_FLOAT:
-			case DXGI_FORMAT_R32_FLOAT:
-			case DXGI_FORMAT_R32_UINT:
-			case DXGI_FORMAT_R32_SINT:
-			case DXGI_FORMAT_R24G8_TYPELESS:
-			case DXGI_FORMAT_D24_UNORM_S8_UINT:
-			case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
-			case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
-			case DXGI_FORMAT_R9G9B9E5_SHAREDEXP:
-			case DXGI_FORMAT_R8G8_B8G8_UNORM:
-			case DXGI_FORMAT_G8R8_G8B8_UNORM:
-			case DXGI_FORMAT_B8G8R8A8_UNORM:
-			case DXGI_FORMAT_B8G8R8X8_UNORM:
-			case DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM:
-			case DXGI_FORMAT_B8G8R8A8_TYPELESS:
-			case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-			case DXGI_FORMAT_B8G8R8X8_TYPELESS:
-			case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
-			case DXGI_FORMAT_AYUV:
-			case DXGI_FORMAT_Y410:
-			case DXGI_FORMAT_YUY2:
-				return 32;
-
-			case DXGI_FORMAT_P010:
-			case DXGI_FORMAT_P016:
-				return 24;
-
-			case DXGI_FORMAT_R8G8_TYPELESS:
-			case DXGI_FORMAT_R8G8_UNORM:
-			case DXGI_FORMAT_R8G8_UINT:
-			case DXGI_FORMAT_R8G8_SNORM:
-			case DXGI_FORMAT_R8G8_SINT:
-			case DXGI_FORMAT_R16_TYPELESS:
-			case DXGI_FORMAT_R16_FLOAT:
-			case DXGI_FORMAT_D16_UNORM:
-			case DXGI_FORMAT_R16_UNORM:
-			case DXGI_FORMAT_R16_UINT:
-			case DXGI_FORMAT_R16_SNORM:
-			case DXGI_FORMAT_R16_SINT:
-			case DXGI_FORMAT_B5G6R5_UNORM:
-			case DXGI_FORMAT_B5G5R5A1_UNORM:
-			case DXGI_FORMAT_A8P8:
-			case DXGI_FORMAT_B4G4R4A4_UNORM:
-				return 16;
-
-			case DXGI_FORMAT_NV12:
-			case DXGI_FORMAT_420_OPAQUE:
-			case DXGI_FORMAT_NV11:
-				return 12;
-
-			case DXGI_FORMAT_R8_TYPELESS:
-			case DXGI_FORMAT_R8_UNORM:
-			case DXGI_FORMAT_R8_UINT:
-			case DXGI_FORMAT_R8_SNORM:
-			case DXGI_FORMAT_R8_SINT:
-			case DXGI_FORMAT_A8_UNORM:
-			case DXGI_FORMAT_AI44:
-			case DXGI_FORMAT_IA44:
-			case DXGI_FORMAT_P8:
-				return 8;
-
-			case DXGI_FORMAT_R1_UNORM:
-				return 1;
-
-			case DXGI_FORMAT_BC1_TYPELESS:
-			case DXGI_FORMAT_BC1_UNORM:
-			case DXGI_FORMAT_BC1_UNORM_SRGB:
-			case DXGI_FORMAT_BC4_TYPELESS:
-			case DXGI_FORMAT_BC4_UNORM:
-			case DXGI_FORMAT_BC4_SNORM:
-				return 4;
-
-			case DXGI_FORMAT_BC2_TYPELESS:
-			case DXGI_FORMAT_BC2_UNORM:
-			case DXGI_FORMAT_BC2_UNORM_SRGB:
-			case DXGI_FORMAT_BC3_TYPELESS:
-			case DXGI_FORMAT_BC3_UNORM:
-			case DXGI_FORMAT_BC3_UNORM_SRGB:
-			case DXGI_FORMAT_BC5_TYPELESS:
-			case DXGI_FORMAT_BC5_UNORM:
-			case DXGI_FORMAT_BC5_SNORM:
-			case DXGI_FORMAT_BC6H_TYPELESS:
-			case DXGI_FORMAT_BC6H_UF16:
-			case DXGI_FORMAT_BC6H_SF16:
-			case DXGI_FORMAT_BC7_TYPELESS:
-			case DXGI_FORMAT_BC7_UNORM:
-			case DXGI_FORMAT_BC7_UNORM_SRGB:
-				return 8;
-
-			default:
-				return 0;
-			}
-		}
-
-		constexpr bool UsesBlockCompression(DXGI_FORMAT format)
-		{
-			switch (format)
-			{
-			case DXGI_FORMAT_BC1_TYPELESS:
-			case DXGI_FORMAT_BC1_UNORM:
-			case DXGI_FORMAT_BC1_UNORM_SRGB:
-			case DXGI_FORMAT_BC2_TYPELESS:
-			case DXGI_FORMAT_BC2_UNORM:
-			case DXGI_FORMAT_BC2_UNORM_SRGB:
-			case DXGI_FORMAT_BC3_TYPELESS:
-			case DXGI_FORMAT_BC3_UNORM:
-			case DXGI_FORMAT_BC3_UNORM_SRGB:
-			case DXGI_FORMAT_BC4_TYPELESS:
-			case DXGI_FORMAT_BC4_UNORM:
-			case DXGI_FORMAT_BC4_SNORM:
-			case DXGI_FORMAT_BC5_TYPELESS:
-			case DXGI_FORMAT_BC5_UNORM:
-			case DXGI_FORMAT_BC5_SNORM:
-			case DXGI_FORMAT_BC6H_TYPELESS:
-			case DXGI_FORMAT_BC6H_UF16:
-			case DXGI_FORMAT_BC6H_SF16:
-			case DXGI_FORMAT_BC7_TYPELESS:
-			case DXGI_FORMAT_BC7_UNORM:
-			case DXGI_FORMAT_BC7_UNORM_SRGB:
-				return true;
-
-			default:
-				return false;
-			}
-		}
-
-		constexpr UINT PadTextureDimension(const UINT dimension, const UINT alignment)
-		{
-			const UINT padding = ((dimension + (alignment - 1)) & ~(alignment - 1)) - dimension;
+			const size_t padding = ((dimension + (alignment - 1)) & ~(alignment - 1)) - dimension;
 			return dimension + padding;
 		}
 
-		constexpr void PadTextureDimensions(UINT& width, UINT& height, const UINT alignment)
+		constexpr void PadTextureDimensions(UINT& width, UINT& height, const size_t alignment)
 		{
-			width = PadTextureDimension(width, alignment);
-			height = PadTextureDimension(height, alignment);
+			width = static_cast<UINT>(PadTextureDimension(width, alignment));
+			height = static_cast<UINT>(PadTextureDimension(height, alignment));
 		}
 
-		constexpr UINT GetMemoryPitch(const ivec2& size, UINT bitsPerPixel, bool usesBlockCompression = false)
+		constexpr size_t GetMemoryPitch(const ivec2& size, size_t bitsPerPixel, bool usesBlockCompression = false)
 		{
 			if (usesBlockCompression)
 			{
@@ -290,11 +97,11 @@ namespace Comfy::Render::D3D11
 			}
 		}
 
-		D3D11_SUBRESOURCE_DATA CreateMipMapSubresourceData(const TexMipMap& mipMap, bool usesBlockCompression, UINT bitsPerPixel)
+		D3D11_SUBRESOURCE_DATA CreateMipMapSubresourceData(const TexMipMap& mipMap, bool usesBlockCompression, size_t bitsPerPixel)
 		{
 			D3D11_SUBRESOURCE_DATA resource;
 			resource.pSysMem = mipMap.Data.get();
-			resource.SysMemPitch = GetMemoryPitch(mipMap.Size, bitsPerPixel, usesBlockCompression);
+			resource.SysMemPitch = static_cast<UINT>(GetMemoryPitch(mipMap.Size, bitsPerPixel, usesBlockCompression));
 			resource.SysMemSlicePitch = 0;
 			return resource;
 		}
@@ -444,7 +251,7 @@ namespace Comfy::Render::D3D11
 		textureDescription.Height = baseMipMap.Size.y;
 		textureDescription.MipLevels = static_cast<UINT>(mipMaps.size());
 		textureDescription.ArraySize = static_cast<UINT>(tex.MipMapsArray.size());
-		textureDescription.Format = GetDxgiFormat(baseMipMap.Format);
+		textureDescription.Format = GetDXGIFormat(baseMipMap.Format);
 		textureDescription.SampleDesc.Count = 1;
 		textureDescription.SampleDesc.Quality = 0;
 		textureDescription.Usage = D3D11_USAGE_IMMUTABLE;
@@ -457,7 +264,7 @@ namespace Comfy::Render::D3D11
 		// NOTE: Natively unsupported 24-bit format so it needs to be padded first
 		if (baseMipMap.Format == TextureFormat::RGB8)
 		{
-			textureDescription.Format = GetDxgiFormat(TextureFormat::RGBA8);
+			textureDescription.Format = GetDXGIFormat(TextureFormat::RGBA8);
 			std::array<std::unique_ptr<u32[]>, MaxMipMaps> rgbaBuffers;
 
 			for (size_t i = 0; i < mipMaps.size(); i++)
@@ -469,7 +276,7 @@ namespace Comfy::Render::D3D11
 				PadRGBToRGBA(mipMap.Size, mipMap.Data.get(), rgbaBuffers[i].get());
 
 				resource.pSysMem = rgbaBuffers[i].get();
-				resource.SysMemPitch = GetMemoryPitch(mipMap.Size, GetBitsPerPixel(textureDescription.Format), false);
+				resource.SysMemPitch = static_cast<UINT>(GetMemoryPitch(mipMap.Size, ::DirectX::BitsPerPixel(textureDescription.Format), false));
 				resource.SysMemSlicePitch = 0;
 			}
 
@@ -477,8 +284,8 @@ namespace Comfy::Render::D3D11
 		}
 		else
 		{
-			const bool usesBlockCompression = UsesBlockCompression(textureDescription.Format);
-			const UINT bitsPerPixel = GetBitsPerPixel(textureDescription.Format);
+			const bool usesBlockCompression = ::DirectX::IsCompressed(textureDescription.Format);
+			const size_t bitsPerPixel = ::DirectX::BitsPerPixel(textureDescription.Format);
 
 			if (usesBlockCompression)
 				PadTextureDimensions(textureDescription.Width, textureDescription.Height, BlockCompressionAlignment);
@@ -508,7 +315,7 @@ namespace Comfy::Render::D3D11
 		textureDescription.CPUAccessFlags = 0;
 		textureDescription.MiscFlags = 0;
 
-		D3D11_SUBRESOURCE_DATA initialResourceData = { rgbaBuffer, GetMemoryPitch(size, GetBitsPerPixel(textureDescription.Format)), 0 };
+		D3D11_SUBRESOURCE_DATA initialResourceData = { rgbaBuffer, static_cast<UINT>(GetMemoryPitch(size, ::DirectX::BitsPerPixel(textureDescription.Format))), 0 };
 		D3D.Device->CreateTexture2D(&textureDescription, &initialResourceData, &texture);
 
 		resourceViewDescription = CreateTextureResourceViewDescription(textureDescription);
@@ -551,7 +358,7 @@ namespace Comfy::Render::D3D11
 		textureDescription.Height = baseMipMap.Size.y;
 		textureDescription.MipLevels = static_cast<UINT>(mipMaps.size());
 		textureDescription.ArraySize = static_cast<UINT>(tex.MipMapsArray.size());
-		textureDescription.Format = GetDxgiFormat(baseMipMap.Format);
+		textureDescription.Format = GetDXGIFormat(baseMipMap.Format);
 		textureDescription.SampleDesc.Count = 1;
 		textureDescription.SampleDesc.Quality = 0;
 		textureDescription.Usage = D3D11_USAGE_IMMUTABLE;
@@ -559,8 +366,8 @@ namespace Comfy::Render::D3D11
 		textureDescription.CPUAccessFlags = 0;
 		textureDescription.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
-		const bool usesBlockCompression = UsesBlockCompression(textureDescription.Format);
-		const UINT bitsPerPixel = GetBitsPerPixel(textureDescription.Format);
+		const bool usesBlockCompression = ::DirectX::IsCompressed(textureDescription.Format);
+		const size_t bitsPerPixel = ::DirectX::BitsPerPixel(textureDescription.Format);
 
 		if (usesBlockCompression)
 			PadTextureDimensions(textureDescription.Width, textureDescription.Height, BlockCompressionAlignment);
@@ -594,7 +401,7 @@ namespace Comfy::Render::D3D11
 		textureDescription.Height = lightMap.Size.y;
 		textureDescription.MipLevels = mipMapLevels;
 		textureDescription.ArraySize = CubeFaceCount;
-		textureDescription.Format = GetDxgiFormat(lightMap.Format);
+		textureDescription.Format = GetDXGIFormat(lightMap.Format);
 		textureDescription.SampleDesc.Count = 1;
 		textureDescription.SampleDesc.Quality = 0;
 		textureDescription.Usage = D3D11_USAGE_IMMUTABLE;
@@ -602,7 +409,7 @@ namespace Comfy::Render::D3D11
 		textureDescription.CPUAccessFlags = 0;
 		textureDescription.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
-		const UINT bitsPerPixel = GetBitsPerPixel(textureDescription.Format);
+		const size_t bitsPerPixel = ::DirectX::BitsPerPixel(textureDescription.Format);
 
 		std::array<D3D11_SUBRESOURCE_DATA, CubeFaceCount * MaxMipMaps> initialResourceData = {};
 
@@ -611,7 +418,12 @@ namespace Comfy::Render::D3D11
 			for (u32 mipIndex = 0; mipIndex < textureDescription.MipLevels; mipIndex++)
 			{
 				const ivec2 mipMapSize = (lightMap.Size >> static_cast<i32>(mipIndex));
-				initialResourceData[LightMapCubeFaceIndices[faceIndex] * textureDescription.MipLevels + mipIndex] = { lightMap.DataPointers[faceIndex][mipIndex], GetMemoryPitch(mipMapSize, bitsPerPixel, false), 0 };
+				initialResourceData[LightMapCubeFaceIndices[faceIndex] * textureDescription.MipLevels + mipIndex] = 
+				{ 
+					lightMap.DataPointers[faceIndex][mipIndex], 
+					static_cast<UINT>(GetMemoryPitch(mipMapSize, bitsPerPixel, false)), 
+					0 
+				};
 			}
 		}
 

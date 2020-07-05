@@ -1,12 +1,14 @@
 #include "RenderTarget.h"
+#include <DIrectXTex.h>
 
 namespace Comfy::Render::D3D11
 {
 	namespace
 	{
-		std::unique_ptr<u8[]> StageAndCopyD3DTexture2D(ID3D11Texture2D* sourceTexture, D3D11_TEXTURE2D_DESC textureDescription)
+		std::unique_ptr<u8[]> StageAndCopyD3DTexture2D(ID3D11Texture2D& sourceTexture, D3D11_TEXTURE2D_DESC textureDescription)
 		{
-			assert(sourceTexture != nullptr && textureDescription.Format == DXGI_FORMAT_R8G8B8A8_UNORM);
+			assert(textureDescription.Format == DXGI_FORMAT_R8G8B8A8_UNORM);
+			const size_t formatBitsPerPixel = ::DirectX::BitsPerPixel(textureDescription.Format);
 
 			textureDescription.Usage = D3D11_USAGE_STAGING;
 			textureDescription.BindFlags = 0;
@@ -17,26 +19,35 @@ namespace Comfy::Render::D3D11
 			if (FAILED(D3D.Device->CreateTexture2D(&textureDescription, nullptr, &stagingTexture)) || stagingTexture == nullptr)
 				return nullptr;
 
-			D3D.Context->CopyResource(stagingTexture.Get(), sourceTexture);
-
-			constexpr size_t bytesPerPixel = 4;
-			constexpr size_t bitsPerPixel = bytesPerPixel * CHAR_BIT;
-
-			// NOTE: Not sure if the stride calculations are entirely correct but it seems to work fine from my tests
-			const size_t dataSize = (textureDescription.Width * textureDescription.Height * bytesPerPixel);
-			const size_t strideSize = textureDescription.Width + (bitsPerPixel - (textureDescription.Width % bitsPerPixel));
-			const size_t paddedDataSize = (strideSize * textureDescription.Height * bytesPerPixel);
-
-			auto data = std::make_unique<u8[]>(paddedDataSize);
+			D3D.Context->CopyResource(stagingTexture.Get(), &sourceTexture);
 
 			D3D11_MAPPED_SUBRESOURCE mappedResource;
 			if (FAILED(D3D.Context->Map(stagingTexture.Get(), 0, D3D11_MAP_READ, 0, &mappedResource)))
 				return nullptr;
 
-			std::memcpy(data.get(), mappedResource.pData, dataSize);
+			const size_t resourceStride = mappedResource.RowPitch;
+			const size_t resourceSize = mappedResource.DepthPitch;
+			const u8* resourceData = static_cast<const u8*>(mappedResource.pData);
+
+			const size_t outputStride = (textureDescription.Width * formatBitsPerPixel) / CHAR_BIT;
+			const size_t outputSize = textureDescription.Height * outputStride;
+			auto outputData = std::make_unique<u8[]>(outputSize);
+
+			if (resourceSize == outputSize)
+			{
+				std::memcpy(outputData.get(), resourceData, resourceSize);
+			}
+			else // NOTE: Tightly pack together all pixels as that's the format they are expected to be in everywhere else in the code
+			{
+				assert(resourceSize == (resourceStride * textureDescription.Height));
+
+				for (size_t y = 0; y < textureDescription.Height; y++)
+					std::memcpy(&outputData[outputStride * y], &resourceData[resourceStride * y], outputStride);
+			}
+
 			D3D.Context->Unmap(stagingTexture.Get(), 0);
 
-			return data;
+			return outputData;
 		}
 	}
 
@@ -219,7 +230,10 @@ namespace Comfy::Render::D3D11
 
 	std::unique_ptr<u8[]> RenderTarget::StageAndCopyBackBuffer()
 	{
-		return StageAndCopyD3DTexture2D(backBuffer.Get(), backBufferDescription);
+		if (backBuffer == nullptr)
+			return nullptr;
+
+		return StageAndCopyD3DTexture2D(*backBuffer.Get(), backBufferDescription);
 	}
 
 	DepthRenderTarget::DepthRenderTarget(ivec2 size, DXGI_FORMAT depthBufferFormat)
