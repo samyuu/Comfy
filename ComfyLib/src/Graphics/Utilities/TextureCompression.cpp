@@ -257,8 +257,13 @@ namespace Comfy::Graphics::Utilities
 		inputImage.slicePitch = expectedInputByteSize;
 		inputImage.pixels = const_cast<u8*>(inData);
 
+		auto compressionFlags = ::DirectX::TEX_COMPRESS_DEFAULT;
+
+		if (true) // NOTE: It seems this yields the best results in most cases
+			compressionFlags |= ::DirectX::TEX_COMPRESS_RGB_DITHER;
+
 		auto outputImage = ::DirectX::ScratchImage {};
-		if (FAILED(::DirectX::Compress(inputImage, outFormatDXGI, ::DirectX::TEX_COMPRESS_DEFAULT, ::DirectX::TEX_THRESHOLD_DEFAULT, outputImage)))
+		if (FAILED(::DirectX::Compress(inputImage, outFormatDXGI, compressionFlags, ::DirectX::TEX_THRESHOLD_DEFAULT, outputImage)))
 			return false;
 
 		if (outByteSize < outputImage.GetPixelsSize())
@@ -608,7 +613,7 @@ namespace Comfy::Graphics::Utilities
 			}
 		}
 
-		::DirectX::TexMetadata metadata = {};
+		auto metadata = ::DirectX::TexMetadata {};
 		metadata.width = images[0].width;
 		metadata.height = images[0].height;
 		metadata.depth = 1;
