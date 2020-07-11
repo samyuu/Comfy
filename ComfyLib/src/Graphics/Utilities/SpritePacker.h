@@ -88,9 +88,6 @@ namespace Comfy::Graphics::Utilities
 			// NOTE: Generally higher quallity than block compression on its own at the cost of additional encoding and decoding time
 			bool AllowYCbCrTextures = true;
 
-			// TODO: Do mip maps even make sense for sprites...?
-			bool GenerateMipMaps = false;
-
 			// NOTE: Required for texture block compression, textures will stay uncompressed if not set
 			bool PowerOfTwoTextures = true;
 

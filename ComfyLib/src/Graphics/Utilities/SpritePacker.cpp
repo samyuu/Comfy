@@ -445,11 +445,6 @@ namespace Comfy::Graphics::Utilities
 			return tex;
 		}
 
-		if (Settings.GenerateMipMaps)
-		{
-			// TODO:
-		}
-
 		return tex;
 	}
 
