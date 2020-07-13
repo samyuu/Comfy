@@ -84,9 +84,7 @@ namespace Comfy::Graphics
 
 	void SprSet::Parse(const u8* buffer, size_t bufferSize)
 	{
-		SprSet* sprSet = this;
-
-		sprSet->Flags = *(u32*)(buffer + 0);
+		Flags = *(u32*)(buffer + 0);
 		u32 texSetOffset = *(u32*)(buffer + 4);
 		u32 textureCount = *(u32*)(buffer + 8);
 		u32 spritesCount = *(u32*)(buffer + 12);
@@ -95,25 +93,23 @@ namespace Comfy::Graphics
 		u32 spriteNamesOffset = *(u32*)(buffer + 24);
 		u32 spriteExtraDataOffset = *(u32*)(buffer + 28);
 
+		TexSet = std::make_unique<Graphics::TexSet>();
+
 		if (texSetOffset != 0)
-		{
-			sprSet->TexSet = std::make_unique<Graphics::TexSet>();
-			sprSet->TexSet->Parse(buffer + texSetOffset, bufferSize - texSetOffset);
-		}
+			TexSet->Parse(buffer + texSetOffset, bufferSize - texSetOffset);
 
 		if (spritesOffset != 0)
 		{
 			const u8* spritesBuffer = buffer + spritesOffset;
 
-			sprSet->Sprites.resize(spritesCount);
+			Sprites.resize(spritesCount);
 			for (u32 i = 0; i < spritesCount; i++)
 			{
-				Spr* sprite = &sprSet->Sprites[i];
-
-				sprite->TextureIndex = *(i32*)(spritesBuffer + 0);
-				sprite->Rotate = *(i32*)(spritesBuffer + 4);
-				sprite->TexelRegion = *(vec4*)(spritesBuffer + 8);
-				sprite->PixelRegion = *(vec4*)(spritesBuffer + 24);
+				Spr& sprite = Sprites[i];
+				sprite.TextureIndex = *(i32*)(spritesBuffer + 0);
+				sprite.Rotate = *(i32*)(spritesBuffer + 4);
+				sprite.TexelRegion = *(vec4*)(spritesBuffer + 8);
+				sprite.PixelRegion = *(vec4*)(spritesBuffer + 24);
 				spritesBuffer += 40;
 			}
 		}
@@ -125,7 +121,7 @@ namespace Comfy::Graphics
 			for (u32 i = 0; i < textureCount; i++)
 			{
 				u32 nameOffset = ((u32*)textureNamesOffsetBuffer)[i];
-				sprSet->TexSet->Textures[i]->Name = (const char*)(buffer + nameOffset);
+				TexSet->Textures[i]->Name = (const char*)(buffer + nameOffset);
 			}
 		}
 
@@ -136,7 +132,7 @@ namespace Comfy::Graphics
 			for (u32 i = 0; i < spritesCount; i++)
 			{
 				u32 nameOffset = ((u32*)spriteNamesOffsetBuffer)[i];
-				sprSet->Sprites[i].Name = (const char*)(buffer + nameOffset);
+				Sprites[i].Name = (const char*)(buffer + nameOffset);
 			}
 		}
 
@@ -144,7 +140,7 @@ namespace Comfy::Graphics
 		{
 			const u8* extraDataBuffer = buffer + spriteExtraDataOffset;
 
-			for (auto& sprite : sprSet->Sprites)
+			for (auto& sprite : Sprites)
 			{
 				sprite.Extra.Flags = *((u32*)extraDataBuffer + 0);
 				sprite.Extra.ScreenMode = *((ScreenMode*)extraDataBuffer + 4);
