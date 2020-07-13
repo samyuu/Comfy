@@ -9,10 +9,10 @@ namespace Comfy::IO
 		Mode64Bit,
 	};
 
-	enum class Endianness : u16
+	enum class Endianness : u8
 	{
-		Little = 'LE',
-		Big = 'BE',
+		Little,
+		Big,
 
 		// TODO: C++20 std::endian please come to rescue :PeepoHug:
 		Native = (true) ? Little : Big,
