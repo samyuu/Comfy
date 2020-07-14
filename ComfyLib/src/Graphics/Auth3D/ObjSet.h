@@ -92,10 +92,11 @@ namespace Comfy::Graphics
 			u32 Stride;
 			u32 VertexCount;
 
+			// TODO: Switch to std::uniuqe_ptr<T[]>, get rid of unused UV[2], UV[3] and Color[1] (?)
+			// TODO: Either convert to on load or std::varient support f16 / i16
 			std::vector<vec3> Positions;
 			std::vector<vec3> Normals;
 			std::vector<vec4> Tangents;
-			std::vector<vec4> Reserved0x3;
 			std::array<std::vector<vec2>, 4> TextureCoordinates;
 			std::array<std::vector<vec4>, 2> Colors;
 			std::vector<vec4> BoneWeights;

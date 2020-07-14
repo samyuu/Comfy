@@ -167,8 +167,6 @@ namespace Comfy::Render::D3D11
 			return checkAttribute(mesh.VertexData.Normals);
 		case Graphics::VertexAttribute_Tangent:
 			return checkAttribute(mesh.VertexData.Tangents);
-		case Graphics::VertexAttribute_0x3:
-			return checkAttribute(mesh.VertexData.Reserved0x3);
 		case Graphics::VertexAttribute_TextureCoordinate0:
 			return checkAttribute(mesh.VertexData.TextureCoordinates[0]);
 		case Graphics::VertexAttribute_TextureCoordinate1:
