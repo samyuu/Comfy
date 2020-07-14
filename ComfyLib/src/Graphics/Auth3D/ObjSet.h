@@ -512,10 +512,6 @@ namespace Comfy::Graphics
 	public:
 		void Read(IO::StreamReader& reader) override;
 
-	public:
-		// TODO: Rename and or refactor
-		static std::unique_ptr<ObjSet> MakeUniqueReadParseUpload(std::string_view filePath);
-
 	private:
 		std::vector<Obj> objects;
 	};

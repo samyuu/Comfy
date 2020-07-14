@@ -63,7 +63,7 @@ namespace Comfy::Graphics
 
 	public:
 		// TODO: Rename and or refactor
-		static std::unique_ptr<TexSet> MakeUniqueReadParseUpload(std::string_view filePath, const class ObjSet* objSet);
+		static std::unique_ptr<TexSet> LoadSetTextureIDs(std::string_view filePath, const class ObjSet* objSet);
 
 	private:
 		void ParseTex(const u8* buffer, Tex& tex);

@@ -157,12 +157,12 @@ namespace Comfy::Studio::Editor
 		if (objSetPath == texSetPath)
 			return false;
 
-		std::shared_ptr<ObjSet> objSet = ObjSet::MakeUniqueReadParseUpload(objSetPath);
+		std::shared_ptr<ObjSet> objSet = IO::File::Load<ObjSet>(objSetPath);
 		if (objSet == nullptr)
 			return false;
 
 		objSet->Name = IO::Path::GetFileName(objSetPath, false);
-		objSet->TexSet = TexSet::MakeUniqueReadParseUpload(texSetPath, objSet.get());
+		objSet->TexSet = TexSet::LoadSetTextureIDs(texSetPath, objSet.get());
 		sceneGraph.LoadObjSet(objSet, tag);
 		sceneGraph.RegisterTextures(objSet->TexSet.get());
 
@@ -1592,8 +1592,8 @@ namespace Comfy::Studio::Editor
 
 		if (effCmnObjSet == nullptr)
 		{
-			effCmnObjSet = ObjSet::MakeUniqueReadParseUpload(effCmnObjSetPath);
-			effCmnObjSet->TexSet = TexSet::MakeUniqueReadParseUpload(effCmnTexSetPath, effCmnObjSet.get());
+			effCmnObjSet = IO::File::Load<ObjSet>(effCmnObjSetPath);
+			effCmnObjSet->TexSet = TexSet::LoadSetTextureIDs(effCmnTexSetPath, effCmnObjSet.get());
 
 			sceneGraph.RegisterTextures(effCmnObjSet->TexSet.get());
 

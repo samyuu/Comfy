@@ -64,14 +64,6 @@ namespace Comfy::Graphics
 	}
 	*/
 
-	std::unique_ptr<ObjSet> ObjSet::MakeUniqueReadParseUpload(std::string_view filePath)
-	{
-		auto objSet = IO::File::Load<ObjSet>(filePath);
-		// if (objSet != nullptr)
-		// 	objSet->UploadAll();
-		return objSet;
-	}
-
 	IndexFormat SubMesh::GetIndexFormat() const
 	{
 		return static_cast<IndexFormat>(Indices.index());
