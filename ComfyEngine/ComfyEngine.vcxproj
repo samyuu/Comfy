@@ -185,8 +185,8 @@
     <ClInclude Include="src\ImGui\Widgets\FileViewer.h" />
     <ClInclude Include="src\Input\DirectInput\DirectInput.h" />
     <ClInclude Include="src\Input\DirectInput\DirectInputDevice.h" />
-    <ClInclude Include="src\Input\DirectInput\Ds4Button.h" />
-    <ClInclude Include="src\Input\DirectInput\Ds4State.h" />
+    <ClInclude Include="src\Input\DirectInput\DS4Button.h" />
+    <ClInclude Include="src\Input\DirectInput\DS4State.h" />
     <ClInclude Include="src\Input\DirectInput\DualShock4.h" />
     <ClInclude Include="src\Input\Core\IInputDevice.h" />
     <ClInclude Include="src\Input\Input.h" />
@@ -269,7 +269,6 @@
     <ClCompile Include="src\ImGui\Widgets\FileViewer.cpp" />
     <ClCompile Include="src\Input\DirectInput\DirectInput.cpp" />
     <ClCompile Include="src\Input\DirectInput\DirectInputDevice.cpp" />
-    <ClCompile Include="src\Input\DirectInput\Ds4State.cpp" />
     <ClCompile Include="src\Input\DirectInput\DualShock4.cpp" />
     <ClCompile Include="src\Input\Core\Keyboard.cpp" />
     <ClCompile Include="src\Render\Core\Camera.cpp" />

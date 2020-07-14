@@ -16,7 +16,7 @@ namespace Comfy::Graphics
 			template <typename TValue, A3DKeyFrameType TType>
 			void ParseProperty1DRawDataValueList(A3DProperty1D& output)
 			{
-				constexpr std::array<size_t, static_cast<size_t>(A3DKeyFrameType::Count)> valuesPerKeyFramePerType = { 1, 2, 3, 4 };
+				constexpr std::array<size_t, EnumCount<A3DKeyFrameType>()> valuesPerKeyFramePerType = { 1, 2, 3, 4 };
 				constexpr size_t valuesPerKeyFrame = valuesPerKeyFramePerType[static_cast<size_t>(TType)];
 
 				const size_t keyFrameCount = output.RawData.ValueListSize / valuesPerKeyFrame;

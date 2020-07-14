@@ -19,7 +19,7 @@ namespace Comfy::Studio::Editor
 			Count,
 		};
 
-		static constexpr std::array<const char*, static_cast<size_t>(ControlMode::Count)> ControlModeNames =
+		static constexpr std::array<const char*, EnumCount<ControlMode>()> ControlModeNames =
 		{
 			"None",
 			"First Person",

@@ -64,7 +64,7 @@ namespace ImGui
 		static const char* FormatFileType(FileType type);
 		static void FormatReadableFileSize(std::string& value, u64 fileSize);
 
-		static constexpr std::array<std::pair<FileType, const char*>, static_cast<size_t>(FileType::Count)> fileTypeDictionary =
+		static constexpr std::array<std::pair<FileType, std::string_view>, Comfy::EnumCount<FileType>()> fileTypeDictionary =
 		{
 			std::make_pair(FileType::Default, "."),
 			std::make_pair(FileType::Link, ".lnk"),

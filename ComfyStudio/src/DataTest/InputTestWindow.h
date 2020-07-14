@@ -17,7 +17,7 @@ namespace Comfy::Studio::DataTest
 		void Gui() override;
 
 	private:
-		static constexpr std::array<const char*, static_cast<size_t>(Input::Ds4Button::Count)> ds4ButtonNames =
+		static constexpr std::array<const char*, EnumCount<Input::DS4Button>()> ds4ButtonNames =
 		{
 			"Square",
 			"Cross",

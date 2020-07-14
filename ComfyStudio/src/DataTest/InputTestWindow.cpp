@@ -70,9 +70,9 @@ namespace Comfy::Studio::DataTest
 
 			if (initialized)
 			{
-				for (size_t button = 0; button < static_cast<size_t>(Input::Ds4Button::Count); button++)
+				for (size_t button = 0; button < EnumCount<Input::DS4Button>(); button++)
 				{
-					if (ds4->IsDown(static_cast<Input::Ds4Button>(button)))
+					if (ds4->IsDown(static_cast<Input::DS4Button>(button)))
 						Gui::BulletText(ds4ButtonNames[button]);
 				}
 			}

@@ -16,7 +16,9 @@ namespace Comfy::Sandbox::Tests::Game
 		Count
 	};
 
-	static constexpr std::array<std::string_view, static_cast<size_t>(GameStateType::Count)> GameStateTypeNames
+	static constexpr std::string_view GameStateTypeNameInvalid = "Invalid";
+
+	static constexpr std::array<std::string_view, EnumCount<GameStateType>()> GameStateTypeNames
 	{
 		"PS4MainMenu",
 		"PS4GameMenu",
@@ -27,8 +29,7 @@ namespace Comfy::Sandbox::Tests::Game
 
 	constexpr std::string_view GetGameStateTypeName(GameStateType gameStateType)
 	{
-		const auto index = static_cast<size_t>(gameStateType);
-		return InBounds(index, GameStateTypeNames) ? GameStateTypeNames[index] : "Invalid";
+		return IndexOr(static_cast<size_t>(gameStateType), GameStateTypeNames, GameStateTypeNameInvalid);
 	}
 
 	constexpr std::string_view GetGameStateTypeName(std::optional<GameStateType> gameStateType)

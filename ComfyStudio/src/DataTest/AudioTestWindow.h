@@ -42,7 +42,7 @@ namespace Comfy::Studio::DataTest
 
 		u32 newBufferFrameCount = Audio::Engine::DefaultBufferFrameCount;
 
-		static constexpr std::array<const char*, static_cast<size_t>(Audio::ChannelMixer::MixingBehavior::Count)> mixingBehaviorNames =
+		static constexpr std::array<const char*, EnumCount<Audio::ChannelMixer::MixingBehavior>()> mixingBehaviorNames =
 		{
 			"ChannelMixer::MixingBehavior::Ignore",
 			"ChannelMixer::MixingBehavior::Combine",

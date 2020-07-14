@@ -4,7 +4,7 @@
 
 namespace Comfy::Render::Detail
 {
-	static constexpr size_t BlendFactorCount = static_cast<size_t>(Graphics::BlendFactor::Count);
+	static constexpr size_t BlendFactorCount = EnumCount<Graphics::BlendFactor>();
 
 	constexpr std::array D3DBlendFactors = 
 	{ 

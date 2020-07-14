@@ -13,7 +13,7 @@ namespace Comfy::Sandbox::Tests::Game
 	public:
 		GameStateManager(GameContext& context) : context(context)
 		{
-			for (size_t i = 0; i < static_cast<size_t>(GameStateType::Count); i++)
+			for (size_t i = 0; i < EnumCount<GameStateType>(); i++)
 				allGameStates[i] = GameStateBase::CreateByType(static_cast<GameStateType>(i), context);
 
 			assert(std::all_of(allGameStates.begin(), allGameStates.end(), [](const auto& gameState) { return (gameState != nullptr); }));
@@ -47,7 +47,7 @@ namespace Comfy::Sandbox::Tests::Game
 		{
 			Gui::TextUnformatted("Game State Selection:");
 
-			for (size_t i = 0; i <= static_cast<size_t>(GameStateType::Count); i++)
+			for (size_t i = 0; i <= EnumCount<GameStateType>(); i++)
 			{
 				const auto type = static_cast<GameStateType>(i);
 
@@ -186,6 +186,6 @@ namespace Comfy::Sandbox::Tests::Game
 	private:
 		std::optional<GameStateType> activeGameStateType = {};
 		std::optional<GameStateType> gameStateTypeAfterFadeEnded = {};
-		std::array<std::unique_ptr<GameStateBase>, static_cast<size_t>(GameStateType::Count)> allGameStates = {};
+		std::array<std::unique_ptr<GameStateBase>, EnumCount<GameStateType>()> allGameStates = {};
 	};
 }

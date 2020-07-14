@@ -2,6 +2,15 @@
 
 namespace Comfy::Input
 {
+	namespace
+	{
+		inline vec2 AngleToDircetionVector(float degrees)
+		{
+			const float radians = glm::radians(degrees);
+			return vec2(glm::cos(radians), glm::sin(radians));
+		}
+	}
+
 	DualShock4* DualShock4::instance = nullptr;
 
 	DualShock4::DualShock4()
@@ -17,7 +26,7 @@ namespace Comfy::Input
 	{
 		HRESULT result = NULL;
 
-		for (const auto& guid : GUID_Ds4)
+		for (const auto& guid : GUID_DS4)
 		{
 			result = DI_CreateDevice(guid);
 
@@ -49,8 +58,8 @@ namespace Comfy::Input
 
 		UpdateInternalDs4State(currentState);
 
-		for (i32 button = 0; button < static_cast<i32>(Ds4Button::Count); button++)
-			currentState.Buttons[button] = GetButtonState(currentState, static_cast<Ds4Button>(button));
+		for (i32 button = 0; button < static_cast<i32>(DS4Button::Count); button++)
+			currentState.Buttons[button] = GetButtonState(currentState, static_cast<DS4Button>(button));
 
 		return true;
 	}
@@ -65,24 +74,24 @@ namespace Comfy::Input
 		return static_cast<float>(value) / std::numeric_limits<u16>::max() * 2.0f - 1.0f;
 	}
 
-	Joystick DualShock4::NormalizeStick(long x, long y) const
+	JoystickState DualShock4::NormalizeStick(long x, long y) const
 	{
-		return Joystick(NormalizeStick(x), NormalizeStick(y));
+		return JoystickState(NormalizeStick(x), NormalizeStick(y));
 	}
 
-	void DualShock4::UpdateInternalDs4State(Ds4State& state)
+	void DualShock4::UpdateInternalDs4State(DS4State& state)
 	{
 		if (state.Dpad.IsDown = (state.DI_JoyState.rgdwPOV[0] != -1))
 		{
 			state.Dpad.Angle = (state.DI_JoyState.rgdwPOV[0] / 100.0f);
 
-			auto direction = GetDirection(state.Dpad.Angle);
-			state.Dpad.Stick = { direction.y, -direction.x };
+			const auto directionVector = AngleToDircetionVector(state.Dpad.Angle);
+			state.Dpad.Stick = { directionVector.y, -directionVector.x };
 		}
 		else
 		{
 			state.Dpad.Angle = 0;
-			state.Dpad.Stick = Joystick();
+			state.Dpad.Stick = JoystickState();
 		}
 
 		state.LeftStick = NormalizeStick(state.DI_JoyState.lX, state.DI_JoyState.lY);
@@ -92,47 +101,47 @@ namespace Comfy::Input
 		state.RightTrigger = { NormalizeTrigger(state.DI_JoyState.lRy) };
 	}
 
-	bool DualShock4::Instance_IsDown(Ds4Button button) const
+	bool DualShock4::Instance_IsDown(DS4Button button) const
 	{
 		return currentState.Buttons[static_cast<i32>(button)];
 	}
 
-	bool DualShock4::Instance_IsUp(Ds4Button button) const
+	bool DualShock4::Instance_IsUp(DS4Button button) const
 	{
 		return !Instance_IsDown(button);
 	}
 
-	bool DualShock4::Instance_IsTapped(Ds4Button button) const
+	bool DualShock4::Instance_IsTapped(DS4Button button) const
 	{
 		return Instance_IsDown(button) && Instance_WasUp(button);
 	}
 
-	bool DualShock4::Instance_IsReleased(Ds4Button button) const
+	bool DualShock4::Instance_IsReleased(DS4Button button) const
 	{
 		return Instance_IsUp(button) && Instance_WasDown(button);
 	}
 
-	bool DualShock4::Instance_WasDown(Ds4Button button) const
+	bool DualShock4::Instance_WasDown(DS4Button button) const
 	{
 		return lastState.Buttons[static_cast<i32>(button)];
 	}
 
-	bool DualShock4::Instance_WasUp(Ds4Button button) const
+	bool DualShock4::Instance_WasUp(DS4Button button) const
 	{
 		return !Instance_WasDown(button);
 	}
 
-	Joystick DualShock4::GetLeftStick() const
+	JoystickState DualShock4::GetLeftStick() const
 	{
 		return currentState.LeftStick;
 	}
 
-	Joystick DualShock4::GetRightStick() const
+	JoystickState DualShock4::GetRightStick() const
 	{
 		return currentState.RightStick;
 	}
 
-	Joystick DualShock4::GetDpad() const
+	JoystickState DualShock4::GetDpad() const
 	{
 		return currentState.Dpad.Stick;
 	}
@@ -156,20 +165,20 @@ namespace Comfy::Input
 		return success;
 	}
 
-	bool DualShock4::MatchesDirection(Joystick joystick, Direction directionEnum, float threshold) const
+	bool DualShock4::MatchesDirection(JoystickState joystick, DS4Direction directionEnum, float threshold) const
 	{
 		switch (directionEnum)
 		{
-		case Direction::Up:
+		case DS4Direction::Up:
 			return joystick.YAxis <= -threshold;
 
-		case Direction::Right:
+		case DS4Direction::Right:
 			return joystick.XAxis >= +threshold;
 
-		case Direction::Down:
+		case DS4Direction::Down:
 			return joystick.YAxis >= +threshold;
 
-		case Direction::Left:
+		case DS4Direction::Left:
 			return joystick.XAxis <= -threshold;
 
 		default:
@@ -177,19 +186,19 @@ namespace Comfy::Input
 		}
 	}
 
-	bool DualShock4::GetButtonState(Ds4State& state, Ds4Button button) const
+	bool DualShock4::GetButtonState(DS4State& state, DS4Button button) const
 	{
-		if (button >= Ds4Button::Square && button <= Ds4Button::Touch)
+		if (button >= DS4Button::Square && button <= DS4Button::Touch)
 			return state.DI_JoyState.rgbButtons[static_cast<i32>(button)];
 
-		if (button >= Ds4Button::DPad_Up && button <= Ds4Button::DPad_Left)
-			return state.Dpad.IsDown ? MatchesDirection(state.Dpad.Stick, static_cast<Direction>(static_cast<i32>(button) - static_cast<i32>(Ds4Button::DPad_Up)), dpadThreshold) : false;
+		if (button >= DS4Button::DPad_Up && button <= DS4Button::DPad_Left)
+			return state.Dpad.IsDown ? MatchesDirection(state.Dpad.Stick, static_cast<DS4Direction>(static_cast<i32>(button) - static_cast<i32>(DS4Button::DPad_Up)), dpadThreshold) : false;
 
-		if (button >= Ds4Button::L_Stick_Up && button <= Ds4Button::L_Stick_Left)
-			return MatchesDirection(state.LeftStick, (Direction)(static_cast<i32>(button) - static_cast<i32>(Ds4Button::L_Stick_Up)), joystickThreshold);
+		if (button >= DS4Button::L_Stick_Up && button <= DS4Button::L_Stick_Left)
+			return MatchesDirection(state.LeftStick, (DS4Direction)(static_cast<i32>(button) - static_cast<i32>(DS4Button::L_Stick_Up)), joystickThreshold);
 
-		if (button >= Ds4Button::R_Stick_Up && button <= Ds4Button::R_Stick_Left)
-			return MatchesDirection(state.RightStick, (Direction)(static_cast<i32>(button) - static_cast<i32>(Ds4Button::R_Stick_Up)), joystickThreshold);
+		if (button >= DS4Button::R_Stick_Up && button <= DS4Button::R_Stick_Left)
+			return MatchesDirection(state.RightStick, (DS4Direction)(static_cast<i32>(button) - static_cast<i32>(DS4Button::R_Stick_Up)), joystickThreshold);
 
 		return false;
 	}

@@ -121,7 +121,7 @@ namespace Comfy::Graphics
 		Count,
 	};
 
-	static constexpr std::array<const char*, static_cast<size_t>(MaterialTextureType::Count)> MaterialTextureTypeNames =
+	static constexpr std::array<const char*, EnumCount<MaterialTextureType>()> MaterialTextureTypeNames =
 	{
 		"None",
 		"Color Map",
@@ -148,7 +148,7 @@ namespace Comfy::Graphics
 		Count,
 	};
 
-	static constexpr std::array<const char*, static_cast<size_t>(MaterialTextureUVIndex::Count)> MaterialTextureUVIndexNames =
+	static constexpr std::array<const char*, EnumCount<MaterialTextureUVIndex>()> MaterialTextureUVIndexNames =
 	{
 		"Index 0",
 		"Index 1",
@@ -177,7 +177,7 @@ namespace Comfy::Graphics
 		Count,
 	};
 
-	static constexpr std::array<const char*, static_cast<size_t>(MaterialTextureUVTranslationType::Count)> MaterialTextureUVTranslationTypeNames =
+	static constexpr std::array<const char*, EnumCount<MaterialTextureUVTranslationType>()> MaterialTextureUVTranslationTypeNames =
 	{
 		"None",
 		"UV",
@@ -232,7 +232,7 @@ namespace Comfy::Graphics
 		Count,
 	};
 
-	static constexpr std::array<const char*, static_cast<size_t>(VertexTranslationType::Count)> VertexTranslationTypeNames =
+	static constexpr std::array<const char*, EnumCount<VertexTranslationType>()> VertexTranslationTypeNames =
 	{
 		"Default",
 		"Envelope",
@@ -247,7 +247,7 @@ namespace Comfy::Graphics
 		Count,
 	};
 
-	static constexpr std::array<const char*, static_cast<size_t>(ColorSourceType::Count)> ColorSourceTypeNames =
+	static constexpr std::array<const char*, EnumCount<ColorSourceType>()> ColorSourceTypeNames =
 	{
 		"Material Color",
 		"Vertex Color",
@@ -262,7 +262,7 @@ namespace Comfy::Graphics
 		Count,
 	};
 
-	static constexpr std::array<const char*, static_cast<size_t>(BumpMapType::Count)> BumpMapTypeNames =
+	static constexpr std::array<const char*, EnumCount<BumpMapType>()> BumpMapTypeNames =
 	{
 		"None",
 		"Dot",
@@ -276,7 +276,7 @@ namespace Comfy::Graphics
 		Count,
 	};
 
-	static constexpr std::array<const char*, static_cast<size_t>(SpecularQuality::Count)> SpecularQualityNames =
+	static constexpr std::array<const char*, EnumCount<SpecularQuality>()> SpecularQualityNames =
 	{
 		"Low",
 		"Hight",
@@ -291,7 +291,7 @@ namespace Comfy::Graphics
 		Count,
 	};
 
-	static constexpr std::array<const char*, static_cast<size_t>(AnisoDirection::Count)> AnisoDirectionNames =
+	static constexpr std::array<const char*, EnumCount<AnisoDirection>()> AnisoDirectionNames =
 	{
 		"Normal",
 		"U",
@@ -314,7 +314,7 @@ namespace Comfy::Graphics
 		Count,
 	};
 
-	static constexpr std::array<const char*, static_cast<size_t>(BlendFactor::Count)> BlendFactorNames =
+	static constexpr std::array<const char*, EnumCount<BlendFactor>()> BlendFactorNames =
 	{
 		"Zero",
 		"One",

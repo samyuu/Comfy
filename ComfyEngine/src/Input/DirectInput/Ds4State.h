@@ -1,45 +1,40 @@
 #pragma once
 #include "Types.h"
+#include "CoreTypes.h"
 #include "DirectInput.h"
-#include "Ds4Button.h"
+#include "DS4Button.h"
 
 namespace Comfy::Input
 {
-	inline constexpr vec2 GetDirection(const float degrees)
+	struct JoystickState
 	{
-		const float radians = glm::radians(degrees);
-		return vec2(glm::cos(radians), glm::sin(radians));
-	}
+		float XAxis, YAxis;
 
-	struct Joystick
-	{
-		FLOAT XAxis, YAxis;
-
-		Joystick();
-		Joystick(float xAxis, float yAxis);
+		JoystickState() : XAxis(0.0f), YAxis(0.0f) {}
+		JoystickState(float xAxis, float yAxis) : XAxis(xAxis), YAxis(yAxis) {}
 	};
 
-	struct Dpad
+	struct DPadState
 	{
-		BOOL IsDown;
-		FLOAT Angle;
-		Joystick Stick;
+		bool IsDown;
+		float Angle;
+		JoystickState Stick;
 	};
 
-	struct Trigger
+	struct TriggerState
 	{
-		FLOAT Axis;
+		float Axis;
 	};
 
-	struct Ds4State
+	struct DS4State
 	{
 		DIJOYSTATE2 DI_JoyState;
-		BYTE Buttons[static_cast<size_t>(Ds4Button::Count)];
+		std::array<bool, EnumCount<DS4Button>()> Buttons;
 
-		Dpad Dpad;
-		Joystick LeftStick;
-		Joystick RightStick;
-		Trigger LeftTrigger;
-		Trigger RightTrigger;
+		DPadState Dpad;
+		JoystickState LeftStick;
+		JoystickState RightStick;
+		TriggerState LeftTrigger;
+		TriggerState RightTrigger;
 	};
 }

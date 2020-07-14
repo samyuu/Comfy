@@ -225,7 +225,7 @@ namespace Comfy::Graphics::Aet
 		Count,
 	};
 
-	static constexpr std::array<const char*, static_cast<size_t>(LayerQuality::Count)> LayerQualityNames =
+	static constexpr std::array<const char*, EnumCount<LayerQuality>()> LayerQualityNames =
 	{
 		"None",
 		"Wireframe",
@@ -242,7 +242,7 @@ namespace Comfy::Graphics::Aet
 		Count,
 	};
 
-	static constexpr std::array<const char*, static_cast<size_t>(ItemType::Count)> ItemTypeNames =
+	static constexpr std::array<const char*, EnumCount<ItemType>()> ItemTypeNames =
 	{
 		"None",
 		"Video",

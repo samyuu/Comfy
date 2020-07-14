@@ -380,12 +380,12 @@ namespace Comfy::Studio::Editor
 				if (Gui::ComfyBeginCombo("Blend Mode", GetBlendModeName(animationData->TransferMode.BlendMode), ImGuiComboFlags_HeightLarge))
 				{
 					// NOTE: Increase the count in case of invalid blend modes
-					size_t blendModeCount = glm::max(static_cast<size_t>(animationData->TransferMode.BlendMode), static_cast<size_t>(AetBlendMode::Count));
+					size_t blendModeCount = glm::max(static_cast<size_t>(animationData->TransferMode.BlendMode), EnumCount<AetBlendMode>());
 
 					for (i32 blendModeIndex = 0; blendModeIndex < blendModeCount; blendModeIndex++)
 					{
 						bool isBlendMode = (static_cast<AetBlendMode>(blendModeIndex) == animationData->TransferMode.BlendMode);
-						bool outOfBounds = blendModeIndex >= static_cast<size_t>(AetBlendMode::Count);
+						bool outOfBounds = blendModeIndex >= EnumCount<AetBlendMode>();
 
 						if (!isBlendMode && (outOfBounds || !IsBlendModeSupported(static_cast<AetBlendMode>(blendModeIndex))))
 							continue;

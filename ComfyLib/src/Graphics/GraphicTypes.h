@@ -260,6 +260,8 @@ namespace Comfy::Graphics
 		qHD = 17,
 		// NOTE: ____ x ____
 		Custom = 18,
+		
+		Count = Custom
 	};
 
 	enum class ToneMapMethod : u32
@@ -308,7 +310,7 @@ namespace Comfy::Graphics
 
 namespace Comfy::Graphics
 {
-	constexpr std::array<const char*, static_cast<size_t>(PrimitiveType::Count)> PrimitiveTypeNames =
+	constexpr std::array<const char*, EnumCount<PrimitiveType>()> PrimitiveTypeNames =
 	{
 		"Points",
 		"Lines",
@@ -322,7 +324,7 @@ namespace Comfy::Graphics
 		"Polygon",
 	};
 
-	constexpr std::array<const char*, static_cast<size_t>(AetBlendMode::Count)> AetBlendModeNames =
+	constexpr std::array<const char*, EnumCount<AetBlendMode>()> AetBlendModeNames =
 	{
 		"Unknown",
 		"Copy",
@@ -366,7 +368,7 @@ namespace Comfy::Graphics
 		"Divide",
 	};
 
-	constexpr std::array<const char*, static_cast<size_t>(TextureFormat::Count)> TextureFormatNames =
+	constexpr std::array<const char*, EnumCount<TextureFormat>()> TextureFormatNames =
 	{
 		"A8",
 		"RGB8",
@@ -384,7 +386,7 @@ namespace Comfy::Graphics
 		"L8A8",
 	};
 
-	constexpr std::array<const char*, static_cast<size_t>(ScreenMode::Custom)> ScreenModeNames =
+	constexpr std::array<const char*, EnumCount<ScreenMode>()> ScreenModeNames =
 	{
 		"VGA",
 		"SVGA",
@@ -405,14 +407,14 @@ namespace Comfy::Graphics
 		"qHD",
 	};
 
-	constexpr std::array<const char*, static_cast<size_t>(ToneMapMethod::Count)> ToneMapMethodNames =
+	constexpr std::array<const char*, EnumCount<ToneMapMethod>()> ToneMapMethodNames =
 	{
 		"YCC Exponent",
 		"RGB Linear",
 		"RGB Linear 2",
 	};
 
-	constexpr std::array<const char*, static_cast<size_t>(FogType::Count)> FogTypeNames =
+	constexpr std::array<const char*, EnumCount<FogType>()> FogTypeNames =
 	{
 		"None",
 		"Linear",
@@ -420,7 +422,7 @@ namespace Comfy::Graphics
 		"Exp2",
 	};
 
-	constexpr std::array<const char*, static_cast<size_t>(LightSourceType::Count)> LightSourceTypeNames =
+	constexpr std::array<const char*, EnumCount<LightSourceType>()> LightSourceTypeNames =
 	{
 		"None",
 		"Parallel",
@@ -428,7 +430,7 @@ namespace Comfy::Graphics
 		"Spot",
 	};
 
-	constexpr std::array<const char*, static_cast<size_t>(LightTargetType::Count)> LightTargetTypeNames =
+	constexpr std::array<const char*, EnumCount<LightTargetType>()> LightTargetTypeNames =
 	{
 		"Character",
 		"Stage",

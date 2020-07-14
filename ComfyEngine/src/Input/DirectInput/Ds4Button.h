@@ -3,15 +3,17 @@
 
 namespace Comfy::Input
 {
-	enum class Direction : i32
+	enum class DS4Direction : i32
 	{
 		Up,
 		Right,
 		Down,
-		Left
+		Left,
+
+		Count
 	};
 
-	enum class Ds4Button : i32
+	enum class DS4Button : i32
 	{
 		Square = 0,
 		Cross = 1,

@@ -361,16 +361,16 @@ namespace Comfy::Studio::DataTest
 
 				static constexpr std::array buttons =
 				{
-					Input::Ds4Button::DPad_Up,
-					Input::Ds4Button::DPad_Down,
-					Input::Ds4Button::DPad_Left,
-					Input::Ds4Button::DPad_Right,
-					Input::Ds4Button::Triangle,
-					Input::Ds4Button::Circle,
-					Input::Ds4Button::Cross,
-					Input::Ds4Button::Square,
-					Input::Ds4Button::L_Trigger,
-					Input::Ds4Button::R_Trigger,
+					Input::DS4Button::DPad_Up,
+					Input::DS4Button::DPad_Down,
+					Input::DS4Button::DPad_Left,
+					Input::DS4Button::DPad_Right,
+					Input::DS4Button::Triangle,
+					Input::DS4Button::Circle,
+					Input::DS4Button::Cross,
+					Input::DS4Button::Square,
+					Input::DS4Button::L_Trigger,
+					Input::DS4Button::R_Trigger,
 				};
 
 				for (const auto& button : buttons)
