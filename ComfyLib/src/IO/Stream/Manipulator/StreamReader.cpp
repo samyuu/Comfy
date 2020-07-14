@@ -7,27 +7,26 @@ namespace Comfy::IO
 		// NOTE: Account for the ending null byte
 		size_t length = sizeof('\0');
 
-		const auto prePos = GetPosition();
+		ReadAt(GetPosition(), [&length](StreamReader& reader) 
 		{
-			while (ReadChar() != '\0' && !EndOfFile())
+			while (reader.ReadChar() != '\0' && !reader.EndOfFile())
 				length++;
-		}
-		SetPosition(prePos);
+		});
 
 		if (length == sizeof(char))
 			return "";
 
 		auto result = std::string(length - sizeof(char), '\0');
 		ReadBuffer(result.data(), length * sizeof(char) - 1);
-		SetPosition(GetPosition() + static_cast<FileAddr>(sizeof(char)));
+		Skip(static_cast<FileAddr>(sizeof(char)));
 		return result;
 	}
 
-	std::string StreamReader::ReadStrAt(FileAddr position)
+	std::string StreamReader::ReadStrAtOffsetAware(FileAddr position)
 	{
-		return ReadAt<std::string>(position, [this](StreamReader&)
+		return ReadValueAtOffsetAware<std::string>(position, [](StreamReader& reader)
 		{
-			return ReadStr();
+			return reader.ReadStr();
 		});
 	}
 
@@ -38,9 +37,9 @@ namespace Comfy::IO
 		return result;
 	}
 
-	std::string StreamReader::ReadStrPtr()
+	std::string StreamReader::ReadStrPtrOffsetAware()
 	{
-		return ReadStrAt(ReadPtr());
+		return ReadStrAtOffsetAware(ReadPtr());
 	}
 
 	void StreamReader::OnPointerModeChanged()

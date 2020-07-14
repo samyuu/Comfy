@@ -22,33 +22,39 @@ namespace Comfy::IO
 
 	public:
 		std::string ReadStr();
-		std::string ReadStrAt(FileAddr position);
+		std::string ReadStrAtOffsetAware(FileAddr position);
 		std::string ReadStr(size_t size);
-		std::string ReadStrPtr();
+		std::string ReadStrPtrOffsetAware();
 
 		template <typename Func>
-		void ReadAt(FileAddr position, const Func func)
+		void ReadAt(FileAddr position, Func func)
 		{
 			const auto prePos = GetPosition();
-			SetPosition(position);
+			Seek(position);
 			func(*this);
-			SetPosition(prePos);
+			Seek(prePos);
 		}
 
 		template <typename Func>
-		void ReadAt(FileAddr position, FileAddr baseAddress, Func func)
+		void ReadAtOffsetAware(FileAddr position, Func func)
 		{
-			ReadAt((position + baseAddress), func);
+			ReadAt(position + baseOffset, func);
 		}
 
 		template <typename T, typename Func>
-		T ReadAt(FileAddr position, Func func)
+		T ReadValueAt(FileAddr position, Func func)
 		{
 			const auto prePos = GetPosition();
-			SetPosition(position);
+			Seek(position);
 			const T value = func(*this);
-			SetPosition(prePos);
+			Seek(prePos);
 			return value;
+		}
+
+		template <typename T, typename Func>
+		T ReadValueAtOffsetAware(FileAddr position, Func func)
+		{
+			return ReadValueAt<T>(position + baseOffset, func);
 		}
 
 	public:

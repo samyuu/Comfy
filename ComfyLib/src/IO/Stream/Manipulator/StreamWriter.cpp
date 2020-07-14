@@ -78,12 +78,12 @@ namespace Comfy::IO
 				}
 			}
 
-			SetPosition(value.ReturnAddress);
+			SeekOffsetAware(value.ReturnAddress);
 			WritePtr(stringOffset);
 
 			if (!pooledStringFound)
 			{
-				SetPosition(stringOffset);
+				SeekOffsetAware(stringOffset);
 				WriteStr(value.String);
 
 				if (value.Alignment > 0)
@@ -91,7 +91,7 @@ namespace Comfy::IO
 			}
 			else
 			{
-				SetPosition(originalStringOffset);
+				SeekOffsetAware(originalStringOffset);
 			}
 
 			if (settings.PoolStrings && !pooledStringFound)
@@ -110,10 +110,10 @@ namespace Comfy::IO
 		{
 			const auto offset = GetPosition();
 
-			SetPosition(value.ReturnAddress);
+			SeekOffsetAware(value.ReturnAddress);
 			WritePtr(offset - value.BaseAddress);
 
-			SetPosition(offset);
+			SeekOffsetAware(offset);
 			value.Function(*this);
 		}
 
@@ -126,10 +126,10 @@ namespace Comfy::IO
 		{
 			const auto offset = GetPosition();
 
-			SetPosition(value.ReturnAddress);
+			SeekOffsetAware(value.ReturnAddress);
 			value.Function(*this);
 
-			SetPosition(offset);
+			SeekOffsetAware(offset);
 		}
 
 		delayedWritePool.clear();

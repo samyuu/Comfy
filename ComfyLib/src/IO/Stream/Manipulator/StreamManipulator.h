@@ -4,10 +4,22 @@
 #include "IO/Stream/BinaryMode.h"
 #include "IO/Stream/IStream.h"
 #include "Misc/EndianHelper.h"
+#include <stack>
 
 namespace Comfy::IO
 {
-	// TODO: Store error state and implement error handling for Read() / Write() implementations
+	// TODO: Return error codes form Read() / Write() methods
+	/*
+	enum class StreamResult
+	{
+		Success,
+		UnexpectedFormat,
+		InsufficientSpace,
+		InvalidPointer,
+		InvalidCount,
+	};
+	*/
+
 	class StreamManipulator
 	{
 	public:
@@ -21,17 +33,18 @@ namespace Comfy::IO
 		~StreamManipulator() = default;
 
 	public:
-		inline FileAddr GetStreamSeekOffset() const { return streamSeekOffset; }
-		inline void SetStreamSeekOffset(FileAddr value) { streamSeekOffset = value; }
+		inline void PushBaseOffset() { baseOffsetStack.push(baseOffset = GetPosition()); }
+		inline void PopBaseOffset() { baseOffsetStack.pop(); baseOffset = (baseOffsetStack.empty() ? FileAddr::NullPtr : baseOffsetStack.top()); }
 
 	public:
-		inline FileAddr GetPosition() const { return underlyingStream->GetPosition() - streamSeekOffset; }
-		inline void SetPosition(FileAddr position) { return underlyingStream->Seek(position + streamSeekOffset); }
+		inline void Seek(FileAddr position) { return underlyingStream->Seek(position); }
+		inline void SeekOffsetAware(FileAddr position) { return underlyingStream->Seek(position + baseOffset); }
+		inline void Skip(FileAddr increment) { return underlyingStream->Seek(underlyingStream->GetPosition() + increment); }
 
+		inline FileAddr GetPosition() const { return underlyingStream->GetPosition(); }
 		inline FileAddr GetLength() const { return underlyingStream->GetLength(); }
+		
 		inline bool EndOfFile() const { return underlyingStream->GetPosition() >= underlyingStream->GetLength(); }
-
-		inline void SkipPosition(FileAddr increment) { return underlyingStream->Seek(GetPosition() + increment); }
 
 		inline PtrMode GetPointerMode() const { return pointerMode; }
 		inline void SetPointerMode(PtrMode value) { pointerMode = value; OnPointerModeChanged(); }
@@ -48,6 +61,8 @@ namespace Comfy::IO
 		Endianness endianness = Endianness::Little;
 
 		IStream* underlyingStream = nullptr;
-		FileAddr streamSeekOffset = FileAddr::NullPtr;
+
+		FileAddr baseOffset = FileAddr::NullPtr;
+		std::stack<FileAddr> baseOffsetStack;
 	};
 }
