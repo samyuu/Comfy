@@ -90,20 +90,34 @@ namespace Comfy::IO
 		return std::make_pair(fileContent.data(), fileContent.size());
 	}
 
-	void AsyncFileLoader::Read(IStreamReadable& readable) const
+	bool AsyncFileLoader::Read(IStreamReadable& readable) const
 	{
 		assert(fileFound && isLoaded);
+		
+		if (!fileFound || !isLoaded)
+			return false;
+
 		auto memoryStream = MemoryStream();
 		memoryStream.FromStreamSource(const_cast<AsyncFileLoader*>(this)->fileContent);
 
+		if (!memoryStream.IsOpen() || !memoryStream.CanRead())
+			return false;
+
 		auto reader = StreamReader(memoryStream);
-		readable.Read(reader);
+		const auto readResult = readable.Read(reader);
+
+		return (readResult == StreamResult::Success);
 	}
 
-	void AsyncFileLoader::Parse(IBufferParsable& parsable) const
+	bool AsyncFileLoader::Parse(IBufferParsable& parsable) const
 	{
 		assert(fileFound && isLoaded);
+
+		if (!fileFound | !isLoaded)
+			return false;
+
 		parsable.Parse(fileContent.data(), fileContent.size());
+		return true;
 	}
 
 	void AsyncFileLoader::FreeData()

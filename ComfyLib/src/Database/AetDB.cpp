@@ -14,7 +14,7 @@ namespace Comfy::Database
 		return nullptr;
 	}
 
-	void AetDB::Read(StreamReader& reader)
+	StreamResult AetDB::Read(StreamReader& reader)
 	{
 		const auto setEntryCount = reader.ReadU32();
 		const auto setOffset = reader.ReadPtr();
@@ -22,8 +22,11 @@ namespace Comfy::Database
 		const auto sceneCount = reader.ReadU32();
 		const auto sceneOffset = reader.ReadPtr();
 
-		if (setEntryCount > 0 && setOffset != FileAddr::NullPtr)
+		if (setEntryCount > 0)
 		{
+			if (!reader.IsValidPointer(setOffset))
+				return StreamResult::BadPointer;
+
 			Entries.resize(setEntryCount);
 			reader.ReadAtOffsetAware(setOffset, [this](StreamReader& reader)
 			{
@@ -38,8 +41,11 @@ namespace Comfy::Database
 			});
 		}
 
-		if (sceneCount > 0 && sceneOffset != FileAddr::NullPtr)
+		if (sceneCount > 0)
 		{
+			if (!reader.IsValidPointer(sceneOffset))
+				return StreamResult::BadPointer;
+
 			reader.ReadAtOffsetAware(sceneOffset, [this, sceneCount](StreamReader& reader)
 			{
 				for (u32 i = 0; i < sceneCount; i++)
@@ -57,9 +63,11 @@ namespace Comfy::Database
 				}
 			});
 		}
+
+		return StreamResult::Success;
 	}
 
-	void AetDB::Write(StreamWriter& writer)
+	StreamResult AetDB::Write(StreamWriter& writer)
 	{
 		writer.WriteU32(static_cast<u32>(Entries.size()));
 		writer.WriteFuncPtr([&](StreamWriter& writer)
@@ -106,13 +114,12 @@ namespace Comfy::Database
 
 		writer.FlushStringPointerPool();
 		writer.WriteAlignmentPadding(16);
+
+		return StreamResult::Success;
 	}
 
 	AetSetEntry* AetDB::GetAetSetEntry(std::string_view name)
 	{
-		for (auto& entry : Entries)
-			if (entry.Name == name)
-				return &entry;
-		return nullptr;
+		return FindIfOrNull(Entries, [&](const auto& e) { return e.Name == name; });
 	}
 }

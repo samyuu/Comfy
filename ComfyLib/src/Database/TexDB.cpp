@@ -6,13 +6,16 @@ namespace Comfy::Database
 {
 	using namespace IO;
 
-	void TexDB::Read(StreamReader& reader)
+	StreamResult TexDB::Read(StreamReader& reader)
 	{
 		const auto texEntryCount = reader.ReadU32();
 		const auto texOffset = reader.ReadPtr();
 
-		if (texEntryCount > 0 && texOffset != FileAddr::NullPtr)
+		if (texEntryCount > 0)
 		{
+			if (!reader.IsValidPointer(texOffset))
+				return StreamResult::BadPointer;
+
 			Entries.resize(texEntryCount);
 			reader.ReadAtOffsetAware(texOffset, [this](StreamReader& reader)
 			{
@@ -23,9 +26,11 @@ namespace Comfy::Database
 				}
 			});
 		}
+
+		return StreamResult::Success;
 	}
 
-	void TexDB::Write(StreamWriter& writer)
+	StreamResult TexDB::Write(StreamWriter& writer)
 	{
 		writer.WriteU32(static_cast<u32>(Entries.size()));
 		writer.WriteFuncPtr([this](StreamWriter& writer)
@@ -45,6 +50,8 @@ namespace Comfy::Database
 
 		writer.FlushStringPointerPool();
 		writer.WriteAlignmentPadding(16);
+
+		return StreamResult::Success;
 	}
 	
 	const TexEntry* TexDB::GetTexEntry(TexID id) const

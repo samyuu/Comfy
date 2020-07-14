@@ -57,7 +57,7 @@ namespace Comfy::Graphics
 		}
 	}
 
-	void TexSet::Write(StreamWriter& writer)
+	StreamResult TexSet::Write(StreamWriter& writer)
 	{
 		const u32 textureCount = static_cast<u32>(Textures.size());
 		constexpr u32 packedMask = 0x01010100;
@@ -107,6 +107,8 @@ namespace Comfy::Graphics
 
 		writer.FlushPointerPool();
 		writer.WriteAlignmentPadding(16);
+
+		return StreamResult::Success;
 	}
 
 	void TexSet::SetTextureIDs(const ObjSet& objSet)

@@ -132,11 +132,11 @@ namespace Comfy::IO
 
 		} Data;
 
-		void Read(StreamReader& reader)
+		StreamResult Read(StreamReader& reader)
 		{
 			reader.ReadBuffer(&Header, sizeof(Header));
 			if (Header.Version.Major < 2)
-				return;
+				return StreamResult::BadFormat;
 
 			const size_t entryCount = reader.ReadSize();
 			const size_t i32Count = reader.ReadSize();
@@ -163,9 +163,11 @@ namespace Comfy::IO
 				else // NOTE: Assume additional data is pointed to
 					reader.ReadPtr();
 			}
+
+			return StreamResult::Success;
 		}
 
-		void Write(StreamWriter& writer)
+		StreamResult Write(StreamWriter& writer)
 		{
 			writer.WriteBuffer(&Header, sizeof(Header));
 
@@ -220,6 +222,8 @@ namespace Comfy::IO
 			writer.WriteAlignmentPadding(0x10);
 			writer.FlushStringPointerPool();
 			writer.WriteAlignmentPadding(0x10);
+
+			return StreamResult::Success;
 		}
 	};
 
@@ -231,14 +235,14 @@ namespace Comfy::IO
 	{
 	}
 
-	void ComfyBinaryConfig::Read(StreamReader& reader)
+	StreamResult ComfyBinaryConfig::Read(StreamReader& reader)
 	{
-		impl->Read(reader);
+		return impl->Read(reader);
 	}
 
-	void ComfyBinaryConfig::Write(StreamWriter& writer)
+	StreamResult ComfyBinaryConfig::Write(StreamWriter& writer)
 	{
-		impl->Write(writer);
+		return impl->Write(writer);
 	}
 
 	std::optional<bool> ComfyBinaryConfig::GetBool(std::string_view id) const

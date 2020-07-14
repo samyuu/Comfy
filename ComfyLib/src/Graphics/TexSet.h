@@ -56,12 +56,13 @@ namespace Comfy::Graphics
 	public:
 		std::vector<std::shared_ptr<Tex>> Textures;
 
+	public:
 		void Parse(const u8* buffer, size_t bufferSize) override;
-		void Write(IO::StreamWriter& writer) override;
-
-		void SetTextureIDs(const class ObjSet& objSet);
+		IO::StreamResult Write(IO::StreamWriter& writer) override;
 
 	public:
+		void SetTextureIDs(const class ObjSet& objSet);
+
 		// TODO: Rename and or refactor
 		static std::unique_ptr<TexSet> LoadSetTextureIDs(std::string_view filePath, const class ObjSet* objSet);
 

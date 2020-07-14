@@ -42,65 +42,74 @@ namespace Comfy::Graphics::Aet
 			return value;
 		}
 
-		void ReadProperty1DPointer(Property1D& property, StreamReader& reader)
+		StreamResult ReadProperty1DPointer(Property1D& property, StreamReader& reader)
 		{
 			const auto keyFrameCount = reader.ReadSize();
 			const auto keyFramesOffset = reader.ReadPtr();
 
-			if (keyFrameCount > 0 && keyFramesOffset != FileAddr::NullPtr)
+			if (keyFrameCount < 1)
+				return StreamResult::Success;
+
+			if (!reader.IsValidPointer(keyFramesOffset))
+				return StreamResult::BadPointer;
+
+			reader.ReadAtOffsetAware(keyFramesOffset, [keyFrameCount, &property](StreamReader& reader)
 			{
-				reader.ReadAtOffsetAware(keyFramesOffset, [keyFrameCount, &property](StreamReader& reader)
+				property->resize(keyFrameCount);
+
+				if (keyFrameCount == 1)
 				{
-					property->resize(keyFrameCount);
+					property->front().Value = reader.ReadF32();
+				}
+				else
+				{
+					for (size_t i = 0; i < keyFrameCount; i++)
+						property.Keys[i].Frame = reader.ReadF32();
 
-					if (keyFrameCount == 1)
+					for (size_t i = 0; i < keyFrameCount; i++)
 					{
-						property->front().Value = reader.ReadF32();
+						property.Keys[i].Value = reader.ReadF32();
+						property.Keys[i].Curve = reader.ReadF32();
 					}
-					else
-					{
-						for (size_t i = 0; i < keyFrameCount; i++)
-							property.Keys[i].Frame = reader.ReadF32();
+				}
+			});
 
-						for (size_t i = 0; i < keyFrameCount; i++)
-						{
-							property.Keys[i].Value = reader.ReadF32();
-							property.Keys[i].Curve = reader.ReadF32();
-						}
-					}
-				});
-			}
+			return StreamResult::Success;
 		}
 
-		void ReadProperty2DPointer(Property2D& property, StreamReader& reader)
+		StreamResult ReadProperty2DPointer(Property2D& property, StreamReader& reader)
 		{
-			ReadProperty1DPointer(property.X, reader);
-			ReadProperty1DPointer(property.Y, reader);
+			if (auto result = ReadProperty1DPointer(property.X, reader); result != StreamResult::Success) return result;
+			if (auto result = ReadProperty1DPointer(property.Y, reader); result != StreamResult::Success) return result;
+			return StreamResult::Success;
 		}
 
-		void ReadProperty3DPointer(Property3D& property, StreamReader& reader)
+		StreamResult ReadProperty3DPointer(Property3D& property, StreamReader& reader)
 		{
-			ReadProperty1DPointer(property.X, reader);
-			ReadProperty1DPointer(property.Y, reader);
-			ReadProperty1DPointer(property.Z, reader);
+			if (auto result = ReadProperty1DPointer(property.X, reader); result != StreamResult::Success) return result;
+			if (auto result = ReadProperty1DPointer(property.Y, reader); result != StreamResult::Success) return result;
+			if (auto result = ReadProperty1DPointer(property.Z, reader); result != StreamResult::Success) return result;
+			return StreamResult::Success;
 		}
 
-		void ReadLayerVideo2D(LayerVideo2D& transform, StreamReader& reader)
+		StreamResult ReadLayerVideo2D(LayerVideo2D& transform, StreamReader& reader)
 		{
-			ReadProperty2DPointer(transform.Origin, reader);
-			ReadProperty2DPointer(transform.Position, reader);
-			ReadProperty1DPointer(transform.Rotation, reader);
-			ReadProperty2DPointer(transform.Scale, reader);
-			ReadProperty1DPointer(transform.Opacity, reader);
+			if (auto result = ReadProperty2DPointer(transform.Origin, reader); result != StreamResult::Success) return result;
+			if (auto result = ReadProperty2DPointer(transform.Position, reader); result != StreamResult::Success) return result;
+			if (auto result = ReadProperty1DPointer(transform.Rotation, reader); result != StreamResult::Success) return result;
+			if (auto result = ReadProperty2DPointer(transform.Scale, reader); result != StreamResult::Success) return result;
+			if (auto result = ReadProperty1DPointer(transform.Opacity, reader); result != StreamResult::Success) return result;
+			return StreamResult::Success;
 		}
 
-		void ReadLayerVideo3D(LayerVideo3D& transform, StreamReader& reader)
+		StreamResult ReadLayerVideo3D(LayerVideo3D& transform, StreamReader& reader)
 		{
-			ReadProperty1DPointer(transform.OriginZ, reader);
-			ReadProperty1DPointer(transform.PositionZ, reader);
-			ReadProperty3DPointer(transform.DirectionXYZ, reader);
-			ReadProperty2DPointer(transform.RotationXY, reader);
-			ReadProperty1DPointer(transform.ScaleZ, reader);
+			if (auto result = ReadProperty1DPointer(transform.OriginZ, reader); result != StreamResult::Success) return result;
+			if (auto result = ReadProperty1DPointer(transform.PositionZ, reader); result != StreamResult::Success) return result;
+			if (auto result = ReadProperty3DPointer(transform.DirectionXYZ, reader); result != StreamResult::Success) return result;
+			if (auto result = ReadProperty2DPointer(transform.RotationXY, reader); result != StreamResult::Success) return result;
+			if (auto result = ReadProperty1DPointer(transform.ScaleZ, reader); result != StreamResult::Success) return result;
+			return StreamResult::Success;
 		}
 
 		template <typename FlagsStruct>
@@ -280,7 +289,7 @@ namespace Comfy::Graphics::Aet
 			{
 				ReadLayerVideo(this->LayerVideo, reader);
 				SetLayerVideoStartFrame(this->LayerVideo->Transform, StartFrame);
-				
+
 				if (this->LayerVideo->Transform3D != nullptr)
 					SetLayerVideoStartFrame(*this->LayerVideo->Transform3D, StartFrame);
 			});
@@ -620,7 +629,7 @@ namespace Comfy::Graphics::Aet
 		});
 	}
 
-	void AetSet::Read(StreamReader& reader)
+	StreamResult AetSet::Read(StreamReader& reader)
 	{
 		const auto baseHeader = SectionHeader::TryRead(reader, SectionSignature::AETC);
 		SectionHeader::ScanPOFSectionsSetPointerMode(reader);
@@ -657,9 +666,11 @@ namespace Comfy::Graphics::Aet
 
 		if (baseHeader.has_value() && reader.GetPointerMode() == PtrMode::Mode64Bit)
 			reader.PopBaseOffset();
+
+		return StreamResult::Success;
 	}
 
-	void AetSet::Write(StreamWriter& writer)
+	StreamResult AetSet::Write(StreamWriter& writer)
 	{
 		for (auto& scene : scenes)
 		{
@@ -677,5 +688,7 @@ namespace Comfy::Graphics::Aet
 		writer.WriteAlignmentPadding(16);
 
 		writer.FlushDelayedWritePool();
+
+		return StreamResult::Success;
 	}
 }

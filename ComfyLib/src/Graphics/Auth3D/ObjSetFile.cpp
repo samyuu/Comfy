@@ -227,21 +227,24 @@ namespace Comfy::Graphics
 			reader.PopBaseOffset();
 	}
 
-	void ObjSet::Read(StreamReader& reader)
+	StreamResult ObjSet::Read(StreamReader& reader)
 	{
 		constexpr u32 signatureLegacy = 0x5062500;
 		constexpr u32 signatureModern = 0x5062501;
 
-		const auto signature = reader.ReadU32();
+		const auto signature = reader.ReadU32_LE();
 		if (signature != signatureLegacy)
-			return;
+			return StreamResult::BadFormat;
 
 		const auto objectCount = reader.ReadU32();
 		const auto boneCount = reader.ReadU32();
 		const auto objectsOffset = reader.ReadPtr();
 
-		if (objectCount > 0 && objectsOffset != FileAddr::NullPtr)
+		if (objectCount > 0)
 		{
+			if (!reader.IsValidPointer(objectsOffset))
+				return StreamResult::BadPointer;
+
 			objects.resize(objectCount);
 			reader.ReadAtOffsetAware(objectsOffset, [this](StreamReader& reader)
 			{
@@ -256,8 +259,11 @@ namespace Comfy::Graphics
 		}
 
 		const auto skeletonsOffset = reader.ReadPtr();
-		if (objectCount > 0 && skeletonsOffset != FileAddr::NullPtr)
+		if (objectCount > 0)
 		{
+			if (!reader.IsValidPointer(skeletonsOffset))
+				return StreamResult::BadPointer;
+
 			reader.ReadAtOffsetAware(skeletonsOffset, [this](StreamReader& reader)
 			{
 				for (auto& obj : objects)
@@ -315,8 +321,11 @@ namespace Comfy::Graphics
 		}
 
 		const auto objectNamesOffset = reader.ReadPtr();
-		if (objectCount > 0 && objectNamesOffset != FileAddr::NullPtr)
+		if (objectCount > 0)
 		{
+			if (!reader.IsValidPointer(objectNamesOffset))
+				return StreamResult::BadPointer;
+
 			reader.ReadAtOffsetAware(objectNamesOffset, [this](StreamReader& reader)
 			{
 				for (auto& obj : objects)
@@ -325,8 +334,11 @@ namespace Comfy::Graphics
 		}
 
 		const auto objectIDsOffset = reader.ReadPtr();
-		if (objectCount > 0 && objectIDsOffset != FileAddr::NullPtr)
+		if (objectCount > 0)
 		{
+			if (!reader.IsValidPointer(objectIDsOffset))
+				return StreamResult::BadPointer;
+
 			reader.ReadAtOffsetAware(objectIDsOffset, [this](StreamReader& reader)
 			{
 				for (auto& obj : objects)
@@ -337,8 +349,11 @@ namespace Comfy::Graphics
 		const auto textureIDsOffset = reader.ReadPtr();
 		const auto textureCount = reader.ReadU32();
 
-		if (textureIDsOffset != FileAddr::NullPtr && textureCount > 0)
+		if (textureCount > 0)
 		{
+			if (!reader.IsValidPointer(textureIDsOffset))
+				return StreamResult::BadPointer;
+
 			TextureIDs.reserve(textureCount);
 			reader.ReadAtOffsetAware(textureIDsOffset, [&](StreamReader& reader)
 			{
@@ -346,5 +361,7 @@ namespace Comfy::Graphics
 					TextureIDs.push_back(TexID(reader.ReadU32()));
 			});
 		}
+
+		return StreamResult::Success;
 	}
 }

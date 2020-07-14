@@ -42,7 +42,10 @@ namespace Comfy::IO
 				return nullptr;
 
 			auto reader = StreamReader(stream);
-			result->Read(reader);
+			
+			if (const auto streamResult = result->Read(reader); streamResult != StreamResult::Success)
+				return nullptr;
+			
 			return result;
 		}
 

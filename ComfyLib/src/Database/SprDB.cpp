@@ -21,7 +21,7 @@ namespace Comfy::Database
 		return FindIfOrNull(SprTexEntries, [&](const auto& e) { return (e.Name == name); });
 	}
 
-	void SprDB::Read(StreamReader& reader)
+	StreamResult SprDB::Read(StreamReader& reader)
 	{
 		const auto sprSetEntryCount = reader.ReadU32();
 		const auto sprSetOffset = reader.ReadPtr();
@@ -29,8 +29,11 @@ namespace Comfy::Database
 		const auto sprEntryCount = reader.ReadU32();
 		const auto sprOffset = reader.ReadPtr();
 
-		if (sprSetEntryCount > 0 && sprSetOffset != FileAddr::NullPtr)
+		if (sprSetEntryCount > 0)
 		{
+			if (!reader.IsValidPointer(sprSetOffset))
+				return StreamResult::BadPointer;
+
 			Entries.resize(sprSetEntryCount);
 			reader.ReadAtOffsetAware(sprSetOffset, [this](StreamReader& reader)
 			{
@@ -44,8 +47,11 @@ namespace Comfy::Database
 			});
 		}
 
-		if (sprEntryCount > 0 && sprOffset != FileAddr::NullPtr)
+		if (sprEntryCount > 0)
 		{
+			if (!reader.IsValidPointer(sprOffset))
+				return StreamResult::BadPointer;
+
 			reader.ReadAtOffsetAware(sprOffset, [this, sprEntryCount](StreamReader& reader)
 			{
 				for (u32 i = 0; i < sprEntryCount; i++)
@@ -69,9 +75,11 @@ namespace Comfy::Database
 				}
 			});
 		}
+
+		return StreamResult::Success;
 	}
 
-	void SprDB::Write(StreamWriter& writer)
+	StreamResult SprDB::Write(StreamWriter& writer)
 	{
 		const auto startPosition = writer.GetPosition();
 
@@ -134,6 +142,8 @@ namespace Comfy::Database
 
 		writer.FlushStringPointerPool();
 		writer.WriteAlignmentPadding(16);
+
+		return StreamResult::Success;
 	}
 
 	SprSetEntry* SprDB::GetSprSetEntry(std::string_view name)

@@ -29,7 +29,7 @@ namespace Comfy::Graphics
 		std::unique_ptr<TexSet> TexSet;
 		std::vector<Spr> Sprites;
 
-		void Write(IO::StreamWriter& writer) override;
+		IO::StreamResult Write(IO::StreamWriter& writer) override;
 
 		void Parse(const u8* buffer, size_t bufferSize) override;
 

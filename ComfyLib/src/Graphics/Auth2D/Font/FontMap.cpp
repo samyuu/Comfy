@@ -38,18 +38,21 @@ namespace Comfy::Graphics
 		lookup.Table = std::move(other.lookup.Table);
 	}
 
-	void FontMap::Read(IO::StreamReader& reader)
+	IO::StreamResult FontMap::Read(IO::StreamReader& reader)
 	{
 		const auto magic = reader.ReadU32_LE();
 		if (magic != Util::ByteSwapU32('FMH3'))
-			return;
+			return IO::StreamResult::BadFormat;
 
 		const auto reserved = reader.ReadU32();
 		const auto fontCount = reader.ReadSize();
 		const auto fontsOffset = reader.ReadPtr();
 
-		if (fontCount < 1 || fontsOffset == FileAddr::NullPtr)
-			return;
+		if (fontCount < 1)
+			return IO::StreamResult::Success;
+
+		if (!reader.IsValidPointer(fontsOffset))
+			return IO::StreamResult::BadPointer;
 
 		Fonts.resize(fontCount);
 		reader.ReadAtOffsetAware(fontsOffset, [&](IO::StreamReader& reader)
@@ -108,6 +111,8 @@ namespace Comfy::Graphics
 				});
 			}
 		});
+
+		return IO::StreamResult::Success;
 	}
 
 	BitmapFont* FontMap::FindFont(ivec2 fontSize)

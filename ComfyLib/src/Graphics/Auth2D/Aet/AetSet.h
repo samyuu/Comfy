@@ -481,8 +481,8 @@ namespace Comfy::Graphics::Aet
 		void ClearSpriteCache();
 
 	public:
-		void Read(IO::StreamReader& reader) override;
-		void Write(IO::StreamWriter& writer) override;
+		IO::StreamResult Read(IO::StreamReader& reader) override;
+		IO::StreamResult Write(IO::StreamWriter& writer) override;
 
 	private:
 		std::vector<std::shared_ptr<Scene>> scenes;

@@ -57,6 +57,11 @@ namespace Comfy::IO
 			return ReadValueAt<T>(position + baseOffset, func);
 		}
 
+		bool IsValidPointer(FileAddr address, bool offsetAware = true)
+		{
+			return (address > FileAddr::NullPtr) && ((offsetAware ? address + baseOffset : address) < underlyingStream->GetLength());
+		}
+
 	public:
 		inline FileAddr ReadPtr() { return (this->*readPtrFunc)(); }
 		inline size_t ReadSize() { return (this->*readSizeFunc)(); }

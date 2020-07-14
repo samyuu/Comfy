@@ -11,7 +11,7 @@ namespace Comfy::Graphics
 		return vec2(PixelRegion.z, PixelRegion.w);
 	}
 
-	void SprSet::Write(StreamWriter& writer)
+	StreamResult SprSet::Write(StreamWriter& writer)
 	{
 		writer.WriteU32(Flags);
 
@@ -80,6 +80,8 @@ namespace Comfy::Graphics
 			writer.Seek(texSetPtrAddress);
 			writer.WritePtr(texSetPtr);
 		}
+
+		return StreamResult::Success;
 	}
 
 	void SprSet::Parse(const u8* buffer, size_t bufferSize)

@@ -9,18 +9,6 @@
 
 namespace Comfy::IO
 {
-	// TODO: Return error codes form Read() / Write() methods
-	/*
-	enum class StreamResult
-	{
-		Success,
-		UnexpectedFormat,
-		InsufficientSpace,
-		InvalidPointer,
-		InvalidCount,
-	};
-	*/
-
 	class StreamManipulator
 	{
 	public:

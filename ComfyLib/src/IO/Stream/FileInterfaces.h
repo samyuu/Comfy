@@ -7,13 +7,23 @@ namespace Comfy::IO
 	class StreamReader;
 	class StreamWriter;
 
+	enum class StreamResult
+	{
+		Success,
+		BadFormat,
+		BadCount,
+		BadPointer,
+		InsufficientSpace,
+		UnknownError,
+	};
+
 	class IStreamReadable
 	{
 	public:
 		virtual ~IStreamReadable() = default;
 
 	public:
-		virtual void Read(StreamReader& reader) = 0;
+		virtual StreamResult Read(StreamReader& reader) = 0;
 	};
 
 	class IStreamWritable
@@ -22,7 +32,7 @@ namespace Comfy::IO
 		virtual ~IStreamWritable() = default;
 
 	public:
-		virtual void Write(StreamWriter& writer) = 0;
+		virtual StreamResult Write(StreamWriter& writer) = 0;
 	};
 
 	// TODO: Get rid of this interface in favor of IStreamReadable, then rename and move file

@@ -510,7 +510,7 @@ namespace Comfy::Graphics
 		inline const Obj* GetObjAt(int index) const { return &objects[index]; }
 
 	public:
-		void Read(IO::StreamReader& reader) override;
+		IO::StreamResult Read(IO::StreamReader& reader) override;
 
 	private:
 		std::vector<Obj> objects;

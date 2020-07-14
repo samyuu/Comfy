@@ -27,8 +27,8 @@ namespace Comfy::IO
 
 		std::pair<const u8*, size_t> GetFileContents() const;
 
-		void Read(IStreamReadable& readable) const;
-		void Parse(IBufferParsable& parsable) const;
+		bool Read(IStreamReadable& readable) const;
+		bool Parse(IBufferParsable& parsable) const;
 
 		void FreeData();
 

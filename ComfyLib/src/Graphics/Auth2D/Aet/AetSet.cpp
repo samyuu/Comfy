@@ -114,8 +114,8 @@ namespace Comfy::Graphics::Aet
 
 	std::optional<frame_t> Layer::FindMarkerFrame(std::string_view markerName) const
 	{
-		auto result = std::find_if(Markers.begin(), Markers.end(), [&](auto& marker) { return marker->Name == markerName; });
-		return (result != Markers.end()) ? (*result)->Frame : std::optional<frame_t> {};
+		auto found = FindIfOrNull(Markers, [&](const auto& m) { return m->Name == markerName; });
+		return (found != nullptr) ? (*found)->Frame : std::optional<frame_t> {};
 	}
 
 	Scene* Layer::GetParentScene()
@@ -246,8 +246,8 @@ namespace Comfy::Graphics::Aet
 	{
 		auto findSetLayerItem = [](auto& layer, auto& itemCollection)
 		{
-			auto foundItem = std::find_if(itemCollection.begin(), itemCollection.end(), [&](auto& e) { return e->filePosition == layer.itemFileOffset; });
-			if (foundItem != itemCollection.end())
+			auto foundItem = FindIfOrNull(itemCollection, [&](const auto& e) { return e->filePosition == layer.itemFileOffset; });
+			if (foundItem != nullptr)
 				layer.SetItem(*foundItem);
 		};
 

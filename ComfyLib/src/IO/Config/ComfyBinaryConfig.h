@@ -13,8 +13,8 @@ namespace Comfy::IO
 		~ComfyBinaryConfig();
 
 	public:
-		void Read(StreamReader& reader) override;
-		void Write(StreamWriter& writer) override;
+		StreamResult Read(StreamReader& reader) override;
+		StreamResult Write(StreamWriter& writer) override;
 
 	public:
 		std::optional<bool> GetBool(std::string_view id) const;
