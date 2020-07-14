@@ -331,9 +331,9 @@ namespace Comfy::Graphics::Aet
 		} references;
 
 		FileAddr filePosition;
-		FileAddr itemFilePtr;
-		FileAddr parentFilePtr;
-		FileAddr audioDataFilePtr;
+		FileAddr itemFileOffset;
+		FileAddr parentFileOffset;
+		FileAddr audioDataFileOffset;
 
 		void Read(IO::StreamReader& reader);
 	};
@@ -409,7 +409,7 @@ namespace Comfy::Graphics::Aet
 		friend class Layer;
 
 	public:
-		// NOTE: Typically "MAIN", "TOUCH" or named after the display mode
+		// NOTE: Typically "MAIN", "TOUCH" or named after the screen mode
 		std::string Name;
 
 		frame_t StartFrame;

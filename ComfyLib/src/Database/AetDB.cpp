@@ -16,22 +16,22 @@ namespace Comfy::Database
 
 	void AetDB::Read(StreamReader& reader)
 	{
-		u32 setEntryCount = reader.ReadU32();
-		FileAddr setOffset = reader.ReadPtr();
+		const auto setEntryCount = reader.ReadU32();
+		const auto setOffset = reader.ReadPtr();
 
-		u32 sceneCount = reader.ReadU32();
-		FileAddr sceneOffset = reader.ReadPtr();
+		const auto sceneCount = reader.ReadU32();
+		const auto sceneOffset = reader.ReadPtr();
 
 		if (setEntryCount > 0 && setOffset != FileAddr::NullPtr)
 		{
 			Entries.resize(setEntryCount);
-			reader.ReadAt(setOffset, [this](StreamReader& reader)
+			reader.ReadAtOffsetAware(setOffset, [this](StreamReader& reader)
 			{
 				for (auto& setEntry : Entries)
 				{
 					setEntry.ID = AetSetID(reader.ReadU32());
-					setEntry.Name = reader.ReadStrPtr();
-					setEntry.FileName = reader.ReadStrPtr();
+					setEntry.Name = reader.ReadStrPtrOffsetAware();
+					setEntry.FileName = reader.ReadStrPtrOffsetAware();
 					u32 index = reader.ReadU32();
 					setEntry.SprSetID = SprSetID(reader.ReadU32());
 				}
@@ -40,22 +40,20 @@ namespace Comfy::Database
 
 		if (sceneCount > 0 && sceneOffset != FileAddr::NullPtr)
 		{
-			reader.ReadAt(sceneOffset, [this, sceneCount](StreamReader& reader)
+			reader.ReadAtOffsetAware(sceneOffset, [this, sceneCount](StreamReader& reader)
 			{
 				for (u32 i = 0; i < sceneCount; i++)
 				{
-					AetSceneID id = AetSceneID(reader.ReadU32());
-					FileAddr nameOffset = reader.ReadPtr();
-					u16 sceneIndex = reader.ReadU16();
-					u16 setIndex = reader.ReadU16();
+					const auto id = AetSceneID(reader.ReadU32());
+					const auto nameOffset = reader.ReadPtr();
+					const auto sceneIndex = reader.ReadU16();
+					const auto setIndex = reader.ReadU16();
 
-					AetSetEntry& setEntry = Entries[setIndex];
-
-					setEntry.SceneEntries.emplace_back();
-					AetSceneEntry& sceneEntry = setEntry.SceneEntries.back();
+					auto& setEntry = Entries[setIndex];
+					auto& sceneEntry = setEntry.SceneEntries.emplace_back();
 
 					sceneEntry.ID = id;
-					sceneEntry.Name = reader.ReadStrAt(nameOffset);
+					sceneEntry.Name = reader.ReadStrAtOffsetAware(nameOffset);
 				}
 			});
 		}

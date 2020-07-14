@@ -138,7 +138,7 @@ namespace
 
 		for (auto& data : FileDataToWrite)
 		{
-			writer.SetPosition(data.ReturnAddress);
+			writer.Seek(data.ReturnAddress);
 			writer.WriteU64(data.File->FileContent.size());
 			writer.WritePtr(data.DataAddress);
 		}
@@ -318,15 +318,15 @@ namespace
 
 		writer.FlushStringPointerPool();
 
-		writer.SetPosition(static_cast<FileAddr>(offsetof(ComfyArchiveHeader, DataSize)));
+		writer.Seek(static_cast<FileAddr>(offsetof(ComfyArchiveHeader, DataSize)));
 		writer.WritePtr(writer.GetLength() - dataOffset);
 
-		writer.SetPosition(writer.GetLength());
+		writer.Seek(writer.GetLength());
 		writer.WriteAlignmentPadding(16);
 
 		WriteFileData(writer);
 
-		writer.SetPosition(writer.GetLength());
+		writer.Seek(writer.GetLength());
 		writer.WriteAlignmentPadding(16);
 	}
 

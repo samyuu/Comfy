@@ -33,7 +33,7 @@ namespace Comfy::Graphics
 		}
 
 		template <typename T>
-		void CheckReadVertexData(StreamReader& reader, Mesh& mesh, VertexAttribute_Enum attribute, std::vector<T>& vector, FileAddr* attributePointers, FileAddr baseAddress)
+		void CheckReadVertexData(StreamReader& reader, Mesh& mesh, VertexAttribute_Enum attribute, std::vector<T>& vector, FileAddr* attributePointers)
 		{
 			FileAddr attributePointer = attributePointers[attribute];
 			if (attributePointer == FileAddr::NullPtr)
@@ -43,7 +43,7 @@ namespace Comfy::Graphics
 			if (!(mesh.AttributeFlags & attributeFlags))
 				return;
 
-			reader.ReadAt(attributePointer, baseAddress, [&vector, &mesh](StreamReader& reader)
+			reader.ReadAtOffsetAware(attributePointer, [&vector, &mesh](StreamReader& reader)
 			{
 				vector.resize(mesh.VertexData.VertexCount);
 				reader.ReadBuffer(vector.data(), vector.size() * sizeof(T));
@@ -53,30 +53,32 @@ namespace Comfy::Graphics
 
 	void Obj::Read(StreamReader& reader)
 	{
-		FileAddr objBaseAddress = reader.GetPosition();
+		if (true)
+			reader.PushBaseOffset();
 
 		Version = reader.ReadU32();
 		ReservedFlags = reader.ReadU32();
 		BoundingSphere = ReadSphere(reader);
 
-		u32 meshCount = reader.ReadU32();
-		FileAddr meshesPtr = reader.ReadPtr();
-		if (meshCount > 0 && meshesPtr != FileAddr::NullPtr)
+		const auto meshCount = reader.ReadU32();
+		const auto meshesOffset = reader.ReadPtr();
+		if (meshCount > 0 && meshesOffset != FileAddr::NullPtr)
 		{
-			Meshes.resize(meshCount);
-			reader.ReadAt(meshesPtr, objBaseAddress, [this, objBaseAddress](StreamReader& reader)
+			Meshes.reserve(meshCount);
+			reader.ReadAtOffsetAware(meshesOffset, [&](StreamReader& reader)
 			{
-				for (auto& mesh : Meshes)
+				for (size_t i = 0; i < meshCount; i++)
 				{
+					auto& mesh = Meshes.emplace_back();
 					mesh.ReservedFlags = reader.ReadU32();
 					mesh.BoundingSphere = ReadSphere(reader);
 
-					u32 subMeshCount = reader.ReadU32();
-					FileAddr subMeshesPtr = reader.ReadPtr();
-					if (subMeshCount > 0 && subMeshesPtr != FileAddr::NullPtr)
+					const auto subMeshCount = reader.ReadU32();
+					const auto subMeshesOffset = reader.ReadPtr();
+					if (subMeshCount > 0 && subMeshesOffset != FileAddr::NullPtr)
 					{
 						mesh.SubMeshes.resize(subMeshCount);
-						reader.ReadAt(subMeshesPtr, objBaseAddress, [&mesh, objBaseAddress](StreamReader& reader)
+						reader.ReadAtOffsetAware(subMeshesOffset, [&mesh](StreamReader& reader)
 						{
 							for (auto& subMesh : mesh.SubMeshes)
 							{
@@ -86,13 +88,13 @@ namespace Comfy::Graphics
 								for (auto& index : subMesh.UVIndices)
 									index = reader.ReadU8();
 
-								u32 boneIndexCount = reader.ReadU32();
-								FileAddr boneIndicesPtr = reader.ReadPtr();
-								if (boneIndexCount > 0 && boneIndicesPtr != FileAddr::NullPtr)
+								const auto boneIndexCount = reader.ReadU32();
+								const auto boneIndicesOffset = reader.ReadPtr();
+								if (boneIndexCount > 0 && boneIndicesOffset != FileAddr::NullPtr)
 								{
 									subMesh.BoneIndices.resize(boneIndexCount);
 
-									reader.ReadAt(boneIndicesPtr, objBaseAddress, [&subMesh, boneIndexCount](StreamReader& reader)
+									reader.ReadAtOffsetAware(boneIndicesOffset, [&subMesh, boneIndexCount](StreamReader& reader)
 									{
 										assert(reader.GetEndianness() == Endianness::Native);
 										reader.ReadBuffer(subMesh.BoneIndices.data(), boneIndexCount * sizeof(u16));
@@ -102,27 +104,27 @@ namespace Comfy::Graphics
 								subMesh.BonesPerVertex = reader.ReadU32();
 								subMesh.Primitive = static_cast<PrimitiveType>(reader.ReadU32());
 								
-								auto indexFormat = static_cast<IndexFormat>(reader.ReadU32());
+								const auto indexFormat = static_cast<IndexFormat>(reader.ReadU32());
 
-								u32 indexCount = reader.ReadU32();
-								FileAddr indicesPtr = reader.ReadPtr();
-								if (indexCount > 0 && indicesPtr != FileAddr::NullPtr)
+								const auto indexCount = reader.ReadU32();
+								const auto indicesOffset = reader.ReadPtr();
+								if (indexCount > 0 && indicesOffset != FileAddr::NullPtr)
 								{
 									assert(reader.GetEndianness() == Endianness::Native);
 									if (indexFormat == IndexFormat::U8)
 									{
 										u8* data = subMesh.Indices.emplace<std::vector<u8>>(indexCount).data();
-										reader.ReadAt(indicesPtr, objBaseAddress, [&](StreamReader& reader) { reader.ReadBuffer(data, indexCount * sizeof(u8)); });
+										reader.ReadAtOffsetAware(indicesOffset, [&](StreamReader& reader) { reader.ReadBuffer(data, indexCount * sizeof(u8)); });
 									}
 									else if (indexFormat == IndexFormat::U16)
 									{
 										u16* data = subMesh.Indices.emplace<std::vector<u16>>(indexCount).data();
-										reader.ReadAt(indicesPtr, objBaseAddress, [&](StreamReader& reader) { reader.ReadBuffer(data, indexCount * sizeof(u16)); });
+										reader.ReadAtOffsetAware(indicesOffset, [&](StreamReader& reader) { reader.ReadBuffer(data, indexCount * sizeof(u16)); });
 									}
 									else if (indexFormat == IndexFormat::U32)
 									{
 										u32* data = subMesh.Indices.emplace<std::vector<u32>>(indexCount).data();
-										reader.ReadAt(indicesPtr, objBaseAddress, [&](StreamReader& reader) { reader.ReadBuffer(data, indexCount * sizeof(u32)); });
+										reader.ReadAtOffsetAware(indicesOffset, [&](StreamReader& reader) { reader.ReadBuffer(data, indexCount * sizeof(u32)); });
 									}
 								}
 
@@ -132,7 +134,7 @@ namespace Comfy::Graphics
 								for (auto& value : reserved)
 									value = reader.ReadU32();
 
-								unk32_t indexOffset = reader.ReadU32();
+								const auto indexOffset = reader.ReadU32();
 							}
 						});
 					}
@@ -143,23 +145,22 @@ namespace Comfy::Graphics
 
 					constexpr size_t attributeCount = 20;
 
-					std::array<FileAddr, attributeCount> vertexAttributePtrs;
-					for (auto& attributePtr : vertexAttributePtrs)
-						attributePtr = reader.ReadPtr();
+					std::array<FileAddr, attributeCount> vertexAttributeOffsets;
+					for (auto& attributeOffset : vertexAttributeOffsets)
+						attributeOffset = reader.ReadPtr();
 
 					assert(reader.GetEndianness() == Endianness::Native);
-					CheckReadVertexData(reader, mesh, VertexAttribute_Position, mesh.VertexData.Positions, vertexAttributePtrs.data(), objBaseAddress);
-					CheckReadVertexData(reader, mesh, VertexAttribute_Normal, mesh.VertexData.Normals, vertexAttributePtrs.data(), objBaseAddress);
-					CheckReadVertexData(reader, mesh, VertexAttribute_Tangent, mesh.VertexData.Tangents, vertexAttributePtrs.data(), objBaseAddress);
-					CheckReadVertexData(reader, mesh, VertexAttribute_0x3, mesh.VertexData.Reserved0x3, vertexAttributePtrs.data(), objBaseAddress);
-					CheckReadVertexData(reader, mesh, VertexAttribute_TextureCoordinate0, mesh.VertexData.TextureCoordinates[0], vertexAttributePtrs.data(), objBaseAddress);
-					CheckReadVertexData(reader, mesh, VertexAttribute_TextureCoordinate1, mesh.VertexData.TextureCoordinates[1], vertexAttributePtrs.data(), objBaseAddress);
-					CheckReadVertexData(reader, mesh, VertexAttribute_TextureCoordinate2, mesh.VertexData.TextureCoordinates[2], vertexAttributePtrs.data(), objBaseAddress);
-					CheckReadVertexData(reader, mesh, VertexAttribute_TextureCoordinate3, mesh.VertexData.TextureCoordinates[3], vertexAttributePtrs.data(), objBaseAddress);
-					CheckReadVertexData(reader, mesh, VertexAttribute_Color0, mesh.VertexData.Colors[0], vertexAttributePtrs.data(), objBaseAddress);
-					CheckReadVertexData(reader, mesh, VertexAttribute_Color1, mesh.VertexData.Colors[1], vertexAttributePtrs.data(), objBaseAddress);
-					CheckReadVertexData(reader, mesh, VertexAttribute_BoneWeight, mesh.VertexData.BoneWeights, vertexAttributePtrs.data(), objBaseAddress);
-					CheckReadVertexData(reader, mesh, VertexAttribute_BoneIndex, mesh.VertexData.BoneIndices, vertexAttributePtrs.data(), objBaseAddress);
+					CheckReadVertexData(reader, mesh, VertexAttribute_Position, mesh.VertexData.Positions, vertexAttributeOffsets.data());
+					CheckReadVertexData(reader, mesh, VertexAttribute_Normal, mesh.VertexData.Normals, vertexAttributeOffsets.data());
+					CheckReadVertexData(reader, mesh, VertexAttribute_Tangent, mesh.VertexData.Tangents, vertexAttributeOffsets.data());
+					CheckReadVertexData(reader, mesh, VertexAttribute_TextureCoordinate0, mesh.VertexData.TextureCoordinates[0], vertexAttributeOffsets.data());
+					CheckReadVertexData(reader, mesh, VertexAttribute_TextureCoordinate1, mesh.VertexData.TextureCoordinates[1], vertexAttributeOffsets.data());
+					CheckReadVertexData(reader, mesh, VertexAttribute_TextureCoordinate2, mesh.VertexData.TextureCoordinates[2], vertexAttributeOffsets.data());
+					CheckReadVertexData(reader, mesh, VertexAttribute_TextureCoordinate3, mesh.VertexData.TextureCoordinates[3], vertexAttributeOffsets.data());
+					CheckReadVertexData(reader, mesh, VertexAttribute_Color0, mesh.VertexData.Colors[0], vertexAttributeOffsets.data());
+					CheckReadVertexData(reader, mesh, VertexAttribute_Color1, mesh.VertexData.Colors[1], vertexAttributeOffsets.data());
+					CheckReadVertexData(reader, mesh, VertexAttribute_BoneWeight, mesh.VertexData.BoneWeights, vertexAttributeOffsets.data());
+					CheckReadVertexData(reader, mesh, VertexAttribute_BoneIndex, mesh.VertexData.BoneIndices, vertexAttributeOffsets.data());
 
 					mesh.Flags = ReadFlagsStruct32<Mesh::MeshFlags>(reader);
 
@@ -171,12 +172,12 @@ namespace Comfy::Graphics
 			});
 		}
 
-		u32 materialCount = reader.ReadU32();
-		FileAddr materialsPtr = reader.ReadPtr();
-		if (materialCount > 0 && materialsPtr != FileAddr::NullPtr)
+		const auto materialCount = reader.ReadU32();
+		const auto materialsOffset = reader.ReadPtr();
+		if (materialCount > 0 && materialsOffset != FileAddr::NullPtr)
 		{
 			Materials.resize(materialCount);
-			reader.ReadAt(materialsPtr, objBaseAddress, [this](StreamReader& reader)
+			reader.ReadAtOffsetAware(materialsOffset, [this](StreamReader& reader)
 			{
 				for (auto& material : Materials)
 				{
@@ -221,23 +222,32 @@ namespace Comfy::Graphics
 				}
 			});
 		}
+
+		if (true)
+			reader.PopBaseOffset();
 	}
 
 	void ObjSet::Read(StreamReader& reader)
 	{
-		u32 signature = reader.ReadU32();
-		u32 objectCount = reader.ReadU32();
-		u32 boneCount = reader.ReadU32();
-		FileAddr objectsPtr = reader.ReadPtr();
+		constexpr u32 signatureLegacy = 0x5062500;
+		constexpr u32 signatureModern = 0x5062501;
 
-		if (objectCount > 0 && objectsPtr != FileAddr::NullPtr)
+		const auto signature = reader.ReadU32();
+		if (signature != signatureLegacy)
+			return;
+
+		const auto objectCount = reader.ReadU32();
+		const auto boneCount = reader.ReadU32();
+		const auto objectsOffset = reader.ReadPtr();
+
+		if (objectCount > 0 && objectsOffset != FileAddr::NullPtr)
 		{
 			objects.resize(objectCount);
-			reader.ReadAt(objectsPtr, [this](StreamReader& reader)
+			reader.ReadAtOffsetAware(objectsOffset, [this](StreamReader& reader)
 			{
 				for (auto& obj : objects)
 				{
-					reader.ReadAt(reader.ReadPtr(), [&obj](StreamReader& reader)
+					reader.ReadAtOffsetAware(reader.ReadPtr(), [&obj](StreamReader& reader)
 					{
 						obj.Read(reader);
 					});
@@ -245,53 +255,55 @@ namespace Comfy::Graphics
 			});
 		}
 
-		if (FileAddr skeletonsPtr = reader.ReadPtr(); objectCount > 0 && skeletonsPtr != FileAddr::NullPtr)
+		const auto skeletonsOffset = reader.ReadPtr();
+		if (objectCount > 0 && skeletonsOffset != FileAddr::NullPtr)
 		{
-			reader.ReadAt(skeletonsPtr, [this](StreamReader& reader)
+			reader.ReadAtOffsetAware(skeletonsOffset, [this](StreamReader& reader)
 			{
 				for (auto& obj : objects)
 				{
-					if (FileAddr skeletonPtr = reader.ReadPtr(); skeletonPtr != FileAddr::NullPtr)
+					const auto skeletonOffset = reader.ReadPtr();
+					if (skeletonOffset != FileAddr::NullPtr)
 					{
-						reader.ReadAt(skeletonPtr, [&obj](StreamReader& reader)
+						reader.ReadAtOffsetAware(skeletonOffset, [&obj](StreamReader& reader)
 						{
-							FileAddr idsPtr = reader.ReadPtr();
-							FileAddr transformsPtr = reader.ReadPtr();
-							FileAddr namesPtr = reader.ReadPtr();
-							FileAddr expressionBlocksPtr = reader.ReadPtr();
-							u32 count = reader.ReadU32();
-							FileAddr parentIDsPtr = reader.ReadPtr();
+							const auto idsOffset = reader.ReadPtr();
+							const auto transformsOffset = reader.ReadPtr();
+							const auto namesOffset = reader.ReadPtr();
+							const auto expressionBlocksOffset = reader.ReadPtr();
+							const auto boneCount = reader.ReadU32();
+							const auto parentIDsOffset = reader.ReadPtr();
 
-							if (count < 1)
+							if (boneCount < 1)
 								return;
 
 							auto& bones = obj.Skeleton.emplace().Bones;
-							bones.resize(count);
+							bones.resize(boneCount);
 
-							reader.ReadAt(idsPtr, [&bones](StreamReader& reader)
+							reader.ReadAtOffsetAware(idsOffset, [&bones](StreamReader& reader)
 							{
 								for (auto& bone : bones)
 									bone.ID = BoneID(reader.ReadU32());
 							});
 
-							reader.ReadAt(transformsPtr, [&bones](StreamReader& reader)
+							reader.ReadAtOffsetAware(transformsOffset, [&bones](StreamReader& reader)
 							{
 								for (auto& bone : bones)
 									bone.Transform = reader.ReadMat4();
 							});
 
-							reader.ReadAt(namesPtr, [&bones](StreamReader& reader)
+							reader.ReadAtOffsetAware(namesOffset, [&bones](StreamReader& reader)
 							{
 								for (auto& bone : bones)
-									bone.Name = reader.ReadStrPtr();
+									bone.Name = reader.ReadStrPtrOffsetAware();
 							});
 
-							reader.ReadAt(expressionBlocksPtr, [&bones](StreamReader& reader)
+							reader.ReadAtOffsetAware(expressionBlocksOffset, [&bones](StreamReader& reader)
 							{
 								// TODO:
 							});
 
-							reader.ReadAt(parentIDsPtr, [&bones](StreamReader& reader)
+							reader.ReadAtOffsetAware(parentIDsOffset, [&bones](StreamReader& reader)
 							{
 								for (auto& bone : bones)
 									bone.ParentID = BoneID(reader.ReadU32());
@@ -302,34 +314,36 @@ namespace Comfy::Graphics
 			});
 		}
 
-		if (FileAddr objectNamesPtr = reader.ReadPtr(); objectCount > 0 && objectNamesPtr != FileAddr::NullPtr)
+		const auto objectNamesOffset = reader.ReadPtr();
+		if (objectCount > 0 && objectNamesOffset != FileAddr::NullPtr)
 		{
-			reader.ReadAt(objectNamesPtr, [this](StreamReader& reader)
+			reader.ReadAtOffsetAware(objectNamesOffset, [this](StreamReader& reader)
 			{
 				for (auto& obj : objects)
-					obj.Name = reader.ReadStrPtr();
+					obj.Name = reader.ReadStrPtrOffsetAware();
 			});
 		}
 
-		if (FileAddr objectIDsPtr = reader.ReadPtr(); objectCount > 0 && objectIDsPtr != FileAddr::NullPtr)
+		const auto objectIDsOffset = reader.ReadPtr();
+		if (objectCount > 0 && objectIDsOffset != FileAddr::NullPtr)
 		{
-			reader.ReadAt(objectIDsPtr, [this](StreamReader& reader)
+			reader.ReadAtOffsetAware(objectIDsOffset, [this](StreamReader& reader)
 			{
 				for (auto& obj : objects)
 					obj.ID = ObjID(reader.ReadU32());
 			});
 		}
 
-		FileAddr textureIDsPtr = reader.ReadPtr();
-		u32 textureCount = reader.ReadU32();
+		const auto textureIDsOffset = reader.ReadPtr();
+		const auto textureCount = reader.ReadU32();
 
-		if (textureIDsPtr != FileAddr::NullPtr && textureCount > 0)
+		if (textureIDsOffset != FileAddr::NullPtr && textureCount > 0)
 		{
-			TextureIDs.resize(textureCount);
-			reader.ReadAt(textureIDsPtr, [this](StreamReader& reader)
+			TextureIDs.reserve(textureCount);
+			reader.ReadAtOffsetAware(textureIDsOffset, [&](StreamReader& reader)
 			{
-				for (auto& textureID : TextureIDs)
-					textureID = TexID(reader.ReadU32());
+				for (size_t i = 0; i < textureCount; i++)
+					TextureIDs.push_back(TexID(reader.ReadU32()));
 			});
 		}
 	}

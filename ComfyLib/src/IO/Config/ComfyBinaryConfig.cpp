@@ -159,7 +159,7 @@ namespace Comfy::IO
 				else if (typeDescription.Flags.FloatingPoint && typeDescription.Size == sizeof(f32))
 					Data.F32.emplace_back(std::move(id), reader.ReadF32());
 				else if (typeDescription.Flags.Array && typeDescription.Flags.String)
-					Data.Str.emplace_back(std::move(id), reader.ReadStrPtr());
+					Data.Str.emplace_back(std::move(id), reader.ReadStrPtrOffsetAware());
 				else // NOTE: Assume additional data is pointed to
 					reader.ReadPtr();
 			}

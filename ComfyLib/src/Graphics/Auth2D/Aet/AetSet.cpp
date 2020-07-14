@@ -4,12 +4,12 @@ namespace Comfy::Graphics::Aet
 {
 	VideoSource* Video::GetSource(int index)
 	{
-		return InBounds(index, Sources) ? &Sources[index] : nullptr;
+		return IndexOrNull(index, Sources);
 	}
 
 	const VideoSource* Video::GetSource(int index) const
 	{
-		return InBounds(index, Sources) ? &Sources[index] : nullptr;
+		return IndexOrNull(index, Sources);
 	}
 
 	VideoSource* Video::GetFront()
@@ -246,14 +246,14 @@ namespace Comfy::Graphics::Aet
 	{
 		auto findSetLayerItem = [](auto& layer, auto& itemCollection)
 		{
-			auto foundItem = std::find_if(itemCollection.begin(), itemCollection.end(), [&](auto& e) { return e->filePosition == layer.itemFilePtr; });
+			auto foundItem = std::find_if(itemCollection.begin(), itemCollection.end(), [&](auto& e) { return e->filePosition == layer.itemFileOffset; });
 			if (foundItem != itemCollection.end())
 				layer.SetItem(*foundItem);
 		};
 
 		for (auto& layer : comp.GetLayers())
 		{
-			if (layer->itemFilePtr != FileAddr::NullPtr)
+			if (layer->itemFileOffset != FileAddr::NullPtr)
 			{
 				if (layer->ItemType == ItemType::Video)
 					findSetLayerItem(*layer, Videos);
@@ -263,7 +263,7 @@ namespace Comfy::Graphics::Aet
 					findSetLayerItem(*layer, Compositions);
 			}
 
-			if (layer->parentFilePtr != FileAddr::NullPtr)
+			if (layer->parentFileOffset != FileAddr::NullPtr)
 				FindSetLayerRefParentLayer(*layer);
 		}
 	}
@@ -274,7 +274,7 @@ namespace Comfy::Graphics::Aet
 		{
 			for (auto& otherLayer : otherComp->GetLayers())
 			{
-				if (otherLayer->filePosition == layer.parentFilePtr)
+				if (otherLayer->filePosition == layer.parentFileOffset)
 				{
 					layer.references.ParentLayer = otherLayer;
 					return;

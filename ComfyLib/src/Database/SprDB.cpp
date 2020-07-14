@@ -8,73 +8,63 @@ namespace Comfy::Database
 
 	SprEntry* SprSetEntry::GetSprEntry(SprID id)
 	{
-		for (auto& entry : SprEntries)
-			if (entry.ID == id)
-				return &entry;
-		return nullptr;
+		return FindIfOrNull(SprEntries, [&](const auto& e) { return (e.ID == id); });
 	}
 
 	SprEntry* SprSetEntry::GetSprEntry(std::string_view name)
 	{
-		for (auto& entry : SprEntries)
-			if (entry.Name == name)
-				return &entry;
-		return nullptr;
+		return FindIfOrNull(SprEntries, [&](const auto& e) { return (e.Name == name); });
 	}
 
 	SprEntry* SprSetEntry::GetSprTexEntry(std::string_view name)
 	{
-		for (auto& entry : SprTexEntries)
-			if (entry.Name == name)
-				return &entry;
-		return nullptr;
+		return FindIfOrNull(SprTexEntries, [&](const auto& e) { return (e.Name == name); });
 	}
 
 	void SprDB::Read(StreamReader& reader)
 	{
-		u32 sprSetEntryCount = reader.ReadU32();
-		FileAddr sprSetOffset = reader.ReadPtr();
+		const auto sprSetEntryCount = reader.ReadU32();
+		const auto sprSetOffset = reader.ReadPtr();
 
-		u32 sprEntryCount = reader.ReadU32();
-		FileAddr sprOffset = reader.ReadPtr();
+		const auto sprEntryCount = reader.ReadU32();
+		const auto sprOffset = reader.ReadPtr();
 
 		if (sprSetEntryCount > 0 && sprSetOffset != FileAddr::NullPtr)
 		{
 			Entries.resize(sprSetEntryCount);
-			reader.ReadAt(sprSetOffset, [this](StreamReader& reader)
+			reader.ReadAtOffsetAware(sprSetOffset, [this](StreamReader& reader)
 			{
 				for (auto& sprSetEntry : Entries)
 				{
 					sprSetEntry.ID = SprSetID(reader.ReadU32());
-					sprSetEntry.Name = reader.ReadStrPtr();
-					sprSetEntry.FileName = reader.ReadStrPtr();
-					u32 index = reader.ReadI32();
+					sprSetEntry.Name = reader.ReadStrPtrOffsetAware();
+					sprSetEntry.FileName = reader.ReadStrPtrOffsetAware();
+					const auto index = reader.ReadI32();
 				}
 			});
 		}
 
 		if (sprEntryCount > 0 && sprOffset != FileAddr::NullPtr)
 		{
-			reader.ReadAt(sprOffset, [this, sprEntryCount](StreamReader& reader)
+			reader.ReadAtOffsetAware(sprOffset, [this, sprEntryCount](StreamReader& reader)
 			{
 				for (u32 i = 0; i < sprEntryCount; i++)
 				{
 					constexpr u16 packedDataMask = 0x1000;
 
-					SprID id = SprID(reader.ReadU32());
-					FileAddr nameOffset = reader.ReadPtr();
-					i16 index = reader.ReadI16();
-					u16 packedData = reader.ReadU16();
+					const auto id = SprID(reader.ReadU32());
+					const auto nameOffset = reader.ReadPtr();
+					const auto index = reader.ReadI16();
+					const auto packedData = reader.ReadU16();
 
-					i32 sprSetEntryIndex = (packedData & ~packedDataMask);
-					SprSetEntry& sprSetEntry = Entries[sprSetEntryIndex];
+					const auto sprSetEntryIndex = (packedData & ~packedDataMask);
+					auto& sprSetEntry = Entries[sprSetEntryIndex];
 
-					std::vector<SprEntry>& sprEntries = (packedData & packedDataMask) ? sprSetEntry.SprTexEntries : sprSetEntry.SprEntries;
-					sprEntries.emplace_back();
-					SprEntry& sprEntry = sprEntries.back();
+					auto& sprEntries = (packedData & packedDataMask) ? sprSetEntry.SprTexEntries : sprSetEntry.SprEntries;
+					auto& sprEntry = sprEntries.emplace_back();
 
 					sprEntry.ID = id;
-					sprEntry.Name = reader.ReadStrAt(nameOffset);
+					sprEntry.Name = reader.ReadStrAtOffsetAware(nameOffset);
 					sprEntry.Index = index;
 				}
 			});
@@ -90,7 +80,7 @@ namespace Comfy::Database
 		writer.WriteU32(GetSprEntryCount());
 		writer.WritePtr(FileAddr::NullPtr);
 
-		writer.SetPosition(startPosition + FileAddr(0xC));
+		writer.Seek(startPosition + FileAddr(0xC));
 		writer.WriteFuncPtr([this](StreamWriter& writer)
 		{
 			i16 sprSetIndex = 0;
@@ -121,7 +111,7 @@ namespace Comfy::Database
 			writer.WritePadding(16);
 		});
 
-		writer.SetPosition(startPosition + FileAddr(0x4));
+		writer.Seek(startPosition + FileAddr(0x4));
 		writer.WriteFuncPtr([this](StreamWriter& writer)
 		{
 			i32 index = 0;
@@ -136,7 +126,7 @@ namespace Comfy::Database
 			writer.WritePadding(16);
 		});
 
-		writer.SetPosition(startPosition + FileAddr(0x10));
+		writer.Seek(startPosition + FileAddr(0x10));
 		writer.WritePadding(16);
 
 		writer.FlushPointerPool();
@@ -148,10 +138,7 @@ namespace Comfy::Database
 
 	SprSetEntry* SprDB::GetSprSetEntry(std::string_view name)
 	{
-		for (auto& entry : Entries)
-			if (entry.Name == name)
-				return &entry;
-		return nullptr;
+		return FindIfOrNull(Entries, [&](const auto& e) { return (e.Name == name); });
 	}
 
 	u32 SprDB::GetSprSetEntryCount()

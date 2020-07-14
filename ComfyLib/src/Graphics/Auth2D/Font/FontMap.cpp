@@ -40,19 +40,19 @@ namespace Comfy::Graphics
 
 	void FontMap::Read(IO::StreamReader& reader)
 	{
-		const u32 magic = reader.ReadU32();
+		const auto magic = reader.ReadU32_LE();
 		if (magic != Util::ByteSwapU32('FMH3'))
 			return;
 
-		const u32 reserved = reader.ReadU32();
-		const size_t fontCount = reader.ReadSize();
-		const FileAddr fontsPtr = reader.ReadPtr();
+		const auto reserved = reader.ReadU32();
+		const auto fontCount = reader.ReadSize();
+		const auto fontsOffset = reader.ReadPtr();
 
-		if (fontCount < 1 || fontsPtr == FileAddr::NullPtr)
+		if (fontCount < 1 || fontsOffset == FileAddr::NullPtr)
 			return;
 
 		Fonts.resize(fontCount);
-		reader.ReadAt(fontsPtr, [&](IO::StreamReader& reader)
+		reader.ReadAtOffsetAware(fontsOffset, [&](IO::StreamReader& reader)
 		{
 			for (auto& font : Fonts)
 			{
@@ -60,7 +60,7 @@ namespace Comfy::Graphics
 				if (fontPtr == FileAddr::NullPtr)
 					continue;
 
-				reader.ReadAt(fontPtr, [&](IO::StreamReader& reader)
+				reader.ReadAtOffsetAware(fontPtr, [&](IO::StreamReader& reader)
 				{
 					font.description.TextureIndex = reader.ReadU32();
 					font.description.FontSize.x = reader.ReadU8();

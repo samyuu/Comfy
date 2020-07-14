@@ -77,7 +77,7 @@ namespace Comfy::Graphics
 			const FileAddr texSetPtr = writer.GetPosition();
 			TexSet->Write(writer);
 
-			writer.SetPosition(texSetPtrAddress);
+			writer.Seek(texSetPtrAddress);
 			writer.WritePtr(texSetPtr);
 		}
 	}
