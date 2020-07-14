@@ -2,6 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "IO/Stream/BinaryMode.h"
+#include "IO/Stream/FileSection.h"
 #include "IO/Stream/IStream.h"
 #include "Misc/EndianHelper.h"
 #include <stack>
@@ -52,6 +53,9 @@ namespace Comfy::IO
 		inline Endianness GetEndianness() const { return endianness; }
 		inline void SetEndianness(Endianness value) { endianness = value; OnEndiannessChanged(); }
 
+		inline bool GetHasSections() const { return hasSections; }
+		inline void SetHasSections(bool value) { hasSections = value; }
+
 	protected:
 		virtual void OnPointerModeChanged() = 0;
 		virtual void OnEndiannessChanged() = 0;
@@ -59,6 +63,7 @@ namespace Comfy::IO
 	protected:
 		PtrMode pointerMode = PtrMode::Mode32Bit;
 		Endianness endianness = Endianness::Little;
+		bool hasSections = false;
 
 		IStream* underlyingStream = nullptr;
 

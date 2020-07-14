@@ -231,6 +231,9 @@
     <ClInclude Include="src\Graphics\Utilities\SpriteExtraction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\IO\Stream\FileSection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp">
@@ -363,6 +366,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Utilities\SpriteExtraction.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IO\Stream\FileSection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
