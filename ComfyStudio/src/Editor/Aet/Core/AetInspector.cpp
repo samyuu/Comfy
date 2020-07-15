@@ -256,19 +256,19 @@ namespace Comfy::Studio::Editor
 		if (layer->ItemType == ItemType::None)
 			return;
 
-		if ((layer->ItemType == ItemType::Video))
+		if (layer->ItemType == ItemType::Video)
 		{
 			Gui::Separator();
 			DrawInspectorVideoData(scene, layer, layer->GetVideoItem());
 		}
 
-		if ((layer->ItemType == ItemType::Composition))
+		if (layer->ItemType == ItemType::Composition)
 		{
 			Gui::Separator();
 			DrawInspectorCompositionData(scene, layer, layer->GetCompItem());
 		}
 
-		if ((layer->ItemType == ItemType::Video || layer->ItemType == ItemType::Composition))
+		if (layer->ItemType == ItemType::Video || layer->ItemType == ItemType::Composition)
 		{
 			Gui::Separator();
 			DrawInspectorAnimationData(layer->LayerVideo, layer);
@@ -280,7 +280,7 @@ namespace Comfy::Studio::Editor
 		Gui::Separator();
 		DrawInspectorLayerMarkers(layer, &layer->Markers);
 
-		if ((layer->ItemType == ItemType::Video || layer->ItemType == ItemType::Composition))
+		if (layer->ItemType == ItemType::Video || layer->ItemType == ItemType::Composition)
 		{
 			Gui::Separator();
 			DrawInspectorLayerParent(scene, layer);
