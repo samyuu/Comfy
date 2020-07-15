@@ -26,6 +26,8 @@ namespace Comfy::IO
 		std::string ReadStr(size_t size);
 		std::string ReadStrPtrOffsetAware();
 
+		// TODO: Return StreamResult instead of void and automatically return StreamResult::BadPointer if the input position is invalid (?)
+
 		template <typename Func>
 		void ReadAt(FileAddr position, Func func)
 		{

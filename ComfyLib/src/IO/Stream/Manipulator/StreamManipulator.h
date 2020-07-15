@@ -32,6 +32,7 @@ namespace Comfy::IO
 
 		inline FileAddr GetPosition() const { return underlyingStream->GetPosition(); }
 		inline FileAddr GetLength() const { return underlyingStream->GetLength(); }
+		inline FileAddr GetRemaining() const { return underlyingStream->GetLength() - underlyingStream->GetPosition(); }
 		
 		inline bool EndOfFile() const { return underlyingStream->GetPosition() >= underlyingStream->GetLength(); }
 
