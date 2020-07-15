@@ -31,6 +31,8 @@ namespace Comfy::IO
 		inline void Skip(FileAddr increment) { return underlyingStream->Seek(underlyingStream->GetPosition() + increment); }
 
 		inline FileAddr GetPosition() const { return underlyingStream->GetPosition(); }
+		inline FileAddr GetPositionOffsetAware() const { return underlyingStream->GetPosition() - baseOffset; }
+		
 		inline FileAddr GetLength() const { return underlyingStream->GetLength(); }
 		inline FileAddr GetRemaining() const { return underlyingStream->GetLength() - underlyingStream->GetPosition(); }
 		
@@ -45,6 +47,9 @@ namespace Comfy::IO
 		inline bool GetHasSections() const { return hasSections; }
 		inline void SetHasSections(bool value) { hasSections = value; }
 
+		inline bool GetHasBeenPointerModeScanned() const { return hasBeenPointerModeScanned; }
+		inline void SetHasBeenPointerModeScanned(bool value) { hasBeenPointerModeScanned = value; }
+
 	protected:
 		virtual void OnPointerModeChanged() = 0;
 		virtual void OnEndiannessChanged() = 0;
@@ -53,6 +58,7 @@ namespace Comfy::IO
 		PtrMode pointerMode = PtrMode::Mode32Bit;
 		Endianness endianness = Endianness::Little;
 		bool hasSections = false;
+		bool hasBeenPointerModeScanned = false;
 
 		IStream* underlyingStream = nullptr;
 

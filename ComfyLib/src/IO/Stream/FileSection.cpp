@@ -30,7 +30,7 @@ namespace Comfy::IO
 	{
 		const auto startPosition = reader.GetPosition();
 		const auto readSignature = static_cast<SectionSignature>(reader.ReadU32_LE());
-		reader.SeekOffsetAware(startPosition);
+		reader.Seek(startPosition);
 
 		if (readSignature != expectedSignature)
 			return {};
@@ -41,10 +41,10 @@ namespace Comfy::IO
 
 	void SectionHeader::ScanPOFSectionsSetPointerMode(StreamReader& reader)
 	{
-		if (!reader.GetHasSections())
+		if (!reader.GetHasSections() || reader.GetHasBeenPointerModeScanned())
 			return;
 
-		reader.ReadAt(reader.GetPosition(), [](StreamReader& reader)
+		reader.ReadAt(FileAddr::NullPtr, [](StreamReader& reader)
 		{
 			const auto endOfSectionHeaders = reader.GetLength() - FileAddr(32);
 			while (reader.GetPosition() < endOfSectionHeaders)
@@ -63,7 +63,7 @@ namespace Comfy::IO
 					return;
 				}
 
-				const auto endOfSection = sectionHeader.EndOfSectionAddress();
+				const auto endOfSection = sectionHeader.EndOfSubSectionAddress();
 				if (endOfSection < reader.GetPosition())
 					return;
 
@@ -73,5 +73,7 @@ namespace Comfy::IO
 			// NOTE: In case no relocation tables are found 32-bit should be the default
 			reader.SetPointerMode(PtrMode::Mode32Bit);
 		});
+
+		reader.SetHasBeenPointerModeScanned(true);
 	}
 }
