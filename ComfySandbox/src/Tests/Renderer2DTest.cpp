@@ -85,8 +85,14 @@ namespace Comfy::Sandbox::Tests
 
 				if (Gui::Begin("Test SprSet Loader"))
 				{
-					if (sprFileViewer.DrawGui() && IO::Path::GetExtension(IO::Path::GetFileName(sprFileViewer.GetFileToOpen())) == ".bin")
-						sprSet = IO::File::Load<Graphics::SprSet>(sprFileViewer.GetFileToOpen());
+					if (sprFileViewer.DrawGui())
+					{
+						const auto fileName = IO::Path::GetFileName(sprFileViewer.GetFileToOpen());
+						const auto extension = IO::Path::GetExtension(fileName);
+
+						if (IO::Path::DoesAnyPackedExtensionMatch(extension, ".bin;.spr"))
+							sprSet = IO::File::Load<Graphics::SprSet>(sprFileViewer.GetFileToOpen());
+					}
 				}
 				Gui::End();
 			}
