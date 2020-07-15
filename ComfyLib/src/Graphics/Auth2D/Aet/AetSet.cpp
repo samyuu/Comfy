@@ -238,7 +238,6 @@ namespace Comfy::Graphics::Aet
 	void Scene::LinkPostRead()
 	{
 		assert(RootComposition != nullptr);
-
 		ForEachComp([&](auto& comp) { LinkCompItems(*comp); });
 	}
 

@@ -244,7 +244,7 @@ namespace Comfy::Graphics::Aet
 
 	void Layer::Read(StreamReader& reader)
 	{
-		filePosition = reader.GetPosition();
+		filePosition = reader.GetPositionOffsetAware();
 		name = reader.ReadStrPtrOffsetAware();
 		StartFrame = reader.ReadF32();
 		EndFrame = reader.ReadF32();
@@ -331,7 +331,7 @@ namespace Comfy::Graphics::Aet
 				const auto readMakeComp = [](StreamReader& reader, std::shared_ptr<Composition>& comp)
 				{
 					comp = std::make_shared<Composition>();
-					comp->filePosition = reader.GetPosition();
+					comp->filePosition = reader.GetPositionOffsetAware();
 
 					const auto layerCount = reader.ReadSize();
 					const auto layersOffset = reader.ReadPtr();
@@ -367,7 +367,7 @@ namespace Comfy::Graphics::Aet
 				for (size_t i = 0; i < videoCount; i++)
 				{
 					auto& video = *Videos.emplace_back(std::make_shared<Video>());
-					video.filePosition = reader.GetPosition();
+					video.filePosition = reader.GetPositionOffsetAware();
 					video.Color = ReadU32ColorRGB(reader);
 					video.Size.x = reader.ReadU16();
 					video.Size.y = reader.ReadU16();
@@ -402,7 +402,7 @@ namespace Comfy::Graphics::Aet
 				for (size_t i = 0; i < audioCount; i++)
 				{
 					auto& audio = *Audios.emplace_back(std::make_shared<Audio>());
-					audio.filePosition = reader.GetPosition();
+					audio.filePosition = reader.GetPositionOffsetAware();
 					audio.SoundID = reader.ReadU32();
 				}
 			});
@@ -413,7 +413,6 @@ namespace Comfy::Graphics::Aet
 	{
 		writer.WriteFuncPtr([this](StreamWriter& writer)
 		{
-			FileAddr sceneFilePosition = writer.GetPosition();
 			writer.WriteStrPtr(Name);
 			writer.WriteF32(StartFrame);
 			writer.WriteF32(EndFrame);
