@@ -7,6 +7,7 @@
 #include "Stream/Manipulator/StreamReader.h"
 #include "Stream/Manipulator/StreamWriter.h"
 #include "Stream/FileInterfaces.h"
+#include <future>
 
 namespace Comfy::IO
 {
@@ -91,6 +92,19 @@ namespace Comfy::IO
 				return false;
 
 			return true;
+		}
+
+		template <typename Loadable>
+		COMFY_NODISCARD std::future<std::unique_ptr<Loadable>> LoadAsync(std::string_view filePath)
+		{
+			return std::async(std::launch::async, [path = std::string(filePath)] { return Load<Loadable>(path); });
+		}
+
+		// NOTE: The writable input parameter must outlive the duration of the returned future!
+		template <typename Writable>
+		COMFY_NODISCARD std::future<bool> SaveAsync(std::string_view filePath, Writable* writable)
+		{
+			return std::async(std::launch::async, [path = std::string(filePath), writable] { return (writable != nullptr) ? Save<Writable>(path, *writable) : false; });
 		}
 	}
 
