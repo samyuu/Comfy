@@ -1,7 +1,7 @@
 #pragma once
 #include "Window/RenderWindow.h"
 #include "Editor/Common/CheckerboardGrid.h"
-#include "IO/AsyncFileLoader.h"
+#include "IO/File.h"
 #include "Render/Render.h"
 
 namespace Comfy::Studio::Editor
@@ -33,8 +33,9 @@ namespace Comfy::Studio::Editor
 		std::unique_ptr<Render::RenderTarget2D> renderTarget;
 
 		// TODO: ps4_gam
-		IO::AsyncFileLoader aetSetLoader = { "dev_rom/2d/aet_gam_cmn.bin" };
-		IO::AsyncFileLoader sprSetLoader = { "dev_rom/2d/spr_gam_cmn.bin" };
+		std::string_view aetSetFilePath = "dev_rom/2d/aet_gam_cmn.bin";
+		std::string_view sprSetFilePath = "dev_rom/2d/spr_gam_cmn.bin";
+		std::future<std::unique_ptr<Graphics::SprSet>> sprSetLoadFuture;
 
 		std::unique_ptr<Graphics::Aet::AetSet> aetSet;
 		std::unique_ptr<Graphics::SprSet> sprSet;

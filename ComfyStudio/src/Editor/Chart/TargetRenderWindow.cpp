@@ -23,16 +23,8 @@ namespace Comfy::Studio::Editor
 		renderer = std::make_unique<Render::Renderer2D>();
 		renderTarget = Render::Renderer2D::CreateRenderTarget();
 
-		sprSetLoader.LoadAsync();
-
-		aetSet = std::make_unique<Aet::AetSet>();
-		aetSetLoader.LoadSync();
-
-		if (aetSetLoader.GetIsLoaded())
-		{
-			aetSetLoader.Read(*aetSet);
-			aetSetLoader.FreeData();
-		}
+		sprSetLoadFuture = IO::File::LoadAsync<SprSet>(sprSetFilePath);
+		aetSet = IO::File::Load<Aet::AetSet>(aetSetFilePath);
 
 		if (aetSet == nullptr || aetSet->GetScenes().empty())
 			return;
@@ -107,11 +99,9 @@ namespace Comfy::Studio::Editor
 		if (sprSet != nullptr)
 			loadingContent = false;
 
-		if (sprSet == nullptr && sprSetLoader.GetIsLoaded())
+		if (sprSet == nullptr && sprSetLoadFuture.valid() && sprSetLoadFuture._Is_ready())
 		{
-			sprSet = std::make_unique<SprSet>();
-			sprSetLoader.Parse(*sprSet);
-			sprSetLoader.FreeData();
+			sprSet = sprSetLoadFuture.get();
 
 			renderer->Aet().SetSprGetter([&](const Graphics::Aet::VideoSource& source) -> Render::TexSpr
 			{

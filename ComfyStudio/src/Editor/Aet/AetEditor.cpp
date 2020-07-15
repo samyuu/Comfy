@@ -33,10 +33,10 @@ namespace Comfy::Studio::Editor
 		timeline->Initialize();
 
 		// DEBUG: Auto load specified files
-		if (debugAetPath != nullptr && IO::File::Exists(debugAetPath))
+		if (!debugAetPath.empty() && IO::File::Exists(debugAetPath))
 			LoadAetSet(debugAetPath);
-		if (debugSprPath != nullptr && IO::File::Exists(debugSprPath))
-			LoadSprSet(debugSprPath);
+		if (!debugSprPath.empty() && IO::File::Exists(debugSprPath))
+			StartAsyncLoadSprSet(debugSprPath);
 	}
 
 	const char* AetEditor::GetName() const
@@ -106,20 +106,19 @@ namespace Comfy::Studio::Editor
 		}
 		Gui::End();
 
-		UpdateFileLoading();
+		UpdateCheckAsyncFileLoading();
 		commandManager->ExecuteClearCommandQueue();
 	}
 
-	void AetEditor::UpdateFileLoading()
+	void AetEditor::UpdateCheckAsyncFileLoading()
 	{
-		if (sprSetFileLoader != nullptr && sprSetFileLoader->GetIsLoaded())
+		if (sprSetLoadFuture.valid() && sprSetLoadFuture._Is_ready())
 		{
-			sprSet = std::make_unique<SprSet>();
-			sprSetFileLoader->Parse(*sprSet);
-			sprSet->Name = IO::Path::GetFileName(sprSetFileLoader->GetFilePath(), false);
+			editorSprSet = sprSetLoadFuture.get();
+			if (editorSprSet != nullptr)
+				editorSprSet->Name = IO::Path::GetFileName(sprSetFilePath, false);
 
 			OnSprSetLoaded();
-			sprSetFileLoader.reset();
 		}
 	}
 
@@ -129,6 +128,7 @@ namespace Comfy::Studio::Editor
 		{
 			const auto aetPath = aetFileViewer.GetFileToOpen();
 			const auto fileName = IO::Path::GetFileName(aetPath);
+
 			if (Util::StartsWithInsensitive(fileName, "aet_") && (Util::EndsWithInsensitive(fileName, ".bin") || Util::EndsWithInsensitive(fileName, ".aec")))
 				LoadAetSet(aetPath);
 		}
@@ -140,8 +140,9 @@ namespace Comfy::Studio::Editor
 		{
 			const auto sprPath = sprFileViewer.GetFileToOpen();
 			const auto fileName = IO::Path::GetFileName(sprPath);
-			if (Util::StartsWithInsensitive(fileName, "spr_") && Util::EndsWithInsensitive(fileName, ".bin"))
-				LoadSprSet(sprPath);
+
+			if (Util::StartsWithInsensitive(fileName, "spr_") && (Util::EndsWithInsensitive(fileName, ".bin") || Util::EndsWithInsensitive(fileName, ".spr")))
+				StartAsyncLoadSprSet(sprPath);
 		}
 	}
 
@@ -158,20 +159,10 @@ namespace Comfy::Studio::Editor
 		return true;
 	}
 
-	bool AetEditor::LoadSprSet(std::string_view filePath)
+	bool AetEditor::StartAsyncLoadSprSet(std::string_view filePath)
 	{
-		if (!IO::File::Exists(filePath))
-			return false;
-
-		if (sprSetFileLoader != nullptr)
-			return false;
-
-		sprSetFileLoader = std::make_unique<IO::AsyncFileLoader>(filePath);
-		if (asyncFileLoading)
-			sprSetFileLoader->LoadAsync();
-		else
-			sprSetFileLoader->LoadSync();
-
+		sprSetFilePath = std::string(filePath);
+		sprSetLoadFuture = IO::File::LoadAsync<SprSet>(filePath);
 		return true;
 	}
 
@@ -188,7 +179,7 @@ namespace Comfy::Studio::Editor
 
 		renderer->Aet().SetSprGetter([&](const Aet::VideoSource& source) -> Render::TexSpr
 		{
-			return Render::SprSetNameStringSprGetter(source, sprSet.get());
+			return Render::SprSetNameStringSprGetter(source, editorSprSet.get());
 		});
 	}
 }

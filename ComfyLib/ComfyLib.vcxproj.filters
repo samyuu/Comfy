@@ -123,9 +123,6 @@
     <ClInclude Include="src\IO\File.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\IO\AsyncFileLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\IO\Directory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -285,9 +282,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Time\Stopwatch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\IO\AsyncFileLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\IO\Path.cpp">

@@ -67,7 +67,6 @@
     <ClInclude Include="src\IO\Stream\Manipulator\StreamReader.h" />
     <ClInclude Include="src\IO\Stream\Manipulator\StreamWriter.h" />
     <ClInclude Include="src\IO\Stream\FileInterfaces.h" />
-    <ClInclude Include="src\IO\AsyncFileLoader.h" />
     <ClInclude Include="src\IO\Stream\FileStream.h" />
     <ClInclude Include="src\IO\Stream\MemoryStream.h" />
     <ClInclude Include="src\IO\Stream\IStream.h" />
@@ -124,7 +123,6 @@
     <ClCompile Include="src\IO\Crypto\Detail\Win32Crypto.cpp" />
     <ClCompile Include="src\IO\Stream\Manipulator\StreamReader.cpp" />
     <ClCompile Include="src\IO\Stream\Manipulator\StreamWriter.cpp" />
-    <ClCompile Include="src\IO\AsyncFileLoader.cpp" />
     <ClCompile Include="src\IO\Stream\FileStream.cpp" />
     <ClCompile Include="src\IO\Stream\MemoryStream.cpp" />
     <ClCompile Include="src\Misc\ImageHelper.cpp" />

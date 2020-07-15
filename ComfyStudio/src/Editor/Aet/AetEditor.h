@@ -8,7 +8,7 @@
 #include "Command/AetHistoryWindow.h"
 #include "Command/AetCommandManager.h"
 #include "Editor/Core/IEditorComponent.h"
-#include "IO/AsyncFileLoader.h"
+#include "IO/File.h"
 #include "ImGui/Widgets/FileViewer.h"
 
 namespace Comfy::Studio::Editor
@@ -29,16 +29,16 @@ namespace Comfy::Studio::Editor
 
 	public:
 		inline Graphics::Aet::AetSet* GetAetSet() { return editorAetSet.get(); }
-		inline Graphics::SprSet* GetSprSet() { return sprSet.get(); }
+		inline Graphics::SprSet* GetSprSet() { return editorSprSet.get(); }
 
 	private:
-		void UpdateFileLoading();
+		void UpdateCheckAsyncFileLoading();
 
 		void DrawAetSetLoader();
 		void DrawSprSetLoader();
 
 		bool LoadAetSet(std::string_view filePath);
-		bool LoadSprSet(std::string_view filePath);
+		bool StartAsyncLoadSprSet(std::string_view filePath);
 		void OnAetSetLoaded();
 		void OnSprSetLoaded();
 
@@ -64,18 +64,17 @@ namespace Comfy::Studio::Editor
 		struct
 		{
 			std::shared_ptr<Graphics::Aet::AetSet> editorAetSet = nullptr;
-			std::unique_ptr<Graphics::SprSet> sprSet = nullptr;
+			std::unique_ptr<Graphics::SprSet> editorSprSet = nullptr;
 		};
 
 	private:
 		Gui::FileViewer aetFileViewer = { "dev_ram/aetset/" };
 		Gui::FileViewer sprFileViewer = { "dev_ram/sprset/" };
 
-		// DEBUG: Disabled for now to remove one possible case of failure
-		const bool asyncFileLoading = false;
-		std::unique_ptr<IO::AsyncFileLoader> sprSetFileLoader;
+		std::string sprSetFilePath;
+		std::future<std::unique_ptr<Graphics::SprSet>> sprSetLoadFuture;
 
-		static constexpr const char* debugAetPath = "dev_ram/aetset/aet_gam/aet_gam_cmn.bin";
-		static constexpr const char* debugSprPath = "dev_ram/sprset/spr_gam/spr_gam_cmn.bin";
+		static constexpr std::string_view debugAetPath = "dev_ram/aetset/aet_gam/aet_gam_cmn.bin";
+		static constexpr std::string_view debugSprPath = "dev_ram/sprset/spr_gam/spr_gam_cmn.bin";
 	};
 }
