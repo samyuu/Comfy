@@ -11,6 +11,104 @@ namespace Comfy::Graphics
 		return vec2(PixelRegion.z, PixelRegion.w);
 	}
 
+	StreamResult SprSet::Read(StreamReader& reader)
+	{
+		const auto baseHeader = SectionHeader::TryRead(reader, SectionSignature::SPRC);
+		SectionHeader::ScanPOFSectionsSetPointerMode(reader);
+
+		if (baseHeader.has_value())
+		{
+			reader.SetEndianness(baseHeader->Endianness);
+			reader.Seek(baseHeader->StartOfSubSectionAddress());
+
+			if (reader.GetPointerMode() == PtrMode::Mode64Bit)
+				reader.PushBaseOffset();
+		}
+
+		Flags = reader.ReadU32();
+		const auto texSetOffset = reader.ReadPtr_32();
+		const auto textureCount = reader.ReadSize_32();
+		const auto spriteCount = reader.ReadU32();
+		const auto spritesOffset = reader.ReadPtr();
+		const auto textureNamesOffset = reader.ReadPtr();
+		const auto spriteNamesOffset = reader.ReadPtr();
+		const auto spriteExtraDataOffset = reader.ReadPtr();
+
+		TexSet = std::make_unique<Graphics::TexSet>();
+		if (textureCount > 0)
+		{
+			auto streamResult = StreamResult::Success;
+			if (reader.GetHasSections())
+			{
+				const auto texSetStartOffset = baseHeader->EndOfSectionAddress();
+				reader.ReadAt(texSetStartOffset, [&](StreamReader& reader) { streamResult = TexSet->Read(reader); });
+			}
+			else
+			{
+				if (!reader.IsValidPointer(texSetOffset))
+					return StreamResult::BadPointer;
+
+				reader.ReadAtOffsetAware(texSetOffset, [&](StreamReader& reader) { streamResult = TexSet->Read(reader); });
+			}
+			if (streamResult != StreamResult::Success)
+				return streamResult;
+
+			if (reader.IsValidPointer(textureNamesOffset) && TexSet->Textures.size() == textureCount)
+			{
+				reader.ReadAtOffsetAware(textureNamesOffset, [&](StreamReader& reader)
+				{
+					for (auto& texture : this->TexSet->Textures)
+						texture->Name = reader.ReadStrPtrOffsetAware();
+				});
+			}
+		}
+
+		if (spriteCount > 0)
+		{
+			if (!reader.IsValidPointer(spritesOffset) || !reader.IsValidPointer(spriteExtraDataOffset))
+				return StreamResult::BadPointer;
+
+			auto streamResult = StreamResult::Success;
+			reader.ReadAtOffsetAware(spritesOffset, [&](StreamReader& reader)
+			{
+				Sprites.reserve(spriteCount);
+				for (size_t i = 0; i < spriteCount; i++)
+				{
+					auto& sprite = Sprites.emplace_back();
+					sprite.TextureIndex = reader.ReadI32();
+					sprite.Rotate = reader.ReadI32();
+					sprite.TexelRegion = reader.ReadV4();
+					sprite.PixelRegion = reader.ReadV4();
+				}
+			});
+			if (streamResult != StreamResult::Success)
+				return streamResult;
+
+			if (reader.IsValidPointer(spriteNamesOffset) && Sprites.size() == spriteCount)
+			{
+				reader.ReadAtOffsetAware(spriteNamesOffset, [&](StreamReader& reader)
+				{
+					for (auto& sprite : Sprites)
+						sprite.Name = reader.ReadStrPtrOffsetAware();
+				});
+			}
+
+			reader.ReadAtOffsetAware(spriteExtraDataOffset, [&](StreamReader& reader)
+			{
+				for (auto& sprite : Sprites)
+				{
+					sprite.Extra.Flags = reader.ReadU32();
+					sprite.Extra.ScreenMode = static_cast<ScreenMode>(reader.ReadU32());
+				}
+			});
+		}
+
+		if (baseHeader.has_value() && reader.GetPointerMode() == PtrMode::Mode64Bit)
+			reader.PopBaseOffset();
+
+		return StreamResult::Success;
+	}
+
 	StreamResult SprSet::Write(StreamWriter& writer)
 	{
 		writer.WriteU32(Flags);
@@ -82,72 +180,5 @@ namespace Comfy::Graphics
 		}
 
 		return StreamResult::Success;
-	}
-
-	void SprSet::Parse(const u8* buffer, size_t bufferSize)
-	{
-		Flags = *(u32*)(buffer + 0);
-		u32 texSetOffset = *(u32*)(buffer + 4);
-		u32 textureCount = *(u32*)(buffer + 8);
-		u32 spritesCount = *(u32*)(buffer + 12);
-		u32 spritesOffset = *(u32*)(buffer + 16);
-		u32 textureNamesOffset = *(u32*)(buffer + 20);
-		u32 spriteNamesOffset = *(u32*)(buffer + 24);
-		u32 spriteExtraDataOffset = *(u32*)(buffer + 28);
-
-		TexSet = std::make_unique<Graphics::TexSet>();
-
-		if (texSetOffset != 0)
-			TexSet->Parse(buffer + texSetOffset, bufferSize - texSetOffset);
-
-		if (spritesOffset != 0)
-		{
-			const u8* spritesBuffer = buffer + spritesOffset;
-
-			Sprites.resize(spritesCount);
-			for (u32 i = 0; i < spritesCount; i++)
-			{
-				Spr& sprite = Sprites[i];
-				sprite.TextureIndex = *(i32*)(spritesBuffer + 0);
-				sprite.Rotate = *(i32*)(spritesBuffer + 4);
-				sprite.TexelRegion = *(vec4*)(spritesBuffer + 8);
-				sprite.PixelRegion = *(vec4*)(spritesBuffer + 24);
-				spritesBuffer += 40;
-			}
-		}
-
-		if (textureNamesOffset != 0)
-		{
-			const u8* textureNamesOffsetBuffer = buffer + textureNamesOffset;
-
-			for (u32 i = 0; i < textureCount; i++)
-			{
-				u32 nameOffset = ((u32*)textureNamesOffsetBuffer)[i];
-				TexSet->Textures[i]->Name = (const char*)(buffer + nameOffset);
-			}
-		}
-
-		if (spriteNamesOffset != 0)
-		{
-			const u8* spriteNamesOffsetBuffer = buffer + spriteNamesOffset;
-
-			for (u32 i = 0; i < spritesCount; i++)
-			{
-				u32 nameOffset = ((u32*)spriteNamesOffsetBuffer)[i];
-				Sprites[i].Name = (const char*)(buffer + nameOffset);
-			}
-		}
-
-		if (spriteExtraDataOffset != 0)
-		{
-			const u8* extraDataBuffer = buffer + spriteExtraDataOffset;
-
-			for (auto& sprite : Sprites)
-			{
-				sprite.Extra.Flags = *((u32*)extraDataBuffer + 0);
-				sprite.Extra.ScreenMode = *((ScreenMode*)extraDataBuffer + 4);
-				extraDataBuffer += 8;
-			}
-		}
 	}
 }

@@ -40,21 +40,121 @@ namespace Comfy::Graphics
 		return (Name.has_value()) ? Name.value() : UnknownName;
 	}
 
-	void TexSet::Parse(const u8* buffer, size_t bufferSize)
+	StreamResult Tex::Read(StreamReader& reader)
 	{
-		TxpSig signature = *(TxpSig*)(buffer + 0);
-		u32 textureCount = *(u32*)(buffer + 4);
-		u32 packedCount = *(u32*)(buffer + 8);
-		u32* offsets = (u32*)(buffer + 12);
+		reader.PushBaseOffset();
+		const auto texSignature = static_cast<TxpSig>(reader.ReadU32());
+		const auto mipMapCount = reader.ReadU32();
 
-		assert(signature == TxpSig::TexSet);
+		const auto mipLevels = reader.ReadU8();
+		const auto arraySize = reader.ReadU8();
+		const auto depth = reader.ReadU8();
+		const auto dimensions = reader.ReadU8();
+
+		if (texSignature != TxpSig::Texture2D && texSignature != TxpSig::CubeMap)
+			return StreamResult::BadFormat;
+
+		const auto adjustedMipLevels = (texSignature == TxpSig::CubeMap) ? (mipMapCount / arraySize) : mipMapCount;
+
+		MipMapsArray.reserve(arraySize);
+		for (size_t i = 0; i < arraySize; i++)
+		{
+			auto& mipMaps = MipMapsArray.emplace_back();
+			mipMaps.reserve(adjustedMipLevels);
+
+			for (size_t j = 0; j < adjustedMipLevels; j++)
+			{
+				const auto mipMapOffset = reader.ReadPtr_32();
+				if (!reader.IsValidPointer(mipMapOffset))
+					return StreamResult::BadPointer;
+
+				auto streamResult = StreamResult::Success;
+				reader.ReadAtOffsetAware(mipMapOffset, [&](StreamReader& reader)
+				{
+					const auto mipSignature = static_cast<TxpSig>(reader.ReadU32());
+					if (mipSignature != TxpSig::MipMap)
+					{
+						streamResult = StreamResult::BadFormat;
+						return;
+					}
+
+					auto& mipMap = mipMaps.emplace_back();
+					mipMap.Size.x = reader.ReadI32();
+					mipMap.Size.y = reader.ReadI32();
+					mipMap.Format = static_cast<TextureFormat>(reader.ReadU32());
+
+					const auto mipIndex = reader.ReadU8();
+					const auto arrayIndex = reader.ReadU8();
+					const auto padding = reader.ReadU16();
+
+					mipMap.DataSize = reader.ReadU32();
+					if (mipMap.DataSize > static_cast<size_t>(reader.GetRemaining()))
+					{
+						streamResult = StreamResult::BadCount;
+						return;
+					}
+
+					mipMap.Data = std::make_unique<u8[]>(mipMap.DataSize);
+					reader.ReadBuffer(mipMap.Data.get(), mipMap.DataSize);
+				});
+				if (streamResult != StreamResult::Success)
+					return streamResult;
+			}
+		}
+
+		reader.PopBaseOffset();
+		return StreamResult::Success;
+	}
+
+	StreamResult TexSet::Read(StreamReader& reader)
+	{
+		auto baseHeader = SectionHeader::TryRead(reader, SectionSignature::MTXD);
+		if (!baseHeader.has_value())
+			baseHeader = SectionHeader::TryRead(reader, SectionSignature::TXPC);
+
+		SectionHeader::ScanPOFSectionsSetPointerMode(reader);
+
+		if (baseHeader.has_value())
+		{
+			reader.SetEndianness(baseHeader->Endianness);
+			reader.Seek(baseHeader->StartOfSubSectionAddress());
+
+			if (reader.GetPointerMode() == PtrMode::Mode64Bit)
+				reader.PushBaseOffset();
+		}
+
+		reader.PushBaseOffset();
+
+		const auto setSignature = static_cast<TxpSig>(reader.ReadU32());
+		const auto textureCount = reader.ReadU32();
+		const auto packedInfo = reader.ReadU32();
+
+		if (setSignature != TxpSig::TexSet)
+			return StreamResult::BadFormat;
 
 		Textures.reserve(textureCount);
-		for (u32 i = 0; i < textureCount; i++)
+		for (size_t i = 0; i < textureCount; i++)
 		{
-			Textures.push_back(std::make_shared<Tex>());
-			ParseTex(buffer + offsets[i], *Textures[i]);
+			const auto textureOffset = reader.ReadPtr_32();
+			if (!reader.IsValidPointer(textureOffset))
+				return StreamResult::BadPointer;
+
+			auto streamResult = StreamResult::Success;
+			reader.ReadAtOffsetAware(textureOffset, [&](StreamReader& reader)
+			{
+				streamResult = Textures.emplace_back(std::make_shared<Tex>())->Read(reader);
+			});
+
+			if (streamResult != StreamResult::Success)
+				return streamResult;
 		}
+
+		reader.PopBaseOffset();
+
+		if (baseHeader.has_value() && reader.GetPointerMode() == PtrMode::Mode64Bit)
+			reader.PopBaseOffset();
+
+		return StreamResult::Success;
 	}
 
 	StreamResult TexSet::Write(StreamWriter& writer)
@@ -149,59 +249,12 @@ namespace Comfy::Graphics
 
 	std::unique_ptr<TexSet> TexSet::LoadSetTextureIDs(std::string_view filePath, const ObjSet* objSet)
 	{
-		auto texSet = IO::File::LoadBufferParsable<TexSet>(filePath);
+		auto texSet = IO::File::Load<TexSet>(filePath);
 		if (texSet != nullptr)
 		{
-			// texSet->UploadAll(nullptr);
 			if (objSet != nullptr)
 				texSet->SetTextureIDs(*objSet);
 		}
 		return texSet;
-	}
-
-	void TexSet::ParseTex(const u8* buffer, Tex& tex)
-	{
-		TxpSig signature = *(TxpSig*)(buffer + 0);
-		u32 mipMapCount = *(u32*)(buffer + 4);
-		u8 mipLevels = *(u8*)(buffer + 8);
-		u8 arraySize = *(u8*)(buffer + 9);
-
-		u32* offsets = (u32*)(buffer + 12);
-		const u8* mipMapBuffer = buffer + *offsets;
-		++offsets;
-
-		const auto expectedMipLevels = (mipMapCount / arraySize);
-		if (arraySize == 6 && expectedMipLevels != mipLevels)
-		{
-			// NOTE: Appears to be the case for cube maps inside emcs files
-			mipLevels = expectedMipLevels;
-		}
-
-		assert(signature == TxpSig::Texture2D || signature == TxpSig::CubeMap || signature == TxpSig::Rectangle);
-		// assert(mipMapCount == tex.MipLevels * tex.ArraySize);
-
-		tex.MipMapsArray.resize(arraySize);
-
-		for (auto& mipMaps : tex.MipMapsArray)
-		{
-			mipMaps.resize(mipLevels);
-
-			for (auto& mipMap : mipMaps)
-			{
-				TxpSig signature = *(TxpSig*)(mipMapBuffer + 0);
-				mipMap.Size = *(ivec2*)(mipMapBuffer + 4);
-				mipMap.Format = *(TextureFormat*)(mipMapBuffer + 12);
-
-				u8 mipIndex = *(u8*)(mipMapBuffer + 16);
-				u8 arrayIndex = *(u8*)(mipMapBuffer + 17);
-
-				mipMap.DataSize = *(u32*)(mipMapBuffer + 20);
-				mipMap.Data = std::make_unique<u8[]>(mipMap.DataSize);
-				std::memcpy(mipMap.Data.get(), mipMapBuffer + 24, mipMap.DataSize);
-
-				mipMapBuffer = buffer + *offsets;
-				++offsets;
-			}
-		}
 	}
 }

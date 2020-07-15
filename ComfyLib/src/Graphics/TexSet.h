@@ -15,7 +15,6 @@ namespace Comfy::Graphics
 		TexSet = '\03PXT',
 		Texture2D = '\04PXT',
 		CubeMap = '\05PXT',
-		Rectangle = '\06PXT',
 	};
 
 	struct TexMipMap
@@ -49,15 +48,18 @@ namespace Comfy::Graphics
 
 		static constexpr std::string_view UnknownName = "F_COMFY_UNKNOWN";
 		std::string_view GetName() const;
+
+	public:
+		IO::StreamResult Read(IO::StreamReader& reader);
 	};
 
-	class TexSet : public IO::IStreamWritable, public IO::IBufferParsable, NonCopyable
+	class TexSet : public IO::IStreamReadable, public IO::IStreamWritable, NonCopyable
 	{
 	public:
 		std::vector<std::shared_ptr<Tex>> Textures;
 
 	public:
-		void Parse(const u8* buffer, size_t bufferSize) override;
+		IO::StreamResult Read(IO::StreamReader& reader) override;
 		IO::StreamResult Write(IO::StreamWriter& writer) override;
 
 	public:
@@ -65,8 +67,5 @@ namespace Comfy::Graphics
 
 		// TODO: Rename and or refactor
 		static std::unique_ptr<TexSet> LoadSetTextureIDs(std::string_view filePath, const class ObjSet* objSet);
-
-	private:
-		void ParseTex(const u8* buffer, Tex& tex);
 	};
 }

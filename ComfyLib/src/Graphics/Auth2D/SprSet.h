@@ -21,7 +21,7 @@ namespace Comfy::Graphics
 		vec2 GetSize() const;
 	};
 
-	class SprSet : public IO::IStreamWritable, public IO::IBufferParsable, NonCopyable
+	class SprSet : public IO::IStreamReadable, public IO::IStreamWritable, NonCopyable
 	{
 	public:
 		std::string Name;
@@ -31,7 +31,9 @@ namespace Comfy::Graphics
 
 		IO::StreamResult Write(IO::StreamWriter& writer) override;
 
-		void Parse(const u8* buffer, size_t bufferSize) override;
+	public:
+		IO::StreamResult Read(IO::StreamReader& reader) override;
+		IO::StreamResult Write(IO::StreamWriter& writer) override;
 
 	private:
 	};
