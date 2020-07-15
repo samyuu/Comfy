@@ -1,6 +1,7 @@
 #include "SprSet.h"
 #include "IO/Stream/Manipulator/StreamReader.h"
 #include "IO/Stream/Manipulator/StreamWriter.h"
+#include "Misc/StringUtil.h"
 
 using namespace Comfy::IO;
 
@@ -9,6 +10,27 @@ namespace Comfy::Graphics
 	vec2 Spr::GetSize() const
 	{
 		return vec2(PixelRegion.z, PixelRegion.w);
+	}
+
+	void SprSet::ApplyDBNames(const Database::SprSetEntry& sprSetEntry)
+	{
+		if (sprSetEntry.SprEntries.size() != Sprites.size())
+			return;
+
+		if (Name.empty())
+			Name = sprSetEntry.Name;
+
+		// NOTE: Transform "SPR_{SET_NAME}" -> "SPR_{SET_NAME}_" to be stripped from "SPR_{SET_NAME}_{SPRITE_NAME}"
+		const auto sprPrefixToStrip = (sprSetEntry.Name + "_");
+
+		for (auto& sprEntry : sprSetEntry.SprEntries)
+		{
+			if (!InBounds(sprEntry.Index, Sprites))
+				continue;
+
+			// NOTE: Following the same convention that existing legacy SprSets name their sprites after
+			Sprites[sprEntry.Index].Name = Util::StripPrefix(sprEntry.Name, sprPrefixToStrip);
+		}
 	}
 
 	StreamResult SprSet::Read(StreamReader& reader)

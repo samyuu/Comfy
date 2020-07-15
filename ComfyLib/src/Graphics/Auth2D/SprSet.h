@@ -2,6 +2,7 @@
 #include "Types.h"
 #include "Graphics/TexSet.h"
 #include "Graphics/GraphicTypes.h"
+#include "Database/SprDB.h"
 
 namespace Comfy::Graphics
 {
@@ -29,7 +30,8 @@ namespace Comfy::Graphics
 		std::unique_ptr<TexSet> TexSet;
 		std::vector<Spr> Sprites;
 
-		IO::StreamResult Write(IO::StreamWriter& writer) override;
+	public:
+		void ApplyDBNames(const Database::SprSetEntry& sprSetEntry);
 
 	public:
 		IO::StreamResult Read(IO::StreamReader& reader) override;
