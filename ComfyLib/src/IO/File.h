@@ -42,10 +42,10 @@ namespace Comfy::IO
 				return nullptr;
 
 			auto reader = StreamReader(stream);
-			
+
 			if (const auto streamResult = result->Read(reader); streamResult != StreamResult::Success)
 				return nullptr;
-			
+
 			return result;
 		}
 
@@ -87,7 +87,9 @@ namespace Comfy::IO
 				return false;
 
 			auto writer = StreamWriter(stream);
-			writable.Write(writer);
+			if (const auto streamResult = writable.Write(writer); streamResult != StreamResult::Success)
+				return false;
+
 			return true;
 		}
 	}
