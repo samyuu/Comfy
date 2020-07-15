@@ -201,11 +201,17 @@ namespace Comfy::Studio::Editor
 		// sankaku_sync | shikaku_sync  | batsu_sync | maru_sync | slide_l_sync | slide_r_sync | slide_chain_l_sync | slide_chain_r_sync
 		if (const auto sprFileEntry = System::Data.FindFile("spr/spr_comfy_editor.bin"); sprFileEntry != nullptr)
 		{
-			auto sprFileBuffer = std::make_unique<u8[]>(sprFileEntry->Size);
-			System::Data.ReadEntryIntoBuffer(*sprFileEntry, sprFileBuffer.get());
+			auto sprFileBuffer = std::vector<u8>(sprFileEntry->Size);
+			System::Data.ReadEntryIntoBuffer(*sprFileEntry, sprFileBuffer.data());
+
+			auto stream = IO::MemoryStream();
+			stream.FromStreamSource(sprFileBuffer);
+
+			auto reader = IO::StreamReader(stream);
 
 			sprSet = std::make_unique<Graphics::SprSet>();
-			sprSet->Parse(sprFileBuffer.get(), sprFileEntry->Size);
+			if (sprSet->Read(reader) != IO::StreamResult::Success)
+				sprSet = nullptr;
 
 			if (sprSet != nullptr && !sprSet->TexSet->Textures.empty())
 				buttonIconsTexture = sprSet->TexSet->Textures.front();
