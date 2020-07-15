@@ -8,6 +8,7 @@
 #include "Command/AetHistoryWindow.h"
 #include "Command/AetCommandManager.h"
 #include "Editor/Core/IEditorComponent.h"
+#include "Database/SprDB.h"
 #include "IO/File.h"
 #include "ImGui/Widgets/FileViewer.h"
 

@@ -116,7 +116,22 @@ namespace Comfy::Studio::Editor
 		{
 			editorSprSet = sprSetLoadFuture.get();
 			if (editorSprSet != nullptr)
+			{
 				editorSprSet->Name = IO::Path::GetFileName(sprSetFilePath, false);
+
+				if (Util::MatchesInsensitive(IO::Path::GetExtension(sprSetFilePath), ".spr"))
+				{
+					const auto sprDBPath = IO::Path::ChangeExtension(sprSetFilePath, ".spi");
+					const auto sprDB = IO::File::Load<Database::SprDB>(sprDBPath);
+					
+					if (sprDB != nullptr)
+					{
+						const auto matchingEntry = FindIfOrNull(sprDB->Entries, [&](const auto& e) { return Util::MatchesInsensitive(e.Name, editorSprSet->Name); });
+						if (matchingEntry != nullptr)
+							editorSprSet->ApplyDBNames(*matchingEntry);
+					}
+				}
+			}
 
 			OnSprSetLoaded();
 		}
