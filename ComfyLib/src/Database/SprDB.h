@@ -29,13 +29,15 @@ namespace Comfy::Database
 	public:
 		std::vector<SprSetEntry> Entries;
 
-		IO::StreamResult Read(IO::StreamReader& reader) override;
-		IO::StreamResult Write(IO::StreamWriter& writer) override;
-
+	public:
 		SprSetEntry* GetSprSetEntry(std::string_view name);
 
 		u32 GetSprSetEntryCount();
 		u32 GetSprEntryCount();
+	
+	public:
+		IO::StreamResult Read(IO::StreamReader& reader) override;
+		IO::StreamResult Write(IO::StreamWriter& writer) override;
 
 	private:
 	};

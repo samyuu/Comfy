@@ -1,6 +1,7 @@
 #include "SprDB.h"
 #include "IO/Stream/Manipulator/StreamReader.h"
 #include "IO/Stream/Manipulator/StreamWriter.h"
+#include "Misc/StringUtil.h"
 
 namespace Comfy::Database
 {
@@ -21,12 +22,46 @@ namespace Comfy::Database
 		return FindIfOrNull(SprTexEntries, [&](const auto& e) { return (e.Name == name); });
 	}
 
+	SprSetEntry* SprDB::GetSprSetEntry(std::string_view name)
+	{
+		return FindIfOrNull(Entries, [&](const auto& e) { return (e.Name == name); });
+	}
+
+	u32 SprDB::GetSprSetEntryCount()
+	{
+		return static_cast<u32>(Entries.size());
+	}
+
+	u32 SprDB::GetSprEntryCount()
+	{
+		u32 sprEntryCount = 0;
+		for (auto& sprSetEntry : Entries)
+			sprEntryCount += static_cast<u32>(sprSetEntry.SprEntries.size() + sprSetEntry.SprTexEntries.size());
+		return sprEntryCount;
+	}
+
 	StreamResult SprDB::Read(StreamReader& reader)
 	{
+		const auto baseHeader = SectionHeader::TryRead(reader, SectionSignature::SPDB);
+		SectionHeader::ScanPOFSectionsSetPointerMode(reader);
+
+		if (baseHeader.has_value())
+		{
+			reader.SetEndianness(baseHeader->Endianness);
+			reader.Seek(baseHeader->StartOfSubSectionAddress());
+
+			if (reader.GetPointerMode() == PtrMode::Mode64Bit)
+				reader.PushBaseOffset();
+		}
+
 		const auto sprSetEntryCount = reader.ReadU32();
+		if (reader.GetPointerMode() == PtrMode::Mode64Bit)
+			reader.Skip(static_cast<FileAddr>(sizeof(u32)));
 		const auto sprSetOffset = reader.ReadPtr();
 
 		const auto sprEntryCount = reader.ReadU32();
+		if (reader.GetPointerMode() == PtrMode::Mode64Bit)
+			reader.Skip(static_cast<FileAddr>(sizeof(u32)));
 		const auto sprOffset = reader.ReadPtr();
 
 		if (sprSetEntryCount > 0)
@@ -40,6 +75,9 @@ namespace Comfy::Database
 				for (auto& sprSetEntry : Entries)
 				{
 					sprSetEntry.ID = SprSetID(reader.ReadU32());
+					if (reader.GetPointerMode() == PtrMode::Mode64Bit)
+						reader.Skip(static_cast<FileAddr>(sizeof(u32)));
+					
 					sprSetEntry.Name = reader.ReadStrPtrOffsetAware();
 					sprSetEntry.FileName = reader.ReadStrPtrOffsetAware();
 					const auto index = reader.ReadI32();
@@ -56,25 +94,35 @@ namespace Comfy::Database
 			{
 				for (u32 i = 0; i < sprEntryCount; i++)
 				{
-					constexpr u16 packedDataMask = 0x1000;
-
 					const auto id = SprID(reader.ReadU32());
+					if (reader.GetPointerMode() == PtrMode::Mode64Bit)
+						reader.Skip(static_cast<FileAddr>(sizeof(u32)));
+
 					const auto nameOffset = reader.ReadPtr();
-					const auto index = reader.ReadI16();
-					const auto packedData = reader.ReadU16();
+					const auto packedData = reader.ReadU32();
 
-					const auto sprSetEntryIndex = (packedData & ~packedDataMask);
-					auto& sprSetEntry = Entries[sprSetEntryIndex];
+					const auto sprIndex = (packedData & 0xFFFF);
+					const auto sprSetIndex = (static_cast<u16>((packedData >> 16) & 0xFFFF) & 0xFFF);
+					const auto isTexEntry = ((static_cast<u16>((packedData >> 16) & 0xFFFF) & 0x1000) == 0x1000);
 
-					auto& sprEntries = (packedData & packedDataMask) ? sprSetEntry.SprTexEntries : sprSetEntry.SprEntries;
-					auto& sprEntry = sprEntries.emplace_back();
+					assert(InBounds(sprSetIndex, Entries));
+					auto& sprSetEntry = Entries[sprSetIndex];
+					auto& sprEntry = (isTexEntry ? sprSetEntry.SprTexEntries : sprSetEntry.SprEntries).emplace_back();
 
 					sprEntry.ID = id;
 					sprEntry.Name = reader.ReadStrAtOffsetAware(nameOffset);
-					sprEntry.Index = index;
+					sprEntry.Index = sprIndex;
+
+					assert(Util::StartsWith(sprEntry.Name, isTexEntry ? "SPRTEX_" : "SPR_"));
+
+					if (reader.GetPointerMode() == PtrMode::Mode64Bit)
+						reader.Skip(static_cast<FileAddr>(sizeof(u32)));
 				}
 			});
 		}
+
+		if (baseHeader.has_value() && reader.GetPointerMode() == PtrMode::Mode64Bit)
+			reader.PopBaseOffset();
 
 		return StreamResult::Success;
 	}
@@ -144,23 +192,5 @@ namespace Comfy::Database
 		writer.WriteAlignmentPadding(16);
 
 		return StreamResult::Success;
-	}
-
-	SprSetEntry* SprDB::GetSprSetEntry(std::string_view name)
-	{
-		return FindIfOrNull(Entries, [&](const auto& e) { return (e.Name == name); });
-	}
-
-	u32 SprDB::GetSprSetEntryCount()
-	{
-		return static_cast<u32>(Entries.size());
-	}
-
-	u32 SprDB::GetSprEntryCount()
-	{
-		u32 sprEntryCount = 0;
-		for (auto& sprSetEntry : Entries)
-			sprEntryCount += static_cast<u32>(sprSetEntry.SprEntries.size() + sprSetEntry.SprTexEntries.size());
-		return sprEntryCount;
 	}
 }
