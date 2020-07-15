@@ -118,9 +118,7 @@ namespace Comfy::IO
 			return false;
 
 		buffer.resize(fileEntry->Size);
-		ReadEntryIntoBuffer(*fileEntry, buffer.data());
-
-		return true;
+		return ReadEntryIntoBuffer(*fileEntry, buffer.data());
 	}
 
 	bool ComfyArchive::ReadEntryIntoBuffer(const ComfyEntry& entry, void* outputBuffer)

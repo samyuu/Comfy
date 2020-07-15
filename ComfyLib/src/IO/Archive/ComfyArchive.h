@@ -106,7 +106,6 @@ namespace Comfy::IO
 		const ComfyDirectory* FindDirectory(std::string_view directoryPath) const;
 
 		bool ReadFileIntoBuffer(std::string_view filePath, std::vector<u8>& buffer);
-
 		bool ReadEntryIntoBuffer(const ComfyEntry& entry, void* outputBuffer);
 
 	private:
