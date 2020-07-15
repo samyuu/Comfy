@@ -49,6 +49,9 @@ namespace Comfy::IO
 
 		std::string ChangeExtension(std::string_view filePath, std::string_view newExtension)
 		{
+			if (const auto archivePath = Archive::ParsePath(filePath); !archivePath.FileName.empty())
+				return IO::Archive::CombinePath(archivePath.BasePath, ChangeExtension(archivePath.FileName, newExtension));
+
 			const auto oldExtension = GetExtension(filePath);
 
 			std::string newPath;
