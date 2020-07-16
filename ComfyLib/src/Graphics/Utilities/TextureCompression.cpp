@@ -260,7 +260,7 @@ namespace Comfy::Graphics::Utilities
 		auto compressionFlags = ::DirectX::TEX_COMPRESS_DEFAULT;
 
 		if (true) // NOTE: It seems this yields the best results in most cases
-			compressionFlags |= ::DirectX::TEX_COMPRESS_RGB_DITHER;
+			compressionFlags |= ::DirectX::TEX_COMPRESS_DITHER;
 
 		auto outputImage = ::DirectX::ScratchImage {};
 		if (FAILED(::DirectX::Compress(inputImage, outFormatDXGI, compressionFlags, ::DirectX::TEX_THRESHOLD_DEFAULT, outputImage)))
