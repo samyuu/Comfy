@@ -8,18 +8,36 @@ namespace Comfy::Database
 
 	AetSceneEntry* AetSetEntry::GetSceneEntry(std::string_view name)
 	{
-		for (auto& entry : SceneEntries)
-			if (entry.Name == name)
-				return &entry;
-		return nullptr;
+		return FindIfOrNull(SceneEntries, [&](const auto& e) { return e.Name == name; });
+	}
+
+	AetSetEntry* AetDB::GetAetSetEntry(std::string_view name)
+	{
+		return FindIfOrNull(Entries, [&](const auto& e) { return e.Name == name; });
 	}
 
 	StreamResult AetDB::Read(StreamReader& reader)
 	{
+		const auto baseHeader = SectionHeader::TryRead(reader, SectionSignature::AEDB);
+		SectionHeader::ScanPOFSectionsSetPointerMode(reader);
+
+		if (baseHeader.has_value())
+		{
+			reader.SetEndianness(baseHeader->Endianness);
+			reader.Seek(baseHeader->StartOfSubSectionAddress());
+
+			if (reader.GetPointerMode() == PtrMode::Mode64Bit)
+				reader.PushBaseOffset();
+		}
+
 		const auto setEntryCount = reader.ReadU32();
+		if (reader.GetPointerMode() == PtrMode::Mode64Bit)
+			reader.Skip(static_cast<FileAddr>(sizeof(u32)));
 		const auto setOffset = reader.ReadPtr();
 
 		const auto sceneCount = reader.ReadU32();
+		if (reader.GetPointerMode() == PtrMode::Mode64Bit)
+			reader.Skip(static_cast<FileAddr>(sizeof(u32)));
 		const auto sceneOffset = reader.ReadPtr();
 
 		if (setEntryCount > 0)
@@ -33,9 +51,12 @@ namespace Comfy::Database
 				for (auto& setEntry : Entries)
 				{
 					setEntry.ID = AetSetID(reader.ReadU32());
+					if (reader.GetPointerMode() == PtrMode::Mode64Bit)
+						reader.Skip(static_cast<FileAddr>(sizeof(u32)));
+
 					setEntry.Name = reader.ReadStrPtrOffsetAware();
 					setEntry.FileName = reader.ReadStrPtrOffsetAware();
-					u32 index = reader.ReadU32();
+					const auto index = reader.ReadU32();
 					setEntry.SprSetID = SprSetID(reader.ReadU32());
 				}
 			});
@@ -51,6 +72,9 @@ namespace Comfy::Database
 				for (u32 i = 0; i < sceneCount; i++)
 				{
 					const auto id = AetSceneID(reader.ReadU32());
+					if (reader.GetPointerMode() == PtrMode::Mode64Bit)
+						reader.Skip(static_cast<FileAddr>(sizeof(u32)));
+
 					const auto nameOffset = reader.ReadPtr();
 					const auto sceneIndex = reader.ReadU16();
 					const auto setIndex = reader.ReadU16();
@@ -63,6 +87,9 @@ namespace Comfy::Database
 				}
 			});
 		}
+		
+		if (baseHeader.has_value() && reader.GetPointerMode() == PtrMode::Mode64Bit)
+			reader.PopBaseOffset();
 
 		return StreamResult::Success;
 	}
@@ -116,10 +143,5 @@ namespace Comfy::Database
 		writer.WriteAlignmentPadding(16);
 
 		return StreamResult::Success;
-	}
-
-	AetSetEntry* AetDB::GetAetSetEntry(std::string_view name)
-	{
-		return FindIfOrNull(Entries, [&](const auto& e) { return e.Name == name; });
 	}
 }
