@@ -4,6 +4,6 @@
 
 namespace Comfy::Util
 {
-	void ReadImage(std::string_view filePath, ivec2& outSize, std::unique_ptr<u8[]>& outRGBAPixels);
-	void WriteImage(std::string_view filePath, ivec2 size, const void* rgbaPixels);
+	bool ReadImage(std::string_view filePath, ivec2& outSize, std::unique_ptr<u8[]>& outRGBAPixels);
+	bool WriteImage(std::string_view filePath, ivec2 size, const void* rgbaPixels);
 }

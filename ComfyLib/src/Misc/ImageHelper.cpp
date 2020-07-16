@@ -49,12 +49,13 @@ namespace
 
 namespace Comfy::Util
 {
-	void ReadImage(std::string_view filePath, ivec2& outSize, std::unique_ptr<u8[]>& outRGBAPixels)
+	bool ReadImage(std::string_view filePath, ivec2& outSize, std::unique_ptr<u8[]>& outRGBAPixels)
 	{
 		constexpr int rgbaComponents = 4;
 
 		int components;
 		stbi_uc* pixels = stbi_load(filePath.data(), &outSize.x, &outSize.y, &components, rgbaComponents);
+		COMFY_SCOPE_EXIT([&] { stbi_image_free(pixels); });
 
 		if (pixels != nullptr)
 		{
@@ -63,13 +64,13 @@ namespace Comfy::Util
 			std::memcpy(outRGBAPixels.get(), pixels, dataSize);
 		}
 
-		stbi_image_free(pixels);
+		return (outRGBAPixels != nullptr);
 	}
 
-	void WriteImage(std::string_view filePath, ivec2 size, const void* rgbaPixels)
+	bool WriteImage(std::string_view filePath, ivec2 size, const void* rgbaPixels)
 	{
 		if (rgbaPixels == nullptr || size.x <= 0 || size.y <= 0)
-			return;
+			return false;
 
 		constexpr int channelCount = 4;
 
@@ -78,11 +79,11 @@ namespace Comfy::Util
 
 		if (Util::MatchesInsensitive(extension, ".bmp"))
 		{
-			stbi_write_bmp(nullTerminatedFilePath.data(), size.x, size.y, channelCount, rgbaPixels);
+			return stbi_write_bmp(nullTerminatedFilePath.data(), size.x, size.y, channelCount, rgbaPixels);
 		}
 		else if (Util::MatchesInsensitive(extension, ".tga"))
 		{
-			stbi_write_tga(nullTerminatedFilePath.data(), size.x, size.y, channelCount, rgbaPixels);
+			return stbi_write_tga(nullTerminatedFilePath.data(), size.x, size.y, channelCount, rgbaPixels);
 		}
 		else
 		{
@@ -92,7 +93,7 @@ namespace Comfy::Util
 			// NOTE: For simplicity sake proper 16 byte stride alignment will be ignored for now
 			const auto pixelsPerLine = size.x;
 
-			stbi_write_png(nullTerminatedFilePath.data(), size.x, size.y, channelCount, rgbaPixels, pixelsPerLine * channelCount);
+			return stbi_write_png(nullTerminatedFilePath.data(), size.x, size.y, channelCount, rgbaPixels, pixelsPerLine * channelCount);
 		}
 	}
 }
