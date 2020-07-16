@@ -242,6 +242,9 @@ namespace Comfy::Graphics::Utilities
 		if (!(sprMarkup.Flags & SprMarkupFlags_Compress) || !Settings.PowerOfTwoTextures)
 			return TextureFormat::RGBA8;
 
+		if ((sprMarkup.Flags & SprMarkupFlags_NoMerge) && Area(sprMarkup.Size) <= Settings.NoMergeUncompressedAreaThreshold)
+			return TextureFormat::RGBA8;
+
 		if (Settings.AllowYCbCrTextures)
 			return TextureFormat::RGTC2;
 

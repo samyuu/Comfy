@@ -83,6 +83,9 @@ namespace Comfy::Graphics::Utilities
 			// NOTE: Set to 0xFFFF00FF for debugging but fully transparent by default to avoid cross sprite boundary block compression artifacts
 			std::optional<u32> BackgroundColor = 0x00000000;
 
+			// NOTE: No-merge sprites with an area smaller or equal to this threshold are considered not worth compressing due to the minor space savings
+			int NoMergeUncompressedAreaThreshold = (32 * 32);
+
 			// NOTE: If any of the input sprites is larger than this threshold the size of the texture will be set to match that of the sprite
 			ivec2 MaxTextureSize = ivec2(2048, 1024);
 
