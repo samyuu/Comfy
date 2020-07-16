@@ -76,14 +76,18 @@ namespace Comfy::Database
 						reader.Skip(static_cast<FileAddr>(sizeof(u32)));
 
 					const auto nameOffset = reader.ReadPtr();
-					const auto sceneIndex = reader.ReadU16();
-					const auto setIndex = reader.ReadU16();
+					const auto packedData = reader.ReadU32();
 
+					const auto sceneIndex = static_cast<u16>(packedData & 0xFFFF);
+					const auto setIndex = static_cast<u16>((packedData >> 16) & 0xFFFF);
+
+					assert(InBounds(setIndex, Entries));
 					auto& setEntry = Entries[setIndex];
 					auto& sceneEntry = setEntry.SceneEntries.emplace_back();
 
 					sceneEntry.ID = id;
 					sceneEntry.Name = reader.ReadStrAtOffsetAware(nameOffset);
+					sceneEntry.Index = sceneIndex;
 				}
 			});
 		}
@@ -125,8 +129,7 @@ namespace Comfy::Database
 				{
 					writer.WriteU32(static_cast<u32>(sceneEntry.ID));
 					writer.WriteStrPtr(sceneEntry.Name);
-					writer.WriteU16(sceneIndex);
-					writer.WriteU16(setIndex);
+					writer.WriteU32((setIndex << 16) | sceneEntry.Index);
 					sceneIndex++;
 				}
 				setIndex++;

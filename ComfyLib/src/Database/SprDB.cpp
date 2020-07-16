@@ -142,14 +142,11 @@ namespace Comfy::Database
 			i16 sprSetIndex = 0;
 			for (auto& sprSetEntry : Entries)
 			{
-				constexpr u16 packedDataMask = 0x1000;
-
 				for (auto& sprTexEntry : sprSetEntry.SprTexEntries)
 				{
 					writer.WriteU32(static_cast<u32>(sprTexEntry.ID));
 					writer.WriteStrPtr(sprTexEntry.Name);
-					writer.WriteI16(sprTexEntry.Index);
-					writer.WriteU16(sprSetIndex | packedDataMask);
+					writer.WriteU32(sprTexEntry.Index | ((sprSetIndex | 0x1000) << 16));
 				}
 
 				i16 sprIndex = 0;
@@ -157,8 +154,7 @@ namespace Comfy::Database
 				{
 					writer.WriteU32(static_cast<u32>(sprEntry.ID));
 					writer.WriteStrPtr(sprEntry.Name);
-					writer.WriteI16(sprEntry.Index);
-					writer.WriteU16(sprSetIndex);
+					writer.WriteU32(sprEntry.Index | (sprSetIndex << 16));
 				}
 
 				sprSetIndex++;

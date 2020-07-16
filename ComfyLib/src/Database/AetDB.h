@@ -7,6 +7,7 @@ namespace Comfy::Database
 	{
 		AetSceneID ID;
 		std::string Name;
+		i16 Index;
 	};
 
 	struct AetSetEntry : BinaryDatabase::Entry, BinaryDatabase::FileEntry
