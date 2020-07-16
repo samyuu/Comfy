@@ -82,6 +82,8 @@ namespace Comfy::Graphics::Utilities
 					return;
 
 				auto texRGBA = reinterpret_cast<const u32*>(rgbaTextures[spr.TextureIndex].get());
+				if (texRGBA == nullptr)
+					return;
 
 				for (size_t y = 0; y < sprSize.y; y++)
 				{
