@@ -196,14 +196,17 @@ namespace Comfy::Graphics::Utilities
 		if (inData == nullptr || outData == nullptr)
 			return false;
 
+		const auto expectedInputByteSize = TextureFormatByteSize(size, inFormat);
+		if (inByteSize < expectedInputByteSize)
+			return false;
+
+		if (inFormat == TextureFormat::RGB8 && outFormat == TextureFormat::RGBA8)
+			return ConvertRGBToRGBA(size, inData, inByteSize, outData, outByteSize);
+
 		const auto inFormatDXGI = TextureFormatToDXGI(inFormat);
 		const auto outFormatDXGI = TextureFormatToDXGI(outFormat);
 
 		if (inFormatDXGI == DXGI_FORMAT_UNKNOWN || outFormatDXGI == DXGI_FORMAT_UNKNOWN)
-			return false;
-
-		const auto expectedInputByteSize = (size.x * size.y * ::DirectX::BitsPerPixel(inFormatDXGI)) / CHAR_BIT;
-		if (inByteSize < expectedInputByteSize)
 			return false;
 
 		if (inFormat == outFormat)
@@ -239,14 +242,14 @@ namespace Comfy::Graphics::Utilities
 		if (inData == nullptr || outData == nullptr)
 			return false;
 
+		const auto expectedInputByteSize = TextureFormatByteSize(size, inFormat);
+		if (inByteSize < expectedInputByteSize)
+			return false;
+
 		const auto inFormatDXGI = TextureFormatToDXGI(inFormat);
 		const auto outFormatDXGI = TextureFormatToDXGI(outFormat);
 
 		if (inFormatDXGI == DXGI_FORMAT_UNKNOWN || outFormatDXGI == DXGI_FORMAT_UNKNOWN)
-			return false;
-
-		const auto expectedInputByteSize = (size.x * size.y * ::DirectX::BitsPerPixel(inFormatDXGI)) / CHAR_BIT;
-		if (inByteSize < expectedInputByteSize)
 			return false;
 
 		auto inputImage = ::DirectX::Image {};
@@ -546,6 +549,34 @@ namespace Comfy::Graphics::Utilities
 
 				std::swap(pixel, flippedPixel);
 			}
+		}
+
+		return true;
+	}
+
+	bool ConvertRGBToRGBA(ivec2 size, const u8* inData, size_t inByteSize, u8* outData, size_t outByteSize)
+	{
+		if (size.x <= 0 || size.y <= 0)
+			return false;
+
+		const auto expectedInputByteSize = TextureFormatByteSize(size, TextureFormat::RGB8);
+		if (inByteSize < expectedInputByteSize)
+			return false;
+
+		const auto expectedOutputByteSize = TextureFormatByteSize(size, TextureFormat::RGBA8);
+		if (outByteSize < expectedOutputByteSize)
+			return false;
+
+		const u8* currentRGBPixel = inData;
+		for (size_t i = 0; i < (size.x * size.y); i++)
+		{
+			const u8 r = currentRGBPixel[0];
+			const u8 g = currentRGBPixel[1];
+			const u8 b = currentRGBPixel[2];
+			const u8 a = std::numeric_limits<u8>::max();
+			currentRGBPixel += 3;
+
+			outData[i] = (r << 0) | (g << 8) | (b << 16) | (a << 24);
 		}
 
 		return true;
