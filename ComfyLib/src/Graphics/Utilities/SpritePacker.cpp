@@ -220,6 +220,8 @@ namespace Comfy::Graphics::Utilities
 			}));
 		}
 
+		FinalSpriteSort(sprSet.Sprites);
+
 		sprSet.TexSet = std::make_unique<TexSet>();
 		sprSet.TexSet->Textures.reserve(mergedTextures.size());
 
@@ -266,9 +268,11 @@ namespace Comfy::Graphics::Utilities
 				auto& texMarkup = texMarkups.emplace_back();
 				texMarkup.Size = (Settings.PowerOfTwoTextures) ? RoundToNearestPowerOfTwo(texSize) : texSize;
 				texMarkup.OutputFormat = format;
+				texMarkup.CompressionType = compressionType;
 				texMarkup.Merge = merge;
 				texMarkup.SpriteBoxes.push_back({ &sprMarkup, ivec4(ivec2(0, 0), sprSize) });
-				texMarkup.Name = FormatTextureName(texMarkup.Merge, compressionType, formatTypeIndex++);
+				texMarkup.FormatTypeIndex = formatTypeIndex++;
+				texMarkup.Name = FormatTextureName(texMarkup.Merge, texMarkup.CompressionType, texMarkup.FormatTypeIndex);
 				texMarkup.RemainingFreePixels = Area(texMarkup.Size) - Area(sprSize);
 			};
 
@@ -302,6 +306,8 @@ namespace Comfy::Graphics::Utilities
 		}
 
 		AdjustTexMarkupSizes(texMarkups);
+		FinalTexMarkupSort(texMarkups);
+
 		return texMarkups;
 	}
 
@@ -378,7 +384,7 @@ namespace Comfy::Graphics::Utilities
 		return std::make_pair(static_cast<SprTexMarkup*>(nullptr), ivec4(0, 0, 0, 0));
 	}
 
-	void SpritePacker::AdjustTexMarkupSizes(std::vector<SprTexMarkup>& texMarkups)
+	void SpritePacker::AdjustTexMarkupSizes(std::vector<SprTexMarkup>& texMarkups) const
 	{
 		for (auto& texMarkup : texMarkups)
 		{
@@ -398,6 +404,37 @@ namespace Comfy::Graphics::Utilities
 			const auto texNeededSize = ivec2(GetBoxRight(maxRight->Box), GetBoxBottom(maxBottom->Box));
 			texMarkup.Size = (Settings.PowerOfTwoTextures) ? RoundToNearestPowerOfTwo(texNeededSize) : texNeededSize;
 		}
+	}
+
+	void SpritePacker::FinalTexMarkupSort(std::vector<SprTexMarkup>& texMarkups) const
+	{
+		// NOTE: Sort by (MERGE > COMP > INDEX)
+		auto getTexSortWeight = [](const SprTexMarkup& texMarkup)
+		{
+			static_assert(sizeof(texMarkup.Merge) == sizeof(u8));
+			static_assert(sizeof(texMarkup.CompressionType) == sizeof(u8));
+			static_assert(sizeof(texMarkup.FormatTypeIndex) == sizeof(u16));
+
+			u32 totalWeight = 0;
+			totalWeight |= (static_cast<u32>(texMarkup.Merge) << 24);
+			totalWeight |= (static_cast<u32>(texMarkup.CompressionType) << 16);
+			totalWeight |= (static_cast<u32>(texMarkup.FormatTypeIndex) << 0);
+			return totalWeight;
+		};
+
+		std::sort(texMarkups.begin(), texMarkups.end(), [&](const auto& texA, const auto& texB)
+		{
+			return getTexSortWeight(texA) < getTexSortWeight(texB);
+		});
+	}
+
+	void SpritePacker::FinalSpriteSort(std::vector<Spr>& sprites) const
+	{
+		// NOTE: Pseudo alphabetic order
+		std::sort(sprites.begin(), sprites.end(), [&](const auto& sprA, const auto& sprB)
+		{
+			return (sprA.Name < sprB.Name);
+		});
 	}
 
 	std::shared_ptr<Tex> SpritePacker::CreateCompressTexFromMarkup(const SprTexMarkup& texMarkup)

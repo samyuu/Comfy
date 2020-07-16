@@ -8,19 +8,21 @@
 
 namespace Comfy::Graphics::Utilities
 {
-	enum class MergeType
+	// NOTE: Defined in sort order
+	enum class MergeType : u8
 	{
-		NoMerge,
 		Merge,
+		NoMerge,
 		Count
 	};
 
-	enum class CompressionType
+	// NOTE: Defined in sort order
+	enum class CompressionType : u8
 	{
-		NoComp,
-		D5Comp,
 		BC4Comp,
 		BC5Comp,
+		D5Comp,
+		NoComp,
 		UnkComp,
 		Count
 	};
@@ -54,6 +56,8 @@ namespace Comfy::Graphics::Utilities
 		ivec2 Size;
 		TextureFormat OutputFormat;
 		MergeType Merge;
+		CompressionType CompressionType;
+		u16 FormatTypeIndex;
 		std::vector<SprMarkupBox> SpriteBoxes;
 		int RemainingFreePixels;
 	};
@@ -113,7 +117,11 @@ namespace Comfy::Graphics::Utilities
 		std::vector<const SprMarkup*> SortByArea(const std::vector<SprMarkup>& sprMarkups) const;
 
 		std::pair<SprTexMarkup*, ivec4> FindFittingTexMarkupToPlaceSprIn(const SprMarkup& sprToPlace, TextureFormat sprOutputFormat, std::vector<SprTexMarkup>& existingTexMarkups);
-		void AdjustTexMarkupSizes(std::vector<SprTexMarkup>& texMarkups);
+		void AdjustTexMarkupSizes(std::vector<SprTexMarkup>& texMarkups) const;
+
+		// NOTE: Theses serve no functional purpose other than to make the final output look consistent and cleaner
+		void FinalTexMarkupSort(std::vector<SprTexMarkup>& texMarkups) const;
+		void FinalSpriteSort(std::vector<Spr>& sprites) const;
 
 		std::shared_ptr<Tex> CreateCompressTexFromMarkup(const SprTexMarkup& texMarkup);
 		std::unique_ptr<u8[]> CreateMergedTexMarkupRGBAPixels(const SprTexMarkup& texMarkup);
