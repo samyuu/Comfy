@@ -2,6 +2,7 @@
 #include "RenderTarget.h"
 #include "Graphics/TexSet.h"
 #include "Graphics/Auth3D/LightParam/IBLParameters.h"
+#include "Graphics/Utilities/TextureCompression.h"
 #include <DirectXTex.h>
 
 namespace Comfy::Render::D3D11
@@ -77,23 +78,6 @@ namespace Comfy::Render::D3D11
 			else
 			{
 				return ((size.x * bitsPerPixel + 7) / 8);
-			}
-		}
-
-		void PadRGBToRGBA(const ivec2 size, const u8* inputRGB, u32* outputRGBA)
-		{
-			const u8* currentRGBPixel = inputRGB;
-
-			for (i32 i = 0; i < (size.x * size.y); i++)
-			{
-				const u8 r = currentRGBPixel[0];
-				const u8 g = currentRGBPixel[1];
-				const u8 b = currentRGBPixel[2];
-				const u8 a = std::numeric_limits<u8>::max();
-				currentRGBPixel += 3;
-
-				const u32 rgba = (r << 0) | (g << 8) | (b << 16) | (a << 24);
-				outputRGBA[i] = rgba;
 			}
 		}
 
@@ -265,15 +249,17 @@ namespace Comfy::Render::D3D11
 		if (baseMipMap.Format == TextureFormat::RGB8)
 		{
 			textureDescription.Format = GetDXGIFormat(TextureFormat::RGBA8);
-			std::array<std::unique_ptr<u32[]>, MaxMipMaps> rgbaBuffers;
+			std::array<std::unique_ptr<u8[]>, MaxMipMaps> rgbaBuffers;
 
 			for (size_t i = 0; i < mipMaps.size(); i++)
 			{
 				auto& resource = initialResourceData[i];
 				auto& mipMap = mipMaps[i];
 
-				rgbaBuffers[i] = std::make_unique<u32[]>(mipMap.Size.x * mipMap.Size.y);
-				PadRGBToRGBA(mipMap.Size, mipMap.Data.get(), rgbaBuffers[i].get());
+				const auto rgbaByteSize = Utilities::TextureFormatByteSize(mipMap.Size, TextureFormat::RGBA8);
+				rgbaBuffers[i] = std::make_unique<u8[]>(rgbaByteSize);
+
+				Utilities::ConvertRGBToRGBA(mipMap.Size, mipMap.Data.get(), mipMap.DataSize, rgbaBuffers[i].get(), rgbaByteSize);
 
 				resource.pSysMem = rgbaBuffers[i].get();
 				resource.SysMemPitch = static_cast<UINT>(GetMemoryPitch(mipMap.Size, ::DirectX::BitsPerPixel(textureDescription.Format), false));
