@@ -568,6 +568,8 @@ namespace Comfy::Graphics::Utilities
 			return false;
 
 		const u8* currentRGBPixel = inData;
+		u32* outRGBAPixel = reinterpret_cast<u32*>(outData);
+
 		for (size_t i = 0; i < (size.x * size.y); i++)
 		{
 			const u8 r = currentRGBPixel[0];
@@ -576,7 +578,7 @@ namespace Comfy::Graphics::Utilities
 			const u8 a = std::numeric_limits<u8>::max();
 			currentRGBPixel += 3;
 
-			outData[i] = (r << 0) | (g << 8) | (b << 16) | (a << 24);
+			outRGBAPixel[i] = (r << 0) | (g << 8) | (b << 16) | (a << 24);
 		}
 
 		return true;
