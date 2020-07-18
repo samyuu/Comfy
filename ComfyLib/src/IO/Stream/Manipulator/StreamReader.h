@@ -61,7 +61,7 @@ namespace Comfy::IO
 
 		bool IsValidPointer(FileAddr address, bool offsetAware = true)
 		{
-			return (address > FileAddr::NullPtr) && ((offsetAware ? address + baseOffset : address) < underlyingStream->GetLength());
+			return (address > FileAddr::NullPtr) && ((offsetAware ? address + baseOffset : address) <= underlyingStream->GetLength());
 		}
 
 	public:
