@@ -50,6 +50,9 @@ namespace Comfy::IO
 		inline bool GetHasBeenPointerModeScanned() const { return hasBeenPointerModeScanned; }
 		inline void SetHasBeenPointerModeScanned(bool value) { hasBeenPointerModeScanned = value; }
 
+		inline const void* GetUserData() const { return userData; }
+		inline void SetUserData(const void* value) { userData = value; }
+
 	protected:
 		virtual void OnPointerModeChanged() = 0;
 		virtual void OnEndiannessChanged() = 0;
@@ -64,5 +67,8 @@ namespace Comfy::IO
 
 		FileAddr baseOffset = FileAddr::NullPtr;
 		std::stack<FileAddr> baseOffsetStack;
+
+		// NOTE: Arbitrary user controllable data used to make parsing certain formats easier without having to parse around additional parameters
+		const void* userData = nullptr;
 	};
 }
