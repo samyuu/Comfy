@@ -1403,7 +1403,7 @@ namespace Comfy::Render
 				SetSubMeshRasterizerState(material);
 
 			SetObjectCBMaterialData(material, ConstantBuffers.Object.Data.Material);
-			SetObjectCBTransforms(command, mesh, subMesh, ConstantBuffers.Object.Data);
+			SetObjectCBTransforms(command, mesh, subMesh, material, ConstantBuffers.Object.Data);
 
 			ConstantBuffers.Object.Data.MorphWeight = GetObjectCBMorphWeight(command);
 			ConstantBuffers.Object.Data.ShaderFlags = GetObjectCBShaderFlags(command, mesh, subMesh, material, boundMaterialTexturesFlags, flags);
@@ -1634,7 +1634,7 @@ namespace Comfy::Render
 			outMaterialData.BumpDepth = material.BumpDepth;
 		}
 
-		void SetObjectCBTransforms(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, Detail::ObjectConstantData& outData) const
+		void SetObjectCBTransforms(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, Detail::ObjectConstantData& outData) const
 		{
 			mat4 modelMatrix;
 			if (Current.RenderTarget->Param.ObjectBillboarding && (mesh.Flags.FaceCameraPosition || mesh.Flags.FaceCameraView))
@@ -1653,6 +1653,10 @@ namespace Comfy::Render
 			}
 
 			outData.Model = glm::transpose(modelMatrix);
+
+			// HACK: Hacky optimization to avoid expensive inverse calculations
+			if (&const_cast<Impl*>(this)->GetMaterialShader(command, mesh, subMesh, material) == &Shaders.GlassEye)
+				outData.ModelInverse = glm::transpose(glm::inverse(modelMatrix));
 
 #if 0 // TODO:
 			outData.ModelView = glm::transpose(Current.Camera->GetView() * modelMatrix);

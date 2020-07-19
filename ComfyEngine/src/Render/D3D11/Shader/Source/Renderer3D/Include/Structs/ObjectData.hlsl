@@ -7,6 +7,7 @@
 struct ObjectData
 {
     matrix Model;
+    matrix ModelInverse;
     matrix ModelView;
     matrix ModelViewProjection;
     

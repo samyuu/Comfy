@@ -9,7 +9,7 @@
 #define mv                          (transpose(CB_Object.ModelView))
 #define camera_mvi                  (CB_Scene.View)
 #define model_mtx                   (transpose(CB_Object.Model))
-#define model_mtx_i                 (transpose(CB_Object.Model))
+#define model_mtx_i                 (transpose(CB_Object.ModelInverse))
 #define model_mtx_it                (transpose(CB_Object.Model))
 
 // TODO: { program.env[26 .. 28] }

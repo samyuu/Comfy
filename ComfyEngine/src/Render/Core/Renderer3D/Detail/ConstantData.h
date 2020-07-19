@@ -58,6 +58,7 @@ namespace Comfy::Render::Detail
 	struct ObjectConstantData
 	{
 		mat4 Model;
+		mat4 ModelInverse;
 		mat4 ModelView;
 		mat4 ModelViewProjection;
 		struct MaterialData
