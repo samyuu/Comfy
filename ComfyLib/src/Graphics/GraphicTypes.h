@@ -14,6 +14,8 @@ namespace Comfy::Graphics
 		U16 = 1,
 		// NOTE: DXGI_FORMAT_R32_UINT / GL_UNSIGNED_INT
 		U32 = 2,
+
+		Count
 	};
 
 	enum class PrimitiveType : u32
@@ -310,6 +312,13 @@ namespace Comfy::Graphics
 
 namespace Comfy::Graphics
 {
+	constexpr std::array<const char*, EnumCount<IndexFormat>()> IndexFormatNames =
+	{
+		"U8",
+		"U16",
+		"U32",
+	};
+
 	constexpr std::array<const char*, EnumCount<PrimitiveType>()> PrimitiveTypeNames =
 	{
 		"Points",
