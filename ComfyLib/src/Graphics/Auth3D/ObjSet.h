@@ -486,33 +486,9 @@ namespace Comfy::Graphics
 		std::string Name;
 		std::vector<TexID> TextureIDs;
 		std::unique_ptr<TexSet> TexSet;
-
-		// TODO: Remove these and directly expose Obj vector
-		auto begin() { return objects.begin(); }
-		auto end() { return objects.end(); }
-		auto begin() const { return objects.begin(); }
-		auto end() const { return objects.end(); }
-		auto cbegin() const { return objects.cbegin(); }
-		auto cend() const { return objects.cend(); }
-
-		Obj& front() { return objects.front(); }
-		Obj& back() { return objects.back(); }
-		const Obj& front() const { return objects.front(); }
-		const Obj& back() const { return objects.back(); }
-
-		inline size_t size() const { return objects.size(); }
-		inline bool empty() const { return objects.empty(); }
-
-		inline Obj& at(size_t index) { return objects.at(index); }
-		inline Obj& operator[] (size_t index) { return objects[index]; }
-
-		inline Obj* GetObjAt(int index) { return &objects.at(index); }
-		inline const Obj* GetObjAt(int index) const { return &objects[index]; }
+		std::vector<Obj> Objects;
 
 	public:
 		IO::StreamResult Read(IO::StreamReader& reader) override;
-
-	private:
-		std::vector<Obj> objects;
 	};
 }

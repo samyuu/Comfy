@@ -245,10 +245,10 @@ namespace Comfy::Graphics
 			if (!reader.IsValidPointer(objectsOffset))
 				return StreamResult::BadPointer;
 
-			objects.resize(objectCount);
+			Objects.resize(objectCount);
 			reader.ReadAtOffsetAware(objectsOffset, [this](StreamReader& reader)
 			{
-				for (auto& obj : objects)
+				for (auto& obj : Objects)
 				{
 					reader.ReadAtOffsetAware(reader.ReadPtr(), [&obj](StreamReader& reader)
 					{
@@ -266,7 +266,7 @@ namespace Comfy::Graphics
 
 			reader.ReadAtOffsetAware(skeletonsOffset, [this](StreamReader& reader)
 			{
-				for (auto& obj : objects)
+				for (auto& obj : Objects)
 				{
 					const auto skeletonOffset = reader.ReadPtr();
 					if (skeletonOffset != FileAddr::NullPtr)
@@ -328,7 +328,7 @@ namespace Comfy::Graphics
 
 			reader.ReadAtOffsetAware(objectNamesOffset, [this](StreamReader& reader)
 			{
-				for (auto& obj : objects)
+				for (auto& obj : Objects)
 					obj.Name = reader.ReadStrPtrOffsetAware();
 			});
 		}
@@ -341,7 +341,7 @@ namespace Comfy::Graphics
 
 			reader.ReadAtOffsetAware(objectIDsOffset, [this](StreamReader& reader)
 			{
-				for (auto& obj : objects)
+				for (auto& obj : Objects)
 					obj.ID = ObjID(reader.ReadU32());
 			});
 		}

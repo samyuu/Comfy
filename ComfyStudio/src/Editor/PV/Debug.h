@@ -153,7 +153,7 @@ namespace Comfy::Studio::Debug
 		if (objSet == nullptr)
 			return -1;
 
-		auto result = std::find_if(objSet->begin(), objSet->end(), [](auto& obj) { return IsGroundObj(obj); });
-		return (result == objSet->end()) ? -1 : static_cast<int>(std::distance(objSet->begin(), result));
+		const auto index = FindIndexOf(objSet->Objects, [](auto& obj) { return IsGroundObj(obj); });
+		return InBounds(index, objSet->Objects) ? static_cast<int>(index) : -1;
 	}
 }

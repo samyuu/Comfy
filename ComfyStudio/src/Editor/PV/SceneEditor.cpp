@@ -218,7 +218,7 @@ namespace Comfy::Studio::Editor
 			return false;
 
 		auto& newlyAddedStageObjSet = sceneGraph.LoadedObjSets.back();
-		for (auto& obj : *newlyAddedStageObjSet.ObjSet)
+		for (auto& obj : newlyAddedStageObjSet.ObjSet->Objects)
 		{
 			auto& entity = sceneGraph.AddEntityFromObj(obj, StageTag);
 			entity.IsReflection = Debug::IsReflectionObj(obj);
@@ -335,12 +335,12 @@ namespace Comfy::Studio::Editor
 		for (size_t setIndex = 0; setIndex < sceneGraph.LoadedObjSets.size(); setIndex++)
 		{
 			const auto& resource = sceneGraph.LoadedObjSets[setIndex];
-			for (size_t objIndex = 0; objIndex < resource.ObjSet->size(); objIndex++)
+			for (size_t objIndex = 0; objIndex < resource.ObjSet->Objects.size(); objIndex++)
 			{
-				const auto& obj = resource.ObjSet->GetObjAt(static_cast<int>(objIndex));
-				for (size_t meshIndex = 0; meshIndex < obj->Meshes.size(); meshIndex++)
+				const auto& obj = resource.ObjSet->Objects[objIndex];
+				for (size_t meshIndex = 0; meshIndex < obj.Meshes.size(); meshIndex++)
 				{
-					const auto& mesh = obj->Meshes[meshIndex];
+					const auto& mesh = obj.Meshes[meshIndex];
 					for (size_t subMeshIndex = 0; subMeshIndex < mesh.SubMeshes.size(); subMeshIndex++)
 					{
 						const auto& subMesh = mesh.SubMeshes[subMeshIndex];
@@ -439,7 +439,7 @@ namespace Comfy::Studio::Editor
 			if (LoadRegisterObjSet(objSetFileViewer.GetFileToOpen(), Debug::GetTexSetPathForObjSet(objSetFileViewer.GetFileToOpen()), ObjectTag))
 			{
 				auto& newlyAddedStageObjSet = sceneGraph.LoadedObjSets.back();
-				for (auto& obj : *newlyAddedStageObjSet.ObjSet)
+				for (auto& obj : newlyAddedStageObjSet.ObjSet->Objects)
 				{
 					auto& entity = sceneGraph.AddEntityFromObj(obj, ObjectTag);
 					entity.CastsShadow = true;
@@ -875,10 +875,10 @@ namespace Comfy::Studio::Editor
 				return;
 
 			ObjSet& objSet = *sceneGraph.LoadedObjSets[objTestData.ObjSetIndex].ObjSet;
-			if (!collectionComboDebugMaterialHover("Obj", objSet, objTestData.ObjIndex))
+			if (!collectionComboDebugMaterialHover("Obj", objSet.Objects, objTestData.ObjIndex))
 				return;
 
-			selectedObj = &objSet[objTestData.ObjIndex];
+			selectedObj = &objSet.Objects[objTestData.ObjIndex];
 		});
 
 		if (selectedObj == nullptr)
@@ -1022,15 +1022,15 @@ namespace Comfy::Studio::Editor
 				{
 					auto& loadedResource = sceneGraph.LoadedObjSets.back();
 
-					if (InBounds(exclusiveObjIndex, *loadedResource.ObjSet))
+					if (InBounds(exclusiveObjIndex, loadedResource.ObjSet->Objects))
 					{
-						auto& entity = sceneGraph.AddEntityFromObj(loadedResource.ObjSet->at(exclusiveObjIndex), CharacterTag);
+						auto& entity = sceneGraph.AddEntityFromObj(loadedResource.ObjSet->Objects[exclusiveObjIndex], CharacterTag);
 						entity.CastsShadow = true;
 						entity.IgnoreShadowCastObjFlags = true;
 					}
 					else
 					{
-						for (auto& obj : *loadedResource.ObjSet)
+						for (auto& obj : loadedResource.ObjSet->Objects)
 						{
 							auto& entity = sceneGraph.AddEntityFromObj(obj, CharacterTag);
 							entity.CastsShadow = true;
@@ -1576,16 +1576,16 @@ namespace Comfy::Studio::Editor
 
 			sceneGraph.RegisterTextures(effCmnObjSet->TexSet.get());
 
-			if (auto sunObj = std::find_if(effCmnObjSet->begin(), effCmnObjSet->end(), [&](const auto& obj) { return obj.Name == "effcmn_sun"; }); sunObj != effCmnObjSet->end())
+			if (auto sunObj = FindIfOrNull(effCmnObjSet->Objects, [&](const auto& obj) { return obj.Name == "effcmn_sun"; }); sunObj != nullptr)
 			{
-				scene.LensFlare.SunObj = &(*sunObj);
+				scene.LensFlare.SunObj = sunObj;
 				scene.LensFlare.Textures.Sun = sunObj->Materials.front().Textures.front().TextureID;
 			}
 		}
 
 		for (const auto& objSet : sceneGraph.LoadedObjSets)
 		{
-			for (const auto& obj : *objSet.ObjSet)
+			for (const auto& obj : objSet.ObjSet->Objects)
 			{
 				if (obj.Materials.empty())
 					continue;

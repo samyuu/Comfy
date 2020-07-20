@@ -33,7 +33,7 @@ namespace Comfy::Sandbox::Tests
 				{
 					if (objSet != nullptr)
 					{
-						for (auto& obj : *objSet)
+						for (auto& obj : objSet->Objects)
 							renderer.Draw(Render::RenderCommand3D(obj));
 					}
 				}
