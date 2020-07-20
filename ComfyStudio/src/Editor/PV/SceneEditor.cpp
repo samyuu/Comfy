@@ -1285,9 +1285,9 @@ namespace Comfy::Studio::Editor
 
 				if (object.Morph != nullptr)
 				{
-					size_t morphEntityIndex = static_cast<size_t>(std::distance(entities.begin(), correspondingEntity)) + 1;
+					const auto morphEntityIndex = static_cast<size_t>(std::distance(entities.begin(), correspondingEntity)) + 1;
 
-					entity->Dynamic->MorphObj = (morphEntityIndex >= entities.size()) ? nullptr : entities[morphEntityIndex]->Obj;
+					entity->Dynamic->MorphObj = (InBounds(morphEntityIndex, entities)) ? entities[morphEntityIndex]->Obj : nullptr;
 					entity->Dynamic->MorphWeight = A3DMgr::GetValueAt(object.Morph->CV, frame);
 				}
 			}
@@ -1563,27 +1563,6 @@ namespace Comfy::Studio::Editor
 
 	void SceneEditor::DrawDebugTestGui(ViewportContext& activeViewport)
 	{
-#if COMFY_DEBUG && 0
-		Gui::DEBUG_NOSAVE_WINDOW("Loaded Textures Test", [&]
-		{
-			sceneGraph.TexIDMap.Iterate([&](ResourceIDMap<TexID, Tex>::ResourceIDPair& resourceIDPair)
-			{
-				TexID id = resourceIDPair.ID;
-				Tex& tex = *resourceIDPair.Resource;
-
-				char buffer[64];
-				sprintf_s(buffer, "0x%X : %s", id, tex.GetName().data());
-				Gui::Selectable(buffer, false);
-				if (Gui::IsItemHovered())
-				{
-					Gui::BeginTooltip();
-					Gui::ImageObjTex(&tex);
-					Gui::EndTooltip();
-				}
-			});
-		});
-#endif
-
 #if 1
 		static constexpr std::string_view effCmnObjSetPath = "dev_rom/objset/copy/effcmn/effcmn_obj.bin";
 		static constexpr std::string_view effCmnTexSetPath = "dev_rom/objset/copy/effcmn/effcmn_tex.bin";
@@ -1616,68 +1595,6 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
-#elif 1
-		scene.LensFlare.SunObj = nullptr;
-
-		for (auto& objSet : sceneGraph.LoadedObjSets)
-		{
-			for (auto& obj : *objSet.ObjSet)
-			{
-				if (Util::EndsWithInsensitive(obj.Name, "lensflare_0"))
-					scene.LensFlare.SunObj = &obj;
-			}
-		}
-#endif /* COMFY_DEBUG */
-
-#if 0
-		if (Gui::CollapsingHeader("Morph Weight Test", ImGuiTreeNodeFlags_None))
-		{
-			if (debug.PlaybackSpeed > 0.0f)
-				debug.MorphWeight = glm::sin((debug.Elapsed += (Gui::GetIO().DeltaTime * debug.PlaybackSpeed))) + 1.0f;
-			Gui::SliderFloat("Morph Weight", &debug.MorphWeight, 0.0f, 4.0f);
-			Gui::SliderFloat("Playback Speed", &debug.PlaybackSpeed, 0.0f, 10.0f);
-
-			for (size_t i = 0; i < sceneGraph.Entities.size(); i++)
-			{
-				auto* entity = sceneGraph.Entities[i].get();
-				auto* nextEntity = InBounds(i + 1, sceneGraph.Entities) ? sceneGraph.Entities[i + 1].get() : nullptr;
-
-				if (!EndsWith(entity->Name, "000") || nextEntity == nullptr)
-					continue;
-
-				if (entity->Dynamic == nullptr)
-					entity->Dynamic = std::make_unique<Render::RenderCommand3D::DynamicData>();
-
-				entity->Dynamic->MorphObj = nextEntity->Obj;
-				entity->Dynamic->MorphWeight = debug.MorphWeight;
-
-				int lastMorphIndex = 0;
-				while ((entity = ((i + 1) < sceneGraph.Entities.size()) ? sceneGraph.Entities[++i].get() : nullptr) != nullptr)
-				{
-					int morphIndex = lastMorphIndex;
-					sscanf_s(entity->Name.substr(entity->Name.size() - strlen("000")).data(), "%03d", &morphIndex);
-
-					if (morphIndex == 0)
-					{
-						i--;
-						break;
-					}
-
-					entity->IsVisible = false;
-				}
-
-				continue;
-			}
-
-			for (auto& entity : sceneGraph.Entities)
-			{
-				if (entity->Dynamic == nullptr || entity->Dynamic->MorphObj == nullptr)
-					continue;
-
-				if (entity->Obj->Meshes.size() != entity->Dynamic->MorphObj->Meshes.size())
-					entity->Dynamic->MorphObj = nullptr;
-			}
-		}
 #endif
 	}
 
