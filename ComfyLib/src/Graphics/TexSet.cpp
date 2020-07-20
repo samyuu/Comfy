@@ -221,32 +221,6 @@ namespace Comfy::Graphics
 			Textures[i]->ID = textureIDs[i];
 	}
 
-	/* // TODO: Move upload responsibility to Comfy::Render
-	void TexSet::UploadAll(SprSet* parentSprSet)
-	{
-		for (auto& tex : Textures)
-		{
-			const char* debugName = nullptr;
-			const auto signature = tex->GetSignature();
-
-#if COMFY_D3D11_DEBUG_NAMES
-			char debugNameBuffer[128];
-			sprintf_s(debugNameBuffer, "%s %s: %s",
-				(signature == TxpSig::Texture2D) ? "Texture2D" : "CubeMap",
-				(parentSprSet != nullptr) ? parentSprSet->Name.c_str() : "TexSet",
-				tex->GetName().data());
-
-			debugName = debugNameBuffer;
-#endif
-
-			if (signature == TxpSig::Texture2D)
-				tex->GPU_Texture2D = GPU::MakeTexture2D(*tex, debugName);
-			else if (signature == TxpSig::CubeMap)
-				tex->GPU_CubeMap = GPU::MakeCubeMap(*tex, debugName);
-		}
-	}
-	*/
-
 	std::unique_ptr<TexSet> TexSet::LoadSetTextureIDs(std::string_view filePath, const ObjSet* objSet)
 	{
 		auto texSet = IO::File::Load<TexSet>(filePath);

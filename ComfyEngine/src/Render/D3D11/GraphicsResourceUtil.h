@@ -11,102 +11,19 @@
 
 namespace Comfy::Render::D3D11
 {
-	// TODO: Debug object names
-
-#if 0
-	/*
-	namespace
-	{
-		template <typename T>
-		void InitializeBufferIfAttribute(Mesh& mesh, VertexAttribute attribute, std::vector<T>& vertexData, const char* objSetName, const char* bufferName)
-		{
-			auto& vertexBuffer = mesh.GPU_VertexBuffers[attribute];
-
-			VertexAttributeFlags attributeFlags = (1 << attribute);
-			if (!(mesh.AttributeFlags & attributeFlags))
-			{
-				vertexBuffer = nullptr;
-				return;
-			}
-
-			const char* debugName = nullptr;
-
-#if COMFY_D3D11_DEBUG_NAMES
-			char debugNameBuffer[128];
-			sprintf_s(debugNameBuffer, "<%s> %s::%sBuffer", objSetName, mesh.Name.data(), bufferName);
-			debugName = debugNameBuffer;
-#endif
-
-			vertexBuffer = GPU::MakeVertexBuffer(vertexData.size() * sizeof(T), vertexData.data(), sizeof(T), debugName);
-		}
-
-		void Upload()
-		{
-			for (auto& mesh : Meshes)
-			{
-				InitializeBufferIfAttribute(mesh, VertexAttribute_Position, mesh.VertexData.Positions, Name.c_str(), "Posititon");
-				InitializeBufferIfAttribute(mesh, VertexAttribute_Normal, mesh.VertexData.Normals, Name.c_str(), "Normal");
-				InitializeBufferIfAttribute(mesh, VertexAttribute_Tangent, mesh.VertexData.Tangents, Name.c_str(), "Tangent");
-				InitializeBufferIfAttribute(mesh, VertexAttribute_0x3, mesh.VertexData.Reserved0x3, Name.c_str(), "Reserved0x3");
-				InitializeBufferIfAttribute(mesh, VertexAttribute_TextureCoordinate0, mesh.VertexData.TextureCoordinates[0], Name.c_str(), "TextureCoordinate[0]");
-				InitializeBufferIfAttribute(mesh, VertexAttribute_TextureCoordinate1, mesh.VertexData.TextureCoordinates[1], Name.c_str(), "TextureCoordinate[1]");
-				InitializeBufferIfAttribute(mesh, VertexAttribute_TextureCoordinate2, mesh.VertexData.TextureCoordinates[2], Name.c_str(), "TextureCoordinate[2]");
-				InitializeBufferIfAttribute(mesh, VertexAttribute_TextureCoordinate3, mesh.VertexData.TextureCoordinates[3], Name.c_str(), "TextureCoordinate[3]");
-				InitializeBufferIfAttribute(mesh, VertexAttribute_Color0, mesh.VertexData.Colors[0], Name.c_str(), "Color[0]");
-				InitializeBufferIfAttribute(mesh, VertexAttribute_Color1, mesh.VertexData.Colors[1], Name.c_str(), "Color[1]");
-				InitializeBufferIfAttribute(mesh, VertexAttribute_BoneWeight, mesh.VertexData.BoneWeights, Name.c_str(), "BoneWeight");
-				InitializeBufferIfAttribute(mesh, VertexAttribute_BoneIndex, mesh.VertexData.BoneIndices, Name.c_str(), "BoneIndex");
-
-				u32 subMeshIndex = 0;
-				for (auto& subMesh : mesh.SubMeshes)
-				{
-					const char* debugName = nullptr;
-
-#if COMFY_D3D11_DEBUG_NAMES
-					char debugNameBuffer[128];
-					sprintf_s(debugNameBuffer, "<%s> %s[%d]::IndexBuffer", Name.c_str(), mesh.Name.data(), subMeshIndex++);
-					debugName = debugNameBuffer;
-#endif
-
-					subMesh.GPU_IndexBuffer = GPU::MakeIndexBuffer(subMesh.GetRawIndicesByteSize(), subMesh.GetRawIndices(), subMesh.GetIndexFormat(), debugName);
-				}
-			}
-		}
-	}
-	*/
-
-	namespace
-	{
-#if COMFY_D3D11_DEBUG_NAMES
-		template <typename T>
-		void SetDebugName(T& resource, const char* debugName)
-		{
-			if (debugName == nullptr)
-				return;
-
-			if constexpr (std::is_base_of<D3D11::TextureResource, T>::value)
-			{
-				char viewDebugName[128];
-				sprintf_s(viewDebugName, "%s (RV)", debugName);
-
-				D3D11_SetObjectDebugName(resource.GetTexture(), debugName);
-				D3D11_SetObjectDebugName(resource.GetResourceView(), viewDebugName);
-			}
-			else
-			{
-				D3D11_SetObjectDebugName(resource.GetBuffer(), debugName);
-			}
-		}
-#else
-#define SetDebugName(...) /* ... */
-#endif
-	}
-#endif
-
 	inline Texture2D* GetTexture2D(const Graphics::Tex& tex)
 	{
 		if (tex.GetSignature() == Graphics::TxpSig::Texture2D && tex.GPU_Texture2D == nullptr)
+		{
 			tex.GPU_Texture2D = std::make_unique<Texture2D>(tex);
+			if (tex.GPU_Texture2D != nullptr)
+			{
+				D3D11_SetObjectDebugName(static_cast<Texture2D*>(tex.GPU_Texture2D.get())->GetTexture(),
+					"Texture2D: %.*s",
+					static_cast<int>(tex.GetName().size()),
+					tex.GetName().data());
+			}
+		}
 
 		return static_cast<Texture2D*>(tex.GPU_Texture2D.get());
 	}
@@ -119,7 +36,16 @@ namespace Comfy::Render::D3D11
 	inline CubeMap* GetCubeMap(const Graphics::Tex& tex)
 	{
 		if (tex.GetSignature() == Graphics::TxpSig::CubeMap && tex.GPU_CubeMap == nullptr)
+		{
 			tex.GPU_CubeMap = std::make_unique<CubeMap>(tex);
+			if (tex.GPU_CubeMap != nullptr)
+			{
+				D3D11_SetObjectDebugName(static_cast<CubeMap*>(tex.GPU_CubeMap.get())->GetTexture(),
+					"CubeMap: %.*s",
+					static_cast<int>(tex.GetName().size()),
+					tex.GetName().data());
+			}
+		}
 
 		return static_cast<CubeMap*>(tex.GPU_CubeMap.get());
 	}
@@ -127,7 +53,16 @@ namespace Comfy::Render::D3D11
 	inline CubeMap* GetCubeMap(const Graphics::LightMapIBL& lightMap)
 	{
 		if (lightMap.GPU_CubeMap == nullptr)
+		{
 			lightMap.GPU_CubeMap = std::make_unique<CubeMap>(lightMap);
+			if (lightMap.GPU_CubeMap != nullptr)
+			{
+				D3D11_SetObjectDebugName(static_cast<CubeMap*>(lightMap.GPU_CubeMap.get())->GetTexture(),
+					"LightMap IBL: (%dx%d)",
+					lightMap.Size.x,
+					lightMap.Size.y);
+			}
+		}
 
 		return static_cast<CubeMap*>(lightMap.GPU_CubeMap.get());
 	}
@@ -135,7 +70,16 @@ namespace Comfy::Render::D3D11
 	inline IndexBuffer* GetIndexBuffer(const Graphics::SubMesh& subMesh)
 	{
 		if (subMesh.GPU_IndexBuffer == nullptr)
+		{
 			subMesh.GPU_IndexBuffer = std::make_unique<StaticIndexBuffer>(subMesh.GetRawIndicesByteSize(), subMesh.GetRawIndices(), subMesh.GetIndexFormat());
+			if (subMesh.GPU_IndexBuffer != nullptr)
+			{
+				D3D11_SetObjectDebugName(static_cast<StaticIndexBuffer*>(subMesh.GPU_IndexBuffer.get())->GetBuffer(),
+					"SubMesh IndexBuffer: %s, %s",
+					IndexOr(static_cast<size_t>(subMesh.GetIndexFormat()), Graphics::IndexFormatNames, "Unknown"),
+					IndexOr(static_cast<size_t>(subMesh.Primitive), Graphics::PrimitiveTypeNames, "Unknown"));
+			}
+		}
 
 		return static_cast<IndexBuffer*>(subMesh.GPU_IndexBuffer.get());
 	}
@@ -147,13 +91,20 @@ namespace Comfy::Render::D3D11
 		if (!(mesh.AttributeFlags & attributeFlag))
 			return nullptr;
 
-		auto checkAttribute = [&](auto& sourceVector) -> VertexBuffer*
+		auto checkAttribute = [&](auto& sourceVector, const char* debugName) -> VertexBuffer*
 		{
 			auto& gpuVertexBuffer = mesh.GPU_VertexBuffers[attribute];
 			if (gpuVertexBuffer == nullptr)
 			{
 				using T = decltype(sourceVector[0]);
 				gpuVertexBuffer = std::make_unique<StaticVertexBuffer>(sizeof(T) * sourceVector.size(), sourceVector.data(), sizeof(T));
+
+				if (gpuVertexBuffer != nullptr)
+				{
+					D3D11_SetObjectDebugName(static_cast<StaticVertexBuffer*>(gpuVertexBuffer.get())->GetBuffer(),
+						"Mesh VertexBuffer: %s",
+						debugName);
+				}
 			}
 
 			return static_cast<VertexBuffer*>(gpuVertexBuffer.get());
@@ -162,27 +113,27 @@ namespace Comfy::Render::D3D11
 		switch (attribute)
 		{
 		case Graphics::VertexAttribute_Position:
-			return checkAttribute(mesh.VertexData.Positions);
+			return checkAttribute(mesh.VertexData.Positions, "Positions");
 		case Graphics::VertexAttribute_Normal:
-			return checkAttribute(mesh.VertexData.Normals);
+			return checkAttribute(mesh.VertexData.Normals, "Normals");
 		case Graphics::VertexAttribute_Tangent:
-			return checkAttribute(mesh.VertexData.Tangents);
+			return checkAttribute(mesh.VertexData.Tangents, "Tangents");
 		case Graphics::VertexAttribute_TextureCoordinate0:
-			return checkAttribute(mesh.VertexData.TextureCoordinates[0]);
+			return checkAttribute(mesh.VertexData.TextureCoordinates[0], "TextureCoordinates[0]");
 		case Graphics::VertexAttribute_TextureCoordinate1:
-			return checkAttribute(mesh.VertexData.TextureCoordinates[1]);
+			return checkAttribute(mesh.VertexData.TextureCoordinates[1], "TextureCoordinates[1]");
 		case Graphics::VertexAttribute_TextureCoordinate2:
-			return checkAttribute(mesh.VertexData.TextureCoordinates[2]);
+			return checkAttribute(mesh.VertexData.TextureCoordinates[2], "TextureCoordinates[2]");
 		case Graphics::VertexAttribute_TextureCoordinate3:
-			return checkAttribute(mesh.VertexData.TextureCoordinates[3]);
+			return checkAttribute(mesh.VertexData.TextureCoordinates[3], "TextureCoordinates[3]");
 		case Graphics::VertexAttribute_Color0:
-			return checkAttribute(mesh.VertexData.Colors[0]);
+			return checkAttribute(mesh.VertexData.Colors[0], "Colors[0]");
 		case Graphics::VertexAttribute_Color1:
-			return checkAttribute(mesh.VertexData.Colors[1]);
+			return checkAttribute(mesh.VertexData.Colors[1], "Colors[1]");
 		case Graphics::VertexAttribute_BoneWeight:
-			return checkAttribute(mesh.VertexData.BoneWeights);
+			return checkAttribute(mesh.VertexData.BoneWeights, "BoneWeights");
 		case Graphics::VertexAttribute_BoneIndex:
-			return checkAttribute(mesh.VertexData.BoneIndices);
+			return checkAttribute(mesh.VertexData.BoneIndices, "BoneIndices");
 		}
 
 		return nullptr;

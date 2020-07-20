@@ -154,25 +154,4 @@ namespace Comfy::Graphics
 			}
 		}
 	}
-
-	/* // TODO: Move upload responsibility to Comfy::Render
-	void IBLParameters::UploadAll()
-	{
-		for (size_t i = 0; i < LightMaps.size(); i++)
-		{
-			if (auto& lightMap = LightMaps[i]; lightMap.Size.x >= 1 && lightMap.Size.y >= 1)
-			{
-				const char* debugName = nullptr;
-
-#if COMFY_D3D11_DEBUG_NAMES
-				char debugNameBuffer[64];
-				sprintf_s(debugNameBuffer, "LightMap IBL [%zu]", i);
-				debugName = debugNameBuffer;
-#endif
-
-				lightMap.GPU_CubeMap = GPU::MakeCubeMap(lightMap, debugName);
-			}
-		}
-	}
-	*/
 }

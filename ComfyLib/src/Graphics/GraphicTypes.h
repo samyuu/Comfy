@@ -186,7 +186,6 @@ namespace Comfy::Graphics
 		Count
 	};
 
-	// TODO: The DXGI comments are only guesses for now
 	enum class TextureFormat : i32
 	{
 		Unknown = -1,
