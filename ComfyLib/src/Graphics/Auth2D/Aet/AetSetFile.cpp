@@ -1,13 +1,30 @@
 #include "AetSet.h"
 #include "IO/Stream/Manipulator/StreamReader.h"
 #include "IO/Stream/Manipulator/StreamWriter.h"
+#include "Resource/IDHash.h"
 
-using namespace Comfy::IO;
+#define COMFY_PARSE_3DS_AETSET 0
 
 namespace Comfy::Graphics::Aet
 {
+	using namespace Comfy::IO;
+
 	namespace
 	{
+#if COMFY_PARSE_3DS_AETSET == 1 && 0
+		constexpr u32 StreamManipulatorDataFormat3DSID = '3DS';
+
+		bool GetUserDataFormat3DS(const StreamManipulator& manipulator)
+		{
+			return manipulator.GetUserData() == &StreamManipulatorDataFormat3DSID;
+		}
+
+		void SetUserDataFormat3DS(StreamManipulator& manipulator)
+		{
+			manipulator.SetUserData(&StreamManipulatorDataFormat3DSID);
+		}
+#endif
+
 		template <typename FlagsStruct>
 		FlagsStruct ReadFlagsStruct(StreamReader& reader)
 		{
@@ -300,7 +317,10 @@ namespace Comfy::Graphics::Aet
 
 	void Scene::Read(StreamReader& reader)
 	{
+#if COMFY_PARSE_3DS_AETSET != 1
 		Name = reader.ReadStrPtrOffsetAware();
+#endif /* COMFY_PARSE_3DS_AETSET */
+
 		StartFrame = reader.ReadF32();
 		EndFrame = reader.ReadF32();
 		FrameRate = reader.ReadF32();
@@ -383,8 +403,13 @@ namespace Comfy::Graphics::Aet
 						{
 							for (auto& source : video.Sources)
 							{
+#if COMFY_PARSE_3DS_AETSET == 1
+								source.ID = SprID(reader.ReadU32());
+								const auto unknown = reader.ReadV4();
+#else
 								source.Name = reader.ReadStrPtrOffsetAware();
 								source.ID = SprID(reader.ReadU32());
+#endif /* COMFY_PARSE_3DS_AETSET */
 							}
 						});
 					}
@@ -630,6 +655,104 @@ namespace Comfy::Graphics::Aet
 
 	StreamResult AetSet::Read(StreamReader& reader)
 	{
+#if COMFY_PARSE_3DS_AETSET == 1
+		const auto sceneCountOffset = reader.ReadPtr();
+		if (!reader.IsValidPointer(sceneCountOffset))
+			return StreamResult::BadPointer;
+
+		const auto sceneOffsetsOffset = reader.ReadPtr();
+		if (!reader.IsValidPointer(sceneOffsetsOffset))
+			return StreamResult::BadPointer;
+
+		reader.ReadAt(sceneOffsetsOffset, [&](StreamReader& reader)
+		{
+			size_t sceneCount = 0;
+			reader.ReadAt(sceneCountOffset, [&](StreamReader& reader) { sceneCount = reader.ReadSize(); });
+
+			scenes.reserve(sceneCount);
+			for (size_t i = 0; i < sceneCount; i++)
+			{
+				const auto sceneOffset = reader.ReadPtr();
+				if (!reader.IsValidPointer(sceneOffset))
+					continue;
+
+				auto& scene = *scenes.emplace_back(std::make_shared<Scene>());
+				reader.ReadAtOffsetAware(sceneOffset, [&](StreamReader& reader)
+				{
+					scene.Read(reader);
+				});
+
+				scene.UpdateParentPointers();
+				scene.LinkPostRead();
+				scene.UpdateCompNamesAfterLayerItems();
+			}
+		});
+
+		const auto sceneNamesOffset = reader.ReadPtr();
+		if (!reader.IsValidPointer(sceneNamesOffset))
+			return StreamResult::BadPointer;
+
+		reader.ReadAt(sceneNamesOffset, [&](StreamReader& reader)
+		{
+			for (auto& scene : scenes)
+				scene->Name = reader.ReadStrPtrOffsetAware();
+		});
+
+		const auto spriteInfoOffset = reader.ReadPtr();
+		if (!reader.IsValidPointer(spriteInfoOffset))
+			return StreamResult::BadPointer;
+
+		reader.ReadAt(spriteInfoOffset, [&](StreamReader& reader)
+		{
+			std::vector<std::string> spriteNames;
+			for (auto& scene : scenes)
+			{
+				const auto spriteNamesOffset = reader.ReadPtr();
+				const auto spriteIDsOffset = reader.ReadPtr();
+
+				if (reader.IsValidPointer(spriteNamesOffset))
+				{
+					reader.ReadAt(spriteNamesOffset, [&](StreamReader& reader)
+					{
+						while (true)
+						{
+							const auto nameOffset = reader.ReadPtr();
+							if (nameOffset == FileAddr::NullPtr)
+								return;
+
+							spriteNames.emplace_back(std::move(reader.ReadStrAtOffsetAware(nameOffset)));
+						}
+					});
+				}
+
+				if (reader.IsValidPointer(spriteIDsOffset))
+				{
+					reader.ReadAt(spriteIDsOffset, [&](StreamReader& reader)
+					{
+						const auto unknown = reader.ReadU32();
+					});
+				}
+
+				for (auto& video : scene->Videos)
+				{
+					for (auto& source : video->Sources)
+					{
+						const auto nameIndex = static_cast<u32>(source.ID);
+						if (InBounds(nameIndex, spriteNames))
+						{
+							source.Name = spriteNames[nameIndex];
+							source.ID = HashIDString<SprID>(source.Name);
+						}
+					}
+				}
+
+				spriteNames.clear();
+			}
+		});
+
+		return StreamResult::Success;
+#endif /* COMFY_PARSE_3DS_AETSET */
+
 		const auto baseHeader = SectionHeader::TryRead(reader, SectionSignature::AETC);
 		SectionHeader::ScanPOFSectionsSetPointerMode(reader);
 
@@ -652,8 +775,12 @@ namespace Comfy::Graphics::Aet
 		scenes.reserve(sceneCount);
 		for (size_t i = 0; i < sceneCount; i++)
 		{
+			const auto sceneOffset = reader.ReadPtr();
+			if (!reader.IsValidPointer(sceneOffset))
+				return StreamResult::BadPointer;
+
 			auto& scene = *scenes.emplace_back(std::make_shared<Scene>());
-			reader.ReadAtOffsetAware(reader.ReadPtr(), [&](StreamReader& reader)
+			reader.ReadAtOffsetAware(sceneOffset, [&](StreamReader& reader)
 			{
 				scene.Read(reader);
 			});
