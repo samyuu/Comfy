@@ -50,6 +50,7 @@ namespace ImGui
 		bool useFileTypeIcons = true;
 		char currentDirectoryBuffer[260];
 
+		std::vector<FilePathInfo> tempDirectoryInfo;
 		std::vector<FilePathInfo> currentDirectoryInfo;
 
 		bool currentDirectoryIsArchive = false;

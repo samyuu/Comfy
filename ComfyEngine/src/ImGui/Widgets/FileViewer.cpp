@@ -205,6 +205,7 @@ namespace ImGui
 	void FileViewer::UpdateDirectoryInformation()
 	{
 		fileFilter.Clear();
+		currentDirectoryInfo.clear();
 
 		const bool isArchiveDirectory = IO::Archive::IsValidPath(currentDirectoryOrArchive);
 		if (isArchiveDirectory)
@@ -218,9 +219,6 @@ namespace ImGui
 				return;
 		}
 
-		std::vector<FilePathInfo> newDirectoryInfo;
-		newDirectoryInfo.reserve(8);
-
 		if (isArchiveDirectory)
 		{
 			const auto filePaths = IO::Archive::Detail::GetFileEntries(currentDirectoryOrArchive);
@@ -228,7 +226,7 @@ namespace ImGui
 			{
 				const auto archivePath = IO::Archive::ParsePath(fileEntry.FullPath);
 
-				FilePathInfo& info = newDirectoryInfo.emplace_back();
+				auto& info = tempDirectoryInfo.emplace_back();
 				info.FullPath = IO::Path::Normalize(fileEntry.FullPath);
 				info.ChildName = archivePath.FileName;
 				info.IsDirectory = false;
@@ -244,7 +242,7 @@ namespace ImGui
 				if (!file.is_regular_file() && !file.is_directory())
 					continue;
 
-				FilePathInfo& info = newDirectoryInfo.emplace_back();
+				auto& info = tempDirectoryInfo.emplace_back();
 				const auto path = file.path();
 				info.FullPath = IO::Path::Normalize(path.u8string());
 				info.ChildName = path.filename().u8string();
@@ -254,7 +252,8 @@ namespace ImGui
 
 				if (info.IsDirectory)
 				{
-					if (appendDirectoryChildNameSlash) info.ChildName += '/';
+					if (appendDirectoryChildNameSlash)
+						info.ChildName += '/';
 				}
 				else
 				{
@@ -263,16 +262,17 @@ namespace ImGui
 			}
 		}
 
-		currentDirectoryInfo.clear();
-		currentDirectoryInfo.reserve(newDirectoryInfo.size());
+		currentDirectoryInfo.reserve(tempDirectoryInfo.size());
 
-		for (const auto& info : newDirectoryInfo)
+		for (const auto& info : tempDirectoryInfo)
 			if (info.IsDirectory)
-				currentDirectoryInfo.push_back(info);
+				currentDirectoryInfo.emplace_back(std::move(info));
 
-		for (const auto& info : newDirectoryInfo)
+		for (const auto& info : tempDirectoryInfo)
 			if (!info.IsDirectory)
-				currentDirectoryInfo.push_back(info);
+				currentDirectoryInfo.emplace_back(std::move(info));
+
+		tempDirectoryInfo.clear();
 	}
 
 	void FileViewer::SetParentDirectory(const std::string& directory)
