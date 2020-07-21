@@ -65,7 +65,6 @@ namespace Comfy::Graphics
 	public:
 		void SetTextureIDs(const class ObjSet& objSet);
 
-		// TODO: Rename and or refactor
 		static std::unique_ptr<TexSet> LoadSetTextureIDs(std::string_view filePath, const class ObjSet* objSet);
 	};
 }
