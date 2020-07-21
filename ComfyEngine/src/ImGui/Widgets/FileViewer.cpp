@@ -51,7 +51,9 @@ namespace ImGui
 		Separator();
 
 		bool fileClicked = false;
-		BeginChild("FileListChild##FileViewer");
+
+		// NOTE: Always draw vertical scrollbar to avoid constant size changes while navigating between directories with different file counts
+		BeginChild("FileListChild##FileViewer", vec2(0.0f, 0.0f), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 		{
 			if (FilePathInfo* clickedInfo = DrawFileListGui(); clickedInfo != nullptr)
 			{
@@ -86,6 +88,9 @@ namespace ImGui
 
 				if (MenuItem("Refresh"))
 					SetDirectory(currentDirectoryOrArchive);
+
+				if (MenuItem("Resize Columns"))
+					resizeColumns = true;
 
 				Separator();
 				if (MenuItem("Properties", nullptr, nullptr, fileItemSelected && !currentDirectoryIsArchive))
@@ -140,17 +145,28 @@ namespace ImGui
 		bool anyContextMenuClicked = false;
 
 		Columns(3, "FileListColumns##FileViewer");
+
+		if (lastWindowWidth != GetWindowWidth())
+			resizeColumns = true;
+
+		lastWindowWidth = GetWindowWidth();
+
+		if (resizeColumns)
+		{
+			if (lastWindowWidth > (fileColumnWidth + typeColumnWidth + sizeColumnWidth))
+			{
+				SetColumnOffset(1, lastWindowWidth - typeColumnWidth - sizeColumnWidth);
+				SetColumnOffset(2, lastWindowWidth - typeColumnWidth);
+			}
+
+			resizeColumns = false;
+		}
+
 		Text("Name"); NextColumn();
 		Text("Size"); NextColumn();
 		Text("Type"); NextColumn();
 		Separator();
 		{
-			if (resizeColumns)
-			{
-				SetColumnOffset(1, GetWindowWidth() * 0.75f);
-				resizeColumns = false;
-			}
-
 			char displayNameBuffer[_MAX_PATH];
 			for (auto& info : currentDirectoryInfo)
 			{

@@ -37,6 +37,13 @@ namespace ImGui
 		const FilePathInfo* contextMenuFilePathInfo = nullptr;
 		ExtendedImGuiTextFilter fileFilter;
 
+		float lastWindowWidth = 0.0f;
+
+		// TODO: Scale with font size (?)
+		float fileColumnWidth = 98.0f;
+		float sizeColumnWidth = 72.0f;
+		float typeColumnWidth = 90.0f;
+
 		// TODO: bool allowArchiveDirectory = true;
 		bool resizeColumns = true;
 		bool appendDirectoryChildNameSlash = false;
@@ -44,10 +51,10 @@ namespace ImGui
 		char currentDirectoryBuffer[260];
 
 		std::vector<FilePathInfo> currentDirectoryInfo;
-		
+
 		bool currentDirectoryIsArchive = false;
 		std::string currentDirectoryOrArchive, previousDirectoryOrArchive;
-		
+
 		std::string fileToOpen;
 
 		FilePathInfo* DrawFileListGui();
