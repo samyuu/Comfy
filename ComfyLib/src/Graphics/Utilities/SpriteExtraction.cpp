@@ -32,10 +32,10 @@ namespace Comfy::Graphics::Utilities
 
 	void ExtractAllSprPNGs(std::string_view outputDirectory, const SprSet& sprSet)
 	{
-		if (sprSet.TexSet == nullptr || sprSet.TexSet->Textures.empty() || sprSet.Sprites.empty())
+		if (sprSet.Sprites.empty() || sprSet.TexSet.Textures.empty())
 			return;
 
-		const auto& textures = sprSet.TexSet->Textures;
+		const auto& textures = sprSet.TexSet.Textures;
 		const auto& sprites = sprSet.Sprites;
 
 		const auto rgbaTextures = std::make_unique<std::unique_ptr<u8[]>[]>(textures.size());

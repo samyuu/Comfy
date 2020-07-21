@@ -222,11 +222,9 @@ namespace Comfy::Graphics::Utilities
 
 		FinalSpriteSort(sprSet.Sprites);
 
-		sprSet.TexSet = std::make_unique<TexSet>();
-		sprSet.TexSet->Textures.reserve(mergedTextures.size());
-
+		sprSet.TexSet.Textures.reserve(mergedTextures.size());
 		for (auto& texFuture : texFutures)
-			sprSet.TexSet->Textures.push_back(std::move(texFuture.get()));
+			sprSet.TexSet.Textures.emplace_back(std::move(texFuture.get()));
 
 		return result;
 	}

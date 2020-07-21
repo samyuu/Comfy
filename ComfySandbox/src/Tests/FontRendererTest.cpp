@@ -371,7 +371,7 @@ namespace Comfy::Sandbox::Tests
 				{
 					if (sprSet != nullptr)
 					{
-						const auto& textures = sprSet->TexSet->Textures;
+						const auto& textures = sprSet->TexSet.Textures;
 						char nameBuffer[128];
 						selected.TextureHoverIndex = -1;
 
@@ -443,10 +443,10 @@ namespace Comfy::Sandbox::Tests
 			if (sprSet == nullptr)
 				return nullptr;
 
-			if (InBounds(selected.TextureHoverIndex, sprSet->TexSet->Textures))
-				return sprSet->TexSet->Textures[selected.TextureHoverIndex];
+			if (InBounds(selected.TextureHoverIndex, sprSet->TexSet.Textures))
+				return sprSet->TexSet.Textures[selected.TextureHoverIndex];
 			else
-				return InBounds(selected.TextureIndex, sprSet->TexSet->Textures) ? sprSet->TexSet->Textures[selected.TextureIndex] : nullptr;
+				return InBounds(selected.TextureIndex, sprSet->TexSet.Textures) ? sprSet->TexSet.Textures[selected.TextureIndex] : nullptr;
 		}
 
 		Graphics::BitmapFont* GetSelectedFont() const

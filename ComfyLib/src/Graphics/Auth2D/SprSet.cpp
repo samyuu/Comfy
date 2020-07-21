@@ -56,30 +56,29 @@ namespace Comfy::Graphics
 		const auto spriteNamesOffset = reader.ReadPtr();
 		const auto spriteExtraDataOffset = reader.ReadPtr();
 
-		TexSet = std::make_unique<Graphics::TexSet>();
 		if (textureCount > 0)
 		{
 			auto streamResult = StreamResult::Success;
 			if (reader.GetHasSections())
 			{
 				const auto texSetStartOffset = baseHeader->EndOfSectionAddress();
-				reader.ReadAt(texSetStartOffset, [&](StreamReader& reader) { streamResult = TexSet->Read(reader); });
+				reader.ReadAt(texSetStartOffset, [&](StreamReader& reader) { streamResult = TexSet.Read(reader); });
 			}
 			else
 			{
 				if (!reader.IsValidPointer(texSetOffset))
 					return StreamResult::BadPointer;
 
-				reader.ReadAtOffsetAware(texSetOffset, [&](StreamReader& reader) { streamResult = TexSet->Read(reader); });
+				reader.ReadAtOffsetAware(texSetOffset, [&](StreamReader& reader) { streamResult = TexSet.Read(reader); });
 			}
 			if (streamResult != StreamResult::Success)
 				return streamResult;
 
-			if (reader.IsValidPointer(textureNamesOffset) && TexSet->Textures.size() == textureCount)
+			if (reader.IsValidPointer(textureNamesOffset) && TexSet.Textures.size() == textureCount)
 			{
 				reader.ReadAtOffsetAware(textureNamesOffset, [&](StreamReader& reader)
 				{
-					for (auto& texture : this->TexSet->Textures)
+					for (auto& texture : this->TexSet.Textures)
 						texture->Name = reader.ReadStrPtrOffsetAware();
 				});
 			}
@@ -135,9 +134,9 @@ namespace Comfy::Graphics
 	{
 		writer.WriteU32(Flags);
 
-		const FileAddr texSetPtrAddress = writer.GetPosition();
+		const auto texSetPtrAddress = writer.GetPosition();
 		writer.WriteU32(0x00000000);
-		writer.WriteU32((TexSet != nullptr) ? static_cast<u32>(TexSet->Textures.size()) : 0);
+		writer.WriteU32(static_cast<u32>(TexSet.Textures.size()));
 
 		writer.WriteU32(static_cast<u32>(Sprites.size()));
 		writer.WriteFuncPtr([&](StreamWriter& writer)
@@ -159,10 +158,7 @@ namespace Comfy::Graphics
 
 		writer.WriteFuncPtr([&](StreamWriter& writer)
 		{
-			if (this->TexSet == nullptr)
-				return;
-
-			for (const auto& texture : this->TexSet->Textures)
+			for (const auto& texture : this->TexSet.Textures)
 			{
 				if (texture->Name.has_value())
 					writer.WriteStrPtr(texture->Name.value());
@@ -192,14 +188,11 @@ namespace Comfy::Graphics
 		writer.FlushStringPointerPool();
 		writer.WriteAlignmentPadding(16);
 
-		if (TexSet != nullptr)
-		{
-			const FileAddr texSetPtr = writer.GetPosition();
-			TexSet->Write(writer);
+		const auto texSetPtr = writer.GetPosition();
+		TexSet.Write(writer);
 
-			writer.Seek(texSetPtrAddress);
-			writer.WritePtr(texSetPtr);
-		}
+		writer.Seek(texSetPtrAddress);
+		writer.WritePtr(texSetPtr);
 
 		return StreamResult::Success;
 	}

@@ -213,8 +213,8 @@ namespace Comfy::Studio::Editor
 			if (sprSet->Read(reader) != IO::StreamResult::Success)
 				sprSet = nullptr;
 
-			if (sprSet != nullptr && !sprSet->TexSet->Textures.empty())
-				buttonIconsTexture = sprSet->TexSet->Textures.front();
+			if (sprSet != nullptr && !sprSet->TexSet.Textures.empty())
+				buttonIconsTexture = sprSet->TexSet.Textures.front();
 		}
 		else
 		{

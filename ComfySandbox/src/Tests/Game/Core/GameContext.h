@@ -64,7 +64,7 @@ namespace Comfy::Sandbox::Tests::Game
 			for (const auto& spr : sprSet.Sprites)
 			{
 				if (spr.Name == spriteName)
-					return { sprSet.TexSet->Textures[spr.TextureIndex].get(), &spr };
+					return { sprSet.TexSet.Textures[spr.TextureIndex].get(), &spr };
 			}
 
 			return { nullptr, nullptr };
@@ -84,7 +84,7 @@ namespace Comfy::Sandbox::Tests::Game
 
 			auto font36 = FontMap->FindFont(ivec2(36));
 			if (font36 != nullptr && SprFont36 != nullptr)
-				font36->Texture = SprFont36->TexSet->Textures.front();
+				font36->Texture = SprFont36->TexSet.Textures.front();
 			return font36;
 		}
 	};

@@ -27,7 +27,7 @@ namespace Comfy::Graphics
 	public:
 		std::string Name;
 		u32 Flags;
-		std::unique_ptr<TexSet> TexSet;
+		TexSet TexSet;
 		std::vector<Spr> Sprites;
 
 	public:

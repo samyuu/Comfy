@@ -18,7 +18,7 @@ namespace Comfy::Sandbox::Tests
 
 				renderer.Begin(camera, *renderWindow.RenderTarget);
 				{
-					testCommand.Texture = (sprSet == nullptr || !InBounds(textureIndex, sprSet->TexSet->Textures)) ? nullptr : sprSet->TexSet->Textures[textureIndex].get();
+					testCommand.Texture = (sprSet == nullptr || !InBounds(textureIndex, sprSet->TexSet.Textures)) ? nullptr : sprSet->TexSet.Textures[textureIndex].get();
 					renderer.Draw(testCommand);
 				}
 				renderer.End();
@@ -58,7 +58,7 @@ namespace Comfy::Sandbox::Tests
 				if (Gui::Begin("Texture Selection") && sprSet != nullptr)
 				{
 					int texIndex = 0;
-					for (auto& tex : sprSet->TexSet->Textures)
+					for (auto& tex : sprSet->TexSet.Textures)
 					{
 						if (Gui::Selectable(tex->GetName().data(), (texIndex == textureIndex)))
 							textureIndex = texIndex;
