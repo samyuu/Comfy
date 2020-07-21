@@ -135,7 +135,7 @@ namespace ImGui
 		if (const auto textFontEntry = System::Data.FindFileInDirectory(*fontDirectory, fontFileName); textFontEntry != nullptr)
 		{
 			void* fileContent = IM_ALLOC(textFontEntry->Size);
-			System::Data.ReadEntryIntoBuffer(*textFontEntry, fileContent);
+			System::Data.ReadFileIntoBuffer(textFontEntry, fileContent);
 
 			if (io.Fonts->AddFontFromMemoryTTF(fileContent, static_cast<int>(textFontEntry->Size), fontSize, nullptr, GetFontGlyphRange()) == nullptr)
 				return false;
@@ -148,7 +148,7 @@ namespace ImGui
 		if (const auto iconFontEntry = System::Data.FindFileInDirectory(*fontDirectory, FONT_ICON_FILE_NAME_FAS); iconFontEntry != nullptr)
 		{
 			void* fileContent = IM_ALLOC(iconFontEntry->Size);
-			System::Data.ReadEntryIntoBuffer(*iconFontEntry, fileContent);
+			System::Data.ReadFileIntoBuffer(iconFontEntry, fileContent);
 
 			const ImFontConfig config = GetIconFontConfig();
 			if (io.Fonts->AddFontFromMemoryTTF(fileContent, static_cast<int>(iconFontEntry->Size), iconFontSize, &config, GetIconGlyphRange()) == nullptr)

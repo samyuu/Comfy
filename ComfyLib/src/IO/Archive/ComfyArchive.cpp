@@ -111,26 +111,19 @@ namespace Comfy::IO
 		return FindNestedDirectory(*rootDirectory, directoryPath);
 	}
 
-	bool ComfyArchive::ReadFileIntoBuffer(std::string_view filePath, std::vector<u8>& buffer)
+	bool ComfyArchive::ReadFileIntoBuffer(const ComfyEntry* entry, void* outputBuffer)
 	{
-		auto fileEntry = FindFile(filePath);
-		if (fileEntry == nullptr)
+		if (entry == nullptr)
 			return false;
 
-		buffer.resize(fileEntry->Size);
-		return ReadEntryIntoBuffer(*fileEntry, buffer.data());
-	}
-
-	bool ComfyArchive::ReadEntryIntoBuffer(const ComfyEntry& entry, void* outputBuffer)
-	{
 		if (!isMounted || !dataStream.IsOpen() || !dataStream.CanRead())
 		{
 			assert(false);
 			return false;
 		}
 
-		dataStream.Seek(static_cast<FileAddr>(entry.Offset));
-		dataStream.ReadBuffer(outputBuffer, entry.Size);
+		dataStream.Seek(static_cast<FileAddr>(entry->Offset));
+		dataStream.ReadBuffer(outputBuffer, entry->Size);
 		return true;
 	}
 

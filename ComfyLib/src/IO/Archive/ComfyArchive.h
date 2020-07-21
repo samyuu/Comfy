@@ -2,6 +2,8 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "IO/Stream/FileStream.h"
+#include "IO/Stream/MemoryStream.h"
+#include "IO/Stream/FileInterfaces.h"
 
 namespace Comfy::IO
 {
@@ -105,8 +107,31 @@ namespace Comfy::IO
 
 		const ComfyDirectory* FindDirectory(std::string_view directoryPath) const;
 
-		bool ReadFileIntoBuffer(std::string_view filePath, std::vector<u8>& buffer);
-		bool ReadEntryIntoBuffer(const ComfyEntry& entry, void* outputBuffer);
+		bool ReadFileIntoBuffer(const ComfyEntry* entry, void* outputBuffer);
+
+		template <typename Readable>
+		std::unique_ptr<Readable> Load(const ComfyEntry* entry)
+		{
+			static_assert(std::is_base_of_v<IStreamReadable, Readable>);
+
+			auto fileBuffer = std::vector<u8>(entry->Size);
+			if (!ReadFileIntoBuffer(entry, fileBuffer.data()))
+				return false;
+
+			auto stream = MemoryStream();
+			stream.FromStreamSource(fileBuffer);
+
+			if (!stream.IsOpen() || !stream.CanRead())
+				return nullptr;
+
+			auto reader = StreamReader(stream);
+
+			auto result = std::make_unique<Readable>();
+			if (result->Read(reader) != StreamResult::Success)
+				return nullptr;
+
+			return result;
+		}
 
 	private:
 		const ComfyDirectory* FindNestedDirectory(const ComfyDirectory& parent, std::string_view directory) const;

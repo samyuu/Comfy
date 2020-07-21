@@ -199,27 +199,12 @@ namespace Comfy::Studio::Editor
 		// NOTE:
 		// sankaku		| shikaku		| batsu		 | maru		 | slide_l		| slide_r	   | slide_chain_l		| slide_chain_r
 		// sankaku_sync | shikaku_sync  | batsu_sync | maru_sync | slide_l_sync | slide_r_sync | slide_chain_l_sync | slide_chain_r_sync
-		if (const auto sprFileEntry = System::Data.FindFile("spr/spr_comfy_editor.bin"); sprFileEntry != nullptr)
-		{
-			auto sprFileBuffer = std::vector<u8>(sprFileEntry->Size);
-			System::Data.ReadEntryIntoBuffer(*sprFileEntry, sprFileBuffer.data());
 
-			auto stream = IO::MemoryStream();
-			stream.FromStreamSource(sprFileBuffer);
-
-			auto reader = IO::StreamReader(stream);
-
-			sprSet = std::make_unique<Graphics::SprSet>();
-			if (sprSet->Read(reader) != IO::StreamResult::Success)
-				sprSet = nullptr;
-
-			if (sprSet != nullptr && !sprSet->TexSet.Textures.empty())
-				buttonIconsTexture = sprSet->TexSet.Textures.front();
-		}
-		else
-		{
+		sprSet = System::Data.Load<Graphics::SprSet>(System::Data.FindFile("spr/spr_comfy_editor.bin"));
+		if (sprSet == nullptr || sprSet->TexSet.Textures.empty())
 			return;
-		}
+
+		buttonIconsTexture = sprSet->TexSet.Textures.front();
 
 		const auto texelSize = vec2(1.0f, 1.0f) / vec2(buttonIconsTexture->GetSize());
 

@@ -1425,11 +1425,18 @@ namespace Comfy::Studio::Editor
 			{
 				externalProcessTest.ShouldReadConfigFile = false;
 
-				std::vector<u8> fileBuffer;
-				if (System::Data.ReadFileIntoBuffer("process/external_process.bin", fileBuffer))
-					externalProcessTest.ExternalProcess.ParseConfig(fileBuffer.data(), fileBuffer.size());
+				if (const auto configEntry = System::Data.FindFile("process/external_process.bin"); configEntry != nullptr)
+				{
+					auto configBuffer = std::vector<u8>(configEntry->Size);
+					if (System::Data.ReadFileIntoBuffer(configEntry, configBuffer.data()))
+						externalProcessTest.ExternalProcess.ParseConfig(configBuffer.data(), configBuffer.size());
+					else
+						externalProcessTest.WasConfigInvalid = true;
+				}
 				else
+				{
 					externalProcessTest.WasConfigInvalid = true;
+				}
 			}
 
 			if (!externalProcessTest.ExternalProcess.IsAttached())
