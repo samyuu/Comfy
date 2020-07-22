@@ -4,12 +4,46 @@
 
 namespace Comfy::Render
 {
+	namespace
+	{
+		constexpr float Lerp(float inputA, float inputB, float delta)
+		{
+			return (inputA * delta + inputB * (1.0f - delta));
+		}
+
+		mat4 Lerp(const mat4& inputA, const mat4& inputB, float delta)
+		{
+			mat4 result;
+			for (auto c = 0; c < mat4::length(); c++)
+			{
+				for (auto r = 0; r < mat4::length(); r++)
+					result[c][r] = Lerp(inputA[c][r], inputB[c][r], delta);
+			}
+			return result;
+		}
+	}
+
 	void PerspectiveCamera::UpdateMatrices()
 	{
 		view = glm::lookAt(ViewPoint, Interest, UpDirection);
 		projection = glm::perspective(glm::radians(FieldOfView), AspectRatio, NearPlane, FarPlane);
 
-		viewProjection = projection * view;
+		if (OrthographicLerp != 0.0f)
+		{
+			OrthographicLerp = glm::clamp(OrthographicLerp, 0.0f, 1.0f);
+
+			const auto orthoSize = glm::normalize(vec2(AspectRatio, 1.0f)) * glm::distance(ViewPoint, Interest);
+			const auto orthoProjection = glm::ortho(
+				-0.5f * orthoSize.x,
+				+0.5f * orthoSize.x,
+				-0.5f * orthoSize.y,
+				+0.5f * orthoSize.y,
+				NearPlane, FarPlane);
+
+			projection = Lerp(orthoProjection, projection, OrthographicLerp);
+		}
+
+		viewProjection = (projection * view);
 
 		const mat4 viewProjectionRows = glm::transpose(viewProjection);
 		frustum.Planes[0] = glm::normalize(viewProjectionRows[3] + viewProjectionRows[0]);
@@ -59,12 +93,27 @@ namespace Comfy::Render
 	Graphics::Ray PerspectiveCamera::CastRay(vec2 normalizeScreenPosition) const
 	{
 		auto ray = Graphics::Ray {};
-
 		const auto clipSpacePosition = vec4((normalizeScreenPosition.x * 2.0f) - 1.0f, 1.0f - ((normalizeScreenPosition.y * 2.0f)), 1.0f, 1.0f);
-		const auto inverseViewProjection = glm::inverse(viewProjection);
 
-		ray.Origin = ViewPoint;
-		ray.Direction = glm::normalize(vec3(inverseViewProjection * clipSpacePosition));
+		// NOTE: Ray casting while ortho lerping not (== 0.0f || == 1.0f) will not be accurate
+		if (OrthographicLerp >= 0.999999f)
+		{
+			ray.Direction = glm::normalize(Interest - ViewPoint);
+
+			const auto orientation = glm::mat4_cast(glm::inverse(glm::quatLookAt(ray.Direction, Interest)));
+			const auto orthoSize = glm::normalize(vec2(AspectRatio, 1.0f)) * glm::distance(ViewPoint, Interest);
+
+			ray.Origin = ViewPoint;
+			ray.Origin += (orthoSize.x * clipSpacePosition.x * 0.5f) * glm::normalize(vec3((vec4(RightDirection, 1.0f) * orientation)));
+			ray.Origin += (orthoSize.y * clipSpacePosition.y * 0.5f) * glm::normalize(vec3((vec4(UpDirection, 1.0f) * orientation)));
+		}
+		else
+		{
+			ray.Origin = ViewPoint;
+
+			const auto inverseViewProjection = glm::inverse(viewProjection);
+			ray.Direction = glm::normalize(vec3(inverseViewProjection * clipSpacePosition));
+		}
 
 		return ray;
 	}

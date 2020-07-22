@@ -10,6 +10,8 @@ namespace Comfy::Render
 	{
 	public:
 		static constexpr vec3 UpDirection = vec3(0.0f, 1.0f, 0.0f);
+		static constexpr vec3 ForwardDirection = vec3(0.0f, 0.0f, -1.0f);
+		static constexpr vec3 RightDirection = vec3(1.0f, 0.0f, 0.0f);
 
 		virtual void UpdateMatrices() = 0;
 
@@ -29,6 +31,9 @@ namespace Comfy::Render
 
 		float NearPlane = 0.050f;
 		float FarPlane = 6000.0f;
+
+		// NOTE: Prevent potential disorientation caused by sudden perspective / orthographic switching (Perspective = 0.0f, Orthographic = 1.0f)
+		float OrthographicLerp = 0.0f;
 
 	public:
 		void UpdateMatrices() override;
