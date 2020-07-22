@@ -7,24 +7,24 @@
 
 namespace Comfy::Render
 {
-	inline bool RayIntersectsTriangle(const vec3& viewPoint, const vec3& ray, const vec3* trianglePoints, float& outIntersectionDistance)
+	inline bool RayIntersectsTriangle(const Graphics::Ray& ray, const vec3* trianglePoints, float& outIntersectionDistance)
 	{
 		vec2 baryPosition;
-		return glm::intersectRayTriangle(viewPoint, ray, trianglePoints[0], trianglePoints[1], trianglePoints[2], baryPosition, outIntersectionDistance);
+		return glm::intersectRayTriangle(ray.Origin, ray.Direction, trianglePoints[0], trianglePoints[1], trianglePoints[2], baryPosition, outIntersectionDistance);
 	}
 
-	inline bool RayIntersectsTriangleSingleSided(const vec3& viewPoint, const vec3& ray, const vec3* trianglePoints, float& outIntersectionDistance)
+	inline bool RayIntersectsTriangleSingleSided(const Graphics::Ray& ray, const vec3* trianglePoints, float& outIntersectionDistance)
 	{
 		const auto normal = glm::normalize(glm::cross(trianglePoints[1] - trianglePoints[0], trianglePoints[2] - trianglePoints[0]));
-		if (glm::dot(ray, normal) > 0.0f)
+		if (glm::dot(ray.Direction, normal) > 0.0f)
 			return false;
 
-		return RayIntersectsTriangle(viewPoint, ray, trianglePoints, outIntersectionDistance);
+		return RayIntersectsTriangle(ray, trianglePoints, outIntersectionDistance);
 	}
 
-	inline bool RayIntersectsSphere(const vec3& viewPoint, const vec3& ray, const Graphics::Sphere& sphere, float& outIntesectionDistance)
+	inline bool RayIntersectsSphere(const Graphics::Ray& ray, const Graphics::Sphere& sphere, float& outIntesectionDistance)
 	{
-		return glm::intersectRaySphere(viewPoint, ray, sphere.Center, (sphere.Radius * sphere.Radius), outIntesectionDistance);
+		return glm::intersectRaySphere(ray.Origin, ray.Direction, sphere.Center, (sphere.Radius * sphere.Radius), outIntesectionDistance);
 	}
 
 	struct RayObjIntersectionResult
@@ -83,14 +83,13 @@ namespace Comfy::Render
 			ForEachIndexedTriangle(mesh.VertexData.Positions, subMesh.Primitive, *indices, perTriangleFunc);
 	}
 
-	inline RayObjIntersectionResult RayIntersectsObj(const vec3& viewPoint, const vec3& ray, float nearPlane, const Graphics::Obj& obj, const Graphics::Transform& transform)
+	inline RayObjIntersectionResult RayIntersectsObj(const Graphics::Ray& ray, float nearPlane, const Graphics::Obj& obj, const Graphics::Transform& transform)
 	{
 		const mat4 inverseTransform = glm::inverse(transform.CalculateMatrix());
-		const vec3 inverseViewPoint = inverseTransform * vec4(viewPoint, 1.0f);
-		const vec3 inverseRay = glm::normalize(inverseTransform * vec4(ray, 0.0f));
+		const auto inverseRay = Graphics::Ray { (inverseTransform * vec4(ray.Origin, 1.0f)), glm::normalize(inverseTransform * vec4(ray.Direction, 0.0f)) };
 
 		float intersectionDistance = 0.0f;
-		if (!RayIntersectsSphere(inverseViewPoint, inverseRay, obj.BoundingSphere, intersectionDistance))
+		if (!RayIntersectsSphere(inverseRay, obj.BoundingSphere, intersectionDistance))
 			return RayObjIntersectionResult { 0.0f, nullptr, nullptr };
 
 		float closestDistance = std::numeric_limits<float>::max();
@@ -99,12 +98,12 @@ namespace Comfy::Render
 
 		for (const auto& mesh : obj.Meshes)
 		{
-			if (!RayIntersectsSphere(inverseViewPoint, inverseRay, mesh.BoundingSphere, intersectionDistance))
+			if (!RayIntersectsSphere(inverseRay, mesh.BoundingSphere, intersectionDistance))
 				continue;
 
 			for (const auto& subMesh : mesh.SubMeshes)
 			{
-				if (!RayIntersectsSphere(inverseViewPoint, inverseRay, subMesh.BoundingSphere, intersectionDistance))
+				if (!RayIntersectsSphere(inverseRay, subMesh.BoundingSphere, intersectionDistance))
 					continue;
 
 				const auto& material = IndexOrNull(subMesh.MaterialIndex, obj.Materials);
@@ -112,7 +111,7 @@ namespace Comfy::Render
 
 				ForEachSubMeshTriangle(mesh, subMesh, [&](auto& triangle)
 				{
-					if (!triangleIntersectionFunc(inverseViewPoint, inverseRay, triangle.data(), intersectionDistance) || (intersectionDistance < nearPlane))
+					if (!triangleIntersectionFunc(inverseRay, triangle.data(), intersectionDistance) || (intersectionDistance < nearPlane))
 						return;
 
 					if (intersectionDistance < closestDistance)

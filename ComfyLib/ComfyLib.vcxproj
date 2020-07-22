@@ -32,6 +32,7 @@
     <ClInclude Include="src\Graphics\Auth3D\LightParam\Parameters.h" />
     <ClInclude Include="src\Graphics\Auth3D\Misc\DebugObj.h" />
     <ClInclude Include="src\Graphics\Auth3D\ObjSet.h" />
+    <ClInclude Include="src\Graphics\Auth3D\Ray.h" />
     <ClInclude Include="src\Graphics\Auth3D\Transform.h" />
     <ClInclude Include="src\Graphics\GraphicTypes.h" />
     <ClInclude Include="src\Graphics\GPUResource.h" />
