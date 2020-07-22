@@ -100,7 +100,7 @@ namespace Comfy::Sandbox::Tests
 
 	private:
 		Render::Renderer2D renderer = {};
-		Render::OrthographicCamera camera = {};
+		Render::Camera2D camera = {};
 
 		CallbackRenderWindow2D renderWindow = {};
 		bool fullscreen = false;

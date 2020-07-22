@@ -23,7 +23,7 @@ namespace Comfy::Render
 		}
 	}
 
-	void PerspectiveCamera::UpdateMatrices()
+	void Camera3D::UpdateMatrices()
 	{
 		view = glm::lookAt(ViewPoint, Interest, UpDirection);
 		projection = glm::perspective(glm::radians(FieldOfView), AspectRatio, NearPlane, FarPlane);
@@ -54,22 +54,22 @@ namespace Comfy::Render
 		frustum.Planes[5] = glm::normalize(viewProjectionRows[3] - viewProjectionRows[2]);
 	}
 
-	const mat4& PerspectiveCamera::GetView() const
+	const mat4& Camera3D::GetView() const
 	{
 		return view;
 	}
 
-	const mat4& PerspectiveCamera::GetProjection() const
+	const mat4& Camera3D::GetProjection() const
 	{
 		return projection;
 	}
 
-	const mat4& PerspectiveCamera::GetViewProjection() const
+	const mat4& Camera3D::GetViewProjection() const
 	{
 		return viewProjection;
 	}
 
-	vec2 PerspectiveCamera::ProjectPointNormalizedScreen(vec3 worldPosition) const
+	vec2 Camera3D::ProjectPointNormalizedScreen(vec3 worldPosition) const
 	{
 		const vec4 projectedPosition = viewProjection * vec4(worldPosition, 1.0f);
 
@@ -90,7 +90,7 @@ namespace Comfy::Render
 		return normalizedScreenPosition;
 	}
 
-	Graphics::Ray PerspectiveCamera::CastRay(vec2 normalizeScreenPosition) const
+	Graphics::Ray Camera3D::CastRay(vec2 normalizeScreenPosition) const
 	{
 		auto ray = Graphics::Ray {};
 		const auto clipSpacePosition = vec4((normalizeScreenPosition.x * 2.0f) - 1.0f, 1.0f - ((normalizeScreenPosition.y * 2.0f)), 1.0f, 1.0f);
@@ -118,7 +118,7 @@ namespace Comfy::Render
 		return ray;
 	}
 
-	bool PerspectiveCamera::IntersectsViewFrustum(const Graphics::Sphere& worldSpaceSphere) const
+	bool Camera3D::IntersectsViewFrustum(const Graphics::Sphere& worldSpaceSphere) const
 	{
 		for (const auto& plane : frustum.Planes)
 		{
@@ -129,7 +129,7 @@ namespace Comfy::Render
 		return true;
 	}
 
-	void OrthographicCamera::UpdateMatrices()
+	void Camera2D::UpdateMatrices()
 	{
 		constexpr float projectionLeft = 0.0f;
 		constexpr float projectionTop = 0.0f;
@@ -140,37 +140,37 @@ namespace Comfy::Render
 		viewProjection = projection * view;
 	}
 
-	const mat4& OrthographicCamera::GetView() const
+	const mat4& Camera2D::GetView() const
 	{
 		return view;
 	}
 
-	const mat4& OrthographicCamera::GetProjection() const
+	const mat4& Camera2D::GetProjection() const
 	{
 		return projection;
 	}
 
-	const mat4& OrthographicCamera::GetViewProjection() const
+	const mat4& Camera2D::GetViewProjection() const
 	{
 		return viewProjection;
 	}
 
-	vec3 PerspectiveCamera::ScreenToWorldSpace(const mat4& matrix, const vec3& screenSpace)
+	vec3 Camera3D::ScreenToWorldSpace(const mat4& matrix, const vec3& screenSpace)
 	{
 		return (glm::inverse(matrix) * vec4(screenSpace, 1.0f)).xyz;
 	}
 
-	vec3 PerspectiveCamera::WorldToScreenSpace(const mat4& matrix, const vec3& worldSpace)
+	vec3 Camera3D::WorldToScreenSpace(const mat4& matrix, const vec3& worldSpace)
 	{
 		return (matrix * vec4(worldSpace, 1.0f)).xyz;
 	}
 
-	vec2 OrthographicCamera::GetProjectionCenter() const
+	vec2 Camera2D::GetProjectionCenter() const
 	{
 		return ProjectionSize * 0.5f;
 	}
 
-	std::pair<vec2, vec2> OrthographicCamera::GetFullScreenCoveringQuad() const
+	std::pair<vec2, vec2> Camera2D::GetFullScreenCoveringQuad() const
 	{
 		const vec2 position = (Position / Zoom);
 		const vec2 size = (ProjectionSize / Zoom);
@@ -178,17 +178,17 @@ namespace Comfy::Render
 		return std::make_pair(position, size);
 	}
 
-	vec2 OrthographicCamera::ScreenToWorldSpace(const vec2& screenSpace) const
+	vec2 Camera2D::ScreenToWorldSpace(const vec2& screenSpace) const
 	{
-		return OrthographicCamera::ScreenToWorldSpace(view, screenSpace);
+		return Camera2D::ScreenToWorldSpace(view, screenSpace);
 	}
 
-	vec2 OrthographicCamera::WorldToScreenSpace(const vec2& worldSpace) const
+	vec2 Camera2D::WorldToScreenSpace(const vec2& worldSpace) const
 	{
-		return OrthographicCamera::WorldToScreenSpace(view, worldSpace);
+		return Camera2D::WorldToScreenSpace(view, worldSpace);
 	}
 
-	void OrthographicCamera::CenterAndZoomToFit(vec2 targetSize)
+	void Camera2D::CenterAndZoomToFit(vec2 targetSize)
 	{
 		const float targetAspectRatio = (targetSize.x / targetSize.y);
 		const float projectionAspectRatio = (ProjectionSize.x / ProjectionSize.y);
@@ -205,12 +205,12 @@ namespace Comfy::Render
 		}
 	}
 
-	vec2 OrthographicCamera::ScreenToWorldSpace(const mat4& matrix, const vec2& screenSpace)
+	vec2 Camera2D::ScreenToWorldSpace(const mat4& matrix, const vec2& screenSpace)
 	{
 		return (glm::inverse(matrix) * vec4(screenSpace, 0.0f, 1.0f)).xy;
 	}
 
-	vec2 OrthographicCamera::WorldToScreenSpace(const mat4& matrix, const vec2& worldSpace)
+	vec2 Camera2D::WorldToScreenSpace(const mat4& matrix, const vec2& worldSpace)
 	{
 		return (matrix * vec4(worldSpace, 0.0f, 1.0f)).xy;
 	}

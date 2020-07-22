@@ -191,14 +191,14 @@ namespace Comfy::Sandbox::Tests
 
 	private:
 		Render::Renderer2D renderer = {};
-		Render::OrthographicCamera camera = {};
+		Render::Camera2D camera = {};
 
 		CallbackRenderWindow2D renderWindow = {};
 		bool fullscreen = false;
 
 		struct PreviewData
 		{
-			Render::OrthographicCamera Camera = {};
+			Render::Camera2D Camera = {};
 			std::unique_ptr<Render::RenderTarget2D> RenderTarget = Render::Renderer2D::CreateRenderTarget();
 		} preview;
 

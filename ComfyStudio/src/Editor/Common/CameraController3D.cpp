@@ -7,7 +7,7 @@ namespace Comfy::Studio::Editor
 	constexpr float YawDegreesMin = -89.0f;
 	constexpr float YawDegreesMax = +89.0f;
 
-	void CameraController3D::Update(Render::PerspectiveCamera& camera)
+	void CameraController3D::Update(Render::Camera3D& camera)
 	{
 		if (Mode == ControlMode::None)
 			return;
@@ -89,7 +89,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void CameraController3D::FitOrbitAroundSphere(Render::PerspectiveCamera& camera, const Graphics::Sphere& sphere)
+	void CameraController3D::FitOrbitAroundSphere(Render::Camera3D& camera, const Graphics::Sphere& sphere)
 	{
 		const float cameraView = 2.0f * glm::tan(glm::radians(camera.FieldOfView) * 0.5f);
 		const float distance = (sphere.Radius / cameraView) + sphere.Radius;
@@ -100,7 +100,7 @@ namespace Comfy::Studio::Editor
 		SetControlModePreserveOrientation(camera, ControlMode::Orbit);
 	}
 
-	void CameraController3D::SetControlModePreserveOrientation(Render::PerspectiveCamera& camera, ControlMode newMode)
+	void CameraController3D::SetControlModePreserveOrientation(Render::Camera3D& camera, ControlMode newMode)
 	{
 		const auto oldMode = Mode;
 		Mode = newMode;
@@ -137,7 +137,7 @@ namespace Comfy::Studio::Editor
 
 	void CameraController3D::UpdateKeyboardInput(vec3& pointToChange, const vec3& frontDirection, float cameraSpeed)
 	{
-		constexpr vec3 upDirection = Render::PerspectiveCamera::UpDirection;
+		constexpr vec3 upDirection = Render::Camera3D::UpDirection;
 
 		if (Gui::IsKeyDown(Input::KeyCode_W))
 			pointToChange += frontDirection * cameraSpeed;

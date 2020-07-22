@@ -20,7 +20,7 @@ namespace Comfy::Render
 		virtual const mat4& GetViewProjection() const = 0;
 	};
 
-	class PerspectiveCamera final : public ICamera
+	class Camera3D final : public ICamera
 	{
 	public:
 		vec3 ViewPoint = vec3(3.45f, 1.0f, 0.0f);
@@ -61,7 +61,7 @@ namespace Comfy::Render
 		mat4 view, projection, viewProjection;
 	};
 
-	class OrthographicCamera final : public ICamera
+	class Camera2D final : public ICamera
 	{
 	public:
 		float Zoom = 1.0f;

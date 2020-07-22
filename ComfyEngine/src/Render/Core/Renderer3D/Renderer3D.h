@@ -43,7 +43,7 @@ namespace Comfy::Render
 		~Renderer3D();
 
 	public:
-		void Begin(PerspectiveCamera& camera, RenderTarget3D& renderTarget, const SceneParam3D& sceneParam);
+		void Begin(Camera3D& camera, RenderTarget3D& renderTarget, const SceneParam3D& sceneParam);
 		void Draw(const RenderCommand3D& command);
 		// TODO: DrawRect(), DrawCircle(), DrawCylinder(), DrawLine(), DrawSpriteBillboard(), etc.
 

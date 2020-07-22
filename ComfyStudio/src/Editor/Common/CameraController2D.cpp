@@ -5,7 +5,7 @@
 
 namespace Comfy::Studio::Editor
 {
-	void CameraController2D::Update(Render::OrthographicCamera& camera, vec2 relativeMouse)
+	void CameraController2D::Update(Render::Camera2D& camera, vec2 relativeMouse)
 	{
 		for (int i = 0; i < static_cast<int>(windowHoveredOnClick.size()); i++)
 		{
@@ -20,7 +20,7 @@ namespace Comfy::Studio::Editor
 			UpdateMouseInput(camera, relativeMouse);
 	}
 
-	void CameraController2D::SetUpdateCameraZoom(Render::OrthographicCamera& camera, float newZoom, vec2 origin)
+	void CameraController2D::SetUpdateCameraZoom(Render::Camera2D& camera, float newZoom, vec2 origin)
 	{
 		const vec2 worldSpace = camera.ScreenToWorldSpace(origin);
 
@@ -33,7 +33,7 @@ namespace Comfy::Studio::Editor
 		camera.Position = glm::round(camera.Position);
 	}
 
-	void CameraController2D::UpdateKeyboardInput(Render::OrthographicCamera& camera)
+	void CameraController2D::UpdateKeyboardInput(Render::Camera2D& camera)
 	{
 		if (!Gui::IsWindowFocused())
 			return;
@@ -55,7 +55,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void CameraController2D::UpdateMouseInput(Render::OrthographicCamera& camera, vec2 relativeMouse)
+	void CameraController2D::UpdateMouseInput(Render::Camera2D& camera, vec2 relativeMouse)
 	{
 		const auto& io = Gui::GetIO();
 

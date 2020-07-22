@@ -8,8 +8,8 @@ namespace Comfy::Studio::Editor
 	class CameraController2D
 	{
 	public:
-		void Update(Render::OrthographicCamera& camera, vec2 relativeMouse);
-		void SetUpdateCameraZoom(Render::OrthographicCamera& camera, float newZoom, vec2 origin);
+		void Update(Render::Camera2D& camera, vec2 relativeMouse);
+		void SetUpdateCameraZoom(Render::Camera2D& camera, float newZoom, vec2 origin);
 
 	public:
 		float ZoomStep = 1.1f;
@@ -20,8 +20,8 @@ namespace Comfy::Studio::Editor
 		bool AltZoomControl = true;
 
 	private:
-		void UpdateKeyboardInput(Render::OrthographicCamera& camera);
-		void UpdateMouseInput(Render::OrthographicCamera& camera, vec2 relativeMouse);
+		void UpdateKeyboardInput(Render::Camera2D& camera);
+		void UpdateMouseInput(Render::Camera2D& camera, vec2 relativeMouse);
 
 	private:
 		bool updateKeyboardControls = false;

@@ -68,7 +68,7 @@ namespace Comfy::Studio::Editor
 		virtual void DrawContextMenu() = 0;
 		
 		// NOTE: Special case for the HandTool
-		virtual void UpdateCamera(Render::OrthographicCamera& camera, vec2 relativeMouse) {}
+		virtual void UpdateCamera(Render::Camera2D& camera, vec2 relativeMouse) {}
 
 		// NOTE: So we know if we can mouse pick an object of the current composition without interfering with the tool
 		// TODO: Default return false for now but should be abstract in the future

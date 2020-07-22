@@ -375,7 +375,7 @@ namespace Comfy::Render
 
 		struct BeginEndData
 		{
-			PerspectiveCamera* Camera;
+			Camera3D* Camera;
 			Detail::RenderTarget3DImpl* RenderTarget;
 			const SceneParam3D* SceneParam;
 		} Current = {};
@@ -1960,7 +1960,7 @@ namespace Comfy::Render
 	{
 	}
 
-	void Renderer3D::Begin(PerspectiveCamera& camera, RenderTarget3D& renderTarget, const SceneParam3D& sceneParam)
+	void Renderer3D::Begin(Camera3D& camera, RenderTarget3D& renderTarget, const SceneParam3D& sceneParam)
 	{
 		assert(impl->Current.Camera == nullptr);
 

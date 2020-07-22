@@ -121,7 +121,7 @@ namespace Comfy::Render
 		std::vector<Detail::SpriteBatchItem> BatchItems;
 		std::vector<Detail::SpriteVertices> Vertices;
 
-		OrthographicCamera* OrthographicCamera = nullptr;
+		Camera2D* Camera = nullptr;
 		Detail::RenderTarget2DImpl* RenderTarget = nullptr;
 
 	public:
@@ -296,8 +296,8 @@ namespace Comfy::Render
 
 			VertexBuffer->UploadData(Vertices.size() * sizeof(Detail::SpriteVertices), Vertices.data());
 
-			OrthographicCamera->UpdateMatrices();
-			CameraConstantBuffer.Data.ViewProjection = glm::transpose(OrthographicCamera->GetViewProjection());
+			Camera->UpdateMatrices();
+			CameraConstantBuffer.Data.ViewProjection = glm::transpose(Camera->GetViewProjection());
 			CameraConstantBuffer.UploadData();
 
 			const D3D11::ShaderPair* lastShader = nullptr;
@@ -523,12 +523,12 @@ namespace Comfy::Render
 	{
 	}
 
-	void Renderer2D::Begin(OrthographicCamera& camera, RenderTarget2D& renderTarget)
+	void Renderer2D::Begin(Camera2D& camera, RenderTarget2D& renderTarget)
 	{
-		assert(impl->OrthographicCamera == nullptr);
+		assert(impl->Camera == nullptr);
 
 		impl->DrawCallCount = 0;
-		impl->OrthographicCamera = &camera;
+		impl->Camera = &camera;
 		impl->RenderTarget = static_cast<Detail::RenderTarget2DImpl*>(&renderTarget);
 		impl->InternalSetBeginState();
 	}
@@ -598,10 +598,10 @@ namespace Comfy::Render
 		return impl->FontRenderer;
 	}
 
-	const OrthographicCamera& Renderer2D::GetCamera() const
+	const Camera2D& Renderer2D::GetCamera() const
 	{
-		assert(impl->OrthographicCamera != nullptr);
-		return *impl->OrthographicCamera;
+		assert(impl->Camera != nullptr);
+		return *impl->Camera;
 	}
 
 	RenderTarget2D& Renderer2D::GetRenderTarget() const
@@ -617,12 +617,12 @@ namespace Comfy::Render
 
 	void Renderer2D::End()
 	{
-		assert(impl->OrthographicCamera != nullptr);
+		assert(impl->Camera != nullptr);
 
 		impl->InternalFlushRenderBatches();
 		impl->InternalSetEndState();
 
-		impl->OrthographicCamera = nullptr;
+		impl->Camera = nullptr;
 		impl->RenderTarget = nullptr;
 	}
 }

@@ -50,7 +50,7 @@ namespace Comfy::Sandbox::Tests
 
 		ResourceIDMap<TexID, Graphics::Tex> texIDMap;
 
-		Render::PerspectiveCamera camera;
+		Render::Camera3D camera;
 		Render::Renderer3D renderer = Render::TexGetter([&](const Cached_TexID* texID)
 		{
 			return texIDMap.Find(texID);

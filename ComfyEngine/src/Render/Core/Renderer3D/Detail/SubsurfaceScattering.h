@@ -128,7 +128,7 @@ namespace Comfy::Render::Detail
 		return coefficients;
 	}
 
-	inline void CalculateSSSCoefficients(const PerspectiveCamera& camera, SSSFilterConstantData& outData)
+	inline void CalculateSSSCoefficients(const Camera3D& camera, SSSFilterConstantData& outData)
 	{
 		const std::array<std::optional<vec3>, 2> characterHeadPositions = { vec3(0.0f, 1.055f, 0.0f) };
 		const double cameraCoefficient = CalculateSSSCameraCoefficient(camera.ViewPoint, camera.Interest, camera.FieldOfView, characterHeadPositions);

@@ -91,7 +91,7 @@ namespace Comfy::Sandbox::Tests
 	private:
 		std::vector<std::future<void>> saveImageFutures;
 
-		Render::OrthographicCamera camera;
+		Render::Camera2D camera;
 
 		Render::Renderer2D renderer;
 		std::unique_ptr<Render::RenderTarget2D> renderTarget = Render::Renderer2D::CreateRenderTarget();
@@ -462,7 +462,7 @@ namespace Comfy::Sandbox::Tests
 
 	private:
 		Render::Renderer2D renderer = {};
-		Render::OrthographicCamera camera = {};
+		Render::Camera2D camera = {};
 
 		CallbackRenderWindow2D renderWindow = {};
 		bool fullscreen = false;

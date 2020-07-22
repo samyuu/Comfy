@@ -63,10 +63,10 @@ namespace Comfy::Studio::Editor
 		} Visualization;
 
 	public:
-		void Update(Render::PerspectiveCamera& camera);
+		void Update(Render::Camera3D& camera);
 
-		void FitOrbitAroundSphere(Render::PerspectiveCamera& camera, const Graphics::Sphere& sphere);
-		void SetControlModePreserveOrientation(Render::PerspectiveCamera& camera, ControlMode newMode);
+		void FitOrbitAroundSphere(Render::Camera3D& camera, const Graphics::Sphere& sphere);
+		void SetControlModePreserveOrientation(Render::Camera3D& camera, ControlMode newMode);
 
 	private:
 		void UpdateKeyboardInput(vec3& pointToChange, const vec3& frontDirection, float cameraSpeed);

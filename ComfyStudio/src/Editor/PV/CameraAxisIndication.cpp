@@ -4,7 +4,7 @@ namespace Comfy::Studio::Editor
 {
 	namespace
 	{
-		std::array<vec2, 4> GetAxisScreenPositions(const Render::PerspectiveCamera& camera)
+		std::array<vec2, 4> GetAxisScreenPositions(const Render::Camera3D& camera)
 		{
 			const vec3 viewDirection = glm::normalize(camera.ViewPoint - camera.Interest);
 			const mat4 viewProjection = glm::ortho(+1.0f, -1.0f, +1.0f, -1.0f) * glm::lookAt(vec3(0.0f), viewDirection, camera.UpDirection);
@@ -25,7 +25,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void DrawCameraAxisIndicationGui(ImDrawList* drawList, const Render::PerspectiveCamera& camera, vec2 indicatorCenter, float indicatorSize, float indicatorPadding, vec2 textOffset)
+	void DrawCameraAxisIndicationGui(ImDrawList* drawList, const Render::Camera3D& camera, vec2 indicatorCenter, float indicatorSize, float indicatorPadding, vec2 textOffset)
 	{
 		std::array<vec2, 4> screenPositions = GetAxisScreenPositions(camera);
 		for (size_t i = 0; i < screenPositions.size(); i++)

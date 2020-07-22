@@ -48,7 +48,7 @@ namespace Comfy::Studio::Editor
 	private:
 		struct ViewportContext
 		{
-			Render::PerspectiveCamera Camera;
+			Render::Camera3D Camera;
 			CameraController3D CameraController;
 			std::unique_ptr<SceneRenderWindow> RenderWindow = nullptr;
 			bool IsOpen = true;

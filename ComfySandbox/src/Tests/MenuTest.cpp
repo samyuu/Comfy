@@ -75,7 +75,7 @@ namespace Comfy::Sandbox::Tests
 		bool fullscreen = false;
 		CallbackRenderWindow2D renderWindow = {};
 
-		Render::OrthographicCamera camera = {};
+		Render::Camera2D camera = {};
 
 		float MenuTimeFactor = 1.0f;
 

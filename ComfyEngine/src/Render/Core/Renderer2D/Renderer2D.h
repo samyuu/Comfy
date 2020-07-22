@@ -17,7 +17,7 @@ namespace Comfy::Render
 		~Renderer2D();
 
 	public:
-		void Begin(OrthographicCamera& camera, RenderTarget2D& renderTarget);
+		void Begin(Camera2D& camera, RenderTarget2D& renderTarget);
 		void Draw(const RenderCommand2D& command);
 		void Draw(const RenderCommand2D& command, const RenderCommand2D& commandMask);
 
@@ -38,7 +38,7 @@ namespace Comfy::Render
 
 	public:
 		// NOTE: Only valid between a Begin() / End() call
-		const OrthographicCamera& GetCamera() const;
+		const Camera2D& GetCamera() const;
 		RenderTarget2D& GetRenderTarget() const;
 
 		/*

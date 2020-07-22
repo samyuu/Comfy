@@ -27,7 +27,7 @@ namespace Comfy::Studio::Editor
 		CheckerboardGrid checkerboardGrid;
 
 		const vec2 renderSize = vec2(1920.0f, 1080.0f);
-		Render::OrthographicCamera camera;
+		Render::Camera2D camera;
 
 		std::unique_ptr<Render::Renderer2D> renderer;
 		std::unique_ptr<Render::RenderTarget2D> renderTarget;

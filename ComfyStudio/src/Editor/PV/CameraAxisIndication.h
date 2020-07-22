@@ -5,5 +5,5 @@
 
 namespace Comfy::Studio::Editor
 {
-	void DrawCameraAxisIndicationGui(ImDrawList* drawList, const Render::PerspectiveCamera& camera, vec2 indicatorCenter, float indicatorSize, float indicatorPadding, vec2 textOffset);
+	void DrawCameraAxisIndicationGui(ImDrawList* drawList, const Render::Camera3D& camera, vec2 indicatorCenter, float indicatorSize, float indicatorPadding, vec2 textOffset);
 }

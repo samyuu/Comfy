@@ -36,7 +36,7 @@ namespace Comfy::Studio::Editor
 
 			std::unique_ptr<Render::RenderTarget3D> renderTarget = nullptr;
 
-			Render::PerspectiveCamera camera;
+			Render::Camera3D camera;
 			CameraController3D cameraController;
 
 			std::unique_ptr<Graphics::Obj> sphereObj;

@@ -63,7 +63,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	SceneRenderWindow::SceneRenderWindow(SceneGraph& sceneGraph, Render::PerspectiveCamera& camera, Render::Renderer3D& renderer, Render::SceneParam3D& sceneParam, CameraController3D& cameraController)
+	SceneRenderWindow::SceneRenderWindow(SceneGraph& sceneGraph, Render::Camera3D& camera, Render::Renderer3D& renderer, Render::SceneParam3D& sceneParam, CameraController3D& cameraController)
 		: sceneGraph(sceneGraph), camera(camera), renderer(renderer), sceneParam(sceneParam), cameraController(cameraController)
 	{
 		renderTarget = Renderer3D::CreateRenderTarget();

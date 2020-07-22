@@ -365,8 +365,9 @@ namespace Comfy::Studio::Editor
 		GuiPropertyRAII::PropertyValueColumns columns;
 		GuiPropertyRAII::ID id(&camera);
 
+		GuiProperty::Input("Orthographic Lerp", camera.OrthographicLerp, 0.01f, vec2(0.0f, 1.0f));
 		GuiProperty::Input("Field Of View", camera.FieldOfView, 1.0f, vec2(1.0f, 173.0f));
-		GuiProperty::Input("Near Plane", camera.NearPlane, 0.001f, vec2(0.001f, 1.0f));
+		GuiProperty::Input("Near Plane", camera.NearPlane, 0.001f, (camera.OrthographicLerp == 0.0f) ? vec2(0.001f, 1.0f) : std::optional<vec2> {});
 		GuiProperty::Input("Far Plane", camera.FarPlane, 10.0f);
 		GuiProperty::Input("View Point", camera.ViewPoint, 0.01f);
 		GuiProperty::Input("Interest", camera.Interest, 0.01f);

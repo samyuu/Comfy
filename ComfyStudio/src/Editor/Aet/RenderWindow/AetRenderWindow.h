@@ -98,7 +98,7 @@ namespace Comfy::Studio::Editor
 		std::array<std::unique_ptr<AetTool>, AetToolType_Count> tools;
 		AetToolType currentToolType = AetToolType_Transform;
 
-		Render::OrthographicCamera camera;
+		Render::Camera2D camera;
 		CameraController2D cameraController;
 	};
 }
