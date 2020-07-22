@@ -28,9 +28,17 @@ namespace ImGui
 		{
 			PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f, 0.0f));
 			{
-				bool backClicked = parentFocused && IsMouseReleased(3);
+				const bool isAsyncBusy = IsAsyncDirectoryInfoBusy();
+				const bool backClicked = parentFocused && IsMouseReleased(3);
+
+				if (isAsyncBusy)
+					PushStyleColor(ImGuiCol_Text, GetStyleColorVec4(ImGuiCol_TextDisabled));
+
 				if (ArrowButton("PreviousDirectoryButton::FileViewer", ImGuiDir_Up) || backClicked)
-					SetParentDirectory(currentDirectoryOrArchive);
+				{
+					if (!isAsyncBusy)
+						SetParentDirectory(currentDirectoryOrArchive);
+				}
 
 				SameLine();
 
@@ -38,14 +46,21 @@ namespace ImGui
 
 				PushItemWidth(windowSize.x * (1.0f - searchBarWidth));
 				if (InputText("##DirectoryInputText::FileViewer", currentDirectoryBuffer, sizeof(currentDirectoryBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
-					SetDirectory(currentDirectoryBuffer);
+				{
+					if (!isAsyncBusy)
+						SetDirectory(currentDirectoryBuffer);
+				}
 				PopItemWidth();
+
+				if (isAsyncBusy)
+					PopStyleColor();
 
 				PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(1.0f, 0.0f));
 				SameLine();
 				fileFilter.Draw("##FileFilter::FileViewer", ICON_FA_SEARCH, windowSize.x * searchBarWidth);
+				PopStyleVar();
 			}
-			PopStyleVar(2);
+			PopStyleVar();
 		}
 		EndChild();
 		Separator();
@@ -55,7 +70,9 @@ namespace ImGui
 		// NOTE: Always draw vertical scrollbar to avoid constant size changes while navigating between directories with different file counts
 		BeginChild("FileListChild##FileViewer", vec2(0.0f, 0.0f), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 		{
-			if (FilePathInfo* clickedInfo = DrawFileListGui(); clickedInfo != nullptr)
+			CheckAsyncUpdateDirectoryInfo();
+
+			if (auto clickedInfo = DrawFileListGui(); clickedInfo != nullptr)
 			{
 				if (clickedInfo->IsDirectory || IO::Archive::IsValidPath(clickedInfo->FullPath))
 				{
@@ -86,7 +103,7 @@ namespace ImGui
 				if (MenuItem("Open in Explorer..."))
 					OpenDirectoryInExplorer();
 
-				if (MenuItem("Refresh"))
+				if (MenuItem("Refresh", nullptr, nullptr, !IsAsyncDirectoryInfoBusy()))
 					SetDirectory(currentDirectoryOrArchive);
 
 				if (MenuItem("Resize Columns"))
@@ -126,7 +143,8 @@ namespace ImGui
 			currentDirectoryBuffer[currentDirectoryOrArchive.size()] = '\0';
 		}
 
-		UpdateDirectoryInformation();
+		fileFilter.Clear();
+		StartAsyncUpdateDirectoryInfo();
 	}
 
 	std::string_view FileViewer::GetDirectory() const
@@ -166,6 +184,12 @@ namespace ImGui
 		Text("Size"); NextColumn();
 		Text("Type"); NextColumn();
 		Separator();
+		if (currentDirectoryInfo.empty() && IsAsyncDirectoryInfoBusy())
+		{
+			asyncLoadingAnimation.Update();
+			Selectable(asyncLoadingAnimation.GetText(), false, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_Disabled);
+		}
+		else
 		{
 			char displayNameBuffer[_MAX_PATH];
 			for (auto& info : currentDirectoryInfo)
@@ -202,77 +226,80 @@ namespace ImGui
 		return clickedInfo;
 	}
 
-	void FileViewer::UpdateDirectoryInformation()
+	void FileViewer::StartAsyncUpdateDirectoryInfo()
 	{
-		fileFilter.Clear();
+		asyncLoadingAnimation.Reset();
 		currentDirectoryInfo.clear();
 
-		const bool isArchiveDirectory = IO::Archive::IsValidPath(currentDirectoryOrArchive);
-		if (isArchiveDirectory)
+		updateDirectoryInfoFuture = std::async(std::launch::async, [&, inputPath = currentDirectoryOrArchive]()
 		{
-			if (!IO::File::Exists(currentDirectoryOrArchive))
-				return;
-		}
-		else
-		{
-			if (!IO::Directory::Exists(currentDirectoryOrArchive))
-				return;
-		}
+			tempAsyncDirectoryInfo.clear();
 
-		if (isArchiveDirectory)
-		{
-			const auto filePaths = IO::Archive::Detail::GetFileEntries(currentDirectoryOrArchive);
-			for (const auto& fileEntry : filePaths)
+			if (IO::Archive::IsValidPath(inputPath))
 			{
-				const auto archivePath = IO::Archive::ParsePath(fileEntry.FullPath);
+				if (!IO::File::Exists(inputPath))
+					return;
 
-				auto& info = tempDirectoryInfo.emplace_back();
-				info.FullPath = IO::Path::Normalize(fileEntry.FullPath);
-				info.ChildName = archivePath.FileName;
-				info.IsDirectory = false;
-				info.FileSize = fileEntry.FileSize;
-				info.FileType = useFileTypeIcons ? GetFileType(info.ChildName) : FileType::Default;
-				FormatReadableFileSize(info.ReadableFileSize, info.FileSize);
-			}
-		}
-		else
-		{
-			for (const auto& file : std::filesystem::directory_iterator(UTF8::Widen(currentDirectoryOrArchive)))
-			{
-				if (!file.is_regular_file() && !file.is_directory())
-					continue;
-
-				auto& info = tempDirectoryInfo.emplace_back();
-				const auto path = file.path();
-				info.FullPath = IO::Path::Normalize(path.u8string());
-				info.ChildName = path.filename().u8string();
-				info.IsDirectory = file.is_directory();
-				info.FileSize = file.file_size();
-				FormatReadableFileSize(info.ReadableFileSize, info.FileSize);
-
-				if (info.IsDirectory)
+				const auto filePaths = IO::Archive::Detail::GetFileEntries(inputPath);
+				for (const auto& fileEntry : filePaths)
 				{
-					if (appendDirectoryChildNameSlash)
+					const auto archivePath = IO::Archive::ParsePath(fileEntry.FullPath);
+
+					auto& info = tempAsyncDirectoryInfo.emplace_back();
+					info.FullPath = IO::Path::Normalize(fileEntry.FullPath);
+					info.ChildName = archivePath.FileName;
+					info.IsDirectory = false;
+					info.FileSize = fileEntry.FileSize;
+					info.FileType = useFileTypeIcons ? GetFileType(info.ChildName) : FileType::Default;
+					FormatReadableFileSize(info.ReadableFileSize, info.FileSize);
+				}
+			}
+			else
+			{
+				if (!IO::Directory::Exists(inputPath))
+					return;
+
+				for (const auto& file : std::filesystem::directory_iterator(UTF8::Widen(inputPath)))
+				{
+					if (!file.is_regular_file() && !file.is_directory())
+						continue;
+
+					auto& info = tempAsyncDirectoryInfo.emplace_back();
+					const auto path = file.path();
+					info.FullPath = IO::Path::Normalize(path.u8string());
+					info.ChildName = path.filename().u8string();
+					info.IsDirectory = file.is_directory();
+					info.FileSize = file.file_size();
+					FormatReadableFileSize(info.ReadableFileSize, info.FileSize);
+					info.FileType = (!info.IsDirectory && useFileTypeIcons) ? GetFileType(info.ChildName) : FileType::Default;
+
+					if (info.IsDirectory && appendDirectoryChildNameSlash)
 						info.ChildName += '/';
 				}
-				else
-				{
-					info.FileType = useFileTypeIcons ? GetFileType(info.ChildName) : FileType::Default;
-				}
 			}
-		}
+		});
+	}
 
-		currentDirectoryInfo.reserve(tempDirectoryInfo.size());
+	void FileViewer::CheckAsyncUpdateDirectoryInfo()
+	{
+		if (!updateDirectoryInfoFuture.valid() || !updateDirectoryInfoFuture._Is_ready())
+			return;
 
-		for (const auto& info : tempDirectoryInfo)
+		updateDirectoryInfoFuture.get();
+		currentDirectoryInfo.reserve(tempAsyncDirectoryInfo.size());
+
+		for (const auto& info : tempAsyncDirectoryInfo)
 			if (info.IsDirectory)
 				currentDirectoryInfo.emplace_back(std::move(info));
 
-		for (const auto& info : tempDirectoryInfo)
+		for (const auto& info : tempAsyncDirectoryInfo)
 			if (!info.IsDirectory)
 				currentDirectoryInfo.emplace_back(std::move(info));
+	}
 
-		tempDirectoryInfo.clear();
+	bool FileViewer::IsAsyncDirectoryInfoBusy() const
+	{
+		return (updateDirectoryInfoFuture.valid() && !updateDirectoryInfoFuture._Is_ready());
 	}
 
 	void FileViewer::SetParentDirectory(const std::string& directory)

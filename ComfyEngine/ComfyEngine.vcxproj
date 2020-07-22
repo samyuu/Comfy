@@ -183,6 +183,7 @@
     <ClInclude Include="src\ImGui\Implementation\ComfyWin32.h" />
     <ClInclude Include="src\ImGui\Widgets\ComfyWidgets.h" />
     <ClInclude Include="src\ImGui\Widgets\FileViewer.h" />
+    <ClInclude Include="src\ImGui\Widgets\LoadingTextAnimation.h" />
     <ClInclude Include="src\Input\DirectInput\DirectInput.h" />
     <ClInclude Include="src\Input\DirectInput\DirectInputDevice.h" />
     <ClInclude Include="src\Input\DirectInput\DS4Button.h" />
@@ -267,6 +268,7 @@
     <ClCompile Include="src\ImGui\Implementation\ComfyWin32.cpp" />
     <ClCompile Include="src\ImGui\Widgets\ComfyWidgets.cpp" />
     <ClCompile Include="src\ImGui\Widgets\FileViewer.cpp" />
+    <ClCompile Include="src\ImGui\Widgets\LoadingTextAnimation.cpp" />
     <ClCompile Include="src\Input\DirectInput\DirectInput.cpp" />
     <ClCompile Include="src\Input\DirectInput\DirectInputDevice.cpp" />
     <ClCompile Include="src\Input\DirectInput\DualShock4.cpp" />

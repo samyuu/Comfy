@@ -2,6 +2,8 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "ImGui/Gui.h"
+#include "LoadingTextAnimation.h"
+#include <future>
 
 namespace ImGui
 {
@@ -50,7 +52,10 @@ namespace ImGui
 		bool useFileTypeIcons = true;
 		char currentDirectoryBuffer[260];
 
-		std::vector<FilePathInfo> tempDirectoryInfo;
+		std::future<void> updateDirectoryInfoFuture;
+		BinaryLoadingTextAnimation asyncLoadingAnimation;
+
+		std::vector<FilePathInfo> tempAsyncDirectoryInfo;
 		std::vector<FilePathInfo> currentDirectoryInfo;
 
 		bool currentDirectoryIsArchive = false;
@@ -60,7 +65,10 @@ namespace ImGui
 
 		FilePathInfo* DrawFileListGui();
 
-		void UpdateDirectoryInformation();
+		void StartAsyncUpdateDirectoryInfo();
+		void CheckAsyncUpdateDirectoryInfo();
+		bool IsAsyncDirectoryInfoBusy() const;
+
 		void SetParentDirectory(const std::string& directory);
 		void SetResolveFileLinke(const FilePathInfo& info);
 		void OpenDirectoryInExplorer();
