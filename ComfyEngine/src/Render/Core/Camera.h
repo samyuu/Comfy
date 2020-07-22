@@ -2,6 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "Graphics/Auth3D/BoundingTypes.h"
+#include "Graphics/Auth3D/Ray.h"
 
 namespace Comfy::Render
 {
@@ -38,8 +39,8 @@ namespace Comfy::Render
 
 	public:
 		vec2 ProjectPointNormalizedScreen(vec3 worldPosition) const;
-		vec3 CalculateRayDirection(vec2 normalizeScreenPosition) const;
-		
+		Graphics::Ray CastRay(vec2 normalizeScreenPosition) const;
+
 		bool IntersectsViewFrustum(const Graphics::Sphere& worldSpaceSphere) const;
 
 	public:

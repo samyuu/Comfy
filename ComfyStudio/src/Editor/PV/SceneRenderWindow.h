@@ -28,7 +28,7 @@ namespace Comfy::Studio::Editor
 			float Distance;
 		};
 
-		RayPickResult RayPickSceneRay(vec3 viewPoint, vec3 ray, float nearPlane) const;
+		RayPickResult RayPickSceneRay(const Graphics::Ray& ray, float nearPlane) const;
 		RayPickResult RayPickSceneMouse(vec2 relativeMousePosition) const;
 
 	public:

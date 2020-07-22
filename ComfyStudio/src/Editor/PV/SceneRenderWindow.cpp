@@ -130,7 +130,7 @@ namespace Comfy::Studio::Editor
 		return renderTarget.get();
 	}
 
-	SceneRenderWindow::RayPickResult SceneRenderWindow::RayPickSceneRay(vec3 viewPoint, vec3 ray, float nearPlane) const
+	SceneRenderWindow::RayPickResult SceneRenderWindow::RayPickSceneRay(const Ray& ray, float nearPlane) const
 	{
 		ObjectEntity* closestEntity = nullptr;
 		RayObjIntersectionResult closestIntersection = {};
@@ -140,7 +140,7 @@ namespace Comfy::Studio::Editor
 			if (!entity->IsVisible || entity->IsReflection)
 				continue;
 
-			const auto intersectionResult = RayIntersectsObj(viewPoint, ray, nearPlane, *entity->Obj, entity->Transform);
+			const auto intersectionResult = RayIntersectsObj(ray, nearPlane, *entity->Obj, entity->Transform);
 			if (intersectionResult.SubMesh == nullptr)
 				continue;
 
@@ -156,7 +156,8 @@ namespace Comfy::Studio::Editor
 
 	SceneRenderWindow::RayPickResult SceneRenderWindow::RayPickSceneMouse(vec2 relativeMousePosition) const
 	{
-		return RayPickSceneRay(camera.ViewPoint, camera.CalculateRayDirection(relativeMousePosition / GetRenderRegion().GetSize()), camera.NearPlane);
+		const auto screenPosition = relativeMousePosition / GetRenderRegion().GetSize();
+		return RayPickSceneRay(camera.CastRay(screenPosition), camera.NearPlane);
 	}
 
 	i64 SceneRenderWindow::GetLastFocusedFrameCount() const
