@@ -35,7 +35,7 @@ namespace Comfy::Audio
 
 		if (cachedPixelPCMs == nullptr || pixelCount > cachedPixelBits.size())
 		{
-			cachedPixelPCMs = std::make_unique<f32[]>(newPixelCount);
+			cachedPixelPCMs = std::make_unique<CachedPCMType[]>(newPixelCount);
 			cachedPixelBits.resize(newPixelCount);
 		}
 
@@ -67,18 +67,19 @@ namespace Comfy::Audio
 		{
 			// NOTE: Purposly ignore all but the first two channels to avoid a potentially noisy waveform and improve performance slightly
 			for (u32 channel = 0; channel < 2; channel++)
-				result += AveragePCMAtPixel(static_cast<double>(pixel), channel);
-			result /= 2.0f;
+				result += AveragePCMAtPixel(static_cast<f64>(pixel), channel);
+			result *= 0.5f;
 		}
 		else
 		{
-			result = AveragePCMAtPixel(static_cast<double>(pixel), 0);
+			result = AveragePCMAtPixel(static_cast<f64>(pixel), 0);
 		}
 
 		cachedPixelBits[pixel] = true;
 		cachedPixelPCMs[pixel] = result;
 
-		return result;
+		// NOTE: Explicitly read the written value to force a type conversion
+		return cachedPixelPCMs[pixel];
 	}
 
 	size_t Waveform::GetPixelCount() const

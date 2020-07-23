@@ -36,7 +36,20 @@ namespace Comfy::Audio
 
 		size_t pixelCount = 0;
 
+		template <typename T>
+		struct FixedPointPCM
+		{
+			static_assert(std::is_integral_v<T>);
+			T Value;
+			
+			void operator=(f32 newValue) { Value = static_cast<T>(newValue * static_cast<f32>(std::numeric_limits<T>::max())); }
+			operator f32() const { return static_cast<f32>(Value) * (1.0f / static_cast<f32>(std::numeric_limits<T>::max())); }
+		};
+
+		// NOTE: The precision loss at the scales these are used at typically equate to less than a pixel
+		using CachedPCMType = FixedPointPCM<u8>;
+
 		std::vector<bool> cachedPixelBits;
-		std::unique_ptr<f32[]> cachedPixelPCMs = nullptr;
+		std::unique_ptr<CachedPCMType[]> cachedPixelPCMs = nullptr;
 	};
 }
