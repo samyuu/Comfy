@@ -34,6 +34,7 @@ namespace Comfy::Studio::Editor
 	void ChartEditor::Gui()
 	{
 		Gui::GetCurrentWindow()->Hidden = true;
+		UpdateAsyncSongSourceLoading();
 
 		if (Gui::Begin(ICON_FA_FOLDER "  Song Loader##AetEditor", nullptr, ImGuiWindowFlags_None))
 		{
@@ -85,27 +86,8 @@ namespace Comfy::Studio::Editor
 
 	bool ChartEditor::LoadSong(std::string_view filePath)
 	{
-		bool success = false;
-
-		TimeSpan playbackTime = GetPlaybackTime();
-		{
-			auto newSongStream = Audio::Engine::GetInstance().LoadAudioSource(filePath);
-			success = true;
-
-			if (success)
-			{
-				Audio::Engine::GetInstance().UnloadSource(songSource);
-
-				songVoice.SetSource(newSongStream);
-				songSource = newSongStream;
-				chart->SetDuration(songVoice.GetDuration());
-			}
-
-			timeline->OnSongLoaded();
-		}
-		SetPlaybackTime(playbackTime);
-
-		return success;
+		songSourceFuture = Audio::Engine::GetInstance().LoadAudioSourceAsync(filePath);
+		return true;
 	}
 
 	TimeSpan ChartEditor::GetPlaybackTime() const
@@ -126,6 +108,24 @@ namespace Comfy::Studio::Editor
 	TimeSpan ChartEditor::GetPlaybackTimeOnPlaybackStart() const
 	{
 		return playbackTimeOnPlaybackStart;
+	}
+
+	void ChartEditor::UpdateAsyncSongSourceLoading()
+	{
+		if (!songSourceFuture.valid() || !songSourceFuture._Is_ready())
+			return;
+
+		const auto previousPlaybackTime = GetPlaybackTime();
+		const auto newSongStream = songSourceFuture.get();
+
+		Audio::Engine::GetInstance().UnloadSource(songSource);
+
+		songVoice.SetSource(newSongStream);
+		songSource = newSongStream;
+		chart->SetDuration(songVoice.GetDuration());
+
+		timeline->OnSongLoaded();
+		SetPlaybackTime(previousPlaybackTime);
 	}
 
 	bool ChartEditor::GetIsPlayback() const

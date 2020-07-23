@@ -44,6 +44,9 @@ namespace Comfy::Studio::Editor
 		TimeSpan GetPlaybackTimeOnPlaybackStart() const;
 
 	private:
+		void UpdateAsyncSongSourceLoading();
+
+	private:
 		std::array<const char*, 4> audioFileExtensions = { ".wav", ".flac", ".ogg", ".mp3" };
 		Gui::FileViewer songFileViewer = { "dev_ram/sound/song" };
 
@@ -53,6 +56,7 @@ namespace Comfy::Studio::Editor
 		std::unique_ptr<SyncWindow> syncWindow;
 		std::unique_ptr<TargetRenderWindow> renderWindow;
 
+		std::future<Audio::SourceHandle> songSourceFuture;
 		Audio::SourceHandle songSource = Audio::SourceHandle::Invalid;
 		Audio::Voice songVoice = Audio::VoiceHandle::Invalid;
 
