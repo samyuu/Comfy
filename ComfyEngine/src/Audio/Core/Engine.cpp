@@ -419,6 +419,14 @@ namespace Comfy::Audio
 			StartStream();
 	}
 
+	std::future<SourceHandle> Engine::LoadAudioSourceAsync(std::string_view filePath)
+	{
+		return std::async(std::launch::async, [this, path = std::string(filePath)]()
+		{
+			return LoadAudioSource(path);
+		});
+	}
+
 	SourceHandle Engine::LoadAudioSource(std::string_view filePath)
 	{
 		return LoadAudioSource(DecoderFactory::GetInstance().DecodeFile(filePath));

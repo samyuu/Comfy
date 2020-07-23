@@ -4,6 +4,7 @@
 #include "Audio/SampleProvider/ISampleProvider.h"
 #include "Time/TimeSpan.h"
 #include <functional>
+#include <future>
 
 namespace Comfy::Audio
 {
@@ -120,6 +121,7 @@ namespace Comfy::Audio
 		void EnsureStreamRunning();
 
 	public:
+		COMFY_NODISCARD std::future<SourceHandle> LoadAudioSourceAsync(std::string_view filePath);
 		COMFY_NODISCARD SourceHandle LoadAudioSource(std::string_view filePath);
 		COMFY_NODISCARD SourceHandle LoadAudioSource(std::shared_ptr<ISampleProvider> sampleProvider);
 		void UnloadSource(SourceHandle source);
