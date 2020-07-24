@@ -12,7 +12,7 @@ namespace Comfy::Audio
 		else
 		{
 			source.SampleProvider = sampleProvider;
-			source.Samples = sampleProvider->GetRawSampleView();
+			source.SamplesView = sampleProvider->GetRawSampleView();
 			source.SampleCount = sampleProvider->GetFrameCount() * sampleProvider->GetChannelCount();
 			source.ChannelCount = sampleProvider->GetChannelCount();
 			source.SampleRate = static_cast<f64>(sampleProvider->GetSampleRate());
@@ -33,13 +33,13 @@ namespace Comfy::Audio
 		const auto samplesPerPixel = static_cast<f64>(secondsPerPixel * source.SampleRate * source.ChannelCount);
 		const auto newPixelCount = static_cast<size_t>(source.SampleCount / samplesPerPixel);
 
-		if (cachedPixelPCMs == nullptr || pixelCount > cachedPixelBits.size())
+		if (cachedPixelPCMs == nullptr || newPixelCount > cachedPixelBits.size())
 		{
 			cachedPixelPCMs = std::make_unique<CachedPCMType[]>(newPixelCount);
 			cachedPixelBits.resize(newPixelCount);
 		}
 
-		std::fill(cachedPixelBits.begin(), cachedPixelBits.end(), 0);
+		std::fill(cachedPixelBits.begin(), cachedPixelBits.begin() + newPixelCount, 0);
 		pixelCount = newPixelCount;
 	}
 
@@ -97,7 +97,7 @@ namespace Comfy::Audio
 		i32 pcmSum = 0, pcmCount = 0;
 		for (f64 time = pixelStartTime; time < pixelEndTime; time += secondsPerSample)
 		{
-			pcmSum += glm::abs(SampleAtTime<i16, Interpolation::Linear>(time, atChannel, source.Samples, source.SampleCount, source.SampleRate, source.ChannelCount));
+			pcmSum += glm::abs(SampleAtTime<i16, Interpolation::Linear>(time, atChannel, source.SamplesView, source.SampleCount, source.SampleRate, source.ChannelCount));
 			pcmCount++;
 		}
 
