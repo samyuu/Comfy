@@ -30,7 +30,7 @@ namespace Comfy::Audio
 			}
 		};
 
-		using Best = Cosine;
+		using Default = Linear;
 	}
 
 	template <typename SampleType>
@@ -65,7 +65,7 @@ namespace Comfy::Audio
 
 	// NOTE: Relatively low quallity resampling algorithm lacking a low pass filter, should however still be better than having sped up audio.
 	//		 For any serious work it is strongly recommended to resample the audio externally
-	template <typename SampleType, typename InterpolationType = Interpolation::Best>
+	template <typename SampleType, typename InterpolationType = Interpolation::Default>
 	void Resample(std::unique_ptr<SampleType[]>& inOutSamples, size_t& inOutSampleCount, u32& inOutSampleRate, const u32 targetSampleRate, const u32 channelCount)
 	{
 		const auto inSamples = inOutSamples.get();
