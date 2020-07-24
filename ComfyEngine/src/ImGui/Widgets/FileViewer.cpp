@@ -122,6 +122,11 @@ namespace ImGui
 		return fileClicked;
 	}
 
+	std::string_view FileViewer::GetDirectory() const
+	{
+		return currentDirectoryOrArchive;
+	}
+
 	void FileViewer::SetDirectory(std::string_view newDirectory)
 	{
 		previousDirectoryOrArchive = currentDirectoryOrArchive;
@@ -147,14 +152,19 @@ namespace ImGui
 		StartAsyncUpdateDirectoryInfo();
 	}
 
-	std::string_view FileViewer::GetDirectory() const
-	{
-		return currentDirectoryOrArchive;
-	}
-
 	std::string_view FileViewer::GetFileToOpen() const
 	{
 		return fileToOpen;
+	}
+
+	bool FileViewer::GetIsReadOnly() const
+	{
+		return isReadOnly;
+	}
+
+	void FileViewer::SetIsReadOnly(bool value)
+	{
+		isReadOnly = value;
 	}
 
 	FileViewer::FilePathInfo* FileViewer::DrawFileListGui()
@@ -197,8 +207,12 @@ namespace ImGui
 				if (!fileFilter.PassFilter(info.ChildName.c_str()))
 					continue;
 
+				ImGuiSelectableFlags selectableFlags = ImGuiSelectableFlags_SpanAllColumns;
+				if (isReadOnly && !info.IsDirectory)
+					selectableFlags |= ImGuiSelectableFlags_Disabled;
+
 				sprintf_s(displayNameBuffer, GetFileInfoFormatString(info), info.ChildName.c_str());
-				if (Selectable(displayNameBuffer, info.IsDirectory, ImGuiSelectableFlags_SpanAllColumns))
+				if (Selectable(displayNameBuffer, info.IsDirectory, selectableFlags))
 					clickedInfo = &info;
 
 				info.IsHovered = IsItemHovered();

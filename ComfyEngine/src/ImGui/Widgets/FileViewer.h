@@ -20,9 +20,15 @@ namespace ImGui
 
 	public:
 		bool DrawGui();
+
 		void SetDirectory(std::string_view newDirectory);
 		std::string_view GetDirectory() const;
+
 		std::string_view GetFileToOpen() const;
+
+		// NOTE: Most useful to provide visual feedback and prevent additional files from being opened while async loading a previous file
+		bool GetIsReadOnly() const;
+		void SetIsReadOnly(bool value);
 
 	private:
 		struct FilePathInfo
@@ -45,6 +51,8 @@ namespace ImGui
 		float fileColumnWidth = 98.0f;
 		float sizeColumnWidth = 72.0f;
 		float typeColumnWidth = 90.0f;
+
+		bool isReadOnly = false;
 
 		// TODO: bool allowArchiveDirectory = true;
 		bool resizeColumns = true;
