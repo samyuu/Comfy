@@ -112,29 +112,29 @@ namespace Comfy::Studio::Editor
 
 	void AetEditor::UpdateCheckAsyncFileLoading()
 	{
-		if (sprSetLoadFuture.valid() && sprSetLoadFuture._Is_ready())
-		{
-			editorSprSet = sprSetLoadFuture.get();
-			if (editorSprSet != nullptr)
-			{
-				editorSprSet->Name = IO::Path::GetFileName(sprSetFilePath, false);
+		if (!sprSetLoadFuture.valid() || !sprSetLoadFuture._Is_ready())
+			return;
 
-				if (Util::MatchesInsensitive(IO::Path::GetExtension(sprSetFilePath), ".spr"))
+		editorSprSet = sprSetLoadFuture.get();
+		if (editorSprSet != nullptr)
+		{
+			editorSprSet->Name = IO::Path::GetFileName(sprSetFilePath, false);
+
+			if (Util::MatchesInsensitive(IO::Path::GetExtension(sprSetFilePath), ".spr"))
+			{
+				const auto sprDBPath = IO::Path::ChangeExtension(sprSetFilePath, ".spi");
+				const auto sprDB = IO::File::Load<Database::SprDB>(sprDBPath);
+
+				if (sprDB != nullptr)
 				{
-					const auto sprDBPath = IO::Path::ChangeExtension(sprSetFilePath, ".spi");
-					const auto sprDB = IO::File::Load<Database::SprDB>(sprDBPath);
-					
-					if (sprDB != nullptr)
-					{
-						const auto matchingEntry = FindIfOrNull(sprDB->Entries, [&](const auto& e) { return Util::MatchesInsensitive(e.Name, editorSprSet->Name); });
-						if (matchingEntry != nullptr)
-							editorSprSet->ApplyDBNames(*matchingEntry);
-					}
+					const auto matchingEntry = FindIfOrNull(sprDB->Entries, [&](const auto& e) { return Util::MatchesInsensitive(e.Name, editorSprSet->Name); });
+					if (matchingEntry != nullptr)
+						editorSprSet->ApplyDBNames(*matchingEntry);
 				}
 			}
-
-			OnSprSetLoaded();
 		}
+
+		OnSprSetLoaded();
 	}
 
 	void AetEditor::DrawAetSetLoader()
@@ -151,6 +151,7 @@ namespace Comfy::Studio::Editor
 
 	void AetEditor::DrawSprSetLoader()
 	{
+		sprFileViewer.SetIsReadOnly(sprSetLoadFuture.valid() && !sprSetLoadFuture._Is_ready());
 		if (sprFileViewer.DrawGui())
 		{
 			const auto sprPath = sprFileViewer.GetFileToOpen();
