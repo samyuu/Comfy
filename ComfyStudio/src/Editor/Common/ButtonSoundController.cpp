@@ -18,6 +18,9 @@ namespace Comfy::Studio::Editor
 	{
 		for (auto& voice : buttonSoundVoicePool)
 			Audio::Engine::GetInstance().RemoveVoice(voice);
+
+		for (auto& source : buttonSoundSources)
+			Audio::Engine::GetInstance().UnloadSource(source);
 	}
 
 	void ButtonSoundController::PlayButtonSound()
@@ -65,6 +68,7 @@ namespace Comfy::Studio::Editor
 			volume *= (0.0f + elapsed * (1.0f - 0.0f));
 		}
 
+		Audio::Engine::GetInstance().EnsureStreamRunning();
 		voice.SetVolume(volume);
 		voice.SetSource(GetButtonSoundSource(buttonSoundIndex));
 		voice.SetPosition(TimeSpan::Zero());
