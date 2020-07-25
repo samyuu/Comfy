@@ -16,6 +16,7 @@ namespace Comfy::Studio::Editor
 		EditorColor_Bar,
 		EditorColor_Grid,
 		EditorColor_GridAlt,
+		EditorColor_Waveform,
 		EditorColor_Selection,
 		EditorColor_TimelineRowSeparator,
 		EditorColor_TimelineSelection,
