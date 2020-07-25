@@ -131,32 +131,32 @@ namespace Comfy::Studio::Editor
 	{
 		const auto& style = Gui::GetStyle();
 
-		vec2 timelinePosition = Gui::GetCursorScreenPos();
-		vec2 timelineSize = Gui::GetWindowSize() - Gui::GetCursorPos() - style.WindowPadding;
+		const auto timelinePosition = Gui::GetCursorScreenPos();
+		const auto timelineSize = Gui::GetWindowSize() - Gui::GetCursorPos() - style.WindowPadding;
 		timelineRegion = ImRect(timelinePosition, timelinePosition + timelineSize);
 
-		vec2 headerPosition = timelineRegion.GetTL();
-		vec2 headerSize = vec2(infoColumnWidth, timelineHeaderHeight + tempoMapHeight);
+		const auto headerPosition = timelineRegion.GetTL();
+		const auto headerSize = vec2(infoColumnWidth, timelineHeaderHeight + tempoMapHeight);
 		infoColumnHeaderRegion = ImRect(headerPosition, headerPosition + headerSize);
 
-		vec2 infoPosition = infoColumnHeaderRegion.GetBL();
-		vec2 infoSize = vec2(infoColumnWidth, timelineRegion.GetHeight() - infoColumnHeaderRegion.GetHeight() - timelineScrollbarSize.y);
+		const auto infoPosition = infoColumnHeaderRegion.GetBL();
+		const auto infoSize = vec2(infoColumnWidth, timelineRegion.GetHeight() - infoColumnHeaderRegion.GetHeight() - timelineScrollbarSize.y);
 		infoColumnRegion = ImRect(infoPosition, infoPosition + infoSize);
 
-		vec2 timelineBasePosition = infoColumnHeaderRegion.GetTR();
-		vec2 timelineBaseSize = vec2(timelineRegion.GetWidth() - infoColumnRegion.GetWidth() - timelineScrollbarSize.x, timelineRegion.GetHeight() - timelineScrollbarSize.y);
+		const auto timelineBasePosition = infoColumnHeaderRegion.GetTR();
+		const auto timelineBaseSize = vec2(timelineRegion.GetWidth() - infoColumnRegion.GetWidth() - timelineScrollbarSize.x, timelineRegion.GetHeight() - timelineScrollbarSize.y);
 		timelineBaseRegion = ImRect(timelineBasePosition, timelineBasePosition + timelineBaseSize);
 
-		vec2 tempoMapPosition = timelineBaseRegion.GetTL();
-		vec2 tempoMapSize = vec2(timelineBaseRegion.GetWidth(), tempoMapHeight);
+		const auto tempoMapPosition = timelineBaseRegion.GetTL();
+		const auto tempoMapSize = vec2(timelineBaseRegion.GetWidth(), tempoMapHeight);
 		tempoMapRegion = ImRect(tempoMapPosition, tempoMapPosition + tempoMapSize);
 
-		vec2 timelineHeaderPosition = tempoMapRegion.GetBL();
-		vec2 timelineHeaderSize = vec2(timelineBaseRegion.GetWidth(), timelineHeaderHeight);
+		const auto timelineHeaderPosition = tempoMapRegion.GetBL();
+		const auto timelineHeaderSize = vec2(timelineBaseRegion.GetWidth(), timelineHeaderHeight);
 		timelineHeaderRegion = ImRect(timelineHeaderPosition, timelineHeaderPosition + timelineHeaderSize);
 
-		vec2 timelineTargetPosition = timelineHeaderRegion.GetBL();
-		vec2 timelineTargetSize = vec2(timelineBaseRegion.GetWidth(), timelineBaseRegion.GetHeight() - timelineHeaderSize.y - tempoMapSize.y);
+		const auto timelineTargetPosition = timelineHeaderRegion.GetBL();
+		const auto timelineTargetSize = vec2(timelineBaseRegion.GetWidth(), timelineBaseRegion.GetHeight() - timelineHeaderSize.y - tempoMapSize.y);
 		timelineContentRegion = ImRect(timelineTargetPosition, timelineTargetPosition + timelineTargetSize);
 	}
 
@@ -224,10 +224,10 @@ namespace Comfy::Studio::Editor
 
 	void TimelineBase::UpdateCursorAutoScroll()
 	{
-		float cursorPos = (GetCursorTimelinePosition());
-		float endPos = (ScreenToTimelinePosition(timelineContentRegion.GetBR().x));
+		const float cursorPos = (GetCursorTimelinePosition());
+		const float endPos = (ScreenToTimelinePosition(timelineContentRegion.GetBR().x));
 
-		float autoScrollOffset = (timelineContentRegion.GetWidth() / autoScrollOffsetFraction);
+		const float autoScrollOffset = (timelineContentRegion.GetWidth() / autoScrollOffsetFraction);
 		if (cursorPos >= endPos - autoScrollOffset)
 		{
 			float increment = cursorPos - endPos + autoScrollOffset;
@@ -288,7 +288,7 @@ namespace Comfy::Studio::Editor
 	void TimelineBase::OnTimelineBaseScroll()
 	{
 		const auto& io = Gui::GetIO();
-		const vec2 maxStep = (baseWindow->ContentsRegionRect.GetSize() + baseWindow->WindowPadding * 2.0f) * 0.67f;
+		const auto maxStep = (baseWindow->ContentsRegionRect.GetSize() + baseWindow->WindowPadding * 2.0f) * 0.67f;
 
 		const float speed = io.KeyShift ? scrollSpeedFast : scrollSpeed;
 		const float scrollStep = ImFloor(ImMin(2.0f * baseWindow->CalcFontSize(), maxStep.x)) * speed;
@@ -422,7 +422,7 @@ namespace Comfy::Studio::Editor
 	{
 		constexpr float percentageFactor = 100.0f;
 		constexpr float buttonZoomFactor = 1.1f;
-		const vec2 buttonSize = vec2(zoomButtonWidth, timelineScrollbarSize.y);
+		const auto buttonSize = vec2(zoomButtonWidth, timelineScrollbarSize.y);
 
 		Gui::SetCursorScreenPos(Gui::GetWindowPos() + vec2(infoColumnWidth, 0.0f));
 
