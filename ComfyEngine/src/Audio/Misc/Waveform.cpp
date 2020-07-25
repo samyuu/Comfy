@@ -23,7 +23,7 @@ namespace Comfy::Audio
 	{
 		if (source.SampleProvider == nullptr)
 		{
-			pixelCount = 0;
+			perChannelPixelCount = 0;
 			return;
 		}
 
@@ -31,16 +31,17 @@ namespace Comfy::Audio
 		secondsPerSample = 1.0 / (source.SampleRate);
 
 		const auto samplesPerPixel = static_cast<f64>(secondsPerPixel * source.SampleRate * source.ChannelCount);
-		const auto newPixelCount = static_cast<size_t>(source.SampleCount / samplesPerPixel);
+		const auto newPerChannelPixelCount = static_cast<size_t>(source.SampleCount / samplesPerPixel);
+		const auto newTotalPixelCount = newPerChannelPixelCount * source.ChannelCount;
 
-		if (cachedPixelPCMs == nullptr || newPixelCount > cachedPixelBits.size())
+		if (cachedPixelPCMs == nullptr || newTotalPixelCount > cachedPixelBits.size())
 		{
-			cachedPixelPCMs = std::make_unique<CachedPCMType[]>(newPixelCount);
-			cachedPixelBits.resize(newPixelCount);
+			cachedPixelPCMs = std::make_unique<CachedPCMType[]>(newTotalPixelCount);
+			cachedPixelBits.resize(newTotalPixelCount);
 		}
 
-		std::fill(cachedPixelBits.begin(), cachedPixelBits.begin() + newPixelCount, 0);
-		pixelCount = newPixelCount;
+		std::fill(cachedPixelBits.begin(), cachedPixelBits.begin() + newTotalPixelCount, 0);
+		perChannelPixelCount = newPerChannelPixelCount;
 	}
 
 	void Waveform::Clear()
@@ -48,43 +49,38 @@ namespace Comfy::Audio
 		source = {};
 		secondsPerPixel = 0.0;
 		secondsPerSample = 0.0;
-		pixelCount = 0;
+		perChannelPixelCount = 0;
 		cachedPixelBits.clear();
 		cachedPixelBits.shrink_to_fit();
 		cachedPixelPCMs = nullptr;
 	}
 
-	float Waveform::GetNormalizedPCMForPixel(i64 pixel)
+	float Waveform::GetNormalizedPCMForPixel(i64 pixel, u32 channelIndex)
 	{
-		if (pixel < 0 || static_cast<size_t>(pixel) >= cachedPixelBits.size())
+		const auto pixelIndex = static_cast<size_t>((pixel * source.ChannelCount) + channelIndex);
+		if (!InBounds(pixelIndex, cachedPixelBits) || channelIndex >= source.ChannelCount)
 			return 0.0f;
 
-		if (cachedPixelBits[pixel])
-			return cachedPixelPCMs[pixel];
+		if (cachedPixelBits[pixelIndex])
+			return cachedPixelPCMs[pixelIndex];
 
-		float result = 0.0f;
-		if (source.ChannelCount >= 2)
-		{
-			// NOTE: Purposly ignore all but the first two channels to avoid a potentially noisy waveform and improve performance slightly
-			for (u32 channel = 0; channel < 2; channel++)
-				result += AveragePCMAtPixel(static_cast<f64>(pixel), channel);
-			result *= 0.5f;
-		}
-		else
-		{
-			result = AveragePCMAtPixel(static_cast<f64>(pixel), 0);
-		}
+		const auto calculatedResult = AveragePCMAtPixel(static_cast<f64>(pixel), channelIndex);
 
-		cachedPixelBits[pixel] = true;
-		cachedPixelPCMs[pixel] = result;
+		cachedPixelBits[pixelIndex] = true;
+		cachedPixelPCMs[pixelIndex] = calculatedResult;
 
 		// NOTE: Explicitly read the written value to force a type conversion
-		return cachedPixelPCMs[pixel];
+		return cachedPixelPCMs[pixelIndex];
 	}
 
 	size_t Waveform::GetPixelCount() const
 	{
-		return pixelCount;
+		return perChannelPixelCount;
+	}
+
+	u32 Waveform::GetChannelCount() const
+	{
+		return source.ChannelCount;
 	}
 
 	float Waveform::AveragePCMAtPixel(double atPixel, u32 atChannel) const

@@ -12,15 +12,17 @@ namespace Comfy::Audio
 		Waveform() = default;
 		~Waveform() = default;
 
+	public:
 		void SetSource(std::shared_ptr<ISampleProvider> sampleProvider);
 
 		// NOTE: Invalidates previously cached results, should therefore not be called every frame
 		void SetScale(TimeSpan timePerPixel);
-
 		void Clear();
 
-		float GetNormalizedPCMForPixel(i64 pixel);
+		float GetNormalizedPCMForPixel(i64 pixel, u32 channelIndex);
+
 		size_t GetPixelCount() const;
+		u32 GetChannelCount() const;
 
 	private:
 		float AveragePCMAtPixel(double atPixel, u32 atChannel) const;
@@ -37,7 +39,8 @@ namespace Comfy::Audio
 		f64 secondsPerPixel = 0.0;
 		f64 secondsPerSample = 0.0;
 
-		size_t pixelCount = 0;
+		size_t perChannelPixelCount = 0;
+		int channelIndex = -1;
 
 		template <typename T>
 		struct FixedPointPCM
