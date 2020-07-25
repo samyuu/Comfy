@@ -129,7 +129,7 @@ namespace Comfy::Database
 				{
 					writer.WriteU32(static_cast<u32>(sceneEntry.ID));
 					writer.WriteStrPtr(sceneEntry.Name);
-					writer.WriteU32((setIndex << 16) | sceneEntry.Index);
+					writer.WriteU32(static_cast<u32>(setIndex << 16) | static_cast<u32>(sceneEntry.Index));
 					sceneIndex++;
 				}
 				setIndex++;

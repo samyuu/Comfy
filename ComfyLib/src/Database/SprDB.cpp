@@ -146,7 +146,7 @@ namespace Comfy::Database
 				{
 					writer.WriteU32(static_cast<u32>(sprTexEntry.ID));
 					writer.WriteStrPtr(sprTexEntry.Name);
-					writer.WriteU32(sprTexEntry.Index | ((sprSetIndex | 0x1000) << 16));
+					writer.WriteU32(static_cast<u32>(sprTexEntry.Index) | ((static_cast<u32>(sprSetIndex) | 0x1000) << 16));
 				}
 
 				i16 sprIndex = 0;
@@ -154,7 +154,7 @@ namespace Comfy::Database
 				{
 					writer.WriteU32(static_cast<u32>(sprEntry.ID));
 					writer.WriteStrPtr(sprEntry.Name);
-					writer.WriteU32(sprEntry.Index | (sprSetIndex << 16));
+					writer.WriteU32(static_cast<u32>(sprEntry.Index) | static_cast<u32>(sprSetIndex << 16));
 				}
 
 				sprSetIndex++;
