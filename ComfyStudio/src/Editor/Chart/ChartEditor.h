@@ -37,7 +37,7 @@ namespace Comfy::Studio::Editor
 		Audio::SourceHandle GetSongSource();
 		Audio::Voice GetSongVoice();
 
-		TimeSpan GetPlaybackTime() const;
+		TimeSpan GetPlaybackTimeAsync() const;
 		void SetPlaybackTime(TimeSpan value);
 
 		Chart* GetChart();

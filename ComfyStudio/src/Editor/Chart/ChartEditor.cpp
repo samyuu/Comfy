@@ -92,7 +92,7 @@ namespace Comfy::Studio::Editor
 		return true;
 	}
 
-	TimeSpan ChartEditor::GetPlaybackTime() const
+	TimeSpan ChartEditor::GetPlaybackTimeAsync() const
 	{
 		return songVoice.GetPosition() - chart->GetStartOffset();
 	}
@@ -117,7 +117,7 @@ namespace Comfy::Studio::Editor
 		if (!songSourceFuture.valid() || !songSourceFuture._Is_ready())
 			return;
 
-		const auto previousPlaybackTime = GetPlaybackTime();
+		const auto previousPlaybackTime = GetPlaybackTimeAsync();
 		const auto newSongStream = songSourceFuture.get();
 
 		Audio::Engine::GetInstance().UnloadSource(songSource);
@@ -137,7 +137,7 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::ResumePlayback()
 	{
-		playbackTimeOnPlaybackStart = GetPlaybackTime();
+		playbackTimeOnPlaybackStart = GetPlaybackTimeAsync();
 
 		isPlaying = true;
 		songVoice.SetIsPlaying(true);

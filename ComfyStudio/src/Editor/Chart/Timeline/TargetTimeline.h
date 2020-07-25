@@ -38,7 +38,7 @@ namespace Comfy::Studio::Editor
 		TimeSpan GetTimelineTime(TimelineTick tick) const;
 		TimeSpan GetTimelineTime(float position) const override;
 
-		TimelineTick GetCursorTick() const;
+		TimelineTick GetCursorTickAsync() const;
 		TimelineTick GetCursorMouseXTick() const;
 
 	public:

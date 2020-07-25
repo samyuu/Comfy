@@ -72,7 +72,7 @@ namespace Comfy::Studio::Editor
 		return TimelineBase::GetTimelineTime(position);
 	}
 
-	TimelineTick TargetTimeline::GetCursorTick() const
+	TimelineTick TargetTimeline::GetCursorTickAsync() const
 	{
 		return GetTimelineTick(GetCursorTime());
 	}
@@ -788,7 +788,7 @@ namespace Comfy::Studio::Editor
 
 	TimeSpan TargetTimeline::GetCursorTime() const
 	{
-		return chartEditor.GetPlaybackTime();
+		return chartEditor.GetPlaybackTimeAsync();
 	}
 
 	bool TargetTimeline::GetIsPlayback() const
@@ -825,9 +825,9 @@ namespace Comfy::Studio::Editor
 			const TimeSpan increment = TimeSpan((io.KeyShift ? 1.0 : 0.5) * io.MouseWheel);
 
 			chartEditor.PausePlayback();
-			chartEditor.SetPlaybackTime(chartEditor.GetPlaybackTime() + increment);
+			chartEditor.SetPlaybackTime(chartEditor.GetPlaybackTimeAsync() + increment);
 
-			if (chartEditor.GetPlaybackTime() < TimeSpan::FromSeconds(0.0))
+			if (chartEditor.GetPlaybackTimeAsync() < TimeSpan::FromSeconds(0.0))
 				chartEditor.SetPlaybackTime(TimeSpan::FromSeconds(0.0));
 
 			chartEditor.ResumePlayback();
