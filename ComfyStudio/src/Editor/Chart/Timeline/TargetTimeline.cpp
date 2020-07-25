@@ -429,7 +429,7 @@ namespace Comfy::Studio::Editor
 
 		if (updateWaveform)
 		{
-			const TimeSpan timePerPixel = GetTimelineTime(2.0f) - GetTimelineTime(1.0f);
+			const auto timePerPixel = GetTimelineTime(2.0f) - GetTimelineTime(1.0f);
 			songWaveform.SetScale(timePerPixel);
 
 			updateWaveform = false;
@@ -438,37 +438,39 @@ namespace Comfy::Studio::Editor
 		if (songWaveform.GetPixelCount() < 1)
 			return;
 
-		float scrollXStartOffset = GetScrollX() + GetTimelinePosition(workingChart->GetStartOffset());
+		const auto scrollXStartOffset = GetScrollX() + GetTimelinePosition(workingChart->GetStartOffset());
 
-		i64 leftMostVisiblePixel = static_cast<i64>(GetTimelinePosition(TimelineTick(0)));
-		i64 rightMostVisiblePixel = leftMostVisiblePixel + static_cast<i64>(timelineContentRegion.GetWidth());
-		i64 waveformPixelCount = static_cast<i64>(songWaveform.GetPixelCount());
+		const auto leftMostVisiblePixel = static_cast<i64>(GetTimelinePosition(TimelineTick(0)));
+		const auto rightMostVisiblePixel = leftMostVisiblePixel + static_cast<i64>(timelineContentRegion.GetWidth());
+		const auto waveformPixelCount = static_cast<i64>(songWaveform.GetPixelCount());
 
-		float timelineX = timelineContentRegion.GetTL().x;
-		float timelineHeight = (TargetType_Max * rowHeight);
-		float timelineCenterY = timelineContentRegion.GetTL().y + (timelineHeight * 0.5f);
+		const auto timelineX = timelineContentRegion.GetTL().x;
+		const auto timelineHeight = (TargetType_Max * rowHeight);
+		const auto timelineCenterY = timelineContentRegion.GetTL().y + (timelineHeight * 0.5f);
 
-		i64 waveformPixelsDrawn = 0;
-		ImU32 waveformColor = GetColor(EditorColor_GridAlt);
+		const auto waveformColor = GetColor(EditorColor_Waveform);
 
 		for (i64 screenPixel = leftMostVisiblePixel; screenPixel < waveformPixelCount && screenPixel < rightMostVisiblePixel; screenPixel++)
 		{
-			i64 timelinePixel = std::min(static_cast<i64>(screenPixel + scrollXStartOffset), static_cast<i64>(waveformPixelCount - 1));
-
+			const auto timelinePixel = std::min(static_cast<i64>(screenPixel + scrollXStartOffset), static_cast<i64>(waveformPixelCount - 1));
 			if (timelinePixel < 0)
 				continue;
 
-			// TODO: Try visualizing by interpolating inbetween pixels (2x AA)
-			float amplitude = songWaveform.GetNormalizedPCMForPixel(timelinePixel) * timelineHeight;
+			constexpr u32 channelsToVisualize = 2;
+			for (auto channel = 0; channel < channelsToVisualize; channel++)
+			{
+				const auto amplitude = songWaveform.GetNormalizedPCMForPixel(timelinePixel, channel) * timelineHeight;
+				if (amplitude < 1.0f)
+					continue;
 
-			float x = screenPixel + timelineX;
-			float halfAmplitude = amplitude * 0.5f;
+				const auto x = screenPixel + timelineX;
+				const auto halfAmplitude = amplitude * 0.5f;
 
-			vec2 start = vec2(x, timelineCenterY - halfAmplitude);
-			vec2 end = vec2(x, timelineCenterY + halfAmplitude);
+				const auto start = vec2(x, timelineCenterY - halfAmplitude);
+				const auto end = vec2(x, timelineCenterY + halfAmplitude);
 
-			baseDrawList->AddLine(start, end, waveformColor);
-			waveformPixelsDrawn++;
+				baseDrawList->AddLine(start, end, waveformColor);
+			}
 		}
 	}
 

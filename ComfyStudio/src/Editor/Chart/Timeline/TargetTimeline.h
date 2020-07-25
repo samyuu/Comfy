@@ -57,7 +57,7 @@ namespace Comfy::Studio::Editor
 		std::vector<TimeSpan> buttonSoundTimesList;
 		ButtonSoundController buttonSoundController;
 
-		bool updateWaveform;
+		bool updateWaveform = true;
 		Audio::Waveform songWaveform;
 
 	protected:
