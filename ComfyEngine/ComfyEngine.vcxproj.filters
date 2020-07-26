@@ -267,6 +267,9 @@
     <ClInclude Include="src\Render\Core\Renderer3D\Detail\LensFlare.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\ImGui\Widgets\ImageGridView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\ImGui\Extensions\CheckerboardTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -447,6 +450,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Render\Core\Renderer2D\FontRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ImGui\Widgets\ImageGridView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ImGui\Extensions\CheckerboardTexture.cpp">

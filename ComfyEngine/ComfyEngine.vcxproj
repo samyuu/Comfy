@@ -183,6 +183,7 @@
     <ClInclude Include="src\ImGui\Implementation\ComfyWin32.h" />
     <ClInclude Include="src\ImGui\Widgets\ComfyWidgets.h" />
     <ClInclude Include="src\ImGui\Widgets\FileViewer.h" />
+    <ClInclude Include="src\ImGui\Widgets\ImageGridView.h" />
     <ClInclude Include="src\ImGui\Widgets\LoadingTextAnimation.h" />
     <ClInclude Include="src\Input\DirectInput\DirectInput.h" />
     <ClInclude Include="src\Input\DirectInput\DirectInputDevice.h" />
@@ -268,6 +269,7 @@
     <ClCompile Include="src\ImGui\Implementation\ComfyWin32.cpp" />
     <ClCompile Include="src\ImGui\Widgets\ComfyWidgets.cpp" />
     <ClCompile Include="src\ImGui\Widgets\FileViewer.cpp" />
+    <ClCompile Include="src\ImGui\Widgets\ImageGridView.cpp" />
     <ClCompile Include="src\ImGui\Widgets\LoadingTextAnimation.cpp" />
     <ClCompile Include="src\Input\DirectInput\DirectInput.cpp" />
     <ClCompile Include="src\Input\DirectInput\DirectInputDevice.cpp" />
