@@ -201,6 +201,9 @@ namespace ImGui
 		}
 		else
 		{
+			if (currentDirectoryInfo.empty())
+				Selectable("This folder is empty.", false, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_Disabled);
+
 			char displayNameBuffer[_MAX_PATH];
 			for (auto& info : currentDirectoryInfo)
 			{
