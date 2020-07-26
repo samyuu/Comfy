@@ -4,7 +4,7 @@
 #include "IO/Stream/FileStream.h"
 #include "IO/Stream/Manipulator/StreamWriter.h"
 #include "Core/Logger.h"
-#include "Misc/StringHelper.h"
+#include "Misc/StringUtil.h"
 #include <filesystem>
 #include <random>
 #include <time.h>
