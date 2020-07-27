@@ -7,6 +7,7 @@
 #include "IO/Shell.h"
 #include "ImGui/Extensions/TexExtensions.h"
 #include "ImGui/Extensions/PropertyEditor.h"
+#include "ImGui/Widgets/ImageGridView.h"
 #include "Misc/ImageHelper.h"
 #include "Time/TimeUtilities.h"
 #include "Input/Input.h"
@@ -47,7 +48,9 @@ namespace Comfy::Studio::Editor
 
 		if (sceneGraph.LoadedObjSets.empty())
 		{
-			LoadStageObjects(StageType::STGTST, 7, 0);
+			LoadStageObjects(StageType::STGTST, 6, 0);
+			// LoadStageObjects(StageType::STGTST, 7, 0);
+			// LoadStageObjects(StageType::STGNS, 8, 0);
 			SetStageVisibility(StageVisibilityType::GroundSky);
 		}
 	}
@@ -1571,6 +1574,21 @@ namespace Comfy::Studio::Editor
 
 	void SceneEditor::DrawDebugTestGui(ViewportContext& activeViewport)
 	{
+#if 1 // DEBUG: Loaded textures image grid test
+		static Gui::ImageGridView imageGridView;
+
+		imageGridView.Begin();
+		sceneGraph.TexIDMap.Iterate([&](ResourceIDMap<TexID, Tex>::ResourceIDPair& resourceIDPair)
+		{
+			TexID texID = resourceIDPair.ID;
+			Tex& tex = *resourceIDPair.Resource;
+
+			const auto guiID = GuiPropertyRAII::ID(&tex);
+			imageGridView.Add(tex.GetName(), tex, tex.GetSize());
+		});
+		imageGridView.End();
+#endif
+
 #if 1
 		static constexpr std::string_view effCmnObjSetPath = "dev_rom/objset/copy/effcmn/effcmn_obj.bin";
 		static constexpr std::string_view effCmnTexSetPath = "dev_rom/objset/copy/effcmn/effcmn_tex.bin";
