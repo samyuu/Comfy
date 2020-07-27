@@ -266,9 +266,6 @@
     <ClInclude Include="src\Editor\Common\ButtonSoundController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Editor\Chart\Timeline\TimelineControlMode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\PV\CameraAxisIndication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
