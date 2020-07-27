@@ -17,8 +17,13 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::OnFirstFrame()
 	{
+		SetWindowBackgroundCheckerboardEnabled(true);
+
 		SetKeepAspectRatio(true);
 		SetTargetAspectRatio(renderSize.x / renderSize.y);
+
+		backgroundCheckerboard.Color = vec4(0.20f, 0.20f, 0.20f, 1.0f);
+		backgroundCheckerboard.ColorAlt = vec4(0.26f, 0.26f, 0.26f, 1.0f);
 
 		renderer = std::make_unique<Render::Renderer2D>();
 		renderTarget = Render::Renderer2D::CreateRenderTarget();
@@ -71,10 +76,10 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::RenderBackground()
 	{
-		checkerboardGrid.Size = renderSize;
-		checkerboardGrid.Render(*renderer);
+		backgroundCheckerboard.Size = renderSize;
+		backgroundCheckerboard.Render(*renderer);
 
-		renderer->Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), renderSize, vec4(0.0f, 0.0f, 0.0f, 0.25f)));
+		renderer->Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), renderSize, vec4(0.0f, 0.0f, 0.0f, backgroundDim)));
 	}
 
 	void TargetRenderWindow::RenderTestAet()

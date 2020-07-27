@@ -24,7 +24,8 @@ namespace Comfy::Studio::Editor
 		void OnRender() override;
 
 	protected:
-		CheckerboardGrid checkerboardGrid;
+		CheckerboardGrid backgroundCheckerboard;
+		float backgroundDim = 0.25f;
 
 		const vec2 renderSize = vec2(1920.0f, 1080.0f);
 		Render::Camera2D camera;
