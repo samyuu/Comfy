@@ -263,9 +263,12 @@ namespace Comfy::Studio::Editor
 		renderTarget->Param.RenderResolution = renderSize;
 
 		Gui::BeginChild("MaterialPreviewChid", renderSize, false, ImGuiWindowFlags_NoScrollWithMouse);
-		UpdateCameraView();
-		RenderMaterial(renderer, scene, material);
-		Gui::GetWindowDrawList()->AddImage(renderTarget->GetTextureID(), cursorPos, cursorPos + renderSize);
+		if (Gui::IsRectVisible(renderSize))
+		{
+			UpdateCameraView();
+			RenderMaterial(renderer, scene, material);
+			Gui::GetWindowDrawList()->AddImage(renderTarget->GetTextureID(), cursorPos, cursorPos + renderSize);
+		}
 		Gui::ItemSize(renderSize);
 		Gui::EndChild();
 	}
