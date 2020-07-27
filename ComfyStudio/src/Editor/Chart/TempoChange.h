@@ -6,7 +6,7 @@ namespace Comfy::Studio::Editor
 	struct Tempo
 	{
 	public:
-		static constexpr float MinBPM = 2.0f;
+		static constexpr float MinBPM = 30.0f;
 		static constexpr float MaxBPM = 960.0f;
 
 	public:
