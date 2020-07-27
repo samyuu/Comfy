@@ -30,8 +30,13 @@ namespace Comfy
 		float GetTargetAspectRatio() const;
 		void SetTargetAspectRatio(float value);
 
-		bool GetRenderBackgroundCheckerboard() const;
-		void SetRenderBackgroundCheckerboard(bool value);
+		// NOTE: Render checkerboard as a fixed aspect ratio background
+		bool GetWindowBackgroundCheckerboardEnabled() const;
+		void SetWindowBackgroundCheckerboardEnabled(bool value);
+
+		// NOTE: Render checkerboard behind the render target texture
+		bool GetRenderBackgroundCheckerboardEnabled() const;
+		void SetRenderBackgroundCheckerboardEnabled(bool value);
 
 		bool GetWasResized() const;
 		ImRect GetRenderRegion() const;
@@ -65,7 +70,8 @@ namespace Comfy
 		bool keepAspectRatio = false;
 		float targetAspectRatio = (16.0f / 9.0f);
 
-		bool renderBackgroundCheckerboard = false;
-		std::optional<Gui::CheckerboardTexture> backgroundCheckerboard = {};
+		bool windowBackgroundCheckerboardEnabled = false;
+		bool renderBackgroundCheckerboardEnabled = false;
+		std::optional<Gui::CheckerboardTexture> windowBackgroundCheckerboard, renderBackgroundCheckerboard;
 	};
 }

@@ -82,14 +82,24 @@ namespace Comfy
 		targetAspectRatio = value;
 	}
 
-	bool RenderWindow::GetRenderBackgroundCheckerboard() const
+	bool RenderWindow::GetWindowBackgroundCheckerboardEnabled() const
 	{
-		return renderBackgroundCheckerboard;
+		return windowBackgroundCheckerboardEnabled;
 	}
 
-	void RenderWindow::SetRenderBackgroundCheckerboard(bool value)
+	void RenderWindow::SetWindowBackgroundCheckerboardEnabled(bool value)
 	{
-		renderBackgroundCheckerboard = value;
+		windowBackgroundCheckerboardEnabled = value;
+	}
+
+	bool RenderWindow::GetRenderBackgroundCheckerboardEnabled() const
+	{
+		return renderBackgroundCheckerboardEnabled;
+	}
+
+	void RenderWindow::SetRenderBackgroundCheckerboardEnabled(bool value)
+	{
+		renderBackgroundCheckerboardEnabled = value;
 	}
 
 	bool RenderWindow::GetWasResized() const
@@ -140,18 +150,28 @@ namespace Comfy
 
 		if (keepAspectRatio)
 		{
-			currentWindow->DrawList->AddRectFilled(
-				fullRenderRegion.Min,
-				fullRenderRegion.Max,
-				Gui::GetColorU32(ImGuiCol_WindowBg));
+			if (windowBackgroundCheckerboardEnabled)
+			{
+				if (!windowBackgroundCheckerboard.has_value())
+					windowBackgroundCheckerboard.emplace(vec4(0.15f, 0.15f, 0.15f, 1.0f), vec4(0.14f, 0.14f, 0.14f, 1.0f), 8);
+
+				windowBackgroundCheckerboard->AddToDrawList(currentWindow->DrawList, fullRenderRegion);
+			}
+			else
+			{
+				currentWindow->DrawList->AddRectFilled(
+					fullRenderRegion.Min,
+					fullRenderRegion.Max,
+					Gui::GetColorU32(ImGuiCol_WindowBg));
+			}
 		}
 
-		if (renderBackgroundCheckerboard)
+		if (renderBackgroundCheckerboardEnabled)
 		{
-			if (!backgroundCheckerboard.has_value())
-				backgroundCheckerboard.emplace(vec4(0.18f, 0.18f, 0.18f, 1.0f), vec4(0.15f, 0.15f, 0.15f, 1.0f), 8);
+			if (!renderBackgroundCheckerboard.has_value())
+				renderBackgroundCheckerboard.emplace(vec4(0.18f, 0.18f, 0.18f, 1.0f), vec4(0.15f, 0.15f, 0.15f, 1.0f), 8);
 
-			backgroundCheckerboard->AddToDrawList(currentWindow->DrawList, renderRegion);
+			renderBackgroundCheckerboard->AddToDrawList(currentWindow->DrawList, renderRegion);
 		}
 
 		if (const auto textureID = GetTextureID(); textureID != nullptr)

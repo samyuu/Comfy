@@ -67,7 +67,7 @@ namespace Comfy::Studio::Editor
 		: sceneGraph(sceneGraph), camera(camera), renderer(renderer), sceneParam(sceneParam), cameraController(cameraController)
 	{
 		renderTarget = Renderer3D::CreateRenderTarget();
-		SetRenderBackgroundCheckerboard(true);
+		SetRenderBackgroundCheckerboardEnabled(true);
 	}
 
 	ImTextureID SceneRenderWindow::GetTextureID() const
