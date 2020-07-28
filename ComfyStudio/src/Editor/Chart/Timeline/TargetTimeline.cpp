@@ -14,12 +14,7 @@ namespace Comfy::Studio::Editor
 
 		workingChart = chartEditor.GetChart();
 
-
-#if 1
-		// NOTE: Around 240.0f seems to be the standard for many programs
 		infoColumnWidth = 240.0f;
-#endif
-
 	}
 
 	TimelineTick TargetTimeline::GetGridTick() const
@@ -40,12 +35,12 @@ namespace Comfy::Studio::Editor
 	}
 
 	// TODO: Rename all of these to contain their conversion types in the name and remove Get prefix
-	float TargetTimeline::GetTimelinePosition(TimeSpan time) const
+	f32 TargetTimeline::GetTimelinePosition(TimeSpan time) const
 	{
 		return TimelineBase::GetTimelinePosition(time);
 	}
 
-	float TargetTimeline::GetTimelinePosition(TimelineTick tick) const
+	f32 TargetTimeline::GetTimelinePosition(TimelineTick tick) const
 	{
 		return GetTimelinePosition(TickToTime(tick));
 	}
@@ -60,7 +55,7 @@ namespace Comfy::Studio::Editor
 		return workingChart->GetTimelineMap().GetTickAtFixedTempo(time, tempo);
 	}
 
-	TimelineTick TargetTimeline::GetTimelineTick(float position) const
+	TimelineTick TargetTimeline::GetTimelineTick(f32 position) const
 	{
 		return TimeToTick(GetTimelineTime(position));
 	}
@@ -70,7 +65,7 @@ namespace Comfy::Studio::Editor
 		return workingChart->GetTimelineMap().GetTimeAt(tick);
 	}
 
-	TimeSpan TargetTimeline::GetTimelineTime(float position) const
+	TimeSpan TargetTimeline::GetTimelineTime(f32 position) const
 	{
 		return TimelineBase::GetTimelineTime(position);
 	}
@@ -96,53 +91,60 @@ namespace Comfy::Studio::Editor
 		return -1;
 	}
 
-	float TargetTimeline::GetButtonTransparency(float screenX) const
+	f32 TargetTimeline::GetButtonTransparency(f32 screenX) const
 	{
-		constexpr float fadeSpan = 35.0f;
+		constexpr auto fadeSpan = 35.0f;
 
-		if (/*screenX < 0.0f ||*/ screenX > baseWindow->Size.x)
+#if 0 // NOTE: Left side fade
+		if (screenX < 0.0f)
 			return 0.0f;
 
-		// const float lowerThreshold = fadeSpan;
-		// if (screenX < lowerThreshold)
-		// 	return ImLerp(0.0f, 1.0f, screenX / lowerThreshold);
+		const auto lowerThreshold = fadeSpan;
+		if (screenX < lowerThreshold)
+			return ImLerp(0.0f, 1.0f, screenX / lowerThreshold);
+#endif
 
-		const float upperThreshold = baseWindow->Size.x - fadeSpan;
+#if 0 // NOTE: Right side fade
+		if (screenX > baseWindow->Size.x)
+			return 0.0f;
+
+		const auto upperThreshold = baseWindow->Size.x - fadeSpan;
 		if (screenX > upperThreshold)
 			return ImLerp(0.0f, 1.0f, 1.0f - ((screenX - upperThreshold) / (baseWindow->Size.x - upperThreshold)));
+#endif
 
 		return 1.0f;
 	}
 
-	int TargetTimeline::GetButtonIconIndex(const TimelineTarget& target) const
+	size_t TargetTimeline::GetTargetButtonIconIndex(const TimelineTarget& target) const
 	{
-		int type = target.Type;
+		auto index = static_cast<size_t>(target.Type);
 
-		if ((target.Flags & TargetFlags_Chain) && (type == TargetType_SlideL || type == TargetType_SlideR))
-			type += 2;
+		if (target.Flags.IsChain && (target.Type == ButtonType::SlideL || target.Type == ButtonType::SlideR))
+			index += 2;
 
-		if ((target.Flags & TargetFlags_Sync))
-			return type;
+		if (target.Flags.IsSync)
+			return index;
 
-		return type + 8;
+		return index + 8;
 	}
 
-	void TargetTimeline::DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, vec2 position, float scale, float transparency)
+	void TargetTimeline::DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, vec2 position, f32 scale, f32 transparency)
 	{
-		const float width = buttonIconWidth * scale;
-		const float height = buttonIconWidth * scale;
+		const f32 width = buttonIconWidth * scale;
+		const f32 height = buttonIconWidth * scale;
 
 		position.x = glm::round(position.x - (width * 0.5f));
 		position.y = glm::round(position.y - (height * 0.5f));
 
-		vec2 bottomRight = vec2(position.x + width, position.y + height);
-		ImRect textureCoordinates = buttonIconsTextureCoordinates[GetButtonIconIndex(target)];
+		const auto bottomRight = vec2(position.x + width, position.y + height);
+		const auto textureCoordinates = buttonIconsTextureCoordinates[GetTargetButtonIconIndex(target)];
 
 		const ImU32 color = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF * transparency);
 		if (buttonIconsTexture != nullptr)
 			drawList->AddImage(*buttonIconsTexture, position, bottomRight, textureCoordinates.GetBL(), textureCoordinates.GetTR(), color);
 
-		if ((target.Flags & TargetFlags_Hold))
+		if (target.Flags.IsHold)
 		{
 			// TODO: draw tgt_txt
 		}
@@ -230,13 +232,13 @@ namespace Comfy::Studio::Editor
 
 		const auto texelSize = vec2(1.0f, 1.0f) / vec2(buttonIconsTexture->GetSize());
 
-		const float width = buttonIconWidth * texelSize.x;
-		const float height = buttonIconWidth * texelSize.y;
+		const auto width = buttonIconWidth * texelSize.x;
+		const auto height = buttonIconWidth * texelSize.y;
 
 		for (size_t i = 0; i < buttonIconsTextureCoordinates.size(); i++)
 		{
-			const float x = (buttonIconWidth * (i % buttonIconsTypeCount)) * texelSize.x;
-			const float y = (buttonIconWidth * (i / buttonIconsTypeCount)) * texelSize.y;
+			const auto x = (buttonIconWidth * (i % buttonIconsTypeCount)) * texelSize.x;
+			const auto y = (buttonIconWidth * (i / buttonIconsTypeCount)) * texelSize.y;
 
 			buttonIconsTextureCoordinates[i] = ImRect(x, y, x + width, y + height);
 		}
@@ -293,7 +295,7 @@ namespace Comfy::Studio::Editor
 
 		cursorTime.FormatTime(timeInputBuffer, sizeof(timeInputBuffer));
 
-		constexpr float timeWidgetWidth = 138;
+		constexpr float timeWidgetWidth = 138.0f;
 		Gui::PushItemWidth(timeWidgetWidth);
 		Gui::InputTextWithHint("##TargetTimeline::TimeInput", "00:00.000", timeInputBuffer, sizeof(timeInputBuffer));
 		Gui::PopItemWidth();
@@ -492,16 +494,16 @@ namespace Comfy::Studio::Editor
 		TimelineBase::OnDrawTimelineInfoColumn();
 
 		auto drawList = Gui::GetWindowDrawList();
-		for (int i = 0; i < TargetType_Max; i++)
+		for (size_t row = 0; row < EnumCount<ButtonType>(); row++)
 		{
-			const auto y = i * rowHeight;
+			const auto y = row * rowHeight;
 			const auto start = vec2(0.0f, y) + infoColumnRegion.GetTL();
 			const auto end = vec2(infoColumnWidth, y + rowHeight) + infoColumnRegion.GetTL();
 
 			const auto center = vec2(start + end) / 2.0f;
-			targetYPositions[i] = center.y;
+			targetYPositions[row] = center.y;
 
-			const auto target = TimelineTarget(TimelineTick::Zero(), static_cast<TargetType>(i));
+			const auto target = TimelineTarget(TimelineTick::Zero(), static_cast<ButtonType>(row));
 			DrawButtonIcon(drawList, target, center, iconScale);
 
 			drawList->AddLine(vec2(start.x, end.y), end, Gui::GetColorU32(ImGuiCol_Border));
@@ -513,16 +515,12 @@ namespace Comfy::Studio::Editor
 		const auto timelineTL = timelineContentRegion.GetTL();
 		const auto timelineWidth = vec2(timelineContentRegion.GetWidth(), 0.0f);
 
-		const auto rowColor = GetColor(EditorColor_TimelineRowSeparator);
-
-		// Timeline Target Region rows
-		// ---------------------------
-		for (int t = 0; t <= TargetType_Max; t++)
+		for (size_t row = 0; row < EnumCount<ButtonType>(); row++)
 		{
-			const auto start = timelineTL + vec2(0.0f, t * rowHeight);
+			const auto start = timelineTL + vec2(0.0f, row * rowHeight);
 			const auto end = start + timelineWidth;
 
-			baseDrawList->AddLine(start, end, rowColor);
+			baseDrawList->AddLine(start, end, GetColor(EditorColor_TimelineRowSeparator));
 		}
 	}
 
@@ -619,8 +617,8 @@ namespace Comfy::Studio::Editor
 				SetCursorTime(TickToTime(RoundTickToGrid(TimelineTick::FromTicks(static_cast<int>(cursorDragTicks)))));
 		}
 
-		// NOTE: Mode buttons (Dopesheet / Curves)
 #if 0
+		// NOTE: Mode buttons (Dopesheet / Curves)
 		{
 			const auto modeButton = [this](const char* label, const TimelineMode mode)
 			{
@@ -667,7 +665,7 @@ namespace Comfy::Studio::Editor
 		const auto waveformPixelCount = static_cast<i64>(songWaveform.GetPixelCount());
 
 		const auto timelineX = timelineContentRegion.GetTL().x;
-		const auto timelineHeight = (TargetType_Max * rowHeight);
+		const auto timelineHeight = (static_cast<f32>(ButtonType::Count) * rowHeight);
 		const auto timelineCenterY = timelineContentRegion.GetTL().y + (timelineHeight * 0.5f);
 
 		const auto waveformColor = GetColor(EditorColor_Waveform);
@@ -698,153 +696,81 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::DrawTimelineTempoMap()
 	{
-		// Tempo Map Region / Tempo Changes
-		// --------------------------------
+		char tempoStr[16];
+		static int tempoPopupIndex = -1;
+
+		for (size_t i = 0; i < workingChart->GetTempoMap().TempoChangeCount(); i++)
 		{
-			char tempoStr[16];
-			static int tempoPopupIndex = -1;
+			TempoChange& tempoChange = workingChart->GetTempoMap().GetTempoChangeAt(i);
 
-			for (size_t i = 0; i < workingChart->GetTempoMap().TempoChangeCount(); i++)
+			const auto screenX = glm::round(GetTimelinePosition(tempoChange.Tick) - GetScrollX());
+			const auto visiblity = GetTimelineVisibility(screenX);
+
+			if (visiblity == TimelineVisibility::Left)
+				continue;
+			if (visiblity == TimelineVisibility::Right)
+				break;
+
+			ImU32 tempoFgColor = IM_COL32(139, 56, 51, 255);
+
+			sprintf_s(tempoStr, sizeof(tempoStr), "%.2f BPM", tempoChange.Tempo.BeatsPerMinute);
+
+			vec2 buttonPosition = tempoMapRegion.GetTL() + vec2(screenX + 1.0f, 0.0f);
+			vec2 buttonSize = vec2(Gui::CalcTextSize(tempoStr).x, tempoMapHeight);
+
+			Gui::SetCursorScreenPos(buttonPosition);
+
+			Gui::PushID(&tempoChange);
+			Gui::InvisibleButton("##InvisibleTempoButton", buttonSize);
+			Gui::PopID();
+
+			// TODO: Prevent overlapping tempo changes
+			//windowDrawList->AddRectFilled(buttonPosition, buttonPosition + buttonSize, TEMPO_MAP_BAR_COLOR);
+			if (Gui::IsItemHovered() && Gui::IsWindowHovered())
 			{
-				TempoChange& tempoChange = workingChart->GetTempoMap().GetTempoChangeAt(i);
+				Gui::WideSetTooltip("TIME: %s", TickToTime(tempoChange.Tick).ToString().c_str());
 
-				float screenX = glm::round(GetTimelinePosition(tempoChange.Tick) - GetScrollX());
-
-				TimelineVisibility visiblity = GetTimelineVisibility(screenX);
-				if (visiblity == TimelineVisibility::Left)
-					continue;
-				if (visiblity == TimelineVisibility::Right)
-					break;
-
-				ImU32 tempoFgColor = IM_COL32(139, 56, 51, 255);
-
-				sprintf_s(tempoStr, sizeof(tempoStr), "%.2f BPM", tempoChange.Tempo.BeatsPerMinute);
-
-				vec2 buttonPosition = tempoMapRegion.GetTL() + vec2(screenX + 1.0f, 0.0f);
-				vec2 buttonSize = vec2(Gui::CalcTextSize(tempoStr).x, tempoMapHeight);
-
-				Gui::SetCursorScreenPos(buttonPosition);
-
-				Gui::PushID(&tempoChange);
-				Gui::InvisibleButton("##InvisibleTempoButton", buttonSize);
-				Gui::PopID();
-
-				// TODO: Prevent overlapping tempo changes
-				//windowDrawList->AddRectFilled(buttonPosition, buttonPosition + buttonSize, TEMPO_MAP_BAR_COLOR);
-				if (Gui::IsItemHovered() && Gui::IsWindowHovered())
+				baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, Gui::GetColorU32(ImGuiCol_ChildBg));
+				if (Gui::IsMouseDoubleClicked(0))
 				{
-					Gui::WideSetTooltip("TIME: %s", TickToTime(tempoChange.Tick).ToString().c_str());
-
-					baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, Gui::GetColorU32(ImGuiCol_ChildBg));
-					if (Gui::IsMouseDoubleClicked(0))
-					{
-						SetScrollX(screenX + GetScrollX());
-						//SetScrollX(screenX - timelineContentRegion.GetTL().x - (windowWidth * .5f));
-					}
-
-					if (Gui::IsMouseClicked(1))
-					{
-						Gui::OpenPopup("##ChangeTempoPopup");
-						tempoPopupIndex = static_cast<int>(i);
-					}
+					SetScrollX(screenX + GetScrollX());
+					//SetScrollX(screenX - timelineContentRegion.GetTL().x - (windowWidth * .5f));
 				}
 
-				baseDrawList->AddLine(buttonPosition + vec2(-1.0f, -1.0f), buttonPosition + vec2(-1.0f, buttonSize.y - 1.0f), tempoFgColor);
-				baseDrawList->AddText(Gui::GetFont(), tempoMapHeight, buttonPosition, tempoFgColor, tempoStr);
-			}
-
-			// Test Popup
-			// ----------
-			if (Gui::WideBeginPopup("##ChangeTempoPopup"))
-			{
-				Gui::Text("Change Tempo:");
-
-				if (tempoPopupIndex >= 0)
+				if (Gui::IsMouseClicked(1))
 				{
-					TempoChange& tempoChange = workingChart->GetTempoMap().GetTempoChangeAt(tempoPopupIndex);
-					float bpm = tempoChange.Tempo.BeatsPerMinute;
-
-					if (Gui::DragFloat("##TempoDragFloat", &bpm, 1.0f, Tempo::MinBPM, Tempo::MaxBPM, "%.2f BPM"))
-					{
-						tempoChange.Tempo = bpm;
-						UpdateTimelineMap();
-					}
+					Gui::OpenPopup("##ChangeTempoPopup");
+					tempoPopupIndex = static_cast<int>(i);
 				}
-
-				Gui::EndPopup();
 			}
-			// ----------
+
+			baseDrawList->AddLine(buttonPosition + vec2(-1.0f, -1.0f), buttonPosition + vec2(-1.0f, buttonSize.y - 1.0f), tempoFgColor);
+			baseDrawList->AddText(Gui::GetFont(), tempoMapHeight, buttonPosition, tempoFgColor, tempoStr);
 		}
-	}
 
-	namespace
-	{
-		static bool DEBUG_SCALE_LERP = false;
-		static f32 DEBUG_SCALE_TANGENT_START = 0.360f;
-		static f32 DEBUG_SCALE_TANGENT_END = -0.260f;
-
-		// TODO: Increase / decrease speed based on BPM
-		/*constexpr*/ float InterpolateTargetScale(f32 a, f32 b, f32 delta)
+		if (Gui::WideBeginPopup("##ChangeTempoPopup"))
 		{
-			if (DEBUG_SCALE_LERP)
-				return ImLerp(a, b, delta);
+			Gui::Text("Change Tempo:");
 
+			if (tempoPopupIndex >= 0)
+			{
+				TempoChange& tempoChange = workingChart->GetTempoMap().GetTempoChangeAt(tempoPopupIndex);
+				auto bpm = tempoChange.Tempo.BeatsPerMinute;
 
-			const f32 range = 1.0f; // end->Frame - start->Frame;
-			const f32 t = delta; // (frame - start->Frame) / range;
+				if (Gui::DragFloat("##TempoDragFloat", &bpm, 1.0f, Tempo::MinBPM, Tempo::MaxBPM, "%.2f BPM"))
+				{
+					tempoChange.Tempo = bpm;
+					UpdateTimelineMap();
+				}
+			}
 
-			const f32 startValue = a;
-			const f32 endValue = b;
-
-			const f32 startTangent = DEBUG_SCALE_TANGENT_START;
-			const f32 endTangent = DEBUG_SCALE_TANGENT_END;
-
-			return (((((((t * t) * t) - ((t * t) * 2.0f)) + t) * startTangent)
-				+ ((((t * t) * t) - (t * t)) * endTangent)) * range)
-				+ (((((t * t) * 3.0f) - (((t * t) * t) * 2.0f)) * endValue)
-					+ ((((((t * t) * t) * 2.0f) - ((t * t) * 3.0f)) + 1.0f) * startValue));
+			Gui::EndPopup();
 		}
 	}
 
 	void TargetTimeline::DrawTimelineTargets()
 	{
-		Gui::DEBUG_NOSAVE_WINDOW(__FUNCTION__"INTERP TEST", [&]
-		{
-			Gui::Checkbox("LERP", &DEBUG_SCALE_LERP);
-			Gui::DragFloat("TANGENT START", &DEBUG_SCALE_TANGENT_START, 0.01f);
-			Gui::DragFloat("TANGENT END", &DEBUG_SCALE_TANGENT_END, 0.01f);
-
-			constexpr f32 size = 200.0f;
-			Gui::BeginChild("CURVE", vec2(size));
-
-			const auto tl = Gui::GetCursorScreenPos();
-			const auto br = tl + vec2(size);
-
-			Gui::GetWindowDrawList()->AddRectFilled(tl, br, IM_COL32_BLACK);
-
-			constexpr f32 xOffset = 20.0f;
-			constexpr f32 xScale = 0.8f;
-
-			constexpr f32  yScale = 0.8f;
-			constexpr f32  yOffset = 20.0f;
-
-			constexpr f32 stepSize = 0.1f;
-			for (f32 x = -xOffset; x < (size + xOffset - 1.0f); x += stepSize)
-			{
-				Gui::GetWindowDrawList()->AddLine(
-					tl + vec2((x + 0.0f) * xScale + xOffset, InterpolateTargetScale(0.0f, size, ((x + 0.0f) / size)) * yScale + yOffset),
-					tl + vec2((x + stepSize) * xScale + xOffset, InterpolateTargetScale(0.0f, size, ((x + stepSize) / size)) * yScale + yOffset),
-					IM_COL32_WHITE);
-			}
-
-			Gui::EndChild();
-
-			if (Gui::IsKeyPressed(Input::KeyCode_0))
-				DEBUG_SCALE_LERP ^= true;
-		});
-
-		ImGuiWindow* window = Gui::GetCurrentWindow();
-		ImDrawList* windowDrawList = window->DrawList;
+		auto windowDrawList = Gui::GetWindowDrawList();
 
 		for (const auto& target : workingChart->GetTargets())
 		{
@@ -857,7 +783,8 @@ namespace Comfy::Studio::Editor
 			if (visiblity == TimelineVisibility::Right)
 				break;
 
-			const auto center = vec2(screenX + timelineContentRegion.GetTL().x, targetYPositions[target.Type]);
+			const auto buttonIndex = static_cast<size_t>(target.Type);
+			const auto center = vec2(screenX + timelineContentRegion.GetTL().x, targetYPositions[buttonIndex]);
 			const auto scale = GetTimelineTargetScaleFactor(target, buttonTime) * iconScale;
 
 			DrawButtonIcon(windowDrawList, target, center, scale, GetButtonTransparency(screenX));
@@ -866,8 +793,6 @@ namespace Comfy::Studio::Editor
 
 	f32 TargetTimeline::GetTimelineTargetScaleFactor(const TimelineTarget& target, TimeSpan buttonTime) const
 	{
-		// TODO: Use beat tick distance instead of time difference to scale the animation based on the BPM (?)
-#ifdef TIME_BASED_BUTTON_ANIMATION
 		if (GetIsPlayback())
 		{
 			const auto cursorTime = GetCursorTime();
@@ -875,51 +800,22 @@ namespace Comfy::Studio::Editor
 
 			if (timeUntilButton <= TimeSpan::FromSeconds(0.0) && timeUntilButton >= -buttonAnimationDuration)
 			{
-				const auto t = static_cast<f32>(timeUntilButton.TotalSeconds() / -buttonAnimationDuration.TotalSeconds());
-				return InterpolateTargetScale(buttonAnimationScale, 1.0f, t);
+				const auto delta = static_cast<f32>(timeUntilButton.TotalSeconds() / -buttonAnimationDuration.TotalSeconds());
+				return ImLerp(buttonAnimationScaleStart, buttonAnimationScaleEnd, delta);
 			}
 		}
 		else
 		{
-			if (target.Tick == buttonAnimations[target.Type].Tick)
+			const auto& buttonAnimation = buttonAnimations[static_cast<size_t>(target.Type)];
+
+			if (target.Tick == buttonAnimation.Tick &&
+				buttonAnimation.ElapsedTime >= buttonAnimationStartTime &&
+				buttonAnimation.ElapsedTime <= buttonAnimationDuration)
 			{
-				if (buttonAnimations[target.Type].ElapsedTime >= buttonAnimationStartTime && buttonAnimations[target.Type].ElapsedTime <= buttonAnimationDuration)
-				{
-					const auto t = static_cast<f32>(buttonAnimations[target.Type].ElapsedTime.TotalSeconds() / buttonAnimationDuration.TotalSeconds());
-					return InterpolateTargetScale(buttonAnimationScale, 1.0f, t);
-				}
+				const auto delta = static_cast<f32>(buttonAnimation.ElapsedTime.TotalSeconds() / buttonAnimationDuration.TotalSeconds());
+				return ImLerp(buttonAnimationScaleStart, buttonAnimationScaleEnd, delta);
 			}
 		}
-#else
-		if (GetIsPlayback() /*|| true*/)
-		{
-			const auto cursorTime = GetCursorTick();
-			const auto timeUntilButton = target.Tick - cursorTime;
-
-			if (timeUntilButton.TotalTicks() <= 0 && timeUntilButton >= -buttonAnimationDuration)
-			{
-				const auto delta = static_cast<f32>(timeUntilButton.TotalTicks()) / static_cast<f32>(-buttonAnimationDuration.TotalTicks());
-				return InterpolateTargetScale(buttonAnimationScale, 1.0f, delta);
-			}
-		}
-		else
-		{
-			const auto& buttonAnimation = buttonAnimations[target.Type];
-
-			if (target.Tick != buttonAnimation.Tick)
-				return 1.0f;
-
-			const auto cursorTempo = workingChart->GetTempoMap().FindTempoChangeAtTick(GetCursorTick()).Tempo;
-			const auto elapsedTicks = TimeToTickFixedTempo(buttonAnimation.ElapsedTime, cursorTempo);
-
-			//if (elapsedTicks >= buttonAnimationStartTime && elapsedTicks <= buttonAnimationDuration)
-			if (buttonAnimation.ElapsedTime >= buttonAnimationStartTime && elapsedTicks <= buttonAnimationDuration)
-			{
-				const auto delta = static_cast<f32>(elapsedTicks.TotalTicks()) / static_cast<f32>(buttonAnimationDuration.TotalTicks());
-				return InterpolateTargetScale(buttonAnimationScale, 1.0f, delta);
-			}
-		}
-#endif
 
 		return 1.0f;
 	}
@@ -928,7 +824,7 @@ namespace Comfy::Studio::Editor
 	{
 		if (GetIsPlayback())
 		{
-			const float prePlaybackX = glm::round(GetTimelinePosition(chartEditor.GetPlaybackTimeOnPlaybackStart()) - GetScrollX());
+			const auto prePlaybackX = glm::round(GetTimelinePosition(chartEditor.GetPlaybackTimeOnPlaybackStart()) - GetScrollX());
 
 			const auto start = timelineHeaderRegion.GetTL() + vec2(prePlaybackX, 0.0f);
 			const auto end = timelineContentRegion.GetBL() + vec2(prePlaybackX, 0.0f);
@@ -941,8 +837,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::DrawTimeSelection()
 	{
-		// Test out selection box
-		// ----------------------
+#if 1 // DEBUG: Test out selection box
 		{
 			constexpr int selectionBoxButton = 1;
 			static ImRect dragRect;
@@ -958,17 +853,18 @@ namespace Comfy::Studio::Editor
 				baseDrawList->AddRectFilled(dragRect.GetTL(), dragRect.GetBR(), GetColor(EditorColor_Selection));
 			}
 		}
+#endif
 
 		if (!timeSelectionActive)
 			return;
 
-		const float scrollX = GetScrollX();
+		const auto scrollX = GetScrollX();
 
-		float startScreenX = GetTimelinePosition(timeSelectionStart) - scrollX;
-		float endScreenX = GetTimelinePosition(timeSelectionEnd) - scrollX;
+		const auto startScreenX = GetTimelinePosition(timeSelectionStart) - scrollX;
+		const auto endScreenX = GetTimelinePosition(timeSelectionEnd) - scrollX;
 
-		vec2 start = timelineContentRegion.GetTL() + vec2(startScreenX, 0.0f);
-		vec2 end = timelineContentRegion.GetBL() + vec2(endScreenX, 0.0f);
+		const auto start = timelineContentRegion.GetTL() + vec2(startScreenX, 0.0f);
+		const auto end = timelineContentRegion.GetBL() + vec2(endScreenX, 0.0f);
 
 		baseDrawList->AddRectFilled(start, end, GetColor(EditorColor_Selection));
 		//Gui::SetMouseCursor(ImGuiMouseCursor_Hand);
@@ -993,42 +889,8 @@ namespace Comfy::Studio::Editor
 
 		const auto& io = Gui::GetIO();
 
-		// NOTE: Cursor Mouse Click:
-		if (Gui::IsMouseClicked(0) && !io.KeyShift) // Gui::IsMouseReleased(0)
+		if (Gui::IsMouseClicked(0) && !io.KeyShift)
 		{
-#if 0 // ORIGINAL:
-			const bool wasPlaying = GetIsPlayback();
-			if (wasPlaying)
-				chartEditor.PausePlayback();
-
-			const TimelineTick cursorMouseTick = GetCursorMouseXTick();
-			TimeSpan previousTime = GetCursorTime();
-			TimeSpan newTime = TickToTime(cursorMouseTick);
-
-			if (previousTime == newTime)
-				return;
-
-			SetCursorTime(newTime);
-
-			if (wasPlaying)
-			{
-				chartEditor.ResumePlayback();
-			}
-			else // NOTE: Play a button sound if a target exists at the cursor tick
-			{
-				for (const auto& target : workingChart->GetTargets())
-				{
-					if (target.Tick != cursorMouseTick)
-						continue;
-
-					buttonSoundController.PlayButtonSound();
-
-					buttonAnimations[target.Type].Tick = target.Tick;
-					buttonAnimations[target.Type].ElapsedTime = TimeSpan::FromSeconds(0.0);
-				}
-			}
-#else // DEBUG: Cleanup
-
 			const auto newMouseTick = GetCursorMouseXTick();
 			const auto newMouseTime = TickToTime(newMouseTick);
 
@@ -1039,17 +901,17 @@ namespace Comfy::Studio::Editor
 				if (target.Tick != newMouseTick)
 					continue;
 
+				// NOTE: During playback the sound will handled automatically already
 				if (!GetIsPlayback())
 					buttonSoundController.PlayButtonSound();
 
-				buttonAnimations[target.Type].Tick = target.Tick;
-				buttonAnimations[target.Type].ElapsedTime = TimeSpan::FromSeconds(0.0);
+				const auto buttonIndex = static_cast<size_t>(target.Type);
+				buttonAnimations[buttonIndex].Tick = target.Tick;
+				buttonAnimations[buttonIndex].ElapsedTime = TimeSpan::FromSeconds(0.0);
 			}
-
-#endif
 		}
 
-		// NOTE: Cursor Mouse Drag:
+#if 0 // DEBUG: Cursor Mouse Drag:
 		if (!GetIsPlayback() && false)
 		{
 			if (Gui::IsMouseClicked(0))
@@ -1072,6 +934,7 @@ namespace Comfy::Studio::Editor
 				timeSelectionEnd = GetCursorMouseXTick();
 			}
 		}
+#endif
 	}
 
 	void TargetTimeline::UpdateInputTargetPlacement()
@@ -1085,26 +948,25 @@ namespace Comfy::Studio::Editor
 		if (Gui::IsMouseClicked(3)) SelectNextGridDivision(-1);
 		if (Gui::IsMouseClicked(4)) SelectNextGridDivision(+1);
 
-		for (int type = 0; type < TargetType_Max; type++)
-			buttonAnimations[type].ElapsedTime += TimeSpan::FromSeconds(io.DeltaTime);
+		const auto deltaTime = TimeSpan::FromSeconds(io.DeltaTime);
+		for (auto& animationData : buttonAnimations)
+			animationData.ElapsedTime += deltaTime;
 
-		// NOTE: Double hit sound if a target gets placed in front of the cursor position.
-		//		 Keeping it this way could make it easier to notice when real time targets are not placed accurately to the beat (?)
-		const auto roundedCursorTick = RoundTickToGrid(GetCursorTick());
-
-		for (size_t i = 0; i < std::size(buttonPlacementMapping); i++)
+		for (auto[buttonType, keyCode] : targetPlacementInputKeyMappings)
 		{
-			if (Gui::IsKeyPressed(buttonPlacementMapping[i].Key, false))
+			if (Gui::IsKeyPressed(keyCode, false))
 			{
+				// NOTE: Double hit sound if a target gets placed in front of the cursor position.
+				//		 Keeping it this way could make it easier to notice when real time targets are not placed accurately to the beat (?)
 				buttonSoundController.PlayButtonSound();
-				PlaceOrRemoveTarget(roundedCursorTick, buttonPlacementMapping[i].Type);
+				PlaceOrRemoveTarget(RoundTickToGrid(GetCursorTick()), buttonType);
 			}
 		}
 	}
 
-	void TargetTimeline::PlaceOrRemoveTarget(TimelineTick tick, TargetType type)
+	void TargetTimeline::PlaceOrRemoveTarget(TimelineTick tick, ButtonType type)
 	{
-		i64 existingTargetIndex = workingChart->GetTargets().FindIndex(tick, type);
+		const auto existingTargetIndex = workingChart->GetTargets().FindIndex(tick, type);
 
 		if (existingTargetIndex > -1)
 		{
@@ -1116,8 +978,9 @@ namespace Comfy::Studio::Editor
 			workingChart->GetTargets().Add(tick, type);
 		}
 
-		buttonAnimations[type].Tick = tick;
-		buttonAnimations[type].ElapsedTime = TimeSpan::FromSeconds(0.0);
+		const auto buttonIndex = static_cast<size_t>(type);
+		buttonAnimations[buttonIndex].Tick = tick;
+		buttonAnimations[buttonIndex].ElapsedTime = TimeSpan::FromSeconds(0.0);
 	}
 
 	void TargetTimeline::SelectNextGridDivision(int direction)
@@ -1157,7 +1020,7 @@ namespace Comfy::Studio::Editor
 		chartEditor.StopPlayback();
 	}
 
-	float TargetTimeline::GetTimelineSize() const
+	f32 TargetTimeline::GetTimelineSize() const
 	{
 		return GetTimelinePosition(workingChart->GetDuration());
 	}

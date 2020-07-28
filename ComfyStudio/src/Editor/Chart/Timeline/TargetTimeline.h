@@ -29,16 +29,16 @@ namespace Comfy::Studio::Editor
 		TimelineTick FloorTickToGrid(TimelineTick tick) const;
 		TimelineTick RoundTickToGrid(TimelineTick tick) const;
 
-		float GetTimelinePosition(TimeSpan time) const override;
-		float GetTimelinePosition(TimelineTick tick) const;
+		f32 GetTimelinePosition(TimeSpan time) const override;
+		f32 GetTimelinePosition(TimelineTick tick) const;
 
 		TimelineTick TimeToTick(TimeSpan time) const;
 		TimelineTick TimeToTickFixedTempo(TimeSpan time, Tempo tempo) const;
 		
-		TimelineTick GetTimelineTick(float position) const;
+		TimelineTick GetTimelineTick(f32 position) const;
 
 		TimeSpan TickToTime(TimelineTick tick) const;
-		TimeSpan GetTimelineTime(float position) const override;
+		TimeSpan GetTimelineTime(f32 position) const override;
 
 		TimelineTick GetCursorTick() const;
 		TimelineTick GetCursorMouseXTick() const;
@@ -68,7 +68,7 @@ namespace Comfy::Studio::Editor
 		int gridDivision = 16;
 
 	protected:
-		std::array<float, TargetType_Max> targetYPositions;
+		std::array<f32, EnumCount<ButtonType>()> targetYPositions;
 
 		// NOTE: sankaku | shikaku | batsu | maru | slide_l | slide_r | slide_chain_l | slide_chain_r
 		static constexpr int buttonIconsTypeCount = 8;
@@ -79,21 +79,21 @@ namespace Comfy::Studio::Editor
 		std::unique_ptr<Graphics::SprSet> sprSet;
 		std::shared_ptr<Graphics::Tex> buttonIconsTexture = nullptr;
 
-		static constexpr struct { TargetType Type; Input::KeyCode Key; } buttonPlacementMapping[12]
+		static constexpr struct { ButtonType Type; Input::KeyCode Key; } targetPlacementInputKeyMappings[12]
 		{
-			{ TargetType_Sankaku, Input::KeyCode_W },
-			{ TargetType_Shikaku, Input::KeyCode_A },
-			{ TargetType_Batsu, Input::KeyCode_S },
-			{ TargetType_Maru, Input::KeyCode_D },
-			{ TargetType_SlideL, Input::KeyCode_Q },
-			{ TargetType_SlideR, Input::KeyCode_E },
+			{ ButtonType::Triangle, Input::KeyCode_W },
+			{ ButtonType::Square, Input::KeyCode_A },
+			{ ButtonType::Cross, Input::KeyCode_S },
+			{ ButtonType::Circle, Input::KeyCode_D },
+			{ ButtonType::SlideL, Input::KeyCode_Q },
+			{ ButtonType::SlideR, Input::KeyCode_E },
 
-			{ TargetType_Sankaku, Input::KeyCode_I },
-			{ TargetType_Shikaku, Input::KeyCode_J },
-			{ TargetType_Batsu, Input::KeyCode_K },
-			{ TargetType_Maru, Input::KeyCode_L },
-			{ TargetType_SlideL, Input::KeyCode_U },
-			{ TargetType_SlideR, Input::KeyCode_O },
+			{ ButtonType::Triangle, Input::KeyCode_I },
+			{ ButtonType::Square, Input::KeyCode_J },
+			{ ButtonType::Cross, Input::KeyCode_K },
+			{ ButtonType::Circle, Input::KeyCode_L },
+			{ ButtonType::SlideL, Input::KeyCode_U },
+			{ ButtonType::SlideR, Input::KeyCode_O },
 		};
 
 	protected:
@@ -105,30 +105,18 @@ namespace Comfy::Studio::Editor
 
 	protected:
 
-		// NOTE: Time based animation seems to look better (?)
-#define TIME_BASED_BUTTON_ANIMATION
-
-#ifdef TIME_BASED_BUTTON_ANIMATION
+		// NOTE: Delay the animation while placing targets to give them a satisfying "pop" instead of scaling them down continuously
 		const TimeSpan buttonAnimationStartTime = TimeSpan::FromMilliseconds(15.0);
 		const TimeSpan buttonAnimationDuration = TimeSpan::FromMilliseconds(60.0);
-#else
-		// NOTE: Delay the animation while placing targets to give them a satisfying "pop" instead of only scaling down
-		const TimeSpan buttonAnimationStartTime = TimeSpan::FromMilliseconds(15.0);
-		//const TimelineTick buttonAnimationStartTime = TimelineTick::FromTicks((TimelineTick::TicksPerBeat * 4) / 64);
-		const TimelineTick buttonAnimationDuration = TimelineTick::FromTicks((TimelineTick::TicksPerBeat * 4) / 32);
-		//const TimelineTick buttonAnimationDuration = TimelineTick::FromTicks((TimelineTick::TicksPerBeat * 4) / 16);
-#endif
 
-		const float buttonAnimationScale = 1.5f;
-		struct
-		{
-			TimelineTick Tick;
-			TimeSpan ElapsedTime;
-		} buttonAnimations[TargetType_Max];
+		struct ButtonAnimationData { TimelineTick Tick; TimeSpan ElapsedTime; };
+		
+		const f32 buttonAnimationScaleStart = 1.5f, buttonAnimationScaleEnd = 1.0f;
+		std::array<ButtonAnimationData, EnumCount<ButtonType>()> buttonAnimations = {};
 
 	protected:
-		const float iconScale = 1.0f;
-		const float rowHeight = 36;
+		const f32 iconScale = 1.0f;
+		const f32 rowHeight = 36;
 
 	protected:
 		void OnInitialize() override;
@@ -164,7 +152,7 @@ namespace Comfy::Studio::Editor
 		void UpdateInputTargetPlacement();
 
 	protected:
-		void PlaceOrRemoveTarget(TimelineTick tick, TargetType type);
+		void PlaceOrRemoveTarget(TimelineTick tick, ButtonType type);
 		void SelectNextGridDivision(int direction);
 
 	protected:
@@ -176,12 +164,12 @@ namespace Comfy::Studio::Editor
 		void ResumePlayback() override;
 		void StopPlayback() override;
 
-		float GetTimelineSize() const override;
+		f32 GetTimelineSize() const override;
 		void OnTimelineBaseScroll() override;
 
 	protected:
-		float GetButtonTransparency(float screenX) const;
-		int GetButtonIconIndex(const TimelineTarget& target) const;
-		void DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, vec2 position, float scale, float transparency = 1.0f);
+		f32 GetButtonTransparency(f32 screenX) const;
+		size_t GetTargetButtonIconIndex(const TimelineTarget& target) const;
+		void DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, vec2 position, f32 scale, f32 transparency = 1.0f);
 	};
 }

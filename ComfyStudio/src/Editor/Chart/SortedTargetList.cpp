@@ -9,7 +9,7 @@ namespace Comfy::Studio::Editor
 		targets.reserve(reasonableInitialCapacity);
 	}
 
-	void SortedTargetList::Add(TimelineTick tick, TargetType type)
+	void SortedTargetList::Add(TimelineTick tick, ButtonType type)
 	{
 		size_t insertionIndex;
 		for (insertionIndex = 0; insertionIndex < targets.size(); insertionIndex++)
@@ -19,10 +19,11 @@ namespace Comfy::Studio::Editor
 		}
 
 		targets.emplace(targets.begin() + insertionIndex, tick, type);
-		SetTargetSyncFlagsAround(insertionIndex);
-		
-		assert(std::is_sorted(targets.begin(), targets.end(), [&](const auto& targetA, const auto& targetB) 
-		{ 
+		UpdateTargetSyncFlagsAround(insertionIndex);
+
+		// DEBUG:
+		assert(std::is_sorted(targets.begin(), targets.end(), [&](const auto& targetA, const auto& targetB)
+		{
 			return (targetA.Tick < targetB.Tick) && (targetA.Type < targetB.Type);
 		}));
 	}
@@ -33,26 +34,30 @@ namespace Comfy::Studio::Editor
 			return;
 
 		targets.erase(begin() + index);
-		SetTargetSyncFlagsAround(index);
+		UpdateTargetSyncFlagsAround(index);
 	}
 
-	void SortedTargetList::Remove(TimelineTick tick, TargetType type)
+	void SortedTargetList::Remove(TimelineTick tick, ButtonType type)
 	{
 		RemoveAt(FindIndex(tick, type));
 	}
 
-	i64 SortedTargetList::FindIndex(TimelineTick tick, TargetType type)
+	i64 SortedTargetList::FindIndex(TimelineTick tick, ButtonType type)
 	{
 		const auto foundIndex = FindIndexOf(targets, [&](const auto& target) { return (target.Tick == tick) && (target.Type == type); });
 		return InBounds(foundIndex, targets) ? static_cast<i64>(foundIndex) : -1;
 	}
 
-	void SortedTargetList::SetTargetSyncFlagsAround(i64 index)
+	void SortedTargetList::UpdateTargetSyncFlagsAround(i64 index)
 	{
-		SetTargetSyncFlags(index - TargetType_Max, index + TargetType_Max);
+		constexpr auto surroundingTargetsToCheck = static_cast<i64>(EnumCount<ButtonType>());
+
+		UpdateTargetSyncFlags(
+			index - surroundingTargetsToCheck,
+			index + surroundingTargetsToCheck);
 	}
 
-	void SortedTargetList::SetTargetSyncFlags(i64 start, i64 end)
+	void SortedTargetList::UpdateTargetSyncFlags(i64 start, i64 end)
 	{
 		if (start < 0)
 			start = 0;
@@ -68,10 +73,10 @@ namespace Comfy::Studio::Editor
 			const auto* nextTarget = (i + 1 < targetCount) ? &targets[i + 1] : nullptr;
 			const auto* prevTarget = (i - 1 >= 0) ? &targets[i - 1] : nullptr;
 
-			target.Flags &= ~TargetFlags_Sync;
+			target.Flags.IsSync = false;
 
 			if ((prevTarget != nullptr && prevTarget->Tick == target.Tick) || (nextTarget != nullptr && nextTarget->Tick == target.Tick))
-				target.Flags |= TargetFlags_Sync;
+				target.Flags.IsSync = true;
 		}
 	}
 }
