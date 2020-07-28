@@ -62,6 +62,9 @@ ComfyVersion/test/BuildVersion.h
 # Comfy test files
 ComfyStudio/src/MainTest.cpp
 
+# Comfy Studio temp design notes
+ComfyStudio/src-design/
+
 # Benchmark Results
 BenchmarkDotNet.Artifacts/
 
