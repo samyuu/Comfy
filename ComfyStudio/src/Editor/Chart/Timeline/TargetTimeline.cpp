@@ -158,14 +158,12 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnUpdate()
 	{
-		UpdatePlaybackButtonSounds();
+		if (GetIsPlayback())
+			UpdatePlaybackButtonSounds();
 	}
 
 	void TargetTimeline::UpdatePlaybackButtonSounds()
 	{
-		if (!GetIsPlayback())
-			return;
-
 		lastButtonSoundCursorTime = buttonSoundCursorTime;
 		buttonSoundCursorTime = GetCursorTime();
 
@@ -191,7 +189,8 @@ namespace Comfy::Studio::Editor
 					const auto startTime = buttonSoundCursorTime - buttonTime;
 					const auto externalClock = buttonTime;
 
-					// NOTE: Don't wanna cause any audio cutoffs
+					// NOTE: Don't wanna cause any audio cutoffs. If this happens the future threshold is either set too low for the current frame time
+					//		 or playback was started on top of an existing target.
 					if (startTime >= TimeSpan::Zero())
 						buttonSoundController.PlayButtonSound(TimeSpan::Zero(), externalClock);
 					else
@@ -990,12 +989,7 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::ResumePlayback()
 	{
 		chartEditor.ResumePlayback();
-
-		// HACK: Add a tiny offset to prevent clipping of button sounds that are positions directly underneath the cursor.
-		//		 The only downside of this is that buttons that are positioned <= this offset in front of the cursor will still be audible
-		//		 though in practice that should never be an issue and could even be regarded as a feature!
-		const auto clipPreventionOffset = TimeSpan::FromSeconds(1.0 / 30.0);
-		PlaybackStateChangeSyncButtonSoundCursorTime(GetCursorTime() - clipPreventionOffset);
+		PlaybackStateChangeSyncButtonSoundCursorTime(GetCursorTime());
 	}
 
 	void TargetTimeline::StopPlayback()
