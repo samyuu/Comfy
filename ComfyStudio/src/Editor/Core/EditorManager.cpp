@@ -46,13 +46,16 @@ namespace Comfy::Studio::Editor
 		SetColor(EditorColor_TreeViewActive, ImColor(0.29f, 0.29f, 0.29f, 0.8f));
 		SetColor(EditorColor_TreeViewTextHighlight, ImColor(0.87f, 0.77f, 0.02f));
 
-		SetColor(EditorColor_Grid, GetColorU32(ImGuiCol_Separator, 0.75f));
-		SetColor(EditorColor_GridAlt, GetColorU32(ImGuiCol_Separator, 0.5f));
+		// SetColor(EditorColor_Grid, GetColorU32(ImGuiCol_Separator, 0.75f));
+		// SetColor(EditorColor_GridAlt, GetColorU32(ImGuiCol_Separator, 0.5f));
+		SetColor(EditorColor_Grid, 0xFF373737);
+		SetColor(EditorColor_GridAlt, 0xFF343434);
 		
 		SetColor(EditorColor_Waveform, 0x40616161);
 
 		SetColor(EditorColor_Selection, GetColorU32(ImGuiCol_TextSelectedBg));
-		SetColor(EditorColor_TimelineRowSeparator, GetColorU32(ImGuiCol_Separator));
+		SetColor(EditorColor_TimelineRowSeparator, 0xFF343434);
+
 		SetColor(EditorColor_TimelineSelection, 0x20D0D0D0);
 		SetColor(EditorColor_TimelineSelectionBorder, 0x60E0E0E0);
 		SetColor(EditorColor_Bar, GetColorU32(ImGuiCol_PlotLines));
@@ -70,9 +73,9 @@ namespace Comfy::Studio::Editor
 	EditorManager::EditorManager(Application& parent) : parent(parent)
 	{
 		editorComponents.reserve(3);
-#if 0
-		AddEditorComponent<ChartEditor>(false);
-		AddEditorComponent<AetEditor>(true);
+#if 1
+		AddEditorComponent<ChartEditor>(true);
+		AddEditorComponent<AetEditor>(false);
 		AddEditorComponent<SceneEditor>(false);
 #else
 		AddEditorComponent<ChartEditor>(false);
