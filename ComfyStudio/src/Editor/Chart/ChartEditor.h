@@ -26,7 +26,7 @@ namespace Comfy::Studio::Editor
 		bool IsAudioFile(std::string_view filePath);
 		bool OnFileDropped(const std::string& filePath) override;
 
-		bool LoadSong(std::string_view filePath);
+		bool LoadSongAsync(std::string_view filePath);
 
 		void ResumePlayback();
 		void PausePlayback();

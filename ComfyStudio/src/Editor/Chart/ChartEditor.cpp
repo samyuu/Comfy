@@ -44,7 +44,7 @@ namespace Comfy::Studio::Editor
 			if (songFileViewer.DrawGui())
 			{
 				if (IsAudioFile(songFileViewer.GetFileToOpen()))
-					LoadSong(songFileViewer.GetFileToOpen());
+					LoadSongAsync(songFileViewer.GetFileToOpen());
 			}
 			Gui::EndChild();
 		}
@@ -83,10 +83,10 @@ namespace Comfy::Studio::Editor
 
 	bool ChartEditor::OnFileDropped(const std::string& filePath)
 	{
-		return (IsAudioFile(filePath) && LoadSong(filePath));
+		return (IsAudioFile(filePath) && LoadSongAsync(filePath));
 	}
 
-	bool ChartEditor::LoadSong(std::string_view filePath)
+	bool ChartEditor::LoadSongAsync(std::string_view filePath)
 	{
 		songSourceFuture = Audio::Engine::GetInstance().LoadAudioSourceAsync(filePath);
 		return true;
