@@ -54,7 +54,13 @@ namespace Comfy::Studio::Editor
 		ChartEditor& chartEditor;
 
 	protected:
-		ButtonSoundController buttonSoundController;
+		// NOTE: Instead of checking if a button lies between the cursor and last frame cursor time, check if the button will have been pressed in the future
+		//		 and then play it back with a negative offset to sample-perfectly sync it to the music.
+		//		 The only requirement for this value is that is longer than the duration of any given frame and preferably is as low as possible
+		//		 to prevent artifacts when quickly changing the song tempo or offset during playback.
+		TimeSpan buttonSoundFutureOffset = TimeSpan::FromSeconds(1.0 / 25.0);
+
+		ButtonSoundController buttonSoundController = {};
 		TimeSpan lastButtonSoundCursorTime = {}, buttonSoundCursorTime = {};
 
 		bool updateWaveform = true;
@@ -163,6 +169,8 @@ namespace Comfy::Studio::Editor
 		void PausePlayback() override;
 		void ResumePlayback() override;
 		void StopPlayback() override;
+
+		void PlaybackStateChangeSyncButtonSoundCursorTime(TimeSpan newCursorTime);
 
 		f32 GetTimelineSize() const override;
 		void OnTimelineBaseScroll() override;

@@ -169,12 +169,35 @@ namespace Comfy::Studio::Editor
 		lastButtonSoundCursorTime = buttonSoundCursorTime;
 		buttonSoundCursorTime = GetCursorTime();
 
-		for (auto& target : workingChart->GetTargets())
+		// NOTE: Do a simple check for all targets that have been passed between this and the last frame
+		if (buttonSoundFutureOffset <= TimeSpan::Zero())
 		{
-			const auto targetTime = workingChart->GetTimelineMap().GetTimeAt(target.Tick);
+			for (const auto& target : workingChart->GetTargets())
+			{
+				const auto buttonTime = workingChart->GetTimelineMap().GetTimeAt(target.Tick);
+				if (buttonTime >= lastButtonSoundCursorTime && buttonTime <= buttonSoundCursorTime)
+					buttonSoundController.PlayButtonSound();
+			}
+		}
+		else // NOTE: Play back button sounds in the future with a negative offset to achieve sample perfect accuracy
+		{
+			for (const auto& target : workingChart->GetTargets())
+			{
+				const auto buttonTime = workingChart->GetTimelineMap().GetTimeAt(target.Tick);
+				const auto offsetButtonTime = buttonTime - buttonSoundFutureOffset;
 
-			if (targetTime >= lastButtonSoundCursorTime && targetTime <= buttonSoundCursorTime)
-				buttonSoundController.PlayButtonSound();
+				if (offsetButtonTime >= lastButtonSoundCursorTime && offsetButtonTime <= buttonSoundCursorTime)
+				{
+					const auto startTime = buttonSoundCursorTime - buttonTime;
+					const auto externalClock = buttonTime;
+
+					// NOTE: Don't wanna cause any audio cutoffs
+					if (startTime >= TimeSpan::Zero())
+						buttonSoundController.PlayButtonSound(TimeSpan::Zero(), externalClock);
+					else
+						buttonSoundController.PlayButtonSound(startTime, externalClock);
+				}
+			}
 		}
 	}
 
@@ -182,41 +205,6 @@ namespace Comfy::Studio::Editor
 	{
 		workingChart->GetTimelineMap().CalculateMapTimes(workingChart->GetTempoMap());
 	}
-
-#if 0
-	void TargetTimeline::UpdateOnCallbackSounds()
-	{
-		if (!GetIsPlayback())
-			return;
-
-		for (int i = 0; i < buttonSoundTimesList.size(); ++i)
-		{
-			if (chartEditor.GetPlaybackTime() >= buttonSoundTimesList[i])
-			{
-				buttonSoundController.PlayButtonSound();
-				buttonSoundTimesList.erase(buttonSoundTimesList.begin() + (i--));
-			}
-			else
-			{
-				break;
-			}
-		}
-	}
-
-	void TargetTimeline::UpdateOnCallbackPlacementSounds()
-	{
-		for (size_t i = 0; i < std::size(buttonPlacementMapping); i++)
-		{
-			buttonPlacementKeyStates[i].WasDown = buttonPlacementKeyStates[i].Down;
-			buttonPlacementKeyStates[i].Down = Gui::IsKeyDown(buttonPlacementMapping[i].Key);
-
-			if (buttonPlacementKeyStates[i].Down && !buttonPlacementKeyStates[i].WasDown)
-			{
-				buttonSoundController.PlayButtonSound();
-			}
-		}
-	}
-#endif
 
 	void TargetTimeline::InitializeButtonIcons()
 	{
@@ -247,18 +235,6 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::OnPlaybackResumed()
 	{
 		Audio::Engine::GetInstance().EnsureStreamRunning();
-
-		// TODO: ChartPlaybackSoundManager (?) do elapsed time check instead of vector
-
-#if 0
-		buttonSoundTimesList.clear();
-		for (const auto& target : workingChart->GetTargets())
-		{
-			TimeSpan buttonTime = GetTimelineTime(target.Tick);
-			if (buttonTime >= chartEditor.GetPlaybackTime())
-				buttonSoundTimesList.push_back(buttonTime);
-		}
-#endif
 	}
 
 	void TargetTimeline::OnPlaybackPaused()
@@ -996,8 +972,8 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::SetCursorTime(TimeSpan value)
 	{
-		lastButtonSoundCursorTime = buttonSoundCursorTime = value;
 		chartEditor.SetPlaybackTime(value);
+		PlaybackStateChangeSyncButtonSoundCursorTime(value);
 	}
 
 	bool TargetTimeline::GetIsPlayback() const
@@ -1008,16 +984,30 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::PausePlayback()
 	{
 		chartEditor.PausePlayback();
+		PlaybackStateChangeSyncButtonSoundCursorTime(GetCursorTime());
 	}
 
 	void TargetTimeline::ResumePlayback()
 	{
 		chartEditor.ResumePlayback();
+
+		// HACK: Add a tiny offset to prevent clipping of button sounds that are positions directly underneath the cursor.
+		//		 The only downside of this is that buttons that are positioned <= this offset in front of the cursor will still be audible
+		//		 though in practice that should never be an issue and could even be regarded as a feature!
+		const auto clipPreventionOffset = TimeSpan::FromSeconds(1.0 / 30.0);
+		PlaybackStateChangeSyncButtonSoundCursorTime(GetCursorTime() - clipPreventionOffset);
 	}
 
 	void TargetTimeline::StopPlayback()
 	{
 		chartEditor.StopPlayback();
+		PlaybackStateChangeSyncButtonSoundCursorTime(GetCursorTime());
+	}
+
+	void TargetTimeline::PlaybackStateChangeSyncButtonSoundCursorTime(TimeSpan newCursorTime)
+	{
+		lastButtonSoundCursorTime = buttonSoundCursorTime = (newCursorTime - buttonSoundFutureOffset);
+		buttonSoundController.PauseAllNegativeVoices();
 	}
 
 	f32 TargetTimeline::GetTimelineSize() const
