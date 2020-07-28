@@ -54,13 +54,7 @@
     <ClCompile Include="src\Editor\Chart\SyncWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Editor\Chart\TargetList.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Editor\Chart\TargetRenderWindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Editor\Chart\TempoMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Editor\Common\CameraController2D.cpp">
@@ -150,6 +144,12 @@
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Editor\Chart\SortedTargetList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Chart\SortedTempoMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
@@ -212,16 +212,10 @@
     <ClInclude Include="src\Editor\Chart\SyncWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Editor\Chart\TargetList.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\Chart\TargetRenderWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Chart\TempoChange.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\Chart\TempoMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Command\CommandManager.h">
@@ -363,6 +357,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Aet\MutatingEditorComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Chart\SortedTargetList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Chart\SortedTempoMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

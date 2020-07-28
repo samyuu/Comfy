@@ -1,5 +1,5 @@
 #include "SyncWindow.h"
-#include "TempoMap.h"
+#include "SortedTempoMap.h"
 #include "Timeline/TimelineTick.h"
 #include "ImGui/Gui.h"
 
@@ -29,7 +29,7 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::Button("Set Tempo Change", vec2(width, 0.0f)))
 		{
-			TimelineTick cursorTick = timeline.RoundToGrid(timeline.GetCursorTickAsync());
+			TimelineTick cursorTick = timeline.RoundTickToGrid(timeline.GetCursorTick());
 
 			chart.GetTempoMap().SetTempoChange(cursorTick, newTempo);
 			timeline.UpdateTimelineMap();
@@ -37,7 +37,7 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::Button("Remove Tempo Change", vec2(width, 0.0f)))
 		{
-			TimelineTick cursorTick = timeline.RoundToGrid(timeline.GetCursorTickAsync());
+			TimelineTick cursorTick = timeline.RoundTickToGrid(timeline.GetCursorTick());
 
 			chart.GetTempoMap().RemoveTempoChange(cursorTick);
 			timeline.UpdateTimelineMap();

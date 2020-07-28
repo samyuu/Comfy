@@ -26,19 +26,21 @@ namespace Comfy::Studio::Editor
 
 	public:
 		TimelineTick GetGridTick() const;
-		TimelineTick FloorToGrid(TimelineTick tick) const;
-		TimelineTick RoundToGrid(TimelineTick tick) const;
+		TimelineTick FloorTickToGrid(TimelineTick tick) const;
+		TimelineTick RoundTickToGrid(TimelineTick tick) const;
 
 		float GetTimelinePosition(TimeSpan time) const override;
 		float GetTimelinePosition(TimelineTick tick) const;
 
-		TimelineTick GetTimelineTick(TimeSpan time) const;
+		TimelineTick TimeToTick(TimeSpan time) const;
+		TimelineTick TimeToTickFixedTempo(TimeSpan time, Tempo tempo) const;
+		
 		TimelineTick GetTimelineTick(float position) const;
 
-		TimeSpan GetTimelineTime(TimelineTick tick) const;
+		TimeSpan TickToTime(TimelineTick tick) const;
 		TimeSpan GetTimelineTime(float position) const override;
 
-		TimelineTick GetCursorTickAsync() const;
+		TimelineTick GetCursorTick() const;
 		TimelineTick GetCursorMouseXTick() const;
 
 	public:
@@ -48,14 +50,12 @@ namespace Comfy::Studio::Editor
 		void UpdateTimelineMap();
 
 	protected:
-		Chart* workingChart;
+		Chart* workingChart = nullptr;
 		ChartEditor& chartEditor;
 
 	protected:
-		std::unique_ptr<Audio::CallbackReceiver> callbackReceiver = nullptr;
-
-		std::vector<TimeSpan> buttonSoundTimesList;
 		ButtonSoundController buttonSoundController;
+		TimeSpan lastButtonSoundCursorTime = {}, buttonSoundCursorTime = {};
 
 		bool updateWaveform = true;
 		Audio::Waveform songWaveform;
@@ -79,8 +79,6 @@ namespace Comfy::Studio::Editor
 		std::unique_ptr<Graphics::SprSet> sprSet;
 		std::shared_ptr<Graphics::Tex> buttonIconsTexture = nullptr;
 
-		bool checkHitsoundsInCallback = false;
-		struct { bool Down, WasDown; } buttonPlacementKeyStates[12];
 		static constexpr struct { TargetType Type; Input::KeyCode Key; } buttonPlacementMapping[12]
 		{
 			{ TargetType_Sankaku, Input::KeyCode_W },
@@ -106,8 +104,21 @@ namespace Comfy::Studio::Editor
 		TimelineTick timeSelectionStart, timeSelectionEnd;
 
 	protected:
+
+		// NOTE: Time based animation seems to look better (?)
+#define TIME_BASED_BUTTON_ANIMATION
+
+#ifdef TIME_BASED_BUTTON_ANIMATION
 		const TimeSpan buttonAnimationStartTime = TimeSpan::FromMilliseconds(15.0);
 		const TimeSpan buttonAnimationDuration = TimeSpan::FromMilliseconds(60.0);
+#else
+		// NOTE: Delay the animation while placing targets to give them a satisfying "pop" instead of only scaling down
+		const TimeSpan buttonAnimationStartTime = TimeSpan::FromMilliseconds(15.0);
+		//const TimelineTick buttonAnimationStartTime = TimelineTick::FromTicks((TimelineTick::TicksPerBeat * 4) / 64);
+		const TimelineTick buttonAnimationDuration = TimelineTick::FromTicks((TimelineTick::TicksPerBeat * 4) / 32);
+		//const TimelineTick buttonAnimationDuration = TimelineTick::FromTicks((TimelineTick::TicksPerBeat * 4) / 16);
+#endif
+
 		const float buttonAnimationScale = 1.5f;
 		struct
 		{
@@ -125,8 +136,7 @@ namespace Comfy::Studio::Editor
 
 	protected:
 		void OnUpdate() override;
-		void UpdateOnCallbackSounds();
-		void UpdateOnCallbackPlacementSounds();
+		void UpdatePlaybackButtonSounds();
 
 	protected:
 		void OnDrawTimelineHeaderWidgets() override;
@@ -139,9 +149,13 @@ namespace Comfy::Studio::Editor
 		void OnDrawTimlineRows() override;
 		void OnDrawTimlineDivisors() override;
 		void OnDrawTimlineBackground() override;
+		void OnDrawTimelineScrollBarRegion() override;
 		void DrawWaveform();
 		void DrawTimelineTempoMap();
 		void DrawTimelineTargets();
+
+		f32 GetTimelineTargetScaleFactor(const TimelineTarget& target, TimeSpan buttonTime) const;
+
 		void DrawTimelineCursor() override;
 		void DrawTimeSelection();
 		void OnUpdateInput() override;
@@ -155,6 +169,8 @@ namespace Comfy::Studio::Editor
 
 	protected:
 		TimeSpan GetCursorTime() const override;
+		void SetCursorTime(TimeSpan value);
+
 		bool GetIsPlayback() const override;
 		void PausePlayback() override;
 		void ResumePlayback() override;

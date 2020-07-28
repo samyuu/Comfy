@@ -1,6 +1,6 @@
 #pragma once
-#include "TargetList.h"
-#include "TempoMap.h"
+#include "SortedTargetList.h"
+#include "SortedTempoMap.h"
 #include "Timeline/TimelineMap.h"
 #include "Time/TimeSpan.h"
 
@@ -13,8 +13,8 @@ namespace Comfy::Studio::Editor
 		~Chart() = default;
 
 	public:
-		TargetList& GetTargets();
-		TempoMap& GetTempoMap();
+		SortedTargetList& GetTargets();
+		SortedTempoMap& GetTempoMap();
 		TimelineMap& GetTimelineMap();
 
 		TimeSpan GetStartOffset() const;
@@ -24,8 +24,8 @@ namespace Comfy::Studio::Editor
 		void SetDuration(TimeSpan value);
 
 	private:
-		TargetList targets;
-		TempoMap tempoMap;
+		SortedTargetList targets;
+		SortedTempoMap tempoMap;
 		TimelineMap timelineMap;
 
 		TimeSpan startOffset = TimeSpan::FromSeconds(0.0);

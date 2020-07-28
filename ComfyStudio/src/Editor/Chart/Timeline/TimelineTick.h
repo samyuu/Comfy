@@ -8,13 +8,13 @@ namespace Comfy::Studio::Editor
 	{
 	public:
 		static constexpr i32 TicksPerBeat = 192;
-		static constexpr TimelineTick ZeroTick() { return TimelineTick(0); }
-		static constexpr TimelineTick FromBeats(i32 bars) { return FromTicks(TicksPerBeat * bars); }
+		static constexpr TimelineTick Zero() { return TimelineTick(0); }
+		// static constexpr TimelineTick FromBeats(i32 bars) { return FromTicks(TicksPerBeat * bars); }
 		static constexpr TimelineTick FromTicks(i32 ticks) { return TimelineTick(ticks); }
 
 	public:
 		constexpr TimelineTick() : tickCount(0) {}
-		constexpr TimelineTick(i32 totalTicks) : tickCount(totalTicks) {}
+		constexpr explicit TimelineTick(i32 totalTicks) : tickCount(totalTicks) {}
 
 		constexpr i32 TotalTicks() const { return tickCount; }
 		constexpr i32 TotalBeats() const { return TotalTicks() / TicksPerBeat; }
@@ -25,6 +25,11 @@ namespace Comfy::Studio::Editor
 		constexpr bool operator>=(const TimelineTick other) const { return tickCount >= other.tickCount; }
 		constexpr bool operator<(const TimelineTick other) const { return tickCount < other.tickCount; }
 		constexpr bool operator>(const TimelineTick other) const { return tickCount > other.tickCount; }
+
+		constexpr TimelineTick operator+(const TimelineTick other) const { return TimelineTick(tickCount + other.tickCount); }
+		constexpr TimelineTick operator-(const TimelineTick other) const { return TimelineTick(tickCount - other.tickCount); }
+
+		constexpr TimelineTick operator-() const { return TimelineTick(-tickCount); }
 
 	private:
 		i32 tickCount;

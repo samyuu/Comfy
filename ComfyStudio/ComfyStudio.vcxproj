@@ -180,9 +180,9 @@
     <ClCompile Include="src\Editor\Chart\Chart.cpp" />
     <ClCompile Include="src\Editor\Chart\ChartEditor.cpp" />
     <ClCompile Include="src\Editor\Chart\SyncWindow.cpp" />
-    <ClCompile Include="src\Editor\Chart\TargetList.cpp" />
+    <ClCompile Include="src\Editor\Chart\SortedTargetList.cpp" />
     <ClCompile Include="src\Editor\Chart\TargetRenderWindow.cpp" />
-    <ClCompile Include="src\Editor\Chart\TempoMap.cpp" />
+    <ClCompile Include="src\Editor\Chart\SortedTempoMap.cpp" />
     <ClCompile Include="src\Editor\Chart\Timeline\TargetTimeline.cpp" />
     <ClCompile Include="src\Editor\Chart\Timeline\TimelineMap.cpp" />
     <ClCompile Include="src\Editor\Common\ButtonSoundController.cpp" />
@@ -234,10 +234,10 @@
     <ClInclude Include="src\Editor\Chart\Chart.h" />
     <ClInclude Include="src\Editor\Chart\ChartEditor.h" />
     <ClInclude Include="src\Editor\Chart\SyncWindow.h" />
-    <ClInclude Include="src\Editor\Chart\TargetList.h" />
+    <ClInclude Include="src\Editor\Chart\SortedTargetList.h" />
     <ClInclude Include="src\Editor\Chart\TargetRenderWindow.h" />
     <ClInclude Include="src\Editor\Chart\TempoChange.h" />
-    <ClInclude Include="src\Editor\Chart\TempoMap.h" />
+    <ClInclude Include="src\Editor\Chart\SortedTempoMap.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TargetTimeline.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TimelineMap.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TimelineTick.h" />

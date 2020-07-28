@@ -4,18 +4,19 @@
 
 namespace Comfy::Studio::Editor
 {
-	// NOTE: Collection of tempo changes always kept in TimelineTick order
-	class TempoMap
+	class SortedTempoMap
 	{
 	public:
-		TempoMap();
-		~TempoMap() = default;
+		SortedTempoMap();
+		~SortedTempoMap() = default;
 
 	public:
 		void SetTempoChange(TimelineTick tick, Tempo tempo);
 		void RemoveTempoChange(TimelineTick tick);
 		
 		TempoChange& GetTempoChangeAt(size_t index);
+		TempoChange& FindTempoChangeAtTick(TimelineTick tick);
+		
 		size_t TempoChangeCount() const;
 
 	private:

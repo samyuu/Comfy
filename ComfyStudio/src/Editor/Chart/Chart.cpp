@@ -2,12 +2,12 @@
 
 namespace Comfy::Studio::Editor
 {
-	TargetList& Chart::GetTargets()
+	SortedTargetList& Chart::GetTargets()
 	{
 		return targets;
 	}
 	
-	TempoMap& Chart::GetTempoMap()
+	SortedTempoMap& Chart::GetTempoMap()
 	{
 		return tempoMap;
 	}
