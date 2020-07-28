@@ -91,7 +91,7 @@ namespace Comfy::Studio::Editor
 		return -1;
 	}
 
-	f32 TargetTimeline::GetButtonTransparency(f32 screenX) const
+	f32 TargetTimeline::GetButtonEdgeFadeOpacity(f32 screenX) const
 	{
 		constexpr auto fadeSpan = 35.0f;
 
@@ -762,7 +762,7 @@ namespace Comfy::Studio::Editor
 			const auto center = vec2(screenX + timelineContentRegion.GetTL().x, targetYPositions[buttonIndex]);
 			const auto scale = GetTimelineTargetScaleFactor(target, buttonTime) * iconScale;
 
-			DrawButtonIcon(windowDrawList, target, center, scale, GetButtonTransparency(screenX));
+			DrawButtonIcon(windowDrawList, target, center, scale, GetButtonEdgeFadeOpacity(screenX));
 		}
 	}
 

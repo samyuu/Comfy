@@ -176,7 +176,7 @@ namespace Comfy::Studio::Editor
 		void OnTimelineBaseScroll() override;
 
 	protected:
-		f32 GetButtonTransparency(f32 screenX) const;
+		f32 GetButtonEdgeFadeOpacity(f32 screenX) const;
 		size_t GetTargetButtonIconIndex(const TimelineTarget& target) const;
 		void DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, vec2 position, f32 scale, f32 transparency = 1.0f);
 	};
