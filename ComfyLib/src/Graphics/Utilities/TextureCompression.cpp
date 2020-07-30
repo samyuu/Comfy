@@ -99,6 +99,30 @@ namespace Comfy::Graphics::Utilities
 				return TextureFormat::Unknown;
 			}
 		}
+
+		constexpr ::DirectX::TEX_FILTER_FLAGS FilterModeToTexFilterFlags(FilterMode filterMode)
+		{
+			switch (filterMode)
+			{
+			case FilterMode::Point:
+				return ::DirectX::TEX_FILTER_POINT;
+
+			case FilterMode::Linear:
+				return ::DirectX::TEX_FILTER_LINEAR;
+
+			case FilterMode::Cubic:
+				return ::DirectX::TEX_FILTER_CUBIC;
+
+			case FilterMode::Box:
+				return ::DirectX::TEX_FILTER_BOX;
+
+			case FilterMode::Triangle:
+				return ::DirectX::TEX_FILTER_TRIANGLE;
+
+			default:
+				return ::DirectX::TEX_FILTER_DEFAULT;
+			}
+		}
 	}
 
 	size_t TextureFormatBlockSize(TextureFormat format)
@@ -551,6 +575,41 @@ namespace Comfy::Graphics::Utilities
 			}
 		}
 
+		return true;
+	}
+
+	bool ResizeTextureBuffer(ivec2 inSize, const u8* inData, TextureFormat inFormat, size_t inByteSize, ivec2 outSize, u8* outData, size_t outByteSize, FilterMode filterMode)
+	{
+		if (inSize.x <= 0 || inSize.y <= 0 || outSize.x <= 0 || outSize.y <= 0)
+			return false;
+
+		const auto expectedInputByteSize = TextureFormatByteSize(inSize, inFormat);
+		if (inByteSize < expectedInputByteSize)
+			return false;
+
+		const auto expectedOutputByteSize = TextureFormatByteSize(outSize, inFormat);
+		if (outByteSize < expectedOutputByteSize)
+			return false;
+
+		const auto inOutFormatDXGI = TextureFormatToDXGI(inFormat);
+		if (inOutFormatDXGI == DXGI_FORMAT_UNKNOWN)
+			return false;
+
+		auto sourceImage = ::DirectX::Image {};
+		sourceImage.width = inSize.x;
+		sourceImage.height = inSize.y;
+		sourceImage.format = inOutFormatDXGI;
+		sourceImage.rowPitch = TextureFormatByteSize(ivec2(inSize.x, 1), inFormat);
+		sourceImage.slicePitch = expectedInputByteSize;
+		sourceImage.pixels = const_cast<u8*>(inData);
+
+		const auto filterFlags = FilterModeToTexFilterFlags(filterMode) | ::DirectX::TEX_FILTER_FORCE_NON_WIC;
+
+		auto resizedImage = ::DirectX::ScratchImage {};
+		if (FAILED(::DirectX::Resize(sourceImage, outSize.x, outSize.y, filterFlags, resizedImage)))
+			return false;
+
+		std::memcpy(outData, resizedImage.GetPixels(), expectedOutputByteSize);
 		return true;
 	}
 
