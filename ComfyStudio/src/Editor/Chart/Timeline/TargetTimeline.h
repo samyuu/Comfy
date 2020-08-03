@@ -25,7 +25,7 @@ namespace Comfy::Studio::Editor
 		void OnPlaybackStopped();
 
 	public:
-		TimelineTick GetGridTick() const;
+		TimelineTick GridDivisionTick() const;
 		TimelineTick FloorTickToGrid(TimelineTick tick) const;
 		TimelineTick RoundTickToGrid(TimelineTick tick) const;
 
@@ -44,10 +44,10 @@ namespace Comfy::Studio::Editor
 		TimelineTick GetCursorMouseXTick() const;
 
 	public:
-		int GetGridDivisionIndex() const;
+		int FindGridDivisionPresetIndex() const;
 
 	public:
-		void UpdateTimelineMap();
+		void UpdateTimelineMapTimes();
 
 	protected:
 		Chart* workingChart = nullptr;
@@ -67,11 +67,8 @@ namespace Comfy::Studio::Editor
 		Audio::Waveform songWaveform;
 
 	protected:
-		static constexpr std::array<const char*, 10> gridDivisionStrings = { "1/1", "1/2", "1/4", "1/8", "1/12", "1/16", "1/24", "1/32", "1/48", "1/64" };
-		static constexpr std::array<int, 10> gridDivisions = { 1, 2, 4, 8, 12, 16, 24, 32, 48, 64 };
-
-		int gridDivisionIndex = 0;
-		int gridDivision = 16;
+		static constexpr std::array<int, 9> presetGridDivisions = { 1, 4, 8, 12, 16, 24, 32, 48, 64 };
+		int activeGridDivision = 16;
 
 	protected:
 		std::array<f32, EnumCount<ButtonType>()> targetYPositions;
@@ -159,7 +156,7 @@ namespace Comfy::Studio::Editor
 
 	protected:
 		void PlaceOrRemoveTarget(TimelineTick tick, ButtonType type);
-		void SelectNextGridDivision(int direction);
+		void SelectNextPresetGridDivision(int direction);
 
 	protected:
 		TimeSpan GetCursorTime() const override;

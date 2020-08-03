@@ -32,7 +32,7 @@ namespace Comfy::Studio::Editor
 			TimelineTick cursorTick = timeline.RoundTickToGrid(timeline.GetCursorTick());
 
 			chart.GetTempoMap().SetTempoChange(cursorTick, newTempo);
-			timeline.UpdateTimelineMap();
+			timeline.UpdateTimelineMapTimes();
 		}
 
 		if (Gui::Button("Remove Tempo Change", vec2(width, 0.0f)))
@@ -40,7 +40,7 @@ namespace Comfy::Studio::Editor
 			TimelineTick cursorTick = timeline.RoundTickToGrid(timeline.GetCursorTick());
 
 			chart.GetTempoMap().RemoveTempoChange(cursorTick);
-			timeline.UpdateTimelineMap();
+			timeline.UpdateTimelineMapTimes();
 		}
 	}
 }
