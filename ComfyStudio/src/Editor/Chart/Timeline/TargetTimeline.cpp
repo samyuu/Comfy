@@ -181,16 +181,11 @@ namespace Comfy::Studio::Editor
 		}
 		else // NOTE: Play back button sounds in the future with a negative offset to achieve sample perfect accuracy
 		{
-			auto lastTargetTick = TimelineTick::FromTicks(std::numeric_limits<i32>::min());
-
 			for (const auto& target : workingChart->GetTargets())
 			{
-				const auto isTargetTickUnchanged = (lastTargetTick == target.Tick);
-				lastTargetTick = target.Tick;
-
-				// DEBUG: Stacked button sounds should be handled by the button sound controller automatically but it seems there might be a bug here... (?)
+				// DEBUG: Stacked button sounds should be handled by the button sound controller automatically but it seems there might be a bug here somewhere... (?)
 				//		  Doing an additional sync check here has the advantage of offloading audio engine work though special care needs to be taken for slide and normal buttons
-				if (isTargetTickUnchanged)
+				if (target.Flags.IsSync && target.Flags.IndexWithinSyncPair > 0)
 					continue;
 
 				const auto buttonTime = workingChart->GetTimelineMap().GetTimeAt(target.Tick);
@@ -265,7 +260,7 @@ namespace Comfy::Studio::Editor
 		else
 			songWaveform.Clear();
 
-		updateWaveform = true;
+		waveformUpdatePending = true;
 	}
 
 	void TargetTimeline::OnDrawTimelineHeaderWidgets()
@@ -544,14 +539,15 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::DrawWaveform()
 	{
 		if (zoomLevelChanged)
-			updateWaveform = true;
+			waveformUpdatePending = true;
 
-		if (updateWaveform)
+		if (waveformUpdatePending && waveformUpdateStopwatch.GetElapsed() > waveformUpdateInterval)
 		{
 			const auto timePerPixel = GetTimelineTime(2.0f) - GetTimelineTime(1.0f);
 			songWaveform.SetScale(timePerPixel);
 
-			updateWaveform = false;
+			waveformUpdateStopwatch.Restart();
+			waveformUpdatePending = false;
 		}
 
 		if (songWaveform.GetPixelCount() < 1)
@@ -569,6 +565,9 @@ namespace Comfy::Studio::Editor
 
 		const auto waveformColor = GetColor(EditorColor_Waveform);
 
+		// NOTE: To try and mitigate "flashes" while resizing the timeline, optimally this should be equal to the average PCM of the last visible area
+		const auto amplitudeDuringUpdate = (0.025f * timelineHeight);
+
 		for (i64 screenPixel = leftMostVisiblePixel; screenPixel < waveformPixelCount && screenPixel < rightMostVisiblePixel; screenPixel++)
 		{
 			const auto timelinePixel = std::min(static_cast<i64>(screenPixel + scrollXStartOffset), static_cast<i64>(waveformPixelCount - 1));
@@ -578,7 +577,7 @@ namespace Comfy::Studio::Editor
 			constexpr u32 channelsToVisualize = 2;
 			for (auto channel = 0; channel < channelsToVisualize; channel++)
 			{
-				const auto amplitude = songWaveform.GetNormalizedPCMForPixel(timelinePixel, channel) * timelineHeight;
+				const auto amplitude = waveformUpdatePending ? amplitudeDuringUpdate : (songWaveform.GetNormalizedPCMForPixel(timelinePixel, channel) * timelineHeight);
 				if (amplitude < 1.0f)
 					continue;
 

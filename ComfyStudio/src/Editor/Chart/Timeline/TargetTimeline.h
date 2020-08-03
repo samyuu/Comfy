@@ -6,6 +6,7 @@
 #include "Graphics/Auth2D/SprSet.h"
 #include "Audio/Audio.h"
 #include "Input/Input.h"
+#include "Time/Stopwatch.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -63,8 +64,12 @@ namespace Comfy::Studio::Editor
 		ButtonSoundController buttonSoundController = {};
 		TimeSpan lastButtonSoundCursorTime = {}, buttonSoundCursorTime = {};
 
-		bool updateWaveform = true;
+		bool waveformUpdatePending = true;
 		Audio::Waveform songWaveform;
+
+		// NOTE: Because updating the waveform can be quite performance intensive, especially if done every frame like is common when mouse dragging a zoom slider
+		const TimeSpan waveformUpdateInterval = COMFY_DEBUG_RELEASE_SWITCH(TimeSpan::FromSeconds(1.0 / 5.0), TimeSpan::FromSeconds(1.0 / 30.0));
+		Stopwatch waveformUpdateStopwatch = Stopwatch::StartNew();
 
 	protected:
 		static constexpr std::array<int, 9> presetGridDivisions = { 1, 4, 8, 12, 16, 24, 32, 48, 64 };
