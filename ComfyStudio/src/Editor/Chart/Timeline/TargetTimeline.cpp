@@ -118,15 +118,15 @@ namespace Comfy::Studio::Editor
 
 	size_t TargetTimeline::GetTargetButtonIconIndex(const TimelineTarget& target) const
 	{
-		auto index = static_cast<size_t>(target.Type);
+		auto resultIndex = static_cast<size_t>(target.Type);
 
 		if (target.Flags.IsChain && (target.Type == ButtonType::SlideL || target.Type == ButtonType::SlideR))
-			index += 2;
+			resultIndex += 2;
 
 		if (target.Flags.IsSync)
-			return index;
+			return resultIndex;
 
-		return index + 8;
+		return resultIndex + 8;
 	}
 
 	void TargetTimeline::DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, vec2 position, f32 scale, f32 transparency)
@@ -140,7 +140,7 @@ namespace Comfy::Studio::Editor
 		const auto bottomRight = vec2(position.x + width, position.y + height);
 		const auto textureCoordinates = buttonIconsTextureCoordinates[GetTargetButtonIconIndex(target)];
 
-		const ImU32 color = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF * transparency);
+		const auto color = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF * transparency);
 		if (buttonIconsTexture != nullptr)
 			drawList->AddImage(*buttonIconsTexture, position, bottomRight, textureCoordinates.GetBL(), textureCoordinates.GetTR(), color);
 
@@ -624,7 +624,7 @@ namespace Comfy::Studio::Editor
 			Gui::PopID();
 
 			// TODO: Prevent overlapping tempo changes
-			//windowDrawList->AddRectFilled(buttonPosition, buttonPosition + buttonSize, TEMPO_MAP_BAR_COLOR);
+			// windowDrawList->AddRectFilled(buttonPosition, buttonPosition + buttonSize, TEMPO_MAP_BAR_COLOR);
 			if (Gui::IsItemHovered() && Gui::IsWindowHovered())
 			{
 				Gui::WideSetTooltip("TIME: %s", TickToTime(tempoChange.Tick).ToString().c_str());
@@ -633,7 +633,7 @@ namespace Comfy::Studio::Editor
 				if (Gui::IsMouseDoubleClicked(0))
 				{
 					SetScrollX(screenX + GetScrollX());
-					//SetScrollX(screenX - timelineContentRegion.GetTL().x - (windowWidth * .5f));
+					// SetScrollX(screenX - timelineContentRegion.GetTL().x - (windowWidth * .5f));
 				}
 
 				if (Gui::IsMouseClicked(1))
@@ -697,7 +697,7 @@ namespace Comfy::Studio::Editor
 			const auto cursorTime = GetCursorTime();
 			const auto timeUntilButton = buttonTime - cursorTime;
 
-			if (timeUntilButton <= TimeSpan::FromSeconds(0.0) && timeUntilButton >= -buttonAnimationDuration)
+			if (timeUntilButton <= TimeSpan::Zero() && timeUntilButton >= -buttonAnimationDuration)
 			{
 				const auto delta = static_cast<f32>(timeUntilButton.TotalSeconds() / -buttonAnimationDuration.TotalSeconds());
 				return ImLerp(buttonAnimationScaleStart, buttonAnimationScaleEnd, delta);
@@ -766,7 +766,7 @@ namespace Comfy::Studio::Editor
 		const auto end = timelineContentRegion.GetBL() + vec2(endScreenX, 0.0f);
 
 		baseDrawList->AddRectFilled(start, end, GetColor(EditorColor_Selection));
-		//Gui::SetMouseCursor(ImGuiMouseCursor_Hand);
+		// Gui::SetMouseCursor(ImGuiMouseCursor_Hand);
 	}
 
 	void TargetTimeline::OnUpdateInput()
@@ -806,7 +806,7 @@ namespace Comfy::Studio::Editor
 
 				const auto buttonIndex = static_cast<size_t>(target.Type);
 				buttonAnimations[buttonIndex].Tick = target.Tick;
-				buttonAnimations[buttonIndex].ElapsedTime = TimeSpan::FromSeconds(0.0);
+				buttonAnimations[buttonIndex].ElapsedTime = TimeSpan::Zero();
 			}
 		}
 
@@ -879,13 +879,13 @@ namespace Comfy::Studio::Editor
 
 		const auto buttonIndex = static_cast<size_t>(type);
 		buttonAnimations[buttonIndex].Tick = tick;
-		buttonAnimations[buttonIndex].ElapsedTime = TimeSpan::FromSeconds(0.0);
+		buttonAnimations[buttonIndex].ElapsedTime = TimeSpan::Zero();
 	}
 
 	void TargetTimeline::SelectNextPresetGridDivision(int direction)
 	{
 		const auto index = FindGridDivisionPresetIndex();
-		const auto nextIndex = ImClamp(index + direction, 0, static_cast<int>(presetGridDivisions.size()) - 1);
+		const auto nextIndex = std::clamp(index + direction, 0, static_cast<int>(presetGridDivisions.size()) - 1);
 
 		activeGridDivision = presetGridDivisions[nextIndex];
 	}
@@ -941,16 +941,16 @@ namespace Comfy::Studio::Editor
 
 		if (GetIsPlayback()) // NOTE: Seek through song
 		{
-			const TimeSpan increment = TimeSpan((io.KeyShift ? 1.0 : 0.5) * io.MouseWheel);
-
+			// NOTE: Pause and resume playback to reset the on playback start time
 			chartEditor.PausePlayback();
-			SetCursorTime(chartEditor.GetPlaybackTimeAsync() + increment);
+			{
+				const auto scrollTimeIncrement = TimeSpan((io.KeyShift ? 1.0f : 0.5f) * io.MouseWheel);
+				SetCursorTime(chartEditor.GetPlaybackTimeAsync() + scrollTimeIncrement);
 
-			if (chartEditor.GetPlaybackTimeAsync() < TimeSpan::FromSeconds(0.0))
-				SetCursorTime(TimeSpan::FromSeconds(0.0));
-
+				if (chartEditor.GetPlaybackTimeAsync() < TimeSpan::Zero())
+					SetCursorTime(TimeSpan::Zero());
+			}
 			chartEditor.ResumePlayback();
-
 			CenterCursor();
 		}
 		else

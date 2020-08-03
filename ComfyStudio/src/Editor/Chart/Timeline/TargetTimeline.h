@@ -34,7 +34,7 @@ namespace Comfy::Studio::Editor
 
 		TimelineTick TimeToTick(TimeSpan time) const;
 		TimelineTick TimeToTickFixedTempo(TimeSpan time, Tempo tempo) const;
-		
+
 		TimelineTick GetTimelineTick(f32 position) const;
 
 		TimeSpan TickToTime(TimelineTick tick) const;
@@ -113,7 +113,7 @@ namespace Comfy::Studio::Editor
 		const TimeSpan buttonAnimationDuration = TimeSpan::FromMilliseconds(60.0);
 
 		struct ButtonAnimationData { TimelineTick Tick; TimeSpan ElapsedTime; };
-		
+
 		const f32 buttonAnimationScaleStart = 1.5f, buttonAnimationScaleEnd = 1.0f;
 		std::array<ButtonAnimationData, EnumCount<ButtonType>()> buttonAnimations = {};
 

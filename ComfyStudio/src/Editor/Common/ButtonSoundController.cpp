@@ -95,6 +95,8 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: All of this is far from perfect
 		const auto delta = static_cast<f32>(timeSinceSound / threshold);
-		return std::clamp((delta * delta), 0.0f, 1.0f);
+		const auto factor = std::clamp((delta * delta), 0.0f, 1.0f);
+
+		return factor;
 	}
 }
