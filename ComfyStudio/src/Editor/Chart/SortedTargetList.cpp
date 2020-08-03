@@ -3,6 +3,25 @@
 
 namespace Comfy::Studio::Editor
 {
+	namespace
+	{
+		constexpr u64 GetTargetSortWeight(const TimelineTick tick, const ButtonType type)
+		{
+			static_assert(sizeof(tick) == sizeof(i32));
+			static_assert(sizeof(type) == sizeof(u8));
+
+			u64 totalWeight = 0;
+			totalWeight |= (static_cast<u64>(tick.TotalTicks()) << 32);
+			totalWeight |= (static_cast<u64>(type) << 0);
+			return totalWeight;
+		}
+
+		constexpr u64 GetTargetSortWeight(const TimelineTarget& target)
+		{
+			return GetTargetSortWeight(target.Tick, target.Type);
+		}
+	}
+
 	SortedTargetList::SortedTargetList()
 	{
 		constexpr auto reasonableInitialCapacity = 2000;
@@ -11,21 +30,23 @@ namespace Comfy::Studio::Editor
 
 	void SortedTargetList::Add(TimelineTick tick, ButtonType type)
 	{
-		size_t insertionIndex;
-		for (insertionIndex = 0; insertionIndex < targets.size(); insertionIndex++)
+#if 1 // NOTE: Sorted insertion, appears to be much faster
 		{
-			if (targets[insertionIndex].Tick >= tick)
-				break;
+			const auto insertionIndex = FindSortedInsertionIndex(tick, type);
+			targets.emplace(targets.begin() + insertionIndex, tick, type);
+
+			UpdateTargetSyncFlagsAround(insertionIndex);
 		}
-
-		targets.emplace(targets.begin() + insertionIndex, tick, type);
-		UpdateTargetSyncFlagsAround(insertionIndex);
-
-		// DEBUG:
-		assert(std::is_sorted(targets.begin(), targets.end(), [&](const auto& targetA, const auto& targetB)
+#else // NOTE: However a post emplace sort is useful for error checking
 		{
-			return (targetA.Tick < targetB.Tick) && (targetA.Type < targetB.Type);
-		}));
+			targets.emplace_back(tick, type);
+			std::sort(targets.begin(), targets.end(), [&](const auto& a, const auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
+
+			UpdateTargetSyncFlags();
+		}
+#endif
+
+		assert(std::is_sorted(targets.begin(), targets.end(), [&](const auto& a, const auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); }));
 	}
 
 	void SortedTargetList::RemoveAt(i64 index)
@@ -46,6 +67,20 @@ namespace Comfy::Studio::Editor
 	{
 		const auto foundIndex = FindIndexOf(targets, [&](const auto& target) { return (target.Tick == tick) && (target.Type == type); });
 		return InBounds(foundIndex, targets) ? static_cast<i64>(foundIndex) : -1;
+	}
+
+	size_t SortedTargetList::FindSortedInsertionIndex(TimelineTick tick, ButtonType type) const
+	{
+		const auto inputSortWeight = GetTargetSortWeight(tick, type);
+
+		size_t insertionIndex;
+		for (insertionIndex = 0; insertionIndex < targets.size(); insertionIndex++)
+		{
+			if (inputSortWeight < GetTargetSortWeight(targets[insertionIndex]))
+				break;
+		}
+
+		return insertionIndex;
 	}
 
 	void SortedTargetList::UpdateTargetSyncFlagsAround(i64 index)
@@ -73,10 +108,35 @@ namespace Comfy::Studio::Editor
 			const auto* nextTarget = (i + 1 < targetCount) ? &targets[i + 1] : nullptr;
 			const auto* prevTarget = (i - 1 >= 0) ? &targets[i - 1] : nullptr;
 
-			target.Flags.IsSync = false;
+			target.Flags.IsSync = (prevTarget != nullptr && prevTarget->Tick == target.Tick) || (nextTarget != nullptr && nextTarget->Tick == target.Tick);
+		}
 
-			if ((prevTarget != nullptr && prevTarget->Tick == target.Tick) || (nextTarget != nullptr && nextTarget->Tick == target.Tick))
-				target.Flags.IsSync = true;
+		UpdateSyncPairIndexFlags();
+	}
+
+	size_t SortedTargetList::GetSyncPairCountAt(size_t targetStartIndex) const
+	{
+		for (size_t i = targetStartIndex; i < targets.size(); i++)
+		{
+			const auto& target = targets[i];
+			const auto* nextTarget = IndexOrNull(i + 1, targets);
+
+			if (nextTarget == nullptr || target.Tick != nextTarget->Tick)
+				return (i - targetStartIndex) + 1;
+		}
+
+		return 1;
+	}
+
+	void SortedTargetList::UpdateSyncPairIndexFlags()
+	{
+		for (size_t i = 0; i < targets.size();)
+		{
+			const auto pairCount = GetSyncPairCountAt(i);
+			assert(pairCount > 0);
+
+			for (size_t pairIndex = 0; pairIndex < pairCount; pairIndex++)
+				targets[i++].Flags.IndexWithinSyncPair = pairIndex;
 		}
 	}
 }

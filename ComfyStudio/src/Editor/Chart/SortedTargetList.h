@@ -27,14 +27,21 @@ namespace Comfy::Studio::Editor
 
 	struct TargetFlags
 	{
-		u16 IsHold : 1;
 		u16 IsSync : 1;
+		u16 IsHold : 1;
 		u16 IsChain : 1;
 		u16 IsChainStart : 1;
 		u16 IsChainEnd : 1;
+		u16 IsChainHit : 1;
 		// TODO: Implement a system in which newly placed targets use default properties until manually set otherwise
-		// u16 HasProperties : 1;
+		u16 HasProperties : 1;
+		u16 /* Reserved */ : 1;
+
+		u16 IndexWithinSyncPair : 4;
+		u16 /* Reserved */ : 4;
 	};
+
+	static_assert(sizeof(TargetFlags) == sizeof(u16));
 
 	struct TimelineTarget
 	{
@@ -44,7 +51,7 @@ namespace Comfy::Studio::Editor
 		TimelineTick Tick = {};
 		ButtonType Type = {};
 		TargetFlags Flags = {};
-		
+
 		// TODO: Implement as part of the target render window
 		// TargetProperties Properties = {};
 	};
@@ -73,7 +80,12 @@ namespace Comfy::Studio::Editor
 	private:
 		std::vector<TimelineTarget> targets;
 
+		size_t FindSortedInsertionIndex(TimelineTick tick, ButtonType type) const;
+
 		void UpdateTargetSyncFlagsAround(i64 index);
 		void UpdateTargetSyncFlags(i64 start = -1, i64 end = -1);
+
+		size_t GetSyncPairCountAt(size_t targetStartIndex) const;
+		void UpdateSyncPairIndexFlags();
 	};
 }
