@@ -261,7 +261,6 @@
     <ClInclude Include="src\Editor\PV\StageTest.h" />
     <ClInclude Include="src\Editor\Timeline\FrameTimeline.h" />
     <ClInclude Include="src\Editor\Timeline\ITimelinePlaybackControllable.h" />
-    <ClInclude Include="src\Editor\Timeline\ITimelineUnitConverter.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineBase.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineBaseRegions.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineFrame.h" />

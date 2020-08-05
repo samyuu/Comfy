@@ -2,7 +2,6 @@
 #include "Time/TimeSpan.h"
 #include "TimelineBaseRegions.h"
 #include "ITimelinePlaybackControllable.h"
-#include "ITimelineUnitConverter.h"
 #include "TimelineScrollbar.h"
 #include "ImGui/Gui.h"
 
@@ -52,9 +51,6 @@ namespace Comfy::Studio::Editor
 		inline void SetScrollY(float value) { scrollY = value; }
 
 	protected:
-		// TODO: Initialize in derived class, each derived class then exposes its own casted getter (?)
-		// std::unique_ptr<ITimelineUnitConverter> unitConverter;
-
 		TimeSpan cursorTime;
 
 		struct /* TimelineImGuiData */
