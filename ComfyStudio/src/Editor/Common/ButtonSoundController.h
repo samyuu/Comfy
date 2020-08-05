@@ -18,16 +18,28 @@ namespace Comfy::Studio::Editor
 		Audio::SourceHandle GetButtonSoundSource(int index);
 
 	private:
+		Audio::Voice* FindEmptyOrLongestRunningVoice();
+
+		void PlayButtonSoundUsingVoice(Audio::Voice voice, TimeSpan startTime);
+		f32 GetLastButtonSoundTimeVolumeFactor() const;
+
+	private:
 		static constexpr std::string_view buttonSoundPath = "dev_rom/sound/button/01_button1.wav";
 
-		TimeSpan buttonSoundTime, lastButtonSoundTime, timeSinceLastButtonSound;
+		struct AsyncSoundSource
+		{
+			Audio::SourceHandle Handle;
+			std::future<Audio::SourceHandle> FutureHandle;
+
+			Audio::SourceHandle Get();
+		};
+
+		std::vector<AsyncSoundSource> loadedSoundSources;
+
+		TimeSpan buttonSoundTime = {}, lastButtonSoundTime = {}, timeSinceLastButtonSound = {};
 		float buttonSoundVolume = 0.75f;
 
 		int buttonSoundIndex = -1;
-		std::vector<Audio::SourceHandle> buttonSoundSources;
 		std::array<Audio::Voice, 32> buttonSoundVoicePool;
-
-		void PlayButtonSound(Audio::Voice voice, TimeSpan startTime);
-		f32 GetVolumeFactor() const;
 	};
 }

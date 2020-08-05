@@ -14,8 +14,8 @@ namespace Comfy::Studio::Editor
 		}
 
 		// NOTE: Only load the default button sound for now
-		buttonSoundSources.reserve(1);
-		buttonSoundSources.push_back(audioEngine.LoadAudioSource(buttonSoundPath));
+		loadedSoundSources.reserve(1);
+		loadedSoundSources.push_back(AsyncSoundSource { Audio::SourceHandle::Invalid, audioEngine.LoadAudioSourceAsync(buttonSoundPath) });
 
 		buttonSoundIndex = 0;
 	}
@@ -25,8 +25,8 @@ namespace Comfy::Studio::Editor
 		for (auto& voice : buttonSoundVoicePool)
 			Audio::Engine::GetInstance().RemoveVoice(voice);
 
-		for (auto& source : buttonSoundSources)
-			Audio::Engine::GetInstance().UnloadSource(source);
+		for (auto& source : loadedSoundSources)
+			Audio::Engine::GetInstance().UnloadSource(source.Get());
 	}
 
 	void ButtonSoundController::PlayButtonSound(TimeSpan startTime, std::optional<TimeSpan> externalClock)
@@ -38,23 +38,8 @@ namespace Comfy::Studio::Editor
 		buttonSoundTime = externalClock.value_or(TimeSpan::GetTimeNow());
 		timeSinceLastButtonSound = (buttonSoundTime - lastButtonSoundTime);
 
-		Audio::Voice* longestRunningVoice = nullptr;
-		for (auto& voice : buttonSoundVoicePool)
-		{
-			const auto voicePosition = voice.GetPosition();
-
-			if (!voice.GetIsPlaying() || (voicePosition >= voice.GetDuration()))
-			{
-				PlayButtonSound(voice, startTime);
-				return;
-			}
-
-			if (longestRunningVoice == nullptr || voicePosition > longestRunningVoice->GetPosition())
-				longestRunningVoice = &voice;
-		}
-
-		if (longestRunningVoice != nullptr)
-			PlayButtonSound(*longestRunningVoice, startTime);
+		if (const auto voiceToUse = FindEmptyOrLongestRunningVoice(); voiceToUse != nullptr)
+			PlayButtonSoundUsingVoice(*voiceToUse, startTime);
 	}
 
 	void ButtonSoundController::PauseAllNegativeVoices()
@@ -73,19 +58,36 @@ namespace Comfy::Studio::Editor
 
 	Audio::SourceHandle ButtonSoundController::GetButtonSoundSource(int index)
 	{
-		return buttonSoundSources[buttonSoundIndex];
+		return loadedSoundSources[buttonSoundIndex].Get();
 	}
 
-	void ButtonSoundController::PlayButtonSound(Audio::Voice voice, TimeSpan startTime)
+	Audio::Voice* ButtonSoundController::FindEmptyOrLongestRunningVoice()
+	{
+		Audio::Voice* longestRunningVoice = nullptr;
+		for (auto& voice : buttonSoundVoicePool)
+		{
+			const auto voicePosition = voice.GetPosition();
+
+			if (!voice.GetIsPlaying() || (voicePosition >= voice.GetDuration()))
+				return &voice;
+
+			if (longestRunningVoice == nullptr || voicePosition > longestRunningVoice->GetPosition())
+				longestRunningVoice = &voice;
+		}
+
+		return longestRunningVoice;
+	}
+
+	void ButtonSoundController::PlayButtonSoundUsingVoice(Audio::Voice voice, TimeSpan startTime)
 	{
 		Audio::Engine::GetInstance().EnsureStreamRunning();
-		voice.SetVolume(buttonSoundVolume * GetVolumeFactor());
 		voice.SetSource(GetButtonSoundSource(buttonSoundIndex));
+		voice.SetVolume(buttonSoundVolume * GetLastButtonSoundTimeVolumeFactor());
 		voice.SetPosition(startTime);
 		voice.SetIsPlaying(true);
 	}
 
-	f32 ButtonSoundController::GetVolumeFactor() const
+	f32 ButtonSoundController::GetLastButtonSoundTimeVolumeFactor() const
 	{
 		constexpr auto threshold = 35.0;
 		const auto timeSinceSound = timeSinceLastButtonSound.TotalMilliseconds();
@@ -98,5 +100,13 @@ namespace Comfy::Studio::Editor
 		const auto factor = std::clamp((delta * delta), 0.0f, 1.0f);
 
 		return factor;
+	}
+
+	Audio::SourceHandle ButtonSoundController::AsyncSoundSource::Get()
+	{
+		if (FutureHandle.valid())
+			Handle = FutureHandle.get();
+
+		return Handle;
 	}
 }
