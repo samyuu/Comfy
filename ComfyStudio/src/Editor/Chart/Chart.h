@@ -9,6 +9,9 @@ namespace Comfy::Studio::Editor
 	class Chart : NonCopyable
 	{
 	public:
+		static constexpr TimeSpan FallbackDuration = TimeSpan::FromMinutes(1.0);
+
+	public:
 		Chart() = default;
 		~Chart() = default;
 
@@ -28,7 +31,7 @@ namespace Comfy::Studio::Editor
 		SortedTempoMap tempoMap;
 		TimelineMap timelineMap;
 
-		TimeSpan startOffset = TimeSpan::FromSeconds(0.0);
-		TimeSpan duration = TimeSpan::FromMinutes(1.0);
+		TimeSpan startOffset = TimeSpan::Zero();
+		TimeSpan duration = FallbackDuration;
 	};
 }

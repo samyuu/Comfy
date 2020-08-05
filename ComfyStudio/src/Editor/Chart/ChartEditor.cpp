@@ -39,7 +39,7 @@ namespace Comfy::Studio::Editor
 		if (Gui::Begin(ICON_FA_FOLDER "  Song Loader##AetEditor", nullptr, ImGuiWindowFlags_None))
 		{
 			Gui::BeginChild("SongLoaderChild##ChartEditor");
-			
+
 			songFileViewer.SetIsReadOnly(songSourceFuture.valid() && !songSourceFuture._Is_ready());
 			if (songFileViewer.DrawGui())
 			{
@@ -124,7 +124,7 @@ namespace Comfy::Studio::Editor
 
 		songVoice.SetSource(newSongStream);
 		songSource = newSongStream;
-		chart->SetDuration(songVoice.GetDuration());
+		chart->SetDuration(songVoice.GetDuration() <= TimeSpan::Zero() ? Chart::FallbackDuration : songVoice.GetDuration());
 
 		timeline->OnSongLoaded();
 		SetPlaybackTime(previousPlaybackTime);
