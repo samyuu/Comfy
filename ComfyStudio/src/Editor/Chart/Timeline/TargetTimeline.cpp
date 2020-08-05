@@ -853,12 +853,7 @@ namespace Comfy::Studio::Editor
 		for (auto[buttonType, keyCode] : targetPlacementInputKeyMappings)
 		{
 			if (Gui::IsKeyPressed(keyCode, false))
-			{
-				// NOTE: Double hit sound if a target gets placed in front of the cursor position.
-				//		 Keeping it this way could make it easier to notice when real time targets are not placed accurately to the beat (?)
-				buttonSoundController.PlayButtonSound();
 				PlaceOrRemoveTarget(RoundTickToGrid(GetCursorTick()), buttonType);
-			}
 		}
 	}
 
@@ -866,13 +861,26 @@ namespace Comfy::Studio::Editor
 	{
 		const auto existingTargetIndex = workingChart->GetTargets().FindIndex(tick, type);
 
+		// NOTE: Double hit sound if a target gets placed in front of the cursor position.
+		//		 Keeping it this way could make it easier to notice when real time targets are not placed accurately to the beat (?)
+		if (!buttonSoundOnSuccessfulPlacementOnly)
+			buttonSoundController.PlayButtonSound();
+
 		if (existingTargetIndex > -1)
 		{
 			if (!GetIsPlayback())
+			{
+				if (buttonSoundOnSuccessfulPlacementOnly)
+					buttonSoundController.PlayButtonSound();
+
 				workingChart->GetTargets().RemoveAt(existingTargetIndex);
+			}
 		}
 		else
 		{
+			if (buttonSoundOnSuccessfulPlacementOnly)
+				buttonSoundController.PlayButtonSound();
+
 			workingChart->GetTargets().Add(tick, type);
 		}
 

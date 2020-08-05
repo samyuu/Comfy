@@ -64,6 +64,9 @@ namespace Comfy::Studio::Editor
 		ButtonSoundController buttonSoundController = {};
 		TimeSpan lastButtonSoundCursorTime = {}, buttonSoundCursorTime = {};
 
+		// NOTE: Having this enabled should *discourage* realtime target placement without an accurate tempo map / offset set
+		bool buttonSoundOnSuccessfulPlacementOnly = true;
+
 		bool waveformUpdatePending = true;
 		Audio::Waveform songWaveform;
 
