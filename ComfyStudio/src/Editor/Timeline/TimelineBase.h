@@ -36,22 +36,23 @@ namespace Comfy::Studio::Editor
 		void Initialize();
 
 	public:
-		inline float GetMaxScrollX() const { return Gui::GetWindowScrollMaxX(baseWindow); }
-		inline float GetScrollX() const { return baseWindow->Scroll.x; }
+		inline float GetMaxScrollX() const { return maxScroll.x; }
+		inline float GetScrollX() const { return scroll.x; }
 
-		inline float GetMaxScrollY() const { return maxScrollY; }
-		inline float GetScrollY() const { return scrollY; }
-
-	protected:
-		void SetCurorAwareZoom(float newZoom);
-
-		inline void SetScrollX(float value) { baseWindow->ScrollTarget.x = value; baseWindow->ScrollTargetCenterRatio.x = 0.0f; }
-
-		inline void SetMaxScrollY(float value) { maxScrollY = value; }
-		inline void SetScrollY(float value) { scrollY = value; }
+		inline float GetMaxScrollY() const { return maxScroll.y; }
+		inline float GetScrollY() const { return scroll.y; }
 
 	protected:
-		TimeSpan cursorTime;
+		void SetZoomCenteredAroundCursor(float newZoom);
+		void SetZoomCenteredAroundTime(float newZoom, TimeSpan timeToCenter);
+
+		inline void SetScrollX(float value) { scroll.x = value; }
+
+		inline void SetMaxScrollY(float value) { maxScroll.y = value; }
+		inline void SetScrollY(float value) { scroll.y = value; }
+
+	protected:
+		TimeSpan cursorTime = {};
 
 		struct /* TimelineImGuiData */
 		{
@@ -78,13 +79,16 @@ namespace Comfy::Studio::Editor
 
 		static constexpr vec2 timelineScrollbarSize = vec2(14.0f, 16.0f);
 
-		static constexpr float ZOOM_BASE = 150.0f;
-		static constexpr float ZOOM_MIN = 1.0f;
-		static constexpr float ZOOM_MAX = 10.0f;
+		static constexpr f32 zoomBaseFactor = 150.0f;
+		const f32 zoomSliderMin = 0.5f;
+		const f32 zoomSliderMax = 10.0f;
+
+		// NOTE: Anything outside this range just isn't feasable to handle properly nor does it make sense to ever use
+		static constexpr f32 hardZoomLevelMin = 0.01f;
+		static constexpr f32 hardZoomLevelMax = 1000.0f;
 
 		struct /* TimelineZoomData */
 		{
-
 			bool zoomLevelChanged = false;
 			float zoomLevel = 2.0f, lastZoomLevel = zoomLevel;
 		};
@@ -103,8 +107,8 @@ namespace Comfy::Studio::Editor
 			TimelineScrollbar verticalScrollbar = { ImGuiAxis_Y, timelineScrollbarSize };
 		};
 
-		static constexpr float CURSOR_HEAD_WIDTH = 17.0f;
-		static constexpr float CURSOR_HEAD_HEIGHT = 8.0f;
+		static constexpr float cursorHeadWidth = 17.0f;
+		static constexpr float cursorHeadHeight = 8.0f;
 
 	protected:
 		virtual void OnInitialize() {}
@@ -156,8 +160,8 @@ namespace Comfy::Studio::Editor
 		virtual bool IsCursorOnScreen() const;
 
 	private:
-		float scrollY = 0.0f;
-		float maxScrollY = 0.0f;
+		vec2 scroll = vec2(0.0f, 0.0f);
+		vec2 maxScroll = vec2(0.0f, 0.0f);
 
 		void UpdateAllInput();
 	};

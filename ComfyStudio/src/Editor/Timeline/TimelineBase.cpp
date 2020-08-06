@@ -7,12 +7,12 @@ namespace Comfy::Studio::Editor
 {
 	float TimelineBase::GetTimelinePosition(TimeSpan time) const
 	{
-		return static_cast<float>(time.TotalSeconds() * zoomLevel * ZOOM_BASE);
+		return static_cast<float>(time.TotalSeconds() * zoomLevel * zoomBaseFactor);
 	}
 
 	TimeSpan TimelineBase::GetTimelineTime(float position) const
 	{
-		return TimeSpan::FromSeconds(position / zoomLevel / ZOOM_BASE);
+		return TimeSpan::FromSeconds(position / zoomLevel / zoomBaseFactor);
 	}
 
 	float TimelineBase::ScreenToTimelinePosition(float screenPosition) const
@@ -47,10 +47,10 @@ namespace Comfy::Studio::Editor
 	TimelineVisibility TimelineBase::GetTimelineVisibilityForScreenSpace(float screenX) const
 	{
 		const float timelineX = screenX - timelineContentRegion.Min.x;
-		
+
 		const float visibleMin = -timelineVisibleThreshold;
 		const float visibleMax = baseWindow->Size.x + timelineVisibleThreshold;
-		
+
 		if (timelineX < visibleMin)
 			return TimelineVisibility::Left;
 
@@ -78,14 +78,14 @@ namespace Comfy::Studio::Editor
 		const vec2 start = timelineHeaderRegion.GetTL() + vec2(cursorScreenX, 0.0f);
 		const vec2 end = timelineContentRegion.GetBL() + vec2(cursorScreenX, 0.0f);
 
-		baseDrawList->AddLine(start + vec2(0.0f, CURSOR_HEAD_HEIGHT - 1.0f), end, outterColor);
+		baseDrawList->AddLine(start + vec2(0.0f, cursorHeadHeight - 1.0f), end, outterColor);
 
 		const float centerX = start.x + 0.5f;
 		const vec2 cursorTriangle[3] =
 		{
-			vec2(centerX - CURSOR_HEAD_WIDTH * 0.5f, start.y),
-			vec2(centerX + CURSOR_HEAD_WIDTH * 0.5f, start.y),
-			vec2(centerX, start.y + CURSOR_HEAD_HEIGHT),
+			vec2(centerX - cursorHeadWidth * 0.5f, start.y),
+			vec2(centerX + cursorHeadWidth * 0.5f, start.y),
+			vec2(centerX, start.y + cursorHeadHeight),
 		};
 		baseDrawList->AddTriangleFilled(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], innerColor);
 		baseDrawList->AddTriangle(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], outterColor);
@@ -96,14 +96,25 @@ namespace Comfy::Studio::Editor
 		OnInitialize();
 	}
 
-	void TimelineBase::SetCurorAwareZoom(float newZoom)
+	void TimelineBase::SetZoomCenteredAroundCursor(float newZoom)
 	{
-		const float prePosition = GetCursorTimelinePosition();
+		const auto cursorTime = GetCursorTime();
+		const auto minVisibleTime = GetTimelineTime(ScreenToTimelinePosition(timelineContentRegion.GetTL().x));
+		const auto maxVisibleTime = GetTimelineTime(ScreenToTimelinePosition(timelineContentRegion.GetTR().x));
+
+		// NOTE: Because centered zooming around an off-screen target can be very disorientating as all points on the timeline appear to be moving
+		const auto visibleClampedCursorTime = std::clamp(cursorTime, minVisibleTime, maxVisibleTime);
+		SetZoomCenteredAroundTime(newZoom, visibleClampedCursorTime);
+	}
+
+	void TimelineBase::SetZoomCenteredAroundTime(float newZoom, TimeSpan timeToCenter)
+	{
+		const float prePosition = GetTimelinePosition(timeToCenter);
 
 		if (newZoom > 0.0f)
-			zoomLevel = newZoom;
+			zoomLevel = std::clamp(newZoom, hardZoomLevelMin, hardZoomLevelMax);
 
-		const float postPosition = GetCursorTimelinePosition();
+		const float postPosition = GetTimelinePosition(timeToCenter);
 		SetScrollX(GetScrollX() + postPosition - prePosition);
 	}
 
@@ -115,7 +126,7 @@ namespace Comfy::Studio::Editor
 			OnInfoColumnScroll();
 
 		// NOTE: Always clamp in case the window has been resized
-		SetScrollY(std::clamp(scrollY, 0.0f, maxScrollY));
+		SetScrollY(std::clamp(scroll.y, 0.0f, maxScroll.y));
 	}
 
 	void TimelineBase::UpdateTimelineBaseState()
@@ -123,7 +134,9 @@ namespace Comfy::Studio::Editor
 		baseWindow = Gui::GetCurrentWindow();
 		baseDrawList = baseWindow->DrawList;
 
-		zoomLevelChanged = lastZoomLevel != zoomLevel;
+		zoomLevel = std::clamp(zoomLevel, hardZoomLevelMin, hardZoomLevelMax);
+
+		zoomLevelChanged = (lastZoomLevel != zoomLevel);
 		lastZoomLevel = zoomLevel;
 	}
 
@@ -164,40 +177,33 @@ namespace Comfy::Studio::Editor
 	{
 		const auto& io = Gui::GetIO();
 
-		// NOTE: Grab control
+		constexpr int timelineGrabButton = 2;
+		if (Gui::IsWindowHovered() && !Gui::IsAnyItemActive() && Gui::IsMouseDown(timelineGrabButton))
 		{
-			constexpr int timelineGrabButton = 2;
+			SetScrollX(GetScrollX() - io.MouseDelta.x);
+			Gui::SetMouseCursor(ImGuiMouseCursor_Hand);
+		}
 
-			if (Gui::IsWindowHovered() && !Gui::IsAnyItemActive() && Gui::IsMouseDown(timelineGrabButton))
+		if (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Escape))
+			CenterCursor();
+
+		if (Gui::IsWindowHovered() && io.MouseWheel != 0.0f)
+		{
+			if (io.KeyAlt) // NOTE: Zoom timeline
 			{
-				SetScrollX(GetScrollX() - io.MouseDelta.x);
-				Gui::SetMouseCursor(ImGuiMouseCursor_Hand);
+				const auto factor = (io.MouseWheel > 0.0f) ? 1.1f : 0.9f;
+				const auto newZoom = (zoomLevel * factor);
+
+#if 0
+				SetZoomCenteredAroundCursor(newZoom);
+#else
+				const auto timeToCenterAround = GetTimelineTime(ScreenToTimelinePosition(Gui::GetMousePos().x));
+				SetZoomCenteredAroundTime(newZoom, timeToCenterAround);
+#endif
 			}
-		}
-
-		// NOTE: Focus control
-		{
-			if (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Escape))
-				CenterCursor();
-		}
-
-		// NOTE: Scroll control
-		{
-			if (Gui::IsWindowHovered() && io.MouseWheel != 0.0f)
+			else if (!io.KeyCtrl) // NOTE: Scroll timeline
 			{
-				if (io.KeyAlt) // NOTE: Zoom timeline
-				{
-					// TODO: Rework all of this, zoom input should be checked before anything is rendered and there should be a zoom min / max in the timeline base class
-					// constexpr float amount = 0.5f;
-					// SetCurorAwareZoom(zoomLevel + amount * io.MouseWheel);
-
-					const float factor = (io.MouseWheel > 0.0f) ? 1.1f : 0.9f;
-					SetCurorAwareZoom(zoomLevel * factor);
-				}
-				else if (!io.KeyCtrl) // NOTE: Scroll timeline
-				{
-					OnTimelineBaseScroll();
-				}
+				OnTimelineBaseScroll();
 			}
 		}
 	}
@@ -224,16 +230,16 @@ namespace Comfy::Studio::Editor
 
 	void TimelineBase::UpdateCursorAutoScroll()
 	{
-		const float cursorPos = (GetCursorTimelinePosition());
-		const float endPos = (ScreenToTimelinePosition(timelineContentRegion.GetBR().x));
+		const auto cursorPos = (GetCursorTimelinePosition());
+		const auto endPos = (ScreenToTimelinePosition(timelineContentRegion.GetBR().x));
 
-		const float autoScrollOffset = (timelineContentRegion.GetWidth() / autoScrollOffsetFraction);
+		const auto autoScrollOffset = (timelineContentRegion.GetWidth() / autoScrollOffsetFraction);
 		if (cursorPos >= endPos - autoScrollOffset)
 		{
-			float increment = cursorPos - endPos + autoScrollOffset;
+			const auto increment = (cursorPos - endPos + autoScrollOffset);
 			SetScrollX(GetScrollX() + increment);
 
-			// Allow the cursor to go offscreen
+			// NOTE: Allow the cursor to go offscreen
 			if (GetMaxScrollX() - GetScrollX() > autoScrollOffset)
 				autoScrollCursor = true;
 		}
@@ -247,7 +253,7 @@ namespace Comfy::Studio::Editor
 
 	bool TimelineBase::IsCursorOnScreen() const
 	{
-		const float cursorPosition = GetCursorTimelinePosition() - GetScrollX();
+		const auto cursorPosition = GetCursorTimelinePosition() - GetScrollX();
 		return cursorPosition >= 0.0f && cursorPosition <= timelineContentRegion.GetWidth();
 	}
 
@@ -273,7 +279,9 @@ namespace Comfy::Studio::Editor
 
 	void TimelineBase::UpdateTimelineSize()
 	{
-		Gui::ItemSize(vec2(GetTimelineSize(), 0.0f));
+		// Gui::ItemSize(vec2(GetTimelineSize(), 0.0f));
+		maxScroll.x = GetTimelineSize();
+
 		SetMaxScrollY(GetTimelineHeight());
 	}
 
@@ -288,11 +296,11 @@ namespace Comfy::Studio::Editor
 	void TimelineBase::OnTimelineBaseScroll()
 	{
 		const auto& io = Gui::GetIO();
-		const auto maxStep = (baseWindow->ContentsRegionRect.GetSize() + baseWindow->WindowPadding * 2.0f) * 0.67f;
+		const auto maxStep = (maxScroll.x + baseWindow->WindowPadding.x * 2.0f) * 0.67f;
 
 		const float speed = io.KeyShift ? scrollSpeedFast : scrollSpeed;
-		const float scrollStep = ImFloor(ImMin(2.0f * baseWindow->CalcFontSize(), maxStep.x)) * speed;
-		SetScrollX(baseWindow->Scroll.x + io.MouseWheel * scrollStep);
+		const float scrollStep = ImFloor(ImMin(2.0f * baseWindow->CalcFontSize(), maxStep)) * speed;
+		SetScrollX(scroll.x + io.MouseWheel * scrollStep);
 	}
 
 	void TimelineBase::DrawTimelineGui()
@@ -404,6 +412,9 @@ namespace Comfy::Studio::Editor
 		UpdateTimelineSize();
 		OnUpdate();
 
+		UpdateTimelineBase();
+		UpdateAllInput();
+
 		// NOTE: To give the content region a bit more contrast
 		const ImU32 dimColor = Gui::GetColorU32(ImGuiCol_PopupBg, 0.15f);
 		Gui::GetWindowDrawList()->AddRectFilled(timelineContentRegion.GetTL(), timelineContentRegion.GetBR(), dimColor);
@@ -412,9 +423,6 @@ namespace Comfy::Studio::Editor
 		OnDrawTimlineRows();
 		OnDrawTimlineDivisors();
 		OnDrawTimlineBackground();
-
-		UpdateTimelineBase();
-		UpdateAllInput();
 
 		OnDrawTimelineContents();
 		DrawTimelineCursor();
@@ -434,18 +442,18 @@ namespace Comfy::Studio::Editor
 		Gui::PushItemWidth(zoomSliderWidth - zoomButtonWidth * 2.0f);
 		{
 			if (Gui::ComfySmallButton(ICON_FA_SEARCH_MINUS, buttonSize))
-				SetCurorAwareZoom(std::clamp(zoomLevel * (1.0f / buttonZoomFactor), ZOOM_MIN, ZOOM_MAX));
+				SetZoomCenteredAroundCursor(std::clamp(zoomLevel * (1.0f / buttonZoomFactor), zoomSliderMin, zoomSliderMax));
 
 			Gui::SameLine();
 
 			float zoomPercentage = (zoomLevel * percentageFactor);
-			if (Gui::SliderFloat("##ZoomSlider", &zoomPercentage, ZOOM_MIN * percentageFactor, ZOOM_MAX * percentageFactor, "%.2f %%"))
-				SetCurorAwareZoom(zoomPercentage * (1.0f / percentageFactor));
+			if (Gui::SliderFloat("##ZoomSlider", &zoomPercentage, zoomSliderMin * percentageFactor, zoomSliderMax * percentageFactor, "%.2f %%"))
+				SetZoomCenteredAroundCursor(zoomPercentage * (1.0f / percentageFactor));
 
 			Gui::SameLine();
 
 			if (Gui::ComfySmallButton(ICON_FA_SEARCH_PLUS, buttonSize))
-				SetCurorAwareZoom(std::clamp(zoomLevel * buttonZoomFactor, ZOOM_MIN, ZOOM_MAX));
+				SetZoomCenteredAroundCursor(std::clamp(zoomLevel * buttonZoomFactor, zoomSliderMin, zoomSliderMax));
 		}
 		Gui::PopItemWidth();
 
