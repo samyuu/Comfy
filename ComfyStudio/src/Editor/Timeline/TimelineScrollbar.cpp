@@ -9,7 +9,7 @@ namespace Comfy::Studio::Editor
 		assert(axis == ImGuiAxis_X || axis == ImGuiAxis_Y);
 	}
 
-	void TimelineScrollbar::Gui(float scroll, float maxScroll, ImRect scrollbarRegion)
+	bool TimelineScrollbar::Gui(float& inOutScroll, float maxScroll, ImRect scrollbarRegion)
 	{
 		auto drawList = Gui::GetWindowDrawList();
 		const auto& style = Gui::GetStyle();
@@ -21,7 +21,7 @@ namespace Comfy::Studio::Editor
 		const float visibleContentSize = glm::clamp(((maxScroll <= 0.0f) ? scrollbarAxisSize : visibleContentPercentage * scrollbarAxisSize), (style.GrabMinSize * 2.0f), scrollbarAxisSize);
 
 		const float avilableSize = scrollbarAxisSize - visibleContentSize;
-		const float grabSizePercentage = (maxScroll <= 0.0f) ? 0.0f : (scroll / maxScroll);
+		const float grabSizePercentage = (maxScroll <= 0.0f) ? 0.0f : (inOutScroll / maxScroll);
 
 		const float grabPosition = avilableSize * grabSizePercentage;
 
@@ -43,9 +43,12 @@ namespace Comfy::Studio::Editor
 
 		const vec2 scrollbarGrabRegionSize = scrollbarGrabRegion.GetSize();
 		if (scrollbarGrabRegionSize.x < 0.0f || scrollbarGrabRegionSize.y < 0.0f)
-			return;
+			return false;
 
 		drawList->AddRectFilled(scrollbarGrabRegion.Min, scrollbarGrabRegion.Max, GetGrabColor(), style.ScrollbarRounding);
+
+		return held;
+	}
 	}
 
 	ImU32 TimelineScrollbar::GetGrabColor() const

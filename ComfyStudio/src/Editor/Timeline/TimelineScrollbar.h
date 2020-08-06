@@ -10,7 +10,7 @@ namespace Comfy::Studio::Editor
 		TimelineScrollbar() = default;
 
 	public:
-		void Gui(float scroll, float maxScroll, ImRect scrollbarRegion);
+		bool Gui(float& inOutScroll, float maxScroll, ImRect scrollbarRegion);
 
 	private:
 		ImU32 GetGrabColor() const;
