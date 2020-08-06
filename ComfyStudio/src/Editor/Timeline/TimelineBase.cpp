@@ -129,17 +129,6 @@ namespace Comfy::Studio::Editor
 		SetScrollY(std::clamp(scroll.y, 0.0f, maxScroll.y));
 	}
 
-	void TimelineBase::UpdateTimelineBaseState()
-	{
-		baseWindow = Gui::GetCurrentWindow();
-		baseDrawList = baseWindow->DrawList;
-
-		zoomLevel = std::clamp(zoomLevel, hardZoomLevelMin, hardZoomLevelMax);
-
-		zoomLevelChanged = (lastZoomLevel != zoomLevel);
-		lastZoomLevel = zoomLevel;
-	}
-
 	void TimelineBase::UpdateTimelineRegions()
 	{
 		const auto& style = Gui::GetStyle();
@@ -352,7 +341,8 @@ namespace Comfy::Studio::Editor
 		Gui::SetCursorScreenPos(infoColumnHeaderRegion.GetTR());
 		Gui::BeginChild("##BaseChild::TimelineBase", vec2(-timelineScrollbarSize.x, 0.0f), false, ImGuiWindowFlags_NoScrollbar);
 		{
-			UpdateTimelineBaseState();
+			baseWindow = Gui::GetCurrentWindow();
+			baseDrawList = baseWindow->DrawList;
 			DrawTimelineBase();
 		}
 		Gui::EndChild();
@@ -414,6 +404,10 @@ namespace Comfy::Studio::Editor
 
 		UpdateTimelineBase();
 		UpdateAllInput();
+
+		zoomLevel = std::clamp(zoomLevel, hardZoomLevelMin, hardZoomLevelMax);
+		zoomLevelChanged = (lastZoomLevel != zoomLevel);
+		lastZoomLevel = zoomLevel;
 
 		// NOTE: To give the content region a bit more contrast
 		const ImU32 dimColor = Gui::GetColorU32(ImGuiCol_PopupBg, 0.15f);

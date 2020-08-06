@@ -134,7 +134,6 @@ namespace Comfy::Studio::Editor
 
 	protected:
 		void UpdateInfoColumnInput();
-		void UpdateTimelineBaseState();
 
 	protected:
 		virtual void UpdateTimelineBase();
