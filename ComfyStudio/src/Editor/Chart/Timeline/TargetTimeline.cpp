@@ -77,7 +77,13 @@ namespace Comfy::Studio::Editor
 
 	TimelineTick TargetTimeline::GetCursorMouseXTick() const
 	{
-		return FloorTickToGrid(GetTimelineTick(ScreenToTimelinePosition(Gui::GetMousePos().x)));
+		const auto tickAtMousePosition = GetTimelineTick(ScreenToTimelinePosition(Gui::GetMousePos().x));
+		const auto gridAdjusted = FloorTickToGrid(tickAtMousePosition);
+
+		// NOTE: There should never be a need to click before the start of the timeline
+		const auto clamped = std::max(TimelineTick::Zero(), gridAdjusted);
+
+		return clamped;
 	}
 
 	int TargetTimeline::FindGridDivisionPresetIndex() const
@@ -134,8 +140,13 @@ namespace Comfy::Studio::Editor
 		const f32 width = buttonIconWidth * scale;
 		const f32 height = buttonIconWidth * scale;
 
+#if 0
 		position.x = glm::round(position.x - (width * 0.5f));
 		position.y = glm::round(position.y - (height * 0.5f));
+#else
+		position.x = (position.x - (width * 0.5f));
+		position.y = (position.y - (height * 0.5f));
+#endif
 
 		const auto bottomRight = vec2(position.x + width, position.y + height);
 		const auto textureCoordinates = buttonIconsTextureCoordinates[GetTargetButtonIconIndex(target)];
@@ -442,23 +453,22 @@ namespace Comfy::Studio::Editor
 		constexpr auto beatSpacingThreshold = 10.0f;
 		constexpr auto barSpacingThreshold = 74.0f;
 
-		// BUG: Ugly flickering when scrolling to the right
-		auto lastBeatScreenX = -beatSpacingThreshold;
+		auto lastBeatTimelineX = -beatSpacingThreshold;
 		for (i32 tick = 0, divisions = 0; tick < songDurationTicks; tick += gridTickStep, divisions++)
 		{
-			const auto screenX = glm::round(GetTimelinePosition(TimelineTick(tick)) - scrollX);
+			const auto timelineX = GetTimelinePosition(TimelineTick(tick));
+
+			if (const auto lastDrawnDistance = (timelineX - lastBeatTimelineX); lastDrawnDistance < beatSpacingThreshold)
+				continue;
+			lastBeatTimelineX = timelineX;
+
+			const auto screenX = glm::round(timelineX - scrollX);
 			const auto visiblity = GetTimelineVisibility(screenX);
 
 			if (visiblity == TimelineVisibility::Left)
 				continue;
 			if (visiblity == TimelineVisibility::Right)
 				break;
-
-			const auto distanceToLastBeat = (screenX - lastBeatScreenX);
-			if (distanceToLastBeat < beatSpacingThreshold)
-				continue;
-
-			lastBeatScreenX = screenX;
 
 			const auto start = timelineContentRegion.GetTL() + vec2(screenX, -(timelineHeaderHeight * 0.35f));
 			const auto end = timelineContentRegion.GetBL() + vec2(screenX, 0.0f);
@@ -467,22 +477,22 @@ namespace Comfy::Studio::Editor
 
 		// TODO: Maybe allow for drawing second divisions for example instead (?)
 
-		auto lastBarScreenX = -barSpacingThreshold;
+		auto lastBarTimelineX = -barSpacingThreshold;
 		for (i32 tick = 0, barIndex = 0; tick < songDurationTicks; tick += TimelineTick::TicksPerBeat * 4, barIndex++)
 		{
-			const auto screenX = glm::round(GetTimelinePosition(TimelineTick(tick)) - scrollX);
+			const auto timelineX = GetTimelinePosition(TimelineTick(tick));
+
+			if (const auto lastDrawnDistance = (timelineX - lastBarTimelineX); lastDrawnDistance < barSpacingThreshold)
+				continue;
+			lastBarTimelineX = timelineX;
+
+			const auto screenX = glm::round(timelineX - scrollX);
 			const auto visiblity = GetTimelineVisibility(screenX);
 
 			if (visiblity == TimelineVisibility::Left)
 				continue;
 			if (visiblity == TimelineVisibility::Right)
 				break;
-
-			const auto distanceToLastBar = (screenX - lastBarScreenX);
-			if (distanceToLastBar < barSpacingThreshold)
-				continue;
-
-			lastBarScreenX = screenX;
 
 			char buffer[16];
 			sprintf_s(buffer, sizeof(buffer), "%d", barIndex);
@@ -541,7 +551,7 @@ namespace Comfy::Studio::Editor
 		if (zoomLevelChanged)
 			waveformUpdatePending = true;
 
-		if (waveformUpdatePending && waveformUpdateStopwatch.GetElapsed() > waveformUpdateInterval)
+		if (waveformUpdatePending && waveformUpdateStopwatch.GetElapsed() >= waveformUpdateInterval)
 		{
 			const auto timePerPixel = GetTimelineTime(2.0f) - GetTimelineTime(1.0f);
 			songWaveform.SetScale(timePerPixel);
@@ -673,7 +683,7 @@ namespace Comfy::Studio::Editor
 		for (const auto& target : workingChart->GetTargets())
 		{
 			const auto buttonTime = TickToTime(target.Tick);
-			const auto screenX = GetTimelinePosition(buttonTime) - GetScrollX();
+			const auto screenX = glm::round(GetTimelinePosition(buttonTime) - GetScrollX());
 
 			const auto visiblity = GetTimelineVisibility(screenX);
 			if (visiblity == TimelineVisibility::Left)
