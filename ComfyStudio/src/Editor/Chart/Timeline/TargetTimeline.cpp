@@ -180,40 +180,28 @@ namespace Comfy::Studio::Editor
 
 		// TODO: Implement metronome the same way, refactor ButtonSoundController to support any user controlled voices generically and rename to SoundVoicePool (?)
 
-		// NOTE: Do a simple check for all targets that have been passed between this and the last frame
-		if (buttonSoundFutureOffset <= TimeSpan::Zero())
+		// NOTE: Play back button sounds in the future with a negative offset to achieve sample perfect accuracy
+		for (const auto& target : workingChart->GetTargets())
 		{
-			for (const auto& target : workingChart->GetTargets())
+			// DEBUG: Stacked button sounds should be handled by the button sound controller automatically but it seems there might be a bug here somewhere... (?)
+			//		  Doing an additional sync check here has the advantage of offloading audio engine work though special care needs to be taken for slide and normal buttons
+			if (target.Flags.IsSync && target.Flags.IndexWithinSyncPair > 0)
+				continue;
+
+			const auto buttonTime = workingChart->GetTimelineMap().GetTimeAt(target.Tick);
+			const auto offsetButtonTime = buttonTime - buttonSoundFutureOffset;
+
+			if (offsetButtonTime >= lastButtonSoundCursorTime && offsetButtonTime <= buttonSoundCursorTime)
 			{
-				const auto buttonTime = workingChart->GetTimelineMap().GetTimeAt(target.Tick);
-				if (buttonTime >= lastButtonSoundCursorTime && buttonTime <= buttonSoundCursorTime)
-					buttonSoundController.PlayButtonSound();
-			}
-		}
-		else // NOTE: Play back button sounds in the future with a negative offset to achieve sample perfect accuracy
-		{
-			for (const auto& target : workingChart->GetTargets())
-			{
-				// DEBUG: Stacked button sounds should be handled by the button sound controller automatically but it seems there might be a bug here somewhere... (?)
-				//		  Doing an additional sync check here has the advantage of offloading audio engine work though special care needs to be taken for slide and normal buttons
-				if (target.Flags.IsSync && target.Flags.IndexWithinSyncPair > 0)
-					continue;
+				const auto startTime = (buttonSoundCursorTime - buttonTime);
+				const auto externalClock = buttonTime;
 
-				const auto buttonTime = workingChart->GetTimelineMap().GetTimeAt(target.Tick);
-				const auto offsetButtonTime = buttonTime - buttonSoundFutureOffset;
-
-				if (offsetButtonTime >= lastButtonSoundCursorTime && offsetButtonTime <= buttonSoundCursorTime)
-				{
-					const auto startTime = buttonSoundCursorTime - buttonTime;
-					const auto externalClock = buttonTime;
-
-					// NOTE: Don't wanna cause any audio cutoffs. If this happens the future threshold is either set too low for the current frame time
-					//		 or playback was started on top of an existing target
-					if (startTime >= TimeSpan::Zero())
-						buttonSoundController.PlayButtonSound(TimeSpan::Zero(), externalClock);
-					else
-						buttonSoundController.PlayButtonSound(startTime, externalClock);
-				}
+				// NOTE: Don't wanna cause any audio cutoffs. If this happens the future threshold is either set too low for the current frame time
+				//		 or playback was started on top of an existing target
+				if (startTime >= TimeSpan::Zero())
+					buttonSoundController.PlayButtonSound(TimeSpan::Zero(), externalClock);
+				else
+					buttonSoundController.PlayButtonSound(startTime, externalClock);
 			}
 		}
 	}
@@ -291,8 +279,8 @@ namespace Comfy::Studio::Editor
 		constexpr vec4 transparent = vec4(0.0f);
 		Gui::PushStyleColor(ImGuiCol_Button, transparent);
 		{
-			const bool isFirstFrame = false; // (cursorTime <= GetTimelineTime(loopStartFrame));
-			const bool isLastFrame = false; // (cursorTime >= GetTimelineTime(loopEndFrame));
+			const bool isFirstFrame = (cursorTime <= TimeSpan::Zero());
+			const bool isLastFrame = (cursorTime >= workingChart->GetDuration());
 			const bool isPlayback = GetIsPlayback();
 
 			constexpr float borderSize = 1.0f;
@@ -300,28 +288,25 @@ namespace Comfy::Studio::Editor
 
 			// NOTE: First frame button
 			{
-				Gui::PushItemDisabledAndTextColorIf(isFirstFrame || isPlayback);
+				Gui::PushItemDisabledAndTextColorIf(isFirstFrame);
 				if (Gui::Button(ICON_FA_FAST_BACKWARD))
 				{
 					SetCursorTime(TimeSpan::Zero());
 					CenterCursor();
-					scrollDelta = -GetTimelineSize();
 				}
-				Gui::PopItemDisabledAndTextColorIf(isFirstFrame || isPlayback);
+				Gui::PopItemDisabledAndTextColorIf(isFirstFrame);
 				Gui::SetWideItemTooltip("Go to first beat");
 			}
 
 			// NOTE: Previous frame button
 			{
 				Gui::SameLine();
-				Gui::PushItemDisabledAndTextColorIf(isFirstFrame || isPlayback);
+				Gui::PushItemDisabledAndTextColorIf(isFirstFrame);
 				if (Gui::Button(ICON_FA_BACKWARD))
 				{
-					SetCursorTime(TickToTime(RoundTickToGrid(GetCursorTick()) - GridDivisionTick()));
-					// cursorTime = GetTimelineTime(GetCursorFrame() - 1.0f);
-					// RoundCursorTimeToNearestFrame();
+					SetCursorTime(std::clamp(TickToTime(RoundTickToGrid(GetCursorTick()) - GridDivisionTick()), TimeSpan::Zero(), workingChart->GetDuration()));
 				}
-				Gui::PopItemDisabledAndTextColorIf(isFirstFrame || isPlayback);
+				Gui::PopItemDisabledAndTextColorIf(isFirstFrame);
 				Gui::SetWideItemTooltip("Go to previous beat");
 			}
 
@@ -337,47 +322,41 @@ namespace Comfy::Studio::Editor
 			// NOTE: Playback stop button
 			{
 				Gui::SameLine();
-				Gui::PushItemDisabledAndTextColorIf(!isPlayback && isFirstFrame);
+				Gui::PushItemDisabledAndTextColorIf(!isPlayback);
 				if (Gui::Button(ICON_FA_STOP))
 				{
 					StopPlayback();
 				}
-				Gui::PopItemDisabledAndTextColorIf(!isPlayback && isFirstFrame);
+				Gui::PopItemDisabledAndTextColorIf(!isPlayback);
 				Gui::SetWideItemTooltip("Stop playback");
 			}
 
 			// NOTE: Next frame button
 			{
 				Gui::SameLine();
-				Gui::PushItemDisabledAndTextColorIf(isLastFrame || isPlayback);
+				Gui::PushItemDisabledAndTextColorIf(isLastFrame);
 				if (Gui::Button(ICON_FA_FORWARD))
 				{
-					SetCursorTime(TickToTime(RoundTickToGrid(GetCursorTick()) + GridDivisionTick()));
-					// cursorTime = GetTimelineTime(GetCursorFrame() + 1);
-					// RoundCursorTimeToNearestFrame();
+					SetCursorTime(std::clamp(TickToTime(RoundTickToGrid(GetCursorTick()) + GridDivisionTick()), TimeSpan::Zero(), workingChart->GetDuration()));
 				}
-				Gui::PopItemDisabledAndTextColorIf(isLastFrame || isPlayback);
+				Gui::PopItemDisabledAndTextColorIf(isLastFrame);
 				Gui::SetWideItemTooltip("Go to next beat");
 			}
 
 			// NOTE: Last frame button
 			{
 				Gui::SameLine();
-				Gui::PushItemDisabledAndTextColorIf(isLastFrame || isPlayback);
+				Gui::PushItemDisabledAndTextColorIf(isLastFrame);
 				if (Gui::Button(ICON_FA_FAST_FORWARD))
 				{
 					SetCursorTime(workingChart->GetDuration());
 					CenterCursor();
-
-					// cursorTime = GetTimelineTime(loopEndFrame - 1.0f);
-					// RoundCursorTimeToNearestFrame();
-					//scrollDelta = +GetTimelineSize();
 				}
-				Gui::PopItemDisabledAndTextColorIf(isLastFrame || isPlayback);
+				Gui::PopItemDisabledAndTextColorIf(isLastFrame);
 				Gui::SetWideItemTooltip("Go to last beat");
 			}
 
-			// TODO: Filler button for now, what functionality should go here?
+			// TODO: What functionality should go here?
 			{
 				Gui::SameLine();
 				Gui::Button(ICON_FA_ADJUST);
@@ -820,7 +799,7 @@ namespace Comfy::Studio::Editor
 		}
 
 #if 0 // DEBUG: Cursor Mouse Drag:
-		if (!GetIsPlayback() && false)
+		if (!GetIsPlayback())
 		{
 			if (Gui::IsMouseClicked(0))
 			{
@@ -836,7 +815,7 @@ namespace Comfy::Studio::Editor
 			}
 			if (Gui::IsMouseDragging(0))
 			{
-				if (abs(timeSelectionStart.TotalTicks() - timeSelectionEnd.TotalTicks()) > (GetGridTick().TotalTicks() * 2))
+				if (glm::abs(timeSelectionStart.TotalTicks() - timeSelectionEnd.TotalTicks()) > (GridDivisionTick().TotalTicks() * 2))
 					timeSelectionActive = true;
 
 				timeSelectionEnd = GetCursorMouseXTick();

@@ -71,7 +71,7 @@ namespace Comfy::Studio::Editor
 		Audio::Waveform songWaveform;
 
 		// NOTE: Because updating the waveform can be quite performance intensive, especially if done every frame like is common when mouse dragging a zoom slider
-		const TimeSpan waveformUpdateInterval = COMFY_DEBUG_RELEASE_SWITCH(TimeSpan::FromSeconds(1.0 / 5.0), TimeSpan::FromSeconds(1.0 / 30.0));
+		const TimeSpan waveformUpdateInterval = COMFY_DEBUG_RELEASE_SWITCH(TimeSpan::FromSeconds(1.0 / 5.0), /*TimeSpan::FromSeconds(1.0 / 30.0)*/TimeSpan::Zero());
 		Stopwatch waveformUpdateStopwatch = Stopwatch::StartNew();
 
 	protected:
