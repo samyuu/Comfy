@@ -95,7 +95,7 @@ namespace Comfy::Graphics::Utilities
 			// NOTE: Generally higher quallity than block compression on its own at the cost of additional encoding and decoding time
 			bool AllowYCbCrTextures = true;
 
-			// NOTE: Required for texture block compression, textures will stay uncompressed if not set
+			// NOTE: Conventionally required for texture block compression as well as older graphics APIs / hardware
 			bool PowerOfTwoTextures = true;
 
 			// NOTE: Flip to follow the OpenGL texture convention

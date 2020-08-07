@@ -237,9 +237,6 @@ namespace Comfy::Graphics::Utilities
 
 	TextureFormat SpritePacker::DetermineSprOutputFormat(const SprMarkup& sprMarkup) const
 	{
-		if (!(sprMarkup.Flags & SprMarkupFlags_Compress) || !Settings.PowerOfTwoTextures)
-			return TextureFormat::RGBA8;
-
 		if ((sprMarkup.Flags & SprMarkupFlags_NoMerge) && Area(sprMarkup.Size) <= Settings.NoMergeUncompressedAreaThreshold)
 			return TextureFormat::RGBA8;
 
