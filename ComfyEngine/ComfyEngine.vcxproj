@@ -240,6 +240,9 @@
     <ClInclude Include="src\System\ComfyData.h" />
     <ClInclude Include="src\System\Library\LibraryLoader.h" />
     <ClInclude Include="src\System\Profiling\Profiler.h" />
+    <ClInclude Include="src\Undo\Core\UndoManager.h" />
+    <ClInclude Include="src\Undo\Core\ICommand.h" />
+    <ClInclude Include="src\Undo\Undo.h" />
     <ClInclude Include="src\Window\ApplicationHost.h" />
     <ClInclude Include="src\Window\RenderWindow.h" />
   </ItemGroup>
@@ -300,6 +303,7 @@
     <ClCompile Include="src\System\ComfyData.cpp" />
     <ClCompile Include="src\System\Library\LibraryLoader.cpp" />
     <ClCompile Include="src\System\Profiling\Profiler.cpp" />
+    <ClCompile Include="src\Undo\Core\UndoManager.cpp" />
     <ClCompile Include="src\Window\ApplicationHost.cpp" />
     <ClCompile Include="src\Window\RenderWindow.cpp" />
   </ItemGroup>
