@@ -99,12 +99,12 @@ namespace Comfy::Undo
 		return !redoStack.empty();
 	}
 
-	const std::vector<std::unique_ptr<ICommand>> UndoManager::GetUndoStack() const
+	const std::vector<std::unique_ptr<ICommand>>& UndoManager::GetUndoStackView() const
 	{
 		return undoStack;
 	}
 
-	const std::vector<std::unique_ptr<ICommand>> UndoManager::GetRedoStack() const
+	const std::vector<std::unique_ptr<ICommand>>& UndoManager::GetRedoStackView() const
 	{
 		return redoStack;
 	}
