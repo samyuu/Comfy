@@ -29,6 +29,9 @@ namespace Comfy::Undo
 		bool CanUndo() const;
 		bool CanRedo() const;
 
+		const std::vector<std::unique_ptr<ICommand>> GetUndoStack() const;
+		const std::vector<std::unique_ptr<ICommand>> GetRedoStack() const;
+
 		void SetCommandMergingEnabled(bool value);
 
 	private:

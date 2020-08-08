@@ -6,8 +6,8 @@ namespace Comfy::Undo
 {
 	enum class MergeResult
 	{
-		SuccessAndMerged,
-		FailedToMerge,
+		Failed,
+		ValueUpdated,
 	};
 
 	class ICommand : NonCopyable
@@ -25,9 +25,10 @@ namespace Comfy::Undo
 		// NOTE: Apply stored new value to the reference
 		virtual void Redo() = 0;
 
-		// NOTE: The command parameter is garanteed to be safely castable to the type of the derived class
-		virtual MergeResult TryMerge(const ICommand& existingCommand) = 0;
+		// NOTE: The command parameter is garanteed to be safely castable to the type of the derived class.
+		//		 Passed as non const reference to allow for move optimizations though it should not be mutated if the merge failed
+		virtual MergeResult TryMerge(ICommand& commandToMerge) = 0;
 
-		virtual std::string_view GetName() = 0;
+		virtual std::string_view GetName() const = 0;
 	};
 }

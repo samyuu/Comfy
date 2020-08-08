@@ -5,8 +5,8 @@ namespace Comfy::Undo
 {
 	namespace
 	{
-		template <typename VectorType>
-		auto VectorPop(VectorType& vectorToPop)
+		template <typename T>
+		auto VectorPop(std::vector<T>& vectorToPop)
 		{
 			auto popped = std::move(vectorToPop.back());
 			vectorToPop.erase(vectorToPop.end() - 1);
@@ -47,8 +47,21 @@ namespace Comfy::Undo
 			const auto& lastCommand = undoStack.back();
 			const auto typeMatch = Hacks::CompareVirtualFunctionTablePointers(*commandToExecute, *lastCommand);
 
-			if (!typeMatch || lastCommand->TryMerge(*commandToExecute) == MergeResult::FailedToMerge)
+			if (typeMatch)
+			{
+				const auto mergeResult = lastCommand->TryMerge(*commandToExecute);
+
+				if (mergeResult == MergeResult::Failed)
+					undoStack.emplace_back(std::move(commandToExecute))->Redo();
+				else if (mergeResult == MergeResult::ValueUpdated)
+					lastCommand->Redo();
+				else
+					assert(false);
+			}
+			else
+			{
 				undoStack.emplace_back(std::move(commandToExecute))->Redo();
+			}
 		}
 	}
 
@@ -84,6 +97,16 @@ namespace Comfy::Undo
 	bool UndoManager::CanRedo() const
 	{
 		return !redoStack.empty();
+	}
+
+	const std::vector<std::unique_ptr<ICommand>> UndoManager::GetUndoStack() const
+	{
+		return undoStack;
+	}
+
+	const std::vector<std::unique_ptr<ICommand>> UndoManager::GetRedoStack() const
+	{
+		return redoStack;
 	}
 
 	void UndoManager::SetCommandMergingEnabled(bool value)
