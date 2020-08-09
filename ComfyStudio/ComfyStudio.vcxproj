@@ -160,7 +160,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
-    <ClCompile Include="src\Editor\Aet\Command\AetHistoryWindow.cpp" />
     <ClCompile Include="src\Editor\Aet\Core\AetInspector.cpp" />
     <ClCompile Include="src\Editor\Aet\Core\AetTreeView.cpp" />
     <ClCompile Include="src\Editor\Aet\RenderWindow\AetRenderWindow.cpp" />
@@ -186,6 +185,7 @@
     <ClCompile Include="src\Editor\Chart\Timeline\TimelineMap.cpp" />
     <ClCompile Include="src\Editor\Common\ButtonSoundController.cpp" />
     <ClCompile Include="src\Editor\Common\CameraController2D.cpp" />
+    <ClCompile Include="src\Editor\Common\UndoHistoryWindow.cpp" />
     <ClCompile Include="src\Editor\Core\EditorManager.cpp" />
     <ClCompile Include="src\Editor\PV\CameraAxisIndication.cpp" />
     <ClCompile Include="src\Editor\PV\ExternalProcess.cpp" />
@@ -209,7 +209,6 @@
     <ClInclude Include="src\Editor\Aet\AetEditor.h" />
     <ClInclude Include="src\Editor\Aet\AetIcons.h" />
     <ClInclude Include="src\Editor\Aet\AetSelection.h" />
-    <ClInclude Include="src\Editor\Aet\Command\AetHistoryWindow.h" />
     <ClInclude Include="src\Editor\Aet\Core\AetContentView.h" />
     <ClInclude Include="src\Editor\Aet\Core\AetInspector.h" />
     <ClInclude Include="src\Editor\Aet\Core\AetTreeView.h" />
@@ -240,6 +239,7 @@
     <ClInclude Include="src\Editor\Common\ButtonSoundController.h" />
     <ClInclude Include="src\Editor\Common\CameraController2D.h" />
     <ClInclude Include="src\Editor\Common\CheckerboardGrid.h" />
+    <ClInclude Include="src\Editor\Common\UndoHistoryWindow.h" />
     <ClInclude Include="src\Editor\Core\EditorManager.h" />
     <ClInclude Include="src\Editor\Core\IEditorComponent.h" />
     <ClInclude Include="src\Editor\Core\IFileDropReceiver.h" />

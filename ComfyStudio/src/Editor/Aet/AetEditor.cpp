@@ -24,7 +24,6 @@ namespace Comfy::Studio::Editor
 		// contentView = std::make_unique<AetContentView>();
 		timeline = std::make_unique<AetTimeline>();
 		renderWindow = std::make_unique<AetRenderWindow>(undoManager, *renderer, selectedAetItem, cameraSelectedAetItem, previewData);
-		historyWindow = std::make_unique<AetHistoryWindow>(undoManager);
 
 		treeView->OnFirstFrame();
 		inspector->Initialize();
@@ -101,7 +100,7 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::Begin(ICON_HISTORY "  Aet Editor History##AetEditor"))
 		{
-			historyWindow->Gui();
+			historyWindow.Gui();
 		}
 		Gui::End();
 

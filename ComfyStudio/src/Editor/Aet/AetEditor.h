@@ -5,8 +5,8 @@
 #include "Core/AetContentView.h"
 #include "Timeline/AetTimeline.h"
 #include "RenderWindow/AetRenderWindow.h"
-#include "Command/AetHistoryWindow.h"
 #include "Editor/Core/IEditorComponent.h"
+#include "Editor/Common/UndoHistoryWindow.h"
 #include "Database/SprDB.h"
 #include "Undo/Undo.h"
 #include "IO/File.h"
@@ -60,7 +60,7 @@ namespace Comfy::Studio::Editor
 		std::unique_ptr<AetContentView> contentView;
 		std::unique_ptr<AetTimeline> timeline;
 		std::unique_ptr<AetRenderWindow> renderWindow;
-		std::unique_ptr<AetHistoryWindow> historyWindow;
+		UndoHistoryWindow historyWindow = { undoManager };
 
 		struct
 		{
