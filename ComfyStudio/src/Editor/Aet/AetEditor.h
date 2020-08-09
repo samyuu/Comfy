@@ -6,9 +6,9 @@
 #include "Timeline/AetTimeline.h"
 #include "RenderWindow/AetRenderWindow.h"
 #include "Command/AetHistoryWindow.h"
-#include "Command/AetCommandManager.h"
 #include "Editor/Core/IEditorComponent.h"
 #include "Database/SprDB.h"
+#include "Undo/Undo.h"
 #include "IO/File.h"
 #include "ImGui/Widgets/FileViewer.h"
 
@@ -44,7 +44,7 @@ namespace Comfy::Studio::Editor
 		void OnSprSetLoaded();
 
 	private:
-		std::unique_ptr<AetCommandManager> commandManager = {};
+		Undo::UndoManager undoManager = {};
 
 		std::unique_ptr<Render::Renderer2D> renderer = nullptr;
 

@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "Render/Render.h"
-#include "Editor/Aet/Command/AetCommandManager.h"
+#include "Undo/Undo.h"
 #include "Input/Input.h"
 #include "ImGui/Gui.h"
 #include <functional>
@@ -62,7 +62,7 @@ namespace Comfy::Studio::Editor
 		virtual void UpdatePostDrawGui(Graphics::Transform2D* transform, vec2 dimensions) {};
 		
 		// NOTE: Turn the updated properties into a set of AetCommands
-		virtual void ProcessCommands(AetCommandManager& commandManager, const std::shared_ptr<Graphics::Aet::Layer>& layer, frame_t frame, const Graphics::Transform2D& transform, const Graphics::Transform2D& previousTransform) {}
+		virtual void ProcessCommands(Undo::UndoManager& undoManager, const std::shared_ptr<Graphics::Aet::Layer>& layer, frame_t frame, const Graphics::Transform2D& transform, const Graphics::Transform2D& previousTransform) {}
 		
 		// NOTE: Tool specific context menu items
 		virtual void DrawContextMenu() = 0;

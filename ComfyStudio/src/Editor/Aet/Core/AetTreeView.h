@@ -1,18 +1,18 @@
 #pragma once
 #include "Types.h"
-#include "Editor/Aet/MutatingEditorComponent.h"
 #include "Editor/Aet/AetSelection.h"
 #include "Editor/Aet/AetIcons.h"
 #include "Graphics/Auth2D/Aet/AetSet.h"
 #include "ImGui/Gui.h"
+#include "Undo/Undo.h"
 #include <stack>
 
 namespace Comfy::Studio::Editor
 {
-	class AetTreeView : public MutatingEditorComponent
+	class AetTreeView
 	{
 	public:
-		AetTreeView(AetCommandManager& commandManager, AetItemTypePtr& selectedAetItem, AetItemTypePtr& cameraSelectedAetItem);
+		AetTreeView(Undo::UndoManager& undoManager, AetItemTypePtr& selectedAetItem, AetItemTypePtr& cameraSelectedAetItem);
 		~AetTreeView() = default;
 
 	public:
@@ -52,6 +52,8 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: To be used, filled and cleared by the composition usage context menu
 		std::vector<std::shared_ptr<Graphics::Aet::Layer>*> compositionUsagesBuffer;
+
+		Undo::UndoManager& undoManager;
 
 		struct
 		{

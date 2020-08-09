@@ -3,7 +3,7 @@
 
 namespace Comfy::Studio::Editor
 {
-	AetHistoryWindow::AetHistoryWindow(AetCommandManager& commandManager) : MutatingEditorComponent(commandManager)
+	AetHistoryWindow::AetHistoryWindow(Undo::UndoManager& undoManager) : undoManager(undoManager)
 	{
 	}
 
@@ -12,39 +12,40 @@ namespace Comfy::Studio::Editor
 		// TODO: Implement single column, clickable, grayed out if undone, PS-like history window
 		Gui::Columns(2, nullptr, false);
 
-		if (Gui::MenuItem("AetCommandManager::Undo()", nullptr, nullptr, commandManager.GetCanUndo()))
-			commandManager.Undo();
+		if (Gui::MenuItem("UndoManager::Undo()", nullptr, nullptr, undoManager.CanUndo()))
+			undoManager.Undo();
 		Gui::NextColumn();
 
-		if (Gui::MenuItem("AetCommandManager::Redo()", nullptr, nullptr, commandManager.GetCanRedo()))
-			commandManager.Redo();
+		if (Gui::MenuItem("UndoManager::Redo()", nullptr, nullptr, undoManager.CanRedo()))
+			undoManager.Redo();
 		Gui::NextColumn();
 
-		if (Gui::ListBoxHeader("##AetHistoryWindow::UndoListBox", Gui::GetContentRegionAvail()))
+		if (Gui::ListBoxHeader("##HistoryWindow::UndoListBox", Gui::GetContentRegionAvail()))
 		{
-			if (commandManager.GetUndoStack().empty())
+			if (undoManager.GetUndoStackView().empty())
 			{
 				Gui::Selectable("Empty", false, ImGuiSelectableFlags_Disabled);
 			}
 			else
 			{
-				for (const auto& undoCommand : commandManager.GetUndoStack())
-					Gui::Selectable(undoCommand->GetName());
+				// TODO: String view start / end
+				for (const auto& undoCommand : undoManager.GetUndoStackView())
+					Gui::Selectable(undoCommand->GetName().data());
 			}
 			Gui::ListBoxFooter();
 		}
 		Gui::NextColumn();
 
-		if (Gui::ListBoxHeader("##AetHistoryWindow::RedoListBox", Gui::GetContentRegionAvail()))
+		if (Gui::ListBoxHeader("##HistoryWindow::RedoListBox", Gui::GetContentRegionAvail()))
 		{
-			if (commandManager.GetRedoStack().empty())
+			if (undoManager.GetRedoStackView().empty())
 			{
 				Gui::Selectable("Empty", false, ImGuiSelectableFlags_Disabled);
 			}
 			else
 			{
-				for (const auto& redoCommand : commandManager.GetRedoStack())
-					Gui::Selectable(redoCommand->GetName());
+				for (const auto& redoCommand : undoManager.GetRedoStackView())
+					Gui::Selectable(redoCommand->GetName().data());
 			}
 			Gui::ListBoxFooter();
 		}

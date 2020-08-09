@@ -1,18 +1,20 @@
 #pragma once
 #include "Types.h"
-#include "Editor/Aet/MutatingEditorComponent.h"
+#include "Undo/Undo.h"
 
 namespace Comfy::Studio::Editor
 {
-	class AetHistoryWindow : public MutatingEditorComponent
+	// TODO: Turn into generic HistoryWindow and use for both AetEditor and ChartEditor, refactor undo code...
+	class AetHistoryWindow
 	{
 	public:
-		AetHistoryWindow(AetCommandManager& commandManager);
+		AetHistoryWindow(Undo::UndoManager& undoManager);
 		~AetHistoryWindow() = default;
 
 	public:
 		bool Gui();
 
 	private:
+		Undo::UndoManager& undoManager;
 	};
 }

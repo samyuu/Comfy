@@ -15,8 +15,8 @@ namespace Comfy::Studio::Editor
 	using namespace Graphics;
 	using namespace Graphics::Aet;
 
-	AetRenderWindow::AetRenderWindow(AetCommandManager& commandManager, Render::Renderer2D& renderer, AetItemTypePtr& selectedAetItem, AetItemTypePtr& cameraSelectedAetItem, AetRenderPreviewData& previewData)
-		: MutatingEditorComponent(commandManager), renderer(renderer), selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem), previewData(previewData)
+	AetRenderWindow::AetRenderWindow(Undo::UndoManager& undoManager, Render::Renderer2D& renderer, AetItemTypePtr& selectedAetItem, AetItemTypePtr& cameraSelectedAetItem, AetRenderPreviewData& previewData)
+		: undoManager(undoManager), renderer(renderer), selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem), previewData(previewData)
 	{
 		// NOTE: The checkerboard pattern is still visible because of the framebuffer clear color blend
 		const vec4 baseColor = (checkerboardGrid.ColorAlt * 0.5f);
@@ -167,7 +167,7 @@ namespace Comfy::Studio::Editor
 			if (!isPlayback && selectedAetItem.GetLayerRef()->ItemType != ItemType::Audio)
 			{
 				const auto& layer = selectedAetItem.GetLayerRef();
-				tool->ProcessCommands(commandManager, layer, currentFrame, toolTransform, previousTransform);
+				tool->ProcessCommands(undoManager, layer, currentFrame, toolTransform, previousTransform);
 			}
 		}
 

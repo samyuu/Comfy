@@ -3,18 +3,18 @@
 #include "AetRenderPreviewData.h"
 #include "ObjectMousePicker.h"
 #include "Window/RenderWindow.h"
-#include "Editor/Aet/MutatingEditorComponent.h"
 #include "Editor/Aet/AetSelection.h"
 #include "Editor/Common/CameraController2D.h"
 #include "Editor/Common/CheckerboardGrid.h"
 #include "Render/Render.h"
+#include "Undo/Undo.h"
 
 namespace Comfy::Studio::Editor
 {
-	class AetRenderWindow : public RenderWindow, public MutatingEditorComponent
+	class AetRenderWindow : public RenderWindow
 	{
 	public:
-		AetRenderWindow(AetCommandManager& commandManager, Render::Renderer2D& renderer, AetItemTypePtr& selectedAetItem, AetItemTypePtr& cameraSelectedAetItem, AetRenderPreviewData& previewData);
+		AetRenderWindow(Undo::UndoManager& undoManager, Render::Renderer2D& renderer, AetItemTypePtr& selectedAetItem, AetItemTypePtr& cameraSelectedAetItem, AetRenderPreviewData& previewData);
 		~AetRenderWindow() = default;
 
 		void SetIsPlayback(bool value);
@@ -78,6 +78,8 @@ namespace Comfy::Studio::Editor
 			AetItemTypePtr& selectedAetItem;
 			AetItemTypePtr& cameraSelectedAetItem;
 		};
+
+		Undo::UndoManager& undoManager;
 
 		// NOTE: General rendering
 		Render::Renderer2D& renderer;

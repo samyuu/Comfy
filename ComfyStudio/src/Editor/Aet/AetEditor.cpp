@@ -17,15 +17,14 @@ namespace Comfy::Studio::Editor
 
 	void AetEditor::OnFirstFrame()
 	{
-		commandManager = std::make_unique<AetCommandManager>();
 		renderer = std::make_unique<Render::Renderer2D>();
 
-		treeView = std::make_unique<AetTreeView>(*commandManager, selectedAetItem, cameraSelectedAetItem);
-		inspector = std::make_unique<AetInspector>(*commandManager, *renderer, previewData);
+		treeView = std::make_unique<AetTreeView>(undoManager, selectedAetItem, cameraSelectedAetItem);
+		inspector = std::make_unique<AetInspector>(undoManager, *renderer, previewData);
 		// contentView = std::make_unique<AetContentView>();
 		timeline = std::make_unique<AetTimeline>();
-		renderWindow = std::make_unique<AetRenderWindow>(*commandManager, *renderer, selectedAetItem, cameraSelectedAetItem, previewData);
-		historyWindow = std::make_unique<AetHistoryWindow>(*commandManager);
+		renderWindow = std::make_unique<AetRenderWindow>(undoManager, *renderer, selectedAetItem, cameraSelectedAetItem, previewData);
+		historyWindow = std::make_unique<AetHistoryWindow>(undoManager);
 
 		treeView->OnFirstFrame();
 		inspector->Initialize();
@@ -107,7 +106,7 @@ namespace Comfy::Studio::Editor
 		Gui::End();
 
 		UpdateCheckAsyncFileLoading();
-		commandManager->ExecuteClearCommandQueue();
+		undoManager.FlushExecuteEndOfFrameCommands();
 	}
 
 	void AetEditor::UpdateCheckAsyncFileLoading()
@@ -184,7 +183,7 @@ namespace Comfy::Studio::Editor
 
 	void AetEditor::OnAetSetLoaded()
 	{
-		commandManager->Clear();
+		undoManager.ClearAll();
 		treeView->ResetSelectedItems();
 	}
 

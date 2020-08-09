@@ -1,5 +1,5 @@
 #include "AetTreeView.h"
-#include "Editor/Aet/Command/Commands.h"
+#include "Editor/Aet/Command/AetCommands.h"
 #include "IO/File.h"
 #include "IO/Shell.h"
 #include "Input/Input.h"
@@ -16,8 +16,8 @@ namespace Comfy::Studio::Editor
 	constexpr ImGuiTreeNodeFlags HeaderTreeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | SelectableTreeNodeFlags;
 	constexpr ImGuiTreeNodeFlags TreeNodeLeafFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
 
-	AetTreeView::AetTreeView(AetCommandManager& commandManager, AetItemTypePtr& selectedAetItem, AetItemTypePtr& cameraSelectedAetItem)
-		: MutatingEditorComponent(commandManager), selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem)
+	AetTreeView::AetTreeView(Undo::UndoManager& undoManager, AetItemTypePtr& selectedAetItem, AetItemTypePtr& cameraSelectedAetItem)
+		: undoManager(undoManager), selectedAetItem(selectedAetItem), cameraSelectedAetItem(cameraSelectedAetItem)
 	{
 	}
 
@@ -346,12 +346,12 @@ namespace Comfy::Studio::Editor
 		if (layer->ItemType == ItemType::Audio)
 		{
 			if (Gui::ComfySmallButton(layer->GetIsAudible() ? ICON_AUDIBLE : ICON_INAUDIBLE, smallButtonSize))
-				ProcessUpdatingAetCommand(LayerChangeFlagsAudible, layer, !layer->GetIsAudible());
+				undoManager.AddToEndOfFrameExecutionList<LayerChangeFlagsAudible>(layer, !layer->GetIsAudible());
 		}
 		else
 		{
 			if (Gui::ComfySmallButton(layer->GetIsVisible() ? ICON_VISIBLE : ICON_INVISIBLE, smallButtonSize))
-				ProcessUpdatingAetCommand(LayerChangeFlagsVisible, layer, !layer->GetIsVisible());
+				undoManager.AddToEndOfFrameExecutionList<LayerChangeFlagsVisible>(layer, !layer->GetIsVisible());
 		}
 		Gui::SameLine();
 

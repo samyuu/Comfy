@@ -1,16 +1,16 @@
 #pragma once
 #include "Editor/Aet/AetSelection.h"
-#include "Editor/Aet/MutatingEditorComponent.h"
 #include "Editor/Aet/RenderWindow/AetRenderPreviewData.h"
 #include "Graphics/Auth2D/Aet/AetSet.h"
 #include "Render/Render.h"
+#include "Undo/Undo.h"
 
 namespace Comfy::Studio::Editor
 {
-	class AetInspector : public MutatingEditorComponent
+	class AetInspector
 	{
 	public:
-		AetInspector(AetCommandManager& commandManager, Render::Renderer2D& renderer, AetRenderPreviewData& previewData);
+		AetInspector(Undo::UndoManager& undoManager, Render::Renderer2D& renderer, AetRenderPreviewData& previewData);
 		~AetInspector() = default;
 
 		void Initialize();
@@ -36,6 +36,7 @@ namespace Comfy::Studio::Editor
 		bool isPlayback = false;
 		float currentFrame = 0.0f;
 
+		Undo::UndoManager& undoManager;
 		Render::Renderer2D& renderer;
 		AetRenderPreviewData& previewData;
 

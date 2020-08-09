@@ -93,9 +93,6 @@
     <ClCompile Include="src\Editor\PV\SceneRenderWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Editor\Aet\Command\AetCommand.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Editor\Aet\Command\AetHistoryWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -284,16 +281,7 @@
     <ClInclude Include="src\Editor\PV\StageTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Editor\Aet\Command\AetCommand.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\Aet\Command\AetCommandManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\Aet\Command\AetHistoryWindow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\Aet\Command\Commands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Aet\Core\AetContentView.h">
@@ -353,13 +341,13 @@
     <ClInclude Include="src\Editor\Aet\AetSelection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Editor\Aet\MutatingEditorComponent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\Chart\SortedTargetList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Chart\SortedTempoMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Aet\Command\AetCommands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

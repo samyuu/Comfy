@@ -1,6 +1,6 @@
 #include "TransformTool.h"
 #include "Editor/Aet/AetIcons.h"
-#include "Editor/Aet/Command/Commands.h"
+#include "Editor/Aet/Command/AetCommands.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -261,7 +261,7 @@ namespace Comfy::Studio::Editor
 			DrawBoxNode(drawList, screenSpaceBox.GetNodePosition(scalingNode), ImColor(allowAction ? redColor : redPreColor), screenSpaceBox.Rotation());
 	}
 
-	void TransformTool::ProcessCommands(AetCommandManager& commandManager, const std::shared_ptr<Aet::Layer>& layer, float frame, const Transform2D& transform, const Transform2D& previousTransform)
+	void TransformTool::ProcessCommands(Undo::UndoManager& undoManager, const std::shared_ptr<Aet::Layer>& layer, float frame, const Transform2D& transform, const Transform2D& previousTransform)
 	{
 		if (transform == previousTransform)
 			return;
@@ -270,12 +270,12 @@ namespace Comfy::Studio::Editor
 		if (transform.Scale == previousTransform.Scale)
 		{
 			const auto tuple = std::make_tuple(frame, transform.Position);
-			ProcessUpdatingAetCommand(AnimationDataChangePosition, layer, tuple);
+			undoManager.AddToEndOfFrameExecutionList<AnimationDataChangePosition>(layer, tuple);
 		}
 		else
 		{
 			const auto tuple = std::make_tuple(frame, transform.Position, transform.Scale);
-			ProcessUpdatingAetCommand(AnimationDataChangeTransform, layer, tuple);
+			undoManager.AddToEndOfFrameExecutionList<AnimationDataChangeTransform>(layer, tuple);
 		}
 	}
 

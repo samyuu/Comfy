@@ -1,5 +1,5 @@
 #include "AetInspector.h"
-#include "Editor/Aet/Command/Commands.h"
+#include "Editor/Aet/Command/AetCommands.h"
 #include "Editor/Aet/AetIcons.h"
 #include "Graphics/Auth2D/Aet/AetUtil.h"
 #include "ImGui/Gui.h"
@@ -49,8 +49,8 @@ namespace Comfy::Studio::Editor
 
 	constexpr ImGuiTreeNodeFlags DefaultOpenPropertiesNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow;
 
-	AetInspector::AetInspector(AetCommandManager& commandManager, Render::Renderer2D& renderer, AetRenderPreviewData& previewData)
-		: MutatingEditorComponent(commandManager), renderer(renderer), previewData(previewData)
+	AetInspector::AetInspector(Undo::UndoManager& undoManager, Render::Renderer2D& renderer, AetRenderPreviewData& previewData)
+		: undoManager(undoManager), renderer(renderer), previewData(previewData)
 	{
 	}
 
@@ -122,27 +122,27 @@ namespace Comfy::Studio::Editor
 			CopyStringIntoBuffer(scene->Name, aetNameBuffer, sizeof(aetNameBuffer));
 
 			if (Gui::ComfyTextWidget("Name", aetNameBuffer, sizeof(aetNameBuffer)))
-				ProcessUpdatingAetCommand(AetChangeName, scene, aetNameBuffer);
+				undoManager.AddToEndOfFrameExecutionList<SceneChangeName>(scene, aetNameBuffer);
 
 			float startFrame = scene->StartFrame;
 			if (Gui::ComfyFloatTextWidget("Start Frame", &startFrame, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
-				ProcessUpdatingAetCommand(AetChangeStartFrame, scene, startFrame);
+				undoManager.AddToEndOfFrameExecutionList<SceneChangeStartFrame>(scene, startFrame);
 
 			float endFrame = scene->EndFrame;
 			if (Gui::ComfyFloatTextWidget("End Frame", &endFrame, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
-				ProcessUpdatingAetCommand(AetChangeEndFrame, scene, endFrame);
+				undoManager.AddToEndOfFrameExecutionList<SceneChangeEndFrame>(scene, endFrame);
 
 			float frameRate = scene->FrameRate;
 			if (Gui::ComfyFloatTextWidget("Frame Rate", &frameRate, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
-				ProcessUpdatingAetCommand(AetChangeFrameRate, scene, glm::clamp(frameRate, 1.0f, 1000.0f));
+				undoManager.AddToEndOfFrameExecutionList<SceneChangeFrameRate>(scene, glm::clamp(frameRate, 1.0f, 1000.0f));
 
 			ivec2 resolution = scene->Resolution;
 			if (Gui::ComfyInt2TextWidget("Resolution", glm::value_ptr(resolution)))
-				ProcessUpdatingAetCommand(AetChangeResolution, scene, resolution);
+				undoManager.AddToEndOfFrameExecutionList<SceneChangeResolution>(scene, resolution);
 
 			vec4 color = Gui::ColorConvertU32ToFloat4(scene->BackgroundColor);
 			if (Gui::ComfyColorEdit3("Background", glm::value_ptr(color), ImGuiColorEditFlags_DisplayHex))
-				ProcessUpdatingAetCommand(AetChangeBackgroundColor, scene, Gui::ColorConvertFloat4ToU32(color));
+				undoManager.AddToEndOfFrameExecutionList<SceneChangeBackgroundColor>(scene, Gui::ColorConvertFloat4ToU32(color));
 
 			PopDisableItemFlagIfPlayback();
 			Gui::TreePop();
@@ -159,7 +159,7 @@ namespace Comfy::Studio::Editor
 
 			const bool isRoot = comp.get() == scene->GetRootComposition();
 			if (Gui::ComfyTextWidget("Name", compNameBuffer, sizeof(compNameBuffer), isRoot ? ImGuiInputTextFlags_ReadOnly : ImGuiInputTextFlags_None))
-				ProcessUpdatingAetCommand(CompositionChangeName, comp, compNameBuffer);
+				undoManager.AddToEndOfFrameExecutionList<CompositionChangeName>(comp, compNameBuffer);
 
 			// NOTE: Readonly properties
 			Gui::PushItemFlag(ImGuiItemFlags_Disabled, true);
@@ -194,7 +194,7 @@ namespace Comfy::Studio::Editor
 			if (Gui::ComfyBeginCombo("Composition", comp == nullptr ? "None (Comp)" : compDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
 				if (Gui::Selectable("None (Composition)", comp == nullptr))
-					ProcessUpdatingAetCommand(LayerChangeCompItem, layer, nullptr);
+					undoManager.AddToEndOfFrameExecutionList<LayerChangeCompItem>(layer, nullptr);
 
 				for (const std::shared_ptr<Composition>& comp : scene->Compositions)
 				{
@@ -204,7 +204,7 @@ namespace Comfy::Studio::Editor
 					sprintf_s(compDataNameBuffer, "%.*s (Comp %d)", availableCompNameBufferSize, comp->GetName().data(), comp->GuiData.ThisIndex);
 
 					if (Gui::Selectable(compDataNameBuffer, isSelected))
-						ProcessUpdatingAetCommand(LayerChangeCompItem, layer, comp);
+						undoManager.AddToEndOfFrameExecutionList<LayerChangeCompItem>(layer, comp);
 
 					if (isSelected)
 						Gui::SetItemDefaultFocus();
@@ -226,19 +226,19 @@ namespace Comfy::Studio::Editor
 			PushDisableItemFlagIfPlayback();
 			CopyStringIntoBuffer(layer->GetName(), layerNameBuffer, sizeof(layerNameBuffer));
 			if (Gui::ComfyTextWidget("Name", layerNameBuffer, sizeof(layerNameBuffer)))
-				ProcessUpdatingAetCommand(LayerChangeName, layer, layerNameBuffer);
+				undoManager.AddToEndOfFrameExecutionList<LayerChangeName>(layer, layerNameBuffer);
 
 			float startFrame = layer->StartFrame;
 			if (Gui::ComfyFloatTextWidget("Start Frame", &startFrame, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
-				ProcessUpdatingAetCommand(LayerChangeStartFrame, layer, startFrame);
+				undoManager.AddToEndOfFrameExecutionList<LayerChangeStartFrame>(layer, startFrame);
 
 			float endFrame = layer->EndFrame;
 			if (Gui::ComfyFloatTextWidget("End Frame", &endFrame, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
-				ProcessUpdatingAetCommand(LayerChangeEndFrame, layer, endFrame);
+				undoManager.AddToEndOfFrameExecutionList<LayerChangeEndFrame>(layer, endFrame);
 
 			float startOffset = layer->StartOffset;
 			if (Gui::ComfyFloatTextWidget("Start Offset", &startOffset, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
-				ProcessUpdatingAetCommand(LayerChangeStartOffset, layer, startOffset);
+				undoManager.AddToEndOfFrameExecutionList<LayerChangeStartOffset>(layer, startOffset);
 
 			if (layer->ItemType != ItemType::Audio)
 			{
@@ -246,7 +246,7 @@ namespace Comfy::Studio::Editor
 				float timeScale = layer->TimeScale * percentageFactor;
 
 				if (Gui::ComfyFloatTextWidget("Playback Speed", &timeScale, 1.0f, 10.0f, 0.0f, 0.0f, "%.0f%%"))
-					ProcessUpdatingAetCommand(LayerChangeTimeScale, layer, timeScale / percentageFactor);
+					undoManager.AddToEndOfFrameExecutionList<LayerChangeTimeScale>(layer, timeScale / percentageFactor);
 			}
 
 			PopDisableItemFlagIfPlayback();
@@ -309,7 +309,7 @@ namespace Comfy::Studio::Editor
 			if (Gui::ComfyBeginCombo("Sprite", video == nullptr ? noSpriteString : videoDataNameBuffer, ImGuiComboFlags_HeightLarge))
 			{
 				if (Gui::Selectable(noSpriteString, video == nullptr))
-					ProcessUpdatingAetCommand(LayerChangeVideoItem, layer, nullptr);
+					undoManager.AddToEndOfFrameExecutionList<LayerChangeVideoItem>(layer, nullptr);
 
 				i32 videoIndex = 0;
 				for (auto& video : scene->Videos)
@@ -323,7 +323,7 @@ namespace Comfy::Studio::Editor
 						sprintf_s(videoDataNameBuffer, "Video %d (%dx%d)", videoIndex, video->Size.x, video->Size.y);
 
 					if (Gui::Selectable(frontSprite == nullptr ? videoDataNameBuffer : frontSprite->Name.c_str(), isSelected))
-						ProcessUpdatingAetCommand(LayerChangeVideoItem, layer, video);
+						undoManager.AddToEndOfFrameExecutionList<LayerChangeVideoItem>(layer, video);
 
 					if (Gui::IsItemHovered())
 						previewData.Video = video.get();
@@ -393,7 +393,7 @@ namespace Comfy::Studio::Editor
 						const char* blendModeName = GetBlendModeName(static_cast<AetBlendMode>(blendModeIndex));
 
 						if (Gui::Selectable(blendModeName, isBlendMode))
-							ProcessUpdatingAetCommand(AnimationDataChangeBlendMode, animationData, static_cast<AetBlendMode>(blendModeIndex));
+							undoManager.AddToEndOfFrameExecutionList<AnimationDataChangeBlendMode>(animationData, static_cast<AetBlendMode>(blendModeIndex));
 
 						if (Gui::IsItemHovered())
 							previewData.BlendMode = static_cast<AetBlendMode>(blendModeIndex);
@@ -410,7 +410,7 @@ namespace Comfy::Studio::Editor
 
 				bool useTextureMask = animationData->GetUseTextureMask();
 				if (Gui::ComfyCheckbox("Use Texture Mask", &useTextureMask))
-					ProcessUpdatingAetCommand(AnimationDataChangeUseTextureMask, animationData, useTextureMask);
+					undoManager.AddToEndOfFrameExecutionList<AnimationDataChangeUseTextureMask>(animationData, useTextureMask);
 			}
 
 			PopDisableItemFlagIfPlayback();
@@ -483,18 +483,18 @@ namespace Comfy::Studio::Editor
 				value = glm::clamp(value * (1.0f / percentFactor), 0.0f, 1.0f);
 
 			auto tuple = std::make_tuple(static_cast<Transform2DField_Enum>(field), frame, value);
-			ProcessUpdatingAetCommand(AnimationDataChangeKeyFrameValue, layer, tuple);
+			undoManager.AddToEndOfFrameExecutionList<AnimationDataChangeKeyFrameValue>(layer, tuple);
 		}
 
 		Gui::PopStyleColor();
 	}
 
-	void AetInspector::DrawInspectorAnimationDataPropertyVec2(const std::shared_ptr<Layer>& Layer, const char* label, frame_t frame, vec2& value, Transform2DField fieldX, Transform2DField fieldY)
+	void AetInspector::DrawInspectorAnimationDataPropertyVec2(const std::shared_ptr<Layer>& layer, const char* label, frame_t frame, vec2& value, Transform2DField fieldX, Transform2DField fieldY)
 	{
 		constexpr float percentFactor = 100.0f;
 
-		assert(Layer->LayerVideo.get() != nullptr);
-		const auto& animationData = Layer->LayerVideo;
+		assert(layer->LayerVideo.get() != nullptr);
+		const auto& animationData = layer->LayerVideo;
 
 		const KeyFrame* keyFrameX = isPlayback ? nullptr : Aet::Util::GetKeyFrameAt(animationData->Transform[fieldX], frame);
 		const KeyFrame* keyFrameY = isPlayback ? nullptr : Aet::Util::GetKeyFrameAt(animationData->Transform[fieldY], frame);
@@ -529,12 +529,12 @@ namespace Comfy::Studio::Editor
 			if (value.x != previousValue.x)
 			{
 				auto tuple = std::make_tuple(static_cast<Transform2DField_Enum>(fieldX), frame, value.x);
-				ProcessUpdatingAetCommand(AnimationDataChangeKeyFrameValue, Layer, tuple);
+				undoManager.AddToEndOfFrameExecutionList<AnimationDataChangeKeyFrameValue>(layer, tuple);
 			}
 			if (value.y != previousValue.y)
 			{
 				auto tuple = std::make_tuple(static_cast<Transform2DField_Enum>(fieldY), frame, value.y);
-				ProcessUpdatingAetCommand(AnimationDataChangeKeyFrameValue, Layer, tuple);
+				undoManager.AddToEndOfFrameExecutionList<AnimationDataChangeKeyFrameValue>(layer, tuple);
 			}
 		}
 
@@ -559,18 +559,18 @@ namespace Comfy::Studio::Editor
 					if (Gui::MenuItem(ICON_MOVEUP "  Move Up", nullptr, nullptr, i > 0))
 					{
 						auto tuple = std::tuple<int, int>(i, i - 1);
-						ProcessUpdatingAetCommand(LayerMoveMarker, layer, tuple);
+						undoManager.AddToEndOfFrameExecutionList<LayerMoveMarker>(layer, tuple);
 					}
 
 					if (Gui::MenuItem(ICON_MOVEDOWN "  Move Down", nullptr, nullptr, i < markers->size() - 1))
 					{
 						auto tuple = std::tuple<int, int>(i, i + 1);
-						ProcessUpdatingAetCommand(LayerMoveMarker, layer, tuple);
+						undoManager.AddToEndOfFrameExecutionList<LayerMoveMarker>(layer, tuple);
 					}
 
 					if (Gui::MenuItem(ICON_DELETE "  Delete"))
 					{
-						ProcessUpdatingAetCommand(LayerDeleteMarker, layer, i);
+						undoManager.AddToEndOfFrameExecutionList<LayerDeleteMarker>(layer, i);
 					}
 				});
 
@@ -586,11 +586,11 @@ namespace Comfy::Studio::Editor
 					PushDisableItemFlagIfPlayback();
 					float frame = marker->Frame;
 					if (Gui::ComfyFloatTextWidget("Frame", &frame, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
-						ProcessUpdatingAetCommand(LayerChangeMarkerFrame, marker, frame);
+						undoManager.AddToEndOfFrameExecutionList<LayerChangeMarkerFrame>(marker, frame);
 
 					CopyStringIntoBuffer(marker->Name, markerNameBuffer, sizeof(markerNameBuffer));
 					if (Gui::ComfyTextWidget("Name", markerNameBuffer, sizeof(markerNameBuffer)))
-						ProcessUpdatingAetCommand(LayerChangeMarkerName, marker, markerNameBuffer);
+						undoManager.AddToEndOfFrameExecutionList<LayerChangeMarkerName>(marker, markerNameBuffer);
 
 					PopDisableItemFlagIfPlayback();
 					Gui::TreePop();
@@ -607,7 +607,7 @@ namespace Comfy::Studio::Editor
 				char newMarkerNameBuffer[32];
 				sprintf_s(newMarkerNameBuffer, "marker_%02zd", markers->size());
 				auto newMarker = std::make_shared<Marker>(0.0f, newMarkerNameBuffer);
-				ProcessUpdatingAetCommand(LayerAddMarker, layer, newMarker);
+				undoManager.AddToEndOfFrameExecutionList<LayerAddMarker>(layer, newMarker);
 			}
 			PopDisableItemFlagIfPlayback();
 
@@ -634,7 +634,7 @@ namespace Comfy::Studio::Editor
 			if (Gui::ComfyBeginCombo("Parent Layer", parentLayer == nullptr ? noParentString : parentLayer->GetName().c_str(), ImGuiComboFlags_HeightLarge))
 			{
 				if (Gui::Selectable(noParentString, parentLayer == nullptr))
-					ProcessUpdatingAetCommand(LayerChangeReferencedParentLayer, layer, nullptr);
+					undoManager.AddToEndOfFrameExecutionList<LayerChangeReferencedParentLayer>(layer, nullptr);
 
 				for (i32 layerIndex = 0; layerIndex < parentComp->GetLayers().size(); layerIndex++)
 				{
@@ -646,7 +646,7 @@ namespace Comfy::Studio::Editor
 
 					Gui::PushID(iteratorLayer.get());
 					if (Gui::Selectable(iteratorLayer->GetName().c_str(), isSelected, (isSame || isAnyRecursive) ? ImGuiSelectableFlags_Disabled : ImGuiSelectableFlags_None))
-						ProcessUpdatingAetCommand(LayerChangeReferencedParentLayer, layer, iteratorLayer);
+						undoManager.AddToEndOfFrameExecutionList<LayerChangeReferencedParentLayer>(layer, iteratorLayer);
 
 					if (isSelected)
 						Gui::SetItemDefaultFocus();

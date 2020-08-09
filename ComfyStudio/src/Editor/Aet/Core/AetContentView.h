@@ -1,5 +1,6 @@
 #pragma once
-#include "Editor/Aet/MutatingEditorComponent.h"
+#include "Types.h"
+#include "Undo/Undo.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -9,10 +10,10 @@ namespace Comfy::Studio::Editor
 	//		 - Keep aspect ratio for preview "boxes" (write helper function to also be used by RenderWindowBase)
 	//		 - 
 
-	class AetContentView : public MutatingEditorComponent
+	class AetContentView
 	{
 	public:
-		// AetContentView(AetCommandManager* commandManager, AetItemTypePtr* selectedAetItem);
+		// AetContentView(Undo::UndoManager& undoManager, AetItemTypePtr* selectedAetItem);
 		AetContentView(const AetTreeView&) = delete;
 		// ~AetContentView();
 
