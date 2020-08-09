@@ -65,16 +65,26 @@ namespace Comfy::Undo
 		}
 	}
 
-	void UndoManager::Undo()
+	void UndoManager::Undo(size_t count)
 	{
-		if (!undoStack.empty())
+		for (size_t i = 0; i < count; i++)
+		{
+			if (undoStack.empty())
+				break;
+
 			redoStack.emplace_back(VectorPop(undoStack))->Undo();
+		}
 	}
 
-	void UndoManager::Redo()
+	void UndoManager::Redo(size_t count)
 	{
-		if (!redoStack.empty())
+		for (size_t i = 0; i < count; i++)
+		{
+			if (redoStack.empty())
+				break;
+
 			undoStack.emplace_back(VectorPop(redoStack))->Redo();
+		}
 	}
 
 	void UndoManager::ClearAll()

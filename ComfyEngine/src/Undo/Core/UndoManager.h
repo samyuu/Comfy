@@ -22,8 +22,8 @@ namespace Comfy::Undo
 		void FlushExecuteEndOfFrameCommands();
 
 	public:
-		void Undo();
-		void Redo();
+		void Undo(size_t count = 1);
+		void Redo(size_t count = 1);
 
 		void ClearAll();
 
