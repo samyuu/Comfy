@@ -1,6 +1,6 @@
 #include "TransformTool.h"
 #include "Editor/Aet/AetIcons.h"
-#include "Editor/Aet/Command/AetCommands.h"
+#include "Editor/Aet/AetCommands.h"
 
 namespace Comfy::Studio::Editor
 {

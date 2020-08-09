@@ -1,5 +1,5 @@
 #include "AetInspector.h"
-#include "Editor/Aet/Command/AetCommands.h"
+#include "Editor/Aet/AetCommands.h"
 #include "Editor/Aet/AetIcons.h"
 #include "Graphics/Auth2D/Aet/AetUtil.h"
 #include "ImGui/Gui.h"

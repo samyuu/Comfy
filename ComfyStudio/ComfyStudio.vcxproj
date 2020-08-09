@@ -205,11 +205,11 @@
     <ClCompile Include="src\EntryPoint.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Editor\Aet\AetCommands.h" />
     <ClInclude Include="src\Editor\Aet\AetEditor.h" />
     <ClInclude Include="src\Editor\Aet\AetIcons.h" />
     <ClInclude Include="src\Editor\Aet\AetSelection.h" />
     <ClInclude Include="src\Editor\Aet\Command\AetHistoryWindow.h" />
-    <ClInclude Include="src\Editor\Aet\Command\AetCommands.h" />
     <ClInclude Include="src\Editor\Aet\Core\AetContentView.h" />
     <ClInclude Include="src\Editor\Aet\Core\AetInspector.h" />
     <ClInclude Include="src\Editor\Aet\Core\AetTreeView.h" />

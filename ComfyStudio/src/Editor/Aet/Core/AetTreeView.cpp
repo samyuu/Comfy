@@ -1,5 +1,5 @@
 #include "AetTreeView.h"
-#include "Editor/Aet/Command/AetCommands.h"
+#include "Editor/Aet/AetCommands.h"
 #include "IO/File.h"
 #include "IO/Shell.h"
 #include "Input/Input.h"

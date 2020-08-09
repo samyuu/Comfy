@@ -341,7 +341,7 @@
     <ClInclude Include="src\Editor\Chart\SortedTempoMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Editor\Aet\Command\AetCommands.h">
+    <ClInclude Include="src\Editor\Aet\AetCommands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
