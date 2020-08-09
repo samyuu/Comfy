@@ -77,7 +77,7 @@ namespace Comfy::Undo
 			undoStack.emplace_back(VectorPop(redoStack))->Redo();
 	}
 
-	void UndoManager::Clear()
+	void UndoManager::ClearAll()
 	{
 		if (!endOfFrameCommands.empty())
 			endOfFrameCommands.clear();

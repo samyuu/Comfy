@@ -29,6 +29,7 @@ namespace Comfy::Undo
 		//		 Passed as non const reference to allow for move optimizations though it should not be mutated if the merge failed
 		virtual MergeResult TryMerge(ICommand& commandToMerge) = 0;
 
+		// NOTE: To be displayed in a GUI
 		virtual std::string_view GetName() const = 0;
 	};
 }

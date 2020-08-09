@@ -24,14 +24,19 @@ namespace Comfy::Undo
 	public:
 		void Undo();
 		void Redo();
-		void Clear();
 
+		void ClearAll();
+
+		// NOTE: Specifically for visualization, attempting to undo / redo an empty stack is a no-op
 		bool CanUndo() const;
 		bool CanRedo() const;
 
+		// NOTE: Specifically for command history visualization
 		const std::vector<std::unique_ptr<ICommand>>& GetUndoStackView() const;
 		const std::vector<std::unique_ptr<ICommand>>& GetRedoStackView() const;
 
+		// TODO: Implement some kind of interface to easily disallow merges with the last added command
+		//		 for when a mouse button is released or a text box lost focus etc. (?)
 		void SetCommandMergingEnabled(bool value);
 
 	private:
