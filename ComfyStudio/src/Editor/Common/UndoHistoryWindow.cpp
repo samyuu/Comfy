@@ -9,11 +9,6 @@ namespace Comfy::Studio::Editor
 
 	bool UndoHistoryWindow::Gui()
 	{
-#if COMFY_DEBUG // DEBUG:
-		if (Gui::IsWindowFocused() && !Gui::GetIO().WantCaptureKeyboard && Gui::IsKeyPressed('M'))
-			activeDisplayType = ((activeDisplayType = static_cast<DisplayType>(static_cast<int>(activeDisplayType) + 1)) == DisplayType::Count) ? static_cast<DisplayType>(0) : activeDisplayType;
-#endif
-
 		switch (activeDisplayType)
 		{
 		case DisplayType::SingleColumn:
@@ -52,25 +47,23 @@ namespace Comfy::Studio::Editor
 			const auto& redoStack = undoManager.GetRedoStackView();
 
 			if (undoStack.empty() && redoStack.empty())
-				Gui::Selectable("Empty", false, ImGuiSelectableFlags_Disabled);
+				CommandSelectableGui("Empty", false, ImGuiSelectableFlags_Disabled);
 
 			int undoClickedIndex = -1, redoClickedIndex = -1;
 
 			for (int i = 0; i < static_cast<int>(undoStack.size()); i++)
 			{
-				Gui::PushID(undoStack[i].get());
-				if (Gui::Selectable(GetCommandName(*undoStack[i])))
+				const auto selected = ((i + 1) == undoStack.size());
+
+				if (CommandSelectableGui(*undoStack[i], selected))
 					undoClickedIndex = i;
-				Gui::PopID();
 			}
 
 			Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(ImGuiCol_TextDisabled));
 			for (int i = static_cast<int>(redoStack.size()) - 1; i >= 0; i--)
 			{
-				Gui::PushID(redoStack[i].get());
-				if (Gui::Selectable(GetCommandName(*redoStack[i])))
+				if (CommandSelectableGui(*redoStack[i]))
 					redoClickedIndex = i;
-				Gui::PopID();
 			}
 			Gui::PopStyleColor();
 
@@ -111,20 +104,43 @@ namespace Comfy::Studio::Editor
 		{
 			if (stackView.empty())
 			{
-				Gui::Selectable("Empty", false, ImGuiSelectableFlags_Disabled);
+				CommandSelectableGui("Empty", false, ImGuiSelectableFlags_Disabled);
 			}
 			else
 			{
 				for (const auto& command : stackView)
-					Gui::Selectable(GetCommandName(*command));
+					CommandSelectableGui(*command);
 			}
 			Gui::ListBoxFooter();
 		}
 	}
 
-	const char* UndoHistoryWindow::GetCommandName(const Undo::ICommand& command) const
+	bool UndoHistoryWindow::CommandSelectableGui(const Undo::ICommand& command, bool selected) const
 	{
-		// TODO: String view start / end although since commands only ever return views to string literals this works fine for now
-		return command.GetName().data();
+		Gui::PushID(&command);
+		const auto clicked = CommandSelectableGui(command.GetName(), selected);
+		Gui::PopID();
+
+		return clicked;
+	}
+
+	bool UndoHistoryWindow::CommandSelectableGui(std::string_view name, bool selected, ImGuiSelectableFlags flags) const
+	{
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f, Gui::GetStyle().ItemSpacing.y));
+
+		const auto clicked = Gui::Selectable("##CommandSelectable", selected, flags);
+		Gui::SameLine();
+
+		Gui::PopStyleVar();
+
+		if (flags & ImGuiSelectableFlags_Disabled)
+			Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+
+		Gui::TextUnformatted(Gui::StringViewStart(name), Gui::StringViewEnd(name));
+
+		if (flags & ImGuiSelectableFlags_Disabled)
+			Gui::PopStyleColor();
+
+		return clicked;
 	}
 }

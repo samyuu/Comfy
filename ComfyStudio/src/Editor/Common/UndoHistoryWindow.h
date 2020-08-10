@@ -1,6 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "Undo/Undo.h"
+#include "ImGui/Gui.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -29,7 +30,8 @@ namespace Comfy::Studio::Editor
 		void CommandStackListBoxGui(const char* headerName, const std::vector<std::unique_ptr<Undo::ICommand>>& stackView);
 
 	private:
-		const char* GetCommandName(const Undo::ICommand& command) const;
+		bool CommandSelectableGui(const Undo::ICommand& command, bool selected = false) const;
+		bool CommandSelectableGui(std::string_view name, bool selected = false, ImGuiSelectableFlags flags = ImGuiSelectableFlags_None) const;
 
 	private:
 		Undo::UndoManager& undoManager;
