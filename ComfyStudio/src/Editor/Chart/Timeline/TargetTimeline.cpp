@@ -1,5 +1,6 @@
 #include "TargetTimeline.h"
 #include "Editor/Chart/ChartEditor.h"
+#include "Editor/Chart/ChartCommands.h"
 #include "Editor/Chart/SortedTempoMap.h"
 #include "Time/TimeSpan.h"
 #include <FontIcons.h>
@@ -593,10 +594,7 @@ namespace Comfy::Studio::Editor
 				auto bpm = tempoChange.Tempo.BeatsPerMinute;
 
 				if (Gui::DragFloat("##TempoDragFloat", &bpm, 1.0f, Tempo::MinBPM, Tempo::MaxBPM, "%.2f BPM"))
-				{
-					tempoChange.Tempo = bpm;
-					UpdateTimelineMapTimes();
-				}
+					undoManager.Execute<ChangeTempo>(*workingChart, tempoChange.Tick, bpm);
 			}
 
 			Gui::EndPopup();
@@ -810,7 +808,7 @@ namespace Comfy::Studio::Editor
 				if (buttonSoundOnSuccessfulPlacementOnly)
 					buttonSoundController.PlayButtonSound();
 
-				workingChart->GetTargets().RemoveAt(existingTargetIndex);
+				undoManager.Execute<RemoveTarget>(*workingChart, tick, type);
 			}
 		}
 		else
@@ -818,7 +816,7 @@ namespace Comfy::Studio::Editor
 			if (buttonSoundOnSuccessfulPlacementOnly)
 				buttonSoundController.PlayButtonSound();
 
-			workingChart->GetTargets().Add(tick, type);
+			undoManager.Execute<AddTarget>(*workingChart, tick, type);
 		}
 
 		const auto buttonIndex = static_cast<size_t>(type);
