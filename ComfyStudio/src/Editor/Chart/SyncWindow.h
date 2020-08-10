@@ -1,13 +1,14 @@
 #pragma once
 #include "Chart.h"
 #include "Timeline/TargetTimeline.h"
+#include "Undo/Undo.h"
 
 namespace Comfy::Studio::Editor
 {
 	class SyncWindow
 	{
 	public:
-		SyncWindow() = default;
+		SyncWindow(Undo::UndoManager& undoManager);
 		~SyncWindow() = default;
 
 	public:
@@ -15,6 +16,7 @@ namespace Comfy::Studio::Editor
 		void Gui(Chart& chart, TargetTimeline& timeline);
 
 	private:
+		Undo::UndoManager& undoManager;
 		Tempo newTempo = TempoChange::DefaultTempo;
 	};
 }

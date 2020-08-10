@@ -1,10 +1,15 @@
 #include "SyncWindow.h"
 #include "SortedTempoMap.h"
+#include "Editor/Chart/ChartCommands.h"
 #include "Timeline/TimelineTick.h"
 #include "ImGui/Gui.h"
 
 namespace Comfy::Studio::Editor
 {
+	SyncWindow::SyncWindow(Undo::UndoManager& undoManager) : undoManager(undoManager)
+	{
+	}
+
 	void SyncWindow::OnFirstFrame()
 	{
 	}
