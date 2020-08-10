@@ -50,7 +50,7 @@ namespace Comfy::Studio::Editor
 		// SetColor(EditorColor_GridAlt, GetColorU32(ImGuiCol_Separator, 0.5f));
 		SetColor(EditorColor_Grid, 0xFF373737);
 		SetColor(EditorColor_GridAlt, 0xFF343434);
-		
+
 		SetColor(EditorColor_Waveform, 0x40616161);
 
 		SetColor(EditorColor_Selection, GetColorU32(ImGuiCol_TextSelectedBg));
@@ -107,14 +107,14 @@ namespace Comfy::Studio::Editor
 		DrawGui();
 	}
 
-	template<class T>
+	template<typename T>
 	void EditorManager::AddEditorComponent(bool opened)
 	{
 		static_assert(std::is_base_of<IEditorComponent, T>::value, "T must inherit from IEditorComponent");
-		editorComponents.push_back({ false, std::move(std::make_unique<T>(parent, *this)) });
+		auto& added = editorComponents.emplace_back(ComponentEntry { false, std::move(std::make_unique<T>(parent, *this)) });
 
 		if (!opened)
-			editorComponents.back().Component->Close();
+			added.Component->Close();
 	}
 
 	void EditorManager::OnFirstFrame()
