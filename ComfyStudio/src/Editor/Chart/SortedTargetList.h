@@ -68,6 +68,8 @@ namespace Comfy::Studio::Editor
 		void Remove(TimelineTick tick, ButtonType type);
 		i64 FindIndex(TimelineTick tick, ButtonType type);
 
+		void Clear();
+
 	public:
 		auto begin() { return targets.begin(); }
 		auto end() { return targets.end(); }

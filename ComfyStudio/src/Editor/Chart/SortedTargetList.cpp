@@ -69,6 +69,11 @@ namespace Comfy::Studio::Editor
 		return InBounds(foundIndex, targets) ? static_cast<i64>(foundIndex) : -1;
 	}
 
+	void SortedTargetList::Clear()
+	{
+		targets.clear();
+	}
+
 	size_t SortedTargetList::FindSortedInsertionIndex(TimelineTick tick, ButtonType type) const
 	{
 		const auto inputSortWeight = GetTargetSortWeight(tick, type);
