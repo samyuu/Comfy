@@ -46,13 +46,12 @@ namespace Comfy::Studio::Editor
 		if (tempoChanges.size() == 1)
 			return tempoChanges.front();
 
-		// TODO: Is this correctly implemented...?
 		for (size_t i = 0; i < tempoChanges.size() - 1; i++)
 		{
 			auto& change = tempoChanges[i];
 			auto& nextChange = tempoChanges[i + 1];
 
-			if (change.Tick >= tick && nextChange.Tick < tick)
+			if (change.Tick <= tick && nextChange.Tick > tick)
 				return change;
 		}
 
