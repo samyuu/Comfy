@@ -132,19 +132,19 @@ namespace Comfy::Studio::Editor
 	{
 	public:
 		LayerAddMarker(std::shared_ptr<Graphics::Aet::Layer> ref, std::shared_ptr<Graphics::Aet::Marker> value)
-			: ref(std::move(ref)), newValue(std::move(value))
+			: reference(std::move(ref)), newValue(std::move(value))
 		{
 		}
 
 	public:
 		void Undo() override
 		{
-			ref->Markers.erase(std::find(ref->Markers.begin(), ref->Markers.end(), newValue));
+			reference->Markers.erase(std::find(reference->Markers.begin(), reference->Markers.end(), newValue));
 		}
 
 		void Redo() override
 		{
-			ref->Markers.push_back(newValue);
+			reference->Markers.push_back(newValue);
 		}
 
 		Undo::MergeResult TryMerge(ICommand& commandToMerge) override
@@ -155,10 +155,10 @@ namespace Comfy::Studio::Editor
 		std::string_view GetName() const override { return "New Layer Marker"; }
 
 	private:
-		frame_t ClampValue(frame_t value) { return glm::max(value, ref->StartFrame + 1.0f); }
+		frame_t ClampValue(frame_t value) { return glm::max(value, reference->StartFrame + 1.0f); }
 
 	private:
-		std::shared_ptr<Graphics::Aet::Layer> ref;
+		std::shared_ptr<Graphics::Aet::Layer> reference;
 		std::shared_ptr<Graphics::Aet::Marker> newValue;
 	};
 
