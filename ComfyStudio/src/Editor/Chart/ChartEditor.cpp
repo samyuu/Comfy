@@ -8,7 +8,7 @@ namespace Comfy::Studio::Editor
 	{
 		chart = std::make_unique<Chart>();
 
-		timeline = std::make_unique<TargetTimeline>(*this);
+		timeline = std::make_unique<TargetTimeline>(*this, undoManager);
 		syncWindow = std::make_unique<SyncWindow>();
 		renderWindow = std::make_unique<TargetRenderWindow>();
 	}

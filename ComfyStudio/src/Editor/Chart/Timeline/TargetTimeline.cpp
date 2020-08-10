@@ -6,7 +6,7 @@
 
 namespace Comfy::Studio::Editor
 {
-	TargetTimeline::TargetTimeline(ChartEditor& parent) : chartEditor(parent)
+	TargetTimeline::TargetTimeline(ChartEditor& parent, Undo::UndoManager& undoManager) : chartEditor(parent), undoManager(undoManager)
 	{
 		scrollSpeed = 2.5f;
 		scrollSpeedFast = 5.5f;

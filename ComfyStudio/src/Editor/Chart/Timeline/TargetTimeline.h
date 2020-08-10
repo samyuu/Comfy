@@ -8,6 +8,7 @@
 #include "Audio/Audio.h"
 #include "Input/Input.h"
 #include "Time/Stopwatch.h"
+#include "Undo/Undo.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -17,7 +18,7 @@ namespace Comfy::Studio::Editor
 	class TargetTimeline : public TimelineBase
 	{
 	public:
-		TargetTimeline(ChartEditor& parent);
+		TargetTimeline(ChartEditor& parent, Undo::UndoManager& undoManager);
 		~TargetTimeline() = default;
 
 	public:
@@ -53,7 +54,9 @@ namespace Comfy::Studio::Editor
 
 	protected:
 		Chart* workingChart = nullptr;
+
 		ChartEditor& chartEditor;
+		Undo::UndoManager& undoManager;
 
 	protected:
 		// NOTE: Instead of checking if a button lies between the cursor and last frame cursor time, check if the button will have been pressed in the future
