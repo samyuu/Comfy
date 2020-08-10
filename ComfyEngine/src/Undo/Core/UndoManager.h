@@ -12,11 +12,18 @@ namespace Comfy::Undo
 		virtual ~UndoManager() = default;
 
 	public:
-		template<class CommandType, class... Types>
-		void AddToEndOfFrameExecutionList(Types&&... args)
+		template<typename CommandType, typename... Args>
+		void Execute(Args&&... args)
 		{
 			static_assert(std::is_base_of<ICommand, CommandType>::value, "CommandType must inherit from ICommand");
-			endOfFrameCommands.emplace_back(std::make_unique<CommandType>(std::forward<Types>(args)...));
+			TryMergeOrExecute(std::make_unique<CommandType>(std::forward<Args>(args)...));
+		}
+
+		template<typename CommandType, typename... Args>
+		void ExecuteEndOfFrame(Args&&... args)
+		{
+			static_assert(std::is_base_of<ICommand, CommandType>::value, "CommandType must inherit from ICommand");
+			endOfFrameCommands.emplace_back(std::make_unique<CommandType>(std::forward<Args>(args)...));
 		}
 
 		void FlushExecuteEndOfFrameCommands();

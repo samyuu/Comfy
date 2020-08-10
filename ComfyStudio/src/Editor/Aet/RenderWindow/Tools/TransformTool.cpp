@@ -270,12 +270,12 @@ namespace Comfy::Studio::Editor
 		if (transform.Scale == previousTransform.Scale)
 		{
 			const auto tuple = std::make_tuple(frame, transform.Position);
-			undoManager.AddToEndOfFrameExecutionList<AnimationDataChangePosition>(layer, tuple);
+			undoManager.ExecuteEndOfFrame<AnimationDataChangePosition>(layer, tuple);
 		}
 		else
 		{
 			const auto tuple = std::make_tuple(frame, transform.Position, transform.Scale);
-			undoManager.AddToEndOfFrameExecutionList<AnimationDataChangeTransform>(layer, tuple);
+			undoManager.ExecuteEndOfFrame<AnimationDataChangeTransform>(layer, tuple);
 		}
 	}
 

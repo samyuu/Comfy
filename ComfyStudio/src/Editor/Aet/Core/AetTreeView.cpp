@@ -346,12 +346,12 @@ namespace Comfy::Studio::Editor
 		if (layer->ItemType == ItemType::Audio)
 		{
 			if (Gui::ComfySmallButton(layer->GetIsAudible() ? ICON_AUDIBLE : ICON_INAUDIBLE, smallButtonSize))
-				undoManager.AddToEndOfFrameExecutionList<LayerChangeFlagsAudible>(layer, !layer->GetIsAudible());
+				undoManager.ExecuteEndOfFrame<LayerChangeFlagsAudible>(layer, !layer->GetIsAudible());
 		}
 		else
 		{
 			if (Gui::ComfySmallButton(layer->GetIsVisible() ? ICON_VISIBLE : ICON_INVISIBLE, smallButtonSize))
-				undoManager.AddToEndOfFrameExecutionList<LayerChangeFlagsVisible>(layer, !layer->GetIsVisible());
+				undoManager.ExecuteEndOfFrame<LayerChangeFlagsVisible>(layer, !layer->GetIsVisible());
 		}
 		Gui::SameLine();
 
