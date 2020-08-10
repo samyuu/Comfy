@@ -226,6 +226,7 @@
     <ClInclude Include="src\Editor\Aet\Timeline\AetTimeline.h" />
     <ClInclude Include="src\Editor\Aet\Timeline\AetTimelineController.h" />
     <ClInclude Include="src\Editor\Aet\Timeline\KeyFrameRenderer.h" />
+    <ClInclude Include="src\Editor\Chart\ChartCommands.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TimelineButtonIcons.h" />
     <ClInclude Include="src\Editor\Common\CameraController3D.h" />
     <ClInclude Include="src\Editor\Chart\Chart.h" />
