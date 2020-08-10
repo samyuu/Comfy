@@ -4,6 +4,7 @@
 #include "IO/Stream/FileStream.h"
 #include "IO/Stream/MemoryStream.h"
 #include "IO/Stream/FileInterfaces.h"
+#include "IO/Stream/Manipulator/StreamReader.h"
 
 namespace Comfy::IO
 {
@@ -113,6 +114,9 @@ namespace Comfy::IO
 		std::unique_ptr<Readable> Load(const ComfyEntry* entry)
 		{
 			static_assert(std::is_base_of_v<IStreamReadable, Readable>);
+
+			if (entry == nullptr)
+				return nullptr;
 
 			auto fileBuffer = std::vector<u8>(entry->Size);
 			if (!ReadFileIntoBuffer(entry, fileBuffer.data()))
