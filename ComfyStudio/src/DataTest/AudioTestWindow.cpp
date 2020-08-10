@@ -24,7 +24,7 @@ namespace Comfy::Studio::DataTest
 
 	void AudioTestWindow::Gui()
 	{
-		auto& engine = Audio::Engine::GetInstance();
+		auto& engine = Audio::AudioEngine::GetInstance();
 
 		auto checkStartStream = [&]()
 		{
@@ -40,7 +40,7 @@ namespace Comfy::Studio::DataTest
 		Gui::Separator();
 
 		float masterVolume = engine.GetMasterVolume();
-		if (Gui::SliderFloat("Master Volume", &masterVolume, Audio::Engine::MinVolume, Audio::Engine::MaxVolume))
+		if (Gui::SliderFloat("Master Volume", &masterVolume, Audio::AudioEngine::MinVolume, Audio::AudioEngine::MaxVolume))
 			engine.SetMasterVolume(masterVolume);
 		Gui::Separator();
 
@@ -151,7 +151,7 @@ namespace Comfy::Studio::DataTest
 			constexpr u32 slowStep = 8, fastStep = 64;
 			Gui::InputScalar("Buffer Size", ImGuiDataType_U32, &newBufferFrameCount, &slowStep, &fastStep, "%u");
 
-			newBufferFrameCount = std::clamp(newBufferFrameCount, Audio::Engine::MinBufferFrameCount, Audio::Engine::MaxBufferFrameCount);
+			newBufferFrameCount = std::clamp(newBufferFrameCount, Audio::AudioEngine::MinBufferFrameCount, Audio::AudioEngine::MaxBufferFrameCount);
 
 			if (Gui::Button("SetBufferFrameSize()", vec2(Gui::CalcItemWidth(), 0.0f)))
 				engine.SetBufferFrameSize(newBufferFrameCount);
@@ -176,13 +176,13 @@ namespace Comfy::Studio::DataTest
 
 			Gui::Separator();
 
-			constexpr auto getAudioAPIName = [](Audio::Engine::AudioAPI api)
+			constexpr auto getAudioAPIName = [](Audio::AudioEngine::AudioAPI api)
 			{
 				switch (api)
 				{
-				case Audio::Engine::AudioAPI::ASIO:
+				case Audio::AudioEngine::AudioAPI::ASIO:
 					return "AudioAPI::ASIO";
-				case Audio::Engine::AudioAPI::WASAPI:
+				case Audio::AudioEngine::AudioAPI::WASAPI:
 					return "AudioAPI::WASAPI";
 				default:
 					return "AudioAPI::Invalid";
@@ -191,12 +191,12 @@ namespace Comfy::Studio::DataTest
 
 			Gui::Text("GetAudioAPI(): %s", getAudioAPIName(engine.GetAudioAPI()));
 
-			if (selectedAudioAPI == Audio::Engine::AudioAPI::Invalid)
+			if (selectedAudioAPI == Audio::AudioEngine::AudioAPI::Invalid)
 				selectedAudioAPI = engine.GetAudioAPI();
 
 			if (Gui::BeginCombo("Audio API##Combo", getAudioAPIName(selectedAudioAPI)))
 			{
-				for (const auto availableAPI : std::array { Audio::Engine::AudioAPI::WASAPI, Audio::Engine::AudioAPI::ASIO })
+				for (const auto availableAPI : std::array { Audio::AudioEngine::AudioAPI::WASAPI, Audio::AudioEngine::AudioAPI::ASIO })
 				{
 					if (Gui::Selectable(getAudioAPIName(availableAPI), (selectedAudioAPI == availableAPI)))
 						selectedAudioAPI = availableAPI;
@@ -244,7 +244,7 @@ namespace Comfy::Studio::DataTest
 		{
 			Gui::BeginChild("##AudioInstanceChilds", vec2(0.0f, audioInstancesChildHeight), true);
 			{
-				std::array<Audio::Voice, Audio::Engine::MaxSimultaneousVoices> allVoices;
+				std::array<Audio::Voice, Audio::AudioEngine::MaxSimultaneousVoices> allVoices;
 				size_t voiceCount;
 
 				engine.DebugGetAllVoices(allVoices.data(), &voiceCount);
@@ -307,7 +307,7 @@ namespace Comfy::Studio::DataTest
 				Gui::Separator();
 
 				float volume = testSongVoice.GetVolume();
-				if (Gui::SliderFloat("Volume", &volume, Audio::Engine::MinVolume, Audio::Engine::MaxVolume))
+				if (Gui::SliderFloat("Volume", &volume, Audio::AudioEngine::MinVolume, Audio::AudioEngine::MaxVolume))
 					testSongVoice.SetVolume(volume);
 
 				auto boolColorText = [&onColor, &offColor](const char* label, bool value)
@@ -339,7 +339,7 @@ namespace Comfy::Studio::DataTest
 			Gui::Button("PlaySound(TestButtonSource)");
 			bool addButtonSound = Gui::IsItemHovered() && Gui::IsMouseClicked(0);
 
-			Gui::SliderFloat("Button Volume", &testButtonVolume, Audio::Engine::MinVolume, Audio::Engine::MaxVolume);
+			Gui::SliderFloat("Button Volume", &testButtonVolume, Audio::AudioEngine::MinVolume, Audio::AudioEngine::MaxVolume);
 
 			if (Gui::IsWindowFocused())
 			{
@@ -385,7 +385,7 @@ namespace Comfy::Studio::DataTest
 
 	void AudioTestWindow::RefreshDeviceInfoList()
 	{
-		auto& engine = Audio::Engine::GetInstance();
+		auto& engine = Audio::AudioEngine::GetInstance();
 #if 0
 		size_t deviceCount = engine.GetDeviceCount();
 

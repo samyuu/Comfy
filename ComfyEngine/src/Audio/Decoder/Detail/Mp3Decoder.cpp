@@ -1,5 +1,5 @@
 #include "Decoders.h"
-#include "Audio/Core/Engine.h"
+#include "Audio/Core/AudioEngine.h"
 #define DR_MP3_IMPLEMENTATION
 #include <dr_mp3.h>
 
@@ -13,8 +13,8 @@ namespace Comfy::Audio
 	DecoderResult Mp3Decoder::DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData* outputData)
 	{
 		drmp3_config config;
-		config.outputChannels = Engine::GetInstance().GetChannelCount();
-		config.outputSampleRate = Engine::GetInstance().GetSampleRate();
+		config.outputChannels = AudioEngine::GetInstance().GetChannelCount();
+		config.outputSampleRate = AudioEngine::GetInstance().GetSampleRate();
 
 		u64 frameCount;
 		i16* data = drmp3_open_memory_and_read_s16(fileData, fileSize, &config, &frameCount);

@@ -4,7 +4,7 @@ namespace Comfy::Studio::Editor
 {
 	ButtonSoundController::ButtonSoundController()
 	{
-		auto& audioEngine = Audio::Engine::GetInstance();
+		auto& audioEngine = Audio::AudioEngine::GetInstance();
 
 		for (size_t i = 0; i < buttonSoundVoicePool.size(); i++)
 		{
@@ -23,10 +23,10 @@ namespace Comfy::Studio::Editor
 	ButtonSoundController::~ButtonSoundController()
 	{
 		for (auto& voice : buttonSoundVoicePool)
-			Audio::Engine::GetInstance().RemoveVoice(voice);
+			Audio::AudioEngine::GetInstance().RemoveVoice(voice);
 
 		for (auto& source : loadedSoundSources)
-			Audio::Engine::GetInstance().UnloadSource(source.Get());
+			Audio::AudioEngine::GetInstance().UnloadSource(source.Get());
 	}
 
 	void ButtonSoundController::PlayButtonSound(TimeSpan startTime, std::optional<TimeSpan> externalClock)
@@ -80,7 +80,7 @@ namespace Comfy::Studio::Editor
 
 	void ButtonSoundController::PlayButtonSoundUsingVoice(Audio::Voice voice, TimeSpan startTime)
 	{
-		Audio::Engine::GetInstance().EnsureStreamRunning();
+		Audio::AudioEngine::GetInstance().EnsureStreamRunning();
 		voice.SetSource(GetButtonSoundSource(buttonSoundIndex));
 		voice.SetVolume(buttonSoundVolume * GetLastButtonSoundTimeVolumeFactor());
 		voice.SetPosition(startTime);

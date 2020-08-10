@@ -108,7 +108,7 @@ namespace Comfy
 			if (!CheckConnectedDevices())
 				return false;
 
-			Audio::Engine::CreateInstance();
+			Audio::AudioEngine::CreateInstance();
 
 			if (!GuiRenderer.Initialize())
 				return false;
@@ -169,9 +169,9 @@ namespace Comfy
 			Input::Keyboard::DeleteInstance();
 			Input::DualShock4::DeleteInstance();
 
-			if (Audio::Engine::InstanceValid())
-				Audio::Engine::GetInstance().StopStream();
-			Audio::Engine::DeleteInstance();
+			if (Audio::AudioEngine::InstanceValid())
+				Audio::AudioEngine::GetInstance().StopStream();
+			Audio::AudioEngine::DeleteInstance();
 
 			Render::D3D11::D3D.Dispose();
 			DisposeWindow();

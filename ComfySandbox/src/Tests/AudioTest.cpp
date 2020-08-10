@@ -9,8 +9,8 @@ namespace Comfy::Sandbox::Tests
 
 		AudioTest()
 		{
-			Audio::Engine::GetInstance().OpenStream();
-			Audio::Engine::GetInstance().StartStream();
+			Audio::AudioEngine::GetInstance().OpenStream();
+			Audio::AudioEngine::GetInstance().StartStream();
 			// Audio::Engine::GetInstance().SetAudioAPI(Audio::Engine::AudioAPI::ASIO);
 		}
 
@@ -20,17 +20,17 @@ namespace Comfy::Sandbox::Tests
 				Input::KeyCode_W, Input::KeyCode_A, Input::KeyCode_S, Input::KeyCode_D,
 				Input::KeyCode_I, Input::KeyCode_J, Input::KeyCode_K, Input::KeyCode_L, })
 				if (Gui::IsKeyPressed(keyCode, false))
-					Audio::Engine::GetInstance().PlaySound(buttonSound, "TestSound");
+					Audio::AudioEngine::GetInstance().PlaySound(buttonSound, "TestSound");
 
 			if (Gui::Begin("Test Audio Control"))
 			{
-				if (Gui::Button("WASAPI")) Audio::Engine::GetInstance().SetAudioAPI(Audio::Engine::AudioAPI::WASAPI);
-				if (Gui::Button("ASIO")) Audio::Engine::GetInstance().SetAudioAPI(Audio::Engine::AudioAPI::ASIO);
+				if (Gui::Button("WASAPI")) Audio::AudioEngine::GetInstance().SetAudioAPI(Audio::AudioEngine::AudioAPI::WASAPI);
+				if (Gui::Button("ASIO")) Audio::AudioEngine::GetInstance().SetAudioAPI(Audio::AudioEngine::AudioAPI::ASIO);
 			}
 			Gui::End();
 		}
 
 	private:
-		Audio::SourceHandle buttonSound = Audio::Engine::GetInstance().LoadAudioSource("dev_ram/sound/button/01_button1.wav");
+		Audio::SourceHandle buttonSound = Audio::AudioEngine::GetInstance().LoadAudioSource("dev_ram/sound/button/01_button1.wav");
 	};
 }

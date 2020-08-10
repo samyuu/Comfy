@@ -70,7 +70,7 @@ namespace Comfy::Audio
 	{
 	};
 
-	class Engine : NonCopyable
+	class AudioEngine : NonCopyable
 	{
 		friend Voice;
 		friend CallbackReceiver;
@@ -100,15 +100,15 @@ namespace Comfy::Audio
 		};
 
 	public:
-		Engine();
-		~Engine();
+		AudioEngine();
+		~AudioEngine();
 
 	public:
 		static void CreateInstance();
 		static void DeleteInstance();
 
 		static bool InstanceValid();
-		static Engine& GetInstance();
+		static AudioEngine& GetInstance();
 
 	public:
 		void OpenStream();

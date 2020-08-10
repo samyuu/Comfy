@@ -15,7 +15,7 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::OnFirstFrame()
 	{
-		songVoice = Audio::Engine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor::SongVoice", false, 0.75f, true);
+		songVoice = Audio::AudioEngine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor::SongVoice", false, 0.75f, true);
 
 		timeline->Initialize();
 		syncWindow->OnFirstFrame();
@@ -88,7 +88,7 @@ namespace Comfy::Studio::Editor
 
 	bool ChartEditor::LoadSongAsync(std::string_view filePath)
 	{
-		songSourceFuture = Audio::Engine::GetInstance().LoadAudioSourceAsync(filePath);
+		songSourceFuture = Audio::AudioEngine::GetInstance().LoadAudioSourceAsync(filePath);
 		return true;
 	}
 
@@ -120,7 +120,7 @@ namespace Comfy::Studio::Editor
 		const auto previousPlaybackTime = GetPlaybackTimeAsync();
 		const auto newSongStream = songSourceFuture.get();
 
-		Audio::Engine::GetInstance().UnloadSource(songSource);
+		Audio::AudioEngine::GetInstance().UnloadSource(songSource);
 
 		songVoice.SetSource(newSongStream);
 		songSource = newSongStream;

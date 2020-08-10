@@ -35,12 +35,12 @@ namespace Comfy::Studio::DataTest
 		Audio::SourceHandle buttonTestSource = Audio::SourceHandle::Invalid;
 		Audio::Voice testSongVoice = Audio::VoiceHandle::Invalid;
 
-		float testButtonVolume = Audio::Engine::MaxVolume;
+		float testButtonVolume = Audio::AudioEngine::MaxVolume;
 
-		Audio::Engine::AudioAPI selectedAudioAPI = Audio::Engine::AudioAPI::Invalid;
+		Audio::AudioEngine::AudioAPI selectedAudioAPI = Audio::AudioEngine::AudioAPI::Invalid;
 		Audio::ChannelMixer::MixingBehavior selectedMixingBehavior = static_cast<Audio::ChannelMixer::MixingBehavior>(-1);
 
-		u32 newBufferFrameCount = Audio::Engine::DefaultBufferFrameCount;
+		u32 newBufferFrameCount = Audio::AudioEngine::DefaultBufferFrameCount;
 
 		static constexpr std::array<const char*, EnumCount<Audio::ChannelMixer::MixingBehavior>()> mixingBehaviorNames =
 		{
