@@ -68,6 +68,14 @@ namespace Comfy::Studio::Editor
 		// renderWindow->SetIsPlayback(timeline->GetIsPlayback());
 		// renderWindow->SetCurrentFrame(timeline->GetFrame().Frames());
 		renderWindow->BeginEndGui(ICON_FA_CHART_BAR "  Target Window##ChartEditor");
+
+		if (Gui::Begin(ICON_FA_HISTORY "  Chart Editor History##ChartEditor"))
+		{
+			historyWindow.Gui();
+		}
+		Gui::End();
+
+		undoManager.FlushExecuteEndOfFrameCommands();
 	}
 
 	bool ChartEditor::IsAudioFile(std::string_view filePath)

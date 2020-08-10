@@ -4,7 +4,9 @@
 #include "SyncWindow.h"
 #include "Timeline/TargetTimeline.h"
 #include "TargetRenderWindow.h"
+#include "Undo/Undo.h"
 #include "ImGui/Widgets/FileViewer.h"
+#include "Editor/Common/UndoHistoryWindow.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -52,9 +54,11 @@ namespace Comfy::Studio::Editor
 
 		std::unique_ptr<Chart> chart;
 
+		Undo::UndoManager undoManager = {};
 		std::unique_ptr<TargetTimeline> timeline;
 		std::unique_ptr<SyncWindow> syncWindow;
 		std::unique_ptr<TargetRenderWindow> renderWindow;
+		UndoHistoryWindow historyWindow = { undoManager };
 
 		std::future<Audio::SourceHandle> songSourceFuture;
 		Audio::SourceHandle songSource = Audio::SourceHandle::Invalid;
