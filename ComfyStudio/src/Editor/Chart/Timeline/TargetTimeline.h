@@ -59,6 +59,8 @@ namespace Comfy::Studio::Editor
 		Undo::UndoManager& undoManager;
 
 	protected:
+		TimeSpan lastFrameStartOffset = {}, thisFrameStartOffset = {};
+
 		// NOTE: Instead of checking if a button lies between the cursor and last frame cursor time, check if the button will have been pressed in the future
 		//		 and then play it back with a negative offset to sample-perfectly sync it to the music.
 		//		 The only requirement for this value is that is longer than the duration of any given frame and preferably is as low as possible
@@ -66,7 +68,7 @@ namespace Comfy::Studio::Editor
 		TimeSpan buttonSoundFutureOffset = TimeSpan::FromSeconds(1.0 / 25.0);
 
 		ButtonSoundController buttonSoundController = {};
-		TimeSpan lastButtonSoundCursorTime = {}, buttonSoundCursorTime = {};
+		TimeSpan lastFrameButtonSoundCursorTime = {}, thisFrameButtonSoundCursorTime = {};
 
 		// NOTE: Having this enabled should *discourage* realtime target placement without an accurate tempo map / offset set
 		bool buttonSoundOnSuccessfulPlacementOnly = true;
@@ -130,6 +132,7 @@ namespace Comfy::Studio::Editor
 
 	protected:
 		void OnUpdate() override;
+		void UpdateOffsetChangeCursorTimeAdjustment();
 		void UpdatePlaybackButtonSounds();
 
 	protected:

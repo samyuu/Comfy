@@ -129,14 +129,27 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnUpdate()
 	{
+		UpdateOffsetChangeCursorTimeAdjustment();
+
 		if (GetIsPlayback())
 			UpdatePlaybackButtonSounds();
 	}
 
+	void TargetTimeline::UpdateOffsetChangeCursorTimeAdjustment()
+	{
+		lastFrameStartOffset = thisFrameStartOffset;
+		thisFrameStartOffset = workingChart->GetStartOffset();
+
+		// NOTE: Cancel out the cursor being moved by a change of offset because this just feels more intuitive to use
+		//		 and always automatically applying the start offset to the playback time makes other calculations easier
+		if (thisFrameStartOffset != lastFrameStartOffset)
+			SetCursorTime(GetCursorTime() + (thisFrameStartOffset - lastFrameStartOffset));
+	}
+
 	void TargetTimeline::UpdatePlaybackButtonSounds()
 	{
-		lastButtonSoundCursorTime = buttonSoundCursorTime;
-		buttonSoundCursorTime = GetCursorTime();
+		lastFrameButtonSoundCursorTime = thisFrameButtonSoundCursorTime;
+		thisFrameButtonSoundCursorTime = GetCursorTime();
 
 		// TODO: Implement metronome the same way, refactor ButtonSoundController to support any user controlled voices generically and rename to SoundVoicePool (?)
 
@@ -151,9 +164,9 @@ namespace Comfy::Studio::Editor
 			const auto buttonTime = workingChart->GetTimelineMap().GetTimeAt(target.Tick);
 			const auto offsetButtonTime = buttonTime - buttonSoundFutureOffset;
 
-			if (offsetButtonTime >= lastButtonSoundCursorTime && offsetButtonTime <= buttonSoundCursorTime)
+			if (offsetButtonTime >= lastFrameButtonSoundCursorTime && offsetButtonTime <= thisFrameButtonSoundCursorTime)
 			{
-				const auto startTime = (buttonSoundCursorTime - buttonTime);
+				const auto startTime = (thisFrameButtonSoundCursorTime - buttonTime);
 				const auto externalClock = buttonTime;
 
 				// NOTE: Don't wanna cause any audio cutoffs. If this happens the future threshold is either set too low for the current frame time
@@ -857,7 +870,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::PlaybackStateChangeSyncButtonSoundCursorTime(TimeSpan newCursorTime)
 	{
-		lastButtonSoundCursorTime = buttonSoundCursorTime = (newCursorTime - buttonSoundFutureOffset);
+		lastFrameButtonSoundCursorTime = thisFrameButtonSoundCursorTime = (newCursorTime - buttonSoundFutureOffset);
 		buttonSoundController.PauseAllNegativeVoices();
 	}
 
