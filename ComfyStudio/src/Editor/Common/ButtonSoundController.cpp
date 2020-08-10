@@ -11,6 +11,7 @@ namespace Comfy::Studio::Editor
 			char nameBuffer[64];
 			sprintf_s(nameBuffer, "ButtonSoundController::ButtonSoundVoices[%02zu]", i);
 			buttonSoundVoicePool[i] = audioEngine.AddVoice(Audio::SourceHandle::Invalid, nameBuffer, false);
+			buttonSoundVoicePool[i].SetPauseOnEnd(true);
 		}
 
 		// NOTE: Only load the default button sound for now
@@ -38,7 +39,7 @@ namespace Comfy::Studio::Editor
 		buttonSoundTime = externalClock.value_or(TimeSpan::GetTimeNow());
 		timeSinceLastButtonSound = (buttonSoundTime - lastButtonSoundTime);
 
-		if (const auto voiceToUse = FindEmptyOrLongestRunningVoice(); voiceToUse != nullptr)
+		if (const auto voiceToUse = FindIdleOrLongestRunningVoice(); voiceToUse != nullptr)
 			PlayButtonSoundUsingVoice(*voiceToUse, startTime);
 	}
 
@@ -61,7 +62,7 @@ namespace Comfy::Studio::Editor
 		return loadedSoundSources[buttonSoundIndex].Get();
 	}
 
-	Audio::Voice* ButtonSoundController::FindEmptyOrLongestRunningVoice()
+	Audio::Voice* ButtonSoundController::FindIdleOrLongestRunningVoice()
 	{
 		Audio::Voice* longestRunningVoice = nullptr;
 		for (auto& voice : buttonSoundVoicePool)

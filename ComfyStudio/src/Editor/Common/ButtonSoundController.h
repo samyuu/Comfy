@@ -18,7 +18,7 @@ namespace Comfy::Studio::Editor
 		Audio::SourceHandle GetButtonSoundSource(int index);
 
 	private:
-		Audio::Voice* FindEmptyOrLongestRunningVoice();
+		Audio::Voice* FindIdleOrLongestRunningVoice();
 
 		void PlayButtonSoundUsingVoice(Audio::Voice voice, TimeSpan startTime);
 		f32 GetLastButtonSoundTimeVolumeFactor() const;
