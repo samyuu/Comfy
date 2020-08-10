@@ -147,6 +147,9 @@
     <ClCompile Include="src\Editor\Common\UndoHistoryWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Editor\Chart\Timeline\TimelineButtonIcons.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
@@ -342,6 +345,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Common\UndoHistoryWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Chart\Timeline\TimelineButtonIcons.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

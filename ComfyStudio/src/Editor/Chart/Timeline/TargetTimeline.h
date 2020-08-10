@@ -1,9 +1,10 @@
 #pragma once
+#include "Types.h"
+#include "TimelineButtonIcons.h"
 #include "Editor/Core/IEditorComponent.h"
 #include "Editor/Timeline/TimelineBase.h"
 #include "Editor/Common/ButtonSoundController.h"
 #include "Editor/Chart/Chart.h"
-#include "Graphics/Auth2D/SprSet.h"
 #include "Audio/Audio.h"
 #include "Input/Input.h"
 #include "Time/Stopwatch.h"
@@ -79,16 +80,8 @@ namespace Comfy::Studio::Editor
 		int activeGridDivision = 16;
 
 	protected:
-		std::array<f32, EnumCount<ButtonType>()> targetYPositions;
-
-		// NOTE: sankaku | shikaku | batsu | maru | slide_l | slide_r | slide_chain_l | slide_chain_r
-		static constexpr int buttonIconsTypeCount = 8;
-		static constexpr int buttonIconWidth = 52;
-
-		std::array<ImRect, buttonIconsTypeCount * 2> buttonIconsTextureCoordinates;
-
-		std::unique_ptr<Graphics::SprSet> sprSet;
-		std::shared_ptr<Graphics::Tex> buttonIconsTexture = nullptr;
+		std::array<f32, EnumCount<ButtonType>()> targetYPositions = {};
+		std::unique_ptr<TimelineButtonIcons> buttonIcons = nullptr;
 
 		static constexpr struct { ButtonType Type; Input::KeyCode Key; } targetPlacementInputKeyMappings[12]
 		{
@@ -131,7 +124,6 @@ namespace Comfy::Studio::Editor
 
 	protected:
 		void OnInitialize() override;
-		void InitializeButtonIcons();
 
 	protected:
 		void OnUpdate() override;
@@ -182,7 +174,5 @@ namespace Comfy::Studio::Editor
 
 	protected:
 		f32 GetButtonEdgeFadeOpacity(f32 screenX) const;
-		size_t GetTargetButtonIconIndex(const TimelineTarget& target) const;
-		void DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, vec2 position, f32 scale, f32 transparency = 1.0f);
 	};
 }
