@@ -48,6 +48,7 @@ namespace Comfy::Audio
 		VoiceFlags_Looping = 1 << 2,
 		VoiceFlags_PlayPastEnd = 1 << 3,
 		VoiceFlags_RemoveOnEnd = 1 << 4,
+		VoiceFlags_PauseOnEnd = 1 << 5,
 	};
 
 	// TODO: Strong i64 typedefs for Frame and Sample units
@@ -57,14 +58,15 @@ namespace Comfy::Audio
 		i64 Start, End;
 	};
 
-	// NOTE: POD reusable voice instance internal data
+	// NOTE: Reusable voice instance internal data
 	struct VoiceData
 	{
 		// NOTE: Automatically resets to SourceHandle::Invalid when the source is unloaded
-		VoiceFlags Flags;
-		SourceHandle Source;
-		f32 Volume;
-		i64 FramePosition;
+		std::atomic<VoiceFlags> Flags;
+		std::atomic<SourceHandle> Source;
+		std::atomic<f32> Volume;
+		std::atomic<i64> FramePosition;
+
 		std::array<char, 64> Name;
 
 		// TODO: Loop between
@@ -73,8 +75,6 @@ namespace Comfy::Audio
 		// FrameRange FadeInFrames;
 		// FrameRange FadeOutFrames;
 	};
-
-	static_assert(std::is_pod_v<VoiceData>);
 
 	struct AudioEngine::Impl
 	{
@@ -203,20 +203,20 @@ namespace Comfy::Audio
 
 				auto sampleProvider = GetSource(voiceData.Source);
 
-				const bool isPlaying = (voiceData.Flags & VoiceFlags_Playing);
-				const bool isLooping = (voiceData.Flags & VoiceFlags_Looping);
 				const bool playPastEnd = (voiceData.Flags & VoiceFlags_PlayPastEnd);
-				const bool removeOnEnd = (voiceData.Flags & VoiceFlags_RemoveOnEnd);
-
 				const bool hasReachedEnd = (sampleProvider == nullptr) ? false : (voiceData.FramePosition >= sampleProvider->GetFrameCount());
 
-				if (!playPastEnd && removeOnEnd && hasReachedEnd)
+				if (hasReachedEnd)
 				{
-					voiceData.Flags = VoiceFlags_Dead;
+					if (!playPastEnd && (voiceData.Flags & VoiceFlags_RemoveOnEnd))
+						voiceData.Flags = VoiceFlags_Dead;
+					else if (voiceData.Flags & VoiceFlags_PauseOnEnd)
+						voiceData.Flags = voiceData.Flags & ~VoiceFlags_Playing;
+
 					continue;
 				}
 
-				if (!isPlaying)
+				if (!(voiceData.Flags & VoiceFlags_Playing))
 					continue;
 
 				if (sampleProvider == nullptr)
@@ -233,7 +233,7 @@ namespace Comfy::Audio
 				voiceData.FramePosition += framesRead;
 
 				if (hasReachedEnd && !playPastEnd)
-					voiceData.FramePosition = isLooping ? 0 : sampleProvider->GetFrameCount();
+					voiceData.FramePosition = (voiceData.Flags & VoiceFlags_Looping) ? 0 : sampleProvider->GetFrameCount();
 
 				for (i64 i = 0; i < (framesRead * OutputChannelCount); i++)
 					outputBuffer[i] = MixSamples(outputBuffer[i], static_cast<i16>(TempOutputBuffer[i] * voiceData.Volume));
@@ -779,70 +779,52 @@ namespace Comfy::Audio
 
 	bool Voice::GetIsPlaying() const
 	{
-		auto& impl = EngineInstance->impl;
-
-		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
-			return (voice->Flags & VoiceFlags_Playing);
-		return false;
+		return GetInternalFlag(VoiceFlags_Playing);
 	}
 
 	void Voice::SetIsPlaying(bool value)
 	{
-		auto& impl = EngineInstance->impl;
-
-		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
-			voice->Flags = value ? (voice->Flags | VoiceFlags_Playing) : (voice->Flags & ~VoiceFlags_Playing);
+		SetInternalFlag(VoiceFlags_Playing, value);
 	}
 
 	bool Voice::GetIsLooping() const
 	{
-		auto& impl = EngineInstance->impl;
-
-		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
-			return (voice->Flags & VoiceFlags_Looping);
-		return false;
+		return GetInternalFlag(VoiceFlags_Looping);
 	}
 
 	void Voice::SetIsLooping(bool value)
 	{
-		auto& impl = EngineInstance->impl;
-
-		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
-			voice->Flags = value ? (voice->Flags | VoiceFlags_Looping) : (voice->Flags & ~VoiceFlags_Looping);
+		SetInternalFlag(VoiceFlags_Looping, value);
 	}
 
 	bool Voice::GetPlayPastEnd() const
 	{
-		auto& impl = EngineInstance->impl;
-
-		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
-			return (voice->Flags & VoiceFlags_PlayPastEnd);
-		return false;
+		return GetInternalFlag(VoiceFlags_PlayPastEnd);
 	}
 
 	void Voice::SetPlayPastEnd(bool value)
 	{
-		auto& impl = EngineInstance->impl;
-
-		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
-			voice->Flags = value ? (voice->Flags | VoiceFlags_PlayPastEnd) : (voice->Flags & ~VoiceFlags_PlayPastEnd);
+		SetInternalFlag(VoiceFlags_PlayPastEnd, value);
 	}
 
 	bool Voice::GetRemoveOnEnd() const
 	{
-		auto& impl = EngineInstance->impl;
-
-		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
-			return (voice->Flags & VoiceFlags_RemoveOnEnd);
-		return false;
+		return GetInternalFlag(VoiceFlags_RemoveOnEnd);
 	}
 
 	void Voice::SetRemoveOnEnd(bool value)
 	{
-		auto& impl = EngineInstance->impl;
+		SetInternalFlag(VoiceFlags_RemoveOnEnd, value);
+	}
 
-		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
-			voice->Flags = value ? (voice->Flags | VoiceFlags_RemoveOnEnd) : (voice->Flags & ~VoiceFlags_RemoveOnEnd);
+	bool Voice::GetPauseOnEnd() const
+	{
+		return GetInternalFlag(VoiceFlags_PauseOnEnd);
+	}
+
+	void Voice::SetPauseOnEnd(bool value)
+	{
+		SetInternalFlag(VoiceFlags_PauseOnEnd, value);
 	}
 
 	std::string_view Voice::GetName() const
@@ -852,6 +834,30 @@ namespace Comfy::Audio
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			return voice->Name.data();
 		return "VoiceHandle::Invalid";
+	}
+
+	bool Voice::GetInternalFlag(u16 flag) const
+	{
+		static_assert(sizeof(flag) == sizeof(VoiceFlags));
+		const auto voiceFlag = static_cast<VoiceFlags>(flag);
+
+		if (auto voice = EngineInstance->impl->GetVoiceData(Handle); voice != nullptr)
+			return (voice->Flags & voiceFlag);
+		return false;
+	}
+
+	void Voice::SetInternalFlag(u16 flag, bool value)
+	{
+		static_assert(sizeof(flag) == sizeof(VoiceFlags));
+		const auto voiceFlag = static_cast<VoiceFlags>(flag);
+
+		if (auto voice = EngineInstance->impl->GetVoiceData(Handle); voice != nullptr)
+		{
+			if (value)
+				voice->Flags |= voiceFlag;
+			else
+				voice->Flags &= ~voiceFlag;
+		}
 	}
 
 	CallbackReceiver::CallbackReceiver(std::function<void(void)> callback) : OnAudioCallback(std::move(callback))

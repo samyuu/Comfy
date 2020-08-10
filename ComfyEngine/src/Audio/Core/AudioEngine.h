@@ -21,6 +21,7 @@ namespace Comfy::Audio
 	// NOTE: Lightweight and safe wrapper around a VoiceHandle providing a convenient OOP interface
 	struct Voice
 	{
+	public:
 		Voice() : Handle(VoiceHandle::Invalid) {}
 		Voice(VoiceHandle handle) : Handle(handle) {}
 
@@ -53,8 +54,15 @@ namespace Comfy::Audio
 
 		bool GetRemoveOnEnd() const;
 		void SetRemoveOnEnd(bool value);
+		
+		bool GetPauseOnEnd() const;
+		void SetPauseOnEnd(bool value);
 
 		std::string_view GetName() const;
+
+	private:
+		bool GetInternalFlag(u16 flag) const;
+		void SetInternalFlag(u16 flag, bool value);
 	};
 
 	struct CallbackReceiver : NonCopyable
