@@ -209,11 +209,15 @@ namespace Comfy::Audio
 				if (hasReachedEnd)
 				{
 					if (!playPastEnd && (voiceData.Flags & VoiceFlags_RemoveOnEnd))
+					{
 						voiceData.Flags = VoiceFlags_Dead;
+						continue;
+					}
 					else if (voiceData.Flags & VoiceFlags_PauseOnEnd)
+					{
 						voiceData.Flags = voiceData.Flags & ~VoiceFlags_Playing;
-
-					continue;
+						continue;
+					}
 				}
 
 				if (!(voiceData.Flags & VoiceFlags_Playing))
