@@ -246,7 +246,7 @@ namespace ImGui
 				}
 
 				template <typename ValueType>
-				bool InputVec1DragBase(std::string_view label, ValueType& inOutValue, float dragSpeed, std::optional<glm::vec<2, ValueType>> dragRange)
+				bool InputVec1DragBase(std::string_view label, ValueType& inOutValue, float dragSpeed, std::optional<glm::vec<2, ValueType>> dragRange, const char* format = nullptr)
 				{
 					RAII::ID id(label);
 					return PropertyFuncValueFunc([&]
@@ -264,7 +264,7 @@ namespace ImGui
 						const ValueType fastStep = static_cast<ValueType>(step * static_cast<ValueType>(10));
 
 						using Lookup = TypeLookup::DataType<ValueType>;
-						const bool valueChanged = Gui::InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &inOutValue, &step, &fastStep, Lookup::Format, Lookup::InputTextFlags);
+						const bool valueChanged = Gui::InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &inOutValue, &step, &fastStep, (format != nullptr) ? format : Lookup::Format, Lookup::InputTextFlags);
 
 						if (valueChanged && dragRange.has_value())
 							inOutValue = std::clamp(inOutValue, dragRange->x, dragRange->y);
@@ -312,9 +312,9 @@ namespace ImGui
 				}
 			}
 
-			inline bool Input(std::string_view label, float& inOutValue, float dragSpeed = 1.0f, std::optional<vec2> dragRange = {})
+			inline bool Input(std::string_view label, float& inOutValue, float dragSpeed = 1.0f, std::optional<vec2> dragRange = {}, const char* format = nullptr)
 			{
-				return Detail::InputVec1DragBase(label, inOutValue, dragSpeed, dragRange);
+				return Detail::InputVec1DragBase(label, inOutValue, dragSpeed, dragRange, format);
 			}
 
 			inline bool Input(std::string_view label, vec2& inOutValue, float dragSpeed = 1.0f, std::optional<vec2> dragRange = {}, ComponentFlags disabledComponents = ComponentFlags_None)
