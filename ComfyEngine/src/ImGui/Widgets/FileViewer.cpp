@@ -82,11 +82,19 @@ namespace ImGui
 				{
 					if (clickedInfo->FileType == FileType::Link)
 					{
-						SetResolveFileLinke(*clickedInfo);
+						if (const auto resolvedPath = IO::Shell::ResolveFileLink(clickedInfo->FullPath); IO::Path::IsDirectory(resolvedPath))
+						{
+							SetDirectory(resolvedPath);
+						}
+						else
+						{
+							fileToOpen = resolvedPath;
+							fileClicked = true;
+						}
 					}
 					else
 					{
-						fileToOpen = std::string(clickedInfo->FullPath);
+						fileToOpen = clickedInfo->FullPath;
 						fileClicked = true;
 					}
 				}
@@ -325,12 +333,6 @@ namespace ImGui
 			SetDirectory(IO::Path::GetDirectoryName(directory.substr(0, directory.length() - 1)));
 		else
 			SetDirectory(IO::Path::GetDirectoryName(directory));
-	}
-
-	void FileViewer::SetResolveFileLinke(const FilePathInfo& info)
-	{
-		const auto resolvedPath = IO::Shell::ResolveFileLink(info.FullPath);
-		SetDirectory(resolvedPath);
 	}
 
 	void FileViewer::OpenDirectoryInExplorer()

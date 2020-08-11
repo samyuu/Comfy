@@ -78,7 +78,6 @@ namespace ImGui
 		bool IsAsyncDirectoryInfoBusy() const;
 
 		void SetParentDirectory(const std::string& directory);
-		void SetResolveFileLinke(const FilePathInfo& info);
 		void OpenDirectoryInExplorer();
 		void OpenContextItemDefaultProgram();
 		void OpenContextItemProperties();
