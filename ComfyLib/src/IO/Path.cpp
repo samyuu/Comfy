@@ -47,6 +47,11 @@ namespace Comfy::IO
 			return ::PathIsRelativeW(UTF8::WideArg(filePath).c_str());
 		}
 
+		bool IsDirectory(std::string_view filePath)
+		{
+			return ::PathIsDirectoryW(UTF8::WideArg(filePath).c_str());
+		}
+
 		std::string ChangeExtension(std::string_view filePath, std::string_view newExtension)
 		{
 			if (const auto archivePath = Archive::ParsePath(filePath); !archivePath.FileName.empty())
