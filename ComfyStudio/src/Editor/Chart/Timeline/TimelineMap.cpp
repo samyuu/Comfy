@@ -11,16 +11,17 @@ namespace Comfy::Studio::Editor
 	TimeSpan TimelineMap::GetTimeAt(TimelineTick tick) const
 	{
 		const i32 tickTimeCount = static_cast<i32>(tickTimes.size());
+		const i32 totalTicks = tick.TotalTicks();
 
-		if (tick.TotalTicks() < 0) // NOTE: Negative tick
+		if (totalTicks < 0) // NOTE: Negative tick
 		{
 			// NOTE: Calculate the duration of a TimelineTick at the first tempo
 			const TimeSpan firstTickDuration = TimeSpan::FromSeconds((60.0 / firstTempo.BeatsPerMinute) / TimelineTick::TicksPerBeat);
 
 			// NOTE: Then scale by the negative tick
-			return firstTickDuration * tick.TotalTicks();
+			return firstTickDuration * totalTicks;
 		}
-		else if (tick.TotalTicks() >= tickTimeCount) // NOTE: Tick is outside the defined tempo map
+		else if (totalTicks >= tickTimeCount) // NOTE: Tick is outside the defined tempo map
 		{
 			// NOTE: Take the last calculated time
 			const TimeSpan lastTime = GetLastCalculatedTime();
@@ -29,12 +30,12 @@ namespace Comfy::Studio::Editor
 			const TimeSpan lastTickDuration = TimeSpan::FromSeconds((60.0 / lastTempo.BeatsPerMinute) / TimelineTick::TicksPerBeat);
 
 			// NOTE: Then scale by the remaining ticks
-			const i32 remainingTicks = tick.TotalTicks() - tickTimeCount;
+			const i32 remainingTicks = (totalTicks - tickTimeCount) + 1;
 			return lastTime + (lastTickDuration * remainingTicks);
 		}
 		else // NOTE: Use the pre calculated lookup table
 		{
-			return tickTimes.at(tick.TotalTicks());
+			return tickTimes.at(totalTicks);
 		}
 	}
 
@@ -100,7 +101,7 @@ namespace Comfy::Studio::Editor
 		assert(tempoMap.TempoChangeCount() > 0);
 
 		TempoChange& lastTempoChange = tempoMap.GetTempoChangeAt(tempoMap.TempoChangeCount() - 1);
-		const size_t timeCount = lastTempoChange.Tick.TotalTicks();
+		const size_t timeCount = lastTempoChange.Tick.TotalTicks() + 1;
 
 		tickTimes.resize(timeCount);
 		{
