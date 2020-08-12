@@ -17,8 +17,8 @@ namespace ImGui
 	constexpr vec2 UV0 = vec2(0.0f, 0.0f), UV1 = vec2(1.0f, 1.0f);
 	constexpr vec2 UV0_R = vec2(0.0f, 1.0f), UV1_R = vec2(1.0f, 0.0f);
 
-	constexpr const char* StringViewStart(std::string_view stringView) { return &stringView.front(); }
-	constexpr const char* StringViewEnd(std::string_view stringView) { return &stringView.back() + 1; }
+	constexpr const char* StringViewStart(std::string_view stringView) { return stringView.data(); }
+	constexpr const char* StringViewEnd(std::string_view stringView) { return stringView.data() + stringView.size(); }
 
 	ImRect FitFixedAspectRatio(ImRect sourceRegion, float targetAspectRatio);
 	ImRect FitFixedAspectRatioImage(ImRect sourceRegion, vec2 imageDimensions);
@@ -64,7 +64,7 @@ namespace ImGui
 
 	void AddLine(ImDrawList* drawList, vec2 start, vec2 end, ImU32 color, float thickness = 1.0f);
 	void AddQuadFilled(ImDrawList* drawList, vec2 position, vec2 size, vec2 origin, float rotation, vec2 scale, ImU32 color);
-	
+
 	bool IsItemHoveredDelayed(ImGuiHoveredFlags flags = ImGuiHoveredFlags_None, float threshold = 0.5f);
 
 	bool WideTreeNode(const char* label);
@@ -134,7 +134,7 @@ namespace ImGui
 
 			*lastFrame = *thisFrame;
 			*thisFrame = GetFrameCount();
-			
+
 			if (*thisFrame != *lastFrame)
 				function();
 		}
