@@ -84,23 +84,27 @@ namespace Comfy::Studio::Editor
 			if (GuiProperty::Input("Tempo##SyncWindow", newTempo.BeatsPerMinute, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
 				newTempo.BeatsPerMinute = std::clamp(newTempo.BeatsPerMinute, Tempo::MinBPM, Tempo::MaxBPM);
 
-			GuiProperty::PropertyFuncValueFunc([&]
+			GuiProperty::PropertyLabelValueFunc("", [&]
 			{
-				if (Gui::Button("Insert##SyncWindow", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+				const auto& style = Gui::GetStyle();
+				Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
+				const auto buttonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemSpacing.x) / 2.0f;
+
+				if (Gui::Button("Insert##SyncWindow", vec2(buttonWidth, 0.0f)))
 				{
 					if (tempoChangeAtCursor.Tick != cursorTick)
 						undoManager.Execute<AddTempoChange>(chart, cursorTick, newTempo);
 					else
 						undoManager.Execute<ChangeTempo>(chart, cursorTick, newTempo);
 				}
-				return false;
-			}, [&]
-			{
-				if (Gui::Button("Remove##SyncWindow", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+				Gui::SameLine();
+				if (Gui::Button("Remove##SyncWindow", vec2(buttonWidth, 0.0f)))
 				{
 					if (tempoChangeAtCursor.Tick == cursorTick)
 						undoManager.Execute<RemoveTempoChange>(chart, cursorTick);
 				}
+
+				Gui::PopStyleVar();
 				return false;
 			});
 		});
