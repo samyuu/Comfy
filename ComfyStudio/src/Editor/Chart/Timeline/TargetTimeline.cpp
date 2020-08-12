@@ -595,7 +595,6 @@ namespace Comfy::Studio::Editor
 
 			GuiPropertyRAII::PropertyValueColumns columns;
 
-			// BUG: Multiple tempo changes break somehow?
 			if (tempoPopupIndex >= 0)
 			{
 				auto& tempoChange = workingChart->GetTempoMap().GetTempoChangeAt(tempoPopupIndex);

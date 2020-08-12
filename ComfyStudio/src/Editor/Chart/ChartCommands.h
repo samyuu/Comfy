@@ -237,7 +237,7 @@ namespace Comfy::Studio::Editor
 		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			auto* other = static_cast<decltype(this)>(&commandToMerge);
-			if (&other->chart != &chart)
+			if (&other->chart != &chart || other->tick != tick)
 				return Undo::MergeResult::Failed;
 
 			newValue = other->newValue;
