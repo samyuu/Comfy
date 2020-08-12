@@ -3,6 +3,7 @@
 #include "Editor/Chart/ChartCommands.h"
 #include "Editor/Chart/SortedTempoMap.h"
 #include "Time/TimeSpan.h"
+#include "ImGui/Extensions/PropertyEditor.h"
 #include <FontIcons.h>
 
 namespace Comfy::Studio::Editor
@@ -532,12 +533,11 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::DrawTimelineTempoMap()
 	{
-		char tempoStr[16];
-		static int tempoPopupIndex = -1;
+		constexpr auto tempoChangePopupName = "##TempoChangePopup";
 
 		for (size_t i = 0; i < workingChart->GetTempoMap().TempoChangeCount(); i++)
 		{
-			TempoChange& tempoChange = workingChart->GetTempoMap().GetTempoChangeAt(i);
+			const auto& tempoChange = workingChart->GetTempoMap().GetTempoChangeAt(i);
 
 			const auto screenX = glm::round(GetTimelinePosition(tempoChange.Tick) - GetScrollX());
 			const auto visiblity = GetTimelineVisibility(screenX);
@@ -547,12 +547,13 @@ namespace Comfy::Studio::Editor
 			if (visiblity == TimelineVisibility::Right)
 				break;
 
-			ImU32 tempoFgColor = IM_COL32(139, 56, 51, 255);
+			const auto tempoFgColor = 0xFF1DBFB2;
 
-			sprintf_s(tempoStr, sizeof(tempoStr), "%.2f BPM", tempoChange.Tempo.BeatsPerMinute);
+			char tempoStr[16];
+			sprintf_s(tempoStr, sizeof(tempoStr), "%.2f BPM" /*" 4/4"*/, tempoChange.Tempo.BeatsPerMinute);
 
-			vec2 buttonPosition = tempoMapRegion.GetTL() + vec2(screenX + 1.0f, 0.0f);
-			vec2 buttonSize = vec2(Gui::CalcTextSize(tempoStr).x, tempoMapHeight);
+			const auto buttonPosition = tempoMapRegion.GetTL() + vec2(screenX + 1.0f, 0.0f);
+			const auto buttonSize = vec2(Gui::CalcTextSize(tempoStr).x, tempoMapHeight);
 
 			Gui::SetCursorScreenPos(buttonPosition);
 
@@ -562,42 +563,94 @@ namespace Comfy::Studio::Editor
 
 			// TODO: Prevent overlapping tempo changes
 			// windowDrawList->AddRectFilled(buttonPosition, buttonPosition + buttonSize, TEMPO_MAP_BAR_COLOR);
-			if (Gui::IsItemHovered() && Gui::IsWindowHovered())
+			if (Gui::IsWindowFocused() && Gui::IsItemHovered())
 			{
-				Gui::WideSetTooltip("TIME: %s", TickToTime(tempoChange.Tick).ToString().c_str());
+				char timeBuffer[TimeSpan::RequiredFormatBufferSize];
+				TickToTime(tempoChange.Tick).FormatTime(timeBuffer, sizeof(timeBuffer));
+
+				Gui::WideSetTooltip("Time: %s", timeBuffer);
 
 				baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, Gui::GetColorU32(ImGuiCol_ChildBg));
-				if (Gui::IsMouseDoubleClicked(0))
-				{
-					SetScrollX(screenX + GetScrollX());
-					// SetScrollX(screenX - timelineContentRegion.GetTL().x - (windowWidth * .5f));
-				}
+
+				if (Gui::IsMouseClicked(0))
+					SetCursorTime(TickToTime(tempoChange.Tick));
 
 				if (Gui::IsMouseClicked(1))
 				{
-					Gui::OpenPopup("##ChangeTempoPopup");
+					Gui::OpenPopup(tempoChangePopupName);
 					tempoPopupIndex = static_cast<int>(i);
 				}
 			}
 
 			baseDrawList->AddLine(buttonPosition + vec2(-1.0f, -1.0f), buttonPosition + vec2(-1.0f, buttonSize.y - 1.0f), tempoFgColor);
-			baseDrawList->AddText(Gui::GetFont(), tempoMapHeight, buttonPosition, tempoFgColor, tempoStr);
+			baseDrawList->AddText(Gui::GetFont(), tempoMapFontSize, buttonPosition + tempoMapFontOffset, tempoFgColor, tempoStr);
 		}
 
-		if (Gui::WideBeginPopup("##ChangeTempoPopup"))
+		if (tempoPopupIndex >= 0)
+			Gui::SetNextWindowSize(vec2(280.0f, 0.0f), ImGuiCond_Always);
+
+		if (Gui::WideBeginPopup(tempoChangePopupName))
 		{
 			Gui::Text("Change Tempo:");
 
+			GuiPropertyRAII::PropertyValueColumns columns;
+
+			// BUG: Multiple tempo changes break somehow?
 			if (tempoPopupIndex >= 0)
 			{
-				TempoChange& tempoChange = workingChart->GetTempoMap().GetTempoChangeAt(tempoPopupIndex);
-				auto bpm = tempoChange.Tempo.BeatsPerMinute;
+				auto& tempoChange = workingChart->GetTempoMap().GetTempoChangeAt(tempoPopupIndex);
 
-				if (Gui::DragFloat("##TempoDragFloat", &bpm, 1.0f, Tempo::MinBPM, Tempo::MaxBPM, "%.2f BPM"))
-					undoManager.Execute<ChangeTempo>(*workingChart, tempoChange.Tick, bpm);
+				// TODO: Be able to move non-first tempo changes within the bounds of the previous and the next
+				GuiProperty::PropertyLabelValueFunc("Time", [&]
+				{
+					char timeBuffer[TimeSpan::RequiredFormatBufferSize];
+					TickToTime(tempoChange.Tick).FormatTime(timeBuffer, sizeof(timeBuffer));
+
+					Gui::TextDisabled("%s (Ticks: %d)", timeBuffer, tempoChange.Tick.TotalTicks());
+					return false;
+				});
+
+				auto bpm = tempoChange.Tempo.BeatsPerMinute;
+				if (GuiProperty::Input("Tempo##TempoChange", bpm, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
+					undoManager.Execute<ChangeTempo>(*workingChart, tempoChange.Tick, std::clamp(bpm, Tempo::MinBPM, Tempo::MaxBPM));
+
+				GuiProperty::PropertyLabelValueFunc("", [&]
+				{
+					const auto& style = Gui::GetStyle();
+					Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
+					const auto buttonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemSpacing.x) / 2.0f;
+
+					if (Gui::Button("x0.5", vec2(buttonWidth, 0.0f)))
+						undoManager.Execute<ChangeTempo>(*workingChart, tempoChange.Tick, std::clamp((bpm *= 0.5f), Tempo::MinBPM, Tempo::MaxBPM));
+					Gui::SameLine();
+					if (Gui::Button("x2.0", vec2(buttonWidth, 0.0f)))
+						undoManager.Execute<ChangeTempo>(*workingChart, tempoChange.Tick, std::clamp((bpm *= 2.0f), Tempo::MinBPM, Tempo::MaxBPM));
+					Gui::PopStyleVar();
+
+					return false;
+				});
+
+				GuiProperty::PropertyFuncValueFunc([&]
+				{
+					if (Gui::Button("Remove##TempoChange", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+					{
+						undoManager.ExecuteEndOfFrame<RemoveTempoChange>(*workingChart, tempoChange.Tick);
+						Gui::CloseCurrentPopup();
+					}
+					return false;
+				}, [&]
+				{
+					if (Gui::Button("Close##TempoChange", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+						Gui::CloseCurrentPopup();
+					return false;
+				});
 			}
 
 			Gui::EndPopup();
+		}
+		else
+		{
+			tempoPopupIndex = -1;
 		}
 	}
 

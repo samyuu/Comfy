@@ -71,6 +71,9 @@ namespace Comfy::Studio::Editor
 
 			float timelineHeaderHeight = 32.0f - 13.0f;
 			float tempoMapHeight = 13.0f;
+			
+			float tempoMapFontSize = 14.0f;
+			vec2 tempoMapFontOffset = vec2(+1.0f, -0.5f);
 
 			// NOTE: Part of the slider width
 			const float zoomButtonWidth = 24.0f;

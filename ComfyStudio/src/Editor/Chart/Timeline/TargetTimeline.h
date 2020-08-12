@@ -106,7 +106,7 @@ namespace Comfy::Studio::Editor
 		};
 
 	protected:
-		char timeInputBuffer[TimeSpan::RequiredFormatBufferSize] = "00:00.000";
+		int tempoPopupIndex = -1;
 
 	protected:
 		bool timeSelectionActive = false;
