@@ -3,6 +3,7 @@
 #include "Editor/Chart/ChartCommands.h"
 #include "Timeline/TimelineTick.h"
 #include "ImGui/Gui.h"
+#include "ImGui/Extensions/PropertyEditor.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -16,45 +17,92 @@ namespace Comfy::Studio::Editor
 
 	void SyncWindow::Gui(Chart& chart, TargetTimeline& timeline)
 	{
-		// NOTE: Negative to visually match the drag direction with that of the waveform timeline position
-		constexpr auto offsetDragSpeed = -1.0f;
+		GuiPropertyRAII::PropertyValueColumns columns;
 
-		auto startOffsetMS = static_cast<f32>(chart.GetStartOffset().TotalMilliseconds());
-		if (Gui::DragFloat("Start Offset##SyncWindow", &startOffsetMS, offsetDragSpeed, 0.0f, 0.0f, "%.2f ms"))
-			undoManager.Execute<ChangeStartOffset>(chart, TimeSpan::FromMilliseconds(startOffsetMS));
+		GuiProperty::TreeNode("Song Sync", ImGuiTreeNodeFlags_DefaultOpen, [&]
+		{
+			// NOTE: Negative to visually match the drag direction with that of the waveform timeline position
+			constexpr auto offsetDragSpeed = -1.0f;
 
-		Gui::Separator();
+			auto startOffsetMS = static_cast<f32>(chart.GetStartOffset().TotalMilliseconds());
+			if (GuiProperty::Input("Start Offset##SyncWindow", startOffsetMS, offsetDragSpeed, {}, "%.2f ms"))
+				undoManager.Execute<ChangeStartOffset>(chart, TimeSpan::FromMilliseconds(startOffsetMS));
+
+			GuiProperty::PropertyFuncValueFunc([&]
+			{
+				Gui::TextDisabled("Move first Beat");
+				return false;
+			}, [&]
+			{
+				const auto& style = Gui::GetStyle();
+				Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
+				const auto buttonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemSpacing.x) / 4.0f;
+
+				auto beatOffsetButton = [&](const char* label, const f64 factor)
+				{
+					if (Gui::Button(label, vec2(buttonWidth, 0.0f)))
+					{
+						const auto firstTempo = chart.GetTempoMap().FindTempoChangeAtTick(TimelineTick::Zero()).Tempo;
+						const auto beatDuration = TimeSpan::FromSeconds(60.0 / firstTempo.BeatsPerMinute);
+
+						undoManager.Execute<ChangeStartOffset>(chart, TimeSpan::FromMilliseconds(startOffsetMS) + (beatDuration * factor));
+					}
+				};
+
+				beatOffsetButton("+1.0", +1.0);
+				Gui::SameLine();
+				beatOffsetButton("+0.5", +0.5);
+				Gui::SameLine();
+				beatOffsetButton("-0.5", -0.5);
+				Gui::SameLine();
+				beatOffsetButton("-1.0", -1.0);
+
+				Gui::PopStyleVar();
+				return false;
+			});
+
+			constexpr auto durationDragSpeed = 10.0f;
+			constexpr auto durationMin = static_cast<f32>(TimeSpan::FromMilliseconds(10.0f).TotalMilliseconds());
+			constexpr auto durationMax = std::numeric_limits<f32>::max();
+
+			auto songDurationMS = static_cast<f32>(chart.GetDuration().TotalMilliseconds());
+			if (GuiProperty::Input("Duration##SyncWindow", songDurationMS, durationDragSpeed, vec2(durationMin, durationMax), "%.2f ms"))
+			{
+				songDurationMS = std::max(songDurationMS, durationMin);
+				undoManager.Execute<ChangeSongDuration>(chart, TimeSpan::FromMilliseconds(songDurationMS));
+			}
+		});
 
 		const auto cursorTick = timeline.RoundTickToGrid(timeline.GetCursorTick());
-		const auto tempoAtCursor = chart.GetTempoMap().FindTempoChangeAtTick(cursorTick).Tempo;
+		const auto tempoChangeAtCursor = chart.GetTempoMap().FindTempoChangeAtTick(cursorTick);
 
-		Gui::TextDisabled("(Cursor %.2f BPM)", tempoAtCursor.BeatsPerMinute);
+		char rhythmNodeValueBuffer[64];
+		sprintf_s(rhythmNodeValueBuffer, "(%.2f BPM)", tempoChangeAtCursor.Tempo.BeatsPerMinute);
 
-		if (Gui::DragFloat("Tempo##SyncWindow", &newTempo.BeatsPerMinute, 1.0f, Tempo::MinBPM, Tempo::MaxBPM, "%.2f BPM"))
+		GuiProperty::TreeNode("Chart Rhythm", rhythmNodeValueBuffer, ImGuiTreeNodeFlags_DefaultOpen, [&]
 		{
-			newTempo.BeatsPerMinute = std::clamp(newTempo.BeatsPerMinute, Tempo::MinBPM, Tempo::MaxBPM);
+			if (GuiProperty::Input("Tempo##SyncWindow", newTempo.BeatsPerMinute, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
+				newTempo.BeatsPerMinute = std::clamp(newTempo.BeatsPerMinute, Tempo::MinBPM, Tempo::MaxBPM);
 
-			if (chart.GetTempoMap().FindTempoChangeAtTick(cursorTick).Tick != cursorTick)
-				undoManager.Execute<AddTempoChange>(chart, cursorTick, newTempo);
-			else
-				undoManager.Execute<ChangeTempo>(chart, cursorTick, newTempo);
-		}
-
-		if (Gui::Button("Remove Tempo Change", vec2(Gui::CalcItemWidth(), 0.0f)))
-		{
-			undoManager.Execute<RemoveTempoChange>(chart, cursorTick);
-		}
-
-		Gui::Separator();
-
-		constexpr auto durationDragSpeed = 10.0f;
-		constexpr auto durationMin = static_cast<f32>(TimeSpan::FromMilliseconds(10.0f).TotalMilliseconds());
-
-		auto songDurationMS = static_cast<f32>(chart.GetDuration().TotalMilliseconds());
-		if (Gui::DragFloat("Song Duration##SyncWindow", &songDurationMS, durationDragSpeed, durationMin, std::numeric_limits<f32>::max(), "%.2f ms"))
-		{
-			songDurationMS = std::max(songDurationMS, durationMin);
-			undoManager.Execute<ChangeSongDuration>(chart, TimeSpan::FromMilliseconds(songDurationMS));
-		}
+			GuiProperty::PropertyFuncValueFunc([&]
+			{
+				if (Gui::Button("Insert##SyncWindow", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+				{
+					if (tempoChangeAtCursor.Tick != cursorTick)
+						undoManager.Execute<AddTempoChange>(chart, cursorTick, newTempo);
+					else
+						undoManager.Execute<ChangeTempo>(chart, cursorTick, newTempo);
+				}
+				return false;
+			}, [&]
+			{
+				if (Gui::Button("Remove##SyncWindow", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+				{
+					if (tempoChangeAtCursor.Tick == cursorTick)
+						undoManager.Execute<RemoveTempoChange>(chart, cursorTick);
+				}
+				return false;
+			});
+		});
 	}
 }

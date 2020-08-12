@@ -58,12 +58,11 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::Begin(ICON_FA_SYNC "  Sync Window##ChartEditor", nullptr, ImGuiWindowFlags_None))
 		{
-			Gui::BeginChild("SyncWindowChild##ChartEditor", vec2(0.0f, 0.0f), true);
 			syncWindow->Gui(*chart, *timeline);
-			Gui::EndChild();
 		}
 		Gui::End();
 
+		// TODO:
 		// renderWindow->SetActive(treeView->GetActiveAet(), treeView->GetSelected());
 		// renderWindow->SetIsPlayback(timeline->GetIsPlayback());
 		// renderWindow->SetCurrentFrame(timeline->GetFrame().Frames());
