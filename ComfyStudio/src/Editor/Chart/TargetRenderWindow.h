@@ -48,6 +48,10 @@ namespace Comfy::Studio::Editor
 			std::shared_ptr<Graphics::Aet::Layer> SongEnergyBase;
 			std::shared_ptr<Graphics::Aet::Layer> SongIconLoop;
 			std::shared_ptr<Graphics::Aet::Layer> LevelInfoEasy;
+			std::shared_ptr<Graphics::Aet::Layer> LevelInfoNormal;
+			std::shared_ptr<Graphics::Aet::Layer> LevelInfoHard;
+			std::shared_ptr<Graphics::Aet::Layer> LevelInfoExtreme;
+			std::shared_ptr<Graphics::Aet::Layer> LevelInfoExExtreme;
 			std::shared_ptr<Graphics::Aet::Layer> SongInfoLoop;
 		} layerCache;
 

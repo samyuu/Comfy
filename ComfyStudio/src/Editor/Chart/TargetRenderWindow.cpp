@@ -34,12 +34,16 @@ namespace Comfy::Studio::Editor
 		if (aetSet == nullptr || aetSet->GetScenes().empty())
 			return;
 
-		layerCache.FrameUp = aetSet->GetScenes().front()->FindLayer("frame_up_f");
-		layerCache.FrameBottom = aetSet->GetScenes().front()->FindLayer("frame_bottom_f");
+		layerCache.FrameUp = aetSet->GetScenes().front()->FindLayer("frame_up_t");
+		layerCache.FrameBottom = aetSet->GetScenes().front()->FindLayer("frame_bottom_t");
 		layerCache.LifeGauge = aetSet->GetScenes().front()->FindLayer("life_gauge");
-		layerCache.SongEnergyBase = aetSet->GetScenes().front()->FindLayer("song_energy_base_f");
+		layerCache.SongEnergyBase = aetSet->GetScenes().front()->FindLayer("song_energy_base_t");
 		layerCache.SongIconLoop = aetSet->GetScenes().front()->FindLayer("song_icon_loop");
 		layerCache.LevelInfoEasy = aetSet->GetScenes().front()->FindLayer("level_info_easy");
+		layerCache.LevelInfoNormal = aetSet->GetScenes().front()->FindLayer("level_info_normal");
+		layerCache.LevelInfoHard = aetSet->GetScenes().front()->FindLayer("level_info_hard");
+		layerCache.LevelInfoExtreme = aetSet->GetScenes().front()->FindLayer("level_info_extreme");
+		layerCache.LevelInfoExExtreme = aetSet->GetScenes().front()->FindLayer("level_info_extreme_extra");
 		layerCache.SongInfoLoop = aetSet->GetScenes().front()->FindLayer("song_icon_loop");
 	}
 
@@ -95,7 +99,7 @@ namespace Comfy::Studio::Editor
 		tryDrawLayer(layerCache.LifeGauge, 0.0f);
 		tryDrawLayer(layerCache.SongEnergyBase, 100.0f);
 		tryDrawLayer(layerCache.SongIconLoop, 0.0f);
-		tryDrawLayer(layerCache.LevelInfoEasy, 0.0f);
+		tryDrawLayer(layerCache.LevelInfoHard, 0.0f);
 		tryDrawLayer(layerCache.SongIconLoop, 0.0f);
 	}
 
