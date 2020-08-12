@@ -427,10 +427,10 @@ namespace ImGui
 		return WideTreeNodeBehavior(window->GetID(label), flags, label, NULL, true);
 	}
 
-	bool WideBeginPopup(const char* label)
+	bool WideBeginPopup(const char* label, ImGuiWindowFlags flags)
 	{
 		RAII_POPUP_WINDOW_PADDING();
-		return BeginPopup(label);
+		return BeginPopup(label, flags);
 	}
 
 	bool WideBeginMenu(const char* label, bool enabled)
