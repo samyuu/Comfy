@@ -10,14 +10,14 @@ namespace Comfy::Undo
 		ValueUpdated,
 	};
 
-	class ICommand : NonCopyable
+	class Command : NonCopyable
 	{
 	protected:
 		// NOTE: Store new and old values as member fields and a reference to the data to be edited
-		ICommand() = default;
+		Command() = default;
 
 	public:
-		virtual ~ICommand() = default;
+		virtual ~Command() = default;
 
 	public:
 		// NOTE: Restore stored old value to the reference
@@ -27,7 +27,7 @@ namespace Comfy::Undo
 
 		// NOTE: The command parameter is garanteed to be safely castable to the type of the derived class.
 		//		 Passed as non const reference to allow for move optimizations though it should not be mutated if the merge failed
-		virtual MergeResult TryMerge(ICommand& commandToMerge) = 0;
+		virtual MergeResult TryMerge(Command& commandToMerge) = 0;
 
 		// NOTE: To be displayed in a GUI
 		virtual std::string_view GetName() const = 0;

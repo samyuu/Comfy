@@ -288,9 +288,6 @@
     <ClInclude Include="src\Undo\Undo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Undo\Core\ICommand.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Undo\Core\UndoManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -298,6 +295,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Audio\Core\AudioEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Undo\Core\Command.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

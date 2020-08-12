@@ -46,7 +46,7 @@ namespace Comfy::Studio::Editor
 
 namespace Comfy::Studio::Editor
 {
-	class LayerChangeStartFrame : public Undo::ICommand
+	class LayerChangeStartFrame : public Undo::Command
 	{
 	public:
 		LayerChangeStartFrame(std::shared_ptr<Graphics::Aet::Layer> ref, frame_t value)
@@ -67,7 +67,7 @@ namespace Comfy::Studio::Editor
 			OffsetKeyFrames(newValue - oldValue);
 		}
 
-		Undo::MergeResult TryMerge(ICommand& commandToMerge) override
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			auto* other = static_cast<decltype(this)>(&commandToMerge);
 			if (other->reference.get() != reference.get())
@@ -89,7 +89,7 @@ namespace Comfy::Studio::Editor
 		frame_t newValue, oldValue;
 	};
 
-	class LayerChangeEndFrame : public Undo::ICommand
+	class LayerChangeEndFrame : public Undo::Command
 	{
 	public:
 		LayerChangeEndFrame(std::shared_ptr<Graphics::Aet::Layer> ref, frame_t value)
@@ -108,7 +108,7 @@ namespace Comfy::Studio::Editor
 			reference->EndFrame = newValue;
 		}
 
-		Undo::MergeResult TryMerge(ICommand& commandToMerge) override
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			auto* other = static_cast<decltype(this)>(&commandToMerge);
 			if (other->reference.get() != reference.get())
@@ -128,7 +128,7 @@ namespace Comfy::Studio::Editor
 		frame_t newValue, oldValue;
 	};
 
-	class LayerAddMarker : public Undo::ICommand
+	class LayerAddMarker : public Undo::Command
 	{
 	public:
 		LayerAddMarker(std::shared_ptr<Graphics::Aet::Layer> ref, std::shared_ptr<Graphics::Aet::Marker> value)
@@ -147,7 +147,7 @@ namespace Comfy::Studio::Editor
 			reference->Markers.push_back(newValue);
 		}
 
-		Undo::MergeResult TryMerge(ICommand& commandToMerge) override
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			return Undo::MergeResult::Failed;
 		}
@@ -162,7 +162,7 @@ namespace Comfy::Studio::Editor
 		std::shared_ptr<Graphics::Aet::Marker> newValue;
 	};
 
-	class LayerDeleteMarker : public Undo::ICommand
+	class LayerDeleteMarker : public Undo::Command
 	{
 	public:
 		LayerDeleteMarker(std::shared_ptr<Graphics::Aet::Layer> ref, int value)
@@ -182,7 +182,7 @@ namespace Comfy::Studio::Editor
 			reference->Markers.erase(reference->Markers.begin() + index);
 		}
 
-		Undo::MergeResult TryMerge(ICommand& commandToMerge) override
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			return Undo::MergeResult::Failed;
 		}
@@ -198,7 +198,7 @@ namespace Comfy::Studio::Editor
 		int index;
 	};
 
-	class LayerMoveMarker : public Undo::ICommand
+	class LayerMoveMarker : public Undo::Command
 	{
 	public:
 		LayerMoveMarker(std::shared_ptr<Graphics::Aet::Layer> ref, std::tuple<int, int> value)
@@ -217,7 +217,7 @@ namespace Comfy::Studio::Editor
 			std::iter_swap(reference->Markers.begin() + std::get<0>(newValue), reference->Markers.begin() + std::get<1>(newValue));
 		}
 
-		Undo::MergeResult TryMerge(ICommand& commandToMerge) override
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			return Undo::MergeResult::Failed;
 		}
@@ -232,7 +232,7 @@ namespace Comfy::Studio::Editor
 		std::tuple<int /* SourceIndex */, int /* DestinationIndex */> newValue;
 	};
 
-	class AnimationDataChangeKeyFrameValue : public Undo::ICommand
+	class AnimationDataChangeKeyFrameValue : public Undo::Command
 	{
 	public:
 		AnimationDataChangeKeyFrameValue(std::shared_ptr<Graphics::Aet::Layer> ref, std::tuple<Graphics::Transform2DField_Enum, frame_t, float> value)
@@ -259,7 +259,7 @@ namespace Comfy::Studio::Editor
 				Graphics::Aet::Util::InsertKeyFrameAt(GetProperty().Keys, GetFrame(), GetNewValue());
 		}
 
-		Undo::MergeResult TryMerge(ICommand& commandToMerge) override
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			auto* other = static_cast<decltype(this)>(&commandToMerge);
 			if (other->reference.get() != reference.get() || other->GetFrame() != GetFrame() || &other->GetProperty() != &GetProperty())
@@ -284,7 +284,7 @@ namespace Comfy::Studio::Editor
 		bool keyFrameExisted;
 	};
 
-	class AnimationDataChangeTransform : public Undo::ICommand
+	class AnimationDataChangeTransform : public Undo::Command
 	{
 	public:
 		AnimationDataChangeTransform(std::shared_ptr<Graphics::Aet::Layer> ref, std::tuple<frame_t, vec2, vec2> value) :
@@ -314,7 +314,7 @@ namespace Comfy::Studio::Editor
 			keyFrameCommandScaleY.Redo();
 		}
 
-		Undo::MergeResult TryMerge(ICommand& commandToMerge) override
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			auto* other = static_cast<decltype(this)>(&commandToMerge);
 			if (other->reference.get() != reference.get() || other->GetFrame() != GetFrame())
@@ -341,7 +341,7 @@ namespace Comfy::Studio::Editor
 		AnimationDataChangeKeyFrameValue keyFrameCommandPositionX, keyFrameCommandPositionY, keyFrameCommandScaleX, keyFrameCommandScaleY;
 	};
 
-	class AnimationDataChangePosition : public Undo::ICommand
+	class AnimationDataChangePosition : public Undo::Command
 	{
 	public:
 		AnimationDataChangePosition(std::shared_ptr<Graphics::Aet::Layer> ref, std::tuple<frame_t, vec2> value) :
@@ -365,7 +365,7 @@ namespace Comfy::Studio::Editor
 			keyFrameCommandPositionY.Redo();
 		}
 
-		Undo::MergeResult TryMerge(ICommand& commandToMerge) override
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			auto* other = static_cast<decltype(this)>(&commandToMerge);
 			if (other->reference.get() != reference.get() || other->GetFrame() != GetFrame())
@@ -389,7 +389,7 @@ namespace Comfy::Studio::Editor
 		AnimationDataChangeKeyFrameValue keyFrameCommandPositionX, keyFrameCommandPositionY;
 	};
 
-	class AnimationDataChangeScale : public Undo::ICommand
+	class AnimationDataChangeScale : public Undo::Command
 	{
 	public:
 		AnimationDataChangeScale(std::shared_ptr<Graphics::Aet::Layer> ref, std::tuple<frame_t, vec2> value) :
@@ -413,7 +413,7 @@ namespace Comfy::Studio::Editor
 			keyFrameCommandScaleY.Redo();
 		}
 
-		Undo::MergeResult TryMerge(ICommand& commandToMerge) override
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			auto* other = static_cast<decltype(this)>(&commandToMerge);
 			if (other->reference.get() != reference.get() || other->GetFrame() != GetFrame())

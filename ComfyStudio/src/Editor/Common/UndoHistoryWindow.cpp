@@ -98,7 +98,7 @@ namespace Comfy::Studio::Editor
 		return false;
 	}
 
-	void UndoHistoryWindow::CommandStackListBoxGui(const char* headerName, const std::vector<std::unique_ptr<Undo::ICommand>>& stackView)
+	void UndoHistoryWindow::CommandStackListBoxGui(const char* headerName, const std::vector<std::unique_ptr<Undo::Command>>& stackView)
 	{
 		if (Gui::ListBoxHeader(headerName, Gui::GetContentRegionAvail()))
 		{
@@ -115,7 +115,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	bool UndoHistoryWindow::CommandSelectableGui(const Undo::ICommand& command, bool selected) const
+	bool UndoHistoryWindow::CommandSelectableGui(const Undo::Command& command, bool selected) const
 	{
 		Gui::PushID(&command);
 		const auto clicked = CommandSelectableGui(command.GetName(), selected);

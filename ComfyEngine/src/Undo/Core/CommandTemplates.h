@@ -1,5 +1,5 @@
 #pragma once
-#include "ICommand.h"
+#include "Command.h"
 
 namespace Comfy::Undo
 {
@@ -13,7 +13,7 @@ namespace Comfy::Undo
 	};
 
 	template <typename RefType, typename ValueType, typename Accessor>
-	class SharedPtrRefAccessorCommand : public ICommand
+	class SharedPtrRefAccessorCommand : public Command
 	{
 	public:
 		SharedPtrRefAccessorCommand(std::shared_ptr<RefType> ref, ValueType value)
@@ -32,7 +32,7 @@ namespace Comfy::Undo
 			Accessor::Set(*reference, newValue);
 		}
 
-		MergeResult TryMerge(ICommand& commandToMerge) override
+		MergeResult TryMerge(Command& commandToMerge) override
 		{
 			auto* other = static_cast<decltype(this)>(&commandToMerge);
 			if (other->reference.get() != reference.get())
@@ -51,7 +51,7 @@ namespace Comfy::Undo
 
 	// DEBUG: Swallows all arguments without functionality.
 	//		  Intended to be aliased to different names for testing commands that haven't yet been implemented
-	class UnimplementedDummyCommand : public ICommand
+	class UnimplementedDummyCommand : public Command
 	{
 	public:
 		template <typename... Args>
@@ -60,7 +60,7 @@ namespace Comfy::Undo
 	public:
 		void Undo() override {}
 		void Redo() override {}
-		MergeResult TryMerge(ICommand& commandToMerge) override { return MergeResult::Failed; }
+		MergeResult TryMerge(Command& commandToMerge) override { return MergeResult::Failed; }
 		std::string_view GetName() const override { return "Unimplemented Dummy Command"; }
 	};
 }

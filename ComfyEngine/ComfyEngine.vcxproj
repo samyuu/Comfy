@@ -242,7 +242,7 @@
     <ClInclude Include="src\System\Profiling\Profiler.h" />
     <ClInclude Include="src\Undo\Core\CommandTemplates.h" />
     <ClInclude Include="src\Undo\Core\UndoManager.h" />
-    <ClInclude Include="src\Undo\Core\ICommand.h" />
+    <ClInclude Include="src\Undo\Core\Command.h" />
     <ClInclude Include="src\Undo\Undo.h" />
     <ClInclude Include="src\Window\ApplicationHost.h" />
     <ClInclude Include="src\Window\RenderWindow.h" />

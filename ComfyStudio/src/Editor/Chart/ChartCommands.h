@@ -5,7 +5,7 @@
 
 namespace Comfy::Studio::Editor
 {
-	class ChangeStartOffset : public Undo::ICommand
+	class ChangeStartOffset : public Undo::Command
 	{
 	public:
 		ChangeStartOffset(Chart& chart, TimeSpan value)
@@ -24,7 +24,7 @@ namespace Comfy::Studio::Editor
 			chart.SetStartOffset(newValue);
 		}
 
-		Undo::MergeResult TryMerge(ICommand& commandToMerge) override
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			auto* other = static_cast<decltype(this)>(&commandToMerge);
 			if (&other->chart != &chart)
@@ -41,7 +41,7 @@ namespace Comfy::Studio::Editor
 		TimeSpan newValue, oldValue;
 	};
 
-	class ChangeSongDuration : public Undo::ICommand
+	class ChangeSongDuration : public Undo::Command
 	{
 	public:
 		ChangeSongDuration(Chart& chart, TimeSpan value)
@@ -60,7 +60,7 @@ namespace Comfy::Studio::Editor
 			chart.SetDuration(newValue);
 		}
 
-		Undo::MergeResult TryMerge(ICommand& commandToMerge) override
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			auto* other = static_cast<decltype(this)>(&commandToMerge);
 			if (&other->chart != &chart)
@@ -77,7 +77,7 @@ namespace Comfy::Studio::Editor
 		TimeSpan newValue, oldValue;
 	};
 
-	class AddTarget : public Undo::ICommand
+	class AddTarget : public Undo::Command
 	{
 	public:
 		AddTarget(Chart& chart, TimelineTick tick, ButtonType type)
@@ -96,7 +96,7 @@ namespace Comfy::Studio::Editor
 			chart.GetTargets().Add(tick, type);
 		}
 
-		Undo::MergeResult TryMerge(ICommand& commandToMerge) override
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			return Undo::MergeResult::Failed;
 		}
@@ -109,7 +109,7 @@ namespace Comfy::Studio::Editor
 		ButtonType type;
 	};
 
-	class RemoveTarget : public Undo::ICommand
+	class RemoveTarget : public Undo::Command
 	{
 	public:
 		RemoveTarget(Chart& chart, TimelineTick tick, ButtonType type)
@@ -129,7 +129,7 @@ namespace Comfy::Studio::Editor
 			chart.GetTargets().Remove(tick, type);
 		}
 
-		Undo::MergeResult TryMerge(ICommand& commandToMerge) override
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			return Undo::MergeResult::Failed;
 		}
@@ -145,7 +145,7 @@ namespace Comfy::Studio::Editor
 
 namespace Comfy::Studio::Editor
 {
-	class AddTempoChange : public Undo::ICommand
+	class AddTempoChange : public Undo::Command
 	{
 	public:
 		AddTempoChange(Chart& chart, TimelineTick tick, Tempo tempo)
@@ -166,7 +166,7 @@ namespace Comfy::Studio::Editor
 			chart.GetTimelineMap().CalculateMapTimes(chart.GetTempoMap());
 		}
 
-		Undo::MergeResult TryMerge(ICommand& commandToMerge) override
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			return Undo::MergeResult::Failed;
 		}
@@ -179,7 +179,7 @@ namespace Comfy::Studio::Editor
 		Tempo tempo;
 	};
 
-	class RemoveTempoChange : public Undo::ICommand
+	class RemoveTempoChange : public Undo::Command
 	{
 	public:
 		RemoveTempoChange(Chart& chart, TimelineTick tick)
@@ -200,7 +200,7 @@ namespace Comfy::Studio::Editor
 			chart.GetTimelineMap().CalculateMapTimes(chart.GetTempoMap());
 		}
 
-		Undo::MergeResult TryMerge(ICommand& commandToMerge) override
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			return Undo::MergeResult::Failed;
 		}
@@ -213,7 +213,7 @@ namespace Comfy::Studio::Editor
 		Tempo oldTempo;
 	};
 
-	class ChangeTempo : public Undo::ICommand
+	class ChangeTempo : public Undo::Command
 	{
 	public:
 		ChangeTempo(Chart& chart, TimelineTick tick, Tempo newTempo)
@@ -234,7 +234,7 @@ namespace Comfy::Studio::Editor
 			chart.GetTimelineMap().CalculateMapTimes(chart.GetTempoMap());
 		}
 
-		Undo::MergeResult TryMerge(ICommand& commandToMerge) override
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			auto* other = static_cast<decltype(this)>(&commandToMerge);
 			if (&other->chart != &chart)

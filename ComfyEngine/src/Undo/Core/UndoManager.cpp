@@ -35,7 +35,7 @@ namespace Comfy::Undo
 		endOfFrameCommands.clear();
 	}
 
-	void UndoManager::TryMergeOrExecute(std::unique_ptr<ICommand> commandToExecute)
+	void UndoManager::TryMergeOrExecute(std::unique_ptr<Command> commandToExecute)
 	{
 		redoStack.clear();
 		if (undoStack.empty() || !commandMergingEnabled)
@@ -109,12 +109,12 @@ namespace Comfy::Undo
 		return !redoStack.empty();
 	}
 
-	const std::vector<std::unique_ptr<ICommand>>& UndoManager::GetUndoStackView() const
+	const std::vector<std::unique_ptr<Command>>& UndoManager::GetUndoStackView() const
 	{
 		return undoStack;
 	}
 
-	const std::vector<std::unique_ptr<ICommand>>& UndoManager::GetRedoStackView() const
+	const std::vector<std::unique_ptr<Command>>& UndoManager::GetRedoStackView() const
 	{
 		return redoStack;
 	}
