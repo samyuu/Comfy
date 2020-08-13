@@ -5,10 +5,10 @@ namespace Comfy::Studio::Editor
 {
 	SortedTempoMap::SortedTempoMap()
 	{
-		SetTempoChange(TimelineTick(0), TempoChange::DefaultTempo);
+		SetTempoChange(TimelineTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
 	}
 
-	void SortedTempoMap::SetTempoChange(TimelineTick tick, Tempo tempo)
+	void SortedTempoMap::SetTempoChange(TimelineTick tick, Tempo tempo, TimeSignature signature)
 	{
 		assert(tick.TotalTicks() >= 0);
 
@@ -18,7 +18,7 @@ namespace Comfy::Studio::Editor
 		}
 		else
 		{
-			tempoChanges.emplace_back(tick, tempo);
+			tempoChanges.emplace_back(tick, tempo, signature);
 			std::sort(tempoChanges.begin(), tempoChanges.end());
 		}
 	}
@@ -31,7 +31,7 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: Always keep at least one TempoChange because the TimelineMap relies on it
 		if (tempoChanges.empty())
-			SetTempoChange(TimelineTick(0), TempoChange::DefaultTempo);
+			SetTempoChange(TimelineTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
 	}
 
 	TempoChange& SortedTempoMap::GetTempoChangeAt(size_t index)

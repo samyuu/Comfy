@@ -17,6 +17,8 @@ namespace Comfy::Studio::Editor
 
 	private:
 		Undo::UndoManager& undoManager;
+
 		Tempo newTempo = TempoChange::DefaultTempo;
+		TimeSignature newSignature = TempoChange::DefaultSignature;
 	};
 }

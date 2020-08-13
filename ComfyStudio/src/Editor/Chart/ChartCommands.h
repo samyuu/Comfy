@@ -148,21 +148,21 @@ namespace Comfy::Studio::Editor
 	class AddTempoChange : public Undo::Command
 	{
 	public:
-		AddTempoChange(Chart& chart, TimelineTick tick, Tempo tempo)
-			: chart(chart), tick(tick), tempo(tempo)
+		AddTempoChange(Chart& chart, TempoChange newValue)
+			: chart(chart), newValue(newValue)
 		{
 		}
 
 	public:
 		void Undo() override
 		{
-			chart.GetTempoMap().RemoveTempoChange(tick);
+			chart.GetTempoMap().RemoveTempoChange(newValue.Tick);
 			chart.GetTimelineMap().CalculateMapTimes(chart.GetTempoMap());
 		}
 
 		void Redo() override
 		{
-			chart.GetTempoMap().SetTempoChange(tick, tempo);
+			chart.GetTempoMap().SetTempoChange(newValue.Tick, newValue.Tempo, newValue.Signature);
 			chart.GetTimelineMap().CalculateMapTimes(chart.GetTempoMap());
 		}
 
@@ -175,28 +175,28 @@ namespace Comfy::Studio::Editor
 
 	private:
 		Chart& chart;
-		TimelineTick tick;
-		Tempo tempo;
+		TempoChange newValue;
 	};
 
 	class RemoveTempoChange : public Undo::Command
 	{
 	public:
 		RemoveTempoChange(Chart& chart, TimelineTick tick)
-			: chart(chart), tick(tick), oldTempo(chart.GetTempoMap().FindTempoChangeAtTick(tick).Tempo)
+			: chart(chart), oldValue(chart.GetTempoMap().FindTempoChangeAtTick(tick))
 		{
+			assert(oldValue.Tick == tick);
 		}
 
 	public:
 		void Undo() override
 		{
-			chart.GetTempoMap().SetTempoChange(tick, oldTempo);
+			chart.GetTempoMap().SetTempoChange(oldValue.Tick, oldValue.Tempo, oldValue.Signature);
 			chart.GetTimelineMap().CalculateMapTimes(chart.GetTempoMap());
 		}
 
 		void Redo() override
 		{
-			chart.GetTempoMap().RemoveTempoChange(tick);
+			chart.GetTempoMap().RemoveTempoChange(oldValue.Tick);
 			chart.GetTimelineMap().CalculateMapTimes(chart.GetTempoMap());
 		}
 
@@ -209,46 +209,45 @@ namespace Comfy::Studio::Editor
 
 	private:
 		Chart& chart;
-		TimelineTick tick;
-		Tempo oldTempo;
+		TempoChange oldValue;
 	};
 
-	class ChangeTempo : public Undo::Command
+	class UpdateTempoChange : public Undo::Command
 	{
 	public:
-		ChangeTempo(Chart& chart, TimelineTick tick, Tempo newTempo)
-			: chart(chart), tick(tick), newValue(newTempo), oldValue(chart.GetTempoMap().FindTempoChangeAtTick(tick).Tempo)
+		UpdateTempoChange(Chart& chart, TempoChange newValue)
+			: chart(chart), newValue(newValue), oldValue(chart.GetTempoMap().FindTempoChangeAtTick(newValue.Tick))
 		{
+			assert(newValue.Tick == oldValue.Tick);
 		}
 
 	public:
 		void Undo() override
 		{
-			chart.GetTempoMap().SetTempoChange(tick, oldValue);
+			chart.GetTempoMap().SetTempoChange(oldValue.Tick, oldValue.Tempo, oldValue.Signature);
 			chart.GetTimelineMap().CalculateMapTimes(chart.GetTempoMap());
 		}
 
 		void Redo() override
 		{
-			chart.GetTempoMap().SetTempoChange(tick, newValue);
+			chart.GetTempoMap().SetTempoChange(newValue.Tick, newValue.Tempo, newValue.Signature);
 			chart.GetTimelineMap().CalculateMapTimes(chart.GetTempoMap());
 		}
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
 			auto* other = static_cast<decltype(this)>(&commandToMerge);
-			if (&other->chart != &chart || other->tick != tick)
+			if (&other->chart != &chart || other->newValue.Tick != newValue.Tick)
 				return Undo::MergeResult::Failed;
 
 			newValue = other->newValue;
 			return Undo::MergeResult::ValueUpdated;
 		}
 
-		std::string_view GetName() const override { return "Change Tempo"; }
+		std::string_view GetName() const override { return "Update Tempo Change"; }
 
 	private:
 		Chart& chart;
-		TimelineTick tick;
-		Tempo newValue, oldValue;
+		TempoChange newValue, oldValue;
 	};
 }

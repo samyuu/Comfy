@@ -11,7 +11,7 @@ namespace Comfy::Studio::Editor
 		~SortedTempoMap() = default;
 
 	public:
-		void SetTempoChange(TimelineTick tick, Tempo tempo);
+		void SetTempoChange(TimelineTick tick, Tempo tempo, TimeSignature signature);
 		void RemoveTempoChange(TimelineTick tick);
 		
 		TempoChange& GetTempoChangeAt(size_t index);

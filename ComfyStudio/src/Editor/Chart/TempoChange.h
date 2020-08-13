@@ -14,12 +14,25 @@ namespace Comfy::Studio::Editor
 		f32 BeatsPerMinute = 0.0f;
 	};
 
+	struct TimeSignature
+	{
+		static constexpr i16 MinValue = 1;
+		static constexpr i16 MaxValue = 12;
+
+		constexpr TimeSignature() = default;
+		constexpr TimeSignature(i16 numerator, i16 denominator) : Numerator(numerator), Denominator(denominator) {}
+
+		i16 Numerator = MinValue;
+		i16 Denominator = MinValue;
+	};
+
 	struct TempoChange
 	{
-		static constexpr Tempo DefaultTempo = Tempo(160.0f);
+		static constexpr auto DefaultTempo = Tempo(160.0f);
+		static constexpr auto DefaultSignature = TimeSignature(4, 4);
 
 		TempoChange() = default;
-		TempoChange(TimelineTick tick, Tempo tempo) : Tick(tick), Tempo(tempo) {}
+		TempoChange(TimelineTick tick, Tempo tempo, TimeSignature signature) : Tick(tick), Tempo(tempo), Signature(signature) {}
 
 		constexpr bool operator==(const TempoChange& other) const { return (Tick == other.Tick); }
 		constexpr bool operator!=(const TempoChange& other) const { return (Tick != other.Tick); }
@@ -27,6 +40,7 @@ namespace Comfy::Studio::Editor
 		constexpr bool operator>(const TempoChange& other) const { return (Tick > other.Tick); }
 
 		TimelineTick Tick = {};
-		Tempo Tempo = {};
+		Tempo Tempo = DefaultTempo;
+		TimeSignature Signature = DefaultSignature;
 	};
 }

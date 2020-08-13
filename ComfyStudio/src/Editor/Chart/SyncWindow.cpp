@@ -92,10 +92,12 @@ namespace Comfy::Studio::Editor
 
 				if (Gui::Button("Insert##SyncWindow", vec2(buttonWidth, 0.0f)))
 				{
-					if (tempoChangeAtCursor.Tick != cursorTick)
-						undoManager.Execute<AddTempoChange>(chart, cursorTick, newTempo);
+					const auto newOrUpdatedTempoChange = TempoChange(cursorTick, newTempo, newSignature);
+
+					if (tempoChangeAtCursor.Tick != newOrUpdatedTempoChange.Tick)
+						undoManager.Execute<AddTempoChange>(chart, newOrUpdatedTempoChange);
 					else
-						undoManager.Execute<ChangeTempo>(chart, cursorTick, newTempo);
+						undoManager.Execute<UpdateTempoChange>(chart, newOrUpdatedTempoChange);
 				}
 				Gui::SameLine();
 				if (Gui::Button("Remove##SyncWindow", vec2(buttonWidth, 0.0f)))

@@ -611,7 +611,7 @@ namespace Comfy::Studio::Editor
 
 				auto bpm = tempoChange.Tempo.BeatsPerMinute;
 				if (GuiProperty::Input("Tempo##TempoChange", bpm, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
-					undoManager.Execute<ChangeTempo>(*workingChart, tempoChange.Tick, std::clamp(bpm, Tempo::MinBPM, Tempo::MaxBPM));
+					undoManager.Execute<UpdateTempoChange>(*workingChart, TempoChange(tempoChange.Tick, std::clamp(bpm, Tempo::MinBPM, Tempo::MaxBPM), tempoChange.Signature));
 
 				GuiProperty::PropertyLabelValueFunc("", [&]
 				{
@@ -620,10 +620,10 @@ namespace Comfy::Studio::Editor
 					const auto buttonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemSpacing.x) / 2.0f;
 
 					if (Gui::Button("x0.5", vec2(buttonWidth, 0.0f)))
-						undoManager.Execute<ChangeTempo>(*workingChart, tempoChange.Tick, std::clamp((bpm *= 0.5f), Tempo::MinBPM, Tempo::MaxBPM));
+						undoManager.Execute<UpdateTempoChange>(*workingChart, TempoChange(tempoChange.Tick, std::clamp(bpm * 0.5f, Tempo::MinBPM, Tempo::MaxBPM), tempoChange.Signature));
 					Gui::SameLine();
 					if (Gui::Button("x2.0", vec2(buttonWidth, 0.0f)))
-						undoManager.Execute<ChangeTempo>(*workingChart, tempoChange.Tick, std::clamp((bpm *= 2.0f), Tempo::MinBPM, Tempo::MaxBPM));
+						undoManager.Execute<UpdateTempoChange>(*workingChart, TempoChange(tempoChange.Tick, std::clamp(bpm * 2.0f, Tempo::MinBPM, Tempo::MaxBPM), tempoChange.Signature));
 					Gui::PopStyleVar();
 
 					return false;
