@@ -332,14 +332,14 @@ namespace ImGui
 				return PropertyLabelValueFunc(label, [&] { return Detail::InputVecNDragPropertyBase<vec4, vec4::value_type>(inOutValue, dragSpeed, dragRange, disabledComponents); });
 			}
 
-			inline bool Input(std::string_view label, int& inOutValue, float dragSpeed = 1.0f, std::optional<ivec2> dragRange = {})
+			inline bool Input(std::string_view label, int& inOutValue, float dragSpeed = 1.0f, std::optional<ivec2> dragRange = {}, const char* format = nullptr)
 			{
-				return Detail::InputVec1DragBase(label, inOutValue, dragSpeed, dragRange);
+				return Detail::InputVec1DragBase(label, inOutValue, dragSpeed, dragRange, format);
 			}
 
-			inline bool Input(std::string_view label, u32& inOutValue, float dragSpeed = 1.0f, std::optional<uvec2> dragRange = {})
+			inline bool Input(std::string_view label, u32& inOutValue, float dragSpeed = 1.0f, std::optional<uvec2> dragRange = {}, const char* format = nullptr)
 			{
-				return Detail::InputVec1DragBase(label, inOutValue, dragSpeed, dragRange);
+				return Detail::InputVec1DragBase(label, inOutValue, dragSpeed, dragRange, format);
 			}
 
 			inline bool InputHex(std::string_view label, u32& inOutValue)
