@@ -532,7 +532,7 @@ namespace Comfy::Studio::Editor
 	{
 		constexpr auto tempoChangePopupName = "##TempoChangePopup";
 
-		const auto tempoMap = workingChart->GetTempoMap();
+		const auto& tempoMap = workingChart->GetTempoMap();
 		for (size_t i = 0; i < tempoMap.TempoChangeCount(); i++)
 		{
 			const auto& tempoChange = tempoMap.GetTempoChangeAt(i);

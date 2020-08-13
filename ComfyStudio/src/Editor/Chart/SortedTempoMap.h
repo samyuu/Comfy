@@ -4,7 +4,7 @@
 
 namespace Comfy::Studio::Editor
 {
-	class SortedTempoMap
+	class SortedTempoMap : NonCopyable
 	{
 	public:
 		SortedTempoMap();
