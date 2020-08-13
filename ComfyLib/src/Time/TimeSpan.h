@@ -33,10 +33,8 @@ namespace Comfy
 		// NOTE: Enough to store "(-)mm:ss:fff"
 		static constexpr size_t RequiredFormatBufferSize = 12;
 
-		void FormatTime(char* buffer, size_t bufferSize) const;
-
-		// NOTE: Should be small enough for SSO and not allocate additional memory
-		std::string ToString() const;
+		void FormatTimeBuffer(char* buffer, size_t bufferSize) const;
+		std::array<char, RequiredFormatBufferSize> FormatTime() const;
 
 	public:
 		constexpr bool operator==(const TimeSpan& other) const { return timeInSeconds == other.timeInSeconds; }

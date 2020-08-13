@@ -451,13 +451,10 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: Time drag text
 		{
-			char cursorTimeBuffer[TimeSpan::RequiredFormatBufferSize];
-			cursorTime.FormatTime(cursorTimeBuffer, sizeof(cursorTimeBuffer));
-
 			constexpr auto dragSpeed = 16.0f;
 			auto cursorDragTicks = static_cast<f32>(GetCursorTick().TotalTicks());
 
-			if (Gui::ComfyDragText("TimeDragText::AetTimeline", cursorTimeBuffer, &cursorDragTicks, dragSpeed, 0.0f, 0.0f, timeDragTextWidth))
+			if (Gui::ComfyDragText("TimeDragText::AetTimeline", cursorTime.FormatTime().data(), &cursorDragTicks, dragSpeed, 0.0f, 0.0f, timeDragTextWidth))
 				SetCursorTime(TickToTime(RoundTickToGrid(TimelineTick::FromTicks(static_cast<int>(cursorDragTicks)))));
 		}
 
@@ -566,10 +563,7 @@ namespace Comfy::Studio::Editor
 			// windowDrawList->AddRectFilled(buttonPosition, buttonPosition + buttonSize, TEMPO_MAP_BAR_COLOR);
 			if (Gui::IsWindowFocused() && Gui::IsItemHovered())
 			{
-				char timeBuffer[TimeSpan::RequiredFormatBufferSize];
-				TickToTime(tempoChange.Tick).FormatTime(timeBuffer, sizeof(timeBuffer));
-
-				Gui::WideSetTooltip("Time: %s", timeBuffer);
+				Gui::WideSetTooltip("Time: %s", TickToTime(tempoChange.Tick).FormatTime().data());
 
 				baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, Gui::GetColorU32(ImGuiCol_ChildBg));
 
@@ -603,10 +597,7 @@ namespace Comfy::Studio::Editor
 				// TODO: Be able to move non-first tempo changes within the bounds of the previous and the next
 				GuiProperty::PropertyLabelValueFunc("Time", [&]
 				{
-					char timeBuffer[TimeSpan::RequiredFormatBufferSize];
-					TickToTime(tempoChange.Tick).FormatTime(timeBuffer, sizeof(timeBuffer));
-
-					Gui::TextDisabled("%s (Ticks: %d)", timeBuffer, tempoChange.Tick.TotalTicks());
+					Gui::TextDisabled("%s (Ticks: %d)", TickToTime(tempoChange.Tick).FormatTime().data(), tempoChange.Tick.TotalTicks());
 					return false;
 				});
 

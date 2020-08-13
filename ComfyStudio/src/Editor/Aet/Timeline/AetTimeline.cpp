@@ -287,7 +287,7 @@ namespace Comfy::Studio::Editor
 
 			Gui::GetWindowDrawList()->AddText(position, Gui::GetColorU32(ImGuiCol_Text), GetItemTypeIcon(layer->ItemType));
 			position.x += typeIconDistance;
-			
+
 			Gui::GetWindowDrawList()->AddText(position, Gui::GetColorU32(ImGuiCol_Text), layer->GetName().c_str());
 		};
 
@@ -403,12 +403,8 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: Time drag text
 		{
-			char cursorTimeBuffer[TimeSpan::RequiredFormatBufferSize];
-			cursorTime.FormatTime(cursorTimeBuffer, sizeof(cursorTimeBuffer));
-
 			float cursorFrame = GetCursorFrame().Frames();
-
-			if (Gui::ComfyDragText("TimeDragText::AetTimeline", cursorTimeBuffer, &cursorFrame, 1.0f, 0.0f, 0.0f, timeDragTextWidth))
+			if (Gui::ComfyDragText("TimeDragText::AetTimeline", cursorTime.FormatTime().data(), &cursorFrame, 1.0f, 0.0f, 0.0f, timeDragTextWidth))
 			{
 				cursorTime = GetTimelineTime(std::clamp(TimelineFrame(cursorFrame), loopStartFrame, loopEndFrame));
 				RoundCursorTimeToNearestFrame();

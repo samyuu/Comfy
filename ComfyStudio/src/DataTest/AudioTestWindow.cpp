@@ -262,8 +262,8 @@ namespace Comfy::Studio::DataTest
 					Gui::TextDisabled("%.*s | (%s / %s) | (%d%%) | %s [%s]",
 						static_cast<int>(voiceName.size()),
 						voiceName.data(),
-						voice.GetPosition().ToString().c_str(),
-						voice.GetDuration().ToString().c_str(),
+						voice.GetPosition().FormatTime().data(),
+						voice.GetDuration().FormatTime().data(),
 						static_cast<int>(voice.GetVolume() * 100.0f),
 						voice.GetIsPlaying() ? "Play" : "Pause",
 						sourceNameBuffer);
@@ -301,9 +301,9 @@ namespace Comfy::Studio::DataTest
 					testSongVoice.SetPosition(TimeSpan::FromSeconds(position));
 
 				Gui::Separator();
-				Gui::Text("TestSongVoice::GetDuration(): %s", testSongVoice.GetDuration().ToString().c_str());
+				Gui::Text("TestSongVoice::GetDuration(): %s", testSongVoice.GetDuration().FormatTime().data());
 				Gui::Separator();
-				Gui::Text("TestSongVoice::GetPosition(): %s", testSongVoice.GetPosition().ToString().c_str());
+				Gui::Text("TestSongVoice::GetPosition(): %s", testSongVoice.GetPosition().FormatTime().data());
 				Gui::Separator();
 
 				float volume = testSongVoice.GetVolume();

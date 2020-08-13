@@ -36,7 +36,7 @@ namespace Comfy
 		} GlobalTimingData;
 	}
 
-	void TimeSpan::FormatTime(char* buffer, size_t bufferSize) const
+	void TimeSpan::FormatTimeBuffer(char* buffer, size_t bufferSize) const
 	{
 		assert(bufferSize >= RequiredFormatBufferSize);
 		const double absoluteTime = glm::abs(timeInSeconds);
@@ -49,11 +49,12 @@ namespace Comfy
 		sprintf_s(buffer, bufferSize, "%s%02d:%02d.%03d", signCharacter, static_cast<int>(minutes), static_cast<int>(seconds), static_cast<int>(milliseconds));
 	}
 
-	std::string TimeSpan::ToString() const
+	std::array<char, TimeSpan::RequiredFormatBufferSize> TimeSpan::FormatTime() const
 	{
-		auto stringBuffer = std::string(RequiredFormatBufferSize, '\0');
-		FormatTime(stringBuffer.data(), RequiredFormatBufferSize);
-		return stringBuffer;
+		std::array<char, RequiredFormatBufferSize> formatted;
+		FormatTimeBuffer(formatted.data(), formatted.size());
+
+		return formatted;
 	}
 
 	void TimeSpan::InitializeClock()
