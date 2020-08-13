@@ -22,6 +22,9 @@ namespace Comfy::Studio::Editor
 		constexpr TimeSignature() = default;
 		constexpr TimeSignature(i16 numerator, i16 denominator) : Numerator(numerator), Denominator(denominator) {}
 
+		constexpr bool operator==(const TimeSignature& other) const { return (Numerator == other.Numerator) && (Denominator == other.Denominator); }
+		constexpr bool operator!=(const TimeSignature& other) const { return (Numerator != other.Numerator) || (Denominator != other.Denominator); }
+
 		i16 Numerator = MinValue;
 		i16 Denominator = MinValue;
 	};
