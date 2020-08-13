@@ -75,14 +75,23 @@ namespace Comfy::Studio::Editor
 
 		const auto cursorTick = timeline.RoundTickToGrid(timeline.GetCursorTick());
 		const auto tempoChangeAtCursor = chart.GetTempoMap().FindTempoChangeAtTick(cursorTick);
+		const auto cursorSitsOnTempoChange = (tempoChangeAtCursor.Tick == cursorTick);
 
 		char rhythmNodeValueBuffer[64];
-		sprintf_s(rhythmNodeValueBuffer, "(%.2f BPM)", tempoChangeAtCursor.Tempo.BeatsPerMinute);
+		sprintf_s(rhythmNodeValueBuffer, "(%.2f BPM - %d/%d)", tempoChangeAtCursor.Tempo.BeatsPerMinute, tempoChangeAtCursor.Signature.Numerator, tempoChangeAtCursor.Signature.Denominator);
 
 		GuiProperty::TreeNode("Chart Rhythm", rhythmNodeValueBuffer, ImGuiTreeNodeFlags_DefaultOpen, [&]
 		{
-			if (GuiProperty::Input("Tempo##SyncWindow", newTempo.BeatsPerMinute, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
-				newTempo.BeatsPerMinute = std::clamp(newTempo.BeatsPerMinute, Tempo::MinBPM, Tempo::MaxBPM);
+			f32 bpm = newTempo.BeatsPerMinute;
+			if (GuiProperty::Input("Tempo##SyncWindow", bpm, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
+				newTempo.BeatsPerMinute = bpm;
+
+			char signatureFormatBuffer[32];
+			sprintf_s(signatureFormatBuffer, "%%d/%d", newSignature.Denominator);
+
+			i32 numerator = newSignature.Numerator;
+			if (GuiProperty::Input("Signature##SyncWindow", numerator, 0.1f, ivec2(TimeSignature::MinValue, TimeSignature::MaxValue), signatureFormatBuffer))
+				newSignature = TimeSignature(numerator, newSignature.Denominator);
 
 			GuiProperty::PropertyLabelValueFunc("", [&]
 			{
@@ -90,21 +99,25 @@ namespace Comfy::Studio::Editor
 				Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
 				const auto buttonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemSpacing.x) / 2.0f;
 
-				if (Gui::Button("Insert##SyncWindow", vec2(buttonWidth, 0.0f)))
+				if (cursorSitsOnTempoChange)
 				{
-					const auto newOrUpdatedTempoChange = TempoChange(cursorTick, newTempo, newSignature);
-
-					if (tempoChangeAtCursor.Tick != newOrUpdatedTempoChange.Tick)
-						undoManager.Execute<AddTempoChange>(chart, newOrUpdatedTempoChange);
-					else
-						undoManager.Execute<UpdateTempoChange>(chart, newOrUpdatedTempoChange);
+					if (Gui::Button("Update##SyncWindow", vec2(buttonWidth, 0.0f)))
+						undoManager.Execute<UpdateTempoChange>(chart, TempoChange(cursorTick, newTempo, newSignature));
+				}
+				else
+				{
+					if (Gui::Button("Insert##SyncWindow", vec2(buttonWidth, 0.0f)))
+						undoManager.Execute<AddTempoChange>(chart, TempoChange(cursorTick, newTempo, newSignature));
 				}
 				Gui::SameLine();
+
+				// Gui::PushItemDisabledAndTextColorIf(!cursorSitsOnTempoChange);
 				if (Gui::Button("Remove##SyncWindow", vec2(buttonWidth, 0.0f)))
 				{
-					if (tempoChangeAtCursor.Tick == cursorTick)
+					if (cursorSitsOnTempoChange)
 						undoManager.Execute<RemoveTempoChange>(chart, cursorTick);
 				}
+				// Gui::PopItemDisabledAndTextColorIf(!cursorSitsOnTempoChange);
 
 				Gui::PopStyleVar();
 				return false;
