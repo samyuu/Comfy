@@ -15,6 +15,7 @@ namespace Comfy::Studio::Editor
 		if (const auto existing = FindIfOrNull(tempoChanges, [&](const auto& t) { return (t.Tick == tick); }); existing != nullptr)
 		{
 			existing->Tempo = tempo;
+			existing->Signature = signature;
 		}
 		else
 		{
