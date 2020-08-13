@@ -14,7 +14,7 @@ namespace Comfy::Studio::Editor
 		void SetTempoChange(TimelineTick tick, Tempo tempo, TimeSignature signature);
 		void RemoveTempoChange(TimelineTick tick);
 		
-		TempoChange& GetTempoChangeAt(size_t index);
+		const TempoChange& GetTempoChangeAt(size_t index) const;
 		TempoChange& FindTempoChangeAtTick(TimelineTick tick);
 		
 		size_t TempoChangeCount() const;

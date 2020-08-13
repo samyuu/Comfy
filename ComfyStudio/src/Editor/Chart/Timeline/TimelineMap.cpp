@@ -100,7 +100,7 @@ namespace Comfy::Studio::Editor
 	{
 		assert(tempoMap.TempoChangeCount() > 0);
 
-		TempoChange& lastTempoChange = tempoMap.GetTempoChangeAt(tempoMap.TempoChangeCount() - 1);
+		const auto& lastTempoChange = tempoMap.GetTempoChangeAt(tempoMap.TempoChangeCount() - 1);
 		const size_t timeCount = lastTempoChange.Tick.TotalTicks() + 1;
 
 		tickTimes.resize(timeCount);
@@ -111,7 +111,7 @@ namespace Comfy::Studio::Editor
 			const size_t tempoChangeCount = tempoMap.TempoChangeCount();
 			for (size_t tempoIndex = 0; tempoIndex < tempoChangeCount; tempoIndex++)
 			{
-				TempoChange& tempoChange = tempoMap.GetTempoChangeAt(tempoIndex);
+				const auto& tempoChange = tempoMap.GetTempoChangeAt(tempoIndex);
 
 				const double beatDuration = (60.0 / tempoChange.Tempo.BeatsPerMinute);
 				const double tickDuration = (beatDuration / TimelineTick::TicksPerBeat);

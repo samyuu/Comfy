@@ -34,7 +34,7 @@ namespace Comfy::Studio::Editor
 			SetTempoChange(TimelineTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
 	}
 
-	TempoChange& SortedTempoMap::GetTempoChangeAt(size_t index)
+	const TempoChange& SortedTempoMap::GetTempoChangeAt(size_t index) const
 	{
 		return tempoChanges.at(index);
 	}

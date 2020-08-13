@@ -535,9 +535,10 @@ namespace Comfy::Studio::Editor
 	{
 		constexpr auto tempoChangePopupName = "##TempoChangePopup";
 
-		for (size_t i = 0; i < workingChart->GetTempoMap().TempoChangeCount(); i++)
+		const auto tempoMap = workingChart->GetTempoMap();
+		for (size_t i = 0; i < tempoMap.TempoChangeCount(); i++)
 		{
-			const auto& tempoChange = workingChart->GetTempoMap().GetTempoChangeAt(i);
+			const auto& tempoChange = tempoMap.GetTempoChangeAt(i);
 
 			const auto screenX = glm::round(GetTimelinePosition(tempoChange.Tick) - GetScrollX());
 			const auto visiblity = GetTimelineVisibility(screenX);
@@ -597,7 +598,7 @@ namespace Comfy::Studio::Editor
 
 			if (tempoPopupIndex >= 0)
 			{
-				auto& tempoChange = workingChart->GetTempoMap().GetTempoChangeAt(tempoPopupIndex);
+				const auto& tempoChange = tempoMap.GetTempoChangeAt(tempoPopupIndex);
 
 				// TODO: Be able to move non-first tempo changes within the bounds of the previous and the next
 				GuiProperty::PropertyLabelValueFunc("Time", [&]
