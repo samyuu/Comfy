@@ -90,7 +90,7 @@ namespace Comfy::Studio::Editor
 			sprintf_s(signatureFormatBuffer, "%%d/%d", newSignature.Denominator);
 
 			i32 numerator = newSignature.Numerator;
-			if (GuiProperty::Input("Signature##SyncWindow", numerator, 0.1f, ivec2(TimeSignature::MinValue, TimeSignature::MaxValue), signatureFormatBuffer))
+			if (GuiProperty::Input("Time Signature##SyncWindow", numerator, 0.1f, ivec2(TimeSignature::MinValue, TimeSignature::MaxValue), signatureFormatBuffer))
 				newSignature = TimeSignature(numerator, newSignature.Denominator);
 
 			GuiProperty::PropertyLabelValueFunc("", [&]

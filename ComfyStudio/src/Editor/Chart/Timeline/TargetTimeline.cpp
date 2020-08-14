@@ -586,7 +586,7 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::WideBeginPopup(tempoChangePopupName))
 		{
-			Gui::Text("Change Tempo:");
+			Gui::Text("Tempo Change:");
 
 			GuiPropertyRAII::PropertyValueColumns columns;
 
@@ -609,7 +609,7 @@ namespace Comfy::Studio::Editor
 				sprintf_s(signatureFormatBuffer, "%%d/%d", tempoChange.Signature.Denominator);
 
 				i32 numerator = tempoChange.Signature.Numerator;
-				if (GuiProperty::Input("Signature##TempoChange", numerator, 0.1f, ivec2(TimeSignature::MinValue, TimeSignature::MaxValue), signatureFormatBuffer))
+				if (GuiProperty::Input("Time Signature##TempoChange", numerator, 0.1f, ivec2(TimeSignature::MinValue, TimeSignature::MaxValue), signatureFormatBuffer))
 					undoManager.Execute<UpdateTempoChange>(*workingChart, TempoChange(tempoChange.Tick, tempoChange.Tempo, TimeSignature(numerator, tempoChange.Signature.Denominator)));
 
 				GuiProperty::PropertyLabelValueFunc("", [&]
