@@ -37,32 +37,31 @@ namespace Comfy::Undo
 
 	void UndoManager::TryMergeOrExecute(std::unique_ptr<Command> commandToExecute)
 	{
+		assert(commandToExecute != nullptr);
+
 		redoStack.clear();
-		if (undoStack.empty() || !commandMergingEnabled)
+		auto* lastCommand = (!undoStack.empty() ? undoStack.back().get() : nullptr);
+
+		if (lastCommand != nullptr && CommandsAreOfSameType(*commandToExecute, *lastCommand))
 		{
-			undoStack.emplace_back(std::move(commandToExecute))->Redo();
+			const auto mergeResult = lastCommand->TryMerge(*commandToExecute);
+
+			if (mergeResult == MergeResult::Failed)
+				undoStack.emplace_back(std::move(commandToExecute))->Redo();
+			else if (mergeResult == MergeResult::ValueUpdated)
+				lastCommand->Redo();
+			else
+				assert(false);
 		}
 		else
 		{
-			const auto& lastCommand = undoStack.back();
-			const auto typeMatch = Hacks::CompareVirtualFunctionTablePointers(*commandToExecute, *lastCommand);
-
-			if (typeMatch)
-			{
-				const auto mergeResult = lastCommand->TryMerge(*commandToExecute);
-
-				if (mergeResult == MergeResult::Failed)
-					undoStack.emplace_back(std::move(commandToExecute))->Redo();
-				else if (mergeResult == MergeResult::ValueUpdated)
-					lastCommand->Redo();
-				else
-					assert(false);
-			}
-			else
-			{
-				undoStack.emplace_back(std::move(commandToExecute))->Redo();
-			}
+			undoStack.emplace_back(std::move(commandToExecute))->Redo();
 		}
+	}
+
+	bool UndoManager::CommandsAreOfSameType(const Command& commandA, const Command& commandB) const
+	{
+		return Hacks::CompareVirtualFunctionTablePointers(commandA, commandB);
 	}
 
 	void UndoManager::Undo(size_t count)
@@ -117,10 +116,5 @@ namespace Comfy::Undo
 	const std::vector<std::unique_ptr<Command>>& UndoManager::GetRedoStackView() const
 	{
 		return redoStack;
-	}
-
-	void UndoManager::SetCommandMergingEnabled(bool value)
-	{
-		commandMergingEnabled = value;
 	}
 }

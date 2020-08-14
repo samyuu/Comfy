@@ -10,6 +10,7 @@ namespace Comfy::Undo
 		ValueUpdated,
 	};
 
+	// TODO: Store creation time and "noMoMerge" / "isComplete" (?) flag and virtual description info format method (?)
 	class Command : NonCopyable
 	{
 	protected:

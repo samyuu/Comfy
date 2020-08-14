@@ -44,14 +44,12 @@ namespace Comfy::Undo
 
 		// TODO: Implement some kind of interface to easily disallow merges with the last added command
 		//		 for when a mouse button is released or a text box lost focus etc. (?)
-		void SetCommandMergingEnabled(bool value);
 
 	private:
 		void TryMergeOrExecute(std::unique_ptr<Command> commandToExecute);
+		bool CommandsAreOfSameType(const Command& commandA, const Command& commandB) const;
 
 	private:
-		bool commandMergingEnabled = true;
-
 		// NOTE: To prevent mid-frame stale pointer access errors
 		std::vector<std::unique_ptr<Command>> endOfFrameCommands;
 
