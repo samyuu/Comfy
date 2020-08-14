@@ -404,12 +404,13 @@ namespace Comfy::Studio::Editor
 			baseDrawList->AddLine(start, end, (divisions % 2 == 0 ? gridColor : gridAltColor));
 		}
 
-		// TODO: Maybe allow for drawing second divisions for example instead (?)
+		// TODO: Implement more efficiently for multiple tempo changes by looping over the tempo changes instead (?)
+		auto& tempoMap = workingChart->GetTempoMap();
 
 		auto lastBarTimelineX = -barSpacingThreshold;
-		for (i32 tick = 0, barIndex = 0; tick < songDurationTicks; tick += TimelineTick::TicksPerBeat * 4, barIndex++)
+		for (i32 ticks = 0, barIndex = 0; ticks < songDurationTicks; ticks += TimelineTick::TicksPerBeat * tempoMap.FindTempoChangeAtTick(TimelineTick(ticks)).Signature.Numerator, barIndex++)
 		{
-			const auto timelineX = GetTimelinePosition(TimelineTick(tick));
+			const auto timelineX = GetTimelinePosition(TimelineTick(ticks));
 
 			if (const auto lastDrawnDistance = (timelineX - lastBarTimelineX); lastDrawnDistance < barSpacingThreshold)
 				continue;
@@ -545,13 +546,16 @@ namespace Comfy::Studio::Editor
 			if (visiblity == TimelineVisibility::Right)
 				break;
 
-			const auto tempoFgColor = 0xFF1DBFB2;
+			const bool signatureChanged = (i == 0 || tempoChange.Signature != tempoMap.GetTempoChangeAt(i - 1).Signature);
 
-			char tempoStr[16];
-			sprintf_s(tempoStr, sizeof(tempoStr), "%.2f BPM" /*" 4/4"*/, tempoChange.Tempo.BeatsPerMinute);
+			char tempoBuffer[64];
+			sprintf_s(tempoBuffer, sizeof(tempoBuffer),
+				signatureChanged ? "%.2f BPM %d/%d" : "%.2f BPM",
+				tempoChange.Tempo.BeatsPerMinute,
+				tempoChange.Signature.Numerator, tempoChange.Signature.Denominator);
 
 			const auto buttonPosition = tempoMapRegion.GetTL() + vec2(screenX + 1.0f, 0.0f);
-			const auto buttonSize = vec2(Gui::CalcTextSize(tempoStr).x, tempoMapHeight);
+			const auto buttonSize = vec2(Gui::CalcTextSize(tempoBuffer).x, tempoMapHeight);
 
 			Gui::SetCursorScreenPos(buttonPosition);
 
@@ -560,7 +564,6 @@ namespace Comfy::Studio::Editor
 			Gui::PopID();
 
 			// TODO: Prevent overlapping tempo changes
-			// windowDrawList->AddRectFilled(buttonPosition, buttonPosition + buttonSize, TEMPO_MAP_BAR_COLOR);
 			if (Gui::IsWindowFocused() && Gui::IsItemHovered())
 			{
 				Gui::WideSetTooltip("Time: %s", TickToTime(tempoChange.Tick).FormatTime().data());
@@ -577,8 +580,10 @@ namespace Comfy::Studio::Editor
 				}
 			}
 
+			const auto tempoFgColor = 0xFF1DBFB2;
+
 			baseDrawList->AddLine(buttonPosition + vec2(-1.0f, -1.0f), buttonPosition + vec2(-1.0f, buttonSize.y - 1.0f), tempoFgColor);
-			baseDrawList->AddText(Gui::GetFont(), tempoMapFontSize, buttonPosition + tempoMapFontOffset, tempoFgColor, tempoStr);
+			baseDrawList->AddText(Gui::GetFont(), tempoMapFontSize, buttonPosition + tempoMapFontOffset, tempoFgColor, tempoBuffer);
 		}
 
 		if (tempoPopupIndex >= 0)
