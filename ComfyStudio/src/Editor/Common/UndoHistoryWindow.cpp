@@ -46,8 +46,8 @@ namespace Comfy::Studio::Editor
 			const auto& undoStack = undoManager.GetUndoStackView();
 			const auto& redoStack = undoManager.GetRedoStackView();
 
-			if (undoStack.empty() && redoStack.empty())
-				CommandSelectableGui("Empty", false, ImGuiSelectableFlags_Disabled);
+			if (CommandSelectableGui("Initial State", undoStack.empty()))
+				undoManager.Undo(undoStack.size());
 
 			int undoClickedIndex = -1, redoClickedIndex = -1;
 
@@ -72,6 +72,7 @@ namespace Comfy::Studio::Editor
 			else if (InBounds(redoClickedIndex, redoStack))
 				undoManager.Redo(redoStack.size() - redoClickedIndex);
 
+			UpdateAutoScroll(undoStack.size());
 			Gui::ListBoxFooter();
 		}
 	}
@@ -142,5 +143,17 @@ namespace Comfy::Studio::Editor
 			Gui::PopStyleColor();
 
 		return clicked;
+	}
+
+	void UndoHistoryWindow::UpdateAutoScroll(size_t undoStackSize)
+	{
+		lastFrameIsAtBottom = thisFrameIsAtBottom;
+		thisFrameIsAtBottom = (Gui::GetScrollY() >= Gui::GetScrollMaxY());
+
+		lastFrameUndoCount = thisFrameUndoCount;
+		thisFrameUndoCount = undoStackSize;
+
+		if ((thisFrameIsAtBottom && lastFrameIsAtBottom) && (thisFrameUndoCount != lastFrameUndoCount))
+			Gui::SetScrollHereY(1.0f);
 	}
 }

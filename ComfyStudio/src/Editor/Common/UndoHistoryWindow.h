@@ -33,8 +33,13 @@ namespace Comfy::Studio::Editor
 		bool CommandSelectableGui(const Undo::Command& command, bool selected = false) const;
 		bool CommandSelectableGui(std::string_view name, bool selected = false, ImGuiSelectableFlags flags = ImGuiSelectableFlags_None) const;
 
+		void UpdateAutoScroll(size_t undoStackSize);
+
 	private:
 		Undo::UndoManager& undoManager;
 		DisplayType activeDisplayType = DisplayType::SingleColumn;
+
+		bool thisFrameIsAtBottom = false, lastFrameIsAtBottom = false;
+		size_t thisFrameUndoCount = 0, lastFrameUndoCount = 0;
 	};
 }
