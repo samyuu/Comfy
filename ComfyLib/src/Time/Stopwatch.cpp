@@ -39,7 +39,7 @@ namespace Comfy
 		return isRunning;
 	}
 
-	TimeSpan Stopwatch::GetElapsed()
+	TimeSpan Stopwatch::GetElapsed() const
 	{
 		if (!isRunning)
 			return TimeSpan::Zero();

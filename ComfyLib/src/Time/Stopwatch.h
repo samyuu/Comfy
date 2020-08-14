@@ -21,7 +21,7 @@ namespace Comfy
 		TimeSpan Stop();
 
 		bool IsRunning() const;
-		TimeSpan GetElapsed();
+		TimeSpan GetElapsed() const;
 
 	private:
 		bool isRunning = false;
