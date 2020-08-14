@@ -157,6 +157,7 @@ namespace Comfy::Studio::Editor
 		void DrawTimeSelection();
 		void OnUpdateInput() override;
 		void OnDrawTimelineContents() override;
+		void UpdateUndoRedoInput();
 		void UpdateInputCursorClick();
 		void UpdateInputTargetPlacement();
 

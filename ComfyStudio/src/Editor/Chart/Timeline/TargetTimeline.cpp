@@ -761,6 +761,8 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnUpdateInput()
 	{
+		UpdateUndoRedoInput();
+
 		UpdateInputCursorClick();
 		UpdateInputTargetPlacement();
 	}
@@ -769,6 +771,26 @@ namespace Comfy::Studio::Editor
 	{
 		DrawTimelineTargets();
 		DrawTimeSelection();
+	}
+
+	void TargetTimeline::UpdateUndoRedoInput()
+	{
+		// TODO: Move into some general function to be called by all window owning editor components (?)
+		if (!Gui::IsWindowFocused())
+			return;
+
+		constexpr bool allowRepeat = true;
+		constexpr auto undoKey = Input::KeyCode_Z;
+		constexpr auto redoKey = Input::KeyCode_Y;
+
+		if (Gui::GetIO().KeyCtrl)
+		{
+			if (Gui::IsKeyPressed(undoKey, allowRepeat))
+				undoManager.Undo();
+
+			if (Gui::IsKeyPressed(redoKey, allowRepeat))
+				undoManager.Redo();
+		}
 	}
 
 	void TargetTimeline::UpdateInputCursorClick()
