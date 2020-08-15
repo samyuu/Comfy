@@ -110,7 +110,7 @@ namespace Comfy::Studio::Editor
 	template<typename T>
 	void EditorManager::AddEditorComponent(bool opened)
 	{
-		static_assert(std::is_base_of<IEditorComponent, T>::value, "T must inherit from IEditorComponent");
+		static_assert(std::is_base_of_v<IEditorComponent, T>, "T must inherit from IEditorComponent");
 		auto& added = editorComponents.emplace_back(ComponentEntry { false, std::move(std::make_unique<T>(parent, *this)) });
 
 		if (!opened)

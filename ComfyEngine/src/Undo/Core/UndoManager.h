@@ -15,14 +15,14 @@ namespace Comfy::Undo
 		template<typename CommandType, typename... Args>
 		void Execute(Args&&... args)
 		{
-			static_assert(std::is_base_of<Command, CommandType>::value, "CommandType must inherit from Undo::Command");
+			static_assert(std::is_base_of_v<Command, CommandType>, "CommandType must inherit from Undo::Command");
 			TryMergeOrExecute(std::make_unique<CommandType>(std::forward<Args>(args)...));
 		}
 
 		template<typename CommandType, typename... Args>
 		void ExecuteEndOfFrame(Args&&... args)
 		{
-			static_assert(std::is_base_of<Command, CommandType>::value, "CommandType must inherit from Undo::Command");
+			static_assert(std::is_base_of_v<Command, CommandType>, "CommandType must inherit from Undo::Command");
 			endOfFrameCommands.emplace_back(std::make_unique<CommandType>(std::forward<Args>(args)...));
 		}
 
