@@ -1,6 +1,7 @@
 #pragma once
 #include "ImGuiExtensions.h"
 #include "InternalExtensions.h"
+#include <optional>
 
 namespace ImGui
 {
@@ -258,7 +259,7 @@ namespace ImGui
 					}, [&]
 					{
 						RAII::ItemWidth width(-1.0f);
-						
+
 						constexpr bool isFloat = std::is_floating_point<ValueType>::value;
 						const ValueType step = isFloat ? static_cast<ValueType>(dragSpeed) : std::max(static_cast<ValueType>(1), static_cast<ValueType>(dragSpeed));
 						const ValueType fastStep = static_cast<ValueType>(step * static_cast<ValueType>(10));
