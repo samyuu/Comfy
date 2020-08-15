@@ -14,23 +14,23 @@ namespace Comfy
 
 	public:
 		constexpr TimeSpan() : timeInSeconds(0.0) {}
-		explicit constexpr TimeSpan(double seconds) : timeInSeconds(seconds) {}
+		explicit constexpr TimeSpan(f64 seconds) : timeInSeconds(seconds) {}
 
 	public:
-		static constexpr TimeSpan FromMinutes(double value) { return TimeSpan(value * 60.0); }
-		static constexpr TimeSpan FromSeconds(double value) { return TimeSpan(value); }
-		static constexpr TimeSpan FromMilliseconds(double value) { return TimeSpan(value / 1000.0); }
+		static constexpr TimeSpan FromMinutes(f64 value) { return TimeSpan(value * 60.0); }
+		static constexpr TimeSpan FromSeconds(f64 value) { return TimeSpan(value); }
+		static constexpr TimeSpan FromMilliseconds(f64 value) { return TimeSpan(value / 1000.0); }
 		static constexpr TimeSpan Zero() { return TimeSpan(0.0); }
 		static constexpr TimeSpan FromFrames(frame_t frames, frame_t frameRate = DefaultFrameRate) { return FromSeconds(frames / frameRate); }
 
 	public:
-		constexpr double TotalMinutes() const { return TotalSeconds() / 60.0; }
-		constexpr double TotalSeconds() const { return timeInSeconds; }
-		constexpr double TotalMilliseconds() const { return TotalSeconds() * 1000.0; }
+		constexpr f64 TotalMinutes() const { return TotalSeconds() / 60.0; }
+		constexpr f64 TotalSeconds() const { return timeInSeconds; }
+		constexpr f64 TotalMilliseconds() const { return TotalSeconds() * 1000.0; }
 		constexpr frame_t ToFrames(frame_t frameRate = DefaultFrameRate) const { return static_cast<frame_t>(TotalSeconds() * frameRate); }
 
 	public:
-		// NOTE: Enough to store "(-)mm:ss:fff"
+		// NOTE: Enough to store "(-)mm:ss.fff"
 		static constexpr size_t RequiredFormatBufferSize = 12;
 
 		void FormatTimeBuffer(char* buffer, size_t bufferSize) const;
@@ -50,12 +50,12 @@ namespace Comfy
 		constexpr TimeSpan& operator+=(const TimeSpan& other) { timeInSeconds += other.timeInSeconds; return *this; }
 		constexpr TimeSpan& operator-=(const TimeSpan& other) { timeInSeconds -= other.timeInSeconds; return *this; }
 
-		constexpr TimeSpan operator*(double other) const { return FromSeconds(TotalSeconds() * other); }
-		constexpr TimeSpan operator*(int other) const { return FromSeconds(TotalSeconds() * other); }
+		constexpr TimeSpan operator*(f64 other) const { return FromSeconds(TotalSeconds() * other); }
+		constexpr TimeSpan operator*(i32 other) const { return FromSeconds(TotalSeconds() * other); }
 
-		constexpr double operator/(TimeSpan other) const { return TotalSeconds() / other.TotalSeconds(); }
-		constexpr double operator/(double other) const { return TotalSeconds() / other; }
-		constexpr double operator/(int other) const { return TotalSeconds() / other; }
+		constexpr f64 operator/(TimeSpan other) const { return TotalSeconds() / other.TotalSeconds(); }
+		constexpr f64 operator/(f64 other) const { return TotalSeconds() / other; }
+		constexpr f64 operator/(i32 other) const { return TotalSeconds() / other; }
 
 		constexpr TimeSpan operator+() const { return TimeSpan(+timeInSeconds); }
 		constexpr TimeSpan operator-() const { return TimeSpan(-timeInSeconds); }
@@ -68,6 +68,6 @@ namespace Comfy
 		static TimeSpan GetTimeNowAbsolute();
 
 	private:
-		double timeInSeconds;
+		f64 timeInSeconds;
 	};
 }

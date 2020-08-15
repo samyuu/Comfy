@@ -39,14 +39,20 @@ namespace Comfy
 	void TimeSpan::FormatTimeBuffer(char* buffer, size_t bufferSize) const
 	{
 		assert(bufferSize >= RequiredFormatBufferSize);
-		const double absoluteTime = glm::abs(timeInSeconds);
+		if (glm::isnan(timeInSeconds) || glm::isinf(timeInSeconds))
+		{
+			strcpy_s(buffer, bufferSize, "--:--.---");
+			return;
+		}
 
-		const double minutes = glm::floor(glm::mod(absoluteTime, 3600.0) / 60.0);
-		const double seconds = glm::mod(absoluteTime, 60.0);
-		const double milliseconds = (seconds - glm::floor(seconds)) * 1000.0;
+		const f64 absoluteTime = glm::abs(timeInSeconds);
+
+		const f64 minutes = glm::floor(glm::mod(absoluteTime, 3600.0) / 60.0);
+		const f64 seconds = glm::mod(absoluteTime, 60.0);
+		const f64 milliseconds = (seconds - glm::floor(seconds)) * 1000.0;
 
 		const char* signCharacter = (timeInSeconds < 0.0) ? "-" : "";
-		sprintf_s(buffer, bufferSize, "%s%02d:%02d.%03d", signCharacter, static_cast<int>(minutes), static_cast<int>(seconds), static_cast<int>(milliseconds));
+		sprintf_s(buffer, bufferSize, "%s%02d:%02d.%03d", signCharacter, static_cast<i32>(minutes), static_cast<i32>(seconds), static_cast<i32>(milliseconds));
 	}
 
 	std::array<char, TimeSpan::RequiredFormatBufferSize> TimeSpan::FormatTime() const
@@ -69,13 +75,13 @@ namespace Comfy
 	{
 		assert(GlobalTimingData.Initialized);
 		const i64 relativeTime = TimingData::QueryTime() - GlobalTimingData.StartTime;
-		return TimeSpan::FromSeconds(static_cast<double>(relativeTime) / static_cast<double>(GlobalTimingData.Frequency));
+		return TimeSpan::FromSeconds(static_cast<f64>(relativeTime) / static_cast<f64>(GlobalTimingData.Frequency));
 	}
 
 	TimeSpan TimeSpan::GetTimeNowAbsolute()
 	{
 		assert(GlobalTimingData.Initialized);
 		const i64 absoluteTime = TimingData::QueryTime();
-		return TimeSpan::FromSeconds(static_cast<double>(absoluteTime) / static_cast<double>(GlobalTimingData.Frequency));
+		return TimeSpan::FromSeconds(static_cast<f64>(absoluteTime) / static_cast<f64>(GlobalTimingData.Frequency));
 	}
 }
