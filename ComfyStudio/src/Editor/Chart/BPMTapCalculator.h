@@ -69,7 +69,7 @@ namespace Comfy::Studio::Editor
 
 		Stopwatch tapStopwatch = Stopwatch::StartNew();
 		Stopwatch autoResetStopwatch = Stopwatch::StartNew();
-		
+
 		TimeSpan autoResetInterval = DefaultAutoResetInterval;
 	};
 }

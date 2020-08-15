@@ -562,7 +562,7 @@ namespace Comfy::Studio::Editor
 			Gui::PopID();
 
 			// TODO: Prevent overlapping tempo changes
-			if (Gui::IsWindowFocused() && Gui::IsItemHovered())
+			if (Gui::IsItemHovered())
 			{
 				Gui::WideSetTooltip("Time: %s", TickToTime(tempoChange.Tick).FormatTime().data());
 

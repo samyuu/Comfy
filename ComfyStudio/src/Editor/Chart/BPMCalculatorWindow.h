@@ -14,7 +14,7 @@ namespace Comfy::Studio::Editor
 
 	public:
 		void Gui(Chart& chart, TimeSpan cursorBPMTime);
-		
+
 	private:
 		void ExecuteUpdateTempoChangeBPM(Chart& chart, TimeSpan cursorBPMTime, Tempo updatedTempo) const;
 
