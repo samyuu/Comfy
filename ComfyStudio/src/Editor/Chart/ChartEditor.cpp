@@ -9,7 +9,6 @@ namespace Comfy::Studio::Editor
 		chart = std::make_unique<Chart>();
 
 		timeline = std::make_unique<TargetTimeline>(*this, undoManager);
-		syncWindow = std::make_unique<SyncWindow>(undoManager);
 		renderWindow = std::make_unique<TargetRenderWindow>();
 	}
 
@@ -18,7 +17,7 @@ namespace Comfy::Studio::Editor
 		songVoice = Audio::AudioEngine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor::SongVoice", false, 0.75f, true);
 
 		timeline->Initialize();
-		syncWindow->OnFirstFrame();
+		syncWindow.OnFirstFrame();
 	}
 
 	const char* ChartEditor::GetName() const
@@ -58,7 +57,7 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::Begin(ICON_FA_SYNC "  Sync Window##ChartEditor", nullptr, ImGuiWindowFlags_None))
 		{
-			syncWindow->Gui(*chart, *timeline);
+			syncWindow.Gui(*chart, *timeline);
 		}
 		Gui::End();
 
@@ -71,6 +70,12 @@ namespace Comfy::Studio::Editor
 		if (Gui::Begin(ICON_FA_HISTORY "  Chart Editor History##ChartEditor"))
 		{
 			historyWindow.Gui();
+		}
+		Gui::End();
+
+		if (Gui::Begin(ICON_FA_STOPWATCH "  BPM Calculator##ChartEditor", nullptr, ImGuiWindowFlags_None))
+		{
+			bpmCalculatorWindow.Gui(*chart, GetIsPlayback() ? GetPlaybackTimeOnPlaybackStart() : GetPlaybackTimeAsync());
 		}
 		Gui::End();
 

@@ -2,6 +2,7 @@
 #include "Editor/Core/IEditorComponent.h"
 #include "Chart.h"
 #include "SyncWindow.h"
+#include "BPMCalculatorWindow.h"
 #include "Timeline/TargetTimeline.h"
 #include "TargetRenderWindow.h"
 #include "Undo/Undo.h"
@@ -52,13 +53,14 @@ namespace Comfy::Studio::Editor
 		std::array<const char*, 4> audioFileExtensions = { ".wav", ".flac", ".ogg", ".mp3" };
 		Gui::FileViewer songFileViewer = { "dev_ram/sound/song" };
 
-		std::unique_ptr<Chart> chart;
+		std::unique_ptr<Chart> chart = nullptr;
 
 		Undo::UndoManager undoManager = {};
 		std::unique_ptr<TargetTimeline> timeline;
-		std::unique_ptr<SyncWindow> syncWindow;
 		std::unique_ptr<TargetRenderWindow> renderWindow;
+		SyncWindow syncWindow = { undoManager };
 		UndoHistoryWindow historyWindow = { undoManager };
+		BPMCalculatorWindow bpmCalculatorWindow = { undoManager };
 
 		std::future<Audio::SourceHandle> songSourceFuture;
 		Audio::SourceHandle songSource = Audio::SourceHandle::Invalid;
