@@ -18,6 +18,7 @@ namespace Comfy::Studio::Editor
 		TempoChange& FindTempoChangeAtTick(TimelineTick tick);
 		
 		size_t TempoChangeCount() const;
+		void Clear();
 
 	private:
 		std::vector<TempoChange> tempoChanges;

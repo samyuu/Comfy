@@ -5,7 +5,7 @@ namespace Comfy::Studio::Editor
 {
 	SortedTempoMap::SortedTempoMap()
 	{
-		SetTempoChange(TimelineTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
+		tempoChanges.emplace_back(TimelineTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
 	}
 
 	void SortedTempoMap::SetTempoChange(TimelineTick tick, Tempo tempo, TimeSignature signature)
@@ -62,5 +62,11 @@ namespace Comfy::Studio::Editor
 	size_t SortedTempoMap::TempoChangeCount() const
 	{
 		return tempoChanges.size();
+	}
+
+	void SortedTempoMap::Clear()
+	{
+		tempoChanges.clear();
+		tempoChanges.emplace_back(TimelineTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
 	}
 }
