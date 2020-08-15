@@ -24,7 +24,7 @@ namespace Comfy::Studio::Editor
 			// NOTE: Negative to visually match the drag direction with that of the waveform timeline position
 			constexpr auto offsetDragSpeed = -1.0f;
 
-			auto startOffsetMS = static_cast<f32>(chart.GetStartOffset().TotalMilliseconds());
+			auto startOffsetMS = static_cast<f32>(chart.StartOffset.TotalMilliseconds());
 			if (GuiProperty::Input("Start Offset##SyncWindow", startOffsetMS, offsetDragSpeed, {}, "%.2f ms"))
 				undoManager.Execute<ChangeStartOffset>(chart, TimeSpan::FromMilliseconds(startOffsetMS));
 
@@ -42,7 +42,7 @@ namespace Comfy::Studio::Editor
 				{
 					if (Gui::Button(label, vec2(buttonWidth, 0.0f)))
 					{
-						const auto firstTempo = chart.GetTempoMap().FindTempoChangeAtTick(TimelineTick::Zero()).Tempo;
+						const auto firstTempo = chart.TempoMap.FindTempoChangeAtTick(TimelineTick::Zero()).Tempo;
 						const auto beatDuration = TimeSpan::FromSeconds(60.0 / firstTempo.BeatsPerMinute);
 
 						undoManager.Execute<ChangeStartOffset>(chart, TimeSpan::FromMilliseconds(startOffsetMS) + (beatDuration * factor));
@@ -65,7 +65,7 @@ namespace Comfy::Studio::Editor
 			constexpr auto durationMin = static_cast<f32>(TimeSpan::FromMilliseconds(10.0f).TotalMilliseconds());
 			constexpr auto durationMax = std::numeric_limits<f32>::max();
 
-			auto songDurationMS = static_cast<f32>(chart.GetDuration().TotalMilliseconds());
+			auto songDurationMS = static_cast<f32>(chart.Duration.TotalMilliseconds());
 			if (GuiProperty::Input("Duration##SyncWindow", songDurationMS, durationDragSpeed, vec2(durationMin, durationMax), "%.2f ms"))
 			{
 				songDurationMS = std::max(songDurationMS, durationMin);
@@ -74,7 +74,7 @@ namespace Comfy::Studio::Editor
 		});
 
 		const auto cursorTick = timeline.RoundTickToGrid(timeline.GetCursorTick());
-		const auto tempoChangeAtCursor = chart.GetTempoMap().FindTempoChangeAtTick(cursorTick);
+		const auto tempoChangeAtCursor = chart.TempoMap.FindTempoChangeAtTick(cursorTick);
 		const auto cursorSitsOnTempoChange = (tempoChangeAtCursor.Tick == cursorTick);
 
 		char rhythmNodeValueBuffer[64];

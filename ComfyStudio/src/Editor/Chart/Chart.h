@@ -6,32 +6,18 @@
 
 namespace Comfy::Studio::Editor
 {
-	class Chart : NonCopyable
+	struct Chart
 	{
 	public:
+		// NOTE: In case there is no audio file to take as a reference
 		static constexpr TimeSpan FallbackDuration = TimeSpan::FromMinutes(1.0);
 
 	public:
-		Chart() = default;
-		~Chart() = default;
+		SortedTargetList Targets;
+		SortedTempoMap TempoMap;
+		TimelineMap TimelineMap;
 
-	public:
-		SortedTargetList& GetTargets();
-		SortedTempoMap& GetTempoMap();
-		TimelineMap& GetTimelineMap();
-
-		TimeSpan GetStartOffset() const;
-		void SetStartOffset(TimeSpan value);
-
-		TimeSpan GetDuration() const;
-		void SetDuration(TimeSpan value);
-
-	private:
-		SortedTargetList targets;
-		SortedTempoMap tempoMap;
-		TimelineMap timelineMap;
-
-		TimeSpan startOffset = TimeSpan::Zero();
-		TimeSpan duration = FallbackDuration;
+		TimeSpan StartOffset = TimeSpan::Zero();
+		TimeSpan Duration = FallbackDuration;
 	};
 }

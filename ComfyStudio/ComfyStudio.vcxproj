@@ -176,7 +176,6 @@
     <ClCompile Include="src\Editor\Aet\Timeline\KeyFrameRenderer.cpp" />
     <ClCompile Include="src\Editor\Chart\Timeline\TimelineButtonIcons.cpp" />
     <ClCompile Include="src\Editor\Common\CameraController3D.cpp" />
-    <ClCompile Include="src\Editor\Chart\Chart.cpp" />
     <ClCompile Include="src\Editor\Chart\ChartEditor.cpp" />
     <ClCompile Include="src\Editor\Chart\SyncWindow.cpp" />
     <ClCompile Include="src\Editor\Chart\SortedTargetList.cpp" />

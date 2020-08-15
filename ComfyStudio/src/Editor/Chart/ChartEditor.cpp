@@ -101,12 +101,12 @@ namespace Comfy::Studio::Editor
 
 	TimeSpan ChartEditor::GetPlaybackTimeAsync() const
 	{
-		return songVoice.GetPosition() - chart->GetStartOffset();
+		return songVoice.GetPosition() - chart->StartOffset;
 	}
 
 	void ChartEditor::SetPlaybackTime(TimeSpan value)
 	{
-		songVoice.SetPosition(value + chart->GetStartOffset());
+		songVoice.SetPosition(value + chart->StartOffset);
 	}
 
 	Chart* ChartEditor::GetChart()
@@ -131,7 +131,7 @@ namespace Comfy::Studio::Editor
 
 		songVoice.SetSource(newSongStream);
 		songSource = newSongStream;
-		chart->SetDuration(songVoice.GetDuration() <= TimeSpan::Zero() ? Chart::FallbackDuration : songVoice.GetDuration());
+		chart->Duration = (songVoice.GetDuration() <= TimeSpan::Zero()) ? Chart::FallbackDuration : songVoice.GetDuration();
 
 		timeline->OnSongLoaded();
 		SetPlaybackTime(previousPlaybackTime);

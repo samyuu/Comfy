@@ -48,12 +48,12 @@ namespace Comfy::Studio::Editor
 
 	TimelineTick TargetTimeline::TimeToTick(TimeSpan time) const
 	{
-		return workingChart->GetTimelineMap().GetTickAt(time);
+		return workingChart->TimelineMap.GetTickAt(time);
 	}
 
 	TimelineTick TargetTimeline::TimeToTickFixedTempo(TimeSpan time, Tempo tempo) const
 	{
-		return workingChart->GetTimelineMap().GetTickAtFixedTempo(time, tempo);
+		return workingChart->TimelineMap.GetTickAtFixedTempo(time, tempo);
 	}
 
 	TimelineTick TargetTimeline::GetTimelineTick(f32 position) const
@@ -63,7 +63,7 @@ namespace Comfy::Studio::Editor
 
 	TimeSpan TargetTimeline::TickToTime(TimelineTick tick) const
 	{
-		return workingChart->GetTimelineMap().GetTimeAt(tick);
+		return workingChart->TimelineMap.GetTimeAt(tick);
 	}
 
 	TimeSpan TargetTimeline::GetTimelineTime(f32 position) const
@@ -140,7 +140,7 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::UpdateOffsetChangeCursorTimeAdjustment()
 	{
 		lastFrameStartOffset = thisFrameStartOffset;
-		thisFrameStartOffset = workingChart->GetStartOffset();
+		thisFrameStartOffset = workingChart->StartOffset;
 
 		// NOTE: Cancel out the cursor being moved by a change of offset because this just feels more intuitive to use
 		//		 and always automatically applying the start offset to the playback time makes other calculations easier
@@ -156,14 +156,14 @@ namespace Comfy::Studio::Editor
 		// TODO: Implement metronome the same way, refactor ButtonSoundController to support any user controlled voices generically and rename to SoundVoicePool (?)
 
 		// NOTE: Play back button sounds in the future with a negative offset to achieve sample perfect accuracy
-		for (const auto& target : workingChart->GetTargets())
+		for (const auto& target : workingChart->Targets)
 		{
 			// DEBUG: Stacked button sounds should be handled by the button sound controller automatically but it seems there might be a bug here somewhere... (?)
 			//		  Doing an additional sync check here has the advantage of offloading audio engine work though special care needs to be taken for slide and normal buttons
 			if (target.Flags.IsSync && target.Flags.IndexWithinSyncPair > 0)
 				continue;
 
-			const auto buttonTime = workingChart->GetTimelineMap().GetTimeAt(target.Tick);
+			const auto buttonTime = workingChart->TimelineMap.GetTimeAt(target.Tick);
 			const auto offsetButtonTime = buttonTime - buttonSoundFutureOffset;
 
 			if (offsetButtonTime >= lastFrameButtonSoundCursorTime && offsetButtonTime <= thisFrameButtonSoundCursorTime)
@@ -183,7 +183,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::UpdateTimelineMapTimes()
 	{
-		workingChart->GetTimelineMap().CalculateMapTimes(workingChart->GetTempoMap());
+		workingChart->TimelineMap.CalculateMapTimes(workingChart->TempoMap);
 	}
 
 	void TargetTimeline::OnPlaybackResumed()
@@ -230,7 +230,7 @@ namespace Comfy::Studio::Editor
 		Gui::PushStyleColor(ImGuiCol_Button, transparent);
 		{
 			const bool isFirstFrame = (cursorTime <= TimeSpan::Zero());
-			const bool isLastFrame = (cursorTime >= workingChart->GetDuration());
+			const bool isLastFrame = (cursorTime >= workingChart->Duration);
 			const bool isPlayback = GetIsPlayback();
 
 			constexpr float borderSize = 1.0f;
@@ -254,7 +254,7 @@ namespace Comfy::Studio::Editor
 				Gui::PushItemDisabledAndTextColorIf(isFirstFrame);
 				if (Gui::Button(ICON_FA_BACKWARD))
 				{
-					SetCursorTime(std::clamp(TickToTime(RoundTickToGrid(GetCursorTick()) - GridDivisionTick()), TimeSpan::Zero(), workingChart->GetDuration()));
+					SetCursorTime(std::clamp(TickToTime(RoundTickToGrid(GetCursorTick()) - GridDivisionTick()), TimeSpan::Zero(), workingChart->Duration));
 				}
 				Gui::PopItemDisabledAndTextColorIf(isFirstFrame);
 				Gui::SetWideItemTooltip("Go to previous beat");
@@ -287,7 +287,7 @@ namespace Comfy::Studio::Editor
 				Gui::PushItemDisabledAndTextColorIf(isLastFrame);
 				if (Gui::Button(ICON_FA_FORWARD))
 				{
-					SetCursorTime(std::clamp(TickToTime(RoundTickToGrid(GetCursorTick()) + GridDivisionTick()), TimeSpan::Zero(), workingChart->GetDuration()));
+					SetCursorTime(std::clamp(TickToTime(RoundTickToGrid(GetCursorTick()) + GridDivisionTick()), TimeSpan::Zero(), workingChart->Duration));
 				}
 				Gui::PopItemDisabledAndTextColorIf(isLastFrame);
 				Gui::SetWideItemTooltip("Go to next beat");
@@ -299,7 +299,7 @@ namespace Comfy::Studio::Editor
 				Gui::PushItemDisabledAndTextColorIf(isLastFrame);
 				if (Gui::Button(ICON_FA_FAST_FORWARD))
 				{
-					SetCursorTime(workingChart->GetDuration());
+					SetCursorTime(workingChart->Duration);
 					CenterCursor();
 				}
 				Gui::PopItemDisabledAndTextColorIf(isLastFrame);
@@ -374,7 +374,7 @@ namespace Comfy::Studio::Editor
 		const auto gridColor = GetColor(EditorColor_Grid);
 		const auto gridAltColor = GetColor(EditorColor_GridAlt);
 
-		const i32 songDurationTicks = TimeToTick(workingChart->GetDuration()).TotalTicks();
+		const i32 songDurationTicks = TimeToTick(workingChart->Duration).TotalTicks();
 		const i32 gridTickStep = GridDivisionTick().TotalTicks();
 
 		const auto scrollX = GetScrollX();
@@ -405,10 +405,8 @@ namespace Comfy::Studio::Editor
 		}
 
 		// TODO: Implement more efficiently for multiple tempo changes by looping over the tempo changes instead (?)
-		auto& tempoMap = workingChart->GetTempoMap();
-
 		auto lastBarTimelineX = -barSpacingThreshold;
-		for (i32 ticks = 0, barIndex = 0; ticks < songDurationTicks; ticks += TimelineTick::TicksPerBeat * tempoMap.FindTempoChangeAtTick(TimelineTick(ticks)).Signature.Numerator, barIndex++)
+		for (i32 ticks = 0, barIndex = 0; ticks < songDurationTicks; ticks += TimelineTick::TicksPerBeat * workingChart->TempoMap.FindTempoChangeAtTick(TimelineTick(ticks)).Signature.Numerator, barIndex++)
 		{
 			const auto timelineX = GetTimelinePosition(TimelineTick(ticks));
 
@@ -490,7 +488,7 @@ namespace Comfy::Studio::Editor
 		if (songWaveform.GetPixelCount() < 1)
 			return;
 
-		const auto scrollXStartOffset = GetScrollX() + GetTimelinePosition(workingChart->GetStartOffset());
+		const auto scrollXStartOffset = GetScrollX() + GetTimelinePosition(workingChart->StartOffset);
 
 		const auto leftMostVisiblePixel = static_cast<i64>(GetTimelinePosition(TimelineTick(0)));
 		const auto rightMostVisiblePixel = leftMostVisiblePixel + static_cast<i64>(timelineContentRegion.GetWidth());
@@ -533,7 +531,7 @@ namespace Comfy::Studio::Editor
 	{
 		constexpr auto tempoChangePopupName = "##TempoChangePopup";
 
-		const auto& tempoMap = workingChart->GetTempoMap();
+		const auto& tempoMap = workingChart->TempoMap;
 		for (size_t i = 0; i < tempoMap.TempoChangeCount(); i++)
 		{
 			const auto& tempoChange = tempoMap.GetTempoChangeAt(i);
@@ -661,7 +659,7 @@ namespace Comfy::Studio::Editor
 	{
 		auto windowDrawList = Gui::GetWindowDrawList();
 
-		for (const auto& target : workingChart->GetTargets())
+		for (const auto& target : workingChart->Targets)
 		{
 			const auto buttonTime = TickToTime(target.Tick);
 			const auto screenX = glm::round(GetTimelinePosition(buttonTime) - GetScrollX());
@@ -807,7 +805,7 @@ namespace Comfy::Studio::Editor
 
 			SetCursorTime(newMouseTime);
 
-			for (const auto& target : workingChart->GetTargets())
+			for (const auto& target : workingChart->Targets)
 			{
 				if (target.Tick != newMouseTick)
 					continue;
@@ -872,7 +870,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::PlaceOrRemoveTarget(TimelineTick tick, ButtonType type)
 	{
-		const auto existingTargetIndex = workingChart->GetTargets().FindIndex(tick, type);
+		const auto existingTargetIndex = workingChart->Targets.FindIndex(tick, type);
 
 		// NOTE: Double hit sound if a target gets placed in front of the cursor position.
 		//		 Keeping it this way could make it easier to notice when real time targets are not placed accurately to the beat (?)
@@ -952,7 +950,7 @@ namespace Comfy::Studio::Editor
 
 	f32 TargetTimeline::GetTimelineSize() const
 	{
-		return GetTimelinePosition(workingChart->GetDuration());
+		return GetTimelinePosition(workingChart->Duration);
 	}
 
 	void TargetTimeline::OnTimelineBaseScroll()

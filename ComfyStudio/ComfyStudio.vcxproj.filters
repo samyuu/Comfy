@@ -45,9 +45,6 @@
     <ClCompile Include="src\Editor\Chart\Timeline\TimelineMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Editor\Chart\Chart.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Editor\Chart\ChartEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
