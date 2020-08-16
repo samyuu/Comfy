@@ -29,7 +29,7 @@ namespace Comfy::Studio::Editor
 		void Gui() override;
 
 	public:
-		inline Graphics::Aet::AetSet* GetAetSet() { return editorAetSet.get(); }
+		inline Graphics::AetSet* GetAetSet() { return editorAetSet.get(); }
 		inline Graphics::SprSet* GetSprSet() { return editorSprSet.get(); }
 
 	private:
@@ -64,7 +64,7 @@ namespace Comfy::Studio::Editor
 
 		struct
 		{
-			std::shared_ptr<Graphics::Aet::AetSet> editorAetSet = nullptr;
+			std::shared_ptr<Graphics::AetSet> editorAetSet = nullptr;
 			std::unique_ptr<Graphics::SprSet> editorSprSet = nullptr;
 		};
 

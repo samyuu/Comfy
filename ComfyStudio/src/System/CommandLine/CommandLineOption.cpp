@@ -37,7 +37,7 @@ namespace Comfy::Studio::System
 		const auto inputPath = arguments[index + 0];
 		const auto outputPath = arguments[index + 1];
 
-		if (auto aetSet = IO::File::Load<Graphics::Aet::AetSet>(inputPath); aetSet != nullptr)
+		if (auto aetSet = IO::File::Load<Graphics::AetSet>(inputPath); aetSet != nullptr)
 			IO::File::Save(outputPath, *aetSet);
 	}
 

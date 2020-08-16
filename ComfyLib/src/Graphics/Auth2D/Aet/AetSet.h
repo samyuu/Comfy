@@ -133,7 +133,7 @@ namespace Comfy::Graphics::Aet
 
 	struct LayerVideo2D
 	{
-		static constexpr std::array<const char*, 8> FieldNames = 
+		static constexpr std::array<const char*, 8> FieldNames =
 		{
 			"Origin X",
 			"Origin Y",
@@ -324,7 +324,7 @@ namespace Comfy::Graphics::Aet
 
 		struct References
 		{
-			std::shared_ptr<Video> Video; 
+			std::shared_ptr<Video> Video;
 			std::shared_ptr<Audio> Audio;
 			std::shared_ptr<Composition> Composition;
 			std::shared_ptr<Layer> ParentLayer;
@@ -437,7 +437,7 @@ namespace Comfy::Graphics::Aet
 		int FindLayerIndex(Composition& comp, std::string_view name) const;
 
 		template <typename Func>
-		void ForEachComp(Func func) 
+		void ForEachComp(Func func)
 		{
 			std::for_each(Compositions.begin(), Compositions.end(), func);
 			func(RootComposition);
@@ -487,4 +487,10 @@ namespace Comfy::Graphics::Aet
 	private:
 		std::vector<std::shared_ptr<Scene>> scenes;
 	};
+}
+
+namespace Comfy::Graphics
+{
+	// NOTE: Because repeating the Aet prefix in the case of client code feels a bit redundant
+	using AetSet = Aet::AetSet;
 }

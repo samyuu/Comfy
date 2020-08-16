@@ -162,7 +162,7 @@ namespace Comfy::Studio::Editor
 
 	bool AetEditor::LoadAetSet(std::string_view filePath)
 	{
-		auto loadedAetSet = IO::File::Load<Aet::AetSet>(filePath);
+		auto loadedAetSet = IO::File::Load<AetSet>(filePath);
 		if (loadedAetSet == nullptr)
 			return false;
 

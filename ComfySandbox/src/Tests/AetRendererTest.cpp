@@ -72,7 +72,7 @@ namespace Comfy::Sandbox::Tests
 				if (Gui::Begin("Test AetSet Loader"))
 				{
 					if (aetFileViewer.DrawGui() && IO::Path::GetExtension(aetFileViewer.GetFileToOpen()) == ".bin")
-						aetSet = IO::File::Load<Graphics::Aet::AetSet>(aetFileViewer.GetFileToOpen());
+						aetSet = IO::File::Load<Graphics::AetSet>(aetFileViewer.GetFileToOpen());
 				}
 				Gui::End();
 
@@ -206,7 +206,7 @@ namespace Comfy::Sandbox::Tests
 		Gui::FileViewer aetFileViewer = { "dev_ram/aetset/" };
 
 		std::unique_ptr<Graphics::SprSet> sprSet = IO::File::Load<Graphics::SprSet>("dev_ram/sprset/spr_ps4/spr_ps4_adv.bin");
-		std::unique_ptr<Graphics::Aet::AetSet> aetSet = IO::File::Load<Graphics::Aet::AetSet>("dev_ram/aetset/aet_ps4/aet_ps4_adv.bin");
+		std::unique_ptr<Graphics::AetSet> aetSet = IO::File::Load<Graphics::AetSet>("dev_ram/aetset/aet_ps4/aet_ps4_adv.bin");
 
 		struct PlaybackData
 		{

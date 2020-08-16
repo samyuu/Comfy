@@ -37,10 +37,10 @@ namespace Comfy::Studio::Editor
 		std::string_view aetSetFilePath = "dev_rom/2d/aet_gam_cmn.bin";
 		std::string_view sprSetFilePath = "dev_rom/2d/spr_gam_cmn.bin";
 
-		std::future<std::unique_ptr<Graphics::Aet::AetSet>> aetSetLoadFuture;
+		std::future<std::unique_ptr<Graphics::AetSet>> aetSetLoadFuture;
 		std::future<std::unique_ptr<Graphics::SprSet>> sprSetLoadFuture;
 
-		std::unique_ptr<Graphics::Aet::AetSet> aetSet;
+		std::unique_ptr<Graphics::AetSet> aetSet;
 		std::unique_ptr<Graphics::SprSet> sprSet;
 
 		struct LayerCacheData

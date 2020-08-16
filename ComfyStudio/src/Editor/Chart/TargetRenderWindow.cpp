@@ -29,7 +29,7 @@ namespace Comfy::Studio::Editor
 		renderTarget = Render::Renderer2D::CreateRenderTarget();
 
 		sprSetLoadFuture = IO::File::LoadAsync<SprSet>(sprSetFilePath);
-		aetSetLoadFuture = IO::File::LoadAsync<Aet::AetSet>(aetSetFilePath);
+		aetSetLoadFuture = IO::File::LoadAsync<AetSet>(aetSetFilePath);
 	}
 
 	void TargetRenderWindow::PreRenderTextureGui()
