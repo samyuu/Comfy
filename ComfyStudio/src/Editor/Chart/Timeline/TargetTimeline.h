@@ -147,6 +147,7 @@ namespace Comfy::Studio::Editor
 		void OnDrawTimlineDivisors() override;
 		void OnDrawTimlineBackground() override;
 		void OnDrawTimelineScrollBarRegion() override;
+		void DrawOutOfBoundsBackground();
 		void DrawWaveform();
 		void DrawTimelineTempoMap();
 		void DrawTimelineTargets();

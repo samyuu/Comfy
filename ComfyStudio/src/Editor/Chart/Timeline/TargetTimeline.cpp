@@ -434,6 +434,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnDrawTimlineBackground()
 	{
+		DrawOutOfBoundsBackground();
 		DrawWaveform();
 		DrawTimelineTempoMap();
 	}
@@ -469,6 +470,22 @@ namespace Comfy::Studio::Editor
 		}
 
 		Gui::PopStyleVar(1);
+	}
+
+	void TargetTimeline::DrawOutOfBoundsBackground()
+	{
+		constexpr auto outOfBoundsDimColor = 0x1A000000;
+		const auto scrollX = GetScrollX();
+
+		const auto preStart = timelineContentRegion.GetTL();
+		const auto preEnd = timelineContentRegion.GetBL() + vec2(glm::round(GetTimelinePosition(TimelineTick(0)) - scrollX), 0.0f);
+		if (preEnd.x - preStart.x > 0.0f)
+			baseDrawList->AddRectFilled(preStart, preEnd, outOfBoundsDimColor);
+
+		const auto postStart = timelineContentRegion.GetTL() + vec2(glm::round(GetTimelinePosition(workingChart->Duration) - scrollX), 0.0f);
+		const auto postEnd = timelineContentRegion.GetBR();
+		if (postEnd.x - postStart.x > 0.0f)
+			baseDrawList->AddRectFilled(postStart, postEnd, outOfBoundsDimColor);
 	}
 
 	void TargetTimeline::DrawWaveform()
@@ -578,7 +595,7 @@ namespace Comfy::Studio::Editor
 				}
 			}
 
-			const auto tempoFgColor = 0xFF1DBFB2;
+			constexpr auto tempoFgColor = 0xFF1DBFB2;
 
 			baseDrawList->AddLine(buttonPosition + vec2(-1.0f, -1.0f), buttonPosition + vec2(-1.0f, buttonSize.y - 1.0f), tempoFgColor);
 			baseDrawList->AddText(Gui::GetFont(), tempoMapFontSize, buttonPosition + tempoMapFontOffset, tempoFgColor, tempoBuffer);
