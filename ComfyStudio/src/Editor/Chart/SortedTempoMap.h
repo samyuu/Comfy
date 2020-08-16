@@ -13,12 +13,16 @@ namespace Comfy::Studio::Editor
 	public:
 		void SetTempoChange(TimelineTick tick, Tempo tempo, TimeSignature signature);
 		void RemoveTempoChange(TimelineTick tick);
-		
+
 		const TempoChange& GetTempoChangeAt(size_t index) const;
 		TempoChange& FindTempoChangeAtTick(TimelineTick tick);
-		
+
 		size_t TempoChangeCount() const;
 		void Clear();
+
+	public:
+		auto begin() const { return tempoChanges.cbegin(); }
+		auto end() const { return tempoChanges.cend(); }
 
 	private:
 		std::vector<TempoChange> tempoChanges;
