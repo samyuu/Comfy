@@ -29,22 +29,7 @@ namespace Comfy::Studio::Editor
 		renderTarget = Render::Renderer2D::CreateRenderTarget();
 
 		sprSetLoadFuture = IO::File::LoadAsync<SprSet>(sprSetFilePath);
-		aetSet = IO::File::Load<Aet::AetSet>(aetSetFilePath);
-
-		if (aetSet == nullptr || aetSet->GetScenes().empty())
-			return;
-
-		layerCache.FrameUp = aetSet->GetScenes().front()->FindLayer("frame_up_t");
-		layerCache.FrameBottom = aetSet->GetScenes().front()->FindLayer("frame_bottom_t");
-		layerCache.LifeGauge = aetSet->GetScenes().front()->FindLayer("life_gauge");
-		layerCache.SongEnergyBase = aetSet->GetScenes().front()->FindLayer("song_energy_base_t");
-		layerCache.SongIconLoop = aetSet->GetScenes().front()->FindLayer("song_icon_loop");
-		layerCache.LevelInfoEasy = aetSet->GetScenes().front()->FindLayer("level_info_easy");
-		layerCache.LevelInfoNormal = aetSet->GetScenes().front()->FindLayer("level_info_normal");
-		layerCache.LevelInfoHard = aetSet->GetScenes().front()->FindLayer("level_info_hard");
-		layerCache.LevelInfoExtreme = aetSet->GetScenes().front()->FindLayer("level_info_extreme");
-		layerCache.LevelInfoExExtreme = aetSet->GetScenes().front()->FindLayer("level_info_extreme_extra");
-		layerCache.SongInfoLoop = aetSet->GetScenes().front()->FindLayer("song_icon_loop");
+		aetSetLoadFuture = IO::File::LoadAsync<Aet::AetSet>(aetSetFilePath);
 	}
 
 	void TargetRenderWindow::PreRenderTextureGui()
@@ -73,7 +58,9 @@ namespace Comfy::Studio::Editor
 		renderer->Begin(camera, *renderTarget);
 		{
 			RenderBackground();
-			RenderTestAet();
+
+			if (!loadingContent)
+				RenderTestAet();
 		}
 		renderer->End();
 	}
@@ -105,7 +92,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::UpdateContentLoading()
 	{
-		if (sprSet != nullptr)
+		if (sprSet != nullptr && aetSet != nullptr)
 			loadingContent = false;
 
 		if (sprSet == nullptr && sprSetLoadFuture.valid() && sprSetLoadFuture._Is_ready())
@@ -116,6 +103,27 @@ namespace Comfy::Studio::Editor
 			{
 				return Render::SprSetNameStringSprGetter(source, sprSet.get());
 			});
+		}
+
+		if (aetSet == nullptr && aetSetLoadFuture.valid() && aetSetLoadFuture._Is_ready())
+		{
+			aetSet = aetSetLoadFuture.get();
+			auto tryFindLayer = [&](std::string_view layerName) -> std::shared_ptr<Graphics::Aet::Layer>
+			{
+				return (aetSet == nullptr || aetSet->GetScenes().empty()) ? nullptr : aetSet->GetScenes().front()->FindLayer(layerName);
+			};
+
+			layerCache.FrameUp = tryFindLayer("frame_up_t");
+			layerCache.FrameBottom = tryFindLayer("frame_bottom_t");
+			layerCache.LifeGauge = tryFindLayer("life_gauge");
+			layerCache.SongEnergyBase = tryFindLayer("song_energy_base_t");
+			layerCache.SongIconLoop = tryFindLayer("song_icon_loop");
+			layerCache.LevelInfoEasy = tryFindLayer("level_info_easy");
+			layerCache.LevelInfoNormal = tryFindLayer("level_info_normal");
+			layerCache.LevelInfoHard = tryFindLayer("level_info_hard");
+			layerCache.LevelInfoExtreme = tryFindLayer("level_info_extreme");
+			layerCache.LevelInfoExExtreme = tryFindLayer("level_info_extreme_extra");
+			layerCache.SongInfoLoop = tryFindLayer("song_icon_loop");
 		}
 	}
 }
