@@ -1,9 +1,15 @@
 #include "TargetRenderWindow.h"
 #include "Editor/Core/Theme.h"
+#include "Editor/Chart/ChartEditor.h"
 
 namespace Comfy::Studio::Editor
 {
 	using namespace Graphics;
+
+	TargetRenderWindow::TargetRenderWindow(ChartEditor& parent, Undo::UndoManager& undoManager) : chartEditor(parent), undoManager(undoManager)
+	{
+		workingChart = chartEditor.GetChart();
+	}
 
 	ImTextureID TargetRenderWindow::GetTextureID() const
 	{

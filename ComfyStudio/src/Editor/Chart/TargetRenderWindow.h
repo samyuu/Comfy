@@ -6,10 +6,12 @@
 
 namespace Comfy::Studio::Editor
 {
+	class ChartEditor;
+
 	class TargetRenderWindow : public RenderWindow
 	{
 	public:
-		TargetRenderWindow() = default;
+		TargetRenderWindow(ChartEditor& parent, Undo::UndoManager& undoManager);
 		~TargetRenderWindow() = default;
 
 	public:
@@ -22,6 +24,12 @@ namespace Comfy::Studio::Editor
 		void PostRenderTextureGui() override;
 		void OnResize(ivec2 newSize) override;
 		void OnRender() override;
+
+	protected:
+		Chart* workingChart = nullptr;
+
+		ChartEditor& chartEditor;
+		Undo::UndoManager& undoManager;
 
 	protected:
 		CheckerboardGrid backgroundCheckerboard;
