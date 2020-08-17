@@ -1,8 +1,11 @@
 #pragma once
+#include "Types.h"
+#include "Editor/Chart/Chart.h"
 #include "Window/RenderWindow.h"
 #include "Editor/Common/CheckerboardGrid.h"
 #include "IO/File.h"
 #include "Render/Render.h"
+#include "Undo/Undo.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -56,13 +59,14 @@ namespace Comfy::Studio::Editor
 			std::shared_ptr<Graphics::Aet::Layer> FrameUp, FrameBottom;
 			std::shared_ptr<Graphics::Aet::Layer> LifeGauge;
 			std::shared_ptr<Graphics::Aet::Layer> SongEnergyBase;
+			std::shared_ptr<Graphics::Aet::Layer> SongEnergyNormal;
 			std::shared_ptr<Graphics::Aet::Layer> SongIconLoop;
 			std::shared_ptr<Graphics::Aet::Layer> LevelInfoEasy;
 			std::shared_ptr<Graphics::Aet::Layer> LevelInfoNormal;
 			std::shared_ptr<Graphics::Aet::Layer> LevelInfoHard;
 			std::shared_ptr<Graphics::Aet::Layer> LevelInfoExtreme;
 			std::shared_ptr<Graphics::Aet::Layer> LevelInfoExExtreme;
-			std::shared_ptr<Graphics::Aet::Layer> SongInfoLoop;
+			std::shared_ptr<Graphics::Aet::Layer> SongTitle;
 		} layerCache;
 
 		void RenderBackground();

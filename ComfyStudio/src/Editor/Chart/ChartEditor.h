@@ -4,7 +4,7 @@
 #include "SyncWindow.h"
 #include "BPMCalculatorWindow.h"
 #include "Timeline/TargetTimeline.h"
-#include "TargetRenderWindow.h"
+#include "RenderWindow/TargetRenderWindow.h"
 #include "Undo/Undo.h"
 #include "ImGui/Widgets/FileViewer.h"
 #include "Editor/Common/UndoHistoryWindow.h"

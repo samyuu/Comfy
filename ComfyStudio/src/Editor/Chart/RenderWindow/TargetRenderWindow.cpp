@@ -87,13 +87,15 @@ namespace Comfy::Studio::Editor
 				renderer->Aet().DrawLayer(*layer, frame);
 		};
 
+		const auto chartProgress = std::clamp(static_cast<f32>(chartEditor.GetPlaybackTimeAsync() / workingChart->Duration), 0.0f, 1.0f);
+
 		tryDrawLayer(layerCache.FrameUp, 0.0f);
 		tryDrawLayer(layerCache.FrameBottom, 0.0f);
 		tryDrawLayer(layerCache.LifeGauge, 0.0f);
 		tryDrawLayer(layerCache.SongEnergyBase, 100.0f);
+		tryDrawLayer(layerCache.SongEnergyNormal, chartProgress * 100.0f);
 		tryDrawLayer(layerCache.SongIconLoop, 0.0f);
 		tryDrawLayer(layerCache.LevelInfoHard, 0.0f);
-		tryDrawLayer(layerCache.SongIconLoop, 0.0f);
 	}
 
 	void TargetRenderWindow::UpdateContentLoading()
@@ -123,13 +125,14 @@ namespace Comfy::Studio::Editor
 			layerCache.FrameBottom = tryFindLayer("frame_bottom_t");
 			layerCache.LifeGauge = tryFindLayer("life_gauge");
 			layerCache.SongEnergyBase = tryFindLayer("song_energy_base_t");
+			layerCache.SongEnergyNormal = tryFindLayer("song_energy_normal");
 			layerCache.SongIconLoop = tryFindLayer("song_icon_loop");
 			layerCache.LevelInfoEasy = tryFindLayer("level_info_easy");
 			layerCache.LevelInfoNormal = tryFindLayer("level_info_normal");
 			layerCache.LevelInfoHard = tryFindLayer("level_info_hard");
 			layerCache.LevelInfoExtreme = tryFindLayer("level_info_extreme");
 			layerCache.LevelInfoExExtreme = tryFindLayer("level_info_extreme_extra");
-			layerCache.SongInfoLoop = tryFindLayer("song_icon_loop");
+			layerCache.SongTitle = tryFindLayer("p_song_title_lt");
 		}
 	}
 }
