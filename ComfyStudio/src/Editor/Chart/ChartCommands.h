@@ -5,6 +5,42 @@
 
 namespace Comfy::Studio::Editor
 {
+	class ChangeSongName : public Undo::Command
+	{
+	public:
+		ChangeSongName(Chart& chart, std::string value)
+			: chart(chart), newValue(std::move(value)), oldValue(chart.SongName)
+		{
+		}
+
+	public:
+		void Undo() override
+		{
+			chart.SongName = oldValue;
+		}
+
+		void Redo() override
+		{
+			chart.SongName = newValue;
+		}
+
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
+		{
+			auto* other = static_cast<decltype(this)>(&commandToMerge);
+			if (&other->chart != &chart)
+				return Undo::MergeResult::Failed;
+
+			newValue = std::move(other->newValue);
+			return Undo::MergeResult::ValueUpdated;
+		}
+
+		std::string_view GetName() const override { return "Change Song Name"; }
+
+	private:
+		Chart& chart;
+		std::string newValue, oldValue;
+	};
+
 	class ChangeStartOffset : public Undo::Command
 	{
 	public:
