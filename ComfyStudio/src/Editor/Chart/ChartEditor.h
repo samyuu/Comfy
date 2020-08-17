@@ -63,6 +63,8 @@ namespace Comfy::Studio::Editor
 		BPMCalculatorWindow bpmCalculatorWindow = { undoManager };
 
 		std::future<Audio::SourceHandle> songSourceFuture;
+		std::string songSourceFilePath;
+
 		Audio::SourceHandle songSource = Audio::SourceHandle::Invalid;
 		Audio::Voice songVoice = Audio::VoiceHandle::Invalid;
 

@@ -101,6 +101,8 @@ namespace Comfy::Studio::Editor
 	bool ChartEditor::LoadSongAsync(std::string_view filePath)
 	{
 		songSourceFuture = Audio::AudioEngine::GetInstance().LoadAudioSourceAsync(filePath);
+		songSourceFilePath = std::string(filePath);
+
 		return true;
 	}
 
@@ -136,7 +138,9 @@ namespace Comfy::Studio::Editor
 
 		songVoice.SetSource(newSongStream);
 		songSource = newSongStream;
-		chart->Duration = (songVoice.GetDuration() <= TimeSpan::Zero()) ? Chart::FallbackDuration : songVoice.GetDuration();
+
+		undoManager.Execute<ChangeSongDuration>(*chart, (songVoice.GetDuration() <= TimeSpan::Zero()) ? Chart::FallbackDuration : songVoice.GetDuration());
+		undoManager.Execute<ChangeSongName>(*chart, std::string(IO::Path::GetFileName(songSourceFilePath, false)));
 
 		timeline->OnSongLoaded();
 		SetPlaybackTime(previousPlaybackTime);
