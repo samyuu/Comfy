@@ -175,6 +175,7 @@
     <ClCompile Include="src\Editor\Aet\Timeline\AetTimelineController.cpp" />
     <ClCompile Include="src\Editor\Aet\Timeline\KeyFrameRenderer.cpp" />
     <ClCompile Include="src\Editor\Chart\BPMCalculatorWindow.cpp" />
+    <ClCompile Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.cpp" />
     <ClCompile Include="src\Editor\Chart\Timeline\TimelineButtonIcons.cpp" />
     <ClCompile Include="src\Editor\Common\CameraController3D.cpp" />
     <ClCompile Include="src\Editor\Chart\ChartEditor.cpp" />
@@ -229,6 +230,7 @@
     <ClInclude Include="src\Editor\Chart\BPMCalculatorWindow.h" />
     <ClInclude Include="src\Editor\Chart\BPMTapCalculator.h" />
     <ClInclude Include="src\Editor\Chart\ChartCommands.h" />
+    <ClInclude Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TimelineButtonIcons.h" />
     <ClInclude Include="src\Editor\Common\CameraController3D.h" />
     <ClInclude Include="src\Editor\Chart\Chart.h" />
