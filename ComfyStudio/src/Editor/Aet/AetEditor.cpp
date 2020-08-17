@@ -191,7 +191,7 @@ namespace Comfy::Studio::Editor
 		if (editorAetSet != nullptr)
 			editorAetSet->ClearSpriteCache();
 
-		renderer->Aet().SetSprGetter([&](const Aet::VideoSource& source) -> Render::TexSpr
+		renderer->Aet().SetSprGetter([&](const Aet::VideoSource& source) -> Render::TexSprView
 		{
 			return Render::SprSetNameStringSprGetter(source, editorSprSet.get());
 		});

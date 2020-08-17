@@ -7,20 +7,22 @@
 
 namespace Comfy::Render
 {
-	struct TexSpr
+	struct TexSprView
 	{
 		const Graphics::Tex* Tex;
 		const Graphics::Spr* Spr;
+
+		operator bool() const { return (Tex != nullptr && Spr != nullptr); }
 	};
 
-	using SprGetter = std::function<TexSpr(const Graphics::Aet::VideoSource& source)>;
+	using SprGetter = std::function<TexSprView(const Graphics::Aet::VideoSource& source)>;
 
 	using AetObjCallback = std::function<bool(const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity)>;
 	using AetObjMaskCallback = std::function<bool(const Graphics::Aet::Util::Obj& maskObj, const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity)>;
 
-	TexSpr SprSetNameStringSprGetter(const Graphics::Aet::VideoSource& source, const Graphics::SprSet* sprSetToSearch);
+	TexSprView SprSetNameStringSprGetter(const Graphics::Aet::VideoSource& source, const Graphics::SprSet* sprSetToSearch);
 
-	TexSpr NullSprGetter(const Graphics::Aet::VideoSource& source);
+	TexSprView NullSprGetter(const Graphics::Aet::VideoSource& source);
 
 	// TODO: AetCommand2D (?)
 
@@ -50,11 +52,11 @@ namespace Comfy::Render
 		void SetObjCallback(AetObjCallback value);
 		void SetObjMaskCallback(AetObjMaskCallback value);
 
-		TexSpr GetSprite(const Graphics::Aet::VideoSource& source) const;
-		TexSpr GetSprite(const Graphics::Aet::VideoSource* source) const;
+		TexSprView GetSprite(const Graphics::Aet::VideoSource& source) const;
+		TexSprView GetSprite(const Graphics::Aet::VideoSource* source) const;
 
-		TexSpr GetSprite(const Graphics::Aet::Video& video, i32 frameIndex) const;
-		TexSpr GetSprite(const Graphics::Aet::Video* video, i32 frameIndex) const;
+		TexSprView GetSprite(const Graphics::Aet::Video& video, i32 frameIndex) const;
+		TexSprView GetSprite(const Graphics::Aet::Video* video, i32 frameIndex) const;
 
 		vec4 GetSolidVideoColor(const Graphics::Aet::Video& video, float opacity = 1.0f);
 

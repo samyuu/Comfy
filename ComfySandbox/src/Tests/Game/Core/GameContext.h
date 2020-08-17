@@ -11,11 +11,11 @@ namespace Comfy::Sandbox::Tests::Game
 	public:
 		GameContext()
 		{
-			Renderer.Aet().SetSprGetter([&](const Aet::VideoSource& source) -> Render::TexSpr
+			Renderer.Aet().SetSprGetter([&](const Aet::VideoSource& source) -> Render::TexSprView
 			{
 				for (auto sprSet : allAetAccessibleSprSets)
 				{
-					if (auto result = Render::SprSetNameStringSprGetter(source, sprSet->get()); result.Tex != nullptr && result.Spr != nullptr)
+					if (auto result = Render::SprSetNameStringSprGetter(source, sprSet->get()); result)
 						return result;
 				}
 
@@ -59,7 +59,7 @@ namespace Comfy::Sandbox::Tests::Game
 			return nullptr;
 		}
 
-		inline const Render::TexSpr FindSpr(const SprSet& sprSet, std::string_view spriteName) const
+		inline const Render::TexSprView FindSpr(const SprSet& sprSet, std::string_view spriteName) const
 		{
 			for (const auto& spr : sprSet.Sprites)
 			{

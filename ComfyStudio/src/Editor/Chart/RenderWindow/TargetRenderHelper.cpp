@@ -118,12 +118,12 @@ namespace Comfy::Studio::Editor
 		void DrawHUD(Render::Renderer2D& renderer, const HUD& hud) const
 		{
 			// TODO: Find a better solution for this, maybe store tex shared_ptr + spr as mutable VideoSource member (?)
-			renderer.Aet().SetSprGetter([this](const Aet::VideoSource& source) -> Render::TexSpr
+			renderer.Aet().SetSprGetter([this](const Aet::VideoSource& source) -> Render::TexSprView
 			{
-				if (auto result = Render::SprSetNameStringSprGetter(source, SprGameCommon.get()); result.Tex != nullptr && result.Spr != nullptr)
+				if (auto result = Render::SprSetNameStringSprGetter(source, SprGameCommon.get()); result)
 					return result;
 
-				if (auto result = Render::SprSetNameStringSprGetter(source, SprGame.get()); result.Tex != nullptr && result.Spr != nullptr)
+				if (auto result = Render::SprSetNameStringSprGetter(source, SprGame.get()); result)
 					return result;
 
 				return Render::NullSprGetter(source);

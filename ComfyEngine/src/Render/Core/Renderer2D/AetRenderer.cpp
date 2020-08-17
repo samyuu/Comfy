@@ -7,7 +7,7 @@ namespace Comfy::Render
 	using namespace Graphics::Aet;
 	namespace AetUtil = Graphics::Aet::Util;
 
-	TexSpr SprSetNameStringSprGetter(const VideoSource& source, const Graphics::SprSet* sprSetToSearch)
+	TexSprView SprSetNameStringSprGetter(const VideoSource& source, const Graphics::SprSet* sprSetToSearch)
 	{
 		if (sprSetToSearch == nullptr)
 			return { nullptr, nullptr };
@@ -25,7 +25,7 @@ namespace Comfy::Render
 		return { sprSetToSearch->TexSet.Textures[source.SprCache->TextureIndex].get(), source.SprCache };
 	}
 
-	TexSpr NullSprGetter(const VideoSource& source)
+	TexSprView NullSprGetter(const VideoSource& source)
 	{
 		return { nullptr, nullptr };
 	}
@@ -214,24 +214,24 @@ namespace Comfy::Render
 		objMaskCallback = value;
 	}
 
-	TexSpr AetRenderer::GetSprite(const VideoSource& source) const
+	TexSprView AetRenderer::GetSprite(const VideoSource& source) const
 	{
 		return sprGetter(source);
 	}
 
-	TexSpr AetRenderer::GetSprite(const Graphics::Aet::VideoSource* source) const
+	TexSprView AetRenderer::GetSprite(const Graphics::Aet::VideoSource* source) const
 	{
-		return (source != nullptr) ? GetSprite(*source) : TexSpr { nullptr, nullptr };
+		return (source != nullptr) ? GetSprite(*source) : TexSprView { nullptr, nullptr };
 	}
 
-	TexSpr AetRenderer::GetSprite(const Graphics::Aet::Video& video, i32 frameIndex) const
+	TexSprView AetRenderer::GetSprite(const Graphics::Aet::Video& video, i32 frameIndex) const
 	{
-		return InBounds(frameIndex, video.Sources) ? GetSprite(video.Sources[frameIndex]) : TexSpr { nullptr, nullptr };
+		return InBounds(frameIndex, video.Sources) ? GetSprite(video.Sources[frameIndex]) : TexSprView { nullptr, nullptr };
 	}
 
-	TexSpr AetRenderer::GetSprite(const Graphics::Aet::Video* video, i32 frameIndex) const
+	TexSprView AetRenderer::GetSprite(const Graphics::Aet::Video* video, i32 frameIndex) const
 	{
-		return (video != nullptr) ? GetSprite(*video, frameIndex) : TexSpr { nullptr, nullptr };
+		return (video != nullptr) ? GetSprite(*video, frameIndex) : TexSprView { nullptr, nullptr };
 	}
 
 	vec4 AetRenderer::GetSolidVideoColor(const Graphics::Aet::Video& video, float opacity)
