@@ -289,7 +289,7 @@ namespace Comfy::Graphics::Aet
 			for (auto& video : scene->Videos)
 			{
 				for (auto& source : video->Sources)
-					source.SpriteCache = nullptr;
+					source.SprCache = nullptr;
 			}
 		}
 	}

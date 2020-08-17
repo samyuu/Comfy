@@ -12,16 +12,17 @@ namespace Comfy::Render
 		if (sprSetToSearch == nullptr)
 			return { nullptr, nullptr };
 
-		if (source.SpriteCache != nullptr)
-			return { sprSetToSearch->TexSet.Textures[source.SpriteCache->TextureIndex].get(), source.SpriteCache };
+		if (source.SprCache != nullptr && source.SprSetCache == sprSetToSearch)
+			return { sprSetToSearch->TexSet.Textures[source.SprCache->TextureIndex].get(), source.SprCache };
 
 		// TEMP: Temporary solution, check for IDs in the future
 		const auto matchingSpr = FindIfOrNull(sprSetToSearch->Sprites, [&](const auto& spr) { return ::Comfy::Util::EndsWith(source.Name, spr.Name); });
 		if (matchingSpr == nullptr)
 			return { nullptr, nullptr };
 
-		source.SpriteCache = &(*matchingSpr);
-		return { sprSetToSearch->TexSet.Textures[source.SpriteCache->TextureIndex].get(), source.SpriteCache };
+		source.SprCache = &(*matchingSpr);
+		source.SprSetCache = sprSetToSearch;
+		return { sprSetToSearch->TexSet.Textures[source.SprCache->TextureIndex].get(), source.SprCache };
 	}
 
 	TexSpr NullSprGetter(const VideoSource& source)

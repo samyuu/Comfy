@@ -26,6 +26,7 @@ namespace Comfy
 	namespace Graphics
 	{
 		struct Spr;
+		class SprSet;
 	}
 }
 
@@ -51,7 +52,8 @@ namespace Comfy::Graphics::Aet
 		SprID ID;
 
 		// HACK: Editor internal cache to avoid expensive string comparisons
-		mutable const Spr* SpriteCache;
+		mutable const Spr* SprCache;
+		mutable const SprSet* SprSetCache;
 	};
 
 	class Video : public ILayerItem, NonCopyable
