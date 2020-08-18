@@ -32,6 +32,7 @@ namespace Comfy::Graphics
 	public:
 		// NOTE: Stored here as a mere convinience to directly access while rendering
 		std::shared_ptr<Tex> Texture = nullptr;
+		vec4 SpritePixelRegion = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	public:
 		// NOTE: Pixel size of the font

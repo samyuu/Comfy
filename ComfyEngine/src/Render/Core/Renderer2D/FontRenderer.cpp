@@ -130,8 +130,8 @@ namespace Comfy::Render
 
 			command.Position = transform.Position;
 			command.Origin = transform.Origin - cursorOffset;
-			command.SourceRegion.x = (glyphSize.x * glyph->Row);
-			command.SourceRegion.y = (glyphSize.y * glyph->Column);
+			command.SourceRegion.x = font.SpritePixelRegion.x + (glyphSize.x * glyph->Row);
+			command.SourceRegion.y = font.SpritePixelRegion.y + (glyphSize.y * glyph->Column);
 			renderer2D.Draw(command);
 
 			cursorOffset.x += glpyhAdvance[glyph->IsNarrow].x;
