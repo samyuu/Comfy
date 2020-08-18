@@ -207,7 +207,7 @@ namespace Comfy::Render
 			if (item.BlendMode != lastItem.BlendMode)
 				return false;
 
-			if ((item.DrawTextBorder || lastItem.DrawTextBorder) && textureChanged)
+			if (item.DrawTextBorder != lastItem.DrawTextBorder)
 				return false;
 
 			if ((item.MaskTexture != nullptr || lastItem.MaskTexture != nullptr) && (textureChanged || textureMaskChanged))
