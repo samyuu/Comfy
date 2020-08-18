@@ -51,6 +51,9 @@ namespace Comfy::Render
 		void SetSprGetter(SprGetter value);
 		void SetObjCallback(AetObjCallback value);
 		void SetObjMaskCallback(AetObjMaskCallback value);
+		
+		bool GetRenderNullVideos() const;
+		void SetRenderNullVideos(bool value);
 
 		TexSprView GetSprite(const Graphics::Aet::VideoSource& source) const;
 		TexSprView GetSprite(const Graphics::Aet::VideoSource* source) const;
@@ -69,6 +72,7 @@ namespace Comfy::Render
 		SprGetter sprGetter;
 		AetObjCallback objCallback;
 		AetObjMaskCallback objMaskCallback;
+		bool renderNullVideos = false;
 
 		Graphics::Aet::Util::ObjCache objCache;
 	};

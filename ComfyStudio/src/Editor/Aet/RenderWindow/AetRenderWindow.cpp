@@ -35,6 +35,8 @@ namespace Comfy::Studio::Editor
 			return OnObjMaskRender(maskObj, obj, positionOffset, opacity);
 		});
 
+		renderer.Aet().SetRenderNullVideos(true);
+
 		mousePicker = std::make_unique<ObjectMousePicker>(objectCache, windowHoveredOnMouseClick, selectedAetItem, cameraSelectedAetItem);
 
 		tools[AetToolType_Hand] = std::make_unique<HandTool>();

@@ -61,7 +61,7 @@ namespace Comfy::Render
 
 			renderer2D.Draw(command);
 		}
-		else
+		else if (renderNullVideos)
 		{
 			auto command = RenderCommand2D();
 			command.Origin = obj.Transform.Origin;
@@ -113,7 +113,7 @@ namespace Comfy::Render
 
 			renderer2D.Draw(command, maskCommand);
 		}
-		else
+		else if (renderNullVideos)
 		{
 			auto command = RenderCommand2D();
 			command.Origin = obj.Transform.Origin;
@@ -174,14 +174,14 @@ namespace Comfy::Render
 			command.Texture = tex;
 			command.SourceRegion = spr->PixelRegion;
 			command.SetColor(vec4(1.0f, 1.0f, 1.0f, transform.Opacity));
+			renderer2D.Draw(command);
 		}
-		else
+		else if (renderNullVideos)
 		{
 			command.SourceRegion = vec4(0.0f, 0.0f, video.Size);
 			command.SetColor(GetSolidVideoColor(video));
+			renderer2D.Draw(command);
 		}
-
-		renderer2D.Draw(command);
 	}
 
 	void AetRenderer::DrawSpr(const Graphics::Tex& tex, const Graphics::Spr& spr, const Graphics::Transform2D& transform, Graphics::AetBlendMode blendMode)
@@ -212,6 +212,16 @@ namespace Comfy::Render
 	void AetRenderer::SetObjMaskCallback(AetObjMaskCallback value)
 	{
 		objMaskCallback = value;
+	}
+
+	bool AetRenderer::GetRenderNullVideos() const
+	{
+		return renderNullVideos;
+	}
+
+	void AetRenderer::SetRenderNullVideos(bool value)
+	{
+		renderNullVideos = true;
 	}
 
 	TexSprView AetRenderer::GetSprite(const VideoSource& source) const
