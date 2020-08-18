@@ -66,18 +66,31 @@ namespace Comfy::Studio::Editor
 
 			std::shared_ptr<Aet::Layer>
 				PracticeGaugeBase,
+				PracticeGaugeBaseNumPointMin,
+				PracticeGaugeBaseNumPointSec,
+				PracticeGaugeBaseNumPointMS,
 				PracticeGaugeTime,
 				PracticeGaugeBorderPlay,
 				PracticeGaugeBorderRestart;
 
 		} Layers = {};
 
+		struct SpriteCache
+		{
+			Spr* PracticeNumbers;
+		} Sprites = {};
+
 	public:
 		void UpdateAsyncLoading()
 		{
-			auto findLayer = [](Graphics::AetSet& aetSet, std::string_view layerName, size_t sceneIndex = 0)
+			auto findLayer = [](AetSet& aetSet, std::string_view layerName, size_t sceneIndex = 0)
 			{
 				return InBounds(sceneIndex, aetSet.GetScenes()) ? aetSet.GetScenes()[sceneIndex]->FindLayer(layerName) : nullptr;
+			};
+
+			auto findSprite = [](SprSet& sprSet, std::string_view spriteName)
+			{
+				return FindIfOrNull(sprSet.Sprites, [&](const auto& spr) {return spr.Name == spriteName; });
 			};
 
 			if (GetFutureIfReady(AetGameCommonFuture, AetGameCommon) && AetGameCommon != nullptr)
@@ -95,18 +108,38 @@ namespace Comfy::Studio::Editor
 				Layers.LevelInfoExExtreme = findLayer(*AetGameCommon, "level_info_extreme_extra");
 				Layers.SongTitle = findLayer(*AetGameCommon, "p_song_title_lt");
 			}
-			GetFutureIfReady(SprGameCommonFuture, SprGameCommon);
-			if (GetFutureIfReady(AetGameFuture, AetGame))
+
+			if (GetFutureIfReady(SprGameCommonFuture, SprGameCommon) && SprGameCommon != nullptr)
+			{
+
+			}
+
+			if (GetFutureIfReady(AetGameFuture, AetGame) && AetGame != nullptr)
 			{
 				Layers.PracticeGaugeBase = findLayer(*AetGame, "prc_gauge_base");
 				Layers.PracticeGaugeTime = findLayer(*AetGame, "prc_gauge_time");
 				Layers.PracticeGaugeBorderPlay = findLayer(*AetGame, "prc_gauge_border_play");
 				Layers.PracticeGaugeBorderRestart = findLayer(*AetGame, "prc_gauge_border_restart");
+
+				if (Layers.PracticeGaugeBase != nullptr)
+				{
+					Layers.PracticeGaugeBaseNumPointMin = Layers.PracticeGaugeBase->GetCompItem()->FindLayer("p_prc_num_min_rt");
+					Layers.PracticeGaugeBaseNumPointSec = Layers.PracticeGaugeBase->GetCompItem()->FindLayer("p_prc_num_sec_rt");
+					Layers.PracticeGaugeBaseNumPointMS = Layers.PracticeGaugeBase->GetCompItem()->FindLayer("p_prc_num_frm_rt");
+				}
 			}
-			GetFutureIfReady(SprGameFuture, SprGame);
+
+			if (GetFutureIfReady(SprGameFuture, SprGame) && SprGame != nullptr)
+			{
+				Sprites.PracticeNumbers = findSprite(*SprGame, "PRC_NUM24X36");
+			}
+
 			GetFutureIfReady(SprFont36Future, SprFont36);
+
 			if (GetFutureIfReady(FontMapFuture, FontMap) && FontMap != nullptr)
+			{
 				Font36Index = FindIndexOf(FontMap->Fonts, [](auto& font) { return font.GetFontSize() == ivec2(36); });
+			}
 
 			if (const auto font36 = Font36(); font36 != nullptr)
 			{
@@ -129,10 +162,20 @@ namespace Comfy::Studio::Editor
 				return Render::NullSprGetter(source);
 			});
 
-			auto tryDrawLayer = [&](const auto& layer, frame_t frame)
+			auto tryDrawLayer = [&](const std::shared_ptr<Aet::Layer>& layer, frame_t frame) -> void
 			{
-				if (layer != nullptr)
-					renderer.Aet().DrawLayer(*layer, frame);
+				if (layer != nullptr) { renderer.Aet().DrawLayer(*layer, frame); }
+			};
+
+			auto tryDrawSpr = [&](const SprSet* sprSet, const Spr* spr, const Transform2D& transform) -> void
+			{
+				if (sprSet != nullptr && spr != nullptr && InBounds(spr->TextureIndex, sprSet->TexSet.Textures))
+					renderer.Aet().DrawSpr(*sprSet->TexSet.Textures[spr->TextureIndex], *spr, transform);
+			};
+
+			auto tryGetTransform = [&](const std::shared_ptr<Aet::Layer>& layer, frame_t frame) -> Transform2D
+			{
+				return (layer != nullptr && layer->LayerVideo != nullptr) ? Aet::Util::GetTransformAt(*layer->LayerVideo, frame) : Transform2D(vec2(0.0f));
 			};
 
 			if (SprGameCommon != nullptr)
@@ -146,21 +189,74 @@ namespace Comfy::Studio::Editor
 
 			if (SprGame != nullptr)
 			{
+				tryDrawLayer(Layers.PracticeGaugeBase, 0.0f);
+
+				if (Layers.PracticeGaugeBase != nullptr && Sprites.PracticeNumbers != nullptr)
+				{
+					// const auto baseTransform = tryGetTransform(Layers.PracticeGaugeBase, 0.0f);
+					const auto transformMin = tryGetTransform(Layers.PracticeGaugeBaseNumPointMin, 0.0f);
+					auto transformSec = tryGetTransform(Layers.PracticeGaugeBaseNumPointSec, 0.0f);
+					auto transformMS = tryGetTransform(Layers.PracticeGaugeBaseNumPointMS, 0.0f);
+
+					const auto originalPixelRegion = Sprites.PracticeNumbers->PixelRegion;
+					constexpr auto numFontSize = vec2(24.0f, 36.0f);
+					constexpr auto numGlyphSize = vec2(26.0f, 38.0f);
+
+					auto getCharPixelRegion = [&](const char character) -> vec4
+					{
+						const ivec2 index = [character]
+						{
+							constexpr auto available = std::string_view("0123456789+-.");
+							for (size_t i = 0; i < available.size(); i++)
+							{
+								if (character == available[i])
+									return ivec2(static_cast<int>(i), 0);
+							}
+							return ivec2(-1);
+						}();
+
+						return vec4(
+							(index.x * numGlyphSize.x) + originalPixelRegion.x,
+							(index.y * numGlyphSize.y) + originalPixelRegion.y,
+							numGlyphSize.x,
+							numGlyphSize.y);
+					};
+
+					constexpr auto minTime = TimeSpan::Zero();
+					constexpr auto maxTime = TimeSpan::FromMinutes(9.0) + TimeSpan::FromSeconds(59.0) + TimeSpan::FromMilliseconds(999.0);
+
+					// HACK: Indexing into an external string...
+					const auto timeFormat = std::clamp(hud.PlaybackTime, minTime, maxTime).FormatTime();
+
+					// TODO: Implement as part of FontRenderer
+					Sprites.PracticeNumbers->PixelRegion = getCharPixelRegion(timeFormat[1]);
+					tryDrawSpr(SprGame.get(), Sprites.PracticeNumbers, transformMin);
+
+					Sprites.PracticeNumbers->PixelRegion = getCharPixelRegion(timeFormat[3]);
+					tryDrawSpr(SprGame.get(), Sprites.PracticeNumbers, transformSec);
+					transformSec.Position.x += numFontSize.x;
+					Sprites.PracticeNumbers->PixelRegion = getCharPixelRegion(timeFormat[4]);
+					tryDrawSpr(SprGame.get(), Sprites.PracticeNumbers, transformSec);
+
+					Sprites.PracticeNumbers->PixelRegion = getCharPixelRegion(timeFormat[6]);
+					tryDrawSpr(SprGame.get(), Sprites.PracticeNumbers, transformMS);
+					transformMS.Position.x += numFontSize.x;
+					Sprites.PracticeNumbers->PixelRegion = getCharPixelRegion(timeFormat[7]);
+					tryDrawSpr(SprGame.get(), Sprites.PracticeNumbers, transformMS);
+
+					// HACK: RIP constness but copying the entire struct is too expensive with its string member
+					Sprites.PracticeNumbers->PixelRegion = originalPixelRegion;
+				}
+
 				const auto progress = std::clamp(static_cast<f32>(hud.PlaybackTime / hud.Duration), 0.0f, 1.0f);
 				const auto progressOnStart = std::clamp(static_cast<f32>(hud.PlaybackTimeOnStart / hud.Duration), 0.0f, 1.0f);
 
-				tryDrawLayer(Layers.PracticeGaugeBase, 0.0f);
 				tryDrawLayer(Layers.PracticeGaugeTime, progress * 100.0f);
 				tryDrawLayer(Layers.PracticeGaugeBorderRestart, (hud.IsPlayback ? progressOnStart : progress) * 100.0f);
 			}
 
 			if (const auto* font = Font36(); font != nullptr && !hud.SongName.empty())
-			{
-				const auto songNameTransform = (Layers.SongTitle != nullptr && Layers.SongTitle->LayerVideo != nullptr) ?
-					Aet::Util::GetTransformAt(*Layers.SongTitle->LayerVideo, 0.0f) : Transform2D(vec2(0.0f));
-
-				renderer.Font().DrawBorder(*font, hud.SongName, songNameTransform);
-			}
+				renderer.Font().DrawBorder(*font, hud.SongName, tryGetTransform(Layers.SongTitle, 0.0f));
 		}
 	};
 
