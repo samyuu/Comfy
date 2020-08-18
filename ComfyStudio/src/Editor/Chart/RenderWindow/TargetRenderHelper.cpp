@@ -42,10 +42,16 @@ namespace Comfy::Studio::Editor
 		std::unique_ptr<SprSet> SprFont36 = nullptr;
 		std::unique_ptr<FontMap> FontMap = nullptr;
 		size_t Font36Index = std::numeric_limits<size_t>::max();
+		size_t FontPracticeNumIndex = std::numeric_limits<size_t>::max();
 
 		BitmapFont* Font36() const
 		{
 			return (SprFont36 == nullptr || FontMap == nullptr) ? nullptr : IndexOrNull(Font36Index, FontMap->Fonts);
+		}
+
+		BitmapFont* FontPracticeNum() const
+		{
+			return (SprGame == nullptr || FontMap == nullptr) ? nullptr : IndexOrNull(FontPracticeNumIndex, FontMap->Fonts);
 		}
 
 		struct LayerCache
@@ -121,7 +127,7 @@ namespace Comfy::Studio::Editor
 				Layers.PracticeGaugeBorderPlay = findLayer(*AetGame, "prc_gauge_border_play");
 				Layers.PracticeGaugeBorderRestart = findLayer(*AetGame, "prc_gauge_border_restart");
 
-				if (Layers.PracticeGaugeBase != nullptr)
+				if (Layers.PracticeGaugeBase != nullptr && Layers.PracticeGaugeBase->GetCompItem() != nullptr)
 				{
 					Layers.PracticeGaugeBaseNumPointMin = Layers.PracticeGaugeBase->GetCompItem()->FindLayer("p_prc_num_min_rt");
 					Layers.PracticeGaugeBaseNumPointSec = Layers.PracticeGaugeBase->GetCompItem()->FindLayer("p_prc_num_sec_rt");
@@ -139,12 +145,22 @@ namespace Comfy::Studio::Editor
 			if (GetFutureIfReady(FontMapFuture, FontMap) && FontMap != nullptr)
 			{
 				Font36Index = FindIndexOf(FontMap->Fonts, [](auto& font) { return font.GetFontSize() == ivec2(36); });
+				FontPracticeNumIndex = FindIndexOf(FontMap->Fonts, [](auto& font) { return font.GetFontSize() == ivec2(24, 30); });
 			}
 
 			if (const auto font36 = Font36(); font36 != nullptr)
 			{
-				if (font36->Texture == nullptr && SprFont36 != nullptr && !SprFont36->TexSet.Textures.empty())
+				if (font36->Texture == nullptr && !SprFont36->TexSet.Textures.empty())
 					font36->Texture = SprFont36->TexSet.Textures.front();
+			}
+
+			if (const auto fontNum = FontPracticeNum(); fontNum != nullptr && fontNum->Texture == nullptr)
+			{
+				if (Sprites.PracticeNumbers != nullptr && InBounds(Sprites.PracticeNumbers->TextureIndex, SprGame->TexSet.Textures))
+				{
+					fontNum->Texture = SprGame->TexSet.Textures[Sprites.PracticeNumbers->TextureIndex];
+					fontNum->SpritePixelRegion = Sprites.PracticeNumbers->PixelRegion;
+				}
 			}
 		}
 
@@ -193,59 +209,21 @@ namespace Comfy::Studio::Editor
 
 				if (Layers.PracticeGaugeBase != nullptr && Sprites.PracticeNumbers != nullptr)
 				{
-					// const auto baseTransform = tryGetTransform(Layers.PracticeGaugeBase, 0.0f);
-					const auto transformMin = tryGetTransform(Layers.PracticeGaugeBaseNumPointMin, 0.0f);
-					auto transformSec = tryGetTransform(Layers.PracticeGaugeBaseNumPointSec, 0.0f);
-					auto transformMS = tryGetTransform(Layers.PracticeGaugeBaseNumPointMS, 0.0f);
-
-					const auto originalPixelRegion = Sprites.PracticeNumbers->PixelRegion;
-					constexpr auto numFontSize = vec2(24.0f, 36.0f);
-					constexpr auto numGlyphSize = vec2(26.0f, 38.0f);
-
-					auto getCharPixelRegion = [&](const char character) -> vec4
+					if (const auto* font = FontPracticeNum(); font != nullptr)
 					{
-						const ivec2 index = [character]
-						{
-							constexpr auto available = std::string_view("0123456789+-.");
-							for (size_t i = 0; i < available.size(); i++)
-							{
-								if (character == available[i])
-									return ivec2(static_cast<int>(i), 0);
-							}
-							return ivec2(-1);
-						}();
+						constexpr auto minTime = TimeSpan::Zero();
+						constexpr auto maxTime = TimeSpan::FromMinutes(9.0) + TimeSpan::FromSeconds(59.0) + TimeSpan::FromMilliseconds(999.0);
+						const auto timeFormat = std::clamp(hud.PlaybackTime, minTime, maxTime).FormatTime();
 
-						return vec4(
-							(index.x * numGlyphSize.x) + originalPixelRegion.x,
-							(index.y * numGlyphSize.y) + originalPixelRegion.y,
-							numGlyphSize.x,
-							numGlyphSize.y);
-					};
+						// HACK: Indexing into an external string...
+						char minutes[2] = { timeFormat[1] };
+						char seconds[3] = { timeFormat[3], timeFormat[4] };
+						char milliseconds[3] = { timeFormat[6], timeFormat[7] };
 
-					constexpr auto minTime = TimeSpan::Zero();
-					constexpr auto maxTime = TimeSpan::FromMinutes(9.0) + TimeSpan::FromSeconds(59.0) + TimeSpan::FromMilliseconds(999.0);
-
-					// HACK: Indexing into an external string...
-					const auto timeFormat = std::clamp(hud.PlaybackTime, minTime, maxTime).FormatTime();
-
-					// TODO: Implement as part of FontRenderer
-					Sprites.PracticeNumbers->PixelRegion = getCharPixelRegion(timeFormat[1]);
-					tryDrawSpr(SprGame.get(), Sprites.PracticeNumbers, transformMin);
-
-					Sprites.PracticeNumbers->PixelRegion = getCharPixelRegion(timeFormat[3]);
-					tryDrawSpr(SprGame.get(), Sprites.PracticeNumbers, transformSec);
-					transformSec.Position.x += numFontSize.x;
-					Sprites.PracticeNumbers->PixelRegion = getCharPixelRegion(timeFormat[4]);
-					tryDrawSpr(SprGame.get(), Sprites.PracticeNumbers, transformSec);
-
-					Sprites.PracticeNumbers->PixelRegion = getCharPixelRegion(timeFormat[6]);
-					tryDrawSpr(SprGame.get(), Sprites.PracticeNumbers, transformMS);
-					transformMS.Position.x += numFontSize.x;
-					Sprites.PracticeNumbers->PixelRegion = getCharPixelRegion(timeFormat[7]);
-					tryDrawSpr(SprGame.get(), Sprites.PracticeNumbers, transformMS);
-
-					// HACK: RIP constness but copying the entire struct is too expensive with its string member
-					Sprites.PracticeNumbers->PixelRegion = originalPixelRegion;
+						renderer.Font().Draw(*font, minutes, tryGetTransform(Layers.PracticeGaugeBaseNumPointMin, 0.0f));
+						renderer.Font().Draw(*font, seconds, tryGetTransform(Layers.PracticeGaugeBaseNumPointSec, 0.0f));
+						renderer.Font().Draw(*font, milliseconds, tryGetTransform(Layers.PracticeGaugeBaseNumPointMS, 0.0f));
+					}
 				}
 
 				const auto progress = std::clamp(static_cast<f32>(hud.PlaybackTime / hud.Duration), 0.0f, 1.0f);
