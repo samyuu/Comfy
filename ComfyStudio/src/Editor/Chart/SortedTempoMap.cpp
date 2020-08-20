@@ -12,16 +12,25 @@ namespace Comfy::Studio::Editor
 	{
 		assert(tick.TotalTicks() >= 0);
 
-		if (const auto existing = FindIfOrNull(tempoChanges, [&](const auto& t) { return (t.Tick == tick); }); existing != nullptr)
+		const auto insertionIndex = FindSortedInsertionIndex(tick);
+		if (InBounds(insertionIndex, tempoChanges))
 		{
-			existing->Tempo = tempo;
-			existing->Signature = signature;
+			if (auto& existing = tempoChanges[insertionIndex]; existing.Tick == tick)
+			{
+				existing.Tempo = tempo;
+				existing.Signature = signature;
+			}
+			else
+			{
+				tempoChanges.emplace(tempoChanges.begin() + insertionIndex, tick, tempo, signature);
+			}
 		}
 		else
 		{
 			tempoChanges.emplace_back(tick, tempo, signature);
-			std::sort(tempoChanges.begin(), tempoChanges.end());
 		}
+
+		assert(std::is_sorted(tempoChanges.begin(), tempoChanges.end(), [](const auto& a, const auto& b) { return a.Tick < b.Tick; }));
 	}
 
 	void SortedTempoMap::RemoveTempoChange(TimelineTick tick)
@@ -32,7 +41,7 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: Always keep at least one TempoChange because the TimelineMap relies on it
 		if (tempoChanges.empty())
-			SetTempoChange(TimelineTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
+			tempoChanges.emplace_back(TimelineTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
 	}
 
 	const TempoChange& SortedTempoMap::GetTempoChangeAt(size_t index) const
@@ -68,5 +77,16 @@ namespace Comfy::Studio::Editor
 	{
 		tempoChanges.clear();
 		tempoChanges.emplace_back(TimelineTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
+	}
+
+	size_t SortedTempoMap::FindSortedInsertionIndex(TimelineTick tick) const
+	{
+		for (size_t i = 0; i < tempoChanges.size(); i++)
+		{
+			if (tick <= tempoChanges[i].Tick)
+				return i;
+		}
+
+		return tempoChanges.size();
 	}
 }
