@@ -546,14 +546,17 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::DrawTimelineTempoMap()
 	{
-		constexpr auto tempoChangePopupName = "##TempoChangePopup";
-
 		const auto& tempoMap = workingChart->TempoMap;
+
+		constexpr auto tempoChangePopupName = "##TempoChangePopup";
+		float lastDrawnTimelineX = 0.0f;
+
 		for (size_t i = 0; i < tempoMap.TempoChangeCount(); i++)
 		{
 			const auto& tempoChange = tempoMap.GetTempoChangeAt(i);
 
-			const auto screenX = glm::round(GetTimelinePosition(tempoChange.Tick) - GetScrollX());
+			const auto timelineX = GetTimelinePosition(tempoChange.Tick);
+			const auto screenX = glm::round(timelineX - GetScrollX());
 			const auto visiblity = GetTimelineVisibility(screenX);
 
 			if (visiblity == TimelineVisibility::Left)
@@ -561,11 +564,12 @@ namespace Comfy::Studio::Editor
 			if (visiblity == TimelineVisibility::Right)
 				break;
 
-			const bool signatureChanged = (i == 0 || tempoChange.Signature != tempoMap.GetTempoChangeAt(i - 1).Signature);
+			const bool displaySignature = (i == 0 || tempoChange.Signature != tempoMap.GetTempoChangeAt(i - 1).Signature);
+			const bool shortenText = (zoomLevel < 1.0f);
 
 			char tempoBuffer[64];
-			sprintf_s(tempoBuffer, sizeof(tempoBuffer),
-				signatureChanged ? "%.2f BPM %d/%d" : "%.2f BPM",
+			sprintf_s(tempoBuffer,
+				displaySignature ? (shortenText ? "%.0f BPM %d/%d" : "%.2f BPM %d/%d") : (shortenText ? "%.0f BPM" : "%.2f BPM"),
 				tempoChange.Tempo.BeatsPerMinute,
 				tempoChange.Signature.Numerator, tempoChange.Signature.Denominator);
 
@@ -578,7 +582,6 @@ namespace Comfy::Studio::Editor
 			Gui::InvisibleButton("##InvisibleTempoButton", buttonSize);
 			Gui::PopID();
 
-			// TODO: Prevent overlapping tempo changes
 			if (Gui::IsItemHovered())
 			{
 				Gui::WideSetTooltip("Time: %s", TickToTime(tempoChange.Tick).FormatTime().data());
@@ -596,9 +599,13 @@ namespace Comfy::Studio::Editor
 			}
 
 			constexpr auto tempoFgColor = 0xFF1DBFB2;
-
 			baseDrawList->AddLine(buttonPosition + vec2(-1.0f, -1.0f), buttonPosition + vec2(-1.0f, buttonSize.y - 1.0f), tempoFgColor);
-			baseDrawList->AddText(Gui::GetFont(), tempoMapFontSize, buttonPosition + tempoMapFontOffset, tempoFgColor, tempoBuffer);
+
+			// NOTE: Just like with the bar / beat division culling this is far from perfect 
+			//		 but at least crudely prevents any unreadable overlapping text until zoomed in close enough
+			if (const auto lastDrawnDistance = (timelineX - lastDrawnTimelineX); lastDrawnDistance >= 0.0f)
+				baseDrawList->AddText(Gui::GetFont(), tempoMapFontSize, buttonPosition + tempoMapFontOffset, tempoFgColor, tempoBuffer);
+			lastDrawnTimelineX = timelineX + buttonSize.x;
 		}
 
 		if (tempoPopupIndex >= 0)
@@ -736,6 +743,7 @@ namespace Comfy::Studio::Editor
 			baseDrawList->AddLine(start, end, GetColor(EditorColor_CursorInner));
 		}
 
+		// TODO: Different cursor colors based on grid division (?)
 		TimelineBase::DrawTimelineCursor();
 	}
 
