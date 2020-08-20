@@ -10,16 +10,13 @@ namespace Comfy::Studio::Editor
 		TimelineScrollbar() = default;
 
 	public:
-		bool Gui(float& inOutScroll, float maxScroll, ImRect scrollbarRegion);
-
-	private:
-		ImU32 GetGrabColor() const;
+		bool Gui(float& inOutScroll, float availableScroll, float maxScroll, ImRect scrollbarRegion);
 
 	private:
 		ImGuiAxis axis;
-		const vec2 timelineScrollbarSize;
+		vec2 timelineScrollbarSize;
 
-		// TODO:
+		float clickDeltaToGrabCenter = 0.0f;
 		bool held = false, hovered = false;
 	};
 }

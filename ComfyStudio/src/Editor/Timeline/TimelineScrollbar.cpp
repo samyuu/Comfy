@@ -9,50 +9,86 @@ namespace Comfy::Studio::Editor
 		assert(axis == ImGuiAxis_X || axis == ImGuiAxis_Y);
 	}
 
-	bool TimelineScrollbar::Gui(float& inOutScroll, float maxScroll, ImRect scrollbarRegion)
+	bool TimelineScrollbar::Gui(float& inOutScroll, float availableScroll, float maxScroll, ImRect scrollbarRegion)
 	{
-		auto drawList = Gui::GetWindowDrawList();
-		const auto& style = Gui::GetStyle();
-
-		const vec2 scrollbarRegionSize = scrollbarRegion.GetSize();
-		const float scrollbarAxisSize = scrollbarRegionSize[axis];
-
-		const float visibleContentPercentage = (maxScroll <= 0.0f) ? 0.0f : (scrollbarAxisSize / (maxScroll + scrollbarAxisSize));
-		const float visibleContentSize = glm::clamp(((maxScroll <= 0.0f) ? scrollbarAxisSize : visibleContentPercentage * scrollbarAxisSize), (style.GrabMinSize * 2.0f), scrollbarAxisSize);
-
-		const float avilableSize = scrollbarAxisSize - visibleContentSize;
-		const float grabSizePercentage = (maxScroll <= 0.0f) ? 0.0f : (inOutScroll / maxScroll);
-
-		const float grabPosition = avilableSize * grabSizePercentage;
-
-		ImRect scrollbarGrabRegion;
-		if (axis == ImGuiAxis_X)
-		{
-			constexpr vec2 grabPadding = vec2(2.0f, 3.0f);
-			scrollbarGrabRegion = ImRect(
-				scrollbarRegion.Min + vec2(+grabPadding.x + grabPosition, grabPadding.y),
-				scrollbarRegion.Min + vec2(-grabPadding.x + grabPosition + visibleContentSize, timelineScrollbarSize.y - grabPadding.y));
-		}
-		else if (axis == ImGuiAxis_Y)
-		{
-			constexpr vec2 grabPadding = vec2(3.0f, 2.0f);
-			scrollbarGrabRegion = ImRect(
-				scrollbarRegion.Min + vec2(+grabPadding.x + 0.0, grabPadding.y + grabPosition),
-				scrollbarRegion.Min + vec2(-grabPadding.x + timelineScrollbarSize.x, -grabPadding.y + grabPosition + visibleContentSize));
-		}
-
-		const vec2 scrollbarGrabRegionSize = scrollbarGrabRegion.GetSize();
-		if (scrollbarGrabRegionSize.x < 0.0f || scrollbarGrabRegionSize.y < 0.0f)
+		if (scrollbarRegion.GetWidth() <= 0.0f || scrollbarRegion.GetHeight() <= 0.0f)
 			return false;
 
-		drawList->AddRectFilled(scrollbarGrabRegion.Min, scrollbarGrabRegion.Max, GetGrabColor(), style.ScrollbarRounding);
+		// NOTE: Based on ImGui::Scrollbar() but without the window specific logic
+		auto* window = GImGui->CurrentWindow;
+		const auto& style = GImGui->Style;
 
+		const auto id = Gui::GetScrollbarID(window, axis);
+		Gui::KeepAliveID(id);
+
+		const auto cornderFlags = (axis == ImGuiAxis_X) ?
+			(ImDrawCornerFlags_BotLeft | ImDrawCornerFlags_BotRight) :
+			(ImDrawCornerFlags_TopRight | ImDrawCornerFlags_BotRight);
+
+		window->DrawList->AddRectFilled(scrollbarRegion.Min, scrollbarRegion.Max, Gui::GetColorU32(ImGuiCol_ScrollbarBg), window->WindowRounding, cornderFlags);
+
+		scrollbarRegion.Expand(ImVec2(
+			-ImClamp(static_cast<float>(static_cast<int>((scrollbarRegion.Max.x - scrollbarRegion.Min.x - 2.0f)) * 0.5f), 0.0f, 3.0f),
+			-ImClamp(static_cast<float>(static_cast<int>((scrollbarRegion.Max.y - scrollbarRegion.Min.y - 2.0f)) * 0.5f), 0.0f, 3.0f))
+		);
+
+		const float axisScrollbarSize = scrollbarRegion.GetSize()[axis];
+		const float axisWinSize = ImMax(ImMax(maxScroll, availableScroll), 1.0f);
+		const float grabHeightpixels = ImClamp(axisScrollbarSize * (availableScroll / axisWinSize), style.GrabMinSize, axisScrollbarSize);
+		const float grabHeightNorm = grabHeightpixels / axisScrollbarSize;
+
+		Gui::ButtonBehavior(scrollbarRegion, id, &hovered, &held, ImGuiButtonFlags_NoNavFocus);
+
+		const float scrollMax = ImMax(1.0f, maxScroll - availableScroll);
+		float scrollRatio = ImSaturate(inOutScroll / scrollMax);
+		float axisGrabNorm = scrollRatio * (axisScrollbarSize - grabHeightpixels) / axisScrollbarSize;
+
+		if (held && grabHeightNorm < 1.0f)
+		{
+			const float scrollbarAxisPos = scrollbarRegion.Min[axis];
+			const float mouseAxisPos = GImGui->IO.MousePos[axis];
+
+			const float axisClickedNorm = ImSaturate((mouseAxisPos - scrollbarAxisPos) / axisScrollbarSize);
+			Gui::SetHoveredID(id);
+
+			bool seekAbsolute = false;
+			if (const bool previouslyHeld = (GImGui->ActiveId == id); !previouslyHeld)
+			{
+				if (axisClickedNorm >= axisGrabNorm && axisClickedNorm <= axisGrabNorm + grabHeightNorm)
+				{
+					clickDeltaToGrabCenter = axisClickedNorm - axisGrabNorm - grabHeightNorm * 0.5f;
+				}
+				else
+				{
+					seekAbsolute = true;
+					clickDeltaToGrabCenter = 0.0f;
+				}
+			}
+
+			const float scroll_v_norm = ImSaturate((axisClickedNorm - clickDeltaToGrabCenter - grabHeightNorm * 0.5f) / (1.0f - grabHeightNorm));
+			inOutScroll = static_cast<float>(static_cast<int>(0.5f + scroll_v_norm * scrollMax));
+
+			scrollRatio = ImSaturate(inOutScroll / scrollMax);
+			axisGrabNorm = scrollRatio * (axisScrollbarSize - grabHeightpixels) / axisScrollbarSize;
+
+			if (seekAbsolute)
+				clickDeltaToGrabCenter = axisClickedNorm - axisGrabNorm - grabHeightNorm * 0.5f;
+		}
+
+		const auto grabColor = Gui::GetColorU32(held ? ImGuiCol_ScrollbarGrabActive : hovered ? ImGuiCol_ScrollbarGrabHovered : ImGuiCol_ScrollbarGrab);
+		const auto grabRect = (axis == ImGuiAxis_X) ?
+			ImRect(
+				ImLerp(scrollbarRegion.Min.x, scrollbarRegion.Max.x, axisGrabNorm),
+				scrollbarRegion.Min.y,
+				ImMin(ImLerp(scrollbarRegion.Min.x, scrollbarRegion.Max.x, axisGrabNorm) + grabHeightpixels, scrollbarRegion.Max.x),
+				scrollbarRegion.Max.y) :
+			ImRect(
+				scrollbarRegion.Min.x,
+				ImLerp(scrollbarRegion.Min.y, scrollbarRegion.Max.y, axisGrabNorm),
+				scrollbarRegion.Max.x,
+				ImMin(ImLerp(scrollbarRegion.Min.y, scrollbarRegion.Max.y, axisGrabNorm) + grabHeightpixels, scrollbarRegion.Max.y));
+
+		window->DrawList->AddRectFilled(grabRect.Min, grabRect.Max, grabColor, style.ScrollbarRounding);
 		return held;
-	}
-	}
-
-	ImU32 TimelineScrollbar::GetGrabColor() const
-	{
-		return Gui::GetColorU32(held ? ImGuiCol_ScrollbarGrabActive : hovered ? ImGuiCol_ScrollbarGrabHovered : ImGuiCol_ScrollbarGrab);
 	}
 }

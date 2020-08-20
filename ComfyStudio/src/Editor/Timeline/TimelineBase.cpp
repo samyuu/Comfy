@@ -294,7 +294,7 @@ namespace Comfy::Studio::Editor
 
 	void TimelineBase::DrawTimelineGui()
 	{
-#if 0 // TEMP:
+#if 0 // DEBUG:
 		Gui::DEBUG_NOSAVE_WINDOW("timeline base regions", [this]()
 		{
 			auto drawRegionIfHighlighted = [](const char* name, const ImRect& region)
@@ -311,7 +311,7 @@ namespace Comfy::Studio::Editor
 			drawRegionIfHighlighted("tempoMapRegion", tempoMapRegion);
 			drawRegionIfHighlighted("timelineHeaderRegion", timelineHeaderRegion);
 			drawRegionIfHighlighted("timelineContentRegion", timelineContentRegion);
-		});
+		}, ImGuiWindowFlags_None);
 #endif
 
 		Gui::BeginGroup();
@@ -327,14 +327,6 @@ namespace Comfy::Studio::Editor
 			OnDrawTimelineInfoColumnHeader();
 			OnDrawTimelineInfoColumn();
 			UpdateInfoColumnInput();
-
-#if 0 // TEMP:
-			Gui::DEBUG_NOSAVE_WINDOW("scroll", [this]()
-			{
-				Gui::ComfyFloatTextWidget("maxScrollY", &maxScrollY, 1.0f, 10.0f, 0.0f, 0.0f);
-				Gui::ComfyFloatTextWidget("scrollY", &scrollY, 1.0f, 10.0f, 0.0f, 0.0f);
-			});
-#endif
 		}
 		Gui::EndChild();
 
@@ -362,7 +354,8 @@ namespace Comfy::Studio::Editor
 
 			const ImRect scrollbarRegion = ImRect(timelineContentRegion.GetTR(), timelineContentRegion.GetBR() + vec2(timelineScrollbarSize.x, 0.0f));
 
-			if (auto scroll = GetScrollY(); verticalScrollbar.Gui(scroll, GetMaxScrollY(), scrollbarRegion))
+			// BUG: Incorrect available scroll amount (?)
+			if (auto scroll = GetScrollY(); verticalScrollbar.Gui(scroll, timelineContentRegion.GetHeight(), GetMaxScrollY(), scrollbarRegion))
 				SetScrollY(scroll);
 		}
 		Gui::EndChild();
@@ -383,7 +376,7 @@ namespace Comfy::Studio::Editor
 				GImGui->CurrentWindow->Pos + positionOffset,
 				GImGui->CurrentWindow->Pos + GImGui->CurrentWindow->Size);
 
-			if (auto scroll = GetScrollX(); horizontalScrollbar.Gui(scroll, GetMaxScrollX(), scrollbarRegion))
+			if (auto scroll = GetScrollX(); horizontalScrollbar.Gui(scroll, timelineContentRegion.GetWidth(), GetMaxScrollX(), scrollbarRegion))
 				SetScrollX(scroll);
 		}
 		Gui::EndChild();
