@@ -16,6 +16,9 @@ namespace Comfy::Studio::Editor
 		workingChart = chartEditor.GetChart();
 
 		infoColumnWidth = 240.0f;
+
+		buttonIcons = std::make_unique<TimelineButtonIcons>();
+		UpdateTimelineMapTimes();
 	}
 
 	TimelineTick TargetTimeline::GridDivisionTick() const
@@ -121,12 +124,6 @@ namespace Comfy::Studio::Editor
 #endif
 
 		return 1.0f;
-	}
-
-	void TargetTimeline::OnInitialize()
-	{
-		buttonIcons = std::make_unique<TimelineButtonIcons>();
-		UpdateTimelineMapTimes();
 	}
 
 	void TargetTimeline::OnUpdate()

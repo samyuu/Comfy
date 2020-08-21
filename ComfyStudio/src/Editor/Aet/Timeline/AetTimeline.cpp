@@ -76,11 +76,6 @@ namespace Comfy::Studio::Editor
 		Gui::PopClipRect();
 	}
 
-	void AetTimeline::OnInitialize()
-	{
-		keyFrameRenderer.Initialize();
-	}
-
 	void AetTimeline::OnDrawTimelineHeaderWidgets()
 	{
 		return;

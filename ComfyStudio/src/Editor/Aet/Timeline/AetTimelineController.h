@@ -5,14 +5,14 @@ namespace Comfy::Studio::Editor
 {
 	class AetTimeline;
 
-	// selected left mouse click region
+	// NOTE: Selected left mouse click region
 	struct MouseSelectionData
 	{
-		// index of selected row, so selection always snaps to rows
+		// NOTE: Index of selected row, so selection always snaps to rows
 		int RowStartIndex = -1, RowInitialStartIndex;
 		int RowEndIndex = -1;
 
-		// mouse start/end X in timeline frames to allow for scrolling
+		// NOTE: Mouse start/end X in timeline frames to allow for scrolling
 		TimelineFrame StartX, EndX;
 
 		void Reset();

@@ -75,7 +75,6 @@ namespace Comfy::Studio::Editor
 		void DrawTimelineContentNone();
 		void DrawTimelineContent();
 
-		void OnInitialize() override;
 		void OnDrawTimelineHeaderWidgets() override;
 		
 		void OnDrawTimelineInfoColumnHeader() override;

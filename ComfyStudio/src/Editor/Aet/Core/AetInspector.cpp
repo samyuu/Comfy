@@ -54,10 +54,6 @@ namespace Comfy::Studio::Editor
 	{
 	}
 
-	void AetInspector::Initialize()
-	{
-	}
-
 	bool AetInspector::DrawGui(const AetItemTypePtr& selected)
 	{
 		lastSelectedItem = selected;

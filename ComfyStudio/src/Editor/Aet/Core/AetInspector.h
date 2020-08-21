@@ -13,7 +13,6 @@ namespace Comfy::Studio::Editor
 		AetInspector(Undo::UndoManager& undoManager, Render::Renderer2D& renderer, AetRenderPreviewData& previewData);
 		~AetInspector() = default;
 
-		void Initialize();
 		bool DrawGui(const AetItemTypePtr& selected);
 
 		void SetIsPlayback(bool value);

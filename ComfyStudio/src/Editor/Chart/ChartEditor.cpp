@@ -13,7 +13,6 @@ namespace Comfy::Studio::Editor
 
 
 		songVoice = Audio::AudioEngine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor::SongVoice", false, 0.75f, true);
-		timeline->Initialize();
 	}
 
 	const char* ChartEditor::GetName() const

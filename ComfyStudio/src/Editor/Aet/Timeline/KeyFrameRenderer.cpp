@@ -40,7 +40,7 @@ namespace Comfy::Studio::Editor
 #undef X
 #undef _
 
-	void KeyFrameRenderer::Initialize()
+	KeyFrameRenderer::KeyFrameRenderer()
 	{
 		CreateKeyFrameTexture();
 	}

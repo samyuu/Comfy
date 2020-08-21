@@ -10,10 +10,8 @@ namespace Comfy::Studio::Editor
 	class KeyFrameRenderer
 	{
 	public:
-		KeyFrameRenderer() = default;
+		KeyFrameRenderer();
 		~KeyFrameRenderer() = default;
-
-		void Initialize();
 
 		void DrawContent(const AetTimeline* timeline, const Graphics::Aet::Composition* workingComp);
 		vec2 GetCenteredTimelineRowScreenPosition(const AetTimeline* timeline, frame_t frame, int row);

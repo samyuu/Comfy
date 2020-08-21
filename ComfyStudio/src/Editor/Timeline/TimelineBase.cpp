@@ -91,11 +91,6 @@ namespace Comfy::Studio::Editor
 		baseDrawList->AddTriangle(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], outterColor);
 	}
 
-	void TimelineBase::Initialize()
-	{
-		OnInitialize();
-	}
-
 	void TimelineBase::SetZoomCenteredAroundCursor(float newZoom)
 	{
 		const auto cursorTime = GetCursorTime();

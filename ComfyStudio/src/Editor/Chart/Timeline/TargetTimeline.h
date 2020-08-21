@@ -128,9 +128,6 @@ namespace Comfy::Studio::Editor
 		const f32 rowHeight = 36;
 
 	protected:
-		void OnInitialize() override;
-
-	protected:
 		void OnUpdate() override;
 		void UpdateOffsetChangeCursorTimeAdjustment();
 		void UpdatePlaybackButtonSounds();

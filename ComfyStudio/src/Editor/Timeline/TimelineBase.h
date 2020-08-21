@@ -33,7 +33,6 @@ namespace Comfy::Studio::Editor
 		TimelineVisibility GetTimelineVisibilityForScreenSpace(float screenX) const;
 
 		void DrawTimelineGui();
-		void Initialize();
 
 	public:
 		inline float GetMaxScrollX() const { return maxScroll.x; }
@@ -112,9 +111,6 @@ namespace Comfy::Studio::Editor
 
 		static constexpr float cursorHeadWidth = 17.0f;
 		static constexpr float cursorHeadHeight = 8.0f;
-
-	protected:
-		virtual void OnInitialize() {}
 
 	protected:
 		void DrawTimelineBase();

@@ -21,9 +21,6 @@ namespace Comfy::Studio::Editor
 		timeline = std::make_unique<AetTimeline>();
 		renderWindow = std::make_unique<AetRenderWindow>(undoManager, *renderer, selectedAetItem, cameraSelectedAetItem, previewData);
 
-		inspector->Initialize();
-		timeline->Initialize();
-
 		// DEBUG: Auto load specified files
 		if (!debugAetPath.empty() && IO::File::Exists(debugAetPath))
 			LoadAetSet(debugAetPath);
