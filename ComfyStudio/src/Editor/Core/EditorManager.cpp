@@ -169,11 +169,7 @@ namespace Comfy::Studio::Editor
 
 		auto& editor = registeredEditors[activeEditorIndex];
 		if (editor.Component == nullptr)
-		{
-			// TODO: Remove redundant OnFirstFrame code everywhere
 			editor.Component = editor.ComponentInitializer();
-			editor.Component->OnFirstFrame();
-		}
 
 		editor.Component->OnWindowBegin();
 		{

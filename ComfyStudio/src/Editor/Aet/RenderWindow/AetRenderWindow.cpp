@@ -84,10 +84,6 @@ namespace Comfy::Studio::Editor
 		return ImGuiWindowFlags_None;
 	}
 
-	void AetRenderWindow::OnFirstFrame()
-	{
-	}
-
 	void AetRenderWindow::PreRenderTextureGui()
 	{
 		constexpr float percentFactor = 100.0f;

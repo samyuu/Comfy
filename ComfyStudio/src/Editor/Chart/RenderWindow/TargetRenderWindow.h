@@ -22,7 +22,6 @@ namespace Comfy::Studio::Editor
 
 	protected:
 		ImGuiWindowFlags GetRenderTextureChildWindowFlags() const override;
-		void OnFirstFrame() override;
 		void PreRenderTextureGui() override;
 		void PostRenderTextureGui() override;
 		void OnResize(ivec2 newSize) override;

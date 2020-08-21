@@ -11,10 +11,6 @@ namespace Comfy::Studio::Editor
 	{
 	}
 
-	void SyncWindow::OnFirstFrame()
-	{
-	}
-
 	void SyncWindow::Gui(Chart& chart, TargetTimeline& timeline)
 	{
 		GuiPropertyRAII::PropertyValueColumns columns;

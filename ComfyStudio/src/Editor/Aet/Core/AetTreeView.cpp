@@ -21,10 +21,6 @@ namespace Comfy::Studio::Editor
 	{
 	}
 
-	void AetTreeView::OnFirstFrame()
-	{
-	}
-
 	bool AetTreeView::Gui(const std::shared_ptr<AetSet>& aetSet)
 	{
 		treeViewWindow = Gui::GetCurrentWindow();

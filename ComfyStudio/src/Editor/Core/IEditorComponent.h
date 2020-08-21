@@ -14,8 +14,6 @@ namespace Comfy::Studio::Editor
 		virtual ~IEditorComponent() = default;
 
 	public:
-		virtual void OnFirstFrame() = 0;
-
 		virtual void OnWindowBegin() {}
 		virtual void OnWindowEnd() {}
 

@@ -38,7 +38,6 @@ namespace Comfy::Sandbox::Tests
 
 	protected:
 		ImGuiWindowFlags GetRenderTextureChildWindowFlags() const override { return ImGuiWindowFlags_None; }
-		void OnFirstFrame() override {}
 		void PreRenderTextureGui() override {}
 		void PostRenderTextureGui() override {}
 		void OnResize(ivec2 newSize) override {}

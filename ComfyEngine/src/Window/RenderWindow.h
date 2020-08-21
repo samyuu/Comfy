@@ -47,20 +47,16 @@ namespace Comfy
 	protected:
 		virtual ImGuiWindowFlags GetRenderTextureChildWindowFlags() const = 0;
 		virtual void PreBeginWindow() {};
-		virtual void OnFirstFrame() = 0;
 		virtual void PreRenderTextureGui() = 0;
 		virtual void PostRenderTextureGui() = 0;
 		virtual void OnResize(ivec2 newSize) = 0;
 		virtual void OnRender() = 0;
 
 	private:
-		void CheckUpdateOnFirstFrame();
 		void RenderTextureGui();
 		void UpdateRenderRegion();
 
 	private:
-		bool isFirstFrame = true;
-
 		ImRect renderRegion = {}, lastRenderRegion = {};
 		ImRect fullRenderRegion = {};
 

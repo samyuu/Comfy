@@ -12,7 +12,6 @@ namespace Comfy::Studio::Editor
 		~SyncWindow() = default;
 
 	public:
-		void OnFirstFrame();
 		void Gui(Chart& chart, TargetTimeline& timeline);
 
 	private:

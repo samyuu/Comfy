@@ -13,10 +13,6 @@ namespace Comfy::Studio::Editor
 
 	AetEditor::AetEditor(Application& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
-	}
-
-	void AetEditor::OnFirstFrame()
-	{
 		renderer = std::make_unique<Render::Renderer2D>();
 
 		treeView = std::make_unique<AetTreeView>(undoManager, selectedAetItem, cameraSelectedAetItem);
@@ -25,9 +21,7 @@ namespace Comfy::Studio::Editor
 		timeline = std::make_unique<AetTimeline>();
 		renderWindow = std::make_unique<AetRenderWindow>(undoManager, *renderer, selectedAetItem, cameraSelectedAetItem, previewData);
 
-		treeView->OnFirstFrame();
 		inspector->Initialize();
-		// contentView->OnFirstFrame();
 		timeline->Initialize();
 
 		// DEBUG: Auto load specified files

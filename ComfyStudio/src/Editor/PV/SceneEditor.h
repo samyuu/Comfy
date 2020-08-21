@@ -21,9 +21,6 @@ namespace Comfy::Studio::Editor
 		~SceneEditor() = default;
 
 	public:
-		void OnFirstFrame() override;
-
-	public:
 		const char* GetName() const override;
 		ImGuiWindowFlags GetFlags() const override;
 		void Gui() override;

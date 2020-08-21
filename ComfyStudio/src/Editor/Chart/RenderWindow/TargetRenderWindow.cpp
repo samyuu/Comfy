@@ -9,20 +9,7 @@ namespace Comfy::Studio::Editor
 	TargetRenderWindow::TargetRenderWindow(ChartEditor& parent, Undo::UndoManager& undoManager) : chartEditor(parent), undoManager(undoManager)
 	{
 		workingChart = chartEditor.GetChart();
-	}
 
-	ImTextureID TargetRenderWindow::GetTextureID() const
-	{
-		return (renderTarget != nullptr) ? renderTarget->GetTextureID() : nullptr;
-	}
-
-	ImGuiWindowFlags TargetRenderWindow::GetRenderTextureChildWindowFlags() const
-	{
-		return ImGuiWindowFlags_None;
-	}
-
-	void TargetRenderWindow::OnFirstFrame()
-	{
 		SetWindowBackgroundCheckerboardEnabled(true);
 
 		SetKeepAspectRatio(true);
@@ -35,6 +22,16 @@ namespace Comfy::Studio::Editor
 
 		renderer = std::make_unique<Render::Renderer2D>();
 		renderTarget = Render::Renderer2D::CreateRenderTarget();
+	}
+
+	ImTextureID TargetRenderWindow::GetTextureID() const
+	{
+		return (renderTarget != nullptr) ? renderTarget->GetTextureID() : nullptr;
+	}
+
+	ImGuiWindowFlags TargetRenderWindow::GetRenderTextureChildWindowFlags() const
+	{
+		return ImGuiWindowFlags_None;
 	}
 
 	void TargetRenderWindow::PreRenderTextureGui()

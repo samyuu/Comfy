@@ -187,10 +187,6 @@ namespace Comfy::Studio::Editor
 		rayPickRequest = {};
 	}
 
-	void SceneRenderWindow::OnFirstFrame()
-	{
-	}
-
 	void SceneRenderWindow::PreRenderTextureGui()
 	{
 		return;

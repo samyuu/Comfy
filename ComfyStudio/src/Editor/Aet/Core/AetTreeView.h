@@ -16,7 +16,6 @@ namespace Comfy::Studio::Editor
 		~AetTreeView() = default;
 
 	public:
-		void OnFirstFrame();
 		bool Gui(const std::shared_ptr<Graphics::Aet::AetSet>& aetSet);
 
 	public:
