@@ -50,7 +50,8 @@ namespace Comfy::Studio
 		void GuiBaseWindowWindows(const std::vector<std::unique_ptr<BaseWindow>>& components);
 
 		void GuiHelpMenus();
-		void GuiHelpVersionWindow();
+		void GuiLicensePopup();
+		void GuiHelpVersionPopup();
 		void GuiMenuBarPerformanceDisplay();
 
 	private:
@@ -67,10 +68,15 @@ namespace Comfy::Studio
 		bool exclusiveAppEngineWindow = false;
 		bool showMainMenuBar = true;
 
-		LicenseWindow licenseWindow;
 		bool showStyleEditor = false;
 		bool showDemoWindow = false;
-		bool versionWindowOpen = false;
+
+		LicenseWindow licenseWindow = {};
+		struct AboutWindowData
+		{
+			bool IsOpen = false;
+			const char* Name = "About - Version##Application";
+		} aboutWindow = {};
 
 		std::unique_ptr<Editor::EditorManager> editorManager = nullptr;
 		std::vector<std::unique_ptr<BaseWindow>> dataTestComponents;

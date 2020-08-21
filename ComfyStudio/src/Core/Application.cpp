@@ -102,7 +102,7 @@ namespace Comfy::Studio
 
 	ApplicationHost::ConstructionParam Application::CreateHostParam()
 	{
-		const auto comfyIcon = ::LoadIconA(::GetModuleHandleA(nullptr), MAKEINTRESOURCEA(COMFY_ICON));
+		const auto comfyIcon = ::LoadIconW(::GetModuleHandleW(nullptr), MAKEINTRESOURCEW(COMFY_ICON));
 
 		ApplicationHost::ConstructionParam hostParam;
 		hostParam.StartupWindowState.Title = ComfyStudioWindowTitle;
@@ -202,25 +202,56 @@ namespace Comfy::Studio
 
 	void Application::GuiDebugMenu()
 	{
-		if (Gui::BeginMenu("Debug"))
+		// TODO: Restructure all of this, should probably be part of the currently active editor component (?); Dummy menus for now
+		if (Gui::BeginMenu("File"))
+		{
+			if (Gui::MenuItem("New", nullptr)) {}
+			if (Gui::MenuItem("Open...", nullptr)) {}
+			if (Gui::MenuItem("Open Recent", nullptr)) {}
+			Gui::Separator();
+			if (Gui::MenuItem("Save", "Ctrl + S")) {}
+			if (Gui::MenuItem("Save As...", "Ctrl + Shift + S")) {}
+			Gui::Separator();
+			if (Gui::MenuItem("Import...")) {}
+			Gui::Separator();
+
+			if (Gui::MenuItem("Exit...", "Alt + F4"))
+				Exit();
+
+			Gui::EndMenu();
+		}
+
+		if (Gui::BeginMenu("Edit"))
+		{
+			if (Gui::MenuItem("Undo", "Ctrl + Z")) {}
+			if (Gui::MenuItem("Redo", "Ctrl + Y")) {}
+			Gui::Separator();
+			if (Gui::MenuItem("Settings", nullptr)) {}
+
+			Gui::EndMenu();
+		}
+
+		if (Gui::BeginMenu("Window"))
 		{
 			if (Gui::MenuItem("Toggle Fullscreen", nullptr))
 				host->ToggleFullscreen();
 
 			if (Gui::BeginMenu("Swap Interval"))
 			{
-				if (Gui::MenuItem("SwapInterval(0)", nullptr))
+				if (Gui::MenuItem("SwapInterval(0) - Unlimited", nullptr))
 					host->SetSwapInterval(0);
 
-				if (Gui::MenuItem("SwapInterval(1)", nullptr))
+				if (Gui::MenuItem("SwapInterval(1) - VSync", nullptr))
 					host->SetSwapInterval(1);
 
 				Gui::EndMenu();
 			}
 
+			Gui::Separator();
+
 			if (Gui::BeginMenu("ImGui Config"))
 			{
-				if (Gui::MenuItem("Refresh", nullptr))
+				if (Gui::MenuItem("Save To Memory", nullptr))
 					Gui::SaveIniSettingsToMemory();
 
 				if (Gui::MenuItem("Save To Disk", nullptr))
@@ -229,44 +260,41 @@ namespace Comfy::Studio
 				Gui::EndMenu();
 			}
 
-			if (Gui::MenuItem("Test Print", nullptr))
-				Logger::LogLine(__FUNCTION__"(): Test");
-
-			Gui::Separator();
-
-			if (Gui::MenuItem("Exit...", nullptr))
-				Exit();
-
 			Gui::EndMenu();
 		}
 	}
 
 	void Application::GuiAppEngineWindow()
 	{
-		/*
+#if 0
 		if (appEngine == nullptr)
 			appEngine = std::make_unique<App::Engine>();
 
 		appEngine->BeginEndGui();
 		appEngine->Tick();
-		*/
+#endif
 	}
 
 	void Application::GuiAppEngineMenus()
 	{
+#if 0
 		if (Gui::BeginMenu("Engine", false))
 		{
 			Gui::MenuItem("Engine Window", nullptr, &showMainAppEngineWindow);
 			Gui::EndMenu();
 		}
+#endif
 	}
 
 	void Application::GuiBaseWindowMenus(const std::vector<std::unique_ptr<BaseWindow>>& components)
 	{
-		if (Gui::BeginMenu("Data Test"))
+		if (Gui::BeginMenu("Test Windows"))
 		{
-			Gui::MenuItem("Style Editor", nullptr, &showStyleEditor, BuildConfiguration::Debug);
-			Gui::MenuItem("Demo Window", nullptr, &showDemoWindow, BuildConfiguration::Debug);
+			const bool imguiDebugWindowsEnabled = BuildConfiguration::Debug;
+			Gui::MenuItem("Style Editor", nullptr, &showStyleEditor, imguiDebugWindowsEnabled);
+			Gui::MenuItem("Demo Window", nullptr, &showDemoWindow, imguiDebugWindowsEnabled);
+
+			Gui::Separator();
 
 			for (const auto& component : components)
 				Gui::MenuItem(component->GetName(), nullptr, &component->GetIsOpen());
@@ -291,14 +319,16 @@ namespace Comfy::Studio
 	void Application::GuiHelpMenus()
 	{
 		bool openLicensePopup = false;
+		bool openVersionPopup = false;
 
 		if (Gui::BeginMenu("Help"))
 		{
 			Gui::TextUnformatted(Gui::StringViewStart(CopyrightNotice), Gui::StringViewEnd(CopyrightNotice));
+			Gui::Separator();
 			if (Gui::MenuItem("License"))
 				openLicensePopup = true;
 			if (Gui::MenuItem("Version"))
-				versionWindowOpen = true;
+				openVersionPopup = true;
 			Gui::EndMenu();
 		}
 
@@ -307,13 +337,24 @@ namespace Comfy::Studio
 			*licenseWindow.GetIsWindowOpen() = true;
 			Gui::OpenPopup(licenseWindow.GetWindowName());
 		}
+		GuiLicensePopup();
 
+		if (openVersionPopup)
+		{
+			aboutWindow.IsOpen = true;
+			Gui::OpenPopup(aboutWindow.Name);
+		}
+		GuiHelpVersionPopup();
+	}
+
+	void Application::GuiLicensePopup()
+	{
 		if (Gui::BeginPopupModal(licenseWindow.GetWindowName(), licenseWindow.GetIsWindowOpen(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 		{
 			const auto viewport = Gui::GetMainViewport();
 			const auto window = Gui::FindWindowByName(licenseWindow.GetWindowName());
-			Gui::SetWindowPos(window, viewport->Pos + viewport->Size / 8, ImGuiCond_Always);
-			Gui::SetWindowSize(window, viewport->Size * .75f, ImGuiCond_Always);
+			Gui::SetWindowPos(window, viewport->Pos + viewport->Size / 8.0f, ImGuiCond_Always);
+			Gui::SetWindowSize(window, viewport->Size * 0.75f, ImGuiCond_Always);
 
 			licenseWindow.DrawGui();
 
@@ -322,22 +363,18 @@ namespace Comfy::Studio
 
 			Gui::EndPopup();
 		}
-
-		if (versionWindowOpen)
-			GuiHelpVersionWindow();
 	}
 
-	void Application::GuiHelpVersionWindow()
+	void Application::GuiHelpVersionPopup()
 	{
-		// TODO: Make window class and use undockable window instead of popup window since it doesn't need to block input
-		const auto viewport = ImGui::GetMainViewport();
-		Gui::SetNextWindowPos(viewport->Pos + viewport->Size * 0.5f, ImGuiCond_Appearing, vec2(0.5f, 0.5f));
-
-		if (Gui::Begin("About - Version##Application", &versionWindowOpen, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking))
+		if (Gui::BeginPopupModal(aboutWindow.Name, &aboutWindow.IsOpen, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 		{
-			const vec2 windowSize = vec2(680, 280);
+			const auto viewport = Gui::GetMainViewport();
+			const auto window = Gui::FindWindowByName(aboutWindow.Name);
+			Gui::SetWindowPos(window, viewport->Pos + viewport->Size / 4.0f, ImGuiCond_Always);
+			Gui::SetWindowSize(window, viewport->Size * 0.5f, ImGuiCond_Always);
 
-			Gui::BeginChild("AboutWindowChild", windowSize, true);
+			Gui::BeginChild("AboutWindowChild", vec2(0.0f, 0.0f), true);
 			Gui::Columns(2);
 			{
 				auto guiPropertyValue = [&](const char* property, const char* value)
@@ -365,8 +402,12 @@ namespace Comfy::Studio
 			}
 			Gui::Columns(1);
 			Gui::EndChild();
+
+			if (Gui::IsKeyPressed(Input::KeyCode_Escape, false))
+				Gui::CloseCurrentPopup();
+
+			Gui::EndPopup();
 		}
-		Gui::End();
 	}
 
 	void Application::GuiMenuBarPerformanceDisplay()
@@ -385,8 +426,6 @@ namespace Comfy::Studio
 	{
 		if (skipApplicationCleanup)
 			return;
-
-		DisposeSaveConfig();
 
 		// NOTE: Force deletion before the graphics context is destroyed
 		editorManager = nullptr;
