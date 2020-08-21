@@ -12,7 +12,7 @@
 #define model_mtx_i                 (transpose(CB_Object.ModelInverse))
 #define model_mtx_it                (transpose(CB_Object.Model))
 
-// TODO: { program.env[26 .. 28] }
+// TODO: IBL normal rotation (?) { program.env[26 .. 28] }
 #define nt_mtx                      (FLOAT3x3_IDENTITY)
 
 // TODO: program.env[2]
