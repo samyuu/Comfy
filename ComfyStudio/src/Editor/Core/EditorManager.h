@@ -19,6 +19,8 @@ namespace Comfy::Studio::Editor
 	private:
 		Application& parent;
 
+		static constexpr std::string_view emptyEditorName = "Empty";
+
 		struct EditorComponent
 		{
 			std::string Name;

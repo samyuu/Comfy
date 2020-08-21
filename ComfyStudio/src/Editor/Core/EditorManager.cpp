@@ -4,9 +4,15 @@
 #include "Editor/Chart/ChartEditor.h"
 #include "Editor/PV/SceneEditor.h"
 #include "Misc/StringUtil.h"
+#include "System/ComfyData.h"
 
 namespace Comfy::Studio::Editor
 {
+	namespace EditorManagerConfigIDs
+	{
+		constexpr std::string_view ActiveEditor = "Comfy::Studio::EditorManager::ActiveEditor";
+	}
+
 	std::array<u32, EditorColor_Count> EditorColors;
 
 	vec4 GetColorVec4(EditorColor color)
@@ -77,8 +83,14 @@ namespace Comfy::Studio::Editor
 		RegisterEditorComponent<AetEditor>("Aet Editor");
 		RegisterEditorComponent<SceneEditor>("Scene Editor");
 
-		// TODO: Store last used editor on close in config (?)
-		SetActiveEditor(0);
+		const auto lastActiveName = System::Config.GetStr(EditorManagerConfigIDs::ActiveEditor).value_or("");
+		const auto lastActiveIndex = FindIndexOf(registeredEditors, [&](const auto& editor) { return editor.Name == lastActiveName; });
+
+		constexpr size_t defaultIndex = 0;
+		const auto startupIndex = InBounds(lastActiveIndex, registeredEditors) ? lastActiveIndex :
+			(lastActiveName == emptyEditorName) ? std::numeric_limits<size_t>::max() : defaultIndex;
+
+		SetActiveEditor(startupIndex);
 	}
 
 	void EditorManager::GuiMenuItems()
@@ -99,7 +111,7 @@ namespace Comfy::Studio::Editor
 				bool isOpen = !InBounds(activeEditorIndex, registeredEditors);
 				const bool isEnabled = (!isOpen);
 
-				if (Gui::MenuItem("Empty", nullptr, &isOpen, isEnabled))
+				if (Gui::MenuItem(emptyEditorName.data(), nullptr, &isOpen, isEnabled))
 					SetActiveEditor(std::numeric_limits<size_t>::max());
 			}
 
@@ -125,13 +137,11 @@ namespace Comfy::Studio::Editor
 
 	void EditorManager::SetActiveEditor(size_t index)
 	{
-		if (activeEditorIndex == index)
-			return;
-
 		activeEditorIndex = index;
-
 		const auto* editor = IndexOrNull(activeEditorIndex, registeredEditors);
+
 		parent.SetFormattedWindowTitle((editor != nullptr) ? editor->Name : "");
+		System::Config.SetStr(EditorManagerConfigIDs::ActiveEditor, (editor != nullptr) ? editor->Name : emptyEditorName);
 	}
 
 	void EditorManager::Update()
