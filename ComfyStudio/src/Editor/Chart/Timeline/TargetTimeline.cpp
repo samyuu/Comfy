@@ -982,8 +982,10 @@ namespace Comfy::Studio::Editor
 	{
 		const auto& io = Gui::GetIO();
 
-		if (GetIsPlayback()) // NOTE: Seek through song
+		if (const bool seekThroughSong = GetIsPlayback(); seekThroughSong)
 		{
+			const auto preCursorX = GetCursorTimelinePosition();
+
 			// NOTE: Pause and resume playback to reset the on playback start time
 			chartEditor.PausePlayback();
 			{
@@ -994,7 +996,9 @@ namespace Comfy::Studio::Editor
 					SetCursorTime(TimeSpan::Zero());
 			}
 			chartEditor.ResumePlayback();
-			CenterCursor();
+
+			// NOTE: Keep the cursor at the same relative screen position to prevent potential disorientation
+			SetScrollX(GetScrollX() + (GetCursorTimelinePosition() - preCursorX));
 		}
 		else
 		{
