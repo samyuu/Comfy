@@ -1,9 +1,11 @@
 #pragma once
 #include "CoreTypes.h"
 #include "IEditorComponent.h"
+#include <functional>
 
 namespace Comfy::Studio::Editor
 {
+	// TODO: Impl (?), merge with Application and rename to ComfyStudioApp (?)
 	class EditorManager : NonCopyable
 	{
 	public:
@@ -17,20 +19,22 @@ namespace Comfy::Studio::Editor
 	private:
 		Application& parent;
 
-		struct ComponentEntry
+		struct EditorComponent
 		{
-			bool IsFirstFrame;
+			std::string Name;
 			std::unique_ptr<IEditorComponent> Component;
+			std::function<std::unique_ptr<IEditorComponent>()> ComponentInitializer;
 		};
 
-		std::vector<ComponentEntry> editorComponents;
-		bool isFirstFrame = false;
+		std::vector<EditorComponent> registeredEditors;
+		size_t activeEditorIndex = std::numeric_limits<size_t>::max();
 
 	private:
-		template <typename T> 
-		void AddEditorComponent(bool opened);
+		template <typename T>
+		void RegisterEditorComponent(std::string_view name);
 
-		void OnFirstFrame();
+		void SetActiveEditor(size_t index);
+
 		void Update();
 		void DrawGui();
 		void UpdateFileDrop();

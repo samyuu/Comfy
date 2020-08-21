@@ -72,24 +72,36 @@ namespace Comfy::Studio::Editor
 
 	EditorManager::EditorManager(Application& parent) : parent(parent)
 	{
-		editorComponents.reserve(3);
-#if 1
-		AddEditorComponent<ChartEditor>(true);
-		AddEditorComponent<AetEditor>(false);
-		AddEditorComponent<SceneEditor>(false);
-#else
-		AddEditorComponent<ChartEditor>(false);
-		AddEditorComponent<AetEditor>(false);
-		AddEditorComponent<SceneEditor>(true);
-#endif
+		registeredEditors.reserve(3);
+		RegisterEditorComponent<ChartEditor>("Chart Editor");
+		RegisterEditorComponent<AetEditor>("Aet Editor");
+		RegisterEditorComponent<SceneEditor>("Scene Editor");
+
+		// TODO: Store last used editor on close in config (?)
+		SetActiveEditor(0);
 	}
 
 	void EditorManager::GuiMenuItems()
 	{
-		if (Gui::BeginMenu("Editor"))
+		if (Gui::BeginMenu("Editor Workspaces"))
 		{
-			for (auto& component : editorComponents)
-				Gui::MenuItem(component.Component->GetName(), nullptr, &component.Component->GetIsOpen());
+			for (size_t i = 0; i < registeredEditors.size(); i++)
+			{
+				bool isOpen = (i == activeEditorIndex);
+				const bool isEnabled = (!isOpen);
+
+				if (Gui::MenuItem(registeredEditors[i].Name.c_str(), nullptr, &isOpen, isEnabled))
+					SetActiveEditor(i);
+			}
+
+			Gui::Separator();
+			{
+				bool isOpen = !InBounds(activeEditorIndex, registeredEditors);
+				const bool isEnabled = (!isOpen);
+
+				if (Gui::MenuItem("Empty", nullptr, &isOpen, isEnabled))
+					SetActiveEditor(std::numeric_limits<size_t>::max());
+			}
 
 			Gui::EndMenu();
 		}
@@ -97,29 +109,31 @@ namespace Comfy::Studio::Editor
 
 	void EditorManager::GuiWindows()
 	{
-		if (!isFirstFrame)
-		{
-			OnFirstFrame();
-			isFirstFrame = true;
-		}
-
 		Update();
 		DrawGui();
 	}
 
 	template<typename T>
-	void EditorManager::AddEditorComponent(bool opened)
+	void EditorManager::RegisterEditorComponent(std::string_view name)
 	{
 		static_assert(std::is_base_of_v<IEditorComponent, T>, "T must inherit from IEditorComponent");
-		auto& added = editorComponents.emplace_back(ComponentEntry { false, std::move(std::make_unique<T>(parent, *this)) });
 
-		if (!opened)
-			added.Component->Close();
+		auto& editor = registeredEditors.emplace_back();
+		editor.Name = std::string(name);
+		editor.ComponentInitializer = [this]() { return std::make_unique<T>(parent, *this); };
 	}
 
-	void EditorManager::OnFirstFrame()
+	void EditorManager::SetActiveEditor(size_t index)
 	{
-		return;
+		if (activeEditorIndex == index)
+			return;
+
+		activeEditorIndex = index;
+
+		if (const auto* editor = IndexOrNull(activeEditorIndex, registeredEditors); editor != nullptr)
+			parent.GetHost().SetWindowTitle(std::string(parent.ComfyStudioWindowTitle) + " - " + editor->Name);
+		else
+			parent.GetHost().SetWindowTitle(parent.ComfyStudioWindowTitle);
 	}
 
 	void EditorManager::Update()
@@ -140,42 +154,41 @@ namespace Comfy::Studio::Editor
 
 	void EditorManager::DrawGui()
 	{
-		for (auto& entry : editorComponents)
-		{
-			if (entry.Component->GetIsOpen())
-			{
-				if (!entry.IsFirstFrame)
-				{
-					entry.Component->OnFirstFrame();
-					entry.IsFirstFrame = true;
-				}
+		if (!InBounds(activeEditorIndex, registeredEditors))
+			return;
 
-				entry.Component->OnWindowBegin();
-				{
-					if (Gui::Begin(entry.Component->GetName(), &entry.Component->GetIsOpen(), entry.Component->GetFlags()))
-						entry.Component->Gui();
-				}
-				entry.Component->OnWindowEnd();
-				Gui::End();
-			}
+		auto& editor = registeredEditors[activeEditorIndex];
+		if (editor.Component == nullptr)
+		{
+			// TODO: Remove redundant OnFirstFrame code everywhere
+			editor.Component = editor.ComponentInitializer();
+			editor.Component->OnFirstFrame();
 		}
+
+		editor.Component->OnWindowBegin();
+		{
+			if (Gui::Begin(editor.Component->GetName(), nullptr, editor.Component->GetFlags()))
+				editor.Component->Gui();
+		}
+		editor.Component->OnWindowEnd();
+		Gui::End();
 	}
 
 	void EditorManager::UpdateFileDrop()
 	{
-		if (parent.GetHost().GetDispatchFileDrop())
-		{
-			const auto& droppedFiles = parent.GetHost().GetDroppedFiles();
+		if (!parent.GetHost().GetDispatchFileDrop())
+			return;
 
-			for (const auto& component : editorComponents)
+		const auto& droppedFiles = parent.GetHost().GetDroppedFiles();
+
+		for (const auto& component : registeredEditors)
+		{
+			for (const auto& filePath : droppedFiles)
 			{
-				for (const auto& filePath : droppedFiles)
+				if (component.Component->OnFileDropped(filePath))
 				{
-					if (component.Component->OnFileDropped(filePath))
-					{
-						parent.GetHost().SetFileDropDispatched();
-						break;
-					}
+					parent.GetHost().SetFileDropDispatched();
+					break;
 				}
 			}
 		}
