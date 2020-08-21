@@ -83,7 +83,7 @@ namespace Comfy::Studio::Editor
 
 	void EditorManager::GuiMenuItems()
 	{
-		if (Gui::BeginMenu("Editor Workspaces"))
+		if (Gui::BeginMenu("Workspace"))
 		{
 			for (size_t i = 0; i < registeredEditors.size(); i++)
 			{
@@ -130,10 +130,8 @@ namespace Comfy::Studio::Editor
 
 		activeEditorIndex = index;
 
-		if (const auto* editor = IndexOrNull(activeEditorIndex, registeredEditors); editor != nullptr)
-			parent.GetHost().SetWindowTitle(std::string(parent.ComfyStudioWindowTitle) + " - " + editor->Name);
-		else
-			parent.GetHost().SetWindowTitle(parent.ComfyStudioWindowTitle);
+		const auto* editor = IndexOrNull(activeEditorIndex, registeredEditors);
+		parent.SetFormattedWindowTitle((editor != nullptr) ? editor->Name : "");
 	}
 
 	void EditorManager::Update()

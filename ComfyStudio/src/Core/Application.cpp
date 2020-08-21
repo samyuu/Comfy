@@ -56,6 +56,28 @@ namespace Comfy::Studio
 		return *host;
 	}
 
+	void Application::SetFormattedWindowTitle(std::string_view subTitle)
+	{
+		std::string formattedTitle;
+		formattedTitle.reserve(ComfyStudioWindowTitle.size() + subTitle.size() + 24);
+
+		formattedTitle += ComfyStudioWindowTitle;
+
+		if (!subTitle.empty())
+		{
+			formattedTitle += " - ";
+			formattedTitle += subTitle;
+		}
+
+		formattedTitle += " (";
+		formattedTitle += std::string_view(BuildVersion::CommitHash, 8);
+		formattedTitle += " - ";
+		formattedTitle += BuildConfiguration::Debug ? "Debug" : "Release";
+		formattedTitle += ")";
+
+		host->SetWindowTitle(formattedTitle);
+	}
+
 	void* Application::GetGlobalWindowFocusHandle()
 	{
 		return (GlobalLastCreatedApplication != nullptr) ? GlobalLastCreatedApplication->GetHost().GetWindowHandle() : nullptr;

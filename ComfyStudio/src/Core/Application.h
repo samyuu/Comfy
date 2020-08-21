@@ -26,6 +26,8 @@ namespace Comfy::Studio
 	public:
 		ApplicationHost& GetHost();
 
+		void SetFormattedWindowTitle(std::string_view subTitle);
+
 		// NOTE: Specifically to be used as a parent for file dialogs, dialog boxes etc.
 		static void* GetGlobalWindowFocusHandle();
 
