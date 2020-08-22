@@ -251,10 +251,10 @@ namespace Comfy::Studio::Editor
 				Gui::PushItemDisabledAndTextColorIf(isFirstFrame);
 				if (Gui::Button(ICON_FA_BACKWARD))
 				{
-					SetCursorTime(std::clamp(TickToTime(RoundTickToGrid(GetCursorTick()) - GridDivisionTick()), TimeSpan::Zero(), workingChart->Duration));
+					AdvanceCursorByGridDivisionTick(-1);
 				}
 				Gui::PopItemDisabledAndTextColorIf(isFirstFrame);
-				Gui::SetWideItemTooltip("Go to previous beat");
+				Gui::SetWideItemTooltip("Go to previous grid tick");
 			}
 
 			// NOTE: Playback toggle button
@@ -284,10 +284,10 @@ namespace Comfy::Studio::Editor
 				Gui::PushItemDisabledAndTextColorIf(isLastFrame);
 				if (Gui::Button(ICON_FA_FORWARD))
 				{
-					SetCursorTime(std::clamp(TickToTime(RoundTickToGrid(GetCursorTick()) + GridDivisionTick()), TimeSpan::Zero(), workingChart->Duration));
+					AdvanceCursorByGridDivisionTick(+1);
 				}
 				Gui::PopItemDisabledAndTextColorIf(isLastFrame);
-				Gui::SetWideItemTooltip("Go to next beat");
+				Gui::SetWideItemTooltip("Go to next grid tick");
 			}
 
 			// NOTE: Last frame button
@@ -781,7 +781,11 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnUpdateInput()
 	{
-		UpdateUndoRedoInput();
+		if (Gui::IsWindowFocused())
+		{
+			UpdateUndoRedoKeyboardInput();
+			UpdateCursorKeyboardInput();
+		}
 
 		UpdateInputCursorClick();
 		UpdateInputTargetPlacement();
@@ -793,12 +797,9 @@ namespace Comfy::Studio::Editor
 		DrawTimeSelection();
 	}
 
-	void TargetTimeline::UpdateUndoRedoInput()
+	void TargetTimeline::UpdateUndoRedoKeyboardInput()
 	{
 		// TODO: Move into some general function to be called by all window owning editor components (?)
-		if (!Gui::IsWindowFocused())
-			return;
-
 		constexpr bool allowRepeat = true;
 		constexpr auto undoKey = Input::KeyCode_Z;
 		constexpr auto redoKey = Input::KeyCode_Y;
@@ -811,6 +812,17 @@ namespace Comfy::Studio::Editor
 			if (Gui::IsKeyPressed(redoKey, allowRepeat))
 				undoManager.Redo();
 		}
+	}
+
+	void TargetTimeline::UpdateCursorKeyboardInput()
+	{
+		constexpr bool allowRepeat = true;
+
+		if (Gui::IsKeyPressed(Input::KeyCode_Left, allowRepeat))
+			AdvanceCursorByGridDivisionTick(-1);
+
+		if (Gui::IsKeyPressed(Input::KeyCode_Right, allowRepeat))
+			AdvanceCursorByGridDivisionTick(+1);
 	}
 
 	void TargetTimeline::UpdateInputCursorClick()
@@ -826,20 +838,7 @@ namespace Comfy::Studio::Editor
 			const auto newMouseTime = TickToTime(newMouseTick);
 
 			SetCursorTime(newMouseTime);
-
-			for (const auto& target : workingChart->Targets)
-			{
-				if (target.Tick != newMouseTick)
-					continue;
-
-				// NOTE: During playback the sound will handled automatically already
-				if (!GetIsPlayback())
-					buttonSoundController.PlayButtonSound();
-
-				const auto buttonIndex = static_cast<size_t>(target.Type);
-				buttonAnimations[buttonIndex].Tick = target.Tick;
-				buttonAnimations[buttonIndex].ElapsedTime = TimeSpan::Zero();
-			}
+			PlayCursorButtonSoundsAndAnimation(newMouseTick);
 		}
 
 #if 0 // DEBUG: Cursor Mouse Drag:
@@ -928,6 +927,34 @@ namespace Comfy::Studio::Editor
 		const auto nextIndex = std::clamp(index + direction, 0, static_cast<int>(presetGridDivisions.size()) - 1);
 
 		activeGridDivision = presetGridDivisions[nextIndex];
+	}
+
+	void TargetTimeline::AdvanceCursorByGridDivisionTick(int direction)
+	{
+		const auto newCursorTick = RoundTickToGrid(GetCursorTick()) + TimelineTick(GridDivisionTick().TotalTicks() * direction);
+		const auto newCursorTime = std::clamp(TickToTime(newCursorTick), TimeSpan::Zero(), workingChart->Duration);
+
+		// TODO: Auto scroll if off-screen && !playback
+		SetCursorTime(newCursorTime);
+		PlayCursorButtonSoundsAndAnimation(newCursorTick);
+	}
+
+	void TargetTimeline::PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick)
+	{
+		const bool isPlayback = GetIsPlayback();
+		for (const auto& target : workingChart->Targets)
+		{
+			if (target.Tick != cursorTick)
+				continue;
+
+			// NOTE: During playback the sound will be handled automatically already
+			if (!isPlayback)
+				buttonSoundController.PlayButtonSound();
+
+			const auto buttonIndex = static_cast<size_t>(target.Type);
+			buttonAnimations[buttonIndex].Tick = target.Tick;
+			buttonAnimations[buttonIndex].ElapsedTime = TimeSpan::Zero();
+		}
 	}
 
 	TimeSpan TargetTimeline::GetCursorTime() const

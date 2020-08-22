@@ -155,13 +155,19 @@ namespace Comfy::Studio::Editor
 		void DrawTimeSelection();
 		void OnUpdateInput() override;
 		void OnDrawTimelineContents() override;
-		void UpdateUndoRedoInput();
+		void UpdateUndoRedoKeyboardInput();
+		void UpdateCursorKeyboardInput();
 		void UpdateInputCursorClick();
 		void UpdateInputTargetPlacement();
 
 	protected:
 		void PlaceOrRemoveTarget(TimelineTick tick, ButtonType type);
 		void SelectNextPresetGridDivision(int direction);
+
+		void AdvanceCursorByGridDivisionTick(int direction);
+
+	protected:
+		void PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick);
 
 	protected:
 		TimeSpan GetCursorTime() const override;
