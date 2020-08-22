@@ -6,10 +6,10 @@
 #include <atomic>
 
 #if 0
-std::atomic<size_t> DEBUG_GlobalAllocationCount;
-std::atomic<size_t> DEBUG_GlobalAllocatedMemory;
+inline std::atomic<size_t> DEBUG_GlobalAllocationCount;
+inline std::atomic<size_t> DEBUG_GlobalAllocatedMemory;
 
-void* operator new(size_t size)
+inline void* operator new(size_t size)
 {
 	DEBUG_GlobalAllocationCount++;
 	DEBUG_GlobalAllocatedMemory += size;
@@ -17,7 +17,7 @@ void* operator new(size_t size)
 	return malloc(size);
 }
 
-void operator delete(void* pointer, size_t size)
+inline void operator delete(void* pointer, size_t size)
 {
 	DEBUG_GlobalAllocationCount--;
 	DEBUG_GlobalAllocatedMemory -= size;
@@ -25,11 +25,11 @@ void operator delete(void* pointer, size_t size)
 	return free(pointer);
 }
 
-size_t GetAllocationCount() { return DEBUG_GlobalAllocationCount.load(); }
-size_t GetAllocatedMemory() { return DEBUG_GlobalAllocatedMemory.load(); }
+inline size_t GetAllocationCount() { return DEBUG_GlobalAllocationCount.load(); }
+inline size_t GetAllocatedMemory() { return DEBUG_GlobalAllocatedMemory.load(); }
 #else
-size_t GetAllocationCount() { return 0u; }
-size_t GetAllocatedMemory() { return 0u; }
+inline size_t GetAllocationCount() { return 0u; }
+inline size_t GetAllocatedMemory() { return 0u; }
 #endif
 
 namespace Comfy::Sandbox

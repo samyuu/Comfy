@@ -6,8 +6,6 @@ namespace Comfy::Sandbox::Tests
 	class MenuTest : public ITestTask
 	{
 	public:
-		COMFY_REGISTER_TEST_TASK(MenuTest);
-
 		MenuTest()
 		{
 			renderWindow.OnRenderCallback = [&]

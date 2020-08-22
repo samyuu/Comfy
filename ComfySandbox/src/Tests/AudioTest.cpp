@@ -5,8 +5,6 @@ namespace Comfy::Sandbox::Tests
 	class AudioTest : public ITestTask
 	{
 	public:
-		COMFY_REGISTER_TEST_TASK(AudioTest);
-
 		AudioTest()
 		{
 			Audio::AudioEngine::GetInstance().OpenStream();

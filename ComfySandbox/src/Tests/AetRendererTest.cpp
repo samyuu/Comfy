@@ -5,8 +5,6 @@ namespace Comfy::Sandbox::Tests
 	class AetRendererTest : public ITestTask
 	{
 	public:
-		COMFY_REGISTER_TEST_TASK(AetRendererTest);
-
 		AetRendererTest()
 		{
 			// renderWindow.SetKeepAspectRatio(true);

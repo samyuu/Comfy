@@ -105,16 +105,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\EntryPoint.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Tests\AetRendererTest.cpp" />
-    <ClCompile Include="src\Tests\AudioTest.cpp" />
     <ClCompile Include="src\Tests\Game\Core\GameState.cpp" />
-    <ClCompile Include="src\Tests\MenuTest.cpp" />
-    <ClCompile Include="src\Tests\Renderer2DTest.cpp" />
-    <ClCompile Include="src\Tests\Renderer3DTest.cpp" />
-    <ClCompile Include="src\Tests\FontRendererTest.cpp" />
     <ClInclude Include="src\Application.h" />
     <ClInclude Include="src\PerformanceOverlay.h" />
     <ClInclude Include="src\Tests\Game\Core\GameContext.h" />

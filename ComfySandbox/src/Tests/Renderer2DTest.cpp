@@ -5,8 +5,6 @@ namespace Comfy::Sandbox::Tests
 	class Renderer2DTest : public ITestTask
 	{
 	public:
-		COMFY_REGISTER_TEST_TASK(Renderer2DTest);
-
 		Renderer2DTest()
 		{
 			// renderWindow.SetKeepAspectRatio(true);

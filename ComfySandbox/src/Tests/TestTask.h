@@ -20,10 +20,6 @@
 
 #include <functional>
 
-//#define COMFY_REGISTER_TEST_TASK(derivedClass) static inline struct StaticInit { StaticInit() { TestTaskInitializer::Register<derivedClass>(__FUNCTION__ "::" #derivedClass); } } InitInstance;
-#define COMFY_REGISTER_TEST_TASK(derivedClass) static inline struct StaticInit { StaticInit() { TestTaskInitializer::Register<derivedClass>("Comfy::Sandbox::Tests::" #derivedClass); } } InitInstance;
-// #define COMFY_REGISTER_TEST_TASK(derivedClass) COMFY_CALL_ON_STARTUP([] { TestTaskInitializer::Register<derivedClass>("Comfy::Sandbox::Tests::" #derivedClass); });
-
 namespace Comfy::Sandbox::Tests
 {
 	// DEBUG:
@@ -55,19 +51,18 @@ namespace Comfy::Sandbox::Tests
 		virtual void Update() = 0;
 	};
 
-	class TestTaskInitializer
+	struct TestTaskInitializer
 	{
-	public:
-		const char* DerivedName;
+		template <typename DerivedTask>
+		static TestTaskInitializer Create(std::string_view name)
+		{
+			TestTaskInitializer result;
+			result.Name = name;
+			result.Function = [] { return std::make_unique<DerivedTask>(); };
+			return result;
+		}
+
+		std::string_view Name;
 		std::function<std::unique_ptr<ITestTask>()> Function;
-
-		template <typename Func>
-		static void IterateRegistered(Func func) { std::for_each(registered.begin(), registered.end(), func); }
-
-		template <typename TestTask>
-		static void Register(const char* derivedName) { registered.push_back({ derivedName, [] { return std::make_unique<TestTask>(); } }); }
-
-	private:
-		static inline std::vector<TestTaskInitializer> registered;
 	};
 }

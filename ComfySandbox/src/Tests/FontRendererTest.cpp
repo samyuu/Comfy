@@ -100,8 +100,6 @@ namespace Comfy::Sandbox::Tests
 	class FontRendererTest : public ITestTask
 	{
 	public:
-		COMFY_REGISTER_TEST_TASK(FontRendererTest);
-
 		FontRendererTest()
 		{
 			renderWindow.OnRenderCallback = [&]
