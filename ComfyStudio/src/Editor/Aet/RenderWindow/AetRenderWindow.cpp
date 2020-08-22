@@ -427,6 +427,9 @@ namespace Comfy::Studio::Editor
 		if (obj.Video == nullptr || !obj.IsVisible)
 			return false;
 
+		if (const bool isSelected = (obj.SourceLayer == selectedAetItem.Ptrs.Layer); !isSelected)
+			return false;
+
 		const auto* video = (previewData.Video != nullptr) ? previewData.Video : obj.Video;
 		auto[tex, spr] = renderer.Aet().GetSprite(video, obj.SpriteFrame);
 
@@ -464,10 +467,8 @@ namespace Comfy::Studio::Editor
 		const auto* maskVideo = (isMaskSelected && previewData.Video != nullptr) ? previewData.Video : maskObj.Video;
 		const auto* video = (isSelected && previewData.Video != nullptr) ? previewData.Video : obj.Video;
 
-		auto[maskTex, maskSpr] = renderer.Aet().GetSprite(maskObj.Video, maskObj.SpriteFrame);
-		auto[tex, spr] = renderer.Aet().GetSprite(obj.Video, obj.SpriteFrame);
-
-		const auto finalOpacity = maskObj.Transform.Opacity * obj.Transform.Opacity * opacity;
+		auto[maskTex, maskSpr] = renderer.Aet().GetSprite(maskVideo, maskObj.SpriteFrame);
+		auto[tex, spr] = renderer.Aet().GetSprite(video, obj.SpriteFrame);
 
 		if (maskTex == nullptr || maskSpr == nullptr || tex == nullptr || spr == nullptr)
 			return false;
