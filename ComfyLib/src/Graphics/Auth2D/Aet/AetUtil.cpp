@@ -4,33 +4,37 @@ namespace Comfy::Graphics::Aet
 {
 	namespace Util
 	{
-		namespace
+		void CombineTransforms(const Transform2D& input, Transform2D & inOutput)
 		{
-			void CombineTransforms(const Transform2D& input, Transform2D& inOutput)
+			// BUG: This is still not 100% accurate (?)
+			inOutput.Position -= input.Origin;
+			inOutput.Position *= input.Scale;
+
+			if (input.Rotation != 0.0f)
 			{
-				// BUG: This is still not 100% accurate (?)
-				inOutput.Position -= input.Origin;
-				inOutput.Position *= input.Scale;
+				const float radians = glm::radians(input.Rotation);
+				const float sin = glm::sin(radians);
+				const float cos = glm::cos(radians);
 
-				if (input.Rotation != 0.0f)
-				{
-					const float radians = glm::radians(input.Rotation);
-					const float sin = glm::sin(radians);
-					const float cos = glm::cos(radians);
-
-					inOutput.Position = vec2(inOutput.Position.x * cos - inOutput.Position.y * sin, inOutput.Position.x * sin + inOutput.Position.y * cos);
-				}
-
-				inOutput.Position += input.Position;
-
-				if ((input.Scale.x < 0.0f) ^ (input.Scale.y < 0.0f))
-					inOutput.Rotation *= -1.0f;
-
-				inOutput.Rotation += input.Rotation;
-
-				inOutput.Scale *= input.Scale;
-				inOutput.Opacity *= input.Opacity;
+				inOutput.Position = vec2(inOutput.Position.x * cos - inOutput.Position.y * sin, inOutput.Position.x * sin + inOutput.Position.y * cos);
 			}
+
+			inOutput.Position += input.Position;
+
+			if ((input.Scale.x < 0.0f) ^ (input.Scale.y < 0.0f))
+				inOutput.Rotation *= -1.0f;
+
+			inOutput.Rotation += input.Rotation;
+
+			inOutput.Scale *= input.Scale;
+			inOutput.Opacity *= input.Opacity;
+		}
+
+		Transform2D CombineTransformsCopy(const Transform2D& source, const Transform2D& toApply)
+		{
+			auto copy = source;
+			CombineTransforms(toApply, copy);
+			return copy;
 		}
 
 		void GetAddObjectsAt(ObjCache& outObjs, const Composition& comp, frame_t frame)
@@ -119,6 +123,22 @@ namespace Comfy::Graphics::Aet
 		Transform2D GetTransformAt(const LayerVideo& layerVideo, frame_t frame)
 		{
 			return GetTransformAt(layerVideo.Transform, frame);
+		}
+
+		Transform2D GetPositionTransformAt(const LayerVideo2D& LayerVideo2D, frame_t frame)
+		{
+			Transform2D result;
+			result.Origin = vec2(0.0f);
+			result.Position = GetValueAt(LayerVideo2D.Position, frame);
+			result.Rotation = 0.0f;
+			result.Scale = vec2(1.0f);
+			result.Opacity = GetValueAt(LayerVideo2D.Opacity, frame);
+			return result;
+		}
+
+		Transform2D GetPositionTransformAt(const LayerVideo& layerVideo, frame_t frame)
+		{
+			return GetPositionTransformAt(layerVideo.Transform, frame);
 		}
 
 		bool AreFramesTheSame(frame_t frameA, frame_t frameB)

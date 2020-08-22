@@ -162,7 +162,7 @@ namespace Comfy::Sandbox::Tests::Game
 
 		void DrawSongListSongBases()
 		{
-			Gui::DEBUG_NOSAVE_ONCE_PER_FRAME_WINDOW("YEP COCK", [&] 
+			Gui::DEBUG_NOSAVE_ONCE_PER_FRAME_WINDOW("YEP COCK", [&]
 			{
 				if (auto songListLayer = GetSongListLayer(); songListLayer != nullptr)
 					Gui::TextUnformatted(songListLayer->GetName().c_str());
@@ -176,11 +176,12 @@ namespace Comfy::Sandbox::Tests::Game
 				const auto layerData = GetSongMenuItemTransforms(static_cast<SongListItem>(i));
 				const auto entry = songList.GetEntry(i - SongListItem_Center + songList.SelectedIndex);
 
+				const auto baseTransform = Aet::Util::GetPositionTransformAt(*layerData.Base->LayerVideo, songListTime.ToFrames());
+
 				if (entry == nullptr)
 				{
 					const auto baseLayer = GetSongListBaseLayer({}, isSelected);
-					const auto transform = Aet::Util::GetTransformAt(*layerData.Base->LayerVideo, songListTime.ToFrames());
-					context.Renderer.Aet().DrawLayerLooped(*baseLayer, songListTime.ToFrames(), transform.Position, transform.Opacity);
+					context.Renderer.Aet().DrawLayerLooped(*baseLayer, songListTime.ToFrames(), baseTransform);
 					continue;
 				}
 
@@ -188,17 +189,16 @@ namespace Comfy::Sandbox::Tests::Game
 
 				{
 					const auto baseLayer = GetSongListBaseLayer(difficulty, isSelected);
-					const auto transform = Aet::Util::GetTransformAt(*layerData.Base->LayerVideo, songListTime.ToFrames());
 					if (isSelected)
-						context.Renderer.Aet().DrawLayerLooped(*baseLayer, LoopMarkers(*baseLayer, songListTime, loop).ToFrames(), transform.Position, transform.Opacity);
+						context.Renderer.Aet().DrawLayerLooped(*baseLayer, LoopMarkers(*baseLayer, songListTime, loop).ToFrames(), baseTransform);
 					else
-						context.Renderer.Aet().DrawLayerLooped(*baseLayer, songListTime.ToFrames(), transform.Position, transform.Opacity);
+						context.Renderer.Aet().DrawLayerLooped(*baseLayer, songListTime.ToFrames(), baseTransform);
 				}
 
 				{
 					const auto levelStar = FindLayer(LevelStarLayerName[entry->LevelStar]);
-					const auto transform = Aet::Util::GetTransformAt(*layerData.SongLevel->LayerVideo, songListTime.ToFrames());
-					context.Renderer.Aet().DrawLayerLooped(*levelStar, LoopMarkers(*levelStar, songListTime, LoopState_In).ToFrames(), transform.Position, transform.Opacity);
+					const auto transform = Aet::Util::GetPositionTransformAt(*layerData.SongLevel->LayerVideo, songListTime.ToFrames());
+					context.Renderer.Aet().DrawLayerLooped(*levelStar, LoopMarkers(*levelStar, songListTime, LoopState_In).ToFrames(), transform);
 				}
 
 				if (entry->HasSlides)
@@ -250,7 +250,7 @@ namespace Comfy::Sandbox::Tests::Game
 
 			if (songList.EntriesToScroll == 0)
 				songListTime = TimeSpan::Zero();
-			
+
 			songList.CurrentState = (scrollUp) ? SongListState_ScrollUp : SongListState_ScrollDown;
 			songList.EntriesToScroll += entriesToScrollBy;
 		}

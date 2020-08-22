@@ -17,8 +17,8 @@ namespace Comfy::Render
 
 	using SprGetter = std::function<TexSprView(const Graphics::Aet::VideoSource& source)>;
 
-	using AetObjCallback = std::function<bool(const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity)>;
-	using AetObjMaskCallback = std::function<bool(const Graphics::Aet::Util::Obj& maskObj, const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity)>;
+	using AetObjCallback = std::function<bool(const Graphics::Aet::Util::Obj& obj, const Graphics::Transform2D& transform)>;
+	using AetObjMaskCallback = std::function<bool(const Graphics::Aet::Util::Obj& maskObj, const Graphics::Aet::Util::Obj& obj, const Graphics::Transform2D& transform)>;
 
 	TexSprView SprSetNameStringSprGetter(const Graphics::Aet::VideoSource& source, const Graphics::SprSet* sprSetToSearch);
 
@@ -36,13 +36,13 @@ namespace Comfy::Render
 
 		// NOTE: All of these are only valid between a Rendere2D Being() and End() block
 	public:
-		void DrawObj(const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity = 1.0f);
-		void DrawObjMask(const Graphics::Aet::Util::Obj& maskObj, const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity = 1.0f);
-		void DrawObjCache(const Graphics::Aet::Util::ObjCache& objCache, vec2 position = vec2(0.0f, 0.0f), float opacity = 1.0f);
+		void DrawObj(const Graphics::Aet::Util::Obj& obj, const Graphics::Transform2D& transform = vec2(0.0f));
+		void DrawObjMask(const Graphics::Aet::Util::Obj& maskObj, const Graphics::Aet::Util::Obj& obj, const Graphics::Transform2D& transform = vec2(0.0f));
+		void DrawObjCache(const Graphics::Aet::Util::ObjCache& objCache, const Graphics::Transform2D& transform = vec2(0.0f));
 
-		void DrawLayer(const Graphics::Aet::Layer& layer, frame_t frame, vec2 position = vec2(0.0f, 0.0f), float opacity = 1.0f);
-		void DrawLayerLooped(const Graphics::Aet::Layer& layer, frame_t frame, vec2 position = vec2(0.0f, 0.0f), float opacity = 1.0f);
-		void DrawLayerClamped(const Graphics::Aet::Layer& layer, frame_t frame, vec2 position = vec2(0.0f, 0.0f), float opacity = 1.0f);
+		void DrawLayer(const Graphics::Aet::Layer& layer, frame_t frame, const Graphics::Transform2D& transform = vec2(0.0f));
+		void DrawLayerLooped(const Graphics::Aet::Layer& layer, frame_t frame, const Graphics::Transform2D& transform = vec2(0.0f));
+		void DrawLayerClamped(const Graphics::Aet::Layer& layer, frame_t frame, const Graphics::Transform2D& transform = vec2(0.0f));
 
 		void DrawVideo(const Graphics::Aet::Video& video, i32 frameIndex, const Graphics::Transform2D& transform, Graphics::AetBlendMode blendMode = Graphics::AetBlendMode::Normal);
 		void DrawSpr(const Graphics::Tex& tex, const Graphics::Spr& spr, const Graphics::Transform2D& transform, Graphics::AetBlendMode blendMode = Graphics::AetBlendMode::Normal);

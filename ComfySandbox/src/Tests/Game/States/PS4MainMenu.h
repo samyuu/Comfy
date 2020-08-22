@@ -143,22 +143,20 @@ namespace Comfy::Sandbox::Tests::Game
 			context.Renderer.Aet().DrawLayer(*layer, LoopMarkers(*layer, itemTime, loop).ToFrames());
 		}
 
-		std::pair<vec2, float> GetMainMenuItemPositionAndOpacity(MenuSubState item, TimeSpan time)
+		Transform2D GetMainMenuItemTransform(MenuSubState item, TimeSpan time)
 		{
-			auto transform = Aet::Util::GetTransformAt(*FindLayer("menu_list_in02")->GetCompItem()->FindLayer(MainMenuItemPointLayerNames[item])->LayerVideo, time.ToFrames());
-			return std::make_pair(transform.Position, transform.Opacity);
+			return Aet::Util::GetPositionTransformAt(*FindLayer("menu_list_in02")->GetCompItem()->FindLayer(MainMenuItemPointLayerNames[item])->LayerVideo, time.ToFrames());;
 		}
 
 		void DrawMainMenuItem(MenuSubState item, LoopState loop)
 		{
-			const auto[position, opacity] = GetMainMenuItemPositionAndOpacity(item, itemTime);
 			const auto layer = FindLayer(MainMenuPlateLayerNames[item]);
-			context.Renderer.Aet().DrawLayer(*layer, LoopMarkers(*layer, itemTime, loop).ToFrames(), position, opacity);
+			context.Renderer.Aet().DrawLayer(*layer, LoopMarkers(*layer, itemTime, loop).ToFrames(), GetMainMenuItemTransform(item, itemTime));
 		}
 
 		void DrawMainMenuItemSelected(MenuSubState item, LoopState loop)
 		{
-			const auto[position, opacity] = GetMainMenuItemPositionAndOpacity(item, itemTime);
+			const auto transform = GetMainMenuItemTransform(item, itemTime);
 			const auto layer = FindLayer(MainMenuPlateSelectLayerNames[item]);
 
 			// BUG:
@@ -168,11 +166,11 @@ namespace Comfy::Sandbox::Tests::Game
 			if (isDisappearing)
 			{
 				// BUG: This should only be played once
-				context.Renderer.Aet().DrawLayer(*layer, ClampMarkers(*layer, fadeOutTime, "st_sp", "ed_sp").ToFrames(), position, opacity);
+				context.Renderer.Aet().DrawLayer(*layer, ClampMarkers(*layer, fadeOutTime, "st_sp", "ed_sp").ToFrames(), transform);
 			}
 			else
 			{
-				context.Renderer.Aet().DrawLayer(*layer, LoopMarkers(*layer, itemSelectTime, loop).ToFrames(), position, opacity);
+				context.Renderer.Aet().DrawLayer(*layer, LoopMarkers(*layer, itemSelectTime, loop).ToFrames(), transform);
 			}
 		}
 

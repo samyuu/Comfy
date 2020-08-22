@@ -51,8 +51,8 @@ namespace Comfy::Studio::Editor
 		vec2 GetLayerBoundingSize(const std::shared_ptr<Graphics::Aet::Layer>& layer) const;
 
 	protected:
-		bool OnObjRender(const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity);
-		bool OnObjMaskRender(const Graphics::Aet::Util::Obj& maskObj, const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity);
+		bool OnObjRender(const Graphics::Aet::Util::Obj& obj, const Graphics::Transform2D& transform);
+		bool OnObjMaskRender(const Graphics::Aet::Util::Obj& maskObj, const Graphics::Aet::Util::Obj& obj, const Graphics::Transform2D& transform);
 
 	private:
 		// NOTE: Fill the rest of the background

@@ -26,6 +26,9 @@ namespace Comfy::Graphics::Aet
 
 		using ObjCache = std::vector<Obj>;
 
+		void CombineTransforms(const Transform2D& input, Transform2D& inOutput);
+		Transform2D CombineTransformsCopy(const Transform2D& source, const Transform2D& toApply);
+
 		void GetAddObjectsAt(ObjCache& outObjs, const Composition& comp, frame_t frame);
 		void GetAddObjectsAt(ObjCache& outObjs, const Layer& layer, frame_t frame);
 
@@ -37,6 +40,9 @@ namespace Comfy::Graphics::Aet
 
 		Transform2D GetTransformAt(const LayerVideo2D& LayerVideo2D, frame_t frame);
 		Transform2D GetTransformAt(const LayerVideo& layerVideo, frame_t frame);
+
+		Transform2D GetPositionTransformAt(const LayerVideo2D& LayerVideo2D, frame_t frame);
+		Transform2D GetPositionTransformAt(const LayerVideo& layerVideo, frame_t frame);
 
 		// NOTE: Threshold frame float comparison
 		bool AreFramesTheSame(frame_t frameA, frame_t frameB);

@@ -11,13 +11,15 @@ namespace Comfy::Sandbox::Tests
 			renderWindow.OnRenderCallback = [&]
 			{
 				renderWindow.RenderTarget->Param.Resolution = camera.ProjectionSize = renderWindow.GetRenderRegion().GetSize();
-				
+
 				if (auto selectedScene = GetSelectedScene(); selectedScene != nullptr)
 					camera.CenterAndZoomToFit(selectedScene->Resolution);
 
 				renderer.Begin(camera, *renderWindow.RenderTarget);
 				if (const auto selectedLayer = GetSelectedLayer(); selectedLayer != nullptr)
-					renderer.Aet().DrawLayerLooped(*selectedLayer, playback.CurrentFrame, playback.Position, playback.Opacity);
+				{
+					renderer.Aet().DrawLayerLooped(*selectedLayer, playback.CurrentFrame, playback.Transform);
+				}
 				renderer.End();
 
 				if (playback.Playback)
@@ -46,8 +48,11 @@ namespace Comfy::Sandbox::Tests
 				if (Gui::Begin("Aet Control Test"))
 				{
 					auto columns = GuiPropertyRAII::PropertyValueColumns();
-					GuiProperty::Input("Position", playback.Position);
-					GuiProperty::Input("Opacity", playback.Opacity, 0.01f, vec2(0.0f, 1.0f));
+					GuiProperty::Input("Origin", playback.Transform.Origin);
+					GuiProperty::Input("Position", playback.Transform.Position);
+					GuiProperty::Input("Rotation", playback.Transform.Rotation);
+					GuiProperty::Input("Scale", playback.Transform.Scale, 0.1f);
+					GuiProperty::Input("Opacity", playback.Transform.Opacity, 0.01f, vec2(0.0f, 1.0f));
 
 					GuiProperty::Input("Frame", playback.CurrentFrame);
 					GuiProperty::Checkbox("Playback", playback.Playback);
@@ -129,7 +134,7 @@ namespace Comfy::Sandbox::Tests
 									preview.Camera.Zoom = (targetSize / sceneSize.x);
 
 									renderer.Begin(preview.Camera, *preview.RenderTarget);
-									renderer.Aet().DrawLayerLooped(*previewLayer, playback.CurrentFrame, playback.Position, playback.Opacity);
+									renderer.Aet().DrawLayerLooped(*previewLayer, playback.CurrentFrame, playback.Transform);
 									renderer.End();
 
 									Gui::BeginTooltip();
@@ -208,8 +213,7 @@ namespace Comfy::Sandbox::Tests
 
 		struct PlaybackData
 		{
-			vec2 Position = vec2(0.0f, 0.0f);
-			float Opacity = 1.0f;
+			Graphics::Transform2D Transform = { vec2(0.0f) };
 
 			bool Playback = true;
 			frame_t CurrentFrame = 0.0f;

@@ -35,127 +35,127 @@ namespace Comfy::Render
 		sprGetter = NullSprGetter;
 	}
 
-	void AetRenderer::DrawObj(const AetUtil::Obj& obj, vec2 positionOffset, float opacity)
+	void AetRenderer::DrawObj(const AetUtil::Obj& obj, const Graphics::Transform2D& transform)
 	{
 		if (obj.Video == nullptr || !obj.IsVisible)
 			return;
 
-		if (objCallback && objCallback(obj, positionOffset, opacity))
+		if (objCallback && objCallback(obj, transform))
 			return;
 
 		auto[tex, spr] = GetSprite(obj.Video, obj.SpriteFrame);
-		const auto finalPosition = obj.Transform.Position + positionOffset;
-		const auto finalOpacity = obj.Transform.Opacity * opacity;
+		const auto objTransform = AetUtil::CombineTransformsCopy(obj.Transform, transform);
 
 		if (tex != nullptr && spr != nullptr)
 		{
 			const auto command = RenderCommand2D(
 				tex,
-				obj.Transform.Origin,
-				finalPosition,
-				obj.Transform.Rotation,
-				obj.Transform.Scale,
+				objTransform.Origin,
+				objTransform.Position,
+				objTransform.Rotation,
+				objTransform.Scale,
 				spr->PixelRegion,
 				obj.BlendMode,
-				finalOpacity);
+				objTransform.Opacity);
 
 			renderer2D.Draw(command);
 		}
 		else if (renderNullVideos)
 		{
 			auto command = RenderCommand2D();
-			command.Origin = obj.Transform.Origin;
-			command.Position = finalPosition;
-			command.Rotation = obj.Transform.Rotation;
-			command.Scale = obj.Transform.Scale;
+			command.Origin = objTransform.Origin;
+			command.Position = objTransform.Position;
+			command.Rotation = objTransform.Rotation;
+			command.Scale = objTransform.Scale;
 			command.SourceRegion = vec4(0.0f, 0.0f, obj.Video->Size);
 			command.BlendMode = obj.BlendMode;
-			command.SetColor(GetSolidVideoColor(*obj.Video, finalOpacity));
+			command.SetColor(GetSolidVideoColor(*obj.Video, objTransform.Opacity));
 
 			renderer2D.Draw(command);
 		}
 	}
 
-	void AetRenderer::DrawObjMask(const AetUtil::Obj& maskObj, const AetUtil::Obj& obj, vec2 positionOffset, float opacity)
+	void AetRenderer::DrawObjMask(const AetUtil::Obj& maskObj, const AetUtil::Obj& obj, const Graphics::Transform2D& transform)
 	{
 		if (maskObj.Video == nullptr || obj.Video == nullptr || !obj.IsVisible)
 			return;
 
-		if (objMaskCallback && objMaskCallback(maskObj, obj, positionOffset, opacity))
+		if (objMaskCallback && objMaskCallback(maskObj, obj, transform))
 			return;
 
 		auto[maskTex, maskSpr] = GetSprite(maskObj.Video, maskObj.SpriteFrame);
 		auto[tex, spr] = GetSprite(obj.Video, obj.SpriteFrame);
 
-		const auto finalOpacity = maskObj.Transform.Opacity * obj.Transform.Opacity * opacity;
+		const auto objTransform = AetUtil::CombineTransformsCopy(obj.Transform, transform);
+		const auto maskTransform = AetUtil::CombineTransformsCopy(maskObj.Transform, transform);
 
 		if (maskTex != nullptr && maskSpr != nullptr && tex != nullptr && spr != nullptr)
 		{
 			const auto command = RenderCommand2D(
 				tex,
-				obj.Transform.Origin,
-				obj.Transform.Position + positionOffset,
-				obj.Transform.Rotation,
-				obj.Transform.Scale,
+				objTransform.Origin,
+				objTransform.Position,
+				objTransform.Rotation,
+				objTransform.Scale,
 				spr->PixelRegion,
 				obj.BlendMode,
-				finalOpacity);
+				objTransform.Opacity);
 
 			const auto maskCommand = RenderCommand2D(
 				maskTex,
-				maskObj.Transform.Origin,
-				maskObj.Transform.Position + positionOffset,
-				maskObj.Transform.Rotation,
-				maskObj.Transform.Scale,
+				maskTransform.Origin,
+				maskTransform.Position,
+				maskTransform.Rotation,
+				maskTransform.Scale,
 				maskSpr->PixelRegion,
 				maskObj.BlendMode,
-				finalOpacity);
+				maskTransform.Opacity);
 
 			renderer2D.Draw(command, maskCommand);
 		}
 		else if (renderNullVideos)
 		{
 			auto command = RenderCommand2D();
-			command.Origin = obj.Transform.Origin;
-			command.Position = obj.Transform.Position + positionOffset;
-			command.Rotation = obj.Transform.Rotation;
-			command.Scale = obj.Transform.Scale;
+			command.Origin = objTransform.Origin;
+			command.Position = objTransform.Position;
+			command.Rotation = objTransform.Rotation;
+			command.Scale = objTransform.Scale;
 			command.SourceRegion = vec4(0.0f, 0.0f, obj.Video->Size);
 			command.BlendMode = obj.BlendMode;
-			command.SetColor(GetSolidVideoColor(*obj.Video, finalOpacity));
+			command.SetColor(GetSolidVideoColor(*obj.Video, objTransform.Opacity));
 
 			renderer2D.Draw(command);
 		}
 	}
 
-	void AetRenderer::DrawObjCache(const AetUtil::ObjCache& objCache, vec2 position, float opacity)
+	void AetRenderer::DrawObjCache(const AetUtil::ObjCache& objCache, const Graphics::Transform2D& transform)
 	{
 		for (size_t i = 0; i < objCache.size(); i++)
 		{
 			const auto& obj = objCache[i];
 			if (obj.UseTrackMatte && InBounds(i + 1, objCache))
-				DrawObjMask(objCache[++i], obj, position, opacity);
+				DrawObjMask(objCache[++i], obj, transform);
 			else
-				DrawObj(obj, position, opacity);
+				DrawObj(obj, transform);
 		}
 	}
 
-	void AetRenderer::DrawLayer(const Layer& layer, frame_t frame, vec2 position, float opacity)
+	void AetRenderer::DrawLayer(const Layer& layer, frame_t frame, const Graphics::Transform2D& transform)
 	{
 		objCache.clear();
 		AetUtil::GetAddObjectsAt(objCache, layer, frame);
 
-		DrawObjCache(objCache, position, opacity);
+		DrawObjCache(objCache, transform);
 	}
 
-	void AetRenderer::DrawLayerLooped(const Layer& layer, frame_t frame, vec2 position, float opacity)
+	void AetRenderer::DrawLayerLooped(const Layer& layer, frame_t frame, const Graphics::Transform2D& transform)
 	{
-		DrawLayer(layer, glm::mod(frame, layer.EndFrame - 1.0f), position, opacity);
+		DrawLayer(layer, glm::mod(frame, layer.EndFrame - 1.0f), transform);
 	}
 
-	void AetRenderer::DrawLayerClamped(const Layer& layer, frame_t frame, vec2 position, float opacity)
+	void AetRenderer::DrawLayerClamped(const Layer& layer, frame_t frame, const Graphics::Transform2D& transform)
 	{
-		DrawLayer(layer, (frame >= layer.EndFrame ? layer.EndFrame : frame), position, opacity);
+		DrawLayer(layer, (frame >= layer.EndFrame ? layer.EndFrame : frame), transform);
 	}
 
 	void AetRenderer::DrawVideo(const Video& video, i32 frameIndex, const Graphics::Transform2D& transform, Graphics::AetBlendMode blendMode)

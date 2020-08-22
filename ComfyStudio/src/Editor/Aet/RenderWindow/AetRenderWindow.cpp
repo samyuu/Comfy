@@ -25,14 +25,14 @@ namespace Comfy::Studio::Editor
 
 		renderTarget = Render::Renderer2D::CreateRenderTarget();
 
-		renderer.Aet().SetObjCallback([&](const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity) -> bool
+		renderer.Aet().SetObjCallback([&](const Aet::Util::Obj& obj, const Transform2D& transform) -> bool
 		{
-			return OnObjRender(obj, positionOffset, opacity);
+			return OnObjRender(obj, transform);
 		});
 
-		renderer.Aet().SetObjMaskCallback([&](const Graphics::Aet::Util::Obj& maskObj, const Graphics::Aet::Util::Obj& obj, vec2 positionOffset, float opacity) -> bool
+		renderer.Aet().SetObjMaskCallback([&](const Aet::Util::Obj& maskObj, const Aet::Util::Obj& obj, const Transform2D& transform) -> bool
 		{
-			return OnObjMaskRender(maskObj, obj, positionOffset, opacity);
+			return OnObjMaskRender(maskObj, obj, transform);
 		});
 
 		renderer.Aet().SetRenderNullVideos(true);
@@ -422,7 +422,7 @@ namespace Comfy::Studio::Editor
 		return aetRegionSize;
 	}
 
-	bool AetRenderWindow::OnObjRender(const Aet::Util::Obj& obj, vec2 positionOffset, float opacity)
+	bool AetRenderWindow::OnObjRender(const Aet::Util::Obj& obj, const Transform2D& transform)
 	{
 		if (obj.Video == nullptr || !obj.IsVisible)
 			return false;
@@ -433,27 +433,25 @@ namespace Comfy::Studio::Editor
 		const auto* video = (previewData.Video != nullptr) ? previewData.Video : obj.Video;
 		auto[tex, spr] = renderer.Aet().GetSprite(video, obj.SpriteFrame);
 
-		const auto finalPosition = obj.Transform.Position + positionOffset;
-		const auto finalOpacity = obj.Transform.Opacity * opacity;
-
 		if (tex == nullptr || spr == nullptr)
 			return false;
 
+		const auto objTransform = Aet::Util::CombineTransformsCopy(obj.Transform, transform);
 		const auto command = Render::RenderCommand2D(
 			tex,
-			obj.Transform.Origin,
-			finalPosition,
-			obj.Transform.Rotation,
-			obj.Transform.Scale,
+			objTransform.Origin,
+			objTransform.Position,
+			objTransform.Rotation,
+			objTransform.Scale,
 			spr->PixelRegion,
 			(previewData.BlendMode != AetBlendMode::Unknown) ? previewData.BlendMode : obj.BlendMode,
-			finalOpacity);
+			objTransform.Opacity);
 
 		renderer.Draw(command);
 		return true;
 	}
 
-	bool AetRenderWindow::OnObjMaskRender(const Aet::Util::Obj& maskObj, const Aet::Util::Obj& obj, vec2 positionOffset, float opacity)
+	bool AetRenderWindow::OnObjMaskRender(const Aet::Util::Obj& maskObj, const Aet::Util::Obj& obj, const Transform2D& transform)
 	{
 		if (maskObj.Video == nullptr || obj.Video == nullptr || !obj.IsVisible)
 			return false;
@@ -464,34 +462,37 @@ namespace Comfy::Studio::Editor
 		if (!isSelected && !isMaskSelected)
 			return false;
 
-		const auto* maskVideo = (isMaskSelected && previewData.Video != nullptr) ? previewData.Video : maskObj.Video;
 		const auto* video = (isSelected && previewData.Video != nullptr) ? previewData.Video : obj.Video;
+		const auto* maskVideo = (isMaskSelected && previewData.Video != nullptr) ? previewData.Video : maskObj.Video;
 
-		auto[maskTex, maskSpr] = renderer.Aet().GetSprite(maskVideo, maskObj.SpriteFrame);
 		auto[tex, spr] = renderer.Aet().GetSprite(video, obj.SpriteFrame);
+		auto[maskTex, maskSpr] = renderer.Aet().GetSprite(maskVideo, maskObj.SpriteFrame);
 
 		if (maskTex == nullptr || maskSpr == nullptr || tex == nullptr || spr == nullptr)
 			return false;
 
+		const auto objTransform = Aet::Util::CombineTransformsCopy(obj.Transform, transform);
+		const auto maskTransform = Aet::Util::CombineTransformsCopy(maskObj.Transform, transform);
+
 		const auto command = Render::RenderCommand2D(
 			tex,
-			obj.Transform.Origin,
-			obj.Transform.Position + positionOffset,
-			obj.Transform.Rotation,
-			obj.Transform.Scale,
+			objTransform.Origin,
+			objTransform.Position,
+			objTransform.Rotation,
+			objTransform.Scale,
 			spr->PixelRegion,
 			obj.BlendMode,
-			finalOpacity);
+			objTransform.Opacity);
 
 		const auto maskCommand = Render::RenderCommand2D(
 			maskTex,
-			maskObj.Transform.Origin,
-			maskObj.Transform.Position + positionOffset,
-			maskObj.Transform.Rotation,
-			maskObj.Transform.Scale,
+			maskTransform.Origin,
+			maskTransform.Position,
+			maskTransform.Rotation,
+			maskTransform.Scale,
 			maskSpr->PixelRegion,
 			(previewData.BlendMode != AetBlendMode::Unknown) ? previewData.BlendMode : maskObj.BlendMode,
-			finalOpacity);
+			maskTransform.Opacity);
 
 		renderer.Draw(command, maskCommand);
 		return true;
