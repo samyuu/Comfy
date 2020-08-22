@@ -98,7 +98,7 @@ namespace Comfy::Studio::Editor
 		struct /* TimelineScrollData */
 		{
 			// fraction of the timeline width at which the timeline starts scrolling relative to the cursor
-			const float autoScrollOffsetFraction = 4.0f;
+			const float autoScrollOffsetFraction = 3.0f;
 
 			bool autoScrollCursor = false;
 
