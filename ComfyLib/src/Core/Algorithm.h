@@ -69,4 +69,11 @@ namespace Comfy
 		}
 		return index;
 	}
+
+	template <typename FloatType>
+	COMFY_NODISCARD constexpr auto ConvertRange(FloatType originalStart, FloatType originalEnd, FloatType newStart, FloatType newEnd, FloatType value) -> FloatType
+	{
+		static_assert(std::is_floating_point_v<FloatType>);
+		return (newStart + ((value - originalStart) * (newEnd - newStart) / (originalEnd - originalStart)));
+	}
 }
