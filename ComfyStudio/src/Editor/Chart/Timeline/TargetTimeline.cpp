@@ -934,9 +934,14 @@ namespace Comfy::Studio::Editor
 		const auto newCursorTick = RoundTickToGrid(GetCursorTick()) + TimelineTick(GridDivisionTick().TotalTicks() * direction);
 		const auto newCursorTime = std::clamp(TickToTime(newCursorTick), TimeSpan::Zero(), workingChart->Duration);
 
-		// TODO: Auto scroll if off-screen && !playback
+		const auto preCursorX = GetCursorTimelinePosition();
+
 		SetCursorTime(newCursorTime);
 		PlayCursorButtonSoundsAndAnimation(newCursorTick);
+
+		// NOTE: Keep same relative cursor screen position though might only wanna scroll if the cursor is about to go off-screen (?)
+		if (!GetIsPlayback())
+			SetScrollX(GetScrollX() + (GetCursorTimelinePosition() - preCursorX));
 	}
 
 	void TargetTimeline::PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick)
