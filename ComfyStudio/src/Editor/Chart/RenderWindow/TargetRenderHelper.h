@@ -3,6 +3,7 @@
 #include "CoreTypes.h"
 #include "Render/Render.h"
 #include "Time/TimeSpan.h"
+#include "Editor/Chart/SortedTargetList.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -27,6 +28,32 @@ namespace Comfy::Studio::Editor
 		};
 
 		void DrawHUD(Render::Renderer2D& renderer, const HUD& hud) const;
+
+		struct TargetDrawData
+		{
+			ButtonType Type;
+			bool NoHand;
+			bool NoScale;
+			bool Sync;
+			bool HoldText;
+			bool Chain;
+			bool ChainHit;
+			vec2 Position;
+			f32 Progress;
+		};
+
+		void DrawTarget(Render::Renderer2D& renderer, const TargetDrawData& data) const;
+
+		struct ButtonDrawData 
+		{ 
+			ButtonType Type;
+			bool Sync;
+			bool Chain;
+			vec2 Position;
+			f32 Progress;
+		};
+
+		void DrawButton(Render::Renderer2D& renderer, const ButtonDrawData& data) const;
 
 	private:
 		struct Impl;

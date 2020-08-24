@@ -3,6 +3,7 @@
 #include "Graphics/Auth2D/SprSet.h"
 #include "Graphics/Auth2D/Font/FontMap.h"
 #include "IO/File.h"
+#include <stack>
 
 namespace Comfy
 {
@@ -55,6 +56,72 @@ namespace Comfy::Studio::Editor
 				layers.LevelInfoExtreme = findLayer(*aetGameCommon, "level_info_extreme");
 				layers.LevelInfoExExtreme = findLayer(*aetGameCommon, "level_info_extreme_extra");
 				layers.SongTitle = findLayer(*aetGameCommon, "p_song_title_lt");
+
+				auto registerTypeLayer = [&](ButtonType button, std::string_view layerName, auto& outArray)
+				{
+					outArray[static_cast<size_t>(button)] = findLayer(*aetGameCommon, layerName);
+				};
+
+				registerTypeLayer(ButtonType::Triangle, "target_sankaku", layers.Targets);
+				registerTypeLayer(ButtonType::Square, "target_shikaku", layers.Targets);
+				registerTypeLayer(ButtonType::Cross, "target_batsu", layers.Targets);
+				registerTypeLayer(ButtonType::Circle, "target_maru", layers.Targets);
+				registerTypeLayer(ButtonType::SlideL, "target_slide18_l", layers.Targets);
+				registerTypeLayer(ButtonType::SlideR, "target_slide18_r", layers.Targets);
+
+				registerTypeLayer(ButtonType::SlideL, "target_slide26_l", layers.TargetsFrag);
+				registerTypeLayer(ButtonType::SlideR, "target_slide26_r", layers.TargetsFrag);
+				registerTypeLayer(ButtonType::SlideL, "target_slide26b_l", layers.TargetsFragHit);
+				registerTypeLayer(ButtonType::SlideR, "target_slide26b_r", layers.TargetsFragHit);
+
+				registerTypeLayer(ButtonType::Triangle, "target_sankaku_sync", layers.TargetsSync);
+				registerTypeLayer(ButtonType::Square, "target_shikaku_sync", layers.TargetsSync);
+				registerTypeLayer(ButtonType::Cross, "target_batsu_sync", layers.TargetsSync);
+				registerTypeLayer(ButtonType::Circle, "target_maru_sync", layers.TargetsSync);
+
+				registerTypeLayer(ButtonType::SlideL, "target_slide18_l_sync", layers.TargetsSync);
+				registerTypeLayer(ButtonType::SlideR, "target_slide18_r_sync", layers.TargetsSync);
+				registerTypeLayer(ButtonType::SlideL, "target_slide26_l_sync", layers.TargetsFragSync);
+				registerTypeLayer(ButtonType::SlideR, "target_slide26_r_sync", layers.TargetsFragSync);
+
+				registerTypeLayer(ButtonType::Triangle, "target_sankaku_hold", layers.TargetsHold);
+				registerTypeLayer(ButtonType::Square, "target_shikaku_hold", layers.TargetsHold);
+				registerTypeLayer(ButtonType::Cross, "target_batsu_hold", layers.TargetsHold);
+				registerTypeLayer(ButtonType::Circle, "target_maru_hold", layers.TargetsHold);
+
+				registerTypeLayer(ButtonType::Triangle, "target_sankaku_synchold", layers.TargetsSyncHold);
+				registerTypeLayer(ButtonType::Square, "target_shikaku_synchold", layers.TargetsSyncHold);
+				registerTypeLayer(ButtonType::Cross, "target_batsu_synchold", layers.TargetsSyncHold);
+				registerTypeLayer(ButtonType::Circle, "target_maru_synchold", layers.TargetsSyncHold);
+
+				registerTypeLayer(ButtonType::Triangle, "button_sankaku", layers.Buttons);
+				registerTypeLayer(ButtonType::Square, "button_shikaku", layers.Buttons);
+				registerTypeLayer(ButtonType::Cross, "button_batsu", layers.Buttons);
+				registerTypeLayer(ButtonType::Circle, "button_maru", layers.Buttons);
+				registerTypeLayer(ButtonType::SlideL, "button_slide18_l", layers.Buttons);
+				registerTypeLayer(ButtonType::SlideR, "button_slide18_r", layers.Buttons);
+
+				registerTypeLayer(ButtonType::SlideL, "button_slide25_l", layers.ButtonsFrag);
+				registerTypeLayer(ButtonType::SlideR, "button_slide25_r", layers.ButtonsFrag);
+
+				registerTypeLayer(ButtonType::Triangle, "button_sankaku_sync", layers.ButtonsSync);
+				registerTypeLayer(ButtonType::Square, "button_shikaku_sync", layers.ButtonsSync);
+				registerTypeLayer(ButtonType::Cross, "button_batsu_sync", layers.ButtonsSync);
+				registerTypeLayer(ButtonType::Circle, "button_maru_sync", layers.ButtonsSync);
+				registerTypeLayer(ButtonType::SlideL, "button_slide18_l_sync", layers.ButtonsSync);
+				registerTypeLayer(ButtonType::SlideR, "button_slide18_r_sync", layers.ButtonsSync);
+
+				registerTypeLayer(ButtonType::SlideL, "button_slide25_l_sync", layers.ButtonsFragSync);
+				registerTypeLayer(ButtonType::SlideR, "button_slide25_r_sync", layers.ButtonsFragSync);
+
+				if (!aetGameCommon->GetScenes().empty())
+				{
+					for (auto& video : aetGameCommon->GetScenes().front()->Videos)
+					{
+						if (video->Sources.size() == 1 && video->Sources.front().Name == "GAM_CMN_TARGET_HAND")
+							layers.TargetHandVideo = video;
+					}
+				}
 			}
 
 			if (GetFutureIfReady(sprGameCommonFuture, sprGameCommon) && sprGameCommon != nullptr)
@@ -142,6 +209,118 @@ namespace Comfy::Studio::Editor
 				renderer.Font().DrawBorder(*font, hud.SongName, TryGetTransform(layers.SongTitle, 0.0f));
 		}
 
+		// HACK: This is an incredibly hacky solution but is far more simple than creating entire layer + comp copies for each variation
+		void PushSetScaleKeyFrames(const Aet::Layer& baseLayer) const
+		{
+			auto push = [&](auto& keys)
+			{
+				const auto staticScale = keys.empty() ? 0.0f : keys.front().Value;
+
+				std::for_each(keys.begin(), keys.end(), [&](auto& key)
+				{
+					tempKeyFrameBackupStack.push(key.Value);
+					key.Value = staticScale;
+				});
+			};
+
+			for (auto& item : baseLayer.GetCompItem()->GetLayers())
+			{
+				push(item->LayerVideo->Transform.Scale.X.Keys);
+				push(item->LayerVideo->Transform.Scale.Y.Keys);
+			}
+		}
+		void PopRestoreScaleKeyFrames(const Aet::Layer& baseLayer) const
+		{
+			auto pop = [&](auto& keys)
+			{
+				std::for_each(keys.rbegin(), keys.rend(), [&](auto& key)
+				{
+					key.Value = tempKeyFrameBackupStack.top();
+					tempKeyFrameBackupStack.pop();
+				});
+			};
+
+			for (auto& item : baseLayer.GetCompItem()->GetLayers())
+			{
+				pop(item->LayerVideo->Transform.Scale.Y.Keys);
+				pop(item->LayerVideo->Transform.Scale.X.Keys);
+			}
+		}
+
+		void PushHideHandLayers(const Aet::Layer& baseLayer) const
+		{
+			auto push = [&](Aet::Layer& layer)
+			{
+				if (layer.GetVideoItem().get() == layers.TargetHandVideo.get())
+				{
+					tempLayerVisibleBackupStack.push(layer.Flags.VideoActive);
+					layer.Flags.VideoActive = false;
+				}
+			};
+
+			std::for_each(baseLayer.GetCompItem()->GetLayers().begin(), baseLayer.GetCompItem()->GetLayers().end(), [&](auto& layer)
+			{
+				if (auto& comp = layer->GetCompItem(); comp != nullptr)
+					std::for_each(comp->GetLayers().begin(), comp->GetLayers().end(), [&](auto& l) { push(*l); });
+				else
+					push(*layer);
+			});
+		}
+		void PopRestoreHandLayers(const Aet::Layer& baseLayer) const
+		{
+			auto pop = [&](Aet::Layer& layer)
+			{
+				if (layer.GetVideoItem().get() == layers.TargetHandVideo.get())
+				{
+					layer.Flags.VideoActive = tempLayerVisibleBackupStack.top();
+					tempLayerVisibleBackupStack.pop();
+				}
+			};
+
+			std::for_each(baseLayer.GetCompItem()->GetLayers().rbegin(), baseLayer.GetCompItem()->GetLayers().rend(), [&](auto& layer)
+			{
+				if (auto& comp = layer->GetCompItem(); comp != nullptr)
+					std::for_each(comp->GetLayers().rbegin(), comp->GetLayers().rend(), [&](auto& l) { pop(*l); });
+				else
+					pop(*layer);
+			});
+		}
+
+		void DrawTarget(Render::Renderer2D& renderer, const TargetDrawData& data) const
+		{
+			// TODO: Handle all other target types
+			const auto* layer = (data.Sync ? layers.TargetsSync : layers.Targets)[static_cast<size_t>(data.Type)].get();
+			if (layer == nullptr)
+				return;
+
+			if (data.NoScale) PushSetScaleKeyFrames(*layer);
+			if (data.NoHand) PushHideHandLayers(*layer);
+
+			auto transform = Transform2D(data.Position);
+			if (data.NoHand)
+			{
+				// DEBUG: To make the hand no hand difference clearer for now while buttons aren't yet implemented
+				transform.Opacity = 0.5f;
+			}
+
+			constexpr auto layerFrameScale = 360.0f;
+			renderer.Aet().DrawLayer(*layer, data.Progress * layerFrameScale, transform);
+
+			if (data.NoHand) PopRestoreHandLayers(*layer);
+			if (data.NoScale) PopRestoreScaleKeyFrames(*layer);
+		}
+
+		void DrawButton(Render::Renderer2D& renderer, const ButtonDrawData& data) const
+		{
+			// TODO: Handle all other button types
+			const auto* layer = (data.Sync ? layers.ButtonsSync : layers.Buttons)[static_cast<size_t>(data.Type)].get();
+			if (layer == nullptr)
+				return;
+
+			constexpr auto layerFrameScale = 360.0f;
+			renderer.Aet().DrawLayer(*layer, data.Progress * layerFrameScale, Transform2D(data.Position));
+		}
+
 	private:
 		void DrawHUDPracitceTime(Render::Renderer2D& renderer, TimeSpan playbackTime) const
 		{
@@ -215,6 +394,9 @@ namespace Comfy::Studio::Editor
 		size_t font36Index = std::numeric_limits<size_t>::max();
 		size_t fontPracticeNumIndex = std::numeric_limits<size_t>::max();
 
+		mutable std::stack<f32> tempKeyFrameBackupStack;
+		mutable std::stack<bool> tempLayerVisibleBackupStack;
+
 		struct LayerCache
 		{
 			std::shared_ptr<Aet::Layer>
@@ -230,6 +412,21 @@ namespace Comfy::Studio::Editor
 				LevelInfoExtreme,
 				LevelInfoExExtreme,
 				SongTitle;
+
+			std::array<std::shared_ptr<Aet::Layer>, EnumCount<ButtonType>()>
+				Targets,
+				TargetsFrag,
+				TargetsFragHit,
+				TargetsSync,
+				TargetsFragSync,
+				TargetsHold,
+				TargetsSyncHold,
+				Buttons,
+				ButtonsFrag,
+				ButtonsSync,
+				ButtonsFragSync;
+
+			std::shared_ptr<Aet::Video> TargetHandVideo;
 
 			std::shared_ptr<Aet::Layer>
 				PracticeGaugeBase,
@@ -261,5 +458,15 @@ namespace Comfy::Studio::Editor
 	void TargetRenderHelper::DrawHUD(Render::Renderer2D& renderer, const HUD& hud) const
 	{
 		impl->DrawHUD(renderer, hud);
+	}
+
+	void TargetRenderHelper::DrawTarget(Render::Renderer2D& renderer, const TargetDrawData& data) const
+	{
+		impl->DrawTarget(renderer, data);
+	}
+
+	void TargetRenderHelper::DrawButton(Render::Renderer2D& renderer, const ButtonDrawData& data) const
+	{
+		impl->DrawButton(renderer, data);
 	}
 }
