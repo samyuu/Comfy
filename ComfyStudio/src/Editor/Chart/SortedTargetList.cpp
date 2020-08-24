@@ -11,7 +11,7 @@ namespace Comfy::Studio::Editor
 			static_assert(sizeof(type) == sizeof(u8));
 
 			u64 totalWeight = 0;
-			totalWeight |= (static_cast<u64>(tick.TotalTicks()) << 32);
+			totalWeight |= (static_cast<u64>(tick.Ticks()) << 32);
 			totalWeight |= (static_cast<u64>(type) << 0);
 			return totalWeight;
 		}

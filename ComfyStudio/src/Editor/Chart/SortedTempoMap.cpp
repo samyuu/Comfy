@@ -10,7 +10,7 @@ namespace Comfy::Studio::Editor
 
 	void SortedTempoMap::SetTempoChange(TimelineTick tick, Tempo tempo, TimeSignature signature)
 	{
-		assert(tick.TotalTicks() >= 0);
+		assert(tick.Ticks() >= 0);
 
 		const auto insertionIndex = FindSortedInsertionIndex(tick);
 		if (InBounds(insertionIndex, tempoChanges))

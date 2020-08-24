@@ -28,14 +28,14 @@ namespace Comfy::Studio::Editor
 
 	TimelineTick TargetTimeline::FloorTickToGrid(TimelineTick tick) const
 	{
-		const auto gridTicks = GridDivisionTick().TotalTicks();
-		return TimelineTick::FromTicks(static_cast<i32>(glm::floor(tick.TotalTicks() / static_cast<f32>(gridTicks)) * gridTicks));
+		const auto gridTicks = GridDivisionTick().Ticks();
+		return TimelineTick::FromTicks(static_cast<i32>(glm::floor(tick.Ticks() / static_cast<f32>(gridTicks)) * gridTicks));
 	}
 
 	TimelineTick TargetTimeline::RoundTickToGrid(TimelineTick tick) const
 	{
-		const auto gridTicks = GridDivisionTick().TotalTicks();
-		return TimelineTick::FromTicks(static_cast<i32>(glm::round(tick.TotalTicks() / static_cast<f32>(gridTicks)) * gridTicks));
+		const auto gridTicks = GridDivisionTick().Ticks();
+		return TimelineTick::FromTicks(static_cast<i32>(glm::round(tick.Ticks() / static_cast<f32>(gridTicks)) * gridTicks));
 	}
 
 	// TODO: Rename all of these to contain their conversion types in the name and remove Get prefix
@@ -371,8 +371,8 @@ namespace Comfy::Studio::Editor
 		const auto gridColor = GetColor(EditorColor_Grid);
 		const auto gridAltColor = GetColor(EditorColor_GridAlt);
 
-		const i32 songDurationTicks = TimeToTick(workingChart->Duration).TotalTicks();
-		const i32 gridTickStep = GridDivisionTick().TotalTicks();
+		const i32 songDurationTicks = TimeToTick(workingChart->Duration).Ticks();
+		const i32 gridTickStep = GridDivisionTick().Ticks();
 
 		const auto scrollX = GetScrollX();
 
@@ -449,7 +449,7 @@ namespace Comfy::Studio::Editor
 		// NOTE: Time drag text
 		{
 			constexpr auto dragSpeed = 16.0f;
-			auto cursorDragTicks = static_cast<f32>(GetCursorTick().TotalTicks());
+			auto cursorDragTicks = static_cast<f32>(GetCursorTick().Ticks());
 
 			if (Gui::ComfyDragText("TimeDragText::AetTimeline", cursorTime.FormatTime().data(), &cursorDragTicks, dragSpeed, 0.0f, 0.0f, timeDragTextWidth))
 				SetCursorTime(TickToTime(RoundTickToGrid(TimelineTick::FromTicks(static_cast<int>(cursorDragTicks)))));
@@ -621,7 +621,7 @@ namespace Comfy::Studio::Editor
 				// TODO: Be able to move non-first tempo changes within the bounds of the previous and the next
 				GuiProperty::PropertyLabelValueFunc("Time", [&]
 				{
-					Gui::TextDisabled("%s (Ticks: %d)", TickToTime(tempoChange.Tick).FormatTime().data(), tempoChange.Tick.TotalTicks());
+					Gui::TextDisabled("%s (Ticks: %d)", TickToTime(tempoChange.Tick).FormatTime().data(), tempoChange.Tick.Ticks());
 					return false;
 				});
 
@@ -931,7 +931,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::AdvanceCursorByGridDivisionTick(int direction)
 	{
-		const auto newCursorTick = RoundTickToGrid(GetCursorTick()) + TimelineTick(GridDivisionTick().TotalTicks() * direction);
+		const auto newCursorTick = RoundTickToGrid(GetCursorTick()) + TimelineTick(GridDivisionTick().Ticks() * direction);
 		const auto newCursorTime = std::clamp(TickToTime(newCursorTick), TimeSpan::Zero(), workingChart->Duration);
 
 		const auto preCursorX = GetCursorTimelinePosition();

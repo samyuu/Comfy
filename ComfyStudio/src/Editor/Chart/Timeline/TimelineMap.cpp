@@ -11,7 +11,7 @@ namespace Comfy::Studio::Editor
 	TimeSpan TimelineMap::GetTimeAt(TimelineTick tick) const
 	{
 		const i32 tickTimeCount = static_cast<i32>(tickTimes.size());
-		const i32 totalTicks = tick.TotalTicks();
+		const i32 totalTicks = tick.Ticks();
 
 		if (totalTicks < 0) // NOTE: Negative tick
 		{
@@ -101,7 +101,7 @@ namespace Comfy::Studio::Editor
 		assert(tempoMap.TempoChangeCount() > 0);
 
 		const auto& lastTempoChange = tempoMap.GetTempoChangeAt(tempoMap.TempoChangeCount() - 1);
-		const size_t timeCount = lastTempoChange.Tick.TotalTicks() + 1;
+		const size_t timeCount = lastTempoChange.Tick.Ticks() + 1;
 
 		tickTimes.resize(timeCount);
 		{
@@ -119,8 +119,8 @@ namespace Comfy::Studio::Editor
 				const bool singleTempo = (tempoChangeCount == 1);
 				const bool isLastTempo = (tempoIndex == (tempoChangeCount - 1));
 
-				const size_t timesStart = tempoChange.Tick.TotalTicks();
-				const size_t timesCount = (singleTempo || isLastTempo) ? (tickTimes.size()) : (tempoMap.GetTempoChangeAt(tempoIndex + 1).Tick.TotalTicks());
+				const size_t timesStart = tempoChange.Tick.Ticks();
+				const size_t timesCount = (singleTempo || isLastTempo) ? (tickTimes.size()) : (tempoMap.GetTempoChangeAt(tempoIndex + 1).Tick.Ticks());
 
 				for (size_t i = 0, t = timesStart; t < timesCount; t++)
 					tickTimes[t] = TimeSpan::FromSeconds((tickDuration * i++) + tempoChangeEndTime);

@@ -3,21 +3,23 @@
 
 namespace Comfy::Studio::Editor
 {
-	// NOTE: Bar-Beat based BPM depended timeline unit
+	// NOTE: Beat tick based BPM depended fixed point timeline unit
 	struct TimelineTick
 	{
 	public:
-		static constexpr i32 TicksPerBeat = 192;
+		// NOTE: All code should be built around this value in a way that changing it won't break any behavior other than the maximum timeline precision
+		static constexpr i32 TicksPerBeat = (192 / 4);
+
 		static constexpr TimelineTick Zero() { return TimelineTick(0); }
-		// static constexpr TimelineTick FromBeats(i32 bars) { return FromTicks(TicksPerBeat * bars); }
 		static constexpr TimelineTick FromTicks(i32 ticks) { return TimelineTick(ticks); }
+		static constexpr TimelineTick FromBeats(i32 beats) { return FromTicks(TicksPerBeat * beats); }
+		static constexpr TimelineTick FromBars(i32 bars, i32 beatsPerBar = 4) { return FromBeats(bars * beatsPerBar); }
 
 	public:
 		constexpr TimelineTick() : tickCount(0) {}
-		constexpr explicit TimelineTick(i32 totalTicks) : tickCount(totalTicks) {}
+		constexpr explicit TimelineTick(i32 ticks) : tickCount(ticks) {}
 
-		constexpr i32 TotalTicks() const { return tickCount; }
-		constexpr i32 TotalBeats() const { return TotalTicks() / TicksPerBeat; }
+		constexpr i32 Ticks() const { return tickCount; }
 
 		constexpr bool operator==(const TimelineTick other) const { return tickCount == other.tickCount; }
 		constexpr bool operator!=(const TimelineTick other) const { return tickCount != other.tickCount; }
