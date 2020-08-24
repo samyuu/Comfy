@@ -31,29 +31,29 @@ namespace Comfy::Graphics
 					{
 						key.Frame = ParseAdvanceCommaSeparatedValueString<TValue>();
 						key.Value = 0.0f;
-						key.StartCurve = 0.0f;
-						key.EndCurve = 0.0f;
+						key.StartTangent = 0.0f;
+						key.EndTangent = 0.0f;
 					}
 					else if constexpr (TType == A3DKeyFrameType::FrameValue)
 					{
 						key.Frame = ParseAdvanceCommaSeparatedValueString<TValue>();
 						key.Value = ParseAdvanceCommaSeparatedValueString<TValue>();
-						key.StartCurve = 0.0f;
-						key.EndCurve = 0.0f;
+						key.StartTangent = 0.0f;
+						key.EndTangent = 0.0f;
 					}
 					else if constexpr (TType == A3DKeyFrameType::FrameValueCurveStart)
 					{
 						key.Frame = ParseAdvanceCommaSeparatedValueString<TValue>();
 						key.Value = ParseAdvanceCommaSeparatedValueString<TValue>();
-						key.StartCurve = ParseAdvanceCommaSeparatedValueString<TValue>();
-						key.EndCurve = 0.0f;
+						key.StartTangent = ParseAdvanceCommaSeparatedValueString<TValue>();
+						key.EndTangent = 0.0f;
 					}
 					else if constexpr (TType == A3DKeyFrameType::FrameValueCurveStartEnd)
 					{
 						key.Frame = ParseAdvanceCommaSeparatedValueString<TValue>();
 						key.Value = ParseAdvanceCommaSeparatedValueString<TValue>();
-						key.StartCurve = ParseAdvanceCommaSeparatedValueString<TValue>();
-						key.EndCurve = ParseAdvanceCommaSeparatedValueString<TValue>();
+						key.StartTangent = ParseAdvanceCommaSeparatedValueString<TValue>();
+						key.EndTangent = ParseAdvanceCommaSeparatedValueString<TValue>();
 					}
 					else
 					{
@@ -66,11 +66,11 @@ namespace Comfy::Graphics
 			{
 				if (CompareProperty("value"))
 				{
-					output.StaticValue = ParseValueString<float>();
+					output.StaticValue = ParseValueString<f32>();
 				}
 				else if (CompareProperty("type"))
 				{
-					output.Type = ParseEnumValueString<A3DInterpolationType>();
+					output.Type = ParseEnumValueString<A3DTangentType>();
 				}
 				else if (CompareProperty("raw_data_key_type"))
 				{
@@ -96,19 +96,19 @@ namespace Comfy::Graphics
 							switch (output.RawData.KeyType)
 							{
 							case A3DKeyFrameType::Frame:
-								ParseProperty1DRawDataValueList<float, A3DKeyFrameType::Frame>(output);
+								ParseProperty1DRawDataValueList<f32, A3DKeyFrameType::Frame>(output);
 								break;
 
 							case A3DKeyFrameType::FrameValue:
-								ParseProperty1DRawDataValueList<float, A3DKeyFrameType::FrameValue>(output);
+								ParseProperty1DRawDataValueList<f32, A3DKeyFrameType::FrameValue>(output);
 								break;
 
 							case A3DKeyFrameType::FrameValueCurveStart:
-								ParseProperty1DRawDataValueList<float, A3DKeyFrameType::FrameValueCurveStart>(output);
+								ParseProperty1DRawDataValueList<f32, A3DKeyFrameType::FrameValueCurveStart>(output);
 								break;
 
 							case A3DKeyFrameType::FrameValueCurveStartEnd:
-								ParseProperty1DRawDataValueList<float, A3DKeyFrameType::FrameValueCurveStartEnd>(output);
+								ParseProperty1DRawDataValueList<f32, A3DKeyFrameType::FrameValueCurveStartEnd>(output);
 								break;
 							}
 						}
@@ -120,7 +120,7 @@ namespace Comfy::Graphics
 				}
 				else if (CompareProperty("max"))
 				{
-					output.Max = ParseValueString<float>();
+					output.Max = ParseValueString<f32>();
 				}
 				else if (CompareProperty("key"))
 				{
@@ -136,40 +136,40 @@ namespace Comfy::Graphics
 							{
 							case A3DKeyFrameType::Frame:
 							{
-								key.Frame = ParseValueString<float>();
+								key.Frame = ParseValueString<f32>();
 								key.Value = 0.0f;
-								key.StartCurve = 0.0f;
-								key.EndCurve = 0.0f;
+								key.StartTangent = 0.0f;
+								key.EndTangent = 0.0f;
 							}
 							break;
 
 							case A3DKeyFrameType::FrameValue:
 							{
-								auto[frame, value] = ParseCommaSeparatedArray<float, 2>();
+								auto[frame, value] = ParseCommaSeparatedArray<f32, 2>();
 								key.Frame = frame;
 								key.Value = value;
-								key.StartCurve = 0.0f;
-								key.EndCurve = 0.0f;
+								key.StartTangent = 0.0f;
+								key.EndTangent = 0.0f;
 							}
 							break;
 
 							case A3DKeyFrameType::FrameValueCurveStart:
 							{
-								auto[frame, value, startCurve] = ParseCommaSeparatedArray<float, 3>();
+								auto[frame, value, startTan] = ParseCommaSeparatedArray<f32, 3>();
 								key.Frame = frame;
 								key.Value = value;
-								key.StartCurve = startCurve;
-								key.EndCurve = 0.0f;
+								key.StartTangent = startTan;
+								key.EndTangent = 0.0f;
 							}
 							break;
 
 							case A3DKeyFrameType::FrameValueCurveStartEnd:
 							{
-								auto[frame, value, startCurve, endCurve] = ParseCommaSeparatedArray<float, 4>();
+								auto[frame, value, startTan, endTan] = ParseCommaSeparatedArray<f32, 4>();
 								key.Frame = frame;
 								key.Value = value;
-								key.StartCurve = startCurve;
-								key.EndCurve = endCurve;
+								key.StartTangent = startTan;
+								key.EndTangent = endTan;
 							}
 							break;
 							}
@@ -178,11 +178,11 @@ namespace Comfy::Graphics
 				}
 				else if (CompareProperty("ep_type_pre"))
 				{
-					output.EPTypePre = ParseEnumValueString<EPType>();
+					output.PreInfinity = ParseEnumValueString<A3DInfinityType>();
 				}
 				else if (CompareProperty("ep_type_post"))
 				{
-					output.EPTypePost = ParseEnumValueString<EPType>();
+					output.PostInfinity = ParseEnumValueString<A3DInfinityType>();
 				}
 				else if (IsLastProperty())
 				{
@@ -360,7 +360,7 @@ namespace Comfy::Graphics
 									else if (CompareProperty("fov"))
 										TryParseProperty1D(camera.ViewPoint.FieldOfView);
 									else if (CompareProperty("aspect"))
-										camera.ViewPoint.AspectRatio = ParseValueString<float>();
+										camera.ViewPoint.AspectRatio = ParseValueString<f32>();
 								}
 							}
 							else if (CompareProperty("interest"))
@@ -577,7 +577,7 @@ namespace Comfy::Graphics
 						else if (CompareProperty("ref"))
 							event.Reference = ParseValueString();
 						else if (CompareProperty("time_ref_scale"))
-							event.TimeReferenceScale = ParseValueString<float>();
+							event.TimeReferenceScale = ParseValueString<f32>();
 					}
 				}
 			}
@@ -623,10 +623,6 @@ namespace Comfy::Graphics
 		};
 	}
 
-	A3D::A3D()
-	{
-	}
-
 	void A3D::Parse(const u8* buffer, size_t bufferSize)
 	{
 		const char* startOfTextBuffer = reinterpret_cast<const char*>(buffer);
@@ -645,14 +641,14 @@ namespace Comfy::Graphics
 			return refName.empty() ? nullptr : FindIfOrNull(collectionToSearch, [&](const auto& item) { return MatchesInsensitive(item.Name, refName); });
 		};
 
-		std::for_each(Objects.begin(), Objects.end(), [&](A3DObject& object) 
-		{ 
-			object.Parent = findReferenceByName(object.ParentName, Objects); 
+		std::for_each(Objects.begin(), Objects.end(), [&](A3DObject& object)
+		{
+			object.Parent = findReferenceByName(object.ParentName, Objects);
 			object.Morph = findReferenceByName(object.MorphName, Curves);
 
-			std::for_each(object.TexturePatterns.begin(), object.TexturePatterns.end(), [&](A3DTexturePattern& texturePattern) 
-			{ 
-				texturePattern.Pattern = findReferenceByName(texturePattern.PatternName, Curves); 
+			std::for_each(object.TexturePatterns.begin(), object.TexturePatterns.end(), [&](A3DTexturePattern& texturePattern)
+			{
+				texturePattern.Pattern = findReferenceByName(texturePattern.PatternName, Curves);
 			});
 		});
 	}

@@ -13,12 +13,12 @@ namespace Comfy::Graphics
 		MessagePack = 'A3DM',
 	};
 
-	struct A3DConverter
+	struct A3DConverterData
 	{
 		u32 Version = 0x00000000;
 	};
 
-	struct A3DProperty
+	struct A3DPropertyData
 	{
 		u32 Version = 0x00000000;
 	};
@@ -28,12 +28,12 @@ namespace Comfy::Graphics
 		A3DFormat Format = A3DFormat::Unknown;
 		bool Compressed16BitFloats = false;
 
-		A3DConverter Converter;
-		A3DProperty Property;
+		A3DConverterData Converter;
+		A3DPropertyData Property;
 		std::string FileName;
 	};
 
-	struct A3DPlayControl
+	struct A3DPlayControlData
 	{
 		frame_t Begin = 0.0f;
 		frame_t Duration = 0.0f;
@@ -53,13 +53,14 @@ namespace Comfy::Graphics
 	{
 		A3DKeyFrameType Type;
 		frame_t Frame;
-		float Value;
-		float StartCurve;
-		float EndCurve;
+		f32 Value;
+		f32 StartTangent;
+		f32 EndTangent;
 	};
 
-	enum class A3DInterpolationType : u32
+	enum class A3DTangentType : u32
 	{
+		// TODO: Fixed, Linear, Flat, Step, Slow, Fast, Spline, Clamped, Plateau, StepNext (?)
 		None = 0,
 		Static = 1,
 		Linear = 2,
@@ -80,9 +81,9 @@ namespace Comfy::Graphics
 		size_t ValueListSize;
 	};
 
-	enum class EPType : u32
+	enum class A3DInfinityType : u32
 	{
-		// TODO:
+		// TODO: Constant, Linear, Cycle, CycleRelative, Oscillate (?)
 		None = 0,
 		Reverse = 1,
 		Repeat = 2,
@@ -94,13 +95,13 @@ namespace Comfy::Graphics
 		bool Enabled;
 		std::vector<A3DKeyFrame> Keys;
 
-		EPType EPTypePre;
-		EPType EPTypePost;
-		
+		A3DInfinityType PreInfinity;
+		A3DInfinityType PostInfinity;
+
 		A3DRawData RawData;
-		float StaticValue;
-		float Max;
-		A3DInterpolationType Type;
+		f32 StaticValue;
+		f32 Max;
+		A3DTangentType Type;
 	};
 
 	struct A3DProperty3D
@@ -129,7 +130,7 @@ namespace Comfy::Graphics
 
 	struct A3DCurve
 	{
-		// TODO: C-urve V-alue, C-ontrol V-alue (???)
+		// TODO: C-urve V-alue, C-ontrol V-alue (?)
 		std::string Name;
 		A3DProperty1D CV;
 	};
@@ -137,7 +138,7 @@ namespace Comfy::Graphics
 	struct A3DCameraViewPoint
 	{
 		A3DTransform Transform;
-		float AspectRatio;
+		f32 AspectRatio;
 		A3DProperty1D FieldOfView;
 		bool HorizontalFieldOfView;
 
@@ -288,7 +289,7 @@ namespace Comfy::Graphics
 		std::string Name;
 		frame_t Begin;
 		frame_t End;
-		float TimeReferenceScale;
+		f32 TimeReferenceScale;
 		std::string Reference;
 		std::array<std::string, 1> Parameters;
 	};
@@ -296,13 +297,13 @@ namespace Comfy::Graphics
 	class A3D final : public IO::IBufferParsable
 	{
 	public:
-		A3D();
+		A3D() = default;
 		~A3D() = default;
 
 	public:
 		A3DMetadata Metadata;
-		A3DPlayControl PlayControl;
-		
+		A3DPlayControlData PlayControl;
+
 		std::vector<A3DPoint> Points;
 		std::vector<A3DCurve> Curves;
 
@@ -325,7 +326,7 @@ namespace Comfy::Graphics
 
 		std::vector<A3DObjectHRC> ObjectsHRC;
 		std::vector<std::string> ObjectHRCList;
-		
+
 		std::vector<A3DObjectHRC> MObjectsHRC;
 		std::vector<std::string> MObjectHRCList;
 
@@ -333,7 +334,7 @@ namespace Comfy::Graphics
 
 	public:
 		void Parse(const u8* buffer, size_t bufferSize) override;
-		
+
 		// NOTE: Needs to be called every time any of the vector iterators have been invalidated
 		void UpdateReferencePointers();
 	};

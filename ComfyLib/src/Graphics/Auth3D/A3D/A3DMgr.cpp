@@ -2,20 +2,20 @@
 
 namespace Comfy::Graphics
 {
-	float A3DMgr::Interpolate(A3DInterpolationType type, const A3DKeyFrame* start, const A3DKeyFrame* end, frame_t frame)
+	f32 A3DMgr::Interpolate(A3DTangentType type, const A3DKeyFrame& start, const A3DKeyFrame& end, frame_t frame)
 	{
-		if (start->Frame >= end->Frame)
-			return start->Value;
+		if (start.Frame >= end.Frame)
+			return start.Value;
 
 		switch (type)
 		{
-		case A3DInterpolationType::Linear:
+		case A3DTangentType::Linear:
 			return A3DMgr::InterpolateLinear(start, end, frame);
 
-		case A3DInterpolationType::Hermit:
+		case A3DTangentType::Hermit:
 			return A3DMgr::InterpolateHermit(start, end, frame);
 
-		case A3DInterpolationType::Hold:
+		case A3DTangentType::Hold:
 			return A3DMgr::InterpolateHold(start, end, frame);
 
 		default:
@@ -23,31 +23,31 @@ namespace Comfy::Graphics
 		}
 	}
 
-	float A3DMgr::InterpolateLinear(const A3DKeyFrame* start, const A3DKeyFrame* end, frame_t frame)
+	f32 A3DMgr::InterpolateLinear(const A3DKeyFrame& start, const A3DKeyFrame& end, frame_t frame)
 	{
-		const float range = end->Frame - start->Frame;
-		const float t = (frame - start->Frame) / range;
+		const f32 range = end.Frame - start.Frame;
+		const f32 t = (frame - start.Frame) / range;
 
-		return ((1.0f - t) * start->Value) + (t * end->Value);
+		return ((1.0f - t) * start.Value) + (t * end.Value);
 	}
 
-	float A3DMgr::InterpolateHermit(const A3DKeyFrame* start, const A3DKeyFrame* end, frame_t frame)
+	f32 A3DMgr::InterpolateHermit(const A3DKeyFrame& start, const A3DKeyFrame& end, frame_t frame)
 	{
-		const float range = end->Frame - start->Frame;
-		const float t = (frame - start->Frame) / range;
+		const f32 range = end.Frame - start.Frame;
+		const f32 t = (frame - start.Frame) / range;
 
-		return ((((((((t * t) * t) * 2.0f) - ((t * t) * 3.0f)) + 1.0f) * start->Value)
-			+ ((((t * t) * 3.0f) - (((t * t) * t) * 2.0f)) * end->Value))
-			+ (((((t * t) * t) - ((t * t) * 2.0f)) + t) * (range * start->EndCurve)))
-			+ ((((t * t) * t) - (t * t)) * (range * end->StartCurve));
+		return ((((((((t * t) * t) * 2.0f) - ((t * t) * 3.0f)) + 1.0f) * start.Value)
+			+ ((((t * t) * 3.0f) - (((t * t) * t) * 2.0f)) * end.Value))
+			+ (((((t * t) * t) - ((t * t) * 2.0f)) + t) * (range * start.EndTangent)))
+			+ ((((t * t) * t) - (t * t)) * (range * end.StartTangent));
 	}
 
-	float A3DMgr::InterpolateHold(const A3DKeyFrame* start, const A3DKeyFrame* end, frame_t frame)
+	f32 A3DMgr::InterpolateHold(const A3DKeyFrame& start, const A3DKeyFrame& end, frame_t frame)
 	{
-		return (frame >= end->Frame) ? end->Value : start->Value;
+		return (frame >= end.Frame) ? end.Value : start.Value;
 	}
 
-	std::array<const A3DKeyFrame*, 2> A3DMgr::GetStartEndKeyFramesAt(const A3DProperty1D& property, frame_t frame)
+	std::array<const A3DKeyFrame*, 2> A3DMgr::FindStartEndKeyFramesAt(const A3DProperty1D& property, frame_t frame)
 	{
 		const A3DKeyFrame* start = &property.Keys.front();
 		const A3DKeyFrame* end = start;
@@ -63,12 +63,12 @@ namespace Comfy::Graphics
 		return { start, end };
 	}
 
-	float A3DMgr::GetValueAt(const A3DProperty1D& property, frame_t frame)
+	f32 A3DMgr::GetValueAt(const A3DProperty1D& property, frame_t frame)
 	{
-		if (property.Type == A3DInterpolationType::Static)
+		if (property.Type == A3DTangentType::Static)
 			return property.StaticValue;
 
-		if (property.Type == A3DInterpolationType::None || property.Type >= A3DInterpolationType::Count)
+		if (property.Type == A3DTangentType::None || property.Type >= A3DTangentType::Count)
 			return 0.0f;
 
 		if (property.Keys.empty())
@@ -80,15 +80,15 @@ namespace Comfy::Graphics
 		if (property.Keys.size() == 1 || frame <= first.Frame)
 			return first.Value;
 
-		// TODO:
-		if (property.EPTypePost == EPType::Repeat)
+		// TODO: Correctly implement all different types
+		if (property.PostInfinity == A3DInfinityType::Repeat)
 			frame = glm::mod(frame, last.Frame);
 
 		if (frame > last.Frame)
 			return last.Value;
 
-		auto[start, end] = A3DMgr::GetStartEndKeyFramesAt(property, frame);
-		return A3DMgr::Interpolate(property.Type, start, end, frame);
+		auto[start, end] = A3DMgr::FindStartEndKeyFramesAt(property, frame);
+		return A3DMgr::Interpolate(property.Type, *start, *end, frame);
 	}
 
 	vec3 A3DMgr::GetValueAt(const A3DProperty3D& property, frame_t frame)
@@ -100,19 +100,20 @@ namespace Comfy::Graphics
 		return result;
 	}
 
-	float A3DMgr::GetRotationAt(const A3DProperty1D& property, frame_t frame)
+	f32 A3DMgr::GetRotationAt(const A3DProperty1D& property, frame_t frame)
 	{
 		return glm::degrees(GetValueAt(property, frame));
 	}
 
-	vec3 A3DMgr::GetRotationAt(const A3DProperty3D & property, frame_t frame)
+	vec3 A3DMgr::GetRotationAt(const A3DProperty3D& property, frame_t frame)
 	{
+		// TODO: Rotation Interpolation, None, Euler, Quaternion Tangent Dependent, Quaternion Slerp, Quaternion Squad (?)
 		return glm::degrees(GetValueAt(property, frame));
 	}
 
-	bool A3DMgr::GetBool(float value)
+	bool A3DMgr::GetBool(f32 value)
 	{
-		constexpr float threshold = 0.999f;
+		constexpr f32 threshold = 0.999f;
 		return (value >= threshold);
 	}
 
@@ -121,7 +122,7 @@ namespace Comfy::Graphics
 		return GetBool(GetValueAt(property, frame));
 	}
 
-	int A3DMgr::GetInt(float value)
+	int A3DMgr::GetInt(f32 value)
 	{
 		return static_cast<int>(glm::round(value));
 	}
@@ -140,18 +141,18 @@ namespace Comfy::Graphics
 		return result;
 	}
 
-	float A3DMgr::GetFieldOfViewAt(const A3DCameraViewPoint& viewPoint, frame_t frame)
+	f32 A3DMgr::GetFieldOfViewAt(const A3DCameraViewPoint& viewPoint, frame_t frame)
 	{
-		const float fov = A3DMgr::GetValueAt(viewPoint.FieldOfView, frame);
+		const f32 fov = A3DMgr::GetValueAt(viewPoint.FieldOfView, frame);
 
 		// NOTE: Could potentially be affected by PerspectiveCamera::AspectRatio
-		const float aspectRatio = viewPoint.AspectRatio;
+		const f32 aspectRatio = viewPoint.AspectRatio;
 
 		// TODO: Vertical FOV is not correct (?)
-		const float result = (viewPoint.HorizontalFieldOfView) ?
+		const f32 result = (viewPoint.HorizontalFieldOfView) ?
 			(glm::atan(glm::tan(fov * 0.5f) / aspectRatio) * 2.0f) :
 			(glm::atan((((aspectRatio * 25.4f) * 0.5f) / fov)) * 2.0f);
 
-		return result * (180.0f / glm::pi<float>());
+		return result * (180.0f / glm::pi<f32>());
 	}
 }
