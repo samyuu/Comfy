@@ -16,9 +16,10 @@ namespace Comfy
 	COMFY_NODISCARD constexpr __forceinline auto InBounds(const IndexType& index, const ArrayType& array) -> bool
 	{
 		static_assert(std::is_integral_v<IndexType>);
+		using SizeType = decltype(array.size());
 
 		if constexpr (std::is_signed_v<IndexType>)
-			return (index >= 0 && index < array.size());
+			return (index >= 0 && static_cast<SizeType>(index) < array.size());
 		else
 			return (index < array.size());
 	}
