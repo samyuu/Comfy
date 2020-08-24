@@ -70,7 +70,7 @@ namespace Comfy::Studio::Editor
 
 			float timelineHeaderHeight = 32.0f - 13.0f;
 			float tempoMapHeight = 13.0f;
-			
+
 			float tempoMapFontSize = 14.0f;
 			vec2 tempoMapFontOffset = vec2(+1.0f, -0.5f);
 
@@ -97,10 +97,10 @@ namespace Comfy::Studio::Editor
 
 		struct /* TimelineScrollData */
 		{
-			// fraction of the timeline width at which the timeline starts scrolling relative to the cursor
-			const float autoScrollOffsetFraction = 3.0f;
+			// NOTE: Percentage of the timeline width at which the timeline starts scrolling to keep the cursor at the same screen position
+			float autoScrollCursorOffsetPercentage = 0.75f;
 
-			bool autoScrollCursor = false;
+			bool autoScrollCursorEnabled = false;
 
 			float scrollDelta = 0.0f;
 			float scrollSpeed = 2.0f, scrollSpeedFast = 4.5f;

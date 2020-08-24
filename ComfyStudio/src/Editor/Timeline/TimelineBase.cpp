@@ -70,8 +70,8 @@ namespace Comfy::Studio::Editor
 		float cursorScreenX = cursorX - scrollX;
 
 		// NOTE: Ensure smooth cursor scrolling
-		if (autoScrollCursor)
-			cursorScreenX = timelineContentRegion.GetWidth() - (timelineContentRegion.GetWidth() / autoScrollOffsetFraction);
+		if (autoScrollCursorEnabled)
+			cursorScreenX = timelineContentRegion.GetWidth() - (timelineContentRegion.GetWidth() * (1.0f - autoScrollCursorOffsetPercentage));
 
 		cursorScreenX = glm::round(cursorScreenX);
 
@@ -217,7 +217,7 @@ namespace Comfy::Studio::Editor
 		const auto cursorPos = (GetCursorTimelinePosition());
 		const auto endPos = (ScreenToTimelinePosition(timelineContentRegion.GetBR().x));
 
-		const auto autoScrollOffset = (timelineContentRegion.GetWidth() / autoScrollOffsetFraction);
+		const auto autoScrollOffset = (timelineContentRegion.GetWidth() * (1.0f - autoScrollCursorOffsetPercentage));
 		if (cursorPos >= endPos - autoScrollOffset)
 		{
 			const auto increment = (cursorPos - endPos + autoScrollOffset);
@@ -225,7 +225,7 @@ namespace Comfy::Studio::Editor
 
 			// NOTE: Allow the cursor to go offscreen
 			if (GetMaxScrollX() - GetScrollX() > autoScrollOffset)
-				autoScrollCursor = true;
+				autoScrollCursorEnabled = true;
 		}
 	}
 
@@ -253,7 +253,7 @@ namespace Comfy::Studio::Editor
 	void TimelineBase::UpdateTimelineBase()
 	{
 		cursorTime = GetCursorTime();
-		autoScrollCursor = false;
+		autoScrollCursorEnabled = false;
 
 		if (GetIsPlayback())
 		{
