@@ -12,10 +12,10 @@ namespace Comfy::Studio::Editor
 	{
 		scrollSpeed = 2.5f;
 		scrollSpeedFast = 5.5f;
+		autoScrollCursorOffsetPercentage = 0.35f;
+		infoColumnWidth = 240.0f;
 
 		workingChart = chartEditor.GetChart();
-
-		infoColumnWidth = 240.0f;
 
 		buttonIcons = std::make_unique<TimelineButtonIcons>();
 		UpdateTimelineMapTimes();
@@ -149,6 +149,14 @@ namespace Comfy::Studio::Editor
 	{
 		lastFrameButtonSoundCursorTime = thisFrameButtonSoundCursorTime;
 		thisFrameButtonSoundCursorTime = GetCursorTime();
+
+		const auto elapsedTime = (thisFrameButtonSoundCursorTime - lastFrameButtonSoundCursorTime);
+
+		// NOTE: To prevent stacking of button sounds that happened "too long" ago, especially when the main window went inactive.
+		//		 Should be long enough to never be reached as a normal frametime
+		constexpr auto elapsedThresholdAtWhichPlayingSoundsMakesNoSense = TimeSpan::FromSeconds(1.0 / 5.0);
+		if (elapsedTime >= elapsedThresholdAtWhichPlayingSoundsMakesNoSense)
+			return;
 
 		// TODO: Implement metronome the same way, refactor ButtonSoundController to support any user controlled voices generically and rename to SoundVoicePool (?)
 
@@ -781,6 +789,10 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnUpdateInput()
 	{
+		const auto deltaTime = TimeSpan::FromSeconds(Gui::GetIO().DeltaTime);
+		for (auto& animationData : buttonAnimations)
+			animationData.ElapsedTime += deltaTime;
+
 		if (Gui::IsWindowFocused())
 		{
 			UpdateUndoRedoKeyboardInput();
@@ -869,18 +881,12 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::UpdateInputTargetPlacement()
 	{
-		const auto& io = Gui::GetIO();
-
 		if (!Gui::IsWindowFocused())
 			return;
 
 		// NOTE: Mouse X buttons, increase / decrease grid division
 		if (Gui::IsMouseClicked(3)) SelectNextPresetGridDivision(-1);
 		if (Gui::IsMouseClicked(4)) SelectNextPresetGridDivision(+1);
-
-		const auto deltaTime = TimeSpan::FromSeconds(io.DeltaTime);
-		for (auto& animationData : buttonAnimations)
-			animationData.ElapsedTime += deltaTime;
 
 		for (auto[buttonType, keyCode] : targetPlacementInputKeyMappings)
 		{
@@ -1011,6 +1017,12 @@ namespace Comfy::Studio::Editor
 	{
 		const auto& io = Gui::GetIO();
 
+		const auto beatIncrement = TimelineTick::FromBeats(1);
+		const auto gridIncrement = GridDivisionTick();
+
+		const auto scrollTickIncrement = (io.KeyShift ? std::max(beatIncrement, gridIncrement) : gridIncrement) * static_cast<i32>(io.MouseWheel);
+		const auto newCursorTick = std::max(TimelineTick::Zero(), GetCursorTick() + scrollTickIncrement);
+
 		if (const bool seekThroughSong = GetIsPlayback(); seekThroughSong)
 		{
 			const auto preCursorX = GetCursorTimelinePosition();
@@ -1018,15 +1030,20 @@ namespace Comfy::Studio::Editor
 			// NOTE: Pause and resume playback to reset the on playback start time
 			chartEditor.PausePlayback();
 			{
-				const auto scrollTimeIncrement = TimeSpan((io.KeyShift ? 1.0f : 0.5f) * io.MouseWheel);
-				SetCursorTime(chartEditor.GetPlaybackTimeAsync() + scrollTimeIncrement);
-
-				if (chartEditor.GetPlaybackTimeAsync() < TimeSpan::Zero())
-					SetCursorTime(TimeSpan::Zero());
+				SetCursorTime(TickToTime(newCursorTick));
 			}
 			chartEditor.ResumePlayback();
 
 			// NOTE: Keep the cursor at the same relative screen position to prevent potential disorientation
+			SetScrollX(GetScrollX() + (GetCursorTimelinePosition() - preCursorX));
+		}
+		else if (const bool seekingScroll = false; seekingScroll)
+		{
+			const auto preCursorX = GetCursorTimelinePosition();
+			{
+				SetCursorTime(TickToTime(newCursorTick));
+				PlayCursorButtonSoundsAndAnimation(newCursorTick);
+			}
 			SetScrollX(GetScrollX() + (GetCursorTimelinePosition() - preCursorX));
 		}
 		else

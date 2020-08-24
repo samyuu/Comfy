@@ -81,7 +81,7 @@ namespace Comfy::Studio::Editor
 		Stopwatch waveformUpdateStopwatch = Stopwatch::StartNew();
 
 	protected:
-		static constexpr std::array<int, 9> presetGridDivisions = { 1, 4, 8, 12, 16, 24, 32, 48, 64 };
+		static constexpr std::array presetGridDivisions = { 4, 8, 12, 16, 24, 32, 48, 64 };
 		int activeGridDivision = 16;
 
 	protected:
