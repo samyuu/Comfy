@@ -20,25 +20,26 @@ namespace Comfy::Studio::Editor
 	{
 		vec2 Position;
 		f32 Angle;
-		f32 Frequency;
+		i32 Frequency;
 		f32 Amplitude;
 		f32 Distance;
 	};
 
 	struct TargetFlags
 	{
+		// TODO: Implement selection system, applying to both the TargetTimeline and TargetRenderWindow at the same time
+		u16 IsSelected : 1;
 		u16 IsSync : 1;
 		u16 IsHold : 1;
 		u16 IsChain : 1;
 		u16 IsChainStart : 1;
 		u16 IsChainEnd : 1;
 		u16 IsChainHit : 1;
-		// TODO: Implement a system in which newly placed targets use default properties until manually set otherwise
+		// TODO: Implement a system in which newly placed targets use preset properties until manually set otherwise
 		u16 HasProperties : 1;
-		u16 /* Reserved */ : 1;
 
 		u16 IndexWithinSyncPair : 4;
-		u16 /* Reserved */ : 4;
+		u16 SyncPairCount : 4;
 	};
 
 	static_assert(sizeof(TargetFlags) == sizeof(u16));
@@ -51,9 +52,7 @@ namespace Comfy::Studio::Editor
 		TimelineTick Tick = {};
 		ButtonType Type = {};
 		TargetFlags Flags = {};
-
-		// TODO: Implement as part of the target render window
-		// TargetProperties Properties = {};
+		TargetProperties Properties = {};
 	};
 
 	class SortedTargetList : NonCopyable

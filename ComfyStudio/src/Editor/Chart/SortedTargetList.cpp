@@ -141,7 +141,11 @@ namespace Comfy::Studio::Editor
 			assert(pairCount > 0);
 
 			for (size_t pairIndex = 0; pairIndex < pairCount; pairIndex++)
-				targets[i++].Flags.IndexWithinSyncPair = pairIndex;
+			{
+				auto& target = targets[i++];
+				target.Flags.IndexWithinSyncPair = pairIndex;
+				target.Flags.SyncPairCount = pairCount;
+			}
 		}
 	}
 }
