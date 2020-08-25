@@ -14,13 +14,13 @@ namespace Comfy
 
 	public:
 		constexpr TimeSpan() : timeInSeconds(0.0) {}
-		explicit constexpr TimeSpan(f64 seconds) : timeInSeconds(seconds) {}
+		constexpr explicit TimeSpan(f64 seconds) : timeInSeconds(seconds) {}
 
 	public:
+		static constexpr TimeSpan Zero() { return TimeSpan(0.0); }
 		static constexpr TimeSpan FromMinutes(f64 value) { return TimeSpan(value * 60.0); }
 		static constexpr TimeSpan FromSeconds(f64 value) { return TimeSpan(value); }
 		static constexpr TimeSpan FromMilliseconds(f64 value) { return TimeSpan(value / 1000.0); }
-		static constexpr TimeSpan Zero() { return TimeSpan(0.0); }
 		static constexpr TimeSpan FromFrames(frame_t frames, frame_t frameRate = DefaultFrameRate) { return FromSeconds(frames / frameRate); }
 
 	public:
