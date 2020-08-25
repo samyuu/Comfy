@@ -30,8 +30,15 @@ namespace Comfy::Studio::Editor
 
 		constexpr TimelineTick operator+(const TimelineTick other) const { return TimelineTick(tickCount + other.tickCount); }
 		constexpr TimelineTick operator-(const TimelineTick other) const { return TimelineTick(tickCount - other.tickCount); }
-		constexpr TimelineTick operator*(const i32 other) const { return TimelineTick(tickCount * other); }
-		constexpr TimelineTick operator/(const i32 other) const { return TimelineTick(tickCount / other); }
+		constexpr TimelineTick operator*(const i32 ticks) const { return TimelineTick(tickCount * ticks); }
+		constexpr TimelineTick operator/(const i32 ticks) const { return TimelineTick(tickCount / ticks); }
+		constexpr TimelineTick operator%(const TimelineTick other) const { return TimelineTick(tickCount % other.tickCount); }
+
+		constexpr TimelineTick& operator+=(const TimelineTick other) { (tickCount += other.tickCount); return *this; }
+		constexpr TimelineTick& operator-=(const TimelineTick other) { (tickCount -= other.tickCount); return *this; }
+		constexpr TimelineTick& operator*=(const i32 ticks) { (tickCount *= ticks); return *this; }
+		constexpr TimelineTick& operator/=(const i32 ticks) { (tickCount *= ticks); return *this; }
+		constexpr TimelineTick& operator%=(const TimelineTick other) { (tickCount %= other.tickCount); return *this; }
 
 		constexpr TimelineTick operator-() const { return TimelineTick(-tickCount); }
 
