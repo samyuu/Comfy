@@ -66,9 +66,10 @@ namespace Comfy::Studio::Editor
 			const TimeSpan lastTickDuration = TimeSpan::FromSeconds((60.0 / lastTempo.BeatsPerMinute) / TimelineTick::TicksPerBeat);
 
 			// NOTE: So we just have to divide the remaining ticks by the duration
-			const double ticks = timePastLast / lastTickDuration;
+			const f64 ticks = timePastLast / lastTickDuration;
 			// NOTE: And add it to the last tick
-			return TimelineTick(static_cast<i32>(tickTimeCount + ticks));
+
+			return TimelineTick(static_cast<i32>(tickTimeCount + ticks - 1));
 		}
 		else // NOTE: Perform a binary search
 		{
@@ -106,15 +107,15 @@ namespace Comfy::Studio::Editor
 		tickTimes.resize(timeCount);
 		{
 			// NOTE: The time of when the last tempo change ended, so we can use higher precision multiplication
-			double tempoChangeEndTime = 0.0;
+			f64 tempoChangeEndTime = 0.0;
 
 			const size_t tempoChangeCount = tempoMap.TempoChangeCount();
 			for (size_t tempoIndex = 0; tempoIndex < tempoChangeCount; tempoIndex++)
 			{
 				const auto& tempoChange = tempoMap.GetTempoChangeAt(tempoIndex);
 
-				const double beatDuration = (60.0 / tempoChange.Tempo.BeatsPerMinute);
-				const double tickDuration = (beatDuration / TimelineTick::TicksPerBeat);
+				const f64 beatDuration = (60.0 / tempoChange.Tempo.BeatsPerMinute);
+				const f64 tickDuration = (beatDuration / TimelineTick::TicksPerBeat);
 
 				const bool singleTempo = (tempoChangeCount == 1);
 				const bool isLastTempo = (tempoIndex == (tempoChangeCount - 1));
