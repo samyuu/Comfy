@@ -23,19 +23,19 @@ namespace Comfy::Studio::Editor
 
 	TimelineTick TargetTimeline::GridDivisionTick() const
 	{
-		return TimelineTick::FromTicks((TimelineTick::TicksPerBeat * 4) / activeGridDivision);
+		return TimelineTick::FromBars(1) / activeBarGridDivision;
 	}
 
 	TimelineTick TargetTimeline::FloorTickToGrid(TimelineTick tick) const
 	{
-		const auto gridTicks = GridDivisionTick().Ticks();
-		return TimelineTick::FromTicks(static_cast<i32>(glm::floor(tick.Ticks() / static_cast<f32>(gridTicks)) * gridTicks));
+		const auto gridTicks = static_cast<f64>(GridDivisionTick().Ticks());
+		return TimelineTick::FromTicks(static_cast<i32>(glm::floor(static_cast<f64>(tick.Ticks()) / gridTicks) * gridTicks));
 	}
 
 	TimelineTick TargetTimeline::RoundTickToGrid(TimelineTick tick) const
 	{
-		const auto gridTicks = GridDivisionTick().Ticks();
-		return TimelineTick::FromTicks(static_cast<i32>(glm::round(tick.Ticks() / static_cast<f32>(gridTicks)) * gridTicks));
+		const auto gridTicks = static_cast<f64>(GridDivisionTick().Ticks());
+		return TimelineTick::FromTicks(static_cast<i32>(glm::round(static_cast<f64>(tick.Ticks()) / gridTicks) * gridTicks));
 	}
 
 	// TODO: Rename all of these to contain their conversion types in the name and remove Get prefix
@@ -92,9 +92,9 @@ namespace Comfy::Studio::Editor
 
 	int TargetTimeline::FindGridDivisionPresetIndex() const
 	{
-		for (int i = 0; i < presetGridDivisions.size(); i++)
+		for (int i = 0; i < presetBarGridDivisions.size(); i++)
 		{
-			if (presetGridDivisions[i] == activeGridDivision)
+			if (presetBarGridDivisions[i] == activeBarGridDivision)
 				return i;
 		}
 
@@ -465,7 +465,7 @@ namespace Comfy::Studio::Editor
 
 		{
 			char buttonNameBuffer[64];
-			sprintf_s(buttonNameBuffer, "Grid: 1 / %d", activeGridDivision);
+			sprintf_s(buttonNameBuffer, "Grid: 1 / %d", activeBarGridDivision);
 
 			Gui::SameLine();
 			if (Gui::Button(buttonNameBuffer, vec2(gridDivisionButtonWidth, timelineScrollbarSize.y)))
@@ -829,12 +829,17 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::UpdateCursorKeyboardInput()
 	{
 		constexpr bool allowRepeat = true;
+		const bool useBeatStep = Gui::GetIO().KeyShift;
 
 		if (Gui::IsKeyPressed(Input::KeyCode_Left, allowRepeat))
-			AdvanceCursorByGridDivisionTick(-1);
-
+			AdvanceCursorByGridDivisionTick(-1, useBeatStep);
 		if (Gui::IsKeyPressed(Input::KeyCode_Right, allowRepeat))
-			AdvanceCursorByGridDivisionTick(+1);
+			AdvanceCursorByGridDivisionTick(+1, useBeatStep);
+
+		if (Gui::IsKeyPressed(Input::KeyCode_Down, allowRepeat))
+			SelectNextPresetGridDivision(-1);
+		if (Gui::IsKeyPressed(Input::KeyCode_Up, allowRepeat))
+			SelectNextPresetGridDivision(+1);
 	}
 
 	void TargetTimeline::UpdateInputCursorClick()
@@ -930,14 +935,19 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::SelectNextPresetGridDivision(int direction)
 	{
 		const auto index = FindGridDivisionPresetIndex();
-		const auto nextIndex = std::clamp(index + direction, 0, static_cast<int>(presetGridDivisions.size()) - 1);
+		const auto nextIndex = std::clamp(index + direction, 0, static_cast<int>(presetBarGridDivisions.size()) - 1);
 
-		activeGridDivision = presetGridDivisions[nextIndex];
+		activeBarGridDivision = presetBarGridDivisions[nextIndex];
 	}
 
-	void TargetTimeline::AdvanceCursorByGridDivisionTick(int direction)
+	void TargetTimeline::AdvanceCursorByGridDivisionTick(int direction, bool beatStep)
 	{
-		const auto newCursorTick = RoundTickToGrid(GetCursorTick()) + TimelineTick(GridDivisionTick().Ticks() * direction);
+		const auto beatIncrement = TimelineTick::FromBeats(1);
+		const auto gridIncrement = GridDivisionTick();
+
+		const auto stepDistance = (beatStep ? std::max(beatIncrement, gridIncrement) : gridIncrement);
+
+		const auto newCursorTick = RoundTickToGrid(GetCursorTick()) + (stepDistance * direction);
 		const auto newCursorTime = std::clamp(TickToTime(newCursorTick), TimeSpan::Zero(), workingChart->Duration);
 
 		const auto preCursorX = GetCursorTimelinePosition();

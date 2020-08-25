@@ -81,8 +81,8 @@ namespace Comfy::Studio::Editor
 		Stopwatch waveformUpdateStopwatch = Stopwatch::StartNew();
 
 	protected:
-		static constexpr std::array presetGridDivisions = { 4, 8, 12, 16, 24, 32, 48, 64 };
-		int activeGridDivision = 16;
+		static constexpr std::array<i32, 10> presetBarGridDivisions = { 4, 8, 12, 16, 24, 32, 48, 64, 96, 192 };
+		int activeBarGridDivision = 16;
 
 	protected:
 		std::array<f32, EnumCount<ButtonType>()> targetYPositions = {};
@@ -164,7 +164,7 @@ namespace Comfy::Studio::Editor
 		void PlaceOrRemoveTarget(TimelineTick tick, ButtonType type);
 		void SelectNextPresetGridDivision(int direction);
 
-		void AdvanceCursorByGridDivisionTick(int direction);
+		void AdvanceCursorByGridDivisionTick(int direction, bool beatStep = false);
 
 	protected:
 		void PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick);
