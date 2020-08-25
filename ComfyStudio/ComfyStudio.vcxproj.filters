@@ -365,6 +365,9 @@
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Editor\Chart\TargetPropertyRules.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="res\ComfyStudio.rc">

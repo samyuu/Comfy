@@ -231,6 +231,7 @@
     <ClInclude Include="src\Editor\Chart\BPMTapCalculator.h" />
     <ClInclude Include="src\Editor\Chart\ChartCommands.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.h" />
+    <ClInclude Include="src\Editor\Chart\TargetPropertyRules.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TimelineButtonIcons.h" />
     <ClInclude Include="src\Editor\Common\CameraController3D.h" />
     <ClInclude Include="src\Editor\Chart\Chart.h" />
