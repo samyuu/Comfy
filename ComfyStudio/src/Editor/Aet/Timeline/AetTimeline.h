@@ -24,7 +24,7 @@ namespace Comfy::Studio::Editor
 		};
 	};
 
-	class AetTimeline : public FrameTimeline
+	class AetTimeline final : public FrameTimeline
 	{
 	public:
 		AetTimeline();

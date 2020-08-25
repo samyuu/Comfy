@@ -15,7 +15,7 @@ namespace Comfy::Studio::Editor
 	enum EditorColor;
 	class ChartEditor;
 
-	class TargetTimeline : public TimelineBase
+	class TargetTimeline final : public TimelineBase
 	{
 	public:
 		TargetTimeline(ChartEditor& parent, Undo::UndoManager& undoManager);
