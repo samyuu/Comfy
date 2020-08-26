@@ -143,7 +143,7 @@ namespace Comfy::Render
 
 		void InternalCreateIndexBuffer()
 		{
-			std::array<Detail::SpriteIndices, MaxBatchItemSize> indexData;
+			std::array<Detail::SpriteQuadIndices, MaxBatchItemSize> indexData;
 
 			for (u16 i = 0, offset = 0; i < indexData.size(); i++)
 			{
@@ -167,7 +167,7 @@ namespace Comfy::Render
 				offset += static_cast<u16>(Detail::SpriteQuadVertices::GetVertexCount());
 			}
 
-			SpriteQuadIndexBuffer = std::make_unique<D3D11::StaticIndexBuffer>(indexData.size() * sizeof(Detail::SpriteIndices), indexData.data(), IndexFormat::U16);
+			SpriteQuadIndexBuffer = std::make_unique<D3D11::StaticIndexBuffer>(indexData.size() * sizeof(Detail::SpriteQuadIndices), indexData.data(), IndexFormat::U16);
 			D3D11_SetObjectDebugName(SpriteQuadIndexBuffer->GetBuffer(), "Renderer2D::QuadIndexBuffer");
 		}
 
@@ -205,13 +205,6 @@ namespace Comfy::Render
 
 		bool AreBatchItemsCompatible(const Detail::SpriteBatchItem& item, const Detail::SpriteBatchItem& lastItem) const
 		{
-			// TODO: Implement sprite shape batching
-			if (item.ShapeVertexCount > 0 || lastItem.ShapeVertexCount > 0)
-				return false;
-
-			const bool textureChanged = (item.Texture != lastItem.Texture);
-			const bool textureMaskChanged = (item.MaskTexture != lastItem.MaskTexture);
-
 			if (item.Primitive != lastItem.Primitive)
 				return false;
 
@@ -221,10 +214,16 @@ namespace Comfy::Render
 			if (item.DrawTextBorder != lastItem.DrawTextBorder)
 				return false;
 
+			const bool textureChanged = (item.Texture != lastItem.Texture);
+			const bool textureMaskChanged = (item.MaskTexture != lastItem.MaskTexture);
+
 			if ((item.MaskTexture != nullptr || lastItem.MaskTexture != nullptr) && (textureChanged || textureMaskChanged))
 				return false;
 
 			if (item.DrawCheckerboard != lastItem.DrawCheckerboard)
+				return false;
+
+			if (item.ShapeVertexCount > 0 != lastItem.ShapeVertexCount > 0)
 				return false;
 
 			return true;
@@ -238,10 +237,7 @@ namespace Comfy::Render
 			DrawCallBatches.emplace_back(0, 1, quadIndex).Textures[0] = BatchItems.front().Texture;
 
 			if (BatchItems.front().ShapeVertexCount == 0)
-			{
-				SpriteQuadVertices.front().SetTextureIndices(0);
 				quadIndex++;
-			}
 
 			for (u16 itemIndex = 1; itemIndex < static_cast<u16>(BatchItems.size()); itemIndex++)
 			{
@@ -250,20 +246,27 @@ namespace Comfy::Render
 
 				if (int availableTextureIndex = FindAvailableTextureSlot(DrawCallBatches.back(), item.Texture); availableTextureIndex >= 0)
 				{
-					if (!AreBatchItemsCompatible(item, lastItem))
+					if (AreBatchItemsCompatible(item, lastItem))
+					{
+						DrawCallBatches.back().ItemCount++;
+					}
+					else
 					{
 						DrawCallBatches.emplace_back(itemIndex, 1, quadIndex);
 						availableTextureIndex = 0;
 					}
-					else
-					{
-						DrawCallBatches.back().ItemCount++;
-					}
 
 					if (item.ShapeVertexCount > 0)
+					{
+						for (size_t i = 0; i < item.ShapeVertexCount; i++)
+							SpriteShapeVertices[item.ShapeVertexIndex + i].TextureIndex = availableTextureIndex;
+
 						quadIndex--;
+					}
 					else
+					{
 						SpriteQuadVertices[quadIndex].SetTextureIndices(availableTextureIndex);
+					}
 
 					DrawCallBatches.back().Textures[availableTextureIndex] = item.Texture;
 				}
@@ -271,8 +274,6 @@ namespace Comfy::Render
 				{
 					if (item.ShapeVertexCount > 0)
 						quadIndex--;
-					else
-						SpriteQuadVertices[quadIndex].SetTextureIndices(0);
 
 					DrawCallBatches.emplace_back(itemIndex, 1, quadIndex).Textures[0] = item.Texture;
 				}
@@ -359,8 +360,7 @@ namespace Comfy::Render
 
 				if (lastPrimitive != item.Primitive)
 				{
-					// TODO: InternalSetPrimitiveType(item.Primitive);
-					D3D11::D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+					D3D11::D3D.Context->IASetPrimitiveTopology(D3D11::PrimitiveTypeToD3DTopology(item.Primitive));
 					lastPrimitive = item.Primitive;
 				}
 
@@ -413,15 +413,19 @@ namespace Comfy::Render
 
 				if (item.ShapeVertexCount > 0)
 				{
+					u32 totalVertices = 0;
+					for (size_t i = 0; i < batch.ItemCount; i++)
+						totalVertices += BatchItems[batch.ItemIndex + i].ShapeVertexCount;
+
 					D3D11::D3D.Context->Draw(
-						item.ShapeVertexCount,
+						totalVertices,
 						item.ShapeVertexIndex);
 				}
 				else
 				{
 					D3D11::D3D.Context->DrawIndexed(
-						batch.ItemCount * Detail::SpriteIndices::GetIndexCount(),
-						batch.QuadIndex * Detail::SpriteIndices::GetIndexCount(),
+						batch.ItemCount * Detail::SpriteQuadIndices::TotalIndices(),
+						batch.QuadIndex * Detail::SpriteQuadIndices::TotalIndices(),
 						0);
 				}
 

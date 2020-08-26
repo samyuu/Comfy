@@ -20,7 +20,7 @@ namespace Comfy::Render::Detail
 		return ((FloatToUInt32Sat(value.x)) << 0) | ((FloatToUInt32Sat(value.y)) << 8) | ((FloatToUInt32Sat(value.z)) << 16) | ((FloatToUInt32Sat(value.w)) << 24);
 	}
 
-	struct SpriteIndices
+	struct SpriteQuadIndices
 	{
 		u16 TopLeft;
 		u16 BottomLeft;
@@ -29,7 +29,7 @@ namespace Comfy::Render::Detail
 		u16 TopRight;
 		u16 TopLeftCopy;
 
-		static constexpr u32 GetIndexCount() { return sizeof(SpriteIndices) / sizeof(u16); };
+		static constexpr u32 TotalIndices() { return sizeof(SpriteQuadIndices) / sizeof(u16); };
 	};
 
 	struct SpriteVertex
