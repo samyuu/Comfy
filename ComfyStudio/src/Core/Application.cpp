@@ -205,14 +205,14 @@ namespace Comfy::Studio
 		// TODO: Restructure all of this, should probably be part of the currently active editor component (?); Dummy menus for now
 		if (Gui::BeginMenu("File"))
 		{
-			if (Gui::MenuItem("New", nullptr)) {}
-			if (Gui::MenuItem("Open...", nullptr)) {}
-			if (Gui::MenuItem("Open Recent", nullptr)) {}
+			if (Gui::MenuItem("New", nullptr, false, false)) {}
+			if (Gui::MenuItem("Open...", nullptr, false, false)) {}
+			if (Gui::MenuItem("Open Recent", nullptr, false, false)) {}
 			Gui::Separator();
-			if (Gui::MenuItem("Save", "Ctrl + S")) {}
-			if (Gui::MenuItem("Save As...", "Ctrl + Shift + S")) {}
+			if (Gui::MenuItem("Save", "Ctrl + S", false, false)) {}
+			if (Gui::MenuItem("Save As...", "Ctrl + Shift + S", false, false)) {}
 			Gui::Separator();
-			if (Gui::MenuItem("Import...")) {}
+			if (Gui::MenuItem("Import...", nullptr, false, false)) {}
 			Gui::Separator();
 
 			if (Gui::MenuItem("Exit...", "Alt + F4"))
@@ -223,17 +223,17 @@ namespace Comfy::Studio
 
 		if (Gui::BeginMenu("Edit"))
 		{
-			if (Gui::MenuItem("Undo", "Ctrl + Z")) {}
-			if (Gui::MenuItem("Redo", "Ctrl + Y")) {}
+			if (Gui::MenuItem("Undo", "Ctrl + Z", false, false)) {}
+			if (Gui::MenuItem("Redo", "Ctrl + Y", false, false)) {}
 			Gui::Separator();
-			if (Gui::MenuItem("Settings", nullptr)) {}
+			if (Gui::MenuItem("Settings...", nullptr, false, false)) {}
 
 			Gui::EndMenu();
 		}
 
 		if (Gui::BeginMenu("Window"))
 		{
-			if (Gui::MenuItem("Toggle Fullscreen", nullptr))
+			if (Gui::MenuItem("Toggle Fullscreen", "Alt + Enter"))
 				host->ToggleFullscreen();
 
 			if (Gui::BeginMenu("Swap Interval"))
