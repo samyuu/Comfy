@@ -36,6 +36,7 @@ namespace Comfy
 			HWND Handle = nullptr;
 			bool IsRunning = false;
 			bool IsFullscreen = false;
+			bool IsFullscreenRequested = false;
 			bool IsMaximized = false;
 
 			ivec2 Position = DefaultStartupWindowPosition;
@@ -137,6 +138,9 @@ namespace Comfy
 
 		void ProgramLoopTick()
 		{
+			// NOTE: Delay fullscreen requests until start of the (next) frame to avoid messing up any mid-farme rendering
+			UpdateFullscreenRequests();
+
 			PreUpdateFrameChangeState();
 			PreUpdatePollInput();
 			{
@@ -249,7 +253,7 @@ namespace Comfy
 			return true;
 		}
 
-		void InternalSnycMoveWindow()
+		void InternalApplyWindowPositionAndSize()
 		{
 			if (Window.Handle != nullptr)
 				::MoveWindow(Window.Handle, Window.Position.x, Window.Position.y, Window.Size.x, Window.Size.y, true);
@@ -329,26 +333,44 @@ namespace Comfy
 
 		bool CheckConnectedDevices()
 		{
-			if (!Input::Keyboard::GetInstanceInitialized())
+			if (!Input::Keyboard::GetInstanceInitialized() && Input::Keyboard::TryInitializeInstance())
 			{
-				if (Input::Keyboard::TryInitializeInstance())
-				{
-					Logger::LogLine(__FUNCTION__"(): Keyboard connected and initialized");
-				}
+				Logger::LogLine(__FUNCTION__"(): Keyboard connected and initialized");
 			}
 
-			if (!Input::DualShock4::GetInstanceInitialized())
+			if (!Input::DualShock4::GetInstanceInitialized() && Input::DualShock4::TryInitializeInstance())
 			{
-				if (Input::DualShock4::TryInitializeInstance())
-				{
-					Logger::LogLine(__FUNCTION__"(): DualShock4 connected and initialized");
-				}
+				Logger::LogLine(__FUNCTION__"(): DualShock4 connected and initialized");
 			}
 
 			return true;
 		}
 
 	public:
+		void UpdateFullscreenRequests()
+		{
+			if (Window.IsFullscreen == Window.IsFullscreenRequested)
+				return;
+
+			Window.IsFullscreen = Window.IsFullscreenRequested;
+
+			if (Window.IsFullscreen)
+			{
+				Window.PreFullScreenPosition = Window.Position;
+				Window.PreFullScreenSize = Window.Size;
+
+				Render::D3D11::D3D.SwapChain->SetFullscreenState(true, nullptr);
+			}
+			else
+			{
+				Render::D3D11::D3D.SwapChain->SetFullscreenState(false, nullptr);
+
+				Window.Position = Window.PreFullScreenPosition;
+				Window.Size = Window.PreFullScreenSize;
+				InternalApplyWindowPositionAndSize();
+			}
+		}
+
 		void PreUpdateFrameChangeState()
 		{
 			FileDrop.FilesDroppedThisFrame = FileDrop.FilesDropped && !FileDrop.FilesLastDropped;
@@ -662,20 +684,7 @@ namespace Comfy
 
 	void ApplicationHost::SetIsFullscreen(bool value)
 	{
-		if (impl->Window.IsFullscreen == value)
-			return;
-
-		if (value)
-		{
-			impl->Window.PreFullScreenPosition = impl->Window.Position;
-			impl->Window.PreFullScreenSize = impl->Window.Size;
-
-			// TODO: Enter fullscreen
-		}
-		else
-		{
-			// TODO: Exit fullscreen and restore window position / size
-		}
+		impl->Window.IsFullscreenRequested = value;
 	}
 
 	void ApplicationHost::ToggleFullscreen()
@@ -737,7 +746,7 @@ namespace Comfy
 			return;
 
 		impl->Window.Position = value;
-		impl->InternalSnycMoveWindow();
+		impl->InternalApplyWindowPositionAndSize();
 	}
 
 	ivec2 ApplicationHost::GetWindowSize() const
@@ -751,7 +760,7 @@ namespace Comfy
 			return;
 
 		impl->Window.Size = value;
-		impl->InternalSnycMoveWindow();
+		impl->InternalApplyWindowPositionAndSize();
 	}
 
 	ivec4 ApplicationHost::GetWindowRestoreRegion()
