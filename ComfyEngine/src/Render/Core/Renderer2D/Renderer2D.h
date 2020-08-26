@@ -10,6 +10,13 @@
 
 namespace Comfy::Render
 {
+	struct PositionTextureColorVertex
+	{
+		vec2 Position;
+		vec2 TextureCoordinates;
+		vec4 Color;
+	};
+
 	class Renderer2D : NonCopyable
 	{
 	public:
@@ -26,6 +33,11 @@ namespace Comfy::Render
 
 		void DrawRect(vec2 topLeft, vec2 topRight, vec2 bottomLeft, vec2 bottomRight, const vec4& color, float thickness = 1.0f);
 		void DrawRectCheckerboard(vec2 position, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4& color, float precision = 1.0f);
+
+		void DrawVertices(const PositionTextureColorVertex* vertices, size_t vertexCount, 
+			const Graphics::Tex* texture = nullptr, 
+			Graphics::AetBlendMode blendMode = Graphics::AetBlendMode::Normal, 
+			Graphics::PrimitiveType primitive = Graphics::PrimitiveType::Triangles);
 
 		void End();
 

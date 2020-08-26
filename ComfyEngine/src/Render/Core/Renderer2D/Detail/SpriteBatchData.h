@@ -10,6 +10,16 @@ namespace Comfy::Render
 
 namespace Comfy::Render::Detail
 {
+	constexpr u32 FloatToUInt32Sat(float value)
+	{
+		return static_cast<u32>(((value < 0.0f) ? 0.0f : (value > 1.0f) ? 1.0f : value) * 255.0f + 0.5f);
+	};
+
+	constexpr u32 ColorVec4ToU32(const vec4& value)
+	{
+		return ((FloatToUInt32Sat(value.x)) << 0) | ((FloatToUInt32Sat(value.y)) << 8) | ((FloatToUInt32Sat(value.z)) << 16) | ((FloatToUInt32Sat(value.w)) << 24);
+	}
+
 	struct SpriteIndices
 	{
 		u16 TopLeft;
@@ -31,7 +41,7 @@ namespace Comfy::Render::Detail
 		u32 TextureIndex;
 	};
 
-	struct SpriteVertices
+	struct SpriteQuadVertices
 	{
 		SpriteVertex TopLeft;
 		SpriteVertex TopRight;
@@ -40,7 +50,7 @@ namespace Comfy::Render::Detail
 
 	public:
 		void SetValues(vec2 position, const vec4& sourceRegion, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4 colors[4], bool setTexCoords);
-		static constexpr u32 GetVertexCount() { return sizeof(SpriteVertices) / sizeof(SpriteVertex); };
+		static constexpr u32 GetVertexCount() { return sizeof(SpriteQuadVertices) / sizeof(SpriteVertex); };
 
 	public:
 		void SetPositionsNoRotation(vec2 position, vec2 size);
@@ -57,14 +67,18 @@ namespace Comfy::Render::Detail
 		void SetTextureIndices(u32 textureIndex);
 	};
 
-	struct SpriteBatch
+	struct SpriteDrawCallBatch
 	{
-		u16 Index;
-		u16 Count;
+		SpriteDrawCallBatch(u16 index, u16 count, u16 quadIndex)
+			: ItemIndex(index), ItemCount(count), QuadIndex(quadIndex)
+		{
+		}
+
+		u16 ItemIndex;
+		u16 ItemCount;
+		u16 QuadIndex;
 
 		std::array<const D3D11::Texture2D*, MaxSpriteTextureSlots> Textures = {};
-
-		SpriteBatch(u16 index, u16 count) : Index(index), Count(count) {};
 	};
 
 	struct SpriteBatchItem
@@ -75,15 +89,21 @@ namespace Comfy::Render::Detail
 		// NOTE: May be nullptr
 		const D3D11::Texture2D* MaskTexture;
 
+		Graphics::PrimitiveType Primitive;
 		Graphics::AetBlendMode BlendMode;
-		bool DrawTextBorder;
 
-		std::optional<vec2> CheckerboardSize;
+		bool DrawTextBorder;
+		bool DrawCheckerboard;
+
+		vec2 CheckerboardSize;
+
+		u16 ShapeVertexIndex;
+		u16 ShapeVertexCount;
 	};
 
-	struct SpriteBatchPair
+	struct SpriteBatchItemVertexView
 	{
 		SpriteBatchItem* Item;
-		SpriteVertices* Vertices;
+		SpriteQuadVertices* Vertices;
 	};
 }

@@ -4,23 +4,13 @@ namespace Comfy::Render::Detail
 {
 	namespace
 	{
-		constexpr u32 FloatToUInt32Sat(float value)
-		{
-			return static_cast<u32>(((value < 0.0f) ? 0.0f : (value > 1.0f) ? 1.0f : value) * 255.0f + 0.5f);
-		};
-
-		constexpr u32 Vec4ToUInt32(const vec4& value)
-		{
-			return ((FloatToUInt32Sat(value.x)) << 0) | ((FloatToUInt32Sat(value.y)) << 8) | ((FloatToUInt32Sat(value.z)) << 16) | ((FloatToUInt32Sat(value.w)) << 24);
-		}
-
 		constexpr void RotateVec2(vec2& point, float sin, float cos)
 		{
 			point = vec2(point.x * cos - point.y * sin, point.x * sin + point.y * cos);
 		}
 	}
 
-	void SpriteVertices::SetTextureIndices(u32 textureIndex)
+	void SpriteQuadVertices::SetTextureIndices(u32 textureIndex)
 	{
 		TopLeft.TextureIndex = textureIndex;
 		TopRight.TextureIndex = textureIndex;
@@ -28,7 +18,7 @@ namespace Comfy::Render::Detail
 		BottomRight.TextureIndex = textureIndex;
 	}
 
-	void SpriteVertices::SetValues(vec2 position, const vec4& sourceRegion, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4 colors[4], bool setTexCoords)
+	void SpriteQuadVertices::SetValues(vec2 position, const vec4& sourceRegion, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4 colors[4], bool setTexCoords)
 	{
 		SetPositions(position, vec2(sourceRegion.z, sourceRegion.w) * scale, origin * scale, rotation);
 
@@ -49,7 +39,7 @@ namespace Comfy::Render::Detail
 		SetColorArray(colors);
 	}
 
-	void SpriteVertices::SetPositionsNoRotation(vec2 position, vec2 size)
+	void SpriteQuadVertices::SetPositionsNoRotation(vec2 position, vec2 size)
 	{
 		TopLeft.Position.x = position.x;
 		TopLeft.Position.y = position.y;
@@ -64,7 +54,7 @@ namespace Comfy::Render::Detail
 		BottomRight.Position.y = position.y + size.y;
 	}
 
-	void SpriteVertices::SetPositions(vec2 position, vec2 size, vec2 origin, float rotation)
+	void SpriteQuadVertices::SetPositions(vec2 position, vec2 size, vec2 origin, float rotation)
 	{
 		if (rotation == 0.0f)
 		{
@@ -90,7 +80,7 @@ namespace Comfy::Render::Detail
 		}
 	}
 
-	void SpriteVertices::SetTexCoords(vec2 topLeft, vec2 bottomRight)
+	void SpriteQuadVertices::SetTexCoords(vec2 topLeft, vec2 bottomRight)
 	{
 		TopLeft.TextureCoordinates.x = topLeft.x;
 		TopLeft.TextureCoordinates.y = topLeft.y;
@@ -105,7 +95,7 @@ namespace Comfy::Render::Detail
 		BottomRight.TextureCoordinates.y = bottomRight.y;
 	}
 
-	void SpriteVertices::SetNullTexCoords()
+	void SpriteQuadVertices::SetNullTexCoords()
 	{
 		constexpr auto center = vec2(0.5f, 0.5f);
 
@@ -115,7 +105,7 @@ namespace Comfy::Render::Detail
 		BottomRight.TextureCoordinates = center;
 	}
 
-	void SpriteVertices::SetTexMaskCoords(
+	void SpriteQuadVertices::SetTexMaskCoords(
 		const D3D11::Texture2D* texture, vec2 position, vec2 scale, vec2 origin, float rotation,
 		vec2 maskPosition, vec2 maskScale, vec2 maskOrigin, float maskRotation, const vec4& maskSourceRegion)
 	{
@@ -169,20 +159,20 @@ namespace Comfy::Render::Detail
 		BottomRight.TextureMaskCoordinates /= scaledTextureSize;
 	}
 
-	void SpriteVertices::SetColors(const vec4& color)
+	void SpriteQuadVertices::SetColors(const vec4& color)
 	{
-		const u32 packedColor = Vec4ToUInt32(color);
+		const u32 packedColor = ColorVec4ToU32(color);
 		TopLeft.Color = packedColor;
 		TopRight.Color = packedColor;
 		BottomLeft.Color = packedColor;
 		BottomRight.Color = packedColor;
 	}
 
-	void SpriteVertices::SetColorArray(const vec4 colors[4])
+	void SpriteQuadVertices::SetColorArray(const vec4 colors[4])
 	{
-		TopLeft.Color = Vec4ToUInt32(colors[0]);
-		TopRight.Color = Vec4ToUInt32(colors[1]);
-		BottomLeft.Color = Vec4ToUInt32(colors[2]);
-		BottomRight.Color = Vec4ToUInt32(colors[3]);
+		TopLeft.Color = ColorVec4ToU32(colors[0]);
+		TopRight.Color = ColorVec4ToU32(colors[1]);
+		BottomLeft.Color = ColorVec4ToU32(colors[2]);
+		BottomRight.Color = ColorVec4ToU32(colors[3]);
 	}
 }
