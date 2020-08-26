@@ -2,34 +2,8 @@
 
 namespace Comfy::Render::D3D11
 {
-	constexpr DXGI_FORMAT GetDXGIFormatFromIndexFormat(Graphics::IndexFormat indexFormat)
-	{
-		switch (indexFormat)
-		{
-		case Graphics::IndexFormat::U8:		return DXGI_FORMAT_R8_UINT;
-		case Graphics::IndexFormat::U16:	return DXGI_FORMAT_R16_UINT;
-		case Graphics::IndexFormat::U32:	return DXGI_FORMAT_R32_UINT;
-		}
-
-		assert(false);
-		return DXGI_FORMAT_UNKNOWN;
-	}
-
-	constexpr size_t GetIndexFormatSize(Graphics::IndexFormat indexFormat)
-	{
-		switch (indexFormat)
-		{
-		case Graphics::IndexFormat::U8:		return sizeof(u8);
-		case Graphics::IndexFormat::U16:	return sizeof(u16);
-		case Graphics::IndexFormat::U32:	return sizeof(u32);
-		}
-
-		assert(false);
-		return DXGI_FORMAT_UNKNOWN;
-	}
-
 	IndexBuffer::IndexBuffer(size_t dataSize, const void* data, Graphics::IndexFormat indexFormat, D3D11_USAGE usage, UINT accessFlags)
-		: indexFormat(GetDXGIFormatFromIndexFormat(indexFormat))
+		: indexFormat(IndexFormatToDXGIFormat(indexFormat))
 	{
 		std::unique_ptr<u16[]> convertedIndices = nullptr;
 
@@ -37,7 +11,7 @@ namespace Comfy::Render::D3D11
 		if (indexFormat == Graphics::IndexFormat::U8 && data != nullptr)
 		{
 			indexFormat = Graphics::IndexFormat::U16;
-			this->indexFormat = GetDXGIFormatFromIndexFormat(indexFormat);
+			this->indexFormat = IndexFormatToDXGIFormat(indexFormat);
 
 			const auto indexCount = (dataSize / sizeof(u8));
 			const u8* inputIndices = static_cast<const u8*>(data);

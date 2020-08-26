@@ -39,40 +39,6 @@ namespace Comfy::Render
 
 	constexpr u32 MorphVertexAttributeOffset = VertexAttribute_Count;
 
-	constexpr D3D11_PRIMITIVE_TOPOLOGY GetD3DPrimitiveTopolgy(PrimitiveType primitive)
-	{
-		switch (primitive)
-		{
-		case PrimitiveType::Points:
-			return D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
-
-		case PrimitiveType::Lines:
-			return D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-
-		case PrimitiveType::LineStrip:
-			return D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
-
-		case PrimitiveType::LineLoop:
-			return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
-
-		case PrimitiveType::Triangles:
-			return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-
-		case PrimitiveType::TriangleStrip:
-			return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-
-		case PrimitiveType::TriangleFan:
-		case PrimitiveType::Quads:
-		case PrimitiveType::QuadStrip:
-		case PrimitiveType::Polygon:
-			return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
-
-		default:
-			assert(false);
-			return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
-		}
-	}
-
 	const Material& GetSubMeshMaterial(const SubMesh& subMesh, const RenderCommand3D& command)
 	{
 		if (command.Dynamic != nullptr)
@@ -1845,7 +1811,7 @@ namespace Comfy::Render
 			if (auto* indexBuffer = D3D11::GetIndexBuffer(subMesh); indexBuffer != nullptr)
 				indexBuffer->Bind();
 
-			D3D11::D3D.Context->IASetPrimitiveTopology(GetD3DPrimitiveTopolgy(subMesh.Primitive));
+			D3D11::D3D.Context->IASetPrimitiveTopology(D3D11::PrimitiveTypeToD3DTopology(subMesh.Primitive));
 			D3D11::D3D.Context->DrawIndexed(static_cast<UINT>(indexCount), 0, 0);
 
 			Statistics.VerticesRendered += indexCount;
