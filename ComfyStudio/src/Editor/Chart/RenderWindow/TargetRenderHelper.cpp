@@ -39,7 +39,8 @@ namespace Comfy::Studio::Editor
 
 			auto findSprite = [](SprSet& sprSet, std::string_view spriteName)
 			{
-				return FindIfOrNull(sprSet.Sprites, [&](const auto& spr) {return spr.Name == spriteName; });
+				const auto found = FindIfOrNull(sprSet.Sprites, [&](const auto& spr) {return spr.Name == spriteName; });
+				return (found != nullptr && InBounds(found->TextureIndex, sprSet.TexSet.Textures)) ? found : nullptr;
 			};
 
 			if (GetFutureIfReady(aetGameCommonFuture, aetGameCommon) && aetGameCommon != nullptr)
@@ -126,7 +127,8 @@ namespace Comfy::Studio::Editor
 
 			if (GetFutureIfReady(sprGameCommonFuture, sprGameCommon) && sprGameCommon != nullptr)
 			{
-
+				sprites.ButtonTrail = findSprite(*sprGameCommon, "KISEKI");
+				sprites.ButtonSyncLine = findSprite(*sprGameCommon, "KISEKI_SYNC");
 			}
 
 			if (GetFutureIfReady(aetGameFuture, aetGame) && aetGame != nullptr)
@@ -173,11 +175,8 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
-		void DrawHUD(Render::Renderer2D& renderer, const HUD& hud) const
+		void SetAetSprGetter(Render::Renderer2D& renderer)
 		{
-			if (aetGameCommon == nullptr || sprGameCommon == nullptr || aetGame == nullptr || sprGame == nullptr || sprFont36 == nullptr || fontMap == nullptr)
-				return;
-
 			// TODO: Find a better solution for this, maybe store tex shared_ptr + spr as mutable VideoSource member (?)
 			renderer.Aet().SetSprGetter([this](const Aet::VideoSource& source) -> Render::TexSprView
 			{
@@ -189,6 +188,12 @@ namespace Comfy::Studio::Editor
 
 				return Render::NullSprGetter(source);
 			});
+		}
+
+		void DrawHUD(Render::Renderer2D& renderer, const HUD& hud) const
+		{
+			if (aetGameCommon == nullptr || sprGameCommon == nullptr || aetGame == nullptr || sprGame == nullptr || sprFont36 == nullptr || fontMap == nullptr)
+				return;
 
 			TryDrawLayer(renderer, layers.FrameUp, 0.0f);
 			TryDrawLayer(renderer, layers.FrameBottom, 0.0f);
@@ -321,6 +326,93 @@ namespace Comfy::Studio::Editor
 			renderer.Aet().DrawLayer(*layer, data.Progress * layerFrameScale, Transform2D(data.Position));
 		}
 
+		void DrawButtonPairSyncLines(Render::Renderer2D& renderer, const ButtonSyncLineData& data) const
+		{
+			assert(data.SyncPairCount >= 2);
+
+			const auto syncLine = GetButtonSyncLineSprite();
+			if (!syncLine)
+				return;
+
+			if (data.SyncPairCount == 2)
+			{
+				DrawSingleButtonSyncLine(renderer, syncLine, data.ButtonPositions[0], data.ButtonPositions[1], data.Progress);
+			}
+			else if (data.SyncPairCount == 3)
+			{
+				DrawSingleButtonSyncLine(renderer, syncLine, data.ButtonPositions[0], data.ButtonPositions[1], data.Progress);
+				DrawSingleButtonSyncLine(renderer, syncLine, data.ButtonPositions[1], data.ButtonPositions[2], data.Progress);
+				DrawSingleButtonSyncLine(renderer, syncLine, data.ButtonPositions[2], data.ButtonPositions[0], data.Progress);
+			}
+			else if (data.SyncPairCount == 4)
+			{
+				const auto& targets = data.TargetPositions;
+				const auto& buttons = data.ButtonPositions;
+
+				const auto centroid = (targets[0] + targets[1] + targets[2] + targets[3]) / 4.0f;
+				const auto centroidAngle = [centroid](const auto& v) { return glm::atan(centroid.y - v.y, centroid.x - v.x); };
+
+				std::array<const vec2*, 4> sortedTargets;
+				for (size_t i = 0; i < sortedTargets.size(); i++)
+					sortedTargets[i] = &targets[i];
+
+				std::sort(sortedTargets.begin(), sortedTargets.end(), [&](auto& a, auto& b) { return centroidAngle(*a) > centroidAngle(*b); });
+
+				std::array<vec2, 4> sortedButtons;
+				for (size_t i = 0; i < 4; i++)
+					sortedButtons[i] = buttons[std::distance(&targets[0], sortedTargets[i])];
+
+				DrawSingleButtonSyncLine(renderer, syncLine, sortedButtons[0], sortedButtons[1], data.Progress);
+				DrawSingleButtonSyncLine(renderer, syncLine, sortedButtons[1], sortedButtons[2], data.Progress);
+				DrawSingleButtonSyncLine(renderer, syncLine, sortedButtons[2], sortedButtons[3], data.Progress);
+				DrawSingleButtonSyncLine(renderer, syncLine, sortedButtons[3], sortedButtons[0], data.Progress);
+			}
+		}
+
+		void DrawSingleButtonSyncLine(Render::Renderer2D& renderer, Render::TexSprView syncLine, vec2 start, vec2 end, f32 progress) const
+		{
+			assert(syncLine);
+			std::array<Render::RenderCommand2D, 2> commands;
+
+			const auto spriteSize = syncLine.Spr->GetSize();
+			const auto spriteSizeHalf = spriteSize * 0.5f;
+
+			const auto distance = glm::distance(start, end);
+			const auto distanceHalf = distance * 0.5f;
+
+			commands[0].TexView.Texture = syncLine.Tex;
+			commands[0].TexView.AddressU = TextureAddressMode::WrapRepeat;
+			commands[1].TexView = commands[0].TexView;
+
+			constexpr auto transparentWhite = vec4(1.0f, 1.0f, 1.0f, 0.0f);
+			commands[0].CornerColors[0] = transparentWhite;
+			commands[0].CornerColors[2] = transparentWhite;
+			commands[1].CornerColors[1] = transparentWhite;
+			commands[1].CornerColors[3] = transparentWhite;
+
+			commands[0].Position = start;
+			commands[1].Position = (end + start) / 2.0f;
+
+			commands[0].Origin = vec2(0.0f, spriteSizeHalf.y);
+			commands[1].Origin = commands[0].Origin;
+
+			auto vecToAngle = [](vec2 vec) { return glm::degrees(glm::atan(vec.y, vec.x)); };
+			commands[0].Rotation = vecToAngle(end - start);
+			commands[1].Rotation = commands[0].Rotation;
+
+			commands[0].Scale = vec2((distance / spriteSize.x), -0.5f);
+			commands[1].Scale = commands[0].Scale;
+
+			constexpr auto textureWidthsToScrollPerFullProgressCycle = 1.0f;
+			const auto scroll = (progress * spriteSize.x * textureWidthsToScrollPerFullProgressCycle);
+
+			commands[0].SourceRegion = vec4(scroll, 0.0f, spriteSizeHalf.x, spriteSize.y);
+			commands[1].SourceRegion = vec4(scroll + spriteSizeHalf.x, 0.0f, spriteSizeHalf.x, spriteSize.y);
+
+			for (const auto& command : commands)
+				renderer.Draw(command);
+		}
+
 	private:
 		void DrawHUDPracitceTime(Render::Renderer2D& renderer, TimeSpan playbackTime) const
 		{
@@ -375,6 +467,20 @@ namespace Comfy::Studio::Editor
 		BitmapFont* GetFontPracticeNum() const
 		{
 			return (sprGame == nullptr || fontMap == nullptr) ? nullptr : IndexOrNull(fontPracticeNumIndex, fontMap->Fonts);
+		}
+
+		Render::TexSprView GetButtonTrailSprite() const
+		{
+			return (sprites.ButtonTrail == nullptr) ?
+				Render::TexSprView { nullptr, nullptr } :
+				Render::TexSprView { sprGameCommon->TexSet.Textures[sprites.ButtonTrail->TextureIndex].get(), sprites.ButtonTrail };
+		}
+
+		Render::TexSprView GetButtonSyncLineSprite() const
+		{
+			return (sprites.ButtonSyncLine == nullptr) ?
+				Render::TexSprView { nullptr, nullptr } :
+				Render::TexSprView { sprGameCommon->TexSet.Textures[sprites.ButtonSyncLine->TextureIndex].get(), sprites.ButtonSyncLine };
 		}
 
 	private:
@@ -441,6 +547,9 @@ namespace Comfy::Studio::Editor
 		struct SpriteCache
 		{
 			Spr* PracticeNumbers;
+
+			Spr* ButtonTrail;
+			Spr* ButtonSyncLine;
 		} sprites = {};
 	};
 
@@ -453,6 +562,11 @@ namespace Comfy::Studio::Editor
 	void TargetRenderHelper::UpdateAsyncLoading()
 	{
 		impl->UpdateAsyncLoading();
+	}
+
+	void TargetRenderHelper::SetAetSprGetter(Render::Renderer2D& renderer)
+	{
+		impl->SetAetSprGetter(renderer);
 	}
 
 	void TargetRenderHelper::DrawHUD(Render::Renderer2D& renderer, const HUD& hud) const
@@ -468,5 +582,12 @@ namespace Comfy::Studio::Editor
 	void TargetRenderHelper::DrawButton(Render::Renderer2D& renderer, const ButtonDrawData& data) const
 	{
 		impl->DrawButton(renderer, data);
+	}
+	void TargetRenderHelper::DrawButtonPairSyncLines(Render::Renderer2D& renderer, const ButtonSyncLineData& data) const
+	{
+		if (data.SyncPairCount < 2)
+			return;
+
+		impl->DrawButtonPairSyncLines(renderer, data);
 	}
 }

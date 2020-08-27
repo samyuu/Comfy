@@ -16,6 +16,7 @@ namespace Comfy::Studio::Editor
 
 	public:
 		void UpdateAsyncLoading();
+		void SetAetSprGetter(Render::Renderer2D& renderer);
 
 		struct HUD
 		{
@@ -44,8 +45,8 @@ namespace Comfy::Studio::Editor
 
 		void DrawTarget(Render::Renderer2D& renderer, const TargetDrawData& data) const;
 
-		struct ButtonDrawData 
-		{ 
+		struct ButtonDrawData
+		{
 			ButtonType Type;
 			bool Sync;
 			bool Chain;
@@ -54,6 +55,16 @@ namespace Comfy::Studio::Editor
 		};
 
 		void DrawButton(Render::Renderer2D& renderer, const ButtonDrawData& data) const;
+
+		struct ButtonSyncLineData
+		{
+			u32 SyncPairCount;
+			f32 Progress;
+			std::array<vec2, 4> TargetPositions;
+			std::array<vec2, 4> ButtonPositions;
+		};
+
+		void DrawButtonPairSyncLines(Render::Renderer2D& renderer, const ButtonSyncLineData& data) const;
 
 	private:
 		struct Impl;

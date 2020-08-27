@@ -20,7 +20,10 @@ namespace Comfy::Studio::Editor
 
 		renderHelper = std::make_unique<TargetRenderHelper>();
 
+		// TODO: Should maybe me owned by the ChartEditor instead (?)
 		renderer = std::make_unique<Render::Renderer2D>();
+		renderHelper->SetAetSprGetter(*renderer);
+
 		renderTarget = Render::Renderer2D::CreateRenderTarget();
 	}
 
