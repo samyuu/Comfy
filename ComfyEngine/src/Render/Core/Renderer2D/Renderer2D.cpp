@@ -1,6 +1,7 @@
 #include "Renderer2D.h"
 #include "Detail/RenderTarget2DImpl.h"
 #include "Detail/SpriteBatchData.h"
+#include "Detail/TextureSamplerCache.h"
 #include "Render/D3D11/GraphicsResourceUtil.h"
 #include "Render/D3D11/Buffer/ConstantBuffer.h"
 #include "Render/D3D11/Buffer/IndexBuffer.h"
@@ -17,9 +18,9 @@ namespace Comfy::Render
 {
 	using namespace Graphics;
 
-	vec2 TextureOrRegionSize(const D3D11::Texture2D* texture, const vec4& source)
+	vec2 GetTexViewTextureOrRegionSize(TexSamplerView texView, const vec4& source)
 	{
-		return (texture != nullptr) ? vec2(texture->GetSize()) : vec2(source.z, source.w);
+		return (texView) ? vec2(texView.Texture->GetSize()) : vec2(source.z, source.w);
 	}
 
 	struct Renderer2D::Impl
@@ -57,6 +58,7 @@ namespace Comfy::Render
 		{
 			struct MultiTextureShaders
 			{
+				// TODO: Permutation for all texture formats being the same to avoid any branching
 				std::array<D3D11::ShaderPair, MaxSpriteTextureSlots> TextureBatch =
 				{
 					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_01_PS(), "Renderer2D::SpriteMultiTextureBatch_01_PS" },
@@ -92,8 +94,7 @@ namespace Comfy::Render
 		// NOTE: Disable backface culling for negatively scaled sprites
 		D3D11::RasterizerState RasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_NONE };
 
-		// TODO: Once needed the Renderer2D should expose optional wrapped address modes
-		D3D11::TextureSampler DefaultTextureSampler = { D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER };
+		Detail::TextureSamplerCache2D TextureSamplers = {};
 
 		/*
 		// TODO: Implement using CheckerboardTexture instead (?)
@@ -107,8 +108,18 @@ namespace Comfy::Render
 		*/
 
 		// NOTE: Avoid additional branches by using a 1x1 white fallback texture for rendering solid color
-		static constexpr std::array<u32, 1> WhiteTexturePixels = { 0xFFFFFFFF };
-		D3D11::Texture2D WhiteTexture = { ivec2(1, 1), WhiteTexturePixels.data() };
+		const Tex WhiteChipTexture = []
+		{
+			Tex chip;
+			chip.Name = "F_COMFY_CHIP";
+			auto& mipMap = chip.MipMapsArray.emplace_back().emplace_back();
+			mipMap.Size = ivec2(1);
+			mipMap.Format = TextureFormat::RGBA8;
+			mipMap.DataSize = 1 * sizeof(u32);
+			mipMap.Data = std::make_unique<u8[]>(mipMap.DataSize);
+			*reinterpret_cast<u32*>(mipMap.Data.get()) = 0xFFFFFFFF;
+			return chip;
+		}();
 
 		struct AetBlendStates
 		{
@@ -134,7 +145,6 @@ namespace Comfy::Render
 			D3D11_SetObjectDebugName(SpriteConstantBuffer.Buffer.GetBuffer(), "Renderer2D::SpriteConstantBuffer");
 
 			D3D11_SetObjectDebugName(RasterizerState.GetRasterizerState(), "Renderer2D::RasterizerState");
-			D3D11_SetObjectDebugName(WhiteTexture.GetTexture(), "Renderer2D::WhiteTexture");
 
 			InternalCreateIndexBuffer();
 			InternalCreateVertexBuffer();
@@ -192,11 +202,11 @@ namespace Comfy::Render
 			D3D11_SetObjectDebugName(InputLayout->GetLayout(), "Renderer2D::InputLayout");
 		}
 
-		int FindAvailableTextureSlot(Detail::SpriteDrawCallBatch& currentBatch, const D3D11::Texture2D* texture) const
+		int FindAvailableTextureSlot(Detail::SpriteDrawCallBatch& currentBatch, TexSamplerView texView) const
 		{
 			for (int i = 0; i < static_cast<int>(MaxSpriteTextureSlots); i++)
 			{
-				if (currentBatch.Textures[i] == nullptr || currentBatch.Textures[i] == texture)
+				if (!currentBatch.TexViews[i] || currentBatch.TexViews[i] == texView)
 					return i;
 			}
 
@@ -214,10 +224,10 @@ namespace Comfy::Render
 			if (item.DrawTextBorder != lastItem.DrawTextBorder)
 				return false;
 
-			const bool textureChanged = (item.Texture != lastItem.Texture);
-			const bool textureMaskChanged = (item.MaskTexture != lastItem.MaskTexture);
+			const bool textureChanged = (item.TexView != lastItem.TexView);
+			const bool textureMaskChanged = (item.MaskTexView != lastItem.MaskTexView);
 
-			if ((item.MaskTexture != nullptr || lastItem.MaskTexture != nullptr) && (textureChanged || textureMaskChanged))
+			if ((item.MaskTexView != nullptr || lastItem.MaskTexView != nullptr) && (textureChanged || textureMaskChanged))
 				return false;
 
 			if (item.DrawCheckerboard != lastItem.DrawCheckerboard)
@@ -234,7 +244,7 @@ namespace Comfy::Render
 			assert(!BatchItems.empty());
 
 			u16 quadIndex = 0;
-			DrawCallBatches.emplace_back(0, 1, quadIndex).Textures[0] = BatchItems.front().Texture;
+			DrawCallBatches.emplace_back(0, 1, quadIndex).TexViews[0] = BatchItems.front().TexView;
 
 			if (BatchItems.front().ShapeVertexCount == 0)
 				quadIndex++;
@@ -244,7 +254,7 @@ namespace Comfy::Render
 				const auto& item = BatchItems[itemIndex];
 				const auto& lastItem = BatchItems[DrawCallBatches.back().ItemIndex];
 
-				if (int availableTextureIndex = FindAvailableTextureSlot(DrawCallBatches.back(), item.Texture); availableTextureIndex >= 0)
+				if (int availableTextureIndex = FindAvailableTextureSlot(DrawCallBatches.back(), item.TexView); availableTextureIndex >= 0)
 				{
 					if (AreBatchItemsCompatible(item, lastItem))
 					{
@@ -268,14 +278,14 @@ namespace Comfy::Render
 						SpriteQuadVertices[quadIndex].SetTextureIndices(availableTextureIndex);
 					}
 
-					DrawCallBatches.back().Textures[availableTextureIndex] = item.Texture;
+					DrawCallBatches.back().TexViews[availableTextureIndex] = item.TexView;
 				}
 				else
 				{
 					if (item.ShapeVertexCount > 0)
 						quadIndex--;
 
-					DrawCallBatches.emplace_back(itemIndex, 1, quadIndex).Textures[0] = item.Texture;
+					DrawCallBatches.emplace_back(itemIndex, 1, quadIndex).TexViews[0] = item.TexView;
 				}
 
 				quadIndex++;
@@ -288,7 +298,7 @@ namespace Comfy::Render
 			if (item.DrawTextBorder)
 				return Shaders.Single.TextureFont;
 
-			if (item.MaskTexture != nullptr)
+			if (item.MaskTexView != nullptr)
 				return (item.BlendMode == AetBlendMode::Multiply) ? Shaders.Single.TextureMaskMultiply : Shaders.Single.TextureMask;
 
 			if (item.DrawCheckerboard)
@@ -305,11 +315,27 @@ namespace Comfy::Render
 		{
 			for (int i = 0; i < static_cast<int>(MaxSpriteTextureSlots); i++)
 			{
-				if (batch.Textures[i] == nullptr)
+				if (batch.TexViews[i] == nullptr)
 					return i;
 			}
 
 			return MaxSpriteTextureSlots;
+		}
+
+		ID3D11SamplerState* TryGetTextureSampler(TexSamplerView texView)
+		{
+			return TextureSamplers.GetSampler(texView).GetSampler();
+		}
+
+		ID3D11ShaderResourceView* TryGetTextureResourceView(TexSamplerView texView)
+		{
+			const auto* tex2D = texView ? D3D11::GetTexture2D(texView.Texture) : nullptr;
+			return (tex2D != nullptr) ? tex2D->GetResourceView() : nullptr;
+		}
+
+		bool TryGetIsTexViewYCbCr(TexSamplerView texView) const
+		{
+			return (texView && texView.Texture->GetFormat() == TextureFormat::RGTC2);
 		}
 
 		void InternalFlushRenderBatches()
@@ -349,14 +375,11 @@ namespace Comfy::Render
 			PrimitiveType lastPrimitive = PrimitiveType::Count;
 			AetBlendMode lastBlendMode = AetBlendMode::Count;
 
-			DefaultTextureSampler.Bind(0);
-
 			for (u16 i = 0; i < DrawCallBatches.size(); i++)
 			{
 				const Detail::SpriteDrawCallBatch& batch = DrawCallBatches[i];
 				const Detail::SpriteBatchItem& item = BatchItems[batch.ItemIndex];
-
-				assert(item.Texture != nullptr);
+				assert(item.TexView != nullptr);
 
 				if (lastPrimitive != item.Primitive)
 				{
@@ -383,31 +406,45 @@ namespace Comfy::Render
 					lastBoundVB = itemVB.get();
 				}
 
+				std::array<ID3D11SamplerState*, MaxSpriteTextureSlots> textureSamplers;
+				std::array<ID3D11ShaderResourceView*, MaxSpriteTextureSlots> textureResourceViews;
 				if (item.DrawTextBorder)
 				{
-					D3D11::ShaderResourceView::BindArray(0, std::array<const D3D11::ShaderResourceView*, 1> { item.Texture });
+					textureSamplers[0] = TryGetTextureSampler(item.TexView);
+					textureResourceViews[0] = TryGetTextureResourceView(item.TexView);
+
+					D3D11::D3D.Context->PSSetSamplers(0, 1, textureSamplers.data());
+					D3D11::D3D.Context->PSSetShaderResources(0, 1, textureResourceViews.data());
 				}
-				else if (item.MaskTexture != nullptr)
+				else if (item.MaskTexView != nullptr)
 				{
-					D3D11::ShaderResourceView::BindArray(0, std::array<const D3D11::ShaderResourceView*, 2> { item.Texture, item.MaskTexture });
+					textureSamplers[0] = TryGetTextureSampler(item.TexView);
+					textureSamplers[1] = TryGetTextureSampler(item.MaskTexView);
+
+					textureResourceViews[0] = TryGetTextureResourceView(item.TexView);
+					textureResourceViews[1] = TryGetTextureResourceView(item.MaskTexView);
+
+					D3D11::D3D.Context->PSSetSamplers(0, 2, textureSamplers.data());
+					D3D11::D3D.Context->PSSetShaderResources(0, 2, textureResourceViews.data());
 				}
 				else // NOTE: Multi texture batch
 				{
-					std::array<ID3D11ShaderResourceView*, MaxSpriteTextureSlots> textureResourceViews;
 					for (size_t i = 0; i < usedTextureSlots; i++)
-						textureResourceViews[i] = (batch.Textures[i] != nullptr) ? batch.Textures[i]->GetResourceView() : nullptr;
+					{
+						textureSamplers[i] = TryGetTextureSampler(batch.TexViews[i]);
+						textureResourceViews[i] = TryGetTextureResourceView(batch.TexViews[i]);
+					}
+
+					D3D11::D3D.Context->PSSetSamplers(0, static_cast<UINT>(usedTextureSlots), textureSamplers.data());
 					D3D11::D3D.Context->PSSetShaderResources(0, static_cast<UINT>(usedTextureSlots), textureResourceViews.data());
 				}
 
 				SpriteConstantBuffer.Data.BlendMode = item.BlendMode;
-				SpriteConstantBuffer.Data.Format = item.Texture->GetTextureFormat();
-				SpriteConstantBuffer.Data.MaskFormat = (item.MaskTexture == nullptr) ? TextureFormat::Unknown : item.MaskTexture->GetTextureFormat();
+				SpriteConstantBuffer.Data.Format = item.TexView.Texture->GetFormat();
+				SpriteConstantBuffer.Data.MaskFormat = (item.MaskTexView) ? item.MaskTexView.Texture->GetFormat() : TextureFormat::Unknown;
 				SpriteConstantBuffer.Data.FormatFlags = 0;
 				for (u32 i = 0; i < static_cast<u32>(MaxSpriteTextureSlots); i++)
-				{
-					const bool isYCbCr = (batch.Textures[i] != nullptr) && (batch.Textures[i]->GetTextureFormat() == TextureFormat::RGTC2);
-					SpriteConstantBuffer.Data.FormatFlags |= (static_cast<u32>(isYCbCr) << i);
-				}
+					SpriteConstantBuffer.Data.FormatFlags |= (static_cast<u32>(TryGetIsTexViewYCbCr(batch.TexViews[i])) << i);
 				SpriteConstantBuffer.Data.CheckerboardSize = vec4(item.CheckerboardSize, 0.0f, 0.0f);
 				SpriteConstantBuffer.UploadData();
 
@@ -518,8 +555,8 @@ namespace Comfy::Render
 		{
 			Detail::SpriteBatchItemVertexView pair = InternalCheckFlushAddSpriteQuadAndItem();
 
-			pair.Item->Texture = (command.Texture != nullptr) ? D3D11::GetTexture2D(*command.Texture) : &WhiteTexture;
-			pair.Item->MaskTexture = nullptr;
+			pair.Item->TexView = (command.TexView) ? command.TexView : &WhiteChipTexture;
+			pair.Item->MaskTexView = nullptr;
 			pair.Item->Primitive = PrimitiveType::Triangles;
 			pair.Item->BlendMode = command.BlendMode;
 			pair.Item->DrawTextBorder = command.DrawTextBorder;
@@ -527,20 +564,20 @@ namespace Comfy::Render
 			pair.Vertices->SetValues(
 				command.Position,
 				command.SourceRegion,
-				TextureOrRegionSize(D3D11::GetTexture2D(command.Texture), command.SourceRegion),
+				GetTexViewTextureOrRegionSize(command.TexView, command.SourceRegion),
 				-command.Origin,
 				command.Rotation,
 				command.Scale,
 				command.CornerColors.data(),
-				(command.Texture != nullptr) || alwaysSetTexCoords);
+				(command.TexView != nullptr) || alwaysSetTexCoords);
 		}
 
 		void InternalDraw(const RenderCommand2D& command, const RenderCommand2D& commandMask)
 		{
 			Detail::SpriteBatchItemVertexView pair = InternalCheckFlushAddSpriteQuadAndItem();
 
-			pair.Item->Texture = (command.Texture != nullptr) ? D3D11::GetTexture2D(*command.Texture) : &WhiteTexture;
-			pair.Item->MaskTexture = (commandMask.Texture != nullptr) ? D3D11::GetTexture2D(*commandMask.Texture) : &WhiteTexture;
+			pair.Item->TexView = (command.TexView) ? command.TexView : &WhiteChipTexture;
+			pair.Item->MaskTexView = (commandMask.TexView) ? commandMask.TexView : &WhiteChipTexture;
 			pair.Item->Primitive = PrimitiveType::Triangles;
 			pair.Item->BlendMode = command.BlendMode;
 			pair.Item->DrawTextBorder = command.DrawTextBorder;
@@ -548,16 +585,16 @@ namespace Comfy::Render
 			pair.Vertices->SetValues(
 				commandMask.Position,
 				commandMask.SourceRegion,
-				TextureOrRegionSize(D3D11::GetTexture2D(commandMask.Texture), commandMask.SourceRegion),
+				GetTexViewTextureOrRegionSize(commandMask.TexView, commandMask.SourceRegion),
 				-commandMask.Origin,
 				commandMask.Rotation,
 				commandMask.Scale,
 				commandMask.CornerColors.data(),
-				commandMask.Texture != nullptr);
+				commandMask.TexView != nullptr);
 
 			// TODO: Null mask texture (?)
 			pair.Vertices->SetTexMaskCoords(
-				D3D11::GetTexture2D(command.Texture),
+				command.TexView,
 				command.Position,
 				command.Scale,
 				command.Origin + vec2(command.SourceRegion.x, command.SourceRegion.y),
@@ -569,7 +606,7 @@ namespace Comfy::Render
 				commandMask.SourceRegion);
 		}
 
-		void InternalDrawVertices(const PositionTextureColorVertex* vertices, size_t vertexCount, const Tex* texture, AetBlendMode blendMode, PrimitiveType primitive)
+		void InternalDrawVertices(const PositionTextureColorVertex* vertices, size_t vertexCount, TexSamplerView texView, AetBlendMode blendMode, PrimitiveType primitive)
 		{
 			assert(vertices != nullptr && vertexCount > 0 && vertexCount < std::numeric_limits<u16>::max());
 
@@ -577,7 +614,7 @@ namespace Comfy::Render
 				InternalFlushRenderBatches();
 
 			auto& batchItem = BatchItems.emplace_back();
-			batchItem.Texture = (texture != nullptr) ? D3D11::GetTexture2D(*texture) : &WhiteTexture;
+			batchItem.TexView = (texView) ? texView : &WhiteChipTexture;
 			batchItem.Primitive = primitive;
 			batchItem.BlendMode = blendMode;
 			batchItem.ShapeVertexIndex = static_cast<u16>(SpriteShapeVertices.size());
@@ -671,12 +708,12 @@ namespace Comfy::Render
 		impl->BatchItems.back().CheckerboardSize = (size * scale * precision);
 	}
 
-	void Renderer2D::DrawVertices(const PositionTextureColorVertex* vertices, size_t vertexCount, const Tex* texture, AetBlendMode blendMode, PrimitiveType primitive)
+	void Renderer2D::DrawVertices(const PositionTextureColorVertex* vertices, size_t vertexCount, TexSamplerView texView, AetBlendMode blendMode, PrimitiveType primitive)
 	{
 		if (vertices == nullptr || vertexCount == 0)
 			return;
 
-		impl->InternalDrawVertices(vertices, vertexCount, texture, blendMode, primitive);
+		impl->InternalDrawVertices(vertices, vertexCount, texView, blendMode, primitive);
 	}
 
 	AetRenderer& Renderer2D::Aet()

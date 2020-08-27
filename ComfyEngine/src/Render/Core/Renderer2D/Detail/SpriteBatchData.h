@@ -1,5 +1,6 @@
 #pragma once
 #include "Types.h"
+#include "Render/Core/Renderer2D/RenderCommand2D.h"
 #include "Render/D3D11/Texture/Texture.h"
 #include <optional>
 
@@ -58,7 +59,7 @@ namespace Comfy::Render::Detail
 		void SetTexCoords(vec2 topLeft, vec2 bottomRight);
 		void SetNullTexCoords();
 		void SetTexMaskCoords(
-			const D3D11::Texture2D* texture, vec2 position, vec2 scale, vec2 origin, float rotation,
+			TexSamplerView texView, vec2 position, vec2 scale, vec2 origin, float rotation,
 			vec2 maskPosition, vec2 maskScale, vec2 maskOrigin, float maskRotation, const vec4& maskSourceRegion);
 		void SetColors(const vec4& color);
 		void SetColorArray(const vec4 colors[4]);
@@ -78,16 +79,16 @@ namespace Comfy::Render::Detail
 		u16 ItemCount;
 		u16 QuadIndex;
 
-		std::array<const D3D11::Texture2D*, MaxSpriteTextureSlots> Textures = {};
+		std::array<TexSamplerView, MaxSpriteTextureSlots> TexViews = {};
 	};
 
 	struct SpriteBatchItem
 	{
-		// NOTE: Never nullptr (WhiteTexture used as a backup)
-		const D3D11::Texture2D* Texture;
+		// NOTE: Never nullptr (WhiteChipTexture used as a backup)
+		TexSamplerView TexView;
 
 		// NOTE: May be nullptr
-		const D3D11::Texture2D* MaskTexture;
+		TexSamplerView MaskTexView;
 
 		Graphics::PrimitiveType Primitive;
 		Graphics::AetBlendMode BlendMode;

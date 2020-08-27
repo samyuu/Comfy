@@ -36,7 +36,7 @@ cbuffer SpriteConstantData : register(b0)
 	float4 CB_CheckerboardSize;
 };
 
-SamplerState SpriteSampler : register(s0);
+SamplerState SpriteSamplers[SPRITE_MULTI_TEXTURE_TEXTURE_SLOTS] : register(s0);
 Texture2D SpriteTextures[SPRITE_MULTI_TEXTURE_TEXTURE_SLOTS] : register(t0);
 
 float4 PS_main(VS_OUTPUT input) : SV_Target
@@ -47,9 +47,9 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
 #if SPRITE_MULTI_TEXTURE_TEXTURE_SLOTS == 1
 
 	if (CB_TextureFormatFlags != 0)
-		outputColor *= RGTC2_ConvertYACbCrToRGBA(SpriteTextures[0], SpriteSampler, input.TexCoord);
+		outputColor *= RGTC2_ConvertYACbCrToRGBA(SpriteTextures[0], SpriteSamplers[0], input.TexCoord);
 	else
-		outputColor *= SpriteTextures[0].Sample(SpriteSampler, input.TexCoord);
+		outputColor *= SpriteTextures[0].Sample(SpriteSamplers[0], input.TexCoord);
 
 #else /* SPRITE_MULTI_TEXTURE_TEXTURE_SLOTS > 1 */
 
@@ -59,9 +59,9 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
 		if (i == input.TextureIndex)
 		{
 			if (CB_TextureFormatFlags & (1 << i))
-				outputColor *= RGTC2_ConvertYACbCrToRGBA(SpriteTextures[i], SpriteSampler, input.TexCoord);
+				outputColor *= RGTC2_ConvertYACbCrToRGBA(SpriteTextures[i], SpriteSamplers[i], input.TexCoord);
 			else
-				outputColor *= SpriteTextures[i].Sample(SpriteSampler, input.TexCoord);
+				outputColor *= SpriteTextures[i].Sample(SpriteSamplers[0], input.TexCoord);
 
 			break;
 		}

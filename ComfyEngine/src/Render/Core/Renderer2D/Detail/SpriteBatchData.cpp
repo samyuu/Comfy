@@ -106,7 +106,7 @@ namespace Comfy::Render::Detail
 	}
 
 	void SpriteQuadVertices::SetTexMaskCoords(
-		const D3D11::Texture2D* texture, vec2 position, vec2 scale, vec2 origin, float rotation,
+		TexSamplerView texView, vec2 position, vec2 scale, vec2 origin, float rotation,
 		vec2 maskPosition, vec2 maskScale, vec2 maskOrigin, float maskRotation, const vec4& maskSourceRegion)
 	{
 		const vec2 maskOffset = maskPosition - (maskOrigin * maskScale);
@@ -152,7 +152,7 @@ namespace Comfy::Render::Detail
 			BottomRight.TextureMaskCoordinates -= positionOffset;
 		}
 
-		const vec2 scaledTextureSize = vec2(texture->GetSize()) * scale;
+		const vec2 scaledTextureSize = (texView ? vec2(texView.Texture->GetSize()) : vec2(1.0f)) * scale;
 		TopLeft.TextureMaskCoordinates /= scaledTextureSize;
 		TopRight.TextureMaskCoordinates /= scaledTextureSize;
 		BottomLeft.TextureMaskCoordinates /= scaledTextureSize;

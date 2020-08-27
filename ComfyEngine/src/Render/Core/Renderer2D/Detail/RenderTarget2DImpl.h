@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "Render/Core/Renderer2D/RenderTarget2D.h"
 #include "Render/D3D11/Texture/RenderTarget.h"
 

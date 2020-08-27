@@ -106,7 +106,7 @@ namespace Comfy::Render
 		const auto fontSize = vec2(font.GetFontSize());
 		const auto glyphSize = vec2(font.GetGlyphSize());
 
-		command.Texture = font.Texture.get();
+		command.TexView = font.Texture.get();
 		command.Rotation = transform.Rotation;
 		command.Scale = transform.Scale;
 		command.SourceRegion.z = fontSize.x;

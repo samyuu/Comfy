@@ -171,7 +171,7 @@ namespace Comfy::Render
 
 		if (tex != nullptr && spr != nullptr)
 		{
-			command.Texture = tex;
+			command.TexView = tex;
 			command.SourceRegion = spr->PixelRegion;
 			command.SetColor(vec4(1.0f, 1.0f, 1.0f, transform.Opacity));
 			renderer2D.Draw(command);
@@ -187,7 +187,7 @@ namespace Comfy::Render
 	void AetRenderer::DrawSpr(const Graphics::Tex& tex, const Graphics::Spr& spr, const Graphics::Transform2D& transform, Graphics::AetBlendMode blendMode)
 	{
 		RenderCommand2D command;
-		command.Texture = &tex;
+		command.TexView = &tex;
 		command.Origin = transform.Origin;
 		command.Position = transform.Position;
 		command.Rotation = transform.Rotation;

@@ -5,6 +5,30 @@
 
 namespace Comfy::Render
 {
+	struct TexSamplerView
+	{
+		TexSamplerView() = default;
+
+		TexSamplerView(const Graphics::Tex* texture)
+			: Texture(texture)
+		{
+		}
+
+		TexSamplerView(const Graphics::Tex* texture, Graphics::TextureAddressMode addressU, Graphics::TextureAddressMode addressV, Graphics::TextureFilter filter)
+			: Texture(texture), AddressU(addressU), AddressV(addressV), Filter(filter)
+		{
+		}
+
+		const Graphics::Tex* Texture = nullptr;
+		Graphics::TextureAddressMode AddressU = Graphics::TextureAddressMode::ClampBorder;
+		Graphics::TextureAddressMode AddressV = Graphics::TextureAddressMode::ClampBorder;
+		Graphics::TextureFilter Filter = Graphics::TextureFilter::Linear;
+
+		operator bool() const { return (Texture != nullptr); }
+		bool operator==(const TexSamplerView& other) const { return (Texture == other.Texture) && (AddressU == other.AddressU) && (AddressV == other.AddressV); }
+		bool operator!=(const TexSamplerView& other) const { return !(*this == other); }
+	};
+
 	struct RenderCommand2D
 	{
 	public:
@@ -16,8 +40,8 @@ namespace Comfy::Render
 			SetColor(color);
 		}
 
-		RenderCommand2D(const Graphics::Tex* texture, vec2 origin, vec2 position, float rotation, vec2 scale, vec4 sourceRegion, Graphics::AetBlendMode blendMode, float opacity)
-			: Texture(texture), Origin(origin), Position(position), Rotation(rotation), Scale(scale), SourceRegion(sourceRegion), BlendMode(blendMode)
+		RenderCommand2D(TexSamplerView texView, vec2 origin, vec2 position, float rotation, vec2 scale, vec4 sourceRegion, Graphics::AetBlendMode blendMode, float opacity)
+			: TexView(texView), Origin(origin), Position(position), Rotation(rotation), Scale(scale), SourceRegion(sourceRegion), BlendMode(blendMode)
 		{
 			for (auto& cornerColor : CornerColors)
 				cornerColor.a = opacity;
@@ -31,7 +55,7 @@ namespace Comfy::Render
 
 	public:
 		// NOTE: Can be null to draw a solid color rectangle instead
-		const Graphics::Tex* Texture = nullptr;
+		TexSamplerView TexView = nullptr;
 
 		vec2 Origin = { 0.0f, 0.0f };
 		vec2 Position = { 0.0f, 0.0f };
@@ -43,7 +67,6 @@ namespace Comfy::Render
 		// NOTE: Top left, top right, bottom left, bottom right
 		std::array<vec4, 4> CornerColors = { vec4(1.0f), vec4(1.0f), vec4(1.0f), vec4(1.0f) };
 
-		// TODO: Extra flags, texture filter, wrap (problematic with atlases), etc.
 		bool DrawTextBorder = false;
 	};
 

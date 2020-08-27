@@ -196,6 +196,7 @@
     <ClInclude Include="src\Input\Core\KeyCode.h" />
     <ClInclude Include="src\Render\Core\Camera.h" />
     <ClInclude Include="src\Render\Core\Renderer2D\Detail\RenderTarget2DImpl.h" />
+    <ClInclude Include="src\Render\Core\Renderer2D\Detail\TextureSamplerCache.h" />
     <ClInclude Include="src\Render\Core\Renderer2D\FontRenderer.h" />
     <ClInclude Include="src\Render\Core\Renderer2D\RenderCommand2D.h" />
     <ClInclude Include="src\Render\Core\Renderer2D\AetRenderer.h" />

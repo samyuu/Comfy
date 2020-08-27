@@ -16,7 +16,7 @@ namespace Comfy::Sandbox::Tests
 
 				renderer.Begin(camera, *renderWindow.RenderTarget);
 				{
-					testCommand.Texture = (sprSet == nullptr || !InBounds(textureIndex, sprSet->TexSet.Textures)) ? nullptr : sprSet->TexSet.Textures[textureIndex].get();
+					testCommand.TexView = (sprSet == nullptr || !InBounds(textureIndex, sprSet->TexSet.Textures)) ? nullptr : sprSet->TexSet.Textures[textureIndex].get();
 					renderer.Draw(testCommand);
 				}
 				renderer.End();
