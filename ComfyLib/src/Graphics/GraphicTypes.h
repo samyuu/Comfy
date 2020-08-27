@@ -44,6 +44,25 @@ namespace Comfy::Graphics
 		Count
 	};
 
+	enum class TextureAddressMode : u8
+	{
+		ClampBorder,
+		ClampEdge,
+		WrapRepeat,
+		WrapRepeatMirror,
+		WrapRepeatMirrorOnce,
+
+		Count
+	};
+
+	enum class TextureFilter : u8
+	{
+		Linear,
+		Point,
+
+		Count
+	};
+
 	using VertexAttribute = u32;
 
 	// NOTE: Bit index of each attribute
@@ -261,7 +280,7 @@ namespace Comfy::Graphics
 		qHD = 17,
 		// NOTE: ____ x ____
 		Custom = 18,
-		
+
 		Count = Custom
 	};
 
@@ -330,6 +349,21 @@ namespace Comfy::Graphics
 		"Quads",
 		"Quad Strip",
 		"Polygon",
+	};
+
+	constexpr std::array<const char*, EnumCount<TextureAddressMode>()> TextureAddressModeNames =
+	{
+		"Clamp Border",
+		"Clamp Edge",
+		"Wrap Repeat",
+		"WrapRepeat Mirror",
+		"WrapRepeat Mirror Once",
+	};
+
+	constexpr std::array<const char*, EnumCount<TextureFilter>()> TextureFilterNames =
+	{
+		"Linear",
+		"Point",
 	};
 
 	constexpr std::array<const char*, EnumCount<AetBlendMode>()> AetBlendModeNames =
