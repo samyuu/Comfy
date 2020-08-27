@@ -203,7 +203,7 @@ namespace Comfy::Render::Detail
 		BloomRenderData Bloom;
 		OutputRenderData Output;
 
-		TextureSamplerCache TextureSamplers;
+		TextureSamplerCache3D TextureSamplers;
 		BlendStateCache BlendStates;
 		ToneMapData ToneMap;
 		SunOcclusionData Sun;

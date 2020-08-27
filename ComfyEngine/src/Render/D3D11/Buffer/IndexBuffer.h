@@ -1,6 +1,7 @@
 #pragma once
-#include "../Direct3D.h"
+#include "Types.h"
 #include "Graphics/GraphicTypes.h"
+#include "../Direct3D.h"
 
 namespace Comfy::Render::D3D11
 {

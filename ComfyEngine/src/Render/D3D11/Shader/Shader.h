@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "../Direct3D.h"
 
 namespace Comfy::Render::D3D11

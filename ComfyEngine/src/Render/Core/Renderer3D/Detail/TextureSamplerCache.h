@@ -19,12 +19,12 @@ namespace Comfy::Render::Detail
 		"Clamp",
 	};
 
-	struct TextureSamplerCache
+	struct TextureSamplerCache3D
 	{
 	public:
 		void CreateIfNeeded(i32 anistropicFiltering)
 		{
-			if (samplers[0][0] == nullptr || lastAnistropicFiltering != anistropicFiltering)
+			if (!samplers[0][0].has_value() || lastAnistropicFiltering != anistropicFiltering)
 			{
 				const auto filter = (anistropicFiltering > D3D11_MIN_MAXANISOTROPY) ? D3D11_FILTER_ANISOTROPIC : D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 
@@ -32,7 +32,7 @@ namespace Comfy::Render::Detail
 				{
 					for (int v = 0; v < AddressMode_Count; v++)
 					{
-						samplers[u][v] = std::make_unique<D3D11::TextureSampler>(filter, D3DAddressModes[u], D3DAddressModes[v], 0.0f, anistropicFiltering);
+						samplers[u][v].emplace(filter, D3DAddressModes[u], D3DAddressModes[v], 0.0f, anistropicFiltering);
 						D3D11_SetObjectDebugName(samplers[u][v]->GetSampler(), "Renderer3D::Sampler::%s-%s", AddressModeNames[u], AddressModeNames[v]);
 					}
 				}
@@ -52,6 +52,6 @@ namespace Comfy::Render::Detail
 		enum AddressMode { Mirror, Repeat, Clamp, AddressMode_Count };
 
 		i32 lastAnistropicFiltering = -1;
-		std::array<std::array<std::unique_ptr<D3D11::TextureSampler>, AddressMode_Count>, AddressMode_Count> samplers;
+		std::array<std::array<std::optional<D3D11::TextureSampler>, AddressMode_Count>, AddressMode_Count> samplers;
 	};
 }

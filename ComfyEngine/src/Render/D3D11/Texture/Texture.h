@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
-#include "../Direct3D.h"
 #include "Graphics/GraphicTypes.h"
+#include "../Direct3D.h"
 #include "TextureSampler.h"
 
 namespace Comfy::Graphics
