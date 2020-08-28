@@ -20,6 +20,7 @@ namespace Comfy::Studio::Editor
 		constexpr explicit TimelineTick(i32 ticks) : tickCount(ticks) {}
 
 		constexpr i32 Ticks() const { return tickCount; }
+		constexpr f32 BeatsFraction() const { return static_cast<f32>(tickCount) / static_cast<f32>(TicksPerBeat); }
 
 		constexpr bool operator==(const TimelineTick other) const { return tickCount == other.tickCount; }
 		constexpr bool operator!=(const TimelineTick other) const { return tickCount != other.tickCount; }
