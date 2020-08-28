@@ -9,13 +9,13 @@ namespace Comfy::Studio::Editor
 			const vec3 viewDirection = glm::normalize(camera.ViewPoint - camera.Interest);
 			const mat4 viewProjection = glm::ortho(+1.0f, -1.0f, +1.0f, -1.0f) * glm::lookAt(vec3(0.0f), viewDirection, camera.UpDirection);
 
-			constexpr float scale = 1.0f, origin = 0.0f;
 			constexpr std::array<vec3, 4> axisWorldPositions =
 			{
-				vec3(+scale, origin, origin),
-				vec3(origin, +scale, origin),
-				vec3(origin, origin, -scale),
-				vec3(origin, origin, origin),
+				// NOTE: Right-handed Y-up
+				vec3(1.0f, 0.0f, 0.0f),
+				vec3(0.0f, 1.0f, 0.0f),
+				vec3(0.0f, 0.0f, 1.0f),
+				vec3(0.0f, 0.0f, 0.0f),
 			};
 
 			std::array<vec2, 4> screenPositions;
@@ -31,15 +31,14 @@ namespace Comfy::Studio::Editor
 		for (size_t i = 0; i < screenPositions.size(); i++)
 			screenPositions[i] = indicatorCenter - indicatorSize + (screenPositions[i]) * indicatorSize;
 
-		constexpr std::array<vec4, 4> axisColors =
-		{
-			vec4(1.000f, 0.167f, 0.020f, 1.000f),
-			vec4(0.000f, 0.904f, 0.213f, 1.000f),
-			vec4(0.000f, 0.345f, 0.841f, 1.000f),
-			vec4(0.150f, 0.150f, 0.150f, 0.250f),
-		};
+		constexpr auto colorRed = vec4(0.88f, 0.29f, 0.26f, 1.0f);
+		constexpr auto colorGreen = vec4(0.42f, 0.68f, 0.25f, 1.0f);
+		constexpr auto colorBlue = vec4(0.26f, 0.62f, 1.00f, 1.0f);
+		constexpr auto colorBackground = vec4(0.25f, 0.25f, 0.25f, 0.45f);
 
-		std::array<int, 3> axisDrawOrder = { 0, 2, 1 };
+		static constexpr std::array<vec4, 3> axisColors = { colorRed, colorGreen, colorBlue, };
+
+		std::array<int, 3> axisDrawOrder = { 0, 1, 2 };
 		std::array<char, 3> axisNames = { 'X', 'Y', 'Z' };
 
 		const vec3 viewDirection = glm::normalize(camera.ViewPoint - camera.Interest);
@@ -50,12 +49,12 @@ namespace Comfy::Studio::Editor
 		if (viewDirection.y < 0.0f)
 			std::swap(axisDrawOrder[1], axisDrawOrder[2]);
 
-		drawList->AddCircleFilled(screenPositions.back(), indicatorSize * 2.0f, ImColor(axisColors.back()), 24);
+		drawList->AddCircleFilled(screenPositions.back(), indicatorSize * 2.0f, ImColor(colorBackground), 24);
 
 		for (int i : axisDrawOrder)
 			drawList->AddText(nullptr, indicatorSize, screenPositions[i] - textOffset, ImColor(axisColors[i]), &axisNames[i], &axisNames[i] + 1);
 
 		for (int i : axisDrawOrder)
-			drawList->AddLine(screenPositions.back(), screenPositions[i], ImColor(axisColors[i]));
+			drawList->AddLine(screenPositions.back(), screenPositions[i], ImColor(axisColors[i]), 1.0f);
 	}
 }
