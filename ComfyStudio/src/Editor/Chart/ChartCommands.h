@@ -193,13 +193,13 @@ namespace Comfy::Studio::Editor
 		void Undo() override
 		{
 			chart.TempoMap.RemoveTempoChange(newValue.Tick);
-			chart.TimelineMap.CalculateMapTimes(chart.TempoMap);
+			chart.UpdateMapTimes();
 		}
 
 		void Redo() override
 		{
 			chart.TempoMap.SetTempoChange(newValue.Tick, newValue.Tempo, newValue.Signature);
-			chart.TimelineMap.CalculateMapTimes(chart.TempoMap);
+			chart.UpdateMapTimes();
 		}
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override
@@ -227,13 +227,13 @@ namespace Comfy::Studio::Editor
 		void Undo() override
 		{
 			chart.TempoMap.SetTempoChange(oldValue.Tick, oldValue.Tempo, oldValue.Signature);
-			chart.TimelineMap.CalculateMapTimes(chart.TempoMap);
+			chart.UpdateMapTimes();
 		}
 
 		void Redo() override
 		{
 			chart.TempoMap.RemoveTempoChange(oldValue.Tick);
-			chart.TimelineMap.CalculateMapTimes(chart.TempoMap);
+			chart.UpdateMapTimes();
 		}
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override
@@ -261,13 +261,13 @@ namespace Comfy::Studio::Editor
 		void Undo() override
 		{
 			chart.TempoMap.SetTempoChange(oldValue.Tick, oldValue.Tempo, oldValue.Signature);
-			chart.TimelineMap.CalculateMapTimes(chart.TempoMap);
+			chart.UpdateMapTimes();
 		}
 
 		void Redo() override
 		{
 			chart.TempoMap.SetTempoChange(newValue.Tick, newValue.Tempo, newValue.Signature);
-			chart.TimelineMap.CalculateMapTimes(chart.TempoMap);
+			chart.UpdateMapTimes();
 		}
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override

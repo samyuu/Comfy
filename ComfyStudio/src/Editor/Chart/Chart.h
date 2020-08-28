@@ -24,5 +24,8 @@ namespace Comfy::Studio::Editor
 
 		TimeSpan StartOffset = TimeSpan::Zero();
 		TimeSpan Duration = FallbackDuration;
+
+	public:
+		inline void UpdateMapTimes() { TimelineMap.CalculateMapTimes(TempoMap); }
 	};
 }
