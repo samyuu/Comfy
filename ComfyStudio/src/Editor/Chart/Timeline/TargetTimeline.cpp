@@ -18,7 +18,7 @@ namespace Comfy::Studio::Editor
 		workingChart = chartEditor.GetChart();
 
 		buttonIcons = std::make_unique<TimelineButtonIcons>();
-		UpdateTimelineMapTimes();
+		workingChart->UpdateMapTimes();
 	}
 
 	TimelineTick TargetTimeline::GridDivisionTick() const
@@ -72,11 +72,6 @@ namespace Comfy::Studio::Editor
 	TimeSpan TargetTimeline::GetTimelineTime(f32 position) const
 	{
 		return TimelineBase::GetTimelineTime(position);
-	}
-
-	TimelineTick TargetTimeline::GetCursorTick() const
-	{
-		return TimeToTick(GetCursorTime());
 	}
 
 	TimelineTick TargetTimeline::GetCursorMouseXTick() const
@@ -142,7 +137,12 @@ namespace Comfy::Studio::Editor
 		// NOTE: Cancel out the cursor being moved by a change of offset because this just feels more intuitive to use
 		//		 and always automatically applying the start offset to the playback time makes other calculations easier
 		if (thisFrameStartOffset != lastFrameStartOffset)
-			SetCursorTime(GetCursorTime() + (thisFrameStartOffset - lastFrameStartOffset));
+		{
+			if (GetIsPlayback())
+				chartEditor.SetPlaybackTime(chartEditor.GetPlaybackTimeAsync() + (thisFrameStartOffset - lastFrameStartOffset));
+			else
+				chartEditor.SetPlaybackTime(TickToTime(pausedCursorTick));
+		}
 	}
 
 	void TargetTimeline::UpdatePlaybackButtonSounds()
@@ -184,11 +184,6 @@ namespace Comfy::Studio::Editor
 					buttonSoundController.PlayButtonSound(startTime, externalClock);
 			}
 		}
-	}
-
-	void TargetTimeline::UpdateTimelineMapTimes()
-	{
-		workingChart->TimelineMap.CalculateMapTimes(workingChart->TempoMap);
 	}
 
 	void TargetTimeline::OnPlaybackResumed()
@@ -459,8 +454,8 @@ namespace Comfy::Studio::Editor
 			constexpr auto dragSpeed = 16.0f;
 			auto cursorDragTicks = static_cast<f32>(GetCursorTick().Ticks());
 
-			if (Gui::ComfyDragText("TimeDragText::AetTimeline", cursorTime.FormatTime().data(), &cursorDragTicks, dragSpeed, 0.0f, 0.0f, timeDragTextWidth))
-				SetCursorTime(TickToTime(RoundTickToGrid(TimelineTick::FromTicks(static_cast<int>(cursorDragTicks)))));
+			if (Gui::ComfyDragText("TimeDragText::TargetTimeline", cursorTime.FormatTime().data(), &cursorDragTicks, dragSpeed, 0.0f, 0.0f, timeDragTextWidth))
+				SetCursorTick(RoundTickToGrid(TimelineTick::FromTicks(static_cast<i32>(cursorDragTicks))));
 		}
 
 		{
@@ -594,7 +589,7 @@ namespace Comfy::Studio::Editor
 				baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, Gui::GetColorU32(ImGuiCol_ChildBg));
 
 				if (Gui::IsMouseClicked(0))
-					SetCursorTime(TickToTime(tempoChange.Tick));
+					SetCursorTick(tempoChange.Tick);
 
 				if (Gui::IsMouseClicked(1))
 				{
@@ -712,7 +707,7 @@ namespace Comfy::Studio::Editor
 		if (GetIsPlayback())
 		{
 			const auto cursorTime = GetCursorTime();
-			const auto timeUntilButton = buttonTime - cursorTime;
+			const auto timeUntilButton = (buttonTime - cursorTime);
 
 			if (timeUntilButton <= TimeSpan::Zero() && timeUntilButton >= -buttonAnimationDuration)
 			{
@@ -852,9 +847,8 @@ namespace Comfy::Studio::Editor
 		if (Gui::IsMouseClicked(0) && !io.KeyShift)
 		{
 			const auto newMouseTick = GetCursorMouseXTick();
-			const auto newMouseTime = TickToTime(newMouseTick);
 
-			SetCursorTime(newMouseTime);
+			SetCursorTick(newMouseTick);
 			PlayCursorButtonSoundsAndAnimation(newMouseTick);
 		}
 
@@ -948,12 +942,12 @@ namespace Comfy::Studio::Editor
 		const auto stepDistance = (beatStep ? std::max(beatIncrement, gridIncrement) : gridIncrement);
 
 		const auto newCursorTick = RoundTickToGrid(GetCursorTick()) + (stepDistance * direction);
-		const auto newCursorTime = std::clamp(TickToTime(newCursorTick), TimeSpan::Zero(), workingChart->Duration);
+		const auto clampedCursorTick = std::max(newCursorTick, TimelineTick::Zero());
 
 		const auto preCursorX = GetCursorTimelinePosition();
 
-		SetCursorTime(newCursorTime);
-		PlayCursorButtonSoundsAndAnimation(newCursorTick);
+		SetCursorTick(clampedCursorTick);
+		PlayCursorButtonSoundsAndAnimation(clampedCursorTick);
 
 		// NOTE: Keep same relative cursor screen position though might only wanna scroll if the cursor is about to go off-screen (?)
 		if (!GetIsPlayback())
@@ -980,13 +974,36 @@ namespace Comfy::Studio::Editor
 
 	TimeSpan TargetTimeline::GetCursorTime() const
 	{
-		return chartEditor.GetPlaybackTimeAsync();
+		if (chartEditor.GetIsPlayback())
+			return chartEditor.GetPlaybackTimeAsync();
+		else
+			return TickToTime(pausedCursorTick);
 	}
 
-	void TargetTimeline::SetCursorTime(TimeSpan value)
+	void TargetTimeline::SetCursorTime(const TimeSpan newTime)
 	{
-		chartEditor.SetPlaybackTime(value);
-		PlaybackStateChangeSyncButtonSoundCursorTime(value);
+		pausedCursorTick = TimeToTick(newTime);
+		chartEditor.SetPlaybackTime(newTime);
+
+		PlaybackStateChangeSyncButtonSoundCursorTime(newTime);
+	}
+
+	TimelineTick TargetTimeline::GetCursorTick() const
+	{
+		if (chartEditor.GetIsPlayback())
+			return TimeToTick(chartEditor.GetPlaybackTimeAsync());
+		else
+			return pausedCursorTick;
+	}
+
+	void TargetTimeline::SetCursorTick(const TimelineTick newTick)
+	{
+		const auto newTime = TickToTime(newTick);
+
+		pausedCursorTick = newTick;
+		chartEditor.SetPlaybackTime(newTime);
+
+		PlaybackStateChangeSyncButtonSoundCursorTime(newTime);
 	}
 
 	bool TargetTimeline::GetIsPlayback() const
@@ -997,19 +1014,30 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::PausePlayback()
 	{
 		chartEditor.PausePlayback();
-		PlaybackStateChangeSyncButtonSoundCursorTime(GetCursorTime());
+
+		const auto playbackTime = chartEditor.GetPlaybackTimeAsync();
+		pausedCursorTick = TimeToTick(playbackTime);
+
+		PlaybackStateChangeSyncButtonSoundCursorTime(playbackTime);
 	}
 
 	void TargetTimeline::ResumePlayback()
 	{
+		const auto playbackTime = TickToTime(pausedCursorTick);
+		chartEditor.SetPlaybackTime(playbackTime);
 		chartEditor.ResumePlayback();
-		PlaybackStateChangeSyncButtonSoundCursorTime(GetCursorTime());
+
+		PlaybackStateChangeSyncButtonSoundCursorTime(playbackTime);
 	}
 
 	void TargetTimeline::StopPlayback()
 	{
 		chartEditor.StopPlayback();
-		PlaybackStateChangeSyncButtonSoundCursorTime(GetCursorTime());
+
+		const auto playbackTime = chartEditor.GetPlaybackTimeAsync();
+		pausedCursorTick = TimeToTick(playbackTime);
+
+		PlaybackStateChangeSyncButtonSoundCursorTime(playbackTime);
 	}
 
 	void TargetTimeline::PlaybackStateChangeSyncButtonSoundCursorTime(TimeSpan newCursorTime)
@@ -1037,10 +1065,10 @@ namespace Comfy::Studio::Editor
 		{
 			const auto preCursorX = GetCursorTimelinePosition();
 
-			// NOTE: Pause and resume playback to reset the on playback start time
+			// NOTE: Pause and resume to reset the on-playback start-time
 			chartEditor.PausePlayback();
 			{
-				SetCursorTime(TickToTime(newCursorTick));
+				SetCursorTick(newCursorTick);
 			}
 			chartEditor.ResumePlayback();
 
@@ -1049,9 +1077,10 @@ namespace Comfy::Studio::Editor
 		}
 		else if (const bool seekingScroll = false; seekingScroll)
 		{
+			// DEBUG: Neat idea but in practice very disorientating
 			const auto preCursorX = GetCursorTimelinePosition();
 			{
-				SetCursorTime(TickToTime(newCursorTick));
+				SetCursorTick(newCursorTick);
 				PlayCursorButtonSoundsAndAnimation(newCursorTick);
 			}
 			SetScrollX(GetScrollX() + (GetCursorTimelinePosition() - preCursorX));

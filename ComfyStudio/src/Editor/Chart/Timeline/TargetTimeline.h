@@ -43,22 +43,84 @@ namespace Comfy::Studio::Editor
 		TimeSpan TickToTime(TimelineTick tick) const;
 		TimeSpan GetTimelineTime(f32 position) const override;
 
-		TimelineTick GetCursorTick() const;
 		TimelineTick GetCursorMouseXTick() const;
+
+	public:
+		TimeSpan GetCursorTime() const override;
+		void SetCursorTime(const TimeSpan newTime);
+
+		TimelineTick GetCursorTick() const;
+		void SetCursorTick(const TimelineTick newTick);
+
+		bool GetIsPlayback() const override;
+		void PausePlayback() override;
+		void ResumePlayback() override;
+		void StopPlayback() override;
 
 	public:
 		int FindGridDivisionPresetIndex() const;
 
-	public:
-		void UpdateTimelineMapTimes();
+	private:
+		void OnUpdate() override;
+		void UpdateOffsetChangeCursorTimeAdjustment();
+		void UpdatePlaybackButtonSounds();
 
-	protected:
+	private:
+		void OnDrawTimelineHeaderWidgets() override;
+
+	private:
+		void OnDrawTimelineInfoColumnHeader() override;
+		void OnDrawTimelineInfoColumn() override;
+
+	private:
+		void OnDrawTimlineRows() override;
+		void OnDrawTimlineDivisors() override;
+		void OnDrawTimlineBackground() override;
+		void OnDrawTimelineScrollBarRegion() override;
+		void DrawOutOfBoundsBackground();
+		void DrawWaveform();
+		void DrawTimelineTempoMap();
+		void DrawTimelineTargets();
+
+		f32 GetTimelineTargetScaleFactor(const TimelineTarget& target, TimeSpan buttonTime) const;
+
+		void DrawTimelineCursor() override;
+		void DrawTimeSelection();
+		void OnUpdateInput() override;
+		void OnDrawTimelineContents() override;
+		void UpdateUndoRedoKeyboardInput();
+		void UpdateCursorKeyboardInput();
+		void UpdateInputCursorClick();
+		void UpdateInputTargetPlacement();
+
+	private:
+		void PlaceOrRemoveTarget(TimelineTick tick, ButtonType type);
+		void SelectNextPresetGridDivision(int direction);
+
+		void AdvanceCursorByGridDivisionTick(int direction, bool beatStep = false);
+
+	private:
+		void PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick);
+
+		void PlaybackStateChangeSyncButtonSoundCursorTime(TimeSpan newCursorTime);
+
+		f32 GetTimelineSize() const override;
+		void OnTimelineBaseScroll() override;
+
+		f32 GetButtonEdgeFadeOpacity(f32 screenX) const;
+
+	private:
 		Chart* workingChart = nullptr;
 
 		ChartEditor& chartEditor;
 		Undo::UndoManager& undoManager;
 
-	protected:
+		// NOTE: Store cursor time as TimelineTick while paused to avoid floating point precision issues,
+		//		 automatically move the cursor while editing the tempo map and to make sure 
+		//		 "SetCursorTick(tick); GetCursorTick() == tick;" is always the case
+		TimelineTick pausedCursorTick = TimelineTick::Zero();
+
+	private:
 		TimeSpan lastFrameStartOffset = {}, thisFrameStartOffset = {};
 
 		// NOTE: Instead of checking if a button lies between the cursor and last frame cursor time, check if the button will have been pressed in the future
@@ -80,11 +142,14 @@ namespace Comfy::Studio::Editor
 		const TimeSpan waveformUpdateInterval = COMFY_DEBUG_RELEASE_SWITCH(TimeSpan::FromSeconds(1.0 / 5.0), /*TimeSpan::FromSeconds(1.0 / 30.0)*/TimeSpan::Zero());
 		Stopwatch waveformUpdateStopwatch = Stopwatch::StartNew();
 
-	protected:
+	private:
 		static constexpr std::array<i32, 10> presetBarGridDivisions = { 4, 8, 12, 16, 24, 32, 48, 64, 96, 192 };
 		int activeBarGridDivision = 16;
 
-	protected:
+	private:
+		const f32 iconScale = 1.0f;
+		const f32 rowHeight = 36;
+
 		std::array<f32, EnumCount<ButtonType>()> targetYPositions = {};
 		std::unique_ptr<TimelineButtonIcons> buttonIcons = nullptr;
 
@@ -105,85 +170,22 @@ namespace Comfy::Studio::Editor
 			{ ButtonType::SlideR, Input::KeyCode_O },
 		};
 
-	protected:
+	private:
 		int tempoPopupIndex = -1;
 
-	protected:
+	private:
 		bool timeSelectionActive = false;
 		TimelineTick timeSelectionStart, timeSelectionEnd;
 
-	protected:
+	private:
 
 		// NOTE: Delay the animation while placing targets to give them a satisfying "pop" instead of scaling them down continuously
 		const TimeSpan buttonAnimationStartTime = TimeSpan::FromMilliseconds(15.0);
 		const TimeSpan buttonAnimationDuration = TimeSpan::FromMilliseconds(60.0);
 
-		struct ButtonAnimationData { TimelineTick Tick; TimeSpan ElapsedTime; };
-
 		const f32 buttonAnimationScaleStart = 1.5f, buttonAnimationScaleEnd = 1.0f;
+
+		struct ButtonAnimationData { TimelineTick Tick; TimeSpan ElapsedTime; };
 		std::array<ButtonAnimationData, EnumCount<ButtonType>()> buttonAnimations = {};
-
-	protected:
-		const f32 iconScale = 1.0f;
-		const f32 rowHeight = 36;
-
-	protected:
-		void OnUpdate() override;
-		void UpdateOffsetChangeCursorTimeAdjustment();
-		void UpdatePlaybackButtonSounds();
-
-	protected:
-		void OnDrawTimelineHeaderWidgets() override;
-
-	protected:
-		void OnDrawTimelineInfoColumnHeader() override;
-		void OnDrawTimelineInfoColumn() override;
-
-	protected:
-		void OnDrawTimlineRows() override;
-		void OnDrawTimlineDivisors() override;
-		void OnDrawTimlineBackground() override;
-		void OnDrawTimelineScrollBarRegion() override;
-		void DrawOutOfBoundsBackground();
-		void DrawWaveform();
-		void DrawTimelineTempoMap();
-		void DrawTimelineTargets();
-
-		f32 GetTimelineTargetScaleFactor(const TimelineTarget& target, TimeSpan buttonTime) const;
-
-		void DrawTimelineCursor() override;
-		void DrawTimeSelection();
-		void OnUpdateInput() override;
-		void OnDrawTimelineContents() override;
-		void UpdateUndoRedoKeyboardInput();
-		void UpdateCursorKeyboardInput();
-		void UpdateInputCursorClick();
-		void UpdateInputTargetPlacement();
-
-	protected:
-		void PlaceOrRemoveTarget(TimelineTick tick, ButtonType type);
-		void SelectNextPresetGridDivision(int direction);
-
-		void AdvanceCursorByGridDivisionTick(int direction, bool beatStep = false);
-
-	protected:
-		void PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick);
-
-	protected:
-		TimeSpan GetCursorTime() const override;
-		void SetCursorTime(TimeSpan value);
-
-		bool GetIsPlayback() const override;
-		void PausePlayback() override;
-		void ResumePlayback() override;
-		void StopPlayback() override;
-
-		void PlaybackStateChangeSyncButtonSoundCursorTime(TimeSpan newCursorTime);
-
-		f32 GetTimelineSize() const override;
-		void OnTimelineBaseScroll() override;
-
-	protected:
-		f32 GetButtonEdgeFadeOpacity(f32 screenX) const;
 	};
 }
