@@ -10,7 +10,7 @@ namespace Comfy::Undo
 		ValueUpdated,
 	};
 
-	// TODO: Store creation time and "noMoMerge" / "isComplete" (?) flag and virtual description info format method (?)
+	// TODO: Store creation time and add virtual "description" format method (?)
 	class Command : NonCopyable
 	{
 	protected:

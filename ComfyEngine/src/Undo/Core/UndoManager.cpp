@@ -35,6 +35,22 @@ namespace Comfy::Undo
 		endOfFrameCommands.clear();
 	}
 
+	void UndoManager::DisallowMergeForLastCommand()
+	{
+		// NOTE: Set to 1 instead of incrementing in case this gets called multiple times per frame
+		numberOfCommandsToDisallowMergesFor = 1;
+	}
+
+	TimeSpan UndoManager::GetCommandMergeTimeThreshold() const
+	{
+		return commandMergeTimeThreshold;
+	}
+
+	void UndoManager::SetCommandMergeTimeThreshold(TimeSpan value)
+	{
+		commandMergeTimeThreshold = value;
+	}
+
 	void UndoManager::TryMergeOrExecute(std::unique_ptr<Command> commandToExecute)
 	{
 		assert(commandToExecute != nullptr);
@@ -42,7 +58,19 @@ namespace Comfy::Undo
 		redoStack.clear();
 		auto* lastCommand = (!undoStack.empty() ? undoStack.back().get() : nullptr);
 
-		if (lastCommand != nullptr && CommandsAreOfSameType(*commandToExecute, *lastCommand))
+		const bool mergeDisallowedByType = (lastCommand == nullptr || !CommandsAreOfSameType(*commandToExecute, *lastCommand));
+
+		// NOTE: This is a bit hacky because it introduces a somewhat unpredictable outside variable of time
+		//		 but if so required by the host application it can be disabled by setting the threshold to zero
+		//		 and it automatically takes care of merging possibly unrelated commands without adding additional code to all call sites
+		const auto timeSinceLastCommand = lastExecutedCommandStopwatch.Restart();
+		const bool mergeDisallowedByTime = (commandMergeTimeThreshold > TimeSpan::Zero()) && (timeSinceLastCommand > commandMergeTimeThreshold);
+
+		const bool mergeDisallowedByCounter = (numberOfCommandsToDisallowMergesFor > 0);
+		if (numberOfCommandsToDisallowMergesFor > 0)
+			numberOfCommandsToDisallowMergesFor--;
+
+		if (!mergeDisallowedByType && !mergeDisallowedByTime && !mergeDisallowedByCounter)
 		{
 			const auto mergeResult = lastCommand->TryMerge(*commandToExecute);
 

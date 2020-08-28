@@ -2,6 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "Command.h"
+#include "Time/Stopwatch.h"
 
 namespace Comfy::Undo
 {
@@ -42,14 +43,21 @@ namespace Comfy::Undo
 		const std::vector<std::unique_ptr<Command>>& GetUndoStackView() const;
 		const std::vector<std::unique_ptr<Command>>& GetRedoStackView() const;
 
-		// TODO: Implement some kind of interface to easily disallow merges with the last added command
-		//		 for when a mouse button is released or a text box lost focus etc. (?)
+		void DisallowMergeForLastCommand();
+		
+		TimeSpan GetCommandMergeTimeThreshold() const;
+		void SetCommandMergeTimeThreshold(TimeSpan value);
 
 	private:
 		void TryMergeOrExecute(std::unique_ptr<Command> commandToExecute);
 		bool CommandsAreOfSameType(const Command& commandA, const Command& commandB) const;
 
 	private:
+		TimeSpan commandMergeTimeThreshold = TimeSpan::FromSeconds(2.0);
+		Stopwatch lastExecutedCommandStopwatch = Stopwatch::StartNew();
+
+		i64 numberOfCommandsToDisallowMergesFor = 0;
+
 		// NOTE: To prevent mid-frame stale pointer access errors
 		std::vector<std::unique_ptr<Command>> endOfFrameCommands;
 
