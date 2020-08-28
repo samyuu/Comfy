@@ -44,7 +44,7 @@ namespace Comfy::Graphics
 			u32 Transparent : 1;
 		} Flags;
 
-		mutable std::unique_ptr<GPUResource> GPU_IndexBuffer;
+		InternallyManagedGPUResource GPU_IndexBuffer;
 
 		// NOTE: IndexFormat wrapper around the Indices variant
 		IndexFormat GetIndexFormat() const;
@@ -103,7 +103,7 @@ namespace Comfy::Graphics
 			std::vector<vec4> BoneIndices;
 		} VertexData;
 
-		mutable std::array<std::unique_ptr<GPUResource>, VertexAttribute_Count> GPU_VertexBuffers;
+		std::array<InternallyManagedGPUResource, VertexAttribute_Count> GPU_VertexBuffers;
 	};
 
 	enum class MaterialTextureType : u32

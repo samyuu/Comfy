@@ -4,7 +4,7 @@
 
 namespace Comfy::Render::D3D11
 {
-	class IGraphicsResource : public Graphics::GPUResource, NonCopyable
+	class IGraphicsResource : public Graphics::OpaqueGPUResource, NonCopyable
 	{
 	protected:
 		IGraphicsResource() = default;

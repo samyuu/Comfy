@@ -25,7 +25,7 @@ namespace Comfy::Graphics
 		// HACK: Point into IBLParameters::LightMapBinaryData
 		std::array<std::array<const u8*, MipMaps>, Faces> DataPointers;
 
-		mutable std::unique_ptr<GPUResource> GPU_CubeMap = nullptr;
+		InternallyManagedGPUResource GPU_CubeMap;
 	};
 
 	struct LightDataIBL

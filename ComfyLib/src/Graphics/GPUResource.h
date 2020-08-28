@@ -1,12 +1,20 @@
 #pragma once
+#include "Types.h"
 
 namespace Comfy::Graphics
 {
-	// NOTE: Opaque type for any GPU resource. Initialized and used internally by the Comfy::Render library.
-	//		 Should always be stored wrapped inside an std::unique_ptr, which to reupload should be set to nullptr
-	class GPUResource
+	// NOTE: Opaque base type for any GPU resource
+	class OpaqueGPUResource
 	{
 	public:
-		virtual ~GPUResource() = default;
+		virtual ~OpaqueGPUResource() = default;
+	};
+
+	// NOTE: Initialized and used internally by the Comfy::Render library
+	struct InternallyManagedGPUResource
+	{
+		mutable std::unique_ptr<OpaqueGPUResource> Resource = nullptr;
+		mutable bool RequestReupload = false;
+		mutable bool DynamicResource = false;
 	};
 }
