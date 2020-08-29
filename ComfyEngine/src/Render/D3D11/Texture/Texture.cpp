@@ -223,9 +223,11 @@ namespace Comfy::Render::D3D11
 		return resourceView.Get();
 	}
 
-	Texture2D::Texture2D(const Tex& tex)
+	Texture2D::Texture2D(const Graphics::Tex& tex, bool isDynamic)
 	{
-		assert(tex.MipMapsArray.size() == GetArraySize() && tex.MipMapsArray.front().size() > 0 && tex.GetSignature() == TxpSig::Texture2D);
+		assert(tex.GetSignature() == TxpSig::Texture2D);
+		assert(tex.MipMapsArray.size() == GetArraySize());
+		assert(!tex.MipMapsArray.empty() && !tex.MipMapsArray.front().empty());
 
 		auto& mipMaps = tex.MipMapsArray.front();
 		auto& baseMipMap = mipMaps.front();
@@ -238,9 +240,17 @@ namespace Comfy::Render::D3D11
 		textureDescription.Format = GetDXGIFormat(baseMipMap.Format);
 		textureDescription.SampleDesc.Count = 1;
 		textureDescription.SampleDesc.Quality = 0;
-		textureDescription.Usage = D3D11_USAGE_IMMUTABLE;
+		if (isDynamic)
+		{
+			textureDescription.Usage = D3D11_USAGE_DYNAMIC;
+			textureDescription.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		}
+		else
+		{
+			textureDescription.Usage = D3D11_USAGE_IMMUTABLE;
+			textureDescription.CPUAccessFlags = 0;
+		}
 		textureDescription.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-		textureDescription.CPUAccessFlags = 0;
 		textureDescription.MiscFlags = 0;
 
 		std::array<D3D11_SUBRESOURCE_DATA, MaxMipMaps> initialResourceData;
@@ -286,6 +296,10 @@ namespace Comfy::Render::D3D11
 		D3D.Device->CreateShaderResourceView(texture.Get(), &resourceViewDescription, &resourceView);
 	}
 
+	Texture2D::Texture2D(const Tex& tex) : Texture2D(tex, false)
+	{
+	}
+
 	Texture2D::Texture2D(ivec2 size, const u32* rgbaBuffer)
 	{
 		textureFormat = TextureFormat::RGBA8;
@@ -313,9 +327,32 @@ namespace Comfy::Render::D3D11
 		CreateCopy(sourceRenderTargetToCopy);
 	}
 
+	void Texture2D::UploadData(const Graphics::Tex& tex)
+	{
+		// HACK: This all needs some rethinking...
+		assert(isDynamic);
+		assert(tex.GetFormat() == textureFormat);
+		assert(tex.MipMapsArray.size() == 1 && tex.MipMapsArray.front().size() == 1);
+
+		D3D11_MAPPED_SUBRESOURCE mappedTexture;
+		D3D.Context->Map(texture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedTexture);
+		{
+			auto& mip = tex.MipMapsArray[0][0];
+
+			if (mappedTexture.pData != nullptr)
+				std::memcpy(mappedTexture.pData, mip.Data.get(), mip.DataSize);
+		}
+		D3D.Context->Unmap(texture.Get(), 0);
+	}
+
 	u32 Texture2D::GetArraySize() const
 	{
 		return 1;
+	}
+
+	bool Texture2D::GetIsDynamic() const
+	{
+		return isDynamic;
 	}
 
 	void Texture2D::CreateCopy(const RenderTarget& sourceRenderTargetToCopy)
@@ -404,11 +441,11 @@ namespace Comfy::Render::D3D11
 			for (u32 mipIndex = 0; mipIndex < textureDescription.MipLevels; mipIndex++)
 			{
 				const ivec2 mipMapSize = (lightMap.Size >> static_cast<i32>(mipIndex));
-				initialResourceData[LightMapCubeFaceIndices[faceIndex] * textureDescription.MipLevels + mipIndex] = 
-				{ 
-					lightMap.DataPointers[faceIndex][mipIndex], 
-					static_cast<UINT>(GetMemoryPitch(mipMapSize, bitsPerPixel, false)), 
-					0 
+				initialResourceData[LightMapCubeFaceIndices[faceIndex] * textureDescription.MipLevels + mipIndex] =
+				{
+					lightMap.DataPointers[faceIndex][mipIndex],
+					static_cast<UINT>(GetMemoryPitch(mipMapSize, bitsPerPixel, false)),
+					0
 				};
 			}
 		}

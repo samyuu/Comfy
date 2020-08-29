@@ -83,16 +83,21 @@ namespace Comfy::Render::D3D11
 
 	public:
 		Texture2D(const Graphics::Tex& tex);
+		Texture2D(const Graphics::Tex& tex, bool isDynamic);
 		Texture2D(ivec2 size, const u32* rgbaBuffer);
 		Texture2D(const RenderTarget& sourceRenderTargetToCopy);
 		~Texture2D() = default;
 
 	public:
+		void UploadData(const Graphics::Tex& tex);
+		
 		u32 GetArraySize() const override;
+		bool GetIsDynamic() const;
 
 		void CreateCopy(const RenderTarget& sourceRenderTargetToCopy);
 
 	private:
+		bool isDynamic = false;
 	};
 
 	class CubeMap final : public TextureResource
@@ -104,8 +109,6 @@ namespace Comfy::Render::D3D11
 
 	public:
 		u32 GetArraySize() const override;
-
-	private:
 	};
 
 	template<size_t Size>

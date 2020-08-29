@@ -11,20 +11,37 @@
 
 namespace Comfy::Render::D3D11
 {
+	// NOTE: Should only be used if the resource type doesn't natively support reuploading new data
+	inline void InternalGPUResourceNaiveReuploadIfRequest(const Graphics::InternallyManagedGPUResource& resource)
+	{
+		if (resource.RequestReupload)
+		{
+			resource.Resource = nullptr;
+			resource.RequestReupload = false;
+		}
+	}
+
 	inline Texture2D* GetTexture2D(const Graphics::Tex& tex)
 	{
 		if (tex.GetSignature() != Graphics::TxpSig::Texture2D)
 			return nullptr;
 
-		// TODO:
-		if (tex.GPU_Texture2D.RequestReupload) { tex.GPU_Texture2D.Resource = nullptr; }
+		if (tex.GPU_Texture2D.RequestReupload)
+		{
+			if (tex.GPU_Texture2D.Resource != nullptr)
+			{
+				if (auto* texture2D = static_cast<Texture2D*>(tex.GPU_Texture2D.Resource.get()); texture2D->GetIsDynamic())
+					texture2D->UploadData(tex);
+				else
+					tex.GPU_Texture2D.Resource = nullptr;
+			}
+
+			tex.GPU_Texture2D.RequestReupload = false;
+		}
 
 		if (tex.GPU_Texture2D.Resource == nullptr)
 		{
-			// TODO: 
-			if (tex.GPU_Texture2D.DynamicResource) {}
-
-			tex.GPU_Texture2D.Resource = std::make_unique<Texture2D>(tex);
+			tex.GPU_Texture2D.Resource = std::make_unique<Texture2D>(tex, tex.GPU_Texture2D.DynamicResource);
 			D3D11_SetObjectDebugName(static_cast<Texture2D*>(tex.GPU_Texture2D.Resource.get())->GetTexture(),
 				"Texture2D: %.*s", static_cast<int>(tex.GetName().size()), tex.GetName().data());
 		}
@@ -42,9 +59,7 @@ namespace Comfy::Render::D3D11
 		if (tex.GetSignature() != Graphics::TxpSig::CubeMap)
 			return nullptr;
 
-		// TODO:
-		if (tex.GPU_CubeMap.RequestReupload) { tex.GPU_CubeMap.Resource = nullptr; }
-
+		InternalGPUResourceNaiveReuploadIfRequest(tex.GPU_CubeMap);
 		if (tex.GPU_CubeMap.Resource == nullptr)
 		{
 			tex.GPU_CubeMap.Resource = std::make_unique<CubeMap>(tex);
@@ -57,9 +72,7 @@ namespace Comfy::Render::D3D11
 
 	inline CubeMap* GetCubeMap(const Graphics::LightMapIBL& lightMap)
 	{
-		// TODO:
-		if (lightMap.GPU_CubeMap.RequestReupload) { lightMap.GPU_CubeMap.Resource = nullptr; }
-
+		InternalGPUResourceNaiveReuploadIfRequest(lightMap.GPU_CubeMap);
 		if (lightMap.GPU_CubeMap.Resource == nullptr)
 		{
 			lightMap.GPU_CubeMap.Resource = std::make_unique<CubeMap>(lightMap);
@@ -72,9 +85,7 @@ namespace Comfy::Render::D3D11
 
 	inline IndexBuffer* GetIndexBuffer(const Graphics::SubMesh& subMesh)
 	{
-		// TODO:
-		if (subMesh.GPU_IndexBuffer.RequestReupload) { subMesh.GPU_IndexBuffer.Resource = nullptr; }
-
+		InternalGPUResourceNaiveReuploadIfRequest(subMesh.GPU_IndexBuffer);
 		if (subMesh.GPU_IndexBuffer.Resource == nullptr)
 		{
 			subMesh.GPU_IndexBuffer.Resource = std::make_unique<StaticIndexBuffer>(subMesh.GetRawIndicesByteSize(), subMesh.GetRawIndices(), subMesh.GetIndexFormat());
@@ -98,9 +109,7 @@ namespace Comfy::Render::D3D11
 		{
 			auto& gpuVertexBuffer = mesh.GPU_VertexBuffers[attribute];
 
-			// TODO:
-			if (gpuVertexBuffer.RequestReupload) { gpuVertexBuffer.Resource = nullptr; }
-
+			InternalGPUResourceNaiveReuploadIfRequest(gpuVertexBuffer);
 			if (gpuVertexBuffer.Resource == nullptr)
 			{
 				using T = decltype(sourceVector[0]);
