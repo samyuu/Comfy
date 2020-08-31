@@ -209,6 +209,7 @@ namespace Comfy::Studio::Editor
 		else
 			songWaveform.Clear();
 
+		songTextureCachedWaveform.InvalidateAll();
 		waveformUpdatePending = true;
 	}
 
@@ -435,7 +436,7 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::OnDrawTimlineBackground()
 	{
 		DrawOutOfBoundsBackground();
-		DrawWaveform();
+		DrawCheckUpdateWaveform();
 		DrawTimelineTempoMap();
 	}
 
@@ -488,7 +489,7 @@ namespace Comfy::Studio::Editor
 			baseDrawList->AddRectFilled(postStart, postEnd, outOfBoundsDimColor);
 	}
 
-	void TargetTimeline::DrawWaveform()
+	void TargetTimeline::DrawCheckUpdateWaveform()
 	{
 		if (zoomLevelChanged)
 			waveformUpdatePending = true;
@@ -505,6 +506,33 @@ namespace Comfy::Studio::Editor
 		if (songWaveform.GetPixelCount() < 1)
 			return;
 
+#if COMFY_DEBUG && 0 // DEBUG: Quick validation test that the texture cached waveform is implemented correctly
+		waveformDrawIndividualLines = Gui::IsKeyDown(Input::KeyCode_F1);
+#endif
+
+		if (waveformDrawIndividualLines)
+			DrawWaveformIndividualVertexLines();
+		else
+			DrawTextureCachedWaveform();
+	}
+
+	void TargetTimeline::DrawTextureCachedWaveform()
+	{
+		// TODO: Come up with a neater solution for this (?)
+		if (waveformUpdatePending)
+			return;
+
+		const auto timelineHeight = (static_cast<f32>(ButtonType::Count) * rowHeight);
+		const auto scrollXStartOffset = GetScrollX() + GetTimelinePosition(workingChart->StartOffset);
+
+		songTextureCachedWaveform.Draw(baseDrawList,
+			timelineContentRegion.GetTL(),
+			timelineContentRegion.GetTL() + vec2(timelineContentRegion.GetWidth(), timelineHeight),
+			scrollXStartOffset);
+	}
+
+	void TargetTimeline::DrawWaveformIndividualVertexLines()
+	{
 		const auto scrollXStartOffset = GetScrollX() + GetTimelinePosition(workingChart->StartOffset);
 
 		const auto leftMostVisiblePixel = static_cast<i64>(GetTimelinePosition(TimelineTick(0)));
@@ -522,7 +550,7 @@ namespace Comfy::Studio::Editor
 
 		for (i64 screenPixel = leftMostVisiblePixel; screenPixel < waveformPixelCount && screenPixel < rightMostVisiblePixel; screenPixel++)
 		{
-			const auto timelinePixel = std::min(static_cast<i64>(screenPixel + scrollXStartOffset), static_cast<i64>(waveformPixelCount - 1));
+			const auto timelinePixel = std::min(static_cast<i64>(glm::round(screenPixel + scrollXStartOffset)), static_cast<i64>(waveformPixelCount - 1));
 			if (timelinePixel < 0)
 				continue;
 

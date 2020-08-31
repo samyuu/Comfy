@@ -75,10 +75,14 @@ namespace Comfy::Studio::Editor
 	private:
 		void OnDrawTimlineRows() override;
 		void OnDrawTimlineDivisors() override;
+
 		void OnDrawTimlineBackground() override;
 		void OnDrawTimelineScrollBarRegion() override;
 		void DrawOutOfBoundsBackground();
-		void DrawWaveform();
+		void DrawCheckUpdateWaveform();
+		void DrawTextureCachedWaveform();
+		void DrawWaveformIndividualVertexLines();
+
 		void DrawTimelineTempoMap();
 		void DrawTimelineTargets();
 
@@ -136,7 +140,14 @@ namespace Comfy::Studio::Editor
 		bool buttonSoundOnSuccessfulPlacementOnly = true;
 
 		bool waveformUpdatePending = true;
+		bool waveformDrawIndividualLines = false;
+
 		Audio::Waveform songWaveform;
+		Audio::TextureCachedWaveform songTextureCachedWaveform =
+		{
+			songWaveform,
+			std::array { GetColor(EditorColor_WaveformChannel0), GetColor(EditorColor_WaveformChannel1) },
+		};
 
 		// NOTE: Because updating the waveform can be quite performance intensive, especially if done every frame like is common when mouse dragging a zoom slider
 		const TimeSpan waveformUpdateInterval = COMFY_DEBUG_RELEASE_SWITCH(TimeSpan::FromSeconds(1.0 / 5.0), /*TimeSpan::FromSeconds(1.0 / 30.0)*/TimeSpan::Zero());
@@ -148,7 +159,7 @@ namespace Comfy::Studio::Editor
 
 	private:
 		const f32 iconScale = 1.0f;
-		const f32 rowHeight = 36;
+		const f32 rowHeight = 36.0f;
 
 		std::array<f32, EnumCount<ButtonType>()> targetYPositions = {};
 		std::unique_ptr<TimelineButtonIcons> buttonIcons = nullptr;
