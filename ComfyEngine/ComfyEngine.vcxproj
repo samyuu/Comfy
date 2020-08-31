@@ -159,6 +159,7 @@
     <ClInclude Include="src\Audio\Decoder\DecoderFactory.h" />
     <ClInclude Include="src\Audio\Decoder\Detail\Decoders.h" />
     <ClInclude Include="src\Audio\Decoder\IDecoder.h" />
+    <ClInclude Include="src\Audio\Misc\TextureCachedWaveform.h" />
     <ClInclude Include="src\Audio\SampleProvider\ISampleProvider.h" />
     <ClInclude Include="src\Audio\SampleProvider\MemorySampleProvider.h" />
     <ClInclude Include="src\Audio\SampleProvider\SilenceSampleProvider.h" />
@@ -257,6 +258,7 @@
     <ClCompile Include="src\Audio\Decoder\Detail\Mp3Decoder.cpp" />
     <ClCompile Include="src\Audio\Decoder\Detail\VorbisDecoder.cpp" />
     <ClCompile Include="src\Audio\Decoder\Detail\WavDecoder.cpp" />
+    <ClCompile Include="src\Audio\Misc\TextureCachedWaveform.cpp" />
     <ClCompile Include="src\Audio\SampleProvider\MemorySampleProvider.cpp" />
     <ClCompile Include="src\Audio\SampleProvider\SilenceSampleProvider.cpp" />
     <ClCompile Include="src\Audio\Misc\Waveform.cpp" />

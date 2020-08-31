@@ -44,6 +44,11 @@ namespace Comfy::Audio
 		perChannelPixelCount = newPerChannelPixelCount;
 	}
 
+	TimeSpan Waveform::GetTimePerPixel() const
+	{
+		return TimeSpan::FromSeconds(secondsPerPixel);
+	}
+
 	void Waveform::Clear()
 	{
 		source = {};

@@ -303,6 +303,9 @@
     <ClInclude Include="src\Render\Core\Renderer2D\Detail\TextureSamplerCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Audio\Misc\TextureCachedWaveform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Audio\Decoder\Detail\FlacDecoder.cpp">
@@ -480,6 +483,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Audio\Core\AudioEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Audio\Misc\TextureCachedWaveform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

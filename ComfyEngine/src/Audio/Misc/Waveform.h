@@ -17,6 +17,8 @@ namespace Comfy::Audio
 
 		// NOTE: Invalidates previously cached results, should therefore not be called every frame
 		void SetScale(TimeSpan timePerPixel);
+		TimeSpan GetTimePerPixel() const;
+		
 		void Clear();
 
 		float GetNormalizedPCMForPixel(i64 pixel, u32 channelIndex);
