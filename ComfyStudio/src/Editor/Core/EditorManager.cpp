@@ -58,6 +58,8 @@ namespace Comfy::Studio::Editor
 		SetColor(EditorColor_GridAlt, 0xFF343434);
 
 		SetColor(EditorColor_Waveform, 0x40616161);
+		SetColor(EditorColor_WaveformChannel0, ImColor(0.380f, 0.380f, 0.380f, 0.25f));
+		SetColor(EditorColor_WaveformChannel1, ImColor(0.533f, 0.533f, 0.533f, 0.25f));
 
 		SetColor(EditorColor_Selection, GetColorU32(ImGuiCol_TextSelectedBg));
 		SetColor(EditorColor_TimelineRowSeparator, 0xFF343434);
