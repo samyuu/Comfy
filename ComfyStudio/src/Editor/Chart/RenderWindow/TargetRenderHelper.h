@@ -45,9 +45,12 @@ namespace Comfy::Studio::Editor
 
 		void DrawTarget(Render::Renderer2D& renderer, const TargetDrawData& data) const;
 
+		enum class ButtonShadowType : u8 { None, Black, White };
+
 		struct ButtonDrawData
 		{
 			ButtonType Type;
+			ButtonShadowType Shadow;
 			bool Sync;
 			bool Chain;
 			vec2 Position;
@@ -55,6 +58,7 @@ namespace Comfy::Studio::Editor
 		};
 
 		void DrawButton(Render::Renderer2D& renderer, const ButtonDrawData& data) const;
+		void DrawButtonShadow(Render::Renderer2D& renderer, const ButtonDrawData& data) const;
 
 		struct ButtonSyncLineData
 		{

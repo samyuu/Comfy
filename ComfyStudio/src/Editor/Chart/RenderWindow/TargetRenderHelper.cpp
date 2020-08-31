@@ -69,7 +69,6 @@ namespace Comfy::Studio::Editor
 				registerTypeLayer(ButtonType::Circle, "target_maru", layers.Targets);
 				registerTypeLayer(ButtonType::SlideL, "target_slide18_l", layers.Targets);
 				registerTypeLayer(ButtonType::SlideR, "target_slide18_r", layers.Targets);
-
 				registerTypeLayer(ButtonType::SlideL, "target_slide26_l", layers.TargetsFrag);
 				registerTypeLayer(ButtonType::SlideR, "target_slide26_r", layers.TargetsFrag);
 				registerTypeLayer(ButtonType::SlideL, "target_slide26b_l", layers.TargetsFragHit);
@@ -79,7 +78,6 @@ namespace Comfy::Studio::Editor
 				registerTypeLayer(ButtonType::Square, "target_shikaku_sync", layers.TargetsSync);
 				registerTypeLayer(ButtonType::Cross, "target_batsu_sync", layers.TargetsSync);
 				registerTypeLayer(ButtonType::Circle, "target_maru_sync", layers.TargetsSync);
-
 				registerTypeLayer(ButtonType::SlideL, "target_slide18_l_sync", layers.TargetsSync);
 				registerTypeLayer(ButtonType::SlideR, "target_slide18_r_sync", layers.TargetsSync);
 				registerTypeLayer(ButtonType::SlideL, "target_slide26_l_sync", layers.TargetsFragSync);
@@ -89,7 +87,6 @@ namespace Comfy::Studio::Editor
 				registerTypeLayer(ButtonType::Square, "target_shikaku_hold", layers.TargetsHold);
 				registerTypeLayer(ButtonType::Cross, "target_batsu_hold", layers.TargetsHold);
 				registerTypeLayer(ButtonType::Circle, "target_maru_hold", layers.TargetsHold);
-
 				registerTypeLayer(ButtonType::Triangle, "target_sankaku_synchold", layers.TargetsSyncHold);
 				registerTypeLayer(ButtonType::Square, "target_shikaku_synchold", layers.TargetsSyncHold);
 				registerTypeLayer(ButtonType::Cross, "target_batsu_synchold", layers.TargetsSyncHold);
@@ -101,7 +98,6 @@ namespace Comfy::Studio::Editor
 				registerTypeLayer(ButtonType::Circle, "button_maru", layers.Buttons);
 				registerTypeLayer(ButtonType::SlideL, "button_slide18_l", layers.Buttons);
 				registerTypeLayer(ButtonType::SlideR, "button_slide18_r", layers.Buttons);
-
 				registerTypeLayer(ButtonType::SlideL, "button_slide25_l", layers.ButtonsFrag);
 				registerTypeLayer(ButtonType::SlideR, "button_slide25_r", layers.ButtonsFrag);
 
@@ -111,9 +107,26 @@ namespace Comfy::Studio::Editor
 				registerTypeLayer(ButtonType::Circle, "button_maru_sync", layers.ButtonsSync);
 				registerTypeLayer(ButtonType::SlideL, "button_slide18_l_sync", layers.ButtonsSync);
 				registerTypeLayer(ButtonType::SlideR, "button_slide18_r_sync", layers.ButtonsSync);
-
 				registerTypeLayer(ButtonType::SlideL, "button_slide25_l_sync", layers.ButtonsFragSync);
 				registerTypeLayer(ButtonType::SlideR, "button_slide25_r_sync", layers.ButtonsFragSync);
+
+				registerTypeLayer(ButtonType::Triangle, "shadow_sankaku", layers.ButtonShadowsBlack);
+				registerTypeLayer(ButtonType::Square, "shadow_shikaku", layers.ButtonShadowsBlack);
+				registerTypeLayer(ButtonType::Cross, "shadow_batsu", layers.ButtonShadowsBlack);
+				registerTypeLayer(ButtonType::Circle, "shadow_maru", layers.ButtonShadowsBlack);
+				registerTypeLayer(ButtonType::SlideL, "shadow_slide_l18_l", layers.ButtonShadowsBlack);
+				registerTypeLayer(ButtonType::SlideR, "shadow_slide_l18_r", layers.ButtonShadowsBlack);
+				registerTypeLayer(ButtonType::SlideL, "shadow_slide_s25_l", layers.ButtonShadowsBlackFrag);
+				registerTypeLayer(ButtonType::SlideR, "shadow_slide_s25_r", layers.ButtonShadowsBlackFrag);
+
+				registerTypeLayer(ButtonType::Triangle, "white_sankaku", layers.ButtonShadowsWhite);
+				registerTypeLayer(ButtonType::Square, "white_shikaku", layers.ButtonShadowsWhite);
+				registerTypeLayer(ButtonType::Cross, "white_batsu", layers.ButtonShadowsWhite);
+				registerTypeLayer(ButtonType::Circle, "white_maru", layers.ButtonShadowsWhite);
+				registerTypeLayer(ButtonType::SlideL, "white_slide_l18_l", layers.ButtonShadowsWhite);
+				registerTypeLayer(ButtonType::SlideR, "white_slide_l18_r", layers.ButtonShadowsWhite);
+				registerTypeLayer(ButtonType::SlideL, "white_slide_s25_l", layers.ButtonShadowsWhiteFrag);
+				registerTypeLayer(ButtonType::SlideR, "white_slide_s25_r", layers.ButtonShadowsWhiteFrag);
 
 				if (!aetGameCommon->GetScenes().empty())
 				{
@@ -323,7 +336,21 @@ namespace Comfy::Studio::Editor
 				return;
 
 			constexpr auto layerFrameScale = 360.0f;
-			renderer.Aet().DrawLayer(*layer, data.Progress * layerFrameScale, Transform2D(data.Position));
+			renderer.Aet().DrawLayer(*layer, (data.Progress * layerFrameScale), Transform2D(data.Position));
+		}
+
+		void DrawButtonShadow(Render::Renderer2D& renderer, const ButtonDrawData& data) const
+		{
+			const auto* layer =
+				(data.Shadow == ButtonShadowType::Black) ? (data.Chain ? layers.ButtonShadowsBlackFrag : layers.ButtonShadowsBlack)[static_cast<size_t>(data.Type)].get() :
+				(data.Shadow == ButtonShadowType::White) ? (data.Chain ? layers.ButtonShadowsWhiteFrag : layers.ButtonShadowsWhite)[static_cast<size_t>(data.Type)].get() : nullptr;
+
+			if (layer == nullptr)
+				return;
+
+			constexpr auto layerFrameScale = 360.0f;
+			renderer.Aet().DrawLayer(*layer, (data.Progress * layerFrameScale), Transform2D(data.Position));
+		}
 		}
 
 		void DrawButtonPairSyncLines(Render::Renderer2D& renderer, const ButtonSyncLineData& data) const
@@ -426,8 +453,9 @@ namespace Comfy::Studio::Editor
 			constexpr auto minValidTime = TimeSpan::Zero();
 			constexpr auto maxValidTime = TimeSpan::FromMinutes(9.0) + TimeSpan::FromSeconds(59.0) + TimeSpan::FromMilliseconds(999.0);
 
-			const auto totalSeconds = playbackTime.TotalSeconds();
-			const auto adjustedTime = (glm::isnan(totalSeconds) || glm::isinf(totalSeconds)) ? minValidTime : playbackTime;
+			const auto playbackTimeRound = TimeSpan::RoundToMilliseconds(playbackTime);
+			const auto totalSeconds = playbackTimeRound.TotalSeconds();
+			const auto adjustedTime = (glm::isnan(totalSeconds) || glm::isinf(totalSeconds)) ? minValidTime : playbackTimeRound;
 			const auto clampedSeconds = std::clamp(adjustedTime, minValidTime, maxValidTime).TotalSeconds();
 
 			const auto fractionMin = glm::floor(glm::mod(clampedSeconds, 3600.0) / 60.0);
@@ -435,7 +463,10 @@ namespace Comfy::Studio::Editor
 			const auto fractionMS = (fractionSec - glm::floor(fractionSec)) * 100.0;
 
 			char formatBuffer[16];
-			sprintf_s(formatBuffer, "%01d:%02d.%02d", static_cast<int>(fractionMin), static_cast<int>(fractionSec), static_cast<int>(fractionMS));
+			sprintf_s(formatBuffer, "%01d:%02d.%02d",
+				static_cast<i32>(fractionMin),
+				static_cast<i32>(fractionSec),
+				static_cast<i32>(fractionMS));
 
 			const auto formattedTime = std::string_view(formatBuffer, std::size(formatBuffer));
 			renderer.Font().Draw(*font, formattedTime.substr(0, 1), TryGetTransform(layers.PracticeGaugeBaseNumPointMin, 0.0f));
@@ -530,7 +561,11 @@ namespace Comfy::Studio::Editor
 				Buttons,
 				ButtonsFrag,
 				ButtonsSync,
-				ButtonsFragSync;
+				ButtonsFragSync,
+				ButtonShadowsBlack,
+				ButtonShadowsBlackFrag,
+				ButtonShadowsWhite,
+				ButtonShadowsWhiteFrag;
 
 			std::shared_ptr<Aet::Video> TargetHandVideo;
 
@@ -582,6 +617,11 @@ namespace Comfy::Studio::Editor
 	void TargetRenderHelper::DrawButton(Render::Renderer2D& renderer, const ButtonDrawData& data) const
 	{
 		impl->DrawButton(renderer, data);
+	}
+
+	void TargetRenderHelper::DrawButtonShadow(Render::Renderer2D& renderer, const ButtonDrawData& data) const
+	{
+		impl->DrawButtonShadow(renderer, data);
 	}
 	void TargetRenderHelper::DrawButtonPairSyncLines(Render::Renderer2D& renderer, const ButtonSyncLineData& data) const
 	{
