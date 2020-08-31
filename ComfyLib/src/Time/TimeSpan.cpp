@@ -38,21 +38,26 @@ namespace Comfy
 
 	void TimeSpan::FormatTimeBuffer(char* buffer, size_t bufferSize) const
 	{
+		const f64 msRoundSeconds = RoundToMilliseconds(*this).timeInSeconds;
+
 		assert(bufferSize >= RequiredFormatBufferSize);
-		if (glm::isnan(timeInSeconds) || glm::isinf(timeInSeconds))
+		if (glm::isnan(msRoundSeconds) || glm::isinf(msRoundSeconds))
 		{
 			strcpy_s(buffer, bufferSize, "--:--.---");
 			return;
 		}
 
-		const f64 absoluteTime = glm::abs(timeInSeconds);
+		const f64 msRoundSecondsAbs = glm::abs(msRoundSeconds);
+		const f64 min = glm::floor(glm::mod(msRoundSecondsAbs, 3600.0) / 60.0);
+		const f64 sec = glm::mod(msRoundSecondsAbs, 60.0);
+		const f64 ms = (sec - glm::floor(sec)) * 1000.0;
 
-		const f64 minutes = glm::floor(glm::mod(absoluteTime, 3600.0) / 60.0);
-		const f64 seconds = glm::mod(absoluteTime, 60.0);
-		const f64 milliseconds = (seconds - glm::floor(seconds)) * 1000.0;
-
-		const char* signCharacter = (timeInSeconds < 0.0) ? "-" : "";
-		sprintf_s(buffer, bufferSize, "%s%02d:%02d.%03d", signCharacter, static_cast<i32>(minutes), static_cast<i32>(seconds), static_cast<i32>(milliseconds));
+		const auto signCharacter = (msRoundSeconds < 0.0) ? std::array { '-', '\0' } : std::array { '\0', '\0' };
+		sprintf_s(buffer, bufferSize, "%s%02d:%02d.%03d",
+			signCharacter.data(),
+			static_cast<i32>(min),
+			static_cast<i32>(sec),
+			static_cast<i32>(ms));
 	}
 
 	std::array<char, TimeSpan::RequiredFormatBufferSize> TimeSpan::FormatTime() const

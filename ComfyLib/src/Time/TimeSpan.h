@@ -23,6 +23,8 @@ namespace Comfy
 		static constexpr TimeSpan FromMilliseconds(f64 value) { return TimeSpan(value / 1000.0); }
 		static constexpr TimeSpan FromFrames(frame_t frames, frame_t frameRate = DefaultFrameRate) { return FromSeconds(frames / frameRate); }
 
+		static constexpr TimeSpan RoundToMilliseconds(TimeSpan value) { return TimeSpan::FromSeconds((value.timeInSeconds * 1000.0 + 0.5) * 0.001); }
+
 	public:
 		constexpr f64 TotalMinutes() const { return TotalSeconds() / 60.0; }
 		constexpr f64 TotalSeconds() const { return timeInSeconds; }
