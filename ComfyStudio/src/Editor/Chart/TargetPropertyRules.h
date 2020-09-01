@@ -5,10 +5,38 @@
 
 namespace Comfy::Studio::Editor
 {
+	inline vec2 GetButtonPathSinePoint(f32 progress, vec2 pivot, f32 degrees, i32 frequency, f32 amplitude, f32 distance)
+	{
+		auto rotate = [](vec2 point, f32 radians)
+		{
+			const auto sin = glm::sin(radians), cos = glm::cos(radians);
+			return vec2(point.x * cos - point.y * sin, point.x * sin + point.y * cos);
+		};
+
+		if (distance == 0.0f)
+			return pivot;
+
+		if (frequency % 2 != 0)
+			frequency *= -1;
+
+		progress = (1.0f - progress);
+
+		const auto sinePoint = vec2(progress * distance, glm::sin(progress * glm::pi<f32>() * static_cast<f32>(frequency)) / 12.0f * amplitude);
+		return rotate(sinePoint, glm::radians(degrees - 90.0f)) + pivot;
+	}
+
+	inline vec2 GetButtonPathSinePoint(f32 progress, const TargetProperties& properties)
+	{
+		return GetButtonPathSinePoint(progress, properties.Position, properties.Angle, properties.Frequency, properties.Amplitude, properties.Distance);
+	}
+
 	namespace Rules
 	{
 		constexpr vec2 PlacementAreaSize = { 1920.0f, 1080.0f };
+		constexpr vec2 PlacementAreaCenter = (PlacementAreaSize * 0.5f);
+
 		constexpr f32 PlacementDistancePerBeat = 192.0f;
+		constexpr f32 PlacementDistancePerBeatStair = 186.59046f;
 
 		constexpr f32 TickToDistance(const TimelineTick tick)
 		{
@@ -24,6 +52,14 @@ namespace Comfy::Studio::Editor
 			const auto ticks = beats * static_cast<f64>(TimelineTick::TicksPerBeat);
 
 			return TimelineTick::FromTicks(static_cast<i32>(ticks));
+		}
+
+		constexpr f32 TickToStairDistance(const TimelineTick tick)
+		{
+			const auto beats = static_cast<f64>(tick.Ticks()) / static_cast<f64>(TimelineTick::TicksPerBeat);
+			const auto beatDistanceRatio = static_cast<f32>(PlacementDistancePerBeatStair);
+
+			return static_cast<f32>(beats * beatDistanceRatio);
 		}
 
 		constexpr vec2 RecommendedPlacementAreaMin =
