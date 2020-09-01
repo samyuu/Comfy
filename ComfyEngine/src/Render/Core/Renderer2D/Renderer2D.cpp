@@ -96,30 +96,25 @@ namespace Comfy::Render
 
 		Detail::TextureSamplerCache2D TextureSamplers = {};
 
-		/*
-		// TODO: Implement using CheckerboardTexture instead (?)
-		static constexpr std::array<u32, 4> CheckerboardTexturePixels =
-		{
-			0xFFFFFFFF, 0x00000000,
-			0x00000000, 0xFFFFFFFF,
-		};
-
-		ImmutableTexture2D CheckerboardTexture = { ivec2(2, 2), checkerboardTexturePixels.data(), D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_WRAP };
-		*/
-
 		// NOTE: Avoid additional branches by using a 1x1 white fallback texture for rendering solid color
 		const Tex WhiteChipTexture = []
 		{
 			Tex chip;
-			chip.Name = "F_COMFY_CHIP";
+			chip.Name = "Renderer2D::WhiteChipTexture";
 			auto& mipMap = chip.MipMapsArray.emplace_back().emplace_back();
 			mipMap.Size = ivec2(1);
 			mipMap.Format = TextureFormat::RGBA8;
 			mipMap.DataSize = 1 * sizeof(u32);
 			mipMap.Data = std::make_unique<u8[]>(mipMap.DataSize);
-			*reinterpret_cast<u32*>(mipMap.Data.get()) = 0xFFFFFFFF;
+			auto* rgbaPixels = reinterpret_cast<u32*>(mipMap.Data.get());
+			rgbaPixels[0] = 0xFFFFFFFF;
 			return chip;
 		}();
+
+		const TexSamplerView WhiteChipTextureView = TexSamplerView(&WhiteChipTexture,
+			TextureAddressMode::ClampBorder,
+			TextureAddressMode::ClampBorder,
+			TextureFilter::Point);
 
 		struct AetBlendStates
 		{
@@ -555,7 +550,7 @@ namespace Comfy::Render
 		{
 			Detail::SpriteBatchItemVertexView pair = InternalCheckFlushAddSpriteQuadAndItem();
 
-			pair.Item->TexView = (command.TexView) ? command.TexView : &WhiteChipTexture;
+			pair.Item->TexView = (command.TexView) ? command.TexView : WhiteChipTextureView;
 			pair.Item->MaskTexView = nullptr;
 			pair.Item->Primitive = PrimitiveType::Triangles;
 			pair.Item->BlendMode = command.BlendMode;
@@ -576,8 +571,8 @@ namespace Comfy::Render
 		{
 			Detail::SpriteBatchItemVertexView pair = InternalCheckFlushAddSpriteQuadAndItem();
 
-			pair.Item->TexView = (command.TexView) ? command.TexView : &WhiteChipTexture;
-			pair.Item->MaskTexView = (commandMask.TexView) ? commandMask.TexView : &WhiteChipTexture;
+			pair.Item->TexView = (command.TexView) ? command.TexView : WhiteChipTextureView;
+			pair.Item->MaskTexView = (commandMask.TexView) ? commandMask.TexView : WhiteChipTextureView;
 			pair.Item->Primitive = PrimitiveType::Triangles;
 			pair.Item->BlendMode = command.BlendMode;
 			pair.Item->DrawTextBorder = command.DrawTextBorder;
@@ -614,7 +609,7 @@ namespace Comfy::Render
 				InternalFlushRenderBatches();
 
 			auto& batchItem = BatchItems.emplace_back();
-			batchItem.TexView = (texView) ? texView : &WhiteChipTexture;
+			batchItem.TexView = (texView) ? texView : WhiteChipTextureView;
 			batchItem.Primitive = primitive;
 			batchItem.BlendMode = blendMode;
 			batchItem.ShapeVertexIndex = static_cast<u16>(SpriteShapeVertices.size());

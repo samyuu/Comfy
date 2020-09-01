@@ -61,7 +61,7 @@ float4 PS_main(VS_OUTPUT input) : SV_Target
 			if (CB_TextureFormatFlags & (1 << i))
 				outputColor *= RGTC2_ConvertYACbCrToRGBA(SpriteTextures[i], SpriteSamplers[i], input.TexCoord);
 			else
-				outputColor *= SpriteTextures[i].Sample(SpriteSamplers[0], input.TexCoord);
+				outputColor *= SpriteTextures[i].Sample(SpriteSamplers[i], input.TexCoord);
 
 			break;
 		}
