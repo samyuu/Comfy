@@ -1,4 +1,5 @@
 #include "TargetRenderHelper.h"
+#include "Editor/Chart/TargetPropertyRules.h"
 #include "Graphics/Auth2D/Aet/AetSet.h"
 #include "Graphics/Auth2D/SprSet.h"
 #include "Graphics/Auth2D/Font/FontMap.h"
@@ -205,7 +206,7 @@ namespace Comfy::Studio::Editor
 
 		void DrawHUD(Render::Renderer2D& renderer, const HUD& hud) const
 		{
-			if (aetGameCommon == nullptr || sprGameCommon == nullptr || aetGame == nullptr || sprGame == nullptr || sprFont36 == nullptr || fontMap == nullptr)
+			if (aetGameCommon == nullptr || sprGameCommon == nullptr || aetGame == nullptr || sprGame == nullptr || sprFont36 == nullptr)
 				return;
 
 			TryDrawLayer(renderer, layers.FrameUp, 0.0f);
@@ -351,6 +352,93 @@ namespace Comfy::Studio::Editor
 			constexpr auto layerFrameScale = 360.0f;
 			renderer.Aet().DrawLayer(*layer, (data.Progress * layerFrameScale), Transform2D(data.Position));
 		}
+
+		void DrawButtonTrail(Render::Renderer2D& renderer, const ButtonTrailData& data) const
+		{
+			const auto trail = GetButtonTrailSprite();
+			if (!trail)
+				return;
+
+			constexpr i32 segmentCount = 40;
+			constexpr i32 verticesPerSegment = 2;
+			constexpr i32 vertexCount = segmentCount * verticesPerSegment;
+
+			constexpr auto texSizeScale = vec2(8.0f, 0.25f);
+			constexpr auto texCoordOffsetU = 0.35f;
+
+			static constexpr std::array<u8, segmentCount> trailSegmentAlphaValues =
+			{
+				0x00, 0x00, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F,
+				0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F,
+				0x7F, 0x7F, 0x7F, 0x7F, 0x72, 0x72, 0x65, 0x65,
+				0x59, 0x59, 0x4C, 0x4C, 0x3F, 0x3F, 0x32, 0x32,
+				0x26, 0x26, 0x19, 0x19, 0x0C, 0x0C, 0x00, 0x00,
+			};
+
+			static constexpr std::array<vec3, EnumCount<ButtonType>()> trailButtonColors =
+			{
+				vec3(0.95f, 1.00f, 0.69f),
+				vec3(1.00f, 0.81f, 1.00f),
+				vec3(0.71f, 1.00f, 1.00f),
+				vec3(0.93f, 0.27f, 0.29f),
+				vec3(1.00f, 1.00f, 0.78f),
+				vec3(1.00f, 1.00f, 0.78f),
+			};
+
+			static constexpr vec3 chanceTrailColor = vec3(1.0f, 1.0f, 1.0f);
+
+			// NOTE: This single sprite consists of two "sub sprites" for chance time and normal button trails
+			const auto texSize = trail.Spr->GetSize() * texSizeScale;
+			const auto sprSize = vec2(texSize.x, texSize.y / 2);
+
+			const f32 progressPerSegment = (data.ProgressEnd - data.ProgressStart) / static_cast<f32>(segmentCount);
+			std::array<Render::PositionTextureColorVertex, vertexCount> vertices;
+
+			std::array<vec2, segmentCount> segmentPositions;
+			for (i32 i = 0; i < segmentCount; i++)
+				segmentPositions[i] = GetButtonPathSinePoint(glm::min(data.ProgressStart + (static_cast<f32>(i) * progressPerSegment), 1.0f), data.Properties);
+
+			for (i32 segment = 0, vertex = 0; segment < segmentCount; segment++)
+			{
+				const auto getNormal = [](vec2 v) { return vec2(v.y, -v.x); };
+
+				const auto normal =
+					(segment < 1) ? glm::normalize(getNormal(segmentPositions[segment + 1] - segmentPositions[segment])) :
+					(segment >= segmentCount - 1) ? glm::normalize(getNormal(segmentPositions[segment] - segmentPositions[segment - 1])) :
+					glm::normalize(getNormal(segmentPositions[segment] - segmentPositions[segment - 1]) + getNormal(segmentPositions[segment + 1] - segmentPositions[segment]));
+
+				vertices[vertex++].Position = vec2(segmentPositions[segment] + normal * +sprSize.y);
+				vertices[vertex++].Position = vec2(segmentPositions[segment] + normal * -sprSize.y);
+			}
+
+			const auto texCoordsV = std::array { vec2(0.0f, 0.5f), vec2(0.5, 1.0f) }[data.Chance];
+			f32 coordDistU = (data.Progress + texCoordOffsetU);
+
+			for (i32 vertex = 0; vertex < vertexCount; vertex += verticesPerSegment)
+			{
+				if (vertex > 0)
+					coordDistU += (glm::distance(vertices[vertex - 1].Position, vertices[vertex].Position) / sprSize.x) * -0.5f;
+
+				vertices[vertex + 0].TextureCoordinates = vec2(coordDistU, texCoordsV.x);
+				vertices[vertex + 1].TextureCoordinates = vec2(coordDistU, texCoordsV.y);
+			}
+
+			const auto buttonColor = data.Chance ? chanceTrailColor : trailButtonColors[static_cast<size_t>(data.Type)];
+			for (size_t segment = 0, vertex = 0; segment < segmentCount; segment++)
+			{
+				const auto segmentAlpha = trailSegmentAlphaValues[segment] * (1.0f / static_cast<f32>(std::numeric_limits<u8>::max()));
+				const auto segmentColor = vec4(buttonColor, segmentAlpha);
+
+				vertices[vertex++].Color = segmentColor;
+				vertices[vertex++].Color = segmentColor;
+			}
+
+			renderer.DrawVertices(
+				vertices.data(),
+				vertices.size(),
+				Render::TexSamplerView(trail.Tex, TextureAddressMode::WrapRepeat, TextureAddressMode::ClampBorder, TextureFilter::Linear),
+				AetBlendMode::Normal,
+				PrimitiveType::TriangleStrip);
 		}
 
 		void DrawButtonPairSyncLines(Render::Renderer2D& renderer, const ButtonSyncLineData& data) const
@@ -623,6 +711,12 @@ namespace Comfy::Studio::Editor
 	{
 		impl->DrawButtonShadow(renderer, data);
 	}
+
+	void TargetRenderHelper::DrawButtonTrail(Render::Renderer2D& renderer, const ButtonTrailData& data) const
+	{
+		impl->DrawButtonTrail(renderer, data);
+	}
+
 	void TargetRenderHelper::DrawButtonPairSyncLines(Render::Renderer2D& renderer, const ButtonSyncLineData& data) const
 	{
 		if (data.SyncPairCount < 2)
