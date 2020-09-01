@@ -63,8 +63,9 @@ namespace Comfy::Studio::Editor
 		RemoveAt(FindIndex(tick, type));
 	}
 
-	i64 SortedTargetList::FindIndex(TimelineTick tick, ButtonType type)
+	i64 SortedTargetList::FindIndex(TimelineTick tick, ButtonType type) const
 	{
+		// TODO: Binary search
 		const auto foundIndex = FindIndexOf(targets, [&](const auto& target) { return (target.Tick == tick) && (target.Type == type); });
 		return InBounds(foundIndex, targets) ? static_cast<i64>(foundIndex) : -1;
 	}

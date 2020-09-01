@@ -65,7 +65,7 @@ namespace Comfy::Studio::Editor
 		void Add(TimelineTick tick, ButtonType type);
 		void RemoveAt(i64 index);
 		void Remove(TimelineTick tick, ButtonType type);
-		i64 FindIndex(TimelineTick tick, ButtonType type);
+		i64 FindIndex(TimelineTick tick, ButtonType type) const;
 
 		void Clear();
 
@@ -77,6 +77,9 @@ namespace Comfy::Studio::Editor
 		auto cbegin() const { return targets.cbegin(); }
 		auto cend() const { return targets.cend(); }
 		size_t size() const { return targets.size(); }
+
+		auto& operator[](size_t index) { return targets[index]; }
+		auto& operator[](size_t index) const { return targets[index]; }
 
 	private:
 		std::vector<TimelineTarget> targets;
