@@ -18,7 +18,7 @@ namespace Comfy::Studio::Editor
 		void UpdateAsyncLoading();
 		void SetAetSprGetter(Render::Renderer2D& renderer);
 
-		struct HUD
+		struct HUDData
 		{
 			std::string_view SongName;
 
@@ -28,9 +28,9 @@ namespace Comfy::Studio::Editor
 			TimeSpan Duration;
 		};
 
-		void DrawHUD(Render::Renderer2D& renderer, const HUD& hud) const;
+		void DrawHUD(Render::Renderer2D& renderer, const HUDData& hud) const;
 
-		struct TargetDrawData
+		struct TargetData
 		{
 			ButtonType Type;
 			bool NoHand;
@@ -43,11 +43,11 @@ namespace Comfy::Studio::Editor
 			f32 Progress;
 		};
 
-		void DrawTarget(Render::Renderer2D& renderer, const TargetDrawData& data) const;
+		void DrawTarget(Render::Renderer2D& renderer, const TargetData& data) const;
 
 		enum class ButtonShadowType : u8 { None, Black, White };
 
-		struct ButtonDrawData
+		struct ButtonData
 		{
 			ButtonType Type;
 			ButtonShadowType Shadow;
@@ -57,8 +57,8 @@ namespace Comfy::Studio::Editor
 			f32 Progress;
 		};
 
-		void DrawButton(Render::Renderer2D& renderer, const ButtonDrawData& data) const;
-		void DrawButtonShadow(Render::Renderer2D& renderer, const ButtonDrawData& data) const;
+		void DrawButton(Render::Renderer2D& renderer, const ButtonData& data) const;
+		void DrawButtonShadow(Render::Renderer2D& renderer, const ButtonData& data) const;
 
 		struct ButtonTrailData
 		{

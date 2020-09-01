@@ -204,7 +204,7 @@ namespace Comfy::Studio::Editor
 			});
 		}
 
-		void DrawHUD(Render::Renderer2D& renderer, const HUD& hud) const
+		void DrawHUD(Render::Renderer2D& renderer, const HUDData& hud) const
 		{
 			if (aetGameCommon == nullptr || sprGameCommon == nullptr || aetGame == nullptr || sprGame == nullptr || sprFont36 == nullptr)
 				return;
@@ -305,7 +305,7 @@ namespace Comfy::Studio::Editor
 			});
 		}
 
-		void DrawTarget(Render::Renderer2D& renderer, const TargetDrawData& data) const
+		void DrawTarget(Render::Renderer2D& renderer, const TargetData& data) const
 		{
 			// TODO: Handle all other target types
 			const auto* layer = (data.Sync ? layers.TargetsSync : layers.Targets)[static_cast<size_t>(data.Type)].get();
@@ -329,7 +329,7 @@ namespace Comfy::Studio::Editor
 			if (data.NoScale) PopRestoreScaleKeyFrames(*layer);
 		}
 
-		void DrawButton(Render::Renderer2D& renderer, const ButtonDrawData& data) const
+		void DrawButton(Render::Renderer2D& renderer, const ButtonData& data) const
 		{
 			// TODO: Handle all other button types
 			const auto* layer = (data.Sync ? layers.ButtonsSync : layers.Buttons)[static_cast<size_t>(data.Type)].get();
@@ -340,7 +340,7 @@ namespace Comfy::Studio::Editor
 			renderer.Aet().DrawLayer(*layer, (data.Progress * layerFrameScale), Transform2D(data.Position));
 		}
 
-		void DrawButtonShadow(Render::Renderer2D& renderer, const ButtonDrawData& data) const
+		void DrawButtonShadow(Render::Renderer2D& renderer, const ButtonData& data) const
 		{
 			const auto* layer =
 				(data.Shadow == ButtonShadowType::Black) ? (data.Chain ? layers.ButtonShadowsBlackFrag : layers.ButtonShadowsBlack)[static_cast<size_t>(data.Type)].get() :
@@ -360,8 +360,9 @@ namespace Comfy::Studio::Editor
 				return;
 
 			constexpr i32 segmentCount = 40;
+
 			constexpr i32 verticesPerSegment = 2;
-			constexpr i32 vertexCount = segmentCount * verticesPerSegment;
+			constexpr i32 vertexCount = (segmentCount * verticesPerSegment);
 
 			constexpr auto texSizeScale = vec2(8.0f, 0.25f);
 			constexpr auto texCoordOffsetU = 0.35f;
@@ -424,7 +425,7 @@ namespace Comfy::Studio::Editor
 			}
 
 			const auto buttonColor = data.Chance ? chanceTrailColor : trailButtonColors[static_cast<size_t>(data.Type)];
-			for (size_t segment = 0, vertex = 0; segment < segmentCount; segment++)
+			for (i32 segment = 0, vertex = 0; segment < segmentCount; segment++)
 			{
 				const auto segmentAlpha = trailSegmentAlphaValues[segment] * (1.0f / static_cast<f32>(std::numeric_limits<u8>::max()));
 				const auto segmentColor = vec4(buttonColor, segmentAlpha);
@@ -692,22 +693,22 @@ namespace Comfy::Studio::Editor
 		impl->SetAetSprGetter(renderer);
 	}
 
-	void TargetRenderHelper::DrawHUD(Render::Renderer2D& renderer, const HUD& hud) const
+	void TargetRenderHelper::DrawHUD(Render::Renderer2D& renderer, const HUDData& hud) const
 	{
 		impl->DrawHUD(renderer, hud);
 	}
 
-	void TargetRenderHelper::DrawTarget(Render::Renderer2D& renderer, const TargetDrawData& data) const
+	void TargetRenderHelper::DrawTarget(Render::Renderer2D& renderer, const TargetData& data) const
 	{
 		impl->DrawTarget(renderer, data);
 	}
 
-	void TargetRenderHelper::DrawButton(Render::Renderer2D& renderer, const ButtonDrawData& data) const
+	void TargetRenderHelper::DrawButton(Render::Renderer2D& renderer, const ButtonData& data) const
 	{
 		impl->DrawButton(renderer, data);
 	}
 
-	void TargetRenderHelper::DrawButtonShadow(Render::Renderer2D& renderer, const ButtonDrawData& data) const
+	void TargetRenderHelper::DrawButtonShadow(Render::Renderer2D& renderer, const ButtonData& data) const
 	{
 		impl->DrawButtonShadow(renderer, data);
 	}
