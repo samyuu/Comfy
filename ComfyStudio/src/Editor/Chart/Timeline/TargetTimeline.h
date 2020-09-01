@@ -58,7 +58,11 @@ namespace Comfy::Studio::Editor
 		void StopPlayback() override;
 
 	public:
-		int FindGridDivisionPresetIndex() const;
+		i32 FindGridDivisionPresetIndex() const;
+		void SelectNextPresetGridDivision(i32 direction);
+
+		void AdvanceCursorByGridDivisionTick(i32 direction, bool beatStep = false);
+		void AdvanceCursorToNextTarget(i32 direction);
 
 	private:
 		void OnUpdate() override;
@@ -99,9 +103,6 @@ namespace Comfy::Studio::Editor
 
 	private:
 		void PlaceOrRemoveTarget(TimelineTick tick, ButtonType type);
-		void SelectNextPresetGridDivision(int direction);
-
-		void AdvanceCursorByGridDivisionTick(int direction, bool beatStep = false);
 
 	private:
 		void PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick);

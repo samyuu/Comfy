@@ -30,7 +30,6 @@ namespace Comfy::Studio::Editor
 
 	private:
 		void UpdateAllInput();
-		void CursorJumpToNextTarget(int direction);
 
 	private:
 		void RenderBackground();
@@ -52,7 +51,7 @@ namespace Comfy::Studio::Editor
 
 	private:
 		CheckerboardGrid backgroundCheckerboard;
-		float backgroundDim = 0.25f;
+		f32 backgroundDim = 0.25f;
 
 		Render::Camera2D camera;
 

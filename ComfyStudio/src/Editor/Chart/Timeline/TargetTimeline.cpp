@@ -85,17 +85,6 @@ namespace Comfy::Studio::Editor
 		return clamped;
 	}
 
-	int TargetTimeline::FindGridDivisionPresetIndex() const
-	{
-		for (int i = 0; i < presetBarGridDivisions.size(); i++)
-		{
-			if (presetBarGridDivisions[i] == activeBarGridDivision)
-				return i;
-		}
-
-		return -1;
-	}
-
 	f32 TargetTimeline::GetButtonEdgeFadeOpacity(f32 screenX) const
 	{
 		constexpr auto fadeSpan = 35.0f;
@@ -348,6 +337,7 @@ namespace Comfy::Studio::Editor
 			const auto center = vec2(start + end) / 2.0f;
 			targetYPositions[row] = center.y;
 
+			// TODO: Separate loop for icons and lines to batch all icons into same draw call
 			const auto target = TimelineTarget(TimelineTick::Zero(), static_cast<ButtonType>(row));
 			buttonIcons->DrawButtonIcon(drawList, target, center, iconScale);
 
@@ -954,34 +944,6 @@ namespace Comfy::Studio::Editor
 		buttonAnimations[buttonIndex].ElapsedTime = TimeSpan::Zero();
 	}
 
-	void TargetTimeline::SelectNextPresetGridDivision(int direction)
-	{
-		const auto index = FindGridDivisionPresetIndex();
-		const auto nextIndex = std::clamp(index + direction, 0, static_cast<int>(presetBarGridDivisions.size()) - 1);
-
-		activeBarGridDivision = presetBarGridDivisions[nextIndex];
-	}
-
-	void TargetTimeline::AdvanceCursorByGridDivisionTick(int direction, bool beatStep)
-	{
-		const auto beatIncrement = TimelineTick::FromBeats(1);
-		const auto gridIncrement = GridDivisionTick();
-
-		const auto stepDistance = (beatStep ? std::max(beatIncrement, gridIncrement) : gridIncrement);
-
-		const auto newCursorTick = RoundTickToGrid(GetCursorTick()) + (stepDistance * direction);
-		const auto clampedCursorTick = std::max(newCursorTick, TimelineTick::Zero());
-
-		const auto preCursorX = GetCursorTimelinePosition();
-
-		SetCursorTick(clampedCursorTick);
-		PlayCursorButtonSoundsAndAnimation(clampedCursorTick);
-
-		// NOTE: Keep same relative cursor screen position though might only wanna scroll if the cursor is about to go off-screen (?)
-		if (!GetIsPlayback())
-			SetScrollX(GetScrollX() + (GetCursorTimelinePosition() - preCursorX));
-	}
-
 	void TargetTimeline::PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick)
 	{
 		const bool isPlayback = GetIsPlayback();
@@ -1066,6 +1028,72 @@ namespace Comfy::Studio::Editor
 		pausedCursorTick = TimeToTick(playbackTime);
 
 		PlaybackStateChangeSyncButtonSoundCursorTime(playbackTime);
+	}
+
+	i32 TargetTimeline::FindGridDivisionPresetIndex() const
+	{
+		for (i32 i = 0; i < static_cast<i32>(presetBarGridDivisions.size()); i++)
+		{
+			if (presetBarGridDivisions[i] == activeBarGridDivision)
+				return i;
+		}
+
+		return -1;
+	}
+
+	void TargetTimeline::SelectNextPresetGridDivision(i32 direction)
+	{
+		const auto index = FindGridDivisionPresetIndex();
+		const auto nextIndex = std::clamp(index + direction, 0, static_cast<int>(presetBarGridDivisions.size()) - 1);
+
+		activeBarGridDivision = presetBarGridDivisions[nextIndex];
+	}
+
+	void TargetTimeline::AdvanceCursorByGridDivisionTick(i32 direction, bool beatStep)
+	{
+		const auto beatIncrement = TimelineTick::FromBeats(1);
+		const auto gridIncrement = GridDivisionTick();
+
+		const auto stepDistance = (beatStep ? std::max(beatIncrement, gridIncrement) : gridIncrement);
+
+		const auto newCursorTick = RoundTickToGrid(GetCursorTick()) + (stepDistance * direction);
+		const auto clampedCursorTick = std::max(newCursorTick, TimelineTick::Zero());
+
+		const auto preCursorX = GetCursorTimelinePosition();
+
+		SetCursorTick(clampedCursorTick);
+		PlayCursorButtonSoundsAndAnimation(clampedCursorTick);
+
+		// NOTE: Keep same relative cursor screen position though might only wanna scroll if the cursor is about to go off-screen (?)
+		if (!GetIsPlayback())
+			SetScrollX(GetScrollX() + (GetCursorTimelinePosition() - preCursorX));
+	}
+
+	void TargetTimeline::AdvanceCursorToNextTarget(i32 direction)
+	{
+		const auto& targets = workingChart->Targets;
+		const auto cursorTick = GetCursorTick();
+
+		auto tryFindIf = [](auto begin, auto end, auto pred) -> auto*
+		{
+			auto found = std::find_if(begin, end, pred);
+			return (found != end) ? &(*found) : nullptr;
+		};
+
+		const auto* nextTarget =
+			(direction > 0) ? tryFindIf(targets.begin(), targets.end(), [&](auto& t) { return (t.Tick > cursorTick); }) :
+			(direction < 0) ? tryFindIf(targets.rbegin(), targets.rend(), [&](auto& t) { return (t.Tick < cursorTick); })
+			: nullptr;
+
+		if (nextTarget != nullptr)
+		{
+			const auto nextTick = nextTarget->Tick;
+
+			SetCursorTick(nextTick);
+			PlayCursorButtonSoundsAndAnimation(nextTick);
+		}
+
+		CenterCursor();
 	}
 
 	void TargetTimeline::PlaybackStateChangeSyncButtonSoundCursorTime(TimeSpan newCursorTime)

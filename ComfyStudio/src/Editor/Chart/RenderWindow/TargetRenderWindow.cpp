@@ -80,21 +80,13 @@ namespace Comfy::Studio::Editor
 		constexpr bool allowRepeat = true;
 
 		if (Gui::IsKeyPressed(Input::KeyCode_Q, allowRepeat))
-			CursorJumpToNextTarget(-1);
+			timeline.AdvanceCursorToNextTarget(-1);
 
 		if (Gui::IsKeyPressed(Input::KeyCode_E, allowRepeat))
-			CursorJumpToNextTarget(+1);
-	}
+			timeline.AdvanceCursorToNextTarget(+1);
 
-	void TargetRenderWindow::CursorJumpToNextTarget(int direction)
-	{
-		// TODO: Implement and move inside TargetTimeline
-		const auto& targets = workingChart->Targets;
-
-		const auto cursorTime = chartEditor.GetPlaybackTimeAsync();
-		const auto cursorTick = workingChart->TimelineMap.GetTickAt(cursorTime);
-
-		for (size_t i = 0; i < targets.size(); i++) {}
+		if (Gui::IsKeyPressed(Input::KeyCode_Space))
+			timeline.GetIsPlayback() ? timeline.PausePlayback() : timeline.ResumePlayback();
 	}
 
 	void TargetRenderWindow::RenderBackground()
