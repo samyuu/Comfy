@@ -1,6 +1,43 @@
 #include "Direct3D.h"
 #include "Texture/RenderTarget.h"
 #include "Core/Logger.h"
+#include "Misc/UTF8.h"
+#include "System/Library/LibraryLoader.h"
+
+#if COMFY_D3D11_DEBUG_NAMES
+typedef INT(WINAPI D3DPERF_BEGINEVENT)(DWORD col, LPCWSTR wszName);
+typedef INT(WINAPI D3DPERF_ENDEVENT)(void);
+typedef VOID(WINAPI D3DPERF_SETMARKER)(DWORD col, LPCWSTR wszName);
+typedef DWORD(WINAPI D3DPERF_GETSTATUS)(void);
+
+namespace
+{
+	struct GlobalD3D9Data
+	{
+		// NOTE: Yes this still works with d3d11
+		Comfy::System::LibraryLoader Library = { "d3d9.dll" };
+
+		// NOTE: Alternatively the "ID3DUserDefinedAnnotation" interface provides similar functionality 
+		//		 but requires d3d11_1 and doesn't allow setting event and marker colors
+		D3DPERF_BEGINEVENT* D3DPERF_BeginEvent = nullptr;
+		D3DPERF_ENDEVENT* D3DPERF_EndEvent = nullptr;
+		D3DPERF_SETMARKER* D3DPERF_SetMarker = nullptr;
+		D3DPERF_GETSTATUS* D3DPERF_GetStatus = nullptr;
+
+		inline void LoadImport()
+		{
+			if (!Library.Load())
+				return;
+
+			D3DPERF_BeginEvent = Library.GetFunctionAddress<D3DPERF_BEGINEVENT>("D3DPERF_BeginEvent");
+			D3DPERF_EndEvent = Library.GetFunctionAddress<D3DPERF_ENDEVENT>("D3DPERF_EndEvent");
+			D3DPERF_SetMarker = Library.GetFunctionAddress<D3DPERF_SETMARKER>("D3DPERF_SetMarker");
+			D3DPERF_GetStatus = Library.GetFunctionAddress<D3DPERF_GETSTATUS>("D3DPERF_GetStatus");
+		}
+
+	} GlobalD3D9;
+}
+#endif /* COMFY_D3D11_DEBUG_NAMES */
 
 namespace Comfy::Render::D3D11
 {
@@ -22,6 +59,12 @@ namespace Comfy::Render::D3D11
 
 	bool Direct3D::Initialize(HWND window)
 	{
+#if COMFY_D3D11_DEBUG_NAMES
+		GlobalD3D9.LoadImport();
+		if (GlobalD3D9.D3DPERF_GetStatus != nullptr)
+			runningUnderGraphicsDebugger = GlobalD3D9.D3DPERF_GetStatus();
+#endif /* COMFY_D3D11_DEBUG_NAMES */
+
 		if (!InternalCreateDeviceAndSwapchain(window))
 			return false;
 
@@ -86,6 +129,38 @@ namespace Comfy::Render::D3D11
 
 		objectsToBeReleased.clear();
 	}
+
+#if COMFY_D3D11_DEBUG_NAMES
+	void Direct3D::BeginDebugEvent(std::string_view name, u32 color)
+	{
+		if (runningUnderGraphicsDebugger && GlobalD3D9.D3DPERF_BeginEvent != nullptr)
+			GlobalD3D9.D3DPERF_BeginEvent(static_cast<DWORD>(color), UTF8::WideArg(name).c_str());
+	}
+
+	void Direct3D::EndDebugEvent()
+	{
+		if (runningUnderGraphicsDebugger && GlobalD3D9.D3DPERF_EndEvent != nullptr)
+			GlobalD3D9.D3DPERF_EndEvent();
+	}
+
+	void Direct3D::SetDebugMarker(std::string_view name, u32 color)
+	{
+		if (runningUnderGraphicsDebugger && GlobalD3D9.D3DPERF_SetMarker != nullptr)
+			GlobalD3D9.D3DPERF_SetMarker(static_cast<DWORD>(color), UTF8::WideArg(name).c_str());
+	}
+#else
+	void Direct3D::BeginDebugEvent(std::string_view name, u32 color)
+	{
+	}
+
+	void Direct3D::EndDebugEvent()
+	{
+	}
+
+	void Direct3D::SetDebugMarker(std::string_view name, u32 color)
+	{
+	}
+#endif /* COMFY_D3D11_DEBUG_NAMES */
 
 	bool Direct3D::InternalCreateDeviceAndSwapchain(HWND window)
 	{

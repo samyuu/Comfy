@@ -30,6 +30,10 @@ namespace Comfy::Render::D3D11
 		void EnsureDeviceObjectLifetimeUntilRendering(ID3D11DeviceChild* object);
 		void EndOfFrameClearStaleDeviceObjects();
 
+		void BeginDebugEvent(std::string_view name, u32 color = 0x00000000);
+		void EndDebugEvent();
+		void SetDebugMarker(std::string_view name, u32 color = 0x00000000);
+
 	public:
 		// NOTE: Raw pointers to optionally skip releasing them
 
@@ -48,8 +52,8 @@ namespace Comfy::Render::D3D11
 
 	private:
 		std::vector<ID3D11DeviceChild*> objectsToBeReleased;
+		bool runningUnderGraphicsDebugger = false;
 
-	private:
 #if COMFY_DEBUG
 		ComPtr<ID3D11Debug> debugInterface = nullptr;
 		ComPtr<ID3D11InfoQueue> infoQueue = nullptr;
@@ -81,6 +85,15 @@ inline void D3D11_SetObjectDebugName(ID3D11DeviceChild* deviceChild, const char*
 	if (deviceChild != nullptr)
 		deviceChild->SetPrivateData(WKPDID_D3DDebugObjectName, result, buffer);
 }
+
+inline void D3D11_BeginDebugEvent(std::string_view name) { return Comfy::Render::D3D11::D3D.BeginDebugEvent(name); }
+inline void D3D11_EndDebugEvent() { return Comfy::Render::D3D11::D3D.EndDebugEvent(); }
+inline void D3D11_SetDebugMarker(std::string_view name) { return Comfy::Render::D3D11::D3D.SetDebugMarker(name); }
 #else
-#define D3D11_SetObjectDebugName(deviceChild, format, ...) do {} while(false);
+#define D3D11_SetObjectDebugName(deviceChild, format, ...)	do {} while(false);
+
+#define D3D11_BeginDebugEvent(name)							do {} while(false);
+#define D3D11_EndDebugEvent()								do {} while(false);
+#define D3D11_SetDebugMarker(name)							do {} while(false);
+
 #endif /* COMFY_D3D11_DEBUG_NAMES */
