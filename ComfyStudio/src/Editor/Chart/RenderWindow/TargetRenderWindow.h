@@ -10,11 +10,12 @@
 namespace Comfy::Studio::Editor
 {
 	class ChartEditor;
+	class TargetTimeline;
 
 	class TargetRenderWindow : public RenderWindow
 	{
 	public:
-		TargetRenderWindow(ChartEditor& parent, Undo::UndoManager& undoManager);
+		TargetRenderWindow(ChartEditor& parent, TargetTimeline& timeline, Undo::UndoManager& undoManager);
 		~TargetRenderWindow() = default;
 
 	public:
@@ -31,9 +32,10 @@ namespace Comfy::Studio::Editor
 		Chart* workingChart = nullptr;
 
 		ChartEditor& chartEditor;
+		TargetTimeline& timeline;
 		Undo::UndoManager& undoManager;
 
-	protected:
+	private:
 		CheckerboardGrid backgroundCheckerboard;
 		float backgroundDim = 0.25f;
 

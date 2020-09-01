@@ -9,7 +9,7 @@ namespace Comfy::Studio::Editor
 		chart = std::make_unique<Chart>();
 
 		timeline = std::make_unique<TargetTimeline>(*this, undoManager);
-		renderWindow = std::make_unique<TargetRenderWindow>(*this, undoManager);
+		renderWindow = std::make_unique<TargetRenderWindow>(*this, *timeline, undoManager);
 
 
 		songVoice = Audio::AudioEngine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor::SongVoice", false, 0.75f, true);

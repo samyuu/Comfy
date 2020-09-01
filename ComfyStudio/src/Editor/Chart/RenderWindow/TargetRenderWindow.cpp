@@ -6,7 +6,8 @@ namespace Comfy::Studio::Editor
 {
 	using namespace Graphics;
 
-	TargetRenderWindow::TargetRenderWindow(ChartEditor& parent, Undo::UndoManager& undoManager) : chartEditor(parent), undoManager(undoManager)
+	TargetRenderWindow::TargetRenderWindow(ChartEditor& parent, TargetTimeline& timeline, Undo::UndoManager& undoManager)
+		: chartEditor(parent), timeline(timeline), undoManager(undoManager)
 	{
 		workingChart = chartEditor.GetChart();
 
