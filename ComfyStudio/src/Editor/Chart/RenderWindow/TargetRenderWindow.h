@@ -28,7 +28,22 @@ namespace Comfy::Studio::Editor
 		void OnResize(ivec2 newSize) override;
 		void OnRender() override;
 
-	protected:
+	private:
+		void UpdateAllInput();
+		void CursorJumpToNextTarget(int direction);
+
+	private:
+		void RenderBackground();
+		void RenderHUDBackground();
+		void RenderAllVisibleTargets();
+		void AddVisibleTargetsToDrawBuffers();
+		void FlushRenderTargetsDrawBuffers();
+
+	private:
+		vec2 TargetAreaToScreenSpace(const vec2 targetAreaSpace) const;
+		vec2 ScreenToTargetAreaSpace(const vec2 screenSpace) const;
+
+	private:
 		Chart* workingChart = nullptr;
 
 		ChartEditor& chartEditor;
@@ -39,15 +54,19 @@ namespace Comfy::Studio::Editor
 		CheckerboardGrid backgroundCheckerboard;
 		float backgroundDim = 0.25f;
 
-		const vec2 renderSize = vec2(1920.0f, 1080.0f);
 		Render::Camera2D camera;
 
 		std::unique_ptr<TargetRenderHelper> renderHelper = nullptr;
 
+		struct DrawBufferData
+		{
+			std::vector<TargetRenderHelper::TargetData> Targets;
+			std::vector<TargetRenderHelper::ButtonData> Buttons;
+			std::vector<TargetRenderHelper::ButtonTrailData> Trails;
+			std::vector<TargetRenderHelper::ButtonSyncLineData> SyncLines;
+		} drawBuffers;
+
 		std::unique_ptr<Render::Renderer2D> renderer = nullptr;
 		std::unique_ptr<Render::RenderTarget2D> renderTarget = nullptr;
-
-		void RenderBackground();
-		void RenderHUD();
 	};
 }

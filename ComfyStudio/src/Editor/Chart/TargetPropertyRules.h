@@ -135,7 +135,7 @@ namespace Comfy::Studio::Editor
 			return vec2(baselineX + x, baselineY + y);
 		}
 
-		inline TargetProperties PresetTargetProperties(ButtonType type, TimelineTick tick, TargetFlags flags, bool DEBUG_STEEP_SYNC = false)
+		inline TargetProperties PresetTargetProperties(ButtonType type, TimelineTick tick, TargetFlags flags, bool syncAnglesSteep = false)
 		{
 			TargetProperties result;
 			result.Position = PresetTargetPosition(type, tick, flags);
@@ -153,7 +153,7 @@ namespace Comfy::Studio::Editor
 						upperHalfOfPair = false;
 				}
 
-				const auto& anglesArray = DEBUG_STEEP_SYNC ? VerticalSyncPairAnglesSteep : VerticalSyncPairAngles;
+				const auto& anglesArray = syncAnglesSteep ? VerticalSyncPairAnglesSteep : VerticalSyncPairAngles;
 				result.Angle = anglesArray[static_cast<size_t>(upperHalfOfPair ? AngleCorner::TopRight : AngleCorner::BotRight)];
 				result.Frequency = 0;
 				result.Amplitude = 500.0f;
