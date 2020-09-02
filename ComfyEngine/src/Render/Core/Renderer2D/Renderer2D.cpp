@@ -58,7 +58,7 @@ namespace Comfy::Render
 		{
 			struct MultiTextureShaders
 			{
-				// TODO: Permutation for all texture formats being the same to avoid any branching
+				// TODO: Permutation for all texture formats being the same to ~~avoid any branching~~ have a single branch
 				std::array<D3D11::ShaderPair, MaxSpriteTextureSlots> TextureBatch =
 				{
 					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_01_PS(), "Renderer2D::SpriteMultiTextureBatch_01_PS" },
@@ -339,6 +339,7 @@ namespace Comfy::Render
 				return;
 
 			InternalCreateDrawCallBatchesFromItems();
+			D3D11_BeginDebugEvent("Render Batches");
 
 			if (!SpriteShapeVertices.empty())
 			{
@@ -464,12 +465,14 @@ namespace Comfy::Render
 				DrawCallCount++;
 			}
 
+			D3D11_EndDebugEvent();
 			InternalClearItems();
 		}
 
 		// NOTE: This assumes that the D3D11 context does **not** change externally between the Begin() / End() call
 		void InternalSetBeginState()
 		{
+			D3D11_BeginDebugEvent("Set Begin State");
 			RenderTarget->Main.ResizeIfDifferent(RenderTarget->Param.Resolution);
 			RenderTarget->Main.SetMultiSampleCountIfDifferent(RenderTarget->Param.MultiSampleCount);
 			RenderTarget->Main.BindSetViewport();
@@ -483,10 +486,12 @@ namespace Comfy::Render
 
 			CameraConstantBuffer.BindVertexShader();
 			SpriteConstantBuffer.BindPixelShader();
+			D3D11_EndDebugEvent();
 		}
 
 		void InternalSetEndState()
 		{
+			D3D11_BeginDebugEvent("Set End State");
 			SpriteConstantBuffer.UnBindPixelShader();
 			CameraConstantBuffer.UnBindVertexShader();
 
@@ -502,6 +507,7 @@ namespace Comfy::Render
 				RenderTarget->ResolvedMain.ResizeIfDifferent(RenderTarget->Param.Resolution);
 				D3D11::D3D.Context->ResolveSubresource(RenderTarget->ResolvedMain.GetResource(), 0, RenderTarget->Main.GetResource(), 0, RenderTarget->Main.GetBackBufferDescription().Format);
 			}
+			D3D11_EndDebugEvent();
 		}
 
 		void InternalSetBlendMode(AetBlendMode blendMode)
@@ -639,6 +645,7 @@ namespace Comfy::Render
 	void Renderer2D::Begin(Camera2D& camera, RenderTarget2D& renderTarget)
 	{
 		assert(impl->Camera == nullptr);
+		D3D11_BeginDebugEvent("Renderer2D::Begin - End");
 
 		impl->DrawCallCount = 0;
 		impl->Camera = &camera;
@@ -747,5 +754,6 @@ namespace Comfy::Render
 
 		impl->Camera = nullptr;
 		impl->RenderTarget = nullptr;
+		D3D11_EndDebugEvent();
 	}
 }

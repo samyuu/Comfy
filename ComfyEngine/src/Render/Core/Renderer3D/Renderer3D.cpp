@@ -493,6 +493,8 @@ namespace Comfy::Render
 
 		void RenderScene()
 		{
+			D3D11_BeginDebugEvent("Scene");
+
 			SetSceneCBData(ConstantBuffers.Scene.Data);
 			BindUploadSceneCBs();
 
@@ -519,6 +521,7 @@ namespace Comfy::Render
 				Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets.back().BindResource(TextureSlot_SubsurfaceScattering);
 			}
 
+			D3D11_BeginDebugEvent("Opaque Geometry");
 			Current.RenderTarget->Main.Current().SetMultiSampleCountIfDifferent(Current.RenderTarget->Param.MultiSampleCount);
 			Current.RenderTarget->Main.Current().ResizeIfDifferent(Current.RenderTarget->Param.RenderResolution);
 			Current.RenderTarget->Main.Current().BindSetViewport();
@@ -541,7 +544,9 @@ namespace Comfy::Render
 				if (Current.RenderTarget->Param.RenderLensFlare && Current.SceneParam->Light.Sun.Type == LightSourceType::Parallel)
 					QueryRenderLensFlareSun();
 			}
+			D3D11_EndDebugEvent();
 
+			D3D11_BeginDebugEvent("Transparent Geometry");
 			if (Current.RenderTarget->Param.RenderTransparent && !DefaultCommandList.Transparent.empty())
 			{
 				TransparencyPassDepthStencilState.Bind();
@@ -551,6 +556,7 @@ namespace Comfy::Render
 
 				TransparencyPassDepthStencilState.UnBind();
 			}
+			D3D11_EndDebugEvent();
 
 			if (Current.RenderTarget->Param.RenderLensFlare && Current.SceneParam->Light.Sun.Type == LightSourceType::Parallel)
 				RenderLensFlareGhosts();
@@ -562,6 +568,7 @@ namespace Comfy::Render
 			GenericInputLayout->UnBind();
 
 			ResolveMSAAIfNeeded();
+			D3D11_EndDebugEvent();
 		}
 
 		void ResolveMSAAIfNeeded()
@@ -569,11 +576,13 @@ namespace Comfy::Render
 			if (!Current.RenderTarget->Main.MSAAEnabled())
 				return;
 
+			D3D11_BeginDebugEvent("Resolve MSAA");
 			auto& currentMain = Current.RenderTarget->Main.Current();
 			auto& currentMainResolved = Current.RenderTarget->Main.CurrentResolved();
 
 			currentMainResolved.ResizeIfDifferent(currentMain.GetSize());
 			D3D11::D3D.Context->ResolveSubresource(currentMainResolved.GetResource(), 0, currentMain.GetResource(), 0, currentMain.GetBackBufferDescription().Format);
+			D3D11_EndDebugEvent();
 		}
 
 		void SetSceneCBData(Detail::SceneConstantData& outData)
@@ -695,6 +704,7 @@ namespace Comfy::Render
 
 		void PreRenderShadowMap()
 		{
+			D3D11_BeginDebugEvent("Shadow Map");
 			const auto& light = Current.SceneParam->Light.Character;
 
 			ShadowSilhouetteInputLayout->Bind();
@@ -742,10 +752,12 @@ namespace Comfy::Render
 			ConstantBuffers.Scene.Data.Scene.ViewProjection = glm::transpose(Current.Camera->GetViewProjection());
 			ConstantBuffers.Scene.Data.Scene.LightSpace = glm::transpose(lightProjection * lightView);
 			ConstantBuffers.Scene.UploadData();
+			D3D11_EndDebugEvent();
 		}
 
 		void PreRenderReduceFilterShadowMap()
 		{
+			D3D11_BeginDebugEvent("Shadow Map Filter");
 			SolidNoCullingRasterizerState.Bind();
 
 			D3D11::D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -842,10 +854,12 @@ namespace Comfy::Render
 						destinationTarget.BindResource(TextureSlot_ShadowMap);
 				}
 			}
+			D3D11_EndDebugEvent();
 		}
 
 		void PreRenderScreenReflection()
 		{
+			D3D11_BeginDebugEvent("Screen Reflection");
 			Current.RenderTarget->Reflection.RenderTarget.ResizeIfDifferent(Current.RenderTarget->Param.ReflectionRenderResolution);
 			Current.RenderTarget->Reflection.RenderTarget.BindSetViewport();
 
@@ -877,10 +891,12 @@ namespace Comfy::Render
 			}
 
 			Current.RenderTarget->Reflection.RenderTarget.UnBind();
+			D3D11_EndDebugEvent();
 		}
 
 		void PreRenderSubsurfaceScattering()
 		{
+			D3D11_BeginDebugEvent("Subsurface Scattering");
 			Current.RenderTarget->SubsurfaceScattering.RenderTarget.ResizeIfDifferent(Current.RenderTarget->Param.RenderResolution);
 
 			Current.RenderTarget->SubsurfaceScattering.RenderTarget.BindSetViewport();
@@ -895,10 +911,12 @@ namespace Comfy::Render
 			}
 
 			Current.RenderTarget->SubsurfaceScattering.RenderTarget.UnBind();
+			D3D11_EndDebugEvent();
 		}
 
 		void PreRenderReduceFilterSubsurfaceScattering()
 		{
+			D3D11_BeginDebugEvent("Subsurface Scattering Filter");
 			SolidNoCullingRasterizerState.Bind();
 
 			D3D11::D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -927,6 +945,7 @@ namespace Comfy::Render
 			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[2].BindSetViewport();
 			SubmitQuadDrawCall();
 			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[2].UnBind();
+			D3D11_EndDebugEvent();
 		}
 
 		void RenderOpaqueObjCommand(ObjRenderCommand& command, RenderFlags flags = RenderFlags_None)
@@ -942,6 +961,7 @@ namespace Comfy::Render
 				if (!(flags & RenderFlags_NoFrustumCulling) && !IntersectsCameraFrustum(mesh.BoundingSphere, command))
 					return;
 
+				D3D11_BeginDebugEvent("Draw Mesh");
 				BindMeshVertexBuffers(mesh, GetMorphMesh(*command.SourceCommand.SourceObj, command.SourceCommand, mesh));
 
 				IterateCommandSubMeshes(command.SourceCommand, mesh, [&](auto& subMesh, auto& material)
@@ -963,6 +983,7 @@ namespace Comfy::Render
 
 					PrepareAndRenderSubMesh(command, mesh, subMesh, material, flags);
 				});
+				D3D11_EndDebugEvent();
 			});
 		}
 
@@ -979,16 +1000,19 @@ namespace Comfy::Render
 				|| !IntersectsCameraFrustum(subMesh.BoundingSphere, command))
 				return;
 
+			D3D11_BeginDebugEvent("Draw Sub Mesh");
 			BindMeshVertexBuffers(mesh, GetMorphMesh(obj, objCommand->SourceCommand, mesh));
 
 			auto& material = GetSubMeshMaterial(subMesh, command.ObjCommand->SourceCommand);
 			Current.RenderTarget->BlendStates.GetState(material.BlendFlags.SrcBlendFactor, material.BlendFlags.DstBlendFactor).Bind();
 
 			PrepareAndRenderSubMesh(*command.ObjCommand, mesh, subMesh, material);
+			D3D11_EndDebugEvent();
 		}
 
 		void RenderSilhouette()
 		{
+			D3D11_BeginDebugEvent("Silhouette");
 			Current.RenderTarget->Silhouette.RenderTarget.ResizeIfDifferent(Current.RenderTarget->Param.RenderResolution);
 			Current.RenderTarget->Silhouette.RenderTarget.BindSetViewport();
 			Current.RenderTarget->Silhouette.RenderTarget.Clear(vec4(0.0f));
@@ -1002,18 +1026,22 @@ namespace Comfy::Render
 			}
 
 			Current.RenderTarget->Silhouette.RenderTarget.UnBind();
+			D3D11_EndDebugEvent();
 		}
 
 		void RenderSilhouetteOutlineOverlay()
 		{
+			D3D11_BeginDebugEvent("Silhouette Outline");
 			Current.RenderTarget->Silhouette.RenderTarget.BindResource(0);
 
 			Shaders.SilhouetteOutline.Bind();
 			SubmitQuadDrawCall();
+			D3D11_EndDebugEvent();
 		}
 
 		void QueryRenderLensFlareSun()
 		{
+			D3D11_BeginDebugEvent("Query Lens Flare");
 			const vec3 sunWorldPosition = Current.SceneParam->Light.Sun.Position;
 
 			constexpr float sunScreenScaleFactor = 0.045f;
@@ -1082,6 +1110,7 @@ namespace Comfy::Render
 				Shaders.DebugMaterial.Bind();
 				renderSun(1.0f);
 			}
+			D3D11_EndDebugEvent();
 		}
 
 		void RenderLensFlareGhosts()
@@ -1090,6 +1119,7 @@ namespace Comfy::Render
 			if (ghostTexture == nullptr)
 				return;
 
+			D3D11_BeginDebugEvent("Lens Flare Ghosts");
 			TransparencyPassDepthStencilState.Bind();
 
 			Current.RenderTarget->BlendStates.GetState(BlendFactor::One, BlendFactor::One).Bind();
@@ -1140,10 +1170,12 @@ namespace Comfy::Render
 			TransparencyPassDepthStencilState.UnBind();
 
 			// TODO: Render lens flare flare and shaft textures at sun screen position
+			D3D11_EndDebugEvent();
 		}
 
 		void RenderPostProcessing()
 		{
+			D3D11_BeginDebugEvent("Post Processing");
 			D3D11::D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 			constexpr u32 morphAttrbutesFactor = 2;
@@ -1161,6 +1193,7 @@ namespace Comfy::Render
 			if (Current.RenderTarget->Param.RenderBloom)
 				RenderBloom();
 
+			D3D11_BeginDebugEvent("Tone Mapping");
 			Current.RenderTarget->Output.RenderTarget.ResizeIfDifferent(Current.RenderTarget->Param.RenderResolution);
 			Current.RenderTarget->Output.RenderTarget.BindSetViewport();
 
@@ -1187,15 +1220,17 @@ namespace Comfy::Render
 			ConstantBuffers.ToneMap.BindPixelShader();
 
 			Shaders.ToneMap.Bind();
-
 			SubmitQuadDrawCall();
+			D3D11_EndDebugEvent();
 
 			D3D11::ShaderResourceView::BindArray<3>(0, { nullptr, nullptr, nullptr });
 			Current.RenderTarget->Main.AdvanceRenderTarget();
+			D3D11_EndDebugEvent();
 		}
 
 		void RenderBloom()
 		{
+			D3D11_BeginDebugEvent("Bloom");
 			auto& bloom = Current.RenderTarget->Bloom;
 
 			bloom.BaseRenderTarget.ResizeIfDifferent(Current.RenderTarget->Param.RenderResolution / 2);
@@ -1287,19 +1322,23 @@ namespace Comfy::Render
 
 			if (Current.RenderTarget->Param.AutoExposure && Current.SceneParam->Glow.AutoExposure)
 				RenderExposurePostBloom();
+			D3D11_EndDebugEvent();
 		}
 
 		void RenderExposurePreBloom()
 		{
+			D3D11_BeginDebugEvent("Exposure Pre Bloom");
 			Shaders.ExposureMinify.Bind();
 			Current.RenderTarget->Bloom.ExposureRenderTargets[0].BindSetViewport();
 			Current.RenderTarget->Bloom.ReduceRenderTargets.back().BindResource(0);
 			SubmitQuadDrawCall();
 			Current.RenderTarget->Bloom.ExposureRenderTargets[0].UnBind();
+			D3D11_EndDebugEvent();
 		}
 
 		void RenderExposurePostBloom()
 		{
+			D3D11_BeginDebugEvent("Exposure Post Bloom");
 			CalculateExposureSpotCoefficients(ConstantBuffers.Exposure.Data);
 			ConstantBuffers.Exposure.UploadData();
 			ConstantBuffers.Exposure.BindPixelShader();
@@ -1315,6 +1354,7 @@ namespace Comfy::Render
 			Current.RenderTarget->Bloom.ExposureRenderTargets[1].BindResource(0);
 			SubmitQuadDrawCall();
 			Current.RenderTarget->Bloom.ExposureRenderTargets[2].UnBind();
+			D3D11_EndDebugEvent();
 		}
 
 		void BindMeshVertexBuffers(const Mesh& primaryMesh, const Mesh* morphMesh)
@@ -1929,6 +1969,7 @@ namespace Comfy::Render
 	void Renderer3D::Begin(Camera3D& camera, RenderTarget3D& renderTarget, const SceneParam3D& sceneParam)
 	{
 		assert(impl->Current.Camera == nullptr);
+		D3D11_BeginDebugEvent("Renderer3D::Begin - End");
 
 		impl->LastFrameStatistics = impl->Statistics;
 		impl->Statistics = {};
@@ -1972,6 +2013,7 @@ namespace Comfy::Render
 
 		impl->Flush();
 		impl->Current = {};
+		D3D11_EndDebugEvent();
 	}
 
 	const Graphics::Tex* Renderer3D::GetTexFromTextureID(const Cached_TexID* textureID) const
