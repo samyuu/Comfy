@@ -328,6 +328,8 @@ namespace Comfy::Studio::Editor
 		TimelineBase::OnDrawTimelineInfoColumn();
 
 		auto drawList = Gui::GetWindowDrawList();
+		std::array<vec2, EnumCount<ButtonType>()> iconCenters;
+
 		for (size_t row = 0; row < EnumCount<ButtonType>(); row++)
 		{
 			const auto y = row * rowHeight;
@@ -335,13 +337,16 @@ namespace Comfy::Studio::Editor
 			const auto end = vec2(infoColumnWidth, y + rowHeight) + infoColumnRegion.GetTL();
 
 			const auto center = vec2(start + end) / 2.0f;
+			iconCenters[row] = center;
+
 			targetYPositions[row] = center.y;
-
-			// TODO: Separate loop for icons and lines to batch all icons into same draw call
-			const auto target = TimelineTarget(TimelineTick::Zero(), static_cast<ButtonType>(row));
-			buttonIcons->DrawButtonIcon(drawList, target, center, iconScale);
-
 			drawList->AddLine(vec2(start.x, end.y), end, Gui::GetColorU32(ImGuiCol_Border));
+		}
+
+		for (size_t row = 0; row < iconCenters.size(); row++)
+		{
+			const auto tempTarget = TimelineTarget(TimelineTick::Zero(), static_cast<ButtonType>(row));
+			buttonIcons->DrawButtonIcon(drawList, tempTarget, iconCenters[row], iconScale);
 		}
 	}
 
