@@ -1391,6 +1391,8 @@ namespace Comfy::Render
 
 		void PrepareAndRenderSubMesh(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material, RenderFlags flags = RenderFlags_None)
 		{
+			// TODO: Call BindMeshVertexBuffers() here and prevent redundant rebinds by storing last set state
+
 			if (flags & RenderFlags_SilhouetteOutlinePass)
 			{
 				if (command.SourceCommand.Flags.SilhouetteOutline)
