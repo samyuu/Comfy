@@ -63,7 +63,7 @@ namespace Comfy::Studio::Editor
 
 		struct
 		{
-			const float timelineVisibleThreshold = 46.0f;
+			const float timelineVisibleThreshold = 96.0f;
 
 			float infoColumnWidth = 46.0f;
 			float infoColumnScrollStep = 42.0f;
