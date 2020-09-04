@@ -21,7 +21,7 @@ namespace Comfy::Audio
 
 		// NOTE: Rendering a waveform larger than this would mean having to reuse a single chunk multiple times per draw
 		static constexpr i32 MaxSupportedRenderWidth = 0x2000;
-		static constexpr i32 ChunkCount = MaxSupportedRenderWidth / PixelsPerChunk;
+		static constexpr i32 ChunkCount = (MaxSupportedRenderWidth / PixelsPerChunk) + 4;
 
 		static constexpr u32 ChannelsToVisualize = 2;
 

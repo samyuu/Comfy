@@ -17,11 +17,12 @@ namespace Comfy::Audio
 		}
 
 		waveformTimePerPixel = waveform.GetTimePerPixel();
-
-		const auto waveformPixelCount = static_cast<i64>(waveform.GetPixelCount());
 		const auto scrollPixelOffset = static_cast<i64>(glm::round(scrollOffset));
 
-		const f32 renderWidth = std::clamp(screenBR.x - screenTL.x, 0.0f, static_cast<f32>(MaxSupportedRenderWidth));
+		const auto waveformPixelCount = static_cast<i64>(waveform.GetPixelCount());
+		const auto remainingVisibleWaveformPixels = std::clamp((waveformPixelCount - scrollPixelOffset), 0i64, static_cast<i64>(MaxSupportedRenderWidth));
+
+		const f32 renderWidth = std::clamp((screenBR.x - screenTL.x), 0.0f, static_cast<f32>(remainingVisibleWaveformPixels));
 		const f32 renderHeight = (screenBR.y - screenTL.y);
 
 		bool firstIteration = true;
@@ -30,8 +31,6 @@ namespace Comfy::Audio
 			const auto waveformPixel = (xOffset + scrollPixelOffset);
 			if (waveformPixel < -PixelsPerChunk)
 				continue;
-			else if (waveformPixel > waveformPixelCount)
-				break;
 
 			const auto& chunk = FindCheckUpdateClosestChunk(waveformPixel);
 			if (firstIteration)
