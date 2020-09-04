@@ -933,7 +933,8 @@ namespace Comfy::Studio::Editor
 				if (buttonSoundOnSuccessfulPlacementOnly)
 					buttonSoundController.PlayButtonSound();
 
-				undoManager.Execute<RemoveTarget>(*workingChart, tick, type);
+				const auto existingTarget = workingChart->Targets[existingTargetIndex];
+				undoManager.Execute<RemoveTarget>(*workingChart, existingTarget);
 			}
 		}
 		else
@@ -941,7 +942,7 @@ namespace Comfy::Studio::Editor
 			if (buttonSoundOnSuccessfulPlacementOnly)
 				buttonSoundController.PlayButtonSound();
 
-			undoManager.Execute<AddTarget>(*workingChart, tick, type);
+			undoManager.Execute<AddTarget>(*workingChart, TimelineTarget(tick, type));
 		}
 
 		const auto buttonIndex = static_cast<size_t>(type);

@@ -27,17 +27,17 @@ namespace Comfy::Studio::Editor
 
 	struct TargetFlags
 	{
-		// TODO: Implement selection system, applying to both the TargetTimeline and TargetRenderWindow at the same time
-		u16 IsSelected : 1;
-		u16 IsSync : 1;
+		// NOTE: Publicly set flags:
+		u16 HasProperties : 1;
 		u16 IsHold : 1;
 		u16 IsChain : 1;
+		u16 IsChance : 1;
+
+		// NOTE: Internally set flags:
+		u16 IsSync : 1;
 		u16 IsChainStart : 1;
 		u16 IsChainEnd : 1;
-		u16 IsChainHit : 1;
-		// TODO: Implement a system in which newly placed targets use preset properties until manually set otherwise
-		u16 HasProperties : 1;
-
+		u16 /* SyncPairHasDuplicate */ : 1;
 		u16 IndexWithinSyncPair : 4;
 		u16 SyncPairCount : 4;
 	};
@@ -51,6 +51,7 @@ namespace Comfy::Studio::Editor
 
 		TimelineTick Tick = {};
 		ButtonType Type = {};
+		bool IsSelected = false;
 		TargetFlags Flags = {};
 		TargetProperties Properties = {};
 	};
@@ -62,11 +63,12 @@ namespace Comfy::Studio::Editor
 		~SortedTargetList() = default;
 
 	public:
-		void Add(TimelineTick tick, ButtonType type);
-		void RemoveAt(i64 index);
-		void Remove(TimelineTick tick, ButtonType type);
-		i64 FindIndex(TimelineTick tick, ButtonType type) const;
+		void Add(TimelineTarget newTarget);
 
+		void Remove(TimelineTarget target);
+		void RemoveAt(i64 index);
+
+		i64 FindIndex(TimelineTick tick, ButtonType type) const;
 		void Clear();
 
 	public:
@@ -74,8 +76,12 @@ namespace Comfy::Studio::Editor
 		auto end() { return targets.end(); }
 		auto begin() const { return targets.begin(); }
 		auto end() const { return targets.end(); }
-		auto cbegin() const { return targets.cbegin(); }
-		auto cend() const { return targets.cend(); }
+
+		auto rbegin() { return targets.rbegin(); }
+		auto rend() { return targets.rend(); }
+		auto rbegin() const { return targets.rbegin(); }
+		auto rend() const { return targets.rend(); }
+
 		size_t size() const { return targets.size(); }
 
 		auto& operator[](size_t index) { return targets[index]; }

@@ -116,20 +116,20 @@ namespace Comfy::Studio::Editor
 	class AddTarget : public Undo::Command
 	{
 	public:
-		AddTarget(Chart& chart, TimelineTick tick, ButtonType type)
-			: chart(chart), tick(tick), type(type)
+		AddTarget(Chart& chart, TimelineTarget target)
+			: chart(chart), target(target)
 		{
 		}
 
 	public:
 		void Undo() override
 		{
-			chart.Targets.Remove(tick, type);
+			chart.Targets.Remove(target);
 		}
 
 		void Redo() override
 		{
-			chart.Targets.Add(tick, type);
+			chart.Targets.Add(target);
 		}
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override
@@ -141,28 +141,27 @@ namespace Comfy::Studio::Editor
 
 	private:
 		Chart& chart;
-		TimelineTick tick;
-		ButtonType type;
+		TimelineTarget target;
 	};
 
 	class RemoveTarget : public Undo::Command
 	{
 	public:
-		RemoveTarget(Chart& chart, TimelineTick tick, ButtonType type)
-			: chart(chart), tick(tick), type(type)
+		RemoveTarget(Chart& chart, TimelineTarget target)
+			: chart(chart), target(target)
 		{
 		}
 
 	public:
 		void Undo() override
 		{
-			chart.Targets.Add(tick, type);
+			chart.Targets.Add(target);
 		}
 
 		void Redo() override
 		{
 			// TODO: Store previous properties (?)
-			chart.Targets.Remove(tick, type);
+			chart.Targets.Remove(target);
 		}
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override
@@ -174,8 +173,7 @@ namespace Comfy::Studio::Editor
 
 	private:
 		Chart& chart;
-		TimelineTick tick;
-		ButtonType type;
+		TimelineTarget target;
 	};
 }
 

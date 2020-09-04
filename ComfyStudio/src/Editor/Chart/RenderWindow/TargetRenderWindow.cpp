@@ -163,7 +163,7 @@ namespace Comfy::Studio::Editor
 				targetData.Sync = target.Flags.IsSync;
 				targetData.HoldText = target.Flags.IsHold;
 				targetData.Chain = (target.Flags.IsChain && !target.Flags.IsChainStart);
-				targetData.ChainHit = target.Flags.IsChainHit;
+				targetData.ChainHit = false;
 				targetData.Position = properties.Position;
 				targetData.Progress = progress;
 

@@ -102,7 +102,7 @@ namespace Comfy::Studio::Editor
 		void UpdateInputTargetPlacement();
 
 	private:
-		void PlaceOrRemoveTarget(TimelineTick tick, ButtonType type);
+		void PlaceOrRemoveTarget(TimelineTick tick, ButtonType Type);
 
 	private:
 		void PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick);

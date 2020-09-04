@@ -28,18 +28,18 @@ namespace Comfy::Studio::Editor
 		targets.reserve(reasonableInitialCapacity);
 	}
 
-	void SortedTargetList::Add(TimelineTick tick, ButtonType type)
+	void SortedTargetList::Add(TimelineTarget newTarget)
 	{
 #if 1 // NOTE: Sorted insertion, appears to be much faster
 		{
-			const auto insertionIndex = FindSortedInsertionIndex(tick, type);
-			targets.emplace(targets.begin() + insertionIndex, tick, type);
+			const auto insertionIndex = FindSortedInsertionIndex(newTarget.Tick, newTarget.Type);
+			targets.emplace(targets.begin() + insertionIndex, newTarget);
 
 			UpdateTargetSyncFlagsAround(insertionIndex);
 		}
 #else // NOTE: However a post emplace sort is useful for error checking
 		{
-			targets.emplace_back(tick, type);
+			targets.push_back(newTarget);
 			std::sort(targets.begin(), targets.end(), [&](const auto& a, const auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
 
 			UpdateTargetSyncFlags();
@@ -49,6 +49,11 @@ namespace Comfy::Studio::Editor
 		assert(std::is_sorted(targets.begin(), targets.end(), [&](const auto& a, const auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); }));
 	}
 
+	void SortedTargetList::Remove(TimelineTarget target)
+	{
+		RemoveAt(FindIndex(target.Tick, target.Type));
+	}
+
 	void SortedTargetList::RemoveAt(i64 index)
 	{
 		if (!InBounds(static_cast<size_t>(index), targets))
@@ -56,11 +61,6 @@ namespace Comfy::Studio::Editor
 
 		targets.erase(begin() + index);
 		UpdateTargetSyncFlagsAround(index);
-	}
-
-	void SortedTargetList::Remove(TimelineTick tick, ButtonType type)
-	{
-		RemoveAt(FindIndex(tick, type));
 	}
 
 	i64 SortedTargetList::FindIndex(TimelineTick tick, ButtonType type) const
