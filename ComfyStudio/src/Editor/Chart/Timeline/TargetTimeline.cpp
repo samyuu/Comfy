@@ -815,6 +815,7 @@ namespace Comfy::Studio::Editor
 		UpdateCursorKeyboardInput();
 
 		UpdateInputCursorClick();
+		UpdateInputCursorScrubbing();
 		UpdateInputTargetPlacement();
 		UpdateInputBoxSelection();
 	}
@@ -877,6 +878,33 @@ namespace Comfy::Studio::Editor
 
 			SetCursorTick(newMouseTick);
 			PlayCursorButtonSoundsAndAnimation(newMouseTick);
+		}
+	}
+
+	void TargetTimeline::UpdateInputCursorScrubbing()
+	{
+		if (Gui::IsMouseReleased(0) || !Gui::IsWindowFocused())
+			isCursorScrubbing = false;
+
+		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && timelineHeaderRegion.Contains(Gui::GetMousePos()))
+		{
+			if (Gui::IsMouseClicked(0))
+				isCursorScrubbing = true;
+		}
+
+		if (isCursorScrubbing)
+		{
+			// NOTE: Disallow playback scrubbing to prevent unreasonable button sound stacking
+			const bool isPlayback = GetIsPlayback();
+			if (isPlayback)
+				isCursorScrubbing = false;
+
+			const auto oldCursorTick = GetCursorTick();
+			const auto newMouseTick = GetCursorMouseXTick();
+
+			SetCursorTick(newMouseTick);
+			if (!isPlayback && (newMouseTick != oldCursorTick))
+				PlayCursorButtonSoundsAndAnimation(newMouseTick);
 		}
 	}
 

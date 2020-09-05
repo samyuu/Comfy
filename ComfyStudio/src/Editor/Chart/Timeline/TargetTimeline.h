@@ -99,6 +99,7 @@ namespace Comfy::Studio::Editor
 		void UpdateUndoRedoKeyboardInput();
 		void UpdateCursorKeyboardInput();
 		void UpdateInputCursorClick();
+		void UpdateInputCursorScrubbing();
 		void UpdateInputTargetPlacement();
 		void UpdateInputBoxSelection();
 
@@ -120,6 +121,8 @@ namespace Comfy::Studio::Editor
 
 		ChartEditor& chartEditor;
 		Undo::UndoManager& undoManager;
+
+		bool isCursorScrubbing = false;
 
 		// NOTE: Store cursor time as TimelineTick while paused to avoid floating point precision issues,
 		//		 automatically move the cursor while editing the tempo map and to make sure 
