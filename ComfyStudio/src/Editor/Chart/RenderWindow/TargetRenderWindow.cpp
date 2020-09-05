@@ -149,7 +149,7 @@ namespace Comfy::Studio::Editor
 
 			const auto flyDuration = (buttonTime - targetTime);
 
-			if (cursorTick >= targetTick && cursorTick <= endTick)
+			if (target.IsSelected || (cursorTick >= targetTick && cursorTick <= endTick))
 			{
 				const auto progressUnbound = static_cast<f32>(ConvertRange(targetTime.TotalSeconds(), buttonTime.TotalSeconds(), 0.0, 1.0, cursorTime.TotalSeconds()));
 				const auto progress = glm::clamp(progressUnbound, 0.0f, 1.0f);
@@ -158,7 +158,8 @@ namespace Comfy::Studio::Editor
 
 				auto& targetData = drawBuffers.Targets.emplace_back();
 				targetData.Type = target.Type;
-				targetData.NoHand = (cursorTick > buttonTick);
+				targetData.NoHand = (cursorTick > buttonTick || cursorTick < targetTick);
+				targetData.Transparent = targetData.NoHand;
 				targetData.NoScale = !isPlayback;
 				targetData.Sync = target.Flags.IsSync;
 				targetData.HoldText = target.Flags.IsHold;

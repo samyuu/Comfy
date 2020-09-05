@@ -34,6 +34,7 @@ namespace Comfy::Studio::Editor
 		{
 			ButtonType Type;
 			bool NoHand;
+			bool Transparent;
 			bool NoScale;
 			bool Sync;
 			bool HoldText;

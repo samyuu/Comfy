@@ -316,11 +316,8 @@ namespace Comfy::Studio::Editor
 			if (data.NoHand) PushHideHandLayers(*layer);
 
 			auto transform = Transform2D(data.Position);
-			if (data.NoHand)
-			{
-				// DEBUG: To make the hand no hand difference clearer for now while buttons aren't yet implemented
+			if (data.Transparent)
 				transform.Opacity = 0.5f;
-			}
 
 			constexpr auto layerFrameScale = 360.0f;
 			renderer.Aet().DrawLayer(*layer, data.Progress * layerFrameScale, transform);
