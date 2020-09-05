@@ -93,13 +93,14 @@ namespace Comfy::Studio::Editor
 		f32 GetTimelineTargetScaleFactor(const TimelineTarget& target, TimeSpan buttonTime) const;
 
 		void DrawTimelineCursor() override;
-		void DrawTimeSelection();
+		void DrawBoxSelection();
 		void OnUpdateInput() override;
 		void OnDrawTimelineContents() override;
 		void UpdateUndoRedoKeyboardInput();
 		void UpdateCursorKeyboardInput();
 		void UpdateInputCursorClick();
 		void UpdateInputTargetPlacement();
+		void UpdateInputBoxSelection();
 
 	private:
 		void PlaceOrRemoveTarget(TimelineTick tick, ButtonType Type);
@@ -161,6 +162,9 @@ namespace Comfy::Studio::Editor
 	private:
 		const f32 iconScale = 1.0f;
 		const f32 rowHeight = 36.0f;
+		const f32 iconHitboxSize = 34.0f;
+
+		std::vector<vec2> tempSelectedTargetPositionBuffer;
 
 		std::array<f32, EnumCount<ButtonType>()> targetYPositions = {};
 		std::unique_ptr<TimelineButtonIcons> buttonIcons = nullptr;
@@ -186,8 +190,20 @@ namespace Comfy::Studio::Editor
 		int tempoPopupIndex = -1;
 
 	private:
-		bool timeSelectionActive = false;
-		TimelineTick timeSelectionStart, timeSelectionEnd;
+		struct BoxSelectionData
+		{
+			TimelineTick StartTick, EndTick;
+			vec2 StartMouse, EndMouse;
+
+			bool IsActive;
+			bool IsSufficientlyLarge;
+
+		} boxSelection = {};
+
+		struct RangeSelectionData
+		{
+			// TODO:
+		} rangeSelection = {};
 
 	private:
 

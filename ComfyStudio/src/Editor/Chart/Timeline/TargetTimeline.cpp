@@ -722,6 +722,23 @@ namespace Comfy::Studio::Editor
 			const auto scale = GetTimelineTargetScaleFactor(target, buttonTime) * iconScale;
 
 			buttonIcons->DrawButtonIcon(windowDrawList, target, center, scale, GetButtonEdgeFadeOpacity(screenX));
+
+			if (target.IsSelected)
+				tempSelectedTargetPositionBuffer.push_back(center);
+		}
+
+		if (!tempSelectedTargetPositionBuffer.empty())
+		{
+			const f32 iconHitboxHalfSize = (iconHitboxSize / 2.0f);
+			for (const auto& center : tempSelectedTargetPositionBuffer)
+			{
+				const auto tl = (center - iconHitboxHalfSize);
+				const auto br = (center + iconHitboxHalfSize);
+
+				windowDrawList->AddRectFilled(tl, br, GetColor(EditorColor_TimelineSelection));
+				windowDrawList->AddRect(tl, br, GetColor(EditorColor_TimelineSelectionBorder));
+			}
+			tempSelectedTargetPositionBuffer.clear();
 		}
 	}
 
@@ -770,39 +787,22 @@ namespace Comfy::Studio::Editor
 		TimelineBase::DrawTimelineCursor();
 	}
 
-	void TargetTimeline::DrawTimeSelection()
+	void TargetTimeline::DrawBoxSelection()
 	{
-#if 1 // DEBUG: Test out selection box
-		{
-			constexpr int selectionBoxButton = 1;
-			static ImRect dragRect;
-
-			if (Gui::IsMouseClicked(selectionBoxButton) && Gui::IsWindowFocused() && !Gui::IsAnyItemHovered())
-				dragRect.Min = Gui::GetMousePos();
-			if (Gui::IsMouseReleased(selectionBoxButton))
-				dragRect.Min = dragRect.Max = vec2(0.0f, 0.0f);
-
-			if (!Gui::IsAnyItemHovered() && Gui::IsMouseDragging(selectionBoxButton) && dragRect.Min.x != 0)
-			{
-				dragRect.Max = Gui::GetMousePos();
-				baseDrawList->AddRectFilled(dragRect.GetTL(), dragRect.GetBR(), GetColor(EditorColor_Selection));
-			}
-		}
-#endif
-
-		if (!timeSelectionActive)
+		if (!boxSelection.IsActive || !boxSelection.IsSufficientlyLarge)
 			return;
 
-		const auto scrollX = GetScrollX();
+		const auto startScreenX = glm::round(GetTimelinePosition(boxSelection.StartTick) - GetScrollX());
+		const auto endScreenX = glm::round(GetTimelinePosition(boxSelection.EndTick) - GetScrollX());
 
-		const auto startScreenX = GetTimelinePosition(timeSelectionStart) - scrollX;
-		const auto endScreenX = GetTimelinePosition(timeSelectionEnd) - scrollX;
+		const auto minY = timelineContentRegion.GetTL().y;
+		const auto maxY = timelineContentRegion.GetBR().y;
 
-		const auto start = timelineContentRegion.GetTL() + vec2(startScreenX, 0.0f);
-		const auto end = timelineContentRegion.GetBL() + vec2(endScreenX, 0.0f);
+		const auto start = vec2(timelineContentRegion.GetTL().x + startScreenX, glm::clamp(boxSelection.StartMouse.y, minY, maxY));
+		const auto end = vec2(timelineContentRegion.GetTL().x + endScreenX, glm::clamp(boxSelection.EndMouse.y, minY, maxY));
 
-		baseDrawList->AddRectFilled(start, end, GetColor(EditorColor_Selection));
-		// Gui::SetMouseCursor(ImGuiMouseCursor_Hand);
+		baseDrawList->AddRectFilled(start, end, GetColor(EditorColor_TimelineSelection));
+		baseDrawList->AddRect(start, end, GetColor(EditorColor_TimelineSelectionBorder));
 	}
 
 	void TargetTimeline::OnUpdateInput()
@@ -811,24 +811,25 @@ namespace Comfy::Studio::Editor
 		for (auto& animationData : buttonAnimations)
 			animationData.ElapsedTime += deltaTime;
 
-		if (Gui::IsWindowFocused())
-		{
-			UpdateUndoRedoKeyboardInput();
-			UpdateCursorKeyboardInput();
-		}
+		UpdateUndoRedoKeyboardInput();
+		UpdateCursorKeyboardInput();
 
 		UpdateInputCursorClick();
 		UpdateInputTargetPlacement();
+		UpdateInputBoxSelection();
 	}
 
 	void TargetTimeline::OnDrawTimelineContents()
 	{
 		DrawTimelineTargets();
-		DrawTimeSelection();
+		DrawBoxSelection();
 	}
 
 	void TargetTimeline::UpdateUndoRedoKeyboardInput()
 	{
+		if (!Gui::IsWindowFocused())
+			return;
+
 		// TODO: Move into some general function to be called by all window owning editor components (?)
 		constexpr bool allowRepeat = true;
 		constexpr auto undoKey = Input::KeyCode_Z;
@@ -846,6 +847,9 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::UpdateCursorKeyboardInput()
 	{
+		if (!Gui::IsWindowFocused())
+			return;
+
 		constexpr bool allowRepeat = true;
 		const bool useBeatStep = Gui::GetIO().KeyShift;
 
@@ -862,7 +866,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::UpdateInputCursorClick()
 	{
-		if (!Gui::IsWindowFocused() || !timelineContentRegion.Contains(Gui::GetMousePos()))
+		if (!Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) || !timelineContentRegion.Contains(Gui::GetMousePos()))
 			return;
 
 		const auto& io = Gui::GetIO();
@@ -874,31 +878,6 @@ namespace Comfy::Studio::Editor
 			SetCursorTick(newMouseTick);
 			PlayCursorButtonSoundsAndAnimation(newMouseTick);
 		}
-
-#if 0 // DEBUG: Cursor Mouse Drag:
-		if (!GetIsPlayback())
-		{
-			if (Gui::IsMouseClicked(0))
-			{
-				if (io.KeyShift) // && timeSelectionActive)
-				{
-					timeSelectionEnd = GetCursorMouseXTick();
-				}
-				else
-				{
-					timeSelectionActive = false;
-					timeSelectionStart = GetCursorMouseXTick();
-				}
-			}
-			if (Gui::IsMouseDragging(0))
-			{
-				if (glm::abs(timeSelectionStart.TotalTicks() - timeSelectionEnd.TotalTicks()) > (GridDivisionTick().TotalTicks() * 2))
-					timeSelectionActive = true;
-
-				timeSelectionEnd = GetCursorMouseXTick();
-			}
-		}
-#endif
 	}
 
 	void TargetTimeline::UpdateInputTargetPlacement()
@@ -910,10 +889,61 @@ namespace Comfy::Studio::Editor
 		if (Gui::IsMouseClicked(3)) SelectNextPresetGridDivision(-1);
 		if (Gui::IsMouseClicked(4)) SelectNextPresetGridDivision(+1);
 
+		if (Gui::GetIO().KeyCtrl)
+			return;
+
 		for (auto[buttonType, keyCode] : targetPlacementInputKeyMappings)
 		{
 			if (Gui::IsKeyPressed(keyCode, false))
 				PlaceOrRemoveTarget(RoundTickToGrid(GetCursorTick()), buttonType);
+		}
+	}
+
+	void TargetTimeline::UpdateInputBoxSelection()
+	{
+		constexpr int boxSelectionButton = 1;
+
+		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && timelineContentRegion.Contains(Gui::GetMousePos()))
+		{
+			if (Gui::IsMouseClicked(boxSelectionButton) && !boxSelection.IsActive)
+			{
+				boxSelection.StartMouse = Gui::GetMousePos();
+				boxSelection.StartTick = GetTimelineTick(ScreenToTimelinePosition(boxSelection.StartMouse.x));
+				boxSelection.IsActive = true;
+			}
+		}
+
+		if (boxSelection.IsActive && Gui::IsMouseDown(boxSelectionButton))
+		{
+			boxSelection.EndMouse = Gui::GetMousePos();
+			boxSelection.EndTick = GetTimelineTick(ScreenToTimelinePosition(boxSelection.EndMouse.x));
+
+			constexpr f32 sizeThreshold = 4.0f;
+			const f32 selectionWidth = glm::abs(GetTimelinePosition(boxSelection.StartTick) - GetTimelinePosition(boxSelection.EndTick));
+			const f32 selectionHeight = glm::abs(boxSelection.StartMouse.y - boxSelection.EndMouse.y);
+
+			boxSelection.IsSufficientlyLarge = (selectionWidth >= sizeThreshold) || (selectionHeight >= sizeThreshold);
+		}
+
+		if (Gui::IsMouseReleased(boxSelectionButton) && boxSelection.IsActive)
+		{
+			if (boxSelection.IsSufficientlyLarge)
+			{
+				const f32 minY = std::min(boxSelection.StartMouse.y, boxSelection.EndMouse.y);
+				const f32 maxY = std::max(boxSelection.StartMouse.y, boxSelection.EndMouse.y);
+
+				const auto minTick = std::min(boxSelection.StartTick, boxSelection.EndTick);
+				const auto maxTick = std::max(boxSelection.StartTick, boxSelection.EndTick);
+
+				for (auto& target : workingChart->Targets)
+				{
+					const f32 targetY = targetYPositions[static_cast<size_t>(target.Type)];
+					target.IsSelected = (targetY >= minY && targetY <= maxY) && (target.Tick >= minTick && target.Tick <= maxTick);
+				}
+			}
+
+			boxSelection.IsActive = false;
+			boxSelection.IsSufficientlyLarge = false;
 		}
 	}
 
