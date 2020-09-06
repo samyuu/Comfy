@@ -803,6 +803,25 @@ namespace Comfy::Studio::Editor
 
 		baseDrawList->AddRectFilled(start, end, GetColor(EditorColor_TimelineSelection));
 		baseDrawList->AddRect(start, end, GetColor(EditorColor_TimelineSelectionBorder));
+
+		// TODO: Move into common selection logic source file (?)
+		if (boxSelection.Action != SelectionAction::Clean)
+		{
+			constexpr f32 circleRadius = 6.0f;
+			constexpr f32 symbolSize = 2.0f;
+
+			const auto symbolPos = start;
+			const auto symbolColor = Gui::GetColorU32(ImGuiCol_Text);
+
+			baseDrawList->AddCircleFilled(symbolPos, circleRadius, Gui::GetColorU32(ImGuiCol_ChildBg));
+			baseDrawList->AddCircle(symbolPos, circleRadius, GetColor(EditorColor_TimelineSelectionBorder));
+
+			if (boxSelection.Action == SelectionAction::Add || boxSelection.Action == SelectionAction::Remove)
+				baseDrawList->AddLine(symbolPos - vec2(symbolSize, 0.0f), start + vec2(symbolSize + 1.0f, 0.0f), symbolColor, 1.0f);
+
+			if (boxSelection.Action == SelectionAction::Add)
+				baseDrawList->AddLine(symbolPos - vec2(0.0f, symbolSize), start + vec2(0.0f, symbolSize + 1.0f), symbolColor, 1.0f);
+		}
 	}
 
 	void TargetTimeline::OnUpdateInput()
@@ -946,6 +965,9 @@ namespace Comfy::Studio::Editor
 			boxSelection.EndMouse = Gui::GetMousePos();
 			boxSelection.EndTick = GetTimelineTick(ScreenToTimelinePosition(boxSelection.EndMouse.x));
 
+			const auto& io = Gui::GetIO();
+			boxSelection.Action = io.KeyShift ? SelectionAction::Add : io.KeyAlt ? SelectionAction::Remove : SelectionAction::Clean;
+
 			constexpr f32 sizeThreshold = 4.0f;
 			const f32 selectionWidth = glm::abs(GetTimelinePosition(boxSelection.StartTick) - GetTimelinePosition(boxSelection.EndTick));
 			const f32 selectionHeight = glm::abs(boxSelection.StartMouse.y - boxSelection.EndMouse.y);
@@ -963,10 +985,37 @@ namespace Comfy::Studio::Editor
 				const auto minTick = std::min(boxSelection.StartTick, boxSelection.EndTick);
 				const auto maxTick = std::max(boxSelection.StartTick, boxSelection.EndTick);
 
-				for (auto& target : workingChart->Targets)
+				auto isTargetInSelectionRange = [&](const auto& target)
 				{
-					const f32 targetY = targetYPositions[static_cast<size_t>(target.Type)];
-					target.IsSelected = (targetY >= minY && targetY <= maxY) && (target.Tick >= minTick && target.Tick <= maxTick);
+					const f32 y = targetYPositions[static_cast<size_t>(target.Type)];
+					return (y >= minY && y <= maxY) && (target.Tick >= minTick && target.Tick <= maxTick);
+				};
+
+				switch (boxSelection.Action)
+				{
+				case SelectionAction::Clean:
+					for (auto& target : workingChart->Targets)
+						target.IsSelected = isTargetInSelectionRange(target);
+					break;
+
+				case SelectionAction::Add:
+					for (auto& target : workingChart->Targets)
+					{
+						if (isTargetInSelectionRange(target))
+							target.IsSelected = true;
+					}
+					break;
+
+				case SelectionAction::Remove:
+					for (auto& target : workingChart->Targets)
+					{
+						if (isTargetInSelectionRange(target))
+							target.IsSelected = false;
+					}
+					break;
+
+				default:
+					assert(false);
 				}
 			}
 

@@ -193,11 +193,14 @@ namespace Comfy::Studio::Editor
 		int tempoPopupIndex = -1;
 
 	private:
+		enum class SelectionAction : u8 { Clean, Add, Remove };
+
 		struct BoxSelectionData
 		{
 			TimelineTick StartTick, EndTick;
 			vec2 StartMouse, EndMouse;
 
+			SelectionAction Action;
 			bool IsActive;
 			bool IsSufficientlyLarge;
 
