@@ -52,6 +52,7 @@ namespace Comfy::Studio::Editor
 	private:
 		CheckerboardGrid backgroundCheckerboard;
 		f32 backgroundDim = 0.25f;
+		f32 targetHitboxSize = 64.0f;
 
 		Render::Camera2D camera;
 

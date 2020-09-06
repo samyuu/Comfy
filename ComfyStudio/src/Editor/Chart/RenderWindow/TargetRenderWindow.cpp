@@ -45,6 +45,20 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::PostRenderTextureGui()
 	{
+		auto drawList = Gui::GetWindowDrawList();
+		for (const auto& target : workingChart->Targets)
+		{
+			if (!target.IsSelected)
+				continue;
+
+			const auto position = target.Flags.HasProperties ? target.Properties.Position : Rules::PresetTargetPosition(target.Type, target.Tick, target.Flags);
+
+			const auto tl = glm::round(TargetAreaToScreenSpace(position - targetHitboxSize));
+			const auto br = glm::round(TargetAreaToScreenSpace(position + targetHitboxSize));
+
+			drawList->AddRectFilled(tl, br, GetColor(EditorColor_TimelineSelection));
+			drawList->AddRect(tl, br, GetColor(EditorColor_TimelineSelectionBorder));
+		}
 	}
 
 	void TargetRenderWindow::OnResize(ivec2 newSize)
