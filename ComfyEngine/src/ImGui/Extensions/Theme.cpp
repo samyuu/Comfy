@@ -16,8 +16,8 @@ namespace ImGui
 		style->GrabMinSize = 12.0f;
 
 		// NOTE: To prevent render glitches for free floating windows
-		if (const int minWindowWidth = ::GetSystemMetrics(SM_CXMIN); minWindowWidth != 0)
-			style->WindowMinSize = ImVec2(static_cast<float>(minWindowWidth), 32.0f);
+		if (const auto minWindowWidth = ::GetSystemMetrics(SM_CXMIN); minWindowWidth != 0)
+			style->WindowMinSize = ImVec2(static_cast<f32>(minWindowWidth), 32.0f);
 
 		// NOTE: Otherwise a reasonable limit would be
 		// style->WindowMinSize = ImVec2(120.0f, 32.0f);
@@ -34,7 +34,7 @@ namespace ImGui
 		colors[ImGuiCol_FrameBgHovered] = ImVec4(0.13f, 0.13f, 0.13f, 1.00f);
 		colors[ImGuiCol_FrameBgActive] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
 		colors[ImGuiCol_TitleBg] = ImVec4(0.13f, 0.13f, 0.13f, 1.00f);
-		colors[ImGuiCol_TitleBgActive] = ImVec4(0.13f, 0.13f, 0.13f, 1.00f);
+		colors[ImGuiCol_TitleBgActive] = ImVec4(0.11f, 0.11f, 0.11f, 1.00f);
 		colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
 		colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
 		colors[ImGuiCol_ScrollbarBg] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
