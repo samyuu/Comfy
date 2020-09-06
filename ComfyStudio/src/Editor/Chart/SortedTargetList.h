@@ -20,7 +20,7 @@ namespace Comfy::Studio::Editor
 	{
 		vec2 Position;
 		f32 Angle;
-		i32 Frequency;
+		f32 Frequency;
 		f32 Amplitude;
 		f32 Distance;
 	};

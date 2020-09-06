@@ -5,7 +5,7 @@
 
 namespace Comfy::Studio::Editor
 {
-	inline vec2 GetButtonPathSinePoint(f32 progress, vec2 pivot, f32 degrees, i32 frequency, f32 amplitude, f32 distance)
+	inline vec2 GetButtonPathSinePoint(f32 progress, vec2 pivot, f32 degrees, f32 frequency, f32 amplitude, f32 distance)
 	{
 		auto rotate = [](vec2 point, f32 radians)
 		{
@@ -16,12 +16,13 @@ namespace Comfy::Studio::Editor
 		if (distance == 0.0f)
 			return pivot;
 
-		if (frequency % 2 != 0)
-			frequency *= -1;
+		// TODO: Ehhh...
+		if (static_cast<i32>(frequency) % 2 != 0)
+			frequency *= -1.0f;
 
 		progress = (1.0f - progress);
 
-		const auto sinePoint = vec2(progress * distance, glm::sin(progress * glm::pi<f32>() * static_cast<f32>(frequency)) / 12.0f * amplitude);
+		const auto sinePoint = vec2(progress * distance, glm::sin(progress * glm::pi<f32>() * frequency) / 12.0f * amplitude);
 		return rotate(sinePoint, glm::radians(degrees - 90.0f)) + pivot;
 	}
 
