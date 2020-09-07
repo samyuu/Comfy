@@ -15,7 +15,7 @@ namespace Comfy::Studio::Editor
 	class TargetRenderWindow : public RenderWindow
 	{
 	public:
-		TargetRenderWindow(ChartEditor& parent, TargetTimeline& timeline, Undo::UndoManager& undoManager);
+		TargetRenderWindow(ChartEditor& parent, TargetTimeline& timeline, Undo::UndoManager& undoManager, Render::Renderer2D& renderer);
 		~TargetRenderWindow() = default;
 
 	public:
@@ -47,7 +47,9 @@ namespace Comfy::Studio::Editor
 
 		ChartEditor& chartEditor;
 		TargetTimeline& timeline;
+
 		Undo::UndoManager& undoManager;
+		Render::Renderer2D& renderer;
 
 	private:
 		CheckerboardGrid backgroundCheckerboard;
@@ -66,7 +68,6 @@ namespace Comfy::Studio::Editor
 			std::vector<TargetRenderHelper::ButtonSyncLineData> SyncLines;
 		} drawBuffers;
 
-		std::unique_ptr<Render::Renderer2D> renderer = nullptr;
 		std::unique_ptr<Render::RenderTarget2D> renderTarget = nullptr;
 	};
 }

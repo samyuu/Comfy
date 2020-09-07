@@ -51,6 +51,7 @@ namespace Comfy::Studio::Editor
 		Gui::FileViewer songFileViewer = { "dev_ram/sound/song" };
 
 		std::unique_ptr<Chart> chart = nullptr;
+		std::unique_ptr<Render::Renderer2D> renderer = nullptr;
 
 		Undo::UndoManager undoManager = {};
 		std::unique_ptr<TargetTimeline> timeline;

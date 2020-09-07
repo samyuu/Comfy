@@ -7,8 +7,8 @@ namespace Comfy::Studio::Editor
 {
 	using namespace Graphics;
 
-	TargetRenderWindow::TargetRenderWindow(ChartEditor& parent, TargetTimeline& timeline, Undo::UndoManager& undoManager)
-		: chartEditor(parent), timeline(timeline), undoManager(undoManager)
+	TargetRenderWindow::TargetRenderWindow(ChartEditor& parent, TargetTimeline& timeline, Undo::UndoManager& undoManager, Render::Renderer2D& renderer)
+		: chartEditor(parent), timeline(timeline), undoManager(undoManager), renderer(renderer)
 	{
 		workingChart = chartEditor.GetChart();
 
@@ -21,10 +21,7 @@ namespace Comfy::Studio::Editor
 		backgroundCheckerboard.ColorAlt = vec4(0.26f, 0.26f, 0.26f, 1.0f);
 
 		renderHelper = std::make_unique<TargetRenderHelper>();
-
-		// TODO: Should maybe me owned by the parent ChartEditor instead (?)
-		renderer = std::make_unique<Render::Renderer2D>();
-		renderHelper->SetAetSprGetter(*renderer);
+		renderHelper->SetAetSprGetter(renderer);
 
 		renderTarget = Render::Renderer2D::CreateRenderTarget();
 	}
@@ -73,17 +70,17 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::OnRender()
 	{
-		renderHelper->UpdateAsyncLoading(*renderer);
+		renderHelper->UpdateAsyncLoading(renderer);
 
 		UpdateAllInput();
 
-		renderer->Begin(camera, *renderTarget);
+		renderer.Begin(camera, *renderTarget);
 		{
 			RenderBackground();
 			RenderHUDBackground();
 			RenderAllVisibleTargets();
 		}
-		renderer->End();
+		renderer.End();
 	}
 
 	void TargetRenderWindow::UpdateAllInput()
@@ -106,14 +103,14 @@ namespace Comfy::Studio::Editor
 	void TargetRenderWindow::RenderBackground()
 	{
 		backgroundCheckerboard.Size = Rules::PlacementAreaSize;
-		backgroundCheckerboard.Render(*renderer);
+		backgroundCheckerboard.Render(renderer);
 
-		renderer->Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, backgroundDim)));
+		renderer.Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, backgroundDim)));
 
 #if COMFY_DEBUG && 0 // DEBUG:
 		const auto rect = ImRect { Rules::RecommendedPlacementAreaMin, Rules::RecommendedPlacementAreaMax };
-		// renderer->Draw(Render::RenderCommand2D(rect.GetTL(), rect.GetSize(), vec4(0.0f, 0.0f, 0.0f, 0.25f)));
-		// renderer->DrawRect(rect.GetTL(), rect.GetTR(), rect.GetBL(), rect.GetBR(), vec4(0.0f, 0.0f, 0.0f, 0.5f), 2.0f);
+		// renderer.Draw(Render::RenderCommand2D(rect.GetTL(), rect.GetSize(), vec4(0.0f, 0.0f, 0.0f, 0.25f)));
+		// renderer.DrawRect(rect.GetTL(), rect.GetTR(), rect.GetBL(), rect.GetBR(), vec4(0.0f, 0.0f, 0.0f, 0.5f), 2.0f);
 #endif
 	}
 
@@ -126,7 +123,7 @@ namespace Comfy::Studio::Editor
 		hudData.PlaybackTimeOnStart = chartEditor.GetPlaybackTimeOnPlaybackStart();
 		hudData.Duration = workingChart->Duration;
 
-		renderHelper->DrawHUD(*renderer, hudData);
+		renderHelper->DrawHUD(renderer, hudData);
 	}
 
 	void TargetRenderWindow::RenderAllVisibleTargets()
@@ -232,22 +229,22 @@ namespace Comfy::Studio::Editor
 	void TargetRenderWindow::FlushRenderTargetsDrawBuffers()
 	{
 		for (const auto& data : drawBuffers.Trails)
-			renderHelper->DrawButtonTrail(*renderer, data);
+			renderHelper->DrawButtonTrail(renderer, data);
 
 		for (const auto& data : drawBuffers.Buttons)
 		{
 			if (data.Shadow != TargetRenderHelper::ButtonShadowType::None)
-				renderHelper->DrawButtonShadow(*renderer, data);
+				renderHelper->DrawButtonShadow(renderer, data);
 		}
 
 		for (const auto& data : drawBuffers.Targets)
-			renderHelper->DrawTarget(*renderer, data);
+			renderHelper->DrawTarget(renderer, data);
 
 		for (const auto& data : drawBuffers.SyncLines)
-			renderHelper->DrawButtonPairSyncLines(*renderer, data);
+			renderHelper->DrawButtonPairSyncLines(renderer, data);
 
 		for (const auto& data : drawBuffers.Buttons)
-			renderHelper->DrawButton(*renderer, data);
+			renderHelper->DrawButton(renderer, data);
 
 		drawBuffers.Targets.clear();
 		drawBuffers.Buttons.clear();
