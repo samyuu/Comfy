@@ -455,7 +455,7 @@ namespace Comfy::Studio::Editor
 		}
 
 		{
-			char buttonNameBuffer[64];
+			char buttonNameBuffer[32];
 			sprintf_s(buttonNameBuffer, "Grid: 1 / %d", activeBarGridDivision);
 
 			Gui::SameLine();
@@ -836,6 +836,8 @@ namespace Comfy::Studio::Editor
 		UpdateInputCursorClick();
 		UpdateInputCursorScrubbing();
 		UpdateInputTargetPlacement();
+
+		UpdateInputContextMenu();
 		UpdateInputBoxSelection();
 	}
 
@@ -943,6 +945,79 @@ namespace Comfy::Studio::Editor
 		{
 			if (Gui::IsKeyPressed(keyCode, false))
 				PlaceOrRemoveTarget(RoundTickToGrid(GetCursorTick()), buttonType);
+		}
+
+		if (Gui::IsKeyPressed(Input::KeyCode_Delete, false))
+			RemoveAllSelectedTargets();
+	}
+
+	void TargetTimeline::UpdateInputContextMenu()
+	{
+		constexpr const char* contextMenuID = "TargetTimelineContextMenu";
+
+		if (Gui::IsMouseReleased(1) && Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup))
+		{
+			if (!Gui::IsAnyItemHovered() && !boxSelection.IsSufficientlyLarge)
+				Gui::OpenPopup(contextMenuID);
+		}
+
+		if (Gui::BeginPopupContextVoid(contextMenuID))
+		{
+			const auto selectionCount = CountSelectedTargets();
+
+#if 0
+			if (Gui::MenuItem("Copy", "Ctrl + C", nullptr, (selectionCount > 0))) {}
+			if (Gui::MenuItem("Paste", "Ctrl + V", nullptr, true)) {}
+#endif
+
+			Gui::Separator();
+
+			if (Gui::BeginMenu("Grid Division"))
+			{
+				for (const auto barDivision : presetBarGridDivisions)
+				{
+					char nameBuffer[32];
+					sprintf_s(nameBuffer, "Set 1 / %d", barDivision);
+
+					bool alreadySelected = (activeBarGridDivision == barDivision);;
+					if (Gui::MenuItem(nameBuffer, nullptr, &alreadySelected, !alreadySelected))
+						activeBarGridDivision = barDivision;
+				}
+
+				Gui::EndMenu();
+			}
+
+#if 0
+			if (Gui::MenuItem("Undo", "Ctrl + Z", nullptr, undoManager.CanUndo()))
+				undoManager.Undo();
+
+			if (Gui::MenuItem("Redo", "Ctrl + Y", nullptr, undoManager.CanRedo()))
+				undoManager.Redo();
+
+			Gui::Separator();
+#endif
+
+			// TODO:
+			if (Gui::MenuItem("Insert Tempo Change", "Ctrl + ?", nullptr, true)) {}
+			if (Gui::MenuItem("Remove Tempo Change", "Ctrl + ?", nullptr, true)) {}
+
+			Gui::Separator();
+
+			// TODO: Various options to turn a straight target row into patterns (?)
+			//		 OOOOO -> OXOXO, "compress" down to single type, etc.
+
+			if (Gui::MenuItem("Select all Targets", "Ctrl + A", nullptr, (workingChart->Targets.size() > 0)))
+				std::for_each(workingChart->Targets.begin(), workingChart->Targets.end(), [](auto& t) { t.IsSelected = true; });
+
+			if (Gui::MenuItem("Clear Selection", "", nullptr, (selectionCount > 0)))
+				std::for_each(workingChart->Targets.begin(), workingChart->Targets.end(), [](auto& t) { t.IsSelected = false; });
+
+			Gui::Separator();
+
+			if (Gui::MenuItem("Remove Selected Targets", "Del", nullptr, (selectionCount > 0)))
+				RemoveAllSelectedTargets(selectionCount);
+
+			Gui::EndPopup();
 		}
 	}
 
@@ -1055,6 +1130,33 @@ namespace Comfy::Studio::Editor
 		const auto buttonIndex = static_cast<size_t>(type);
 		buttonAnimations[buttonIndex].Tick = tick;
 		buttonAnimations[buttonIndex].ElapsedTime = TimeSpan::Zero();
+	}
+
+	size_t TargetTimeline::CountSelectedTargets() const
+	{
+		return std::count_if(
+			workingChart->Targets.begin(),
+			workingChart->Targets.end(),
+			[](const auto& t) { return t.IsSelected; });
+	}
+
+	void TargetTimeline::RemoveAllSelectedTargets(std::optional<size_t> preCalculatedSelectionCount)
+	{
+		const auto selectionCount = [&] { return (preCalculatedSelectionCount.has_value()) ? preCalculatedSelectionCount.value() : CountSelectedTargets(); }();
+		if (selectionCount < 1)
+			return;
+
+		std::vector<TimelineTarget> targetsToRemove;
+		targetsToRemove.reserve(selectionCount);
+
+		std::copy_if(
+			workingChart->Targets.begin(),
+			workingChart->Targets.end(),
+			std::back_inserter(targetsToRemove),
+			[](const auto& t) { return t.IsSelected; });
+
+		assert(targetsToRemove.size() == selectionCount);
+		undoManager.Execute<RemoveTargetList>(*workingChart, std::move(targetsToRemove));
 	}
 
 	void TargetTimeline::PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick)

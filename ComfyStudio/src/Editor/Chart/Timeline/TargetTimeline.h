@@ -9,6 +9,7 @@
 #include "Input/Input.h"
 #include "Time/Stopwatch.h"
 #include "Undo/Undo.h"
+#include <optional>
 
 namespace Comfy::Studio::Editor
 {
@@ -101,10 +102,14 @@ namespace Comfy::Studio::Editor
 		void UpdateInputCursorClick();
 		void UpdateInputCursorScrubbing();
 		void UpdateInputTargetPlacement();
+		void UpdateInputContextMenu();
 		void UpdateInputBoxSelection();
 
 	private:
 		void PlaceOrRemoveTarget(TimelineTick tick, ButtonType Type);
+
+		size_t CountSelectedTargets() const;
+		void RemoveAllSelectedTargets(std::optional<size_t> preCalculatedSelectionCount = {});
 
 	private:
 		void PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick);
