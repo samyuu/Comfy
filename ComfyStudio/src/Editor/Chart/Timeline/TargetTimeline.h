@@ -44,7 +44,7 @@ namespace Comfy::Studio::Editor
 		TimeSpan TickToTime(TimelineTick tick) const;
 		TimeSpan GetTimelineTime(f32 position) const override;
 
-		TimelineTick GetCursorMouseXTick() const;
+		TimelineTick GetCursorMouseXTick(bool floorToGrid = true) const;
 
 	public:
 		TimeSpan GetCursorTime() const override;

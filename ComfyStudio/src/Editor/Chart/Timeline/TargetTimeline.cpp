@@ -74,10 +74,10 @@ namespace Comfy::Studio::Editor
 		return TimelineBase::GetTimelineTime(position);
 	}
 
-	TimelineTick TargetTimeline::GetCursorMouseXTick() const
+	TimelineTick TargetTimeline::GetCursorMouseXTick(bool floorToGrid) const
 	{
 		const auto tickAtMousePosition = GetTimelineTick(ScreenToTimelinePosition(Gui::GetMousePos().x));
-		const auto gridAdjusted = FloorTickToGrid(tickAtMousePosition);
+		const auto gridAdjusted = floorToGrid ? FloorTickToGrid(tickAtMousePosition) : tickAtMousePosition;
 
 		// NOTE: There should never be a need to click before the start of the timeline
 		const auto clamped = std::max(TimelineTick::Zero(), gridAdjusted);
@@ -920,8 +920,9 @@ namespace Comfy::Studio::Editor
 			if (isPlayback)
 				isCursorScrubbing = false;
 
+			const bool floorToGrid = Gui::GetIO().KeyAlt;
 			const auto oldCursorTick = GetCursorTick();
-			const auto newMouseTick = GetCursorMouseXTick();
+			const auto newMouseTick = GetCursorMouseXTick(floorToGrid);
 
 			SetCursorTick(newMouseTick);
 			if (!isPlayback && (newMouseTick != oldCursorTick))
