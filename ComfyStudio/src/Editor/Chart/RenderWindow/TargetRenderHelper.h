@@ -15,7 +15,7 @@ namespace Comfy::Studio::Editor
 		~TargetRenderHelper();
 
 	public:
-		void UpdateAsyncLoading();
+		void UpdateAsyncLoading(Render::Renderer2D& renderer);
 		void SetAetSprGetter(Render::Renderer2D& renderer);
 
 		struct HUDData

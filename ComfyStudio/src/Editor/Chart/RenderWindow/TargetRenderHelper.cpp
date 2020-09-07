@@ -31,7 +31,7 @@ namespace Comfy::Studio::Editor
 	struct TargetRenderHelper::Impl
 	{
 	public:
-		void UpdateAsyncLoading()
+		void UpdateAsyncLoading(Render::Renderer2D& renderer)
 		{
 			auto findLayer = [](AetSet& aetSet, std::string_view layerName, size_t sceneIndex = 0)
 			{
@@ -141,6 +141,7 @@ namespace Comfy::Studio::Editor
 
 			if (GetFutureIfReady(sprGameCommonFuture, sprGameCommon) && sprGameCommon != nullptr)
 			{
+				renderer.UploadToGPUFreeCPUMemory(*sprGameCommon);
 				sprites.ButtonTrail = findSprite(*sprGameCommon, "KISEKI");
 				sprites.ButtonSyncLine = findSprite(*sprGameCommon, "KISEKI_SYNC");
 			}
@@ -162,10 +163,14 @@ namespace Comfy::Studio::Editor
 
 			if (GetFutureIfReady(sprGameFuture, sprGame) && sprGame != nullptr)
 			{
+				renderer.UploadToGPUFreeCPUMemory(*sprGame);
 				sprites.PracticeNumbers = findSprite(*sprGame, "PRC_NUM24X36");
 			}
 
-			GetFutureIfReady(sprFont36Future, sprFont36);
+			if (GetFutureIfReady(sprFont36Future, sprFont36))
+			{
+				renderer.UploadToGPUFreeCPUMemory(*sprFont36);
+			}
 
 			if (GetFutureIfReady(fontMapFuture, fontMap) && fontMap != nullptr)
 			{
@@ -441,7 +446,8 @@ namespace Comfy::Studio::Editor
 
 		void DrawButtonPairSyncLines(Render::Renderer2D& renderer, const ButtonSyncLineData& data) const
 		{
-			assert(data.SyncPairCount >= 2);
+			if (data.SyncPairCount < 2)
+				return;
 
 			const auto syncLine = GetButtonSyncLineSprite();
 			if (!syncLine)
@@ -678,11 +684,13 @@ namespace Comfy::Studio::Editor
 	{
 	}
 
-	TargetRenderHelper::~TargetRenderHelper() = default;
-
-	void TargetRenderHelper::UpdateAsyncLoading()
+	TargetRenderHelper::~TargetRenderHelper()
 	{
-		impl->UpdateAsyncLoading();
+	}
+
+	void TargetRenderHelper::UpdateAsyncLoading(Render::Renderer2D& renderer)
+	{
+		impl->UpdateAsyncLoading(renderer);
 	}
 
 	void TargetRenderHelper::SetAetSprGetter(Render::Renderer2D& renderer)
@@ -717,9 +725,6 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderHelper::DrawButtonPairSyncLines(Render::Renderer2D& renderer, const ButtonSyncLineData& data) const
 	{
-		if (data.SyncPairCount < 2)
-			return;
-
 		impl->DrawButtonPairSyncLines(renderer, data);
 	}
 }

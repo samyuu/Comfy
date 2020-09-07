@@ -73,7 +73,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::OnRender()
 	{
-		renderHelper->UpdateAsyncLoading();
+		renderHelper->UpdateAsyncLoading(*renderer);
 
 		UpdateAllInput();
 
