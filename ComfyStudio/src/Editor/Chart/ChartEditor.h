@@ -2,6 +2,7 @@
 #include "Editor/Core/IEditorComponent.h"
 #include "Chart.h"
 #include "SyncWindow.h"
+#include "TargetInspector.h"
 #include "BPMCalculatorWindow.h"
 #include "Timeline/TargetTimeline.h"
 #include "RenderWindow/TargetRenderWindow.h"
@@ -57,6 +58,7 @@ namespace Comfy::Studio::Editor
 		std::unique_ptr<TargetTimeline> timeline;
 		std::unique_ptr<TargetRenderWindow> renderWindow;
 		SyncWindow syncWindow = { undoManager };
+		TargetInspector inspector = { undoManager };
 		UndoHistoryWindow historyWindow = { undoManager };
 		BPMCalculatorWindow bpmCalculatorWindow = { undoManager };
 

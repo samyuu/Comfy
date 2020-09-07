@@ -57,11 +57,13 @@ namespace Comfy::Studio::Editor
 		}
 		Gui::End();
 
-		// TODO:
-		// renderWindow->SetActive(treeView->GetActiveAet(), treeView->GetSelected());
-		// renderWindow->SetIsPlayback(timeline->GetIsPlayback());
-		// renderWindow->SetCurrentFrame(timeline->GetFrame().Frames());
-		renderWindow->BeginEndGui(ICON_FA_CHART_BAR "  Target Window##ChartEditor");
+		if (Gui::Begin(ICON_FA_INFO_CIRCLE "  Target Inspector##ChartEditor", nullptr, ImGuiWindowFlags_None))
+		{
+			inspector.Gui(*chart);
+		}
+		Gui::End();
+
+		renderWindow->BeginEndGui(ICON_FA_CHART_BAR "  Target Preview##ChartEditor");
 
 		if (Gui::Begin(ICON_FA_HISTORY "  Chart Editor History##ChartEditor"))
 		{
