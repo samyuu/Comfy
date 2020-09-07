@@ -16,6 +16,30 @@ namespace Comfy::Studio::Editor
 		Count
 	};
 
+	using TargetPropertyType = u8;
+	enum TargetPropertyTypeEnum : TargetPropertyType
+	{
+		TargetPropertyType_PositionX,
+		TargetPropertyType_PositionY,
+		TargetPropertyType_Angle,
+		TargetPropertyType_Frequency,
+		TargetPropertyType_Amplitude,
+		TargetPropertyType_Distance,
+		TargetPropertyType_Count
+	};
+
+	using TargetPropertyFlags = u8;
+	enum TargetPropertyFlagsEnum : TargetPropertyFlags
+	{
+		TargetPropertyFlags_None = 0,
+		TargetPropertyFlags_PositionX = 1 << TargetPropertyType_PositionX,
+		TargetPropertyFlags_PositionY = 1 << TargetPropertyType_PositionY,
+		TargetPropertyFlags_Angle = 1 << TargetPropertyType_Angle,
+		TargetPropertyFlags_Frequency = 1 << TargetPropertyType_Frequency,
+		TargetPropertyFlags_Amplitude = 1 << TargetPropertyType_Amplitude,
+		TargetPropertyFlags_Distance = 1 << TargetPropertyType_Distance,
+	};
+
 	struct TargetProperties
 	{
 		vec2 Position;
@@ -23,7 +47,12 @@ namespace Comfy::Studio::Editor
 		f32 Frequency;
 		f32 Amplitude;
 		f32 Distance;
+
+		auto& operator[](TargetPropertyType type) { assert(type < TargetPropertyType_Count); return reinterpret_cast<f32*>(this)[type]; }
+		auto& operator[](TargetPropertyType type) const { assert(type < TargetPropertyType_Count); return reinterpret_cast<const f32*>(this)[type]; }
 	};
+
+	static_assert(sizeof(TargetProperties) == (sizeof(f32) * TargetPropertyType_Count));
 
 	struct TargetFlags
 	{
