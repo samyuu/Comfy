@@ -46,6 +46,12 @@ namespace Comfy::Render
 		FontRenderer& Font();
 
 	public:
+		// NOTE: Optionally pre upload all resources that are known to be static instead of doing it just in time to reduce memory usage
+		void UploadToGPUFreeCPUMemory(Graphics::SprSet& sprSet);
+		void UploadToGPUFreeCPUMemory(Graphics::TexSet& texSet);
+		void UploadToGPUFreeCPUMemory(Graphics::Tex& tex);
+	
+	public:
 		static std::unique_ptr<RenderTarget2D> CreateRenderTarget();
 
 	public:

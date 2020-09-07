@@ -728,6 +728,36 @@ namespace Comfy::Render
 		return impl->FontRenderer;
 	}
 
+	void Renderer2D::UploadToGPUFreeCPUMemory(Graphics::SprSet& sprSet)
+	{
+		UploadToGPUFreeCPUMemory(sprSet.TexSet);
+	}
+
+	void Renderer2D::UploadToGPUFreeCPUMemory(Graphics::TexSet& texSet)
+	{
+		for (auto& tex : texSet.Textures)
+		{
+			if (tex != nullptr)
+				UploadToGPUFreeCPUMemory(*tex);
+		}
+	}
+
+	void Renderer2D::UploadToGPUFreeCPUMemory(Graphics::Tex& tex)
+	{
+		const auto* texture2D = D3D11::GetTexture2D(tex);
+		if (texture2D == nullptr)
+			return;
+
+		for (auto& mipMaps : tex.MipMapsArray)
+		{
+			for (auto& mip : mipMaps)
+			{
+				mip.DataSize = 0;
+				mip.Data = nullptr;
+			}
+		}
+	}
+
 	const Camera2D& Renderer2D::GetCamera() const
 	{
 		assert(impl->Camera != nullptr);
