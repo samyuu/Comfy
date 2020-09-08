@@ -891,7 +891,10 @@ namespace Comfy::Studio::Editor
 	{
 		if (!selectionDrag.IsDragging)
 		{
-			if (boxSelection.IsActive || !Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) || !timelineContentRegion.Contains(Gui::GetMousePos()))
+			if (boxSelection.IsActive || isCursorScrubbing)
+				return;
+
+			if (!Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) || !timelineContentRegion.Contains(Gui::GetMousePos()))
 				return;
 		}
 		else if (Gui::IsMouseReleased(0))
@@ -1094,9 +1097,9 @@ namespace Comfy::Studio::Editor
 	{
 		constexpr const char* contextMenuID = "TargetTimelineContextMenu";
 
-		if (Gui::IsMouseReleased(1) && Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup))
+		if (Gui::IsMouseReleased(1) && Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && timelineContentRegion.Contains(Gui::GetMousePos()))
 		{
-			if (!Gui::IsAnyItemHovered() && !boxSelection.IsSufficientlyLarge && !selectionDrag.IsDragging)
+			if (!Gui::IsAnyItemHovered() && !boxSelection.IsSufficientlyLarge && !selectionDrag.IsDragging && !isCursorScrubbing)
 				Gui::OpenPopup(contextMenuID);
 		}
 
@@ -1107,9 +1110,9 @@ namespace Comfy::Studio::Editor
 #if 0
 			if (Gui::MenuItem("Copy", "Ctrl + C", nullptr, (selectionCount > 0))) {}
 			if (Gui::MenuItem("Paste", "Ctrl + V", nullptr, true)) {}
-#endif
 
 			Gui::Separator();
+#endif
 
 			if (Gui::BeginMenu("Grid Division"))
 			{
@@ -1137,8 +1140,8 @@ namespace Comfy::Studio::Editor
 #endif
 
 			// TODO:
-			if (Gui::MenuItem("Insert Tempo Change", "Ctrl + ?", nullptr, true)) {}
-			if (Gui::MenuItem("Remove Tempo Change", "Ctrl + ?", nullptr, true)) {}
+			if (Gui::MenuItem("Insert Tempo Change", "Ctrl + ?", nullptr, false)) {}
+			if (Gui::MenuItem("Remove Tempo Change", "Ctrl + ?", nullptr, false)) {}
 
 			Gui::Separator();
 
@@ -1153,6 +1156,10 @@ namespace Comfy::Studio::Editor
 
 			Gui::Separator();
 
+			// DEBUG:
+			if (Gui::MenuItem("Snap Selection To Grid", "", nullptr, (selectionCount > 0)))
+				std::for_each(workingChart->Targets.begin(), workingChart->Targets.end(), [&](auto& t) { if (t.IsSelected) t.Tick = FloorTickToGrid(t.Tick); });
+
 			if (Gui::MenuItem("Remove Selected Targets", "Del", nullptr, (selectionCount > 0)))
 				RemoveAllSelectedTargets(selectionCount);
 
@@ -1166,7 +1173,7 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && timelineContentRegion.Contains(Gui::GetMousePos()))
 		{
-			if (Gui::IsMouseClicked(boxSelectionButton) && !boxSelection.IsActive && !selectionDrag.IsDragging && !selectionDrag.IsHovering)
+			if (Gui::IsMouseClicked(boxSelectionButton) && !boxSelection.IsActive && !selectionDrag.IsDragging && !selectionDrag.IsHovering && !isCursorScrubbing)
 			{
 				boxSelection.StartMouse = Gui::GetMousePos();
 				boxSelection.StartTick = GetTimelineTick(ScreenToTimelinePosition(boxSelection.StartMouse.x));
