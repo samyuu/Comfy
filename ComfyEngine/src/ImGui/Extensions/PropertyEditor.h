@@ -479,6 +479,25 @@ namespace ImGui
 				return false;
 			}
 
+			enum class Boolean : u8
+			{
+				False = false,
+				True = true,
+				Count
+			};
+
+			constexpr std::array<const char*, Comfy::EnumCount<Boolean>()> BooleanNames =
+			{
+				"False",
+				"True",
+			};
+
+			// NOTE: Has the advantage over a checkbox of allowing no value to be set at all
+			inline bool ComboBoolean(std::string_view label, Boolean& inOutValue, ImGuiComboFlags flags = ImGuiComboFlags_None)
+			{
+				return Combo(label, inOutValue, BooleanNames, flags);
+			}
+
 			inline bool ColorEdit(std::string_view label, vec3& inOutValue, ImGuiColorEditFlags flags = ImGuiColorEditFlags_None)
 			{
 				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return Gui::ColorEdit3(Detail::DummyLabel, glm::value_ptr(inOutValue), flags); });
