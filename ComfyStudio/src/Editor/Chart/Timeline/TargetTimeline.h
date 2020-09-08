@@ -99,6 +99,11 @@ namespace Comfy::Studio::Editor
 		void OnDrawTimelineContents() override;
 		void UpdateUndoRedoKeyboardInput();
 		void UpdateCursorKeyboardInput();
+
+		void UpdateInputSelectionDragging();
+		bool CheckIsAnySyncPairPartiallySelected() const;
+		bool CheckIsSelectionNotBlocked(TimelineTick increment) const;
+		
 		void UpdateInputCursorClick();
 		void UpdateInputCursorScrubbing();
 		void UpdateInputTargetPlacement();
@@ -199,6 +204,16 @@ namespace Comfy::Studio::Editor
 		int tempoPopupIndex = -1;
 
 	private:
+		struct SelectionDragData
+		{
+			TimelineTick TickOnPress;
+			TimelineTick LastFrameMouseTick, ThisFrameMouseTick;
+			TimelineTick TicksMovedSoFar;
+
+			bool IsDragging;
+			bool IsHovering;
+		} selectionDrag = {};
+
 		enum class SelectionAction : u8 { Clean, Add, Remove };
 
 		struct BoxSelectionData

@@ -208,6 +208,50 @@ namespace Comfy::Studio::Editor
 		Chart& chart;
 		std::vector<TimelineTarget> targets;
 	};
+
+	class MoveTargetList : public Undo::Command
+	{
+	public:
+		MoveTargetList(Chart& chart, std::vector<i64> targetIndices, TimelineTick tickIncrement, TimelineTick tickOnStart)
+			: chart(chart), targetIndices(std::move(targetIndices)), tickIncrement(tickIncrement), tickOnStart(tickOnStart)
+		{
+		}
+
+	public:
+		void Undo() override
+		{
+			for (const auto index : targetIndices)
+				chart.Targets[index].Tick -= tickIncrement;
+		}
+
+		void Redo() override
+		{
+			for (const auto index : targetIndices)
+				chart.Targets[index].Tick += tickIncrement;
+		}
+
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
+		{
+			auto* other = static_cast<decltype(this)>(&commandToMerge);
+			if (&other->chart != &chart || other->tickOnStart != tickOnStart)
+				return Undo::MergeResult::Failed;
+
+			if (!std::equal(targetIndices.begin(), targetIndices.end(), other->targetIndices.begin(), other->targetIndices.end()))
+				return Undo::MergeResult::Failed;
+
+			Undo();
+			tickIncrement += other->tickIncrement;
+
+			return Undo::MergeResult::ValueUpdated;
+		}
+
+		std::string_view GetName() const override { return "Move Targets"; }
+
+	private:
+		Chart& chart;
+		std::vector<i64> targetIndices;
+		TimelineTick tickIncrement, tickOnStart;
+	};
 }
 
 namespace Comfy::Studio::Editor

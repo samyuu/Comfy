@@ -211,7 +211,7 @@ namespace Comfy::Studio::Editor
 	{
 		TimelineBase::OnDrawTimelineInfoColumnHeader();
 
-		static constexpr const char* settingsPopupName = "TimelineSettingsPopup::ChartTimeline";
+		constexpr const char* settingsPopupName = "TimelineSettingsPopup::ChartTimeline";
 
 		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f, 0.0f));
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(8.0f, 8.0f));
@@ -833,6 +833,7 @@ namespace Comfy::Studio::Editor
 		UpdateUndoRedoKeyboardInput();
 		UpdateCursorKeyboardInput();
 
+		UpdateInputSelectionDragging();
 		UpdateInputCursorClick();
 		UpdateInputCursorScrubbing();
 		UpdateInputTargetPlacement();
@@ -886,14 +887,152 @@ namespace Comfy::Studio::Editor
 			SelectNextPresetGridDivision(+1);
 	}
 
+	void TargetTimeline::UpdateInputSelectionDragging()
+	{
+		if (!selectionDrag.IsDragging)
+		{
+			if (boxSelection.IsActive || !Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) || !timelineContentRegion.Contains(Gui::GetMousePos()))
+				return;
+		}
+		else if (Gui::IsMouseReleased(0))
+		{
+			selectionDrag = {};
+		}
+
+		selectionDrag.IsHovering = false;
+		if (!selectionDrag.IsDragging)
+		{
+			// TODO: Min max visible tick range check optimization 
+			const f32 iconHitboxHalfSize = (iconHitboxSize / 2.0f);
+			for (auto& target : workingChart->Targets)
+			{
+				if (!target.IsSelected)
+					continue;
+
+				const auto center = vec2(GetTimelinePosition(target.Tick) - GetScrollX() + timelineContentRegion.GetTL().x, targetYPositions[static_cast<size_t>(target.Type)]);
+				const auto hitbox = ImRect(center - iconHitboxHalfSize, center + iconHitboxHalfSize);
+
+				if (!hitbox.Contains(Gui::GetMousePos()))
+					continue;
+
+				selectionDrag.IsHovering = true;
+				if (Gui::IsMouseClicked(0))
+				{
+					selectionDrag.IsDragging = true;
+					selectionDrag.TickOnPress = GetCursorMouseXTick(false);
+					selectionDrag.TicksMovedSoFar = {};
+				}
+			}
+		}
+
+		if (selectionDrag.IsDragging || selectionDrag.IsHovering)
+			Gui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+
+		selectionDrag.LastFrameMouseTick = selectionDrag.ThisFrameMouseTick;
+		selectionDrag.ThisFrameMouseTick = GetCursorMouseXTick(false);
+
+		if (selectionDrag.IsDragging)
+			selectionDrag.TicksMovedSoFar += (selectionDrag.ThisFrameMouseTick - selectionDrag.LastFrameMouseTick);
+
+		const auto dragTickIncrement = FloorTickToGrid(selectionDrag.TicksMovedSoFar);
+
+		// NOTE: Prevent moving through any existing targets to avoid having to resort the target list
+		if (selectionDrag.IsDragging && dragTickIncrement != TimelineTick::Zero() && !CheckIsAnySyncPairPartiallySelected() && CheckIsSelectionNotBlocked(dragTickIncrement))
+		{
+			selectionDrag.TicksMovedSoFar -= dragTickIncrement;
+
+			const auto cursorTick = GetCursorTick();
+			size_t selectionCount = 0;
+
+			for (auto& target : workingChart->Targets)
+			{
+				if (!target.IsSelected)
+					continue;
+
+				selectionCount++;
+				if (target.Tick + dragTickIncrement == cursorTick)
+					PlaySingleTargetButtonSoundAndAnimation(target);
+			}
+
+			// TODO: Switch to using 32bit indices for all SortedTargetList operations to drastically reduce memory usage here
+			std::vector<i64> targetMoveIndices;
+			targetMoveIndices.reserve(selectionCount);
+
+			for (i64 i = 0; i < static_cast<i64>(workingChart->Targets.size()); i++)
+			{
+				if (workingChart->Targets[i].IsSelected)
+					targetMoveIndices.push_back(i);
+			}
+
+			undoManager.Execute<MoveTargetList>(*workingChart, std::move(targetMoveIndices), dragTickIncrement, selectionDrag.TickOnPress);
+		}
+	}
+
+	bool TargetTimeline::CheckIsAnySyncPairPartiallySelected() const
+	{
+		for (size_t i = 0; i < workingChart->Targets.size(); i++)
+		{
+			const auto& target = workingChart->Targets[i];
+			if (target.IsSelected && target.Flags.IsSync)
+			{
+				bool entireSyncPairSelected = true;
+				for (size_t s = 0; s < target.Flags.SyncPairCount; s++)
+					entireSyncPairSelected &= workingChart->Targets[i - target.Flags.IndexWithinSyncPair + s].IsSelected;
+
+				if (!entireSyncPairSelected)
+					return true;
+			}
+		}
+
+		return false;
+	}
+
+	bool TargetTimeline::CheckIsSelectionNotBlocked(TimelineTick increment) const
+	{
+		if (increment > TimelineTick::Zero())
+		{
+			for (size_t i = 0; i < workingChart->Targets.size(); i++)
+			{
+				auto& target = workingChart->Targets[i];
+				auto* nextTarget = IndexOrNull(i + 1, workingChart->Targets);
+
+				if (target.IsSelected && nextTarget != nullptr && !nextTarget->IsSelected)
+				{
+					if (target.Tick + increment >= nextTarget->Tick)
+						return false;
+				}
+			}
+		}
+		else
+		{
+			for (i64 i = static_cast<i64>(workingChart->Targets.size()) - 1; i >= 0; i--)
+			{
+				auto& target = workingChart->Targets[i];
+				auto* prevTarget = IndexOrNull(i - 1, workingChart->Targets);
+
+				if (target.Tick + increment < TimelineTick::Zero())
+					return false;
+
+				if (target.IsSelected && prevTarget != nullptr && !prevTarget->IsSelected)
+				{
+					if (target.Tick + increment <= prevTarget->Tick)
+						return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
 	void TargetTimeline::UpdateInputCursorClick()
 	{
 		if (!Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) || !timelineContentRegion.Contains(Gui::GetMousePos()))
 			return;
 
-		const auto& io = Gui::GetIO();
+		if (selectionDrag.IsDragging || selectionDrag.IsHovering)
+			return;
 
-		if (Gui::IsMouseClicked(0) && !io.KeyShift)
+		if (Gui::IsMouseClicked(0) && !Gui::GetIO().KeyShift)
 		{
 			const auto newMouseTick = GetCursorMouseXTick();
 
@@ -958,7 +1097,7 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::IsMouseReleased(1) && Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup))
 		{
-			if (!Gui::IsAnyItemHovered() && !boxSelection.IsSufficientlyLarge)
+			if (!Gui::IsAnyItemHovered() && !boxSelection.IsSufficientlyLarge && !selectionDrag.IsDragging)
 				Gui::OpenPopup(contextMenuID);
 		}
 
@@ -1028,7 +1167,7 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && timelineContentRegion.Contains(Gui::GetMousePos()))
 		{
-			if (Gui::IsMouseClicked(boxSelectionButton) && !boxSelection.IsActive)
+			if (Gui::IsMouseClicked(boxSelectionButton) && !boxSelection.IsActive && !selectionDrag.IsDragging && !selectionDrag.IsHovering)
 			{
 				boxSelection.StartMouse = Gui::GetMousePos();
 				boxSelection.StartTick = GetTimelineTick(ScreenToTimelinePosition(boxSelection.StartMouse.x));
@@ -1162,7 +1301,6 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick)
 	{
-		const bool isPlayback = GetIsPlayback();
 		for (const auto& target : workingChart->Targets)
 		{
 			if (target.Tick == cursorTick)
