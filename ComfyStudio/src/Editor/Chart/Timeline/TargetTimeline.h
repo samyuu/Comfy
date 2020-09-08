@@ -113,6 +113,7 @@ namespace Comfy::Studio::Editor
 
 	private:
 		void PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick);
+		void PlaySingleTargetButtonSoundAndAnimation(const TimelineTarget& target);
 
 		void PlaybackStateChangeSyncButtonSoundCursorTime(TimeSpan newCursorTime);
 

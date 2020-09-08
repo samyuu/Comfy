@@ -1165,17 +1165,20 @@ namespace Comfy::Studio::Editor
 		const bool isPlayback = GetIsPlayback();
 		for (const auto& target : workingChart->Targets)
 		{
-			if (target.Tick != cursorTick)
-				continue;
-
-			// NOTE: During playback the sound will be handled automatically already
-			if (!isPlayback)
-				buttonSoundController.PlayButtonSound();
-
-			const auto buttonIndex = static_cast<size_t>(target.Type);
-			buttonAnimations[buttonIndex].Tick = target.Tick;
-			buttonAnimations[buttonIndex].ElapsedTime = TimeSpan::Zero();
+			if (target.Tick == cursorTick)
+				PlaySingleTargetButtonSoundAndAnimation(target);
 		}
+	}
+
+	void TargetTimeline::PlaySingleTargetButtonSoundAndAnimation(const TimelineTarget& target)
+	{
+		// NOTE: During playback the sound will be handled automatically already
+		if (!GetIsPlayback())
+			buttonSoundController.PlayButtonSound();
+
+		const auto buttonIndex = static_cast<size_t>(target.Type);
+		buttonAnimations[buttonIndex].Tick = target.Tick;
+		buttonAnimations[buttonIndex].ElapsedTime = TimeSpan::Zero();
 	}
 
 	TimeSpan TargetTimeline::GetCursorTime() const
