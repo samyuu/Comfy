@@ -954,11 +954,10 @@ namespace Comfy::Studio::Editor
 					PlaySingleTargetButtonSoundAndAnimation(target);
 			}
 
-			// TODO: Switch to using 32bit indices for all SortedTargetList operations to drastically reduce memory usage here
-			std::vector<i64> targetMoveIndices;
+			std::vector<i32> targetMoveIndices;
 			targetMoveIndices.reserve(selectionCount);
 
-			for (i64 i = 0; i < static_cast<i64>(workingChart->Targets.size()); i++)
+			for (i32 i = 0; i < static_cast<i32>(workingChart->Targets.size()); i++)
 			{
 				if (workingChart->Targets[i].IsSelected)
 					targetMoveIndices.push_back(i);
@@ -991,7 +990,7 @@ namespace Comfy::Studio::Editor
 	{
 		if (increment > TimelineTick::Zero())
 		{
-			for (size_t i = 0; i < workingChart->Targets.size(); i++)
+			for (i32 i = 0; i < static_cast<i32>(workingChart->Targets.size()); i++)
 			{
 				auto& target = workingChart->Targets[i];
 				auto* nextTarget = IndexOrNull(i + 1, workingChart->Targets);
@@ -1005,7 +1004,7 @@ namespace Comfy::Studio::Editor
 		}
 		else
 		{
-			for (i64 i = static_cast<i64>(workingChart->Targets.size()) - 1; i >= 0; i--)
+			for (i32 i = static_cast<i32>(workingChart->Targets.size()) - 1; i >= 0; i--)
 			{
 				auto& target = workingChart->Targets[i];
 				auto* prevTarget = IndexOrNull(i - 1, workingChart->Targets);

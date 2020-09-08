@@ -212,7 +212,7 @@ namespace Comfy::Studio::Editor
 	class MoveTargetList : public Undo::Command
 	{
 	public:
-		MoveTargetList(Chart& chart, std::vector<i64> targetIndices, TimelineTick tickIncrement, TimelineTick tickOnStart)
+		MoveTargetList(Chart& chart, std::vector<i32> targetIndices, TimelineTick tickIncrement, TimelineTick tickOnStart)
 			: chart(chart), targetIndices(std::move(targetIndices)), tickIncrement(tickIncrement), tickOnStart(tickOnStart)
 		{
 		}
@@ -249,7 +249,7 @@ namespace Comfy::Studio::Editor
 
 	private:
 		Chart& chart;
-		std::vector<i64> targetIndices;
+		std::vector<i32> targetIndices;
 		TimelineTick tickIncrement, tickOnStart;
 	};
 }

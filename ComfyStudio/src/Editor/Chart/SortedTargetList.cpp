@@ -35,7 +35,7 @@ namespace Comfy::Studio::Editor
 			const auto insertionIndex = FindSortedInsertionIndex(newTarget.Tick, newTarget.Type);
 			targets.emplace(targets.begin() + insertionIndex, newTarget);
 
-			UpdateTargetSyncFlagsAround(insertionIndex);
+			UpdateTargetSyncFlagsAround(static_cast<i32>(insertionIndex));
 		}
 #else // NOTE: However a post emplace sort is useful for error checking
 		{
@@ -54,7 +54,7 @@ namespace Comfy::Studio::Editor
 		RemoveAt(FindIndex(target.Tick, target.Type));
 	}
 
-	void SortedTargetList::RemoveAt(i64 index)
+	void SortedTargetList::RemoveAt(i32 index)
 	{
 		if (!InBounds(static_cast<size_t>(index), targets))
 			return;
@@ -63,11 +63,11 @@ namespace Comfy::Studio::Editor
 		UpdateTargetSyncFlagsAround(index);
 	}
 
-	i64 SortedTargetList::FindIndex(TimelineTick tick, ButtonType type) const
+	i32 SortedTargetList::FindIndex(TimelineTick tick, ButtonType type) const
 	{
 		// TODO: Binary search
 		const auto foundIndex = FindIndexOf(targets, [&](const auto& target) { return (target.Tick == tick) && (target.Type == type); });
-		return InBounds(foundIndex, targets) ? static_cast<i64>(foundIndex) : -1;
+		return InBounds(foundIndex, targets) ? static_cast<i32>(foundIndex) : -1;
 	}
 
 	void SortedTargetList::Clear()
@@ -89,26 +89,26 @@ namespace Comfy::Studio::Editor
 		return insertionIndex;
 	}
 
-	void SortedTargetList::UpdateTargetSyncFlagsAround(i64 index)
+	void SortedTargetList::UpdateTargetSyncFlagsAround(i32 index)
 	{
-		constexpr auto surroundingTargetsToCheck = static_cast<i64>(EnumCount<ButtonType>());
+		constexpr auto surroundingTargetsToCheck = static_cast<i32>(EnumCount<ButtonType>());
 
 		UpdateTargetSyncFlags(
 			index - surroundingTargetsToCheck,
 			index + surroundingTargetsToCheck);
 	}
 
-	void SortedTargetList::UpdateTargetSyncFlags(i64 start, i64 end)
+	void SortedTargetList::UpdateTargetSyncFlags(i32 start, i32 end)
 	{
 		if (start < 0)
 			start = 0;
 
-		const auto targetCount = static_cast<i64>(targets.size());
+		const auto targetCount = static_cast<i32>(targets.size());
 
 		if (end < 0 || end > targetCount)
 			end = targetCount;
 
-		for (i64 i = start; i < end; i++)
+		for (i32 i = start; i < end; i++)
 		{
 			auto& target = targets[i];
 			const auto* nextTarget = (i + 1 < targetCount) ? &targets[i + 1] : nullptr;

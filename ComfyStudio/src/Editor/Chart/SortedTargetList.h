@@ -95,9 +95,9 @@ namespace Comfy::Studio::Editor
 		void Add(TimelineTarget newTarget);
 
 		void Remove(TimelineTarget target);
-		void RemoveAt(i64 index);
+		void RemoveAt(i32 index);
 
-		i64 FindIndex(TimelineTick tick, ButtonType type) const;
+		i32 FindIndex(TimelineTick tick, ButtonType type) const;
 		void Clear();
 
 	public:
@@ -121,8 +121,8 @@ namespace Comfy::Studio::Editor
 
 		size_t FindSortedInsertionIndex(TimelineTick tick, ButtonType type) const;
 
-		void UpdateTargetSyncFlagsAround(i64 index);
-		void UpdateTargetSyncFlags(i64 start = -1, i64 end = -1);
+		void UpdateTargetSyncFlagsAround(i32 index);
+		void UpdateTargetSyncFlags(i32 start = -1, i32 end = -1);
 
 		size_t GetSyncPairCountAt(size_t targetStartIndex) const;
 		void UpdateSyncPairIndexFlags();
