@@ -2,6 +2,7 @@
 #include "Types.h"
 #include "Undo/Undo.h"
 #include "Chart.h"
+#include "TargetPropertyRules.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -251,6 +252,145 @@ namespace Comfy::Studio::Editor
 		Chart& chart;
 		std::vector<i32> targetIndices;
 		TimelineTick tickIncrement, tickOnStart;
+	};
+
+	class ChangeTargetListProperties : public Undo::Command
+	{
+	public:
+		struct Data
+		{
+			i32 TargetIndex;
+			bool HadProperties;
+			TargetProperties NewValue, OldValue;
+		};
+
+	public:
+		ChangeTargetListProperties(Chart& chart, std::vector<Data> data, TargetPropertyFlags propertyFlags)
+			: chart(chart), targetData(std::move(data)), propertyFlags(propertyFlags)
+		{
+			for (auto& data : targetData)
+			{
+				auto& target = chart.Targets[data.TargetIndex];
+				data.HadProperties = target.Flags.HasProperties;
+				data.OldValue = target.Properties;
+			}
+		}
+
+	public:
+		void Undo() override
+		{
+			for (const auto& data : targetData)
+			{
+				auto& target = chart.Targets[data.TargetIndex];
+				for (TargetPropertyType p = 0; p < TargetPropertyType_Count; p++)
+				{
+					if (propertyFlags & (1 << p))
+					{
+						target.Flags.HasProperties = data.HadProperties;
+						target.Properties[p] = data.OldValue[p];
+					}
+				}
+			}
+		}
+
+		void Redo() override
+		{
+			for (const auto& data : targetData)
+			{
+				auto& target = chart.Targets[data.TargetIndex];
+
+				if (!data.HadProperties)
+				{
+					target.Properties = Rules::PresetTargetProperties(target.Type, target.Tick, target.Flags);
+					target.Flags.HasProperties = true;
+				}
+
+				for (TargetPropertyType p = 0; p < TargetPropertyType_Count; p++)
+				{
+					if (propertyFlags & (1 << p))
+						target.Properties[p] = data.NewValue[p];
+				}
+			}
+		}
+
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
+		{
+			auto* other = static_cast<decltype(this)>(&commandToMerge);
+			if (&other->chart != &chart || other->propertyFlags != propertyFlags)
+				return Undo::MergeResult::Failed;
+
+			if (other->targetData.size() != targetData.size())
+				return Undo::MergeResult::Failed;
+
+			for (size_t i = 0; i < targetData.size(); i++)
+			{
+				if (targetData[i].TargetIndex != other->targetData[i].TargetIndex)
+					return Undo::MergeResult::Failed;
+			}
+
+			for (size_t i = 0; i < targetData.size(); i++)
+				targetData[i].NewValue = other->targetData[i].NewValue;
+
+			return Undo::MergeResult::ValueUpdated;
+		}
+
+		std::string_view GetName() const override { return "Change Target Properties"; }
+
+	private:
+		Chart& chart;
+		std::vector<Data> targetData;
+		TargetPropertyFlags propertyFlags;
+	};
+
+	class ChangeTargetListHasProperties : public Undo::Command
+	{
+	public:
+		struct Data
+		{
+			i32 TargetIndex;
+			bool HadProperties;
+		};
+
+	public:
+		ChangeTargetListHasProperties(Chart& chart, std::vector<Data> data, bool newHasProperties)
+			: chart(chart), targetData(std::move(data)), newHasProperties(newHasProperties)
+		{
+			for (auto& data : targetData)
+				data.HadProperties = chart.Targets[data.TargetIndex].Flags.HasProperties;
+		}
+
+	public:
+		void Undo() override
+		{
+			for (const auto& data : targetData)
+				chart.Targets[data.TargetIndex].Flags.HasProperties = data.HadProperties;
+		}
+
+		void Redo() override
+		{
+			for (const auto& data : targetData)
+			{
+				auto& target = chart.Targets[data.TargetIndex];
+
+				if (target.Flags.HasProperties != newHasProperties)
+				{
+					target.Properties = Rules::PresetTargetProperties(target.Type, target.Tick, target.Flags);
+					target.Flags.HasProperties = newHasProperties;
+				}
+			}
+		}
+
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
+		{
+			return Undo::MergeResult::Failed;
+		}
+
+		std::string_view GetName() const override { return "Change Targets Use Presets"; }
+
+	private:
+		Chart& chart;
+		std::vector<Data> targetData;
+		bool newHasProperties;
 	};
 }
 
