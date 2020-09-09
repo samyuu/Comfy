@@ -109,6 +109,9 @@ namespace Comfy::Studio::Editor
 			auto commonUsePreset = (sameHasProperties && !selectedTargets.empty()) ? static_cast<GuiProperty::Boolean>(!frontSelectedHasProperties) : GuiProperty::Boolean::Count;
 			const auto previousCommonUsePreset = commonUsePreset;
 
+			if (frontSelectedTarget == nullptr)
+				Gui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+
 			if (GuiProperty::ComboBoolean("Use Preset", commonUsePreset) && (commonUsePreset != previousCommonUsePreset))
 			{
 				std::vector<ChangeTargetListHasProperties::Data> targetData;
@@ -126,6 +129,9 @@ namespace Comfy::Studio::Editor
 			PropertyGui(chart, "Frequency", TargetPropertyType_Frequency);
 			PropertyGui(chart, "Amplitude", TargetPropertyType_Amplitude);
 			PropertyGui(chart, "Distance", TargetPropertyType_Distance);
+
+			if (frontSelectedTarget == nullptr)
+				Gui::PopItemFlag();
 		});
 	}
 
