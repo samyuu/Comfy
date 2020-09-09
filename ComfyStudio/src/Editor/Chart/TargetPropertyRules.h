@@ -120,26 +120,29 @@ namespace Comfy::Studio::Editor
 			-20.0f,
 		};
 
-		inline vec2 PresetTargetPosition(ButtonType type, TimelineTick tick, TargetFlags flags)
+		constexpr std::array<f32, EnumCount<ButtonType>()> VerticalSyncPairTypeHeightOffsets =
 		{
-			static constexpr auto verticalSyncHeightFactors = std::array<f32, EnumCount<ButtonType>()>
-			{
-				-3.0f, -2.0f, -1.0f, -0.0f, -1.0f, -0.0f,
-			};
+			VerticalSyncPairPlacementDistance * -3.0f,
+			VerticalSyncPairPlacementDistance * -2.0f,
+			VerticalSyncPairPlacementDistance * -1.0f,
+			VerticalSyncPairPlacementDistance * -0.0f,
+			VerticalSyncPairPlacementDistance * -1.0f,
+			VerticalSyncPairPlacementDistance * -0.0f,
+		};
 
+		constexpr vec2 PresetTargetPosition(ButtonType type, TimelineTick tick, TargetFlags flags)
+		{
 			constexpr auto baselineX = TickToDistance(TimelineTick::FromBars(1) / 4);
 			constexpr auto baselineY = TickToDistance(TimelineTick::FromBars(1));
 
 			const auto x = TickToDistance((TimelineTick::FromBars(1) + tick) % TimelineTick::FromBars(2));
-			const auto y = (flags.IsSync) ? (verticalSyncHeightFactors[static_cast<size_t>(type)] * VerticalSyncPairPlacementDistance) : 0.0f;
+			const auto y = flags.IsSync ? VerticalSyncPairTypeHeightOffsets[static_cast<size_t>(type)] : 0.0f;
 
 			return vec2(baselineX + x, baselineY + y);
 		}
 
-		inline TargetProperties PresetTargetProperties(ButtonType type, TimelineTick tick, TargetFlags flags, bool syncAnglesSteep = false)
+		constexpr TargetProperties PresetTargetProperties(ButtonType type, TimelineTick tick, TargetFlags flags, bool syncAnglesSteep = false)
 		{
-			TargetProperties result;
-			result.Position = PresetTargetPosition(type, tick, flags);
 			if (flags.IsSync)
 			{
 				const auto pairCount = flags.SyncPairCount;
@@ -155,19 +158,28 @@ namespace Comfy::Studio::Editor
 				}
 
 				const auto& anglesArray = syncAnglesSteep ? VerticalSyncPairAnglesSteep : VerticalSyncPairAngles;
-				result.Angle = anglesArray[static_cast<size_t>(upperHalfOfPair ? AngleCorner::TopRight : AngleCorner::BotRight)];
-				result.Frequency = 0;
-				result.Amplitude = 500.0f;
-				result.Distance = 880.0f;
+				const auto angle = anglesArray[static_cast<size_t>(upperHalfOfPair ? AngleCorner::TopRight : AngleCorner::BotRight)];
+
+				return
+				{
+					PresetTargetPosition(type, tick, flags),
+					angle,
+					0.0f,
+					500.0f,
+					880.0f,
+				};
 			}
 			else
 			{
-				result.Angle = 0.0f;
-				result.Frequency = -2;
-				result.Amplitude = 500.0f;
-				result.Distance = 1200.0f;
+				return
+				{
+					PresetTargetPosition(type, tick, flags),
+					0.0f,
+					-2.0f,
+					500.0f,
+					1200.0f,
+				};
 			}
-			return result;
 		}
 	}
 }
