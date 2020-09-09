@@ -2,6 +2,7 @@
 #include "Editor/Core/Theme.h"
 #include "Editor/Chart/ChartEditor.h"
 #include "Editor/Chart/TargetPropertyRules.h"
+#include "Editor/Chart/KeyBindings.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -88,15 +89,13 @@ namespace Comfy::Studio::Editor
 		if (!Gui::IsWindowFocused())
 			return;
 
-		constexpr bool allowRepeat = true;
-
-		if (Gui::IsKeyPressed(Input::KeyCode_Q, allowRepeat))
+		if (Gui::IsKeyPressed(KeyBindings::JumpToPreviousTarget, true))
 			timeline.AdvanceCursorToNextTarget(-1);
 
-		if (Gui::IsKeyPressed(Input::KeyCode_E, allowRepeat))
+		if (Gui::IsKeyPressed(KeyBindings::JumpToNextTarget, true))
 			timeline.AdvanceCursorToNextTarget(+1);
 
-		if (Gui::IsKeyPressed(Input::KeyCode_Space))
+		if (Gui::IsKeyPressed(KeyBindings::TogglePlayback, false))
 			timeline.GetIsPlayback() ? timeline.PausePlayback() : timeline.ResumePlayback();
 	}
 

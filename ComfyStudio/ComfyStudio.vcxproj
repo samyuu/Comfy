@@ -231,6 +231,7 @@
     <ClInclude Include="src\Editor\Chart\BPMCalculatorWindow.h" />
     <ClInclude Include="src\Editor\Chart\BPMTapCalculator.h" />
     <ClInclude Include="src\Editor\Chart\ChartCommands.h" />
+    <ClInclude Include="src\Editor\Chart\KeyBindings.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.h" />
     <ClInclude Include="src\Editor\Chart\TargetInspector.h" />
     <ClInclude Include="src\Editor\Chart\TargetPropertyRules.h" />

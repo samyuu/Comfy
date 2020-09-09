@@ -2,6 +2,7 @@
 #include "Editor/Chart/ChartEditor.h"
 #include "Editor/Chart/ChartCommands.h"
 #include "Editor/Chart/SortedTempoMap.h"
+#include "Editor/Chart/KeyBindings.h"
 #include "Time/TimeSpan.h"
 #include "ImGui/Extensions/PropertyEditor.h"
 #include <FontIcons.h>
@@ -854,16 +855,12 @@ namespace Comfy::Studio::Editor
 			return;
 
 		// TODO: Move into some general function to be called by all window owning editor components (?)
-		constexpr bool allowRepeat = true;
-		constexpr auto undoKey = Input::KeyCode_Z;
-		constexpr auto redoKey = Input::KeyCode_Y;
-
 		if (Gui::GetIO().KeyCtrl)
 		{
-			if (Gui::IsKeyPressed(undoKey, allowRepeat))
+			if (Gui::IsKeyPressed(KeyBindings::Undo, true))
 				undoManager.Undo();
 
-			if (Gui::IsKeyPressed(redoKey, allowRepeat))
+			if (Gui::IsKeyPressed(KeyBindings::Redo, true))
 				undoManager.Redo();
 		}
 	}
@@ -876,14 +873,14 @@ namespace Comfy::Studio::Editor
 		constexpr bool allowRepeat = true;
 		const bool useBeatStep = Gui::GetIO().KeyShift;
 
-		if (Gui::IsKeyPressed(Input::KeyCode_Left, allowRepeat))
+		if (Gui::IsKeyPressed(KeyBindings::MoveCursorLeft, allowRepeat))
 			AdvanceCursorByGridDivisionTick(-1, useBeatStep);
-		if (Gui::IsKeyPressed(Input::KeyCode_Right, allowRepeat))
+		if (Gui::IsKeyPressed(KeyBindings::MoveCursorRight, allowRepeat))
 			AdvanceCursorByGridDivisionTick(+1, useBeatStep);
 
-		if (Gui::IsKeyPressed(Input::KeyCode_Down, allowRepeat))
+		if (Gui::IsKeyPressed(KeyBindings::IncreaseGridPrecision, allowRepeat))
 			SelectNextPresetGridDivision(-1);
-		if (Gui::IsKeyPressed(Input::KeyCode_Up, allowRepeat))
+		if (Gui::IsKeyPressed(KeyBindings::DecreaseGridPrecision, allowRepeat))
 			SelectNextPresetGridDivision(+1);
 	}
 
@@ -1083,13 +1080,13 @@ namespace Comfy::Studio::Editor
 		if (Gui::GetIO().KeyCtrl)
 			return;
 
-		for (auto[buttonType, keyCode] : targetPlacementInputKeyMappings)
+		for (const auto[buttonType, keyCode] : KeyBindings::TargetPlacements)
 		{
 			if (Gui::IsKeyPressed(keyCode, false))
 				PlaceOrRemoveTarget(RoundTickToGrid(GetCursorTick()), buttonType);
 		}
 
-		if (Gui::IsKeyPressed(Input::KeyCode_Delete, false))
+		if (Gui::IsKeyPressed(KeyBindings::DeleteSelection, false))
 			RemoveAllSelectedTargets();
 	}
 

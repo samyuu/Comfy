@@ -183,23 +183,6 @@ namespace Comfy::Studio::Editor
 		std::array<f32, EnumCount<ButtonType>()> targetYPositions = {};
 		std::unique_ptr<TimelineButtonIcons> buttonIcons = nullptr;
 
-		static constexpr struct { ButtonType Type; Input::KeyCode Key; } targetPlacementInputKeyMappings[12]
-		{
-			{ ButtonType::Triangle, Input::KeyCode_W },
-			{ ButtonType::Square, Input::KeyCode_A },
-			{ ButtonType::Cross, Input::KeyCode_S },
-			{ ButtonType::Circle, Input::KeyCode_D },
-			{ ButtonType::SlideL, Input::KeyCode_Q },
-			{ ButtonType::SlideR, Input::KeyCode_E },
-
-			{ ButtonType::Triangle, Input::KeyCode_I },
-			{ ButtonType::Square, Input::KeyCode_J },
-			{ ButtonType::Cross, Input::KeyCode_K },
-			{ ButtonType::Circle, Input::KeyCode_L },
-			{ ButtonType::SlideL, Input::KeyCode_U },
-			{ ButtonType::SlideR, Input::KeyCode_O },
-		};
-
 	private:
 		int tempoPopupIndex = -1;
 
