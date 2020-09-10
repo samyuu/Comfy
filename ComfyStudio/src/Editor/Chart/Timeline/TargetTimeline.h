@@ -90,8 +90,9 @@ namespace Comfy::Studio::Editor
 		void DrawWaveformIndividualVertexLines();
 
 		void DrawTimelineTempoMap();
-		void DrawTimelineTargets();
+		void DrawRangeSelection();
 
+		void DrawTimelineTargets();
 		f32 GetTimelineTargetScaleFactor(const TimelineTarget& target, TimeSpan buttonTime) const;
 
 		void DrawTimelineCursor() override;
@@ -115,6 +116,8 @@ namespace Comfy::Studio::Editor
 		void ClipboardCutSelection();
 		void ClipboardCopySelection();
 		void ClipboardPasteSelection();
+
+		void FillInRangeSelectionTargets(ButtonType type);
 		void PlaceOrRemoveTarget(TimelineTick tick, ButtonType type);
 
 		size_t CountSelectedTargets() const;
@@ -213,12 +216,13 @@ namespace Comfy::Studio::Editor
 			SelectionAction Action;
 			bool IsActive;
 			bool IsSufficientlyLarge;
-
 		} boxSelection = {};
 
 		struct RangeSelectionData
 		{
-			// TODO:
+			TimelineTick StartTick, EndTick;
+			bool HasEnd;
+			bool IsActive;
 		} rangeSelection = {};
 
 	private:

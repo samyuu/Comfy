@@ -788,6 +788,21 @@ namespace Comfy::Studio::Editor
 		TimelineBase::DrawTimelineCursor();
 	}
 
+	void TargetTimeline::DrawRangeSelection()
+	{
+		if (!rangeSelection.IsActive)
+			return;
+
+		const auto startScreenX = glm::round(GetTimelinePosition(rangeSelection.StartTick) - GetScrollX()) + (!rangeSelection.HasEnd ? -1.0f : 0.0f);
+		const auto endScreenX = glm::round(GetTimelinePosition(rangeSelection.EndTick) - GetScrollX()) + (!rangeSelection.HasEnd ? +2.0f : 1.0f);
+
+		const auto start = vec2(timelineContentRegion.GetTL().x + startScreenX, timelineContentRegion.GetTL().y);
+		const auto end = vec2(timelineContentRegion.GetTL().x + endScreenX, timelineContentRegion.GetBR().y);
+
+		baseDrawList->AddRectFilled(start, end, GetColor(EditorColor_TimelineSelection, 0.3f));
+		baseDrawList->AddRect(start, end, GetColor(EditorColor_TimelineSelectionBorder));
+	}
+
 	void TargetTimeline::DrawBoxSelection()
 	{
 		if (!boxSelection.IsActive || !boxSelection.IsSufficientlyLarge)
@@ -845,6 +860,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnDrawTimelineContents()
 	{
+		DrawRangeSelection();
 		DrawTimelineTargets();
 		DrawBoxSelection();
 	}
@@ -894,6 +910,27 @@ namespace Comfy::Studio::Editor
 			SelectNextPresetGridDivision(-1);
 		if (Gui::IsKeyPressed(KeyBindings::DecreaseGridPrecision, allowRepeat))
 			SelectNextPresetGridDivision(+1);
+
+		if (Gui::IsKeyPressed(KeyBindings::RangeSelection, false))
+		{
+			if (!rangeSelection.IsActive || rangeSelection.HasEnd)
+			{
+				rangeSelection.StartTick = rangeSelection.EndTick = GetCursorTick();
+				rangeSelection.HasEnd = false;
+				rangeSelection.IsActive = true;
+			}
+			else
+			{
+				rangeSelection.EndTick = GetCursorTick();
+				rangeSelection.HasEnd = true;
+
+				if (rangeSelection.EndTick == rangeSelection.StartTick)
+					rangeSelection = {};
+			}
+		}
+
+		if (Gui::IsMouseClicked(1))
+			rangeSelection = {};
 	}
 
 	void TargetTimeline::UpdateInputSelectionDragging()
@@ -1088,7 +1125,12 @@ namespace Comfy::Studio::Editor
 		for (const auto[buttonType, keyCode] : KeyBindings::TargetPlacements)
 		{
 			if (Gui::IsKeyPressed(keyCode, false))
-				PlaceOrRemoveTarget(RoundTickToGrid(GetCursorTick()), buttonType);
+			{
+				if (Gui::GetIO().KeyShift && rangeSelection.IsActive && rangeSelection.HasEnd)
+					FillInRangeSelectionTargets(buttonType);
+				else
+					PlaceOrRemoveTarget(RoundTickToGrid(GetCursorTick()), buttonType);
+			}
 		}
 
 		if (Gui::IsKeyPressed(KeyBindings::DeleteSelection, false))
@@ -1280,6 +1322,32 @@ namespace Comfy::Studio::Editor
 			undoManager.Execute<PasteTargetList>(*workingChart, std::move(pasteTargets));
 		}
 	}
+
+	void TargetTimeline::FillInRangeSelectionTargets(ButtonType type)
+	{
+		const auto startTick = RoundTickToGrid(std::min(rangeSelection.StartTick, rangeSelection.EndTick));
+		const auto endTick = RoundTickToGrid(std::max(rangeSelection.StartTick, rangeSelection.EndTick));
+
+		const auto gridDivisionTick = GridDivisionTick();
+		const auto targetCount = ((endTick - startTick).Ticks() / gridDivisionTick.Ticks()) + 1;
+
+		std::vector<TimelineTarget> targets;
+		targets.reserve(targetCount);
+
+		for (i32 i = 0; i < targetCount; i++)
+		{
+			const auto tick = TimelineTick(startTick.Ticks() + (i * gridDivisionTick.Ticks()));
+			if (workingChart->Targets.FindIndex(tick, type) <= -1)
+				targets.emplace_back(tick, type);
+		}
+
+		if (!targets.empty())
+		{
+			PlaySingleTargetButtonSoundAndAnimation(targets.front());
+			undoManager.Execute<AddTargetList>(*workingChart, std::move(targets));
+		}
+	}
+
 	void TargetTimeline::PlaceOrRemoveTarget(TimelineTick tick, ButtonType type)
 	{
 		const auto existingTargetIndex = workingChart->Targets.FindIndex(tick, type);
