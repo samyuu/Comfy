@@ -46,8 +46,12 @@ namespace Comfy::Studio::Editor
 
 			if (GetFutureIfReady(aetGameCommonFuture, aetGameCommon) && aetGameCommon != nullptr)
 			{
-				layers.FrameUp = findLayer(*aetGameCommon, "frame_up_t");
-				layers.FrameBottom = findLayer(*aetGameCommon, "frame_bottom_t");
+				layers.FrameUpFT = findLayer(*aetGameCommon, "frame_up_ft");
+				layers.FrameUpT = findLayer(*aetGameCommon, "frame_up_t");
+				layers.FrameUpF = findLayer(*aetGameCommon, "frame_up_f");
+				layers.FrameBottomFT = findLayer(*aetGameCommon, "frame_bottom_ft");
+				layers.FrameBottomT = findLayer(*aetGameCommon, "frame_bottom_t");
+				layers.FrameBottomF = findLayer(*aetGameCommon, "frame_bottom_f");
 				layers.LifeGauge = findLayer(*aetGameCommon, "life_gauge");
 				layers.SongEnergyBase = findLayer(*aetGameCommon, "song_energy_base_t");
 				layers.SongEnergyNormal = findLayer(*aetGameCommon, "song_energy_normal");
@@ -214,13 +218,14 @@ namespace Comfy::Studio::Editor
 			if (aetGameCommon == nullptr || sprGameCommon == nullptr || aetGame == nullptr || sprGame == nullptr || sprFont36 == nullptr)
 				return;
 
-			TryDrawLayer(renderer, layers.FrameUp, 0.0f);
-			TryDrawLayer(renderer, layers.FrameBottom, 0.0f);
-			TryDrawLayer(renderer, layers.LifeGauge, 0.0f);
-			TryDrawLayer(renderer, layers.SongIconLoop, 0.0f);
-			TryDrawLayer(renderer, layers.LevelInfoHard, 0.0f);
+			const auto playbackFrame = hud.PlaybackTime.ToFrames();
+			TryDrawLayer(renderer, layers.FrameUpT, playbackFrame);
+			TryDrawLayer(renderer, layers.FrameBottomT, playbackFrame);
+			TryDrawLayer(renderer, layers.LifeGauge, playbackFrame);
+			TryDrawLayer(renderer, layers.SongIconLoop, playbackFrame);
+			TryDrawLayer(renderer, layers.LevelInfoHard, playbackFrame);
 
-			TryDrawLayer(renderer, layers.PracticeGaugeBase, 0.0f);
+			TryDrawLayer(renderer, layers.PracticeGaugeBase, playbackFrame);
 			DrawHUDPracitceTime(renderer, hud.PlaybackTime);
 
 			const auto progress = std::clamp(static_cast<f32>(hud.PlaybackTime / hud.Duration), 0.0f, 1.0f);
@@ -230,7 +235,7 @@ namespace Comfy::Studio::Editor
 			TryDrawLayer(renderer, layers.PracticeGaugeBorderRestart, (hud.IsPlayback ? progressOnStart : progress) * 100.0f);
 
 			if (const auto* font = GetFont36(); font != nullptr && !hud.SongName.empty())
-				renderer.Font().DrawBorder(*font, hud.SongName, TryGetTransform(layers.SongTitle, 0.0f));
+				renderer.Font().DrawBorder(*font, hud.SongName, TryGetTransform(layers.SongTitle, playbackFrame));
 		}
 
 		// HACK: This is an incredibly hacky solution but is far more simple than creating entire layer + comp copies for each variation
@@ -568,7 +573,7 @@ namespace Comfy::Studio::Editor
 
 		void TryDrawLayer(Render::Renderer2D& renderer, const std::shared_ptr<Aet::Layer>& layer, frame_t frame) const
 		{
-			if (layer != nullptr) { renderer.Aet().DrawLayer(*layer, frame); }
+			if (layer != nullptr) { renderer.Aet().DrawLayerLooped(*layer, frame); }
 		}
 
 		void TryDrawSprite(Render::Renderer2D& renderer, const SprSet* sprSet, const Spr* spr, const Transform2D& transform) const
@@ -629,8 +634,12 @@ namespace Comfy::Studio::Editor
 		struct LayerCache
 		{
 			std::shared_ptr<Aet::Layer>
-				FrameUp,
-				FrameBottom,
+				FrameUpFT,
+				FrameUpT,
+				FrameUpF,
+				FrameBottomFT,
+				FrameBottomT,
+				FrameBottomF,
 				LifeGauge,
 				SongEnergyBase,
 				SongEnergyNormal,
