@@ -383,6 +383,7 @@ namespace Comfy::Studio::Editor
 		{
 			i32 TargetIndex;
 			bool HadProperties;
+			TargetProperties OldProperties;
 		};
 
 	public:
@@ -390,14 +391,22 @@ namespace Comfy::Studio::Editor
 			: chart(chart), targetData(std::move(data)), newHasProperties(newHasProperties)
 		{
 			for (auto& data : targetData)
-				data.HadProperties = chart.Targets[data.TargetIndex].Flags.HasProperties;
+			{
+				const auto& target = chart.Targets[data.TargetIndex];
+				data.HadProperties = target.Flags.HasProperties;
+				data.OldProperties = target.Properties;
+			}
 		}
 
 	public:
 		void Undo() override
 		{
 			for (const auto& data : targetData)
-				chart.Targets[data.TargetIndex].Flags.HasProperties = data.HadProperties;
+			{
+				auto& target = chart.Targets[data.TargetIndex];
+				target.Flags.HasProperties = data.HadProperties;
+				target.Properties = data.OldProperties;
+			}
 		}
 
 		void Redo() override
