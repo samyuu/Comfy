@@ -145,6 +145,40 @@ namespace Comfy::Studio::Editor
 		TimelineTarget target;
 	};
 
+	class AddTargetList : public Undo::Command
+	{
+	public:
+		AddTargetList(Chart& chart, std::vector<TimelineTarget> targets)
+			: chart(chart), targets(std::move(targets))
+		{
+		}
+
+	public:
+		void Undo() override
+		{
+			for (const auto& target : targets)
+				chart.Targets.Remove(target);
+		}
+
+		void Redo() override
+		{
+			// TODO: Optimizations for working on known size lists
+			for (const auto& target : targets)
+				chart.Targets.Add(target);
+		}
+
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
+		{
+			return Undo::MergeResult::Failed;
+		}
+
+		std::string_view GetName() const override { return "Add Targets"; }
+
+	private:
+		Chart& chart;
+		std::vector<TimelineTarget> targets;
+	};
+
 	class RemoveTarget : public Undo::Command
 	{
 	public:
