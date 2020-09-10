@@ -448,11 +448,11 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: Time drag text
 		{
-			constexpr auto dragSpeed = 16.0f;
+			constexpr auto dragSpeed = 4.0f;
 			auto cursorDragTicks = static_cast<f32>(GetCursorTick().Ticks());
 
 			if (Gui::ComfyDragText("TimeDragText::TargetTimeline", cursorTime.FormatTime().data(), &cursorDragTicks, dragSpeed, 0.0f, 0.0f, timeDragTextWidth))
-				SetCursorTick(RoundTickToGrid(TimelineTick::FromTicks(static_cast<i32>(cursorDragTicks))));
+				SetCursorTick(std::max(TimelineTick::Zero(), RoundTickToGrid(TimelineTick::FromTicks(static_cast<i32>(cursorDragTicks)))));
 		}
 
 		{
