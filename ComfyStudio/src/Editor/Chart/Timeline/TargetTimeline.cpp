@@ -831,7 +831,7 @@ namespace Comfy::Studio::Editor
 		for (auto& animationData : buttonAnimations)
 			animationData.ElapsedTime += deltaTime;
 
-		UpdateUndoRedoKeyboardInput();
+		UpdateKeyboardCtrlInput();
 		UpdateCursorKeyboardInput();
 
 		UpdateInputSelectionDragging();
@@ -849,7 +849,7 @@ namespace Comfy::Studio::Editor
 		DrawBoxSelection();
 	}
 
-	void TargetTimeline::UpdateUndoRedoKeyboardInput()
+	void TargetTimeline::UpdateKeyboardCtrlInput()
 	{
 		if (!Gui::IsWindowFocused())
 			return;
@@ -862,6 +862,18 @@ namespace Comfy::Studio::Editor
 
 			if (Gui::IsKeyPressed(KeyBindings::Redo, true))
 				undoManager.Redo();
+		}
+
+		if (Gui::GetIO().KeyCtrl)
+		{
+			if (Gui::IsKeyPressed(KeyBindings::Cut, false))
+				ClipboardCutSelection();
+
+			if (Gui::IsKeyPressed(KeyBindings::Copy, false))
+				ClipboardCopySelection();
+
+			if (Gui::IsKeyPressed(KeyBindings::Paste, false))
+				ClipboardPasteSelection();
 		}
 	}
 
@@ -940,27 +952,20 @@ namespace Comfy::Studio::Editor
 		if (selectionDrag.IsDragging && dragTickIncrement != TimelineTick::Zero() && !CheckIsAnySyncPairPartiallySelected() && CheckIsSelectionNotBlocked(dragTickIncrement))
 		{
 			selectionDrag.TicksMovedSoFar -= dragTickIncrement;
-
 			const auto cursorTick = GetCursorTick();
-			size_t selectionCount = 0;
-
-			for (auto& target : workingChart->Targets)
-			{
-				if (!target.IsSelected)
-					continue;
-
-				selectionCount++;
-				if (target.Tick + dragTickIncrement == cursorTick)
-					PlaySingleTargetButtonSoundAndAnimation(target);
-			}
 
 			std::vector<i32> targetMoveIndices;
-			targetMoveIndices.reserve(selectionCount);
+			targetMoveIndices.reserve(CountSelectedTargets());
 
 			for (i32 i = 0; i < static_cast<i32>(workingChart->Targets.size()); i++)
 			{
-				if (workingChart->Targets[i].IsSelected)
-					targetMoveIndices.push_back(i);
+				const auto& target = workingChart->Targets[i];
+				if (!target.IsSelected)
+					continue;
+
+				targetMoveIndices.push_back(i);
+				if (const auto movedTick = (target.Tick + dragTickIncrement); movedTick == cursorTick)
+					PlaySingleTargetButtonSoundAndAnimation(target, movedTick);
 			}
 
 			undoManager.Execute<MoveTargetList>(*workingChart, std::move(targetMoveIndices), dragTickIncrement, selectionDrag.TickOnPress);
@@ -1104,13 +1109,6 @@ namespace Comfy::Studio::Editor
 		{
 			const auto selectionCount = CountSelectedTargets();
 
-#if 0
-			if (Gui::MenuItem("Copy", "Ctrl + C", nullptr, (selectionCount > 0))) {}
-			if (Gui::MenuItem("Paste", "Ctrl + V", nullptr, true)) {}
-
-			Gui::Separator();
-#endif
-
 			if (Gui::BeginMenu("Grid Division"))
 			{
 				for (const auto barDivision : presetBarGridDivisions)
@@ -1126,19 +1124,10 @@ namespace Comfy::Studio::Editor
 				Gui::EndMenu();
 			}
 
-#if 0
-			if (Gui::MenuItem("Undo", "Ctrl + Z", nullptr, undoManager.CanUndo()))
-				undoManager.Undo();
-
-			if (Gui::MenuItem("Redo", "Ctrl + Y", nullptr, undoManager.CanRedo()))
-				undoManager.Redo();
-
-			Gui::Separator();
-#endif
-
-			// TODO:
+#if 1 // TODO:
 			if (Gui::MenuItem("Insert Tempo Change", "Ctrl + ?", nullptr, false)) {}
 			if (Gui::MenuItem("Remove Tempo Change", "Ctrl + ?", nullptr, false)) {}
+#endif
 
 			Gui::Separator();
 
@@ -1153,9 +1142,10 @@ namespace Comfy::Studio::Editor
 
 			Gui::Separator();
 
-			// DEBUG:
+#if COMFY_DEBUG && 1 // DEBUG:
 			if (Gui::MenuItem("Snap Selection To Grid", "", nullptr, (selectionCount > 0)))
 				std::for_each(workingChart->Targets.begin(), workingChart->Targets.end(), [&](auto& t) { if (t.IsSelected) t.Tick = FloorTickToGrid(t.Tick); });
+#endif
 
 			if (Gui::MenuItem("Remove Selected Targets", "Del", nullptr, (selectionCount > 0)))
 				RemoveAllSelectedTargets(selectionCount);
@@ -1242,6 +1232,54 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
+	void TargetTimeline::ClipboardCutSelection()
+	{
+		const auto selectionCount = CountSelectedTargets();
+		if (selectionCount < 1)
+			return;
+
+		std::vector<TimelineTarget> selectedTargets;
+		selectedTargets.reserve(selectionCount);
+		std::copy_if(workingChart->Targets.begin(), workingChart->Targets.end(), std::back_inserter(selectedTargets), [&](auto& t) { return t.IsSelected; });
+
+		clipboardHelper.TimelineCopySelectedTargets(selectedTargets);
+		undoManager.Execute<RemoveTargetList>(*workingChart, std::move(selectedTargets));
+	}
+
+	void TargetTimeline::ClipboardCopySelection()
+	{
+		const auto selectionCount = CountSelectedTargets();
+		if (selectionCount < 1)
+			return;
+
+		std::vector<TimelineTarget> selectedTargets;
+		selectedTargets.reserve(selectionCount);
+		std::copy_if(workingChart->Targets.begin(), workingChart->Targets.end(), std::back_inserter(selectedTargets), [&](auto& t) { return t.IsSelected; });
+
+		clipboardHelper.TimelineCopySelectedTargets(selectedTargets);
+	}
+
+	void TargetTimeline::ClipboardPasteSelection()
+	{
+		auto optionalPasteTargets = clipboardHelper.TimelineTryGetPasteTargets();
+		if (!optionalPasteTargets.has_value() || optionalPasteTargets->empty())
+			return;
+
+		auto pasteTargets = std::move(optionalPasteTargets.value());
+
+		const auto baseTick = FloorTickToGrid(GetCursorTick()) - pasteTargets.front().Tick;
+		for (auto& target : pasteTargets)
+			target.Tick += baseTick;
+
+		auto targetAlreadyExists = [&](const auto& t) { return (workingChart->Targets.FindIndex(t.Tick, t.Type) > -1); };
+		pasteTargets.erase(std::remove_if(pasteTargets.begin(), pasteTargets.end(), targetAlreadyExists), pasteTargets.end());
+
+		if (!pasteTargets.empty())
+		{
+			PlaySingleTargetButtonSoundAndAnimation(pasteTargets.front());
+			undoManager.Execute<AddTargetList>(*workingChart, std::move(pasteTargets));
+		}
+	}
 	void TargetTimeline::PlaceOrRemoveTarget(TimelineTick tick, ButtonType type)
 	{
 		const auto existingTargetIndex = workingChart->Targets.FindIndex(tick, type);
@@ -1311,14 +1349,14 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void TargetTimeline::PlaySingleTargetButtonSoundAndAnimation(const TimelineTarget& target)
+	void TargetTimeline::PlaySingleTargetButtonSoundAndAnimation(const TimelineTarget& target, std::optional<TimelineTick> buttonTick)
 	{
 		// NOTE: During playback the sound will be handled automatically already
 		if (!GetIsPlayback())
 			buttonSoundController.PlayButtonSound();
 
 		const auto buttonIndex = static_cast<size_t>(target.Type);
-		buttonAnimations[buttonIndex].Tick = target.Tick;
+		buttonAnimations[buttonIndex].Tick = buttonTick.value_or(target.Tick);
 		buttonAnimations[buttonIndex].ElapsedTime = TimeSpan::Zero();
 	}
 

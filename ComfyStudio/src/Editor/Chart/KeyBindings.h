@@ -11,9 +11,9 @@ namespace Comfy::Studio::Editor
 		constexpr Input::KeyCode Undo = Input::KeyCode_Z;
 		constexpr Input::KeyCode Redo = Input::KeyCode_Y;
 
+		constexpr Input::KeyCode Cut = Input::KeyCode_X;
 		constexpr Input::KeyCode Copy = Input::KeyCode_C;
 		constexpr Input::KeyCode Paste = Input::KeyCode_V;
-		constexpr Input::KeyCode Cut = Input::KeyCode_X;
 
 		constexpr Input::KeyCode MoveCursorLeft = Input::KeyCode_Left;
 		constexpr Input::KeyCode MoveCursorRight = Input::KeyCode_Right;

@@ -5,6 +5,7 @@
 #include "Editor/Timeline/TimelineBase.h"
 #include "Editor/Common/ButtonSoundController.h"
 #include "Editor/Chart/Chart.h"
+#include "Editor/Chart/ClipboardHelper.h"
 #include "Audio/Audio.h"
 #include "Input/Input.h"
 #include "Time/Stopwatch.h"
@@ -97,13 +98,13 @@ namespace Comfy::Studio::Editor
 		void DrawBoxSelection();
 		void OnUpdateInput() override;
 		void OnDrawTimelineContents() override;
-		void UpdateUndoRedoKeyboardInput();
+		void UpdateKeyboardCtrlInput();
 		void UpdateCursorKeyboardInput();
 
 		void UpdateInputSelectionDragging();
 		bool CheckIsAnySyncPairPartiallySelected() const;
 		bool CheckIsSelectionNotBlocked(TimelineTick increment) const;
-		
+
 		void UpdateInputCursorClick();
 		void UpdateInputCursorScrubbing();
 		void UpdateInputTargetPlacement();
@@ -111,14 +112,17 @@ namespace Comfy::Studio::Editor
 		void UpdateInputBoxSelection();
 
 	private:
-		void PlaceOrRemoveTarget(TimelineTick tick, ButtonType Type);
+		void ClipboardCutSelection();
+		void ClipboardCopySelection();
+		void ClipboardPasteSelection();
+		void PlaceOrRemoveTarget(TimelineTick tick, ButtonType type);
 
 		size_t CountSelectedTargets() const;
 		void RemoveAllSelectedTargets(std::optional<size_t> preCalculatedSelectionCount = {});
 
 	private:
 		void PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick);
-		void PlaySingleTargetButtonSoundAndAnimation(const TimelineTarget& target);
+		void PlaySingleTargetButtonSoundAndAnimation(const TimelineTarget& target, std::optional<TimelineTick> buttonTick = {});
 
 		void PlaybackStateChangeSyncButtonSoundCursorTime(TimeSpan newCursorTime);
 
@@ -132,6 +136,8 @@ namespace Comfy::Studio::Editor
 
 		ChartEditor& chartEditor;
 		Undo::UndoManager& undoManager;
+
+		ClipboardHelper clipboardHelper = {};
 
 		bool isCursorScrubbing = false;
 
