@@ -1243,7 +1243,7 @@ namespace Comfy::Studio::Editor
 		std::copy_if(workingChart->Targets.begin(), workingChart->Targets.end(), std::back_inserter(selectedTargets), [&](auto& t) { return t.IsSelected; });
 
 		clipboardHelper.TimelineCopySelectedTargets(selectedTargets);
-		undoManager.Execute<RemoveTargetList>(*workingChart, std::move(selectedTargets));
+		undoManager.Execute<CutTargetList>(*workingChart, std::move(selectedTargets));
 	}
 
 	void TargetTimeline::ClipboardCopySelection()
@@ -1277,7 +1277,7 @@ namespace Comfy::Studio::Editor
 		if (!pasteTargets.empty())
 		{
 			PlaySingleTargetButtonSoundAndAnimation(pasteTargets.front());
-			undoManager.Execute<AddTargetList>(*workingChart, std::move(pasteTargets));
+			undoManager.Execute<PasteTargetList>(*workingChart, std::move(pasteTargets));
 		}
 	}
 	void TargetTimeline::PlaceOrRemoveTarget(TimelineTick tick, ButtonType type)

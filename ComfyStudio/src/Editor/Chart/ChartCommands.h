@@ -179,6 +179,15 @@ namespace Comfy::Studio::Editor
 		std::vector<TimelineTarget> targets;
 	};
 
+	class PasteTargetList : public AddTargetList
+	{
+	public:
+		using AddTargetList::AddTargetList;
+
+	public:
+		std::string_view GetName() const override { return "Paste Targets"; }
+	};
+
 	class RemoveTarget : public Undo::Command
 	{
 	public:
@@ -242,6 +251,15 @@ namespace Comfy::Studio::Editor
 	private:
 		Chart& chart;
 		std::vector<TimelineTarget> targets;
+	};
+
+	class CutTargetList : public RemoveTargetList
+	{
+	public:
+		using RemoveTargetList::RemoveTargetList;
+
+	public:
+		std::string_view GetName() const override { return "Cut Targets"; }
 	};
 
 	class MoveTargetList : public Undo::Command

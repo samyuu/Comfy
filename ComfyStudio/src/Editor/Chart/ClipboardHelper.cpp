@@ -61,7 +61,7 @@ namespace Comfy::Studio::Editor
 
 	std::optional<std::vector<TimelineTarget>> ClipboardHelper::TimelineTryGetPasteTargets()
 	{
-		const auto clipboardString = GetClipboardText();
+		const auto clipboardString = Util::Trim(GetClipboardText());
 		if (clipboardString.empty())
 			return {};
 
@@ -86,7 +86,7 @@ namespace Comfy::Studio::Editor
 				line = Util::Trim(line.substr(8, line.size() - 8 - 1));
 
 				std::string_view word;
-				auto advanceWord = [&] { line = Util::Trim(line.substr(word.size())); };
+				auto advanceWord = [&] { line = (line.size() > word.size()) ? Util::Trim(line.substr(word.size())) : line.substr(0, 0); };
 				auto parseI32 = [&] { return Util::StringParsing::ParseType<i32>(word = Util::StringParsing::GetWord(line.data())); };
 				auto parseF32 = [&] { return Util::StringParsing::ParseType<f32>(word = Util::StringParsing::GetWord(line.data())); };
 
