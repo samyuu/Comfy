@@ -471,7 +471,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::DrawOutOfBoundsBackground()
 	{
-		constexpr auto outOfBoundsDimColor = 0x1A000000;
+		const auto outOfBoundsDimColor = GetColor(EditorColor_OutOfBoundsDim);
 		const auto scrollX = GetScrollX();
 
 		const auto preStart = timelineContentRegion.GetTL();
@@ -622,13 +622,13 @@ namespace Comfy::Studio::Editor
 				}
 			}
 
-			constexpr auto tempoFgColor = 0xFF1DBFB2;
-			baseDrawList->AddLine(buttonPosition + vec2(-1.0f, -1.0f), buttonPosition + vec2(-1.0f, buttonSize.y - 1.0f), tempoFgColor);
+			const auto tempoColor = GetColor(EditorColor_TempoChange);
+			baseDrawList->AddLine(buttonPosition + vec2(-1.0f, -1.0f), buttonPosition + vec2(-1.0f, buttonSize.y - 1.0f), tempoColor);
 
 			// NOTE: Just like with the bar / beat division culling this is far from perfect 
 			//		 but at least crudely prevents any unreadable overlapping text until zoomed in close enough
 			if (const auto lastDrawnDistance = (timelineX - lastDrawnTimelineX); lastDrawnDistance >= 0.0f)
-				baseDrawList->AddText(Gui::GetFont(), tempoMapFontSize, buttonPosition + tempoMapFontOffset, tempoFgColor, tempoBuffer);
+				baseDrawList->AddText(Gui::GetFont(), tempoMapFontSize, (buttonPosition + tempoMapFontOffset), tempoColor, tempoBuffer);
 			lastDrawnTimelineX = timelineX + buttonSize.x;
 		}
 

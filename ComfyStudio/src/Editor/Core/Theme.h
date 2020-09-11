@@ -4,7 +4,7 @@
 
 namespace Comfy::Studio::Editor
 {
-	enum EditorColor
+	enum EditorColor : u32
 	{
 		EditorColor_BaseClear,
 		EditorColor_DarkClear,
@@ -19,6 +19,8 @@ namespace Comfy::Studio::Editor
 		EditorColor_Waveform,
 		EditorColor_WaveformChannel0,
 		EditorColor_WaveformChannel1,
+		EditorColor_TempoChange,
+		EditorColor_OutOfBoundsDim,
 		EditorColor_Selection,
 		EditorColor_TimelineRowSeparator,
 		EditorColor_TimelineSelection,

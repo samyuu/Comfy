@@ -22,7 +22,7 @@ namespace Comfy::Studio::Editor
 
 	u32 GetColor(EditorColor color)
 	{
-		assert(color >= 0 && color < EditorColor_Count);
+		assert(color < EditorColor_Count);
 		return EditorColors[color];
 	}
 
@@ -61,6 +61,9 @@ namespace Comfy::Studio::Editor
 		SetColor(EditorColor_WaveformChannel0, ImColor(0.380f, 0.380f, 0.380f, 0.25f));
 		SetColor(EditorColor_WaveformChannel1, ImColor(0.533f, 0.533f, 0.533f, 0.25f));
 
+		SetColor(EditorColor_TempoChange, GetColorU32(ImGuiCol_Text));
+		SetColor(EditorColor_OutOfBoundsDim, 0x1A000000);
+		
 		SetColor(EditorColor_Selection, GetColorU32(ImGuiCol_TextSelectedBg));
 		SetColor(EditorColor_TimelineRowSeparator, 0xFF343434);
 

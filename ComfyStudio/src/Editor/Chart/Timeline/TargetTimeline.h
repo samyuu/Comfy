@@ -1,6 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "TimelineButtonIcons.h"
+#include "Editor/Core/Theme.h"
 #include "Editor/Core/IEditorComponent.h"
 #include "Editor/Timeline/TimelineBase.h"
 #include "Editor/Common/ButtonSoundController.h"
@@ -14,7 +15,6 @@
 
 namespace Comfy::Studio::Editor
 {
-	enum EditorColor;
 	class ChartEditor;
 
 	class TargetTimeline final : public TimelineBase
