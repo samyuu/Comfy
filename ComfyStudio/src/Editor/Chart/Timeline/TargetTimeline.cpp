@@ -1166,30 +1166,38 @@ namespace Comfy::Studio::Editor
 				Gui::EndMenu();
 			}
 
-#if 1 // TODO:
-			if (Gui::MenuItem("Insert Tempo Change", "Ctrl + ?", nullptr, false)) {}
-			if (Gui::MenuItem("Remove Tempo Change", "Ctrl + ?", nullptr, false)) {}
-#endif
+			Gui::Separator();
+
+			if (Gui::MenuItem("Cut", "Ctrl + X", nullptr, (selectionCount > 0)))
+				ClipboardCutSelection();
+
+			if (Gui::MenuItem("Copy", "Ctrl + C", nullptr, (selectionCount > 0)))
+				ClipboardCopySelection();
+
+			if (Gui::MenuItem("Paste", "Ctrl + V", nullptr, true))
+				ClipboardPasteSelection();
 
 			Gui::Separator();
+
+#if 0 // TODO:
+			if (Gui::MenuItem("Insert Tempo Change", "Ctrl + ?", nullptr, false)) {}
+			if (Gui::MenuItem("Remove Tempo Change", "Ctrl + ?", nullptr, false)) {}
+
+			Gui::Separator();
+#endif
 
 			// TODO: Various options to turn a straight target row into patterns (?)
 			//		 OOOOO -> OXOXO, "compress" down to single type, etc.
 
-			if (Gui::MenuItem("Select all Targets", "Ctrl + A", nullptr, (workingChart->Targets.size() > 0)))
-				std::for_each(workingChart->Targets.begin(), workingChart->Targets.end(), [](auto& t) { t.IsSelected = true; });
+			if (Gui::MenuItem("Select All", "", nullptr, true))
+				SelectAllTargets();
 
-			if (Gui::MenuItem("Clear Selection", "", nullptr, (selectionCount > 0)))
-				std::for_each(workingChart->Targets.begin(), workingChart->Targets.end(), [](auto& t) { t.IsSelected = false; });
+			if (Gui::MenuItem("Deselect All", "", nullptr, (selectionCount > 0)))
+				DeselectAllTargets();
 
 			Gui::Separator();
 
-#if COMFY_DEBUG && 1 // DEBUG:
-			if (Gui::MenuItem("Snap Selection To Grid", "", nullptr, (selectionCount > 0)))
-				std::for_each(workingChart->Targets.begin(), workingChart->Targets.end(), [&](auto& t) { if (t.IsSelected) t.Tick = FloorTickToGrid(t.Tick); });
-#endif
-
-			if (Gui::MenuItem("Remove Selected Targets", "Del", nullptr, (selectionCount > 0)))
+			if (Gui::MenuItem("Remove Targets", "Del", nullptr, (selectionCount > 0)))
 				RemoveAllSelectedTargets(selectionCount);
 
 			Gui::EndPopup();
@@ -1272,6 +1280,24 @@ namespace Comfy::Studio::Editor
 			boxSelection.IsActive = false;
 			boxSelection.IsSufficientlyLarge = false;
 		}
+	}
+
+	size_t TargetTimeline::CountSelectedTargets() const
+	{
+		return std::count_if(
+			workingChart->Targets.begin(),
+			workingChart->Targets.end(),
+			[](const auto& t) { return t.IsSelected; });
+	}
+
+	void TargetTimeline::SelectAllTargets()
+	{
+		std::for_each(workingChart->Targets.begin(), workingChart->Targets.end(), [](auto& t) { t.IsSelected = true; });
+	}
+
+	void TargetTimeline::DeselectAllTargets()
+	{
+		std::for_each(workingChart->Targets.begin(), workingChart->Targets.end(), [](auto& t) { t.IsSelected = false; });
 	}
 
 	void TargetTimeline::ClipboardCutSelection()
@@ -1379,14 +1405,6 @@ namespace Comfy::Studio::Editor
 		const auto buttonIndex = static_cast<size_t>(type);
 		buttonAnimations[buttonIndex].Tick = tick;
 		buttonAnimations[buttonIndex].ElapsedTime = TimeSpan::Zero();
-	}
-
-	size_t TargetTimeline::CountSelectedTargets() const
-	{
-		return std::count_if(
-			workingChart->Targets.begin(),
-			workingChart->Targets.end(),
-			[](const auto& t) { return t.IsSelected; });
 	}
 
 	void TargetTimeline::RemoveAllSelectedTargets(std::optional<size_t> preCalculatedSelectionCount)

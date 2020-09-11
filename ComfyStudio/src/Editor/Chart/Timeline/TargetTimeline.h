@@ -113,6 +113,11 @@ namespace Comfy::Studio::Editor
 		void UpdateInputBoxSelection();
 
 	private:
+		size_t CountSelectedTargets() const;
+
+		void SelectAllTargets();
+		void DeselectAllTargets();
+
 		void ClipboardCutSelection();
 		void ClipboardCopySelection();
 		void ClipboardPasteSelection();
@@ -120,7 +125,6 @@ namespace Comfy::Studio::Editor
 		void FillInRangeSelectionTargets(ButtonType type);
 		void PlaceOrRemoveTarget(TimelineTick tick, ButtonType type);
 
-		size_t CountSelectedTargets() const;
 		void RemoveAllSelectedTargets(std::optional<size_t> preCalculatedSelectionCount = {});
 
 	private:
