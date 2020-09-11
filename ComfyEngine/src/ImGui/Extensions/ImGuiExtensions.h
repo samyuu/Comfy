@@ -67,6 +67,10 @@ namespace ImGui
 
 	bool IsItemHoveredDelayed(ImGuiHoveredFlags flags = ImGuiHoveredFlags_None, float threshold = 0.5f);
 
+	bool InputText(const char* label, std::string* str, ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
+	bool InputTextMultiline(const char* label, std::string* str, const ImVec2& size = ImVec2(0, 0), ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
+	bool InputTextWithHint(const char* label, const char* hint, std::string* str, ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
+
 	bool WideTreeNode(const char* label);
 	bool WideTreeNode(const char* str_id, const char* fmt, ...);
 
@@ -100,7 +104,7 @@ namespace ImGui
 		ExtendedImGuiTextFilter(const char* default_filter = "");
 		bool Draw(const char* label, const char* hint, float width = 0.0f);
 		inline bool Draw(const char* label = "Filter (inc,-exc)", float width = 0.0f) { textFilter.Draw(label, width); }
-		inline bool PassFilter(const char* text, const char* text_end = NULL) { return textFilter.PassFilter(text, text_end); }
+		inline bool PassFilter(const char* text, const char* text_end = nullptr) { return textFilter.PassFilter(text, text_end); }
 		inline void Build() { textFilter.Build(); }
 		inline void Clear() { textFilter.Clear(); }
 		inline bool IsActive() const { return !textFilter.IsActive(); }

@@ -181,6 +181,70 @@ namespace ImGui
 		return IsItemHovered(flags) && GImGui->HoveredIdTimer > threshold;
 	}
 
+	namespace
+	{
+		struct InputTextStdStringCallbackUserData
+		{
+			std::string* Str;
+			ImGuiInputTextCallback ChainCallback;
+			void* ChainCallbackUserData;
+		};
+
+		int InputTextStdStringCallback(ImGuiInputTextCallbackData* data)
+		{
+			InputTextStdStringCallbackUserData* user_data = (InputTextStdStringCallbackUserData*)data->UserData;
+			if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
+			{
+				std::string* str = user_data->Str;
+				IM_ASSERT(data->Buf == str->c_str());
+				str->resize(data->BufTextLen);
+				data->Buf = (char*)str->c_str();
+			}
+			else if (user_data->ChainCallback)
+			{
+				data->UserData = user_data->ChainCallbackUserData;
+				return user_data->ChainCallback(data);
+			}
+			return 0;
+		}
+	}
+
+	bool InputText(const char* label, std::string* str, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
+	{
+		IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
+		flags |= ImGuiInputTextFlags_CallbackResize;
+
+		InputTextStdStringCallbackUserData cb_user_data;
+		cb_user_data.Str = str;
+		cb_user_data.ChainCallback = callback;
+		cb_user_data.ChainCallbackUserData = user_data;
+		return InputText(label, (char*)str->c_str(), str->capacity() + 1, flags, InputTextStdStringCallback, &cb_user_data);
+	}
+
+	bool InputTextMultiline(const char* label, std::string* str, const ImVec2& size, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
+	{
+		IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
+		flags |= ImGuiInputTextFlags_CallbackResize;
+
+		InputTextStdStringCallbackUserData cb_user_data;
+		cb_user_data.Str = str;
+		cb_user_data.ChainCallback = callback;
+		cb_user_data.ChainCallbackUserData = user_data;
+		return InputTextMultiline(label, (char*)str->c_str(), str->capacity() + 1, size, flags, InputTextStdStringCallback, &cb_user_data);
+	}
+
+	bool InputTextWithHint(const char* label, const char* hint, std::string* str, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
+	{
+		IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
+		flags |= ImGuiInputTextFlags_CallbackResize;
+
+		InputTextStdStringCallbackUserData cb_user_data;
+		cb_user_data.Str = str;
+		cb_user_data.ChainCallback = callback;
+		cb_user_data.ChainCallbackUserData = user_data;
+		return InputTextWithHint(label, hint, (char*)str->c_str(), str->capacity() + 1, flags, InputTextStdStringCallback, &cb_user_data);
+	}
+
 	bool WideTreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end, bool no_arrow = false)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
