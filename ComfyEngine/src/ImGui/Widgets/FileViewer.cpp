@@ -219,7 +219,7 @@ namespace ImGui
 					continue;
 
 				ImGuiSelectableFlags selectableFlags = ImGuiSelectableFlags_SpanAllColumns;
-				if (isReadOnly && !info.IsDirectory)
+				if (isReadOnly && !info.IsDirectory && info.FileType != FileType::Link)
 					selectableFlags |= ImGuiSelectableFlags_Disabled;
 
 				sprintf_s(displayNameBuffer, GetFileInfoFormatString(info), info.ChildName.c_str());
