@@ -11,6 +11,7 @@ namespace Comfy::Studio::Editor
 	void SortedTempoMap::SetTempoChange(TimelineTick tick, Tempo tempo, TimeSignature signature)
 	{
 		assert(tick.Ticks() >= 0);
+		assert(signature.Numerator > 0 && signature.Denominator > 0);
 
 		const auto insertionIndex = FindSortedInsertionIndex(tick);
 		if (InBounds(insertionIndex, tempoChanges))
@@ -77,6 +78,23 @@ namespace Comfy::Studio::Editor
 	{
 		tempoChanges.clear();
 		tempoChanges.emplace_back(TimelineTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
+	}
+
+	void SortedTempoMap::operator=(std::vector<TempoChange>&& newTempoChanges)
+	{
+		tempoChanges = std::move(newTempoChanges);
+		if (tempoChanges.empty())
+			tempoChanges.emplace_back(TimelineTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
+		else
+			tempoChanges.front().Tick = TimelineTick(0);
+
+		for (auto& tempoChange : tempoChanges)
+		{
+			assert(tempoChange.Tempo.BeatsPerMinute > 0.0f);
+			assert(tempoChange.Signature.Numerator > 0 && tempoChange.Signature.Denominator > 0);
+		}
+
+		std::sort(tempoChanges.begin(), tempoChanges.end(), [](const auto& a, const auto& b) { return a.Tick < b.Tick; });
 	}
 
 	size_t SortedTempoMap::FindSortedInsertionIndex(TimelineTick tick) const

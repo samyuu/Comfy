@@ -23,6 +23,8 @@ namespace Comfy::Studio::Editor
 		auto begin() const { return tempoChanges.cbegin(); }
 		auto end() const { return tempoChanges.cend(); }
 
+		void operator=(std::vector<TempoChange>&& newTempoChanges);
+
 	private:
 		size_t FindSortedInsertionIndex(TimelineTick tick) const;
 		

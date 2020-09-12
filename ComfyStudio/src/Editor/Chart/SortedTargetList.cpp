@@ -75,6 +75,14 @@ namespace Comfy::Studio::Editor
 		targets.clear();
 	}
 
+	void SortedTargetList::operator=(std::vector<TimelineTarget>&& newTargets)
+	{
+		targets = std::move(newTargets);
+
+		std::sort(targets.begin(), targets.end(), [&](const auto& a, const auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
+		UpdateTargetSyncFlags();
+	}
+
 	size_t SortedTargetList::FindSortedInsertionIndex(TimelineTick tick, ButtonType type) const
 	{
 		const auto inputSortWeight = GetTargetSortWeight(tick, type);

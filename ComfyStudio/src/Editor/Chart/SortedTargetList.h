@@ -116,6 +116,8 @@ namespace Comfy::Studio::Editor
 		auto& operator[](size_t index) { return targets[index]; }
 		auto& operator[](size_t index) const { return targets[index]; }
 
+		void operator=(std::vector<TimelineTarget>&& newTargets);
+
 	private:
 		std::vector<TimelineTarget> targets;
 
