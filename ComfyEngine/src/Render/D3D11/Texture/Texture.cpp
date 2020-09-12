@@ -223,7 +223,7 @@ namespace Comfy::Render::D3D11
 		return resourceView.Get();
 	}
 
-	Texture2D::Texture2D(const Graphics::Tex& tex, bool isDynamic)
+	Texture2D::Texture2D(const Graphics::Tex& tex, bool isDynamic) : isDynamic(isDynamic)
 	{
 		assert(tex.GetSignature() == TxpSig::Texture2D);
 		assert(tex.MipMapsArray.size() == GetArraySize());
@@ -335,13 +335,34 @@ namespace Comfy::Render::D3D11
 		assert(tex.MipMapsArray.size() == 1 && tex.MipMapsArray.front().size() == 1);
 
 		D3D11_MAPPED_SUBRESOURCE mappedTexture;
-		D3D.Context->Map(texture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedTexture);
-		{
-			auto& mip = tex.MipMapsArray[0][0];
+		if (FAILED(D3D.Context->Map(texture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedTexture)))
+			return;
 
-			if (mappedTexture.pData != nullptr)
-				std::memcpy(mappedTexture.pData, mip.Data.get(), mip.DataSize);
+		const size_t resourceStride = mappedTexture.RowPitch;
+		const size_t resourceSize = mappedTexture.DepthPitch;
+		u8* resourceData = static_cast<u8*>(mappedTexture.pData);
+		assert(resourceData != nullptr);
+
+		constexpr auto rgbaBitsPerPixel = (sizeof(u32) * CHAR_BIT);
+		auto& baseMip = tex.MipMapsArray[0][0];
+
+		const size_t inputStride = (textureDescription.Width * rgbaBitsPerPixel) / CHAR_BIT;
+		const size_t inputSize = textureDescription.Height * inputStride;
+		const u8* inputData = baseMip.Data.get();
+		assert(inputSize == baseMip.DataSize);
+
+		if (resourceSize == inputSize)
+		{
+			std::memcpy(resourceData, inputData, inputSize);
 		}
+		else
+		{
+			assert(resourceSize == (resourceStride * textureDescription.Height));
+
+			for (size_t y = 0; y < textureDescription.Height; y++)
+				std::memcpy(&resourceData[resourceStride * y], &inputData[inputStride * y], inputStride);
+		}
+
 		D3D.Context->Unmap(texture.Get(), 0);
 	}
 
