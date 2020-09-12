@@ -24,6 +24,9 @@ namespace Comfy::Studio::Editor
 		~TargetTimeline() = default;
 
 	public:
+		void SetWorkingChart(Chart* chart);
+
+	public:
 		void OnSongLoaded();
 		void OnPlaybackResumed();
 		void OnPlaybackPaused();

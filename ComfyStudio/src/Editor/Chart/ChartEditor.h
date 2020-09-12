@@ -41,7 +41,6 @@ namespace Comfy::Studio::Editor
 		TimeSpan GetPlaybackTimeAsync() const;
 		void SetPlaybackTime(TimeSpan value);
 
-		Chart* GetChart();
 		TimeSpan GetPlaybackTimeOnPlaybackStart() const;
 
 	private:

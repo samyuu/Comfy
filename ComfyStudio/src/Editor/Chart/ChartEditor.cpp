@@ -7,10 +7,15 @@ namespace Comfy::Studio::Editor
 	ChartEditor::ChartEditor(Application& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
 		chart = std::make_unique<Chart>();
+		chart->UpdateMapTimes();
+
 		renderer = std::make_unique<Render::Renderer2D>();
 
 		timeline = std::make_unique<TargetTimeline>(*this, undoManager);
+		timeline->SetWorkingChart(chart.get());
+
 		renderWindow = std::make_unique<TargetRenderWindow>(*this, *timeline, undoManager, *renderer);
+		renderWindow->SetWorkingChart(chart.get());
 
 
 		songVoice = Audio::AudioEngine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor::SongVoice", false, 0.75f, true);
@@ -112,11 +117,6 @@ namespace Comfy::Studio::Editor
 	void ChartEditor::SetPlaybackTime(TimeSpan value)
 	{
 		songVoice.SetPosition(value + chart->StartOffset);
-	}
-
-	Chart* ChartEditor::GetChart()
-	{
-		return chart.get();
 	}
 
 	TimeSpan ChartEditor::GetPlaybackTimeOnPlaybackStart() const

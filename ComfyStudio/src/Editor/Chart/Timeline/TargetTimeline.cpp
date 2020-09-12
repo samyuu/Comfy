@@ -16,10 +16,7 @@ namespace Comfy::Studio::Editor
 		autoScrollCursorOffsetPercentage = 0.35f;
 		infoColumnWidth = 240.0f;
 
-		workingChart = chartEditor.GetChart();
-
 		buttonIcons = std::make_unique<TimelineButtonIcons>();
-		workingChart->UpdateMapTimes();
 	}
 
 	TimelineTick TargetTimeline::GridDivisionTick() const
@@ -188,6 +185,11 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::OnPlaybackStopped()
 	{
 		CenterCursor();
+	}
+
+	void TargetTimeline::SetWorkingChart(Chart* chart)
+	{
+		workingChart = chart;
 	}
 
 	void TargetTimeline::OnSongLoaded()

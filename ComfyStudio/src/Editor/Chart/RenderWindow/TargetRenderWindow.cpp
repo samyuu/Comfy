@@ -11,8 +11,6 @@ namespace Comfy::Studio::Editor
 	TargetRenderWindow::TargetRenderWindow(ChartEditor& parent, TargetTimeline& timeline, Undo::UndoManager& undoManager, Render::Renderer2D& renderer)
 		: chartEditor(parent), timeline(timeline), undoManager(undoManager), renderer(renderer)
 	{
-		workingChart = chartEditor.GetChart();
-
 		SetWindowBackgroundCheckerboardEnabled(true);
 
 		SetKeepAspectRatio(true);
@@ -25,6 +23,11 @@ namespace Comfy::Studio::Editor
 		renderHelper->SetAetSprGetter(renderer);
 
 		renderTarget = Render::Renderer2D::CreateRenderTarget();
+	}
+
+	void TargetRenderWindow::SetWorkingChart(Chart* chart)
+	{
+		workingChart = chart;
 	}
 
 	ImTextureID TargetRenderWindow::GetTextureID() const

@@ -19,6 +19,9 @@ namespace Comfy::Studio::Editor
 		~TargetRenderWindow() = default;
 
 	public:
+		void SetWorkingChart(Chart* chart);
+
+	public:
 		ImTextureID GetTextureID() const override;
 
 	protected:
