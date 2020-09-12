@@ -379,6 +379,21 @@ namespace ImGui
 				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return Gui::InputText(Detail::DummyLabel, inOutBuffer, bufferSize, flags); });
 			}
 
+			inline bool Input(std::string_view label, std::string& inOutValue, ImGuiInputTextFlags flags = ImGuiInputTextFlags_None)
+			{
+				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return Gui::InputText(Detail::DummyLabel, &inOutValue, flags); });
+			}
+
+			inline bool InputWithHint(std::string_view label, const char* hint, std::string& inOutValue, ImGuiInputTextFlags flags = ImGuiInputTextFlags_None)
+			{
+				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return Gui::InputTextWithHint(Detail::DummyLabel, hint, &inOutValue, flags); });
+			}
+
+			inline bool InputMultiline(std::string_view label, std::string& inOutValue, vec2 size = {}, ImGuiInputTextFlags flags = ImGuiInputTextFlags_None)
+			{
+				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return Gui::InputTextMultiline(Detail::DummyLabel, &inOutValue, size, flags); });
+			}
+
 			inline bool Checkbox(std::string_view label, bool& inOutValue)
 			{
 				RAII::ID id(label);
