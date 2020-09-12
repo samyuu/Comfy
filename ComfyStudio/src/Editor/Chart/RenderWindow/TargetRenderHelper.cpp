@@ -234,8 +234,8 @@ namespace Comfy::Studio::Editor
 			TryDrawLayer(renderer, layers.PracticeGaugeTime, progress * 100.0f);
 			TryDrawLayer(renderer, layers.PracticeGaugeBorderRestart, (hud.IsPlayback ? progressOnStart : progress) * 100.0f);
 
-			if (const auto* font = GetFont36(); font != nullptr && !hud.SongName.empty())
-				renderer.Font().DrawBorder(*font, hud.SongName, TryGetTransform(layers.SongTitle, playbackFrame));
+			if (const auto* font = GetFont36(); font != nullptr && !hud.SongTitle.empty())
+				renderer.Font().DrawBorder(*font, hud.SongTitle, TryGetTransform(layers.SongTitle, playbackFrame));
 		}
 
 		// HACK: This is an incredibly hacky solution but is far more simple than creating entire layer + comp copies for each variation

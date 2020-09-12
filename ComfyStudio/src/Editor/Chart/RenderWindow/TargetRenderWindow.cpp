@@ -119,11 +119,11 @@ namespace Comfy::Studio::Editor
 	void TargetRenderWindow::RenderHUDBackground()
 	{
 		TargetRenderHelper::HUDData hudData;
-		hudData.SongName = workingChart->SongName;
+		hudData.SongTitle = workingChart->SongTitleOrDefault();
 		hudData.IsPlayback = timeline.GetIsPlayback();
 		hudData.PlaybackTime = timeline.GetCursorTime();
 		hudData.PlaybackTimeOnStart = chartEditor.GetPlaybackTimeOnPlaybackStart();
-		hudData.Duration = workingChart->Duration;
+		hudData.Duration = workingChart->DurationOrDefault();
 
 		renderHelper->DrawHUD(renderer, hudData);
 	}

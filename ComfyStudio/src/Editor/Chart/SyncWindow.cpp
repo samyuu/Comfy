@@ -61,7 +61,7 @@ namespace Comfy::Studio::Editor
 			constexpr auto durationMin = static_cast<f32>(TimeSpan::FromSeconds(1.0).TotalMilliseconds());
 			constexpr auto durationMax = std::numeric_limits<f32>::max();
 
-			auto songDurationMS = static_cast<f32>(chart.Duration.TotalMilliseconds());
+			auto songDurationMS = static_cast<f32>(chart.DurationOrDefault().TotalMilliseconds());
 			if (GuiProperty::Input("Duration##SyncWindow", songDurationMS, durationDragSpeed, vec2(durationMin, durationMax), "%.2f ms"))
 			{
 				songDurationMS = std::max(songDurationMS, durationMin);

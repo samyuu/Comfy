@@ -223,7 +223,7 @@ namespace Comfy::Studio::Editor
 		Gui::PushStyleColor(ImGuiCol_Button, transparent);
 		{
 			const bool isFirstFrame = (cursorTime <= TimeSpan::Zero());
-			const bool isLastFrame = (cursorTime >= workingChart->Duration);
+			const bool isLastFrame = (cursorTime >= workingChart->DurationOrDefault());
 			const bool isPlayback = GetIsPlayback();
 
 			constexpr float borderSize = 1.0f;
@@ -292,7 +292,7 @@ namespace Comfy::Studio::Editor
 				Gui::PushItemDisabledAndTextColorIf(isLastFrame);
 				if (Gui::Button(ICON_FA_FAST_FORWARD))
 				{
-					SetCursorTime(workingChart->Duration);
+					SetCursorTime(workingChart->DurationOrDefault());
 					CenterCursor();
 				}
 				Gui::PopItemDisabledAndTextColorIf(isLastFrame);
@@ -373,7 +373,7 @@ namespace Comfy::Studio::Editor
 		const auto gridColor = GetColor(EditorColor_Grid);
 		const auto gridAltColor = GetColor(EditorColor_GridAlt);
 
-		const i32 songDurationTicks = TimeToTick(workingChart->Duration).Ticks();
+		const i32 songDurationTicks = TimeToTick(workingChart->DurationOrDefault()).Ticks();
 		const i32 gridTickStep = GridDivisionTick().Ticks();
 
 		const auto scrollX = GetScrollX();
@@ -481,7 +481,7 @@ namespace Comfy::Studio::Editor
 		if (preEnd.x - preStart.x > 0.0f)
 			baseDrawList->AddRectFilled(preStart, preEnd, outOfBoundsDimColor);
 
-		const auto postStart = timelineContentRegion.GetTL() + vec2(glm::round(GetTimelinePosition(workingChart->Duration) - scrollX), 0.0f);
+		const auto postStart = timelineContentRegion.GetTL() + vec2(glm::round(GetTimelinePosition(workingChart->DurationOrDefault()) - scrollX), 0.0f);
 		const auto postEnd = timelineContentRegion.GetBR();
 		if (postEnd.x - postStart.x > 0.0f)
 			baseDrawList->AddRectFilled(postStart, postEnd, outOfBoundsDimColor);
@@ -1197,7 +1197,7 @@ namespace Comfy::Studio::Editor
 			if (Gui::MenuItem("Select All", "", nullptr, true))
 				SelectAllTargets();
 
-			if (Gui::MenuItem("Deselect All", "", nullptr, (selectionCount > 0)))
+			if (Gui::MenuItem("Deselect", "", nullptr, (selectionCount > 0)))
 				DeselectAllTargets();
 
 			Gui::Separator();
@@ -1593,7 +1593,7 @@ namespace Comfy::Studio::Editor
 
 	f32 TargetTimeline::GetTimelineSize() const
 	{
-		return GetTimelinePosition(workingChart->Duration);
+		return GetTimelinePosition(workingChart->DurationOrDefault());
 	}
 
 	void TargetTimeline::OnTimelineBaseScroll()

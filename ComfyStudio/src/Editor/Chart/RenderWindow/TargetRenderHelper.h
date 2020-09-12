@@ -20,7 +20,7 @@ namespace Comfy::Studio::Editor
 
 		struct HUDData
 		{
-			std::string_view SongName;
+			std::string_view SongTitle;
 
 			bool IsPlayback;
 			TimeSpan PlaybackTime;

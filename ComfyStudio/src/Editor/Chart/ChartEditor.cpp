@@ -1,4 +1,6 @@
 #include "ChartEditor.h"
+#include "ChartCommands.h"
+#include "IO/Path.h"
 #include "Misc/StringUtil.h"
 #include <FontIcons.h>
 
@@ -138,7 +140,7 @@ namespace Comfy::Studio::Editor
 		songSource = newSongStream;
 
 		undoManager.Execute<ChangeSongDuration>(*chart, (songVoice.GetDuration() <= TimeSpan::Zero()) ? Chart::FallbackDuration : songVoice.GetDuration());
-		undoManager.Execute<ChangeSongName>(*chart, std::string(IO::Path::GetFileName(songSourceFilePath, false)));
+		undoManager.Execute<ChangeSongTitle>(*chart, std::string(IO::Path::GetFileName(songSourceFilePath, false)));
 
 		timeline->OnSongLoaded();
 		SetPlaybackTime(previousPlaybackTime);
