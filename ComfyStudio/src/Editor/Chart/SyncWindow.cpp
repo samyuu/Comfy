@@ -58,7 +58,7 @@ namespace Comfy::Studio::Editor
 			});
 
 			constexpr auto durationDragSpeed = 10.0f;
-			constexpr auto durationMin = static_cast<f32>(TimeSpan::FromMilliseconds(10.0f).TotalMilliseconds());
+			constexpr auto durationMin = static_cast<f32>(TimeSpan::FromSeconds(1.0).TotalMilliseconds());
 			constexpr auto durationMax = std::numeric_limits<f32>::max();
 
 			auto songDurationMS = static_cast<f32>(chart.Duration.TotalMilliseconds());

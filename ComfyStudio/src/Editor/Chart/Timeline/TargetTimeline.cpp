@@ -1168,6 +1168,9 @@ namespace Comfy::Studio::Editor
 				Gui::EndMenu();
 			}
 
+			if (Gui::MenuItem("Set Song End", "", nullptr, true))
+				undoManager.Execute<ChangeSongDuration>(*workingChart, GetCursorTime());
+
 			Gui::Separator();
 
 			if (Gui::MenuItem("Cut", "Ctrl + X", nullptr, (selectionCount > 0)))
