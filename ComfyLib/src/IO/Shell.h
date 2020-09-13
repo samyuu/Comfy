@@ -37,11 +37,13 @@ namespace Comfy::IO
 			};
 		}
 
-		struct FileDialog
+		class FileDialog
 		{
+		public:
 			static constexpr std::string_view AllFilesFilterName = "All Files (*.*)";
 			static constexpr std::string_view AllFilesFilterSpec = "*.*";
 
+		public:
 			struct FileFilter
 			{
 				std::string Name;
@@ -56,10 +58,12 @@ namespace Comfy::IO
 			std::vector<Custom::Item> CustomizeItems;
 			std::string OutFilePath;
 
-			// TODO:
-			// COMFY_NODISCARD bool OpenRead();
-
+		public:
+			COMFY_NODISCARD bool OpenRead();
 			COMFY_NODISCARD bool OpenSave();
+
+		private:
+			bool CreateOpenShowDialog(bool openSave);
 		};
 	}
 }

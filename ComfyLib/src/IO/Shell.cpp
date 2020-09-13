@@ -206,12 +206,22 @@ namespace Comfy::IO
 			}
 		}
 
+		bool FileDialog::OpenRead()
+		{
+			return CreateOpenShowDialog(false);
+		}
+
 		bool FileDialog::OpenSave()
+		{
+			return CreateOpenShowDialog(true);
+		}
+
+		bool FileDialog::CreateOpenShowDialog(bool openSave)
 		{
 			HRESULT result = S_OK;
 			IFileDialog* fileDialog = nullptr;
 
-			if (result = ::CoCreateInstance(CLSID_FileSaveDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&fileDialog)); !SUCCEEDED(result))
+			if (result = ::CoCreateInstance(openSave ? CLSID_FileSaveDialog : CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&fileDialog)); !SUCCEEDED(result))
 				return false;
 
 			DWORD eventCookie = 0;
