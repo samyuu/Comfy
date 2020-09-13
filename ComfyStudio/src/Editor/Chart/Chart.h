@@ -16,10 +16,14 @@ namespace Comfy::Studio::Editor
 		static constexpr auto FallbackSongTitle = std::string_view { u8"É_É~Å[" };
 
 	public:
-		struct PropertiesData
-		{
-			std::string SongFileName;
+		// NOTE: An empty path means the chart hasn't yet been saved to nor has been loaded from disk
+		std::string ChartFilePath;
 
+		// NOTE: Should (but doesn't have to) be relative to the chart file directory
+		std::string SongFileName;
+
+		struct PropertyData
+		{
 			struct SongInfo
 			{
 				std::string Title;
