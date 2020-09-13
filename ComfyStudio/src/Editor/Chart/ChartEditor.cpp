@@ -1,5 +1,6 @@
 #include "ChartEditor.h"
 #include "ChartCommands.h"
+#include "FileFormat/PJEFile.h"
 #include "IO/Path.h"
 #include "Misc/StringUtil.h"
 #include <FontIcons.h>
@@ -47,6 +48,8 @@ namespace Comfy::Studio::Editor
 			{
 				if (IsAudioFile(songFileViewer.GetFileToOpen()))
 					LoadSongAsync(songFileViewer.GetFileToOpen());
+				else // TEMP: For quick testing, chart files should be loaded through a menu item instead
+					LoadChartFileSync(songFileViewer.GetFileToOpen());
 			}
 			Gui::EndChild();
 		}
@@ -109,6 +112,28 @@ namespace Comfy::Studio::Editor
 		songSourceFilePath = std::string(filePath);
 
 		return true;
+	}
+
+	void ChartEditor::LoadChartFileSync(std::string_view filePath)
+	{
+		// DEBUG: Only support pje for now
+		if (!Util::EndsWithInsensitive(songFileViewer.GetFileToOpen(), Legacy::PJEFile::Extension))
+			return;
+
+		const auto pjeFile = IO::File::Load<Legacy::PJEFile>(filePath);
+		if (pjeFile == nullptr)
+			return;
+
+		undoManager.ClearAll();
+
+		// TODO: Additional processing, setting up file paths etc.
+		chart = pjeFile->ToChart();
+		assert(chart != nullptr);
+
+		chart->UpdateMapTimes();
+
+		timeline->SetWorkingChart(chart.get());
+		renderWindow->SetWorkingChart(chart.get());
 	}
 
 	TimeSpan ChartEditor::GetPlaybackTimeAsync() const

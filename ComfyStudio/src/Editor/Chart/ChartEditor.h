@@ -28,6 +28,7 @@ namespace Comfy::Studio::Editor
 		bool OnFileDropped(const std::string& filePath) override;
 
 		bool LoadSongAsync(std::string_view filePath);
+		void LoadChartFileSync(std::string_view filePath);
 
 		void ResumePlayback();
 		void PausePlayback();
