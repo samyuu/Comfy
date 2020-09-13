@@ -1,11 +1,13 @@
 #pragma once
+#include "Types.h"
+#include "CoreTypes.h"
 #include "Chart.h"
 #include "Timeline/TargetTimeline.h"
 #include "Undo/Undo.h"
 
 namespace Comfy::Studio::Editor
 {
-	class SyncWindow
+	class SyncWindow : NonCopyable
 	{
 	public:
 		SyncWindow(Undo::UndoManager& undoManager);

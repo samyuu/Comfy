@@ -87,6 +87,12 @@ namespace Comfy::Studio::Editor
 		}
 		Gui::End();
 
+		if (Gui::Begin(ICON_FA_LIST_UL "  Chart Properties", nullptr, ImGuiWindowFlags_None))
+		{
+			chartPropertiesWindow.Gui(*chart);
+		}
+		Gui::End();
+
 		undoManager.FlushExecuteEndOfFrameCommands();
 	}
 

@@ -4,6 +4,7 @@
 #include "SyncWindow.h"
 #include "TargetInspector.h"
 #include "BPMCalculatorWindow.h"
+#include "ChartPropertiesWindow.h"
 #include "Timeline/TargetTimeline.h"
 #include "RenderWindow/TargetRenderWindow.h"
 #include "Undo/Undo.h"
@@ -61,6 +62,7 @@ namespace Comfy::Studio::Editor
 		TargetInspector inspector = { undoManager };
 		UndoHistoryWindow historyWindow = { undoManager };
 		BPMCalculatorWindow bpmCalculatorWindow = { undoManager };
+		ChartPropertiesWindow chartPropertiesWindow = { *this, undoManager };
 
 		std::future<Audio::SourceHandle> songSourceFuture;
 		std::string songSourceFilePath;
