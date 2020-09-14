@@ -179,7 +179,7 @@ namespace Comfy::Studio
 				Gui::ShowDemoWindow(&showDemoWindow);
 
 			editorManager->GuiWindows();
-			GuiBaseWindowWindows(dataTestComponents);
+			GuiTestWindowWindows();
 		}
 
 	}
@@ -189,10 +189,11 @@ namespace Comfy::Studio
 		Gui::PushStyleColor(ImGuiCol_MenuBarBg, Gui::GetStyleColorVec4(ImGuiCol_TitleBg));
 		if (Gui::BeginMainMenuBar())
 		{
-			GuiDebugMenu();
-			editorManager->GuiMenuItems();
+			editorManager->GuiComponentMenu();
+			GuiApplicationWindowMenu();
+			editorManager->GuiWorkSpaceMenu();
 			GuiAppEngineMenus();
-			GuiBaseWindowMenus(dataTestComponents);
+			GuiTestWindowMenus();
 			GuiHelpMenus();
 			GuiMenuBarPerformanceDisplay();
 			Gui::EndMainMenuBar();
@@ -200,37 +201,8 @@ namespace Comfy::Studio
 		Gui::PopStyleColor(1);
 	}
 
-	void Application::GuiDebugMenu()
+	void Application::GuiApplicationWindowMenu()
 	{
-		// TODO: Restructure all of this, should probably be part of the currently active editor component (?); Dummy menus for now
-		if (Gui::BeginMenu("File"))
-		{
-			if (Gui::MenuItem("New", nullptr, false, false)) {}
-			if (Gui::MenuItem("Open...", nullptr, false, false)) {}
-			if (Gui::MenuItem("Open Recent", nullptr, false, false)) {}
-			Gui::Separator();
-			if (Gui::MenuItem("Save", "Ctrl + S", false, false)) {}
-			if (Gui::MenuItem("Save As...", "Ctrl + Shift + S", false, false)) {}
-			Gui::Separator();
-			if (Gui::MenuItem("Import...", nullptr, false, false)) {}
-			Gui::Separator();
-
-			if (Gui::MenuItem("Exit...", "Alt + F4"))
-				Exit();
-
-			Gui::EndMenu();
-		}
-
-		if (Gui::BeginMenu("Edit"))
-		{
-			if (Gui::MenuItem("Undo", "Ctrl + Z", false, false)) {}
-			if (Gui::MenuItem("Redo", "Ctrl + Y", false, false)) {}
-			Gui::Separator();
-			if (Gui::MenuItem("Settings...", nullptr, false, false)) {}
-
-			Gui::EndMenu();
-		}
-
 		if (Gui::BeginMenu("Window"))
 		{
 			if (Gui::MenuItem("Toggle Fullscreen", "Alt + Enter"))
@@ -286,7 +258,7 @@ namespace Comfy::Studio
 #endif
 	}
 
-	void Application::GuiBaseWindowMenus(const std::vector<std::unique_ptr<BaseWindow>>& components)
+	void Application::GuiTestWindowMenus()
 	{
 		if (Gui::BeginMenu("Test Windows"))
 		{
@@ -296,16 +268,16 @@ namespace Comfy::Studio
 
 			Gui::Separator();
 
-			for (const auto& component : components)
+			for (const auto& component : dataTestComponents)
 				Gui::MenuItem(component->GetName(), nullptr, &component->GetIsOpen());
 
 			Gui::EndMenu();
 		}
 	}
 
-	void Application::GuiBaseWindowWindows(const std::vector<std::unique_ptr<BaseWindow>>& components)
+	void Application::GuiTestWindowWindows()
 	{
-		for (const auto& component : components)
+		for (const auto& component : dataTestComponents)
 		{
 			if (component->GetIsOpen())
 			{

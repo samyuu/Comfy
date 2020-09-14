@@ -42,12 +42,12 @@ namespace Comfy::Studio
 		void Gui();
 
 		void GuiMainMenuBar();
-		void GuiDebugMenu();
+		void GuiApplicationWindowMenu();
 		void GuiAppEngineWindow();
 		void GuiAppEngineMenus();
 
-		void GuiBaseWindowMenus(const std::vector<std::unique_ptr<BaseWindow>>& components);
-		void GuiBaseWindowWindows(const std::vector<std::unique_ptr<BaseWindow>>& components);
+		void GuiTestWindowMenus();
+		void GuiTestWindowWindows();
 
 		void GuiHelpMenus();
 		void GuiLicensePopup();

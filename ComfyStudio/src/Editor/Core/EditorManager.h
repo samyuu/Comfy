@@ -13,7 +13,8 @@ namespace Comfy::Studio::Editor
 		~EditorManager() = default;
 
 	public:
-		void GuiMenuItems();
+		void GuiComponentMenu();
+		void GuiWorkSpaceMenu();
 		void GuiWindows();
 
 	private:
@@ -38,5 +39,8 @@ namespace Comfy::Studio::Editor
 		void Update();
 		void DrawGui();
 		void UpdateFileDrop();
+
+	private:
+		IEditorComponent* TryGetActiveComponent(bool initiailizeIfNull = true);
 	};
 }

@@ -17,6 +17,8 @@ namespace Comfy::Studio::Editor
 		virtual void OnWindowBegin() {}
 		virtual void OnWindowEnd() {}
 
+		virtual void GuiMenu() {}
+
 	protected:
 		EditorManager& parentEditor;
 	};

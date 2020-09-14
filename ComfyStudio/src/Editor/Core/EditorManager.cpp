@@ -63,7 +63,7 @@ namespace Comfy::Studio::Editor
 
 		SetColor(EditorColor_TempoChange, GetColorU32(ImGuiCol_Text));
 		SetColor(EditorColor_OutOfBoundsDim, 0x1A000000);
-		
+
 		SetColor(EditorColor_Selection, GetColorU32(ImGuiCol_TextSelectedBg));
 		SetColor(EditorColor_TimelineRowSeparator, 0xFF343434);
 
@@ -83,6 +83,8 @@ namespace Comfy::Studio::Editor
 
 	EditorManager::EditorManager(Application& parent) : parent(parent)
 	{
+		UpdateEditorColors();
+
 		registeredEditors.reserve(3);
 		RegisterEditorComponent<ChartEditor>("Chart Editor");
 		RegisterEditorComponent<AetEditor>("Aet Editor");
@@ -95,7 +97,14 @@ namespace Comfy::Studio::Editor
 		SetActiveEditor(lastActiveIndex);
 	}
 
-	void EditorManager::GuiMenuItems()
+	void EditorManager::GuiComponentMenu()
+	{
+		auto* component = TryGetActiveComponent();
+		if (component != nullptr)
+			component->GuiMenu();
+	}
+
+	void EditorManager::GuiWorkSpaceMenu()
 	{
 		if (Gui::BeginMenu("Workspace"))
 		{
@@ -169,19 +178,16 @@ namespace Comfy::Studio::Editor
 
 	void EditorManager::DrawGui()
 	{
-		if (!InBounds(activeEditorIndex, registeredEditors))
+		auto* component = TryGetActiveComponent();
+		if (component == nullptr)
 			return;
 
-		auto& editor = registeredEditors[activeEditorIndex];
-		if (editor.Component == nullptr)
-			editor.Component = editor.ComponentInitializer();
-
-		editor.Component->OnWindowBegin();
+		component->OnWindowBegin();
 		{
-			if (Gui::Begin(editor.Component->GetName(), nullptr, editor.Component->GetFlags()))
-				editor.Component->Gui();
+			if (Gui::Begin(component->GetName(), nullptr, component->GetFlags()))
+				component->Gui();
 		}
-		editor.Component->OnWindowEnd();
+		component->OnWindowEnd();
 		Gui::End();
 	}
 
@@ -191,7 +197,6 @@ namespace Comfy::Studio::Editor
 			return;
 
 		const auto& droppedFiles = parent.GetHost().GetDroppedFiles();
-
 		for (const auto& component : registeredEditors)
 		{
 			for (const auto& filePath : droppedFiles)
@@ -203,5 +208,17 @@ namespace Comfy::Studio::Editor
 				}
 			}
 		}
+	}
+
+	IEditorComponent* EditorManager::TryGetActiveComponent(bool initiailizeIfNull)
+	{
+		if (!InBounds(activeEditorIndex, registeredEditors))
+			return nullptr;
+
+		auto& editor = registeredEditors[activeEditorIndex];
+		if (editor.Component == nullptr && initiailizeIfNull)
+			editor.Component = editor.ComponentInitializer();
+
+		return editor.Component.get();
 	}
 }
