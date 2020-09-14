@@ -26,10 +26,18 @@ namespace Comfy::Studio::Editor
 
 	public:
 		bool IsAudioFile(std::string_view filePath);
+		void OpenLoadAudioFileDialog();
+
 		bool OnFileDropped(const std::string& filePath) override;
 
 		bool LoadSongAsync(std::string_view filePath);
+		void UnloadSong();
+
 		void LoadChartFileSync(std::string_view filePath);
+		void SaveChartFileAsync(std::string_view filePath = "");
+		void OpenSaveChartFileDialog();
+
+		bool IsSongAsyncLoading() const;
 
 		void ResumePlayback();
 		void PausePlayback();
@@ -49,7 +57,6 @@ namespace Comfy::Studio::Editor
 		void UpdateAsyncSongSourceLoading();
 
 	private:
-		std::array<const char*, 4> audioFileExtensions = { ".wav", ".flac", ".ogg", ".mp3" };
 		Gui::FileViewer songFileViewer = { "dev_ram/sound/song" };
 
 		std::unique_ptr<Chart> chart = nullptr;

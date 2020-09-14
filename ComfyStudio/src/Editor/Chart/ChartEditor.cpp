@@ -2,7 +2,9 @@
 #include "ChartCommands.h"
 #include "FileFormat/PJEFile.h"
 #include "IO/Path.h"
+#include "IO/Shell.h"
 #include "Misc/StringUtil.h"
+#include "Core/Application.h"
 #include <FontIcons.h>
 
 namespace Comfy::Studio::Editor
@@ -43,7 +45,7 @@ namespace Comfy::Studio::Editor
 		{
 			Gui::BeginChild("SongLoaderChild##ChartEditor");
 
-			songFileViewer.SetIsReadOnly(songSourceFuture.valid() && !songSourceFuture._Is_ready());
+			songFileViewer.SetIsReadOnly(IsSongAsyncLoading());
 			if (songFileViewer.DrawGui())
 			{
 				if (IsAudioFile(songFileViewer.GetFileToOpen()))
@@ -98,13 +100,27 @@ namespace Comfy::Studio::Editor
 
 	bool ChartEditor::IsAudioFile(std::string_view filePath)
 	{
-		for (const auto& fileExtension : audioFileExtensions)
-		{
-			if (Util::EndsWithInsensitive(filePath, fileExtension))
-				return true;
-		}
+		return IO::Path::DoesAnyPackedExtensionMatch(IO::Path::GetExtension(filePath), ".flac;.ogg;.mp3;.wav");
+	}
 
-		return false;
+	void ChartEditor::OpenLoadAudioFileDialog()
+	{
+		IO::Shell::FileDialog fileDialog;
+		fileDialog.FileName;
+		fileDialog.DefaultExtension;
+		fileDialog.Filters =
+		{
+			{ "Audio Files (*.flac;*.ogg;*.mp3;*.wav)", "*.flac;*.ogg;*.mp3;*.wav" },
+			{ "FLAC Files (*.flac)", "*.flac" },
+			{ "Ogg Vorbis (*.ogg)", "*.ogg" },
+			{ "MP3 Files (*.mp3)", "*.mp3" },
+			{ "WAV Files (*.wav)", "*.wav" },
+			{ std::string(IO::Shell::FileDialog::AllFilesFilterName), std::string(IO::Shell::FileDialog::AllFilesFilterSpec) },
+		};
+		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
+
+		if (fileDialog.OpenRead())
+			LoadSongAsync(IO::Path::Normalize(fileDialog.OutFilePath));
 	}
 
 	bool ChartEditor::OnFileDropped(const std::string& filePath)
@@ -114,10 +130,32 @@ namespace Comfy::Studio::Editor
 
 	bool ChartEditor::LoadSongAsync(std::string_view filePath)
 	{
+		UnloadSong();
+
 		songSourceFuture = Audio::AudioEngine::GetInstance().LoadAudioSourceAsync(filePath);
 		songSourceFilePath = std::string(filePath);
 
+		// NOTE: Clear file name here so the chart properties window help loading text is displayed
+		//		 then set again once the song audio file has finished loading
+		chart->SongFileName.clear();
+
 		return true;
+	}
+
+	void ChartEditor::UnloadSong()
+	{
+		// NOTE: Optimally the last action should be canceled through a stop token instead
+		if (songSourceFuture.valid())
+			Audio::AudioEngine::GetInstance().UnloadSource(songSourceFuture.get());
+
+		Audio::AudioEngine::GetInstance().UnloadSource(songSource);
+		songSource = Audio::SourceHandle::Invalid;
+		songSourceFilePath.clear();
+
+		if (isPlaying)
+			PausePlayback();
+
+		timeline->OnSongLoaded();
 	}
 
 	void ChartEditor::LoadChartFileSync(std::string_view filePath)
@@ -134,12 +172,86 @@ namespace Comfy::Studio::Editor
 
 		// TODO: Additional processing, setting up file paths etc.
 		chart = pjeFile->ToChart();
-		assert(chart != nullptr);
-
 		chart->UpdateMapTimes();
+		chart->ChartFilePath = std::string(filePath);
+
+		auto getChartSongFilePath = [&]() -> std::string
+		{
+			const auto chartDirectory = IO::Path::GetDirectoryName(filePath);
+			if (!chart->SongFileName.empty())
+				return IO::Path::Combine(chartDirectory, chart->SongFileName);
+
+			const auto filePathNoExtension = IO::Path::Combine(chartDirectory, IO::Path::GetFileName(chart->Properties.Song.Title, false));
+			std::string combinedPath;
+			combinedPath.reserve(filePathNoExtension.size() + 5);
+
+			for (const auto extension : std::array { ".flac", ".ogg", ".mp3", ".wav" })
+			{
+				combinedPath.clear();
+				combinedPath += filePathNoExtension;
+				combinedPath += extension;
+
+				if (IO::File::Exists(combinedPath))
+					return combinedPath;
+			}
+
+			return "";
+		};
+
+		LoadSongAsync(getChartSongFilePath());
 
 		timeline->SetWorkingChart(chart.get());
 		renderWindow->SetWorkingChart(chart.get());
+	}
+
+	void ChartEditor::SaveChartFileAsync(std::string_view filePath)
+	{
+		if (!filePath.empty())
+			chart->ChartFilePath = filePath;
+
+		if (!chart->ChartFilePath.empty())
+		{
+			// TODO: Implement
+			assert(false);
+
+			/*
+			[this] std::future<bool> chartSaveFuture;
+			[this] std::unique_ptr<ComfyStudioChartFile> chartFile;
+
+			if (chartSaveFuture.valid())
+				chartSaveFuture.get();
+
+			chartFile = std::make_unique<ComfyStudioChartFile>(*chart);
+			chartSaveFuture = IO::File::SaveAsync(chart->ChartFilePath, *chartFile);
+			*/
+		}
+		else
+		{
+			// TODO: No path specified... maybe write to some temp directory instead (?)
+			assert(false);
+		}
+	}
+
+	void ChartEditor::OpenSaveChartFileDialog()
+	{
+		IO::Shell::FileDialog fileDialog;
+		// TODO: Default name based on song title
+		fileDialog.FileName = chart->ChartFilePath;
+		fileDialog.DefaultExtension = ""; // ComfyStudioChartFile::Extension;
+		fileDialog.Filters = { { "Comfy Studio Chart File (*.csfm)", "*.csfm" }, };
+		// TODO: Option to copy audio file into output directory if absolute path
+		// fileDialog.CustomizeItems;
+		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
+
+		if (!fileDialog.OpenSave())
+			return;
+
+		SaveChartFileAsync(fileDialog.OutFilePath);
+	}
+
+	bool ChartEditor::IsSongAsyncLoading() const
+	{
+		return (songSourceFuture.valid() && !songSourceFuture._Is_ready());
 	}
 
 	TimeSpan ChartEditor::GetPlaybackTimeAsync() const
@@ -162,19 +274,35 @@ namespace Comfy::Studio::Editor
 		if (!songSourceFuture.valid() || !songSourceFuture._Is_ready())
 			return;
 
-		const auto previousPlaybackTime = GetPlaybackTimeAsync();
-		const auto newSongStream = songSourceFuture.get();
+		const auto oldPlaybackTime = GetPlaybackTimeAsync();
+		const auto newSongSource = songSourceFuture.get();
+		const auto oldSongSource = songSource;
 
-		Audio::AudioEngine::GetInstance().UnloadSource(songSource);
+		Audio::AudioEngine::GetInstance().UnloadSource(oldSongSource);
+		songVoice.SetSource(newSongSource);
+		songSource = newSongSource;
 
-		songVoice.SetSource(newSongStream);
-		songSource = newSongStream;
+		if (chart->SongFileName.empty())
+		{
+			const auto chartDirectory = IO::Path::Normalize(IO::Path::GetDirectoryName(chart->ChartFilePath));
+			const auto songDirectory = IO::Path::Normalize(IO::Path::GetDirectoryName(songSourceFilePath));
 
-		undoManager.Execute<ChangeSongDuration>(*chart, (songVoice.GetDuration() <= TimeSpan::Zero()) ? Chart::FallbackDuration : songVoice.GetDuration());
-		undoManager.Execute<ChangeSongTitle>(*chart, std::string(IO::Path::GetFileName(songSourceFilePath, false)));
+			chart->SongFileName = (!chartDirectory.empty() && chartDirectory == songDirectory) ? IO::Path::GetFileName(songSourceFilePath, true) : songSourceFilePath;
+		}
+
+		if (chart->Duration <= TimeSpan::Zero() || chart->ChartFilePath.empty())
+			chart->Duration = songVoice.GetDuration();
+
+		if (chart->ChartFilePath.empty())
+		{
+			// TODO: Extract metadata from audio file
+			chart->Properties.Song.Title = IO::Path::GetFileName(songSourceFilePath, false);
+			chart->Properties.Song.Artist;
+			chart->Properties.Song.Album;
+		}
 
 		timeline->OnSongLoaded();
-		SetPlaybackTime(previousPlaybackTime);
+		SetPlaybackTime(oldPlaybackTime);
 	}
 
 	bool ChartEditor::GetIsPlayback() const
