@@ -98,6 +98,52 @@ namespace Comfy::Studio::Editor
 		undoManager.FlushExecuteEndOfFrameCommands();
 	}
 
+	void ChartEditor::GuiMenu()
+	{
+		// TODO: Restructure all of this, should probably be part of the currently active editor component (?); Dummy menus for now
+		if (Gui::BeginMenu("File"))
+		{
+			if (Gui::MenuItem("New", nullptr, false, true))
+				CreateNewChart();
+
+			if (Gui::MenuItem("Open...", nullptr, false, true))
+				OpenReadChartFileDialog();
+
+			// TODO:
+			if (Gui::MenuItem("Open Recent", nullptr, false, false)) {}
+			Gui::Separator();
+
+			if (Gui::MenuItem("Save", "Ctrl + S", false, true))
+				SaveChartFileAsync();
+			if (Gui::MenuItem("Save As...", "Ctrl + Shift + S", false, true))
+				OpenSaveChartFileDialog();
+			Gui::Separator();
+
+			// TODO:
+			if (Gui::MenuItem("Import...", nullptr, false, false)) {}
+			Gui::Separator();
+
+			if (Gui::MenuItem("Exit...", "Alt + F4"))
+				parentApplication.Exit();
+
+			Gui::EndMenu();
+		}
+
+		if (Gui::BeginMenu("Edit"))
+		{
+			if (Gui::MenuItem("Undo", "Ctrl + Z", false, undoManager.CanUndo()))
+				undoManager.Undo();
+			if (Gui::MenuItem("Redo", "Ctrl + Y", false, undoManager.CanRedo()))
+				undoManager.Redo();
+			Gui::Separator();
+
+			// TODO: Or maybe this should be part of the EditorManager instead so that each component can register its own sub settings menu (?)
+			if (Gui::MenuItem("Settings...", nullptr, false, false)) {}
+
+			Gui::EndMenu();
+		}
+	}
+
 	bool ChartEditor::IsAudioFile(std::string_view filePath)
 	{
 		return IO::Path::DoesAnyPackedExtensionMatch(IO::Path::GetExtension(filePath), ".flac;.ogg;.mp3;.wav");
@@ -132,6 +178,7 @@ namespace Comfy::Studio::Editor
 	{
 		UnloadSong();
 
+		// TODO: Song file name relative to chart directory
 		songSourceFuture = Audio::AudioEngine::GetInstance().LoadAudioSourceAsync(filePath);
 		songSourceFilePath = std::string(filePath);
 
@@ -156,6 +203,22 @@ namespace Comfy::Studio::Editor
 			PausePlayback();
 
 		timeline->OnSongLoaded();
+	}
+
+	void ChartEditor::CreateNewChart()
+	{
+		if (!undoManager.GetRedoStackView().empty())
+		{
+			// TODO: Save data warning dialog
+		}
+
+		undoManager.ClearAll();
+		chart = std::make_unique<Chart>();
+		chart->UpdateMapTimes();
+		UnloadSong();
+
+		timeline->SetWorkingChart(chart.get());
+		renderWindow->SetWorkingChart(chart.get());
 	}
 
 	void ChartEditor::LoadChartFileSync(std::string_view filePath)
@@ -232,6 +295,11 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
+	void ChartEditor::OpenReadChartFileDialog()
+	{
+		// TODO: Implement
+	}
+
 	void ChartEditor::OpenSaveChartFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
@@ -301,8 +369,8 @@ namespace Comfy::Studio::Editor
 			chart->Properties.Song.Album;
 		}
 
-		timeline->OnSongLoaded();
 		SetPlaybackTime(oldPlaybackTime);
+		timeline->OnSongLoaded();
 	}
 
 	bool ChartEditor::GetIsPlayback() const

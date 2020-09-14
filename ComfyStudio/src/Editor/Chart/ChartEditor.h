@@ -23,6 +23,7 @@ namespace Comfy::Studio::Editor
 		const char* GetName() const override;
 		ImGuiWindowFlags GetFlags() const override;
 		void Gui() override;
+		void GuiMenu() override;
 
 	public:
 		bool IsAudioFile(std::string_view filePath);
@@ -33,8 +34,11 @@ namespace Comfy::Studio::Editor
 		bool LoadSongAsync(std::string_view filePath);
 		void UnloadSong();
 
+		void CreateNewChart();
 		void LoadChartFileSync(std::string_view filePath);
 		void SaveChartFileAsync(std::string_view filePath = "");
+
+		void OpenReadChartFileDialog();
 		void OpenSaveChartFileDialog();
 
 		bool IsSongAsyncLoading() const;
