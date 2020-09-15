@@ -12,12 +12,15 @@ namespace Comfy::Studio::Editor
 		{
 		public:
 			static constexpr std::string_view Extension = ".pje";
+			static constexpr std::string_view FilterName = "UPDC Chart (*.pje)";
+			static constexpr std::string_view FilterSpec = "*.pje";
 
 		public:
 			PJEFile() = default;
 
 		public:
 			std::unique_ptr<Chart> ToChart() const;
+			std::string TryFindSongFilePath(std::string_view chartFilePath) const;
 
 		public:
 			IO::StreamResult Read(IO::StreamReader& reader) override;

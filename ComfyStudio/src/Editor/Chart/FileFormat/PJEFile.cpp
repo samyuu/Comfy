@@ -1,4 +1,6 @@
 #include "PJEFile.h"
+#include "IO/Path.h"
+#include "IO/Shell.h"
 #include "IO/Stream/Manipulator/StreamReader.h"
 
 namespace Comfy::Studio::Editor
@@ -70,6 +72,31 @@ namespace Comfy::Studio::Editor
 			chart->Targets = std::move(newTargets);
 
 			return chart;
+		}
+
+		std::string PJEFile::TryFindSongFilePath(std::string_view chartFilePath) const
+		{
+			const auto chartDirectory = IO::Path::GetDirectoryName(chartFilePath);
+			const auto filePathNoExtension = IO::Path::Combine(chartDirectory, IO::Path::GetFileName(songTitle.data(), false));
+			
+			std::string combinedPath;
+			combinedPath.reserve(filePathNoExtension.size() + (5 + 4));
+
+			for (const auto extension : std::array { ".flac", ".ogg", ".mp3", ".wav" })
+			{
+				combinedPath.clear();
+				combinedPath += filePathNoExtension;
+				combinedPath += extension;
+
+				if (IO::File::Exists(combinedPath))
+					return combinedPath;
+
+				combinedPath += ".lnk";
+				if (IO::File::Exists(combinedPath))
+					return IO::Shell::ResolveFileLink(combinedPath);
+			}
+
+			return "";
 		}
 
 		IO::StreamResult PJEFile::Read(IO::StreamReader& reader)
