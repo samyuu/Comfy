@@ -177,6 +177,7 @@
     <ClCompile Include="src\Editor\Chart\BPMCalculatorWindow.cpp" />
     <ClCompile Include="src\Editor\Chart\ChartPropertiesWindow.cpp" />
     <ClCompile Include="src\Editor\Chart\ClipboardHelper.cpp" />
+    <ClCompile Include="src\Editor\Chart\FileFormat\ComfyStudioChartFile.cpp" />
     <ClCompile Include="src\Editor\Chart\FileFormat\PJEFile.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.cpp" />
     <ClCompile Include="src\Editor\Chart\TargetInspector.cpp" />
@@ -236,6 +237,7 @@
     <ClInclude Include="src\Editor\Chart\ChartCommands.h" />
     <ClInclude Include="src\Editor\Chart\ChartPropertiesWindow.h" />
     <ClInclude Include="src\Editor\Chart\ClipboardHelper.h" />
+    <ClInclude Include="src\Editor\Chart\FileFormat\ComfyStudioChartFile.h" />
     <ClInclude Include="src\Editor\Chart\FileFormat\PJEFile.h" />
     <ClInclude Include="src\Editor\Chart\KeyBindings.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.h" />
