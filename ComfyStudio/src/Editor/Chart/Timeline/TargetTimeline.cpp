@@ -897,6 +897,9 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::UpdateCursorKeyboardInput()
 	{
+		if (Gui::IsWindowHovered() && Gui::IsMouseClicked(1))
+			rangeSelection = {};
+
 		if (!Gui::IsWindowFocused())
 			return;
 
@@ -930,9 +933,6 @@ namespace Comfy::Studio::Editor
 					rangeSelection = {};
 			}
 		}
-
-		if (Gui::IsMouseClicked(1))
-			rangeSelection = {};
 	}
 
 	void TargetTimeline::UpdateInputSelectionDragging()

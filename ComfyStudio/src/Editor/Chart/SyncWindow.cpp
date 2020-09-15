@@ -57,6 +57,7 @@ namespace Comfy::Studio::Editor
 				return false;
 			});
 
+			// TODO: Option (maybe via context menu (?)) to set duration equal to song source duration + offset
 			constexpr auto durationDragSpeed = 10.0f;
 			constexpr auto durationMin = static_cast<f32>(TimeSpan::FromSeconds(1.0).TotalMilliseconds());
 			constexpr auto durationMax = std::numeric_limits<f32>::max();
