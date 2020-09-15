@@ -5,6 +5,7 @@
 #include "TargetInspector.h"
 #include "BPMCalculatorWindow.h"
 #include "ChartPropertiesWindow.h"
+#include "FileFormat/ComfyStudioChartFile.h"
 #include "Timeline/TargetTimeline.h"
 #include "RenderWindow/TargetRenderWindow.h"
 #include "Undo/Undo.h"
@@ -27,19 +28,26 @@ namespace Comfy::Studio::Editor
 
 	public:
 		bool IsAudioFile(std::string_view filePath);
-		void OpenLoadAudioFileDialog();
+		bool OpenLoadAudioFileDialog();
 
 		bool OnFileDropped(const std::string& filePath) override;
 
-		bool LoadSongAsync(std::string_view filePath);
+		void LoadSongAsync(std::string_view filePath);
 		void UnloadSong();
 
 		void CreateNewChart();
 		void LoadChartFileSync(std::string_view filePath);
 		void SaveChartFileAsync(std::string_view filePath = "");
 
-		void OpenReadChartFileDialog();
-		void OpenSaveChartFileDialog();
+		bool OpenReadChartFileDialog();
+		bool OpenSaveChartFileDialog();
+		bool TrySaveChartFileOrOpenDialog();
+
+		void ImportChartFileSync(std::string_view filePath);
+		bool OpenReadImportChartFileDialog();
+
+		bool IsChartStateSyncedToFile() const;
+		void CheckOpenSaveConfirmationPopupThenCall(std::function<void()> onSuccess);
 
 		bool IsSongAsyncLoading() const;
 
@@ -58,14 +66,17 @@ namespace Comfy::Studio::Editor
 		TimeSpan GetPlaybackTimeOnPlaybackStart() const;
 
 	private:
+		void GuiSaveConfirmationPopup();
+
 		void UpdateAsyncSongSourceLoading();
 
 	private:
-		Gui::FileViewer songFileViewer = { "dev_ram/sound/song" };
-
 		std::unique_ptr<Chart> chart = nullptr;
 		std::unique_ptr<Render::Renderer2D> renderer = nullptr;
 
+		Gui::FileViewer songFileViewer = { "dev_ram/sound/song" };
+
+	private:
 		Undo::UndoManager undoManager = {};
 		std::unique_ptr<TargetTimeline> timeline;
 		std::unique_ptr<TargetRenderWindow> renderWindow;
@@ -75,12 +86,25 @@ namespace Comfy::Studio::Editor
 		BPMCalculatorWindow bpmCalculatorWindow = { undoManager };
 		ChartPropertiesWindow chartPropertiesWindow = { *this, undoManager };
 
+	private:
+		struct SaveConfirmationPopupData
+		{
+			bool OpenOnNextFrame;
+			const char* ID = "Comfy Studio - Chart Editor##SaveConfirmationPopup";
+			std::function<void()> OnSuccessFunction;
+		} saveConfirmationPopup = {};
+
+		std::future<bool> chartSaveFileFuture;
+		std::unique_ptr<ComfyStudioChartFile> lastSavedChartFile;
+
+	private:
 		std::future<Audio::SourceHandle> songSourceFuture;
 		std::string songSourceFilePath;
 
 		Audio::SourceHandle songSource = Audio::SourceHandle::Invalid;
 		Audio::Voice songVoice = Audio::VoiceHandle::Invalid;
 
+	private:
 		bool isPlaying = false;
 		TimeSpan playbackTimeOnPlaybackStart;
 	};

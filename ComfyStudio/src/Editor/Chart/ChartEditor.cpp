@@ -22,8 +22,11 @@ namespace Comfy::Studio::Editor
 		renderWindow = std::make_unique<TargetRenderWindow>(*this, *timeline, undoManager, *renderer);
 		renderWindow->SetWorkingChart(chart.get());
 
-
 		songVoice = Audio::AudioEngine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor::SongVoice", false, 0.75f, true);
+
+		const auto fileToOpen = parentApplication.GetFileToOpenOnStartup();
+		if (!fileToOpen.empty() && Util::MatchesInsensitive(IO::Path::GetExtension(fileToOpen), ComfyStudioChartFile::Extension))
+			LoadChartFileSync(fileToOpen);
 	}
 
 	const char* ChartEditor::GetName() const
@@ -39,6 +42,7 @@ namespace Comfy::Studio::Editor
 	void ChartEditor::Gui()
 	{
 		Gui::GetCurrentWindow()->Hidden = true;
+
 		UpdateAsyncSongSourceLoading();
 
 		if (Gui::Begin(ICON_FA_FOLDER "  Song Loader##AetEditor", nullptr, ImGuiWindowFlags_None))
@@ -95,6 +99,8 @@ namespace Comfy::Studio::Editor
 		}
 		Gui::End();
 
+		GuiSaveConfirmationPopup();
+
 		undoManager.FlushExecuteEndOfFrameCommands();
 	}
 
@@ -103,28 +109,48 @@ namespace Comfy::Studio::Editor
 		// TODO: Restructure all of this, should probably be part of the currently active editor component (?); Dummy menus for now
 		if (Gui::BeginMenu("File"))
 		{
-			if (Gui::MenuItem("New", nullptr, false, true))
-				CreateNewChart();
+			if (Gui::MenuItem("New Chart", nullptr, false, true))
+				CheckOpenSaveConfirmationPopupThenCall([this] { CreateNewChart(); });
 
 			if (Gui::MenuItem("Open...", nullptr, false, true))
-				OpenReadChartFileDialog();
+				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadChartFileDialog(); });
 
-			// TODO:
-			if (Gui::MenuItem("Open Recent", nullptr, false, false)) {}
+			if (Gui::BeginMenu("Open Recent"))
+			{
+				// TODO: Read and write to / from config file (?)
+				for (const auto path : std::array { "dev_ram/chart/test/test_chart.csfm" })
+				{
+					if (Gui::MenuItem(path))
+					{
+						// TODO: CheckOpenSaveConfirmationPopupThenCall([this, path] { LoadChartFileSync(path); });
+					}
+				}
+
+				// TODO: Clear config file entries
+				if (Gui::MenuItem("Clear Items")) {}
+
+				Gui::EndMenu();
+			}
 			Gui::Separator();
 
 			if (Gui::MenuItem("Save", "Ctrl + S", false, true))
-				SaveChartFileAsync();
+				TrySaveChartFileOrOpenDialog();
 			if (Gui::MenuItem("Save As...", "Ctrl + Shift + S", false, true))
 				OpenSaveChartFileDialog();
 			Gui::Separator();
 
-			// TODO:
-			if (Gui::MenuItem("Import...", nullptr, false, false)) {}
+			if (Gui::MenuItem("Import...", nullptr, false, true))
+				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadImportChartFileDialog(); });
+
+			if (Gui::MenuItem("Export...", nullptr, false, false))
+			{
+				// TODO:
+			}
+
 			Gui::Separator();
 
-			if (Gui::MenuItem("Exit...", "Alt + F4"))
-				parentApplication.Exit();
+			if (Gui::MenuItem("Exit", "Alt + F4"))
+				CheckOpenSaveConfirmationPopupThenCall([this] { parentApplication.Exit(); });
 
 			Gui::EndMenu();
 		}
@@ -149,7 +175,7 @@ namespace Comfy::Studio::Editor
 		return IO::Path::DoesAnyPackedExtensionMatch(IO::Path::GetExtension(filePath), ".flac;.ogg;.mp3;.wav");
 	}
 
-	void ChartEditor::OpenLoadAudioFileDialog()
+	bool ChartEditor::OpenLoadAudioFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
 		fileDialog.FileName;
@@ -165,16 +191,23 @@ namespace Comfy::Studio::Editor
 		};
 		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
 
-		if (fileDialog.OpenRead())
-			LoadSongAsync(IO::Path::Normalize(fileDialog.OutFilePath));
+		if (!fileDialog.OpenRead())
+			return false;
+
+		LoadSongAsync(IO::Path::Normalize(fileDialog.OutFilePath));
+		return true;
 	}
 
 	bool ChartEditor::OnFileDropped(const std::string& filePath)
 	{
-		return (IsAudioFile(filePath) && LoadSongAsync(filePath));
+		if (!IsAudioFile(filePath))
+			return false;
+
+		LoadSongAsync(filePath);
+		return true;
 	}
 
-	bool ChartEditor::LoadSongAsync(std::string_view filePath)
+	void ChartEditor::LoadSongAsync(std::string_view filePath)
 	{
 		UnloadSong();
 
@@ -185,8 +218,6 @@ namespace Comfy::Studio::Editor
 		// NOTE: Clear file name here so the chart properties window help loading text is displayed
 		//		 then set again once the song audio file has finished loading
 		chart->SongFileName.clear();
-
-		return true;
 	}
 
 	void ChartEditor::UnloadSong()
@@ -207,11 +238,6 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::CreateNewChart()
 	{
-		if (!undoManager.GetRedoStackView().empty())
-		{
-			// TODO: Save data warning dialog
-		}
-
 		undoManager.ClearAll();
 		chart = std::make_unique<Chart>();
 		chart->UpdateMapTimes();
@@ -223,45 +249,24 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::LoadChartFileSync(std::string_view filePath)
 	{
-		// DEBUG: Only support pje for now
-		if (!Util::EndsWithInsensitive(songFileViewer.GetFileToOpen(), Legacy::PJEFile::Extension))
+		if (!Util::EndsWithInsensitive(filePath, ComfyStudioChartFile::Extension))
 			return;
 
-		const auto pjeFile = IO::File::Load<Legacy::PJEFile>(filePath);
-		if (pjeFile == nullptr)
+		const auto chartFile = IO::File::Load<ComfyStudioChartFile>(filePath);
+		if (chartFile == nullptr)
 			return;
 
 		undoManager.ClearAll();
 
 		// TODO: Additional processing, setting up file paths etc.
-		chart = pjeFile->ToChart();
+		chart = chartFile->ToChart();
 		chart->UpdateMapTimes();
 		chart->ChartFilePath = std::string(filePath);
 
-		auto getChartSongFilePath = [&]() -> std::string
-		{
-			const auto chartDirectory = IO::Path::GetDirectoryName(filePath);
-			if (!chart->SongFileName.empty())
-				return IO::Path::Combine(chartDirectory, chart->SongFileName);
+		const auto chartDirectory = IO::Path::GetDirectoryName(filePath);
+		const auto songFilePath = !chart->SongFileName.empty() ? IO::Path::Combine(chartDirectory, chart->SongFileName) : "";
 
-			const auto filePathNoExtension = IO::Path::Combine(chartDirectory, IO::Path::GetFileName(chart->Properties.Song.Title, false));
-			std::string combinedPath;
-			combinedPath.reserve(filePathNoExtension.size() + 5);
-
-			for (const auto extension : std::array { ".flac", ".ogg", ".mp3", ".wav" })
-			{
-				combinedPath.clear();
-				combinedPath += filePathNoExtension;
-				combinedPath += extension;
-
-				if (IO::File::Exists(combinedPath))
-					return combinedPath;
-			}
-
-			return "";
-		};
-
-		LoadSongAsync(getChartSongFilePath());
+		LoadSongAsync(songFilePath);
 
 		timeline->SetWorkingChart(chart.get());
 		renderWindow->SetWorkingChart(chart.get());
@@ -274,47 +279,104 @@ namespace Comfy::Studio::Editor
 
 		if (!chart->ChartFilePath.empty())
 		{
-			// TODO: Implement
-			assert(false);
+			if (chartSaveFileFuture.valid())
+				chartSaveFileFuture.get();
 
-			/*
-			[this] std::future<bool> chartSaveFuture;
-			[this] std::unique_ptr<ComfyStudioChartFile> chartFile;
-
-			if (chartSaveFuture.valid())
-				chartSaveFuture.get();
-
-			chartFile = std::make_unique<ComfyStudioChartFile>(*chart);
-			chartSaveFuture = IO::File::SaveAsync(chart->ChartFilePath, *chartFile);
-			*/
-		}
-		else
-		{
-			// TODO: No path specified... maybe write to some temp directory instead (?)
-			assert(false);
+			lastSavedChartFile = std::make_unique<ComfyStudioChartFile>(*chart);
+			chartSaveFileFuture = IO::File::SaveAsync(chart->ChartFilePath, lastSavedChartFile.get());
 		}
 	}
 
-	void ChartEditor::OpenReadChartFileDialog()
-	{
-		// TODO: Implement
-	}
-
-	void ChartEditor::OpenSaveChartFileDialog()
+	bool ChartEditor::OpenReadChartFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
-		// TODO: Default name based on song title
-		fileDialog.FileName = chart->ChartFilePath;
-		fileDialog.DefaultExtension = ""; // ComfyStudioChartFile::Extension;
-		fileDialog.Filters = { { "Comfy Studio Chart File (*.csfm)", "*.csfm" }, };
+		fileDialog.DefaultExtension = ComfyStudioChartFile::Extension;
+		fileDialog.Filters = { { std::string(ComfyStudioChartFile::FilterName), std::string(ComfyStudioChartFile::FilterSpec) }, };
+		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
+
+		if (!fileDialog.OpenRead())
+			return false;
+
+		LoadChartFileSync(fileDialog.OutFilePath);
+		return true;
+	}
+
+	bool ChartEditor::OpenSaveChartFileDialog()
+	{
+		IO::Shell::FileDialog fileDialog;
+		fileDialog.FileName =
+			!chart->ChartFilePath.empty() ? IO::Path::GetFileName(chart->ChartFilePath) :
+			!chart->Properties.Song.Title.empty() ? chart->Properties.Song.Title :
+			"Untitled Chart";
+
+		fileDialog.DefaultExtension = ComfyStudioChartFile::Extension;
+		fileDialog.Filters = { { std::string(ComfyStudioChartFile::FilterName), std::string(ComfyStudioChartFile::FilterSpec) }, };
 		// TODO: Option to copy audio file into output directory if absolute path
 		// fileDialog.CustomizeItems;
 		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
 
 		if (!fileDialog.OpenSave())
-			return;
+			return false;
 
 		SaveChartFileAsync(fileDialog.OutFilePath);
+		return true;
+	}
+
+	bool ChartEditor::TrySaveChartFileOrOpenDialog()
+	{
+		if (chart->ChartFilePath.empty())
+			return OpenSaveChartFileDialog();
+		else
+			SaveChartFileAsync();
+		return true;
+	}
+
+	void ChartEditor::ImportChartFileSync(std::string_view filePath)
+	{
+		// DEBUG: Only support pje for now
+		const auto pjeFile = Util::EndsWithInsensitive(filePath, Legacy::PJEFile::Extension) ? IO::File::Load<Legacy::PJEFile>(filePath) : nullptr;
+
+		undoManager.ClearAll();
+		chart = (pjeFile != nullptr) ? pjeFile->ToChart() : std::make_unique<Chart>();
+		chart->UpdateMapTimes();
+		LoadSongAsync((pjeFile != nullptr) ? pjeFile->TryFindSongFilePath(filePath) : "");
+
+		timeline->SetWorkingChart(chart.get());
+		renderWindow->SetWorkingChart(chart.get());
+	}
+
+	bool ChartEditor::OpenReadImportChartFileDialog()
+	{
+		IO::Shell::FileDialog fileDialog;
+		fileDialog.DefaultExtension = Legacy::PJEFile::Extension;
+		fileDialog.Filters = { { std::string(Legacy::PJEFile::FilterName), std::string(Legacy::PJEFile::FilterSpec) }, };
+		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
+
+		if (!fileDialog.OpenRead())
+			return false;
+
+		ImportChartFileSync(fileDialog.OutFilePath);
+		return true;
+	}
+
+	bool ChartEditor::IsChartStateSyncedToFile() const
+	{
+		// TODO: Compare data against lastSavedChartFile (?)
+		//		 or set "isDirty" flag when an action is executed (wouldn't work with non undoable song info edits)
+		return undoManager.GetUndoStackView().empty();
+	}
+
+	void ChartEditor::CheckOpenSaveConfirmationPopupThenCall(std::function<void()> onSuccess)
+	{
+		if (!IsChartStateSyncedToFile())
+		{
+			saveConfirmationPopup.OpenOnNextFrame = true;
+			saveConfirmationPopup.OnSuccessFunction = std::move(onSuccess);
+		}
+		else
+		{
+			onSuccess();
+		}
 	}
 
 	bool ChartEditor::IsSongAsyncLoading() const
@@ -335,6 +397,46 @@ namespace Comfy::Studio::Editor
 	TimeSpan ChartEditor::GetPlaybackTimeOnPlaybackStart() const
 	{
 		return playbackTimeOnPlaybackStart;
+	}
+
+	void ChartEditor::GuiSaveConfirmationPopup()
+	{
+		if (saveConfirmationPopup.OpenOnNextFrame)
+		{
+			Gui::OpenPopup(saveConfirmationPopup.ID);
+			saveConfirmationPopup.OpenOnNextFrame = false;
+		}
+
+		auto* viewport = Gui::GetMainViewport();
+		Gui::SetNextWindowPos(viewport->Pos + (viewport->Size / 2.0f), ImGuiCond_Appearing, vec2(0.5f));
+
+		if (Gui::BeginPopupModal(saveConfirmationPopup.ID, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			Gui::Text("Save changes to the current file?\n\n\n");
+			Gui::Separator();
+
+			const bool clickedYes = Gui::Button("Yes", vec2(120.0f, 0.0f));
+			Gui::SameLine();
+			const bool clickedNo = Gui::Button("No", vec2(120.0f, 0.0f));
+			Gui::SameLine();
+			const bool clickedCancel = Gui::Button("Cancel", vec2(120.0f, 0.0f)) || (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Escape));
+
+			if (clickedYes || clickedNo || clickedCancel)
+			{
+				const bool saveDialogCanceled = clickedYes ? !TrySaveChartFileOrOpenDialog() : false;
+				if (saveConfirmationPopup.OnSuccessFunction)
+				{
+					if (!clickedCancel && !saveDialogCanceled)
+						saveConfirmationPopup.OnSuccessFunction();
+
+					saveConfirmationPopup.OnSuccessFunction = {};
+				}
+
+				Gui::CloseCurrentPopup();
+			}
+
+			Gui::EndPopup();
+		}
 	}
 
 	void ChartEditor::UpdateAsyncSongSourceLoading()
@@ -358,15 +460,17 @@ namespace Comfy::Studio::Editor
 			chart->SongFileName = (!chartDirectory.empty() && chartDirectory == songDirectory) ? IO::Path::GetFileName(songSourceFilePath, true) : songSourceFilePath;
 		}
 
-		if (chart->Duration <= TimeSpan::Zero() || chart->ChartFilePath.empty())
+		if (chart->Duration <= TimeSpan::Zero())
 			chart->Duration = songVoice.GetDuration();
 
-		if (chart->ChartFilePath.empty())
+		auto& songInfo = chart->Properties.Song;
 		{
 			// TODO: Extract metadata from audio file
-			chart->Properties.Song.Title = IO::Path::GetFileName(songSourceFilePath, false);
-			chart->Properties.Song.Artist;
-			chart->Properties.Song.Album;
+			if (songInfo.Title.empty())
+				songInfo.Title = IO::Path::GetFileName(songSourceFilePath, false);
+
+			songInfo.Artist;
+			songInfo.Album;
 		}
 
 		SetPlaybackTime(oldPlaybackTime);
