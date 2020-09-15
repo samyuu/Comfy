@@ -37,7 +37,9 @@ int main(int argc, const char* argv[])
 	if (commandLineResult == Comfy::Studio::System::CommandLineResult::Exit)
 		return EXIT_SUCCESS;
 
-	Comfy::Studio::Application application;
+	const auto fileToOpen = (argc == 2) ? argv[1] : "";
+
+	auto application = Comfy::Studio::Application(fileToOpen);
 	application.Run();
 
 	return EXIT_SUCCESS;

@@ -14,7 +14,7 @@ namespace Comfy::Studio
 		static constexpr std::string_view CopyrightNotice = "Copyright (C) 2020 Samyuu";
 
 	public:
-		Application() = default;
+		Application(std::string_view fileToOpen = "");
 		~Application() = default;
 
 		// NOTE: Initialize and enter the main loop
@@ -25,6 +25,7 @@ namespace Comfy::Studio
 
 	public:
 		ApplicationHost& GetHost();
+		std::string_view GetFileToOpenOnStartup() const;
 
 		void SetFormattedWindowTitle(std::string_view subTitle);
 
@@ -60,6 +61,8 @@ namespace Comfy::Studio
 
 	private:
 		std::unique_ptr<ApplicationHost> host = nullptr;
+
+		std::string fileToOpenOnStartup;
 
 		// NOTE: Should probably be disabled for final release builds but needlessly adds a lot of closing latency
 		const bool skipApplicationCleanup = true;

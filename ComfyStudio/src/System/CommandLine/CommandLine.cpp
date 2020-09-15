@@ -3,7 +3,7 @@
 
 namespace Comfy::Studio::System
 {
-	CommandLineResult CommandLine::Parse(int count, const char* arguments[])
+	CommandLineResult CommandLine::Parse(int count, const char* arguments[], bool ignoreInvalid)
 	{
 		if (count < 2)
 			return CommandLineResult::Continue;
@@ -46,6 +46,9 @@ namespace Comfy::Studio::System
 			}
 			else if (commandResult == CommandProcessResult::Invalid)
 			{
+				if (ignoreInvalid)
+					return CommandLineResult::Continue;
+
 				OnInvalidArgument(arguments[currentArgumentIndex]);
 				return CommandLineResult::Exit;
 			}

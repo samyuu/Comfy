@@ -1,4 +1,6 @@
 #pragma once
+#include "Types.h"
+#include "CoreTypes.h"
 #include "CommandLineOption.h"
 
 namespace Comfy::Studio::System
@@ -18,7 +20,7 @@ namespace Comfy::Studio::System
 		CommandLine() = delete;
 
 	public:
-		static CommandLineResult Parse(int count, const char* arguments[]);
+		static CommandLineResult Parse(int count, const char* arguments[], bool ignoreInvalid = true);
 
 	private:
 		static CommandProcessResult ProcessCommand(const char* arguments[], int& currentArgumentIndex, int& remainingArgumentCount);

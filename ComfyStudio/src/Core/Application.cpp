@@ -25,6 +25,10 @@ namespace Comfy::Studio
 
 	static Application* GlobalLastCreatedApplication = nullptr;
 
+	Application::Application(std::string_view fileToOpen) : fileToOpenOnStartup(fileToOpen)
+	{
+	}
+
 	void Application::Run()
 	{
 		GlobalLastCreatedApplication = this;
@@ -54,6 +58,11 @@ namespace Comfy::Studio
 	ApplicationHost& Application::GetHost()
 	{
 		return *host;
+	}
+
+	std::string_view Application::GetFileToOpenOnStartup() const
+	{
+		return fileToOpenOnStartup;
 	}
 
 	void Application::SetFormattedWindowTitle(std::string_view subTitle)
