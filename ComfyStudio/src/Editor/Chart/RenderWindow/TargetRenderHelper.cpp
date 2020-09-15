@@ -171,7 +171,7 @@ namespace Comfy::Studio::Editor
 				sprites.PracticeNumbers = findSprite(*sprGame, "PRC_NUM24X36");
 			}
 
-			if (GetFutureIfReady(sprFont36Future, sprFont36))
+			if (GetFutureIfReady(sprFont36Future, sprFont36) && sprFont36 != nullptr)
 			{
 				renderer.UploadToGPUFreeCPUMemory(*sprFont36);
 			}
