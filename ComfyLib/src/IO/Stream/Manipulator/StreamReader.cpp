@@ -7,7 +7,7 @@ namespace Comfy::IO
 		// NOTE: Account for the ending null byte
 		size_t length = sizeof('\0');
 
-		ReadAt(GetPosition(), [&length](StreamReader& reader) 
+		ReadAt(GetPosition(), [&length](StreamReader& reader)
 		{
 			while (reader.ReadChar() != '\0' && !reader.EndOfFile())
 				length++;
@@ -40,6 +40,15 @@ namespace Comfy::IO
 	std::string StreamReader::ReadStrPtrOffsetAware()
 	{
 		return ReadStrAtOffsetAware(ReadPtr());
+	}
+
+	void StreamReader::SeekAlign(i32 alignment)
+	{
+		const auto position = static_cast<i64>(GetPosition());
+		const auto bytesUntilAligned = ((position + (alignment - 1)) & ~(alignment - 1)) - position;
+
+		if (bytesUntilAligned > 0)
+			Skip(static_cast<FileAddr>(bytesUntilAligned));
 	}
 
 	void StreamReader::OnPointerModeChanged()
