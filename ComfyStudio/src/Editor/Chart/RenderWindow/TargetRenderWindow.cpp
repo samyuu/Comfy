@@ -176,17 +176,17 @@ namespace Comfy::Studio::Editor
 				targetData.NoScale = !isPlayback;
 				targetData.Sync = target.Flags.IsSync;
 				targetData.HoldText = target.Flags.IsHold;
-				targetData.Chain = (target.Flags.IsChain && !target.Flags.IsChainStart);
-				targetData.ChainHit = false;
+				targetData.Fragment = (target.Flags.IsChain && !target.Flags.IsChainStart);
+				targetData.FragmentHit = (targetData.Fragment && targetData.NoHand);
 				targetData.Position = properties.Position;
 				targetData.Progress = progress;
 
 				if (!targetData.NoHand)
 				{
 					auto& buttonData = drawBuffers.Buttons.emplace_back();
-					buttonData.Type = target.Type;
-					buttonData.Sync = target.Flags.IsSync;
-					buttonData.Chain = (target.Flags.IsChain && !target.Flags.IsChainStart);
+					buttonData.Type = targetData.Type;
+					buttonData.Sync = targetData.Sync;
+					buttonData.Fragment = targetData.Fragment;
 					buttonData.Shadow = (isPlayback || true) ? TargetRenderHelper::ButtonShadowType::Black : TargetRenderHelper::ButtonShadowType::None;
 					buttonData.Position = GetButtonPathSinePoint(progress, properties);
 					buttonData.Progress = progress;
@@ -240,7 +240,16 @@ namespace Comfy::Studio::Editor
 		}
 
 		for (const auto& data : drawBuffers.Targets)
-			renderHelper->DrawTarget(renderer, data);
+		{
+			if (!data.FragmentHit)
+				renderHelper->DrawTarget(renderer, data);
+		}
+
+		for (const auto& data : drawBuffers.Targets)
+		{
+			if (data.FragmentHit)
+				renderHelper->DrawTarget(renderer, data);
+		}
 
 		for (const auto& data : drawBuffers.SyncLines)
 			renderHelper->DrawButtonPairSyncLines(renderer, data);

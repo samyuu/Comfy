@@ -317,8 +317,21 @@ namespace Comfy::Studio::Editor
 
 		void DrawTarget(Render::Renderer2D& renderer, const TargetData& data) const
 		{
-			// TODO: Handle all other target types
-			const auto* layer = (data.Sync ? layers.TargetsSync : layers.Targets)[static_cast<size_t>(data.Type)].get();
+			auto getLayerArray = [this](const TargetData& data) -> auto&
+			{
+				if (data.Fragment)
+					return data.FragmentHit ? layers.TargetsFragHit : data.Sync ? layers.TargetsFragSync : layers.TargetsFrag;
+
+				if (data.Sync)
+					return data.HoldText ? layers.TargetsSyncHold : layers.TargetsSync;
+
+				if (data.HoldText)
+					return layers.TargetsHold;
+
+				return layers.Targets;
+			};
+
+			const auto* layer = getLayerArray(data)[static_cast<size_t>(data.Type)].get();
 			if (layer == nullptr)
 				return;
 
@@ -338,8 +351,15 @@ namespace Comfy::Studio::Editor
 
 		void DrawButton(Render::Renderer2D& renderer, const ButtonData& data) const
 		{
-			// TODO: Handle all other button types
-			const auto* layer = (data.Sync ? layers.ButtonsSync : layers.Buttons)[static_cast<size_t>(data.Type)].get();
+			auto getLayerArray = [this](const ButtonData& data) -> auto&
+			{
+				if (data.Fragment)
+					return data.Sync ? layers.ButtonsFragSync : layers.ButtonsFrag;
+
+				return data.Sync ? layers.ButtonsSync : layers.Buttons;
+			};
+
+			const auto* layer = getLayerArray(data)[static_cast<size_t>(data.Type)].get();
 			if (layer == nullptr)
 				return;
 
@@ -350,8 +370,8 @@ namespace Comfy::Studio::Editor
 		void DrawButtonShadow(Render::Renderer2D& renderer, const ButtonData& data) const
 		{
 			const auto* layer =
-				(data.Shadow == ButtonShadowType::Black) ? (data.Chain ? layers.ButtonShadowsBlackFrag : layers.ButtonShadowsBlack)[static_cast<size_t>(data.Type)].get() :
-				(data.Shadow == ButtonShadowType::White) ? (data.Chain ? layers.ButtonShadowsWhiteFrag : layers.ButtonShadowsWhite)[static_cast<size_t>(data.Type)].get() : nullptr;
+				(data.Shadow == ButtonShadowType::Black) ? (data.Fragment ? layers.ButtonShadowsBlackFrag : layers.ButtonShadowsBlack)[static_cast<size_t>(data.Type)].get() :
+				(data.Shadow == ButtonShadowType::White) ? (data.Fragment ? layers.ButtonShadowsWhiteFrag : layers.ButtonShadowsWhite)[static_cast<size_t>(data.Type)].get() : nullptr;
 
 			if (layer == nullptr)
 				return;
