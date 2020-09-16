@@ -11,8 +11,15 @@ namespace Comfy::IO
 
 	void StreamWriter::WriteStrPtr(std::string_view value, i32 alignment)
 	{
-		stringPointerPool.push_back({ GetPosition(), value, alignment });
-		WritePtr(FileAddr::NullPtr);
+		if (settings.EmptyNullStringPointers && value.empty())
+		{
+			WritePtr(FileAddr::NullPtr);
+		}
+		else
+		{
+			stringPointerPool.push_back({ GetPosition(), value, alignment });
+			WritePtr(FileAddr::NullPtr);
+		}
 	}
 
 	void StreamWriter::WriteFuncPtr(const std::function<void(StreamWriter&)>& func, FileAddr baseAddress)

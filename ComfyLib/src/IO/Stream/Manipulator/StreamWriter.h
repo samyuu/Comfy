@@ -38,6 +38,9 @@ namespace Comfy::IO
 		void FlushPointerPool();
 		void FlushDelayedWritePool();
 
+		inline bool GetWriteEmptyNullStrPtr() const { return settings.EmptyNullStringPointers; }
+		inline void SetWriteEmptyNullStrPtr(bool value) { settings.EmptyNullStringPointers = value; }
+
 	public:
 		inline void WritePtr(FileAddr value) { (this->*writePtrFunc)(value); }
 		inline void WriteSize(size_t value) { (this->*writeSizeFunc)(value); }
@@ -100,6 +103,7 @@ namespace Comfy::IO
 
 		struct Settings
 		{
+			bool EmptyNullStringPointers = false;
 			bool PoolStrings = true;
 		} settings;
 
