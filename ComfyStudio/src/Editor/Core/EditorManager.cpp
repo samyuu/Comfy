@@ -156,6 +156,9 @@ namespace Comfy::Studio::Editor
 		const auto* editor = IndexOrNull(activeEditorIndex, registeredEditors);
 		const auto editorName = (editor != nullptr) ? std::string_view(editor->Name) : "";
 
+		if (editor != nullptr && editor->Component != nullptr)
+			editor->Component->OnEditorComponentMadeActive();
+
 		parent.SetFormattedWindowTitle(editorName);
 		System::Config.SetStr(EditorManagerConfigIDs::ActiveEditor, editorName);
 	}
@@ -217,7 +220,10 @@ namespace Comfy::Studio::Editor
 
 		auto& editor = registeredEditors[activeEditorIndex];
 		if (editor.Component == nullptr && initiailizeIfNull)
+		{
 			editor.Component = editor.ComponentInitializer();
+			editor.Component->OnEditorComponentMadeActive();
+		}
 
 		return editor.Component.get();
 	}
