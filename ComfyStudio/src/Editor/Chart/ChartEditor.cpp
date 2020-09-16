@@ -3,12 +3,18 @@
 #include "FileFormat/PJEFile.h"
 #include "IO/Path.h"
 #include "IO/Shell.h"
+#include "IO/Directory.h"
 #include "Misc/StringUtil.h"
 #include "Core/Application.h"
 #include <FontIcons.h>
 
 namespace Comfy::Studio::Editor
 {
+	namespace
+	{
+		static constexpr std::string_view FallbackChartFileName = "Untitled Chart.csfm";
+	}
+
 	ChartEditor::ChartEditor(Application& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
 		chart = std::make_unique<Chart>();
@@ -43,62 +49,10 @@ namespace Comfy::Studio::Editor
 	{
 		Gui::GetCurrentWindow()->Hidden = true;
 
+		UpdateApplicationWindowTitle();
 		UpdateAsyncSongSourceLoading();
 
-		if (Gui::Begin(ICON_FA_FOLDER "  Song Loader##AetEditor", nullptr, ImGuiWindowFlags_None))
-		{
-			Gui::BeginChild("SongLoaderChild##ChartEditor");
-
-			songFileViewer.SetIsReadOnly(IsSongAsyncLoading());
-			if (songFileViewer.DrawGui())
-			{
-				if (IsAudioFile(songFileViewer.GetFileToOpen()))
-					LoadSongAsync(songFileViewer.GetFileToOpen());
-				else // TEMP: For quick testing, chart files should be loaded through a menu item instead
-					LoadChartFileSync(songFileViewer.GetFileToOpen());
-			}
-			Gui::EndChild();
-		}
-		Gui::End();
-
-		if (Gui::Begin(ICON_FA_MUSIC "  Target Timeline##ChartEditor", nullptr, ImGuiWindowFlags_None))
-		{
-			timeline->DrawTimelineGui();
-		}
-		Gui::End();
-
-		if (Gui::Begin(ICON_FA_SYNC "  Sync Window##ChartEditor", nullptr, ImGuiWindowFlags_None))
-		{
-			syncWindow.Gui(*chart, *timeline);
-		}
-		Gui::End();
-
-		if (Gui::Begin(ICON_FA_INFO_CIRCLE "  Target Inspector##ChartEditor", nullptr, ImGuiWindowFlags_None))
-		{
-			inspector.Gui(*chart);
-		}
-		Gui::End();
-
-		renderWindow->BeginEndGui(ICON_FA_CHART_BAR "  Target Preview##ChartEditor");
-
-		if (Gui::Begin(ICON_FA_HISTORY "  Chart Editor History##ChartEditor"))
-		{
-			historyWindow.Gui();
-		}
-		Gui::End();
-
-		if (Gui::Begin(ICON_FA_STOPWATCH "  BPM Calculator##ChartEditor", nullptr, ImGuiWindowFlags_None))
-		{
-			bpmCalculatorWindow.Gui(*chart, GetIsPlayback() ? GetPlaybackTimeOnPlaybackStart() : GetPlaybackTimeAsync());
-		}
-		Gui::End();
-
-		if (Gui::Begin(ICON_FA_LIST_UL "  Chart Properties", nullptr, ImGuiWindowFlags_None))
-		{
-			chartPropertiesWindow.Gui(*chart);
-		}
-		Gui::End();
-
+		GuiSubWindows();
 		GuiSaveConfirmationPopup();
 
 		undoManager.FlushExecuteEndOfFrameCommands();
@@ -115,15 +69,13 @@ namespace Comfy::Studio::Editor
 			if (Gui::MenuItem("Open...", nullptr, false, true))
 				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadChartFileDialog(); });
 
-			if (Gui::BeginMenu("Open Recent"))
+			if (Gui::BeginMenu("Open Recent", false))
 			{
 				// TODO: Read and write to / from config file (?)
 				for (const auto path : std::array { "dev_ram/chart/test/test_chart.csfm" })
 				{
 					if (Gui::MenuItem(path))
-					{
-						// TODO: CheckOpenSaveConfirmationPopupThenCall([this, path] { LoadChartFileSync(path); });
-					}
+						CheckOpenSaveConfirmationPopupThenCall([this, path] { LoadChartFileSync(path); });
 				}
 
 				// TODO: Clear config file entries
@@ -131,6 +83,14 @@ namespace Comfy::Studio::Editor
 
 				Gui::EndMenu();
 			}
+
+			const auto chartDirectory = IO::Path::GetDirectoryName(chart->ChartFilePath);
+			if (Gui::MenuItem("Open Chart Directory...", nullptr, false, !chartDirectory.empty()))
+			{
+				if (IO::Directory::Exists(chartDirectory))
+					IO::Shell::OpenInExplorer(chartDirectory);
+			}
+
 			Gui::Separator();
 
 			if (Gui::MenuItem("Save", "Ctrl + S", false, true))
@@ -168,6 +128,11 @@ namespace Comfy::Studio::Editor
 
 			Gui::EndMenu();
 		}
+	}
+
+	void ChartEditor::OnEditorComponentMadeActive()
+	{
+		lastSetWindowTitle.clear();
 	}
 
 	bool ChartEditor::IsAudioFile(std::string_view filePath)
@@ -307,7 +272,7 @@ namespace Comfy::Studio::Editor
 		fileDialog.FileName =
 			!chart->ChartFilePath.empty() ? IO::Path::GetFileName(chart->ChartFilePath) :
 			!chart->Properties.Song.Title.empty() ? chart->Properties.Song.Title :
-			"Untitled Chart";
+			FallbackChartFileName;
 
 		fileDialog.DefaultExtension = ComfyStudioChartFile::Extension;
 		fileDialog.Filters = { { std::string(ComfyStudioChartFile::FilterName), std::string(ComfyStudioChartFile::FilterSpec) }, };
@@ -399,43 +364,15 @@ namespace Comfy::Studio::Editor
 		return playbackTimeOnPlaybackStart;
 	}
 
-	void ChartEditor::GuiSaveConfirmationPopup()
+	void ChartEditor::UpdateApplicationWindowTitle()
 	{
-		if (saveConfirmationPopup.OpenOnNextFrame)
+		const auto fileName = chart->ChartFilePath.empty() ? FallbackChartFileName : IO::Path::GetFileName(chart->ChartFilePath, true);
+
+		// NOTE: Comparing a few characters each frame should be well worth not having to manually sync the window title every time the chart file path is updated externally
+		if (fileName != lastSetWindowTitle)
 		{
-			Gui::OpenPopup(saveConfirmationPopup.ID);
-			saveConfirmationPopup.OpenOnNextFrame = false;
-		}
-
-		auto* viewport = Gui::GetMainViewport();
-		Gui::SetNextWindowPos(viewport->Pos + (viewport->Size / 2.0f), ImGuiCond_Appearing, vec2(0.5f));
-
-		if (Gui::BeginPopupModal(saveConfirmationPopup.ID, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-		{
-			Gui::Text("Save changes to the current file?\n\n\n");
-			Gui::Separator();
-
-			const bool clickedYes = Gui::Button("Yes", vec2(120.0f, 0.0f));
-			Gui::SameLine();
-			const bool clickedNo = Gui::Button("No", vec2(120.0f, 0.0f));
-			Gui::SameLine();
-			const bool clickedCancel = Gui::Button("Cancel", vec2(120.0f, 0.0f)) || (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Escape));
-
-			if (clickedYes || clickedNo || clickedCancel)
-			{
-				const bool saveDialogCanceled = clickedYes ? !TrySaveChartFileOrOpenDialog() : false;
-				if (saveConfirmationPopup.OnSuccessFunction)
-				{
-					if (!clickedCancel && !saveDialogCanceled)
-						saveConfirmationPopup.OnSuccessFunction();
-
-					saveConfirmationPopup.OnSuccessFunction = {};
-				}
-
-				Gui::CloseCurrentPopup();
-			}
-
-			Gui::EndPopup();
+			parentApplication.SetFormattedWindowTitle(fileName);
+			lastSetWindowTitle = fileName;
 		}
 	}
 
@@ -475,6 +412,103 @@ namespace Comfy::Studio::Editor
 
 		SetPlaybackTime(oldPlaybackTime);
 		timeline->OnSongLoaded();
+	}
+
+	void ChartEditor::GuiSubWindows()
+	{
+#if 1 // TODO: Remove in favor of the chart properties window song file name input widget
+		if (Gui::Begin(ICON_FA_FOLDER "  Song Loader##ChartEditor", nullptr, ImGuiWindowFlags_None))
+		{
+			Gui::BeginChild("SongLoaderChild##ChartEditor");
+
+			songFileViewer.SetIsReadOnly(IsSongAsyncLoading());
+			if (songFileViewer.DrawGui())
+			{
+				if (IsAudioFile(songFileViewer.GetFileToOpen()))
+					LoadSongAsync(songFileViewer.GetFileToOpen());
+			}
+			Gui::EndChild();
+		}
+		Gui::End();
+#endif
+
+		if (Gui::Begin(ICON_FA_MUSIC "  Target Timeline##ChartEditor", nullptr, ImGuiWindowFlags_None))
+		{
+			timeline->DrawTimelineGui();
+		}
+		Gui::End();
+
+		if (Gui::Begin(ICON_FA_SYNC "  Sync Window##ChartEditor", nullptr, ImGuiWindowFlags_None))
+		{
+			syncWindow.Gui(*chart, *timeline);
+		}
+		Gui::End();
+
+		if (Gui::Begin(ICON_FA_INFO_CIRCLE "  Target Inspector##ChartEditor", nullptr, ImGuiWindowFlags_None))
+		{
+			inspector.Gui(*chart);
+		}
+		Gui::End();
+
+		renderWindow->BeginEndGui(ICON_FA_CHART_BAR "  Target Preview##ChartEditor");
+
+		if (Gui::Begin(ICON_FA_HISTORY "  Chart Editor History##ChartEditor"))
+		{
+			historyWindow.Gui();
+		}
+		Gui::End();
+
+		if (Gui::Begin(ICON_FA_STOPWATCH "  BPM Calculator##ChartEditor", nullptr, ImGuiWindowFlags_None))
+		{
+			bpmCalculatorWindow.Gui(*chart, GetIsPlayback() ? GetPlaybackTimeOnPlaybackStart() : GetPlaybackTimeAsync());
+		}
+		Gui::End();
+
+		if (Gui::Begin(ICON_FA_LIST_UL "  Chart Properties", nullptr, ImGuiWindowFlags_None))
+		{
+			chartPropertiesWindow.Gui(*chart);
+		}
+		Gui::End();
+	}
+
+	void ChartEditor::GuiSaveConfirmationPopup()
+	{
+		if (saveConfirmationPopup.OpenOnNextFrame)
+		{
+			Gui::OpenPopup(saveConfirmationPopup.ID);
+			saveConfirmationPopup.OpenOnNextFrame = false;
+		}
+
+		const auto* viewport = Gui::GetMainViewport();
+		Gui::SetNextWindowPos(viewport->Pos + (viewport->Size / 2.0f), ImGuiCond_Appearing, vec2(0.5f));
+
+		if (Gui::BeginPopupModal(saveConfirmationPopup.ID, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			Gui::Text("Save changes to the current file?\n\n\n");
+			Gui::Separator();
+
+			const bool clickedYes = Gui::Button("Yes", vec2(120.0f, 0.0f));
+			Gui::SameLine();
+			const bool clickedNo = Gui::Button("No", vec2(120.0f, 0.0f));
+			Gui::SameLine();
+			const bool clickedCancel = Gui::Button("Cancel", vec2(120.0f, 0.0f)) || (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Escape));
+
+			if (clickedYes || clickedNo || clickedCancel)
+			{
+				const bool saveDialogCanceled = clickedYes ? !TrySaveChartFileOrOpenDialog() : false;
+				if (saveConfirmationPopup.OnSuccessFunction)
+				{
+					if (!clickedCancel && !saveDialogCanceled)
+						saveConfirmationPopup.OnSuccessFunction();
+
+					saveConfirmationPopup.OnSuccessFunction = {};
+				}
+
+				Gui::CloseCurrentPopup();
+			}
+
+			Gui::EndPopup();
+		}
 	}
 
 	bool ChartEditor::GetIsPlayback() const

@@ -25,6 +25,7 @@ namespace Comfy::Studio::Editor
 		ImGuiWindowFlags GetFlags() const override;
 		void Gui() override;
 		void GuiMenu() override;
+		void OnEditorComponentMadeActive() override;
 
 	public:
 		bool IsAudioFile(std::string_view filePath);
@@ -66,11 +67,15 @@ namespace Comfy::Studio::Editor
 		TimeSpan GetPlaybackTimeOnPlaybackStart() const;
 
 	private:
+		void UpdateApplicationWindowTitle();
+		void UpdateAsyncSongSourceLoading();
+		
+		void GuiSubWindows();
 		void GuiSaveConfirmationPopup();
 
-		void UpdateAsyncSongSourceLoading();
-
 	private:
+		std::string lastSetWindowTitle;
+
 		std::unique_ptr<Chart> chart = nullptr;
 		std::unique_ptr<Render::Renderer2D> renderer = nullptr;
 
