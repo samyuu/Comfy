@@ -217,21 +217,23 @@ namespace Comfy::Studio::Editor
 		if (!Util::EndsWithInsensitive(filePath, ComfyStudioChartFile::Extension))
 			return;
 
+		// TODO: Display error GUI if unable to load
 		const auto chartFile = IO::File::Load<ComfyStudioChartFile>(filePath);
-		if (chartFile == nullptr)
-			return;
 
 		undoManager.ClearAll();
 
 		// TODO: Additional processing, setting up file paths etc.
-		chart = chartFile->ToChart();
+		chart = (chartFile != nullptr) ? chartFile->ToChart() : std::make_unique<Chart>();
 		chart->UpdateMapTimes();
 		chart->ChartFilePath = std::string(filePath);
 
 		const auto chartDirectory = IO::Path::GetDirectoryName(filePath);
 		const auto songFilePath = !chart->SongFileName.empty() ? IO::Path::Combine(chartDirectory, chart->SongFileName) : "";
 
-		LoadSongAsync(songFilePath);
+		if (!songFilePath.empty())
+			LoadSongAsync(songFilePath);
+		else
+			UnloadSong();
 
 		timeline->SetWorkingChart(chart.get());
 		renderWindow->SetWorkingChart(chart.get());
@@ -249,6 +251,8 @@ namespace Comfy::Studio::Editor
 
 			lastSavedChartFile = std::make_unique<ComfyStudioChartFile>(*chart);
 			chartSaveFileFuture = IO::File::SaveAsync(chart->ChartFilePath, lastSavedChartFile.get());
+
+			undoManager.ClearPendingChangesFlag();
 		}
 	}
 
@@ -302,6 +306,8 @@ namespace Comfy::Studio::Editor
 		const auto pjeFile = Util::EndsWithInsensitive(filePath, Legacy::PJEFile::Extension) ? IO::File::Load<Legacy::PJEFile>(filePath) : nullptr;
 
 		undoManager.ClearAll();
+		undoManager.SetChangesWereMade();
+
 		chart = (pjeFile != nullptr) ? pjeFile->ToChart() : std::make_unique<Chart>();
 		chart->UpdateMapTimes();
 		LoadSongAsync((pjeFile != nullptr) ? pjeFile->TryFindSongFilePath(filePath) : "");
@@ -324,16 +330,9 @@ namespace Comfy::Studio::Editor
 		return true;
 	}
 
-	bool ChartEditor::IsChartStateSyncedToFile() const
-	{
-		// TODO: Compare data against lastSavedChartFile (?)
-		//		 or set "isDirty" flag when an action is executed (wouldn't work with non undoable song info edits)
-		return undoManager.GetUndoStackView().empty();
-	}
-
 	void ChartEditor::CheckOpenSaveConfirmationPopupThenCall(std::function<void()> onSuccess)
 	{
-		if (!IsChartStateSyncedToFile())
+		if (undoManager.GetHasPendingChanged())
 		{
 			saveConfirmationPopup.OpenOnNextFrame = true;
 			saveConfirmationPopup.OnSuccessFunction = std::move(onSuccess);
@@ -366,13 +365,16 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::UpdateApplicationWindowTitle()
 	{
-		const auto fileName = chart->ChartFilePath.empty() ? FallbackChartFileName : IO::Path::GetFileName(chart->ChartFilePath, true);
+		windowTitle = chart->ChartFilePath.empty() ? FallbackChartFileName : IO::Path::GetFileName(chart->ChartFilePath, true);
+
+		if (undoManager.GetHasPendingChanged())
+			windowTitle += '*';
 
 		// NOTE: Comparing a few characters each frame should be well worth not having to manually sync the window title every time the chart file path is updated externally
-		if (fileName != lastSetWindowTitle)
+		if (windowTitle != lastSetWindowTitle)
 		{
-			parentApplication.SetFormattedWindowTitle(fileName);
-			lastSetWindowTitle = fileName;
+			parentApplication.SetFormattedWindowTitle(windowTitle);
+			lastSetWindowTitle = windowTitle;
 		}
 	}
 
@@ -395,16 +397,23 @@ namespace Comfy::Studio::Editor
 			const auto songDirectory = IO::Path::Normalize(IO::Path::GetDirectoryName(songSourceFilePath));
 
 			chart->SongFileName = (!chartDirectory.empty() && chartDirectory == songDirectory) ? IO::Path::GetFileName(songSourceFilePath, true) : songSourceFilePath;
+			undoManager.SetChangesWereMade();
 		}
 
 		if (chart->Duration <= TimeSpan::Zero())
+		{
 			chart->Duration = songVoice.GetDuration();
+			undoManager.SetChangesWereMade();
+		}
 
 		auto& songInfo = chart->Properties.Song;
 		{
 			// TODO: Extract metadata from audio file
 			if (songInfo.Title.empty())
+			{
 				songInfo.Title = IO::Path::GetFileName(songSourceFilePath, false);
+				undoManager.SetChangesWereMade();
+			}
 
 			songInfo.Artist;
 			songInfo.Album;

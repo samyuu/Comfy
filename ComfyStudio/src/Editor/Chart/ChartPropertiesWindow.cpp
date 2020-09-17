@@ -45,17 +45,24 @@ namespace Comfy::Studio::Editor
 
 			GuiProperty::TreeNode("Song", ImGuiTreeNodeFlags_DefaultOpen, [&]
 			{
-				GuiProperty::InputWithHint("Title", defaultHint, chart.Properties.Song.Title);
-				GuiProperty::InputWithHint("Artist", defaultHint, chart.Properties.Song.Artist);
-				GuiProperty::InputWithHint("Album", defaultHint, chart.Properties.Song.Album);
-				GuiProperty::InputWithHint("Lyricist", defaultHint, chart.Properties.Song.Lyricist);
-				GuiProperty::InputWithHint("Arranger", defaultHint, chart.Properties.Song.Arranger);
+				if (GuiProperty::InputWithHint("Title", defaultHint, chart.Properties.Song.Title))
+					undoManager.SetChangesWereMade();
+				if (GuiProperty::InputWithHint("Artist", defaultHint, chart.Properties.Song.Artist))
+					undoManager.SetChangesWereMade();
+				if (GuiProperty::InputWithHint("Album", defaultHint, chart.Properties.Song.Album))
+					undoManager.SetChangesWereMade();
+				if (GuiProperty::InputWithHint("Lyricist", defaultHint, chart.Properties.Song.Lyricist))
+					undoManager.SetChangesWereMade();
+				if (GuiProperty::InputWithHint("Arranger", defaultHint, chart.Properties.Song.Arranger))
+					undoManager.SetChangesWereMade();
 			});
 
 			GuiProperty::TreeNode("Creator", ImGuiTreeNodeFlags_DefaultOpen, [&]
 			{
-				GuiProperty::InputWithHint("Name", "Who asked? PogO", chart.Properties.Creator.Name);
-				GuiProperty::InputMultiline("Comment", chart.Properties.Creator.Comment);
+				if (GuiProperty::InputWithHint("Name", "Who asked? PogO", chart.Properties.Creator.Name))
+					undoManager.SetChangesWereMade();
+				if (GuiProperty::InputMultiline("Comment", chart.Properties.Creator.Comment))
+					undoManager.SetChangesWereMade();
 			});
 		});
 	}

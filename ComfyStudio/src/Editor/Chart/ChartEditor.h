@@ -47,7 +47,6 @@ namespace Comfy::Studio::Editor
 		void ImportChartFileSync(std::string_view filePath);
 		bool OpenReadImportChartFileDialog();
 
-		bool IsChartStateSyncedToFile() const;
 		void CheckOpenSaveConfirmationPopupThenCall(std::function<void()> onSuccess);
 
 		bool IsSongAsyncLoading() const;
@@ -74,7 +73,7 @@ namespace Comfy::Studio::Editor
 		void GuiSaveConfirmationPopup();
 
 	private:
-		std::string lastSetWindowTitle;
+		std::string windowTitle, lastSetWindowTitle;
 
 		std::unique_ptr<Chart> chart = nullptr;
 		std::unique_ptr<Render::Renderer2D> renderer = nullptr;
