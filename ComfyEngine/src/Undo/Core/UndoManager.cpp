@@ -54,6 +54,7 @@ namespace Comfy::Undo
 	void UndoManager::TryMergeOrExecute(std::unique_ptr<Command> commandToExecute)
 	{
 		assert(commandToExecute != nullptr);
+		hasPendingChanges = true;
 
 		redoStack.clear();
 		auto* lastCommand = (!undoStack.empty() ? undoStack.back().get() : nullptr);
@@ -99,6 +100,7 @@ namespace Comfy::Undo
 			if (undoStack.empty())
 				break;
 
+			hasPendingChanges = true;
 			redoStack.emplace_back(VectorPop(undoStack))->Undo();
 		}
 	}
@@ -110,12 +112,15 @@ namespace Comfy::Undo
 			if (redoStack.empty())
 				break;
 
+			hasPendingChanges = true;
 			undoStack.emplace_back(VectorPop(redoStack))->Redo();
 		}
 	}
 
 	void UndoManager::ClearAll()
 	{
+		hasPendingChanges = false;
+
 		if (!endOfFrameCommands.empty())
 			endOfFrameCommands.clear();
 
@@ -124,6 +129,21 @@ namespace Comfy::Undo
 
 		if (!redoStack.empty())
 			redoStack.clear();
+	}
+
+	void UndoManager::SetChangesWereMade()
+	{
+		hasPendingChanges = true;
+	}
+
+	void UndoManager::ClearPendingChangesFlag()
+	{
+		hasPendingChanges = false;
+	}
+
+	bool UndoManager::GetHasPendingChanged() const
+	{
+		return hasPendingChanges;
 	}
 
 	bool UndoManager::CanUndo() const

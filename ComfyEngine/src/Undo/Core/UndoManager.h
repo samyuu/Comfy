@@ -35,6 +35,12 @@ namespace Comfy::Undo
 
 		void ClearAll();
 
+		// NOTE: Specifically for controlling whether changes should be saved to disk
+		bool GetHasPendingChanged() const;
+		void SetChangesWereMade();
+
+		void ClearPendingChangesFlag();
+
 		// NOTE: Specifically for visualization, attempting to undo / redo an empty stack is a no-op
 		bool CanUndo() const;
 		bool CanRedo() const;
@@ -44,7 +50,7 @@ namespace Comfy::Undo
 		const std::vector<std::unique_ptr<Command>>& GetRedoStackView() const;
 
 		void DisallowMergeForLastCommand();
-		
+
 		TimeSpan GetCommandMergeTimeThreshold() const;
 		void SetCommandMergeTimeThreshold(TimeSpan value);
 
@@ -53,6 +59,8 @@ namespace Comfy::Undo
 		bool CommandsAreOfSameType(const Command& commandA, const Command& commandB) const;
 
 	private:
+		bool hasPendingChanges = false;
+
 		TimeSpan commandMergeTimeThreshold = TimeSpan::FromSeconds(2.0);
 		Stopwatch lastExecutedCommandStopwatch = Stopwatch::StartNew();
 
