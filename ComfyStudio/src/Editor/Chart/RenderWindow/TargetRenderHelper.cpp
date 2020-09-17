@@ -219,13 +219,13 @@ namespace Comfy::Studio::Editor
 				return;
 
 			const auto playbackFrame = hud.PlaybackTime.ToFrames();
-			TryDrawLayer(renderer, layers.FrameUpT, playbackFrame);
-			TryDrawLayer(renderer, layers.FrameBottomT, playbackFrame);
-			TryDrawLayer(renderer, layers.LifeGauge, playbackFrame);
-			TryDrawLayer(renderer, layers.SongIconLoop, playbackFrame);
-			TryDrawLayer(renderer, layers.LevelInfoHard, playbackFrame);
+			TryDrawLayerLooped(renderer, layers.FrameUpT, playbackFrame);
+			TryDrawLayerLooped(renderer, layers.FrameBottomT, playbackFrame);
+			TryDrawLayerLooped(renderer, layers.LifeGauge, playbackFrame);
+			TryDrawLayerLooped(renderer, layers.SongIconLoop, playbackFrame);
+			TryDrawLayerLooped(renderer, layers.LevelInfoHard, playbackFrame);
 
-			TryDrawLayer(renderer, layers.PracticeGaugeBase, playbackFrame);
+			TryDrawLayerLooped(renderer, layers.PracticeGaugeBase, playbackFrame);
 			DrawHUDPracitceTime(renderer, hud.PlaybackTime);
 
 			const auto progress = std::clamp(static_cast<f32>(hud.PlaybackTime / hud.Duration), 0.0f, 1.0f);
@@ -592,6 +592,11 @@ namespace Comfy::Studio::Editor
 		}
 
 		void TryDrawLayer(Render::Renderer2D& renderer, const std::shared_ptr<Aet::Layer>& layer, frame_t frame) const
+		{
+			if (layer != nullptr) { renderer.Aet().DrawLayer(*layer, frame); }
+		}
+
+		void TryDrawLayerLooped(Render::Renderer2D& renderer, const std::shared_ptr<Aet::Layer>& layer, frame_t frame) const
 		{
 			if (layer != nullptr) { renderer.Aet().DrawLayerLooped(*layer, frame); }
 		}
