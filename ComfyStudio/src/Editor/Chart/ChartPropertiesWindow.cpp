@@ -20,7 +20,9 @@ namespace Comfy::Studio::Editor
 			// NOTE: Operate on properties directly without undo actions because they all refer to the same chart object and are typically only set once. 
 			//		 Accidentally undoing them while placing targets for example is never desierable and text boxes already have an internal undo stack implemented
 
-			GuiProperty::PropertyLabelValueFunc("Song File Name", [&]
+			bool changesMade = false;
+
+			changesMade |= GuiProperty::PropertyLabelValueFunc("Song File Name", [&]
 			{
 				const auto& style = Gui::GetStyle();
 				const auto buttonSize = Gui::GetFrameHeight();
@@ -45,25 +47,21 @@ namespace Comfy::Studio::Editor
 
 			GuiProperty::TreeNode("Song", ImGuiTreeNodeFlags_DefaultOpen, [&]
 			{
-				if (GuiProperty::InputWithHint("Title", defaultHint, chart.Properties.Song.Title))
-					undoManager.SetChangesWereMade();
-				if (GuiProperty::InputWithHint("Artist", defaultHint, chart.Properties.Song.Artist))
-					undoManager.SetChangesWereMade();
-				if (GuiProperty::InputWithHint("Album", defaultHint, chart.Properties.Song.Album))
-					undoManager.SetChangesWereMade();
-				if (GuiProperty::InputWithHint("Lyricist", defaultHint, chart.Properties.Song.Lyricist))
-					undoManager.SetChangesWereMade();
-				if (GuiProperty::InputWithHint("Arranger", defaultHint, chart.Properties.Song.Arranger))
-					undoManager.SetChangesWereMade();
+				changesMade |= GuiProperty::InputWithHint("Title", defaultHint, chart.Properties.Song.Title);
+				changesMade |= GuiProperty::InputWithHint("Artist", defaultHint, chart.Properties.Song.Artist);
+				changesMade |= GuiProperty::InputWithHint("Album", defaultHint, chart.Properties.Song.Album);
+				changesMade |= GuiProperty::InputWithHint("Lyricist", defaultHint, chart.Properties.Song.Lyricist);
+				changesMade |= GuiProperty::InputWithHint("Arranger", defaultHint, chart.Properties.Song.Arranger);
 			});
 
 			GuiProperty::TreeNode("Creator", ImGuiTreeNodeFlags_DefaultOpen, [&]
 			{
-				if (GuiProperty::InputWithHint("Name", "Who asked? PogO", chart.Properties.Creator.Name))
-					undoManager.SetChangesWereMade();
-				if (GuiProperty::InputMultiline("Comment", chart.Properties.Creator.Comment))
-					undoManager.SetChangesWereMade();
+				changesMade |= GuiProperty::InputWithHint("Name", "Who asked? PogO", chart.Properties.Creator.Name);
+				changesMade |= GuiProperty::InputMultiline("Comment", chart.Properties.Creator.Comment);
 			});
+
+			if (changesMade)
+				undoManager.SetChangesWereMade();
 		});
 	}
 }
