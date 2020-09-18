@@ -422,7 +422,9 @@ namespace Comfy::Studio::Editor
 			const auto songDirectory = IO::Path::Normalize(IO::Path::GetDirectoryName(songSourceFilePath));
 
 			chart->SongFileName = (!chartDirectory.empty() && chartDirectory == songDirectory) ? IO::Path::GetFileName(songSourceFilePath, true) : songSourceFilePath;
-			undoManager.SetChangesWereMade();
+
+			// NOTE: Should already set by the properties window on user interaction
+			// undoManager.SetChangesWereMade();
 		}
 
 		if (chart->Duration <= TimeSpan::Zero())

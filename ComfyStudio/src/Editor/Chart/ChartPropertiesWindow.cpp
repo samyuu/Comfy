@@ -32,13 +32,19 @@ namespace Comfy::Studio::Editor
 
 				Gui::PushItemWidth(std::max(1.0f, (Gui::GetContentRegionAvailWidth() - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
 				if (Gui::InputTextWithHint(GuiProperty::Detail::DummyLabel, (songIsLoading ? "Loading..." : defaultHint), &chart.SongFileName, ImGuiInputTextFlags_EnterReturnsTrue))
+				{
 					chartEditor.LoadSongAsync(chart.SongFileName);
+					undoManager.SetChangesWereMade();
+				}
 				Gui::PopItemWidth();
 
 				Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(style.FramePadding.y));
 				Gui::SameLine(0, style.ItemInnerSpacing.x);
 				if (Gui::Button("...", vec2(buttonSize)))
-					chartEditor.OpenLoadAudioFileDialog();
+				{
+					if (chartEditor.OpenLoadAudioFileDialog())
+						undoManager.SetChangesWereMade();
+				}
 				Gui::PopStyleVar();
 
 				Gui::PopItemDisabledAndTextColorIf(songIsLoading);
