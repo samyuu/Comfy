@@ -176,9 +176,12 @@ namespace Comfy::Studio::Editor
 	{
 		UnloadSong();
 
-		// TODO: Song file name relative to chart directory
-		songSourceFuture = Audio::AudioEngine::GetInstance().LoadAudioSourceAsync(filePath);
-		songSourceFilePath = std::string(filePath);
+		if (IO::Path::IsRelative(filePath) && !chart->ChartFilePath.empty())
+			songSourceFilePath = IO::Path::Combine(IO::Path::GetDirectoryName(chart->ChartFilePath), chart->SongFileName);
+		else
+			songSourceFilePath = filePath;
+
+		songSourceFuture = Audio::AudioEngine::GetInstance().LoadAudioSourceAsync(songSourceFilePath);
 
 		// NOTE: Clear file name here so the chart properties window help loading text is displayed
 		//		 then set again once the song audio file has finished loading
@@ -223,15 +226,12 @@ namespace Comfy::Studio::Editor
 		undoManager.ClearAll();
 
 		// TODO: Additional processing, setting up file paths etc.
-		chart = (chartFile != nullptr) ? chartFile->ToChart() : std::make_unique<Chart>();
+		chart = (chartFile != nullptr) ? chartFile->MoveToChart() : std::make_unique<Chart>();
 		chart->UpdateMapTimes();
 		chart->ChartFilePath = std::string(filePath);
 
-		const auto chartDirectory = IO::Path::GetDirectoryName(filePath);
-		const auto songFilePath = !chart->SongFileName.empty() ? IO::Path::Combine(chartDirectory, chart->SongFileName) : "";
-
-		if (!songFilePath.empty())
-			LoadSongAsync(songFilePath);
+		if (!chart->SongFileName.empty())
+			LoadSongAsync(chart->SongFileName);
 		else
 			UnloadSong();
 
@@ -310,6 +310,8 @@ namespace Comfy::Studio::Editor
 
 		chart = (pjeFile != nullptr) ? pjeFile->ToChart() : std::make_unique<Chart>();
 		chart->UpdateMapTimes();
+
+		// NOTE: Unable to use relative file path because imported chart data don't and shouldn't set a working directory
 		LoadSongAsync((pjeFile != nullptr) ? pjeFile->TryFindSongFilePath(filePath) : "");
 
 		timeline->SetWorkingChart(chart.get());
