@@ -66,6 +66,7 @@ namespace Comfy::Studio::Editor
 		TimeSpan GetPlaybackTimeOnPlaybackStart() const;
 
 	private:
+		void UpdateGlobalControlInput();
 		void UpdateApplicationWindowTitle();
 		void UpdateAsyncSongSourceLoading();
 
@@ -77,8 +78,6 @@ namespace Comfy::Studio::Editor
 
 		std::unique_ptr<Chart> chart = nullptr;
 		std::unique_ptr<Render::Renderer2D> renderer = nullptr;
-
-		Gui::FileViewer songFileViewer = { "dev_ram/sound/song" };
 
 	private:
 		Undo::UndoManager undoManager = {};

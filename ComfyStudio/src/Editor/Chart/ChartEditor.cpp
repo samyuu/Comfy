@@ -49,6 +49,7 @@ namespace Comfy::Studio::Editor
 	{
 		Gui::GetCurrentWindow()->Hidden = true;
 
+		UpdateGlobalControlInput();
 		UpdateApplicationWindowTitle();
 		UpdateAsyncSongSourceLoading();
 
@@ -66,7 +67,7 @@ namespace Comfy::Studio::Editor
 			if (Gui::MenuItem("New Chart", nullptr, false, true))
 				CheckOpenSaveConfirmationPopupThenCall([this] { CreateNewChart(); });
 
-			if (Gui::MenuItem("Open...", nullptr, false, true))
+			if (Gui::MenuItem("Open...", "Ctrl + O", false, true))
 				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadChartFileDialog(); });
 
 			if (Gui::BeginMenu("Open Recent", false))
@@ -165,6 +166,7 @@ namespace Comfy::Studio::Editor
 
 	bool ChartEditor::OnFileDropped(const std::string& filePath)
 	{
+		// TODO: Correctly support both song and chart drag and drop actions
 		if (!IsAudioFile(filePath))
 			return false;
 
@@ -365,6 +367,27 @@ namespace Comfy::Studio::Editor
 		return playbackTimeOnPlaybackStart;
 	}
 
+	void ChartEditor::UpdateGlobalControlInput()
+	{
+		// HACK: Works for now I guess...
+		if (!parentApplication.GetHost().IsWindowFocused())
+			return;
+
+		if (Gui::GetIO().KeyCtrl)
+		{
+			const bool shift = Gui::GetIO().KeyShift;
+
+			if (Gui::IsKeyPressed(Input::KeyCode_O, false) && !shift)
+				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadChartFileDialog(); });
+
+			if (Gui::IsKeyPressed(Input::KeyCode_S, false) && !shift)
+				TrySaveChartFileOrOpenDialog();
+
+			if (Gui::IsKeyPressed(Input::KeyCode_S, false) && shift)
+				OpenSaveChartFileDialog();
+		}
+	}
+
 	void ChartEditor::UpdateApplicationWindowTitle()
 	{
 		windowTitle = chart->ChartFilePath.empty() ? FallbackChartFileName : IO::Path::GetFileName(chart->ChartFilePath, true);
@@ -427,22 +450,6 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::GuiSubWindows()
 	{
-#if 1 // TODO: Remove in favor of the chart properties window song file name input widget
-		if (Gui::Begin(ICON_FA_FOLDER "  Song Loader##ChartEditor", nullptr, ImGuiWindowFlags_None))
-		{
-			Gui::BeginChild("SongLoaderChild##ChartEditor");
-
-			songFileViewer.SetIsReadOnly(IsSongAsyncLoading());
-			if (songFileViewer.DrawGui())
-			{
-				if (IsAudioFile(songFileViewer.GetFileToOpen()))
-					LoadSongAsync(songFileViewer.GetFileToOpen());
-			}
-			Gui::EndChild();
-		}
-		Gui::End();
-#endif
-
 		if (Gui::Begin(ICON_FA_MUSIC "  Target Timeline##ChartEditor", nullptr, ImGuiWindowFlags_None))
 		{
 			timeline->DrawTimelineGui();
