@@ -118,6 +118,8 @@ namespace Comfy::Studio::Editor
 
 		void operator=(std::vector<TimelineTarget>&& newTargets);
 
+		const std::vector<TimelineTarget>& GetRawView() const { return targets; }
+
 	private:
 		std::vector<TimelineTarget> targets;
 

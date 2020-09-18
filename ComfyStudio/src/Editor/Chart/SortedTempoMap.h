@@ -24,6 +24,8 @@ namespace Comfy::Studio::Editor
 		auto end() const { return tempoChanges.cend(); }
 
 		void operator=(std::vector<TempoChange>&& newTempoChanges);
+		
+		const std::vector<TempoChange>& GetRawView() const { return tempoChanges; }
 
 	private:
 		size_t FindSortedInsertionIndex(TimelineTick tick) const;
