@@ -24,6 +24,9 @@ namespace Comfy::IO
 
 	std::string StreamReader::ReadStrAtOffsetAware(FileAddr position)
 	{
+		if (settings.EmptyNullStringPointers && position == FileAddr::NullPtr)
+			return "";
+
 		return ReadValueAtOffsetAware<std::string>(position, [](StreamReader& reader)
 		{
 			return reader.ReadStr();

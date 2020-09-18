@@ -66,6 +66,9 @@ namespace Comfy::IO
 
 		void SeekAlign(i32 alignment);
 
+		inline bool GetWriteEmptyNullStrPtr() const { return settings.EmptyNullStringPointers; }
+		inline void SetWriteEmptyNullStrPtr(bool value) { settings.EmptyNullStringPointers = value; }
+
 	public:
 		inline FileAddr ReadPtr() { return (this->*readPtrFunc)(); }
 		inline size_t ReadSize() { return (this->*readSizeFunc)(); }
@@ -135,5 +138,10 @@ namespace Comfy::IO
 		u64(StreamReader::*readU64Func)() = nullptr;
 		f32(StreamReader::*readF32Func)() = nullptr;
 		f64(StreamReader::*readF64Func)() = nullptr;
+
+		struct Settings
+		{
+			bool EmptyNullStringPointers = false;
+		} settings;
 	};
 }
