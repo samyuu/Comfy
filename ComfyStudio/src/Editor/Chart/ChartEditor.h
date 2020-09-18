@@ -68,7 +68,7 @@ namespace Comfy::Studio::Editor
 	private:
 		void UpdateApplicationWindowTitle();
 		void UpdateAsyncSongSourceLoading();
-		
+
 		void GuiSubWindows();
 		void GuiSaveConfirmationPopup();
 
@@ -94,7 +94,6 @@ namespace Comfy::Studio::Editor
 		struct SaveConfirmationPopupData
 		{
 			bool OpenOnNextFrame;
-			const char* ID = "Comfy Studio - Chart Editor##SaveConfirmationPopup";
 			std::function<void()> OnSuccessFunction;
 		} saveConfirmationPopup = {};
 

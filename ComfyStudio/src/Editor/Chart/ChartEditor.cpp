@@ -482,29 +482,38 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::GuiSaveConfirmationPopup()
 	{
+		constexpr const char* saveConfirmationPopupID = ICON_FA_INFO_CIRCLE "  Comfy Studio - Unsaved Changes##SaveConfirmationPopup";
+
 		if (saveConfirmationPopup.OpenOnNextFrame)
 		{
-			Gui::OpenPopup(saveConfirmationPopup.ID);
+			Gui::OpenPopup(saveConfirmationPopupID);
 			saveConfirmationPopup.OpenOnNextFrame = false;
 		}
 
 		const auto* viewport = Gui::GetMainViewport();
 		Gui::SetNextWindowPos(viewport->Pos + (viewport->Size / 2.0f), ImGuiCond_Appearing, vec2(0.5f));
 
-		if (Gui::BeginPopupModal(saveConfirmationPopup.ID, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		bool isOpen = true;
+		if (Gui::BeginPopupModal(saveConfirmationPopupID, &isOpen, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			Gui::Text("Save changes to the current file?\n\n\n");
+			constexpr auto buttonSize = vec2(120.0f, 0.0f);
+
+			Gui::Text("  Save changes to the current file?\n\n\n");
 			Gui::Separator();
 
-			const bool clickedYes = Gui::Button("Yes", vec2(120.0f, 0.0f));
+			const bool clickedYes = Gui::Button(ICON_FA_CHECK "   Save Changes", buttonSize);
 			Gui::SameLine();
-			const bool clickedNo = Gui::Button("No", vec2(120.0f, 0.0f));
+
+			const bool clickedNo = Gui::Button(ICON_FA_TIMES "   Discard Changes", buttonSize);
 			Gui::SameLine();
-			const bool clickedCancel = Gui::Button("Cancel", vec2(120.0f, 0.0f)) || (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Escape));
+
+			const bool clickedCancel = Gui::Button("Cancel", buttonSize) || (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Escape));
 
 			if (clickedYes || clickedNo || clickedCancel)
 			{
 				const bool saveDialogCanceled = clickedYes ? !TrySaveChartFileOrOpenDialog() : false;
+				UpdateApplicationWindowTitle();
+
 				if (saveConfirmationPopup.OnSuccessFunction)
 				{
 					if (!clickedCancel && !saveDialogCanceled)
