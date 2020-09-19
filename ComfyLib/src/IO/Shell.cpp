@@ -10,6 +10,12 @@ namespace Comfy::IO
 {
 	namespace Shell
 	{
+		bool IsFileLink(std::string filePath)
+		{
+			const auto extension = Path::GetExtension(filePath);
+			return Util::MatchesInsensitive(extension, FileLinkExtension);
+		}
+
 		std::string ResolveFileLink(std::string_view lnkFilePath)
 		{
 #if 0

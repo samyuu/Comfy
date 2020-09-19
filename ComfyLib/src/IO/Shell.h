@@ -7,6 +7,9 @@ namespace Comfy::IO
 {
 	namespace Shell
 	{
+		constexpr std::string_view FileLinkExtension = ".lnk";
+
+		COMFY_NODISCARD bool IsFileLink(std::string filePath);
 		COMFY_NODISCARD std::string ResolveFileLink(std::string_view lnkFilePath);
 
 		void OpenInExplorer(std::string_view filePath);
