@@ -6,10 +6,12 @@
 #include "Core/Logger.h"
 #include "Core/Win32/ComfyWindows.h"
 #include "IO/File.h"
+#include "IO/Shell.h"
 #include "System/Profiling/Profiler.h"
 #include "System/ComfyData.h"
 #include "Misc/StringUtil.h"
 #include "ImGui/GuiRenderer.h"
+#include <shellapi.h>
 
 namespace Comfy
 {
@@ -79,9 +81,12 @@ namespace Comfy
 		struct FileDropData
 		{
 			std::vector<std::string> DroppedFiles;
+			std::vector<wchar_t> Buffer;
 
 			bool FilesDroppedThisFrame = false, FilesDropped = false;
 			bool FilesLastDropped = false, FileDropDispatched = false;
+
+			bool ResolveFileLinks = true;
 		} FileDrop;
 
 		struct InputData
@@ -250,6 +255,10 @@ namespace Comfy
 			}
 
 			::UpdateWindow(Window.Handle);
+
+			// NOTE: Should this ever be disabled again (?)
+			::DragAcceptFiles(Window.Handle, true);
+
 			return true;
 		}
 
@@ -297,16 +306,39 @@ namespace Comfy
 			}
 		}
 
-		void InternalWindowDropCallback(size_t count, const char* paths[])
+		void InternalWindowDropCallback(const HDROP dropHandle)
 		{
+			const auto droppedFileCount = ::DragQueryFileW(dropHandle, 0xFFFFFFFF, nullptr, 0u);
+
 			FileDrop.FileDropDispatched = false;
 			FileDrop.FilesDropped = true;
 
 			FileDrop.DroppedFiles.clear();
-			FileDrop.DroppedFiles.reserve(count);
+			FileDrop.DroppedFiles.reserve(droppedFileCount);
 
-			for (size_t i = 0; i < count; i++)
-				FileDrop.DroppedFiles.emplace_back(paths[i]);
+			for (UINT i = 0; i < droppedFileCount; i++)
+			{
+				const auto requiredBufferSize = ::DragQueryFileW(dropHandle, i, nullptr, 0u);
+				if (requiredBufferSize == 0)
+					continue;
+
+				FileDrop.Buffer.resize(requiredBufferSize + 1);
+
+				const auto success = ::DragQueryFileW(dropHandle, i, FileDrop.Buffer.data(), static_cast<UINT>(FileDrop.Buffer.size()));
+				const auto bufferView = std::wstring_view(FileDrop.Buffer.data(), requiredBufferSize);
+
+				if (success != 0)
+				{
+					auto path = UTF8::Narrow(bufferView);
+					if (FileDrop.ResolveFileLinks && IO::Shell::IsFileLink(path))
+						path = IO::Shell::ResolveFileLink(path);
+					FileDrop.DroppedFiles.push_back(std::move(path));
+				}
+
+				FileDrop.Buffer.clear();
+			}
+
+			::DragFinish(dropHandle);
 		}
 
 		void InternalWindowPaintCallback()
@@ -536,7 +568,11 @@ namespace Comfy
 				return 0;
 			}
 
-			// TODO: case WM_DROPFILES:
+			case WM_DROPFILES:
+			{
+				InternalWindowDropCallback(reinterpret_cast<HDROP>(wParam));
+				return 0;
+			}
 
 			case WM_GETMINMAXINFO:
 			{
