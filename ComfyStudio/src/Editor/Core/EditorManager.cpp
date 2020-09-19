@@ -199,16 +199,17 @@ namespace Comfy::Studio::Editor
 		if (!parent.GetHost().GetDispatchFileDrop())
 			return;
 
+		auto* component = TryGetActiveComponent(false);
+		if (component == nullptr)
+			return;
+
 		const auto& droppedFiles = parent.GetHost().GetDroppedFiles();
-		for (const auto& component : registeredEditors)
+		for (const auto& filePath : droppedFiles)
 		{
-			for (const auto& filePath : droppedFiles)
+			if (component->OnFileDropped(filePath))
 			{
-				if (component.Component->OnFileDropped(filePath))
-				{
-					parent.GetHost().SetFileDropDispatched();
-					break;
-				}
+				parent.GetHost().SetFileDropDispatched();
+				return;
 			}
 		}
 	}

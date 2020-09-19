@@ -144,6 +144,7 @@ namespace Comfy::Studio::Editor
 	bool ChartEditor::OpenLoadAudioFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
+		fileDialog.Title = "Open";
 		fileDialog.FileName;
 		fileDialog.DefaultExtension;
 		fileDialog.Filters =
@@ -164,14 +165,21 @@ namespace Comfy::Studio::Editor
 		return true;
 	}
 
-	bool ChartEditor::OnFileDropped(const std::string& filePath)
+	bool ChartEditor::OnFileDropped(std::string_view filePath)
 	{
-		// TODO: Correctly support both song and chart drag and drop actions
-		if (!IsAudioFile(filePath))
-			return false;
+		if (Util::EndsWithInsensitive(filePath, ComfyStudioChartFile::Extension))
+		{
+			CheckOpenSaveConfirmationPopupThenCall([this, path = std::string(filePath)] { LoadChartFileSync(path); });
+			return true;
+		}
 
-		LoadSongAsync(filePath);
-		return true;
+		if (IsAudioFile(filePath))
+		{
+			LoadSongAsync(filePath);
+			return true;
+		}
+
+		return false;
 	}
 
 	void ChartEditor::LoadSongAsync(std::string_view filePath)
@@ -261,6 +269,7 @@ namespace Comfy::Studio::Editor
 	bool ChartEditor::OpenReadChartFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
+		fileDialog.Title = "Open";
 		fileDialog.DefaultExtension = ComfyStudioChartFile::Extension;
 		fileDialog.Filters = { { std::string(ComfyStudioChartFile::FilterName), std::string(ComfyStudioChartFile::FilterSpec) }, };
 		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
@@ -275,6 +284,7 @@ namespace Comfy::Studio::Editor
 	bool ChartEditor::OpenSaveChartFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
+		fileDialog.Title = "Save As";
 		fileDialog.FileName =
 			!chart->ChartFilePath.empty() ? IO::Path::GetFileName(chart->ChartFilePath) :
 			!chart->Properties.Song.Title.empty() ? chart->Properties.Song.Title :
@@ -323,6 +333,7 @@ namespace Comfy::Studio::Editor
 	bool ChartEditor::OpenReadImportChartFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
+		fileDialog.Title = "Import";
 		fileDialog.DefaultExtension = Legacy::PJEFile::Extension;
 		fileDialog.Filters = { { std::string(Legacy::PJEFile::FilterName), std::string(Legacy::PJEFile::FilterSpec) }, };
 		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();

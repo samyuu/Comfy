@@ -91,7 +91,7 @@ namespace Comfy::Studio::Editor
 				if (IO::File::Exists(combinedPath))
 					return combinedPath;
 
-				combinedPath += ".lnk";
+				combinedPath += IO::Shell::FileLinkExtension;
 				if (IO::File::Exists(combinedPath))
 					return IO::Shell::ResolveFileLink(combinedPath);
 			}
