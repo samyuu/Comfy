@@ -239,11 +239,14 @@ namespace Comfy::IO
 					result = fileDialog->GetOptions(&existingOptionsFlags);
 					result = fileDialog->SetOptions(existingOptionsFlags | FOS_FORCEFILESYSTEM);
 
-					if (!DefaultExtension.empty())
-						result = fileDialog->SetDefaultExtension(UTF8::WideArg(Util::StripPrefix(DefaultExtension, ".")).c_str());
+					if (!Title.empty())
+						result = fileDialog->SetTitle(UTF8::WideArg(Title).c_str());
 
 					if (!FileName.empty())
 						result = fileDialog->SetFileName(UTF8::WideArg(FileName).c_str());
+
+					if (!DefaultExtension.empty())
+						result = fileDialog->SetDefaultExtension(UTF8::WideArg(Util::StripPrefix(DefaultExtension, ".")).c_str());
 
 					if (!Filters.empty())
 					{

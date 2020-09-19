@@ -50,6 +50,7 @@ namespace Comfy::IO
 				std::string Spec;
 			};
 
+			std::string_view Title;
 			std::string FileName;
 			std::string DefaultExtension;
 			std::vector<FileFilter> Filters;
