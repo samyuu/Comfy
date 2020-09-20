@@ -45,7 +45,10 @@ namespace Comfy::Studio::Editor
 		bool TrySaveChartFileOrOpenDialog();
 
 		void ImportChartFileSync(std::string_view filePath);
+		void ExportChartFileSync(std::string_view filePath);
+		
 		bool OpenReadImportChartFileDialog();
+		bool OpenSaveExportChartFileDialog();
 
 		void CheckOpenSaveConfirmationPopupThenCall(std::function<void()> onSuccess);
 

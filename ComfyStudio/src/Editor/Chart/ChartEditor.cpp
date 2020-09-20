@@ -12,7 +12,18 @@ namespace Comfy::Studio::Editor
 {
 	namespace
 	{
-		static constexpr std::string_view FallbackChartFileName = "Untitled Chart.csfm";
+		constexpr std::string_view FallbackChartFileName = "Untitled Chart.csfm";
+
+		std::string_view GetChartSaveDialogFileName(const Chart& chart)
+		{
+			if (!chart.ChartFilePath.empty())
+				return IO::Path::GetFileName(chart.ChartFilePath, false);
+
+			if (!chart.Properties.Song.Title.empty())
+				return chart.Properties.Song.Title;
+
+			return IO::Path::TrimExtension(FallbackChartFileName);
+		}
 	}
 
 	ChartEditor::ChartEditor(Application& parent, EditorManager& editor) : IEditorComponent(parent, editor)
@@ -61,7 +72,6 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::GuiMenu()
 	{
-		// TODO: Restructure all of this, should probably be part of the currently active editor component (?); Dummy menus for now
 		if (Gui::BeginMenu("File"))
 		{
 			if (Gui::MenuItem("New Chart", nullptr, false, true))
@@ -103,10 +113,8 @@ namespace Comfy::Studio::Editor
 			if (Gui::MenuItem("Import...", nullptr, false, true))
 				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadImportChartFileDialog(); });
 
-			if (Gui::MenuItem("Export...", nullptr, false, false))
-			{
-				// TODO:
-			}
+			if (Gui::MenuItem("Export...", nullptr, false, true))
+				OpenSaveExportChartFileDialog();
 
 			Gui::Separator();
 
@@ -186,7 +194,7 @@ namespace Comfy::Studio::Editor
 	{
 		UnloadSong();
 
-		if (IO::Path::IsRelative(filePath) && !chart->ChartFilePath.empty())
+		if (!chart->ChartFilePath.empty() && IO::Path::IsRelative(filePath))
 			songSourceFilePath = IO::Path::Combine(IO::Path::GetDirectoryName(chart->ChartFilePath), chart->SongFileName);
 		else
 			songSourceFilePath = filePath;
@@ -285,21 +293,37 @@ namespace Comfy::Studio::Editor
 	{
 		IO::Shell::FileDialog fileDialog;
 		fileDialog.Title = "Save As";
-		fileDialog.FileName =
-			!chart->ChartFilePath.empty() ? IO::Path::GetFileName(chart->ChartFilePath) :
-			!chart->Properties.Song.Title.empty() ? chart->Properties.Song.Title :
-			FallbackChartFileName;
-
+		fileDialog.FileName = GetChartSaveDialogFileName(*chart);
 		fileDialog.DefaultExtension = ComfyStudioChartFile::Extension;
 		fileDialog.Filters = { { std::string(ComfyStudioChartFile::FilterName), std::string(ComfyStudioChartFile::FilterSpec) }, };
-		// TODO: Option to copy audio file into output directory if absolute path
-		// fileDialog.CustomizeItems;
+
+		const bool songFileIsAbsolute = !chart->SongFileName.empty() && !IO::Path::IsRelative(chart->SongFileName);
+		const bool copySongFileDefaultValue = false;
+
+		bool copySongFile = copySongFileDefaultValue;
+		fileDialog.CustomizeItems = { { IO::Shell::Custom::ItemType::Checkbox, "Copy Song to Directory", songFileIsAbsolute ? &copySongFile : nullptr } };
+
 		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
 
 		if (!fileDialog.OpenSave())
 			return false;
 
 		SaveChartFileAsync(fileDialog.OutFilePath);
+
+		if (copySongFile && songFileIsAbsolute)
+		{
+			const auto songFileName = IO::Path::GetFileName(chart->SongFileName);
+			const auto chartDirectory = IO::Path::GetDirectoryName(fileDialog.OutFilePath);
+			const auto chartDirectorySongPath = IO::Path::Combine(chartDirectory, songFileName);
+
+			// TODO: Consider doing this async although since this only happens *once* in the save *dialog* it shouldn't be too noticable
+			if (IO::File::Copy(chart->SongFileName, chartDirectorySongPath))
+			{
+				chart->SongFileName = songFileName;
+				songSourceFilePath = chartDirectorySongPath;
+			}
+		}
+
 		return true;
 	}
 
@@ -330,6 +354,17 @@ namespace Comfy::Studio::Editor
 		renderWindow->SetWorkingChart(chart.get());
 	}
 
+	void ChartEditor::ExportChartFileSync(std::string_view filePath)
+	{
+		// TODO: Implement different export options
+		if (Util::EndsWithInsensitive(filePath, Legacy::PJEFile::Extension))
+		{
+			// TODO: Implement IStreamWritable interface for PJEFile and FromChart constructor
+			// auto pjeFile = Legacy::PJEFile(*chart);
+			// IO::File::Save(filePath, pjeFile);
+		}
+	}
+
 	bool ChartEditor::OpenReadImportChartFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
@@ -342,6 +377,22 @@ namespace Comfy::Studio::Editor
 			return false;
 
 		ImportChartFileSync(fileDialog.OutFilePath);
+		return true;
+	}
+
+	bool ChartEditor::OpenSaveExportChartFileDialog()
+	{
+		IO::Shell::FileDialog fileDialog;
+		fileDialog.Title = "Export As";
+		fileDialog.FileName = GetChartSaveDialogFileName(*chart);
+		fileDialog.DefaultExtension = Legacy::PJEFile::Extension;
+		fileDialog.Filters = { { std::string(Legacy::PJEFile::FilterName), std::string(Legacy::PJEFile::FilterSpec) }, };
+		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
+
+		if (!fileDialog.OpenSave())
+			return false;
+
+		ExportChartFileSync(fileDialog.OutFilePath);
 		return true;
 	}
 
