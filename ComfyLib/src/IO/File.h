@@ -14,6 +14,7 @@ namespace Comfy::IO
 	namespace File
 	{
 		COMFY_NODISCARD bool Exists(std::string_view filePath);
+		bool Copy(std::string_view source, std::string_view destination, bool overwriteExisting = false);
 
 		// NOTE: Use for mostly temporary variables, hence return by value
 		COMFY_NODISCARD FileStream OpenRead(std::string_view filePath);

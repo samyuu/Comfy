@@ -16,6 +16,14 @@ namespace Comfy::IO
 			return (attributes != INVALID_FILE_ATTRIBUTES && !(attributes & FILE_ATTRIBUTE_DIRECTORY));
 		}
 
+		bool Copy(std::string_view source, std::string_view destination, bool overwriteExisting)
+		{
+			const bool failIfExists = !overwriteExisting;
+			const auto success = ::CopyFileW(UTF8::WideArg(source).c_str(), UTF8::WideArg(destination).c_str(), failIfExists);
+
+			return (success != 0);
+		}
+
 		FileStream OpenRead(std::string_view filePath)
 		{
 			FileStream result;
